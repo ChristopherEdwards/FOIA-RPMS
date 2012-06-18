@@ -1,0 +1,17 @@
+ICARE TAXONOMY CATEGORY
+ZWR
+^BQI(90508.3,0)="ICARE TAXONOMY CATEGORY^90508.3^7^7"
+^BQI(90508.3,1,0)="Diagnoses^DIAGNOSES"
+^BQI(90508.3,2,0)="CPT Procedures^CPTS"
+^BQI(90508.3,3,0)="ICD Procedures^PROCEDURES"
+^BQI(90508.3,4,0)="Medications^MEDICATIONS"
+^BQI(90508.3,5,0)="Lab Tests^LAB TESTS"
+^BQI(90508.3,6,0)="Other^OTHERS"
+^BQI(90508.3,7,0)="Communities^COMMUNITIES"
+^BQI(90508.3,"B","CPT Procedures",2)=""
+^BQI(90508.3,"B","Communities",7)=""
+^BQI(90508.3,"B","Diagnoses",1)=""
+^BQI(90508.3,"B","ICD Procedures",3)=""
+^BQI(90508.3,"B","Lab Tests",5)=""
+^BQI(90508.3,"B","Medications",4)=""
+^BQI(90508.3,"B","Other",6)=""

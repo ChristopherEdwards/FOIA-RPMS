@@ -1,0 +1,87 @@
+XBKD2 ; IHS/ADC/GTH - CHECK DICTIONARY NAMES AND DATA GLOBALS ; [ 10/29/2002   7:42 AM ]
+ ;;3.0;IHS/VA UTILITIES;**9**;FEB 07, 1997
+ ; XB*3*9 IHS/SET/GTH XB*3*9 10/29/2002 Cache' mods.
+ ;
+ ; Part of XBKD
+ ;
+START ;
+ S (Y,XBKDUCI)=""
+ X:$D(^%ZOSF("UCI"))#2 ^("UCI")
+ ;I Y'="" S XBKDUCI="["""_$P(Y,",",1)_""""_$S($P(Y,",",2)'="":","""_$P(Y,",",2)_"""",1:"")_"]" ;IHS/SET/GTH XB*3*9 10/29/2002 Cache' mods.
+ I Y'="" S XBKDUCI="["""_$P(Y,",",1)_""""_$S($P(Y,",",2)'=""&($$VERSION^%ZOSV(1)'["Cache"):","""_$P(Y,",",2)_"""",1:"")_"]" ;IHS/SET/GTH XB*3*9 10/29/2002 Cache' mods.
+ W !!,"Now checking dictionary names and data globals."
+ S XBKDFILE=""
+ F XBKDL=0:0 S XBKDFILE=$O(^UTILITY("XBDSET",$J,XBKDFILE)) Q:XBKDFILE=""  W !?5,"Checking ",XBKDFILE D XBKDNC
+ KILL XBKDANS,XBKDC,XBKDG,XBKDGG,XBKDGNM,XBKDGNR,XBKDNDD,XBKDNDIC,XBKDNTBL,XBKDX,XBKDY
+ Q
+ ;
+XBKDNC ;
+ I '$D(^DIC(XBKDFILE)),'$D(^DD(XBKDFILE)) W !,*7,?10,"Not in ^DIC or ^DD.  Removing from ^UTILITY(""XBDSET"")." KILL ^UTILITY("XBDSET",$J,XBKDFILE) Q
+ S XBKDNDIC=$G(^DIC(XBKDFILE,0)),XBKDNDIC=$P(XBKDNDIC,U,1)
+ D GCHK
+ I XBKDG["%" W !,*7,?10,"Data global for ",XBKDFILE," is a % global.  Removing from ^UTILITY(""XBDSET"")." KILL ^UTILITY("XBDSET",$J,XBKDFILE) Q
+ S XBKDNDD=$O(^DD(XBKDFILE,0,"NM",""))
+ I XBKDNDIC=XBKDNDD,XBKDNDIC=XBKDGNM,XBKDFILE=XBKDGNR Q
+ I XBKDNDIC]"",XBKDNDIC=XBKDNDD G GNMCHK
+ I XBKDNDIC]"",XBKDNDD="" W !?10,"No name in ^DD.  Using name in ^DIC." S XBKDNDD=XBKDNDIC,^DD(XBKDFILE,0,"NM",XBKDNDD)="" G GNMCHK
+ I XBKDNDIC="",XBKDNDD]"" W !?10,"No name in ^DIC.  Using name in ^DD." S $P(^DIC(XBKDFILE,0),U,1)=XBKDNDD,XBKDNDIC=XBKDNDD G GNMCHK
+ I XBKDNDIC="",XBKDNDD="",XBKDGNM]"",XBKDFILE=XBKDGNR W !?10,"No name in ^DIC or ^DD.  Using name in data global." S $P(^DIC(XBKDFILE,0),U,1)=XBKDGNM,^DD(XBKDFILE,0,"NM",XBKDGNM)="",(XBKDNDIC,XBKDNDD)=XBKDGNM Q
+ I XBKDNDIC]"",XBKDNDD]"",XBKDNDIC'=XBKDNDD W !?10,"Name in ^DIC and ^DD differ.  Using name in ^DIC." KILL ^DD(XBKDFILE,0,"NM") S XBKDNDD=XBKDNDIC,^DD(XBKDFILE,0,"NM",XBKDNDD)="" G GNMCHK
+ W !?10,"Unable to deduce name.  Searching DIC(""B"")."
+ D DICB
+ G:XBKDNDIC]"" GNMCHK
+ W !?10,"Unable to deduce name.  Setting to 'NO NAME'"
+ S (XBKDNDIC,XBKDNDD)="NO NAME",$P(^DIC(XBKDFILE,0),U,1)=XBKDNDIC,^DD(XBKDFILE,0,"NM",XBKDNDD)=""
+ G GNMCHK
+ ;
+GCHK ; CHECK DATA GLOBAL
+ S (XBKDGNM,XBKDGNR)=""
+ S XBKDGG=0,XBKDG=$G(^DIC(XBKDFILE,0,"GL"))
+ S:XBKDG?1"^"1U.UN1"(".UNP XBKDGG=1
+ I XBKDG="" W !?10,"File ",XBKDFILE," has no data global specified in ^DIC." S $P(^UTILITY("XBDSET",$J,XBKDFILE),U,1)="?" Q
+ I 'XBKDGG W !?10,"File ",XBKDFILE," data global=",XBKDG," is invalid." S $P(^UTILITY("XBDSET",$J,XBKDFILE),U,1)="?" Q
+ S XBKDG="^"_XBKDUCI_$E(XBKDG,2,99),$P(^UTILITY("XBDSET",$J,XBKDFILE),U,3)=$E(XBKDG,2,99)
+ S XBKDX=$E(XBKDG,1,$L(XBKDG)-1)_$S($E(XBKDG,$L(XBKDG))=",":")",1:""),XBKDX=$D(@XBKDX)
+ I 'XBKDX W !?10,"Data global ",XBKDG," does not exist!" S $P(^UTILITY("XBDSET",$J,XBKDFILE),U,1)="?" Q
+ S XBKDY=$L(XBKDG),XBKDY=$E(XBKDG,1,XBKDY-1)_$E(")",$E(XBKDG,XBKDY)=","),XBKDY=$S(XBKDY[")":$E(XBKDY,1,$L(XBKDY)-1)_",0)",1:XBKDY_"(0)")
+ S XBKDX=$D(@XBKDY)
+ I XBKDX S XBKDGNM=@XBKDY,XBKDGNR=+$P(XBKDGNM,U,2),XBKDGNM=$P(XBKDGNM,U,1) S:'XBKDGNR XBKDGNR="" Q
+ I 'XBKDX W !?10,"File ",XBKDFILE," data global has entries but no 0th node.",!?12,"If global not being deleted, piece 3 and 4 must be reset!",!?12,"Creating 0th node." S @XBKDY="CREATED BY XBKD"_U_XBKDFILE
+ Q
+ ;
+DICB ; CHECK DIC("B"
+ KILL XBKDNTBL
+ S (XBKDX,XBKDC)=0
+ F XBKDL=0:0 S XBKDX=$O(^DIC("B",XBKDX)) Q:XBKDX=""  I $D(^(XBKDX,XBKDFILE)) S XBKDC=XBKDC+1,XBKDNTBL(XBKDC)=XBKDX
+ Q:'XBKDC
+ I XBKDC=1 S XBKDANS=1 D NAMESET KILL XBKDNTBL Q
+ W !?12,"Multiple entries were found in ^DIC(""B""). Selecting first name",!?12,"  found.  All other names will be removed."
+ W !
+ S XBKDANS=1
+ D NAMESET
+ KILL XBKDNTBL(XBKDANS)
+ W !
+ S XBKDX=""
+ F XBKDL=0:0 S XBKDX=$O(XBKDNTBL(XBKDX)) Q:XBKDX=""  W !?12,"Deleting ^DIC(""B"",""",XBKDNTBL(XBKDX),""",",XBKDFILE,")" KILL ^DIC("B",XBKDNTBL(XBKDX),XBKDFILE)
+ W !
+ KILL XBKDNTBL
+ Q
+NAMESET ;
+ W !?12,"Setting names to '",XBKDNTBL(XBKDANS),"'"
+ KILL ^DD(XBKDFILE,0,"NM")
+ S (XBKDNDIC,XBKDNDD)=XBKDNTBL(XBKDANS),$P(^DIC(XBKDFILE,0),U,1)=XBKDNDIC,^DD(XBKDFILE,0,"NM",XBKDNDD)=""
+ Q
+ ;
+GNMCHK ; CHECK DATA GLOBAL NAME AGAINST ^DIC
+ Q:'XBKDGG
+ I XBKDGNM]""!(XBKDGNR),XBKDFILE'=XBKDGNR!(XBKDNDIC'=XBKDGNM) D GNMCHK2
+ S XBKDX=XBKDG_"0)"
+ I XBKDGNM="",XBKDGNR="",$D(@XBKDX)#2 S $P(@XBKDX,U,1)=XBKDNDIC
+ Q
+ ;
+GNMCHK2 ; DATA GLOBAL MISMATCH
+ W !?10,"Data global name and/or number do not match ^DIC.  Data global will",!?12,"not be deleted!!  "
+ S $P(^UTILITY("XBDSET",$J,XBKDFILE),U,1)="S",XBKDX=XBKDG_"0)="_@(XBKDG_"0)")
+ W $E(XBKDX,1,47)
+ Q
+ ;

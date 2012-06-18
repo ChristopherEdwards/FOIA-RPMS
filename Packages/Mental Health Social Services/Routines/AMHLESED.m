@@ -1,0 +1,91 @@
+AMHLESED ; IHS/CMI/LAB - calls from within screenman ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+HED ;EP - display last
+ ;DISPLAY 2 YRS WORTH OF PT ED FROM MHSS/PCC
+ I '$G(AMHPAT) S AMHMSG(1)="Unknown Patient" D HLP^DDSUTL(.AMHMSG) K AMHMSG Q
+ NEW AMHX,AMHD,AMHC,AMHED,X,Y,R
+ D HED1
+ NEW C S C="Patient Education List for "_$P(^DPT(AMHPAT,0),U)
+ D ARRAY^XBLM("^TMP(""AMHDSPEDS"",$J,",C)
+ K ^TMP("AMHDSPEDS",$J),^TMP($J,"AMHGOT"),^TMP("AMHSEDS",$J)
+REFRESH ;
+ S X=0 X ^%ZOSF("RM")
+ W $P(DDGLVID,DDGLDEL,8)
+ D REFRESH^DDSUTL
+ Q
+HED1 ;EP
+ S %=$$FMADD^XLFDT(DT,-731),%1=""
+ D GETMHED
+ D GETPCCED
+ D SETARRAY
+ K ^TMP("AMHSEDS",$J)
+ Q
+SETARRAY ;
+ K ^TMP("AMHDSPEDS",$J) S ^TMP("AMHDSPEDS",$J,0)=0
+ S X=" " D S(X)
+ S X=" " D S(X) S X="*** All education provided in past 2 years by BH programs ***" D S(X)
+ S X="DATE",$E(X,11)="TOPIC",$E(X,42)="LEVEL OF UND",$E(X,58)="MIN",$E(X,62)="IND/GRP",$E(X,72)="PROVIDER" D S(X)
+ S X="----",$E(X,11)="-----",$E(X,42)="------------",$E(X,58)="---",$E(X,62)="-------",$E(X,72)="--------" D S(X)
+ S D=0 F  S D=$O(^TMP("AMHSEDS",$J,"M",D)) Q:D'=+D  D
+ .S I=0 F  S I=$O(^TMP("AMHSEDS",$J,"M",D,I)) Q:I'=+I  S X=^TMP("AMHSEDS",$J,"M",D,I) D S(X)
+ S X=" " D S(X) S X="*** All education documented in PCC in past 2 years ***" D S(X)
+ S X="DATE",$E(X,11)="TOPIC",$E(X,42)="LEVEL OF UND",$E(X,58)="MIN",$E(X,62)="IND/GRP",$E(X,72)="PROVIDER" D S(X)
+ S X="----",$E(X,11)="-----",$E(X,42)="------------",$E(X,58)="---",$E(X,62)="-------",$E(X,72)="--------" D S(X)
+ S I=0 F  S I=$O(^TMP("AMHSEDS",$J,"P",I)) Q:I'=+I  S X=^TMP("AMHSEDS",$J,"P",I) D S(X)
+ Q
+GETMHED ;set array ^TMP("AMHSEDS",$J,"M" OF EDS IN MH FILE
+ K ^TMP("AMHSEDS",$J,"M"),^TMP($J,"AMHGOT")
+ S AMHED=$$FMADD^XLFDT(DT,-731),AMHC=0
+ S AMHX=0 F  S AMHX=$O(^AMHREDU("AC",AMHPAT,AMHX)) Q:AMHX'=+AMHX  D
+ .S R=$P(^AMHREDU(AMHX,0),U,3) Q:'R
+ .Q:'$$ALLOWVI^AMHUTIL(DUZ,R)
+ .S AMHD=$P($P($G(^AMHREC(R,0)),U),".")
+ .Q:AMHD<AMHED
+ .S T=$P(^AMHREDU(AMHX,0),U),T=$P(^AUTTEDT(T,0),U,1),T=$E(T,1,30)
+ .S E=$$VAL^XBDIQ1(9002011.05,AMHX,.08)
+ .S P=$$VALI^XBDIQ1(9002011.05,AMHX,.04) I P S P=$P(^VA(200,P,0),U,2)
+ .S M=$P(^AMHREDU(AMHX,0),U,6)
+ .S I=$$VALI^XBDIQ1(9002011.05,AMHX,.05) S:I="I" I="IND" S:I="G" I="GRP"
+ .S AMHC=AMHC+1
+ .S X=$$DATE(AMHD),$E(X,11)=$E(T,1,30),$E(X,42)=$E(E,1,15),$E(X,58)=M,$E(X,62)=I,$E(X,72)=P S ^TMP("AMHSEDS",$J,"M",(9999999-AMHD),AMHC)=X
+ .I $P($G(^AMHREDU(AMHX,11)),U,2)]"" S AMHC=AMHC+1,^TMP("AMHSEDS",$J,"M",(9999999-AMHD),AMHC)="   READINESS TO LEARN: "_$$VAL^XBDIQ1(9002011.05,AMHX,1102)
+ .I $P($G(^AMHREDU(AMHX,11)),U)]"" S AMHC=AMHC+1,^TMP("AMHSEDS",$J,"M",(9999999-AMHD),AMHC)="   COMMENT: "_$P(^AMHREDU(AMHX,11),U)
+ .S ^TMP($J,"AMHGOT",$P(^AMHREDU(AMHX,0),U),AMHD)=""
+ .Q
+ Q
+GETPCCED ;
+ K ^TMP("AMHSEDS",$J,"P")
+ S AMHED=$$FMADD^XLFDT(DT,-731),AMHED=9999999-AMHED,AMHC=0
+ S AMHD=0 F  S AMHD=$O(^AUPNVPED("AA",AMHPAT,AMHD)) Q:AMHD'=+AMHD!(AMHD>AMHED)  D
+ .S AMHX=0 F  S AMHX=$O(^AUPNVPED("AA",AMHPAT,AMHD,AMHX)) Q:AMHX'=+AMHX  D
+ ..S T=$P(^AUPNVPED(AMHX,0),U)
+ ..Q:$D(^TMP($J,"AMHGOT",T,(9999999-AMHD)))  ;already got this from BH
+ ..S T=$P(^AUTTEDT(T,0),U,1),T=$E(T,1,30)
+ ..S E=$$VAL^XBDIQ1(9000010.16,AMHX,.06)
+ ..S P=$$VALI^XBDIQ1(9000010.16,AMHX,.06) I P S P=$P(^VA(200,P,0),U,2)
+ ..S M=$P(^AUPNVPED(AMHX,0),U,8)
+ ..S I=$$VALI^XBDIQ1(9000010.16,AMHX,.07) S:I="I" I="IND" S:I="G" I="GRP"
+ ..S AMHC=AMHC+1
+ ..S X=$$DATE(9999999-AMHD),$E(X,11)=$E(T,1,30),$E(X,42)=$E(E,1,15),$E(X,58)=M,$E(X,62)=I,$E(X,72)=P S ^TMP("AMHSEDS",$J,"P",AMHC)=X
+ ..I $P($G(^AUPNVPED(AMHX,11)),U,2)]"" S AMHC=AMHC+1,^TMP("AMHSEDS",$J,"P",AMHC)="   READINESS TO LEARN: "_$$VAL^XBDIQ1(9000010.16,AMHX,1102)
+ ..I $P($G(^AUPNVPED(AMHX,11)),U)]"" S AMHC=AMHC+1,^TMP("AMHSEDS",$J,"P",AMHC)="  COMMENT: "_$P(^AUPNVPED(AMHX,11),U)
+ ..Q
+ .Q
+ Q
+S(Y,F,C,T) ;
+ I '$G(F) S F=0
+ I '$G(T) S T=0
+ ;blank lines
+ F F=1:1:(T-1) S X=" "_X
+ F %=1:1:T S X=" "_Y
+ D S1
+ Q
+S1 ;
+ S %=$P(^TMP("AMHDSPEDS",$J,0),U)+1,$P(^TMP("AMHDSPEDS",$J,0),U)=%
+ S ^TMP("AMHDSPEDS",$J,%,0)=X
+ Q
+DATE(D) ;EP
+ I D="" Q ""
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_$E(D,2,3)
+ ;

@@ -1,0 +1,306 @@
+ABMDTMS ;IHS/ABM/THL - INTERFACE WITH PYXIS/M SYSTEMS; 
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;
+ ; IHS/SD/SDR - v2.5 p8 - Link to Omnicell
+ ;    Code supplied by Carlene McIntyre to connect TPB to Omnicell
+ ;
+ ; IHS/SD/SDR - v2.6 CSV
+ ;
+EN F  D EN1 Q:$D(ABMQUIT)!$D(ABMOUT)
+EXITOUT K ABM,ABMAR,ABMDA,ABMDTMS,ABMFL,ABMFN,ABMHDR,ABMI,ABMJ,ABMOUT,ABMQUIT,ABMROU,ABMVALM,ABMX,ABMQUIT,ABMOUT,ABMDA,DFN,VALMBCK,VISDATE,PATIENT,ABMDTMS
+ K ^TMP("ABMDTMS",$J)
+ Q
+EN1 ;
+ D EXITOUT
+ D CLAIM
+ Q:$D(ABMQUIT)
+ D DISPLAY
+ I $D(ABMQUIT) K ABMQUIT Q
+ Q
+CLAIM ;SELECT CLAIM
+ S DIC="^ABMDCLM("_DUZ(2)_","
+ S DIC(0)="AEMQZ"
+ S DIC("A")="Select CLAIM Number: "
+ W !
+ D ^DIC K DIC
+ I +Y<1 S ABMQUIT="" Q
+ S ABMDA=+Y
+CL1 ;CLAIM ALREADY IDENTIFIED     
+ S ABM0=$G(^ABMDCLM(DUZ(2),ABMDA,0))
+ S DFN=+ABM0,ABMNUM=ABMDA
+ Q
+DISPLAY ;DISPLAY SULLPY ITEMS
+ D DATE
+ Q:'$G(ABMBEGIN)!'$G(ABMEND)
+ D DISP1
+ Q
+DATE ;SELECT DATE RANGE FOR ITEM CHARGES
+ S PATIENT=$P($G(^DPT(DFN,0)),U)
+ S FROM=$G(^ABMDCLM(DUZ(2),ABMDA,7))
+ S TO=$P(FROM,U,2)
+ S FROM=+FROM
+ S Y=FROM
+ X ^DD("DD")
+ S VISDATE=Y
+ S Y=TO
+ I Y X ^DD("DD") S TO=Y
+ W !!,"PATIENT: ",PATIENT,"  VISIT DATE: ",VISDATE
+ W:TO]"" "  TO: ",TO
+ S DIR("B")=VISDATE
+ S DIR(0)="DO"
+ S DIR("A")="Beginning Date for Supply/Med Charges"
+ S DIR("?")="Enter the earliest date to include for supply/med charges"
+ W !
+ D ^DIR K DIR
+ I Y<1 S ABMQUIT="" Q
+ S ABMBEGIN=+Y
+ S ABMEND=+Y
+ S Y=DT
+ X ^DD("DD")
+ S DIR("B")=Y
+ S DIR(0)="DO"
+ S DIR("A")="Ending Date for Supply/Med Charges"
+ S DIR("?")="Enter the last date to include for supply/med charges"
+ W !
+ D ^DIR K DIR
+ I 'Y S ABMEND=ABMBEGIN
+ S ABMEND=+Y
+ Q
+DINIT ;EP;LIST ALL SUPPLY ITEMS IN THE DATE RANGE
+ K ^TMP("ABMDTMS",$J)
+ S ABMCNT=0
+ D HEAD
+ S ABM=ABMBEGIN-1
+ F  S ABM=$O(^AUPNSUP("ASUP",DFN,ABM)) Q:'ABM!(ABM>(ABMEND+.9999))  D
+ .S ABMSDA=0
+ .F  S ABMSDA=$O(^AUPNSUP("ASUP",DFN,ABM,ABMSDA)) Q:'ABMSDA  D
+ ..D SUPPSET
+ ..Q:ABM0=""
+ ..D FORMAT
+ S (VALMCNT,ABMJ)=J
+ Q
+SUPPSET ;SET SUPPLY VARIABLES
+ S ABM0=$G(^AUPNSUP(ABMSDA,0))
+ S ABM1=$G(^AUPNSUP(ABMSDA,1))
+ S ABM2=$G(^AUPNSUP(ABMSDA,2))
+ Q
+HEAD ;
+ S J=0
+ S X=""
+ S $E(X,19)="3P NUM: "_ABMNUM
+ D J
+ S $E(X,18)="PATIENT: "_PATIENT
+ D J
+ S $E(X,9)="ADMIT/VISIT FROM: "_VISDATE_"  TO: "_TO
+ D J
+ S X=""
+ S $E(X,51)="TRANCODE/"
+ S $E(X,67)="REV/"
+ D J
+ S X="SUPPLY/MED NAME"
+ S $E(X,36)="QUAN"
+ S $E(X,44)="PRICE"
+ S $E(X,51)="NDC"
+ S $E(X,61)="HCPC"
+ S $E(X,67)="DEPT"
+ S $E(X,72)="CLAIM NO."
+ D J
+ S X="--------------------------------------------------------------------------------"
+ D J
+ S JHEAD=J
+ Q
+FORMAT ;FORMAT DATA FOR DISPLAY
+ S SUPPLY=$P(ABM0,U)
+ S PATIENT=$P($G(^DPT(DFN,0)),U)
+ S ADMIT=$G(^ABMDCLM(DUZ(2),ABMDA,6))
+ S DISCHARG=$P(ADMIT,U,3)
+ S ADMIT=+ADMIT
+ S FROM=$G(^ABMDCLM(DUZ(2),ABMDA,7))
+ S TO=$P(FROM,U,2)
+ S FROM=+FROM
+ I ADMIT D
+ .S Y=ADMIT
+ .X ^DD("DD")
+ .S ADMIT=Y
+ I DISCHARG D
+ .S Y=DISCHARG
+ .X ^DD("DD")
+ .S DISCHARG=Y
+ I FROM D
+ .S Y=ADMIT
+ .X ^DD("DD")
+ .S FROM=Y
+ I TO D
+ .S Y=TO
+ .X ^DD("DD")
+ .S TO=Y
+ S Y=$P(ABM0,U,3)
+ X ^DD("DD")
+ S ISSUDATE=Y
+ S CLAIM=$P(ABM0,U,6)
+ S TRANCODE=$P(ABM1,U)
+ S MEDDA=$P(ABM1,U,3)
+ S NDC=$P($G(^PSDRUG(+MEDDA,2)),U,4)
+ S DEPTCODE=$P(ABM1,U,5)
+ S QUANTITY=$P(ABM2,U,3)
+ S PRICE=$P(ABM2,U,4)
+ S HCPCCODE=$P($$CPT^ABMCVAPI(+$P(ABM2,U,5),FROM),U,2)  ;CSV-c
+ S REVCODE=$P($G(^AUTTREVN(+$P(ABM2,U,6),0)),U)
+ S ABMCNT=ABMCNT+1
+ S X=ABMCNT
+ S $E(X,4)=$E(SUPPLY,1,32)
+ S $E(X,36)=$J(QUANTITY,4)
+ S $E(X,40)=$J($FN(PRICE,"P",2),10)
+ S $E(X,51)=$E(TRANCODE,1,10)
+ S $E(X,61)=$E(HCPCCODE,1,6)
+ S $E(X,67)=$E(REVCODE,1,3)
+ S:CLAIM]"" $E(X,71)=$E(CLAIM,1,10)
+ D J
+ S X="   "_ISSUDATE
+ S $E(X,51)=$E(NDC,1,12)
+ S $E(X,67)=DEPTCODE
+ D J
+ S ^TMP("ABMSUP",$J,ABMCNT)=ABMSDA
+ Q
+ADDITEM ;ADD SUPPLY TO CLAIM
+ N ABMJ,ABMX
+ F ABMJ=1:1 S ABMX=$P(ABMSET,",",ABMJ) Q:'ABMX  D A1
+ Q
+A1 ;ADD ITEMS TO THE CLAIM
+ S DA(1)=ABMDA
+ S ABMSDA=$G(^TMP("ABMSUP",$J,ABMX))
+ Q:'ABMSDA
+ D SUPPSET
+ S X=""
+ I $P(ABM1,U,3) D  I 1
+ .S X=$P(ABM1,U,3)
+ .I '$D(^PSDRUG(+X,0)) S X="" Q
+ .S DIC="^ABMDCLM("_DUZ(2)_","_ABMDA_",23,"
+ .S $P(^ABMDCLM(DUZ(2),DA(1),23,0),U,2)="9002274.3023P"
+ .S DIC("DR")=".02///"_$P(ABM2,U,6)_";.03////"_$P(ABM2,U,3)_";.04////"_$P(ABM2,U,4)_";.05////"_$S($G(DISPFEE):DISPFEE,1:4.5)_";.06////"_$S($P(ABM2,U,7)]"":$P(ABM2,U,7),1:"NOT STATED")_";.14////"_$P(ABM0,U,3)
+ E  I $P(ABM2,U,5) D  I 1
+ .S X=+$P(ABM2,U,5)
+ .I '$D(^ICPT(+X,0)) S X="" Q
+ .S DIC="^ABMDCLM("_DUZ(2)_","_ABMDA_",43,"
+ .S $P(^ABMDCLM(DUZ(2),DA(1),43,0),U,2)="9002274.3043P"
+ .S DIC("DR")=".02///"_$P(ABM2,U,6)_";.03////"_$P(ABM2,U,3)_";.04////"_$P(ABM2,U,4)_";.06////"_$S($P(ABM2,U,7)]"":$P(ABM2,U,7),1:"NOT STATED")_";.14////"_$P(ABM0,U,3)
+ E  I $P(ABM2,U,6) D  I 1
+ .S X=+$P(ABM2,U,6)
+ .I '$D(^AUTTREVN(+X,0)) S X="" Q
+ .S DIC="^ABMDCLM("_DUZ(2)_","_ABMDA_",25,"
+ .S $P(^ABMDCLM(DUZ(2),DA(1),25,0),U,2)="9002274.3025P"
+ .S DIC("DR")=".02///"_$P(ABM2,U,3)_";.03////"_$P(ABM2,U,4)_";.04////"_$P(ABM2,U,2)
+ Q:'X
+ S DIC(0)="L"
+ D FILE^DICN
+ K DIC,DD,DA,DR
+ S DA=ABMSDA
+ S DIE="^AUPNSUP("
+ S DR=".06////"_ABMDA
+ D ^DIE
+ K DIC,DD,DIE,DA,DR
+ Q
+DISP1 ;DISPLAY ALL RELEVANT ITEMS
+ S ABMHDR=""
+ S ABMVALM="ABMDTMS HL7 SUPPLY LIST"
+ D VALM(ABMVALM)
+ Q
+SELECT ;EP;SELECT ITEMS TO ADD TO CLAIM
+ I $G(ABMDTMS)'="E" S ABMDTMS="A"
+ S DIR(0)="LO^1:"_ABMCNT
+ S DIR("A")="Select Charges to add or edit"
+ W !
+ D ^DIR K DIR
+ K ABMQUIT
+ I '+Y D BACK Q
+ S ABMSET=Y
+ I ABMDTMS="A" D ADD I 1
+ E  D EDIT
+ K ABMDTMS
+ D BACK
+ D DINIT
+ Q
+ADD D SURE
+ I $D(ABMQUIT) K ABMQUIT Q
+ D ADDITEM
+ Q
+SURE ;CONFIRM TRANSFER OF SUPPLIES
+ W !!,"Are you certain you want to charge these items to the Claim/Bill"
+ W !,ABMSET
+ S DIR(0)="YO"
+ S DIR("A")="Charge these supplies/meds to Claim/Bill "_ABMNUM_" "
+ S DIR("B")="NO"
+ W !
+ D ^DIR K DIR
+ I 'Y S ABMQUIT="" Q
+ Q
+BACK S VALMBCK="R"
+ Q
+J ;SET TEMP ARRAY
+ S J=J+1
+ S ^TMP("ABMDTMS",$J,J,0)=X
+ S X=""
+ Q
+VALM(ABMVALM) ;EP; -- main entry point for list templates
+ S VALMSG="- Previous Screen   Q Quit   ?? for More Actions"
+ S VALMCC=1 ;1=screen mode, 0=scrolling mode
+ D BACK
+ D TERM^VALM0
+ D CLEAR^VALM1
+ D EN^VALM(ABMVALM)
+ D CLEAR^VALM1
+ Q
+OPEN(DFN,ABMDA) ;EP;TO PROCESS WHEN CLAIM ALREAY IDENTIFIED
+ I $D(ABMDTMS("OUT")) K ABMDTMS Q
+ S ABMDTMS("OUT")=""
+ Q:'DFN!'ABMDA
+ K ABMQUIT
+ S PATIENT=$P($G(^DPT(DFN,0)),U)
+ S FROM=$G(^ABMDCLM(DUZ(2),ABMDA,7))
+ S TO=DT
+ S FROM=+FROM
+ N X,Y,Z
+ S Z=0
+ S X=FROM-1
+ F  S X=$O(^AUPNSUP("ASUP",DFN,X)) Q:'X!Z!(X>TO)  D
+ .S Y=0
+ .F  S Y=$O(^AUPNSUP("ASUP",DFN,X,Y)) Q:'Y  D
+ ..S Z=Z+1
+ Q:'Z
+ W @IOF
+ W !!,"There are SUPPLIES/MEDS on file that may need to be added to this claim."
+ D CL1
+ D DISPLAY
+ Q
+HDR ;EP; -- header code
+ S VALMHDR(1)=$G(ABMHDR)
+ S VALMSG="- Previous Screen   Q Quit   ?? for More Actions"
+ Q
+ ;
+HELP ;EP; -- help code
+ S X="?"
+ D DISP^XQORM1
+ W !!
+ Q
+ ;
+EXIT ;EP; -- exit code
+ K ^TMP("ABMLM",$J)
+ K ABMAR,ABMDIR,ABMFL,ABMFN,ABMHDR,ABMI,ABMROU,ABMDIR
+ I '$G(XQORS) D CLEAR^VALM1
+ Q
+EDIN ;
+ S ABMDTMS="E"
+ D SELECT
+ K ABDMTMS
+ Q
+EDIT ;EDIT SUPPLY ITEMS
+ N ABMJ,ABMX
+ F ABMJ=1:1 S ABMX=$P(ABMSET,",",ABMJ) Q:'ABMX  D E1
+ Q
+E1 ;EDIT ITEMS
+ S DA=$G(^TMP("ABMSUP",$J,ABMX))
+ Q:'DA
+ S DR="[ABMDTMS SUPPLY EDIT]"
+ S (DDSFILE,DIE)="^AUPNSUP("
+ D ^DDS
+ Q

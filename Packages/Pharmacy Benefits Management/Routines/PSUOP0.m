@@ -1,0 +1,65 @@
+PSUOP0 ;BIR/CFL,TJH;PSU PBM Outpatient Pharmacy entry routine;08/25/1998
+ ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+ ;
+ Q
+ ;
+EN ;Entry Point
+ S PSUOPSUB="PSUOP_"_PSUJOB
+ K ^XTMP(PSUOPSUB)
+ S X1=DT,X2=6 D C^%DTC
+ S ^XTMP(PSUOPSUB,0)=X_U_DT_U_"OUTPATIENT PHARMACY DATA COLLECTION"
+ S OPVER=$$VERSION^XPDUTL("PSO")  ;outpatient software version
+ S DFVER=$$VERSION^XPDUTL("PSN")  ;drug file version
+ D SECTN^PSUTL1 ;set up section:abbreviation array
+ ;
+ ;VERSION 6.0 software
+ I +OPVER="6" D ^PSUOP1
+ ;
+ ;VERSION 7.0 software
+ I +OPVER'<7 D ^PSUOP2
+ ;
+ ;Mail Man Call
+ I '$D(^XTMP("PSU_"_PSUJOB,"PSUFLAG")) D ^PSUOP4
+ ;
+ I $G(^XTMP("PSU_"_PSUJOB,"PSUPSUMFLAG"))=1 D
+ .S PSUOPTS="1,2,3,4,5,6,7,8,9,10,11"
+ .S PSUAUTO=1
+ ;
+ D PULL^PSUCP
+ F I=1:1:$L(PSUOPTS,",") S PSUMOD($P(PSUOPTS,",",I))=""
+ I $D(PSUMOD(10)) D OPSSN^PSUDEM4    ;Provider extract
+ ;
+ ;Rx summary report
+ I '$D(^XTMP("PSU_"_PSUJOB,"PSUFLAG")) D
+ .I '$D(^XTMP("PSU_"_PSUJOB,"PSUMFLAG")) D EN^PSUSUM2
+ .;
+ .;IV/UD/RX summary report
+ .I $D(PSUMOD(2))&$D(PSUMOD(1))&$D(PSUMOD(4)) D
+ ..D EN^PSUSUM6
+ .;
+ .;IV/RX summary report
+ .I $D(PSUMOD(1))&'$D(PSUMOD(2))&$D(PSUMOD(4)) D
+ ..D EN^PSUSUM7
+ .;
+ .;UD/RX summary report
+ .I '$D(PSUMOD(1))&$D(PSUMOD(2))&$D(PSUMOD(4)) D
+ ..D EN^PSUSUM7
+ ;
+ K ^XTMP("PSU_"_PSUJOB,"PSUFLAG1")
+ ;
+ D CLEAN
+ Q
+ ;
+PRINT ;Call print routine
+ ;
+ D ^PSUOP6
+ ;
+ Q
+ ;
+CLEAN ; clean up local symbol table
+ S XPSUOPTN=PSUOPTN,XPSUJOB=PSUJOB M XPSUMOD=PSUMOD
+ D VARKILL^PSUTL ; kill all PSU namespace variables
+ S PSUOPTN=XPSUOPTN,PSUJOB=XPSUJOB M PSUMOD=XPSUMOD K XPSUOPTN,XPSUJOB,XPSUMOD
+ K DATA,DFN,DFVER,ENDIT,EXTD,J,NODATA,NONE,OPVER,PSECT,PSOPNFI,PSOPNFR,REC,REC1,REC2,X1,X2,Y,Z
+ D PULL^PSUCP,OPTS^PSUCP
+CLEANQ Q

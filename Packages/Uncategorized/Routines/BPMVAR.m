@@ -1,0 +1,33 @@
+BPMVAR ; IHS/OIT/LJF - MENU ENTRY & EXIT ACTIONS
+ ;;1.0;IHS PATIENT MERGE;;MAR 01, 2010
+ ;
+ENTER ;EP; entry point called by main menu
+ NEW I,X
+ D ^XBCLS W @IOF W !?22,$$REPEAT^XLFSTR("*",34)
+ W !?22,"-----> INDIAN HEALTH SERVICE"
+ W !?31,"IHS PATIENT MERGE  ----->"
+ W !?22,"----->      VERSION ",$$VERSION^XPDUTL("BPM")
+ W !?22,$$REPEAT^XLFSTR("*",34)
+ ;
+ I '$D(DUZ(2)) D  S XQUIT=1 D PAUSE^BPMU Q
+ . W !!,"YOU MUST SIGN ON PROPERLY THROUGH THE KERNEL TO USE ADT!"
+ ;
+ S X=$$GET1^DIQ(4,DUZ(2),.01) W !!?80-$L(X)\2,X
+ I X="" D  S XQUIT=1 D PAUSE^BPMU Q
+ . W !!,"INVALID FACILITY; NOTIFY YOUR SITE MANAGER!"
+ ;
+ I $D(XQUIT) D EXIT Q
+ Q
+ ;
+EXIT ;EP; kill system wide variables
+ D EN^XBVK("VALM")
+ Q
+ ;
+MENU ;ENTRY POINT  >>> entry action for all submenus
+ NEW BPM
+ S BPM("TITLE")=$P($G(XQY0),U,2)
+ I $L(BPM("TITLE"))>2 W @IOF,!!?80-$L(BPM("TITLE"))/2,BPM("TITLE")
+ S X=$$GET1^DIQ(4,DUZ(2),.01)
+ W !!?80-$L(X)\2,"(",X,")"
+ Q
+ ;

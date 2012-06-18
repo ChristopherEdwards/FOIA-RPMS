@@ -1,0 +1,18 @@
+CLINICAL REMINDER PARAMETERS
+ZWR
+^PXRM(800,0)="CLINICAL REMINDER PARAMETERS^800O^1^1"
+^PXRM(800,1,0)="1"
+^PXRM(800,1,1,0)="^800.04^1^1"
+^PXRM(800,1,1,1,0)="www.ihs.gov/cio/crs/index.asp^Clinical Reporting System"
+^PXRM(800,1,1,"B","www.ihs.gov/cio/crs/index.asp",1)=""
+^PXRM(800,1,"DISC1",0)="^800.01^5^5^3000607^^^^"
+^PXRM(800,1,"DISC1",1,0)="The following disease screening, immunization and patient education"
+^PXRM(800,1,"DISC1",2,0)="recommendations are offered as guidelines to assist in your practice."
+^PXRM(800,1,"DISC1",3,0)="These are only recommendations, not practice standards.  The appropriate"
+^PXRM(800,1,"DISC1",4,0)="utilization of these for your individual patient must be based on clinical"
+^PXRM(800,1,"DISC1",5,0)="judgment and the patient's current status."
+^PXRM(800,1,"FULL SSN")="Y"
+^PXRM(800,1,"MST")="3020226.13583^0^^^3020226.13583"
+^PXRM(800,1,"TRUNCATE EMPLOYEE SSN")="Y"
+^PXRM(800,1,"VERSION")="1.5"
+^PXRM(800,"B",1,1)=""

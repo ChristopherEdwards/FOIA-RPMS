@@ -1,0 +1,72 @@
+AQAQPR42 ;IHS/ANMC/LJF - DISCHARGES BY PROVIDER & DX; [ 07/09/1999  2:27 PM ]
+ ;;2.2;STAFF CREDENTIALS;**8**;JULY 9, 1999
+ ;;AQAQ*2*8;Y2K FIX;CS;2990708
+ ;
+ ;>>> initialize variables <<<
+ S AQAQPAGE=0,AQAQSTOP="",AQAQDUZ=$P(^DIC(3,DUZ,0),U,2)
+ S AQAQSITE=$P(^DIC(4,DUZ(2),0),U) ;set site
+ ;BEGIN Y2K FIX BLOCK
+ ;S AQAQRG=$E(AQAQBDT,4,5)_"/"_$E(AQAQBDT,6,7)_"/"_$E(AQAQBDT,2,3)_" to "
+ ;S AQAQRG=AQAQRG_$E(AQAQEDT,4,5)_"/"_$E(AQAQEDT,6,7)_"/"_$E(AQAQEDT,2,3)
+ S AQAQRG=$E(AQAQBDT,4,5)_"/"_$E(AQAQBDT,6,7)_"/"_($E(AQAQBDT,1,3)+1700)_" to " ; Y2000
+ S AQAQRG=AQAQRG_$E(AQAQEDT,4,5)_"/"_$E(AQAQEDT,6,7)_"/"_($E(AQAQEDT,1,3)+1700) ; Y2000
+ ;END Y2K FIX BLOCK 
+ S AQAQLINE="",$P(AQAQLINE,"=",80)=""
+ S AQAQLIN2="",$P(AQAQLIN2,"-",80)=""
+ S (AQAQPCT,AQAQTCT)=0,AQAQPRV=""
+ ;
+ I '$D(^UTILITY("AQAQPR4",$J)) D HEAD W !!,">>> NO DATA FOUND!!" G WAIT
+ ;
+ ;>>> loop1=get next provider & start new page & new counts
+ S AQAQPRV=0
+LOOP1 S AQAQPRV=$O(^UTILITY("AQAQPR4",$J,AQAQPRV)) G TOTALS:AQAQPRV=""
+ G END:AQAQSTOP=U I AQAQPAGE=0 D HEAD G PRVINIT
+ E  D NEWPG G END:AQAQSTOP=U ;print heading with provider name
+ S AQAQPCT=0 ;initialize provider count
+ ;
+PRVINIT ;
+ ;>>> loop2=for provider, get each diagnostic category
+ S AQAQGRP=0
+LOOP2 S AQAQGRP=$O(^UTILITY("AQAQPR4",$J,AQAQPRV,AQAQGRP))
+ I AQAQGRP="" D PROVCNT G END:AQAQSTOP=U G LOOP1 ;subtotal by prov
+ S AQAQCNT=^UTILITY("AQAQPR4",$J,AQAQPRV,AQAQGRP)
+ W !,$E(AQAQGRP,1,67),?70,AQAQCNT,! ;print counts
+ S AQAQPCT=AQAQPCT+AQAQCNT ;increment count for provider
+ I $Y>(IOSL-5) D NEWPG
+ G END:AQAQSTOP=U G LOOP2 ;quit if "^" entered OR continue looping
+ ;
+ ;
+TOTALS ;>>> print facility totals <<<
+ I $Y>(IOSL-4) D NEWPG
+ W !!,"***TOTAL DIAGNOSES:  ",AQAQTCT,"***",!,AQAQLINE
+WAIT I IOST["C-" K DIR S DIR(0)="E",DIR("A")="RETURN to continue" D ^DIR
+ ;
+END ;EP;>>> eoj <<<
+ W @IOF D ^%ZISC D KILL^AQAQUTIL K ^UTILITY("AQAQPR4",$J) Q
+ ;
+ ;
+NEWPG ;***> SUBRTN for end of page control
+ I IOST'?1"C-".E D HEAD S AQAQSTOP="" Q
+ I AQAQPAGE>0 K DIR S DIR(0)="E" D ^DIR S AQAQSTOP=X
+ I AQAQSTOP'=U D HEAD
+ Q
+ ;
+HEAD ;***> SUBRTN to print heading
+ W @IOF,!,AQAQLINE S AQAQPAGE=AQAQPAGE+1
+ W !?11,"*****Confidential Patient Data Covered by Privacy Act*****"
+ W !,AQAQDUZ,?80-$L(AQAQSITE)/2,AQAQSITE
+ S AQAQTY="AMBULATORY DIAGNOSIS COUNTS BY PROVIDER"
+ W ! D ^%T W ?80-$L(AQAQTY)/2,AQAQTY,?70,"Page: ",AQAQPAGE
+ S Y=DT X ^DD("DD") W !,Y,?80-$L(AQAQPRV)/2,AQAQPRV ;prov name
+ W !?30,AQAQRG,!,AQAQLINE ;date range and line
+ W !,"Diagnostic Category",?70,"Count",!,AQAQLIN2
+ I AQAQCDX=1 W !?25,"*** PRIMARY DIAGNOSES ONLY ***"
+ E  W !?17,"*** PRIMARY & SECONDARY DIAGNOSES COUNTED ***"
+ Q
+ ;
+ ;
+PROVCNT ;***> SUBRTN to print provider subcount
+ I $Y>(IOSL-4) D NEWPG Q:AQAQSTOP=U
+ W !?20,"TOTAL DIAGNOSES FOR PROVIDER:  ",AQAQPCT
+ W !,AQAQLINE S AQAQTCT=AQAQTCT+AQAQPCT,AQAQPCT=0
+ Q

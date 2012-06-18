@@ -1,0 +1,140 @@
+APCLREF1 ; IHS/CMI/LAB - list refusals ;
+ ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009
+ ;
+ ;
+INFORM ;
+ W !,$$CTR($$USR)
+ W !,$$LOC()
+ W !!,$$CTR("LISTING OF PATIENT SERVICES NOT DONE",80)
+ W !!,"This report will list all services not done (refusals) documented for patients.",!,"You will be given the opportunity to specify which reasons not done (type of refusals)",!,"and the date range of the services not done.",!
+ W !
+TYPE ;type of refusal all or one?
+ S APCLTYPE=""
+ S DIR(0)="Y",DIR("A")="Do you want to include ALL Reasons not done?",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G EOJ
+ S APCLTYPE=Y
+ I APCLTYPE G DATES
+TYPE1 ;which refusal type?
+ S APCLTYP1=""
+ K DIC S DIC="^AUTTREFT(",DIC(0)="AEMQ",DIC("A")="Enter the REASON NOT DONE: " D ^DIC K DIC
+ I Y=-1 G TYPE
+ S APCLTYP1=+Y
+ID ;
+ S APCLID="",APCLONE=""
+ S DIR(0)="S^A:ALL "_$P(^AUTTREFT(APCLTYP1,0),U)_" reasons not done;O:ONE "_$P(^AUTTREFT(APCLTYP1,0),U)_"  reason not done"
+ S DIR("A")="Do you want one particular "_$P(^AUTTREFT(APCLTYP1,0),U)_"  reason not done or all",DIR("B")="A" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G TYPE
+ S APCLID=Y
+ G:APCLID="A" DATES
+ ;call to do lookup into file
+ S APCLONE="",APCLONEP=""
+ K DIC S DIC=$P(^AUTTREFT(APCLTYP1,0),U,2),DIC(0)="AEMQ" D ^DIC K DIC
+ I Y=-1 G TYPE
+ S APCLONE=+Y,APCLONEP=$P(Y,U,2)
+DATES K APCLED,APCLBD
+ K DIR W ! S DIR(0)="DO^::EXP",DIR("A")="Enter Beginning Refusal/Declined Service Date"
+ D ^DIR Q:Y<1  S APCLBD=Y
+ K DIR S DIR(0)="DO^:DT:EXP",DIR("A")="Enter Ending Refusal/Declined Service Date"
+ D ^DIR Q:Y<1  S APCLED=Y
+ ;
+ I APCLED<APCLBD D  G DATES
+ . W !!,$C(7),"Sorry, Ending Date MUST not be earlier than Beginning Date."
+ ;
+ZIS ;
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G DATES
+ S XBRP="PRINT^APCLREF1",XBRC="PROC^APCLREF1",XBRX="EOJ^APCLREF1",XBNS="APCL"
+ D ^XBDBQUE
+ D EOJ
+ Q
+EOJ ;
+ D EN^XBVK("APCL")
+ D ^XBFMK
+ Q
+PROC ;
+ S APCLIMM=$O(^AUTTREFT("B","IMMUNIZATION",0))
+ S APCLCNT=0
+ S APCLH=$H,APCLJ=$J
+ K ^XTMP("APCLREF1",APCLJ,APCLH)
+ D XTMP^APCLOSUT("APCLREF1","REFUSALS REPORT")
+ S APCLX=0 F  S APCLX=$O(^AUPNPREF(APCLX)) Q:APCLX'=+APCLX  D
+ .Q:$$DEMO^APCLUTL($P(^AUPNPREF(APCLX,0),U,2),$G(APCLDEMO))
+ .S APCLD=$P(^AUPNPREF(APCLX,0),U,3)
+ .Q:APCLBD>APCLD
+ .Q:APCLED<APCLD
+ .I 'APCLTYPE,$P(^AUPNPREF(APCLX,0),U)'=APCLTYP1 Q  ;want one type and this isn't it
+ .I $G(APCLONE),$P(^AUPNPREF(APCLX,0),U,6)'=APCLONE Q  ;want only one and this isn't it
+ .S APCLCNT=APCLCNT+1
+ .S ^XTMP("APCLREF1",APCLJ,APCLH,"REFUSALS",$P(^AUPNPREF(APCLX,0),U),$S($P(^AUPNPREF(APCLX,0),U,4)]"":$P(^AUPNPREF(APCLX,0),U,4),1:"???"),$$VAL^XBDIQ1(9000022,APCLX,.02),APCLX)=""
+ .Q
+ I $G(APCLTYP1),APCLTYP1'=APCLIMM Q
+ S APCLX=0 F  S APCLX=$O(^BIPC(APCLX)) Q:APCLX'=+APCLX  D
+ .S R=$P(^BIPC(APCLX,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .Q:$P(^BICONT(R,0),U,1)'["Refusal"
+ .S D=$P(^BIPC(APCLX,0),U,4)
+ .Q:D=""
+ .Q:$P(^BIPC(APCLX,0),U,4)<APCLBD
+ .Q:$P(^BIPC(APCLX,0),U,4)>APCLED
+ .S I=$P(^BIPC(APCLX,0),U,2)
+ .I $G(APCLONE),I'=APCLONE Q
+ .S P=$P(^BIPC(APCLX,0),U)
+ .S ^XTMP("APCLREF1",APCLJ,APCLH,"REFUSALS",APCLIMM,I,$P(^DPT(P,0),U),APCLX)="I"
+ ;
+ Q
+PRINT ;EP - called from xbdbque
+ S APCLPG=0 K APCLQUIT
+ I '$D(^XTMP("APCLREF1",APCLJ,APCLH)) D HEADER W !!,"No data to report.",! G DONE
+ S APCLT="" F  S APCLT=$O(^XTMP("APCLREF1",APCLJ,APCLH,"REFUSALS",APCLT)) Q:APCLT=""!($D(APCLQUIT))  D
+ .D HEADER Q:$D(APCLQUIT)
+ .W !,$P(^AUTTREFT(APCLT,0),U)," refusals",!
+ .S APCLT1="" F  S APCLT1=$O(^XTMP("APCLREF1",APCLJ,APCLH,"REFUSALS",APCLT,APCLT1)) Q:APCLT1=""!($D(APCLQUIT))  D
+ ..S APCLNAME="" F  S APCLNAME=$O(^XTMP("APCLREF1",APCLJ,APCLH,"REFUSALS",APCLT,APCLT1,APCLNAME)) Q:APCLNAME=""!($D(APCLQUIT))  D
+ ...S APCLR=0 F  S APCLR=$O(^XTMP("APCLREF1",APCLJ,APCLH,"REFUSALS",APCLT,APCLT1,APCLNAME,APCLR)) Q:APCLR'=+APCLR  D
+ ....I $Y>(IOSL-3) D HEADER Q:$D(APCLQUIT)
+ ....S APCLY=^XTMP("APCLREF1",APCLJ,APCLH,"REFUSALS",APCLT,APCLT1,APCLNAME,APCLR)
+ ....I APCLY="" S DFN=$P(^AUPNPREF(APCLR,0),U,2)
+ ....I APCLY="I" S DFN=$P(^BIPC(APCLR,0),U)
+ ....W !,$E(APCLNAME,1,21),?22,$$HRN^AUPNPAT(DFN,DUZ(2)),?29,$$DOB^AUPNPAT(DFN,"E")
+ ....I APCLY="" W ?42,$$VAL^XBDIQ1(9000022,APCLR,.03),?55,$E(APCLT1,1,15),?71,$E($$VAL^XBDIQ1(9000022,APCLR,.07),1,7)
+ ....I APCLY="I" W ?42,$$VAL^XBDIQ1(9002084.11,APCLR,.04),?55,$E(APCLT1,1,15),?71,$E($$VAL^XBDIQ1(9002084.11,APCLR,.03),1,7)
+ D DONE
+ Q
+HEADER ;EP
+ G:'APCLPG HEADER1
+ K DIR I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCLQUIT="" Q
+HEADER1 ;
+ W:$D(IOF) @IOF S APCLPG=APCLPG+1
+ W !?3,$P(^VA(200,DUZ,0),U,2),?35,$$FMTE^XLFDT(DT),?70,"Page ",APCLPG,!
+ W !,$$CTR("***  PATIENT REFUSAL/DECLINED SERVICE LISTING  ***",80),!
+ S X=$S(APCLTYPE:"ALL REASONS NOT DONE (REFUSAL TYPES)",1:$P(^AUTTREFT(APCLTYP1,0),U)_" REASONS NOT DONE (REFUSALS)") W $$CTR(X,80),!
+ I $G(APCLONE)]"" W $$CTR(APCLONEP_" refusals",80),!
+ S X="Declined Service Dates: "_$$FMTE^XLFDT(APCLBD)_" to "_$$FMTE^XLFDT(APCLED) W $$CTR(X,80),!
+ W !,"PATIENT NAME",?22,"HRN",?29,"DOB",?42,"DATE DECLINED",?55,"REASON",?71,"NOT DONE"
+ W !,$TR($J("",80)," ","-")
+ Q
+DONE ;
+ K ^XTMP("APCLREF1",APCLJ,APCLH)
+ D EOP
+ Q
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:IO'=IO(0)
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ NEW DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ W !
+ S DIR("A")="End of Report.  Press Enter",DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------

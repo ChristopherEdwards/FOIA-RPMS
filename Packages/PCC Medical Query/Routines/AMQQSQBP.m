@@ -1,0 +1,81 @@
+AMQQSQBP ; IHS/CMI/THL - GETS CONDITIONS AND VALUES FOR SBP AND DPB ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;-----
+ N AMQQLINK,AMQQQ,AMQQATNM,AMQQCONM,AMQQCOMP,AMQQNOCO,AMQQNOT,AMQQTMPC
+RUN D SBP
+ I $D(AMQQQUIT) G EXIT
+ S AMQQNOCO=+AMQQQ_"~"_AMQQNOCO
+ S AMQQTMPC=$P(AMQQQ,U,2)_"~"_AMQQTMPC
+ D AND
+EXIT K AMQQTMPC,X,AMQQDISV,%,%A,%B
+ Q
+ ;
+SBP W !!!,@AMQQRV,"SYSTOLIC BP",@AMQQNV
+ S AMQQLINK=10
+ S AMQQATNM="SYSTOLIC B/P"
+ D V1
+ I $D(AMQQQUIT) Q
+ I '$D(AMQQCONM) Q
+ S AMQQQ=AMQQNOCO_U_AMQQTMPC
+DBP W !!!,@AMQQRV,"DIASTOLIC BP",@AMQQNV
+ S AMQQLINK=11
+ S AMQQATNM="DIASTOLIC BP"
+ D V1
+ I $D(AMQQQUIT) Q
+ Q
+ ;
+AND W !!!,"When I analyze the result =>",!
+ W !?5,"1) Both systolic ",@AMQQRV,"and",@AMQQNV," diastolic BPs must meet your criteria"
+ W !?5,"2) Either systolic ",@AMQQRV,"or",@AMQQNV," diastolic BP must meet your criteria",!
+ANDQ W !,"Your choice (1-2): 1// "
+ R X:DTIME E  S X=U
+ I $E(X)=U S AMQQQUIT="" Q
+ I X="" S X=1 W "  (1)"
+ I X?1."?" W !!,"Choose between ""and"" logic and ""or"" logic" G AND
+ I X=1 S AMQQSQCV=AMQQTMPC_"~&" Q
+ I X=2 S AMQQSQCV=AMQQTMPC_"~!" Q
+ W "  ??",*7
+ G ANDQ
+ ;
+V1 W !,"Value limiting condition for ",AMQQSQAN,": "
+ W:$D(AMQQDISV) AMQQDISV,"// "
+ R X:DTIME
+ I X?1."?" N %A,%B S XQH=$O(^DIC(9.2,"B","AMQQBOOL","")) D EN1^XQH G V1
+ I X=U S AMQQQUIT="" Q
+ I X="",$D(AMQQDISV) S X=AMQQDISV K AMQQDISV
+ I X["NOT"!(X["'") D NOT
+ I X="" S AMQQSQQT="" Q
+ S DIC="^AMQQ(5,"
+ S DIC(0)="ES"
+ S DIC("S")="I $P(^(0),U,21)=17"
+ S D="C"
+ D IX^DIC
+ K DIC
+ I Y=-1 W "  ??",*7 G V1
+VA S AMQQCOND=+Y
+ S AMQQNOCO=$P(^AMQQ(5,+Y,0),U,8)
+ S (AMQQCONM,AMQQDISV)=$P(Y,U,2)
+ S AMQQSQCT="B"
+ S AMQQSQVV=""
+ I AMQQNOCO=2,$D(AMQQNOT) K AMQQDISV,AMQQNOT W "  ??",*7 G V1
+ I $D(AMQQNOT) S AMQQDISV="NOT "_AMQQDISV
+ S AMQQSYMB=$P(^AMQQ(5,+Y,0),U,6)
+ I $D(AMQQNOT) S AMQQSYMB="'"_AMQQSYMB K AMQQNOT
+ D COMPN^AMQQAV0
+ I $D(AMQQQUIT) Q
+ I AMQQNOCO=2 G V2
+ I '$D(AMQQCOMP) G V1
+ I AMQQCOMP="" G V1
+ I $D(AMQQQUIT) Q
+ S AMQQTMPC=AMQQSYMB_":"_AMQQCOMP
+ Q
+V2 I AMQQCOMP="" G V1
+ S AMQQTMPC="'<:"_$P(AMQQCOMP,";")_":'>:"_$P(AMQQCOMP,";",2)
+ Q
+ ;
+NOT I $E(X,1,4)="NOT " S X=$E(X,5,99),AMQQNOT="" Q
+ I $E(X)="'" S X=$E(X,2,99),AMQQNOT="" Q
+ S %=$L(X)
+ I $E(X,%-3,%)=" NOT" S X=$E(X,1,%-4),AMQQNOT=""
+ Q
+ ;

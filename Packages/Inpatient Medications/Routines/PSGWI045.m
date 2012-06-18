@@ -1,0 +1,136 @@
+PSGWI045 ; ; 04-JAN-1994
+ ;;2.3; Automatic Replenishment/Ward Stock ;;4 JAN 94
+ F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q Q
+ ;;^UTILITY(U,$J,"OPT",1316,1,0)
+ ;;=^^3^3^2930817^
+ ;;^UTILITY(U,$J,"OPT",1316,1,1,0)
+ ;;=This report prints the cost for items in one AOU, several AOUs, all AOUs,
+ ;;^UTILITY(U,$J,"OPT",1316,1,2,0)
+ ;;=or an Inventory Group. This cost represents the dollar amount needed to
+ ;;^UTILITY(U,$J,"OPT",1316,1,3,0)
+ ;;=bring each item from zero to its maximum stock level.
+ ;;^UTILITY(U,$J,"OPT",1316,25)
+ ;;=PSGWSTD
+ ;;^UTILITY(U,$J,"OPT",1316,"U")
+ ;;=STANDARD COST REPORT (132 COLU
+ ;;^UTILITY(U,$J,"PKG",115,0)
+ ;;=AUTO REPLENISHMENT/WARD STOCK^PSGW^A method of drug distribution and inventory management.
+ ;;^UTILITY(U,$J,"PKG",115,1,0)
+ ;;=3^^3^3^2930618^^^^
+ ;;^UTILITY(U,$J,"PKG",115,1,1,0)
+ ;;=AUTOMATIC REPLENISHMENT/WARD STOCK IS A MEANS OF DRUG DISTRIBUTION
+ ;;^UTILITY(U,$J,"PKG",115,1,2,0)
+ ;;=AND INVENTORY USED BY INPATIENT PHARMACY.  VERSION 2.0 INCLUDES
+ ;;^UTILITY(U,$J,"PKG",115,1,3,0)
+ ;;=MULTI-DIVISION AMIS REPORTING.
+ ;;^UTILITY(U,$J,"PKG",115,2,0)
+ ;;=^9.42A
+ ;;^UTILITY(U,$J,"PKG",115,4,0)
+ ;;=^9.44PA^12^10
+ ;;^UTILITY(U,$J,"PKG",115,4,1,0)
+ ;;=58.1
+ ;;^UTILITY(U,$J,"PKG",115,4,1,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,2,0)
+ ;;=58.2
+ ;;^UTILITY(U,$J,"PKG",115,4,2,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,3,0)
+ ;;=58.16
+ ;;^UTILITY(U,$J,"PKG",115,4,3,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,4,0)
+ ;;=58.17
+ ;;^UTILITY(U,$J,"PKG",115,4,4,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,5,0)
+ ;;=58.19
+ ;;^UTILITY(U,$J,"PKG",115,4,5,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,6,0)
+ ;;=58.3
+ ;;^UTILITY(U,$J,"PKG",115,4,6,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,8,0)
+ ;;=59.4
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,0)
+ ;;=^9.45A^6^6
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,1,0)
+ ;;=NAME
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,2,0)
+ ;;=MERGE INV. SHEET AND PICK LIST
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,3,0)
+ ;;=PRINT RETURN COLUMNS?
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,4,0)
+ ;;=AR/WS AMIS FLAG
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,5,0)
+ ;;=IS SITE SELECTABLE FOR AR/WS?
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,6,0)
+ ;;=PROMPT FOR BAR CODES?
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,"B","AR/WS AMIS FLAG",4)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,"B","IS SITE SELECTABLE FOR AR/WS?",5)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,"B","MERGE INV. SHEET AND PICK LIST",2)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,"B","NAME",1)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,"B","PRINT RETURN COLUMNS?",3)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,8,1,"B","PROMPT FOR BAR CODES?",6)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,8,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,10,0)
+ ;;=58.5
+ ;;^UTILITY(U,$J,"PKG",115,4,10,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,11,0)
+ ;;=50
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,0)
+ ;;=^9.45A^5^5
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,1,0)
+ ;;=GENERIC NAME
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,2,0)
+ ;;=AR/WS AMIS CATEGORY
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,3,0)
+ ;;=AR/WS AMIS CONVERSION NUMBER
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,4,0)
+ ;;=INPATIENT PHARMACY LOCATION
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,5,0)
+ ;;=APPLICATION PACKAGES' USE
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,"B","APPLICATION PACKAGES' USE",5)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,"B","AR/WS AMIS CATEGORY",2)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,"B","AR/WS AMIS CONVERSION NUMBER",3)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,"B","GENERIC NAME",1)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,11,1,"B","INPATIENT PHARMACY LOCATION",4)
+ ;;=
+ ;;^UTILITY(U,$J,"PKG",115,4,11,222)
+ ;;=y^n^^y^^^n^^y
+ ;;^UTILITY(U,$J,"PKG",115,4,12,0)
+ ;;=59.7
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,0)
+ ;;=^9.45A^9^8
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,2,0)
+ ;;=AR/WS AMIS UPDATE
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,3,0)
+ ;;=SITE NAME
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,4,0)
+ ;;=DATE INSTALLED
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,5,0)
+ ;;=BACKORDER CONVERSION
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,6,0)
+ ;;=MULTI-DIVISION CONVERSION
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,7,0)
+ ;;=WARD (for %) CONVERSION
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,8,0)
+ ;;=RETURN REASON CONVERSION
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,9,0)
+ ;;=AR/WS VERSION
+ ;;^UTILITY(U,$J,"PKG",115,4,12,1,"B","AR/WS AMIS UPDATE",2)
+ ;;=

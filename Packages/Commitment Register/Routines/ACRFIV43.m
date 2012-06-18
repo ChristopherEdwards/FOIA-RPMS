@@ -1,0 +1,216 @@
+ACRFIV43 ;IHS/OIRM/DSD/AEF,MRS - ARMS TO 1166 PAYMENT INTERFACE;  [ 03/18/2005  9:41 AM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;**16**;JUL 31, 2001
+ ;ACR*2.1*16.06 IM15505  ;NEW ROUTINE
+ ;
+ ;UTILITY TO EDIT PAYMENT DATA AFTER INVOICE AUDIT COMPLETED
+ ;          CONTINUED FROM ACRFIV41
+ ;
+CORRECT(ACRDT,ACRPCNT,ACRIVDC,ACRTERMS,ACRIVTF)   ;EP;
+ ;CALLED BY ACRFIV4, ACRFIV41, ACRFIV42, ACRFIV43
+ ;TO VALIDATE INFORMATION CORRECTNESS
+ K ACRDT
+ S DIR(0)="YO"
+ S DIR("A")="Is this correct"
+ S DIR("B")="NO"
+ W !
+ D DIR^ACRFDIC
+ I +Y=1 D  Q
+ .S ACRDT=""
+ .Q
+ K ACRPCNT,ACRIVDC,ACRIVTF,ACRP
+ Q
+PAY(ACRIVPAY,ACRIVT,ACRTERMS,ACRT) ;EP;TO DISPLAY PAYMENT SUMMARY
+ ;  Called from ACRFIV4, ACRFIV42, LOCAL/DISCOUNT
+ ;
+ ;  INPUT    ;  ACRIVPAY= LOCAL ARRAY OF AMOUNT TO PAY FOR CAN,OCC
+ ;              ACRIVT  = TOTAL AMOUNT TO PAY
+ ;              ACRTERMS = ONLY SET IF INTEREST PENALTY OR DISCOUNT
+ ;                       P1=DAYS
+ ;                       P2=AMOUNT OF PENALTY OR DISCOUNT TAKEN
+ ;                       P3=INTEREST RATE
+ ;                       P4=INVOICE NUMBER, NOT SET HERE
+ ;                       P5=ACRIVT (AMOUNT TO PAY)
+ ;                       P14=ACRT
+ ;              ACRT >0= Discount taken w/percentage
+ ;              ACRT =0= Discount taken w/dollar amount
+ ;              ACRT =-1= Interest penalty
+ ;              ACRT =-2= Discount lost
+ ;
+ N ACRCANDA,ACROBJDA,ACRTXT,ACRTXT1,ACRTXT2,ACRTXT3,ACRTXT4
+ I '$D(ACRON) D HOME^ACRFMENU             ;SET FORMATTING VARIABLES
+ D INIT
+ D TERMS(.ACRTERMS)
+ D WRT3
+ Q
+INIT ;LOCAL ENTRY TO INITIALIZE LOCAL VARIABLES
+ S (ACRCANDA,ACRIVT,ACRDCNT)=0
+ F  S ACRCANDA=$O(ACRIVPAY(ACRCANDA)) Q:'ACRCANDA  D
+ .S ACROBJDA=0
+ .F  S ACROBJDA=$O(ACRIVPAY(ACRCANDA,ACROBJDA)) Q:'ACROBJDA  D
+ ..S (ACRIVTF,ACRIVT)=ACRIVT+ACRIVPAY(ACRCANDA,ACROBJDA)
+ ..S ACRDCNT=ACRDCNT+1                        ;COUNT NUMBER OF OCC
+ Q
+ ;
+TERMS(ACRTERMS) ;LOCAL;TO PROCESS DISCOUNT LOST, INTEREST PENALTY AND DISCOUNT TAKEN
+ ;  ALLOWS FOR BOTH DISCOUNT LOST AND INTEREST PENALTY
+ S ACRT=$P($G(ACRTERMS),U,14)
+ I ACRT="" S ACRPCNT=0 Q
+ ;
+ I ACRT=-2 D  Q
+ .S ACRTXT=$$LOST(.ACRTERMS,.ACRIVTF,.ACRIVT)
+ .D WRT2
+ ;
+ I ACRT=-1 D  Q
+ .S ACRTXT=$$WRT(.ACRT,.ACRPCNT,.ACRTERMS,.ACRIVTF,ACRIVT,.ACRIVDC,.ACRP)
+ .D WRT2
+ ;Now process Discounts
+ S ACRTXT=$$WRT(.ACRT,.ACRPCNT,.ACRTERMS,.ACRIVTF,ACRIVT,.ACRIVDC,.ACRP)
+ D WRT2
+ Q
+ ;
+WRT2 ;LOCAL ENTRY
+ S ACRTXT1=$P(ACRTXT,U),ACRTXT2=$P(ACRTXT,U,2),ACRTXT3=$P(ACRTXT,U,3)
+ W !!?10
+ W @ACRON
+ W "*****    NOTE    *****"
+ W @ACROF
+ W !!
+ W:$D(ACRTXT4) ?3,ACRTXT4
+ W !!?10,ACRTXT1
+ W @ACRON
+ W ACRTXT2
+ W @ACROF
+ W ACRTXT3
+ Q
+WRT3 ;LOCAL ENTRY
+ W !?10,"Amount of payment due...: "
+ W @ACRON
+ W $J($FN(ACRIVT,"P,",2),14)
+ W @ACROF
+ I $G(ACRP)>0 D
+ .W !?10,"The interest to be paid.:"
+ .W @ACRON
+ .W $J($FN(ACRP,"P,",2),15)
+ .W @ACROF
+ I $G(ACRIVDC)>0 D
+ .W !?10,"The discount to be taken: "
+ .W @ACRON
+ .W $J($FN(ACRIVDC,"P,",2),14)
+ .W @ACROF
+ W !?10,"Payment to be made......: "
+ W @ACRON
+ W $J($FN(ACRIVTF,"P,",2),14)
+ W @ACROF
+ Q
+ ;
+WRT(ACRT,ACRRATE,ACRTERMS,ACRIVTF,ACRIVT,ACRIVDC,ACRP)   ;LOCAL ENTRY
+ ;EXTRINSIC FUNCTION TO WRITE PAYMENT TERMS
+ ; Variables changed when returned:  
+ ;   ACRTERMS
+ ; ACRIVDC = Discount Amount
+ ; ACRIVTF = Invoice amount
+ ; ACRT = Type Discount/Interest
+ ; ACRP = Interest $ amount
+ ;
+ N ACRTXT,ACRTXT1,ACRTXT2,ACRTXT3,ACRAMT,A
+ S A="A "
+ S ACRDAYS=$P(ACRTERMS,U)
+ S ACRAMT=$P(ACRTERMS,U,2)
+ S ACRRATE=$P(ACRTERMS,U,3)
+ ;
+DISPC ; LOCAL ENTRY                       ;Discount taken w/percentage
+ I ACRT>0 D  Q ACRTXT
+ .S ACRTXT1=ACRRATE_"% discount for payment within "
+ .S ACRTXT2=+ACRDAYS
+ .S ACRTXT3=" days will be applied."
+ .;S ACRTXT4="A reversal obligation for the Discount will be sent to CORE"
+ .S ACRTXT=A_ACRTXT1_U_ACRTXT2_U_ACRTXT3
+ .S ACRAMT=$$DOL^ACRFUTL(.ACRAMT)              ; Formatting
+ .S $P(ACRTERMS,U,12)=ACRIVTF                  ; Invoice amount
+ .S ACRIVTF=ACRIVT-ACRAMT
+ .S ACRIVDC=ACRAMT
+ .S $P(ACRTERMS,U,5)=ACRIVTF                   ; Payment amount
+ .Q
+DISAMT ;LOCAL ENTRY                             ;Discount taken w/$dollar amt
+ I ACRT=0 D  Q ACRTXT
+ .S ACRTXT1=" discount for early payment will be applied."
+ .S ACRTXT2=$FN(ACRAMT,"P",2)
+ .;S ACRTXT4="A reversal obligation for the Discount will be sent to CORE"
+ .S ACRTXT=A_U_ACRTXT2_U_ACRTXT1
+ .S $P(ACRTERMS,U,12)=ACRIVTF                   ; Invoice amount
+ .S ACRIVTF=ACRIVT-ACRAMT
+ .S ACRAMT=$$DOL^ACRFUTL(.ACRAMT)
+ .S ACRIVDC=ACRAMT
+ .S $P(ACRTERMS,U,5)=ACRIVTF                    ; Payment amount
+ .Q
+INT ;LOCAL ENTRY                                   ; Interest penalty
+ I ACRT=-1 D  Q ACRTXT
+ .S ACRTXT1="penalty for a late payment of "
+ .S ACRTXT3=" days will be applied."
+ .S ACRTXT=A_ACRTXT1_U_ACRDAYS_U_ACRTXT3
+ .S ACRAMT=$$DOL^ACRFUTL(.ACRAMT)
+ .S $P(ACRTERMS,U,12)=ACRIVTF                ; Invoice amount
+ .S ACRIVTF=ACRIVT+ACRAMT
+ .S (ACRP,$P(ACRTERMS,U,2))=ACRAMT
+ .S $P(ACRTERMS,U,5)=ACRIVT                  ; payment amount
+ .Q
+ ;
+DISLOST ;LOST DISCOUNT
+ I ACRT=-2 D  Q ACRTXT
+ .S ACRTXT="Discount Lost will be recorded "
+ S ACRTXT="Error"                                   ;Housekeeping
+ Q ACRTXT
+ ;
+LOST(ACRTERMS,ACRIVTF,ACRIVT) ;LOCAL ENTRY                   ;Discount lost 
+ N ACRTXT,ACRTXT1,ACRTXT2,ACRTXT3,ACRAMT
+ S ACRAMT=$P(ACRTERMS,U,2)
+ S ACRRATE=$P(ACRTERMS,U,3)
+ I ACRAMT]"" S ACRTXT1="The discount LOST........: "
+ I ACRRATE]"" D
+ .S ACRTXT1="The discount LOST ("
+ .S ACRTXT1=ACRTXT1_$E("00",1,2-$L(ACRRATE))_ACRRATE_" %): "
+ .S ACRAMT=(ACRIVT*ACRRATE*.01)
+ .S ACRAMT=$$DOL^ACRFUTL(.ACRAMT)
+ .S $P(ACRTERMS,U,2)=ACRAMT                  ; Discount Lost amount
+ S $P(ACRTERMS,U,5)=ACRIVT                   ; payment amount
+ S $P(ACRTERMS,U,12)=ACRIVTF                 ; Invoice amount
+ S ACRTXT2=$J($FN(ACRAMT,"P,",2),14)
+ S ACRTXT=ACRTXT1_U_ACRTXT2
+ Q ACRTXT
+PAYD(ACRIVPAY,ACRIVT,ACRTERMS,ACRT) ;EP;TO DISPLAY PAYMENT SUMMARY
+ ;  Called from ACRFIV4, ACRFIV42, LOCAL/DISCOUNT
+ ;
+ ;  INPUT    ;  ACRIVPAY= LOCAL ARRAY OF AMOUNT TO PAY FOR CAN,OCC
+ ;              ACRIVT  = TOTAL AMOUNT TO PAY
+ ;              ACRTERMS = ONLY SET IF INTEREST PENALTY OR DISCOUNT
+ ;                       P1=DAYS
+ ;                       P2=AMOUNT OF PENALTY OR DISCOUNT TAKEN
+ ;                       P3=INTEREST RATE
+ ;                       P4=INVOICE NUMBER, NOT SET HERE
+ ;                       P5=ACRIVT (AMOUNT TO PAY)
+ ;                       P14=ACRT
+ ;              ACRT >0= Discount taken w/percentage
+ ;              ACRT =0= Discount taken w/dollar amount
+ ;              ACRT =-1= Interest penalty
+ ;              ACRT =-2= Discount lost
+ ;
+ N ACRCANDA,ACROBJDA,ACRTXT,ACRTXT1,ACRTXT2,ACRTXT3,ACRDCNT,ACRTDIS
+ S ACRDCNT=$$OBJCNT(.ACRIVPAY)
+ D INITD
+ D TERMS(.ACRTERMS)
+ D WRT3
+ Q
+INITD ;LOCAL ENTRY TO INITIALIZE LOCAL VARIABLES
+ S (ACRCANDA,ACRIVT)=0
+ F  S ACRCANDA=$O(ACRIVPAY(ACRCANDA)) Q:'ACRCANDA  D
+ .S ACROBJDA=0
+ .F  S ACROBJDA=$O(ACRIVPAY(ACRCANDA,ACROBJDA)) Q:'ACROBJDA  D
+ ..S (ACRIVTF,ACRIVT)=ACRIVT+ACRIVPAY(ACRCANDA,ACROBJDA)
+ Q
+OBJCNT(ACRIVPAY) ;EP; EXTRINSIC FUNCTION TO RETURN NUMBER OF OCC'S
+ N ACRX,ACRY,ACRJ
+ S (ACRX,ACRJ)=0
+ F  S ACRX=$O(ACRIVPAY(ACRX)) Q:'ACRX  D
+ .S ACRY=0
+ .F  S ACRY=$O(ACRIVPAY(ACRX,ACRY)) Q:'ACRY  S ACRJ=ACRJ+1
+ Q ACRJ

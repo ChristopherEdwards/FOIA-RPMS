@@ -1,0 +1,42 @@
+ABMDEERL ; IHS/ASDST/DMJ - Error Claim Data Display ;  
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ I '$D(IO),'$D(IOF),'$D(IOST) S IOP="HOME" D ^%ZIS
+CLM ;
+CLM2 K ABM,ABMP W !! K %P,DIR,DIC S DIR("A")="Select CLAIM or PATIENT",DIR(0)="FO^1:30",DIR("?")="Enter the Claim Data Number or the Patient's Name" D ^DIR K DIR
+ G XIT:$D(DIRUT)
+ K ABMP("MULT")
+CLMD S DIC="^ABMDCLM(DUZ(2),",DIC(0)="ZIE" D ^DIC K DIC
+ I +Y>0 S ABMP("CDFN")=+Y
+ G CLM2:+Y<1 S ABMP("CDFN")=+Y
+DFN S ABMP("PDFN")=$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),0),U,1),ABMP("VTYP")=$P(^(0),U,7)
+ S ABMP("BLK")="",(ABMP("REVON"),ABMP("REVOF"),ABMP("HI"),ABMP("NI"))="ABMP(""BLK"")"
+ ;
+EXT K ABMD
+ S ABMP("PG")=0,U="^",ABMP("HEAD2")="CLAIM DATA ERRORS"
+ZIS W !! S %ZIS("A")="Output DEVICE: ",%ZIS="QNP",%ZIS("B")="" D ^%ZIS G:POP XIT
+ S ABMP("IOP")=ION G QUE:$D(IO("Q"))
+ I IO'=IO(0),$E(IOST)'="C",'$D(IO("S")),$P($G(^ABMDPARM(DUZ(2),1,0)),U,13)="Y" W !!,"As specified in the 3P Site Parameters File FORCED QUEUEING is in effect!",! G QUE
+ G BEGIN
+QUE K IO("Q") I IO=IO(0) W !,"Cannot Queue to Screen or Slave Printer!",! G ZIS
+ S ZTRTN="ENT^ABMDEERL",ZTDESC="3P BILLING CLAIM DATA ERROR DISPLAY" F ABM="ZTRTN","ZTDESC","ABMP(" S ZTSAVE(ABM)=""
+ F ABM="IO","IOBS","IOF","IOM","ION","IOPAR","IOSL","IOST","IOST(","IOT" S ZTSAVE(ABM)=""
+ D ^%ZTLOAD
+ D ^%ZISC
+ G CLM2
+ ;
+ENT ;TaskMan Entry Point
+ S IOP=ABMP("IOP")_";80" D ^%ZIS U IO
+ S ABMD("QUEON")="",ABMP("QUEON")=""
+BEGIN S ABMD("CTR")=0
+ U IO
+ D ^ABMDEVAR
+ S ABMP("ERROR LIST")=""
+ S ABMP("GL")="^ABMDCLM(DUZ(2),"_ABMP("CDFN")_","
+ D ERRIN^ABMDECK
+ I IO'=IO(0)!($E(IOST)'="C") W $$EN^ABMVDF("IOF")
+ D ^%ZISC
+ I '$D(ABMP("QUEON")) G CLM
+ ;
+XIT K ABMP,ABM,ABMD,POP,ZTSK,DIRUT,DTOUT,IO("Q"),DIR,DIRUT,DIQ
+ Q

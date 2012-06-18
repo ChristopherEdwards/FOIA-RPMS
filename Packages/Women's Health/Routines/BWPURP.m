@@ -1,0 +1,118 @@
+BWPURP ;IHS/ANMC/MWR - NOTIFICATION TABLES MAINTENANC;15-Feb-2003 22:08;PLS
+ ;;2.0;WOMEN'S HEALTH;**8**;MAY 16, 1996
+ ;;* MICHAEL REMILLARD, DDS * ALASKA NATIVE MEDICAL CENTER *
+ ;;  ADD/EDIT/PRINT NOTIFICATION PURPOSE FILE ENTRIES, EDIT PCD DAYS,
+ ;;  EDIT NOTIFICATION TYPE SYNONYMS, ADD/EDIT NOTIFICATION OUTCOMES.
+ ;;
+ ;
+PRINTPUR ;EP
+ ;---> CALLED BY OPTION "BW PRINT NOTIF PURPOSE&LETTER".
+ S DIC="^BWNOTP("
+ S FLDS="[BW PRINT NOTIF PURPOSE&LETTER]"
+ S BY=.01,FR="",TO="",DHD="@"
+ S DIOBEG="S BWPAGE=0"
+ D EN1^DIP
+ D KILLALL^BWUTL8
+ Q
+ ;
+ ;
+EDITPUR ;EP
+ ;---> CALLED BY OPTION "BW EDIT NOTIF PURPOSE&LETTER".
+ D SETVARS^BWUTL5
+ ;---> DISPLAY MENU TITLE FROM BW MENU OPTIONS.
+ F  D  Q:$G(Y)<0
+ .D TITLE^BWUTL5("EDIT NOTIFICATION PURPOSE & LETTER FILE")
+ .D DIC^BWFMAN(9002086.404,"QEMAL",.Y)
+ .Q:Y<0
+ .S DA=+Y
+ .D:$P(Y,U,3) ADDLET
+ .D:'$P(Y,U,3) REPLACE
+ .Q:BWPOP
+ .;---> EDIT WITH SCREENMAN.
+ .S DR="[BW NOTIFPURPOSE-FORM-1]"
+ .D DDS^BWFMAN(9002086.404,DR,DA,"","",.BWPOP)
+ D KILLALL^BWUTL8
+ Q
+ ;
+ ;
+ADDLET ;EP
+ ;---> CALLED BY OPTION "BW ADD NOTIF PURPOSE&LETTER".
+ K ^BWNOTP(DA,1)
+ N N S N=0
+ F  S N=$O(^BWLET(1,1,N)) Q:'N  D
+ .S ^BWNOTP(DA,1,N,0)=^BWLET(1,1,N,0)
+ S ^BWNOTP(DA,1,0)=^BWLET(1,1,0)
+ Q
+ ;
+REPLACE ;EP
+ ;---> REPLACE OLD LETTER FOR THIS NOTIF PURPOSE WITH GENERIC SAMPLE.
+ N DIR,DIRUT,Y
+ W !!?3,"Do you wish to delete the old letter for this Purpose of "
+ W "Notification",!?3,"and replace it with the generic sample letter?"
+ S DIR(0)="YA",DIR("B")="NO"
+ S DIR("A")="   Enter Yes or No: " D HELP1
+ D ^DIR W !
+ S:$D(DIRUT) BWPOP=1
+ I Y D ADDLET
+ Q
+ ;
+HELP1 ;EP
+ ;;Enter YES to delete the old letter for this Purpose of Notification
+ ;;and to begin with a fresh copy of the generic sample letter.
+ S BWTAB=5,BWLINL="HELP1" D HELPTX
+ Q
+ ;
+HELPTX ;EP
+ N I,T,X S T="" F I=1:1:BWTAB S T=T_" "
+ F I=1:1 S X=$T(@BWLINL+I) Q:X'[";;"  S DIR("?",I)=T_$P(X,";;",2)
+ S DIR("?")=DIR("?",I-1) K DIR("?",I-1)
+ Q
+ ;
+TYPE ;EP
+ ;---> EDIT SYNONYMS FOR NOTIFICATION TYPES.
+ D SETVARS^BWUTL5
+ F  D  Q:$G(Y)<0
+ .D TITLE^BWUTL5("EDIT SYNONYMS FOR NOTIFICATION TYPES") D TEXT1
+ .N A S A="   Select NOTIFICATION TYPE: "
+ .D DIC^BWFMAN(9002086.403,"QEMA",.Y,A)
+ .Q:Y<0
+ .D DIE^BWFMAN(9002086.403,.03,+Y,.BWPOP)
+ W @IOF
+ D KILLALL^BWUTL8
+ Q
+ ;
+OUTCOME ;EP
+ ;---> ADD/EDIT NOTIFICATION OUTCOME FILE.
+ D SETVARS^BWUTL5
+ F  D  Q:$G(Y)<0
+ .D TITLE^BWUTL5("ADD/EDIT NOTIFICATION OUTCOME FILE")
+ .D DIC^BWFMAN(9002086.405,"QEMAL",.Y,"   Select OUTCOME: ")
+ .Q:Y<0
+ .D DIE^BWFMAN(9002086.405,.02,+Y,.BWPOP)
+ W @IOF
+ D KILLALL^BWUTL8
+ Q
+ ;
+TEXT1 ;EP
+ ;;You may enter a synonym for each Notification Type.  The synonym will
+ ;;allow the Notification Type to be called up by typing only a few
+ ;;characters.  Synonyms should be unique and less than 4 characters.
+ ;;
+ ;;For example, "L1" might be used for LETTER,FIRST; "L2" for
+ ;;LETTER,SECOND; "L3" for LETTER,THIRD, and so on.
+ ;;
+ ;;
+ S BWTAB=5,BWLINL="TEXT1" D PRINTX
+ Q
+ ;
+PRINTX ;EP
+ N I,T,X S T="" F I=1:1:BWTAB S T=T_" "
+ F I=1:1 S X=$T(@BWLINL+I) Q:X'[";;"  W !,T,$P(X,";;",2)
+ Q
+ ;
+GENSTUFF ;EP
+ ;---> STUFF THE GENERIC SAMPLE LETTER INTO ALL PURPOSES OF NOTIF.
+ D ^XBKVAR N DA
+ S DA=0
+ F  S DA=$O(^BWNOTP(DA)) Q:'DA  W !,DA  D ADDLET^BWPURP
+ Q

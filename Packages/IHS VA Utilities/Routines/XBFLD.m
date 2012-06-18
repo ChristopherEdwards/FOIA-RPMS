@@ -1,0 +1,191 @@
+XBFLD ; IHS/ADC/GTH - DICTIONARY LISTING ; [ 02/07/97   3:02 PM ]
+ ;;3.0;IHS/VA UTILITIES;;FEB 07, 1997
+ ;
+ ; This routine lists dictionaries which may be selected
+ ; individually or by a range of dictionary numbers.
+ ;
+ ; This routine requires the 89 MUMPS Standard, FileMan
+ ; Version 17.7 or greater, Kernel Version 6 or greater, and
+ ; the following routines must exist in the UCI in which this
+ ; routine is running:
+ ;
+ ;  XBKVAR, XBSFGBL
+ ;
+START ;
+ D LOOP ;                  List files until user says stop
+ D EOJ ;                   Clean up
+ Q
+ ;
+LOOP ; LIST FILES UNTIL USER SAYS STOP
+ NEW XBQFLG
+ W !,"^XBFLD - This routine lists FileMan dictionaries."
+ F  D INIT Q:XBQFLG  D LIST W ! D ^%ZISC Q:XBQFLG
+ Q
+ ;
+LIST ; LIST RANGE OF FILES
+ S:'$D(XBFMT) XBFMT=""
+ NEW XBCOMP,XBFILE,XBFIELD,XBLNFEED,XBNAME,XBPIECE,XBPAGE,XBPSUB,XBPSUBOL,XBSUBFIL,XBSUB,XBTAB,XBTYPE,XBWPC,XBWPSUB
+ S XBQFLG=0
+ F XBFILE=0:0 S XBFILE=$O(^UTILITY("XBDSET",$J,XBFILE)) Q:XBFILE=""  D FILE Q:XBQFLG
+ Q
+ ;
+FILE ; LIST ONE FILE
+ S (XBCOMP,XBLNFEED,XBPAGE,XBTAB)=0,XBSUB="D0,",XBPSUBOL=""
+ D HEADING
+ D FIELDS
+ Q:XBQFLG
+ D PAUSE
+ Q
+ ;
+FIELDS ; LIST ALL FIELDS IN ONE FILE/SUBFILE (CALLED RECURSIVELY)
+ F XBFIELD=0:0 S XBFIELD=$O(^DD(XBFILE,XBFIELD)) Q:XBFIELD'=+XBFIELD  D FIELD Q:XBQFLG
+ Q
+ ;
+FIELD ; LIST ONE FIELD
+ S (XBNAME,XBPIECE,XBPSUB,XBTYPE)=""
+ S X=^DD(XBFILE,XBFIELD,0)
+ S XBNAME=$P(X,U,1)
+ S Y=$P(X,U,2)
+ S XBTYPE=$S(+Y:"",Y["C":"C",Y["F":"F",Y["N":"N",Y["P":"P",Y["S":"S",Y["V":"V",Y["K":"K",Y["W":"W",Y["D":"D",1:"?")
+ I XBTYPE="C" D COMPUTED Q
+ I XBCOMP S XBCOMP=0 D WRITELF ; Extra lf after computed fields
+ I XBTYPE="" D MULTIPLE Q
+ S Y=$P(X,U,4)
+ S XBPSUB=XBSUB_$S($P(Y,";",1)=+$P(Y,";",1):$P(Y,";",1),1:""""_$P(Y,";",1)_"""")
+ S XBPIECE=$S(XBTYPE="K":" ",1:$P(Y,";",2)) ; MUMPS field has no piece
+ D WRITE
+ Q
+ ;
+COMPUTED ; COMPUTED FIELD
+ ; The variable XBCOMP prevents multiple lfs between adjacent
+ ; computed fields.
+ ;
+ D:'XBCOMP WRITELF
+ S XBPSUB="COMPUTED",XBTYPE="",XBCOMP=1
+ S XBPSUB=XBPSUB_$S(Y["B":" (BOOLEAN)",Y["D":" (DATE)",1:"")
+ D WRITE
+ Q
+ ;
+MULTIPLE ; LIST MULTIPLE, THEN FIELDS IN SUBFILE
+ S XBNAME=XBNAME_"  ("_+Y_")",XBSUBFIL=+Y
+ D WRITELF,WRITE
+ Q:XBQFLG
+ NEW XBFILE,XBFIELD,XBSUB
+ S XBFILE=XBSUBFIL
+ D ^XBSFGBL(XBFILE,.XBSUB,2)
+ S XBSUB="D0"_$P(XBSUB,"D0",2),XBSUB=$P(XBSUB,")",1)
+ S XBTAB=XBTAB+2
+ D FIELDS ;        Recurse
+ S XBTAB=XBTAB-2
+ Q:XBQFLG
+ D WRITELF
+ Q
+ ;
+WRITE ; WRITE ONE LINE
+ S XBLNFEED=0
+ D PAGE:$Y>(IOSL-3)
+ Q:XBQFLG
+ S XBWPSUB=$S(XBFIELD=.001:"",XBPSUB]""&(XBPSUB=XBPSUBOL):"  """,1:XBPSUB)
+ S XBWPC=$S(XBPIECE:$J(XBPIECE,5,0),1:XBPIECE)
+ I (XBPSUB'["COMPUTED") W !?XBTAB,XBFIELD,?13+XBTAB,$S(XBTYPE="":XBNAME,1:$E(XBNAME,1,31-XBTAB)),?46,$E(XBWPSUB,1,21),?68,XBWPC,?77,XBTYPE I 1
+ E  W !?XBTAB,XBFIELD,?13+XBTAB,$S(XBTYPE="":XBNAME,1:$E(XBNAME,1,31-XBTAB)),?46,$E(XBWPSUB,1,21) W:XBFMT["C" ?56,^DD(XBFILE,XBFIELD,9.1)
+ I XBTYPE]"" I $L(XBNAME)>(31-XBTAB)!($L(XBWPSUB)>25) W !,?13+XBTAB,$E(XBNAME,32-XBTAB,$L(XBNAME)),?46,$E(XBWPSUB,22,$L(XBWPSUB))
+ I XBTYPE="S",XBFMT["S" W !,?16+XBTAB,"S: ",$P(^DD(XBFILE,XBFIELD,0),"^",3)
+ I XBTYPE="P",XBFMT["P" S XBFLDPT=$P(X,"^",2),XBFLDPT=+$P(XBFLDPT,"P",2) S:$D(^DIC(XBFLDPT,0)) XBFLDPT=$P(^DIC(XBFLDPT,0),"^") W !,?16+XBTAB,"P: ",XBFLDPT KILL XBFLDPT
+ I XBTYPE="V",XBFMT["V" S XBFLDPT=0 F  S XBFLDPT=$O(^DD(XBFILE,XBFIELD,"V",XBFLDPT)) Q:'XBFLDPT  W !,?16+XBTAB,"V: ",$P(^DD(XBFILE,XBFIELD,"V",XBFLDPT,0),"^",1,2)
+ S XBPSUBOL=XBPSUB
+ I $D(^DD(XBFILE,XBFIELD,1,1,0)),XBFMT["X" D ^XBFLD0
+ Q
+ ;
+WRITELF ; WRITE ONE LINE FEED
+ ; The variable XBLNFEED prevents multiple lfs when backing out of
+ ; deep recursion.
+ ;
+ Q:XBLNFEED
+ I $Y>2,$Y'>(IOSL-3) W ! S XBLNFEED=1
+ Q
+ ;
+HEADING ; DICTIONARY HEADERS
+ NEW XBHOUR,XBMINUT,XBTITLE,XBTIME
+ S XBPAGE=1
+ W @IOF
+ D HEADING2
+ W ?80-$L("FILE: "_$P(^DIC(XBFILE,0),"^",1))\2,"FILE: ",$P(^DIC(XBFILE,0),"^",1),!,?80-$L("GLOBAL: "_^DIC(XBFILE,0,"GL"))\2,"GLOBAL: ",^DIC(XBFILE,0,"GL"),!,?80-$L("FILE #: "_XBFILE)\2,"FILE #: ",XBFILE,!!
+ D PAGE
+ Q
+ ;
+HEADING2 ; HARD COPY HEADERS
+ I IO=IO(0),$E(IOST,1,2)="C-" Q
+ I $G(XBFLD("BROWSE")) W !!! Q
+ S XBTITLE="I.H.S.  DICTIONARY FIELDS",XBTIME=$P($H,",",2),XBHOUR=XBTIME\3600,XBMINUT=XBTIME#3600\60
+ S:XBMINUT<10 XBMINUT="0"_XBMINUT
+ S XBTIME=XBHOUR_":"_XBMINUT
+ W XBTIME,?80-$L(XBTITLE)\2,XBTITLE,?72,"page ",XBPAGE,!,?80-$L(^DD("SITE"))\2,^DD("SITE"),!
+ X ^%ZOSF("UCI")
+ S Y="UCI: "_$P(Y,",",1)
+ W ?80-$L(Y)\2,Y
+ I '$D(DT) S %DT="",X="T" D ^%DT S DT=Y
+ S Y=DT
+ X ^DD("DD")
+ W !!,?80-$L("as of "_Y)\2,"as of ",Y,!!
+ Q
+ ;
+PAGE ;EP - PAGE HEADERS
+ NEW X
+ D:XBPAGE>1 PAUSE
+ Q:XBQFLG
+ I XBPAGE>1 W:$D(IOF) @IOF
+ S XBPAGE=XBPAGE+1
+ W "FIELD #",?13,"FIELD NAME",?46,"SUBSCRIPT",?69,"PIECE",?75,"TYPE",!,$$REPEAT^XLFSTR("=",79),!
+ S XBPSUBOL=""
+ Q
+ ;
+PAUSE ; GIVE USER A CHANCE TO SEE LAST PAGE AND QUIT
+ I IO=IO(0),$E(IOST,1,2)="C-" S %=$$DIR^XBDIR("E") S:$D(DIRUT)!($D(DUOUT)) XBQFLG=1 KILL DIRUT,DUOUT
+ Q
+ ;
+INIT ; INITIALIZATION
+ S XBFLDP=$S($D(XBFLDP):1,1:0)
+ S:XBFLDP XBDSND=1
+ D ^XBFLD2 ;       Get device and files to list
+ Q
+ ;
+FORMAT ;EP - select format
+ NEW A,X
+ S A="Select Format Combination"
+ F %=1:1 S X=$P($T(TXT+%),";;",2) Q:X="END"  S A(%)=X
+ S Y=$$DIR^XBDIR("FO^0:5",.A,"","","","",1)
+ I Y="A" S Y="VPSXC"
+ S XBFMT=Y
+ Q
+ ;
+TXT ;
+ ;;
+ ;;Addition resolution of fields is available
+ ;; V - VARIABLE POINTER
+ ;; P - POINTER
+ ;; S - SET OF CODES
+ ;; C - COMPUTED EXPRESSION
+ ;; X - CROSS-REFERENCES
+ ;; A - ALL
+ ;;
+ ;;END
+ ;
+EN ; EXTERNAL ENTRY POINT
+ ; To use this entry point ^UTILITY("XBDSET",$J, must contain
+ ; the list of dictionaries.  All device variables must be set
+ ; and, if appropriate, the U IO executed prior to the call.
+ ; It is the callers responsibility to close the device.
+ ;
+ NEW XBQFLG
+ I $D(IO)#2,$D(IO(0))#2,$D(IOF)#2,$D(IOSL)#2 D LIST
+ D EOJ
+ Q
+ ;
+EOJ ; END OF JOB
+ KILL XBFLDP,XBFLDPT,XBFMT,XBFLD,XBIHS
+ KILL ^UTILITY("XBDSET",$J)
+ KILL DIR,DIRUT,DTOUT,DUOUT,POP,S,X,Y
+ I $D(ZTQUEUED) S ZTREQ="@" Q
+ Q
+ ;

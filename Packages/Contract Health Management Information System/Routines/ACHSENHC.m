@@ -1,0 +1,21 @@
+ACHSENHC ; IHS/ITSC/PMF - DISPLAY ENHANCEMENTS TO THE SCREEN ;  [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+EN(ACHS) ;EP - ACHS = Namespace of package to print enhancements.
+ D HOME^%ZIS,DT^DICRW
+ N A,B,DIRUT,DIWL,DIWR,DIWF
+ S A=$O(^DIC(9.4,"C",ACHS,0))
+ Q:'A
+ Q:'$D(^DIC(9.4,A,"VERSION"))
+ S B=$O(^DIC(9.4,A,22,"B",^DIC(9.4,A,"VERSION"),0))
+ Q:'B
+ W @IOF,!!!
+ S DIWL=10,DIWR=74,DIWF="W"
+ S %=0
+ F  S %=$O(^DIC(9.4,A,22,B,1,%)) Q:'%   D DIWP(^(%,0)),RTN:$Y>(IOSL-6) Q:$D(DIRUT)
+ D:'$D(DIRUT) ^DIWW
+ Q
+ ;
+DIWP(X) N %,A,B D ^DIWP Q
+ ;
+RTN N %,A,B,DIR W !! S DIR(0)="E" D ^DIR W:'$D(DIRUT) @IOF,!! Q

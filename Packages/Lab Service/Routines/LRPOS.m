@@ -1,0 +1,15 @@
+LRPOS ;SLC/FHS-POST INIT ROUTINE  V 5.0 ;6/27/89  10:28 ;
+ ;;V~5.0~;LAB;;02/27/90 17:09
+ D ^LROPUD,^LRSETUP
+SET ;
+ S %DT="R",X="NOW" D ^%DT S ^UTILITY("LRINIT",LRSITE,2)=Y_U_$H_"^END OF LRINITS"
+ S ^UTILITY("LRINIT",LRSITE,"LR",0)=$S($D(^LR(0)):^(0),1:"NONE")
+ S ^UTILITY("LRINIT",LRSITE,"LAR",0)=$S($D(^LAR("Z",0)):^(0),1:"NONE")
+ I $D(^LAB(69.9,0)) S %X="^LAB(69.9"_",",%Y="^UTILITY(""LRINIT"""_","""_LRSITE_""","_69.9_"," D %XY^%RCR
+ I $D(^LAB(62.4,0)) F I=0:0 S I=$N(^LAB(62.4,I)) Q:I<1!(I>99)  I $D(^(I,0)) S %Y="^UTILITY(""LRINIT"","""_LRSITE_""","_62.4_","_I_",",%X="^LAB(62.4,"_I_"," D %XY^%RCR
+SITE ;
+ I $D(^XMB(1,0)) S %Y="^UTILITY(""LRINIT"","""_LRSITE_""","_4.3_",",%X="^XMB(1," D %XY^%RCR
+ W !?10,"Cleaning Up DD's",! D ^LRPOS1
+ S ^UTILITY("LRINIT",LRSITE,"ORDER NUMBER")=$S($D(^LRO(69,2880000,2)):^(2),1:"?"),%DT="R",X="NOW" D ^%DT S ^UTILITY("LRINIT",LRSITE,3)=Y_"^"_$H_"^PROCESS COMPLETE"
+ W !!,"ALL FINISHED"
+ Q

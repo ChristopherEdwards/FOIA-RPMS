@@ -1,0 +1,12 @@
+^RAZVRAD
+ZWR
+^RAZVRAD(3,1)="File 3 IEN 134=No file 16 pointer"
+^RAZVRAD(3,2)="File 3 IEN 143=No file 16 pointer"
+^RAZVRAD(3,"EC")="2"
+^RAZVRAD(200,1)="File 200 IEN .5=No file 16 pointer"
+^RAZVRAD(200,2)="File 200 IEN .6=No User file entry"
+^RAZVRAD(200,3)="File 200 IEN .6=No file 16 pointer"
+^RAZVRAD(200,4)="File 200 IEN 134=No file 16 pointer"
+^RAZVRAD(200,5)="File 200 IEN 143=No file 16 pointer"
+^RAZVRAD(200,"EC")="5"
+^RAZVRAD(9000010.22,"RUN DATE")="2980612"

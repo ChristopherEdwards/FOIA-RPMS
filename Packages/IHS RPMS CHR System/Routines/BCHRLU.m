@@ -1,0 +1,64 @@
+BCHRLU ; IHS/TUCSON/LAB - TUCSON-OHPRD/LAB - GEN RETR UTILITIES ;  [ 12/06/00  8:42 AM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**6,11**;OCT 28, 1996
+ ;Patch 11 added $$LOC call
+ ;
+ ;IHS/CMI/LAB - patch 6 replace BCHACE with D in MCR and PI
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------
+MCR(P,D) ;is patient medicare eligible on this date
+ NEW BCHMIFN,BCHFLG
+ S BCHFLG=0
+ I '$D(^DPT(P,0)) G MCRX
+ I $P(^DPT(P,0),U,19) G MCRX
+ I '$D(^AUPNPAT(P,0)) G MCRX
+ I '$D(^AUPNMCR(P,11)) G MCRX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCRX
+ S BCHMIFN=0 F  S BCHMIFN=$O(^AUPNMCR(P,11,BCHMIFN)) Q:BCHMIFN'=+BCHMIFN  D
+ .Q:$P(^AUPNMCR(P,11,BCHMIFN,0),U)>D
+ .I $P(^AUPNMCR(P,11,BCHMIFN,0),U,2)]"",$P(^(0),U,2)<D Q  ;IHS/CMI/LAB - changed BCHACE to D patch 6 9/21/98
+ .S BCHFLG=1
+ .Q
+MCRX ;
+ Q BCHFLG
+ ;
+MCD(P,D) ;
+ NEW BCHMIFN,BCHNIFN,BCHFLG
+ S BCHFLG=0
+ I '$D(^DPT(P,0)) G MCRX
+ I $P(^DPT(P,0),U,19) G MCRX
+ I '$D(^AUPNPAT(P,0)) G MCDX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCRX
+ S BCHMIFN=0 F  S BCHMIFN=$O(^AUPNMCD("B",P,BCHMIFN)) Q:BCHMIFN'=+BCHMIFN  D
+ .Q:'$D(^AUPNMCD(BCHMIFN,11))
+ .S BCHNIFN=0 F  S BCHNIFN=$O(^AUPNMCD(BCHMIFN,11,BCHNIFN)) Q:BCHNIFN'=+BCHNIFN  D
+ ..Q:BCHNIFN>D
+ ..I $P(^AUPNMCD(BCHMIFN,11,BCHNIFN,0),U,2)]"",$P(^(0),U,2)<D Q
+ ..S BCHFLG=1
+ ..Q
+ .Q
+ ;
+MCDX ;
+ Q BCHFLG
+ ;
+PI(P,D) ;
+ NEW BCHMIFN,BCHFLG
+ S BCHFLG=0
+ I '$D(^DPT(P,0)) G PIX
+ I $P(^DPT(P,0),U,19) G PIX
+ I '$D(^AUPNPAT(P,0)) G PIX
+ I '$D(^AUPNPRVT(P,11)) G PIX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PIX
+ S BCHMIFN=0 F  S BCHMIFN=$O(^AUPNPRVT(P,11,BCHMIFN)) Q:BCHMIFN'=+BCHMIFN  D
+ .Q:$P(^AUPNPRVT(P,11,BCHMIFN,0),U)=""
+ .S BCHNAME=$P(^AUPNPRVT(P,11,BCHMIFN,0),U) Q:BCHNAME=""
+ .Q:$P(^AUTNINS(BCHNAME,0),U)["AHCCCS"
+ .Q:$P(^AUPNPRVT(P,11,BCHMIFN,0),U,6)>D
+ .I $P(^AUPNPRVT(P,11,BCHMIFN,0),U,7)]"",$P(^(0),U,7)<D Q  ;IHS/CMI/LAB - patch 6 replaced BCHACE with D 9/21/98
+ .S BCHFLG=1
+ .Q
+PIX ;
+ Q BCHFLG

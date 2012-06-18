@@ -1,0 +1,58 @@
+ACDRL01 ;IHS/ADC/EDE/KML - SCREEN LOGIC;
+ ;;4.1;CHEMICAL DEPENDENCY MIS;;MAY 11, 1998
+ ;
+ ;
+INFORM ;EP
+ S ACDTCW=0
+ W:$D(IOF) @IOF
+ S ACDLHDR="CHEMICAL DEPENDENCY MIS GENERAL RETRIEVAL"
+ W ?((80-$L(ACDLHDR))/2),ACDLHDR
+ W !!!,"This report will produce a listing of ",$S(ACDPTVS="V":"records",1:"Patients")," in a date range selected by the",!,"user.  "
+ W "The ",$S(ACDPTVS="V":"records",1:"Patients")," printed can be selected based on any combination of items.",!,"The user will select these criteria.  The items printed on the report",!
+ W "are also selected by the user.",!!,"If selected print data items exceed 80 characters, a 132-column capacity",!,"printer will be needed.",!!
+ S (ACDPCNT,ACDPTCT)=0 ;ACDPTCT -- pt total for # of "V"isits
+ K ACDRDTR,ACDBDD,ACDBD,ACDEDD,ACDED
+ ;S ACDXREF=$S(ACDPTVS="V":"C",1:"PO")
+ S ACDXREF="C"
+ Q
+ ;
+ADD ;EP
+ K ACDCAND
+ W !!
+ I $D(ACDSEAT),'$D(ACDEP1) G ADD1
+ S DIR(0)="Y",DIR("A")="Do you want to use a PREVIOUSLY DEFINED REPORT",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) S ACDQUIT=1 Q
+ I 'Y G ADD1
+ S DIC="^ACDRPTD(",DIC("S")="I $P(^(0),U,2)&($P(^(0),U,6)=ACDPTVS)" S:$D(ACDEP1) DIC("S")=DIC("S")_"&($P(^(0),U,9)=ACDPACK)" S DIC(0)="AEQ",DIC("A")="REPORT NAME:  ",D="C" D IX^DIC K DIC,DA,DR
+ I Y=-1 S ACDQUIT=1 Q
+ S ACDRPT=+Y,ACDCAND=1
+ ;--- set up sorting and report control variables
+ S ACDSORT=$P(^ACDRPTD(ACDRPT,0),U,7),ACDSORV=$P(^(0),U,8),ACDSPAG=$P(^(0),U,4),ACDCTYP=$P(^(0),U,5)
+ S X=0 F  S X=$O(^ACDRPTD(ACDRPT,12,X)) Q:X'=+X  S ACDTCW=ACDTCW+$P(^ACDRPTD(ACDRPT,12,X,0),U,2)+2
+ Q
+ADD1 ;
+ ;CREATE REPORT ENTRY IN FILEMAN FILE
+ S %H=$H D YX^%DTC S X=$P(^VA(200,DUZ,0),U)_"-"_Y,DIC(0)="L",DIC="^ACDRPTD(",DLAYGO=9002171.8,DIADD=1 D ^DIC K DIC,DA,DR,DIADD,DLAYGO I Y=-1 W !!,"UNABLE TO CREATE REPORT FILE ENTRY - NOTIFY SITE MANAGER!" S ACDQUIT=1 Q
+ S ACDRPT=+Y
+ K DIC,DIADD,DLAYGO,DR,DA,DD,X,Y,DINUM
+ ;DELETE ALL 11 MULTIPLE HERE
+ K ^ACDRPTD(ACDRPT,11)
+ Q
+PAUSE ;EP
+ Q:$E(IOST)'="C"!(IO'=IO(0))
+ W ! S DIR(0)="EO",DIR("A")="Hit return to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q
+Y ;EP - called from apclvl0
+ S DIR(0)="S^1:"_ACDTEXT_";0:NO "_ACDTEXT_"",DIR("A")="Should "_$S(ACDPTVS="P":"patient",1:"visit")_" have",DIR("B")="1" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ Q:Y=""
+ S ^ACDRPTD(ACDRPT,11,ACDCRIT,0)=ACDCRIT,^ACDRPTD(ACDRPT,11,"B",ACDCRIT,ACDCRIT)=""
+ S ^ACDRPTD(ACDRPT,11,ACDCRIT,11,1,0)=Y,^ACDRPTD(ACDRPT,11,ACDCRIT,11,"B",Y,1)="",^ACDRPTD(ACDRPT,11,ACDCRIT,11,0)="^9002171.8110101A^"_1_"^"_1
+ Q
+SPECIAL ;EP
+ K ^ACDRPTD(ACDRPT,11,ACDCRIT),^ACDTPRT(ACDRPT,11,"B",ACDCRIT)
+ S Y="" X:$D(^ACDTITEM(ACDCRIT,4)) ^(4)
+ I Y="" Q
+ S ^ACDRPTD(ACDRPT,11,ACDCRIT,0)=ACDCRIT,^ACDRPTD(ACDRPT,11,"B",ACDCRIT,ACDCRIT)=""
+ S ACDCNT=ACDCNT+1,^ACDRPTD(ACDRPT,11,ACDCRIT,11,ACDCNT,0)=$P(Y,U),^ACDRPTD(ACDRPT,11,ACDCRIT,11,"B",$P(Y,U),ACDCNT)="",^ACDRPTD(ACDRPT,11,ACDCRIT,11,0)="^9002171.8110101A^"_ACDCNT_"^"_ACDCNT
+ Q

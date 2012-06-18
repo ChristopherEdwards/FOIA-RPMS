@@ -1,0 +1,14 @@
+ABPADATE ;REPORT PERIOD UTILITY READER;[ 05/21/91  9:17 AM ]
+ ;;1.4;AO PVT-INS TRACKING;*0*;IHS-OKC/KJR;JULY 25, 1991
+INIT D DT^DICRW S U="^" K BDT,EDT
+ ;
+BDT S %DT("A")="Enter the BEGINNING DATE for this request: ",%DT="AEPX"
+ S %DT(0)="-NOW" W ! D ^%DT G:+Y<0 END S BDT=+Y
+ ;
+EDT S %DT("A")="Enter the ENDING DATE for this request: ",%DT="AEPX"
+ S %DT(0)="-NOW" W ! D ^%DT G:+Y<0 END S EDT=+Y
+ I BDT>EDT D  G INIT
+ .W *7,!!?10,"<<< INVALID DATES - THE END IS BEFORE THE BEGINNING >>>"
+ ;
+END K %DT,X,Y
+ Q

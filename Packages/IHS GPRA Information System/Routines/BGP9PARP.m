@@ -1,0 +1,25 @@
+BGP9PARP ; IHS/CMI/LAB - IHS gpra print ;
+ ;;9.0;IHS CLINICAL REPORTING;;JUL 1, 2009
+ ;
+ ;
+PRINT ;EP
+ K ^TMP($J)
+ S BGPIOSL=$S($G(BGPGUI):55,1:IOSL)
+ S BGPGPG=0
+ S BGPQUIT=""
+ S BGPIFTR=""
+ D SETEXCEL^BGP9DP
+ I BGPROT="D" G DEL
+ D AREACP^BGP9DH
+ S BGPQUIT="",BGPGPG=0,BGPRPT=0
+ D PRINT1^BGP9DP
+ Q:BGPQUIT
+ Q:BGPROT="P"
+DEL ;create delimited output file
+ S BGPQUIT="",BGPGPG=0,BGPRPT=0
+ D ^%ZISC ;close printer device
+ K ^TMP($J)
+ D ^BGP9PDL ;create ^tmp of delimited report
+ S BGPIFTR=1
+ Q
+ ;

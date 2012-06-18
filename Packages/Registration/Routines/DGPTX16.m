@@ -1,0 +1,5 @@
+DGPTX16 ; ;10/29/04
+ S X=DG(DQ),DIC=DIE
+ X ^DD(2,.32101,1,1,1.3) I X S X=DIV S Y(1)=$S($D(^DPT(D0,.321)):^(.321),1:"") S X=$P(Y(1),U,4) S DIU=X K Y S X=DIV S X="" X ^DD(2,.32101,1,1,1.4)
+ S X=DG(DQ),DIC=DIE
+ X ^DD(2,.32101,1,2,1.3) I X S X=DIV S Y(1)=$S($D(^DPT(D0,.321)):^(.321),1:"") S X=$P(Y(1),U,5) S DIU=X K Y S X=DIV S X="" X ^DD(2,.32101,1,2,1.4)

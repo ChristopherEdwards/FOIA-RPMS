@@ -1,0 +1,152 @@
+BDMVRL43 ; IHS/CMI/LAB - DEMO/APPTS ACTION ; 09 Feb 2010  7:43 AM
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**1,2,3,4**;JUN 14, 2007
+ ;
+PROVIDER ;EP;PRINT FU REPORT/LETTER FOR SELECTED PROVIDERS
+ K BDMK
+ W !!,"Print the Follow-up Report/Letters by"
+ S DIR(0)="SO^1:Community;2:Primary Provider;3:Where Followed"
+ S DIR("A")="Which one"
+ S DIR("B")="Community"
+ W !
+ D DIR^BDMFDIC
+ I Y<1 S BDMQUIT="" Q
+ I Y=1 S BDMK="COMMUNITY"
+ I Y=2 S BDMK="PROVIDER"
+ I Y=3 S BDMK="WHERE"
+ D C1
+ W !!,$S(BDMK["PROV":"Providers",BDMK["COMM":"Communities",1:"Locations")," Selected:"
+ I '$O(BDMK(0)) W !!?10,"ALL " Q
+ S BDMX=0
+ F  S BDMX=$O(BDMK(BDMX)) Q:BDMX=""  W !?10,BDMK(BDMX)
+ K BDMQUIT
+ Q
+C1 ;SELECT COMMUNITY(IES)
+ W !!,"(Press <ENTER> to select ALL "
+ W $S(BDMK["COMM":"Communities",BDMK["PROV":"Providers",1:"Locations Where Followed")
+ F  D C11 Q:$D(BDMQUIT)
+ K BDMQUIT
+ Q
+C11 S DIR(0)="FO^1:30"
+ S DIR("A")="Which "_$S(BDMK["COMM":"Community",BDMK["PROV":"Provider",1:"Location Where Followed")
+ S:$O(BDMK(0)) DIR("A")="Select another "_$S(BDMK["COMM":"Community",BDMK["PROV":"Provider",1:"Location Where Followed")
+ W !
+ D DIR^BDMFDIC
+ I X=""!(X[U) S BDMQUIT="" Q
+ S BDMX=X
+ I $E(X)="[" D  Q
+ .D CT
+ .S BDMQUIT="" Q
+ D C12
+ Q
+C12 S DIC=$S(BDMK["COMM":"^AUTTCOM(",BDMK["PROV":$S(^DD(9000001,.14,0)[200:"^VA(200,",1:"^DIC(6,"),1:"^AUTTLOC(")
+ S DIC(0)="EMQZ"
+ W !
+ S X=BDMX
+ D DIC^BDMFDIC
+ I Y<1 S BDMQUIT="" Q
+ S BDMK(+Y)=Y(0,0)
+ Q
+CT ;SELECT COMMUNITY TAXONOMY
+ S DIC("S")="I $P(^(0),U,15)="_$S(BDMK["COMM":9999999.05,BDMK["PROV":9999999.06,1:6)_",$O(^ATXAX(+Y,21,""B"",""""))]"""""
+ S X=$E(BDMX,2,999)
+ S DIC="^ATXAX("
+ S DIC(0)="EMZ"
+ D DIC^BDMFDIC
+ I Y<1 D  Q
+ .I BDMX["?" K BDMQUIT G C1
+ .W !,BDMX," Taxonomy not found"
+ .S BDMQUIT=""
+ .H 2
+ W !!," Members of the ",X," Taxonomy:",!
+ S X=+Y
+ S Y=""
+ F  S Y=$O(^ATXAX(X,21,"B",Y)) Q:Y=""  D
+ .W !,Y
+ .S Z=0
+ .F  S Z=$O(^AUTTCOM("B",Y,Z)) Q:'Z  D
+ ..S BDMK(Z)=Y
+ Q
+LAB ;EP;DETERMINE LAST LAB VIA LAB SYSTEM
+ I BDMFU'="LIVR" D APCLLAB Q
+ K BDMQUIT
+ N BDMLR,J,X,Y,Z
+ S BDMLR=$P($G(^DPT(DFN,"LR")),U)
+ Q:'$D(^LR(+BDMLR,"CH"))
+ S X=0
+ F  S X=$O(^LR(BDMLR,"CH",X)) Q:'X!$D(BDMQUIT)  D
+ .I BDMFU="CHOL" F J=12 Q:$D(BDMQUIT)  D LAB1:$G(^LR(BDMLR,"CH",X,J))
+ .I BDMFU="LDL" F J=18,291 Q:$D(BDMQUIT)  D LAB1:$G(^LR(BDMLR,"CH",X,J))
+ .I BDMFU="HDL" F J=80 Q:$D(BDMQUIT)  D LAB1:$G(^LR(BDMLR,"CH",X,J))
+ .I BDMFU="CREA" F J=4 Q:$D(BDMQUIT)  D LAB1:$G(^LR(BDMLR,"CH",X,J))
+ .I BDMFU="TRIG" F J=47 Q:$D(BDMQUIT)  D LAB1:$G(^LR(BDMLR,"CH",X,J))
+ .I BDMFU="HGB" F J=462 Q:$D(BDMQUIT)  D LAB1:$G(^LR(BDMLR,"CH",X,J))
+ .I BDMFU="LIVR" F J=19,20 Q:$D(BDMQUIT)  D LAB1:$G(^LR(BDMLR,"CH",X,J))
+ .I BDMFU="URIN" D
+ ..F JJ=38,122,123,249,256,257,303,305,619 Q:$D(BDMQUIT)  D
+ ...S J=1665000+JJ
+ ...D LAB1:$D(^LR(BDMLR,"CH",X,J))
+ .I BDMFU="UPRO" D
+ ..F JJ=38,249,256,257,303,305 Q:$D(BDMQUIT)  D
+ ...S J=1665000+JJ
+ ...D LAB1:$D(^LR(BDMLR,"CH",X,J))
+ K BDMQUIT
+ Q
+LAB1 S Y=$P(X,".")
+ S Z=$$LSTVST^BDMVRL4(Y)
+ I Z="" D  Q
+ .K ^TMP("BDMTMP",$J,BDM("COMMUNITY"),BDM("PATIENT"),BDMP,BDM("FOLLOW-UP TYPE"))
+ .S BDMQUIT=""
+ S X=Z
+ D FUOUT^BDMVRL4
+ Q
+TYPE ;EP;CHECK FOR TYPE 1/TYPE 2 DM
+ S DFN=$P($G(^ACM(41,BDMRPDA,0)),U,2)
+ Q:'DFN
+ K BDMQUIT
+ N X,Y,Z
+ S X=0
+ F  S X=$O(^ACM(44,"AC",BDMRDA,DFN,X)) Q:'X!$D(BDMQUIT)  D
+ .I $P($G(^ACM(44.1,X,0)),U)["TYPE" S BDMQUIT=""
+ Q
+ ;
+APCLLAB ;EP;TO USE DM AUDIT LOGIC
+ S X="BDMD118"
+ S Z=""
+ I BDMFU="CHOL" S Y="S Z=$$CHOL^"_X_"(DFN,2900101,DT)" X Y
+ I BDMFU="LDL" S Y="S Z=$$LDL^"_X_"(DFN,2900101,DT)" X Y
+ I BDMFU="HDL" S Y="S Z=$$HDL^"_X_"(DFN,2900101,DT)" X Y
+ I BDMFU="CREA" S Y="S Z=$$CREAT^"_X_"(DFN,2900101,DT)" X Y
+ I BDMFU="TRIG" S Y="S Z=$$TRIG^"_X_"(DFN,2900101,DT)" X Y
+ I BDMFU="UPT" S Y="S Z=$$URIN^"_X_"(DFN,2900101,DT)" X Y
+ I BDMFU="UPRO" S Y="S Z=$$PROTEIN^"_X_"(DFN,2900101,DT)" X Y
+ I BDMFU="GFR" S Z=$$GFR^BDMD11C(DFN,2900101,DT)
+ I BDMFU="UACR" S Z=$$UACR^BDMD11C(DFN,2900101,DT)
+ ;I BDMFU="UPRO" S Y="S Z=$$MICRO^"_X_"(DFN,2900101,DT)" X Y
+ I BDMFU="GFR"!(BDMFU="UACR")!(BDMFU="UPT") D
+ .S:$P(Z,U,3)="" Z=""
+ .I $P(Z,U,3)]"" S Z=U_$P(Z,U,3)
+ I Z]"" S X=$P(Z,U,2),%DT="" D ^%DT S Z=Y
+ I BDMFU="HGB" D
+ .S Y="S Z=$$HGBA1C^"_X_"(DFN,2900101,DT)" X Y
+ .S:Z Z=$P(Z,U,1)
+ I 'Z D FUNO^BDMVRL4 Q
+ S X=9999999-Z
+ D LAB1
+ Q
+IMMUN ;EP;TO USE DM TD LOGIC
+ F X="APCLD91B","APCLD81B","APCLD71B","APCLD61B","APCLD51B","APCLD41B","APCLD31B","APCLD313","APCLD216" X ^%ZOSF("TEST") Q:$T
+ S Z=""
+ I BDMFU="TD" S Y="S Z=$$TD^"_X_"(DFN,DT)" X Y
+ I Z]"" D
+ .S:$L(Z," ")>1 Z=$P(Z," ",3,5)
+ .S X=+$P(Z," ",2)
+ .S:$L(X)=1 X=0_X
+ .S Y=$P(Z," ",3)-1700
+ .S Z=$P(Z," ")
+ .S Z=$S(Z="Jan":"01",Z="Feb":"02",Z="Mar":"03",Z="Apr":"04",Z="May":"05",Z="Jun":"06",Z="Jul":"07",Z="Aug":"08",Z="Sep":"09",Z="Oct":10,Z="Nov":11,Z="Dec":12,1:"")
+ .I 'Z S Z="" Q
+ .S Z=Y_Z_X
+ I 'Z D FUNO^BDMVRL4 Q
+ S X=9999999-Z
+ D LAB1
+ Q

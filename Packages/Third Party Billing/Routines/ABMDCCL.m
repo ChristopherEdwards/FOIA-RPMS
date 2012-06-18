@@ -1,0 +1,42 @@
+ABMDCCL ; IHS/SD/SDR - Canceled Claims Listing ; JUN 29, 2005
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;
+ ;
+ K ABM,ABMY
+ S ABM("RTYP")=1,ABM("RTYP","NM")="BRIEF LISTING (80 Width)"
+ S ABM("STA")="X"  ;cancelled claims
+ S ABM("DT")="C"  ;by visit date
+ S ABM("CANC")=DUZ  ;cancelling official
+ S ABM("STA","NM")="CANCELLED CLAIMS"
+ S ABM("REASON")="CANC"
+ ;
+SEL S ABM("NODX")="" D ^ABMDRSEL Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ S ABM("HD",0)="CANCELLED CLAIMS LISTING"
+ D ^ABMDRHD
+ S ABMQ("RC")="COMPUTE^ABMDCCL",ABMQ("RX")="POUT^ABMDRUTL",ABMQ("NS")="ABM"
+ S ABMQ("RP")="PRINT^ABMDCCL"_ABM("RTYP")
+ D ^ABMDRDBQ
+ Q
+ ;
+COMPUTE ;EP - Entry Point for Setting up Data
+ S ABM("SUBR")="ABM-CC" K ^TMP("ABM-CC",$J) S ABM("PG")=0
+ D SLOOP
+ Q
+SLOOP I $D(ABMY("DT")) D  Q
+ .S ABM("RD")=ABMY("DT",1)-1
+ .S ABMY("DT",2)=ABMY("DT",2)+1
+ .F  S ABM("RD")=$O(^ABMCCLMS(DUZ(2),"AC",ABM("RD"))) Q:'+ABM("RD")!($P(ABM("RD"),".")>ABMY("DT",2))  D
+ ..S ABM="" F  S ABM=$O(^ABMCCLMS(DUZ(2),"AC",ABM("RD"),ABM)) Q:'ABM  D DATA
+ S ABMP=0
+ F  S ABMP=$O(^ABMCCLMS(DUZ(2),"B",ABMP)) Q:ABMP=""  D
+ .S ABM=0
+ .F  S ABM=$O(^ABMCCLMS(DUZ(2),"B",ABMP,ABM)) Q:'ABM  D DATA
+ Q
+ ;
+DATA S ABMP("HIT")=0 D CANCEL^ABMDRCHK Q:'ABMP("HIT")
+ S ABM("SORT")=$S(ABMY("SORT")="C":ABM("CL"),1:ABM("VT"))
+ S ABM("VLOC")=$P(^DIC(4,ABM("VLOC"),0),U)
+ S ^TMP("ABM-CC",$J,ABM("CANC"),ABM("VLOC")_U_ABM("SORT")_U_$P(^DPT(ABM("PDFN"),0),U)_U_ABM)=""
+ S ABM("ST",ABM("VLOC"),ABM("SORT"))=$G(ABM("ST",ABM("VLOC"),ABM("SORT")))+1
+ S $P(ABM("ST",ABM("CANC"),ABM("VLOC"),ABM("SORT")),U)=$P(+$G(ABM("ST",ABM("CANC"),ABM("VLOC"),ABM("SORT"))),U)+1
+ Q

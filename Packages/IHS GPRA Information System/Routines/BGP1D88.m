@@ -1,0 +1,136 @@
+BGP1D88 ; IHS/CMI/LAB - measure C 03 Jul 2010 7:05 AM ;
+ ;;11.1;IHS CLINICAL REPORTING SYSTEM;;JUN 27, 2011;Build 33
+ ;
+HIV1 ;EP
+ S (BGPN1,BGPN2,BGPD1)=0
+ I 'BGPACTCL S BGPSTOP=1 Q  ;not active clinical pt
+ I BGPSEX'="F" S BGPSTOP=1 Q
+ Q:$$HIVDX^BGP1D8(DFN,BGPEDATE)  ;has HIV so quit
+ Q:'$$PREG^BGP1D7(DFN,$$FMADD^XLFDT(BGPEDATE,-609),BGPEDATE,1)  ;not pregnant
+ S BGPD1=1
+ S BGPHIV=$$HIVTEST(DFN,$$FMADD^XLFDT(BGPEDATE,-609),BGPEDATE)
+ I $P(BGPHIV,U) S BGPN1=1
+ S BGPVALUE="AC PREG (NO RX/CHR)"_"|||"_$P(BGPHIV,U,2)
+ S BGPVALUD="AC PREG (NO RX/CHR)"_"|||"_$P(BGPHIV,U,2)
+ K X,Y,Z,%,A,B,C,D,E,H,BDATE,EDATE,P,V,S,F,T
+ K BGPEDUC,BGPHIV
+ Q
+HIV2 ;EP
+ S (BGPN1,BGPN2,BGPD1)=0
+ I 'BGPACTCL S BGPSTOP=1 Q  ;not active clinical pt
+ I BGPSEX'="F" S BGPSTOP=1 Q
+ Q:$$HIVDX^BGP1D8(DFN,BGPEDATE)  ;has HIV so quit
+ Q:'$$PREG(DFN,$$FMADD^XLFDT(BGPEDATE,-600),BGPEDATE,1)  ;not pregnant
+ S BGPD1=1
+ S BGPHIV=$$HIVTEST(DFN,$$FMADD^XLFDT(BGPEDATE,-600),BGPEDATE)
+ I $P(BGPHIV,U) S BGPN1=1
+ S BGPVALUE="AC PREG (NO RX)"_"|||"_$P(BGPHIV,U,2)
+ S BGPVALUD="AC PREG (NO RX)"_"|||"_$P(BGPHIV,U,2)
+ K X,Y,Z,%,A,B,C,D,E,H,BDATE,EDATE,P,V,S,F,T
+ K BGPEDUC,BGPHIV
+ Q
+HIVTEST(P,BDATE,EDATE) ;
+ NEW BGPC,BGPT,T,X,BGPLT,E,D,B,L,J,G,BGPT1,BGPA
+ NEW BD,ED,Y,D,V
+ K BGPA
+ S BGPC=0
+ S T=$O(^ATXAX("B","BGP HIV TEST LOINC CODES",0))
+ S BGPLT=$O(^ATXLAB("B","BGP HIV TEST TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...S V=$P(^AUPNVLAB(X,0),U,3)
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(BGPC)=1_U_$$DATE^BGP1UTL((9999999-D))_" LAB"_U_$P(^AUPNVLAB(X,0),U,4)_U_D,BGPA((9999999-D))="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP1D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(BGPC)=1_U_$$DATE^BGP1UTL((9999999-D))_"  LAB "_$P($G(^LAB(95.3,J,0)),U)_"-"_$P($G(^LAB(95.3,J,0)),U,15)_U_$P(^AUPNVLAB(X,0),U,4)_U_D,BGPA((9999999-D))=""
+ ...Q
+ S T=$O(^ATXAX("B","BGP CPT HIV TESTS",0))
+ I T D
+ .;go through visits in a date range for this patient, check cpts
+ .S ED=(9999999-EDATE),BD=9999999-BDATE,G=0
+ .F  S ED=$O(^AUPNVSIT("AA",P,ED)) Q:ED=""!($P(ED,".")>BD)  D
+ ..S V=0 F  S V=$O(^AUPNVSIT("AA",P,ED,V)) Q:V'=+V  D
+ ...Q:'$D(^AUPNVSIT(V,0))
+ ...Q:'$D(^AUPNVCPT("AD",V))
+ ...S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  D
+ ....I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) I '$D(BGPA((9999999-$P(ED,".")))) S BGPC=BGPC+1,BGPC(BGPC)=1_U_$$DATE^BGP1UTL((9999999-$P(ED,".")))_" CPT "_$$VAL^XBDIQ1(9000010.18,X,.01)_U_U_$P(ED,"."),BGPA((9999999-$P(ED,".")))=""
+ ....Q
+ ...Q
+ ..Q
+ I BGPC=0 Q ""
+ K BGPA
+ S T=0 F  S T=$O(BGPC(T)) Q:T'=+T  S BGPA($P(BGPC(T),U,4))=BGPC(T)
+ S T=$O(BGPA(0))
+ S Y=1_U_$P(BGPA(T),U,2)
+ Q Y
+LOINC(A,B) ;
+ NEW %
+ S %=$P($G(^LAB(95.3,A,9999999)),U,2)
+ I %]"",$D(^ATXAX(B,21,"B",%)) Q 1
+ S %=$P($G(^LAB(95.3,A,0)),U)_"-"_$P($G(^LAB(95.3,A,0)),U,15)
+ I $D(^ATXAX(B,21,"B",%)) Q 1
+ Q ""
+PREG(P,BDATE,EDATE,NORX) ;EP
+ NEW BGPDX,B,CNT,BGPD,BGPG
+ S B=0,CNT=0,BGPD=""  ;if there is one before time frame set this to 1
+ S NORX=$G(NORX)
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^ALL DX [BGP PREGNANCY DIAGNOSES 2;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ ;now reorder by date of diagnosis and eliminate all chr and rx if necessary
+ I '$D(BGPG) G PROB  ;no diagnoses
+ S B=0,X=0 F  S X=$O(BGPG(X)) Q:X'=+X  D
+ .;get date
+ .S D=$P(BGPG(X),U,1)
+ .S C=$$CLINIC^APCLV($P(BGPG(X),U,5),"C")
+ .I NORX,C=39 Q
+ .S BGPDX(D)="",CNT=CNT+1 I CNT=2 S BGPD=D
+ .I D>$$FMADD^XLFDT(EDATE,-365) S B=1
+ .Q
+ I CNT>1,B G MA
+PROB ;
+ I '$G(B) Q ""  ;no pregnancy visit during time period  ;-Lori fix in 09
+ S T=$O(^ATXAX("B","BGP PREGNANCY DIAGNOSES 2",0))
+ S (X,G)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(G)  D
+ .Q:$P(^AUPNPROB(X,0),U,12)'="A"
+ .Q:$P(^AUPNPROB(X,0),U,8)>EDATE
+ .Q:$P(^AUPNPROB(X,0),U,8)<BDATE
+ .S Y=$P(^AUPNPROB(X,0),U)
+ .Q:'$$ICD^ATXCHK(Y,T,9)
+ .S G=$P(^AUPNPROB(X,0),U,8)
+ .Q
+ I G=0,BGPD="" Q 0  ;no dxs and no problem list
+ S BGPD=G
+MA ;now check for abortion or miscarriage
+ ;abortion first
+ K BGPG S Y="BGPG(" S X=P_"^LAST DX [BGP MISCARRIAGE/ABORTION DXS;DURING "_$$FMTE^XLFDT(BGPD)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) Q 0  ;HAD MIS/AB
+ S BGPG=$$LASTPRC^BGP1UTL1(P,"BGP ABORTION PROCEDURES",BDATE,EDATE)
+ I BGPG Q 0
+ S T=$O(^ATXAX("B","BGP MISCARRIAGE/ABORTION DXS",0))
+ S (X,G)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(G)  D
+ .Q:$P(^AUPNPROB(X,0),U,12)'="A"
+ .Q:$P(^AUPNPROB(X,0),U,8)<BGPD
+ .Q:$P(^AUPNPROB(X,0),U,8)>EDATE
+ .S Y=$P(^AUPNPROB(X,0),U)
+ .Q:'$$ICD^ATXCHK(Y,T,9)
+ .S G=1
+ .Q
+ I G Q 0
+ ;now check CPTs for Abortion and Miscarriage
+ S T=$O(^ATXAX("B","BGP CPT ABORTION",0))
+ S %=$$CPT^BGP1DU(P,BGPD,EDATE,T,3)
+ I %]"" Q 0
+ S T=$O(^ATXAX("B","BGP CPT MISCARRIAGE",0))
+ S %=$$CPT^BGP1DU(P,BGPD,EDATE,T,3)
+ I %]"" Q 0
+ S T=$O(^ATXAX("B","BGP CPT ABORTION",0))
+ S %=$$TRAN^BGP1DU(P,BGPD,EDATE,T,3)
+ I %]"" Q 0
+ S T=$O(^ATXAX("B","BGP CPT MISCARRIAGE",0))
+ S %=$$TRAN^BGP1DU(P,BGPD,EDATE,T,3)
+ I %]"" Q 0
+ Q 1

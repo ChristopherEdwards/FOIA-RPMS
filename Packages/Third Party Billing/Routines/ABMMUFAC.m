@@ -1,0 +1,298 @@
+ABMMUFAC ;IHS/SD/SDR - EHR Incentive Report (MU) ;
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,7**;NOV 12, 2009
+ ;
+ W !!,"This report will calculate the number of Covered Inpatient days for Medicare,"
+ W !,"Medicaid, and Private Insurance.  Outpatient All-Inclusive Rate (AIR) bills are"
+ W !,"counted.  A report can be selected to view the bills used in the calculations."
+ W !!!
+ K ABMY,ABMP
+ K ^TMP($J,"ABM-MUFAC")
+ K ^TMP($J,"ABM-MUVLST")
+DTTYP ;
+ D ^XBFMK
+ S DIR("A")="Run report by FISCAL YEAR or DATE RANGE"
+ S DIR(0)="SO^F:FISCAL YEAR;D:DATE RANGE"
+ S DIR("B")="FISCAL YEAR"
+ D ^DIR
+ Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ S ABMDTYP=Y
+ W !
+ I ABMDTYP="F" D FDT
+ I ABMDTYP="D" D DTR
+ D RTYPE
+ Q
+FDT ;
+ D ^XBFMK
+ S DIR("A")="Select REPORT DATE Fiscal year"
+ S DIR(0)="LO^1960:2100:0"
+ S DIR("B")=$E($$Y2KD2^ABMDUTL(DT),1,4)
+ D ^DIR
+ Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ S ABMY("DT",1)=Y
+ W !
+ Q
+DTR ;
+ D ^XBFMK
+ S DIR("A")="Enter STARTING Date"
+ S DIR(0)="DO^::EP"
+ D ^DIR
+ Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ S ABMY("DT",1)=Y
+ W !
+ S DIR("A")="Enter ENDING Date"
+ D ^DIR
+ K DIR
+ G DTR:$D(DIRUT)
+ S ABMY("DT",2)=Y
+ I ABMY("DT",1)>ABMY("DT",2) W !!,*7,"INPUT ERROR: Start Date is Greater than than the End Date, TRY AGAIN!",!! G DTR
+ Q
+RTYPE ;summary or detail?
+ W !
+ K DIC,DIE,DIR,X,Y,DA
+ S DIR(0)="S^S:SUMMARY;D:DETAIL;B:BOTH"
+ S DIR("A")="SUMMARY, DETAIL, or BOTH"
+ S DIR("B")="SUMMARY"
+ D ^DIR K DIR
+ Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ S ABMSUMDT=Y
+SEL ;Select device
+ I ABMSUMDT="B" D
+ .W !!,"There will be two outputs, one for SUMMARY and one for DETAIL."
+ .W !,"The first one should be a terminal or a printer."
+ .W !,"The second forces an HFS file because it could be a large file",!
+ ;I ABMSUMDT'="D" D  Q:POP  ;abm*2.6*7
+ .;start old code abm*2.6*7
+ .;S %ZIS="NQ"
+ .;S %ZIS("A")="Enter DEVICE: "
+ .;D ^%ZIS Q:POP
+ ;U IO(0) W !!,"Searching...."  ;abm*2.6*7
+ ;U IO  ;abm*2.6*7
+ ;D GETTOTS  ;abm*2.6*7
+ I ABMSUMDT'="D" D
+ .;start old code abm*2.6*7
+ .;I $D(IO("S")) S IOP=ION D ^%ZIS
+ .;D WRTSUM
+ .;D ^%ZISC
+ .;D HOME^%ZIS
+ .;end old code start new code
+ .S ABMQ("RX")=$S(ABMSUMDT="S":"XIT^ABMMUFAC",1:"XIT2^ABMMUFAC")
+ .S ABMQ("NS")="ABM"
+ .S ABMQ("RC")="GETTOTS^ABMMUFAC"
+ .S ABMQ("RP")="WRTSUM^ABMMUFAC"
+ .D ^ABMDRDBQ
+ .;end new code
+ I ABMSUMDT'="S" D
+ .W !!,"Will now write detail to file",!!
+ .D ^XBFMK
+ .S DIR(0)="F"
+ .S DIR("A")="Enter Path"
+ .S DIR("B")=$P($G(^ABMDPARM(DUZ(2),1,4)),"^",7)
+ .D ^DIR K DIR
+ .Q:$D(DIRUT)!$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ .S ABMPATH=Y
+ .S DIR(0)="F",DIR("A")="Enter File Name"
+ .D ^DIR K DIR
+ .Q:$D(DIRUT)!$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ .S ABMFN=Y
+ .W !!,"Creating file..."
+ .D OPEN^%ZISH("ABM",ABMPATH,ABMFN,"W")
+ .Q:POP
+ .U IO
+ .D GETTOTS  ;abm*2.6*7
+ .D WRTDTL
+ .D CLOSE^%ZISH("ABM")
+ .W "DONE" H 1
+XIT ;
+ K ^TMP($J,"ABM-MUFAC")
+ K ^TMP($J,"ABM-MUVLST")
+ K ABMP,ABMY,ABMPTINA,ABMPT,ABMMFLG,ABMC,ABMB
+XIT2 ;
+ Q
+QUE ;QUE TO TASKMAN
+ S ZTRTN="WRTDTL^ABMMUFAC"
+ S ZTDESC="FACILITY EHR INCENTIVE REPORT"
+ S ZTSAVE("ABM*")=""
+ K ZTSK
+ D ^%ZTLOAD
+ W:$G(ZTSK) !,"Task # ",ZTSK," queued.",!
+ Q
+GETTOTS ;
+ ;S ABM("HD",0)="FACILITY EHR INCENTIVE REPORT"  ;abm*2.6*7
+ ;S ABM("PG")=1  ;abm*2.6*7
+ D GETLOCS
+ S ABML=0
+ S ABMDUZ2=DUZ(2)
+ F  S ABML=$O(ABMLOC(ABML)) Q:'ABML  S DUZ(2)=ABML D GETBILLS
+ Q
+GETLOCS ;
+ I ABMDTYP="F" D
+ .S ABMP("SDT")=((+ABMY("DT",1)-1)_"1001")-17000000
+ .S ABMP("EDT")=((+ABMY("DT",1))_"0930")-16999999
+ I ABMDTYP="D" D
+ .S ABMP("SDT")=ABMY("DT",1)-.5
+ .S ABMP("EDT")=ABMY("DT",2)+.999999
+ K ABMPSFLG
+ S ABMPAR=0
+ F  S ABMPAR=$O(^BAR(90052.05,ABMPAR)) Q:+ABMPAR=0  D  Q:($G(ABMPSFLG)=1)
+ .I $D(^BAR(90052.05,ABMPAR,DUZ(2))) D
+ ..; Use A/R parent/sat is yes, but DUZ(2) is not the parent for this 
+ ..; visit location
+ ..Q:$P($G(^BAR(90052.05,ABMPAR,DUZ(2),0)),U,3)'=ABMPAR
+ ..Q:$P($G(^BAR(90052.05,ABMPAR,DUZ(2),0)),U,6)>ABMP("EDT")
+ ..Q:$P($G(^BAR(90052.05,ABMPAR,DUZ(2),0)),U,7)&($P(^(0),U,7)<ABMP("SDT"))
+ ..S ABMPSFLG=1
+ S ABMLOC(ABMPAR)=""
+ S ABML=0
+ F  S ABML=$O(^BAR(90052.05,ABMPAR,ABML)) Q:'ABML  D
+ .Q:$P($G(^BAR(90052.05,ABMPAR,DUZ(2),0)),U,6)>ABMP("EDT")
+ .Q:$P($G(^BAR(90052.05,ABMPAR,DUZ(2),0)),U,7)&($P(^(0),U,7)<ABMP("SDT"))
+ .S ABMLOC(ABML)=""
+ Q
+GETBILLS ;
+ D GETBILLS^ABMMUFC1
+ Q
+SETCAT ;
+ ;I (ABMSC="H"!(ABMSC="I")),($E(ABMP("BTYP"),1,2)=11),(ABMP("VTYP")=111) S ABMP("RPT-CAT")="IP DISCHGS" Q  ;abm*2.6*7
+ I (ABMSC="H"!(ABMSC="I")),+$G(ABMP("NEWBORN"))=0,($E(ABMP("BTYP"),1,2)=11),(ABMP("VTYP")=111) S ABMP("RPT-CAT")="IP DISCHGS" Q  ;abm*2.6*7
+ I (ABMSC="H"!(ABMSC="I")),+$G(ABMP("NEWBORN"))=1,($E(ABMP("BTYP"),1,2)=11),(ABMP("VTYP")=111) S ABMP("RPT-CAT")="IP NB DISCHGS" Q  ;abm*2.6*7
+ I (ABMSC="H"!(ABMSC="I")),($E(ABMP("BTYP"),1,2)=11),(ABMP("VTYP")=999) S ABMP("RPT-CAT")="IP CHGS" Q
+ I (ABMSC'="H"&(ABMSC'="I")),(($E(ABMP("BTYP"),1,2)=13)!($E(ABMP("BTYP"),1,2)=85)!($E(ABMP("BTYP"),1,2)=73)),(ABMP("VTYP")=131),(ABMFFLG=1) S ABMP("RPT-CAT")="OP AIR" Q
+ I (ABMSC'="H"&(ABMSC'="I")),(($E(ABMP("BTYP"),1,2)=13)!($E(ABMP("BTYP"),1,2)=85)!($E(ABMP("BTYP"),1,2)=73)),(ABMP("VTYP")=131),(ABMFFLG=0) S ABMP("RPT-CAT")="OP ITEM" Q
+ I (ABMSC'="H"&(ABMSC'="I")),(($E(ABMP("BTYP"),1,2)=13)!($E(ABMP("BTYP"),1,2)=85)!($E(ABMP("BTYP"),1,2)=73)),(ABMP("VTYP")=999) S ABMP("RPT-CAT")="OP CHGS" Q
+ I ABMSC="H"!(ABMSC="I"),($E(ABMP("BTYP"),1,2)'=11) S ABMP("RPT-CAT")="IP CHGS" Q
+ I +$G(ABMFFLG)=1 S ABMP("RPT-CAT")="OP AIR" Q
+ S ABMP("RPT-CAT")="OP ITEM"
+ Q
+WRTSUM ;
+ S ABM("HD",0)="FACILITY EHR INCENTIVE REPORT"  ;abm*2.6*7
+ S ABM("PG")=1  ;abm*2.6*7
+ S ABMTYP="SUM" D WHD
+ S CENTER=IOM/2
+ S ABMITYP=""
+ F ABMITYP="MEDICARE","MEDICAID","PRIVATE","KIDSCARE/CHIP","OTHER" D
+ .W !
+ .I ABMITYP="PRIVATE" W ?CENTER-($L("-- P R I V A T E  I N S U R A N C E --")/2),"-- P R I V A T E  I N S U R A N C E --"
+ .I ABMITYP="MEDICARE" W ?CENTER-($L("-- M E D I C A R E --")/2),"-- M E D I C A R E --"
+ .I ABMITYP="MEDICAID" W ?CENTER-($L("-- M E D I C A I D --")/2),"-- M E D I C A I D --"
+ .I ABMITYP="KIDSCARE/CHIP" W ?CENTER-($L("-- K I D S C A R E / C H I P --")/2),"-- K I D S C A R E / C H I P --"
+ .I ABMITYP="OTHER" W ?CENTER-($L("-- O T H E R --")/2),"-- O T H E R --"
+ .W !?4,"# Paid "_ABMITYP_" IP Discharges",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"IP DISCHGS")),20)
+ .W !?4,"# Paid "_ABMITYP_" IP Newborn Discharges",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"IP NB DISCHGS")),20)  ;abm*2.6*7
+ .W !?4,"# Paid "_ABMITYP_" IP Charges",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"IP CHGS")),20)
+ .W !?4,"# Paid "_ABMITYP_" IP Bed Days",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"IP DAYS")),20)
+ .W !?4,"# Paid "_ABMITYP_" IP Newborn Bed Days",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"IP NB DAYS")),20)  ;abm*2.6*7
+ .W !?4,"# Paid "_ABMITYP_" IP Bed Days Charges",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"IP CHGS DAYS")),20)
+ .W !?4,"# Paid "_ABMITYP_" OP All-Inclusive",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"OP AIR")),20)
+ .W !?4,"# Paid "_ABMITYP_" OP Charges",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"OP CHGS")),20)
+ .W !?4,"# Paid "_ABMITYP_" OP Itemized",?59,$J(+$G(^TMP($J,"ABM-MUFAC",ABMITYP,"OP ITEM")),20)
+ .I $Y>(IOSL-5) D HD Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)  W " (cont)"
+ .W !
+ W !!,"(SUMMARY REPORT COMPLETE):"
+ D PAZ^ABMDRUTL Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ S DUZ(2)=ABMDUZ2
+ Q
+WRTDTL ;
+ S ABM("HD",0)="FACILITY EHR INCENTIVE REPORT"  ;abm*2.6*7
+ S ABM("PG")=1  ;abm*2.6*7
+ S ABMTYP="DET" D WHD
+ S CENTER=IOM/2
+ F ABMITYP="MEDICARE","MEDICAID","PRIVATE","KIDSCARE/CHIP","OTHER" D
+ .S (ABMTBILD,ABMTPD,ABMTCDYS,ABMTNDYS)=0
+ .S ABMCHG=""
+ .F  S ABMCHG=$O(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG)) Q:($G(ABMCHG)="")  D
+ ..S (ABMTBILD,ABMTPD,ABMTCDYS,ABMTNDYS)=0
+ ..S ABMINS=""
+ ..F  S ABMINS=$O(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS)) Q:ABMINS=""  D
+ ...S DUZ(2)=0
+ ...F  S DUZ(2)=$O(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2))) Q:'DUZ(2)  D
+ ....S ABMP("BDFN")=0
+ ....F  S ABMP("BDFN")=$O(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))) Q:'ABMP("BDFN")  D
+ .....S ABMDOSB=$P($G(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))),U)
+ .....S ABMDOSE=$P($G(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))),U,2)
+ .....S ABMBILLD=$P($G(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))),U,3)
+ .....S ABMPD=$P($G(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))),U,4)
+ .....S ABMCDAYS=$P($G(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))),U,5)
+ .....S ABMNDAYS=$P($G(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))),U,6)
+ .....S ABMVDFN=$P($G(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))),U,7)
+ .....S ABMVLOC=$P($G(^TMP($J,"ABM-MUFAC","DETAIL",ABMITYP,ABMCHG,ABMINS,DUZ(2),ABMP("BDFN"))),U,8)
+ .....S ABMBILLN=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U)
+ .....S ABMP("PDFN")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,5)  ;abm*2.6*7
+ .....S ABMBILLN=ABMBILLN_$S($P($G(^ABMDPARM(DUZ(2),1,2)),U,4)]"":"-"_$P(^ABMDPARM(DUZ(2),1,2),U,4),1:"")
+ .....I $P($G(^ABMDPARM(DUZ(2),1,3)),U,3),($P($G(^AUPNPAT(ABMP("PDFN"),41,DUZ(2),0)),U,2)) S ABMBILLN=ABMBILLN_"-"_$P(^AUPNPAT(ABMP("PDFN"),41,DUZ(2),0),U,2)
+ .....W !,ABMITYP_U_ABMCHG
+ .....W U_$P(ABMINS,"|")_U_$$GET1^DIQ(9999999.18,$P(ABMINS,"|",2),".21")
+ .....W U_ABMBILLN
+ .....W U_$$SDTO^ABMDUTL(ABMDOSB)_U_$$SDTO^ABMDUTL(ABMDOSE)_U_$FN(ABMBILLD,",",2)_U_$FN(ABMPD,",",2)
+ .....W U_+ABMCDAYS_U_+ABMNDAYS_U_$$CDT^ABMDUTL($P($G(^AUPNVSIT(ABMVDFN,0)),U))_U_ABMVLOC
+ .....S ABMTBILD=+$G(ABMTBILD)+ABMBILLD
+ .....S ABMTPD=+$G(ABMTPD)+ABMPD
+ .....S ABMTCDYS=+$G(ABMTCDYS)+ABMCDAYS
+ .....S ABMTNDYS=+$G(ABMTNDYS)+ABMNDAYS
+ S DUZ(2)=ABMDUZ2
+ Q
+PREV ;
+ S ABMP("PD")=0,ABMPYD=0
+ D SETVAR^ABMPPAD1
+ S ABMPHRN=$P($G(^AUPNPAT(ABMP("PDFN"),41,DUZ(2),0)),U,2)
+ S ABMBSUF=$P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,4)
+ ;loop thru active bills
+ S ABMBNUM=$P($G(^ABMDBILL(DUZ(2),ABMPBDFN,0)),U)
+ ;get trans for those bills
+ S ABMHOLD=DUZ(2)
+ S ABMSAT=ABMP("LDFN")  ;Satellite = 3P Visit loc           
+ S ABMPAR=0  ;Parent
+ ; check site active at DOS to ensure bill added to correct site
+ S DA=0
+ F  S DA=$O(^BAR(90052.06,DA)) Q:DA'>0  D  Q:ABMPAR
+ .Q:'$D(^BAR(90052.06,DA,DA))  ; Pos Parent UNDEF Site Parameter
+ .Q:'$D(^BAR(90052.05,DA,ABMSAT))  ; Satellite UNDEF Parent/Satellit
+ .Q:+$P($G(^BAR(90052.05,DA,ABMSAT,0)),U,5)  ; Par/Sat not usable
+ .; Q if sat NOT active at DOS
+ .I ABMP("VDT")<$P($G(^BAR(90052.05,DA,ABMSAT,0)),U,6) Q
+ .; Q if sat became NOT active before DOS
+ .I $P($G(^BAR(90052.05,DA,ABMSAT,0)),U,7),(ABMP("VDT")>$P($G(^BAR(90052.05,DA,ABMSAT,0)),U,7)) Q
+ .S ABMPAR=$S(ABMSAT:$P($G(^BAR(90052.05,DA,ABMSAT,0)),U,3),1:"")
+ Q:+ABMPAR=0
+ S DUZ(2)=ABMPAR
+ S ABMBNUM=$O(^BARBL(DUZ(2),"B",ABMBNUM))
+ S ABMAIEN=$O(^BARBL(DUZ(2),"B",ABMBNUM,0))
+ I +$G(ABMAIEN)=0 S:+$G(ABMHOLD)'=0 DUZ(2)=ABMHOLD K ABMHOLD Q  ;there isn't an A/R bill w/this number
+ S ABMTRIEN=0,ABMLN=1
+ F  S ABMTRIEN=$O(^BARTR(DUZ(2),"AC",ABMAIEN,ABMTRIEN)) Q:ABMTRIEN=""  D
+ .S ABMREC=$G(^BARTR(DUZ(2),ABMTRIEN,0))
+ .I $G(ABMOPDT)="" S ABMOPDT=$P($P(ABMREC,U),".")
+ .Q:+$P(ABMREC,U,2)=0&(+$P(ABMREC,U,3)=0)
+ .S ABMBINS=$P(ABMREC,U,6)
+ .I +$G(ABMBINS)=0 S ABMBINS=$P($G(^BARBL(DUZ(2),ABMAIEN,0)),U,3)  ;abm*2.6*7
+ .S ABMBINS=+$P($G(^BARAC(DUZ(2),ABMBINS,0)),U)
+ .S ABMTTYP=$P($G(^BARTR(DUZ(2),ABMTRIEN,1)),U,1)
+ .S ABMADJC=$P($G(^BARTR(DUZ(2),ABMTRIEN,1)),U,2)
+ .S ABMCAT=""
+ .I ABMTTYP=40 S ABMCAT="P"
+ .;treat a pymt credit w/credit amt like a pymt
+ .I (ABMTTYP=43),(ABMADJC=20),(+$P($G(^BARTR(DUZ(2),ABMTRIEN,0)),U,2)'=0) S ABMCAT="P"
+ .Q:ABMCAT=""
+ .S ABMP("PD")=+$G(ABMP("PD"))+$$GET1^DIQ(90050.03,ABMTRIEN,3.5,"E"),ABMPYD=+$G(ABMPYD)+1
+ I +$G(ABMHOLD)'=0 S DUZ(2)=ABMHOLD K ABMHOLD
+ Q
+ ;
+HD D PAZ^ABMDRUTL Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+WHD ;EP for writing Report Header
+ W $$EN^ABMVDF("IOF"),!
+ K ABM("LINE") S $P(ABM("LINE"),"=",$S($D(ABM(132)):132,1:80))="" W ABM("LINE"),!
+ D NOW^%DTC
+ W ABM("HD",0),?$S($D(ABM(132)):103,1:48) S Y=% X ^DD("DD") W Y,$S(ABMTYP="SUM":"   Page "_ABM("PG"),1:"")
+ S:ABMDTYP="F" ABM("HD",1)="For FISCAL YEAR: "_+(ABMY("DT",1))
+ S:ABMDTYP="D" ABM("HD",1)="For Date Range: "_$$SDT^ABMDUTL(ABMY("DT",1))_" to "_$$SDT^ABMDUTL(ABMY("DT",2))
+ W:$G(ABM("HD",1))]"" !,ABM("HD",1)
+ W:$G(ABM("HD",2))]"" !,ABM("HD",2)
+ W !,"Billing Location: ",$P($G(^AUTTLOC(ABMPAR,0)),U,2)
+ W !,ABM("LINE") K ABM("LINE")
+ S ABM("PG")=+$G(ABM("PG"))+1
+ I ABMTYP="DET" D
+ .W !,"INSURER CATEGORY"_U_"IP/OP CATEGORY"_U_"INSURER"_U_"INSURER TYPE"
+ .W U_"BILL NUMBER"_U_"ADMIT DT"_U_"DISCHG DT"_U_"AMOUNT BILLED"_U_"PAYMENT"_U_"COVD DAYS"_U_"N-COVD DAYS"_U_"VISIT"_U_"VISIT LOCATION"
+ I ABMTYP="SUM" D
+ .W !?50,"# Discharges",!
+ .F ABMI=1:1:80 W "-"
+ Q

@@ -1,0 +1,31 @@
+BRNPOST1 ; IHS/PHXAO/TMJ - Populate the File Conversion Field ;  
+ ;;2.0;RELEASE OF INFO SYSTEM;;APR 10, 2003
+ ;
+START ;Begin $order
+ W !,"I WILL NOW POPULATE THE File Conversion Field of the ROI Site Parameters File.",!
+ ;
+ S BRNDFN=$O(^BRNPARM("B",0))
+ I BRNDFN="" D NEW
+ ELSE  S BRNDFN=0 F  S BRNDFN=$O(^BRNPARM(BRNDFN)) Q:BRNDFN'=+BRNDFN  D
+ .D EDIT
+ D END
+ Q
+ ;
+NEW ; -- create new entry in ROI Site Parameters File
+ Q:$D(^BRNPARM("B"))  ;Quit if Record Exists
+ D ^XBFMK K DIADD,DINUM
+ S X=DUZ(2),DIC="^BRNPARM(",DIC(0)="L",DLAYGO=90264.2
+ S DIC("DR")=".04////"_1
+ S DIC("DR")=".02////"_0
+ D FILE^DICN D ^XBFMK K DIADD,DINUM
+ Q
+ ;
+EDIT ;FIX THE PROBLEM
+ ;
+ Q:$P($G(^BRNPARM(BRNDFN,0)),U,4)=1
+ S DA=BRNDFN,DIE="^BRNPARM(",DR=".04////"_1 D ^DIE K DIE
+ Q
+END ;END OF ROUTINE
+ K BRNDFN,BRNDOC,BRNPTR
+ W !,"END OF THE POPULATION OF THE CONVERSION DOCUMENTATION ",!
+ Q

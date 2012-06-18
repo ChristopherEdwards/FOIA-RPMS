@@ -1,0 +1,57 @@
+ANSMENU ;IHS/OIRM/DSD/CSC - CONTROL HEADINGS AND MENUS; [ 02/25/98  10:32 AM ]
+ ;;3.0;NURSING PATIENT ACUITY;;APR 01, 1996
+ ;;ROUTINE TO CONTROL HEADINGS AND MENUS
+TITLE ;EP;TO DISPLAY TITLE
+ S IOP="HOME"
+ D ^%ZIS,HOME,HEAD
+EXIT K ANSX,ANSZ,ANSTRM
+ I $D(ANSZ),ANSZ]"" W !!?80-$L(ANSZ)/2,ANSZ K ANSZ
+ Q
+HEAD ;EP;TO DISPLAY HEADER
+ W @IOF
+ U IO
+HEAD1 F ANSJ=0:1:4 D H1
+ D HDVS
+ I DUZ S ANSX=$P(^VA(200,DUZ,0),U),ANSX=$P($P(ANSX,",",2)," ")_" "_$P(ANSX,","),ANSX="CURRENT USER: "_ANSX W !?80-$L(ANSX)\2,ANSX I $P(^(0),U,4)'["M"&($P(^(0),U,4)'["@") D
+ .W !!
+ .F ANSX=1:1:7 W *7,"WARNING",?$X+5
+ .W !!,"You do NOT have the correct FILE MANAGER ACCESS CODE to use the Patient Acuity",!,"System.  Please contact your computer Site Manager immediately."
+ .D PAUSE^ANSDIC
+ D:ANSON=""!(ANSOF="") RV
+ Q
+H1 S ANSX=$T(TEXT+ANSJ),ANSX=$P(ANSX,";;",2)
+ W !?80-$L(ANSX)\2,ANSX
+ Q
+HDVS I $D(DUZ(2))#2,DUZ(2) S:$D(^DIC(4,DUZ(2),0)) ANSX=$P(^(0),U)
+ I $D(^DIC(9.4,"C","ANS")) S ANSZ=$O(^DIC(9.4,"C","ANS",0)),ANSZ=$P(^DIC(9.4,ANSZ,"VERSION"),U),ANSZ="VERSION "_ANSZ
+ I $E(IOST,1,2)="C-" W:$G(ANSZ)]"" !?80-$L(ANSZ)\2,ANSZ
+ W:$G(ANSX)]"" !?80-$L(ANSX)\2,ANSX
+ Q
+MM ;EP
+ S ANSZ="MAIN MENU"
+ G TITLE
+AR ;EP
+ S ANSZ="NURSIN ACUITY REPORTS"
+ G TITLE
+SU ;EP
+ S ANSZ="SYSTEM UTILITIES"
+ G TITLE
+HOME ;EP;TO SET TERMINAL CONTROL VARIABLES
+ S ANSTRM=^%ZIS(2,IOST(0),5),ANSON=$P(ANSTRM,U,4),ANSOF=$P(ANSTRM,U,5)
+ D:ANSON=""!(ANSOF="") RV
+ Q
+CLEAN ;EP;TO KILL SELECTD VARIABLES
+ K ANSON,ANSOF,ANSZ,ANSZ,ANSTRM,ANSPPO,ANSPTX,ANSREV,ANSRR,ANSSOF,ANSTRN,ANSBOX
+ Q
+RV ;WARNING MESSAGE WHEN REVERSE VIDEO NOT DEFINED
+ W @IOF,!?10,"WARNING     WARNING     WARNING     WARNING     WARNING"
+ W !!,*7,*7,"Your DEVICE and/or TERMINAL TYPE are not properly defined.",!,"The REVERSE VIDEO ON and/or REVERSE VIDEO OFF are not properly defined."
+ W !,"This is the responsibility of your computer site manager."
+ W !!,"Please contact this individual for assistance.  Let them know that you",!,"are logged in on device NO.: ",$I
+ D P1^ANSDIC
+ Q
+TEXT ;;WARNING: RESTRICTED PATIENT DATA, UNAUTHORIZED
+ ;;ENTRY INTO THIS SYSTEM OR USE OF THIS DATA IS A FEDERAL CRIME
+ ;;****************************************************
+ ;;**    NURSING PATIENT ACUITY ASSESSMENT SYSTEM    **
+ ;;****************************************************

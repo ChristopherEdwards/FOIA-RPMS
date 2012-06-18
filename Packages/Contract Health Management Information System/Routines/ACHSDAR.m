@@ -1,0 +1,125 @@
+ACHSDAR ; IHS/ITSC/PMF - PATIENT ALTERNATE RESOURCE LETTER (1/2) ;   [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+PAT ;
+ S ACHDOCT="alternate resource"
+ D ^ACHSDLK                     ;STANDARD PATIENT LOOKUP
+ I $D(ACHDLKER) D END1^ACHSDAR1 Q
+P4 ;
+ ;ARE THERE 'OTHER RESOURCES'
+ I $P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,0)),U,4) G P5
+ ;
+ ;ARE THERE 'OTHER IHS RESOURCES'
+ I $P($G(^ACHSDEN(DUZ(2),"D",ACHSA,825,0)),U,4) G P5
+ W !!!,*7,*7,?10,"No Alternate Resources For This Patient. ",!
+ G ENTER:$$DIR^ACHS("Y","          Do You Wish To Enter One Now","NO","Enter 'YES' to enter an Alternate Resource for this patient","",1)
+ S ACHDLKER=""
+ D END^ACHSDAR4
+ Q
+ ;
+P5 ;
+ ;I $P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,0)),U,4)=1 S ACHDALRS=$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,0)),U,3) G OPTION
+ W !!?10,"ALTERNATE RESOURCES AVAILABLE FOR THIS PATIENT.",!!
+ ;
+ ;LIST 'OTHER RESOURCES'
+ S (ACHD,ACHDX)=0
+ F  S ACHD=$O(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHD)) Q:'ACHD  D
+ .S ACHDX=ACHDX+1
+ .W ?13,ACHDX,". ",$P($G(^AUTNINS($P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHD,0),"UNDEFINED"),U),4),"UNDEFINED"),U),!
+ ;
+ ;S %=$$DIR^ACHS("N^1:"_ACHDX,"          Alternate Resource","Select an Alternate Resource by entering a number.","","",2)
+ S DIR(0)="N^1:"_ACHDX
+ S DIR("A")="Select an Alternate Resource: "
+ S DIR("?")="Enter a number."
+ D ^DIR
+ I $D(DUOUT)!$D(DTOUT)!('%) G PAT
+ S ACHDALRS=+%
+ ;IS THIS THE ALTERNATE RESOURCE WE SEND THE LETTER TO? 
+ ;
+ ;IT IS UNCLEAR WHETHER THIS IS SOMETHING THE SITES DO OR NOT
+ ;THE ONLY ALTERNATE RESOURCE IS TO REFER THEM TO ANOTHER SITE WITHIN
+ ;COVERAGE AREA. WE WILL KEEP THIS SECTION IF THIS TURNS OUT TO BE
+ ;PERTINENT LATER
+OPTION ;  
+ ;I '$D(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHDALRS,3,0)) W !!!,"No Alternate Resources Options on File",! G OPTION1
+ ;I $D(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHDALRS,3,0)) W !!!,"Alternate Resources Options On File",!
+ ;
+ ;GET OTHER RESOURCES OPTIONS
+ ;S ACHDI=0
+ ;F  S ACHDI=$O(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHDALRS,3,ACHDI)) Q:'ACHDI  D
+ ;.S OTHRSC=$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHDALRS,3,ACHDI,0)),U)
+ ;.Q:OTHRSC=""
+ ;.W !,ACHDI,". ",$P($G(^ACHSDENR(DUZ(2),12,OTHRSC,0)),U)
+ ;
+ ;S %=$$DIR^ACHS("Y","Do You Wish To Enter More","NO","","",1)
+ ;G DEV:'%
+ ;G END^ACHDAR1:$D(DUOUT)!$D(DTOUT)
+ ;
+ ;ALLOW ENTRY OF ALTERNATE RESOURCE OPTIONS
+ ;W !!!?10,"ALTERNATE RESOURCES OPTIONS",!
+OPTION1 ;
+ ;S (ACHD,ACHDX)=0
+ ;F  S ACHDX=$O(^ACHSDENR(DUZ(2),12,ACHDX)) Q:'ACHDX  D
+ ;.S ACHD=ACHD+1
+ ;.W !?10,ACHD_". ",$P($G(^ACHSDENR(DUZ(2),12,ACHDX,0),"UNDEFINED"),U)
+ ;
+ ;I ACHD=0 W !,"No alternate resource options found for this facility!" G DEV
+ ;S %=$$DIR^ACHS("NO^1:"_ACHD,"          Enter Number Of Option <RETURN> To Continue","","Enter a number to select an option","",1)
+ ;G DEV:'%
+ ;I $D(DUOUT)!$D(DTOUT) G END^ACHDAR1
+ ;
+ ;S ACHDQ=+%,X=0
+ ;F  S X=$O(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHDALRS,3,X)) Q:+X=0  I $P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHDALRS,3,X,0),"UNDEFINED"),U)=ACHDQ W !!,*7,"Option Already Selected",*7,!! G OPTION
+ ;
+ ;I '$D(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHDALRS,3,0)) S ^ACHSDEN(DUZ(2),"D",ACHDA,800,ACHDALRS,3,0)=$$ZEROTH^ACHS(9002071,1,800,7)
+ ;
+ ;S X=%
+ ;S DIC="^ACHSDEN("_DUZ(2)_",""D"","_ACHSA_",800,"_ACHDALRS_",3,"
+ ;S DA(3)=DUZ(2)
+ ;S DA(2)=ACHSA
+ ;S DA(1)=ACHDALRS
+ ;S DIC(0)="QEMZ"
+ ;K DD,DO
+ ;D FILE^DICN
+ ;
+ ;GET 'OTHER RESOURCES OPTION'
+ ;S ACHDOP=$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,ACHDALRS,3,0)),U,3)
+ ;I ACHDQ=2 W !!,"Do You Want To Enter Documentation Now",!! S %=$$DIR^ACHS("Y","Enter Documentation Now","NO","","",1) D:% ENTDOC^ACHDAR5
+ ;I ACHDQ=ACHD S DIC="^ACHSDEN("_DUZ(2)_",""D"","_ACHSA_",800,"_ACHDALRS_",3,"_ACHDOP_",1"
+ ;S DA(4)=DUZ(2)
+ ;S DA(3)=ACHSA
+ ;S DA(2)=ACHDALRS
+ ;S DA(1)=ACHDOP D EN^DIWE
+ ;G OPTION
+ ;
+DEV ;
+ W !!
+ S %ZIS="OPQ"
+ D ^%ZIS
+ I POP D HOME^%ZIS G END^ACHSDAR1
+ G:'$D(IO("Q")) START^ACHSDAR1
+ K IO("Q")
+ I $D(IO("S"))!($E(IOST)'="P") W *7,!,"Please queue to system printers." D ^%ZISC G DEV
+ S ZTRTN="START^ACHSDAR1",ZTDESC="CHS ALTERNATE RESOURCE LETTER"
+ F %="ACHSA","ACHDALRS" S ZTSAVE(%)=""
+ D ^%ZTLOAD
+ G:'$D(ZTSK) DEV
+ Q
+ ;
+ENTER ;
+ W !!
+ I '$D(^ACHSDEN(DUZ(2),"D",ACHSA,800,0)) S ^ACHSDEN(DUZ(2),"D",ACHSA,800,0)=$$ZEROTH^ACHS(9002071,1,800)
+ S DA(2)=DUZ(2)
+ S DA(1)=ACHSA
+ S DIC="^ACHSDEN("_DUZ(2)_",""D"","_ACHSA_",800,"
+ S DIC(0)="AQELM"
+ D ^DIC
+ G:Y<1 P4
+ W !!
+ S DA(2)=DUZ(2)
+ S DA(1)=ACHSA
+ S DIE=DIC
+ S DR="2;5"
+ D ^DIE
+ G P4
+ ;

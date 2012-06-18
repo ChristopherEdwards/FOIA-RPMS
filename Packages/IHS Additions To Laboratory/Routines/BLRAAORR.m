@@ -1,0 +1,322 @@
+BLRAAORR ;IHS/OIT/MKK - IHS LAB ASK-AT-ORDER REPORTS ; JUL 06, 2011 3:15 PM
+ ;;5.2;IHS LABORATORY;**1030**;NOV 01, 1997
+ ;
+ Q
+ ;
+DATAREPT ; EP - Report on Data Global
+ NEW ANSWER,CANCEL,CNT,EHDT,HDT,LRAS,LRODT,LRSP,P60,ORD,LRORDN
+ NEW BLRVERN,BLRVERN2,HEADER,HD1,LINES,LINEWRAP,MAXLINES,PG,QFLG,WRAPLINE
+ ;
+ D DATARPTI
+ ;
+ F  S LRODT=$O(^BLRAAOQD(LRODT))  Q:LRODT<1!(QFLG="Q")  D
+ . F  S LRSP=$O(^BLRAAOQD(LRODT,LRSP))  Q:LRSP<1!(QFLG="Q")  D
+ .. F  S P60=$O(^BLRAAOQD(LRODT,LRSP,P60))  Q:P60<1!(QFLG="Q")  D
+ ... F  S ORD=$O(^BLRAAOQD(LRODT,LRSP,P60,ORD))  Q:ORD<1!(QFLG="Q")  D
+ .... D DATARPTL
+ .. W !
+ .. S LINES=LINES+1
+ ;
+ D:CNT<1 EMPTYDB("No Data in Lab Ask-At-Order Data file.")
+ ;
+ D PRESSKEY^BLRGMENU(4)
+ Q
+ ;
+DATARPTI ; EP - Initialize variables
+ S BLRVERN=$P($P($T(+1),";")," ")
+ S BLRVERN2="DATAREPT"
+ ;
+ S HEADER(1)="Lab Ask At Order Questions"
+ S HEADER(2)="Non Accessioned Responses"
+ S HEADER(3)=" "
+ ;
+ S HEADER(4)="Order #"
+ S $E(HEADER(4),10)="Test IEN"
+ S $E(HEADER(4),20)="Question"
+ S $E(HEADER(4),51)="Answer"
+ S $E(HEADER(4),65)="Date/Time Answrd"
+ ;
+ S MAXLINES=20,LINES=MAXLINES+10,PG=0,(HD1,QFLG)="NO"
+ ;
+ S (CNT,LRODT,LRSP,P60,ORD)=0
+ Q
+ ;
+DATARPTL ; EP - Write a line of data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HD1)  Q:QFLG="Q"
+ ;
+ D DATARPTB(29)
+ ;
+ W LRORDN            ; File 69: Order Number
+ W ?8,CANCEL
+ W ?9,P60            ; File 60: IEN
+ W ?19,LINEWRAP(1)   ; Question - Line 1
+ W ?50,ANSWER
+ W ?64,EHDT          ; Date/Time Question Answered
+ W !
+ S LINES=LINES+1
+ S CNT=CNT+1
+ ;
+ D MULTLINE(19)
+ ;
+ Q
+ ;
+DATARPTB(MAXCOL) ; EP - Breakout Variables from global
+ NEW GLOSTR,STR,TSTORD
+ NEW LRAA,LRAD,LRAN,STR,TST,TEST
+ ;
+ K LRORDN,LINEWRAP,ANSWER,EHDT,HDT
+ ;
+ S LRAS=""
+ S TST=0
+ F  S TST=$O(^LRO(69,LRODT,1,LRSP,2,TST))  Q:TST!($L(LRAS))  D
+ . S STR=$G(^LRO(69,LRODT,1,LRSP,2,TST,0))
+ . Q:+$G(STR)'=P60
+ . ;
+ . S LRAD=$P(STR,"^",4),LRAA=$P(STR,"^",3),LRAN=$P(STR,"^",5)
+ . S LRAS=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
+ ;
+ S LRORDN=$G(^LRO(69,LRODT,1,LRSP,.1))
+ ;
+ S GLOSTR=$G(^BLRAAOQD(LRODT,LRSP,P60,ORD))
+ S ANSWER=$P(GLOSTR,"^",2)
+ S HDT=$P(GLOSTR,"^",3)
+ S EHDT=$$HTE^XLFDT(HDT,"5MZ")
+ ;
+ S STR(1)=$P(GLOSTR,"^",1)
+ I $L($G(STR(1)))<MAXCOL S LINEWRAP(1)=STR(1)  Q
+ ;
+ ; Question too long; have to create multiple lines
+ D WRAP(.STR,MAXCOL,.LINEWRAP)
+ ;
+ S CANCEL=""
+ ; Determine if Test has been cancelled
+ S TSTORD=.9999999
+ F  S TSTORD=$O(^LRO(69,LRODT,1,LRSP,2,TSTORD))  Q:TSTORD<1  D
+ . Q:+$G(^LRO(69,LRODT,1,LRSP,2,TSTORD,0))'=P60
+ . ;
+ . S:+$P($G(^LRO(69,LRODT,1,LRSP,2,TSTORD,0)),"^",11)>0 CANCEL="*"
+ ;
+ Q
+ ;
+DATARPTA ; EP - Report on Data Global - Accession Number, not Test IEN
+ NEW ANSWER,CANCEL,CNT,EHDT,HDT,LRODT,LRAS,LRSP,P60,ORD,LRORDN
+ NEW BLRVERN,BLRVERN2,HEADER,HD1,LINES,LINEWRAP,MAXLINES,PG,QFLG,WRAPLINE
+ ;
+ D DATRPTAI
+ ;
+ F  S LRODT=$O(^BLRAAOQD(LRODT))  Q:LRODT<1!(QFLG="Q")  D
+ . F  S LRSP=$O(^BLRAAOQD(LRODT,LRSP))  Q:LRSP<1!(QFLG="Q")  D
+ .. F  S P60=$O(^BLRAAOQD(LRODT,LRSP,P60))  Q:P60<1!(QFLG="Q")  D
+ ... F  S ORD=$O(^BLRAAOQD(LRODT,LRSP,P60,ORD))  Q:ORD<1!(QFLG="Q")  D
+ .... D DATRPTAL
+ .. W !
+ .. S LINES=LINES+1
+ ;
+ D:CNT<1 EMPTYDB("No Data in Lab Ask-At-Order Data file.")
+ ;
+ D PRESSKEY^BLRGMENU(4)
+ Q
+ ;
+DATRPTAI ; EP - Initialize variables
+ S BLRVERN=$P($P($T(+1),";")," ")
+ S BLRVERN2="DATAREPT"
+ ;
+ S HEADER(1)="Lab Ask At Order Questions"
+ S HEADER(2)="Non Accessioned Responses"
+ S HEADER(3)=" "
+ ;
+ S HEADER(4)="Order #"
+ S $E(HEADER(4),10)="Accession Number"
+ S $E(HEADER(4),30)="Question"
+ S $E(HEADER(4),51)="Answer"
+ S $E(HEADER(4),65)="Date/Time Answrd"
+ ;
+ S MAXLINES=20,LINES=MAXLINES+10,PG=0,(HD1,QFLG)="NO"
+ ;
+ S (CNT,LRODT,LRSP,P60,ORD)=0
+ Q
+ ;
+DATRPTAL ; EP - Write a line of data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HD1)  Q:QFLG="Q"
+ ;
+ D DATARPTB(19)
+ ;
+ W LRORDN            ; File 69: Order Number
+ W ?8,CANCEL
+ W ?9,LRAS           ; Accession Number
+ W ?29,LINEWRAP(1)   ; Question - Line 1
+ W ?50,ANSWER
+ W ?64,EHDT          ; Date/Time Question Answered
+ W !
+ S LINES=LINES+1
+ S CNT=CNT+1
+ ;
+ D MULTLINE(29)
+ ;
+ Q
+ ;
+EMPTYDB(MSG) ; EP - Empty DB Message
+ K HEADER(3),HEADER(4)
+ D HEADERDT^BLRGMENU
+ W !!,?9,MSG,!
+ Q
+ ;
+ ; Cloned from LR7OSAP1.  Wrap Text in array ROOT to PUTIT array
+WRAP(ROOT,FMT,PUTIT) ; EP - Wrap text
+ I '$L($G(ROOT(1))) Q
+ N CCNT,GCNT,INC,LRI,LRINDX,LRTX,SP,X
+ S:'$G(FMT) FMT=79
+ S LRINDX=0,LRI=0,GCNT=0
+ F  S LRI=$O(ROOT(LRI)) Q:LRI'>0  D
+ . S X=$S($L($G(ROOT(LRI))):ROOT(LRI),$L($G(ROOT(LRI,0))):ROOT(LRI,0),1:""),LRINDX=LRINDX+1
+ . S X=$$FMT^LR7OSAP1(FMT,.LRINDX,X)
+ S LRI=0
+ F  S LRI=$O(LRTX(LRI)) Q:'LRI  D LN^LR7OSAP S PUTIT(GCNT)=$$S^LR7OS(1,CCNT,LRTX(LRI))
+ Q
+ ;
+MULTLINE(TAB) ; EP - Answer too long for one line; print rest of lines.
+ S WRAPLINE=1
+ F  S WRAPLINE=$O(LINEWRAP(WRAPLINE))  Q:WRAPLINE<1  D
+ . W ?TAB,LINEWRAP(WRAPLINE),!
+ . S LINES=LINES+1
+ ;
+ Q
+ ;
+ERRSREPT ; EP - Report on Errors Global
+ NEW ANSWER,CNT,EHDT,ERRSMSG,HDT,LRDFN,LRIDT,LRODT,LRSP,P60,ORD,LRORDN
+ NEW BLRVERN,BLRVERN2,HEADER,HD1,LINES,LINEWRAP,MAXLINES,PG,QFLG,WRAPLINE
+ ;
+ D ERSSRPTI
+ ;
+ F  S LRDFN=$O(^BLRAAORE(LRDFN))  Q:LRDFN<1!(QFLG="Q")  D
+ . F  S LRIDT=$O(^BLRAAORE(LRDFN,LRIDT))  Q:LRIDT<1!(QFLG="Q")  D
+ .. F  S LRODT=$O(^BLRAAORE(LRDFN,LRIDT,LRODT))  Q:LRODT<1!(QFLG="Q")  D
+ ... F  S LRSP=$O(^BLRAAORE(LRDFN,LRIDT,LRODT,LRSP))  Q:LRSP<1!(QFLG="Q")  D
+ .... F  S P60=$O(^BLRAAORE(LRDFN,LRIDT,LRODT,LRSP,P60))  Q:P60<1!(QFLG="Q")  D
+ ..... F  S ORD=$O(^BLRAAORE(LRDFN,LRIDT,LRODT,LRSP,P60,ORD))  Q:ORD<1!(QFLG="Q")  D
+ ...... D ERSSRPTL
+ ;
+ D:CNT<1 EMPTYDB("No Data in Errors Database.")
+ ;
+ D PRESSKEY^BLRGMENU(4)
+ Q
+ ;
+ERSSRPTI ; EP - Initialize variables
+ S BLRVERN=$P($P($T(+1),";")," ")
+ S BLRVERN2="DATAREPT"
+ ;
+ S HEADER(1)="Lab Ask At Order Questions"
+ S HEADER(2)="Transactions With Errors"
+ S HEADER(3)=" "
+ ;
+ S HEADER(4)="LRDFN"
+ S $E(HEADER(4),10)="LRIDT"
+ S $E(HEADER(4),27)="LRODT"
+ S $E(HEADER(4),37)="LRSP"
+ S $E(HEADER(4),43)="Test IEN"
+ S $E(HEADER(4),53)="Ord"
+ S $E(HEADER(4),58)="Error Message"
+ ;
+ S MAXLINES=22,LINES=MAXLINES+10,PG=0,(HD1,QFLG)="NO"
+ ;
+ S (CNT,LRDFN,LRIDT,LRODT,LRSP,P60,ORD)=0
+ Q
+ ;
+ERSSRPTL ; EP - Write a line of data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HD1)  Q:QFLG="Q"
+ ;
+ S ERRMSG=$G(^BLRAAORE(LRDFN,LRIDT,LRODT,LRSP,P60,ORD,"DIERR",1))
+ ;
+ W LRDFN
+ W ?9,LRIDT
+ W ?26,LRODT
+ W ?36,LRSP
+ W ?42,P60
+ W ?52,ORD
+ W ?57,$E(ERRMSG,1,23)
+ W !
+ S LINES=LINES+1
+ S CNT=CNT+1
+ ;
+ Q
+ ;
+ORDNREPT(LRORD) ; EP -- Report on Lab Data File Ask at Order questions given Lab Order Number
+ NEW LINE,LINEWRAP,LRAA,LRAD,LRAN,LRAS,LRIDT,LRODT,LRSP,PTR,STR,TST
+ NEW HD1,HEADER,LINES,MAXLINES,PG,QFLG
+ ;
+ D ORDNRPTI
+ ;
+ S LRODT=.9999999
+ F  S LRODT=$O(^LRO(69,"C",LRORD,LRODT))  Q:LRODT<1!(QFLG="Q")  D
+ . S LRSP=.9999999
+ . F  S LRSP=$O(^LRO(69,"C",LRORD,LRODT,LRSP))  Q:LRSP<1!(QFLG="Q")  D
+ .. S TST=.999999
+ .. F  S TST=$O(^LRO(69,LRODT,1,LRSP,2,TST))  Q:TST<1!(QFLG="Q")  D
+ ... S STR=$G(^LRO(69,LRODT,1,LRSP,2,TST,0))
+ ... S LRAD=+$P(STR,"^",3),LRAA=+$P(STR,"^",4),LRAN=+$P(STR,"^",5)
+ ... S LRAS=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
+ ... Q:$L(LRAS)<1
+ ... ;
+ ... S LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0))
+ ... S LRIDT=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,3)),"^",5)
+ ... ;
+ ... Q:LRDFN<1!(LRIDT<1)
+ ... ;
+ ... S LINE=0
+ ... F  S LINE=$O(^LR(LRDFN,"CH",LRIDT,1,LINE))  Q:LINE<1!(QFLG="Q")  D
+ .... S STR=$$TRIM^XLFSTR($G(^LR(LRDFN,"CH",LRIDT,1,LINE,0)),"LR"," ")
+ .... I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HD1)  Q:QFLG="Q"
+ .... I $L(STR)<60 D  Q
+ ..... W LRAS,?19,STR,!
+ ..... S LINES=LINES+1
+ .... W LRAS,?19,$E(STR,1,59),!
+ .... W ?19,$E(STR,60,$L(STR)),!
+ .... S LINES=LINES+2
+ Q
+ ;
+ORDNRPTI ; EP
+ S BLRVERN=$P($P($T(+1),";")," ")
+ S BLRVERN2="DATAREPT"
+ ;
+ S HEADER(1)="Lab Ask At Order Questions"
+ S HEADER(2)="Lab Data Comments"
+ S HEADER(3)=" "
+ ;
+ S HEADER(4)="Accession #"
+ S $E(HEADER(4),20)="Comments"
+ ;
+ S MAXLINES=22,LINES=MAXLINES+10,PG=0,(HD1,QFLG)="NO"
+ ;
+ S (CNT,LRODT,LRSP,P60,ORD)=0
+ Q
+ ;
+SHOWACCS(LRORD) ;EP - Given an Order Number, show it's Accession Number(s)
+ NEW CNT,BLRVERN,BLRVERN2,LRAA,LRAD,LRAN,LRAS,LINE,LINEWRAP,LRIDT,LRODT,LRSP
+ NEW ORD,P60,PTR,STR,TST
+ NEW HD1,HEADER,LINES,MAXLINES,PG,QFLG
+ ;
+ D ORDNRPTI
+ ;
+ S CNT=0,LRODT=.9999999
+ F  S LRODT=$O(^LRO(69,"C",LRORD,LRODT))  Q:LRODT<1!(QFLG="Q")  D
+ . S LRSP=.9999999
+ . F  S LRSP=$O(^LRO(69,"C",LRORD,LRODT,LRSP))  Q:LRSP<1!(QFLG="Q")  D
+ .. S TST=.999999
+ .. F  S TST=$O(^LRO(69,LRODT,1,LRSP,2,TST))  Q:TST<1!(QFLG="Q")  D
+ ... S STR=$G(^LRO(69,LRODT,1,LRSP,2,TST,0))
+ ... S LRAD=+$P(STR,"^",3),LRAA=+$P(STR,"^",4),LRAN=+$P(STR,"^",5)
+ ... S LRAS=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
+ ... Q:$L(LRAS)<1
+ ... ;
+ ... W LRORD
+ ... W ?9,LRAS
+ ... W ?29,LRAA
+ ... W ?34,LRAD
+ ... W ?44,LRAN
+ ... W !
+ ... S CNT=CNT+1
+ ;
+ Q:CNT>0
+ ;
+ W !!,"No Accessions found for Order Number:",LRORD,!!
+ Q

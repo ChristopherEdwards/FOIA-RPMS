@@ -1,0 +1,112 @@
+AMHRPSI ; IHS/CMI/LAB - ACTIVE CLIENT LIST ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+ I '$D(IOF) D HOME^%ZIS
+ W @(IOF),!!
+ W !,"PATIENTS WITH SUICIDE IDEATION, NOT SEEN IN N DAYS"
+ W "This report will produce a list of patients who have had a suicide ideation POV",!,"who haven't been seen in N days since their last ",!,"suicide diagnosis.",!
+GETDATES ;
+BD ;get beginning date
+ W !,"Please enter the date range during which the patient had the Suicide Ideation POV.",!
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S AMHBD=Y
+ED ;get ending date
+ W ! S DIR(0)="D^"_AMHBD_":DT:EP",DIR("A")="Enter ending Date" S Y=AMHBD D DD^%DT D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S AMHED=Y
+ S X1=AMHBD,X2=-1 D C^%DTC S AMHSD=X S Y=AMHBD D DD^%DT S AMHBDD=Y S Y=AMHED D DD^%DT S AMHEDD=Y
+ ;
+DAYS ;
+ S AMHDAYS=0
+ S DIR(0)="N^1:999999:",DIR("A")="How many days must have passed since their last diagnosis",DIR("B")="5" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G GETDATES
+ S AMHDAYS=Y
+ ;
+ZIS ;
+ S DIR(0)="S^P:PRINT Output;B:BROWSE Output on Screen",DIR("A")="Do you wish to ",DIR("B")="P" K DA D ^DIR K DIR
+ I $D(DIRUT) G XIT
+ I $G(Y)="B" D BROWSE,XIT Q
+ S XBRC="PROC^AMHRPSI",XBRP="PRINT^AMHRPSI",XBNS="AMH",XBRX="XIT^AMHRPSI"
+ D ^XBDBQUE
+XIT ;
+ D EN^XBVK("AMH")
+ D KILL^AUPNPAT
+ Q
+ ;
+BROWSE ;
+ S XBRP="VIEWR^XBLM(""PRINT^AMHRPSI"")"
+ S XBNS="AMH",XBRC="PROC^AMHRPSI",XBRX="XIT^AMHRPSI",XBIOP=0 D ^XBDBQUE
+ Q
+PROC ;EP - entry point for processing
+ S AMHJOB=$J,AMHBTH=$H,AMHTOT=0,DFN=0,AMHBT=$H
+ K AMHTOTP,AMHTOTF
+ D XTMP^AMHUTIL("AMHRPSI","BH - SUICIDE IDEATION")
+ S AMHPROB=$O(^AMHPROB("B",39,0))
+ K AMHG S DFN=0 F  S DFN=$O(^AMHRPRO("AC",DFN)) Q:DFN=""  D PROC1
+ S AMHET=$H
+ Q
+PROC1 ;
+ S AMHG=""
+ S AMHP=0 F  S AMHP=$O(^AMHRPRO("AC",DFN,AMHP)) Q:AMHP'=+AMHP  D
+ .Q:'$D(^AMHRPRO(AMHP,0))
+ .Q:$P(^AMHRPRO(AMHP,0),U)'=AMHPROB
+ .S V=$P(^AMHRPRO(AMHP,0),U,3)
+ .Q:'V
+ .Q:'$D(^AMHREC(V,0))
+ .S D=$P($P(^AMHREC(V,0),U),".")
+ .Q:D<AMHBD
+ .Q:D>AMHED
+ .I D>$P(AMHG,U) S AMHG=D_U_AMHP
+ .Q
+ Q:AMHG=""
+ I $$FMDIFF^XLFDT(DT,$P(AMHG,U))'<AMHDAYS D SET
+ Q
+ Q
+SET ;
+ S ^XTMP("AMHRPSI",AMHJOB,AMHBTH,"PATIENTS",DFN)=AMHG,AMHTOT=AMHTOT+1
+ Q
+PRINT ;
+ S Y=AMHBD D DD^%DT S AMHBDD=Y S Y=AMHED D DD^%DT S AMHEDD=Y
+ S AMH80D="-------------------------------------------------------------------------------"
+ S AMHPG=0 D HEAD
+ I '$D(^XTMP("AMHRPSI",AMHJOB,AMHBTH)) W !!,"NO PATIENTS TO REPORT" G DONE
+ S AMHR="" K AMHQ
+ S AMHF="" F  S AMHF=$O(^XTMP("AMHRPSI",AMHJOB,AMHBTH,"PLACEMENTS",AMHF)) Q:AMHF=""!($D(AMHQ))  D
+ .S AMHP="" F  S AMHP=$O(^XTMP("AMHRPSI",AMHJOB,AMHBTH,"PLACEMENTS",AMHF,AMHP)) Q:AMHP=""!($D(AMHQ))  D
+ ..S AMHR=0 F  S AMHR=$O(^XTMP("AMHRPSI",AMHJOB,AMHBTH,"PLACEMENTS",AMHF,AMHP,AMHR)) Q:AMHR'=+AMHR!($D(AMHQ))  D PRINT1
+ G:$D(AMHQ) DONE
+ I $Y>(IOSL-3) D HEAD I $D(AMHQ) G DONE
+ W !!,"Subtotal by Placement Type:"
+ S AMHX="" F  S AMHX=$O(AMHTOTP(AMHX)) Q:AMHX=""!($D(AMHQ))  D
+ .I $Y>(IOSL-3) D HEAD Q:$D(AMHQ)
+ .W !?5,AMHX,?40,AMHTOTP(AMHX)
+ G:$D(AMHQ) DONE
+ I $Y>(IOSL-3) D HEAD I $D(AMHQ) G DONE
+ W !!,"Subtotal by Facility Referred to:"
+ S AMHX="" F  S AMHX=$O(AMHTOTF(AMHX)) Q:AMHX=""!($D(AMHQ))  D
+ .I $Y>(IOSL-3) D HEAD Q:$D(AMHQ)
+ .W !?5,AMHX,?40,AMHTOTF(AMHX)
+ I $Y>(IOSL-3) D HEAD I $D(AMHQ) G DONE
+ W !!,"Total Number of Placements: ",AMHTOT
+DONE ;
+ K ^XTMP("AMHRPSI",AMHJOB,AMHBTH),AMHJOB,AMHBTH
+ Q
+PRINT1 ;
+ I $Y>(IOSL-4) D HEAD Q:$D(AMHQ)
+ S DFN=$P(^AMHREC(AMHR,0),U,8)
+ W !,$E($P(^DPT(DFN,0),U),1,20),?22,$$HRN^AUPNPAT(DFN,DUZ(2)),?29,$$D($P(^AMHREC(AMHR,0),U)),?40,$E($$VAL^XBDIQ1(9002011,AMHR,.18),1,24),?66,$E($$VAL^XBDIQ1(9002011,AMHR,.17),1,14)
+ Q
+D(D) ;
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_(1700+($E(D,1,3)))
+HEAD I 'AMHPG G HEAD1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S AMHQ="" Q
+HEAD1 ;
+ W:$D(IOF) @IOF S AMHPG=AMHPG+1
+ W !?13,"********** CONFIDENTIAL PATIENT INFORMATION **********"
+ W !,$P(^VA(200,DUZ,0),U,2),?72,"Page ",AMHPG,!
+ W ?(80-$L($P(^DIC(4,DUZ(2),0),U))/2),$P(^DIC(4,DUZ(2),0),U),!
+ W ?35,"PLACEMENTS",!
+ W ?15,"PLACEMENT DATES:  ",AMHBDD,"  TO  ",AMHEDD,!
+PIH W !,"PATIENT NAME",?22,"HRN",?29,"DATE PLACE",?40,"FACILITY REFERRED TO",?66,"PLACEMENT",!,AMH80D
+ Q

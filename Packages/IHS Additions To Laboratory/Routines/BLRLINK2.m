@@ -1,0 +1,130 @@
+BLRLINK2 ;IHS/DIR/FJE - CONT. OF BLR - IHS LABORATORY VISIT CREATION ;JUL 06, 2010 3:14 PM
+ ;;5.2;IHS LABORATORY;**1015,1024,1025,1027**;NOV 01, 1997
+ ;
+EP ; EP
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("EP^BLRLINK2 0.0")
+ I $G(BLRVIEN),$G(BLRVFN),'$D(@($$GETGREF(BLRVFN)_BLRVIEN_")")) S (BLRVIEN,BLRVFN)="" D DTXVP^BLRLINK
+ I $G(PCCVISIT),$G(BLRVFN),$G(BLRVIEN) S BLRVGL=$$GETGREF(BLRVFN)_BLRVIEN_",0)",APCDALVR("APCDVSIT")=$P(@BLRVGL,U,3)
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("^BLRLINK2 5.0","APCDALVR")
+ D VISIT:'PCCVISIT Q:BLRERR
+ D SETVISIT:'$D(APCDALVR("APCDVSIT"))
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("EP^BLRLINK2 9.0")
+ Q
+ ;
+VISIT ;CALLS APCDALV TO CREATE PCC VISIT
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("VISIT^BLRLINK2 0.0","APCDALVR")
+ I $D(^LRO(68.999999901,"AA",BLRPATCD)) S APCDALVR("APCDVSIT")=$O(^LRO(68.999999901,"AA",BLRPATCD,"")) D CHECK Q:BLRERR  S PCCVISIT=1 Q
+ S APCDALVR("APCDAUTO")="",AUPNTALK="" ;FOR BACKGROUND VISIT CREATION
+ K DINUM,DLAYGO,DR,DIC,DA,D0,DIU,DIW,DIY,DIV  ;IHS/ANMC/CLS 05/16/94 KILLS FILEMAN VARIABLES
+ ; D ^APCDALV
+ ; I $D(APCDALVR("APCDAFLG")) S BLRBUL=2,BLRPCC="PCC Visit not created APCDFLG = "_APCDALVR("APCDAFLG"),BLRERR=1 W:'BLRQUIET !,BLRPCC,! Q
+ ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1022
+ ; Use GETVISIT^APCDAPI4 instead of D ^APCDALV
+ ; 
+ ; It was requested that if a visit exists for the patient for that day, use
+ ; that visit and don't create a new one unless no visit exists.
+ NEW BLRAPI4,OLDDUZ,OUT                ; Make sure arrays don't stick around
+ D EP^BLRPCCVC                         ; Populate the new input array
+ ;
+ M OLDDUZ=DUZ                          ; IHS/OIT/MKK LR*5.2*1027
+ D RESETDUZ^BLRPCCVC                   ; IHS/OIT/MKK LR*5.2*1027
+ ;
+ D GETVISIT^APCDAPI4(.BLRAPI4,.OUT)    ; Call the PCC API
+ ;
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("VISIT^BLRLINK2 2.0","OUT","APCDALVR","BLRAPI4")
+ ;
+ ; If no Visit OR multiple visits found, then try to FORCE ADD a NEW visit.
+ ; I +$G(OUT(0))=0&($O(OUT(0))="") D  Q
+ ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1024
+ I +$G(OUT(0))=0!(+$G(OUT(0))>1) D
+ . ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1024
+ . D EP^BLRPCCVC                       ; Reset the Array
+ . K BLRAPI4("NEVER ADD")              ; Delete "FLAG" LR*5.2*1027
+ . S BLRAPI4("FORCE ADD")=1            ; FORCE Visit Creation, if possible.
+ . D GETVISIT^APCDAPI4(.BLRAPI4,.OUT)
+ . D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("VISIT^BLRLINK2 3.0","OUT","APCDALVR","BLRAPI4")
+ ;
+ ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1025
+ S TSTR="DUZ"_"=OLDDUZ"
+ ; S @TSTR                          ; Change DUZ back
+ M @TSTR                          ; Change DUZ back -- LR*5.2*1027
+ ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1025
+ ;
+ ; Error if no Visit OR No Visit IEN OR multiple visit numbers, so quit
+ I +$G(OUT(0))=0!($O(OUT(0))="")!(+$G(OUT(0))>1) D  Q
+ . NEW ERRMSG
+ . S ERRMSG=$P($G(OUT(0)),"^",2)
+ . S BLRBUL=2
+ . S BLRPCC="PCC Visit not created."
+ . I ERRMSG'="" S BLRPCC=BLRPCC_" "_ERRMSG
+ . S BLRERR=1
+ . W:'BLRQUIET !,BLRPCC,!
+ . D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("VISIT^BLRLINK2 4.0")
+ ;
+ ; Visit exists; use the visit number
+ S APCDALVR("APCDVSIT")=$O(OUT(0))
+ ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1022
+ ;
+ D CHECK Q:BLRERR
+ ; S DIC="^LRO(68.999999901,",DIC(0)="FL",DIC("DR")=".02////"_APCDALVR("APCDVSIT")_";.03////"_BLRORD,DLAYGO=68.999999901,DIADD=1,X=BLRPATCD K DD D FILE^DICN K DIC,DLAYGO,DIADD,DR
+ ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1024
+ ;      Change required by QA.
+ ;      Need to "kill" DO variable before using FILE^DICN
+ D ^XBFMK                         ; Clear ALL FileMan variables
+ K DO                             ; Clear DO (the letter Oh, not the # zero)
+ S DIC="^LRO(68.999999901,"
+ S DIC(0)="FL"
+ S DIC("DR")=".02////"_APCDALVR("APCDVSIT")_";.03////"_BLRORD
+ S DLAYGO=68.999999901
+ S DIADD=1
+ S X=BLRPATCD
+ K DD
+ D FILE^DICN
+ K DIC,DLAYGO,DIADD,DR
+ ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1024
+ ;
+ S PCCVISIT=1
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("VISIT^BLRLINK2 9.0")
+ Q
+ ;
+ ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1022
+ ; IF a visit is found in the LAB VA-IHS LINK file for the patient,
+ ; then it is necessary to make sure that the ORDER NUMBER matches
+ ; BEFORE using that visit.  Note that the BLRPATCD variable is
+ ; actually made up of the patient's IEN and the Collection Date.
+FINDVIS(BLRPATCD)      ; EP
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("FINDVIS^BLRLINK2 0.0")
+ ; If no visit in the LAB VA-IHS LINK file, then just return
+ I $D(^LRO(68.999999901,"AA",BLRPATCD))<1 Q 0
+ ;
+ ; At this point, it's known that at least one visit exists in the
+ ; LAB VA-IHS LINK file.  BUT only use the visit IF and ONLY IF it
+ ; matches the Order Number.
+ NEW IEN,VIS,FLAG
+ S (VIS,FLAG)=0
+ F  S VIS=$O(^LRO(68.999999901,"AA",BLRPATCD,VIS))  Q:VIS=""!(FLAG>0)  D
+ . S IEN=0
+ . F  S IEN=$O(^LRO(68.999999901,"AA",BLRPATCD,VIS,IEN))  Q:IEN=""!(FLAG>0)  D
+ .. I $P($G(^LRO(68.999999901,IEN,0)),"^",3)=BLRORD S FLAG=VIS
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("FINDVIS^BLRLINK2 8.0")
+ Q FLAG
+ ;
+ ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1022
+ ;
+SETVISIT ;SET APCDALVR("APCDVSIT") IF '$D
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("SETVISIT^BLRLINK2 0.0","APCDALVR")
+ F BLRL=1:1:180 Q:BLRL=180  S:$D(^LRO(68.999999901,"AA",BLRPATCD)) APCDALVR("APCDVSIT")=$O(^LRO(68.999999901,"AA",BLRPATCD,"")),PCCVISIT=1 Q:$D(APCDALVR("APCDVSIT"))  H 1
+ I BLRL=180 S BLRERR=1,BLRBUL=2,BLRPCC="Visit not created - task terminated" W:'BLRQUIET !,BLRPCC,!
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("SETVISIT^BLRLINK2 9.0")
+ Q
+ ;
+CHECK ; confirm that visit ien and patient match up
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("CHECK^BLRLINK2 0.0","APCDALVR")
+ S BLRVSIT=$G(^AUPNVSIT(APCDALVR("APCDVSIT"),0))
+ I $P(BLRVSIT,U,5)'=BLRVADFN S BLRERR=1,BLRBUL=2,BLRPCC="Mismatch on visit and patient" W:'BLRQUIET !,BLRPCC,!
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("CHECK^BLRLINK2 9.0")
+ Q
+ ;
+GETGREF(BLRX)      ; 
+ D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("GETGREF^BLRLINK2 0.0")
+ Q $G(^DIC(BLRX,0,"GL"))

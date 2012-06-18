@@ -1,0 +1,86 @@
+LEXU ;ISA/CJE-Miscellaneous Lexicon Utilities ;02-10-98
+ ;;2.0;LEXICON UTILITY;**2,6,9,15**;Sep 23, 1996
+ ; fjf; Patched to comply with requirement to use CPT API's
+SC(LEX,LEXS) ; Filter by Semantic Class - LEX=IEN LEXS=Filter
+ N LEXINC,LEXEXC,LEXIC,LEXEC,LEXRREC
+ S LEXRREC=LEX Q:'$D(^LEX(757.01,LEXRREC,0)) 0  ; PCH 2
+ I $L(LEXS,";")=3,$P(LEXS,";",3)'="" D  I LEXINC K LEXIC,LEXEXC,LEXS,LEXEC Q LEXINC
+ . S LEXINC=0 S LEXINC=$$SO(LEXRREC,$P(LEXS,";",3))
+ S LEXRREC=$P(^LEX(757.01,LEXRREC,1),U,1)
+ S LEXINC=0 F LEXIC=1:1:$L($P(LEXS,";",1),"/") D
+ . I $D(^LEX(757.1,"AMCC",LEXRREC,$P($P(LEXS,";",1),"/",LEXIC)))!($D(^LEX(757.1,"AMCT",LEXRREC,$P($P(LEXS,";",1),"/",LEXIC)))) S LEXINC=1,LEXIC=$L($P(LEXS,";",1),"/")+1
+ I LEXINC=0!($P(LEXS,";",2)="") K LEXIC,LEXS,LEXEC Q LEXINC
+ S LEXEXC=0 F LEXEC=1:1:$L($P(LEXS,";",2),"/") D
+ . I $D(^LEX(757.1,"AMCC",LEXRREC,$P($P(LEXS,";",2),"/",LEXEC)))!($D(^LEX(757.1,"AMCT",LEXRREC,$P($P(LEXS,";",2),"/",LEXEC)))) S LEXEXC=1,LEXEC=$L($P(LEXS,";",2),"/")+1
+ I LEXINC,'LEXEXC K LEXIC,LEXS,LEXEC Q 1
+ K LEXIC,LEXS,LEXEC Q 0
+SO(LEX,LEXS) ; Filter by Source - LEX=IEN LEXS=Filter
+ N LEXTREC S LEXTREC=+LEX Q:'$D(^LEX(757.01,LEXTREC,0)) 0  ; PCH 2
+ N LEXFND S LEXFND=0,LEXTREC=+LEXTREC Q:'$D(^LEX(757.01,LEXTREC)) LEXFND
+ N LEXCODE,LEXSOID,LEXCREC,LEXSAB,LEXMC
+ S LEXMC=$P(^LEX(757.01,LEXTREC,1),U,1)
+ S LEXMCE=+(^LEX(757,+($P(^LEX(757.01,LEXTREC,1),U,1)),0))
+ ; Codes for an Expression   
+ ;I LEXTREC'=LEXMCE D  G SOQ
+ ;. S LEXFND=0 F LEXSOID=1:1:$L(LEXS,"/") Q:LEXFND  D
+ ;. . S LEXCODE=$P(LEXS,"/",LEXSOID),LEXCREC=0
+ ;. . F  S LEXCREC=$O(^LEX(757.02,"B",LEXTREC,LEXCREC)) Q:+LEXCREC=0!(LEXFND)  D
+ ; Codes for a Major Concept
+ I LEXTREC=LEXMCE D  G SOQ
+ . S LEXFND=0 F LEXSOID=1:1:$L(LEXS,"/") Q:LEXFND  D
+ . . S LEXCODE=$P(LEXS,"/",LEXSOID),LEXCREC=0
+ . . F  S LEXCREC=$O(^LEX(757.02,"AMC",LEXMC,LEXCREC)) Q:+LEXCREC=0!(LEXFND)  D
+ . . . S LEXSAB=+($P(^LEX(757.02,LEXCREC,0),U,3)) Q:'$D(^LEX(757.03,LEXSAB,0))  S LEXSAB=$E(^LEX(757.03,LEXSAB,0),1,3) I LEXSAB=LEXCODE S LEXFND=1
+SOQ K LEX,LEXTREC,LEXMC,LEXS,LEXCODE,LEXMCE,LEXSOID Q LEXFND
+SRC(LEX,LEXS) ; Filter by Expression Source - LEX=IEN,LEXS=Source - PCH 6
+ S LEX=+($G(LEX)),LEXS=+($G(LEXS))
+ Q:LEX=0 0 Q:LEXS=0 0 Q:'$D(^LEX(757.01,LEX,0)) 0 Q:'$D(^LEX(757.14,LEXS,0)) 0
+ S LEXSR=$P($G(^LEX(757.01,LEX,1)),U,12) Q:LEXSR=LEXS 1
+ N LEXSR,LEXMC,LEXMCE S LEXMC=+($G(^LEX(757.01,LEX,1))),LEXMCE=+($G(^LEX(757,+LEXMC,0)))
+ S LEXSR=$P($G(^LEX(757.01,LEXMCE,1)),U,12) Q:LEXSR=LEXS 1
+ Q 0
+DEF(LEX) ; Display expression definition - LEX=IEN
+ I $D(^LEX(757.01,LEX,3,0)) D
+ . N LEXLN F LEXLN=1:1:$P(^LEX(757.01,LEX,3,0),U,4) D
+ . . I $D(^LEX(757.01,LEX,3,LEXLN,0)) W !,?2,^LEX(757.01,LEX,3,LEXLN,0)
+ . K LEX,LEXLN W !
+ Q
+ID(LEX) ; ICD Diagnosis retained - ICD procedures ignored
+ Q:'$L($G(LEX)) "" Q:$L($P(LEX,".",1))<3 "" Q:'$D(^LEX(757.02,"AVA",(LEX_" "))) ""
+ N LEXO,LEXR S (LEXO,LEXR)=0 F  S LEXR=$O(^LEX(757.02,"AVA",(LEX_" "),LEXR)) Q:+LEXR=0  D  Q:LEXO=1
+ . I $D(^LEX(757.02,"AVA",(LEX_" "),LEXR,"ICD")) S LEXO=1
+ Q:'LEXO "" Q LEX
+ICDONE(LEX) ; Return one ICD code for an expression - LEX=IEN
+ S LEX=$$ONE^LEXSRC(LEX,"ICD") Q:'$D(^ICD9("BA",(LEX_" "))) ""
+ S:+($P($G(^ICD9(+($O(^ICD9("BA",(LEX_" "),0))),0)),"^",9))=1 LEX=""
+ Q LEX
+ICD(LEX) ; Return all ICD codes for an expression - LEX=IEN
+ N LEXSRC D ALL^LEXSRC(LEX,"ICD") Q:+($G(LEXSRC(0)))'>0 ""
+ N LEXI,LEXT,LEXS S LEXI=0,LEXT=""
+ F  S LEXI=$O(LEXSRC(LEXI)) Q:+LEXI=0  D
+ . S LEXS=LEXSRC(LEXI) Q:'$D(^ICD9("BA",(LEXS_" ")))
+ . Q:+($P($G(^ICD9(+($O(^ICD9("BA",(LEXS_" "),0))),0)),"^",9))=1
+ . Q:(LEXT_";")[(";"_LEXS_";")  S LEXT=LEXT_";"_LEXS
+ S:$E(LEXT,1)=";" LEXT=$E(LEXT,2,$L(LEXT)) S LEX=LEXT Q LEX
+CPTONE(LEX) ; Return one CPT code for an expression - LEX=IEN
+ N LEXCPT
+ S LEX=$$ONE^LEXSRC(LEX,"CPT")
+ Q:LEX="" ""
+ S LEXCPT=$$CPT^ICPTCOD(LEX)
+ Q:$P(LEXCPT,"^",2)="NO SUCH ENTRY" ""
+ I +$P(LEXCPT,"^",7)=0 S LEX=""
+ Q LEX
+CPCONE(LEX) ; Return one HCPCS code for an expression - LEX=IEN PCH 9
+ N LEXCPT
+ S LEX=$$ONE^LEXSRC(LEX,"CPC")
+ Q:LEX="" ""
+ S LEXCPT=$$CPT^ICPTCOD(LEX)
+ Q:$P(LEXCPT,"^",2)="NO SUCH ENTRY" ""
+ I +$P(LEXCPT,"^",7)=0 S LEX=""
+ I LEX'?1U.4N S LEX=""
+ Q LEX
+DSMONE(LEX) ; Return one DSM code for an expression - LEX=IEN
+ ; Check for DSM-IV first
+ S LEX=$$ONE^LEXSRC(LEX,"DS4") I LEX'="" Q LEX
+ ; If not DSM-IV, then check for DSM-III
+ S LEX=$$ONE^LEXSRC(LEX,"DS3") Q LEX

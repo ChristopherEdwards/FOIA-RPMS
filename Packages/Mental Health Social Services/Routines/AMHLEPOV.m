@@ -1,0 +1,136 @@
+AMHLEPOV ; IHS/CMI/LAB - NEW PROGRAM ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+ ;
+ ;GET POVS, ADD TO PROBLEM LIST, ADD TO PCC PROBLEM LIST
+ ;CALLED IN RECORD ADD
+START ;EP
+ D EN^XBNEW("EP^AMHLEPOV","AMH*")
+ Q
+EP2 ;EP
+ S APCDOVRR=""
+ D EN^XBNEW("EP^AMHLEPOV","AMHR;AMHPAT;AMHLOC;AMHDATE;APCDOVRR;AMHGROUP")
+ Q
+EP ;EP  -  ask for POV and file each
+ I 'AMHR W !!,"NO RECORD DEFINED!!" D XIT Q
+ I '$D(^AMHREC(AMHR)) W !!,"NO RECORD!!" D XIT Q
+ S APCDOVRR=""
+ F  S AMHPOV="" D POV Q:AMHPOV=""
+ D CHK
+ D XIT
+ Q
+CHK ;
+ Q:$D(^AMHRPRO("AD",AMHR))
+ W !!,$C(7),$C(7),"At least ONE POV is REQUIRED!!"
+ S DIR(0)="Y",DIR("A")="Do you wish to exit and delete this record",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $G(Y)=0 G EP
+ Q
+POV ;
+ D HPOV1^AMHLESM
+ I $G(AMHDET)="S" W @IOF,!!?15,"******* PURPOSE OF VISIT *******",!
+ S AMHDT=$P(AMHDATE,".")
+ S DIC("A")=$S($G(AMHGROUP):"Enter another Problem (POV) for this patient: ",'$D(^AMHRPRO("AD",AMHR)):"Enter PRIMARY Problem-POV: ",1:"Enter ANOTHER Problem-POV: "),DIC("S")="I '$P(^(0),U,13)",DIC="^AMHPROB(",DIC(0)="AEMQ"
+ W ! D ^DIC
+ I Y=-1 D ^XBFMK Q
+ S AMHPOV=$P(Y,U,2),AMHPOVP=+Y
+ ;call FILE^DICN to file this POV
+FILE ;
+ D ^XBFMK
+ K DD,D0,DO,DINUM,DIC,DA,DR S DIC(0)="EL",DIC="^AMHRPRO(",DLAYGO=9002011.01,DIADD=1,X=AMHPOVP,DIC("DR")="" D FILE^DICN K DIC,DR,DIE,DIADD,DLAYGO,X,D0
+ I Y=-1 D ^XBFMK,XIT W !!,$C(7),$C(7),"Behavioral Health POV failed!!  Notify Site Manager." Q
+ S AMHRPRO=+Y,AMHPOVR=^AMHRPRO(AMHRPRO,0)
+ D ^XBFMK
+ S DIE("NO^")="",DA=AMHRPRO,DIE="^AMHRPRO(",DR=".02////"_$G(AMHPAT)_";.03////"_AMHR_";.04  Provider Narrative.....:" S DIE("NO^")="" D CALLDIE^AMHLEIN
+ S AMHPOVR=^AMHRPRO(AMHRPRO,0)
+ I $P(AMHPOVR,U,4)="" S X=$E($P(^AMHPROB($P(AMHPOVR,U),0),U,2),1,$S($P(^DD(9999999.27,.01,0),U,5)[">160":159,1:79)),X=$TR(X,";"," "),DIE="^AMHRPRO(",DR=".04///"_X,DA=AMHRPRO S DIE("NO^")="" D CALLDIE^AMHLEIN
+ I $D(Y) D ^XBFMK,XIT W !!,$C(7),$C(7),"DIE failed when updating POV" D PAUSE^AMHLEA Q
+ S AMHPOVR=^AMHRPRO(AMHRPRO,0)
+ S AMHNARR=$S($P(AMHPOVR,U,4):$P(^AUTNPOV($P(AMHPOVR,U,4),0),U),1:"<NO PROVIDER NARRATIVE RECORDED>")
+ Q:$G(AMHVTYPE)'="R"
+ I '$G(AMHGROUP) D BHPROB
+ I '$G(AMHGROUP) D PCCPROB
+ Q
+BHPROB ;add to BH Problem List?
+ Q:'$G(AMHPAT)  ;not if no patient
+ Q:$P(^AMHREC(AMHR,0),U,8)=""  ;no patient
+ W ! S DIR(0)="Y",DIR("A")="ADD this PROBLEM to the BH PROBLEM LIST",DIR("B")="N",DIR("?")="If the Provider has checked the box labeled ADD TO BH PROBLEM LIST, answer YES" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ Q:'Y
+ADDBH ;
+ D ^AMHDMHPL
+ W !,"Add this problem - ",$P(^AMHPROB(AMHPOVP,0),U)," - ",$P(^AMHPROB(AMHPOVP,0),U,2) S DIR(0)="Y",DIR("A")="     to the BH Problem List",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ Q:'Y
+ S AMHTX=0,AMHTY="" F  S AMHTY=$O(^AMHPPROB("AA",AMHPAT,AMHTY)) Q:AMHTY=""  S AMHTX=$E(AMHTY,2,4)
+ S AMHTX=AMHTX+1 K AMHTY
+ K DD,D0,DO,DINUM,DIC,DA,DR S DIC(0)="EL",DIC="^AMHPPROB(",DLAYGO=9002011.51,DIADD=1,X=AMHPOVP,DIC("DR")=""
+ K DD,D0,DO D FILE^DICN K DIC,DR,DIE,DIADD,DLAYGO,X,D0
+ I Y=-1 D ^XBFMK,XIT W !!,$C(7),$C(7),"Behavioral Health PROBLEM ADD failed!!  Notify Site Manager." D PAUSE^AMHLEA Q
+ S AMHPIEN=+Y
+ S APCDOVRR=""
+ S DA=AMHPIEN,DIE="^AMHPPROB(",DR=".02////"_AMHPAT_";.03///^S X=AMHDT;.08///^S X=AMHDT;.05///"_AMHNARR_";.06////"_$S($G(AMHLOC):AMHLOC,1:DUZ(2))_";.07///"_AMHTX_";.12//A;.13" S DIE("NO^")="" D CALLDIE^AMHLEIN
+ I $D(Y) W !!,$C(7),"Adding a BH Problem FAILED!" D PAUSE^AMHLEA Q
+ S DIE="^AMHPPROB(",DA=AMHPIEN,DR="[AMH ADD TREATMENT NOTES/POV]" D CALLDIE^AMHLEIN
+ I $D(Y) W !!,"Updating NOTES failed." Q
+ Q
+PCCPROB ;add to PCC Problem List?
+ Q:'$$ASKPCC^AMHLEIN(DUZ(2))
+ Q:'$G(AMHPAT)
+ Q:$P(^AMHPROB(AMHPOVP,0),U,5)=""
+ I $P(^AMHPROB(AMHPOVP,0),U,8),'$P(^(0),U,12) Q
+ S DIR(0)="Y",DIR("A")="ADD this PROBLEM to the PCC PROBLEM LIST",DIR("B")="N",DIR("?")="If the Provider has checked the box labeled ADD TO PCC PROBLEM LIST, answer YES" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ W !
+ Q:$D(DIRUT)
+ Q:'Y
+ ;
+ADDPCC ;
+ I $G(AMHLOC)="" S AMHLOC=DUZ(2)
+ D ^AMHPROB
+ W !,"Add problem - ",$P(^AMHPROB(AMHPOVP,0),U)," - ",$P(^AMHPROB(AMHPOVP,0),U,2) S DIR(0)="Y",DIR("A")="     to the PCC PROBLEM LIST",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ Q:'Y
+ S X=0,Y="" F  S Y=$O(^AUPNPROB("AA",AMHPAT,AMHLOC,Y)) Q:Y=""  S X=$E(Y,2,4)
+ S AMHNUM=X+1
+ S X=$P(^AMHPROB($P(AMHPOVR,U),0),U,5)
+ Q:X=""
+ S X=+$$CODEN^ICDCODE(X,80)
+ Q:X=""
+ Q:X=-1
+ S X="`"_X,DIC="^AUPNPROB(",DIADD=1,DLAYGO=9000011,DIC(0)="L" D ^DIC K DIC,DIADD,DLAYGO I Y=-1 D ^XBFMK,XIT W !!,"ERROR WHILE ATTEMPTING TO UPDATE PCC PROBLEM LIST" Q
+ ;get appropriate narrative to pass
+ S APCDOVRR=""
+ W !,"This is the narrative that the rest of the Medical community will see on the PCC",!,"Problem List on the PCC Health Summary.  You may change it now if desired.",!
+ I AMHDET="R" S AMHNARR=$S('$P(^AMHPROB($P(AMHPOVR,U),0),U,12):$P(^AUTNPOV($P(AMHPOVR,U,4),0),U),1:$E($P(^AMHPROB($P(AMHPOVR,U),0),U,2),1,35)_" - "_$E($P(^AUTNPOV($P(AMHPOVR,U,4),0),U),1,40))
+ S DA=+Y,DIE="^AUPNPROB(",DR=".02////"_AMHPAT S Y=AMHDT D DD^%DT S DR=DR_";.03///"_Y_";.05//"_$G(AMHNARR)_";.06////"_AMHLOC_";.07////"_AMHNUM_";.08///"_Y_";.12///A;.13"
+ D CALLDIE^AMHLEIN K DA,DIE,DR,DIU,DIV,DIW
+ W !
+ I $D(Y) W !!,"ERROR WHILE ATTEMPTING TO UPDATE PCC PROBLEM LIST!!"
+ K AMHNUMB,X,Y
+ Q
+XIT ;
+ K DIADD,DLAYGO
+ K AMHTX,AMHTY,AMHNARR,AMHLEPT,AMHNUM,AMHPOV,AMHPOVP,AMHPOVR,AMHRPRO,AMHDT,AMHLOOK
+ Q
+EN ;EP add to mhss problem list - screen man call
+ D EN^XBNEW("EN1^AMHLEPOV","AMH*") ;  new everthing except AMH*
+ Q
+ ;
+EN1 ; ENTRY POINT FOR ^XBNEW
+ W:$D(IOF) @IOF
+ S AMHDT=$P(AMHDATE,".")
+ D ADDBH
+ D XIT
+ Q
+EN2 ;EP add to pcc problem list - screen man call
+ D EN^XBNEW("EN3^AMHLEPOV","AMH*")
+ Q
+EN3 ;
+ W:$D(IOF) @IOF
+ S AMHDT=$P(AMHDATE,".")
+ I '$$ASKPCC^AMHLEIN(DUZ(2)) W !!,"PARAMETER SET TO NO PCC PROBLEM LIST UPDATING",! H 5 Q
+ Q:'$G(AMHPAT)
+ I $P(^AMHPROB(AMHPOVP,0),U,5)="" W !!,"THIS PROBLEM CODE CANNOT BE ADDED TO A PCC PROBLEM LIST!!",!! H 5 Q
+ I $P(^AMHPROB(AMHPOVP,0),U,8)=1 W !!,"THIS PROBLEM CODE CANNOT BE ADDED TO A PCC PROBLEM LIST!!",!! H 5 Q
+ I '$G(AMHLOC) S AMHLOC=$$GET^DDSVAL(9002011,AMHR,".04","I")
+ D ADDPCC
+ Q

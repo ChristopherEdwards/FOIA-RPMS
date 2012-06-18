@@ -1,0 +1,30 @@
+ACRPOCC ; GENERATED FROM 'ACR OBJECT CLASS CODE' PRINT TEMPLATE (#3893) ; 09/29/09 ; (FILE 9999999.59, MARGIN=80)
+ G BEGIN
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ S DISTP=DISTP+1,DILCT=DILCT+1 D:'(DISTP#100) CSTP^DIO2
+ Q
+DT I $G(DUZ("LANG"))>1,Y W $$OUT^DIALOGU(Y,"DD") Q
+ I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1 S DISTP=$G(DISTP),DILCT=$G(DILCT)
+ I $D(DXS)<9 M DXS=^DIPT(3893,"DXS")
+ S I(0)="^AUTTOBJC(",J(0)=9999999.59
+ D N:$X>4 Q:'DN  W ?4 W "OBJECT CLASS CODE.:"
+ S X=$G(^AUTTOBJC(D0,0)) W ?25,$E($P(X,U,1),1,4)
+ D N:$X>4 Q:'DN  W ?4 W "DESCRIPTION.......:"
+ W ?25,$E($P(X,U,3),1,40)
+ X DXS(1,9) K DIP K:DN Y
+ I $E(+^AUTTOBJC(D0,0),1,2)=26 W !?4,"GENERAL LEDGER....:  " W $P(^(0),U,9) K DIP K:DN Y
+ D N:$X>4 Q:'DN  W ?4 W "FUND PROJ CODE....:"
+ S X=$G(^AUTTOBJC(D0,0)) W ?25 S Y=$P(X,U,11) W:Y]"" $S($D(DXS(2,Y)):DXS(2,Y),1:Y)
+ D N:$X>4 Q:'DN  W ?4 W "ACTIVE/INACTIVE...:"
+ W ?25 S Y=$P(X,U,12) W:Y]"" $S($D(DXS(3,Y)):DXS(3,Y),1:Y)
+ W ?35 I $D(^ACRTXTYP("C",D0)) S ACRDA=D0 D OBJC^ACRFDFL1 K DIP K:DN Y
+ K Y
+ Q
+HEAD ;
+ W !,"--------------------------------------------------------------------------------",!!

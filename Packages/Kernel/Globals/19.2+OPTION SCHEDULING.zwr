@@ -1,0 +1,17 @@
+OPTION SCHEDULING
+ZWR
+^DIC(19.2,0)="OPTION SCHEDULING^19.2PI^^0"
+^DIC(19.2,0,"AUDIT")="@"
+^DIC(19.2,0,"DD")="@"
+^DIC(19.2,0,"DEL")="@"
+^DIC(19.2,0,"GL")="^DIC(19.2,"
+^DIC(19.2,0,"LAYGO")="@"
+^DIC(19.2,0,"RD")="@"
+^DIC(19.2,0,"WR")="@"
+^DIC(19.2,"%D",0)="^^6^6^2941121^^"
+^DIC(19.2,"%D",1,0)="This file hold records that relate to the scheduling of options"
+^DIC(19.2,"%D",2,0)="to run on a one time basis or more likely on a schedule."
+^DIC(19.2,"%D",3,0)="There is one record for each time that an option is scheduled."
+^DIC(19.2,"%D",4,0)="This allows one option to be scheduled to run on more that one"
+^DIC(19.2,"%D",5,0)="CPU or at more that one time without having to duplicated the option"
+^DIC(19.2,"%D",6,0)="in the option file."

@@ -1,0 +1,6 @@
+LRO4 ; IHS/DIR/FJE - Being replaced 1/31/91 08:46 ;
+ ;;5.2;LR;**1013**;JUL 15, 2002
+ ;
+ ;;5.2;LAB SERVICE;;Sep 27, 1994
+EN ;from *THIS ROUTINE IS BEING PHASED OUT*
+ Q

@@ -1,0 +1,387 @@
+BHLEVENT ; cmi/flag/maw - BHL Events ;  [ 09/24/2004  12:39 PM ]
+ ;;3.01;BHL IHS Interfaces with GIS;**2,11,12,13,14,15,16,17**;OCT 15, 2002
+ ;
+ ;
+ ;cmi/anch/maw 3/30/2007 added DW1MRG for merge record in Data Warehouse GIS Patch 15
+ ;cmi/anch/maw 5/29/2007 modified O01 to look for BHL("ALTDUZ2")
+ ;cmi/anch/maw 3/04/2009 modified O01 for ref lab enhancements
+ ;
+ ;this routine will contain entry points from various applications
+ ;that are event based. (ie. admits, discharges, visits, etc.)
+ ;It will then call the appropriate application.
+ Q  ;not callable from top
+ ;
+GIS ;-- the following are GIS calls by HL7 events
+ Q  ;not callable at GIS
+ ;
+A01(BHLPAT,BHLDGPMC,BHLVAIN,BHLADT) ;PEP - this is an admit event
+ ;called from ADGCALLS
+ S BHLVST=$$VALI^XBDIQ1(405,BHLDGPMC,9999999.1)
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST,INDA(405,1)=BHLDGPMC
+ S INA("DGPMCA")=$G(BHLDGPMC)
+ S INA("ADMPHY")=$P($G(BHLVAIN(2)),U)
+ S INA("FTS")=$P($G(BHLVAIN(3)),U,2)
+ D ^INHF("HL IHS A01 OUT PARENT",.INDA,.INA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+A02(BHLPAT,BHLDGPMC,BHLVAIN,BHLADT) ;PEP - this is a transfer event
+ ;called from ADGCALLS, ADGEVNT
+ S BHLVST=$$VALI^XBDIQ1(405,BHLDGPMC,9999999.1)
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST,INDA(405,1)=BHLDGPMC
+ S INA("DGPMCA")=$G(BHLDGPMC)
+ S INA("ADMPHY")=$P($G(BHLVAIN(2)),U)
+ S INA("FTS")=$P($G(BHLVAIN(3)),U,2)
+ D ^INHF("HL IHS A02 OUT PARENT",.INDA,.INA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+A03(BHLPAT,BHLDGPMC,BHLVAIN,BHLADT) ;PEP - this is a discharge event
+ ;called from ADGCALLS
+ S BHLVST=$$VALI^XBDIQ1(405,BHLDGPMC,9999999.1)
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST,INDA(405,1)=BHLDGPMC
+ S INA("DGPMCA")=$G(BHLDGPMC)
+ S INA("ADMPHY")=$P($G(BHLVAIN(2)),U)
+ S INA("FTS")=$P($G(BHLVAIN(3)),U,2)
+ D ^INHF("HL IHS A03 OUT PARENT",.INDA,.INA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+A04(BHLVST)        ;PEP - this is a visit checkin event
+ ;called from Scheduling Protocol
+ I 'BHLVST Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVSIT(BHLVST,0)),U,5)
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("HL IHS A04 OUT PARENT",.INDA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+A08(BHLVST)        ;PEP - this is a visit update event
+ ;called from AUPNVSIT
+ I 'BHLVST Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVSIT(BHLVST,0)),U,5)
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("HL IHS A08 (VISIT) OUT PARENT",.INDA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+A28(BHLPAT)         ;PEP - this is a new patient entered into the system
+ ;called from AG0
+ S INDA=BHLPAT
+ D ^INHF("HL IHS A28 OUT PARENT",.INDA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+A31(BHLPAT)         ;PEP - this is a patient registration update in the system
+ ;called from AG1, AGED
+ S INDA=BHLPAT
+ D ^INHF("HL IHS A31 OUT PARENT",.INDA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+O01(BHL) ;PEP - Order Message
+ K INDA,INA
+ I '$G(BHL("PAT")) Q $$MSG(0)
+ S INDA=BHL("PAT")
+ S INA("DUZ2")=$S($G(BHL("ALTDUZ2")):BHL("ALTDUZ2"),1:DUZ(2))  ;cmi/maw 4/25/2006 DUZ(2) gets reset by GIS
+ ;cmi/maw 4/25/2006 changed below code due to lapcorp inadequacy
+ I BHL("RLE")'="LABCORP" S INA("SF")=$G(BHL("CLIENT")) ;maw 3/3/2006 dynamic account number in MSH
+ S INA("PID20LABO",1)=$G(BHL("CLIENT"))_"^^^"_$S($E($G(BHL("BILL TYPE")),1,1)="T":$G(BHL("INSTYP")),$E($G(BHL("BILL TYPE")),1,1)="P":"P",1:"C")  ;quest client id
+ I BHL("RLE")="LABCORP" S INA("PID20LABO",1)=$G(BHL("CLIENT"))_"^^^"_$S($E($G(BHL("BILL TYPE")),1,1)="T":"T",$E($G(BHL("BILL TYPE")),1,1)="P":"P",1:"C")  ;labcorp client id
+ S INA("ORC2LABO")=$G(BHL("UID"))
+ S INA("ORC12LABO")=$G(BHL("ORDP"))
+ S INA("ORC11LABO")=$$DATE^INHUT($G(BHL("CDT")),1)
+ S BHLDA=0 F  S BHLDA=$O(BHL(BHLDA)) Q:'BHLDA  D
+ . S INA("ORC2LABO",BHLDA)=$G(BHL("UID"))
+ . S INA("ORC11LABO",BHLDA)=$G(BHL(BHLDA,"CDT"))
+ . S INA("ORC12LABO",BHLDA)=$G(BHL(BHLDA,"ORDP"))
+ . S INA("OBR4LABO",BHLDA)=U_U_U_$G(BHL(BHLDA,"TCNM"))
+ . S INA("OBR4LABOL",BHLDA)=$G(BHL(BHLDA,"TCNM"))
+ . S INA("OBR7LABO",BHLDA)=$G(BHL(BHLDA,"CDT"))
+ . S INA("OBR13LABO",BHLDA)="N"
+ . S INA("OBR15LABO",BHLDA)=$G(BHL(BHLDA,"SRC"))
+ . S INA("OBR18LC",BHLDA)=$G(BHL(BHLDA,"ORD"))
+ . S INA("OBR27LABO",BHLDA)=""
+ . N IDA
+ . S IDA=0 F  S IDA=$O(BHL(BHLDA,"INSE",IDA)) Q:'IDA  D
+ .. S INDA("IN1",IDA)=""
+ .. S INA("IN13LABO",IDA)=$S($G(BHL("RLE"))="LABCORP":U_$G(BHL(BHLDA,"INSID",IDA)),1:$G(BHL(BHLDA,"INSID",IDA)))
+ .. S INA("IN14LABO",IDA)=$G(BHL(BHLDA,"INSE",IDA))
+ .. S INA("IN15LABO",IDA)=$G(BHL(BHLDA,"INSADD",IDA))
+ .. S INA("IN17LABO",IDA)=$G(BHL(BHLDA,"INSPHO",IDA))
+ .. S INA("IN18LABO",IDA)=$G(BHL(BHLDA,"INSGRP",IDA))
+ .. S INA("IN111LABO",IDA)=$G(BHL(BHLDA,"INSEMP",IDA))
+ .. S INA("IN112LABO",IDA)=$$DATE^INHUT($G(BHL(BHLDA,"INSELG",IDA)),1)
+ .. S INA("IN113LABO",IDA)=$$DATE^INHUT($G(BHL(BHLDA,"INSEXP",IDA)),1)
+ .. S INA("IN115LABO",IDA)=$G(BHL(BHLDA,"INSPLN",IDA))
+ .. S INA("IN116LABO",IDA)=$G(BHL(BHLDA,"INSNOI",IDA))
+ .. S INA("IN117LABO",IDA)=$G(BHL(BHLDA,"INSREL",IDA))
+ .. S INA("IN119LABO",IDA)=$G(BHL(BHLDA,"INSADD",IDA))
+ .. S INA("IN136LABO",IDA)=$G(BHL(BHLDA,"INSPOL",IDA))
+ .. S INA("IN147LABO",IDA)=$S($G(BHL(BHLDA,"INSCOV",IDA))]"":$E(BHL(BHLDA,"INSCOV",IDA),1,1),1:"C")
+ . S INA("GT13LABO",BHLDA)=$G(BHL(BHLDA,"GT1NM"))
+ . S INA("GT15LABO",BHLDA)=$G(BHL(BHLDA,"GT1ADD"))
+ . S INA("GT16LABO",BHLDA)=$G(BHL(BHLDA,"GT1PHO"))
+ . ;cmi/maw 4/4/2008 end of insurance info
+ . ;cmi/maw 4/4/2008 beginning of dx
+ . S INA("GT13LABO")=$G(BHL(BHLDA,"GT1NM"))
+ . S INA("GT15LABO")=$G(BHL(BHLDA,"GT1ADD"))
+ . S INA("GT16LABO")=$G(BHL(BHLDA,"GT1PHO"))
+ . ;cmi/maw 4/4/2008 end of insurance info
+ . ;cmi/maw 4/4/2008 beginning of dx
+ . N DGDA
+ . S DGDA=0 F  S DGDA=$O(BHL(BHLDA,"DX",DGDA)) Q:'DGDA  D
+ .. S INDA("DG1",DGDA)=""
+ .. S INA("DG13LABO",DGDA)=$G(BHL(BHLDA,"DX",DGDA))
+ .. S INA("DG14LABO",DGDA)=$G(BHL(BHLDA,"DXE",DGDA))
+ .. S INA("DG13LABO")=$G(BHL(BHLDA,"DX",DGDA))
+ .. S INA("DG14LABO")=$G(BHL(BHLDA,"DXE",DGDA))
+ . ;cmi/maw 4/4/2008 end of dx 
+ . S INDA("ORC",BHLDA)=""
+ . S INDA("OBR",BHLDA)=""
+ . S BHLCDA=0 F  S BHLCDA=$O(BHL(BHLDA,"COMMENT",BHLCDA)) Q:'BHLCDA  D
+ .. S INDA("OBX",BHLCDA)=""
+ .. S BHLCOM1=$P(BHL(BHLDA,"COMMENT",BHLCDA),U)
+ .. S BHLCOM2=$P(BHL(BHLDA,"COMMENT",BHLCDA),U,2)
+ .. S BHLCOM3=$P(BHL(BHLDA,"COMMENT",BHLCDA),U,3)
+ .. S INA("OBX3LABO",BHLDA,BHLCDA)=U_U_U_BHLCOM1_U_BHLCOM2
+ .. S INA("OBX2LABOL",BHLDA,BHLCDA)="ST"
+ .. S INA("OBX3LABOL1",BHLDA,BHLCDA)=BHLCOM1
+ .. S INA("OBX3LABOL2",BHLDA,BHLCDA)=BHLCOM2
+ .. S INA("OBX14LABO",BHLDA,BHLCDA)=$G(BHL("CDT"))
+ .. S INA("OBX5LABO",BHLDA,BHLCDA)=BHLCOM3
+ .. S INA("OBX3LABLC3",BHLDA,BHLCDA)=$G(BHL("RLE"))
+ S INA("ORC2LABO")=$G(BHL("UID"))
+ S INA("ORC11LABO")=$G(BHL("CDT"))
+ S INA("ORC12LABO")=$G(BHL("ORDP"))
+ S INA("OBR4LABO")=U_U_U_$G(BHL("TCNM"))
+ S INA("OBR4LABOL")=$G(BHL("TCNM"))
+ S INA("OBR7LABO")=$G(BHL("CDT"))
+ S INA("OBR13LABO")="N"
+ S INA("OBR27LABO")=""
+ S INDA("ORC")=""
+ S INDA("OBR")=""
+ S BHLCDA=0 F  S BHLCDA=$O(BHL("COMMENT",BHLCDA)) Q:'BHLCDA  D
+ . S INDA("OBX",BHLCDA)=""
+ . S BHLCOM1=$P(BHL("COMMENT",BHLCDA),U)
+ . S BHLCOM2=$P(BHL("COMMENT",BHLCDA),U,2)
+ . S BHLCOM3=$P(BHL("COMMENT",BHLCDA),U,3)
+ . S INA("OBX2LABOL",BHLCDA)="ST"
+ . S INA("OBX3LABOL1",BHLCDA)=BHLCOM1
+ . S INA("OBX3LABOL2",BHLCDA)=BHLCOM2
+ . S INA("OBX14LABO",BHLCDA)=$G(BHL("CDT"))
+ . S INA("OBX3LABO",BHLCDA)=U_U_U_BHLCOM1_U_BHLCOM2
+ . S INA("OBX5LABO",BHLCDA)=BHLCOM3
+ . S INA("OBX3LABLC3",BHLCDA)=$G(BHL("RLE"))
+ D ^INHF("HL IHS O01 OUT PARENT",.INDA,.INA)
+ Q $$MSG(INHF)
+ ;
+O01J(INDA) ;PEP - joslin event
+ I '$G(INDA) Q $$MSG("PAT")
+ ;D ^INHF("HL IHS JVN PACS O01 OUT PARENT",.INDA)
+ S INA("SENDING FACILITY")=$G(DUZ(2)) ;JOSLIN/TUC/JLM 01/03/06
+ D ^INHF("HL IHS JVN PACS O01 OUT PARENT",.INDA,.INA) ;JOSLIN/TUC/JLM 01/03/06
+ ;This was changed to accommodate multiple facilities on the same UCI.
+ Q $$MSG(INHF)
+ ;
+O13(BHLVST)         ;PEP - this is a medication dispense event
+ ;called from APSPCCK1,APSPCCN,APSPCCR,APSPVST1
+ I 'BHLVST Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVSIT(BHLVST,0)),U,5)
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("HL IHS O13 OUT PARENT",.INDA)
+ D EOJ
+ Q $$MSG("INHF")
+ ;
+R01(BHLVST)      ;PEP - this is the call that generates a generic result msg
+ S BHLVST=$P($G(^AUPNVLAB(BHLVLAB,0)),U,3)
+ I 'BHLVST Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVLAB(BHLVLAB,0)),U,2)
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ S INDA(9000010.09,1)=BHLVLAB
+ D ^INHF("HL IHS R01 OUT PARENT",.INDA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+R01SS(BHLVLAB)      ;PEP - this is the call that generates the lab result message
+ ;called from BLSLX
+ I 'BHLVLAB Q $$MSG("VLAB")
+ S BHLVST=$P($G(^AUPNVLAB(BHLVLAB,0)),U,3)
+ I 'BHLVST Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVLAB(BHLVLAB,0)),U,2)
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ S INDA(9000010.09,1)=BHLVLAB
+ D ^INHF("HL IHS R01 OUT PARENT",.INDA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+V04(BHLVST)        ;PEP - this is the unsolicited Imm record
+ I 'BHLVST Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVSIT(BHLVST,0)),U,5)
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("HL IHS V04 OUT PARENT",.INDA)
+ D EOJ
+ Q $$MSG("INHF")
+ ;
+MFN(BHLMFL,BHLIEN)   ;PEP - this will pass an update from the file passed in
+ ;for IHS EMPI per George Huggins 12/20/2001
+ I 'XPMFL Q $$MSG("MFL")
+ S INDA=BHLIEN
+ S INDA(BHLMFL,1)=BHLIEN
+ D ^INHF("HL IHS MFN OUT PARENT",.INDA)
+ Q $$MSG(INHF)
+ ;
+ELG(BHLPAT,BHLVST,INA)       ;PEP - x12 270 call from AGEVC routine
+ ;called from AGEVC
+ S BHLMSTD="X12"
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("X1 IHS 270 OUT PARENT",.INDA,.INA)
+ I 'INHF Q $$MSG(0)
+ S BHLUIF=$O(^INTHU("AT",INHF,0))
+ Q $$MSG(INHF)  ;only use remaining code if writing to file
+ I 'BHLUIF D
+ . D CHK^BHLBCK($O(^INTHPC("B","FORMAT CONTROLLER",0)))
+ . H 5
+ . S BHLUIF=$O(^INTHU("AT",INHF,0))
+ I 'BHLUIF Q $$MSG(0)
+ S BHLFLNM=$P($G(^INTHU(BHLUIF,0)),U,5)
+ D HFS^BHLU(BHLFLNM,BHLUIF)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+ELGS(BHLPAT,BHLVST,INA)       ;PEP - x12 270 subscriber call from AGEVC routine
+ ;called from AGEVC
+ S BHLMSTD="X12"
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("X1 IHS 270 SUBSCRIBER OUT PARENT",.INDA,.INA)
+ I 'INHF Q $$MSG(0)
+ Q $$MSG(INHF)  ;only use remaining code if writing to file
+ S BHLUIF=$O(^INTHU("AT",INHF,0))
+ I 'BHLUIF D
+ . D CHK^BHLBCK($O(^INTHPC("B","FORMAT CONTROLLER",0)))
+ . H 5
+ . S BHLUIF=$O(^INTHU("AT",INHF,0))
+ I 'BHLUIF Q $$MSG(0)
+ S BHLFLNM=$P($G(^INTHU(BHLUIF,0)),U,5)
+ D HFS^BHLU(BHLFLNM,BHLUIF)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+THREEM(BHLVST,BHLIP)      ;PEP - 3m Event Caller
+ ;called from APCD3M
+ I '$D(^AUPNVSIT(BHLVST,0)) Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVSIT(BHLVST,0)),U,5)
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("HL IHS A08 OUT 3M P "_BHLIP,.INDA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+837(BHLCLM,BHLSTOR)         ;-- test global array
+ S INA("STORAGE")=BHLSTOR
+ I '$G(BHLCLM) Q $$MSG(0)
+ S INDA=BHLCLM
+ D ^INHF("X1 IHS 837 OUT PARENT "_BHLINA,INDA,.INA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+276(BHLINDA,BHLINA)         ;-- send a claim status
+ I '$D(^BARECLST(BHLINDA,0)) Q $$MSG(0)
+ S INDA=BHLINDA
+ D ^INHF("X1 IHS 276 PARENT "_BHLINA("DEST"),INDA,.BHLINA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+278(BHLDUZ2,BHLINDA,BHLINA)         ;-- send a referral request
+ I '$D(^ACHSF(BHLDUZ2,0)) Q $$MSG(0)
+ I '$D(^ACHSF(BHLDUZ2,"D",BHLINDA)) Q $$MSG(0)
+ S INDA=BHLINDA
+ D ^INHF("X1 IHS 278 OUT PARENT "_BHLINA("DEST"),INDA,.BHLINA)
+ D EOJ
+ Q $$MSG(INHF)
+ ;
+DW1HDR(FILENUM,FIEN)         ;-- generate the message header for the batch
+ S INDA=FIEN
+ S INA("FILE")=FILENUM
+ D ^INHF("HL IHS DW1 HDR OUT PARENT",.INDA,.INA)
+ Q $P($$MSG(INHF),U)
+ ;
+DW1TRLR(FILENUM,FIEN)        ;-- generate the trailer for the batch
+ S INDA=FIEN
+ S INA("FILE")=FILENUM
+ D ^INHF("HL IHS DW1 TRL OUT PARENT",.INDA,.INA)
+ Q $P($$MSG(INHF),U)
+ ;
+DW1REG(BHLPAT,INA) ;-- generate a reg update for dw1
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ I $G(INA) S INA("BACKLOAD")=1
+ D ^INHF("HL IHS DW1 A31 OUT PARENT",.INDA,.INA)
+ D EOJ
+ Q $P($$MSG(INHF),U)
+ ;
+DW1A08(BHLVST)     ;-- generate a visit update for dw1
+ I 'BHLVST Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVSIT(BHLVST,0)),U,5)
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("HL IHS DW1 A08 OUT PARENT",.INDA)
+ D EOJ
+ Q $P($$MSG(INHF),U)
+ ;
+DW1MRG(BHLPAT,INA) ;-- generate a reg update for dw1
+ ;cmi/anch/maw 3/30/2007 added for merge record patch 15
+ I 'BHLPAT Q $$MSG("PAT")
+ S INDA=BHLPAT
+ I $G(INA) S INA("BACKLOAD")=1
+ D ^INHF("HL IHS DW1 A40 OUT PARENT",.INDA,.INA)
+ D EOJ
+ Q $P($$MSG(INHF),U)
+ ;
+BCDM(BHLVST,INA) ;-- generate a visit record for BCDM
+ S INDA=BHLVST
+ D ^INHF("HL IHS CDMP OUT (PARENT)",.INDA,.INA)
+ D EOJ
+ Q $P($$MSG(INHF),U)
+ ;
+BCDMMED(BHLVST,INA)         ;PEP - this is a medication dispense event
+ ;called from BCDMSNDR
+ I 'BHLVST Q $$MSG("VST")
+ S BHLPAT=$P($G(^AUPNVSIT(BHLVST,0)),U,5)
+ S INDA=BHLPAT
+ S INDA(9000010,1)=BHLVST
+ D ^INHF("HL IHS CDMP O13 OUT PARENT",.INDA,.INA)
+ D EOJ
+ Q $$MSG("INHF")
+ ;
+EOJ ;-- kills variables
+ K INDA,BHLPAT,BHLVST,BHLDGPMC,BHLVAIN,BHLADT
+ Q
+ ;
+MSG(BHLMVAR)        ;-- return message defining status
+ I BHLMVAR="PAT" S BHLRMSG="Patient Not Passed In, Message Not Created"
+ I BHLMVAR="VST" S BHLRMSG="Visit Not Passed In, Message Not Created"
+ I BHLMVAR="VLAB" S BHLRMSG="VLAB Not Passed In, Message Not Created"
+ I BHLMVAR="MFL" S BHLRMSG="Mstr File Not Passed In, Message Not Created"
+ I BHLMVAR=0 S BHLRMSG="Message Not Created, problem with GIS call"
+ I BHLMVAR S BHLRMSG=BHLMVAR_U_"Message Created Successfully"
+ Q $G(BHLRMSG)
+ ;

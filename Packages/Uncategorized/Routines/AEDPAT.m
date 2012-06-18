@@ -1,0 +1,36 @@
+AEDPAT ; EDITS FOR PATIENT FILE [ 04/15/85  1:25 PM ]
+ ;
+NAME ; NAMES OF PEOPLE
+ F L=1:1:$L(X) Q:'$D(X)  S %Z=$F(X," ",L),%ZZ=$F(X,",,") S:($E(X,%Z-2)=",")!($E(X,%Z)'?.AN)!(%Z>$L(X)) X=$E(X,1,%Z-2)_$E(X,%Z,99),L=L-1 S:%ZZ X=$E(X,1,%ZZ-2)_$E(X,%ZZ,99) K:X?.E1"," X
+ Q
+ ;
+VI1301 ;
+ S IHSX=X,X1=$P(DO,U,3),X2=+60,X=""
+ D C^%DTC
+ S IHSY=X,X=IHSX
+ I X>IHSY K X Q
+ S IHSX=X,X1=$P(DO,U,3),X2=+1,X=""
+ D C^%DTC
+ S IHSY=X,X=IHSX
+ K:X<IHSY X
+ Q
+ Q
+EX01 ;
+ S DR=1101,DIC=9001
+ D ^IUDICLK
+ Q:$D(LKERR)
+ K:LKDATA'="F"&(X="PELVIC EXAM")
+ Q
+SK02 ;
+ S DR=.03,DIC=9001.6144,DRENT=0
+ D ^IUDICLK
+ Q:$D(LKERR)
+ K:X'="P"&(LKDATA>10) X
+ Q
+SK03 ;
+ S DR=.02,DIC=9001.6144,DRENT=0
+ D ^IUDICLK
+ Q:$D(LKERR)
+ K:X>10&(LKDATA'="P") X
+ Q
+END ;

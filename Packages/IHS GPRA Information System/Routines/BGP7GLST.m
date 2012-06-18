@@ -1,0 +1,83 @@
+BGP7GLST ; IHS/CMI/LAB - GUI CMS REPORT ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;
+ ;
+EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPDIR,BGPRTIME) ;EP - called from GUI to produce LIST OF FILES
+ ; SEE ROUTINE BGP7DL if you have questions about any of these variables
+ ;  BGPUSER - DUZ
+ ;  BGPDUZ2 - DUZ(2)
+ ;  BGPOPTN - OPTION NAME
+ ;  BGPDIR - directory to list
+ ;
+ ;
+ ;  BGPRET - return value is ien^error message. a zero (0) is
+ ;  passed as ien if error occurred, display the filename back to the user
+ ;  if they chose to export to area
+ ;
+ ;  I put the list of files in the BGPGUIA global in field 1100 as an output
+ ;create entry in gui output file
+ ;queue report to run with/GUIR
+ D EP1
+ S Y=BGPRET
+ ;D EN^XBVK("BGP") S:$D(ZTQUEUED) ZTREQ="@"
+ S BGPRET=Y
+ Q
+EP1 ;
+ S U="^"
+ I $G(BGPUSER)="" S BGPRET=0_"^USER NOT PASSED" Q
+ I $G(BGPDUZ2)="" S BGPRET=0_"^DUZ(2) NOT PASSED" Q
+ I $G(BGPOPTN)="" S BGPRET=0_"^OPTION NAME NOT PASSED" Q
+ I $G(BGPDIR)="" S BGPRET=0_"^DIRECTORY NAME NOT PASSED" Q
+ S BGPRTIME=$G(BGPRTIME)
+ S DUZ=BGPUSER
+ S DUZ(2)=BGPDUZ2
+ S:'$D(DT) DT=$$DT^XLFDT
+ D ^XBKVAR
+ S BGPGUI=1
+ S IOM=80,BGPIOSL=55
+ ;create entry in GUI file
+ D ^XBFMK
+ S X=BGPUSER_$$NOW^XLFDT
+ S DIC="^BGPGUIA(",DIC(0)="L",DIADD=1,DLAYGO=90531.08,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R"
+ K DD,D0,DO D FILE^DICN K DLAYGO,DIADD,DD,D0,DO
+ I Y=-1 S BGPRET=0_"^UNABLE TO CREATE ENTRY IN GUI OUTPUT FILE" Q
+ S BGPGIEN=+Y
+ ;SEND THE REPORT PROCESS OFF TO THE BACKGROUND USING TASKMAN CALL
+ D TSKMN
+ S BGPRET=BGPGIEN
+ Q
+ ;
+TSKMN ;
+ S ZTIO=""
+ K ZTSAVE S ZTSAVE("*")=""
+ S ZTCPU=$G(IOCPU),ZTRTN="AOLST^BGP7GLST",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI 06 UPLOAD FILE LIST" D ^%ZTLOAD Q
+ Q
+AOLST ;
+ K BGPLIST S BGPLIST="",X=$$LIST^%ZISH(BGPDIR,"BG07*",.BGPLIST)
+ I $O(BGPLIST(""))="" S ^BGPGUIA(BGPGIEN,11,C,0)="There are no files in that directory." D ENDLOG,XIT Q
+ S X=0,C=0 F  S X=$O(BGPLIST(X)) Q:X'=+X  S C=C+1,^BGPGUIA(BGPGIEN,11,C,0)=BGPLIST(X)
+ S ^BGPGUIA(BGPGIEN,11,0)="^90531.0811^"_C_"^"_C_"^"_DT
+ K ^TMP($J,"BGPGUI")
+ D ENDLOG
+ D XIT
+ Q
+ ;
+XIT ;
+ K ^TMP($J)
+ D EN^XBVK("BGP") S:$D(ZTQUEUED) ZTREQ="@"
+ K DIRUT,DUOUT,DIR,DOD
+ K DIADD,DLAYGO
+ D KILL^AUPNPAT
+ K X,X1,X2,X3,X4,X5,X6
+ K A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,V,W,X,Y,Z
+ K N,N1,N2,N3,N4,N5,N6
+ K BD,ED
+ D KILL^AUPNPAT
+ D ^XBFMK
+ L -^BGPDATA
+ Q
+ENDLOG ;-- UPDATE LOG AT END
+ S DIE="^BGPGUIA(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
+ D ^DIE
+ K DIE,DR,DA
+ Q

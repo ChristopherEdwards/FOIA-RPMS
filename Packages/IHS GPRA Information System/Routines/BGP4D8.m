@@ -1,0 +1,160 @@
+BGP4D8 ; IHS/CMI/LAB - indicator C ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;
+I18 ;EP
+ S (BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPD1,BGPD2,BGPD3,BGPD4,BGPD5,BGPD6,BGPD7,BGPD8,BGPD9)=0
+ I 'BGPACTCL S BGPSTOP=1 Q  ;not active clinical pt
+ I BGPSEX'="F" S BGPSTOP=1 Q
+ I '$$PREG(DFN,BGP365,BGPEDATE) S BGPSTOP=1 Q  ;not pregnant
+ I $$HIVDX(DFN,BGPEDATE) S BGPSTOP=1 Q
+ S BGPD1=1
+ S BGPHIV=$$HIVTEST(DFN,BGP365,BGPEDATE)
+ I BGPHIV S BGPN1=1
+ I BGPHIV=2 S BGPN2=1
+ S BGPEDUC=$$HIVEDUC(DFN,BGP365,BGPEDATE)
+ I BGPEDUC S BGPN3=1
+ S BGPVALUE=""
+ K X,Y,Z,%,A,B,C,D,E,H,BDATE,EDATE,P,V,S,F,T
+ Q
+I36 ;EP
+ S (BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPD1,BGPD2,BGPD3,BGPD4,BGPD5,BGPD6,BGPD7,BGPD8,BGPD9,BGPCD4,BGPPCR)=0
+ I BGPAGEB<13 S BGPSTOP=1 Q
+ I 'BGPACTCL S BGPSTOP=1 Q  ;not active clinical pt
+ I '$$V2HIV(DFN,BGP365,BGPEDATE) S BGPSTOP=1 Q
+ I BGPACTCL S BGPD1=1
+ I 'BGPD1 Q
+ S BGPCD4=$$CD4(DFN,BGP365,BGPEDATE)
+ S BGPPCR=$$PCR(DFN,BGP365,BGPEDATE)
+ I BGPCD4,'BGPPCR S BGPN1=1
+ I BGPPCR,'BGPCD4 S BGPN2=1
+ I BGPPCR,BGPCD4 S BGPN3=1
+ I (BGPN1+BGPN2+BGPN3) S BGPN4=1
+ K X,Y,Z,%,A,B,C,D,E,H,BDATE,EDATE,P,V,S,F,T
+ Q
+PREG(P,BDATE,EDATE) ;
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^LAST 2 DX [BGP GPRA PREGNANCY DIAGNOSES;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(2)) Q 1
+ Q ""
+HIVDX(P,EDATE) ; any HIV dx ever or problem list HIV dx
+ K BGPG
+ S Y="BGPG("
+ S BDATE=$P(^DPT(P,0),U,3)  ;dob
+ S X=P_"^LAST DX [BGP HIV/AIDS DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) Q 1
+ S T=$O(^ATXAX("B","BGP HIV/AIDS DXS",0))
+ S (X,G)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(G)  D
+ .Q:$P(^AUPNPROB(X,0),U,8)>EDATE
+ .S Y=$P(^AUPNPROB(X,0),U)
+ .Q:'$$ICD^ATXCHK(Y,T,9)
+ .S G=1
+ .Q
+ Q G
+HIVTEST(P,BDATE,EDATE) ;
+ S BGPC=0
+ S T=$O(^ATXAX("B","BGP CPT HIV TESTS",0))
+ I T D  I X]"" Q 1
+ .S X=$$CPT^BGPDU(P,,EDATE,T,1)
+ S T=$O(^ATXAX("B","BGP HIV TEST LOINC CODES",0))
+ S BGPLT=$O(^ATXLAB("B","BGP HIV TEST TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!(BGPC)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!(BGPC)  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!(BGPC)  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1 Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC(J,T)
+ ...S BGPC=1
+ ...Q
+ I BGPC=1 Q BGPC
+ ;now check for refusal of an HIV test
+ S BGPT=$O(^ATXLAB("B","BGP HIV TEST TAX",0))
+ I 'BGPT Q ""
+ S (G,BGPT1)=0 F  S BGPT1=$O(^ATXLAB(BGPT,21,"B",BGPT1)) Q:BGPT1=""!(G)  D
+ .S G=$$REFUSAL^BGP4UTL1(P,60,BGPT1,$$FMADD^XLFDT(EDATE,-365),EDATE) I $P(G,U)=1 S G=2
+ Q G
+HIVEDUC(P,BDATE,EDATE) ;
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^ALL EDUC;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I '$D(BGPG(1)) Q ""
+ S (X,G)=0,%="",T="" F  S X=$O(BGPG(X)) Q:X'=+X!(G)  D
+ .S T=$P(^AUPNVPED(+$P(BGPG(X),U,4),0),U)
+ .Q:'T
+ .Q:'$D(^AUTTEDT(T,0))
+ .S T=$P(^AUTTEDT(T,0),U,2)
+ .I $P(T,"-",1)="HIV"!($P(T,"-",1)["042")!($P(T,"-",1)["043")!($P(T,"-",1)["044")!($P(T,"-",1)="V08.")!($P(T,"-",1)["795.71") S G=1
+ I G Q 1
+ ;
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^LAST DX V65.44;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) Q 1  ;has a dx
+ Q 0
+ ;
+CD4(P,BDATE,EDATE) ;
+ K BGPG
+ S %=P_"^LAST LAB [BGP CD4 TAX;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) Q 1
+ S E=+$$CODEN^ICPTCOD(86361),%=$$CPTI^BGPDU(P,BDATE,EDATE,E) I %]"" Q $P(%,U)_"^86361"
+ ;now go through all labs and check loinc codes
+ K ^TMP($J,"A")
+ S A="^TMP($J,""A"",",%=P_"^ALL LAB;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,A)
+ I '$D(^TMP($J,"A",1)) Q ""
+ ;now go through all lab tests and see if any are the loinc codes in the taxonomy
+ S T=$O(^ATXAX("B","BGP CD4 LOINC CODES",0))
+ I 'T Q ""
+ S (X,G)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G)  S I=+$P(^TMP($J,"A",X),U,4) I $P($G(^AUPNVLAB(I,11)),U,13)]"" D
+ .S J=$P(^AUPNVLAB(I,11),U,13)
+ .I $$LOINC(J,T) S G=1
+ Q G
+PCR(P,BDATE,EDATE) ;
+ K BGPG
+ S %=P_"^LAST LAB [BGP HIV VIRAL LOAD TAX;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) Q 1
+ S E=+$$CODEN^ICPTCOD(87536),%=$$CPTI^BGPDU(P,BDATE,EDATE,E) I %]"" Q $P(%,U)_"^87536"
+ S E=+$$CODEN^ICPTCOD(87539),%=$$CPTI^BGPDU(P,BDATE,EDATE,E) I %]"" Q $P(%,U)_"^87539"
+ ;now go through all labs and check loinc codes
+ K ^TMP($J,"A")
+ S A="^TMP($J,""A"",",%=P_"^ALL LAB;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,A)
+ I '$D(^TMP($J,"A",1)) Q ""
+ ;now go through all lab tests and see if any are the loinc codes in the taxonomy
+ S T=$O(^ATXAX("B","BGP VIRAL LOAD LOINC CODES",0))
+ I 'T Q ""
+ S (X,G)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G)  S I=+$P(^TMP($J,"A",X),U,4) I $P($G(^AUPNVLAB(I,11)),U,13)]"" D
+ .S J=$P(^AUPNVLAB(I,11),U,13)
+ .I $$LOINC(J,T) S G=1
+ Q G
+V2HIV(P,BDATE,EDATE) ;
+ I '$G(P) Q ""
+ I '$D(^AUPNVSIT("AC",P)) Q ""
+ NEW BGP6M
+ S BGP6M=$$FMADD^XLFDT(EDATE,-(6*30))
+ K ^TMP($J,"A")
+ S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(B,A)
+ I '$D(^TMP($J,"A",1)) Q ""
+ S T=$O(^ATXAX("B","BGP HIV/AIDS DXS",0))
+ I 'T Q ""
+ S (X,G,H)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$P(^AUPNVSIT(V,0),U,9)
+ .Q:$P(^AUPNVSIT(V,0),U,11)
+ .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
+ .Q:"CV"[$P(^AUPNVSIT(V,0),U,3)  ;eliminate contract health
+ .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U) I $$ICD^ATXCHK(%,T,9) S D=1
+ .Q:'D
+ .I $P($P(^AUPNVSIT(V,0),U),".")'<BGP6M S H=1
+ .S G=G+1
+ .Q
+ I G>1,H=1 Q 1
+ Q ""
+ ;
+LOINC(A,B) ;
+ NEW %
+ S %=$P($G(^LAB(95.3,A,9999999)),U,2)
+ I %]"",$D(^ATXAX(B,21,"B",%)) Q 1
+ S %=$P($G(^LAB(95.3,A,0)),U)_"-"_$P($G(^LAB(95.3,A,0)),U,15)
+ I $D(^ATXAX(B,21,"B",%)) Q 1
+ Q ""

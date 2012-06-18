@@ -1,0 +1,12 @@
+FHIPST5 ; HISC/REL - Set Future Diets in TaskMan ;4/5/96  11:28
+ ;;5.0;Dietetics;**2**;Mar 25, 1996
+ D NOW^%DTC S NOW=%
+ S NXWD="" F  S NXWD=$O(^DPT("CN",NXWD)) Q:NXWD=""  F DFN=0:0 S DFN=$O(^DPT("CN",NXWD,DFN)) Q:DFN<1  S ADM=$G(^(DFN)) D:ADM LOOK
+ Q
+LOOK ; Check Patient
+ S X1=$G(^FHPT(DFN,"A",ADM,0)),FHORD=$P(X1,"^",2),X1=$P(X1,"^",3)
+ I X1>1,X1'>NOW D U1^FHORD7 G LOOK
+ F Z6=NOW:0 S Z6=$O(^FHPT(DFN,"A",ADM,"AC",Z6)) Q:Z6<1  D
+ .S ZTIO="",ZTRTN="UPD^FHORD7",ZTREQ="@",ZTDESC="Diet Update",ZTDTH=+Z6
+ .S ZTSAVE("DFN")=DFN,ZTSAVE("ADM")=ADM,ZTSAVE("Z6")=+Z6,ZTSAVE("ZTREQ")="" D ^%ZTLOAD K ZTSK Q
+ Q

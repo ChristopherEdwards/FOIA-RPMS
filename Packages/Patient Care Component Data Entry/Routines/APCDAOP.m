@@ -1,0 +1,28 @@
+APCDAOP ; IHS/CMI/LAB - PROMPT FOR PROCEDURE ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+START ;
+ S APCDTPCC=""
+ I $P($G(APCDPARM),U,21)="C",$G(APCDCAT)'="H" G CPT
+ X:$D(^DD(9000010.08,.01,12.1)) ^DD(9000010.08,.01,12.1) S DIC="^ICD0(",DIC(0)="AEMQ",DIC("A")="Enter OPERATION/PROCEDURE: " D ^DIC K DIC
+ G:Y="" XIT
+ I Y=-1,X=""!(X="^") S APCDTSKI=1,APCDLOOK="" G XIT
+ I Y=-1 S APCDTERR=1,APCDLOOK="" G XIT
+ S APCDLOOK="`"_+Y,APCDTNQP=X
+ D XIT Q
+XIT K Y,X,DO,D,DD,DIPGM
+ Q
+CPT ;EP
+ S APCDTPCC=""
+ X:$D(^DD(9000010.08,.16,12.1)) ^DD(9000010.08,.16,12.1) S DIC="^ICPT(",DIC(0)="AEMQ",DIC("A")="Enter CPT CODE:  " D ^DIC K DIC
+ G:Y="" XIT
+ I Y=-1,X=""!(X="^") S APCDTSKI=1,APCDLOOK="" G XIT
+ I Y=-1 S APCDTERR=1,APCDLOOK="" G XIT
+ S APCDCPT=+Y
+ I '$O(^ICPT(+Y,"ICD","B",0)) W !!,$C(7),$C(7),"No ICD Operation Match for that code - notify supervisor.",! S APCDTERR=1,APCDLOOK="",APCDCPT="" G XIT
+ S APCDLOOK=$O(^ICPT(+Y,"ICD","B",0))
+ I APCDLOOK="" W !!,$C(7),$C(7),"No ICD Operation Match for that code - notify supervisor.",! S APCDTERR=1,APCDLOOK="",APCDCPT="" G XIT
+ I $P(^ICD0(APCDLOOK,0),U,9) W !!,$C(7),$C(7),"The ICD Operation code this CPT maps to is INACTIVE (",$P(^ICD0(APCDLOOK,0),U),") - cannot use!",! S APCDTERR="",APCDLOOK="",APCDCPT="" G XIT
+ S APCDLOOK="`"_APCDLOOK
+ D XIT
+ Q

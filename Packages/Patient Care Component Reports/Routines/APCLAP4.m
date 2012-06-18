@@ -1,0 +1,60 @@
+APCLAP4 ; IHS/CMI/LAB - APC visit counts by selected vars ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+START ; 
+ I '$G(DUZ(2)) W $C(7),$C(7),!!,"SITE NOT SET IN DUZ(2) - NOTIFY SITE MANAGER!!",!! Q
+ S APCLSITE=DUZ(2)
+ S APCLJOB=$J,APCLBTH=$H
+ D INFORM
+CHECK ;
+GETDATES ;
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Visit Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S APCLBD=Y
+ED ;get ending date
+ W ! S DIR(0)="DA^"_APCLBD_":DT:EP",DIR("A")="Enter ending Visit Date:  " S Y=APCLBD D DD^%DT S Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S APCLED=Y
+ S X1=APCLBD,X2=-1 D C^%DTC S APCLSD=X
+ ;
+LOC ;
+ S APCLLOC=$$GETLOC^APCLOCCK
+ I APCLLOC=-1 G BD
+ ;
+CLINIC ;
+ K APCLCLNT
+ W ! S DIR(0)="Y",DIR("A")="Include visits to ALL clinics" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) LOC
+ I Y=1 G DEF
+CLINIC1 ;
+ S X="CLINIC",DIC="^AMQQ(5,",DIC(0)="FM",DIC("S")="I $P(^(0),U,14)" D ^DIC K DIC,DA I Y=-1 W "OOPS - QMAN NOT CURRENT - QUITTING" G XIT
+ D PEP^AMQQGTX0(+Y,"APCLCLNT(")
+ I '$D(APCLCLNT) G CLINIC
+ I $D(APCLCLNT("*")) K APCLCLNT
+DEF S X=25,DIC(0)="M",DIC="^DIC(40.7," D ^DIC K DIC,X I Y=-1 W !!,"CLINIC CODE 25 - OTHER MISSING FROM FILE - NOTIFY YOUR SITE MANAGER!!" G XIT
+ S APCLOTHC=+Y
+ S X=39,DIC(0)="M",DIC="^DIC(40.7," D ^DIC K DIC I Y=-1 W !!,"PHARMACY CLINIC CODE 39 NOT IN FILE - NOTIFY SITE MANAGER!!" G XIT
+ S APCLRXCL=+Y
+ZIS ;call to XBDBQUE
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G CLINIC
+ S XBRP="^APCLAP4P",XBRC="^APCLAP41",XBRX="XIT^APCLAP4",XBNS="APCL"
+ D ^XBDBQUE
+ D XIT
+ Q
+XIT ;
+ K APCLSITE,APCLRPT,APCLINFO,APCLSORT,APCLPROC,APCLINF,APCLBD,APCLED,APCLSD,APCLDT,APCLLOC,APCLODAT,APCLVDFN,APCLVLOC,APCLVREC,APCLCLIN,APCLSKIP,APCL1,APCL2,APCLAP,APCLDISC,APCLPPOV,APCLX,APCLHIGH,APCLDATE,APCLPRNT,APCLJOB,APCLAPCC
+ K APCLDX,APCLLOW,APCLICD,APCLDA1,APCLDA2,APCLY,APCLTITL,APCL80S,APCLEDD,APCLHD1,APCLHD2,APCLLENG,APCLLOCT,APCLPG,APCLSRT2,APCLTOT,APCLBDD,APCLPROV,APCLSEC,APCLZ,APCLADIS,APCLQUIT,APCLLOCC,APCLBT,APCLBTH
+ K APCLJOB,APCLRXCL,APCLOTHC,APCLDAY,APCLCLNT,APCLCLT,AMQQATN,AMQQCTXS,AMQQCOMP,AMQQLINK,AMQQTAX
+ K X,X1,X2,IO("Q"),%,Y,POP,DIRUT,ZTSK,ZTQUEUED,H,S,TS,M
+ Q
+INFORM ;
+ W:$D(IOF) @IOF
+ W !,"This report will generate average daily outpatient visit counts for a date range ",!,"that you specify.",!
+ ;W "The only visits included in this report are those with a service category",!,"of Ambulatory, Nursing Home, Observation and Day Surgery.  Visits with the",!,"following clinic codes are also excluded:  Mail, Telephone Call, Chart Review,"
+ ;W !,"Follow up Letter, Radio Call, Dental, Education Classes, and Employee Health.",!,"The visits included are the ones that would be passed to the APC System.",!!
+ W !,"The only visits counted are those that are considered to be",!,"APC workload reportable.",!
+ Q
+ ;

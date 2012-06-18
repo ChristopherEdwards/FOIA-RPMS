@@ -1,0 +1,103 @@
+ACHSDFL ; IHS/ITSC/PMF - DEFERRED SERVICES LETTER (1/2) ;JUL 10, 2008
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**18**;JUN 11,2001
+ ;3.1*14 12.4.2007 IHS/OIT/FCJ ADDED CSV CHANGES & CHANGED ZTSK TO ZTQUEQUED
+ ;ACHS*3.1*18 4/1/2010;IHS/OIT/ABK;Change every occurrance of Deferred to Unmet Need
+ ;
+ ;IHS/SET/JVK ACHS*3.1*6 3/24/2003 SET THE LETTER WITH TO 75
+ ;S DIWL=5,DIWR=$S($G(IOM):IOM,1:75),DIWF="W"
+ S DIWL=5,DIWR=75,DIWF="W"
+PAT ; --- Select Deferred Service
+ W !!
+ K DIC,A,ACHSA
+ S DIC("S")="I $E($P($G(^(0)),U))'=""#"",$P($G(^(0)),U,14)'=""Y"""
+ S DIC("W")="W "" ""_$S($P($G(^(0)),U,5)=""Y"":$P($G(^DPT($P($G(^(0)),U,6),0)),U),$P($G(^(0)),U,5)=""N"":$P($G(^(0)),U,7),1:""UNDEFINED"")"
+ S DIC="^ACHSDEF("_DUZ(2)_",""D"","
+ S DIC(0)="AEMQZ"
+ ;{ABK,3/31/10}S DIC("A")="Enter DEFERRED SERVICES NUMBER or PATIENT'S NAME: "
+ S DIC("A")="Enter UNMET NEEDS NUMBER or PATIENT'S NAME: "
+ S DA(1)=DUZ(2)
+ D ^DIC
+ K DIC
+ I +Y="" D END1 Q
+ I +Y<1 D END1 Q
+ ;
+ S ACHSA=+Y
+ G P0:'$P(Y(0),U,6)
+ G P0:'$D(^DPT($P(Y(0),U,6),0))
+ S DFN=$P(Y(0),U,6)
+ G P1
+ ;
+P0 ;
+ S X=$P(Y(0),U,7)
+ I '$L(X) D NAMERR G PAT
+P1 ;
+ ;{ABK,3/31/10}W !!,"You wish to print deferred services letter ",$P(Y(0),U),!!
+ W !!,"You wish to print unmet needs letter ",$P(Y(0),U),!!
+ G P2:'$D(DFN)
+ W ?5,$P($G(^DPT(DFN,0)),U)
+ S X=$G(^DPT(DFN,.11))
+ W !?5,$P(X,U),!?5,$P(X,U,4)
+ S Y=$P(X,U,5)
+ I Y]"",$D(^DIC(5,Y,0)) W ", ",$P($G(^DIC(5,Y,0)),U,2)
+ W " ",$P(X,U,6),!!
+ G P3
+P2 ;
+ S X=$G(^ACHSDEF(DUZ(2),"D",ACHSA,0))
+ W ?5,$P(X,U,7),!?5,$P(X,U,8),!?5,$P(X,U,9)
+ S Y=$P(X,U,10)
+ I Y]"",$D(^DIC(5,Y,0)) W ", ",$P($G(^DIC(5,Y,0)),U,2)
+ W " ",$P(X,U,11),!!
+P3 ;
+ S %=$$DIR^ACHS("Y","Is this correct","YES","","",2)
+ I $D(DTOUT)!$D(DUOUT) D END Q
+ G PAT:'%
+DEV ;
+ W !!
+ S %ZIS="OPQ"
+ D ^%ZIS
+ I POP D HOME^%ZIS D END Q
+ G:'$D(IO("Q")) START^ACHSDFL1
+ K IO("Q")
+ I $D(IO("S"))!($E(IOST)'="P") W *7,!,"Please queue to system printers." D ^%ZISC G DEV
+ ;{ABK, 3/31/10}S ZTRTN="START^ACHSDFL1",ZTDESC="CHS Deferred Services Letter",ZTSAVE("ACHSA")=""
+ S ZTRTN="START^ACHSDFL1",ZTDESC="CHS Unmet Needs Letter",ZTSAVE("ACHSA")=""
+ D ^%ZTLOAD
+ ;3.1*14 12.4.2007 IHS/OIT/FCJ
+ ;G:'$D(ZTSK) DEV
+ G:'$D(ZTQUEQUED) DEV
+ Q
+ ;
+NAMERR ;
+ W !!,*7,"No valid PATIENT NAME in this file.",!,"No letter may be printed until a valid patient is entered.",!!
+ Q
+ ;
+END ;EP
+ W !!!
+ I $D(ACHDONE) F I=1:1:4 W "*** OFFICE COPY *** "
+ I $$DF^ACHS(0,14)="Y" F I=1:1:4 W "DOCUMENT CANCELLED *"
+ ;IHS/SET/JVK ACHS*3.1*6 3/24/2003 SET THE LETTER WIDTH TO 75 AND FIX PG NUMBERING VAR ACHSPG
+ ;I $D(ACHDONE) K ACHDONE D RTRN^ACHS W @IOF S ACHDPG=1,DIWL=5,DIWR=$S($G(IOM):IOM,1:75),DIWF="W" G DOC^ACHSDFL1
+ I $D(ACHDONE) K ACHDONE D RTRN^ACHS W @IOF S ACHSPG=1,DIWL=5,DIWR=75,DIWF="W" G DOC^ACHSDFL1
+ I IO(0)=IO D RTRN^ACHS
+ K ACHSA,ACHDST,ACHDPAT,ACHDX,ACHSDDX
+END1 ;
+ D ^%ZISC
+ Q
+ ;
+TYPE ;EP
+ ;3.1*14 12.4.2007 IHS/OIT/FCJ ADDED CSV CHANGES TO FOR LOOP
+ I $D(^ACHSDEF(DUZ(2),"D",ACHSA,200)) S ACHDX=0 F  S ACHDX=$O(^ACHSDEF(DUZ(2),"D",ACHSA,200,ACHDX)) Q:+ACHDX=0  D
+ . S ACHSDDX=$P($G(^ACHSDEF(DUZ(2),"D",ACHSA,200,ACHDX,0)),U)
+ . I $P($G(^ACHSDEF(DUZ(2),"D",ACHSA,200,ACHDX,0)),U,2)]"" W !,?DIWL+10,$P($G(^ACHSDEF(DUZ(2),"D",ACHSA,200,ACHDX,0)),U,2),!
+ . E  W !,?DIWL+10 I ACHSDDX,$P($$ICDDX^ICDCODE(ACHSDDX),U,6) W $P(^ICM($P($$ICDDX^ICDCODE(ACHSDDX),U,6),0),U)
+ . ;E  W !,?DIWL+10,$P($G(^ICD9($P($G(^ACHSDEF(DUZ(2),"D",ACHSA,200,ACHDX,0)),U),0)),U,3),!
+ ;
+ I $D(^ACHSDEF(DUZ(2),"D",ACHSA,300)) S ACHDX=0 F  S ACHDX=$O(^ACHSDEF(DUZ(2),"D",ACHSA,300,ACHDX)) Q:+ACHDX=0  D
+ . I $P($G(^ACHSDEF(DUZ(2),"D",ACHSA,300,ACHDX,0)),U,2)]"" W !,?DIWL+10,$P($G(^ACHSDEF(DUZ(2),"D",ACHSA,300,ACHDX,0)),U,2)
+ . ;3.1*14 12.4.2007 IHS/OIT/FCJ ADDED CSV CHANGES NXT 2 LINES
+ . ;E  W !,?DIWL+10,$P($G(^ICPT($P($G(^ACHSDEF(DUZ(2),"D",ACHSA,300,ACHDX,0)),U),0)),U),!
+ . E  W !,?DIWL+10,$P($$CPT^ICPTCOD($P($G(^ACHSDEF(DUZ(2),"D",ACHSA,300,ACHDX,0)),U)),U,2),!
+ ;
+ W !
+ Q
+ ;

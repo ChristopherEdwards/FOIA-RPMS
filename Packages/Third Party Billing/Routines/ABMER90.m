@@ -1,0 +1,74 @@
+ABMER90 ; IHS/ASDST/DMJ - UB92 EMC RECORD 90 (Claim Control Screen) ; 
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;08/18/95 10:11 AM
+START ;START HERE
+ K ABMREC(90)
+ S ABME("RTYPE")=90
+ D SET^ABMERUTL,LOOP
+ K ABM,ABME,ABMRT(90)
+ Q
+LOOP ;LOOP HERE
+ F I=10:10:170 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),90,I)) D @(^(I))
+ .I '$G(ABMP("NOFMT")) S ABMREC(90)=$G(ABMREC(90))_ABMR(90,I)
+ Q
+10 ;Record type
+ S ABMR(90,10)=90
+ Q
+20 ;Filler 
+ S ABMR(90,20)=""
+ S ABMR(90,20)=$$FMT^ABMERUTL(ABMR(90,20),2)
+ Q
+30 ;Patient Control Number, (SOURCE: FILE=9000001.41,FIELD=.02)
+ S ABMR(90,30)=$$EX^ABMER20(30,ABMP("BDFN"))
+ S ABMR(90,30)=$$FMT^ABMERUTL(ABMR(90,30),20)
+ Q
+40 ;Physical Record Count
+ S ABMR(90,40)=$$FMT^ABMERUTL(+$G(ABMRT(90,40)),"3NR")
+ Q
+50 ;Record Type 2n Count
+ S ABMR(90,50)=ABMRT(90,50)
+ S ABMR(90,50)=$$FMT^ABMERUTL(+$G(ABMRT(90,50)),"2NR")
+ Q
+60 ;Record Type 3n Count
+ S ABMR(90,60)=$$FMT^ABMERUTL(+$G(ABMRT(90,60)),"2NR")
+ Q
+70 ;Record Type 4n Count
+ S ABMR(90,70)=$$FMT^ABMERUTL(+$G(ABMRT(90,70)),"2NR")
+ Q
+80 ;Record Type 5n Count
+ S ABMR(90,80)=$$FMT^ABMERUTL(+$G(ABMRT(90,80)),"2NR")
+ Q
+90 ;Record Type 6n Count
+ S ABMR(90,90)=$$FMT^ABMERUTL(+$G(ABMRT(90,90)),"2NR")
+ Q
+100 ;Record Type 7n Count
+ S ABMR(90,100)=$$FMT^ABMERUTL(+$G(ABMRT(90,100)),"2NR")
+ Q
+110 ;Record Type 8n Count
+ S ABMR(90,110)=$$FMT^ABMERUTL(+$G(ABMRT(90,110)),"2NR")
+ Q
+120 ;Record Type 91 Qualifier
+ S ABMR(90,120)=0
+ Q
+130 ;Total Charges Accommodations
+ S ABMR(90,130)=$$FMT^ABMERUTL(+$G(ABMRT(90,130)),"10NRJ2")
+ Q
+140 ;Total Non-Covered Charges - Accommodations
+ S ABMR(90,140)=$$FMT^ABMERUTL(+$G(ABMRT(90,140)),"10NRJ2")
+ Q
+150 ;Total Charges - Ancillary
+ S ABMR(90,150)=$$FMT^ABMERUTL(+$G(ABMRT(90,150)),"10NRJ2")
+ Q
+160 ;Total Non-Covered Charges - Ancillary
+ S ABMR(90,160)=$$FMT^ABMERUTL(+$G(ABMRT(90,160)),"10NRJ2")
+ Q
+170 ;Remarks
+ S ABMR(90,170)=""
+ N I F I=1:1:4 D
+ .Q:'$D(^ABMDBILL(DUZ(2),ABMP("BDFN"),61,I,0))
+ .S:I>1 ABMR(90,170)=ABMR(90,170)_" "
+ .S ABMR(90,170)=ABMR(90,170)_^ABMDBILL(DUZ(2),ABMP("BDFN"),61,I,0)
+ S ABMR(90,170)=$$FMT^ABMERUTL(ABMR(90,170),110)
+ Q

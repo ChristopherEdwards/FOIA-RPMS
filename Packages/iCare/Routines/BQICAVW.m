@@ -1,0 +1,174 @@
+BQICAVW ;PRXM/HC/ALA-Community Alerts View ; 12 Nov 2007  4:44 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+EN(DATA,FAKE) ;EP -- BQI GET COMM ALERTS VIEW
+ ;Description
+ ;  Retrieve all the defined "flags" definitions for an owner
+ ;  
+ ;Input
+ ;  FAKE - extra 'blank' parameter required by BMXNET async 'feature'
+ ;Output
+ ;  DATA  - name of global (passed by reference) in which the data
+ ;          is stored
+ ;Assumes
+ ;  DUZ - User who signed onto iCare
+ ;
+ NEW UID,II,X,MIEN,SOURCE,PARMS,PIEN,NAME,PTYP,VALUE,PMIEN,SORT,TYP
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQICAVW",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQICAVW D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S @DATA@(II)="T00045DISPLAY_GROUP^T00030TYPE^T00045LABEL^T00005TMFRAME^T00003STATUS"_$C(30)
+ ;
+ ; If no community alerts definition, pull default
+ S MIEN=0
+ F  S MIEN=$O(^BQICARE(DUZ,11,MIEN)) Q:'MIEN  D
+ . NEW DA,IENS
+ . S DA(1)=DUZ,DA=MIEN,IENS=$$IENS^DILF(.DA)
+ . S LABEL=$$GET1^DIQ(90505.011,IENS,.01,"E")
+ . S LIEN=$$GET1^DIQ(90505.011,IENS,.01,"I"),GROUP="",TYP=""
+ . I LIEN'="" D
+ .. S GROUP=$$GET1^DIQ(90507.8,LIEN_",",.03,"E")
+ .. S TYP=$$GET1^DIQ(90507.8,LIEN_",",2.01,"E")
+ . S GRP=GROUP
+ . S:GROUP="OPTIONAL" GRP="Z"_GROUP
+ . ;
+ . S PIEN=0,PARMS=""
+ . F  S PIEN=$O(^BQICARE(DUZ,11,MIEN,1,PIEN)) Q:'PIEN  D
+ .. NEW DA,IENS
+ .. S DA(2)=DUZ,DA(1)=MIEN,DA=PIEN,IENS=$$IENS^DILF(.DA)
+ .. S NAME=$$GET1^DIQ(90505.111,IENS,.01,"E")
+ .. S VALUE=$$GET1^DIQ(90505.111,IENS,.02,"E")
+ .. ;S PARMS=PARMS_NAME_"="
+ .. S @NAME=VALUE
+ . S TMFRAME=$S($G(TMFRAME):TMFRAME,1:"T-30")
+ . S STATUS=$S($G(STATUS)'="":STATUS,$G(STATUS)=""&GROUP="MANDATORY":"ON",1:"OFF")
+ . S SORT(GRP,TYP,LABEL)=LIEN_U_TMFRAME_U_STATUS_U_GROUP
+ ;
+ D DFLT
+ ;
+ S GRP=""
+ F  S GRP=$O(SORT(GRP)) Q:GRP=""  D
+ . S TYP=""
+ . F  S TYP=$O(SORT(GRP,TYP)) Q:TYP=""  D
+ .. S LABEL=""
+ .. F  S LABEL=$O(SORT(GRP,TYP,LABEL)) Q:LABEL=""  D
+ ... S TMFRAME=$P(SORT(GRP,TYP,LABEL),U,2)
+ ... S STATUS=$P(SORT(GRP,TYP,LABEL),U,3)
+ ... S GROUP=$P(SORT(GRP,TYP,LABEL),U,4)
+ ... S II=II+1,@DATA@(II)=GROUP_U_TYP_U_LABEL_U_TMFRAME_U_STATUS_$C(30)
+ ;
+DONE S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+UPD(DATA,LABEL,PARMS) ;  EP - BQI SET COMM ALERTS VIEW
+ ;
+ ;Input
+ ;  LABEL - Label name for the alert
+ ;  PARMS - Parameter for the alert
+ ;Assumes
+ ;  DUZ - User who signed onto iCare
+ ;
+ NEW UID,II,X,MIEN,PIEN,PMIEN,VALUE,PDATA,ALDA,QFL,BQ,NAME,MVAL,BQII,PPIEN
+ NEW GRP,GRPP,GROUP
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQICAVW",UID))
+ K @DATA
+ ;
+ S II=0,PARMS=$G(PARMS,"")
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQICAVW D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S @DATA@(II)="I00010RESULT"_$C(30)
+ ;
+ NEW DA,DIC,DLAYGO
+ S DA(1)=DUZ,X=LABEL
+ S DLAYGO=90505.011,DIC(0)="LNXZ"
+ S DIC="^BQICARE("_DA(1)_",11,"
+ I '$D(^BQICARE(DA(1),11,0)) S ^BQICARE(DA(1),11,0)="^90505.011P^^"
+ ;K DO,DD D FILE^DICN
+ D ^DIC
+ S ALDA=+Y
+ I ALDA=-1 S II=II+1,@DATA@(II)="-1"_$C(30) G DONE
+ ;
+ ;  Clean out all the previous parameters
+ NEW DA,DIK,PN,PDA,BQI,PDATA,NAME,VALUE,ERROR
+ S DA(2)=DUZ,DA(1)=ALDA,DIK="^BQICARE("_DA(2)_",11,"_DA(1)_",1,",PN=0
+ F  S PN=$O(^BQICARE(DA(2),11,DA(1),1,PN)) Q:'PN  S DA=PN D ^DIK
+ ;
+ F BQI=1:1:$L(PARMS,$C(28)) D
+ . S PDATA=$P(PARMS,$C(28),BQI)
+ . S NAME=$P(PDATA,"=",1),VALUE=$P(PDATA,"=",2,99)
+ . NEW DA,IENS,DIC,DLAYGO
+ . S DA(2)=DUZ,DA(1)=ALDA,X=NAME
+ . S DLAYGO=90505.111,DIC(0)="L",DIC("P")=DLAYGO
+ . S DIC="^BQICARE("_DA(2)_",11,"_DA(1)_",1,"
+ . I '$D(^BQICARE(DA(2),10,DA(1),1,0)) S ^BQICARE(DA(2),11,DA(1),1,0)="^90505.111A^^"
+ . K DO,DD D FILE^DICN
+ . S (DA,PDA)=+Y
+ . I DA=-1 S II=II+1,@DATA@(II)="-1"_$C(30),ERROR=1 Q
+ . ;
+ . NEW DA,IENS
+ . S DA(2)=DUZ,DA(1)=ALDA,DA=PDA
+ . S IENS=$$IENS^DILF(.DA)
+ . S BQIUPD(90505.111,IENS,.02)=VALUE
+ . D FILE^DIE("","BQIUPD","ERROR")
+ . K BQIUPD
+ ;
+ S II=II+1,@DATA@(II)="1"_$C(30)
+ I $D(ERROR) S @DATA@(II)="-1^"_$G(ERROR("DIERR",1,"TEXT",1))_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+DEL ;  Delete the previous community alert definitions
+ NEW DA,DIK
+ S DA(1)=DUZ,DA=0,DIK="^BQICARE("_DA(1)_",11,"
+ F  S DA=$O(^BQICARE(DUZ,11,DA)) Q:'DA  D ^DIK
+ Q
+ ;
+DFLT ; Get default values
+ NEW LIEN,GRP,LBL,GROUP,GRPP,STATUS,TMFRAME,TYP
+ ; For the display group of mandatory, recommended, and optional
+ F GRP="M","R","O" D
+ . S LIEN=""
+ . F  S LIEN=$O(^BQI(90507.8,"C",GRP,LIEN)) Q:LIEN=""  D
+ .. S LBL=$P(^BQI(90507.8,LIEN,0),U,1)
+ .. S GROUP=$$GET1^DIQ(90507.8,LIEN_",",.03,"E"),TMFRAME="T-30"
+ .. S TYP=$$GET1^DIQ(90507.8,LIEN_",",2.01,"E")
+ .. S GRPP=GROUP
+ .. S:GROUP="OPTIONAL" GRPP="Z"_GROUP
+ .. S STATUS=$S(GRP="O":"OFF",1:"ON")
+ .. I $G(SORT(GRPP,TYP,LBL))="" S SORT(GRPP,TYP,LBL)=LIEN_U_TMFRAME_U_STATUS_U_GROUP
+ ;
+ Q
+ ;
+VAL(NDUZ,NDCN) ;EP - Find the values of a community alert
+ ; Input
+ ;   NDUZ - User
+ ;   NDCN - IEN of the alert
+ NEW BQUIEN,BQII,DATE,BQUIEN,STAT
+ S BQUIEN=$O(^BQICARE(NDUZ,11,"B",NDCN,""))
+ I BQUIEN'="" D
+ . S BQII=0
+ . F  S BQII=$O(^BQICARE(NDUZ,11,BQUIEN,1,BQII)) Q:'BQII  D
+ .. ; **temporary hardcode for data dates**
+ .. ;I $P(^BQICARE(NDUZ,11,BQUIEN,1,BQII,0),U,1)="TMFRAME" S DATE=$$DATE^BQIUL1($P(^(0),U,2))
+ .. I $P(^BQICARE(NDUZ,11,BQUIEN,1,BQII,0),U,1)="TMFRAME" S DATE=$$DATE^BQIUL1("T-30")
+ .. I $P(^BQICARE(NDUZ,11,BQUIEN,1,BQII,0),U,1)="STATUS" S STAT=$P(^(0),U,2)
+ I BQUIEN="" D
+ . S STAT=$P(^BQI(90507.8,NDCN,0),U,3)
+ . S STAT=$S(STAT="O":"OFF",1:"ON")
+ . ; **temporary hardcode for data dates**
+ . S DATE=$$DATE^BQIUL1("T-30")
+ . ;S DATE=$$DATE^BQIUL1("T-36M")
+ Q STAT_U_DATE

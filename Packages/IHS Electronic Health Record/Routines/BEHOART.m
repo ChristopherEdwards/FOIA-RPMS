@@ -1,0 +1,375 @@
+BEHOART ;MSC/IND/DKM - ART Package Interface ;16-Mar-2011 08:34;DU
+ ;;1.1;BEH COMPONENTS;**045003,045004**;Sep 18, 2007;Build 1
+ ;=================================================================
+ ; RPC: Lock entry for edit
+LOCK(DATA,IEN) ;
+ D:IEN LOCK^CIANBRPC(.DATA,$NA(^GMR(120.8,IEN)),0)
+ Q
+ ; RPC: Unlock entry
+UNLOCK(DATA,IEN) ;
+ D:IEN LOCK^CIANBRPC(.DATA,$NA(^GMR(120.8,IEN)))
+ Q
+ ; RPC: Check for duplicate
+DUPCHK(DATA,DFN,AGT) ;
+ S DATA=$$DUPCHK^GMRAOR0(DFN,AGT)>0
+ Q
+ ; RPC: Sign/verify adverse reaction
+SIGN(DATA,IEN,VER) ;
+ N FDA,ER,ERR,DFN,AGT,N0
+ I IEN<0 D  Q
+ .S DFN=-IEN
+ .D FIREEVT(DFN,3,"")
+ .S DATA=$$HASNKA(DFN)
+ S N0=$G(^GMR(120.8,IEN,0)),ER=+$G(^("ER")),DFN=+N0,AGT=$P(N0,U,2),DATA="",FDA=$NA(FDA(120.8,IEN_","))
+ I '$L(N0) S DATA="-1^An unsigned entry for "_AGT_" no longer exists" Q
+ I ER=1 S DATA="-2^Entry "_AGT_" has been marked as entered in error and cannot be signed" Q
+ I ER=2,$$DUPCHK^GMRAOR0(DFN,AGT)>0 D  Q
+ .D DEL(.DATA,IEN)
+ .S:'DATA DATA="-3^A signed entry for "_AGT_" already exists - your entry will be deleted"
+ I $$CANSIGN(IEN) D
+ .S @FDA@(15)=1
+ .S @FDA@(19)=+$P(N0,U,16)
+ .S:ER @FDA@(22)="@"
+ I $$CANVERIF(IEN,.VER) D
+ .S @FDA@(19)=1
+ .S @FDA@(20)=$$NOW^XLFDT
+ .S @FDA@(21)=DUZ
+ .S:ER @FDA@(22)="@"
+ I $D(FDA)<10 S DATA="-3^You may not sign the "_AGT_" entry" Q
+ D UPDATE^DIE(,"FDA",,"ERR")
+ I $G(ERR("DIERR",1)) S DATA=-ERR("DIERR",1)_U_ERR("DIERR",1,"TEXT",1) Q
+ K ^GMR(120.8,IEN,"ER")  ; Remove entered in error node
+ D FIREEVT(DFN,3,IEN)
+ ;D:'$P(^GMR(120.8,IEN,0),U,16) SENDBULL(IEN)
+ Q
+ ; RPC: Return list of entries to be signed/verified
+SIGNLIST(DATA,DFN,VER) ;
+ N FLG,IEN,PFX,X,Y
+ S (FLG,IEN)=0,VER=$G(VER)
+ F  S IEN=$O(^GMR(120.8,"B",DFN,IEN)) Q:'IEN  D
+ .S X=$G(^GMR(120.8,IEN,0)),Y=+$G(^("ER"))
+ .Q:+X'=DFN
+ .Q:Y=1
+ .S FLG=1
+ .I $$CANSIGN(IEN) S PFX=""
+ .E  I '$P(X,U,12)!'$$CANVERIF(IEN,VER) Q
+ .E  S PFX="Verify "
+ .S DATA(IEN)=IEN_U_PFX_"Adverse Reaction to "_$P(X,U,2)
+ I 'FLG D
+ .S X=$G(^GMR(120.86,DFN,0))
+ .Q:$P(X,U,3)'=DUZ
+ .Q:$P(X,U,4)
+ .S DATA(0)=-DFN_U_"No Known Allergies"
+ Q
+ ; RPC: Load specified ART entry for editing
+LOAD(DATA,IEN,NOLCK) ;
+ N X,X0,LP,LP2,IN,IIEN,X1,IENS,DC,ZZ,Z1
+ K DATA
+ I IEN<0 D  Q
+ .S DATA(0)=0_U_$$HASNKA(-IEN)
+ I IEN>0 D  Q:$D(DATA(-1))
+ .I '$D(^GMR(120.8,IEN,0)) S DATA(-1)="-1^This entry no longer exists." Q
+ .Q:$G(NOLCK)
+ .D LOCK(.X,IEN)
+ .S:'X DATA(-1)="-1^Another user is editing this entry."
+ S X0=$G(^GMR(120.8,IEN,0))
+ S DATA(1)=1_U_$P(X0,U,16)
+ S DC=0,ZZ="" S DC=$O(^GMR(120.8,IEN,3,DC))
+ I +DC D
+ .S Z1=$P($G(^GMR(120.8,IEN,3,DC,0)),U,1)
+ .S ZZ=$P($G(^PS(50.605,+Z1,0)),U,1)
+ S X=$P(X0,U,3),DATA(2)=2_U_+X_U_$P(X0,U,2)_U_$P(X,";",2)_U_ZZ
+ S DATA(3)=3_U_$P(X0,U,20)
+ S DATA(10)=10_U_$P(X0,U,14)
+ S DATA(14)=14_U_$P(X0,U,12)
+ S X=$O(^GMR(120.85,"C",IEN,0))
+ I X D
+ .S X0=^GMR(120.85,X,0)
+ .S DATA(4)=4_U_1
+ .S DATA(5)=5_U_$P(X0,U,13)_U_$$GET1^DIQ(200,$P(X0,U,13),.01)
+ .S DATA(6)=6_U_+X0
+ .S DATA(7)=7_U_$P(X0,U,14)
+ I $P($G(^GMR(120.8,IEN,9999999.11)),U,1)'="" D
+ .S DATA(11)=11_U_$P($G(^GMR(120.8,IEN,9999999.11)),U,1)
+ .S DATA(11)=DATA(11)_U_$P($G(^BEHOAR(90460.05,$P(DATA(11),U,2),0)),U,1)
+ I $P($G(^GMR(120.8,IEN,9999999.11)),U,2)'="" D
+ .S DATA(13)=13_U_$P($G(^GMR(120.8,IEN,9999999.11)),U,2)
+ .S DATA(13)=DATA(13)_U_$P($G(^BEHOAR(90460.06,$P(DATA(13),U,2),0)),U,1)
+ S LP=0
+ F  S LP=$O(^GMR(120.8,IEN,10,LP)) Q:'LP  S X=+^(LP,0) D
+ .S IENS=LP_","_IEN
+ .S DATA(8,LP)=8_U_X_U_$$GET1^DIQ(120.83,X,.01)_U_$P($G(^GMR(120.8,IEN,10,LP,0)),U,4)_U_$$GET1^DIQ(120.81,IENS,3)_U_$P($G(^GMR(120.8,IEN,10,LP,9999999.11)),U,1)_U_$$GET1^DIQ(120.81,IENS,9999999.11)
+ ;IHS/MSC/MGH Check for inactive data
+ S IN=9999999 S IN=$O(^GMR(120.8,IEN,9999999.12,IN),-1) Q:IN=""  D
+ .S X1=$G(^GMR(120.8,IEN,9999999.12,IN,0))
+ .S DATA(12)=12_U_$P(X1,U,1)_U_$P(X1,U,2)_U_$P(X1,U,3)_U_$P(X1,U,4)_U_$P(X1,U,5)
+ S LP=$$GETCMNT(IEN),LP2=0
+ F  S LP2=$O(^GMR(120.8,IEN,26,LP,2,LP2)) Q:'LP2  S DATA(9,LP2)=9_U_^(LP2,0)
+ Q
+ ; RPC: Delete ART entry
+DEL(DATA,IEN) ;
+ N GMR0,DIK,DA
+ S GMR0=$G(^GMR(120.8,IEN,0)),DATA=""
+ I '$L(GMR0) S DATA="-1^Entry not found" Q
+ I $P(GMR0,U,16) S DATA="-1^Cannot delete a verified entry" Q
+ I $P(GMR0,U,12) S DATA="-1^Cannot delete a signed entry" Q
+ S DIK=$$ROOT^DILFD(120.8),DA=IEN
+ D ^DIK
+ D FIREEVT(+GMR0,2,IEN)
+ Q
+ ; RPC: Save ART entry
+SAVE(DATA,IEN,DFN,VAL,ACTION) ;
+ N FDA,FDA2,TAG,FLD,ERR,RIEN,NEW,AGNT,NOW,NKA,MIEN
+ S NOW=$$NOW^XLFDT
+ S ACTION=$G(ACTION)
+ S NKA=0
+ I ACTION="E" D EIE^BEHOARMU(.DATA,IEN,DFN,.VAL) Q
+ I ACTION="I" D INACT^BEHOARMU(.DATA,IEN,DFN,.VAL) Q
+ I ACTION="R" D REACT^BEHOARMU(.DATA,IEN,DFN,.VAL) Q
+ I ACTION="A" D ASSESS^BEHOARMU(.DATA,IEN,DFN,.VAL) Q
+ I ACTION="U" D REASSESS^BEHOARMU(.DATA,IEN,DFN,.VAL) Q
+ S:$G(IEN) RIEN=$O(^GMR(120.85,"C",IEN,0))
+ S RIEN=$S($G(RIEN):RIEN_",",1:"+3,")
+ S NEW='$G(IEN),IEN=$S(NEW:"+1,",1:IEN_",")
+ S TAG=""
+ F  S TAG=$O(VAL(TAG)) Q:'$L(TAG)  D
+ .S VAL=VAL(TAG)
+ .D @TAG
+ ;I FDA(120.8,IEN,1)="" S DATA="-1^Free text entries can no longer be stored"
+ I $D(FDA(120.8)) D
+ .S:NEW FDA(120.8,IEN,.01)=DFN
+ .S:NEW FDA(120.8,IEN,4)=$$NOW^XLFDT
+ .S:NEW FDA(120.8,IEN,5)=DUZ
+ .S:NEW FDA(120.8,IEN,15)=0
+ .S:NEW FDA(120.8,IEN,22)=2
+ D UPDATE^DIE(,"FDA","IEN","ERR")
+ S DATA=$S(NKA:$G(IEN(2)),NEW:$G(IEN(1)),1:+IEN)
+ Q:'DATA
+ ;Add the last modified data patch 8
+ S MIEN="+1,"_DATA_","
+ S FDA(120.899999914,MIEN,.01)=$$NOW^XLFDT
+ S FDA(120.899999914,MIEN,.02)=DUZ
+ D UPDATE^DIE(,"FDA","IEN","ERR")
+ I $D(FDA2) D
+ .S FDA2(120.85,RIEN,.02)=DFN
+ .S FDA2(120.85,RIEN,.03)=DATA
+ E  S:$E(RIEN)'="+" FDA2(120.85,RIEN,.01)="@"
+ D:$D(FDA2) UPDATE^DIE(,"FDA2")
+ D CKIN^BEHOARMU(DFN)
+ D UPDSF(DATA,.AGNT)
+ D FIREEVT(DFN,'NEW,DATA)
+ D:$$CANSIGN(DATA) SNDALR(DATA,1)
+ Q
+GMRAAGNT N X
+ S AGNT=$$CODE($P(VAL,U,2))
+ I '$L(AGNT) D
+ .S AGNT=$P($P(VAL,U,3),",")
+ .S:$L(AGNT) AGNT=+VAL_";"_AGNT_","
+ S FDA(120.8,IEN,.02)=$P(VAL,U,2)
+ S FDA(120.8,IEN,1)=AGNT
+ Q
+GMRACMTS N CMNT
+ S CMNT=$S(NEW:0,1:$$GETCMNT(+IEN))
+ S:'CMNT CMNT="+4"
+ S CMNT=CMNT_","_IEN
+ S FDA(120.826,CMNT,.01)=NOW
+ S FDA(120.826,CMNT,1)=DUZ
+ S FDA(120.826,CMNT,2)=$NA(VAL(TAG))
+ Q
+GMRANATR S FDA(120.8,IEN,3.1)=$P(VAL,U)
+ Q
+GMRAMECH ; no longer used
+ Q
+GMRANKA N AIEN
+ S NKA=1
+ I $D(^GMR(120.86,DFN,0)) S AIEN=DFN_","
+ E  S AIEN="+2,",FDA(120.86,AIEN,.01)=DFN
+ S IEN(2)=DFN
+ S FDA(120.86,AIEN,1)=0
+ S FDA(120.86,AIEN,2)=DUZ
+ S FDA(120.86,AIEN,3)=NOW
+ Q
+GMRAOBHX S FDA(120.8,IEN,6)=$S(VAL:"o",1:"h")
+ Q
+ ;Source of information added MSC/IHS/MGH
+GMRASRC N SRC,GMRASRC
+ S GMRASRC=$G(VAL("GMRASRC"))
+ I '$P(GMRASRC,U) S SRC=$O(^BEHOAR(90460.05,"B",$P(GMRASRC,U,2),"")) Q:SRC=""  D
+ .S FDA(120.8,IEN,9999999.11)=SRC
+ E  S FDA(120.8,IEN,9999999.11)=+GMRASRC
+ Q
+GMRASNO ;Snomed event type added MSC/IHS/MGH
+ N SNOMED,SNO,MECH,SNOTXT
+ S SNOMED=$G(VAL("GMRASNO"))
+ I '$P(SNOMED,U) S SNO=$O(^BEHOAR(90460.06,"B",$P(SNOMED,U,2),"")) Q:SNO=""  D
+ .S FDA(120.8,IEN,9999999.13)=SNO,SNOMED=SNO
+ E  S FDA(120.8,IEN,9999999.13)=+SNOMED
+ S SNOTXT=$P($G(^BEHOAR(90460.06,+SNOMED,0)),U,1)
+ S MECH=$S(SNOTXT="DRUG ALLERGY":"A",SNOTXT="FOOD ALLERGY":"A",SNOTXT="DRUG INTOLERANCE":"P",1:"U")
+ S FDA(120.8,IEN,17)=MECH
+ Q
+GMRAOBSV S FDA2(120.85,RIEN,.5)=$P(VAL,U)
+ Q
+GMRARDAT S FDA2(120.85,RIEN,.01)=+VAL
+ Q
+GMRASEVR S FDA2(120.85,RIEN,14.5)=VAL
+ Q
+GMRASYMP N LP,IEN2,X,XCL,SRC,SRIEN,V
+ F LP=0:0 S LP=$O(VAL(TAG,LP)) Q:'LP  D
+ .S V=VAL(TAG,LP)
+ .S X=+V
+ .I 'NEW D  Q:IEN2
+ ..S IEN2=$O(^GMR(120.8,+IEN,10,"B",X,0))
+ ..S:IEN2 XCL(IEN2)=""
+ .S IEN2="+"_(LP+10)_","_IEN
+ .S FDA(120.81,IEN2,.01)=X
+ .S FDA(120.81,IEN2,2)=DUZ
+ .S FDA(120.81,IEN2,3)=$P(V,U,3)  ;Sign/Symptom date/time
+ .S SRC=$P(V,U,5)
+ .I +SRC>0 S FDA(120.81,IEN2,9999999.11)=SRC
+ .E  I SRC'="" D
+ ..S SRIEN=$O(^BEHOAR(90460.05,"B",SRC,"")) Q:SRIEN=""  D
+ ...S FDA(120.81,IEN2,9999999.11)=SRIEN
+ D DELSF(120.81,IEN,.XCL)
+ Q
+DELSF(SFN,IEN,XCL) ;
+ N DIK,DA,LP,GBL,IEN2
+ S IEN2=","_IEN,DIK=$$ROOT^DILFD(SFN,IEN2),GBL=$$ROOT^DILFD(SFN,IEN2,1),DA=0
+ F  S DA=$O(@GBL@(DA)),DA(1)=+IEN Q:'DA  D:'$D(XCL(DA)) ^DIK
+ Q
+ ; Check NKA/Update status
+HASNKA(DFN,CREATE) ;
+ N LP,AL,FDA,IEN
+ S (AL,LP)=0
+ F  S LP=$O(^GMR(120.8,"B",DFN,LP)) Q:'LP  D  Q:AL
+ .S:'$G(^GMR(120.8,LP,"ER")) AL=1
+ I $D(^GMR(120.86,DFN,0)) Q:$P(^(0),U,2)=AL 'AL S IEN=DFN_","
+ E  I '$G(CREATE) Q 'AL
+ E  D
+ .S IEN="+1,",IEN(1)=DFN
+ .S FDA(120.86,IEN,.01)=DFN
+ .S FDA(120.86,IEN,2)=DUZ
+ .S FDA(120.86,IEN,3)=$$NOW^XLFDT
+ S FDA(120.86,IEN,1)=AL
+ D UPDATE^DIE(,"FDA","IEN")
+ Q 'AL
+ ; Return last subfile entry for user comment
+GETCMNT(IEN) ;
+ N LP
+ S LP=$C(1)
+ F  S LP=$O(^GMR(120.8,IEN,26,LP),-1) Q:'LP  Q:$P(^(LP,0),U,2)=DUZ
+ Q +LP
+ ; Update ingredient and class subfiles
+UPDSF(GMRAPA,GMRAAR) ;
+ F X=120.802,120.803 D DELSF(X,+GMRAPA_",")
+ D:$G(GMRAAR) EN1^GMRAOR9
+ Q
+ ; Send a verification request bulletin
+SENDBULL(GMRAPA) ;
+ N GMRANAM,GMRALOC,GMRASSN,GMRAREC,GMRAOTH,GMRATXT,GMRACNT
+ N XMB,XMY,XMTEXT,DFN,APSPHRN,X
+ S GMRAPA(0)=$G(^GMR(120.8,+GMRAPA,0))
+ D:$L(GMRAPA(0)) EN1^GMRAVAB
+ Q
+ ; Check if user can sign entry
+CANSIGN(IEN) ;
+ N X,SIGN,Z,REACT
+ S REACT=""
+ S X=$G(^GMR(120.8,+IEN,0))
+ ;I $P(X,U,5)=DUZ&'$P(X,U,12)
+ S Z=$O(^GMR(120.8,IEN,9999999.12,$C(0)),-1) I +Z D
+ .S REACT=$P($G(^GMR(120.8,IEN,9999999.12,Z,0)),U,5)
+ Q ($P(X,U,5)=DUZ!(REACT=DUZ))&('$P(X,U,12))
+ ; Check if entry is candidate for autoverification
+CANVERIF(IEN,VER) ;
+ N GMRASITE
+ S IEN=+IEN,IEN(0)=$G(^GMR(120.8,IEN,0))
+ Q:$P(IEN(0),U,16) 0
+ Q:$G(VER) 1
+ Q $$VFY^GMRASIGN(.IEN)
+ ; Fire a GMRA event
+ ;  ACTION = 0: New entry; 1: Edit; 2: Delete; 3: Sign
+FIREEVT(DFN,ACTION,DATA) ;
+ N X
+ I $$HASNKA(DFN,ACTION=3)
+ D QUEUE^CIANBEVT("GMRA."_DFN,ACTION_U_DATA)
+ S X=$$FIND1^DIC(101,,"BX","GMRA ALLERGY UPDATE")_";ORD(101,"
+ D:X EN^XQOR ;Process protocols hanging off this protocol
+ Q
+ ; Returns agent text as variable pointer if found
+CODE(X) N D,DIC,TRD,Y
+ S Y=$O(^GMRD(120.82,"B",X,0))
+ Q:Y Y_";GMRD(120.82,"
+ S Y=$O(^PS(50.605,"C",X,0))
+ Q:Y Y_";PS(50.605,"
+ S DIC=50.6,DIC(0)="X",D="B"
+ D IX^DIC
+ Q:Y>0 +Y_$TR($$NDFREF^GMRAOR,U,";")
+ S TRD=$$TTOG^PSNAPIS(X,.TRD)
+ Q:TRD $O(TRD(0))_$TR($$NDFREF^GMRAOR,U,";")
+ Q ""
+ ; Update alerts for current user
+UPDALR N AID,GMRAIEN,DFN,CANVER,MGRP,TYP,SGN,DEL,N0
+ S AID="BEHOAR",CANVER=$$HASKEY^BEHOUSCX("GMRA-ALLERGY VERIFY")
+ I CANVER F TYP="DRUG","FOOD","OTHER" S:$$ISMBR^BEHOXQ("GMRA VERIFY "_TYP_" ALLERGY",DUZ) TYP($E(TYP))=""
+ ; Remove alerts no longer applicable
+ F  S AID=$O(^XTV(8992,"AXQA",AID)) Q:$E(AID,1,6)'="BEHOAR"  D
+ .N EIE
+ .S GMRAIEN=+$P(AID,",",2),N0=$G(^GMR(120.8,GMRAIEN,0)),TYP=$P(N0,U,20),SGN=AID["SIGN"
+ .S EIE=$P($G(^GMR(120.8,GMRAIEN,"ER")),U,1)=1
+ .S DEL=$S(AID'[".":2,'$L(N0):2,$P(N0,U,16):2,EIE:2,'$D(^XTV(8992,"AXQA",AID,DUZ)):0,$$RCVALR(GMRAIEN,SGN,.TYP):0,1:1)
+ .D BEHDEL^BEHOXQ(AID):DEL=2,BEHDEL^BEHOXQ(AID,1):DEL=1
+ ; Add verification alerts for this user
+ Q:$D(TYP)<10
+ S DFN=0
+ F  S DFN=$O(^GMR(120.8,"AVER",DFN)) Q:'DFN  D
+ .S GMRAIEN=0
+ .F  S GMRAIEN=$O(^GMR(120.8,"AVER",DFN,GMRAIEN)) Q:'GMRAIEN  D
+ ..S TYP=$P($G(^GMR(120.8,GMRAIEN,0)),U,20)
+ ..D:$$RCVALR(GMRAIEN,0,.TYP) SNDALR(GMRAIEN,0)
+ Q
+ ; Send alert for user
+SNDALR(GMRAIEN,SGN) ;
+ N N0,AID,XQA,XQAMSG,XQAOPT,XQAROU,XQAID,XQADATA,XQAFLG,XQAARCH,XQASURO,XQASUPV,XQATEXT
+ S AID="BEHOAR."_$S(SGN:"SIGN",1:"VERIFY")_","_GMRAIEN,N0=$G(^GMR(120.8,GMRAIEN,0))
+ Q:'$L(N0)
+ Q:$D(^XTV(8992,"AXQAN",AID,DUZ))
+ S XQAMSG="Adverse reaction "_$S(SGN:"signature",1:"verification")_" required for "_$P(N0,U,2)
+ S XQADATA="DFN="_DFN_"^PRI=2^INF=0^TYP="_$S(SGN:"SIGN",1:"VERIFY")_"^SRV=BEHARTENTRY.ARTENTRY"
+ S XQAID=AID
+ S XQA(DUZ)=""
+ D SETUP^XQALERT
+ Q
+ ; Return true if user should receive alert for this allergy
+RCVALR(GMRAIEN,SGN,TYP) ;
+ N LP,OK
+ I SGN S OK=$$CANSIGN(GMRAIEN)
+ E  D
+ .Q:$D(TYP)<10
+ .F LP=1:1:$L(TYP) I $D(TYP($E(TYP,LP))) S OK=1 Q
+ Q $G(OK)
+ING(DATA,GMRAPA) ;Return
+ N GMRAINGR,GMRACLAS,X,Y,CNT,CNT2
+ S DATA=$$TMPGBL^CIAVMRPC,CNT=0
+ F GMRAINGR=0:0 S GMRAINGR=$O(^GMR(120.8,GMRAPA,2,GMRAINGR)) Q:'+GMRAINGR  D
+ .S X=$S($D(^GMR(120.8,GMRAPA,2,GMRAINGR,0)):^(0),1:"")
+ .I +X>0 S Y=$S($D(^PS(50.416,+X,0)):^(0),1:"") I $P(Y,U)'="" S GMRAINGR($P(Y,U),+X)=Y
+ F GMRACLAS=0:0 S GMRACLAS=$O(^GMR(120.8,GMRAPA,3,GMRACLAS)) Q:'+GMRACLAS  D
+ .S X=$S($D(^GMR(120.8,GMRAPA,3,GMRACLAS,0)):^(0),1:"")
+ .I +X>0 S Y=$S($D(^PS(50.605,+X,0)):^(0),1:"") I $P(Y,U)'="" S GMRACLAS($P(Y,U),+X)=Y
+ S CNT=0
+ I $D(GMRACLAS)>10 D
+ .S Y="" F  S Y=$O(GMRACLAS(Y)) Q:Y=""  D
+ ..F X=0:0 S X=$O(GMRACLAS(Y,X)) Q:X'>0  D
+ ...S CNT=CNT+1
+ ...I CNT=1 S @DATA@(CNT)="DRUG CLASSES: "_$P(GMRACLAS(Y,X),U,2)
+ ...E  S @DATA@(CNT)="              "_$P(GMRACLAS(Y,X),U,2)
+ I $D(GMRAINGR)>10 D
+ .S CNT=CNT+1 S @DATA@(CNT)=""
+ .S CNT2=0
+ .S Y="" F  S Y=$O(GMRAINGR(Y)) Q:Y=""  D
+ ..F X=0:0 S X=$O(GMRAINGR(Y,X)) Q:X'>0  D
+ ...S CNT=CNT+1,CNT2=CNT2+1
+ ...I CNT2=1 S @DATA@(CNT)=" INGREDIENTS: "_$P(GMRAINGR(Y,X),U,1)
+ ...E  S @DATA@(CNT)="              "_$P(GMRAINGR(Y,X),U,1)
+ Q

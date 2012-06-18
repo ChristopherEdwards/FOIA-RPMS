@@ -1,0 +1,105 @@
+AMHLENS ; IHS/CMI/LAB - add no show record ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+ ;
+ ;; ;
+START ; Write Header
+ D EN^AMHEKL ; -- kill all vars before starting
+ W:$D(IOF) @IOF
+ F J=1:1:5 S X=$P($T(TEXT+J),";;",2) W !?80-$L(X)\2,X
+ K X,J
+ W !!
+ D ^AMHLEIN ;Initialize vars, etc.
+GETTYPE ;EP
+ S AMHADPTV=1
+ I $G(AMHPATCE) W:$D(IOF) @IOF
+ S AMHPTYPE=""
+ W !,"Please enter the appropriate set of defaults to be used in Data entry.",!,"This applies to default clinic, location, community and program.",!
+ S DIR(0)="S^M:MENTAL HEALTH DEFAULTS;S:SOCIAL SERVICES DEFAULTS",DIR("A")="Which set of defaults do you want to use in Data Entry" K DA D ^DIR K DIR
+ I $D(DIRUT) D EOJ Q
+ S AMHPTYPE=Y
+GETDATE ;EP - GET DATE OF ENCOUNTER
+ S AMHDATE=""
+ W !
+ S AMHDATE="",DIR(0)="DO^:"_DT_":EPTX",DIR("A")="Enter ENCOUNTER DATE" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ S AMHDATE=Y
+ADDR ;EP
+ I '$D(AMHDATE) W !!,"Date not entered." H 5 Q
+ S AMHQUIT=0,AMHACTN=1
+ S APCDOVRR=""
+ S AMHQUIT=0,AMHACTN=1
+ K DIC S DIC(0)="EL",DIC="^AMHREC(",DLAYGO=9002011,DIADD=1,X=AMHDATE,DIC("DR")=".03///^S X=DT;.19////"_DUZ_";.33////"_AMHVTYPE_";.28////"_DUZ_";.22///A;.21///^S X=DT"
+ D FILE^DICN K DIC,DR,DIE,DIADD,DLAYGO,X,D0
+ I Y=-1 W !!,$C(7),$C(7),"Behavioral Health Record is NOT complete!!  Deleting Record.",! D PAUSE Q
+ ;update multiple of user last update/date edited
+ S AMHR=+Y
+ S DIE="^AMHREC(",DA=AMHR,DR="5100///NOW",DR(2,9002011.5101)=".02////^S X=DUZ" D ^DIE K DIE,DA,DR
+ D GETPAT D:'$G(AMHPAT) DEL Q:'$G(AMHPAT)  S DA=AMHR,DR=".08////"_AMHPAT,DIE="^AMHREC(" D CALLDIE^AMHLEIN
+ D GETPROV I '$$PPINT^AMHUTIL(AMHR) W !,"No PRIMARY PROVIDER entered!! - Required element" D DEL Q
+ S DA=AMHR,DDSFILE=9002011,DR="[AMHNS ADD RECORD]" D ^DDS
+ I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S AMHQUIT=1 K DIMSG Q
+ ;CHECK RECORD
+ D GENPOV
+ S AMHOKAY=0 D RECCHECK^AMHLE2 I AMHOKAY W !!,"Incomplete record!! Deleting record!!" D DEL Q
+ I $G(AMHERROR) W !!,$C(7),$C(7),"PLEASE EDIT THIS RECORD!!",!!
+ I $G(AMHADPTV) D REGULAR^AMHLEP2
+ I $G(AMHADPTV) D OTHER^AMHLEA
+ I $G(AMHADPTV) D PCCLINK^AMHLE2
+ D EOJ
+ Q
+GENPOV ;EPgenerate pov of 8
+ S X=$O(^AMHPROB("B",8,"")) I X="" W !!,"ERROR - NO PROBLEM 8" Q
+ S DIR(0)="S^1:FAILED APPOINTMENT/NO SHOW;2:PATIENT CANCELLED, RESCHEDULED;3:PATIENT CANCELLED, NOT RESCHEDULED;4:PROVIDER CANCELLED, RESCHEDULED;5:PROVIDER CANCELLED, NOT RESCHEDULED;6:DID NOT WAIT TO BE SEEN"
+ S DIR("A")="Enter Appropriate POV code",DIR("B")="1" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) W !!,"ERROR - NO POV CODE" Q
+ S X=$S(Y=1:8,Y=2:8.1,Y=3:8.11,Y=4:8.2,Y=5:8.21,Y=6:8.3,1:8)
+ S X=$O(^AMHPROB("B",X,0))
+ I 'X W !,"ERROR - NO POV CODE" Q
+ S DIC="^AMHRPRO(",DIC("DR")=".02////"_$G(AMHPAT)_";.03////"_AMHR_";.04///"_$P(^AMHPROB(X,0),U,2),DIC(0)="MLQ",DIADD=1,DLAYGO=9002011.01 K DD,DO,D0 D FILE^DICN
+ I Y=-1 W !!,"Creating POV Failed!",$C(7),$C(7) H 2
+ D ^XBFMK K DIADD,DLAYGO
+ Q
+GETPROV ;get providers
+ W !!
+ K DIR,DIC,DA,DTOUT,DIRUT,DUOUT,DIC,X,Y S DIR("B")=$P(^VA(200,DUZ,0),U),DIR(0)="9002011.02,.01O",DIR("A")="Enter PRIMARY PROVIDER" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ Q:Y=""
+ S X=+Y,DIC("DR")=".02////"_$G(AMHPAT)_";.03////"_AMHR_";.04///PRIMARY",DIC="^AMHRPROV(",DIC(0)="MLQ",DIADD=1,DLAYGO=9002011.02 K DD,DO D FILE^DICN K DIC,DA,DO,DD,D0,DG,DH,DI,DIW,DIU,DIADD,DIE,DQ,DLAYGO
+ I Y=-1 W !!,"Creating Primary Provider entry failed!!!",$C(7),$C(7) H 2
+ Q
+GETPAT ;EP
+ D ^XBFMK
+ S AMHC=0
+GETPAT1 ;
+ S AMHPAT=""
+ S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DLAYGO,DIADD
+ I Y<0 K AMHC Q
+ S AMHPAT=+Y
+ S X=AMHPAT D ^AMHPEDIT I '$D(X) S AMHC=AMHC+1 G GETPAT1
+ I $G(AUPNDOD)]"" W !!?10,"***** PATIENT'S DATE OF DEATH IS ",$$FMTE^XLFDT(AUPNDOD),!! H 2
+ W !?25,"Ok" S %=1 D YN^DICN I %'=1 S AMHPAT="" K AMHC Q
+ K AMHC
+ Q
+DEL ;EP
+ S AMHVDLT=$P(^AMHREC(AMHR,0),U,16)
+ S AMHRDEL=AMHR
+ D EN^AMHLEDEL
+ W !,"Record deleted." D PAUSE
+ Q
+PAUSE ;EP
+ S DIR(0)="EO",DIR("A")="Press enter to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q
+EOJ ;EOJ CLEANUP
+ K AMHVTYPE,AMHVDLT
+ ;D EN^AMHEKL
+ D ^XBFMK
+ Q
+TEXT ;
+ ;;BH Data Entry Module
+ ;;
+ ;;***************************
+ ;;* Enter a DNKA BH Visit *
+ ;;***************************
+ ;;
+ Q

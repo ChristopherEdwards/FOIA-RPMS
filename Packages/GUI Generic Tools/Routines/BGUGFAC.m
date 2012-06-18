@@ -1,0 +1,14 @@
+BGUGFAC ; IHS/OIT/MJL - GETS FACILITIES FOR A USER ;
+ ;;1.5;BGU;;MAY 26, 2005
+GETFC(DUZ) ;EP Called by BGUXUSRB
+ ;Gets all facilities for a user
+ ; Input DUZ - user IEN from the NEW PERSON FILE
+ ; Output - Number of facilities;facility1 name&facility1 IEN;...facilityN&facilityN IEN
+ S U="^",BGUFN=0,BGUFACS="" F BGUN=1:1 S BGUFN=$O(^VA(200,DUZ,2,BGUFN)) Q:'BGUFN  D GETFC1
+ I BGUN=1 S BGUFN=$P(^AUTTSITE(1,0),U,1) D GETFC1
+ S BGUFACS=BGUN-(BGUN>1)_";"_BGUFACS
+ K BGUN,BGUFN
+ Q BGUFACS
+GETFC1 ;
+ S:BGUN>1 BGUFACS=BGUFACS_";" S BGUFACS=BGUFACS_$P(^DIC(4,BGUFN,0),U,1)_"&"_BGUFN
+ Q

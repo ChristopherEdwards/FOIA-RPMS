@@ -1,0 +1,101 @@
+ADEKRP3 ; IHS/HQT/MJL - PRINT COMPILED REPORTS ;  [ 03/24/1999   9:04 AM ]
+ ;;6.0;ADE;;APRIL 1999
+ ;
+ASKYQ() ;EP
+ ;Asks to select YEAR and QUARTER 
+ ;Returns YYYY.Q
+ ;limits selection to periods for which objectives data
+ ;has been compiled in ^ADEKNT
+ ;Returns 0 if no valid selection made
+ ;
+ N ADEMO,ADEYQ,ADESET,ADECNT,DIR,DTOUT,DUOUT,DIRUT,DIROUT
+ ;
+ S ADEYQ=0
+ F  S ADEYQ=$O(^ADEKNT("AD",ADEYQ)) Q:ADEYQ=""  D
+ . S ADEYQ=$P(ADEYQ,".",1,2)
+ . S ADEYQ(ADEYQ)=""
+ . S $P(ADEYQ,".",3)=99999
+ ;
+ I '$O(ADEYQ(0)) Q "NO DATA"
+ ;
+ S ADEYQ=0,ADESET="",ADECNT=0
+ F  S ADEYQ=$O(ADEYQ(ADEYQ)) Q:ADEYQ=""  S ADECNT=ADECNT+1 D
+ . S ADEMO=$S($P(ADEYQ,".",2)=1:" (JAN-MAR "_$P(ADEYQ,".")_")",$P(ADEYQ,".",2)=2:" (APR-JUN "_$P(ADEYQ,".")_")",$P(ADEYQ,".",2)=3:" (JUL-SEP "_$P(ADEYQ,".")_")",1:" (OCT-DEC "_$P(ADEYQ,".")_")")
+ . I ADECNT=1 S ADESET=ADECNT_":"_ADEYQ_ADEMO Q
+ . S $P(ADESET,";",ADECNT)=ADECNT_":"_ADEYQ_ADEMO
+ ;
+ S DIR(0)="S^"_ADESET
+ S DIR("A")="Select YEAR.QUARTER"
+ S DIR("A",1)="Select the calendar year and quarter for the report."
+ S DIR("A",2)="Statistics have been compiled for the quarters listed above."
+ S DIR("A",3)=" "
+ S DIR("B")=$O(ADEYQ(999999),-1)
+ D ^DIR
+ I $$HAT^ADEPQA Q 0
+ Q $P(Y(0)," ")
+ ;
+ROPT() ;EP
+ ;Asks user for report options
+ ;Returns options in ^-delimited string of Template names;Header
+ ;If timeout, hatout or none selected, returns null
+ ;
+ N ADESET,ADECNT,ADEDHD,ADEQTR,ADEYR,ADEMON,ADERCNT,DIR,DTOUT,DUOUT,DIRUT,DIROUT,ADEFLDS,ADETMP,J
+ S ADESET="1: 437 QUARTERLY DETAIL;2: 437 QUARTERLY COMBINED;3: 437 ANNUAL DETAIL;4: 437 ANNUAL COMBINED;5: ANNUAL BASIC MEASURES;6: QUARTERLY BASIC MEASURES;A: ALL REPORTS"
+ S ADERCNT=$L(ADESET,";")
+ S DIR("A")="Select REPORT"
+ S DIR("A",1)="Enter the number of a report which you wish to view."
+ S DIR("A",2)="Reports that you select will be marked with an asterisk."
+ S DIR("A",3)="Press RETURN to quit selecting reports."
+ F  D  Q:$$HAT^ADEPQA  Q:X=""
+ . S DIR(0)="SOX^"_ADESET
+ . D ^XBCLS,^DIR
+ . Q:$$HAT^ADEPQA
+ . Q:X=""
+ . S ADESET=$$TOGGLE(ADESET,Y)
+ . Q
+ ;
+ S ADEQTR=$P(ADEYQ,".",2),ADEYR=$P(ADEYQ,".")
+ ;beginning Y2K fix
+ ;S ADEYR=$S(ADEYR>80:"19"_ADEYR,1:"20"_ADEYR)
+ ;end Y2K fix block
+ S ADEMON="MARCH^JUNE^SEPTEMBER^DECEMBER"
+ S ADEDHD=$O(^ADEPARAM(0)),ADEDHD=$P(^ADEPARAM(ADEDHD,0),U),ADEDHD=$P(^DIC(4,ADEDHD,0),U)
+ S ADETMP="[ADEK-SINGLE-QUARTER];"_ADEDHD_" DETAILED OBJECTIVES FOR QUARTER "_ADEQTR_", YEAR "_ADEYR
+ S ADETMP=ADETMP_"^[ADEK-COMBINE-QUARTER];"_ADEDHD_" COMBINED OBJECTIVES FOR QUARTER "_ADEQTR_", YEAR "_ADEYR
+ S ADETMP=ADETMP_"^[ADEK-SINGLE-YEAR];"_ADEDHD_" DETAILED OBJECTIVES FOR YEAR ENDING "_$P(ADEMON,U,ADEQTR)_" "_ADEYR
+ S ADETMP=ADETMP_"^[ADEK-COMBINE-YEAR];"_ADEDHD_" COMBINED OBJECTIVES FOR YEAR ENDING "_$P(ADEMON,U,ADEQTR)_" "_ADEYR
+ S ADETMP=ADETMP_"^[ADEK-CALIF];"_ADEDHD_" ANNUAL DENTAL BASIC MEASURES FOR YEAR ENDING "_$P(ADEMON,U,ADEQTR)_" "_ADEYR
+ S ADETMP=ADETMP_"^[ADEK-CALIFQ];"_ADEDHD_" QUARTERLY DENTAL BASIC MEASURES FOR QUARTER "_ADEQTR_", YEAR "_ADEYR
+ S ADEFLDS="",ADECNT=0
+ F J=1:1:ADERCNT I $P(ADESET,";",J)["*" D
+ . S ADECNT=ADECNT+1
+ . I ADECNT=1 S ADEFLDS=$P(ADETMP,U,J)
+ . E  S $P(ADEFLDS,U,ADECNT)=$P(ADETMP,U,J)
+ Q ADEFLDS
+ ;
+TOGGLE(ADESET,Y)   ;EP
+ ;
+ N J,ADEOPT
+ I Y="A" D  S $P(ADESET,";",ADERCNT)="N: NO REPORTS" Q ADESET
+ . F J=1:1:ADERCNT D
+ . . S ADEOPT=$P(ADESET,";",J)
+ . . S ADEOPT=$P(ADEOPT,":",2)
+ . . S:ADEOPT'["*" $E(ADEOPT,1,1)="*"
+ . . S $P(ADESET,";",J)=J_":"_ADEOPT
+ . . Q
+ . Q
+ I Y="N" D  S $P(ADESET,";",ADERCNT)="A: ALL REPORTS" Q ADESET
+ . F J=1:1:ADERCNT D
+ . . S ADEOPT=$P(ADESET,";",J)
+ . . S ADEOPT=$P(ADEOPT,":",2)
+ . . I ADEOPT["*" S $E(ADEOPT,1,1)=" "
+ . . S $P(ADESET,";",J)=J_":"_ADEOPT
+ . . Q
+ . Q
+ ;
+ S ADEOPT=$P(ADESET,";",Y)
+ S ADEOPT=$P(ADEOPT,":",2)
+ I ADEOPT["*" S $E(ADEOPT,1,1)=" "
+ E  S $E(ADEOPT,1,1)="*"
+ S $P(ADESET,";",Y)=Y_":"_ADEOPT
+ Q ADESET

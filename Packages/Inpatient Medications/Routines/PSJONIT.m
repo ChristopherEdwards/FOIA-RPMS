@@ -1,0 +1,15 @@
+PSJONIT ; ; 06-OCT-1994
+ ;;4.5; Inpatient Medications ;;7 Oct 94
+ ;
+ K DIF,DIK,DDF,DDT,DTO,D0,DLAYGO,DIC,DIR,DA,ORVROM,DFR,DTN,DIX,DZ
+ S DIFQ=0,ORVROM=22 W !!,"This version of 'PSJONIT' was created on 06-OCT-1994"
+ W !?9,"(at BIRMINGHAM, by OE/RR V.2.5)",!
+ G Q:DIFQ D ^PSJONIT1 G Q:'$D(DIFQ) S DIK(0)="B"
+ D ^PSJONIT2,^PSJONIT3
+ L  W !,*7,"OK, Protocol Installation is Complete.",!
+ K %ZW,%,%H,D0,DA,DIF,DIFQ,DIG,DIH,DIK,DIU,DIV,DSEC,I,J,KEY,DIY,N,NM,NO,ORVROM,R,X,X0
+ Q
+ ;
+Q W *7,!!,"NO UPDATING HAS OCCURRED!" Q
+ ;
+IXF ;;PSJ

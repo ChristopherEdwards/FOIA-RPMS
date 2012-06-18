@@ -1,0 +1,144 @@
+APCDETP ; IHS/CMI/LAB - DISPLAY/EDIT TREATMENT NOTES ; 
+ ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;
+ ;
+ ;
+ ;; ;
+START ; Write Header
+ D EOJ ; -- kill all vars before starting
+ W:$D(IOF) @IOF
+ F J=1:1:5 S X=$P($T(TEXT+J),";;",2) W !?80-$L(X)\2,X
+ K X,J
+ W !!
+ D ^APCDEIN ;Initialize vars, etc.
+ ;loop through until user wants to quit
+ S DFN="" D GETPAT
+ I DFN D EN,FULL^VALM1,EXIT
+ D EOJ
+ Q
+ ;
+GETPAT ;get patient
+ S DFN="",APCDAT=""
+ W !
+ S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC
+ Q:Y<0
+ S (DFN,APCDAT)=+Y
+ Q
+EOJ ;EOJ CLEANUP
+ D CLEAR^VALM1
+ D EN^APCDEKL
+ Q
+ ;
+EP1(DFN) ;EP CALLED FROM PROTOCOL
+ Q:'$G(DFN)
+ Q:'$D(^DPT(DFN))
+ Q:$P(^DPT(DFN,0),U,19)
+ NEW APCHSTYP,APCHSPAT
+ D EN
+ D FULL^VALM1
+ K VALMHDR
+ K X,Y
+ Q
+EN ; EP -- main entry point for APCD UPDATE ACTIVITY RECORDS
+ S VALMCC=1
+ I $G(APCDDISP) D EN^VALM("APCD DISP/PRINT TREATMENT PLAN"),CLEAR^VALM1 Q
+ D EN^VALM("APCDTP UPDATE TREATMENT PLAN")
+ D CLEAR^VALM1
+ Q
+ ;
+GATHER ;EP - called from APCDUAR
+ K APCDQUIT,APCDPTP S APCDRCNT=0,APCDLINE=0
+ I '$D(^AUPNTP("AC",DFN)) S APCDPTP(1,0)="No Treatment Plans currently on file"  S APCDRCNT=1 Q
+ S APCDD=0 F  S APCDD=$O(^AUPNTP("AA",DFN,APCDD)) Q:APCDD'=+APCDD  S APCDE=0 F  S APCDE=$O(^AUPNTP("AA",DFN,APCDD,APCDE)) Q:APCDE'=+APCDE  D
+ .S APCDRCNT=APCDRCNT+1,APCDLINE=APCDLINE+1,APCDPTP("IDX",APCDRCNT,APCDLINE)=APCDE
+ .S APCDX=APCDRCNT_")  Type:  "_$$VAL^XBDIQ1(9000094,APCDE,.01),$E(APCDX,46)="Responsible Provider:  "_$S($P(^AUPNTP(APCDE,0),U,7):$P(^VA(200,$P(^AUPNTP(APCDE,0),U,7),0),U),1:"<<not recorded>>")
+ .S APCDPTP(APCDLINE,0)=APCDX
+ .S APCDLINE=APCDLINE+1
+ .S APCDX="    Date Initiated:  "_$$FTIME^VALM1($P(^AUPNTP(APCDE,0),U,3)),$E(APCDX,46)="Next Review Date:  "_$$FTIME^VALM1($P(^AUPNTP(APCDE,0),U,11))
+ .S APCDPTP(APCDLINE,0)=APCDX
+ .S APCDLINE=APCDLINE+1
+ .S APCDX="    Diagnosis: "_$$VAL^XBDIQ1(9000094,APCDE,.06),$E(APCDX,25)="Duration: "_$$VAL^XBDIQ1(9000094,APCDE,.04),$E(APCDX,46)="Completion Date: "_$$VAL^XBDIQ1(9000094,APCDE,.05)
+ .S APCDPTP(APCDLINE,0)=APCDX
+ .I $P(^AUPNTP(APCDE,0),U,12)]"" D
+ ..S APCDLINE=APCDLINE+1
+ ..S APCDX="    Date Discontinued: "_$$FTIME^VALM1($P(^AUPNTP(APCDE,0),U,12))
+ ..S APCDPTP(APCDLINE,0)=APCDX
+ ..S APCDLINE=APCDLINE+1
+ ..S APCDX="    Reason Discontinued: "_$$VAL^XBDIQ1(9000094,APCDE,.14)
+ ..S APCDPTP(APCDLINE,0)=APCDX
+ ..S APCDLINE=APCDLINE+1
+ ..S APCDX="    Provider who discontinued: "_$$VAL^XBDIQ1(9000094,APCDE,.13)
+ ..S APCDPTP(APCDLINE,0)=APCDX
+ .;S APCDLINE=APCDLINE+1,APCDX="     Problem: "_$E($G(^AUPNTP(APCDE,11)),1,65),APCDPTP(APCDLINE,0)=APCDX
+ .;S (X,C)=0 F  S X=$O(^AUPNTP(APCDE,11,X)) Q:X'=+X  S C=C+1 D
+ .;.S APCDLINE=APCDLINE+1,APCDPTP(APCDLINE,0)="     Problem #"_C_": "_$P(^AUPNTP(APCDE,11,X,0),U)
+ .;.Q
+ .;S APCDLINE=APCDLINE+1,APCDPTP(APCDLINE,0)=""
+ Q  ;**** new format
+HDR ;EP -- header code
+ S VALMHDR(1)="Patient Name:  "_$P(^DPT(DFN,0),U)_"     DOB:  "_$$FTIME^VALM1($P(^DPT(DFN,0),U,3))_"   Sex:  "_$P(^DPT(DFN,0),U,2)
+ I $E($G(APCDPTP(1,0)))="N" S APCDRCNT=0,VALMHDR(2)=APCDPTP(1,0) K APCDPTP
+ E  S VALMHDR(2)="                        TREATMENT PLANS CURRENTLY ON FILE"
+ Q
+ ;
+INIT ;EP -- init variables and list array
+ D GATHER ;gather up all records for display
+ S VALMCNT=APCDLINE
+ Q
+ ;
+HELP ;EP -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ K APCDRCNT,APCDPTP,APCDE,APCDLINE,APCDEL,APCDETXT,APCDGNUM,APCDTPN,APCDCOL
+ K VALMCC,VALMHDR
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+TEXT ;
+ ;;Patient Care Component (PCC)
+ ;;
+ ;;****************************************
+ ;;*    Update Patient Treatment Plans    *
+ ;;****************************************
+ ;;
+ Q
+GETTXT ;EP - GENERALIZED TEXT PRINTER
+ S APCDETP("DLT")=1,APCDETP("ILN")=$S($G(APCDETP("LGTH")):APCDETP("LGTH"),1:80)-APCDETP("ICL")-1
+ F APCDETP("Q")=0:0 S:APCDETP("NRQ")]""&(($L(APCDETP("NRQ"))+$L(APCDETP("TXT"))+2)<255) APCDETP("TXT")=$S(APCDETP("TXT")]"":APCDETP("TXT")_"; ",1:"")_APCDETP("NRQ"),APCDETP("NRQ")="" Q:APCDETP("TXT")=""  D GETTXT2
+ K APCDETP("ILN"),APCDETP("DLT"),APCDETP("F"),APCDETP("C"),APCDETP("TXT")
+ Q
+GETTXT2 D GETFRAG S APCDEC=APCDEC+1,APCDETXT(APCDEC)="" F X=1:1:APCDETP("ICL") S APCDETXT(APCDEC)=APCDETXT(APCDEC)_" "
+ S APCDETXT(APCDEC)=APCDETXT(APCDEC)_APCDETP("F"),APCDETP("ICL")=APCDETP("ICL")+APCDETP("DLT"),APCDETP("ILN")=APCDETP("ILN")-APCDETP("DLT"),APCDETP("DLT")=0
+ Q
+GETFRAG I $L(APCDETP("TXT"))<APCDETP("ILN") S APCDETP("F")=APCDETP("TXT"),APCDETP("TXT")="" Q
+ F APCDETP("C")=APCDETP("ILN"):-1:1 Q:$E(APCDETP("TXT"),APCDETP("C"))=" "
+ S APCDETP("F")=$E(APCDETP("TXT"),1,APCDETP("C")-1),APCDETP("TXT")=$E(APCDETP("TXT"),APCDETP("C")+1,255)
+ Q
+ADDTPT ;EP - called from option to add new treatment plan types
+ W !!,"This option is used to add new Treatment Plan Types to the Treatment"
+ W !,"Plan Type table.",!
+ W !,"The following treatment plan types are currently on file:",!
+ S X="",C=0 F  S X=$O(^AUTTTPL("B",X)) Q:X=""  D
+ .S Y=0 F  S Y=$O(^AUTTTPL("B",X,Y)) Q:Y=""  D
+ ..S C=C+1 S J=$S((C#2):5,1:40)
+ ..W ?J,$P(^AUTTTPL(Y,0),U)
+ ..W:J=40 !
+ ;
+ W !!,"Enter new treatment plan type",!
+ K DIC
+ S DIC="^AUTTTPL(",DIC(0)="AEMQL",DIADD=1,DLAYGO=99999.21 D ^DIC K DIC,DLAYGO,DIADD
+ K X,C,J,Y
+ Q
+CMPLDATE(B) ;EP - called from SCREENMAN SCREEN
+ I $G(B)="" Q
+ NEW A,C,D
+ S A=$P(^AUPNTP(APCDTP,0),U,3)
+ I A="" Q
+ S C=$$CONVDAYS^AUPNCIX(B)
+ S D=$$FMADD^XLFDT(A,C)
+ D PUT^DDSVAL(9000094,.DA,.05,D)
+ Q

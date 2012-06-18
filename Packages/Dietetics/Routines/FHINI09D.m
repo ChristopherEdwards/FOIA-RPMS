@@ -1,0 +1,130 @@
+FHINI09D	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,6472,1)
+	;;=11.77^20.31^25.86^323.01^32.75^^^240.15^1.67^7.29^367.25^187.06^828.74^.94^^^.99^755.07^.02^.167
+	;;^UTILITY(U,$J,112,6472,2)
+	;;=.167^1.47^.167^.022^2.59^.23^1.89^.11^31.19^12.88^3.77^1.67
+	;;^UTILITY(U,$J,112,6472,20)
+	;;=Bay Pines recipe, non-std. DOE: 123184 #516
+	;;^UTILITY(U,$J,112,6473,0)
+	;;=BEEF, PUREED^^oz.^28.35
+	;;^UTILITY(U,$J,112,6473,1)
+	;;=14.9^8.4^0^132^^^^.004^1.2^^^157^48^2.45^^^^84^1.2^.02
+	;;^UTILITY(U,$J,112,6473,2)
+	;;=.1^4.34
+	;;^UTILITY(U,$J,112,6473,20)
+	;;=Heinz Prod. Lit. dated 1982. DOE: 010485 #516
+	;;^UTILITY(U,$J,112,6474,0)
+	;;=CHICKEN, PUREED^^oz.^28.35
+	;;^UTILITY(U,$J,112,6474,1)
+	;;=13.9^8.7^1.5^134^^^^.081^1^^^154^80^1.34^^^^15^.6^.02
+	;;^UTILITY(U,$J,112,6474,2)
+	;;=.13^3.28
+	;;^UTILITY(U,$J,112,6474,20)
+	;;=Heinz Prod. Lit. dated 1982. DOE: 010485 #516
+	;;^UTILITY(U,$J,112,6475,0)
+	;;=LAMB, PUREED^^oz.^28.35
+	;;^UTILITY(U,$J,112,6475,1)
+	;;=13.2^7.5^1.1^119^^^^.005^1.3^^^169^52^2.68^^^^27^.3^.02
+	;;^UTILITY(U,$J,112,6475,2)
+	;;=.14^2.43
+	;;^UTILITY(U,$J,112,6475,20)
+	;;=Heinz Prod. Lit. dated 1982. DOE: 010485 #516
+	;;^UTILITY(U,$J,112,6476,0)
+	;;=LIVER, PUREED^^oz.^28.35
+	;;^UTILITY(U,$J,112,6476,1)
+	;;=14.8^2.5^3.2^88^^^^.006^6.6^^^174^55^1.21^^^^17277^18.7^.05
+	;;^UTILITY(U,$J,112,6476,2)
+	;;=1.79^6.66
+	;;^UTILITY(U,$J,112,6476,20)
+	;;=Heinz Prod. Lit. dated 1982. DOE: 010485 #516
+	;;^UTILITY(U,$J,112,6477,0)
+	;;=TURKEY, PUREED^^oz.^28.35
+	;;^UTILITY(U,$J,112,6477,1)
+	;;=15.5^6.7^.5^122^^^^.025^.8^^^167^58^1.56^^^^45^1.4^.02
+	;;^UTILITY(U,$J,112,6477,2)
+	;;=.12^3.64
+	;;^UTILITY(U,$J,112,6477,20)
+	;;=Heinz Prod. Lit. dated 1982. DOE: 010485 #516
+	;;^UTILITY(U,$J,112,6478,0)
+	;;=VEAL, PUREED^^oz.^28.35
+	;;^UTILITY(U,$J,112,6478,1)
+	;;=14.5^6.3^0^115^^^^.005^.8^^^158^52^2.31^^^^32^1.5^.02
+	;;^UTILITY(U,$J,112,6478,2)
+	;;=.12^2.6
+	;;^UTILITY(U,$J,112,6478,20)
+	;;=Heinz Prod. Lit. dated 1982. DOE: 010485 #516
+	;;^UTILITY(U,$J,112,6479,0)
+	;;=TWOCAL HN^DS-061^8-oz.^227
+	;;^UTILITY(U,$J,112,6479,1)
+	;;=8.37^9.09^21.73^200^71.2^^^104.1^1.875^41.66^104.1^225^129.1^2.34^.208^.52^4.68^520.8^31.25^.25
+	;;^UTILITY(U,$J,112,6479,2)
+	;;=.28^3.33^.416^.33^66.6^1^^^3^2.54^^4.08
+	;;^UTILITY(U,$J,112,6479,3)
+	;;=.092^.335^.427^.77^.628^.251^.033^.401^.401^.536^.301^.234^.251^.594^1.649^.151^.87^.444
+	;;^UTILITY(U,$J,112,6479,4)
+	;;=.915^.078^.043^.846^^.173^2.047^.06^7.5
+	;;^UTILITY(U,$J,112,6479,20)
+	;;=Ross Lab Prod. Lit. dated Dec 1990.
+	;;^UTILITY(U,$J,112,6480,0)
+	;;=ROSS SLD (RECONSTITUTED)^^ml.^1
+	;;^UTILITY(U,$J,112,6480,1)
+	;;=3.75^.05^13.65^70^100^^^83.5^1.5^33.5^83.5^83.5^83.5^1.9^.165^.42^3.75^417^7.5^.195
+	;;^UTILITY(U,$J,112,6480,2)
+	;;=.215^2.5^1.25^.25^50^.75
+	;;^UTILITY(U,$J,112,6480,20)
+	;;=Ross Prod Lit dated Sep 84. DOE: 010785 #516
+	;;^UTILITY(U,$J,112,6481,0)
+	;;=NUTRISOURCE PROTEIN^^packets^19.8
+	;;^UTILITY(U,$J,112,6481,1)
+	;;=76^7.1^8.5^402^^^^360^^^300^570^270
+	;;^UTILITY(U,$J,112,6481,20)
+	;;=Sandoz Nutrition Prod Lit dated Jul 84. DOE: 010785 #516
+	;;^UTILITY(U,$J,112,6482,0)
+	;;=NUTRISOURCE AMINO ACIDS^^packets^15.4
+	;;^UTILITY(U,$J,112,6482,1)
+	;;=97^0^0^390
+	;;^UTILITY(U,$J,112,6482,20)
+	;;=Sandoz Nutrition Prod Lit dated Jul 84. DOE: 010785
+	;;^UTILITY(U,$J,112,6483,0)
+	;;=NUTRISOURCE BRANCH CHAIN AMIN^^packets^15.4
+	;;^UTILITY(U,$J,112,6483,1)
+	;;=97^0^0^390
+	;;^UTILITY(U,$J,112,6483,20)
+	;;=Sandoz Nutrition Prod Lit dated Jul 84. DOE: 010785 #516
+	;;^UTILITY(U,$J,112,6484,0)
+	;;=NUTRISOURCE CARBOHYDRATE^^cans^250
+	;;^UTILITY(U,$J,112,6484,1)
+	;;=0^0^80^320^100^^^.3^^^2^1^2
+	;;^UTILITY(U,$J,112,6484,20)
+	;;=Sandoz Nutrition Prod Lit dated Jul 84. DOE: 010785 #516
+	;;^UTILITY(U,$J,112,6485,0)
+	;;=NUTRISOURCE MCT^^cans^250
+	;;^UTILITY(U,$J,112,6485,1)
+	;;=0^24^0^201
+	;;^UTILITY(U,$J,112,6485,2)
+	;;=^^^^^^0
+	;;^UTILITY(U,$J,112,6485,20)
+	;;=Sandoz Nutrition Prod Lit dated Jul 84. DOE: 010785 #516
+	;;^UTILITY(U,$J,112,6486,0)
+	;;=NUTRISOURCE LONG CHAIN TRIGLY^^cans^250
+	;;^UTILITY(U,$J,112,6486,1)
+	;;=0^24^0^216
+	;;^UTILITY(U,$J,112,6486,2)
+	;;=^^^^^^11.76^1.68^^4.32^^13.44
+	;;^UTILITY(U,$J,112,6486,20)
+	;;=Sandoz Nutrition Prod Lit dated Jul 84. DOE: 010785 #516
+	;;^UTILITY(U,$J,112,6487,0)
+	;;=NUTRISOURCE VITAMINS^^packets^10
+	;;^UTILITY(U,$J,112,6487,1)
+	;;=^^90^360^^^^^^^^^^^^^100^50000^600^14
+	;;^UTILITY(U,$J,112,6487,2)
+	;;=16^18^55^22^4000^30
+	;;^UTILITY(U,$J,112,6487,20)
+	;;=Sandoz Nutrition Prod Lit dated Jul 84. DOE: 010785 #516
+	;;^UTILITY(U,$J,112,6488,0)
+	;;=NUTRISOURCE MINERALS(PRO FORM)^^packets^24
+	;;^UTILITY(U,$J,112,6488,1)
+	;;=^^25^100^^^^2710^75.06^1459.5^2710^7297.5^4170^62.55^8.34^16.68

@@ -1,0 +1,164 @@
+ACRCD13 ; COMPILED XREF FOR FILE #9002196 ; 09/30/09
+ ; 
+ S DIKZK=1
+ S DIKZ(0)=$G(^ACRDOC(DA,0))
+ S X=$P(DIKZ(0),U,1)
+ I X'="" S ^ACRDOC("B",$E(X,1,30),DA)=""
+ S DIKZ("X")=$G(^ACRDOC(DA,"X"))
+ S X=$P(DIKZ("X"),U,1)
+ I X'="" S:'$D(^ACRDOC("B",$E(X,1,30),DA)) ^(DA)=1
+ S X=$P(DIKZ(0),U,2)
+ I X'="" S ^ACRDOC("C",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,"X")):^("X"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y S X=DIV S X=$$EXPDN^ACRFUTL(D0) S DIH=$G(^ACRDOC(DIV(0),"X")),DIV=X S $P(^("X"),U,1)=DIV,DIH=9002196,DIG=.011 D ^DICR
+ S DIKZ(0)=$G(^ACRDOC(DA,0))
+ S X=$P(DIKZ(0),U,3)
+ I X'="" S ^ACRDOC("DT",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,4)
+ I X'="" S ^ACRDOC("D",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,4)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(0)=X X ^DD(9002196,.04,1,2,69.2) S X=X=116 S D0=I(0,0) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"PO")):^("PO"),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y X ^DD(9002196,.04,1,2,1.1) X ^DD(9002196,.04,1,2,1.4)
+ S X=$P(DIKZ(0),U,4)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002196,.04,1,3,1.3) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,0)):^(0),1:"") S X=$P(Y(1),U,13),X=X S DIU=X K Y X ^DD(9002196,.04,1,3,1.1) X ^DD(9002196,.04,1,3,1.4)
+ S X=$P(DIKZ(0),U,4)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002196,.04,1,4,1.3) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,0)):^(0),1:"") S X=$P(Y(1),U,7),X=X S DIU=X K Y S X=DIV S X=DIV,X=X X ^DD(9002196,.04,1,4,1.4)
+ S DIKZ(0)=$G(^ACRDOC(DA,0))
+ S X=$P(DIKZ(0),U,5)
+ I X'="" S ^ACRDOC("E",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,8)
+ I X'="" S ^ACRDOC("PO",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,8)
+ I X'="" I X,+$G(^ACRDOC(DA,"REQ")) S ^ACRDOC("PO",X,"A",DA)=""
+ S X=$P(DIKZ(0),U,13)
+ I X'="" S ^ACRDOC("REF",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,14)
+ I X'="" S ^ACRDOC("G",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,15)
+ I X'="" S ^ACRDOC("MOD",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,17)
+ I X'="" S ^ACRDOC("O",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,17)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,"X")):^("X"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y S X=DIV S X=$$ORN17^ACRFTRIG(D0) S DIH=$G(^ACRDOC(DIV(0),"X")),DIV=X S $P(^("X"),U,1)=DIV,DIH=9002196,DIG=.011 D ^DICR
+ S DIKZ(0)=$G(^ACRDOC(DA,0))
+ S X=$P(DIKZ(0),U,18)
+ I X'="" S:X>0 ^ACRDOC("T",DA,DA)=""
+ S X=$P(DIKZ(0),U,19)
+ I X'="" S ^ACRDOC("BPA",$E(X,1,30),DA)=""
+ S DIKZ("PA")=$G(^ACRDOC(DA,"PA"))
+ S X=$P(DIKZ("PA"),U,1)
+ I X'="" S ^ACRDOC("PA",$E(X,1,30),DA)=""
+ S X=$P(DIKZ("PA"),U,1)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,"PA")):^("PA"),1:"") S X=$P(Y(1),U,2),X=X S DIU=X K Y X ^DD(9002196,.2,1,2,1.1) X ^DD(9002196,.2,1,2,1.4)
+ S X=$P(DIKZ("PA"),U,1)
+ I X'="" S:X ^ACRDOC("PA",X,"A",DA)=""
+ S DIKZ(0)=$G(^ACRDOC(DA,0))
+ S X=$P(DIKZ(0),U,26)
+ I X'="" S ^ACRDOC("FS","FS"_$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,27)
+ I X'="" S ^ACRDOC("FS",$E(X,1,30),DA)=""
+ S DIKZ("PA")=$G(^ACRDOC(DA,"PA"))
+ S X=$P(DIKZ("PA"),U,3)
+ I X'="" S ^ACRDOC("PS",$E(X,1,30),DA)=""
+ S DIKZ("FA")=$G(^ACRDOC(DA,"FA"))
+ S X=$P(DIKZ("FA"),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002196,11,1,1,1.3) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"FA")):^("FA"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y S X=DIV S X=DIV,X=X X ^DD(9002196,11,1,1,1.4)
+ S DIKZ("FA")=$G(^ACRDOC(DA,"FA"))
+ S X=$P(DIKZ("FA"),U,3)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002196,12,1,1,1.3) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"FA")):^("FA"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y S X=DIV S X=DIV,X=X X ^DD(9002196,12,1,1,1.4)
+ S DIKZ("AU")=$G(^ACRDOC(DA,"AU"))
+ S X=$P(DIKZ("AU"),U,1)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(0)=X X ^DD(9002196,20,1,1,69.2) S X=X=103,Y=X,X=Y(2),X=X!Y I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"PO")):^("PO"),1:"") S X=$P(Y(1),U,17),X=X S DIU=X K Y S X=DIV S X=DIV,X=X X ^DD(9002196,20,1,1,1.4)
+ S DIKZ(18)=$G(^ACRDOC(DA,18))
+ S X=$P(DIKZ(18),U,1)
+ I X'="" S ^ACRDOC("P","SC"_$E(X,1,30),DA)=""
+ S DIKZ("PO")=$G(^ACRDOC(DA,"PO"))
+ S X=$P(DIKZ("PO"),U,1)
+ I X'="" S ^ACRDOC("S",$E(X,1,30),DA)=""
+ S X=$P(DIKZ("PO"),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(0)=X S Y(1)=$S($D(^ACRDOC(D0,0)):^(0),1:"") S X=$P(Y(1),U,24),X=X S X=X>0 I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,0)):^(0),1:"") S X=$P(Y(1),U,2),X=X S DIU=X K Y S X=DIV S X=DIV X ^DD(9002196,103020,1,1,1.4)
+ S DIKZ("POST")=$G(^ACRDOC(DA,"POST"))
+ S X=$P(DIKZ("POST"),U,1)
+ I X'="" I $D(DA),DA,$D(^ACRDOC(DA,"PO")),$P(^("PO"),U,12) S ^ACRDOC("DI",$E(X,1,30),$P(^("PO"),U,12),DA)=""
+ S X=$P(DIKZ("POST"),U,1)
+ I X'="" I $E($G(^ACROBL(+$G(DA),"APV")))="A",$P($G(^("APV")),U,6)'=1 S ^ACRDOC("RL",$E(X,1,30),DA)=""
+ S DIKZ("PO")=$G(^ACRDOC(DA,"PO"))
+ S X=$P(DIKZ("PO"),U,5)
+ I X'="" S ^ACRDOC("I",$E(X,1,30),DA)=""
+ S X=$P(DIKZ("PO"),U,5)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,5)):^(5),1:"") S X=$P(Y(1),U,3),X=X S DIU=X K Y X ^DD(9002196,103070,1,2,1.1) X ^DD(9002196,103070,1,2,1.4)
+ S X=$P(DIKZ("PO"),U,5)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,5)):^(5),1:"") S X=$P(Y(1),U,5),X=X S DIU=X K Y S X=DIV S X=DIV,X=X X ^DD(9002196,103070,1,3,1.4)
+ S X=$P(DIKZ("PO"),U,5)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,5)):^(5),1:"") S X=$P(Y(1),U,7),X=X S DIU=X K Y X ^DD(9002196,103070,1,4,1.1) X ^DD(9002196,103070,1,4,1.4)
+ S DIKZ("PO")=$G(^ACRDOC(DA,"PO"))
+ S X=$P(DIKZ("PO"),U,12)
+ I X'="" I $D(DA),DA,$D(^ACRDOC(DA,"POST")),+^("POST") S ^ACRDOC("DI",+^("POST"),$E(X,1,30),DA)=""
+ S X=$P(DIKZ("PO"),U,16)
+ I X'="" S ^ACRDOC("L",$E(X,1,30),DA)=""
+ S X=$P(DIKZ("PO"),U,16)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(0)=X S X=Y(0)]"" I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"POST")):^("POST"),1:"") S X=$P(Y(1),U,8),X=X S DIU=X K Y S X=DIV S X=DIV X ^DD(9002196,103200,1,2,1.4)
+ S DIKZ(5)=$G(^ACRDOC(DA,5))
+ S X=$P(DIKZ(5),U,5)
+ I X'="" S ^ACRDOC("I",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(5),U,3)
+ I X'="" S ^ACRDOC("J",$E(X,1,30),DA)=""
+ S DIKZ("REQ")=$G(^ACRDOC(DA,"REQ"))
+ S X=$P(DIKZ("REQ"),U,3)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,"PO")):^("PO"),1:"") S X=$P(Y(1),U,7),X=X S DIU=X K Y S X=DIV S X=DIV X ^DD(9002196,113030,1,1,1.4)
+ S DIKZ("REQ")=$G(^ACRDOC(DA,"REQ"))
+ S X=$P(DIKZ("REQ"),U,10)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,"FA")):^("FA"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y X ^DD(9002196,113100,1,1,1.1) X ^DD(9002196,113100,1,1,1.4)
+ S X=$P(DIKZ("REQ"),U,10)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRDOC(D0,"AU")):^("AU"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y X ^DD(9002196,113100,1,2,1.1) X ^DD(9002196,113100,1,2,1.4)
+ S X=$P(DIKZ("REQ"),U,10)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002196,113100,1,3,1.3) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"POIO")):^("POIO"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y X ^DD(9002196,113100,1,3,1.1) X ^DD(9002196,113100,1,3,1.4)
+ S X=$P(DIKZ("REQ"),U,10)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002196,113100,1,4,1.3) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"POST")):^("POST"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y X ^DD(9002196,113100,1,4,1.1) X ^DD(9002196,113100,1,4,1.4)
+ S X=$P(DIKZ("REQ"),U,10)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002196,113100,1,5,1.3) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"REQ")):^("REQ"),1:"") S X=$P(Y(1),U,3),X=X S DIU=X K Y X ^DD(9002196,113100,1,5,1.1) X ^DD(9002196,113100,1,5,1.4)
+ S X=$P(DIKZ("REQ"),U,10)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002196,113100,1,6,1.3) I X S X=DIV S Y(1)=$S($D(^ACRDOC(D0,"PO")):^("PO"),1:"") S X=$P(Y(1),U,11),X=X S DIU=X K Y X ^DD(9002196,113100,1,6,1.1) X ^DD(9002196,113100,1,6,1.4)
+ S X=$P(DIKZ("REQ"),U,10)
+END G ^ACRCD14

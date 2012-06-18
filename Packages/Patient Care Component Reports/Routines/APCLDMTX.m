@@ -1,0 +1,102 @@
+APCLDMTX ; IHS/CMI/LAB - display audit logic ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+ ;
+EP ;EP - CALLED FROM OPTION
+ ;select year
+ S APCLYR=""
+ W:$D(IOF) @IOF
+ W !!,"Select the Audit Year",!!
+ S DIC="^APCLDMTX(",DIC(0)="AEMQ" D ^DIC K DIC I Y=-1 W !!,"Goodbye" G EOJ
+ S APCLYR=+Y
+ D EN
+ Q
+EOJ ;EP
+ D EN^XBVK("APCL")
+ Q
+ ;; ;
+EN ; -- main entry point for APCL DM LOGIC DISPLAY
+ D EN^VALM("APCL DM LOGIC DISPLAY")
+ D CLEAR^VALM1
+ D FULL^VALM1
+ W:$D(IOF) @IOF
+ D EOJ
+ Q
+ ;
+HDR ; -- header code
+ S VALMHDR(1)="DM Logic Display"
+ Q
+ ;
+INIT ; -- init variables and list array
+ K APCLDISP,APCLSEL,APCLHIGH,APCLLIST,APCLCSEL
+ S APCLHIGH=0,X=0 F  S X=$O(^APCLDMTX(APCLYR,11,X)) Q:X'=+X  S APCLHIGH=APCLHIGH+1,APCLSEL(APCLHIGH)=X
+ S APCLCUT=((APCLHIGH/3)+1)\1
+ ;S APCLCUT=(APCLHIGH/3)\1
+ S (C,I)=0,J=1,K=1 F  S I=$O(APCLSEL(I)) Q:I'=+I!($D(APCLDISP(I)))  D
+ .S C=C+1,APCLLIST(C,0)=I_") "_$S($D(APCLCSEL(I)):"*",1:" ")_$E($P(^APCLDMTX(APCLYR,11,APCLSEL(I),0),U),1,20) S APCLDISP(I)="",APCLLIST("IDX",C,C)=APCLSEL(I)
+ .S J=I+APCLCUT I $D(APCLSEL(J)),'$D(APCLDISP(J)) S $E(APCLLIST(C,0),28)=J_") "_$S($D(APCLCSEL(J)):"*",1:" ")_$E($P(^APCLDMTX(APCLYR,11,APCLSEL(J),0),U),1,20) S APCLDISP(J)="",APCLLIST("IDX",J,J)=APCLSEL(J)
+ .S K=J+APCLCUT I $D(APCLSEL(K)),'$D(APCLDISP(K)) S $E(APCLLIST(C,0),55)=K_") "_$S($D(APCLCSEL(K)):"*",1:" ")_$E($P(^APCLDMTX(APCLYR,11,APCLSEL(K),0),U),1,20) S APCLDISP(K)="",APCLLIST("IDX",K,K)=APCLSEL(K)
+ K APCLDISP
+ S VALMCNT=C
+ Q
+ ;
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+BACK ;go back to listman
+ D TERM^VALM0
+ S VALMBCK="R"
+ D INIT
+ D HDR
+ K DIR
+ K X,Y,Z,I
+ Q
+ ;
+ADD ;EP - add an item to the selected list - called from a protocol
+ W ! S DIR(0)="LO^1:"_APCLHIGH,DIR("A")="Which item(s)" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y="" W !,"No items selected." G ADDX
+ I $D(DIRUT) W !,"No items selected." G ADDX
+ D FULL^VALM1 W:$D(IOF) @IOF
+ S APCLANS=Y,APCLC="" F APCLI=1:1 S APCLC=$P(APCLANS,",",APCLI) Q:APCLC=""  S APCLCSEL(APCLC)=""
+ D DISPLAY
+ADDX ;
+ D BACK
+ Q
+ADDALL ;
+ F X=1:1:APCLHIGH S APCLCSEL(X)=""
+ D DISPLAY
+ D BACK
+ Q
+ ;
+DISPLAY ;gather in ^TMP and display
+ K ^TMP("APCLDMTX",$J)
+ S ^TMP("APCLDMTX",$J,0)=0
+ S APCLC=0
+ S APCLX=0 F  S APCLX=$O(APCLCSEL(APCLX)) Q:APCLX'=+APCLX  S APCLY=APCLLIST("IDX",APCLX,APCLX),Y=$P(^APCLDMTX(APCLYR,11,APCLY,0),U) S APCLC=APCLC+1 D S(Y,$S(APCLC=1:0,1:2),1) D
+ .S Y=0 F  S Y=$O(^APCLDMTX(APCLYR,11,APCLY,11,Y)) Q:Y'=+Y  S Z=^APCLDMTX(APCLYR,11,APCLY,11,Y,0) D S(Z)
+ .Q
+ K ^TMP("APCLDMTX",$J,0)
+ D ARRAY^XBLM("^TMP(""APCLDMTX"",$J,","DM AUDIT LOGIC DESCRIPTIONS")
+ Q
+S(Y,F,C,T) ;set up array
+ I '$G(F) S F=0
+ I '$G(T) S T=0
+ ;blank lines
+ F F=1:1:F S X="" D S1
+ S X=Y
+ I $G(C) S L=$L(Y),T=(80-L)/2 D  D S1 Q
+ .F %=1:1:(T-1) S X=" "_X
+ F %=1:1:T S X=" "_Y
+ D S1
+ Q
+S1 ;
+ S %=$P(^TMP("APCLDMTX",$J,0),U)+1,$P(^TMP("APCLDMTX",$J,0),U)=%
+ S ^TMP("APCLDMTX",$J,%,0)=X
+ Q

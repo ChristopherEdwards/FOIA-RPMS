@@ -1,0 +1,108 @@
+AMERREPT ; IHS/OIT/SCR - PRIMARY ROUTINE FOR PREDEFINED REPORT INTERFACE;
+ ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;
+RUN ; EP from OPTION "AMER CANNED" invoked from ERS MENU
+ ; Provides the user interface for pre-defined reports 
+ N AMERSEL,DIR
+ S DIR(0)="SO^1:PATIENTS BY TRIAGE CATEGORY;"
+ S DIR(0)=DIR(0)_"2:PATIENTS BY TRIAGE NURSE;"
+ S DIR(0)=DIR(0)_"3:PATIENTS BY CONSULTANT TYPE;"
+ S DIR(0)=DIR(0)_"4:TRANSFERS FROM OUTSIDE FACILITIES;"
+ S DIR(0)=DIR(0)_"5:ARRIVE TO ER BY AMBULANCE;"
+ S DIR(0)=DIR(0)_"6:ARRIVE TO ER BY FLIGHT SERVICES;"
+ S DIR(0)=DIR(0)_"7:TRANSFERRED TO OTHER FACILITIES ;"
+ S DIR("A")="Select Report",DIR("?")="Select one choice or '^' to leave."
+ D ^DIR
+ Q:Y=""!(Y="^")
+ S AMERSEL=Y
+ D REPORT(AMERSEL)
+ K AMERSEL,DIR
+ D RUN
+ Q
+ ; 
+REPORT(AMERSEL) ; 
+ N AMERLINE,AMERBANN
+ S %="",$P(%,"~",80)="",AMERLINE=% K %
+ D EN^DDIOL(AMERLINE,"","!!")
+ I AMERSEL=1 D
+ .I '$$TRIAGCAT^AMERREP1() Q  ; TRIAGE BY CATAGORY
+ .D EN^DDIOL(AMERLINE,"","!!")
+ .D EN^DDIOL("","","!")
+ .Q
+ I AMERSEL=2 D
+ .I '$$TRIAGNRS^AMERREP1() Q  ; TRIAGE BY CATAGORY
+ .D EN^DDIOL(AMERLINE,"","!!")
+ .D EN^DDIOL("","","!")
+ .Q
+ I AMERSEL=3 D
+ .I '$$CONSLTN^AMERREP2() Q   ; PATIENTS BY CONSULTANT TYPE
+ .D EN^DDIOL(AMERLINE,"","!!")
+ .D EN^DDIOL("","","!")
+ I AMERSEL=4 D
+ .I '$$REFERALS^AMERREP1() Q  ; REFERALS FROM OUTSIDE FACILITIES
+ .D EN^DDIOL(AMERLINE,"","!!")
+ .D EN^DDIOL("","","!")
+ .Q
+ I AMERSEL=5 D
+ .I '$$AMBULAN^AMERREP2()  Q   ; ARRIVE TO ER BY AMBULANCE
+ .D EN^DDIOL(AMERLINE,"","!!")
+ .D EN^DDIOL("","","!")
+ .Q
+ I AMERSEL=6 D
+ .I '$$AIRAMBU^AMERREP2() Q   ; ARRIVE TO ER BY AIR-AMBULANCE
+ .D EN^DDIOL(AMERLINE,"","!!")
+ .D EN^DDIOL("","","!")
+ .Q
+ I AMERSEL=7 D
+ .I '$$TRANSTO^AMERREP2() Q   ; TRANSFERRED TO OTHER FACILITIES 
+ .D EN^DDIOL(AMERLINE,"","!!")
+ .D EN^DDIOL("","","!")
+ .Q
+ K AMERLINE,AMERBANN,AMERD1X,AMERD2X
+ Q
+ ;
+TIME(AMERD1,AMERD2,AMERD1X,AMERD2X) ; EP from AMEREXPT and AMERREP* routines
+ ; Provides interface for identifying TIME FRAME
+ N DIR,AMERX1,AMERX2,X1,X2,X,AMERQUIT
+ S AMERQUIT=0
+ D EN^DDIOL("*****  TIME FRAME  *****","","!!,?20,!!")
+ S:$D(AMERD2) DIR(0)="DO",DIR("A")="Start Date",DIR("?")="leave blank to start with first ER VISIT"
+ I '$D(AMERD2) D
+ .S DIR(0)="DO"
+ .S DIR("A")="Report for what day"
+ .S DIR("?")="Enter the day for the daily report"
+ .S Y=DT
+ .X ^DD("DD")
+ .S DIR("B")=Y
+ D ^DIR
+ I $D(DUOUT)!$D(DTOUT) K DUOUT,DTOUT  Q 0
+ I $D(AMERD2) D
+ .I X="" D EN^DDIOL("Start at First ER VISIT","","") S Y=2950101.0001
+ .S (AMERX1,AMERD1X)=Y
+ .X ^DD("DD") S AMERD1=Y
+ .S DIR(0)="DO",DIR("A")="End Date",DIR("?")="leave blank to go to last ER VISIT"
+ .D ^DIR K DIR
+ .I $D(DUOUT)!$D(DTOUT) K DUOUT,DTOUT  Q
+ .I X="" D EN^DDIOL("end at last ER Visit","","") S Y=DT+.2359
+ .I Y\1=0 S Y=Y+.2359
+ .S (AMERX2,AMERD2X)=Y
+ .X ^DD("DD") S AMERD2=Y
+ .I AMERD1=""!AMERD2="" S AMERQUIT=1
+ .; If AMERD1 compared to AMERD2  is after
+ .I '$$TCOMP^AMERTIME(AMERX1,AMERX2,0) D
+ ..D EN^DDIOL("Ending date must follow starting date","","!!")
+ ..S AMERQUIT=1
+ I '$D(AMERD2) D
+ .I X="" D EN^DDIOL("No date selected","","") Q
+ .S (AMERX1,AMERD1X)=Y
+ .X ^DD("DD") S AMERD1=Y
+ I AMERQUIT Q 0
+ Q 1
+ ; 
+AMERDHD(AMERHDR,AMERD1,AMERD2) ; EP from multiple AMER reporting routines
+ N AMERDHD
+ S AMERDHD="*********************** CONFIDENTIAL PATIENT INFORMATION ***********************"
+ S AMERDHD=AMERDHD_AMERHDR
+ S:AMERD1'="" AMERDHD=AMERDHD_"  FROM: "_AMERD1
+ S:AMERD2'="" AMERDHD=AMERDHD_"  TO: "_AMERD2
+ Q AMERDHD

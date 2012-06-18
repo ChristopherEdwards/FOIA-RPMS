@@ -1,0 +1,4 @@
+APCUBLKP ; BRJ/OHPD-TUCSON [ 10/15/86  7:59 AM ]
+ S DFN=0
+ F L=0:0 S DFN=$O(^DIC(DFN)) Q:'+DFN  W !,$P(^DIC(DFN,0),"^",1),?30,$P(^DIC(DFN,0),"^",2),?45,^DIC(DFN,0,"GL")
+ Q

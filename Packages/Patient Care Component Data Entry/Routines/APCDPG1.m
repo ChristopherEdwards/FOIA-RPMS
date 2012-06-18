@@ -1,0 +1,316 @@
+APCDPG1 ; IHS/CMI/LAB - GOAL list update from list manager ;
+ ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009
+ ;
+ ;
+DIE ;
+ S DA=APCDPIEN,DIE="^AUPNGOAL(",DR=APCDTEMP D ^DIE
+KDIE ;kill all vars used by DIE
+ K DIE,DR,DA,DIU,DIV,DQ,D0,DO,DI,DIW,DIY,%,DQ,DLAYGO,DIADD
+ Q
+GETGOAL ;get record
+ S APCDPIEN=0
+ S DIR(0)="N^1:"_APCDRCNT_":0",DIR("A")="Select GOAL" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) W !!,"No GOAL Seleted" Q
+ S APCDP=Y
+ S (X,Y)=0 F  S X=$O(APCDPG("IDX",X)) Q:X'=+X!(APCDPIEN)  I $O(APCDPG("IDX",X,0))=APCDP S Y=$O(APCDPG("IDX",X,0)),APCDPIEN=APCDPG("IDX",X,Y)
+ I '$D(^AUPNGOAL(APCDPIEN,0)) W !,"Not a valid GOAL." K APCDP S APCDPIEN=0 Q
+ D FULL^VALM1 ;give me full control of screen
+ Q
+ADD ;EP - called from protocol to add a GOAL to GOAL list
+ D FULL^VALM1 ; this gives me back all screen control
+ Q:'$G(APCDPGPT)  ; just want to be sure I have a patient
+ S APCDPAT=APCDPGPT
+ S:'$G(APCDLOC) APCDLOC=DUZ(2)
+ S:$G(APCDDATE)="" APCDDATE=APCDNDT
+ W:$D(IOF) @IOF W !,"Adding a new GOAL for ",$P(^DPT(APCDPGPT,0),U),".",!!
+ S APCDIGS=""
+ S DIR(0)="9000093,.01",DIR("A")="Enter INITIAL GOAL Setting" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EXIT Q
+ S APCDIGS=Y
+ ;create goal entry and populate date created/last updated/creator/user last update
+ K DIC S DIC(0)="EL",DIC="^AUPNGOAL(",DLAYGO=9000093,DIADD=1,X=APCDIGS  ;,DIC("DR")=$S(APCDIGS="S":"[APCD PG (ADD)]",1:"[APCD PG NOT SET (ADD)]")
+ K DD,DO,D0 D FILE^DICN K DIC,DR,DIE,DIADD,DLAYGO,X,D0
+ I Y=-1 W !!,$C(7),$C(7),"Goal record not created.",! D PAUSE,EXIT Q
+ ;update multiple of user last update/date edited
+ S APCDPIEN=+Y
+ D KDIE S DA=APCDPIEN,DIE("NO^")=1,DIE="^AUPNGOAL(",DR=$S(APCDIGS="S":"[APCD PG (ADD)]",1:"[APCD PG NOT SET (ADD)]") D ^DIE
+ I $D(Y) W !!,"error creating goal.." D KDIE Q
+ D KDIE
+ I $P(^AUPNGOAL(APCDPIEN,0),U,1)="S" S APCDGOAL=APCDPIEN D STP^APCDAGOL
+ K DLAYGO D EXIT
+ Q
+EDIT ;EP - called from protocol to modify a GOAL on GOAL list
+ NEW APCDPIEN,APCDPAT
+ D GETGOAL
+ I 'APCDPIEN D PAUSE,EXIT Q
+ S APCDPAT=APCDPGPT
+ S:'$G(APCDLOC) APCDLOC=DUZ(2)
+ S:$G(APCDDATE)="" APCDDATE=APCDNDT
+ S X=$P(^AUPNGOAL(APCDPIEN,0),U,1)
+ S APCDTEMP=$S(X="S":"[APCD PG (MOD)]",1:"[APCD PG NOT SET (MOD)]")
+ W:$D(IOF) @IOF W !,"Editing GOAL ... "
+ D DIE
+ S DA=APCDPIEN,DIE="^AUPNGOAL(",DR=".05////^S X=$$NOW^XLFDT;.12////^S X=DUZ" D ^DIE
+ D REV
+ D EXIT
+ Q
+DEL ;EP - called from protocol to delete a GOAL on GOAL list
+ D FULL^VALM1
+ W !!,"PLEASE NOTE:  Goals should only be deleted if they were entered in error."
+ W !,"If you want to mark the goal as completed or if you want to change this goal,"
+ W !,"use the RV action to mark the goal as Met if it is complete or Stopped if"
+ W !,"this goal is being replaced with another goal.",!!
+ S DIR(0)="Y",DIR("A")="Do you wish to continue to delete a Goal",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EXIT Q
+ I 'Y D EXIT Q
+ NEW APCDPIEN,APCDPAT
+ D GETGOAL
+ I 'APCDPIEN D PAUSE,EXIT Q
+ W:$D(IOF) @IOF
+ W !!,"Deleting the following GOAL from ",$P($P(^DPT(APCDPGPT,0),U),",",2)," ",$P($P(^(0),U),","),"'s GOAL List.",!
+ S DA=APCDPIEN,DIC="^AUPNGOAL(" D EN^DIQ
+ ;
+ W ! S DIR(0)="Y",DIR("A")="Are you sure you want to delete this GOAL",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) W !,"okay, not deleted." D PAUSE,EXIT Q
+ I 'Y W !,"Okay, not deleted." D PAUSE,EXIT Q
+ ;S DA=APCDPIEN,DIK="^AUPNGOAL(" D ^DIK K DA,DIE,DR
+ S DA=APCDPIEN,DIE="^AUPNGOAL(",DR="[APCDPG DELETE GOAL]",DIE("NO^")=1 D ^DIE K DIE,DA,DR
+ D PAUSE,EXIT,^XBFMK
+ Q
+AN ;EP - add a step, called from protocol
+ NEW APCDPIEN
+ D GETGOAL
+ I 'APCDPIEN D PAUSE,EXIT Q
+ D NO1^APCDPG2
+ D EXIT
+ Q
+MN ;EP - called from protocol to modify a step
+ NEW APCDPIEN
+ D GETGOAL
+ I 'APCDPIEN D PAUSE,EXIT Q
+ D MN1^APCDPG2
+ D PAUSE,EXIT
+ Q
+RNO ;EP - called from protocol to remove a step
+ D FULL^VALM1
+ W !!,"PLEASE NOTE:  Steps should only be deleted if they were entered in error."
+ W !,"If you want to mark the step as completed or if you want to change this step,"
+ W !,"use the ES (Edit Step) action to mark the step as Met if it is complete or "
+ W !,"Stopped if this step is being replaced with another step.",!!
+ S DIR(0)="Y",DIR("A")="Do you wish to continue",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EXIT Q
+ I 'Y D EXIT Q
+ NEW APCDPIEN
+ D GETGOAL
+ I 'APCDPIEN D PAUSE,EXIT Q
+ D RNO1^APCDPG2
+ D PAUSE,EXIT
+ Q
+HS ;EP - called from protocol to display health summary
+ D FULL^VALM1
+ S X="" I DUZ(2),$D(^APCCCTRL(DUZ(2),0))#2 S X=$P(^(0),U,3) I X,$D(^APCHSCTL(X,0)) S X=$P(^APCHSCTL(X,0),U)
+ I $D(^DISV(DUZ,"^APCHSCTL(")) S Y=^("^APCHSCTL(") I $D(^APCHSCTL(Y,0)) S X=$P(^(0),U,1)
+ S:X="" X="ADULT REGULAR"
+ K DIC,DR,DD S DIC("B")=X,DIC="^APCHSCTL(",DIC(0)="AEMQ" D ^DIC K DIC,DA,DD,D0,D1,DQ
+ I Y=-1 D PAUSE,EXIT Q
+ S APCHSTYP=+Y,APCHSPAT=APCDPGPT
+ S APCDHDR="PCC Health Summary for "_$P(^DPT(APCDPGPT,0),U)
+ D VIEWR^XBLM("EN^APCHS",APCDHDR)
+ S (DFN,Y)=APCDPGPT D ^AUPNPAT
+ K APCHSPAT,APCHSTYP,APCHSTAT,APCHSMTY,AMCHDAYS,AMCHDOB,APCDHDR
+ D EXIT
+ Q
+DD ;EP - called from protocol to display (DIQ) a GOAL in detail
+ NEW APCDPIEN
+ D GETGOAL
+ I 'APCDPIEN D PAUSE,EXIT Q
+ D DIQ^XBLM(9000093,APCDPIEN)
+ D EXIT
+ Q
+FS ;EP -called from protcol to display face sheet
+ D FULL^VALM1
+ S APCDHDR="Demographic Face Sheet For "_$P(^DPT(APCDPGPT,0),U)
+ D VIEWR^XBLM("START^AGFACE",APCDHDR)
+ K AGOPT,AGDENT,AGMVDF,APCDHDR
+ D EXIT
+ Q
+PAUSE ;EP
+ S DIR(0)="EO",DIR("A")="Press return to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q
+GETNUM(P) ;EP - get GOAL number given ien of GOAL entry
+ NEW N,F
+ S N=""
+ I 'P Q N
+ I '$D(^AUPNGOAL(P,0)) Q N
+ S F=$P(^AUPNGOAL(P,0),U,6)
+ S N=$S($P(^AUTTLOC(F,0),U,7)]"":$J($P(^(0),U,7),4),1:"??")_$P(^AUPNGOAL(P,0),U,7)
+ Q N
+EXIT ;
+ D TERM^VALM0
+ S VALMBCK="R"
+ D GATHER^APCDPG
+ S VALMCNT=APCDLINE
+ D HDR^APCDPG
+ K APCDTEMP,APCDPRMT,APCDP,APCDPIEN,APCDAF,APCDF,APCDP0,APCDPRB
+ D KDIE
+ Q
+REVE ;
+ NEW APCDPIEN,APCDPAT
+ D GETGOAL
+ I 'APCDPIEN D PAUSE,EXIT Q
+ S APCDPAT=APCDPGPT
+ S:'$G(APCDLOC) APCDLOC=DUZ(2)
+ S:$G(APCDDATE)="" APCDDATE=APCDNDT
+ S DA=APCDPIEN,DIE="^AUPNGOAL(",DR=".05////^S X=$$NOW^XLFDT;.12////^S X=DUZ" D ^DIE
+ S APCDSS=$P(^AUPNGOAL(APCDPIEN,0),U,11)
+ I $P(^AUPNGOAL(APCDPIEN,0),U,1)="N" G REVE1
+ S DIR(0)="S^ME:GOAL MET;MA:MAINTAINING GOAL;S:GOAL STOPPED;N:NO CHANGE",DIR("A")="GOAL STATUS",DIR("B")=APCDSS KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EXIT Q
+ S APCDSS=Y
+ I APCDSS="N" G REVE1
+ S DR=".11////"_APCDSS_$S(APCDSS="MA":";.1",1:"")
+ S DA=APCDPIEN,DIE="^AUPNGOAL("
+ D ^DIE
+ K DIE,DR,DA
+REVE1 D REV
+ D EXIT
+ Q
+REV ;
+ W !!?3,"Review/Progress Notes currently on file for this goal:"
+ S APCDC=0 K APCDCM
+ I '$O(^AUPNGOAL(APCDPIEN,13,0)) W "  None recorded" G FM12
+ D EN^DDIOL($$REPEAT^XLFSTR("-",75),"","!?3")
+ S X=0 F  S X=$O(^AUPNGOAL(APCDPIEN,13,X)) Q:X'=+X  D
+ .S APCDC=APCDC+1,APCDCM(APCDC)=X
+ .W !?2,APCDC,")  ",$$DATE^APCDPG($P(^AUPNGOAL(APCDPIEN,13,X,0),U,1)),"  ",$P(^AUPNGOAL(APCDPIEN,13,X,0),U,2)
+FM12 ;
+ D EN^DDIOL("","","!!")
+ K DIR
+ S DIR(0)="S^A:Add a Review/Progress Note"_$S(APCDC:";E:Edit an Existing Review/Progress Note;D:Delete an Existing Review/Progress Note",1:"")_";N:No Change"
+ S DIR("A")="Which action",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G FM13
+ I Y="N" S APCDDONE=1 G FM13
+ S Y="FM"_Y
+ D @Y
+ G REV
+FM13 ; 
+ K Y,APCDC,APCDCM
+ Q
+ ;
+FME ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="N^1:"_APCDC_":0",DIR("A")="Edit Which One" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ K DIC,DA,DR
+ S DA(1)=APCDPIEN,DA=APCDCM(Y)
+ S DIE="^AUPNGOAL("_APCDPIEN_",13,",DIC("P")=$P(^DD(9000093,1300,0),U,2)
+ S DR=".02"
+ D ^DIE
+ D KDIE
+ Q
+FMD ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="N^1:"_APCDC_":0",DIR("A")="Delete Which One" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ K DIC,DA,DR
+ S DA(1)=APCDPIEN,DA=APCDCM(Y)
+ S DIE="^AUPNGOAL("_APCDPIEN_",13,",DIC("P")=$P(^DD(9000093,1300,0),U,2)
+ S DR=".01///@"
+ D ^DIE
+ D KDIE
+ Q
+FMA ;
+ ;GET DATE/TEXT
+ ;call FILE^DICN to file this POV
+ ;
+ S APCDREVD=""
+ S DIR(0)="D^:DT:EP",DIR("A")="Enter date of Review",DIR("B")=$$FMTE^XLFDT(DT) KILL DA D ^DIR KILL DIR
+ Q:$D(DIRUT)
+ S APCDREVD=Y
+ S APCDREVT=""
+ S DIR(0)="F^2:120",DIR("A")="Enter Review/Progress Note" KILL DA D ^DIR KILL DIR
+ Q:$D(DIRUT)
+ Q:Y=""
+ S APCDREVT=Y
+ ;now file
+ S DA=APCDPIEN,DIE="^AUPNGOAL(",DR="1300///"_$$FMTE^XLFDT(APCDREVD),DR(2,9000093.13)=".02////^S X=APCDREVT" D ^DIE K DIE,DA,DR
+ K DIC,DA,DR,Y,X
+ Q
+IG ;EP - called from protocol to display health summary
+ D FULL^VALM1
+ ;
+ S APCDHDR="Inactive (Met and Stopped Goals) for "_$P(^DPT(APCDPGPT,0),U)
+ D VIEWR^XBLM("IG1^APCDPG1",APCDHDR)
+ D CLEAR^VALM1
+ D EXIT
+ Q
+IG1 ;
+ ;LOOP THROUGH AND DISPLAY ALL INACTIVE GOALS USING DIQ
+ NEW APCDX,APCDY,APCDF
+ S APCDF=0 F  S APCDF=$O(^AUPNGOAL("AA",APCDPGPT,APCDF)) Q:APCDF'=+APCDF  D
+ .S APCDPGI="" F  S APCDPGI=$O(^AUPNGOAL("AA",APCDPGPT,APCDF,APCDPGI)) Q:APCDPGI=""  D
+ ..S APCDPIEN=$O(^AUPNGOAL("AA",APCDPGPT,APCDF,APCDPGI,"")),APCDP0=^AUPNGOAL(APCDPIEN,0)
+ ..Q:$P(APCDP0,U,1)="N"
+ ..Q:$P(APCDP0,U,11)="A"
+ ..Q:$P(APCDP0,U,11)="D"
+ ..Q:$P(APCDP0,U,11)="MA"
+ ..S APCDSTR="" D SET
+ ..D BUILD
+ Q
+SET ;set array
+ W APCDSTR,!
+ Q
+BUILD ; build array
+ NEW APCDSTR,APCDI,APCDII,APCDSTR,APCDAR,APCDF,APCDVREC,APCDV,APCDH,APCDSTR,APCDVFLE,APCDVNM,APCDVI,APCDNARR,APCDVDG,APCDVIGR,APCDJ,APCDF1,APCDVFC,APCDCTR
+ NEW F,F1,X,H
+ K APCDAR
+ S APCDSTR="",APCDCTR=0
+ S APCDH="Patient Name",APCDV=$E($P(^DPT($P(APCDP0,U,2),0),U),1,20) D BUILD1
+ S APCDSTR="" D SET
+GOAL ;
+ D GETS^DIQ(9000093,APCDPIEN_",","**","","APCDAR")
+ S APCDI=APCDPIEN_","
+ S F=9000093 F APCDF=.01,.03,.04,.06,.07,.08 I $G(APCDAR(F,APCDI,APCDF))]"" D
+ .Q:APCDF=".02"
+ .S APCDH=$P(^DD(F,APCDF,0),U)
+ .S APCDV=APCDAR(F,APCDI,APCDF)
+ .D BUILD1
+ .Q
+ ;GOAL TYPE
+ S F=9000093.01,APCDII=0
+ S APCDF="" F  S APCDII=$O(APCDAR(F,APCDII)) Q:APCDII=""  D
+ .S APCDF=0 F  S APCDF=$O(APCDAR(F,APCDII,APCDF)) Q:APCDF=""  D
+ ..S APCDH=$P(^DD(9000093.01,APCDF,0),U,1)
+ ..S APCDV=APCDAR(F,APCDII,APCDF)
+ ..D BUILD1
+ S F=9000093 F APCDF=1101,1201,.09,.1,.11,.05,.12 I $G(APCDAR(F,APCDI,APCDF))]"" D
+ .S APCDH=$P(^DD(F,APCDF,0),U)
+ .S APCDV=APCDAR(F,APCDI,APCDF)
+ .D BUILD1
+ .Q
+ ;STEPS
+ I $O(^AUPNGOAL(APCDPIEN,21,0)) S APCDSTR="" D SET S APCDSTR="Steps: " D SET
+ S F=9000093.211101,APCDII=0
+ S APCDF="" F  S APCDII=$O(APCDAR(F,APCDII)) Q:APCDII=""  D
+ .S APCDSTR="" D SET
+ .S APCDF=0 F  S APCDF=$O(APCDAR(F,APCDII,APCDF)) Q:APCDF=""  D
+ ..S APCDH=$P(^DD(F,APCDF,0),U,1)
+ ..S APCDV=APCDAR(F,APCDII,APCDF)
+ ..D BUILD1
+ ;STEPS
+ I $O(^AUPNGOAL(APCDPIEN,13,0)) S APCDSTR="" D SET S APCDSTR="Followup/Reviews: " D SET
+ S F=9000093.13,APCDII=0
+ S APCDF="" F  S APCDII=$O(APCDAR(F,APCDII)) Q:APCDII=""  D
+ .S APCDSTR="" D SET
+ .S APCDF=0 F  S APCDF=$O(APCDAR(F,APCDII,APCDF)) Q:APCDF=""  D
+ ..S APCDH=$P(^DD(F,APCDF,0),U,1)
+ ..S APCDV=APCDAR(F,APCDII,APCDF)
+ ..D BUILD1
+ S APCDSTR="" D SET
+ Q  ;
+BUILD1 ;
+ S APCDSTR=$E(APCDH,1,21)_":",APCDSTR=$$SETSTR^VALM1(APCDV,APCDSTR,24,$L(APCDV))
+ D SET
+ Q

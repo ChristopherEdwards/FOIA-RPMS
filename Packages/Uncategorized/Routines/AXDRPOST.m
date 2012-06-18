@@ -1,0 +1,98 @@
+AXDRPOST ; IHS OHPRD/LAB - IHS OHPRD/LAB - IHS OHPRD/LAB - POST INIT TO AXDR PACKAGE ; [ 07/26/94  8:09 AM ]
+ ;;7.2;IHS PATIENT MERGE;;MAR 29, 1994
+ ;
+ ;
+ ;caused by a bug in version 18 of fileman, routine DICR.
+START ;
+ W !!,"This post init will do the following:",!?5,"1).  Add several IHS specific options to the Kernel Merge utilities menu"
+ W !?5,"2)  Add several Patient Reg options to the Merge Menu"
+ W !?5,"3)  Re-index a cross reference on the Prescription file"
+ W !!,"This can be queued, if desired.",!
+QUEUE ;
+ K ZTSK
+ S DIR(0)="Y",DIR("A")="Do you want to QUEUE this to run in the background",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y=1 D TSKMN Q
+ I $D(DIRUT) W !,"Okay, you '^'ed out or timed out so I'm quitting.",! D XIT Q
+ D DRIVER
+ D XIT
+ Q
+TSKMN ;
+ S ZTIO="",ZTRTN="DRIVER^AXDRPOST",ZTDTH="",ZTDESC="AXDR PACKAGE POST-INIT" D ^%ZTLOAD D XIT K ZTSK Q
+XIT ;
+ K AXDRF,AXDRI,AXDRLAST,AXDRM,AXDRO,AXDRON,AXDRORD,AXDRQ,AXDRRG,AXDRSYN,AXDRTEXT,AXDRX,AXDRXX,AXDRY
+ K X,Y,DIE,DIU,DIV,DR,DA
+ Q
+DRIVER ;EP from taskman
+ D ADDMENU ;add menu options
+ D PSRX ;reindex APA on prescription file
+ D PACKAGE
+ D XIT
+ W:'$D(ZTQUEUED) !!,"Post init complete.",!
+ Q
+PACKAGE ;clean up old 20 nodes in package file to prevent error in merge
+ S AXDRX=0 F  S AXDRX=$O(^DIC(9.4,AXDRX)) Q:AXDRX'=+AXDRX  I $D(^DIC(9.4,AXDRX,20)) K ^DIC(9.4,AXDRX,20),^DIC(9.4,"AMRG",AXDRX)
+ K ^DIC(9.4,"AMRG")
+ ;RESET LAB MERGE ROUTINE IN PACKAGE
+ S AXDRX=$O(^DIC(9.4,"C","LR","")) G:'AXDRX SD
+ S ^DIC(9.4,AXDRX,20,0)="^9.402P^2^1"
+ S ^DIC(9.4,AXDRX,20,2,0)="2^^ALRMERG"
+ S ^DIC(9.4,AXDRX,20,2,1)="I $D(^DPT(XDRMRG(""FR""),""LR"")) S XDRZ=1"
+ S DA=AXDRX,DIK="^DIC(9.4," D IX1^DIK K DA,DIK
+SD ;RESET SD MERGE ROUTINE IN PACKAGE
+ S AXDRX=$O(^DIC(9.4,"C","SD","")) G:AXDRX="" CHS
+ S ^DIC(9.4,AXDRX,20,0)="^9.402P^2^1"
+ S ^DIC(9.4,AXDRX,20,2,0)="2^^SDZMERG"
+ S ^DIC(9.4,AXDRX,20,2,1)="I $D(^DPT(XDRMRG(""FR""),""S"")) S XDRZ=1"
+ S DA=AXDRX,DIK="^DIC(9.4," D IX1^DIK K DA,DIK
+CHS ;chs package
+ S AXDRX=$O(^DIC(9.4,"C","ACHS","")) Q:AXDRX=""
+ S ^DIC(9.4,AXDRX,20,0)="^9.402P^2^1"
+ S ^DIC(9.4,AXDRX,20,2,0)="2^^ACHSMERG"
+ S ^DIC(9.4,AXDRX,20,2,1)="D FR^ACHSMERG"
+ S DA=AXDRX,DIK="^DIC(9.4," D IX1^DIK K DA,DIK
+ Q
+PSRX ;reindex C on 52
+ W:'$D(ZTQUEUED) !!,"Re-indexing C xref on Prescription file.",!
+ S DIK="^PSRX(",DIK(1)="2^C" D ENALL^DIK
+ Q
+ADDMENU ;ADDS IHS SPECIFIC MENU OPTIONS
+ S AXDRM="XDR MAIN MENU"
+ S X=AXDRM,DIC="^DIC(19,",DIC(0)="L" D ^DIC Q:+Y<1  S AXDRRG=+Y K DIC,DA,DD
+ G:AXDRRG="" UTIL
+ W:'$D(ZTQUEUED) !!,"Options are being added to ",AXDRM,"...",!!
+ ;GET LAST IEN IN MULT
+ S X=0 F  S X=$O(^DIC(19,AXDRRG,10,X)) Q:X'=+X  S AXDRLAST=X
+ S AXDRTEXT="MAIN" F AXDRI=1:1 S AXDRX=$T(@AXDRTEXT+AXDRI),AXDRXX=$P(AXDRX,";;",2) Q:AXDRXX=""  D
+ .S AXDRSYN=$P(AXDRX,";;",3),AXDRORD=$P(AXDRX,";;",4),AXDRO=$P(AXDRX,";;",2)
+ .S AXDRON=$O(^DIC(19,"B",AXDRO,"")) Q:AXDRON=""
+ .Q:$D(^DIC(19,AXDRRG,10,"B",AXDRON))
+ .S AXDRLAST=AXDRLAST+1
+ .S ^DIC(19,AXDRRG,10,AXDRLAST,0)=AXDRON_U_AXDRSYN_U_AXDRORD
+ .S $P(^DIC(19,AXDRM,10,0),U,3)=AXDRLAST,$P(^(0),U,4)=AXDRLAST
+ .S DA=AXDRRG,DIK="^DIC(19," D IX1^DIK K DA,DIK
+UTIL ;
+ S AXDRM="XDR UTILITIES MENU"
+ S X=AXDRM,DIC="^DIC(19,",DIC(0)="L" D ^DIC Q:+Y<1  S AXDRRG=+Y K DIC,DA,DD
+ G:AXDRRG="" END
+ W:'$D(ZTQUEUED) !!,"Options are being added to ",AXDRM,"...",!!
+ ;GET LAST IEN IN MULT
+ S X=0 F  S X=$O(^DIC(19,AXDRRG,10,X)) Q:X'=+X  S AXDRLAST=X
+ S AXDRTEXT="UTILO" F AXDRI=1:1 S AXDRX=$T(@AXDRTEXT+AXDRI),AXDRXX=$P(AXDRX,";;",2) Q:AXDRXX=""  D
+ .S AXDRSYN=$P(AXDRX,";;",3),AXDRORD=$P(AXDRX,";;",4),AXDRO=$P(AXDRX,";;",2)
+ .S AXDRON=$O(^DIC(19,"B",AXDRO,"")) Q:AXDRON=""
+ .Q:$D(^DIC(19,AXDRRG,10,"B",AXDRON))
+ .S AXDRLAST=AXDRLAST+1
+ .S ^DIC(19,AXDRRG,10,AXDRLAST,0)=AXDRON_U_AXDRSYN_U_AXDRORD
+ .S $P(^DIC(19,AXDRRG,10,0),U,3)=AXDRLAST,$P(^(0),U,4)=AXDRLAST
+ .S DA=AXDRRG,DIK="^DIC(19," D IX1^DIK K DA,DIK
+END K AXDRM,AXDRRG,AXDRY,AXDRF,AXDRX,AXDRQ
+ K Y,X,DD,DIC,DA
+ Q
+ ;
+MAIN ;
+ ;;AGPAT;;PAT;;90
+ ;;AGVIEWONLY;;VIEW;;95
+ ;;AGSETSITE;;SITE;;99
+UTILO ;
+ ;;AXDR PRINT ALPHA PAT LIST;;APL;;90
+ ;;AXDR PRINT ALPHA SCORES;;APS;;95

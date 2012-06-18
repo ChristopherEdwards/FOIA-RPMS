@@ -1,0 +1,32 @@
+AMQQATL1 ; IHS/CMI/THL - OVERFLOW FROM AMQQATL ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;-----
+ZSET ; ENTRY POINT FROM AMQQSQL
+ I '$D(AMQQQ) Q
+ I AMQQQ[";INVERSE^" S Z="(INVERSE SET)" Q
+ I $G(AMQQSQNM)="RESULT/DIAGNOSIS" D  I $G(Z)]"" Q
+ . I AMQQQ[";ALL^" S Z=" (ALL)" Q
+ . I AMQQQ[";ANY^" S Z=" (ANY)" Q
+ . I AMQQQ[";EXISTS^" S Z=" (EXISTS)" Q
+ N AMQQZT,X,Y,N,J,I,%
+ S N=$P(AMQQQ,U,9)
+ S N=$P(N,";",4)
+ S (X,%)=""
+ F I=1:1:3 S X=$O(^UTILITY("AMQQ TAX",$J,N,X)) Q:X=""  I X'?1.P S AMQQZT=X D ZTRANS S %=%_AMQQZT_U
+ I %="" Q
+ S Y=" ("
+ F J=1,2 S X=$P(%,U,J) Q:X=""  S:J=2 Y=Y_"/" S Y=Y_X
+ I $P(%,U,3)'="" S Z=Y_"...)" Q
+ S Z=Y_")"
+ Q
+ ;
+ZTRANS N X,Y,N,J,I,% S X=AMQQZT
+ I "^266^297^679^"[(U_+AMQQQ_U) D  I 1
+ .S X=$P($$ICDDX^ICDCODE(X,"","",1),U,2)
+ .S AMQQZT=X
+ E  I +AMQQQ=302 S X=$P(^AUTTHF(X,0),U) S AMQQZT=X
+ E  I $D(^AMQQ(1,+AMQQQ,4,1,1)) X ^(1) S AMQQZT=X
+ S AMQQZT=$P(AMQQZT,",")
+ S AMQQZT=$E(AMQQZT,1,12)
+ Q
+ ;

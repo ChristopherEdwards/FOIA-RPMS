@@ -1,0 +1,169 @@
+ACRFPAYL ;IHS/DSD/THL,AEF - PAY LETTER [ 10/27/2004   4:15 PM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;**14**;NOV 05, 2001
+EN ;EP;TO PRINT VENDOR PAYMENT LETTERS
+ K ^TMP("ACRPAYL",$J)
+ D EN1
+EXIT K ACR,ACRTOT,ACRDUE,ACRDC,ACRACT,ACRJ,ACRY,ACRQUIT,ACROUT,ACRVDAX,ACRFYDA,ACRBATDA
+ K ^TMP("ACRPAYL",$J)
+ Q
+EN1 ;
+ Q:'$G(ACRFYDA)!'$G(ACRBATDA)
+ N ACRPTYPE
+ S ACRPTYPE=$P($G(^AFSLAFP(ACRFYDA,1,ACRBATDA,2)),U,8)
+ S ACRDUE=$P($G(^AFSLAFP(ACRFYDA,1,ACRBATDA,2)),U,2)
+ D GATHER
+ Q:'$D(^TMP("ACRPAYL",$J))
+ N ACRVDA
+ S ACRVDA=0
+ F  S ACRVDA=$O(^TMP("ACRPAYL",$J,ACRVDA)) Q:'ACRVDA!$D(ACRQUIT)  D PRINT
+ Q
+GATHER ;CREATE TEMP ARRAY OF VENDORS TO BE PAID FROM PAYMENT BATCH/SCHEDULE
+ N ACRSEQDA
+ S ACRSEQDA=0
+ F  S ACRSEQDA=$O(^AFSLAFP(ACRFYDA,1,ACRBATDA,1,ACRSEQDA)) Q:'ACRSEQDA  D
+ .S X=$P($G(^AFSLAFP(ACRFYDA,1,ACRBATDA,1,ACRSEQDA,0)),U,10)
+ .Q:'X
+ .I $G(ACRVDAX),ACRVDAX'=X Q
+ .S ^TMP("ACRPAYL",$J,X,ACRSEQDA)=""
+ Q
+PRINT ;EP;PRINT CONTENT OF EACH LETTER
+ D PHEADER
+ D LETTER
+ D PAYMENTS:'$D(ACRQUIT)
+ Q
+PHEADER ;PAYMENT LETTER HEADER
+ D FINANCE
+ D VENDOR
+ Q
+LETTER ;BODY OF LETTER
+ W !!!!?5,"The purpose of this letter is to inform you that"
+ W !?5,"the payment(s) listed below were sent to Treasury"
+ W !?5,"for direct deposit into your ",$G(ACRACT)," account."
+ W !!?5,"The payment(s) is scheduled for direct deposit to your"
+ S X1=ACRDUE
+ S X2=1
+ D C^%DTC
+ S Y=X
+ X ^DD("DD")
+ W !?5,ACRACT," account on ",Y," or the next business day"
+ W !?5,"if this is a weekend or holiday."
+ W !!?5,"If you have any questions concerning this payment,"
+ W !?5,"please call the Accounts Payable Section, Division of"
+ W !?5,"Financial Management at the number listed above."
+ S X=$O(^TMP("ACRPAYL",$J,ACRVDA,0))
+ I $O(^TMP("ACRPAYL",$J,ACRVDA,X)) D
+ .W !!?5,"Please note, this payment was made as a ",$S(ACRPTYPE="A":"GROUPED",1:"NON-GROUPED")," payment."
+ .W !?5
+ .I ACRPTYPE="A" W "Therefore, the TOTAL AMOUNT will be made as ONE deposit."
+ .E  W "Therefore, each amount will be made as a separate deposit."
+ W !
+ D PAUSE^ACRFWARN
+ Q
+PAYMENTS ;LIST ALL PAYMENTS
+ N X,Y,Z,ACRJ
+ S (ACRSEQDA,ACRJ,ACRTOT)=0
+ F  S ACRSEQDA=$O(^TMP("ACRPAYL",$J,ACRVDA,ACRSEQDA)) Q:'ACRSEQDA!$D(ACRQUIT)  D
+ .S X=$G(^AFSLAFP(ACRFYDA,1,ACRBATDA,1,ACRSEQDA,0))
+ .S Y=$G(^AFSLAFP(ACRFYDA,1,ACRBATDA,1,ACRSEQDA,1))
+ .S Z=$G(^AFSLAFP(ACRFYDA,1,ACRBATDA,1,ACRSEQDA,2))
+ .S ACRJ=ACRJ+1
+ .W !?2,ACRJ,?5,"ORDER NO...: ",$$DOC(ACRFYDA,ACRBATDA,ACRSEQDA),?40,"AMOUNT: ",$J($FN($P(X,U,11),"P,",2),12) ;ACR*2.1*14.01 IM12272
+ .S Z=$P(Z,U,2)
+ .S Z=$P(Z,"*",3,99)
+ .S Z=$TR(Z,"\","")
+ .W !?5,"INVOICE NO.: ",Z
+ .S ACRTOT=$G(ACRTOT)+$P(X,U,11)
+ .I IOSL-4<$Y D PAUSE^ACRFWARN K ACRQUIT D PAGE2
+ I ACRJ>1 D
+ .W !?40,"--------  ----------"
+ .W !?40,"TOTAL.: ",$J($FN($G(ACRTOT),"P,",2),12)
+ .D PAUSE^ACRFWARN
+ W @IOF
+ Q
+VENDOR ;PRINT VENDOR'S ADDRESS
+ N X,Y,Z,S
+ S X=$P($G(^AUTTVNDR(+$G(ACRVDA),0)),U)
+ S Y=$G(^AUTTVNDR(+$G(ACRVDA),13))
+ S Z=$G(^AUTTVNDR(+$G(ACRVDA),14))
+ S ACRACT=$P($G(^AUTTVNDR(+$G(ACRVDA),19)),U)
+ S ACRACT=$S(ACRACT="C":"CHECKING",1:"SAVINGS")
+ W !!!?5,X
+ W !?5,"ATTN: Accounts Receivable"
+ W !?5,$S($P(Z,U)]"":$P(Z,U),1:$P(Y,U))
+ I $P(Z,U,2)]""!($P(Y,U,10)]"") W !?5,$S($P(Z,U,2)]"":$P(Z,U,2),1:$P(Y,U,10))
+ W !?5,$S($P(Z,U,3)]"":$P(Z,U,3),1:$P(Y,U,2))
+ S S=$S($P(Z,U,4):$P(Z,U,4),1:$P(Y,U,3))
+ W ", ",$P($G(^DIC(5,+S,0)),U,2),"  "
+ W $S($P(Z,U,5)]"":$P(Z,U,5),1:$P(Y,U,4))
+ Q
+FINANCE ;PRINT FINANCE ADDRESS
+ N X,Y
+ S X=$P(^ACRPO(1,0),U,8)
+ S Y=$G(^AUTTPRG(+X,"DT"))
+ S X=$G(^AUTTPRG(+X,0))
+ W !!!!?35,"DEPARTMENT OF HEALTH AND HUMAN SERVICES"
+ W !?35,"INDIAN HEALTH SERVICE"
+ W !?35,$P(X,U)
+ W !?35,$P(Y,U)
+ W:$P(Y,U,2)]"" !?35,$P(Y,U,2)
+ W !?35,$P(Y,U,3),", ",$P($G(^DIC(5,+$P(Y,U,4),0)),U,2),"  ",$P(Y,U,5)
+ W !?35,$P(Y,U,6)
+ Q
+PAGE2 ;HEADER FOR PAGES 2 - X
+ S:'$G(ACRDC) ACRDC=1
+ W @IOF
+ W !?55,"Page: ",$G(ACRDC)+1
+ Q
+FY ;EP;SELECT FY & BATCH
+ D FYBAT^ACRFPAY2
+ Q:'$G(ACRFYDA)!'$G(ACRBATDA)
+ I '+$G(^AFSLAFP(ACRFYDA,1,ACRBATDA,2)) W !!,"Batch not yet exported." S ACRQUIT="" Q
+ D ZIS
+ Q
+ZIS ;EP;SELECT DEVICE      
+ D EXIT
+ D FYBAT^ACRFPAY2
+ Q:$D(ACRQUIT)
+ Q:'$G(ACRFYDA)!'$G(ACRBATDA)
+ D ONEV
+ Q:$D(ACRQUIT)
+ W !!,"Select the printer for the VENDOR PAYMENT NOTIFICATION LETTERS"
+ S (ZTRTN,ACRRTN)="EN^ACRFPAYL"
+ S ZTDESC="PRINT VENDOR PAYMENT LETTERS"
+ D ^ACRFZIS
+ Q
+ONEV ;TO SELECT PRINT FOR ONE VENDOR ONLY
+ S DIR(0)="YO"
+ S DIR("A",1)="Print NOTIFICAITON LETTERS"
+ S DIR("A")="for ALL Vendors"
+ S DIR("B")="YES"
+ W !
+ D DIR^ACRFDIC
+ Q:Y=1!$D(ACRQUIT)
+ S DIC="^AUTTVNDR("
+ S DIC(0)="AEMQZ"
+ S DIC("A")="Which VENDOR: "
+ S DIC("S")="I $D(^AFSLAFP(""E"",+Y,+$G(ACRFYDA),+$G(ACRBATDA)))"
+ W !
+ D DIC^ACRFDIC
+ Q:+Y<1
+ S ACRVDAX=+Y
+ Q
+DOC(D0,D1,D2)      ;EP  ;ACR*2.1*14.01 IM12272
+ ;----- EXTRINSIC FUNCTION TO PRINT EXPANDED DOCUMENT NUMBER
+ ;
+ ;      INPUT:
+ ;      D0  =  FISCAL YEAR IEN (ACRFDA)
+ ;      D1  =  BATCH IEN (ACRBATDA)
+ ;      D2  =  SEQUENCE NO. IEN (ACRSEQDA)
+ ;
+ ;      OUTPUT:
+ ;      Y  =  EXPANDED DOCUMENT NUMBER IF ARMS DOCUMENT,
+ ;            FREE TEXT DOCUMENT NUMBER IF NOT ARMS DOCUMENT
+ ;
+ N X,Y
+ S Y=$P($G(^AFSLAFP(D0,1,D1,1,D2,0)),U,20)
+ S X=$P($G(^AFSLAFP(D0,1,D1,1,D2,"ARMS")),U)
+ I X S X=$$EXPDN^ACRFUTL(X)
+ I X]"" S Y=X
+ Q Y

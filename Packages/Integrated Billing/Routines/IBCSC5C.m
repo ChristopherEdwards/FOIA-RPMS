@@ -1,0 +1,59 @@
+IBCSC5C	;ALB/ARH - ADD/EDIT RX REFILLS (CONTINUED)  ; 3/4/94
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	;;Per VHA Directive 10-93-142, this routine should not be modified.
+	;
+	;
+DEFAULT(IFN)	; add default DX and CPT to a Rx bill
+	N IBX,IBPAR1,IBDX,IBCPT,IBDT,IBBIL S IBPAR1=$G(^IBE(350.9,1,1)),IBDX=$P(IBPAR1,U,29),IBCPT=$P(IBPAR1,U,30) I 'IBDX,'IBCPT Q
+	S IBBIL=$G(^DGCR(399,+$G(IFN),0)) Q:IBBIL=""
+	S IBX=$O(^IBA(362.4,"C",IFN,0)) Q:'IBX  S IBDT=$P($G(^IBA(362.4,+IBX,0)),U,3) Q:'IBDT
+	I +IBDX,'$D(^IBA(362.3,"AIFN"_IFN,+IBDX)) S DIC="^IBA(362.3,",DIC(0)="L",DIC("DR")=".02////"_IFN,X=IBDX K DD,DO D FILE^DICN K DIC,DA,DR,DD,DO
+	I +IBCPT,'$D(^DGCR(399,IFN,"CP","B",IBCPT_";ICPT(")) D
+	. I $P(IBBIL,U,9)="" S DIE="^DGCR(399,",DA=IFN,DR=".09////4" D ^DIE K DIE,DIC,DA,DR
+	. I '$D(^DGCR(399,IFN,"CP",0)) S ^DGCR(399,IFN,"CP",0)="^399.0304AVI^"
+	. S DIC="^DGCR(399,"_IFN_",""CP"",",DIC(0)="L",DA(1)=IFN,X=IBCPT_";ICPT(",DIC("DR")="1////"_IBDT K DD,DO D FILE^DICN K DIC,DA,DD,DO,DR
+	Q
+	;
+RXDISP(DFN,DT1,DT2,ARRAY,POARR,RXARR)	; display all re refills for a patient and date range
+	;RXARR (as defined by SET^IBCSC5A) passed by ref. only to check if rx-refill is on the bill, not necessary not changed
+	;returns: ARRAY(RX #, REFILL DT) = RX IFN (52) ^ REFILL IFN ^ DRUG ^ DAYS SUPPLY ^ QTY ^ NDC, pass by reference if desired
+	;         POARR(CNT)=RX # ^ REFILL DT
+	N PIFN,RIFN,IBX,IBY,DTE,DTR,RX,IBCNT K ARRAY,POARR S POARR=0
+	S IBCNT=0,DT1=$G(DT1)-.0001,DT2=$G(DT2) S:'DT2 DT2=9999999 Q:'$G(DFN)
+	;^PS(55,DFN,"P","A",EXPIRATION DATE, RX) is the best xref available for finding patient refills in a date range
+	S DTE=DT1 F  S DTE=$O(^PS(55,DFN,"P","A",DTE)) Q:'DTE  D
+	. S PIFN=0 F  S PIFN=$O(^PS(55,DFN,"P","A",DTE,PIFN)) Q:'PIFN  D
+	.. S DTR=DT1 F  S DTR=$O(^PSRX(PIFN,1,"B",DTR)) Q:'DTR!(DTR>DT2)  D
+	... S RIFN=0 F  S RIFN=$O(^PSRX(PIFN,1,"B",DTR,RIFN)) Q:'RIFN  D
+	.... S IBX=$G(^PSRX(PIFN,0)),IBY=$G(^PSRX(PIFN,1,RIFN,0)) Q:IBY=""
+	.... S ARRAY($P(IBX,U,1),+IBY)=PIFN_U_RIFN_U_$P(IBX,U,6)_U_$P(IBX,U,8)_U_$P(IBY,U,4)_U_$P($G(^PSDRUG(+$P(IBX,U,6),2)),U,4)
+	S IBX="" F  S IBX=$O(ARRAY(IBX)) Q:IBX=""  S IBY=0 F  S IBY=$O(ARRAY(IBX,IBY)) Q:'IBY  D
+	. S IBCNT=IBCNT+1,POARR(IBCNT)=$P(IBX,U,1)_"^"_+IBY,POARR=IBCNT
+	;
+	W @IOF,?32,"PRESCRIPTION REFILLS",!,"==============================================================================",!
+	S IBX=+POARR,IBCNT=0 F  S IBCNT=$O(POARR(IBCNT)) Q:IBCNT=""  S RX=$P(POARR(IBCNT),U,1),DTR=$P(POARR(IBCNT),U,2) I RX'="",DTR'="" D
+	. S IBY="" I $D(RXARR(RX,+DTR)) S IBX=IBX-1,IBY="*"
+	. W !,$J(IBCNT,2),")",?5,IBY,?7,RX,?20,$P($G(^PSDRUG(+$P(ARRAY(RX,DTR),U,3),0)),U,1),?60,$$FMTE^XLFDT(+DTR)
+	S $P(POARR,U,2)=IBX
+	Q
+	;
+NEWRX(IBX)	;
+	Q:'$G(IBX)  N X,Y K IBLIST W !
+NEWRX1	S DIR("?")="Enter the number preceding the RX Refills you want added to the bill."
+	S DIR("A")="SELECT NEW RX REFILLS TO ADD THE THE BILL"
+	S DIR(0)="LO^1:"_+IBX D ^DIR K DIR G:'Y!$D(DIRUT) NEWRXE
+	S IBLIST=Y
+	;
+	S DIR("A")="YOU HAVE SELECTED "_IBLIST_" TO BE ADDED TO THE BILL IS THIS CORRECT",DIR("B")="YES"
+	S DIR(0)="YO" D ^DIR K DIR I $D(DIRUT) K IBLIST G NEWRXE
+	I 'Y G NEWRX1
+NEWRXE	Q
+	;
+ADDNEW(IBIFN,LIST,IBPR,IBPRO)	;
+	Q:'LIST  N IBI,IBX,IBRX,IBDT,IBQ,IBY,IBPIFN,IBZ
+	F IBI=1:1 S IBX=$P(LIST,",",IBI) Q:'IBX  I $D(IBPRO(IBX)) D
+	. S IBRX=$P(IBPRO(IBX),U,1),IBDT=$P(IBPRO(IBX),U,2) Q:IBRX=""
+	. S IBQ=0,IBY=$G(IBPR(IBRX,+IBDT)) Q:'IBY
+	. S IBPIFN=0 F  S IBPIFN=$O(^IBA(362.4,"AIFN"_IBIFN,IBRX,IBPIFN)) Q:'IBPIFN  I $P($G(^IBA(362.4,IBPIFN,0)),U,3)=IBDT S IBQ=1 Q
+	. I 'IBQ S IBZ=$G(IBPR(IBRX,IBDT)) I $$ADD^IBCSC5A(IBRX,IBIFN,IBDT,$P(IBZ,U,3),$P(IBZ,U,1),$P(IBZ,U,4,6)) W "."
+	Q

@@ -1,0 +1,213 @@
+BGP9DPAP ; IHS/CMI/LAB - COMP NATIONAL GPRA FOR PTS W/APPT ;
+ ;;9.0;IHS CLINICAL REPORTING;;JUL 1, 2009
+ ;
+EP ;EP - called from option interactive
+ D EOJ
+ W:$D(IOF) @IOF
+ S BGPCTRL=$O(^BGPCTRL("B",2009,0))
+ S X=0 F  S X=$O(^BGPCTRL(BGPCTRL,58,X)) Q:X'=+X  W !,^BGPCTRL(BGPCTRL,58,X,0)
+ ;W !!,"This option will produce a comprehensive National GPRA report for"
+ ;W !,"a selected set of patients.  You will be able to enter a search "
+ ;W !,"template of patients or enter individual patient names.",!
+PATS ;
+ W !,"Enter a patient's HRN or name (HORSECHIEF,JOHN DOE or HORSECHIEF,JOHN)."
+ W !,"A template can also be selected by typing a ""["" followed by"
+ W !,"the template name."
+ W !,"Entering ""[??"" will list your templates."
+ K DIR S DIR(0)="E",DIR("A")="PRESS ENTER" D ^DIR K DIR
+SELPT ;
+ K BGPSPAT
+ S BGPSMI=0
+ F  D  Q:U[X
+ .S DIR(0)="FOU",DIR("A")="Select patient(s)"
+ .S DIR("?",1)="     Enter a patient's HRN or name (HORSECHIEF,JOHN DOE or HORSECHIEF,JOHN).",DIR("?",2)=""
+ .S DIR("?",3)="     A template can also be selected by typing a ""["" followed by",DIR("?",4)="     the template name."
+ .S DIR("?",5)="",DIR("?")="     ""[??"" will list your templates.",DIR("??")="^D LIST^BGP9DPAP"
+ .D ^DIR K DIR
+ .S:X[U X=U
+ .I $E(X)="[" D  Q
+ .. S X=$E(X,2,$L(X))
+ .. K DIC S DIC=.401,DIC(0)=$S(X="":"AEMQ",1:"EMQ"),DIC("S")="I $P(^(0),U,4)=2!($P(^(0),U,4)=9000001),($P(^(0),U,5)=$G(DUZ))!(DUZ(0)=""@"")" D ^DIC
+ .. I Y>0 D
+ ... S BGPSPAT=0,Y=+Y F BGPMJ=0:1 S BGPSPAT=$O(^DIBT(Y,1,BGPSPAT)) Q:'BGPSPAT  S BGPSMI=BGPSMI+1,BGPSPAT(BGPSMI)=BGPSPAT
+ ... W !,BGPMJ,$S(BGPMJ=1:" entry",1:" entries")," added."
+ .K DIC S DIC=9000001,DIC(0)="EQM" D ^DIC
+ .I Y>0 S BGPSPAT=+Y,BGPSMI=BGPSMI+1,BGPSPAT(BGPSMI)=BGPSPAT
+ W !
+ I X=U K BGPSPAT W !,"All selections cancelled!"
+ I '$O(BGPSPAT("")) W !,"No patients selected." D EOJ Q
+ZIS ;
+ S BGPRTYPE=1,BGP9RPTH="",BGPCPPL=1,BGPINDT="G",BGP9GPU=1,BGPALLPT=1,BGPBEN=3
+ S BGPHOME=$P($G(^BGPSITE(DUZ(2),0)),U,2)
+ENDDATE ;
+ W !!
+ S X=$O(^BGPCTRL("B",2009,0))
+ S Y=^BGPCTRL(X,0)
+ S BGPBD=$P(Y,U,8),BGPED=$P(Y,U,9)
+ S BGPPBD=$P(Y,U,10),BGPPED=$P(Y,U,11)
+ S BGPBBD=$P(Y,U,12),BGPBED=$P(Y,U,13)
+ S BGPPER=$P(Y,U,14),BGPQTR=3
+ ;S BGPPER=""
+ ;K DIR S DIR(0)="DO^::EXP",DIR("A")="Enter End Date of the Report Period",DIR("B")="June 30, 2009"
+ ;D ^DIR G:Y<1 SELPT  S BGPUD=Y
+ ;K DIR
+ ;AI ;gather all gpra measures
+ S X=0 F  S X=$O(^BGPINDN("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
+ ;S BGPPER=3090630
+ ;S BGPED=""
+ ;I BGPUD=3090630 S BGPBD=3080701,BGPED=BGPUD,BGPPER=$E(BGPED,1,3)_"0000"
+ ;I BGPUD'=3090630 S BGPBD=$$FMADD^XLFDT(BGPUD,-364),BGPED=BGPUD,BGPPER=$E(BGPED,1,3)_"0000"
+ ;S BGPVDT=3000000
+ ;S X=$E(BGPPER,1,3)-$E(BGPVDT,1,3)
+ ;S X=X_"0000"
+ ;S BGPBBD=BGPBD-X,BGPBBD=$E(BGPBBD,1,3)_$E(BGPBD,4,7)
+ ;S BGPBED=BGPED-X,BGPBED=$E(BGPBED,1,3)_$E(BGPED,4,7)
+ ;S BGPPBD=($E(BGPBD,1,3)-1)_$E(BGPBD,4,7)
+ ;S BGPPED=($E(BGPED,1,3)-1)_$E(BGPED,4,7)
+ S BGPLIST="A"
+ S BGPCPLC=0
+ ;D REPORT^BGP9UTL
+ ;I $G(BGPQUIT) D EOJ Q
+ ;I BGPRPT="" D EOJ Q
+ S XBRP="PRINT^BGP9DPAP",XBRC="PROC^BGP9DPAP",XBRX="EOJ^BGP9DPAP",XBNS="BGP"
+ D ^XBDBQUE
+ Q
+EOJ ;
+ D ^XBFMK
+ K DIC,DIR,DFN
+ D EN^XBVK("BGP"),EN^XBVK("BSD"),EN^XBVK("AMQQ")
+ K ^TMP($J)
+ Q
+ ;
+TEST ;
+ D BDMG(1,3040101,3041231,13)
+ Q
+BDMG(BGPBD,BGPED,BGPCLN) ;EP - GUI DMS Entry Point
+ ;cmi/anch/maw added 10/19/2004
+ S BGPSD=$$FMADD^XLFDT(BGPBD,-1)_".9999"
+ S BGPGUI=1
+ N BGPOPT,BGPNOW,BGPIEN  ;maw
+ S BGPOPT="List Patients on a Register w/an Appointment"
+ S BGPRTYPE=1,BGP9RPTH="",BGPCPPL=1,BGPINDT="G",BGP9GPU=1
+ D NOW^%DTC
+ S BGPNOW=$G(%)
+ K DD,D0,DIC
+ S X=DUZ_$$NOW^XLFDT
+ S DIC("DR")=".02////"_DUZ_";.03////"_BGPNOW_";.06///"_$G(BGPOPT)_";.07////R"
+ S DIC="^BGPGUIN(",DIC(0)="L",DIADD=1,DLAYGO=9001004.4
+ D FILE^DICN
+ K DIADD,DLAYGO,DIC,DA
+ I Y=-1 S BGPIEN=-1 Q
+ S BGPIEN=+Y
+ S BDMGIEN=BGPIEN  ;cmi/maw added
+ D ^XBFMK
+ K ZTSAVE S ZTSAVE("*")=""
+ S ZTIO="",ZTDTH=$$NOW^XLFDT,ZTRTN="GUIEP^BGP9DPA",ZTDESC="GUI CN GRPA APPT" D ^%ZTLOAD
+ D EOJ
+ Q
+GUIEP ;EP
+ D PROC
+ K ^TMP($J,"BGP9DPAP")
+ S IOM=80
+ D GUIR^XBLM("PRINT^BGP9DPA","^TMP($J,""BGP9DPAP"",")
+ S X=0,C=0 F  S X=$O(^TMP($J,"BGP9DPAP",X)) Q:X'=+X  D
+ .S BGPDATA=^TMP($J,"BGP9DPAP",X)
+ .I BGPDATA="ZZZZZZZ" S BGPDATA=$C(12)
+ .S ^BGPGUIN(BGPIEN,11,X,0)=BGPDATA,C=C+1
+ S ^BGPGUIN(BGPIEN,11,0)="^^"_C_"^"_C_"^"_DT_"^"
+ S DA=BGPIEN,DIK="^BGPGUIN(" D IX1^DIK
+ D ENDLOG
+ K ^TMP($J,"BGP9DPAP")
+ S ZTREQ="@"
+ Q
+ ;
+ENDLOG ;-- write the end of the log
+ D NOW^%DTC
+ S BGPNOW=$G(%)
+ S DIE="^BGPGUIN(",DA=BGPIEN,DR=".04////"_BGPNOW_";.07////C"
+ D ^DIE
+ K DIE,DR,DA
+ Q
+ ;
+PROC ;
+ D JRNL^BGP9UTL
+ S BGPGPRAJ=$J,BGPGPRAH=$H
+ S BGPCHWC=0
+ S BGPCHSO=$P($G(^BGPSITE(DUZ(2),0)),U,6)
+ ;calculate 3 years before end of each time frame
+ S BGP3YE=$$FMADD^XLFDT(BGPED,-1096)
+ K ^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH)
+ S ^XTMP("BGP9DPAP",0)=$$FMADD^XLFDT(DT,14)_"^"_DT_"^"_"PTS WITH AN APPT"
+ K BGPAPPT,BGPAPPTS
+ S BGPSOX=0 F  S BGPSOX=$O(BGPSPAT(BGPSOX)) Q:BGPSOX'=+BGPSOX  D
+ .S DFN=BGPSPAT(BGPSOX)
+ .S BGPIISO=1,BGPISST="P" D PROCCY^BGP9D1
+ .Q
+ Q
+DONE ;
+ K DIR
+ I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of report.  PRESS ENTER" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ ;W:$D(IOF) @IOF
+ K BGPTS,BGPS,BGPM,BGPET
+ K ^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH)
+ Q
+ ;
+PRINT ;EP - called from xbdbque
+ S BGPIOSL=$S($G(BGPGUI):55,1:IOSL)
+ K BGPQ S BGPPG=0,BGPNOD=0
+ I '$D(^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH,"PATS")) D HEADER S BGPNOD=1 W !!,"NO DATA TO REPORT",! G DONE
+ D HEADER
+ S BGPNAME=0 F  S BGPNAME=$O(^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH,"PATS",BGPNAME)) Q:BGPNAME=""!($D(BGPQ))  D
+ .S DFN=0 F  S DFN=$O(^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH,"PATS",BGPNAME,DFN)) Q:DFN'=+DFN!($D(BGPQ))  D
+ ..I $Y>(BGPIOSL-8) D HEADER Q:$D(BGPQ)
+ ..W !!,$$HRN^AUPNPAT(DFN,DUZ(2)),?7,$E($P(^DPT(DFN,0),U),1,25),?38,$P(^DPT(DFN,0),U,2),?42,$$DATE^BGP9UTL($P(^DPT(DFN,0),U,3)),?51,$$COMMRES^AUPNPAT(DFN,"E")
+ ..S BGPI=0 F  S BGPI=$O(^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH,"PATS",BGPNAME,DFN,BGPI)) Q:BGPI'=+BGPI!($D(BGPQ))  D
+ ...I $Y>(IOSL-3) D HEADER Q:$D(BGPQ)
+ ...S BGPT=$P(^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH,"PATS",BGPNAME,DFN,BGPI),U)
+ ...S BGPT1=$P(^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH,"PATS",BGPNAME,DFN,BGPI),U,4)
+ ...S BGPX=$P(^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH,"PATS",BGPNAME,DFN,BGPI),U,2)
+ ...S BGPX1=$P(^XTMP("BGP9DPAP",BGPGPRAJ,BGPGPRAH,"PATS",BGPNAME,DFN,BGPI),U,3)
+ ...W !?1,BGPT
+ ...F X=1:1 S Y=$P(BGPX,"|",X) Q:Y=""  W:X=2 ?1,BGPT1 W ?28,Y,!
+ ...F X=1:1 S Y=$P(BGPX1,"|",X) Q:Y=""  W:X'=1 ! W ?28,Y
+ ...;W !?28,$P(BGPX,U,3)
+ ...;I BGPX1]"" W !?28,BGPX1
+ D DONE
+ Q
+HEADER ;EP
+ G:'BGPPG HEADER1
+ K DIR I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BGPQ="" Q
+HEADER1 ;
+ W:$D(IOF) @IOF S BGPPG=BGPPG+1
+ I $G(BGPGUI),BGPPG'=1 W !,"ZZZZZZZ"
+ W !?3,$P(^VA(200,DUZ,0),U,2),?35,$$FMTE^XLFDT(DT),?70,"Page ",BGPPG,!
+ W !!,$$CTR("Patient Listing with GPRA Measure Data",80),!
+ S X="Report End Date: "_$$FMTE^XLFDT(BGPED)
+ W $$CTR(X,80),!
+ W !,"HRN",?7,"PATIENT NAME",?38,"Sex",?42,"DOB",?51,"Community"
+ W !,$TR($J("",80)," ","-")
+ Q
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ K DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR("A")="End of report.  Press Enter",DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------
+LIST ;"??" help list
+ S BGPMK=0,BGPMJ=IOSL-3 F  S BGPMK=$O(BGPSPAT(BGPMK)) Q:'BGPMK  S BGPSPAT=BGPSPAT(BGPMK),X=$P(^AUPNPAT(BGPSPAT,0),U) D  Q:BGPMJ<0  W !,?2,X
+ . S BGPMJ=BGPMJ-1 Q:BGPMJ>0  S BGPMJ=IOSL-2
+ . K DIR S DIR(0)="E" D ^DIR I 'Y K DIRUT,DUOUT,DTOUT S BGPMJ=-1
+ . S X=" " K DIR Q
+ K BGPMK
+ Q

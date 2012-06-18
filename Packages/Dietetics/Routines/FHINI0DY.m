@@ -1,0 +1,112 @@
+FHINI0DY	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8765,2)
+	;;=.071^.088^^.018^^^^^^^^^10.619
+	;;^UTILITY(U,$J,112,8765,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8766,0)
+	;;=BF,DINNER,BEEF & EGG NOODLES,TODDLER,GERBER^BC-02039^6-oz.^170
+	;;^UTILITY(U,$J,112,8766,1)
+	;;=4.059^1.941^9.353^71.176^^^^11.765^.588^12.353^44.118^150^220^.747^.053^.147^^^1.765^.047
+	;;^UTILITY(U,$J,112,8766,2)
+	;;=.053^.941^^.053^^^^^^^^^180.588
+	;;^UTILITY(U,$J,112,8766,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8767,0)
+	;;=BF,DINNER,BEEF & EGG NOODLES,JR,BEECH-NUT STAGE 3^BC-02040^6-oz.^170
+	;;^UTILITY(U,$J,112,8767,1)
+	;;=2.529^2.824^7.882^65.882^^^^18.235^.5^^^^24.118^^^^^2570^^.029
+	;;^UTILITY(U,$J,112,8767,2)
+	;;=.053^.647
+	;;^UTILITY(U,$J,112,8767,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8768,0)
+	;;=BF,DINNER,BEEF & EGG NOODLES,GERBER THIRD FOOD^BC-02041^6-oz.^170
+	;;^UTILITY(U,$J,112,8768,1)
+	;;=2.824^2^8.941^65.294^^^^8.235^.412^8.824^35.294^91.765^15.882^.482^.041^.135^^^1.176^.041
+	;;^UTILITY(U,$J,112,8768,2)
+	;;=.041^.706^^.041^^^^^^^^^235.294
+	;;^UTILITY(U,$J,112,8768,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8769,0)
+	;;=BF,DINNER,BEEF & EGG NOODLES,BEECH-NUT STAGE 2^BC-02042^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8769,1)
+	;;=2.188^2.813^8.125^67.969^^^^14.063^.398^^^^15.625^^^^^3360.156^^.023
+	;;^UTILITY(U,$J,112,8769,2)
+	;;=.039^.625
+	;;^UTILITY(U,$J,112,8769,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8770,0)
+	;;=BF,DINNER,BEEF & EGG NOODLES,GERBER SECOND FOOD^BC-02043^4-oz.^113
+	;;^UTILITY(U,$J,112,8770,1)
+	;;=2.743^2.035^8.496^62.832^^^^7.965^.442^8.85^34.513^74.336^11.504^.451^.035^.142^^^.885^.035
+	;;^UTILITY(U,$J,112,8770,2)
+	;;=.044^.708^^.035^^^^^^^^^106.195
+	;;^UTILITY(U,$J,112,8770,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8771,0)
+	;;=BF,DINNER,BEEF STEW,BEECH-NUT TABLE TIME^BC-02044^6-oz.^170
+	;;^UTILITY(U,$J,112,8771,1)
+	;;=6.294^2.588^8.118^80^^^^25.294^.8^^^^182.941^^^^^1890^^.018
+	;;^UTILITY(U,$J,112,8771,2)
+	;;=.082^1.176
+	;;^UTILITY(U,$J,112,8771,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8772,0)
+	;;=BF,DINNER,BEEF SUPREME,BEECH-NUT STAGE 2^BC-02045^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8772,1)
+	;;=2.891^4.609^9.766^92.969^^^^14.063^.398^^^^25^^^^^1950^^.008
+	;;^UTILITY(U,$J,112,8772,2)
+	;;=.063^1.094
+	;;^UTILITY(U,$J,112,8772,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8773,0)
+	;;=BF,DINNER,CHICKEN & NOODLES,INST,HEINZ^BC-02046^6-tbsp.^14
+	;;^UTILITY(U,$J,112,8773,1)
+	;;=28.571^14.286^50^428.571^^^^171.429^6.429^^500^1150^250^2.857^.571^^^1071.429^0^.571
+	;;^UTILITY(U,$J,112,8773,2)
+	;;=.429^7.857^^.5
+	;;^UTILITY(U,$J,112,8773,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8774,0)
+	;;=BF,DINNER,CHICKEN & NOODLES,BEECH-NUT STAGE 3^BC-02047^6-oz.^170
+	;;^UTILITY(U,$J,112,8774,1)
+	;;=2.294^1.706^7.882^57.059^^^^25.294^.6^^^^25.294^^^^^1850^^.029
+	;;^UTILITY(U,$J,112,8774,2)
+	;;=.041^.706
+	;;^UTILITY(U,$J,112,8774,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8775,0)
+	;;=BF,DINNER,CHICKEN & NOODLES,GERBER THIRD FOOD^BC-02048^6-oz.^170
+	;;^UTILITY(U,$J,112,8775,1)
+	;;=2.412^1.353^8.412^55.294^^^^13.529^.412^^34.706^90.588^11.765^^^^^^1.765^.035
+	;;^UTILITY(U,$J,112,8775,2)
+	;;=.035^.824^^.059^^^^^^^^^111.176
+	;;^UTILITY(U,$J,112,8775,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8776,0)
+	;;=BF,DINNER,CHICKEN & NOODLES,BEECH-NUT STAGE 2^BC-02049^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8776,1)
+	;;=2.266^2.109^9.063^64.063^^^^25^.5^^^^18.75^^^^^2500^.781^.031
+	;;^UTILITY(U,$J,112,8776,2)
+	;;=.063^.859
+	;;^UTILITY(U,$J,112,8776,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8777,0)
+	;;=BF,DINNER,CHICKEN & NOODLES,GERBER SECOND FOOD^BC-02050^4-oz.^113
+	;;^UTILITY(U,$J,112,8777,1)
+	;;=2.478^1.239^8.761^56.637^^^^27.434^.265^7.965^40.708^78.761^14.159^.301^.018^.124^^^1.77^.027
+	;;^UTILITY(U,$J,112,8777,2)
+	;;=.044^.708^^.053^^^^^^^^^119.469
+	;;^UTILITY(U,$J,112,8777,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8778,0)
+	;;=BF,DINNER,CHICKEN & RICE,BEECH-NUT STAGE 2^BC-02051^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8778,1)
+	;;=1.875^2.188^8.203^60.156^^^^21.875^.5^^^^27.344^^^^^1820.313^^.023
+	;;^UTILITY(U,$J,112,8778,2)
+	;;=.031^.703
+	;;^UTILITY(U,$J,112,8778,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

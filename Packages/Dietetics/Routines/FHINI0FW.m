@@ -1,0 +1,116 @@
+FHINI0FW	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9729,2)
+	;;=.048^.669
+	;;^UTILITY(U,$J,112,9729,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9730,0)
+	;;=SOUPS,MINESTRONE,CAMPBELL'S^BC-03003^7.3-oz.^206
+	;;^UTILITY(U,$J,112,9730,1)
+	;;=1.408^1.019^4.757^33.495^^^^12.136^.485^^^75.728^354.854^^^^^1487.864^.971^.029
+	;;^UTILITY(U,$J,112,9730,2)
+	;;=.024^.485
+	;;^UTILITY(U,$J,112,9730,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9731,0)
+	;;=SOUPS,MINESTRONE,CAMPBELL'S EXPRESS^BC-03004^8.5-oz.^241
+	;;^UTILITY(U,$J,112,9731,1)
+	;;=1.411^.996^4.772^33.61^^^^12.033^.498^^^75.934^354.772^^^^^1487.967^1.245^.029
+	;;^UTILITY(U,$J,112,9731,2)
+	;;=.025^.498
+	;;^UTILITY(U,$J,112,9731,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9732,0)
+	;;=SOUPS,MINESTRONE,CHUNKY,CAMPBELL'S^BC-03005^9.5-oz.^269
+	;;^UTILITY(U,$J,112,9732,1)
+	;;=2.268^1.487^9.071^58.736^^^^30.112^.967^^^167.658^321.933^^^^^1752.045^2.23^.015
+	;;^UTILITY(U,$J,112,9732,2)
+	;;=.026^.409
+	;;^UTILITY(U,$J,112,9732,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9733,0)
+	;;=SOUPS,MINESTRONE,HOME COOKIN'^BC-03006^10.8-oz.^305
+	;;^UTILITY(U,$J,112,9733,1)
+	;;=1.803^.852^7.639^45.574^^^^26.23^.459^^^91.148^398.361^^^^^1447.869^1.639^.023
+	;;^UTILITY(U,$J,112,9733,2)
+	;;=.049^.59
+	;;^UTILITY(U,$J,112,9733,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9734,0)
+	;;=SOUPS,MINESTRONE,PROGRESSO^BC-03007^9.5-oz.^269
+	;;^UTILITY(U,$J,112,9734,1)
+	;;=2.23^1.115^8.178^55.762^^^^^^^^152.416^315.985
+	;;^UTILITY(U,$J,112,9734,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9735,0)
+	;;=SOUPS,MINESTRONE W/ ITALIAN SAUSAGE,PREGO^BC-03008^9.49-oz.^269
+	;;^UTILITY(U,$J,112,9735,1)
+	;;=2.416^3.123^6.283^62.825^^^^17.844^.558^^^119.703^434.944^^^^^2026.766^2.23^.052
+	;;^UTILITY(U,$J,112,9735,2)
+	;;=.093^.632
+	;;^UTILITY(U,$J,112,9735,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9736,0)
+	;;=SOUPS,MUSHROOM,CRM,CAMPBELL'S,R-T-S^BC-03009^7.3-oz.^206
+	;;^UTILITY(U,$J,112,9736,1)
+	;;=.922^3.301^3.738^48.544^^^^16.019^.34^^^40.291^433.495^^^^^0^0^.01
+	;;^UTILITY(U,$J,112,9736,2)
+	;;=.034^.243
+	;;^UTILITY(U,$J,112,9736,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9737,0)
+	;;=SOUPS,MUSHROOM,CRM,LOW NA,CAMPBELL'S^BC-03010^7.3-oz.^206
+	;;^UTILITY(U,$J,112,9737,1)
+	;;=1.117^4.66^5.874^69.903^^^^25.243^.388^^^37.379^17.961^^^^^0^0^.01
+	;;^UTILITY(U,$J,112,9737,2)
+	;;=.092^.388^^^^^^^6.796^1.359^^1.408
+	;;^UTILITY(U,$J,112,9737,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9738,0)
+	;;=SOUPS,MUSHROOM,CRM,SAVORY,CAMPBELL'S SOUP-FOR-ONE^BC-03011^7.5-oz.^213
+	;;^UTILITY(U,$J,112,9738,1)
+	;;=1.596^4.93^6.573^76.995^^^^19.249^.282^^^75.117^707.042^^^^^0^0^.014
+	;;^UTILITY(U,$J,112,9738,2)
+	;;=.061^.516
+	;;^UTILITY(U,$J,112,9738,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9739,0)
+	;;=SOUPS,MUSHROOM,CREAMY,CHUNKY,CAMPBELL'S^BC-03012^9.4-oz.^266
+	;;^UTILITY(U,$J,112,9739,1)
+	;;=1.541^7.03^3.985^85.338^^^^10.15^.639^^^32.707^406.391^^^^^0^.376^.026
+	;;^UTILITY(U,$J,112,9739,2)
+	;;=.113^1.128^^^^^^^4.511
+	;;^UTILITY(U,$J,112,9739,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9740,0)
+	;;=SOUPS,ONION,LOW NA,CAMPBELL'S^BC-03013^7.27-oz.^206
+	;;^UTILITY(U,$J,112,9740,1)
+	;;=.728^1.068^2.573^23.301^^^^10.68^.583^^^61.165^15.534^^^^^0^3.398^.034
+	;;^UTILITY(U,$J,112,9740,2)
+	;;=.068^.922
+	;;^UTILITY(U,$J,112,9740,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9741,0)
+	;;=SOUPS,PEA,GREEN,CAMPBELL'S^BC-03014^7.5-oz.^213
+	;;^UTILITY(U,$J,112,9741,1)
+	;;=3.239^1.221^10^63.85^^^^9.39^.751^^^128.638^368.545^^^^^24.883^0^.061
+	;;^UTILITY(U,$J,112,9741,2)
+	;;=.019^.423
+	;;^UTILITY(U,$J,112,9741,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9742,0)
+	;;=SOUPS,PEA,GREEN,LOW NA,CAMPBELL'S^BC-03015^7.5-oz.^213
+	;;^UTILITY(U,$J,112,9742,1)
+	;;=3.615^1.69^10.563^72.3^^^^11.268^.845^^^135.681^7.512^^^^^133.803^0^.075
+	;;^UTILITY(U,$J,112,9742,2)
+	;;=.033^.61
+	;;^UTILITY(U,$J,112,9742,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9743,0)
+	;;=SOUPS,PEA,SPLIT,LOW NA,CAMPBELL'S^BC-03016^7.3-oz.^206
+	;;^UTILITY(U,$J,112,9743,1)
+	;;=3.835^1.359^12.184^76.214^^^^12.136^.874^^62.136^149.515^9.223^^^^^465.049^1.456^.078
+	;;^UTILITY(U,$J,112,9743,2)
+	;;=.058^.874^^^^^^^2.913^1.214^^.194^^^^^1.942

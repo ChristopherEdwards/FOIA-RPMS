@@ -1,0 +1,116 @@
+FHINI0G8	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9892,2)
+	;;=9.696^8.929^4.464^.75^178.571^2.679^^^0^9.643^15.714^1.786^^^^^0
+	;;^UTILITY(U,$J,112,9892,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9893,0)
+	;;=SLENDER BARS,CARNATION,VANILLA^BC-03166^2-bars^56
+	;;^UTILITY(U,$J,112,9893,1)
+	;;=22.679^26.429^41.071^482.143^2.857^^^446.429^8.036^178.571^446.429^542.857^571.429^6.696^.893^.132^^2232.143^26.786^.679
+	;;^UTILITY(U,$J,112,9893,2)
+	;;=9.696^8.929^4.464^.75^178.571^2.679^^^0^9.821^16.071^.536
+	;;^UTILITY(U,$J,112,9893,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9894,0)
+	;;=SLENDER INST. DRY,CHOC^BC-03167^1.06-oz.^30
+	;;^UTILITY(U,$J,112,9894,1)
+	;;=15.667^2.333^74^346.667^3^^^166.667^15^266.667^333.333^1043.333^363.333^12.5^1.667^.013^^3333.333^50^1
+	;;^UTILITY(U,$J,112,9894,2)
+	;;=.3^16.667^6.667^1.333^333.333^.3^^^6.667^1.333^.667^.333^^^^^5
+	;;^UTILITY(U,$J,112,9894,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9895,0)
+	;;=SLENDER INST. DRY,DUTCH CHOC^BC-03168^1.06-oz.^30
+	;;^UTILITY(U,$J,112,9895,1)
+	;;=15.667^3^73.667^343.333^2.667^^^166.667^15^266.667^333.333^1140^360^12.5^1.667^.01^^3333.333^50^1
+	;;^UTILITY(U,$J,112,9895,2)
+	;;=.3^16.667^6.667^1.333^333.333^.3^^^6.667^1.667^1^.333^^^^^5.333
+	;;^UTILITY(U,$J,112,9895,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9896,0)
+	;;=SLENDER INST. DRY,FRENCH VANILLA^BC-03169^1.04-oz.^30
+	;;^UTILITY(U,$J,112,9896,1)
+	;;=16^.667^74^350^3^^^166.667^15^266.667^333.333^800^326.667^12.5^1.667^.013^^3333.333^50^1
+	;;^UTILITY(U,$J,112,9896,2)
+	;;=.3^16.667^6.667^1.333^333.333^.3^^^10^0^0^0^^^^^4.667
+	;;^UTILITY(U,$J,112,9896,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9897,0)
+	;;=BUTTER BUDS^BC-03170^2-tsp dry^4
+	;;^UTILITY(U,$J,112,9897,1)
+	;;=0^2.5^72.5^300^^^^^^^^75^4250^^^^^175
+	;;^UTILITY(U,$J,112,9897,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,9897,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9898,0)
+	;;=GARLIC SALT,MORTON^BC-03171^tsp.^4
+	;;^UTILITY(U,$J,112,9898,1)
+	;;=10^0^10^75^^^^250^^^^250^32500
+	;;^UTILITY(U,$J,112,9898,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9899,0)
+	;;=BUTTER,MOLLY MCBUTTER FLAVOR SPRINKLES^BC-03172^1/2-tsp.^1
+	;;^UTILITY(U,$J,112,9899,1)
+	;;=0^0^100^300^^^^^^^0^0^9000
+	;;^UTILITY(U,$J,112,9899,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,9899,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9900,0)
+	;;=CHEESE,MOLLY MCBUTTER FLAVOR SPRINKLES^BC-03173^1/2-tsp.^1
+	;;^UTILITY(U,$J,112,9900,1)
+	;;=0^0^100^400^^^^^^^500^0^6000
+	;;^UTILITY(U,$J,112,9900,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,9900,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9901,0)
+	;;=SOUR CREAM & BUTTER,MOLLY MCBUTTER FLAVOR SPRINKLES^BC-03174^1/2-tsp.^1
+	;;^UTILITY(U,$J,112,9901,1)
+	;;=0^0^100^400^^^^^^^500^1000^7000
+	;;^UTILITY(U,$J,112,9901,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,9901,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9902,0)
+	;;=SALT-FREE SEASONING BLEND,MRS. DASH,EXTRA SPICY^BC-03175^tsp.^3
+	;;^UTILITY(U,$J,112,9902,1)
+	;;=0^0^100^400^^^^^^133.333^266.667^1333.333^0
+	;;^UTILITY(U,$J,112,9902,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,9902,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9903,0)
+	;;=SALT-FREE SEASONING BLEND,MRS. DASH,LEMON & HERB^BC-03176^tsp.^3
+	;;^UTILITY(U,$J,112,9903,1)
+	;;=0^0^100^400^^^^^^133.333^333.333^1666.667^0
+	;;^UTILITY(U,$J,112,9903,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,9903,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9904,0)
+	;;=SALT-FREE SEASONING BLEND,MRS. DASH LOW PEPPER NO GARLIC^BC-03177^tsp.^3
+	;;^UTILITY(U,$J,112,9904,1)
+	;;=0^0^100^400^^^^^^133.333^333.333^1666.667^0
+	;;^UTILITY(U,$J,112,9904,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,9904,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9905,0)
+	;;=SALT FREE SEASONING BLEND,MRS. DASH,ORIGINAL^BC-03178^tsp.^3
+	;;^UTILITY(U,$J,112,9905,1)
+	;;=0^0^66.667^400^^^^^^133.333^266.667^1333.333^0
+	;;^UTILITY(U,$J,112,9905,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,9905,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9906,0)
+	;;=SALT-FREE SEASONING BLEND,MRS. DASH,TABLE^BC-03179^tsp.^3
+	;;^UTILITY(U,$J,112,9906,1)
+	;;=0^0^100^400^^^^^^133.333^266.667^^0
+	;;^UTILITY(U,$J,112,9906,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0

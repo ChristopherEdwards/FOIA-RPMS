@@ -1,0 +1,56 @@
+ABSPOSS2 ; IHS/FCS/DRS - ^ABSPEI printout,utils ; 
+ ;;1.0;PHARMACY POINT OF SALE;;JUN 21, 2001
+ Q
+INUSE ;EP - ABSPOSS1
+ D TEMPLATE("ABSP INSURERS")
+ Q
+ANY(TYPE) ;EP - ABSPOSS1
+ ; are there any records of relevance to be printed out?
+ ; We want to avoid a whole page that says only "No records to print"
+ I $D(ANY(TYPE)) Q ANY(TYPE) ; already figured this one out
+ N FILE,FIELD,COND,IEN,IENS,RETVAL,X
+ I TYPE="GRACE" S FILE=9002313.4,FIELD=100.08,COND="X]"""""
+ E  I TYPE="PREBILL"!(TYPE="NCPDP")!(TYPE="UN/BILLABLE") D
+ . S FILE=9002313.4,COND="X=1"
+ . I TYPE="PREBILL" S FIELD=105.99
+ . E  I TYPE="NCPDP" S FIELD=100.99
+ . E  I TYPE="UN/BILLABLE" S FIELD=2128.99
+ . E  D IMPOSS^ABSPOSUE("P","TI",9002313.4,,,$T(+0))
+ . S COND="X=1"
+ E  I TYPE="USERS" D
+ . S FILE=9002313.515,FIELD=.01,COND="X]"""""
+ E  I TYPE="WCOMP" D
+ . S FILE=9002313.4,FIELD=107.01,COND="X]"""""
+ E  D IMPOSS^ABSPOSUE("P","TI","Bad TYPE="_TYPE,,"ANY",$T(+0)) Q
+ ; Look for any record in 9002313.4 which meets condition
+ S (IEN,RETVAL)=0
+ I '$D(FILE) S FILE=9002313.4
+ F  S IEN=$$NEXT(IEN) Q:'IEN  D  Q:RETVAL
+ . N MSG
+ . S IENS=IEN_","
+ . S X=$$GET1^DIQ(FILE,IENS,FIELD,"E",,"MSG")
+ . I $D(MSG) D  S RETVAL=-1 Q
+ . . D ZWRITE^ABSPOS("FILE","IENS","FIELD","MSG")
+ . . D IMPOSS^ABSPOSUE("FM","TI","$$GET1^DIQ failed",,"ANY",$T(+0))
+ . S @("RETVAL="_COND)
+ Q RETVAL
+NEXT(IEN)          ;
+ I FILE=9002313.4 Q $O(^ABSPEI(IEN))
+ ; This FILE\1=9002313 trick won't work for every 9002313 file
+ I FILE\1=9002313 Q $O(^ABSP(FILE,IEN))
+ D IMPOSS^ABSPOSUE("P","TI","Bad value for FILE="_FILE,,"NEXT",$T(+0))
+ Q ""
+TEMPLATE(TEMPLATE,FILE,PRINTTEM) ;EP - from ABSPOSS*
+ N L,DIC,FLDS,BY,FR,TO,DIASKHD,DIPCRIT,PG,DHIT,DIOEND
+ N DCOPIES,IOP,DQTIME,DIS,DISUPNO,DISTOP,DISPAR
+ S L="",DIC=$S($D(FILE):FILE,1:9002313.4)
+ I $D(TEMPLATE) D
+ . S BY=TEMPLATE
+ . S:'$D(PRINTTEM) PRINTTEM=TEMPLATE
+ S BY="["_BY_"]",FLDS="["_PRINTTEM_"]"
+ S (FR,TO)=""
+ ; no - it doesn't seem to work the way we hoped it would
+ ; S IOP=$I
+ D EN1^DIP
+ W !
+ Q

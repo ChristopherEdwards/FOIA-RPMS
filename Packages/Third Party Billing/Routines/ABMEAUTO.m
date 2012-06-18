@@ -1,0 +1,105 @@
+ABMEAUTO ; IHS/ASDST/DMJ - AUTO APPROVE CLAIM ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;04/30/96 4:06 PM
+START ;START HERE
+ Q:'$G(ABMP("CDFN"))
+ Q:$D(^ABMDCLM(DUZ(2),ABMP("CDFN"),65))
+ S ABMPINS=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),"^",8)
+ Q:'$P($G(^ABMNINS(DUZ(2),+ABMPINS,1,+ABMP("VTYP"),0)),"^",13)
+ D ^ABMDEVAR
+ S ABMQUIET=1
+ D ERRIN^ABMDECK
+ Q:$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),0),"^",5)
+ D ^ABMDESM
+ S ABMAUTOF=1
+ D ^ABMDEBIL
+ I $D(^ABMDCLM(DUZ(2),ABMP("CDFN"),65)) D
+ .S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".04///U" D ^DIE
+ .K DR
+ .N I
+ .S I=0
+ .F  S I=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,I)) Q:'I  D
+ ..Q:$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,I,0),U,3)'="I"
+ ..S DA(1)=DA
+ ..S DIE="^ABMDCLM(DUZ(2),"_DA(1)_",13,"
+ ..S DA=I
+ ..S DR=".03////B"
+ ..D ^DIE
+ ..K DR
+ .K ^ABMDTMP(ABMP("CDFN"))
+ K ABMQUIET
+ Q
+ ; *********************************************************************
+AUTOUFMS ;EP - create/populate UFMS Cashiering Session
+ ;location
+ S ABMLOC=$$FINDLOC^ABMUCUTL
+ D ^XBFMK
+ S DIC="^ABMUCASH("
+ S DIC(0)="LMN"
+ S (X,DINUM)="`"_ABMLOC
+ D ^DIC
+ I Y<0 Q
+ S ABMLOC=+Y
+ ;
+ ;user
+ D ^XBFMK
+ S DA(1)=ABMLOC
+ S DIC="^ABMUCASH(DA(1),10,"
+ S DIC(0)="LMN"
+ S DIC("P")=$P(^DD(9002274.45,".02",0),U,2)
+ S (X,DINUM)="`"_$S(+$G(DUZ)'=0:DUZ,1:$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,4))
+ D ^DIC
+ I Y<0 Q
+ S ABMUSER=+Y
+ ;
+ ;sign in date
+ ;check for existing open session
+ I $D(^ABMUCASH(ABMLOC,10,ABMUSER,20,0)) D
+ .S ABMSDT=999999999
+ .S ABMSFLG=0
+ .F  S ABMSDT=$O(^ABMUCASH(ABMLOC,10,ABMUSER,20,ABMSDT),-1) Q:+ABMSDT=0  D  Q:ABMSFLG=1
+ ..Q:($P($G(^ABMUCASH(ABMLOC,10,ABMUSER,20,ABMSDT,0)),U,4)'="O")
+ ..S ABMSFLG=1
+ I +$G(ABMSDT)=0 D
+ .D ^XBFMK
+ .S DA(2)=ABMLOC
+ .S DA(1)=ABMUSER
+ .S DIC="^ABMUCASH("_DA(2)_",10,"_DA(1)_",20,"
+ .D NOW^%DTC
+ .S X=%
+ .S DIC(0)="LMO"
+ .S DIC("P")=$P(^DD(9002274.4502,".02",0),U,2)
+ .S DIC("DR")=".04////O"
+ .D ^DIC
+ .Q:Y<0
+ .S ABMSDT=+Y
+ ;
+ ;insurer type
+ D ^XBFMK
+ S DA(3)=ABMLOC
+ S DA(2)=ABMUSER
+ S DA(1)=ABMSDT
+ S DIC="^ABMUCASH("_DA(3)_",10,"_DA(2)_",20,"_DA(1)_",11,"
+ S DIC(0)="LM"
+ S DIC("P")=$P(^DD(9002274.45102,11,0),U,2)
+ S X=$P($G(^AUTNINS($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,8),2)),U)
+ S ABMP("INS")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,8)
+ D ^DIC
+ I +Y<0 Q
+ S ABMBA=+Y
+ ;
+ ;bill entry
+ D ^XBFMK
+ S DA(4)=ABMLOC
+ S DA(3)=ABMUSER
+ S DA(2)=ABMSDT
+ S DA(1)=ABMBA
+ S DIC="^ABMUCASH("_DA(4)_",10,"_DA(3)_",20,"_DA(2)_",11,"_DA(1)_",2,"
+ S X=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U)
+ S DIC(0)="LMO"
+ S DIC("P")=$P(^DD(9002274.4510211,2,0),U,2)
+ S DIC("DR")=".02////"_DUZ(2)_";.03////"_ABMP("BDFN")
+ K DD,DO
+ D FILE^DICN
+ K ABMAUTOF
+ Q

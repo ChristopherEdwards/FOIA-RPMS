@@ -1,0 +1,20 @@
+AGGPS1P1 ;VNGT/HS/ALA-Post Install for Patch 1 ; 30 Dec 2010  8:21 AM
+ ;;1.0;PATIENT REGISTRATION GUI;**1**;Nov 15, 2010
+ ;
+EN ; Find comments that contain the $C(13) control character
+ NEW DFN,TEXT,RGN
+ S DFN=0
+ F  S DFN=$O(^AUPNPAT(DFN)) Q:'DFN  D
+ . S RGN=0
+ . F  S RGN=$O(^AUPNPAT(DFN,13,RGN)) Q:'RGN  D
+ .. I ^AUPNPAT(DFN,13,RGN,0)[$C(13) D
+ ... S TEXT=^AUPNPAT(DFN,13,RGN,0)
+ ... S TEXT=$$CTRL^AGGUL1(TEXT)
+ ... S ^AUPNPAT(DFN,13,RGN,0)=TEXT
+ . S RGN=0
+ . F  S RGN=$O(^AUPNPAT(DFN,12,RGN)) Q:'RGN  D
+ .. I ^AUPNPAT(DFN,12,RGN,0)[$C(13) D
+ ... S TEXT=^AUPNPAT(DFN,12,RGN,0)
+ ... S TEXT=$$CTRL^AGGUL1(TEXT)
+ ... S ^AUPNPAT(DFN,12,RGN,0)=TEXT
+ Q

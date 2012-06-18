@@ -1,0 +1,32 @@
+ABSPOSK2 ; IHS/FCS/DRS - winnow POS data ;
+ ;;1.0;PHARMACY POINT OF SALE;;JUN 21, 2001
+ Q
+FIX57IDX ; EP - from 57^ABSPOSK
+ ; Clean up the NON-FILEMAN indexes from 9002313.57
+ ; ^ABSPTL("NON-FILEMAN","RXIRXR",RXI,RXR,N57)
+ ; ^ABSPTL("NON-FILEMAN","RXIRXR",category,RXI,RXR,N57)
+ ; ^ABSPTL("NON-FILEMAN","PCNDFN",PCNDFN,N57)
+ N ROOT S ROOT="^ABSPTL(""NON-FILEMAN"",""RXIRXR"")"
+ N RXI,RXR,N57
+ S RXI="" F  S RXI=$O(@ROOT@(RXI)) Q:'RXI  D
+ . S RXR="" F  S RXR=$O(@ROOT@(RXI,RXR)) Q:RXR=""  D
+ . . S N57=0 F  S N57=$O(@ROOT@(RXI,RXR,N57)) Q:'N57  D
+ . . . I '$D(^ABSPTL(N57)) D
+ . . . . K @ROOT@(RXI,RXR,N57)
+ ; at this point, RXI=the first "category"
+ N CAT S CAT=RXI
+ F  D  S CAT=$O(@ROOT@(CAT)) Q:CAT=""
+ . S RXI="" F  S RXI=$O(@ROOT@(CAT,RXI)) Q:'RXI  D
+ . . S RXR="" F  S RXR=$O(@ROOT@(CAT,RXI,RXR)) Q:RXR=""  D
+ . . . S N57="" F  S N57=$O(@ROOT@(CAT,RXI,RXR,N57)) Q:'N57  D
+ . . . . I '$D(^ABSPTL(N57)) D
+ . . . . . K @ROOT@(CAT,RXI,RXR,N57)
+ ; and now the PCNDFNs
+ S ROOT="^ABSPTL(""NON-FILEMAN"",""PCNDFN"")"
+ N PCNDFN S PCNDFN=0
+ F  S PCNDFN=$O(@ROOT@(PCNDFN)) Q:'PCNDFN  D
+ . S CAT="" F  S CAT=$O(@ROOT@(CAT,PCNDFN)) Q:CAT=""  D
+ . . S N57=0 F  S N57=$O(@ROOT@(CAT,PCNDFN,N57)) Q:'N57  D
+ . . . I '$D(^ABSPTL(N57)) D
+ . . . . K @ROOT@(CAT,PCNDFN,N57)
+ Q

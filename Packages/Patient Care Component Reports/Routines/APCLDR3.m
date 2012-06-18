@@ -1,0 +1,270 @@
+APCLDR3 ; IHS/CMI/LAB - patients dm list - chinle ;
+ ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;
+ ;
+START ;
+ D INFORM
+ D EXIT
+ D GETINFO
+ I $D(APCLQUIT) D EXIT Q
+ D ZIS
+ Q
+INFORM ;
+ W:$D(IOF) @IOF
+ W !,$$CTR($$LOC)
+ W !,$$CTR($$USR)
+ W !!,"This report will list patients who are on the diabetes register",!,"that you select.",!,"The following data items will be printed for each patient:  Name, HRN, DOB",!,"Community of Residence.",!
+ W !,"For each of the following tests the last value in the 4 months prior to the",!,"as of date you enter and the next most recent prior to that one will be",!,"displayed:"
+ W !?5,"Hbg A1C, BP, Total Cholesterol, HDL, LDL",!!
+ Q
+ ;
+GETINFO ;
+R ;
+ W !!,"Patients must be a member of the Diabetes Register in order to be included in",!,"this report.",!
+ S APCLREG=""
+ S DIC="^ACM(41.1,",DIC(0)="AEMQ",DIC("A")="Enter the Name of the DM Register: " D ^DIC
+ I Y=-1 W !,"No register selected." S APCLQUIT="" Q
+ S APCLREG=+Y
+ ;get status
+ S APCLSTAT=""
+ S DIR(0)="Y",DIR("A")="Do you want to select register patients with a particular status",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G R
+ I Y=0 S APCLSTAT="" G PCP
+ ;which status
+ S DIR(0)="9002241,1",DIR("A")="Which status",DIR("B")="A" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G R
+ S APCLSTAT=Y,APCLSTAR=Y(0)
+PCP ;
+ S APCLPCP=""
+ S DIR(0)="Y",DIR("A")="Limit the report to a particular Designated Primary Care Provider ",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G R
+ I 'Y G EDATE
+ K DIC S DIC=$S($P(^DD(9000001,.14,0),U,2)[200:200,1:6),DIC(0)="AEMQ" D ^DIC K DIC
+ I Y=-1 G PCP
+ S APCLPCP=+Y
+EDATE ;get visit date range for functional assessment
+ S APCLED=""
+ K DIR W ! S DIR(0)="D^::EXP",DIR("A")="Enter As of Date for 4 month period"
+ D ^DIR K DIR G:Y<1 PCP S APCLED=Y,APCLEDD=$$FMTE^XLFDT(APCLED)
+ S APCLBD=$$FMADD^XLFDT(APCLED,-(4*30.5))
+ S APCLSD=$$FMADD^XLFDT(APCLBD,-1)
+ ;
+ Q
+ZIS ;call to XBDBQUE
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G EDATE
+ S XBRP="PRINT^APCLDR31",XBRC="PROC^APCLDR3",XBRX="EXIT^APCLDR3",XBNS="APCL"
+ D ^XBDBQUE
+ D EXIT
+ Q
+EXIT ;clean up and exit
+ K A,B,C,P,X,Y
+ D EN^XBVK("APCL")
+ D ^XBFMK
+ D KILL^AUPNPAT
+ Q
+ ;
+PROC ;EP - called from XBDBQUE
+ S APCLJOB=$J,APCLBTH=$H
+ K ^XTMP("APCLDR3",APCLJOB,APCLBTH)
+ D XTMP^APCLOSUT("APCLDR3","DM LIST DM PATIENTS")
+ D REGPROC
+ Q
+REGPROC ;
+ S X=0 F  S X=$O(^ACM(41,"B",APCLREG,X)) Q:X'=+X  D
+ .I APCLSTAT]"",$P($G(^ACM(41,X,"DT")),U,1)=APCLSTAT S DFN=$P(^ACM(41,X,0),U,2) D CHKSET Q
+ .I APCLSTAT="" S DFN=$P(^ACM(41,X,0),U,2) D CHKSET Q
+ .Q
+ Q
+CHKSET ;
+ Q:$$DOD^AUPNPAT(DFN)]""
+ Q:$$DEMO^APCLUTL(DFN,$G(APCLDEMO))
+ ;I APCLPCP,$P(^AUPNPAT(DFN,0),U,14)'=APCLPCP Q
+ S P=$$VAL^XBDIQ1(9000001,DFN,.14),P=$S(P]"":P,1:"???")
+ S P1=$$VALI^XBDIQ1(9000001,DFN,.14)
+ S C=$$COMMRES^AUPNPAT(DFN,"E"),C=$S(C]"":C,1:"???")
+ S ^XTMP("APCLDR3",APCLJOB,APCLBTH,"PATIENTS",P,C,$P(^DPT(DFN,0),U),DFN)=$S(P1:P1,1:"???")
+ Q
+C(X,X2,X3) ;
+ D COMMA^%DTC
+ Q X
+DATE(B) ;
+ I $G(B)="" Q ""
+ Q $E(B,4,5)_"/"_$E(B,6,7)_"/"_$E(B,2,3)
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ NEW DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------
+POST ;EP
+ S X=$$ADD^XPDMENU("APCL M MAIN DM MENU","APCL DM PTS 4 MONTHS","DMV")
+ I 'X W "Attempt to add Patients w/selected values in 4 months option failed.." H 3
+ Q
+SUBTOT ;EP
+ Q:'APCLWR
+ S APCLSUB=""
+ I $Y>(APCLIOSL-9) D HEAD^APCLDR31 Q:$D(APCLQ)
+ W !,"Subtotals for "_$E(APCLP,1,16)_": ",?37,"# Patients",?50," # w/item done",?70,"%"
+ W !?2,"Last Clinic Visit",?38,$J($$C(APCLSTOT(0),0,8),9),?52,$J($$C($G(APCLSTOT(1)),0,8),9)
+ S X=($G(APCLSTOT(1))/APCLSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"Blood Pressure",?38,$J($$C(APCLSTOT(0),0,8),9),?52,$J($$C($G(APCLSTOT(2)),0,8),9)
+ S X=($G(APCLSTOT(2))/APCLSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"HGB A1C",?38,$J($$C(APCLSTOT(0),0,8),9),?52,$J($$C($G(APCLSTOT(3)),0,8),9)
+ S X=($G(APCLSTOT(3))/APCLSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"Total Cholesterol",?38,$J($$C(APCLSTOT(0),0,8),9),?52,$J($$C($G(APCLSTOT(4)),0,8),9)
+ S X=($G(APCLSTOT(4))/APCLSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"LDL Cholesterol",?38,$J($$C(APCLSTOT(0),0,8),9),?52,$J($$C($G(APCLSTOT(5)),0,8),9)
+ S X=($G(APCLSTOT(5))/APCLSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"HDL Cholesterol",?38,$J($$C(APCLSTOT(0),0,8),9),?52,$J($$C($G(APCLSTOT(6)),0,8),9)
+ S X=($G(APCLSTOT(6))/APCLSTOT(0))*100
+ W ?67,$J(X,6,2)
+ K APCLSUB
+ Q
+FINH ;
+ W !,$$CTR("Value Totals/Comparisons for: "_APCLP,80),!
+ W !?35,"PROVIDER SPECIFIC",?56,"TOTAL REGISTER",!
+ W ?35,"# pats",?48,"%",?56,"# pats",?68,"%",!
+ Q
+FINTOT ;EP
+ S APCLFINL=""
+ ;print page for each provider from APCLHGB, ETC
+ S APCLP="" F  S APCLP=$O(APCLTHGB(APCLP)) Q:APCLP=""!($D(APCLQ))  D
+ .S APCLP1="" F  S APCLP1=$O(APCLTHGB(APCLP,APCLP1)) Q:APCLP1=""  D FINTOT1
+ Q
+FINTOT1 ;
+ I APCLPCP,APCLP1'=APCLPCP Q
+ ;header, then print and calculate
+ D HEAD^APCLDR31
+ Q:$D(APCLQ)
+ D FINH
+ S APCLTOTP=$P(APCLTHGB,U),APCLTOPP=$P(APCLTHGB(APCLP,APCLP1),U)
+ W !,"Total Number of Patients",?33,$J($$C(APCLTOPP,0,8),9),?53,$J($$C(APCLTOTP,0,8),9),!
+ W !,"Blood Glucose Control"
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTHGB(APCLP,APCLP1),U,2),APCLTN=$P(APCLTHGB,U,2) W !?2,"HbA1c <7.0" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTHGB(APCLP,APCLP1),U,3),APCLTN=$P(APCLTHGB,U,3) W !?8,"7.0-7.9" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTHGB(APCLP,APCLP1),U,4),APCLTN=$P(APCLTHGB,U,4) W !?8,"8.0-8.9" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTHGB(APCLP,APCLP1),U,5),APCLTN=$P(APCLTHGB,U,5) W !?8,"9.0-9.9" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTHGB(APCLP,APCLP1),U,6),APCLTN=$P(APCLTHGB,U,6) W !?8,"10.0-10.9" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTHGB(APCLP,APCLP1),U,7),APCLTN=$P(APCLTHGB,U,7) W !?8,"11.0 or higher" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTHGB(APCLP,APCLP1),U,8),APCLTN=$P(APCLTHGB,U,8) W !?8,"Tested but no value" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTHGB(APCLP,APCLP1),U,9),APCLTN=$P(APCLTHGB,U,9) W !?8,"Not tested in 4 months" D W
+FINBP ;
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ W !!,"Blood Pressure Control"
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTBP(APCLP,APCLP1),U,2),APCLTN=$P(APCLTBP,U,2) W !?8,"<120/80" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTBP(APCLP,APCLP1),U,3),APCLTN=$P(APCLTBP,U,3) W !?8,"120/80-<130/85" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTBP(APCLP,APCLP1),U,4),APCLTN=$P(APCLTBP,U,4) W !?8,"130/85-<140/90" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTBP(APCLP,APCLP1),U,5),APCLTN=$P(APCLTBP,U,5) W !?8,"140/90-<160/95" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTBP(APCLP,APCLP1),U,6),APCLTN=$P(APCLTBP,U,6) W !?8,"160/95 or higher" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTBP(APCLP,APCLP1),U,7),APCLTN=$P(APCLTBP,U,7) W !?8,"Not tested in 4 months" D W
+FINLDL ;
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ W !!,"LDL Cholesterol"
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTLDL(APCLP,APCLP1),U,2),APCLTN=$P(APCLTLDL,U,2) W !?8,"<100 mg/dl" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTLDL(APCLP,APCLP1),U,3),APCLTN=$P(APCLTLDL,U,3) W !?8,"100-129 mg/dl" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTLDL(APCLP,APCLP1),U,4),APCLTN=$P(APCLTLDL,U,4) W !?8,"130-160 mg/dl" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTLDL(APCLP,APCLP1),U,5),APCLTN=$P(APCLTLDL,U,5) W !?8,">160 mg/dl" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTLDL(APCLP,APCLP1),U,6),APCLTN=$P(APCLTLDL,U,6) W !?8,"Tested but no value" D W
+ I $Y>(APCLIOSL-4) D HEAD^APCLDR31 Q:$D(APCLQ)  D FINH
+ S APCLPN=$P(APCLTLDL(APCLP,APCLP1),U,7),APCLTN=$P(APCLTLDL,U,7) W !?8,"Not tested in 15 months" D W
+ Q
+W ;
+ W ?33,$J($$C(APCLPN,0,8),9),?45,$$PER(APCLPN,APCLTOPP),?53,$J($$C(APCLTN,0,8),9),?65,$$PER(APCLTN,APCLTOTP)
+ Q
+PER(N,D) ;n=numerator, d=denominator
+ I $G(D)="" Q ""
+ I $G(D)=0 Q ""
+ NEW X,Y,Z
+ S X=N/D,X=X*100,X=$J(X,5,1)
+ Q X
+ ;
+TEST ;
+ D BDMG(1,"A",,DT,"ACTIVE")
+ Q
+BDMG(APCLREG,APCLSTAT,APCLPCP,APCLED,APCLSTAR) ;EP - GUI DMS Entry Point
+ ;cmi/anch/maw added 10/19/2004
+ S APCLEDD=$$FMTE^XLFDT(APCLED)
+ S APCLGUI=1
+ S APCLBD=$$FMADD^XLFDT(APCLED,-(4*30.5))
+ S APCLSD=$$FMADD^XLFDT(APCLBD,-1)
+ S APCLPCP=$G(APCLPCP)
+ NEW APCLNOW,APCLOPT,APCLIEN
+ S APCLOPT="DM Register Patients and Select Values in 4 Months"
+ D NOW^%DTC
+ S APCLNOW=$G(%)
+ K DD,DO,DIC
+ S X=DUZ_APCLNOW
+ S DIC("DR")=".02////"_DUZ_";.03////"_APCLNOW_";.06///"_$G(APCLOPT)_";.07////R"
+ S DIC="^APCLGUIR(",DIC(0)="L",DIADD=1,DLAYGO=9001004.4
+ D FILE^DICN
+ K DIADD,DLAYGO,DIC,DA
+ I Y=-1 S APCLIEN=-1 Q
+ S APCLIEN=+Y
+ S BDMGIEN=APCLIEN  ;cmi/maw added
+ D ^XBFMK
+ K ZTSAVE S ZTSAVE("*")=""
+ ;D GUIEP for interactive testing
+ S ZTIO="",ZTDTH=$$NOW^XLFDT,ZTRTN="GUIEP^APCLDR3",ZTDESC="GUI DM 4 MONTHS" D ^%ZTLOAD
+ D EXIT
+ Q
+GUIEP ;EP
+ D PROC
+ K ^TMP($J,"APCLDR3")
+ S IOM=80
+ D GUIR^XBLM("PRINT^APCLDR31","^TMP($J,""APCLDR3"",")
+ S X=0,C=0 F  S X=$O(^TMP($J,"APCLDR3",X)) Q:X'=+X  D
+ .S APCLDATA=^TMP($J,"APCLDR3",X)
+ .I APCLDATA="ZZZZZZZ" S APCLDATA=$C(12)
+ .S ^APCLGUIR(APCLIEN,11,X,0)=APCLDATA,C=C+1
+ S ^APCLGUIR(APCLIEN,11,0)="^^"_C_"^"_C_"^"_DT_"^"
+ S DA=APCLIEN,DIK="^APCLGUIR(" D IX1^DIK
+ D ENDLOG
+ K ^TMP($J,"APCLDR3")
+ D EXIT
+ S ZTREQ="@"
+ Q
+ ;
+ENDLOG ;-- write the end of the log
+ D NOW^%DTC
+ S APCLNOW=$G(%)
+ S DIE="^APCLGUIR(",DA=APCLIEN,DR=".04////"_APCLNOW_";.07////C"
+ D ^DIE
+ K DIE,DR,DA
+ Q

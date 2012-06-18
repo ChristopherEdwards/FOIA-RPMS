@@ -1,0 +1,15 @@
+^MV.SYS
+ZWR
+^MV.SYS("A",1)="GOLDB"
+^MV.SYS("A",2)="DþþGOLDBþþþþþþþþþ0"
+^MV.SYS("B",0)="0"
+^MV.SYS("C",0)="0"
+^MV.SYS("F",0)="0"
+^MV.SYS("F",0,"^COMO")="&COMO&"
+^MV.SYS("F",0,"^DICT.COMO")="DICT &COMO&"
+^MV.SYS("F",0,"^DICT.PH")="DICT &PH&"
+^MV.SYS("F",0,"^DICT.SAVEDLISTS")="DICT &SAVEDLISTS&"
+^MV.SYS("F",0,"^DICT.VOC")="DICT VOC"
+^MV.SYS("F",0,"^PH")="&PH&"
+^MV.SYS("F",0,"^SAVEDLISTS")="&SAVEDLISTS&"
+^MV.SYS("X",0)="0"

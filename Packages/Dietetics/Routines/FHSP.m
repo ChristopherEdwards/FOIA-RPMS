@@ -1,0 +1,10 @@
+FHSP	; HISC/REL/NCA - Standing Orders ;2/13/95  14:30 
+	;;5.0;Dietetics;;Oct 11, 1995
+EN1	; Enter/Edit Standing Orders
+	K DIC W ! S (DIC,DIE)="^FH(118.3,",DIC(0)="AEQLM",DIC("DR")=".01",DLAYGO=118.3 W ! D ^DIC K DIC,DLAYGO G KIL:U[X!$D(DTOUT),EN1:Y<1
+	S DA=+Y,DR=".01:99" S:$D(^XUSEC("FHMGR",DUZ)) DIDEL=118.3 D ^DIE K DA,DIE,DIDEL,DR G EN1
+EN2	; List Standing Orders
+	W ! S L=0,DIC="^FH(118.3,",FLDS=".01,99,1",BY="NAME"
+	S FR="",TO="",DHD="STANDING ORDERS" D EN1^DIP
+	K %ZIS S IOP="" D ^%ZIS G KIL
+KIL	G KILL^XUSCLEAN

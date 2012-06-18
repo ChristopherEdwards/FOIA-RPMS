@@ -1,0 +1,134 @@
+AGED61 ; IHS/ASDS/EFG - EDIT - PAGE 6 (2 OF 2) (RR) ;  
+ ;;7.1;PATIENT REGISTRATION;**1,2**;JAN 31, 2007
+ ;
+ D @($P("E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12,",",",AG("SEL"))) Q
+E1 ;
+ S DIC="^AUPNMSP("
+ S DIC(0)="AELQMZ"
+ S DIC("DR")=""
+ S DIC("S")="I $P($G(^AUPNMSP(Y,0)),U,2)=$G(AUPNPAT)"
+ D ^DIC
+ Q:Y<0
+ S DIE=DIC
+ K DR,DIC,DIR
+ S DA=+Y
+ ;S DR=".01;.02////"_AUPNPAT_";.03;.04"
+ S DR=".02////"_AUPNPAT_";.03;.04"
+ D ^DIE
+ D UPDATE
+ Q
+E2 ;
+ S DIE="^AUPNRRE("
+ S DA=DFN
+ S DR=.08
+ W !
+ D ^DIE
+ D UPDATE
+ Q
+E3 ;EP
+ S DIE="^AUPNPAT("
+ S DA=DFN
+ S DR=.04
+ W !
+ D ^DIE
+ D UPDATE
+ Q
+E4 ;EP
+ S DIE="^AUPNRRE("
+ S DA=DFN
+ S DR=2101
+ W !
+ D ^DIE
+ I $D(^AUPNRRE(DFN,21)),$P($G(^AUPNRRE(DFN,21)),U)]"" D
+ . S DIE="^DPT("
+ .S DA=DFN,DR="1///"_$P($G(^AUPNRRE(DFN,21)),U),DR(2,2.01)=.01
+ . D ^DIE
+ D UPDATE
+ Q
+E5 S DIE="^AUPNRRE("
+ S DR=".03;.04"
+ S DA=DFN
+ W !,"The NUMBER will be prompted for immediately after the PREFIX",!
+ D ^DIE
+ I $P($G(^AUPNRRE(DFN,0)),U,3)="" D
+ . S DA=DFN
+ . S DR=".01///@"
+ . S DIE="^AUPNRRE("
+ . D ^DIE
+ . W !!,"Railroad coverage is deleted." H 3
+ D UPDATE
+ Q
+E6 S DIE="^AUPNRRE("
+ S DA=DFN
+ S DR=.14
+ W !
+ D ^DIE
+ D UPDATE
+ Q
+E7 S DIE="^AUPNRRE("
+ S DA=DFN
+ S DR=2102
+ W !
+ D ^DIE
+ D UPDATE
+ Q
+E8 ;
+ S DIE="^AUPNRRE("
+ S DA=DFN
+ S DR=.15
+ W !
+ D ^DIE
+ I X["Y" D
+ .;S DR=.16
+ .S DR=".16R",DIE("NO^")=""  ;IHS/SD/TPF AG*7.1*1 ITEM 5
+ .W !
+ .D ^DIE
+ I X["N" D
+ .S DR=".16////@"
+ .W !
+ .D ^DIE
+ D UPDATE
+ Q
+E9 ;
+ S DA(1)=DFN
+ S DIE="^AUPNRRE("_DA(1)_",11,"
+ S DA=AG(AG("INDEX"))
+ S DR=.01
+ W !
+ D ^DIE
+ D UPDATE
+ Q
+E10 ;
+ N OLDVALUE,NOCHANGE
+ S DA(1)=DFN
+ S DIE="^AUPNRRE("_DA(1)_",11,"
+ S DA=AG(AG("INDEX"))
+ S NOCHANGE=0
+ S OLDVALUE=$P($G(^AUPNRRE(DA(1),11,DA,0)),U,3)
+ I OLDVALUE="A"!(OLDVALUE="B") D
+ .S NOCHANGE=1
+ S DR=.03
+ W !
+ D ^DIE
+ I $P($G(^AUPNRRE(DA(1),11,DA,0)),U,3)="D",(NOCHANGE) S $P(^AUPNRRE(DA(1),11,DA,0),U,3)=OLDVALUE D  G E10
+ .W !,"DO NOT CHANGE AN EXISTING PART A OR B COVERAGE TO PART D"
+ .W !,"REVIEW THE PATCH 1 ADDENDUM TO SET UP PART D COVERAGE"
+ .H 3
+ D UPDATE
+ Q
+E11 ;
+ S DA(1)=DFN
+ S DIE="^AUPNRRE("_DA(1)_",11,"
+ S DA=AG(AG("INDEX"))
+ S DR=.02
+ W !
+ D ^DIE
+ D UPDATE
+ Q
+UPDATE ;
+ S DIE="^AUPNRRE("
+ S DA=DFN
+ S DR=".07////"_DT
+ W !
+ D ^DIE
+ Q

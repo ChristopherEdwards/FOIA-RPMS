@@ -1,0 +1,2 @@
+%AUBJ ; GO TO %BJ^%ZTMS [ 06/03/85  4:15 PM ]
+ NEW (U,DT) G %BJ^%ZTMS

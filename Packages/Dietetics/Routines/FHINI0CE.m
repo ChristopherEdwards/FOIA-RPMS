@@ -1,0 +1,112 @@
+FHINI0CE	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,7972,1)
+	;;=7.843^19.608^41.176^370.588^^^^^^^^^850
+	;;^UTILITY(U,$J,112,7972,2)
+	;;=^^^^^^^^7.843^4.902^10.784^1.961
+	;;^UTILITY(U,$J,112,7972,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7973,0)
+	;;=BISCUIT W/BACON & EGG,BURGER KING^BC-01246^biscuits^158
+	;;^UTILITY(U,$J,112,7973,1)
+	;;=8.861^17.089^27.215^295.57^^^^^^^^^653.797
+	;;^UTILITY(U,$J,112,7973,2)
+	;;=^^^^^^^^134.81^4.43^8.228^2.532
+	;;^UTILITY(U,$J,112,7973,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7974,0)
+	;;=BISCUIT W/SAUSAGE,BURGER KING^BC-01247^biscuits^127
+	;;^UTILITY(U,$J,112,7974,1)
+	;;=8.661^22.835^34.646^376.378^^^^^^^^^792.913
+	;;^UTILITY(U,$J,112,7974,2)
+	;;=^^^^^^^^25.984^6.299^11.811^3.15
+	;;^UTILITY(U,$J,112,7974,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7975,0)
+	;;=BISCUIT W/SAUSAGE & EGG,BURGER KING^BC-01248^biscuits^158
+	;;^UTILITY(U,$J,112,7975,1)
+	;;=8.861^17.089^27.215^295.57^^^^^^^^^653.797
+	;;^UTILITY(U,$J,112,7975,2)
+	;;=^^^^^^^^134.81^4.43^8.228^2.532
+	;;^UTILITY(U,$J,112,7975,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7976,0)
+	;;=CHEESEBURGER,BURGER KING^BC-01249^sandwich^121
+	;;^UTILITY(U,$J,112,7976,1)
+	;;=14.05^12.397^23.14^262.81^^^^84.298^2.264^21.488^153.719^204.132^546.281^2.174^.05^^^281.818^2.479^.19
+	;;^UTILITY(U,$J,112,7976,2)
+	;;=.24^3.223^^^^^^^41.322^5.785^4.959^.826
+	;;^UTILITY(U,$J,112,7976,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7977,0)
+	;;=CHEESEBURGER,BACON DOUBLE DELUXE,BURGER KING^BC-01250^sandwich^195
+	;;^UTILITY(U,$J,112,7977,1)
+	;;=16.923^20^14.359^303.59^^^^^^^^^412.308
+	;;^UTILITY(U,$J,112,7977,2)
+	;;=^^^^^^^^56.923^8.205^7.179^4.103
+	;;^UTILITY(U,$J,112,7977,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7978,0)
+	;;=CHEESEBURGER,BBQ BACON DOUBLE,BURGER KING^BC-01251^sandwich^174
+	;;^UTILITY(U,$J,112,7978,1)
+	;;=18.391^17.816^17.816^308.046^^^^^^^^^456.897
+	;;^UTILITY(U,$J,112,7978,2)
+	;;=^^^^^^^^60.345^8.046^7.471^1.149
+	;;^UTILITY(U,$J,112,7978,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7979,0)
+	;;=CHEESEBURGER,DELUXE,BURGER KING^BC-01252^sandwich^151
+	;;^UTILITY(U,$J,112,7979,1)
+	;;=11.921^15.232^19.205^258.278^^^^^^^^^431.788
+	;;^UTILITY(U,$J,112,7979,2)
+	;;=^^^^^^^^37.086^5.298^4.636^4.636
+	;;^UTILITY(U,$J,112,7979,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7980,0)
+	;;=CHEESEBURGER,DOUBLE,BURGER KING^BC-01253^sandwich^172
+	;;^UTILITY(U,$J,112,7980,1)
+	;;=17.442^15.698^16.86^280.814^^^^^^^^^494.767
+	;;^UTILITY(U,$J,112,7980,2)
+	;;=^^^^^^^^58.14^7.558^6.395^1.163
+	;;^UTILITY(U,$J,112,7980,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7981,0)
+	;;=CHEESEBURGER,DOUBLE W/BACON,BURGER KING^BC-01254^sandwich^160
+	;;^UTILITY(U,$J,112,7981,1)
+	;;=20^19.375^16.25^321.875^^^^105^2.375^23.125^205^196.25^467.5^3.163^.056^^^240^^.194
+	;;^UTILITY(U,$J,112,7981,2)
+	;;=.263^3.938^^^^^^^65.625^8.75^8.125^1.25
+	;;^UTILITY(U,$J,112,7981,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7982,0)
+	;;=CHICKEN SANDWICH,BURGER KING^BC-01255^sandwich^229
+	;;^UTILITY(U,$J,112,7982,1)
+	;;=11.354^17.467^24.454^299.127^^^^34.498^1.441^23.581^119.651^163.755^618.777^.502^.07^^^55.022^^.197
+	;;^UTILITY(U,$J,112,7982,2)
+	;;=.135^4.192^^^^^^^35.808^3.493^4.803^8.734
+	;;^UTILITY(U,$J,112,7982,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7983,0)
+	;;=CHICKEN SANDWICH,BROILER,BURGER KING^BC-01256^sandwich^168
+	;;^UTILITY(U,$J,112,7983,1)
+	;;=14.286^10.714^18.452^225.595^^^^^^^^^454.762
+	;;^UTILITY(U,$J,112,7983,2)
+	;;=^^^^^^^^31.548^1.786^4.167^4.762
+	;;^UTILITY(U,$J,112,7983,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7984,0)
+	;;=CHICKEN TENDERS,BURGER KING^BC-01257^6-pieces^90
+	;;^UTILITY(U,$J,112,7984,1)
+	;;=17.778^14.444^15.556^262.222^^^^20^.744^26.667^262.222^222.222^601.111^.622^.078^^^105.556^^.089
+	;;^UTILITY(U,$J,112,7984,2)
+	;;=.089^8.111^^^^^^^51.111^3.333^5.556^3.333
+	;;^UTILITY(U,$J,112,7984,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7985,0)
+	;;=CROISSANDWICH W/BACON,EGG & CHEESE,BURGER KING^BC-01258^sandwich^118
+	;;^UTILITY(U,$J,112,7985,1)
+	;;=12.712^20.339^16.102^305.932^^^^115.254^1.703^16.949^211.017^154.237^609.322^1.280^^^^361.017^^.271
+	;;^UTILITY(U,$J,112,7985,2)
+	;;=.254^1.78^^^^^^^192.373^6.78^10.169^2.542

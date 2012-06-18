@@ -1,0 +1,27 @@
+ABMDRAOT ; IHS/ASDST/DMJ - Reprint AO Export Log ; 
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;TMD;
+START ;START HERE   
+ D REDO^ABMDTX Q:'$G(ABM("ADFN"))
+ S ABM("ERROR")=$P(^ABMDAOTX(DUZ(2),ABM("ADFN"),0),"^",3) I ABM("ERROR")'="" D  Q
+ .W !,"EXPORT ERROR: ",ABM("ERROR"),!
+ .K ABM
+ W !,"NOTE: 132 column report."
+ S %ZIS="QN" D ^%ZIS
+ I IO'=IO(0) D QUE,HOME^%ZIS Q
+ I $D(IO("S")) S IOP=ION D ^%ZIS
+TM ;ENTER FROM TASK MAN
+ S ABM("REDO")=1,ABM("PG")=0
+ D DATA^ABMDTX0
+ D WRT^ABMDTX0
+ I $D(IO("S")) D ^%ZISC
+ I $E(IOST,1)="C" S DIR(0)="E" D ^DIR K DIR
+ W $$EN^ABMVDF("IOF")
+ K ^TMP("ABMDTX",$J),ABM
+ Q
+QUE ;QUE
+ S ZTRTN="TM^ABMDRAOT"
+ S ZTDESC="AO Export Log"
+ S ZTSAVE("ABM(""ADFN"")")=""
+ K ZTSK D ^%ZTLOAD W:$G(ZTSK) !,"Task # ",ZTSK," queued.",!
+ Q

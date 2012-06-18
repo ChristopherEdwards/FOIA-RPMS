@@ -1,0 +1,103 @@
+ABPVCK0 ;3P BILL TRANSMISSION EDIT REPORT;[ 08/07/91  3:51 PM ]
+ ;;2.0;FACILITY PVT-INS TRACKING;*0*;IHS-OKC/KJR;AUGUST 7, 1991
+ G A0
+ ;--------------------------------------------------------------------
+INSCHK ;PROCEDURE TO INSPECT FOR COMPLETE INSURANCE RECORD
+ S ZINSERR=0,ZNODE=""
+NXTNODE S ZNODE=$O(^AUTNINS(ZINSCO,ZNODE)) G:(ZNODE="")!(+ZNODE>1) INSCHKC
+ S ZY=^AUTNINS(ZINSCO,ZNODE)
+ I ZNODE=1 I $P(ZY,"^")']"" I $P(ZY,"^",5)']"" G NXTNODE
+ I $L($P(ZY,"^",2))<2 S ZINSERR=ZINSERR_1 G NXTNODE
+ I $L($P(ZY,"^",3))<2 S ZINSERR=ZINSERR_1 G NXTNODE
+ I +$P(ZY,"^",4)<1!('$D(^DIC(5,+$P(ZY,"^",4),0))) D  G NXTNODE
+ .S ZINSERR=ZINSERR_1
+ I $L($P(ZY,"^",5))<5!($P(ZY,"^",5)'?5N.E) D  G NXTNODE
+ .S ZINSERR=ZINSERR_1
+ S ZINSERR=ZINSERR_0 G NXTNODE
+INSCHKC I ZINSERR="01"!(ZINSERR="010") D
+ .S ^UTILITY("ABPVTXE","INS-ERR",ZINSCO)=""
+ I ZINSERR="001"!(ZINSERR="011") D
+ .S ^UTILITY("ABPVTXE","INS-ERR",ZINSCO)="*"
+ Q
+ ;--------------------------------------------------------------------
+A0 ;PROCEDURE TO DRAW SCREEN HEADING
+ W @IOF,! S PGNO=0 F I=1:1:79 W "*"
+ W !,"*",?13,"PRIVATE INSURANCE BILLING CLAIM TRANSMISSION EDIT REPORT"
+ W ?78,"*",! S X="FOR "_$P(^DIC(4,DUZ(2),0),"^",1) W "*",?80-$L(X)/2
+ W X,?78,"*",! S Y=DT X ^DD("DD") W "*",?80-$L(Y)/2,Y,?78,"*",!
+ F I=1:1:79 W "*"
+ ;--------------------------------------------------------------------
+A0A ;PROCEDURE TO GET THE LAST DATE DATA WAS EXPORTED
+ S LEXDATE=9999999-($O(^ABPVTXST("AC",DUZ(2),"")))
+ L (^ABPVFAC,^AUTNINS):1
+ I '$T D  H 4 G JOBEND^ABPVTX1
+ .W *7,!!,?18,"PRIVATE INSURANCE AUDIT or INSURER File in Use.",!,?22
+ .W "Cannot Do Export at this time.",!!,?25
+ .W "THIS JOB HAS BEEN CANCELLED"
+ D A1 G:+IO=0 S3ENDA G A2
+ ;--------------------------------------------------------------------
+A1 ;PROCEDURE TO GET PRINTER OUTPUT DEVICE
+ W !! S %IS="P",%ZIS("A")="Print Edit List on Device: " D ^%ZIS
+ Q
+ ;--------------------------------------------------------------------
+A2 ;PROCEDURE TO DETERMINE THE BEGINNING RECORD NUMBER FOR THIS RUN
+ S ABPV("SITE")=DUZ(2),BRECNO=0,R=0,ZCLCT=0,ZCLAMT=0
+ I '$D(^ABPVTXST(ABPV("SITE"))) G A2A
+ S X=+$P(^ABPVTXST(ABPV("SITE"),1,0),"^",4) I X<1 G A2A
+ S BRECNO=+$P(^ABPVTXST(ABPV("SITE"),1,X,0),"^",4)
+ I BRECNO'<+$P(^ABPVFAC(0),"^",3) D  D PRESET G S3ENDA
+ .U IO(0) W !!,*7,?10,"NO RECORDS AVAILABLE FOR EXPORT --  "
+ .U IO(0) W "JOB CANCELLED"
+ ;--------------------------------------------------------------------
+A2A ;PROCEDURE TO CONTROL REMAINING TASKS OF THIS ROUTINE
+ W ! D WAIT^DICD,A3^ABPVCK1,A4^ABPVCK1 G S3START
+ ;--------------------------------------------------------------------
+PRESET ;PROCEDURE TO RESET THE PRINTER TO 10 CPI
+ I $D(IO),$D(A("PRINT",10)) U IO W @A("PRINT",10)
+ Q
+ ;--------------------------------------------------------------------
+S3START ;PRINT INS CO ADD ERRORS REPORT OF INSURANCE CO ADDRESS ERRORS
+ S (R,RR)=0
+ I '$D(^UTILITY("ABPVTXE","INS-ERR")) G S3END
+ S X="You have INCOMPLETE ADDRESS INFORMATION in your INSURER FILE."
+ S Y="An ERROR REPORT will now be PRINTED."
+ U IO(0) W *7,*7,!!,?10,X,!!,?20,Y H 5
+ U IO W !!,?30,X,!,?40,Y
+ D HEADER2
+S3A S R=$O(^UTILITY("ABPVTXE","INS-ERR",R)) G S3END:R=""
+ S ZY=^AUTNINS(R,0)
+ W ?2,$E($P(ZY,"^",1),1,30)
+ W ?34,$E($P(ZY,"^",2),1,30)
+ W ?66,$E($P(ZY,"^",3),1,15) S X=+$P(ZY,"^",4) G S3C:+X<1
+ G S3C:'$D(^DIC(5,X,0))
+ W ?83,$P(^DIC(5,X,0),"^",2)
+S3C W ?87,$E($P(ZY,"^",5),1,10)
+ I ^UTILITY("ABPVTXE","INS-ERR",R)="*" W ?105,"YES"
+ W ! I $Y>50 D HEADER2
+ S RR=RR+1 G S3A
+S3END W !!,?30,"NUMBER OF RECORDS WITH INCOMPLETE DATA = ",RR,!! H 3
+ I $D(A("PRINT",10)) U IO W @A("PRINT",10)
+S3ENDA K %DT,A,BDATE,BDATED,EDATE,EDATED,I,PDFN,PGNO,R,RDATES,RR,X,XXX,Y,ZCLAMT,ZCLCT,ZINSCO,ZINSERR,ZX,ZY,^UTILITY("ABPVTXE"),ZNODE
+ X ^%ZIS("C") D PAUSE^ABPVZMM
+ Q
+HEADER S PGNO=PGNO+1 U IO W @IOF
+ F I=1:1:122 W "*"
+ S X1="Device # "_+IO,X2="FOR "_$P(^DIC(4,DUZ(2),0),"^",1)
+ W !,"* ",X1,?32,"PRIVATE INSURANCE BILLING CLAIM TRANSMISSION EDIT REPORT",?111,"Page ",PGNO,?121,"*",!
+ S X="FOR "_$P(^DIC(4,DUZ(2),0),"^",1) W "*",?121-$L(X)/2,X,?121,"*",!
+ S Y=DT X ^DD("DD") W "*",?121-$L(Y)/2,Y,?121,"*",!,"*"
+ F I=1:1:120 W "-"
+ W "*",!,"*  ENTRY",?12,"CONTROL",?62,"DATE OF",?105,"CLAIM",?113,"T",?118,"D",?121,"*",!
+ W "*",?3,"DATE",?12,"NUMBER",?20,"***  PATIENT'S NAME   ***",?53,"H R N",?62,"SERVICE",?71,"INSURANCE COMPANY NAME",?105,"AMOUNT",?113,"P",?118,"V",?121,"*",!
+ F I=1:1:122 W "*"
+ W !!
+ Q
+HEADER2 U IO W @IOF
+ F I=1:1:117 W "*"
+ W !,"*",?47,"INSURANCE COMPANY ADDRESS ERRORS",?116,"*",!,"*"
+ W ?32,"THESE ERRORS MUST BE CORRECTED IN ORDER TO EXPORT CLAIM DATA",?116,"*",!,"*"
+ F I=1:1:115 W "-"
+ W "*",!,"*",?2,"INSURANCE COMPANY NAME",?34,"***   STREET ADDRESS   ***",?66,"CITY",?83,"ST",?87,"ZIP CODE",?100,"B-ADDRESS ERROR",?116,"*",!,"*"
+ F I=1:1:115 W "-"
+ W "*",!! Q
+ERR U IO W @A("PRINT",10) X ^%ZIS("C") G ERR^ZU

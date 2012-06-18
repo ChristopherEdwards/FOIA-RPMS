@@ -1,0 +1,17 @@
+PSJXR514 ; COMPILED XREF FOR FILE #55.03 ; 11/17/04
+ ; 
+ S DA=0
+A1 ;
+ I $D(DISET) K DIKLM S:DIKM1=1 DIKLM=1 G @DIKM1
+0 ;
+A S DA=$O(^PS(55,DA(1),"P",DA)) I DA'>0 S DA=0 G END
+1 ;
+ S DIKZ(0)=$G(^PS(55,DA(1),"P",DA,0))
+ S X=$P(DIKZ(0),U,1)
+ I X'="" D SREF^PSOHELP1
+ S X=$P(DIKZ(0),U,1)
+ I X'="" I $P(^PSRX(X,0),"^",15)'=12,$D(^PSRX(X,9999999)) S:$P(^PSRX(X,9999999),"^",2)="Y" ^PS(55,DA(1),"P","CP",X)=""
+ S X=$P(DIKZ(0),U,1)
+ I X'="" S D1=DA X $P(^DD(55.03,3,0),U,5,99) S:X ^PS(55,D0,"P","A",$P(^PSRX(^PS(55,D0,"P",DA,0),2),"^",6),^PS(55,D0,"P",DA,0))=""
+ G:'$D(DIKLM) A Q:$D(DISET)
+END G ^PSJXR515

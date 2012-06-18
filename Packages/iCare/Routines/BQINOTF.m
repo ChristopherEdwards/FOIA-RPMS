@@ -1,0 +1,173 @@
+BQINOTF ;PRXM/HC/ALA-ICARE NOTIFICATIONS ; 27 Jun 2006  3:01 PM
+ ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;
+ Q
+ ;
+UPD(OWNR,PLIEN,MSG) ;EP - Update notifications
+ ;
+ I $G(OWNR)="" Q
+ I $G(PLIEN)="" Q
+ ;
+ NEW SHRDZ,ERROR,SHAXCS,SHSTDT,SHENDT
+ ;
+ S SHRDZ=0
+ F  S SHRDZ=$O(^BQICARE(OWNR,1,PLIEN,30,SHRDZ)) Q:'SHRDZ  D
+ . I SHRDZ'=DUZ D
+ .. S SHAXCS=$P(^BQICARE(OWNR,1,PLIEN,30,SHRDZ,0),U,2)
+ .. S SHSTDT=$P(^BQICARE(OWNR,1,PLIEN,30,SHRDZ,0),U,3)
+ .. S SHENDT=$P(^BQICARE(OWNR,1,PLIEN,30,SHRDZ,0),U,4)
+ .. I SHSTDT'>DT,((SHENDT'<DT)!(SHENDT="")),SHAXCS'="I" D FIL(SHRDZ,MSG)
+ ;
+ I $G(OWNR)'=$G(DUZ) D FIL(OWNR,MSG)
+ Q
+ ;
+ADD(DATA,RECIP,SUBJ,BODY,SENT) ;EP -- BQI ADD NOTIFICATION
+ ;Description
+ ;  RPC Call to add notifications
+ ;Input
+ ;  RECIP - Recipients of message
+ ;  SUBJ  - Subject of message
+ ;  BODY  - Body of message (not in use yet)
+ ;  SENT  - If background job sent the notification
+ NEW UID,II,KK,ERROR,NDZ,NTDFTM,RESULT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQINOTF",UID))
+ K @DATA
+ ;
+ S II=0,RESULT=1,SENT=$G(SENT,"")
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQINOTF D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ S @DATA@(II)="I00010RESULT"_$C(30)
+ ;
+ S NTDFTM=$$NOW^XLFDT()
+ F KK=1:1 S NDZ=$P(RECIP,$C(28),KK) Q:NDZ=""  D FIL(NDZ,SUBJ,.BODY,SENT)
+ ;
+ I $G(RECIP)="" D FIL(DUZ,SUBJ,.BODY,SENT)
+ ;
+ I $D(ERROR) S RESULT=-1
+ S II=II+1,@DATA@(II)=RESULT_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+FIL(NDZ,TMSG,BODY,SENT) ;EP - Notify users
+ ;Input parameters
+ ;  NDZ  - IEN of person receiving notification
+ ;  TMSG - Subject of message
+ ;  BODY - Body of message (not being set at this time)
+ ;  SENT - will be 1 if sent by background job
+ ;
+ NEW NTDFTM,DLOG,LYR
+ S NTDFTM=$$NOW^XLFDT()
+ ;
+ ;  If person hasn't signed onto iCare in over a year, quit
+ I $G(^BQICARE(NDZ,0))="" K ^BQICARE(NDZ) Q
+ S DLOG=$P(^BQICARE(NDZ,0),U,6)\1,LYR=$$DATE^BQIUL1("T-365")
+ I DLOG<LYR Q
+ ;
+ I $G(^BQICARE(NDZ,3,0))="" S ^BQICARE(NDZ,3,0)="^90505.12D^^"
+ NEW DA,IENS,X,DIC,ERROR
+ S DA(1)=NDZ,X=NTDFTM,DIC(0)="L",DIC="^BQICARE("_DA(1)_",3,"
+ K DO,DD D FILE^DICN
+ S DA=+Y I DA<0 Q
+ S IENS=$$IENS^DILF(.DA)
+ S BQINOTE(90505.12,IENS,.02)=$S($G(SENT)=1:"",1:DUZ)
+ S BQINOTE(90505.12,IENS,.03)="N"
+ S BQINOTE(90505.12,IENS,.04)=$G(TMSG)
+ D FILE^DIE("","BQINOTE","ERROR")
+ K BQINOTE
+ I $D(BODY)>1 D WP^DIE(90505.12,IENS,1,"","BODY","ERROR")
+ ; Raise event to user that a new notification has been created
+ I '$D(ERROR) D EVENT^BMXMEVN("BQI NOTIFICATION RECEIVED",NDZ_"~"_$G(TMSG))
+ Q
+ ;
+RET(DATA,FAKE) ; EP -- BQI GET NOTIFICATIONS
+ ;  Return notifications for a user
+ ;
+ NEW UID,II,NDATA,NTFN
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQINOTF",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQINOTF D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S @DATA@(II)="I00010NOTF_IEN^D00015NOTIFICATION_DATETIME^T00035FROM_WHOM^T00003STATUS^T00231SUBJECT^T01024BODY"_$C(30)
+ ;
+ S NTFN=0
+ F  S NTFN=$O(^BQICARE(DUZ,3,NTFN)) Q:'NTFN  D
+ . S II=II+1
+ . S NDATA=^BQICARE(DUZ,3,NTFN,0)
+ . NEW DA,IENS,NSTAT
+ . S DA(1)=DUZ,DA=NTFN,IENS=$$IENS^DILF(.DA)
+ . S NSTAT=$$GET1^DIQ(90505.12,IENS,.03,"E")
+ . NEW BN,BODY
+ . S BODY="",BN=0
+ . F  S BN=$O(^BQICARE(DUZ,3,NTFN,1,BN)) Q:'BN  D
+ .. S BODY=BODY_" "_^BQICARE(DUZ,3,NTFN,1,BN,0)
+ . ;S BODY=$$TKO^BQIUL1(BODY,$C(10))
+ . S BODY=$E(BODY,2,$L(BODY))
+ . S @DATA@(II)=NTFN_"^"_$$FMTE^BQIUL1($P(NDATA,U,1))_"^"_$$GET1^DIQ(200,$P(NDATA,U,2)_",",.01,"E")_"^"_NSTAT_"^"_$P(NDATA,U,4)_"^"_BODY_$C(30)
+ ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+MOD(DATA,NIEN,STAT) ;EP -- BQI UPDATE NOTIFICATION STATUS
+ ;  Modify the status of a notification
+ NEW UID,II,DA,IENS,RESULT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQINOTF",UID))
+ K @DATA
+ ;
+ I $G(NIEN)="" S BMXSEC="No notification record passed in." Q
+ S II=0,RESULT=1
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQINOTF D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ S @DATA@(II)="I00010RESULT"_$C(30)
+ ;
+ S DA(1)=DUZ,DA=NIEN,IENS=$$IENS^DILF(.DA)
+ S BQNUPD(90505.12,IENS,.03)=$G(STAT)
+ D FILE^DIE("E","BQNUPD","ERROR")
+ K BQNUPD
+ I $D(ERROR) S RESULT=-1
+ S II=II+1,@DATA@(II)=RESULT_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+CLR(DATA,NIEN) ;EP -- BQI CLEAR NOTIFICATIONS
+ ;  Clear notifications for user
+ NEW UID,II,NTFN,DIK,DA
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQINOTF",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQINOTF D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ S @DATA@(II)="I00010RESULT"_$C(30)
+ ;
+ ;  If a particular notification IEN sent, just delete that one
+ ;  If no IEN, delete all notifications
+ I $G(NIEN)="" S NTFN=0 F  S NTFN=$O(^BQICARE(DUZ,3,NTFN)) Q:'NTFN  D DEL
+ I $G(NIEN)'="" S NTFN=NIEN D DEL
+ ;
+ S RESULT=1
+ S II=II+1,@DATA@(II)=RESULT_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+DEL ;  Delete the notification
+ S DA(1)=DUZ,DA=NTFN,DIK="^BQICARE("_DA(1)_",3,"
+ D ^DIK
+ Q
+ ;
+DUP(USR,SUBJECT,DATE) ;EP - Check for a duplicate message
+ NEW MSN,OK,QFL
+ S MSN=0,OK=1,QFL=0
+ F  S MSN=$O(^BQICARE(USR,3,MSN)) Q:'MSN  D  Q:QFL
+ . I $P(^BQICARE(USR,3,MSN,0),U,4)=SUBJECT,$P(^(0),U,1)\1=DATE S OK=0,QFL=1
+ Q OK

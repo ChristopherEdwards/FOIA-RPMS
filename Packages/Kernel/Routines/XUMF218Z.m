@@ -1,0 +1,39 @@
+XUMF218Z ;OIFO-OAK/RAM - POPULATE VASTANUM;02/12/02 [ 07/29/2004   9:01 AM ]
+ ;;8.0;KERNEL;**218**;Jul 10, 1995
+ ;
+ Q
+ ;
+POST ; -- post init patch XU*8*218
+ ;
+ ;INSTITUTION
+ N STA,IEN,IENS,FDA,FTYP,XUMF
+ ;
+ S XUMF=1
+ ;
+ S STA=""
+ F  S STA=$O(^DIC(4,"D",STA)) Q:STA=""  D
+ .S IEN=$O(^DIC(4,"D",STA,0))
+ .S IENS="?+1,"_IEN_","
+ .K FDA
+ .S FDA(4.9999,IENS,.01)="VASTANUM"
+ .S FDA(4.9999,IENS,.02)=STA
+ .D
+ ..N IEN,STA
+ ..D UPDATE^DIE("E","FDA")
+ ;
+ Q
+ ;
+ ;FACILITY TYPE
+ S FTYP=""
+ F  S FTYP=$O(^DIC(4.1,"B",FTYP)) Q:FTYP=""  D
+ .S IEN=$O(^DIC(4.1,"B",FTYP,0))
+ .S IENS="?+1,"_IEN_","
+ .K FDA
+ .S FDA(4.19999,IENS,.01)="VAFACTYP"
+ .S FDA(4.19999,IENS,.02)=FTYP
+ .D
+ ..N IEN,STA
+ ..D UPDATE^DIE("E","FDA")
+ ;
+ Q
+ ;

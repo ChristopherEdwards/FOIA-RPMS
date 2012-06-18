@@ -1,0 +1,32 @@
+BGP0PARQ ; IHS/CMI/LAB - IHS gpra print ;
+ ;;10.0;IHS CLINICAL REPORTING;;JUN 18, 2010
+ ;
+ ;
+PRINT ;EP
+ K ^TMP($J)
+ S BGPIOSL=$S($G(BGPGUI):55,1:IOSL)
+ S BGPGPG=0
+ S BGPPTYPE="P"
+ S ^TMP($J,"BGPDEL",0)=0
+ S BGPQUIT=""
+ D SETEXCEL^BGP0DP
+ I BGPROT="D" G DEL
+ D AREACP^BGP0DH
+ S BGPQUIT="",BGPGPG=0,BGPRPT=0
+ D PRINT1^BGP0DP
+ Q:BGPQUIT
+ Q:BGPROT="P"
+DEL ;create delimited output file
+ S BGPQUIT="",BGPGPG=0,BGPRPT=0
+ D ^%ZISC ;close printer device
+ K ^TMP($J)
+ S ^TMP($J,"BGPDEL",0)=0
+ S BGPPTYPE="D"
+ ;D ^BGP0PDL ;create ^tmp of delimited report
+ D AREACP^BGP0DH
+ S BGPQUIT="",BGPGPG=0,BGPRPT=0
+ D PRINT1^BGP0DP
+ D SAVEDEL^BGP0PDL   ;D ^BGP0PDL ;create ^tmp of delimited report
+ K ^TMP($J)
+ Q
+ ;

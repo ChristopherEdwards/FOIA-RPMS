@@ -1,0 +1,112 @@
+FHINI0AE	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,7005,0)
+	;;=SNACK CAKES,CHOC,LITTLE DEBBIE^BC-00278^2.5-oz.^71
+	;;^UTILITY(U,$J,112,7005,1)
+	;;=3.239^28.31^53.944^484.507^13.662^^^0^1.099^^^^200^^^^^0^0^.141
+	;;^UTILITY(U,$J,112,7005,2)
+	;;=.282^1.127^^^^^^^1.408^7.606^18.028^2.676
+	;;^UTILITY(U,$J,112,7005,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7006,0)
+	;;=SNACK CAKES,CHOC TWINS,LITTLE DEBBIE^BC-00279^2.2-oz.^62
+	;;^UTILITY(U,$J,112,7006,1)
+	;;=3.226^20.323^56.774^424.194^18.387^^^0^1.306^^^^359.677^^^^^0^0^.145
+	;;^UTILITY(U,$J,112,7006,2)
+	;;=.242^1.452^^^^^^^1.613^5.645^10.323^4.516
+	;;^UTILITY(U,$J,112,7006,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7007,0)
+	;;=SNACK CAKES,COCONUT,LITTLE DEBBIE^BC-00280^2.2-oz.^62
+	;;^UTILITY(U,$J,112,7007,1)
+	;;=2.258^29.677^55.161^500^12.097^^^8.065^.387^^^^209.677^^^^^0^0^.113
+	;;^UTILITY(U,$J,112,7007,2)
+	;;=.161^.806^^^^^^^1.613^9.032^18.065^2.742
+	;;^UTILITY(U,$J,112,7007,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7008,0)
+	;;=SNACK CAKES,COFFEE,LITTLE DEBBIE^BC-00281^2-oz.^57
+	;;^UTILITY(U,$J,112,7008,1)
+	;;=5.088^10.526^67.018^384.211^16.14^^^0^1.404^^^^370.175^^^^^0^0^.246
+	;;^UTILITY(U,$J,112,7008,2)
+	;;=.246^2.456^^^^^^^1.754^2.456^4.035^4.035
+	;;^UTILITY(U,$J,112,7008,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7009,0)
+	;;=SNACK CAKES,DING DONG HOSTESS^BC-00282^cakes^38
+	;;^UTILITY(U,$J,112,7009,1)
+	;;=2.632^23.684^55.263^447.368^^^^^^^^^342.105^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7009,2)
+	;;=^^^^^^^^15.789
+	;;^UTILITY(U,$J,112,7009,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7010,0)
+	;;=SNACK CAKES,DEVIL CREMES,LITTLE DEBBIE^BC-00283^1.3-oz.^37
+	;;^UTILITY(U,$J,112,7010,1)
+	;;=3.514^18.919^60.811^427.027^15.405^^^16.216^2.081^^^^462.162^^^^^0^0^.027
+	;;^UTILITY(U,$J,112,7010,2)
+	;;=.108^2.432^^^^^^^0^5.135^11.351^2.432
+	;;^UTILITY(U,$J,112,7010,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7011,0)
+	;;=SNACK CAKES,DEVIL SQUARE,LITTLE DEBBIE^BC-00284^2.2-oz.^62
+	;;^UTILITY(U,$J,112,7011,1)
+	;;=3.065^27.903^53.065^475.806^15.161^^^0^1.597^^^^219.355^^^^^0^.194^.145
+	;;^UTILITY(U,$J,112,7011,2)
+	;;=.194^1.129^^^^^^^0^7.581^18.226^2.097
+	;;^UTILITY(U,$J,112,7011,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7012,0)
+	;;=SNACK CAKES,FANCY CAKES,LITTLE DEBBIE^BC-00285^2.4-oz.^68
+	;;^UTILITY(U,$J,112,7012,1)
+	;;=2.353^22.059^62.059^455.882^12.794^^^0^.824^^^^198.529^^^^^0^0^.103
+	;;^UTILITY(U,$J,112,7012,2)
+	;;=.044^.882^^^^^^^1.471^22.059^14.853^1.618
+	;;^UTILITY(U,$J,112,7012,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7013,0)
+	;;=SNACK CAKES,HO HOS,HOSTESS^BC-00286^cakes^28
+	;;^UTILITY(U,$J,112,7013,1)
+	;;=3.571^21.429^60.714^428.571^^^^^^^^^321.429^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7013,2)
+	;;=^0^^^^^^^46.429
+	;;^UTILITY(U,$J,112,7013,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7014,0)
+	;;=SNACK CAKES,HOSTESS O's^BC-00287^cakes^64
+	;;^UTILITY(U,$J,112,7014,1)
+	;;=4.688^17.188^51.563^375^^^^^^^^^414.063^^^^^0^0
+	;;^UTILITY(U,$J,112,7014,2)
+	;;=^^^^^^^^21.875
+	;;^UTILITY(U,$J,112,7014,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7015,0)
+	;;=SNACK CAKES,JELLY ROLLS,LITTLE DEBBIE^BC-00288^2.2-oz.^62
+	;;^UTILITY(U,$J,112,7015,1)
+	;;=2.258^14.194^65^396.774^17.742^^^11.29^.839^^^^233.871^^^^^0^0^.065
+	;;^UTILITY(U,$J,112,7015,2)
+	;;=.065^3.065^^^^^^^0^3.71^8.387^2.097
+	;;^UTILITY(U,$J,112,7015,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7016,0)
+	;;=SNACK CAKES,LEMON STIX,LITTLE DEBBIE^BC-00289^1.5-oz.^43
+	;;^UTILITY(U,$J,112,7016,1)
+	;;=3.721^26.047^66.977^516.279^2.791^^^58.14^1.605^^^^139.535^^^^^0^0^.07
+	;;^UTILITY(U,$J,112,7016,2)
+	;;=.209^2.093^^^^^^^2.326^4.884^17.442^3.488
+	;;^UTILITY(U,$J,112,7016,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7017,0)
+	;;=SNACK CAKES,BANANA MARSHMALLOW PIE,LITTLE DEBBIE^BC-00290^1.4-oz.^39
+	;;^UTILITY(U,$J,112,7017,1)
+	;;=3.59^14.359^70.769^305.128^10.513^^^20.513^1^^^^153.846^^^^^0^0^.103
+	;;^UTILITY(U,$J,112,7017,2)
+	;;=.077^1.538^^^^^^^0^4.615^8.205^1.282
+	;;^UTILITY(U,$J,112,7017,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7018,0)
+	;;=SNACK CAKES,CHOC MARSHMALLOW PIE,LITTLE DEBBIE^BC-00291^1.4-oz.^39
+	;;^UTILITY(U,$J,112,7018,1)
+	;;=3.846^15.897^69.487^435.897^10^^^0^1.769^^^^197.436^^^^^0^0^.154

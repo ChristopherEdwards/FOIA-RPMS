@@ -1,0 +1,82 @@
+BCHUFP ; IHS/TUCSON/LAB - PRINT ENCOUNTER RECORD ;  [ 06/27/00  2:28 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**2,10**;OCT 28, 1996
+ ;
+ ;IHS/TUCSON/LAB - patch 2 - 06/03/97 - added a few variables to kill in XIT+1
+ ;
+ ;print individual forms for each member of group
+START ;
+ I '$D(IOF) D HOME^%ZIS
+ W @(IOF),!!
+ W "**********  ENCOUNTER FORM PRINT  **********",!!
+ W "This report will produce hard copy computed generated encounter forms.",!
+GETDATES ;
+BD ;get beginning date
+ W !,"Please enter the date range for which forms should be printed.",!
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S BCHBD=Y
+ED ;get ending date
+ W ! S DIR(0)="D^"_BCHBD_":DT:EP",DIR("A")="Enter ending Date" S Y=BCHBD D DD^%DT S DIR("B")=Y,Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S BCHED=Y
+ S X1=BCHBD,X2=-1 D C^%DTC S BCHSD=X S Y=BCHBD D DD^%DT S BCHBDD=Y S Y=BCHED D DD^%DT S BCHEDD=Y
+ ;
+PAT ;one or all patients
+ G PROV
+ S BCHPAT=""
+ S DIR(0)="Y",DIR("A")="Do you wish to print forms for one particular PATIENT",DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) GETDATES
+ G:'Y PROV
+ I Y=1 S DIC("A")="Enter PATIENT Name: ",DIC=9000001,DIC(0)="AEQMZ" D ^DIC G PAT:Y<0 S BCHPAT=+Y
+PROV ;limit by provider
+ S BCHPROV=""
+ S DIR(0)="Y",DIR("A")="Do you wish to print forms for one particular CHR",DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) GETDATES
+ G:'Y ZIS
+ I Y=1 S DIC("A")="Enter CHR Name: ",DIC=200,DIC(0)="AEQMZ" D ^DIC G PROV:Y<0 S BCHPROV=+Y
+ZIS ;
+ S XBRC="COMP^BCHUFP",XBRP="PRINT^BCHUFP",XBNS="BCH",XBRX="XIT^BCHUFP"
+ D ^XBDBQUE
+ ;
+XIT ;
+ K BCHR11,BCHR12,BCHRC,BCHRX,BCHRCNT,BCHRNODE,BCHRRPNM,BCHPREC,BCHR13,BCHW,BCHWP,BCHIOM,BCHX1 ;IHS/TUCSON/LAB - patch 2
+ K ZTSK,Y,BCHBD,BCHED,IO("Q"),BCH80D,BCHBTH,BCHHRCN,BCHJOB,BCHLENG,BCHPCNT,BCHPG,BCHPROV,BCHX,DFN,DIC,DIR,DIRUT,DTOUT,DUOUT,XBNS,XBRC,XBRP,XBTX,D,BCHC,DIW,DIWI,DIWT,DIWTC,DIWX,DN
+ K BCHPRNM,BCHPRNT,BCHPROB,BCHPRV,BCHR,BCHRCNT,BCHRLOC,BCHSD,BCHTOT,BCHBDD,BCHBT,BCHEDD,BCHEDO,BCHBDO,BCHBT,BCHFOUND,BCHHIT,BCHID,BCHLINE,BCHP,BCHHRN,BCHODAT,BCHQUIT,BCHR0,BCHTICL,BCHTNRQ,BCHTQ,BCHTTXT
+ Q
+COMP ;EP - do nothing
+ Q
+PRINT ; EP - print individual forms
+ S BCHQUIT=0
+D ; Run by visit date
+ S X1=BCHBD,X2=-1 D C^%DTC S BCHSD=X
+ S BCHODAT=BCHSD_".9999" F  S BCHODAT=$O(^BCHR("B",BCHODAT)) Q:BCHODAT=""!((BCHODAT\1)>BCHED)!(BCHQUIT)  D V1
+ Q
+V1 ;
+ S (BCHR,BCHRCNT)=0 F  S BCHR=$O(^BCHR("B",BCHODAT,BCHR)) Q:BCHR'=+BCHR!(BCHQUIT)  I $D(^BCHR(BCHR,0)) D  I F D PRINT1^BCHUFPP
+ .;CHECK PROVIDER
+ .S F=0
+ .I 'BCHPROV S F=1 Q
+ .I BCHPROV=$P(^BCHR(BCHR,0),U,3) S F=1
+ Q
+DEMO ;EP
+ I $Y>(IOSL-9) D FF^BCHUFPP Q:BCHQUIT
+ S BCHR11=$G(^BCHR(BCHR,11))
+ S DFN=$P(BCHR0,U,4)
+ S BCHHRN=$S(DFN]"":$P($G(^AUPNPAT(DFN,41,DUZ(2),0)),U,2),1:$P(BCHR11,U,11))
+ S:BCHHRN="" BCHHRN="<?????>"
+ W !!?3,"HR#:  ",BCHHRN,?35,"SEX: ",$S(DFN]"":$$EXTSET^XBFUNC(2,.02,$P(^DPT(DFN,0),U,2)),1:$P(BCHR11,U,3))
+ W !?3,"NAME:  ",$S(DFN]"":$P(^DPT(DFN,0),U),1:$P(BCHR11,U))
+ W ?35,"Tribe:  " I DFN]"",$P($G(^AUPNPAT(DFN,11)),U,8) W $P(^AUTTTRI($P(^AUPNPAT(DFN,11),U,8),0),U)
+ E  I $P(BCHR11,U,5) W $P(^AUTTTRI($P(BCHR11,U,5),0),U)
+ W !?3,"SSN:  ",$S(DFN]"":$P(^DPT(DFN,0),U,9),1:$P(BCHR11,U,4))
+ W ?35,"RESIDENCE:  " I DFN]"" W $P($G(^AUPNPAT(DFN,11)),U,18)
+ E  W $P(BCHR11,U,7)
+ W !?3,"DOB:  "  I DFN]"" S Y=$P(^DPT(DFN,0),U,3) I Y]"" D DD^%DT W Y
+ I '$G(DFN) S Y=$P(BCHR11,U,2) I Y]"" D DD^%DT W Y
+ W ?35,"FACILITY: " I $P(BCHR11,U,9)]"" W $P(^DIC(4,$P(BCHR11,U,9),0),U)
+ W !?3,"PURPOSE OF REFERRAL:  ",$P($G(^BCHR(BCHR,21)),U)
+ W !?3,"INSURER:  ",$P($G(^BCHR(BCHR,41)),U)
+ W !!?35,"CHR SIGNATURE: _____________________________",!
+ W !,$TR($J("",80)," ","*")
+ D FF^BCHUFPP
+ Q

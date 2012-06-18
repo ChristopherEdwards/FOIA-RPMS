@@ -1,0 +1,319 @@
+BDMDR3 ; IHS/CMI/LAB - patients dm list - chinle ;
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,4**;JUN 14, 2007
+ ;
+ ;
+START ;
+ D INFORM
+ D EXIT
+ D GETINFO
+ I $D(BDMQUIT) D EXIT Q
+ D ZIS
+ Q
+INFORM ;
+ W:$D(IOF) @IOF
+ W !,$$CTR($$LOC)
+ W !,$$CTR($$USR)
+ W !!,"This report will list patients who are on the diabetes register",!,"that you select.",!,"The following data items will be printed for each patient:  Name, HRN, DOB",!,"Community of Residence.",!
+ W !,"For each of the following tests the last value in the 4 months prior to the",!,"as of date you enter and the next most recent prior to that one will be",!,"displayed:"
+ W !?5,"Hbg A1C, BP, Total Cholesterol, HDL, LDL",!!
+ Q
+ ;
+GETINFO ;
+R ;
+ W !!,"Patients must be a member of the Diabetes Register in order to be included in",!,"this report.",!
+ S BDMREG=""
+ S DIC="^ACM(41.1,",DIC(0)="AEMQ",DIC("A")="Enter the Name of the DM Register: " D ^DIC
+ I Y=-1 W !,"No register selected." S BDMQUIT="" Q
+ S BDMREG=+Y
+ ;get status
+ S BDMSTAT=""
+ S DIR(0)="Y",DIR("A")="Do you want to select register patients with a particular status",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G R
+ I Y=0 S BDMSTAT="" G PCP
+ ;which status
+ S DIR(0)="9002241,1",DIR("A")="Which status",DIR("B")="A" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G R
+ S BDMSTAT=Y,BDMSTAR=Y(0)
+PCP ;
+ S BDMPCP=""
+ S DIR(0)="Y",DIR("A")="Limit the report to a particular primary care provider ",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G R
+ I 'Y G EDATE
+ K DIC S DIC=$S($P(^DD(9000001,.14,0),U,2)[200:200,1:6),DIC(0)="AEMQ" D ^DIC K DIC
+ I Y=-1 G PCP
+ S BDMPCP=+Y
+EDATE ;get visit date range for functional assessment
+ S BDMED=""
+ K DIR W ! S DIR(0)="D^::EXP",DIR("A")="Enter As of Date for 4 month period"
+ D ^DIR K DIR G:Y<1 PCP S BDMED=Y,BDMEDD=$$FMTE^XLFDT(BDMED)
+ S BDMBD=$$FMADD^XLFDT(BDMED,-(4*30.5))
+ S BDMSD=$$FMADD^XLFDT(BDMBD,-1)
+ ;
+ Q
+ZIS ;call to XBDBQUE
+DEMO ;
+ D DEMOCHK^BDMUTL(.BDMDEMO)
+ I BDMDEMO=-1 G EDATE
+ S XBRP="PRINT^BDMDR31",XBRC="PROC^BDMDR3",XBRX="EXIT^BDMDR3",XBNS="BDM"
+ D ^XBDBQUE
+ D EXIT
+ Q
+EXIT ;clean up and exit
+ K A,B,C,P,X,Y
+ I '$D(BDMGUI) D EN^XBVK("BDM")
+ D ^XBFMK
+ D KILL^AUPNPAT
+ Q
+ ;
+PROC ;EP - called from XBDBQUE
+ S BDMJOB=$J,BDMBTH=$H
+ K ^XTMP("BDMDR3",BDMJOB,BDMBTH)
+ D XTMP^BDMOSUT("BDMDR3","DM LIST DM PATIENTS")
+ D REGPROC
+ Q
+REGPROC ;
+ S X=0 F  S X=$O(^ACM(41,"B",BDMREG,X)) Q:X'=+X  D
+ .I BDMSTAT]"",$P($G(^ACM(41,X,"DT")),U,1)=BDMSTAT S DFN=$P(^ACM(41,X,0),U,2) D CHKSET Q
+ .I BDMSTAT="" S DFN=$P(^ACM(41,X,0),U,2) D CHKSET Q
+ .Q
+ Q
+CHKSET ;
+ Q:$$DOD^AUPNPAT(DFN)]""
+ Q:$$DEMO^BDMUTL(DFN,$G(BDMDEMO))
+ ;I BDMPCP,$P(^AUPNPAT(DFN,0),U,14)'=BDMPCP Q
+ S P=$$VAL^XBDIQ1(9000001,DFN,.14),P=$S(P]"":P,1:"???")
+ S P1=$$VALI^XBDIQ1(9000001,DFN,.14)
+ S C=$$COMMRES^AUPNPAT(DFN,"E"),C=$S(C]"":C,1:"???")
+ S ^XTMP("BDMDR3",BDMJOB,BDMBTH,"PATIENTS",P,C,$P(^DPT(DFN,0),U),DFN)=$S(P1:P1,1:"???")
+ Q
+C(X,X2,X3) ;
+ D COMMA^%DTC
+ Q X
+DATE(B) ;
+ I $G(B)="" Q ""
+ Q $E(B,4,5)_"/"_$E(B,6,7)_"/"_$E(B,2,3)
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ NEW DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------
+POST ;EP
+ S X=$$ADD^XPDMENU("BDM M MAIN DM MENU","BDM DM PTS 4 MONTHS","DMV")
+ I 'X W "Attempt to add Patients w/selected values in 4 months option failed.." H 3
+ Q
+SUBTOT ;EP
+ Q:'BDMWR
+ S BDMSUB=""
+ I $Y>(BDMIOSL-9) D HEAD^BDMDR31 Q:$D(BDMQ)
+ W !,"Subtotals for "_$E(BDMP,1,16)_": ",?37,"# Patients",?50," # w/item done",?70,"%"
+ W !?2,"Last Clinic Visit",?38,$J($$C(BDMSTOT(0),0,8),9),?52,$J($$C($G(BDMSTOT(1)),0,8),9)
+ S X=($G(BDMSTOT(1))/BDMSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"Blood Pressure",?38,$J($$C(BDMSTOT(0),0,8),9),?52,$J($$C($G(BDMSTOT(2)),0,8),9)
+ S X=($G(BDMSTOT(2))/BDMSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"HGB A1C",?38,$J($$C(BDMSTOT(0),0,8),9),?52,$J($$C($G(BDMSTOT(3)),0,8),9)
+ S X=($G(BDMSTOT(3))/BDMSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"Total Cholesterol",?38,$J($$C(BDMSTOT(0),0,8),9),?52,$J($$C($G(BDMSTOT(4)),0,8),9)
+ S X=($G(BDMSTOT(4))/BDMSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"LDL Cholesterol",?38,$J($$C(BDMSTOT(0),0,8),9),?52,$J($$C($G(BDMSTOT(5)),0,8),9)
+ S X=($G(BDMSTOT(5))/BDMSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"HDL Cholesterol",?38,$J($$C(BDMSTOT(0),0,8),9),?52,$J($$C($G(BDMSTOT(6)),0,8),9)
+ S X=($G(BDMSTOT(6))/BDMSTOT(0))*100
+ W ?67,$J(X,6,2)
+ W !?2,"Triglycerides",?38,$J($$C(BDMSTOT(0),0,8),9),?52,$J($$C($G(BDMSTOT(7)),0,8),9)
+ S X=($G(BDMSTOT(6))/BDMSTOT(0))*100
+ W ?67,$J(X,6,2)
+ K BDMSUB
+ Q
+FINH ;
+ W !,$$CTR("Value Totals/Comparisons for: "_BDMP,80),!
+ W !?35,"PROVIDER SPECIFIC",?56,"TOTAL REGISTER",!
+ W ?35,"# pats",?48,"%",?56,"# pats",?68,"%",!
+ Q
+FINTOT ;EP
+ S BDMFINL=""
+ ;print page for each provider from BDMHGB, ETC
+ S BDMP="" F  S BDMP=$O(BDMTHGB(BDMP)) Q:BDMP=""!($D(BDMQ))  D
+ .S BDMP1="" F  S BDMP1=$O(BDMTHGB(BDMP,BDMP1)) Q:BDMP1=""  D FINTOT1
+ Q
+FINTOT1 ;
+ I BDMPCP,BDMP1'=BDMPCP Q
+ ;header, then print and calculate
+ D HEAD^BDMDR31
+ Q:$D(BDMQ)
+ D FINH
+ S BDMTOTP=$P(BDMTHGB,U),BDMTOPP=$P(BDMTHGB(BDMP,BDMP1),U)
+ W !,"Total Number of Patients",?33,$J($$C(BDMTOPP,0,8),9),?53,$J($$C(BDMTOTP,0,8),9),!
+ W !,"Blood Glucose Control"
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHGB(BDMP,BDMP1),U,2),BDMTN=$P(BDMTHGB,U,2) W !?2,"HbA1c <7.0" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHGB(BDMP,BDMP1),U,3),BDMTN=$P(BDMTHGB,U,3) W !?8,"7.0-7.9" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHGB(BDMP,BDMP1),U,4),BDMTN=$P(BDMTHGB,U,4) W !?8,"8.0-8.9" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHGB(BDMP,BDMP1),U,5),BDMTN=$P(BDMTHGB,U,5) W !?8,"9.0-9.9" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHGB(BDMP,BDMP1),U,6),BDMTN=$P(BDMTHGB,U,6) W !?8,"10.0-10.9" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHGB(BDMP,BDMP1),U,7),BDMTN=$P(BDMTHGB,U,7) W !?8,"11.0 or higher" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHGB(BDMP,BDMP1),U,8),BDMTN=$P(BDMTHGB,U,8) W !?8,"Tested but no value" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHGB(BDMP,BDMP1),U,9),BDMTN=$P(BDMTHGB,U,9) W !?8,"Not tested in 4 months" D W
+FINBP ;
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ W !!,"Blood Pressure Control"
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTBP(BDMP,BDMP1),U,2),BDMTN=$P(BDMTBP,U,2) W !?8,"<120/80" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTBP(BDMP,BDMP1),U,3),BDMTN=$P(BDMTBP,U,3) W !?8,"120/80-<130/85" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTBP(BDMP,BDMP1),U,4),BDMTN=$P(BDMTBP,U,4) W !?8,"130/85-<140/90" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTBP(BDMP,BDMP1),U,5),BDMTN=$P(BDMTBP,U,5) W !?8,"140/90-<160/95" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTBP(BDMP,BDMP1),U,6),BDMTN=$P(BDMTBP,U,6) W !?8,"160/95 or higher" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTBP(BDMP,BDMP1),U,7),BDMTN=$P(BDMTBP,U,7) W !?8,"Not tested in 4 months" D W
+FINTC ;
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ W !!,"Total Cholesterol"
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTC(BDMP,BDMP1),U,2),BDMTN=$P(BDMTTC,U,2) W !?8,"<200 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTC(BDMP,BDMP1),U,3),BDMTN=$P(BDMTTC,U,3) W !?8,"200-239 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTC(BDMP,BDMP1),U,4),BDMTN=$P(BDMTTC,U,4) W !?8,">240 mg/dl" D W
+ ;I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ ;S BDMPN=$P(BDMTTC(BDMP,BDMP1),U,5),BDMTN=$P(BDMTTC,U,5) W !?8,">160 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTC(BDMP,BDMP1),U,6),BDMTN=$P(BDMTTC,U,6) W !?8,"Tested but no value" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTC(BDMP,BDMP1),U,7),BDMTN=$P(BDMTTC,U,7) W !?8,"Not tested in 15 months" D W
+FINLDL ;
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ W !!,"LDL Cholesterol"
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTLDL(BDMP,BDMP1),U,2),BDMTN=$P(BDMTLDL,U,2) W !?8,"<100 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTLDL(BDMP,BDMP1),U,3),BDMTN=$P(BDMTLDL,U,3) W !?8,"100-129 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTLDL(BDMP,BDMP1),U,4),BDMTN=$P(BDMTLDL,U,4) W !?8,"130-160 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTLDL(BDMP,BDMP1),U,5),BDMTN=$P(BDMTLDL,U,5) W !?8,">160 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTLDL(BDMP,BDMP1),U,6),BDMTN=$P(BDMTLDL,U,6) W !?8,"Tested but no value" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTLDL(BDMP,BDMP1),U,7),BDMTN=$P(BDMTLDL,U,7) W !?8,"Not tested in 15 months" D W
+FINHDL ;
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ W !!,"HDL Cholesterol"
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHDL(BDMP,BDMP1),U,2),BDMTN=$P(BDMTHDL,U,2) W !?8,"<35 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHDL(BDMP,BDMP1),U,3),BDMTN=$P(BDMTHDL,U,3) W !?8,"35-45 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHDL(BDMP,BDMP1),U,4),BDMTN=$P(BDMTHDL,U,4) W !?8,"46-55 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHDL(BDMP,BDMP1),U,5),BDMTN=$P(BDMTHDL,U,5) W !?8,">55 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHDL(BDMP,BDMP1),U,6),BDMTN=$P(BDMTHDL,U,6) W !?8,"Tested but no value" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTHDL(BDMP,BDMP1),U,7),BDMTN=$P(BDMTHDL,U,7) W !?8,"Not tested in 15 months" D W
+ ;
+FINTRIG ;
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ W !!,"Triglycerides"
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTRIG(BDMP,BDMP1),U,2),BDMTN=$P(BDMTTRIG,U,2) W !?8,"<100 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTRIG(BDMP,BDMP1),U,3),BDMTN=$P(BDMTTRIG,U,3) W !?8,"100-129 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTRIG(BDMP,BDMP1),U,4),BDMTN=$P(BDMTTRIG,U,4) W !?8,"130-160 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTRIG(BDMP,BDMP1),U,5),BDMTN=$P(BDMTTRIG,U,5) W !?8,">160 mg/dl" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTRIG(BDMP,BDMP1),U,6),BDMTN=$P(BDMTTRIG,U,6) W !?8,"Tested but no value" D W
+ I $Y>(BDMIOSL-4) D HEAD^BDMDR31 Q:$D(BDMQ)  D FINH
+ S BDMPN=$P(BDMTTRIG(BDMP,BDMP1),U,7),BDMTN=$P(BDMTTRIG,U,7) W !?8,"Not tested in 15 months" D W
+ Q
+W ;
+ W ?33,$J($$C(BDMPN,0,8),9),?45,$$PER(BDMPN,BDMTOPP),?53,$J($$C(BDMTN,0,8),9),?65,$$PER(BDMTN,BDMTOTP)
+ Q
+PER(N,D) ;n=numerator, d=denominator
+ I $G(D)="" Q ""
+ I $G(D)=0 Q ""
+ NEW X,Y,Z
+ S X=N/D,X=X*100,X=$J(X,5,1)
+ Q X
+ ;
+TEST ;
+ D BDMG(1,"A",,DT,"ACTIVE")
+ Q
+BDMG(BDMREG,BDMSTAT,BDMPCP,BDMED,BDMSTAR) ;EP - GUI DMS Entry Point
+ ;cmi/anch/maw added 10/19/2004
+ S BDMEDD=$$FMTE^XLFDT(BDMED)
+ S BDMGUI=1
+ S BDMBD=$$FMADD^XLFDT(BDMED,-(4*30.5))
+ S BDMSD=$$FMADD^XLFDT(BDMBD,-1)
+ S BDMPCP=$G(BDMPCP)
+ NEW BDMNOW,BDMOPT,BDMIEN
+ S BDMOPT="DM Register Patients and Select Values in 4 Months"
+ D NOW^%DTC
+ S BDMNOW=$G(%)
+ K DD,DO,DIC
+ S X=DUZ_BDMNOW
+ S DIC("DR")=".02////"_DUZ_";.03////"_BDMNOW_";.06///"_$G(BDMOPT)_";.07////R"
+ S DIC="^BDMGUI(",DIC(0)="L",DIADD=1,DLAYGO=9003201.4
+ D FILE^DICN
+ K DIADD,DLAYGO,DIC,DA
+ I Y=-1 S BDMIEN=-1 Q
+ S BDMIEN=+Y
+ S BDMGIEN=BDMIEN  ;cmi/maw added
+ D ^XBFMK
+ K ZTSAVE S ZTSAVE("*")=""
+ ;D GUIEP for interactive testing
+ S ZTIO="",ZTDTH=$$NOW^XLFDT,ZTRTN="GUIEP^BDMDR3",ZTDESC="GUI DM 4 MONTHS" D ^%ZTLOAD
+ D EXIT
+ Q
+GUIEP ;EP
+ D PROC
+ K ^TMP($J,"BDMDR3")
+ S IOM=80
+ D GUIR^XBLM("PRINT^BDMDR31","^TMP($J,""BDMDR3"",")
+ S X=0,C=0 F  S X=$O(^TMP($J,"BDMDR3",X)) Q:X'=+X  D
+ .S BDMDATA=^TMP($J,"BDMDR3",X)
+ .I BDMDATA="ZZZZZZZ" S BDMDATA=$C(12)
+ .S ^BDMGUI(BDMIEN,11,X,0)=BDMDATA,C=C+1
+ S ^BDMGUI(BDMIEN,11,0)="^^"_C_"^"_C_"^"_DT_"^"
+ S DA=BDMIEN,DIK="^BDMGUI(" D IX1^DIK
+ D ENDLOG
+ K ^TMP($J,"BDMDR3")
+ D EXIT
+ S ZTREQ="@"
+ Q
+ ;
+ENDLOG ;-- write the end of the log
+ D NOW^%DTC
+ S BDMNOW=$G(%)
+ S DIE="^BDMGUI(",DA=BDMIEN,DR=".04////"_BDMNOW_";.07////C"
+ D ^DIE
+ K DIE,DR,DA
+ Q

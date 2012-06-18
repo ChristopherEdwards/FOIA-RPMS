@@ -1,0 +1,50 @@
+ACHSAD ; IHS/ITSC/PMF - DISPLAY DOCUMENTS ;    [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+ ;
+ S ACHSVIEW=""
+ F  D ^ACHSUSC Q:$D(DUOUT)!$D(DTOUT)!'$D(ACHSDIEN)!$D(ACHSDVEW)
+ K ACHSVIEW
+ Q
+ ;
+DUMP ;EP - From Option.
+ ;
+ ;5/14/01  pmf  init basic vars, if necessary
+ I '$D(ACHSCFY)!($G(ACHSFC)="") D ^ACHSVAR
+ ;
+ K DR,D0,D1,D2,ACHSDIEN
+ ;
+ D ^ACHSUD              ;SELECT DOCUMENT AND DISPLAY
+ I '$D(ACHSDIEN) D K Q
+ ;
+DEV ;
+ S %=$$PB^ACHS
+ I %="^"!$D(DUOUT)!$D(DTOUT) D K Q
+ I %="B" D DIQ^XBLM("^ACHSF("_DUZ(2)_",""D"",",ACHSDIEN),HOME^%ZIS Q
+ S %ZIS="OPQ"
+ D ^%ZIS
+ I POP D HOME^%ZIS D K Q
+ G:'$D(IO("Q")) START
+ K IO("Q")
+ I $D(IO("S"))!($E(IOST)'="P") W *7,!,"Please queue to system printers." D ^%ZISC G DEV
+ S ZTRTN="START^ACHSAD",ZTDESC="DUMP OF DATA FROM DOCUMENT "_$$DOC^ACHS(0,14)_"-"_ACHSFC_"-"_$$DOC^ACHS(0,1)
+ F ACHS="AC*","ACHS*" S ZTSAVE(ACHS)=""
+ D ^%ZTLOAD
+ G DEV:'$D(ZTSK)
+ K ZTSK
+ D K
+ Q
+ ;
+START ;EP - TaskMan.
+ S:$D(IO("S")) IOSL=66
+ U IO
+ S DIC="^ACHSF("_DUZ(2)_",""D"",",DA=ACHSDIEN
+ D EN^DIQ
+ I IO'=$G(ACHSIO) W @IOF
+K ;
+ K ACHSDIEN,D0,D1
+ D ^%ZISC
+ D ERPT^ACHS:$D(ZTQUEUED)
+ I IO(0)=IO D RTRN^ACHS
+ Q
+ ;

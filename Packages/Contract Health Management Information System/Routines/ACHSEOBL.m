@@ -1,0 +1,3 @@
+ACHSEOBL ; IHS/ITSC/PMF - CHECK FOR EOBR POSTING JOB RUNNING ;  [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ I $D(^ACHSUSE("EOBR")) U IO(0) W !!,*7,?10,"EOBR Posting in Progress -- Request Cancelled",!?15,"Enter <RETURN> to Continue " D RTRN^ACHS D ^XQ

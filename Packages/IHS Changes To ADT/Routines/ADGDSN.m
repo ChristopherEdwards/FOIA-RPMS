@@ -1,0 +1,65 @@
+ADGDSN ; IHS/ADC/PDW/ENM - PATIENTS NOT RELEASED FROM DAY SURGERY ; [ 01/05/2004  11:45 AM ]
+ ;;5.0;ADMISSION/DISCHARGE/TRANSFER;**2**;MAR 25, 1999
+ ;
+ ;***> get date range and device
+ W !!?10,"PRINT LIST OF PATIENTS NOT RELEASED FROM DAY SURGERY"
+DATE S %DT="AEQ",%DT("A")="Beginning date: ",X="" D ^%DT
+ G END:Y=-1 S DGBDT=Y
+DATE2 S %DT="AEQ",%DT("A")="Ending date: ",X="" D ^%DT G DATE:Y=-1 S DGEDT=Y
+ I DGEDT<DGBDT W *7,!!?5,"Ending date MUST NOT be before beginning date",! G DATE2
+ ;IHS/ITSC/WAR 12/16/03 added .2400 to include todays patients
+ ;I DGEDT'<DT S X1=DT,X2=-1 D C^%DTC S DGEDT=X
+ I DGEDT'<(DT+.2400) S X1=DT,X2=-1 D C^%DTC S DGEDT=X
+ ;
+ W !! S %ZIS="PQ" D ^%ZIS G END:POP,QUE:$D(IO("Q")) U IO G CALC
+QUE K IO("Q") S ZTRTN="CALC^ADGDSN",ZTDESC="DS NOT RELEASED"
+ ;F DGI="DGBDT","DGEDT" S ZTSAVE("DGI")=""
+ F DGI="DGBDT","DGEDT" S ZTSAVE(DGI)="" ;IHS/DSD/ENM 06/14/99
+ D ^%ZTLOAD D ^%ZISC K ZTSK
+END K DGBED,DGEDT D HOME^%ZIS Q
+ ;
+ ;
+CALC ;***> calculate patients not released; screen out no-shows & cancels
+ S DGDT=DGBDT-.0001,DGEDT=DGEDT_.2400 K ^TMP("DGZDSN",$J)
+A1 S DGDT=$O(^ADGDS("AA",DGDT)) G PRNT:DGDT="",PRNT:DGDT>DGEDT S DFN=0
+A2 S DFN=$O(^ADGDS("AA",DGDT,DFN)) G A1:DFN="" S DGN=0
+A3 S DGN=$O(^ADGDS("AA",DGDT,DFN,DGN)) G A2:DGN=""
+ G A3:'$D(^ADGDS(DFN,"DS",DGN,0))
+ G A4:'$D(^ADGDS(DFN,"DS",DGN,2)) S DGSTR=^(2)
+ G A3:$P(DGSTR,U)'="",A3:$P(DGSTR,U,3)="Y",A3:$P(DGSTR,U,4)="Y"
+A4 S ^TMP("DGZDSN",$J,DGDT,DFN)="" G A3
+ ;
+PRNT ;***> print list
+ S DGDT=0,DGSTOP="",DGPAGE=""
+ S DGLIN="",$P(DGLIN,"=",80)=""
+ S DGFAC=$P(^DIC(4,DUZ(2),0),U),DGDUZ=$P(^VA(200,DUZ,0),U,2)
+ D HEAD
+PR1 S DGDT=$O(^TMP("DGZDSN",$J,DGDT)) G END1:DGDT="" S DFN=0
+PR2 S DFN=$O(^TMP("DGZDSN",$J,DGDT,DFN)) G PR1:DFN=""
+ S DGT=$P(DGDT,".",2),DGT=$E(DGT_"000",1,4)
+ S X=$P(DGDT,"."),X=$E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3)_" at "_DGT
+ W !?3,$P(^DPT(DFN,0),U)
+ W:$D(^AUPNPAT(DFN,41,DUZ(2),0)) ?30,$J($P(^(0),U,2),7) W ?50,X
+ D NEWPG:($Y>(IOSL-6)) G END2:DGSTOP=U G PR2
+ ;
+ ;
+END1 ;***> eoj
+ I IOST["C-" D PRTOPT^ADGVAR
+END2 W @IOF D KILL^ADGUTIL
+ D ^%ZISC K ^TMP("DGZDSN",$J) Q
+ ;
+ ;
+NEWPG ;***> subrtn for end of page control
+ I IOST'?1"C-".E D HEAD S DGSTOP="" Q
+ I DGPAGE>0 K DIR S DIR(0)="E" D ^DIR S DGSTOP=X
+ I DGSTOP'=U D HEAD
+ Q
+ ;
+HEAD ;***> subrtn to print heading
+ I (IOST["C-")!(DGPAGE>0) W @IOF
+ S DGPAGE=DGPAGE+1
+ W ?11,"*****Confidential Patient Data Covered by Privacy Act*****"
+ W !,DGDUZ,?80-$L(DGFAC)\2,DGFAC
+ W ! D TIME^ADGUTIL W ?23,"DAY SURGERY PATIENTS NOT RELEASED"
+ W !!!?3,"PATIENT NAME",?30,"CHART #",?50,"SURGERY DATE/TIME"
+ W !,DGLIN,!! Q

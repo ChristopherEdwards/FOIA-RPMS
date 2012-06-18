@@ -1,0 +1,114 @@
+FHINI0E6	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8872,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8873,0)
+	;;=BF,JUICE,RED GRAPE,TODDLER,GERBER^BC-02146^4.42-floz.^125
+	;;^UTILITY(U,$J,112,8873,1)
+	;;=.24^0^16.56^67.2^^^^8.8^.16^^15.2^38.4^4^^^^^^32^.008
+	;;^UTILITY(U,$J,112,8873,2)
+	;;=.016^.08^^.064^^^^^^^^^0
+	;;^UTILITY(U,$J,112,8873,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8874,0)
+	;;=BF,JUICE,TROPICAL BLEND,BEECH-NUT STAGE 2^BC-02147^4-floz.^122
+	;;^UTILITY(U,$J,112,8874,1)
+	;;=.574^0^13.934^59.016^^^^17.213^^^^^^^^^^40.164^32.787^.008
+	;;^UTILITY(U,$J,112,8874,2)
+	;;=.008^.164
+	;;^UTILITY(U,$J,112,8874,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8875,0)
+	;;=BF,JUICE,WHITE GRAPE,BEECH-NUT STAGE 1^BC-02148^4.2-floz.^128
+	;;^UTILITY(U,$J,112,8875,1)
+	;;=0^0^15.313^63.281^^^^13.281^.297^^^^6.25^^^^^^33.594
+	;;^UTILITY(U,$J,112,8875,2)
+	;;=.023^.313
+	;;^UTILITY(U,$J,112,8875,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8876,0)
+	;;=BF,JUICE,WHITE GRAPE,GERBER SECOND FOOD^BC-02149^4.42-floz.^125
+	;;^UTILITY(U,$J,112,8876,1)
+	;;=.24^.08^16.24^66.4^^^^9.6^.08^^13.6^36^4^^^^^^33.6^0
+	;;^UTILITY(U,$J,112,8876,2)
+	;;=0^.08^^.056^^^^^^^^^0
+	;;^UTILITY(U,$J,112,8876,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8877,0)
+	;;=BF,FRUIT,APPLE BLUEBERRY,GERBER THIRD FOOD^BC-02150^6-oz.^170
+	;;^UTILITY(U,$J,112,8877,1)
+	;;=.235^.176^11.294^47.647^^^^4.118^.118^4.118^7.647^75.294^1.176^.029^.024^.094^^^9.412^.018
+	;;^UTILITY(U,$J,112,8877,2)
+	;;=.041^.118^^.029^^^^^^^^^2.941
+	;;^UTILITY(U,$J,112,8877,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8878,0)
+	;;=BF,FRUIT,APPLE BLUEBERRY,GERBER SECOND FOOD^BC-02151^4-oz.^113
+	;;^UTILITY(U,$J,112,8878,1)
+	;;=.177^.177^11.327^47.788^^^^4.425^.088^4.425^7.965^76.106^.885^.027^.027^.106^^^12.389^.018
+	;;^UTILITY(U,$J,112,8878,2)
+	;;=.044^.088^^.027^^^^^^^^^1.77
+	;;^UTILITY(U,$J,112,8878,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8879,0)
+	;;=BF,FRUIT,APPLE STRAWBERRY,BEECH-NUT STAGE 2^BC-02152^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8879,1)
+	;;=0^0^17.031^70.313^^^^^^^^^^^^^^^12.5^.008
+	;;^UTILITY(U,$J,112,8879,2)
+	;;=.039^.234
+	;;^UTILITY(U,$J,112,8879,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8880,0)
+	;;=BF,FRUIT,APPLES,INST,HEINZ^BC-02153^4-tbsp.^14
+	;;^UTILITY(U,$J,112,8880,1)
+	;;=0^0^92.857^357.143^^^^57.143^1.429^^64.286^742.857^28.571^.286^.286^^^200^114.286^.143
+	;;^UTILITY(U,$J,112,8880,2)
+	;;=.071^.714^^.214
+	;;^UTILITY(U,$J,112,8880,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8881,0)
+	;;=BF,FRUIT,APPLES & APRICOT,INST,HEINZ^BC-02154^3-tbsp.^14
+	;;^UTILITY(U,$J,112,8881,1)
+	;;=0^7.143^92.857^357.143^^^^78.571^^^71.429^1142.857^14.286^.429^.286^^^4042.857^121.429^.143
+	;;^UTILITY(U,$J,112,8881,2)
+	;;=.143^1.429^^.286
+	;;^UTILITY(U,$J,112,8881,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8882,0)
+	;;=BF,FRUIT,APPLES & APRICOT,JR,HEINZ^BC-02155^jar^213
+	;;^UTILITY(U,$J,112,8882,1)
+	;;=.423^.282^12.488^53.991^^^^7.981^.202^^15.962^101.878^1.878^.07^.09^^^325.822^7.042^.042
+	;;^UTILITY(U,$J,112,8882,2)
+	;;=.019^.141^^.052
+	;;^UTILITY(U,$J,112,8882,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8883,0)
+	;;=BF,FRUIT,APPLES & APRICOT,STR,HEINZ^BC-02156^jar^128
+	;;^UTILITY(U,$J,112,8883,1)
+	;;=.391^.313^12.5^53.906^^^^14.844^.203^^15.625^102.344^2.344^.07^.09^^^325.781^12.5^.039
+	;;^UTILITY(U,$J,112,8883,2)
+	;;=.023^.156^^.047
+	;;^UTILITY(U,$J,112,8883,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8884,0)
+	;;=BF,FRUIT,APPLES & BALANCE,INST,HEINZ^BC-02157^4-tbsp.^14
+	;;^UTILITY(U,$J,112,8884,1)
+	;;=0^0^92.857^357.143^^^^0^1.429^^50^1021.429^21.429^.286^.071^^^200^121.429^.143
+	;;^UTILITY(U,$J,112,8884,2)
+	;;=.071^.714^^.286
+	;;^UTILITY(U,$J,112,8884,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8885,0)
+	;;=BF,FRUIT,APPLES & CRANBERRIES,JR,HEINZ^BC-02158^jar^213
+	;;^UTILITY(U,$J,112,8885,1)
+	;;=.094^.282^20.188^84.038^^^^6.103^.202^^6.103^17.84^8.92^.028^.04^^^28.169^2.817^.009
+	;;^UTILITY(U,$J,112,8885,2)
+	;;=.009^.094^^.019
+	;;^UTILITY(U,$J,112,8885,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8886,0)
+	;;=BF,FRUIT,APPLES & CRANBERRIES,STR,HEINZ^BC-02159^jar^128
+	;;^UTILITY(U,$J,112,8886,1)
+	;;=.078^.313^20.234^84.375^^^^6.25^.203^^6.25^17.969^5.469^.031^.04^^^28.125^3.125^.008

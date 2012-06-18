@@ -1,0 +1,330 @@
+BMXSQL3 ; IHS/OIT/HMW - BMX REMOTE PROCEDURE CALLS ; 
+ ;;4.0;BMX;;JUN 28, 2010
+ ;
+ ;
+PLEVEL(BMXFF,BMXLVL,BMXRET) ;EP
+ ;Analyze WHERE statement according to paren level
+ ;Return a string to guide building of iterator(s)
+ ;
+ ;Basically, count the number of OR clauses on the 
+ ;same paren level
+ ;IN: BMXFF()
+ ;OUT: BMXLVL(), BMXRET
+ ;
+ ;BMXRET = 1&/!2&/!...&/!n   clauses
+ ;BMXLVL(E,"BEGIN")=Index where element E begins
+ ;BMXLVL(E,"END")  =Index where element E ends
+ ;BMXLVL(E,"ELEMENTS")=Number of subelements in element E
+ ;
+ N BMXNOR,BMXNAND,J,C,BMXTMP
+ N E,L,BMXCNT
+ ;Test for no ORs or no ANDs
+ S BMXNOR=1,BMXNAND=1
+ S J=0 F  S J=$O(BMXFF(J)) Q:'+J  D  ;Q:'BMXNOR  Q:'BMXNAND
+ . I BMXFF(J)="OR" S BMXNOR=0
+ . I BMXFF(J)="AND" S BMXNAND=0
+ . Q
+ ;If no ORs or no ANDs then take all parens out of BMXFF
+ I ((BMXNOR)!(BMXNAND)) D
+ . S:$D(BMXFF("INDEX")) BMXTMP("INDEX")=BMXFF("INDEX")
+ . S J=0,C=0 F  S J=$O(BMXFF(J)) Q:'+J  D:"(^)"'[BMXFF(J)
+ . . S C=C+1
+ . . S BMXTMP(C)=BMXFF(J)
+ . . S:$D(BMXFF(J,0)) BMXTMP(C,0)=BMXFF(J,0)
+ . . S:$D(BMXFF(J,"INTERNAL")) BMXTMP(J,"INTERNAL")=BMXFF(J,"INTERNAL")
+ . . S:$D(BMXFF(J,"TYPE")) BMXTMP(C,"TYPE")=BMXFF(J,"TYPE")
+ . . S:$D(BMXFF(J,"IEN")) BMXTMP(C,"IEN")=BMXFF(J,"IEN")
+ . . S:$D(BMXFF(J,"JOIN")) BMXTMP(C,"JOIN")=BMXFF(J,"JOIN")
+ . . S:$D(BMXFF(J,"JOIN","IEN")) BMXTMP(C,"JOIN","IEN")=BMXFF(J,"JOIN","IEN")
+ . . ;I $D(BMXFF(J,"JOIN")) D
+ . . ;. N K S K=0 F  S K=$O(BMXFF(J,"JOIN",K)) Q:'+K  D
+ . . ;. . N L S L=0 F  S L=$O(BMXFF(J,"JOIN",K,L)) Q:'+L  D
+ . . ;. . . S BMXTMP(C,"JOIN",K,L)=BMXFF(J,"JOIN",K,L)
+ . . I $D(BMXFF(J,"SET")) D
+ . . . N BMXSS
+ . . . S BMXSS="" F  S BMXSS=$O(BMXFF(J,"SET",BMXSS)) Q:BMXSS=""  D
+ . . . . S BMXTMP(C,"SET",BMXSS)=BMXFF(J,"SET",BMXSS)
+ . K BMXFF
+ . I $D(BMXTMP("INDEX")) S BMXFF("INDEX")=BMXTMP("INDEX")
+ . S J=0 F  S J=$O(BMXTMP(J)) Q:'+J  D
+ . . S BMXFF(J)=BMXTMP(J)
+ . . S:$D(BMXTMP(J,0)) BMXFF(J,0)=BMXTMP(J,0)
+ . . S:$D(BMXTMP(J,"TYPE")) BMXFF(J,"TYPE")=BMXTMP(J,"TYPE")
+ . . I $D(BMXTMP(J,"JOIN")) S BMXFF(J,"JOIN")=BMXTMP(J,"JOIN") S:$D(BMXTMP(J,"JOIN","IEN")) BMXFF(J,"JOIN","IEN")=BMXTMP(J,"JOIN","IEN") S BMXFJ("JOIN",+$P($P(BMXFF(J,0),U,2),"P",2))=J
+ . . ;I $D(BMXTMP(J,"JOIN")) D
+ . . ;. N K S K=0 F  S K=$O(BMXTMP(J,"JOIN",K)) Q:'+K  D
+ . . ;. . N L S L=0 F  S L=$O(BMXTMP(J,"JOIN",K,L)) Q:'+L  D
+ . . ;. . . S BMXFF(J,"JOIN",K,L)=BMXTMP(J,"JOIN",K,L)
+ . . I $D(BMXTMP(J,"SET")) D
+ . . . N BMXSS
+ . . . S BMXSS="" F  S BMXSS=$O(BMXTMP(J,"SET",BMXSS)) Q:BMXSS=""  D
+ . . . . S BMXFF(J,"SET",BMXSS)=BMXTMP(J,"SET",BMXSS)
+ . . I $D(BMXTMP(J,"INTERNAL")) S BMXFF(J,"INTERNAL")=BMXTMP(J,"INTERNAL")
+ . . I $D(BMXTMP(J,"IEN")) S BMXFF(J,"IEN")=BMXTMP(J,"IEN")
+ . S BMXFF=C
+ . Q
+ ;
+ ;Remove excess leading and trailing parens
+ ;Find close paren corresponding to BMXFF(1)
+ ;If its the last paren, then remove the first and last parens
+ ;Else, quit
+ N BMXEND
+ S BMXEND=0
+ F  Q:'((BMXFF(1)="(")&(BMXFF(BMXFF)=")"))  Q:BMXEND  D
+ . S L=1,J=1
+ . F  S J=$O(BMXFF(J)) Q:'+J  D:"(^)"[BMXFF(J)  Q:BMXEND
+ . . I BMXFF(J)="(" S L=L+1 Q
+ . . I BMXFF(J)=")" S L=L-1
+ . . I L=0,J<BMXFF S BMXEND=1 Q
+ . . I L=0,J=BMXFF D  Q
+ . . . K BMXFF(1),BMXFF(BMXFF)
+ . . . F J=2:1:BMXFF-1 D
+ . . . . S BMXFF(J-1)=BMXFF(J)
+ . . . . S:$D(BMXFF(J,0)) BMXFF(J-1,0)=BMXFF(J,0)
+ . . . . K BMXFF(J)
+ . . . S BMXFF=BMXFF-2
+ ;
+ S BMXRET="",E=1,L=0,BMXCNT=0
+ K BMXLVL
+ S J=0 F  S J=$O(BMXFF(J)) Q:'+J  D
+ . I BMXFF(J)="(" D  Q  ;If BMXFF(J) is an open paren
+ . . S L=1
+ . . S BMXLVL(E,"BEGIN")=J ;Start position of this expression
+ . . S BMXCNT=0
+ . . ;Find corresponding close paren
+ . . F  S J=$O(BMXFF(J)) Q:'+J  D  Q:L=0
+ . . . I BMXFF(J)=")" S L=L-1,BMXLVL(E,"END")=J,BMXLVL(E,"ELEMENTS")=BMXCNT Q
+ . . . I BMXFF(J)="(" S L=L+1 Q
+ . . . I "AND^OR"'[BMXFF(J) S BMXCNT=BMXCNT+1
+ . . S BMXRET=BMXRET_E
+ . . S E=E+1
+ . . Q
+ . I "AND^OR"[BMXFF(J) D  Q  ;If BMXFF(J) is an operator
+ . . S BMXRET=BMXRET_$S(BMXFF(J)="OR":"!",1:"&")
+ . D  Q  ; BMXFF(J) is an element unenclosed by parens
+ . . S BMXLVL(E,"BEGIN")=J
+ . . S BMXLVL(E,"END")=J
+ . . S BMXLVL(E,"ELEMENTS")=1
+ . . S BMXRET=BMXRET_E
+ . . S E=E+1
+ . Q
+ Q
+ ;
+XRTST(BMXFF,F,BMXHIT,BMXRNAM,BMXPFP)       ;EP
+ ;Returns TRUE (1) in BMXRET if 'normal' index exists
+ ;for field in BMXFF(BMXNDX)
+ ;ELSE returns 0
+ ;
+ ;IN: BMXFF
+ ;    F
+ ;OUT:BMXRET  - 1 or 0
+ ;    BMXRNAM - If BMXRET=1, Index name
+ ;
+ N BMXNOD0,BMXFNUM,BMXGL,BMXFLDNM,BMXREF,Q
+ S BMXRET=0,Q=$C(34)
+ ;
+ Q:"AND^OR^(^)"[BMXFF(F)
+ S BMXNOD=BMXFF(F)
+ S BMXNOD0=BMXFF(F,0)
+ S BMXFNUM=$P(BMXNOD,U,5)
+ Q:'+BMXFNUM
+ S BMXGL=$P(BMXNOD,U,7,8)
+ S BMXFLDNM=$P(BMXNOD,U,6)
+ S BMXHIT=0
+ Q:$D(BMXFF("JOIN"))
+ Q:$D(BMXFF(F,"INTERNAL"))
+ I BMXPFF=0,$P(BMXFF(F),U,4)="" Q  ;Cannot create iterator on null
+ I $D(BMXFF(F,"IEN")) S BMXHIT=1 Q
+ I '$D(^DD(BMXFNUM,BMXFLDNM,1)) Q
+ I $P(BMXNOD0,U,2)'["P",$D(BMXFF("INDEX")) D  Q  ;Explicit index
+ . S BMXRNAM=BMXFF("INDEX")
+ . S BMXHIT=1
+ S BMXREF=0
+ F  S BMXREF=$O(^DD(BMXFNUM,BMXFLDNM,1,BMXREF)) Q:'+BMXREF  Q:BMXHIT  D
+ . Q:'$D(^DD(BMXFNUM,BMXFLDNM,1,BMXREF,0))
+ . S BMXRNOD=^DD(BMXFNUM,BMXFLDNM,1,BMXREF,0)
+ . Q:$P(BMXRNOD,U,3)]""
+ . S BMXRNAM=$P(BMXRNOD,U,2)
+ . S BMXTMP=BMXGL_Q_BMXRNAM_Q_")"
+ . Q:'$D(@BMXTMP)
+ . S BMXTMPV=0,BMXTMPV=$O(@BMXTMP@(BMXTMPV))
+ . Q:BMXTMPV=""
+ . S BMXTMP=BMXGL_Q_BMXRNAM_Q_","_Q_BMXTMPV_Q_")"
+ . S BMXTMPI=0,BMXTMPI=$O(@BMXTMP@(BMXTMPI))
+ . S BMXTMP=$S(BMXGL[",":$P(BMXGL,",")_")",1:$P(BMXGL,"("))
+ . Q:'$D(@BMXTMP@(BMXTMPI))
+ . S BMXTMPL=$P(BMXFF(F,0),U,4)
+ . S BMXTMPP=$P(BMXTMPL,";",2)
+ . S BMXTMPL=$P(BMXTMPL,";")
+ . Q:BMXTMPL=""
+ . S BMXTMP=BMXGL_BMXTMPI_")"
+ . Q:'$D(@BMXTMP@(BMXTMPL))
+ . S BMXTMPN=@BMXTMP@(BMXTMPL)
+ . I BMXTMPP["E" D
+ . . S BMXTMPP=$P(BMXTMPP,"E",2)
+ . . S BMXTMPP=$E(BMXTMPN,$P(BMXTMPP,","),$P(BMXTMPP,",",2))
+ . E  D
+ . . S BMXTMPP=$P(BMXTMPN,"^",BMXTMPP)
+ . I $P(BMXNOD0,U,2)["P" D  Q
+ . . N BMXPFFN
+ . . S BMXPFF(BMXPFF)=BMXFF(F)
+ . . S BMXPFF(BMXPFF,0)=BMXFF(F,0)
+ . . S BMXPFF(BMXPFF,1)=BMXREF
+ . . S $P(BMXPFF(BMXPFF,1),U,2)=BMXRNAM
+ . . S BMXPFP(BMXPFP,BMXPFF)=BMXFF(F)
+ . . S BMXPFP(BMXPFP,BMXPFF,0)=BMXFF(F,0)
+ . . S BMXPFP(BMXPFP,BMXPFF,1)=BMXREF
+ . . S $P(BMXPFP(BMXPFP,BMXPFF,1),U,2)=BMXRNAM
+ . . S BMXPFF=BMXPFF+1
+ . . S BMXPFFN=$P(BMXNOD0,U,2)
+ . . S BMXPFFN=+$P(BMXPFFN,"P",2)
+ . . S $P(BMXPFF(BMXPFF),U,5)=BMXPFFN
+ . . S $P(BMXPFF(BMXPFF),U,6)=".01"
+ . . S $P(BMXPFF(BMXPFF),U,7)=^DIC(BMXPFFN,0,"GL")
+ . . S BMXPFF(BMXPFF,0)=^DD(BMXPFFN,".01",0)
+ . . S $P(BMXPFP(BMXPFP,BMXPFF),U,5)=BMXPFFN
+ . . S $P(BMXPFP(BMXPFP,BMXPFF),U,6)=".01"
+ . . S $P(BMXPFP(BMXPFP,BMXPFF),U,7)=^DIC(BMXPFFN,0,"GL")
+ . . S BMXPFP(BMXPFP,BMXPFF,0)=^DD(BMXPFFN,".01",0)
+ . . D XRTST(.BMXPFF,BMXPFF,.BMXHIT,BMXRNAM,.BMXPFP)
+ . . Q
+ . I BMXTMPP=BMXTMPV D  Q
+ . . S BMXHIT=1,BMXRET=1
+ . . I BMXPFF>0 D  Q
+ . . . S BMXPFF(BMXPFF,1)=BMXREF
+ . . . S $P(BMXPFF(BMXPFF,1),U,2)=BMXRNAM
+ . . . S BMXPFP(BMXPFP,BMXPFF,1)=BMXREF
+ . . . S $P(BMXPFP(BMXPFP,BMXPFF,1),U,2)=BMXRNAM
+ . . Q
+ . Q
+ Q
+ ;
+ ;
+BLDIT(BMXFF,F,BMXRNAM,BMXRET,BMXPFP)        ;EP - Build iterator
+ ;
+ K BMXRET
+ N BMXNOD,BMXOP,BMXV,BMXGL,Q
+ S BMXNOD=BMXFF(F)
+ S BMXOP=$P(BMXNOD,U,3)
+ S BMXV=$P(BMXNOD,U,4)
+ S BMXGL=$P(BMXNOD,U,7,8)
+ S Q=$C(34)
+ I $D(BMXPFP(F)) D BLDIT2 Q  ;Pointer
+ ;TODO Set BMXV to the pointer or set or FM date that corresponds
+ ;  to the user-entered value
+ I $D(BMXFF(F,"IEN")),BMXFF(F,"IEN")="TEMPLATE" D  Q
+ . N BMXTNUM
+ . S BMXTNUM=$O(^DIBT("B",$P(BMXFF(F),U,4),0))
+ . S BMXRET="S D0=0 F  S D0=$O(^DIBT("_BMXTNUM_",1,D0)) Q:'+D0  Q:BMXM>BMXXMAX  "
+ . Q
+ I BMXOP="=" D  Q
+ . I $D(BMXFF(F,"IEN")) S BMXRET="S D0="_BMXV_" Q:'+D0  Q:BMXM>BMXXMAX  " Q
+ . S BMXRET="S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_","_Q_BMXV_Q_",D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ . Q
+ ;
+ I BMXOP=">=" D  Q
+ . I $D(BMXFF(F,"IEN")) S BMXV=BMXV-1,BMXRET="S D0="_BMXV_" F  S D0=$O("_BMXGL_"D0)) Q:'+D0  Q:BMXM>BMXXMAX  " Q
+ . N BMXTMP
+ . S BMXTMP="BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1)"
+ . S @BMXTMP
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV)) Q:BMXV=""""  Q:BMXM>BMXXMAX  S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP=">" D  Q
+ . I $D(BMXFF(F,"IEN")) S BMXRET="S D0="_BMXV_" F  S D0=$O("_BMXGL_"D0)) Q:'+D0  Q:BMXM>BMXXMAX  " Q
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV)) Q:BMXV=""""  Q:BMXM>BMXXMAX  S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="<>" D  Q
+ . I $D(BMXFF(F,"IEN")) S BMXRET="S D0=0 F  S D0=$O("_BMXGL_"D0)) Q:'+D0  I D0'="_BMXV_" Q:BMXM>BMXXMAX  " Q
+ . S BMXRET="S BMXV=0 F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV)) Q:BMXV=""""  Q:BMXM>BMXXMAX  I BMXV'="_Q_BMXV_Q_" S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="<=" D  Q
+ . I $D(BMXFF(F,"IEN")) S BMXRET="S D0=0 F  S D0=$O("_BMXGL_"D0)) Q:'+D0  Q:D0>"_BMXV_"  Q:BMXM>BMXXMAX  " Q
+ . N BMXTMP
+ . S BMXTMP="BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV))"
+ . S @BMXTMP
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1) Q:BMXV=""""  Q:BMXM>BMXXMAX  S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="<" D  Q
+ . I $D(BMXFF(F,"IEN")) S BMXRET="S D0=0 F  S D0=$O("_BMXGL_"D0)) Q:'+D0  Q:D0'<"_BMXV_"  Q:BMXM>BMXXMAX  " Q
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1) Q:BMXV=""""  Q:BMXM>BMXXMAX  S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="BETWEEN" D  Q  ;changed '< to > (inclusive BETWEEN)
+ . I $D(BMXFF(F,"IEN")) D  Q
+ . . S BMXRET="S D0="_(+$P(BMXV,"~")-1)_" F  S D0=$O("_BMXGL_"D0)) Q:'+D0  Q:D0>"_$P(BMXV,"~",2)_"  Q:BMXM>BMXXMAX  "
+ . I +$P(BMXV,"~")=$P(BMXV,"~") D  ;BMXV is a number
+ . . S BMXRET="S BMXV="_$P(BMXV,"~")_",BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1) F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q
+ . . S BMXRET=BMXRET_",BMXV)) Q:BMXV=""""  Q:BMXV>"_$P(BMXV,"~",2)_"  Q:BMXM>BMXXMAX  S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ . E  D  ;BMXV is a string
+ . . S BMXRET="S BMXV="_Q_$P(BMXV,"~")_Q_",BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1) F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q
+ . . S BMXRET=BMXRET_",BMXV)) Q:BMXV=""""  Q:BMXV]"_Q_$P(BMXV,"~",2)_Q_"  Q:BMXM>BMXXMAX  S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="LIKE" D  Q
+ . N BMXTMP,BMXV1
+ . S BMXV1=BMXV
+ . S BMXTMP="BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1)"
+ . S @BMXTMP
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV)) Q:BMXV=""""  Q:BMXV'?1"_Q_BMXV1_Q_".E  Q:BMXM>BMXXMAX  S D0="""" F  S D0=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D0)) Q:D0=""""  Q:BMXM>BMXXMAX  "
+ Q
+ ;
+BLDIT2 ;Pointer
+ N BMXPS,J
+ S BMXPS=$O(BMXPFP(F,999),-1)
+ S BMXNOD=BMXPFP(F,BMXPS)
+ S BMXGL=$P(BMXNOD,U,7,8)
+ I BMXOP="=" D
+ . S BMXRNAM=$P(BMXPFP(F,BMXPS,1),U,2)
+ . S BMXRET="S D"_BMXPS_"="""" F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_","_Q_BMXV_Q_",D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP=">" D
+ . S BMXRNAM=$P(BMXPFP(F,BMXPS,1),U,2)
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV)) Q:BMXV=""""  Q:BMXM>BMXXMAX  S D"_BMXPS_"="""" F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP=">=" D
+ . N BMXTMP
+ . S BMXRNAM=$P(BMXPFP(F,BMXPS,1),U,2)
+ . S BMXTMP="BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1)"
+ . S @BMXTMP
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV)) Q:BMXV=""""  Q:BMXM>BMXXMAX  S D"_BMXPS_"="""" F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="<=" D
+ . N BMXTMP
+ . S BMXRNAM=$P(BMXPFP(F,BMXPS,1),U,2)
+ . S BMXTMP="BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV))"
+ . S @BMXTMP
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1) Q:BMXV=""""  Q:BMXM>BMXXMAX  S D"_BMXPS_"="""" F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="<>" D
+ . S BMXRNAM=$P(BMXPFP(F,BMXPS,1),U,2)
+ . S BMXRET="S BMXV=0 F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV)) Q:BMXV=""""  Q:BMXM>BMXXMAX  I BMXV'="_Q_BMXV_Q_" S D"_BMXPS_"="""" F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="<" D
+ . S BMXRNAM=$P(BMXPFP(F,BMXPS,1),U,2)
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1) Q:BMXV=""""  Q:BMXM>BMXXMAX  S D"_BMXPS_"="""" F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="BETWEEN" D
+ . S BMXRNAM=$P(BMXPFP(F,BMXPS,1),U,2)
+ . I +$P(BMXV,"~")=$P(BMXV,"~") D  ;BMXV is a number
+ . . S BMXRET="S BMXV="_$P(BMXV,"~")_",BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1) F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q
+ . . S BMXRET=BMXRET_",BMXV)) Q:BMXV=""""  Q:BMXV>"_$P(BMXV,"~",2)_"  Q:BMXM>BMXXMAX  S D"_BMXPS_"=0 F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ . E  D  ;BMXV is a string
+ . . S BMXRET="S BMXV="_Q_$P(BMXV,"~")_Q_",BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1) F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q
+ . . S BMXRET=BMXRET_",BMXV)) Q:BMXV=""""  Q:BMXV]"_Q_$P(BMXV,"~",2)_Q_"  Q:BMXM>BMXXMAX  S D"_BMXPS_"=0 F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ ;
+ I BMXOP="LIKE" D
+ . N BMXTMP,BMXV1
+ . S BMXRNAM=$P(BMXPFP(F,BMXPS,1),U,2)
+ . S BMXV1=BMXV
+ . S BMXTMP="BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV),-1)"
+ . S @BMXTMP
+ . S BMXRET="S BMXV="_Q_BMXV_Q_" F  S BMXV=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV)) Q:BMXV=""""  Q:BMXV'?1"_Q_BMXV1_Q_".E  Q:BMXM>BMXXMAX  S D"_BMXPS_"="""" F  S D"_BMXPS_"=$O("_BMXGL_Q_BMXRNAM_Q_",BMXV,D"_BMXPS_")) Q:'+D"_BMXPS_"  Q:BMXM>BMXXMAX  "
+ ;
+ F J=BMXPS-1:-1:0 D
+ . S BMXNOD=BMXPFP(F,J)
+ . S BMXGL=$P(BMXNOD,U,7,8)
+ . S BMXRNAM=$P(BMXPFP(F,J,1),U,2)
+ . S BMXRET=BMXRET_"S D"_J_"=0 F  S D"_J_"=$O("_BMXGL_Q_BMXRNAM_Q_",D"_(J+1)_",D"_J_")) Q:'+D"_J_"  Q:BMXM>BMXXMAX  "
+ Q
+ ;TODO:  Computed fields
+ ;TODO:  Sets of codes
+ ;TODO:  User-specified index
+ Q

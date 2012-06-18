@@ -1,0 +1,12 @@
+A9AUPN4 ; IHS/ADC/GTH - AUPN V 93.2 UPGRADE 4 R.P.I. ; [ 08/18/95  9:37 AM ]
+ ;;93.2;IHS PATIENT DICTIONARIES.;**4**;JUL 01, 1993
+ ;
+ D START^AUPNP4
+ ;
+ Q:'$L($G(^%ZOSF("DEL")))
+ NEW X
+ F %=1:1 S X=$P($T(DEL+%),";",3) Q:X=""  X ^%ZOSF("DEL")
+ Q
+DEL ;
+ ;;AUPNP3
+ ;;AUPNP4

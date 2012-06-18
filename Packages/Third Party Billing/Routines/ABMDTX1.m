@@ -1,0 +1,51 @@
+ABMDTX1 ; IHS/ASDST/DMJ - PT 2 OF FACILITY EXPORT PGM ; 
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ S ABM("CNT")=0
+ Q:$D(ABMP("AUTO"))
+ S ABM("X")="You have INCOMPLETE ADDRESS INFORMATION in your INSURER FILE."
+ S ABM("Y")="An ERROR REPORT will now be PRINTED."
+ I '$D(ABM("IOP")) S ABM("LTYPE")="Error" D DEV2^ABMDTX Q:$G(ABM("XIT"))
+ D OPEN^ABMDTX I $G(POP) S ABM("XIT")=1 Q
+ U IO(0) W *7,*7,!!,?10,ABM("X"),!!,?20,ABM("Y") H 5
+ U IO W !!,?35,ABM("X"),!,?45,ABM("Y")
+ U IO(0) W !!,*7,"You CAN NOT EXPORT these DATA until INSURER ADDRESS Information is Complete.",!,?10,"Export Job Terminated WITHOUT generating output data." H 5
+ D HEADER2
+ S ABM("IDFN")=0
+S3A S ABM("IDFN")=$O(^TMP("ABMDTX",$J,"INS-ERR",ABM("IDFN"))) G S3END:'ABM("IDFN")
+ S ABM(0)=^AUTNINS(ABM("IDFN"),0)
+ W ?2,$E($P(ABM(0),U,1),1,30),?34,$E($P(ABM(0),U,2),1,30),?66,$E($P(ABM(0),U,3),1,14)
+ S ABM("ST")=+$P(ABM(0),U,4) G S3C:+ABM("ST")<1,S3C:'$D(^DIC(5,ABM("ST"),0))
+ W ?83,$P(^DIC(5,ABM("ST"),0),U,2)
+S3C W ?87,$E($P(ABM(0),U,5),1,10)
+ I ^TMP("ABMDTX",$J,"INS-ERR",ABM("IDFN"))="*" W ?105,"YES"
+ W ! I $Y>(IOSL-7) D HEADER2
+ S ABM("CNT")=ABM("CNT")+1 G S3A
+S3END W !,?30,"NUMBER OF RECORDS WITH INCOMPLETE DATA = ",ABM("CNT"),!
+ W !,?30,"NO PRIVATE INSURANCE OUTPUT RECORDS HAVE BE GENERATED",!
+ Q
+ ;
+HEADER ;EP for Printing Header
+ S ABM("PG")=ABM("PG")+1 W !,$$EN^ABMVDF("IOF")
+ F I=1:1:122 W "*"
+ S X1="Device # "_+IO,X2="FOR "_$P(^DIC(4,DUZ(2),0),U,1)
+ W !,"* ",X1,?40,"BILLING CLAIM EXPORT LOG",?111,"PAGE ",ABM("PG"),?121,"*",!
+ W "* ",?121-$L(X2)/2,X2,?121,"*",!
+ S Y=DT X ^DD("DD")
+ W "*",?121-$L(Y)/2,Y,?121,"*",!,"*"
+ F I=1:1:120 W "-"
+ W "*",!,"*  ENTRY",?12,"CONTROL",?62,"DATE OF",?105,"CLAIM",?113,"T",?118,"D",?121,"*",!
+ W "*",?3,"DATE",?12,"NUMBER",?20,"***  PATIENT'S NAME   ***",?53,"H R N",?62,"SERVICE",?71,"INSURANCE COMPANY NAME",?105,"AMOUNT",?113,"P",?118,"V",?121,"*",!
+ F I=1:1:122 W "*"
+ W !!
+ Q
+HEADER2 ;SECOND HEADER
+ W !,$$EN^ABMVDF("IOF")
+ F I=1:1:117 W "*"
+ W !,"*",?47,"INSURANCE COMPANY ADDRESS ERRORS",?116,"*",!,"*"
+ W ?32,"THESE ERRORS MUST BE CORRECTED IN ORDER TO EXPORT CLAIM DATA",?116,"*",!,"*"
+ F I=1:1:115 W "-"
+ W "*",!,"*",?2,"INSURANCE COMPANY NAME",?34,"***   STREET ADDRESS   ***",?66,"CITY",?83,"ST",?87,"ZIP CODE",?100,"B-ADDRESS ERROR",?116,"*",!,"*"
+ F I=1:1:115 W "-"
+ W "*",!!
+ Q

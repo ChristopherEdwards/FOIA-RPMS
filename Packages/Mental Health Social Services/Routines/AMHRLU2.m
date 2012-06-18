@@ -1,0 +1,278 @@
+AMHRLU2 ; IHS/CMI/LAB - MENTAL HLTH ROUTINE ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;ADDED ENCRYTION OF PATIENT ID TO THIS ROUTINE
+ ;
+ ;
+COMM ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:'$D(^AMHREC(AMHY,0))
+ ..Q:$P(^AMHREC(AMHY,0),U,5)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AUTTCOM($P(^AMHREC(AMHY,0),U,5),0),U))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+LOC ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:'$D(^AMHREC(AMHY,0))
+ ..Q:$P(^AMHREC(AMHY,0),U,4)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AMHREC(AMHY,0),U,4))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+TOC ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:'$D(^AMHREC(AMHY,0))
+ ..Q:$P(^AMHREC(AMHY,0),U,7)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AMHREC(AMHY,0),U,7))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+ASACOMP ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:$P($G(^AMHREC(AMHY,11)),U,1)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AMHREC(AMHY,11),U,1))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+AX4 ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..NEW % S %=0 F  S %=$O(^AMHREC(AMHY,61,%)) Q:%'=+%  S X($P(^AMHREC(AMHY,61,%,0),U))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+DRT ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:$P($G(^AMHREC(AMHY,11)),U,2)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AMHREC(AMHY,11),U,2))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+ASATOC ;
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:'$D(^AMHREC(AMHY,0))
+ ..Q:$P(^AMHREC(AMHY,0),U,32)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AMHREC(AMHY,0),U,32))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+DAC ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:$P($G(^AMHREC(AMHY,11)),U,3)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AMHREC(AMHY,11),U,3))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+AX5 ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:'$D(^AMHREC(AMHY,0))
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..I $P(^AMHREC(AMHY,0),U,14)]"" S X($P(^AMHREC(AMHY,0),U,14))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+ACT ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ))  Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY))  Q:AMHY'=+AMHY  D
+ ..Q:'$D(^AMHREC(AMHY,0))
+ ..Q:$P(^AMHREC(AMHY,0),U,6)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AMHREC(AMHY,0),U,6))=""
+ ..Q
+ .Q
+ Q
+INPT ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ)) Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY)) Q:AMHY'=+AMHY  D
+ ..Q:'$D(^AMHREC(AMHY,0))
+ ..Q:$P(^AMHREC(AMHY,0),U,17)=""
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S X($P(^AMHREC(AMHY,0),U,17))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP Q
+POV ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ)) Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY)) Q:AMHY'=+AMHY  D
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S AMHP=0 F  S AMHP=$O(^AMHRPRO("AD",AMHY,AMHP)) Q:AMHP=""  S X($P(^AMHRPRO(AMHP,0),U))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP
+ Q
+MHSS ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ)) Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY)) Q:AMHY'=+AMHY  D
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S AMHP=0 F  S AMHP=$O(^AMHRPRO("AD",AMHY,AMHP)) Q:AMHP=""  S X($P(^AMHPROB($P(^AMHRPRO(AMHP,0),U),0),U,3))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP
+ Q
+PROV ;EP
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ)) Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY)) Q:AMHY'=+AMHY  D
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S AMHP=0 F  S AMHP=$O(^AMHRPROV("AD",AMHY,AMHP)) Q:AMHP=""  S X($P(^AMHRPROV(AMHP,0),U))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP
+ Q
+ ; identifier 12 bytes long.  The entry point DEC reverses the process
+ ; and returns the decoded output in a 27 byte long string.
+ ;
+EDUC ;EP called from lister
+ S AMHZ=AMHSD F  S AMHZ=$O(^AMHREC("AF",DFN,AMHZ)) Q:AMHZ=""!($P(AMHZ,".")>AMHED)  D
+ .S AMHY=0 F  S AMHY=$O(^AMHREC("AF",DFN,AMHZ,AMHY)) Q:AMHY'=+AMHY  D
+ ..Q:'$$ALLOWVI^AMHUTIL(DUZ,AMHY)
+ ..S AMHP=0 F  S AMHP=$O(^AMHREDU("AD",AMHY,AMHP)) Q:AMHP=""  S X($P(^AMHREDU(AMHP,0),U))=""
+ ..Q
+ .Q
+ K AMHZ,AMHY,AMHP
+ Q
+HF ;EP
+ K AMHZ,AMHY,AMHP,X,AMHHFC,AMHHFC1
+ S AMHP=0 F  S AMHP=$O(^AMHTRPT(AMHRPT,11,AMHI,11,"B",AMHP)) Q:AMHP=""  D
+ .S AMHHFC=$P(^AUTTHF(AMHP,0),U,3)
+ .S AMHHFC(AMHHFC)=""
+ S AMHY=0 F  S AMHY=$O(^AMHRHF("AC",DFN,AMHY)) Q:AMHY'=+AMHY  D
+ .S AMHP=$P(^AMHRHF(AMHY,0),U)
+ .S AMHZ=$P(^AUTTHF(AMHP,0),U,3)
+ .Q:'$D(AMHHFC(AMHZ))  ;none in this category
+ .S AMHHFC1(AMHZ,(9999999-$P($P(^AMHREC($P(^AMHRHF(AMHY,0),U,3),0),U),".")))=AMHP
+ S AMHZ=0 F  S AMHZ=$O(AMHHFC1(AMHZ)) Q:AMHZ'=+AMHZ  D
+ .S AMHP=$O(AMHHFC1(AMHZ,0))
+ .S X(AMHHFC1(AMHZ,AMHP))=""
+ K AMHZ,AMHY,AMHP,AMHHFC,AMHHFC1
+ Q
+HFP ;EP
+ K AMHZ,AMHY,AMHP,X,AMHHFC,AMHHFC1
+ S AMHY=0 F  S AMHY=$O(^AMHRHF("AC",DFN,AMHY)) Q:AMHY'=+AMHY  D
+ .S AMHP=$P(^AMHRHF(AMHY,0),U)
+ .S AMHZ=$P(^AUTTHF(AMHP,0),U,3)
+ .S AMHHFC1(AMHZ,(9999999-$P($P(^AMHREC($P(^AMHRHF(AMHY,0),U,3),0),U),".")))=AMHY
+ S AMHZ=0,AMHPCNT=0 F  S AMHZ=$O(AMHHFC1(AMHZ)) Q:AMHZ'=+AMHZ  D
+ .S AMHP=$O(AMHHFC1(AMHZ,0))
+ .S AMHY=AMHHFC1(AMHZ,AMHP)
+ .S AMHPCNT=AMHPCNT+1
+ .S V=$P(^AMHRHF(AMHY,0),U,3)
+ .S V=$P($P($G(^AMHREC(V,0)),U),".")
+ .S AMHPRNM(AMHPCNT)=$$VAL^XBDIQ1(9002011.08,AMHY,.01)_" - "_$E(V,4,5)_"/"_$E(V,6,7)_"/"_$E(V,2,3)
+ K AMHZ,AMHY,AMHP,AMHHFC,AMHHFC1
+ Q
+ENC(DFN) ;EP - RETURN ENCRYPTED PATIENT IDENTIFIER
+ NEW AMHV,AMHX,AMHY,I,X,X1,Y
+ S AMHV=""
+ G:'$G(DFN) ENCX ;                       exit if no patient ien passed
+ G:'$D(^DPT(DFN,0)) ENCX ;               exit if patient doesn't exist
+ ;----------
+ ; take 1st 3 chars of name, replace punctuation with numbers, pad out
+ ;   to 3 chars
+ S AMHX=$E($P($P(^DPT(DFN,0),U),","),1,3)
+ S AMHX=$TR(AMHX,"'-.,","1234")
+ F I=1:1:(3-$L(AMHX)) S AMHX=AMHX_"5"
+ S AMHV=AMHX
+ ;----------
+ ; take 1st initial, 0 if null
+ S AMHX=$E($P($P(^DPT(DFN,0),U),",",2)) S:AMHX="" AMHX=0
+ ;----------
+ ; concatenate in reverse order
+ S AMHV=$E(AMHV,3)_$E(AMHV,2)_$E(AMHV)_AMHX
+ ;----------
+ ; concatenate fileman date of birth (converted to $H/hex format)
+ S AMHX=$$DOB^AUPNPAT(DFN) S:$L(AMHX)'=7 AMHX=3991231
+ S AMHX=$$FMTH^XLFDT(AMHX,1)
+ S X=AMHX,X1=16 D CNV^XTBASE S Y=$E(Y,1,4)
+ F I=1:1:(4-$L(Y)) S Y=Y_"-"
+ S AMHV=AMHV_Y
+ ;----------
+ ; concatenate last 4 digits of SSN
+ S AMHX=$E($$SSN^AUPNPAT(DFN),6,9) S:$L(AMHX)'=4 AMHX="9999"
+ F I=1:1:4 D
+ . S X=$E(AMHX,I)
+ . I X<5 S X=X+5,$E(AMHX,I)=X I 1
+ . E  S X=X-5,$E(AMHX,I)=X
+ . Q
+ S AMHV=AMHV_AMHX
+ ;----------
+ ; shuffle
+ S AMHV=$E(AMHV,4,6)_$E(AMHV,10,12)_$E(AMHV,1,3)_$E(AMHV,7,9)
+ ;----------
+ ; encrypt
+ D ENCRYPT
+ ;----------
+ENCX ;
+ Q AMHV
+ ;
+ ;
+ENCRYPT ;
+ S AMHV=$TR(AMHV,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","UVWXJKLMYZABQRSTCDGHIEFNOP")
+ S AMHV=$TR(AMHV,"1234567890","8967320415")
+ Q
+ ;
+ ;
+ ;
+DEC(PID) ;EP - RETURN DECRYPTED PATIENT IDENTIFIER
+ NEW AMHV,AMHX,AMHY,I,X,X1,Y
+ S AMHV=""
+ G:$G(PID)="" DECX ;                     exit if no string
+ G:$L(PID)'=12 DECX ;                    exit if string not 12 chars
+ S AMHV="["
+ ;----------
+ ; decrypt
+ D DECRYPT
+ ;----------
+ ; unshuffle
+ S PID=$E(PID,7,9)_$E(PID,1,3)_$E(PID,10,12)_$E(PID,4,6)
+ ;----------
+ ; take 1st 3 chars of name, replace numbers with punctuation
+ S AMHX=""
+ F I=3,2,1 S AMHX=AMHX_$E(PID,I)
+ S AMHX=$TR(AMHX,"1234","'-.,")
+ S AMHY=""
+ F I=1:1:3 S:$E(AMHX,I)'="5" AMHY=AMHY_$E(AMHX,I)
+ S AMHX=AMHY_","_$S($E(PID,4)'="0":$E(PID,4),1:"")
+ S AMHV=AMHV_AMHX
+ ;----------
+ ; fileman date of birth (converted to external format)
+ S AMHX=""
+ S X=$E(PID,5,8)
+ F I=1:1:4 S:$E(X,I)'="-" AMHX=AMHX_$E(X,I)
+ S X=AMHX,X1=16 D DEC^XTBASE S AMHX=Y
+ S AMHX=$$HTE^XLFDT(AMHX,1)
+ S AMHV=AMHV_"__"_AMHX
+ ;----------
+ ; last 4 digits of SSN
+ S AMHX=$E(PID,9,12)
+ F I=1:1:4 D
+ . S X=$E(AMHX,I)
+ . I X<5 S X=X+5,$E(AMHX,I)=X I 1
+ . E  S X=X-5,$E(AMHX,I)=X
+ . Q
+ S:AMHX="9999" AMHX="    "
+ S AMHV=AMHV_"__"_AMHX
+ ;----------
+ S AMHV=AMHV_"]"
+DECX ;
+ Q AMHV
+ ;
+DECRYPT ;
+ S PID=$TR(PID,"UVWXJKLMYZABQRSTCDGHIEFNOP","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ S PID=$TR(PID,"8967320415","1234567890")
+ Q

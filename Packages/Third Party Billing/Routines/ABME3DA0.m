@@ -1,0 +1,246 @@
+ABME3DA0 ; IHS/ASDST/DMJ - HCFA-1500 NSF 3.01 EMC RECORD DA0 (Third Party Payor) ;    
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ ; IHS/ASDS/DMJ - V2.4 P7 - 9/6/01 NOIS HQW-0701-100066
+ ;     This is a new routine related to Medicare Part B.
+ ;
+START ;START HERE
+ K ABMREC(30),ABMREC(31),ABMREC(32),ABME,ABM
+ K ABMP("SET")
+ D SET^ABMERUTL,LOOP  ; get insurer data
+ K ABME,ABM
+ Q
+ ;
+LOOP ;FIRST LOOP
+ ; Loop thru INS priorities
+ S ABME("S#")=0
+ F  S ABME("S#")=$O(ABMP("INS",ABME("S#"))) Q:'ABME("S#")  D
+ .S ABME("INS")=+ABMP("INS",ABME("S#"))  ; Insurer IEN
+ .S ABME("INSIEN")=$P(ABMP("INS",ABME("S#")),"^",3)  ; IEN to insurer multiple
+ .S ABME("RTYPE")=30    ; record type
+ .K ABMR(30),ABMR(31),ABMR(32)
+ .D ISET^ABMERINS       ; set INS priority
+ .D LOOP2               ; Get data
+ .D S90^ABMERUTL        ; Add 1 to record type counts (electronic)
+ .D ^ABME3DA1
+ Q
+ ;
+LOOP2 ;LOOP HERE
+ F I=10:10:320 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),30,I)) D @(^(I))
+ .I '$G(ABMP("NOFMT")) S ABMREC(30,ABME("S#"))=$G(ABMREC(30,ABME("S#")))_ABMR(30,I)
+ Q
+10 ;1-3 Record ID
+ S ABMR(30,10)="DA0"
+ Q
+20 ;4-5 Sequence #
+ S ABMR(30,20)=ABME("S#")
+ S ABMR(30,20)=$$FMT^ABMERUTL(ABMR(30,20),"2NR")
+ Q
+30 ;6-22 Patient Control Number
+ S ABMR(30,30)=ABMP("PCN")
+ S ABMR(30,30)=$$FMT^ABMERUTL(ABMR(30,30),17)
+ Q
+40 ;23-23 Claim Filing Indicator
+ S ABMR(30,40)="I"
+ S:ABME("INS")=ABMP("INS") ABMR(30,40)="P"
+ Q
+50 ;24-24 Source of Pay
+ S ABME("SOP")=$$SOP1^ABMERUTL(ABME("INS"))
+ S ABMR(30,50)=ABME("SOP")
+ Q
+60 ;25-26 Insurance Type Code
+ I ABME("SOP")="C" D
+ .S ABMR(30,60)="  "
+ .I ABME("S#")=1 S ABMR(30,60)="MP"
+ I ABME("SOP")'="C" D
+ .S ABMR(30,60)="IP"
+ Q
+70 ;27-31 Payor Organization ID
+ S ABMR(30,70)=$$RCID^ABMERUTL(ABME("INS"))
+ Q
+80 ;32-35 Payor Claim Office #
+ S ABMR(30,80)=""
+ S ABMR(30,80)=$$FMT^ABMERUTL(ABMR(30,80),4)
+ Q
+90 ;36-68 Payor Name
+ S ABMR(30,90)=$P(^AUTNINS(ABME("INS"),0),U)
+ S ABMR(30,90)=$$FMT^ABMERUTL(ABMR(30,90),33)
+ Q
+100 ;69-88 Group #
+ S ABMR(30,100)=$P($G(^AUTNEGRP(+$G(ABME("GRP")),0)),"^",2)
+ S:ABMR(30,100)="" ABMR(30,100)="NONE"
+ S ABMR(30,100)=$$FMT^ABMERUTL(ABMR(30,100),20)
+ Q
+110 ;89-121 Group Name
+ S ABMR(30,110)=$G(ABM(9000003.1,+$G(ABME("PH")),.06,"E"))
+ S ABMR(30,110)=$$FMT^ABMERUTL(ABMR(30,110),33)
+ Q
+120 ;122-122 PPO/HMO Ind
+ S ABMR(30,120)=" "
+ Q
+130 ;123-137 PPO ID
+ S ABMR(30,130)=""
+ S ABMR(30,130)=$$FMT^ABMERUTL(ABMR(30,130),15)
+ Q
+140 ;138-152 Prior Authorization #
+ S ABME("FLD")=.58
+ D DIQ1
+ S ABMR(30,140)=$G(ABM(9002274.4,ABMP("BDFN"),.58,"E"))
+ S ABMR(30,140)=$$FMT^ABMERUTL(ABMR(30,140),15)
+ Q
+150 ;153-153 Assign of Benefits
+ S ABME("FLD")=.75
+ D DIQ1
+ S ABMR(30,150)=ABM(9002274.4,ABMP("BDFN"),.75,"I")
+ S:ABMR(30,150)="" ABMR(30,150)="N"
+ S ABMR(30,150)=$$FMT^ABMERUTL(ABMR(30,150),1)
+ Q
+160 ;154-154 Patient Signature Source
+ S ABME("FLD")=.74
+ D DIQ1
+ S ABMR(30,160)=$G(ABM(9002274.4,ABMP("BDFN"),.74,"I"))
+ S:ABMR(30,160)="" ABMR(30,160)="N"
+ I ABMR(30,160)="Y" S ABMR(30,160)="S"
+ I ABMR(30,160)="S",ABMR(30,150)="Y" S ABMR(30,160)="B"
+ I ABMR(30,150)="N",ABMR(30,160)="N" S ABMR(30,160)="P"
+ I ABMR(30,150)="Y",ABMR(30,160)="N" S ABMR(30,160)="M"
+ Q
+170 ;155-156 Patient's Relationship to Insured
+ I '$G(ABME("PH")) S ABMR(30,170)="01"
+ I $G(ABME("PH")) S ABMR(30,170)=ABME("REL")
+ S ABMR(30,170)=$$FMT^ABMERUTL(ABMR(30,170),"2NR")
+ Q
+180 ;157-181 Insured ID #
+ S ABMR(30,180)=$G(ABME("ID#"))
+ S ABMR(30,180)=$$FMT^ABMERUTL(ABMR(30,180),25)
+ Q
+190 ;182-201 Insured Last Name
+ S ABMR(30,190)=$P(ABME("PHNM"),",",1)
+ S ABMR(30,190)=$$FMT^ABMERUTL(ABMR(30,190),20)
+ Q
+200 ;202-213 Insured First Name
+ S ABMR(30,200)=$P(ABME("PHNM"),",",2)
+ S ABMR(30,200)=$P(ABMR(30,200)," ",1)
+ S ABMR(30,200)=$$FMT^ABMERUTL(ABMR(30,200),12)
+ Q
+210 ;214-214 Insured MI
+ S ABMR(30,210)=$P(ABME("PHNM"),",",2)
+ S ABMR(30,210)=$P(ABMR(30,210)," ",2)
+ S ABMR(30,210)=$E(ABMR(30,210))
+ S ABMR(30,210)=$$FMT^ABMERUTL(ABMR(30,210),1)
+ Q
+220 ;215-217 Insured Generation
+ S ABMR(30,220)=$P(ABME("PHNM"),",",2)
+ S ABMR(30,220)=$P(ABMR(30,220)," ",3)
+ S ABMR(30,220)=$$FMT^ABMERUTL(ABMR(30,220),3)
+ Q
+230 ;218-218 Insured Sex
+ S ABMR(30,230)=$G(ABME("PHSEX"))
+ S ABMR(30,230)=$$FMT^ABMERUTL(ABMR(30,230),1)
+ Q
+240 ;219-226 Insured DOB
+ S ABMR(30,240)=$G(ABME("DOB"))
+ S ABMR(30,240)=$$Y2KD2^ABMDUTL(ABMR(30,240))
+ S ABMR(30,240)=$$FMT^ABMERUTL(ABMR(30,240),8)
+ Q
+250 ;227-227 Insured Employment Status Code
+ S ABMR(30,250)=""
+ I $G(ABME("PPP")) D                   ; of patient
+ .S ABME("FLD")=.21
+ .D DIQ3
+ .S ABMR(30,250)=$G(ABM(9000001,ABME("PPP"),.21,"I"))
+ .Q
+ I ABMR(30,250)="",$G(ABME("PH")) D    ; of policy holder
+ .S ABME("FLD")=.15
+ .D DIQ2
+ .S ABMR(30,250)=$G(ABM(9000003.1,+ABME("PH"),.15,"I"))
+ .Q
+ S ABMR(30,250)=$$FMT^ABMERUTL(ABMR(30,250),1)
+ Q
+260 ;228-228 Supplemental Ins Ind
+ S ABMR(30,260)=""
+ S ABMR(30,260)=$$FMT^ABMERUTL(ABMR(30,260),1)
+ Q
+270 ;229-235 Insurance Location ID
+ S ABMR(30,270)=""
+ S ABMR(30,270)=$$FMT^ABMERUTL(ABMR(30,270),7)
+ Q
+280 ;236-260 Medicaid ID #
+ S ABMR(30,280)=$G(ABME("MCD#"))
+ S ABMR(30,280)=$$FMT^ABMERUTL(ABMR(30,280),25)
+ Q
+290 ;261-285 Supplemental Patient ID Number
+ S ABMR(30,290)=""
+ S ABMR(30,290)=$$FMT^ABMERUTL(ABMR(30,290),25)
+ Q
+300 ;286-286 Assignment for 4081 Claim Indicator
+ S ABMR(30,300)=""
+ S ABMR(30,300)=$$FMT^ABMERUTL(ABMR(30,300),1)
+ Q
+310 ;287-287 Coordination of Benefits Routing Indicator
+ S ABMR(30,310)=""
+ S ABMR(30,310)=$$FMT^ABMERUTL(ABMR(30,310),1)
+ Q
+320 ;288-320 Filler
+ S ABMR(30,320)=""
+ S ABMR(30,320)=$$FMT^ABMERUTL(ABMR(30,320),33)
+ Q
+DIQ1 ;PULL BILL DATA VIA DIQ1
+ Q:$D(ABM(9002274.4,ABMP("BDFN"),ABME("FLD")))
+ N I
+ S DIQ="ABM("
+ S DIQ(0)="EI"
+ S DIC="^ABMDBILL(DUZ(2),"
+ S DA=ABMP("BDFN")
+ S DR=".58;.66;.67;.68;.73;.74;.75;.99"
+ D EN^DIQ1
+ K DIQ
+ Q
+ ;
+DIQ2 ;POLICY HOLDER INFORMATION
+ Q:'$G(ABME("PH"))
+ Q:$D(ABM(9000003.1,ABME("PH"),ABME("FLD")))
+ N I
+ S DIQ="ABM("
+ S DIQ(0)="EI"
+ S DIC="^AUPN3PPH("
+ S DA=ABME("PH")
+ S DR=".02;.15"
+ D EN^DIQ1
+ K DIQ
+ Q
+ ;
+DIQ3 ;PATIENT IS INSURED    
+ Q:$D(ABM(9000001,ABMP("PDFN"),ABME("FLD")))
+ N I
+ S DIQ="ABM("
+ S DIQ(0)="EI"
+ S DIC="^AUPNPAT("
+ S DA=ABMP("PDFN")
+ S DR=".21"
+ D EN^DIQ1
+ K DIQ
+ Q
+ ;
+EX(ABMX,ABMY,ABMZ) ;EXTRINSIC FUNCTION HERE
+ ;
+ ;  INPUT:  ABMX = data element
+ ;             Y = bill internal entry number
+ ;          ABMZ = insurer
+ ;
+ ; OUTPUT:     Y = bill internal entry number
+ ;
+ S ABMP("BDFN")=ABMY
+ D SET^ABMERUTL
+ S ABME("INS")=ABMZ
+ I '$D(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,"B",ABME("INS"))) S Y="" Q Y
+ S ABME("S#")=0
+ D ISET^ABMERINS
+ I '$G(ABMP("NOFMT")) S ABMP("FMT")=0
+ D @ABMX
+ S Y=ABMR(30,ABMX)
+ I $D(ABMP("FMT")) S ABMP("FMT")=1
+ K ABMR(30,ABMX),ABMX,ABMY,ABMZ,ABME,ABM
+ Q Y

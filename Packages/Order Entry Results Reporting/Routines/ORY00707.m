@@ -1,0 +1,116 @@
+ORY00707 ;SLC/RJS,CLA - OCX PACKAGE RULE TRANSPORT ROUTINE (Delete after Install of OR*3*1007) ;NOV 5,2010 at 13:55
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**1007**;Dec 17,1997;Build 3
+ ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
+ ;
+S ;
+ ;
+ D DOT^ORY007ES
+ ;
+ ;
+ K REMOTE,LOCAL,OPCODE,REF
+ F LINE=1:1:500 S TEXT=$P($T(DATA+LINE),";",2,999) Q:TEXT  I $L(TEXT) D  Q:QUIT
+ .S ^TMP("OCXRULE",$J,$O(^TMP("OCXRULE",$J,"A"),-1)+1)=TEXT
+ ;
+ ;
+ ;
+ Q
+ ;
+DATA ;
+ ;
+ ;;D^ALLERGIES UNASSESSIBLE
+ ;;R^"860.3:","860.31:1",2,"E"
+ ;;D^LOGICAL FALSE
+ ;;R^"860.3:","860.31:2",.01,"E"
+ ;;D^2
+ ;;R^"860.3:","860.31:2",1,"E"
+ ;;D^ORDER MODE
+ ;;R^"860.3:","860.31:2",2,"E"
+ ;;D^EQ FREE TEXT
+ ;;R^"860.3:","860.31:2",3,"E"
+ ;;D^SELECT
+ ;;EOR^
+ ;;KEY^860.3:^DIET ORDER
+ ;;R^"860.3:",.01,"E"
+ ;;D^DIET ORDER
+ ;;R^"860.3:",.02,"E"
+ ;;D^CPRS ORDER PRESCAN
+ ;;R^"860.3:","860.31:1",.01,"E"
+ ;;D^1
+ ;;R^"860.3:","860.31:1",1,"E"
+ ;;D^FILLER
+ ;;R^"860.3:","860.31:1",2,"E"
+ ;;D^EQ FREE TEXT
+ ;;R^"860.3:","860.31:1",3,"E"
+ ;;D^FH
+ ;;EOR^
+ ;;KEY^860.3:^PHARMACY ORDER
+ ;;R^"860.3:",.01,"E"
+ ;;D^PHARMACY ORDER
+ ;;R^"860.3:",.02,"E"
+ ;;D^CPRS ORDER PRESCAN
+ ;;R^"860.3:","860.31:1",.01,"E"
+ ;;D^1
+ ;;R^"860.3:","860.31:1",1,"E"
+ ;;D^FILLER
+ ;;R^"860.3:","860.31:1",2,"E"
+ ;;D^STARTS WITH
+ ;;R^"860.3:","860.31:1",3,"E"
+ ;;D^PS
+ ;;EOR^
+ ;;KEY^860.3:^RADIOLOGY ORDER
+ ;;R^"860.3:",.01,"E"
+ ;;D^RADIOLOGY ORDER
+ ;;R^"860.3:",.02,"E"
+ ;;D^CPRS ORDER PRESCAN
+ ;;R^"860.3:","860.31:1",.01,"E"
+ ;;D^1
+ ;;R^"860.3:","860.31:1",1,"E"
+ ;;D^FILLER
+ ;;R^"860.3:","860.31:1",2,"E"
+ ;;D^EQ FREE TEXT
+ ;;R^"860.3:","860.31:1",3,"E"
+ ;;D^RA
+ ;;EOR^
+ ;;EOF^OCXS(860.3)^1
+ ;;SOF^860.2  ORDER CHECK RULE
+ ;;KEY^860.2:^ALLERGIES UNASSESSIBLE
+ ;;R^"860.2:",.01,"E"
+ ;;D^ALLERGIES UNASSESSIBLE
+ ;;R^"860.2:","860.21:1",.01,"E"
+ ;;D^ALLERGIES UNASSESSIBLE
+ ;;R^"860.2:","860.21:1",.02,"E"
+ ;;D^SIMPLE DEFINITION
+ ;;R^"860.2:","860.21:1",1,"E"
+ ;;D^ALLERGIES UNASSESSIBLE
+ ;;R^"860.2:","860.21:2",.01,"E"
+ ;;D^PHARMACY ORDER
+ ;;R^"860.2:","860.21:2",.02,"E"
+ ;;D^SIMPLE DEFINITION
+ ;;R^"860.2:","860.21:2",1,"E"
+ ;;D^PHARMACY ORDER
+ ;;R^"860.2:","860.21:3",.01,"E"
+ ;;D^DIET ORDER
+ ;;R^"860.2:","860.21:3",.02,"E"
+ ;;D^SIMPLE DEFINITION
+ ;;R^"860.2:","860.21:3",1,"E"
+ ;;D^DIET ORDER
+ ;;R^"860.2:","860.21:4",.01,"E"
+ ;;D^RADIOLOGY ORDER
+ ;;R^"860.2:","860.21:4",.02,"E"
+ ;;D^SIMPLE DEFINITION
+ ;;R^"860.2:","860.21:4",1,"E"
+ ;;D^RADIOLOGY ORDER
+ ;;R^"860.2:","860.22:1",.01,"E"
+ ;;D^1
+ ;;R^"860.2:","860.22:1",1,"E"
+ ;;D^ALLERGIES UNASSESSIBLE AND (RADIOLOGY ORDER OR PHARMACY ORDER OR DIET ORDER)
+ ;;R^"860.2:","860.22:1",2,"E"
+ ;;D^ALLERGIES UNASSESSIBLE
+ ;;R^"860.2:","860.22:1",6,"E"
+ ;;D^Patient cannot be assessed for allergies
+ ;;R^"860.2:","860.22:1",9,"E"
+ ;;D^Q:'$$NEWRULE(DFN,$J,39,1,999,"Patient cannot be assessed for allergies.")
+ ;;EOR^
+ ;;EOF^OCXS(860.2)^1
+ ;1;
+ ;

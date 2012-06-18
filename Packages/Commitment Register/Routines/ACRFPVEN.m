@@ -1,0 +1,177 @@
+ACRFPVEN ;IHS/OIRM/DSD/THL,AEF - MANAGE IMPORT OF PRIME VENDOR CONTRACT FILE;  [ 11/01/2001   9:44 AM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;;NOV 05, 2001
+ ;;MANAGE THE PRIME VENDOR CONTRACT FILE/DATA TRANSFER INTO ARMS
+EN ;EP;TO SELECT PRIME VENDOR CONTRACT FUNCTION
+ F  D EN1 Q:$D(ACRQUIT)!$D(ACROUT)
+EXIT K ACRQUIT,ACROUT,ACR1,ACR2,ACR3,ACR4,ACR5,ACR6,ACR7,ACRDOCX,ACRDOC0,ACRDOCDA,ACRLBDA,ACR,ACROP,ACRX
+ Q
+EN1 W @IOF
+ W !!?10,"Utility to Import Prime Vendor Purchase Order Data"
+ S DIR(0)="YO"
+ S DIR("A")="IMPORT Prime Vendor Purchase Order Data"
+ S DIR("B")="NO"
+ W !
+ D DIR^ACRFDIC
+ I $G(Y)'=1 S ACRQUIT="" Q
+ I $G(Y)=1 D  Q
+ .D IMPORT
+ .U 0
+ .I $G(ACRI) W !!,"Import Complete."
+ .E  W !!,"NO ITEMS IMPORTED.  Import NOT completed."
+ .D PAUSE^ACRFWARN
+ .K ACRQUIT
+ I $G(Y)=2 D  Q
+ .D UPDATE
+ .U 0
+ .W !!,"ARMS Update Complete."
+ .D PAUSE^ACRFWARN
+ .K ACRQUIT
+ Q
+IMPORT ;EP;READ DATA FROM HOST FILE
+ ;ACR1 = PO NUMBER
+ ;ACR2 = NDC
+ ;ACR3 = VON
+ ;ACR4 = ITEM DESCRIPTION
+ ;ACR5 = UNIT OF ISSUE
+ ;ACR6 = QUANTITY SHIPPED
+ ;ACR7 = PRICE
+ D NOW^%DTC
+ N ACRNOW
+ S ACRNOW=$P(%,".",2)
+ N ACRJDATE
+ S ACRJDATE=$$JDATE^ACRFIV12(DT)
+ S DIR(0)="FO^3:10^I X?1""S""1N1U1"".""3N"
+ S DIR("A")="Name of file to import"
+ S DIR("B")="AS"_$E(DT,3)_$S(+$E(ACRNOW,1,2)>12:"P",1:"A")_"."_ACRJDATE
+ W !
+ D DIR^ACRFDIC
+ I $G(Y)]"^"!($G(Y)="") S ACRQUIT="" Q
+ N ACRXFILE
+ S ACRXFILE=Y
+ I $D(^ACRSUP("D",ACRXFILE)) D  Q
+ .W !!,"Prime Vendor PO number ",ACRXFILE," is already on file in ARMS."
+ .W !,"It cannot be imported a second time."
+ .D PAUSE^ACRFWARN
+ N X,J,I
+ S %FN=$S($P($G(^ACRSYS(1,"DT1")),U,11)]"":$P(^("DT1"),U,11),1:"/usr/spool/uucppublic/")_ACRXFILE
+ S ACROP="R"
+ D HOST^ACRFZIS
+ I $D(ACRQUIT) D  Q
+ .W !!,"The file you specified - ",ACRXFILE," was not found."
+ .W !!,"Please confirm the file name and location before trying again."
+ .S ACRQUIT=""
+ N ACRI
+ S ACRI=0
+ F  U IO R X:10 Q:X=""  D   ;DIRECT READ FROM UNIX FILE
+ .S ACR1=$E(X,125,132)
+ .S ACR1=$TR(ACR1," ","")
+ .Q:ACR1=""
+ .S ACRDOCDA=$O(^ACRDOC("PVEN",ACR1,0))
+ .Q:$P($G(^ACRDOC(+ACRDOCDA,"REQ2")),U,14)=1
+ .S ACR2=$E(X,26,36)
+ .S ACR3=$E(X,37,42)
+ .S ACR4=$E(X,43,72)
+ .S ACR5=$E(X,73,80)
+ .S ACR5=$TR(ACR5," ","")
+ .S ACR6=$E(X,85,88)
+ .S ACR6=$TR(ACR6," ","")
+ .Q:ACR6=0  ;QUIT IF QUANTITY FILLED IS ZERO
+ .S ACR7=$E(X,99,108)
+ .S ACR7=$TR(ACR7," ","")
+ .U 0
+ .W !,ACR1,?$X+2,ACR2,?35,ACR3,?51,$J(ACR4,4),?57,$J(ACR5,10),?68," Imported."
+ .S X=ACR1
+ .S DIC="^ACRSUP("
+ .S DIC(0)="L"
+ .S DIC("DR")=".02////"_(ACR2)_";.03////"_(ACR3)_";.04////"_ACR4_";.06////"_ACR6_";.07////"_ACR7_";.08////0;.09////"_ACRXFILE
+ .D FILE^ACRFDIC
+ .S ACRI=ACRI+1
+CLOSE D CLOSE^ACRFZIS
+ Q
+UPDATE ;EP;UPDATE ARMS DOCUMENT WITH VENDOR ORDER DATA
+ S ACRDOCX=""
+ S ACR=0
+ F  S ACR=$O(^ACRSUP("C",0,ACR)) Q:'ACR  D
+ .S ACRX=^ACRSUP(ACR,0)
+ .Q:$P(ACRX,U,8)=1
+ .S ACR1=$P(ACRX,U)
+ .S ACRDOCDA=$O(^ACRDOC("PVEN",ACR1,0))
+ .Q:'ACRDOCDA
+ .I ACRDOCX'=ACRDOCDA D
+ ..S ACRDOCX=ACRDOCDA
+ ..W !,"Items being imported for DOCUMENT NO. ",$P(^ACRDOC(ACRDOCDA,0),U)
+ .D UP1
+ Q
+UP1 S ACRLBDA=$P(^ACRDOC(ACRDOCDA,0),U,6)
+ S ACRCANDA=$P($G(^ACRLOCB(+ACRLBDA,"DT")),U,9)
+ S DIC="^ACRSS("
+ S DIC(0)="L"
+ S DIC("DR")="100////"_$P(ACRX,U,4)
+ S X=1
+ D FILE^ACRFDIC
+ S DA=+Y
+ S DIE="^ACRSS("
+ S DR=".06////"_ACRLBDA_";.02////"_ACRDOCDA_";.03////"_ACRDOCDA_";.04////"_$O(^AUTTOBJC("B","2621 ",0))_";.05////"_ACRCANDA_";.2////"_ACRDOCDA_";1////"_$P(ACRX,U,3)_";3////"_$P(ACRX,U,2)_";10////"_$P(ACRX,U,6)_";11///EA;12////"_$P(ACRX,U,7)
+ D DIE^ACRFDIC
+ S DA=ACRDOCDA
+ S DIE="^ACRDOC("
+ S DR="113430////1"
+ D DIE^ACRFDIC
+ S DA=ACR
+ S DIE="^ACRSUP("
+ S DR=".08////1"
+ D DIE^ACRFDIC
+ U 0 W "."
+ Q
+DOC ;EP;TO UPDATE ARMS FOR SELECTED DOCUMENT
+ K ^TMP("ACRSUP",$J)
+ N ACR
+ S ACR=0
+ F  S ACR=$O(^ACRSUP("B",ACR1,ACR)) Q:'ACR  D
+ .S ACRX=^ACRSUP(ACR,0)
+ .Q:$P(ACRX,U,8)=1
+ .I $D(^TMP("ACRSUP",$J,ACRX)) D  Q
+ ..S DA=ACR
+ ..S DIK="^ACRSUP("
+ ..D DIK^ACRFDIC
+ ..W "*"
+ .S ^TMP("ACRSUP",$J,ACRX)=""
+ .D UP1
+ K ^TMP("ACRSUP",$J)
+ Q
+POS ;EP;FIND POS WHICH HAVE NOT BEEN IMPORTED TO ARMS
+ D POSEXIT
+ D POS1
+POSEXIT K ^TMP("ACRPV",$J)
+ Q
+POS1 N ACR,ACRJ,ACRX,ACR1
+ S ACR=0
+ F  S ACR=$O(^ACRSUP("C",0,ACR)) Q:'ACR  D
+ .S ACRX=^ACRSUP(ACR,0)
+ .Q:$P(ACRX,U,8)=1
+ .S ACR1=$P(ACRX,U)
+ .S ^TMP("ACRPV",$J,ACR1)=""
+ I '$D(^TMP("ACRPV",$J)) D  Q
+ .W !!,"There are no PRIME VENDOR orders on file"
+ .W !,"which need to be added to an ARMS document."
+ .D PAUSE^ACRFWARN
+ S ACRJ=0
+ S ACR=""
+ F  S ACR=$O(^TMP("ACRPV",$J,ACR)) Q:ACR=""  D
+ .S ACRJ=ACRJ+1
+ .W !?10,ACRJ,?15,ACR
+ .I ACRJ#10=0 D PAUSE^ACRFWARN
+ .S ACR1(ACRJ)=ACR
+ S DIR(0)="NO^1:"_ACRJ
+ S DIR("A",1)="Import items from which PRIME VENDOR order"
+ S DIR("A")="for ARMS requisition/call "_$P(^ACRDOC(ACRDOCDA,0),U)
+ W !
+ D DIR^ACRFDIC
+ Q:'Y
+ S ACR1=ACR1(Y)
+ S DA=ACRDOCDA
+ S DIE="^ACRDOC("
+ S DR="113420////"_ACR1
+ D DIE^ACRFDIC
+ D DOC
+ Q

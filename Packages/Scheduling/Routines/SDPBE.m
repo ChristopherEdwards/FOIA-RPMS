@@ -1,0 +1,146 @@
+SDPBE ;BP-IOFO/OWAIN ; Pharmacy Benefits National Reporting.  ; 7/23/03
+ ;;5.3;Scheduling;**300**;AUG 13, 1993
+ N SDSS,DFN
+ D INIT(.SDSS)
+ S DFN=0
+ F  S DFN=$O(^SDWL(409.3,"B",DFN)) Q:+DFN'=DFN  D
+ .N SDENCFLG,SDSEQ,SDINST,ELIGIBLE,SDDAPT
+ .I $D(^PS(52.91,DFN,0)) Q
+ .Q:'$$PAT(DFN)
+ .S SDENCFLG=0 D ENC I SDENCFLG Q
+ .K SDENCFLG
+ .S SDSEQ=0
+ .F  S SDSEQ=$O(^SDWL(409.3,"B",DFN,SDSEQ)) Q:+SDSEQ'=SDSEQ  D
+ ..N SDPSOLES,SDPSOWT,SDWL0,SDODT,SDWLCL,SDCL,SDCP,SDDISDT,SDAPPDT,SDREQBY,SDMEDD
+ ..S SDWL0=$G(^SDWL(409.3,SDSEQ,0))
+ ..S SDPSOWT=$P(SDWL0,"^",5)
+ ..;Quit-no Wait Type, check current 4 only, in case other codes are added
+ ..I SDPSOWT'=1,SDPSOWT'=2,SDPSOWT'=3,SDPSOWT'=4 Q
+ ..D GETCL
+ ..;SDCL Returned for types 1,2,4   Clinic^Institution^Station
+ ..;SDCL Returned for type 3    "VALID"^Institution^station
+ ..I $G(SDCL)="" Q
+ ..S SDODT=$P(SDWL0,"^",2) I 'SDODT Q
+ ..Q:$E(SDODT,1,7)>3030724
+ ..;I SDPSOWT=1!(SDPSOWT=2) I '$P(SDWL0,"^",2) Q
+ ..I SDPSOWT=3!(SDPSOWT=4) I '$P(SDWL0,"^",2),'$P(SDWL0,"^",16) Q
+ ..I SDPSOWT=1!(SDPSOWT=2) I $$FMDIFF^XLFDT(DT,$P(SDWL0,"^",2),1)'>29 Q
+ ..I SDPSOWT=3!(SDPSOWT=4) S SDPSOLES=0 D  I 'SDPSOLES Q
+ ...I $P(SDWL0,"^",2),$$FMDIFF^XLFDT(DT,$P(SDWL0,"^",2),1)>29 S SDPSOLES=1 Q
+ ...I $P(SDWL0,"^",16),$$FMDIFF^XLFDT(DT,$P(SDWL0,"^",16),1)>29 S SDPSOLES=1
+ ..S SDDISDT=$P($G(^SDWL(409.3,SDSEQ,"DIS")),U)
+ ..S SDINST=$P(SDCL,"^",2) Q:'SDINST
+ ..I $D(ELIGIBLE(SDINST)) Q:$P(ELIGIBLE(SDINST),U,2)<SDODT
+ ..; If disposition date is not before 9/22/2003 (or there is no disposition date) - ELIGIBLE, otherwise INELIGIBLE.
+ ..I SDDISDT<3030922&(SDDISDT'="") Q
+ ..S ELIGIBLE(SDINST)=1_U_SDODT_U_$P(SDWL0,U,16) ; 1^Originating date^Desired date.
+ ..Q
+ .S SDINST=""
+ .F  S SDINST=$O(ELIGIBLE(SDINST)) Q:SDINST=""  I ELIGIBLE(SDINST) D
+ ..I $P(ELIGIBLE(SDINST),"^",3) S ^XTMP("SDPSO145","PAT","E",DFN,SDINST,$P(ELIGIBLE(SDINST),"^",3))="" Q
+ ..; If desired date null, use DT, set to 1 to indicate no desire date
+ ..S ^XTMP("SDPSO145","PAT","E",DFN,SDINST,DT)=1
+ .Q
+ Q
+ ;
+INIT(SDSS) ;
+ N SDI,SDII
+ ;
+ ; Primary care stop code 404: GYNECOLOGY was added after the specification. (The 404 code has been removed)
+ F SDI=322,323,350 F SDII="000",185,186,187 S SDSS(SDI_SDII)=""
+ Q
+ ;
+PAT(DFN) ;Evaluate a patient
+ ;INPUT:  DFN=patient ien
+ ;OUTPUT: (fail) 0^_<reason for failure>
+ ;        (success) 1^Patient appears to be eligible
+ ;
+ ;N ENR
+ Q:'$D(^DPT(DFN,0)) "0^Patient record not found"
+ Q:+$G(^DPT(DFN,.35)) "0^Patient is deceased"
+ Q:$P($G(^DPT(DFN,"VET")),U)'="Y" "0^Patient is not a veteran"
+ Q:+$P($G(^DPT(DFN,.15)),U,2) "0^Patient is ineligible"
+ Q:'$L($P($G(^DPT(DFN,0)),U)) "0^Invalid name value"
+ Q:$D(^DPT(DFN,-9)) "0^Merged patient record"
+ Q:$P(^DPT(DFN,0),U)["MERGING INTO" "0^Merging patient record"
+ Q:$$TESTPAT^VADPT(DFN) "0^Test patient"
+ ;S ENR=$$GET1^DIQ(2,DFN_",",27.01,"I") Q:ENR=""!($$GET1^DIQ(27.11,ENR_",",.01,"I")>3030829) "0^Not enrolled by date required"
+ Q "1^Patient appears to be eligible"
+ ;
+CPAIR(SDCL0)   ; Get credit pair
+ ; Input: SDCL0=hospital location zeroeth node
+ N SDX
+ S SDX=$P($G(^DIC(40.7,+$P(SDCL0,U,7),0)),U,2)
+ S SDX=SDX_$P($G(^DIC(40.7,+$P(SDCL0,U,18),0)),U,2)
+ S SDX=$E(SDX_"000000",1,6)
+ Q SDX
+ ;
+GETCL ;Get clinic info
+ ;Need to set SDCL = Clinic IEN
+ N SDPSONOX,SDCL0,SDWTXXX,SDPSOWLQ,SDPSOWSP,SDPSOWLA,SDPSOWL
+ S SDCL=""
+ I $G(SDPSOWT)=1 S SDPSONOX=0 D  S:$G(SDPSONOX)&($G(SDCL)="") ^XTMP("SDPSO145","PROB1",DFN)="" Q
+ .S SDPSOWSP=$P(SDWL0,"^",6) I 'SDPSOWSP!('$D(^SCTM(404.51,+$G(SDPSOWSP),0))) Q
+ .S SDPSOWL="" F  S SDPSOWL=$O(^SCTM(404.57,"C",SDPSOWSP,SDPSOWL)) Q:SDPSOWL=""  I $P($G(^SCTM(404.57,SDPSOWL,0)),"^",9) S SDPSOWLA(+$P($G(^SCTM(404.57,SDPSOWL,0)),"^",9))=""
+ .S SDPSOWLQ=0,SDPSOWL="" F  S SDPSOWL=$O(SDPSOWLA(SDPSOWL)) Q:SDPSOWL=""!(SDPSOWLQ)  D
+ ..;Fine first clinic with valid Institution and Station Number
+ ..D INSTA
+ I $G(SDPSOWT)=2 D  Q
+ .N SDPSOPOS
+ .S SDPSOPOS=$P(SDWL0,"^",7) I 'SDPSOPOS Q
+ .S SDPSOWL=$P($G(^SCTM(404.57,SDPSOPOS,0)),"^",9) I 'SDPSOWL Q
+ .D INSTA
+ I $G(SDPSOWT)=3 D  Q
+ .N SDPSOWSC,SDPSOAMI,SDPSOAMX
+ .S SDWTX=$P(SDWL0,"^",3) I 'SDWTX!('$D(^DIC(4,+$G(SDWTX),0))) Q
+ .;D STNM I $G(SDWTXXX)="" Q
+ .S SDPSOWSC=$P(SDWL0,"^",8) I 'SDPSOWSC Q
+ .S SDPSOAMI=$P($G(^SDWL(409.31,SDPSOWSC,0)),"^") I 'SDPSOAMI Q
+ .S SDPSOAMX=$P($G(^DIC(40.7,SDPSOAMI,0)),"^",2)
+ .S SDPSOAMX=$E(SDPSOAMX_"000000",1,6)
+ .I $D(SDSS(SDPSOAMX)) S SDCL="VALID"_"^"_SDWTX
+ I $G(SDPSOWT)=4 D  Q
+ .N SDPSO9
+ .S SDPSO9=$P(SDWL0,"^",9) I 'SDPSO9 Q
+ .S SDPSOWL=$P($G(^SDWL(409.32,SDPSO9,0)),"^") I 'SDPSOWL Q
+ .D INSTA
+ Q
+INSTA ;
+ I $G(SDPSOWL)'>0 Q
+ N SDWTX,SDMEDDX
+ S SDWTX=$P($G(^SC(SDPSOWL,0)),"^",4) I SDWTX>0,$D(^DIC(4,SDWTX,0)) G STNMP
+ S SDWTX="" S SDMEDDX=$P($G(^SC(SDPSOWL,0)),"^",15) I SDMEDDX>0 S SDWTX=$P($$SITE^VASITE(,SDMEDDX),"^")
+ I $G(SDWTX)'>0 Q
+ I '$D(^DIC(4,SDWTX,0)) Q
+STNMP ;
+ ;I $G(SDWTXXX)'="" D
+ I $G(SDPSOWT)=1 S SDCL0=$G(^SC(SDPSOWL,0)) S SDCP=$$CPAIR(SDCL0) D STNM D  K SDWTXXX Q
+ .I $D(SDSS(SDCP)) D
+ ..I $G(SDWTXXX)="" S SDPSONOX=1 Q
+ ..S SDCL=SDPSOWL_"^"_SDWTX,SDPSOWLQ=1
+ S SDCL0=$G(^SC(SDPSOWL,0)) S SDCP=$$CPAIR(SDCL0) I $D(SDSS(SDCP)) S SDCL=SDPSOWL_"^"_SDWTX
+ Q
+ ;I $G(SDCL) Q
+ ;S SDMEDDX=$P($G(^SC(SDPSOWL,0)),"^",15) I SDMEDDX>0 S SDWTX=$P($$SITE^VASITE(,SDMEDDX),"^") I $G(SDWTX),$D(^DIC(4,+$G(SDWTX),0)) D STNM D  Q
+ ;.I $G(SDWTXXX)'="" D
+ ;..I $G(SDPSOWT)=1 S SDCL0=$G(^SC(SDPSOWL,0)) S SDCP=$$CPAIR(SDCL0) D  Q
+ ;...I $D(SDSS(SDCP)) S SDCL=SDPSOWL_"^"_SDWTX_"^"_SDWTXXX,SDPSOWLQ=1
+ ;..S SDCL0=$G(^SC(SDPSOWL,0)) S SDCP=$$CPAIR(SDCL0) I $D(SDSS(SDCP)) S SDCL=SDPSOWL_"^"_SDWTX_"^"_SDWTXXX
+ Q
+STNM N SDWTXX
+ K SDWTXX,SDWTXXX,DIC,DIQ,DD,DR S DIC=4,DR="99",DA=+SDWTX,DIQ(0)="I",DIQ="SDWTXX" D EN^DIQ1 S SDWTXXX=$G(SDWTXX(4,+SDWTX,99,"I")) K DIC,DIQ,DR,DA,SDWTXX
+ Q
+ENC ;Encounter check
+ N SDENC,SDENC1,SDENC2,SDENC3,SDENC4
+ S SDENC=3011021.2359
+ F  S SDENC=$O(^SCE("ADFN",DFN,SDENC)) Q:'SDENC!(SDENCFLG)  D
+ .S SDENC1=0 F  S SDENC1=$O(^SCE("ADFN",DFN,SDENC,SDENC1)) Q:'SDENC1!(SDENCFLG)  D
+ ..S SDENC2=$G(^SCE(SDENC1,0)) Q:'$L(SDENC2)
+ ..Q:$P(SDENC2,"^",6)
+ ..Q:'$P(SDENC2,"^",4)
+ ..S SDENC3=$G(^SC(+$P(SDENC2,"^",4),0)) Q:'$L(SDENC3)
+ ..S SDENC4=$$CPAIR(SDENC3)
+ ..Q:'$D(SDSS(SDENC4))
+ ..K ^XTMP("SDPSO145","PAT","E",DFN)
+ ..K ^XTMP("SDPSO145","PAT","S",DFN) S SDENCFLG=1
+ Q

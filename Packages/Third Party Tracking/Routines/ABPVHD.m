@@ -1,0 +1,29 @@
+ABPVHD ;SCREEN HEADING UTILITY; [ 07/15/91  8:50 PM ]
+ ;;2.0;FACILITY PVT-INS TRACKING;*0*;IHS-OKC/KJR;AUGUST 7, 1991
+ ;INPUT VARIABLES: ABPV("HD",X) = NARRATIVE TEXT < 76 CHARACTERS
+ ;                                WHERE X IS SEQUENTIAL VARIABLE 
+ ;                                BEGINNING WITH 1
+ ;
+ ;OUTPUT VARIABLES: NONE
+ ;
+START S:$D(DUZ(2))'=1 DUZ(2)=$P(^AUTTSITE(1,0),"^")
+ S SITENAME=$P(^DIC(4,DUZ(2),0),"^",1),X=0
+ D:$D(XY)'=1 CURRENT^%ZIS
+NXTX S X=$O(ABPV("HD",X)) G:+X=0 MOVE
+ S AU("MAX")=X G NXTX
+MOVE F I=AU("MAX"):-1:1 S ABPV("HD",I+2)=ABPV("HD",I)
+WRITE S ABPV("HD",1)=SITENAME,$P(AU("LINE"),"-",$L(SITENAME)+1)=""
+ S ABPV("HD",2)=AU("LINE"),AU("MAX")=AU("MAX")+2
+ D NOW^%DTC S Y=% X ^DD("DD") S YY=$P(Y,"@"),Y=$P(Y,"@",2)
+ S XX="",$P(XX,"*",80)="" W:IO=IO(0) @IOF,! D:IO'=IO(0) ^%AUCLS W XX
+ F I=1:1:AU("MAX")-1 D
+ .W !,"* " W:I=1 YY W:I=2 "User: ",ABPVUSER
+ .W ?40-(($L(ABPV("HD",I))/2)),ABPV("HD",I)
+ .S:I=2 Y="Device: "_ABPVDEV W:I<3 ?(77-$L(Y)),Y W ?78,"*"
+ W ! S DY=$Y ;S:IOST["QUME" DY=DY+1
+ W "*",?40-(($L(ABPV("HD",AU("MAX")))/2))
+ W @(ABPVRON),ABPV("HD",AU("MAX")),@(ABPVROFF)
+ S DX=78 ;I IOST["QUME" S DX=79
+ X XY W "*",!,XX
+ K X,Y,I,AU("MAX"),SITENAME,XX,ABPV("HD"),AU("LINE"),DX,DY
+QUIT Q

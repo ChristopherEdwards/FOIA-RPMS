@@ -1,0 +1,68 @@
+APCLOSP ; IHS/CMI/LAB - print Operational summary ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+ ;
+START ;
+ S APCLPG=0
+ S:APCLLOCT="S" (APCLSUP,APCLSUN)=$P(^AUTTSU(APCLSU,0),U)
+ I APCLLOCT="O" S APCLSUP=$P(^DIC(4,$O(^XTMP("APCLSU",APCLJOB,APCLBTH,0)),0),U),APCLSUN=$P(^AUTTSU(APCLSU,0),U)
+ I APCLLOCT="T" S (APCLSUP,APCLSUN)="A Set of Facilities"
+ D HEAD
+ K APCLQUIT S APCLSEGN="" F APCLSQ=0:0 S APCLSEGN=$O(^APCLOST(APCLRPT,1,"B",APCLSEGN)) Q:APCLSEGN=""  D SEGMNT Q:$D(APCLQUIT)
+DONE ;
+ K ^XTMP("APCLOS",APCLJOB,APCLBTH),^XTMP("APCLOSP",APCLJOB,APCLBTH),^XTMP("APCLSU",APCLJOB,APCLBTH)
+ D DONE^APCLOSUT
+EOJ ;ENTRY POINT
+ K APCLPG,APCLSUP,APCLSUN,APCLSU,APCLLOCT,APCLSQIT,APCLSEGN,APCLRPT,APCLSEGT,APCLSEGC,APCLSEGP,APCLX,APCLY,APCLTYPE,APCLN,APCLLENG,APCLC,APCLD,APCLPD,APCLTOT,APCLLC,APCLMAX,APCLGLOB,APCL1,APCL2,APCLPIEC
+ K APCL1,APCL2,APCL3,APCLX,APCLTOTO,APCLTOTC,APCLLC,APCLT,APCLBT
+ K APCLPTR,APCLWC,APCL3,APCLT,APCLTOTC,APCLTOTO,APCLLWC
+ K X,Z,G,Y
+ Q
+SEGMNT ; OUTPUT A SEGMENT TYPE
+ S APCLSEGT=$O(^APCLOST(APCLRPT,1,"B",APCLSEGN,"")) S APCLSEGC=$P(^APCLOST(APCLRPT,1,APCLSEGT,0),U,2) S APCLSEGP=$P(^APCLOSC(APCLSEGC,0),U,3),APCLSEGC=$P(^APCLOSC(APCLSEGC,0),"^",2)
+ D @($P(APCLSEGP,";")_U_$P(APCLSEGP,";",2))
+ Q
+ ;
+POP ;
+ I $Y>(IOSL-10) D HEAD Q:$D(APCLQUIT)
+ W !!,"PATIENT REGISTRATION"
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"LIVREG")):^("LIVREG"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"LIVREG")):^("LIVREG"),1:0) D CALC^APCLOSUT
+ W !!,"There are ",X," (",Z,") living patients registered at this ",$S(APCLLOCT="O":"facility.",1:"SU.")
+ W !,"This number does not represent the 'Active User Population' which",!,"is found elsewhere in PCC Reports."
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"NEWREG")):^("NEWREG"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"NEWREG")):^("NEWREG"),1:0) D CALC^APCLOSUT
+ W "  There were ",X," (",Z,") new patients, ",!
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"BIRTHS")):^("BIRTHS"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"BIRTHS")):^("BIRTHS"),1:0) D CALC^APCLOSUT
+ W X," (",Z,") births, and "
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"DEATHS")):^("DEATHS"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"DEATHS")):^("DEATHS"),1:0) D CALC^APCLOSUT
+ W X," (",Z,") death(s) during this period. Data is",!,"based on the Patient Registration File."
+THIRD ;
+ I $Y>(IOSL-10) D HEAD Q:$D(APCLQUIT)
+ W !!,"THIRD PARTY ELIGIBILITY"
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"MCRA")):^("MCRA"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"MCRA")):^("MCRA"),1:0) D CALC^APCLOSUT
+ W !!,"There were ",X," (",Z,") patients enrolled in Medicare Part A and "
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"MCRB")):^("MCRB"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"MCRB")):^("MCRB"),1:0) D CALC^APCLOSUT
+ W !,X," (",Z,") patients enrolled in Part B at the end of this time period."
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"MCRD")):^("MCRD"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"MCRD")):^("MCRD"),1:0) D CALC^APCLOSUT
+ W !!,"There were ",X," (",Z,") patients enrolled in Medicare Part D."
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"MCD")):^("MCD"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"MCD")):^("MCD"),1:0) D CALC^APCLOSUT
+ W !!,"There were also ",X," (",Z,") patients enrolled in Medicaid and"
+ S X=$S($D(^XTMP("APCLOS",APCLJOB,APCLBTH,"PI")):^("PI"),1:0),Y=$S($D(^XTMP("APCLOSP",APCLJOB,APCLBTH,"PI")):^("PI"),1:0) D CALC^APCLOSUT
+ W !,X," (",Z,") patients with an active private insurance policy as of that date."
+ Q
+HEAD ;ENTRY POINT
+ I 'APCLPG G HEAD1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCLQUIT="" Q
+ S APCLPG=APCLPG+1
+ W:$D(IOF) @IOF W !?10,"PCC Operations Summary for ",APCLSUP,$S(APCLLOCT="O":"",APCLLOCT="S":" Service Unit",1:""),?70,"Page ",APCLPG
+ Q
+HEAD1 ;
+ W:$D(IOF) @IOF S APCLPG=APCLPG+1
+ S APCLLENG=36+$L(APCLSUN)
+ W !?72,"Page ",APCLPG
+ W !?((80-APCLLENG)/2),"OPERATIONS SUMMARY FOR ",APCLSUP,$S(APCLLOCT="O":"",APCLLOCT="S":" Service Unit",1:"")
+ I APCLMFY=1 S Y=APCLMON D DD^%DT W !?33,"FOR ",Y
+ ;I APCLMFY=2 W !192,"FOR FY",APCLFY,"-To-Date as of ",APCLFYEY
+ I APCLMFY=2 W !?22,"FOR FY",APCLFY,"-To-Date:  ",APCLFYBY," - ",APCLFYEY
+ I APCLMFY=3 W !?15,"FOR DATE RANGE: ",$$FMTE^XLFDT(APCLFYB)," - ",$$FMTE^XLFDT(APCLFYE)
+ W !!,"(Note:  In parentheses following each statistic is the percent increase or",!,"decrease from the same time period in the previous year.  '**' indicates",!,"no data is present for one of the two time periods.)",!
+ Q

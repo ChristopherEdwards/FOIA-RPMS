@@ -1,0 +1,54 @@
+AQAQDCP ;IHS/ANMC/LJF - INCOM/DELQ CHARTS BY PROVIDER; [ 07/09/1999  2:27 PM ]
+ ;;2.2;STAFF CREDENTIALS;**8**;JULY 9, 1999
+ ;;AQAQ*2*8;Y2K FIX;CS;2990708
+ ;>>> initialize variables
+ S AQAQSTOP="",AQAQDUZ=$P(^DIC(3,DUZ,0),U,2)
+ S AQAQFAC=$P(^DIC(4,DUZ(2),0),U)
+ S AQAQLIN="",$P(AQAQLIN,"=",80)=""
+ D HEAD
+ ;
+ ;>>> for each provider, call subrtn to print data
+ S AQAQPRVN=0 F AQAQI=2:1:7 S AQAQTOT(AQAQI)=0
+ F  Q:AQAQPRVN=""  Q:AQAQSTOP=U  D
+ .S AQAQPRVN=$O(^UTILITY("AQAQDC",$J,AQAQPRVN)) Q:AQAQPRVN=""
+ .S AQAQSTR=^(AQAQPRVN) D LINE
+ G END:AQAQSTOP=U
+ ;
+ ;>>> print totals
+ W !!,AQAQLIN
+ W !,"Total Delinquent Charts:  ",?33,AQAQDTOT
+ S AQAQX=23 F AQAQI=2:1:5 W ?(AQAQX+(AQAQI*10)),$J(AQAQTOT(AQAQI),3)
+ ;
+END ;>>> eoj
+ I IOST?1"C-".E K DIR S DIR(0)="E",DIR("A")="RETURN to continue" D ^DIR
+ W @IOF K ^UTILITY("AQAQDC") D ^%ZISC D KILL^AQAQUTIL Q
+ ;>>> end of main routine <<<
+ ;
+NEWPG ;***> SUBRTN for end of page control
+ I IOST'?1"C-".E D HEAD S AQAQSTOP="" Q
+ K DIR S DIR(0)="E" D ^DIR S AQAQSTOP=X
+ I AQAQSTOP'=U D HEAD
+ Q
+ ;
+HEAD ;**> SUBRTN to print heading
+ W !?8,"*****Confidential Medical Staff Data Covered by Privacy Act*****"
+ W @IOF,!!,AQAQDUZ,?80-$L(AQAQFAC)/2,AQAQFAC
+ ;BEGIN Y2K FIX BLOCK
+ ;W !,$E(DT,4,5)_"/"_$E(DT,6,7)_"/"_$E(DT,2,3)
+ W !,$E(DT,4,5)_"/"_$E(DT,6,7)_"/"_($E(DT,1,3)+1700) ; Y2000
+ ;END Y2K FIX BLOCK
+ W ?25,"DELINQUENT CHARTS BY PROVIDER"
+ W ! D ^%T W ?34,"SUMMARY PAGE"
+ W !!?30,"DELINQ",?39,"-----REASONS CHARTS ARE DELINQUENT------"
+ W !,"PROVIDER",?30,"CHARTS",?39,"OP REPORT"
+ W ?50,"A SHEET",?60,"SUMMARY",?70,"SIGNATURE",!,AQAQLIN
+ Q
+ ;
+LINE ;***> SUBRTN to print line of data
+ W !,$E(AQAQPRVN,1,15),?33,$J($P(AQAQSTR,U),3)
+ W ?43,$J($P(AQAQSTR,U,2),3),?53,$J($P(AQAQSTR,U,3),3)
+ W ?63,$J($P(AQAQSTR,U,4),3),?73,$J($P(AQAQSTR,U,5),3)
+ ;W ?65,$J($P(AQAQSTR,U,6),3),?73,$J($P(AQAQSTR,U,7),3)
+ F AQAQJ=2:1:5 S AQAQTOT(AQAQJ)=AQAQTOT(AQAQJ)+$P(AQAQSTR,U,AQAQJ)
+ I $Y>(IOSL-5) D NEWPG
+ Q

@@ -1,0 +1,8 @@
+%AUSBRS ; STANDARD INPUT ROUTINE; [ 06/09/87  11:05 AM ]
+ ;
+ S U="^" S:'$D(DTIME) DTIME=300 K DFOUT,DTOUT,DUOUT,DQOUT,DLOUT
+SBRS R Y:DTIME I '$T W *7 R Y:5 G SBRS:Y="." I '$T S (DTOUT,DFOUT)="" Q
+ S:Y="" DLOUT="" S:Y="^" (DUOUT,Y)=""
+ I Y?1"?".E!(Y["^") S DQOUT=$S(Y="??":2,1:1),Y="" Q
+ I Y]"",$D(DUZ)#2,$D(^DIC(3,DUZ,200)),Y=$P(^(200),U,7) S (Y,DFOUT)=""
+ Q

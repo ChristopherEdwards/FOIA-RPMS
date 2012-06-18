@@ -1,0 +1,9 @@
+BGPMX ; IHS/CMI/LAB -CREATED BY ^ATXSTX ON NOV 20, 2006 ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^BGPMXA ;    BGP HEDIS RETINAL SCREENING
+ D ^BGPMXB ;    BGP MICROALBUM LOINC CODES
+ Q

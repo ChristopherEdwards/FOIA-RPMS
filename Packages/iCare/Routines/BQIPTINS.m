@@ -1,0 +1,106 @@
+BQIPTINS ;PRXM/HC/ALA-Patient Insurance ; 05 Jul 2006  3:31 PM
+ ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;
+ Q
+ ;
+GET(DATA,DFN) ; EP -- BQI PATIENT INSURANCE
+ NEW UID,II,INSCO,X,INSCO,IEN,MN
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPTINS",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPTINS D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S @DATA@(II)="T00100INSURANCE_COVERAGE^D00015EFFECTIVE_DATE"_$C(30)
+ ;
+ ;  Check for Medicare
+ I $G(^AUPNMCR(DFN,0))'="" D
+ . S INSCO=$$GET1^DIQ(9000003,DFN_",",.02,"E")
+ . S IEN=0
+ . F  S IEN=$O(^AUPNMCR(DFN,11,IEN)) Q:'IEN  D
+ .. NEW DA,IENS
+ .. S DA(1)=DFN,DA=IEN,IENS=$$IENS^DILF(.DA)
+ .. I $$GET1^DIQ(9000003.11,IENS,.02,"I")'="" Q
+ .. S II=II+1,@DATA@(II)=INSCO_" "_$$GET1^DIQ(9000003.11,IENS,.03,"E")_"^"_$$FMTE^BQIUL1($$GET1^DIQ(9000003.11,IENS,.01,"I"))_$C(30)
+ ;
+ ;  Check for Railroad
+ I $G(^AUPNRRE(DFN,0))'="" D
+ . S INSCO=$$GET1^DIQ(9000005,DFN_",",.02,"E")
+ . S IEN=0
+ . F  S IEN=$O(^AUPNRRE(DFN,11,IEN)) Q:'IEN  D
+ .. NEW DA,IENS
+ .. S DA(1)=DFN,DA=IEN,IENS=$$IENS^DILF(.DA)
+ .. I $$GET1^DIQ(9000005.11,IENS,.02,"I")'="" Q
+ .. S II=II+1,@DATA@(II)=INSCO_" "_$$GET1^DIQ(9000005.11,IENS,.03,"E")_"^"_$$FMTE^BQIUL1($$GET1^DIQ(9000005.11,IENS,.01,"I"))_$C(30)
+ ;
+ ;  Check for Medicaid
+ S IEN=""
+ F  S IEN=$O(^AUPNMCD("B",DFN,IEN)) Q:IEN=""  D
+ . S INSCO=$$GET1^DIQ(9000004,IEN_",",.02,"E")
+ . S MN=0
+ . F  S MN=$O(^AUPNMCD(IEN,11,MN)) Q:'MN  D
+ .. NEW DA,IENS
+ .. S DA(1)=IEN,DA=MN,IENS=$$IENS^DILF(.DA)
+ .. I $$GET1^DIQ(9000004.11,IENS,.02,"I")'="" Q
+ .. S II=II+1,@DATA@(II)=INSCO_" "_$$GET1^DIQ(9000004.11,IENS,.03,"E")_"^"_$$FMTE^BQIUL1($$GET1^DIQ(9000004.11,IENS,.01,"I"))_$C(30)
+ ;
+ ;  Check for Private Insurance
+ S IEN=""
+ F  S IEN=$O(^AUPN3PPH("C",DFN,IEN)) Q:IEN=""  D
+ . I $$GET1^DIQ(9000003.1,IEN_",",.18,"I")'="" Q
+ . S INSCO=$$GET1^DIQ(9000003.1,IEN_",",.03,"E")
+ . S II=II+1,@DATA@(II)=INSCO_" "_$$GET1^DIQ(9000003.1,IEN_",",.05,"E")_"^"_$$FMTE^BQIUL1($$GET1^DIQ(9000003.1,IEN,.17,"I"))_$C(30)
+ ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+LYO(DFN) ;EP - Layout display
+ ;  Check for Medicare
+ S RESULT=""
+ I $G(^AUPNMCR(DFN,0))'="" D
+ . S INSCO=$$GET1^DIQ(9000003,DFN_",",.02,"E")
+ . S IEN=0
+ . F  S IEN=$O(^AUPNMCR(DFN,11,IEN)) Q:'IEN  D
+ .. NEW DA,IENS
+ .. S DA(1)=DFN,DA=IEN,IENS=$$IENS^DILF(.DA)
+ .. I $$GET1^DIQ(9000003.11,IENS,.02,"I")'="" Q
+ .. S RESULT=RESULT_INSCO_" "_$$GET1^DIQ(9000003.11,IENS,.03,"E")_"; "_$C(13)_$C(10)
+ ;
+ ;  Check for Medicaid
+ S IEN="",QFL=0
+ F  S IEN=$O(^AUPNMCD("B",DFN,IEN)) Q:IEN=""  D  Q:QFL
+ . S INSCO=$$GET1^DIQ(9000004,IEN_",",.02,"E")
+ . S MN=0
+ . F  S MN=$O(^AUPNMCD(IEN,11,MN)) Q:'MN  D
+ .. NEW DA,IENS
+ .. S DA(1)=IEN,DA=MN,IENS=$$IENS^DILF(.DA)
+ .. I $$GET1^DIQ(9000004.11,IENS,.02,"I")'="" Q
+ .. S RESULT=RESULT_INSCO_"; "_$C(13)_$C(10),QFL=1
+ ;
+ ;  Check for Railroad
+ I $G(^AUPNRRE(DFN,0))'="" D
+ . S INSCO=$$GET1^DIQ(9000005,DFN_",",.02,"E")
+ . S IEN=0
+ . F  S IEN=$O(^AUPNRRE(DFN,11,IEN)) Q:'IEN  D
+ .. NEW DA,IENS
+ .. S DA(1)=DFN,DA=IEN,IENS=$$IENS^DILF(.DA)
+ .. I $$GET1^DIQ(9000005.11,IENS,.02,"I")'="" Q
+ .. S RESULT=RESULT_INSCO_" "_$$GET1^DIQ(9000005.11,IENS,.03,"E")_"; "_$C(13)_$C(10)
+ ;
+ ;  Check for Private Insurance
+ S IEN=""
+ F  S IEN=$O(^AUPN3PPH("C",DFN,IEN)) Q:IEN=""  D
+ . I $$GET1^DIQ(9000003.1,IEN_",",.18,"I")'="" Q
+ . S INSCO=$$GET1^DIQ(9000003.1,IEN_",",.03,"E")
+ . S RESULT=RESULT_INSCO_" "_$$GET1^DIQ(9000003.1,IEN_",",.05,"E")_"; "_$C(13)_$C(10)
+ S RESULT=$$TKO^BQIUL1(RESULT,"; "_$C(13)_$C(10))
+ Q RESULT

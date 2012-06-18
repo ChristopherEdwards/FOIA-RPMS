@@ -1,0 +1,98 @@
+BHLV01I ; cmi/sitka/maw - BHL Process V01 Event ; 
+ ;;3.01;BHL IHS Interfaces with GIS;;JUL 01, 2001
+ ;
+ ;
+ ;
+MAIN ;-- file the inbound V01 message
+ D ^BHLSETI
+ Q:$D(BHLERR("FATAL"))
+ D QRD,QRF,GET
+ D EOJ^BHLSETI
+ Q
+ ;
+QRD ;-- get QRD info
+ S BHLQDTM=$G(INV("QRD1"))
+ S BHLQID=$G(INV("QRD4"))
+ S BHLNR=$G(INV("QRD7"))
+ S BHLWHO=$G(INV("QRD8"))
+ S BHLQRD2=$G(INV("QRD2"))
+ S BHLQRD3=$G(INV("QRD3"))
+ S BHLQRD9=$G(INV("QRD9"))
+ S BHLQRD12=$G(INV("QRD12"))
+ D OQRD
+ Q
+ ;
+QRF ;-- get QRF info
+ S BHLSDT=$G(INV("QRF2"))
+ I BHLSDT="" S BHLSDT=2000101
+ S BHLEDT=$G(INV("QRF3"))
+ I BHLEDT="" S BHLEDT=3990101
+ S BHLWHOM=$G(INV("QRF5"))
+ S BHLQRF1=$G(INV("QRF1"))
+ S BHLQRF6=$G(INV("QRF6"))
+ S BHLQRF7=$G(INV("QRF7"))
+ S BHLQRF8=$G(INV("QRF8"))
+ D OQRF
+ Q
+ ;
+GET ;-- let's lookup the patient then get immunization information
+ D PTLK^BHLQU
+ I $G(BHLPAT(2)) D  Q
+ . D QRY^BHLPID
+ . S X="BHL QUERY RESPONSE MULT",DIC=101 D EN^XQOR
+ I $G(BHLPAT(1)) S BHLPAT=BHLPAT(1)
+ I BHLPAT="" D  Q
+ . Q:$G(BHLPAT(1))
+ . S INA("INSTATIN")="AE"
+ . S INA("INORIGID")=BHLQID
+ . S INA("INACKTXT")="Couldn't find patient on system."
+ . S X="BHL QUERY RESPONSE FAIL",DIC=101 D EN^XQOR
+ D IMM
+ Q
+ ;
+IMM ;-- lookup immunizations
+ I '$O(^AUPNVIMM("AC",BHLPAT,0)) D  Q
+ . S INA("INSTATIN")="AE"
+ . S INA("INORIGID")=BHLQID
+ . S INA("INACKTXT")="No immunizations listed for this patient"
+ . S X="BHL QUERY RESPONSE FAIL",DIC=101 D EN^XQOR
+ S BHLIDA=0 F  S BHLIDA=$O(^AUPNVIMM("AC",BHLPAT,BHLIDA)) Q:'BHLIDA  D
+ . S BHLQVST=$P(^AUPNVIMM(BHLIDA,0),U,3)
+ . S BHLIVST(BHLQVST)=""
+ D VST
+ Q
+ ;
+VST ;-- pass by visit
+ S BHLQIV=0 F  S BHLQIV=$O(BHLIVST(BHLQIV)) Q:'BHLQIV  D
+ . S BHLIDT=$P($$VALI^XBDIQ1(9000010,BHLQIV,.01),".")
+ . Q:BHLIDT<BHLSDT
+ . Q:BHLIDT>BHLEDT
+ . K INDA
+ . S BHLQCNT=0
+ . S INDA(9000010,1)=BHLQIV
+ . S BHLQVM=0 F  S BHLQVM=$O(^AUPNVIMM("AD",BHLQVST,BHLQVM)) Q:'BHLQVM  D
+ .. S BHLQCNT=BHLQCNT+1
+ .. S INDA(9000010.11,BHLQCNT)=BHLQVM
+ . S INA("INSTATIN")="AA"
+ . S INA("INORIGID")=BHLQID
+ . S INDA=BHLPAT
+ . S X="BHL QUERY RESPONSE SUCCESS",DIC=101 D EN^XQOR
+ Q
+ ;
+OQRD ;EP - reset the original QRD for passback     
+ S INA("INQDTM")=$G(INV("QRD1"))
+ S INA("INQPRI")=$G(INV("QRD3"))
+ S INA("INQTAG")=$G(INV("QRD4"))
+ S INA("INQWHAT")=$G(INV("QRD9"))
+ S INA("INQTY")=$G(INV("QRD7"))
+ S INA("INQWHO")=$G(INV("QRD8"))
+ Q
+ ;
+OQRF ;EP - reset the original QRF for passback
+ S INA("INQWHERE")=$G(INV("QRF1"))
+ S INA("INQWHICH")=$G(INV("QRF6"))
+ S INA("INQSDTM")=$G(INV("QRF2"))
+ S INA("INQEDTM")=$G(INV("QRF3"))
+ S INA("INQOSF")=$G(INV("QRF5"))
+ Q
+ ;

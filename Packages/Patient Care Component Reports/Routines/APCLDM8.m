@@ -1,0 +1,67 @@
+APCLDM8 ; IHS/CMI/LAB - PPD STUFF ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;IHS/TUCSON/LAB - patch 1 - 05/27/97 fixed cumulative TB STATUS calculation modified subroutine TBTXST and PPDCODE
+ ;
+ ;
+START ;
+PPD ;EP
+ S APCLX=APCLPD_"^LAST SKIN PPD" S APCLER=$$START1^APCLDF(APCLX,APCLY)
+ I '$D(APCL(1)) S ^TMP("APCL",$J,20)="No recorded PPD"
+ I $D(APCL(1)) S Y=$P(APCL(1),U) D DD^%DT S ^TMP("APCL",$J,20)=$S($P(^AUPNVSK(+$P(APCL(1),U,4),0),U,5)]"":$P(^(0),U,5)_"mm;",1:"")_$S($P(APCL(1),U,2)'="P":"NEGATIVE - "_Y,1:"POSITIVE - "_Y)
+TBTXST ;TB Treatment Status, 21 get last TB related health factor
+ S %=$O(^ATXAX("B","DM AUDIT TB HEALTH FACTORS",0))
+ I '% S ^TMP("APCL",$J,21)="TB Health Factor TAXONOMY MISSING!!" G PPDCODE ;IHS/TUCSON/LAB patch 1 - 05/27/97 - added this line
+ I % D
+ .S (X,Y)=0 F  S X=$O(^AUPNHF("AA",APCLPD,X)) Q:X'=+X!(Y)  I $D(^ATXAX(%,21,"B",X)) S Y=X
+ .I Y S Y=$P(^AUTTHF(Y,0),U),^TMP("APCL",$J,21)=Y ;IHS/TUCSON/LAB - patch 1 - 05/27/97 modified this line
+ ;I Y]"" S ^TMP("APCL",$J,21)=Y G TBCUML ;IHS/TUCSON/LAB - patch 1 - commented out this line and added line below
+ I $D(^TMP("APCL",$J,21)) G TBCUML
+ K APCL S APCLY="APCL(",APCLX=APCLPD_"^LAST HEALTH [DM AUDIT TB HEALTH FACTORS" S APCLER=$$START1^APCLDF(APCLX,APCLY)
+ S ^TMP("APCL",$J,21)=$S($D(APCL(1)):$P(APCL(1),U,3),1:"TB Health Factor Not recorded")
+TBCUML I APCLCUML D
+ .I ^TMP("APCL",$J,21)["Not recorded" S APCLGOT1=1,APCLSUB=94 D CUML^APCLDM1 F APCLSUB=90:1:93 S APCLGOT1=0 D CUML^APCLDM1
+ .I ^TMP("APCL",$J,21)["TB - TX COMPLETE" S APCLGOT1=1,APCLSUB=90 D CUML^APCLDM1 F APCLSUB=91:1:94 S APCLGOT1=0 D CUML^APCLDM1
+ .I ^TMP("APCL",$J,21)["TB - TX INCOMPLETE" S APCLGOT1=1,APCLSUB=91 D CUML^APCLDM1 F APCLSUB=90,92,93,94 S APCLGOT1=0 D CUML^APCLDM1
+ .I ^TMP("APCL",$J,21)["TB - TX UNKNOWN" S APCLGOT1=1,APCLSUB=93 D CUML^APCLDM1 F APCLSUB=90,91,92,94 S APCLGOT1=0 D CUML^APCLDM1
+ .I ^TMP("APCL",$J,21)["TB - TX UNTREATED" S APCLGOT1=1,APCLSUB=92 D CUML^APCLDM1 F APCLSUB=90,91,93,94 S APCLGOT1=0 D CUML^APCLDM1
+PPDCODE ;PPD STATUS CODE
+ S APCLJ=""
+ ;IHS/TUCSON/LAB - patch 1 - added the 2 lines below
+ I $G(^TMP("APCL",$J,21))="TB - TX COMPLETE" S APCLJ=1 G PPDCUML
+ I $G(^TMP("APCL",$J,21))["TB - " S APCLJ=2 G PPDCUML
+ I ^TMP("APCL",$J,20)["POSITIVE" D  G PPDCUML
+ .I $G(^TMP("APCL",$J,21))="TB - TX COMPLETE" S APCLJ=1
+ .S APCLJ=2
+ .Q
+ I ^TMP("APCL",$J,20)["NEGATIVE" S APCLJ=5 D  G PPDCUML
+ .I ^TMP("APCL",$J,37)["not recorded" S APCLJ=5 Q
+ .S X=^TMP("APCL",$J,37),%DT="" D ^%DT S APCLI=Y,X=$P(^TMP("APCL",$J,20),"- ",2),%DT="" D ^%DT S APCLJ=$S(Y>APCLI:3,1:4)
+ .Q
+ S APCLJ=6
+PPDCUML ;cumulative PPD
+ S ^TMP("APCL",$J,36)=$P($T(@APCLJ),";;",2)_"  ("_APCLJ_")"
+ Q:'APCLCUML
+ S APCLI="70,71,72,73,74,75" F APCLX=1:1:6 S APCLSUB=$P(APCLI,",",APCLX),APCLGOT1=$S(APCLJ=APCLX:1,1:0) D CUML^APCLDM1
+ Q
+ ;
+TBCODE(DFN) ;
+ NEW APCLJ,APCLI
+ S APCLJ=""
+ ;return computed TB Status Code
+ I ^TMP("APCL",$J,20)["POSITIVE" D  Q APCLJ
+ .I $G(^TMP("APCL",$J,21))="TB - TX COMPLETE" S APCLJ=1
+ .S APCLJ=2
+ .Q
+ I ^TMP("APCL",$J,20)["NEGATIVE" S APCLJ=4 D  Q APCLJ
+ .I ^TMP("APCL",$J,37)["not recorded" S APCLJ=4 Q
+ .S X=^TMP("APCL",$J,37),%DT="" D ^%DT S APCLI=Y,X=$P(^TMP("APCL",$J,20),"- ",2),%DT="" D ^%DT S X=$S(Y>APCLI:3,1:4)
+ .Q
+ S APCLJ=4
+ Q APCLJ
+ ;;
+1 ;;PPD +, treatment complete
+2 ;;PPD +, not treated or unknown treatment
+3 ;;PPD -, up-to-date (placed after dm dx)
+4 ;;PPD -, before DM dx
+5 ;;PPD -, DM dx date unknown
+6 ;;PPD Status unknown

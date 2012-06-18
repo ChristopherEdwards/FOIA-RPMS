@@ -1,0 +1,108 @@
+APCUADDK ; ADD KEYWORDS TO "OTHER KEYWORDS" FIELD IN ^ICD0/9 ; [ 07/29/86  5:07 PM ]
+ W !!,*7,"APCUADDK CANNOT BE ENTERED AT THE TOP -- USE DX OR OP",!!
+ Q
+DX S GBL="^ICD9"
+ G INIT
+OP S GBL="^ICD0"
+INIT S BB=$C(7),U="^",FN="9999999.21",OLDCODE=""
+ S NWS=^DD("KWIC")_"IN^OF^AN^IS^AS^AT^IF^IT^ON^OR^BY^"
+ W "- - - Add keywords to ",$P(@GBL@(0),U,1)," ""OTHER KEYWORDS"" field - - -",!!
+MAINLP F Q=0:0 R "Code: ",CODE Q:CODE=""  S:CODE=" " CODE=OLDCODE S OLDCODE=CODE D GCODE
+ W !
+ K CODE,NCODE,BB,FN,U,GBL,SEQNT,CNT,DFN,CDFN,L,NW,WT,WD,WC,WF,WSAVE,WS,W,NWS,Q
+ W !,"B y e . . .",!
+ Q
+ ;
+GCODE ; GOT CODE
+ D CHKCODE I CODE="" W BB," -- Invalid ICD code format",! Q
+ S CDFN=""
+ I $D(@GBL@("B",CODE)) S CDFN=$O(^(CODE,"")) W "  ",@GBL@(CDFN,1),! S NCODE=CODE D GETKWD,SET Q
+ S NCODE=$O(@GBL@("B",CODE))
+ I $E(NCODE,1,$L(CODE))'=CODE S CODE="" W BB," -- Code does not exist and has no more specific descendents.",! Q
+ W !," Code does not exist as entered, but has descendents."
+ R !," Do you wish to add keywords to the more specific subcodes? Y// ",A,!
+ Q:"Yy"'[$E(A_"Y")
+ D GETKWD
+ S NCODE=CODE
+ I CODE'=+CODE D NONCON Q
+ D CANONIC
+ Q
+ ;
+NONCON D SETLOOP I (+$P(CODE,".",1))=($P(CODE,".",1)) S NCODE=CODE_"001" D SETLOOP
+ Q
+ ;
+CANONIC D SETLOOP S NCODE=CODE_" " D SETLOOP
+ Q
+ ;
+SETLOOP F Q=0:0 S NCODE=$O(@GBL@("B",NCODE)) Q:NCODE=""  Q:$E(NCODE,1,$L(CODE))'=CODE  D SET
+ Q
+ ;
+GETKWD ; GET WORD STRING AND BUILD WORD TABLE
+ K WT S WT=0
+ R "Keywords: ",L,! Q:L=""
+ I L="?" D LIST G GETKWD
+ S WT=0 F NW=1:1 S WD=$P(L," ",NW) Q:WD=""  I NWS'[("^"_WD_"^")  S WT=WT+1,WT(WD)=""
+ Q
+ ;
+LIST ; LIST KEYWORDS FOR CODE
+ Q:'CDFN  Q:'$D(@GBL@(CDFN,FN,"B"))
+ S WD=0 F L=0:0 S WD=$O(@GBL@(CDFN,FN,"B",WD)) Q:WD=""  W WD,!
+ Q
+ ;
+SET ; SET WORDS IN WORD TABLE INTO ^ICD0/9 UNDER 'NCODE'
+ S DFN=$O(@GBL@("B",NCODE,""))
+ L @GBL@(DFN,FN)
+ S:'$D(@GBL@(DFN,FN,0)) ^(0)="^80.999999921A^0^0"
+ S CNT=$P(@GBL@(DFN,FN,0),U,4)
+ S WD="" F W=1:1 S WD=$O(WT(WD)) Q:WD=""  D DECIDE
+ S $P(@GBL@(DFN,FN,0),U,4)=CNT
+ L
+ W:$X'=0 !
+ Q
+ ;
+DECIDE ; DECIDE WHETHER TO SET OR KILL
+ S WSAVE=WD
+ I $E(WD)="@" S WD=$E(WD,2,255) D KILLWD S WD=WSAVE Q
+ D SETWD S WD=WSAVE Q
+ ;
+KILLWD ; KILL WORD IN ^ICD0/9
+ I '$D(@GBL@(DFN,FN,"B",WD)) W BB," -- '",WD,"' not in ",NCODE,! Q
+ S SEQNT="" F Q=0:0 S SEQNT=$O(@GBL@(DFN,FN,"B",WD,SEQNT)) Q:SEQNT=""  S CNT=CNT-1 W "." K @GBL@(DFN,FN,"B",WD,SEQNT),@GBL@(DFN,FN,SEQNT,0) S XCODE="K @GBL@(""C"",WD,DFN,SEQNT)" D TOKNDX
+ Q
+ ;
+SETWD ; SET WORD INTO ^ICD0/9
+ Q:$D(@GBL@(DFN,FN,"B",WD))
+ D GETSEQ
+ S CNT=CNT+1
+ S @GBL@(DFN,FN,SEQNT,0)=WD
+ S @GBL@(DFN,FN,"B",WD,SEQNT)=""
+ S XCODE="S @GBL@(""C"",WD,DFN,SEQNT)="""""
+ D TOKNDX
+ Q
+ ;
+TOKNDX ; BREAK WORD INTO TOKENS AND INDEX
+REMQT S I=$F(WD,"'") I I>0 S WD=$E(WD,1,I-2)_$E(WD,I,255) G REMQT
+ I '$F(WD,"-") X XCODE Q
+ S WS=WD,WC=""
+ F I=1:1 S WF=$P(WD,"-",I) Q:WF=""  Q:$L(WF)>2  S WC=WC_WF
+ S:WF'="" WC=WD
+ F I=1:1 S WD=$P(WC,"-",I) Q:WD=""  X XCODE
+ S WD=WS
+ Q
+ ;
+GETSEQ ; GET NEXT AVAIILABLE SUB-DFN
+ F SEQNT=1:1 Q:'$D(@GBL@(DFN,FN,SEQNT))
+ Q
+ ;
+CHKCODE ; CHECK FORMAT OF CODE
+ G:GBL="^ICD0" OPCODE
+DXCODE S:CODE?3N!(CODE?1U1N.N) CODE=CODE_"."
+ Q:(CODE?1"V"2N1".")!(CODE?1"V"2N1"."1N)!(CODE?1"V"2N1"."2N)
+ Q:(CODE?1"E"3N1".")!(CODE?1"E"3N1"."1N)!(CODE?1"E"3N1"."2N)
+ Q:(CODE?3N1".")!(CODE?3N1"."1N)!(CODE?3N1"."2N)
+ S CODE=""
+ Q
+OPCODE S:CODE?2N CODE=CODE_"."
+ Q:(CODE?2N1".")!(CODE?2N1"."1N)!(CODE?2N1"."2N)
+ S CODE=""
+ Q

@@ -1,0 +1,35 @@
+AMQQSQAC  ; IHS/CMI/TJL - CONTEXT MANAGER FOR ATTRIBUTES ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;-----
+SPEC I AMQQSQSN=378 S DIC("S")="I $P(^(0),U,4)=29" Q
+ I $D(AMQQSQCF) S DIC("S")="I $P(^(0),U,21)=9,'$P(^(0),U,10)" Q
+ I $D(AMQQGVF)!($G(AMQQSQSN)=226) S DIC("S")="I $P(^(0),U,4)=17!($P(^(0),U,21)=16)" Q
+ I $G(AMQQSQSN)=35 S DIC("S")="I $P(^(0),U,4)=16" Q
+ I $D(AMQQSQDV) S DIC("S")="I $P(^(0),U,21)="_$S(AMQQSQDV=306:18,1:7) Q
+DICS ; ENTRY POINT FROM AMQQN2
+ N X,Y,% S Y=U
+ S %=$P($G(^AMQQ(5,+$G(AMQQSQSN),5)),U,3)
+ I %'="" S X=% G DICS1
+ F  S %=$O(^AMQQ(7,"B",%)) Q:%=""  I %[" ATTRIBUTES" S Z=$O(^(%,"")),Y=Y_Z_U
+ S %=$P($G(^AMQQ(5,+$G(AMQQSQSN),0)),U,4)
+ I Y[(U_(%+1)_U) S X=%+1
+DICS1 S AMQQSQZF(1)=$O(^AMQQ(4,"B",AMQQSQST,""))
+ S AMQQSQZF(2)=$S($D(X):X,1:-1)
+ S DIC("S")="D EVAL^AMQQSQAC"
+ Q
+ ;
+EVAL ; ENTRY POINT FOR DIC("S") OF ^AMQQ(5) LOOKUP
+ I Y>1000 X "I 0" Q
+ I "^59^316^317^318^"[(U_Y_U) X "I 0" Q
+ I $G(AMQQSQSN)=617,$P(^(0),U,4)=51 Q
+ I $P(^AMQQ(5,Y,0),U,20)="M",'$D(AMQQSQSN)!('$D(^(5))) Q
+ I $P(^AMQQ(5,Y,0),U,20)="V" Q
+ I $P(^AMQQ(5,Y,0),U,20)="M",$G(AMQQSQSN)'=$P(^AMQQ(5,Y,5),U) Q
+ I $P(^AMQQ(5,Y,0),U,20)="L",$P($G(^MCAR(690.99,+$G(AMQQSQSN),2)),U,4)=7,$P($G(^AUTTDXPR(Y,0)),U,6),$P($G(^AMQQ(5,Y,5)),U,2),$P(^AMQQ(5,Y,5),U,2)=$P($G(^AMQQ(5,AMQQSQSN,5)),U,2),$P(^AMQQ(1,$P(^AMQQ(5,Y,0),U,5),0),U,2)=2 S AMQQSQLF="" Q
+ I $P(^AMQQ(5,Y,0),U,20)="L",+$G(^AMQQ(5,Y,5))=AMQQSQSN,$P(^AMQQ(1,$P(^AMQQ(5,Y,0),U,5),0),U,2)'=2 Q
+ I $P(^AMQQ(5,Y,0),U,21)=16 Q
+ I $P(^AMQQ(5,Y,0),U,21)=AMQQSQZF(1) Q
+ I $P(^AMQQ(5,Y,0),U,21)=7 Q
+ I $P(^AMQQ(5,Y,0),U,4)=AMQQSQZF(2) Q
+ Q
+ ;

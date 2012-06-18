@@ -1,0 +1,84 @@
+ACRPPOA ; GENERATED FROM 'ACR PURCHASE ORDER AMENDMENT' PRINT TEMPLATE (#3902) ; 09/30/09 ; (FILE 9002196, MARGIN=80)
+ G BEGIN
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ S DISTP=DISTP+1,DILCT=DILCT+1 D:'(DISTP#100) CSTP^DIO2
+ Q
+DT I $G(DUZ("LANG"))>1,Y W $$OUT^DIALOGU(Y,"DD") Q
+ I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1 S DISTP=$G(DISTP),DILCT=$G(DILCT)
+ I $D(DXS)<9 M DXS=^DIPT(3902,"DXS")
+ S I(0)="^ACRDOC(",J(0)=9002196
+ W ?0 I $E($G(IOST),1,2)="C-" W @IOF K DIP K:DN Y
+ W ?11 I $E($G(IOST),1,2)="P-",$Y>1 W @IOF K DIP K:DN Y
+ W ?22 K ACRX I '$D(^ACROBL(D0,"APV")) S ACRX="" K DIP K:DN Y
+ W ?33 I '$D(ACRX),$D(^ACROBL(D0,"APV")),$P(^("APV"),U,3)'="A" S ACRX="" K DIP K:DN Y
+ W ?44 X DXS(1,9) K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "AMENDMENT OF ORDER FOR SUPPLIES OR SERVICES #"
+ D T Q:'DN  D N W ?0 W "EFFECTIVE DATE:"
+ S X=$G(^ACRDOC(D0,"PO")) W ?17 S Y=$P(X,U,1) D DT
+ W ?31 W "AMENDMENT NO.:"
+ S X=$G(^ACRDOC(D0,0)) W ?47 S Y=$P(X,U,9) W:Y]"" $J(Y,3,0)
+ I 1 S DC=$S($D(DC):DC+1,1:1) K DIP K:DN Y
+ D N:$X>69 Q:'DN  W ?69 W "PAGE:"
+ W ?76 S X=$S($D(DC)#2:DC,1:"") K DIP K:DN Y W $E(X,1,3)
+ D N:$X>0 Q:'DN  W ?0 W "================================================================================"
+ D N:$X>0 Q:'DN  W ?0 W "PO #:"
+ S X=$G(^ACRDOC(D0,0)) W ?7,$E($P(X,U,2),1,15)
+ D N:$X>24 Q:'DN  W ?24 W "DHHS #:  "
+ W $$EXPDN^ACRFUTL(D0) K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "ISSUING OFFICE:"
+ D N:$X>40 Q:'DN  W ?40 W "SHIP TO:"
+ D N:$X>0 Q:'DN  W ?0 W "USPHS INDIAN HEALTH SERVICE"
+ D N:$X>40 Q:'DN  W ?40 W "USPHS INDIAN HEALTH SERVICE"
+ S X=$G(^ACRDOC(D0,"POIO")) D N:$X>0 Q:'DN  W ?0 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ S X=$G(^ACRDOC(D0,"POST")) D N:$X>40 Q:'DN  W ?40 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>0 Q:'DN  W ?0 X DXS(2,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(3,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 X DXS(4,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(5,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 X DXS(6,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(7,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W " "
+ X DXS(8,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(9,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(10,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W " "
+ X DXS(11,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 W "PHONE:"
+ W ?8 X DXS(12,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 W "PHONE:"
+ W ?48 X DXS(13,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>40 Q:'DN  W ?40 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "CONTRACTOR:"
+ S X=$G(^ACRDOC(D0,"PO")) D N:$X>4 Q:'DN  W ?4 S Y=$P(X,U,5) S Y=$S(Y="":Y,$D(^AUTTVNDR(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>40 Q:'DN  W ?40 W "REQUISITION NO.:"
+ S X=$G(^ACRDOC(D0,0)) W ?58,$E($P(X,U,1),1,17)
+ D N:$X>4 Q:'DN  W ?4 X DXS(14,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 W "PURCHASE/DELIVERY ORDER:"
+ W ?66 X DXS(15,9) K DIP K:DN Y W X
+ D N:$X>4 Q:'DN  W ?4 X DXS(16,9.2) S X=$P(DIP(101),U,10) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>4 Q:'DN  W ?4 X DXS(17,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(18,9) K DIP K:DN Y W X
+ W " "
+ X DXS(19,9.2) S X=$P(DIP(101),U,4) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 W "DATE:"
+ W ?47 X DXS(20,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) S Y=X K DIP K:DN Y S Y=X D DT
+ D PAUSE^ACRFWARN K DIP K:DN Y
+ W ?67 D ^ACRFPSS K DIP K:DN Y
+ D T Q:'DN  W ?2 D ^ACRFPAPV K DIP K:DN Y
+ W ?13 D PAUSE^ACRFWARN K DIP K:DN Y
+ S ACRDOCDA=D0,ACRDOC=$P(^ACRDOC(D0,0),U,2) D DISPLAY^ACRFSS12 K DIP K:DN Y
+ W ?24 D PBOIL^ACRFBOIL K DIP K:DN Y
+ K Y
+ Q
+HEAD ;
+ W !,"--------------------------------------------------------------------------------",!!

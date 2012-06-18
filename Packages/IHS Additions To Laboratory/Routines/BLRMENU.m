@@ -1,0 +1,28 @@
+BLRMENU ; IHS/OIT/MKK - BLRMENU & SUBMENU HEADERS ;DEC 09, 2008 8:30 AM
+ ;;5.2;IHS LABORATORY;**1025**;NOV 01, 1997
+ ;
+ Q
+ ;
+HDR ; EP
+ D ^XBCLS
+ W $$CJ^XLFSTR("IHS Lab Main Support Menu",IOM)
+ Q
+ ;
+CUMHDR ; EP
+ D ^XBCLS
+ W $$CJ^XLFSTR("IHS Lab Cumulative Report Menu",IOM)
+ Q
+ ;
+CLRHDR ; EP
+ D ^XBCLS
+ W $$CJ^XLFSTR("IHS Lab Clear BLR Errors Menu",IOM)
+ Q
+ ;
+REFLHDR ; EP
+ D ^XBCLS
+ W $$CJ^XLFSTR("IHS Lab Reference Lab Menu",IOM)
+ Q
+GENHDR(STR) ; EP
+ D ^XBCLS
+ W $$CJ^XLFSTR(STR,IOM)
+ Q

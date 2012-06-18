@@ -1,0 +1,61 @@
+BZDMUT ;ihs\bao\dmh  utilities [ 09/08/2000  4:01 PM ]
+ ;
+ ;
+ Q
+LASTED ;EP  count the number of edits by month in the medicaid elig file
+ S CT=0
+ S N=0
+ F  S N=$O(^AUPNMCD(N)) Q:+N=0  D
+ .S R=$G(^AUPNMCD(N,0))
+ .S LUP=$P(R,"^",8)
+ .I LUP'="" D
+ ..S CT($E(LUP,1,5))=$G(CT($E(LUP,1,5)))+1
+ ..S CT=CT+1
+ ..I CT#1000=0 W "."
+ ZW CT
+ K CT,LUP,R,N,CT
+ Q
+SSNCT ;EP   count the SSN nodes in the BZDMTEMP GLOBAL
+ S CT=0
+ S SSN=0
+ F  S SSN=$O(^BZDMTEMP("SSN",SSN)) Q:SSN=""  D
+ .S SSNDFN=""
+ .F  S SSNDFN=$O(^BZDMTEMP("SSN",SSN,SSNDFN)) Q:SSNDFN=""  D
+ ..S CT=CT+1
+ U 0 W !!,"TOTAL SSN NODES: ",CT
+ K CT,SSNDFN,SSN
+ Q
+ Q
+MNOCT ;EP  count the MNO nodes in the BZDMTEMP GLOBAL
+ S CT=0
+ S MNO=0
+ F  S MNO=$O(^BZDMTEMP("MNO",MNO)) Q:MNO=""  D
+ .S MCDDFN=""
+ .F  S MCDDFN=$O(^BZDMTEMP("MNO",MNO,MCDDFN)) Q:MCDDFN=""  D
+ ..S CT=CT+1
+ U 0 W !!,"TOTAL MNO NODES: ",CT
+ K CT,MNODFN,MNO
+ Q
+TIME ;   get time
+10 N BZDM S BZDM=$P($H,",",2)\60
+20 N BZDI,BZDN S BZDTIME=BZDM\60_":"_(BZDM#60\10)_(BZDM#10)
+ S BZDN=" AM" S:BZDM'<720 BZDM=BZDM-720,BZDN=" PM" S:BZDM<60 BZDM=BZDM+720
+ S BZDI=BZDM\600 S:'BZDI BZDI=" " S BZDTIME1=BZDI_(BZDM\60#10)_":"_(BZDM#60\10)_(BZDM#10)_BZDN
+ I '$D(BZDNP) U 0 W !,BZDTIME1 ;K BZDTIME,BZDTIME1
+ K BZDNP Q
+ Q
+INDX ;
+ U 0 W !!,"Creating the index for Medicaid numbers..."
+ S INDX=0
+ S INDXCT=0
+ F  S INDX=$O(^AUPNMCD(INDX)) Q:+INDX=0  D
+ .S REC=$G(^AUPNMCD(INDX,0))
+ .Q:REC=0
+ .S MN=$P(REC,"^",3)
+ .Q:MN=""
+ .S ^BZDMTEMP("INDX",MN,INDX)=""
+ .S INDXCT=INDXCT+1
+ .I INDXCT#1000=0 W "X"
+ .Q
+ K INDX,INDXCT,REC,MN
+ Q

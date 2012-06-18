@@ -1,0 +1,114 @@
+ABME8L4 ; IHS/ASDST/DMJ - Header 
+ ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;Header Segments
+ ;
+ ; IHS/SD/SDR v2.5 p8 - IM12246/IM17548 Added code to put CLIA number REF segment
+ ; IHS/SD/SDR - v2.5 p8 - task 6 Added code for CR1 and CRC segments (ambulance)
+ ; IHS/SD/SDR - v2.5 p9 - IM18032 Put Medicaid Resubmission Number as REF*F8
+ ; IHS/SD/SDR - v2.5 p9 - IM19203 Use Block 19 for NTE segment
+ ; IHS/SD/SDR - v2.5 p10 - IM20076 Added code for EPSDT CRC segment
+ ; IHS/SD/SDR - v2.5 p10 - IM20323/IM20433 error <SUBSCR>40+48^ABME8NM1
+ ; IHS/SD/SDR - v2.5 p10 - IM20395 Split out lines bundled by rev code
+ ; IHS/SD/SDR - v2.5 p11 - IM21946 Correction to CLIA
+ ; IHS/SD/SDR - v2.5 p12 - NO IM Added DTP*454 for Init. treatment date
+ ; IHS/SD/SDR - abm*2.6*1 - HEAT4158 - do REF*EW if mammography
+ ; IHS/SD/SDR - abm*2.6*1 - HEAT6439 - Added PWK for claim attachments
+ ;
+START ;START HERE
+ K ABMOUTLB
+ D ^ABME8CLM
+ D WR^ABMUTL8("CLM")
+ I $P(ABMB9,"^",11) D
+ .D EP^ABME8DTP(304,"D8",$P(ABMB9,"^",11))
+ .D WR^ABMUTL8("DTP")
+ I $P(ABMB8,"^",6) D
+ .D EP^ABME8DTP(431,"D8",$P(ABMB8,"^",6))
+ .D WR^ABMUTL8("DTP")
+ I $P(ABMB8,"^",9) D
+ .D EP^ABME8DTP(438,"D8",$P(ABMB8,"^",9))
+ .D WR^ABMUTL8("DTP")
+ I $P(ABMB8,"^",7) D
+ .D EP^ABME8DTP(454,"D8",$P(ABMB8,"^",7))
+ .D WR^ABMUTL8("DTP")
+ I $P(ABMB8,"^",2) D
+ .I '$P(ABMB8,"^",4) D
+ ..D EP^ABME8DTP(439,"D8",$P(ABMB8,"^",2))
+ .I $P(ABMB8,"^",4) D
+ ..D EP^ABME8DTP(439,"DT",$P(ABMB8,"^",2)_"."_$P(ABMB8,"^",4))
+ .D WR^ABMUTL8("DTP")
+ I $P(ABMB9,"^",2) D
+ .D EP^ABME8DTP(296,"D8",$P(ABMB9,"^",2))
+ .D WR^ABMUTL8("DTP")
+ I $P(ABMB6,U) D
+ .Q:$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,4)="Y"&($E($G(ABMP("BTYP")),1,2)'="11")  ;dme billing
+ .D EP^ABME8DTP(435,"D8",$P(ABMB6,U))
+ .D WR^ABMUTL8("DTP")
+ I $P(ABMB6,"^",3) D
+ .D EP^ABME8DTP("096","D8",$P(ABMB6,"^",3))
+ .D WR^ABMUTL8("DTP")
+ ;start new code abm*2.6*1 HEAT6439
+ I $D(^ABMDBILL(DUZ(2),ABMP("BDFN"),71)) D
+ .K ABM71CNT
+ .S ABM71IEN=0
+ .F  S ABM71IEN=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),71,ABM71IEN)) Q:+ABM71IEN=0  D  Q:$G(ABM71CNT)=10
+ ..D ^ABME8PWK,WR^ABMUTL8("PWK")
+ ..S ABM71CNT=+$G(ABM71CNT)+1
+ ;end new code HEAT6439
+ I $P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,11)'="" D
+ .D ^ABME8CN1
+ .D WR^ABMUTL8("CN1")
+ I $P(ABMB9,"^",9) D
+ .D EP^ABME8AMT("F5")
+ .D WR^ABMUTL8("AMT")
+ I $P(ABMB5,"^",8)'="" D
+ .D EP^ABME8REF("G4")
+ .D WR^ABMUTL8("REF")
+ ;start new code abm*2.6*1 HEAT4158
+ I ABMP("CLIN")=72 D  ;mammography
+ .Q:$P($G(^ABMDPARM(ABMP("LDFN"),1,5)),U,4)=""  ;no cert#
+ .D EP^ABME8REF("EW")
+ .D WR^ABMUTL8("REF")
+ ;end new code HEAT4158
+ I $P(ABMB5,"^",11)'="" D
+ .D EP^ABME8REF("9F")
+ .D WR^ABMUTL8("REF")
+ I $P(ABMB5,"^",12)'="" D
+ .D EP^ABME8REF("G1")
+ .D WR^ABMUTL8("REF")
+ I $P(ABMB4,U,9)'="" D
+ .D EP^ABME8REF("F8")
+ .D WR^ABMUTL8("REF")
+ D ^ABMEHGRV
+ S ABMCHK=0,ABMJ=0
+ F ABMI=27,37,43 D
+ .S ABMJ=-1
+ .S ABMJ=$O(ABMRV(ABMI,ABMJ)) Q:ABMJ=""  D
+ ..S ABMK=0
+ ..F  S ABMK=$O(ABMRV(ABMI,ABMJ,ABMK)) Q:ABMK=""  D
+ ...I $P(ABMRV(ABMI,ABMJ,ABMK),U,2)>79999,($P(ABMRV(ABMI,ABMJ,ABMK),U,2)<90000) S ABMCHK=1
+ I ABMCHK=1 D
+ .S ABMCLIA="CLM"
+ .D EP^ABME8REF("X4","1CLM","1CLM")
+ .D WR^ABMUTL8("REF")
+ .K ABMCLIA,ABMCHK
+ D EP^ABME8REF("EA")
+ D WR^ABMUTL8("REF")
+ I $D(^ABMDBILL(DUZ(2),ABMP("BDFN"),61))!($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),10)),U)'="") D
+ .D EP^ABME8NTE("ADD")
+ .Q:$TR($G(ABMR("NTE",30))," ")=""  ;don't write NTE if no data except spaces
+ .D WR^ABMUTL8("NTE")
+ I ABMP("CLIN")="A3" D
+ .D EP^ABME8CR1
+ .D WR^ABMUTL8("CR1")
+ .D EP^ABME8CRC
+ .D WR^ABMUTL8("CRC")
+ I $D(^ABMDBILL(DUZ(2),ABMP("BDFN"),59,0)) D
+ .S ABMSPIEN=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),59,0))
+ .Q:+ABMSPIEN=0
+ .Q:$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),59,ABMSPIEN,0)),U,2)=""
+ .D EP^ABME8CRC
+ .D WR^ABMUTL8("CRC")
+ D DXSET^ABMUTL8(ABMP("BDFN"))
+ D EP^ABME8HI("BZ")
+ D WR^ABMUTL8("HI")
+ Q

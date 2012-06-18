@@ -1,0 +1,15 @@
+PATIENT RECORD DISPOSITION
+ZWR
+^AUTTDIS(0)="PATIENT RECORD DISPOSITION^9999999.02^6^6"
+^AUTTDIS(1,0)="REGISTERED IN ERROR^The record was entered in error and is not a valid patient record."
+^AUTTDIS(2,0)="SENT TO ARCHIVES^The patient record has been archived and sent to the appropriate repository."
+^AUTTDIS(3,0)="INACTIVE RECORD (ON FILE HERE)^The record is inactive but remains in this facility (not sent to archives)."
+^AUTTDIS(4,0)="NEW CHART^This is a new chart."
+^AUTTDIS(5,0)="REACTIVATED^Chart was not recalled from archives."
+^AUTTDIS(6,0)="NO ACTIVE CHART^Registered for CHS."
+^AUTTDIS("B","INACTIVE RECORD (ON FILE HERE)",3)=""
+^AUTTDIS("B","NEW CHART",4)=""
+^AUTTDIS("B","NO ACTIVE CHART",6)=""
+^AUTTDIS("B","REACTIVATED",5)=""
+^AUTTDIS("B","REGISTERED IN ERROR",1)=""
+^AUTTDIS("B","SENT TO ARCHIVES",2)=""

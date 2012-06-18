@@ -1,0 +1,44 @@
+APCLRAD1 ; IHS/CMI/LAB - READMISSIONS REPORT PROCESS ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+START ;
+ S APCLBT=$H
+ K ^XTMP("APCLRAD",APCLJOB,APCLBTH)
+ D XTMP^APCLOSUT("APCLRAD","PCC READMISSIONS AFTER 30 DAYS RPT")
+ ;
+V ; Run by visit date
+ S APCLODAT=APCLSD_".9999" F  S APCLODAT=$O(^AUPNVSIT("B",APCLODAT)) Q:APCLODAT=""!((APCLODAT\1)>APCLED)  D V1
+ ;
+END ;
+ S APCLET=$H
+ D EOJ
+ Q
+V1 ;
+ S APCLVDFN="" F  S APCLVDFN=$O(^AUPNVSIT("B",APCLODAT,APCLVDFN)) Q:APCLVDFN'=+APCLVDFN  I $D(^AUPNVSIT(APCLVDFN,0)),$P(^(0),U,9),'$P(^(0),U,11) S APCLVREC=^(0) D PROC
+ Q
+PROC ;
+ Q:$P(APCLVREC,U,7)'="H"
+ I APCLLOC]"",APCLLOC'=$P(APCLVREC,U,6) Q
+ Q:$$DEMO^APCLUTL($P(APCLVREC,U,5),$G(APCLDEMO))
+ ;
+ ; ==> go through all of this patients visits from visit date
+ ; ==> to 30 days after visit date
+ ; ==> APCLIVD=inverse date of vd
+ ; ==> APCLFVD=inverse date of 30 days from then
+ ;
+ ; => add 30 days to current visit date
+ S X1=$P($P(APCLVREC,U),"."),X2=30 D C^%DTC S APCL3D=X
+ ; => calculate starting point for $O
+ S APCLFVD=((9999999-APCL3D)-1)_".9999"
+ S APCLIVD=9999999-$P($P(APCLVREC,U),".")
+ F  S APCLFVD=$O(^AUPNVSIT("AA",$P(APCLVREC,U,5),APCLFVD)) Q:APCLFVD=""!($P(APCLFVD,".")>APCLIVD)  D
+ .S APCLV=0 F  S APCLV=$O(^AUPNVSIT("AA",$P(APCLVREC,U,5),APCLFVD,APCLV)) Q:APCLV'=+APCLV  D
+ ..Q:$P(^AUPNVSIT(APCLV,0),U,7)'="H"
+ ..Q:APCLV=APCLVDFN  ;quit if same visit
+ ..I APCLLOC,$P(^AUPNVSIT(APCLV,0),U,6)'=APCLLOC Q  ;if only want 1 facility and this visit isn't that facility, quit
+ ..S ^XTMP("APCLRAD",APCLJOB,APCLBTH,APCLVDFN,APCLV)=""
+ Q
+EOJ ;
+ K APCLVREC,APCLVDFN,APCLV,APCLODAT,APCLCLN
+ Q
+ ;

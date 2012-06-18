@@ -1,0 +1,77 @@
+ACHSMD0A ; IHS/ITSC/PMF - PRINT COVERAGE ON MDOL (2/2) ;
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**13**;JUN 11,2001
+ ;ACHS*3.1*13 11/22/06 IHS/OIT/FCJ PRT POLICY # & COV FR CORRECT FILES
+ ;
+ I $$PARM^ACHS(2,16)'="Y" W !!!!
+ ;
+EN(ACHSDOS) ;EP - From PO entry and CHEF report.
+ ;W !!?ACHSTAB,"Type of Coverage",?30,"Policy #",?55,"Cov. type EligDt TermDt",!?ACHSTAB,"----------------",?30,"--------",?55,"--------- ------ ------"
+ N ACHSTAB
+ S ACHSTAB=0
+ ;
+MCR ;
+ I $$AGE^AUPNPAT(DFN)>64,'$D(^AUPNMCR(DFN)) G MCD
+ G MCD:'$P($G(^AUPNMCR(DFN,0)),U,3)
+ S X=$J("",ACHSTAB)_$P(^AUTNINS($P(^AUPNMCR(DFN,0),U,2),0),U),X=X_$J("",30-$L(X)),X=X_$P(^AUPNMCR(DFN,0),U,3)
+ I $P(^AUPNMCR(DFN,0),U,4),$D(^AUTTMCS($P(^(0),U,4),0)) S X=X_$P(^(0),U)
+ ; F I=0:0 S I=$O(^AUPNMCR(DFN,11,I)) Q:+I'=I  W !,X,?60,$P(^AUPNMCR(DFN,11,I,0),U,3),?65,$$MDY($P(^(0),U)),?72,$$MDY($P(^(0),U,2))
+ F I=0:0 S I=$O(^AUPNMCR(DFN,11,I)) Q:+I'=I  D
+ .;I $P(^(I,0),U,2),ACHSDOS>$P(^(0),U,2) Q  ;ACHS*3.1*13 12/07/06 IHS/OIT/FCJ FX NAKED GLB REF
+ .I $P(^AUPNMCR(DFN,11,I,0),U,2),ACHSDOS>$P(^(0),U,2) Q  ;ACHS*3.1*13 12/07/06 IHS/OIT/FCJ
+ .W !,X,?60,$P(^AUPNMCR(DFN,11,I,0),U,3),?65,$$MDY($P(^(0),U)),?72,$$MDY($P(^(0),U,2))
+MCD ;
+ G RRE:'$D(^AUPNMCD("B",DFN))
+ K ^TMP("ACHSRP31",$J,"MCD")
+ ;
+ ;12/27/00 PMF  change "j" to "jj" so SAC checker doesn't freak
+ F I=0:0 S I=$O(^AUPNMCD("B",DFN,I)) Q:'I  F JJ=0:0 S JJ=$O(^AUPNMCD(I,11,JJ)) Q:'JJ  D
+ . S ^TMP("ACHSRP31",$J,"MCD",9999999-JJ)=$G(^AUPNMCD(I,11,JJ,0)),$P(^TMP("ACHSRP31",$J,"MCD",9999999-JJ),U,4,6)=$P($G(^AUPNMCD(I,0)),U,2,4)
+ .Q
+ S JJ=0
+ F ACHS=1:1:4 S JJ=$O(^TMP("ACHSRP31",$J,"MCD",JJ)) Q:'JJ  I $P(^TMP("ACHSRP31",$J,"MCD",JJ),U,6)]"",$D(^DIC(5,$P(^(JJ),U,6),0)) S $P(^TMP("ACHSRP31",$J,"MCD",JJ),U,6)=$P(^(0),U,2)
+ S I=0
+ ; F ACHS=1:1:4 S I=$O(^TMP("ACHSRP31",$J,"MCD",I)) Q:'I  W !?ACHSTAB,$P(^AUTNINS($P(^TMP("ACHSRP31",$J,"MCD",I),U,4),0),U),?30,$P(^TMP("ACHSRP31",$J,"MCD",I),U,5),$P(^(I),U,6),?60,$P(^(I),U,3),?65,$$MDY($P(^(I),U)),?72,$$MDY($P(^(I),U,2))
+ F ACHS=1:1:4 S I=$O(^TMP("ACHSRP31",$J,"MCD",I)) Q:'I  D
+ .;I $P(^(I),U,2),ACHSDOS>$P(^(I),U,2) Q  ;ACHS*3.1*13 12/07/06 IHS/OIT/FCJ FX NAKED GLB REF
+ .I $P(^TMP("ACHSRP31",$J,"MCD",I),U,2),ACHSDOS>$P(^(I),U,2) Q  ;ACHS*3.1*13 12/07/06 IHS/OIT/FCJ
+ .W !?ACHSTAB,$P(^AUTNINS($P(^TMP("ACHSRP31",$J,"MCD",I),U,4),0),U),?30,$P(^TMP("ACHSRP31",$J,"MCD",I),U,5),$P(^(I),U,6),?60,$P(^(I),U,3),?65,$$MDY($P(^(I),U)),?72,$$MDY($P(^(I),U,2))
+ K ^TMP("ACHSRP31",$J,"MCD")
+RRE ;
+ G PVT:'$D(^AUPNRRE(DFN,0))
+ S JJ=$O(^AUPNRRE(DFN,11,0))
+ I JJ F I=JJ:0 S I=$O(^AUPNRRE(DFN,11,I)) Q:+I'=I  S:$P(^AUPNRRE(DFN,11,I,0),U)>$P(^AUPNRRE(DFN,11,JJ,0),U) JJ=I
+ I JJ D
+ . I $P(^AUPNRRE(DFN,11,JJ,0),U,2),ACHSDOS>$P(^(0),U,2) Q
+ . W !?ACHSTAB,$P(^AUTNINS($P(^AUPNRRE(DFN,0),U,2),0),U),?30
+ . W:$P(^AUPNRRE(DFN,0),U,3)]"" $P(^AUTTRRP($P(^AUPNRRE(DFN,0),U,3),0),U)
+ . W $P(^AUPNRRE(DFN,0),U,4)
+ . W ?60,$P(^AUPNRRE(DFN,11,JJ,0),U,3),?65,$$MDY($P(^(0),U)),?72,$$MDY($P(^(0),U,2))
+ .Q
+PVT ;
+ G END:'$D(^AUPNPRVT(DFN,11))
+ S I=0
+PVT1 ;
+ S I=$O(^AUPNPRVT(DFN,11,I))
+ G END:'I
+ I $P(^AUPNPRVT(DFN,11,I,0),U,7),ACHSDOS>$P(^(0),U,7) G PVT1
+ ;ACHS*3.1*13 11/22/06 IHS/OIT/FCJ PRT POLICY # & COV FR CORRECT FILES
+ ;W !?ACHSTAB,$E($P(^AUTNINS($P(^AUPNPRVT(DFN,11,I,0),U),0),U),1,26),?30,$P(^AUPNPRVT(DFN,11,I,0),U,2)," "
+ ;I $P(^AUPNPRVT(DFN,11,I,0),U,3) S X=$P(^AUTTPIC($P(^(0),U,3),0),U) W ?64-$L(X),$E(X,1,64-$X)
+ W !?ACHSTAB,$E($P(^AUTNINS($P(^AUPNPRVT(DFN,11,I,0),U),0),U),1,26)
+ I $P(^AUPNPRVT(DFN,11,I,0),U,8),$D(^AUPN3PPH($P(^AUPNPRVT(DFN,11,I,0),U,8),0)) D
+ .S I2=$P(^AUPNPRVT(DFN,11,I,0),U,8)
+ .W ?30,$P(^AUPN3PPH(I2,0),U,4)," "
+ .I $P(^AUPN3PPH(I2,0),U,5) D
+ ..S X=$P(^AUTTPIC($P(^AUPN3PPH(I2,0),U,5),0),U)
+ ..W ?64-$L(X),$E(X,1,64-$X)
+ ;ACHS*3.1*13 11/22/06 IHS/OIT/FCJ PRT END OF CHANGES
+ W ?65,$$MDY($P(^AUPNPRVT(DFN,11,I,0),U,6)),?72,$$MDY($P(^(0),U,7))
+ G PVT1
+ ;
+END ;
+ K I,JJ
+ Q
+ ;
+MDY(X) ;
+ Q $E(X,4,7)_$E(X,2,3)
+ ;

@@ -1,0 +1,142 @@
+APCLREDU ; IHS/CMI/LAB - education delimted file for use in excel ;
+ ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;
+ ;
+START ;
+INFORM ;
+ W:$D(IOF) @IOF
+ W !,$$CTR($$LOC)
+ W !,$$CTR($$USR)
+ W !!,"This report will create a delimited output file of all visits on which patient",!,"education was done.  This report is to be used by uploading the data file",!,"into EXCEL or some other software package.",!!
+ D EXIT
+DATES K APCLED,APCLBD
+ K DIR W ! S DIR(0)="DO^::EXP",DIR("A")="Enter Beginning Visit Date"
+ D ^DIR G:Y<1 EXIT S APCLBD=Y
+ K DIR S DIR(0)="DO^:DT:EXP",DIR("A")="Enter Ending Visit Date"
+ D ^DIR G:Y<1 EXIT S APCLED=Y
+ ;
+ I APCLED<APCLBD D  G DATES
+ . W !!,$C(7),"Sorry, Ending Date MUST not be earlier than Beginning Date."
+ S APCLSD=$$FMADD^XLFDT(APCLBD,-1)_".9999"
+ ;
+CLINIC ;
+ W !!
+ S APCLCL="" S APCLCLIN=""
+ S DIR(0)="Y",DIR("A")="Include ALL outpatient clinics",DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) DATES
+ I Y=1 G HL
+ ;
+CLINIC1 ;Get Multiple Clinics in Search
+ K APCLCLNT
+ S X="CLINIC",DIC="^AMQQ(5,",DIC(0)="FM",DIC("S")="I $P(^(0),U,14)" D ^DIC K DIC,DA I Y=-1 W "OPPS - QMAN NOT CURRENT - QUITTING" G EXIT
+ D PEP^AMQQGTX0(+Y,"APCLCLNT(")
+ I '$D(APCLCLNT) G CLINIC
+ I $D(APCLCLNT("*")) K APCLCLNT
+ G CLINIC:Y<1
+ ;
+HL ;
+ K APCLHL
+ S DIR(0)="Y",DIR("A")="Include all HOSPITAL LOCATIONS",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G CLINIC
+ I Y=1 G TOPIC
+ S APCLQ="" K APCLHL F  D  Q:APCLQ
+ .K DIR S DIR(0)="9000010,.22",DIR("A")="Which Hospital Location" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCLQ=1 Q
+ .S APCLHL(+Y)=""
+ ;
+TOPIC ;
+ K APCLEDT,APCLEDTL
+ S APCLEDT=""
+ S DIR(0)="SO^A:Any Education Topic recorded;V:Visits with or w/o an Education Topic;S:Selected Education Topics",DIR("A")="Includes visits with",DIR("B")="A" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G HL
+ I Y="A" S APCLEDT="A" G ZIS
+ I Y="V" S APCLEDT="V" G ZIS
+ I Y="S" S APCLEDT="S"
+TOPIC1 ;
+ K APCLEDTL
+ S X="PATIENT ED TOPIC",DIC="^AMQQ(5,",DIC(0)="FM",DIC("S")="I $P(^(0),U,14)" D ^DIC K DIC,DA I Y=-1 W "OPPS - QMAN NOT CURRENT - QUITTING" G EXIT
+ D PEP^AMQQGTX0(+Y,"APCLEDTL(")
+ I '$D(APCLEDTL) G TOPIC
+ I $D(APCLEDTL("*")) K APCLEDTL
+ G TOPIC:Y<1
+ ;
+ZIS ;call to XBDBQUE
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G TOPIC
+ S XBRP="PRINT^APCLREDU",XBRC="",XBRX="EXIT^APCLREDU",XBNS="APCL"
+ D ^XBDBQUE
+ D EXIT
+ Q
+EXIT ;clean up and exit
+ D EN^XBVK("APCL")
+ D ^XBFMK
+ D KILL^AUPNPAT
+ Q
+PRINT ;EP - called from xbdbque
+ D HEADER
+ S APCLVTOT=0,APCLPTOT=0,APCLPEDU=0
+ K ^TMP($J)
+ F  S APCLSD=$O(^AUPNVSIT("B",APCLSD)) Q:APCLSD'=+APCLSD!($P(APCLSD,".")>APCLED)  D
+ .S APCLV=0 F  S APCLV=$O(^AUPNVSIT("B",APCLSD,APCLV)) Q:APCLV'=+APCLV  D
+ ..Q:'$D(^AUPNVSIT(APCLV,0))
+ ..Q:$P(^AUPNVSIT(APCLV,0),U,11)
+ ..S DFN=$P(^AUPNVSIT(APCLV,0),U,5)
+ ..Q:DFN=""
+ ..Q:$$DEMO^APCLUTL(DFN,$G(APCLDEMO))
+ ..I $D(APCLCLNT) S X=$P(^AUPNVSIT(APCLV,0),U,8) Q:X=""  Q:'$D(APCLCLNT(X))
+ ..I $D(APCLHL) S X=$P(^AUPNVSIT(APCLV,0),U,22) Q:X=""  Q:'$D(APCLHL(X))
+ ..I APCLEDT="A",'$O(^AUPNVPED("AD",APCLV,0)) Q  ;want any education topic and this visit has none
+ ..I APCLEDT="S" D  Q:'APCLG
+ ...S APCLG=""
+ ...S X=$O(^AUPNVPED("AD",APCLV,X)) Q:X'=+X  S T=$P(^AUPNVPED(X,0),U) I $D(APCLEDTL(T)) S APCLG=1
+ ...Q
+ ..S APCLVTOT=APCLVTOT+1
+ ..I '$D(^TMP($J,"PAT","USED",DFN)) S APCLPTOT=APCLPTOT+1,^TMP($J,"PAT","USED",DFN)=""
+ ..I APCLEDT="V",'$O(^AUPNVPED("AD",APCLV,0)) S APCLX="" D SET Q
+ ..I '$D(^TMP($J,"PAT","EDUC",DFN)) S APCLPEDU=APCLPEDU+1,^TMP($J,"PAT","EDUC",DFN)=""
+ ..S APCLX=0 F  S APCLX=$O(^AUPNVPED("AD",APCLV,APCLX)) Q:APCLX'=+APCLX  D
+ ...I APCLEDT="A" D SET Q
+ ...I APCLEDT="S" S T=$P(^AUPNVPED(APCLX,0),U) I $D(APCLEDTL(T)) D SET Q
+ ...I APCLEDT="V" D SET Q
+ W !,"Total # of visits meeting criteria"_U_APCLVTOT
+ W !,"Total # of patients for these visits"_U_APCLPTOT
+ W !,"Total # of these patients w/education"_U_APCLPEDU
+ Q
+SET ;
+ S D=$P($P(^AUPNVSIT(APCLV,0),U),".")
+ S APCLR=APCLV_U_$P(^DPT(DFN,0),U)_U_$$HRN^AUPNPAT(DFN,DUZ(2))_U_$$FMTE^XLFDT($$DOB^AUPNPAT(DFN))_U_$$AGE^AUPNPAT(DFN,D)_U_$$FMTE^XLFDT(D)_U_$$CLINIC^APCLV(APCLV,"C")_U_$$VAL^XBDIQ1(9000010,APCLV,.22)
+ I APCLX]"" S APCLR=APCLR_U_$$VAL^XBDIQ1(9999999.09,$P(^AUPNVPED(APCLX,0),U),1)_U_$$VAL^XBDIQ1(9000010.16,APCLX,.05)_U_$$PROVCLSC^XBFUNC1($P(^AUPNVPED(APCLX,0),U,5))_U_$$VAL^XBDIQ1(9000010.16,APCLX,.01)
+ I APCLX]"" S APCLR=APCLR_U_$$VAL^XBDIQ1(9000010.16,APCLX,.06)_U_$$VAL^XBDIQ1(9000010.16,APCLX,.07)_U_$$VAL^XBDIQ1(9000010.16,APCLX,.08)
+ I APCLX]"" F APCLF=.13,.14,.09,.11,1101 S APCLR=APCLR_U_$$VAL^XBDIQ1(9000010.16,APCLX,APCLF)
+ S APCLR=APCLR_U_$$VAL^XBDIQ1(9000001,DFN,.14)
+ W !,APCLR
+ Q
+HEADER ;
+ W "DATE RANGE: "_$$FMTE^XLFDT(APCLBD)_"-"_$$FMTE^XLFDT(APCLED)
+ I '$D(APCLCLNT) W !,"ALL CLINICS"
+ I $O(APCLCLNT(0)) S X=0 F  S X=$O(APCLCLNT(X)) Q:X'=+X  W !,$P(^DIC(40.7,X,0),U,2)_" ;"
+ I '$D(APCLHL) W !,"ALL HOSPITAL LOCATIONS"
+ I $O(APCLHL(0)) S X=0 F  S X=$O(APCLHL(X)) Q:X'=+X  W !,$P(^SC(X,0),U,2)_" ;"
+ ;I '$D(APCLDISC) W !,"ALL DISCIPLINES"
+ ;I $O(APCLDISC(0)) S X=0 F  S X=$O(APCLDISC(X)) Q:X'=+X  W !,$P($G(^DIC(7,X,9999999)),U,1)_" ;"
+ W !,"VISIT IEN^PATIENT NAME^CHART NUMBER^DATE OF BIRTH^AGE^VISIT DATE^CLINIC TYPE^HOSPITAL LOCATION^EDUCATION TOPIC^EDUCATION PROVIDER^EDUCATION PROVIDER CLASS CODE"
+ W "^TOPIC FULL NAME^LEVEL OF UNDERSTANDING^IND/GRP^MINUTES^GOAL STATUS^OBJECTIVES MET^CPT CODE^COMMENT^DESIGNATED PRIMARY CARE PROVIDER"
+ Q
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ NEW DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------

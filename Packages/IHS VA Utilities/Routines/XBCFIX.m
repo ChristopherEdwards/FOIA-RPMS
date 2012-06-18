@@ -1,0 +1,35 @@
+XBCFIX ; IHS/ADC/GTH - COUNT ENTRIES IN FILEMAN FILES AND FIX ; [ 02/07/97   3:02 PM ]
+ ;;3.0;IHS/VA UTILITIES;;FEB 07, 1997
+ ;
+ ; This routine counts primary entries in FileMan files and
+ ; fixes the 3rd and 4th piece of the 0th node.
+ ;
+START ;
+ W !,"^XBCFIX - This routine counts primary entries in FileMan files and fixes",!,"          the 0th node.",!
+ S U="^"
+ D ^XBDSET
+ Q:'$D(^UTILITY("XBDSET",$J))
+ W !
+ S XBCFIXFL=""
+ F XBCFIXL=0:0 S XBCFIXFL=$O(^UTILITY("XBDSET",$J,XBCFIXFL)) Q:XBCFIXFL'=+XBCFIXFL  D XBCFIXFL
+ D EOJ
+ Q
+ ;
+XBCFIXFL ;
+ W !,XBCFIXFL
+ I XBCFIXFL=3.081 W "  skipping" Q
+ I '$D(^DIC(XBCFIXFL,0,"GL")) W !!,"No data global specified in ^DIC!" Q
+ S XBCFIXGB=^DIC(XBCFIXFL,0,"GL")
+ I '$D(@($S($E(XBCFIXGB,$L(XBCFIXGB))="(":$E(XBCFIXGB,1,$L(XBCFIXGB)-1),1:$E(XBCFIXGB,1,$L(XBCFIXGB)-1)_")"))) W !!,"Bad global!" Q
+ S XBCFIXGB=XBCFIXGB_"XBCFIXNX)",(XBCFIXHI,XBCFIXNX,XBCFIXC)=0
+ F XBCFIXL=0:0 S XBCFIXNX=$O(@(XBCFIXGB)) Q:XBCFIXNX'=+XBCFIXNX  S XBCFIXHI=XBCFIXNX,XBCFIXC=XBCFIXC+1 W:'(XBCFIXC#50) "."
+ W !,"    Count=",XBCFIXC,?22,"High DFN=",XBCFIXHI
+ S XBCFIXNX="",XBCFIXX=$O(@(XBCFIXGB)),XBCFIXX=^(0),XBCFIXY=$P(XBCFIXX,U,4),XBCFIXX=$P(XBCFIXX,U,3),$P(^(0),U,3)=XBCFIXHI,$P(^(0),U,4)=XBCFIXC
+ I XBCFIXC=XBCFIXY,XBCFIXHI=XBCFIXX W ?50,"[correct]" Q
+ W ?50,"[incorrect -- fixed]"
+ Q
+ ;
+EOJ ;
+ KILL XBCFIXHI,XBCFIXX,XBCFIXY,XBCFIXC,DIC,DIC(0),XBCFIXFL,XBCFIXGB,XBCFIXL,XBCFIXNX
+ Q
+ ;

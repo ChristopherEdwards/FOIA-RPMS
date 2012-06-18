@@ -1,0 +1,189 @@
+BGPMUC01 ; IHS/MSC/MGH - MI measure NQF0041 ;02-Mar-2011 11:25;DU
+ ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;Code to collect meaningful use report for adult influenza immunization 0041
+ENTRY ;EP
+ ; expects:
+ ;  DFN      = patient code from VA PATIENT file
+ ;  BGPBDATE = begin date of report
+ ;  BGPEDATE = end date of report
+ ;  BGPPROV  = provider code from NEW PERSON file
+ ;  BGPMUTF  = timeframe variable - "C"=current year; "P"=previous year; "B"=baseline year
+ N BGP1,BGP2,BGPDEN,BGPNUM,BGPDT,END,FIRST,IEN,START,VDATE,VIEN,BGPZ,EXCL,BGPX
+ N VCNT,ACNT,BCNT,AENC,BENC,G,CENC,DENC,EENC,FENC,GENC,STRING,STRING2,IMMC,FBDATE,FEDATE
+ S (ACNT,BCNT,VCNT)=0
+ S (BGPDEN,BGPNUM,EXCL)=0
+ ;Pts must be 50 years and older
+ Q:BGPAGEB<50
+ D FLUDATES
+ ;the START date will be the beginning of the previous flu season and the loop below will make appropriate report period checks
+ S START=9999999-FBDATE,END=9999999-BGPEDATE
+ ;look for 2 visits with E&M codes (outpatient encounters)
+ ;    OR   1 visit with E&M codes  (preventive medicine encounter)
+ S (BGP1,BGP2)=0
+ S (STRING,STRING2)=""
+ S FIRST=END-0.1 F  S FIRST=$O(^AUPNVSIT("AA",DFN,FIRST)) Q:FIRST=""!($P(FIRST,".",1)>START)  D
+ .S IEN=0 F  S IEN=$O(^AUPNVSIT("AA",DFN,FIRST,IEN)) Q:'+IEN  D
+ ..;Check provider, determine if there are visits with E&M codes where at least 2 are needed
+ ..I $$PRV^BGPMUUT1(IEN,BGPPROV) D
+ ...;check and see if an appropriate CPT code exists
+ ...S AENC=$$VSTCPT^BGPMUUT1(DFN,IEN,"BGPMU FLU ENCOUNTER EM")
+ ...S BENC=$$VSTCPT^BGPMUUT1(DFN,IEN,"BGPMU FLU PREV 40 ENCOUNT EM")
+ ...S CENC=$$VSTCPT^BGPMUUT1(DFN,IEN,"BGPMU FLU GRP ENCOUNT EM")
+ ...S DENC=$$VSTCPT^BGPMUUT1(DFN,IEN,"BGPMU FLU IND ENCOUNT EM")
+ ...S EENC=$$VSTCPT^BGPMUUT1(DFN,IEN,"BGPMU FLU PREV OTH ENCOUNT EM")
+ ...S FENC=$$VSTCPT^BGPMUUT1(DFN,IEN,"BGPMU FLU NURS FAC ENCOUNT EM")
+ ...S GENC=$$VSTCPT^BGPMUUT1(DFN,IEN,"BGPMU FLU NURS DC ENCOUNT EM")
+ ...;Need 2 or more of BGPMU FLU ENCOUNT EM OR 1 or more of the others
+ ...I (+AENC=1) D
+ ....S VDATE=$P($P($G(^AUPNVSIT(IEN,0)),U,1),".",1)
+ ....S VCNT=VCNT+1
+ ....S VIEN(VCNT)=IEN_U_VDATE
+ ....;check to see if encounter is within report period
+ ....I (VDATE>=BGPBDATE)&(VDATE<=BGPEDATE) D
+ .....S ACNT=ACNT+1
+ .....S STRING="EN:"_$$DATE^BGPMUUTL(VDATE)
+ ...I (+BENC=1)!(+CENC=1)!(+DENC=1)!(+EENC=1)!(+FENC=1)!(+GENC=1) D
+ ....S VDATE=$P($P($G(^AUPNVSIT(IEN,0)),U,1),".",1)
+ ....S VCNT=VCNT+1
+ ....S VIEN(VCNT)=IEN_U_VDATE
+ ....;check to see if encounter is within report period
+ ....I (VDATE>=BGPBDATE)&(VDATE<=BGPEDATE) D
+ .....S BCNT=BCNT+1
+ .....I STRING="" S STRING="EN:"_$$DATE^BGPMUUTL(VDATE)
+ .....E  S STRING=STRING_";EN:"_$$DATE^BGPMUUTL(VDATE)
+ I (ACNT>1)!(BCNT>0) D
+ .;count for denominator if encounter falls between Sept-Feb
+ .S BGPFLU=$$FLU(DFN)
+ .I +BGPFLU D
+ ..S BGPDEN=1
+ ..;Setup numerator
+ ..;get all immunizations
+ ..S C="15^16^111^125^126^127^128^135"
+ ..S CPTS="90656^90658^90660^90661^90662^90663^90664^90666^90667^90668"
+ ..K BGPX D GETIMMS^BGPMUUT2(DFN,BGPEDATE,C,.BGPX,CPTS)
+ ..I $D(BGPX) D
+ ...S IMMC=""
+ ...F  S IMMC=$O(BGPX(IMMC)) Q:IMMC=""  D
+ ....S IMMD=BGPX(IMMC)
+ ....S IMMV=$P(IMMD,U,2)
+ ....S IMMDATE=$P($G(^AUPNVSIT(IMMV,0)),U,1)
+ ....I (IMMDATE>FBDATE)&(IMMDATE<FEDATE) D
+ .....S BGPNUM=1
+ .....S STRING2=$S($P(IMMD,U,3):$P(IMMD,U,1),1:$P($G(^AUTTIMM($P(IMMD,U,1),0)),U,3))_" "_$$DATE^BGPMUUTL($P(IMMDATE,".",1))
+ .....Q
+ ..I +BGPNUM=0 D
+ ...;Exclude if flu immunization contraindication
+ ...F BGPZ=15,16,111,125,126,127,128,135 S X=$$FLUCONT(DFN,BGPZ,$$DOB^AUPNPAT(DFN),BGPEDATE) Q:X]""
+ ...I X]"" S EXCL=1
+ ...;NMI refusal
+ ...S G=""
+ ...I EXCL'=1 S G=$$NMIREF^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",15,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$NMIREF^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",16,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$NMIREF^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",111,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$NMIREF^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",125,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$NMIREF^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",126,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$NMIREF^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",127,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$NMIREF^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",128,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$NMIREF^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",135,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...;Exclude if refused
+ ...I EXCL'=1 S G=$$REFUSAL^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",15,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$REFUSAL^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",16,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$REFUSAL^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",111,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$REFUSAL^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",125,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$REFUSAL^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",126,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$REFUSAL^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",127,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$REFUSAL^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",128,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ...I EXCL'=1 S G=$$REFUSAL^BGPMUUT2(DFN,9999999.14,$O(^AUTTIMM("C",135,0)),$$DOB^AUPNPAT(DFN),BGPEDATE)
+ ...S:$P(G,U)=1 EXCL=1
+ ..D TOTAL(DFN)
+ K BGP1,BGP2,BGPDEN,BGPNUM,BGPDT,END,FIRST,IEN,START,VDATE,VIEN,BGPZ,EXCL,BGPX
+ K ACNT,BCNT,AENC,BENC,GS
+ Q
+ ;
+FLUCONT(P,C,BD,ED) ;EP
+ N X,G,Y,R,D
+ ;first check for ICD-9 code documented
+ S G=$$LASTDX^BGPMUUT2(P,BD,ED,"BGPMU FLU EGG ALLERGY DX")
+ I G Q 1_U_"Egg Allergy Dx"
+ S X=0,G="",Y=$O(^AUTTIMM("C",C,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .Q:$P(^BIPC(X,0),U,4)<BD
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .I $P(^BICONT(R,0),U,1)="Egg Allergy" S G=D_U_"Contraindication: Egg Allergy"
+ .;I $P(^BICONT(R,0),U,1)="Anaphylaxis" S G=D_U_"Contraindication: Anaphylaxis"  REMOVED per Dr. Advani
+ K X,Y,R,D
+ Q G
+ ;
+FLU(DFN) ;Find if pt has a visit during the flu season (Sept-Feb)
+ N NUM,FLUCNT,FDATE
+ S FLUCNT=0
+ S NUM=0 F  S NUM=$O(VIEN(NUM)) Q:NUM=""!(FLUCNT>1)  D
+ .S FDATE=$P(VIEN(NUM),U,2)
+ .I (FDATE>FBDATE)&(FDATE<FEDATE) D
+ ..S FLUCNT=FLUCNT+1
+ ..S STRING="EN:"_$$DATE^BGPMUUTL(FDATE)
+ ..;I $G(STRING2)="" S STRING2="FLU:"_FDATE
+ ..;E  S STRING2=STRING2_",FLU:"_FDATE
+ Q FLUCNT
+ ;
+FLUDATES ; Calculate dates of the most recent flu season
+ S FEDATE=$S(+$E(BGPEDATE,4,5)>0&(+$E(BGPEDATE,4,5)<3):($E(BGPEDATE,1,3)-1)_"0301",1:$E(BGPEDATE,1,3)_"0301")
+ S FBDATE=($E(FEDATE,1,3)-1)_"0831"
+ Q
+ ;S FBDATE=$S(+$E(BGPBDATE,4,5)>0&(+$E(BGPBDATE,4,5)<3):$E(BGPBDATE,1,3)_"0101",1:$E(BGPBDATE,1,3)_"0901")
+ ;I $E(BGPBDATE,1,3)'=$E(BGPEDATE,1,3)  D
+ ;.S FEDATE=$S(+$E(BGPEDATE,4,5)>0&(+$E(BGPEDATE,4,5)<3):$E(BGPEDATE,1,3)_"0301",1:$E(BGPEDATE,1,3)_"1231")
+ ;E  S FEDATE=$S(+$E(BGPEDATE,4,5)>0&(+$E(BGPEDATE,4,5)<3):$E(BGPEDATE,1,3)_"0301",1:$E(BGPEDATE,1,3)+1_"0101")
+ ;Q
+TOTAL(DFN) ;See where this patient ends up
+ N PTCNT,EXCCT,DENCT,NUMCT,TOTALS
+ S TOTALS=+$G(^TMP("BGPMU0041",$J,BGPMUTF,"TOT"))
+ S EXCCT=+$G(^TMP("BGPMU0041",$J,BGPMUTF,"EXC"))
+ S DENCT=+$G(^TMP("BGPMU0041",$J,BGPMUTF,"DEN"))
+ S NUMCT=+$G(^TMP("BGPMU0041",$J,BGPMUTF,"NUM"))
+ S PTCNT=TOTALS
+ S PTCNT=PTCNT+1
+ I +EXCL D
+ .S EXCCT=EXCCT+1 S ^TMP("BGPMU0041",$J,BGPMUTF,"EXC")=EXCCT
+ .I BGPMUTF="C" S ^TMP("BGPMU0041",$J,"PAT",BGPMUTF,"EXC",PTCNT)=DFN_U_STRING_U_"Excluded"
+ E  D
+ .S:+BGPDEN DENCT=DENCT+1 S ^TMP("BGPMU0041",$J,BGPMUTF,"DEN")=DENCT
+ .I +BGPNUM D
+ ..S NUMCT=NUMCT+1 S ^TMP("BGPMU0041",$J,BGPMUTF,"NUM")=NUMCT
+ ..I BGPMUTF="C" S ^TMP("BGPMU0041",$J,"PAT",BGPMUTF,"NUM",PTCNT)=DFN_U_STRING_U_STRING2
+ .E  I BGPMUTF="C" S ^TMP("BGPMU0041",$J,"PAT",BGPMUTF,"DEN",PTCNT)=DFN_U_STRING_U_STRING2
+ S ^TMP("BGPMU0041",$J,BGPMUTF,"TOT")=PTCNT
+ ;Setup iCare array for patient
+ S BGPICARE("MU.EP.0041.1",BGPMUTF)=(+BGPDEN&'EXCL)_U_+BGPNUM_U_+EXCL_U_STRING_";"_STRING2_U_$P(EXCL,U,2)
+ K PTCNT,EXCCT,DENCT,NUMCT,TOTALS
+ Q
+ ;
+TEST ; debug target
+ ;S U="^"
+ ;S DT=$$DT^XLFDT()
+ ;S DFN=184            ;  DFN      = patient code from VA PATIENT file
+ ;S BGPBDATE=3110101   ;  BGPBDATE = begin date of report
+ ;S BGPEDATE=3110301   ;  BGPEDATE = end date of report
+ ;S BGPPROV=2          ;  BGPPROV   = provider code from NEW PERSON file
+ ;S BGPMUTF="C"        ;  BGPMUTF  = timeframe variable - "C"=current year; "P"=previous year; "B"=baseline year
+ ;D ENTRY
+ Q

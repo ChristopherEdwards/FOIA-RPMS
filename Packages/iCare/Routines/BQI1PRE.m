@@ -1,0 +1,16 @@
+BQI1PRE ;PRXM/HC/ALA-PreInstall Routine ; 23 Jan 2007  1:38 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+EN ;  Remove Site Parameters
+ NEW DA,DIK
+ S DA=0,DIK="^BQI(90508,"
+ F  S DA=$O(^BQI(90508,DA)) Q:'DA  D ^DIK
+ ;
+ NEW DA,DIK
+ S DA=0,DIK="^BQI(90506.1,"
+ F  S DA=$O(^BQI(90506.1,DA)) Q:'DA  D ^DIK
+ ;
+ NEW DA,DIK
+ S DA=0,DIK="^BQIPAT("
+ F  S DA=$O(^BQIPAT(DA)) Q:'DA  D ^DIK
+ Q

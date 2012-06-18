@@ -1,0 +1,28 @@
+ORWDXIHS ; IHS/CIA/DKM - Order dialog utilities for IHS ;22-Jun-2011 17:14;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**1002**;Dec 17, 1997
+ ;
+ ;Modified - IHS/MSC/PLS - 06/22/2011 - Line ADDIND+1
+ ;
+ ; RPC: Returns clinical indicators for orderable item.
+ ;   DFN  = Patient IEN
+ ;   VIEN = Visit IEN
+ ;   OI   = Orderable item (not currently used)
+CLININD(DATA,DFN,VIEN,OI) ;EP
+ N IEN,ITM,ICD
+ S IEN=0,VIEN=+VIEN
+ F  S IEN=+$O(^AUPNVPOV("AD",VIEN,IEN)) Q:'IEN  D
+ .S ITM=$$GET1^DIQ(9000010.07,IEN,.04),ICD=+$G(^AUPNVPOV(IEN,0))
+ .D ADDIND(1,ITM,ICD)
+ F  S IEN=+$O(^AUPNPROB("ACTIVE",DFN,"A",IEN)) Q:'IEN  D
+ .S ITM=$$GET1^DIQ(9000011,IEN,.05),ICD=+$G(^AUPNPROB(IEN,0))
+ .D ADDIND(2,ITM,ICD)
+ K DATA(0)
+ Q
+ADDIND(SUB,ITM,ICD) ;
+ N CODE
+ S CODE=$$GET1^DIQ(80,ICD,.01)
+ Q:CODE=".9999"
+ S:'$L(ITM) ITM=$$GET1^DIQ(80,ICD,3)
+ I $L(ITM),'$D(DATA(0,ITM)) D
+ .S DATA(0,ITM)="",DATA(SUB,ITM)=ITM_U_$P("POV^PL",U,SUB)_U_CODE
+ Q

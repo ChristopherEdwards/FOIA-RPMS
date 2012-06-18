@@ -1,0 +1,31 @@
+IBXX4 ; COMPILED XREF FOR FILE #399.042 ; 02/13/06
+ ; 
+ S DA=0
+A1 ;
+ I $D(DIKILL) K DIKLM S:DIKM1=1 DIKLM=1 G @DIKM1
+0 ;
+A S DA=$O(^DGCR(399,DA(1),"RC",DA)) I DA'>0 S DA=0 G END
+1 ;
+ S DIKZ(0)=$G(^DGCR(399,DA(1),"RC",DA,0))
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D 22^IBCU2
+ S X=$P(DIKZ(0),U,3)
+ I X'="" D 32^IBCU2
+ S X=$P(DIKZ(0),U,4)
+ I X'="" S DGXRF=2 D TC^IBCU2 K DGXRF
+ S X=$P(DIKZ(0),U,5)
+ I X'="" K ^DGCR(399,DA(1),"RC","ABS",$E(X,1,30),+^DGCR(399,DA(1),"RC",DA,0),DA)
+ S X=$P(DIKZ(0),U,6)
+ I X'="" K ^DGCR(399,"ASC1",$E(X,1,30),DA(1),DA)
+ S X=$P(DIKZ(0),U,6)
+ I X'="" K ^DGCR(399,"ASC2",DA(1),$E(X,1,30),DA)
+ S X=$P(DIKZ(0),U,7)
+ I X'="" K ^DGCR(399,"ASC1",+$P(^DGCR(399,DA(1),"RC",DA,0),U,6),DA(1),DA)
+ S X=$P(DIKZ(0),U,7)
+ I X'="" K ^DGCR(399,"ASC2",DA(1),+$P(^DGCR(399,DA(1),"RC",DA,0),U,6),DA)
+ S X=$P(DIKZ(0),U,1)
+ I X'="" K ^DGCR(399,DA(1),"RC","B",$E(X,1,30),DA)
+ S X=$P(DIKZ(0),U,1)
+ I X'="" I $P(^DGCR(399,DA(1),"RC",DA,0),U,5) K ^DGCR(399,DA(1),"RC","ABS",$P(^DGCR(399,DA(1),"RC",DA,0),U,5),$E(X,1,30),DA)
+ G:'$D(DIKLM) A Q:$D(DIKILL)
+END G ^IBXX5

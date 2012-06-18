@@ -1,0 +1,164 @@
+VENPCC1F ; IHS/OIT/GIS - SURGICAL, PERSONAL FAMILY HISTORY ; 
+ ;;2.6;PCC+;;NOV 12, 2007
+ ;
+ ; ALSO CONTAINS CODE FOR PODIATRY
+ ; 
+HX(DFN,DEFEF) ; EP - GET HX INFO FOR THIS PATIENT
+ I $D(^DPT(+$G(DFN),0)),$D(^VEN(7.41,+$G(DEFEF),0))
+ E  Q
+ X "I $P($G(^VEN(7.41,DEFEF,5)),U,18),$L($T(SURG^VENPCC1K)) D SURG^VENPCC1K(DFN,DEFEF)" ; SURG HX
+ N CNT,PIEN,VPIEN,IDT,FMDT,HDT,PRVIEN,DX,DXIEN,PROC,PRV,STG,X,Y,%,PN,PNIEN,FIEN,ICD,HIEN,FMODT,ODT,MAX,T,TMP
+ S TMP=$NA(^TMP("VEN PRNT",$J,1))
+HOS I '$P($G(^VEN(7.41,DEFEF,5)),U,4) G FH  ; HX OF SURGERY
+ S CNT=0,IDT=0,MAX=5
+ I $P($G(^VEN(7.41,DEFEF,5)),U,11) S MAX=1 ; LIMIT MAX NO TO 1 - LAST ONE ONLY
+ F  S IDT=$O(^AUPNVPRC("AA",DFN,IDT)) Q:'IDT  S VPIEN=999999999 F  S VPIEN=$O(^AUPNVPRC("AA",DFN,IDT,VPIEN),-1) Q:'VPIEN  D  I CNT=MAX G H1
+ . S X=$G(^AUPNVPRC(VPIEN,0)) I '$L(X) Q
+ . S PIEN=+X I 'PIEN Q
+ . S ICD=+$P($G(^ICD0(PIEN,0)),U) I 'ICD Q  ; ICD CODE
+ . I $P($G(^VEN(7.41,DEFEF,5)),U,7) K T D  I $G(T) Q  ; EXCLUDE MINOR PROCEDURES
+ .. I ICD>85 S T=1 Q
+ .. I ICD=69.7 S T=1 Q
+ .. I ICD\1=24 S T=1 Q
+ .. I ICD=38.99 S T=1 Q
+ .. I ICD\1=23 S T=1
+ .. Q
+ . S PROC=$P($G(^ICD0(PIEN,1)),U) I '$L(PROC) Q  ; PROCEDURE NAME
+ . S FMDT=$P(X,U,6) I 'FMDT Q
+ . S HDT=$$FMTE^XLFDT(FMDT,"2D") ; PROCEDURE DATE IN M/D/Y FORMAT
+ . I $P($G(^VEN(7.41,DEFEF,5)),U,5) D  ; DIAGNOSIS
+ .. K DX
+ .. S DXIEN=$P(X,U,5) I 'DXIEN Q
+ .. S DX=$P($G(^ICD9(DXIEN,0)),U,3)
+ .. Q
+ . I $P($G(^VEN(7.41,DEFEF,5)),U,6) D  ; PROVIDER NAME
+ .. K PRV
+ .. S PRVIEN=$P(X,U,11) I 'PRVIEN Q
+ .. S %=U_"DIC("_16_")",PRV=$E($S($P($G(^AUTTSITE(1,0)),U,22):$P($G(^VA(200,PRVIEN,0)),U),1:$P($G(@%@(PRVIEN,0)),U)),1,15) ; PATCHED BY GIS 3/17/04
+ .. Q
+ . S Y=PROC_" ("_ICD_") "_HDT
+ . I $L($G(PRV)) S Y=Y_" By: "_PRV
+ . I $L($G(DX)) S Y=Y_" Dx: "_DX
+ . I $L(Y) S CNT=CNT+1,STG(CNT)=Y
+ . Q
+H1 ; OUTPUT HX SURG
+ F CNT=1:1:MAX S X=$G(STG(CNT)) I $L(X) S @TMP@("v"_CNT)=X
+ ; 
+FH I '$P($G(^VEN(7.41,DEFEF,5)),U,8) G PH  ; FAMILY HISTORY
+ S CNT=0
+ S FIEN=999999999 F  S FIEN=$O(^AUPNFH("AC",DFN,FIEN),-1) Q:'FIEN  D  I CNT=5 G PH
+ . S X=$G(^AUPNFH(FIEN,0)) I '$L(X) Q
+ . S DXIEN=+X I 'DXIEN Q
+ . S ICD=$P($G(^ICD9(DXIEN,0)),U) I '$L(ICD) Q
+ . S FMDT=$P(X,U,3) I 'FMDT Q
+ . S HDT=$$FMTE^XLFDT(FMDT,"2D")
+ . S PNIEN=$P(X,U,4) I 'PNIEN Q
+ . S PN=$P($G(^AUTNPOV(PNIEN,0)),U) I '$L(PN) Q
+ . S CNT=CNT+1,@TMP@("v"_(5+CNT))=PN_" ("_ICD_") "_HDT
+ . Q
+ Q
+ ; 
+PH I '$P($G(^VEN(7.41,DEFEF,5)),U,9) G PODHX  ; EP-PERSONAL HISTORY
+ N TMP
+ S TMP=$NA(^TMP("VEN PRNT",$J,1))
+ S CNT=0
+ S HIEN=999999999 F  S HIEN=$O(^AUPNPH("AC",DFN,HIEN),-1) Q:'HIEN  D  I CNT=5 G PODHX ; PATCHED BY GIS 3/19/04
+ . S X=$G(^AUPNPH(HIEN,0)) I '$L(X) Q
+ . S DXIEN=+X I 'DXIEN Q
+ . S ICD=$P($G(^ICD9(DXIEN,0)),U) I '$L(ICD) Q
+ . S FMDT=$P(X,U,3) I 'FMDT Q
+ . S HDT=$$FMTE^XLFDT(FMDT,"2D")
+ . S PNIEN=$P(X,U,4) I 'PNIEN Q
+ . S PN=$P($G(^AUTNPOV(PNIEN,0)),U) I '$L(PN) Q
+ . S CNT=CNT+1,Y=PN_" ("_ICD_") "_HDT
+ . I '$P($G(^VEN(7.41,DEFEF,5)),U,10) S FMODT=$P(X,U,5) I FMODT S ODT=$$FMTE^XLFDT(FMODT,"2D")  I $L(ODT) S Y=Y_" Onset: "_ODT
+ . S @TMP@("v"_(10+CNT))=Y
+ . Q
+ Q
+ ; 
+PODHX I '$P($G(^VEN(7.41,DEFEF,5)),U,16) Q  ; EP-PODIATRY HISTORY
+ I '$L($T(^APCHSPOD)) Q  ; PODIATRY HS MUST EXIST OR NOT AN OFFICIAL INSTALL
+ N TMP,LN,LS,CNT,X,Y,Z,%,STG,VSTG,TXT,T,NSTG
+ N CODE,RES,LG,GIEN,GSTG,SIDE,ASTG,AIEN,INC,SSTG,SN
+ S TMP="^TMP(""VEN PRNT"","_$J_",1)",T="~"
+ S STG=$G(^AUPNPOD(+$G(DFN),0)) I '$L(STG) Q
+VASC S Y=$P(STG,U,2) I Y D
+ . X ^DD("DD") S @TMP@("c50")=Y ; c50 DATE LAST VASC EXAM
+ . S VSTG=$G(^AUPNPOD(DFN,1))
+ . S Y=$P(VSTG,U,1),Z=$P(VSTG,U,2)
+ . I Y D  ; GET PULSE INFO
+ .. X ^DD("DD") S @TMP@("c51")=Y ; c51 DATE LAST PULSE CHECK
+ .. S %=$P(Z,T,1) I $L(%) S @TMP@("c52")=%
+ .. S %=$P(Z,T,2) I $L(%) S @TMP@("c53")=%
+ .. S %=$P(Z,T,3) I $L(%) S @TMP@("c54")=%
+ .. S %=$P(Z,T,4) I $L(%) S @TMP@("c55")=%
+ .. Q
+ . S Y=$P(VSTG,U,3),Z=$P(VSTG,U,4)
+ . I Y D  ; GET DOPPLER INFO
+ .. X ^DD("DD") S @TMP@("c56")=Y ; c56 DATE LAST DOPPLER EXAM
+ .. S %=$P(Z,T,1) I $L(%) S @TMP@("c57")=%
+ .. S %=$P(Z,T,2) I $L(%) S @TMP@("c58")=%
+ .. S %=$P(Z,T,3) I $L(%) S @TMP@("c59")=%
+ .. S %=$P(Z,T,4) I $L(%) S @TMP@("c60")=%
+ .. S %=$P(Z,T,5) I $L(%) S @TMP@("c48")=%
+ .. S %=$P(Z,T,6) I $L(%) S @TMP@("c49")=%
+ .. Q
+ . S Y=$P(VSTG,U,5),Z=$P(VSTG,U,6)
+ . I Y D  ; GET OSCILLOMETRY INFO
+ .. X ^DD("DD") S @TMP@("c61")=Y ; c61 DATE LAST OSCILLOMETRY EXAM
+ .. S %=$P(Z,T,1) I $L(%) S @TMP@("c62")=%
+ .. S %=$P(Z,T,2) I $L(%) S @TMP@("c63")=%
+ .. S %=$P(Z,T,3) I $L(%) S @TMP@("c64")=%
+ .. S %=$P(Z,T,4) I $L(%) S @TMP@("c65")=%
+ .. S TXT=$P(Z,T,5) I $L(TXT) D
+ ... S %=$P(Z,T,6) I $L(%) S @TMP@("c66")=(TXT_"="_%)
+ ... S %=$P(Z,T,7) I $L(%) S @TMP@("c67")=(TXT_"="_%)
+ ... Q
+ .. Q
+ . Q
+NEURO S Y=$P(STG,U,3) I Y D  ; EP-NEURO EXAM
+ . X ^DD("DD") S LN=Y
+ . S NSTG=$G(^AUPNPOD(DFN,2))
+ . S RES=$P(NSTG,U,1) I RES D
+ .. I RES=1 S @TMP@("c40")="X"
+ .. I RES=2 S @TMP@("c41")="X"
+ .. I RES=3 S @TMP@("c42")="X"
+ . S @TMP@("c68")=LN ; c68  LAST NEURO EXAM
+ . S @TMP@("c47")=$P(NSTG,U,2)
+ . Q
+GRAFT I $D(^AUPNPOD(DFN,3)) D  ; EP-GRAFTS
+ . S GIEN=999999
+ . F CNT=69:1:72 S GIEN=$O(^AUPNPOD(DFN,3,GIEN),-1) Q:'GIEN  D
+ .. S GSTG=$G(^AUPNPOD(DFN,3,GIEN,0)) I '$L(GSTG) Q
+ .. S Y=+GSTG I 'Y Q
+ .. X ^DD("DD") S LG=Y
+ .. S LG=LG_" "_$P(GSTG,U,2)
+ .. S @TMP@("c"_CNT)=LG ; c69-c72 GRAFTS
+ .. Q
+ . Q
+AMP I $D(^AUPNPOD(DFN,4)) D  ; EP-AMPUTATIONS
+ . S AIEN=0
+ . F  S AIEN=$O(^AUPNPOD(DFN,4,AIEN)) Q:'AIEN  D
+ .. S ASTG=$G(^AUPNPOD(DFN,4,AIEN,0)) I '$L(ASTG) Q
+ .. S TYPE=+ASTG,SIDE=$P(ASTG,U,2),TXT=$P(ASTG,U,3)
+ .. I 'TYPE Q
+ .. I SIDE="" Q
+ .. I TXT="" Q
+ .. S INC=(SIDE="R")
+ .. S CNT=(TYPE*2)+INC+71
+ .. S @TMP@("c"_CNT)=TXT ; c73-c98  AMPUTATIONS
+ .. Q
+ . Q
+SHOE S Y=$P(STG,U,4) I Y D  ; EP-SHOE FITTING
+ . X ^DD("DD") S SN=Y
+ . S SSTG=$G(^AUPNPOD(DFN,5))
+ . S RES=$P(SSTG,U,1) I RES D
+ .. I RES=1 S @TMP@("c43")="X"
+ .. I RES=2 S @TMP@("c44")="X"
+ .. I RES=3 S @TMP@("c45")="X"
+ .. I RES=4 S @TMP@("c46")=$P(SSTG,U,2),@TMP@("c99")="X"
+ .. Q
+ . S @TMP@("c100")=SN ; c100  LAST SHOE FITTING
+ . Q
+ Q
+ ; 

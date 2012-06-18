@@ -1,0 +1,195 @@
+ACRFFF1 ;IHS/OIRM/DSD/AEF - ECS SCHEDULE FLAT FILE [ 05/09/2005   4:18 PM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;**5,13,17**;NOV 05, 2001
+ ;
+DESC ;----- ROUTINE DESCRIPTION
+ ;;
+ ;;This option will gather all Treasury schedules exported during the
+ ;;specified time range and put them into a comma delimited flat
+ ;;file which can then be exported into an Access or Excel spreadsheet.
+ ;;
+ ;;Fields included in the flat file:
+ ;;
+ ;;SCHEDULE NO, MONTH, AP, ECS, GL ACCT, APPROPRIATION, AMT3, AMT2
+ ;;
+ ;;$$END
+ Q
+ ;
+EN ;EP -- MAIN ENTRY POINT
+ ;
+ N ACRDATES,ACRFILE
+ D ^XBKVAR
+ D TXT
+ S ACRDATES=""
+ D EXP(.ACRDATES)
+ Q:'ACRDATES
+ D FILE(.ACRFILE)
+ Q:ACRFILE']""
+ W "    please wait... "
+ D GET(ACRDATES)
+ I '$D(^TMP("ACRF",$J,"A")) D  Q
+ . W !!,"No data found"
+ D UNIX(ACRFILE)
+ K ^TMP("ACRF",$J,"A")
+ D CLOSE^ACRFZISH("FILE")                  ; ACR*2.1*13.01 IM13574
+ D PAUSE^ACRFWARN
+ Q
+EXP(ACRDATES)      ;
+ ;----- ASK EXPORT DATE RANGE
+ ;
+DLOOP ;
+ N ACRBEG,ACREND,DIR,DIRUT,DTOUT,DUOUT,X,Y
+ W !
+ S DIR(0)="DO^::E"
+ S DIR("A")="Begin with EXPORT DATE"
+ S DIR("?")="The date that the payment batch was exported"
+ D ^DIR
+ Q:$D(DTOUT)!($D(DUOUT))!($D(DIRUT))
+ S ACRBEG=Y
+ S DIR("A")="End with EXPORT DATE"
+ D ^DIR
+ Q:$D(DTOUT)!($D(DUOUT))!($D(DIRUT))
+ S ACREND=Y
+ I ACREND<ACRBEG D  G DLOOP
+ . W *7,!?5,"ENDING DATE cannot be less than BEGINNING DATE"
+ S ACRDATES=ACRBEG_U_ACREND
+ Q
+GET(ACRDATES)      ;
+ ;----- GATHER DATA AND PUT IN ^TMP GLOBAL
+ ;
+ N D0,D1,D2,ACRDATE,ACREND
+ K ^TMP("ACRF",$J,"A")
+ S ACRDATE=$P(ACRDATES,U)
+ S ACRDATE=ACRDATE-1
+ S ACREND=$P(ACRDATES,U,2)
+ F  S ACRDATE=$O(^AFSLAFP("EXP",ACRDATE)) Q:ACRDATE>ACREND  Q:'ACRDATE  D
+ . S D0=0
+ . F  S D0=$O(^AFSLAFP("EXP",ACRDATE,D0)) Q:'D0  D
+ . . S D1=0
+ . . F  S D1=$O(^AFSLAFP("EXP",ACRDATE,D0,D1)) Q:'D1  D
+ . . . Q:$$BATCH^ACRFPAYE(D0,D1)="G"   ;DO NOT INCLUDE DHR-ONLY BATCHES ACR*2.1*5.02
+ . . . S D2=0
+ . . . F  S D2=$O(^AFSLAFP(D0,1,D1,1,D2)) Q:'D2  D
+ . . . . D SET(D0,D1,D2)
+ Q
+SET(D0,D1,D2)      ;
+ ;----- SET DATA INTO ^TMP GLOBAL
+ ;
+ N ACRAMT2,ACRAMT3,ACRAP,ACRAPP,ACREXP,ACRGL,ACRMON,ACRSCHNO,ACRTYP,X,Y
+ S ACRAPP=$P($G(^AFSLAFP(D0,1,D1,1,D2,1)),U,21)
+ Q:'ACRAPP
+ I $L(ACRAPP)=7 D
+ . S ACRAPP=$E(ACRAPP,1,2)_"  "_$E(ACRAPP,3)_"  "_$E(ACRAPP,4,7)
+ I $L(ACRAPP)=9&(ACRAPP["/") D
+ . S ACRAPP=$E(ACRAPP,1,2)_"  "_$E(ACRAPP,3,9)
+ S ACRSCHNO=$P($G(^AFSLAFP(D0,1,D1,2)),U,6)
+ Q:'ACRSCHNO
+ S ACREXP=$P($G(^AFSLAFP(D0,1,D1,2)),U)
+ S Y=ACREXP
+ X ^DD("DD")
+ S ACRMON=$E(Y,1,3)
+ S ACRAP=""
+ I $L(ACRSCHNO)=6 S ACRAP=$E(ACRSCHNO,1,2)
+ I $L(ACRSCHNO)=10 S ACRAP=$E(ACRSCHNO,5,6)
+ S ACRTYP="ECS"
+ S ACRGL="101.2"
+ S ACRAMT3=$$NET^ACRFSSU(D0,D1,D2)      ;*** ACR*2.1*5.02
+ S ACRAMT2="0.00"
+ S ^TMP("ACRF",$J,"A",ACRAPP,ACRSCHNO,D2,0)=ACRSCHNO_U_ACRMON_U_ACRAP_U_ACRTYP_U_ACRGL_U_ACRAPP_U_ACRAMT3_U_ACRAMT2
+ I '$D(^TMP("ACRF",$J,"A",ACRAPP,ACRSCHNO,0)) D
+ . S ^TMP("ACRF",$J,"A",ACRAPP,ACRSCHNO,0)=ACRSCHNO_U_ACRMON_U_ACRAP_U_ACRTYP_U_ACRGL_U_ACRAPP_U_U_ACRAMT2
+ S $P(^TMP("ACRF",$J,"A",ACRAPP,ACRSCHNO,0),U,7)=$P($G(^TMP("ACRF",$J,"A",ACRAPP,ACRSCHNO,0)),U,7)+ACRAMT3
+ Q
+UNIX(ACRFILE)      ;
+ ;----- WRITE ^TMP GLOBAL TO UNIX FILE
+ ;
+ N %DEV,ACRAPP,ACRCNT,ACROUT,ACRSCHNO,X,ACRPATH  ;ACR*2.1*13.06 IM14144
+ Q:'$D(^TMP("ACRF",$J,"A"))
+ S ACRPATH=$$PATH^ACRFFF1                        ;ACR*2.1*13.06 IM14144
+ Q:ACRPATH']""
+ D HFS^ACRFZISH(ACRPATH,ACRFILE,"W",.%DEV)       ;VERBOSE ACR*2.1*13.01 IM13574
+ Q:$G(%DEV)']""
+ U %DEV
+ S ACRCNT=0
+ S ACRAPP=""
+ F  S ACRAPP=$O(^TMP("ACRF",$J,"A",ACRAPP)) Q:ACRAPP']""  D
+ . S ACRSCHNO=0
+ . F  S ACRSCHNO=$O(^TMP("ACRF",$J,"A",ACRAPP,ACRSCHNO)) Q:'ACRSCHNO  D
+ . . S X=$G(^TMP("ACRF",$J,"A",ACRAPP,ACRSCHNO,0))
+ . . S ACRCNT=$G(ACRCNT)+1
+ . . D WRITE(X,ACRCNT)
+ U 0 W !!,"Records have been put into file "_ACRPATH_ACRFILE ;ACR*2.1*13.06 IM14144
+ ;D CLOSE^ACRFZISH("FILE")         ;ACR*2.1*13.01 IM13574;Commented out ACR*2.1*17.10 IM17309
+ H 3
+ Q
+WRITE(X,ACRCNT)    ;
+ ;----- FORMAT AND WRITE DATA TO UNIX FILE
+ ;
+ N Y
+ S ACRCNT=$G(ACRCNT)+1
+ S Y=$P(X,U)
+ W """"
+ W Y
+ W """"
+ W ","
+ S Y=$P(X,U,2)
+ W """"
+ W Y
+ W """"
+ W ","
+ S Y=$P(X,U,3)
+ W """"
+ W Y
+ W """"
+ W ","
+ S Y=$P(X,U,4)
+ W """"
+ W Y
+ W """"
+ W ","
+ S Y=$P(X,U,5)
+ W """"
+ W Y
+ W """"
+ W ","
+ S Y=$P(X,U,6)
+ W """"
+ W Y
+ W """"
+ W ","
+ S Y=$P(X,U,7)
+ S Y=$J(Y,12,2)
+ W """"
+ W Y
+ W """"
+ W ","
+ S Y=$P(X,U,8)
+ S Y=$J(Y,12,2)
+ W """"
+ W Y
+ W """"
+ W !
+ Q
+FILE(ACRFILE)      ;
+ ;----- ASK FILE NAME
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT,X,Y
+ S ACRFILE=""
+ S DIR(0)="F"
+ S DIR("A")="Select FILE NAME"
+ S DIR("?")="The name of the file you want to put the data into"
+ D ^DIR
+ Q:$D(DTOUT)!($D(DUOUT))!($D(DIRUT))
+ S ACRFILE=Y_".csv"
+ Q
+TXT ;----- PRINT OPTION TEXT
+ ;
+ F I=1:1 S X=$P($T(DESC+I),";",3)  Q:X["$$END"  W !,X
+ Q
+PATH() ;EP;              ; NEW;ACR*2.1*13.06 IM14144
+ ;   -  MODIFIED TO ACCOMMODATE ABQ & HQ UNIQUE DIRECTORY NAMES
+ ;
+ N X,Z
+ S X=$$ARMSDIR^ACRFSYS(1)
+ S Z=$E(X)                     ;GET DELIMITER - NT COMPATIBLE
+ I X'["afsdata" S X=X_"csv"_Z  ;MOD FOR ABQ/HQW
+ Q X

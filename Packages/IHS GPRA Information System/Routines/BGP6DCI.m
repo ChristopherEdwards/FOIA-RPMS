@@ -1,0 +1,134 @@
+BGP6DCI ; IHS/CMI/LAB - IHS area GPRA ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;
+CALCIND ;EP
+ S BGPIC=0 F  S BGPIC=$O(BGPIND(BGPIC)) Q:BGPIC'=+BGPIC  D
+ .I BGPRTYPE=1,$P(^BGPINDS(BGPIC,0),U,7)'=1 Q  ;national gpra report
+ .I BGPRTYPE=4,$P(^BGPINDS(BGPIC,0),U,11)'=1 Q  ;local
+ .K BGPSTOP,BGPVAL,BGPVALUE,BGPG,BGPC,BGPALLED,BGPV,A,B,C,D,E,F,G,H,I,J,K,M,N,O,P,Q,R,S,T,V,W,X,Y,Z
+ .I $D(^BGPINDS(BGPIC,1)) X ^BGPINDS(BGPIC,1)
+ .K BGPVAL,BGPG,BGPC,BGPALLED,BGPV,A,B,C,D,E,F,G,H,I,J,K,M,N,O,P,Q,R,S,T,V,W,X,Y,Z
+ .K ^TMP($J)
+ .;Set up global for iCare
+ .I $G(BQIGREF)'="",$D(BGPSTOP) S @BQIGREF@(DFN,BGPIC)=$P(^BGPINDS(BGPIC,0),U,3)_"^N/A" Q
+ .I $D(BGPSTOP) Q  ;no need to set since no num/denom
+ .;loop each individual to set numerator and denominator
+ .S BGPI=0 F  S BGPI=$O(^BGPINDSC("B",BGPIC,BGPI)) Q:BGPI'=+BGPI  D
+ ..S (BGPNUM,BGPDEN)=0
+ ..;I BGPRTYPE'=4,BGPINDT="G",$P(^BGPINDSC(BGPI,0),U,5)'=1 Q
+ ..;I BGPRTYPE'=4,BGPINDT="A",$P(^BGPINDSC(BGPI,0),U,6)'=1 Q
+ ..;I BGPRTYPE'=4,BGPINDT="H",$P($G(^BGPINDSC(BGPI,12)),U,1)'=1 Q
+ ..X ^BGPINDSC(BGPI,1)
+ ..X ^BGPINDSC(BGPI,2) ;denominator 1 or 0
+ ..;set field counter
+ ..S BGPNF=$P(^BGPINDSC(BGPI,0),U,9)
+ ..S BGPN=$P(^DD(90374.03,BGPNF,0),U,4),N=$P(BGPN,";"),P=$P(BGPN,";",2)
+ ..D S(BGPRPT,BGPGBL,N,P,BGPNUM),S1("N",BGPNUM)
+ ..S BGPDF=$P(^BGPINDSC(BGPI,0),U,8)
+ ..S BGPN=$P(^DD(90374.03,BGPDF,0),U,4),N=$P(BGPN,";"),P=$P(BGPN,";",2)
+ ..I BGPDEN'="NO" D S(BGPRPT,BGPGBL,N,P,BGPDEN),S1("D",BGPDEN)
+ ..I $G(BGPCPPL) D CPL
+ .I $D(BGPLIST(BGPIC)) D STMP^BGP6UTL
+ .I $G(BGPNPL) D NPL
+ K BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPN7,BGPN8,BGPN9,BGPN10,BGPN11,BGPN12,BGPN13,BGPN14,BGPN15,BGPN16,BGPN17,BGPN18,BGPN19,BGPN20,BGPN21,BGPN22,BGPN23,BGPN24,BGPN25,BGPN26
+ Q
+ ;
+CPL ;comprehensive pat list check and set xtmp
+ I BGPLIST="P",$P(^AUPNPAT(DFN,0),U,14)'=BGPLPRV Q  ;not this provider
+ Q:BGPTIME'=1
+ Q:$P($G(^BGPINDSC(BGPI,12)),U,1)=""
+ X ^BGPINDSC(BGPI,3) Q:'$T
+ S C=$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN")
+ S S=$P(^DPT(DFN,0),U,2)
+ S D=$P(BGPVALUE,"|||")
+ S F=$P($G(^XTMP("BGP06CPL",BGPJ,BGPH,"LIST",C,S,BGPAGEB,DFN)),"|||")
+ I D["UP" S $P(F,"$$",1)="UP"
+ I D["AC" S $P(F,"$$",2)="AC"
+ I D["AD" S $P(F,"$$",3)="AD"
+ I D["AAD" S $P(F,"$$",4)="AAD"
+ I D["PREG" S $P(F,"$$",5)="PREG"
+ I D["IMM" S $P(F,"$$",6)="IMM"
+ I '$D(^XTMP("BGP06CPL",BGPJ,BGPH,"LIST",C,S,BGPAGEB,DFN)) D  Q
+ .S ^XTMP("BGP06CPL",BGPJ,BGPH,"LIST",C,S,BGPAGEB,DFN)=F_"|||"_$P(^BGPINDSC(BGPI,12),U),BGPCPLC=BGPCPLC+1
+ S $P(^XTMP("BGP06CPL",BGPJ,BGPH,"LIST",C,S,BGPAGEB,DFN),"|||")=F
+ S $P(^XTMP("BGP06CPL",BGPJ,BGPH,"LIST",C,S,BGPAGEB,DFN),"|||",2)=$P(^XTMP("BGP06CPL",BGPJ,BGPH,"LIST",C,S,BGPAGEB,DFN),"|||",2)_"#"_$P(^BGPINDSC(BGPI,12),U)
+ Q
+NPL ;
+ Q:BGPTIME'=1
+ Q:'$D(BGPINDL(BGPIC))  ;not a selected topic
+ S BGPX=0 F  S BGPX=$O(BGPINDL(BGPIC,BGPX)) Q:BGPX'=+BGPX  D
+ .I BGPLIST="P",$P(^AUPNPAT(DFN,0),U,14)'=BGPLPRV Q
+ .X ^BGPSNPL(BGPX,12) K ^TMP($J) Q:'$T
+ .S BGPINDL(BGPIC,BGPX)=$G(BGPINDL(BGPIC,BGPX))+1
+ .I $G(BGP6NPLT) S ^XTMP("BGP6DNP",BGPJ,BGPH,"LIST",BGPIC,BGPX,DFN)="" Q
+ .S ^XTMP("BGP6DNP",BGPJ,BGPH,"LIST",BGPIC,BGPX,$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN"),$P(^DPT(DFN,0),U,2),BGPAGEB,DFN)=$G(BGPVALUE)
+ K BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPN7,BGPN8,BGPN9,BGPN10,BGPN11,BGPN12,BGPN13,BGPN14,BGPN15,BGPN16,BGPN17,BGPN18,BGPN19,BGPN20,BGPN21,BGPN22,BGPN23,BGPN24,BGPN25,BGPN26,BGPX
+ Q
+S(R,G,N,P,V) ;
+ I 'V Q  ;no value to add
+ S $P(@(G_R_","_N_")"),U,P)=$P($G(@(G_R_","_N_")")),U,P)+V
+ Q
+D(D) ;
+ I D="" Q ""
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_(1700+$E(D,1,3))
+ ;
+S1(BQITYP,BQIVAL) ; Return data by patient for iCare into global reference BQIGREF
+ ;Input Variables
+ ;  BQITYP - Type of value
+ ;           D = Denominator
+ ;           N = Numerator
+ ;  BQIVAL - Value of the type; 0 or 1
+ ;Assumed variables
+ ;  BGPVALUE - the measure value
+ ;  BQIGREF  - global reference where data will be stored temporarily
+ ;  BGPIC    - Indicator IEN
+ ;  BGPI     - Individual Indicator IEN
+ ;  DFN      - Patient IEN
+ ;
+ ; If no value of BQIGREF, then it's the regular GPRA report calling the code
+ ; and nothing needs to be set for iCare.
+ Q:$G(BQIGREF)=""
+ ;
+ ; If no denominator or numerator value, then it doesn't need to be set for iCare
+ I '$G(BQIVAL) Q
+ ;
+ NEW BQITIT,BQILTIT,BQILTIT1,BQILTIT2,BQILTIT3,BQILDTI1,BQILDTI2
+ NEW BQIDTIT,BQIFTIT,BQITWEN,BQICURR,BQIIDTA,BQIDTA,BQILDTI3
+ S BQIIDTA=$G(^BGPINDSC(BGPI,0))
+ S BQIDTA=$G(^BGPINDSC(BGPI,14))
+ ;
+ ; Get the Individual Indicator TITLE (1404) 
+ S BQITIT=$P(BQIDTA,U,4)
+ ;
+ ; Get the Individual Indicator LINE TITLE 1 (.15)
+ S BQILTIT1=$P(BQIIDTA,U,15)
+ I BQILTIT1="" Q
+ ; Get the Individual Indicator LINE TITLE 2 and 3 (.16,.19) 
+ S BQILTIT2=$P(BQIIDTA,U,16)
+ S BQILTIT3=$P(BQIIDTA,U,19)
+ S BQILTIT=BQILTIT1_" "_BQILTIT2_" "_BQILTIT3
+ ;
+ ; Get the Individual Indicator LOCAL DENOM TITLE 1, 2, and 3 (.17,.18,.21)
+ S BQILDTI1=$P(BQIIDTA,U,17)
+ S BQILDTI2=$P(BQIIDTA,U,18)
+ S BQILDTI3=$P(BQIIDTA,U,21)
+ S BQIDTIT=BQILDTI1_" "_BQILDTI2_" "_BQILDTI3
+ ;
+ ;  Full title is all title fields
+ S BQIFTIT=BQITIT_" "_BQILTIT_" "_BQIDTIT
+ S $P(@BQIGREF@(DFN,BGPIC,BGPI),"^",1)=BQIFTIT
+ ;
+ ;  Get the GOAL 2010 value and the GOAL 06 value
+ S BQITWEN=$P(BQIDTA,U,3)
+ S BQICURR=$P(BQIDTA,U,8)
+ ;
+ I BQITYP="N" S $P(@BQIGREF@(DFN,BGPIC,BGPI),"^",2)=$G(BQIVAL)
+ ;
+ I BQITYP="D" S $P(@BQIGREF@(DFN,BGPIC,BGPI),"^",3)=$G(BQIVAL)
+ ;
+ ;  Set the Indicator TITLE (.03)
+ S $P(@BQIGREF@(DFN,BGPIC),U,1)=$P(^BGPINDS(BGPIC,0),U,3)
+ S $P(@BQIGREF@(DFN,BGPIC),U,2)=$G(BGPVALUE)
+ I BQITWEN'="" S $P(@BQIGREF@(DFN,BGPIC),U,3)=BQITWEN
+ I BQICURR'="" S $P(@BQIGREF@(DFN,BGPIC),U,4)=BQICURR
+ Q

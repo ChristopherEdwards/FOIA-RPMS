@@ -1,0 +1,97 @@
+BMXSQL2 ; IHS/OIT/HMW - BMX REMOTE PROCEDURE CALLS ;
+ ;;4.0;BMX;;JUN 28, 2010
+ ;
+ ;
+FLDFILE(BMXIN)     ;EP - Returns name of file containing field BMXIN
+ ;in the form FILE^FIELD^FILENUMBER^FIELDNUMBER
+ ;Based on data contained in the BMXF() array
+ ;BMXIN can be either an unambiguous field name or FILE.FIELDNAME
+ ;
+ N C,BMXA,BMXB,BMXRET,BMXFILN,BMXFLDN,BMXFILNA
+ S BMXRET=""
+ I BMXTMPLT D  Q BMXRET
+ . S BMXFILNA=BMXIN
+ . I '$D(BMXF(BMXFILNA)) S BMXERR="FILE NOT FOUND" S BMXRET="" D ERROR^BMXSQL Q
+ . I BMXF(BMXFILNA)'=BMXFO(1) S BMXERR="TEMPLATES ONLY SUPPORTED ON PRIMARY FILE" D ERROR^BMXSQL Q
+ . S BMXRET=BMXFILNA_U_"BMXIEN"_U_BMXF(BMXFILNA)_U_".001"
+ ;
+ I BMXIN["." D  Q BMXRET
+ . S BMXFILNA=$P(BMXIN,".") ;File Name
+ . I '$D(BMXF(BMXFILNA)) S BMXERR="FILE NOT FOUND" S BMXRET="" D ERROR^BMXSQL Q
+ . S BMXRET=BMXFILNA_U_$P(BMXIN,".",2)
+ . S $P(BMXRET,U,3)=BMXF(BMXFILNA)
+ . S BMXFLDN=0
+ . I $P(BMXIN,".",2)'="",$D(^DD(BMXF(BMXFILNA),"B",$P(BMXIN,".",2))) D
+ . . S BMXFLDN=$O(^DD(BMXF(BMXFILNA),"B",$P(BMXIN,".",2),0))
+ . I BMXIN["BMXIEN" S BMXFLDN=".001"
+ . I '+BMXFLDN S BMXERR="FIELD NOT FOUND",BMXRET="" D ERROR^BMXSQL Q
+ . S $P(BMXRET,U,4)=BMXFLDN
+ . Q
+ ;Loop through files in BMXF to locate field name
+ S C=0,BMXA=""
+ I 'BMXIEN F  S BMXA=$O(BMXF(BMXA)) Q:BMXA=""  D  Q:$D(BMXERR)
+ . I $D(^DD(BMXF(BMXA),"B",BMXIN)) S BMXRET=BMXA_U_BMXIN D  Q:$D(BMXERR)
+ . . S C=C+1
+ . . I C>1 S BMXERR="AMBIGUOUS FIELD NAME" D ERROR^BMXSQL Q
+ . . Q
+ . Q
+ I BMXIEN D
+ . S BMXA=BMXFO(1)
+ . S BMXA=BMXFNX(BMXA)
+ . S BMXRET=BMXA_U_BMXIN
+ . S C=1
+ I C=0 D  Q BMXRET
+ . S BMXRET="0^"_BMXIN ;String or numeric literal
+ S BMXFILNA=$P(BMXRET,U)
+ S BMXFILN=BMXF(BMXFILNA)
+ S $P(BMXRET,U,3)=BMXFILN
+ I $D(^DD(BMXFILN,"B",BMXIN)) D
+ . S BMXFLDN=$O(^DD(BMXFILN,"B",BMXIN,0))
+ I BMXIEN S BMXFLDN=".001"
+ I '+BMXFLDN S BMXERR="FIELD NOT FOUND",BMXRET="" D ERROR^BMXSQL Q
+ S $P(BMXRET,U,4)=BMXFLDN
+ Q BMXRET
+ ;
+DECSTR(BMXSTR)     ;EP
+ ;Decrements string collation value by 1
+ ;
+ N A,E,S,L,BMXRET
+ I BMXSTR="" Q BMXSTR
+ S L=$L(BMXSTR)
+ S E=$E(BMXSTR,L)
+ S B=$E(BMXSTR,1,L-1)
+ S A=$A(E)
+ S A=A-1
+ S E=$C(A)
+ S BMXRET=B_E
+ Q BMXRET
+ ;
+INCSTR(BMXSTR)     ;EP
+ ;Increments string collation value by 1
+ Q BMXSTR_$C(1)
+ ;
+SETX(BMXX,BMXFG,BMXSCR) ;EP
+ ;Set up executable screen code
+ ;by assembling pieces in BMXFG
+ ;and attach to executable iterator(s)
+ ;
+ ;IN:  BMXFG()
+ ;     BMXX() -- modified
+ ;OUT: BMXSCR
+ ;
+ N J
+ Q:'$D(BMXFG)
+ S BMXSCR=""
+ S J=0 F  S J=$O(BMXX(J)) Q:'+J  D
+ . S BMXX(J)=BMXX(J)_"X BMXSCR"
+ F J=1:1:BMXFG S BMXSCR=BMXSCR_BMXFG(J)
+ S BMXSCR=$S(BMXSCR]"":"I "_BMXSCR_" ",1:"")
+ S BMXSCR=BMXSCR_"D:'$D(^BMXTMP($J,""O"",D0)) OUT^BMXSQL"
+ I BMXFG("C") D
+ . N C
+ . S C=BMXFG("C")
+ . S BMXSCR("C")="F BMXC=1:1:"_C_" X BMXSCR(""C"",BMXC) S BMXSCR(""X"",BMXC)=X"
+ . F C=1:1:BMXFG("C") S BMXSCR("C",C)=BMXFG("C",C)
+ . S BMXSCR="X BMXSCR(""C"") "_BMXSCR
+ ;
+ Q

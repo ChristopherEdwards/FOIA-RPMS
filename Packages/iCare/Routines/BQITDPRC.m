@@ -1,0 +1,247 @@
+BQITDPRC ;PRXM/HC/ALA-Process Diagnosis Tag ; 11 May 2007  5:43 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;**1**;Feb 07, 2011;Build 5
+ Q
+ ;
+EN(DATA,DFN,TAG,STAT,DATE,USR,SCOM,OCOM) ;EP -- BQI UPDATE DX CAT
+ ; Input
+ ;    DFN  - Patient internal entry number
+ ;    TAG  - the diagnosis tag internal entry number which is being updated
+ ;    STAT - status of the tag management
+ ;    DATE - Date of the update, assumes current date if not passed
+ ;           may be the date that the tag was last updated by nightly or
+ ;           weekly job
+ ;    USR  - User updating the tag, assumes DUZ if not passed
+ ;    SCOM - Standard comment value, should always be passed
+ ;    OCOM - Other comment value
+ ;
+ NEW UID,II,RDA,BI,TXT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQITDPRC",UID))
+ K @DATA
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQITDPRC D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S TAG=$G(TAG,"") I TAG="" S BMXSEC="No Diagnosis Category identified" Q
+ S STAT=$G(STAT,"") I STAT="" S BMXSEC="No status identified" Q
+ S DFN=$G(DFN,"") I DFN="" S BMXSEC="No patient identified" Q
+ S SCOM=$G(SCOM,"") I SCOM="" S BMXSEC="No standard comment value identified" Q
+ I $G(USR)="" S USR=$$GET1^DIQ(200,DUZ_",",.01,"E")
+ I $G(DATE)="" S DATE=$$NOW^XLFDT()
+ S OCOM=$G(OCOM,"")
+ ;
+ K BQTX
+ I $G(OCOM)[$C(10) D
+ . F BI=1:1 S TXT=$P(OCOM,$C(10),BI) Q:TXT=""  S BQTX(BI,0)=TXT
+ ;
+ I $G(OCOM)'[$C(10)&($G(OCOM)'="") S BQTX(1,0)=OCOM
+ ;
+ S @DATA@(II)="I00010RESULT^T00030MSG"_$C(30)
+ I TAG'?.N S TAG=$$FIND1^DIC(90506.2,"","",TAG,"B","","")
+ ;
+ ; if Asthma tag, check last severity value to determine if 'Accepted'
+ I TAG=1 D
+ . NEW SEV,TXN
+ . I STAT'="P" Q
+ . S SEV=$$LASTSEV^APCHSAST(DFN,1)
+ . I SEV<2 Q
+ . S STAT="A"
+ . S TXN=$O(BQTX(0))+1
+ . S BQTX(TXN,0)="Patient's severity was "_$$LASTSEV^APCHSAST(DFN,5)
+ ;
+ ;Build the BQIREG record and move the BQIPAT factors into BQIFACT
+ S RDA=$O(^BQIREG("C",DFN,TAG,""))
+ I RDA="" D NPAT(DFN,TAG,STAT,DATE,USR,SCOM,.BQTX) G DONE
+ ;
+ D UPAT(RDA,DFN,STAT,DATE,USR,SCOM,.BQTX)
+ ;
+DONE ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+NPAT(BQIDFN,BQITAG,BQISTA,DATE,USR,SCOM,BQTX) ;EP - Create new patient record
+ NEW DIC,DLAYGO,DA,BQIUPD
+ K ERROR
+ S DIC(0)="L",DLAYGO=90509,X=BQITAG,DIC="^BQIREG("
+ K DO,DD D FILE^DICN
+ S DA=+Y
+ I DA=-1 S II=II+1,@DATA@(II)="-1^Unable to create record"_$C(30) Q
+ S BQIUPD(90509,DA_",",.02)=BQIDFN
+ S BQIUPD(90509,DA_",",.03)=BQISTA
+ S BQIUPD(90509,DA_",",.04)=DATE
+ S BQIUPD(90509,DA_",",.05)=USR
+ S BQIUPD(90509,DA_",",.06)=SCOM
+ D FILE^DIE("","BQIUPD","ERROR")
+ I $D(BQTX)>0 D WP^DIE(90509,DA_",",1,"","BQTX","ERROR")
+ I $D(ERROR) S II=II+1,@DATA@(II)="-1"_"^"_$G(ERROR("DIERR",1,"TEXT",1))_$C(30) Q
+ I BQISTA="A" D MOV(BQIDFN,BQITAG)
+ ;
+ S BQIRDA=$O(^BQIREG("C",BQIDFN,BQITAG,""))
+ I BQIRDA D HIER
+ ;
+ S II=II+1,@DATA@(II)="1^"_$C(30)
+ Q
+ ;
+UPAT(BQIRDA,BQIDFN,BQISTA,DATE,USR,SCOM,BQTX) ;EP - Update patient record
+ NEW BQIUPD,ERROR,DIC,DA,PUSR,PSTAT,PCOM
+ ; Build history record
+ K FDA
+ ;S IENS="+1,"_BQIRDA_","
+ ;
+ S PSTAT=$P(^BQIREG(BQIRDA,0),U,3)
+ S PUSR=$P(^BQIREG(BQIRDA,0),U,5)
+ S PCOM=$P(^BQIREG(BQIRDA,0),U,6)
+ ;
+ S DIC(0)="L",DA(1)=BQIRDA,DIC="^BQIREG("_DA(1)_",10,",DIE=DIC
+ I $G(^BQIREG(DA(1),10,0))="" S ^BQIREG(DA(1),10,0)="^90509.01D^^"
+ S X=$$NOW^XLFDT()
+ K DO,DD D FILE^DICN S DA=+Y I DA=-1 Q
+ ;
+ S IENS=$$IENS^DILF(.DA)
+ S FDA(90509.01,IENS,.02)=PSTAT
+ S FDA(90509.01,IENS,.03)=PUSR
+ S FDA(90509.01,IENS,.04)=PCOM
+ S FDA(90509.01,IENS,.05)=$P(^BQIREG(BQIRDA,0),U,4)
+ D FILE^DIE("","FDA","ERROR")
+ ; Move comments
+ D WP^DIE(90509.01,IENS,1,"","^BQIREG(BQIRDA,1)")
+ ; Move factors
+ S NDA=0
+ F  S NDA=$O(^BQIREG(DA(1),5,NDA)) Q:'NDA  D
+ . S ^BQIREG(DA(1),10,DA,5,NDA,0)=^BQIREG(DA(1),5,NDA,0)
+ . S ^BQIREG(DA(1),10,DA,5,"B",NDA,NDA)=""
+ . K ^BQIREG(DA(1),5,NDA)
+ I $G(^BQIREG(DA(1),5,0))'="" S ^BQIREG(DA(1),10,DA,5,0)=$G(^BQIREG(DA(1),5,0))
+ K ^BQIREG(DA(1),5)
+ ;
+ I PSTAT="P" D MOV(BQIDFN,TAG)
+ ;
+ ; Set the new current values
+ S BQIUPD(90509,BQIRDA_",",.03)=BQISTA
+ S BQIUPD(90509,BQIRDA_",",.04)=DATE
+ S BQIUPD(90509,BQIRDA_",",.05)=USR
+ S BQIUPD(90509,BQIRDA_",",.06)=SCOM
+ S BQIUPD(90509,BQIRDA_",",1)="@"
+ D FILE^DIE("","BQIUPD","ERROR")
+ K ERROR
+ ;
+ I $D(BQTX)>0 D WP^DIE(90509,BQIRDA_",",1,"","BQTX","ERROR")
+ ;
+ D HIER
+ ;
+ I $D(ERROR) S II=II+1,@DATA@(II)="-1^"_$C(30)
+ E  S II=II+1,@DATA@(II)="1^"_$C(30)
+ Q
+ ;
+MOV(BQIDFN,BQITAG) ;EP - Move factors
+ NEW BQIFN,BQIFAC,BQIDID,BQIRN,BQIREC,BQIRDT,BQIREX,BQIIEN,ADD
+ NEW BQIFIL,BQIVPR,BQII,SUBREG,STFILE,STFLD,RGDATA,GLBNOD,BQIASRG
+ I $G(^BQIPAT(BQIDFN,20,BQITAG,0))="" Q
+ S BQIDID=$P(^BQIPAT(BQIDFN,20,BQITAG,0),U,2)
+ S BQIFN=0
+ F  S BQIFN=$O(^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN)) Q:'BQIFN  D
+ . S BQIFAC=$P($G(^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN,0)),U,1)
+ . I BQIFAC="" K ^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN) Q
+ . I BQIFAC["Age:" S BQIVPR="~" D CHKR Q
+ . S BQIRN=0
+ . F  S BQIRN=$O(^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN,1,BQIRN)) Q:'BQIRN  D
+ .. S BQIREC=$P(^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN,1,BQIRN,0),U,1)
+ .. S BQIRDT=$P(^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN,1,BQIRN,0),U,2)
+ .. S BQIREX=$P(^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN,1,BQIRN,0),U,3)
+ .. S BQIIEN=$P(^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN,1,BQIRN,0),U,4)
+ .. S BQIFIL=$P(^BQIPAT(BQIDFN,20,BQITAG,1,BQIFN,1,BQIRN,0),U,5)
+ .. I $E(BQIREC,1,1)="P" S BQIVPR=$E(BQIREC,2,$L(BQIREC))_";AUPNPROB("
+ .. I $E(BQIREC,1,1)="V" S BQIVPR=$E(BQIREC,2,$L(BQIREC))_";AUPNVSIT("
+ .. I BQIREC="" Q
+ .. D CHKR
+ .. Q
+ . I BQIFAC[" Tag" D CHKR
+ ;
+DEL ;Delete proposed tag data from BQIPAT
+ NEW DA,DIK
+ S DA(1)=BQIDFN,DA=BQITAG,DIK="^BQIPAT("_DA(1)_",20,"
+ D ^DIK
+ Q
+ ;
+NREC ;EP - Create new factor record
+ NEW DIC,DLAYGO,X,DA,BQIUPD,ERROR
+ I $G(DATE)="" S DATE=DT
+ S DIC(0)="L",DLAYGO=90509.5,X=BQIFAC,DIC="^BQIFACT("
+ K DO,DD D FILE^DICN
+ S (DA,RDA)=+Y
+ S BQIUPD(90509.5,DA_",",.02)=BQIDFN
+ S BQIUPD(90509.5,DA_",",.03)=BQITAG
+ S BQIUPD(90509.5,DA_",",.04)=DATE
+ S BQIUPD(90509.5,DA_",",.05)=$G(BQIVPR)
+ S BQIUPD(90509.5,DA_",",.06)=$G(BQIRDT)
+ S BQIUPD(90509.5,DA_",",.07)=$G(BQIIEN)
+ S BQIUPD(90509.5,DA_",",.08)=$G(BQIFIL)
+ S BQIUPD(90509.5,DA_",",.09)=$G(BQIREX)
+ S BQIUPD(90509.5,DA_",",.1)=BQIDID
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+CF ; Set the factor into the CURRENT FACTORS multiple in ^BQIREG
+ NEW RIEN,DIC,DLAYGO,X,DA
+ S RIEN=$O(^BQIREG("C",BQIDFN,BQITAG,""))
+ I $G(^BQIREG(RIEN,5,0))="" S ^BQIREG(RIEN,5,0)="^90509.05P^^"
+ S DA(1)=RIEN
+ S DIC(0)="L",DLAYGO=90509.05,(X,DINUM)=RDA,DIC="^BQIREG("_DA(1)_",5,"
+ K DO,DD D FILE^DICN
+ Q
+ ;
+CHKR ;EP - Check for record
+ NEW BQIIFACT,BQIISR,BQIIFAC,BQIITG,BQIIVPR
+ S BQII=""
+ I $O(^BQIFACT("C",BQIDFN,BQITAG,BQII))="" D NREC Q
+ F  S BQII=$O(^BQIFACT("C",BQIDFN,BQITAG,BQII)) Q:BQII=""  D
+ . S BQIIFACT=^BQIFACT(BQII,0)
+ . S BQIIFAC=$P(BQIIFACT,U,1)
+ . S BQIITG=$P(BQIIFACT,U,3) S:BQIITG="" BQIITG="~"
+ . S BQIIVPR=$P(BQIIFACT,U,5) S:BQIIVPR="" BQIIVPR="~"
+ . S BQIISR(BQIIFAC,BQIITG,BQIIVPR)=""
+ ;
+ I '$D(BQIISR(BQIFAC,BQITAG)) D NREC Q
+ I '$D(BQIISR(BQIFAC,BQITAG,BQIVPR)) D NREC
+ Q
+ ;
+HIER ; Check for hierarchy and if BQISTA="N", set the next lower one
+ NEW TAG,THCFL,OK,NSTAT,HTAG,HSN,FCN,HIEN
+ S TAG=$P(^BQIREG(BQIRDA,0),U,1)
+ S THCFL=+$P(^BQI(90506.2,TAG,0),U,10)
+ I THCFL D
+ . I BQISTA="N" D
+ .. S OK=$$LOW^BQITDUTL(BQIDFN,TAG)
+ .. I 'OK Q
+ .. S HTAG=$P(OK,U,2)
+ .. S NSTAT=$S(HTAG=9:"A",1:"P")
+ .. D EN(.RDATA,BQIDFN,HTAG,NSTAT,,"REACTIVATED TAG",5)
+ .. ; Find the previous factors and move them back out of history
+ .. S HSN="A",QFL=0,HIEN=$O(^BQIREG("C",BQIDFN,HTAG,""))
+ .. F  S HSN=$O(^BQIREG(HIEN,10,HSN),-1) Q:'HSN  D  Q:QFL
+ ... S FCN=0
+ ... F  S FCN=$O(^BQIREG(HIEN,10,HSN,5,FCN)) Q:'FCN  D
+ .... S ^BQIREG(HIEN,5,FCN,0)=^BQIREG(HIEN,10,HSN,5,FCN,0)
+ .... S ^BQIREG(HIEN,5,"B",FCN,FCN)="",QFL=1
+ ... I QFL S ^BQIREG(HIEN,5,0)=^BQIREG(HIEN,10,HSN,5,0)
+ . ; If new active status, check for others in the hierarchy
+ . I BQISTA="A"!(BQISTA="P") D
+ .. S HSN="A",QFL=0
+ .. F  S HSN=$O(^BQIREG(BQIRDA,10,HSN),-1) Q:'HSN  D  Q:QFL
+ ... S FCN=0
+ ... F  S FCN=$O(^BQIREG(BQIRDA,10,HSN,5,FCN)) Q:'FCN  D
+ .... S ^BQIREG(BQIRDA,5,FCN,0)=^BQIREG(BQIRDA,10,HSN,5,FCN,0)
+ .... S ^BQIREG(BQIRDA,5,"B",FCN,FCN)="",QFL=1
+ ... I QFL S ^BQIREG(BQIRDA,5,0)=^BQIREG(BQIRDA,10,HSN,5,0)
+ .. ; if active lower, make it inactive with superseded
+ .. S OK=$$LOW^BQITDUTL(BQIDFN,TAG)
+ .. I OK S HTAG=$P(OK,U,2) D
+ ... I '$P(OK,U,3) Q
+ ... D EN(.RDATA,BQIDFN,HTAG,"S",,"SUPERSEDED",4)
+ Q

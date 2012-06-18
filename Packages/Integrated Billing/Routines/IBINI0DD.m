@@ -1,0 +1,118 @@
+IBINI0DD	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,"OPT",2523,10,17,0)
+	;;=3382^CONT
+	;;^UTILITY(U,$J,"OPT",2523,10,17,"^")
+	;;=IB OUTPUT CONTINUOUS PATIENTS
+	;;^UTILITY(U,$J,"OPT",2523,10,18,0)
+	;;=3437^HOLD
+	;;^UTILITY(U,$J,"OPT",2523,10,18,"^")
+	;;=IB OUTPUT HELD CHARGES
+	;;^UTILITY(U,$J,"OPT",2523,10,19,0)
+	;;=3537^EVNT
+	;;^UTILITY(U,$J,"OPT",2523,10,19,"^")
+	;;=IB OUTPUT EVENTS REPORT
+	;;^UTILITY(U,$J,"OPT",2523,10,20,0)
+	;;=4126^EMPL
+	;;^UTILITY(U,$J,"OPT",2523,10,20,"^")
+	;;=IB OUTPUT EMPLOYER REPORT
+	;;^UTILITY(U,$J,"OPT",2523,99)
+	;;=55901,48002
+	;;^UTILITY(U,$J,"OPT",2523,"U")
+	;;=PATIENT BILLING REPORTS MENU
+	;;^UTILITY(U,$J,"OPT",2529,0)
+	;;=IB MANAGER MENU^Integrated Billing Master Menu^^M^^^^^^^^INTEGRATED BILLING^^1
+	;;^UTILITY(U,$J,"OPT",2529,1,0)
+	;;=^^1^1^2940126^^
+	;;^UTILITY(U,$J,"OPT",2529,1,1,0)
+	;;=This is the master IB menu that will contain all the IB options.
+	;;^UTILITY(U,$J,"OPT",2529,10,0)
+	;;=^19.01IP^7^7
+	;;^UTILITY(U,$J,"OPT",2529,10,1,0)
+	;;=2523^OUTP^80
+	;;^UTILITY(U,$J,"OPT",2529,10,1,"^")
+	;;=IB OUTPUT PATIENT REPORT MENU
+	;;^UTILITY(U,$J,"OPT",2529,10,2,0)
+	;;=2484^IRM^99
+	;;^UTILITY(U,$J,"OPT",2529,10,2,"^")
+	;;=IB SITE MGR MENU
+	;;^UTILITY(U,$J,"OPT",2529,10,3,0)
+	;;=2406^SUP^50
+	;;^UTILITY(U,$J,"OPT",2529,10,3,"^")
+	;;=IB BILLING SUPERVISOR MENU
+	;;^UTILITY(U,$J,"OPT",2529,10,4,0)
+	;;=1217^CLER^10
+	;;^UTILITY(U,$J,"OPT",2529,10,4,"^")
+	;;=IB BILLING CLERK MENU
+	;;^UTILITY(U,$J,"OPT",2529,10,5,0)
+	;;=4093^EF^30
+	;;^UTILITY(U,$J,"OPT",2529,10,5,"^")
+	;;=IBDF ENCOUNTER FORM
+	;;^UTILITY(U,$J,"OPT",2529,10,6,0)
+	;;=4160^PI^40
+	;;^UTILITY(U,$J,"OPT",2529,10,6,"^")
+	;;=IBCN INSURANCE MGMT MENU
+	;;^UTILITY(U,$J,"OPT",2529,10,7,0)
+	;;=4152^CT^20
+	;;^UTILITY(U,$J,"OPT",2529,10,7,"^")
+	;;=IBT MANAGER MENU
+	;;^UTILITY(U,$J,"OPT",2529,20)
+	;;=D MENU^IBECK
+	;;^UTILITY(U,$J,"OPT",2529,99)
+	;;=55914,52857
+	;;^UTILITY(U,$J,"OPT",2529,99.1)
+	;;=55607,67132
+	;;^UTILITY(U,$J,"OPT",2529,"U")
+	;;=INTEGRATED BILLING MASTER MENU
+	;;^UTILITY(U,$J,"OPT",2558,0)
+	;;=IB REPOST^Repost IB Action to Filer^^R^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"OPT",2558,1,0)
+	;;=^^2^2^2910401^
+	;;^UTILITY(U,$J,"OPT",2558,1,1,0)
+	;;=Option allows passing of IB action entries that did not successfully
+	;;^UTILITY(U,$J,"OPT",2558,1,2,0)
+	;;=pass to AR to be reposted to the IB filer.
+	;;^UTILITY(U,$J,"OPT",2558,15)
+	;;=
+	;;^UTILITY(U,$J,"OPT",2558,20)
+	;;=
+	;;^UTILITY(U,$J,"OPT",2558,25)
+	;;=IBAREP
+	;;^UTILITY(U,$J,"OPT",2558,"U")
+	;;=REPOST IB ACTION TO FILER
+	;;^UTILITY(U,$J,"OPT",2559,0)
+	;;=IB OUTPUT INQ BY PATIENT^Patient IB Action Inquiry^^R^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"OPT",2559,1,0)
+	;;=^^2^2^2910401^
+	;;^UTILITY(U,$J,"OPT",2559,1,1,0)
+	;;=This inquiry will provide a brief display of IB actions for select patients
+	;;^UTILITY(U,$J,"OPT",2559,1,2,0)
+	;;=for a selected date range.
+	;;^UTILITY(U,$J,"OPT",2559,15)
+	;;=
+	;;^UTILITY(U,$J,"OPT",2559,20)
+	;;=
+	;;^UTILITY(U,$J,"OPT",2559,25)
+	;;=EN1^IBODISP
+	;;^UTILITY(U,$J,"OPT",2559,"U")
+	;;=PATIENT IB ACTION INQUIRY
+	;;^UTILITY(U,$J,"OPT",2560,0)
+	;;=IB OUTPUT IB INQ^Inquire an IB Action^^R^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"OPT",2560,1,0)
+	;;=^^1^1^2910401^
+	;;^UTILITY(U,$J,"OPT",2560,1,1,0)
+	;;=This option will display a captioned inquiry of one IB Action.
+	;;^UTILITY(U,$J,"OPT",2560,15)
+	;;=
+	;;^UTILITY(U,$J,"OPT",2560,20)
+	;;=
+	;;^UTILITY(U,$J,"OPT",2560,25)
+	;;=IBODISP
+	;;^UTILITY(U,$J,"OPT",2560,"U")
+	;;=INQUIRE AN IB ACTION
+	;;^UTILITY(U,$J,"OPT",2562,0)
+	;;=IB OUTPUT VERIFY RX LINKS^Verify RX Co-Pay Links^^R^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"OPT",2562,1,0)
+	;;=^^3^3^2920722^^^^

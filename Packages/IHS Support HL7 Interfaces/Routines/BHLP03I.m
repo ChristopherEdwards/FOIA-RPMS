@@ -1,0 +1,84 @@
+BHLP03I ; cmi/anchorage/maw - BHL File Inbound PO3 Segment ;
+ ;;3.01;BHL IHS Interfaces with GIS;**1,15**;JUN 01, 2002
+ ;
+ ;this routine will file the P03 event especially for the GIS/Pyxis
+ ;interface
+ ;
+MAIN ;EP;-- this is the main routine driver
+ D M1
+EOJ ;-- clean up the variables
+ K BHLDA,BHLTDT,BHLTPDT,BHLTYP,BHLTCD,BHLDES,BHLQTY,BHLPBY
+ K DD,DO,DIC,Y,BHLPT,BHLAMT
+ Q
+M1 D PTLK
+ Q:'$G(BHLPT)
+ D PROCESS
+ Q
+PTLK ;-- lookup the patient
+ S BHLR="PID"
+ S BHLLOC=$E($G(@BHLTMP@(1,3)),1,6)
+ S BHLPTCHT=+$G(@BHLTMP@(1,2))
+ N X,Y
+ S X=$G(@BHLTMP@(1,5))
+ S X=$P(X,U)_","_$P(X,U,2)_$S($P(X,U,3)]"":" "_$P(X,U,3),1:"")
+ X ^%ZOSF("UPPERCASE")
+ S BHLPTNAM=$P(Y,",")_","_$E($P(Y,",",2))
+ S BHLPTN2=Y
+ S BHLPT=""
+ I BHLPTCHT D
+ .S BHLPTDA=0
+ .F  S BHLPTDA=$O(^AUPNPAT("D",BHLPTCHT,BHLPTDA)) Q:'BHLPTDA!$D(BHLQUIT)  D
+ ..I $G(^DPT(+BHLPTDA,0))[BHLPTNAM S BHLQUIT="",BHLPT=BHLPTDA Q
+ .K BHLQUIT
+ Q:$G(BHLPT)
+ S BHLPT=$O(^DPT("B",BHLPTN2,0))
+ I $O(^DPT("B",BHLPTN2,BHLPT)) S BHLPT=""
+ Q
+ ;
+PROCESS ;-- get the variables and file the data
+ N BHLDA,BHLTDT,BHLTPDT,BHLTYP,BHLDES,BHLQTY,BHLTAMT,BHLAMT,BHLTCD,BHLHCPC,BHLFSN,BHLHCPCX,BHLNDC
+ S BHLR="FT1"
+ S BHLTDT=$G(@BHLTMP@(1,4))
+ S BHLTPDT=$G(@BHLTMP@(1,5))
+ S BHLTYP=$G(@BHLTMP@(1,6))
+ S BHLDES=$G(@BHLTMP@(1,8))
+ S BHLQTY=+$G(@BHLTMP@(1,10))
+ S BHLTAMT=+$G(@BHLTMP@(1,11))/100
+ S BHLAMT=+$G(@BHLTMP@(1,12))/100
+ S BHLTCD=$P($G(@BHLTMP@(1,7)),U)
+ S BHLHCPC=""
+ S BHLDES=$P($G(@BHLTMP@(1,7)),U,2)
+ S BHLNDC=$TR(BHLTCD,"-","")
+ S:BHLNDC]"" BHLNDC=$O(^PSDRUG("NDC",BHLNDC,0))
+ S:BHLNDC BHLAMT=$P($G(^PSDRUG(+BHLNDC,660)),U,6)
+ S BHLFSN=$S(BHLTCD]"":$O(^PSDRUG("FSN",BHLTCD,0)),1:"")
+ S:BHLFSN BHLAMT=$P($G(^PSDRUG(+BHLFSN,660)),U,6)
+ D HCPC
+ K DD,DO,DR,DIC
+ S BHLDES=$S(BHLDES]"":BHLDES,1:"NO DESCRIPTION")
+ Q:BHLDES=""!'BHLPT
+ D NOW^%DTC
+ S DIC="^AUPNSUP("
+ S DIC(0)="L"
+ S X=$S(BHLDES]"":BHLDES,1:"NO DESCRIPTION")
+ S DIC("DR")=".02////"_$G(BHLPT)_";.03////"_$G(BHLTDT)_";.05////"_%_";1.01////"_$G(BHLTCD)_";1.03////"_$S($G(BHLNDC):BHLNDC,$G(BHLFSN):BHLFSN,1:"")_";.08////0"
+ S DIC("DR")=DIC("DR")_";2.01////"_$G(BHLDES)_";2.02////"_$G(BHLTPDT)
+ S DIC("DR")=DIC("DR")_";2.03////"_$G(BHLQTY)_";2.04////"_$G(BHLAMT)
+ S DIC("DR")=DIC("DR")_";2.05////"_$G(BHLHCPCX)_";2.06////270"
+ S DIC("DR")=DIC("DR")_";2.09////"_$G(BHLHCPC)
+ D FILE^DICN
+ K DIC
+ Q
+ ;
+HCPC ;PROCESS HCPC INFO
+ I $G(BHLHCPC)]"",$D(^ICPT("B",BHLHCPC)) D  Q:BHLHCPCX
+ .S BHLHCPCX=$O(^ICPT("B",BHLHCPC,0))
+ Q:'$G(BHLTCD)
+ N X
+ S X=$O(^BCMTCA("B",BHLTCD,0))
+ S X=$P($G(^BCMTCA(+X,11)),U,2)
+ Q:'X
+ ;S BHLHCPC=$P($$G(ICPT(X,0)),U)  ;cmi/anch/maw 8/27/2007 orig line
+ S BHLHCPC=$P($$CPT^ICPTCOD(X),U,2)  ;cmi/anch/maw 8/27/2007 code set versioning patch 15
+ S BHLHCPCX=X
+ Q

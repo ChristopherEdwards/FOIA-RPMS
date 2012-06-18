@@ -1,0 +1,103 @@
+AMHEGRPV ; IHS/CMI/LAB - NEW PROGRAM ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+ ;
+ ;GET POVS, ADD TO PROBLEM LIST, ADD TO PCC PROBLEM LIST
+ ;CALLED IN RECORD ADD
+EP2 ;EP
+ S APCDOVRR=""
+ D EN^XBNEW("EP^AMHEGRPV","AMHR;AMHPAT;AMHLOC;AMHDATE;APCDOVRR;AMHGROUP")
+ Q
+EP ;EP  -  ask for POV and file each
+ I 'AMHR W !!,"NO RECORD DEFINED!!" D XIT Q
+ I '$D(^AMHREC(AMHR)) W !!,"NO RECORD!!" D XIT Q
+ S APCDOVRR=""
+ S AMHDONE="" F  S AMHPOV="" D POV Q:AMHDONE=1
+ D CHK
+ D XIT
+ Q
+CHK ;
+ Q:$D(^AMHRPRO("AD",AMHR))
+ W !!,$C(7),$C(7),"At least ONE POV is REQUIRED!!"
+ S DIR(0)="Y",DIR("A")="Do you wish to exit and delete this record",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $G(Y)=0 G EP
+ Q
+POV ;
+ D HPOV1^AMHLESM
+ S AMHDT=$P(AMHDATE,".")
+ W !!?3,"Purpose of Visits currently recorded on this visit:"
+ I '$D(^AMHRPRO("AD",AMHR)) S AMHC=0 W "  None recorded" G FM12
+ ;D EN^DDIOL("P","","!?3"),EN^DDIOL("Start Date","","?43"),EN^DDIOL("End Date","","?63")
+ D EN^DDIOL($$REPEAT^XLFSTR("-",75),"","!?3")
+ K AMHCM S X=0,AMHC=0 F  S X=$O(^AMHRPRO("AD",AMHR,X)) Q:X'=+X  D
+ .S AMHC=AMHC+1,AMHCM(AMHC)=X
+ .W !?2,AMHC,")  ",$$VAL^XBDIQ1(9002011.01,X,.01),?14,$$VAL^XBDIQ1(9002011.01,X,.04)
+FM12 ;
+ D EN^DDIOL("","","!!")
+ K DIR
+ S DIR(0)="S^A:Add a POV"_$S(AMHC:";E:Edit an Existing POV;D:Delete an Existing POV",1:"")_";N:No Change"
+ S DIR("A")="Which action",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G FM13
+ I Y="N" S AMHDONE=1 G FM13
+ S Y="FM"_Y
+ D @Y
+ G POV
+FM13 ; 
+ K Y
+ Q
+ ;
+FME ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="N^1:"_AMHC_":0",DIR("A")="Edit Which One" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ K DIC,DA,DR
+ S DA=AMHCM(Y),DR=".01" ;.04"
+ S DIE="^AMHRPRO("
+ D ^DIE
+ S X=$$VAL^XBDIQ1(9002011.01,.DA,.04)
+ S X=$E(X,1,$S($P(^DD(9999999.27,.01,0),U,5)[">160":159,1:79))
+ S X=$TR(X,";",",")
+ ;
+ S DR=".04///"_X
+ D ^DIE
+ S DR=".04"
+ D ^DIE
+ Q
+FMD ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="N^1:"_AMHC_":0",DIR("A")="Delete Which One" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ K DIC,DA,DR
+ S DA=AMHCM(Y),DIK="^AMHRPRO(" D ^DIK K DA,DIK
+ Q
+FMA ;
+ S DIC("A")="Problem (POV) for this patient: ",DIC("S")="I '$P(^(0),U,13)",DIC="^AMHPROB(",DIC(0)="AEMQ"
+ W ! D ^DIC
+ I Y=-1 D ^XBFMK Q
+ S AMHPOV=$P(Y,U,2),AMHPOVP=+Y
+ ;call FILE^DICN to file this POV
+ ;
+ D ^XBFMK
+ K DD,D0,DO,DINUM,DIC,DA,DR S DIC(0)="EL",DIC="^AMHRPRO(",DLAYGO=9002011.01,DIADD=1
+ S Z=$$VAL^XBDIQ1(9002012.2,AMHPOVP,.02)
+ S Z=$E(Z,1,$S($P(^DD(9999999.27,.01,0),U,5)[">160":159,1:79))
+ S Z=$TR(Z,";",",")
+ S X=AMHPOVP,DIC("DR")=".04///"_Z
+ D FILE^DICN K DIC,DR,DIE,DIADD,DLAYGO,X,D0
+ I Y=-1 D ^XBFMK,XIT W !!,$C(7),$C(7),"Behavioral Health POV failed!!  Notify Site Manager." Q
+ S AMHRPRO=+Y,AMHPOVR=^AMHRPRO(AMHRPRO,0)
+ D ^XBFMK
+ S DIE("NO^")="",DA=AMHRPRO,DIE="^AMHRPRO(",DR=".02////"_$G(AMHPAT)_";.03////"_AMHR_";.04  Provider Narrative.....:" S DIE("NO^")="" D CALLDIE^AMHLEIN
+ S AMHPOVR=^AMHRPRO(AMHRPRO,0)
+ I $P(AMHPOVR,U,4)="" S X=$E($P(^AMHPROB($P(AMHPOVR,U),0),U,2),1,79),X=$TR(X,";"," "),DIE="^AMHRPRO(",DR=".04///"_X,DA=AMHRPRO S DIE("NO^")="" D CALLDIE^AMHLEIN
+ I $D(Y) D ^XBFMK,XIT W !!,$C(7),$C(7),"DIE failed when updating POV" D PAUSE^AMHLEA Q
+ S AMHPOVR=^AMHRPRO(AMHRPRO,0)
+ S AMHNARR=$S($P(AMHPOVR,U,4):$P(^AUTNPOV($P(AMHPOVR,U,4),0),U),1:"<NO PROVIDER NARRATIVE RECORDED>")
+ Q
+ ;
+XIT ;
+ K DIADD,DLAYGO
+ K AMHTX,AMHTY,AMHNARR,AMHLEPT,AMHNUM,AMHPOV,AMHPOVP,AMHPOVR,AMHRPRO,AMHDT,AMHLOOK
+ Q

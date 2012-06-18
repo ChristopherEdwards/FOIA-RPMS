@@ -1,0 +1,215 @@
+DG53244Q ;BPOIFO/KEITH - Post-init continuation for DG*5.3*244 ; 26 Jan 2002  8:33 PM
+ ;;5.3;Registration;**244**;Aug 13, 1993
+ ;
+72 ;Set values for NOP index
+ D MES^XPDUTL("Filing the 'NOP' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="NOP"
+ S DGFDA(.11,"+1,",.11)="Index of standardized values that don't match .01 value."
+ S DGFDA(.11,"+1,",.2)="R"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="I"
+ S DGFDA(.11,"+1,",.51)="2"
+ S DGFDA(.11,"+1,",.42)="LS"
+ S DGFDA(.11,"+1,",1.1)="S ^DPT(""NOP"",$E(X,1,30),DA)="""""
+ S DGFDA(.11,"+1,",2.1)="K ^DPT(""NOP"",$E(X,1,30),DA)"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2"
+ S DGFDA(.114,"+2,+1,",3)=".01"
+ S DGFDA(.114,"+2,+1,",6)="30"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ S DGFDA(.114,"+2,+1,",5)="S X=$$NOP^DPTNAME(X)"
+ S DGFDA(.114,"+2,+1,",5.3)="S X=$$NOP^DPTNAME(X)"
+ Q
+ ;
+100 ;Set values for ANAM01 index
+ D MES^XPDUTL("Filing the 'ANAM01' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM01"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with the .01 field."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="I"
+ S DGFDA(.11,"+1,",.51)="2"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2,.DA,.01,.DG20NAME,1.01,+$P($G(^DPT(DA,""NAME"")),U),""CL30"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2,.DA,.01,1.01) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2"
+ S DGFDA(.114,"+2,+1,",3)=".01"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q
+ ;
+101 ;Set values for ANAM201 index
+ D MES^XPDUTL("Filing the 'ANAM201' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM201"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with the .01 field."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="W"
+ S DGFDA(.11,"+1,",.51)="2.01"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2.01,.DA,.01,.DG20NAME,100.03,,""CL30"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2.01,.DA,.01,100.03) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2.01"
+ S DGFDA(.114,"+2,+1,",3)=".01"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q
+ ;
+102 ;Set values for ANAM1001 index
+ D MES^XPDUTL("Filing the 'ANAM1001' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM1001"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with field #30."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="W"
+ S DGFDA(.11,"+1,",.51)="2.101"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2.101,.DA,30,.DG20NAME,100.21,,""CL30"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2.101,.DA,30,100.21) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2.101"
+ S DGFDA(.114,"+2,+1,",3)="30"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q
+ ;
+103 ;Set values for ANAM211 index
+ D MES^XPDUTL("Filing the 'ANAM211' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM211"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with field #.211."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="I"
+ S DGFDA(.11,"+1,",.51)="2"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2,.DA,.211,.DG20NAME,1.02,+$P($G(^DPT(DA,""NAME"")),U,2),""CL35"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2,.DA,.211,1.02) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2"
+ S DGFDA(.114,"+2,+1,",3)=".211"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q
+ ;
+104 ;Set values for ANAM2191 index
+ D MES^XPDUTL("Filing the 'ANAM2191' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM2191"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with field #.2191."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="I"
+ S DGFDA(.11,"+1,",.51)="2"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2,.DA,.2191,.DG20NAME,1.03,+$P($G(^DPT(DA,""NAME"")),U,3),""CL35"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2,.DA,.2191,1.03) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2"
+ S DGFDA(.114,"+2,+1,",3)=".2191"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q
+ ;
+105 ;Set values for ANAM2401 index
+ D MES^XPDUTL("Filing the 'ANAM2401' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM2401"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with field #.2401."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="I"
+ S DGFDA(.11,"+1,",.51)="2"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2,.DA,.2401,.DG20NAME,1.04,+$P($G(^DPT(DA,""NAME"")),U,4),""CL35"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2,.DA,.2401,1.04) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2"
+ S DGFDA(.114,"+2,+1,",3)=".2401"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q
+ ;
+106 ;Set values for ANAM2402 index
+ D MES^XPDUTL("Filing the 'ANAM2402' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM2402"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with field #.2402."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="I"
+ S DGFDA(.11,"+1,",.51)="2"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2,.DA,.2402,.DG20NAME,1.05,+$P($G(^DPT(DA,""NAME"")),U,5),""CL35"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2,.DA,.2402,1.05) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2"
+ S DGFDA(.114,"+2,+1,",3)=".2402"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q
+ ;
+107 ;Set values for ANAM2403 index
+ D MES^XPDUTL("Filing the 'ANAM2403' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM2403"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with field #.2403."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="I"
+ S DGFDA(.11,"+1,",.51)="2"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2,.DA,.2403,.DG20NAME,1.06,+$P($G(^DPT(DA,""NAME"")),U,6),""CL35"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2,.DA,.2403,1.06) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2"
+ S DGFDA(.114,"+2,+1,",3)=".2403"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q
+ ;
+109 ;Set values for ANAM331 index
+ D MES^XPDUTL("Filing the 'ANAM331' index")
+ S DGFDA(.11,"+1,",.01)="2"
+ S DGFDA(.11,"+1,",.02)="ANAM331"
+ S DGFDA(.11,"+1,",.11)="This index keeps the NAME COMPONENTS file in synch with field #.331."
+ S DGFDA(.11,"+1,",.2)="MU"
+ S DGFDA(.11,"+1,",.4)="F"
+ S DGFDA(.11,"+1,",.41)="IR"
+ S DGFDA(.11,"+1,",.5)="I"
+ S DGFDA(.11,"+1,",.51)="2"
+ S DGFDA(.11,"+1,",.42)="A"
+ S DGFDA(.11,"+1,",1.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1,DG20NAME=X D NARY^DPTNAME(.DG20NAME),UPDCOMP^XLFNAME2(2,.DA,.331,.DG20NAME,1.07,+$P($G(^DPT(DA,""NAME"")),U,7),""CL35"") K DG20NAME Q"
+ S DGFDA(.11,"+1,",2.1)="I '$G(XUNOTRIG) N XUNOTRIG S XUNOTRIG=1 D DELCOMP^XLFNAME2(2,.DA,.331,1.07) Q"
+ S DGFDA(.114,"+2,+1,",.01)="1"
+ S DGFDA(.114,"+2,+1,",1)="F"
+ S DGFDA(.114,"+2,+1,",2)="2"
+ S DGFDA(.114,"+2,+1,",3)=".331"
+ S DGFDA(.114,"+2,+1,",7)="F"
+ S DGFDA(.114,"+2,+1,",.5)="1"
+ Q

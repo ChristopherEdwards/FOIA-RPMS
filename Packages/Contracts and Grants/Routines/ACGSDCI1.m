@@ -1,0 +1,119 @@
+ACGSDCI1 ;IHS/OIRM/DSD/THL,AEF - CONTROL CIS FIELDS AND EXPORT VARIABLES CON'T; [ 03/27/2000   2:22 PM ]
+ ;;2.0t1;CONTRACT INFORMATION SYSTEM;;FEB 16, 2000
+ ;;CONTROL CIS FIELDS AND EXPORT VARIABLES - CON'T
+13 S X=$E($P(ACGDT2,U,18),1,4),X=$S(X]"":X,1:"    ")
+ D Y
+18 S X=$E($P(ACGDT2,U,16)),X=$S(X]"":X,1:"2")
+ D Y
+19 S X=$E($P(ACGDT2,U,17)),X=$S("ABC"[$P(ACGDT3,U,7):" ",X]"":X,1:" ")
+ D Y
+23 S X=$E($P(ACGDT2,U,10)),X=$S(X]"":X,1:" ")
+ D Y
+25 S X=$E($P(ACGDT3,U,7)),X=$S(X]"":X,1:" ")
+ D Y
+33 S X=$E($P(ACGDT3,U,1)),X=$S(X]"":X,1:" ")
+ D Y
+37 S X=$E($P(ACGDT2,U,19),1,30)
+ S:$L(X)<30 X=X_$J(" ",30-$L(X))
+ D Y
+38 S X=$E($P(ACGDT2,U,20),1,12)
+ S:X]"" X=$S($L(X)=9:X,$L(X)=12:$E(X,2,10),1:"")
+ S:X="" X="         "
+ D Y
+42 S X=$E($P(ACGDT3,U,8)),X=$S(X]"":X,1:" ")
+ D Y
+43 S X=$E($P(ACGDT3,U,9)),X=$S(X]"":X,1:" ")
+ D Y
+44 S X=$E($P(ACGDT3,U,10)),X=$S(X]"":X,1:" ")
+ D Y
+45 S X=$P(ACGDT3,U,11),X=$S('X:" ",$D(^AUTTSOB(X,0)):$P(^(0),U),1:" ")
+ D Y
+57 S X=$P(ACGDT2,U,12),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+58 S X=$P(ACGDT2,U,13),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+59 S X=$P(ACGDT2,U,14),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+61 S X=$E($P(ACGDT3,U,12),1,10),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+ K ACGX
+62 S X=$E($P(ACGDT3,U,13),1,10),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+ K ACGX
+36 S X=$E($P(ACGDT2,U),1,10),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+ K ACGX
+137 S ACGFY=$E($P(ACGDT3,U,16),2)
+ I ACGFY="" S ACGFY=$P(ACGDT1,U,3),ACGFY=$S($E(ACGFY,4,5)>9:$E(ACGFY,3)+1,1:$E(ACGFY,3)) S:$L(ACGFY)=2 ACGFY=$E(ACGFY,2) S $P(ACGIHS,U,4)=9_ACGFY
+ S X=$E($P(ACGDT2,U,2),1,7),X=$S($L(X)=7:ACGFY_X,1:"        ")
+ D Y
+138 S X=$P(ACGDT2,U,3),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+ K ACGX
+39 S ACGFY=$E($P(ACGDT3,U,17),2)
+ I ACGFY="" S ACGFY=$P(ACGDT1,U,3),ACGFY=$S($E(ACGFY,4,5)>9:$E(ACGFY,3)+1,1:$E(ACGFY,3)) S:$L(ACGFY)=2 ACGFY=$E(ACGFY,2) S $P(ACGIHS,U,4)=9_ACGFY
+ S X=$E($P(ACGDT2,U,4),1,7),X=$S($L(X)=7:ACGFY_X,1:"        ")
+ D Y
+40 S X=$P(ACGDT2,U,5),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+41 S ACGFY=$E($P(ACGDT3,U,18),2)
+ I ACGFY="" S ACGFY=$P(ACGDT1,U,3),ACGFY=$S($E(ACGFY,4,5)>9:$E(ACGFY,3)+1,1:$E(ACGFY,3)) S:$L(ACGFY)=2 ACGFY=$E(ACGFY,2) S $P(ACGIHS,U,4)=9_ACGFY
+ S X=$E($P(ACGDT2,U,6),1,7),X=$S($L(X)=7:ACGFY_X,1:"        ")
+ D Y
+142 S X=$P(ACGDT2,U,7),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+143 S X=$P(ACGDT2,U,8),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+144 S X=$P(ACGDT2,U,9),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+46 S X=$P(ACGDT2,U,11),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+50 S X=$P(ACGDT2,U,15),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:11-$L(ACGSIGN)-$L(X) $P(ACGX,"0",11-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+157 S X=$E($P(ACGDT3,U,2)),X=$S(X]"":X,1:" ")
+ D Y
+158 S X=$E($P(ACGDT3,U,3)),X=$S(X]"":X,1:" ")
+ D Y
+159 S X=$P(ACGDT3,U,4),ACGSIGN=$S($E(X)="-":"-",1:""),ACGX=""
+ S:ACGSIGN="-" X=$P(X,"-",2)
+ S:10-$L(ACGSIGN)-$L(X) $P(ACGX,"0",10-$L(ACGSIGN)-$L(X))="" S X=ACGSIGN_ACGX_X
+ D Y
+60 S X=$E($P(ACGDT3,U,5)),X=$S(X]"":X,1:" ")
+ D Y
+161 S X=$E($P(ACGDT3,U,6),1,4),X=$S(X]"":"MULT",1:"    ")
+ D Y
+69 S X=$E($P(ACGDT3,U,14),1,12)
+ S:$L(X)<12 X=X_$J(" ",12-$L(X))
+ D Y
+70 S X="       "
+ D Y
+ K ACGX
+ Q
+Y S ACGY=ACGY_X
+ Q

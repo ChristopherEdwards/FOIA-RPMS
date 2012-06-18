@@ -1,0 +1,17 @@
+APSPOST6 ; IHS/DSD/ENM - OUTPATIENT PHARMACY FILE 50 MAINTENANCE ;  [ 09/03/97   1:30 PM ]
+ ;;6.0;IHS PHARMACY MODIFICATIONS;;09/03/97
+ ;This program will stuff the VA Drug Class Code in field 2 of the
+ ;zero node if data exist in the 6th piece of the "ND" node
+EP ;
+ D START
+ K APSPE,APSPDC,^TMP("PSOP-CLASS"),DIK,DA
+ Q
+START S APSPE=0
+ I $D(^TMP("PSOP-CLASS")) S APSPE=^TMP("PSOP-CLASS")-1
+ ;
+ F  S APSPE=$O(^PSDRUG(APSPE)) Q:'APSPE  S APSPDC=$P($G(^PSDRUG(APSPE,"ND")),"^",6) D
+ .S ^TMP("PSOP-CLASS")=APSPE
+ .I APSPDC="" S $P(^PSDRUG(APSPE,0),"^",2)="" Q
+ .S $P(^PSDRUG(APSPE,0),"^",2)=$P($G(^PS(50.605,APSPDC,0)),"^")
+ .S DIK="^PSDRUG(",DA=APSPE,DIK(1)="2^AC^APCC" D EN^DIK
+ Q

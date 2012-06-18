@@ -1,0 +1,20 @@
+APSPSUM ; IHS/DSD/ENM - SUMMARY LABEL LIST/SELECT RX'S ;21-Mar-2004 20:48;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;;09/03/97
+ ; Modified - IHS/CIA/PLS - 01/21/04 - Changed calls to PSONUM to APSPNUM
+EP ;
+ S PSOOPT=-1,PSONUM="LIST" D EN^APSPNUM
+ Q
+RANGE ;
+ I '$D(PSOSD) D ^PSOBUILD
+ I $D(PSOSD)'>1 W !,"This patient has no prescriptions to act on. " G RANGEX
+ S PSOHI=PSOSD
+ ;I $G(PSOOPT)'=3,$G(PSOOPT)'=4 N:$G(PSOOPT)]"" PSOOPT S PSOOPT=-1
+ ;D ^PSODSPL Q:PSOQFLG  ;display profile
+ I '$G(APSPFLG) D ^PSODSPL Q:PSOQFLG  ;IHS/DSD/ENM 3.29.93 display profile
+ D ^APSPLIST ;select range of #s to refill
+ I 'Y Q
+ ;F PS=1:1 Q:'$D(Y(PS))
+ ;S M=1,PSOLIST(1)=""
+ ;F I=1:1:PS-1 F J=1:1:$L(Y(I),",") S N=$P(Y(I),",",J) S DRG="" F K=1:1:N S DRG=$O(PSOSD(DRG)),RXN=+PSOSD(DRG) S:K=N PSOLIST(M)=PSOLIST(M)_RXN_"," S:$L(PSOLIST(M)_RXN_1)>220 M=M+1,PSOLIST(M)=""
+ ;K X,Y,DIR
+RANGEX Q

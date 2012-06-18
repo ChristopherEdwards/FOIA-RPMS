@@ -1,0 +1,58 @@
+BQI2PRE ;PRXM/HC/ALA-Version 2.0 Pre-Install ; 01 Nov 2007  3:14 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+EN ;  Remove existing data fields
+ NEW DIK,DA,NAM
+ K ^XTMP("BQICARE")
+ S ^XTMP("BQICARE",0)=$D(^BQICARE)
+ S ^XTMP("BQICARE","VISIT")=$G(^BQI(90508,1,"VISIT"))
+ S ^XTMP("BQICARE","VER")=$$VERSION^XPDUTL("BQI")
+ S ^XTMP("BQICARE",3)=$G(^BQI(90508,1,3))
+ S ^XTMP("BQICARE",4)=$G(^BQI(90508,1,4))
+ ;
+ NEW DA,DIK
+ S DA=0,DIK="^BQI(90505.2,"
+ F  S DA=$O(^BQI(90505.2,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506,"
+ F  S DA=$O(^BQI(90506,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.1,"
+ F  S DA=$O(^BQI(90506.1,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.2,"
+ F  S DA=$O(^BQI(90506.2,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.3,"
+ F  S DA=$O(^BQI(90506.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.6,"
+ F  S DA=$O(^BQI(90506.6,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507,"
+ F  S DA=$O(^BQI(90507,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507.1,"
+ F  S DA=$O(^BQI(90507.1,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507.3,"
+ F  S DA=$O(^BQI(90507.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=1,DIK="^BQI(90508," D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90508.5,"
+ F  S DA=$O(^BQI(90508.5,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.5,"
+ F  S DA=$O(^BQI(90506.5,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.4,"
+ F  S DA=$O(^BQI(90506.4,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507.8,"
+ F  S DA=$O(^BQI(90507.8,DA)) Q:'DA  D ^DIK
+ ;
+ ; Clean up HIV/AIDS tags for alpha/beta sites
+ S DA="",DIK="^BQIREG("
+ F  S DA=$O(^BQIREG("B",3,DA)) Q:DA=""  D ^DIK
+ Q

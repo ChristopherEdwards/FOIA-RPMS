@@ -1,0 +1,48 @@
+ABMURCN2 ; IHS/SD/SDR - 3PB/UFMS Reconcile Sessions Option (2)   
+ ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;split routine from ABMURCON
+ ; IHS/SD/SDR - abm*2.6*1 - Added fields (3PMS10019):
+ ;   FIXPMS10001 and FIXPMS10011 - Date of Service
+ ;   FIXPMS10026 - Visit type
+ ;   FIXPMS10027 - Insurer Type
+ ;
+RECORD ;EP
+ D GETBILL^ABMUCUTL(ABMPREC)
+ S ABMEXCLD=$$BILL^ABMUEAPI($P(ABMPREC,U,2),$P(ABMPREC,U,3))  ;exclude table entry?
+ I ABMEXCLD<1 D BATCH^ABMURCON,BILL^ABMURCON Q  ;flag as excluded data in batch/on bill & quit
+ I $P($G(^ABMDPARM($P(ABMPREC,U,2),1,4)),U,14)=0 S ABMEXCLD=0 D BATCH^ABMURCON,BILL^ABMURCON Q  ;if do not export, flag as excluded data in batch/on bill & quit
+ S ABMCNT=ABMCNT+1
+ ;CAN#
+ ;returns-budget act(10) & cost center(3)
+ S ABMCAN=$$EP^ABMUCAPI(ABMP("ITYP"),ABMCLN,ABMDTAPP,ABMSASUF)
+ S ABMREC=ABMRECT_$$FMT^ABMERUTL(ABMPASUF_ABMSASUF_$S(+$G(ABMUAOF)'=0:$P($G(^AUTTLOC(ABMP("LDFN"),0)),U,7),1:"")_ABMP("BDFN"),40)  ;inv#
+ S ABMREC=ABMREC_$$SDT^ABMDUTL(ABMDTAPP)  ;Dt/Tm Approved (MM/DD/YYYY) from 3P Bill file
+ S ABMREC=ABMREC_$$FMT^ABMERUTL(ABMTAXID,10)  ;TAX ID (.11)-Insurer file
+ S ABMDESC=ABMPASUF_ABMSASUF_$S(+$G(ABMUAOF)'=0:$P($G(^AUTTLOC(ABMP("LDFN"),0)),U,7),1:"")_ABMPBNUM
+ S ABMREC=ABMREC_$$FMT^ABMERUTL(ABMDESC,100)  ;<parASUFAC><satASUFAC>3P BILL#
+ S ABMREC=ABMREC_$$FMT^ABMERUTL($TR($J(ABMP("BAMT"),".",2),"."),"20NR")  ;bill amount
+ S ABMREC=ABMREC_$$FMT^ABMERUTL("","10R")  ;CAN-don't send; calculated by IE
+ S ABMREC=ABMREC_$$FMT^ABMERUTL(ABMTCODE,"10R")
+ S ABMREC=ABMREC_ABMOCL
+ S ABMREC=ABMREC_ABMCAN  ;this is actually ba/cc
+ I "^R^MD^MH^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="MCR"
+ I "^D^K^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="MCD"
+ I "^H^M^P^F^T^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="PRV"
+ I "^W^C^N^G^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="OTH"
+ S ABMPTIN=ABMSASUF_ABMPTIN
+ ;
+ K DIC,DIE,X,Y,DA
+ S DIE="^ABMDBILL("_$P(ABMPREC,U,2)_","
+ S DA=$P(ABMPREC,U,3)
+ S DR=".114////"_ABMPTIN
+ D ^DIE
+ ;
+ S ABMREC=ABMREC_$$FMT^ABMERUTL(ABMPTIN,10)
+ S ABMREC=ABMREC_$$SDT^ABMDUTL(ABMP("DOS"))  ;DOS - abm*2.6*2 FIXPMS10011
+ S ABMREC=ABMREC_$$FMT^ABMERUTL(ABMP("VTYP"),50)  ;visit type - abm*2.6*2 FIXPMS10026
+ S ABMREC=ABMREC_$$FMT^ABMERUTL(ABMP("ITYP"),10)  ;ins type - abm*2.6*2 FIXPMS10027
+ S ^ABMUFMS($J,ABMCNT)=ABMREC
+ S ABMTOT=+$G(ABMTOT)+(ABMP("BAMT"))
+ D BATCH^ABMURCON  ;put bill into batch file
+ D BILL^ABMURCON  ;put entry in bill mult for transmit dt
+ Q

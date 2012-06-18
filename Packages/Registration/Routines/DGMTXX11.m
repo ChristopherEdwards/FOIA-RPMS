@@ -1,0 +1,21 @@
+DGMTXX11 ; COMPILED XREF FOR FILE #408.21 ; 02/13/06
+ ; 
+ S DIKZK=2
+ S DIKZ(0)=$G(^DGMT(408.21,DA,0))
+ S X=$P(DIKZ(0),U,2)
+ I X'="" K ^DGMT(408.21,"AI",X,-$P(^DGMT(408.21,DA,0),U),DA)
+ S X=$P(DIKZ(0),U,2)
+ I X'="" K ^DGMT(408.21,"C",$E(X,1,30),DA)
+ S X=$P(DIKZ(0),U,14)
+ I X'="" I $D(^DGMT(408.21,DA,0)),$P(^(0),U,14)="" D EMP^DGMTDD3
+ S DIKZ(2)=$G(^DGMT(408.21,DA,2))
+ S X=$P(DIKZ(2),U,4)
+ I X'="" I $D(^DGMT(408.21,DA,2)),$P(^(2),U,4)="" D OTH^DGMTDD3
+ S DIKZ("MT")=$G(^DGMT(408.21,DA,"MT"))
+ S X=$P(DIKZ("MT"),U,1)
+ I X'="" K ^DGMT(408.21,"AM",$E(X,1,30),DA)
+ S X=$P(DIKZ(0),U,1)
+ I X'="" K ^DGMT(408.21,"B",$E(X,1,30),DA)
+ S X=$P(DIKZ(0),U,1)
+ I X'="" K ^DGMT(408.21,"AI",+$P(^DGMT(408.21,DA,0),U,2),-X,DA)
+END Q

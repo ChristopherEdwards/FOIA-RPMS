@@ -1,0 +1,60 @@
+IBINI0D2	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,"DIPT",1054,"H")
+	;;=BILLING THRESHOLDS LIST
+	;;^UTILITY(U,$J,"DIPT",1055,0)
+	;;=IB BILLING PATIENT^2930319.1333^@^354^1453^@^2930507
+	;;^UTILITY(U,$J,"DIPT",1055,"F",1)
+	;;=.01;"PATIENT";L25~-2,^DPT(^^S I(0,0)=D0 S DIP(1)=$S($D(^IBA(354,D0,0)):^(0),1:"") S X=$P(DIP(1),U,1),X=X S D(0)=+X;Z;"PATIENT NAME:"~-2,.363;"PT ID";L15~
+	;;^UTILITY(U,$J,"DIPT",1055,"F",2)
+	;;=-2,.361;"PRIMARY ELIGILITY";L20~.04;"STATUS";L15~.05;L22;"REASON"~.03;"STATUS DATE";L12~D CNT^IBARXEP;"";L1;Z;"D CNT^IBARXEP"~
+	;;^UTILITY(U,$J,"DIPT",1055,"H")
+	;;=BILLING PATIENT LIST
+	;;^UTILITY(U,$J,"DIPT",1056,0)
+	;;=IB BILLING PATIENT SUMMARY^2930121.1011^@^354^1453^@^2930429
+	;;^UTILITY(U,$J,"DIPT",1056,"F",2)
+	;;=D CNT^IBARXEP;"";Z;"D CNT^IBARXEP"~
+	;;^UTILITY(U,$J,"DIPT",1056,"H")
+	;;=BILLING PATIENT LIST
+	;;^UTILITY(U,$J,"DIPT",1056,"IOM")
+	;;=80
+	;;^UTILITY(U,$J,"DIPT",1056,"LAST")
+	;;=
+	;;^UTILITY(U,$J,"DIPT",1056,"ROUOLD")
+	;;=
+	;;^UTILITY(U,$J,"DIPT",1078,0)
+	;;=IB BILLING PAT W/INCOME^2940302.0817^@^354^1453^@^2940302
+	;;^UTILITY(U,$J,"DIPT",1078,"DXS",1,9.2)
+	;;=S D=0 F  S (D,D0)=$O(^DGPR(408.12,"B",I(100,0),D)) S:D="" (D,D0)=-1 Q:D'>0  I $D(^DGPR(408.12,D,0)) S X=$P(^(0),U,1) S:$D(^DPT(+X,0)) X=$P(^(0),U,1) S DIXX=DIXX(1) D M Q:'$D(D)  S D=D0
+	;;^UTILITY(U,$J,"DIPT",1078,"DXS",1,9.3)
+	;;=S I(0,0)=$S($D(D0):D0,1:""),DIP(1)=$S($D(^IBA(354,D0,0)):^(0),1:""),D0=$P(DIP(1),U,1) S:'$D(^DPT(+D0,0)) D0=-1 S D(0)=D0 S I(100,0)=$S($D(D0):D0,1:"") X DXS(1,9.2) S X=""
+	;;^UTILITY(U,$J,"DIPT",1078,"DXS",1,9.4)
+	;;=X DXS(1,9.3) S I(200,0)=$S($D(D0):D0,1:"") K DIC S DIC="^DGMT(408.21,",DIC(0)="NMF" D ^DIC S (D,D0,D(0))=+Y S DIP(301)=$S($D(^DGMT(408.21,D0,0)):^(0),1:"")
+	;;^UTILITY(U,$J,"DIPT",1078,"F",1)
+	;;=.01;"PATIENT";L25;S1~-2,^DPT(^^S I(0,0)=D0 S DIP(1)=$S($D(^IBA(354,D0,0)):^(0),1:"") S X=$P(DIP(1),U,1),X=X S D(0)=+X;Z;"PATIENT NAME:"~
+	;;^UTILITY(U,$J,"DIPT",1078,"F",2)
+	;;=-2,.363;"PT ID";L15~-2,.361;"PRIMARY ELIGILITY";L20~.04;"STATUS";L15~.05;L22;"REASON"~.03;"STATUS DATE";L12~
+	;;^UTILITY(U,$J,"DIPT",1078,"F",3)
+	;;=-2,^DPT(^^S I(0,0)=D0 S DIP(1)=$S($D(^IBA(354,D0,0)):^(0),1:"") S X=$P(DIP(1),U,1),X=X S D(0)=+X;Z;"PATIENT:"~-2,"           Phone:  ";"";C5~-2,.131;X;""~
+	;;^UTILITY(U,$J,"DIPT",1078,"F",4)
+	;;=-2,"         Address:  ";"";C5~-2,.111;"";L25;X~-2,.112;C24;"";L25~-2,.113;C24;"";L25~-2,.114;"";C24~-2,", ";"";X~-2,.115;"";X~-2,"  ";"";X~-2,.1112;"";X~
+	;;^UTILITY(U,$J,"DIPT",1078,"F",5)
+	;;=-408.21,^DGMT(408.21,^1^X DXS(1,9.4) S X=$P(DIP(301),U,1) S D0=I(0,0);Z;"PATIENT NAME:PATIENT RELATION:INDIVIDUAL ANNUAL INCOME:"~
+	;;^UTILITY(U,$J,"DIPT",1078,"F",6)
+	;;=-408.21,"     Income Year: ";C5;""~-408.21,.01;"";X~-408.21,"   Entered On: ";"";X~-408.21,102;"";X~D CNT^IBARXEP;"";Z;"D CNT^IBARXEP"~
+	;;^UTILITY(U,$J,"DIPT",1078,"F",7)
+	;;="Next Appointment:  ";"";C5~S X=.01,X=$$DAT1^IBOUTL($O(^DPT(D0,"S",DT))) W X K DIP;"";X;Z;"IBNEXTAPPT(.01)"~
+	;;^UTILITY(U,$J,"DIPT",1078,"F",8)
+	;;="==============================================================================";"";C1~
+	;;^UTILITY(U,$J,"DIPT",1078,"H")
+	;;=BILLING PATIENT LIST
+	;;^UTILITY(U,$J,"DIPT",1079,0)
+	;;=IB PATIENT ADDRESSES^2940302.0818^@^354^1453^@^2940309
+	;;^UTILITY(U,$J,"DIPT",1079,"F",1)
+	;;=.01;S1;""~-2,^DPT(^^S I(0,0)=D0 S DIP(1)=$S($D(^IBA(354,D0,0)):^(0),1:"") S X=$P(DIP(1),U,1),X=X S D(0)=+X;Z;"PATIENT:"~-2,.111;"";C1~-2,.112;"";C1~
+	;;^UTILITY(U,$J,"DIPT",1079,"F",2)
+	;;=-2,.113;"";C1~-2,.114;"";C1~-2,", ";"";X~-2,.115;"";X~-2,"  ";"";X~-2,.1112;"";X~
+	;;^UTILITY(U,$J,"DIPT",1079,"H")
+	;;=PATIENTS EXEMPT FROM MEDICATION COPAYMENT

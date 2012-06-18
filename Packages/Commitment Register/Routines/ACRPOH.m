@@ -1,0 +1,79 @@
+ACRPOH ; GENERATED FROM 'ACR PURCHASE ORDER INFO HEAD' PRINT TEMPLATE (#3888) ; 09/29/09 ; (FILE 9002196, MARGIN=80)
+ G BEGIN
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ S DISTP=DISTP+1,DILCT=DILCT+1 D:'(DISTP#100) CSTP^DIO2
+ Q
+DT I $G(DUZ("LANG"))>1,Y W $$OUT^DIALOGU(Y,"DD") Q
+ I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1 S DISTP=$G(DISTP),DILCT=$G(DILCT)
+ I $D(DXS)<9 M DXS=^DIPT(3888,"DXS")
+ S I(0)="^ACRDOC(",J(0)=9002196
+ D N:$X>14 Q:'DN  W ?14 W "UNITED STATES GOVERNMENT PURCHASE ORDER     PAGE:"
+ W ?65 S X=$S($D(DC)#2:DC,1:"") K DIP K:DN Y W X
+ D T Q:'DN  W ?2 W ! F ACRI=1:1:79 W "=" K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "FROM:"
+ D N:$X>40 Q:'DN  W ?40 W "TO:"
+ S X=$G(^ACRDOC(D0,"POIO")) D N:$X>0 Q:'DN  W ?0 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ S X=$G(^ACRDOC(D0,"PO")) D N:$X>40 Q:'DN  W ?40 S Y=$P(X,U,5) S Y=$S(Y="":Y,$D(^AUTTVNDR(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>0 Q:'DN  W ?0 X DXS(1,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(2,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 X DXS(3,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(4,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W " "
+ X DXS(5,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(6,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(7,9) K DIP K:DN Y W X
+ W " "
+ W ?51 X DXS(8,9.2) S X=$P(DIP(101),U,4) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 W "PHONE:"
+ W ?8 X DXS(9,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ W ?19 S ACRVDA=$P(^ACRDOC(D0,"PO"),U,5) K DIP K:DN Y
+ D N:$X>40 Q:'DN  W ?40 W "REMIT TO:"
+ W ?51 I $P(^AUTTVNDR(ACRVDA,13),U,6)="" W "(SAME)" K DIP K:DN Y
+ D N:$X>40 Q:'DN  W ?40 X DXS(10,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(11,9.2) S X=$P(DIP(101),U,7) S D0=I(0,0) K DIP K:DN Y W X
+ W ?51 X DXS(12,9) K DIP K:DN Y W $E(X,1,2)
+ W ?55 X DXS(13,9.2) S X=$P(DIP(101),U,9) S D0=I(0,0) K DIP K:DN Y W $E(X,1,10)
+ D N:$X>0 Q:'DN  W ?0 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>40 Q:'DN  W ?40 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "SHIP TO:"
+ D N:$X>40 Q:'DN  W ?40 W "BILL TO:"
+ S X=$G(^ACRDOC(D0,"POST")) D N:$X>0 Q:'DN  W ?0 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ S X=$G(^ACRDOC(D0,"POMI")) D N:$X>40 Q:'DN  W ?40 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>0 Q:'DN  W ?0 X DXS(14,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(15,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 X DXS(16,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(17,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W " "
+ X DXS(18,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(19,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(20,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W " "
+ X DXS(21,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 W "PHONE:"
+ W ?8 X DXS(22,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 W "PHONE:"
+ W ?48 X DXS(23,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>40 Q:'DN  W ?40 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "DATE OF ORDER:"
+ S X=$G(^ACRDOC(D0,"PO")) W ?16 S Y=$P(X,U,1) D DT
+ D N:$X>40 Q:'DN  W ?40 W "PURCHASE ORDER NO.:"
+ S X=$G(^ACRDOC(D0,0)) W ?61,$E($P(X,U,2),1,15)
+ D N:$X>40 Q:'DN  W ?40 W "DHHS #:    "
+ W $$EXPDN^ACRFUTL(D0) K DIP K:DN Y
+ D T Q:'DN  D N W ?0 W "(NOTE: PURCHASE ORDER NO. MUST APPEAR ON ALL PACKAGES, INVOICES AND PAPERS"
+ D N:$X>7 Q:'DN  W ?7 W "RELATING TO THIS ORDER.)"
+ K Y
+ Q
+HEAD ;
+ W !,"--------------------------------------------------------------------------------",!!

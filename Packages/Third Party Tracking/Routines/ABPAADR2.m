@@ -1,0 +1,40 @@
+ABPAADR2 ;PRINT DISTRIBUTION REPORT; [ 03/24/91  1:42 PM ]
+ ;;1.4;AO PVT-INS TRACKING;*0*;IHS-OKC/KJR;JULY 25, 1991
+ W !!,"<<< NOT AN ENTRY POINT - ACCESS DENIED >>>",!! Q
+COMMA D COMMA^%DTC Q
+ ;
+HEAD K ABPA("HD") S ABPA("HD",1)="R E P O R T   O F   P R I V A T E   "
+ S ABPA("HD",1)=ABPA("HD",1)_"I N S U R A N C E   F U N D   "
+ S ABPA("HD",1)=ABPA("HD",1)_"D I S T R I B U T I O N"
+ S ABPA("HD",2)="for the period "_$E(BDT,4,5)_"/"_$E(BDT,6,7)_"/"
+ S ABPA("HD",2)=ABPA("HD",2)_$E(BDT,2,3)_" to "_$E(EDT,4,5)_"/"
+ S ABPA("HD",2)=ABPA("HD",2)_$E(EDT,6,7)_"/"_$E(EDT,2,3)
+ D ^ABPAARHD Q
+ ;
+FC S FC=0 F T=1:1:15 S @("T"_T)=0
+ S TABLST="32^39^47^57^66^74^93^103^112^100^82^39^105^66^112"
+ S WDLST="6^6^12^6^6^12^12^6^6^12^5^6^6^6^6"
+NXTFC S FC=$O(^%ZTSK(ZTSK,"SITE",FC)) G SUM:FC="" S DATA=^%ZTSK(ZTSK,FC)
+ I ($P(DATA,"^",10)=0) G NXTFC
+ D:$Y>55 HEAD W !?20,FC
+ F P=1:1:15 S @("P"_P)=$P(DATA,"^",P),@("T"_P)=@("T"_P)+@("P"_P)
+ S P=10 D
+ .S TAB=$P(TABLST,"^",P),TAB="?"_TAB,WD=$P(WDLST,"^",P)
+ .S X=@("P"_P) D COMMA F I=1:1:12 Q:$E(X,I)'=" "
+ .W @TAB,$J(X,WD),!
+ G NXTFC
+ ;
+SUM F I=1:1:132 W "-"
+ W !?63,"D I S T R I B U T E D   T O T A L"
+ S T=10 D
+ .S TAB=$P(TABLST,"^",T),TAB="?"_TAB,WD=$P(WDLST,"^",T)
+ .S X=@("T"_T) D COMMA F I=1:1:12 Q:$E(X,I)'=" "
+ .S X=$E(X,I,12)
+ .W @TAB,$J(X,WD),!?99 F I=1:1:12 W "-"
+ D ^%AUCLS I $D(A("PRINT",10))=1 W @(A("PRINT",10))
+ X ^%ZIS("C") S IOP=$I D ^%ZIS K IOP
+ Q
+ ;
+MAIN S IOP=ABPA("IO") D ^%ZIS K IOP
+ D ^ABPAPRT I $D(A("PRINT",16))=1 W @(A("PRINT",16))
+ S ABPAPG=0,PART2=1,ZTSK=ABPA("TASK") D HEAD G FC

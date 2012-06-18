@@ -1,0 +1,158 @@
+ASURM83P ; IHS/ITSC/LMH -RPT 83 INVOICE SUMMARY ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;This routine formats and prints report 83 Invoice Summary 
+ ;Report.
+ I '$D(DUZ(2)) W !,"Report must be run from Kernel option" Q
+ I '$D(IO) D HOME^%ZIS
+ D:'$D(U) ^XBKVAR
+ D:'$D(ASUK("DT","FM")) DATE^ASUUDATE
+ I '$D(ASUL(1,"AR","AP")) D SETAREA^ASULARST
+ S ASUC("LN")=IOSL+1,(ASUC("PG"),ASUF("BK"))=0,ASUF("HDR")=1
+ D P0 Q:$D(DUOUT)  Q:$D(DTOUT)
+ S ASUX("AO MO")=$P(^XTMP("ASUR","R83",0),U,2),ASUX("AO DT")=$P(^XTMP("ASUR","R83",0),U)
+ S ASUK("PTRSEL")=$G(ASUK("PTRSEL"))
+ I ASUK("PTRSEL")']"" D
+ .S ZTRTN="PSER^ASURM83P",ZTDESC="SAMS RPT 83" D O^ASUUZIS
+ .I POP S IOP=$I D ^%ZIS
+ I ASUK(ASUK("PTR"),"Q") Q
+PSER ;EP;FOR TASKMAN QUEUE OF PRINT
+ D U^ASUUZIS
+ S ASUV("RPT")="R83",ASUQ("HDR")="HDR^ASURM83P"
+ D ^ASUUDATA I ASUX("NDTA") G KIL
+ S ASUT="R83",ASUT(ASUT,"PT","SST")=0
+ S (ASUX("LINE"),ASUV("VOU"))=""
+ S (ASUC("VAL"),ASUC("TRANS"),ASUC("VOU"),ASUC("USR"),ASUC("SSA"),ASUC("SST"),ASUC("AR"))=0
+ F ASUC("TR")=0:1 S ASUT(ASUT,"PT","SST")=$O(^XTMP("ASUR","R83",ASUT(ASUT,"PT","SST")))  Q:ASUT(ASUT,"PT","SST")=""  D  Q:$D(DUOUT)
+ .S ASUX("AR")=$E(ASUT(ASUT,"PT","SST"),1,2)
+ .D SST^ASULDIRR(ASUT(ASUT,"PT","SST"))
+ .S ASUT(ASUT,"PT","SSA")=""
+ .F  S ASUT(ASUT,"PT","SSA")=$O(^XTMP("ASUR","R83",ASUT(ASUT,"PT","SST"),ASUT(ASUT,"PT","SSA"))) Q:ASUT(ASUT,"PT","SSA")=""  D  Q:$D(DUOUT)
+ ..D SSA^ASULDIRR(ASUT(ASUT,"PT","SSA"))
+ ..S ASUT(ASUT,"PT","USR")=""
+ ..F  S ASUT(ASUT,"PT","USR")=$O(^XTMP("ASUR","R83",ASUT(ASUT,"PT","SST"),ASUT(ASUT,"PT","SSA"),ASUT(ASUT,"PT","USR"))) Q:ASUT(ASUT,"PT","USR")=""  D P1
+ ..S ASUC("LN")=ASUC("LN")+2
+ ..D:ASUC("LN")>(IOSL-2) HEADER Q:$D(DUOUT)
+ ..W !?8,"TOTAL FOR SUB SUB ACTIVITY ",ASUL(17,"SSA")," ",ASUL(17,"SSA","NM"),?69,$J($FN(ASUC("USR"),",",2),10),!
+ ..S ASUC("SSA")=$G(ASUC("SSA"))+ASUC("USR"),ASUC("USR")=0
+ ..S ASUC("LN")=61,ASUF("HDR")=1
+ .W !!?5,"TOTAL FOR FACILITY ",ASUL(18,"SST")," ",ASUL(18,"SST","NM"),?69,$J($FN(ASUC("SSA"),",",2),10),!
+ .S ASUF("HDR")=1
+ .S ASUC("SST")=$G(ASUC("SST"))+ASUC("SSA"),ASUC("SSA")=0
+ .S ASUC("LN")=ASUC("LN")+3
+ I ASUC("LN")>(IOSL-2) D HEADER Q:$D(DUOUT)
+ W !!!?2,"TOTAL FOR AREA ",ASUL(1,"AR","AP")," ",ASUL(1,"AR","NM"),?69,$J($FN(ASUC("SST"),",",2),10),!
+KIL ;
+ K ASUC,ASUF,ASUT,ASUV,ASUX
+ F X=3:1:22 K ASUL(X) ;Clear Table Lookup fields
+ K DIC,DA,X,Y
+ D PAZ^ASUURHDR
+ I ASUK("PTRSEL")]"" W @IOF Q
+ D C^ASUUZIS
+ Q
+P0 ;
+ D:'$D(ASUK("DT","FM")) DATE^ASUUDATE
+ S ASUHDA=0,ASUX("AR")=ASUL(1,"AR","AP")
+ S ASUV("R83DT")=ASUK("DT","FM")
+ S ASUP("SEL83")=$G(ASUP("SEL83"))
+ I ASUX("AR")']"" S ^XTMP("ASUR","R83",1)="NONE" G EXIT
+ I ASUP("SEL83") D  ;MENU SELECTED
+ .D CMPT
+ E  D
+ .I $E($G(IOST),1,2)="C-",ION'["HFS" D
+ ..K DIR S DIR(0)="Y",DIR("A")="Do you want to re-print the most recent Report 83"
+ ..D ^DIR K DIR Q:$D(DUOUT)  Q:$D(DTOUT)
+ .E  D
+ ..S Y=1
+ .I Y D  ;
+ ..I $L($O(^XTMP("ASUR","R83","")))>0 Q
+ ..S X=$P(^ASUSITE(1,0),U,8)
+ ..I X]"" D
+ ...S ASUV("R83DT")=$P(^ASUSITE(1,0),U,8)
+ ..E  D
+ ...S X=""
+ ...F  S X=$O(^ASUH("AX",X)) Q:X=""  S ASUV("R83DT")=X
+ ..D CMPT
+ .E  D
+ ..S DIR(0)="POA^ASUML(",DIR("A")="Enter the beginning date of the month to report " D ^DIR K DIR
+ ..Q:$D(DUOUT)  Q:$D(DTOUT)  Q:X']""  Q:Y<0
+ ..S ASUV("XLGMO")=+Y
+ ..I $P(^ASUML(ASUV("XLGMO"),1,0),U,3)=1 D
+ ...S ASUV("R83DT")=$P(^ASUML(ASUV("XLGMO"),1,1,0),U)
+ ..E  D
+ ...W !!,"The month you have choosen had more than one Extract Process.  One was likely"
+ ...W !,"not for local update, ie. it was for DDPS processing only.  You must now"
+ ...W !,"indicate which Extract Process's records should be included on the report:",!!
+ ...F Y=1:1 S X=$G(^ASUML(ASUV("XLGMO"),1,Y,0)) Q:X=""  D
+ ....W !?5,Y,?10,"DATE: ",$P(X,U)
+ ....W !
+ ...K DIR S DIR(0)="N:1:Y:0",DIR("A")="SELECT EXTRACT NUMBER (1-"_Y D ^DIR
+ ...S ASUV("R83DT")=$P($G(^ASUML(ASUV("XLGMO"),1,+Y,0)),U)
+ ..S X=$O(^ASUH("AX",ASUV("R83DT"),""))
+ ..I X']"" D  Q
+ ...W !!,"NO REPORT 83 DATA FOR ",$S($D(Y(0)):Y(0),1:"SELECTED MONTH")
+ ...S DUOUT=1
+ ..K ^XTMP("ASUR","R83") S ^XTMP("ASUR","R83",0)=ASUK("DT","FM")+10000_U_ASUK("DT","FM")
+ ..D CMPT
+EXIT ;
+ Q
+P1 ;
+ F X=19,20,22 K ASUL(X)
+ D REQ^ASULDIRR(ASUT(ASUT,"PT","USR"))
+ ;LOGIC TO CAUSE PAGE BRK FOR DENTAL OR OEH FOR OKLAHOMA
+ I ASUX("AR")=50 I ASUL(19,"USR","NM")["DEN"!(ASUL(19,"USR","NM")["OEH") S ASUF("HDR")=1
+ S ASUT(ASUT,"VOU")=""
+ F  S ASUT(ASUT,"VOU")=$O(^XTMP("ASUR","R83",ASUT(ASUT,"PT","SST"),ASUT(ASUT,"PT","SSA"),ASUT(ASUT,"PT","USR"),ASUT(ASUT,"VOU"))) Q:ASUT(ASUT,"VOU")=""  D  Q:$D(DUOUT)
+ .S ASUT("TRCD")=""
+ .F  S ASUT("TRCD")=$O(^XTMP("ASUR","R83",ASUT(ASUT,"PT","SST"),ASUT(ASUT,"PT","SSA"),ASUT(ASUT,"PT","USR"),ASUT(ASUT,"VOU"),ASUT("TRCD"))) Q:ASUT("TRCD")=""  D  Q:$D(DUOUT)
+ ..S ASUX("LINE")=""
+ ..F  S ASUX("LINE")=$O(^XTMP("ASUR","R83",ASUT(ASUT,"PT","SST"),ASUT(ASUT,"PT","SSA"),ASUT(ASUT,"PT","USR"),ASUT(ASUT,"VOU"),ASUT("TRCD"),ASUX("LINE"))) Q:ASUX("LINE")=""  D  Q:$D(DUOUT)
+ ...I ASUF("HDR")!(ASUC("LN")>(IOSL-2)) D HEADER Q:$D(DUOUT)
+ ...S ASUX(1)=^XTMP("ASUR","R83",ASUT(ASUT,"PT","SST"),ASUT(ASUT,"PT","SSA"),ASUT(ASUT,"PT","USR"),ASUT(ASUT,"VOU"),ASUT("TRCD"),ASUX("LINE"))
+ ...S ASUT(ASUT,"CAN")=$P(ASUX(1),U),ASUT(ASUT,"VAL")=$P(ASUX(1),U,2)
+ ...I $E(ASUT("TRCD"),2)?1A S ASUT(ASUT,"VAL")=ASUT(ASUT,"VAL")*-1
+ ...S ASUV("VAL")=$FN(ASUT(ASUT,"VAL"),"+",2)
+ ...S ASUC("VAL")=ASUC("VAL")+ASUV("VAL")
+ ..W !,ASUL(17,"SSA"),?3,ASUL(17,"SSA","NM"),?27,ASUT(ASUT,"CAN"),?35,ASUL(20,"REQ"),?39,ASUL(19,"USR","NM")
+ ..W ?55,ASUT(ASUT,"VOU")
+ ..W ?66,ASUT("TRCD"),?69,$J($FN(ASUC("VAL"),",",2),10)
+ ..S ASUC("LN")=ASUC("LN")+1
+ ..S ASUC("VOU")=ASUC("VOU")+ASUC("VAL"),ASUC("VAL")=0
+ .W ! S ASUC("LN")=ASUC("LN")+1
+ W !?11,"TOTAL FOR USER ",?35,ASUL(20,"REQ"),?39,ASUL(19,"USR","NM"),?69,$J($FN(ASUC("VOU"),",",2),10),!
+ S ASUC("USR")=ASUC("USR")+ASUC("VOU"),ASUC("VOU")=0
+HEADER ;
+ S ASUF("HDR")=0
+ S ASUC("PG")=$G(ASUC("PG"))+1 D:ASUC("PG")>1 PAZ^ASUURHDR Q:$D(DUOUT)  W @IOF
+ W "REPORT #83 MONTHLY INVOICE SUMMARY REPORT",?51,"DATE: ",$G(ASUK("DT")),?69,"PAGE :",$J(ASUC("PG"),5)
+ W !!,"CHARGED TO: AREA : ",?19,ASUL(1,"AR","AP")," ",$G(ASUL(1,"AR","NM"))
+ D:'$D(ASUL(18,"SST")) SST^ASULDIRR(ASUT(ASUT,"PT","SST"))
+ W !?13,"FAC : ",ASUL(18,"SST")," ",ASUL(18,"SST","NM")
+ W ?45,"AS OF MONTH: ",$G(ASUX("AO MO"))
+ W !!,"SUB",?55,"INVOICE"
+ W !,"SUB",?35,"USER",?55,"VOUCHER",?66,"P/"
+ W !,"ACT-NAME",?27,"CAN",?35,"CODE-NAME",?55,"NUMBER",?67,"C",?74,"VALUE",!
+ S ASUC("LN")=8
+HDR ;
+ Q
+CMPT ;EP ;COMPUTE EXTRACTS
+ K ^XTMP("ASUR","R83") S ASUT="ISS"
+ S ^XTMP("ASUR","R83",0)=ASUK("DT","FM")+10000_U_ASUK("DT","FM")
+ F ASUC("TR")=1:1 S ASUHDA=$O(^ASUH("AX",ASUV("R83DT"),$G(ASUHDA))) Q:ASUHDA=""  Q:ASUHDA'?1N.N  D
+ .;S $P(^ASUH(ASUHDA,0),U,5)=ASUK("DT","FM")
+ .S ASUT("TRCD")=$P(^ASUH(ASUHDA,1),U) Q:$E(ASUT("TRCD"))'=3
+ .Q:"3132333K3L"'[ASUT("TRCD")
+ .D READ^ASU0TRRD(.ASUHDA,"H") Q:$G(ASUT)']""
+ .Q:$E(ASUT(ASUT,"CAN"),2,3)'=ASUL(1,"AR","AP")
+ .I ASUT(ASUT,"PT","SST")']"" D
+ ..D SST^ASULDIRR(ASUT(ASUT,"SST"))
+ ..S ASUT(ASUT,"PT","SST")=ASUL(18,"SST","E#")
+ .I ASUT(ASUT,"PT","USR")']"" D
+ ..D USR^ASULDIRR(ASUT(ASUT,"USR"))
+ ..S ASUT(ASUT,"PT","USR")=ASUL(19,"USR","E#")
+ .I ASUT(ASUT,"PT","SST")']"" D
+ ..D SSA^ASULDIRR(ASUT(ASUT,"SSA"))
+ ..S ASUT(ASUT,"PT","SSA")=ASUL(17,"SSA","E#")
+ .S ^XTMP("ASUR","R83",ASUT(ASUT,"PT","SST"),ASUT(ASUT,"PT","SSA"),ASUT(ASUT,"PT","USR"),ASUT(ASUT,"VOU"),ASUT("TRCD"),ASUC("TR"))=ASUT(ASUT,"CAN")_U_ASUT(ASUT,"VAL")
+ K ASUT(ASUT)
+ S ^XTMP("ASUR","R83",0)=ASUK("DT","FM")_U_ASUK("DT","MONTH")
+ Q

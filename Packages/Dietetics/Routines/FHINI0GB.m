@@ -1,0 +1,116 @@
+FHINI0GB	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9938,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9939,0)
+	;;=MARGARINE,IMITATION (DIET),BLUE BONNET^BC-03212^tbsp.^14
+	;;^UTILITY(U,$J,112,9939,1)
+	;;=0^42.857^0^357.143^^^^^^^^35.714^714.286
+	;;^UTILITY(U,$J,112,9939,2)
+	;;=^^^^^^^^0^7.143^^14.286
+	;;^UTILITY(U,$J,112,9939,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9940,0)
+	;;=MARGARINE,IMITATION (DIET),FLEISCHMANN'S^BC-03213^tbsp.^14
+	;;^UTILITY(U,$J,112,9940,1)
+	;;=0^42.857^0^357.143^^^^^^^^35.714^714.286
+	;;^UTILITY(U,$J,112,9940,2)
+	;;=^^^^^^^^0^7.143^^14.286
+	;;^UTILITY(U,$J,112,9940,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9941,0)
+	;;=MARGARINE,IMITATION (DIET),FLEISCHMANN'S W/LITE SALT^BC-03214^tbsp.^14
+	;;^UTILITY(U,$J,112,9941,1)
+	;;=0^42.857^0^357.143^^^^^^^^35.714^357.143
+	;;^UTILITY(U,$J,112,9941,2)
+	;;=^^^^^^^^0^14.286^^21.429
+	;;^UTILITY(U,$J,112,9941,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9942,0)
+	;;=MARGARINE,IMITATION (DIET),IMPERIAL DIET,SOFT^BC-03215^tbsp.^14
+	;;^UTILITY(U,$J,112,9942,1)
+	;;=0^40^0^350^57.857^^^0^^^0^28.571^992.857^^^^^3735.714
+	;;^UTILITY(U,$J,112,9942,2)
+	;;=^^^^^^^^0^6.429^^18.571
+	;;^UTILITY(U,$J,112,9942,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9943,0)
+	;;=MARGARINE,IMITATION (DIET),MAZOLA REDUCED CALORIE^BC-03216^tbsp.^14
+	;;^UTILITY(U,$J,112,9943,1)
+	;;=0^35.714^0^357.143^57.857^^^^^^^^928.571^^^^^3571.429
+	;;^UTILITY(U,$J,112,9943,2)
+	;;=^^^^^^^^0^6.429^15.714^16.429
+	;;^UTILITY(U,$J,112,9943,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9944,0)
+	;;=MARGARINE,IMITATION (DIET),PARKAY,DIET SOFT^BC-03217^tbsp.^14
+	;;^UTILITY(U,$J,112,9944,1)
+	;;=0^40^0^357.143^57.143^^^7.143^0^0^7.143^28.571^642.857^0^.05^^^3757.143^0^0
+	;;^UTILITY(U,$J,112,9944,2)
+	;;=0^0^0^0^0^0^^^0^7.143^^12.857
+	;;^UTILITY(U,$J,112,9944,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9945,0)
+	;;=MAYONNAISE,BEST FOODS/HELLMANN'S^BC-03218^tbsp.^14
+	;;^UTILITY(U,$J,112,9945,1)
+	;;=1.429^78.571^.714^714.286^17.857^^^^^^^^571.429
+	;;^UTILITY(U,$J,112,9945,2)
+	;;=^^^^^^^^364.286^12.143^23.571^42.143
+	;;^UTILITY(U,$J,112,9945,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9946,0)
+	;;=MAYONNAISE,ESTEE,CHOLESTEROL FREE^BC-03219^tbsp.^15
+	;;^UTILITY(U,$J,112,9946,1)
+	;;=0^33.333^6.667^333.333^^^^^^^^66.667^533.333
+	;;^UTILITY(U,$J,112,9946,2)
+	;;=^^^^^^^^0^6.667
+	;;^UTILITY(U,$J,112,9946,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9947,0)
+	;;=MAYONNAISE,IMITATION,BEST FOODS/HELLMANN'S,CHOL FREE,RED CAL^BC-03220^tbsp.^15
+	;;^UTILITY(U,$J,112,9947,1)
+	;;=0^32.667^7.333^333.333^58^^^^^^^^533.333
+	;;^UTILITY(U,$J,112,9947,2)
+	;;=^^^^^^^^0^4.667^11.333^16
+	;;^UTILITY(U,$J,112,9947,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9948,0)
+	;;=MAYONNAISE,IMITATION,BEST FOODS/HELLMANN'S,LIGHT RED CAL^BC-03221^tbsp.^15
+	;;^UTILITY(U,$J,112,9948,1)
+	;;=.667^34^6.667^333.333^56.667^^^^^^^^766.667
+	;;^UTILITY(U,$J,112,9948,2)
+	;;=^^^^^^^^33.333^6^10^17.333^^^^^0
+	;;^UTILITY(U,$J,112,9948,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9949,0)
+	;;=SPREADS,MIRACLE WHIP,KRAFT^BC-03222^tbsp.^14
+	;;^UTILITY(U,$J,112,9949,1)
+	;;=.714^49.286^12.143^492.857^36.429^^^7.143^.357^0^14.286^14.286^600^.357^.036^^^100^0^0
+	;;^UTILITY(U,$J,112,9949,2)
+	;;=0^0^.143^0^35.714^.143^^^42.857^7.857^^29.286
+	;;^UTILITY(U,$J,112,9949,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9950,0)
+	;;=SPREADS,MIRACLE WHIP,LIGHT,KRAFT^BC-03223^tbsp.^14
+	;;^UTILITY(U,$J,112,9950,1)
+	;;=.714^27.857^15.714^314.286^54.286^^^7.143^.357^0^21.429^7.143^685.714^.357^.036^^^100^0^0
+	;;^UTILITY(U,$J,112,9950,2)
+	;;=0^0^.071^0^35.714^.286^^^21.429^4.286^^15.714
+	;;^UTILITY(U,$J,112,9950,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9951,0)
+	;;=SPREADS,SANDWICH,BEST FOODS/HELLMANN'S^BC-03224^tbsp.^15
+	;;^UTILITY(U,$J,112,9951,1)
+	;;=.667^34.667^16^366.667^45.333^^^^^^^^1133.333
+	;;^UTILITY(U,$J,112,9951,2)
+	;;=^^^^^^^^33.333^5.333^11.333^18
+	;;^UTILITY(U,$J,112,9951,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9952,0)
+	;;=SPREADS,BLUE BONNET,52% VEG OIL^BC-03225^tbsp.^14
+	;;^UTILITY(U,$J,112,9952,1)
+	;;=0^57.143^0^571.429^^^^^^^^107.143^785.714
+	;;^UTILITY(U,$J,112,9952,2)
+	;;=^^^^^^^^0^14.286^^21.429

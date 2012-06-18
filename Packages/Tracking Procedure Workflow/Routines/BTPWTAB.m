@@ -1,0 +1,159 @@
+BTPWTAB ;VNGT/HS/ALA-Table Utility ; 10 Jul 2008  3:00 PM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;
+ ;
+ Q
+ ;
+TBL(DATA,FILE,INAC) ;EP - Generic table retrieve function
+ ;
+ ;Description
+ ;  Return the values in a table
+ ;Input
+ ;  FILE - FileMan file number where table resides
+ ;  INAC - If file has an inactive field to check, contains
+ ;         the node and piece in 'NODE;PIECE' format
+ ;  
+ NEW GLBREF,IEN,LENGTH,TEST1,DLEN,PEC,NODE,X
+ S INAC=$G(INAC,"")
+ ;
+ S II=0
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIUTB D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ I '$$VFILE^DILFD(FILE) S BMXSEC="Table doesn't exist in RPMS" Q
+ ;
+ S GLBREF=$$ROOT^DILFD(FILE,"",1)
+ S LENGTH=$$GET1^DID(FILE,.01,"","FIELD LENGTH","TEST1","ERR")
+ S DLEN=$E("00000",$L(LENGTH)+1,5)_LENGTH
+ S @DATA@(II)="I00010IEN^T"_DLEN_$C(30)
+ ;
+ I INAC'="" S NODE=$P(INAC,";",1),PEC=$P(INAC,";",2)
+ S IEN=0
+ F  S IEN=$O(@GLBREF@(IEN)) Q:'IEN  D
+ . I $G(@GLBREF@(IEN,0))="" Q
+ . I INAC'="",$P($G(@GLBREF@(IEN,NODE)),"^",PEC)'="" Q
+ . S II=II+1,@DATA@(II)=IEN_"^"_$$GET1^DIQ(FILE,IEN_",",.01,"E")_$C(30)
+ ;
+DONE S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+TAB(DATA,TEXT) ;  EP -- BTPW GET TABLE
+ ;
+ ;Description
+ ;  Get the values of a table, including the internal entry
+ ;  number and the text
+ ;Input
+ ;  TEXT - Value from parameter definition
+ ;
+ NEW UID,II,X
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BTPWTAB",UID))
+ K @DATA
+ I $G(DT)=""!($G(U)="") D DT^DICRW
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BTPWTAB D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ I TEXT="CLIN" D TBL(.DATA,40.7,"")
+ ;
+ I TEXT="EVENT" D PRC(.DATA)
+ ;
+ I TEXT="STATUS" D STAT(.DATA)
+ ;
+ I TEXT="STATE" D STE(.DATA)
+ ;
+ I TEXT="CLREA" D CLSR(.DATA)
+ ;
+ I TEXT="CAT" D TBL(.DATA,90621.2,"0;3")
+ ;
+ I TEXT="COMM" D TAB^BQIUTB(.DATA,TEXT)
+ ;
+ I TEXT="NOTT" D TBL(.DATA,90622,"0;2")
+ ;
+ I TEXT="FIND" D FIND(.DATA)
+ ;
+ K TEXT
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+PRC(DATA) ;EP - CMET Events
+ NEW PIEN,BAT,PIEN,PRCNAM,CAT
+ S @DATA@(II)="I00010IEN^T00030PROC_NAME^T00030CATEGORY^T00001BATCH"_$C(30)
+ S PIEN=0
+ F  S PIEN=$O(^BTPW(90621,PIEN)) Q:'PIEN  D
+ . I $P(^BTPW(90621,PIEN,0),U,3)'="" Q
+ . S PRCNAM=$P(^BTPW(90621,PIEN,0),U,1)
+ . S CAT=$$GET1^DIQ(90621,PIEN_",",.1,"E")
+ . S BAT=$D(^BTPW(90628,1,2,"B",PIEN))
+ . S BAT=$S(BAT:"Y",1:"N")
+ . S II=II+1,@DATA@(II)=PIEN_U_PRCNAM_U_CAT_U_BAT_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+STAT(DATA) ;EP - CMET Queue Statuses
+ NEW VALUE,CODES,TEXT,BI
+ S @DATA@(II)="T00001CODE^T00030"_$C(30)
+ K VALUE
+ D FIELD^DID(90629,.08,"","POINTER","VALUE")
+ S CODES=$G(VALUE("POINTER"))
+ F BI=1:1:$L(CODES,";") D
+ . S TEXT=$P(CODES,";",BI)
+ . I TEXT="" Q
+ . I TEXT["EXCEPT" Q
+ . I $P(TEXT,":",2)="ACCEPTED" Q
+ . S II=II+1,@DATA@(II)=$P(TEXT,":",1)_U_$P(TEXT,":",2)_$C(30)
+ S II=II+1,@DATA@(II)="A"_U_"ALL"_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+STE(DATA) ;EP - CMET Event States
+ NEW CODES,TEXT
+ S @DATA@(II)="T00001CODE^T00030"_$C(30)
+ K VALUE
+ D FIELD^DID(90620,1.01,"","POINTER","VALUE")
+ S CODES=$G(VALUE("POINTER"))
+ F BI=1:1:$L(CODES,";") D
+ . S TEXT=$P(CODES,";",BI)
+ . I TEXT="" Q
+ . I TEXT["FUTURE" Q
+ . S II=II+1,@DATA@(II)=$P(TEXT,":",1)_U_$P(TEXT,":",2)_$C(30)
+ S II=II+1,@DATA@(II)="A"_U_"ALL"_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+CLSR(DATA) ; EP - CMET Close Reasons
+ NEW CODES,TEXT
+ S @DATA@(II)="T00001CODE^T00030"_$C(30)
+ K VALUE
+ D FIELD^DID(90620,1.04,"","POINTER","VALUE")
+ S CODES=$G(VALUE("POINTER"))
+ F BI=1:1:$L(CODES,";") D
+ . S TEXT=$P(CODES,";",BI)
+ . I TEXT="" Q
+ . S II=II+1,@DATA@(II)=$P(TEXT,":",1)_U_$P(TEXT,":",2)_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+FIND(DATA) ; EP - Event Findings
+ NEW PIEN,PRCNAM,FN,FIND,INTRP,FIEN
+ S @DATA@(II)="I00010IEN^T00030PROC_NAME^I00010FIND_IEN^T00060FINDING^T00030INTERPRETATION"_$C(30)
+ S PIEN=0
+ F  S PIEN=$O(^BTPW(90621,PIEN)) Q:'PIEN  D
+ . I $P(^BTPW(90621,PIEN,0),U,3)'="" Q
+ . S PRCNAM=$P(^BTPW(90621,PIEN,0),U,1)
+ . S FN=0
+ . F  S FN=$O(^BTPW(90621,PIEN,6,FN)) Q:'FN  D
+ .. NEW IENS,DA,FIND,FIEN,INTRP
+ .. S DA(1)=PIEN,DA=FN,IENS=$$IENS^DILF(.DA)
+ .. S FIND=$$GET1^DIQ(90621.06,IENS,.01,"E"),INTRP=$$GET1^DIQ(90621.06,IENS,.02,"E")
+ .. S FIEN=$$GET1^DIQ(90621.06,IENS,.01,"I")
+ .. S II=II+1,@DATA@(II)=PIEN_U_PRCNAM_U_FIEN_U_FIND_U_INTRP_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q

@@ -1,0 +1,112 @@
+IBINI08F	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	Q:'DIFQR(357.6)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,357.6,33,0)
+	;;=GMP SELECT CLINIC COMMON PROBLEMS^SELECT^GMPLENFM^PROBLEM LIST^0^3^2^^1^^^1^^
+	;;^UTILITY(U,$J,357.6,33,1,0)
+	;;=^^2^2^2931025^
+	;;^UTILITY(U,$J,357.6,33,1,1,0)
+	;;=Allows the user to select common problemslems from the term file of the
+	;;^UTILITY(U,$J,357.6,33,1,2,0)
+	;;=Problem List package.
+	;;^UTILITY(U,$J,357.6,33,2)
+	;;=POINTER TO CLINICAL TERM FILE^9^PROBLEM TEXT^210^CORRESPNDNG ICD-9 Dx CODE^7^^^^^^^^^^^0^1
+	;;^UTILITY(U,$J,357.6,33,3)
+	;;=PROBLEMS SELECT LIST
+	;;^UTILITY(U,$J,357.6,40,0)
+	;;=ACTION PROFILE - 45 DAYS^RXPROF^IBDFN3^OUTPATIENT PHARMACY^1^4^^^1^0^^1^^
+	;;^UTILITY(U,$J,357.6,40,1,0)
+	;;=^^2^2^2930623^^^^
+	;;^UTILITY(U,$J,357.6,40,1,1,0)
+	;;=The Action Profile from Outpatient Pharmacy. The  medicine profile is printed
+	;;^UTILITY(U,$J,357.6,40,1,2,0)
+	;;=for the last 45 days.
+	;;^UTILITY(U,$J,357.6,40,3)
+	;;=OUTPATIENT PHARMACY ACTION PROFILE
+	;;^UTILITY(U,$J,357.6,40,4)
+	;;=S PSTYPE=1,PSDAYS=45
+	;;^UTILITY(U,$J,357.6,40,6,0)
+	;;=^357.66^25^2
+	;;^UTILITY(U,$J,357.6,40,6,23,0)
+	;;=PSTYPE
+	;;^UTILITY(U,$J,357.6,40,6,25,0)
+	;;=PSDAYS
+	;;^UTILITY(U,$J,357.6,40,7,0)
+	;;=^357.67^1^1
+	;;^UTILITY(U,$J,357.6,40,7,1,0)
+	;;=DFN
+	;;^UTILITY(U,$J,357.6,41,0)
+	;;=INFORMATION PROFILE - 45 DAYS^RXPROF^IBDFN3^OUTPATIENT PHARMACY^1^4^^^1^^^1^^
+	;;^UTILITY(U,$J,357.6,41,1,0)
+	;;=^^3^3^2930524^^
+	;;^UTILITY(U,$J,357.6,41,1,1,0)
+	;;= 
+	;;^UTILITY(U,$J,357.6,41,1,2,0)
+	;;=Prints the Information Profile from Outpatient Pharmacy. The medication
+	;;^UTILITY(U,$J,357.6,41,1,3,0)
+	;;=profile is printed for 45 days.
+	;;^UTILITY(U,$J,357.6,41,3)
+	;;=INFORMATION PROFILE OUTPATIENT PHARMACY RX
+	;;^UTILITY(U,$J,357.6,41,4)
+	;;=S PSTYPE=0,PSDAYS=45
+	;;^UTILITY(U,$J,357.6,41,6,0)
+	;;=^357.66^2^2
+	;;^UTILITY(U,$J,357.6,41,6,1,0)
+	;;=PSTYPE
+	;;^UTILITY(U,$J,357.6,41,6,2,0)
+	;;=PSDAYS
+	;;^UTILITY(U,$J,357.6,41,7,0)
+	;;=^357.67^1^1
+	;;^UTILITY(U,$J,357.6,41,7,1,0)
+	;;=DFN
+	;;^UTILITY(U,$J,357.6,42,0)
+	;;=ROUTING SLIP^ROUTING^IBDFN3^SCHEDULING^1^4^^^1^0^^1^^
+	;;^UTILITY(U,$J,357.6,42,1,0)
+	;;=^^1^1^2930929^^^^
+	;;^UTILITY(U,$J,357.6,42,1,1,0)
+	;;=Prints the routing slip from the scheduling package.
+	;;^UTILITY(U,$J,357.6,42,3)
+	;;=ROUTING SLIP SCHEDULING
+	;;^UTILITY(U,$J,357.6,42,5)
+	;;=
+	;;^UTILITY(U,$J,357.6,42,7,0)
+	;;=^357.67^3^3
+	;;^UTILITY(U,$J,357.6,42,7,1,0)
+	;;=DFN
+	;;^UTILITY(U,$J,357.6,42,7,2,0)
+	;;=IBCLINIC
+	;;^UTILITY(U,$J,357.6,42,7,3,0)
+	;;=IBAPPT
+	;;^UTILITY(U,$J,357.6,44,0)
+	;;=IB CURRENT DATE^NOW^IBDFN2^INTEGRATED BILLING^1^2^1^0^1^^^1^^
+	;;^UTILITY(U,$J,357.6,44,1,0)
+	;;=^^1^1^2930528^^
+	;;^UTILITY(U,$J,357.6,44,1,1,0)
+	;;=Prints the current date in MMM DD,YYYY format.
+	;;^UTILITY(U,$J,357.6,44,2)
+	;;=CURRENT DATE (MMM DD, YYYY)^12
+	;;^UTILITY(U,$J,357.6,44,3)
+	;;=TODAY CURRENT DATE DAY
+	;;^UTILITY(U,$J,357.6,45,0)
+	;;=IB CURRENT DATE@TIME^NOW^IBDFN2^INTEGRATED BILLING^1^2^1^0^1^^^1^^
+	;;^UTILITY(U,$J,357.6,45,1,0)
+	;;=^^1^1^2930528^
+	;;^UTILITY(U,$J,357.6,45,1,1,0)
+	;;=Returns the current date and time in MMM DD, YYY@HH:MM:SS format.
+	;;^UTILITY(U,$J,357.6,45,2)
+	;;=DT/TM (MMM DD, YYYY@HH:MM:SS)^21
+	;;^UTILITY(U,$J,357.6,45,3)
+	;;=DATE TIME NOW DAY
+	;;^UTILITY(U,$J,357.6,46,0)
+	;;=IB CURRENT TIME^NOW^IBDFN2^INTEGRATED BILLING^1^2^1^0^1^^^1^^
+	;;^UTILITY(U,$J,357.6,46,1,0)
+	;;=^^1^1^2930528^
+	;;^UTILITY(U,$J,357.6,46,1,1,0)
+	;;=Returns the time in HH:MM:SS format.
+	;;^UTILITY(U,$J,357.6,46,2)
+	;;=CURRENT TIME (HH:MM:SS)^8
+	;;^UTILITY(U,$J,357.6,46,3)
+	;;=TIME NOW
+	;;^UTILITY(U,$J,357.6,47,0)
+	;;=SD DIVISION NAME^DIVISION^IBDFN1^SCHEDULING^1^2^1^0^1^^^1^^

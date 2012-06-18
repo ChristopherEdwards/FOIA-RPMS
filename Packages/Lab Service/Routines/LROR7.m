@@ -1,0 +1,6 @@
+LROR7 ; IHS/DIR/FJE - RENEW LAB ORDERS 5/1/89 17:51 ;
+ ;;5.2;LR;**1013**;JUL 15, 2002
+ ;
+ ;;5.2;LAB SERVICE;;Sep 27, 1994
+EN ;;from LROR
+ W !!,"Lab orders cannot be renewed.",$C(7),! Q

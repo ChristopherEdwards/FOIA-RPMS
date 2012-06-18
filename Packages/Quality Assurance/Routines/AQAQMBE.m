@@ -1,0 +1,36 @@
+AQAQMBE ;IHS/ANMC/LJF - EDIT MED BOARD CERT. ENTRIES; [ 05/27/92  11:17 AM ]
+ ;;2.2;STAFF CREDENTIALS;;01 OCT 1992
+ ;
+ ;must have DA set
+ ;
+DISPLAY ;EP;***> display any entries already in med board cert file
+ W !!
+ S (AQAX,AQACNT)=0,AQAQDA=DA
+ F  S AQAX=$O(^AQAQMB("C",DA,AQAX)) Q:AQAX'=+AQAX  D
+ .S AQACNT=AQACNT+1,AQA(AQACNT)=AQAX
+ .S Y=$P(^AQAQMB(AQAX,0),U),C=$P(^DD(9002161.1,.01,0),U,2) D Y^DIQ
+ .W !,AQACNT,")  ",Y
+ .Q
+ G ADD:AQACNT=0
+ S AQACNT=AQACNT+1 W !,AQACNT,")  ADD NEW ENTRY"
+ ;
+ W !
+CHOOSE K DIR S DIR(0)="NO^1:"_AQACNT
+ S DIR("A")="Choose ONE from list OR hit <return> to continue"
+ D ^DIR G END:X="",END:$D(DIRUT),CHOOSE:Y=-1
+ I +Y=AQACNT G ADD
+ E  S DA=AQA(+Y) G EDIT
+ ;
+ADD K DIC S DIC=9002156,DIC(0)="AQEMZ" D ^DIC
+ G END:X="",END:X="^",ADD:Y=-1
+ K DIC,DD S DIC="^AQAQMB(",X=+Y,DIC("DR")=".02///^S X=""`""_AQAQDA"
+ S DIC(0)="L" D FILE^DICN
+ S DA=+Y
+ ;
+EDIT K DIC,DIE S DIDEL=9002161.1,DIE=9002161.1,DR="[AQAQMBEDIT]" D ^DIE
+ ;
+ K DIR S DIR(0)="Y",DIR("B")="NO"
+ S DIR("A")="Do you wish to ADD or EDIT another Board Certification"
+ D ^DIR I Y=1 S DA=AQAQDA G DISPLAY
+ ;
+END S DA=AQAQDA K AQAX,AQACNT,AQA,DIR,DIE,DIC Q

@@ -1,0 +1,34 @@
+AQAOX71 ; COMPILED XREF FOR FILE #9002167 ; 02/13/06
+ ; 
+ S DIKZK=2
+ S DIKZ(0)=$G(^AQAOC(DA,0))
+ S X=$P(DIKZ(0),U,12)
+ I X'="" K ^AQAOC("AF",$E(X,1,30),DA) S ^AQAOC("AFF",$P(^AQAOC(DA,0),U),DA)=""
+ S X=$P(DIKZ(0),U,2)
+ I X'="" S AQAO=$S($D(^AQAOC(DA,0)):^(0),1:""),AQAO("IND")=$P(AQAO,U,8),AQAO("DT")=$P(AQAO,U,4) K:(AQAO("IND")]"")&(AQAO("DT")]"") ^AQAOC("AA",AQAO("IND"),AQAO("DT"),X,DA) K AQAO
+ S X=$P(DIKZ(0),U,2)
+ I X'="" K ^AQAOC("C",$E(X,1,30),DA)
+ S X=$P(DIKZ(0),U,2)
+ I X'="" S AQAO("VST")=$P($G(^AQAOC(DA,0)),U,3) K:AQAO("VST")]"" ^AQAOC("AE",X,AQAO("VST"),DA) K AQAO
+ S X=$P(DIKZ(0),U,3)
+ I X'="" S AQAO("PAT")=$P($G(^AQAOC(DA,0)),U,2) K:AQAO("PAT")]"" ^AQAOC("AE",AQAO("PAT"),X,DA) K AQAO
+ S X=$P(DIKZ(0),U,3)
+ I X'="" S AQAO("IND")=$P($G(^AQAOC(DA,0)),U,8) K:AQAO("IND")]"" ^AQAOC("AV",AQAO("IND"),X,DA) K AQAO
+ S X=$P(DIKZ(0),U,4)
+ I X'="" S AQAO=$S($D(^AQAOC(DA,0)):^(0),1:""),AQAO("IND")=$P(AQAO,U,8),AQAO("PT")=$P(AQAO,U,2) K:(AQAO("IND")]"")&(AQAO("PT")]"") ^AQAOC("AA",AQAO("IND"),X,AQAO("PT"),DA) K AQAO
+ S X=$P(DIKZ(0),U,4)
+ I X'="" K ^AQAOC("ACL",X,DA)
+ S X=$P(DIKZ(0),U,8)
+ I X'="" S AQAO=$S($D(^AQAOC(DA,0)):^(0),1:""),AQAO("PT")=$P(AQAO,U,2),AQAO("DT")=$P(AQAO,U,4) K:(AQAO("PT")]"")&(AQAO("DT")]"") ^AQAOC("AA",X,AQAO("DT"),AQAO("PT"),DA) K AQAO
+ S X=$P(DIKZ(0),U,8)
+ I X'="" K ^AQAOC("D",$E(X,1,30),DA)
+ S X=$P(DIKZ(0),U,8)
+ I X'="" S AQAO("VST")=$P($G(^AQAOC(DA,0)),U,3) K:AQAO("VST")]"" ^AQAOC("AV",X,AQAO("VST"),DA) K AQAO
+ S DIKZ(1)=$G(^AQAOC(DA,1))
+ S X=$P(DIKZ(1),U,1)
+ I X'="" K ^AQAOC("AD",$E(X,1,30),DA) S:X=2 ^AQAOC("AFF",$P(^AQAOC(DA,0),U),DA)=""
+ S X=$P(DIKZ(1),U,1)
+ I X'="" S AQAO=$G(^AQAOC(DA,0)),AQAO("DT")=$P(AQAO,U,4) K:AQAO("DT")]"" ^AQAOC("ACL",AQAO("DT"),DA) K AQAO
+ S X=$P(DIKZ(0),U,1)
+ I X'="" K ^AQAOC("B",$E(X,1,30),DA)
+END G ^AQAOX72

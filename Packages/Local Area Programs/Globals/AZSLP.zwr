@@ -1,0 +1,12 @@
+^AZSLP
+ZWR
+^AZSLP("D4")="K:$E(X,1,2)=99 X Q:'$D(X)  S X=$E(X,3,4)_""/""_$E(X,1,2) S:$E(X,1,2)=99 X=$E(X,4,5)"
+^AZSLP("D6")="K:$E(X,1,2)=99 X Q:'$D(X)  S X=$E(X,3,4)_""/""_$E(X,5,6)_""/""_$E(X,1,2) S:$E(X,1,2)=99 X=$E(X,7,8) S:$E(X,4,5)=99 X=$E(X,1,3)_$E(X,7,8)"
+^AZSLP("D7")="K:$E(X)<8!($E(X,1,3)=999) X Q:'$D(X)  S X=$E(X,4,5)_""/""_$E(X,6,7)_""/1""_$E(X,1,3) S:$E(X,1,2)=99 X=$E(X,7,10) S:$E(X,4,5)=99 X=$E(X,1,3)_$E(X,7,10)"
+^AZSLP("DATE")="S EC=3,EVAL=X K:X?1"" ""."" "" X X:'$D(X) ERR Q:'$D(X)   X $S($L(X)=6:D6,$L(X)=4:D4,$L(X)=7:D7,1:DK) X:'$D(X) ERR"
+^AZSLP("DECODE")="Q:X=""""  S EC=2,EVAL=X,X=$O(@(GBL_""""""""_X_"""""","""""""")"")) K:X="""" X X:'$D(X) ERR"
+^AZSLP("ENCLOC")="X DECODE"
+^AZSLP("ERR")="Q:$D(NERR)  S CTE(EC)=CTE(EC)+1 X ERR2 S %E2=$P(^AZSLPERR(%E,11,0),U,4),%E2=%E2+1,$P(^(0),U,4)=%E2,^(%E2,0)=FEDIT_U_EC_U_""""""""_EVAL_"""""""",^AZSLPERR(""D"",FEDIT,%E,%E2)="""""
+^AZSLP("ERR2")="S %E2=^AZSLPERR(0),%E=$P(%E2,U,3) Q:^AZSLE=UREC  S ^AZSLE=UREC,%E=%E+1,$P(%E2,U,3)=%E,$P(%E2,U,4)=$P(%E2,U,4)+1,^AZSLPERR(0)=%E2,^(%E,0)=UPID_U_URID_U_""""""""_$E(UREC,13,166)_"""""""" X ^AZSLP(""ERR3"")"
+^AZSLP("ERR3")="S ^AZSLPERR(%E,11,0)=""^2100001.11A^0^0"",(^AZSLPERR(""B"",UPID,%E),^AZSLPERR(""C"",URID,%E))="""""
+^AZSLP("NBR")="X NBR2 Q:NDEC=0  S X=$S($L(X)>NDEC:$E(X,1,$L(X)-NDEC)_"".""_$E(X,$L(X)-NDEC+1,$L(X)),1:"".""_$E(""000000"",1,NDEC-$L(X))_X)"

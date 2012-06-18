@@ -1,0 +1,32 @@
+APCLYV4 ; IHS/CMI/LAB - CLINIC VISIT COUNTS BY DATE RANGE ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;This report is to be used to count visits by clinic
+ ;
+ W:$D(IOF) @IOF W !!?20,"CLINIC VISIT COUNTS WITHIN A DATE RANGE",!!
+GETDATES ;
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Visit Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G END
+ S APCLBD=Y
+ED ;get ending date
+ W ! S DIR(0)="DA^"_APCLBD_":DT:EP",DIR("A")="Enter ending Visit Date:  " S Y=APCLBD D DD^%DT S Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S APCLED=Y
+ S X1=APCLBD,X2=-1 D C^%DTC S APCLSD=X
+ ;
+ ;
+CLINIC ;
+ S DIR(0)="Y",DIR("A")="Print for ALL clinics",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) GETDATES
+ I Y=1 S APCLCL="A" G ZIS
+ K DIC S DIC=40.7,DIC(0)="AEQMZ",DIC("A")="Which Clinic:  " D ^DIC
+ G CLINIC:Y<1 S APCLCL=+Y
+ZIS ;
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G CLINIC
+ S XBRC="^APCLYV41",XBRP="^APCLYV42",XBRX="END^APCLYV4",XBNS="APCL"
+ D ^XBDBQUE
+ ;
+END K Y,APCLBD,APCLED,APCLCL,IO("Q")
+ Q

@@ -1,0 +1,242 @@
+AMHRPSU1 ; IHS/CMI/LAB - Suicide Form data element tally ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;
+ ;
+START ;
+ W:$D(IOF) @IOF
+ D EOJ
+ W:$D(IOF) @IOF
+ W !!,"IHS Aggregate Suicide Form Data - Standard"
+ W !!,"This report will tally the data items specific to the Suicide"
+ W !,"Form for a date range, community and type of suicidal behavior"
+ W !,"act as specified by the user."
+ W !
+ D DBHUSRP^AMHUTIL
+GETDATES ;
+BD ;
+ S DIR(0)="D^::EP",DIR("A")="Enter Beginning Date of Suicide Act",DIR("?")="Enter the beginning date of suicide act for the search." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) EOJ
+ S AMHBD=Y
+ED ;
+ S DIR(0)="DA^::EP",DIR("A")="Enter Ending Date of Suicide Act:  " D ^DIR K DIR,DA S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) EOJ
+ I Y<AMHBD W !,"Ending date must be greater than or equal to beginning date!" G ED
+ S AMHED=Y
+ S X1=AMHBD,X2=-1 D C^%DTC S AMHSD=X
+COMM ;
+ K AMHCOMM
+ S DIR(0)="S^O:One particular Community;A:All Communities",DIR("A")="Report on Suicide Forms for Suicide Acts that occurred in",DIR("B")="O" K DA D ^DIR K DIR
+ G:$D(DIRUT) GETDATES
+ I Y="A" W !!,"All communities will be included in the report.",! G SELF
+ I Y="O" D  G:'$D(AMHCOMM) COMM G:$D(AMHCOMM) SELF I 1
+ .S DIC="^AUTTCOM(",DIC(0)="AEMQ",DIC("A")="Which COMMUNITY: " D ^DIC K DIC
+ .Q:Y=-1
+ .S AMHCOMM(+Y)=""
+ S X="COMMUNITY",DIC="^AMQQ(5,",DIC(0)="FM",DIC("S")="I $P(^(0),U,14)" D ^DIC K DIC,DA I Y=-1 W "OOPS - QMAN NOT CURRENT - QUITTING" G GETDATES
+ D PEP^AMQQGTX0(+Y,"AMHCOMM(")
+ I '$D(AMHCOMM) G COMM
+ I $D(AMHCOMM("*")) K AMHCOMM
+SELF ;
+ K AMHSELF
+ W !?5,1,?10,"IDEATION WITH PLAN AND INTENT"
+ W !?5,2,?10,"ATTEMPT"
+ W !?5,3,?10,"COMPLETED SUICIDE"
+ W !?5,4,?10,"ATTEMPTED SUICIDE WITH HOMICIDE (INACTIVE)"
+ W !?5,5,?10,"COMPLETED SUICIDE WITH HOMICIDE (INACTIVE)"
+ W !?5,6,?10,"ATTEMPTED SUICIDE WITH ATTEMPTED HOMICIDE"
+ W !?5,7,?10,"ATTEMPTED SUICIDE WITH COMPLETED HOMICIDE"
+ W !?5,8,?10,"COMPLETED SUICIDE WITH ATTEMPTED HOMICIDE"
+ W !?5,9,?10,"COMPLETED SUICIDE WITH COMPLETED HOMICIDE"
+ W !?5,0,?10,"ALL OF THE ABOVE (ALSO INCLUDES BLANKS)"
+ S DIR(0)="L^0:9",DIR("A")="Include which Suicidal Behaviors",DIR("B")="0" KILL DA D ^DIR KILL DIR
+ S AMHANS=Y,AMHC="" F AMHI=1:1 S AMHC=$P(AMHANS,",",AMHI) Q:AMHC=""  S AMHSELF(AMHC)=""
+ I AMHANS[0 F X=1:1:9 S AMHSELF(X)=""
+DEMO ;
+ D DEMOCHK^AMHUTIL1(.AMHDEMO)
+ I AMHDEMO=-1 G SELF
+ZIS ;
+ S DIR(0)="S^P:PRINT Output;B:BROWSE Output on Screen",DIR("A")="Do you wish to ",DIR("B")="P" K DA D ^DIR K DIR
+ I $D(DIRUT) G EOJ
+ I $G(Y)="B" D BROWSE,EOJ Q
+ W !! S XBRP="PRINT^AMHRPSU1",XBRC="PROC^AMHRPSU1",XBNS="AMH",XBRX="EOJ^AMHRPSU1"
+ D ^XBDBQUE
+ D EOJ
+ Q
+BROWSE ;
+ S XBRP="VIEWR^XBLM(""PRINT^AMHRPSU1"")"
+ S XBNS="AMH",XBRC="PROC^AMHRPSU1",XBRX="EOJ^AMHRPSU1",XBIOP=0 D ^XBDBQUE
+ Q
+ ;
+PAUSE ; 
+ S DIR(0)="E",DIR("A")="Press return to continue or '^' to quit" D ^DIR K DIR,DA
+ S:$D(DIRUT) AMHQUIT=1
+ W:$D(IOF) @IOF
+ Q
+EOJ ;EP
+ D EN^XBVK("AMH")
+ K L,M,S,T,X,X1,X2,Y,Z,B
+ D KILL^AUPNPAT
+ D ^XBFMK
+ Q
+PROC ;EP
+ S AMHJ=$J,AMHH=$H
+ K ^XTMP("AMHRPSU1",AMHJ,AMHH)
+ D XTMP("AMHRPSU1","AMH - SUICIDE")
+V ; Run by visit date
+ K AMHTOT,AMHIA,AMHCS S AMHTOT=0,AMHIA=0,AMHCS=0
+ F  S AMHSD=$O(^AMHPSUIC("AD",AMHSD)) Q:AMHSD=""!((AMHSD\1)>AMHED)  D V1
+ Q
+ ;
+V1 ;
+ S AMHR="" F  S AMHR=$O(^AMHPSUIC("AD",AMHSD,AMHR)) Q:AMHR'=+AMHR  D V2
+ Q
+V2 ;
+ I $P(^AMHPSUIC(AMHR,0),U,13)="",AMHANS'[0 Q
+ I $P(^AMHPSUIC(AMHR,0),U,13),'$D(AMHSELF($P(^AMHPSUIC(AMHR,0),U,13))) Q
+ S P=$P(^AMHPSUIC(AMHR,0),U,4)
+ ;I P,'$$ALLOWP^AMHUTIL(DUZ,P) Q
+ I P,$$DEMO^AMHUTIL1(P,$G(AMHDEMO))
+ S AMHTOT=AMHTOT+1
+ S AMHSUC=$P(^AMHPSUIC(AMHR,0),U,7) I AMHSUC,$D(AMHCOMM),'$D(AMHCOMM(AMHSUC)) Q
+ S A=$$VAL^XBDIQ1(9002011.65,AMHR,.043)
+ S AMHAGEG=$S(A<0:" 0-0",A>0&(A<5):"1-4",A>4&(A<15):"5-14",A>14&(A<20):"15-19",A>19&(A<25):"20-24",A>24&(A<45):"25-44",A>44&(A<65):"45-64",A>64&(A<199):"65-125",1:"OTHER")
+ S AMHTOT(AMHAGEG)=$G(AMHTOT(AMHAGEG))+1
+ ;tally each date element
+ S AMHC=0 F AMHX=.13,.032,.03,.041,.05,.044,.045,.08,.11 D
+ .S AMHC=AMHC+1
+ .S X=$$VAL^XBDIQ1(9002011.65,AMHR,AMHX),Y=$$VALI^XBDIQ1(9002011.65,AMHR,AMHX)
+ .I AMHX=".13",Y S X=$P($G(^AMHTSBEH(Y,0)),U,4)
+ .I Y="" S Y=X
+ .S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ ;method 10
+ S AMHC=10 S Z=0 F  S Z=$O(^AMHPSUIC(AMHR,11,Z)) Q:Z'=+Z  D
+ .S Y=$P(^AMHPSUIC(AMHR,11,Z,0),U),X=$$EXTSET^XBFUNC(9002011.6511,.01,Y)
+ .S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ .;METHOD IF OTHER
+ .I $P(^AMHPSUIC(AMHR,11,Z,0),U,2)]"" S (X,Y)=$P(^AMHPSUIC(AMHR,11,Z,0),U,2) S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,11,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",11,Y,X)):^(X)+1,1:1)
+ S AMHC=12,X=$$VAL^XBDIQ1(9002011.65,AMHR,.14),Y=$$VALI^XBDIQ1(9002011.65,AMHR,.14)
+ S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ ;sub use 11
+ S AMHC=13 S Y=$P(^AMHPSUIC(AMHR,0),U,26),X=$$EXTSET^XBFUNC(9002011.65,.26,Y)
+ S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ S AMHC=14,X=$$VAL^XBDIQ1(9002011.65,AMHR,.15),Y=$$VALI^XBDIQ1(9002011.65,AMHR,.15)
+ S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ I $P($G(^AMHPSUIC(AMHR,14)),U)]"" D
+ .S AMHC=15,X=$$VAL^XBDIQ1(9002011.65,AMHR,1401),Y=$$VALI^XBDIQ1(9002011.65,AMHR,1401)  ;OTHER LOC OF ACT VALUES
+ .S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ ;cont fact 15
+ S AMHC=19 S Z=0 F  S Z=$O(^AMHPSUIC(AMHR,13,Z)) Q:Z'=+Z  D
+ .S Y=$P(^AMHPSUIC(AMHR,13,Z,0),U),Y=$P(^AMHTSCF(Y,0),U,2),X=$P(^AMHTSCF(Y,0),U,1)
+ .S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ .;cf IF OTHER
+ .I $P(^AMHPSUIC(AMHR,13,Z,0),U,2)]"" S (X,Y)=$P(^AMHPSUIC(AMHR,13,Z,0),U,2) S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,20,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",20,Y,X)):^(X)+1,1:1)
+ S AMHC=17 S X=$$VAL^XBDIQ1(9002011.65,AMHR,.25),Y=$$VALI^XBDIQ1(9002011.65,AMHR,.25) D
+ .S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ I $P($G(^AMHPSUIC(AMHR,14)),U,2)]"" D
+ .S AMHC=18,X=$$VAL^XBDIQ1(9002011.65,AMHR,1402),Y=$$VALI^XBDIQ1(9002011.65,AMHR,1402)  ;OTHER LOC OF ACT VALUES
+ .S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ I AMHBD<$$DV4^AMHUTIL S AMHC=16 S X=$$VAL^XBDIQ1(9002011.65,AMHR,.24),Y=$$VALI^XBDIQ1(9002011.65,AMHR,.24) D
+ .S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ .Q
+ S AMHC=21 S Z=0 F  S Z=$O(^AMHPSUIC(AMHR,15,Z)) Q:Z'=+Z  D
+ .S Y=$P(^AMHPSUIC(AMHR,15,Z,0),U),X=$P(^AMHTSSU(Y,0),U,1)
+ .S:Y="" Y="ZZZZZ" S:X="" X="DATA NOT ENTERED" S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ .;cf IF OTHER
+ .I $P(^AMHPSUIC(AMHR,15,Z,0),U,2)]"" S (X,Y)=$P(^AMHPSUIC(AMHR,15,Z,0),U,2) S ^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHC,Y,X)):^(X)+1,1:1),^(X)=$S($D(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHC,Y,X)):^(X)+1,1:1)
+ Q
+PRINT ;EP called from xbdbque
+ S AMHPG=0
+ K AMHQUIT
+ I 'AMHTOT D HEAD W !!,"No Suicide Forms to Report"  G DONE
+ S AMHAGEG="" F  S AMHAGEG=$O(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG)) Q:AMHAGEG=""!($D(AMHQUIT))  D
+ .D HEAD Q:$D(AMHQUIT)
+ .W !,"Age Range: ",AMHAGEG," years",?30,"Total # of Suicide Forms: ",AMHTOT(AMHAGEG),!?63,"REPORT TOTALS"
+ .S AMHV="" F  S AMHV=$O(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHV)) Q:AMHV=""!($D(AMHQUIT))  D
+ ..I $Y>(IOSL-6) D HEAD Q:$D(AMHQUIT)
+ ..S AMHL=$P($T(@AMHV),";;",2) W !?1,$$LBLK(AMHL,28)
+ ..S AMHY="" F  S AMHY=$O(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHV,AMHY)) Q:AMHY=""!($D(AMHQUIT))  D
+ ...S AMHX="" S AMHX=$O(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHV,AMHY,AMHX)) Q:AMHX=""!($D(AMHQUIT))  D
+ ....S X=^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","AGE",AMHAGEG,AMHV,AMHY,AMHX)
+ ....W ?31,$E(AMHX,1,30),?63,$J(X,4) S T=AMHTOT(AMHAGEG) W ?72,$J(((X/T)*100),3,0)_"%",!
+ ..Q
+ .Q
+ I $D(AMHQUIT) G DONE
+ D HEAD Q:$D(AMHQUIT)
+ W !,"Age Range: ","ALL AGES",?30,"Total # of Suicide Forms: ",AMHTOT,!?63,"REPORT TOTALS"
+ S AMHV="" F  S AMHV=$O(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHV)) Q:AMHV=""!($D(AMHQUIT))  D
+ .I $Y>(IOSL-6) D HEAD Q:$D(AMHQUIT)
+ .S AMHL=$P($T(@AMHV),";;",2) W !?1,$$LBLK(AMHL,28)
+ .S AMHY="" F  S AMHY=$O(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHV,AMHY)) Q:AMHY=""!($D(AMHQUIT))  D
+ ..S AMHX="" S AMHX=$O(^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHV,AMHY,AMHX)) Q:AMHX=""!($D(AMHQUIT))  D
+ ...S X=^XTMP("AMHRPSU1",AMHJ,AMHH,"TALLY","TOTAL",AMHV,AMHY,AMHX)
+ ...W ?31,$E(AMHX,1,30),?63,$J(X,4) W ?72,$J(((X/AMHTOT)*100),3,0)_"%",!
+ ..Q
+ .Q
+DONE ;
+ I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of report.  PRESS RETURN" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ K ^XTMP("AMHRPSU1",AMHJ,AMHH)
+ Q
+HEAD ;EP
+ G:'AMHPG HEAD1
+ K DIR I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S AMHQUIT="" Q
+HEAD1 ;
+ W:$D(IOF) @IOF S AMHPG=AMHPG+1
+ W !,$$LOC,?35,$$FMTE^XLFDT(DT),?70,"Page ",AMHPG,!
+ S X="***** AGGREGATE SUICIDE FORM DATA - STANDARD*****" W !,?((80-$L(X))/2),X,!
+ S X="Act Occurred: "_$$FMTE^XLFDT(AMHBD)_" - "_$$FMTE^XLFDT(AMHED) W $$CTR(X),!
+ S X="Community where Act Occurred: "_$S($D(AMHCOMM):$P(^AUTTCOM($O(AMHCOMM(0)),0),U),1:"ALL Communities") W $$CTR(X),!
+ W $TR($J("",80)," ","-"),!
+ Q
+LBLK(V,L) ;left blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=" "_V
+ Q V
+RBLK(V,L) ;EP right blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=V_" "
+ Q V
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ NEW DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------
+XTMP(N,D) ;EP - set xtmp 0 node
+ Q:$G(N)=""
+ S ^XTMP(N,0)=$$FMADD^XLFDT(DT,14)_"^"_DT_"^"_$G(D)
+ Q
+ ;
+LABEL ;
+1 ;;Suicidal Behavior:
+2 ;;Event logged by Discipline:
+3 ;;Event logged by Provider:
+4 ;;Sex:
+5 ;;Employed:
+6 ;;Tribe of Enrollment:
+7 ;;Community of Residence:
+8 ;;Relationship:
+9 ;;Education:
+10 ;;Method:
+11 ;;Method if Other:
+12 ;;Previous Attempts:
+13 ;;Substance Use Involved:
+14 ;;Location of Act:
+15 ;;Other location of Act:
+16 ;;Lethality:
+17 ;;Disposition:
+18 ;;Disposition if OTHER:
+19 ;;Contributing Factors:
+20 ;;Contributing Factor if OTHER:
+21 ;;Substance Drugs:
+22 ;;Substance Drugs if OTHER:

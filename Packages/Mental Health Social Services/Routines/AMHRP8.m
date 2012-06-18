@@ -1,0 +1,73 @@
+AMHRP8 ; IHS/CMI/LAB - ACTIVE CLIENT LIST ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+START ;
+ I '$D(IOF) D HOME^%ZIS
+ W @(IOF),!!
+ W "**********  ACTIVE CLIENT LIST  **********",!!
+ W "This report will produce a list of patients who have been seen in a date range",!,"specified by the user.",!
+ D DBHUSRP^AMHUTIL
+ D DBHUSR^AMHUTIL
+GETDATES ;
+BD ;get beginning date
+ W !,"Please enter the date range during which the patient should be seen in",!,"order to be considered active.",!
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S AMHBD=Y
+ED ;get ending date
+ W ! S DIR(0)="D^"_AMHBD_":DT:EP",DIR("A")="Enter ending Date" S Y=AMHBD D DD^%DT D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S AMHED=Y
+ S X1=AMHBD,X2=-1 D C^%DTC S AMHSD=X S Y=AMHBD D DD^%DT S AMHBDD=Y S Y=AMHED D DD^%DT S AMHEDD=Y
+ ;
+PROV ;limit by provider
+ S AMHPROV=""
+ S DIR(0)="Y",DIR("A")="Limit the list to those patients who have seen a particular provider",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) GETDATES
+ G:'Y DEMO
+ I Y=1 S DIC("A")="Enter PROVIDER Name: ",DIC=200,DIC(0)="AEQMZ" D ^DIC G PROV:Y<0 S AMHPROV=+Y
+DEMO ;
+ D DEMOCHK^AMHUTIL1(.AMHDEMO)
+ I AMHDEMO=-1 G PROV
+ZIS ;
+ S DIR(0)="S^P:PRINT Output;B:BROWSE Output on Screen",DIR("A")="Do you wish to ",DIR("B")="P" K DA D ^DIR K DIR
+ I $D(DIRUT) G XIT
+ I $G(Y)="B" D BROWSE,XIT Q
+ S XBRC="PROC^AMHRP8",XBRP="^AMHRP8P",XBNS="AMH",XBRX="XIT^AMHRP8"
+ D ^XBDBQUE
+XIT ;EP
+ K ZTSK,Y,AMHBD,AMHED,IO("Q"),AMH80D,AMHBTH,AMHHRCN,AMHJOB,AMHLENG,AMHPCNT,AMHPG,AMHPROV,AMHX,DFN,DIC,DIR,DIRUT,DTOUT,DUOUT,XBNS,XBRC,XBRP,XBTX,D,AMHTOT
+ K AMHPRNM,AMHPRNT,AMHPROB,AMHPRV,AMHR,AMHRCNT,AMHRLOC,AMHSD,AMHTOT,AMHBDD,AMHBT,AMHEDD,AMHEDO,AMHBDO,AMHBT,AMHFOUND,AMHHIT,AMHID,AMHLINE,AMHP
+ Q
+ ;
+BROWSE ;
+ S XBRP="VIEWR^XBLM(""^AMHRP8P"")"
+ S XBNS="AMH",XBRC="PROC^AMHRP8",XBRX="XIT^AMHRP8",XBIOP=0 D ^XBDBQUE
+ Q
+PROC ;EP - entry point for processing
+ S AMHJOB=$J,AMHBTH=$H,AMHTOT=0,DFN=0,AMHBT=$H
+ D XTMP^AMHUTIL("AMHRP8","BH - ACTIVE CLIENT LIST")
+ F  S DFN=$O(^AMHREC("AE",DFN)) Q:DFN'=+DFN  I $$ALLOWP^AMHUTIL(DUZ,DFN) D PROC1
+ S AMHET=$H
+ K DFN
+ Q
+PROC1 ;
+ Q:$$DEMO^AMHUTIL1(DFN,$G(AMHDEMO))
+ S (AMHID,AMHFOUND)=0 F  S AMHID=$O(^AMHREC("AE",DFN,AMHID)) Q:AMHID'=+AMHID!(AMHFOUND)  D CHK
+ Q
+CHK ;check to see if patient meets criteria
+ S D=9999999-$P(AMHID,".")
+ Q:D<AMHBD
+ Q:D>AMHED
+ S V=0 F  S V=$O(^AMHREC("AE",DFN,AMHID,V)) Q:V'=+V!(AMHFOUND)  D
+ .Q:'$$ALLOWVI^AMHUTIL(DUZ,V)
+ .I AMHPROV S AMHHIT="" D CHKPROV Q:'AMHHIT
+ .S ^XTMP("AMHRP8",AMHJOB,AMHBTH,$P(^DPT(DFN,0),U),DFN)="",AMHTOT=AMHTOT+1,AMHFOUND=1
+ Q
+ ;
+CHKPROV ;if 1 provider selected check for that provider
+ NEW X,R
+ S R=0 F  S R=$O(^AMHREC("AE",DFN,AMHID,R)) Q:R'=+R!(AMHHIT)  D
+ .S P=0 F  S P=$O(^AMHRPROV("AD",R,P)) Q:P'=+P  I $P(^AMHRPROV(P,0),U)=AMHPROV S AMHHIT=1
+ .Q
+ Q

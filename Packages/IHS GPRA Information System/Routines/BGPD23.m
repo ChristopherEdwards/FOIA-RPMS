@@ -1,0 +1,32 @@
+BGPD23 ; IHS/CMI/LAB - indicator 23 ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;
+I23 ;EP ;EP - indicator 23
+ ;Q:'$D(BGPIND(23))
+ S BGPAMON=$$MON(DFN,$$FMADD^XLFDT(BGPEDATE,-365),BGPEDATE)
+ I $P(BGPAMON,U) D
+ .S BGP31=$C(31)_$C(31)
+ .K BGPP
+ .D IMMFORC^BIRPC(.BGPP,DFN,$P(BGPAMON,U,2),,DUZ(2))
+ .I $P(BGPP,BGP31,2)]"" S BGV=$P(BGPP,BGP31,2) G SET
+ .S BGV=$P(BGPP,BGP31,1)
+SET .I BGV["No immunizations due" D S(BGPRPT,$S(BGPTIME=1:19,BGPTIME=0:49,BGPTIME=8:89,1:999),1,1)
+ .I $D(BGPLIST(23)),BGPTIME=1 S ^XTMP("BGPD",BGPJ,BGPH,"LIST",23,$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN"),$P(^DPT(DFN,0),U,2),BGPAGEE,DFN)=BGV
+ Q
+S(R,N,P,V) ;
+ I 'V Q  ;no value to add
+ S $P(^BGPD(R,N),U,P)=$P($G(^BGPD(R,N)),U,P)+V
+ Q
+ ;
+WCPV(V) ;
+ I '$G(V) Q ""
+ NEW X,I,G S (X,G)=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X!(G)  S I=$P(^AUPNVPOV(X,0),U),I=$P($$ICDDX^ICDCODE(I),U,2) I I="V20.1"!(I="V20.2") S G=1
+ Q G
+MON(P,BDATE,EDATE) ;EP
+ ;is patient's 27 month BD during time frame
+ NEW D,X
+ S D=$P(^DPT(DFN,0),U,3)
+ S D=$$FMADD^XLFDT(D,(30.42*27)) ;d=date turning 27 months
+ I BDATE>D Q ""
+ I EDATE<D Q ""
+ Q 1_"^"_D

@@ -1,0 +1,32 @@
+BQI22PRE ;VNGT/HS/ALA-Version 2.2 Pre-Install ; 24 Feb 2011  11:46 AM
+ ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;
+EN ;
+ NEW DA,DIK
+ S DA=0,DIK="^BQI(90505.2,"
+ F  S DA=$O(^BQI(90505.2,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506,"
+ F  S DA=$O(^BQI(90506,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.3,"
+ F  S DA=$O(^BQI(90506.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.5,"
+ F  S DA=$O(^BQI(90506.5,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.7,"
+ F  S DA=$O(^BQI(90506.7,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507.8,"
+ F  S DA=$O(^BQI(90507.8,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90509.9,"
+ F  S DA=$O(^BQI(90509.9,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQIPROV("
+ F  S DA=$O(^BQIPROV(DA)) Q:'DA  D ^DIK
+ ;
+ S DA(1)=1,DA=0,DIK="^BQI(90508,"_DA(1)_",14,"
+ F  S DA=$O(^BQI(90508,1,14,DA)) Q:'DA  D ^DIK
+ Q

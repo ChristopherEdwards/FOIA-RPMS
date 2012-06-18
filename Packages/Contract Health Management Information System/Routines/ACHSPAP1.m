@@ -1,0 +1,173 @@
+ACHSPAP1 ; IHS/ITSC/PMF - LINK TO PATIENT CARE COMPONENT (2/2) ; [ 12/06/2002  10:36 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5**;JUN 11, 2001
+ ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - Clarify PCC link messages.
+ Q
+ ;
+CHS ;EP - Create V CHS data
+ ;
+ S APCDALVR("APCDATMP")="[APCDALVR 9000010.03 (ADD)]"
+ ;
+ ; .01 - Authorizing Facility
+ S APCDALVR("APCDTFAC")="`"_DUZ(2)
+ ;
+ ; .02 - Patient Name
+ S APCDALVR("APCDPAT")="`"_$P(ACHSDOCR,U,22)
+ ;
+ ; .04 - Authorization Number
+ S ACHSX=$P(ACHSDOCR,U,14)
+ D FYCVT^ACHSFU
+ S (X,APCDALVR("APCDTAUT"))=$E(ACHSY,3,4)_ACHSFC_$P(ACHSDOCR,U)
+ X $P(^DD(9000010.03,.04,0),U,5,99)
+ I '$D(X) S APCDALVR("APCDAFLG")=26_U_APCDALVR("APCDTAUT") Q
+ ;
+ ; .05 - Pay status
+ S (X,APCDALVR("APCDTPAY"))=$P(ACHSTRAN,U,5)
+ X $P(^DD(9000010.03,.05,0),U,5,99)
+ I "FP"'[APCDALVR("APCDTPAY") S APCDALVR("APCDAFLG")=27_U_APCDALVR("APCDTPAY") Q
+ ;
+ ; .06 - Total Charges
+ I $G(^ACHSF(DUZ(2),"D",ACHSDIEN,"ZA")) S X=$P(^("ZA"),U,1)
+ E  S X=$P($G(^ACHSF(DUZ(2),"D",ACHSDIEN,"PA")),U,1)
+ S (X,APCDALVR("APCDTTC"))=$FN(X,"",2)
+ X $P(^DD(9000010.03,.06,0),U,5,99)
+ I '$D(X) S APCDALVR("APCDAFLG")=28_U_APCDALVR("APCDTTC") Q
+ ;
+ ; .07 - Date of Discharge
+ S X=$$DOC^ACHS(8,3)
+ I 'X S X=$P(ACHSTRAN,U,10) I 'X S X=$$DOC^ACHS(3,9) I 'X S X=$$DOC^ACHS(3,1) I 'X S X=$P(ACHSDOCR,U,2)
+ S APCDALVR("APCDTDD")=X
+ X $P(^DD(9000010.03,.07,0),U,5,99)
+ I '$D(X) S APCDALVR("APCDAFLG")=29_U_APCDALVR("APCDTDD") Q
+ ;
+ ; .08 - Discharge Type
+ ; This is a pointer.  Must be converted to value.
+ S APCDALVR("APCDTDT")=1,X=$$DOC^ACHS(8,4)
+ I X S X=$G(^DIC(42.2,X,9999999)),APCDALVR("APCDTDT")=$S(X=0:5,X=1:1,X=2:5,X=3:2,X=4:3,X=5:3,X=6:4,X=7:4,1:1)
+ ;
+ ; .09 - Newborn DX
+ ; S APCDALVR("APCDTND")=""
+ ;
+ ; .11 - Stillborn
+ ; S APCDALVR("APCDTSB")=""
+ ;
+ ; .12 - No of Visits
+ S (X,APCDALVR("APCDTNV"))=$P(ACHSTRAN,U,9)
+ I 'X S APCDALVR("APCDAFLG")=30_U_X Q
+ X $P(^DD(9000010.03,.12,0),U,5,99)
+ ; GTH 04-23-97  The V CHS dd only goes up to 999, and it's not clear 
+ ; if such a high workload is meaningful to PCC.  See line below.
+ I '$D(X) D  S:$D(X) APCDALVR("APCDTNV")=X
+ . F X=9999999,999999,99999,9999,999,99 X $P(^DD(9000010.03,.12,0),U,5,99) Q:$D(X)
+ .Q
+ I '$D(X) S APCDALVR("APCDAFLG")=30_U_APCDALVR("APCDTNV") Q
+ ;
+ ;
+ ; .13 - Hospital Voucher No.
+ ; S APCDALVR("APCDTHV")=""
+ ;
+ ; .14 - Vendor
+ S APCDALVR("APCDTVDR")="`"_$P(ACHSDOCR,U,8)
+ ;
+ D EN^APCDALVR
+ ;
+ I $D(APCDALVR("APCDAFLG")) S APCDALVR("APCDAFLG")=APCDALVR("APCDAFLG")_U_"Failed ADD to V CHS." Q
+ ;
+ I '$$DIE^ACHS("61////"_APCDALVR("APCDADFN")),ACHSWOK W !,"Edit V CHS field of DOCUMENT failed."
+ Q
+ ;
+ ;
+VDEN ;EP  Create/update V DENTAL data.
+ ; note : Currently no known way to convert CHS info of CPT,
+ ;        TOOTH NUMBER and TOOTH SURFACE to ADA code.
+ ;
+ F ACHS=0:0 S ACHS=$O(^ACHSF(DUZ(2),"D",ACHSDIEN,11,ACHS)) Q:'ACHS!$D(APCDALVR("APCDAFLG"))  S ACHS("DEN")=$G(^ACHSF(DUZ(2),"D",ACHSDIEN,11,ACHS,0)) I $P($P(ACHS("DEN"),U),";",2)="AUTTADA(" D VDEN1
+ K ACHS("DEN")
+ Q
+ ;
+VDEN1 ;
+ S (DIE,DIC)="^AUTTADA(",DIC(0)=""
+ S APCDALVR("APCDATMP")="[APCDALVR 9000010.05 (ADD)]"
+ ;
+ ; .01 - ADA Service code - APCDTSC
+ S (X,APCDALVR("APCDTSC"))="`"_+ACHS("DEN")
+ X $P(^DD(9000010.05,.01,0),U,5,99)
+ I '$D(X) S APCDALVR("APCDAFLG")=31_U_APCDALVR("APCDTSC") Q
+ ;
+ ; .02 - Patient Name - APCDPAT
+ S APCDALVR("APCDPAT")="`"_$P(ACHSDOCR,U,22)
+ ;
+ ; .04 - Number of units - APCDTNOU
+ S (X,APCDALVR("APCDTNOU"))=$P(ACHS("DEN"),U,4)
+ X $P(^DD(9000010.05,.04,0),U,5,99)
+ I '$D(X) S APCDALVR("APCDAFLG")=33_U_APCDALVR("APCDTNOU") Q
+ ;
+ ; .05 - Operative site - APCDTOS
+ ; S APCDALVR("APCDTOS")=""
+ ;
+ ; .06 - Tooth Surface - APCDTSUR
+ S APCDALVR("APCDTSUR")=$P(ACHS("DEN"),U,9)
+ X $P(^DD(9000010.05,.06,0),U,5,99)
+ I '$D(X) S APCDALVR("APCDAFLG")=34_U_APCDALVR("APCDTSUR") Q
+ ;
+ D EN^APCDALVR
+ ;
+ I $D(APCDALVR("APCDAFLG")) S APCDALVR("APCDAFLG")=APCDALVR("APCDAFLG")_U_"Add to V DENTAL failed." Q
+ ;
+ Q
+ ;
+VCPT ;EP
+ ;GO THRU 'CPT OR REV INFORMATION' MULTIPLE
+ ;GET THE 'CPT/REV CODE' THEN GLOBAL FROM WHERE THE CODE COMES FROM
+ ;IF = ICPT THEN CONTINUE
+ F ACHS=0:0 S ACHS=$O(^ACHSF(DUZ(2),"D",ACHSDIEN,11,ACHS)) Q:'ACHS!$D(APCDALVR("APCDAFLG"))  S ACHS("CPT")=$G(^ACHSF(DUZ(2),"D",ACHSDIEN,11,ACHS,0)) I $P($P(ACHS("CPT"),U),";",2)="ICPT(" D VCPT1
+ K ACHS("CPT")
+ Q
+VCPT1 ;
+ S (DIE,DIC)="^ICPT(",DIC(0)=""
+ S APCDALVR("APCDATMP")="[APCDALVR 9000010.18 (ADD)]"
+ ;
+ ; .01 - CPT Code - APCDTCPT
+ S (X,APCDALVR("APCDTCPT"))="`"_+ACHS("CPT")
+ X $P(^DD(9000010.18,.01,0),U,5,99)      ;IF NOT AN INACTIVE FLAG THEN
+ ;                                        X CONTAINS THE RESULT OF THE 
+ ;                                        LOOKUP
+ ;IF IT CAN'T FIND IT QUIT
+ I '$D(X) S APCDALVR("APCDAFLG")=32_U_APCDALVR("APCDTCPT") Q
+ ;
+ ; .02 - Patient Name - APCDPAT
+ S APCDALVR("APCDPAT")="`"_$P(ACHSDOCR,U,22)
+ ;
+ ; .04 - Provider Narrative - APCDTPN
+ ; .05 - Diagnosis - APCDTDX
+ ; .07 - Principal Procedure - APCDTPP
+ ; .16 - Quanty - APCDTUN
+ ; 1201 - Event Date and Time - APCDTCDT
+ ; 1202 - Ordering Provider - APCDTPRV
+ ; 1203 - Clinic - APCDTCLN
+ ; 1204 - Encounter Provider - APCDTEPR
+ ; 1208 - Parent - APCDTPNT
+ ; 1209 - External Key - APCDTEXK
+ ; 1210 - Outside Provider Name - APCDTOPR
+ ;         
+ D EN^APCDALVR
+ ;
+ I $D(APCDALVR("APCDAFLG")) S APCDALVR("APCDAFLG")=APCDALVR("APCDAFLG")_U_"Add to V CPT failed." Q
+ ;
+ Q
+ ;
+LINK() ;EP - Determine settings in PCC MASTER CONTROL.
+ N DA,DIC,DR
+ ;I $P($G(^AUTTSITE(1,0)),U,8)'="Y" Q 0;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ I $P($G(^AUTTSITE(1,0)),U,8)'="Y" Q "0^PCC is not installed."  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ S DIC="^APCCCTRL("_DUZ(2)_",11,",DIC(0)="",X="CONTRACT HEALTH MGMT SYSTEM"
+ D ^DIC
+ K DIC
+ ;Q:Y<1 0;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ Q:Y<1 "0^CHS not found in PCC MASTER CONTROL file."  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ S DA=+Y,DA(1)=DUZ(2)
+ ;Q:$$VAL^XBDIQ1(9001000.011,.DA,.02)'="YES" 0;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ Q:$$VAL^XBDIQ1(9001000.011,.DA,.02)'="YES" "0^Link not 'YES' to CHS in PCC MASTER CONTROL file."  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ S Y=$$VAL^XBDIQ1(9001000.011,.DA,.03)
+ I $L(Y) S APCDALVR("APCDTYPE")=$E(Y)
+ Q 1
+ ;

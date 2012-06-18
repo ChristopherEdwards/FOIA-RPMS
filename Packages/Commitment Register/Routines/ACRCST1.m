@@ -1,0 +1,34 @@
+ACRCST1 ; COMPILED XREF FOR FILE #9002195 ; 09/29/09
+ ; 
+ S DIKZK=2
+ S DIKZ(0)=$G(^ACRITEM(DA,0))
+ S X=$P(DIKZ(0),U,2)
+ I X'="" K ^ACRITEM("E",$E(X,1,30),DA)
+ S DIKZ("DT")=$G(^ACRITEM(DA,"DT"))
+ S X=$P(DIKZ("DT"),U,1)
+ I X'="" K ^ACRITEM("C",$E(X,1,30),DA)
+ S X=$P(DIKZ("DT"),U,4)
+ I X'="" K ^ACRITEM("NSN",$E(X,1,30),DA)
+ S X=$P(DIKZ("DT"),U,6)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRITEM(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,5),X=X S DIU=X K Y X ^DD(9002195,6,1,1,2.1) X ^DD(9002195,6,1,1,2.4)
+ S DIKZ("DT")=$G(^ACRITEM(DA,"DT"))
+ S X=$P(DIKZ("DT"),U,7)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRITEM(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,6),X=X S DIU=X K Y X ^DD(9002195,7,1,1,2.1) X ^DD(9002195,7,1,1,2.4)
+ S DIKZ("DT")=$G(^ACRITEM(DA,"DT"))
+ S X=$P(DIKZ("DT"),U,15)
+ I X'="" K ^ACRITEM("G",$E(X,1,30),DA)
+ S DIKZ("DT1")=$G(^ACRITEM(DA,"DT1"))
+ S X=$P(DIKZ("DT1"),U,1)
+ I X'="" K ^ACRITEM("F",$E(X,1,30),DA)
+ S X=$P(DIKZ("DT1"),U,2)
+ I X'="" K ^ACRITEM("VON",$E(X,1,30),DA)
+ S X=$P(DIKZ("DT1"),U,4)
+ I X'="" K ^ACRITEM("NDC",$E(X,1,30),DA)
+ S DIKZ(0)=$G(^ACRITEM(DA,0))
+ S X=$P(DIKZ(0),U,1)
+ I X'="" K ^ACRITEM("B",$E(X,1,30),DA)
+END G ^ACRCST2

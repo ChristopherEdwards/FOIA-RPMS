@@ -1,0 +1,6 @@
+LRO ; IHS/DIR/FJE - Being replaced 1/10/91 16:0 ;
+ ;;5.2;LR;**1013**;JUL 15, 2002
+ ;
+ ;;5.2;LAB SERVICE;;Sep 27, 1994
+EN ;;Entry point for OE/RR *THIS ROUTINE IS BEING PHASED OUT*
+ G EN^LRXO0

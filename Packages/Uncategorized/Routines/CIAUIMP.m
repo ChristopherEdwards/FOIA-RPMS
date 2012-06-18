@@ -1,0 +1,80 @@
+CIAUIMP ;MSC/IND/DKM - Import text into FileMan file;04-May-2006 08:19;DKM
+ ;;1.2;CIA UTILITIES;;Mar 20, 2007
+ ;;Copyright 2000-2006, Medsphere Systems Corporation
+ ;=================================================================
+ ; Imports data from a specially formatted text file into a
+ ; FileMan file.
+ ; Inputs:
+ ;   CIAINP  = Full input file or global specification.
+ ;   CIATRACE= If nonzero, generates a debug trace.
+ ; Outputs:
+ ;   Returns status code^status message.  Status code of 0 means
+ ;   successful completion.
+ ;=================================================================
+ENTRY(CIAINP,CIATRACE) ;
+ N CIALN,CIAFN,CIALVL,CIABM,CIAC,CIALBL,CIAQT,CIAST,CIAIO,CIAGBL
+ S @$$TRAP^CIAUOS("ERROR^CIAUIMP")
+ S CIAFN=0,CIALVL=-1,CIATRACE=+$G(CIATRACE),CIAST=0,CIAIO=$I,U="^",CIAC=0,CIAGBL=$E(CIAINP)=U
+ I CIAGBL S CIAINP=$$CREF^DILF(CIAINP)
+ E  D OPEN^CIAUOS(.CIAINP,"R")
+ F  Q:$$READ  D  Q:CIAST
+ .U CIAIO
+ .W:CIATRACE=1 CIAC,*13
+ .W:CIATRACE=2 CIAC_": ",$$TRUNC^CIAU(CIALN,$G(IOM,80)-$X-2),!
+ .D DOIT(CIALN)
+ D:'CIAGBL CLOSE^CIAUOS(.CIAINP)
+ Q CIAST
+READ() I 'CIAGBL S CIAC=CIAC+1 Q $$READ^CIAUOS(.CIALN,CIAINP)
+ S CIAC=$O(@CIAINP@(CIAC))
+ Q:'CIAC 1
+ I $D(@CIAINP@(CIAC))#2 S CIALN=@CIAINP@(CIAC) Q 0
+ I $D(@CIAINP@(CIAC,0))#2 S CIALN=@CIAINP@(CIAC,0) Q 0
+ Q 1
+ERROR D ERR("Fatal error",$$EC^%ZOSV)
+ Q CIAST
+DOIT(CIALN) ;
+ N CIAZ,CIAL,CIAFLD,CIAWP
+ S CIALN=$$TRIM^CIAU(CIALN)
+ I ";"[$E(CIALN) W:CIATRACE=3 $P(CIALN,";",2,999),! Q
+ F CIAL=0:1 Q:$E(CIALN,CIAL+1)'="."
+ S CIALN=$E(CIALN,CIAL+1,999)
+ I CIALN'[":" D ERR("Missing label",CIALN) Q
+ S CIALBL=$$TRIM^CIAU($P(CIALN,":")),CIALN=$$TRIM^CIAU($P(CIALN,":",2,999))
+ I 'CIAL S CIAFN=$$FILE(CIALN) Q
+ I CIAL>CIALVL D ERR("Invalid nesting",CIALN) Q
+ S CIALVL=CIAL,CIAFN=+$P(CIABM(CIALVL),U,4)
+ S CIAFLD=$$FLD(CIALBL,CIAFN)
+ S CIAZ=+$P($G(^DD(CIAFN,CIAFLD,0)),U,2)
+ I CIAZ D  Q:CIAST
+ .S CIALVL=CIALVL+1,CIAFN=CIAZ,CIABM(CIALVL)=$$ENTRY^CIAUDIC(CIABM(CIALVL-1),"+"_CIAFN)
+ .I +CIABM(CIALVL)<0 D ERR("Error access subfile entry",CIALBL) Q
+ .S CIAFLD=$$FLD(.01,CIAFN)
+ I 'CIAFLD D ERR("Unknown field",CIALBL) Q
+ I 'CIAWP,CIALN="" Q
+ ;S:CIALN="+" CIALN=U_$TR($P(CIABM(CIALVL),U,2),"|",",")_"$C(1))",CIALN=1+$O(@CIALN,-1)\1
+ I CIAFLD=.01!'CIABM(CIALVL)!CIAWP D  Q
+ .I 'CIAWP,CIAFLD'=.01 D ERR("First field is not primary index",CIALBL) Q
+ .I 'CIAWP D
+ ..S CIABM(CIALVL)=$$ENTRY^CIAUDIC(CIABM(CIALVL),"="_CIALN)
+ ..S:+CIABM(CIALVL)'>0 CIABM(CIALVL)=$$ENTRY^CIAUDIC(CIABM(CIALVL),"="_$$UP^XLFSTR(CIALN))
+ .S:+CIABM(CIALVL)'>0!CIAWP CIABM(CIALVL)=$$ENTRY^CIAUDIC(CIABM(CIALVL),$S(CIALN="@"&'CIAWP:CIALN,1:"~LX;.01///^S X=CIALN"))
+ .I +CIABM(CIALVL)'>0,CIALN'="@" D ERR("Error adding entry",CIALN)
+ S CIABM(CIALVL)=$$ENTRY^CIAUDIC(CIABM(CIALVL),"<;"_CIAFLD_"///^S X=CIALN")
+ D:+CIABM(CIALVL)'>0 ERR("Error writing to field",CIALBL)
+ Q
+FILE(CIAFN) ;
+ K CIABM
+ S CIABM(1)=$$ENTRY^CIAUDIC(CIAFN),CIALVL=1
+ I +CIABM(1)'<0 S CIAFN=+$P(CIABM(1),U,4)
+ E  D ERR("Error accessing database",CIAFN)
+ Q CIAFN
+FLD(CIANM,CIAFN) ;
+ N CIAZ
+ S CIAZ=$S(CIANM="":.01,CIANM=+CIANM:CIANM,1:+$O(^DD(CIAFN,"B",CIANM,0)))
+ I '$D(^DD(CIAFN,CIAZ,0)) S CIAZ=0
+ E  S CIAWP=$P(^(0),U,2)["W"
+ Q CIAZ
+ERR(CIAMSG,CIAX) ;
+ S CIAST=CIAC_U_CIAMSG_$S($D(CIAX):": "_CIAX,1:"")
+ W:CIATRACE=2 CIAC_": "_$P(CIAST,U,2,999),!
+ Q

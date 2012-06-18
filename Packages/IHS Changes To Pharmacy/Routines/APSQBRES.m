@@ -1,0 +1,89 @@
+APSQBRES ;IHS/ASDS/ENM/POC/PLS - PROCESS RESULTS OF POINT OF SALE CALL;09-Oct-2008 11:27;SM
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1001,1007**;Sep 23, 2004
+ ;---------------------------------------------------
+ S X=$$EN^APSQBRES(RXIEN,RFIEN,ADDDEL)
+ Q
+ ; Returns POS call status
+ ; Input: RXIEN - IEN to File 52
+ ;        RFIEN - IEN to Refill Multiple in File 52 - optional
+ ;        ADDDEL - Either an 'A'dd or 'D'elete flag
+ ;        REASON - Reason for claim reversal (OPTIONAL)  - Added IHS/MSC/PLS - 08/21/08
+EN(RXIEN,RFIEN,ADDDEL,REASON) ;EP
+ ;Called by APSPFUNC and APSPRESK
+ N PSORES,PSOREST,DA,DR,DIE,X,Y,D0,DO,DD,MORE
+ Q:$$TEST("ABSPOSRX") ""
+ ; Must have a prescription IEN
+ S:$L($G(REASON)) MORE("RXREASON")=REASON
+ I '+$G(RXIEN) S PSOREST="ERROR" G FIN
+ K:$G(RFIEN)="" RFIEN
+ I ADDDEL="A" D
+ .I $G(RFIEN)']"" S PSORES=$$CLAIM^ABSPOSRX(RXIEN)
+ .E  S PSORES=$$CLAIM^ABSPOSRX(RXIEN,$G(RFIEN))
+ .S PSOREST=$$TEXTADD($G(PSORES))
+ .I +$G(RFIEN) S DA=RFIEN,DA(1)=RXIEN,DIE="^PSRX("_DA(1)_",1,",DR="9999999.08///^S X=PSOREST" D ^DIE
+ .I '+$G(RFIEN) S DA=RXIEN,DR="9999999.08///^S X=PSOREST",DIE="^PSRX(" D ^DIE
+ I ADDDEL="D" D
+ .S PSORES=$$UNCLAIM^ABSPOSRX(RXIEN,+$G(RFIEN),.MORE)
+ .S PSOREST=$$TEXTDEL($G(PSORES))
+ .I '+$G(RFIEN) S DA=RXIEN,DR="9999999.08///^S X=PSOREST",DIE="^PSRX(" D ^DIE
+FIN Q PSOREST
+ ;
+STATUS(RXIEN,RFIEN) ;EP
+ Q:$$TEST("ABSPOSRX") ""
+ I '$G(RXIEN) Q ""
+ ; Check for refill
+ I $G(RFIEN)]"" Q $$STATUS^ABSPOSRX(RXIEN,RFIEN)
+ ; Default to prescription
+ Q $$STATUS^ABSPOSRX(RXIEN)
+ ;
+ ; Return Insurance Pointer
+ ; Input: APSQIEN - IEN to ABSP NCPDP OVERRIDE (9002313.511)
+ ;        APSQDIEN - IEN to ABSP DUR/PSS (9002313.473)
+OVERRIDE(APSQIEN,APSQDIEN) ;EP
+ ;
+ ;******   NOTE - CALLING ROUTINE SHOULD 'NEW' APSQDUR !!!!!
+ ;******   (or kill it) - DON'T LEAVE THIS FIELD
+ ;******   It is only done this way because of limitations
+ ;******   experienced in PSORXED (can't handle multiple
+ ;******   values coming back)
+ Q:$$TEST("ABSPOSO") ""
+ N (RFD,APSQIEN,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,ILST,IOT,IOXY,U,DT,DTIME,APSQCOM,APSQCOMR,APSQDIEN,APSQDUR)
+ S APSQDUR=""   ;pre set to null
+ S APSQNIEN=$$NEWOVER^ABSPOSO($G(APSQIEN),$G(APSQDIEN))
+ S APSQDUR=$P(APSQNIEN,U,2)   ;this is the DUR IEN
+ S APSQNIEN=$P(APSQNIEN,U)    ;Pass back the insurance pointer
+ ;
+ ; If RFD is defined, a prescription is being edited.
+ I $D(RFD) D
+ .;For guarantee capture of this information, printing and calling bill program.
+ .S:'RFD APSQCOM="INSURER INFO ADDED/EDITED,"
+ .;For guarantee capture of this information, printing and call billing probram.
+ .S:RFD APSQCOMR="REFILL INSURER INFO ADDED/EDITED,"
+ Q APSQNIEN
+TEST(X) ;EP
+ N QUIT
+ S QUIT='+$$GET1^DIQ(9009033,$G(PSOSITE),307,"I")
+ X:'QUIT ^%ZOSF("TEST") I '$T S QUIT=1
+ Q QUIT
+ ; Return text for Add Status
+ ; Input: Add Status Value
+TEXTADD(STATUS) ; EP
+ N RES
+ I STATUS=1 S RES="WILL PROCESS"
+ E  I STATUS=2 S RES="WILL PROCESS BUT HAS BEEN SUBMITTED PREVIOUSLY"
+ E  I STATUS=3 S RES="PREVIOUS PAPER CLAIM, REVERSE AND RESUBMIT"
+ E  I STATUS=4 S RES="PREVIOUS ELECTRONIC CLAIM, REVERSE AND RESUBMIT"
+ E  I STATUS=-1 S RES="ALREADY CLAIM IN PROGRESS"
+ E  I STATUS<0 S RES="FAILURE"
+ E  S RES="UNKNOWN CLAIM STATUS"
+ Q RES
+ ; Return text for Delete Status
+ ; Input: Delete Status Value
+TEXTDEL(STATUS) ; EP
+ N RES
+ I STATUS=1 S RES="WILL RESUBMIT FOR REVERSAL"
+ E  I STATUS=-1 S RES="ALREADY TRANSACTION IN PROGRESS"
+ E  I STATUS=-2 S RES="NO RECORD OF PREVIOUS CLAIM TO REVERSE"
+ E  I STATUS=-3 S RES="NOT REVERSIBLE, MUST BE PAPER OR E PAYABLE"
+ E  S RES="UNKNOWN REVERSAL STATUS"
+ Q RES

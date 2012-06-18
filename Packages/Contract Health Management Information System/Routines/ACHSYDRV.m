@@ -1,0 +1,146 @@
+ACHSYDRV ; IHS/ITSC/PMF - SEARCH FOR DUP EIN NUMBERS IN VENDOR FILE ;  [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+ ;  This report will generate a list of VENDORS whose file
+ ;  contains either a DUPLICATE or MISSING EIN.
+ ;  Kernel variables need to be defined.
+ ;
+ S ACHSUSR=$$USR^ACHS,ACHSFAC=$P(^AUTTLOC(DUZ(2),0),U,2)
+ W !!?18,"This report will generate a list of VENDORS whose",!?18,"file contains either a DUPLICATE or MISSING EIN."
+DEVICE ;Device Selection
+ W *7,!!?18,"Since this report may take awhile to compile",!?18,"it is recommended that you QUEUE to a PRINTER.",!
+ S %ZIS="PQ"
+ D ^%ZIS
+ I POP W !,"NO DEVICE SELECTED - REQUEST ABORTED" D HOME^%ZIS S Y=$$DIR^XBDIR("E") G END:Y=0,DEVICE:Y=1
+ I '$D(IO("Q")) W:'$D(IO("S")) ! D:'$D(IO("S")) WAIT^DICD G CALC
+ ;
+ S ZTRTN="CALC^ACHSYDRV",ZTIO="",ZTDESC="DUPLICATE EIN REPORT",ACHSQIO=ION_";"_IOST_";"_IOM_";"_IOSL_$S($D(IOPAR):U_IOPAR,1:"")
+ F %="ACHSFAC","ACHSUSR","ACHSQIO","ACHSFACP" S ZTSAVE(%)=""
+ D ^%ZTLOAD
+ K IO("Q"),ZTSK
+ D HOME^%ZIS
+END ; 
+ K ACHSUSR,DIR,DTOUT,DIROUT,DUOUT,DIRUT,ACHSFAC,ACHSBAD,ACHSVNDR,ACHSEIN,ACHSDAT,ACHSQIO,ACHSPAGE,ACHSSAVE,ACHSSKIP,ACHSTIM,C,I,^TMP("ACHSYDRV",$J)
+ D ^%ZISC
+ S:$D(ZTQUEUED) ZTREQ="@"
+ D ERPT^ACHS
+ Q
+ ;
+CALC ;EP - From TaskMan 
+ ; E is EIN, V is IEN
+ N ACHSLUDT,ACHSNODE
+ K ^TMP("ACHSYDRV",$J),E,V
+ S V=0
+ F  S V=$O(^AUTTVNDR(V)) Q:'V  I $D(^AUTTVNDR(V,11)) S ^TMP("ACHSYDRV",$J,"DUP",$S($P(^AUTTVNDR(V,11),U):$P(^AUTTVNDR(V,11),U)_$P(^AUTTVNDR(V,11),U,2),1:"NOT ON FILE"),V)=""
+ I '$D(^TMP("ACHSYDRV",$J,"DUP")) G PRINT
+ S E=0
+CHECK1 ;
+ S E=$O(^TMP("ACHSYDRV",$J,"DUP",E))
+ I E="" K E,V G PRINT
+ S V=""
+VNDR ;
+ S V=$O(^TMP("ACHSYDRV",$J,"DUP",E,V))
+ G:V="" CHECK1
+ I '$O(^TMP("ACHSYDRV",$J,"DUP",E,V)),'$D(^TMP("ACHSYDRV",$J,E)) K ^TMP("ACHSYDRV",$J,"DUP",E) G VNDR
+ S X="UNKNOWN"
+ S:$D(^AUTTVNDR(V,0)) X=$P(^(0),U)
+ S ^TMP("ACHSYDRV",$J,E,V)=X
+ K ^TMP("ACHSYDRV",$J,"DUP",E,V)
+ G VNDR
+ ;
+PRINT ; 
+ D BRPT^ACHSFU
+ S (ACHSEIN,ACHSPAGE,ACHSSKIP)=0
+ D HEADER
+ S C=0
+ I '$D(^TMP("ACHSYDRV",$J)) G END
+P1 ;
+ S ACHSEIN=$O(^TMP("ACHSYDRV",$J,ACHSEIN))
+ G TOTL:'ACHSEIN
+ S ACHSVNDR=""
+ I ACHSSKIP'=ACHSEIN W !
+P2 ;
+ S ACHSVNDR=$O(^TMP("ACHSYDRV",$J,ACHSEIN,ACHSVNDR))
+ G:ACHSVNDR="" P1
+ U IO
+ W !?12,ACHSEIN,?30,$E($P(^TMP("ACHSYDRV",$J,ACHSEIN,ACHSVNDR),U),1,30)
+ S C=C+1
+ D LSTUSED
+ I IOST["P-",$Y>(IOSL-10) D HEADER
+ I IOST["C-",'$D(IO("S")),$Y>(IOSL-6) Q:'$$DIR^XBDIR("E","","","","","",2)  D HEADER
+ S ACHSSKIP=ACHSEIN
+ G P2
+ ;
+TOTL ;
+ U IO
+ W !!?1,"TOTAL",?30,C
+ I IOST["C-",'$D(IO("S")) Q:'$$DIR^XBDIR("E","","","","","",2)
+BADEIN ; Print list of Vendors with no EIN on file
+ S ACHSPAGE=0
+ D BADHEAD
+ I '$D(^TMP("ACHSYDRV",$J,"NOT ON FILE")) U IO W !!,"Good for YOU!! All VENDORS in your file have EIN's!" G END
+ W !!
+ S ACHSBAD="",C=0
+BAD1 ;
+ S ACHSBAD=$O(^TMP("ACHSYDRV",$J,"NOT ON FILE",ACHSBAD))
+ G BADTOTL:ACHSBAD=""
+ W !?12,$P(^AUTTVNDR(ACHSBAD,0),U)
+ S C=C+1
+ I IOST["P-",$Y>(IOSL-10) D BADHEAD
+ I IOST["C-",'$D(IO("S")),$Y>(IOSL-6) Q:'$$DIR^XBDIR("E","","","","","",2)  D BADHEAD
+ G BAD1
+ ;
+BADTOTL ;
+ U IO
+ W !!?1,"TOTAL",?12,C
+ I IOST["C-",'$D(IO("S")) Q:'$$DIR^XBDIR("E","","","","","",2)
+ W @IOF
+ G END
+ ;
+HEADER ;Prints heading
+ U IO
+ W @IOF
+ S ACHSPAGE=ACHSPAGE+1
+ S Y=$$HTE^XLFDT($H),ACHSDAT=$P(Y,"@",1),ACHSTIM=$P(Y,"@",2)
+ W !,"*",ACHSDAT
+ S X=$$LOC^ACHS
+ W ?((80/2)-($L(X)/2)),X,!!
+ S X="DUPLICATE VENDOR EIN Report - Page "
+ W ?((80/2)-($L(X)/2)),X_ACHSPAGE
+ W !!,$$REPEAT^XLFSTR("*",80)
+ W !!?12,"VENDOR EIN",?30,"VENDOR NAME",?66,"LAST USED"
+ W !,$$REPEAT^XLFSTR("~",80),!
+ Q
+ ;
+BADHEAD ;Prints heading of missing EIN's
+ W @IOF
+ S ACHSPAGE=ACHSPAGE+1
+ S Y=$$HTE^XLFDT($H),ACHSDAT=$P(Y,"@",1),ACHSTIM=$P(Y,"@",2)
+ W !,"*",ACHSDAT
+ S X=$$LOC^ACHS
+ W ?((80/2)-($L(X)/2)),X
+ W ?71,ACHSTIM,"*",!,"*User: ",ACHSUSR,?70,"Device:",IO,"*",!!
+ S X="VENDOR(s) MISSING EIN Report - Page "
+ W ?((80/2)-($L(X)/2)),X_ACHSPAGE
+ W !!,$$REPEAT^XLFSTR("*",80)
+ W !!?8,"The following do(es) not have an EIN entry in the VENDOR FILE."
+ W !?25,"PLEASE validate and correct."
+ W !,$$REPEAT^XLFSTR("~",80),!
+ Q
+ ;
+LSTUSED ;CHECKS LAST USED DATE IN ^ACHSF(DUZ(2),"VB"
+ S ACHSNODE=0
+ Q:'$D(^ACHSF(DUZ(2),"VB",ACHSVNDR))
+LST2 ;
+ S ACHSNODE=$O(^ACHSF(DUZ(2),"VB",ACHSVNDR,ACHSNODE))
+ G LSTEND:+ACHSNODE=0
+ S ACHSDTSV=ACHSNODE
+ G LST2
+ ;
+LSTEND ;
+ S ACHSLUDT=""
+ S:$D(ACHSDTSV) ACHSLUDT=$P(^ACHSF(DUZ(2),"D",ACHSDTSV,0),U,2)
+ U IO
+ W ?65,$E(ACHSLUDT,4,5),"-",$E(ACHSLUDT,6,7),"-",$E(ACHSLUDT,2,3)
+ Q
+ ;

@@ -1,0 +1,116 @@
+FHINI0DH	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8538,0)
+	;;=CRACKERS,CHEESE TIDBITS,NABISCO^BC-01811^16-cracker^14
+	;;^UTILITY(U,$J,112,8538,1)
+	;;=7.143^28.571^57.143^500^^^^^^^^142.857^1428.571
+	;;^UTILITY(U,$J,112,8538,2)
+	;;=^^^^^^^^0^7.143
+	;;^UTILITY(U,$J,112,8538,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8539,0)
+	;;=CRACKERS,CHEEZ-LT,SUNSHINE^BC-01812^12-cracker^14
+	;;^UTILITY(U,$J,112,8539,1)
+	;;=14.286^28.571^50^500^^^^^^^^^964.286
+	;;^UTILITY(U,$J,112,8539,2)
+	;;=^^^^^^^^^7.143
+	;;^UTILITY(U,$J,112,8539,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8540,0)
+	;;=CRACKERS,CHICKEN IN A BISKIT,NABISCO^BC-01813^7-cracker^14
+	;;^UTILITY(U,$J,112,8540,1)
+	;;=7.143^35.714^57.143^571.429^^^^^^^^142.857^928.571
+	;;^UTILITY(U,$J,112,8540,2)
+	;;=^^^^^^^^0^7.143
+	;;^UTILITY(U,$J,112,8540,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8541,0)
+	;;=CRACKERS,CLUB KEEBLER^BC-01814^2-cracker^7
+	;;^UTILITY(U,$J,112,8541,1)
+	;;=7.143^20^60^485.714^^^^^3.143^^^128.571^1114.286^^^^^^^.571
+	;;^UTILITY(U,$J,112,8541,2)
+	;;=.429^0^^^^^^^0^4.286^^1.429
+	;;^UTILITY(U,$J,112,8541,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8542,0)
+	;;=CRACKERS,CRISPYBREAD,WASA,EXTRA CRISP^BC-01815^piece^6
+	;;^UTILITY(U,$J,112,8542,1)
+	;;=16.667^0^83.333^416.667^^^^^^^^333.333^666.667
+	;;^UTILITY(U,$J,112,8542,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,8542,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8543,0)
+	;;=CRACKERS,CRISPBREAD,WASA,FALU RYE^BC-01816^piece^10
+	;;^UTILITY(U,$J,112,8543,1)
+	;;=10^0^60^300^^^^^^^^500^600
+	;;^UTILITY(U,$J,112,8543,2)
+	;;=^^^^^^^^0^^^^^^^^16
+	;;^UTILITY(U,$J,112,8543,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8544,0)
+	;;=CRACKERS,CRISPBREAD,WASA,HEARTY RYE^BC-01817^piece^16
+	;;^UTILITY(U,$J,112,8544,1)
+	;;=12.5^0^62.5^312.5^^^^^^^^562.5^468.75
+	;;^UTILITY(U,$J,112,8544,2)
+	;;=^^^^^^^^0^^^^^^^^16.25
+	;;^UTILITY(U,$J,112,8544,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8545,0)
+	;;=CRACKERS,CRISPBREAD,WASA,SESAME RYE^BC-01818^piece^10
+	;;^UTILITY(U,$J,112,8545,1)
+	;;=10^10^40^300^^^^^^^^650^450
+	;;^UTILITY(U,$J,112,8545,2)
+	;;=^^^^^^^^0^^^^^^^^24
+	;;^UTILITY(U,$J,112,8545,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8546,0)
+	;;=GRAIN CAKE,CORN,QUAKER^BC-01819^cake^9
+	;;^UTILITY(U,$J,112,8546,1)
+	;;=7.778^2.222^82.222^388.889^4.444^^^22.222^1.444^^155.556^155.556^588.889^^^^^222.222^0^.222
+	;;^UTILITY(U,$J,112,8546,2)
+	;;=0^3.333^^^^^^^^^^^^^^^1.111
+	;;^UTILITY(U,$J,112,8546,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8547,0)
+	;;=GRAIN CAKE,RICE & CORN,QUAKER^BC-01820^cake^9
+	;;^UTILITY(U,$J,112,8547,1)
+	;;=8.889^3.333^80^388.889^4.444^^^11.111^1.444^111.111^322.222^266.667^344.444^2.222^.444^5.111^^88.889^0^0
+	;;^UTILITY(U,$J,112,8547,2)
+	;;=.111^4.444^.889^.111^22.222^^^^0^1.111^1.111^1.111^^^^^3.333
+	;;^UTILITY(U,$J,112,8547,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8548,0)
+	;;=GRAIN CAKE,RICE & RYE,QUAKER9^BC-01821^cake^9
+	;;^UTILITY(U,$J,112,8548,1)
+	;;=8.889^4.444^76.667^377.778^6.667^^^33.333^2.556^144.444^377.778^344.444^133.333^2.556^.444^4.778^^88.889^0^0
+	;;^UTILITY(U,$J,112,8548,2)
+	;;=.111^5.556^1^.111^0^^^^0^1.111^1.111^1.111^^^^^4.444
+	;;^UTILITY(U,$J,112,8548,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8549,0)
+	;;=GRAIN CAKE,RICE & SESAME,QUAKER^BC-01822^cake^9
+	;;^UTILITY(U,$J,112,8549,1)
+	;;=8.889^3.333^78.889^388.889^5.556^^^11.111^1.444^133.333^366.667^277.778^400^2.556^.444^6.111^^88.889^0^0
+	;;^UTILITY(U,$J,112,8549,2)
+	;;=.111^5.556^.889^.111^22.222^^^^0^1.111^1.111^1.111^^^^^3.333
+	;;^UTILITY(U,$J,112,8549,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8550,0)
+	;;=GRAIN CAKE,RICE,CHICO SAN^BC-01823^cake^9
+	;;^UTILITY(U,$J,112,8550,1)
+	;;=4.444^2.222^88.889^388.889^^^^0^1.111^^^277.778^^^^^^155.556^0^0
+	;;^UTILITY(U,$J,112,8550,2)
+	;;=.111^6.667^^^^^^^^^^^^^^^4.444
+	;;^UTILITY(U,$J,112,8550,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8551,0)
+	;;=GRAIN CAKE,RICE,MULTIGRAIN,QUAKER^BC-01824^cake^9
+	;;^UTILITY(U,$J,112,8551,1)
+	;;=10^4.444^76.667^377.778^5.556^^^33.333^2.556^144.444^377.778^344.444^322.222^2.667^.444^5.556^^88.889^0^0
+	;;^UTILITY(U,$J,112,8551,2)
+	;;=.111^6.667^.889^.111^11.111^^^^^1.111^1.111^1.111^^^^^4.444
+	;;^UTILITY(U,$J,112,8551,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

@@ -1,0 +1,27 @@
+AUM81C ;IHS/ASDST/DMJ,SDR,GTH - ICD 9 CODES FOR FY 2008 ; [ 08/18/2003   4:01 PM ]
+ ;;8.1;TABLE MAINTENANCE;;SEP 17,2007
+ ;
+ICD9REV ;;ICD 9 DIAGNOSIS, MODIFIED CODE TITLES: CODE NUMBER(#.01)^DIAGNOSIS(#3)^DESCRIPTION(#10)^USE ONLY WITH SEX(#9.5)^MDC(#5)^DRG(#60-65)
+ ;;005.1^BOTULISM FOOD POISONING^Botulism food poisoning^^18^867,868,869
+ ;;359.3^PERIODIC PARALYSIS^Periodic paralysis^^1^91,92,93
+ ;;389.14^CENTRAL HEARING LOSS^Central hearing loss^^3^154,155,156
+ ;;389.18^SENSORINEUR HEAR LOSS BILAT^Sensorineural hearing loss, bilateral^^3^154,155,156
+ ;;389.7^DEAF NONSPEAKING NEC^Deaf, nonspeaking, not elsewhere classifiable^^3^154,155,156
+ ;;END
+ ;
+ICD9OREV ;;ICD 9 DIAGNOSIS, OTHER MODIFIED CODE TITLES: CODE NUMBER(#.01)^DIAGNOSIS(#3)^DESCRIPTION(#10)^USE ONLY WITH SEX(#9.5)^MDC(#5)^DRG(#60-65)^LOWER AGE(#9999999.01)^UPPER AGE(#9999999.02)
+ ;;E968.6^AIR GUN^AIR GUN
+ ;;END
+ICD0OREV ;;ICD OPERATION/PROCEDURE, OTHER REVISED CODES: CODE NUMBER(#.01)^OPERATION/PROCEDURE(#4)^DESCRIPTION(#10)^MDC(#80.12)-DRG(#80.12,1-6) (Multiple MDCs/DRGs separated by "~")
+ ;;33.6^combined heart-lung transplantation^combined heart-lung transplantation^^6-103
+ ;;36.03^OPEN CHEST CORONAR ART ANGIO^open chest coronary artery angioplasty^^6-108
+ ;;45.95^anastomosis to anus^anastomosis to anus^^6-400,406,407~21-442,443
+ ;;85.95^INSERT BREAST TISSUE EXPANDER^insertion of breast tissue expander^^9-259,260,261~21-442,443
+ ;;85.96^REMOVAL OF BREAST TISSUE EXPANDER(S)^removal of breast tissue expander(s)^^9-259,260,261~21-442,443
+ ;;END
+PRNT ;
+ S U="^"
+ W !," CODE",?10,"DIAGNOSIS",!?10,"DESCRIPTION",!," -----",?10,"-----------"
+ NEW X,Y,P2,P3
+ F X=1:1 S Y=$P($T(ICD9NEW+X),";;",3),P2=$P(Y,U,2),P3=$P(Y,U,3) Q:Y="END"  W !," ",$P(Y,U,1),?10,$S($L(P3):P3,1:P2),!?10,P2
+ Q

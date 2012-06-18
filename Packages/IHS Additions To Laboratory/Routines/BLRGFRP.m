@@ -1,0 +1,28 @@
+BLRGFRP ;IHS/ITSC/TPF - ADD THE GFR DELTA CHECK TO THE DELTA CHECK FILE [ 05/28/2003  8:53 AM ]
+ ;;5.2;LR;**1016**;MAY 27, 2003
+ S XECUTE="S %X="""" X:$D(LRDEL(1)) LRDEL(1) W:$G(%X)'="""" ""  Calculated GFR:"",%X S:LRVRM>10 LRSB($$GETDNAM^BLREXECU(""ESTIMATED GFR""))=%X K %,%X,%Y,%Z,%ZZ"
+ S OVERFLO="S %ZZ=$$GETDNAM^BLREXECU(""CREATININE"") X:LRVRM>10 ""F %=%ZZ S %X(%)=$S(%=LRSB:X,$D(LRSB(%)):+LRSB(%),1:0)"" X:LRVRM>10 ""F %=%ZZ S %X(%)=$S($D(LRSB(%)):LRSB(%),1:0)"" S %X=$$GFRDEL^BLREXECU(X)"
+ S DESCRIP="This delta check when added to a test named CREATININE will calculate an estimated Glomerular Filtration Rate (GFR) and stuff the result into the test called ESTIMATED GFR"
+ S SITENOT="T"
+ S TEXT="CREATED FOR DR. NARVA SENIOR CLINICIAN INTERNAL MEDICINE AND IHS CONSULTING NEPHROLOGIST."
+ S DIC=62.1
+ S DIC(0)="XL"
+ S X="GFR"    ;CREAT NEW DELTA CHECK 'GFR'
+ D ^DIC
+ Q:Y<0
+ S NEWENT=+Y
+ S DIE=DIC,DA=NEWENT K DIC
+ S DR="10///^S X=XECUTE;20///^S X=OVERFLO"
+ D ^DIE
+ K DIE
+ ;
+ S ^LAB(62.1,NEWENT,3,0)="^^3^3^3030327^^^"
+ S ^LAB(62.1,NEWENT,3,1,0)="This delta check when added to a test named CREATININE will"
+ S ^LAB(62.1,NEWENT,3,2,0)=" calculate an estimated Glomerular Filtration Rate (GFR) and stuff the result"
+ S ^LAB(62.1,NEWENT,3,3,0)=" into the test called ESTIMATED GFR"
+ S ^LAB(62.1,NEWENT,4,0)="^62.131D^1^1"
+ S ^LAB(62.1,NEWENT,4,1,0)="3030327"
+ S ^LAB(62.1,NEWENT,4,1,1,0)="^^1^1^3030327^"
+ S ^LAB(62.1,NEWENT,4,1,1,1,0)="CREATED FOR DR. NARVA SENIOR CLINICIAN INTERNAL MEDICINE AND IHS CONSULTING NEPHROLOGIST."
+ S ^LAB(62.1,NEWENT,4,"B",3030327,1)=""
+ Q

@@ -1,0 +1,149 @@
+BDMS9B5 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3**;JUN 14, 2007
+ ;
+ ;
+MAM ;EP
+ K BDMSDAT,BDMSTEX
+ S BDMSDAT=""
+ ;BDMsdat=date of last, BDMstex is display
+ Q:$P(^DPT(BDMSPAT,0),U,2)="M"
+ K BDMSEXD,BDMSDF1
+ S BDMSTXN=0
+ S BDMSDAT=$$LASTMAM^APCLAPI1(BDMSPAT)_"^"_$$MAMREF^BDMS9B4(BDMSPAT,BDMSDAT)
+ I $$VERSION^XPDUTL("BW")>2.9 G MAMA
+ S BDMSBWR=0 S:$D(X) BDMSAVX=X S X="BWUTL1" X ^%ZOSF("TEST") S:$D(BDMSAVX) X=BDMSAVX K BDMSAVX I $T S BDMSBWR=1
+ I BDMSBWR,$D(^BWP(BDMSPAT,0)) S BDMSTXN=BDMSTXN+1,BDMSTEX(BDMSTXN)=$$BNEED^BWUTL1(BDMSPAT) I BDMSTEX(1)="UNKNOWN" K BDMSTEX(1) S BDMSTXN=0
+ I $O(BDMSTEX("")) Q
+MAMA ;
+ Q:$$AGE^AUPNPAT(BDMSPAT,DT,"Y")<50
+ Q:$$AGE^AUPNPAT(BDMSPAT,DT,"Y")>69
+ K BDMSTXN
+ S BDMSINT=365
+ I $P(BDMSDAT,U,2)]"" S BDMSTEX(1)=$P(BDMSDAT,U,2),BDMSDAT=$P(BDMSDAT,U) Q
+ I BDMSDAT="" S BDMSTEX(1)="MAY BE DUE NOW" Q
+ K BDMSBWR
+ S X1=BDMSDAT,X2=BDMSINT D C^%DTC S Y=X X BDMSCVD S BDMSTEX(1)="Next Due: "_Y,BDMSWD=Y
+ S X2=BDMSDAT,X1=DT D ^%DTC I X>BDMSINT S BDMSTEX(1)=$S('$D(BDMSDD):"MAY BE DUE NOW (WAS DUE "_BDMSWD_")",1:"MAY BE DUE NOW")
+ Q
+ ;
+ ;
+PAP ;EP
+ K BDMSDAT,BDMSTEX,BDMSTP
+ S BDMSDAT=""
+ ;BDMsdat=date of last, BDMstex is display
+ Q:$$AGE^AUPNPAT(BDMSPAT,DT,"Y")<18!($P(^DPT(BDMSPAT,0),U,2)="M")
+ K BDMSEXD,BDMSDF1
+ S BDMSTXN=0
+ I $$VERSION^XPDUTL("BW")>2.9 G PAPA
+ S BDMSBWR=0 S:$D(X) BDMSAVX=X S X="BWUTL1" X ^%ZOSF("TEST") S:$D(BDMSAVX) X=BDMSAVX K BDMSAVX I $T S BDMSBWR=1
+ I BDMSBWR,$D(^BWP(BDMSPAT,0)) S BDMSTXN=BDMSTXN+1,BDMSTEX(BDMSTXN)=$$CNEED^BWUTL1(BDMSPAT) I BDMSTEX(1)="UNKNOWN" K BDMSTEX(1) S BDMSTXN=0
+PAPA ;
+ S BDMSTP=$$HYSTER^BDMS9B4(BDMSPAT,DT)
+ I BDMSTP]"" S BDMSTXN=BDMSTXN+1,BDMSTEX(BDMSTXN)="Pt had hysterectomy.  Pap may be necessary",BDMSTXN=BDMSTXN+1,BDMSTEX(BDMSTXN)="based on individual followup."
+ I $O(BDMSTEX("")) S BDMSDAT="" Q
+ Q
+ ;
+ ;
+ACE(P,D) ;EP - return date of last ACE iNHIBITOR
+ ;IHS/CMI/LAB patch 3 - added this subroutine
+ ;go through all v meds until 9999999-D and find all drugs with class CV800 or CV805
+ ;if none found check taxonomy
+ I '$G(P) Q ""
+ I '$G(D) S D=0 ;if don't pass date look at all time
+ NEW V,I,%
+ S %=""
+ S I=0 F  S I=$O(^AUPNVMED("AA",P,I)) Q:I'=+I!(%)!(I>(9999999-D))  D
+ .S V=0 F  S V=$O(^AUPNVMED("AA",P,I,V)) Q:V'=+V  I $D(^AUPNVMED(V,0)) S G=$P(^AUPNVMED(V,0),U) I $P($G(^PSDRUG(G,0)),U,2)="CV800"!($P($G(^PSDRUG(G,0)),U,2)="CV805") S %=V
+ I %]"" D  Q %
+ .I $P(^AUPNVMED(%,0),U,8)="" S %="Yes - "_$$FMTE^XLFDT($P($P(^AUPNVSIT($P(^AUPNVMED(%,0),U,3),0),U),".")) Q
+ .I $P(^AUPNVMED(%,0),U,8)]"" S %="Discontinued - "_$$FMTE^XLFDT($P($P(^AUPNVSIT($P(^AUPNVMED(%,0),U,3),0),U),".")) Q
+ NEW T S T=$O(^ATXAX("B","DM AUDIT ACE INHIBITORS",0))
+ I 'T Q ""
+ S I=0 F  S I=$O(^AUPNVMED("AA",P,I)) Q:I'=+I!(%)!(I>(9999999-D))  D
+ .S V=0 F  S V=$O(^AUPNVMED("AA",P,I,V)) Q:V'=+V  I $D(^AUPNVMED(V,0)) S G=$P(^AUPNVMED(V,0),U) I $D(^ATXAX(T,21,"B",G)) S %=V
+ I %]"" D  Q %
+ .I $P(^AUPNVMED(%,0),U,8)="" S %="Yes - "_$$FMTE^XLFDT($P($P(^AUPNVSIT($P(^AUPNVMED(%,0),U,3),0),U),".")) Q
+ .I $P(^AUPNVMED(%,0),U,8)]"" S %="Discontinued - "_$$FMTE^XLFDT($P($P(^AUPNVSIT($P(^AUPNVMED(%,0),U,3),0),U),".")) Q
+ Q "No"
+ ;
+ASPREF(P) ;EP - CHECK FOR ASPIRIN NMI OR REFUSAL
+ I '$G(P) Q ""
+ NEW X,N,Z,D,IEN,DATE,DRUG
+ K X
+ S T=$O(^ATXAX("B","DM AUDIT ASPIRIN DRUGS",0))
+ I 'T Q ""
+ S (D,G)=0 F  S D=$O(^AUPNPREF("AA",P,50,D)) Q:D'=+D!(G)  D
+ .Q:'$D(^ATXAX(T,21,"B",D))
+ .S X=$O(^AUPNPREF("AA",P,50,D,0))
+ .S N=$O(^AUPNPREF("AA",P,50,D,X,0))
+ .S G=1,DATE=9999999-X,DRUG=D,IEN=N
+ I 'G Q ""
+ Q $$VAL^XBDIQ1(50,DRUG,.01)_" "_$$TYPEREF^BDMSMU(IEN)_" on "_$$FMTE^XLFDT(DATE)
+PNEU(P) ;EP
+ NEW BDMY,PNEU,X,G,Z,R,Y,%
+ S %=P_"^LAST 2 IMMUNIZATION "_$S($$BI:33,1:19),E=$$START1^APCLDF(%,"BDMY(") ;IHS/CMI/LAB patch 3 - changed line to support new imm package
+ I $D(BDMY(1)) S PNEU(9999999-$P(BDMY(1),U))=""
+ I $D(BDMY(2)) S PNEU(9999999-$P(BDMY(2),U))=""
+ K BDMY S %=P_"^LAST 2 IMMUNIZATION 100",E=$$START1^APCLDF(%,"BDMY(")
+ I $D(BDMY(1)) S PNEU(9999999-$P(BDMY(1),U))=""
+ I $D(BDMY(2)) S PNEU(9999999-$P(BDMY(2),U))=""
+ K BDMY S %=P_"^LAST 2 IMMUNIZATION 109",E=$$START1^APCLDF(%,"BDMY(")
+ I $D(BDMY(1)) S PNEU(9999999-$P(BDMY(1),U))=""
+ I $D(BDMY(2)) S PNEU(9999999-$P(BDMY(2),U))=""
+ K BDMY S X=0,C=0 F  S X=$O(PNEU(X)) Q:X'=+X!(C>2)  S C=C+1,BDMY(C)=9999999-X
+ I $D(BDMY(1)) Q "Yes  "_$$FMTE^XLFDT($P(BDMY(1),U))_"   "_$$FMTE^XLFDT($P($G(BDMY(2)),U))
+ S G=$$REFDF^BDMS9B3(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:33,1:19),0)),$P($G(BDMY(1)),U))
+ I G]"" Q G
+ S G=$$REFDF^BDMS9B3(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:109,1:19),0)),$P($G(BDMY(1)),U))
+ I G]"" Q G
+ S G=$$REFDF^BDMS9B3(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:100,1:19),0)),$P($G(BDMY(1)),U))
+ I G]"" Q G
+ ;LORI BI REFUSALS
+ S G="" F Z=33,100,109 Q:G  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .Q:$P(^BICONT(R,0),U,1)'["Refusal"
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .;Q:$P(^BIPC(X,0),U,4)>EDATE
+ .S G=1_U_D
+ I G Q "Refused "_$$FMTE^XLFDT($P(D,U,2))_" Immunization package"
+ Q "No"
+PPD(P) ;EP
+ NEW BDMY,Y,X,%,E,BDMV
+ S BDMV=""
+ S %=P_"^LAST SKIN PPD",E=$$START1^APCLDF(%,"BDMY(")
+ S E="" I $D(BDMY(1)) S BDMV=$P(BDMY(1),U)_U_$P(^AUPNVSK(+$P(BDMY(1),U,4),0),U,5)_U_$$VAL^XBDIQ1(9000010.12,+$P(BDMY(1),U,4),.04)_U_" PPD"      ;$P(^AUPNVSK(+$P(BDMY(1),U,4),0),U,5)_"     "_$$FMTE^XLFDT($P(BDMY(1),U))
+ K BDMY
+ S X=P_"^LAST LAB [DM AUDIT TB LAB TESTS" S E=$$START1^APCLDF(X,"BDMY(")
+ I $D(BDMY(1)),$P(BDMY(1),U,1)>$P(BDMV,U,1) S BDMV=$P(BDMY(1),U)_U_U_$P(^AUPNVLAB(+$P(BDMY(1),U,4),0),U,4)_U_$$VAL^XBDIQ1(9000010.09,+$P(BDMY(1),U,4),.01)
+ K BDMY S X=P_"^LAST DX V74.1" S E=$$START1^APCLDF(X,"BDMY(")
+ I $D(BDMY(1)),$P(BDMY(1),U,1)>$P(BDMV,U,1) S BDMV=$P(BDMY(1),U,1)_U_U_U_" (by Diagnosis) V74.1"  ; Q $$FMTE^XLFDT($P(BDMY(1),U))_"  (by Diagnosis)"
+ I BDMV]"" Q $P(BDMV,U,4)_"  "_$P(BDMV,U,2)_"  "_$P(BDMV,U,3)_"  "_$$FMTE^XLFDT($P(BDMV,U,1))
+ S G=$$REFDF^BDMS9B3(BDMSPAT,9999999.28,$O(^AUTTSK("B","PPD",0)))
+ I G]"" Q G
+ Q ""
+PPDS(P) ;EP
+ ;check for tb health factor, problem list, povs if and
+ ;indication of pos ppd then return "Known Positive PPD"
+ NEW BDMS,E,X
+ K BDMS
+ S X=P_"^LAST HEALTH [DM AUDIT TB HEALTH FACTORS" S E=$$START1^APCLDF(X,"BDMS(")
+ I $D(BDMS) Q "Known Positive PPD or Hx of TB (Health Factor recorded)"
+ N T S T=$O(^ATXAX("B","DM AUDIT TB HEALTH FACTORS",0))
+ I 'T G PPDSPL
+ N G S G=0,X=0 F  S X=$O(^AUPNHF("AA",P,X)) Q:X'=+X!(G)  I $D(^ATXAX(T,21,"B",X)) S G=1
+ I G Q "Known Positive PPD or Hx of TB (Health Factor recorded)"
+PPDSPL ;CHECK PL
+ N T S T=$O(^ATXAX("B","SURVEILLANCE TUBERCULOSIS",0))
+ I 'T Q ""
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ I I Q "Known Positive PPD or Hx of TB (Problem List DX)"
+ ;check povs
+ K BDMS S X=P_"^FIRST DX [SURVEILLANCE TUBERCULOSIS" S E=$$START1^APCLDF(X,"BDMS(")
+ I $D(BDMS(1)) Q "Known Positive PPD or Hx of TB (POV/DX "_$$FMTE^XLFDT($P(BDMS(1),U))_")"
+ Q ""
+BI() ;EP- check to see if using new imm package or not 1/5/1999 IHS/CMI/LAB
+ Q $S($O(^AUTTIMM(0))<100:0,1:1)
+ ;end new subrotuine CMI/TUCSON/LAB

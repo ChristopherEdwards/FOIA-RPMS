@@ -1,0 +1,413 @@
+BZDMCDAZ ;IHS/BAO/DMH load mcaid elg. from ARIZONA STATE [ 09/14/2000  4:25 PM ]
+ ;    dmh 8/21/2000
+ ;    revised copy of BZDMCDNV
+ ;
+ ;    dmh 3/21/2000
+ ;    revised copy of AZBMESTU
+ ;
+ ;
+ ;ROUTINE TO AUTOMATICALLY STUFF THE MEDICAID ELIGIBLE [ 01/02/96  10:19 AM ]
+ ;FILE AT THE SERVICE UNITS USING THE AZMEDDL GLOBAL CREATED AT THE 
+ ;AREA B SYSTEM.  THE DATA CAME FROM THE MASTER GLOBAL AFTER ALL THE
+ ;MEDICAID ELIGABLE DATA WAS DOWNLOADED FROM THE STATE TAPES.
+ ;THIS WILL NEED TO BE DONE ON A MONTHLY BASIS IN ORDER TO GET ALL THE
+ ;UPDATE DATES THAT THE STATE SENDS EACH MONTH.
+ ;^BZDMTEMP(0) HOLDS LAST ACCESSED HRN FROM MED UNIX FILE IF NEED
+ ;TO DO RESET.
+ ;AMH-BAO 7/12/91
+ ;K ^BZDMTEMP
+ K ^BZDMTEMP("SSN")
+ K ^BZDMTEMP("NEW")
+ K ^BZDMTEMP("UPDATE")
+ K ^BZDMTEMP("MEDNO")
+ K ^BZDMTEMP("MNO")
+ K ^BZDMTEMP("INDX")   ;for creating own index 9/8/2000
+ ;K ^BZDMERST("A")
+ K ^BZDM("MEDNO")
+ K AZBM
+ ;
+ D INDX^BZDMUT
+ I '$D(^BZDMTEMP("INDX")) U 0 W *7,!!,"Index is not set!!" H 2 Q
+ ;
+ST1 ;
+ U 0 W ! D ^%T
+ I '$D(DUZ(2)) D ^XBKVAR
+ I +DUZ(2)=0 K DUZ(2) D ^XBKVAR
+ S ORGDUZ(2)=DUZ(2)
+ S NEW=0
+ S UPDATE=0
+ S SSNCT=0
+ S COUNT=0
+ S CT=0
+ S ER(1)=0,ER(2)=0,ER("P")=0,ER("HR")=0
+ S %DT="",X="T" D ^%DT S TODAY=Y
+ D ^%ZIS
+ ;S FACNAME=$P(^DIC(4,ORGDUZ(2),0),"^",1)
+ ;U IO(0) W !,"DOWNLOAD FOR--",FACNAME
+ U IO(0) W !!!!!,"DOWNLOAD FOR--MEDICAID ELIGIBILITY"
+ U IO(0) W !,TODAY
+ ;
+ ;
+SSNQ ;U IO(0) R !!,"STUFF VALID SSN'S? (Y or N) ",SSNQ
+ ;I (SSNQ'="N")&(SSNQ'="Y") W *7,"  ??" H 2 G SSNQ
+ ;
+ ;
+ S FAC=$P(^AUTTLOC(DUZ(2),0),"^",10)
+ I '$D(^AUPNMCD(0)) S ^AUPNMCD(0)="MEDICAID ELIGIBLE^9000004PI^0^0"
+ ;
+INS ;GET MEDICAID INTERNAL NUMBER FOR EACH RECORD
+ S DIC="^AUTNINS(",DIC(0)="XZIMO",X="MEDICAID" D ^DIC
+ I Y'=-1 S INS=$P(Y,"^",1)
+ E  U IO(0) W !!,*7,"ERROR IN INSURER FILE..." G ABNEND
+ S DIC="^AUTNINS(",DIC(0)="XZIMO",X="ARIZONA MEDICAID" D ^DIC
+ I Y'=-1 S PLAN=$P(Y,"^",1)
+ E  U IO(0) W !!,*7,"ERROR IN INSURER FILE (PLAN)..." G ABNEND
+ ;
+STATE ;GET STATE NUMBER
+ ;U IO(0) R !!,"ENTER MEDICAID STATE CODE 1=MONTANA  2=WYOMING : ",ST
+ ;I ST="^" G ABNEND
+ ;I (ST'=1)&(ST'=2) U IO(0) W *7,"  ??" H 2 G STATE
+ ;I ST=1 S X="MONTANA"
+ ;I ST=2 S X="WYOMING"
+ ;S ST=2,X="WYOMING"
+ ;
+ ;
+ S ST=4,X="ARIZONA"
+ S DIC="^DIC(5,",DIC(0)="ZM" D ^DIC
+ I Y'=-1 S STATE=$P(Y,"^",1)
+ E  U IO(0) W !!,*7,"ERROR IN STATE CODE..." G ABNEND
+ ;
+A ;
+ ;I '$D(FAC) U IO(0) W !!,"ERROR IN FAC. CODE..." G ABEND
+ S FILEN=54
+ U IO(0) R !!,"Enter Month_Year of file to Load: eg. 101999: ",MY
+ I MY'?6N W *7," ??" H 2 G A
+ ;S FILENAME="/pub/nevelg."_MY
+ S FILENAME="/usr/spool/uucppublic/azelg."_MY
+ O FILEN:(FILENAME:"R"):1 
+ E  U IO(0) W *7," NO DATA FILE FOR SAID MONTH-YEAR!!" G ABNEND
+ S X=$E(MY,1,2)_"-"_$E(MY,3,6),%DT="" D ^%DT S UPMONTH=Y
+ I $D(^BZDMCDDL(UPMONTH)) U IO(0) W *7,"That month is already loaded.." H 2 G ABNEND
+ ;
+ ;
+ K ^BZDMTEMP("CT",MY)
+ ;
+ ;D DATES
+ ;D LOADMEDN
+ K ^ZZDINA(MY)
+ ;
+JUMP ;
+ ;   use this if don't want to recreate the temp file & start with st1
+ ;G DATA
+ ;
+ ;
+ D TIME^BZDMUT
+ S ^BZDMTEMP("TIME","SSN","MNO")=BZDTIME1
+ U IO(0) W !!,"Reading data from file. Please hold.....",!
+ F I=1:1 U FILEN R AZBM("REC") Q:(AZBM("REC")="")!(AZBM("REC")="**")  D 
+ .S CT=CT+1
+ .;S ^BZDMTEMP(CT)=AZBM("REC")   ;dmh don't need this 4/6/2000
+ .S MSSN=$E(AZBM("REC"),27,35)
+ .S MNO=$E(AZBM("REC"),18,26)
+ .S MDOB=$E(AZBM("REC"),143,150)      ;9-6-2000
+ .;I $D(^BZDM("MEDNO",MNO)) S ^BZDMTEMP("MEDNO",MNO)=""
+ .;S ^BZDMTEMP("SSN",MSSN)=AZBM("REC")   ;dmh only set if in dpt 4/6
+ .;I $D(^AUPNMCD("AB",MNO)) S ^BZDMTEMP("MNO",MNO)=AZBM("REC")
+ .;E  I $D(^DPT("SSN",MSSN)) S ^BZDMTEMP("SSN",MSSN)=AZBM("REC")  ;added 4/6/2000
+ .I CT#1000=0 U 0 W "."
+ .D MNOCK I MNOFL="Y" Q 
+ .E  D SSNCK    ;9-6-2000
+ .Q
+ D TIME^BZDMUT
+ S $P(^BZDMTEMP("TIME","SSN","MNO"),"^",2)=BZDTIME1
+DATA ;
+ ;Q    ;put quit here for test  9-6-2000
+ ;
+ B  
+ D TIME^BZDMUT
+ S $P(^BZDMTEMP("TIME","SSN"),"^",1)=BZDTIME1
+ ;
+ U IO(0) W !!,"Matching and uploading data to Registration now...."
+ S AZBM("MSSN")=0
+ ;   
+ ;     next f is for test only    9-6-2000
+ ;
+ ;F  S AZBM("MSSN")=$O(^BZDMTEMP("SSN",AZBM("MSSN"))) Q:AZBM("MSSN")=""  D
+ S SCT=0
+ F  S AZBM("MSSN")=$O(^BZDMTEMP("SSN",AZBM("MSSN"))) Q:AZBM("MSSN")=""  D
+ .S SSNDFN=0
+ .;                   SSNDFN is the ien for the patient in dpt
+ .F  S SSNDFN=$O(^BZDMTEMP("SSN",AZBM("MSSN"),SSNDFN)) Q:SSNDFN=""  D
+ ..S ^BZDMTEMP("LAST READ","SSN")=AZBM("MSSN")_","_SSNDFN
+ ..S SCT=SCT+1
+ ..I SCT#100=0 U IO(0) W "."
+ ..;S PATDFN=$O(^DPT("SSN",AZBM("MSSN"),0)) Q:+PATDFN=0
+ ..;   commented out and added the next set 9-6-2000
+ ..;
+ ..S PATDFN=SSNDFN
+ ..D DUZHRN I '$D(HRN) S ^BZDMERST(TODAY,"INACT",PATDFN)="",ER(10)=$G(ER(10))+1 Q
+ ..S MREC=^BZDMTEMP("SSN",AZBM("MSSN"),SSNDFN)
+ ..D STUFF
+ ..Q
+ D TIME^BZDMUT
+ S $P(^BZDMTEMP("TIME","SSN"),"^",2)=BZDTIME1
+ G DATA1
+ ;
+DATA1 ;
+ ;Q    ;put quit here for test   9-6-2000
+ ;
+ ;
+ D TIME^BZDMUT
+ S $P(^BZDMTEMP("TIME","MNO"),"^",1)=BZDTIME1
+ ;
+ S MNOCT=0
+ S AZBM("MNO")=0
+ F  S AZBM("MNO")=$O(^BZDMTEMP("MNO",AZBM("MNO"))) Q:AZBM("MNO")=""  D
+ .S MCDDFN=0
+ .F  S MCDDFN=$O(^BZDMTEMP("MNO",AZBM("MNO"),MCDDFN)) Q:MCDDFN=""  D
+ ..S ^BZDMTEMP("LAST READ","MNO")=AZBM("MNO")_","_MCDDFN
+ ..S MNOCT=MNOCT+1
+ ..I MNOCT#100=0 U IO(0) W ":"
+ ..S DFN=MCDDFN Q:+DFN=0
+ ..S PATDFN=$P(^AUPNMCD(DFN,0),"^",1)
+ ..D DUZHRN I '$D(HRN) S ^BZDERST(TODAY,"INACT",PATDFN)="",ER(10)=$G(ER(10))+1 Q
+ ..S MREC=^BZDMTEMP("MNO",AZBM("MNO"),MCDDFN)
+ ..D STUFF
+ ..Q
+ D TIME^BZDMUT
+ S $P(^BZDMTEMP("TIME","MNO"),"^",2)=BZDTIME1
+ G END
+STUFF ;STUFF DATA
+ ;
+ ;
+ S LN=$E(MREC,108,130)
+ S FN=$E(MREC,131,140)
+ S MI=$E(MREC,141)
+ F  Q:$E(LN,1)'=" "  S LN=$E(LN,2,30)    ;strip leading spaces
+ F  S L=$L(LN) Q:$E(LN,L)'=" "  S LN=$E(LN,1,L-1) ;strip trailing spaces
+ ;S FN=$P(MREC,",",2)
+ F  Q:$E(FN,1)'=" "  S FN=$E(FN,2,30)    ;strip leading spaces
+ F  S L=$L(FN) Q:$E(FN,L)'=" "  S FN=$E(FN,1,L-1) ;strip trailing spaces
+ S MEDNAME=LN_","_FN
+ ;
+ ;
+ S MEDNO=$E(MREC,18,26)
+ S RATECD=$E(MREC,355,358)
+ELDTS ;   set start and end dates
+ S X=$E(MREC,404,411)
+ S X=$E(X,5,6)_$E(X,7,8)_$E(X,1,4) D ^%DT S STDT=Y
+ I +STDT<1 Q
+ S X=$E(MREC,412,419)
+ S X=$E(X,5,6)_$E(X,7,8)_$E(X,1,4) D ^%DT S ENDDT=Y
+ I +ENDDT<1 Q
+DOB ;
+ S MEDDOB=$E(MREC,143,150)
+ I $L(MEDDOB)=8 D
+ .S MEDDOB=$E(MEDDOB,5,6)_$E(MEDDOB,7,8)_$E(MEDDOB,1,4)
+ E  S MEDDOB=""
+ ;
+ ;
+ ;
+ I '$D(^AUPNMCD("B",PATDFN)) S NEW=NEW+1 S ^BZDMTEMP("NEW",PATDFN)="",NU="N"
+ E  S UPDATE=UPDATE+1 S ^BZDMTEMP("UPDATE",PATDFN)="",NU="U"
+ ;
+ ;
+ ;S DIC="^AUPNMCD(",DIC(0)="ZLM",X=PATDFN,DLAYGO=9000004 D ^DIC
+ S DIC="^AUPNMCD(",DIC(0)="ZLM",X=HRN,DLAYGO=9000004 D ^DIC
+ I Y'=-1 S MEDDFN=$P(Y,"^",1)
+ E  S ^BZDMERST(TODAY,2,PATDFN)="" S ER(2)=$G(ER(2))+1 Q
+ S $P(^AUPNMCD(MEDDFN,0),"^",2)=INS
+ S $P(^AUPNMCD(MEDDFN,0),"^",4)=STATE
+ S $P(^AUPNMCD(MEDDFN,0),"^",10)=PLAN
+ S $P(^AUPNMCD(MEDDFN,0),"^",11)=RATECD
+ S DR=".03////"_MEDNO_";.08////"_TODAY_";.05////"_MEDNAME,DIE="^AUPNMCD(",DA=MEDDFN
+ S DR=DR_";2101////"_MEDNAME
+ I MEDDOB'="" S DR=DR_";2102///"_MEDDOB
+ D ^DIE
+ S COUNT=COUNT+1
+ S ^ZZDINA(MY,MEDDFN)=PATDFN
+ELIG S E=0
+ELIG1 ;
+ D NOENDCK
+ S FL=0
+ I $D(^AUPNMCD(MEDDFN,11,STDT)) D CKDT Q  ;I FL=1 G ELIG1
+ ;
+ S FL=0 D DTCONT I FL=1 Q
+ ;
+ S DIC="^AUPNMCD(MEDDFN,11,",DIC(0)="ZLM"
+ S DA(1)=MEDDFN
+ S X=STDT
+ S DINUM=X
+ S DIC("DR")=".02////"_ENDDT
+ K DD,DO
+ S:'$D(@(DIC_"0)")) @(DIC_"0)")="^9000004.11"
+ D FILE^DICN
+ S NEWCHG(NU)=$G(NEWCHG(NU))+1
+ Q
+ABNEND ;ABNORMAL END OF JOB
+ U IO(0) W !!,"CONTACT PROGRAMMER!!"
+ D ^%ZISC
+ Q
+ ;
+NOENDCK ;   check to see if no ending date on any of the records on a patient
+ ;   that just got updated 9/7/2000
+ S NOENDFL="N"
+ S NOEND=0
+ F  S NOEND=$O(^AUPNMCD(MEDDFN,11,NOEND)) Q:NOEND=""  D  Q:NOENDFL="Y"
+ .S RECORD=$G(^AUPNMCD(MEDDFN,11,NOEND,0))
+ .Q:RECORD=""
+ .I $P(RECORD,"^",2)=""  D
+ ..S ^BZDERST(TODAY,"NOEND",PATDFN)=""
+ ..S ER(20)=$G(ER(20))+1
+ ..S NOENDFL="Y"
+ Q
+ ;
+SSNCK ;     9-6-2000
+ ;   check if ssn is onfile also check the dob; per Glen the state
+ ;   file has the same ssn on multiple people
+ S SSNFL="N"
+ K SSNDFN
+ Q:'$D(MDOB)
+ Q:MDOB=""
+ S X=$E(MDOB,5,6)_$E(MDOB,7,8)_$E(MDOB,1,4)
+ D ^%DT
+ S MDOB=Y
+ I $D(^DPT("SSN",MSSN))
+ E  Q
+ S SSNDFN=0
+ F  S SSNDFN=$O(^DPT("SSN",MSSN,SSNDFN)) Q:+SSNDFN=0  D  Q:SSNFL="Y"
+ .I MDOB=$P(^DPT(SSNDFN,0),"^",3) S SSNFL="Y"
+ ;I (SSNFL="Y"),(+SSNDFN'=0) S ^BZDMTEMP("SSN",MSSN,SSNDFN)=AZBM("REC")
+ I (SSNFL="Y"),(+SSNDFN'=0) S ^BZDMTEMP("SSN",MSSN,SSNDFN)=$E(AZBM("REC"),1,500)
+ I (SSNFL="Y"),(+SSNDFN'=0) S ^BZDMTEMP("CT",MY,"SSN")=$G(^BZDMTEMP("CT",MY,"SSN"))+1
+ Q
+ ;
+MNOCK ;
+ S MNOFL="N"
+ ;S X=MNO
+ ;S DIC="^AUPNMCD(",DIC(0)="MZ" D ^DIC
+ ;I Y'="-1" S MCDDFN=$P(Y,"^",1) S MNOFL="Y"
+ ;;I MNOFL="Y" S ^BZDMTEMP("MNO",MNO,MCDDFN)=AZBM("REC")
+ I $D(^BZDMTEMP("INDX",MNO)) D
+ .S MCDDFN=$O(^BZDMTEMP("INDX",MNO,0))
+ .S MNOFL="Y"
+ I MNOFL="Y" S ^BZDMTEMP("MNO",MNO,MCDDFN)=$E(AZBM("REC"),1,500)
+ I MNOFL="Y" S ^BZDMTEMP("CT",MY,"MNO")=$G(^BZDMTEMP("CT",MY,"MNO"))+1
+ Q
+DATES ;
+ S X=$E(MY,1,2)_"01"_$E(MY,3,6) D ^%DT S STDT=Y
+ S EMO=$E(MY,1,2)
+ I (EMO="01")!(EMO="03")!(EMO="05")!(EMO="07")!(EMO="08")!(EMO="10")!(EMO="12") S ENDDAY=31
+ I (EMO="04")!(EMO="06")!(EMO="09")!(EMO="11") S ENDDAY=30
+ I (EMO="02") S ENDDAY=28 
+ S X=$E(MY,1,2)_ENDDAY_$E(MY,3,6) D ^%DT S ENDDT=Y
+ Q
+SSNSET ;STUFF SSN FROM THE MEDICAID DOWNLOAD TO THE DPT FILE
+ ;I (DPTSSN="")!($E(DPTSSN,1,3)=999)!($E(DPTSSN,1,3)="000")
+ I (ST=1),((MEDNO=999999999)!(MEDNO="000000000")) Q
+ I (ST=2),((WYSSN=999999999)!(WYSSN="000000000")) Q
+ I (DPTSSN="")!(DPTSSN="999999999")!(DPTSSN="999-99-9999")!(DPTSSN="000000000")!(DPTSSN="000-00-0000")
+ E  Q
+ S DIE="^DPT(",DA=PATDFN,DR=".09////"_MEDNO
+ D ^DIE
+ S SSNCT=SSNCT+1
+ I '$D(^AZMEDSSN(TODAY,0)) S ^AZMEDSSN(TODAY,0)=$P(^AZMEDDL(FAC,0),"^",1)_"^0"
+ S ^AZMEDSSN(TODAY,PATDFN)=$S(ST=1:MEDNO,ST=2:WYSSN)_"^"_DPTSSN,$P(^AZMEDSSN(TODAY,0),"^",2)=$P(^AZMEDSSN(TODAY,0),"^",2)+1
+ S ^AGPATCH(TODAY,DUZ(2),PATDFN)=""
+ Q
+CKDT ;CHECK IF THE START DATE IS ALREADY ON FILE
+ S OLD=^AUPNMCD(MEDDFN,11,STDT,0)
+ I $P(OLD,"^",2)'=ENDDT D  
+ .S $P(^AUPNMCD(MEDDFN,11,STDT,0),"^",2)=ENDDT 
+ .S STDTCHG(NU)=$G(STDTCHG(NU))+1
+ .S FL=1 
+ .Q
+ Q
+DTCONT ;
+ ;  check on the multiples already onfile to see if this new date range
+ ;  can be a continuation of a record already on file
+ ;  instead of recreating a new record for each new month.
+ S X1=STDT,X2="-1" D C^%DTC S DTBFR=X  ;set date before start dt
+ I +DTBFR<1 Q
+ S LOOP=0
+ F  S LOOP=$O(^AUPNMCD(MEDDFN,11,LOOP)) Q:LOOP=""  D  Q:FL=1
+ .S LOOPREC=$G(^AUPNMCD(MEDDFN,11,LOOP,0))
+ .Q:LOOPREC=""
+ .S LOOPEND=$P(LOOPREC,"^",2)
+ .Q:LOOPEND'=DTBFR
+ .I LOOPEND=DTBFR D
+ ..S ^ZZDINA("ENDCHG",MEDDFN,LOOP)=LOOPEND_"^"_ENDDT
+ ..S ENDCHG(NU)=$G(ENDCHG(NU))+1
+ ..S FL=1
+ ..S $P(^AUPNMCD(MEDDFN,11,LOOP,0),"^",2)=ENDDT
+ ..Q
+ .Q
+ Q
+ ;
+ ;
+ Q
+END ;
+ ;
+ U IO(0) W !!,"TOTAL NUMBER OF MEDICAID ELIG. STUFFED: ",COUNT
+ U IO(0) W !!,"TOTAL NEW OF MEDICAID PATIENTS: ",NEW
+ W !,?10,"Total new nodes: ",$G(NEWCHG("N"))
+ W !,?10,"Total w/start node there with end chg: ",$G(STDTCHG("N"))
+ W !,?10,"Total end dt chg of existing node: ",$G(ENDCHG("N"))
+ U IO(0) W !!,"TOTAL MEDICAID ELIG. PATIENTS UPDATED: ",UPDATE
+ W !,?10,"Total new nodes: ",$G(NEWCHG("U"))
+ W !,?10,"Total w/start node there with end chg: ",$G(STDTCHG("U"))
+ W !,?10,"Total end dt chg of existing node: ",$G(ENDCHG("U"))
+ U IO(0) W !!,"TOTAL PATIENTS (that were updated) with NO end date=",$G(ER(20))
+ U IO(0) W !!,"TOTAL INACTIVE HRN ERRORS= ",$G(ER(10))
+ U IO(0) W !!,"TOTAL MEDICAID ELIG. STUFF ERRORS= ",$G(ER(2))
+ ;S FACNAME=$P(^DIC(4,ORGDUZ(2),0),"^",1)
+ U IO(0) W !,"DOWNLOAD FOR--MEDICAID IS DONE!!!!"
+ U IO(0) W !,TODAY
+ ;K ER
+ S ^BZDMCDLG(UPMONTH)=UPMONTH_"^"_TODAY
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(COUNT)
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(NEW)
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(NEWCHG("N"))
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(STDTCHG("N"))
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(ENDCHG("N"))
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(UPDATE)
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(NEWCHG("U"))
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(STDTCHG("U"))
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(ENDCHG("U"))
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(ER(20))
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(ER(10))
+ S ^BZDMCDLG(UPMONTH)=^BZDMCDLG(UPMONTH)_"^"_+$G(ER(2))
+ K AZBM
+ ;S DIC="^BZDMCDNV(",DIC(0)="ZLM",X=UPMONTH D ^DIC
+ S DIC="^BZDMCDDL(",DIC(0)="ZLM",X=+$E(MY,1,2)_"-"_$E(MY,3,6),DIC("DR")=".02///"_TODAY
+ S DIC("DR")=DIC("DR")_";.03///"_+$G(COUNT)
+ S DIC("DR")=DIC("DR")_";.04///"_+$G(NEW)
+ S DIC("DR")=DIC("DR")_";.05///"_+$G(NEWCHG("N"))
+ S DIC("DR")=DIC("DR")_";.06///"_+$G(STDTCHG("N"))
+ S DIC("DR")=DIC("DR")_";.07///"_+$G(ENDCHG("N"))
+ S DIC("DR")=DIC("DR")_";.08///"_+$G(UPDATE)
+ S DIC("DR")=DIC("DR")_";.09///"_+$G(NEWCHG("U"))
+ S DIC("DR")=DIC("DR")_";10///"_+$G(STDTCHG("U"))
+ S DIC("DR")=DIC("DR")_";11///"_+$G(ENDCHG("U"))
+ S DIC("DR")=DIC("DR")_";12///"_+$G(ER(20))
+ S DIC("DR")=DIC("DR")_";13///"_+$G(ER(10))
+ S DIC("DR")=DIC("DR")_";14///"_+$G(ER(2))
+ D ^DIC
+ U 0 W !! D ^%T
+ D ^%ZISC
+ Q
+DUZHRN ;
+ K HRN
+ S DUZ(2)=0
+ F  S DUZ(2)=$O(^AUPNPAT(PATDFN,41,DUZ(2))) Q:+DUZ(2)=0  D  Q:$D(HRN)
+ .S HRNREC=$G(^AUPNPAT(PATDFN,41,DUZ(2),0))
+ .I $P(HRNREC,"^",3)="" S HRN=$P(HRNREC,"^",2)
+ Q
+LOADMEDN ;load the medno from aupnmcd file to BZDMTEMP("MEDNO") to match on this
+ ;maybe
+ ;   don't need 4/6/2000 dmh
+ Q
+ K ^BZDM("MEDNO")
+ S GLOB="^AUPNMCD(""AB"")"
+ F  S GLOB=$Q(@GLOB) Q:GLOB'["^AUPNMCD(""AB"""  Q:GLOB=""  D
+ .I $P(GLOB,",",1)["AUPNMCD" S MN=$P(GLOB,",",4),^BZDM("MEDNO",MN)=""

@@ -1,0 +1,11 @@
+BEHOORUT ;MSC/IND/DKM - Order Dialog Utilities for EHR ;24-Jul-2009 11:10;PLS
+ ;;1.1;BEH COMPONENTS;**011002**;Sep 18, 2007
+ ; Screen Package file lookup for BEHOORPA CLINICAL INDICATOR parameter
+CLININD(IEN) ;EP
+ N PFX,RET
+ S PFX=$$GET1^DIQ(9.4,IEN,1),RET=0
+ I PFX="PSO" D
+ .S RET=$S($G(DUZ("AG"))="I":$$PATCH^XPDUTL("APSP*7.0*1006"),1:1)
+ E  I PFX="LR" D
+ .S RET=$S($G(DUZ("AG"))="I":$$PATCH^XPDUTL("LR*5.2*1022"),1:1)
+ Q RET

@@ -1,0 +1,116 @@
+FHINI0DK	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8581,0)
+	;;=CRACKERS,TOASTY W/PEANUT BUTTER,LITTLE DEBBIE^BC-01854^1.4-oz.^40
+	;;^UTILITY(U,$J,112,8581,1)
+	;;=14^27^55.5^515^2^^^40^3.7^^^^967.5^^^^^0^0^.4
+	;;^UTILITY(U,$J,112,8581,2)
+	;;=.325^6.75^^^^^^^0^6.25^15.5^5.25
+	;;^UTILITY(U,$J,112,8581,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8582,0)
+	;;=CRACKERS,TOWNHOUSE,KEEBLER^BC-01855^2-cracker^6
+	;;^UTILITY(U,$J,112,8582,1)
+	;;=6.667^28.333^60^516.667^^^^16.667^3.333^^^100^850^^^^^^^.333
+	;;^UTILITY(U,$J,112,8582,2)
+	;;=.333^5^^^^^^^0^5^^3.333
+	;;^UTILITY(U,$J,112,8582,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8583,0)
+	;;=CRACKERS,TRISCUIT BITS,NABISCO^BC-01856^8-cracker^14
+	;;^UTILITY(U,$J,112,8583,1)
+	;;=7.143^14.286^71.429^428.571^^^^^^^^^535.714
+	;;^UTILITY(U,$J,112,8583,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,8583,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8584,0)
+	;;=CRACKERS,TRISCUITS,NABISCO^BC-01857^3-cracker^14
+	;;^UTILITY(U,$J,112,8584,1)
+	;;=7.143^14.286^71.429^428.571^^^^^^^^285.714^535.714
+	;;^UTILITY(U,$J,112,8584,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,8584,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8585,0)
+	;;=CRACKERS,WAVERLY,NABISCO^BC-01858^4-cracker^14
+	;;^UTILITY(U,$J,112,8585,1)
+	;;=7.143^21.429^71.429^500^^^^^^^^107.143^1142.857
+	;;^UTILITY(U,$J,112,8585,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,8585,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8586,0)
+	;;=CRACKERS,WHEATSWORTH STONEGROUND,NABISCO^BC-01859^4-cracker^14
+	;;^UTILITY(U,$J,112,8586,1)
+	;;=7.143^21.429^64.286^500^^^^^^^^250^964.286
+	;;^UTILITY(U,$J,112,8586,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,8586,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8587,0)
+	;;=CRACKERS,WHEAT THINS,NABISCO^BC-01860^8-cracker^14
+	;;^UTILITY(U,$J,112,8587,1)
+	;;=7.143^21.429^64.286^500^^^^^^^^178.571^857.143
+	;;^UTILITY(U,$J,112,8587,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,8587,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8588,0)
+	;;=CRACKERS,ZWIEBACK,NABISCO^BC-01861^2-cracker^14
+	;;^UTILITY(U,$J,112,8588,1)
+	;;=14.286^7.143^71.429^428.571^^^^^^^^142.857^142.857
+	;;^UTILITY(U,$J,112,8588,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,8588,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8589,0)
+	;;=FRENCH TOAST,FRZN,AUNT JEMIMA^BC-01862^2-slices^85
+	;;^UTILITY(U,$J,112,8589,1)
+	;;=7.882^5.176^31.176^195.294^53.882^^^112.941^2.4^17.647^116.471^141.176^651.765^.706^.059^0^^170.588^0^.318
+	;;^UTILITY(U,$J,112,8589,2)
+	;;=.294^3.294^^.435^^1.588^^^54.118^1.176^1.412^1.176^^^^^1.529
+	;;^UTILITY(U,$J,112,8589,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8590,0)
+	;;=FRENCH TOAST,FRZN,CINN SWIRL,AUNT JEMIMA^BC-01863^2-slices^85
+	;;^UTILITY(U,$J,112,8590,1)
+	;;=7.882^5.059^32.353^201.176^52.706^^^111.765^2.318^17.647^131.765^143.529^607.059^.706^.082^.235^^191.765^0^.282
+	;;^UTILITY(U,$J,112,8590,2)
+	;;=.282^3.176^^.4^^1.6^^^48.235^1.176^1.412^1.176^^^^^1.529
+	;;^UTILITY(U,$J,112,8590,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8591,0)
+	;;=FRENCH TOAST,FRZN,CINN SWIRL,PEPPERIDGE FARMS^BC-01864^1.1-oz.^32
+	;;^UTILITY(U,$J,112,8591,1)
+	;;=7.813^5.625^53.438^293.75^^^^90.625^3.438^^^84.375^446.875^^^^^0^0^.313
+	;;^UTILITY(U,$J,112,8591,2)
+	;;=.25^3.438
+	;;^UTILITY(U,$J,112,8591,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8592,0)
+	;;=FRENCH TOAST,RAISIN,AUNT JEMIMA^BC-01865^2-slices^85
+	;;^UTILITY(U,$J,112,8592,1)
+	;;=8.588^5.176^32^202.353^52.118^^^110.588^2.506^20^117.647^183.529^578.824^.918^.118^.271^^127.059^0^.271
+	;;^UTILITY(U,$J,112,8592,2)
+	;;=.306^3.412^.6^.412^18.824^1.212^^^54.118^1.176^1.412^1.176^^^^^1.529
+	;;^UTILITY(U,$J,112,8592,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8593,0)
+	;;=MUFFINS,BANANA NUT,FRZN,PEPPERIDGE FARMS^BC-01866^2-oz.^58
+	;;^UTILITY(U,$J,112,8593,1)
+	;;=5.517^7.759^51.207^296.552^^^^56.897^2.414^^^144.828^496.552^^^^^0^0^.086
+	;;^UTILITY(U,$J,112,8593,2)
+	;;=.138^1.552
+	;;^UTILITY(U,$J,112,8593,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8594,0)
+	;;=MUFFINS,BLUEBERRY,MIX,DUNCAN HINES^BC-01867^1/12-pkg.^30
+	;;^UTILITY(U,$J,112,8594,1)
+	;;=6.667^6.667^70^366.667^19^^^33.333^1.333^10^210^110^600^.333^.067^^^^^.267
+	;;^UTILITY(U,$J,112,8594,2)
+	;;=.233^3.667^^^^^^^0^3.333^^3.333
+	;;^UTILITY(U,$J,112,8594,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

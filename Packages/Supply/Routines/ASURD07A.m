@@ -1,0 +1,62 @@
+ASURD07A ; IHS/ITSC/LMH -RPT 7A USRLVL CHGS/DELS/ESTAB ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;This routine formats and prints report 7A, User Level Change/Delete
+ ;/Establish Transaction List.
+EN ;EP;PRIMARY ENTRY POINT FOR REPORT 07A
+ I '$D(IO) D HOME^%ZIS
+ I '$D(DUZ(2)) W !,"Report must be run from Kernel option" Q
+ I '$D(ASUL(1,"AR","AP")) D SETAREA^ASULARST
+ S ASUK("PTRSEL")=$G(ASUK("PTRSEL")) I ASUK("PTRSEL")]"" G PSER
+ S ZTRTN="PSER^ASURD07A",ZTDESC="SAMS RPT 07A" D O^ASUUZIS
+ I POP S IOP=$I D ^%ZIS Q
+ I ASUK(ASUK("PTR"),"Q") Q
+PSER ;EP;FOR TASKMAN QUEUE OF PRINT
+ S ASUT="ULV"
+ D:'$D(^XTMP("ASUR","R7A")) CMPT
+ D U^ASUUZIS
+ S ASUV("RPT")="R7A",ASUQ("HDR")="HEADER^ASURD07A"
+ D ^ASUUDATA I ASUX("NDTA") G K
+ S (ASUX("AS"),ASUX("IX"),ASUX("SQ"))=""
+ S ASUC("TOT")=0
+ F  S ASUX("AS")=$O(^XTMP("ASUR","R7A",ASUX("AS"))) Q:ASUX("AS")=""  D  Q:$D(DUOUT)
+ .F  S ASUX("IX")=$O(^XTMP("ASUR","R7A",ASUX("AS"),ASUX("IX"))) Q:ASUX("IX")=""  D  Q:$D(DUOUT)
+ ..F  S ASUX("SQ")=$O(^XTMP("ASUR","R7A",ASUX("AS"),ASUX("IX"),ASUX("SQ"))) Q:ASUX("SQ")=""  D  Q:$D(DUOUT)
+ ...S ASUHDA=^XTMP("ASUR","R7A",ASUX("AS"),ASUX("IX"),ASUX("SQ")),ASUC("LN")=ASUC("LN")+1
+ ...D READ^ASU0TRRD(.ASUHDA,"H") Q:$G(ASUT)']""
+ ...I ASUC("LN")>(IOSL-2) D HEADER S ASUC("LN")=3 Q:$D(DUOUT)
+ ...S ASUC("TOT")=ASUC("TOT")+1
+ ...W !?5,ASUT(ASUT,"AR"),?11,ASUT(ASUT,"STA")
+ ...W ?16,$E(ASUT(ASUT,"DTS"),2,5)
+ ...W ?23,ASUT("TRCD"),?30,ASUT(ASUT,"ULVQTY")
+ ...W ?36,$E(ASUT(ASUT,"IDX"),1,5),".",$E(ASUT(ASUT,"IDX"),6)
+ ...W ?44,$J(ASUT(ASUT,"USR"),3),?53,ASUT(ASUT,"SST")
+ ...W ?61,ASUT(ASUT,"RMK")
+ W !!?2,"NUMBER LINE ITEMS: ",ASUC("TOT")
+K ;
+ K ASUTX,ASUT,ASUHDA,ASUC,ASUV
+ D PAZ^ASUURHDR
+ I ASUK("PTRSEL")]"" W @IOF Q
+ D C^ASUUZIS
+ Q
+CMPT ;EP;COMPUTE REPORT CONTENTS
+ K ^XTMP("ASUR","R7A") S ^XTMP("ASUR","R7A",0)=ASUK("DT","FM")+10000_U_ASUK("DT","FM")
+ D:$G(ASUN("TYP"))']"" ^ASUURANG
+ F  S ASUHDA=$O(^ASUH("T","5B",ASUHDA)) Q:ASUHDA>$G(ASUN("EKY"))  Q:ASUHDA']""  D
+ .D READ^ASU0TRRD(.ASUHDA,"H") Q:$G(ASUT)']""
+ .S ^XTMP("ASUR","R7A",ASUT(ASUT,"PT","STA"),ASUT(ASUT,"PT","IDX"),+($E(ASUHDA,10,15)))=ASUHDA
+ Q
+HEADER ;PRINT REPORT HEADING LINES
+ S ASUC("PG")=$G(ASUC("PG"))+1
+ I ASUC("PG")>1 D PAZ^ASUURHDR Q:$D(DUOUT)  W @(IOF)
+ W !?3,"REPORT #7A.   USER LEVEL CHANGES/DELETES/ESTABLISHED TRANS"
+ W ?100,"DATE: ",ASUX("DT"),?120,"PAGE: ",ASUC("PG")
+ S X=ASUL(1,"AR","AP") W !?3,"AREA: ",ASUL(1,"AR","AP")
+ W ?15,ASUL(1,"AR","NM")
+ I ASUX("AS")'=$G(ASUL(2,"STA","E#")) D STA^ASULARST(ASUX("AS"))
+ W !?3,"STATION: ",$G(ASUL(2,"STA","CD"))
+ W ?15,$G(ASUL(2,"STA","NM"))
+ W !!?3,"AREA",?8,"STATION",?16,"DATE",?22,"TRAN",?28,"USER LEV",?37,"INDEX",?43,"USER",?50,"SUB STA",?60,"REMARKS"
+ W !?3,"CODE",?10,"CODE",?16,"FYCM",?22,"CODE",?30,"QTY",?37,"NUM",?43,"CODE",?52,"CODE"
+ W !,"------------------------------------------------------------------------------------------------------------------------------------",!!
+ S ASUC("LN")=6
+ Q

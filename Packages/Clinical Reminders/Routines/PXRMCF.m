@@ -1,0 +1,90 @@
+PXRMCF ; SLC/PKR - Handle computed findings. ;01/22/2002
+ ;;1.5;CLINICAL REMINDERS;**2,8**;Jun 19, 2000
+ ;
+ ;=======================================================================
+EVALFI(DFN,FIEVAL) ;Evaluate computed findings.
+ N CFIEN,FIND0,FIND3,FINDING
+ S CFIEN=""
+ F  S CFIEN=$O(^PXD(811.9,PXRMITEM,20,"E","PXRMD(811.4,",CFIEN)) Q:+CFIEN=0  D
+ . S FINDING=""
+ . F  S FINDING=$O(^PXD(811.9,PXRMITEM,20,"E","PXRMD(811.4,",CFIEN,FINDING)) Q:+FINDING=0  D
+ .. S FIND0=^PXD(811.9,PXRMITEM,20,FINDING,0)
+ .. S FIND3=$G(^PXD(811.9,PXRMITEM,20,FINDING,3))
+ .. D FIEVAL(DFN,CFIEN,FIND0,FIND3,"","",FINDING,.FIEVAL)
+ Q
+ ;
+ ;=======================================================================
+EVALTERM(DFN,FINDING,TERMIEN,TFIEVAL) ;Evaluate computed finding terms.
+ N CFIEN,FIND0,FIND3,LFIEVAL,TFIND0,TFIND3,TFINDING
+ S FIND0=^PXD(811.9,PXRMITEM,20,FINDING,0)
+ S FIND3=$G(^PXD(811.9,PXRMITEM,20,FINDING,3))
+ S CFIEN=""
+ F  S CFIEN=$O(^PXRMD(811.5,TERMIEN,20,"E","PXRMD(811.4,",CFIEN)) Q:+CFIEN=0  D
+ . S TFINDING=""
+ . F  S TFINDING=$O(^PXRMD(811.5,TERMIEN,20,"E","PXRMD(811.4,",CFIEN,TFINDING)) Q:+TFINDING=0  D
+ .. S TFIND0=^PXRMD(811.5,TERMIEN,20,TFINDING,0)
+ .. S TFIND3=$G(^PXRMD(811.5,TERMIEN,20,TFINDING,3))
+ .. D FIEVAL(DFN,CFIEN,FIND0,FIND3,TFIND0,TFIND3,TFINDING,.TFIEVAL)
+ Q
+ ;
+ ;=======================================================================
+FIEVAL(DFN,CFIEN,FIND0,FIND3,TFIND0,TFIND3,FINDING,FIEVAL) ;
+ N CONVAL,DATE,ROUTINE,TEMP,TEST,TEXT,VALID,VALUE
+ S TEMP=^PXRMD(811.4,CFIEN,0)
+ S ROUTINE=$P(TEMP,U,3)_"^"_$P(TEMP,U,2)_"(DFN,.TEST,.DATE,.VALUE,.TEXT)"
+ S (TEST,DATE,VALUE,TEXT)=""
+ D @ROUTINE
+ S FIEVAL(FINDING)=TEST
+ ;If the finding is false we are done.
+ I 'TEST Q
+ S FIEVAL(FINDING,"FINDING")=CFIEN_";PXRMD(811.4,"
+ S FIEVAL(FINDING,"SOURCE")=$P(TEMP,U,1)
+ S FIEVAL(FINDING,"DATE")=DATE
+ I $L(VALUE)>0 S FIEVAL(FINDING,"VALUE")=VALUE
+ I $L(TEXT)>0 S FIEVAL(FINDING,"TEXT")=TEXT
+ ;If this is being called as part of a term evaluation we are done.
+ I TFIND0'="" Q
+ ;Determine if the finding has expired.
+ S VALID=$$VALID^PXRMDATE(FIND0,TFIND0,DATE)
+ I 'VALID D  Q
+ . S FIEVAL(FINDING)=0
+ . S FIEVAL(FINDING,"EXPIRED")=""
+ ;If there is a condition for this finding evaluate it.
+ S CONVAL=$$COND^PXRMUTIL(FIND3,TFIND3,VALUE)
+ I CONVAL'="" D
+ . I CONVAL D
+ .. S FIEVAL(FINDING)=CONVAL
+ .. S FIEVAL(FINDING,"CONDITION")=CONVAL
+ . E  D
+ .. K FIEVAL(FINDING)
+ .. S FIEVAL(FINDING)=0
+ Q
+ ;
+ ;=======================================================================
+OUTPUT(NLINES,TEXT,FINDING,FIEVAL) ;Produce the clinical
+ ;maintenance output.
+ N DATA,DATE,FI,PNAME,TEMP,VALUE
+ S FI=$P(FIEVAL(FINDING,"FINDING"),";",1)
+ S DATE=FIEVAL(FINDING,"DATE")
+ S VALUE=$G(FIEVAL(FINDING,"VALUE"))
+ I +DATE>0 S TEMP=$$EDATE^PXRMDATE(DATE)
+ E  S TEMP=""
+ S TEMP=TEMP_" Computed Finding: "
+ S PNAME=$P(^PXRMD(811.4,FI,0),U,4)
+ S TEMP=TEMP_PNAME
+ I $L(VALUE)>0 D
+ . S TEMP=TEMP_"; value - "_VALUE
+ ;If there is text append it.
+ I $D(FIEVAL(FINDING,"TEXT"))>0 S TEMP=TEMP_"; "_FIEVAL(FINDING,"TEXT")
+ ;If the finding has expired add "EXPIRED"
+ I $D(FIEVAL(FINDING,"EXPIRED")) S TEMP=TEMP_" - EXPIRED"
+ ;If the finding is false because of the value add the reason.
+ I $G(FIEVAL(FINDING,"CONDITION"))=0 S TEMP=TEMP_$$ACTFT^PXRMOPT
+ S NLINES=NLINES+1
+ S TEXT(NLINES)=TEMP
+ I $D(PXRMDEV) D
+ . N UID
+ . S UID="CF "_PNAME
+ . S ^TMP(PXRMPID,$J,PXRMITEM,UID)=TEMP
+ Q
+ ;

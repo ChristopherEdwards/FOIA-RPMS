@@ -1,0 +1,10 @@
+VISIT TRACKING PARAMETERS
+ZWR
+^DIC(150.9,0)="VISIT TRACKING PARAMETERS^150.9^^0"
+^DIC(150.9,0,"DD")="@"
+^DIC(150.9,0,"DEL")="@"
+^DIC(150.9,0,"GL")="^DIC(150.9,"
+^DIC(150.9,0,"LAYGO")="@"
+^DIC(150.9,"%D",0)="^^2^2^2960809^^^^"
+^DIC(150.9,"%D",1,0)="This file contains a single entry, the number '1', which contains the"
+^DIC(150.9,"%D",2,0)="site configurable parameters for the visit tracking package."

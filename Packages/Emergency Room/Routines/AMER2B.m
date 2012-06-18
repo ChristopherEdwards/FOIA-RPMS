@@ -1,0 +1,62 @@
+AMER2B ; IHS/ANMC/GIS - COST RECOVERY DATA RELATED TO INJURIES ;
+ ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ; 
+QD31 ; CITY OF INJURY
+ S DIR("B")=$G(^TMP("AMER",$J,2,31))
+ S DIR(0)="FO^1:30",DIR("A")="Town/village where injury occurred" KILL DA D ^DIR KILL DIR
+ D CKSC^AMER1 I $D(AMERCKSC) K AMERCKSC G QD31
+ D OUT^AMER
+ Q
+ ; 
+QD32 ; TIME OF INJURY
+ I $D(^TMP("AMER",$J,2,32)) S Y=^(32) X ^DD("DD") S DIR("B")=Y
+ S DIR(0)="DO^::ER",DIR("A")="Enter the exact time and date of injury",DIR("?")="Enter a time and date in the usual FileMan format (e.g., 1/3/90@1PM)." D ^DIR K DIR
+ I Y,$$TCK^AMER2A($G(^TMP("AMER",$J,1,2)),Y,0,"admission") K Y G QD32
+ I Y="" S Y=-1
+ D OUT^AMER
+ Q
+ ;
+QD33 ; CAUSE OF INJURY
+ S DIC("A")="*Cause of injury: " K DIC("B")
+ I $D(^TMP("AMER",$J,2,33)) S %=+^(33),DIC("B")=$P(^AMER(3,%,0),U)
+ S DIC="^AMER(3,",DIC("S")="I $P(^(0),U,2)="_$$CAT^AMER0("CAUSE OF INJURY"),DIC(0)="AEQ"
+ D ^DIC K DIC S Y=+Y
+ D OUT^AMER
+ Q
+ ;
+QD34 ; PLACE OF INJURY
+ S DIC("A")="Setting of accident/injury: " K DIC("B")
+ I $D(^TMP("AMER",$J,2,34)) S %=+^(34),DIC("B")=$P(^AMER(3,%,0),U)
+ S DIC="^AMER(3,",DIC("S")="I $P(^(0),U,2)="_$$CAT^AMER0("SCENE OF INJURY"),DIC(0)="AEQ"
+ D ^DIC K DIC S Y=+Y
+ D OUT^AMER
+ S Z=U,%="MOTOR VEHICLE^BICYCLE^TOOLS JOB EQUIP.^INHILATION (GAS/SMOKE)^CHEMICALS (CAUSTIC OR TOXIC)^ELECTRICITY^FIRE FLAME^FALL (ACCIDENTAL)" F I=1:1:$L(%,U) S A=$P(%,U,I),Z=Z_+$O(^AMER(3,"B",A,0))_U
+ S %=$P($G(^TMP("AMER",$J,2,33)),U) I Z'[(U_%_U) G QD35A ; SAFETY EQUIP NOT RELEVANT
+ Q
+ ;
+QD35 ; SAFETY EQUIPMENT OF INJURY
+ N A,Z,%
+ S DIC("A")="Safety equipement used: " K DIC("B")
+ I $D(^TMP("AMER",$J,2,35)) S %=+^(35),DIC("B")=$P(^AMER(3,%,0),U)
+ S DIC="^AMER(3,",DIC("S")="I $P(^(0),U,2)="_$$CAT^AMER0("SAFETY EQUIPMENT"),DIC(0)="AEQ"
+ D ^DIC K DIC S Y=+Y
+ D OUT^AMER I $D(AMERQUIT) Q
+QD35A S Z=U,%="MOTOR VEHICLE^RAPE^EXPOSURE HYPOTHERMIA^HEATSTROKE DEHYDRATION^POISONING^UNDETERMINED^SELF INFLICTED^ASSAULT (NO WEAPON)^ASSAULT (WEAPON)"
+ F I=1:1:$L(%,U) S A=$P(%,U,I),Z=Z_+$O(^AMER(3,"B",A,0))_U
+ S AMERRUN=2
+ S %=$P($G(^TMP("AMER",$J,2,33)),U) I %=$P(Z,U,2) D  Q  ; MVA
+ . S AMERRUN=40
+ . F I=61:1:64 K ^TMP("AMER",$J,2,I) ; MVA
+ . Q
+ F I=41:1:46,51:1:57,61:1:64 K ^TMP("AMER",$J,2,I)
+ I $D(AMEREFLG) S AMERRUN=99
+ E  S AMERRUN=4
+ Q
+ ;
+QD41 ; DESCIPTION OF MVA LOCATION
+ K DIR("B") I $D(^TMP("AMER",$J,2,41)) S DIR("B")=^(41)
+ S DIR(0)="FO^1:100",DIR("A")="Location of MVC",DIR("?")="Enter free text location description (100 characters max.)" D ^DIR K DIR
+ D CKSC^AMER1 I $D(AMERCKSC) K AMERCKSC G QD41
+ D OUT^AMER I $D(AMERQUIT) Q
+ S AMERRUN=4
+ Q

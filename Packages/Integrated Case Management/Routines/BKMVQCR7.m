@@ -1,0 +1,172 @@
+BKMVQCR7 ;PRXM/HC/BWF - BKMV Quality of Care Report; [ 1/19/2005  7:16 PM ] ; 10 May 2005  4:12 PM
+ ;;2.1;HIV MANAGEMENT SYSTEM;;Feb 07, 2011
+ ; Quality of Care Audit Report
+ Q
+CHLAMC ; EP - Chlamydia Calculation
+ N CNT1,CNT2,CNT3,CNT4,CNT5,CHLTOT,DFN,VSTDT,TEST,CHLRES,FMDT,ITEM,FOUND,PTOTAL
+ N DFNSTAT,REFVSTDT
+ S PTOTAL=$G(^TMP("BKMVQCR",$J,"HIVTOT1"))
+ S CHLTOT=$G(^TMP("BKMVQCR",$J,"HIVCHK","CHLAMPTCNT"))
+ I CHLTOT=0!(CHLTOT="") Q
+ S DFN=0,(CNT1,CNT2,CNT3,CNT4,CNT5)=0
+ F  S DFN=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN)) Q:'DFN  D
+ .I '$D(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"CHLAM")),'$D(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"CHLAMREF")) Q
+ .S VSTDT="",FOUND=0,DFNSTAT=0
+ .S REFVSTDT=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"CHLAMREF",""),-1)
+ .F  S VSTDT=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"CHLAM",VSTDT),-1) Q:VSTDT=""  D  Q:FOUND
+ ..S TEST=""
+ ..F  S TEST=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"CHLAM",VSTDT,TEST),-1) Q:TEST=""  D  Q:FOUND
+ ...S CHLRES=$P($G(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"CHLAM",VSTDT,TEST)),U)
+ ...I $$POSITIVE^BKMVF32(CHLRES) S DFNSTAT=1,FOUND=1 Q
+ ...I $$NEGATIVE^BKMVF32(CHLRES) S DFNSTAT=2,FOUND=1 Q
+ .D
+ ..I REFVSTDT'="",REFVSTDT>VSTDT D  Q
+ ...S TEST=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"CHLAMREF",REFVSTDT,""),-1)
+ ...S CHLRES=$P($G(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"CHLAMREF",REFVSTDT,TEST)),U)
+ ...I $P(CHLRES,"^")="NOT MEDICALLY INDICATED" S CNT5=CNT5+1 Q
+ ...S CNT4=CNT4+1
+ ..I DFNSTAT=1 S CNT1=CNT1+1 Q
+ ..I DFNSTAT=2 S CNT2=CNT2+1 Q
+ ..S CNT3=CNT3+1
+ S ^TMP("BKMVQCR",$J,"CHLAMT","TOTAL","PERC")=CHLTOT/PTOTAL*100
+ S ^TMP("BKMVQCR",$J,"CHLAMT","TOTAL","CNT")=CHLTOT
+ S ^TMP("BKMVQCR",$J,"CHLAMT","POS","PERC")=CNT1/CHLTOT*100
+ S ^TMP("BKMVQCR",$J,"CHLAMT","POS","CNT")=CNT1
+ S ^TMP("BKMVQCR",$J,"CHLAMT","NEG","PERC")=CNT2/CHLTOT*100
+ S ^TMP("BKMVQCR",$J,"CHLAMT","NEG","CNT")=CNT2
+ S ^TMP("BKMVQCR",$J,"CHLAMT","UND","PERC")=CNT3/CHLTOT*100
+ S ^TMP("BKMVQCR",$J,"CHLAMT","UND","CNT")=CNT3
+ S ^TMP("BKMVQCR",$J,"CHLAMT","REF","PERC")=CNT4/CHLTOT*100
+ S ^TMP("BKMVQCR",$J,"CHLAMT","REF","CNT")=CNT4
+ S ^TMP("BKMVQCR",$J,"CHLAMT","REFNMI","PERC")=CNT5/CHLTOT*100
+ S ^TMP("BKMVQCR",$J,"CHLAMT","REFNMI","CNT")=CNT5
+ Q
+GONCALC ; EP - Gonorrhea Calculation
+ N CNT1,CNT2,CNT3,CNT4,CNT5,GONTOT,DFN,VSTDT,TEST,GONRES,FMDT,ITEM,FOUND,PTOTAL
+ N DFNSTAT,REFVSTDT
+ S PTOTAL=$G(^TMP("BKMVQCR",$J,"HIVTOT1"))
+ S GONTOT=$G(^TMP("BKMVQCR",$J,"HIVCHK","GONPTCNT"))
+ I GONTOT=0!(GONTOT="") Q
+ S DFN=0,(CNT1,CNT2,CNT3,CNT4,CNT5)=0
+ F  S DFN=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN)) Q:'DFN  D
+ .I '$D(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"GON")),'$D(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"GONREF")) Q
+ .S VSTDT="",FOUND=0,DFNSTAT=0
+ .F  S VSTDT=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"GON",VSTDT),-1) Q:VSTDT=""  D  Q:FOUND
+ ..S TEST=""
+ ..F  S TEST=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"GON",VSTDT,TEST),-1) Q:TEST=""  D  Q:FOUND
+ ...S GONRES=$P($G(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"GON",VSTDT,TEST)),U)
+ ...I $$POSITIVE^BKMVF32(GONRES) S DFNSTAT=1,FOUND=1 Q
+ ...I $$NEGATIVE^BKMVF32(GONRES) S DFNSTAT=2,FOUND=1 Q
+ .S REFVSTDT=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"GONREF",""),-1)
+ .D
+ ..I REFVSTDT'="",REFVSTDT>VSTDT D  Q
+ ...S TEST=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"GONREF",REFVSTDT,""),-1)
+ ...S GONRES=$P($G(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"GONREF",REFVSTDT,TEST)),U)
+ ...I $P(GONRES,"^")="NOT MEDICALLY INDICATED" S CNT5=CNT5+1 Q
+ ...S CNT4=CNT4+1
+ ..I DFNSTAT=1 S CNT1=CNT1+1 Q
+ ..I DFNSTAT=2 S CNT2=CNT2+1 Q
+ ..S CNT3=CNT3+1
+ S ^TMP("BKMVQCR",$J,"GONT","TOTAL","PERC")=GONTOT/PTOTAL*100
+ S ^TMP("BKMVQCR",$J,"GONT","TOTAL","CNT")=GONTOT
+ S ^TMP("BKMVQCR",$J,"GONT","POS","PERC")=CNT1/GONTOT*100
+ S ^TMP("BKMVQCR",$J,"GONT","POS","CNT")=CNT1
+ S ^TMP("BKMVQCR",$J,"GONT","NEG","PERC")=CNT2/GONTOT*100
+ S ^TMP("BKMVQCR",$J,"GONT","NEG","CNT")=CNT2
+ S ^TMP("BKMVQCR",$J,"GONT","UND","PERC")=CNT3/GONTOT*100
+ S ^TMP("BKMVQCR",$J,"GONT","UND","CNT")=CNT3
+ S ^TMP("BKMVQCR",$J,"GONT","REF","PERC")=CNT4/GONTOT*100
+ S ^TMP("BKMVQCR",$J,"GONT","REF","CNT")=CNT4
+ S ^TMP("BKMVQCR",$J,"GONT","REFNMI","PERC")=CNT5/GONTOT*100
+ S ^TMP("BKMVQCR",$J,"GONT","REFNMI","CNT")=CNT5
+ Q
+TBCALC ; EP - Tuberculosis Calculation 
+ N PTOTAL,DFN,CNT1,CNT2,CNT3,CNT4,CNT5,CNT6,CNT7,FOUND,CHKDT,TEST,RESULT
+ ;I $G(^TMP("BKMVQCR",$J,"HIVCHK","TBT21PTCNT"))<1 Q
+ S PTOTAL=$G(^TMP("BKMVQCR",$J,"HIVTOT1"))
+ S CHKDT=$$FMADD^XLFDT(EDATE,-365)
+ S DFN=0,(CNT1,CNT2,CNT3,CNT4,CNT5,CNT6,CNT7)=0
+ F  S DFN=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN)) Q:'DFN  D
+ .I $$T21CHK(DFN)=0 Q  ;Patient not in denominator
+ .S CNT1=CNT1+1,FOUND=0 ;Patient needed PPD
+ .D  ; Only required to check most recent visit (unlike other sections of this report)
+ ..S VSTDT=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21",""),-1) Q:VSTDT=""
+ ..I VSTDT<CHKDT Q  ; Only check visits from the previous year.
+ ..; Only skin test and LOINC results are examined
+ ..S TEST=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21POSNEG",VSTDT,""),-1) ;Must be a visit at this level.
+ ..S FOUND=1
+ ..S CNT2=CNT2+1 ;PPD Received
+ ..I TEST="" S CNT5=CNT5+1 Q  ; If last TB test was not a skin test or LOINC -> PPD undetermined
+ ..S RESULT=$G(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21POSNEG",VSTDT,TEST))
+ ..I $$POS(RESULT) S CNT3=CNT3+1 D  Q  ; PPD positive
+ ...I $O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21MED",""),-1)'<(VSTDT\1) S CNT7=CNT7+1 ; Meds given (or refused) on or after PPD positive
+ ...Q
+ ..I $$NEG(RESULT) S CNT4=CNT4+1 Q  ; PPD negative
+ ..S CNT5=CNT5+1 ; PPD undetermined
+ ..Q
+ .I 'FOUND,$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21REF",""),-1)'<CHKDT S CNT2=CNT2+1,CNT6=CNT6+1 ; PPD refused (also counts as received)
+ .Q
+ S ^TMP("BKMVQCR",$J,"TUBT","NEEDPPD","CNT")=CNT1
+ S ^TMP("BKMVQCR",$J,"TUBT","NEEDPPD","PERC")=CNT1/PTOTAL*100
+ S ^TMP("BKMVQCR",$J,"TUBT","PY","CNT")=CNT2
+ S ^TMP("BKMVQCR",$J,"TUBT","PY","PERC")=$S('CNT1:0,1:CNT2/CNT1)*100
+ S ^TMP("BKMVQCR",$J,"TUBT","POSPY","CNT")=CNT3
+ S ^TMP("BKMVQCR",$J,"TUBT","POSPY","PERC")=$S('CNT2:0,1:CNT3/CNT2)*100
+ S ^TMP("BKMVQCR",$J,"TUBT","MED","CNT")=CNT7
+ S ^TMP("BKMVQCR",$J,"TUBT","MED","PERC")=$S('CNT3:0,1:CNT7/CNT3)*100
+ S ^TMP("BKMVQCR",$J,"TUBT","NEGPY","CNT")=CNT4
+ S ^TMP("BKMVQCR",$J,"TUBT","NEGPY","PERC")=$S('CNT2:0,1:CNT4/CNT2)*100
+ S ^TMP("BKMVQCR",$J,"TUBT","REF","CNT")=CNT6
+ S ^TMP("BKMVQCR",$J,"TUBT","REF","PERC")=$S('CNT2:0,1:CNT6/CNT2)*100
+ S ^TMP("BKMVQCR",$J,"TUBT","UND","CNT")=CNT5
+ S ^TMP("BKMVQCR",$J,"TUBT","UND","PERC")=$S('CNT2:0,1:CNT5/CNT2)*100
+ Q
+T21CHK(DFN) ; Checks to see if patient needs a PPD test.
+ ;
+ ; Returns 1 (TRUE) if patient has never had a TB diagnosis through Report End Date (EDATE).
+ ; Returns 1 (TRUE) if patient has never had a PPD test through Report End Date (EDATE).
+ ; Returns 1 (TRUE) if patient does not have a positive PPD prior to one year before Report End Date (EDATE).
+ ; Returns 1 (TRUE) if patient has no TB medication (or refusal) prior to one year before Report End Date (EDATE).
+ ;
+ N VSTDT,TRUE,HVSTDT,TEST,RESULT
+ S VSTDT=0,TRUE=1
+ I $D(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21DX")) S TRUE=0
+ F  S VSTDT=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21",VSTDT)) Q:VSTDT=""  D
+ .I VSTDT'<CHKDT Q  ; Don't check visits from the previous year.
+ .S TEST=0
+ .F  S TEST=$O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21POSNEG",VSTDT,TEST)) Q:TEST=""  D
+ ..S RESULT=$G(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21POSNEG",VSTDT,TEST))
+ ..I $$POS(RESULT) S TRUE=0 Q
+ ..Q
+ .Q
+ I $O(^TMP("BKMVQCR",$J,"HIVCHK",DFN,"TBT21MED",CHKDT),-1)'="" S TRUE=0
+ Q TRUE
+ ; Note: For the following two functions, you will receive either a 'result' or a 'reading'.
+ ;       Except, if this is from a skin taxonomy, then you will receive 'reading^result'.
+ ;       Where both items are available, check result.
+ ;       Only check for reading if result is not available.
+POS(PPD) ; Return 1 if the PPD result is 'positive'. If no result, return 1 if reading is >= 5mm.
+ N RES
+ S RES=0
+ I $L(PPD,U)=1 D
+ . I $$PPDPOS^BKMVF32(PPD) S RES=1 Q
+ . ;I $$POSITIVE^BKMVF32(PPD) S RES=1 Q
+ . I +PPD'<5,$P(PPD,"^")'="" S RES=1 Q
+ I $L(PPD,U)=2 D
+ . I $P(PPD,U,2)]"" S:$$PPDPOS^BKMVF32($P(PPD,U,2)) RES=1 Q
+ . ;I $P(PPD,U,2)]"" S:$$POSITIVE^BKMVF32($P(PPD,U,2)) RES=1 Q
+ . I +PPD'<5,$P(PPD,"^")'="" S RES=1 Q
+ Q RES
+NEG(PPD) ; Return 1 if the PPD result is 'negative'. If no result, return 1 if reading is < 5 mm.
+ ; NOTE: 'NULL' is not a negative, '0' is.
+ N RES
+ S RES=0
+ I $L(PPD,U)=1 D
+ . I $$PPDNEG^BKMVF32(PPD) S RES=1 Q
+ . ;I $$NEGATIVE^BKMVF32(PPD) S RES=1 Q
+ . I +PPD<5,$P(PPD,"^")'="" S RES=1 Q
+ I $L(PPD,U)=2 D
+ . I $P(PPD,U,2)]"" S:$$PPDNEG^BKMVF32($P(PPD,U,2)) RES=1 Q
+ . ;I $P(PPD,U,2)]"" S:$$NEGATIVE^BKMVF32($P(PPD,U,2)) RES=1 Q
+ . I +PPD<5,$P(PPD,"^")'="" S RES=1 Q
+ Q RES

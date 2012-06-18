@@ -1,0 +1,9 @@
+BGP22 ;IHS/CMI/LAB-CREATED BY ^ATXSTX ON NOV 21, 2011;
+ ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^BGP22A ;    BGP ASTHMA INHALED STEROID NDC
+ D ^BGP22B ;    BGP PQA ACEI ARB NDC
+ Q

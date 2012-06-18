@@ -1,0 +1,96 @@
+IBINI0CR	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,"DIE",1244,"DR",2,357.67)
+	;;=.01
+	;;^UTILITY(U,$J,"DIE",1247,0)
+	;;=IBDF POSITION/SIZE COLUMNS^2930722.0846^^357.2^^^2940208^
+	;;^UTILITY(U,$J,"DIE",1247,"%D",0)
+	;;=^^1^1^2940308^
+	;;^UTILITY(U,$J,"DIE",1247,"%D",1,0)
+	;;=Used to edit the size and position of a selection list's columns.
+	;;^UTILITY(U,$J,"DIE",1247,"DIAB",2,0,357.2,0)
+	;;=.13;T
+	;;^UTILITY(U,$J,"DIE",1247,"DIAB",3,1,357.21,0)
+	;;=.02;T
+	;;^UTILITY(U,$J,"DIE",1247,"DIAB",4,1,357.21,0)
+	;;=.03;T
+	;;^UTILITY(U,$J,"DIE",1247,"DIAB",5,1,357.21,0)
+	;;=.04;T
+	;;^UTILITY(U,$J,"DIE",1247,"DR",1,357.2)
+	;;=D MSG1^IBDF9A;.13T~;D FULL^VALM1;D MSG2^IBDF9A;1;
+	;;^UTILITY(U,$J,"DIE",1247,"DR",2,357.21)
+	;;=.01;D RESET^VALM4:VALMCC,REFRESH^VALM;.02T~;.03T~;.04T~;D FULL^VALM1;
+	;;^UTILITY(U,$J,"DIE",1249,0)
+	;;=IBDF EDIT OUTPUT/SELECTION RTN^2931220.1423^^357.6^0^^2931220
+	;;^UTILITY(U,$J,"DIE",1249,"%D",0)
+	;;=^^2^2^2940308^
+	;;^UTILITY(U,$J,"DIE",1249,"%D",1,0)
+	;;=Used to define a package interface of the type output routine or selection
+	;;^UTILITY(U,$J,"DIE",1249,"%D",2,0)
+	;;=routine.
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",1,0,357.6,2)
+	;;=2.06;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",1,1,357.66,0)
+	;;=ALL
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",1,1,357.67,0)
+	;;=ALL
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",2,0,357.6,1)
+	;;=3;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",2,0,357.6,2)
+	;;=2.07;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",4,0,357.6,1)
+	;;=.04;REQ
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",4,0,357.6,2)
+	;;=2.08;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",5,0,357.6,1)
+	;;=.03;REQ
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",5,0,357.6,2)
+	;;=2.09;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",6,0,357.6,0)
+	;;=1;REQ
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",6,0,357.6,1)
+	;;=.02;REQ
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",7,0,357.6,2)
+	;;=2.1;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",8,0,357.6,0)
+	;;=.07;T;REQ
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",8,0,357.6,2)
+	;;=2.11;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",9,0,357.6,1)
+	;;=.09;REQ
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",10,0,357.6,2)
+	;;=2.12;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",11,0,357.6,1)
+	;;=2.01;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",11,0,357.6,2)
+	;;=2.13;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",12,0,357.6,1)
+	;;=2.02;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",13,0,357.6,2)
+	;;=2.14;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",14,0,357.6,1)
+	;;=2.17;T;REQ
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",15,0,357.6,1)
+	;;=2.18;REQ
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",18,0,357.6,1)
+	;;=2.03;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",20,0,357.6,1)
+	;;=2.04;T
+	;;^UTILITY(U,$J,"DIE",1249,"DIAB",21,0,357.6,1)
+	;;=2.05;T
+	;;^UTILITY(U,$J,"DIE",1249,"DR",1,357.6)
+	;;=W !!,"You must prefix the name with the name space of the package that is providing",!,"the data.",!;.01;Q;.1///NO;.06///^S X=IBTYPE;1R~;S:IBTYPE=3 Y="@2";.07R~T~;S IBACTION=X;.05////1;S Y="@3";@2;.07////4;S IBACTION=4;@3;
+	;;^UTILITY(U,$J,"DIE",1249,"DR",1,357.6,1)
+	;;=D LOOKUP^IBDF16;3T~;.1///NO;.04R~;.03R~;.02R~;6;7;.09R~;S:IBACTION=5 Y="@1";2.01T~;2.02T~;S:IBTYPE=2 Y="@4";2.17R~T~;2.18R~;@4;S:(IBACTION=1)!(IBACTION=3) Y="@1";2.03T~;S:(X="")&IBNEW Y="@1";2.04T~;2.05T~;S:(X="")&IBNEW Y="@1";
+	;;^UTILITY(U,$J,"DIE",1249,"DR",1,357.6,2)
+	;;=2.06T~;2.07T~;S:(X="")&IBNEW Y="@1";2.08T~;2.09T~;S:(X="")&IBNEW Y="@1";2.1T~;2.11T~;S:(X="")&IBNEW Y="@1";2.12T~;2.13T~;S:(X="")&IBNEW Y="@1";2.14T~;@1;S IBDELETE=0;
+	;;^UTILITY(U,$J,"DIE",1249,"DR",2,357.66)
+	;;=.01
+	;;^UTILITY(U,$J,"DIE",1249,"DR",2,357.67)
+	;;=.01
+	;;^UTILITY(U,$J,"DIE",1250,0)
+	;;=IBDF EDIT MARKING AREA^2930727.0815^^357.91^^^^
+	;;^UTILITY(U,$J,"DIE",1250,"%D",0)
+	;;=^^1^1^2940308^

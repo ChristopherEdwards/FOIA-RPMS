@@ -1,0 +1,112 @@
+FHINI0AB	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,6962,2)
+	;;=.179^4.286^^^^^^^2.857^8.571^^14.643^^^^^4.286
+	;;^UTILITY(U,$J,112,6962,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6963,0)
+	;;=POTATO CHIPS,FRENCH ONION,RIPPLED,PRINGLES^BC-00236^oz.^28
+	;;^UTILITY(U,$J,112,6963,1)
+	;;=7.143^39.286^46.429^607.143^1.429^^^57.143^1.786^60.714^182.143^1089.286^625^.714^.107^^^^7.143^.25
+	;;^UTILITY(U,$J,112,6963,2)
+	;;=.071^3.214^^^^^^^0^10.714^7.143^21.429
+	;;^UTILITY(U,$J,112,6963,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6964,0)
+	;;=POTATO CHIPS,LIGHT PRINGLES^BC-00237^oz.^28
+	;;^UTILITY(U,$J,112,6964,1)
+	;;=7.143^28.571^60.714^535.714^2.143^^^28.571^1.786^57.143^171.429^1071.429^428.571^.714^.107^^^^14.286^.179
+	;;^UTILITY(U,$J,112,6964,2)
+	;;=.071^3.571^^^^^^^0^7.143^3.571^17.857
+	;;^UTILITY(U,$J,112,6964,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6965,0)
+	;;=POTATO CHIPS,PLAIN,CAPE COD^BC-00238^oz.^28
+	;;^UTILITY(U,$J,112,6965,1)
+	;;=7.5^30.357^57.5^535.714^2.5^^^17.857^1.286^^^1446.429^428.571^^^^^50^25^.214
+	;;^UTILITY(U,$J,112,6965,2)
+	;;=.179^5^^^^^^^0^7.5^^13.929^^^^^5.357
+	;;^UTILITY(U,$J,112,6965,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6966,0)
+	;;=POTATO CHIPS,PLAIN,CAPE COD,NO SALT^BC-00239^oz.^28
+	;;^UTILITY(U,$J,112,6966,1)
+	;;=7.5^30.357^57.5^535.714^2.5^^^17.857^1.286^^^1446.429^0^^^^^50^25^.214
+	;;^UTILITY(U,$J,112,6966,2)
+	;;=.179^5^^^^^^^0^7.5^^13.929^^^^^5.357
+	;;^UTILITY(U,$J,112,6966,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6967,0)
+	;;=POTATO CHIPS,PLAIN,EAGLE^BC-00240^oz.^28
+	;;^UTILITY(U,$J,112,6967,1)
+	;;=7.857^28.571^58.571^500^2.5^^^25^^^^1285.714^642.857^^^^^21.429^28.571^.179
+	;;^UTILITY(U,$J,112,6967,2)
+	;;=.107^3.929^^^^^^^0^6.429^^12.5^^^^^6.429
+	;;^UTILITY(U,$J,112,6967,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6968,0)
+	;;=POTATO CHIPS,PLAIN,EAGLE,RIDGED^BC-00241^oz.^28
+	;;^UTILITY(U,$J,112,6968,1)
+	;;=7.143^33.929^53.929^535.714^.714^^^14.286^1.071^^^1321.429^785.714^^^^^^25^.143
+	;;^UTILITY(U,$J,112,6968,2)
+	;;=.107^5^^^^^^^0
+	;;^UTILITY(U,$J,112,6968,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6969,0)
+	;;=POTATOE CHIPS,PLAIN,PRINGLES^BC-00242^oz.^28
+	;;^UTILITY(U,$J,112,6969,1)
+	;;=7.143^42.857^42.857^607.143^1.786^^^7.143^1.429^57.143^142.857^1107.143^607.143^.714^.107^^^^7.143^.143
+	;;^UTILITY(U,$J,112,6969,2)
+	;;=.071^3.214^^^^^^^0^10.714^7.143^25
+	;;^UTILITY(U,$J,112,6969,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6970,0)
+	;;=PRETZELS,A & EAGLE,BARVARIAN^BC-00243^oz.^28
+	;;^UTILITY(U,$J,112,6970,1)
+	;;=9.643^5.357^76.786^392.857^3.214^^^32.143^.964^^^64.286^2178.571^^^^^0^0^.107
+	;;^UTILITY(U,$J,112,6970,2)
+	;;=.071^1.429^^^^^^^0^1.071^^1.071^^^^^2.5
+	;;^UTILITY(U,$J,112,6970,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6971,0)
+	;;=PRETZELS,KEEBLER^BC-00244^.5-oz.^14
+	;;^UTILITY(U,$J,112,6971,1)
+	;;=10^2.857^75^371.429^^^^21.429^5.214^^^157.143^2400^^^^^^^.5
+	;;^UTILITY(U,$J,112,6971,2)
+	;;=.429^6.429^^^^^^^0^.714^^0
+	;;^UTILITY(U,$J,112,6971,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6972,0)
+	;;=PRETZELS,MISTER SALTY^BC-00245^oz.^28
+	;;^UTILITY(U,$J,112,6972,1)
+	;;=10.714^4.286^76.786^392.857^^^^^^^^132.143^1939.286
+	;;^UTILITY(U,$J,112,6972,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6973,0)
+	;;=CREAMERS,LIQUID,COFFEE-MATE,NON-DAIRY^BC-00246^1/2-floz.^15
+	;;^UTILITY(U,$J,112,6973,1)
+	;;=0^6.667^13.333^106.667^^^^0^.067^0^46.667^133.333^33.333^.067^0^^^120^0^0
+	;;^UTILITY(U,$J,112,6973,2)
+	;;=0^0^0^0^0^0^^^0^2^4.667^.667
+	;;^UTILITY(U,$J,112,6973,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6974,0)
+	;;=CREAMERS,LIQUID,COFFEE RICH,NON-DAIRY^BC-00247^1/2-floz.^14
+	;;^UTILITY(U,$J,112,6974,1)
+	;;=0^11.429^15.714^157.143^74.286^^^0^.143^0^35.714^42.857^78.571^0^0
+	;;^UTILITY(U,$J,112,6974,2)
+	;;=^^^^^^^^0^2.143^5^3.571^^^^^0
+	;;^UTILITY(U,$J,112,6974,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6975,0)
+	;;=CREAMERS,LIQUID,FARM RICH^BC-00248^1/2-floz.^14
+	;;^UTILITY(U,$J,112,6975,1)
+	;;=0^10.714^7.857^128.571^82.143^^^0^.071^0^64.286^100^50^0^.021^^^0^0^0
+	;;^UTILITY(U,$J,112,6975,2)
+	;;=0^0^^^^^^^0^2.143^2.143^2.857^^^^^0
+	;;^UTILITY(U,$J,112,6975,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6976,0)
+	;;=CREAMERS,LIQUID,MOCHA MIX,NON-DAIRY^BC-00249^1/2-floz.^14

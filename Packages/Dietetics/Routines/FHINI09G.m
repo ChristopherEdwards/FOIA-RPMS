@@ -1,0 +1,124 @@
+FHINI09G	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,6524,1)
+	;;=14^18^4^230^61^^^28^2^^^140^480^.9^^^^^^.5
+	;;^UTILITY(U,$J,112,6524,2)
+	;;=.5^5.8^3.3^.5^^2400
+	;;^UTILITY(U,$J,112,6524,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6525,0)
+	;;=SANDWICH SPREAD (VEGETARIAN)^^tbsp.^16
+	;;^UTILITY(U,$J,112,6525,1)
+	;;=8^9^9^150^70^^^44^1.5^^^340^630^1.3^^^^^^.6
+	;;^UTILITY(U,$J,112,6525,2)
+	;;=.7^13^2.5^1.1^^3100
+	;;^UTILITY(U,$J,112,6525,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6526,0)
+	;;=SALAD,TOSSED^^cups^56
+	;;^UTILITY(U,$J,112,6526,1)
+	;;=1.04^.13^3.25^15.6^95.16^^^24.66^.59^11.73^22.45^205.4^9.87^.34^.05^.18^^1049^9.63^.052
+	;;^UTILITY(U,$J,112,6526,2)
+	;;=.052^.34^.33^.039^53.76^0^0^0^0^0^0^.13^^^^^.52
+	;;^UTILITY(U,$J,112,6526,20)
+	;;=BAY PINES STAND. RECIPE. DOE: 053085 #516
+	;;^UTILITY(U,$J,112,6527,0)
+	;;=BEEFARONI^^6-oz srv.^234.16
+	;;^UTILITY(U,$J,112,6527,1)
+	;;=9.89^8.39^3.31^129.43^78.23^^^40.57^1.4^5.21^98.77^171.48^104.15^.2^.04^.04^^208.62^4^.05
+	;;^UTILITY(U,$J,112,6527,2)
+	;;=.099^2.07^.09^.03^3.48^.034^.17^0^32.77^4.17^.39^.09^^^^^.22
+	;;^UTILITY(U,$J,112,6527,20)
+	;;=BAY PINES STAND RECIPE.  DOE:053185
+	;;^UTILITY(U,$J,112,6528,0)
+	;;=RICE, CONFETTI^^oz.^28.35^457
+	;;^UTILITY(U,$J,112,6528,1)
+	;;=2.64^1.43^19.14^101.2^78.1^^^14.61^1.11^9.52^45^83^395.27^.29^.06^.11^.18^692.55^18.63^.143
+	;;^UTILITY(U,$J,112,6528,2)
+	;;=.03^1.12^.09^.04^15.55^0^.77^0^0^.22^.33^.77^^^^^.99
+	;;^UTILITY(U,$J,112,6528,20)
+	;;=BAY PINES STAND. RECIPE.  DOE:053185  #516
+	;;^UTILITY(U,$J,112,6529,0)
+	;;=STEW PAC (VEGETARIAN)^^servings^56
+	;;^UTILITY(U,$J,112,6529,1)
+	;;=17^3^7^120^70^^^31^1.3^^^120^400^1.1^^^^^^.7
+	;;^UTILITY(U,$J,112,6529,2)
+	;;=.6^12^2.8^1.1^^2200
+	;;^UTILITY(U,$J,112,6529,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6530,0)
+	;;=SWISS STEAK W/GRAVY (VEGETARIAN)^^steaks^74
+	;;^UTILITY(U,$J,112,6530,1)
+	;;=12^11^11^190^61^^^46^2^^^250^480^.8^^^^^^.7
+	;;^UTILITY(U,$J,112,6530,2)
+	;;=.6^5.4^2^.5^^2000
+	;;^UTILITY(U,$J,112,6530,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6531,0)
+	;;=TASTEE CUTS (VEGETARIAN)^^cuts^35.5
+	;;^UTILITY(U,$J,112,6531,1)
+	;;=17^2^3^100^76^^^18^1.5^^^55^330^1.9^^^^^^.52
+	;;^UTILITY(U,$J,112,6531,2)
+	;;=.25^1.8^.22^.05^^250
+	;;^UTILITY(U,$J,112,6531,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6532,0)
+	;;=TENDER BITS (VEGETARIAN)^^servings^57
+	;;^UTILITY(U,$J,112,6532,1)
+	;;=14^6^7^140^70^^^30^1.6^^^75^600^1.1^^^^^^.9
+	;;^UTILITY(U,$J,112,6532,2)
+	;;=.5^9.8^3.5^1.1^^2200
+	;;^UTILITY(U,$J,112,6532,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6533,0)
+	;;=TENDER ROUNDS (VEGETARIAN)^^servings^73
+	;;^UTILITY(U,$J,112,6533,1)
+	;;=20^5^9^160^63^^^40^2.4^^^160^430^.9^^^^^^.9
+	;;^UTILITY(U,$J,112,6533,2)
+	;;=.6^6.8^1.1^1.2^^2400
+	;;^UTILITY(U,$J,112,6533,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6534,0)
+	;;=VEGE-BURGER (VEGETARIAN)^^half-cups^108
+	;;^UTILITY(U,$J,112,6534,1)
+	;;=20^1^4^110^73^^^30^2.5^^^100^180^1^^^^^^.49
+	;;^UTILITY(U,$J,112,6534,2)
+	;;=.63^4.6^2.7^.52^^1700
+	;;^UTILITY(U,$J,112,6534,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6535,0)
+	;;=VEGE-BURGER NSA (VEGETARIAN)^^half-cups^108
+	;;^UTILITY(U,$J,112,6535,1)
+	;;=25^2^4^140^67^^^40^1.7^^^190^50^1.6^^^^^^.49
+	;;^UTILITY(U,$J,112,6535,2)
+	;;=.47^60^1.2^.86^^1700
+	;;^UTILITY(U,$J,112,6535,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6536,0)
+	;;=VEGELONA (VEGETARIAN)^^slices^67
+	;;^UTILITY(U,$J,112,6536,1)
+	;;=26^2^8^150^61^^^23^2.2^^^150^320^1.8^^^^^^.8
+	;;^UTILITY(U,$J,112,6536,2)
+	;;=.75^13^2.2^.74^^1300
+	;;^UTILITY(U,$J,112,6536,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85. DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6537,0)
+	;;=VEGE-SCALLOPS (VEGETARIAN)^^servings^78
+	;;^UTILITY(U,$J,112,6537,1)
+	;;=19^1^2^95^77^^^22^1.4^^^35^230^1.4^^^^^^.44
+	;;^UTILITY(U,$J,112,6537,2)
+	;;=.11^.95^.23^.03^^270
+	;;^UTILITY(U,$J,112,6537,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516.
+	;;^UTILITY(U,$J,112,6538,0)
+	;;=VITA-BURGER (VEGETARIAN)^^tbsp.^7
+	;;^UTILITY(U,$J,112,6538,1)
+	;;=48^0^33^320^8^^^200^8.6^^^2200^700^5.5^^^^^^.6
+	;;^UTILITY(U,$J,112,6538,2)
+	;;=.6^16^2^1.4^^5700
+	;;^UTILITY(U,$J,112,6538,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 060485.  #516
+	;;^UTILITY(U,$J,112,6539,0)
+	;;=LOMA LINDA BRAN (VEGETARIAN)^^oz.^28

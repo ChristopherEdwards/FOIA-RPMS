@@ -1,0 +1,32 @@
+ABMDAST4 ; IHS/ASDST/DMJ - APC Visit Stuff - PART 5 ; 
+ ;;2.6;IHS Third Party Billing System;**2**;NOV 12, 2009
+ ; IHS/SD/SDR - abm*2.6*2 - 3PMS10003A - Modified to use ABMFEAPI
+ ;
+HOSP I $P(^ABMDCLM(DUZ(2),ABMP("CDFN"),0),U,7)'=111 G OP
+ ;
+ S ABMI("ATYPE")=2,ABMI("DSTAT")=1,ABMI("ASRC")=2
+ S ABM("ASRC")="A" S ABMI("ATYPE")=$O(^ABMDCODE("AC","T",ABMI("ATYPE"),""))
+ S ABMI("ASRC")=$O(^ABMDCODE("AC",ABM("ASRC"),ABMI("ASRC"),""))
+ S ABMI("DSTAT")=$O(^ABMDCODE("AC","P",ABMI("DSTAT"),""))
+ S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN")
+ S DR=".51////"_ABMI("ATYPE")_";.52////"_ABMI("ASRC")_";.53////"_ABMI("DSTAT") D ^DIE K DR
+ I 'ABMP("ADT") S (ABMI("ADT"),ABMI("DDT"))=$P(ABMP("VDT"),"."),(ABMI("DHR"),ABMI("AHR"))=12
+ E  S ABMI("ADT")=+^DPT(ABMP("PDFN"),"DA",ABMP("ADT"),0)\1,ABMI("AHR")=+$E($P(+^(0),".",2),1,2),ABMI("DDT")=+^(1)\1,ABMI("DHR")=+$E($P(+^(1),".",2),1,2)
+ S DR=".61////"_ABMI("ADT")_";.62////"_ABMI("AHR")_";.63////"_ABMI("DDT")_";.64////"_ABMI("DHR")_";.71////"_ABMI("ADT")_";.54////"_90_";.55////"_ABMI("ADT")_";.74////N;.75////N" D ^DIE K DR
+ G VINFO
+OP I ABMP("MD") S:'$D(^ABMDCLM(DUZ(2),ABMP("CDFN"),27,0)) ^ABMDCLM(DUZ(2),ABMP("CDFN"),27,0)="^9002274.3027P",DA(1)=ABMP("CDFN") D
+ .;S DIC="^ABMDCLM(DUZ(2),"_DA(1)_",27,",DIC(0)="LE",(DINUM,X)=$S($D(^ICPT(99211)):99211,1:90030),DIC("DR")=".03////1;.04////"_$P($G(^ABMDFEE(ABMP("FEE"),19,X,0)),U,2) K DD,DO D FILE^DICN  ;abm*2.6*2 3PMS10003A
+ .S DIC="^ABMDCLM(DUZ(2),"_DA(1)_",27,",DIC(0)="LE",(DINUM,X)=$S($D(^ICPT(99211)):99211,1:90030),DIC("DR")=".03////1;.04////"_$P($$ONE^ABMFEAPI(ABMP("FEE"),19,X,$S($G(ABMP("VDT")):ABMP("VDT"),1:DT)),U) K DD,DO D FILE^DICN  ;abm*2.6*2 3PMS10003A
+ S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN")
+ S DR=".73////"_1 D ^DIE K DR
+REL K DIE S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN")
+ I $P(^AUPNPAT(ABMP("PDFN"),0),U,4)]""&($P(^(0),U,5)'>ABMP("VDT")) S DR=".74////Y"
+ E  S DR=".74////N"
+ D ^DIE K DR
+BENE I $P(^AUPNPAT(ABMP("PDFN"),0),U,17)]""&($P(^(0),U,18)'>ABMP("VDT")) S DR=".75////Y"
+ E  S DR=".75////N"
+ D ^DIE K DR
+ ;
+VINFO K ABMI
+ G MED3^ABMDVST5
+ Q

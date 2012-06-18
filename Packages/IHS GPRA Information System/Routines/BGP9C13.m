@@ -1,0 +1,78 @@
+BGP9C13 ; IHS/CMI/LAB - calc CMS measures 26 Sep 2004 11:28 AM ;
+ ;;9.0;IHS CLINICAL REPORTING;;JUL 1, 2009
+ ;
+ARBALG1 ;EP does patient have an ARB allergy
+ ;get all povs with 995.0-995.3 with ecode of e935.3 up to discharge date
+ NEW ED,BD,BGPG,X,Y,Z,N
+ ;BGPD is discharge date
+ S:$G(BGPC)="" BGPC=0  ;cmi/maw 3/19/2008 this was commented out for some reason so it was undef in the next sub routine
+ S ED=$$FMADD^XLFDT(BGPD,-365)
+ARBPOV ;
+ K BGPG S Y="BGPG(",X=P_"^ALL DX [BGP ASA ALLERGY 995.0-995.3;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(BGPD) S E=$$START1^APCLDF(X,Y)
+ S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
+ .S N=$$VAL^XBDIQ1(9000010.07,Y,.04) S N=$$UP^XLFSTR(N)
+ .I N["ARB"!(N["ANGIOTENSIN RECEPTOR BLOCKER") S BGPC=BGPC+1,BGPY(BGPC)="POV:  "_$$DATE^BGP9UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N
+ .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.6" S BGPC=BGPC+1,BGPY(BGPC)="POV:  "_$$DATE^BGP9UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.6]  "_N
+ .Q
+ K BGPG S Y="BGPG(",X=P_"^ALL DX V14.8;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(DFN))_"-"_$$FMTE^XLFDT(BGPD) S E=$$START1^APCLDF(X,Y)
+ S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
+ .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
+ .I N["ARB"!(N["ANGIOTENSIN RECEPTOR BLOCKER") S BGPC=BGPC+1,BGPY(BGPC)="POV:  "_$$DATE^BGP9UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N
+ ;now check problem list for these codes
+ S T="",T=$O(^ATXAX("B","BGP ASA ALLERGY 995.0-995.3",0))
+ S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
+ .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^ICDCODE(I),U,2)
+ .S N=$$VAL^XBDIQ1(9000011,X,.05),N=$$UP^XLFSTR(N)
+ .Q:$P(^AUPNPROB(X,0),U,8)>BGPD  ;added after discharge date
+ .I Y="V14.8"!($$ICD^ATXCHK(I,T,9)),N["ARB"!(N["ANGIOTENSIN RECEPTOR BLOCKER") S BGPC=BGPC+1,BGPY(BGPC)="PROBLEM LIST:  "_$$DATE^BGP9UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
+ .Q
+ ;now check allergy tracking
+ S X=0 F  S X=$O(^GMR(120.8,"B",P,X)) Q:X'=+X  D
+ .Q:$P($P($G(^GMR(120.8,X,0)),U,4),".")>BGPD  ;entered after discharge date
+ .S N=$P($G(^GMR(120.8,X,0)),U,2),N=$$UP^XLFSTR(N)
+ .I N["ARB"!(N["ANGIOTENSIN RECEPTOR BLOCKER") S BGPC=BGPC+1,BGPY(BGPC)="ALLERGY TRACKING:  "_$$DATE^BGP9UTL($P(^GMR(120.8,X,0),U,4))_"  "_N
+ Q
+ARBCON1 ;EP does patient have an ARB allergy
+ ;nmi in refusal file for ARB
+ S T=$O(^ATXAX("B","BGP CMS ARB MEDS",0))
+ S Z=$$FMADD^XLFDT(BGPDDT,-365)
+ S X=0 F  S X=$O(^AUPNPREF("AA",P,50,X)) Q:X'=+X  D
+ .Q:'$D(^ATXAX(T,21,"B",X))  ;not an ARB
+ .S D=0 F  S D=$O(^AUPNPREF("AA",P,50,X,D)) Q:D'=+D  D
+ ..S Y=9999999-D I Y<Z Q  ;documented more than 1 year before discharge
+ ..I Y>BGPDDT Q  ;documented after discharge
+ ..S N=0 F  S N=$O(^AUPNPREF("AA",P,50,X,D,N)) Q:N'=+N  D
+ ...Q:$P($G(^AUPNPREF(N,0)),U,7)'="N"
+ ...S BGPC=BGPC+1,BGPY(BGPC)="NMI ARB: "_$$VAL^XBDIQ1(9000022,N,.04)_"   "_$$DATE^BGP9UTL($P(^AUPNPREF(N,0),U,3))_"  "_$$VAL^XBDIQ1(9000022,X,1101)
+ ..Q
+ .Q
+ Q:BGPIND'=2
+ S X=$$CPTI^BGP9DU(P,BGPD,BGPDDT,+$$CODEN^ICPTCOD("G8029"))
+ I X S BGPC=BGPC+1,BGPY(BGPC)="CPT code G8029: "_$$DATE^BGP9UTL($P(X,U,2))
+ S X=$$TRANI^BGP9DU(P,BGPD,BGPDDT,+$$CODEN^ICPTCOD("G8029"))
+ I X S BGPC=BGPC+1,BGPY(BGPC)="Tran Code G8029: "_$$DATE^BGP9UTL($P(X,U,2))
+ Q
+ARBRX1 ;EP
+ ;get last aspirin rx before date of adm
+ NEW BGPG,BGPC,X,Y,Z,E,BD,ED
+ S BGPC=0
+ S ED=$$FMADD^XLFDT(BGPA,-1)
+ S BD=$$FMADD^XLFDT(BGPA,-365)
+ D GETMEDS^BGP9CU(P,BD,ED,"BGP CMS ARB MEDS","BGP CMS ARB MEDS NDC","BGP CMS ARB MEDS CLASS")
+ I BGPIND=2 D
+ .S X=$$CPTI^BGP9DU(P,BD,ED,+$$CODEN^ICPTCOD("G8027"))
+ .I X S BGPC=BGPC+1,BGPY(BGPC)="CPT code G8027: "_$$DATE^BGP9UTL($P(X,U,2))
+ .S X=$$TRANI^BGP9DU(P,BD,ED,+$$CODEN^ICPTCOD("G8027"))
+ .I X S BGPC=BGPC+1,BGPY(BGPC)="Tran Code G8027: "_$$DATE^BGP9UTL($P(X,U,2))
+ S BD=BGPA
+ S ED=$$FMADD^XLFDT(BGPD,30)
+ D GETMEDS^BGP9CU(P,BD,ED,"BGP CMS ARB MEDS","BGP CMS ARB MEDS NDC","BGP CMS ARB MEDS CLASS")
+ I BGPIND=2 D
+ .S X=$$CPTI^BGP9DU(P,BD,ED,+$$CODEN^ICPTCOD("G8027"))
+ .I X S BGPC=BGPC+1,BGPY(BGPC)="CPT code G8027: "_$$DATE^BGP9UTL($P(X,U,2))
+ .S X=$$TRANI^BGP9DU(P,BD,ED,+$$CODEN^ICPTCOD("G8027"))
+ .I X S BGPC=BGPC+1,BGPY(BGPC)="Tran Code G8027: "_$$DATE^BGP9UTL($P(X,U,2))
+ K BGPG
+ Q
+DSCH(H) ;
+ Q $P($P(^AUPNVINP(H,0),U),".")

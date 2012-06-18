@@ -1,0 +1,38 @@
+LABCX7R ; IHS/DIR/FJE - ; [ 05/27/2003  6:53 AM ]
+ ;;5.2;LA;**1016**;MAY 27, 2003
+DOC ;Response to Host Query
+ S DEV=$P(Y(1),","),RC=1
+LOOP F I=4:1:10 I $E($P(Y(1),",",I),1,11)'="           " D GETDATA
+ I '$D(GOOD) S OUT="" G EXIT
+ S OUT=$C(4) D SET
+EXIT S OUT=$C(3),^LA(T,"P1")=ETX
+ K CKSUM,D1,D2,DEV,GOOD,H1,H2,ID,J,K,ZCNT Q  ;final exit
+GETDATA ;
+ S ID=$E($P(Y(1),",",I),1,11) I '$D(^LAZ(ID)) D UNDEF Q
+ I '$D(GOOD) S GOOD=1,OUT=$C(1) D SET
+ F J=0:1:2 Q:'$D(^LAZ(ID,J))  D SEND
+ S CKSUM=CKSUM#256,CKSUM=256-CKSUM D HEX S ^LA(T,"O",ZCNT)=OUT_CKSUM
+ I $D(^LAZ("ZZZ",ID)) K ^LAZ("ZZZ",ID)
+ Q
+SEND ;
+ S OUT=^LAZ(ID,J)
+ I J=0 S $P(OUT,",",1)=DEV,CKSUM=0
+ D SET
+ F K=1:1:$L(OUT) S CKSUM=CKSUM+$A($E(OUT,K))
+ S RC=0 Q
+UNDEF ;Sample Id has not been downloaded to ^LAZ
+ S ^LAZ("ZZZ",ID)="NOT DOWNLOADED, QUERY FROM DEVICE "_$E(DEV,2,3)
+ Q
+HEX ;convert decimal to hex
+ S D1=CKSUM\16,D2=CKSUM#16
+ I D1=0 S H1=0 G H2
+ S H1=$E("123456789ABCDEF",D1)
+H2 I D2=0 S H2=0 G CK
+ S H2=$E("123456789ABCDEF",D2)
+CK S CKSUM=H1_H2
+ Q
+SET I '$D(^LA(T,"O")) S ^LA(T,"O")=0
+ S (ZCNT,^LA(T,"O"))=^LA(T,"O")+1
+ S ^LA(T,"O",ZCNT)=OUT
+ I '$D(^LA(T,"O",0)) S ^LA(T,"O",0)=0
+ Q

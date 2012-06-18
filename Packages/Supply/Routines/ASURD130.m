@@ -1,0 +1,58 @@
+ASURD130 ; IHS/ITSC/LMH -RPT 13 REQM-ANAL ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;This routine sorts extracts into proper sequence so that the
+ ;report can be formatted and printed.
+ S ASUMS("E#","STA")=0 F  S ASUMS("E#","STA")=$O(^ASUMS(ASUMS("E#","STA"))) Q:ASUMS("E#","STA")'?1N.N  D
+ .S ASUMX("E#","IDX")=0 F ASUU(11)=1:1 S ASUMX("E#","IDX")=$O(^ASUMX(ASUMX("E#","IDX"))) Q:ASUMX("E#","IDX")'?1N.N  D
+ ..N X S X=(^ASUMX(ASUMX("E#","IDX"),0)) Q:$P(X,U)[999999  Q:'$D(^ASUMS(ASUMS("E#","STA"),1,ASUMX("E#","IDX"),0))
+ ..S ASUMS("E#","IDX")=ASUMX("E#","IDX")
+ ..D ^ASUMSTRD,READ^ASUMXDIO
+ ..I ASUD("R13","SEL")="A"!(ASUD("R13","SEL")="S")!(ASUD("R13","SEL")="Y") D SS Q
+ ..I ASUD("R13","SEL")="0"&(ASUMS("SRC")'="1")&(ASUMS("SRC")'="3")&(ASUMS("SRC")'="4")&(ASUMS("SRC")'="5")&(ASUMS("SRC")'="6") D SS Q
+ ..I ASUD("R13","SEL")="6"&(ASUMS("SRC")="6") D SS Q
+ ..I ASUD("R13","SEL")="5"&(ASUMS("SRC")="5") D SS Q
+ ..I ASUD("R13","SEL")="4"&(ASUMS("SRC")="4") D SS Q
+ ..I ASUD("R13","SEL")="3"&(ASUMS("SRC")="3") D SS Q
+ ..I ASUD("R13","SEL")="1"&(ASUMS("SRC")="1") D SS Q
+ Q
+SS ;SORT
+ Q:$P(ASUMS(0),U)=99999999
+ S ASUV("SLC")=ASUMS("SLC") S:ASUV("SLC")']"" ASUV("SLC")="*"
+ S ASUV("VEN NM")=ASUMS("VENAM") S:ASUV("VEN NM")']"" ASUV("VEN NM")="*"
+ I ASUMS("EOQ","TP")="R" G NOR13
+ I ASUMS("EOQ","TP")="S" I ASUD("R13","SEL")'="S" G NOR13
+ I ASUD("R13","SEL")="S" I ASUMS("EOQ","TP")'="S" G NOR13
+ I ASUD("R13","SEL")="Y",ASUMS("EOQ","TP")'="Y" G NOR13
+ I ASUMS("EOQ","TP")="Y"!(ASUMS("EOQ","TP")="D")!(ASUMS("EOQ","TP")="Q") D  ;Q:ASUF("FOUND")=2
+ .S ASUV("M")=ASUD("R13","MOAC")
+ .S ASUF("FOUND")=0
+ .F  D  Q:ASUF("FOUND")
+ ..I ASUV("M")<4&(ASUV("M")=$E(ASUMS("EOQ","AM"))) D SETQAM Q
+ ..I ASUV("M")<7&(ASUV("M")=$E(ASUMS("EOQ","AM"),2,2)) D SETQAM Q
+ ..I ASUV("M")<10&(ASUV("M")=$E(ASUMS("EOQ","AM"),3,3)) D SETQAM Q
+ ..I ASUV("M")=$E(ASUMS("EOQ","AM"),4,5) D SETQAM Q
+ ..I (ASUV("M")-ASUD("R13","MOAC"))'=(ASUD("R13","RNG")-1) S ASUV("M")=ASUV("M")+1 Q
+ ..I ASUMS("EOQ","TP")="Y",ASUD("R13","SEL")'="Y",ASUF("FOUND")=1 Q
+ ..S ASUF("FOUND")=2
+ S ASUV("STKST")=ASUMS("QTY","O/H")+ASUMS("D/I","QTY-TOT")-ASUMS("D/O","QTY")
+ I ASUD("R13","RNG")>1 S ASUV("STKST")=ASUV("STKST")-ASUMS("PMIQ")
+ I ASUD("R13","RNG")=3 S ASUV("STKST")=ASUV("STKST")-ASUMS("PMIQ")
+ I ASUMS("EOQ","TP")'="S",(ASUMS("EOQ","TP")'="Y"),ASUV("STKST")>ASUMS("RPQ") G NOR13
+ I ASUMX("ACC")'=1&(ASUMX("ACC")'=3) S ASUMX("ACC")=4
+ D
+ .I ASUMX("ACC")=1&(ASUMX("CAT")'="N"!(ASUMX("CAT")'="R")) S ASUMS("SLC")="E" Q
+ .I ASUMX("ACC")=1&(ASUMS("SLC")'="H") S ASUMS("SLC")="Z" Q
+ .I ASUMX("ACC")'=1&(ASUMS("SLC")'="H") S ASUMS("SLC")="Z"
+ I ASUV("VEN NM")=" " D
+ .S ASUV("VEN NM")=$S(ASUMS("SRC")=1:"PERRY POINT",ASUMS("SRC")=3:"GSA",ASUMS("SRC")=4:"VA SUPPLY DEPOT",1:" ")
+ S ASUX(0)=ASUMS("E#","STA")_U_ASUMX("E#","IDX")_U_ASUV("STKST")
+ S ASUMX("IDX0")="0"_ASUMX("IDX")
+ S ^XTMP("ASUR","R13",ASUMS("AR"),ASUMS("STA"),ASUMX("ACC"),ASUV("SLC"),ASUV("VEN NM"),ASUMX("IDX0"),ASUU(11))=ASUX(0)
+ S ASUMS("R13","TIMES")=$G(ASUMS("R13","TIMES"))+1
+UPSMSTR ;
+ D ^ASUMSTWR
+ Q
+NOR13 ;
+ S ASUMS("R13","TIMES")=0 G UPSMSTR
+SETQAM ;
+ S ASUF("FOUND")=1,ASUV("ACTMO",1)=$E(ASUMS("EOQ","AM")),ASUV("ACTMO",2)=$E(ASUMS("EOQ","AM"),2,2),ASUV("ACTMO",3)=$E(ASUMS("EOQ","AM"),3,3),ASUV("ACTMO",4)=$E(ASUMS("EOQ","AM"),4,5) Q

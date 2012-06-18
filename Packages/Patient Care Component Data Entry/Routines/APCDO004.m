@@ -1,0 +1,166 @@
+APCDO004 ; IHS/CMI/TUCSON - NO DESCRIPTION PROVIDED ;
+ ;;2.0;IHS RPMS/PCC Data Entry;;MAR 09, 1999
+ F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q Q
+ ;;^UTILITY(U,$J,"PRO",1730,15)
+ ;;=D RESET^APCDEFL
+ ;;^UTILITY(U,$J,"PRO",1730,20)
+ ;;=D MNE^APCDEFL
+ ;;^UTILITY(U,$J,"PRO",1730,99)
+ ;;=57510,28764
+ ;;^UTILITY(U,$J,"PRO",1731,0)
+ ;;=APCDEF PL CALL^Edit Problem List^^A^^^^^^^^IHS RPMS/PCC Data Entry
+ ;;^UTILITY(U,$J,"PRO",1731,4)
+ ;;=^^^CALLS PL List Temp
+ ;;^UTILITY(U,$J,"PRO",1731,15)
+ ;;=S VALMBCK="R" D INIT^APCDEFL
+ ;;^UTILITY(U,$J,"PRO",1731,20)
+ ;;=D EN1^APCDPL
+ ;;^UTILITY(U,$J,"PRO",1731,99)
+ ;;=57510,28764
+ ;;^UTILITY(U,$J,"PRO",1732,0)
+ ;;=APCDEL HISTORICAL MENU^Historical Patient Data Items^^M^^^^^^^^IHS RPMS/PCC Data Entry
+ ;;^UTILITY(U,$J,"PRO",1732,4)
+ ;;=26
+ ;;^UTILITY(U,$J,"PRO",1732,10,0)
+ ;;=^101.01PA^5^5
+ ;;^UTILITY(U,$J,"PRO",1732,10,1,0)
+ ;;=1710^AD^5
+ ;;^UTILITY(U,$J,"PRO",1732,10,1,"^")
+ ;;=APCDEL ADD VISIT ITEM
+ ;;^UTILITY(U,$J,"PRO",1732,10,2,0)
+ ;;=1715^HS^25
+ ;;^UTILITY(U,$J,"PRO",1732,10,2,"^")
+ ;;=APCDEL HEALTH SUMMARY
+ ;;^UTILITY(U,$J,"PRO",1732,10,3,0)
+ ;;=1721^Q^99
+ ;;^UTILITY(U,$J,"PRO",1732,10,3,"^")
+ ;;=APCDEL GO BACK
+ ;;^UTILITY(U,$J,"PRO",1732,10,4,0)
+ ;;=1711^MD^10
+ ;;^UTILITY(U,$J,"PRO",1732,10,4,"^")
+ ;;=APCDEL MODIFY VISIT ITEM
+ ;;^UTILITY(U,$J,"PRO",1732,10,5,0)
+ ;;=1712^DE^15
+ ;;^UTILITY(U,$J,"PRO",1732,10,5,"^")
+ ;;=APCDEL DELETE VISIT ITEM
+ ;;^UTILITY(U,$J,"PRO",1732,15)
+ ;;=K APCDSECM
+ ;;^UTILITY(U,$J,"PRO",1732,20)
+ ;;=S APCDSECM=2
+ ;;^UTILITY(U,$J,"PRO",1732,26)
+ ;;=D SHOW^VALM
+ ;;^UTILITY(U,$J,"PRO",1732,28)
+ ;;=Select Action: 
+ ;;^UTILITY(U,$J,"PRO",1732,29)
+ ;;=AD
+ ;;^UTILITY(U,$J,"PRO",1732,99)
+ ;;=57735,40862
+ ;;^UTILITY(U,$J,"PRO",1733,0)
+ ;;=APCDEL HISTORICAL MNEMONICS^Historical Data Entry^^A^^^^^^^^IHS RPMS/PCC Data Entry
+ ;;^UTILITY(U,$J,"PRO",1733,4)
+ ;;=25
+ ;;^UTILITY(U,$J,"PRO",1733,20)
+ ;;=D HIST^APCDEL1
+ ;;^UTILITY(U,$J,"PRO",1733,99)
+ ;;=57510,28764
+ ;;^UTILITY(U,$J,"PRO",1734,0)
+ ;;=APCD NEXT SCREEN^Next Screen^^A^^^^^^^^LIST MANAGER
+ ;;^UTILITY(U,$J,"PRO",1734,1,0)
+ ;;=^^2^2^2920519^^^
+ ;;^UTILITY(U,$J,"PRO",1734,1,1,0)
+ ;;=This action will allow the user to view the next screen
+ ;;^UTILITY(U,$J,"PRO",1734,1,2,0)
+ ;;=of entries, if any exist.
+ ;;^UTILITY(U,$J,"PRO",1734,2,0)
+ ;;=^101.02A^1^1
+ ;;^UTILITY(U,$J,"PRO",1734,2,1,0)
+ ;;=NX
+ ;;^UTILITY(U,$J,"PRO",1734,2,"B","NX",1)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",1734,20)
+ ;;=D NEXT^VALM4
+ ;;^UTILITY(U,$J,"PRO",1734,99)
+ ;;=57510,28764
+ ;;^UTILITY(U,$J,"PRO",1735,0)
+ ;;=APCD PREVIOUS SCREEN^Previous Screen^^A^^^^^^^^LIST MANAGER
+ ;;^UTILITY(U,$J,"PRO",1735,1,0)
+ ;;=^^2^2^2920113^^
+ ;;^UTILITY(U,$J,"PRO",1735,1,1,0)
+ ;;=This action will allow the user to view the previous screen
+ ;;^UTILITY(U,$J,"PRO",1735,1,2,0)
+ ;;=of entries, if any exist.
+ ;;^UTILITY(U,$J,"PRO",1735,2,0)
+ ;;=^101.02A^3^3
+ ;;^UTILITY(U,$J,"PRO",1735,2,1,0)
+ ;;=PR
+ ;;^UTILITY(U,$J,"PRO",1735,2,2,0)
+ ;;=BK
+ ;;^UTILITY(U,$J,"PRO",1735,2,3,0)
+ ;;=PR
+ ;;^UTILITY(U,$J,"PRO",1735,2,"B","BK",2)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",1735,2,"B","PR",1)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",1735,2,"B","PR",3)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",1735,20)
+ ;;=D PREV^VALM4
+ ;;^UTILITY(U,$J,"PRO",1735,99)
+ ;;=57510,28764
+ ;;^UTILITY(U,$J,"PRO",1736,0)
+ ;;=APCDEH HISTORICAL ITEMS MENU^Historical Patient Data Items^^M^^^^^^^^IHS RPMS/PCC Data Entry
+ ;;^UTILITY(U,$J,"PRO",1736,4)
+ ;;=26
+ ;;^UTILITY(U,$J,"PRO",1736,10,0)
+ ;;=^101.01PA^6^6
+ ;;^UTILITY(U,$J,"PRO",1736,10,1,0)
+ ;;=1737^AD^5
+ ;;^UTILITY(U,$J,"PRO",1736,10,1,"^")
+ ;;=APCDEH ADD ITEM
+ ;;^UTILITY(U,$J,"PRO",1736,10,2,0)
+ ;;=1740^HS^25
+ ;;^UTILITY(U,$J,"PRO",1736,10,2,"^")
+ ;;=APCDEH HEALTH SUMMARY
+ ;;^UTILITY(U,$J,"PRO",1736,10,3,0)
+ ;;=1699^Q^99
+ ;;^UTILITY(U,$J,"PRO",1736,10,3,"^")
+ ;;=APCD QUIT
+ ;;^UTILITY(U,$J,"PRO",1736,10,4,0)
+ ;;=1738^MD^10
+ ;;^UTILITY(U,$J,"PRO",1736,10,4,"^")
+ ;;=APCDEH MODIFY ITEM
+ ;;^UTILITY(U,$J,"PRO",1736,10,5,0)
+ ;;=1739^DE^15
+ ;;^UTILITY(U,$J,"PRO",1736,10,5,"^")
+ ;;=APCDEH DELETE ITEM
+ ;;^UTILITY(U,$J,"PRO",1736,10,6,0)
+ ;;=1741^PL^50
+ ;;^UTILITY(U,$J,"PRO",1736,10,6,"^")
+ ;;=APCDEH PROBLEM LIST
+ ;;^UTILITY(U,$J,"PRO",1736,15)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",1736,20)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",1736,26)
+ ;;=D SHOW^VALM
+ ;;^UTILITY(U,$J,"PRO",1736,28)
+ ;;=Select Action: 
+ ;;^UTILITY(U,$J,"PRO",1736,29)
+ ;;=AD
+ ;;^UTILITY(U,$J,"PRO",1736,99)
+ ;;=57662,26253
+ ;;^UTILITY(U,$J,"PRO",1737,0)
+ ;;=APCDEH ADD ITEM^Add Item^^A^^^^^^^^IHS RPMS/PCC Data Entry
+ ;;^UTILITY(U,$J,"PRO",1737,20)
+ ;;=D ADD^APCDEH1
+ ;;^UTILITY(U,$J,"PRO",1737,99)
+ ;;=57510,28764
+ ;;^UTILITY(U,$J,"PRO",1738,0)
+ ;;=APCDEH MODIFY ITEM^Modify Item^^A^^^^^^^^IHS RPMS/PCC Data Entry
+ ;;^UTILITY(U,$J,"PRO",1738,20)
+ ;;=D MODIFY^APCDEH1
+ ;;^UTILITY(U,$J,"PRO",1738,99)
+ ;;=57510,28764
+ ;;^UTILITY(U,$J,"PRO",1739,0)
+ ;;=APCDEH DELETE ITEM^Delete Item^^A^^^^^^^^IHS RPMS/PCC Data Entry

@@ -1,0 +1,50 @@
+DPTDZALP ; IHS/TUCSON/JCM - alphabetical listing of va 15 for file 2 ;
+ ;;1.0;PATIENT MERGE;;FEB 02, 1994
+ ;;
+START ;
+ W !!,"This report will contain an alphabetical listing of all of the patients in the",!,"Duplicate Record file.",!
+ZIS W !! K ZTSK,ZTQUEUED,IOP S %IS="PQM" D ^%ZIS
+ I POP G XIT
+ I $D(IO("Q")) G TSKMN
+DRIVER ; entry point for taskman
+ K ^TMP("DPTDZALP",$J)
+PROC ;
+ S DPTDZALP("X")=0 F  S DPTDZALP("X")=$O(^VA(15,DPTDZALP("X"))) Q:DPTDZALP("X")'=+DPTDZALP("X")  I $P($P(^VA(15,DPTDZALP("X"),0),";",2),"(",1)="DPT" D
+ .S ^TMP("DPTDZALP",$J,$P(^DPT($P(^VA(15,DPTDZALP("X"),0),";"),0),U))=DPTDZALP("X")
+ U IO
+ S Y=DT X ^DD("DD") S DPTDZALP("DT")=Y
+PRN S DPTDZALP("PG")=0 D HEAD
+ S DPTDZALP("X")=0 F  S DPTDZALP("X")=$O(^TMP("DPTDZALP",$J,DPTDZALP("X"))) Q:DPTDZALP("X")=""!($D(DPTDZALP("QUIT")))  D
+ .S DPTDZALP("Y")=^TMP("DPTDZALP",$J,DPTDZALP("X"))
+ .I $Y>(IOSL-8) D HEAD Q:$D(DPTDZALP("QUIT"))
+ .W !!,"RECORD1:  ",DPTDZALP("X"),?40,"RECORD2:  ",?50,$P(^DPT($P($P(^VA(15,DPTDZALP("Y"),0),"^",2),";"),0),U)
+ .W !,"STATUS:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,3),C=$P(^DD(15,.03,0),U,2) D Y^DIQ W Y,?40,"MERGE DIRECTION:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,4),C=$P(^DD(15,.04,0),U,2) D Y^DIQ W Y
+ .W !,"MERGE STATUS:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,5),C=$P(^DD(15,.05,0),U,2) D Y^DIQ W Y,?40,"DATE FOUND:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,4),C=$P(^DD(15,.06,0),U,2) D Y^DIQ W Y
+ .W !,"DATE VERIFIED:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,7),C=$P(^DD(15,.07,0),U,2) D Y^DIQ W Y,?40,"DATE RESOLVED:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,8),C=$P(^DD(15,.08,0),U,2) D Y^DIQ W Y
+ .W !,"WHO CREATED:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,9),C=$P(^DD(15,.09,0),U,2) D Y^DIQ W Y,?40,"WHO VERIFIED:  " I $P(^VA(15,DPTDZALP("Y"),0),U,11)]"" S Y=$P(^VA(15,DPTDZALP("Y"),0),U,11),C=$P(^DD(15,.11,0),U,2) D Y^DIQ W Y
+ .W !,"DC TOTAL POSSIBLE SCORE:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,15),C=$P(^DD(15,.15,0),U,2) D Y^DIQ W Y,?40,"DC POTENTIAL DUPE THRESHOLD %:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,17),C=$P(^DD(15,.17,0),U,2) D Y^DIQ W Y
+ .W !,"DC DUPE MATCH SCORE  :  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,18),C=$P(^DD(15,.18,0),U,2) D Y^DIQ W Y,?40,"DC DUPE MATCH PERCENTILE:  " S Y=$P(^VA(15,DPTDZALP("Y"),0),U,19),C=$P(^DD(15,.19,0),U,2) D Y^DIQ W Y
+ K:$D(ZTSK) ^%ZTSK(ZTSK)
+ D XIT
+ Q
+XIT ;
+ K DPTDZALP
+ K X,Y,DIR,DUOUT,DIRUT,DTOUT
+ Q
+ERR W $C(7),$C(7),!,"Must be a valid date and be Today or earlier. Time not allowed!" Q
+HEAD I 'DPTDZALP("PG") G HEAD1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S DPTDZALP("QUIT")="" Q
+HEAD1 ;
+ W:$D(IOF) @IOF S DPTDZALP("PG")=DPTDZALP("PG")+1
+ W "*",?3,$P(^DIC(4,DUZ(2),0),U,1),"  ",DPTDZALP("DT"),?70,"Page ",DPTDZALP("PG"),?78,"*",!
+ W !?10,"ALPHABETICAL LISTING OF PATIENTS IN DUPLICATE RECORD FILE",!
+ S X="",$P(X,"_",79)="" W X,!
+ Q
+TSKMN ;
+ S ZTIO=$S($D(ION):ION,1:IO) I $D(IOST)#2,IOST]"" S ZTIO=ZTIO_";"_IOST
+ I $D(IO("DOC")),IO("DOC")]"" S ZTIO=ZTIO_$S($D(IO("DOC")):";"_IO("DOC"),1:"")
+ I $D(IOM)#2,IOM S ZTIO=ZTIO_";"_IOM I $D(IOSL)#2,IOSL S ZTIO=ZTIO_";"_IOSL
+ S ZTSAVE("*")=""
+ S ZTRTN="DRIVER^DPTDZALP",ZTDTH="",ZTDESC="PAT MERGE ALPHA LIST" D ^%ZTLOAD D XIT Q
+ ;
+ ;

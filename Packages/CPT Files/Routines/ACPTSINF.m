@@ -1,0 +1,74 @@
+ACPTSINF ; IHS/ASDST/DMJ,SDR - SET INACTIVE FLAG ;   [ 01/05/2004  9:35 AM ]
+ ;;2.08;CPT FILES;;DEC 17, 2007
+ I '$G(DT) D NOW^%DTC S DT=X
+ S ACPTDA=0
+ F  S ACPTDA=$O(^ICPT(ACPTDA)) Q:'ACPTDA!(ACPTDA>999999)  D
+ .D ACT
+ .D INA
+ .Q:$D(ZTQUEUED)
+ .D DOTS^ACPTPOST(ACPTDA)
+ ;
+ S ACPTDA=4848484969
+ F  S ACPTDA=$O(^ICPT(ACPTDA)) Q:'ACPTDA!(ACPTDA>5248494971)  D
+ .D ACT
+ .D INA
+ .Q:$D(ZTQUEUED)
+ .D DOTS^ACPTPOST(ACPTDA)
+ Q
+ ;
+ ; EFFECTIVE DATE - 0=INACTIVE;  1=ACTIVE
+ ;
+ACT ;MAKE INACTIVE CODE ACTIVE
+ ;Q:'$P(^ICPT(ACPTDA,0),"^",4)&($P(^ICPT(ACPTDA,0),U,6)'=3070000)
+ S ABMINAFG=1
+ S ABMEDT=$O(^ICPT(ACPTDA,60,"B",9999999),-1)  ;get most recent date
+ Q:+ABMEDT=0
+ S ABMEDIEN=$O(^ICPT(ACPTDA,60,"B",ABMEDT,0))  ;IEN for most recent entry
+ I $P($G(^ICPT(ACPTDA,60,ABMEDIEN,0)),U,2)=0 S ABMINAFG=0  ;set inactive flag
+ Q:'$P(^ICPT(ACPTDA,0),"^",4)&($P(^ICPT(ACPTDA,0),U,6)'=3080000)&(ABMINAFG=1)
+ S ACPTADT=$P($G(^ICPT(ACPTDA,0)),"^",6)
+ Q:'ACPTADT
+ Q:ACPTADT>DT
+ S $P(^ICPT(ACPTDA,0),"^",4)=""
+ K DIC
+ S DA(1)=ACPTDA
+ S DIC="^ICPT("_DA(1)_",60,"
+ S DIC(0)="L"
+ S DIC("P")=$P(^DD(81,60,0),"^",2)
+ S X="01/01/2008"
+ ;S DIC("DR")=".02////1"  acpt*2.07*1
+ D ^DIC
+ ;start new code acpt*2.07*1
+ S DA=+Y
+ K DIC,X,Y
+ S DA(1)=ACPTDA
+ S DIE="^ICPT("_DA(1)_",60,"
+ S DR=".02////1"
+ D ^DIE
+ ;end new code acpt*2.07*1
+ K ACPTADT
+ Q
+INA ;MAKE ACTIVE CODE INACTIVE
+ ;Q:$P(^ICPT(ACPTDA,0),"^",4)  ;acpt*2.07*1
+ S ACPTIDT=$P($G(^ICPT(ACPTDA,0)),"^",7)
+ Q:'ACPTIDT
+ Q:ACPTIDT>DT
+ S $P(^ICPT(ACPTDA,0),"^",4)=1
+ K DIC
+ S DA(1)=ACPTDA
+ S DIC="^ICPT("_DA(1)_",60,"
+ S DIC(0)="L"
+ S DIC("P")=$P(^DD(81,60,0),"^",2)
+ S (DA,X)="01/01/2008"
+ ;S DIC("DR")=".02////0"  ;acpt*2.07*1
+ D ^DIC
+ ;start new code acpt*2.07*1
+ S DA=+Y
+ K DIC,X,Y
+ S DA(1)=ACPTDA
+ S DIE="^ICPT("_DA(1)_",60,"
+ S DR=".02////0"
+ D ^DIE
+ ;end new code acpt*2.07*1
+ K ACPTIDT
+ Q

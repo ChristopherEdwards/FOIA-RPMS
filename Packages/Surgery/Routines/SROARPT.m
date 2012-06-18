@@ -1,0 +1,24 @@
+SROARPT ;TAMPA/CFB - ANESTHESIA REPORT ; 27 Jan 1989  8:29 AM
+ ;;3.0; Surgery ;;24 Jun 93
+ I '$D(SRSITE) D ^SROVAR S SRSITE("KILL")=1
+ I '$D(SRTN) K SRNEWOP S SRALLOP=1 D ^SROPS G:'$D(SRTN) END
+ I '$D(SRTN) G END
+ K %ZIS,IO("Q") S %ZIS="Q" D ^%ZIS G:POP END I $D(IO("Q")) K IO("Q") S ZTRTN="RPT^SROARPT",ZTSAVE("SRSITE(")="",ZTSAVE("SRTN")=SRTN,ZTSAVE("SRT")="UL" D ^%ZTLOAD G END
+RPT ;entry when queued
+ S SRSOUT=0 I '$D(ZTQUEUED) S SRT=$S($E(IOST)="P":"UL",1:"Q")
+ U IO D HDR G:SRSOUT END D ^SROARPT0,FOOT S X=SRTN K SRT,SRTN S SRTN=X K X W !
+END W:$E(IOST)="P" @IOF I $D(ZTQUEUED) Q:$G(ZTSTOP)  S ZTREQ="@" Q
+ D ^SRSKILL I $D(SRSITE("KILL")) K SRSITE
+ D ^%ZISC W @IOF Q
+HDR I $D(ZTQUEUED) D ^SROSTOP I SRHALT S SRSOUT=1 Q
+ W:$Y @IOF D UL W !,?5,"MEDICAL RECORD                  |            ANESTHESIA REPORT",! Q
+SIG D UL W !!,"ANESTHETIST'S SIG: ",?50 D NOW^%DTC S Y=% D D^DIQ W Y
+FOOT Q:SRSOUT  D UL S DFN=$P(SRTN(0),"^") Q:DFN=""  D DEM^VADPT W !,$E(VADM(1),1,50),?50,VA("PID"),!,"WARD: ",$S($D(^DPT(DFN,.1)):^(.1),1:""),?50,"ROOM-BED: ",$S($D(^DPT(DFN,.101)):^(.101),1:"") D UL W !,"VAMC: "_SRSITE("SITE")
+ D UL W ! I SRT="Q" R !,"Press RETURN to continue  ",X:DTIME S:'$T X="^" I X="^" S SRSOUT=1 Q
+ Q
+UL Q:SRT'="UL"  I IO(0)=IO,'$D(ZTQUEUED) W !
+ W $C(13) F X=1:1:79 W "_"
+ Q
+N S Z=$S(Z="":Z,$D(^VA(200,Z,0)):$P(^(0),"^",1),1:Z) ;S Z=$S(Z="":"",$D(^VA(200,Z,0)):$P(^(0),"^",1),1:Z),Z=$S(Z="":"",$D(^VA(200,Z,0)):$P(^(0),"^",1),1:Z) Q
+S Q:Q(7)=""  S Z1=$P(Q(3),"^",3) F X1=1:1 Q:Q(7)=$P($P(Z1,";",X1),":",1)  Q:X1=50
+ Q:X1=50  S Q(7)=$P($P(Z1,";",X1),":",2) Q

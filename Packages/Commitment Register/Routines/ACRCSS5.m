@@ -1,0 +1,153 @@
+ACRCSS5 ; COMPILED XREF FOR FILE #9002193 ; 09/30/09
+ ; 
+ S DIKZK=1
+ S DIKZ(0)=$G(^ACRSS(DA,0))
+ S X=$P(DIKZ(0),U,1)
+ I X'="" S ^ACRSS("B",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,0)):^(0),1:"") S X=$P(Y(1),U,6),X=X S DIU=X K Y X ^DD(9002193,.02,1,1,1.1) X ^DD(9002193,.02,1,1,1.4)
+ S X=$P(DIKZ(0),U,2)
+ I X'="" S ^ACRSS("D",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,0)):^(0),1:"") S X=$P(Y(1),U,7),X=X S DIU=X K Y S X=DIV S X=DIV,X=X X ^DD(9002193,.02,1,3,1.4)
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,0)):^(0),1:"") S X=$P(Y(1),U,10),X=X S DIU=X K Y X ^DD(9002193,.02,1,4,1.1) X ^DD(9002193,.02,1,4,1.4)
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,0)):^(0),1:"") S X=$P(Y(1),U,8),X=X S DIU=X K Y X ^DD(9002193,.02,1,5,1.1) X ^DD(9002193,.02,1,5,1.4)
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(0)=X S Y(1)=$S($D(^ACRSS(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,4)'="" I X S X=DIV X ^DD(9002193,.02,1,6,89.2) S X=$P(Y(101),U,1) S D0=I(0,0) S DIU=X K Y X ^DD(9002193,.02,1,6,1.1) X ^DD(9002193,.02,1,6,1.4)
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(0)=X S Y(1)=$S($D(^ACRSS(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,9)'="" I X S X=DIV X ^DD(9002193,.02,1,7,89.2) S X=$P(Y(101),U,4) S D0=I(0,0) S DIU=X K Y X ^DD(9002193,.02,1,7,1.1) X ^DD(9002193,.02,1,7,1.4)
+ S X=$P(DIKZ(0),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(0)=X S Y(1)=$S($D(^ACRSS(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,7)'="" I X S X=DIV X ^DD(9002193,.02,1,8,89.2) S X=$P(Y(101),U,2) S D0=I(0,0) S DIU=X K Y X ^DD(9002193,.02,1,8,1.1) X ^DD(9002193,.02,1,8,1.4)
+ S DIKZ(0)=$G(^ACRSS(DA,0))
+ S X=$P(DIKZ(0),U,3)
+ I X'="" S ^ACRSS("C",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,3)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"PO")):^("PO"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y S X=DIV S X=DIV,X=X X ^DD(9002193,.03,1,2,1.4)
+ S DIKZ(0)=$G(^ACRSS(DA,0))
+ S X=$P(DIKZ(0),U,4)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 X ^DD(9002193,.04,1,3,89.2) S X=$S('$D(^AUTTOBJC(+$P(Y(101),U,3),0)):"",1:$P(^(0),U,1)) S D0=I(0,0) S DIU=X K Y S X=DIV S X=DIV,X=X X ^DD(9002193,.04,1,3,1.4)
+ S DIKZ(0)=$G(^ACRSS(DA,0))
+ S X=$P(DIKZ(0),U,5)
+ I X'="" S ^ACRSS("CAN",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,5)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,0)):^(0),1:"") S X=$P(Y(1),U,11),X=X S DIU=X K Y X ^DD(9002193,.05,1,2,1.1) X ^DD(9002193,.05,1,2,1.4)
+ S DIKZ(0)=$G(^ACRSS(DA,0))
+ S X=$P(DIKZ(0),U,6)
+ I X'="" S ^ACRSS("F",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,6)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,0)):^(0),1:"") S X=$P(Y(1),U,8),X=X S DIU=X K Y X ^DD(9002193,.06,1,2,1.1) X ^DD(9002193,.06,1,2,1.4)
+ S X=$P(DIKZ(0),U,6)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,0)):^(0),1:"") S X=$P(Y(1),U,9),X=X S DIU=X K Y X ^DD(9002193,.06,1,3,1.1) X ^DD(9002193,.06,1,3,1.4)
+ S X=$P(DIKZ(0),U,6)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 X ^DD(9002193,.06,1,4,89.2) S X=$P(Y(101),U,2) S D0=I(0,0) S DIU=X K Y X ^DD(9002193,.06,1,4,1.1) X ^DD(9002193,.06,1,4,1.4)
+ S X=$P(DIKZ(0),U,6)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 X ^DD(9002193,.06,1,5,89.2) S X=$P(Y(101),U,5) S D0=I(0,0) S DIU=X K Y X ^DD(9002193,.06,1,5,1.1) X ^DD(9002193,.06,1,5,1.4)
+ S X=$P(DIKZ(0),U,6)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 X ^DD(9002193,.06,1,6,89.2) S X=$P(Y(101),U,3) S D0=I(0,0) S DIU=X K Y X ^DD(9002193,.06,1,6,1.1) X ^DD(9002193,.06,1,6,1.4)
+ S X=$P(DIKZ(0),U,6)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,0)):^(0),1:"") S X=$P(Y(1),U,5),X=X S DIU=X K Y X ^DD(9002193,.06,1,7,1.1) X ^DD(9002193,.06,1,7,1.4)
+ S DIKZ(0)=$G(^ACRSS(DA,0))
+ S X=$P(DIKZ(0),U,7)
+ I X'="" S ^ACRSS("E",$E(X,1,30),$P(^ACRSS(DA,0),U),DA)=""
+ S X=$P(DIKZ(0),U,8)
+ I X'="" S ^ACRSS("G",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,9)
+ I X'="" S ^ACRSS("H",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,11)
+ I X'="" S ^ACRSS("AREA",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"DESC")):^("DESC"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y X ^DD(9002193,.12,1,1,1.1) X ^DD(9002193,.12,1,1,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"DESC")):^("DESC"),1:"") S X=$P(Y(1),U,2),X=X S DIU=X K Y X ^DD(9002193,.12,1,2,1.1) X ^DD(9002193,.12,1,2,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"VND")):^("VND"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y X ^DD(9002193,.12,1,3,1.1) X ^DD(9002193,.12,1,3,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"DESC")):^("DESC"),1:"") S X=$P(Y(1),U,3),X=X S DIU=X K Y X ^DD(9002193,.12,1,4,1.1) X ^DD(9002193,.12,1,4,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"DESC")):^("DESC"),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y X ^DD(9002193,.12,1,5,1.1) X ^DD(9002193,.12,1,5,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"DESC")):^("DESC"),1:"") S X=$P(Y(1),U,5),X=X S DIU=X K Y X ^DD(9002193,.12,1,6,1.1) X ^DD(9002193,.12,1,6,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"NOTES")):^("NOTES"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y X ^DD(9002193,.12,1,7,1.1) X ^DD(9002193,.12,1,7,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"NOTES")):^("NOTES"),1:"") S X=$P(Y(1),U,2),X=X S DIU=X K Y X ^DD(9002193,.12,1,8,1.1) X ^DD(9002193,.12,1,8,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"NOTES")):^("NOTES"),1:"") S X=$P(Y(1),U,3),X=X S DIU=X K Y X ^DD(9002193,.12,1,9,1.1) X ^DD(9002193,.12,1,9,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"NOTES")):^("NOTES"),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y X ^DD(9002193,.12,1,10,1.1) X ^DD(9002193,.12,1,10,1.4)
+ S X=$P(DIKZ(0),U,12)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .K DIV S DIV=X,D0=DA,DIV(0)=D0 S Y(1)=$S($D(^ACRSS(D0,"NOTES")):^("NOTES"),1:"") S X=$P(Y(1),U,5),X=X S DIU=X K Y X ^DD(9002193,.12,1,11,1.1) X ^DD(9002193,.12,1,11,1.4)
+ S DIKZ(0)=$G(^ACRSS(DA,0))
+ S X=$P(DIKZ(0),U,13)
+ I X'="" S ^ACRSS("I",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,13)
+ I X'="" I $P($G(^ACRSS(+$G(DA),"NMS")),U)]"",$P($G(^(0)),U,17) S ^ACRSS("PR",X,$P(^("NMS"),U),$P(^(0),U,17),DA)=""
+ S X=$P(DIKZ(0),U,15)
+ I X'="" S ^ACRSS("LCOD",$E(X,1,30),DA)=""
+ S X=$P(DIKZ(0),U,17)
+ I X'="" I $P($G(^ACRSS(+$G(DA),"NMS")),U)]"",$P(^(0),U,13) S ^ACRSS("PR",$P(^("NMS"),U),$P(^(0),U,13),X,DA)=""
+ S DIKZ("PO")=$G(^ACRSS(DA,"PO"))
+ S X=$P(DIKZ("PO"),U,1)
+ I X'="" S ^ACRSS("J",$E(X,1,30),DA)=""
+ S DIKZ("NMS")=$G(^ACRSS(DA,"NMS"))
+ S X=$P(DIKZ("NMS"),U,1)
+ I X'="" I $P($G(^ACRSS(+$G(DA),0)),U,13)]"",$P(^(0),U,17) S ^ACRSS("PR",$P(^(0),U,13),X,$P(^(0),U,17),DA)=""
+ S DIKZ("DT")=$G(^ACRSS(DA,"DT"))
+ S X=$P(DIKZ("DT"),U,1)
+END G ^ACRCSS6

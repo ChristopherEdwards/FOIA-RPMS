@@ -1,0 +1,145 @@
+AZAXHRNC ;IHS/PHXAO/AEF - COMPARE PATIENTS IN THE AZAX HRN HISTORICAL LOG FILE
+ ;;1.0;ANNE'S SPECIAL ROUTINES;;JULY 13, 2004
+ ;
+ ;
+EN ;EP -- MAIN ENTRY POINT
+ ;
+ N DFNS
+ ;
+ D ^XBKVAR
+ D HOME^%ZIS
+ ;
+ D ASK(.DFNS)
+ Q:'$O(DFNS(0))
+ ;
+ D PROC(.DFNS)
+ ;
+ D CLEANUP
+ Q
+PROC(DFNS) ;
+ ;----- PROCESS THE DATA
+ ;
+ N COLS
+ ;
+ D LOOP1(.DFNS,.COLS)
+ Q:'$O(^TMP("AZAX",$J,1,0))
+ ;
+ D PRINT(.COLS)
+ ;
+ Q
+PRINT(COLS) ;
+ ;----- PRINT THE DATA
+ ;
+ N COL,DATA,DFN,EXPDT,FAC,FACS,HRN
+ ;
+ W @IOF
+ ;
+ S DFN=0
+ F  S DFN=$O(COLS("DFN",DFN)) Q:'DFN  D
+ . W "  "_$P($G(^DPT(DFN,0)),U)_" ("_DFN_")"
+ . I $O(COLS("DFN",DFN)) W "  VS."
+ ;
+ W !!
+ S DFN=0
+ F  S DFN=$O(COLS("DFN",DFN)) Q:'DFN  D
+ . S COL=COLS("DFN",DFN)
+ . W ?((COL*8)+3),$J(DFN,6,0)
+ ;
+ W !
+ W "EXPDT"
+ S DFN=0
+ F  S DFN=$O(COLS(DFN)) Q:'DFN  D
+ . S FAC=0
+ . F  S FAC=$O(COLS(DFN,FAC)) Q:'FAC  D
+ . . S COL=COLS(DFN,FAC)
+ . . W ?((COL*8)+3),FAC 
+ ;
+ S EXPDT=0
+ F  S EXPDT=$O(^TMP("AZAX",$J,1,EXPDT)) Q:'EXPDT  D
+ . W !,$$SLDATE(EXPDT)
+ . S DFN=0
+ . F  S DFN=$O(^TMP("AZAX",$J,1,EXPDT,DFN)) Q:'DFN  D
+ . . S FAC=0
+ . . F  S FAC=$O(^TMP("AZAX",$J,1,EXPDT,DFN,FAC)) Q:'FAC  D
+ . . . S DATA=$G(^TMP("AZAX",$J,1,EXPDT,DFN,FAC))
+ . . . S HRN=$P(DATA,U,3)
+ . . . S FACS(FAC)=$P(DATA,U,5)
+ . . . S COL=COLS(DFN,FAC)
+ . . . W ?((COL*8)+3),$J(HRN,6,0)
+ ;
+ W !
+ S FAC=0
+ F  S FAC=$O(FACS(FAC)) Q:'FAC  D
+ . W !,FAC_" = "_FACS(FAC)
+ Q
+LOOP1(DFNS,COLS) ;
+ ;----- LOOP THROUGH "C" XREF AND BUILD ^TMP GLOBAL
+ ;
+ ;      INPUT:  DFN(DFN) ARRAY CONTAINING DFN'S TO COMPARE
+ ;
+ N CNT,DATA,DFN,IEN
+ ;
+ K ^TMP("AZAX",$J,1)
+ ;
+ S CNT=0
+ S DFN=0
+ F  S DFN=$O(DFNS(DFN)) Q:'DFN  D
+ . S IEN=0
+ . F  S IEN=$O(^AZAX(1991288,"C",DFN,IEN)) Q:'IEN  D
+ . . S DATA=$G(^AZAX(1991288,IEN,0))
+ . . Q:'DATA
+ . . S ^TMP("AZAX",$J,1,$P(DATA,U,7),$P(DATA,U,2),$P(DATA,U,4))=DATA
+ . . D COLS(DATA,.CNT,.COLS)
+ Q
+COLS(DATA,CNT,COLS) ;
+ ;----- FIGURE OUT HOW MANY COLUMNS WE NEED ON THE REPORT
+ ;
+ N CNT,DFN,FAC
+ ;
+ S CNT=0
+ S DFN=$P(DATA,U,2)
+ S FAC=$P(DATA,U,4)
+ ;
+ S COLS(DFN,FAC)=""
+ ;
+ S DFN=0
+ F  S DFN=$O(COLS(DFN)) Q:'DFN  D
+ . S FAC=0 F  S FAC=$O(COLS(DFN,FAC)) Q:'FAC  D
+ . . S CNT=$G(CNT)+1
+ . . S COLS(DFN,FAC)=CNT
+ . . I '$D(COLS("DFN",DFN)) S COLS("DFN",DFN)=CNT
+ ;
+ S COLS("CNT")=$G(CNT)
+ ;
+ Q
+ASK(DFNS) ;
+ ;----- ASK WHICH PATIENTS TO COMPARE AND BUILD DFN(DFN) ARRAY
+ ;
+ N %1,AGE,AUPNDAYS,AUPNDOB,AUPNDOD,AUPNPAT,AUPNSEX,DFN,DIC,DOB,OUT,SEX,SSN,X,Y
+ ;
+ S OUT=0
+ ;
+ S DIC="^DPT("
+ S DIC(0)="AEMQI"
+ ;
+ F  D  Q:OUT
+ . D ^DIC
+ . I +Y'>0!($D(DUOUT))!($D(DUOUT))!($D(DTOUT)) S OUT=1
+ . Q:OUT
+ . S DFNS(+Y)=""
+ Q
+SLDATE(X) ;
+ ;----- RETURNS DATE IN MM/DD/YY FORMAT
+ ;
+ N Y
+ S Y=""
+ I X D
+ . S Y=$P(X,".")
+ . Q:'Y
+ . S Y=$E(Y,4,5)_"/"_$E(Y,6,7)_"/"_$E(Y,2,3)
+ Q Y
+CLEANUP ;
+ ;----- HOUSEKEEPING
+ ;
+ K ^TMP("AZAX",$J,1)
+ Q

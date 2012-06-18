@@ -1,0 +1,351 @@
+ABMUCUTL ; IHS/SD/SDR - 3PB/UFMS Cashiering Utilities   
+ ;;2.6;IHS Third Party Billing;**1,3,4,6,8**;NOV 12, 2009
+ ; New routine - v2.5 p12 SDD item 4.9.1
+ ; Cashiering Utilities
+ ;
+ ; IHS/SD/SDR - v2.5 p13 - IM25924 - <UNDEF>EP+32^ABMUCAPI
+ ; IHS/SD/SDR - abm*2.6*1 - HEAT4323 - Added Quit if tribal to ADDBENTR
+ ; IHS/SD/SDR - abm*2.6*1 - FIXPMS10011 - Added DOS to GETBILL
+ ; IHS/SD/SDR - abm*2.6*4 - NOHEAT - fix for duplicate bills when ITYP changes
+ ; IHS/SD/SDR - abm*2.6*6 - HEAT27136 - Bug found when two parents on same database.
+ ;
+FINDOPEN(ABMDUZ) ;EP - look for open session for one user
+ ; 0 returned means no open session found
+ ; anything else means there's an open session (IEN of session will be returned)
+ ;
+ I $G(SDRAML)'="" Q 1
+ S:+$G(ABMLOC)=0 ABMLOC=$$FINDLOC  ;what location to look under
+ S ABMFD=0
+ S ABMSDT=0
+ F  S ABMSDT=$O(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT)) Q:+ABMSDT=0  D  Q:ABMFD'=0
+ .I $P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT,0)),U,3)'="" Q
+ .S ABMFD=ABMSDT
+ Q ABMFD
+FINDAOPN ;EP - look for all open sessions
+ ; 0 returned means no open sessions found
+ ; anything else is list of open sessions (ABMO(SESSION#,DUZ,SDT)
+ ;
+ K ABMO
+ S ABMLOC=$$FINDLOC  ;what location to look under
+ S ABMFD=0
+ ;user entries
+ S ABMUSER=0
+ F  S ABMUSER=$O(^ABMUCASH(ABMLOC,10,ABMUSER)) Q:+ABMUSER=0  D
+ .S ABMSDT=0
+ .F  S ABMSDT=$O(^ABMUCASH(ABMLOC,10,ABMUSER,20,ABMSDT)) Q:+ABMSDT=0  D  Q:ABMFD'=0
+ ..I $P($G(^ABMUCASH(ABMLOC,10,ABMUSER,20,ABMSDT,0)),U,3)'="" Q
+ ..S ABMO(ABMSDT,ABMUSER,ABMSDT)=""
+ ..S ABMAFLG=$$ACTIVCK^ABMUUTL(ABMLOC,ABMSDT,ABMUSER)  ;check for activity in session
+ ..I +$G(ABMAFLG)'=0 S $P(ABMO(ABMSDT,ABMUSER,ABMSDT),U,3)=1
+ ;look for POS entries
+ S ABMUSER=0
+ F  S ABMUSER=$O(^ABMUCASH(ABMLOC,20,ABMUSER)) Q:+ABMUSER=0  D
+ .S ABMSDT=0
+ .F  S ABMSDT=$O(^ABMUCASH(ABMLOC,20,ABMUSER,20,ABMSDT)) Q:+ABMSDT=0  D  Q:ABMFD'=0
+ ..I $P($G(^ABMUCASH(ABMLOC,20,ABMUSER,20,ABMSDT,0)),U,3)'="" Q
+ ..S ABMO(ABMSDT,"POS",ABMSDT)=""
+ Q
+FINDACLS ;EP - look for all closed sessions
+ ; 0 returned means no closed sessions found
+ ; anything else is list of closed sessions (ABMO(SESSION#,DUZ,SDT)
+ ;
+ K ABMO
+ S ABMLOC=$$FINDLOC  ;what location to look under
+ S ABMFD=0
+ S ABMDUZ=0
+ F  S ABMDUZ=$O(^ABMUCASH(ABMLOC,10,ABMDUZ)) Q:+ABMDUZ=0  D
+ .S ABMSDT=0
+ .F  S ABMSDT=$O(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT)) Q:+ABMSDT=0  D  Q:ABMFD'=0
+ ..I $P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT,0)),U,3)="" Q
+ ..I $G(ABMFLG)="CLOSED",($P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT,0)),U,4))'="C" Q
+ ..S ABMO(ABMSDT,ABMDUZ,ABMSDT)=$P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT,0)),U,4)_"^"_$P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT,0)),U,3)
+ ..S ABMAFLG=$$ACTIVCK^ABMUUTL(ABMLOC,ABMSDT,ABMDUZ)  ;check for activity in session
+ ..I +$G(ABMAFLG)'=0 S $P(ABMO(ABMSDT,ABMDUZ,ABMSDT),U,3)=1
+ ;POS entries
+ S ABMSDT=0
+ F  S ABMSDT=$O(^ABMUCASH(ABMLOC,20,1,20,ABMSDT)) Q:+ABMSDT=0  D  Q:ABMFD'=0
+ .I $P($G(^ABMUCASH(ABMLOC,20,1,20,ABMSDT,0)),U,3)="" Q
+ .I $G(ABMFLG)="CLOSED",($P($G(^ABMUCASH(ABMLOC,20,1,20,ABMSDT,0)),U,4))'="C" Q
+ .S ABMO(ABMSDT,"POS",ABMSDT)=$P($G(^ABMUCASH(ABMLOC,20,1,20,ABMSDT,0)),U,4)_"^"_$P($G(^ABMUCASH(ABMLOC,20,1,20,ABMSDT,0)),U,3)
+ Q
+FINDALLS ;EP - look for all sessions
+ ; 0 returned means no sessions found
+ ; anything else is list of sessions (ABMO(SESSION#,DUZ,SDT)
+ ;
+ K ABMO
+ S ABMLOC=$$FINDLOC  ;what location to look under
+ S ABMFD=0
+ S ABMDUZ=0
+ F  S ABMDUZ=$O(^ABMUCASH(ABMLOC,10,ABMDUZ)) Q:+ABMDUZ=0  D
+ .S ABMSDT=0
+ .F  S ABMSDT=$O(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT)) Q:+ABMSDT=0  D  Q:ABMFD'=0
+ ..I $P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT,0)),U,3)="" Q
+ ..S ABMO(ABMSDT,ABMDUZ,ABMSDT)=""
+ Q
+ ;
+CR8SESS() ;EP - create new session in file
+ ;location
+ S ABMLOC=$$FINDLOC
+ K DIC,DIE,X,Y,DA
+ S DIC="^ABMUCASH("
+ S DIC(0)="LMN"
+ S (X,DINUM)="`"_ABMLOC
+ D ^DIC
+ I Y<0 Q 0
+ S ABMLOC=+Y
+ ;
+ ;user
+ K DIC,DIE,X,Y,DA
+ S DA(1)=ABMLOC
+ S DIC="^ABMUCASH(DA(1),10,"
+ S DIC(0)="LMN"
+ S DIC("P")=$P(^DD(9002274.45,".02",0),U,2)
+ S (X,DINUM)="`"_DUZ
+ D ^DIC
+ I Y<0 Q 0
+ S ABMUSER=+Y
+ ;
+ ;sign in date
+ K DIC,DIE,X,Y,DA
+ S DA(2)=ABMLOC
+ S DA(1)=ABMUSER
+ S DIC="^ABMUCASH("_DA(2)_",10,"_DA(1)_",20,"
+ S X="NOW"
+ S DIC(0)="LMO"
+ S DIC("P")=$P(^DD(9002274.4502,".02",0),U,2)
+ S DIC("DR")=".04////O"
+ D ^DIC
+ I Y<0 Q 0
+ Q Y
+ ;
+CLOSESES(ABMLOC,ABMDUZ,ABMFD) ;EP - close session
+ K DIC,DIE,X,Y,DA
+ I ABMDUZ D
+ .S DA(2)=ABMLOC
+ .S DA(1)=ABMDUZ
+ .S DIE="^ABMUCASH("_DA(2)_",10,"_DA(1)_",20,"
+ .S DA=ABMFD
+ .S DR=".03///NOW;.04////C"
+ .S DR=DR_";.05////"_+$G(ABMSBTOT)_";.06////"_+$G(ABMSATOT)
+ I 'ABMDUZ D  ;POS session
+ .S DA(2)=ABMLOC
+ .S DA(1)=1
+ .S DIE="^ABMUCASH("_DA(2)_",20,"_DA(1)_",20,"
+ .S DA=ABMFD
+ .S DR=".03///NOW;.04////C"
+ .S DR=DR_";.05////"_+$G(ABMSBTOT)_";.06////"_+$G(ABMSATOT)
+ D ^DIE
+ Q
+ ;
+ADDBENTR(ABMGRP,ABMBIEN) ;EP - Add claim/bill to session log
+ ;ABMGRP=can claim/can bill/appr bill
+ ;ABMBIEN=bill IEN
+ I $D(ZTQUEUED),($G(ABMAUTOF)=1) D AUTOUFMS^ABMEAUTO Q  ;create/update entry for auto-approve claims
+ S ABMLOC=$$FINDLOC()  ;find location to file bill for
+ S ABMTRIBL=$P($G(^ABMDPARM(DUZ(2),1,4)),U,14)
+ ;Q:ABMTRIBL=0  ;abm*2.6*1 HEAT4323  ;abm*2.6*3 HEAT13663
+ S ABMSDT=$$FINDOPEN(DUZ)  ;find open session
+ Q:+$G(ABMSDT)=0  ;no open session
+ ;I ABMGRP["BILL" S ABMITYP=$P($G(^AUTNINS($P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,8),2)),U)  ;abm*2.6*4 NOHEAT
+ I ABMGRP["BILL" S ABMITYP=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,2)),U,2)  ;abm*2.6*4 NOHEAT
+ ;E  S ABMITYP=$P($G(^AUTNINS($P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8),2)),U)
+ E  D
+ .S ABMITYP=""
+ .S:$P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8) ABMITYP=$P($G(^AUTNINS($P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8),2)),U)
+ .I ABMITYP="" S ABMITYP=$S($P($G(^AUPNPAT($P(^ABMDCLM(DUZ(2),ABMBIEN,0),U),11)),U,12)="I":"N",1:"I")
+ I ABMITYP="I" D
+ .K DIC,DIE,X,Y,DA
+ .S DA(2)=ABMLOC
+ .S DA(1)=DUZ
+ .S DA=ABMSDT
+ .S DIE="^ABMUCASH("_DA(2)_",10,"_DA(1)_",20,"
+ .S DR=".11////"_($P($G(^ABMUCASH(DA(2),10,DA(1),20,DA,0)),U,11)+1)  ;ben count
+ .D ^DIE
+ ;
+ K DIC,DIE,X,Y,DA
+ S DA(3)=ABMLOC
+ S DA(2)=DUZ
+ S DA(1)=ABMSDT
+ S DIC="^ABMUCASH("_DA(3)_",10,"_DA(2)_",20,"_DA(1)_",11,"
+ S DIC(0)="LM"  ;insurer type
+ S X=ABMITYP
+ D ^DIC
+ I +Y<0 W !,"NO ENTRY IN CASHIERING SESSION MADE",! H 2 Q
+ S ABMBA=+Y
+ K DIC,DIE,X,Y,DA
+ S DA(4)=ABMLOC
+ S DA(3)=DUZ
+ S DA(2)=ABMSDT
+ S DA(1)=ABMBA
+ S:ABMGRP="ABILL"!(ABMGRP="CBILL") X=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U)
+ S:ABMGRP="CCLM" X=ABMBIEN
+ S ABMGRP=$S(ABMGRP="CCLM":1,ABMGRP="ABILL":2,1:3)  ;what multiple to file in
+ S DIC="^ABMUCASH("_DA(4)_",10,"_DA(3)_",20,"_DA(2)_",11,"_DA(1)_","_ABMGRP_","
+ S DIC("P")=$P(^DD(9002274.4510211,ABMGRP,0),U,2)
+ S DIC(0)="LM"
+ S DIC("DR")=".02////"_DUZ(2)_";.03////"_ABMBIEN
+ D ^DIC
+ Q
+REQBILL(ABMBIEN) ;EP - Add bill to requeue session log
+ ;ABMBIEN=bill IEN
+ S ABMLOC=$$FINDLOC()  ;find location to file bill for
+ S ABMSDT=$$FINDOPEN(DUZ)  ;find open session
+ I ABMSDT=0 D  Q:ABMANS=0  ;no open session found; ask if they want to create one
+ .K DIR,DIC,DIE,X,Y,DA
+ .S DIR(0)="Y"
+ .W !
+ .S DIR("A",1)="No open session was found for you."
+ .S DIR("A")="Would you like to open a session"
+ .D ^DIR K DIR
+ .S ABMANS=+Y
+ I ABMSDT=0 S ABMSDT=$P($$CR8SESS^ABMUCUTL,U)  ;create session
+ K DIC,DIE,X,Y,DA
+ S DA(3)=ABMLOC
+ S DA(2)=DUZ
+ S DA(1)=ABMSDT
+ S DIC="^ABMUCASH("_DA(3)_",10,"_DA(2)_",20,"_DA(1)_",12,"
+ S DIC(0)="LM"
+ S X=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U)
+ S DIC("DR")=".02////"_DUZ(2)_";.03////"_ABMBIEN
+ D ^DIC
+ I +Y<0 W !,"NO ENTRY IN CASHIERING SESSION MADE",! H 2 Q
+ Q
+ ;
+BDISPLAY(ABMXMIT) ;EP - view batch info
+ ;ABMXMIT=batch IEN into 3P UFMS EXPORTS file
+ D HOME^%ZIS
+ S $P(ABMLINE,"-",80)="-"
+ W $$EN^ABMVDF("IOF")
+ W !
+ D CENTER("UFMS EXPORT SUMMARY")
+ W !!,"EXPORT DATE: ",$$CDT^ABMDUTL($P($G(^ABMUTXMT(ABMXMIT,0)),U))
+ W !,"FILE NAME: ",$P($G(^ABMUTXMT(ABMXMIT,0)),U,2)
+ W !!?5,"BUDGET ACTIVITY"
+ W ?32,"BILL COUNT"
+ W ?48,"AMOUNT"
+ W !,ABMLINE,!
+ D GETBTDTL(ABMXMIT)  ;get batch detail
+ S ABMSESSN=0
+ F  S ABMSESSN=$O(ABMO(ABMSESSN)) Q:+ABMSESSN=0  D
+ .S ABMUSER=""
+ .F  S ABMUSER=$O(ABMO(ABMSESSN,ABMUSER)) Q:ABMUSER=""  D
+ ..W !,"SESSION ID: ",ABMSESSN
+ ..W ?30,"BILLER: ",$S(ABMUSER:$P($G(^VA(200,ABMUSER,0)),U),1:"POS CLAIMS"),!
+ ..S ABMBAU=""
+ ..F  S ABMBAU=$O(ABMO(ABMSESSN,ABMUSER,ABMBAU)) Q:ABMBAU=""  D
+ ...S ABMBACNT=+$P($G(ABMO(ABMSESSN,ABMUSER,ABMBAU)),U)
+ ...S ABMBATOT=+$P($G(ABMO(ABMSESSN,ABMUSER,ABMBAU)),U,2)
+ ...W !
+ ...W ?5,$P($T(@ABMBAU^ABMUCASH),";;",2)
+ ...W ?32,ABMBACNT,$S(ABMBACNT=1:" bill",1:" bills")
+ ...W ?45,$$FMT^ABMERUTL($J(ABMBATOT,".",2),"10R")
+ W !!,"TOTAL BILLS FOR THIS SESSION: ",?32,$P($G(ABMO("TOTAL")),U),$S($P($G(ABMO("TOTAL")),U)=1:"  BILL",1:" BILLS"),?45,$$FMT^ABMERUTL($J($P($G(ABMO("TOTAL")),U,2),".",2),"10R")
+ Q
+GETBTDTL(ABMXMIT) ;EP - get batch detail; return in array
+ ; ABMO(SESSION#,DUZ,BUDGETACT)=COUNT^AMOUNT
+ ; ABMO("TOTAL")=TOTALCOUNT^TOTALAMOUNT
+ ;
+ K ABMO
+ F ABMLOOP=1,2 D
+ .S ABMUSER=0
+ .F  S ABMUSER=$O(^ABMUTXMT(ABMXMIT,ABMLOOP,ABMUSER)) Q:+ABMUSER=0  D
+ ..S ABMUSERU=ABMUSER
+ ..I ABMLOOP=2 S ABMUSERU="POS"
+ ..S ABMSDT=0
+ ..F  S ABMSDT=$O(^ABMUTXMT(ABMXMIT,ABMLOOP,ABMUSER,2,ABMSDT)) Q:+ABMSDT=0  D
+ ...S ABMBA=0
+ ...F  S ABMBA=$O(^ABMUTXMT(ABMXMIT,ABMLOOP,ABMUSER,2,ABMSDT,11,ABMBA)) Q:+ABMBA=0  D
+ ....S ABMBAU=$P($G(^ABMUTXMT(ABMXMIT,ABMLOOP,ABMUSER,2,ABMSDT,11,ABMBA,0)),U)
+ ....S ABMBILL=0
+ ....F  S ABMBILL=$O(^ABMUTXMT(ABMXMIT,ABMLOOP,ABMUSER,2,ABMSDT,11,ABMBA,2,ABMBILL)) Q:+ABMBILL=0  D
+ .....S ABMBIEN=$P($G(^ABMUTXMT(ABMXMIT,ABMLOOP,ABMUSER,2,ABMSDT,11,ABMBA,2,ABMBILL,0)),U,3)
+ .....S ABMBAMT=$P($G(^ABMUTXMT(ABMXMIT,ABMLOOP,ABMUSER,2,ABMSDT,11,ABMBA,2,ABMBILL,0)),U,4)
+ .....S $P(ABMO(ABMSDT,ABMUSERU,ABMBAU),U)=+$P($G(ABMO(ABMSDT,ABMUSERU,ABMBAU)),U)+1
+ .....S $P(ABMO(ABMSDT,ABMUSERU,ABMBAU),U,2)=+$P($G(ABMO(ABMSDT,ABMUSERU,ABMBAU)),U,2)+ABMBAMT
+ .....S $P(ABMO("TOTAL"),U)=+$P($G(ABMO("TOTAL")),U)+1
+ .....S $P(ABMO("TOTAL"),U,2)=+$P($G(ABMO("TOTAL")),U,2)+ABMBAMT
+ K ABMUSER,ABMSDT,ABMBA,ABMBILL,ABMBIEN,ABMBAU,ABMUSERU
+ Q
+REQBTCH(ABMBIEN) ;EP - Add bill to requeue session log
+ ;ABMBIEN=batch IEN
+ S ABMLOC=$$FINDLOC()  ;find location to file bill for
+ S ABMSDT=$$FINDOPEN(DUZ)  ;find open session
+ I ABMSDT=0 D  Q:ABMANS=0  ;no open session found; ask if they want to create one
+ .K DIR,DIC,DIE,X,Y,DA
+ .S DIR(0)="Y"
+ .W !
+ .S DIR("A",1)="No open session was found for you."
+ .S DIR("A")="Would you like to open a session"
+ .D ^DIR K DIR
+ .S ABMANS=+Y
+ I ABMSDT=0 S ABMSDT=$P($$CR8SESS^ABMUCUTL,U)  ;create session
+ K DIC,DIE,X,Y,DA
+ S DA(3)=ABMLOC
+ S DA(2)=DUZ
+ S DA(1)=ABMSDT
+ S DIC="^ABMUCASH(DA(3),10,DA(2),20,DA(1),13,"
+ S DIC(0)="LM"
+ S X="`"_ABMBIEN
+ D ^DIC
+ I +Y<0 W !,"NO ENTRY IN CASHIERING SESSION MADE",! H 2 Q
+ Q
+ ;
+FINDLOC() ;EP - return what site should bills be filed under for export
+ K ABMPSFLG
+ ;S ABMLOC=DUZ(2)  ;abm*2.6*6 HEAT27136
+ S ABMBLOC=DUZ(2)  ;abm*2.6*6 HEAT27136
+ S:$G(ABMP("LDFN"))="" ABMP("LDFN")=DUZ(2)
+ S:$G(ABMP("VDT"))="" ABMP("VDT")=DT
+ S ABMPAR=0
+ F  S ABMPAR=$O(^BAR(90052.05,ABMPAR)) Q:+ABMPAR=0  D  Q:($G(ABMPSFLG)=1)
+ .I $D(^BAR(90052.05,ABMPAR,ABMP("LDFN"))) D
+ ..; Use A/R parent/sat is yes, but DUZ(2) is not the parent for this 
+ ..; visit location
+ ..Q:$P($G(^BAR(90052.05,ABMPAR,ABMP("LDFN"),0)),U,3)'=ABMPAR
+ ..Q:$P($G(^BAR(90052.05,ABMPAR,ABMP("LDFN"),0)),U,6)>ABMP("VDT")
+ ..Q:$P($G(^BAR(90052.05,ABMPAR,ABMP("LDFN"),0)),U,7)&($P(^(0),U,7)<ABMP("VDT"))
+ ..;S ABMLOC=ABMPAR,ABMPSFLG=1  ;abm*2.6*6 HEAT27136
+ ..S ABMBLOC=ABMPAR,ABMPSFLG=1  ;abm*2.6*6 HEAT27136
+ ;Q ABMLOC  ;abm*2.6*6 HEAT27136
+ Q ABMBLOC  ;abm*2.6*6 HEAT27136
+GETBILL(ABMPREC) ;EP - get bill info from appropriate 3P Bill file
+ S ABMHOLD=DUZ(2)
+ S DUZ(2)=$P(ABMPREC,U,2)
+ ;S ABMLOC=$$FINDLOC^ABMUCUTL  ;abm*2.6*8 HEAT27136
+ S ABMBLOC=$$FINDLOC^ABMUCUTL  ;abm*2.6*8 HEAT27136
+ S ABMP("BDFN")=$P(ABMPREC,U,3)
+ S ABMDTAPP=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,5)  ;date/time approved
+ S ABMP("INS")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,8)  ;active insurer
+ S ABMTAXID=$TR($P($G(^AUTNINS(ABMP("INS"),0)),U,11),"-")  ;TAX ID
+ S ABMP("LDFN")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,3)  ;visit location
+ S ABMPDOS=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,1)  ;service date
+ ;S ABMPASUF=$$ASUFAC(ABMLOC,ABMPDOS)  ;abm*2.6*6 HEAT27136
+ S ABMPASUF=$$ASUFAC(ABMBLOC,ABMPDOS)  ;abm*2.6*6 HEAT27136
+ S ABMUAOF=$P($G(^ABMDPARM(ABMP("LDFN"),1,4)),U,17)  ;use asufac of
+ S ABMSASUF=$$ASUFAC($S(+$G(ABMUAOF)'=0:ABMUAOF,1:ABMP("LDFN")),ABMPDOS)
+ S ABMPBNUM=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U)  ;Bill Number
+ S ABMP("BAMT")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),2)),U)  ;bill amount
+ S ABMP("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)
+ S ABMCLN=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,10)
+ S ABMP("VTYP")=$P($G(^ABMDVTYP($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,7),0)),U)  ;abm*2.6*1 visit type description FIXPMS10011
+ S ABMP("DOS")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U)  ;DOS abm*2.6*1 FIXPMS10011
+ S DUZ(2)=ABMHOLD
+ Q
+ ;
+ASUFAC(X,Y) ;EP - get ASUFAC for DOS
+ K ASUFAC
+ S ASUFAC=0
+ S ABMDT=0
+ S ABMDTFLG=0
+ S ASUFAC=$P($G(^AUTTLOC(X,0)),U,10)  ;ASUFAC index
+ Q:+$G(ASUFAC)'=0 ASUFAC  ;ASUFAC found; stop here
+ F  S ABMDT=$O(^AUTTLOC(X,11,ABMDT)) Q:ABMDT=""!(ABMDTFLG=1)  D
+ .I Y>$P($G(^AUTTLOC(X,11,ABMDT,0)),U) D
+ ..S ASUFAC=$P($G(^AUTTLOC(X,11,ABMDT,0)),U,6)
+ ..S ABMDTFLG=1
+ Q ASUFAC
+ ;
+CENTER(X) ;EP
+ S CENTER=IOM/2
+ W ?CENTER-($L(X)/2),X
+ Q

@@ -1,0 +1,42 @@
+BRNAGE1 ; IHS/PHXAO/TMJ - ROI AGING REPORT (BY AGE STARTING POINT) ; 
+ ;;2.0;RELEASE OF INFO SYSTEM;*1*;APR 10, 2003
+ ;IHS/OIT/LJF 10/11/2007 PATCH 1 added ;EP to ASK line label
+ ;            01/24/2008 PATCH 1 Added choice of facility
+ ;
+ ;
+ASK ;EP - Ask For Beginning Aging Range ;IHS/OIT/LJF 10/11/2007 PATCH 1
+ ; now called by DRIVER^BRNAGE2
+ S BRNOLDB=0,BRNOLDE=1000
+ W ! S DIR(0)="Y0",DIR("A")="Would you like to include a particular Aging Starting Range",DIR("B")="NO"
+ S DIR("?")="To Include a Particular Number of Days Old Starting Point-Answer Yes."
+ D ^DIR K DIR
+ G:$D(DIRUT) END
+ I 'Y G PRINT
+ ;
+OLD1 ;ROI Disclosure DAYS OLD SCREEN
+ S DIR(0)="S^30:30 DAYS +;60:60 DAYS +;90:90 DAYS +;120:120 DAYS +",DIR("A")="Enter the Number Starting Point"
+ K DA D ^DIR K DIR
+ G:$D(DIRUT) ASK
+ G:Y=0 ASK
+ S BRNOLDB=Y
+ ;
+ ;
+PRINT ;PRINT MASTER DISCLOSURE LOG
+ ;
+ ;IHS/OIT/LJF 01/24/2008 PATCH 1
+ ;select facility
+ NEW BRNFAC,BRNFACN D ASKFAC^BRNU(.BRNFAC) I BRNFAC="" D END Q
+ I BRNFAC>0 S BRNFACN=$$GET1^DIQ(90264.2,BRNFAC,.01)
+ ;
+ ;set up print
+ ;S FLDS="[BRN GS AGING RPT]",BY="@23,(#.04),.08,@.01",DIC="^BRNREC(",L=0
+ ;S FR=BRNOLDB,TO=BRNOLDE
+ S FLDS="[BRN GS AGING RPT]",BY="FACILITY;S1,@23,(#.04),.08,@.01",DIC="^BRNREC(",L=0
+ I BRNFAC=0 S FR="@,"_BRNOLDB,TO="ZZZ,"_BRNOLDE
+ E  S FR=BRNFACN_","_BRNOLDB,TO=BRNFACN_","_BRNOLDE
+ ;end of PATCH 1 changes
+ ;
+ K DHIT,DIOEND,DIOBEG
+ D EN1^DIP
+END ;
+ K BRNOLDB,BRNOLDE,DD0,B,X Q

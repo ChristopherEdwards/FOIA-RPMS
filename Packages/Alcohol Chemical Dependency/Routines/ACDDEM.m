@@ -1,0 +1,157 @@
+ACDDEM ;IHS/ADC/EDE/KML - DATA ENTRY EDIT MODE;
+ ;;4.1;CHEMICAL DEPENDENCY MIS;;MAY 11, 1998
+ ;
+ ;This is the data entry edit driver routine for CDMIS.  This
+ ;routine will ask for COMPONENT CODE/TYPE, then loop within
+ ;that component asking for TYPE CONTACT, and then if patient
+ ;related it will ask for patient and then date.  If not patient
+ ;related it will ask for date.  Once a visit is selected the
+ ;user will be able to optionally edit the visit and then the
+ ;subordinate file entries attached to the visit.
+ ;
+EDIT ; EP - EDIT CDMIS FORMS
+ S ACDMODE="E"
+ D MAIN
+ Q
+ ;
+MAIN ; MAINLINE LOGIC
+ D INIT^ACDDE2
+ I ACDQ D EOJ Q
+ F  D LOOP Q:ACDQ     ; loop within component code/type
+ D EOJ
+ Q
+ ;
+LOOP ; LOOP WITHIN COMPONENT CODE/TYPE
+ S ACDLPTYP=1
+ S (ACDPROV,ACDPROVN)=""
+ S (ACDCONT,ACDCONTL)=""
+ S (ACDVDTI,ACDVDTE)=""
+ S (ACDDFN,ACDDFNP)=""
+ D HDR^ACDDEU
+ S ACDNODEF=1
+ D GETTC^ACDDE2 ;     get type contact
+ Q:ACDQ
+ I ACDCONT'="IR",ACDCONT'="OT" D GETPAT
+ Q:ACDQ
+ D VISIT
+ S ACDQ=0
+ Q
+ ;
+GETPAT ; GET PATIENT
+ S ACDQ=1
+ S AUPNLK("ALL")=1
+ S DIC="^AUPNPAT(",DIC(0)="AEMQ",DIC("S")="I $D(^ACDVIS(""D"",+Y))" D DIC^ACDFMC
+ K AUPNLK("ALL")
+ Q:Y<0
+ S ACDDFNP=+Y,ACDDFN=$P(^DPT(ACDDFNP,0),U)
+ S ACDQ=0
+ Q
+ ;
+VISIT ; EDIT VISIT AND SUBORDINATE FILE ENTRIES
+ S DIC="^ACDVIS(",DIC(0)="AMQ",DIC("S")="I $P(^ACDVIS(+Y,0),U,2)=ACDCOMC,$P(^(0),U,7)=ACDCOMT,$P(^(0),U,4)=ACDCONT,'$P(^(0),U,25),$P(^(""BWP""),U)=ACDPGM" S:ACDDFNP DIC("S")=DIC("S")_",$D(^ACDVIS(""D"",ACDDFNP,+Y))"
+ D DIC^ACDFMC
+ Q:Y<0
+ S ACDVIEN=+Y
+ I (ACDFHCP+ACDFPCC),$G(ACDDFNP),ACDVIEN S ACDPCCL(ACDDFNP,ACDVIEN)=""
+ W !
+ D DSPVSIT^ACDDEU(ACDVIEN)
+ S DIR(0)="Y",DIR("A")="Do you want to edit the visit record",DIR("B")="NO" K DA D ^DIR K DIR
+ D:Y EDVISIT ;              go edit the visit record itself
+ D EDTTC ;                  go edit files based on type contact
+ I ACDFHCP,$G(ACDDFNP),$D(ACDPCCL(ACDDFNP)) D SAVBILL^ACDDE
+ I ACDFPCC,$G(ACDDFNP),$D(ACDPCCL(ACDDFNP)) D ^ACDPCCL
+ Q
+ ;
+EDVISIT ; EDIT CDMIS VISIT RECORD
+ I (ACDFHCP+ACDFPCC),$G(ACDDFNP),ACDVIEN S ACDPCCL(ACDDFNP,ACDVIEN)=1
+ S DIE="^ACDVIS(",DR="[ACD VISIT EDIT]",DA=ACDVIEN
+ D DIE^ACDFMC
+ Q
+ ;
+EDTTC ; EDIT FILES BASED ON TYPE CONTACT
+ W !
+ D @("EDT"_ACDCONT)
+ Q
+ ;
+EDTIN ; EDIT INITIAL
+ D EDTIIF ;            edit CDMIS INIT/INFO/FU
+ Q
+ ;
+EDTRE ; EDIT REOPEN
+ D EDTIIF ;            edit CDMIS INIT/INFO/FU
+ Q
+ ;
+EDTFU ; EDIT FOLLOWUP
+ D EDTIIF ;            edit CDMIS INIT/INFO/FU
+ Q
+ ;
+EDTTD ; EDIT TRANS/DISC/CLOSE
+ D EDTTDC ;           edit CDMIS TRANS/DISC/CLOSE
+ Q
+ ;
+EDTCS ; EDIT CLIENT SERVICE
+ D SLCTCS ;           select client service to edit
+ Q:'ACDCEIEN
+ S DIR(0)="SO^E:Edit;D:Delete",DIR("B")="Edit" K DA D ^DIR K DIR
+ Q:$D(DIRUT)
+ I (ACDFHCP+ACDFPCC),$G(ACDDFNP) S ACDPCCL(ACDDFNP,ACDVIEN,"CS",ACDCEIEN)=$S(Y="D":"D",1:"")
+ I Y="D" S DIK="^ACDCS(",DA=ACDCEIEN D DIK^ACDFMC Q
+ S DIE="^ACDCS(",DR="[ACD CLIENT SVCS EDIT]",DA=ACDCEIEN
+ D DIE^ACDFMC
+ Q
+ ;
+SLCTCS ; SELECT ONE CS ENTRY
+ S ACDCEIEN=0
+ K ^TMP("ACD",$J,"CS"),ACDDDAY
+ S ACDVDATE=$P(^ACDVIS(ACDVIEN,0),U)
+ S (ACDCSC,Y)=0
+ F  S Y=$O(^ACDCS("C",ACDVIEN,Y)) Q:'Y  S X=^ACDCS(Y,0),^TMP("ACD",$J,"CS",$P(X,U),Y)=$P(X,U,2),X=$P(X,U) I '$D(ACDDDAY("DAY",X)) D
+ . NEW Y
+ . S ACDCSC=ACDCSC+1,ACDDDAY(ACDCSC)=X,Y=ACDVDATE,Y=Y+X
+ . D DD^%DT
+ . S ACDDDAY("DAY",X)=" <"_Y_">"
+ . Q
+ S ACDCSCUT=(ACDCSC\2)+(ACDCSC#2)
+ F I=1:1 Q:I>ACDCSCUT  S X=ACDDDAY(I) W !?5,I_") DAY "_$J(X,2)_ACDDDAY("DAY",X) S J=I+ACDCSCUT I $D(ACDDDAY(J)) S X=ACDDDAY(J) W ?40,J_") DAY "_$J(X,2)_ACDDDAY("DAY",X)
+ W !
+ S DIR(0)="NO^1:"_ACDCSC_":0",DIR("A")="Select one CS day" D ^DIR K DIR
+ Q:$D(DIRUT)
+ S ACDCSDAY=ACDDDAY(Y)
+ K ACDVDATE,ACDDDAY
+ K ACDX
+ S DIR(0)="SO^"
+ S ACDLC=0,W=ACDCSDAY S Y=0 F  S Y=$O(^TMP("ACD",$J,"CS",W,Y)) Q:'Y  S ACDLC=ACDLC+1,X=^ACDCS(Y,0),Z=$P(X,U,2),X=+X D PFTV^XBPFTV(9002170.6,Z,.Z) S DIR(0)=DIR(0)_$S($L(DIR(0))=3:"",1:";")_ACDLC_":"_X_" "_Z,ACDX(ACDLC)=Y
+ K ACDCSDAY,ACDLC,^TMP("ACD",$J,"CS")
+ S DIR("A")="Select one Client Service Entry"
+ K DA D ^DIR K DIR
+ Q:$D(DIRUT)
+ S ACDCEIEN=ACDX(Y)
+ Q
+ ;
+EDTOT ; EDIT CRISIS/BRIED INT
+ D EDTIIF ;           edit CDMIS INIT/INFO/FU
+ Q
+ ;
+EDTIR ; EDIT INFO/REFERRAL
+ D EDTIIF ;           edit CDMIS INIT/INFO/FU
+ Q
+ ;
+EDTIIF ; EDIT CDMIS INIT/INFO/FU
+ S DA=$O(^ACDIIF("C",ACDVIEN,0))
+ I 'DA W !,IORVON,"No CDMIS INIT/INFO/FU entry associated with this visit!",IORVOFF,! Q
+ I (ACDFHCP+ACDFPCC),$G(ACDDFNP) S ACDPCCL(ACDDFNP,ACDVIEN,"IIF",DA)=""
+ S DIE="^ACDIIF(",DR="[ACD INIT/INFO/FU EDIT]"
+ D DIE^ACDFMC
+ Q
+ ;
+EDTTDC ; EDIT CDMIS TRANS/DISC/CLOSE
+ S DA=$O(^ACDTDC("C",ACDVIEN,0))
+ I 'DA W !,IORVON,"No CDMIS TRANS/DISC/CLOSE entry associated with this visit!",IORVOFF,! Q
+ I (ACDFHCP+ACDFPCC),$G(ACDDFNP) S ACDPCCL(ACDDFNP,ACDVIEN,"TDC",DA)=""
+ S DIE="^ACDTDC(",DR="[ACD TRANS/DISC/CLOSE EDIT]"
+ D DIE^ACDFMC
+ Q
+ ;
+EOJ ; END OF JOB
+ D ^ACDKILL
+ Q

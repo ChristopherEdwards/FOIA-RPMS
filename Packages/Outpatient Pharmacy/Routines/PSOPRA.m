@@ -1,0 +1,136 @@
+PSOPRA ;BIR/JLC - INTERNET PRESCRIPTION REFILL APIS ;29-AUG-2002
+ ;;7.0;OUTPATIENT PHARMACY;**116,151**;DEC 1997
+ ;
+ ;External reference to $$GETICN^MPIF001 supported by DBIA #2701.
+ ;External reference to DEM^VADPT supported by DBIA #10061.
+ ;External reference to ^XMB(1,1,"XUS") supported by DBIA #10091.
+ ;External reference to EN^DIQ1 supported by DBIA #10015.
+ ;External reference to FILE^DICN supported by DBIA #10009.
+ ;External reference to $$GET1^DIQ supported by DBIA #2056.
+ ;External reference to ^DIE supported by DBIA #10018.
+ ;
+ Q
+AP1(PSODFN,PSORX) ;ACCEPT REQUEST
+ ; Input:  PSODFN (required) - Patient IEN Number
+ ;         PSORX  (required) - Prescription Number
+ ; Output: PSODIV^PSORET - Return Value
+ ;         PSODIV - Division IEN.
+ ;         See IA ... for description and values
+ ;
+ N PSORET,DFN,PSRX,PSRXD,IEN,PSORR,PSORXD2,PSOSITE,SITE,PSODIV,PSRF
+ S PSODIV=""
+ I $G(PSODFN)="" S PSORET=-4 G QUITAP1
+ I $G(PSORX)="" S PSORET=-3 G QUITAP1
+ I $O(^PSRX("B",PSORX,""))="" S PSORET=-3 G QUITAP1
+ S PSOICN=+$$GETICN^MPIF001(PSODFN)
+ I +$G(PSOICN)=-1 S PSORET=-4 G ENDAP1
+ S DFN=PSODFN D DEM^VADPT S PSOSSN=$P(VADM(2),"^") I PSOSSN="" S PSORET=-4 G ENDAP1
+ I '$D(^PSRX("B",PSORX)) S PSORET=-3 G ENDAP1
+ S PSRX=$O(^PSRX("B",PSORX,"")),PSRXD=$G(^PSRX(PSRX,0))
+ I PSRXD="" S PSORET=-3 G ENDAP1
+ I $P(PSRXD,"^",2)'=PSODFN S PSORET=-3 G ENDAP1
+ S (SITE,DA)=$P(^XMB(1,1,"XUS"),"^",17),DIC="4",DIQ(0)="IE",DR=".01;99",DIQ="PSXUTIL" D EN^DIQ1 S PSOSITE=$G(PSXUTIL(4,SITE,99,"I"))
+ I '$D(^PS(52.43,"AA",PSOICN,PSOSSN,PSORX)) G FILEAP1
+ S IEN=$O(^PS(52.43,"AA",PSOICN,PSOSSN,PSORX,""))
+ S PSORR=$G(^PS(52.43,IEN,0))
+ I $P(PSORR,"^",5)="" S PSORET=-2 G ENDAP1
+ I '+$P(PSORR,"^",6) S PSORET=-1 G ENDAP1
+FILEAP1 K DO,DIC,DD S DIC(0)="L",DIC=52.43,X=PSOICN D FILE^DICN I Y=-1 S PSORET=0 G ENDAP1
+ K DA,DR,DIE S DA=+Y,DIE=DIC,DR="2///"_PSOSSN_";3///"_PSORX_";4///"_PSOSITE_";7///0;8///"_PSRX D ^DIE
+ S PSORET=1
+ENDAP1 S PSRX=$O(^PSRX("B",PSORX,""))
+ S PSRF=$O(^PSRX(PSRX,1,"A"),-1)
+ S:PSRF PSODIV=$$GET1^DIQ(52.1,PSRF_","_PSRX,8,"I")
+ S:'PSODIV PSODIV=$$GET1^DIQ(52,PSRX,20,"I")
+QUITAP1 Q PSODIV_"^"_PSORET
+ ;
+AP2(PSODFN,PSORX) ;STATUS OF REQUEST
+ ; Input:  PSODFN (required) - Patient IEN Number
+ ;         PSORX  (required) - Prescription Number
+ ; Output: PSODIV^PSORET - Return Value
+ ;         PSODIV - Division IEN.
+ ;         See IA ... for description and values
+ ;
+ N PSORET,DFN,PSRX,PSRXD,PSORR,PSODIV,PSRF
+ S PSODIV=""
+ I $G(PSODFN)="" S PSORET=-4 G QUITAP2
+ I $G(PSORX)="" S PSORET=-3 G QUITAP2
+ I $O(^PSRX("B",PSORX,""))="" S PSORET=-3 G QUITAP2
+ S PSOICN=+$$GETICN^MPIF001(PSODFN)
+ S PSOICN=$G(PSOICN) I PSOICN=""!(PSOICN?.E1C.E)!($L(PSOICN)>120) S PSORET=-4 G ENDAP2
+ I '$D(^PS(52.43,"AA",PSOICN)) S PSORET=-4 G ENDAP2
+ S DFN=PSODFN D DEM^VADPT S PSOSSN=$P(VADM(2),"^")
+ S PSOSSN=$G(PSOSSN) I PSOSSN=""!(PSOSSN?.E1C.E)!($L(PSOSSN)>120) S PSORET=-4 G ENDAP2
+ I '$D(^PS(52.43,"AA",PSOICN,PSOSSN)) S PSORET=-4 G ENDAP2
+ S PSORX=$G(PSORX) I PSORX=""!(PSORX?.E1C.E)!($L(PSORX)>120) S PSORET=-3 G ENDAP2
+ I '$D(^PS(52.43,"AA",PSOICN,PSOSSN,PSORX)) S PSORET=-3 G ENDAP2
+ S IEN=$O(^PS(52.43,"AA",PSOICN,PSOSSN,PSORX,"")),PSORR=$G(^PS(52.43,IEN,0))
+ I $P(PSORR,"^",5)="" S PSORET=-2 G ENDAP2
+ S PSORET=$P(PSORR,"^",5)_"^"_$P(PSORR,"^",6)_"^Y"
+ENDAP2 S PSRX=$O(^PSRX("B",PSORX,""))
+ S PSRF=$O(^PSRX(PSRX,1,"A"),-1)
+ S:PSRF PSODIV=$$GET1^DIQ(52.1,PSRF_","_PSRX,8,"I")
+ S:'PSODIV PSODIV=$$GET1^DIQ(52,PSRX,20,"I")
+QUITAP2 Q PSODIV_"^"_PSORET
+ ;
+AP4 ;PROCESSED REQUESTS
+ N PSOICN,PSOSSN,PSORX,IEN,PSORR K ^TMP($J,"MHEV UPDATE")
+ I '$D(^PS(52.43,"AA")) S ^TMP($J,"MHEV UPDATE")=-1 Q
+ S PSOICN=""
+ F  S PSOICN=$O(^PS(52.43,"AA",PSOICN)) Q:PSOICN=""  D
+ . S PSOSSN=""
+ . F  S PSOSSN=$O(^PS(52.43,"AA",PSOICN,PSOSSN)) Q:PSOSSN=""  D
+ .. S PSORX=""
+ .. F  S PSORX=$O(^PS(52.43,"AA",PSOICN,PSOSSN,PSORX)) Q:PSORX=""  D
+ ... S IEN=$O(^PS(52.43,"AA",PSOICN,PSOSSN,PSORX,"")),PSORR=$G(^PS(52.43,IEN,0)) Q:$P(PSORR,"^",5)=""
+ ... S ^TMP($J,"MHEV UPDATE",PSOICN,PSORX)=$P(PSORR,"^",5)_"^"_$$GET1^DIQ(52.43,IEN_",",6)
+ I '$D(^TMP($J,"MHEV UPDATE")) S ^TMP($J,"MHEV UPDATE")=-1
+ Q
+ ;
+AP5(PSOICN,PSOSSN,PSORX) ;PROCESS MHEV UPDATE
+ ; Input:  PSOICN (required) - Integration Control Number
+ ;         PSOSSN (required) - Social Security Number
+ ;         PSORX  (required) - Prescription Number
+ ; Output: PSORET - Return Value
+ ;         See IA ... for description and values
+ ;
+ S PSOICN=$G(PSOICN) I PSOICN=""!(PSOICN?.E1C.E)!($L(PSOICN)>120) S PSORET=0 G ENDAP5
+ I '$D(^PS(52.43,"AA",PSOICN)) S PSORET=0 G ENDAP5
+ S PSOSSN=$G(PSOSSN) I PSOSSN=""!(PSOSSN?.E1C.E)!($L(PSOSSN)>120) S PSORET=0 G ENDAP5
+ I '$D(^PS(52.43,"AA",PSOICN,PSOSSN)) S PSORET=0 G ENDAP5
+ S PSORX=$G(PSORX) I PSORX=""!(PSORX?.E1C.E)!($L(PSORX)>120) S PSORET=0 G ENDAP5
+ I '$D(^PS(52.43,"AA",PSOICN,PSOSSN,PSORX)) S PSORET=0 G ENDAP5
+ K DA,DR,DIE
+ S DA=$O(^PS(52.43,"AA",PSOICN,PSOSSN,PSORX,"")),PSOIN=$P(^PS(52.43,DA,0),"^",4)
+ S DIE="^PS(52.43,",DR="7///1" D ^DIE S PSORET=1
+ K ^PS(52.43,"AA",PSOICN,PSOSSN,PSORX),^PS(52.43,"AINST",PSOIN,PSORX)
+ENDAP5 Q PSORET
+ ;
+AP6(PSODIEN,PSOAP6) ;OUTPATIENT PHARMACY DIVISION LOOKUP
+ ; Input:  PSODIEN  (required) - Outpatient Pharmacy Division IEN.
+ ;                  1. Single Division IEN.
+ ;                  2. Delimited list of Division IEN's (IEN1,IEN2,IEN3).
+ ;                  3. Text word "ALL".
+ ;         PSOAP6   (required) - Information return Array.
+ ; Output: PSOAP6 - Information return Array.
+ ;                  PSOAP6(DIV)=Active(0)/Inactive(1)
+ ;                  PSOAP6(DIV,1)=Division Name^Area Code^Phone Number
+ ;                  PSOAP6(DIV,2,1)=Narrative text 1st line.
+ ;                  PSOAP6(DIV,2,n)=Narrative text nth line.
+ ;         PSORET - 0 (Process failure).
+ ;                  1 (Process success).
+ ;
+ N DIEN,TEMP,NAME,AREACODE,PHONENUM,INACTIVE
+ Q:$G(PSODIEN)="" 0
+ I PSODIEN="ALL" S ZS2=$O(^PS(59,0)),PSODIEN=ZS2 Q:'+ZS2 0 F  S ZS2=$O(^PS(59,ZS2)) Q:'+ZS2  S PSODIEN=PSODIEN_","_ZS2
+ F XX=1:1:$L(PSODIEN,",") S DIEN=$P(PSODIEN,",",XX) D
+ .S NAME=$$GET1^DIQ(59,DIEN,".01")
+ .Q:NAME=""
+ .S AREACODE=$$GET1^DIQ(59,DIEN,".03")
+ .S PHONENUM=$$GET1^DIQ(59,DIEN,".04")
+ .S INACTIVE=$$GET1^DIQ(59,DIEN,2004,"I")
+ .S PSOAP6(DIEN)=0 I INACTIVE S PSOAP6(DIEN)=1
+ .S PSOAP6(DIEN,1)=NAME_"^"_AREACODE_"^"_PHONENUM
+ .S TEMP=$$GET1^DIQ(59,DIEN,1005,"","PSOAP6("_DIEN_",2)")
+ ;
+ENDAP6 Q 1

@@ -1,0 +1,10 @@
+MGR15KAB ;NEW ROUTINE FOR DEMO [ 08/07/2001  2:01 PM ]
+ ;
+ ;This is a comment.
+START ;LINE TAG LINE
+ S X=2,Y=3
+ S Z=X+Y
+ W "BOY THIS IS FUN",!!
+ W ?5,X W ?10,Y,?15,Z,!
+END ;
+ KILL X,Y,Z QUIT

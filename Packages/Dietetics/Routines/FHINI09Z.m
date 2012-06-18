@@ -1,0 +1,114 @@
+FHINI09Z	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,6808,2)
+	;;=.093^.465^.07^.023^2.326
+	;;^UTILITY(U,$J,112,6808,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6809,0)
+	;;=CANDY,CHOC KISSES,HERSHEY^BC-00082^9-pieces^41
+	;;^UTILITY(U,$J,112,6809,1)
+	;;=8.293^30.488^57.805^539.024^^^^202.439^1.293^65.854^309.756^409.756^80.488^1.293^.4^.3^^60.976^^.073
+	;;^UTILITY(U,$J,112,6809,2)
+	;;=.341^.244^^^^^^^24.39
+	;;^UTILITY(U,$J,112,6809,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6810,0)
+	;;=CANDY,CHUCKLES CANDY^BC-00083^oz.^28
+	;;^UTILITY(U,$J,112,6810,1)
+	;;=0^1.071^86.071^375^^^^^^^^0^42.857
+	;;^UTILITY(U,$J,112,6810,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6811,0)
+	;;=CANDY,FIFTH AVENUE,HERSHEY^BC-00084^bars^60
+	;;^UTILITY(U,$J,112,6811,1)
+	;;=8.833^21.167^66.167^490^^^^70^1^63.333^150^328.333^186.667^1.083^.22^.37^^30^^.017
+	;;^UTILITY(U,$J,112,6811,2)
+	;;=.217^3.333^^^^^^^3.333
+	;;^UTILITY(U,$J,112,6811,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6812,0)
+	;;=CANDY,FUDGE CRISPY,LITTLE DEBBIE^BC-00085^2.1-oz.^59
+	;;^UTILITY(U,$J,112,6812,1)
+	;;=4.068^33.559^60.169^559.322^1.525^^^33.898^1.983^^^^94.915^^^^^0^0^.068
+	;;^UTILITY(U,$J,112,6812,2)
+	;;=.237^.508^^^^^^^1.695^7.966^23.898^1.695
+	;;^UTILITY(U,$J,112,6812,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6813,0)
+	;;=CANDY,FUDGE ROUNDS,LITTLE DEBBIE^BC-00086^1.2-oz.^34
+	;;^UTILITY(U,$J,112,6813,1)
+	;;=3.824^15.882^69.412^435.294^10^^^0^1.912^^^^217.647^^^^^0^0^.088
+	;;^UTILITY(U,$J,112,6813,2)
+	;;=.118^.588^^^^^^^0^4.118^9.706^1.765
+	;;^UTILITY(U,$J,112,6813,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6814,0)
+	;;=CANDY,GOLDEN ALMOND,HERSHEY^BC-00087^bars^91
+	;;^UTILITY(U,$J,112,6814,1)
+	;;=11.868^37.802^44.615^560.44^^^^327.473^1.505^110.989^270.33^471.429^62.637^1.703^.39^.84^^147.253^^.055
+	;;^UTILITY(U,$J,112,6814,2)
+	;;=.527^1.099^^^^^^^12.088^^^^36.264
+	;;^UTILITY(U,$J,112,6814,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6815,0)
+	;;=CANDY,JUNIOR MINTS^BC-00088^12-pieces^28
+	;;^UTILITY(U,$J,112,6815,1)
+	;;=3.571^10.714^85.714^428.571^^^^^^^^89.286^35.714
+	;;^UTILITY(U,$J,112,6815,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6816,0)
+	;;=CANDY,MILK CHOC,CADBURY^BC-00089^oz.^28
+	;;^UTILITY(U,$J,112,6816,1)
+	;;=7.857^29.286^61.429^539.286^.714^^^250^2.786^57.143^250^439.286^164.286^.214^.321^^^253.571^^.071
+	;;^UTILITY(U,$J,112,6816,2)
+	;;=.321^.714^^^^^^^25^17.5^^3.571
+	;;^UTILITY(U,$J,112,6816,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6817,0)
+	;;=CANDY,MILK CHOC,HERSHEY^BC-00090^bars^44
+	;;^UTILITY(U,$J,112,6817,1)
+	;;=7.955^30.682^57.955^540.909^^^^200^1.091^65.909^309.091^409.091^75^1.295^.4^.3^^59.091^^.091
+	;;^UTILITY(U,$J,112,6817,2)
+	;;=.364^.455^^^^^^^25
+	;;^UTILITY(U,$J,112,6817,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6818,0)
+	;;=CANDY,MILK CHOC STARS,NABISCO^BC-00091^13-pieces^28
+	;;^UTILITY(U,$J,112,6818,1)
+	;;=7.143^28.571^67.857^571.429^^^^^^^^303.571^125
+	;;^UTILITY(U,$J,112,6818,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6819,0)
+	;;=CANDY,MILK CHOC W/ALMONDS,CADBURY^BC-00092^oz.^28
+	;;^UTILITY(U,$J,112,6819,1)
+	;;=10.357^31.786^55^546.429^1.071^^^264.286^1.571^^^^146.429^^^^^232.143^^.071
+	;;^UTILITY(U,$J,112,6819,2)
+	;;=.429^.714^^^^^^^21.429
+	;;^UTILITY(U,$J,112,6819,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6820,0)
+	;;=CANDY,MILK CHOC W/ALMONDS,HERSHEY^BC-00093^bars^41
+	;;^UTILITY(U,$J,112,6820,1)
+	;;=11.463^35.122^49.512^560.976^^^^263.415^1.707^90.244^300^429.268^124.39^1.61^.5^.6^^90.244^^.024
+	;;^UTILITY(U,$J,112,6820,2)
+	;;=.293^.488^^^^^^^26.829
+	;;^UTILITY(U,$J,112,6820,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6821,0)
+	;;=CANDY,MILK CHOC CHIPS,HERSHEY^BC-00094^1/4-cup^43
+	;;^UTILITY(U,$J,112,6821,1)
+	;;=4.186^27.907^64.884^530.233^^^^30.233^2.605^^146.512^325.581^2.326
+	;;^UTILITY(U,$J,112,6821,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6822,0)
+	;;=CANDY,MOUNDS,PETER PAUL^BC-00095^bars^54
+	;;^UTILITY(U,$J,112,6822,1)
+	;;=4.444^25.370^57.037^470.37^^^^22.222^2.093^68.519^120.37^^125.926^1.037^.559^.75^^^^.037
+	;;^UTILITY(U,$J,112,6822,2)
+	;;=.074^0^^^^^^^0
+	;;^UTILITY(U,$J,112,6822,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6823,0)
+	;;=CANDY,NIPS,COFFEE/CARAMEL/LICORICE,PEARSON'S^BC-00096^oz.^28

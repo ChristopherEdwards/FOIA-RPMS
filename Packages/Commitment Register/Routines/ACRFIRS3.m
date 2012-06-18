@@ -1,0 +1,41 @@
+ACRFIRS3 ;IHS/OIRM/DSD/AEF - PRINT 1099 REPORT [ 11/01/2001   9:44 AM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;;NOV 05, 2001
+ ;
+ ;      This routine prints a report of the vendor 1099s being
+ ;      reported to IRS
+ ;
+ ;      Variables are set in ACRFIRS1
+ ;
+DQ ;EP -- PRINT JOB STARTS HERE
+ ;
+ N ACR,CNT,DATA,PAGE
+ D HDR
+ S ACR=0 F  S ACR=$O(^TMP("ACRZ",ACRJ,"REPORT",ACR)) Q:'ACR  D
+ . I $Y>(IOSL-5) D HDR Q:$G(ACROUT)
+ . S CNT=$G(CNT)+1
+ . S DATA=^TMP("ACRZ",ACRJ,"REPORT",ACR,0)
+ . W !,$P(DATA,U,2)
+ . W ?15,$E($P(DATA,U),1,30)
+ . W ?50,$J(+($P(DATA,U,3)/100),18,2)
+ W !!,"NUMBER OF 'B' RECORDS GENERATED FOR ",ACRSTA," = ",+$G(CNT)
+ W !,"TOTAL DOLLAR AMOUNT FOR ",ACRSTA," = ",$J(^TMP("ACRZ",ACRJ,"REPORT TOTAL",0)/100,18,2)
+ K ^TMP("ACRJ",ACRJ,"REPORT")
+ D ^%ZISC
+ Q
+HDR ;----- WRITE HEADER
+ ;
+ N DIR,I,X,Y
+ I $E(IOST)="C",$G(PAGE) S DIR(0)="E" D ^DIR K DIR I 'Y S ACROUT=1 Q
+ S PAGE=$G(PAGE)+1
+ W @IOF
+ W !
+ F I=1:1:IOM W "*"
+ W !?11,"LISTING OF 1099 VENDORS FOR CY ",ACRPMYR
+ W ?(IOM-10),"PAGE ",PAGE
+ W !," E. I. N."
+ W ?15,"V E N D O R  N A M E"
+ W ?57,"A M O U N T"
+ W !
+ F I=1:1:IOM W "*"
+ W !
+ Q

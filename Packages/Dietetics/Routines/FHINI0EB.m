@@ -1,0 +1,110 @@
+FHINI0EB	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8941,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8942,0)
+	;;=BF,FRUIT,PEARS & PINEAPPLE,GERBER THIRD FOOD^BC-02215^6-oz.^170
+	;;^UTILITY(U,$J,112,8942,1)
+	;;=.412^.176^12.412^52.941^^^^9.412^.118^7.647^10^100^1.176^.076^.071^.229^^^9.412^.035
+	;;^UTILITY(U,$J,112,8942,2)
+	;;=.024^.235^^.024^^^^^^^^^2.353
+	;;^UTILITY(U,$J,112,8942,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8943,0)
+	;;=BF,FRUIT,PEARS & PINEAPPLE,BEECH-NUT STAGE 2^BC-02216^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8943,1)
+	;;=0^0^15.078^61.719^^^^10.156^^^^^^^^^^^12.5^.031
+	;;^UTILITY(U,$J,112,8943,2)
+	;;=.039^.234
+	;;^UTILITY(U,$J,112,8943,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8944,0)
+	;;=BF,FRUIT,PEARS & PINEAPPLE,GERBER SECOND FOOD^BC-02217^4-oz.^113
+	;;^UTILITY(U,$J,112,8944,1)
+	;;=.442^.265^12.301^53.097^^^^9.735^.177^7.08^10.619^103.54^.885^.088^.071^.159^^^12.389^2.655
+	;;^UTILITY(U,$J,112,8944,2)
+	;;=.035^.177^^.018^^^^^^^^^1.77
+	;;^UTILITY(U,$J,112,8944,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8945,0)
+	;;=BF,FRUIT,PLUMS W/ RICE,BEECH-NUT STAGE 2^BC-02218^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8945,1)
+	;;=0^0^21.172^86.719^^^^^^^^^7.031^^^^^129.688^3.906^.008
+	;;^UTILITY(U,$J,112,8945,2)
+	;;=.023^.313
+	;;^UTILITY(U,$J,112,8945,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8946,0)
+	;;=BF,FRUIT,PLUNS & TAPIOCA,GERBER THIRD FOOD^BC-02219^6-oz.^170
+	;;^UTILITY(U,$J,112,8946,1)
+	;;=.353^.176^17.647^73.529^^^^7.059^.176^4.706^7.059^81.765^2.353^.053^.035^.047^^^.588^.018
+	;;^UTILITY(U,$J,112,8946,2)
+	;;=.035^.235^^.035^^^^^^^^^14.118
+	;;^UTILITY(U,$J,112,8946,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8947,0)
+	;;=BF,FRUIT,PLUMS W/TAPIOCA,GERBER SECOND FOOD^BC-02220^4-oz.^113
+	;;^UTILITY(U,$J,112,8947,1)
+	;;=.354^.177^17.257^71.681^^^^6.195^.177^4.425^7.08^83.186^3.54^.053^.035^.053^^^.885^.018
+	;;^UTILITY(U,$J,112,8947,2)
+	;;=.027^.265^^.035^^^^^^^^^17.699
+	;;^UTILITY(U,$J,112,8947,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8948,0)
+	;;=BF,FRUIT,PRUNES,GERBER FIRST FOOD^BC-02221^2.5-oz.^71
+	;;^UTILITY(U,$J,112,8948,1)
+	;;=.986^.141^21.549^91.549^^^^18.31^.563^^22.535^236.62^5.634^^^^^^^.014
+	;;^UTILITY(U,$J,112,8948,2)
+	;;=.38^.704^^.127^^^^^^^^^5.634
+	;;^UTILITY(U,$J,112,8948,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8949,0)
+	;;=BF,FRUIT,PRUNES W/PEARS,BEECH-NUT STAGE 2^BC-02222^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8949,1)
+	;;=1.016^0^25.703^107.813^^^^21.875^.5^^^^^^^^^110.156^^.023
+	;;^UTILITY(U,$J,112,8949,2)
+	;;=.07^.625
+	;;^UTILITY(U,$J,112,8949,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8950,0)
+	;;=BF,FRUIT,PRUNES W/TAPIOCA,GERBER SECOND FOOD^BC-02223^4-oz.^113
+	;;^UTILITY(U,$J,112,8950,1)
+	;;=.619^.177^16.903^71.681^^^^15.044^.265^11.504^18.584^181.416^4.425^.115^.071^.08^^^.885^.018
+	;;^UTILITY(U,$J,112,8950,2)
+	;;=.106^.442^^.088^^^^^^^^^31.858
+	;;^UTILITY(U,$J,112,8950,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8951,0)
+	;;=BF,FRUIT,TROPICAL FRUIT MEDLEY,GERBER SECOND FOOD^BC-02224^4-oz.^113
+	;;^UTILITY(U,$J,112,8951,1)
+	;;=.177^.177^15.575^64.602^^^^4.425^.088^4.425^4.425^43.363^6.195^.044^.027^.204^^^12.389^.018
+	;;^UTILITY(U,$J,112,8951,2)
+	;;=.009^.088^^.062^^^^^^^^^56.637
+	;;^UTILITY(U,$J,112,8951,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8952,0)
+	;;=BF,BEEF,GERBER THIRD FOOD^BC-02225^2.5-oz.^71
+	;;^UTILITY(U,$J,112,8952,1)
+	;;=15.07^4.648^.423^102.817^^^^5.634^1.69^12.676^116.901^219.718^52.113^3.169^.042^.014^^^2.817^.014
+	;;^UTILITY(U,$J,112,8952,2)
+	;;=.127^3.099^^.113^^^^^^^^^7.042
+	;;^UTILITY(U,$J,112,8952,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8953,0)
+	;;=BF,BEEF,GERBER SECOND FOOD^BC-02226^2.5-oz.^71
+	;;^UTILITY(U,$J,112,8953,1)
+	;;=14.085^4.366^0^95.775^^^^5.634^1.549^12.676^112.676^216.901^52.113^2.873^.028^.014^^^1.408^.014
+	;;^UTILITY(U,$J,112,8953,2)
+	;;=.113^2.958^^.113^^^^^^^^^5.634
+	;;^UTILITY(U,$J,112,8953,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8954,0)
+	;;=BF,BEEF & BEEF BROTH,BEECH-NUT STAGE 1^BC-02227^2.8-oz.^79
+	;;^UTILITY(U,$J,112,8954,1)
+	;;=12.658^6.329^0^107.595^^^^^1.405^^^^46.835^^^^^^^.025
+	;;^UTILITY(U,$J,112,8954,2)
+	;;=.139^2.278
+	;;^UTILITY(U,$J,112,8954,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

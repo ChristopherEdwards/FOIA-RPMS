@@ -1,0 +1,116 @@
+FHINI0AT	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,7210,2)
+	;;=^^^^^^^^35.294^1.176^3.529^1.176
+	;;^UTILITY(U,$J,112,7210,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7211,0)
+	;;=PIES,MINCEMEAT FRZN,BANQUET^BC-00484^1/6-pie^94
+	;;^UTILITY(U,$J,112,7211,1)
+	;;=3.191^11.702^40.426^276.596^^^^20.213^1.064^^^117.021^393.617^^^^^2.128^1.064^.032
+	;;^UTILITY(U,$J,112,7211,2)
+	;;=.032^.319
+	;;^UTILITY(U,$J,112,7211,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7212,0)
+	;;=PIES,PEACH FRZN,BANQUET^BC-00485^1/6-pie^94
+	;;^UTILITY(U,$J,112,7212,1)
+	;;=3.191^11.702^37.234^260.638^^^^11.702^1.064^^^73.404^297.872^^^^^246.809^14.894^.021
+	;;^UTILITY(U,$J,112,7212,2)
+	;;=.032^.532
+	;;^UTILITY(U,$J,112,7212,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7213,0)
+	;;=PIES,PEACH FRZN,MRS. SMITH'S PIE IN MINUTES^BC-00486^1/8-pie^89
+	;;^UTILITY(U,$J,112,7213,1)
+	;;=2.247^10.112^32.584^235.955^^^^^^^^^213.483
+	;;^UTILITY(U,$J,112,7213,2)
+	;;=^^^^^^^^0^2.247^5.618^2.247
+	;;^UTILITY(U,$J,112,7213,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7214,0)
+	;;=PIES,PECAN FRZN,MRS. SMITH'S PIE IN MINUTES^BC-00487^1/8-pie^85
+	;;^UTILITY(U,$J,112,7214,1)
+	;;=3.529^15.294^60^388.235^^^^23.529^.424^^^^235.294
+	;;^UTILITY(U,$J,112,7214,2)
+	;;=^^^^^^^^41.176^2.353^8.235^4.706
+	;;^UTILITY(U,$J,112,7214,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7215,0)
+	;;=PIES,PUMPKIN CND MIX,LIBBY'S^BC-00488^1/6-pie^180
+	;;^UTILITY(U,$J,112,7215,1)
+	;;=3.889^9.444^29.444^216.667^^^^55.556^1.5^20^91.667^161.111^211.111^.456^.056^^^5833.333^2.222^.05
+	;;^UTILITY(U,$J,112,7215,2)
+	;;=.144^.667^1.15^.144^^.167^^^38.889^2.778^4.444^2.222
+	;;^UTILITY(U,$J,112,7215,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7216,0)
+	;;=PIES,PUMPKIN FROM MIX,JELL-O^BC-00489^1/8-pie^120
+	;;^UTILITY(U,$J,112,7216,1)
+	;;=3.333^10.833^25.833^210.833^^^^90^.583^9.167^169.167^119.167^373.333^^.008^^^321.667^.833^.042
+	;;^UTILITY(U,$J,112,7216,2)
+	;;=.133^.667^.208^.025^3.333^.25^^^25.833^^^^^^^^.25
+	;;^UTILITY(U,$J,112,7216,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7217,0)
+	;;=PIES,PUMPKIN FRZN,BANQUET^BC-00490^1/6-pie^94
+	;;^UTILITY(U,$J,112,7217,1)
+	;;=3.191^8.511^30.851^212.766^^^^56.383^1.064^^^146.809^372.34^^^^^2061.702^2.128^.043
+	;;^UTILITY(U,$J,112,7217,2)
+	;;=.074^.426
+	;;^UTILITY(U,$J,112,7217,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7218,0)
+	;;=PIES,PUMPKIN FRZN,MRS. SMITH'S PIE IN MINUTES^BC-00491^1/8-pie^89
+	;;^UTILITY(U,$J,112,7218,1)
+	;;=3.371^6.742^33.708^213.483^^^^44.944^2.022^^^^258.427
+	;;^UTILITY(U,$J,112,7218,2)
+	;;=^^^^^^^^39.326^2.247^3.371^1.124
+	;;^UTILITY(U,$J,112,7218,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7219,0)
+	;;=PIES,STRAWBERRY CREAM FRZN,BANQUET^BC-00492^1/6-pie^66
+	;;^UTILITY(U,$J,112,7219,1)
+	;;=3.03^13.636^33.333^257.576^^^^45.455^1.515^^^121.212^181.818^^^^^6.061^9.091^.03
+	;;^UTILITY(U,$J,112,7219,2)
+	;;=.076^.303
+	;;^UTILITY(U,$J,112,7219,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7220,0)
+	;;=PIES,SNACK (APPLE),HOSTESS^BC-00493^snack pies^128
+	;;^UTILITY(U,$J,112,7220,1)
+	;;=3.906^15.625^35.156^304.688^^^^^^^^^421.875^^^^^0
+	;;^UTILITY(U,$J,112,7220,2)
+	;;=^^^^^^^^14.063
+	;;^UTILITY(U,$J,112,7220,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7221,0)
+	;;=PIES,SNACK (APPLE),LITTLE DEBBIE^BC-00494^3-oz.^93
+	;;^UTILITY(U,$J,112,7221,1)
+	;;=3.226^9.677^58.71^334.409^28.28^^^11.828^1.742^^^^219.355^^^^^0^1.075^.301
+	;;^UTILITY(U,$J,112,7221,2)
+	;;=.14^2.151^^^^^^^1.075^2.366^5.914^1.398
+	;;^UTILITY(U,$J,112,7221,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7222,0)
+	;;=PIES,SNACK (BERRY),HOSTESS^BC-00495^snack pies^128
+	;;^UTILITY(U,$J,112,7222,1)
+	;;=2.344^15.625^37.5^304.688^^^^^^^^^^^^^^0
+	;;^UTILITY(U,$J,112,7222,2)
+	;;=^^^^^^^^14.063
+	;;^UTILITY(U,$J,112,7222,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7223,0)
+	;;=PIES,SNACK (BLUEBERRY),HOSTESS^BC-00496^snack pies^128
+	;;^UTILITY(U,$J,112,7223,1)
+	;;=2.344^15.625^38.281^304.688^^^^^^^^^351.563^^^^^0
+	;;^UTILITY(U,$J,112,7223,2)
+	;;=^^^^^^^^14.063
+	;;^UTILITY(U,$J,112,7223,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7224,0)
+	;;=PIES,SNACK (CHERRY),HOSTESS^BC-00497^snack pies^128
+	;;^UTILITY(U,$J,112,7224,1)
+	;;=3.906^15.625^42.969^328.125^^^^^^^^^414.063^^^^^0

@@ -1,0 +1,61 @@
+DGDEP3 ;ALB/CAW - Dependents display ; 11/9/94
+ ;;5.3;Registration;**45**;Aug 13, 1993
+ ;
+SELF(INCPER,NAME,RELATE,ACT,DGMTI,CNT) ; Display information concerning veteran
+ ;
+ S DGX="",DGX=$$SETSTR^VALM1(CNT,DGX,3,3)
+ I $G(DGMTI),INCPER,($P($G(^DGMT(408.22,+INCPER,"MT")),U)=DGMTI) S DGX=$$SETSTR^VALM1("*",DGX,5,1)
+ S DGX=$$SETSTR^VALM1(NAME,DGX,9,22)
+ S DGX=$$SETSTR^VALM1($P($G(^DG(408.11,RELATE,0)),U),DGX,32,30)
+ S DGX=$$SETSTR^VALM1($S($P(ACT,U,2)=1:"*",1:""),DGX,65,1)
+ D SET^DGDEP(DGX)
+ ;
+ Q:RELATE=2
+ S INCPER=^DGMT(408.22,INCPER,0)
+ S DGX="",DGX=$$SETSTR^VALM1("Married Last Year: ",DGX,18,19)
+ S DGX=$$SETSTR^VALM1($S($P(INCPER,U,5):"Yes",$P(INCPER,U,5)="":"Unanswered",1:"No"),DGX,38,10)
+ D SET^DGDEP(DGX)
+ ;
+ Q:'$G(DGMTI)
+ I $P(INCPER,U,5)=1 D
+ .S DGX="",DGX=$$SETSTR^VALM1("Lived with Spouse: ",DGX,18,19)
+ .S DGX=$$SETSTR^VALM1($S($P(INCPER,U,6):"Yes",$P(INCPER,U,6)="":"Unanswered",1:"No"),DGX,38,10)
+ .D SET^DGDEP(DGX)
+ ;
+ I $P(INCPER,U,6)=0 D
+ .S DGX="",DGX=$$SETSTR^VALM1("Amount Contributed: ",DGX,17,19)
+ .S DGX=$$SETSTR^VALM1($S($P(INCPER,U,7)]"":$P(INCPER,U,7),1:"Unanswered"),DGX,38,10)
+ .D SET^DGDEP(DGX)
+ Q
+ ;
+CHILD(INCPER,NAME,RELATE,ACT,DGMTI,DGMTACT,CNT) ; Display information concerning dependents
+ ;
+ S DGX="",DGX=$$SETSTR^VALM1(CNT,DGX,3,3)
+ I $G(DGMTI),INCPER,($P($G(^DGMT(408.22,+INCPER,"MT")),U)=DGMTI) S DGX=$$SETSTR^VALM1("*",DGX,5,1)
+ S DGX=$$SETSTR^VALM1(NAME,DGX,9,22)
+ S DGX=$$SETSTR^VALM1($P($G(^DG(408.11,RELATE,0)),U),DGX,32,30)
+ S DGX=$$SETSTR^VALM1($S($P(ACT,U,2)=1:"*",1:""),DGX,65,1)
+ D SET^DGDEP(DGX)
+ ;
+ Q:'$G(DGMTI)!('$P($G(^DG(408.11,RELATE,0)),U,4))
+ S INCPER=^DGMT(408.22,INCPER,0)
+ S DGX="",DGX=$$SETSTR^VALM1("Incapable of Self-support: ",DGX,10,27)
+ S DGX=$$SETSTR^VALM1($S($P(INCPER,U,9):"Yes",$P(INCPER,U,9)="":"Unanswered",1:"No"),DGX,38,10)
+ D SET^DGDEP(DGX)
+ ;
+ S DGX="",DGX=$$SETSTR^VALM1("Child lived with you: ",DGX,15,22)
+ S DGX=$$SETSTR^VALM1($S($P(INCPER,U,6):"Yes",$P(INCPER,U,6)="":"Unanswered",1:"No"),DGX,38,10)
+ D SET^DGDEP(DGX)
+ ;
+ S DGX="",DGX=$$SETSTR^VALM1("Child Support: ",DGX,22,15)
+ S DGX=$$SETSTR^VALM1($S($P(INCPER,U,6)=1:"N/A",$P(INCPER,U,10)=1:"Yes",$P(INCPER,U,10)="":"Unanswered",1:"No"),DGX,38,10)
+ D SET^DGDEP(DGX)
+ ;
+ S DGX="",DGX=$$SETSTR^VALM1("Child Has Income: ",DGX,19,18)
+ S DGX=$$SETSTR^VALM1($S($P(INCPER,U,11)=1:"Yes",$P(INCPER,U,11)="":"Unanswered",1:"No"),DGX,38,10)
+ D SET^DGDEP(DGX)
+ ;
+ S DGX="",DGX=$$SETSTR^VALM1("Income Available: ",DGX,19,18)
+ S DGX=$$SETSTR^VALM1($S($P(INCPER,U,11)=0:"N/A",$P(INCPER,U,12)=1:"Yes",$P(INCPER,U,12)="":"Unanswered",1:"No"),DGX,38,10)
+ D SET^DGDEP(DGX)
+CHILDQ Q

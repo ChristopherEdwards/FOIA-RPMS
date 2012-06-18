@@ -1,0 +1,6 @@
+ABSPOSB0 ; IHS/FCS/DRS - Obsolete ;     
+ ;;1.0;PHARMACY POINT OF SALE;;JUN 21, 2001
+ Q
+MAIN ; option ABSP DO BILLING marked as DELETE AT SITE - XINDEX bug?
+ D IMPOSS^ABSPOSUE("P","TI",,,"MAIN",$T(+0))
+ Q

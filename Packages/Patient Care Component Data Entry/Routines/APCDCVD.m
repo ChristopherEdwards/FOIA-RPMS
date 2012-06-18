@@ -1,0 +1,66 @@
+APCDCVD ; IHS/CMI/LAB - CHANGE VISIT DATE ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+ D GETPAT
+ I APCDPAT="" W !!,"No PATIENT selected!" D EOJ Q
+ D GETVISIT
+ I APCDVSIT="" W !!,"No VISIT selected!" D EOJ Q
+ D VISIT
+ W !
+ S DIC="^AUPNVSIT(",DA=APCDVSIT D EN^DIQ K DIC,DIQ,DA
+ D EOJ
+ Q
+ ;
+GETPAT ; GET PATIENT
+ W !
+ S APCDPAT=""
+ S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC
+ Q:Y<0
+ S APCDPAT=+Y
+ Q
+ ;
+GETVISIT ;
+ S APCDLOOK="",APCDVSIT=""
+ K APCDVLK
+ D ^APCDVLK
+ K APCDLOOK
+ Q
+ ;
+VISIT ;
+ D DSPLY
+ S Y=APCDDATE X ^DD("DD")
+ W !!,"The date and time of the VISIT is ",Y,!
+ S %DT="ATRX",%DT("A")="Enter new date and time: " D ^%DT K %DT
+ I Y<0 W !!,"Bye" Q
+ W !,"The new visit date and time will be: ",$$FMTE^XLFDT(Y,1)
+ S X=Y D CHKVD
+ Q:'$D(X)
+ S APCDX=X
+ S DIR(0)="Y",DIR("A")="Is this okay",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ Q:$D(DIRUT)
+ Q:'Y
+ W "  <WAIT>"
+ S APCDCVDT("VISIT DFN")=APCDVSIT
+ S APCDCVDT("VISIT DATE/TIME")=APCDX
+ S APCDCVDT("TALK")=1
+ D ^APCDCVDT
+ I $D(Y) W !,"Updating the Date Last Modified failed!!"
+ Q
+ ;
+CHKVD ; CHECK NEW VISIT DATE
+ D VSIT01^AUPNVSIT
+ Q
+ ;
+DSPLY ;
+ W !
+ S DIC="^AUPNVSIT(",DA=APCDVSIT D EN^DIQ K DIC,DIQ,DA
+ W !,"Do you want to see V FILE entries" S %=2 D YN^DICN S %Y=$E(%Y)
+ Q:"Nn"[%Y
+ S APCDVDSP=APCDVSIT D ^APCDVDSP
+ Q
+ ;
+EOJ ; EOJ CLEANUP
+ K %X,%Y,%DT,D0,DI,DK,DL,DQ,DX,S,X,Y
+ K APCDCVDT,APCDX
+ D EN1^APCDEKL
+ Q

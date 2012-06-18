@@ -1,0 +1,182 @@
+BCHON001 ; IHS/TUCSON/LAB - NO DESCRIPTION PROVIDED ;  [ 10/28/96  2:05 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+ F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q Q
+ ;;^UTILITY(U,$J,"PRO",310,0)
+ ;;=BCH UPDATE ACTIVITY RECORD MENU^Update CHR Activity Records^^M^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",310,4)
+ ;;=25
+ ;;^UTILITY(U,$J,"PRO",310,10,0)
+ ;;=^101.01PA^12^12
+ ;;^UTILITY(U,$J,"PRO",310,10,1,0)
+ ;;=311^AD^5
+ ;;^UTILITY(U,$J,"PRO",310,10,1,"^")
+ ;;=BCH ADD RECORD
+ ;;^UTILITY(U,$J,"PRO",310,10,2,0)
+ ;;=312^ED^10
+ ;;^UTILITY(U,$J,"PRO",310,10,2,"^")
+ ;;=BCH EDIT RECORD
+ ;;^UTILITY(U,$J,"PRO",310,10,3,0)
+ ;;=313^DS^15
+ ;;^UTILITY(U,$J,"PRO",310,10,3,"^")
+ ;;=BCH DISPLAY RECORD
+ ;;^UTILITY(U,$J,"PRO",310,10,4,0)
+ ;;=314^DE^20
+ ;;^UTILITY(U,$J,"PRO",310,10,4,"^")
+ ;;=BCH DELETE RECORD
+ ;;^UTILITY(U,$J,"PRO",310,10,5,0)
+ ;;=315^HS^25
+ ;;^UTILITY(U,$J,"PRO",310,10,5,"^")
+ ;;=BCH DISPLAY HEALTH SUMMARY
+ ;;^UTILITY(U,$J,"PRO",310,10,6,0)
+ ;;=318^Q^99
+ ;;^UTILITY(U,$J,"PRO",310,10,6,"^")
+ ;;=BCH QUIT
+ ;;^UTILITY(U,$J,"PRO",310,10,7,0)
+ ;;=321^NS^55
+ ;;^UTILITY(U,$J,"PRO",310,10,7,"^")
+ ;;=BCH NEXT SCREEN
+ ;;^UTILITY(U,$J,"PRO",310,10,8,0)
+ ;;=319^DN^65
+ ;;^UTILITY(U,$J,"PRO",310,10,8,"^")
+ ;;=BCH DOWN A LINE
+ ;;^UTILITY(U,$J,"PRO",310,10,9,0)
+ ;;=320^UP^66
+ ;;^UTILITY(U,$J,"PRO",310,10,9,"^")
+ ;;=BCH UP A LINE
+ ;;^UTILITY(U,$J,"PRO",310,10,10,0)
+ ;;=322^PS^60
+ ;;^UTILITY(U,$J,"PRO",310,10,10,"^")
+ ;;=BCH PREVIOUS SCREEN
+ ;;^UTILITY(U,$J,"PRO",310,10,11,0)
+ ;;=324^PL^68
+ ;;^UTILITY(U,$J,"PRO",310,10,11,"^")
+ ;;=BCH PRINT LIST
+ ;;^UTILITY(U,$J,"PRO",310,10,12,0)
+ ;;=323^SL^70
+ ;;^UTILITY(U,$J,"PRO",310,10,12,"^")
+ ;;=BCH SEARCH LIST
+ ;;^UTILITY(U,$J,"PRO",310,26)
+ ;;=D SHOW^VALM
+ ;;^UTILITY(U,$J,"PRO",310,28)
+ ;;=Select Action: 
+ ;;^UTILITY(U,$J,"PRO",310,29)
+ ;;=AD
+ ;;^UTILITY(U,$J,"PRO",310,99)
+ ;;=56873,29035
+ ;;^UTILITY(U,$J,"PRO",311,0)
+ ;;=BCH ADD RECORD^Add Record^^A^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",311,15)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",311,20)
+ ;;=D ADDR^BCHUADD
+ ;;^UTILITY(U,$J,"PRO",311,26)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",311,99)
+ ;;=56873,29035
+ ;;^UTILITY(U,$J,"PRO",312,0)
+ ;;=BCH EDIT RECORD^Edit Record^^A^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",312,4)
+ ;;=^^^ED
+ ;;^UTILITY(U,$J,"PRO",312,15)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",312,20)
+ ;;=D ^BCHUEDT
+ ;;^UTILITY(U,$J,"PRO",312,26)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",312,99)
+ ;;=56873,29035
+ ;;^UTILITY(U,$J,"PRO",313,0)
+ ;;=BCH DISPLAY RECORD^Display Record^^A^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",313,4)
+ ;;=^^^DS
+ ;;^UTILITY(U,$J,"PRO",313,20)
+ ;;=D EN^BCHUDISP
+ ;;^UTILITY(U,$J,"PRO",313,99)
+ ;;=56873,29035
+ ;;^UTILITY(U,$J,"PRO",314,0)
+ ;;=BCH DELETE RECORD^Delete Record^^A^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",314,4)
+ ;;=^^^DE
+ ;;^UTILITY(U,$J,"PRO",314,20)
+ ;;=D DEL^BCHUDEL
+ ;;^UTILITY(U,$J,"PRO",314,21,0)
+ ;;=^101.021A^1^1
+ ;;^UTILITY(U,$J,"PRO",314,21,1,0)
+ ;;=BCHRDEL
+ ;;^UTILITY(U,$J,"PRO",314,21,"B","BCHRDEL")
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",314,21,"B","BCHRDEL",1)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",314,99)
+ ;;=56873,29035
+ ;;^UTILITY(U,$J,"PRO",315,0)
+ ;;=BCH DISPLAY HEALTH SUMMARY^Health Summary^^A^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",315,4)
+ ;;=^^^HS
+ ;;^UTILITY(U,$J,"PRO",315,20)
+ ;;=D EN^BCHHS
+ ;;^UTILITY(U,$J,"PRO",315,99)
+ ;;=56873,29035
+ ;;^UTILITY(U,$J,"PRO",316,0)
+ ;;=BCH CHR RECORD EVENT^CHR Record Added/Updated^^X^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",316,10,0)
+ ;;=^101.01PA^1^1
+ ;;^UTILITY(U,$J,"PRO",316,10,1,0)
+ ;;=425^
+ ;;^UTILITY(U,$J,"PRO",316,10,1,"^")
+ ;;=BCH ANCILLARY VISIT EVENT
+ ;;^UTILITY(U,$J,"PRO",316,21,0)
+ ;;=^101.021A^1^1
+ ;;^UTILITY(U,$J,"PRO",316,21,1,0)
+ ;;=BCHEV
+ ;;^UTILITY(U,$J,"PRO",316,21,"B","BCHEV")
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",316,21,"B","BCHEV",1)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",316,99)
+ ;;=56873,29037
+ ;;^UTILITY(U,$J,"PRO",318,0)
+ ;;=BCH QUIT^Quit^^A^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",318,1,0)
+ ;;=^^1^1^2911105^
+ ;;^UTILITY(U,$J,"PRO",318,1,1,0)
+ ;;=This protocol can be used as a generic 'quit' action.
+ ;;^UTILITY(U,$J,"PRO",318,2,0)
+ ;;=^101.02A^2^2
+ ;;^UTILITY(U,$J,"PRO",318,2,1,0)
+ ;;=EXIT
+ ;;^UTILITY(U,$J,"PRO",318,2,2,0)
+ ;;=QUIT
+ ;;^UTILITY(U,$J,"PRO",318,2,"B","EXIT")
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",318,2,"B","EXIT",1)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",318,2,"B","QUIT",2)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",318,4)
+ ;;=^^^Q
+ ;;^UTILITY(U,$J,"PRO",318,20)
+ ;;=Q
+ ;;^UTILITY(U,$J,"PRO",318,99)
+ ;;=56873,29035
+ ;;^UTILITY(U,$J,"PRO",319,0)
+ ;;=BCH DOWN A LINE^Down a Line^^A^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",319,1,0)
+ ;;=^^2^2^2911027^
+ ;;^UTILITY(U,$J,"PRO",319,1,1,0)
+ ;;=Move down a line.
+ ;;^UTILITY(U,$J,"PRO",319,1,2,0)
+ ;;=
+ ;;^UTILITY(U,$J,"PRO",319,20)
+ ;;=D DOWN^VALM40
+ ;;^UTILITY(U,$J,"PRO",319,99)
+ ;;=56873,29035
+ ;;^UTILITY(U,$J,"PRO",320,0)
+ ;;=BCH UP A LINE^Up a Line^^A^^^^^^^^
+ ;;^UTILITY(U,$J,"PRO",320,1,0)
+ ;;=^^1^1^2911027^
+ ;;^UTILITY(U,$J,"PRO",320,1,1,0)
+ ;;=Move up a line
+ ;;^UTILITY(U,$J,"PRO",320,20)
+ ;;=D UP^VALM40

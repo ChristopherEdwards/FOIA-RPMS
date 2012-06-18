@@ -1,0 +1,123 @@
+BCHEXD ; IHS/TUCSON/LAB - MAIN DRIVER FOR CHR EXPORT TX GEN ;  [ 11/18/02  12:40 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**7,10,12**;OCT 28, 1996
+ ;IHS/CMI/LAB - PATCH 10 NEW RECORD FORMAT
+ ;IHS/CMI/LAB ;added $J to ^TMP
+ ;
+ ;Main driver routine for the generation of transactions to be
+ ;exported to the CHRIS II System.
+ ;
+START ;
+ I $D(ZTQUEUED) S BCHO("SCHEDULED")=""
+ S BCHO("RUN")="NEW" ;      Let BCHEXDI know this is a new run.
+ D ^BCHEXDI ;           Do initialization
+ I $D(BCHO("QUEUE")) D EOJ W !!,"Okay, your request is queued!  Bye",! Q
+ I BCH("QFLG")=99 D EOJ W !!,"Bye",!! Q
+ I BCH("QFLG") D ABORT Q
+DRIVER ;called from TSKMN+2
+ S BCH("BT")=$H
+ D NOW^%DTC S BCH("RUN START")=%,BCH("MAIN TX DATE")=$P(%,".") K %,%H,%I
+ S DIE="^BCHXLOG(",DA=BCH("RUN LOG"),DR=".15///R"_";.03////"_BCH("RUN START") D CALLDIE^BCHUTIL
+ I $D(Y) D ABORT Q
+ S BCHCNT=$S('$D(ZTQUEUED):"X BCHCNT1  X BCHCNT2",1:"S BCHCNTR=BCHCNTR+1"),BCHCNT1="F BCHCNTL=1:1:$L(BCHCNTR)+1 W @BCHBS",BCHCNT2="S BCHCNTR=BCHCNTR+1 W BCHCNTR,"")"""
+ D PROCESS ;            Generate trasactions
+ I BCH("QFLG") D ABORT Q
+ D ^BCHEXLOG ;                Update Log
+ I BCH("QFLG") D ABORT Q
+ D PURGE ;              Purge AEX xref entries
+ D RUNTIME^BCHEXEOJ ;            Show run time
+ D TAPE ; Write transactions to tape
+ I BCH("QFLG") D ABORT Q
+ D:'$D(ZTQUEUED) CHKLOG ;             See if Log needs cleaning
+ I '$D(ZTQUEUED) W !! S DIR(0)="E",DIR("A")="DONE  --  Press RETURN to Continue" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ D EOJ
+ Q
+ ;
+PROCESS ;
+ ;build header record
+ ;S BCH("COUNT")=BCH("COUNT")+1
+ W:'$D(ZTQUEUED) !,"Generating transactions.  Counting records.  (1)"
+ S BCHCNTR=0,BCH("CONTROL DATE")=BCH("RUN BEGIN")-1,BCH("POSTING DATE")="      "
+ S BCHRTYPE="U"
+ F  S BCH("CONTROL DATE")=$O(^BCHR("AEX",BCH("CONTROL DATE"))) Q:BCH("CONTROL DATE")=""!(BCH("CONTROL DATE")>BCH("RUN END"))  D PROCESS2 Q:BCH("QFLG")
+ S BCHRTYPE="D" D DELETES ;gather up and send deletes
+ Q
+PROCESS2 ;
+ S BCHR="" F  S BCHR=$O(^BCHR("AEX",BCH("CONTROL DATE"),BCHR)) Q:BCHR=""  D PROCESS3 Q:BCH("QFLG")
+ Q
+PROCESS3 ;
+ I '$D(^BCHR(BCHR,0)) K ^BCHR("AEX",BCH("CONTROL DATE"),BCHR) Q  ;IHS/CMI/LAB - missing record
+ K BCHE,BCHCPOV
+ Q:$D(^BCHXLOG(BCH("RUN LOG"),21,BCHR))
+ S BCHV("TX GENERATED")=0,^TMP("BCHDR",$J,BCH("CONTROL DATE"),BCHR)="",^TMP("BCHDR",$J,"MAIN TX",BCHR)=""
+ S BCH("VISIT COUNT")=BCH("VISIT COUNT")+1
+ X BCHCNT
+ I '$D(^BCHRPROB("AD",BCHR)) S BCHE="E021" D CNTBUILD Q
+ S BCHREC=^BCHR(BCHR,0)
+ K BCHE,BCHTX S (BCHCPOV,BCHPOVD)=0 F  S BCHPOVD=$O(^BCHRPROB("AD",BCHR,BCHPOVD)) Q:BCHPOVD'=+BCHPOVD  D
+ .I $P(^BCHRPROB(BCHPOVD,0),U,4)=""!($P(^BCHRPROB(BCHPOVD,0),U,5)="")!($P(^BCHRPROB(BCHPOVD,0),U,6)="") S BCHE="E021" Q
+ .;D RECORD^BCHEXD2
+ .;D CNTBUILD
+ I $D(BCHE) D CNTBUILD Q  ;IHS/CMI/LAB - new format
+ D ^XBFMK
+ K BCHE,BCHTX,BCH("POVS")
+ D RECORD^BCHEXD2
+ D CNTBUILD
+ S DA=BCH("RUN LOG"),DR="2101///""`"_BCHR_"""",DIE="^BCHXLOG("
+ S DR(2,90002.912101)=".02////"_BCHV("TX GENERATED")_";.03///"_BCHRTYPE
+ D CALLDIE^BCHUTIL
+ Q
+ ;
+PURGE ; PURGE 'AEX' XREF FOR CHR RECORDS JUST DONE
+ W:'$D(ZTQUEUED) !,"Deleting cross-reference entries. (1)"
+ S BCHCNTR=0,BCHV("R DATE")=""
+ F  S BCHV("R DATE")=$O(^TMP("BCHDR",$J,BCHV("R DATE"))) Q:BCHV("R DATE")'=+BCHV("R DATE")  D PURGE2
+DEL ;update delete file
+ S BCHV("R DATE")=""
+ F  S BCHV("R DATE")=$O(^TMP("BCHDR",$J,"DELETES",BCHV("R DATE"))) Q:BCHV("R DATE")'=+BCHV("R DATE")  D
+ .S BCHR=0 F  S BCHR=$O(^TMP("BCHDR",$J,"DELETES",BCHV("R DATE"),BCHR)) Q:BCHR'=+BCHR  D
+ ..S DIE="^BCHEXDEL(",DA=BCHR,DR=".06////"_BCH("MAIN TX DATE") D CALLDIE^BCHUTIL
+ K ^TMP("BCHDR")
+ Q
+PURGE2 ;
+ S BCHR="" F  S BCHR=$O(^TMP("BCHDR",$J,BCHV("R DATE"),BCHR)) Q:BCHR=""  D RESET
+ Q
+ ;
+RESET ; kill CHR xref and set flag if tx 23 or 24 generated
+ K ^BCHR("AEX",BCHV("R DATE"),BCHR)
+ I ^TMP("BCHDR",$J,"MAIN TX",BCHR)]"" S DIE="^BCHR(",DA=BCHR,DR=".19///"_^TMP("BCHDR",$J,"MAIN TX",BCHR) D CALLDIE^BCHUTIL
+ X BCHCNT
+ Q
+ ;
+ ;
+CNTBUILD ;EP count and build tx
+ I BCHE]"" S BCH("ERROR COUNT")=BCH("ERROR COUNT")+1 D ^BCHEXERR Q
+ S BCH("COUNT")=BCH("COUNT")+1
+ S BCH(BCHRTYPE)=BCH(BCHRTYPE)+1
+ S BCHV("TX GENERATED")=1,^TMP("BCH"_$S(BCHO("RUN")="NEW":"DR",BCHO("RUN")="REDO":"REDO",1:"DR"),$J,"MAIN TX",BCHR)=BCH("MAIN TX DATE")
+ ;S ^BCHRDATA(BCH("COUNT"))="CR^"_BCHTX ;IHS/CMI/LAB - new format
+ S ^BCHRDATA(BCH("COUNT"))=BCHTX
+ S X=0 F  S X=$O(BCH("POVS",X)) Q:X'=+X  S BCH("COUNT")=BCH("COUNT")+1,^BCHRDATA(BCH("COUNT"))=BCH("POVS",X) ;IHS/CMI/LAB - new format
+ Q
+TAPE ; COPY TRANSACTIONS TO TAPE
+ D TAPE^BCHEXTAP
+ Q
+ ;
+CHKLOG ; CHECK LOG FILE
+ ;S BCH("X")=0 F BCH("I")=BCH("RUN LOG"):-1:1 Q:'$D(^BCHXLOG(BCH("I")))  I $O(^BCHXLOG(BCH("I"),21,0)) S BCH("X")=BCH("X")+1
+ ;I BCH("X")>12 W !,"-->There are more than twelve generations of CHR RECORDs stored in the LOG file.",!,"-->Time to do a purge."
+ Q
+ ;
+ABORT ; ABNORMAL TERMINATION
+ I $D(BCH("RUN LOG")) S BCH("QFLG1")=$O(^BCHDTER("B",BCH("QFLG"),"")),DA=BCH("RUN LOG"),DIE="^BCHXLOG(",DR=".15///F;.16////"_BCH("QFLG1")
+ I $D(ZTQUEUED) D ERRBULL^BCHEXDI3,EOJ Q
+ W !!,"Abnormal termination!!  QFLG=",BCH("QFLG")
+ S DIR(0)="E",DIR("A")="DONE  --  Press RETURN to Continue" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ D EOJ
+ Q
+ ;
+DELETES ;
+ D DELETES^BCHEXD2
+ Q
+EOJ ; EOJ
+ D ^BCHEXEOJ
+ Q

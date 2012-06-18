@@ -1,0 +1,201 @@
+BGPMUD03 ; IHS/MSC/SAT - MU measure NQF0081 ;03-Aug-2011 16:14;DU
+ ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;code to collect meaningful use report Heart Failure w/ ACE Inhibitor or ARB
+ ;NQF0081
+ ;Print Output: HF^BGPMUP2
+ ;Delimited Output: HF^BGPMUDD2
+ENTRY ;EP
+ ; expects:
+ ;  DFN      = patient code from VA PATIENT file
+ ;  BGPBDATE = begin date of report
+ ;  BGPEDATE = end date of report
+ ;  BGPPROV  = provider code from NEW PERSON file
+ ;  BGPMUTF  = timeframe variable - "C"=current year; "P"=previous year; "B"=baseline year
+ N BGP4,BGPSEX,EXCEPT,PREG,RET
+ N BGPBIRTH,BGPDEN,BGPNUM,BGPDT,BGPAGEE,END,FIRST,IEN,START,VIEN
+ N BGPEXC,BGPNOT
+ ; BGPLED  = latest encounter date
+ ; BGPEMF = EM code(s) found
+ ; BGPC = display value of encounters
+ N BGPLED,BGPEMF,BGPC
+ ; BGP*C = <COUNT> U CODE : DATE ; ...
+ N BGPIC,BGPNC,BGPOC
+ S BGPDEN=0
+ S BGPEXC=0
+ S BGPNUM=0
+ S BGPNOT=0
+ S BGPSEX=$$SEX^AUPNPAT(DFN)
+ ;
+ ;Pts must be 18 and older
+ S BGPAGEE=$$AGE^AUPNPAT(DFN,BGPEDATE)
+ ;No need to check further on children
+ Q:BGPAGEE<18
+ ; check for encounters with the provider
+ S (BGPEMF,BGPIC,BGPNC,BGPOC)=0
+ S BGPLED=9999999
+ S BGPC=""
+ S START=9999999-BGPBDATE,END=9999999-BGPEDATE
+ S FIRST=END-0.1 F  S FIRST=$O(^AUPNVSIT("AA",DFN,FIRST)) Q:FIRST=""!($P(FIRST,".",1)>START)  D  Q:BGPC'=""
+ .S VIEN=0 F  S VIEN=$O(^AUPNVSIT("AA",DFN,FIRST,VIEN)) Q:'+VIEN  D  Q:BGPC'=""
+ ..S BGPDT=$P($P($G(^AUPNVSIT(VIEN,0)),U,1),".",1)
+ ..;Check provider, determine if there are visits with E&M codes
+ ..I $$PRV^BGPMUUT1(VIEN,BGPPROV) D
+ ...S X=+$$VSTCPT^BGPMUUT1(DFN,VIEN,"BGPMU ENC INPATIENT DISCH CPT")
+ ...I +X D
+ ....S BGPIC=(+$P(BGPIC,U,1)+1)_U_$S(+BGPIC:$P(BGPIC,U,2)_";",1:"")_"EN:"_$$DATE^BGPMUUTL(BGPDT)
+ ....S BGPLED=$S(BGPLED<$P(X,U,3):BGPLED,1:BGPLED)
+ ....S:+BGPIC>0 BGPC=$P(BGPIC,U,2)
+ ....;S BGPEND=$S(BGPEND'="":BGPEND_";",1:"")_"EN:"_$$DATE^BGPMUUTL($P(X,U,3))
+ ...Q:BGPC'=""
+ ...S X=+$$VSTCPT^BGPMUUT1(DFN,VIEN,"BGPMU ENC OUTPATIENT CPT")
+ ...I +X D
+ ....S BGPOC=(+$P(BGPOC,U,1)+1)_U_$S(+BGPOC:$P(BGPOC,U,2)_";",1:"")_"EN:"_$$DATE^BGPMUUTL(BGPDT)
+ ....S BGPLED=$S(BGPLED<$P(X,U,3):BGPLED,1:BGPLED)
+ ....S:+BGPOC>1 BGPC=$P(BGPOC,U,2)
+ ....;S BGPEND=$S(BGPEND'="":BGPEND_";",1:"")_"EN:"_$$DATE^BGPMUUTL($P(X,U,3))
+ ...Q:BGPC'=""
+ ...S X=+$$VSTCPT^BGPMUUT1(DFN,VIEN,"BGPMU ENC NURSING FAC CPT")
+ ...I +X D
+ ....S BGPNC=(+$P(BGPNC,U,1)+1)_U_$S(+BGPNC:$P(BGPNC,U,2)_";",1:"")_"EN:"_$$DATE^BGPMUUTL(BGPDT)
+ ....S BGPLED=$S(BGPLED<$P(X,U,3):BGPLED,1:BGPLED)
+ ....S:+BGPNC>1 BGPC=$P(BGPNC,U,2)
+ ....;S BGPEND=$S(BGPEND'="":BGPEND_";",1:"")_"EN:"_$$DATE^BGPMUUTL($P(X,U,3))
+ Q:BGPC=""
+ ;
+ ;Does patient have Heart Failure as an active diagnosis
+ ; check POV
+ S BGPBIRTH=$P(^DPT(DFN,0),U,3)
+ I BGPBIRTH="" S BGPBIRTH=$$FMADD^XLFDT(BGPBDATE,-730)  ;if no dob, use 2 years prior to report period
+ S BGPHF=$$LASTDX^BGPMUUT2(DFN,BGPBIRTH,BGPLED,"BGPMU HEART FAILURE DX")
+ ; check problem list
+ S:'+BGPHF BGPHF=$$PLTAX^BGPMUUT1(DFN,"BGPMU HEART FAILURE DX","C")  ; "C" for active (current) only
+ ;quit if not active in problem list
+ Q:'+BGPHF
+ ; check for ejection fraction result of < 40%
+ S BGP4=0
+ S BGP4=$$DEN1(DFN,BGPBIRTH,BGPLED)
+ Q:'+BGP4
+ ;if we got here, patient is in the denominator
+ S BGPDEN=1_U_"HF:"_$$DATE^BGPMUUTL($P(BGPHF,U,3))_";"_"LVEF:"_$$DATE^BGPMUUTL($P(BGP4,U,3))_";"_BGPC
+ ;
+ ;check if patient is in numerator
+ ;determine if patient has medications that are ACE Inhibitor or ARB
+ S BGPNUM=$$NUM(DFN,BGPBDATE,BGPEDATE)
+ I +BGPNUM S BGPNUM=1_U_"M:MED "_$$DATE^BGPMUUTL($P(BGPNUM,U,2))
+ E  D
+ .S BGPNOT=1_U_"NM:"
+ .S BGPEXC=$$EXCLUDE(DFN)
+ ;
+ D TOTAL(DFN)
+ ;cleanup
+ K BGP4,BGPSEX,EXCEPT,PREG,RET
+ K BGPBIRTH,BGPDEN,BGPNUM,BGPDT,BGPAGEE,END,FIRST,IEN,START,VIEN
+ K BGPEXC,BGPNOT
+ K BGPLED,BGPEMF,BGPC
+ K BGPIC,BGPNC,BGPOC
+ Q
+TOTAL(DFN) ;See where this patient ends up
+ N PTCNT,EXCCT,DENCT,NOT1CT,NUMCT,TOTALS
+ S TOTALS=$G(^TMP("BGPMU0081",$J,BGPMUTF,"TOT"))
+ S EXCCT=+$G(^TMP("BGPMU0081",$J,BGPMUTF,"EXC"))
+ S DENCT=+$G(^TMP("BGPMU0081",$J,BGPMUTF,"DEN"))
+ S NUMCT=+$G(^TMP("BGPMU0081",$J,BGPMUTF,"NUM"))
+ S NOT1CT=+$G(^TMP("BGPMU0081",$J,BGPMUTF,"NOT"))
+ S PTCNT=TOTALS
+ S PTCNT=PTCNT+1
+ ;denominator
+ S DENCT=DENCT+1
+ S ^TMP("BGPMU0081",$J,BGPMUTF,"DEN")=DENCT
+ S ^TMP("BGPMU0081",$J,"PAT",BGPMUTF,"DEN",PTCNT)=DFN
+ ;If excluded
+ I +BGPEXC D
+ .S EXCCT=EXCCT+1 S ^TMP("BGPMU0081",$J,BGPMUTF,"EXC")=EXCCT
+ .I BGPMUTF="C" S ^TMP("BGPMU0081",$J,"PAT",BGPMUTF,"EXC",PTCNT)=DFN_U_$P(BGPDEN,U,2)
+ E  D
+ .I +BGPNUM D   ;numerator
+ ..S NUMCT=NUMCT+1 S ^TMP("BGPMU0081",$J,BGPMUTF,"NUM")=NUMCT
+ ..S ^TMP("BGPMU0081",$J,"PAT",BGPMUTF,"NUM",PTCNT)=DFN_U_$P(BGPDEN,U,2)_U_$P(BGPNUM,U,2)
+ .I +BGPNOT D
+ ..S NOT1CT=NOT1CT+1 S ^TMP("BGPMU0081",$J,BGPMUTF,"NOT")=NOT1CT
+ ..S ^TMP("BGPMU0081",$J,"PAT",BGPMUTF,"NOT",PTCNT)=DFN_U_$P(BGPDEN,U,2)_U_$P(BGPNOT,U,2)
+ S ^TMP("BGPMU0081",$J,BGPMUTF,"TOT")=PTCNT
+ Q
+NUM(DFN,BGPBDATE,BGPEDATE) ;Look for ACE/ARB PRESCRIPTION
+ N FOUND,ACERX
+ S FOUND=0
+ S ACERX=$$FIND^BGPMUUT8(DFN,"BGPMU ACE ARBS NDCS",BGPBDATE,"",BGPEDATE)
+ Q:'ACERX FOUND
+ S FOUND=1_U_$P(ACERX,U,3)
+ Q FOUND
+ ;
+EXCLUDE(DFN) ;check for exclusions
+ S EXCEPT=0
+ ;check for allergy or intolerance to ACE Inhibitors or ARBs (CV800 or CV805)
+ S BGPACE=$O(^PS(50.605,"B","CV800",""))
+ S BGPARB=$O(^PS(50.605,"B","CV805",""))
+ S BGPPA="" F  S BGPPA=$O(^GMR(120.8,"B",DFN,BGPPA)) Q:BGPPA=""  D
+ .S BGPDA=0 F  S BGPDA=$O(^GMR(120.8,BGPPA,3,BGPDA)) Q:BGPDA'>0  D
+ ..S BGPDC=$P($G(^GMR(120.8,BGPPA,3,BGPDA,0)),U,1)
+ ..S:BGPDC=BGPACE EXCEPT=1_U_"ACE INHIBITORS"
+ ..S:BGPDC=BGPARB EXCEPT=1_U_"ANGIOTENSIN II INHIBITOR"
+ Q:+EXCEPT EXCEPT
+ ; Pregnant
+ S PREG=0
+ I BGPSEX="F" S PREG=$$LASTDX^BGPMUUT2(DFN,BGPBIRTH,BGPEDATE,"BGPMU PREGNANCY ALL ICD")
+ I +PREG=1 S EXCEPT=1_U_$P(PREG,U,2)_U_$P(PREG,U,3)
+ Q:+EXCEPT EXCEPT
+ S PREG=$$PLTAX^BGPMUUT1(DFN,"BGPMU PREGNANCY ALL ICD","C")
+ I +PREG=1 S EXCEPT=1_U_$P(PREG,U,2)_U_$P(PREG,U,3)
+ Q:+EXCEPT EXCEPT
+ ; All other exclusions:
+ ;   Deficiencies of Circulating Enzymes
+ ;   Disease of Aortic and Mitral Valves
+ ;   Disease Non-Rheumatic Mitral (Valve)
+ ;   Chronic Kidney Disease with and without Hypertension
+ ;   Hypertensive Renal Disease with Renal Failure
+ ;   Atherosclerosis of Renal Artery
+ ;   Renal Failure and ESRD
+ ;   Acute Renal Failure
+ ;   Atresia and Stenosis of Aorta
+ S RET=0
+ S RET=$$LASTDX^BGPMUUT2(DFN,BGPBIRTH,BGPEDATE,"BGPMU HF0081 EXCLUSION DX")
+ I +RET=1 S EXCEPT=1_U_$P(RET,U,2)_U_$P(RET,U,3)
+ Q:+EXCEPT EXCEPT
+ S RET=$$PLTAX^BGPMUUT1(DFN,"BGPMU HF0081 EXCLUSION DX","C")
+ I +RET=1 S EXCEPT=1_U_$P(RET,U,2)_U_$P(RET,U,3)
+ Q:+EXCEPT EXCEPT
+ ;Check for refusal of ACE or ARB med
+ S MED=$$MEDREF^BGPMUUT2(DFN,BGPBIRTH,BGPLED_".2359","BGPMU ACE ARBS NDCS")
+ I +MED S EXCEPT=MED
+ Q EXCEPT
+ ;
+DEN1(DFN,BGPBDATE,BGPLED) ; Find the latest CARDIAC EJECTION FRACTION (CEF) measurement
+ N CEF,FOUND,IEN,INV,MTYPE,RESULT,RDATE
+ S (CEF,FOUND)=0
+ ;S CEF=+$$CPT^BGPMUUT1(DFN,BGPBDATE,BGPLED,"BGPMU LVEF UNDER 40% CPT")
+ ;Q:CEF CEF
+ ;S MTYP="" S MTYP=$O(^AUTTMSR("B","HT",MTYP))  ;ZSAT: for testing; delete this line, keep next line
+ S MTYP="" S MTYP=$O(^AUTTMSR("B","CEF",MTYP))
+ Q:MTYP="" 0
+ S INV=0 F  S INV=$O(^AUPNVMSR("AA",DFN,MTYP,INV)) Q:'+INV!(+FOUND)  D
+ .S RDATE=9999999-INV
+ .I RDATE>BGPBDATE&(RDATE<BGPLED) D
+ ..S IEN=0 F  S IEN=$O(^AUPNVMSR("AA",DFN,MTYP,INV,IEN)) Q:IEN=""!(+FOUND)  D
+ ...S FOUND=1
+ ...S RESULT=$P($G(^AUPNVMSR(IEN,0)),U,4)
+ ...;I RESULT<80 S CEF=1_U_U_RDATE   ;ZSAT: testing; delete this line; keep next line
+ ...I RESULT<40 S CEF=1_U_U_RDATE
+ Q CEF
+ ;
+TEST ;debug target
+ ;S U="^"
+ ;S DUZ=1
+ ;S DT=3110310
+ ;S DFN=184
+ ;S DFN=158
+ ;S BGPBDATE=3100101
+ ;S BGPEDATE=3110401
+ ;S BGPPROV=2
+ ;S BGPMUTF="C"
+ ;D ENTRY
+ Q

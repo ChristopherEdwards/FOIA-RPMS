@@ -1,0 +1,182 @@
+BLRTASKS ;IHS/OIT/MKK - IHS LAB TASKS REPORT ; [ 05/31/2011  10:30 AM ]
+ ;;5.2;LR;**1030**;NOV 01, 1997
+ ;
+ ; Report to examine the TaskMan globals to determine IF all the
+ ; REQUIRED Lab Tasks are tasked, or, if not, try to determine when
+ ; they last run.
+ ;
+EEP ; Ersatz EP
+ D EEP^BLRGMENU
+ Q
+ ;
+EP ; EP - Main Entry Point
+ NEW CNT,IEN,LABTASKS,NXTRUNDT,OPTION,ROOT,TASK,TASKDESC
+ NEW HEADER,HD1,LINES,MAXLINES,QFLG
+ NEW CHKOPT,NOWDATE,NOWTIME,SCHDDATE,SCHDTASK,SCHDTIME,TODAY
+ NEW MESSAGE,MSGLINE,ALERTMSG,ALRTLINE
+ ;
+ D INITVARS
+ ;
+ F  S OPTION=$O(LABTASKS(OPTION))  Q:OPTION=""  D
+ . S CHKOPT=OPTION
+ . D OPTSTAT^XUTMOPT(CHKOPT,.ROOT)
+ . S TASK=$P($G(ROOT(1)),"^")
+ . S SCHDDATE=$P($G(ROOT(1)),"^",2)
+ . S HOWOFTEN=$P($G(ROOT(1)),"^",3)
+ . ;
+ . ; If DEBUG set, then report no matter what
+ . I +$G(DEBUG) D MAKEMESG(OPTION,SCHDDATE,.MESSAGE,.MSGLINE)  Q
+ . ;
+ . ; If No date or if scheduled in the PAST, it means it's not Running.  Report it.
+ . I +$P(SCHDDATE,"@")<TODAY D MAKEMESG(OPTION,SCHDDATE,.MESSAGE,.MSGLINE)
+ . ;
+ ;
+ W:+$G(DEBUG) !,"DEBUG SET.  $D(MESSAGE)=",$D(MESSAGE),!
+ ;
+ D:$D(MESSAGE) SENDMAIL("Daily LAB Option(s) Not Scheduled.",.MESSAGE)
+ ;
+ Q
+ ;
+INITVARS ; EP
+ NEW FIRSTINS,HED,INSTALLN,INSTLLDT,LABPATCH,PTR,STATUS,WOTPATCH
+ ;
+ S LABTASKS("LRTASK ROLLOVER")=""
+ S LABTASKS("BLRTASK LAB LOG CLEANUP")=""
+ S LABTASKS("LRTASK NIGHTY")=""
+ S LABTASKS("LA7TASK NIGHTY")=""
+ ;
+ S OPTION=""
+ ;
+ S TODAY=$$DT^XLFDT
+ ;
+ S STATUS=0,WOTPATCH="LR*5.2*1099"
+ F  S WOTPATCH=$O(^XPD(9.7,"B",WOTPATCH),-1)  Q:WOTPATCH=""!($E(WOTPATCH,1,2)'="LR")!(STATUS=3)  D
+ . S PTR="AAA"
+ . F  S PTR=$O(^XPD(9.7,"B",WOTPATCH,PTR),-1)  Q:PTR=""!(STATUS=3)  D
+ .. S STATUS=$P($G(^XPD(9.7,PTR,0)),"^",9)
+ .. I STATUS=3 S LABPATCH=WOTPATCH,INSTALLN=PTR
+ ;
+ S INSTLLDT=$P($G(^XPD(9.7,INSTALLN,0)),"^",3)
+ S INSTLLDT=$TR($$FMTE^XLFDT(INSTLLDT,"2MZ"),"@"," ")
+ S HEADER(1)=$$CJ^XLFSTR("Latest IHS Lab Patch: "_LABPATCH,IOM)
+ S HEADER(2)=$$CJ^XLFSTR("Latest IHS Lab Patch Install Date: "_INSTLLDT,IOM)
+ S HED=2
+ ;
+ ; Find out about First-Time Install of Latest Lab Patch
+ S PTR=$O(^XPD(9.7,"B",LABPATCH,0))
+ S FIRSTINS=$P($G(^XPD(9.7,PTR,0)),"^",3)
+ S FIRSTINS=$TR($$FMTE^XLFDT(FIRSTINS,"2MZ"),"@"," ")
+ S:FIRSTINS'=INSTLLDT HED=HED+1,HEADER(HED)=$$CJ^XLFSTR("First Install Date for "_LABPATCH_": "_FIRSTINS,IOM)
+ ;
+ S HED=HED+1 S HEADER(HED)=$$CJ^XLFSTR("LABORATORY TASKS",IOM)
+ ;
+ S MAXLINES=22
+ S LINES=MAXLINES+10,PG=0,(HD1,QFLG)="NO"
+ ;
+ S (MSGLINE,ALRTLINE)=0
+ Q
+ ;
+CTMFUTDT ; EP - Check TaskMan FUTure DaTe
+ K ZTSK
+ S ZTSK=TASK
+ D ISQED^%ZTLOAD       ; Return Task Status
+ S SCHDTASK=$G(ZTSK("D"))
+ ;
+ S SCHDDATE=$P(SCHDTASK,",")
+ S SCHDTIME=$P(SCHDTASK,",",2)
+ ;
+ Q:SCHDDATE<NOWDATE
+ Q:SCHDDATE=NOWDATE&(SCHDTIME<NOWTIME)
+ ;
+ S STATUS=$P($G(^%ZTSK(TASK,.1)),"^",1)
+ S STATUS=$S($G(STATUS)'="":$P($G(STATUS(STATUS)),"^"),1:"***")
+ Q
+ ;
+ ; Create/Add to MESSAGE array
+MAKEMESG(OPTION,SCHDDATE,MESSAGE,MSGLINE) ; EP
+ NEW STR
+ ;
+ I MSGLINE>0 D
+ . S MSGLINE=MSGLINE+1
+ . S MESSAGE(MSGLINE)=" "
+ ;
+ S STR="Option >>> "_OPTION_" <<< Not Scheduled in TaskMan."
+ ;
+ S MSGLINE=MSGLINE+1
+ S MESSAGE(MSGLINE)=STR
+ ;
+ I +$G(SCHDDATE)>0 D
+ . S STR=$J("",10)_"Scheduled Date:"_$$UP^XLFSTR($$FMTE^XLFDT(SCHDDATE,"5MPZ"))
+ . S MSGLINE=MSGLINE+1
+ . S MESSAGE(MSGLINE)=STR
+ ;
+ Q
+ ;
+SENDALRT(ALERTMSG) ; EP - Send alert to LMI group AND Installer
+ N XQA,XQAMSG
+ ;
+ S XQAMSG=ALERTMSG_"   MailMan Message Sent."
+ S XQA("G.LMI")=""
+ ;
+ ; If installer not part of LMI Mail Group, send them alert also
+ S:$$NINLMI(DUZ) XQA(DUZ)=""
+ ;
+ D SETUP^XQALERT
+ ;
+ Q
+ ;
+NINLMI(CHKDUZ) ; EP -- Check to see if DUZ is NOT part of LMI Mail Group
+ NEW MGRPIEN,XMDUZ
+ ;
+ ; Get IEN of LMI MaiL Group
+ D CHKGROUP^XMBGRP("LMI",.MGRPIEN)  ; VA DBIA 1146
+ Q:+(MGRPIEN)<1 1                   ; If no Mail Group, return TRUE
+ ;
+ ; XMDUZ = DUZ of the user
+ ; Y     = IEN of the mail group
+ S XMDUZ=DUZ
+ S Y=MGRPIEN
+ D CHK^XMA21                        ; VA DBIA 10067
+  ;
+ Q $S($T=1:0,1:1)
+ ;
+SENDMAIL(MAILMSG,MESSAGE) ; EP -- Send MailMan E-mail to LMI group AND User
+ NEW DIFROM
+ ;
+ K XMY
+ S XMY("G.LMI")=""
+ ;
+ ; If user not part of LMI Mail Group, send them e-mail also
+ S:$$NINLMI(DUZ) XMY(DUZ)=""
+ ;
+ S LRBLNOW=$E($$NOW^XLFDT,1,12)
+ ;
+ S XMSUB=MAILMSG
+ S XMTEXT="MESSAGE("
+ S XMDUZ="BLRTASKS"
+ S XMZ="NOT OKAY"
+ D ^XMD
+ ;
+ I $G(XMMG)'=""!(XMZ="NOT OKAY") D
+ . D BMES^XPDUTL($J("",5)_"MAILMAN ERROR.")
+ . D BMES^XPDUTL($J("",10)_"XMZ:"_XMZ)
+ . D BMES^XPDUTL($J("",10)_"XMMG:"_XMMG)
+ ;
+ K X,XMDUZ,XMSUB,XMTEXT,XMY,XMZ,Y   ; Cleanup
+ ;
+ D SENDALRT(MAILMSG)
+ Q
+ ;
+DEBUG ; EP
+ NEW DEBUG
+ ;
+ S DEBUG=1
+ D EP
+ Q
+ ;
+DEBUGRPT ; EP
+ W ?4,OPTION
+ W ?34,$$UP^XLFSTR($$FMTE^XLFDT(SCHDDATE,"5MPZ"))
+ W ?64,HOWOFTEN
+ W !
+ Q

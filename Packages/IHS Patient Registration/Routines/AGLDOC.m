@@ -1,0 +1,75 @@
+AGLDOC ;IHS/SD/EFG - ADD/EDIT LEGAL DOCS ; 
+ ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;
+LDOC ;EP - ASK ADD OR EDIT LEGAL DOCUMENTS ENTRY
+ N DA,DIC,DD,DLAYGO,DO,X,Y,DIK
+ K DD,DO
+ I $D(^AUPNPLDC("C",DFN))  D
+ . S (PTR,REC,DOCPTR)=0
+ . S (ENT,DOC,ADD,DOCNUM,EFFDT,ENDDT,ENTBY)=""
+ . W !,"ENTRY DT/TIME"
+ . W ?23,"DOCUMENT"
+ . W ?64,"DT ADDED TO FILE"
+ . W !,$G(AGLINE("-"))
+ . F  S PTR=$O(^AUPNPLDC("C",DFN,PTR)) Q:'PTR  D
+ .. S REC=$G(^AUPNPLDC(PTR,0))
+ .. S ENT=$P(REC,U)
+ .. S DOCPTR=$P(REC,U,3)
+ .. I $D(^AUPNELM(DOCPTR)) S DOC=$P(^AUPNELM(DOCPTR,0),U)
+ .. S ADD=$P(REC,U,4)
+ .. W !,$$FMTE^XLFDT(ENT,1)
+ .. W ?23,$E(DOC,1,38)
+ .. W ?64,$$FMTE^XLFDT(ADD,1)
+ .. S DOCNUM=$P(REC,U,5)
+ .. S EFFDT=$P(REC,U,6)
+ .. S ENDDT=$P(REC,U,7)
+ .. I $P(REC,U,8)'="" S ENTBY=$P(^VA(200,$P(REC,U,8),0),U)
+ .. W !,"DOC#: ",DOCNUM
+ .. W ?29,"EFF DT: ",$$FMTE^XLFDT(EFFDT,1)
+ .. W ?55,"END DT: ",$$FMTE^XLFDT(ENDDT,1)
+ .. W !,"ENTERED BY: ",ENTBY
+ .. W !,$G(AGLINE("-"))
+ K DIR,X,Y
+ S DIR(0)="F"
+ S DIR("A")="Do you wish to E(dit) or A(dd) a new legal doc ?"
+ D ^DIR
+ Q:$D(DTOUT)!$D(DIRUT)!$D(DUOUT)
+ I Y'="E"&(Y'="A")&(Y'="a")&(Y'="e") G LDOC
+ I Y="E"!(Y="e") D EDTDOC
+ I Y="A"!(Y="a") D ADDDOC
+ Q
+ADDDOC ;ADD NEW LEGAL DOC
+ N DA,DIC,DD,DLAYGO,DO,X,Y,REC
+ K DD,DO
+ S DA=DFN
+ D NOW^%DTC
+ S X=%
+ S DIC="^AUPNPLDC("
+ S DIC(0)="L"
+ S DLAYGO=9000034
+ S DIC("DR")=".03R;.04R;.05;.06;.07;.02////^S X=DFN;.08////^S X=DUZ"
+ D ^DIC S REC=+Y
+ Q:$D(DTOUT)!$D(DUOUT)!(REC=-1)
+ Q
+EDTDOC ;EDIT LEGAL DOC
+ N DIE,DR,X,Y,REC,D
+ S DIC(0)="AEQZ"
+ S DA=DFN
+ S D="C"
+ S DIC("S")="I $P(^(0),U,2)=DFN"
+ S DIC="^AUPNPLDC("
+ D ^DIC S REC=+Y
+ Q:$D(DTOUT)!$D(DUOUT)!(Y=-1)
+ S DIE=DIC
+ S DA=REC
+ S DR=".03"
+ D ^DIE
+ I $P($G(^AUPNPLDC(DA,0)),U,3)=""  D
+ . S DIK="^AUPNPLDC("
+ . S DA=REC
+ . D ^DIK
+ I $P($G(^AUPNPLDC(DA,0)),U,3)'=""  D
+ . S DR=".04;.05;.06;.07;.08////^S X=DUZ"
+ . S DA=REC
+ . D ^DIE
+ Q

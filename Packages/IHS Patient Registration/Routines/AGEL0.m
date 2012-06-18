@@ -1,0 +1,95 @@
+AGEL0 ; IHS/ASDS/EFG - Add/Edit Eligibility Information ;   
+ ;;7.1;PATIENT REGISTRATION;**1,2**;JAN 31, 2007
+ ;
+DISP ;EP - DISP FLDS
+ ;Q:'$D(AGELP("PH"))!(DFN="")
+ Q:'$D(AGELP("PH"))!($G(DFN)="")  ;IHS/SD/TPF AG*7.1*1 9/6/2005
+ D ^AGELA    ;DISP FLDS
+ I $D(AGSEENLY) D ^DIR,READ^AGED1 G XIT
+ACTION ;
+ D OPT^AGEL0A
+ G XIT:$G(AGELP("PH"))=""
+ ;AFTER EDITING THE SELECTION MUST BE UPDATED SO ANY ERRORS
+ ;CORRECTED WILL BE REFLECTED ON THE REDRAWN SCREEN
+ S:$G(AGSELECT)'="" AGSELECT=$$FINDPVT^AGINSUPD(AGSELECT)
+ I ($D(MYERRS("C","E"))&(Y'?1N.N))&(Y'=AGOPT("ESCAPE")),(Y'["V"),(Y'["E"),(Y'["A"),(Y'["D") W !,"ERRORS ON THIS PAGE. PLEASE FIX BEFORE EXITING!!" H 3 G DISP
+ Q:$G(Y)=AGOPT("ESCAPE")
+ G XIT:$D(DIROUT)!(Y="N")!$D(DUOUT)!$D(DTOUT) G DISP:Y["V"
+ I Y="A",$P(^AUPN3PPH(AGELP("PH"),0),U,5)]"",$D(^AUTTPIC($P(^(0),U,5),0)),$P(^(0),U,4)="S" W !!?5,*7,"The COVERAGE TYPE for this Policy is for SELF ONLY, thus no members"
+ I  W !?5,"may be added! Change the Coverage Type if it is incorrect!" H 5 G DISP
+ I Y="A" S TEMPDFN=DFN S AGEL("LBL")=$S($P(^AUTNINS(AGELP("INS"),2),U)="D":"D14^AGEL2",1:"V14^AGEL3") D @AGEL("LBL") S (AUPNPAT,DFN)=TEMPDFN G DISP
+ I Y="D" D DEL^AGEL0A G XIT:'$D(AGELP("PH")),DISP
+EDIT ;Entry of Claim Identifiers
+ S AGELP("MODE")="E"  ;IF THIS TAG ENTERED THEN WE ARE IN EDIT MODE
+ D FLDS^AGEL0A
+ G XIT:$D(DTOUT)!$D(DIROUT)!$D(DUOUT)!$D(DTOUT)
+ W !!
+EDLOOP ;EP - LOOP ASKING FOR FIELD INPUT
+ ;THIS LOOP ENTERS WITH DA SET TO THE POLICY HOLDER PTR
+ S DR="" F AGEL("I")=1:1 S AGEL=$P(AGELP("FLDS"),",",AGEL("I")) Q:AGEL=""!$D(DUOUT)!$D(DTOUT)  D
+ .S AGEL("TYP")="H"
+ .I AGEL=1 D ^AGELPHCK Q
+ .I AGEL=5 D PHSEX^AGEL4 Q
+ .I AGEL=6 D PHDOB^AGEL4 Q
+ .I AGEL=7 D PCP^AGEL4 Q
+ .I AGEL=8 D ESTAT^AGEL4 Q
+ .I AGEL=9 D EMP^AGEL4 Q
+ .I AGEL=10 D GRP^AGEL4 Q
+ .I AGEL=11 D COV^AGEL4 Q
+ .I AGEL=12 D CARDCOPY^AGEL4 Q
+ .I AGEL>7&(AGEL<10) D
+ ..S AGEL("TYP")=$S($P(^AUPN3PPH(AGELP("PH"),0),U,2)]"":"P",1:"H")
+ .I '$D(AGELP("PHPAT")),$P(^AUPN3PPH(AGELP("PH"),0),U,2)]"" S AGELP("PHPAT")=$P(^(0),U,2)
+ .I AGEL>9,AGEL<11,AGELP("TYPE")="MCD" Q
+ .E  K DIE("NO^")
+ .I AGEL=8 D
+ ..S AGEL("TYP")=$S($P(^AUPN3PPH(AGELP("PH"),0),U,2)]"":"S",1:"H")
+ .I AGEL=9 S AGEL("D")=AGEL("TYP")_14_"^AGEL4" D @AGEL("D") Q
+ .I AGEL>12 D
+ ..S AGEL("TYP")=$S($P(^AUTNINS(AGELP("INS"),2),U)="D":"D",1:"V")
+ ..S AGEL("D")=AGEL("TYP")_14_"^AGEL5" D @AGEL("D") Q
+ .S AGEL("T")=AGEL
+ .S DR=$P($T(@(AGEL("TYP")_AGEL("T"))),";;",2)
+ .S DIE=$S(AGEL("TYP")="H":"^AUPN3PPH(",AGEL("TYP")="P":"^DPT(",AGEL("TYP")="D":"^AUPNMCD(",AGEL("TYP")="S":"^AUPNPAT(",1:"^AUPNPRVT(")
+ .S DA=$S(AGEL("TYP")="H":$G(AGELP("PH")),AGEL("TYP")="D":$G(AGELP("MCD")),AGEL("TYP")="V":$G(AGELP("PI")),1:$G(AGELP("PHPAT")))
+ .;IF THE USER CHOOSES 2 OR 3 THIS SHOULD BE THE PRIVATE INSURANCE FILE NOT POLICY HOLDER FILE 
+ .I AGEL=2!(AGEL=3) S DIE("NO^")=""
+ .;I AGEL=3!(AGEL=4) D  Q
+ .;.M TEMPDR=DR,TEMPDIE=DIE,TEMPDIC=DIC
+ .;.K DIR,DR,DIE,DIC
+ .;.I AGEL=3 S DIE("NO^")=""
+ .;.S DR=$S(AGEL=3:".06R",1:".07")
+ .;.S PRVTIEN=$P(AGINSREC,U,11)
+ .;.S DA(1)=$P(PRVTIEN,",")
+ .;.S DA=$P(PRVTIEN,",",3)
+ .;.S DIE="^AUPNPRVT("_DA(1)_",11,"
+ .;.D ^DIE
+ .;.K DIR,DR,DIE,DIC
+ .;.M DR=TEMPDR K TEMPDR
+ .;.M DIC=TEMPDIC K TEMPDIC
+ .;.M DIE=TEMPDIE K TEMPDIE
+ .Q:$G(DA)=""
+ .D ^DIE
+ K %DT
+ Q:AGELP("MODE")="A"
+ ;AFTER EDITING THE SELECTION MUST BE UPDATED SO ANY ERRORS
+ ;CORRECTED WILL BE REFLECTED ON THE REDRAWN SCREEN
+ S:$G(AGSELECT)'="" AGSELECT=$$FINDPVT^AGINSUPD(AGSELECT)
+ D UPDT^AGEL5
+ G DISP
+H1 ;;.01R~[1] Name on Policy..: 
+H2 ;;.04R~[2] Policy or SSN...:
+H3 ;;.17R~[3] Effective Date..: 
+H4 ;;.18[4] Expiration Date.:
+H11 ;;.08R~[11] Sex of Insured..: 
+P11 ;;W !,"** Patient Registraion Data (SEX) is Uneditable **"
+H12 ;;.19[12] DOB of Insured..: 
+P12 ;;W !,"** Patient Registraion Data (DOB) is Uneditable **"
+H9 ;;W !;W "<--------------INSURED'S ADDRESS-------------->";.09[9a] Street...: ;I X="" S Y="@9";.11[9b] City.....: ;.12[9c] State....: ;.13[9d] Zip......: ;W !;@9
+P9 ;;W !;W "<--------------INSURED'S ADDRESS-------------->";.111[9a] Street...: ;I X="" S Y="@9";.114[9b] City.....: ;.115[9c] State....: ;.116[9d] Zip......: ;W !;@9
+H10 ;;.14[10] Phone.....: 
+P10 ;;.131[10] Phone.....: 
+H13 ;;.15[13] Empl Stat.: 
+S13 ;;.21[13] Empl Stat.: 
+ ;
+XIT Q

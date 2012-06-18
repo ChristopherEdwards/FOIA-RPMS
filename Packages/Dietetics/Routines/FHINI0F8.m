@@ -1,0 +1,118 @@
+FHINI0F8	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9389,0)
+	;;=TURKEY,SAUSAGE,SMOKED W/CHEESE,LOUIS RICH^BC-02662^3.5-oz.^100
+	;;^UTILITY(U,$J,112,9389,1)
+	;;=16.5^10.1^2.6^167^67.6^^^38^.97^19^260^184^916^1.85
+	;;^UTILITY(U,$J,112,9389,2)
+	;;=^^^^^^^^59^2.8^2.7^1.9
+	;;^UTILITY(U,$J,112,9389,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9390,0)
+	;;=TURKEY,THIGH,CKD,LOUIS RICH^BC-02663^3.5-oz.^100
+	;;^UTILITY(U,$J,112,9390,1)
+	;;=26.8^13.1^.4^227^59.2^^^11^1.92^19^182^194^69^3.95
+	;;^UTILITY(U,$J,112,9390,2)
+	;;=^^^^^^^^97^3.3^4.3^2.7
+	;;^UTILITY(U,$J,112,9390,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9391,0)
+	;;=TURKEY,THIGH W/SKIN,PREBASTED,ROASTED^BC-02664^11.1-oz.^314
+	;;^UTILITY(U,$J,112,9391,1)
+	;;=18.79^8.535^0^157.325^70.605^^^7.962^1.51^16.879^171.019^241.401^436.624^4.121^.139^^^0^0^.083
+	;;^UTILITY(U,$J,112,9391,2)
+	;;=.287^^^^^^^^61.783^2.643^2.516^2.357^0
+	;;^UTILITY(U,$J,112,9391,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9392,0)
+	;;=TURKEY,WING DRAMETTE,CKD,LOUIS RICH^BC-02665^3.5-oz.^100
+	;;^UTILITY(U,$J,112,9392,1)
+	;;=27.4^7.8^.6^182^64^^^9^1.01^18^146^158^69^2.78
+	;;^UTILITY(U,$J,112,9392,2)
+	;;=^^^^^^^^88^2.4^3^1.8
+	;;^UTILITY(U,$J,112,9392,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9393,0)
+	;;=TURKEY,WINGS,CKD,LOUIS RICH^BC-02666^3.5-oz.^100
+	;;^UTILITY(U,$J,112,9393,1)
+	;;=25.6^9.6^.7^191^63.9^^^10^1^18^127^145^67^3.05
+	;;^UTILITY(U,$J,112,9393,2)
+	;;=^^^^^^^^101^2.7^3.8^2.4
+	;;^UTILITY(U,$J,112,9393,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9394,0)
+	;;=SALAD DRESSING,BLUE CHEESE,MARIE'S LITE^BC-02667^tbsp.^15
+	;;^UTILITY(U,$J,112,9394,1)
+	;;=3.333^22^22.667^300^^^^106.667^.667^^^73.333^1240^^^^^0^0^.067
+	;;^UTILITY(U,$J,112,9394,2)
+	;;=.067^0^^^^^^^20^4^^11.333
+	;;^UTILITY(U,$J,112,9394,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9395,0)
+	;;=SALAD DRESSING,BLUE CHEESE,NUTRADIET^BC-02668^tbsp.^15
+	;;^UTILITY(U,$J,112,9395,1)
+	;;=0^13.333^13.333^166.667^^^^^^^^^1333.333
+	;;^UTILITY(U,$J,112,9395,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9396,0)
+	;;=SALAD DRESSING,BLUE CHEESE,WISH-BONE LITE CHUNKY^BC-02669^.5-floz.^15
+	;;^UTILITY(U,$J,112,9396,1)
+	;;=2^24.667^10^266.667^^^^0^0^0^0^0^1313.333^0^0^0^^0^0^0
+	;;^UTILITY(U,$J,112,9396,2)
+	;;=0^0^^^^^^^6.667^5.333^6^12.667
+	;;^UTILITY(U,$J,112,9396,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9397,0)
+	;;=SALAD DRESSING,DIJON,CREAMY (LOW CAL),ESTEE^BC-02670^tbsp.^15
+	;;^UTILITY(U,$J,112,9397,1)
+	;;=0^0^4.667^53.333^^^^^^^^133.333^666.667
+	;;^UTILITY(U,$J,112,9397,2)
+	;;=^^^^^^^^33.333^0
+	;;^UTILITY(U,$J,112,9397,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9398,0)
+	;;=SALAD DRESSING,FRENCH,NUTRADIET^BC-02671^tbsp.^15
+	;;^UTILITY(U,$J,112,9398,1)
+	;;=0^0^20^120^^^^^^^^^800
+	;;^UTILITY(U,$J,112,9398,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9399,0)
+	;;=SALAD DRESSING,FRENCH,RED,WISH-BONE^BC-02708^.5-floz.^15
+	;;^UTILITY(U,$J,112,9399,1)
+	;;=.667^37.333^26^426.667^^^^6.667^0^^^^1133.333^^^^^1926.667^6.667^0
+	;;^UTILITY(U,$J,112,9399,2)
+	;;=0^0^^^^^^^0^5.333^16^14
+	;;^UTILITY(U,$J,112,9399,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9400,0)
+	;;=SALAD DRESSING,FRENCH,SWEET 'N SPICY,WISH-BONE^BC-02709^.5-floz.^15
+	;;^UTILITY(U,$J,112,9400,1)
+	;;=.667^38^19.333^406.667^^^^6.667^.667^^^^1040^^^^^280^6.667^0
+	;;^UTILITY(U,$J,112,9400,2)
+	;;=0^0^^^^^^^0^5.333^16^14
+	;;^UTILITY(U,$J,112,9400,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9401,0)
+	;;=SALAD DRESSING,FRENCH,WISH-BONE LITE^BC-02674^.5-floz.^15
+	;;^UTILITY(U,$J,112,9401,1)
+	;;=.667^16.667^12.667^200^^^^0^0^0^0^0^446.667^0^0^0^^0^0^0
+	;;^UTILITY(U,$J,112,9401,2)
+	;;=0^0^^^^^^^0^.667^^.667
+	;;^UTILITY(U,$J,112,9401,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9402,0)
+	;;=SALAD DRESSING,GARLIC,CREAMY (LOW CAL),ESTEE^BC-02675^tbsp.^15
+	;;^UTILITY(U,$J,112,9402,1)
+	;;=0^0^3.333^13.333^^^^^^^^733.333^66.667
+	;;^UTILITY(U,$J,112,9402,2)
+	;;=^^^^^^^^0^0
+	;;^UTILITY(U,$J,112,9402,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9403,0)
+	;;=SALAD DRESSING,ITALIAN,CHEESE,FROM MIX,GOOD SEASONS LITE^BC-02676^tbsp.^15
+	;;^UTILITY(U,$J,112,9403,1)
+	;;=0^20^6.667^180^^^^13.333^^^13.333^33.333^913.333^^^^^160
+	;;^UTILITY(U,$J,112,9403,2)
+	;;=^^^^0^^^^0

@@ -1,0 +1,26 @@
+BMEMLOG ; IHS/PHXAO/TMJ - Print Logs by Date Range ; 
+ ;;1.0T1;MEDICAID ELIGIBILITY DOWNLOAD;;JUN 25, 2003
+ ;
+ ;
+ASK ;Ask For Date Range
+ ;
+ ;
+BD ;get beginning date
+ W !! S DIR(0)="D^::EP",DIR("A")="Enter beginning LOG RUN Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G END
+ S BMEBD=Y
+ED ;get ending date
+ W ! S DIR(0)="D^"_BMEBD_"::EP",DIR("A")="Enter ending LOG RUN Date"  D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S BMEED=Y
+ S X1=BMEBD,X2=-1 D C^%DTC S BMESD=X
+ W !
+ ;
+PRINT ;PRINT CLOSED DISCLOSURES BY DATE
+ ;W !
+ S FLDS="[CAPTIONED]",BY="@INTERNAL(#.01)",DIC="^BMEMLOG(",L=0
+ S FR=BMEBD,TO=BMEED
+ K DHIT,DIOEND,DIOBEG
+ D EN1^DIP
+END ;
+ K BMEBD,BMEED,X,DD0,B Q

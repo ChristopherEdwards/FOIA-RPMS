@@ -1,0 +1,67 @@
+APCUKWL ; LOOKUP DRIVER PROGRAM FOR "AND"ING INVERTED SEARCH ; [ 11/13/86  9:39 AM ]
+ ; ASSUMES LINE(L=TYPE^LINE),DICTIONARY(DIC),INDEX(DIC("X"))
+ K Y
+ S T=$P(L,"^",1),HITLIMIT=$P(L,"^",3),L=$P(L,"^",2,999)
+ K:HITLIMIT="" HITLIMIT
+ I '$D(^APCUKWLC("B",T)) W *7,"<WARNING: SYNONYM/REPLACEMENT TABLE MISSING>",! S KWCT=0
+ E  S KWCT=$O(^APCUKWLC("B",T,""))
+INIT I DIC'["^",DIC'?1N.N,DIC'?1N.N1"."1N.N S DIC=$O(^DIC("B",DIC,""))
+ S:DIC'["^" DIC=^DIC(DIC,0,"GL")
+ S REF=DIC_""""_DIC("X")_""",WD)"
+ S REF1=DIC
+ S REF2=$E(REF,1,$L(REF)-1)_","""")"
+ S REF3=DIC_"HITS(H),0)"
+ S REF4=$E(REF,1,$L(REF)-1)_",D)"
+CHKSHRT I $D(^APCUKWLC(KWCT,3,"B",L)) S I=$O(^(L,"")),L=$P(^APCUKWLC(KWCT,3,I,0),"^",2) S Y=$S($D(@(REF1_"""B"",L)")):$O(^(L,"")),1:-1) Q:Y=-1  K HITS S HITS=1,HITS(1)=Y G VERIFY
+ D ^APCUTOKN
+ K WORD,DFN,AWORD,ADFN,UNUSED S UNUSED=0
+ D PREPSCH^APCUKWL1
+ I UNUSED>0 W !,"The following word",$S(UNUSED=1:" was",1:"s were")," not used in this search:",! S WD="" F Q=0:0 S WD=$O(UNUSED(WD)) Q:WD=""  W ?5,WD,!
+ K UNUSED
+ S HITS=0 D:NWDS ^APCUKSCH
+ I HITS=0 W "Search was unsuccessful.",! S Y=-1 G EXIT
+VERIFY ;
+ D ASKONE:HITS=1,ASKSEL:HITS>1
+EXIT ;
+ K HITS,WD,NWDS
+ K REF,REF1,REF2,REF3,REF4
+ Q
+ ;
+ASKONE ; ASK IF SINGLE HIT IS ACCEPTABLE
+ W !
+ S H=1,NUM=0
+ D DSPLY
+ F Q=0:0 R " OK? Y// ",X,! S X=$E(X_"Y") S:X?1L X=$C($A(X)-32) Q:"YN"[X  W $C(7)
+ I X="N" S Y=-1
+ E  S Y=HITS(1)
+ K H,NUM,DESC,F
+ Q
+ ;
+ASKSEL ; ASK FOR SELECTION AMONG HITS
+ W !!,"The following matches were found:",!!
+ S NUM=1,GRP=1
+DSPGRP S H2=$S((GRP+4)'>HITS:GRP+4,1:HITS)
+ F H=GRP:1:H2 D DSPLY
+ W !
+ F Q=0:0 W "Select 1-",HITS,": " R X,! Q:X["^"!(X="")!(X="-")  Q:X?1N.N&(X>0)&(X'>HITS)  W $C(7)
+ I X="" S GRP=$S((GRP+5)'>HITS:GRP+5,1:1) G DSPGRP
+ I X="-" S GRP=$S(GRP'=1:GRP-5,1:HITS-1\5*5+1) G DSPGRP
+ I X?1"^"1N.N S I=($E(X,2,255)-1)\5*5+1 I I'>HITS S GRP=I G DSPGRP
+ I X["^" S Y=-1
+ E  S Y=HITS(X)
+ K H,NUM,H2,GRP,DESC,F
+ Q
+ ;
+DSPLY ; DISPLAY CODE AND TEXT
+ S I=HITS(H)
+ W:NUM $J(H,4),": "
+ W $P(@(REF1_"I,0)"),"^",1)," ","(",$P(^(0),"^",3),")",!
+ S DESC=^(1)
+ F Q=0:0 Q:DESC=""  D GETFRAG  W:NUM ?7 W F,!
+ W !
+ Q
+GETFRAG I $L(DESC)<66 S F=DESC,DESC="" Q
+ F C=66:-1:1 Q:$E(DESC,C)=" "
+ S F=$E(DESC,1,C-1),DESC=$E(DESC,C+1,255)
+ Q
+ 

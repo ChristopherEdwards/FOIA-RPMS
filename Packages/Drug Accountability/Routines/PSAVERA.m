@@ -1,0 +1,139 @@
+PSAVERA ;BHM/DBM - Change verified invoice data;16AUG05
+ ;;3.0; DRUG ACCOUNTABILITY/INVENTORY INTERFACE;**21,36,40,53**; 10/24/97
+ ;
+ ;References to ^DIC(51.5 are covered by IA #1931
+ ;References to ^PSDRUG( are covered by IA #2095
+ D Q
+ D HOME^%ZIS S XX="VERIFIED INVOICE ALTERATION SCREEN" W @IOF,!!,?((IOM/2)-($L(XX)/2)),XX,!!
+ORDR ;Get Order Number
+ S DIC(0)="AEQMZ",DIC("A")="Select Order Number: ",DIC="^PSD(58.811," D ^DIC K DIC G Q:+Y'>0 S PSAIEN=+Y,PSAORD=$P(Y,U,2)
+ ;
+INV ;Get Invoice Number
+ S DIC(0)="AEQMZ",DIC("A")="Select Invoice Number: ",DIC="^PSD(58.811,"_PSAIEN_",1,",D="ASTAT" D ^DIC K DIC G Q:+Y'>0 S PSAIEN1=+Y,PSAINV=$P(Y,U,2)
+ ;
+ S DATA=$G(^PSD(58.811,PSAIEN,1,PSAIEN1,0))
+ S PSALOC=$S($P(DATA,"^",12)'="":$P(DATA,"^",12),1:$P(DATA,"^",5)) I $G(PSALOC)="" S PSALOC="No Location identified"
+ D ^PSAVERA1
+ ;
+ K DATA,PSAITM,LINENUM,X,X1,X2,X3,DIC,DA,DR D HDR
+DISP S PSAITM=$S('$D(PSAITM):$O(INVARRAY(PSAORD,PSAINV,0)),1:$O(INVARRAY(PSAORD,PSAINV,PSAITM))) G LINEASK:PSAITM'>0 S LINENUM=$G(LINENUM)+1
+ S DATA=$G(INVARRAY(PSAORD,PSAINV,PSAITM))
+ S PSAOU=$P(DATA,"^",4) I $G(PSAOU) S PSAOU(1)=$P($G(^DIC(51.5,$P(DATA,"^",4),0)),"^") ;Current Order Unit
+ W !,PSAITM,?10,$S($P($P(DATA,"^",1),"~",1)'>0:$P($P(DATA,"^",1),"~",1),1:$P($P(DATA,"^",1),"~",2)),?45,$S($G(PSAOU)="":"none",$G(PSAOU(1))'="":$G(PSAOU(1)),1:$G(PSAAOU)),?55,$J($P($G(DATA),"^",2),4),?61,$P(DATA,"^",5)
+ I IOST["C-",$Y>(IOSL-5) S DIR(0)="E" D ^DIR G Q:$G(DUOUT)=1 D HDR
+ G DISP
+LINEASK ;ask for line number
+ W !,"Enter the corresponding item number to edit: " R AN:DTIME I AN["^"!(AN="") G Q
+ I AN<1!(AN>LINENUM) W !,"Enter a number between 1 & ",LINENUM,! G LINEASK
+ I "?"[AN W !,"Select the number that corresponds to the line item that needs editing",! K AN G LINEASK
+ S DATA=$G(INVARRAY(PSAORD,PSAINV,AN))
+ S PSALINE=AN,PSAIN="NADA" I '$D(^PSD(58.811,PSAIEN,1,PSAIEN1,1,PSALINE,0)) W !,"Invalid line selection." G LINEASK
+ S PSADATA=^PSD(58.811,PSAIEN,1,PSAIEN1,1,PSALINE,0),PSASUP=0
+ S PSACS=0 S:+$P(PSADATA,"^",10) PSACS=$G(PSACS)+1
+ S PSANDC=$P(PSADATA,"^",11)
+ S PSALINEN="" D VERDISP^PSAUTL4 W !,PSASLN,!
+ S PSAVEND=$P(^PSD(58.811,PSAIEN,0),"^",2)
+ ;VMP OIFO BAY PINES;VGF;PSA*3.0*40;GET ORIGINAL DISPENSE UNITS PER ORDER UNIT FOR SUBTRACTION
+ S PSAODUOU=PSADUOU
+ ;
+DRG W !,"Select (D)rug or (O)rder Unit " R AN:DTIME G Q:AN["^"!(AN="") W $S("Dd"[AN:"rug","oO"[AN:"rder Unit",1:"??") I "DdOo"'[AN W !,"Enter a 'D' to edit the Drug, or 'O' to edit the order unit",! K AN G DRG
+ I "Dd"'[AN G ^PSAVERA3
+ ;Get either new name of drug or supply item description
+ S PSABEFOR=$P(DATA,"~",1),PSABEFOR(1)=$S(PSABEFOR'?.N:PSABEFOR,1:$P($P(DATA,"^"),"~",2))
+ S PSABEFOR("NDC")=$P(PSADATA,"^",11)
+DRGAGN D
+ .S X1=0 F  S X1=$O(^PSDRUG(PSABEFOR,1,X1)) Q:X1'>0  S DATA=$G(^PSDRUG(PSABEFOR,1,X1,0)) I $P(DATA,"^",2)=PSABEFOR("NDC") S PSABEFOR("SYNNODE")=X1
+ D PSANDC1^PSAHELP S PSADASH=PSANDCX K PSANDCX
+ I $G(PSABEFOR("SYNNODE"))="",$E(PSABEFOR("NDC"))'="S" S PSABEFOR("NDC")="S"_PSABEFOR("NDC") G DRGAGN ;may be supply, try again
+ I $G(PSABEFOR("SYNNODE"))'="" S PSASUB=PSABEFOR("SYNNODE") D
+ .S DATA=$G(^PSDRUG(PSABEFOR,1,PSASUB,0)),PSAOU=$P(DATA,"^",5),PSAPOU=$P(DATA,"^",6),PSADUOU=$P(DATA,"^",7),PSAPDUOU=$P(DATA,"^",8)
+ .S PSADU=$P($G(^PSDRUG(PSABEFOR,660)),"^",8)
+ I ($G(PSAOU)=""!$G(PSAPOU)=""!$G(PSADUOU)=""!$G(PSAPDUOU)="") W !!,"Sorry, I could not find the necessary information to change the drug selection.",! G Q
+ W !,"Current Drug : ",PSABEFOR(1)
+DRG1 S PSAGAIN=0,DIC("A")="Select name of Correct Drug: ",PSABEFOR=PSADRG,DIC(0)="AEQMZ",DIC="^PSDRUG(" D ^DIC K DIC G Q:PSAOUT
+ I $G(DTOUT)!($G(DUOT)) S PSAOUT=1 Q
+ S (PSADJ,PSADRG)=+Y
+ W !!,"Comparing drug file data..."
+ S PSAODU=$P($G(^PSDRUG(PSADRG,660)),"^",8),PSAXDUOU=$P($G(^PSDRUG(PSADRG,660)),"^",5)
+ I $P($G(^PSDRUG(PSADRG,660)),"^",2)'=$G(PSAOU) W !,"The Order Units are different between these two drugs."
+ I $P($G(^PSDRUG(PSADRG,660)),"^",8)'=$G(PSADU) W !,"Please Enter an appropriate Dispense Unit" S DIE="^PSDRUG(",DA=PSADRG,DR="14.5" D ^DIE S PSADU=$P(^PSDRUG(PSADRG,660),"^",8)
+ ;VMP OIFO BAY PINES;VGF;PSA*3.0*36
+ I $P($G(^PSDRUG(PSADRG,660)),"^",5)'=$G(PSADUOU) W !,"Please enter the appropriate Dispense Units per order unit" S DIE="^PSDRUG(",DA=PSADRG,DR="15" D ^DIE S PSADUOU=$P(^PSDRUG(PSADRG,660),"^",5)
+ K DIE,DA,DR
+ASK R !!,"Are you sure about this ?  NO// ",AN:DTIME G NOCHNG:AN["^"!(AN="")
+ S AN=$E(AN) I "yYnN"'[AN W !,"Answer yes, and the data on file for the current drug will be transferred",!,"to the new drug selection.",!,"That includes Order Unit, Dispense Unit, Dispense Units per Order Unit, etc.",!! G ASK
+ I "Nn"[AN G NOCHNG ;*53
+ ;VMP OIFO BAY PINES;VGF;PSA*3.0*36
+ S PSAAFTER=PSADRG,PSADRG=PSABEFOR
+ I $D(^PSDRUG(PSADRG)) D
+ .;VMP OIFO BAY PINES;VGF;PSA*3.0*40
+ .W !,"Removing "_($G(PSAQTY)*$G(PSAODUOU))_" from "_PSABEFOR(1)
+ .S FMDATA=$P($G(^PSDRUG(PSADRG,660.1)),"^")-(PSAODUOU*PSAQTY)
+ .S DIE="^PSDRUG(",DA=PSADRG,DR="50////^S X="_FMDATA
+ .F  L +^PSDRUG(DA,0):0 I  Q
+ .D ^DIE
+ .L -^PSDRUG(DA,0)
+ .K FMDATA
+ S PSADRG=PSAAFTER
+ I $G(PSAPOU)="",$G(PSAPRICE)'="" S PSAPOU=PSAPRICE
+ W !,"Adding "_($G(PSAQTY)*$G(PSADUOU))_" to "_$P($G(^PSDRUG(PSADRG,0)),"^")
+ W !,"Entering new drug selection as an adjustment."
+ S PSAREA="",PSADJFLD="D",PSADJ=PSADRG D RECORD^PSAVER2
+ D 50^PSAVER7
+FILE ;File dispense units per order units into 58.811
+ S DIE="^PSD(58.811,"_PSAIEN_",1,"_PSAIEN1_",1,"
+ S DA=PSALINE,DA(1)=PSAIEN1,DA(2)=PSAIEN
+ S DR="10///"_PSADUOU
+ D ^DIE
+ ;File data in 58.8
+ ;PSALOC= Either PSALOC or PSALOCB
+ ;VMP OIFO BAY PINES;VGF;PSA*3.0*40;UPDATE 
+ S PSADRG=PSABEFOR
+ F  L +^PSD(58.8,PSALOC,1,PSADRG,0):0 I  Q
+ S PSADUREC=PSAQTY*$G(PSAODUOU)
+ S PSABAL=$P($G(^PSD(58.8,PSALOC,1,PSADRG,0)),"^",4)
+ S $P(^PSD(58.8,PSALOC,1,PSADRG,0),"^",4)=PSABAL-PSADUREC
+ L -^PSD(58.8,PSALOC,1,PSADRG,0)
+ ;VMP OIFO BAY PINES;VGF;PSA*3.0*40;ADDED *$G(PSADUOU)
+ S PSADRG=PSAAFTER
+ S PSADUREC=PSAQTY*$G(PSADUOU)
+ D NOW^%DTC S PSADT=+$E(%,1,14)
+ I '$D(^PSD(58.8,PSALOC,1,PSADRG,0)) D
+ .S:'$D(^PSD(58.8,PSALOC,1,0)) DIC("P")=$P(^DD(58.8,10,0),"^",2)
+ .S DA(1)=PSALOC,DIC="^PSD(58.8,"_DA(1)_",1,",(DA,DINUM,X)=PSADRG,DIC(0)="L",DLAYGO=58.8 ;*53
+ .F  L +^PSD(58.8,PSALOC,0):0 I  Q
+ .D FILE^DICN L -^PSD(58.8,PSALOC,0) K DIC,DA,DLAYGO
+ F  L +^PSD(58.8,PSALOC,1,PSADRG,0):0 I  Q
+ S PSABAL=$P($G(^PSD(58.8,PSALOC,1,PSADRG,0)),"^",4)
+ I $P($G(^PSD(58.8,PSALOC,1,PSADRG,0)),"^",1)'=PSADRG S $P(^PSD(58.8,PSALOC,1,PSADRG,0),"^",1)=PSADRG
+ S $P(^PSD(58.8,PSALOC,1,PSADRG,0),"^",4)=PSADUREC+PSABAL
+ I +$P($G(^PSD(58.8,PSALOC,0)),"^",14) D
+ .I PSASTOCK'=$P(^PSD(58.8,PSALOC,1,PSADRG,0),"^",3) S $P(^PSD(58.8,PSALOC,1,PSADRG,0),"^",3)=PSASTOCK
+ .I PSAREORD'=$P(^PSD(58.8,PSALOC,1,PSADRG,0),"^",5) S $P(^PSD(58.8,PSALOC,1,PSADRG,0),"^",5)=PSAREORD
+ S:'$D(^PSD(58.8,PSALOC,1,PSADRG,5,0)) DIC("P")=$P(^DD(58.8001,20,0),"^",2)
+ I '$D(^PSD(58.8,PSALOC,1,PSADRG,5,$E(DT,1,5)*100,0)) D
+ .S DIC="^PSD(58.8,"_PSALOC_",1,"_PSADRG_",5,",DIC(0)="L",DIC("DR")="1////^S X=$G(PSABAL)",(X,DINUM)=$E(DT,1,5)*100,DA(2)=PSALOC,DA(1)=PSADRG,DLAYGO=58.8 D ^DIC K DIC
+ .S X="T-1M" D ^%DT S DIC="^PSD(58.8,"_PSALOC_",1,"_PSADRG_",5,",DIC(0)="L",(X,DINUM)=$E(Y,1,5)*100 D ^DIC K DIC,DLAYGO S DA=+Y
+ .S DA(2)=PSALOC,DA(1)=PSADRG,DIE="^PSD(58.8,"_DA(2)_",1,"_DA(1)_",5,",DR="3////^S X=$G(PSABAL)" D ^DIE K DIE
+ S DA(2)=PSALOC,DA(1)=PSADRG,DIE="^PSD(58.8,"_DA(2)_",1,"_DA(1)_",5,",DA=$E(DT,1,5)*100,DR="5////^S X="_($P($G(^(0)),"^",3)+PSADUREC) D ^DIE K DIE
+ L -^PSD(58.8,PSALOC,1,PSADRG,0)
+ W !,"updating pharmacy location file."
+FILE581 ;Update transaction file
+ S PSAVDUZ=DUZ
+FIND S PSAT=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSAT)) S $P(^PSD(58.81,0),"^",3)=$P(^PSD(58.81,0),"^",3)+1 G FIND
+ S DIC="^PSD(58.81,",DIC(0)="L",DLAYGO=58.81,(DINUM,X)=PSAT D ^DIC K DIC,DINUM,DLAYGO L -^PSD(58.81,0)
+ S DIE="^PSD(58.81,",DA=PSAT,DR="1////1;2////^S X=PSALOC;3////^S X=PSADT;4////^S X=PSADRG;5////^S X=PSADUREC;6////^S X=PSAVDUZ;9////^S X=PSABAL;71////^S X=PSAINV;106////^S X=PSAORD"
+ I $G(PSACS)>0 S DR=DR_";100////^S X=PSACS"
+ F  L +^PSD(58.81,DA,0):0 I  Q
+ D ^DIE L -^PSD(58.81,DA,0) K DIE W !,"updating transaction file." Q
+ ;
+HDR W @IOF,!?25,"EDIT VERIFIED INVOICED ITEM SCREEN",!,PSASLN,!
+ W !,?44,"Order",!,"#",?10,"Drug/Item Name",?45,"Unit",?56,"Qnty.",?67,"NDC",!,PSASLN,! Q
+Q K AN,D,DA,DATA,DIC,DIR,INVARRAY,LINENUM,PSA50IEN,PSABAL,PSABEFOR,PSACS,PSADATA,PSADJ,PSADJFLD,PSADRG,PSADT,PSADUREC,PSAGAIN,PSAIEN,PSAIEN1,PSAIN,PSAINV,PSALINE,PSALINEN
+ K PSALOC,PSANDC,PSAORD,PSAOUT,PSAQTY,PSAREA,PSAREORD,PSASLN,PSASTOCK,PSASUB,PSASUP,PSASUPP,PSAT,PSAVER,X,X1,X2,X3,XX,XXX,Y,PSAODUOU
+ K PSAODU,PSAODUOU,PSAXDUOU
+ Q
+NOCHNG ;*53 said no to changes, backout the edits on the new drug choice.
+ K DIE,DR,DA
+ S DIE="^PSDRUG(",DA=PSADRG,DR="14.5////^S X=PSAODU;15////^S X=PSAXDUOU" D ^DIE
+ W !,"NO CHANGE",! G Q

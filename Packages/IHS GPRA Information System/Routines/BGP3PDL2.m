@@ -1,0 +1,93 @@
+BGP3PDL2 ; IHS/CMI/LAB - print ind 1 ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;
+ ;
+ ;this routine for Indicator I14 ONLY
+I14 ;EP
+ D H1 S BGPNODEN=1
+ F BGPPC1="014.A" D PI
+ Q
+PI ;EP
+ K BGPCYP,BGPBLP,BGPPRP
+ S BGPPC=$O(^BGPINDC("AA",BGPPC1,0))
+ I BGPRTYPE'=4,BGPINDT="G",$P(^BGPINDC(BGPPC,0),U,5)'=1 Q
+ I BGPRTYPE'=4,BGPINDT="A",$P(^BGPINDC(BGPPC,0),U,6)'=1 Q
+ I BGPINDT="D",$P(^BGPINDC(BGPPC,0),U,12)'=1 Q
+ I BGPINDT="C",$P(^BGPINDC(BGPPC,0),U,13)'=1 Q
+ ;get numerator value of indicator and calc %
+ S BGPDF=$P(^BGPINDC(BGPPC,0),U,9)
+ S BGPNP=$P(^DD(90243,BGPDF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
+ S BGPCYD=$$V(1,BGPRPT,N,P)
+ S BGPPRD=$$V(2,BGPRPT,N,P)
+ S BGPBLD=$$V(3,BGPRPT,N,P)
+ S BGPPC2=0 F  S BGPPC2=$O(^BGPINDC("AA",BGPPC1,BGPPC2))  Q:BGPPC2'=+BGPPC2  D
+ .S BGPNF=$P(^BGPINDC(BGPPC2,0),U,9)
+ .S BGPNP=$P(^DD(90243,BGPNF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
+ .D SETN
+ .;write header for 1.A.1
+ .S X=$P(^BGPINDC(BGPPC2,0),U,15) I BGPRTYPE'=1 D S(X,1,1)
+ .I BGPRTYPE=1 S X=" " D S(X,1,1)
+ .I $P(^BGPINDC(BGPPC2,0),U,16)]"" S X=$P(^BGPINDC(BGPPC2,0),U,16) D S(X,1,1)
+ .I $P(^BGPINDC(BGPPC2,0),U,19)]"" S Y=$P(^BGPINDC(BGPPC2,0),U,19) D S(Y,1,1)
+ .D H2
+ Q
+H2 ;
+ S BGPX="",BGPX=BGPCYN,$P(BGPX,U,2)=$S(BGPCYP]"":$$SB($J(BGPCYP,5,1)),1:""),$P(BGPX,U,3)=BGPPRN,$P(BGPX,U,4)=$S(BGPPRP]"":$$SB($J(BGPPRP,5,1)),1:"")
+ S $P(BGPX,U,5)=$$SB($J($$CALC(BGPCYN,BGPPRN),6)),$P(BGPX,U,6)=BGPBLN,$P(BGPX,U,7)=$S(BGPBLP]"":$$SB($J(BGPBLP,5,1)),1:"")
+ S $P(BGPX,U,8)=$$SB($J($$CALC(BGPCYN,BGPBLN),6))
+ D S(BGPX,,2)
+ Q
+H1 ;EP
+ S Y="REPORT" D S(Y,1,2)
+ S Y="%" D S(Y,,3)
+ S Y="PREV YR" D S(Y,,4)
+ S Y="%" D S(Y,,5)
+ S Y="CHG from" D S(Y,,6)
+ S Y="BASE" D S(Y,,7)
+ S Y="%" D S(Y,,8)
+ S Y="CHG from" D S(Y,,9)
+ S Y="PERIOD" D S(Y,1,2)
+ S Y="PERIOD" D S(Y,,4)
+ S Y="PREV YR %" D S(Y,,6)
+ S Y="PERIOD" D S(Y,,7)
+ S Y="BASE %" D S(Y,,9)
+ Q
+SETN ;set numerator fields
+ S BGPCYN=$$V(1,BGPRPT,N,P)
+ S BGPPRN=$$V(2,BGPRPT,N,P)
+ S BGPBLN=$$V(3,BGPRPT,N,P)
+ I $P(^BGPINDC(BGPPC2,0),U,4)[".1" S (BGPCYP,BGPPRP,BGPBLP)="" Q
+ S BGPCYP=$S(BGPCYD:((BGPCYN/BGPCYD)*100),1:"")
+ S BGPPRP=$S(BGPPRD:((BGPPRN/BGPPRD)*100),1:"")
+ S BGPBLP=$S(BGPBLD:((BGPBLN/BGPBLD)*100),1:"")
+ Q
+V(T,R,N,P) ;EP
+ I $G(BGPAREAA) G VA
+ NEW X
+ I T=1 S X=$P($G(^BGPGPDC(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=2 S X=$P($G(^BGPGPDP(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=3 S X=$P($G(^BGPGPDB(R,N)),U,P) Q $S(X]"":X,1:0)
+ Q ""
+VA ;
+ NEW X,V,C S X=0,C="" F  S X=$O(BGPSUL(X)) Q:X'=+X  D
+ .I T=1 S C=C+$P($G(^BGPGPDC(X,N)),U,P)
+ .I T=2 S C=C+$P($G(^BGPGPDP(X,N)),U,P)
+ .I T=3 S C=C+$P($G(^BGPGPDB(X,N)),U,P)
+ .Q
+ Q $S(C:C,1:0)
+C(X,X2,X3) ;
+ D COMMA^%DTC
+ Q X
+S(Y,F,P) ;set up array
+ I '$G(F) S F=0
+ S %=$P(^TMP($J,"BGPDEL",0),U)+F,$P(^TMP($J,"BGPDEL",0),U)=%
+ I '$D(^TMP($J,"BGPDEL",%)) S ^TMP($J,"BGPDEL",%)=""
+ S $P(^TMP($J,"BGPDEL",%),U,P)=Y
+ Q
+CALC(N,O) ;ENTRY POINT
+ NEW Z
+ S Z=N-O,Z=$FN(Z,"+,",0)
+ Q Z
+SB(X) ;EP - Strip leading and trailing blanks from X.
+ X ^DD("FUNC",$O(^DD("FUNC","B","STRIPBLANKS",0)),1)
+ Q X

@@ -1,0 +1,89 @@
+BGPMUPH ; IHS/MSC/MGH - MU REPORT HEADER 01 Jul 2009 7:54 PM ;17-Mar-2011 16:51;DU
+ ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;
+ ;HEADERS FOR REPORTS
+CALC(N,O) ;ENTRY POINT
+ NEW Z
+ ;I O=0!(N=0)!(O="")!(N="") Q "**"
+ ;NEW X,X2,X3
+ ;S X=N,X2=1,X3=0 D COMMA^%DTC S N=X
+ ;S X=O,X2=1,X3=0 D COMMA^%DTC S O=X
+ ;I +O=0 Q "**"
+ ;S Z=(((N-O)/O)*100),Z=$FN(Z,"+,",1)
+ S Z=N-O,Z=$FN(Z,"+,",1)
+ Q Z
+C(X,X2,X3) ;
+ D COMMA^%DTC
+ Q X
+HEADER ;EP
+ N BGPZ
+ I BGPPTYPE="D" Q
+ K DIR I $E(IOST)="C",IO=IO(0),'$D(ZTQUEUED) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BGPQUIT=1
+ I BGPPTYPE="P" W:$D(IOF) @IOF S BGPGPG=BGPGPG+1
+ S X=$P(^VA(200,DUZ,0),U,2),$E(X,35)=$$FMTE^XLFDT(DT),$E(X,70)="Page "_BGPGPG D W^BGPMUPP(X,1,0,BGPPTYPE)
+ S X="*** IHS Stage 1 Meaningful Use ***" D W^BGPMUPP(X,1,2,BGPPTYPE)
+ I $G(BGPMUT)'="H" S X="*** Eligible Professional (EP) Clinical Quality Measures Report ***" D W^BGPMUPP(X,1,1,BGPPTYPE)
+ I $G(BGPMUT)="H" S X="*** Eligible Hospital/CAH Clinical Quality Measures Report ***" D W^BGPMUPP(X,1,1,BGPPTYPE)
+ S X="Report Period: "_$$FMTE^XLFDT(BGPBD)_" to "_$$FMTE^XLFDT(BGPED) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ S X="Previous Period: "_$$FMTE^XLFDT(BGPPBD)_" to "_$$FMTE^XLFDT(BGPPED) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ I '$G(BGPPSUM) S X="Baseline Period: "_$$FMTE^XLFDT(BGPBBD)_" to "_$$FMTE^XLFDT(BGPBED) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ I $G(BGPIC) D
+ .D W^BGPMUPP($TR($J("",80)," ","-"),0,1,BGPPTYPE)
+ .S BGPZ=0 F  S BGPZ=$O(^BGPMUIND(90595.11,BGPIC,20,BGPZ)) Q:BGPZ'=+BGPZ!(BGPQUIT)  D
+ ..D W^BGPMUPP(^BGPMUIND(90595.11,BGPIC,20,BGPZ,0),0,1,BGPPTYPE)
+ .S X="" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ Q
+HEADER1 ;
+ N BGPZ
+ I BGPPTYPE="D" Q
+ K DIR I $E(IOST)="C",IO=IO(0),'$D(ZTQUEUED) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BGPQUIT=1
+ I BGPPTYPE="P" W:$D(IOF) @IOF S BGPGPG=BGPGPG+1
+ S X=$P(^VA(200,DUZ,0),U,2),$E(X,35)=$$FMTE^XLFDT(DT),$E(X,70)="Page "_BGPGPG D W^BGPMUPP(X,1,0,BGPPTYPE)
+ S X="*** IHS Stage 1 Meaningful Use ***" D W^BGPMUPP(X,1,2,BGPPTYPE)
+ I $G(BGPMUT)'="H" S X="*** Eligible Professional (EP) Clinical Quality Measures Report ***" D W^BGPMUPP(X,1,1,BGPPTYPE)
+ I $G(BGPMUT)="H" S X="*** Eligible Hospital/CAH Clinical Quality Measures Report ***" D W^BGPMUPP(X,1,1,BGPPTYPE)
+ ;S X=$P(^DIC(4,DUZ(2),0),U) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ ;I $G(BGPMUT)'="H" D W^BGPMUPP("Provider: "_$P(^VA(200,BGPPROV,0),U),1,1,BGPPTYPE)
+ S X="Report Period: "_$$FMTE^XLFDT(BGPBD)_" to "_$$FMTE^XLFDT(BGPED) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ S X="Previous Period: "_$$FMTE^XLFDT(BGPPBD)_" to "_$$FMTE^XLFDT(BGPPED) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ S X="Baseline Period: "_$$FMTE^XLFDT(BGPBBD)_" to "_$$FMTE^XLFDT(BGPBED) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ D W^BGPMUPP($TR($J("",80)," ","-"),0,1,BGPPTYPE)
+ Q
+HEADERL ;EP - HEADER FOR PATIENT LISTS
+ N BGPZ
+ I BGPPTYPE="D" Q
+ ;G:'BGPGPG HEADER1
+ K DIR I $E(IOST)="C",IO=IO(0),'$D(ZTQUEUED) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BGPQUIT=1
+ I BGPPTYPE="P" W:$D(IOF) @IOF S BGPGPG=BGPGPG+1
+ S X="**** CONFIDENTIAL PATIENT INFORMATION COVERED BY PRIVACY ACT ****" D W^BGPMUPP(X,1,0,BGPPTYPE)
+ S X=$P(^VA(200,DUZ,0),U,2),$E(X,35)=$$FMTE^XLFDT(DT),$E(X,70)="Page "_BGPGPG D W^BGPMUPP(X,1,1,BGPPTYPE)
+ S X="*** IHS 2011 Stage 1 Meaningful Use Clinical Quality Measure Patient List ***" D W^BGPMUPP(X,1,2,BGPPTYPE)
+ S X=$$VER^BGPMUUTL() D W^BGPMUPP(X,1,1,BGPPTYPE)
+ S X=$P(^DIC(4,DUZ(2),0),U) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ I $G(BGPMUT)'="H" D W^BGPMUPP("EP: "_$P(^VA(200,BGPPROV,0),U),1,1,BGPPTYPE)
+ S X="Report Period: "_$$FMTE^XLFDT(BGPBD)_" to "_$$FMTE^XLFDT(BGPED) D W^BGPMUPP(X,1,1,BGPPTYPE)
+ S X=$S(BGPBEN=1:"Indian/Alaskan Native (Classification 01)",BGPBEN=2:"Not Indian Alaskan/Native (Not Classification 01)",1:"All patients") D W^BGPMUPP(X,1,1,BGPPTYPE)
+ D W^BGPMUPP($TR($J("",80)," ","-"),0,1,BGPPTYPE)
+ I $G(BGPIC) D
+ .S BGPZ=0 F  S BGPZ=$O(^BGPMUIND(90595.11,BGPIC,20,BGPZ)) Q:BGPZ'=+BGPZ!(BGPQUIT)  D
+ ..D W^BGPMUPP(^BGPMUIND(90595.11,BGPIC,20,BGPZ,0),0,1,BGPPTYPE)
+ .S X="" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ Q
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ NEW DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+HDRBLK ;
+ W !,?33,"REPORT",?41,"%",?44,"PREV YR",?53,"%",?55,"CHG FROM",?64,"BASE",?70,"%",?74,"CHG"
+ W !,?33,"PERIOD",?44,"PERIOD",?55,"PREV YR",?64,"YR",?74,"BASE %"
+ Q

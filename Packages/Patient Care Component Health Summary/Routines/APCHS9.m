@@ -1,0 +1,102 @@
+APCHS9 ; IHS/CMI/LAB - PART 9 OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;
+ ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009
+ ;
+ ;BJPC v1.0 patch 1
+AST ;EP - called from supplement
+ ;asthma dx ever or asthma on pl or ast
+ NEW D,P,A
+ S A=$O(^AUPNVAST("AA",APCHSPAT,0)) I A G AST1
+ S A=$$PLAST^APCHSAST(APCHSPAT) I A]"" G AST1
+ S A=$$DXAST^APCHSAST(APCHSPAT) I A G AST1
+ Q
+AST1 ;
+ I $E(IOST)="C" D  I $D(DIRUT) S APCHSQIT=1 Q
+ .W !! S DIR("A")="ASTHMA SUPPLEMENT WILL NOW BE DISPLAYED ("_"^"_" to exit, enter to continue)",DIR(0)="EO" KILL DA D ^DIR KILL DIR
+ D EP^APCHSAST(APCHSPAT)
+ Q
+DENTAL ; ********** DENTAL SERVICES * 9002001 **********
+ NEW X S X="ADERVW" X ^%ZOSF("TEST") I $T G PCC^ADERVW ; <SETUP>
+ Q:'$D(^ADESVC(APCHSPAT))
+ X APCHSCKP Q:$D(APCHSQIT)  X:'APCHSNPG APCHSBRK
+ ; <DISPLAY>
+ W "<DENTAL SERVICES DISPLAY ROUTINE MISSING!>",!
+ ; <CLEANUP>
+DENTALX K X
+ Q
+ ;
+ ;
+MHSS ;EP ********* MENTAL HEALTH/SOCIAL SERVICES * 9002011
+ NEW X S X="AMHHS" X ^%ZOSF("TEST") I $T G MH^AMHHS ; <SETUP>
+ Q:'$D(^AMHREC("AC",APCHSPAT))
+ X APCHSCKP Q:$D(APCHSQIT)  X:'APCHSNPG APCHSBRK
+ ; <DISPLAY>
+ W "<MH/SS DISPLAY ROUTINE MISSING!>",!
+ ; <CLEANUP>
+MHSSX ;MHSS EXIT
+ K X
+ Q
+CHR ;EP ********* CHR COMPONENT * 90002
+ NEW X S X="BCHDHS" X ^%ZOSF("TEST") I $T G CHR^BCHDHS ; <SETUP>
+ Q:'$D(^BCHR("AC",APCHSPAT))
+ X APCHSCKP Q:$D(APCHSQIT)  X:'APCHSNPG APCHSBRK
+ ; <DISPLAY>
+ W "<CHR DISPLAY ROUTINE MISSING!>",!
+ ; <CLEANUP>
+CHRX ;CHR EXIT
+ K X
+ Q
+ ;
+MCIS ; *********** MANAGED CARE MIS * 90001
+ X APCHSCKP Q:$D(APCHSQIT)  W !!
+ NEW X
+ S X="BMCHS" X ^%ZOSF("TEST") I $T G HS^BMCHS ; write mcis summary
+ G:'$D(^BMCREF("D",APCHSPAT)) MCISX ; exit if no referrals for patient
+ X APCHSCKP Q:$D(APCHSQIT)  X:'APCHSNPG APCHSBRK
+ W "<MCIS DISPLAY ROUTINE MISSING!>",!
+MCISX ;MCIS EXIT
+ Q
+ ;
+PNOB ; *********** PN/OB COMPONENT
+ ;IHS/CMI/LAB - added for new prenatal pacakge
+ NEW X,AMCOHS,AMCODFN
+ G:'$D(^AMCOB("B",APCHSPAT)) PNOBX ; exit if no referrals for patient
+ S AMCOHS=1,DFN=APCHSPAT,AMCODFN=$$LASTPREG^AMCOUT2(DFN)
+ I 'AMCODFN G PNOBX
+ X APCHSCKP Q:$D(APCHSQIT)  X:'APCHSNPG APCHSBRK
+ S X="AMCOSUM1" X ^%ZOSF("TEST") I $T G ^AMCOSUM1 ; write pn/ob summary
+ G:'$D(^AMCOB("B",APCHSPAT)) PNOBX ; exit if no referrals for patient
+ X APCHSCKP Q:$D(APCHSQIT)  X:'APCHSNPG APCHSBRK
+ W "<PN/OB DISPLAY ROUTINE MISSING!>",!
+PNOBX ;PNOB EXIT
+ Q
+CP ;EP
+ NEW X S X="BCPSHSS" X ^%ZOSF("TEST") I '$T Q
+ Q:'$D(^BCPP(DFN,0))  ;patient not in chronic patient file
+ Q:'$D(^BCPA("AC",DFN))  ;no agreements
+ I $E(IOST)="C" D  I $D(DIRUT) S APCHSQIT=1 Q
+ .W !! S DIR("A")="CHRONIC PAIN SUPPLEMENT WILL NOW BE DISPLAYED ("_"^"_" to exit, enter to continue)",DIR(0)="EO" KILL DA D ^DIR KILL DIR
+ D EP^BCPSHSS(APCHSPAT)
+ Q
+CP1 ;
+ NEW X S X="BCPSHSS" X ^%ZOSF("TEST") I '$T W !!,"The chronic pain application is not installed." S APCHSUPQ=1 Q
+ I '$D(^BCPP(DFN,0)) W !!,"This patient has no chronic pain agreements." S APCHSUPQ=1 Q  ;patient not in chronic patient file
+ I '$D(^BCPA("AC",DFN)) W !!,"This patient has no chronic pain agreements." S APCHSUPQ=1 Q  ;no agreements
+ Q
+HMS ;
+ NEW X S X="BKMVSUP" X ^%ZOSF("TEST") I '$T W !!,"The HMS is not installed." S APCHSUPQ=1 Q
+ Q
+WHP ;
+ W !,"Women's Health Profile not available." S APCHSUPQ=1 Q
+ Q
+ANTICOAG ;EP - called from supplement
+ ;has a diagnosis and a prescription for warfarin
+ NEW D,P,A
+ ;S A=$$LASTDX^APCHSMU2(APCHSPAT,"BJPC AC THRPY INDIC DXS",$$DOB^AUPNPAT(APCHSPAT),DT)
+ S B=$$ACTWARF^APCHSTP1(APCHSPAT,$$FMADD^XLFDT(DT,-45),DT)
+ I B G ANTICO1
+ Q
+ANTICO1 ;
+ I $E(IOST)="C" D  I $D(DIRUT) S APCHSQIT=1 Q
+ .W !! S DIR("A")="ANTI-COAGULATION SUPPLEMENT WILL NOW BE DISPLAYED ("_"^"_" to exit, enter to continue)",DIR(0)="EO" KILL DA D ^DIR KILL DIR
+ D EP^APCHSACG(APCHSPAT)
+ Q

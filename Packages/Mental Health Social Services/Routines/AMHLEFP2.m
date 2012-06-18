@@ -1,0 +1,276 @@
+AMHLEFP2 ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 22 Aug 2007 6:11 PM ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;
+ ;CMI/TUCSON/LAB - added setting of % variable 9/22/97
+ ;
+ ;add in sensitive patient tracking call
+DGSECE ;
+ NEW X S X=$P(^AMHREC(AMHR,0),U,8)
+ I X,$G(AMHDOLOG) D  ;this should only be done if in GUI group, R&S group form print and Print forms for a set of patients
+ .NEW AMHRESU
+ .D PTSEC^AMHUTIL2(.AMHRESU,X,0)
+ .I '$G(AMHRESU(1)) Q
+ .K AMHRESU
+ .D NOTICE^DGSEC4(.AMHRESU,X,,3)
+ S AMHIOSL=$S($G(AMHGUI):55,1:IOSL)
+ I AMHEFT="B" S AMHEFT="S" D PRINT1(AMHR) Q:AMHQUIT  S AMHEFT="F" W:$D(IOF) @IOF W:$G(AMHGUI) "ZZZZZZZ",! D PRINT1(AMHR) K AMHEFT Q
+ I AMHEFT="T" S AMHEFT="S" D PRINT1(AMHR) Q:AMHQUIT  S AMHEFT="S" W:$D(IOF) @IOF W:$G(AMHGUI) "ZZZZZZZ",! D PRINT1(AMHR) K AMHEFT Q
+ I AMHEFT="E" S AMHEFT="F" D PRINT1(AMHR) Q:AMHQUIT  S AMHEFT="F" W:$D(IOF) @IOF W:$G(AMHGUI) "ZZZZZZZ",! D PRINT1(AMHR) K AMHEFT Q
+ I AMHEFT="F" D PRINT1(AMHR) Q
+ I AMHEFT="S" D PRINT1(AMHR) Q
+ I AMHEFT="W" S AMHEFT="F",AMHNOINT=1 D PRINT1(AMHR) K AMHEFT Q
+ Q
+S(Y,F,C,T) ;set up array
+ NEW %
+ I '$G(F) S F=0
+ I '$G(T) S T=0
+ ;blank lines
+ F F=1:1:F S X="" D S1
+ S X=$TR(Y,$C(10),"")
+ I $G(C) S L=$L(Y),T=(80-L)/2 D  D S1 Q
+ .F %=1:1:(T-1) S X=" "_X
+ F %=1:1:T S X=" "_Y
+ D S1
+ Q
+S1 ;
+ S %=$P(^TMP("AMHS",$J,"DCS",0),U)+1,$P(^TMP("AMHS",$J,"DCS",0),U)=%
+ S ^TMP("AMHS",$J,"DCS",%)=X
+ Q
+PRINT1(AMHR) ;EP - CALLED FROM LAST VISIT DISPLAY
+ NEW C,AMHX,H,AMHR0,AMHSTOP,AMHTC,AMHTDLT,AMHTDOO,AMHTF,AMHTICL,AMHTILN,AMHTNRQ,AMHTQ,AMHTTXT,F,AMHPAGE
+ S AMHPAGE=1
+ S AMHIOSL=$S($G(AMHGUI):55,1:IOSL)
+ D EP2(AMHR) ;set array up
+ S AMHSTOP=0,AMHQUIT=0
+W ;write out array
+ ;W:$D(IOF) @IOF
+ NEW AMHX
+ W !!
+ S AMHX=0 F  S AMHX=$O(^TMP("AMHS",$J,"DCS",AMHX)) Q:AMHX'=+AMHX!(AMHSTOP)!(AMHQUIT)  D
+ .I ^TMP("AMHS",$J,"DCS",AMHX)="BEGIN PATIENT DEMOGRAPHIC DATA" D DEMOPRT S AMHSTOP=1 Q
+ .I $Y>(AMHIOSL-5) D FF Q:AMHQUIT
+ .W !,^TMP("AMHS",$J,"DCS",AMHX)
+ .Q
+ W !
+ K ^TMP("AMHS",$J,"DCS")
+ Q
+DEMOPRT ;
+ I $Y>(AMHIOSL-13) D FF Q:AMHQUIT
+ F  S AMHX=$O(^TMP("AMHS",$J,"DCS",AMHX)) Q:AMHX'=+AMHX!(AMHSTOP)!(AMHQUIT)  D
+ .W !,^TMP("AMHS",$J,"DCS",AMHX)
+ .Q
+ Q
+EP2(AMHR,FLAG) ;EP ; up array in ^TMP
+ ;
+ I $G(AMHR)="" Q
+ I '$D(^AMHREC(AMHR)) Q
+ K ^TMP("AMHS",$J,"DCS")
+ S ^TMP("AMHS",$J,"DCS",0)=0
+ S AMHR0=^AMHREC(AMHR,0)
+ S X="********** CONFIDENTIAL PATIENT INFORMATION **********" D S(X,0,1)
+ S X="PCC BEHAVIORAL HEALTH ENCOUNTER RECORD      Printed: "_$$FMTE^XLFDT($$NOW^XLFDT) D S(X,0,1)
+ S X="***  Computer Generated "_$S($P(AMHR0,U,34)=1:"Group ",1:"")_"Encounter Record  ***" D S(X,0,1)
+ I $D(AMHGRPN),AMHEFT'="S" S X="Group Name: "_AMHGRPN D S(X,0,1)
+ E  I $P($G(^AMHREC(AMHR,11)),U,9)]"",AMHEFT'="S" S X="Group Name: "_$$VAL^XBDIQ1(9002011,AMHR,1109) D S(X,0,1)
+ S X=$TR($J("",79)," ","*") D S(X)
+ S X="",$E(X,3)="Date:  "_$$FMTE^XLFDT($P($P(AMHR0,U),".")),$E(X,31)="Primary Provider: "_$$PPNAME^AMHUTIL(AMHR) D S(X)
+ S X="",AMHX=0 F  S AMHX=$O(^AMHRPROV("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  I $P(^AMHRPROV(AMHX,0),U,4)'="P" S X="",$E(X,49)=$P(^VA(200,$P(^AMHRPROV(AMHX,0),U),0),U) D S(X)
+TIME S X="",Y=$P(AMHR0,U) D DD^%DT S $E(X,3)="Arrival Time: "_$P(Y,"@",2) S:$P(AMHR0,U,27)]"" $E(X,31)="Flag:  "_$P(AMHR0,U,27) D S(X)
+ S X="",$E(X,3)="Program:  "_$$EXTSET^XBFUNC(9002011,.02,$P(AMHR0,U,2)) D S(X)
+ S X="",$E(X,3)="Clinic:  "_$$VAL^XBDIQ1(9002011,AMHR,.25),$E(X,41)="Appointment Type:  "_$$VAL^XBDIQ1(9002011,AMHR,.11) D S(X)
+ S X=$TR($J("",79)," ","_") D S(X)
+COMM ;
+ S X="",$E(X,49)="Number",$E(X,63)="Activity/Service" D S(X)
+ S X="",$E(X,3)="Community: "_$E($$VAL^XBDIQ1(9002011,AMHR,.05),1,30)
+ S $E(X,49)="Served: "_$P(AMHR0,U,9),$E(X,63)="Time: "_$P(AMHR0,U,12)_" minutes" D S(X)
+ I $P($G(^AMHREC(AMHR,11)),U,4)]"" S X="",$E(X,3)="Time spent in group session: "_$P(^AMHREC(AMHR,11),U,4) D S(X)
+ S X="",$E(X,3)="Activity: "_$S($P(AMHR0,U,6):$P(^AMHTACT($P(AMHR0,U,6),0),U)_"-"_$P(^AMHTACT($P(AMHR0,U,6),0),U,2),1:"???") D S(X)
+ S X="",$E(X,3)="Type of Contact: "_$$VAL^XBDIQ1(9002011,AMHR,.07) D S(X)
+ S X="" I $P(^AMHREC(AMHR,0),U,31)]"" S $E(X,3)="Local Service Site: "_$$VAL^XBDIQ1(9002011,AMHR,.31) D S(X)
+ S X=$TR($J("",79)," ","_") D S(X)
+ I AMHEFT="F" S AMHTNRQ="CHIEF COMPLAINT/PRESENTING PROBLEM:  "_$G(^AMHREC(AMHR,21)),AMHTTXT="",AMHTICL=3 D PRTTXT
+ I AMHEFT="S" S X="",$E(X,3)="Chief Complaint/Presenting Problem Suppressed for Confidentiality" D S(X)
+TIUN ;
+ I '$O(^AMHREC(AMHR,54,0)) G SUB
+ ;S X="TIU Note:" D S(X,1)
+ I AMHEFT="S" D S(" ") S X="  TIU Notes Suppressed for Confidentiality" D S(X) G SUB
+ K AMHAR,AMHERR,AMHTIU
+ S X="" D S(X) D S("  TIU DOCUMENTS") D S("  -------------")
+ S AMHDOC=0 F  S AMHDOC=$O(^AMHREC(AMHR,54,"B",AMHDOC)) Q:AMHDOC'=+AMHDOC  D
+ .K AMHTIU,AMHERR
+ .K ^TMP("AMHOENPS",$J)
+ .D TIUDSP
+ .K ^TMP("AMHEONPS",$J)
+ .K AMHTIU
+ .Q
+SUB ;
+ G SUB1
+ I $P(^AMHREC(AMHR,0),U,33)="S"!($P(^AMHREC(AMHR,0),U,33)="U") D SAN^AMHLEFP3
+ I $P(^AMHREC(AMHR,0),U,33)="I"!($P(^AMHREC(AMHR,0),U,33)="P") D
+ .Q:$G(AMHNOINT)
+ .I AMHEFT="S" S X="",$E(X,3)="Behavioral Health Intake Visit" D S(X) S X="",$E(X,3)="See "_$$PPNAME^AMHUTIL(AMHR)_" for details." D S(X) Q
+ .S X="",$E(X,3)="********* INTAKE VISIT *********" D S(X)
+ .S X="",$E(X,3)="INITIAL INTAKE: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.07) D S(X)
+ .S X="",$E(X,3)="      PROVIDER: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.08) D S(X)
+ .S X="",$E(X,3)="  LAST UPDATED: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.02) D S(X)
+ .S X="",$E(X,3)="      PROVIDER: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.03) D S(X)
+ .;S X="",$E(X,3)="PROVIDER WHO LAST UPDATED: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.03) D S(X)
+ .F AMHX=1000,4100 I $D(^DD(9002011.07,AMHX,0)) D
+ ..;S X="",$E(X,3)=$P(^DD(9002011.07,AMHX,0),U)_":" D S(X,1)
+ ..K AMHAR D ENP^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),AMHX,"AMHAR(","E")
+ ..I $O(AMHAR(AMHX,0)) S X="",$E(X,3)=$P(^DD(9002011.07,AMHX,0),U)_":" D S(X,1)
+ ..S F=0 F  S F=$O(AMHAR(AMHX,F)) Q:F'=+F  S X="",$E(X,5)=AMHAR(AMHX,F) D S(X)
+ .S X="" D S(X)
+ .Q
+SUB1 ;
+ I $P($G(^AMHREC(AMHR,11)),U,10) G AIII
+ S X="",$E(X,3)="S/O/A/P:  " D S(X,1)
+ I AMHEFT="F" S AMHX=0 F  S AMHX=$O(^AMHREC(AMHR,31,AMHX)) Q:AMHX'=+AMHX  D
+ .S X="",$E(X,3)=^AMHREC(AMHR,31,AMHX,0) D S(X)
+ .Q
+ I AMHEFT="S" S X="",$E(X,3)="Behavioral Health Visit" D S(X) S X="",$E(X,3)="See "_$$PPNAME^AMHUTIL(AMHR)_" for details." D S(X)
+ I $P($G(^AMHREC(AMHR,11)),U,12)]"" D
+ .S X="",$E(X,3)="PROVIDER SIGNATURE:   /es/ "_$P(^AMHREC(AMHR,11),U,13) D S(X,1)
+ .I $P(^AMHREC(AMHR,11),U,16)]"" S X="",$E(X,30)=$$VAL^XBDIQ1(9002011,AMHR,1116) D S(X)
+ .S X="",$E(X,30)="Signed: "_$P($$FMTE^XLFDT($P(^AMHREC(AMHR,11),U,12)),"@",1)_" "_$P($$FMTE^XLFDT($P(^AMHREC(AMHR,11),U,12)),"@",2) D S(X)
+ S X=$TR($J("",79)," ","_") D S(X)
+AIII ;axis iii patch 1
+ I AMHEFT'="S" D
+ .Q:'$O(^AMHREC(AMHR,53,0))
+ .S X="",$E(X,3)="AXIS III:" D S(X)
+ .S AMHX=0 F  S AMHX=$O(^AMHREC(AMHR,53,AMHX)) Q:AMHX'=+AMHX  D
+ ..S X="",$E(X,3)=^AMHREC(AMHR,53,AMHX,0) D S(X)
+ D CDST^AMHLEFP4
+FU ;
+ S %=""
+ I AMHEFT="S",$P($G(^AMHSITE(DUZ(2),0)),U,27)'="N" S %=0
+ I AMHEFT="F" S %=1
+ I AMHEFT="S",$P($G(^AMHSITE(DUZ(2),0)),U,27)="N" S %=1
+ S X="",$E(X,3)="COMMENT/NEXT APPOINTMENT:  " D S(X,1)
+ I % S AMHX=0 F  S AMHX=$O(^AMHREC(AMHR,81,AMHX)) Q:AMHX'=+AMHX  D
+ .S X="",$E(X,3)=^AMHREC(AMHR,81,AMHX,0) D S(X)
+ .Q
+ I '% S X="",$E(X,3)="Behavioral Health Visit - COMMENT Suppressed" D S(X) S X="",$E(X,3)="See "_$$PPNAME^AMHUTIL(AMHR)_" for details." D S(X)
+ I $O(^AMHREC(AMHR,52,0)) D
+ .S X="",(C,Y)=0
+ .F  S Y=$O(^AMHREC(AMHR,52,Y)) Q:Y'=+Y  D
+ ..S X="",C=C+1 S $E(X,3)=$S(C=1:"NOTE FORWARDED TO: ",1:""),$E(X,23)=$P(^VA(200,$P(^AMHREC(AMHR,52,Y,0),U),0),U) D S(X)
+ S X=$TR($J("",79)," ","_") D S(X)
+POV ;
+ S X="",$E(X,3)="BH POV CODE      PURPOSE OF VISIT (POV)" D S(X) S X="",$E(X,3)="OR DSM DIAGNOSIS    [PRIMARY ON FIRST LINE]" D S(X)
+ S X=$TR($J("",79)," ","_") D S(X)
+ S (AMHX,C)=0 F  S AMHX=$O(^AMHRPRO("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
+ .I AMHEFT="F" S AMHTNRQ="",$E(AMHTNRQ,1)=$P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U),$E(AMHTNRQ,16)=$S(AMHEFT="F":$P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U,2),1:""),AMHTICL=8,AMHTTXT="" D PRTTXT
+ .I AMHEFT="S" S AMHTNRQ="",$E(AMHTNRQ,1)=$P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U),$E(AMHTNRQ,16)=$$VAL^XBDIQ1(9002011.01,AMHX,.04),AMHTICL=8,AMHTTXT="" D PRTTXT
+ .I AMHEFT="F" S AMHTNRQ=$P(^AMHRPRO(AMHX,0),U,4) S AMHTNRQ=$S(AMHTNRQ]"":$P(^AUTNPOV(AMHTNRQ,0),U),1:"<<none>>"),AMHTICL=23,AMHTTXT="" D
+ ..I AMHEFT="F",AMHTNRQ=$P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U,2) Q
+ ..D PRTTXT
+ .S C=C+2
+ .Q
+ F I=C:1:3 S X="" D S(X)
+ S X=$TR($J("",79)," ","_") D S(X)
+TMP ;treated med problems
+ I $D(^AMHRTMDP("AD",AMHR)) D
+ .S X="",$E(X,3)="TREATED MEDICAL PROBLEMS:" D S(X)
+ .S (AMHX,C)=0 F  S AMHX=$O(^AMHRTMDP("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
+ ..S X="",$E(X,3)=$P(^AUTNPOV($P(^AMHRTMDP(AMHX,0),U),0),U) D S(X)
+ ..Q
+ .S X=$TR($J("",79)," ","_") D S(X)
+A4 ;AXIS IV/V
+ I $O(^AMHREC(AMHR,61,0))!($P(AMHR0,U,14)]"") D
+ .S X="",$E(X,3)="AXIS IV:  " S Y=0 F  S Y=$O(^AMHREC(AMHR,61,Y)) Q:Y'=+Y  S I=$P(^AMHREC(AMHR,61,Y,0),U) S $E(X,14)=$P(^AMHTAXIV(I,0),U)_" - "_$P(^AMHTAXIV(I,0),U,2) D S(X) S X=""
+ .S X="",$E(X,3)="AXIS V:  "_$P(AMHR0,U,14) S:$P($G(^AMHREC(AMHR,11)),U,15)]"" X=X_"  GAF Scale Type: "_$$VAL^XBDIQ1(9002011,AMHR,1115) D S(X)
+ .S X=$TR($J("",79)," ","_") D S(X)
+ .Q
+IPV ;EXAM
+ K AMHZZZ
+ I AMHEFT="S" G MEAS  ;not on suppressed form
+ I $P($G(^AMHREC(AMHR,14)),U)="",$P($G(^AMHREC(AMHR,14)),U,2)="",$P($G(^AMHREC(AMHR,15)),U)="" G ALCSCR  ;no ipv exam
+ S X="",$E(X,3)="IPV/DV Screening: "_$$VAL^XBDIQ1(9002011,AMHR,1401)_"  Provider: "_$$VAL^XBDIQ1(9002011,AMHR,1402) D S(X)
+ S X="",$E(X,3)="IPV/DV Screen Comment: "_$$VAL^XBDIQ1(9002011,AMHR,1501) D S(X)
+ S AMHZZZ=""
+ALCSCR ;
+ I $P($G(^AMHREC(AMHR,14)),U,3)="",$P($G(^AMHREC(AMHR,14)),U,4)="",$P($G(^AMHREC(AMHR,16)),U)="" G DEPSCR  ;no ALC exam
+ S X="",$E(X,3)="Alcohol Screening: "_$$VAL^XBDIQ1(9002011,AMHR,1403)_"  Provider: "_$$VAL^XBDIQ1(9002011,AMHR,1404) D S(X,1)
+ S X="",$E(X,3)="Alcohol Screen Comment: "_$$VAL^XBDIQ1(9002011,AMHR,1601) D S(X)
+ S AMHZZZ=""
+DEPSCR ;
+ I $P($G(^AMHREC(AMHR,14)),U,5)="",$P($G(^AMHREC(AMHR,14)),U,6)="",$P($G(^AMHREC(AMHR,17)),U)="" G MEAS  ;no DEP exam
+ S X="",$E(X,3)="Depression Screening: "_$$VAL^XBDIQ1(9002011,AMHR,1405)_"  Provider: "_$$VAL^XBDIQ1(9002011,AMHR,1406) D S(X,1)
+ S X="",$E(X,3)="Depression Screen Comment: "_$$VAL^XBDIQ1(9002011,AMHR,1701) D S(X)
+MEAS ;
+ I $D(AMHZZZ) S X=$TR($J("",79)," ","_") D S(X)
+ I AMHEFT'="S",$D(^AMHRMSR("AD",AMHR)) D
+ .S X="",$E(X,3)="MEASUREMENTS:" D S(X)
+ .S (AMHX,C)=0 F  S AMHX=$O(^AMHRMSR("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
+ ..S X="",$E(X,3)=$P(^AUTTMSR($P(^AMHRMSR(AMHX,0),U),0),U),$E(X,9)=$E($P(^AUTTMSR($P(^AMHRMSR(AMHX,0),U),0),U,2),1,20),$E(X,33)=$$VAL^XBDIQ1(9002011.12,AMHX,.04),$E(X,65)=$E($$VAL^XBDIQ1(9002011.12,AMHX,1204),1,14) D S(X)
+ .S X=$TR($J("",79)," ","_") D S(X)
+EDUC ;
+ I $D(AMHZZZ) S X=$TR($J("",79)," ","_") D S(X)
+ I AMHEFT'="S",$D(^AMHREDU("AD",AMHR)) D
+ .S X="",$E(X,3)="PATIENT EDUCATION:" D S(X)
+ .S (AMHX,C)=0 F  S AMHX=$O(^AMHREDU("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
+ ..S X="",$E(X,3)=$P(^AUTTEDT($P(^AMHREDU(AMHX,0),U),0),U),$E(X,45)=$$VAL^XBDIQ1(9002011.05,AMHX,.05),$E(X,60)=$P(^AMHREDU(AMHX,0),U,6)_$S($P(^AMHREDU(AMHX,0),U,6):" min",1:""),$E(X,67)=$$VAL^XBDIQ1(9002011.05,AMHX,.08) D S(X)
+ ..I $P($G(^AMHREDU(AMHX,11)),U,2)]"" S X="",$E(X,3)="Readiness to Learn: "_$$VAL^XBDIQ1(9002011.05,AMHX,1102) D S(X)
+ ..I $P(^AMHREDU(AMHX,0),U,9)]"" S X="",$E(X,3)="Goal: "_$$VAL^XBDIQ1(9002011.05,AMHX,.09) D S(X)
+ ..I $P(^AMHREDU(AMHX,0),U,11)]"" S X="",$E(X,3)="Status: "_$$VAL^XBDIQ1(9002011.05,AMHX,.11) D S(X)
+ ..I $P($G(^AMHREDU(AMHX,11)),U)]"" S X="",$E(X,3)="Comment: "_$P(^AMHREDU(AMHX,11),U) D S(X)
+ .S X=$TR($J("",79)," ","_") D S(X)
+HF ;
+ I AMHEFT'="S",$D(^AMHRHF("AD",AMHR)) D
+ .S X="",$E(X,3)="HEALTH FACTORS RECORDED:" D S(X)
+ .S (AMHX,C)=0 F  S AMHX=$O(^AMHRHF("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
+ ..S X="",$E(X,3)=$P(^AUTTHF($P(^AMHRHF(AMHX,0),U),0),U) D S(X)
+ .S X=$TR($J("",79)," ","_") D S(X)
+PA ;
+ I $D(^AMHRPA("AD",AMHR)) D
+ .S X="",$E(X,3)="PREVENTION ACTIVITIES:" D S(X)
+ .S (AMHX,C)=0 F  S AMHX=$O(^AMHRPA("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
+ ..S X="",$E(X,3)=$P(^AMHTPA($P(^AMHRPA(AMHX,0),U),0),U)_$S($P(^AMHRPA(AMHX,0),U,4)]"":"  -  "_$P(^AMHRPA(AMHX,0),U,4),1:"") D S(X)
+ .S X="",$E(X,3)="TARGET POPULATION FOR PREVENTION ACTIVITIES: "_$$VAL^XBDIQ1(9002011,AMHR,1106) D S(X,1)
+ .S X=$TR($J("",79)," ","_") D S(X)
+INPT ;
+ I $P(AMHR0,U,17)]"" D
+ .S X="Placement Disposition: "_$$VAL^XBDIQ1(9002011,AMHR,.17) D S(X) S X="",$E(X,3)="Facility:  "_$P(AMHR0,U,18) D S(X)
+ .S X=$TR($J("",79)," ","_") D S(X)
+ .Q
+MEDS ;
+ S X="",$E(X,3)="MEDICATIONS PRESCRIBED:" D S(X)
+ S AMHX=0 F  S AMHX=$O(^AMHREC(AMHR,41,AMHX)) Q:AMHX'=+AMHX  D
+ .S X="",$E(X,3)=^AMHREC(AMHR,41,AMHX,0) D S(X)
+ .Q
+ S X=$TR($J("",79)," ","_") D S(X)
+ S X="" I $P(^AMHREC(AMHR,0),U,29)]"" S $E(X,3)="EVALUATION & MANAGEMENT CPT: "_$$VAL^XBDIQ1(9002011,AMHR,.29)_"  " S Y=$$VALI^XBDIQ1(9002011,AMHR,.29) S:Y]"" Y=$$VAL^XBDIQ1(81,Y,2) S X=X_Y D S(X)
+PROC ;
+ S X="",$E(X,3)="PROCEDURES (CPT):" D S(X)
+ S (AMHX,C)=0 F  S AMHX=$O(^AMHRPROC("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
+ .S X="",$E(X,3)=$P($$CPT^ICPTCOD($P(^AMHRPROC(AMHX,0),U),$P($P(^AMHREC(AMHR,0),U),".")),U,2)_"  "_$P($$CPT^ICPTCOD($P(^AMHRPROC(AMHX,0),U),$P($P(^AMHREC(AMHR,0),U),".")),U,3) D S(X)
+ .Q
+ S X=$TR($J("",79)," ","_") D S(X)
+DEMO ;EP demographics
+ D DEMO^AMHLEFP1
+ Q
+TIUDSP ;
+ D TIUDSP^AMHLEFP3
+ Q
+PRTTXT ; GENERALIZED TEXT PRINTER
+ S AMHTDLT=1,AMHTILN=80-AMHTICL-1
+ F AMHTQ=0:0 S:AMHTNRQ]""&(($L(AMHTNRQ)+$L(AMHTTXT)+2)<255) AMHTTXT=$S(AMHTTXT]"":AMHTTXT_"; ",1:"")_AMHTNRQ,AMHTNRQ="" Q:AMHTTXT=""  D PRTTXT2
+ K AMHTILN,AMHTDLT,AMHTF,AMHTC,AMHTTXT,AMHTDOO
+ Q
+PRTTXT2 D GETFRAG S X="",$E(X,AMHTICL)=AMHTF D S(X) S AMHTICL=AMHTICL+AMHTDLT,AMHTILN=AMHTILN-AMHTDLT,AMHTDLT=0
+ Q
+GETFRAG I $L(AMHTTXT)<AMHTILN S AMHTF=AMHTTXT,AMHTTXT="" Q
+ F AMHTC=AMHTILN:-1:1 Q:$E(AMHTTXT,AMHTC)=" "
+ S AMHTF=$E(AMHTTXT,1,AMHTC-1),AMHTTXT=$E(AMHTTXT,AMHTC+1,255)
+ Q
+ ;
+FF ;EP
+ I '$G(AMHGUI),$E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S AMHQUIT=1 Q
+ I $E(IOST)'="C" Q:'$P(AMHR0,U,8)  W !!,$TR($J(" ",79)," ","*"),!,$E($P(^DPT($P(AMHR0,U,8),0),U),1,25),?27,"HRN: " D
+ .S H=$P($G(^AUPNPAT($P(AMHR0,U,8),41,DUZ(2),0)),U,2)
+ .W H,?38,"DOB: ",$$FMTE^XLFDT($P(^DPT($P(AMHR0,U,8),0),U,3),"2D"),?52,"SSN: ",$$SSN^AMHUTIL($P(AMHR0,U,8)),?67,$$FMTE^XLFDT($P($P(AMHR0,U),"."))
+ W:$D(IOF) @IOF
+ W:$G(AMHGUI) "ZZZZZZZ",!
+ W ! S AMHPAGE=AMHPAGE+1 W ?48,$$FMTE^XLFDT($P(AMHR0,U)),?72,"Page "_AMHPAGE,!
+ Q

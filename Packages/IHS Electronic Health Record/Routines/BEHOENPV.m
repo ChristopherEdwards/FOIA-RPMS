@@ -1,0 +1,222 @@
+BEHOENPV ;IHS/CIA/MGH - Summary Report for Selected Encounter ;05-May-2010 13:35;MGH
+ ;;1.1;BEH COMPONENTS;**005002,005004**;Mar 20, 2007
+ ;=================================================================
+ ; RPC: Retrieve report
+GETRPT(DATA,BEHVSIT,BEHFLG) ;EP
+ S DATA=$$TMPGBL^CIAVMRPC
+ I '$G(BEHVSIT) S @DATA@(1)="A visit has not been selected." Q
+ D CAPTURE^CIAUHFS("D REPORT^BEHOENPV(BEHVSIT,,.BEHFLG)",DATA,80)
+ S:'$D(@DATA) @DATA@(1)="No visit information was found."
+ Q
+ ; RPC: Retrieve report
+ ; Entry point for OE/RR REPORT file
+OERRRPT(ROOT,ORDFN,ID,ALPHA,OMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE) ;EP
+ N BEHVSIT
+ S BEHVSIT=$$VSTR2VIS^BEHOENCX(ORDFN,$$GETVAR^CIANBUTL("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER"))
+ D GETRPT(.ROOT,BEHVSIT)
+ Q
+ ; RPC: Retrieve reports for date range
+GETRPTS(DATA,DFN,BEHFLG,STRT,END) ;EP
+ S DATA=$$TMPGBL^CIAVMRPC
+ D CAPTURE^CIAUHFS("D REPORTS^BEHOENPV(DFN,.BEHFLG,STRT,END)",DATA,80)
+ S:'$D(@DATA) @DATA@(1)="No visits found within specified date range."
+ Q
+ ; RPC: Retrieve report
+ ; Entry point for OE/RR REPORT file
+OERRRPTS(ROOT,ORDFN,ID,ALPHA,OMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE) ;EP
+ D GETRPTS(.ROOT,ORDFN,,ALPHA,OMEGA)
+ Q
+REPORTS(DFN,BEHFLG,STRT,END) ;
+ N BEHVSIT,DAT
+ S BEHVSIT=0
+ F  S BEHVSIT=$O(^AUPNVSIT("AC",DFN,BEHVSIT)) Q:'BEHVSIT  D
+ .S DAT=+$G(^AUPNVSIT(BEHVSIT,0))
+ .I DAT,DAT'<STRT,DAT'>END D
+ ..D REPORT(BEHVSIT,,.BEHFLG)
+ ..W !!,$$REPEAT^XLFSTR("=",80),!
+ Q
+OERRPB(ROOT,DFN,ID,ALPHA,OMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE) ;EP
+ N BEHFLAG,ORDFN,XQORNOD
+ Q:'$G(DFN)
+ S ORDFN=DFN_";DPT(",XQORNOD=1
+ D REPORT(+$G(ORVSIT),,.BEHFLAG)
+ Q
+ ; Generate specified report segments for a visit abstract
+REPORT(BEHVSIT,BEHQUIT,BEHFLG) ;
+ N BEHLP,BEHRTN,BEHTBL,X,Y,DFN,I,TODAY,PAGE,LINE,ORLIST,HDR
+ N BEHNAME,BEHDOB,BEHHRN,BEHVLOC,BEHVPRV,BEHVDT,BEHVFAC,BEHDOCID
+ Q:BEHVSIT'>0
+ ;Get the visit information needed for the header
+ ;This information stays for each page of the report
+ S PAGE=0,LINE=0
+ D DFN(BEHVSIT)
+ ;Loop through the items to be included in the report in their assigned order
+ F BEHLP=0:1 S X=$P($T(FLAG+BEHLP),";;",2,99) Q:'$L(X)  D
+ .S Y=$P(X,";")
+ .S BEHTBL(Y,0)=$P(X,";",2),BEHTBL(Y,1)=$P(X,";",3,99)
+ S BEHFLG=$G(BEHFLG,"CMIKEPHNORVT")
+ F BEHLP=1:1:$L(BEHFLG) D  Q:$G(BEHQUIT)
+ .S X=$E(BEHFLG,BEHLP)
+ .I $D(BEHTBL(X)),@BEHTBL(X,1) D @(BEHTBL(X,0)_"(BEHVSIT,DFN,.BEHQUIT)")
+ K ^TMP("ORR",$J)
+ Q
+ ; Report flag control
+FLAG ;;C;CHIEF;$L($T(^BEHOENPP))
+ ;;N;NOTES;$D(^TIU)
+ ;;S;NOTES2;$D(^TIU)
+ ;;O;ORDERS;$L($T(^ORQ1))
+ ;;E;EXAMS;$L($T(^BEHOENPP))
+ ;;H;FACTORS;$L($T(^BEHOENPP))
+ ;;P;EDU;$L($T(^BEHOENPP))
+ ;;V;POV;$L($T(^BEHOENPP))
+ ;;M;MEAS;$L($T(^BEHOENPP))
+ ;;I;IMMUN;$L($T(^BEHOENPP))
+ ;;K;SKIN;$L($T(^BEHOENPP))
+ ;;R;RESULTS;$L($T(^BEHOENPR))
+ ;;T;CPT;$L($T(^BEHOENPP))
+ ;;
+ ; Display all notes associated with specified visit
+ ; Optionally limit notes to those with the specified status (BEHST).
+NOTES(BEHVSIT,DFN,BEHQUIT,BEHST) ;
+ N IEN,NAME
+ S NAME="PROGRESS NOTES"
+ F IEN=0:0 S IEN=$O(^TIU(8925,"V",BEHVSIT,IEN)) Q:'IEN  D  Q:$G(BEHQUIT)
+ .D:$L(NAME) HDR(NAME,1)
+ .S NAME=""
+ .D GETPN(IEN)
+ Q
+CHIEF(BEHVSIT,DFN,BEHQUIT) ;Get the chief complaint for this visit
+ D CHIEF^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+EXAMS(BEHVSIT,DFN,BEHQUIT) ;Get the exams for this visit
+ D EXAMS^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+FACTORS(BEHVSIT,DFN,BEHQUIT) ;Get the health factors for this visit
+ D FACTORS^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+EDU(BEHVSIT,DFN,BEHQUIT) ;Get the education topics for this visit
+ D EDU^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+ ; Display all orders associated with specified visit
+ORDERS(BEHVSIT,DFN,BEHQUIT) ;
+ N DAT,DFN,ORD,HDR,HLF,LOC,X,Y
+ S X=$G(^AUPNVSIT(BEHVSIT,0)),DAT=X\1,DFN=$P(X,U,5),LOC=$P(X,U,22)_";SC(",HLF=IOM\2
+ Q:'DAT
+ K ^TMP("ORR",$J)
+ D EN^ORQ1(DFN_";DPT(",,1,1,DAT,DAT,1)
+ Q:'$D(ORLIST)
+ Q:'$O(^TMP("ORR",$J,ORLIST,0))
+ S NAME="ORDERS"
+ D HDR(NAME,1)
+ F X=0:0 S X=$O(^TMP("ORR",$J,ORLIST,X)) Q:'X  K ORD M ORD=^(X) D  Q:$G(BEHQUIT)
+ .S Y=$P($G(^OR(100,+ORD,0)),U,10)
+ .I $L(Y),Y'=LOC Q
+ .S LINE=LINE+7
+ .I LINE>(IOSL-3) D HDR(NAME,5)
+ .W !,"ORDER #: ",+ORD,?HLF,"STATUS: ",$P(ORD,U,6),!
+ .W "START: ",$$FMTE^XLFDT($P(ORD,U,4)),?HLF,"STOP: ",$$FMTE^XLFDT($P(ORD,U,5)),!
+ .F Y=0:0 S Y=$O(ORD("TX",Y)) Q:'Y  W ORD("TX",Y),!
+ .W !
+ Q
+ ; Extract specified note
+GETPN(TIUDA) ;
+ Q:'$$CANDO^TIULP(TIUDA,"VIEW")
+ N GBL,ERR,TIU,HLF,IDX,HDR,STAT
+ S GBL=$NA(^TMP("BEHOENPV",$J)),HLF=IOM\2
+ K @GBL
+ D EXTRACT^TIULQ(TIUDA,GBL,.ERR,".01;.02;.03;.05;.07;.08;1202;1203;1205;1208;1209;1301;1307;1402;1501:1505;1507:1513;1701","",1,"E")
+ M TIU=^TMP("BEHOENPV",$J,TIUDA)
+ K ^TMP("BEHOENPV",$J)
+ Q:$G(ERR)
+ S HDR=TIU(.01,"E")
+ ;S LINE=LINE+3
+ D HDR(HDR,3)
+ W !,"AUTHOR: ",TIU(1202,"E")
+ W:$L(TIU(1502,"E")) ?HLF,"SIGNED BY: ",TIU(1502,"E")
+ W !,"STATUS: ",TIU(.05,"E"),!
+ S STAT=$$GET1^DIQ(8925,TIUDA,.05,"I")
+ Q:STAT'=7
+ F IDX=0:0 S IDX=$O(TIU("TEXT",IDX)) Q:'IDX  D  Q:$G(BEHQUIT)
+ .S LINE=LINE+1
+ .I LINE>(IOSL-3) D HDR(HDR,1)
+ .W:'$G(BEHQUIT) TIU("TEXT",IDX,0),!
+ I '$G(BEHQUIT),$L($G(TIU(1501,"E"))) D
+ .I LINE+2>(IOSL-3) D HDR(HDR,2)
+ .W !,"/es/ "_$G(TIU(1503,"E"))
+ .W !,"Signed: "_$G(TIU(1501,"E"))
+ Q
+POV(BEHVSIT,DFN,BEHQUIT) ;Get the POVs for this visit
+ D POV^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+MEAS(BEHVSIT,DFN,BEHQUIT) ;Get the measurments for this visit
+ D MEAS^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+IMMUN(BEHVSIT,DFN,BEHQUIT) ;Get the immunizations for this visit
+ D IMMUN^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+SKIN(BEHVSIT,DFN,BEHQUIT) ;Get the skin tests for this visit
+ D SKIN^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+CPT(BEHVSIT,DFN,BEHQUIT) ;Get the CPT codes forthis visit
+ D CPT^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+RESULTS(BEHVSIT,DFN,BEHQUIT) ;Get the results for the orders
+ D RESULTS^BEHOENPR(BEHVSIT,DFN,.ORLIST,.BEHQUIT)
+ Q
+ ; Get DFN from visit ien
+DFN(BEHVSIT) ;
+ N BEHI,TEMP,VADM,X
+ S DFN=$P($G(^AUPNVSIT(BEHVSIT,0)),U,5)
+ D DEM^VADPT
+ S BEHNAME=$G(VADM(1)),BEHDOB=$P($G(VADM(3)),U,2),BEHHRN=$$HRN^BEHOPTCX(DFN)
+ S BEHVDT=$$ENTRY^CIAUDT(+$G(^AUPNVSIT(BEHVSIT,0)))
+ S TEMP=+$P($G(^AUPNVSIT(BEHVSIT,0)),U,22)
+ S BEHVLOC=$P($G(^SC(TEMP,0)),U,1)
+ S TEMP=$P($G(^AUPNVSIT(BEHVSIT,0)),U,6)
+ S BEHVFAC=$P($G(^AUTTLOC(TEMP,0)),U,2)
+ S BEHI=""
+ K BEHVPRV
+ F  S BEHI=$O(^AUPNVPRV("AD",BEHVSIT,BEHI)) Q:BEHI=""  D
+ .S X=$G(^AUPNVPRV(BEHI,0))
+ .S BEHDOCID=$P(X,U),X=$P(X,U,4)
+ .I BEHDOCID="" S BEHVPRV(BEHI)="Unknown"
+ .E  S BEHVPRV($S(X="P":0,1:BEHI))=$P($G(^VA(200,BEHDOCID,0)),U,1)_"("_X_")"
+ D HDR1
+ Q
+ ; Start new page and output header if exceed line count
+HDR1 S CNT=$G(CNT,1),PAGE=PAGE+1
+ S HDR(1)="CLINIC: "_BEHVLOC
+ S HDR(2)="LOC. OF ENCOUNTER: "_BEHVFAC
+ S HDR(3)="VISIT/ADMIT DATE&TIME: "_BEHVDT
+ S HDR(4)=""
+ S:$D(BEHVPRV(0)) HDR(4)="ENCOUNTER PROVIDER(s): "_BEHVPRV(0)
+ W @IOF,!,HDR(1),?IOM-$L(HDR(2)),HDR(2),!
+ W !,HDR(3)
+ W !,HDR(4),!
+ F I=1:1:IOM W "_"
+ W !
+ S LINE=8
+ F I=0:0 S I=$O(BEHVPRV(I)) Q:'I  D
+ .W !,$$RJ^XLFSTR(BEHVPRV(I),30)
+ .S LINE=LINE+1
+ Q
+HDR(NAME,CNT) ;EP
+ N HDR
+ S LINE=LINE+CNT
+ I LINE<(IOSL-CNT) D
+ .S HDR=$$CJ^XLFSTR("  "_NAME_"  ",IOM,"-")
+ .W !!,HDR
+ .S LINE=LINE+CNT+1
+ E  D
+ .I PAGE>0,$E(IOST)="C" D  Q:$G(BEHQUIT)
+ ..N X
+ ..W !
+ ..R "Press RETURN or ENTER to continue...",X:$G(DTIME,300),!
+ ..S:X[U!'$T BEHQUIT=1
+ .E  W !,$$CJ^XLFSTR("Continued on next page ==>",IOM)
+ .S LINE=4,PAGE=PAGE+1
+ .S HDR(2)="HRN: "_BEHHRN,HDR(3)="DOS: "_BEHVDT,HDR(4)="VISIT IEN: "_BEHVSIT
+ .S HDR=$$CJ^XLFSTR("  "_NAME_"  ",IOM,"-")
+ .W @IOF,!,HDR(2),?IOM-$L(HDR(3))\2,HDR(3),?IOM-$L(HDR(4)),HDR(4),!,HDR,!
+ .W $$CJ^XLFSTR("<Page "_PAGE_">",IOM),!
+ Q

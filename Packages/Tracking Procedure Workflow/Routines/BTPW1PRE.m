@@ -1,0 +1,28 @@
+BTPW1PRE ;VNGT/HS/ALA - Pre-Install ; 14 Jul 2008  3:02 PM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;
+ ;
+EN ; Entry point
+ NEW DA,DIK
+ S DA=0,DIK="^BTPW(90621,"
+ F  S DA=$O(^BTPW(90621,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BTPW(90621.1,"
+ F  S DA=$O(^BTPW(90621.1,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BTPW(90621.2,"
+ F  S DA=$O(^BTPW(90621.2,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BTPW(90620.9,"
+ F  S DA=$O(^BTPW(90620.9,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BTPW(90628,"
+ F  S DA=$O(^BTPW(90628,DA)) Q:'DA  D ^DIK
+ ;
+ ;Clean up existing security keys
+ NEW DZ,BKEY,USER
+ S DZ=""
+ F  S DZ=$O(^XUSEC("BTPWCMGR",DZ)) Q:DZ=""  D
+ . S BKEY="BTPWCMGR",USER=DZ D REM^BQISYKEY
+ . S ^XTMP("BTPW1PRE",DZ)=""
+ Q

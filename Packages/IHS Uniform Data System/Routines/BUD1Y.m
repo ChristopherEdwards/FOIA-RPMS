@@ -1,0 +1,10 @@
+BUD1Y ; IHS/CMI/LAB -CREATED BY ^ATXSTX ON JAN 19, 2012 ;
+ ;;6.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2012;Build 25
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^BUD1YA ;    BGP PQA CONTROLLER NDC
+ D ^BUD1YB ;    BUD ASTHMA DXS
+ D ^BUD1YC ;    BGP PQA SABA NDC
+ Q

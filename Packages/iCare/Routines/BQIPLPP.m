@@ -1,0 +1,307 @@
+BQIPLPP ;PRXM/HC/ALA-Populate a panel based on definition ; 19 Oct 2005  12:26 PM
+ ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;
+ Q
+ ;
+POP(DATA,OWNR,PLIEN,KEEP,OVER) ;EP - BQI POPULATE PANEL
+ ; 
+ ;Description
+ ;  Populate the patient list based on the panel definition
+ ;Input
+ ;  OWNR  - Owner of panel internal entry number
+ ;  PLIEN - Panel internal entry number
+ ;  KEEP  - "N" if manual adds/removes should be 'removed' (any other value assumes "Y")
+ ;  OVER  - User ien to replace DUZ (90505.01,3.5) if passed 
+ ;Output
+ ;  DATA  = name of global (passed by reference) in which the data is stored
+ ;
+ ;  NUMBER OF PATIENTS found if successful or BMXSEC if error.
+ ;  Final patient list should have been filed in node 40 of the panel.
+ ;
+ ; Check if share and has write access
+ I $G(BQINIGHT)="",'$$CKSHR^BQIPLSH(OWNR,PLIEN) S BMXSEC="You do not have write access" Q
+ ;
+ NEW UID,II,TEMP
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPLPP",UID)),TEMP=$NA(^TMP("BQITEMP",UID))
+ K @DATA,@TEMP
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPLPP D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ NEW DA,IENS,TYPE,SOURCE,FSOURCE,PPIEN,PTYP,N,NN,PARMS,MPARMS
+ NEW EXEC,FEXEC,CNT,QMIEN,ANN,APARMS,MAPARMS
+ S KEEP=$G(KEEP)
+ S DA(1)=OWNR,DA=PLIEN,IENS=$$IENS^DILF(.DA),EXEC=""
+ S TYPE=$$GET1^DIQ(90505.01,IENS,.03,"I")
+ S SOURCE=$$GET1^DIQ(90505.01,IENS,.11,"E")
+ S FSOURCE=$$GET1^DIQ(90505.01,IENS,.14,"E")
+ ;
+ I TYPE="M" G DONE ; Manual type has no requirements for populate.
+ ;
+ K PARMS,MPARMS
+ ;
+ ; Get parameters from panel definition
+ S N=0 F  S N=$O(^BQICARE(OWNR,1,PLIEN,10,N)) Q:'N  D
+ . NEW DA,IENS,NAME,VALUE
+ . S DA(2)=OWNR,DA(1)=PLIEN,DA=N,IENS=$$IENS^DILF(.DA)
+ . S NAME=$$GET1^DIQ(90505.02,IENS,.01,"E")
+ . S PTYP=$$PTYP^BQIDCDF(SOURCE,NAME)
+ . I PTYP="T" S VALUE=$$GET1^DIQ(90505.02,IENS,.03,"E")
+ . I PTYP'="T" S VALUE=$$GET1^DIQ(90505.02,IENS,.02,"E")
+ . I PTYP="R" S VALUE=$$DATE^BQIUL1(VALUE)
+ . I VALUE'="",$O(^BQICARE(OWNR,1,PLIEN,10,N,2,0))="" S PARMS(NAME)=VALUE Q
+ . I VALUE'="",$O(^BQICARE(OWNR,1,PLIEN,10,N,2,0))'="" D  Q
+ .. NEW AN
+ .. S AN=0,PARMS(NAME)=VALUE
+ .. F  S AN=$O(^BQICARE(OWNR,1,PLIEN,10,N,2,AN)) Q:'AN  D
+ ... NEW DA,IENS,ANAME,AVALUE,APTYP
+ ... S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=N,DA=AN,IENS=$$IENS^DILF(.DA)
+ ... S ANAME=$$GET1^DIQ(90505.22,IENS,.01,"E")
+ ... S APTYP=$$PTYP^BQIDCDF(SOURCE,ANAME)
+ ... I APTYP="T" S AVALUE=$$GET1^DIQ(90505.22,IENS,.03,"E")
+ ... I APTYP'="T" S AVALUE=$$GET1^DIQ(90505.22,IENS,.02,"E")
+ ... I APTYP="R" S AVALUE=$$DATE^BQIUL1(AVALUE)
+ ... S PARMS(NAME)=$G(PARMS(NAME))_"^"_ANAME_"="_AVALUE_"^"
+ . ; If no single value, check for multiple values
+ . I VALUE="" D
+ .. Q:'$D(^BQICARE(OWNR,1,PLIEN,10,N,1))
+ .. S NN=0 F  S NN=$O(^BQICARE(OWNR,1,PLIEN,10,N,1,NN)) Q:'NN  D
+ ... NEW AN,DA,IENS,VALUE
+ ... S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=N,DA=NN,IENS=$$IENS^DILF(.DA)
+ ... I PTYP="T" S VALUE=$$GET1^DIQ(90505.21,IENS,.02,"E")
+ ... I PTYP'="T" S VALUE=$$GET1^DIQ(90505.21,IENS,.01,"E")
+ ... I $O(^BQICARE(OWNR,1,PLIEN,10,N,1,NN,2,0))="" S MPARMS(NAME,VALUE)="" Q
+ ... S AN=0
+ ... F  S AN=$O(^BQICARE(OWNR,1,PLIEN,10,N,1,NN,2,AN)) Q:'AN  D
+ .... NEW DA,IENS,ANAME,AVALUE,APTYP
+ .... S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=N,DA(1)=NN,DA=AN,IENS=$$IENS^DILF(.DA)
+ .... S ANAME=$$GET1^DIQ(90505.212,IENS,.01,"E")
+ .... S APTYP=$$PTYP^BQIDCDF(SOURCE,ANAME)
+ .... I APTYP="T" S AVALUE=$$GET1^DIQ(90505.212,IENS,.03,"E")
+ .... I APTYP'="T" S AVALUE=$$GET1^DIQ(90505.212,IENS,.02,"E")
+ .... I APTYP="R" S AVALUE=$$DATE^BQIUL1(AVALUE)
+ .... S MPARMS(NAME,VALUE)=$G(MPARMS(NAME,VALUE))_ANAME_"="_AVALUE_"^"
+ ;
+ I TYPE="Y" D  G EXIT:$G(BMXSEC)]""
+ . ; Check if 'My Patients Definition' exists
+ . I '$O(^BQICARE(OWNR,7,0)) S BMXSEC="MY PATIENTS DEFINITION was not found" Q
+ . NEW DA,IENS
+ . S DA(1)=OWNR,DA=PLIEN,IENS=$$IENS^DILF(.DA)
+ . K DESC
+ . D PEN^BQIPLDSC(OWNR,PLIEN,.DESC)
+ . D WP^DIE(90505.01,IENS,5,"","DESC")
+ . K DESC
+ . S EXEC="D MYP^BQIPLPP"
+ ;
+ I TYPE="Q" D  G EXIT:$G(BMXSEC)'=""
+ . NEW FLAG,MTEXT
+ . S QMIEN=SOURCE
+ . I '$D(^DIBT(QMIEN)) D  Q
+ .. S BMXSEC="QMAN template was not found"
+ .. S FLAG="" I $G(ZTSK)'="" S FLAG=1
+ .. S MTEXT(1,0)="The QMAN template used in panel "_$P(^BQICARE(OWNR,1,PLIEN,0),U,1)_" appears"
+ .. S MTEXT(2,0)="to have been deleted from your server. You will be unable to manually or automatically populate this panel."
+ .. D ADD^BQINOTF("",OWNR,BMXSEC,.MTEXT,FLAG)
+ . S EXEC="D QM^BQIPLPP",GLREF=$NA(^TMP("BQIPQMAN",UID))
+ ;
+ I TYPE="P" D  G EXIT:$G(BMXSEC)'=""
+ . ; Find predefined panel and get parameters
+ . S PPIEN=$$PP^BQIDCDF(SOURCE) I PPIEN=-1 S BMXSEC="Pre-defined panel type "_SOURCE_" was not found" Q
+ . S EXEC=$$GET1^DIQ(90506,PPIEN_",",2,"E")
+ ;
+ S FGLOB=""
+ X EXEC
+ ;
+ K PARMS,MPARMS
+ ;
+ ; If filters exist
+ I $O(^BQICARE(OWNR,1,PLIEN,15,0))'="" D FLT G EXIT:$G(BMXSEC)]""
+ ;
+ ;  save the data returned after executable and filter applied
+ D SAVE(OWNR,PLIEN,GLREF,KEEP)
+ ;
+DONE ;
+ K DA
+ S DA(1)=OWNR,DA=PLIEN,IENS=$$IENS^DILF(.DA)
+ ;
+ S BQIUPD(90505.01,IENS,.07)=$$NOW^XLFDT()
+ S BQIUPD(90505.01,IENS,3.5)=$S($G(OVER):OVER,1:DUZ)
+ D FILE^DIE("","BQIUPD")
+ ;
+ S CNT=$$GET1^DIQ(90505.01,IENS,.1,"E")
+ I CNT="" S CNT=0
+ S II=II+1,@DATA@(II)="I00010NUMBER_OF_PATIENTS"_$C(30)
+ S II=II+1,@DATA@(II)=CNT_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ ;
+EXIT ;
+ K AGE,AUPNDAYS,AUPNDOB,AUPNDOD,AUPNPAT,AUPNSEX
+ K DFN,DOB,SEX,SSN,X,Y,BQIUPD,GLREF,FGLOB
+ Q
+ ;
+SAVE(OWNR,PLIEN,GLREF,KEEP) ;EP - Save patient list
+ ;
+ ; First delete any patient before saving
+ S DFN=0
+ F  S DFN=$O(^BQICARE(OWNR,1,PLIEN,40,DFN)) Q:'DFN  D
+ . NEW DA,IENS,STAT
+ . S DA(2)=OWNR,DA(1)=PLIEN,DA=DFN,IENS=$$IENS^DILF(.DA)
+ . ; if the patient was already 'added' or 'removed', quit unless KEEP is explicitly "N"
+ . S STAT=$$GET1^DIQ(90505.04,IENS,.02,"I")
+ . I STAT="A"!(STAT="R"),KEEP'="N" Q
+ . ; save off original patients
+ . S @TEMP@(DFN)=^BQICARE(OWNR,1,PLIEN,40,DFN,0)
+ . ; otherwise, delete patient from panel
+ . D DPT^BQIPLCR(DFN)
+ ;
+ S DFN=""
+ F  S DFN=$O(@GLREF@(DFN)) Q:DFN=""  D
+ . ; if patient already in panel check for FLAG value
+ . I $D(^BQICARE(OWNR,1,PLIEN,40,DFN)) D  Q
+ .. NEW DA,IENS,STAT
+ .. S DA(2)=OWNR,DA(1)=PLIEN,DA=DFN,IENS=$$IENS^DILF(.DA)
+ .. ; if the patient was already 'added' or 'removed', quit to preserve that value
+ .. S STAT=$$GET1^DIQ(90505.04,IENS,.02,"I")
+ .. I STAT="A"!(STAT="R") Q
+ . ; otherwise, add patient to panel
+ . D APT^BQIPLCR(DFN)
+ . I $D(@TEMP@(DFN)) S $P(^BQICARE(OWNR,1,PLIEN,40,DFN,0),U,7)=$P(@TEMP@(DFN),U,7)
+ ;
+ ;  Count the saved records
+ D CNTP^BQIPLCR(OWNR,PLIEN)
+ K @TEMP
+ Q
+ ;
+QM ;  Find DFNs in a QMAN search template
+ K @GLREF
+ NEW DFN,FILE,IEN
+ S FILE=$P($G(^DIBT(QMIEN,0)),U,4)
+ I FILE=9000001 D
+ . S DFN=0
+ . F  S DFN=$O(^DIBT(QMIEN,1,DFN)) Q:'DFN  S @GLREF@(DFN)=""
+ I FILE=9000010 D
+ . S IEN=0
+ . F  S IEN=$O(^DIBT(QMIEN,1,IEN)) Q:'IEN  D
+ .. I $P($G(^AUPNVSIT(IEN,0)),U,11)=1 Q
+ .. S DFN=$P($G(^AUPNVSIT(IEN,0)),U,5) Q:DFN=""
+ .. S @GLREF@(DFN)=""
+ Q
+ ;
+MYP ; Find DFNs using the MY PATIENTS DEFINITION
+ NEW MIEN,PIEN,PMIEN,DFN,MDATA
+ S MDATA=$NA(^TMP("BQIPMYP",UID))
+ K @MDATA
+ S MIEN=0
+ F  S MIEN=$O(^BQICARE(OWNR,7,MIEN)) Q:'MIEN  D
+ . NEW DA,IENS
+ . S DA(1)=OWNR,DA=MIEN,IENS=$$IENS^DILF(.DA)
+ . S SOURCE=$$GET1^DIQ(90505.07,IENS,.01,"E")
+ . S PPIEN=$$PP^BQIDCDF(SOURCE) I PPIEN=-1 Q
+ . S EXEC=$$GET1^DIQ(90506,PPIEN_",",2,"E")
+ . K PARMS,MPARMS
+ . S PIEN=0
+ . F  S PIEN=$O(^BQICARE(OWNR,7,MIEN,10,PIEN)) Q:'PIEN  D
+ .. NEW DA,IENS,NAME,VALUE
+ .. S DA(2)=OWNR,DA(1)=MIEN,DA=PIEN,IENS=$$IENS^DILF(.DA)
+ .. S NAME=$$GET1^DIQ(90505.08,IENS,.01,"E")
+ .. S PTYP=$$PTYP^BQIDCDF(SOURCE,NAME)
+ .. I PTYP="T" S VALUE=$$GET1^DIQ(90505.08,IENS,.03,"E")
+ .. I PTYP'="T" S VALUE=$$GET1^DIQ(90505.08,IENS,.02,"E")
+ .. I PTYP="R" S VALUE=$$DATE^BQIUL1(VALUE)
+ .. I VALUE'="" S PARMS(NAME)=VALUE Q
+ .. I VALUE="" D
+ ... Q:'$D(^BQICARE(OWNR,7,MIEN,10,PIEN,1))
+ ... S PMIEN=0 F  S PMIEN=$O(^BQICARE(OWNR,7,MIEN,10,PIEN,1,PMIEN)) Q:'PMIEN  D
+ .... NEW DA,IENS,VALUE
+ .... S DA(3)=OWNR,DA(2)=MIEN,DA(1)=PIEN,DA=PMIEN,IENS=$$IENS^DILF(.DA)
+ .... I PTYP="T" S VALUE=$$GET1^DIQ(90505.81,IENS,.02,"E")
+ .... I PTYP'="T" S VALUE=$$GET1^DIQ(90505.81,IENS,.01,"E")
+ .... S MPARMS(NAME,VALUE)=""
+ . X EXEC
+ . S DFN=0 F  S DFN=$O(@GLREF@(DFN)) Q:'DFN  S @MDATA@(DFN)=""
+ S GLREF=$NA(^TMP("BQIPMYP",UID))
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ D STA^BQIPLRF(OWNR,PLIEN)
+ Q
+ ;
+FLT ; Get filter parameters
+ S PPIEN=$$PP^BQIDCDF(FSOURCE) I PPIEN=-1 S BMXSEC="Pre-defined filter type "_FSOURCE_" was not found" Q
+ S FEXEC=$$GET1^DIQ(90506,PPIEN_",",2,"E")
+ S N=0
+ F  S N=$O(^BQICARE(OWNR,1,PLIEN,15,N)) Q:'N  D
+ . NEW DA,IENS,NAME,VALUE
+ . S DA(2)=OWNR,DA(1)=PLIEN,DA=N,IENS=$$IENS^DILF(.DA)
+ . S NAME=$$GET1^DIQ(90505.115,IENS,.01,"E")
+ . S PTYP=$$PTYP^BQIDCDF(FSOURCE,NAME)
+ . I PTYP="T" S VALUE=$$GET1^DIQ(90505.115,IENS,.03,"E")
+ . I PTYP'="T" S VALUE=$$GET1^DIQ(90505.115,IENS,.02,"E")
+ . I PTYP="R" S VALUE=$$DATE^BQIUL1(VALUE)
+ . I VALUE'="" S PARMS(NAME)=VALUE D CKAS Q
+ . I VALUE="" D
+ .. Q:'$D(^BQICARE(OWNR,1,PLIEN,15,N,1))
+ .. S NN=0 F  S NN=$O(^BQICARE(OWNR,1,PLIEN,15,N,1,NN)) Q:'NN  D
+ ... NEW DA,IENS,VALUE
+ ... S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=N,DA=NN,IENS=$$IENS^DILF(.DA)
+ ... I PTYP="T" S VALUE=$$GET1^DIQ(90505.1151,IENS,.02,"E")
+ ... I PTYP'="T" S VALUE=$$GET1^DIQ(90505.1151,IENS,.01,"E")
+ ... I PTYP="R" S VALUE=$$DATE^BQIUL1(VALUE)
+ ... S MPARMS(NAME,VALUE)="" I NAME="NUMVIS" S MAPARMS(NN,NAME)=VALUE
+ ... S ASN=0
+ ... F  S ASN=$O(^BQICARE(OWNR,1,PLIEN,15,N,1,NN,2,ASN)) Q:'ASN  D
+ .... NEW DA,IENS
+ .... S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=N,DA(1)=NN,DA=ASN,IENS=$$IENS^DILF(.DA)
+ .... S ASSOC=$$GET1^DIQ(90505.11512,IENS,.01,"E")
+ .... S ATYP=$$PTYP^BQIDCDF(FSOURCE,ASSOC)
+ .... I ATYP="T" S AVALUE=$$GET1^DIQ(90505.11512,IENS,.03,"E")
+ .... I ATYP'="T" S AVALUE=$$GET1^DIQ(90505.11512,IENS,.02,"E")
+ .... I ATYP="R" S AVALUE=$$DATE^BQIUL1(AVALUE)
+ .... I AVALUE'="" D
+ ..... I NAME'="NUMVIS" S APARMS(NAME,VALUE,ASSOC)=AVALUE Q
+ ..... S APARMS(NAME,VALUE,ASSOC,AVALUE)="",MAPARMS(NN,ASSOC)=AVALUE,MAPARMS(NN,NAME)=VALUE
+ .... I AVALUE="" D
+ ..... Q:'$D(^BQICARE(OWNR,1,PLIEN,15,N,1,NN,2,ASN,1))
+ ..... S ANN=0 F  S ANN=$O(^BQICARE(OWNR,1,PLIEN,15,N,1,NN,2,ASN,1,ANN)) Q:'ANN  D
+ ...... NEW DA,IENS
+ ...... S DA(5)=OWNR,DA(4)=PLIEN,DA(3)=N,DA(2)=NN,DA(1)=ASN,DA=ANN,IENS=$$IENS^DILF(.DA)
+ ...... I ATYP="T" S AVALUE=$$GET1^DIQ(90505.115121,IENS,.02,"E")
+ ...... I ATYP'="T" S AVALUE=$$GET1^DIQ(90505.115121,IENS,.01,"E")
+ ...... I ATYP="R" S AVALUE=$$DATE^BQIUL1(AVALUE)
+ ...... S MAPARMS(NAME,VALUE,ASSOC,AVALUE)=""
+ ; set FGLOB equal to the global that was populated by executable
+ S FGLOB=$G(GLREF)
+ ; call filter code
+ X FEXEC
+ Q
+ ;
+CKAS ; Check for associated parameters
+ S ASN=0
+ F  S ASN=$O(^BQICARE(OWNR,1,PLIEN,15,N,2,ASN)) Q:'ASN  D
+ . NEW DA,IENS
+ . S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=N,DA=ASN,IENS=$$IENS^DILF(.DA)
+ . S ASSOC=$$GET1^DIQ(90505.1152,IENS,.01,"E")
+ . S ATYP=$$PTYP^BQIDCDF(FSOURCE,ASSOC)
+ . I ATYP="T" S AVALUE=$$GET1^DIQ(90505.1152,IENS,.03,"E")
+ . I ATYP'="T" S AVALUE=$$GET1^DIQ(90505.1152,IENS,.02,"E")
+ . I ATYP="R" S AVALUE=$$DATE^BQIUL1(AVALUE)
+ . I AVALUE'="" D
+ .. I NAME'="NUMVIS" S APARMS(NAME,VALUE,ASSOC)=AVALUE Q
+ .. S APARMS(NAME,VALUE,ASSOC)=AVALUE,MAPARMS(N,ASSOC)=AVALUE,MAPARMS(N,NAME)=VALUE
+ . I AVALUE="" D
+ .. I NAME="NUMVIS" S MAPARMS(N,NAME)=VALUE
+ .. Q:'$D(^BQICARE(OWNR,1,PLIEN,15,N,2,ASN,1))
+ .. S ANN=0 F  S ANN=$O(^BQICARE(OWNR,1,PLIEN,15,N,2,ASN,1,ANN)) Q:'ANN  D
+ ... NEW DA,IENS,AVALUE
+ ... S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=N,DA(1)=ASN,DA=ANN,IENS=$$IENS^DILF(.DA)
+ ... I ATYP="T" S AVALUE=$$GET1^DIQ(90505.11521,IENS,.02,"E")
+ ... I ATYP'="T" S AVALUE=$$GET1^DIQ(90505.11521,IENS,.01,"E")
+ ... I ATYP="R" S AVALUE=$$DATE^BQIUL1(AVALUE)
+ ... S MAPARMS(NAME,VALUE,ASSOC,AVALUE)=""
+ Q

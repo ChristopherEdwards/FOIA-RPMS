@@ -1,0 +1,141 @@
+ASURMDBC ; IHS/ITSC/LMH - MANAGEMENT SUPPLY DATA BOOK REPORT C ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;;Y2K/OK/AEF/2970328
+ ;This routine produces the Management Supply Data Book Report C
+ ;Inventory Adjustments, Line Items and Values
+ ;
+ ;
+EN ;EP -- MAIN ENTRY POINT (USER INTERACTIVE)      
+ ;
+ N ASUDT,ASUTYP
+ D ^XBKVAR,HOME^%ZIS
+ D SELXTRCT^ASUUTIL G QUIT:'$D(ASUDT)
+ W !,*7,"THIS REPORT REQUIRES 132 COLUMNS!"
+ S ZTSAVE("ASUDT")="",ZTSAVE("ASUTYP")=""
+ D QUE^ASUUTIL("DQ^ASURMDBC",.ZTSAVE,"SAMS MGMT SUPPLY DATABOOK REPORT C")
+ D QUIT
+ Q
+EN1(ASUDT,ASUTYP)  ;EP
+ ;----- ENTRY POINT CALLED BY ^ASURMSTD (NON-USER INTERACTIVE)
+ ;
+DQ ;EP -- QUEUED JOB STARTS HERE
+ ;
+ ;      ASUDT  =  report extract date or month
+ ;      ASUTYP =  type of report, I=individual, M=monthly
+ ;
+ D ^XBKVAR
+ D:'$D(^XTMP("ASUR","RDBC")) GET
+ D PRT,QUIT
+ Q
+GET ;EP ; GATHER DATA
+ ;
+ ;      Builds ^XTMP("ASUR","RDBC") global to sort and store
+ ;      transaction counts
+ ;
+ ;      ASU      =  array containing beginning, ending fiscal dates
+ ;      ASU1     =  extracted date in 'AX' crossreference
+ ;      ASU2     =  internal file entry number
+ ;      ASUD     =  array containing transaction data
+ ;      ASUPC    =  which piece in ^TMP global to put the count in
+ ;
+ N ASU,ASU1,ASU2,ASUD,ASUPC
+ K ^XTMP("ASUR","RDBC")
+ D FPP^ASUUTIL1(ASUDT)
+ I ASUTYP="M" S ASUDT=$$LDOM^ASUUTIL1(ASUDT)
+ S ASU1=ASU("DT","BEG2")-1
+ F  S ASU1=$O(^ASUTH("AX",ASU1)) Q:'ASU1  Q:ASU1>ASUDT  D
+ . S ASU2=0 F  S ASU2=$O(^ASUTH("AX",ASU1,ASU2)) Q:'ASU2  D
+ . . S ASUD("TRANS")=$P($G(^ASUH(ASU2,1)),U),ASU0=$E(ASUD("TRANS"))
+ . . I "27372P3P"'[ASUD("TRANS") Q
+ . . D DATA16^ASUUTIL(ASU2)
+ . . S ASUPC=0
+ . . I ASU1'<ASU("DT","BEG")&(ASU1'>ASU("DT","END")) S ASUPC=0
+ . . I ASU1'<ASU("DT","BEG1")&(ASU1'>ASU("DT","END1")) S ASUPC=4
+ . . I ASU1'<ASU("DT","BEG2")&(ASU1'>ASU("DT","END2")) S ASUPC=8
+ . . I ASUD("TRANS")=27!(ASUD("TRANS")="2P") S ASUPC=ASUPC+1
+ . . I ASUD("TRANS")=37!(ASUD("TRANS")="3P") S ASUPC=ASUPC+3
+ . . D SET
+ Q
+SET ;----- SETS COUNTS AND TOTALS IN ^TMP GLOBAL
+ ;
+ S $P(^XTMP("ASUR","RDBC","IHS",ASUD("AREA"),ASUD("ACCNAM"),0),U,ASUPC)=$P($G(^XTMP("ASUR","RDBC","IHS",ASUD("AREA"),ASUD("ACCNAM"),0)),U,ASUPC)+1
+ S $P(^XTMP("ASUR","RDBC","IHS",ASUD("AREA"),ASUD("ACCNAM"),0),U,ASUPC+1)=$P($G(^XTMP("ASUR","RDBC","IHS",ASUD("AREA"),ASUD("ACCNAM"),0)),U,ASUPC+1)+ASUD("VAL")
+ S $P(^XTMP("ASUR","RDBC","IHS",ASUD("AREA"),ASUD("ACCNAM"),ASUD("STA"),0),U,ASUPC)=$P($G(^XTMP("ASUR","RDBC","IHS",ASUD("AREA"),ASUD("ACCNAM"),ASUD("STA"),0)),U,ASUPC)+1
+ S $P(^XTMP("ASUR","RDBC","IHS",ASUD("AREA"),ASUD("ACCNAM"),ASUD("STA"),0),U,ASUPC+1)=$P($G(^XTMP("ASUR","RDBC","IHS",ASUD("AREA"),ASUD("ACCNAM"),ASUD("STA"),0)),U,ASUPC+1)+ASUD("VAL")
+ Q
+PRT ;----- PRINTS THE DATA
+ ;
+ ;      ASUDATA  =  temporary data storage
+ ;      ASUL     =  array used for loop counters
+ ;      ASUOUT   =  '^' to escape controller
+ ;      ASUPAGE  =  report page number
+ ;
+ N ASUL,ASUOUT,ASUPAGE
+ I '$D(^XTMP("ASUR","RDBC")) W !!,"NO DATA FOR DATABOOK REPORT C" Q
+ S ASUOUT=0
+ D LOOPS
+ Q
+LOOPS ;----- LOOPS THROUGH THE ^TMP("ASU",$J,"ASUDBC") GLOBAL AND PRINTS
+ ;      THE REPORT
+ ;
+1 ;----- LOOP THROUGH THE AREA SUBSCRIPT
+ ;
+ S ASUL(1)="" F  S ASUL(1)=$O(^XTMP("ASUR","RDBC","IHS",ASUL(1))) Q:ASUL(1)']""  D  Q:ASUOUT
+ . Q:ASUL(1)=0
+ . D 2 Q:ASUOUT
+ Q
+2 ;----- LOOP THROUGH THE ACCOUNT SUBSCRIPT
+ ;
+ S ASUL(2)="" F  S ASUL(2)=$O(^XTMP("ASUR","RDBC","IHS",ASUL(1),ASUL(2))) Q:ASUL(2)']""  D  Q:ASUOUT
+ . Q:ASUL(2)=0
+ . D HDR Q:ASUOUT
+ . D 3 Q:ASUOUT
+ . I $Y>(IOSL-5) D HDR Q:ASUOUT
+ . S ASUDATA=^XTMP("ASUR","RDBC","IHS",ASUL(1),ASUL(2),0)
+ . W !,"TOTAL"
+ . D WRITE(ASUDATA)
+ Q
+3 ;----- LOOP THROUGH THE STATION SUBSCRIPT
+ ;
+ N ASUDATA
+ S ASUL(3)="" F  S ASUL(3)=$O(^XTMP("ASUR","RDBC","IHS",ASUL(1),ASUL(2),ASUL(3))) Q:ASUL(3)']""  D  Q:ASUOUT
+ . Q:ASUL(3)=0
+ . I $Y>(IOSL-5) D HDR Q:ASUOUT
+ . S ASUDATA=^XTMP("ASUR","RDBC","IHS",ASUL(1),ASUL(2),ASUL(3),0)
+ . W !,$E(ASUL(3),1,20)
+ . D WRITE(ASUDATA)
+ . W !
+ Q
+WRITE(X) ;----- WRITES THE DATA
+ ;
+ ;      ASUCOL  =  the column to write the data in
+ ;
+ N I,ASUCOL
+ S ASUCOL="24^30^42^48^61^67^79^85^98^104^116^122"
+ F I=1:2:11 D
+ . I $P(X,U,I)]"" W ?$P(ASUCOL,U,I),$J($P(X,U,I),4)
+ . I $P(X,U,I+1)]"" W ?$P(ASUCOL,U,I+1),$J($P(X,U,I+1),10,2)
+ Q
+HDR ;----- PRINTS HEADER
+ ;
+ N %,DIR,X,Y
+ I $E(IOST)="C",$G(ASUPAGE) S DIR(0)="E" D ^DIR K DIR I 'Y S ASUOUT=1 Q
+ S ASUPAGE=$G(ASUPAGE)+1
+ W @IOF
+ W "MANAGEMENT SUPPLY DATA BOOK FOR "
+ S Y=ASUDT X ^DD("DD") W $P(Y," ")," ",$P(Y,",",2)
+ W !,"AREA ",ASUL(1)
+ W !!,"C. INVENTORY ADJUSTMENTS, LINE ITEMS and VALUES"
+ W !,"  Category: ",ASUL(2)
+ W !!?31,"CURRENT FISCAL YEAR",?68,"PREVIOUS FISCAL YEAR",?102,"PREVIOUS-PREV FISCAL YEAR"
+ W !?24,"DEBIT ADJUSTMNTS",?42,"CRED ADJUSTMENTS",?61,"DEBIT ADJUSTMNTS",?79,"CRED ADJUSTMENTS",?98,"DEBIT ADJUSTMNTS",?116,"CRED ADJUSTMENTS"
+ W !,"STATION",?24,"# LI",?35,"VALUE",?42,"# LI",?53,"VALUE",?61,"# LI",?72,"VALUE",?79,"# LI",?90,"VALUE",?98,"# LI",?108,"VALUE",?116,"# LI",?127,"VALUE"
+ W !
+ Q
+QUIT ;----- CLEAN UP VARIABLES, CLOSE DEVICE, QUIT
+ ;
+ K ZTSAVE
+ K ^XTMP("ASUR","RDBC")
+ I $G(ASUK("PTRSEL"))]"" W @IOF Q
+ D ^%ZISC
+ Q

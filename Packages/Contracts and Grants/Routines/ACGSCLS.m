@@ -1,0 +1,79 @@
+ACGSCLS ;IHS/OIRM/DSD/THL,AEF - CLOSE OUT REPORT; [ 03/27/2000   2:22 PM ]
+ ;;2.0t1;CONTRACT INFORMATION SYSTEM;;FEB 16, 2000
+ ;;UTILITY TO PRINT CLOSE-OUT REPORT
+EN D ^XBKVAR
+ D EN1
+EXIT K ACG,ACGQUIT,ACG15,ACG154,ACG155,ACG26,ACG26T,ACGAVG,ACGBEG,ACGBEGIN,ACGEND,ACGDOLLR,ACGDT,ACGDT1,ACGDTX,ACGDT1X,ACGIHS1,ACGION,ACGWAIT
+ Q
+EN1 ;SETUP FOR CLOSE OUT REPORT
+ F ACG="BEGIN","END","DOLLAR","ZIS" D @ACG Q:$D(ACGQUIT)
+ Q
+PRINT ;EP;TO PRINT CLOSE OUT REPORT
+ S (ACG26,ACG26T,ACG(1),ACG(20),ACGWAIT(1),ACGWAIT(20),ACGAVG(1),ACGAVG(20))=0
+ F  S ACGBEG=$O(^ACGS("X",ACGBEG)) Q:'ACGBEG!(ACGBEG>ACGEND)  D
+ .S ACG=0
+ .F  S ACG=$O(^ACGS("X",ACGBEG,ACG)) Q:'ACG  I $D(^ACGS(ACG,0)),$D(^("DT")),$D(^("DT1")),$D(^("IHS1")) S ACGDT=^("DT"),ACGDT1=^("DT1"),ACGIHS1=^("IHS1") D P
+ D R
+ Q
+P ;
+ D Q
+ S ACG154=$P(ACGIHS1,U,4),ACG155=$P(ACGIHS1,U,5)
+ S ACG15=$S($P(ACGDTX,U,20)>19:20,1:1),$P(ACG(ACG15),U)=$P(ACG(ACG15),U)+1,$P(ACG(ACG15),U,2)=$P(ACG(ACG15),U,2)+ACG26
+ I 'ACG155 S $P(ACGWAIT(ACG15),U)=$P(ACGWAIT(ACG15),U)+1,$P(ACGWAIT(ACG15),U,2)=$P(ACGWAIT(ACG15),U,2)+ACG26
+ S X1=ACG155,X2=ACG154
+ D ^%DTC
+ S $P(ACGAVG(ACG15),U)=$P(ACGAVG(ACG15),U)+1,$P(ACGAVG(ACG15),U,2)=$P(ACGAVG(ACG15),U,2)+X
+ Q
+Q ;COUNT NUMBERS AND DOLLARS OF ADMINISTRATIVELY CLOSED CONTRACTS
+ S ACGX=0
+ F  S ACGX=$O(^ACGS("C",ACG,ACGX)) Q:'ACGX  I $D(^ACGS(ACGX,0)),$D(^("DT")),$D(^("DT1")) S ACGDTX=^("DT"),ACGDT1X=^("DT1"),ACG26=ACG26+$P(ACGDT1X,U,5)
+ Q:ACG26'>ACGDOLLR
+ Q
+R ;PRINT REPORT
+ S Y=ACGBEGIN X ^DD("DD") S ACGBEGIN=Y
+ S Y=ACGEND X ^DD("DD") S ACGEND=Y
+ W @IOF,!,"Contracts",$S(ACGDOLLR>0:" over "_$FN(ACGDOLLR,"P",0),1:"")," with associated dollars,",!,"closed out between ",ACGBEGIN," and ",ACGEND,!,"following administrative close-out procedure: "
+ W !!?10,"Cost type contracts.:    Number: ",$J(+ACG(20),10),?$X+3,$J($FN($P(ACG(20),U,2),"P,",0),12)
+ W !?10,"Other than cost type:    Number: ",$J(+ACG(1),10),?$X+3,$J($FN($P(ACG(1),U,2),"P,",0),12)
+ W !!,"Open contracts awaiting closeout:"
+ W !!?10,"Cost type contracts.:    Number: ",$J(+ACGWAIT(20),10),?$X+3,$J($FN($P(ACGWAIT(20),U,2),"P,",0),12)
+ W !?10,"Other than cost type:    Number: ",$J(+ACGWAIT(1),10),?$X+3,$J($FN($P(ACGWAIT(1),U,2),"P,",0),12)
+ W !!,"Average length of time required to close out a contract."
+ W !!?10,"Cost type contracts.:    Number: ",$J($S(+ACGAVG(20)<1:0,1:$P(ACGAVG(20),U,2)/30/+ACGAVG(20)),10)
+ W !?10,"Other than cost type:    Number: ",$J($S(+ACGAVG(1)<1:0,1:$P(ACGAVG(1),U,2)/30/+ACGAVG(1)),10)
+ Q
+BEGIN ;ENTER BEGINNING DATE FOR SEARCH
+ S DIR(0)="DO",DIR("A")="Beginning Date",DIR("?")="Enter the Beginning Date for inclusion of closed Contracts"
+ W !
+ D DIR^ACGSDIC
+ Q:+Y<1!$D(ACGQUIT)
+ S (ACGBEGIN,ACGBEG)=+Y
+ Q
+END ;ENTER ENDING DATE FOR SEARCH
+ S DIR(0)="DO",DIR("A")="Ending Date...",DIR("?")="Enter the Ending Date for inclusion of closed Contracts"
+ W !
+ D DIR^ACGSDIC
+ Q:+Y<1!$D(ACGQUIT)
+ S ACGEND=+Y
+ Q
+CLOSED ;SELECT TYPE OF CLOSURE
+ S DIR(0)="SO^2:PHYSICALL CLOSED;3:ADMINISTRATIVELY CLOSED",DIR("?")="Enter the code which indicates the type of action for which you wish a report."
+ W !
+ D DIR^ACGFDIC
+ Q:Y<2!$D(ACGQUIT)
+ S ACGTYPE=Y,ACGXREF=$S(Y=2:"X",1:"Y")
+ Q
+DOLLAR D DOLLAR^ACGSRT
+ Q:$D(ACGOUT)
+ I '$D(ACGDOLLR) S ACGDOLLR=0
+ I ACGDOLLR=0 K ACGQUIT
+ Q
+ZIS S ZTRTN="PRINT^ACGSCLS"
+ D ^ACGSZIS
+ I '$D(IO("Q")) D
+ .I '$D(ZTQUEUED) S (ACGIOP,IOP)=ION D ^%ZIS I POP S ACGQUIT="" Q
+ .U IO
+ .D PRINT
+ .D DONE^ACGSZIS
+ .I $E(IOST,1,2)="C-" D HOLD^ACGSMENU
+ Q

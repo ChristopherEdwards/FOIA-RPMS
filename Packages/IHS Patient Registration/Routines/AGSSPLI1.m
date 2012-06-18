@@ -1,0 +1,25 @@
+AGSSPLI1 ; IHS/ADC/CRG - NEW PROGRAM ; [ 11/05/97  10:06 AM ]
+ ;;6.0;IHS PATIENT REGISTRATION;**2**;MAR 20, 1995
+ ;;Y2K/OK - IHS/ADC/ESJ 11-05-97
+ ;;.05;AGSS
+FINISH ;set up final files and report
+ S IOP="HOME" D ^%ZIS
+ U IO(0) W $$S^AGVDF("IOF"),!,"Combining Files and Totals ",!!
+ S AGSS("NFILE")=0 F  S AGSS("NFILE")=$O(^AGSSFTMP(AGSS("NFILE"))) Q:'AGSS("NFILE")  D
+ .S AGSS("SFILE")=""_AGSS("PATH")_"ss"_AGSS("NFILE")_".ssn",AGSS("OFILE")=AGSS("PATH")_AGSS("NFILE")_".ssn"
+ .S AGSS("CMD")="echo "_^AGSSFTMP(AGSS("NFILE"),"RCOUNT")_" > "_AGSS("SFILE") D CALL
+ .S AGSS("CMD")="cat "_AGSS("OFILE")_" >> "_AGSS("SFILE") D CALL
+ .U IO(0) W "."
+ .S AGSS("CMD")="rm "_AGSS("OFILE") D CALL
+REPORT ;
+ U IO(0) W $$S^AGVDF("IOF"),"Facilities Summary Report",!!
+ S AGSS("SUFAC")=0,AGSS("TRCOUNT")=0 F  S AGSS("SUFAC")=$O(^AGSSFTMP(AGSS("SUFAC"))) Q:'AGSS("SUFAC")  D
+ .S AGSS("TRCOUNT")=AGSS("TRCOUNT")+^AGSSFTMP(AGSS("SUFAC"),"RCOUNT")
+ .W !,?2,^AGSSFTMP(AGSS("SUFAC"),"NM"),?30,$J(^AGSSFTMP(AGSS("SUFAC"),"RCOUNT"),7),?40,AGSS("PATH"),"ss",AGSS("SUFAC"),".ssn"
+ W !!," Total Records ",?20,AGSS("TRCOUNT"),!
+ Q
+CALL ;
+ I $G(AGSS("TRACE")) U IO(0) W !,?10,AGSS("CMD")
+ S AGY="S X=$$TERMINAL^%HOSTCMD("""_AGSS("CMD")_""")" X AGY
+ Q
+EXIT ;

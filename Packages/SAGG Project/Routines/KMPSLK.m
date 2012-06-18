@@ -1,0 +1,74 @@
+KMPSLK ;SF/KAK - Thru The Looking Glass ;27 AUG 97 2:07 pm
+ ;;1.8;SAGG PROJECT;**1**;May 14, 1999
+ ;
+ZER ;  Collect zeroth node information
+ ;
+ S U="^",^XTMP("KMPS",KMPSSITE,NUM,"@ZER",0)=$P(^DIC(0),U)_U_$P(^DIC(0),U,4)_"^DIC(^",^XTMP("KMPS",KMPSSITE,NUM,"@ZER","TM")=$S($D(^%ZTSK(-1)):^(-1),1:^%ZTSK(0))
+ S KMPSN=0 F  S KMPSN=$O(^DIC(KMPSN)) Q:'+KMPSN  D
+ .Q:$G(^DIC(KMPSN,0))=""
+ .Q:'$D(^DIC(KMPSN,0,"GL"))  S KMPSNM=$G(^DIC(KMPSN,0,"GL")) Q:KMPSNM=""
+ .S ^XTMP("KMPS",KMPSSITE,NUM,"@ZER",KMPSN)=$P(^DIC(KMPSN,0),U)_U_$P($G(@(KMPSNM_"0)")),U,4)_KMPSNM_U_$G(^DD(+$P(^DIC(KMPSN,0),U,2),0,"VR"))_U_$P($G(@(KMPSNM_"0)")),U,3)
+ ; file# = file_name^# of entries^global_name^file_version^last id number
+ ;
+PKG ;  Collect package file information
+ ;
+ S KMPSN=0 F  S KMPSN=$O(^DIC(9.4,KMPSN)) Q:'+KMPSN  I $D(^DIC(9.4,KMPSN,0)) S KMPSD=$P($G(^DIC(9.4,KMPSN,0)),U,2) D
+ .I $E(KMPSD)="A" I ($A($E(KMPSD,2))>64)&($A($E(KMPSD,2))<88) I (($A($E(KMPSD,3))>64)&($A($E(KMPSD,3))<89)) Q
+ .S KMPSV=0,(KMPSVL,KMPSD)="" F  S KMPSV=$O(^DIC(9.4,KMPSN,22,KMPSV)) Q:'+KMPSV  S KMPSVL=KMPSV
+ .I +KMPSVL S KMPSV=$G(^DIC(9.4,KMPSN,22,KMPSVL,0)),KMPSD=$P(KMPSV,U,3),KMPSV=$P(KMPSV,U)
+ .S ^XTMP("KMPS",KMPSSITE,NUM,"@PKG",$P(^DIC(9.4,KMPSN,0),U))=$P($G(^DIC(9.4,KMPSN,0)),U,2)_U_$G(^("VERSION"))_U_KMPSV_U_KMPSD
+ ;  pkg_name = pkg_prefix^current version_last version_install date
+ ;
+SYS ;  Collect volume set (@VOL) and system (@SYS) information
+ ;
+ D EN^%ZOSVKSD(KMPSSITE,NUM,.KMPSVOLS),@KMPSX1 G END
+ ;
+VAX ; DSM
+ S ^XTMP("KMPS",KMPSSITE,NUM,"@SYS")=$&ZLIB.%VERSION("NAME")_U_$ZC(%GETSYI,"VERSION") Q:$ZV'[6.
+ S KMPSD=$ZC(%GETSYI,"CLUSTER_MEMBER")
+ I 'KMPSD S KMPSD=$ZC(%GETSYI,"NODENAME"),^XTMP("KMPS",KMPSSITE,NUM,"@SYS",KMPSD)=$ZC(%GETSYI,"HW_NAME") Q
+ D CLSTR D  S X="ERR1^KMPSGE",@^%ZOSF("TRAP") Q
+ .S KMPSD="" F  S KMPSD=$O(KMPSNM(KMPSD)) Q:KMPSD=""  S ^XTMP("KMPS",KMPSSITE,NUM,"@SYS",KMPSD)=$ZC(%GETSYI,"HW_NAME",KMPSNM(KMPSD))
+CLSTR ;  Call $GETSYI using wild card to get CSID and NODENAME for all nodes
+ S X="ERRCLU^KMPSLK",@^%ZOSF("TRAP"),$ZE="" K KMPSN,KMPSNM
+ S KMPSN($ZC(%GETSYI,"NODE_CSID",-1))=""
+ F  S KMPSN($ZC(%GETSYI,"NODE_CSID",""))=""
+ERRCLU I $ZE'["NOMORENODE" ZQ
+ S KMPSD="" F  S KMPSD=$O(KMPSN(KMPSD)) Q:KMPSD=""  S KMPSNM($ZC(%GETSYI,"NODENAME",KMPSD))=KMPSD
+ Q
+ ;
+MSM ;
+MSMV4 ;
+ S ^XTMP("KMPS",KMPSSITE,NUM,"@SYS")=$ZV_U_$ZOS(4)
+ Q
+ ;
+OMNT ; OpenM-NT
+ S ^XTMP("KMPS",KMPSSITE,NUM,"@SYS")=$ZV_U_$S($ZU(100)=0:"Windows NT",$ZU(100)=1:"Windows 95",1:$ZU(100))
+ Q
+ ;        
+END ;
+ K KMPSD,KMPSN,KMPSNM,KMPSV,KMPSVL
+ Q
+ ;
+OUT ;  Called from routine KMPSGE
+ ;  Create 'successful' end-game message text
+ ;
+ S KMPSTEXT(1)="   The SAGG Project collection routines monitored the following:",KMPSTEXT(2)="" D
+ .K KMPSX S KMPSX1="" F  S KMPSX1=$O(^XTMP("KMPS",KMPSSITE,NUM,KMPSDT,KMPSX1)) Q:KMPSX1=""  S KMPSX2="" F  S KMPSX2=$O(^XTMP("KMPS",KMPSSITE,NUM,KMPSDT,KMPSX1,KMPSX2)) Q:KMPSX2=""  S KMPSX(KMPSX2)=""
+ .S KMPSX=0,KMPSX1="" F KMPSI=3:1 Q:KMPSX  S KMPSTEXT(KMPSI)="          " F KMPSJ=1:1:5 S KMPSX1=$O(KMPSX(KMPSX1)) S:KMPSX1="" KMPSX=1 Q:KMPSX1=""  S KMPSTEXT(KMPSI)=KMPSTEXT(KMPSI)_KMPSX1_"   "
+ S KMPSTEXT(KMPSI)="",KMPSTEXT(KMPSI+1)="   Please ensure that this list concurs with your present volume set",KMPSTEXT(KMPSI+2)="   configuration.",KMPSTEXT(KMPSI+3)=""
+ S KMPSTEXT(KMPSI+4)="   A local e-mail message #"_KMPSXMZ_" was created by the collection",KMPSTEXT(KMPSI+5)="   routines.  Check the ISC-ALBANY.VA.GOV NetMail Queue to ensure",KMPSTEXT(KMPSI+6)="   transmission delivery."
+ ;
+MSG ;  Send e-mail message to local KMPS-SAGG mailgroup
+ ;
+ K XMY S:'$D(XMDUZ) XMDUZ=.5 S:'$D(DUZ) DUZ=.5 S U="^"
+ S XMSUB="SAGG Project Message (Session #"_NUM_")",XMTEXT="KMPSTEXT("
+ I $D(^XMB(3.8,"B","KMPS-SAGG")) S KMPSXM=$O(^XMB(3.8,"B","KMPS-SAGG",0)) S KMPSXMN=0 F  S KMPSXMN=$O(^XMB(3.8,KMPSXM,1,"B",KMPSXMN)) Q:KMPSXMN=""  S XMY(KMPSXMN)=""
+ D:$D(XMY) ^XMD
+END1 ;
+ K ^XTMP("KMPS",KMPSSITE),^XTMP("KMPS","ERROR"),^XTMP("KMPS","START"),^XTMP("KMPS","STOP"),^XTMP("KMPS",0)
+ K %,KMPSCUR,KMPSDT,KMPSFS,KMPSLOC,KMPSI,KMPSJ,KMPSJOB,KMPSMGR,KMPSPROD,KMPSRUN,KMPSSITE,KMPSSTRT
+ K KMPSTEMP,KMPSTEXT,KMPSUCI,KMPSUCIN,KMPSUTL,KMPSVA,KMPSVOL,KMPSX,KMPSX1,KMPSX2,KMPSXM,KMPSXMB,KMPSXMN,KMPSXMZ
+ K N,NM,X,XMDUZ,XMN,XMSUB,XMTEXT,XMY,XMZ
+ S ZTREQ="@"
+ L -^XTMP("KMPS") Q

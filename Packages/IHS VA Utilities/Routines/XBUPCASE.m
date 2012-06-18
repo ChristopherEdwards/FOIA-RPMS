@@ -1,0 +1,9 @@
+XBUPCASE ; IHS/ADC/GTH - UPCASE VALUE IN X ; [ 02/07/97   3:02 PM ]
+ ;;3.0;IHS/VA UTILITIES;;FEB 07, 1997
+ ;
+ ; Upcase value in X
+ ;
+START ;
+ S X=$$UP^XLFSTR(X)
+ Q
+ ;

@@ -1,0 +1,77 @@
+ADGPTLP ; IHS/ADC/PDW/ENM - PRINT PATIENT LIST BY WARD ;  [ 03/25/1999  11:48 AM ]
+ ;;5.0;ADMISSION/DISCHARGE/TRANSFER;;MAR 25, 1999
+ ;
+ ;***> initialize variables
+ U IO S DGPG=0,DGSTOP=""
+ S DGSITE=$P(^DIC(4,DUZ(2),0),U),DGDUZ=$P(^VA(200,DUZ,0),U,2)
+ S (DGLIN,DGLIN1)="",$P(DGLIN,"-",80)="",$P(DGLIN1,"=",80)=""
+ ;
+ ;***> loop thru wards and beds to print patient data
+ S DGW=0
+A1 S DGW=$O(^TMP("DGZPTL",$J,"BED",DGW)) G END:DGW="" S DGR=0 D HEAD
+A2 S DGR=$O(^TMP("DGZPTL",$J,"BED",DGW,DGR))
+ I DGR="" D ^ADGPTLP0 G END1:DGSTOP=U,A1
+ S DGRM=^TMP("DGZPTL",$J,"BED",DGW,DGR)
+ S (DFN,DGNM,DGAD,DGSER,DGDX,DGPRV,DGCOM,DGCHART,AGE,DGLOS,DGDS)=""
+ S DGBED=$P(DGRM,"-",2,3)
+ G PRNT:'$D(^TMP("DGZPTL",$J,"WD",DGRM)) S DGSTR=^(DGRM)
+ S DFN=$P(DGSTR,U)
+ S DGNM=$P(DGSTR,U,2),DGDS=$P(DGSTR,U,7),DGCOM=$P(DGSTR,U,6)
+ S DGAD=$P(DGSTR,U,3),DGDX=$P(DGSTR,U,4),DGPRV=$P(DGSTR,U,5)
+ S:DGPRV?1N.N DGPRV=$P(^VA(200,DGPRV,0),U)
+ S DGCHART=$P(^AUPNPAT(DFN,41,DUZ(2),0),U,2),DGXX=6-$L(DGCHART)
+ F DGII=1:1:DGXX S DGCHART="0"_DGCHART
+ K ^UTILITY("DIQ1",$J)
+ S DA=DFN,DIC=2,DR=.033 D EN^DIQ1
+ S AGE=^UTILITY("DIQ1",$J,2,DFN,.033)
+ K ^UTILTIY("DIQ1",$J)
+ I DGAD'="" S X=$P(DGAD,".",1) D H^%DTC S DGLOS=(+$H-+%H)+1
+ I DGO=2,DGDX]"" S DGSER=DGDX
+ I DGO=2,DGDX?1N.N S DGSER=$E($P(^DIC(45.7,DGDX,0),U),1,20)
+ ;
+PRNT I $Y>(IOSL-5) D NEWPG G END1:DGSTOP=U
+ W !,DGDS,?3,DGBED,?9,$E(DGNM,1,20)
+ W:DGCHART ?31,$E(DGCHART,1,2)_"-"_$E(DGCHART,3,4)_"-"_$E(DGCHART,5,6)
+ W ?42,AGE
+ I DGO=4 D  G PRNT1
+ . I DFN S X="SRZPEP" X ^%ZOSF("TEST") I $T W ?50,$$SDA^SRZPEP(DFN)
+ . W !
+ . W:DGDX'="" ?20,"(",$E(DGDX,1,25),")"
+ W ?47,$J(DGLOS,2)
+ W ?53,$S(DGO=1:$E(DGDX,1,25),DGO=2:DGSER,1:"")
+ W ! W:DGPRV'="" ?11,"(",$E(DGPRV,1,15),")"
+ W:DGCOM'="" ?33,"(",DGCOM,")"
+ I DFN S X="SRZPEP" X ^%ZOSF("TEST") I $T W ?50,$$SDA^SRZPEP(DFN)
+PRNT1 W !,DGLIN G A2
+ ;
+ ;
+END ;***> eoj
+ I IOST?1"C-".E K DIR S DIR(0)="E" D ^DIR D ^XBCLS
+END1 ;EP
+ ;D ^%ZISC W ! **CRG 2/19/97
+ W ! D ^%ZISC
+ D KILL^ADGUTIL
+ K ^TMP("DGZPTL",$J) Q
+ ;
+ ;
+NEWPG ;EP;***> subrtn for end of page control
+ I IOST'?1"C-".E D HEAD S DGSTOP="" Q
+ K DIR S DIR(0)="E" D ^DIR S DGSTOP=X
+ I DGSTOP'=U D HEAD
+ Q
+ ;
+HEAD ;***> subrtn to print heading
+ I (IOST["C-")!(DGPG>0) W @IOF
+ W !,DGLIN1 S DGPG=DGPG+1
+ W !?11,"*****Confidential Patient Data Covered by Privacy Act*****"
+ W !,DGDUZ,?80-$L(DGSITE)/2,DGSITE S DGTY="INPATIENT ROSTER"
+ W ! D TIME^ADGUTIL W ?80-$L(DGTY)/2,DGTY,?70,"Page: ",DGPG
+ S Y=DT X ^DD("DD") W !,Y
+ S DGWARD="*** "_$P(^DIC(42,DGW,0),U)_" ***" W ?80-$L(DGWARD)/2,DGWARD
+ W !,DGLIN1
+ W !?3,"Room",?9,"Patient",?31,"Chart #",?41,"Age"
+ I DGO=4 W ?55,"Nursing Notes",!?20,"(Admitting Diagnosis)" G HD1
+ W ?46,"LOS",?61,$S(DGO=1:"Admitting",DGO=2:"Service",1:"")
+ W !?11,"(Provider)",?33,"(Community)",?61 W:DGO=1 "Diagnosis"
+HD1 W !,DGLIN,!
+ Q

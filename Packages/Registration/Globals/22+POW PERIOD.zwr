@@ -1,0 +1,8 @@
+POW PERIOD
+ZWR
+^DIC(22,0)="POW PERIOD^22^0^0"
+^DIC(22,0,"DD")="@"
+^DIC(22,0,"DEL")="@"
+^DIC(22,0,"GL")="^DIC(22,"
+^DIC(22,0,"LAYGO")="@"
+^DIC(22,0,"WR")="@"

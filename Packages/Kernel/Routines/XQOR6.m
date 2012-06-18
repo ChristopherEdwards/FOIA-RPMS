@@ -1,0 +1,11 @@
+XQOR6 ;SLC/KCM - Process Choose Protocols ;3/12/91  16:10 [ 04/02/2003   8:29 AM ]
+ ;;8.0;KERNEL;**1002,1003,1004,1005,1007**;APR 1, 2003
+ ;;6.55;;
+ ;
+EN ;Choose Types
+ S DIC=$G(@(^UTILITY("XQORS",$J,XQORS,"REF")_"30)"))
+ I $L(DIC),'DIC S DIC="^"_DIC
+ G:DIC="" MENU^XQOR3
+ S:'$D(DIC(0)) DIC(0)="AEMQ" D ^DIC
+ S ^UTILITY("XQORS",$J,XQORS,"ITM")=0 ;G NUL^XQOR2
+ Q

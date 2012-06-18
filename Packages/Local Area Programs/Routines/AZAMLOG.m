@@ -1,0 +1,26 @@
+BMEMLOG ; IHS/PHXAO/TMJ - Print Logs by Date Range [ 06/11/03  3:30 PM ]
+ ;;1.0;RELEASE OF INFORMATION;;JUL 10, 2000
+ ;
+ ;
+ASK ;Ask For Date Range
+ ;
+ ;
+BD ;get beginning date
+ W !! S DIR(0)="D^::EP",DIR("A")="Enter beginning LOG RUN Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G END
+ S AZAMBD=Y
+ED ;get ending date
+ W ! S DIR(0)="D^"_AZAMBD_"::EP",DIR("A")="Enter ending LOG RUN Date"  D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S AZAMED=Y
+ S X1=AZAMBD,X2=-1 D C^%DTC S AZAMSD=X
+ W !
+ ;
+PRINT ;PRINT CLOSED DISCLOSURES BY DATE
+ ;W !
+ S FLDS="[CAPTIONED]",BY="@INTERNAL(#.01)",DIC="^AZAMEDLG(",L=0
+ S FR=AZAMBD,TO=AZAMED
+ K DHIT,DIOEND,DIOBEG
+ D EN1^DIP
+END ;
+ K AZAMBD,AZAMED,X,DD0,B Q

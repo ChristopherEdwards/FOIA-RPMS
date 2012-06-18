@@ -1,0 +1,113 @@
+ACRFIRS5 ;IHS/OIRM/DSD/AEF - TRANSFER VENDOR DATA TO 1099 FILE [ 11/01/2001   9:44 AM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;;NOV 05, 2001
+ ;
+ ;Transfers vendor information for vendors with YTD PAID from
+ ;Vendor file to 1099 Vendor file.
+ ;
+EN ;EP -- MAIN ENTRY POINT
+ ;
+ N ACRCD,ACRISDT,ACRYR
+ D HOME^%ZIS
+ D ^XBKVAR
+ D MSG
+ D YEAR(.ACRYR)
+ Q:'$G(ACRYR)
+ D AMTCD(.ACRCD)
+ D LOOP(ACRYR,ACRCD)
+ Q
+LOOP(ACRYR,ACRCD)  ;
+ ;----- LOOPS THROUGH VENDOR FILE AND PUTS DATA INTO 1099 VENDORS FILE
+ ;
+ N ACRVEND
+ S ACRVEND=0
+ F  S ACRVEND=$O(^AUTTVNDR(ACRVEND)) Q:'ACRVEND  D
+ . Q:$P($G(^AUTTVNDR(ACRVEND,11)),U,6)'="Y"
+ . S ACRYTD=$P($G(^AUTTVNDR(ACRVEND,11)),U,7)
+ . I ACRYTD>599.99 D SET(ACRVEND,ACRYR,ACRYTD,ACRCD)
+ Q
+SET(ACRVEND,ACRYR,ACRYTD,ACRCD)        ;
+ ;----- SETS VENDOR DATA INTO ARMS 1099 VENDORS FILE
+ ;
+ N DA,DIE,DR,X,Y
+ I '$D(^ACR1099V(ACRVEND)) D NEWVEND(ACRVEND)
+ Q:'$D(^ACR1099V(ACRVEND))
+ I '$D(^ACR1099V(ACRVEND,1,ACRYR)) D NEWYR(ACRVEND,ACRYR)
+ Q:'$D(^ACR1099V(ACRVEND,1,ACRYR))
+ S DA=ACRYR
+ S DA(1)=ACRVEND
+ S DIE="^ACR1099V("_DA(1)_",1,"
+ S DR=".02///^S X=ACRYTD"
+ D ^DIE
+ K DA,DIE,DR
+ S DIE="^ACR1099V("
+ S DA=ACRVEND
+ S DR=".02////"_ACRCD
+ D ^DIE
+ Q
+NEWYR(ACRVEND,ACRYR)         ;
+ ;----- ADD NEW YEAR MULTIPLE TO ARMS 1099 VENDOR FILE
+ ;
+ N DA,DD,DIC,DLAYGO,DO,X,Y
+ S (DINUM,X)=ACRYR
+ S DA(1)=ACRVEND
+ S DIC="^ACR1099V("_DA(1)_",1,"
+ S DIC(0)=""
+ S DIC("P")=$P(^DD(9002198.2,1,0),U,2)
+ S DLAYGO=9002198.21
+ K DD,DO
+ D FILE^DICN
+ Q
+NEWVEND(ACRVEND)   ;
+ ;----- ADD NEW VENDOR TO 1099 VENDOR FILE
+ ;
+ N DD,DIC,DINUM,DLAYGO,DO,X,Y
+ S (DINUM,X)=ACRVEND
+ S DIC="^ACR1099V("
+ S DIC(0)=""
+ S DLAYGO=9002198.2
+ K DD,DO
+ D FILE^DICN
+ Q
+YEAR(ACRYR)        ;
+ ;----- SELECT CALENDAR YEAR FOR 1099s
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT,X,Y
+ S DIR(0)="N^0000:9999"
+ S DIR("A")="Select 1099 CALENDAR YEAR"
+ S DIR("B")=($E(DT,1,3)+1700)-1
+ D ^DIR
+ Q:$D(DIRUT)!($D(DTOUT))!($D(DUOUT))
+ Q:+Y'>0
+ S ACRYR=+Y
+ Q
+AMTCD(ACRCD)       ;
+ ;----- SELECT PAYMENT TYPE CODE
+ ;
+ K DIR,X,Y
+ S ACRCD=""
+ S DIR(0)="Y"
+ S DIR("A")="Do you want to set all payment type codes to one code, then change selected entries"
+ S DIR("B")="Y"
+ D ^DIR
+ Q:'Y
+A ;----- LOOP
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT,X,Y
+ S DIR(0)="F^1:1"
+ S DIR("A")="Select PAYMENT TYPE CODE (1-9,A,B,C)"
+ S DIR("B")=7
+ D ^DIR
+ Q:$D(DUOUT)!($D(DIRUT))!($D(DTOUT))
+ I Y="" W " ??" G A
+ I Y=0 W " ??" G A
+ I Y?1A I "ABC"'[Y W " ??" G A
+ S ACRCD=Y
+ Q
+MSG ;----- WRITES MESSAGE
+ ;
+ W !!,"This option transfers vendor information from the master Vendor file"
+ W !,"to the ARMS 1099 Vendors file.  It will be used to control the exporting"
+ W !,"to download files.  Only vendors with YTD PAID > 599.99 will be"
+ W !,"transferred."
+ W !
+ Q

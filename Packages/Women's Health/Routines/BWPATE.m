@@ -1,0 +1,122 @@
+BWPATE ;IHS/ANMC/MWR/CIA/PLS -  PATIENT CASE DATA EDIT;23-Jan-2009 10:35;DU
+ ;;2.0;WOMEN'S HEALTH;**8,9,11**;MAY 16, 1996
+ ;;* MICHAEL REMILLARD, DDS * ALASKA NATIVE MEDICAL CENTER *
+ ;;  CALLED BY OPTION: "BW EDIT PATIENT CASE DATA".
+ ;
+ D SETVARS^BWUTL5
+ F  D PATIENT Q:BWPOP
+ ;
+EXIT ;EP
+ D KILLALL^BWUTL8
+ Q
+ ;
+ ;
+PATIENT ;EP
+ D TITLE^BWUTL5("EDIT PATIENT CASE DATA")
+PATIENT1 ;EP
+ ;---> TO AVOID @IOF AND TITLE.
+ ;---> SELECT PATIENT.
+ N Y
+ W !!,"   Select the patient you wish to add or edit."
+ D PATLKUP^BWUTL8(.Y,"ADD")
+ I Y<0 S BWPOP=1 Q
+ S BWDFN=+Y
+ D CDCID(BWDFN)
+ D SCREEN(BWDFN) S BWPOP=0
+ Q
+ ;
+ ;
+SCREEN(BWDFN) ;EP
+ ;---> EDIT PATIENT CASE DATA WITH SCREENMAN.
+ ;---> REQUIRED VARIABLES: BWDFN=DFN OF PATIENT.
+ N DR
+ S DR="[BW PATIENT-FORM-1]"
+ D DDS^BWFMAN(9002086,DR,BWDFN,"","",.BWPOP)
+ Q:BWPOP
+ N DIR W !,"Do you wish to PRINT this patient's Case Data?"
+ S DIR(0)="Y",DIR("B")="NO" D ^DIR K DIR W !
+ D:Y PRTCASE^BWPATP(BWDFN)
+ Q
+ ;
+CASEDATA(BWDFN) ;EP
+ ;---> CALLED AFTER ADD/EDIT OF NOTIFICATIONS.
+ N DIR W !,"Do you wish to EDIT this patient's Case Data?"
+ S DIR("?",1)="   Enter YES to edit this patient's Case Manager, "
+ S DIR("?")="   PAP Regimen, Current Need, etc."
+ S DIR(0)="Y",DIR("B")="NO" D ^DIR K DIR W !
+ D:Y SCREEN(BWDFN)
+ Q
+ ;
+AUTOADD(DFN,SITE,Y,BWPRMT) ;EP
+ ;---> AUTOMATIC ADD OF A NEW PATIENT TO "BW PATIENT FILE".
+ ;---> SET CASEMANAGER TO SITE PARAMETER DEFAULT.
+ ;---> SET PAP TX NEED (#.11), PAP REGIMEN (#.16)="Undetermined",
+ ;---> MAM TX NEED (#.18)="Undetermined".
+ ;---> Set RACE of patient via tribal affiliation
+ ;---> PARAMETERS:
+ ;     1 - DFN     (REQUIRED) IEN OF PATIENT IN ^AUPNPAT(
+ ;     2 - SITE    (REQUIRED) DUZ(2) FOR DEFAULT CASE MANAGER
+ ;     3 - Y       (RETURNED) FROM ^DICN: IEN OR -1 FAILURE TO ADD PT
+ ;     4 - BWPRMT  (OPTIONAL) EQUALS 1 IF PROMPT WHEN FAILURE
+ ;
+ S (DINUM,X)=DFN
+ ;---> SET CASE MANAGER DEFAULT.
+ N BWCMGR,DIC
+ S BWCMGR=$S($D(SITE):$P(^BWSITE(SITE,0),U,2),1:"")
+ S:'$G(BWPRMT) BWPRMT=0
+ S DIC("DR")=".1////"_BWCMGR_";.11///Undetermined;.16///Undetermined"
+ S DIC("DR")=DIC("DR")_";.18///Undetermined"
+ S DIC("DR")=DIC("DR")_";.2////"_$$CDCID^BWUTL5(DFN,SITE)_";.21////"_DT
+ K DD,DO S DIC="^BWP(",DIC(0)="ML",DLAYGO=9002086
+ D FILE^DICN K DIC
+ ;---> IF Y<0, CHECK PERMISSIONS.
+ I Y<0,BWPRMT D  Q
+ .W !!?5,"* UNABLE to add this patient to the Women's Health database."
+ .W !?5,"  Please contact your site manager to check permissions."
+ .D DIRZ^BWUTL3
+ S Y=+Y
+ D ADDRACE(DFN,Y)
+ Q
+ ;
+CDCID(BWDFN) ;EP
+ ;---> ASSIGN A CDCID# TO THIS PATIENT.
+ N X S X=$$CDCID^BWUTL5(BWDFN,DUZ(2))
+ Q:X']""
+ D DIE^BWFMAN(9002086,".2////"_X,BWDFN,.BWPOP)
+ Q
+ ;
+CDCEDIT ;EP
+ ;---> EDIT A PATIENT'S CDC ID NUMBER.
+ D SETVARS^BWUTL5
+ N Y
+ F  D  Q:$G(Y)<0
+ .D TITLE^BWUTL5("EDIT A PATIENT'S CDC ID NUMBER")
+ .D PATLKUP^BWUTL8(.Y)
+ .Q:Y<0
+ .D DIE^BWFMAN(9002086,.2,+Y,.BWPOP)
+ .S:BWPOP Y=-1
+ Q
+ ; Return Previous Procedure Date of type passed or None
+PREVPROC(BWPROC,BWDFN,BWDT) ;
+ N X
+ S BWDT=$G(BWDT,DT)
+ S X=$G(^BWPCD($$FINDLAST^BWMDEX2(BWPROC,BWDT,0),0))
+ Q $S($P(X,U,12):$$FMTE^XLFDT($P(X,U,12)),1:"None")  ;"5Z"
+ ; Add Race associated with tribal affiliation
+ ;     (defaults to American Indian
+ADDRACE(BWDFN,IEN) ;
+ N BWIENS,BWFDA,BWERR,BWRC
+ S IENS="+1,"_IEN_","
+ S BWRC=$$GET1^DIQ(9000001,BWDFN,1108,"I")
+ S BWRC=+$O(^BWRACE("C",BWRC,0))
+ S:'BWRC BWRC=""
+ S BWFDA(9002086.07,IENS,.001)=1
+ S BWFDA(9002086.07,IENS,.01)=BWRC
+ D UPDATE^DIE("","BWFDA","","BWERR")
+ Q
+ ; Screen on Race Field in BW PATIENT File
+ ; Returns availability of race entry for selection
+RACESEL(IEN) ;
+ N MDEVER
+ S MDEVER=+$$GET1^DIQ(9002086.02,+$G(DUZ(2)),.18,"I")
+ Q +$O(^BWRACE(IEN,1,"AC",MDEVER,0))>0

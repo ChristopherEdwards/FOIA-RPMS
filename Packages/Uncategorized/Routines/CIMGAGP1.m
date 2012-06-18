@@ -1,0 +1,208 @@
+CIMGAGP1 ; CMI/TUCSON/LAB - aberdeen area GPRA ;   [ 03/15/00  8:38 AM ]
+ ;;1.0;ABERDEEN GPRA REPORT;;JAN 22, 2000
+ ;
+ ;
+PROC ;EP - called from XBDBQUE
+ S (CIMINJC,CIMINJP)=0
+ S CIMGJ=$J,CIMGH=$H
+ ;calculate 3 years before end of each time frame
+ S CIM3YE=$$FMADD^XLFDT(CIMED,-1096)
+ S CIM98B=$S(CIMQTR=0:($E(CIMED,1,3)-2),1:$E(CIMED,1,3)-1)_$E(CIMBD,4,7)
+ ;S CIM98E=$S(CIMQTR=1:($E(CIMED,1,3)-2),1:$E(CIMED,1,3)-1)_$E(CIMED,4,7)
+ S CIM98E=($E(CIMED,1,3)-1)_$E(CIMED,4,7)
+ S CIM983B=$$FMADD^XLFDT(CIM98E,-1096)
+ S DFN=0 F  S DFN=$O(^AUPNPAT(DFN)) Q:DFN'=+DFN  D PROC1,PROC98
+ Q
+ ;
+PROC1 ;current time period
+ ;check to see if patient is active and in communities
+ Q:$$BEN^AUPNPAT(DFN,"C")'="01"
+ S X=$P($G(^AUPNPAT(DFN,11)),U,18) Q:X=""
+ Q:'$D(CIMTAX($P(^AUPNPAT(DFN,11),U,18)))  ;not a community of interest)
+ S X=$$LASTVD(DFN,CIM3YE,CIMED)
+ Q:X=""  ;not an active user
+ S CIMACT=1 ;an active user by end of time frame
+ S CIMEDATE=CIMED,CIMTIME=1,CIMBDATE=CIMBD D CALCIND
+ Q
+PROC98 ;
+ ;check to see if patient is active and in communities
+ Q:$$BEN^AUPNPAT(DFN,"C")'="01"
+ S X=$P($G(^AUPNPAT(DFN,11)),U,18) Q:X=""
+ Q:'$D(CIMTAX($P(^AUPNPAT(DFN,11),U,18)))  ;not a community of interest)
+ S X=$$LASTVD(DFN,CIM983B,CIM98E)
+ Q:X=""  ;not an active user
+ S CIMACT=1 ;an active user by end of time frame
+ S CIMEDATE=CIM98E,CIMBDATE=CIM98B,CIMTIME=0
+ D CALCIND
+ Q
+CALCIND ;
+IND11P ;indicator 1/1 prevalance current/98
+ S CIMAGE=$$AGE^AUPNPAT(DFN,CIMEDATE) ;age at end of time frame
+ ;demom=all active users, numer=all w/DM dx prior to CIMED
+ D S(CIMRPT,$S(CIMTIME:1,1:12),1,CIMACT) ;set total denom for 1/1 prevalance
+ S CIMAGEP=$S(CIMAGE<1:2,CIMAGE>0&(CIMAGE<5):3,CIMAGE>4&(CIMAGE<15):4,CIMAGE>14&(CIMAGE<20):5,CIMAGE>19&(CIMAGE<25):6,CIMAGE>24&(CIMAGE<45):7,CIMAGE>44&(CIMAGE<65):8,CIMAGE>64:9,1:BBBBB)
+ D S(CIMRPT,$S(CIMTIME:1,1:12),CIMAGEP,1) ;set denominator for 1/1 prevalance by age
+ S CIMDMPAT=$$DM(DFN,CIMEDATE)
+ D S(CIMRPT,$S(CIMTIME:1,1:12),10,CIMDMPAT)
+ I CIMDMPAT,$D(CIMLIST(1)),CIMTIME S ^XTMP("CIMGAGP",CIMGJ,CIMGH,"LIST",1,$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN"),$P(^DPT(DFN,0),U,2),CIMAGE,DFN)=""
+ S CIMAGEP=$S(CIMAGE=0:11,CIMAGE>0&(CIMAGE<5):12,CIMAGE>4&(CIMAGE<15):13,CIMAGE>14&(CIMAGE<20):14,CIMAGE>19&(CIMAGE<25):15,CIMAGE>24&(CIMAGE<45):16,CIMAGE>44&(CIMAGE<65):17,CIMAGE>64:18,1:BBBBB)
+ D S(CIMRPT,$S(CIMTIME:1,1:12),CIMAGEP,CIMDMPAT) ;set numerator for 1/1 prevalance age piece
+ ;set 1/1 incidence first dx within time frame
+ D S(CIMRPT,$S(CIMTIME:11,1:13),1,CIMACT) ;set total denom for 1/2 incidence
+ S CIMAGEP=$S(CIMAGE<1:2,CIMAGE>0&(CIMAGE<5):3,CIMAGE>4&(CIMAGE<15):4,CIMAGE>14&(CIMAGE<20):5,CIMAGE>19&(CIMAGE<25):6,CIMAGE>24&(CIMAGE<45):7,CIMAGE>44&(CIMAGE<65):8,CIMAGE>64:9,1:BBBBB)
+ D S(CIMRPT,$S(CIMTIME:11,1:13),CIMAGEP,1) ;set denominator for 1/2 incidence
+ S X=$$FDM(DFN,CIMBDATE,CIMEDATE)
+ I X,$D(CIMLIST(2)),CIMTIME S ^XTMP("CIMGAGP",CIMGJ,CIMGH,"LIST",2,$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN"),$P(^DPT(DFN,0),U,2),CIMAGE,DFN)=""
+ D S(CIMRPT,$S(CIMTIME:11,1:13),10,X)
+ S CIMAGEP=$S(CIMAGE=0:11,CIMAGE>0&(CIMAGE<5):12,CIMAGE>4&(CIMAGE<15):13,CIMAGE>14&(CIMAGE<20):14,CIMAGE>19&(CIMAGE<25):15,CIMAGE>24&(CIMAGE<45):16,CIMAGE>44&(CIMAGE<65):17,CIMAGE>64:18,1:BBBBB)
+ D S(CIMRPT,$S(CIMTIME:11,1:13),CIMAGEP,X) ;set numerator for 1/1 prevalance age piece
+IND22 ;glycemic control
+ K CIMP,CIMC
+ S CIMC=""
+ G:'CIMDMPAT IND33  ;if not a DM dx'ed patient go to 3/3
+ ;get most recent HGBA1C in year prior to end of time frame
+ ;if null get most recent Glucose in year prior to end of time frame
+ ;tally appropriately
+ S CIMP=$$HBA1C(DFN,CIMEDATE)
+ I CIMP]"" D  D IND22T G COMPARE
+ .D S(CIMRPT,$S(CIMTIME:14,1:15),1,1)
+ .I CIMP<7.5 D S(CIMRPT,$S(CIMTIME:14,1:15),2,1) S CIMC="A" Q
+ .I CIMP>7.5&(CIMP<10.1) D S(CIMRPT,$S(CIMTIME:14,1:15),3,1) S CIMC="F"
+ .I CIMP>10.0&(CIMP<12.0) D S(CIMRPT,$S(CIMTIME:14,1:15),4,1) S CIMC="H" Q
+ .I CIMP>12 D S(CIMRPT,$S(CIMTIME:14,1:15),5,1) S CIMC="V" Q
+ .Q
+ S CIMP=$$BS(DFN,CIMEDATE)
+ I CIMP]"" D  D IND22T G COMPARE
+ .D S(CIMRPT,$S(CIMTIME:14,1:15),1,1)
+ .I CIMP<165 D S(CIMRPT,$S(CIMTIME:14,1:15),2,1) S CIMC="A" Q
+ .I CIMP>165&(CIMP<251) D S(CIMRPT,$S(CIMTIME:14,1:15),3,1) S CIMC="F" Q
+ .I CIMP>250&(CIMP<341) D S(CIMRPT,$S(CIMTIME:14,1:15),4,1) S CIMC="H" Q
+ .I CIMP>340 D S(CIMRPT,$S(CIMTIME:14,1:15),5,1) S CIMC="V" Q
+ .Q
+COMPARE ;compare only 98
+ I CIMTIME G IND33
+ I CIMC="" G IND33
+ S CIMD=""
+ S CIMP=$$HBA1C(DFN,CIMED)
+ I CIMP]"" D  G COMPARE1
+ .D S(CIMRPT,15,6,1)
+ .I CIMP<7.5 S CIMD="A" Q
+ .I CIMP>7.5&(CIMP<10.1) S CIMD="F"
+ .I CIMP>10.0&(CIMP<12.0) S CIMD="H" Q
+ .I CIMP>12 S CIMD="V" Q
+ .Q
+ S CIMP=$$BS(DFN,CIMED)
+ I CIMP]"" D  G COMPARE1
+ .D S(CIMRPT,15,6,1)
+ .I CIMP<165 S CIMD="A" Q
+ .I CIMP>165&(CIMP<251) S CIMD="F" Q
+ .I CIMP>250&(CIMP<341) S CIMD="H" Q
+ .I CIMP>340 S CIMD="V" Q
+ .Q
+COMPARE1 ;
+ I CIMD="" G IND33 ;no category in current
+ I CIMD="A",CIMC="A" D S(CIMRPT,15,9,1)
+ I CIMC="A","FHV"[CIMD D S(CIMRPT,15,8,1)
+ I CIMC="F","FHV"[CIMD D S(CIMRPT,15,8,1)
+ I CIMC="H","HV"[CIMD D S(CIMRPT,15,8,1)
+ I CIMC="V",CIMD="V" D S(CIMRPT,15,8,1)
+ I CIMC="V","HFA"[CIMD D S(CIMRPT,15,7,1)
+ I CIMC="H","FA"[CIMD D S(CIMRPT,15,7,1)
+ I CIMC="F",CIMD="A" D S(CIMRPT,15,7,1)
+IND33 ;DM and htn and bp okay
+ K CIMP
+ G:'CIMDMPAT IND44
+ S X=$$HTN(DFN,CIMEDATE) ;dx of htn before end of time frame
+ D S(CIMRPT,$S(CIMTIME:17,1:18),1,X) ;set denom of htn's
+ G:'X IND44
+ S CIMP=$$BP(DFN,CIMEDATE)
+ I CIMP]"" D  D IND33T
+ .D S(CIMRPT,$S(CIMTIME:17,1:18),2,1)
+ .D S(CIMRPT,$S(CIMTIME:17,1:18),$P(CIMP,U,2),1)
+ .Q
+IND44 ;assesed for LDL
+ D ^CIMGAGP2
+ Q
+IND33T ;
+ I $D(CIMLIST(4)),CIMTIME S ^XTMP("CIMGAGP",CIMGJ,CIMGH,"LIST",4,$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN"),$P(^DPT(DFN,0),U,2),CIMAGE,DFN)=$P(CIMP,U)
+ Q
+IND22T ;
+ I $D(CIMLIST(3)),CIMTIME S ^XTMP("CIMGAGP",CIMGJ,CIMGH,"LIST",3,$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN"),$P(^DPT(DFN,0),U,2),CIMAGE,DFN)=CIMP
+ Q
+S(R,N,P,V) ;
+ I 'R Q
+ S $P(^CIMAGP(R,N),U,P)=$P($G(^CIMAGP(R,N)),U,P)+V
+ Q
+FDM(P,BDATE,EDATE) ;
+ ;get date of first dx (is it within b and e)
+ I $G(P)="" Q ""
+ ;check povs
+ NEW X,E,CIMG,Y
+ K CIMG
+ S Y="CIMG("
+ S X=P_"^FIRST DX [SURVEILLANCE DIABETES" S E=$$START1^APCLDF(X,Y)
+ I '$D(CIMG(1)) Q 0  ;has no dx
+ NEW D S D=$P(CIMG(1),U)
+ I D<BDATE Q 0
+ I D>EDATE Q 0
+ Q 1
+ ;
+DM(P,EDATE) ;is patient diabetic 1 or 0
+ I $G(P)="" Q ""
+ ;check povs
+ NEW X,E,CIMG,Y
+ K CIMG
+ S Y="CIMG("
+ S X=P_"^LAST DX [SURVEILLANCE DIABETES;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(CIMG(1)) Q 1  ;has a dx
+ Q 0
+ ;
+HTN(P,EDATE) ;
+ I $G(P)="" Q ""
+ ;check povs
+ NEW X,E,CIMG,Y
+ K CIMG
+ S Y="CIMG("
+ S X=P_"^LAST DX [SURVEILLANCE HYPERTENSION;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(CIMG(1)) Q 1  ;has a dx
+ Q 0
+ ;
+HBA1C(P,EDATE) ;
+ NEW CIM,X,%,E,R,V,BDATE
+ K CIM
+ S BDATE=$$FMADD^XLFDT(EDATE,-365)
+ S %=P_"^LAST LAB [DM AUDIT HGB A1C;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,"CIM(")
+ I '$D(CIM(1)) Q ""
+ I $P(^AUPNVLAB(+$P(CIM(1),U,4),0),U,4)="" Q ""
+ Q $P(^AUPNVLAB(+$P(CIM(1),U,4),0),U,4)
+BS(P,EDATE) ;EP
+ NEW CIM,X,%,E,R,V
+ K CIM
+ S BDATE=$$FMADD^XLFDT(EDATE,-365)
+ S %=P_"^LAST LAB [DM AUDIT GLUCOSE TESTS TAX;DURING "_BDATE_"-"_EDATE,E=$$START1^APCLDF(%,"CIM(")
+ I '$D(CIM(1)) Q ""
+ I $P(^AUPNVLAB(+$P(CIM(1),U,4),0),U,4)="" Q ""
+ Q $P(^AUPNVLAB(+$P(CIM(1),U,4),0),U,4)
+BP(P,EDATE) ;
+ NEW CIM,X,%,E,R,V,S,D
+ K CIM
+ S BDATE=$$FMADD^XLFDT(EDATE,-365)
+ S %=P_"^LAST MEASUREMENT BP;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,"CIM(")
+ I '$D(CIM(1)) Q ""
+ S X=$P(^AUPNVMSR(+$P(CIM(1),U,4),0),U,4)
+ S S=$P(X,"/"),D=$P(X,"/",2)
+ I S<121&(D<81) Q "Ideal^3"
+ I S>160!(D>95) Q "Markedly Poor^7"
+ I S>140!(D>90) Q "Inadequate^6"
+ I S>130!(D>85) Q "Adequate^5"
+ I S>120!(D>80) Q "Target^4"
+ Q "?????"
+LASTVD(P,BDATE,EDATE) ;
+ ;   using the data fetcher.  Returns date in format specified in F.
+ I '$G(P) Q ""
+ I '$D(^AUPNVSIT("AC",P)) Q ""
+ NEW Y,ERR,LVD
+ S ERR=$$START1^APCLDF(P_"^LAST VISIT;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),"LVD(")
+ I '$D(LVD(1)) Q ""
+ Q $P(LVD(1),U)
+ ;

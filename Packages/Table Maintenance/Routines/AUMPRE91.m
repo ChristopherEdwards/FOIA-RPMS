@@ -1,0 +1,15 @@
+AUMPRE91 ;IHS/ASDST/DMJ - AUM PRE INSTALL [ 09/27/2006  3:06 PM ]
+ ;;9.1;ICD UPDATE;**1**;SEP 26, 2008
+ ;
+START ;EP
+ D CLEANALL^AUMPRE21
+ ;
+ ;
+CLR ;clear out old codes
+ S I=0
+CLR2 ;I already set
+ F  S I=$O(^AUMDATA(I)) Q:'I  D
+ .K ^AUMDATA(I)
+ F I=3,4 D
+ .S $P(^AUMDATA(0),"^",I)=0
+ Q

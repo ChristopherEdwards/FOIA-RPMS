@@ -1,0 +1,35 @@
+XBFLD0 ; IHS/ADC/GTH - PRINT FIELD TRIGGERS ; [ 02/07/97   3:02 PM ]
+ ;;3.0;IHS/VA UTILITIES;;FEB 07, 1997
+ ;
+S ;
+ NEW I,T,N
+ S I=0
+ F  S I=$O(^DD(XBFILE,XBFIELD,1,I)) Q:I'>0  D
+ . D:$Y>(IOSL-4) PAGE^XBFLD
+ . W !?16,"X: ",$P(^DD(XBFILE,XBFIELD,1,I,0),"^",2,5) S T=$P(^(0),U,3),T=$E(T,1,2)
+ . S:T="" T="RG"
+ . ;choices for T==> RG,MU,BU,KW,MN,TR
+ . D @T
+ Q
+ ;
+MU ;MUMPS
+MN ;MNEMONIC
+ F N=1,2 W !?20,N,")",?25,^DD(XBFILE,XBFIELD,1,I,N)
+ Q
+ ;
+RG ;REGULAR
+ F N=1 W !?20,N,")",?25,^DD(XBFILE,XBFIELD,1,I,N)
+ Q
+ ;
+BU ;BULLETIN
+ S X="CREATE",N=X
+ F  S N=$O(^DD(XBFILE,XBFIELD,1,I,N)) Q:N'[X  W !?20,N,?40,^(N)
+ Q
+ ;
+KW ;KWIC
+ Q
+ ;
+TR ;TRIGGER
+ F N="CREATE VALUE","DELETE VALUE","FIELD" W !?20,N,?35,$G(^DD(XBFILE,XBFIELD,1,I,N))
+ Q
+ ;

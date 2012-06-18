@@ -1,0 +1,206 @@
+BTPWPWRS ;VNGT/HS/ALA-Update subdefinitions for Worksheet ; 25 Jan 2010  11:34 AM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;
+ ;
+EN(DATA,BTPWDEF,BTPWTYP,CMIEN,EVIEN,PARMS) ; EP - BTPW UPDATE CMET SUB WRKSHT
+ ; Input parameters
+ ;   BTPWDEF - Register or sub-register name
+ ;   BTPWTYP - What is to happen to the record (A=Add, E=Edit, D=Delete)
+ ;   CMIEN  - Tracked Record IEN
+ ;   EVIEN  - Subrecord IEN
+ ;   PARMS  - Parameters and their values
+ ;
+ NEW UID,II,IENS,VFIEN,FILE,DTTM,BTWDATA,BTWP,BTPWP
+ NEW BTPFNDTM,BTPWPFND,BTPWFNTR,BTPFNCOM,BTPFLND,BTPEDTM,BTPEDBY
+ NEW BTPFLDTM,BTPWPFOL,BTPWPFLD,BTPWPFCM,BTPWFLER
+ NEW BTPNDTM,BTPWPNOT,BTPNCOM,BTPWTDOC,BTPWTTMP,BTPWSIGN,TIURSLT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BTPWPWRS",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BTPWPWRS D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ S @DATA@(II)="I00010RESULT^T01024MSG^I00010HIDE_CMET_IEN^I00010HIDE_EVIEN"_$C(30)
+ ;
+ ;Pull current date/time
+ S DTTM=$$NOW^XLFDT()
+ ;
+ S EVIEN=$G(EVIEN,""),IENS=""
+ S PARMS=$G(PARMS,"")
+ I PARMS="" D
+ . S LIST="",BN=""
+ . F  S BN=$O(PARMS(BN)) Q:BN=""  S LIST=LIST_PARMS(BN)
+ . K PARMS
+ . S PARMS=LIST
+ . K LIST
+ ;
+ I BTPWDEF="" S BMXSEC="RPC Call Failed: VFILE NAME not passed in." Q
+ S VFIEN=$O(^BQI(90506.3,"B",BTPWDEF,""))
+ I VFIEN="" S BMXSEC="RPC Call Failed: "_BTPWDEF_" does not exist." Q
+ S FILE=$P(^BQI(90506.3,VFIEN,0),U,2)
+ ;
+ F BQ=1:1:$L(PARMS,$C(28)) D  Q:$G(BMXSEC)'=""
+ . S PDATA=$P(PARMS,$C(28),BQ) Q:PDATA=""
+ . S NAME=$P(PDATA,"=",1),VALUE=$P(PDATA,"=",2,99)
+ . I VALUE="" S VALUE="@"
+ . ;I VALUE="" Q
+ . S PFIEN=$O(^BQI(90506.3,VFIEN,10,"AC",NAME,""))
+ . I PFIEN="" S BMXSEC=NAME_" not a valid parameter for this update" Q
+ . S PTYP=$P($G(^BQI(90506.3,VFIEN,10,PFIEN,1)),U,1)
+ . I PTYP="D" S VALUE=$$DATE^BQIUL1(VALUE)
+ . I PTYP="C" D
+ .. S CHIEN=$O(^BQI(90506.3,VFIEN,10,PFIEN,5,"B",VALUE,"")) I CHIEN="" Q
+ .. S VALUE=$P(^BQI(90506.3,VFIEN,10,PFIEN,5,CHIEN,0),U,2)
+ . S @NAME=VALUE
+ ;
+ I EVIEN="",BTPWTYP="A" D
+ . ; For findings
+ . I FILE=90620.01 D FND Q
+ . ; For followups
+ . I FILE=90620.012 D FOL Q
+ . ; For Notifications
+ . I FILE=90620.011 D NOT Q
+ ;
+ NEW DA
+ S DA(1)=CMIEN,DA=EVIEN,IENS=$$IENS^DILF(.DA)
+ ;
+ F BQ=1:1:$L(PARMS,$C(28)) D  Q:$G(BMXSEC)'=""
+ . S PDATA=$P(PARMS,$C(28),BQ) Q:PDATA=""
+ . S NAME=$P(PDATA,"=",1)
+ . S PFIEN=$O(^BQI(90506.3,VFIEN,10,"AC",NAME,""))
+ . I PFIEN="" S BMXSEC=NAME_" not a valid parameter for this update" Q
+ . S FIELD=$P($G(^BQI(90506.3,VFIEN,10,PFIEN,3)),U,1),PTYP=$P($G(^BQI(90506.3,VFIEN,10,PFIEN,1)),U,1)
+ . ;Word Processing Field
+ . I PTYP="W" D  Q
+ .. N FIELD,LN,I,P
+ .. S FIELD=$P($G(^BQI(90506.3,VFIEN,10,PFIEN,3)),U,1) Q:FIELD=""
+ .. I @NAME="@" S BTPWDTA(FILE,IENS,FIELD)="@" Q
+ .. K BTPWP
+ .. F LN=1:1:$L(@NAME,$C(10)) S P=$P(@NAME,$C(10),LN) S BTPWP(FILE,FIELD,LN)=P
+ . S EXEC=$G(^BQI(90506.3,VFIEN,10,PFIEN,7))
+ . I EXEC'="" X EXEC Q
+ . I FIELD="" Q
+ . I IENS'="" S BTPWDTA(FILE,IENS,FIELD)=@NAME
+ ;
+ S BTPWDTA(90620,CMIEN_",",1.09)=$$NOW^XLFDT(),BTPWDTA(90620,CMIEN_",",1.1)=DUZ
+ I FILE=90620.01 D
+ . S BTPWDTA(FILE,IENS,.04)=$$NOW^XLFDT()
+ . S BTPWDTA(FILE,IENS,.05)=DUZ
+ I FILE'=90620.01 D
+ . S BTPWDTA(FILE,IENS,.03)=$$NOW^XLFDT()
+ . S BTPWDTA(FILE,IENS,.04)=DUZ
+ ;
+ ; Remove future record for a followup entered in error
+ I BTPWTYP="E",FILE=90620.012,$G(BTPWFLER)="Y" D
+ . ;
+ . N FLIEN,FLSTAT,FOLP,ERROR
+ . S FLIEN=$$GET1^DIQ(90620.012,EVIEN_","_CMIEN_",",.06,"I") Q:FLIEN=""
+ . S FLSTAT=$$GET1^DIQ(90620,FLIEN_",","1.01","I") Q:FLSTAT'="F"  ;No longer in Future state, cannot delete
+ . S FOLP(90620,FLIEN_",",.01)="@"
+ . S FOLP(90620.012,EVIEN_","_CMIEN_",",.06)="@"
+ . D FILE^DIE("","FOLP","ERROR")
+ ;
+ ; Code commented out - now being done prior to this update call
+ ; Enter Addendum for entered in error notifications
+ ;I BTPWTYP="E",FILE=90620.011,$G(BTPWNTER)="Y",$G(TIUDA)>0 D
+ ;. ;
+ ;. N %,TIUX,TIURSLT,DFN
+ ;. S DFN=$$GET1^DIQ(90620,CMIEN_",",.02,"I") Q:DFN=""
+ ;. D NOW^%DTC
+ ;. S TIUX(.02)=DFN
+ ;. S TIUX(1301)=%
+ ;. S TIUX(1302)=DUZ
+ ;. S TIUX("TEXT",1,0)="CMET Notification marked as Entered in Error"
+ ;. D MAKEADD^TIUSRVP(.TIURSLT,TIUDA,.TIUX,0)
+ ;. ;
+ ;. ; Save Addendum
+ ;. I +$G(TIURSLT) S BTPWDTA(90620.011,EVIEN_","_CMIEN_",",.1)=TIURSLT
+ ;
+ ; Create a future follow up record for a followup
+ I BTPWTYP="A",FILE=90620.012 D
+ . S BTPWDTA(90620.012,IENS,.06)=$$FUT^BTPWBTAD(BTPWPFOL,BTPWPFLD)
+ ;
+ I BTPWTYP="D" D  G DONE
+ . ;
+ . ;Log History Entry
+ . D DLOG^BTPWHIST(FILE,IENS,DUZ,DTTM,"Entry Deleted")
+ . ; If record being deleted is a followup, check for future record
+ . I FILE'=90620.012 Q
+ . NEW FTIEN,DA,DIK
+ . S FTIEN=$$GET1^DIQ(FILE,IENS,.06,"I")
+ . I $P($G(^BTPWP(FTIEN,1)),U,1)="F" S DA=FTIEN,DIK="^BTPWP(" D ^DIK Q
+ . ;Delete entry
+ . S BTPWUPD(FILE,IENS,.01)="@"
+ . D FILE^DIE("","BTPWUPD","ERROR")
+ . K BTPWUPD
+ ;
+ ;Log History Entry
+ I $D(BTPWDTA)>0 D RLOG^BTPWHIST(.BTPWDTA,DUZ,DTTM,"Worksheet Update")
+ ;
+ ;File the Information
+ K ERROR
+ D FILE^DIE("","BTPWDTA","ERROR")
+ ;
+ ; Update comment
+ I $D(BTPWP)>0 D
+ . N BQQI,FILE,FIELD,DA,IENS,BTWDATA
+ . K BTWRD
+ . S FILE=$O(BTPWP("")),FIELD=$O(BTPWP(FILE,""))
+ . S DA=$G(EVIEN),DA(1)=CMIEN,IENS=$$IENS^DILF(.DA)
+ . S BQQI=0 F  S BQQI=$O(BTPWP(FILE,FIELD,BQQI)) Q:BQQI=""  S BTWRD(FILE,IENS,FIELD,BQQI)=BTPWP(FILE,FIELD,BQQI)
+ . S BTWDATA=$NA(BTWRD(FILE,IENS,1))
+ . N COM M COM=BTWRD(FILE,IENS,1)
+ . ;
+ . ;Log History Entry
+ . D WLOG^BTPWHIST(.COM,FILE_":"_FIELD,IENS,DUZ,DTTM,"Worksheet Update")
+ . ;
+ . ;Save Comments
+ . D WP^DIE(FILE,IENS,FIELD,"",BTWDATA,"ERROR")
+ . K BTWRD,BTWP
+ ;
+DONE ;
+ S RESULT=1_U
+ I $D(ERROR)>0 S RESULT=-1_U_$G(ERROR("DIERR",1,"TEXT",1))_U
+ I $P(RESULT,U,1)'=-1 S RESULT=1_U_U_$G(CMIEN)_U_EVIEN
+ S II=II+1,@DATA@(II)=RESULT_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+FND ; EP - Create new findings record
+ NEW DA,DIC,DLAYGO,IENS,BTUPD,X,DIC,DA,DLAYGO
+ S DA(1)=CMIEN,X=BTPFNDTM
+ I '$D(^BTPWP(DA(1),10,0)) S ^BTPWP(DA(1),10,0)="^90620.01^^"
+ S DIC="^BTPWP("_DA(1)_",10,",DIC(0)="LMNZ",DLAYGO=90620.01,DIC("P")=DLAYGO
+ K DO,DD D FILE^DICN
+ S EVIEN=+Y
+ Q
+ ;
+FOL ; EP - Create a new followup record
+ NEW X,DIC,DA,Y,DIE,IENS
+ I $G(BTPFLDTM)'="" S X=BTPFLDTM
+ I $G(BTPFLDTM)="" S (X,BTPFLDTM)=$$NOW^XLFDT()
+ S DA(1)=CMIEN
+ S DIC(0)="L",DIC="^BTPWP("_DA(1)_",12,",DIE=DIC
+ I $G(^BTPWP(DA(1),12,0))="" S ^BTPWP(DA(1),12,0)="^90620.012D^^"
+ K DO,DD D FILE^DICN
+ S EVIEN=+Y
+ Q
+ ;
+NOT ; EP - Create a new notification record
+ NEW X,DA,DIC,IENS,DIE,Y
+ I $G(BTPNDTM)'="" S X=BTPNDTM
+ I $G(BTPNDTM)="" S (X,BTPNDTM)=$$DT^XLFDT()
+ S DA(1)=CMIEN
+ S DIC(0)="L",DIC="^BTPWP("_DA(1)_",11,",DIE=DIC
+ I $G(^BTPWP(DA(1),11,0))="" S ^BTPWP(DA(1),11,0)="^90620.011D^^"
+ K DO,DD D FILE^DICN
+ S EVIEN=+Y
+ Q

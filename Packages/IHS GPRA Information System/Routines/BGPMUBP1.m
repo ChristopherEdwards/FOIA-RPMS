@@ -1,0 +1,122 @@
+BGPMUBP1 ; IHS/MSC/MGH - MU EP  measures NQF0002 ;26-Aug-2011 15:20;DU
+ ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;This rouine does the print out for the pharyngitis measure
+PHAR ;EP
+ D P1
+ K ^TMP("BGPMU0002")
+ Q
+P1 ;Write individual measure
+ N X,Y,Z,LIST1,LIST2,LIST3
+ N DEN1,NUM1,DEN2,NUM2,PC1,PC2,EXC1,EXC2,STRING1,STRING2,STRING3,SUMCT
+ N PRD1,PRD2,PRD3,PRD4,PRN1,PRN2,PRN3,PRN4,PRN5,PRN6,PRD5,PRD6
+ S SUMCT=0
+ S STRING1=$$NUM02("C")
+ S STRING2=$$NUM02("P")
+ S STRING3=$$NUM02("B")
+ D SUMMARY1(STRING1,STRING2,STRING3)
+ ;Population
+ S PRD=$P(STRING1,U,4)-$P(STRING2,U,4)
+ S PRD1=$P(STRING1,U,5)-$P(STRING2,U,5)
+ S PRN=$P(STRING1,U,4)-$P(STRING3,U,4)
+ S PRN1=$P(STRING1,U,5)-$P(STRING3,U,5)
+ D HEADER^BGPMUPH Q:BGPQUIT
+ D HDRBLK^BGPMUPH
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"Pts 2-18 w/pharyngitis",?33,$P(STRING1,U,1),?44,$P(STRING2,U,1),?64,$P(STRING3,U,1)
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"and antibiotics Rx"
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !!,"# w/streptococcus test",?33,$P(STRING1,U,2),?38,$J($P(STRING1,U,4),5,1),?44,$P(STRING2,U,2),?49,$J($P(STRING2,U,4),5,1),?56,$J($FN(PRD,",+",1),6),?64,$P(STRING3,U,2),?68,$J($P(STRING3,U,4),5,1),?74,$J($FN(PRN,",+",1),6)
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"# w/o streptococcus test",?33,$P(STRING1,U,3),?38,$J($P(STRING1,U,5),5,1),?44,$P(STRING2,U,3),?49,$J($P(STRING2,U,5),5,1),?56,$J($FN(PRD1,",+",1),6),?64,$P(STRING3,U,3),?68,$J($P(STRING3,U,5),5,1),?74,$J($FN(PRN1,",+",1),6)
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ I $D(BGPLIST(BGPIC)) D P2
+ ;
+ Q
+NUM02(TF) ;Get the numbers for this measure
+ N ARRAY,DEN,NUM,EXC,NOT,PC1,PC11,PC2,PC13,NNUM,PC14
+ N ARRAY,DEN,NUM,PC1,NNUM,PC2
+ S DEN=+$G(^TMP("BGPMU0002",$J,TF,"DEN"))
+ S NUM=+$G(^TMP("BGPMU0002",$J,TF,"NUM"))
+ S NOT=+$G(^TMP("BGPMU0002",$J,TF,"NOT"))
+ S NNUM=DEN-NUM
+ I DEN=0 S (PC1,PC2)=0
+ I DEN>0 D
+ .S PC1=$$ROUND^BGPMUA01((NUM/DEN),3)*100
+ .S PC2=$$ROUND^BGPMUA01((NNUM/DEN),3)*100
+ S ARRAY=DEN_U_NUM_U_NNUM_U_PC1_U_PC2
+ Q ARRAY
+P2 ;Do the Details
+ N PT,NODE,NAME,VST,BMI,FOL,X,PTCT,BGPARR,LINE
+ S PTCT=0
+ D HEADERL^BGPMUPH
+ S X="Patients 2-18 with at least 1 ED or outpatient encounter with the EP during the" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="reporting period AND who were diagnosed with pharyngitis AND who were prescribed" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="an antibiotic <= 3 days after the encounter AND who received a group A" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="streptococcus (strep) test <= 3 days before or after the antibiotic was"  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="prescribed by the EP, if any."  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X=""  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="Patients who do not meet the numerator criteria are listed first (NM:), followed" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="by patients who do meet the numerator criteria (M:)." D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X=""  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="The following are the abbreviations used in the denominator and numerator" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="columns:" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="PHA=Pharyngitis Diagnosis" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="MED=Pharyngitis Antibiotic Medication" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="EN=Encounter" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="LAB=Streptococcus Test" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="CPT=Streptococcus Code" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X=""  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ I $Y>(BGPIOSL-5) D HEADERL^BGPMUPH Q:BGPQUIT
+ W !,"PATIENT NAME",?23,"HRN",?30,"COMMUNITY",?42,"SEX",?46,"AGE",?50,"DENOMINATOR",?65,"NUMERATOR"
+ S LINE="",$P(LINE,"-",81)="" W !,LINE
+ I BGPLIST="D"!(BGPLIST="A") D
+ .K BGPARR
+ .D PTLSORT^BGPMUUTL(.BGPARR,"^TMP(""BGPMU0002"","_$J_",""PAT"",""C"",""NOT"")")
+ .S PT=0 F  S PT=$O(BGPARR(PT)) Q:PT=""  D
+ ..S PTCT=PTCT+1
+ ..S NODE=$G(BGPARR(PT))
+ ..D DATA(NODE)
+ I BGPLIST="N"!(BGPLIST="A") D
+ .K BGPARR
+ .D PTLSORT^BGPMUUTL(.BGPARR,"^TMP(""BGPMU0002"","_$J_",""PAT"",""C"",""NUM"")")
+ .S PT=0 F  S PT=$O(BGPARR(PT)) Q:PT=""  D
+ ..S PTCT=PTCT+1
+ ..S NODE=$G(BGPARR(PT))
+ ..D DATA(NODE)
+ W !!,"Total # of patients on list: "_PTCT
+ Q
+DATA(NODE) ;GET DATA
+ N NAME,HRN,DEN,NUM,AGE,DFN,SEX,COMM,NUM1,NUM2,DEN1,DEN2,DEN3,LINE
+ S DFN=$P(NODE,U,1)
+ S NAME=$E($$GET1^DIQ(2,$P(NODE,U,1),.01),1,22)
+ S HRN=$$HRN^AUPNPAT(DFN,DUZ(2))
+ S AGE=$$AGE^AUPNPAT(DFN,BGPED)
+ S DEN=$P(NODE,U,2)
+ S DEN1=$P(DEN,";",1),DEN2=$P(DEN,";",2),DEN3=$P(DEN,";",3)
+ S NUM=$P(NODE,U,3)
+ S NUM1=$P(NUM,";",1),NUM2=$$DATE^BGPMUAP3($P($P(NUM,";",2),".",1))
+ S COMM=$E($$GET1^DIQ(9000001,DFN,1118),1,11)
+ S SEX=$P(^DPT(DFN,0),U,2)
+ I $Y>(BGPIOSL-2) D
+ .D HEADERL^BGPMUPH Q:BGPQUIT
+ .W !,"PATIENT NAME",?23,"HRN",?30,"COMMUNITY",?42,"SEX",?46,"AGE",?50,"DENOMINATOR",?65,"NUMERATOR"
+ .S LINE="",$P(LINE,"-",81)="" W !,LINE
+ W !,NAME,?23,HRN,?30,COMM,?43,SEX,?46,AGE,?50,DEN1,?65,NUM1_" "_NUM2
+ I DEN2'="" D
+ .W !,?50,DEN2
+ I DEN3'="" D
+ .W !,?50,DEN3
+ Q
+SUMMARY1(STRING1,STRING2,STRING3,CT) ;Summmary setup
+ N DESC,DESC2,LINE
+ K ^TMP("BGPMU SUMMARY",$J,BGPIC)
+ S ^TMP("BGPMU SUMMARY",$J,BGPIC)="0002^66"
+ S DESC="2-18 # w/streptococcus test"
+ S LINE="MU.EP.0074.1"_U_DESC_U_U_$P(STRING1,U,1)_U_$P(STRING1,U,2)_U_$P(STRING1,U,4)_U_U_U_U_U
+ S LINE=LINE_U_$P(STRING2,U,1)_U_$P(STRING2,U,2)_U_$P(STRING2,U,4)_U_U_$P(STRING3,U,1)_U_$P(STRING3,U,2)_U_$P(STRING3,U,4)
+ S ^TMP("BGPMU SUMMARY",$J,BGPIC,1)=LINE
+ Q
+DATE(D) ;EP
+ I D="" Q ""
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_$E(D,2,3)

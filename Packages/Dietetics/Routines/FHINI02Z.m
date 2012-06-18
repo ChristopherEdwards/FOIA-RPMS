@@ -1,0 +1,134 @@
+FHINI02Z	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,906,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,907,0)
+	;;=CANDY, CHOCOLATE COATED, ALMONDS^590-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,907,1)
+	;;=12.3^43.7^39.6^569^2^^^203^2.8^^343^546^59^^^^^0^0^.12
+	;;^UTILITY(U,$J,112,907,2)
+	;;=.53^1.7^^^^^5.5^^1^7.39^^^^2.3
+	;;^UTILITY(U,$J,112,907,4)
+	;;=^^^^^^29.1
+	;;^UTILITY(U,$J,112,907,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,908,0)
+	;;=CANDY, CHOCOLATE COATED, CHOCOLATE FUDGE^591-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,908,1)
+	;;=3.8^16^73.1^430^6.2^^^101^1.3^^110^193^228^^^^^0^0^.04
+	;;^UTILITY(U,$J,112,908,2)
+	;;=.13^.2^^^^^1.18^^2^5.42^^^^.9
+	;;^UTILITY(U,$J,112,908,4)
+	;;=^^^^^^8.94
+	;;^UTILITY(U,$J,112,908,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,909,0)
+	;;=CANDY, CHOCOLATE COATED, CHOCOLATE FUDGE, W/NUTS^592-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,909,1)
+	;;=4.9^20.8^67.3^452^6^^^101^1.5^^137^219^205^^^^^0^0^.06
+	;;^UTILITY(U,$J,112,909,2)
+	;;=.13^.2^^^^^5.03^^2^5.35^^^^1
+	;;^UTILITY(U,$J,112,909,4)
+	;;=^^^^^^9.01
+	;;^UTILITY(U,$J,112,909,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,910,0)
+	;;=CANDY, CHOCOLATE COATED, COCONUT CENTER^593-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,910,1)
+	;;=2.8^17.6^72^438^6.6^^^48^1.1^^77^165^197^^^^^0^0^.02
+	;;^UTILITY(U,$J,112,910,2)
+	;;=.07^.2^^^^^0^^1^10.19^^^^1
+	;;^UTILITY(U,$J,112,910,4)
+	;;=^^^^^^6.64
+	;;^UTILITY(U,$J,112,910,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,911,0)
+	;;=CANDY, CHOCOLATE COATED, FONDANT^594-0^mints^11^100^N
+	;;^UTILITY(U,$J,112,911,1)
+	;;=1.7^10.5^81^410^5.8^^^57^1.1^^54^91^185^^^^^0^0^.03
+	;;^UTILITY(U,$J,112,911,2)
+	;;=.06^.1^^^^^.46^^1^3.26^^^^.9
+	;;^UTILITY(U,$J,112,911,4)
+	;;=^^^^^^6.71
+	;;^UTILITY(U,$J,112,911,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,912,0)
+	;;=CANDY, CHOCOLATE COATED, FUDGE, CARAMEL, AND PEANUTS^595-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,912,1)
+	;;=7.7^18.1^64.1^433^8.3^^^179^1.4^^186^301^204^^^^^0^0^.16
+	;;^UTILITY(U,$J,112,912,2)
+	;;=.22^1.9^^^^^2.33^^3^5.01^^^^1.7
+	;;^UTILITY(U,$J,112,912,4)
+	;;=^^^^^^10.12
+	;;^UTILITY(U,$J,112,912,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,913,0)
+	;;=CANDY, CHOCOLATE COATED, FUDGE, PEANUTS, AND CARAMEL^596-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,913,1)
+	;;=9.4^23.1^58.7^459^7^^^127^1.1^^192^222^128^^^^^0^0^.26
+	;;^UTILITY(U,$J,112,913,2)
+	;;=.15^3.7^^^^^3.56^^2^6.19^^^^1.7
+	;;^UTILITY(U,$J,112,913,4)
+	;;=^^^^^^12.45
+	;;^UTILITY(U,$J,112,913,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,914,0)
+	;;=CANDY, CHOCOLATE COATED, HARD CANDY W/PEANUT BUTTER^597-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,914,1)
+	;;=6.6^19.5^70.6^463^1.7^^^80^1.8^^135^225^163^^^^^0^0^.05
+	;;^UTILITY(U,$J,112,914,2)
+	;;=.09^2.9^^^^^2.28^^1^5.69^^^^1.5
+	;;^UTILITY(U,$J,112,914,4)
+	;;=^^^^^^10.96
+	;;^UTILITY(U,$J,112,914,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,915,0)
+	;;=CANDY, CHOCOLATE COATED, NOUGAT AND CARAMEL^598-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,915,1)
+	;;=4^13.9^72.8^416^7.7^^^127^1.6^^123^211^173^^^^^40^0^.06
+	;;^UTILITY(U,$J,112,915,2)
+	;;=.17^.2^^^^^.9^^5^4.38^^^^1.4
+	;;^UTILITY(U,$J,112,915,4)
+	;;=^^^^^^8.28
+	;;^UTILITY(U,$J,112,915,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,916,0)
+	;;=CANDY, CHOCOLATE COATED, PEANUTS^599-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,916,1)
+	;;=16.4^41.3^39.1^561^1^^^116^1.5^^298^504^60^^^^^0^0^.37
+	;;^UTILITY(U,$J,112,916,2)
+	;;=.18^7.4^^^^^7.19^^1^10.74^^^^2
+	;;^UTILITY(U,$J,112,916,4)
+	;;=^^^^^^21.6
+	;;^UTILITY(U,$J,112,916,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,917,0)
+	;;=CANDY, CHOCOLATE COATED, RAISINS^600-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,917,1)
+	;;=5.4^17.1^70.5^425^4.8^^^152^2.5^^174^603^64^^^^^150^0^.08
+	;;^UTILITY(U,$J,112,917,2)
+	;;=.21^.4^^^^^.38^^10^9.54^^^^2.1
+	;;^UTILITY(U,$J,112,917,4)
+	;;=^^^^^^6.19
+	;;^UTILITY(U,$J,112,917,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,918,0)
+	;;=CANDY, CHOCOLATE COATED, VANILLA CREAMS^601-0^oz.^28.3^100^N
+	;;^UTILITY(U,$J,112,918,1)
+	;;=3.8^17.1^70.3^435^7.5^^^128^.6^^110^178^182^^^^^0^0^.05
+	;;^UTILITY(U,$J,112,918,2)
+	;;=.07^.1^^^^^1.74^^2^4.92^^^^1.2
+	;;^UTILITY(U,$J,112,918,4)
+	;;=^^^^^^9.83
+	;;^UTILITY(U,$J,112,918,20)
+	;;=USDA  Std. Reference, Release 8
+	;;^UTILITY(U,$J,112,919,0)
+	;;=CANDY, FONDANT^19-099^pieces^8.8^100^N
+	;;^UTILITY(U,$J,112,919,1)
+	;;=0^0^92.8^358^7^^^2^.06^1^2^16^40^.04^.04^.015^^2^0^.001
+	;;^UTILITY(U,$J,112,919,2)
+	;;=.017^.002^.002^.001^0^0^^^0^^^^0^.2^^^0
+	;;^UTILITY(U,$J,112,919,4)
+	;;=^^^^^^1

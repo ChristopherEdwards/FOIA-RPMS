@@ -1,0 +1,139 @@
+ACRFIRSF ;IHS/OIRM/DSD/AEF - IRS 1099 VENDOR FLAT FILE [ 10/27/2004   4:18 PM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;**13**;NOV 05, 2001
+ ;LOCAL REPORTS
+ ;
+ ;
+DESC ;----- WHAT THIS ROUTINE DOES
+ ;;
+ ;;You must use option TRNS Prepare Staging File for EXPORT & PRINT
+ ;;process located on the ZIRS IRS 1099 Menu before running this
+ ;;option.
+ ;;
+ ;;This option will gather all vendor payments for the specified 
+ ;;tax year and put them into a comma delimited UNIX file
+ ;;which can then be imported into an Excel or Access spreadsheet.
+ ;;
+ ;;Fields included in the UNIX file include:
+ ;;VENDOR NAME,VENDOR EIN,MAILING ADDRESS-1,MAILING ADDRESS-2,MAILING
+ ;;ADDRESS-CITY,MAILING ADDRESS-STATE,MAILING ADDRESS-ZIP,PMT CODE,
+ ;;PMT AMOUNT,TAX YEAR
+ ;;
+ ;;$$END
+ ;
+EN ;EP -- MAIN ENTRY POINT
+ ;
+ N ACRYR,ACRFILE
+ D ^XBKVAR
+ D TXT
+ D YEAR(.ACRYR)
+ Q:'ACRYR
+ D FILE(.ACRFILE)
+ Q:ACRFILE']""
+ W "   please wait... "
+ D GET(.ACRYR)
+ I '$D(^TMP("ACRF",$J,"A")) D  Q
+ . W !!,"No data found"
+ D UNIX(ACRFILE)
+ K ^TMP("ACRF",$J,"A")
+ ;D ^%ZISC                                   ; ACR*2.1*13.02 IM13574
+ D CLOSE^ACRFZISH("FILE")                    ; ACR*2.1*13.02 IM13574
+ D PAUSE^ACRFWARN
+ Q
+YEAR(ACRYR)        ;
+ ;----- ASK CALENDAR YEAR
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT,X,Y
+ W !
+ S ACRYR=""
+ S DIR(0)="N"
+ S DIR("A")="Select TAX YEAR"
+ S DIR("B")=($E(DT,1,3)+1700)-1
+ D ^DIR
+ Q:$D(DTOUT)!($D(DUOUT))!($D(DIRUT))
+ S ACRYR=Y
+ Q
+GET(ACRYR)         ;
+ ;----- GATHER DATA AND PUT INTO ^TMP GLOBAL
+ ;
+ N ACRADD1,ACRADD2,ACRCITY,ACRCNT,ACRDATA,ACREIN,ACRNAME,ACRSTATE,ACRTYP,ACRVND,ACRYTD,ACRZIP
+ S (ACRCNT,ACRVND)=0
+ F  S ACRVND=$O(^ACR1099V("C",ACRYR,ACRVND)) Q:'ACRVND  D
+ . S ACRCNT=ACRCNT+1
+ . S ACRNAME=$P($G(^AUTTVNDR(ACRVND,0)),U)
+ . S ACREIN=$P($G(^AUTTVNDR(ACRVND,11)),U)
+ . S ACRDATA=$G(^AUTTVNDR(ACRVND,13))
+ . S ACRADD1=$P(ACRDATA,U)
+ . S ACRADD2=$P(ACRDATA,U,10)
+ . S ACRCITY=$P(ACRDATA,U,2)
+ . S ACRSTATE=$P(ACRDATA,U,3)
+ . I ACRSTATE]"" S ACRSTATE=$P($G(^DIC(5,ACRSTATE,0)),U,2)
+ . S ACRZIP=$P(ACRDATA,U,4)
+ . S ACRTYP=$P($G(^ACR1099V(ACRVND,0)),U,2)
+ . S ACRYTD=$P($G(^ACR1099V(ACRVND,1,ACRYR,0)),U,2)
+ . S ACRYTD=$J(ACRYTD,$L(ACRYTD),2)
+ . S ^TMP("ACRF",$J,"A",ACRCNT,0)=ACRNAME_U_ACREIN_U_ACRADD1_U_ACRADD2_U_ACRCITY_U_ACRSTATE_U_ACRZIP_U_ACRTYP_U_ACRYTD_U_ACRYR
+ Q
+UNIX(ACRFILE)      ;
+ ;----- WRITE ^TMP GLOBAL TO UNIX FILE
+ ;
+ ;N %DEV,ACRCNT,ACRDATA,ACROUT,I,J,X              ; ACR*2.1*13.06 IM14144
+ ;Q:'$D(^TMP("ACRF",$J,"A"))                      ; ACR*2.1*13.06 IM14144
+ ;D HFS(.ACROUT,.%DEV,ACRFILE)                    ; ACR*2.1*13.06 IM14144
+ N %DEV,ACRCNT,ACRDATA,ACROUT,I,J,X,ACRPATH       ; ACR*2.1*13.06 IM14144
+ Q:'$D(^TMP("ACRF",$J,"A"))
+ S ACRPATH=$$ARMSDIR^ACRFSYS(1)                   ; ACR*2.1*13.06 IM14144
+ Q:ACRPATH']""                                    ; ACR*2.1*13.06 IM14144
+ D OPEN^ACRFZISH(ACRPATH,ACRFILE,"W",.%DEV) ;VERBOSE ; ACR*2.1*13.06 IM14144
+ I $G(%DEV)']"" S ACROUT=1                        ; ACR*2.1*13.06 IM13574
+ Q:$G(ACROUT)
+ U %DEV
+ S (ACRCNT,I)=0
+ F  S I=$O(^TMP("ACRF",$J,"A",I)) Q:'I  D
+ . S ACRCNT=ACRCNT+1
+ . S ACRDATA=^TMP("ACRF",$J,"A",I,0)
+ . F J=1:1:$L(ACRDATA,U) D
+ . . S X=$P(ACRDATA,U,J)
+ . . D WRITE(X)
+ . W !
+ ;U 0 W !!,"Records have been put into UNIX file /usr/spool/afsdata/"_ACRFILE ;ACR*2.1*13.06 IM14144
+ U 0 W !!,"Records have been put into file "_ACRPATH_ACRFILE ;ACR*2.1*13.06 IM14144
+ D CLOSE^ACRFZISH("")                      ;ACR*2.1*13.02 IM13574
+ D PAUSE^ACRFWARN                          ;ACR*2.1*13.02 IM13574
+ Q
+WRITE(X) ;----- FORMAT AND WRITE DATA TO UNIX FILE
+ ;
+ W """"
+ W X
+ W """"
+ W ","
+ Q
+FILE(ACRFILE)      ;
+ ;----- ASK UNIX FILE NAME
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT,X,Y
+ S ACRFILE=""
+ S DIR(0)="F"
+ S DIR("A")="Select UNIX FILE NAME"
+ S DIR("?")="The name of the UNIX file you want to put the data into"
+ D ^DIR
+ Q:$D(DTOUT)!($D(DUOUT))!($D(DIRUT))
+ S ACRFILE=Y_".csv"
+ Q
+HFS(ACROUT,%DEV,ACRFILE)     ; - REMOVE OBSOLETE SUB-ROUTINE  ;ACR*2.1*13.06 IM14144
+ ;----- CREATE AND OPEN UNIX FILE
+ ;
+ ;N X,Y,ZISH1,ZISH2,ZISH3
+ ;S ZISH1="/usr/spool/afsdata/"
+ ;S ZISH2=ACRFILE
+ ;S ZISH3="W"
+ ;S Y=$$OPEN^ZISHMSMU(ZISH1,ZISH2,ZISH3)
+ ;I Y D  Q
+ ;. W !,"CANNOT OPEN FILE "_ZISH1_ZISH2
+ ;. S ACROUT=1
+ S %DEV=IO
+ Q
+TXT ;----- PRINT OPTION TEXT
+ ;
+ N I,X
+ F I=1:1 S X=$P($T(DESC+I),";",3) Q:X["$$END"  W !,X
+ Q

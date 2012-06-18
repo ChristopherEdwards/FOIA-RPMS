@@ -1,0 +1,18 @@
+ACHSEOB0 ; IHS/ITSC/PMF - CONTINUATION OF ACHSEOB ;   [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+REPORT ;EP
+ S ACHSERPT=$$DIR^XBDIR("S^N:NO REPORT;S:SUMMARY REPORT - Total # of EOBR's by Facility;D:DETAILED REPORT - Listing of each EOBR plus Summary Report","Enter Type Of Report To Print","SUMMARY")
+ Q:$D(DUOUT)!$D(DTOUT)!(ACHSERPT="N")
+ W !!
+ K %ZIS
+ S %ZIS="OP",%ZIS("A")="Enter Printer For Report:"
+ D ^%ZIS
+ K %ZIS
+ S:$D(IO("Q")) ACHSIO("Q")=IO("Q")
+ I POP D HOME^%ZIS G ENDX^ACHSEOB
+ S ZTIO=ION_";"_IOST_";"_IOM_";"_IOSL
+ D HOME^%ZIS
+ U IO
+ Q
+ ;

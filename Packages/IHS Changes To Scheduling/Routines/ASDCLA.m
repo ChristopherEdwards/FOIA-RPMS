@@ -1,0 +1,33 @@
+ASDCLA ; IHS/ADC/PDW/ENM - LIST CLINIC ABBREVIATIONS ; [ 03/25/1999  11:48 AM ]
+ ;;5.0;IHS SCHEDULING;;MAR 25, 1999
+ ;
+ S %ZIS="PQ" D ^%ZIS Q:POP  I $D(IO("Q")) D QUE Q
+ ;
+START ;EP; called by ztload
+ U IO S ASDPG=0,ASDQ="" D HED
+ S ASDA=0 F  S ASDA=$O(^SC("C",ASDA)) Q:ASDA=""!(ASDQ=U)  D
+ . S ASDC=0 F  S ASDC=$O(^SC("C",ASDA,ASDC)) Q:ASDC=""!(ASDQ=U)  D
+ .. Q:$P(^SC(ASDC,0),U,3)'["C"  Q:'$$ACTV^ASDUT(ASDC)
+ .. I $Y>(IOSL-4) D NEWPG Q:ASDQ=U
+ .. W !,ASDA,?10,$P(^SC(ASDC,0),U)
+ ;
+END ; eoj
+ I IOST["C-",ASDQ'=U D PRTOPT^ASDVAR
+ K ASDA,ASDC,ASDPG,ASDQ D ^%ZISC
+ Q
+ ;
+QUE ; -- set ztload variables
+ S ZTRTN="START^ASDCLA",ZTDESC="CLINIC ABBREV" D ^%ZTLOAD
+ K ZTSK,IO("Q") D HOME^%ZIS Q
+ ;
+NEWPG ; end of page control
+ I IOST'["C-" D HED Q
+ K DIR S DIR(0)="E" D ^DIR S ASDQ=X
+ I ASDQ'=U D HED
+ Q
+ ;
+HED ; -- heading
+ I (ASDPG>0)!(IOST["C-") W @IOF
+ S ASDPG=ASDPG+1 W !!?25,"CLINIC ABBREVIATIONS",?70,"Page ",ASDPG
+ W !,$$REPEAT^XLFSTR("=",80),!
+ Q

@@ -1,0 +1,73 @@
+APCLOS21 ; IHS/CMI/LAB - continuuation of APCLOS2 ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+THIRD ;ENTRY POINT
+ S APCLOS="APCLOS" S APCLACE=APCLFYB,APCLACED=APCLFYE
+ S APCLMCR="MCRA",APCLVAL="A" D MCRA
+ S APCLMCR="MCRB",APCLVAL="B" D MCRA
+ S APCLMCR="MCRD",APCLVAL="D" D
+ .D MCRA
+ .I $D(APCLGOT) Q
+ .S X=$$PIDD(DFN,APCLACE)  ;check for D- in private insurer name
+ .I X S ^(APCLMCR)=$S($D(^XTMP(APCLOS,APCLJOB,APCLBTH,APCLMCR)):(+^(APCLMCR)+1),1:1)
+ D PI,MCD
+ S APCLOS="APCLOSP" S APCLACE=APCLPYB,APCLACED=APCLPYE
+ S APCLMCR="MCRA",APCLVAL="A" D MCRA
+ S APCLMCR="MCRB",APCLVAL="B" D MCRA
+ ;S APCLMCR="MCRD",APCLVAL="D" D MCRA
+ S APCLMCR="MCRD",APCLVAL="D" D
+ .D MCRA
+ .I $D(APCLGOT) Q
+ .S X=$$PIDD(DFN,APCLACE)  ;check for D- in private insurer name
+ .I X S ^(APCLMCR)=$S($D(^XTMP(APCLOS,APCLJOB,APCLBTH,APCLMCR)):(+^(APCLMCR)+1),1:1)
+ D PI,MCD
+ Q
+MCRA ;
+ K APCLGOT
+ Q:'$D(^AUPNMCR(DFN,11))
+ Q:'$D(^DPT(DFN,0))
+ I $D(^DPT(DFN,.35)),$P(^(.35),U)]"",$P(^(.35),U)<APCLACED Q
+ K APCLGOT S APCLMDFN=0 F  S APCLMDFN=$O(^AUPNMCR(DFN,11,APCLMDFN)) Q:APCLMDFN'=+APCLMDFN!($D(APCLGOT))  D MCRA2
+ Q:'$D(APCLGOT)
+ S ^(APCLMCR)=$S($D(^XTMP(APCLOS,APCLJOB,APCLBTH,APCLMCR)):(+^(APCLMCR)+1),1:1)
+ Q
+ ;
+MCRA2 ;
+ Q:APCLVAL'[$P(^AUPNMCR(DFN,11,APCLMDFN,0),U,3)
+ Q:$P(^AUPNMCR(DFN,11,APCLMDFN,0),U)>APCLACED  ;quit if policy started after the end of time frame
+ I $P(^AUPNMCR(DFN,11,APCLMDFN,0),U,2)]"",$P(^(0),U,2)<APCLACE Q  ;quit if policy ended before beginning of time frame
+ S APCLGOT=""
+ Q
+ ;
+PI ;
+ I $$PI^AUPNPAT(DFN,APCLACE) S ^("PI")=$S($D(^XTMP(APCLOS,APCLJOB,APCLBTH,"PI")):(+^("PI")+1),1:1)
+ Q
+MCD ;
+ I $$MCD^AUPNPAT(DFN,APCLACE) S ^("MCD")=$S($D(^XTMP(APCLOS,APCLJOB,APCLBTH,"MCD")):(+^("MCD")+1),1:1)
+ Q
+PIDD(P,D) ;EP - Is patient P private insurance MEDICARE D eligible on date D. 1= yes, 0=no.
+ ; I = IEN
+ ; Y = 1:yes, 0:no
+ ; X = Pointer to INSURER file.
+ I '$G(P) Q 0
+ I '$G(D) Q 0
+ NEW I,Y,X
+ S Y=0,U="^"
+ I '$D(^DPT(P,0)) G PIDDX
+ I $P(^DPT(P,0),U,19) G PIDDX
+ I '$D(^AUPNPAT(P,0)) G PIDDX
+ I '$D(^AUPNPRVT(P,11)) G PIDDX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PIDDX
+ S I=0
+ F  S I=$O(^AUPNPRVT(P,11,I)) Q:I'=+I  D
+ . Q:$P(^AUPNPRVT(P,11,I,0),U)=""
+ . S X=$P(^AUPNPRVT(P,11,I,0),U) Q:X=""
+ . S G=0
+ . I $E($P(^AUTNINS(X,0),U),1,2)="D-" S G=1
+ . I $P($G(^AUTNINS(X,2)),U)="MD" S G=1
+ . Q:'G
+ . Q:$P(^AUPNPRVT(P,11,I,0),U,6)>D
+ . I $P(^AUPNPRVT(P,11,I,0),U,7)]"",$P(^(0),U,7)<D Q
+ . S Y=1
+ .Q
+PIDDX ;
+ Q Y

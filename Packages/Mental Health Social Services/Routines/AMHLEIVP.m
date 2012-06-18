@@ -1,0 +1,82 @@
+AMHLEIVP ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 16-JAN-1997 ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;; ;
+ ;
+EP1 ;EP - called from protocol
+ D FULL^VALM1
+ D GETPAT^AMHVRL
+ I 'AMHPAT W !!,"No patient selected." D PAUSE^AMHLEA Q
+ NEW DFN,AMHPROGT,AMHR
+ S DFN=AMHPAT
+ S AMHPROGT=""
+ ;get program type
+ I $G(AMHPTYPE)]"" S AMHPROGT=AMHPTYPE G SET
+ S DIR(0)="S^M:MENTAL HEALTH;S:SOCIAL SERVICES;C:CHEMICAL DEPENDENCY or ALCOHOL/SUBSTANCE ABUSE;O:OTHER",DIR("A")="Which Program are you associated with" K DA D ^DIR K DIR
+ I $D(DIRUT) W !,"No program selected." D PAUSE^AMHLEA Q
+ S AMHPROGT=Y
+ D EN
+ Q
+ ;
+EP(AMHPAT) ;EP CALLED FROM DATA ENTRY
+ Q:'$G(AMHPAT)
+ NEW DFN,AMHPROGT,AMHR
+ S DFN=AMHPAT
+ S AMHPROGT=""
+ ;get program type
+ I $G(AMHPTYPE)]"" S AMHPROGT=AMHPTYPE G SET
+ S DIR(0)="S^M:MENTAL HEALTH;S:SOCIAL SERVICES;C:CHEMICAL DEPENDENCY or ALCOHOL/SUBSTANCE ABUSE;O:OTHER",DIR("A")="Which Program are you associated with" K DA D ^DIR K DIR
+ I $D(DIRUT) W !,"No program selected." D PAUSE^AMHLEA Q
+ S AMHPROGT=Y
+SET ;
+ D EN
+ Q
+EN ;EP -- main entry point
+ NEW AMHX,AMHINTK,AMHD,AMHRCNT,AMHLINE
+ D EN^VALM("AMH VISIT INTAKE")
+ Q
+ ;
+HDR ; -- header code
+ D HDR^AMHLEIV
+ Q
+ ;
+INIT ; -- init variables and list array
+ S VALMSG="?? for more actions  + next screen  - prev screen"
+ D GATHER ;gather up all records for display
+ S VALMCNT=AMHLINE
+ Q
+ ;
+D(D) ;EP
+ I D="" Q ""
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_$E(D,2,3)
+ ;
+GATHER ;
+ D GATHER^AMHLEIV
+ Q
+PRINT ;
+ S AMHRINTI=""
+ D EN^VALM2(XQORNOD(0),"OS")
+ I '$D(VALMY) W !,"No records selected." G EXIT
+ S AMHR1=$O(VALMY(0)) I 'AMHR1 K AMHR1,VALMY,XQORNOD W !,"No record selected." G EXIT
+ S (X,Y)=0 F  S X=$O(AMHINTK("IDX",X)) Q:X'=+X!(AMHRINTI)  I $O(AMHINTK("IDX",X,0))=AMHR1 S Y=$O(AMHINTK("IDX",X,0)),AMHRINTI=AMHINTK("IDX",X,Y)
+ I '$D(^AMHRINTK(AMHRINTI,0)) W !,"Not a valid BH INTAKE." D PAUSE^AMHLEA D EXIT Q
+ D FULL^VALM1
+ D PRINT^AMHLEIV3
+ D EXIT
+ Q
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ K AMHX,AMHINTK,AMHPC,AMHR1
+ D TERM^VALM0
+ S VALMBCK="R"
+ D GATHER
+ S VALMCNT=AMHLINE
+ D HDR
+ K X,Y,Z,I
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;

@@ -1,0 +1,45 @@
+BMCFREQP ; IHS/PHXAO/TMJ - cont. of top ten ;  
+ ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006
+ ;4.0*3 10.30.2007 IHS/OIT/FCJ ADDED CSV CHANGES
+ ;
+ ;
+ ;
+PRINT ;EP
+COVPAGE ;EP
+ W:$D(IOF) @IOF
+ W !?20,"********** FREQUENCY OF RCIS PROCEDURES REPORT **********"
+ W !!,"REPORT REQUESTED BY: ",$P(^VA(200,DUZ,0),U)
+ W !!,"The following report contains a ",$S(BMCPTVS="V":"PCC Visit",1:"Patient")," report based on the",!,"following criteria:",!
+SHOW ;
+ W !,$S(BMCPTVS="P":"PATIENT",1:"REFERRAL")," Selection Criteria"
+ W:BMCTYPE="D" !!?6,"Encounter Date range:  ",BMCBDD," to ",BMCEDD,!
+ W:BMCTYPE="S" !!?6,"Search Template: ",$P(^DIBT(BMCSEAT,0),U),!
+ I '$D(^BMCRTMP(BMCRPT,11)) W !!,"ALL REFERRALS IN DATE RANGE SELECTED." G COUNT
+ S BMCI=0 F  S BMCI=$O(^BMCRTMP(BMCRPT,11,BMCI)) Q:BMCI'=+BMCI  D
+ .I $Y>(IOSL-5) D PAUSE^BMCRL01 W @IOF
+ .W !?6,$P(^BMCTSORT(BMCI,0),U),":  "
+ .K BMCQ S BMCY="",C=0 K BMCQ F  S BMCY=$O(^BMCRTMP(BMCRPT,11,BMCI,11,"B",BMCY)) S C=C+1 W:C'=1&(BMCY'="") " ; " Q:BMCY=""!($D(BMCQ))  S X=BMCY X:$D(^BMCTSORT(BMCI,2)) ^(2) W X
+ K BMCQ
+COUNT ;if COUNTING entries only   
+ I $Y>(IOSL-5) D PAUSE^BMCRL01 W:$D(IOF) @IOF
+ W:$D(BMCVTOT) !!!,"Total COUNT of ",$S(BMCPTVS="P":"Patients",1:"Referrals"),":  ",BMCVTOT
+ D PAUSE^BMCRL01
+ W:$D(IOF) @IOF
+ W !?20,"********** FREQUENCY OF RCIS PROCEDURES REPORT **********"
+PPRC I $E(IOST)="C",IO=IO(0),$Y>(IOSL-4) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BMCQUIT="" Q
+ I $Y>(IOSL-4) W:$D(IOF) @IOF
+ S %="^XTMP(""BMCFPR"",BMCJOB,BMCBT,",BMCA=%_"""PRC"",BMCPRC)",BMCF=%_"3)"
+ W !!,"No. REFERRALs: ",BMCVTOT,?20,"No. PRCs: ",BMCTOT,?40,"PRC/REFERRAL ratio: ",$S(BMCVTOT>0:$J((BMCTOT/BMCVTOT),1,2),1:0)," (min. std. > 1.6)" S BMCLINO=BMCLINO+2
+ W !!!,"TOP ",BMCLNO," PRC's =>" S BMCLINO=BMCLINO+3
+ ;4.0*3 10.30.2007 IHS/OIT/FCJ ADDED CSV CHANGES
+ ;F I=1:1 Q:'$D(@BMCF@(I))  S BMCPRC=@BMCF@(I) W !?3,I,".",?7,$P(^ICPT(BMCPRC,0),U),?15,$P(^ICPT(BMCPRC,0),U,2),"  (",@BMCA,")" S BMCLINO=BMCLINO+1 I $Y>(IOSL-8) D FF I $D(X),X=U G PEXIT
+ F I=1:1 Q:'$D(@BMCF@(I))  S BMCPRC=@BMCF@(I) W !?3,I,".",?7,$P($$CPT^ICPTCOD(BMCPRC,0),U,2),?15,$P($$CPT^ICPTCOD(BMCPRC,0),U,3),"  (",@BMCA,")" S BMCLINO=BMCLINO+1 I $Y>(IOSL-8) D FF I $D(X),X=U G PEXIT
+ F %=1:1:2 W ! S BMCLINO=BMCLINO+1 I $Y>(IOSL-5) D FF I $D(X),X=U G PEXIT
+PEXIT ;
+ D DONE^BMCOSUT
+ K ^XTMP("BMCFPR",BMCJOB,BMCBT) Q
+FF I IOST["P-" W:$D(IOF) @IOF Q
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S X="^"
+ W:$D(IOF) @IOF
+ Q
+ ;

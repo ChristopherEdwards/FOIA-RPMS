@@ -1,0 +1,50 @@
+ABMDF1B ; IHS/ASDST/DMJ - Set UB82 Print Array - cont ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;TMD;
+ ;
+ S ABM("X")=DT D DT S $P(ABMF(63),U,3)=ABM("X")
+10 ; Line 10
+ S ABM=0 F ABM("I")=1:2:10 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),51,ABM)) Q:'ABM  D OCCUR
+ S ABM=0 F ABM("I")=11:1:13 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),57,ABM)) Q:'ABM  D SPAN
+ G 12
+ ;
+OCCUR S ABM("X")=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),51,ABM,0),U,2) D DT Q:ABM("X")=""
+ S $P(ABMF(10),U,ABM("I"))=$P(^ABMDCODE($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),51,ABM,0),U),0),U)
+ S $P(ABMF(10),U,ABM("I")+1)=ABM("X")
+ Q
+ ;
+SPAN S ABM("X")=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),57,ABM,0),U,2) Q:ABM("X")=""  D DT S ABM("X0")=ABM("X")
+ S ABM("X")=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),57,ABM,0),U,3) Q:ABM("X")=""  D DT
+ I ABM("I")=11 S $P(ABMF(10),U,11)=$P(^ABMDCODE($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),57,ABM,0),U),0),U)
+ I  S $P(ABMF(10),U,12)=ABM("X0"),$P(ABMF(10),U,13)=ABM("X")
+ E  S ABMP("REM",ABM("I"))="Occurance Span: "_$P(^ABMDCODE($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),57,ABM,0),U),0),U)_"  "_ABM("X0")_" to "_ABM("X")
+ Q
+ ;
+12 ; Line 12
+ S ABM=0 F ABM("I")=2:1:6 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),53,ABM)) Q:'ABM  S $P(ABMF(12),U,ABM("I"))=$P(^ABMDCODE($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),53,ABM,0),U),0),U)
+ ;
+ S ABM=0 F ABM("I")=1:1:2 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),59,ABM)) Q:'ABM  D SPROG
+ G VALU
+ ;
+SPROG S ABM("X")=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),59,ABM,0),U,1) Q:ABM("X")=""
+ I ABM("I")=1 S $P(ABMF(12),U,11)=$P(^ABMDCODE(ABM("X"),0),U)
+ E  S ABMP("REM",ABM("I"))="Special Program: "_$P(^ABMDCODE(ABM("X"),0),U)
+ Q
+ ;
+VALU ; Value Codes
+ I $D(^AUTNINS(ABMP("INS"),2)),$P(^(2),U,1)'="R" G REM
+14 S ABM=0 F ABM("I")=2:2:8 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),55,ABM)) Q:'ABM  S $P(ABMF(14),U,ABM("I"))=$P(^ABMDCODE($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),55,ABM,0),U),0),U)_U_$P(^(0),U,2)
+15 S ABM="" F ABM("I")=2:2:8 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),55,ABM)) Q:'ABM  S $P(ABMF(15),U,ABM("I"))=$P(^ABMDCODE($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),55,ABM,0),U),0),U)_U_$P(^(0),U,2)
+ ;
+REM S ABM=0 F ABM("I")=1:1 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),61,ABM)) Q:'ABM
+ S ABM("I")=$S(ABM("I")<3:60,ABM("I")<5:59,1:58)
+ S ABM=0 F ABM("I")=ABM("I"):1:63 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),61,ABM)) Q:'ABM  S $P(ABMF(ABM("I")),U)=^(ABM,0)
+ I ABM("I")>63 G CONT
+ S ABM("I")=$S(ABM("I")<60:60,1:ABM("I")),$P(ABMF(ABM("I")),U)="Send Payment to Provider (see Block 1)"
+ I ABM("I")<63 S $P(ABMF(ABM("I")+1),U)="--------------------------------------"
+ ;
+CONT K ABM,ABMV,ABMX
+ G ^ABMDF1C
+ ;
+DT I ABM("X")]"" S ABM("X")=$E(ABM("X"),4,5)_"-"_$E(ABM("X"),6,7)_"-"_$E(ABM("X"),2,3)
+ Q

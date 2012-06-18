@@ -1,0 +1,19 @@
+BCHUTIL1 ; IHS/TUCSON/LAB - UTILITIES ;  [ 10/28/96  2:05 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+ ;
+ ;more utilities, called package wide
+PAUSE ;EP
+ Q:$E(IOST)'="C"!(IO'=IO(0))
+ W ! S DIR(0)="EO",DIR("A")="Hit return to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q
+ ;
+DONE ;ENTRY POINT - END OF REPORT TIME DISPLAY
+ I $D(BCHET) S BCHTS=(86400*($P(BCHET,",")-$P(BCHBT,",")))+($P(BCHET,",",2)-$P(BCHBT,",",2)),BCHH=$P(BCHTS/3600,".") S:BCHH="" BCHH=0 D
+ .  S BCHTS=BCHTS-(BCHH*3600),BCHM=$P(BCHTS/60,".")
+ .  S:BCHM="" BCHM=0 S BCHTS=BCHTS-(BCHM*60),BCHS=BCHTS
+ .  W !!,"RUN TIME (H.M.S): ",BCHH,".",BCHM,".",BCHS
+ I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of report.  HIT RETURN" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ W:$D(IOF) @IOF
+ K BCHTS,BCHS,BCHH,BCHM,BCHET
+ D ^BCHUEKL
+ Q

@@ -1,0 +1,57 @@
+APCHS11F ; IHS/CMI/LAB - CONTINUATION OF ROUTINES ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;IHS/CMI/LAB - patch 3 for new imm package 1/5/1999
+ ; Special HMR routine for ANMC: pneumovax -- to be in next release
+ ;
+ ; ******************** SURVEILLANCE - HARD CODE ********************
+PNUMOVAX ;
+ S APCHSDUE=""
+ I $D(^ATXAX("B","SURVEILLANCE PNEUMOCOCCAL RISK")) S APCHSURP=$O(^ATXAX("B","SURVEILLANCE PNEUMOCOCCAL RISK","")) S:$D(^ATXPAT(APCHSURP,11,APCHSPAT)) APCHSRSK=""
+ G:APCHSAGE<2 PNUMOVEX ;if under 2 go to exit per Dr. Gollob's message
+ S %=$S($E($P(^AUTTLOC(DUZ(2),0),U,10))=3:55,1:65)
+ ;alaska area only use 55 all others use 65
+ G:(APCHSAGE<%)&('$D(APCHSRSK)) PNUMOVEX
+ S APCHSDIS="PNEUMO-VAC"
+ S APCHSINT=6*365
+ ;S APCHSPVX="PNEUMO-VAC" ;IHS/CMI/LAB - commented out for new imm package
+ ;S APCHSPVX=$O(^AUTTIMM("B","PNEUMO-VAC","")) ;IHS/CMI/LAB - commented out for new imm package
+ ;S:'APCHSPVX APCHSPVX=$O(^AUTTIMM("C",19,"")) ;IHS/CMI/LAB - commented out for new imm package
+ S APCHSPVX=$S($$BI^APCHS11C:$O(^AUTTIMM("C",33,"")),1:$O(^AUTTIMM("C",19,""))) ;IHS/CMI/LAB - new line for imm package
+ I 'APCHSPVX D  G DSPLY
+ . S (APCHSDAT,APCHSDUE)=""
+ . S APCHSTEX(1)="Pneumococcal immunization appears indicated,"
+ . S APCHSTEX(2)=" but PNEUMO-VAC cannot be located in the"
+ . S APCHSTEX(3)=" immunization type file, so the patient's"
+ . S APCHSTEX(4)=" history cannot be evaluated."
+ S APCHSIVD=$O(^AUPNVIMM("AA",APCHSPAT,APCHSPVX,""))
+ I 'APCHSIVD S APCHSDUE="MAY BE DUE NOW",APCHSDAT="" G DSPLY
+GETDATE ;
+ D COMPARE^APCHS11,GETDATE^APCHS11
+ I APCHSDUE]"",$E($P(^AUTTLOC(DUZ(2),0),U,10))'=3 S APCHSDUE=""
+DSPLY ;
+ I APCHSDUE["DUE" S APCHSEXD=$S($$BI^APCHS11C:$O(^AUTTIMM("C",33,0)),1:$O(^AUTTIMM("C",19,0))),APCHSDF1=9999999.14 D REFDF^APCHS11
+ D DISPLAY^APCHS11
+PNUMOVEX ;
+ K APCHSURP,APCHSRSK,APCHSPVX,APCHSTEX
+ Q
+ ;
+DOMV ;
+ Q:APCHSAGE<14  ;IHS/CMI/LAB 12/16/97
+ ;
+ S APCHSCAT=$O(^AUTTHF("B","DOMESTIC VIOLENCE",""))
+ Q:'APCHSCAT
+ S APCHSDIS="DOMESTIC VIOLENCE SCRN"
+ S APCHSINT=365
+ D HFACTOR^APCHS11C
+DOMVX ;
+ Q
+ ;
+REHAB ; EP - called from reminder
+ Q:APCHSAGE<18
+ S APCHSCAT=$O(^AUTTHF("B","REHABILITATION/FUNCTIONAL SCRN",0))
+ Q:'APCHSCAT
+ S APCHSDIS="REHAB/FUNCTIONAL SCRN"
+ S APCHSINT=365
+ D HFACTOR^APCHS11C
+REHABX ;
+ Q

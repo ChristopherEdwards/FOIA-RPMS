@@ -1,0 +1,79 @@
+BMCVUCN ; IHS/OIT/FCJ - SELECT &/OR PRINT VENDOR CONTRACT INFO ;
+ ;;4.0;REFERRED CARE INFO SYSTEM;**5**;JAN 09, 2006
+ ;BMC*4.0*5 5.13.2009 IHS.OIT.FCJ ORIGIAL ROUTINE FR ACHSUCN
+ ;
+ K BMCAHDR,BMCRT
+ S E=9999999-BMCEDOS      ;CALCULATE THE WEIRD DATE THING
+ S (S,C,L)=""
+ S BMCCTNA=0
+ S BMCACO=$G(BMCACO)
+ ;
+ ;LOOP THRU THE "E" X-REF  EIN NO. AND SUFFIX X-REF
+L1 ;
+ S S=""
+ F  S S=$O(^AUTTVNDR(BMCPROV,"E",S)) Q:S=""!(S>E)  D L2
+ D L3
+ Q
+ ;
+L2 ;
+ S N=""
+ F  S N=$O(^AUTTVNDR(BMCPROV,"E",S,N)) Q:N=""  D
+ .Q:'$D(^AUTTVNDR(BMCPROV,"CN",N,0))          ;QUIT IF NO CONTRACT NODE
+ .;
+ .;QUIT IF 'BEGINNING DATE' > EST DATE DATE SERVICE
+ .Q:$P($G(^AUTTVNDR(BMCPROV,"CN",N,0)),U,2)>BMCEDOS
+ .S BMCCTNA=BMCCTNA+1
+ .S C=C+1
+ .;
+ .;L= CONTRACT #_WEIRD SERVICE DATE_CONTRACT NUMBER
+ .S L=N_U_S_U_$P($G(^AUTTVNDR(BMCPROV,"CN",N,0)),U)
+ .;
+ .;GET 'CONTRACT NUMBER'
+ .S $P(BMCRT(BMCCTNA),U)=$P(^AUTTVNDR(BMCPROV,"CN",N,0),U)
+ .;
+ .;GET 'BEGINNING DATE'
+ .S $P(BMCRT(BMCCTNA),U,8)=$P(^AUTTVNDR(BMCPROV,"CN",N,0),U,2)
+ .;
+ .;GET 'ENDING DATE'
+ .S $P(BMCRT(BMCCTNA),U,9)=$P(^AUTTVNDR(BMCPROV,"CN",N,0),U,3)
+ .;
+ .;GET 'DESCRIPTION'
+ .S $P(BMCRT(BMCCTNA),U,2)=$P(^AUTTVNDR(BMCPROV,"CN",N,0),U,5)
+ .;
+ .;?????
+ .S $P(BMCRT(BMCCTNA),U,10)="CNT"   ;?????
+ .;
+ .;SET THE COUNT
+ .S BMCRT("CNT")=C
+ .;
+ .;SET CONTRACT # AS PIECE 11
+ .S $P(BMCRT(BMCCTNA),U,11)=N
+ .;
+ .S X=$P(BMCRT(BMCCTNA),U,8),Y=$E(X,4,5)_"-"_$E(X,6,7)_"-"_$E(X,2,3),$P(BMCRT(BMCCTNA),U,8)=Y
+ .S X=$P(BMCRT(BMCCTNA),U,9),Y=$E(X,4,5)_"-"_$E(X,6,7)_"-"_$E(X,2,3),$P(BMCRT(BMCCTNA),U,9)=Y
+ .;
+ .;
+ .I BMCACO["L" D
+ ..D SBT:C=1          ;WRITE THE HEADINGS
+ ..;
+ ..;PRINT 'CONTRACT NUMBER'
+ ..W !,$J(C,2),?3,"CNT",?8,$J($P($G(^AUTTVNDR(BMCPROV,"CN",N,0)),U),10)
+ ..W ?20,$P(BMCRT(BMCCTNA),U,8)                      ;'BEGINNING DATE'
+ ..W ?30,$P(BMCRT(BMCCTNA),U,9)                      ;'ENDING DATE'
+ ..W ?45,$E($P(^AUTTVNDR(BMCPROV,"CN",N,0),U,5),1,28)   ;DESCRIPTION
+ .;
+ .;WHERE IS F DEFINED??????
+ .I BMCACO["F",C=$G(F) D L3 Q  ; 'F' is defined only if BMCACO["F".
+ Q
+ ;
+ ;
+L3 ;
+ I BMCACO="L" W !,$J(C+1,2),?8,$J("Open Mkgt",10)
+ S:S>E&(+C=0) BMCACO="N"
+ Q
+ ;
+SBT ;
+ W !!?3,"Type",?9,"CNT Numb.",?20,"Eff-Date",?30,"Exp-Date",?40,"MCR",?45,"Description",!?3,"____",?9,"_________",?20,"________",?30,"________",?40,"___",?45,"____________________________",!
+ S BMCAHDR=""
+ Q
+ ;

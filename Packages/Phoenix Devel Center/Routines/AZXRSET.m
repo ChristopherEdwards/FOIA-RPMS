@@ -1,0 +1,6 @@
+AZXRSET ;NEW PROGRAM [ 07/23/93  7:27 AM ]
+ S ^INPUT("B","STERN","120")=""
+ S ^INPUT("B","LYNCH","121")=""
+ S ^INPUT("B","BURNS","122")=""
+ S ^INPUT("B","SATPATHI","123")=""
+ S ^INPUT("B","TANNER","124")=""

@@ -1,0 +1,126 @@
+IBDEI00W	; ; 18-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	Q:'DIFQR(358.5)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,358.5)
+	;;=^IBE(358.5,
+	;;^UTILITY(U,$J,358.5,0)
+	;;=IMP/EXP DATA FIELD^358.5I^338^293
+	;;^UTILITY(U,$J,358.5,1,0)
+	;;=Subjective:^1^2^^^Subjective:^^^^0^0^10^2^132
+	;;^UTILITY(U,$J,358.5,2,0)
+	;;=OBJECTIVE^1^2^^^Objective:^^^^0^8^10^2^132
+	;;^UTILITY(U,$J,358.5,3,0)
+	;;=ASSESSMENT/DIAGNOSIS^1^2^^^Assessment/Diagnosis:^^^^0^18^8^2^132
+	;;^UTILITY(U,$J,358.5,4,0)
+	;;=PLAN^1^2^^^Plan:^^^^0^26^4^2^132
+	;;^UTILITY(U,$J,358.5,5,0)
+	;;=HEADER^2^3
+	;;^UTILITY(U,$J,358.5,5,2,0)
+	;;=^357.52I^2^2
+	;;^UTILITY(U,$J,358.5,5,2,1,0)
+	;;=**DOCTORS ORDERS**^^^50^0
+	;;^UTILITY(U,$J,358.5,5,2,2,0)
+	;;=Nurs. Sig^^^118^0
+	;;^UTILITY(U,$J,358.5,6,0)
+	;;=DOCTORS ORDERS^2^2^^^^^^^0^2^18^2^110
+	;;^UTILITY(U,$J,358.5,7,0)
+	;;=NURSE'S SIGNATURE^2^2^^^^^^^118^2^18^2^13
+	;;^UTILITY(U,$J,358.5,8,0)
+	;;=APPT DATE^3^4
+	;;^UTILITY(U,$J,358.5,8,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,8,2,1,0)
+	;;=Appt Date:^^^60^0^0^71^12^2
+	;;^UTILITY(U,$J,358.5,9,0)
+	;;=PAGE NUMBER^3^3
+	;;^UTILITY(U,$J,358.5,9,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,9,2,1,0)
+	;;=PAGE: 1^^^110^0
+	;;^UTILITY(U,$J,358.5,10,0)
+	;;=CLINIC^3^5
+	;;^UTILITY(U,$J,358.5,10,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,10,2,1,0)
+	;;=Clinic:^^^0^0^0^8^30^1
+	;;^UTILITY(U,$J,358.5,11,0)
+	;;=SIGNATURE^4^3
+	;;^UTILITY(U,$J,358.5,11,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,11,2,1,0)
+	;;=Signature of Provider^^^60^4^3^60^40^1
+	;;^UTILITY(U,$J,358.5,12,0)
+	;;=CLINIC^4^5
+	;;^UTILITY(U,$J,358.5,12,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,12,2,1,0)
+	;;=Clinic:^^^0^4^4^8^30^1
+	;;^UTILITY(U,$J,358.5,13,0)
+	;;=VITALS^5^2^^^BP ________ Wt ________ Pulse ________^^^^0^0^4^2^132
+	;;^UTILITY(U,$J,358.5,14,0)
+	;;=PATEINT NAME^6^6
+	;;^UTILITY(U,$J,358.5,14,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,14,2,1,0)
+	;;=NAME^^I^^^0^0^30^1
+	;;^UTILITY(U,$J,358.5,15,0)
+	;;=PID^6^7
+	;;^UTILITY(U,$J,358.5,15,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,15,2,1,0)
+	;;=PID^^I^^^1^0^15^1
+	;;^UTILITY(U,$J,358.5,16,0)
+	;;=ELIGIBILITY^6^8
+	;;^UTILITY(U,$J,358.5,16,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,16,2,1,0)
+	;;=Elig:^^^0^2^2^6^30^1
+	;;^UTILITY(U,$J,358.5,17,0)
+	;;=ADDRESS LINE 1^6^9^0^1
+	;;^UTILITY(U,$J,358.5,17,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,17,2,1,0)
+	;;=LINE1^^I^^^0^39^45^1
+	;;^UTILITY(U,$J,358.5,18,0)
+	;;=ADDRESS LINE 2^6^9^0^2
+	;;^UTILITY(U,$J,358.5,18,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,18,2,1,0)
+	;;=LINE2^^I^^^1^39^45^1
+	;;^UTILITY(U,$J,358.5,19,0)
+	;;=DATE^6^10
+	;;^UTILITY(U,$J,358.5,19,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,19,2,1,0)
+	;;=Date Printed:^^^90^1^1^104^12^1
+	;;^UTILITY(U,$J,358.5,20,0)
+	;;=CHECK IF SC^6^3
+	;;^UTILITY(U,$J,358.5,20,2,0)
+	;;=^357.52I^2^2
+	;;^UTILITY(U,$J,358.5,20,2,1,0)
+	;;=*** NOTE:  IF THE PATIENT'S TREATMENT WAS FOR ANY CONDITION RELATED TO THE FOLLOWING SERVICE-CONNECTED^^^7^4
+	;;^UTILITY(U,$J,358.5,20,2,2,0)
+	;;=DISABILITIES, CHECK BELOW TO THE LEFT OF THE LISTED CONDITON(S). ***^^^11^5
+	;;^UTILITY(U,$J,358.5,21,0)
+	;;=SC DISABILITY 1^6^11^0^1
+	;;^UTILITY(U,$J,358.5,21,2,0)
+	;;=^357.52I^3^3
+	;;^UTILITY(U,$J,358.5,21,2,1,0)
+	;;=Disabilities:^^^8^7
+	;;^UTILITY(U,$J,358.5,21,2,2,0)
+	;;=(__)^^^0^8^8^5^45^1
+	;;^UTILITY(U,$J,358.5,21,2,3,0)
+	;;=% - SERVICE CONNECTED^^I^^^8^51^24^5
+	;;^UTILITY(U,$J,358.5,22,0)
+	;;=SC DISABILITY 2^6^11^0^2
+	;;^UTILITY(U,$J,358.5,22,2,0)
+	;;=^357.52I^2^2
+	;;^UTILITY(U,$J,358.5,22,2,1,0)
+	;;=(__)^^^0^9^9^5^45^1
+	;;^UTILITY(U,$J,358.5,22,2,2,0)
+	;;=% - SERVICE CONNECTED^^I^^^9^51^24^5
+	;;^UTILITY(U,$J,358.5,23,0)
+	;;=SC DISABILITY 3^6^11^1^3
+	;;^UTILITY(U,$J,358.5,23,2,0)
+	;;=^357.52I^2^2

@@ -1,0 +1,27 @@
+BHLRXDI ; cmi/sitka/maw - BHL File Inbound RXD Segment ; 
+ ;;3.01;BHL IHS Interfaces with GIS;;JUL 01, 2001
+ ;
+ ;this routine will file the inbound RXD Segment, it is called from
+ ;VMED^BHLORCI
+ ;
+ Q
+ ;
+VMED ;EP - get v medication data
+ N BHLR
+ S BHLR="RXD"
+ S BHLMED=$P($G(@BHLTMP@(BHLDA,2)),CS,2)
+ Q:BHLMED=""
+ S BHLMEDI=$O(^PSDRUG("B",BHLMED,0))
+ K BHLMTCH
+ S BHLMDA=0 F  S BHLMDA=$O(^AUPNVMED("AD",BHLVSIT,BHLMDA)) Q:BHLMDA=""!($D(BHLMEDE))  D
+ . I $P(^AUPNVMED(BHLMDA,0),U)=BHLMEDI S BHLMTCH=1 Q
+ Q:$D(BHLMTCH)
+ S BHLDTD=$G(@BHLTMP@(BHLDA,3))
+ S BHLNTD=$P($G(@BHLTMP@(BHLDA,2)),CS,5)
+ S BHLRXN=$G(@BHLTMP@(BHLDA,7))
+ S APCDALVR("APCDTRX")=BHLMED
+ S APCDALVR("APCDTCDT")=BHLDTD
+ S APCDALVR("APCDTNTD")=BHLNTD
+ S APCDALVR("APCDTEXK")=BHLRXN
+ Q
+ ;

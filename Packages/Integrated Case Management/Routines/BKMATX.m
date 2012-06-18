@@ -1,0 +1,10 @@
+BKMATX ;VNGT/HS/ALA-CREATED BY ^ATXSTX ON MAY 17, 2011;
+ ;;2.1;HIV MANAGEMENT SYSTEM;**1**;FEB 7, 2011;Build 30
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^BKMATXA ;   BGP CHLAMYDIA CPTS
+ D ^BKMATXB ;   BKM GONORRHEA TESTS CPTS
+ D ^BKMATXC ;   BKM RPR CPTS
+ Q

@@ -1,0 +1,6 @@
+LRBLXREF ; IHS/DIR/FJE - SET BLOOD INVENTORY XREF 9/17/88 17:32 ;
+ ;;5.2;LR;;NOV 01, 1997
+ ;
+ ;;5.2;LAB SERVICE;;Sep 27, 1994
+ Q:$D(^LRD(65,"AB"))
+ F A=0:0 S A=$O(^LRD(65,A)) Q:'A  I $D(^LRD(65,A,4)) S X=$P(^(4),"^",2) S:X ^LRD(65,"AB",X,A)=""

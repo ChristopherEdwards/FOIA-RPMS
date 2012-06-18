@@ -1,0 +1,118 @@
+APSPLBL1 ; IHS/DSD/ENM - PRINTS LABEL ;21-Jan-2011 13:09;SM
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1009,1010**;09/03/97
+ ; Modified - IHS/CIA/PLS - 01/16/04; 02/18/04
+ ;                        - 05/24/05
+ ;                        - 09/23/05
+ ;            IHS/MSC/PLS - 12/09/10 - Changed HRN calls to use field 100
+ ;                        - 01/21/11 - Fixed typo at SUMMARY14
+ ;NOTE: VA Patches 31,66,60,59 not installed in this rtn IHS/DSD/ENM 3.9.94
+ ;
+EP ;      This IHS routine is a rewrite of and not the same as the
+ ;      VA PSOLBL1 rtn.
+ ;
+ M SGYY=SGY  ; Save a copy of sig array before modification to be used for summary labels
+Z S L=$L(PSZRM)
+ S SGC=$G(SGC,1)
+ I $L(SGY(SGC))+L+1<PSZW S SGY(SGC)=SGY(SGC)_$E("                              ",1,PSZW-L-1-$L(SGY(SGC)))_PSZRM
+ E  S SGC=SGC+1,SGY(SGC)=$E("                                        ",1,PSZW-L-2)_PSZRM
+ ;
+ S COPIES=COPIES-$$EXTINF(RX,$G(REPRINT,0))
+ G:COPIES<1 SUM
+ ;
+START S N="",COPIES=COPIES-1 F I=1:1:PSZB W !
+ S PSZZL=4 I $D(LEXDT),LEXDT]"" S PSZZL=5 ; Set # of sig lines to print
+ S:APSPMAN=1!(APSPMAN=2) PSZZL=PSZZL+1
+ S PSZLA=PSZL-PSZZL
+ W !,?PSZTAB,$E(PNM,1,PSZW-8),?(PSZW+PSZTAB)-6 W $$HRN^AUPNPAT(DFN,$$GET1^DIQ(59,PSOSITE,100,"I"))
+SIG ;
+ G CON:PSZLA<SGC F DR=1:1:PSZLA D SIG1
+ G NEXT
+CON S (DR,F)=0
+C1 F I=1:1:PSZL-2 S DR=DR+1 D SIG1 Q:'$D(SGY(DR+1))
+ I '$D(SGY(DR+1))&(I>PSZLA) F II=1:1:(PSZL-2-I) W !
+ I '$D(SGY(DR+1)) G NEXT:F&(I'>PSZLA)
+ W !,?PSZTAB,"****  CONTINUED  ****" S F=1
+ F I=1:1:PSZE+PSZB W !
+ W !,?PSZTAB,"****  CONTINUED  ****" S PSZM=$S(PSZLA-(SGC-DR)'<0:PSZLA-(SGC-DR),1:0) F I=1:1:PSZM W !
+ G C1:DR<SGC
+ ;IHS/BAO/JCM;8/30/88 ABOVE SETS # OF PRINTABLE LINES FOR FORM FEED
+ ;IHS/CIA/PLS - 09/23/05 - Changed quantity reference to QTY from 7th piece of zero node to resolve issues with incorrect refill quantity.
+NEXT ;W !,?PSZTAB,DRUG S PSZQ="#"_$P(RXY,"^",7)_" "_APS("DISP UNITS") I $X+$L(PSZQ)+2<PSZW W "  ",PSZQ S PSZQ=""
+ W !,?PSZTAB,DRUG S PSZQ="#"_$G(QTY)_" "_APS("DISP UNITS") I $X+$L(PSZQ)+2<PSZW W "  ",PSZQ S PSZQ=""
+ I +$G(APSQDNDC)=0 W !,?PSZTAB,"Rx ",RXN,?$X+1,$S(VRPH:$$USRINI(VRPH),1:TECH),?(PSZTAB+16),PSZQ
+ E  D
+ .S APSPZREF=+$O(^PSRX(RX,1,"A"),-1)
+ .S APSPZNDC=$S(APSPZREF:$$NDCVAL^APSPFUNC(RX,APSPZREF),1:$$NDCVAL^APSPFUNC(RX))
+ .W !,?PSZTAB,"Rx ",RXN," ["_APSPZNDC_"]",?$X+1,$S(VRPH:$$USRINI(VRPH),1:TECH),?(PSZTAB+16),PSZQ
+ .K APSPZNDC,APSPZREF
+ W !,?PSZTAB,$E($G(PHYS),1,17),?(PSZTAB+18),+$E(FDT,4,5),"-",$E(FDT,6,7),"-",$E(FDT,2,3)
+ I APSPMAN=1!(APSPMAN=2) W !,?PSZTAB,APSPMF_" "_APSPLOT_" Exp "_APSPDY ;IHS/DSD/ENM 12/16/96 Manufacturer data for label 8/18/2000 IHS/OKCAO/POC
+ F I=1:1:PSZE W !
+ ;
+ ;THE NEXT FEW LINE TESTS IF THE PRESCRIPTION IS A REFILL,RENEW OR
+ ;A PARTIAL FOR USE IN PRINTING SUMMARY LABELS TO BE PLACED IN THE
+ ;PATIENTS CHART.
+SUM I $P(^APSPCTRL(PSOSITE,0),U,12)=1,COPIES<1 D SUMMARY
+ ;
+ I COPIES>0 S SIDE=1 G START
+ZZE ;IHS/DSD/ENM NEXT 6 LINES ADDED FOR LBL NODE 12/1/95
+ ;STORE LABEL PRINT NODE
+ N RXF,I,IR,FDA
+ S RXF=0 F I=0:0 S I=$O(^PSRX(RX,1,I)) Q:'I  S RXF=I
+ S IR=0 F FDA=0:0 S FDA=$O(^PSRX(RX,"L",FDA)) Q:'FDA  S IR=FDA
+ S IR=IR+1,^PSRX(RX,"L",0)="^52.032A^"_IR_"^"_IR
+ S ^PSRX(RX,"L",IR,0)=$$NOW^XLFDT_"^"_$S($G(RXP):99-RXPI,1:RXF)_"^"_$S($G(PCOMX)]"":$G(PCOMX),1:"From RX number "_$P(^PSRX(RX,0),"^"))_$S($G(RXP):" (PARTIAL)",1:"")_$S($D(REPRINT):" (REPRINT)",1:"")_"^"_DUZ
+ S ^PSRX(RX,"TYPE")=0
+END K %DT,ADDR,DEA,DR,DR1,DRX,DRUG,FDT,SGY,RXY,RXZ,RYY,RFLMSG,RFL,COPIES
+ K DOB,DRUG,LIM,LMI,LINE,PS,PS1,PS2,PSZZL,PSZLA,II,PSZM,INT,ISD,I1
+ K MW,MAIL,STATE,SIDE,SSNP,SS,ST,ST1,PATST,PRTFL,PHYS,PNM,S,SL
+ K SGC,APS("DISP UNITS"),SGYY
+ Q
+ ;
+SIG1 S X=$S($D(SGY(DR)):SGY(DR),1:"") W !,?PSZTAB,X
+ Q
+SUMMARY ;IHS/BAO/JCM;FEB 15,1988
+ ;THESE LINES BUILD THE ARRAY FOR PRINTING A SUMMARY LABEL TO
+ ;PLACE IN THE CHART OF REFILLS AND PARTIAL PRESCRIPTIONS.
+ ;
+ ;$E(PNM,1,PSZW-8) = THE PATIENTS NAME
+ ;
+ ;FDT = THE FILL DATE FOR THE PARTIAL OR REFILL
+ ;
+ ;THE NEXT THREE LINES SET UP THE DRUG NAME TAKING OFF
+ ;ANY TAB,CAP,SOLN ABBREVIATIONS TO SAVE LENGTH
+ N LP,FIND,END,PSZDRUG
+ F FIND=" TAB"," CAP"," SUSP"," SOLN"," SYRUP" I DRUG[FIND S END=$F(DRUG,FIND)-($L(FIND)+1) Q
+ S:'$D(END) END=99
+ S PSZDRUG=$E(DRUG,1,END) ; = THE DRUG NAME
+ S APSHRN=$$HRN^AUPNPAT(DFN,$$GET1^DIQ(59,PSOSITE,100,"I"))
+ ; RX = Prescription IEN
+ ;RXN = Prescription Number
+ ;QTY = THE QUANTITY ISSUED
+ ;
+ S N=$G(N)+1,APSPZZN=$G(APSPZZN)+1
+ S SGYY=""
+ F LP=1:1:SGC Q:'$L($G(SGYY(LP)))  S SGYY=SGYY_SGYY(LP) Q:$L(SGYY)>200  ; get 100+ characters of sig
+ ;IHS/CIA/PLS - 09/23/05 - Changed quantity reference to QTY from 7th piece of zero node to resolve issues with incorrect refill quantity.
+ ;S ARRAY(APSPZZN)=$E(PNM,1,PSZW-8)_"^"_RXN_"^"_PSZDRUG_"^"_$E(SGYY,1,200)_"^"_+$P(RXY,"^",7)_"^"_+FDT_"^"_APSHRN
+ S ARRAY(APSPZZN)=$E(PNM,1,PSZW-8)_"^"_RXN_"^"_PSZDRUG_"^"_$E(SGYY,1,200)_"^"_+$G(QTY)_"^"_+FDT_"^"_APSHRN
+ Q
+ ; Return initials associated with user
+USRINI(IEN) ;EP
+ Q:'IEN " "
+ Q $$GET1^DIQ(200,IEN,1)
+ ; Call External Interface
+ ; Input: RX - Prescription IEN
+ ;        REPRINT - If label is a reprint
+ ; Returns: 0 - print label
+ ;          1 - don't print label or subtract 1 from label count
+EXTINF(RX,REPRINT) ;EP
+ N RET,EXT,$ET
+ S RET=0,EXT=0
+ S $ET="",$ZT="EXTERR^APSPLBL1"
+ I +$P($G(PSOPAR),U,30) D
+ .I +$P($G(PSOPAR),U,30)=2,'$G(REPRINT) D
+ ..N X
+ ..X $G(^APSPCTRL(PSOSITE,8)) S RET=+$G(X,0)
+ .X $G(^APSPCTRL(PSOSITE,9))
+EXTERR Q RET

@@ -1,0 +1,57 @@
+BQI21P1 ;VNGT/HS/ALA-Post Install for Patch 1 ; 13 Sep 2010  9:55 AM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;**1**;Feb 07, 2011;Build 5
+ ;
+EN ; Entry point
+ ; Update taxonomies for H1N1
+ D ^BQICATX
+GLS ; Update glossary
+ NEW GN,GNM,GSN,BQIUPD
+ S GN=0
+ F  S GN=$O(^BQI(90509.9,GN)) Q:'GN  D
+ . S GNM=$P(^BQI(90509.9,GN,0),U,1)
+ . S GSN=$O(^BQI(90508.2,"B",GNM,"")) Q:GSN=""
+ . S BQIUPD(90508.2,GSN_",",1)="@"
+ . D FILE^DIE("","BQIUPD","ERROR")
+ . M ^BQI(90508.2,GSN,1)=^BQI(90509.9,GN,1)
+ ;
+ NEW DA,BQIUPD
+ S DA=1,BQIUPD(90508,DA_",",.02)="H",BQIUPD(90508,DA_",",.03)="@"
+ D FILE^DIE("","BQIUPD","ERROR")
+ ; Add option to menu
+ S X=$$ADD^XPDMENU("APCL M MAN QUALITY ASSURANCE","BQI CANES EXPORT REPORT","CANE")
+ ;
+ZISH ;create entry in ZISH SEND PARAMETERS file
+ NEW DA,BQIUPD,ERROR,DIC,DLAYGO,X,Y
+ S X="CANE SURVEILLANCE SEND",DIC(0)="L",DIC="^%ZIB(9888888.93,",DLAYGO=9888888.93
+ D ^DIC S DA=+Y
+ I DA=-1 D
+ . K DO,DD D FILE^DICN
+ . S DA=+Y
+ I DA=-1 W !!,"Error creating ZISH SEND PARAMETERS entry" Q
+ S BQIUPD(9888888.93,DA_",",.02)="QUOVADX-IE.IHS.GOV"
+ S BQIUPD(9888888.93,DA_",",.03)="fludata"
+ S BQIUPD(9888888.93,DA_",",.04)="etgx7h"
+ S BQIUPD(9888888.93,DA_",",.06)="-u"
+ S BQIUPD(9888888.93,DA_",",.07)="B"
+ S BQIUPD(9888888.93,DA_",",.08)="sendto"
+ D FILE^DIE("","BQIUPD","ERROR")
+ I $D(ERROR) W !!,"Error updating ZISH SEND PARAMETERS entry"
+ ;
+HLO ;Set up HLO application
+ S DIC(0)="LZ",DLAYGO=779.2,DIC="^HLD(779.2,",X="RPMS-CANES"
+ D ^DIC
+ S DA=+Y
+ I DA=-1 D
+ . K DO,DD D FILE^DICN
+ . S DA=+Y
+ I DA=-1 W !!,"Error creating HLO Application" Q
+ S BQIUPD(779.2,DA_",",2)=$O(^DIC(9.4,"B","ICARE MANAGEMENT SYSTEM",""))
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ Q
+ ;
+PRE ;
+ NEW DA,DIK
+ S DA=0,DIK="^BQI(90509.9,"
+ F  S DA=$O(^BQI(90509.9,DA)) Q:'DA  D ^DIK
+ Q

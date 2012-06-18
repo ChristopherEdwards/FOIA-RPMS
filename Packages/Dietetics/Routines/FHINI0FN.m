@@ -1,0 +1,112 @@
+FHINI0FN	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9602,2)
+	;;=.034^.515
+	;;^UTILITY(U,$J,112,9602,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9603,0)
+	;;=SOUPS,CHICKEN BARLEY,CAMPBELL'S^BC-02876^8-oz.^226
+	;;^UTILITY(U,$J,112,9603,1)
+	;;=1.593^.796^4.336^30.973^^^^5.31^.31^^^38.938^375.664^^^^^516.814^0^.004
+	;;^UTILITY(U,$J,112,9603,2)
+	;;=.013^.442^^^^^^^1.77^.354^^.354
+	;;^UTILITY(U,$J,112,9603,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9604,0)
+	;;=SOUPS,CHICKEN BROTH & NOODLES,CAMPBELL'S^BC-02877^8-oz.^226
+	;;^UTILITY(U,$J,112,9604,1)
+	;;=1.062^.796^3.451^25.221^^^^4.867^.354^^^31.416^384.071^^^^^392.035^0^.04
+	;;^UTILITY(U,$J,112,9604,2)
+	;;=.035^.619^^^^^^^2.655^.31^^.177
+	;;^UTILITY(U,$J,112,9604,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9605,0)
+	;;=SOUPS,CHICKEN BROTH & RICE,CAMPBELL'S^BC-02878^8-oz.^226
+	;;^UTILITY(U,$J,112,9605,1)
+	;;=.619^.442^3.319^19.912^^^^3.097^.133^^^21.681^375.664^^^^^214.602^0^.004
+	;;^UTILITY(U,$J,112,9605,2)
+	;;=.009^.31^^^^^^^.442^.221^^.044
+	;;^UTILITY(U,$J,112,9605,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9606,0)
+	;;=SOUPS,CHICKEN BROTH,CAMPBELL'S^BC-02879^8-oz.^226
+	;;^UTILITY(U,$J,112,9606,1)
+	;;=.841^.531^.531^10.177^^^^2.212^.133^^^33.628^313.717^^^^^0^0^.004
+	;;^UTILITY(U,$J,112,9606,2)
+	;;=.022^.619^^^^^^^0^.088^^.044
+	;;^UTILITY(U,$J,112,9606,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9607,0)
+	;;=SOUPS,CHICKEN,CRM,CAMPBELL'S,PREP W/WATER^BC-02880^8-oz.^226
+	;;^UTILITY(U,$J,112,9607,1)
+	;;=1.283^2.965^3.85^47.345^^^^11.062^.177^^^28.319^358.407^^^^^292.035^0^.009
+	;;^UTILITY(U,$J,112,9607,2)
+	;;=.018^.265^^^^^^^3.982^.841^^.929
+	;;^UTILITY(U,$J,112,9607,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9608,0)
+	;;=SOUPS,CHICKEN CREAMY MUSHROOM,CAMPBELL'S^BC-02881^cup^233
+	;;^UTILITY(U,$J,112,9608,1)
+	;;=1.459^3.09^3.519^47.639^^^^9.013^.215^^^39.485^396.996^^^^^339.056^0^.004
+	;;^UTILITY(U,$J,112,9608,2)
+	;;=.03^.429
+	;;^UTILITY(U,$J,112,9608,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9609,0)
+	;;=SOUPS,CHICKEN GUMBO,CAMPBELL'S^BC-02882^8-oz.^226
+	;;^UTILITY(U,$J,112,9609,1)
+	;;=.973^.531^3.496^22.566^^^^8.85^.221^^^36.726^396.46^^^^^72.124^0^.004
+	;;^UTILITY(U,$J,112,9609,2)
+	;;=.009^.265^^^^^^^1.77^.221^^.133
+	;;^UTILITY(U,$J,112,9609,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9610,0)
+	;;=SOUPS,CHICKEN 'N DUMPLINGS,CAMPBELL'S^BC-02883^8-oz.^226
+	;;^UTILITY(U,$J,112,9610,1)
+	;;=1.77^1.239^3.85^33.628^^^^5.752^.31^^^34.513^422.566^^^^^230.531^0^.009
+	;;^UTILITY(U,$J,112,9610,2)
+	;;=.027^.664^^^^^^^9.292^.442^^.398
+	;;^UTILITY(U,$J,112,9610,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9611,0)
+	;;=SOUPS,CHICKEN NOODLE,CAMPBELL'S^BC-02966^7.3-oz.^206
+	;;^UTILITY(U,$J,112,9611,1)
+	;;=1.602^.971^3.447^29.126^^^^6.796^.485^^^30.583^427.184^^^^^165.049^0^.044
+	;;^UTILITY(U,$J,112,9611,2)
+	;;=.034^.631^^^^^^^5.31^.221^^.221
+	;;^UTILITY(U,$J,112,9611,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9612,0)
+	;;=SOUPS,CHICKEN NOODLE,CAMPBELL'S HOMESTYLE^BC-02885^8-oz.^226
+	;;^UTILITY(U,$J,112,9612,1)
+	;;=1.593^.885^3.496^28.319^^^^5.31^.31^^^28.761^388.938^^^^^342.035^.442^.031
+	;;^UTILITY(U,$J,112,9612,2)
+	;;=.031^.619^^^^^^^3.982^.442^^.265
+	;;^UTILITY(U,$J,112,9612,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9613,0)
+	;;=SOUPS,CHICKEN NOODLE,SPECIAL REQUEST^BC-02886^8-oz.^226
+	;;^UTILITY(U,$J,112,9613,1)
+	;;=1.372^.841^3.407^26.991^^^^4.867^.354^^^121.239^194.248^^^^^144.248^0^.04
+	;;^UTILITY(U,$J,112,9613,2)
+	;;=.031^.531^^^^^^^5.31^.221^^.221
+	;;^UTILITY(U,$J,112,9613,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9614,0)
+	;;=SOUPS,CHICKEN NOODLE-O'S,CAMPBELL'S^BC-02887^8-oz.^226
+	;;^UTILITY(U,$J,112,9614,1)
+	;;=1.46^.885^3.85^29.204^^^^5.752^.354^^^26.549^361.504^^^^^201.327^0^.031
+	;;^UTILITY(U,$J,112,9614,2)
+	;;=.031^.531^^^^^^^6.637^.31^^.265
+	;;^UTILITY(U,$J,112,9614,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9615,0)
+	;;=SOUPS,CHICKEN RICE,CAMPBELL'S,PREP W/WATER^BC-02888^8-oz.^226
+	;;^UTILITY(U,$J,112,9615,1)
+	;;=1.15^.885^2.92^24.336^^^^6.637^.177^^^20.796^345.575^^^^^236.726^0^.004
+	;;^UTILITY(U,$J,112,9615,2)
+	;;=.009^.354^^^^^^^2.655^.265^^.221
+	;;^UTILITY(U,$J,112,9615,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

@@ -1,0 +1,40 @@
+AUM9310A ; DSD/GTH - STANDARD TABLE UPDATES DATA A, 22OCT93 BANYAN ; [ 10/22/93  5:31 PM ]
+ ;;93.1;TABLE MAINTENANCE;**8**;MARCH 23, 1993
+ ;
+ ;  Only those new entries whose last piece is "Y" will be entered.
+ ;  If you do not want the entry made in your area, remove the last
+ ;    piece whose value is "Y".
+ ;
+ ;  Only those modified entries whose 'TO' line ends in "Y" will be
+ ;    modified.
+ ;  If you don't want the modification performed in your area, remove
+ ;    the last piece whose value is "Y".
+ ;
+SUNEW ; A.  NEW SERVICE UNIT CODES: AREA^S.U.^NAME
+ ;;66^32^SYCUAN MEDICAL CENTER^Y
+ ;;END
+LOCNEW ; B.  NEW LOCATION CODES: AREA^S.U.^FAC.^NAME
+ ;;45^43^11^POLSON HEALTH CENTER^Y
+ ;;75^73^32^KOOTENAI TRIBAL HEALTH^Y
+ ;;END
+LOCMOD ; C.  LOCATION CODE CHANGES: AREA^S.U.^FAC.^NAME
+ ;;FROM^35^31^73^SEWARD
+ ;;  TO^35^31^73^NORTH STAR HEALTH CLINIC^Y
+ ;;FROM^66^21^30^SYCUAN
+ ;;  TO^66^32^30^SYCUAN^Y
+ ;;END
+COMMNEW ; D.  NEW COMMUNITY CODES: STATE^CNTY^COMM^NAME^AREA^S.U.
+ ;;06^45^496^SHASTA LAKE CITY^66^19^Y
+ ;;27^01^128^TAMARACK^18^29^Y
+ ;;27^18^128^DEERWOOD^11^00^Y
+ ;;27^48^197^FORESTON^18^29^Y
+ ;;27^49^196^LITTLE FALLS^11^00^Y
+ ;;27^49^197^ROYALTON^11^00^Y
+ ;;27^58^198^FINLAYSON^18^29^Y
+ ;;27^71^198^BECKER^11^00^Y
+ ;;27^82^299^FOREST LAKE^11^00^Y
+ ;;END
+COMMMOD ; E.  COMMUNITY CODE CHANGES: STATE^CNTY^COMM^NAME^AREA^S.U.
+ ;;FROM^06^37^476^SYCUAN RESV.^66^21
+ ;;  TO^06^37^476^SYCUAN RESV.^66^32^Y
+ ;;END

@@ -1,0 +1,37 @@
+BCHRPTCP ; IHS/TUCSON/LAB - generic report cover page ;  [ 12/06/00  8:58 AM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**7,11**;OCT 28, 1996
+ ;IHS/CMI/LAB - tmp to xtmp
+ ;
+COVPAGE ;EP
+ ;W:$D(IOF) @IOF
+ W:IOST["C-" @IOF
+ W !!!?31,"CHR RECORD LISTING"
+ W !!,"REPORT REQUESTED BY: ",$P(^VA(200,DUZ,0),U)
+ W !,$$CTR^BCHRLU($$LOC^BCHRLU)
+ W !!,"The following visit listing contains CHR records selected based on the",!,"following criteria:",!
+SHOW ;
+ W !?28,"RECORD SELECTION CRITERIA"
+ W !!,"Date of Service range:  ",BCHBDD," to ",BCHEDD,!
+ I '$D(^BCHTRPT(BCHRPT,11)) G SHOWP
+ S BCHI=0 F  S BCHI=$O(^BCHTRPT(BCHRPT,11,BCHI)) Q:BCHI'=+BCHI  D
+ .I $Y>(IOSL-4) D PAUSE^BCHRPTU W @IOF
+ .W !,$P(^BCHSORT(BCHI,0),U),":  "
+ .K BCHQ S Y=0,C=0 F  S Y=$O(^BCHTRPT(BCHRPT,11,BCHI,11,"B",Y)) S C=C+1 Q:Y=""!($D(BCHQ))  W:C'=1 " ; " S X=Y X:$D(^BCHSORT(BCHI,2)) ^(2) W X
+SHOWP ;
+ I $Y>(IOSL-4) D PAUSE^BCHRPTU W @IOF
+ I $D(BCHRPTC) W !!,"Report Type: ",$P(^BCHRCNT(BCHRPTC,0),U,6)
+ ;I $D(BCHRPTC) W !!,"Report Type: ",$S(BCHRTYPE["D":"DETAILED RECORD LIST",BCHRTYPE["B":"STANDARD BRIEF",1:"??")
+ I '$D(^BCHTRPT(BCHRPT,12)) G PAUSE
+ W !!?29,"PRINT FIELD SELECTION",!
+ S BCHI=0 F  S BCHI=$O(^BCHTRPT(BCHRPT,12,BCHI)) Q:BCHI'=+BCHI  S BCHCRIT=$P(^BCHTRPT(BCHRPT,12,BCHI,0),U) D
+ .I $Y>(IOSL-4) D PAUSE^BCHRPTU W:$D(IOF) @IOF
+ .W !,$P(^BCHSORT(BCHCRIT,0),U),"  (" S X=$O(^BCHTRPT(BCHRPT,12,"B",BCHCRIT,"")) W $P(^BCHTRPT(BCHRPT,12,X,0),U,2),")"
+ W !,"     TOTAL column width: ",BCHTCW
+ I $Y>(IOSL-5) D PAUSE^BCHRPTU W:$D(IOF) @IOF
+SORT ;
+ I $G(BCHSORT)]"" W !!,"Records will be sorted by:  ",$P(^BCHSORT(BCHSORT,0),U),!
+ I $G(BCHSPAG) W !,"Each ",$P(^BCHSORT(BCHSORT,0),U)," will be on a separate page.",!
+ I $Y>(IOSL-4) D PAUSE^BCHRPTU W:$D(IOF) @IOF
+ I '$D(^XTMP("BCHRPT",BCHJOB,BCHBTH)) W !!,"NO RECORDS TO DISPLAY.",!
+PAUSE D PAUSE^BCHRPTU
+ Q

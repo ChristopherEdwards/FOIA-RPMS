@@ -1,0 +1,72 @@
+DPTDCAN ; IHS/TUCSON/JCM - GETS POSSIBLE DUPLICATE CANDIDATES ; [ 09/10/2001  8:24 AM ]
+ ;;1.0;PATIENT MERGE;;FEB 02, 1994
+ ;
+ ; Calls: EN^DIQ1
+ ;
+START ;
+ K ^TMP("XDRD",$J,XDRFL),DPTDCAN
+ ;
+ ;
+ ;---> BEGIN CHANGES 9/9/2001.
+ ;---> Quit if patient does not exist. ;Mike Remillard, 9/9/2001
+ ;---> Next line $D added.
+ Q:'$D(^DPT(XDRCD,0))
+ ;---> END CHANGES 9/9/2001.
+ ;
+ ;
+ Q:$P(^DPT(XDRCD,0),U,19)
+ D VALUE
+ D NAME
+ D SSN
+ D DOB
+END D EOJ
+ Q
+ ;
+VALUE ;
+ S DIC=2,DA=XDRCD,DIQ(0)="I",DIQ="DPTDCAN",DR=".01;.03;.09"
+ D EN^DIQ1 K DIC,DA,DR,DIQ
+ Q
+ ;
+NAME ;
+ I XDRFL=2 Q:'$D(^DPT(XDRCD,0))  ;IHS/ANMC/LJF 9/10/01 to prevent undef when entry doesn't exist
+ G:DPTDCAN(XDRFL,XDRCD,.01,"I")']"" NAMEX
+ S DPTDCAN("NAME")=DPTDCAN(XDRFL,XDRCD,.01,"I")
+ S DPTDCAN("LNAME&FI")=$P(DPTDCAN("NAME"),",",1)_","_$E($P(DPTDCAN("NAME"),",",2),1)_"AAA"
+ S DPTDCAN("BNAME")=DPTDCAN("LNAME&FI")
+ F I=0:0 S DPTDCAN("BNAME")=$O(^DPT("B",DPTDCAN("BNAME"))) Q:DPTDCAN("BNAME")=""!(($P(DPTDCAN("NAME"),",",1)_","_$E($P(DPTDCAN("NAME"),",",2),1))'=($P(DPTDCAN("BNAME"),",",1)_","_$E($P(DPTDCAN("BNAME"),",",2),1)))  D
+ . S DPTDCAN("BNAMEDFN")=0 F  S DPTDCAN("BNAMEDFN")=$O(^DPT("B",DPTDCAN("BNAME"),DPTDCAN("BNAMEDFN"))) Q:DPTDCAN("BNAMEDFN")=""  S:DPTDCAN("BNAMEDFN")'=XDRCD ^TMP("XDRD",$J,XDRFL,DPTDCAN("BNAMEDFN"))=""
+ . Q
+NAMEX Q
+ ;
+SSN ;Get patients with same last four digits of ssn
+ G:DPTDCAN(XDRFL,XDRCD,.09,"I")']"" SSNX
+ S DPTDCAN("SSN")=DPTDCAN(XDRFL,XDRCD,.09,"I")
+ S DPTDCAN("L4SSN")=$E(DPTDCAN("SSN"),6,9)
+ S DPTDCAN("BL4SSN")=XDRCD
+ F %=0:0 S DPTDCAN("BL4SSN")=$O(^DPT("BS",DPTDCAN("L4SSN"),DPTDCAN("BL4SSN"))) Q:'DPTDCAN("BL4SSN")  S ^TMP("XDRD",$J,XDRFL,DPTDCAN("BL4SSN"))=""
+ ;
+ ; Check SSNS with same first five digits
+ ; Commented out the following line, is not specific enough for IHS
+ ; but would be useful for the VA
+ ;
+ ;S DPTDCAN("F5SSN")=$E(DPTDCAN("SSN"),1,5)_"0000",DPTDCAN("5SSN")=DPTDCAN("F5SSN") D  
+ . F %=0:0 S DPTDCAN("5SSN")=$O(^DPT("SSN",DPTDCAN("5SSN"))) Q:DPTDCAN("5SSN")'=+DPTDCAN("5SSN")!($E(DPTDCAN("5SSN"),1,5)'=$E(DPTDCAN("SSN"),1,5))  S ^TMP("DPTDCAN",$J,XDRFL,$O(^DPT("SSN",DPTDCAN("5SSN"),"")))=""
+ . Q
+SSNX Q
+ ;
+DOB ;Get patients with same date of birth
+ G:DPTDCAN(XDRFL,XDRCD,.03,"I")']"" DOBX
+ S DPTDCAN("DOB")=DPTDCAN(XDRFL,XDRCD,.03,"I")
+ S DPTDCAN("BDOB")=XDRCD
+ F %=0:0 S DPTDCAN("BDOB")=$O(^DPT("ADOB",DPTDCAN("DOB"),DPTDCAN("BDOB"))) Q:'DPTDCAN("BDOB")  S ^TMP("XDRD",$J,XDRFL,DPTDCAN("BDOB"))=""
+ ;
+ ;Transpose day of birth and get patients with same date of birth
+ ;
+ S DPTDCAN("TDOB")=$E(DPTDCAN("DOB"),1,5)_$E(DPTDCAN("DOB"),7)_$E(DPTDCAN("DOB"),6)
+ S DPTDCAN("BDOB")=XDRCD
+ F %=0:0 S DPTDCAN("BDOB")=$O(^DPT("ADOB",DPTDCAN("TDOB"),DPTDCAN("BDOB"))) Q:'DPTDCAN("BDOB")  S ^TMP("XDRD",$J,XDRFL,DPTDCAN("BDOB"))=""
+DOBX Q
+ ;
+EOJ ;
+ K DPTDCAN,%
+ Q

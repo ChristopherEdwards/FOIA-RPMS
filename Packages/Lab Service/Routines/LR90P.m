@@ -1,0 +1,10 @@
+LR90P ; IHS/DIR/AAB - LR*5.2*90 PRE-INSTALL AFTER USER COMMITS 5-7-97 ; [ 05/28/98 2:44 PM ]
+ ;;5.2;LR;**1003**;JUN 01, 1998
+ ;;5.2;LAB SERVICE;**90**;Sep 27, 1994
+ ;
+ Q:'$D(XPDNM)
+ N DA,DIK
+ S DIK="^DD(65.5,",DA=3 D ^DIK
+ K DA,DIK
+ W !,$$CJ^XLFSTR("Pre Install Step Complete",80),!!
+ Q

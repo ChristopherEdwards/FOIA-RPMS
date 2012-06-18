@@ -1,0 +1,11 @@
+PERIOD OF SERVICE
+ZWR
+^DIC(21,0)="PERIOD OF SERVICE^21I^0^0"
+^DIC(21,0,"DD")="@"
+^DIC(21,0,"DEL")="@"
+^DIC(21,0,"GL")="^DIC(21,"
+^DIC(21,0,"LAYGO")="@"
+^DIC(21,0,"WR")="@"
+^DIC(21,"%",0)="^1.005^1^1"
+^DIC(21,"%",1,0)="VA"
+^DIC(21,"%","B","VA",1)=""

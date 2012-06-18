@@ -1,0 +1,12 @@
+ICARE SITE LAYOUTS
+ZWR
+^BQI(90508.1,0)="ICARE SITE LAYOUTS^90508.1^1^1"
+^BQI(90508.1,1,0)="Asthma^5"
+^BQI(90508.1,1,10,0)="^90508.11^3^3"
+^BQI(90508.1,1,10,1,0)="Register Status^1"
+^BQI(90508.1,1,10,2,0)="Date of Last Asthma Visit^2"
+^BQI(90508.1,1,10,3,0)="Calculated Due Date^3"
+^BQI(90508.1,1,10,"B","Calculated Due Date",3)=""
+^BQI(90508.1,1,10,"B","Date of Last Asthma Visit",2)=""
+^BQI(90508.1,1,10,"B","Register Status",1)=""
+^BQI(90508.1,"B","Asthma",1)=""

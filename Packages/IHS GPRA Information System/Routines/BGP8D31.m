@@ -1,0 +1,187 @@
+BGP8D31 ; IHS/CMI/LAB - measure C ;
+ ;;8.0;IHS CLINICAL REPORTING;**2**;MAR 12, 2008
+ ;
+II ;EP
+ S (BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPD1,BGPD2,BGPD3,BGPD4,BGPD5,BGPD6,BGPD7,BGPD8,BGPD9,BGPHOSP)=0
+ I 'BGPACTUP S BGPSTOP=1 Q
+ I BGPACTUP S BGPD1=1
+ I BGPACTCL S BGPD2=1
+ I 'BGPD2 S BGPSTOP=1 Q
+ S BGPN1=$$V2ASTH(DFN,BGP365,BGPEDATE)
+ I BGPN1 S BGPHOSP=$$HOSP(DFN,BGP365,BGPEDATE) I BGPHOSP S BGPN2=1
+ S BGPVALUE=$S(BGPD2:"AC",1:"")_"|||"_$S(BGPN1:$$LAST(DFN,BGP365,BGPEDATE),1:"")_" "_$S(BGPHOSP:"H "_$$DATE^BGP8UTL($P(BGPHOSP,U,2)),1:"")
+ K X,Y,Z,%,A,B,C,D,E,H,BDATE,EDATE,P,V,S,F,T
+ Q
+V2ASTH(P,BDATE,EDATE) ;EP
+ I '$G(P) Q ""
+ I '$D(^AUPNVSIT("AC",P)) Q ""
+ K ^TMP($J,"A")
+ S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(B,A)
+ I '$D(^TMP($J,"A",1)) Q ""
+ S T=$O(^ATXAX("B","BGP ASTHMA DXS",0))
+ I 'T Q ""
+ S (X,G)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G>2)  S V=$P(^TMP($J,"A",X),U,5) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$P(^AUPNVSIT(V,0),U,9)
+ .Q:$P(^AUPNVSIT(V,0),U,11)
+ .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
+ .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U) I $$ICD^ATXCHK(%,T,9) S D=1
+ .Q:'D
+ .S G=G+1
+ .Q
+ I G>1 Q 1
+ S EDATE1=9999999-EDATE-1
+ S D=$O(^AUPNVAST("AS",P,EDATE1))
+ I 'D Q ""
+ I D>(9999999-BDATE) Q ""
+ S LAST="",E=0 F  S E=$O(^AUPNVAST("AS",P,D,E)) Q:E'=+E  S LAST=E
+ I 'LAST Q ""
+ S S=^AUPNVAST("AS",P,D,LAST)
+ I S>1 Q 1
+ Q ""
+LAST(P,BDATE,EDATE) ;EP last asthma dx
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^LAST DX [BGP ASTHMA DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) Q $$DATE^BGP8UTL($P(BGPG(1),U))_" "_$P(BGPG(1),U,2)
+ Q ""
+HOSP(P,BDATE,EDATE) ;EP
+ I '$G(P) Q ""
+ I '$D(^AUPNVSIT("AC",P)) Q ""
+ K ^TMP($J,"A")
+ S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(B,A)
+ I '$D(^TMP($J,"A",1)) Q ""
+ S T=$O(^ATXAX("B","BGP ASTHMA DXS",0))
+ I 'T Q ""
+ S (X,G,H)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G)  S V=$P(^TMP($J,"A",X),U,5) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$P(^AUPNVSIT(V,0),U,9)
+ .Q:$P(^AUPNVSIT(V,0),U,11)
+ .Q:$P(^AUPNVSIT(V,0),U,7)'="H"
+ .S %=$$PRIMPOV^APCLV(V,"I") I $$ICD^ATXCHK(%,T,9) S G=1,H=$P($P(^AUPNVSIT(V,0),U),".")
+ .Q
+ Q G_"^"_H
+BI() ;
+ Q $S($O(^AUTTIMM(0))>100:1,1:0)
+PNEU(P,BDATE,EDATE) ;EP
+ K BGPG
+ S BGPLPNU=""
+ S BD=BDATE
+ S ED=EDATE
+ S EDATE=$$FMTE^XLFDT(EDATE)
+ S BDATE=$$FMTE^XLFDT(BDATE)
+ S X=P_"^LAST IMM "_$S($$BI:33,1:19)_";DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BGPG(")
+ I $D(BGPG(1)) S BGPLPNU=$P(BGPG(1),U)_U_"Imm 33"
+ S X=P_"^LAST IMM 100;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BGPG(")
+ I $D(BGPG(1)),$P(BGPLPNU,U,1)<$P(BGPG(1),U) S BGPLPNU=$P(BGPG(1),U,1)_U_"Imm 100"
+ S X=P_"^LAST IMM 109;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BGPG(")
+ I $D(BGPG(1)),$P(BGPLPNU,U,1)<$P(BGPG(1),U) S BGPLPNU=$P(BGPG(1),U,1)_U_"Imm 109"
+ K BGPG S %=P_"^LAST PROCEDURE 99.55;DURING "_BDATE_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)),$P(BGPLPNU,U,1)<$P(BGPG(1),U) S BGPLPNU=$P(BGPG(1),U,1)_U_"99.55"
+ K BGPG S %=P_"^LAST DX V03.82;DURING "_BDATE_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)),$P(BGPLPNU,U,1)<$P(BGPG(1),U) S BGPLPNU=$P(BGPG(1),U,1)_U_"V03.82"
+ ;K BGPG S %=P_"^LAST DX V03.89;DURING "_BDATE_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ ;I $D(BGPG(1)),$P(BGPLPNU,U,1)<$P(BGPG(1),U) S BGPLPNU=$P(BGPG(1),U,1)_U_"V03.89"
+ K BGPG S %=P_"^LAST DX V06.6;DURING "_BDATE_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)),$P(BGPLPNU,U,1)<$P(BGPG(1),U) S BGPLPNU=$P(BGPG(1),U,1)_U_"V06.6"
+ S %="",E=+$$CODEN^ICPTCOD(90732),%=$$CPTI^BGP8DU(P,BD,ED,E) I %]"",$P(BGPLPNU,U,1)<$P(%,U,2) S BGPLPNU=$P(%,U,2)_U_"90732"
+ S %="",E=+$$CODEN^ICPTCOD(90669),%=$$CPTI^BGP8DU(P,BD,ED,E) I %]"",$P(BGPLPNU,U,1)<$P(%,U,2) S BGPLPNU=$P(%,U,2)_U_"90669"
+ S %="",E=+$$CODEN^ICPTCOD(90732),%=$$TRANI^BGP8DU(P,BD,ED,E) I %]"",$P(BGPLPNU,U,1)<$P(%,U,2) S BGPLPNU=$P(%,U,2)_U_"90732 TRAN"
+ S %="",E=+$$CODEN^ICPTCOD(90669),%=$$TRANI^BGP8DU(P,BD,ED,E) I %]"",$P(BGPLPNU,U,1)<$P(%,U,2) S BGPLPNU=$P(%,U,2)_U_"90669 TRAN"
+ S %="",E=+$$CODEN^ICPTCOD("G0009"),%=$$CPTI^BGP8DU(P,BD,ED,E) I %]"",$P(BGPLPNU,U,1)<$P(%,U,2) S BGPLPNU=$P(%,U,2)_U_"G0009"
+ S %="",E=+$$CODEN^ICPTCOD("G8115"),%=$$CPTI^BGP8DU(P,BD,ED,E) I %]"",$P(BGPLPNU,U,1)<$P(%,U,2) S BGPLPNU=$P(%,U,2)_U_"G8115"
+ S %="",E=+$$CODEN^ICPTCOD("G0009"),%=$$TRANI^BGP8DU(P,BD,ED,E) I %]"",$P(BGPLPNU,U,1)<$P(%,U,2) S BGPLPNU=$P(%,U,2)_U_"G0009 TRAN"
+ S %="",E=+$$CODEN^ICPTCOD("G8115"),%=$$TRANI^BGP8DU(P,BD,ED,E) I %]"",$P(BGPLPNU,U,1)<$P(%,U,2) S BGPLPNU=$P(%,U,2)_U_"G8115 TRAN"
+ I BGPLPNU]"" Q BGPLPNU_U_1
+ ;NOW CHECK FOR CONTRAINDICATION (NEW IN 8.0)
+ F BGPZ=33,100,109 S X=$$ANCONT(P,BGPZ,ED) Q:X]""
+ I X]"" Q X_U_3
+ ;NMI refusal
+ S G=$$NMIREF^BGP8UTL1(P,9999999.14,$O(^AUTTIMM("C",33,0)),$$DOB^AUPNPAT(P),ED)
+ I $P(G,U)=1 Q $P(G,U,2)_U_"NMI Refusal"_U_3
+ S G=$$NMIREF^BGP8UTL1(P,9999999.14,$O(^AUTTIMM("C",100,0)),$$DOB^AUPNPAT(P),ED)
+ I $P(G,U)=1 Q $P(G,U,2)_U_"NMI Refusal"_U_3
+ S G=$$NMIREF^BGP8UTL1(P,9999999.14,$O(^AUTTIMM("C",109,0)),$$DOB^AUPNPAT(P),ED)
+ I $P(G,U)=1 Q $P(G,U,2)_U_"NMI Refusal"_U_3
+ S G=$$REFUSAL^BGP8UTL1(P,9999999.14,$O(^AUTTIMM("C",33,0)),$$FMTE^XLFDT($$FMADD^XLFDT(ED,-365)),EDATE)
+ I $P(G,U)=1 I $P(BGPLPNU,U,1)<$P(G,U,2) S BGPLPNU=$P(G,U,2)_U_" Refused"_U_2
+ S G=$$REFUSAL^BGP8UTL1(P,9999999.14,$O(^AUTTIMM("C",100,0)),$$FMTE^XLFDT($$FMADD^XLFDT(ED,-365)),EDATE)
+ I $P(G,U)=1 I $P(BGPLPNU,U,1)<$P(G,U,2) S BGPLPNU=$P(G,U,2)_U_" Refused"_U_2
+ S G=$$REFUSAL^BGP8UTL1(P,9999999.14,$O(^AUTTIMM("C",109,0)),$$FMTE^XLFDT($$FMADD^XLFDT(ED,-365)),EDATE)
+ I $P(G,U)=1 I $P(BGPLPNU,U,1)<$P(G,U,2) S BGPLPNU=$P(G,U,2)_U_" Refused"_U_2
+ S BGPRBEG=$$FMADD^XLFDT(ED,-365)
+ S (X,G)=0,Y=$O(^AUTTIMM("C",33,0)) F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .Q:$P(^BICONT(R,0),U,1)'["Refusal"
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .Q:$P(^BIPC(X,0),U,4)<BGPRBEG
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .S G=1
+ I G I $P(BGPLPNU,U,1)<$P(G,U,2) S BGPLPNU=$P(G,U,2)_U_"Refusal Imm pkg"_U_2
+ S (X,G)=0,Y=$O(^AUTTIMM("C",100,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .Q:$P(^BICONT(R,0),U,1)'["Refusal"
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .Q:$P(^BIPC(X,0),U,4)<BGPRBEG
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .S G=1
+ I G I $P(BGPLPNU,U,1)<$P(G,U,2) S BGPLPNU=$P(G,U,2)_U_"Refusal Imm pkg"_U_2
+ S (X,G)=0,Y=$O(^AUTTIMM("C",109,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .Q:$P(^BICONT(R,0),U,1)'["Refusal"
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:$P(^BIPC(X,0),U,4)<BGPRBEG
+ .Q:D=""
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .S G=1
+ I G I $P(BGPLPNU,U,1)<$P(G,U,2) S BGPLPNU=$P(G,U,2)_U_"Refusal Imm pkg"_U_2
+ Q BGPLPNU
+ ;
+ANCONT(P,C,ED) ;EP - ANALPHYLAXIS CONTRAINDICATION
+ NEW X
+ S X=0,G="",Y=$O(^AUTTIMM("C",C,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .;Q:$P(^BIPC(X,0),U,4)<BD
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .I $P(^BICONT(R,0),U,1)="Anaphylaxis" S G=D_U_"Contraindication: Anaphylaxis"
+ Q G
+ANNECONT(P,C,ED) ;EP - ANALPHYLAXIS/NEOMYCIN CONTRAINDICATION
+ NEW X
+ S X=0,G="",Y=$O(^AUTTIMM("C",C,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .;Q:$P(^BIPC(X,0),U,4)<BD
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .I $P(^BICONT(R,0),U,1)="Anaphylaxis" S G=D_U_"Contraindication: Anaphylaxis"
+ .I $P(^BICONT(R,0),U,1)="Neomycin Allergy" S G=D_U_"Contraindication: Neomycin Allergy"
+ Q G
+MMRCONT(P,C,ED) ;EP - ANALPHYLAXIS/NEOMYCIN/IMMUNE CONTRAINDICATION
+ NEW X
+ S X=0,G="",Y=$O(^AUTTIMM("C",C,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .;Q:$P(^BIPC(X,0),U,4)<BD
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .I $P(^BICONT(R,0),U,1)="Anaphylaxis" S G=D_U_"Contraindication: Anaphylaxis"
+ .I $P(^BICONT(R,0),U,1)="Neomycin Allergy" S G=D_U_"Contraindication: Neomycin Allergy"
+ .I $P(^BICONT(R,0),U,1)="Immune Deficiency" S G=D_U_"Contraindication: Immune Deficiency"
+ .I $P(^BICONT(R,0),U,1)["Immune Deficient" S G=D_U_"Contraindication: Immune Deficient"
+ Q G

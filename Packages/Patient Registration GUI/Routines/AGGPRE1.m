@@ -1,0 +1,22 @@
+AGGPRE1 ;VNGT/HS/ALA-Pre Install program ; 19 Apr 2010  4:09 PM
+ ;;1.0;PATIENT REGISTRATION GUI;;Nov 15, 2010
+ ;
+ ;
+EN ;
+ NEW DA,DIK
+ S DIK="^AGG(9009068.3,",DA=0
+ F  S DA=$O(^AGG(9009068.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^AGG(9009068.6,",DA=0
+ F  S DA=$O(^AGG(9009068.6,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^AGG(9009068.5,",DA=0
+ F  S DA=$O(^AGG(9009068.5,DA)) Q:'DA  D ^DIK
+ ;
+ ; Check for bad records
+ NEW DA,AGGUPD
+ S DA=0
+ F  S DA=$O(^AUPNNPP(DA)) Q:'DA  D
+ . I $P($G(^AUPNNPP(DA,0)),"^",1)'=DA S AGGUPD(9000038,DA_",",.01)=DA
+ I $D(AGGUPD) D FILE^DIE("","AGGUPD","ERROR")
+ Q

@@ -1,0 +1,68 @@
+AZHLRER1 ; DSM/GTH - REMOTE ERROR REPORTING, ETC. ;  [ 12/30/92  8:25 AM ]
+ ;;1.9X;DSM REMOTE ERROR REPORTING;;FEB 19, 1993
+ ;
+ Q
+ ;
+INQ ;EP - From Option.
+ N AZHLDAY,BY,DA,DIC,AZHLERR,AZHLFAC,FLDS,FR,L,TO
+ S DIC="^AZHLRER(",DIC(0)="ACEMQZ" D ^DIC
+ Q:Y<1  S AZHLFAC=+Y
+ S DIC="^AZHLRER("_AZHLFAC_",1," D ^DIC
+ Q:Y<1  S AZHLDAY=+Y
+ S DIC="^AZHLRER("_AZHLFAC_",1,"_AZHLDAY_",1," D ^DIC
+ Q:Y<1  S AZHLERR=+Y
+ D ^%ZIS Q:POP  U IO S AZHLIO=IO,AZHLHAT=1
+INQ1 ;
+ S %=^AZHLRER(AZHLFAC,1,AZHLDAY,1,AZHLERR,0)
+ I '$D(AZHLNMSP) W @IOF
+ E  W !!!
+ W !," FACILITY : ",AZHLFAC,?25,"$H : ",AZHLDAY,?38,"ERROR : ",AZHLERR,!,"NAMESPACE : ",$P(%,U,2),?20,"VERSION : ",$P(%,U,3),?40,"$ZE : ",$P($P(%,U,4),"~"),"^",$P($P(%,U,4),"~",2)
+ S %="",$P(%,"-",81)="" W !,%,!!
+ S AZHL(1)=$P(^AZHLRER(AZHLFAC,1,AZHLDAY,1,AZHLERR,1,0),U,3)
+ F AZHL=1:1:AZHL(1) I '(AZHL=100),$D(^AZHLRER(AZHLFAC,1,AZHLDAY,1,AZHLERR,1,AZHL)) W !,^(AZHL,0)," = """,^(1),"""" I '$D(AZHLNMSP),$Y>(IOSL-4),$E(IOST)="C" D RT Q:$D(DUOUT)!$D(DTOUT)  W @IOF
+ Q:$D(AZHLNMSP)
+ D ^%ZISC K AZHL,AZHLHAT
+ S X="INQ^AZHLRER1",@^%ZOSF("TRAP")
+ Q
+ ;
+DMP ;EP - From Option.
+ W !! S X="WARNING" D C W ! S X="This option is designed to dump a lot of data to a screen saver utility." D C W ! S X="This could produce several thousands lines of data." D C W ! S X="Use discretion in selecting parameters." D C W !
+ S X="(BREAK [^C] will be enabled just before dump.)" D C W !!
+ NEW AZHLNMSP,DIC
+ S DIC=9.4,DIC(0)="ACEMQZ" D ^DIC Q:Y<0
+ S AZHLNMSP=$P(Y(0),U,2)
+ NEW AZHLDAY,AZHLDAYE,AZHLERR,AZHLERRE,AZHLFAC,AZHLFACE,BY,DA,DIR,DIRUT,DTOUT,DUOUT,FLDS,FR,L,TO
+ S DIC="^AZHLRER(",DIC(0)="ACEMQZ",DIC("A")="Begin with FACILITY :" D ^DIC
+ Q:Y<1!$D(DUOUT)!$D(DTOUT)  S %="000000"_(+$P(^AZHLRER(+Y,0),U)-1),AZHLFAC=$E(%,$L(%)-5,$L(%))
+ S DIC="^AZHLRER(",DIC(0)="ACEMQZ",DIC("A")="End with FACILITY :" D ^DIC
+ Q:Y<1!$D(DUOUT)!$D(DTOUT)  S AZHLFACE=$P(^AZHLRER(+Y,0),U)
+ K DIR S DIR(0)="8008907.01,.01",DIR("A")="Enter Beginning $H " D ^DIR
+ Q:$D(DIRUT)  S AZHLDAY=Y-1
+ K DIR S DIR(0)="8008907.01,.01",DIR("A")="Enter Ending $H " D ^DIR
+ Q:$D(DIRUT)  S AZHLDAYE=Y
+ K DIR D ^%ZIS Q:POP  U IO S AZHLIO=IO,AZHLHAT=1
+ S AZHLERR=0 S X="DMPEND^AZHLRER1",@^%ZOSF("TRAP") X ^%ZOSF("BRK")
+ F  S AZHLFAC=$O(^AZHLRER("C",AZHLNMSP,AZHLFAC)) Q:'AZHLFAC!(AZHLFAC>AZHLFACE)  D
+ . F  S AZHLDAY=$O(^AZHLRER("C",AZHLNMSP,AZHLFAC,AZHLDAY)) Q:'AZHLDAY!(AZHLDAY>AZHLDAYE)  D
+ .. F  S AZHLERR=$O(^AZHLRER("C",AZHLNMSP,AZHLFAC,AZHLDAY,AZHLERR)) Q:'AZHLERR  D INQ1
+ ..Q
+ .Q
+DMPEND ;EP - Possible from ^C.
+ X ^%ZOSF("NBRK") D ^%ZISC
+ Q
+ ;
+HDR ;EP - Print menu header.
+ S %=$P(XQY0,U,2)
+ G SHDR
+PHDR ;EP - Print parent menu header.
+ S X=$P(^XUTL("XQ",$J,^XUTL("XQ",$J,"T")-1),U,2,3),Y=$P(X,U),%=$P(X,U,2)
+SHDR ;EP - Screen header.
+ W @IOF,!! S X=$P(^DIC(4,$P(^AUTTSITE(1,0),U),0),U) D C
+ S X=$P($T(AZHLRER1+1),";",4)_", v "_$P($T(AZHLRER1+1),";",3) D C
+ X ^%ZOSF("UCI") S X="UCI: "_Y D C
+ S X=% D C
+ Q
+C W $J("",IOM-$L(X)\2)_X,! Q
+RT ;EP
+ I $D(AZHLIO),AZHLIO=IO,'$D(IO("S")) K DIR S DIR(0)="E" S:'$D(AZHLHAT) DIR("A")="Press RETURN...",DIR(0)="EA" D ^DIR K DIR
+ Q

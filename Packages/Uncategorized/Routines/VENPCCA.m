@@ -1,0 +1,228 @@
+VENPCCA ; IHS/OIT/GIS - NEW CHECK IN MODULE ; 
+ ;;2.6;PCC+;**1,3,4**;OCT 26, 2011;Build 20
+ ;
+ ; ERROR MGMT FOR VER 2.2
+ ; NURSE CHECK IN SUPPORTED IN 2.5
+ ;
+ N TMSG
+PATIENT ; EP-FOR LOOPING TO NEXT PATIENT
+ S %=+$O(^TMP("VEN TASK",0)),TMSG=$G(^TMP("VEN TASK",%))
+ I $G(PIMSDFN) D  G CLINIC ; PATCHED BY GIS/OIT 6/15/06 ; PCC+ 2.5 PATCH 5
+ . W !,"A PCC+ form will be generated for ",$P($G(^DPT(PIMSDFN,0)),U)
+ . W !,"But first, please answer the following questions...",!
+ . S PATIENT=PIMSDFN
+ . Q
+ W !!,"Patient: " I $D(PATIENT) W $P($G(^DPT(PATIENT,0)),U),"// "
+ R X:$G(DTIME,600) I '$T Q
+ I $G(PATIENT),X="" S X="`"_PATIENT
+ I X=""!(X?1."^") Q
+ I X?1."?" W !,?5,"Enter name (LAST,FIRST - no space after comma), partial name, DOB, or SSN" G PATIENT
+ S DIC="^DPT(",DIC(0)="EQM" D ^DIC I Y=-1 G PATIENT
+ S PATIENT=+Y K DIC
+ S %=$P(Y,U,2) I $E(%,1,5)="DEMO," S VENDEMO=2 ; IF ITS A DEMO PATIENT, DON'T CREATE A VISIT
+UP I $P($G(^VEN(7.5,CFIGIEN,0)),U,8)!($G(CHECKIN)) D
+ . I $G(HSONLY)!($G(EFONLY))!($G(OGONLY)) Q
+ . S %=$$DATES^VENPCCMF(PATIENT) I $L(%)  W !,%
+ . I '$G(CHECKIN) W !,"Review/update patient registration information" S %=1 D YN^DICN I %'=1 Q
+ . S UPDEM=DT D PAT^VENPCCD(PATIENT) ; UPDATE DEMOGRAPHICS
+ . Q
+ I $G(CHECKIN) Q
+CLINIC S %=$P($G(^VEN(7.5,CFIGIEN,0)),U,6) I % S Y=% G CL1 ; THIS SITE ONLY HAS 1 CLINIC - NO NEED TO ASK
+ I $G(HSONLY) S Y=$O(^VEN(7.95,0)) G CL1 ; Y IS JUST A TEMPORARY PLACEHOLDER AT THIS TIME
+ S DIC("A")="Clinic: " I $D(DEPTIEN) S DIC("B")=$P($G(^VEN(7.95,DEPTIEN,0)),U)
+ S DIC("S")="I '$P($G(^(2)),U,7)" ; MUST BE AN ACTIVE DESTINATION
+ S DIC="^VEN(7.95,",DIC(0)="AEQM" D ^DIC K DIC I Y=-1 Q:$G(CHECKIN)=-1  Q:$G(PIMSDFN)  G:X=""!(X?1."^") PATIENT Q
+CL1 ; 
+ S DEPTIEN=+Y,CLINIC=$P($G(^VEN(7.95,DEPTIEN,0)),U,4) ; CLINIC STOP
+ I '$D(^DIC(40.7,+CLINIC,0)) S ERR="No valid clinic entry in the DEPARTMENT file" D ERR^VENPCC1(ERR) W !!,"Internal error!  Notify site manager..." Q  ; DEPT MUST BE A VALID CLINIC STOP
+ S LOC=$P($G(^VEN(7.95,DEPTIEN,2)),U,4) I LOC="" S LOC=$G(DUZ(2)) I LOC="" S ERR="Location undefined" D ERR^VENPCC1(ERR) W !!,"Internal error!  Notify site manager" Q
+ I $P($G(^VEN(7.95,+$G(DEPTIEN),2)),U,13),'$D(EFONLY) N EFONLY S EFONLY=1 ; NEVER PRINT HS
+SPGRP ; PATCHED BY GIS/OIT 1/15/06 ; PCC+ 2.5 PATCH 2
+ ; CHECK FOR A SPECIAL PRINT GROUP - FOR HS ONLY, TELE TRIAGE & CHART REVIEW
+ ; GET SPGRP = IEN, NULL OR -1 ; SPGRP OVERRIDES THE PGRP IN THE PRINT DEAMON
+ S %=$$PGRP^VENPCC(CLINIC) I %=-1 W !,"No valid printer location defined!  Request cancelled..." Q
+ I $L(%) S SPGRP=%  ; IN MOST CASES, NULL WILL BE RETURNED BECAUSE NO SPECIAL CASE EXISTS
+ I $G(HSONLY) S PRVIEN=$G(DUZ),APPT="" G EF
+ I $G(EHRFLAG) S VIEN=$$DUP^VENPCC(PATIENT,DEPTIEN) I 'VIEN Q  ; FAILED TO LINK TO A VALID EHR VISIT!!!
+ S VIEN=$$DUP^VENPCC(PATIENT,DEPTIEN) G PRV
+ I VIEN N VENDEMO S VENDEMO=2
+ E  I $D(REPRINT) W !!,"This option can only be used to REPRINT forms",!,"You must use the Scheduling Package to print the original!!" H 5 Q
+ I $P($G(^VEN(7.95,DEPTIEN,2)),U,3) S VPFLAG=1
+PRV S DIC("A")="Provider for this visit: "
+ I $G(PRVIEN) S DIC("B")=$P($G(^VA(200,PRVIEN,0)),U)
+ E  S %=$P($G(^VEN(7.95,DEPTIEN,2)),U,2) I % S DIC("B")=$P($G(^VA(200,%,0)),U)
+ S DIC=200
+ S DIC(0)="AEQM" D ^DIC K DIC
+ I X="" S Y=$$GP^VENPCCU W "  ("_$P($G(^VA(200,+Y,0)),U)_")"
+ I Y=-1 G:X?1."^" PATIENT Q
+ S PRVIEN=+Y,APPT=""
+ I $P($G(^VEN(7.95,DEPTIEN,2)),U,15) N BLOCK S BLOCK=1 G NOW
+APPT I $G(VPFLAG) D  Q:$D(DTOUT)  I $G(%Y)?1."^" G PATIENT
+ . W !,"Does this patient have an appointment"
+ . S %=2 D YN^DICN
+ . S APPT=$S(%=1:1,%=2:0,1:"")
+ . Q
+EF ; EP-DEFAULT EF
+ I '$G(HSONLY),'$G(OGONLY),'$G(VPFLAG)
+ E  S DEFEF="" G HS
+ I $G(DEFEF) S DIC("B")=$P($G(^VEN(7.41,DEFEF,0)),U)
+ E  S %=+$P($G(^VEN(7.95,DEPTIEN,2)),U,5) S DIC("B")=$P($G(^VEN(7.41,%,0)),U)
+ S DIC("A")="Encounter form: "
+ S DIC(0)="AEQM",DIC="^VEN(7.41,"
+ D ^DIC K DIC
+ I Y=-1 G:X=""!(X?1."^") PATIENT Q
+BEF I $P($G(^VEN(7.41,+Y,0)),U,13) W !,"This form is temporarily out of service.  Use another form..." G EF ; EF HAS BEEN BLOCKED, TRY AGAIN
+ S DEFEF=+Y
+ I $G(EHRFLAG),$P($G(^VEN(7.41,DEFEF,14)),U,7) W !,"Warning, this form is not configured to display EHR vital signs!"
+ I $P($G(^VEN(7.41,+Y,0)),U,16) W !,"   Administrative form..." S EFONLY=1,NOVISIT=1,DEFHS="" G NOW ; ADMIN FORM, NO COMPANION DOCS, NO VISIT CREATED
+HS ; EP - GET DEFAULT HS
+ I $G(EFONLY)!($G(OGONLY)) S DEFHS="" G PULL
+ S %=+$P($G(^VEN(7.95,DEPTIEN,2)),U,6) S DIC("B")=$P($G(^APCHSCTL(%,0)),U)
+ I DIC("B")="ADULT REGULAR" S %=+$P($G(^DPT(PATIENT,0)),U,3) I % S %=(DT-%)\10000 I %<12 S DIC("B")="PEDIATRIC"
+ S DIC("A")="Health summary type: "
+ S DIC(0)="AEQM",DIC="^APCHSCTL("
+ D ^DIC K DIC I Y=-1 G:X=""!(X?1."^") PATIENT Q
+ S DEFHS=+Y
+PULL ; EP - PULL CHART?
+ I $D(DEMODATA) G NOW
+ K OGFLAG
+ I $P($G(^VEN(7.95,+$G(DEPTIEN),2)),U,10)!('$D(^VEN(7.4,"AC"))) G NOW ; DO NOT PULL OG FOR THIS CLINIC
+ I $G(OGONLY) S OGFLAG=1 G NOW
+ I $P($G(^VEN(7.5,CFIGIEN,0)),U,9) D  I $G(%Y)="^" K %Y G PATIENT
+ . W !,"Print outguide/Pull chart"
+ . S %=1 D YN^DICN
+ . I %=1 S OGFLAG=1
+ . Q
+NOW I $G(SBFLAG) G FILE ; EP - FOR FSI FRONT END
+ D NOW^%DTC S NOW=$E(%,1,12)
+ I $G(EHRFLAG) G VCN ; AT THIS POINT, IF THE EHR FLAG EXISTS, THEN THE VIEN MUST EXIST
+ I $G(NCIFLAG) G:$G(VIEN) VCN I $G(NOVISIT) W !,"A valid visit must exist to use the NCI option.",!,"PCC+ can't find a valid visit, so the NCI dialog will be skipped!" K NCIFLAG
+ I $G(NOVISIT) D  G FILE ; CREATE PLACEHOLDER VISIT INFO AND VCN
+ . S VIEN=9_$P($H,",",2)_U_PATIENT_U_NOW
+ . S VCN=$$CHART^VENPCCU(PATIENT,DUZ(2))_".1X"
+ . W !,"No visit created!"
+ . Q
+VISIT I $G(HSONLY)!($G(VENDEMO)) D  G:VIEN FILE Q  ; EP - NO VISIT CREATED
+ . S VIEN=$G(VIEN)
+ . I 'VIEN S VIEN=$O(^AUPNVSIT("AC",PATIENT,999999999),-1) ; IF NO DUP, USE THE LAST VISIT
+ . I 'VIEN,$G(VENDEMO)=1 W !,"Unable to create a demo form for this patient (missing visit)"
+ . I 'VIEN W !,"This patient has no visits!  Request cancelled...",!! Q
+ . S VCN=$P($G(^AUPNVSIT(VIEN,11)),U,3)
+ . I 'VCN S VCN=$G(^AUPNVSIT(VIEN,"VCN"))
+ . I 'VCN S VCN=$P($$VCN^VENPCC3(VIEN,DEPTIEN),U)
+ . I 'VCN,$G(VENDEMO)=1 W !,"Unable to create a demo form for this patient (missing VCN)"
+ . I 'VCN W !,"This patient has no VCN!  Request cancelled...",!! S VIEN=""
+ . Q
+ ; I $P($G(^VEN(7.5,CFIGIEN,0)),U,18) W !,"Are you sure you want to create a visit for this patient" S %=1 D YN^DICN I %'=1 K PATIENT W !,"NO VISIT CREATED!  Try again..." G PATIENT ; CONFIRM VISIT
+ S VIEN=$$VISIT^VENPCC3(PATIENT,NOW,LOC,CLINIC)
+ I 'VIEN S ERR=$S($L(VIEN):VIEN,1:"Failed to create a visit") D ERR^VENPCC1(ERR) W !,"Internal error!  Notify site manager" Q
+VCN S VCN=$P($G(^AUPNVSIT(+$G(VIEN),11)),U,3)
+ I VCN="" S VCN=$G(^AUPNVSIT(+$G(VIEN),"VCN"))
+ I VCN="" S VCN=$P($$VCN^VENPCC3(VIEN,DEPTIEN),U)
+ I VCN'?1.N1"."1.N1.A S ERR="Patient does not appear to be registered properly at this clinic!" W !,ERR,!,"Request terminated..." Q  ; VCN ERROR ; PATCHED BY GIS/OIT 2/1/06 ; PCC + VERSION 2.5, PATCH 3
+FILE I '$D(HSONLY),'$D(OGONLY) D  ; SPECIAL DIALOG/PROCESSING IF AN ENCOUNTER FORM WILL BE PRINTED
+ . S %=$G(^VEN(7.41,DEFEF,22)) I %'="" X ("D "_"("_PATIENT_")") ; SPECIAL CHECK IN DIALOG FOR THIS FORM
+ . I $D(^AUPNCPG("B",PATIENT)),$L($T(OB^VENPCC3)) D OB^VENPCC3(PATIENT) ; CHECK EVERY ELIGIBLE VISIT FOR AN OPEN PREGNANCY LOOP
+ . I $G(NCIFLAG),$L($T(MSR^VENPCCAM)) D MSR^VENPCCAM(VIEN,DEPTIEN) I $G(NCCANCEL) Q  ; ASK MEASUREMENTS DURING CHECKIN FOR 2.5
+ . I $D(VENDEMO),'$G(NCIFLAG) Q
+ . D QUEUE(VIEN,DEPTIEN,$G(OGFLAG),$P($G(^VEN(7.95,DEPTIEN,2)),U,3),$G(UPDEM),PRVIEN) ; ADD PRV PARAM FOR 2.5
+ . Q
+ I $G(NCCANCEL) Q  ; ABORT NURSE CHECK IN
+ S PRV=PRVIEN,VISIT=VIEN
+KILL K %,%H,%I,AUPNDAYS,AUPNDOB,AUPNDOD,AUPNPAT,AUPNSEX,SEX,CLINIC,DISYS,NOW,PATIENT,PRVIEN,TYPE,VIEN,X,Y,LOC
+ I $G(NCCANCEL) Q
+RUN I $G(VENDEMO) W ! W:VENDEMO=2 "Duplicate encounter!  " W "No visit created"
+ I $G(BLOCK) W !!,"PCC+ has been temporarily shut down at this clinic.",!,"You may continue to register patients, but no forms will be printed..." W !!! G PATIENT
+ I $D(VPFLAG) S HSONLY=1 W !,"This information will be sent to the clinic..."
+ E  W !,"Submitting request for ",$S($G(OGONLY):"OutGuide",$G(EFONLY):"Encounter Form",$G(HSONLY):"Health Summary",1:"Encounter form and Health Summary..."),!
+TMAN I $D(NOTASK) D EN1("D") G CLEANUP
+ S VARS=$$PACK^VENPCC,EXT=$G(EXT)
+ D EN1("J")
+MON I $P($G(^VEN(7.5,+$G(CFIGIEN),0)),U,11) H 1 I $D(^TMP("VEN MON",$J)) F  W *13,?79,*13,^TMP("VEN MON",$J) R %:1 I $T!('$D(^TMP("VEN MON",$J))) Q
+ I $D(VPFLAG) K HSONLY,VPFLAG
+ I $G(CHECKIN) S CHECKIN=+$G(VISIT)
+CLEANUP K VISIT,VCN,DEPTIEN,PRV,DEFEF,DEFHS,%DT,ELIG,FILE,I,PATH,TOT,SPGRP,VARS,EXT,APPT,OGFLAG
+ I $G(NCIFLAG) K NCIFLAG Q
+ I $G(SBFLAG)!($G(CHECKIN))!($G(REPRINT))!($G(PIMSDFN)) Q
+ I $G(VENDEMO)=2 K VENDEMO
+ I '$P($G(^VEN(7.5,+$G(CFIGIEN),0)),U,12) D
+ . S %=+$O(^TMP("VEN TASK",0))
+ . S X=$G(^TMP("VEN TASK",%))
+ . I $L(X),X=TMSG X ("J"_" STUCK"_U_"VENPCCA") ; PRINT DEAMON MAY BE STUCK.  AUTOMATICALLY RESET/RESTART IT.
+ . Q
+ I $G(NOTASK) Q
+ W !!! G PATIENT
+ ; 
+EN1(MODE,SILENT) ; EP-UNIVERSAL ENTRY POINT FOR INITIATING PCC+
+ I '$D(DEFHS) S DEFHS="" ; PATCHED BY GIS/OIT 7/7/05
+ I $G(VISIT),$L($G(VCN)),$D(DEFEF),$G(DEPTIEN)
+ E  S ERR="Can't initiate data extraction process.  Req'd vars missing" D ERR^VENPCC1(ERR) Q
+ I '$D(^VA(200,+$G(PRV),0)) D
+ . S PRV=+$P($G(^VEN(7.95,+$G(DEPTIEN),2)),U,2)
+ . I '$D(^VA(200,PRV,0)) S PRV=+$P($G(^VEN(7.5,$$CFG^VENPCCU,0)),U,13)
+ . Q
+ I '$D(^VA(200,PRV,0)) S ERR="Can't initiate data extraction process.  No provider specified" D ERR^VENPCC1(ERR) Q
+ I $G(MODE)="" S MODE="D"
+ I '$G(SILENT),$$UMSG^VENPCCP2(DEPTIEN,DEFEF,DEFHS,$G(VARS)) ; DISPLAY CURRENT ERROR STATUS
+ X (MODE_" PRINT^VENPCC10(VISIT,VCN,DEPTIEN,PRV,DEFEF,DEFHS,$G(APPT),$G(VARS),$G(EXT))")
+ Q
+ ; 
+STUCK ; EP-RESET/RESTART SYSTEM IF IT IS STUCK.  NO LOSS OF FILES.
+ N M1,M2,J
+ S J=$O(^TMP("VEN TASK",0)) I 'J Q
+ S M1=$G(^TMP("VEN TASK",J)) I '$L(M1) Q
+ H 60
+ S M2=$G(^TMP("VEN TASK",J)) I '$L(M2) Q
+ I M1=M2 D KILLTASK^VENPCCP ; KILL OFF TASK IF GBL VAL IS UNCHANGED FOR 60 SECONDS
+ Q
+ ; 
+NOVISIT ; EP-ENTRY POINT FOR GENERATING PCC+ FORMS WITHOUT CREATING A VISIT
+ N NOVISIT S NOVISIT=1
+ G ^VENPCC
+ ; 
+QUEUE(VISIT,DEPTIEN,OGFLAG,TRFLAG,UPDEM,PRVIEN) ; EP-UPDATE CHECKIN AND QUEUE FILES ; 2.5. ADD PARAMETER FOR PROVIDER
+QSIG ; EP - SIGNATURE EP FOR ANMC
+ I '$D(^AUPNVSIT(+$G(VISIT),0)),'$G(NOVISIT) Q
+ I $D(VENDEMO) Q
+ I '$D(^VEN(7.95,+$G(DEPTIEN),0)) Q
+ N QTYPE,MIEN,QUE,DIG,DIH,DIU,DIV,DIW,DA,DR,DIE,DIC,X,Y,D0,D,DQ,DI,TIME,DLAYGO,DFN,%,VCN,INIT
+ I $G(NOVISIT) Q:'$G(PATIENT)  S DFN=PATIENT,TIME=$$NOW^VENPCCU,VISIT="" G MRQ
+ I VISIT[U S DFN=$P(VISIT,U,2),TIME=$P(VISIT,U,3),VISIT="" G MRQ
+ S X=^AUPNVSIT(VISIT,0)
+ S TIME=$$NOW^VENPCCU
+ S DFN=$P(X,U,5),PRVIEN=$G(PRVIEN)
+MRQ S MIEN=$O(^VEN(7.95,"B","MEDICAL RECORDS",0)) I 'MIEN Q
+ I $G(OGFLAG) S QTYPE="MEDICAL RECORDS" D Q1 K QTYPE
+ S %=$P($G(^VEN(7.95,+$G(DEPTIEN),1)),U,1+$G(TRFLAG))
+ I % S QTYPE=$P($G(^VEN(7.22,%,0)),U)
+ I $L($G(QTYPE)) D Q1
+ Q
+ ; 
+Q1 ; EP-MAKE QUEUE FILE ENTRY
+ S DIC="^VEN(7.2,",DIC(0)="L",X=""""_TIME_"""",DLAYGO=19707.2
+ D ^DIC I Y=-1 Q
+ S DIE=DIC,DA=+Y,QUE=DA
+ S DR=".03///"_QTYPE_";.04////"_$S(QTYPE="MEDICAL RECORDS":MIEN,1:+$G(DEPTIEN))_";.06////"_DUZ
+ S DR=DR_";1.1////"_DFN_";1.2////"_VISIT_";.12////"_$P($G(^VEN(7.95,+$G(DEPTIEN),0)),U,5)_";1.4////"_$G(UPDEM)
+ S DR=DR_";1.5////"_PRVIEN_";1.6////"_$P($G(^AUPNVSIT(+$G(VISIT),11)),U,3) ; ADD PROVIDER INFO FOR VER 2.5
+MOJO S %=$G(MOJOFLAG(1)) I $L(%) S DR=DR_".13///"_$E(%) ; CLASSIC, DIGIPEN, OR TABLET
+ L +^VEN(7.2,DA):5 E  Q
+ D ^DIE L -^VEN(7.2,DA)
+ Q
+ ; 
+EXTCKIN(PATIENT) ; EP-CHECK IN ENTRY POINT FOR EXRTERNAL PACKAGES WHERE PATIENT IS KNOWN.
+ ; IF PCC+ CHECKIN IS SUCCESSFUL, VISIT IEN IS RETURNED
+ N CFIGIEN,CHECKIN
+ S CFIGIEN=$$CFG^VENPCCU
+ S CHECKIN=-1
+ D CLINIC
+ I CHECKIN=-1 Q ""
+ Q CHECKIN
+ ;
+INIT(PRV) ; EP-RETURN THE PROVIDER'S INITIALS
+ N X,INIT
+ S X=$G(^VA(200,+$G(PRV),0)) I '$L(X) Q ""
+ S INIT=$P(X,U,2) ; CHOOSE BETWEEN INITIALS AND THE FULL NAME
+ I '$L(INIT),$L($P(X,U)) S INIT=$E($P(X,",",2))_$E(X) ; CREATE INITIALS ON THE FLY
+ Q $E(INIT,1,3)
+ ; 

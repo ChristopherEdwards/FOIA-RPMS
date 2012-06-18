@@ -1,0 +1,91 @@
+ACHSPCC5 ; IHS/ITSC/PMF - CHS AREA SPLITOUT (5/5)(LIST GENERATED DHRS) ;    [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+ I '$O(^ACHSPCC(0)) W *7,!!,"No data in ^ACHSPCC.",$$DIR^XBDIR("E","Press RETURN...") Q
+ S ACHSCCTR=$G(ACHSCCTR)
+ D HOME^%ZIS,NOW^ACHS,LINES^ACHSFU
+ S ACHSIO=IO,ACHSAST=ACHS("*"),ACHS("R")=$O(^ACHSPCC(0)),ACHS("SITE")=$$LOC^ACHS
+ U IO(0)
+ W @IOF,!,ACHS("*"),!,"*",?27,"CHS DATA TRANSMITTED TO ",ACHSCCTR,?78,"*",!,"*",?40-(($L(ACHSTIME)+6)\2),"as of ",ACHSTIME,?78,"*",!,"*",?40-(($L(ACHS("SITE"))+4)\2),"for ",ACHS("SITE"),?78,"*",!,ACHS("*"),!
+FMT ;
+ S Y=$$DIR^XBDIR("SOB^R:Raw;C:Captioned;B:Both","[R]aw, [C]aptioned, or [B]oth","B","","Do you want a printout of Raw DHR data, Captioned, or Both","",1)
+ G END:$D(DUOUT)!$D(DTOUT)
+ S ACHSCAP=$S("BC"[Y:1,1:0),ACHSRAW=$S("BR"[Y:1,1:0)
+DEV ;
+ S %=$$PB^ACHS
+ I %=U!$D(DTOUT)!$D(DUOUT) D K Q
+ I %="B" D VIEWR^XBLM("START^ACHSPCC5"),EN^XBVK("VALM"),K Q
+ S %ZIS="OPQ"
+ D ^%ZIS
+ K %ZIS
+ I POP D HOME^%ZIS D K Q
+ G:'$D(IO("Q")) START
+ K IO("Q")
+ I $D(IO("S"))!($E(IOST)'="P") W *7,!,"Please queue to system printers." D ^%ZISC G DEV
+ S X=$$AOP^ACHS(2,8),X=$S('(X="Y"):"Parklawn Comp Ctr",X="Y":"Blue Cross/Shield",1:" ")
+ S ZTRTN="START^ACHSPCC5",ZTDESC="List of DHRs Xmitted to "_X_", for "_$P(^AUTTLOC(DUZ(2),0),U,2)_"."
+ S ACHSAST=ACHS("*")
+ F %="ACHSCAP","ACHSRAW","ACHSAST","ACHSCCTR" S ZTSAVE(%)=""
+ D ^%ZTLOAD
+ G:'$D(ZTSK) DEV
+K ;
+ K ZTDESC,ZTRTN,ZTSK
+ D ^%ZISC,EN^XBVK("ACHS"),^ACHSVAR
+ Q
+ ;
+START ;EP - TaskMan.
+ S (ACHSR,ACHSRR,ACHSRCT,ACHSTDHR,ACHSFDHR,ACHSPG)=0,ACHS("R")=$O(^ACHSPCC(0))
+ D SITENAME,NOW^ACHS
+ U IO
+ D H1
+L2 ;
+ S ACHSR=$O(^ACHSPCC(ACHSR))
+ G LEND:ACHSR=""!(ACHSR'=+ACHSR)
+ I ACHSR'=ACHS("R") S ACHS("R")=ACHSR D SITENAME,H1 S ACHSFDHR=0
+L3 ;
+ S ACHSRR=$O(^ACHSPCC(ACHSR,ACHSRR))
+ G L2:ACHSRR=""
+ S ACHSRCT=ACHSRCT+1
+ I $Y>(IOSL-5) D RTRN^ACHS G:$D(DUOUT)!$D(DTOUT) END D H1
+ S X=$G(^ACHSPCC(ACHSR,ACHSRR))
+ I $E(X,79,80)="99" G L3
+ S ACHSTDHR=ACHSTDHR+1,ACHSFDHR=ACHSFDHR+1
+ I ACHSRAW W X,! D:ACHSCAP H2
+ I '(ACHSFDHR#5),ACHSRAW,'ACHSCAP D H2
+ G:'ACHSCAP L3
+ W !,"DOCUMENT NUMBER : ",$E(X,17),"-",$E(X,18,20),"-",$E(X,21,25),!?2,"EFFECTIVE DATE (MMDDYY): ",$E(X,2,3),"-",$E(X,4,5),"-",$E(X,6,7),?40,"COMMON ACCOUNTING NUMBER : ",$E(X,41,47)
+ W !?8,"DESTINATION CODE : ",$E(X,8,12),?47,"OBJECT CLASS CODE : ",$E(X,48,49),".",$E(X,50,51)
+ W !?16,"REF CODE : ",$E(X,13,15),?46,"IHS PAYMENT AMOUNT : ",+$E(X,52,61),".",$E(X,62,63)
+ W !?13,"FISCAL YEAR : ",$E(X,40),?48,"FED/NON-FED CODE : ",$E(X,64),!
+ W:ACHSRAW !
+ G L3
+ ;
+LEND ;
+ D H2
+ W !!,"DHRs : ",ACHSTDHR,!!,"TOTAL RECORDS = ",ACHSRCT
+ D RTRN^ACHS,H1
+ W !!,"DHR record layout:",!!!?5,"1",?8,"RECORD TYPE (2)",!?5,"2",?8,"EFFECTIVE DATE (MMDDYY)",!?5,"8",?8,"DESTINATION CODE",!?4,"13",?8,"323, 324, OR 325"
+ W !?4,"16",?8,"DOCUMENT NUMBER",!?4,"26",?8,"If '05024', repeat 13-25, else blanks",!?4,"39",?8,"constant=1",!?4,"40",?8,"FISCAL YEAR",!?4,"41",?8,"COMMON ACCOUNTING NUMBER",!?4,"48",?8,"OBJECT CLASS CODE",!?4,"52",?8,"IHS PAYMENT AMOUNT"
+ W !?4,"64",?8,"FED/NON-FED CODE",!?4,"65",?8,"blanks"
+ D RTRN^ACHS
+ W @IOF
+END ;
+ D EN^XBVK("ACHS"),^ACHSVAR
+ K DTOUT,DUOUT,X,Y
+ D ^%ZISC
+ Q
+ ;
+H1 ;
+ S ACHSPG=ACHSPG+1
+ W @IOF,!,ACHSAST,!,"*",?25,"CHS DHR DATA TRANSMITTED TO ",ACHSCCTR,?67,"Page ",$J(ACHSPG,3),?78,"*",!,"*",?40-(($L(ACHSTIME)+6)\2),"as of ",ACHSTIME,?78,"*",!,"*",?40-(($L(ACHS("SITE"))+4)\2),"for ",ACHS("SITE"),?78,"*",!,ACHSAST,!!!
+ Q
+ ;
+H2 ;
+ W ?4,"+",?9,"1",?14,"+",?19,"2",?24,"+",?29,"3",?34,"+",?39,"4",?44,"+",?49,"5",?54,"+",?59,"6",?64,"+",?69,"7",?74,"+"
+ W:'ACHSCAP !
+ Q
+ ;
+SITENAME ;
+ S ACHS("SITE")=$P(^DIC(4,$O(^AUTTLOC("C",ACHS("R"),0)),0),U)
+ Q
+ ;

@@ -1,0 +1,74 @@
+ABMUCANV ; IHS/SD/SDR - 3PB/UFMS CAN view/print   
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ ; new routine - v2.5 p12 SDD item 4.3
+ ;
+ K DIR
+ S DIR(0)="S^ITBA:Insurer Type to Budget Activity;CTCC:Clinic Type to Cost Center"
+ S DIR("A")="Which crosswalk would you like to see"
+ D ^DIR K DIR
+ G:$D(DIROUT)!$D(DTOUT)!$D(DUOUT)!$D(DIRUT) XIT
+ S ABMTAG=Y
+ W !!!
+HD I ABMTAG="ITBA" S ABM("HD",0)="MAPPING of Insurer Type to Budget Activity"
+ I ABMTAG="CTCC" S ABM("HD",0)="MAPPING of Clinic to Cost Center"
+ S ABM("PG")=1
+ S ABMY("LOC")=DUZ(2)
+ S ABM("LVL")=0
+ S ABM("CONJ")=""
+ S ABM("TXT")=""
+ D LOC^ABMDRHD G XIT:'$D(IO)!$G(POP)!$D(DTOUT)!$D(DUOUT)
+ S ABMQ("RX")="XIT^ABMUCANV"
+ S ABMQ("NS")="ABM"
+ S ABMQ("RP")=ABMTAG_"^ABMUCANV"
+ D ^ABMDRDBQ
+ Q
+ITBA ;EP - INSURER TYPE to BUDGET ACTIVITY
+ K DIC,DIE,X,Y,DA,ABMC,ABMI
+ S ABMI=0
+ D WHD^ABMDRHD
+ D GETS^DIQ("9999999.06",DUZ(2),".04","E","ABMC")
+ S ABMAREA=$G(ABMC("9999999.06",DUZ(2)_",",".04","E"))
+ W !,?2,"Insurer Type",?25,"Budget Activity",?42,"EFFECTIVE DATE",?58,"END DATE"
+ F  S ABMI=$O(^ABMUITBA(ABMI)) Q:+ABMI=0  D  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ .D GETS^DIQ("9002274.41",ABMI,".01:.05","E","ABMC")
+ .Q:($G(ABMC("9002274.41",ABMI_",",".05","E"))'=ABMAREA)
+ .W !?2,$G(ABMC("9002274.41",ABMI_",",".01","E"))
+ .W ?27,$G(ABMC("9002274.41",ABMI_",",".02","E"))
+ .W ?42,$G(ABMC("9002274.41",ABMI_",",".03","E"))
+ .W ?58,$G(ABMC("9002274.41",ABMI_",",".04","E"))
+ .I $Y>(IOSL-5) D PAZ^ABMDRUTL Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)  S ABM("PG")=+$G(ABM("PG"))+1 D WHD^ABMDRHD Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)  W " (cont)"
+ Q
+ ;
+CTCC ;EP - COST CENTER to CLINIC
+ K DIC,DIE,X,Y,DA,ABMC,ABMI
+ S ABMI=0
+ D WHD^ABMDRHD
+ W !?2,"CC",?5,"CLINIC",?37,"Cost Center",?50,"EFFECTIVE DATE",?66,"END DATE"
+ F  S ABMI=$O(^ABMUCTCC(ABMI)) Q:+ABMI=0  D  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ .D GETS^DIQ("9002274.42",ABMI,".01:.05","IE","ABMC")
+ .W !?2,$G(ABMC("9002274.42",ABMI_",",".01","I"))
+ .W ?5,$G(ABMC("9002274.42",ABMI_",",".02","E"))
+ .W ?40,$G(ABMC("9002274.42",ABMI_",",".03","E"))
+ .W ?50,$G(ABMC("9002274.42",ABMI_",",".04","E"))
+ .W ?63,$G(ABMC("9002274.42",ABMI_",",".05","E"))
+ .I $Y>(IOSL-5) D PAZ^ABMDRUTL Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)  S ABM("PG")=+$G(ABM("PG"))+1 D WHD^ABMDRHD Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)  W " (cont)"
+ Q
+ATFL ;EP - ASUFAC to FED LOC - currently not being called; table not distributed
+ K DIC,DIE,X,Y,DA,ABMC,ABMI
+ S ABMI=0
+ D WHD^ABMDRHD
+ W !?2,"LOCATION",?29,"ASUFAC",?36,"ACCT PT",?44,"FED LOC",?52,"EFF DT",?67,"END DT"
+ F  S ABMI=$O(^ABMUCTCC(ABMI)) Q:+ABMI=0  D  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ .D GETS^DIQ("9002274.43",ABMI,".01:.06","IE","ABMC")
+ .W !?2,$E($G(ABMC("9002274.43",ABMI_",",".01","E")),1,25)
+ .W ?29,$G(ABMC("9002274.43",ABMI_",",".02","E"))
+ .W ?38,$G(ABMC("9002274.43",ABMI_",",".03","E"))
+ .W ?46,$G(ABMC("9002274.43",ABMI_",",".04","E"))
+ .W ?52,$G(ABMC("9002274.43",ABMI_",",".05","E"))
+ .W ?67,$G(ABMC("9002274.43",ABMI_",",".06","E"))
+ .I $Y>(IOSL-5) D PAZ^ABMDRUTL Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)  S ABM("PG")=+$G(ABM("PG"))+1 D WHD^ABMDRHD Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)  W " (cont)"
+ Q
+XIT ;
+ K ABMTAG,DIC,DIE,X,Y,DA,ABMC,ABMI
+ Q

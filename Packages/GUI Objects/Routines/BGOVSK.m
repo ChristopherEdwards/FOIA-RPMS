@@ -1,0 +1,201 @@
+BGOVSK ;IHS/BAO/TMD - Skin test management   ;04-Jan-2011 19:11;MGH
+ ;;1.1;BGO COMPONENTS;**3,4,5,6,7,8**;Mar 20, 2007
+ ; Retrieve skin tests and associated refusals
+ ;  DFN = Patient IEN
+ ;  RET returned as a list of records with one of two formats:
+ ;  Skin Tests:
+ ;    S ^ Visit Date [2] ^ VFile IEN [3] ^ Other Location [4] ^ Result [5] ^ Reading [6] ^ Date Read [7] ^
+ ;    Test Name [8] ^ Test IEN [9] ^ Age [10] ^ Provider IEN~Name [11] ^ Reader IEN~Name [12] ^
+ ;    Visit IEN [13] ^ Service Category [14] ^ Location IEN~Name [15] ^
+ ;    PPD site [16] ^ volume [17] ^Visit Locked [18] ^ Event Date [19]
+ ;
+ ;  Refusals:
+ ;    R ^ Refusal IEN [2] ^ Type IEN [3] ^ Type Name [4] ^ Item IEN [5] ^ Item Name [6] ^ Provider IEN [7] ^
+ ;     Provider Name [8] ^ Date [9] ^ Locked [10] ^ Reason [11] ^ Comment [12]
+GET(RET,DFN) ;EP
+ N HX,ELE,I,J,K,A,P,X,V,VSK,VCAT,VIEN,FNUM,CNT
+ S RET=$$TMPGBL^BGOUTL
+ ;MSC/MGH - 07/08/09 - Branching for compatibility with Vista and RPMS
+ Q:'DFN
+ S HX="",FNUM=9999999.28,V="|",P=1,CNT=0
+ I DUZ("AG")="I" D
+ .F I=21,24,36,38,39,40,41,42,57,61,70,76,35,34,67,68 S P=P+1,ELE(I)=P
+ .D IMMHX^BIRPC(.HX,DFN,.ELE,1)
+ .S X=$$IMMERR^BGOVIMM(.HX)
+ .I $L(X) S @RET@(1)=X Q
+ .F I=1:1 S P=$P(HX,U,I) Q:P=""  D
+ ..Q:$P(P,V)'="S"
+ ..S A="S",J=0,K=1
+ ..F  S J=$O(ELE(J)) Q:'J  S K=K+1,$P(A,V,ELE(J))=$P(P,V,K)
+ ..S:$P(A,V,7)="NO DATE" $P(A,V,7)=""
+ ..D GS1(11,200),GS1(12,200),GS1(15,9999999.06)
+ ..;IHS/MSC/MGH Patch 7 added site and volume fields
+ ..S X=$P(A,V,16)
+ ..S:$L(X) $P(A,V,16)=X_"~"_$$EXTERNAL^DILFD(9000010.12,.09,,X)
+ ..S VSK=$P(A,V,3),VIEN=$P(A,V,13),$P(A,V,18)=$$ISLOCKED^BEHOENCX(VIEN),$P(A,V,19)=$$FMTDATE^BGOUTL($P($G(^AUPNVSK(VSK,12)),U),1)
+ ..I VIEN,$P(A,V,5)="" D
+ ...S X=$O(^AUPNPREF("AA",$P(^AUPNVSK(VSK,0),U,2),FNUM,+^(0),(9999999-$P($P(^AUPNVSIT(VIEN,0),U),".")),""),-1)
+ ...S:X $P(A,V,5)=$S($P($G(^AUPNPREF(X,0)),U,7)="R":"Refused",1:"")
+ ..D ADD(A)
+ E  D
+ .N DIC,DA,DR,DIQ,DOB,AGE,VOL,SITE,SITEN,DREAD,LOCN,OUT,SDATE,SER,VDATE
+ .N STST,SDTE,SREAD,SK,SWHO,SRES,TWEOVE,LOCK,ZERO,TEST,VST,READD,LOC,SERV,TNAME,READ,DTEAD,READER,ADMIN,ADMIN2
+ .S SK="" F  S SK=$O(^AUPNVSK("C",DFN,SK)) Q:SK=""  D
+ ..S DIC="^AUPNVSK(",DIQ="BGOVSK(",DIQ(0)="IE",DA=SK
+ ..;IHS/MSC/MGH Patch 7 added site and volume fields
+ ..S DR=".01;.03;.04;.05;.06;.08;1201;1204;9999999.08;9999999.09;9999999.11" D EN^DIQ1
+ ..S TEST=BGOVSK(9000010.12,DA,.01,"I"),TNAME=BGOVSK(9000010.12,DA,.01,"E")
+ ..S VIEN=BGOVSK(9000010.12,DA,.03,"I")
+ ..S SRES=BGOVSK(9000010.12,DA,.04,"E")
+ ..S READ=BGOVSK(9000010.12,DA,.05,"E"),DREAD=BGOVSK(9000010.12,DA,.06,"I")
+ ..S READD="" I DREAD'="" S READD=$$FMTE^XLFDT($P(DREAD,".",1),5)
+ ..S SWHO=BGOVSK(9000010.12,DA,9999999.08,"I"),READER=BGOVSK(9000010.12,DA,9999999.08,"E")
+ ..S SDTE=BGOVSK(9000010.12,DA,1201,"I"),SDATE=$$FMTE^XLFDT(SDTE,5)
+ ..S ADMIN=BGOVSK(9000010.12,DA,1204,"I"),ADMIN2=BGOVSK(9000010.12,DA,1204,"E")
+ ..S VST=$G(^AUPNVSIT(VIEN,0))
+ ..S VDTE=$P(VST,U,1) I VDTE'="" S VDATE=$$FMTE^XLFDT($P(VDTE,".",1),5)
+ ..S SER=$$GET1^DIQ(9000010,VIEN,.07,"I"),OUT=$$GET1^DIQ(9000010,VIEN,2101,"E")
+ ..S LOC=$$GET1^DIQ(9000010,VIEN,.06,"I"),LOCN=$$GET1^DIQ(9000010,VIEN,.06,"E")
+ ..S OUTLOC=$$GET1^DIQ(9000010,VIEN,2101,"E")
+ ..S DOB=$$GET1^DIQ(2,DFN,.03,"I"),AGE=$$GETAGE(VDTE,DOB)
+ ..S VOL=BGOVSK(9000010.12,DA,9999999.11,"E")
+ ..S SITE=BGOVSK(9000010.12,DA,9999999.09,"I"),SITEN=BGOVSK(9000010.12,DA,9999999.09,"E")
+ ..S LOCK=$$ISLOCKED^BEHOENCX(VIEN)
+ ..S A="S"_U_VDATE_U_SK_U_OUTLOC_U_SRES_U_READ_U_READD_U_TNAME_U_TEST_U_AGE_U_ADMIN_"~"_ADMIN2_U_SWHO_"~"_READER_U_VIEN_U_SER_U_LOC_"~"_LOCN_U_SITE_"~"_SITEN_U_VOL_U_LOCK_U_SDATE
+ ..D ADD(A)
+ D REFGET^BGOUTL2(RET,DFN,FNUM,.CNT)
+ Q
+GS1(PC,FN) ;
+ N X
+ S X=+$P(A,V,PC)
+ S:X $P(A,V,PC)=X_"~"_$$GET1^DIQ(FN,X,.01)
+ Q
+ ; Delete a skin test or refusal
+ ;  INP = VSK ien ^ refusal ien
+ ;  RET is null if no error, or -n^Error Text
+DEL(RET,INP) ;EP
+ N VIEN,VSK,TYPE,CPT,REFUSAL,DFN,PRV,DATE,X0,X12
+ S VSK=+$G(INP),REFUSAL=$P(INP,U,2),RET=""
+ I REFUSAL D  Q
+ .S RET=$$REFDEL^BGOUTL2(REFUSAL)
+ S X0=$G(^AUPNVSK(VSK,0)),X12=$G(^(12))
+ S TYPE=+X0,DFN=$P(X0,U,2),VIEN=$P(X0,U,3)
+ Q:'TYPE
+ S DATE=+X12,PRV=$P(X12,U,4)
+ S:'DATE DATE=+$G(^AUPNVSIT(VIEN,0))
+ D BIDEL^BGOVIMM(.RET,VSK,$$FNUM)
+ Q:RET
+ S CPT=$P(^AUTTSK(TYPE,0),U,11)
+ S:CPT RET=$$DELCPT(CPT,VIEN,DFN,PRV)
+ Q
+ ; Add/Edit skin test
+ ;  INP = Visit IEN [1] ^ Historical [2] ^ Patient IEN [3] ^ Test IEN [4] ^ V File IEN [5] ^ Date Applied [6] ^
+ ;        Location [7] ^ Other Location [8] ^ Result [9] ^ Reading [10] ^ Date Read [11] ^ Reader [12] ^ Provider [13]
+ ;        ^ Site [14] ^ volume [15]
+ ;  RET is null if no error, or -n^Error Text
+SET(RET,INP) ;EP
+ N CPT,VFIEN,VIEN,DFN,TYPE,REDR,PRV,EVNTDT,LOCIEN,RES,REA,DTR,OUTLOC,HIST
+ N FNUM,CAT,TSTNM,VFNEW,ARG,V,OFF,INJS,VOL
+ S RET="",FNUM=$$FNUM,V="|"
+ S OFF=$S($G(DUZ("AG"))="I":0,1:9999999)
+ S VIEN=+INP
+ S HIST=$P(INP,U,2)
+ I 'VIEN,'HIST S RET=$$ERR^BGOUTL(1002) Q
+ S DFN=+$P(INP,U,3)
+ S TYPE=+$P(INP,U,4)
+ S VFIEN=$P(INP,U,5)
+ S VFNEW='VFIEN
+ S EVNTDT=$$CVTDATE^BGOUTL($P(INP,U,6))
+ I EVNTDT="" S EVNTDT=$P($G(^AUPNVSIT(VIEN,0)),U,1)
+ S LOCIEN=$P(INP,U,7)
+ S OUTLOC=$P(INP,U,8)
+ I 'DFN!'TYPE S RET=$$ERR^BGOUTL(1008) Q
+ S CAT=$P($G(^AUPNVSIT(VIEN,0)),U,7)
+ S:CAT="E" HIST=1
+ I HIST D  Q:RET<0
+ .S RET=$$MAKEHIST^BGOUTL(DFN,EVNTDT,$S($L(OUTLOC):OUTLOC,1:LOCIEN),VIEN)
+ .S:RET>0 VIEN=RET,CAT="E",RET=""
+ S RET=$$CHKVISIT^BGOUTL(VIEN,DFN)
+ I -RET=1061,VFIEN,$P($G(^AUPNVSK(VFIEN,0)),U,4)="" S RET=""
+ Q:RET
+ S RES=$P(INP,U,9)   ; Skin Test Result: P,N,D,O.
+ S REA=$P(INP,U,10)  ; Skin Test Reading: 0-40.
+ ;IHS/MSC/MGH Patch 7 added site and volume fields
+ S DTR=$P(INP,U,11)  ; Skin Test Date Read.
+ S REDR=$P(INP,U,12) ; Skin Test Reader
+ S INJS=$P(INP,U,14) ; Skin Test Site
+ I INJS'="" D
+ .S INJS=$S(INJS="Left Forearm":"L",INJS="Right Forearm":"R",1:"")
+ S VOL=$P(INP,U,15)  ; Skin Test Volume
+ S:"@"[RES (RES,REA,DTR,REDR)=""
+ S PRV=$P(INP,U,13)
+ I 'VFIEN D  Q:RET
+ .S TSTNM=$$GET1^DIQ(9999999.28,TYPE,.01)
+ .D VFCHK^BGOUTL2(.RET,FNUM,TYPE,TSTNM,VIEN)
+ S ARG=$$BIARG^BGOVIMM("S",VIEN,VFIEN,TYPE,PRV)
+ S $P(ARG,V,12)=RES
+ S $P(ARG,V,13)=REA
+ S $P(ARG,V,14)=DTR
+ S $P(ARG,V,20)=INJS
+ S $P(ARG,V,21)=VOL
+ S:REDR $P(ARG,V,22)=REDR
+ D BISET^BGOVIMM(.RET,ARG,FNUM,TYPE,VIEN,VFIEN,EVNTDT)
+ Q:HIST!(RET'>0)
+ S CPT=$P($G(^AUTTSK(TYPE,0)),U,11)
+ I CPT D
+ .N X
+ .S X=$$ADDCPT(CPT,VIEN,DFN,PRV)
+ .S:X RET=X
+ Q
+ ; Return CPT IEN for syringe
+SYRCPT(CPT) ;
+ Q $S(CPT=86585:"",1:$O(^ICPT("B","A4206",0)))
+ ; Delete CPT code(s)
+DELCPT(CPT,VIEN,DFN,PRV) ;EP
+ N RET
+ S RET=""
+ Q:"E"[$P($G(^AUPNVSIT(VIEN,0)),U,7) ""
+ S RET=$$DC1(CPT,VIEN,.PRV)
+ S:'RET RET=$$DC1(90772,VIEN,.PRV)
+ S:'RET RET=$$DC1($$SYRCPT(CPT),VIEN,.PRV)
+ Q RET
+ ; Delete CPT in visit
+DC1(CPT,VIEN,PRV) ;
+ N VCPT,X0,X12,RET,QTY
+ Q:'CPT ""
+ S VCPT=0
+ F  S VCPT=$O(^AUPNVCPT("AD",VIEN,VCPT)) Q:'VCPT  D  Q:$D(RET)
+ .S X0=$G(^AUPNVCPT(VCPT,0)),X12=$G(^(12))
+ .Q:CPT'=+X0
+ .Q:$G(PRV)'=$P(X12,U,4)
+ .S QTY=$P(X0,U,16)
+ .I QTY>1 D
+ ..D SETQTY^BGOVCPT(.RET,VCPT_U_(QTY-1))
+ .E  D VFDEL^BGOUTL2(.RET,9000010.18,VCPT)
+ Q $G(RET)
+ ; Add CPT code(s)
+ADDCPT(CPT,VIEN,DFN,PRV) ;EP
+ N RET,CPT2
+ Q:$$GET^XPAR("ALL","BGO IMM STOP ADDING CPT CODES") 0
+ D VFFND^BGOUTL2(.RET,9000010.18,CPT,VIEN)
+ Q:RET 0
+ S CPT2=$$SYRCPT(CPT)
+ S RET=$$ADDCPT^BGOVCPT(CPT,,VIEN,DFN,PRV)
+ ;Stop sending 90772 per patch 7 IHS/MSC/MGH
+ ;S:RET'<0 RET=$$ADDCPT^BGOVCPT(90772,,VIEN,DFN,PRV)
+ I CPT2,RET'<0 S RET=$$ADDCPT^BGOVCPT(CPT2,,VIEN,DFN,PRV)
+ Q RET
+ ; Add an entry to output global
+ADD(X) S CNT=CNT+1,@RET@(CNT)=$TR(X,"|",U)
+ Q
+ ; Return V File #
+FNUM() Q 9000010.12
+ ;
+GETAGE(VDTE,DOB) ;
+ N X1,X2,X,AGE,AUN
+ S X1=$$NOW^XLFDT,X2=DOB
+ D ^%DTC S AGE=X\365.25
+ I AGE S AUN="yrs" Q AGE_AUN
+ I X#(365.25)>30.5 S AGE=X#(365.25)\30.5,AUN="mos" Q AGE_AUN
+ S AGE=X,AUN="dys"
+ Q AGE_AUN

@@ -1,0 +1,74 @@
+IBINI0D1	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,"DIPT",849,"DXS",1,9.2)
+	;;=S I(0,0)=$S($D(D0):D0,1:""),DIP(1)=$S($D(^IBE(351,D0,0)):^(0),1:""),D0=$P(DIP(1),U,2) S:'$D(^DPT(+D0,0)) D0=-1 S DIP(101)=$S($D(^DPT(D0,.36)):^(.36),1:"")
+	;;^UTILITY(U,$J,"DIPT",849,"DXS",2,1)
+	;;=CURRENT
+	;;^UTILITY(U,$J,"DIPT",849,"DXS",2,2)
+	;;=CLOSED
+	;;^UTILITY(U,$J,"DIPT",849,"DXS",2,3)
+	;;=CANCELLED
+	;;^UTILITY(U,$J,"DIPT",849,"F",1)
+	;;="Reference Number:";C1;R23;~.01;L12~"Status:";C1;R23~.04;L40~"Primary Elig. Code:";R23;C1;S1~
+	;;^UTILITY(U,$J,"DIPT",849,"F",2)
+	;;=X DXS(1,9.2) S X=$S('$D(^DIC(8,+$P(DIP(101),U,1),0)):"",1:$P(^(0),U,1)) S D0=I(0,0) W X K DIP;L40;Z;"PATIENT:PRIMARY ELIGIBILITY CODE"~
+	;;^UTILITY(U,$J,"DIPT",849,"F",3)
+	;;="Clock Begin Date:";C1;S1;R23~
+	;;^UTILITY(U,$J,"DIPT",849,"F",4)
+	;;=S DIP(1)=$S($D(^IBE(351,D0,0)):^(0),1:"") S X=$P(DIP(1),U,3),X=$P(X,".",1) S Y=X D DT K DIP;L40;Z;"DATE(CLOCK BEGIN DATE)"~"Clock End Date:";C1;R23~
+	;;^UTILITY(U,$J,"DIPT",849,"F",5)
+	;;=S DIP(1)=$S($D(^IBE(351,D0,0)):^(0),1:"") S X=$P(DIP(1),U,10),X=$P(X,".",1) S Y=X D DT K DIP;L40;Z;"DATE(CLOCK END DATE)"~
+	;;^UTILITY(U,$J,"DIPT",849,"F",6)
+	;;="Number Inpatient Days:";C1;S1;R23~.09;L40~"90 Day Inpatient Amounts";C2;S1~"1st 90 Day Amount:";C1;R23~.05;C24~"2nd 90 Day Amount:";C1;R23~.06;C24~
+	;;^UTILITY(U,$J,"DIPT",849,"F",7)
+	;;="3rd 90 Day Amount:";C1;R23~.07;C24~"4th 90 Day Amount:";C1;R23~.08;C24~"Date Entry Added:";C1;S1;R23~
+	;;^UTILITY(U,$J,"DIPT",849,"F",8)
+	;;=S DIP(1)=$S($D(^IBE(351,D0,1)):^(1),1:"") S X=$P(DIP(1),U,2),X=$P(X,".",1) S Y=X D DT K DIP;L40;Z;"DATE(DATE ENTRY ADDED)"~"Date Last Updated:";C1;R23~
+	;;^UTILITY(U,$J,"DIPT",849,"F",9)
+	;;=S DIP(1)=$S($D(^IBE(351,D0,1)):^(1),1:"") S X=$P(DIP(1),U,4),X=$P(X,".",1) S Y=X D DT K DIP;L40;Z;"DATE(DATE LAST UPDATED)"~"Update Reason:";C1;R23;S1~
+	;;^UTILITY(U,$J,"DIPT",849,"F",10)
+	;;=15~
+	;;^UTILITY(U,$J,"DIPT",849,"H")
+	;;=@
+	;;^UTILITY(U,$J,"DIPT",849,"IOM")
+	;;=80
+	;;^UTILITY(U,$J,"DIPT",849,"LAST")
+	;;=
+	;;^UTILITY(U,$J,"DIPT",849,"ROU")
+	;;=^IBXBCR
+	;;^UTILITY(U,$J,"DIPT",849,"ROUOLD")
+	;;=IBXBCR
+	;;^UTILITY(U,$J,"DIPT",849,"SUB")
+	;;=1
+	;;^UTILITY(U,$J,"DIPT",875,0)
+	;;=IB APPOINTMENT TYPE^2920406.1326^@^352.1^1453^@^2920406
+	;;^UTILITY(U,$J,"DIPT",875,"%D",0)
+	;;=^^1^1^2920708^
+	;;^UTILITY(U,$J,"DIPT",875,"%D",1,0)
+	;;=Billable Appointment Type List.
+	;;^UTILITY(U,$J,"DIPT",875,"F",2)
+	;;=.02~.03~.04~.05~.06~
+	;;^UTILITY(U,$J,"DIPT",875,"H")
+	;;=BILLABLE APPOINTMENT TYPE LIST
+	;;^UTILITY(U,$J,"DIPT",884,0)
+	;;=IB PURGE LIST LOG ENTRIES^2920423.1408^@^350.6^10865^@^2940224
+	;;^UTILITY(U,$J,"DIPT",884,"%D",0)
+	;;=^^1^1^2920708^
+	;;^UTILITY(U,$J,"DIPT",884,"%D",1,0)
+	;;=Integrated Billing Archive/Purge Log List.
+	;;^UTILITY(U,$J,"DIPT",884,"F",1)
+	;;=.01;"LOG#";L4~.03;L25~
+	;;^UTILITY(U,$J,"DIPT",884,"F",2)
+	;;=S DIP(1)=$S($D(^IBE(350.6,D0,1)):^(1),1:"") S X=$P(DIP(1),U,1) S:X X=$E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3) W X K DIP;"DATE CREATED";Z;"NUMDATE(SEARCH BEGIN DATE/TIME)"~
+	;;^UTILITY(U,$J,"DIPT",884,"F",3)
+	;;=1.03;"INITIATOR";L20~.05;"STATUS";L9~
+	;;^UTILITY(U,$J,"DIPT",884,"H")
+	;;=INTEGRATED BILLING ARCHIVE/PURGE LOG ENTRIES
+	;;^UTILITY(U,$J,"DIPT",1054,0)
+	;;=IB PRINT THRESHOLD^2930120.104^@^354.3^1453^@^2931005
+	;;^UTILITY(U,$J,"DIPT",1054,"F",1)
+	;;=.01;"EFFECTIVE DATE"~.03;"BASE RATE";R9~.04;"1 DEPENDENT";R9~.05;"2 DEPENDENTS";R9~.06;"3 DEPENDENTS";R9~.07;"4 DEPENDENTS";R9~.08;"5 DEPENDENTS";R9~
+	;;^UTILITY(U,$J,"DIPT",1054,"F",2)
+	;;=.09;"6 DEPENDENTS";R9~.1;"7 DEPENDENTS";R9~.11;"8 DEPENDENTS";R9~.12;"ADDITIONAL AMOUNT";R9~

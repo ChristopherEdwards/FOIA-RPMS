@@ -1,0 +1,130 @@
+BTIUMED3 ; SLC/JM - Active/Recent Med Objects Routine ;30-Jul-2010 09:07;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006**;Jun 20, 1997
+ ;Object for last class medications
+ Q
+LIST(DFN,BTIUMED,TARGET,CNT) ;  EP
+ ;
+ ;
+ ;
+ ;Required Parameters:
+ ;
+ ;  DFN       Patient identifier
+ ;  BTIUMED   The drug class to search
+ ;
+ ;  TARGET    Where the medication data will be stored
+ ;  CNT       The number to return
+ ;
+ ;
+ N NEXTLINE,EMPTY,INDEX,NODE,ISINP,KEEPMED,STATUS,OK,RXNO,CHRONIC,LDATE,CANDATE,EXDATE,DETAILED
+ N INPTYPE,OUTPTYPE,TYPE,MEDTYPE,DATA,DATA1,MED,IDATE,XSTR,LLEN,DAYS,ACTVONLY,ONELIST,REASON,REFILLS
+ N LASTMEDT,LASTSTS,COUNT,TOTAL,SPACE60,DASH73,TEMP,LINE,TAB,HEADER,CLASSORT,COUNTER,EVENT,HIEN,IEN
+ N DRUGCLAS,DRUGIDX,LASTCLAS,OLDTAB,OLDHEADR,UNKNOWNS,INDIC,LSTINDIC,IDX,ID,CLININC
+ N %,%H,STOP,LSTFD,ARRAY ;Clean up after external calls...
+ S (NEXTLINE,TAB,HEADER,UNKNOWNS,CLININC)=0,LLEN=47
+ K @TARGET,^TMP("PS",$J),ARRAY
+ S ISINP=($G(^DPT(DFN,.1))'="") ; Is this an inpatient?
+ I ISINP S INPTYPE=1,OUTPTYPE=2
+ E  S INPTYPE=2,OUTPTYPE=1
+ ;
+ ; *** Scan medication data and skip unwanted meds ***
+ ;
+ S DAYS=180,ACTVONLY=0,ONELIST=0,DETAILED=1
+ I '$D(CNT)=CNT=1
+ D OCL^PSOORRL(DFN,$$FMADD^XLFDT(DT,-DAYS),"")
+ S INDEX=0
+ F  S INDEX=$O(^TMP("PS",$J,INDEX))  Q:INDEX'>0  D
+ .S NODE=$G(^TMP("PS",$J,INDEX,0))
+ .S CHRONIC=""
+ .S STATUS=$P(NODE,U,9)
+ .S IDATE=$P(NODE,U,15)
+ .S KEEPMED=($L($P(NODE,U,2))>0) ;Discard Blank Meds
+ .I $P($P(NODE,U),";",2)["O" D
+ ..S RXNO=+($P(NODE,U,1))
+ ..S CHRONIC=$P($G(^PSRX(RXNO,9999999)),U,2)
+ ..I STATUS="EXPIRED" D
+ ...N X1,X2,X
+ ...I CHRONIC S X1=DT,X2=-120 D C^%DTC S LDATE=X
+ ...E  S X1=DT,X2=-14 D C^%DTC S LDATE=X
+ ...S EXDATE=$P($G(^PSRX(RXNO,2)),U,6)
+ ...I EXDATE>LDATE S KEEPMED=1
+ ..I STATUS="DISCONTINUED" D
+ ...S X1=DT,X2=-30 D C^%DTC S LDATE=X
+ ...S CANDATE=$P($G(^PSRX(RXNO,3)),U,5)
+ ...I CANDATE>LDATE S KEEPMED=1
+ .I STATUS="PENDING" D
+ ..S IEN=+($P(NODE,U))
+ ..I IEN>0 S REFILLS=$P($G(^PS(52.41,IEN,0)),U,11)
+ ..S $P(^TMP("PS",$J,INDEX,0),U,5)=REFILLS
+ .S TYPE=$P($P(NODE,U),";",2)
+ .S TYPE=$S(TYPE="O":"OP",TYPE="I":"UD",1:"")
+ .S KEEPMED=(TYPE'="")
+ .I KEEPMED D
+ ..I $O(^TMP("PS",$J,INDEX,"A",0))>0 S TYPE="IV"
+ ..E  I $O(^TMP("PS",$J,INDEX,"B",0))>0 S TYPE="IV"
+ ..I TYPE="OP" S MEDTYPE=OUTPTYPE
+ ..E  S MEDTYPE=INPTYPE
+ ..I MEDTYPE=INPTYPE S KEEPMED=ISINP
+ ..E  S KEEPMED='ISINP
+ .S DRUGCLAS=" "
+ .S MED=$P(NODE,U,2)
+ .I KEEPMED D
+ ..S DRUGIDX=$O(^PSDRUG("B",MED,0))
+ ..D GETCLASS(BTIUMED)
+ ..I BTIUMED'=DRUGCLAS S KEEPMED=0
+ ..I KEEPMED D
+ ...N ORDIDX,TMPCLASS,CDONE,SDONE,TMPIDX,TMPNODE,ISSUPPLY
+ ...S ID=$P(NODE,U)
+ ...S IDX=+ID,ID=$E(ID,$L(IDX)+1,$L(ID))
+ ...S (DRUGIDX,ORDIDX)=0
+ ...I ID="R;O" S DRUGIDX=+$P($G(^PSRX(IDX,0)),U,6)
+ ...I ID="P;O" S DRUGIDX=+$P($G(^PS(52.41,IDX,0)),U,9)
+ ...I ID="P;I" D
+ ....I $P($G(^PS(53.1,IDX,1,0)),U,4)=1 D
+ .....S TMPIDX=$O(^PS(53.1,IDX,1,0)) I +TMPIDX S DRUGIDX=$P($G(^PS(53.1,IDX,1,TMPIDX,0)),U)
+ ...I ID="U;I" D
+ ....I $P($G(^PS(55,DFN,5,IDX,1,0)),U,4)=1 D
+ .....S TMPIDX=$O(^PS(55,DFN,5,IDX,1,0)) I +TMPIDX S DRUGIDX=$P($G(^PS(55,DFN,5,IDX,1,TMPIDX,0)),U)
+ ...I ID="V;I" D
+ ....I $P($G(^PS(55,DFN,"IV",IDX,"AD",0)),U,4)=1 D
+ .....S TMPIDX=$O(^PS(55,DFN,"IV",IDX,"AD",0)) I +TMPIDX D
+ ......S TMPIDX=$P($G(^PS(55,DFN,"IV",IDX,"AD",TMPIDX,0)),U)
+ ......I +TMPIDX S DRUGIDX=$P($G(^PS(52.6,TMPIDX,0)),U,2)
+ .; *** Save wanted meds in "B" temp xref, removing duplicates ***
+ .;
+ .I KEEPMED D
+ ..S EVENT=$P(NODE,U,15)
+ ..I EVENT="" S EVENT=$$NOW^XLFDT
+ ..S IDATE=9999999-EVENT
+ ..S ARRAY(IDATE,INDEX)=DRUGIDX_"^"_IDX_"^"_ID_"^"_EVENT_"^"_STATUS
+ ;
+ ; *** Check for empty condition ***
+ ;
+ ;after you get all the drugs into the array take number requested
+ S $P(SPACE60," ",60)=" ",$P(DASH73,"=",73)="="
+ S COUNTER=0,LINE=0
+ S TEMP="Last "_CNT_" drugs from class "_BTIUMED
+ D ADD^BTIUMED1(TEMP)
+ N I
+ S I="" F  S I=$O(ARRAY(I)) Q:I=""!(COUNTER>=CNT)  D
+ .S INDEX="" F  S INDEX=$O(ARRAY(I,INDEX)) Q:INDEX=""  D
+ ..S COUNTER=COUNTER+1
+ ..S NODE=^TMP("PS",$J,INDEX,0)
+ ..S DATA=$G(ARRAY(I,INDEX))
+ ..S STATUS=$P(DATA,U,5)
+ ..I STATUS="HOLD" D
+ ...S HIEN=+($P(NODE,U))
+ ...S REASON=$$GET1^DIQ(52,HIEN,99,"E")
+ ...S NODE=NODE_U_REASON
+ ..D ADDMED^BTIUMED1(0)
+ I COUNTER=0 S LINE=LINE+1 S @TARGET@(LINE,0)="No Meds for this class found"
+ Q "~@"_$NA(@TARGET)
+ ;
+LISTX K ^TMP("PS",$J)
+ Q "~@"_$NA(@TARGET)
+ ;
+GETCLASS(BTIUMED) ; Get Drug Class, filter out supplies
+ I +DRUGIDX D
+ .N TEMPNODE
+ .S TEMPNODE=$G(^PSDRUG(DRUGIDX,0))
+ .S DRUGCLAS=$P(TEMPNODE,U,2)
+ Q

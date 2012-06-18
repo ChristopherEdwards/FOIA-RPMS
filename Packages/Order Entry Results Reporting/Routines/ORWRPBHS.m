@@ -1,0 +1,41 @@
+ORWRPBHS ;IHS/CIA/DKM - IHS Health Summary Support for Reports Component ;27-Feb-2007 11:27;DKM
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**1002**;Dec 17, 1997
+ ;=================================================================
+ ; Generate health summary
+HS(ORROOT,ORDFN,ORHS,ALPHA,OMEGA,DTRANGE,REMOTE,ORMAX,ORFHIE) ; - get health summary report
+ D CAPTURE^CIAUHFS("D HSX^ORWRPBHS(.ORROOT,.ORDFN,.ORHS,.ALPHA,.OMEGA,.DTRANGE,.REMOTE,.ORMAX,.ORFHIE)",.ROOT,80)
+ Q
+ ; Print report
+HSX(ROOT,APCHSPAT,APCHSTYP,ALPHA,OMEGA,DTRANGE,REMOTE,ORMAX,ORFHIE) ;
+ N Y,$ET
+ S $ET="",@$$TRAP^CIAUOS("HSXERR^ORWRPBHS")
+ I $G(REMOTE) D  Q:'APCHSTYP
+ .S Y=$O(^APCHSCTL("B",$P(APCHSTYP,";",2),0))
+ .I 'Y U IO W !,APCHSTYP_" not found on remote system",!
+ .S APCHSTYP=Y
+ I APCHSTYP<1 W !,"Report not Available" Q
+ S APCHSTYP=+APCHSTYP
+ D START^APCHS0
+ Q
+ ; Exception handler for HSX
+HSXERR W "An error was encountered generating this report.",!
+ W "The error was: ",$$EC^%ZOSV,!
+ D ^%ZTER
+ Q
+ ; Background print
+HSB(ROOT,ORDFN,ORHSTYPE,ORALPHA,OROMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE) ;
+ I $O(ORCOMP(0)) D SITE^ORWRPP($G(STATION)),PREPORT^ORWRP2(.ROOT,.ORCOMP,.ORDFN) Q
+ D SITE^ORWRPP($G(STATION)),HSX(.ROOT,.ORDFN,.ORHSTYPE,.ORALPHA,.OROMEGA,.ORDTRNG,.REMOTE,.ORMAX,.ORFHIE)
+ Q
+ ; Get list of IHS health summary types
+GETHS(ROOT,EOF) ;
+ N C,I,HS
+ I $$GET^XPAR("ALL","ORWRP HEALTH SUMMARY LIST ALL",1) D
+ .S I="",C=0
+ .F  S I=$O(^APCHSCTL("B",I)) Q:I=""  S C=C+1,HS(C)=$O(^(I,0))_U_I
+ E  D GETLST^XPAR(.HS,"ALL","ORWRPBHS HEALTH SUMMARY LIST","N")
+ S I=0
+ F  S I=$O(HS(I)) Q:'I  D
+ .S:$P(HS(I),U,2)="GMTS HS ADHOC OPTION" HS(I)="0^Adhoc Report"
+ .D SETITEM^ORWRP(.ROOT,"x"_HS(I))
+ Q

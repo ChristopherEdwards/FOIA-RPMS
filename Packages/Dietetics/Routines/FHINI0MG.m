@@ -1,0 +1,188 @@
+FHINI0MG	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(119.1)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,119.1,116,0)
+	;;=BX-120
+	;;^UTILITY(U,$J,119.1,117,0)
+	;;=BX-200
+	;;^UTILITY(U,$J,119.1,118,0)
+	;;=BX-300
+	;;^UTILITY(U,$J,119.1,119,0)
+	;;=BX-500
+	;;^UTILITY(U,$J,119.1,120,0)
+	;;=CS-100
+	;;^UTILITY(U,$J,119.1,121,0)
+	;;=CS-1000
+	;;^UTILITY(U,$J,119.1,122,0)
+	;;=CS-180
+	;;^UTILITY(U,$J,119.1,123,0)
+	;;=CS-200
+	;;^UTILITY(U,$J,119.1,124,0)
+	;;=CS-2000
+	;;^UTILITY(U,$J,119.1,125,0)
+	;;=CS-400
+	;;^UTILITY(U,$J,119.1,126,0)
+	;;=CS-48
+	;;^UTILITY(U,$J,119.1,127,0)
+	;;=CS-500
+	;;^UTILITY(U,$J,119.1,128,0)
+	;;=CS-800
+	;;^UTILITY(U,$J,119.1,129,0)
+	;;=DZ
+	;;^UTILITY(U,$J,119.1,130,0)
+	;;=GL BT
+	;;^UTILITY(U,$J,119.1,131,0)
+	;;=GL CN
+	;;^UTILITY(U,$J,119.1,132,0)
+	;;=GL CO
+	;;^UTILITY(U,$J,119.1,133,0)
+	;;=GL JR
+	;;^UTILITY(U,$J,119.1,134,0)
+	;;=JR-100
+	;;^UTILITY(U,$J,119.1,135,0)
+	;;=PT BT
+	;;^UTILITY(U,$J,119.1,136,0)
+	;;=QT BT
+	;;^UTILITY(U,$J,119.1,137,0)
+	;;=QT CN
+	;;^UTILITY(U,$J,119.1,138,0)
+	;;=QT CO
+	;;^UTILITY(U,$J,119.1,139,0)
+	;;=QT JR
+	;;^UTILITY(U,$J,119.1,140,0)
+	;;=PG
+	;;^UTILITY(U,$J,119.1,141,0)
+	;;=BX-100
+	;;^UTILITY(U,$J,119.1,142,0)
+	;;=#5 CN
+	;;^UTILITY(U,$J,119.1,143,0)
+	;;=PG-12
+	;;^UTILITY(U,$J,119.1,144,0)
+	;;=250-ML BT
+	;;^UTILITY(U,$J,119.1,145,0)
+	;;=60-OZ PG
+	;;^UTILITY(U,$J,119.1,146,0)
+	;;=CS-24
+	;;^UTILITY(U,$J,119.1,147,0)
+	;;=7.7-OZ JR
+	;;^UTILITY(U,$J,119.1,148,0)
+	;;=2.5-OZ JR
+	;;^UTILITY(U,$J,119.1,149,0)
+	;;=4.5#-PG
+	;;^UTILITY(U,$J,119.1,150,0)
+	;;=4.5#-BX
+	;;^UTILITY(U,$J,119.1,151,0)
+	;;=22.6-OZ BG
+	;;^UTILITY(U,$J,119.1,152,0)
+	;;=48-OZ CN
+	;;^UTILITY(U,$J,119.1,153,0)
+	;;=2# JR
+	;;^UTILITY(U,$J,119.1,154,0)
+	;;=6-OZ CN
+	;;^UTILITY(U,$J,119.1,155,0)
+	;;=250-ML CN
+	;;^UTILITY(U,$J,119.1,156,0)
+	;;=1.5#-BG
+	;;^UTILITY(U,$J,119.1,157,0)
+	;;=1.25#-BG
+	;;^UTILITY(U,$J,119.1,158,0)
+	;;=6.75#-CN
+	;;^UTILITY(U,$J,119.1,159,0)
+	;;=9.75-OZ PG
+	;;^UTILITY(U,$J,119.1,160,0)
+	;;=1/2-GL JR
+	;;^UTILITY(U,$J,119.1,161,0)
+	;;=24# CS
+	;;^UTILITY(U,$J,119.1,162,0)
+	;;=CS-60
+	;;^UTILITY(U,$J,119.1,163,0)
+	;;=CS-72
+	;;^UTILITY(U,$J,119.1,164,0)
+	;;=BX-6
+	;;^UTILITY(U,$J,119.1,165,0)
+	;;=6.5-OZ CN
+	;;^UTILITY(U,$J,119.1,166,0)
+	;;=6.5# CO
+	;;^UTILITY(U,$J,119.1,167,0)
+	;;=10# CS
+	;;^UTILITY(U,$J,119.1,168,0)
+	;;=1# LF
+	;;^UTILITY(U,$J,119.1,169,0)
+	;;=9-OZ CN
+	;;^UTILITY(U,$J,119.1,170,0)
+	;;=22.5-OZ BX
+	;;^UTILITY(U,$J,119.1,171,0)
+	;;=5.5# PN
+	;;^UTILITY(U,$J,119.1,172,0)
+	;;=2# CK
+	;;^UTILITY(U,$J,119.1,173,0)
+	;;=1# CK
+	;;^UTILITY(U,$J,119.1,174,0)
+	;;=4# CK
+	;;^UTILITY(U,$J,119.1,175,0)
+	;;=4.4# CK
+	;;^UTILITY(U,$J,119.1,176,0)
+	;;=4.75# CK
+	;;^UTILITY(U,$J,119.1,177,0)
+	;;=2.5# CK
+	;;^UTILITY(U,$J,119.1,178,0)
+	;;=CS-96
+	;;^UTILITY(U,$J,119.1,179,0)
+	;;=CS-70
+	;;^UTILITY(U,$J,119.1,180,0)
+	;;=CS-10
+	;;^UTILITY(U,$J,119.1,181,0)
+	;;=3# CO
+	;;^UTILITY(U,$J,119.1,182,0)
+	;;=BX-50
+	;;^UTILITY(U,$J,119.1,183,0)
+	;;=CS-250
+	;;^UTILITY(U,$J,119.1,184,0)
+	;;=11.25# CS
+	;;^UTILITY(U,$J,119.1,185,0)
+	;;=CS-300
+	;;^UTILITY(U,$J,119.1,186,0)
+	;;=CS-120
+	;;^UTILITY(U,$J,119.1,187,0)
+	;;=CS-50
+	;;^UTILITY(U,$J,119.1,188,0)
+	;;=4.2# CO
+	;;^UTILITY(U,$J,119.1,189,0)
+	;;=BG
+	;;^UTILITY(U,$J,119.1,190,0)
+	;;=1-OZ PG
+	;;^UTILITY(U,$J,119.1,191,0)
+	;;=3.5# PG
+	;;^UTILITY(U,$J,119.1,192,0)
+	;;=8-OZ CT
+	;;^UTILITY(U,$J,119.1,193,0)
+	;;=4.4-OZ PG
+	;;^UTILITY(U,$J,119.1,194,0)
+	;;=CS-4 PN
+	;;^UTILITY(U,$J,119.1,195,0)
+	;;=5 GL CT
+	;;^UTILITY(U,$J,119.1,196,0)
+	;;=2.8-OZ PG
+	;;^UTILITY(U,$J,119.1,197,0)
+	;;=6# CN
+	;;^UTILITY(U,$J,119.1,198,0)
+	;;=CS-6
+	;;^UTILITY(U,$J,119.1,199,0)
+	;;=2.06-OZ PG
+	;;^UTILITY(U,$J,119.1,200,0)
+	;;=3-OZ PG
+	;;^UTILITY(U,$J,119.1,201,0)
+	;;=3# BX
+	;;^UTILITY(U,$J,119.1,202,0)
+	;;=1# CT
+	;;^UTILITY(U,$J,119.1,203,0)
+	;;=1.9-OZ PG
+	;;^UTILITY(U,$J,119.1,204,0)
+	;;=2.79-OZ PG
+	;;^UTILITY(U,$J,119.1,205,0)
+	;;=2.82-OZ PG
+	;;^UTILITY(U,$J,119.1,206,0)
+	;;=10# CO
+	;;^UTILITY(U,$J,119.1,207,0)
+	;;=6.5# CN

@@ -1,0 +1,70 @@
+BSDWLE1 ; IHS/OIT/LJF - WAITING LIST DATA ENTRY - CLOSED CASES
+ ;;5.3;PIMS;**1004**;MAY 28, 2004
+ ;IHS/OIT/LJF 07/21/2005 PATCH 1004 routine added
+ ;
+EN ; -- main entry point for BSDRM WAITING LIST CLOSED
+ NEW VALMCNT D TERM^VALM0,CLEAR^VALM1
+ NEW BSDCLOSE S BSDCLOSE=1
+ D EN^VALM("BSDAM WAITING LIST CLOSED")
+ D CLEAR^VALM1
+ Q
+ ;
+HDR ;EP -- header code
+ NEW X
+ S VALMHDR(1)=$$SP(15)_$$CONF^BDGF
+ S X=$$GET1^DIQ(9009017.1,BSDWLN,.01)
+ S VALMHDR(2)=$$SP(80-$L(X)\2)_X
+ Q
+ ;
+INIT ;EP -- init variables and list array
+ NEW FILE,IEN,IENS,BSDATA,NAME,BSDCNT,LINE
+ S VALMCNT=0 K ^TMP("BSDWLE",$J),^TMP("BSDWLE1",$J)
+ ;
+ S FILE=9009017.11
+ S IEN=0 F  S IEN=$O(^BSDWL(BSDWLN,1,IEN)) Q:'IEN  D
+ . S IENS=IEN_","_BSDWLN_","
+ . K BSDATA D GETS^DIQ(FILE,IENS,".01;.07","R","BSDATA")
+ . I BSDATA(FILE,IENS,"DATE REMOVED FROM LIST")="" Q        ;skip if NOT closed out
+ . S ^TMP("BSDWLE1",$J,BSDATA(FILE,IENS,"PATIENT"),IEN)=""  ;sort by patient name
+ ;
+ ; now take sorted list and build display array
+ S NAME=0 F  S NAME=$O(^TMP("BSDWLE1",$J,NAME)) Q:NAME=""  D
+ . S IEN=0 F  S IEN=$O(^TMP("BSDWLE1",$J,NAME,IEN)) Q:'IEN  D
+ . . S IENS=IEN_","_BSDWLN_"," K BSDATA
+ . . D GETS^DIQ(FILE,IENS,".013;.02;.03;.07;.08;1","R","BSDATA")
+ . . S BSDCNT=$G(BSDCNT)+1 S LINE=$J(BSDCNT,3)_". "
+ . . S LINE=LINE_$$PAD($E(NAME,1,22),24)_BSDATA(FILE,IENS,"HRCN")
+ . . S LINE=$$PAD(LINE,37)_BSDATA(FILE,IENS,"DATE ADDED TO LIST")
+ . . S LINE=$$PAD(LINE,52)_BSDATA(FILE,IENS,"DATE REMOVED FROM LIST")
+ . . S LINE=$$PAD(LINE,67)_BSDATA(FILE,IENS,"PRIORITY")
+ . . S LINE=$$PAD(LINE,81)_$E(BSDATA(FILE,IENS,"RESOLUTION"),1,18)
+ . . S LINE=$$PAD(LINE,102)_$G(BSDATA(FILE,IENS,"COMMENTS",1))
+ . . D SET(LINE,IEN,BSDCNT,.VALMCNT)
+ ;
+ I VALMCNT=0 S ^TMP("BSDWLE",$J,1,0)="No Closed Cases for this Waiting List",VALMCNT=1
+ K ^TMP("BSDWLE1",$J)
+ Q
+ ;
+SET(DATA,IEN,COUNT,LINENUM) ; puts data line into display array
+ S LINENUM=LINENUM+1 S:COUNT=0 COUNT=1
+ S ^TMP("BSDWLE",$J,LINENUM,0)=DATA
+ S ^TMP("BSDWLE",$J,"IDX",LINENUM,COUNT)=IEN
+ Q
+ ;
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ K ^TMP("BSDWLE",$J)
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+PAD(D,L) ;EP -- SUBRTN to pad length of data
+ ; -- D=data L=length
+ Q $E(D_$$REPEAT^XLFSTR(" ",L),1,L)
+ ;
+SP(N) ; -- SUBRTN to pad N number of spaces
+ Q $$PAD(" ",N)

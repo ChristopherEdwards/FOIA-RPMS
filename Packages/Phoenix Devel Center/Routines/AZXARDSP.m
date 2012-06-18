@@ -1,0 +1,50 @@
+AZXARDSP ; IHS/PHXAO/TMJ - ROI DISPLAY OF DISCLOSURE ; 
+ ;;2.0;RELEASE OF INFORMATION;;FEB 21, 2002
+ ;
+START ;
+ D GETREF
+ Q:AZXAQ
+ ;
+START2 ;EP To Display a Referral Record
+ D BROWSE
+ D XIT
+ Q
+ ;
+GETREF ; GET REFERRAL
+ S AZXAQ=1
+ W !
+ S DIC="^AZXAREF(",DIC(0)="AEMQ",DIC("A")="Select ROI DISCLOSURE by Patient or by Disclosure Date or #: "
+ D DIC^AZXAFMC
+ Q:Y<1
+ S AZXARIEN=+Y
+ S AZXAQ=0
+ Q
+ ;
+BROWSE ;
+ S XBRP="DISP^AZXARD1"
+ S XBRC="",XBRX="XIT^AZXARD1",XBIOP=0 D ^XBDBQUE
+ ;D VIEWR^XBLM("^AZXAVLP")
+ Q
+XIT ;EP
+ D ^AZXAKILL
+ K ^TMP("AZXARDSP",$J)
+ Q
+DISP ;EP
+ D EN^VALM("AZXA RECORD DISPLAY")
+ D CLEAR^VALM1
+ Q
+HDR ; -- header code
+ S VALMHDR(1)="User:  "_$P(^VA(200,DUZ,0),U)
+ Q
+ ;
+INIT ; -- init variables and list array
+ D EP^AZXARD(AZXARIEN)
+ S VALMCNT=$O(^TMP("AZXARDSP",$J,""),-1)
+ Q
+ ;
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ Q

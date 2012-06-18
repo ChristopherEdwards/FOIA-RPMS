@@ -1,0 +1,250 @@
+ACHSDNL2 ; IHS/ITSC/PMF - DENIAL LTR/FS (LTR1) (3/6) ;    [ 01/05/2005  8:25 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,6,7,12,18**;JUNE 11,2001
+ ;ACHS*3.1*3  new method of displaying chart number
+ ;ACHS*3.1*4  allow multiple office copies
+ ;ACHS*3.1*6  3.27.03 IHS/SET/FCJ print vendor amount and other resource
+ ;ACHS*3.1*6  3.27.03 IHS/SET/FCJ Need X var for format change to ACHSA1
+ ;ACHS*3.1*7  11.4.03 IHS/SET/JVK Fix Print of Est. Act. for Provider
+ ;ACHS*3.1*12  1.4.04 IHS/SET/JVK  ADD CHECK FOR PAWNEE BEN PKG
+ ;ACHS*3.1*18 6.11.10 IHS/SET/ABK  ADD Top, REV and Left Margin parameter fetches, 
+ ;                                 and implement.
+ ;
+ ;{ABK, 6/11/10} SET TOPM AND DIWL FROM CHS DENIAL PARAMETERS
+ S T2=$G(^ACHSDENR(DUZ(2),0)),DIWL=$P(T2,U,9),TOPM=$P(T2,U,11)
+ S:DIWL="" DIWL=5 S:TOPM="" TOPM=5
+ ;{ABK, 6/11/10}S DIWR=79,DIWL=5,DIWF="NW"
+ S DIWR=79,DIWF="NW"
+ D HEADER
+START ;
+ N ACHDNAMV
+ ;
+ ;ACHS*3.1*4  4/5/02  pmf
+ ;I $D(ACHDONE) W ! F I=1:1:4 W "*** OFFICE COPY *** "  ; ACHS*3.1*4
+ I 'ACHDONE W ! F I=1:1:4 W "*** OFFICE COPY *** "  ; ACHS*3.1*4
+ ;
+ I $$DN^ACHS(0,8)="Y" W ! F I=1:1:4 W "DOCUMENT CANCELLED *"
+ W !!!
+ S ACHSCNT=0
+ S ACHSPG=1
+DATE ;
+ W !!,?DIWL-1,$$FMTE^XLFDT($$DN^ACHS(0,2)),!!
+ I '$D(ACHDCPAT) W !?DIWL-1,ACHDNAME D:ACHDONFL ADDR^ACHSDNL5 S:'ACHDONFL X=ACHDADDR D:'ACHDONFL SUBADDR^ACHSDNL5 W !!?DIWL-1,"The following letter was sent to the patient for denial of service:",!!
+ S X="Document number: "_$$DN^ACHS(0,1)
+ W ?76-$L(X),X,!!
+ ;
+ ;LET'S SEE IF WE NEED TO SEND THIS TO AN 'SEND LETTER TO PATIENT?'"
+ ;
+ S ACHDALT=$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,9)),U)
+ I ACHDALT="N" D ALTREC ;CONTINUE TO SEE IF PATIENT REGISTERED OR NOT
+ ;
+ G NOT:'($$DN^ACHS(0,6)="Y")     ;'IS THIS PATIENT REGISTERED?'
+ ;
+ ;GET REGISTERED PATIENT INFO
+ S DFN=$$DN^ACHS(0,7)
+ I DFN']"" D END Q
+ I '$D(^DPT(DFN,0)) D END Q
+ ;
+ S ACHDNAMP=$P($G(^DPT(DFN,0)),U)
+ S ACHDNAMP=$P(ACHDNAMP,",",2,99)_" "_$P(ACHDNAMP,",",1)
+ ;
+ ;S ACHDCH="CHART #: "  ; ACHS*3.1*3
+ ;S:$D(^AUPNPAT(DFN,41,DUZ(2),0)) ACHDCH=ACHDCH_$P($G(^AUPNPAT(DFN,41,DUZ(2),0)),U,2)_" "_$P($G(^DIC(4,DUZ(2),0)),U)  ; ACHS*3.1*3
+ ;I '$D(^AUPNPAT(DFN,41,DUZ(2),0)) S ACHDCH=ACHDCH_"(No Chart At This Facility)"  ; ACHS*3.1*3
+ D SETCHT  ; ACHS*3.1*3
+ ;
+ I ACHDALT="N" G DEMO
+ W !?4,"TO: "
+ W ?8,ACHDNAMP        ;,?76-$L(ACHDCH),ACHDCH,!
+ S A=$G(^DPT(DFN,.11))
+ W !?8,$P(A,U)
+ W !?8,$P(A,U,4),","
+ S ACHDST=$P(A,U,5)
+ I ACHDST]"",$D(^DIC(5,ACHDST,0)) W " ",$P($G(^DIC(5,ACHDST,0)),U,2)
+ W " ",$P(A,U,6),!!
+ G DEMO
+ ;
+ ;GET NON-REGISTERED PATIENT INFO
+NOT ;
+ ;1/8/02  pmf  dont go date, quit instead
+ ;I '$D(^ACHSDEN(DUZ(2),"D",ACHSA,10)) W "(No patient on file)" G DATE  ; ACHS*3.1*3
+ I '$D(^ACHSDEN(DUZ(2),"D",ACHSA,10)) W "(No patient on file)" Q  ; ACHS*3.1*3
+ S A=$G(^ACHSDEN(DUZ(2),"D",ACHSA,10))
+ S X=$P(A,U)
+ S ACHDNAMP=$P(X,",",2,99)_" "_$P(X,",")
+ S:$E(ACHDNAMP)=" " ACHDNAMP=$E(ACHDNAMP,2,100)
+ ;
+ ;S ACHDCH=$P(A,U,6)  ; ACHS*3.1*3
+ ;S:ACHDCH']"" ACHDCH="(No Chart At This Facility)"  ; ACHS*3.1*3
+ ;S ACHDCH="CHART: "_ACHDCH  ; ACHS*3.1*3
+ D SETCHT  ; ACHS*3.1*3
+ ;
+ I ACHDALT="N" G DEMO
+ W !?4,"TO: "
+ W ?8,ACHDNAMP
+ W !?8,$P(A,U,2),!?8,$P(A,U,3)
+ S ACHDST=$P(A,U,4)
+ I ACHDST]"",$D(^DIC(5,ACHDST,0)) W " ",$P($G(^DIC(5,ACHDST,0)),U,2)
+ W " ",$P(A,U,5),!!
+DEMO ;
+ W !,?DIWL-1,"Re: Patient: ",ACHDNAMP W ?42,ACHDCH
+ W !?DIWL+3,"Contract Health Services request for services on ",$$FMTE^XLFDT($$DN^ACHS(0,4)),"."
+REQDATE ;
+ W !?DIWL+3,"Date request received: ",$$FMTE^XLFDT($$DN^ACHS(0,5))
+ K ACHDCH
+PROV ;
+ W !?DIWL+3,"Provider of services: "
+ ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADD EST/ACT CHRGS MOD BELOW MOVED INTO DO
+ ;I $$DN^ACHS(100,2),$D(^AUTTVNDR($$DN^ACHS(100,2),0)) W $P($G(^AUTTVNDR($$DN^ACHS(100,2),0)),U),! G OTHER
+ I $$DN^ACHS(100,2),$D(^AUTTVNDR($$DN^ACHS(100,2),0)) D  G OTHER
+ .W $P($G(^AUTTVNDR($$DN^ACHS(100,2),0)),U)
+ .Q:$P($G(^ACHSDENR(DUZ(2),0)),U,6)="N"
+ .S Y=$G(^ACHSDEN(DUZ(2),"D",ACHSA,100)) I Y="" W ! Q
+ .S X=$P(Y,U,9) I X]"" S X2="2$" D COMMA^%DTC W !,?10,"Amount Denied: ",X,"(ACT.)",! Q
+ .S X=$P(Y,U,8) I X]"" S X2="2$" D COMMA^%DTC W !,?10,"Amount Denied: ",X,"(EST.)",!
+ ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ END OF CHANGES
+ ;ACHS*3.1*7 11/4/03 ITSC/SET/JVK FIX PRINT EST AND ACT AMTS.
+ ;COMMENT LINE BELOW ADD DO LOOP
+ ;I $$DN^ACHS(100,1)="N" S ACHDNAMV=$$DN^ACHS(100,3) D VNAM W ?DIWL+3,ACHDNAMV,?60,"$",$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,100)),U,8),$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,100)),U,9),!
+ ;
+ I $$DN^ACHS(100,1)="N" S ACHDNAMV=$$DN^ACHS(100,3) D VNAM W ?DIWL+3,ACHDNAMV D
+ .W:$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,100)),U,8) ?60,"$",($P($G(^ACHSDEN(DUZ(2),"D",ACHSA,100)),U,8)),! Q
+ .W:$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,100)),U,9) ?60,"$",$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,100)),U,9),! Q
+ .W ! Q
+ ;ACHS*3.1*7 11/4/03 ITSC/SET/JVK END FIX PRINT OF EST AND ACT AMTS.
+ ;
+ ;ARE THERE 'OTHER PROVIDER ON-FILE'
+OTHER ;
+ G OTHER1:'$D(^ACHSDEN(DUZ(2),"D",ACHSA,200,0))
+ G OTHER1:+$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,200,0)),U,4)=0
+ ;
+ S ACHSCNT=1 ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADD VAR TEST>1 ITEMS TO TOTAL
+ ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ CHANGING X TO ACHSA1 IN NEXT 3 LINES
+ S ACHSA1=0
+ F  S ACHSA1=$O(^ACHSDEN(DUZ(2),"D",ACHSA,200,ACHSA1)) Q:+ACHSA1=0  D
+ .S Y=$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,200,ACHSA1,0)),U) I Y="" W ! Q
+ .I Y,$D(^AUTTVNDR(Y,0)) W !?DIWL+3,"Provider of services: ",$P($G(^AUTTVNDR(Y,0)),U),!
+ .;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADDED NXT 4 LNES TO PRT EST. AND ACT. CHARGES
+ .Q:$P($G(^ACHSDENR(DUZ(2),0)),U,6)="N"
+ .S TMP=$G(^ACHSDEN(DUZ(2),"D",ACHSA,200,ACHSA1,0))
+ .S X=$P(TMP,U,3) I X]"" S X2="2$" D COMMA^%DTC W ?10,"Amount Denied:  ",X,"(ACT.)",! Q
+ .S X=$P(TMP,U,2) I X]"" S X2="2$" D COMMA^%DTC W ?10,"Amount Denied:  ",X,"(EST.)",!
+ ;
+ ;ARE THERE 'OTHER PROVIDER (NOT ON-FILE)'
+OTHER1 ;
+ G O:'$D(^ACHSDEN(DUZ(2),"D",ACHSA,210,0))
+ G O:+$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,210,0)),U,4)=0
+ ;
+ S ACHSCNT=1 ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADD VAR TEST>1 ITEMS TO TOTAL
+ ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ CHANGING X TO ACHSA1 IN NEXT 3 LINES
+ S ACHSA1=0
+ F  S ACHSA1=$O(^ACHSDEN(DUZ(2),"D",ACHSA,210,ACHSA1)) Q:+ACHSA1=0  D
+ .S ACHDNAMV=$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,210,ACHSA1,0)),U)
+ .D VNAM
+ .W ?DIWL+3,"Provider of services: ",ACHDNAMV,!
+ .;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADDED NXT 4 LINES ACT. AND EST CHARGES
+ .Q:$P($G(^ACHSDENR(DUZ(2),0)),U,6)="N"
+ .S Y=$G(^ACHSDEN(DUZ(2),"D",ACHSA,210,ACHSA1,0)) Q:Y=""
+ .S X=$P(Y,U,7) I X]"" S X2="2$" D COMMA^%DTC W ?10,"Amount Denied: ",X,"(ACT.)",! Q
+ .S X=$P(Y,U,6) I X]"" S X2="2$" D COMMA^%DTC W ?10,"Amount Denied: ",X,"(EST.)",!
+ ;
+ ;ARE THERE 'OTHER RESOURCES' ?
+O ;
+ ;
+ ;IS THE 'OTHER RESOURCES' SUBFILE 0 NODE THERE? IF NOT GO TO BODY
+ G BODY^ACHSDNL3:'$D(^ACHSDEN(DUZ(2),"D",ACHSA,800,0))
+ ;
+ ;ARE THER ENTRIES IN THIS SUBFILE? IF NOT GO TO BODY 
+ G BODY^ACHSDNL3:+$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,0)),U,3)=0
+ S (Y,A)=0
+ ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADDED LINE FEED
+ ;W ?DIWL+3,"Other resources: "   ;ACHS*3.1*6
+ W !?DIWL+3,"Other resources: "   ;ACHS*3.1*6
+O1 ;
+ S A=$O(^ACHSDEN(DUZ(2),"D",ACHSA,800,A))
+ W:'A !
+ G BODY^ACHSDNL3:+A=0
+ S ACHSCNT=1 ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADD VAR TEST >1 ITEM TO TOTAL
+ S %=$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,800,A,0)),U)
+ ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ CHANGING X TO ACHSA1 IN NEXT 3 LINES
+ ;S X=$S(%'?1.N:%,1:$P($G(^AUTNINS(%,0)),U)) 
+ S ACHSA1=$S(%'?1.N:%,1:$P($G(^AUTNINS(%,0)),U))
+ ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADDED AMT TO PRINT MOVED TO DO 
+ ;I $X+$L(X)<77 W:Y ", " W X S Y=1 G O1
+ I $X+$L(ACHSA1)<77 D  G O1
+ .W !?DIWL+4,ACHSA1
+ .S X=$P(^ACHSDEN(DUZ(2),"D",ACHSA,800,A,0),U,2)
+ .I X]"" S X2="2$" D COMMA^%DTC W !,?10,"Other resources paid: ",X
+ .I X="" W !,?10,"Other resources paid: $0.00"
+ .S Y=1
+ ;W ",",!?26,X G O1 ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ CHANGE X TO ACHSA1
+ W !?26,ACHSA1 G O1 ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ CHANGE X TO ACHSA1 REMOVED ","
+ G ^ACHSDNL3
+ ;
+ ;PRINT OUT THE 'ALTERNATE RECIPIENT' ADDRESS
+ALTREC ;
+ W !?4,"TO: "
+ S ACHDLINE=0
+ F X=1:1 S ACHDLINE=$O(^ACHSDEN(DUZ(2),"D",ACHSA,9.5,ACHDLINE)) Q:+ACHDLINE=0  D
+ .S:X=1 ACHDALTN=$G(^ACHSDEN(DUZ(2),"D",ACHSA,9.5,ACHDLINE,0))
+ .W:X'=1 !
+ .W ?8,$G(^ACHSDEN(DUZ(2),"D",ACHSA,9.5,ACHDLINE,0))
+ W !!
+ Q
+END ;
+ Q:$G(ACHSQUIT)
+ D RTRN^ACHS
+ W @IOF
+ ;K A,DTOUT,DUOUT ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADDED TMP AND ACHSA1
+ K A,DTOUT,DUOUT,TMP,ACHSA1 ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADDED TMP AND ACHSA1
+ Q
+ ;
+VNAM ;
+ Q:ACHDNAMV'[","
+ S ACHDNAM1=$P(ACHDNAMV,",",3)
+ S ACHDNAMV=$P(ACHDNAMV,",",2)_" "_$P(ACHDNAMV,",",1)_" "_$S($D(ACHDNAM1):ACHDNAM1,1:"")
+ K ACHDNAM1
+ Q
+ ;
+HEADER ;EP - Print header on letters.
+ ;
+ Q:'$D(^ACHSDENR(DUZ(2),5))               ;QUIT IF NO 'HEADER' FOUND
+ Q:$P($G(^ACHSDENR(DUZ(2),0)),U,7)'="Y"   ;'USER LETTERHEAD' NO
+ F ACHD=0:0 S ACHD=$O(^ACHSDENR(DUZ(2),5,ACHD)) Q:+ACHD=0  S X=$G(^ACHSDENR(DUZ(2),5,ACHD,0)) D ^DIWP
+ D ^DIWW
+ Q
+ ;
+SETCHT ;EP - FROM ACHSDNL3
+ ;ACHS*3.1*3  entire module is new
+ ;set the variable that prints the CHART number.  There are several
+ ;possibilities, including one that is special for the Pawnee facility.
+ ;
+ ;start with the name of the datum
+ S ACHDCH="CHART: "
+ ;next, see if the patient is registered.
+ ;If so, then use the chart number from AUPNPAT
+ ;If there isn't one, say NO CHART
+ I ($$DN^ACHS(0,6)="Y") D
+ . I $D(^AUPNPAT(DFN,41,DUZ(2),0)) S ACHDCH=ACHDCH_$P($G(^AUPNPAT(DFN,41,DUZ(2),0)),U,2)_" "_$P($G(^DIC(4,DUZ(2),0)),U) Q
+ . S ACHDCH=ACHDCH_"(No Chart At This Facility)"
+ . Q
+ ;
+ ;If the patient is not registered, then set it based on what's
+ ;found in the denial data
+ I ($$DN^ACHS(0,6)'="Y") D
+ . N DAT
+ . S DAT=$G(^ACHSDEN(DUZ(2),"D",ACHSA,10))
+ . I $P(DAT,U,6)'="" S ACHDCH=ACHDCH_$P(DAT,U,6) I 1
+ . E  S ACHDCH=ACHDCH_"(No Chart At This Facility)"
+ . Q
+ ;
+ ;now, if this is not the Pawnee facility, quit.
+ ;if it is, add the BP number onto the end
+ I $P(^AUTTLOC($S($G(ACHSFAC)'="":ACHSFAC,1:DUZ(2)),0),U,10)'=505613 Q
+ S ACHDCH=ACHDCH_"  BP#: "
+ ;ITSC/SET/JVK ACHS*3.1*12 ADD FOR IHS/OKCAO/POC PAWNEE BEN PKG
+ ;S ACHSBPNO=$P($G(^AZOPBPP(DFN,0)),U,2)
+ I '$G(DFN) S ACHSBPNO="NONE"
+ E  S ACHSBPNO=$P($G(^AZOPBPP(DFN,0)),U,2)
+ ;END CHANGES ACHS*3.1*12
+ S ACHSCH=ACHDCH_" "_ACHSBPNO
+ Q

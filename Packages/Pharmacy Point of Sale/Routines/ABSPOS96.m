@@ -1,0 +1,29 @@
+ABSPOS96 ; IHS/FCS/DRS - display cross refrences for Tech Manual ; 
+ ;;1.0;PHARMACY POINT OF SALE;;JUN 21, 2001
+ ;
+ N START,END S START=9002313,END=START+.9999999999999
+ D EP(START,END)
+ Q
+EP(START,END) ;
+ I '$D(^DIC(START)) S START=$O(^DIC(START))
+ N FILE S FILE=START
+ F  Q:FILE>END  D FILE  S FILE=$O(^DIC(FILE))
+ Q
+FILE ; one file
+ W "Cross References for file ",FILE," ",$P(^DIC(FILE,0),U),!
+ N FIELD S FIELD=0
+ F  S FIELD=$O(^DD(FILE,FIELD)) Q:'FIELD  D FIELD
+ W !
+ Q
+FIELD N IEN S IEN=0
+ F  S IEN=$O(^DD(FILE,FIELD,1,IEN)) Q:IEN=""  D XREF
+ Q
+XREF ; for ^DD(FILE,FIELD,1,IEN,*)
+ I ^DD(FILE,FIELD,1,IEN,0)["^TRIGGER^" Q
+ W "on field ",FIELD,"  ",$P(^DD(FILE,FIELD,0),U),!
+ N A S A=0
+ F  D  S A=$O(^DD(FILE,FIELD,1,IEN,A)) Q:'A
+ . W ?$S(A=0:3,1:6)
+ . W ^DD(FILE,FIELD,1,IEN,A),!
+ W !
+ Q

@@ -1,0 +1,188 @@
+AMHLCD ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 16-JAN-1997 ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;; ;
+ ;
+EP1(DFN) ;EP - CALLED FROM PROTOCOL
+ Q:'$G(DFN)
+ Q:'$D(^DPT(DFN))
+ Q:$P(^DPT(DFN,0),U,19)
+ D EN
+ D FULL^VALM1
+ K VALMHDR
+ Q
+EP ;EP CALLED FROM DATA ENTRY
+ Q:'$G(AMHPAT)
+ S DFN=AMHPAT
+ S Y=AMHPAT D ^AUPNPAT
+ D EN
+ Q
+START ;update case data
+ K AMHCASE,AMHX
+ W:$D(IOF) @IOF W !!,"***  Update Patient Case Data   ***",!!
+ S DFN="" F  D GETPAT Q:DFN=""  D EN,FULL^VALM1,EXIT
+ D EOJ
+ Q
+EN ; -- main entry point for AMH UPDATE PATIENT CASE DATA
+ D EN^VALM("AMH UPDATE PATIENT CASE DATA")
+ K AMHCASE,AMHX,AMHD,AMHRCNT,AMHLINE,AMHCDATE
+ Q
+ ;
+HDR ; -- header code
+ S VALMHDR(1)=$TR($J(" ",80)," ","-")
+ S VALMHDR(2)="Patient Name: "_$E($P(^DPT(DFN,0),U),1,24)_"   DOB: "_$$DATE($P(^DPT(DFN,0),U,3))_"   Sex: "_$P(^DPT(DFN,0),U,2)_"   HRN: "_$S($D(^AUPNPAT(DFN,41,DUZ(2),0)):$P(^AUPNPAT(DFN,41,DUZ(2),0),U,2),1:"??????")
+ S VALMHDR(3)=$TR($J(" ",80)," ","-")
+ S VALMHDR(4)=""
+ S VALMHDR(5)="#   PROGRAM  OPEN      ADMIT     CLOSED   DISPOSITION           PROVIDER"
+ Q
+ ;
+GETPAT ;
+ S DFN=""
+ W:$D(IOF) @IOF
+ W !!!!!!!!?20,"TYPE THE PATIENT'S HRN, NAME, SSN OR DOB" S DIC("A")="                    Patient:  "
+ S DFN=""
+ S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC
+ I Y<0 Q
+ S DFN=+Y
+ I $G(AUPNDOD)]"" W !!?10,"***** PATIENT'S DATE OF DEATH IS ",$$FMTE^XLFDT(AUPNDOD),!! H 2
+ Q
+INIT ; -- init variables and list array
+ S VALMSG="?? for more actions  + next screen  - prev screen"
+ D GATHER ;gather up all records for display
+ S VALMCNT=AMHLINE
+ Q
+ ;
+GATHER ;
+ S AMHRCNT=0,AMHLINE=0
+ S AMHD=0 F  S AMHD=$O(^AMHPCASE("AA",DFN,AMHD)) Q:AMHD'=+AMHD  D
+ .S AMHX=0 F  S AMHX=$O(^AMHPCASE("AA",DFN,AMHD,AMHX)) Q:AMHX'=+AMHX  D
+ ..Q:'$$ALLOWCD(DUZ,AMHX)  ;DON'T ALLOW VIEWING OF CASES NOT BY THIS PROVIDER IS NOT IN SDE
+ ..S AMHRCNT=AMHRCNT+1,AMHLINE=AMHLINE+1,%=^AMHPCASE(AMHX,0),Y=AMHRCNT
+ ..S $E(Y,5)=$E($$VAL^XBDIQ1(9002011.58,AMHX,.03),1,6),$E(Y,14)=$$FMTE^XLFDT($P(%,U),"2E"),$E(Y,24)=$$FMTE^XLFDT($P(%,U,4),"2E"),$E(Y,34)=$$FMTE^XLFDT($P(%,U,5),"2E")
+ ..S $E(Y,43)=$E($$VAL^XBDIQ1(9002011.58,AMHX,.06),1,20),$E(Y,65)=$E($$VAL^XBDIQ1(9002011.58,AMHX,.08),1,15)
+ ..S AMHCASE(AMHLINE,0)=Y,AMHCASE("IDX",AMHLINE,AMHRCNT)=AMHX
+ ..I $$VAL^XBDIQ1(9002011.58,AMHX,1101)]"" S AMHLINE=AMHLINE+1,AMHCASE(AMHLINE,0)="    COMMENT: "_$E($$VAL^XBDIQ1(9002011.58,AMHX,1101),1,58)_" **",AMHCASE("IDX",AMHLINE,AMHRCNT)=AMHX
+ ..I $P(%,U,9)]""!($P(%,U,12)]"") S AMHLINE=AMHLINE+1 D
+ ...S AMHCASE(AMHLINE,0)="    Primary Problem: "_$S($P(%,U,9)]"":$P(^AMHPROB($P(%,U,9),0),U)_" "_$E($P(^AMHPROB($P(%,U,9),0),U,2),1,200),1:"")
+ ...S AMHCASE("IDX",AMHLINE,AMHRCNT)=""
+ ...S AMHLINE=AMHLINE+1
+ ...S AMHCASE(AMHLINE,0)="    Next Review: "_$$FMTE^XLFDT($P(%,U,12),"2E"),AMHCASE("IDX",AMHLINE,AMHRCNT)=""
+ Q
+ALLOWCD(S,R) ;EP - CAN THIS USER SEE THIS CASE FORM?
+ ;S is duz, R is CASE ien
+ I '$G(S) Q 0
+ I '$G(R) Q 0
+ I '$D(^AMHPCASE(R,0)) Q 0
+ NEW P
+ S P=$P($G(^AMHPCASE(R,0)),U,8)
+ ;I 'P Q 0
+ I $G(P)="" Q 1
+ I $D(^AMHSITE(DUZ(2),16,S)) Q 1  ;$$ALLOWP^AMHUTIL(S,P)  ;allow all with access
+ I $P(^AMHPCASE(R,0),U,8)=S Q 1  ;$$ALLOWP^AMHUTIL(S,P)   ;allow your own
+ Q 0
+ ;I $D(^AMHSITE(DUZ(2),16,DUZ)) Q 1  ;allow all with access
+ ;I $P(^AMHPCASE(R,0),U,8)=DUZ Q 1
+ ;Q 0
+GETDATE ;
+ W !!
+ S AMHCDATE="",DIR(0)="DO^:"_DT_":EPTX",DIR("A")="Enter CASE OPEN DATE" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ S AMHCDATE=Y
+ Q
+OPEN ;EP called from protocol to open a new case
+ D FULL^VALM1
+ W:$D(IOF) @IOF
+ W !!!!,"Opening a Case for ",$P(^DPT(DFN,0),U),!!
+ D GETDATE
+ Q:AMHCDATE=""
+ W !,"Creating new case..." K DD,D0,DO,DINUM,DIC,DA,DR S DIC(0)="EL",DIC="^AMHPCASE(",DLAYGO=9002011.58,DIADD=1,X=AMHCDATE,DIC("DR")=".02////"_DFN_";.11///^S X=DT"
+ D FILE^DICN K DIC,DR,DIE,DIADD,DLAYGO,X,D0
+ I Y=-1 W !!,$C(7),$C(7),"Behavioral Health Case Record failed !!  Deleting Record.",! D PAUSE^AMHLEA Q
+ S AMHPC=+Y
+ S DA=AMHPC,DDSFILE=9002011.58,DR="[AMH UPDATE CASE]" D ^DDS
+ I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S AMHQUIT=1 K DIMSG Q
+ ;CHECK RECORD
+ D DP
+ D EXIT
+ Q
+EDIT ;
+ S AMHPC=0
+ D EN^VALM2(XQORNOD(0),"OS")
+ I '$D(VALMY) W !,"No records selected." G EXIT
+ S AMHR1=$O(VALMY(0)) I 'AMHR1 K AMHR1,VALMY,XQORNOD W !,"No record selected." G EXIT
+ S (X,Y)=0 F  S X=$O(AMHCASE("IDX",X)) Q:X'=+X!(AMHPC)  I $O(AMHCASE("IDX",X,0))=AMHR1 S Y=$O(AMHCASE("IDX",X,0)),AMHPC=AMHCASE("IDX",X,Y)
+ I '$D(^AMHPCASE(AMHPC,0)) W !,"Not a valid BH CASE RECORD." K AMHR D PAUSE^AMHLEA D EXIT Q
+ D FULL^VALM1
+ S DA=AMHPC,DDSFILE=9002011.58,DR="[AMH UPDATE CASE]" D ^DDS
+ I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S AMHQUIT=1 K DIMSG Q
+ ;CHECK RECORD
+ I '$D(^AMHPCASE(AMHPC,0)) D EXIT Q
+ D DP
+ D EXIT
+ Q
+DP ;
+ ;if provider on the case data or DUZ matches any designated
+ ;provider, then delete that designated provider when case
+ ;is closed
+ Q:'$G(DA)
+ Q:'$D(^AMHPCASE(DA,0))
+ Q:$P(^AMHPCASE(DA,0),U,5)=""  ;case not closed
+ Q:'$D(^AMHPATR(DFN,0))  ;not patient data (designated provs)
+ NEW AMHA,AMHB
+ S AMHA=$P(^AMHPCASE(DA,0),U,8)
+ K DIE,DA,DR
+ I $P(^AMHPATR(DFN,0),U,2)=DUZ S DA=DFN,DR=".02///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ I $P(^AMHPATR(DFN,0),U,2)=AMHA S DA=DFN,DR=".02///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ I $P(^AMHPATR(DFN,0),U,3)=DUZ S DA=DFN,DR=".03///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ I $P(^AMHPATR(DFN,0),U,3)=AMHA S DA=DFN,DR=".03///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ I $P(^AMHPATR(DFN,0),U,4)=DUZ S DA=DFN,DR=".04///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ I $P(^AMHPATR(DFN,0),U,4)=AMHA S DA=DFN,DR=".04///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ I $P(^AMHPATR(DFN,0),U,12)=AMHA S DA=DFN,DR=".12///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ I $P(^AMHPATR(DFN,0),U,12)=DUZ S DA=DFN,DR=".12///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ ;I $P(^AMHPATR(DFN,0),U,13)=AMHA S DA=DFN,DR=".13///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ ;I $P(^AMHPATR(DFN,0),U,13)=DUZ S DA=DFN,DR=".13///@",DIE="^AMHPATR(" D ^DIE K DA,DIE,DR
+ Q
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ K AMHX,AMHCASE,AMHPC,AMHR1
+ D TERM^VALM0
+ S VALMBCK="R"
+ D GATHER
+ S VALMCNT=AMHLINE
+ D HDR
+ K X,Y,Z,I
+ Q
+EOJ ;
+ K DDSFILE,DIPGM,Y
+ K X,Y,%,DR,DDS,DA,DIC
+ K AMHCASE,AMHX,AMHD,AMHRCNT,AMHLINE,AMHCDATE
+ D:$D(VALMWD) CLEAR^VALM1
+ K VALM,VALMHDR,VALMKEY,VALMMENU,VALMSGR,VALMUP,VALMWD,VALMLST,VALMVAR,VALMLFT,VALMBCK,VALMCC,VALMAR,VALMBG,VALMCAP,VALMCOFF,VALMCNT,VALMCON,BALMON,VALMEVL,VALMIOXY
+ D KILL^AUPNPAT
+ Q
+DATE(D) ;
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_($E(D,1,3)+1700)
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+DEL ;EP - called from protocol entry
+ D FULL^VALM1
+ I '$D(^XUSEC("AMHZ DELETE RECORD",DUZ)) W !!,"You do not have the security access to delete a Case.",!,"Please see your supervisor or program manager.",! D PAUSE^AMHLEA,EXIT Q
+ S AMHPC=0
+ D EN^VALM2(XQORNOD(0),"OS")
+ I '$D(VALMY) W !,"No records selected." G EXIT
+ S AMHR1=$O(VALMY(0)) I 'AMHR1 K AMHR1,VALMY,XQORNOD W !,"No record selected." G EXIT
+ S (X,Y)=0 F  S X=$O(AMHCASE("IDX",X)) Q:X'=+X!(AMHPC)  I $O(AMHCASE("IDX",X,0))=AMHR1 S Y=$O(AMHCASE("IDX",X,0)),AMHPC=AMHCASE("IDX",X,Y)
+ I '$D(^AMHPCASE(AMHPC,0)) W !,"Not a valid BH CASE RECORD." K AMHR D PAUSE^AMHLEA D EXIT Q
+ D FULL^VALM1
+ ;are you sure??
+ S DIR(0)="Y",DIR("A")="Are you sure you want to delete this CASE",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I 'Y W !!,"Case not deleted." D PAUSE^AMHLEA,EXIT Q
+ S DA=AMHPC,DIK="^AMHPCASE(" D ^DIK
+ K DA,DIK
+ ;
+ D EXIT
+ Q

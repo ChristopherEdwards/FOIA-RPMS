@@ -1,0 +1,233 @@
+ASUJVALF ; IHS/ITSC/LMH -VALIDATE ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;;This routine is called to validate fields
+ S ASUV("DDSREFT")=DDSREFT D:$G(ASUSB) CKFLD^ASUJBTCH
+ Q
+BOIDX(X,E) ;EP;BO cancel idx
+ ;
+ D IDX(X,E) Q:$G(E)=1  Q:X=""
+ S ASUT(ASUT,"PT","REQ")=$O(^ASUMB("C",X,"")) I ASUT(ASUT,"PT","REQ")="" D  Q
+ .D BOIDX^ASUJHELP
+ S X(1)=$O(^ASUMB("C",X,ASUT(ASUT,"PT","REQ"))) I X(1)="" D
+ .D REQ^ASULDIRR(ASUT(ASUT,"PT","REQ"))
+ .S ASUT(ASUT,"PT","SST")=$G(ASUL(18,"SST","E#")),ASUT(ASUT,"SST")=$G(ASUL(18,"SST")) D SST^ASUJSAVE(ASUT(ASUT,"SST"))
+ .S ASUT(ASUT,"PT","USR")=$G(ASUL(19,"USR","E#")),ASUT(ASUT,"USR")=$G(ASUL(19,"USR")) D USR^ASUJSAVE(ASUT(ASUT,"USR"))
+ Q
+CAN(X,E) ;EP;Common Account #
+ I $G(ASUL(20,"REQ","E#"))="" D  Q:Y<0
+ .I $G(ASUL(18,"SST","E#"))="" D CANSS^ASUJHELP
+ .E  D
+ ..I $G(ASUL(19,"USR","E#"))="" D CANUS^ASUJHELP
+ ..E  D
+ ...D REQ^ASULDIRR(ASUL(19,"USR","E#")) I $G(ASUL(20,"REQ","E#"))]"" Q
+ ...D REQ^ASUJHELP
+ Q:$G(E)=1
+ S X("CAN")=$O(^ASUL(20,ASUL(20,"REQ","E#"),2,"B",X)) I X("CAN")="" D CAN^ASUJHELP Q
+ S ASUL(20,"CAN","E#")=$O(^ASUL(20,ASUL(20,"REQ","E#"),2,"B",X("CAN"),"")) D CAN^ASUJSAVE(X) Q
+CAT(X,E) ;EP;Category
+ I $G(ASUT)="" S Y=-1 S E=1 Q
+ I $G(ASUL(9,"ACC","E#"))="" D  Q:Y<0
+ .I $G(ASUT(ASUT,"ACC"))]"" D ACC^ASULDIRF(ASUT(ASUT,"ACC"))
+ .E  S Y=-1
+ .I Y<0 D CATAC^ASUJHELP
+ I $G(ASUL(3,"SOBJ","E#"))="" D  Q:Y<0
+ .I $G(ASUT(ASUT,"SOBJ"))]"" D SSO^ASULDIRF(ASUT(ASUT,"SOBJ"))
+ .E  S Y=-2
+ .I Y<0 D CATSO^ASUJHELP
+ D CAT^ASULDIRF(X) I Y<0 D CAT^ASUJHELP
+ E  D
+ .I $E(Y)=$G(ASUL(9,"ACC","E#")),$E(Y,1,3)=$G(ASUL(3,"SOBJ","E#")) S Y=0 D CAT^ASUJSAVE(X) S:$G(ASUT("TRCD"))="4C" ASUS("CHG")=1
+ .E  D CAT^ASUJHELP
+ Q
+EOQ(X,E) ;EP;EOQ Type
+ N F S F="EOQ" I X="" D CL Q
+ K E
+ I $G(ASUSB)'=1 D
+ .F Z="EQQM","EQMM","EQAM" D REQ^DDSUTL(Z,"","",0) D:$G(ASUSB)'=1 UNED^DDSUTL(Z,"","",1)
+ .F Z=52:1:54 D PUT^DDSVAL(DIE,.DA,Z,"")
+ D EOQ^ASULDIRF(.X) I Y<0 D HP Q
+ I $G(ASUT(ASUT,"RPQ"))]""&(+$G(ASUT(ASUT,"RPQ"))=0) D  Q
+ .I ASUL(6,"EOQTP")="P" D SV Q
+ .I ASUL(6,"EOQTP")="Y" D SV Q
+ .D EOQZR^ASUJHELP
+ I $G(ASUSB)=1 D  Q:$G(E)>0
+ .I ASUL(6,"EOQTP")="B" N Q S Q=$G(ASUT(ASUT,"EOQ QM")) D EQQM(.Q,.E) Q:$G(E)>0  S ASUT(ASUT,"EOQ QM")=Q Q
+ .I ASUL(6,"EOQTP")="C" N Q S Q=$G(ASUT(ASUT,"EOQ MM")) D EQMM(.Q,.E) Q:$G(E)>0  S ASUT(ASUT,"EOQ MM")=Q Q
+ .I (ASUL(6,"EOQTP")="D")!(ASUL(6,"EOQTP")="Q")!(ASUL(6,"EOQTP")="Y")  D EQAM($G(ASUT(ASUT,"EOQ AM")),.E)
+ E  D
+ .I ASUL(6,"EOQTP")="B" D REQ^DDSUTL("EQQM","","",1) D UNED^DDSUTL("EQMM","","",1)
+ .I ASUL(6,"EOQTP")="C" D REQ^DDSUTL("EQMM","","",1) D UNED^DDSUTL("EQMM","","",1)
+ .I (ASUL(6,"EOQTP")="D")!(ASUL(6,"EOQTP")="Q")!(ASUL(6,"EOQTP")="Y") D REQ^DDSUTL("EQAM","","",1) D UNED^DDSUTL("EQAM","","",1)
+ D SV Q
+EQMM(X,E) ;EP;Eoq Mo
+ K E N F S F="EQMM" I X?1N.N,X<13 S:$L(X)=1 X="0"_X D SV Q
+ D HP S E=1 Q
+EQQM(X,E) ;EP;Eoq Qty
+ K E N F S F="EQQM" I X?1N.N,$L(X)'>4 D SV Q
+ D HP S E=1 Q
+EQAM(X,E) ;EP;Eoq Act
+ K E N Z,F S Z=X,F="EQAM"
+ S X=$E(Z) I "0123"'[X D EQAM^ASUJHELP(1) S E=1 Q
+ S X=$E(Z,2) I "0456"'[X D EQAM^ASUJHELP(2) S E=1 Q
+ S X=$E(Z,3) I "0789"'[X D EQAM^ASUJHELP(3) S E=1 Q
+ S X=$E(Z,4,5) D  Q:$G(E)=1
+ .Q:X="10"  Q:X="11"  Q:X="12"  S E=1 D EQAM^ASUJHELP(4)
+ I +Z=0 D EQAM^ASUJHELP(0) S E=1 Q
+ S X=Z D SV Q
+FPN(X,E) ;EP;Fill
+ K E N F S F="FPN" I X="" D CL Q
+ I $G(ASUT)="" D FPNTR^ASUJHELP S ASUT(ASUT,"FPN")="" Q
+ S ASUT(ASUT,"FPN")=X
+ I F[X,$G(ASUT(ASUT,"PST"))="I",ASUT(ASUT,"QTY","REQ")]"" N Z S Z=ASUT(ASUT,"QTY","REQ") D FILLSTAT^ASU3IUPD(.Z)
+ I $G(ASUT("TRCD"))="32",$G(ASUT)]"" I ASUT(ASUT,"PST")="" S (ASUT(ASUT,"FPN"),X)="",Y=0 Q
+ I $G(ASUT("TRCD"))="22",ASUT(ASUT,"PON")]"",$G(ASUS("PON"))="" N Z S Z=ASUT(ASUT,"PON") D POCK^ASU2RUPD(.Z) Q:$G(E)
+ I $G(ASUT(ASUT,"QTY"))>0,"FP"[X S Y=0 D SV Q
+ I $G(ASUT(ASUT,"QTY"))=0 S X="N" S Y=0 D SV Q
+ D FPNQT^ASUJHELP S ASUT(ASUT,"FPN")="" Q
+IDX(X,E) ;EP;Index
+ K E N F S F="IDX" I X="" D CL Q
+ I $G(ASUT("TRCD"))="4A" D  Q:$G(E)=1
+ .D IDXM11(.X) Q:Y  D IDX11^ASUJHELP
+ K Y S ASUMX("IDX")=X
+ D DIX^ASUMDIRM(.X)
+ ;I ASUJ'=4&(ASUJ'=5) D  ;WAR 5/10/99  LOOK BELOW FOR 5D CHECK
+ I ASUJ'=4 D
+ .D DISX^ASUMDIRM(X)
+ ;E  D
+ ;.D DIX^ASUMDIRM(.X)
+ I $G(ASUT("TRCD"))="4A" D
+ .I Y>0 D
+ ..D IDXOF^ASUJHELP
+ .E  D
+ ..S (ASUMX("E#","IDX"),ASUT(ASUT,"IDX","PT"))=X
+ ..D SV
+ E  D
+ .I Y<0 D
+ ..I Y=-9,$E(ASUT("TRCD"),2)="D" D IDXDL^ASUJHELP Q
+ ..D IDXNF^ASUJHELP
+ .E  D
+ ..;I ASUT("TRCD")="5D" D DISX^ASUMDIRM(X)  ;WAR 4/29/99
+ ..D READ^ASUMXDIO I ASUMX("DELDS")]"" D IDXDL^ASUJHELP S E=1 Q
+ ..K ASUT(ASUT,"IDX"),ASUT(ASUT,"PT","IDX")
+ ..I $E(ASUT("TRCD"))'=4 D
+ ...I ASUT("TRCD")="5A" D
+ ....N Z S Z=$G(^ASUMS(ASUL(2,"STA","E#"),1,ASUMX("E#","IDX"),0))
+ ....I Z]"",$P(Z,U)'[999999 D SIXOF^ASUJHELP
+ ...E  D
+ ....S ASUMS("E#","IDX")=ASUMX("E#","IDX") D ^ASUMSTRD
+ ..D SV
+ Q
+IDXM11(X,E) ;EP;Idx # 'Mod11' Algol
+ N Z S:X'?6N X=$P($FN((X*.000001),",",6),".",2) I $L(X)>6!(X'?.N)!(X'>0) S Y(1)=9 S E=1 Q
+ S Z="000000",X=$E(Z,1,6-$L(X))_X I X=Z S E=1 Q
+ S Y(1)=$E(X)*6,Y(1)=Y(1)+($E(X,2)*5),Y(1)=Y(1)+($E(X,3)*4),Y(1)=Y(1)+($E(X,4)*3),Y(1)=Y(1)+($E(X,5)*2),Y(1)=Y(1)+($E(X,6)*1),Y(1)=Y(1)#11,Y=X
+ I Y(1)'=0 S E=1,Y=-1
+ K Y(1) Q
+KEY(X,E) ;EP;Key
+ N F S F="KEY" I X="" D CL Q
+ D SV Q
+NSN(X,E) ;EP;Natl Stk #
+ K E N F S F="NSN" I X="" D CL Q
+ S Y=-1 I X?4N,X>0 S Y=X
+ I $L(X)=13,X?4N.2AN.7N,$E(X,1,4)>0,$E(X,7,13)>0 S Y=X Q
+ I $L(X)=14,X?4N.2AN.7N.1A,$E(X,1,4)>0,$E(X,7,13)>0 S Y=X Q
+ I Y>0 D
+ .D SV S:$G(ASUT("TRCD"))="4C" ASUS("CHG")=1
+ E  D
+ .I $G(ASUT("TRCD"))="4C",X="" Q
+ .D HP
+ Q
+ORD(X,E) ;EP;Order #
+ K E N F S F="ORD" I X="" D CL Q
+ I X?1"M".AN D SV Q
+ I X?1N.12N.AP D SV Q
+ D HP Q
+PON(X,E) ;EP;Prchs Ord #
+ K E N F S F="PON" I X="" D CL Q
+ I $E(X)=0,+X=0 D HP Q
+ I X'?.UNP D HP Q
+ I ASUT("TRCD")=22 D POCK^ASU2RUPD(.X) Q:$G(E)
+ D SV Q
+PST(X,E) ;EP;Post
+ K E N F S F="PST" I X="" D CL,SV Q
+ I $G(ASUL(1,"AR","WHSE"))=0 S X="I",Y=0
+ I X="I" D  Q
+ .N Z F Z="QTY","FPN","ISSQTY","ISSVAL" D
+ ..D:$G(ASUSB)'=1 UNED^DDSUTL(Z,"","",0)
+ .D SV
+ D HP Q
+QTY(X,E) ;EP;Qty Recvd/Issued
+ ;IN ASUJVALF
+ K E N F S F="QTY" I X="" D CL Q
+ I $G(ASUT(ASUT,"PST"))="I",ASUT(ASUT,"QTY","REQ")="" S E=1,X="" D CL Q
+ S ASUT(ASUT,"QTY")=X D NUM^ASUJVALD Q:$G(E)
+ I ASUT("TYPE")'=1,ASUT("TRCD")'=32 D  Q:$G(E)>0
+ .I $G(ASUT(ASUT,"IDX"))="" D  Q
+ ..S E=1 D IDXFS^ASUJHELP S X="" D CL
+ .I $G(ASUMS("QTY","O/H"))+(X*ASUT(ASUT,"SIGN"))<0 S E=2 D QTYCB^ASUJHELP Q
+ I $G(E) D HP Q
+ D QTYVAL
+ I $G(E)>0 D CL Q
+ D SV Q
+QTYR(X,E) ;EP;Qty Req
+ K E N F S F="QTY" I X="" D CL Q
+ S (ASUT(ASUT,"QTY"),ASUT(ASUT,"QTY","REQ"))=X D NUM^ASUJVALD Q:$G(E)=1
+ D:ASUT(ASUT,"PST")="I" PST("I") D FILLSTAT^ASU3IUPD(.X) Q:$G(E)=""
+ D HP Q
+RTP(X,E) ;EP;Req type
+ K E N F S F="RTP" I X="" D CL Q
+ I "12"'[X S E=1 D HP Q
+ D SV Q
+STA(X,E) ;EP;Station
+ K E N F S F="STA" I X="" D CL Q
+ I X=$G(ASUL(2,"STA","CD")) S Y=$G(ASUL(2,"STA","E#"))
+ E  I X=$G(ASUL(2,"STA","E#")) S X=$G(ASUL(2,"STA","CD")),Y=ASUL(2,"STA","E#")
+ I X'?2N!($G(Y)'?5N) D HP Q
+ I X]"" D STA^ASULARST(.X),SV
+ Q
+VAL(X,E) ;EP;Value
+ K E N F,W S F="VAL" I X="" D CL Q
+ D DOL^ASUJVALD Q:$G(E)
+ I $G(ASUT("TRCD"))?1N.1A S W=1
+ E  S W=0
+ I X<W!X>99999999.99 D VAL^ASUJHELP(W) Q
+ I ASUT("TYPE")'=1,ASUT("TRCD")'=32 I ASUMS("VAL","O/H")+(X*ASUT(ASUT,"SIGN"))<0 S E=3 D VALCB^ASUJHELP Q
+ D QTYVAL I $G(E)>0 D CL Q
+ D SV Q
+QTYVAL ;EP;Ck Credit Qty/Val
+ Q:$G(E)>0  K E
+ Q:ASUT("TYPE")<2  Q:ASUT("TRCD")=32
+ I $G(ASUT(ASUT,"QTY"))]"",$G(ASUT(ASUT,"VAL"))]"" D
+ .N Z S Z("VAL")=ASUMS("VAL","O/H")+(ASUT(ASUT,"VAL")*ASUT(ASUT,"SIGN"))
+ .S Z("QTY")=ASUMS("QTY","O/H")+(ASUT(ASUT,"QTY")*ASUT(ASUT,"SIGN"))
+ .I Z("VAL")<0 D VALCB^ASUJHELP Q
+ .I Z("QTY")<0 D QTYCB^ASUJHELP Q
+ .I Z("VAL")=0&(Z("QTY")>0) D QTYVAL0^ASUJHELP Q
+ .I Z("QTY")=0&(Z("VAL")>0) D VALQTY0^ASUJHELP Q
+ Q
+VEN(X,E) ;EP;Vendor
+ K E N F S F="VEN" I X="" D CL Q
+ D VENLKU(.X,.E) D SV:X]""
+ Q
+VENLKU(X,E) ;EP;Vendor lookup
+ S DIC=9999999.11,DIC(0)="MS" D ^DIC
+ I Y>0 S ASUT(ASUT,"PT","VEN")=+Y,ASUT(ASUT,"VEN NM")=$P(Y,U,2)
+ E  S ASUT(ASUT,"VEN NM")=X,ASUT(ASUT,"PT","VEN")=""
+ Q
+VOU(X,E) ;EP;Voucher #
+ K E N F S F="VOU" I X="" D CL Q
+ I '$D(ASUK("DT","FM")) D DAYTIM^ASUUDATE S ASUF("DT")=1
+ I X["-" S Y("Y")=$P(X,"-"),Y("M")=$P(X,"-",2),Y("S")=$P(X,"-",3)
+ E  S Y("Y")=$E(X,1,2),Y("M")=$E(X,3,4),Y("S")=$E(X,5,8)
+ I Y("M")<1!(Y("M")>12) D VOUMO^ASUJHELP Q
+ S Y("F")=1,Y("D")=ASUK("DT","CFY")-Y("Y") S:Y("F")=2&(Y("D")=-1) Y("D")=1
+ I Y("D")>Y("F")!(Y("D")<0&(ASUK("DT","CFY")'="00")) D VOUYR^ASUJHELP Q
+ I Y("S")'>0 D VOUSR^ASUJHELP Q
+ I $L(Y("S"))<4!($L(Y("S"))>4) D HP Q
+ S X=Y("Y")_"-"_Y("M")_"-"_Y("S") D:$G(ASUT)]"" SV K:$D(ASUF("DT")) ASUK("DT") Q
+CL ;
+ N Z S Z="D "_F_"^ASUJCLER" X Z Q
+SV ;Save
+ N Z S Z="D "_F_"^ASUJSAVE(.X)" X Z Q
+HP ;Help
+ N Z S Z="D "_F_"^ASUJHELP" S:F="VAL" Z=Z_$S($G(ASUT("TRCD"))?1N.1A:"(1)",1:"(0)") X Z Q

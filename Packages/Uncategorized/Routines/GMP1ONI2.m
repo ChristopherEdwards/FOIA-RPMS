@@ -1,0 +1,11 @@
+GMP1ONI2 ; ; 01-SEP-1995
+ ;;2.0;Problem List;**3**;AUG 25, 1994
+ ;
+ ;
+ K ^UTILITY("ORVROM",$J),DIC
+ Q
+DT W !
+ I '$D(DTIME) S DTIME=999
+ K %DT D NOW^%DTC S DT=X
+ K DIK,DIC,%I,DICS Q
+ ;

@@ -1,0 +1,140 @@
+BRNRUP ; IHS/OIT/LJF - REPORT UTILITY PRINT LOGIC
+ ;;2.0;RELEASE OF INFO SYSTEM;*1*;APR 10, 2003
+ ;IHS/OIT/LJF 10/25/2007 PATCH 1 Added this routine
+ ;
+START ;EP - Begin processing print logic
+ ; if user selected delimited file, go there
+ I BRNCTYP="L" D DELIMIT^BRNRUP3 Q
+ ;
+ ; Otherwise, set up header line, dash line
+ NEW I,J,K,X
+ S BRNFCNT=0
+ S X=0,BRNHEAD="" F  S X=$O(^BRNRPT(BRNRPT,12,X)) Q:X'=+X  D
+ . S BRNHDR=$P(^BRNSORT($P(^BRNRPT(BRNRPT,12,X,0),U),0),U,6)              ;column header
+ . S BRNLENG=$P(^BRNRPT(BRNRPT,12,X,0),U,2),BRNHDR=$E(BRNHDR,1,BRNLENG)   ;print item length
+ . S J=$L(BRNHDR),BRNHEAD=BRNHEAD_BRNHDR,K=BRNLENG+1 F I=J:1:K S BRNHEAD=BRNHEAD_" "  ;space items across page
+ S BRNDASH="",$P(BRNDASH,"-",BRNTCW)="-"   ;dash line
+ ;
+ S BRNTITL=$$GET1^DIQ(90264.8,BRNRPT,1303)
+ ;
+ D COVPAGE^BRNRUP1 ;print cover page - note: if user ^'s out of cover page, processing continues
+ ;
+PROC ;process printing of report
+ I BRNCTYP="T" D DONE^BRNRUP2 Q  ; if displaying only total, that was done in the cover page - go to done
+ ;
+ S BRNPG=0 I '$D(^XTMP("BRNVL",BRNJOB,BRNBTH)) D DONE^BRNRUP2 Q
+ ;
+ S (BRNSRTV,BRNFRST)="" K BRNQUIT
+ F  S BRNSRTV=$O(^XTMP("BRNVL",BRNJOB,BRNBTH,"DATA HITS",BRNSRTV)) Q:BRNSRTV=""!($D(BRNQUIT))  D V
+ I $D(BRNQUIT) D DONE^BRNRUP2 Q
+ I $Y>(IOSL-4) D HEAD I $D(BRNQUIT) D DONE^BRNRUP2 Q
+ I $D(BRNRCNT) W !!!,"Total Disclosure Requests:  ",BRNRCNT
+ W !,"Total Patients:  ",BRNPTCT
+ D DONE^BRNRUP2
+ Q
+ ;
+V ;GETS DATA HITS
+ S BRNSCNT=0
+ ;get readable sort value
+ K BRNPRNT
+ S BRNSRTR="",BRNVIEN=$O(^XTMP("BRNVL",BRNJOB,BRNBTH,"DATA HITS",BRNSRTV,0)) I BRNVIEN]"" S BRNCRIT=BRNSORT D
+ . S BRNVREC=^BRNREC(BRNVIEN,0),DFN=$P(BRNVREC,U,3)
+ . X:$D(^BRNSORT(BRNSORT,3)) ^(3) S BRNSRTR=BRNPRNT
+ ;
+ ; if first page or subtotal page, print heading
+ I $G(BRNSPAG)!($D(BRNFRST)) K BRNFRST D HEAD Q:$D(BRNQUIT)
+ ;
+ ; pull each record
+ S BRNVIEN=0 F  S BRNVIEN=$O(^XTMP("BRNVL",BRNJOB,BRNBTH,"DATA HITS",BRNSRTV,BRNVIEN)) Q:BRNVIEN'=+BRNVIEN!($D(BRNQUIT))  D
+ . S BRNVREC=^BRNREC(BRNVIEN,0),DFN=$P(BRNVREC,U,3) D PRINT
+ ;
+ Q:$D(BRNQUIT)
+ I $Y>(IOSL-3) D HEAD Q:$D(BRNQUIT)
+ ;
+ I $G(BRNSPAG) D
+ . W !!,"SUB-TOTAL for ",BRNSORV," ",$S(BRNSRTR]"":BRNSRTR,1:"*Unanswered*"),":  ",BRNSCNT
+ . W "    # of PATIENTS:  "
+ . W $S($D(^XTMP("BRNVL",BRNJOB,BRNBTH,"SUB PAT COUNT",BRNSRTV)):^XTMP("BRNVL",BRNJOB,BRNBTH,"SUB PAT COUNT",BRNSRTV),1:0)
+ ;
+ I BRNCTYP="S" D
+ . W !,?10,$E($S(BRNSRTR]"":BRNSRTR,1:"*Unanswered*"),1,30)
+ . W ?43,$J(BRNSCNT,8)," (Records)"
+ . W ?53,$S($D(^XTMP("BRNVL",BRNJOB,BRNBTH,"SUB PAT COUNT",BRNSRTV)):$J(^XTMP("BRNVL",BRNJOB,BRNBTH,"SUB PAT COUNT",BRNSRTV),8),1:0)
+ . W " (Patients)"
+ Q
+ ;
+PRINT ;
+ S BRNSCNT=BRNSCNT+1 Q:BRNCTYP="S"
+ K ^XTMP("BRNLINE",$J) S ^XTMP("BRNLINE",$J,1)=""
+ I $Y>(IOSL-5) D HEAD Q:$D(BRNQUIT)
+ S BRNI=0 F  S BRNI=$O(^BRNRPT(BRNRPT,12,BRNI)) Q:BRNI'=+BRNI!($D(BRNQUIT))  S BRNCRIT=$P(^BRNRPT(BRNRPT,12,BRNI,0),U) D
+ . I '$P(^BRNSORT(BRNCRIT,0),U,8) D SINGLE Q
+ . D MULT
+ ;
+ S BRNX=0 F  S BRNX=$O(^XTMP("BRNLINE",$J,BRNX)) Q:BRNX'=+BRNX!($D(BRNQUIT))  D
+ . I $Y>(IOSL-4) D HEAD Q:$D(BRNQUIT)
+ . W !,^XTMP("BRNLINE",$J,BRNX)
+ Q
+ ;
+SINGLE ;process single valued item
+ K BRNPRNT
+ S BRNX=0
+ X:$D(^BRNSORT(BRNCRIT,3)) ^(3)    ;print logic
+ S BRNLENG=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2),BRNPRNT=$E(BRNPRNT,1,BRNLENG) D
+ . S J=$L(BRNPRNT),^XTMP("BRNLINE",$J,1)=^XTMP("BRNLINE",$J,1)_BRNPRNT
+ . S K=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2)+1 F I=J:1:K S ^XTMP("BRNLINE",$J,1)=^XTMP("BRNLINE",$J,1)_" "
+ . S X=1 F  S X=$O(^XTMP("BRNLINE",$J,X)) Q:X'=+X  D
+ . . I $L(^XTMP("BRNLINE",$J,X))<$L(^XTMP("BRNLINE",$J,1)) D
+ . . . S K=$L(^XTMP("BRNLINE",$J,X))+1,J=$L(^XTMP("BRNLINE",$J,1)) F I=K:1:J S ^XTMP("BRNLINE",$J,X)=^XTMP("BRNLINE",$J,X)_" "
+ Q
+ ;
+MULT ;process multiple valued item
+ K BRNPRNT,BRNPRNM,BRNY S (BRNX,BRNPCNT)=0
+ X:$D(^BRNSORT(BRNCRIT,3)) ^(3)    ;set BRNPRNM array
+ ;
+ ; if user only wants those items that match screening criteria, delete the others in the array
+ I $P(^BRNRPT(BRNRPT,12,BRNI,0),U,3) D
+ . S X=0 F  S X=$O(BRNPRNM(X)) Q:X'=+X  D
+ .  .S Z=$G(BRNPRNM(X,"I")) I Z="" K BRNPRNM(X) Q
+ . . I '$D(^BRNRPT(BRNRPT,11,BRNCRIT,11,"B",Z)) K BRNPRNM(X)
+ ;
+ ;reset array subscripts to account for deleted entries
+ K Y S (X,C)=0 F  S X=$O(BRNPRNM(X)) Q:X'=+X  S C=C+1,Y(C)=BRNPRNM(X)
+ K BRNPRNM S X=0 F  S X=$O(Y(X)) Q:X'=+X  S BRNPRNM(X)=Y(X)
+ ;
+ ; if nothing to print, use 2 dashes
+ I '$D(BRNPRNM) S BRNPRNT="--" D
+ . S BRNLENG=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2),BRNPRNT=$E(BRNPRNT,1,BRNLENG) D
+ . . S J=$L(BRNPRNT),^XTMP("BRNLINE",$J,1)=^XTMP("BRNLINE",$J,1)_BRNPRNT
+ . . S K=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2)+1 F I=J:1:K S ^XTMP("BRNLINE",$J,1)=^XTMP("BRNLINE",$J,1)_" "
+ ;
+ ; loop through array and set print lines into ^XTMP
+ S X=0 F  S X=$O(BRNPRNM(X)) Q:X'=+X  D
+ . I X=1 D  Q
+ . . S BRNLENG=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2),BRNPRNT=$E(BRNPRNM(1),1,BRNLENG) D
+ . . . S J=$L(BRNPRNT),^XTMP("BRNLINE",$J,1)=^XTMP("BRNLINE",$J,1)_BRNPRNT
+ . . . S K=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2)+1 F I=J:1:K S ^XTMP("BRNLINE",$J,1)=^XTMP("BRNLINE",$J,1)_" "
+ . ;
+ . S BRNLENG=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2),BRNPRNT=$E(BRNPRNM(X),1,BRNLENG) D
+ . . I '$D(^XTMP("BRNLINE",$J,X)) D
+ . . . S ^XTMP("BRNLINE",$J,X)="",K=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2)+1
+ . . . S $P(^XTMP("BRNLINE",$J,X)," ",($L(^XTMP("BRNLINE",$J,1))-K))=""
+ . . S J=$L(BRNPRNT),^XTMP("BRNLINE",$J,X)=^XTMP("BRNLINE",$J,X)_BRNPRNT
+ . . S K=$P(^BRNRPT(BRNRPT,12,BRNI,0),U,2)+1 F I=J:1:K S ^XTMP("BRNLINE",$J,X)=^XTMP("BRNLINE",$J,X)_" "
+ ;
+ S X=1 F  S X=$O(^XTMP("BRNLINE",$J,X)) Q:X'=+X  D
+ . I $L(^XTMP("BRNLINE",$J,X))<$L(^XTMP("BRNLINE",$J,1)) D
+ . . S K=$L(^XTMP("BRNLINE",$J,X))+1,J=$L(^XTMP("BRNLINE",$J,1)) F I=K:1:J S ^XTMP("BRNLINE",$J,X)=^XTMP("BRNLINE",$J,X)_" "
+ Q
+ ;
+DIQ ;EP; called by field PRINT LOGIC in ROI REPORTING UTILITY SORT file
+ K BRNPRNT,BRNFILE,BRNFIEL
+ S BRNFILE=$P($P(^BRNSORT(BRNCRIT,0),U,4),","),BRNFIEL=$P($P(^(0),U,4),",",2)
+ S DIQ(0)="EN",DIQ="BRNPRNT(",DIC=BRNFILE,DR=BRNFIEL D EN^DIQ1 K DIC,DR,DIQ
+ I '$D(BRNPRNT(BRNFILE,DA,BRNFIEL,"E")) S BRNPRNT(BRNFILE,DA,BRNFIEL,"E")="--"
+ S BRNPRNT=BRNPRNT(BRNFILE,DA,BRNFIEL,"E")
+ Q
+ ;
+HEAD ;ENTRY POINT
+ D HEAD^BRNRUP2
+ Q

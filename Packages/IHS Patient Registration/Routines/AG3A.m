@@ -1,0 +1,189 @@
+AG3A ; IHS/ASDS/EFG - ENTER & EDIT NON-MANDATORY DATA ;  
+ ;;7.1;PATIENT REGISTRATION;**4**;AUG 25,2005
+ ;
+ ;AG*7.1 #  IHS/SD/TPF 
+ ; ADDED SITE SPECIFIC MANDATORY FIELD CHECK AT SSN+8
+ ; ADDED CHECK FOR SITE MANDATORY FIELDS MAILING ADDRESSES,PHONE
+ ;
+SSN ;EP - Social Security Number.
+ N AGVERFY S AGVERFY=0  ;VERIFIED FLAG AG*7.1*4
+ S AGOLD("SSN")=$P(^DPT(DFN,0),U,9)
+ I $P(^AUPNPAT(DFN,0),U,23)]"" D        ;SSN VERIFICATION STATUS
+ .I $D(^AUTTSSN($P(^AUPNPAT(DFN,0),U,23),0)) D
+ .. I "V"[$P(^AUTTSSN($P(^AUPNPAT(DFN,0),U,23),0),U) D
+ ... S AGVERFY=1  ;VERIFIED FLAG AG*7.1*4
+ ... ;IHS/SD/TPF AG*7.1*4 TAKE OUT MESSAGE BELOW
+ ... ;W !!,*7,"The SSN has been Verfied by the SSA do not change it unless you're"
+ ... ;W !,"that it is incorrect!"
+ D S2
+ I $$ISREQ^AGFLDREQ(2,.09) S DIE("NO^")="",DR=".09R"
+ E  S DR=.09
+ ;IHS/SD/TPF AG*7.1*4 ADD MESSAGE
+ I AGVERFY D  Q
+ .W !,"THE SSN HAS BEEN VERIFIED BY THE SSA AND CANNOT BE EDITED."
+ .K DIR
+ .S DIR(0)="E"
+ .D ^DIR
+ ;END IHS/SD/TPF AG*7.1*4 
+ ;
+ D END
+ I $P(^DPT(DFN,0),"^",9)'=AGOLD("SSN") D
+ . S DIE="^AUPNPAT("
+ . S DA=DFN
+ . S DR=".23///@"  ;SSN VERIFICATION STATUS
+ . D ^DIE
+ K AGOLD("SSN")
+ Q:$G(DUOUT)
+ G NOSSN:$P(^DPT(DFN,0),U,9)=""
+ I $P(^AUPNPAT(DFN,0),U,24)]"" D
+ . S DIE="^AUPNPAT("
+ . S DA=DFN
+ . S DR=".24///@"    ;REASON FOR NO SSN
+ . D ^DIE
+ Q
+ ;
+NOSSN ;EP
+ W *7,!!!?5,"*************************** SSN MISSING ***************************"
+ W !?5,"The SSN is Required, Please indicate the Reason for Non-collection."
+ W !?16,"(If the SSN is known, press RETURN to enter it)"
+ K DIR
+ S DIR(0)="SO^1:Not Available;2:Patient Refused;3:Patient will Submit"
+ S DIR("A")="REASON for No SSN"
+ D ^DIR
+ K DIR
+ Q:Y="^"
+ G SSN:$D(DIRUT)!$D(DIROUT)
+ S DIE="^AUPNPAT("
+ S DA=DFN
+ S DR=".24////"_Y
+ D ^DIE
+ Q
+COB ;EP - City of Birth.
+ D S2
+ S DR=.092
+ D END
+ Q
+SOB ;EP - State Of Birth.
+ D S2
+ S DR=.093
+ D END
+ Q
+ ;
+ ;NEW CODE AG*7.1*4 THIS WAS TAKEN BACK OUTPER BEAT SITE REQUEST
+ALLADDR ;EP - EDIT ALL ADDRESSES - CONFIRM TO ADD TO PRVIOUS ADDRESS MULTIPLE
+ N OLDST,OLDADDR2,OLDADDR3,OLDCITY,OLDSTATE,OLDZIP,OLDHPH
+ N NEWST,NEWADDR2,NEWADDR3,NEWCITY,NEWSTATE,NEWZIP,NEWHPH
+ S OLDST=$$GET1^DIQ(2,DFN_",",.111)
+ S OLDADDR2=$$GET1^DIQ(2,DFN_",",.112)
+ S OLDADDR3=$$GET1^DIQ(2,DFN_",",.113)
+ S OLDCITY=$$GET1^DIQ(2,DFN_",",.114)
+ S OLDSTATE=$$GET1^DIQ(2,DFN_",",.115)
+ S OLDZIP=$$GET1^DIQ(2,DFN_",",.116)
+ S OLDHPH=$$GET1^DIQ(2,DFN_",",.131)
+ALLADDR1 D ST
+ALLADDR2 D ADDR2^AGED1
+ALLADDR3 D ADDR3^AGED1
+ALLADDR4 D CITY
+ALLADDR5 D STATE
+ALLADDR6 D ZIP
+ALLADDR7 D HPH
+ S NEWST=$$GET1^DIQ(2,DFN_",",.111)
+ S NEWADDR2=$$GET1^DIQ(2,DFN_",",.112)
+ S NEWADDR3=$$GET1^DIQ(2,DFN_",",.113)
+ S NEWCITY=$$GET1^DIQ(2,DFN_",",.114)
+ S NEWSTATE=$$GET1^DIQ(2,DFN_",",.115)
+ S NEWZIP=$$GET1^DIQ(2,DFN_",",.116)
+ S NEWHPH=$$GET1^DIQ(2,DFN_",",.131)
+ASKADD ;EP - ADD ADDRESS AS HISTORICAL
+ Q:$G(OLDST)=$G(NEWST)&($G(OLDADDR2)=$G(NEWADDR2))&($G(OLDADDR3)=$G(NEWADDR3))&($G(OLDCITY)=$G(NEWCITY))&($G(OLDSTATE)=$G(NEWSTATE))&($G(OLDZIP)=$G(NEWZIP))&($G(OLDHPH)=$G(NEWHPH))
+ N DUOUT,DTOUT,DFOUT
+ K DIR
+ S DIR(0)="Y"
+ S DIR("A")="Should this new mail address be added to the historical addresses"
+ S DIR("B")="Y"
+ D ^DIR
+ Q:'Y!$D(DTOUT)!$D(DUOUT)
+ W !!,"Adding to PREVIOUS MAIL ADDRESSES FIELD...." H 2
+ D UPDTHADD^AGUTILS(DFN,"N")  ;N SIGNIFIES THIS IS AN EDIT AND NOT A POST INSTALL FORCE
+ Q
+ ;END NEW CODE
+ ;
+ST ;EP - Mailing Street Address.
+ S OLDST=$$GET1^DIQ(2,DFN_",",.111)  ;AG*7.1*4
+ D S2
+ I $$ISREQ^AGFLDREQ(2,.111) S DIE("NO^")="",DR=".111R"
+ E  S DR=.111
+ D END
+ S NEWST=$$GET1^DIQ(2,DFN_",",.111)  ;AG*7.1*4
+ Q
+CITY ;EP - Mailing City.
+ S OLDCITY=$$GET1^DIQ(2,DFN_",",.114)  ;AG*7.1*4 
+ D S2
+ I $$ISREQ^AGFLDREQ(2,.114) S DIE("NO^")="",DR=".114R"
+ E  S DR=.114
+ D END
+ S NEWCITY=$$GET1^DIQ(2,DFN_",",.114)  ;AG*7.1*4
+ ;GO TO PREVIOUS QUESTION IF TIMED OUT
+ Q:$D(DTOUT)
+ W *7,!!,"*** If you changed the city, you may need to change the"
+ W !,"*** Community of Residence fields shown below."
+ W !,"*** If not, just press RETURN to continue.",!
+ D EDCOM^AG2B
+ Q
+STATE ;EP - Mailing State.
+ S OLDSTATE=$$GET1^DIQ(2,DFN_",",.115)  ;AG*7.1*4
+ D S2
+ S DR=.115
+ I $$ISREQ^AGFLDREQ(2,.115) S DIE("NO^")="",DR=".115R"
+ E  S DR=.115
+ D END
+ S NEWSTATE=$$GET1^DIQ(2,DFN_",",.115)  ;AG*7.1*4
+ Q
+ZIP ;EP - Mailing Zip.
+ S OLDZIP=$$GET1^DIQ(2,DFN_",",.116)   ;AG*7.1*4
+ D S2
+ I $D(DPTFLAG) S DR=.1112
+ E  D
+ .I $$ISREQ^AGFLDREQ(2,.116) S DIE("NO^")="",DR=".116R"
+ .E  S DR=.116
+ D END
+ S NEWZIP=$$GET1^DIQ(2,DFN_",",.116)  ;AG*7.1*4
+ Q
+HPH ;EP - Home Phone #.
+ S OLDHPH=$$GET1^DIQ(2,DFN_",",.131)  ;AG*7.1*4
+ D S2
+ I $$ISREQ^AGFLDREQ(2,.131) S DIE("NO^")="",DR=".131R"
+ E  S DR=.131
+ D END
+ S NEWHPH=$$GET1^DIQ(2,DFN_",",.131)  ;AG*7.1*4
+ Q
+OPH ;EP - Office Phone #.
+ D S2
+ S DR=.132
+ D END
+ Q
+ALIAS ;ENTER OTHER NAMES
+ D S2
+ K DR
+ S DR=1
+ S DR(2,2.01)=.01
+ D END
+ Q
+S1 ;
+ K DUOUT
+ S DIE="^AUPNPAT("
+ S DA=DFN
+ W !
+ Q
+S2 ;
+ K DUOUT
+ S DIE="^DPT("
+ S DA=DFN
+ W !
+ Q
+END ;
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ Q
+END2 ;
+ Q

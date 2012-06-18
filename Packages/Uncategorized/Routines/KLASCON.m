@@ -1,0 +1,7 @@
+KLASCON ;BHAM/PDW  CONVERT OLD FORMATS TO NEW;DEC 18,1990@13:54:58
+ ;;1.0
+S W !,"This is converting old Slide Formats to new formats",!
+LPRES S PDA=0 F ZL=0:0 S PDA=$O(^KLAS(1200.1,PDA)) Q:PDA'>0  D LSLIDE
+ K PDA,SDA W !,"DONE" Q
+LSLIDE S SDA=0 W "*" F ZL=0:0 S SDA=$O(^KLAS(1200.1,PDA,1,SDA)) Q:SDA'>0  S FMT=$P(^KLAS(1200.1,PDA,1,SDA,0),"^",2),FMT=$S(FMT="":"N",FMT="S":"N",FMT="F":"E",FMT="BF":"EL",FMT="BS":"NL",1:FMT),$P(^KLAS(1200.1,PDA,1,SDA,0),"^",2)=FMT W "."
+ Q

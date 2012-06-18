@@ -1,0 +1,35 @@
+ABMDE8AS ; IHS/DSD/DMJ - Professional Component Screen ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ ; IHS/SD/SDR - v2.6 CSV
+ ;
+ I $D(^ICPT(Y,0)),$P($$CPT^ABMCVAPI(Y,""),U,7)'=1  ;CSV-c
+ E  Q
+ G IP:ABMP("VTYP")=111!($G(ABMP("BTYP"))=111)
+ ;
+OP I +$P(^ABMDCLM(ABMP("CDFN"),0),U,6)>0 G HH:$P($G(^DIC(40.7,$P(^(0),U,6),0)),U,2)=11
+ I $P($$CPT^ABMCVAPI(Y,ABMP("VDT")),U,4)=23!($P($G(^ABMDCLM(ABMP("CDFN"),8)),U,5)="Y"&($P($$CPT^ABMCVAPI(Y,ABMP("VDT")),U,4)=28)) Q  ;CSV-c
+ G MED
+ ;
+IP ;
+ I $P($$CPT^ABMCVAPI(Y,ABMP("VDT")),U,4)=25!($P($G(^ABMDCLM(ABMP("CDFN"),8)),U,5)="Y"&($P($$CPT^ABMCVAPI(Y,ABMP("VDT")),U,3)=28)) Q  ;CSV-c
+ E  G MED
+ Q
+ ;
+HH ;
+ I $P($$CPT^ABMCVAPI(Y,ABMP("VDT")),U,4)=24 Q  ;CSV-c
+ G MED
+ ;
+IMM ;
+ I $P($$CPT^ABMCVAPI(Y,ABMP("VDT")),U,3)=31 Q  ;CSV-c
+ E  G MED
+ Q
+ ;
+PMED ;
+ I $P($$CPT^ABMCVAPI(Y,ABMP("VDT")),U,4)=32 Q  ;CSV-c
+ E  G MED
+ Q
+ ;
+MED Q:Y<90000  Q:Y>99999
+ I Y>90599
+ Q

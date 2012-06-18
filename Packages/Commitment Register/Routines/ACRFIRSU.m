@@ -1,0 +1,155 @@
+ACRFIRSU ;IHS/OIRM/DSD/AEF/MRS - ARMS IRS 1099 FORM UTILITY [ 10/27/2004   4:18 PM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;**8,13**;NOV 05, 2001
+ ;NEW ROUTINE ACR*2.1*8
+ ;
+DESC ;----- ROUTINE DESCRIPTION
+ ;;
+ ;;This routine contains extrinsic functions and other subroutines
+ ;;used by ARMS/IRS 1099 Interface Data Extract routines, primarily
+ ;;ACRFIRSA (ACR*2.1*8.06)
+ ;;$$END
+ Q
+FILE(ACRFILE,ACRCNT,ACRDATES,ACREXTYP) ;EP
+ ;----- ASK FILE NAME
+ ;
+ ;      INPUT:
+ ;      ACRCNT   = COUNT OF RECORDS IN THE EXTRACT
+ ;      ACRDATES = DATE RANGE OF EXTRACT
+ ;      ACREXTYP = EXTRACT TYPE, I.E., TRAVEL, TRAINING, PO
+ ;
+ ;      OUTPUT:
+ ;      ACRFILE  = EXTRACT FILENAME
+ ;
+ N ACRBEG,ACREND,DIR,DIRUT,DTOUT,DUOUT,X,Y
+ ;
+ S ACRFILE=""
+ S ACRBEG=$P(ACRDATES,U)
+ S ACREND=$P(ACRDATES,U,2)
+ S DIR(0)="F"
+ S DIR("A")="Select OUTPUT FILE NAME"
+ S DIR("?")="The name of the OUTPUT FILE you want to put the data into"
+ D ^DIR
+ Q:$D(DTOUT)!($D(DUOUT))!($D(DIRUT))
+ S ACRFILE=Y
+ Q
+HFS(ZISH1,ZISH2,ZISH3,%FILE) ;EP ;      REMOVED OBSOLETE CODE ACR*2.1*13.06 IM14144
+ ;----- CREATE AND OPEN UNIX FILE
+ ;      ENTERS WITH: ZISH1= PATH
+ ;                   ZISH2= FILENAME
+ ;                   ZISH3= "R" OR "W"
+ ;      RETURNS: %FILE = DEVICE NUMBER (or UNDEFINED)
+ ;
+ ;N X,Y
+ ;S Y=$$OPEN^%ZISH(ZISH1,ZISH2,ZISH3)
+ ;I Y D  Q
+ ;. U IO(0) W !,"CANNOT OPEN FILE "_ZISH1_ZISH2
+ ;S %FILE=IO
+ Q
+WRITE(X) ;EP -- FORMAT "^" DELMITED DATA STRING INTO COMMA DELIMITED STRING
+ ;      USEFUL FOR EXCEL OR ACCESS SPREADSHEETS
+ ;
+ ;      INPUT:
+ ;      X  =  DATA STRING IN "^" DELIMITED FIELD FORMAT,
+ ;            I.E., FIELD1^FIELD2^FIELD3^FIELD4
+ ;
+ ;      OUTPUT:
+ ;      Y  =  DATA STRING IN QUOTED DATA/COMMA DELIMITED FORMAT,
+ ;            I.E., "A","B","C","D"
+ ;
+ N I,Y,Z
+ S Y=""
+ F I=1:1:$L(X,U) D
+ . S Z=$P(X,U,I)
+ . S Y=Y_""""_Z_""""_","
+ S Y=$E(Y,1,$L(Y)-1)
+ Q Y
+LOC(ACRLOC)        ;EP;
+ ;----- ASK FINANCE LOCATION
+ ;
+ ;      RETURNS:
+ ;      ACRLOC  = PAYER IEN
+ ;
+ N DIC,DTOUT,DUOUT,X,Y
+ S DIC="^ACR1099P("
+ S DIC(0)="AEMQ"
+ S DIC("A")="Select FINANCE LOCATION: "
+ D ^DIC
+ Q:$D(DTOUT)!($D(DUOUT))
+ Q:+Y'>0
+ S ACRLOC=+Y
+ Q
+YR(ACRYR)          ;EP;
+ ;----- ASK CALENDAR YEAR
+ ;
+ ;      RETURNS:
+ ;      ACRYR   = CALENDAR YEAR
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT,X,Y
+ S DIR(0)="N^0000:9999"
+ S DIR("A")="Select CALENDAR YEAR"
+ S DIR("B")=($E(DT,1,3)+1700)-1
+ D ^DIR
+ Q:$D(DTOUT)!($D(DUOUT))!($D(DIRUT))
+ Q:+Y'>0
+ S ACRYR=+Y
+ Q
+STATE(X) ;EP -- RETURNS 2-CHARACTER ARMS STATE
+ ;
+ ;      X  =  STATE IEN
+ ;
+ N Y
+ S Y=""
+ I X S Y=$P($G(^DIC(5,X,0)),U,2)
+ Q Y
+ ;
+YTD(X,Y)    ;EP
+ ;----- EXTRINSIC FUNCTION TO RETURN YEAR TO DATE AMOUNT PAID
+ ;
+ ;      X  = VENDOR FILE IEN
+ ;      Y  = CALENDAR YEAR WANTED
+ ;
+ N W,Z
+ S Z=""
+ S W=$G(^ACR1099V(X,1,Y,0))
+ S Z=$P(W,U,2)
+ I $P(W,U,6)="Y" S Z=$P(W,U,8)    ; CORRECTED AMOUNT
+ Q Z
+ ;
+ASKUP() ;EP;
+ ;----- EXTRINSIC FUNCTION TO RETURN UPDATE OR TEST
+ ;
+ N Y
+ ;
+ S Y="T"
+ S DIR(0)="SO^1:Update Vendor File;2:Test Print Only"
+ S DIR("A")="Which one"
+ D DIR^ACRFDIC
+ I $D(ACRQUIT)!$D(ACROUT) Q 0
+ Q Y
+UPDATE(ACRVEN,ACRYR)         ;EP;
+ ;----- UPDATE 1099 PRINT DATE FIELD IN ARMS 1099 VENDOR FILE
+ ;
+ ;      INPUT:
+ ;      ACRVEN  = VENDOR IEN
+ ;      ACRYR   = CALENDAR YEAR
+ ;
+ N DA,DIE,DR,X,Y
+ S DA(1)=ACRVEN
+ S DA=ACRYR
+ S DIE="^ACR1099V("_DA(1)_",1,"
+ S DR=".05////"_DT
+ D ^DIE
+ Q
+ ;Removed code--replaced by call to ARMSDIR^ACRFSYS(1) ;ACR*2.1*13.06 IM14144
+ARMSDIR(X)         ;EP;                              ; ACR*2.1*8.07
+ ;----- EXTRINSIC FUNCTION TO RETURN ARMS DEFAULT DIRECTORY FROM
+ ;      FMS SYSTEMS DEFAULTS FILE
+ ;   X= SYSTEM NUMBER IN FMS SYSTEM DEFAULT FILE CURRENTLY ALWAYS 1
+ ;      UNTIL SYSTEM BECOMES FULLY MULTIREGIONAL
+ ;
+ ;      If no entry, function returns old default
+ ;
+ ;N Y
+ ;S Y=$P($G(^ACRSYS(X,402)),U,3)
+ ;I Y="" S Y="/usr/spool/afsdata/"
+ ;Q Y

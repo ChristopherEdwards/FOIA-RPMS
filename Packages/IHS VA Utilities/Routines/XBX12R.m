@@ -1,0 +1,60 @@
+XBX12R ;IHS/ASDST/DMJ - READ X12 FILE [ 08/10/2004  12:13 PM ]
+ ;;3.0;IHS/VA UTILITIES;**10**;
+START ;start
+ D LOAD
+ D ^%ZISC
+ D VIEW
+ F  D V2 Q:$G(XB12QUIT)
+ K ^TMP($J,"XB12")
+ K XB12QUIT,XB12CTR,XB12REC
+ Q
+LOAD ;load file into global
+ W !!,"Load File",!
+ S %ZIS("B")="HFS"
+ D ^%ZIS
+ Q:POP
+ K ^TMP($J,"XB12")
+ S XB12REC=""
+ S XB12CTR=0
+ S XB12CTR2=0
+ S XB12DLM=""
+ F  D  Q:$$STATUS^%ZISH
+ .U IO R X#1
+ .Q:$$STATUS^%ZISH
+ .S XB12CTR2=XB12CTR2+1
+ .I XB12CTR2=106 S XB12DLM=X
+ .I X=XB12DLM D FILE Q
+ .S XB12REC=XB12REC_X
+ Q
+FILE ;file
+ S XB12CTR=XB12CTR+1
+ S ^TMP($J,"XB12",XB12CTR)=XB12REC
+ S XB12REC=""
+ Q
+VIEW ;view
+ S DA=0
+ F  S DA=$O(^TMP($J,"XB12",DA)) Q:'DA  D
+ .S XB12CTR=DA
+ W !,XB12CTR," segments loaded.",!
+ Q
+V2 ;view continued
+ W !
+ S DIR(0)="LOC^1:"_XB12CTR
+ S DIR("A")="View lines"
+ D ^DIR K DIR
+ I Y["^" S XB12QUIT=1 Q
+ I Y="" S Y="1-"_XB12CTR
+ S XB12FR=+$P(Y,"-",1)
+ S XB12TO=+$P(Y,"-",2)
+ S:'XB12TO XB12TO=XB12FR
+ W @IOF
+ F I=XB12FR:1:XB12TO D  Q:$G(XB12QUIT)
+ .I $Y+4>IOSL D
+ ..S DIR(0)="E" D ^DIR K DIR
+ ..I X["^" S XB12QUIT=1
+ ..W @IOF
+ .Q:$G(XB12QUIT)
+ .W !
+ .W "(",I,") "
+ .W ^TMP($J,"XB12",I)
+ Q

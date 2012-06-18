@@ -1,0 +1,15 @@
+SSN STATUS
+ZWR
+^AUTTSSN(0)="SSN STATUS^9999999.78I^6^6"
+^AUTTSSN(1,0)="V^Verified by SSA"
+^AUTTSSN(2,0)="A^SSN added from SSA"
+^AUTTSSN(3,0)="N^FAC SSN not equal to SSA SSN"
+^AUTTSSN(4,0)="D^SSN matches SSA but Data Differs"
+^AUTTSSN(5,0)="P^Pending Verification"
+^AUTTSSN(6,0)="X^SSA could not verify/supply SSN"
+^AUTTSSN("B","A",2)=""
+^AUTTSSN("B","D",4)=""
+^AUTTSSN("B","N",3)=""
+^AUTTSSN("B","P",5)=""
+^AUTTSSN("B","V",1)=""
+^AUTTSSN("B","X",6)=""

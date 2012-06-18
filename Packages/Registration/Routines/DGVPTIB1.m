@@ -1,0 +1,86 @@
+DGVPTIB1 ;alb/mjk - IBACKIN for export with PIMS v5.3; 4/21/93
+ ;;5.3;Registration;;Aug 13, 1993
+ ;
+IBACKIN ;ALB/RLW - Check-in Link for OP Co-payment ; 12-JUN-92
+ ;;Version 1.5 ; INTEGRATED BILLING ;**3,14**; 29-JUL-92
+ ;
+EN ; main entry point
+ ;***
+ ;S XRTL=$ZU(0),XRTN="IBACKIN-1" D T0^%ZOSV ;start rt clock
+ ;I $D(XRT0),(('$D(SDATA))!(+$G(SDAMEVT)<2)) S:'$D(XRTN) XRTN="IBACKIN" D T1^%ZOSV ;stop rt clock
+ ;
+ Q:'$G(SDATA)!(+$G(SDAMEVT)<2)
+ S IBADFN=$P(SDATA,"^",2)
+CHKSTAT ; check appointment status, quit if inpatient or not relevant
+ ;***
+ ;I $D(XRT0),(($P(SDATA("BEFORE","STATUS"),"^",6)>0)!($P(SDATA("AFTER","STATUS"),"^",6)>0)) S:'$D(XRTN) XRTN="IBACKIN" D T1^%ZOSV ;stop rt clock
+ ;
+ I ($P(SDATA("BEFORE","STATUS"),"^",6)>0)!($P(SDATA("AFTER","STATUS"),"^",6)>0) G ENQ
+ S IBAST=+SDATA("AFTER","STATUS"),IBBST=+SDATA("BEFORE","STATUS"),IBWST=$P(SDATA,"^",5)
+ ;***
+ ;I $D(XRT0),IBAST=8 S:'$D(XRTN) XRTN="IBACKIN" D T1^%ZOSV ;stop rt clock
+ ;I IBAST=8 G ENQ
+ I (IBAST=1)!(IBAST=2)!(IBAST=4)!(IBAST=6) D SETUP G ENQ
+ I IBBST=1!(IBBST=2) D SETUP
+ENQ K IBAST,IBEL,IBSERV,IBADFN,IBATYP,IBIEN,IBPARNT,IBCHRGD,IBCNP,IBDT,IBN,IBSFTLK,IBTRAN,IBIL,IBFAC,IBNOS,IBX,IBADATE,IBPDT,IBSTAT,IBXA,X,IBBST,IBWST
+ ;***
+ ;I $D(XRT0) S:'$D(XRTN) XRTN="IBACKIN" D T1^%ZOSV ;stop rt clock
+ ;
+ Q
+SETUP ;
+ I '$D(DT) D DT^DICRW
+ S IBX="O",IBXA="4",IBDATE=$P(SDATA,"^",3),IBDT=(IBDATE\1)
+ Q:'$$BIL^DGMTUB(IBADFN,IBDATE)
+ S Y=1,IBDUZ=$S(DUZ=0:.5,DUZ="":.5,1:DUZ) N IBJOB S IBJOB=5,IBWHER="IBACKIN"
+ ;check no-count
+ S IBACLIN=$P(SDATA,"^",4) Q:$P(^SC(IBACLIN,0),"^",17)="Y"
+ I $D(^DPT(IBADFN,"S",IBDATE,0)) S IBAPTYPE=$P(^(0),"^",16)
+ ; if C&P check if there's already an op copay for that day and cancel
+ I IBAPTYPE=1 D CANCP^IBECEA3 Q
+ ; billable event check
+ Q:$$IGN^IBEFUNC(IBAPTYPE,DT)=1
+ S IBSFTLK="44:"_$P(SDATA,"^",4)_";S:"_$P(SDATA,"^",3)_";1:"_+SDATA
+ D SITE^IBAUTL,SERV^IBAUTL2,TYPE^IBAUTL2
+ S:IBAST=3 IBATYP=$P(^IBE(350.1,IBATYP,0),"^",6)
+ K X S X=IBSERV_"^"_IBADFN_"^"_IBATYP_"^"_"^"_DUZ,X(0)=1
+ ; - logic to add a charge
+ I IBWST="CO",IBAST=2 D ADD G SETUPQ
+ I IBWST="CI",IBAST<3 D ADD G SETUPQ
+ ; - logic to cancel a charge
+ S IBCRES=$S(IBAST=4!(IBAST=6):17,1:18)
+ I IBWST="CI",IBBST<3,IBAST>2 D CANCEL G SETUPQ
+ I IBWST="CO",IBBST=2,IBAST'=2 D CANCEL
+SETUPQ K IBCRES
+ Q
+ADD ; add op copay charge
+ D APPT^IBECEA3
+ G:(IBCHRGD>0)!(IBCNP>0) ADDQ
+ D TYPE^IBAUTL2 I $D(IBY),+IBY<0 D ^IBAERR ; - input IBDT,IBSERV,IBX returns IBATYP,IBCHG,IBDESC
+ S IBATYP=$S(IBCHRGD=2:53,1:51),IBSEQNO=$P(^IBE(350.1,IBATYP,0),"^",5) I '$D(IBSEQNO) S Y="-1^IBO23" D ^IBAERR G ADDQ
+ D ARPARM^IBAUTL I $D(Y),+Y<0 D ^IBAERR G ADDQ
+ D BILLNO^IBAUTL I $D(Y),+Y<0 D ^IBAERR G ADDQ
+ D ADD^IBAUTL I $D(Y),+Y<0 D ^IBAERR G ADDQ
+ L +(^IB(IBN)):10 E  S Y="-1^IB014" D ^IBAERR G ADDQ
+ S $P(^IB(IBN,1),"^",1)=IBDUZ,$P(^IB(IBN,0),"^",2,17)=IBADFN_"^"_IBATYP_"^"_IBSFTLK_"^2^1^"_IBCHG_"^"_IBDESC_"^"_IBN_"^^"_IBIL_"^"_IBTRAN_"^"_IBFAC_"^"_IBDT_"^"_IBDT_"^"_IBN_"^"_IBDT K ^IB("AC",1,IBN)
+ S DIK="^IB(",DA=IBN D IX^DIK K DIK,DA L -^IB(IBN)
+ S IBNOS=IBN D ^IBAFIL I $D(Y),+Y<0 D ^IBAERR
+ I '$D(^IBE(351,"ACT",IBADFN)) S DFN=IBADFN,IBCLDT=IBDT D CLADD^IBAUTL3
+ADDQ Q
+CANCEL ; cancel op copay charge - search for op charges from same date, then compare softlink
+ S IBPTDT=""
+ F  S IBPTDT=$O(^IB("APTDT",IBADFN,IBPTDT)) Q:IBPTDT=""  S IBIEN="" D
+ .F  K X S IBIEN=$O(^IB("APTDT",IBADFN,IBPTDT,IBIEN)) Q:IBIEN=""  Q:'$D(^IB(IBIEN,0))  S X=$P(^IB(IBIEN,0),"^",4) I $P(X,";",1,2)=$P(IBSFTLK,";",1,2) D  Q
+ ..S IBX=IBIEN_"^4",IBTOTL=0 D CANCHG^IBECEA2
+ ..D ARPARM^IBAUTL I $D(Y),+Y<0 D ^IBAERR Q
+ ..I $G(IBNOS) D ^IBAFIL I $D(Y),+Y<0 D ^IBAERR
+ ..S I=IBDT D CKBILL S IBPTDT=9999999
+CANQ Q
+ ;
+CKBILL ; if a charge has been cancelled, search for other visits for day that might be billable.
+ N IBAD,IBSD,IBSN S IBAD=I
+ F  Q:IBAST=1  S IBAD=$O(^DPT(IBADFN,"S",IBAD)) Q:$E(IBAD,1,7)'=IBDT  S IBSD=$G(^(IBAD,0)) I $P(IBSD,"^",2)="" D
+ .Q:+$$STATUS^SDAM1(IBADFN,IBAD,+IBSD,IBSD)>2  ; appt not co'd or ci'd
+ .F IBSN=0:0 Q:IBAST=1  S IBSN=$O(^SC(+IBSD,"S",IBAD,1,IBSN)) Q:'IBSN  I +$G(^(IBSN,0))=IBADFN D
+ ..S IBAST=1,IBX="O",IBSFTLK="44:"_+IBSD_";S:"_IBAD_";1:"_IBSN
+ ..S SDATA=IBSN_"^"_IBADFN_"^"_IBAD_"^"_+IBSD D ADD
+CKQ Q

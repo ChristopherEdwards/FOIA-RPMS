@@ -1,0 +1,40 @@
+BRNAGE ; IHS/PHXAO/TMJ - ROI AGING REPORT (BY STATUS) ; 
+ ;;2.0;RELEASE OF INFO SYSTEM;*1*;APR 10, 2003
+ ;IHS/OIT/LJF 10/11/2007 PATCH 1 Added ;EP to ASK1 line label
+ ;            01/24/2008 PATCH 1 Added choice of facility
+ ;
+ ;
+ASK1 ; EP ;Restrict a Certain Local Category ;IHS/OIT/LJF 10/11/2007 PATCH 1
+ ; now called by DRIVER^BRNAGE2
+ S BRNSTBD="C",BRNSTED="O"
+ W ! S DIR(0)="Y0",DIR("A")="Would you like to INCLUDE ONLY a particular ROI Disclosure Status",DIR("B")="NO"
+ S DIR("?")="To RESTRICT to a particular ROI Disclosure Status  - Answer Yes."
+ D ^DIR K DIR
+ G:$D(DIRUT) END
+ I 'Y G PRINT
+ ;
+STATUS ;ROI Disclosure STATUS
+ S DIR(0)="90264,.08",DIR("A")="Enter the Status"
+ K DA D ^DIR K DIR
+ G:$D(DIRUT) ASK1
+ S BRNSTBD=Y,BRNSTED=Y
+ ;
+ ;
+PRINT ;PRINT report by status
+ ;
+ ;IHS/OIT/LJF 01/24/2008 PATCH 1
+ ;select facility
+ NEW BRNFAC,BRNFACN D ASKFAC^BRNU(.BRNFAC) I BRNFAC="" D END Q
+ I BRNFAC>0 S BRNFACN=$$GET1^DIQ(90264.2,BRNFAC,.01)
+ ;
+ ;S FLDS="[BRN GS AGING RPT]",BY="@INTERNAL(#.08)",DIC="^BRNREC(",L=0
+ ;S FR=BRNSTBD,TO=BRNSTED
+ S FLDS="[BRN GS AGING RPT]",BY="FACILITY;S1,@INTERNAL(#.08)",DIC="^BRNREC(",L=0
+ I BRNFAC=0 S FR="@,"_BRNSTBD,TO="ZZZ,"_BRNSTED
+ E  S FR=BRNFACN_","_BRNSTBD,TO=BRNFACN_","_BRNSTED
+ ;end of PATCH 1 changes
+ ;
+ K DHIT,DIOEND,DIOBEG
+ D EN1^DIP
+END ;
+ K BRNSTBD,BRNSTED,DD0,B,X Q

@@ -1,0 +1,158 @@
+BCH1I00A ; IHS/TUCSON/LAB - NO DESCRIPTION PROVIDED ; 
+ ;;1.0;IHS RPMS CHR SYSTEM;**2**;OCT 28, 1996
+ F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,999) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q Q
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,8,1)
+ ;;=.08
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,8,2)
+ ;;=9,43^8^9,28
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,9,0)
+ ;;=10^EVALUATION^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,9,1)
+ ;;=.09
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,9,2)
+ ;;=10,13^50^10,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,10,0)
+ ;;=11^TRAVEL TIME^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,10,1)
+ ;;=.11
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,10,2)
+ ;;=12,15^4^12,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,11,0)
+ ;;=12^# SERVED^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,11,1)
+ ;;=.12
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,11,2)
+ ;;=12,33^5^12,22
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,11,3)
+ ;;=1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,11,4)
+ ;;=1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,12,0)
+ ;;=13^TEMP RESIDENCE^3^
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,12,1)
+ ;;=1108
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,12,2)
+ ;;=12,58^20^12,41
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,13,0)
+ ;;=17^PURPOSE REF^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,13,1)
+ ;;=2101
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,13,2)
+ ;;=16,15^60^16,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,14,0)
+ ;;=18^INSURER^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,14,1)
+ ;;=2102
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,14,2)
+ ;;=17,10^50^17,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,15,0)
+ ;;=5^-------------------------------------------------------------------------------^1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,15,2)
+ ;;=^^4,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,16,0)
+ ;;=6^ASSESSMENT - PCC PURPOSE OF VISIT (hit return)^2
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,16,2)
+ ;;=6,49^1^6,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,16,10)
+ ;;=S DDSSTACK="Page 1.4"
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,16,20)
+ ;;=F^^1:1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,17,0)
+ ;;=14^SUBJECTIVE^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,17,1)
+ ;;=5101
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,17,2)
+ ;;=14,13^1^14,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,18,0)
+ ;;=15^OBJECTIVE^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,18,1)
+ ;;=6101
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,18,2)
+ ;;=14,33^1^14,22
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,19,0)
+ ;;=16^PLANS/TREATMENTS^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,19,1)
+ ;;=7101
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,19,2)
+ ;;=14,59^1^14,41
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",1,1)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",2,2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",3,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",4,5)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",5,15)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",6,16)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",7,4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",8,7)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",9,8)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",10,9)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",11,10)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",12,11)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",13,12)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",14,17)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",15,18)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",16,19)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",17,13)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"B",18,14)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","# SERVED",11)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","**********  E N T E R  C H R  R E C O R D  D A T A  **********",1)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","---------------------------------------------------------------",15)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","ACT LOCATION",4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","ASSESSMENT - PCC PURPOSE OF VISIT (HIT RETURN)",16)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","CHR PROVIDER",5)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","DATE OF SERVICE",2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","EVALUATION",9)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","INSURER",14)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","OBJECTIVE",18)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","PLANS/TREATMENTS",19)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","PROGRAM",3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","PURPOSE REF",13)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","REF BY CHR TO",8)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","REF TO CHR BY",7)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","SUBJECTIVE",17)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","TEMP RESIDENCE",12)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,"C","TRAVEL TIME",10)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",110,0)
+ ;;=BCH HOSP NAME^90002
+ ;;^UTILITY(U,$J,"DIST(.404,",110,40,0)
+ ;;=^.4044I^2^2
+ ;;^UTILITY(U,$J,"DIST(.404,",110,40,1,0)
+ ;;=1^^3
+ ;;^UTILITY(U,$J,"DIST(.404,",110,40,1,1)
+ ;;=.05

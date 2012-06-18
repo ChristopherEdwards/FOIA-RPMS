@@ -1,0 +1,55 @@
+AMHGMSR ; IHS/CMI/MAW - AMHG Help 5/19/2009 11:39:22 AM ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+ ;
+ ;
+ ;
+HELP(RETVAL,AMHSTR) ;-- return measurement help
+ N AMHMTYP,AMHROU,AMHL,L,AMHURET,P
+ N VAL,AMHI
+ S P="|"
+ S VAL=$P(AMHSTR,P)
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S AMHMTYP="H"_VAL S:AMHMTYP="HVU" AMHMTYP="HVC"
+ S AMHROU="AUPNVMS2"
+ S @RETVAL@(0)="T00080Help"_$C(30)
+ I $T(@AMHMTYP^@AMHROU)="" D  Q
+ . S @RETVAL@(1)=$C(31)
+ F %AUI=1:1 D  Q:L=""!($P(L,";;",1)'=" ")
+ . S L=$T(@AMHMTYP+%AUI^@AMHROU)
+ . Q:L=""!($P(L,";;",1)'=" ")
+ . S AMHL=$P(L,";;",2)
+ . S @RETVAL@(%AUI)=AMHL_$C(30)
+ K AMHMTYP
+ S @RETVAL@(%AUI)=$C(31)
+ Q
+ ;
+VAL(RETVAL,AMHSTR) ;-- validate input data
+ N AMHMTYP,AMHROU,AMHL,L,AMHURET,P
+ N VAL,AMHMTYP,AMHI
+ S P="|"
+ S AMHI=0
+ S AMHMTYP=$P(AMHSTR,P)
+ S VAL=$P(AMHSTR,P,2)
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S:AMHMTYP="VU" AMHMTYP="VC"
+ S AMHROU="AUPNVMSR"
+ S @RETVAL@(AMHI)="T00080Validate"_$C(30)
+ I $T(@AMHMTYP^@AMHROU)="" D  Q
+ . S @RETVAL@(AMHI+1)=$C(31)
+ S X=VAL
+ D @AMHMTYP^@AMHROU
+ I '$D(X) D
+ . N AMHHTYP,AMHHROU
+ . S AMHHTYP="H"_AMHMTYP,AMHHROU="AUPNVMS2"
+ . F %AUI=1:1 D  Q:L=""!($P(L,";;",1)'=" ")
+ .. S L=$T(@AMHHTYP+%AUI^@AMHHROU)
+ .. Q:L=""!($P(L,";;",1)'=" ")
+ .. S AMHL=$P(L,";;",2)
+ .. S AMHI=AMHI+1
+ .. S @RETVAL@(AMHI)=AMHL_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;

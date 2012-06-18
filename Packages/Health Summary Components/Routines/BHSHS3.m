@@ -1,0 +1,145 @@
+BHSHS3 ;IHS/CIA/MGH - Health Summary for other components ;19-Jun-2008 12:41;MGH
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**2**;March 17, 2006
+ ;===================================================================
+ ;VA health summary components for insurance, elder care, and refusals
+ ;
+ ; IHS/TUCSON/LAB - PART 5 OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;
+ ;;2.0;IHS RPMS/PCC Health Summary;**5,6,8,11**;JUN 24, 1997
+ ;Patch 2 for changes in patch 16
+INS ; ******************* INSURANCE * 9000003, 9000004, 9000006 *********
+ N BHSPAT
+ S BHSPAT=DFN
+ I $O(^AUPNMCD("B",BHSPAT,0))="",'$D(^AUPNMCR(BHSPAT)),'$D(^AUPNPRVT(BHSPAT)),'$D(^AUPNRRE(BHSPAT)) Q
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ W "INSURANCE",?25,"NUMBER",?35,"SUFF",?40,"COV",?50,"EL DATE",?60,"SIG DATE",?70,"END DATE",!
+ D MAID^BHSINSUR,MCARE^BHSINSUR,THIRD^BHSINSUR,RR^BHSINSUR
+INSX K BHSSPDN,BHSSINS,BHSSEDN,BHSSN,BHSSIDN,BHSSDTL,BHSSDTN,BHSSUFF,BHSSCOV,BHSSDTS,BHSSI,BHSSJ,BHSSITB
+ Q
+ ;
+ ;
+ELDER1 ;******************** ELDER CARE 1 * 9000010.35
+ ;----------------------------------------------------------------
+ N BHSPAT,BHSSP,BHSSY
+ S BHSPAT=DFN
+ I '$D(^AUPNVELD("AA",BHSPAT)) Q
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ W "ADL",!
+ F BHSSY=.04,.05,.06,.07,.08,.09 Q:$D(GMTSQIT)  S BHSSP=+$P(BHSSY,".",2),BHSSN=$P(^DD(9000010.35,BHSSY,0),U) D VAL(BHSPAT,BHSSY,BHSSP,1) D
+ .D CKP^GMTSUP Q:$D(GMTSQIT)
+ .W ?2,BHSSN,?28,$$D($P($G(BHSSX(1)),U)),?40,$P($G(BHSSX(1)),U,2),!
+ .Q
+ W !,"IADL",!
+ F BHSSY=.11,.12,.13,.14,.15,.16 Q:$D(GMTSQIT)  S BHSSP=+$P(BHSSY,".",2),BHSSN=$P(^DD(9000010.35,BHSSY,0),U) D VAL(BHSPAT,BHSSY,BHSSP,1) D
+ .D CKP^GMTSUP Q:$D(GMTSQIT)
+ .W ?2,BHSSN,?28,$$D($P($G(BHSSX(1)),U)),?40,$P($G(BHSSX(1)),U,2),!
+ .Q
+ S BHSSN="CHANGE IN FUNCTIONAL STATUS",BHSSP=17,BHSSY=.17 D VAL(BHSPAT,BHSSY,BHSSP,1)
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ W !,BHSSN,?28,$$D($P($G(BHSSX(1)),U)),?40,$P($G(BHSSX(1)),U,2),!
+ Q
+ ;
+ELDER2 ;*********************elder care last 2 of each * 9000010.35
+ N BHSPAT,BHSSP,BHSSY
+ S BHSPAT=DFN
+ I '$D(^AUPNVELD("AA",BHSPAT)) Q
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ W "ADL",!
+ F BHSSY=.04,.05,.06,.07,.08,.09 Q:$D(GMTSQIT)  S BHSSP=+$P(BHSSY,".",2),BHSSN=$P(^DD(9000010.35,BHSSY,0),U) D VAL(BHSPAT,BHSSY,BHSSP,2) D
+ .D CKP^GMTSUP Q:$D(GMTSQIT)
+ .W ?2,BHSSN,?28,$$D($P($G(BHSSX(1)),U)),?40,$P($G(BHSSX(1)),U,2),!
+ .D CKP^GMTSUP Q:$D(GMTSQIT)
+ .I $G(BHSSX(2))]"" W ?28,$$D($P($G(BHSSX(2)),U)),?40,$P($G(BHSSX(2)),U,2),!
+ .Q
+ W !,"IADL",!
+ F BHSSY=.11,.12,.13,.14,.15,.16 Q:$D(GMTSQIT)  S BHSSP=+$P(BHSSY,".",2),BHSSN=$P(^DD(9000010.35,BHSSY,0),U) D VAL(BHSPAT,BHSSY,BHSSP,2) D
+ .D CKP^GMTSUP Q:$D(GMTSQIT)
+ .W ?2,BHSSN,?28,$$D($P($G(BHSSX(1)),U)),?40,$P($G(BHSSX(1)),U,2),!
+ .D CKP^GMTSUP Q:$D(GMTSQIT)
+ .I $G(BHSSX(2))]"" W ?28,$$D($P($G(BHSSX(2)),U)),?40,$P($G(BHSSX(2)),U,2),!
+ .Q
+ S BHSSN="CHANGE IN FUNCTIONAL STATUS",BHSSP=17,BHSSY=.17 D VAL(BHSPAT,BHSSY,BHSSP,2)
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ W !,BHSSN,?28,$$D($P($G(BHSSX(1)),U)),?40,$P($G(BHSSX(1)),U,2),!
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ I $G(BHSSX(2))]"" W ?28,$$D($P($G(BHSSX(2)),U)),?40,$P($G(BHSSX(2)),U,2),!
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ Q
+ ;
+D(X) ;
+ I $G(X)="" Q ""
+ Q $E(X,4,5)_"/"_$E(X,6,7)_"/"_(1700+$E(X,1,3))
+VAL(P,F,V,I) ;
+ K BHSSX
+ NEW % F %=1:1:I S BHSSX(%)=""
+ NEW C S C=0
+ NEW X,Y
+ S X=0 F  S X=$O(^AUPNVELD("AA",P,X)) Q:X=""!(C>I)  S Y=0 F  S Y=$O(^AUPNVELD("AA",P,X,Y)) Q:Y=""!(C>I)  I $P(^AUPNVELD(Y,0),U,V)]"" S C=C+1,BHSSX(C)=9999999-X_"^"_$$VAL^XBDIQ1(9000010.35,Y,F)
+ Q
+ ;-------------------------------------------------------------------
+REFUSAL ;refusal component
+ ;--------------------------------------------------------------------
+ N BHSPAT,Y,X,R,D,BHSSX
+ S BHSPAT=DFN
+ ;gather any refuals from Immunization package
+ K BHSSX
+ S Y=0 F  S Y=$O(^BIPC("AC",BHSPAT,Y)) Q:Y'=+Y  D
+ .S X=0 F  S X=$O(^BIPC("AC",BHSPAT,Y,X)) Q:X'=+X  D
+ ..S R=$P(^BIPC(X,0),U,3)
+ ..Q:R=""
+ ..Q:'$D(^BICONT(R,0))
+ ..Q:$P(^BICONT(R,0),U,1)'["Refusal"
+ ..S D=$P(^BIPC(X,0),U,4)
+ ..Q:D=""
+ ..S D=9999999-D
+ ..Q:D>GMTSDLM
+ ..S BHSSX(D,"IMM",X)=""
+ I '$D(^AUPNPREF("AA",BHSPAT)),'$D(BHSSX) Q  ;no refusals
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ NEW X,F,I,D,E
+ S F=0 F  S F=$O(^AUPNPREF("AA",BHSPAT,F)) Q:F'=+F  D
+ .S E=0 F  S E=$O(^AUPNPREF("AA",BHSPAT,F,E)) Q:E'=+E  D
+ ..S D=0 F  S D=$O(^AUPNPREF("AA",BHSPAT,F,E,D)) Q:D'=+D!(D>GMTSDLM)  D
+ ...S I=0 F  S I=$O(^AUPNPREF("AA",BHSPAT,F,E,D,I)) Q:I'=+I  D
+ ....S BHSSX(D,"REF",I)=""
+ N BHSSD,BHSSI S BHSSD=0 F  S BHSSD=$O(BHSSX(BHSSD)) Q:BHSSD'=+BHSSD!($D(GMTSQIT))  D
+ .S BHSSI=0 F  S BHSSI=$O(BHSSX(BHSSD,"REF",BHSSI)) Q:BHSSI'=+BHSSI!($D(GMTSQIT))  D
+ ..D CKP^GMTSUP Q:$D(GMTSQIT)
+ ..W ?3,$$FMTE^XLFDT(9999999-BHSSD),?17,$$VAL^XBDIQ1(9000022,BHSSI,.04),"   (",$$VAL^XBDIQ1(9000022,BHSSI,.01),")",!
+ ..W ?5,"Refusal Type:  ",$$VAL^XBDIQ1(9000022,BHSSI,.07),!
+ .S BHSSI=0 F  S BHSSI=$O(BHSSX(BHSSD,"IMM",BHSSI)) Q:BHSSI'=+BHSSI!($D(GMTSQIT))  D
+ ..D CKP^GMTSUP Q:$D(GMTSQIT)
+ ..W ?3,$$FMTE^XLFDT(9999999-BHSSD),?17,$$VAL^XBDIQ1(9002084.11,BHSSI,.02),!
+ ..W ?5,"Refusal Type: "_$$VAL^XBDIQ1(9002084.11,BHSSI,.03),!
+ Q
+LER ;Refusal component patch 2
+ ;----------------------------------------------------------
+ K BHSX
+ S BHSPAT=DFN
+ S Y=0 F  S Y=$O(^BIPC("AC",BHSPAT,Y)) Q:Y'=+Y  D
+ .S X=0 F  S X=$O(^BIPC("AC",BHSPAT,Y,X)) Q:X'=+X  D
+ ..S R=$P(^BIPC(X,0),U,3)
+ ..Q:R=""
+ ..Q:'$D(^BICONT(R,0))
+ ..Q:$P(^BICONT(R,0),U,1)'["Refusal"
+ ..S D=$P(^BIPC(X,0),U,4)
+ ..Q:D=""
+ ..S D=9999999-D
+ ..Q:D>GMTSDLM
+ ..S BHSX("REF","IMMUNIZATION",$$VAL^XBDIQ1(9002084.11,X,.02),D)=X_U_$$VAL^XBDIQ1(9002084.11,X,.03)
+ I '$D(^AUPNPREF("AA",BHSPAT)),'$D(BHSX) Q  ;no refusals
+ D CKP^GMTSUP Q:$D(GMTSQIT)
+ NEW X,F,I,D,E
+ S F=0 F  S F=$O(^AUPNPREF("AA",BHSPAT,F)) Q:F'=+F  D
+ .S E=0 F  S E=$O(^AUPNPREF("AA",BHSPAT,F,E)) Q:E'=+E  D
+ ..S D=0 F  S D=$O(^AUPNPREF("AA",BHSPAT,F,E,D)) Q:D'=+D!(D>GMTSDLM)  D
+ ...S I=0 F  S I=$O(^AUPNPREF("AA",BHSPAT,F,E,D,I)) Q:I'=+I  D
+ ....S BHSX("REF",$$VAL^XBDIQ1(9000022,I,.05),$$VAL^XBDIQ1(9000022,I,.04),D)=I_U_$$VAL^XBDIQ1(9000022,I,.07)
+ NEW BHSD,BHSI,BHSC,BHSDA,BHSRT
+ S BHSC="" F  S BHSC=$O(BHSX("REF",BHSC)) Q:BHSC=""!($D(GMTSQIT))  D
+ .S BHSI="" F  S BHSI=$O(BHSX("REF",BHSC,BHSI)) Q:BHSI=""!($D(GMTSQIT))  D
+ ..D CKP^GMTSUP Q:$D(GMTSQIT)
+ ..S BHSD=$O(BHSX("REF",BHSC,BHSI,0))
+ ..S BHSDA=$P(BHSX("REF",BHSC,BHSI,BHSD),U)
+ ..S BHSRT=$P(BHSX("REF",BHSC,BHSI,BHSD),U,2)
+ ..W ?3,$E(BHSI,1,30),?38,"(",$E($$UP^XLFSTR(BHSRT),1,20),")",?65,$$FMTE^XLFDT(9999999-BHSD,5),!
+ Q

@@ -1,0 +1,78 @@
+ACHSUCN ; IHS/ITSC/PMF - SELECT &/OR PRINT VENDOR CONTRACT INFO ;   [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+ K ACHSAHDR,ACHSRT
+ S E=9999999-ACHSEDOS      ;CALCULATE THE WEIRD DATE THING
+ S (S,C,L)=""
+ S ACHSCTNA=0
+ S ACHSACO=$G(ACHSACO)
+ ;
+ ;LOOP THRU THE "E" X-REF  EIN NO. AND SUFFIX X-REF
+L1 ;
+ S S=""
+ F  S S=$O(^AUTTVNDR(ACHSPROV,"E",S)) Q:S=""!(S>E)  D L2
+ D L3
+ Q
+ ;
+L2 ;
+ S N=""
+ F  S N=$O(^AUTTVNDR(ACHSPROV,"E",S,N)) Q:N=""  D
+ .Q:'$D(^AUTTVNDR(ACHSPROV,"CN",N,0))          ;QUIT IF NO CONTRACT NODE
+ .;
+ .;QUIT IF 'BEGINNING DATE' > EST DATE DATE SERVICE
+ .Q:$P($G(^AUTTVNDR(ACHSPROV,"CN",N,0)),U,2)>ACHSEDOS
+ .S ACHSCTNA=ACHSCTNA+1
+ .S C=C+1
+ .;
+ .;L= CONTRACT #_WEIRD SERVICE DATE_CONTRACT NUMBER
+ .S L=N_U_S_U_$P($G(^AUTTVNDR(ACHSPROV,"CN",N,0)),U)
+ .;
+ .;GET 'CONTRACT NUMBER'
+ .S $P(ACHSRT(ACHSCTNA),U)=$P(^AUTTVNDR(ACHSPROV,"CN",N,0),U)
+ .;
+ .;GET 'BEGINNING DATE'
+ .S $P(ACHSRT(ACHSCTNA),U,8)=$P(^AUTTVNDR(ACHSPROV,"CN",N,0),U,2)
+ .;
+ .;GET 'ENDING DATE'
+ .S $P(ACHSRT(ACHSCTNA),U,9)=$P(^AUTTVNDR(ACHSPROV,"CN",N,0),U,3)
+ .;
+ .;GET 'DESCRIPTION'
+ .S $P(ACHSRT(ACHSCTNA),U,2)=$P(^AUTTVNDR(ACHSPROV,"CN",N,0),U,5)
+ .;
+ .;?????
+ .S $P(ACHSRT(ACHSCTNA),U,10)="CNT"   ;?????
+ .;
+ .;SET THE COUNT
+ .S ACHSRT("CNT")=C
+ .;
+ .;SET CONTRACT # AS PIECE 11
+ .S $P(ACHSRT(ACHSCTNA),U,11)=N
+ .;
+ .S X=$P(ACHSRT(ACHSCTNA),U,8),Y=$E(X,4,5)_"-"_$E(X,6,7)_"-"_$E(X,2,3),$P(ACHSRT(ACHSCTNA),U,8)=Y
+ .S X=$P(ACHSRT(ACHSCTNA),U,9),Y=$E(X,4,5)_"-"_$E(X,6,7)_"-"_$E(X,2,3),$P(ACHSRT(ACHSCTNA),U,9)=Y
+ .;
+ .;
+ .I ACHSACO["L" D
+ ..D SBT:C=1          ;WRITE THE HEADINGS
+ ..;
+ ..;PRINT 'CONTRACT NUMBER'
+ ..W !,$J(C,2),?3,"CNT",?8,$J($P($G(^AUTTVNDR(ACHSPROV,"CN",N,0)),U),10)
+ ..W ?20,$P(ACHSRT(ACHSCTNA),U,8)                      ;'BEGINNING DATE'
+ ..W ?30,$P(ACHSRT(ACHSCTNA),U,9)                      ;'ENDING DATE'
+ ..W ?45,$E($P(^AUTTVNDR(ACHSPROV,"CN",N,0),U,5),1,28)   ;DESCRIPTION
+ .;
+ .;WHERE IS F DEFINED??????
+ .I ACHSACO["F",C=$G(F) D L3 Q  ; 'F' is defined only if ACHSACO["F".
+ Q
+ ;
+ ;
+L3 ;
+ I ACHSACO="L" W !,$J(C+1,2),?8,$J("Open Mkgt",10)
+ S:S>E&(+C=0) ACHSACO="N"
+ Q
+ ;
+SBT ;
+ W !!?3,"Type",?9,"CNT Numb.",?20,"Eff-Date",?30,"Exp-Date",?40,"MCR",?45,"Description",!?3,"____",?9,"_________",?20,"________",?30,"________",?40,"___",?45,"____________________________",!
+ S ACHSAHDR=""
+ Q
+ ;

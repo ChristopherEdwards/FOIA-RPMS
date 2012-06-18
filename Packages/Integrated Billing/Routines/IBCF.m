@@ -1,0 +1,58 @@
+IBCF	;ALB/RLW - task HCFA 1500 ; 12-JUN-92
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	;;Per VHA Directive 10-93-142, this routine should not be modified.
+	;
+EN1	; call appropriate print routine for the claim form type to be printed
+	;S IBFT=+$P($G(^DGCR(399,IBIFN,0)),U,19)
+	;I IBFT=2 D ^IBCF2 G END
+	;D ^IBCF1
+	S IBFT=$$FT^IBCU3(IBIFN),IBFT=$$FTN^IBCU3(IBFT)
+	I IBFT["UB-82" D ^IBCF1 G END
+	I IBFT["UB-92" D ^IBCF3 G END
+	D ^IBCF2 D EN3
+END	K IBFT
+	Q
+	;
+EN2	; send to default A/R device
+	S ZTDTH=$H,IBIFN=PRCASV("ARREC"),IBPNT=PRCASV("NOTICE")
+	D FORM S (IBFORM1,ZTDESC)="FOLLOW-UP AR FORM "_$P($G(^IBE(353,+IBFT,0)),"^")
+	D QUEUE
+	Q
+	;
+EN3	;queue an Rx Addendum for a bill, IBIFN must be defined
+	Q:'$D(^DGCR(399,+$G(IBIFN),0))  I '$D(^IBA(362.4,"AIFN"_+IBIFN)),'$D(^IBA(362.5,"AIFN"_+IBIFN)) Q
+	N IBFT S IBFT=$$FNT^IBCU3("BILL ADDENDUM") Q:'IBFT  S (IBFORM1,ZTDESC)="BILL ADDENDUM FOR "_$P(^DGCR(399,+IBIFN,0),U,1)
+	S ZTSAVE("IB*")="",ZTDTH=$H
+	S ZTIO=$P($G(^IBE(353,IBFT,0)),"^",2),ZTRTN=$G(^IBE(353,IBFT,1)) Q:(ZTIO="")!(ZTRTN="")
+	D ^%ZTLOAD
+	Q
+	;
+EN4	;queue bills, IBIFN must be defined
+	S ZTDTH=$H,IBPNT=1 Q:'$D(^DGCR(399,+$G(IBIFN),0))
+	D FORM I $P($G(^IBE(353,+IBFT,0)),U,2)="" Q
+	S (IBFORM1,ZTDESC)=$P($G(^IBE(353,+IBFT,0)),"^")_" BILL "_$P(^DGCR(399,+IBIFN,0),U,1)
+	S ZTSAVE("IB*")="",ZTSAVE("IB*")=""
+	S ZTIO=$P($G(^IBE(353,IBFT,0)),"^",2),ZTRTN=$G(^IBE(353,IBFT,1))
+	I (ZTIO="")!(ZTRTN="") S IBAR("ERR")="BILL FORM TYPE NOT COMPLETE FOR"_IBFORM1 Q
+	D ^%ZTLOAD I '$D(ZTSK) S IBAR("ERR")="QUEUEING OF "_IBFORM1_" FAILED",IBAR("OKAY")=0 W IBAR("ERR") Q
+	S IBAR("OKAY")=1
+	Q
+FORM	;
+	;S IBFT=$P($G(^DGCR(399,IBIFN,0)),"^",19)
+	S IBFT=$$FT^IBCU3(IBIFN)
+	Q
+QUEUE	;
+	S ZTSAVE("IB*")="",ZTSAVE("IB*")=""
+	S ZTIO=$P($G(^IBE(353,IBFT,0)),"^",3),ZTRTN=$G(^IBE(353,IBFT,1))
+	I (ZTIO="")!(ZTRTN="") S IBAR("ERR")="BILL FORM TYPE NOT COMPLETE FOR"_IBFORM1 Q
+	D ^%ZTLOAD I '$D(ZTSK) S IBAR("ERR")="QUEUEING OF "_IBFORM1_" FAILED",IBAR("OKAY")=0 W IBAR("ERR") Q
+	S IBAR("OKAY")=1
+	Q
+	;
+DISP	;print list of all authorized bills
+	N IBIFN,IBC,Y S IBIFN=0,IBC=0,Y="" W !
+	F  S IBIFN=$O(^DGCR(399,"AST",3,IBIFN)) Q:'IBIFN  S IBX=$G(^DGCR(399,IBIFN,0)) I IBX'="" D  Q:Y="^"
+	. W !,$P(IBX,U,1),?10,$E($P($G(^DPT(+$P(IBX,U,2),0)),U,1),1,20),?32,$$DATE^IBCFP(+$P(IBX,U,3)),?42,$S(+$P(IBX,U,5)<3:"INPT",1:"OUTPT")
+	. W ?49,$P($G(^DGCR(399.3,+$P(IBX,U,7),0)),U,4),?59,$E($$EXSET^IBEFUNC(+$P(IBX,U,13),399,.13),1,7),?68,$E($$FTN^IBCU3($$FT^IBCU3(IBIFN)),1,11)
+	. S IBC=IBC+1 I '(IBC#10) R !,"Press RETURN to continue or '^' to exit: ",Y:DTIME
+	Q

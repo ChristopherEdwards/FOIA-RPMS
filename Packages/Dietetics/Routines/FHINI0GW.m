@@ -1,0 +1,114 @@
+FHINI0GW	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,10218,1)
+	;;=6.608^3.084^22.026^143.612^^^^^^^^334.802^339.207
+	;;^UTILITY(U,$J,112,10218,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10219,0)
+	;;=BAKING CHOC,UNSWEETENED,BAKERS^BC-03492^oz.^28
+	;;^UTILITY(U,$J,112,10219,1)
+	;;=11.071^52.143^32.143^503.571^1.429^^^82.143^7^307.143^403.571^875^3.571^^2.821^^^60.714^0^.036
+	;;^UTILITY(U,$J,112,10219,2)
+	;;=.25^1.429^.179^.036^10.714^0^^^0^31.071^^1.429
+	;;^UTILITY(U,$J,112,10219,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10220,0)
+	;;=BAKING CHOC,UNSWEETENED,HERSHEY^BC-03493^oz.^28
+	;;^UTILITY(U,$J,112,10220,1)
+	;;=14.286^56.429^23.929^660.714^^^^71.429^7.286^300^439.286^800^10.714^4^2^2^^21.429^^.071
+	;;^UTILITY(U,$J,112,10220,2)
+	;;=.464^1.071
+	;;^UTILITY(U,$J,112,10220,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10221,0)
+	;;=BAKING POWDER,CALUMET^BC-03494^tsp.^4
+	;;^UTILITY(U,$J,112,10221,1)
+	;;=0^0^17.5^75^5^^^6025^0^0^2075^0^10650^0^0^^^0^0^0
+	;;^UTILITY(U,$J,112,10221,2)
+	;;=0^0^0^^0^0^^^0^0^^0
+	;;^UTILITY(U,$J,112,10221,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10222,0)
+	;;=COCOA,UNSWEETENED,HERSHEY^BC-03495^1/3-cup^28
+	;;^UTILITY(U,$J,112,10222,1)
+	;;=27.143^12.857^45.714^410.714^^^^146.429^16.214^550^789.286^1700^39.286^7.607^3.6^3.8^^78.571^^.071
+	;;^UTILITY(U,$J,112,10222,2)
+	;;=.536^2.143^^^^^^^0
+	;;^UTILITY(U,$J,112,10222,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10223,0)
+	;;=CORN STARCH,ARGO & KINGSFORD'S^BC-03496^tbsp.^8
+	;;^UTILITY(U,$J,112,10223,1)
+	;;=0^0^90^375^10^^^^^^^^0
+	;;^UTILITY(U,$J,112,10223,2)
+	;;=^^^^^^^^^^^^^^^^0
+	;;^UTILITY(U,$J,112,10223,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10224,0)
+	;;=FRUIT PECTIN,CERTO^BC-03497^tbsp.^14
+	;;^UTILITY(U,$J,112,10224,1)
+	;;=0^0^2.857^14.286^93.571^^^0^0^0^^235.714^7.143^0^^^^0^0^0
+	;;^UTILITY(U,$J,112,10224,2)
+	;;=0^0^0^0^0^0^^^0^0^^0
+	;;^UTILITY(U,$J,112,10224,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10225,0)
+	;;=FRUIT PECTIN,LIGHT,SWEETENED,SURE-JELL^BC-03498^1/4-pkt.^12
+	;;^UTILITY(U,$J,112,10225,1)
+	;;=0^0^80^266.667^7.5^^^0^0^0^0^0^8.333^0^0^^^0^0^0
+	;;^UTILITY(U,$J,112,10225,2)
+	;;=0^0^0^0^0^0^^^0^0^^0
+	;;^UTILITY(U,$J,112,10225,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10226,0)
+	;;=FRUIT PECTIN,SWEETENED,SURE-JELL^BC-03499^1/4-pkt.^12
+	;;^UTILITY(U,$J,112,10226,1)
+	;;=0^0^85.833^308.333^8.333^^^0^0^0^0^0^8.333^0^0^^^0^0^0
+	;;^UTILITY(U,$J,112,10226,2)
+	;;=0^0^0^0^0^0^^^0^0^^0
+	;;^UTILITY(U,$J,112,10226,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10227,0)
+	;;=COATINGS,MRS. DASH CRISPY COATING MIX^BC-03500^1/4-pouch^17
+	;;^UTILITY(U,$J,112,10227,1)
+	;;=29.412^0^58.824^370.588^^^^^^^^1352.941^0
+	;;^UTILITY(U,$J,112,10227,2)
+	;;=^^^^^^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,10227,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10228,0)
+	;;=COATINGS,OVEN FRY,EXTRA CRISPY RECIPE FOR CHICKEN^BC-03501^1/4-pouch^30
+	;;^UTILITY(U,$J,112,10228,1)
+	;;=11^6.667^67^383.333^4.333^^^106.667^3.6^30^103.333^170^2750^.667^.227^^^633.333^0^.1
+	;;^UTILITY(U,$J,112,10228,2)
+	;;=.1^1.333^.5^.067^53.333^0^^^0^1^^2.667
+	;;^UTILITY(U,$J,112,10228,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10229,0)
+	;;=COATINGS,OVEN FRY,EXTRA CRISPY RECIPE FOR PORK^BC-03502^1/4-pouch^30
+	;;^UTILITY(U,$J,112,10229,1)
+	;;=9^8.333^68.667^400^4^^^16.667^1.333^26.667^120^143.333^2293.333^.733^.233^^^556.667^0^.067
+	;;^UTILITY(U,$J,112,10229,2)
+	;;=.1^1.333^.5^.067^56.667^0^^^0^1.333^^3.333
+	;;^UTILITY(U,$J,112,10229,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10230,0)
+	;;=COATINGS,SHAKE & BAKE,ITALIAN HERB RECIPE^BC-03503^1/4-pouch^20
+	;;^UTILITY(U,$J,112,10230,1)
+	;;=8^5.5^72^385^5.5^^^160^3.5^35^145^230^3090^.75^.15^^^675^0^.1
+	;;^UTILITY(U,$J,112,10230,2)
+	;;=.1^1^.3^.05^30^.05^^^5^1^^2
+	;;^UTILITY(U,$J,112,10230,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10231,0)
+	;;=COATINGS,SHAKE & BAKE,ORIG BARBEQUE FOR CHICKEN^BC-03504^1/4-pouch^25
+	;;^UTILITY(U,$J,112,10231,1)
+	;;=3.2^8.4^74^372^2.8^^^68^1.52^28^64^348^3364^.36^.108^^^1548^8^.08
+	;;^UTILITY(U,$J,112,10231,2)
+	;;=.08^.8^.2^.04^12^0^^^0^3.6^^.4
+	;;^UTILITY(U,$J,112,10231,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10232,0)
+	;;=COATINGS,SHAKE & BAKE,ORIG BARBEQUE FOR PORK^BC-03505^1/8-pouch^10

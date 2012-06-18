@@ -1,0 +1,70 @@
+BQICARPT ;VNGT/HS/ALA-CANES Export Report ; 15 Nov 2010  2:59 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;**1**;Feb 07, 2011;Build 5
+ ;
+ ;
+EN ;
+ NEW ABORT,BQIBDT,BQIEDT,BQISTDT,BQIENDT,BQIRUN,ZTDESC,ZTRTN,ZTIO,ZTSAVE
+ NEW BXIEN,CT,DATA,DATE,DFN,DXN,EVDT,HRN,L,P,POP,RCN,STAT,TOTAL,TXT,X,Y
+ NEW %ZIS,DTOUT,DUOUT,ZTREQ
+ K DIR
+ S BQIBDT=$O(^BQI(90507.7,"B","")),BQIEDT=$O(^BQI(90507.7,"B",""),-1)
+ S DIR(0)="DA^"_BQIBDT_":"_$S(BQIEDT]"":BQIEDT,1:DT)_":EX"
+ S DIR("A")="Please select Report START date: "
+ I BQIBDT]"" S DIR("B")=$$FMTE^XLFDT(BQIBDT,"1Z")
+ D ^DIR
+ I $D(DTOUT)!$D(DUOUT) Q
+ S:Y>0 BQISTDT=Y
+ K DIR
+ S DIR(0)="DA^"_BQISTDT_":"_$S(BQIEDT]"":BQIEDT,1:DT)_":EX"
+ S DIR("A")="Please select Report END date: "
+ I BQIEDT]"" S DIR("B")=$$FMTE^XLFDT(BQIEDT,"1Z")
+ D ^DIR
+ I $D(DTOUT)!$D(DUOUT) Q
+ S:Y>0 BQIENDT=Y
+ K DIR
+ S BQIRUN=$$HTE^XLFDT($H,1)
+ S ZTDESC="CANES EXPORT REPORT",ZTRTN="BEG^BQICARPT"
+ S %ZIS="QM" D ^%ZIS G END:POP
+ I '$D(IO("Q")) K ZTDESC G @ZTRTN
+ S ZTIO=ION,ZTSAVE("*")=""
+ D ^%ZTLOAD
+ ;
+END ;
+ Q
+ ;
+BEG ; Begin the report
+ S (P,L,ABORT,CT)=0
+ U IO D HDR I $G(ABORT)=1 Q
+ S BQISTDT=BQISTDT-.005
+ F  S BQISTDT=$O(^BQI(90507.7,"B",BQISTDT)) Q:BQISTDT=""!(BQISTDT>BQIENDT)  D  Q:$G(ABORT)=1
+ . S BXIEN=""
+ . F  S BXIEN=$O(^BQI(90507.7,"B",BQISTDT,BXIEN)) Q:BXIEN=""  D  Q:$G(ABORT)=1
+ .. S TOTAL=$P(^BQI(90507.7,BXIEN,0),U,4)
+ .. S STAT=$$GET1^DIQ(90507.7,BXIEN_",",.03,"E")
+ .. I L+4>IOSL D HDR Q:$G(ABORT)=1
+ .. W !,$$FMTE^BQIUL1(BQISTDT),?20,$J(TOTAL,3),?26,STAT S L=L+1
+ .. I TOTAL=0 Q
+ .. ;
+ .. S RCN=0
+ .. F  S RCN=$O(^BQI(90507.7,BXIEN,10,RCN)) Q:'RCN  D  Q:$G(ABORT)=1
+ ... S DATA=^BQI(90507.7,BXIEN,10,RCN,0)
+ ... S DFN=$P(DATA,U,1),DATE=$P(DATA,U,8),DXN=$P(DATA,U,6),TXT=$P(DATA,U,7)
+ ... S HRN=$$HRN^BQIULPT(DFN),EVDT=$$FMTE^BQIUL1(DATE)
+ ... W !,?5,HRN,?17,EVDT,?30,DXN,?38,TXT
+ ... S L=L+1
+ ... I L+4>IOSL D HDR Q:$G(ABORT)=1
+ ;
+ I '$G(ABORT) W !,"<End of Report>" I $E(IOST,1,2)="C-" W " Enter RETURN to continue" R Y:300
+ D ^%ZISC
+ I $D(ZTQUEUED) S ZTREQ="@"
+ Q
+ ;
+HDR ; Header
+ I $E(IOST,1,2)="C-",P R !,"Enter RETURN to continue or '^' to exit: ",Y:300 I Y[U S ABORT=1 Q
+ I $E(IOST,1,2)="C-"!P W @IOF
+ S P=P+1,L=5
+ W "CANES EXPORT REPORT",?90,"Run Date: ",BQIRUN,?124,"Page ",$J(P,3)
+ W !,"Export Date",?15,"Total Records",?30,"Status"
+ W !,?2,"Patient HRN",?17,"Event Date",?30,"Diagnosis"
+ W !,$TR($J(" ",IOM)," ","-"),!
+ Q

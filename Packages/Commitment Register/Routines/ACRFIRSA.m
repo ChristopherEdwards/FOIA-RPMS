@@ -1,0 +1,203 @@
+ACRFIRSA ;IHS/OIRM/DSD/AEF/MRS - PRINT 1099s TO FLAT FILE [ 07/20/2006   4:18 PM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;**8,13,20**;NOV 05, 2001
+ ; NEW ROUTINE ACR*2.1*8.06
+DESC ;;
+ ;;  This routine gathers vendor 1099 payment data and puts it into a
+ ;;  UNIX comma delimited file to be imported into the Convey package
+ ;;  for printing on the Convey created forms -- replaces the ACRF
+ ;;  1099 PRINT ALL option for printing 1099's on pre-printed forms.
+ ;;
+ ;;    NOTE: This routine assumes that all data checks and any
+ ;;          necessary edits have been made before this routine
+ ;;          is run. You will be asked if this is a test run or
+ ;;          if the Vendor file is to be updated.
+ ;;
+ ;; COLUMN LAYOUT:
+ ;;
+ ;;  1  VENDOR NAME               8  VENDOR STATE
+ ;;  2  SHORT NAME                9  VENODR ZIP CODE          
+ ;;  3  VENDOR TIN# (9 DIGITS)   10  FOREIGN ADDRESS (1 or BLANK)  
+ ;;  4  TIN TYPE                 11  CYEAR AMOUNT (BOX 7)     
+ ;;  5  VENDOR ADDRESS (LINE 1)  12  CYEAR AMOUNT (BOX 6)  
+ ;;  6  VENDOR ADDRESS(LINE 2)   13  CORRECTED (X or BLANK)
+ ;;  7  VENDOR CITY               
+ ;;
+ ;;$$END
+ ;
+ ;      ACRYR     =  PAYMENT YEAR
+ ;      ACRNAME   =  VENDOR NAME
+ ;      ACRTIN    =  VENDOR TIN#
+ ;      ACRTYP    =  TIN TYPE = 2 = SSN; 1= EIN
+ ;      ACRADD1   =  VENDOR ADDRESS 1
+ ;      ACRADD2   =  VENDOR ADDRESS 2
+ ;      ACRCITY   =  VENDOR CITY
+ ;      ACRSTAB   =  VENDOR STATE ABBREVIATION
+ ;      ACRZIP    =  VENDOR ZIP CODE
+ ;      ACRFOR    =  FOREIGN ADDRESS = 1 if TRUE or NULL
+ ;      ACRCOR    =  CORRECTED FORM
+ ;      ACRVTYP   =  TYPE OF VENDOR (6 or 7)
+ ;      ACRAMT    =  VENDOR YTD PAID AMOUNT   BOX 6 or 7
+ ;      ACRUP     =  1 = UPDATE FILE; 2 = TEST PRINT ONLY
+ ;
+EN ;EP -- WRITE ALL VENDOR 1099S INTO FLAT FILE
+ ;
+ N ACRYR
+ ;
+ D ^XBKVAR                     ;----- SET SESSION VARIABLES
+ D HOME^%ZIS
+ D ^XBCLS                      ;----- CLEAR SCREEN
+ D TXT                         ;----- WRITE DESCRIPTION
+ K ACROUT
+ D PAUSE^ACRFWARN
+ Q:$D(ACROUT)
+ ;
+ D ^XBCLS
+ D YR^ACRFIRSU(.ACRYR)          ;----- ASK CALENDAR YEAR
+ Q:'$G(ACRYR)
+ ;
+ S ACRUP=$$ASKUP^ACRFIRSU       ;----- ASK UPDATE OR TEST
+ Q:'ACRUP
+ ;
+ D DQ(ACRYR,ACRUP)
+ ;
+ D PAUSE^ACRFWARN
+ Q
+ ;
+DQ(ACRYR,ACRUP) ;
+ ;
+ ;      INCOMING VARIABLES:
+ ;      ACRYR   = CALENDAR YEAR
+ ;      ACRUP   =  UPDATE 1099 VENDOR FILE OR TEST PRINT
+ ;
+ ;      OTHER VARIABLES USED:
+ ;      ACRJ    = $JOB NUMBER
+ ;
+ N ACRJ
+ ;
+ S ACRJ=$J
+ K ^TMP("ACR1099",ACRJ)
+ D ALPHA(ACRYR,ACRJ)
+ ;
+ D WRITE(ACRYR,ACRJ,ACRUP)
+ ;
+ Q
+WRITE(ACRYR,ACRJ,ACRUP)     ;
+ ;----- LOOP THROUGH TMP("ACR1099" FILE AND WRITE 1099s INTO FLATE FILE
+ ;
+ ;      INPUT:
+ ;      ACRYR   = CALENDAR YEAR
+ ;      ACRJ    = $JOB NUMBER
+ ;      ACRUP   = UPDATE FILE FLAG
+ ;      ^TMP("ACR1099",ACRJ IS ALREADY SET
+ ;
+ N %DEV,ZISH1,ZISH2                        ;ACR*2.1*8.08
+ S ZISH1=$$ARMSDIR^ACRFSYS(1)              ;ACR*2.1*8.08,ACR*2.1*13.06 IM14144
+ I ZISH1["alb"!(ZISH1["hqw") D             ;ACR*2.1*8.08
+ .S ZISH1=ZISH1_"csv/"                     ;ACR*2.1*8.08
+ S ZISH2="vendor"_ACRYR_".csv"             ;ACR*2.1*8.08
+ ;D HFS^ACRFIRSU(ZISH1,ZISH2,"W",.%DEV)    ;ACR*2.1*13.06 IM14144
+ D HFS^ACRFZISH(ZISH1,ZISH2,"W",.%DEV)     ;ACR*2.1*13.06 IM14144
+ Q:'$D(%DEV)
+ ;
+ N ACRNAME,ACRVEN,ACRCNT,ACRHDR
+ ;
+ S ACRNAME=""
+ S ACRCNT=0
+ D HDR
+ F  S ACRNAME=$O(^TMP("ACR1099",ACRJ,ACRNAME)) Q:ACRNAME']""  D
+ .S ACRVEN=0
+ .F  S ACRVEN=$O(^TMP("ACR1099",ACRJ,ACRNAME,ACRVEN)) Q:'ACRVEN  D
+ ..S ACRDATA=^TMP("ACR1099",ACRJ,ACRNAME,ACRVEN)
+ ..S ACRSTR=$$WRITE^ACRFIRSU(ACRDATA)
+ ..U %DEV
+ ..W ACRSTR,!
+ ..S ACRCNT=ACRCNT+1
+ ..I ACRUP=1 D UPDATE^ACRFIRSU(ACRVEN,ACRYR)
+ U IO(0) W !!?5,ACRCNT," records have been written into "_ZISH1_ZISH2
+ D CLOSE^%ZISH("FILE")
+ ;
+ Q
+ALPHA(ACRYR,ACRJ)       ;
+ ;----- BUILD ALPHABETIC ARRAY OF VENDORS IN ^TMP("ACR1099",ACRJ)
+ ;
+ ;      INPUT:
+ ;      ACRYR   = CALENDAR YEAR
+ ;      ACRJ    = $JOB NUMBER
+ ;  NOTE: UNPOPULATED FIELDS ARE ALLOWED AS FILE WILL BE CHECKED
+ ;        AFTER UPLOADING INTO COTS
+ ;
+ N ACRNAME,ACRVEN,ACRV0,ACRV11,ACRV13,Z,ACREIN,ACRVTYP
+ N ACRAMT,ACRCOR,ACRIRS,ACRPADD,ACRPTIN,ACRTYP,ACRVADD,ACRVTIN,DATA
+ S ACRVEN=0
+ F  S ACRVEN=$O(^ACR1099V("C",ACRYR,ACRVEN)) Q:'ACRVEN  D
+ . I '$D(^ACR1099V(ACRVEN,1,ACRYR)) Q
+ . ; START SETTING DATA STRING
+ . S ACRV0=$G(^AUTTVNDR(ACRVEN,0))
+ . S ACRV0=$$UPPER^ACRFUTL(ACRV0)
+ . S ACRV11=$G(^AUTTVNDR(ACRVEN,11))
+ . ;S ACRV13=$$UPPER^ACRFUTL(^AUTTVNDR(ACRVEN,13))  ;ACR*2.1*20.02  IM16042
+ . S ACRV13=$$UPPER^ACRFUTL($G(^AUTTVNDR(ACRVEN,13)))  ;ACR*2.1*20.02  IM16042
+ . S ACRNAME=$$NAME(ACRV0)
+ . S ACREIN=$P(ACRV11,U)
+ . S ACRTIN=$E(ACREIN,2,10)
+ . S ACRTYP=$E(ACREIN,1)
+ . S ACRADD1=$P(ACRV13,U)
+ . S ACRADD2=$P(ACRV13,U,10)
+ . S ACRCITY=$P(ACRV13,U,2)
+ . ;S ACRSTAB=$$STATE^ACRFIRSU($P(ACRV13,U,3))  ;ACR*2.1*20.02  IM16042
+ . S ACRSTAB=$P(ACRV13,U,3)                     ;ACR*2.1*20.02  IM16042
+ . I ACRSTAB="" S ACRSTAB=56          ;UNKNOWN  ;ACR*2.1*20.02  IM16042
+ . S ACRSTAB=$$STATE^ACRFIRSU(ACRSTAB)          ;ACR*2.1*20.02  IM16042
+ . S ACRZIP=$P(ACRV13,U,4)
+ . S ACRV0=$G(^ACR1099V(ACRVEN,0))
+ . S ACRVTYP=$P(ACRV0,U,2)
+ . S ACRFOR=$P(ACRV0,U,4)
+ . S ACRCOR=""
+ . I $P($G(^ACR1099V(ACRVEN,1,ACRYR,0)),U,6)="Y" S ACRCOR="X"
+ . S ACRAMT=$$YTD(ACRVEN,ACRYR)
+ . Q:ACRAMT<600
+ . S Z=ACRNAME                               ;1 - FULL VENDOR NAME
+ . S Z=Z_U_$E(ACRNAME,1,4)                   ;2 - SHORT NAME
+ . S Z=Z_U_ACRTIN                            ;3 - VENDOR TIN
+ . S Z=Z_U_ACRTYP                            ;4 - TIN TYPE
+ . S Z=Z_U_ACRADD1                           ;5 - ADDRESS
+ . S Z=Z_U_ACRADD2                           ;6 - ADDRESS 2
+ . S Z=Z_U_ACRCITY                           ;7 - CITY
+ . S Z=Z_U_ACRSTAB                           ;8 - 2 CHAR STATE
+ . S Z=Z_U_ACRZIP                            ;9 - ZIP
+ . S Z=Z_U_ACRFOR                            ;10- FOREIGN ADDRESS FLAG
+ . I ACRVTYP=7 S Z=Z_U_ACRAMT_U_""           ;11- CY AMT 7
+ . I ACRVTYP=6 S Z=Z_U_""_U_ACRAMT           ;12- CY AMT 6
+ . S Z=Z_U_ACRCOR                            ;13- CORRECTED FORM
+ . S ^TMP("ACR1099",ACRJ,ACRNAME,ACRVEN)=Z
+ Q
+ ;
+NAME(X) ;RETURNS VENDOR NAME
+ ; ---  INPUT
+ ;        X=DATA STRING
+ N Y
+ S Y=$P(X,U)
+ I $P(X,U,3)]"" S Y=$P(X,U,3)    ;NAME KNOWN TO IRS
+ Q Y
+TXT ;----- PRINT OPTION TEXT
+ ;
+ N I,X
+ F I=1:1 S X=$P($T(DESC+I),";",3) Q:X["$$END"  W !,X
+ Q
+YTD(X,Y) ;LOCAL ENTRY
+ ;--------------
+ N Z
+ S Z=$$YTD^ACRFIRSU(X,Y)     ;11-YEAR-TO-DATE AMOUNT(6 or 7)
+ I Z<600 Q 0
+ I Z'["." S Z=Z_".00" Q Z
+ I $L($P(Z,".",2))=1 S Z=Z_"0"
+ Q Z
+HDR ; SET HEADER INTO FLAT FILE
+ N ACRSTR
+ S ACRSTR="NAME"_U_"SHORT"_U_"TIN"_U_"TINTYPE"_U_"ADDRESS"
+ S ACRSTR=ACRSTR_U_"ADDRESS 2"_U_"CITY"_U_"STATE"_U_"ZIP"_U_"FOREIGN"
+ S ACRSTR=ACRSTR_U_"AMOUNT-7"_U_"AMOUNT-6"_U_"CORRECTED"
+ U %DEV
+ W $$WRITE^ACRFIRSU(ACRSTR)
+ W !
+ Q

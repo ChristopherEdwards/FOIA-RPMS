@@ -1,0 +1,72 @@
+BQI21PRE ;VNGT/HS/ALA-Version 2.1 Pre-Install ; 25 Feb 2009  11:39 AM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+EN ;
+ ; Remove old source fields
+ NEW BQIUPD,IEN
+ S IEN=0
+ F  S IEN=$O(^BQI(90506.1,IEN)) Q:'IEN  D
+ . F FLD=2.01,2.02,2.03,2.04,2.05,2.06 S BQIUPD(90506.1,IEN_",",FLD)="@"
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ NEW DIK,DA
+ S DIK="^DD(90506.1,",DA(1)=90506.1
+ F DA=2.01,2.02,2.03,2.04,2.05,2.06 D ^DIK
+ K ^BQI(90506.1,"AC")
+ D IXALL^DIK
+ ;
+ ; Remove old job data
+ F FLD=.02,.03,.04,.05,.06,.07,.15,.16,.17,.18,1.01,1.02,1.03,1.04,1.05,1.06,1.07,1.08 S BQIUPD(90508,1_",",FLD)="@"
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ NEW DIK,DA
+ S DIK="^DD(90508,",DA(1)=90508
+ F DA=.02,.03,.04,.05,.06,.07,.15,.16,.17,.18,1.01,1.02,1.03,1.04,1.05,1.06,1.07,1.08 D ^DIK
+ ;
+ NEW DA,DIK
+ S DA=0,DIK="^BQI(90505.2,"
+ F  S DA=$O(^BQI(90505.2,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506,"
+ F  S DA=$O(^BQI(90506,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.3,"
+ F  S DA=$O(^BQI(90506.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.4,"
+ F  S DA=$O(^BQI(90506.4,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.5,"
+ F  S DA=$O(^BQI(90506.5,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.6,"
+ F  S DA=$O(^BQI(90506.6,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507,"
+ F  S DA=$O(^BQI(90507,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507.1,"
+ F  S DA=$O(^BQI(90507.1,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507.3,"
+ F  S DA=$O(^BQI(90507.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507.8,"
+ F  S DA=$O(^BQI(90507.8,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90508.2,"
+ F  S DA=$O(^BQI(90508.2,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90508.3,"
+ F  S DA=$O(^BQI(90508.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90508.4,"
+ F  S DA=$O(^BQI(90508.4,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90509.9,"
+ F  S DA=$O(^BQI(90509.9,DA)) Q:'DA  D ^DIK
+ ;
+ ;Remove old community alerts glossary
+ S BQIUPD(90508,"1,",16)="@"
+ D FILE^DIE("","BQIUPD","ERROR")
+ Q

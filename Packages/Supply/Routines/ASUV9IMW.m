@@ -1,0 +1,78 @@
+ASUV9IMW ; IHS/ASDST/WAR -INVTR WRITE MASTER ;   
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;;4.2T1;SUPPLY ACCOUNTING MGMT SYSTEM;;JAN 28, 2000
+ ;This is a Physical Inventory utility to write an Inventory Master.
+ D ACCOUNT,STORLOC,INDEX
+ Q
+REPACCT ;EP;
+ D DELACCT
+ D SETACCT
+ Q
+NEWACCT ;EP;
+ S:'$D(^ASUMV(0)) ^ASUMV(0)="ASUMST INVENTORY^9002030P^^"
+ S ASUL(9,"E#","ACC")=$S(ASUMV("ACC")=9:6,1:ASUMV("ACC"))
+ S $P(^ASUMV(0),U,3)=ASUMV("E#","ASA")
+SETACCT ;
+ S $P(^ASUMV(0),U,4)=$P(^ASUMV(0),U,4)+1
+ S ^ASUMV("B",ASUL(9,"E#","ACC"),ASUMV("E#","ASA"))=""
+ S ^ASUMV(ASUMV("E#","ASA"),1,0)="^9002030.01PA"
+ S ASUMV(0,"ASA")=ASUL(9,"E#","ACC")_U_ASUV("DT")_"^^^"_ASUL(2,"STA","E#")
+ S ^ASUMV(ASUMV("E#","ASA"),0)=ASUMV(0,"ASA")
+ S ASUMV("INVBEG")=ASUV("DT")
+ Q
+ACCOUNT ;EP;
+ Q:'$D(ASUMV("E#","ASA"))
+ S $P(ASUMV(0,"ASA"),U,2)=ASUMV("INVBEG")
+ S $P(ASUMV(0,"ASA"),U,3)=ASUMV("VOU")
+ S $P(ASUMV(0,"ASA"),U,4)=ASUMV("MODE")
+ S ^ASUMV(ASUMV("E#","ASA"),0)=ASUMV(0,"ASA")
+ Q
+DELACCT ;EP;
+ K ^ASUMV(ASUMV("E#","ASA")),^ASUMV("B",ASUL(9,"E#","ACC"))
+ S $P(^ASUMV(0),U,4)=$P(^ASUMV(0),U,4)-1
+ Q
+NEWSLC ;EP;
+ I '$D(^ASUMV(ASUMV("E#","ASA"),1,0)) D
+ .S ^ASUMV(ASUMV("E#","ASA"),1,0)="^9002030.01PA^"_ASUMV("E#","SLC")_"^1"
+ E  D
+ .S $P(^ASUMV(ASUMV("E#","ASA"),1,0),U,3)=ASUMV("E#","SLC"),$P(^(0),U,4)=$P(^(0),U,4)+1
+ S ^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),0)=ASUMS("SLC")
+ S ^ASUMV(ASUMV("E#","ASA"),1,"B",ASUMS("SLC"),ASUMV("E#","SLC"))=""
+ D STORLOC^ASUV9IMR
+STORLOC ;EP;
+ Q:'$D(ASUMV("E#","ASA"))
+ Q:'$D(ASUMV("E#","SLC"))
+ S $P(ASUMV(0,"SLC"),U,2)=ASUMV("SL E#")
+ S ^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),0)=ASUMV(0,"SLC")
+ Q
+NEWIDX ;EP;
+ I '$D(^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),1,0)) D
+ .S ^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),1,0)="^9002030.11PA^"_ASUMV("IDX")_"^1"
+ E  D
+ .S $P(^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),1,0),U,3)=ASUMV("E#","INDX"),$P(^(0),U,4)=$P(^(0),U,4)+1
+ I '$D(^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),1,ASUMV("E#","INDX"),0)) D
+ .D INDEX
+ E  D
+ .S ASUMV(0,"IDX")=^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),1,ASUMV("E#","INDX"),0)
+ Q
+INDEX ;EP;
+ Q:'$D(ASUMV("E#","ASA"))
+ Q:'$D(ASUMV("E#","SLC"))
+ Q:'$D(ASUMV("E#","INDX"))
+ S $P(ASUMV(0,"IDX"),U)=$G(ASUMX("E#","IDX"))
+ S $P(ASUMV(0,"IDX"),U,2)=$G(ASUMV("STA"))
+ S $P(ASUMV(0,"IDX"),U,3)=$G(ASUMV("QTY","STAM"))
+ S $P(ASUMV(0,"IDX"),U,4)=$G(ASUMV("U/C"))
+ S $P(ASUMV(0,"IDX"),U,5)=$G(ASUMV("CNT","1ST"))
+ S $P(ASUMV(0,"IDX"),U,6)=$G(ASUMV("CNT","2ND"))
+ S $P(ASUMV(0,"IDX"),U,7)=$G(ASUMV("QTY","DIF"))
+ S $P(ASUMV(0,"IDX"),U,8)=$G(ASUMV("ADJQTY"))
+ S $P(ASUMV(0,"IDX"),U,9)=$G(ASUMV("CNT-ENT"))
+ S ASUMV("IDX")=$P($G(^ASUMX(ASUMX("E#","IDX"),0)),U)
+ S $P(ASUMV(0,"IDX"),U,10)=$G(ASUMV("IDX"))
+ S ^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),1,ASUMV("E#","INDX"),0)=ASUMV(0,"IDX")
+ Q
+XREF ;EP;
+ S DA=ASUMV("E#","SLC")
+ S DIK="^ASUMV("_ASUMV("E#","ASA")_",1,",DA(1)=ASUMV("E#","ASA") D IXALL^DIK
+ Q

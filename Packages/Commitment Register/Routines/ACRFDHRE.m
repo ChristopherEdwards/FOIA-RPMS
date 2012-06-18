@@ -1,0 +1,343 @@
+ACRFDHRE ;IHS/OIRM/DSD/AEF - DHR ENTER/EDIT [ 11/01/2001   9:44 AM ]
+ ;;2.1;ADMIN RESOURCE MGMT SYSTEM;;NOV 05, 2001
+ ;
+ ;
+ ;This routine contains subroutines used to enter/edit DHR data in the
+ ;DHR Data Records file.  The subroutines are called by the ACRFDHRD
+ ;routine.
+ ;
+OPT(ACROPT,ACROUT) ;EP
+ ;----- SELECT WHICH TYPE OF DHRS TO ENTER
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT,X,Y
+ S DIR(0)="SOM^ARMS:ARMS DHR VERIFY/MODIFY/CLOSE;DHRD:DHR DATA ENTRY;CHCS:CORRECTION DHR'S FOR CHS (FY)"
+ S DIR("A")="Select DATA ENTRY OPTION"
+ D ^DIR
+ I $D(DIRUT)!($D(DTOUT))!($D(DUOUT)) S ACROUT=1 Q
+ I Y="" S ACROUT=1 Q
+ S ACROPT=$S(Y="DHRD":"1^2",Y="CHCS":"3^4",Y="ARMS":"5^6",1:"")
+ I ACROPT="" S ACROUT=1
+ Q
+SEL(ACRD0,ACRD1,ACRD2,ACROUT,ACRADD,ACROPT,ACRCLR)         ;EP
+ ;----- SELECT BATCH
+ ;
+A ;
+ N Y
+ W !
+ D CLR(ACRADD,.Y,ACROPT,.ACROUT,.ACRCLR)
+ Q:$G(ACROUT)
+ S ACRD0=+Y
+ K Y
+ D DT(ACRD0,ACRADD,.Y,.ACROUT)
+ Q:$G(ACROUT)
+ S ACRD1=+Y
+ K Y
+ D ID(ACRD0,ACRD1,ACRADD,.Y,.ACROUT)
+ Q:$G(ACROUT)
+ S ACRD2=+Y
+ K Y
+ Q
+DUPE(ACRD0,ACRD1,ACRD2,ACRD3,ACRDUP,ACRDR)       ;EP
+ ;----- PICK FIELDS TO DUPLICATE
+ ;
+ N DATA,DIR,I,J,X,Y,Z
+ Q:'$D(^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,"S",ACRD3))
+ I '$G(ACRDUP) D
+ . S DIR(0)="Y"
+ . S DIR("A")="Do you want to duplicate fields"
+ . S DIR("B")="NO"
+ I $G(ACRDUP) D
+ . S DIR(0)="Y"
+ . S DIR("A")="Want to keep duplicating"
+ . S DIR("B")="YES"
+ D ^DIR
+ S ACRDUP=+Y
+ K DIR,X,Y
+ I 'ACRDUP K ACRDR Q
+ Q:$G(ACRDR)]""
+ S DIR(0)="FO"
+ S DIR("A")="Enter FIELD NUMBERS (2-28) you want to duplicate"
+ S DIR("?")="Enter which fields to duplicate, i.e., 2-10 or 2,3,5,18"
+ D ^DIR
+ K DIR
+ Q:Y']""
+ S ACRDR=""
+ S DATA=^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,"S",ACRD3,0)
+ F I=1:1:$L(Y,",") D
+ . S Z=$P(Y,",",I)
+ . I Z["-" D  Q
+ . . F J=$P(Z,"-"):1:$P(Z,"-",2) D
+ . . . Q:+J<2
+ . . . Q:+J>28
+ . . . S ACRDR=ACRDR_";"_J_"////"_$P(DATA,U,(J+1))
+ . Q:+Z<2
+ . Q:+Z>28
+ . S ACRDR=ACRDR_";"_Z_"////"_$P(DATA,U,(Z+1))
+ I $E(ACRDR)=";" S ACRDR=$E(ACRDR,2,999)
+ I ACRDR']"" K ACRDR
+ Q
+TYPE(Y) ;EP -- SELECT RECORD TYPE
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT
+ S DIR(0)="SOM^2:BASIC TRANSACTION RECORD;3:CHANGE TRANSACTION RECORD;4:TRAILER RECORD;7:DFAFS RECORD;8:LOC(TRIBAL) TRANSACTION RECORD"
+ S DIR("A")="Select RECORD TYPE"
+ D ^DIR
+ I $D(DTOUT)!($D(DUOUT))!($D(DIRUT)) S Y=""
+ Q
+CLR(ACRADD,Y,ACROPT,ACROUT,ACRCLR)     ;
+ ;----- LOOKUP BATCH COLOR TYPE
+ ;
+ N DIC,DIR,DLAYGO,DTOUT,DUOUT,X
+ S DIC="^AFSHRCDS("
+ S DIC(0)=""
+ I $G(ACRCLR)']"" D
+ . S DIC(0)="AEMQ"
+ . S DIC("A")="Select BATCH TYPE/COLOR: "
+ I $G(ACRCLR)]"" D
+ . S X=$S(ACRCLR="B":$P(ACROPT,U),ACRCLR="R":$P(ACROPT,U,2),1:"")
+ . I X="" S ACROUT=1
+ Q:$G(ACROUT)
+ I $G(ACRADD) D
+ . S DIC(0)=DIC(0)_"L"
+ . S DLAYGO=9002322
+ D ^DIC
+ I $D(DTOUT)!($D(DUOUT)) S ACROUT=1
+ I Y'>0 S ACROUT=1
+ Q
+RB(ACRCLR)         ;EP
+ ;----- SELECT RED OR BLUE BATCH
+ ;
+ N DIR,DTOUT,DUOUT,X,Y
+ S DIR(0)="SBOM^B:BLUE;R:RED"
+ S DIR("A")="Select COLOR"
+ D ^DIR
+ I $D(DTOUT)!($D(DUOUT))!($D(DIRUT)) S ACROUT=1 Q
+ I Y="" S ACROUT=1 Q
+ S ACRCLR=Y
+ Q
+DT(ACRD0,ACRADD,Y,ACROUT)    ;
+ ;----- LOOKUP BATCH DATE
+ ;
+ N DA,DIC,DLAYGO,DTOUT,DUOUT,X
+ S DA(1)=ACRD0
+ S DIC="^AFSHRCDS("_DA(1)_","_"""D"""_","
+ S DIC(0)="AEMQ"
+ I $G(ACRADD) S DIC(0)=DIC(0)_"L"
+ S DIC("A")="Select BATCH DATE: "
+ S DIC("P")=$P(^DD(9002322,1,0),U,2)
+ I $G(ACRADD) S DLAYGO=9002322
+ D ^DIC
+ I $D(DUOUT)!($D(DTOUT)) S ACROUT=1
+ I +Y'>0 S ACROUT=1
+ Q
+ID(ACRD0,ACRD1,ACRADD,Y,ACROUT)        ;
+ ;----- LOOKUP BATCH ID
+ ;
+ N DA,DIC,DLAYGO,DTOUT,DUOUT,X
+ S DA(1)=ACRD1
+ S DA(2)=ACRD0
+ S DIC="^AFSHRCDS("_DA(2)_","_"""D"""_","_DA(1)_","_"""I"""_","
+ S DIC(0)="AEMQ"
+ I $G(ACRADD) S DIC(0)=DIC(0)_"L"
+ S DIC("A")="Select BATCH ID: "
+ S DIC("DR")=1
+ S DIC("P")=$P(^DD(9002322.02,1,0),U,2)
+ I $G(ACRADD) S DLAYGO=9002322.02
+ D ^DIC
+ I $D(DUOUT)!($D(DTOUT)) S ACROUT=1
+ I +Y'>0 S ACROUT=1
+ Q
+SEQ(ACRD0,ACRD1,ACRD2,ACRDR,ACRADD,Y)  ;EP
+ ;----- LOOKUP BATCH SEQUENCE NUMBER
+ ;
+ N DA,DIC,DLAYGO,DTOUT,DUOUT,X
+ I '$D(ACRTYPE) S ACRTYPE=2 ;Do Need this with 650 DHR
+ S DA(1)=ACRD2
+ S DA(2)=ACRD1
+ S DA(3)=ACRD0
+ S DIC="^AFSHRCDS("_DA(3)_","_"""D"""_","_DA(2)_","_"""I"""_","_DA(1)_","_"""S"""_","
+ S DIC(0)="AEMQ"
+ I $G(ACRADD) S DIC(0)=DIC(0)_"L"
+ S DIC("A")="Select SEQUENCE NUMBER ('^' to exit): "
+ S X=$P($G(^AFSHRCDS(DA(3),"D",DA(2),"I",DA(1),"S",0)),U,3)
+ F X=X+1 Q:'$D(^AFSHRCDS(DA(3),"D",DA(2),"I",DA(1),"S",X))
+ S DIC("B")=X
+ K X
+ S DIC("DR")="1////"_ACRTYPE
+ I $D(ACRDR) S DIC("DR")=DIC("DR")_";"_ACRDR
+ S DIC("P")=$P(^DD(9002322.21,6,0),U,2)
+ I $G(ACRADD) S DLAYGO=9002322.21
+ D ^DIC
+ I $D(DUOUT)!($D(DTOUT)) S Y=""
+ Q
+EDIT(ACRD0,ACRD1,ACRD2,ACRD3,ACRTYPE,DDSPARM)    ;EP
+ ;----- EDIT SEQUENCE ENTRY
+ ;
+ N DA,DDSFILE,DR
+ S DA=ACRD3
+ S DA(1)=ACRD2
+ S DA(2)=ACRD1
+ S DA(3)=ACRD0
+ S DDSFILE=9002322
+ S DDSFILE(1)=9002322.216
+ S DR=$S(ACRTYPE=3:"[ACR DHR ENTRY 3]",1:"[ACR DHR ENTRY 2]")
+ D ^DDS
+ Q
+ ;
+DEL(ACRD0,ACRD1,ACRD2,ACRD3,ACRTYPE)   ;EP
+ ;----- CHECK AND DELETE INCOMPLETE DHR SEQUENCE ENTRY
+ ;
+ N DATA,DEL,I
+ S DEL=0
+ S DATA=^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,"S",ACRD3,0)
+ I ACRTYPE=2 D
+ . F I=1:1:6,11:1:16 I $P(DATA,U,I)="" S DEL=1
+ I ACRTYPE=3 D
+ . F I=1,2,27 I $P(DATA,U,I)="" S DEL=1
+ I DEL D KILL(ACRD0,ACRD1,ACRD2,ACRD3)
+ Q
+KILL(ACRD0,ACRD1,ACRD2,ACRD3)          ;
+ ;----- DELETE DHR SEQUENCE ENTRY
+ ;
+ N DA,DIK
+ S DA(3)=ACRD0
+ S DA(2)=ACRD1
+ S DA(1)=ACRD2
+ S DA=ACRD3
+ S DIK="^AFSHRCDS("_DA(3)_","_"""D"""_","_DA(2)_","_"""I"""_","_DA(1)_","_"""S"""_","
+ D ^DIK
+ W *7,"     ",ACRD3,"    <DELETED>"
+ Q
+HDR(D0,D1,D2)      ;EP
+ ;----- WRITE RECORD HEADER
+ ;
+ N X,Z
+ I $G(D0)="" Q
+ I $G(D1)="" Q
+ I $G(D2)="" Q
+ S X="BID="
+ S Z=$P($G(^AFSHRCDS(D0,"D",D1,0)),U)
+ I Z S Z=$E(Z,4,5)_"/"_$E(Z,6,7)_"/"_($E(Z,1,3)+1700)
+ S X=X_Z_"-"_$P(^AFSHRCDS(D0,"D",D1,"I",D2,0),U)
+ S X=X_"       "
+ S Z=$P(^AFSHRCDS(D0,0),U)
+ S X=X_$S(Z=1!(Z=2):"PCC/HAS",Z=3!(Z=4):"CHS/FI",Z=5!(Z=6):"ARMS/HAS",1:"")
+ S X=X_" DHR    INPUT RECORD (DETAIL)       COLOR = "
+ S Z=$S(Z=1:"BLUE",Z=2:"RED",Z=3:"BLUE",Z=4:"RED",Z=5:"BLUE",Z=6:"RED",1:"")
+ S X=X_Z
+ Q X
+TRAIL(ACRD0,ACRD1,ACRD2)     ;EP
+ ;----- ADD TRAILER RECORD
+ ;      Don't need this subroutine with 650 character DHRs
+ ;
+ N AMT,CNT,DA,DATA,DIE,DIR,DR,X,Y
+ S (AMT,CNT,X)=0
+ F  S X=$O(^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,"S",X)) Q:'X  D
+ . S DATA=^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,"S",X,0)
+ . S CNT=CNT+1
+ . S AMT=AMT+$P(DATA,U,15)
+ W !,"TRAILER DATA:  RECORD COUNT = ",CNT,"    HASH DOLLARS = ",AMT
+ S DIR(0)="Y"
+ S DIR("A")="Is this correct"
+ S DIR("B")="NO"
+ D ^DIR
+ Q:'Y
+ S DA(2)=ACRD0
+ S DA(1)=ACRD1
+ S DA=ACRD2
+ S DIE="^AFSHRCDS("_DA(2)_","_"""D"""_","_DA(1)_","_"""I"""_","
+ S DR="2////CNT;4////"_CNT_";5////"_AMT
+ D ^DIE
+ W !,"TRAILER RECORD ADDED"
+ Q
+RO ;EP -- CALLED FROM REOPEN BATCH OPTION
+ ;
+ D HOME^%ZIS
+ D ^XBKVAR
+ S ACROUT=0
+ D DISPLAY^ACRFDHRD("1^6")
+ D SEL(.ACRD0,.ACRD1,.ACRD2,.ACROUT,0,"")
+ Q:$G(ACROUT)
+ I $P(^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,0),U,3)'="C" D  G RO
+ . W !,"  Batch is already OPEN"
+ . H 2
+ D REOPEN(ACRD0,ACRD1,ACRD2)
+ G RO
+ Q
+REOPEN(ACRD0,ACRD1,ACRD2)    ;EP
+ ;----- REOPEN BATCH
+ ;
+ N DA,DIE,DIR,DR,Y
+ S DA(2)=ACRD0
+ S DA(1)=ACRD1
+ S DA=ACRD2
+ S DIE="^AFSHRCDS("_DA(2)_","_"""D"""_","_DA(1)_","_"""I"""_","
+ S DR="2////@;3////@;4////@;5////@;8////@"
+ D ^DIE
+ W !,"  Batch reopened"
+ Q
+DATE(X) ;EP -- FORMAT DATE
+ ;
+ ;      X = INTERNAL FILEMANAGER DATE IN YYYMMDD FORMAT
+ N Y
+ S Y=""
+ I X D
+ . Q:$L(X)'=7
+ . S Y=$E(X,4,5)_"/"_$E(X,6,7)_"/"_($E(X,1,3)+1700)
+ Q Y
+ADDFMS(ACRD0,ACRD1,ACRD2,ACRD3,ACRSRC) ;EP
+ ;----- ADD ENTRY TO FMS DOCUMENT HISTORY RECORD FILE
+ ;      FROM DHR DATA RECORDS FILE
+ ;
+ N DA,DATA,DIC,DIE,DR,I,X,Y
+ Q:'$D(^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,"S",ACRD3,0))
+ Q:$G(^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,"S",ACRD3,99))
+ S DATA=^AFSHRCDS(ACRD0,"D",ACRD1,"I",ACRD2,"S",ACRD3,0)
+ S X=$P(DATA,U,8)
+ I X']"" S X=$P(DATA,10)
+ Q:X']""
+ K DD,DO
+ S DIC="^ACRDHR("
+ S DIC(0)=""
+ D FILE^DICN
+ Q:+Y'>0
+ S (ACRFMS,DA)=+Y
+ S DIE=DIC
+ S DR=".02////"_DT_";.03////"_$G(DUZ)_";202////"_$G(ACRSRC)
+ S X=""
+ F I=1:1:14 S X=X_I_"////"_$P(DATA,U,I)_";"
+ I $E(X,$L(X))=";" S X=$E(X,1,$L(X)-1)
+ S DR(1,9002189.1,1)=X
+ S X=""
+ F I=15:1:28 S X=X_I_"////"_$P(DATA,U,I)_";"
+ I $E(X,$L(X))=";" S X=$E(X,1,$L(X)-1)
+ S DR(1,9002189.1,2)=X
+ D ^DIE
+ ;
+ K DR
+ S DA(3)=ACRD0
+ S DA(2)=ACRD1
+ S DA(1)=ACRD2
+ S DA=ACRD3
+ S DIE="^AFSHRCDS("_DA(3)_","_"""D"""_","_DA(2)_","_"""I"""_","_DA(1)_","_"""S"""_","
+ S DR="99////"_ACRFMS
+ D ^DIE
+ Q
+LINK(DA,X1,X3,X4,X5,X6,X7)   ;EP
+ ;----- LINK FROM DHR DATA RECORDS FILE TO FMS DOCUMENT HISTORY RECORD
+ ;      FILE
+ ;
+ ;      DA = IEN OF FMS DOCUMENT HISTORY RECORD FILE
+ ;      X1 = CORE TRANSMISSION DATE
+ ;      X3 = BATCH TYPE/COLOR
+ ;      X4 = BATCH DATE
+ ;      X5 = BATCH ID
+ ;      X6 = SEQUENCE NUMBER
+ ;      X7 = UNIX TRANSMISSION FILE NAME
+ ;
+ N D0,D1,D2,D3,DIE,DR,X,Y
+ Q:'DA
+ S DIE="^ACRDHR("
+ S DR="201////"_X1_";203////"_X3_";204////"_X4_";205////"_X5_";206////"_X6_";207////"_X7
+ D ^DIE
+ Q

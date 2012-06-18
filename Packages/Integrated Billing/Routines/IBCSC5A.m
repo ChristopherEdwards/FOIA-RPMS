@@ -1,0 +1,79 @@
+IBCSC5A	;ALB/ARH - ADD/ENTER PRESCRIPTION REFILLS ; 12/27/93
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	;;Per VHA Directive 10-93-142, this routine should not be modified.
+	;
+	;
+EN	;add/edit prescription refills for a bill, IBIFN required
+	S IBX=$$BILL(IBIFN) Q:'IBIFN  S DFN=+IBX,IBDT1=$P(IBX,U,2),IBDT2=$P(IBX,U,3),IBRXNEW=0
+	D SET(IBIFN,.IBRXA,"") S IBRXOLD=+$P(IBRXA,U,2)
+	D RXDISP^IBCSC5C(DFN,IBDT1,IBDT2,.IBPR,.IBPRO,.IBRXA) I +$P($G(IBPRO),U,2) D NEWRX^IBCSC5C(+IBPRO) I +$G(IBLIST) D ADDNEW^IBCSC5C(IBIFN,IBLIST,.IBPR,.IBPRO) S DGRVRCAL=1,IBRXNEW=1
+	S IBRXAP=+$G(IBPRO) D SET(IBIFN,.IBRXA,.IBRXAP),DISP(.IBRXA,.IBRXAP)
+E1	S IBPIFN=0,IBRX=$$ASKRX(.IBRXAP,.IBPRO) G:IBRX="" EXIT S IBDT=$P(IBRX,U,2),IBRX=$P(IBRX,U,1),DGRVRCAL=1
+	I 'IBDT S IBDT=$O(IBRXA(IBRX,0)) S:'IBDT IBDT=$O(IBPR(IBRX,0)) S IBDT=$$ASKDT(IBDT1,IBDT2,IBDT) G:'IBDT E1
+	I +$$RXDUP^IBCU3(IBRX,IBDT,IBIFN,1),'$D(IBRXA(IBRX,IBDT)) G E1
+	I '$D(IBPR(IBRX,IBDT)) W !,"This rx refill does not exist in Pharmacy for this patient!",!
+	S IBPIFN=$G(IBRXA(IBRX,IBDT)),IBDRG=$P(IBPIFN,U,2)
+	I 'IBPIFN S IBX=$G(IBPR(IBRX,IBDT)),IBPIFN=$$ADD(IBRX,IBIFN,IBDT,$P(IBX,U,3),$P(IBX,U,1),$P(IBX,U,4,6)) S:+IBPIFN IBRXNEW=1 W:+IBPIFN "  ... ADDED" I 'IBPIFN W " ??" G E1
+	D EDIT(+IBPIFN) S IBRXAP=+$G(IBPRO) D SET(IBIFN,.IBRXA,.IBRXAP) G E1
+	;
+EXIT	I 'IBRXOLD,+IBRXNEW D DEFAULT^IBCSC5C(IBIFN)
+	K IBPIFN,IBRX,IBDRG,IBX,IBDT1,IBDT2,IBRXA,IBPR,IBDT,IBRXNEW,IBRXOLD,IBLIST,IBPRO,IBRXAP
+	Q
+	;
+ASKRX(IBRXAP,IBPRO)	;
+	N X,Y,IBY,IBX W ! S IBX=""
+	I +$G(IBIFN) S DIR("?")="The prescription number for the refill",DIR("??")="^D HELP^IBCSC5A("_IBIFN_")"
+	S DIR("A")="Select RX REFILL",DIR(0)="FO^1:11^K:X'?.UN X" D ^DIR I $D(DIRUT)!(Y'?.AN) S Y="" K DIR,DIRUT G ARX1E
+	S IBX=Y I $D(IBRXAP)<10,$D(IBPRO)<10 G ARX1E
+	;
+	S IBY=$G(IBRXAP(IBX)) S:IBY="" IBY=$G(IBPRO(IBX)) I IBY="" G ARX1E
+	W ! S DIR(0)="YO",DIR("A")="ADD/EDIT RX REFILL "_$P(IBY,U,1)_" FOR "_$$FMTE^XLFDT($P(IBY,U,2))_" CORRECT",DIR("B")="YES"
+	D ^DIR K DIR I Y=1,'$D(DIRUT) S IBX=IBY
+ARX1E	Q IBX
+	;
+ASKDT(IBDT1,IBDT2,IBDT)	;
+	S DIR("A")="Select RX REFILL DATE",DIR(0)="DO^"_IBDT1_":"_IBDT2_":EX",DIR("B")=$$FMTE^XLFDT(IBDT) D ^DIR K DIR,DTOUT,DIRUT
+	Q $S(Y?7N:Y,1:0)
+	;
+ADD(RX,IFN,IBDT,DRUG,PIFN,OTHER)	;
+	N IBX S IBX=0 S DRUG=$$DRUG($G(DRUG)) G:'DRUG ADDE
+	S DIC="^IBA(362.4,",DIC(0)="AQL",X=RX K DA,DO D FILE^DICN K DA,DO,X
+	I Y>0 S DIE=DIC,(IBX,DA)=+Y,DR=".02////"_IFN_";.03////"_IBDT_";.04////"_DRUG_";.05////"_+PIFN_";.06////"_$P(OTHER,U,1)_";.07////"_$P(OTHER,U,2)_";.08////"_$P(OTHER,U,3) D ^DIE K DIE,DIC,DA,DR
+ADDE	Q IBX
+	;
+EDIT(PIFN)	;
+	S DIDEL=362.4,DIE="^IBA(362.4,",DR=".01;.03;.04;.06;.07;.08",DA=PIFN D ^DIE K DIE,DR,DA,DIC,DIDEL
+	Q
+	;
+SET(IFN,RXARR,RXARRP)	;setup array of all rx refills for bill, array name should be passed by reference
+	;returns: RXARR(RX #, REFILL DT)=RX IFN (362.4) ^ DRUG ^ DAYS SUPPLY ^ QTY ^ NDC #,    RXARR=BILL IFN ^ RX count
+	N CNT,IBX,IBY,IBZ,PIFN,IBC,IBCNT S IBCNT=+$G(RXARRP),IBC="AIFN"_$G(IFN) K RXARR,RXARRP
+	S (CNT,IBX)=0 F  S IBX=$O(^IBA(362.4,IBC,IBX)) Q:IBX=""  S PIFN=0 F  S PIFN=$O(^IBA(362.4,IBC,IBX,PIFN)) Q:'PIFN  D
+	. S IBY=$G(^IBA(362.4,PIFN,0)) Q:IBY=""  S CNT=CNT+1,RXARR($P(IBY,U,1),+$P(IBY,U,3))=PIFN_U_$P(IBY,U,4)_U_$P(IBY,U,6,8)
+	S RXARR=$G(IFN)_"^"_CNT
+	S IBX=0 F  S IBX=$O(RXARR(IBX)) Q:IBX=""  S IBY=0 F  S IBY=$O(RXARR(IBX,IBY)) Q:'IBY  S IBCNT=IBCNT+1,RXARRP(IBCNT)=IBX_"^"_IBY
+	Q
+	;
+DISP(RXARR,RXARRP)	;screen display of existing refills for a bill,
+	;input should be print order array returned by SET^IBCSC5A: RXARR(RX,DT)=RX IFN (362.4) ^ DRUG, passed by reference
+	N IBX,IBY,IBZ
+	W !!,?5,"-----------------  Existing Rx Refills for Bill  -----------------",!
+	S IBI=0 F  S IBI=$O(RXARRP(IBI)) Q:IBI=""  S IBX=$P(RXARRP(IBI),U,1),IBY=$P(RXARRP(IBI),U,2) I $D(RXARR(IBX,IBY)) D
+	. S IBZ=$P($G(^PSDRUG(+$P(RXARR(IBX,IBY),U,2),0)),U,1)
+	. W !,$J(IBI,2),")",?7,IBX,?20,$E(IBZ,1,38),?60,$$FMTE^XLFDT(IBY)
+	W !
+	Q
+	;
+HELP(IFN)	;called for help from rx enter to display existing rx, displays rx' from 52 and 399
+	I +$G(IFN) N IBX,IBRXA S IBX=$$BILL(IFN) I +IBX D SET(IFN,.IBRXA,""),RXDISP^IBCSC5C($P(IBX,U,1),$P(IBX,U,2),$P(IBX,U,3),.IBPR,.IBPRO,.IBRXA) S IBRXAP=+IBPRO D SET(IFN,.IBRXA,.IBRXAP),DISP(.IBRXA,.IBRXAP)
+	Q
+	;
+BILL(IBIFN)	; display all existing prescription refills (52) for a patient and date range
+	; (call is a short cut to calling rxdisp if have bill number)
+	N IBX,IBY S IBX=$G(^DGCR(399,+$G(IBIFN),0)),IBY=$P(IBX,U,2)
+	S IBX=$G(^DGCR(399,+IBIFN,"U")),$P(IBY,U,2)=+IBX,$P(IBY,U,3)=+$P(IBX,U,2)
+	Q IBY
+	;
+DRUG(IBD)	; get drug
+	N X,Y S IBD=+$G(IBD) I '$D(^PSDRUG(IBD,0)) S IBD=0,DIC="^PSDRUG(",DIC(0)="AEQ" D ^DIC K DIC I +Y>0 S IBD=+Y
+	Q IBD

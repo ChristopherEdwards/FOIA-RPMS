@@ -1,0 +1,102 @@
+BCHEXRE ; IHS/TUCSON/LAB - REDO A PREVIOUS CHR EXPORT ;  [ 06/27/00  2:18 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**7,10**;OCT 28, 1996
+ ;IHS/CMI/LAB - $J to tmp
+START ;
+ S BCHO("RUN")="REDO" ;     Let ^BCHEXDI know this is a 'REDO'
+ D ^BCHEXDI ;           
+ I BCH("QFLG") D EOJ W !!,"Bye",!! Q
+ D INIT ;               Get Log entry to redo
+ I BCH("QFLG") D EOJ W !!,"Bye",!! Q
+ D QUEUE^BCHEXDI
+ I BCH("QFLG") D EOJ W !!,"Bye",!! Q
+ I $D(BCHO("QUEUE")) D EOJ W !!,"Okay your request is queued!",!! Q
+ ;
+EN ;EP FROM TASKMAN
+ S BCHCNT=$S('$D(ZTQUEUED):"X BCHCNT1  X BCHCNT2",1:"S BCHCNTR=BCHCNTR+1"),BCHCNT1="F BCHCNTL=1:1:$L(BCHCNTR)+1 W @BCHBS",BCHCNT2="S BCHCNTR=BCHCNTR+1 W BCHCNTR,"")"""
+ D NOW^%DTC S BCH("RUN START")=%,BCH("MAIN TX DATE")=$P(%,".") K %,%H,%I
+ I BCH("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
+ S BCH("BT")=$HOROLOG
+ D PROCESS ;            Generate transactions
+ I BCH("QFLG") W:'$D(ZTQUEUED) !!,"Abnormal termination!  QFLG=",BCH("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
+ D ^BCHEXRLG ;                Update Log entry
+ I BCH("QFLG") W:'$D(ZTQUEUED) !!,"Log error! ",BCH("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
+ D:'$D(ZTQUEUED) RUNTIME^BCHEXEOJ
+ I BCH("QFLG") W:'$D(ZTQUEUED) !!,"Tape creation error! QFLG=",BCH("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
+ D:'$D(ZTQUEUED) CHKLOG ;             See if Log needs cleaning
+ D RESETV ;             Reset RECORDs processed in Log
+ D TAPE ; Write transactions to tape
+ I '$D(ZTQUEUED) K DIR W !! S DIR(0)="E",DIR("A")="DONE -- press any key to continue" K DA D ^DIR K DIR
+ D EOJ
+ K BCH
+ Q
+ ;
+PROCESS ;
+ K ^BCHXLOG(BCH("RUN LOG"),51)
+ S (BCH("U"),BCH("D"),BCH("COUNT"),BCH("ERROR COUNT"))=0
+ ;build header record
+ ;S BCH("COUNT")=BCH("COUNT")+1,^BCHRDATA(BCH("COUNT"))="CR^"
+ W:'$D(ZTQUEUED) !,"Generating transactions.  Counting visits.  (1)" S BCHCNTR=0
+ S BCHR=0 F  S BCHR=$O(^BCHXLOG(BCH("RUN LOG"),21,BCHR))  Q:BCHR'=+BCHR  S BCHRTYPE=$P(^BCHXLOG(BCH("RUN LOG"),21,BCHR,0),U,3) D PROCESS2 Q:BCH("QFLG")
+ ;D DELETES
+ Q
+PROCESS2 ;
+ K BCHE,BCHCPOV,BCH("POVS")
+ X BCHCNT
+ S ^TMP("BCHREDO",$J,"MAIN TX",BCHR)="",BCHV("TX GENERATED")=0
+ Q:'$D(^BCHR(BCHR))
+ I '$D(^BCHRPROB("AD",BCHR)) S BCHE="E021" D CNTBUILD Q
+ S BCHREC=^BCHR(BCHR,0)
+ K BCHE,BCHTX S (BCHCPOV,BCHPOVD)=0 F  S BCHPOVD=$O(^BCHRPROB("AD",BCHR,BCHPOVD)) Q:BCHPOVD'=+BCHPOVD  D
+ .I $P(^BCHRPROB(BCHPOVD,0),U,4)="" S BCHE="E021" Q
+ .I $P(^BCHRPROB(BCHPOVD,0),U,6)="" S BCHE="E021" Q
+ .;D RECORD^BCHEXD2
+ .;D CNTBUILD
+ .Q
+ I $D(BCHE) D CNTBUILD Q
+ D RECORD^BCHEXD2
+ D CNTBUILD
+ Q
+CNTBUILD ;EP - count and build tx
+ I BCHE]"" S BCH("ERROR COUNT")=BCH("ERROR COUNT")+1 D ^BCHEXERR Q
+ S BCH("COUNT")=BCH("COUNT")+1
+ S BCH(BCHRTYPE)=BCH(BCHRTYPE)+1
+ S BCHV("TX GENERATED")=1,^TMP("BCH"_$S(BCHO("RUN")="NEW":"DR",BCHO("RUN")="REDO":"REDO",1:"DR"),$J,"MAIN TX",BCHR)=BCH("MAIN TX DATE")
+ S ^BCHRDATA(BCH("COUNT"))=BCHTX
+ S X=0 F  S X=$O(BCH("POVS",X)) Q:X'=+X  S BCH("COUNT")=BCH("COUNT")+1,^BCHRDATA(BCH("COUNT"))=BCH("POVS",X) ;IHS/CMI/LAB - new format
+SETUTIL S ^TMP("BCHREDO",$J,BCHR)=BCHR_U_BCHV("TX GENERATED")_U_BCHRTYPE
+ Q
+ ;
+TAPE ; COPY TRANSACTIONS TO TAPE
+ D TAPE^BCHEXTAP
+ Q
+DELETES ;
+ D DELETES^BCHEXRE1
+ Q
+CHKLOG ; CHECK LOG FILE
+ S BCH("X")=0 F BCH("I")=BCH("RUN LOG"):-1:1 Q:'$D(^BCHXLOG(BCH("I")))  I $O(^BCHXLOG(BCH("I"),21,0)) S BCH("X")=BCH("X")+1
+ I BCH("X")>3 W !!,"-->There are more than three generations of RECORDs stored in the LOG file.",!,"-->Time to do a purge."
+ Q
+ ;
+RESETV ; RESET RECORD DATA IN LOG
+ W:'$D(ZTQUEUED) !,"Resetting RECORD specific data in Log file.  (1)" S BCHCNTR=0
+ S BCH("X")="" F  S BCH("X")=$O(^TMP("BCHREDO",$J,BCH("X"))) Q:BCH("X")'=+BCH("X")  S BCH("Y")=^(BCH("X")),^BCHXLOG(BCH("RUN LOG"),21,BCH("X"),0)=BCH("Y") X BCHCNT
+ W:'$D(ZTQUEUED) !,"Resetting RECORD TX Flags. (1)" S BCHCNTR=0
+ S BCH("X")="" F  S BCH("X")=$O(^TMP("BCHREDO",$J,"MAIN TX",BCH("X"))) Q:BCH("X")'=+BCH("X")  D
+  .S DIE="^BCHR(",DA=BCH("X"),DR=".24///"_$S(^TMP("BCHREDO",$J,"MAIN TX",BCH("X"))]"":^TMP("BCHREDO",$J,"MAIN TX",BCH("X")),1:"@") D CALLDIE^BCHUTIL K DA,DR X BCHCNT
+ .Q
+ K ^TMP("BCHREDO")
+ Q
+ ;
+INIT ;
+ D INIT^BCHEXRE1
+ Q
+ABORT ; ABNORMAL TERMINATION
+ I $D(BCH("RUN LOG")) S BCH("QFLG1")=$O(^BCHERR("B",BCH("QFLG"),"")),DA=BCH("RUN LOG"),DIE="^BCHXLOG(",DR=".15///F;.16////"_BCH("QFLG1")
+ I $D(ZTQUEUED) D ERRBULL^BCHEXDI3,ABORT,EOJ Q
+ W !!,"Abnormal termination!!  QFLG=",BCH("QFLG")
+ S DIR(0)="E",DIR("A")="Press any key to continue" K DA D ^DIR K DIR
+ Q
+ ;
+EOJ ;
+ D ^BCHEXEOJ
+ Q

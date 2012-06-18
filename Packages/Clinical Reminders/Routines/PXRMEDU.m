@@ -1,0 +1,135 @@
+PXRMEDU ; SLC/PKR - Handle education findings. ;24-Mar-2006 13:10;MGH
+ ;;1.5;CLINICAL REMINDERS;**2,7,8,1003,1004**;Jun 19, 2000
+ ;IHS/CIA/MGH - 6/22/2005 Changes made in using AA cross-reference
+ ;=======================================================================
+EVALFI(DFN,FIEVAL) ;Evaluate education findings.
+ N EDUIEN,FIND0,FIND3,FINDING,INVDATE,TOTAL
+ S EDUIEN=""
+ ;IHS/CIA/MGH Modified to use AAVA cross-reference
+ F  S EDUIEN=$O(^PXD(811.9,PXRMITEM,20,"E","AUTTEDT(",EDUIEN)) Q:+EDUIEN=0  D
+ . ;Modified by IHS/CIA/MGH to use AAVA cross-reference
+ . S INVDATE=$O(^AUPNVPED("AAVA",DFN,EDUIEN,""))
+ . S FINDING=""
+ . F  S FINDING=$O(^PXD(811.9,PXRMITEM,20,"E","AUTTEDT(",EDUIEN,FINDING)) Q:+FINDING=0  D
+ .. S FIND0=^PXD(811.9,PXRMITEM,20,FINDING,0)
+ .. S FIND3=$G(^PXD(811.9,PXRMITEM,20,FINDING,3))
+ .. D FIEVAL(DFN,EDUIEN,INVDATE,FIND0,FIND3,"","",FINDING,.FIEVAL)
+ Q
+ ;
+ ;=======================================================================
+EVALTERM(DFN,FINDING,TERMIEN,TFIEVAL) ;Evaluate education terms.
+ N EDUIEN,FIND0,FIND3,INVDATE,TFIND0,TFIND3,TFINDING,TOTAL
+ S FIND0=^PXD(811.9,PXRMITEM,20,FINDING,0)
+ S FIND3=$G(^PXD(811.9,PXRMITEM,20,FINDING,3))
+ ;Modified by CIA/IHS/MGH to use AAVA cross-reference
+ S EDUIEN=""
+ F  S EDUIEN=$O(^PXRMD(811.5,TERMIEN,20,"E","AUTTEDT(",EDUIEN)) Q:+EDUIEN=0  D
+ . S INVDATE=$O(^AUPNVPED("AAVA",DFN,EDUIEN,""))
+ .;End modification
+ . S TFINDING=""
+ . F  S TFINDING=$O(^PXRMD(811.5,TERMIEN,20,"E","AUTTEDT(",EDUIEN,TFINDING)) Q:+TFINDING=0  D
+ .. S TFIND0=^PXRMD(811.5,TERMIEN,20,TFINDING,0)
+ .. S TFIND3=$G(^PXRMD(811.5,TERMIEN,20,TFINDING,3))
+ .. D FIEVAL(DFN,EDUIEN,INVDATE,FIND0,FIND3,TFIND0,TFIND3,TFINDING,.TFIEVAL)
+ Q
+ ;
+ ;=======================================================================
+FIEVAL(DFN,EDUIEN,INVDATE,FIND0,FIND3,TFIND0,TFIND3,FINDING,FIEVAL) ;
+ N CONVAL,DATE,IEN,IND,LOU,TEMP,VALID,VIEN
+ I INVDATE="" S FIEVAL(FINDING)=0 Q
+ ;IHS/CIA/MGH Modified to use AAVA cross-reference
+ S IEN=$O(^AUPNVPED("AAVA",DFN,EDUIEN,INVDATE,""))
+ S TEMP=$G(^AUPNVPED(IEN,0))
+ S LOU=$P(TEMP,U,6)
+ S VIEN=$P(TEMP,U,3)
+ S DATE=$$VDATE^PXRMDATE(VIEN)
+ ;Save the rest of the finding information.
+ S FIEVAL(FINDING)=1
+ S FIEVAL(FINDING,"FINDING")=EDUIEN_";AUTTEDT("
+ S FIEVAL(FINDING,"SOURCE")=IEN_";AUPNVPED("
+ S FIEVAL(FINDING,"DATE")=DATE
+ S FIEVAL(FINDING,"LEVEL OF UNDERSTANDING")=LOU
+ S FIEVAL(FINDING,"VALUE")=LOU
+ S FIEVAL(FINDING,"VIEN")=VIEN
+ ;If this is being called as part of a term evaluation we are done.
+ I TFIND0'="" Q
+ ;Determine if the finding has expired.
+ S VALID=$$VALID^PXRMDATE(FIND0,TFIND0,DATE)
+ I 'VALID D  Q
+ .S FIEVAL(FINDING)=0
+ .S FIEVAL(FINDING,"EXPIRED")=""
+ ;If there is a condition for this finding evaluate it.
+ S CONVAL=$$COND^PXRMUTIL(FIND3,TFIND3,LOU)
+ I CONVAL'="" D
+ . I CONVAL D
+ .. S FIEVAL(FINDING)=CONVAL
+ .. S FIEVAL(FINDING,"CONDITION")=CONVAL
+ . E  D
+ .. K FIEVAL(FINDING)
+ .. S FIEVAL(FINDING)=0
+ Q
+ ;
+ ;=======================================================================
+OUTPUT(NLINES,TEXT,FINDING,FIEVAL) ;Produce the clinical
+ ;maintenance output.
+ N EDUIEN,EM,FIEN,IND,PNAME,LOU,TEMP,VDATE
+ S EDUIEN=$P(FIEVAL(FINDING,"SOURCE"),";",1)
+ S FIEN=$P(FIEVAL(FINDING,"FINDING"),";",1)
+ S VDATE=FIEVAL(FINDING,"DATE")
+ S LOU=$G(FIEVAL(FINDING,"VALUE"))
+ S TEMP=$$EDATE^PXRMDATE(VDATE)
+ S TEMP=TEMP_" Education: "
+ S IND=$P(^AUPNVPED(EDUIEN,0),U,1)
+ S PNAME=$P(^AUTTEDT(FIEN,0),U,4)
+ I $L(PNAME)'>0 S PNAME=$P(^AUTTEDT(FIEN,0),U,1)
+ S TEMP=TEMP_PNAME
+ I $L(LOU)>0 D
+ . S TEMP=TEMP_"; level of understanding - "
+ . S TEMP=TEMP_$$EXTERNAL^DILFD(9000010.16,.06,"",LOU,.EM)
+ ;If the finding has expired add "EXPIRED"
+ I $D(FIEVAL(FINDING,"EXPIRED")) S TEMP=TEMP_" - EXPIRED"
+ ;If the finding is false because of the value add the reason.
+ I $G(FIEVAL(FINDING,"CONDITION"))=0 S TEMP=TEMP_$$ACTFT^PXRMOPT
+ S NLINES=NLINES+1
+ S TEXT(NLINES)=TEMP
+ I $D(PXRMDEV) D
+ . N UID
+ . S UID="EDUCATION "_PNAME
+ . S ^TMP(PXRMPID,$J,PXRMITEM,UID)=TEMP
+ ;
+ ;For historical encounters display the location and comments.
+ I VDATE["E" D
+ . N INDEX,VIEN
+ . S INDEX="EDU-"_PNAME
+ . S VIEN=FIEVAL(FINDING,"VIEN")
+ . D HLCV^PXRMVSIT(.NLINES,.TEXT,VIEN,INDEX)
+ Q
+ ;
+ ;=======================================================================
+PATLIST(INDEX,EDUIEN,FINDING,FIND0,FIND3,TFIND0,TFIND3,FIEVAL) ;Build a
+ ;list of patients with a particular exam.
+ K ^TMP(INDEX,$J,FINDING)
+ K ^TMP("PXRMEDULIST",$J)
+ N CONVAL,DATE,DFN,IND,TEMP,VALID,VALUE,VISIT
+ S IND=0
+ F  S IND=+$O(^AUPNVPED("B",EDUIEN,IND)) Q:IND=0  D
+ . S TEMP=$G(^AUPNVPED(IND,0))
+ . S DFN=$P(TEMP,U,2)
+ . S VISIT=$P(TEMP,U,3)
+ . S DATE=$P(^AUPNVSIT(VISIT,0),U,1)
+ . S VALID=$$VALID^PXRMDATE(FIND0,TFIND0,DATE)
+ . I 'VALID Q
+ .;Save the result.
+ . S VALUE=$P(TEMP,U,4)
+ . S CONVAL=$$COND^PXRMUTIL(FIND3,TFIND3,VALUE)
+ . I (CONVAL="")!(CONVAL) D
+ .. S TEMP="RESULT~"_VALUE_U_"SOURCE~"_IND_";AUPNVPED("_U_"VISIT~"_VISIT
+ .. S ^TMP("PXRMEDULIST",$J,DFN,DATE)=TEMP
+ ;Only valid entries are on the list, save the most recent.
+ S DFN=0
+ F  S DFN=+$O(^TMP("PXRMEDULIST",$J,DFN)) Q:DFN=0  D
+ . S DATE=$O(^TMP("PXRMEDULIST",$J,DFN,""),-1)
+ . S ^TMP(INDEX,$J,DFN,DATE,FINDING)="FINDING~"_FIEVAL(FINDING,"FINDING")_U_^TMP("PXRMEDULIST",$J,DFN,DATE)
+ K ^TMP("PXRMEDULIST",$J)
+ Q
+ ;

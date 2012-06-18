@@ -1,0 +1,251 @@
+APSPESR1 ; IHS/MSC/MGH - AUTO-FINISH REPORT ;14-Jun-2011 10:57;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1011**;Sep 23, 2004;Build 17
+ ;
+EN ;EP
+ N APSPBD,APSPED,APSPDIV,APSPRTYP,APSPQ,APSPDSUB,APSPDCLS,APSPSRT,APSPSRT2
+ N APSPDCT,APSPDCTN,APSPDRG,APSPBDF,APSPEDF,APSPOUT,APSPGRP
+ S APSPDIV="",APSPDRG="",APSPQ=0,APSPDSUB=0
+ W @IOF
+ W !!,"Auto-finish failure report by Division"
+ D ASKDATES^APSPUTIL(.APSPBD,.APSPED,.APSPQ,DT,DT)
+ Q:APSPQ
+ S APSPBDF=$P($TR($$FMTE^XLFDT(APSPBD,"5Z"),"@"," "),":",1,2)
+ S APSPEDF=$P($TR($$FMTE^XLFDT(APSPED,"5Z"),"@"," "),":",1,2)
+ S APSPBD=APSPBD-.01,APSPED=APSPED+.99
+ S APSPDIV=$$DIR^APSPUTIL("Y","Would you like all divisions","Yes",,.APSPQ)
+ Q:APSPQ
+ I APSPDIV D
+ .S APSPDIV="*"
+ E  D  Q:APSPQ
+ .S APSPDIV=$$GETIEN^APSPUTIL(4,"Select Division: ",.APSPQ)
+ ;Get primary sort criteria
+ S APSPSRT=+$$DIR^APSPUTIL("S^1:Date;2:Drug;3:Prescriber","Primary sort",,,.APSPQ)
+ Q:APSPQ
+ I APSPSRT=1 D
+ .S APSPSRT2=+$$DIR^APSPUTIL("S^1:Drug;2:Prescriber","Within Date,sort by",,,.APSPQ)
+ Q:APSPQ
+ I APSPSRT=2 D
+ .S APSPSRT2=+$$DIR^APSPUTIL("S^1:Date;2:Prescriber","Within Drug,sort by",,,.APSPQ)
+ Q:APSPQ
+ I APSPSRT=3 D
+ .S APSPSRT2=+$$DIR^APSPUTIL("S^1:Date;2:Drug","Within Prescriber,sort by",,,.APSPQ)
+ Q:APSPQ
+ ;Ask about divisions
+ S APSPGRP=0
+ I APSPDIV="*" S APSPGRP=+$$DIR^APSPUTIL("S^1:Yes;0:No","Display by divison?",,,.APSPQ)
+ Q:APSPQ
+ ;Ask about output
+ S APSPOUT=0
+ S APSPOUT=+$$DIR^APSPUTIL("S^1:Detailed;2:Columnar;3:Delimited","Output format:",,,.APSPQ)
+ Q:APSPQ
+ D DEV
+ Q
+DEV ;
+ N XBRP,XBNS
+ S XBRP="OUT^APSPESR1"
+ S XBNS="APS*"
+ D ^XBDBQUE
+ Q
+OUT ;EP
+ K ^TMP("APSPESR",$J)
+ D FIND($G(APSPBD),$G(APSPED))
+ D PRINT
+ Q
+ ;
+FIND(APSPBD,APSPED) ;EP
+ N RXIEN,ACTIEN,RTSDT,FILLDT,A0,DIV,PRV,CNT,LOC,AUTO,DRUG,DRGNM,HRN,PDATE,PAT,PNAME
+ S RXIEN=0,RTSDT=APSPBD,CNT=0
+ F  S RTSDT=$O(^APSPAF("B",RTSDT)) Q:'+RTSDT!(RTSDT>APSPED)  D
+ .F  S RXIEN=$O(^APSPAF("B",RTSDT,RXIEN)) Q:'+RXIEN  D
+ ..Q:'$D(^APSPAF(RXIEN,0))       ; Prescription must have a zero node
+ ..;Only want non-autofinished meds
+ ..S AUTO=$P($G(^APSPAF(RXIEN,0)),U,3)
+ ..Q:+AUTO
+ ..;Get the order
+ ..S ORDER=$P($G(^APSPAF(RXIEN,0)),U,2)
+ ..Q:'+ORDER
+ ..;Now we have prescriptions that were not auto-finished but have a pharmacy defined
+ ..;This is what we want so we can find the other variables.
+ ..S LOC=$P($G(^OR(100,ORDER,0)),U,6)
+ ..S DIV=$P($G(^SC(LOC,0)),U,4)
+ ..D SET(DIV,ORDER)
+ Q
+ ;
+PRINT ;EP
+ N APSPPG,DFLG
+ S (APSPPG,DFLG)=0
+ D HDR
+ D PRINT1
+ W:'DFLG !,"No data found..."
+ Q
+ ;
+PRINT1 ;EP
+ N DIV,SUB1,SUB2,SUB3,SUB4,VAL
+ I APSPDIV="*"&(APSPGRP=1) D PRINT2
+ E  D PRINT3
+ Q
+PRINT2 ;Print out by division
+ N DIV,SUB1,SUB2,VAL,DIVCT,TOT,NUM
+ S TOT=0
+ S DIV=0 F  S DIV=$O(^TMP("APSPESR",$J,DIV)) Q:'DIV  D
+ .S DIVCT=0
+ .I APSPDIV="*" W !,$$GET1^DIQ(4,DIV,.01) D PRINT5
+ .S SUB1=0 F  S SUB1=$O(^TMP("APSPESR",$J,DIV,SUB1)) Q:'SUB1  D
+ ..D HDR1(SUB1)
+ ..S SUB2=0 F  S SUB2=$O(^TMP("APSPESR",$J,DIV,SUB1,SUB2)) Q:'SUB2  D
+ ...D HDR2(SUB2)
+ ...S NUM=0 F  S NUM=$O(^TMP("APSPESR",$J,DIV,SUB1,SUB2,NUM)) Q:'NUM  D
+ ....S VAL=$G(^TMP("APSPESR",$J,DIV,SUB1,SUB2,NUM))
+ ....D PRINT4(VAL)
+ ....S DFLG=1
+ ....S TOT=TOT+1,DIVCT=DIVCT+1
+ .W !,"Division Count: "_DIVCT D PRINT5
+ W !,"TOTAL Count: "_TOT
+ Q
+PRINT3 ;No divisional counts
+ N SUB1,SUB2,VAL,TOT,DIV
+ S TOT=0
+ S SUB1=0 F  S SUB1=$O(^TMP("APSPESR",$J,SUB1)) Q:'SUB1  D
+ .D HDR1(SUB1)
+ .S SUB2=0 F  S SUB2=$O(^TMP("APSPESR",$J,SUB1,SUB2)) Q:'SUB2  D
+ ..D HDR2(SUB2)
+ ..S DIV=0 F  S DIV=$O(^TMP("APSPESR",$J,SUB1,SUB2,DIV)) Q:'DIV  D
+ ...S NUM=0 F  S NUM=$O(^TMP("APSPESR",$J,SUB1,SUB2,DIV,NUM)) Q:'NUM  D
+ ....S DFLG=1
+ ....S VAL=$G(^TMP("APSPESR",$J,SUB1,SUB2,DIV,NUM))
+ ....D PRINT4(VAL)
+ ....S TOT=TOT+1
+ W !,"TOTAL CT: "_TOT
+ ; Check page length
+PRINT5 ;EP
+ N DIR
+ Q:$E(IOST)'="C"
+ I $Y+4>IOSL D
+ .K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ .S DIR(0)="E" D ^DIR
+ .D HDR
+ Q
+ ; Set data into ^TMP global for output
+SET(DIV,ORDER) ;EP
+ N LSTDSPDT,NODE0,X,Y,ITEM,PRV,PDAT,HRN,PAT,DRUGNM,DRUG,DRUG2,DPT,PNAME
+ S NODE0=^OR(100,ORDER,0)
+ S DRUGNM=""
+ S DPT=$P($P(NODE0,U,2),";",1)
+ F X=0:0 S X=$O(^OR(100,ORDER,8,X)) Q:'+X  D
+ .I X=1 D
+ ..S PRV=$P($G(^OR(100,ORDER,8,1,0)),U,5)
+ ..S PNAME=$$GET1^DIQ(200,PRV,.01,"E")
+ ..S PDAT=$P($G(^OR(100,ORDER,8,1,0)),U,6)
+ S ITEM=0,DRGNM=""
+ F  S ITEM=$O(^OR(100,ORDER,.1,ITEM)) Q:'+ITEM  D
+ .S DRUG=$P($G(^OR(100,ORDER,.1,ITEM,0)),U,1)
+ .S DRUG2=$$GET1^DIQ(101.43,DRUG,.01,"E")
+ .S DRGNM=$S(DRGNM'="":DRGNM_","_DRUG2,1:DRUG2)
+ S HRN=$$HRN^AUPNPAT(DPT,DIV)
+ S PAT=$$GET1^DIQ(2,DPT,.01,"E")
+ ;Sort these items
+ N A,B,C,D
+ S A=DIV
+ I APSPSRT=1 D
+ .I APSPSRT2=1 S B=RTSDT,C=DRUG
+ .I APSPSRT2=2 S B=RTSDT,C=PRV
+ I APSPSRT=2 D
+ .I APSPSRT2=1 S B=DRUG,C=RTSDT
+ .I APSPSRT2=2 S B=DRUG,C=PRV
+ I APSPSRT=3 D
+ .I APSPSRT2=1 S B=PRV,C=RTSDT
+ .I APSPSRT2=2 S B=PRV,C=DRUG
+ S CNT=CNT+1
+ I APSPDIV="*"&(APSPGRP=1) D
+ .S ^TMP("APSPESR",$J,A,B,C,ORDER)=ORDER_U_HRN_U_DRGNM_U_PDAT_U_PNAME_U_PAT
+ E  D
+ .S ^TMP("APSPESR",$J,B,C,A,ORDER)=ORDER_U_HRN_U_DRGNM_U_PDAT_U_PNAME_U_PAT
+ Q
+HDR ;EP
+ W @IOF
+ S APSPPG=APSPPG+1
+ W !,"Auto-Finish Failure Report",?35,$P($TR($$FMTE^XLFDT($$NOW^XLFDT,"5Z"),"@"," "),":",1,2),?(IOM-10),"Page: "_APSPPG
+ W !,"Report Criteria: Orders which did not auto-finshed"
+ W !,?5,"Inclusive Dates: "_APSPBDF_" to "_APSPEDF
+ W !,?5,"Division: "_$S(APSPDIV:$$GET1^DIQ(4,APSPDIV,.01),1:"All")
+ W !,?5,"Primary Sort: "_$S(APSPSRT=1:"Date",APSPSRT=2:"Drug",APSPSRT=3:"Prescriber",1:"")
+ W !,$TR($J("",80)," ","-")
+ D HDR3
+ Q
+ ;
+HDR1(SRT1) ;EP
+ N LINE
+ Q:APSPOUT=3
+ I APSPSRT=1 S LINE=$$FMTE^XLFDT(SRT1)
+ I APSPSRT=2 S LINE=$$GET1^DIQ(101.43,SRT1,.01,"E")
+ I APSPSRT=3 S LINE=$$GET1^DIQ(200,SRT1,.01,"E")
+ W !,?5,LINE
+ D PRINT5
+ Q
+HDR2(SRT2) ;EP
+ Q:APSPOUT=3
+ I APSPSRT=1 D
+ .I APSPSRT2=1 D
+ ..S LINE=$$GET1^DIQ(101.43,SRT2,.01,"E")
+ ..W !,?10,LINE
+ ..D DASH
+ .I APSPSRT2=2 D
+ ..S LINE=$$GET1^DIQ(200,SRT2,.01,"E")
+ ..W !,?10,LINE
+ ..D DASH
+ I APSPSRT=2 D
+ .I APSPSRT2=1 D
+ ..S LINE=$$FMTE^XLFDT(SRT2)
+ ..W !,?10,LINE
+ ..D DASH
+ .I APSPSRT2=2 D
+ ..S LINE=$$GET1^DIQ(200,SRT2,.01,"E")
+ ..W !,?10,LINE
+ ..D DASH
+ I APSPSRT=3 D
+ .I APSPSRT2=1 D
+ ..S LINE=$$FMTE^XLFDT(SRT2)
+ ..W !,?10,LINE
+ ..D DASH
+ .I APSPSRT2=2 D
+ ..S LINE=$$GET1^DIQ(50,SRT2,.01,"E")
+ ..W !,?10,LINE
+ ..D DASH
+ Q
+HDR3 ;Print out header
+ I APSPOUT=2 D
+ .W !,?12,"Order",?20,"HRN",?30,"Date",?45,"Provider",?65,"Item"
+ I APSPOUT=3 D
+ .W !,"Order"_U_"Patient"_U_"HRN"_U_"Date"_U_"Provider"_U_"Orderable Item"
+ Q
+ ;Print the line
+PRINT4(DATA) ;EP
+ N WP,FILE,IENS,FIELD,X,Y
+ I APSPOUT=1 D
+ .W !,?12,"Order: "_$P(DATA,U,1),?30,"Patient: "_$P(DATA,U,6),?60,"HRN: "_$P(DATA,U,2)
+ .D PRINT5
+ .W !,?12,"Date: "_$$FMTE^XLFDT($P(DATA,U,4)),?40,"Provider: "_$P(DATA,U,5)
+ .D PRINT5
+ .W !,?12,"Text:"
+ .D PRINT5
+ .S FILE=100.008,FIELD=.1
+ .S IENS="1,"_ORDER_","
+ .S X=$$GET1^DIQ(FILE,IENS,FIELD,"","WP")
+ .S Y="" F  S Y=$O(WP(Y)) Q:Y=""  D
+ ..W !,?12,$E($G(WP(Y)),1,60)
+ ..D PRINT5
+ ..I $L(WP(Y))>60 D
+ ...W !,?12,$E($G(WP(Y)),61,$L($G(WP(Y))))
+ ...D PRINT5
+ .W !
+ I APSPOUT=2 D
+ .W !,?12,$P(DATA,U,1),?20,$P(DATA,U,2),?30,$E($$FMTE^XLFDT($P(DATA,U,4)),1,12),?45,$E($P(DATA,U,5),1,18),?65,$E($P(DATA,U,3),1,15)
+ I APSPOUT=3 D
+ .W !,$P(DATA,U,1)_U_$P(DATA,U,6)_U_$P(DATA,U,2)_U_$$FMTE^XLFDT($P(DATA,U,4))_U_$P(DATA,U,5)_U_$P(DATA,U,3)
+ Q
+ ;
+DASH ;EP
+ N DASH
+ W ! F DASH=1:1:IOM W "-"
+ W !
+ Q

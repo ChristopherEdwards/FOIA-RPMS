@@ -1,0 +1,112 @@
+FHINI0CS	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8171,0)
+	;;=BISCUIT W/BACON,EGG & CHEESE,MCDONALD'S^BC-01444^biscuit^156
+	;;^UTILITY(U,$J,112,8171,1)
+	;;=11.218^16.923^21.346^282.051^^^^118.59^1.641^^^^788.462^^^^^342.308^0^.231
+	;;^UTILITY(U,$J,112,8171,2)
+	;;=.212^1.603^^^^^^^162.179^5.256^10.321^1.282
+	;;^UTILITY(U,$J,112,8171,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8172,0)
+	;;=BISCUIT W/SAUSAGE,MCDONALD'S^BC-01445^biscuit^123
+	;;^UTILITY(U,$J,112,8172,1)
+	;;=10.569^23.577^25.935^357.724^^^^67.48^1.61^^^^878.049^^^^^0^0^.398
+	;;^UTILITY(U,$J,112,8172,2)
+	;;=.171^3.252^^^^^^^39.837^7.561^13.984^2.033
+	;;^UTILITY(U,$J,112,8172,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8173,0)
+	;;=BISCUIT W/SAUSAGE & EGG,MCDONALD'S^BC-01446^biscuit^180
+	;;^UTILITY(U,$J,112,8173,1)
+	;;=11.056^19.167^18.111^288.889^^^^64.444^1.756^^^^694.444^^^^^163.333^0^.294
+	;;^UTILITY(U,$J,112,8173,2)
+	;;=.194^2.222^^^^^^^152.778^6.222^11.111^1.889
+	;;^UTILITY(U,$J,112,8173,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8174,0)
+	;;=CHEESEBURGER,MCDONALD'S^BC-01447^sandwich^116
+	;;^UTILITY(U,$J,112,8174,1)
+	;;=12.931^11.897^26.897^267.241^^^^171.552^1.983^^^^646.552^^^^^337.931^1.724^.25
+	;;^UTILITY(U,$J,112,8174,2)
+	;;=.181^3.362^^^^^^^45.69^4.483^6.638^.776
+	;;^UTILITY(U,$J,112,8174,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8175,0)
+	;;=CHICKEN MCNUGGETS,MCDONALD'S^BC-01448^serving^113
+	;;^UTILITY(U,$J,112,8175,1)
+	;;=16.814^14.425^14.602^256.637^^^^11.504^.885^^^^460.177^^^^^0^0^.097
+	;;^UTILITY(U,$J,112,8175,2)
+	;;=.106^7.965^^^^^^^57.522^3.628^9.204^1.593
+	;;^UTILITY(U,$J,112,8175,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8176,0)
+	;;=CHICKEN MCNUGGET SCE,BARBEQUE,MCDONALD'S^BC-01449^container^32
+	;;^UTILITY(U,$J,112,8176,1)
+	;;=.938^1.563^37.813^156.25^^^^40.625^.969^^^^1062.5^^^^^478.125^6.25^.031
+	;;^UTILITY(U,$J,112,8176,2)
+	;;=.031^.625^^^^^^^0^.313^.625^.625
+	;;^UTILITY(U,$J,112,8176,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8177,0)
+	;;=CHICKEN MCNUGGET SCE,HONEY,MCDONALD'S^BC-01450^container^14
+	;;^UTILITY(U,$J,112,8177,1)
+	;;=0^0^82.143^321.429^^^^7.143^.5^^^^0^^^^^0^0^0
+	;;^UTILITY(U,$J,112,8177,2)
+	;;=.071^0^^^^^^^0^0^0^0
+	;;^UTILITY(U,$J,112,8177,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8178,0)
+	;;=CHICKEN MCNUGGET SCE,HOT MUSTARD,MCDONALD'S^BC-01451^container^30
+	;;^UTILITY(U,$J,112,8178,1)
+	;;=1.667^12^27.333^233.333^^^^50^.733^^^^833.333^^^^^53.333^0^.033
+	;;^UTILITY(U,$J,112,8178,2)
+	;;=.033^.667^^^^^^^16.667^1.667^4^6.333
+	;;^UTILITY(U,$J,112,8178,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8179,0)
+	;;=CHICKEN MCNUGGET SCE,SWEET & SOUR,MCDONALD'S^BC-01452^container^32
+	;;^UTILITY(U,$J,112,8179,1)
+	;;=.625^.625^43.125^187.5^^^^34.375^.531^^^^593.75^^^^^1012.5^3.125^0
+	;;^UTILITY(U,$J,112,8179,2)
+	;;=.031^.313^^^^^^^0^0^.313^.313
+	;;^UTILITY(U,$J,112,8179,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8180,0)
+	;;=COOKIES,CHOCOLATE CHIP,MCDONALD'S^BC-01453^box^56
+	;;^UTILITY(U,$J,112,8180,1)
+	;;=7.5^27.857^74.821^589.286^^^^42.857^3.893^^^^500^^^^^0^0^.321
+	;;^UTILITY(U,$J,112,8180,2)
+	;;=.375^4.464^^^^^^^7.143^8.929^18.214^.714
+	;;^UTILITY(U,$J,112,8180,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8181,0)
+	;;=COOKIES,MCDONALDLAND,MCDONALD'S^BC-01454^box^56
+	;;^UTILITY(U,$J,112,8181,1)
+	;;=7.5^16.429^84.107^517.857^^^^16.071^3.696^^^^535.714^^^^^0^0^.446
+	;;^UTILITY(U,$J,112,8181,2)
+	;;=.321^4.464^^^^^^^17.857^3.393^12.143^.893
+	;;^UTILITY(U,$J,112,8181,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8182,0)
+	;;=DANISH,APPLE,MCDONALD'S^BC-01455^danish^115
+	;;^UTILITY(U,$J,112,8182,1)
+	;;=5.043^15.565^44.522^339.13^^^^12.174^1.191^^^^321.739^^^^^100^13.913^.243
+	;;^UTILITY(U,$J,112,8182,2)
+	;;=.174^1.913^^^^^^^21.739^3.043^9.391^1.739
+	;;^UTILITY(U,$J,112,8182,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8183,0)
+	;;=DANISH,CHEESE ICED,MCDONALD'S^BC-01456^danish^110
+	;;^UTILITY(U,$J,112,8183,1)
+	;;=6.727^19.818^38.455^354.545^^^^30^1.291^^^^381.818^^^^^170.909^.909^.264
+	;;^UTILITY(U,$J,112,8183,2)
+	;;=.209^1.909^^^^^^^42.727^5.455^11^1.636
+	;;^UTILITY(U,$J,112,8183,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8184,0)
+	;;=DANISH,CINNAMON,MCDONALD'S^BC-01457^danish^110
+	;;^UTILITY(U,$J,112,8184,1)
+	;;=5.818^19.091^52.273^400^^^^31.818^1.645^^^^390.909^^^^^100^2.727^.3

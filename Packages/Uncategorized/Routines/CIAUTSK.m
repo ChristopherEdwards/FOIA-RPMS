@@ -1,0 +1,16 @@
+CIAUTSK ;MSC/IND/DKM - Encapsulates TaskMan API ;04-May-2006 08:19;DKM
+ ;;1.2;CIA UTILITIES;;Mar 20, 2007
+ ;;Copyright 2000-2006, Medsphere Systems Corporation
+ ;=================================================================
+QUEUE(ZTRTN,ZTDESC,ZTDTH,ZTSAVE,ZTIO,ZTUCI,ZTPRI) ;
+ N %CIAZ,%CIAZ1,%CIAZ2,ZTKIL,ZTSK,ZTCPU
+ S:'$G(ZTDTH) ZTDTH=$H
+ S:ZTDTH'?1.N1","1.N ZTDTH=$$FMTH^XLFDT(ZTDTH)
+ Q:ZTDTH<0 0
+ S:$G(ZTUCI)'="" ZTUCI=$TR(ZTUCI,":",","),ZTCPU=$P(ZTUCI,",",2),ZTUCI=$P(ZTUCI,",")
+ S ZTSAVE=$G(ZTSAVE),ZTIO=$G(ZTIO),U="^"
+ F %CIAZ=1:1:$L(ZTSAVE,U) D
+ .S %CIAZ1=$P(ZTSAVE,U,%CIAZ),%CIAZ2=$P(%CIAZ1,"=",2,999),%CIAZ1=$P(%CIAZ1,"=")
+ .S:%CIAZ1'="" ZTSAVE(%CIAZ1)=%CIAZ2
+ D ^%ZTLOAD
+ Q +$G(ZTSK)

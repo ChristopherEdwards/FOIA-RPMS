@@ -1,0 +1,164 @@
+BCHDLN1 ; IHS/TUCSON/LAB - PROCESS CHR RECORD LIST ;  [ 06/26/02  5:49 AM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**16**;OCT 28, 1996
+ ;IHS/CMI/LAB - patch 8 Y2K
+ ;IHS/CMI/LAB - tmp to xtmp
+ ;
+ ;Continuation of BCHDL.
+ ;
+ ;
+START ;
+ S ^XTMP("BCHDL",0)=$$FMADD^XLFDT(DT,14)_U_DT_"CHR DOWNLOAD"
+ S BCHBTH=$H,BCHJOB=$J,BCHD=""",""",BCHC=","
+ S BCHPROC=BCHPTVS_BCHTYPE
+ D @BCHPROC
+ D PRINT
+ D END
+ Q
+ ;
+ ;
+PP ;
+ S BCHR=0 F  S BCHR=$O(^DPT(BCHR)) Q:BCHR'=+BCHR  I '$P(^DPT(BCHR,0),U,19) S DFN=BCHR D PROC
+ Q
+ ;
+PS ;
+ S BCHR=0 F  S BCHR=$O(^DIBT(BCHSEAT,1,BCHR)) Q:BCHR'=+BCHR  I $D(^DPT(BCHR,0)),'$P(^(0),U,19) S DFN=BCHR D PROC,EOJ
+ Q
+ ;
+ ;
+END ;
+ D EOJ
+ Q
+EOJ ;
+ K BCHFOUN,BCHJD,BCHPCNT,BCHPROC,BCHR,BCHSKIP,BCHX,BCHTOTAL,BCHCOUNT
+ K BCHFAC,BCHFNUM,BCHRORD,BCHC,BCHD
+ K D,D0,DIC,DFN,DI,DQ,J,XBFLG,Y
+ Q
+PROC ;
+ ;Q:'$D(^AUPNPAT(DFN,41,BCHFAC,0))
+ ;Q:$P(^AUPNPAT(DFN,41,BCHFAC,0),U,2)=""
+ Q:'$O(^AUPNPAT(DFN,41,0))
+ I BCHPTVS="P",DFN="" Q
+ D SCREENS
+ Q:$D(BCHSKIP)
+ S ^XTMP("BCHDL",BCHJOB,BCHBTH,"PATIENTS",DFN)=$$TX(DFN)
+ Q
+SCREENS ;
+ K BCHSKIP
+ S BCHI=0 F  S BCHI=$O(^BCHTRPT(BCHRPT,11,BCHI)) Q:BCHI'=+BCHI!($D(BCHSKIP))  D
+ .I '$P(^BCHSORT(BCHI,0),U,8) D SINGLE Q
+ .D MULT
+ .Q
+ Q
+SINGLE ;
+ K X,BCHSPEC S X="",BCHX=0
+ X:$D(^BCHSORT(BCHI,1)) ^(1)
+ I X="" S BCHSKIP="" Q
+ I '$D(BCHSPEC),'$D(^BCHTRPT(BCHRPT,11,BCHI,11,"B",X)) S BCHSKIP="" Q
+ Q
+MULT ;
+ K BCHFOUN,BCHSKIP,BCHSPEC,X S BCHX=0,X=""
+ X:$D(^BCHSORT(BCHI,1)) ^(1)
+ I $O(X(""))="" S BCHSKIP="" Q
+ I '$D(BCHSPEC) S Y="" F  S Y=$O(X(Y)) Q:Y=""  I $D(^BCHTRPT(BCHRPT,11,BCHI,11,"B",Y)) S BCHFOUN="" Q
+ I $D(BCHSPEC),$D(X) S BCHFOUN=1 Q
+ S:'$D(BCHFOUN) BCHSKIP=""
+ Q
+ ;
+TX(DFN) ;create tx record
+ NEW C,A,T,S,H,%,%1,N,DOB,SSN,R,FN,LN,MN,SA,CTY,ST,ZIP,HPH
+NAME S N=$P(^DPT(DFN,0),U),S=$P(^(0),U,2),DOB=$P(^(0),U,3),SSN=$P(^(0),U,9)
+ S LN=$P(N,","),FN=$P($P(N,",",2)," "),MN=$P($P(N,",",2)," ",2)
+ ;convert dob
+ S DOB=$E(DOB,4,5)_"/"_$E(DOB,6,7)_"/"_(1700+$E(DOB,1,3))
+ S T=$P($G(^AUPNPAT(DFN,11)),U,8) I T]"" D
+ .S T=$P($G(^AUTTTRI(T,0)),U,2)
+COMM ;
+ S %=0,%1="",C="" F  S %=$O(^AUPNPAT(DFN,51,%)) Q:%'=+%  S %1=%
+ I %1]"" D
+ .S %1=$P(^AUPNPAT(DFN,51,%1,0),U,3) I %1,$D(^AUTTCOM(%1,0)) S C=$P(^AUTTCOM(%1,0),U,8)
+H ;HRN
+ S BCHFAC=DUZ(2)
+ S H=$P($G(^AUPNPAT(DFN,41,BCHFAC,0)),U,2) I H="" D
+ .S X=0 F  S X=$O(^APCCCTRL(X)) Q:X'=+X!(H]"")  I $P($G(^AUPNPAT(DFN,41,X,0)),U,2)]"" S H=$P($G(^AUPNPAT(DFN,41,X,0)),U,2),BCHFAC=X
+ I H="" S BCHFAC=$O(^AUPNPAT(DFN,41,0)) S H=$P($G(^AUPNPAT(DFN,41,BCHFAC,0)),U,2)
+ S M=$P(^AUPNPAT(DFN,0),U,2),M=$E(M,4,5)_"/"_$E(M,6,7)_"/"_(1700+$E(M,1,3))
+ S SA=$P($G(^DPT(DFN,.11)),U)
+ S CTY=$P($G(^DPT(DFN,.11)),U,4)
+ S ST=$$VAL^XBDIQ1(2,DFN,.115)
+ S ZIP=$P($G(^DPT(DFN,.11)),U,6)
+ S HPH=$P($G(^DPT(DFN,.13)),U,1)
+ S R=LN_"|"_FN_"|"_MN_"|"_H_"|"_SSN_"|"_DOB_"|"_S_"|"_T_"|"_C_"|"_$P(^AUTTLOC(BCHFAC,0),U,10)_"|"_$P($G(^AUTTSITE(1,1)),U,3)_"|"_M_"|"_SA_"|"_CTY_"|"_ST_"|"_ZIP_"|"_HPH_"|"_$$UID^AGTXID(DFN)
+ Q R
+QU(X) ;quote a string
+ I X]"" S X=""""_X_""""
+ Q X
+ ;
+LASTVD(P,F) ;PEP - given patient DFN, return pt's last pcc visit date, using
+ ;         the data fetcher.  Returns date in format specified in F.
+ I '$G(P) Q ""
+ I $G(F)="" S F="I"
+ I '$D(^AUPNVSIT("AC",P)) Q ""
+ NEW Y,ERR,LVD
+ S ERR=$$^APCLDF(P_"^LAST VISIT","LVD(")
+ I LVD(1)="" Q LVD
+ S Y=$P(LVD(1),U)
+ ;begin Y2K
+ ;Q $S($G(F)="S":$$FMTE^XLFDT(Y,"2D"),$G(F)="E":$$FMTE^XLFDT(Y,"1D"),1:$P(Y,".")) ;Y2000
+ Q $S($G(F)="E":$$FMTE^XLFDT(Y,"1D"),1:$P(Y,".")) ;Y2000
+ ;end Y2K
+ ;
+ ;
+PRINT ;EP CALLED FROM XBDBQUE
+ ;S BCHFILE="ch"_$P(^AUTTLOC(BCHFAC,0),U,10)_".imp"
+ ;create flat file calling XBGSAVE
+ ;GO THROUGH ^XTMP AND SET IN ^TMP($J,"PATIENTS")
+ K ^TMP($J,"PATIENTS")
+ ;
+ S (BCHX,BCHTOTAL,BCHCOUNT,BCHFNUM,BCHMULTI)=0,BCHRORD=""
+ S BCHRORD=$O(^XTMP("BCHDL",BCHJOB,BCHBTH,"PATIENTS",BCHRORD),-1)
+ F  S BCHX=$O(^XTMP("BCHDL",BCHJOB,BCHBTH,"PATIENTS",BCHX)) Q:BCHX'=+BCHX  D
+ .  S ^TMP($J,"PATIENTS",BCHX)=^XTMP("BCHDL",BCHJOB,BCHBTH,"PATIENTS",BCHX)
+ .  ;K ^XTMP("BCHDL",BCHJOB,BCHBTH,"PATIENTS",BCHX)
+ .  ;S BCHCOUNT=BCHCOUNT+1
+ .  S BCHTOTAL=BCHTOTAL+1
+ D WRITEF
+ ;D:BCHMULTI MULTFILE
+ D WRITEFX
+ S DA=DUZ(2),DIE="^BCHSITE(",DR=".15////"_DT D ^DIE
+ Q
+ ;
+FILE ; setup file name(s)
+ S BCHFNUM=BCHFNUM+1
+ S BCHFILE="chrpat"_BCHFNUM_".imp"
+ S BCHFILE(BCHFNUM)=BCHFILE
+ S BCHFILE(BCHFNUM,"COUNT")=BCHCOUNT
+ S:BCHFNUM=2 BCHMULTI=1 ;       flag set is multiple files generated
+ S BCHCOUNT=0
+ Q
+ ;
+MULTFILE ; information regarding multiple files
+ Q:$D(ZTQUEUED)
+ Q:'BCHMULTI
+ W @IOF
+ W:'$D(ZTQUEUED) !!,$C(7),$C(7),"A TOTAL of *** ",BCHTOTAL," *** patients were downloaded to the following files:",!,"(Each file contains a maximum of 2000 patients.)",!!
+ S BCHFNUM=0
+ F BCHN=1:1 S BCHFNUM=$O(BCHFILE(BCHFNUM)) Q:BCHFNUM=""  W !?5,"/usr/spool/uucppublic/",BCHFILE(BCHFNUM),?45,"("_BCHFILE(BCHFNUM,"COUNT")_") patients",!
+ W:'$D(ZTQUEUED) !!!
+ K BCHN,BCHFNUM
+ Q
+ ;
+WRITEF ;EP - write out flat file
+ S XBGL="TMP("_$J_",""PATIENTS"","
+ S XBMED="F",XBFN=BCHFILE,XBTLE="SAVE OF PATIENTS FOR CHR DOWNLOAD -"
+ S XBF=0,XBQ="N",XBFLT=1,XBE=$J
+ W:'$D(ZTQUEUED) !!
+ D ^XBGSAVE
+ Q
+ ;
+WRITEFX ;
+ W:'$D(ZTQUEUED)&('BCHMULTI) !!,$C(7),$C(7),"A TOTAL of *** ",BCHTOTAL," *** patients were downloaded.",!!
+ K ^TMP($J,"PATIENTS")
+ K ^XTMP("BCHDL",BCHJOB,BCHBTH),BCHJOB,BCHBTH,BCHX
+ K XBGL,XBMED,XBTLE,XBFN,XBF,XBQ,XBFLT
+ K BCHFNUM,BCHN,BCHRORD,BCHMULTI
+ Q

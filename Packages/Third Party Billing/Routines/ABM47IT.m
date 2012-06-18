@@ -1,0 +1,10 @@
+ABM47IT ; IHS/ASDST/DMJ - INPUT TRANSFORM FILE 9002274.5, FIELD .47 ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ I $L(X)>25 K X Q
+ I $L(X)<1 K X Q
+ S X=$$LWC^ABMERUTL(X)
+ I ^%ZOSF("OS")["MSM-UNIX" D
+ .S X=$TR(X,"\","/")
+ .S:$E(X)'="/" X="/"_X
+ .S:$E(X,$L(X))'="/" X=X_"/"
+ Q

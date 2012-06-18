@@ -1,0 +1,23 @@
+APCPEOJ ; IHS/TUCSON/LAB - Clean up and EOJ AUGUST 14, 1992 ; [ 04/17/02 11:17 AM ]
+ ;;2.0;IHS PCC DATA EXTRACTION SYSTEM;**6**;APR 03, 1998
+ I $D(APCP("ERROR COUNT")),APCP("ERROR COUNT") W:'$D(ZTQUEUED) !!,"One or more errors were encountered during this run!",!
+ K APCPS,APCPO,APCPV,APCPT,APCP,APCPE
+ K APCDOVRR,APCPTX
+ D KILL^AUPNPAT K AUPNVSIT
+ D EN^XBVK("APCP")
+ K %,%C,%H,%H1,%H2,%I,%Y,D,D0,D1,DA,DI,DIC,DIE,DLAYGO,DQ,DR,I,L,X,Y,X1,X2,ZTDESC,ZTDTH,ZTIO,ZTRTN
+ I $D(ZTQUEUED) S ZTREQ="@"
+ Q
+RUNTIME ;EP - SHOW RUN TIME  *** CALLED BY ^APCPREDO ***
+ Q:$D(ZTQUEUED)
+ S B=APCP("BT")
+ S E=$HOROLOG
+ S T=(86400*($P(E,",")-$P(B,",")))+($P(E,",",2)-$P(B,",",2)),H=$P(T/3600,".")
+ S:H="" H=0
+ S T=T-(H*3600),M=$P(T/60,".")
+ S:M="" M=0
+ S T=T-(M*60),S=T
+ W !!,"RUN TIME (H.M.S): ",H,".",M,".",S
+ K B,E,H,M,S,T
+ Q
+ ;

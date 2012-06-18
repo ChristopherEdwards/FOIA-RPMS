@@ -1,0 +1,158 @@
+ABME3EA1 ; IHS/ASDST/DMJ - HFCA-1500 NSF 3.01 EA1 (Claim Record) ;     
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;
+ ;
+ ; IHS/SD/SDR - v2.5 p3 - 2/26/2003 - NDA-0402-180192
+ ;     Added new block 19 stuff
+ ;
+START ;start here
+ K ABMREC(41),ABMR(41),ABM,ABME
+ S ABME("RTYPE")=41
+ D SET^ABMERUTL
+ D LOOP
+ D S90^ABMERUTL
+ K ABM,ABME
+ Q
+LOOP ;LOOP HERE
+ F I=10:10:300 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),41,I)) D @(^(I))
+ .I '$G(ABMP("NOFMT")) S ABMREC(41)=$G(ABMREC(41))_ABMR(41,I)
+ Q
+ ;
+10 ;1-3 Record ID
+ S ABMR(41,10)="EA1"
+ Q
+20 ;4-5 Reserved
+ S ABMR(41,20)=""
+ S ABMR(41,20)=$$FMT^ABMERUTL(ABMR(41,20),2)
+ Q
+ ;
+30 ;6-22 Patient Control Number
+ S ABMR(41,30)=ABMP("PCN")
+ S ABMR(41,30)=$$FMT^ABMERUTL(ABMR(41,30),17)
+ Q
+40 ;23-37 Facility/Laboratory National Provider Identifier
+ S ABMR(41,40)=""
+ S ABMR(41,40)=$$FMT^ABMERUTL(ABMR(41,40),15)
+ Q
+50 ;38-52 Reserved - Filler
+ S ABMR(41,50)=""
+ S ABMR(41,50)=$$FMT^ABMERUTL(ABMR(41,50),15)
+ Q
+60 ;53-82 Facility/Laboratory Street Address 1
+ S ABMR(41,60)=$P($G(^AUTTLOC(ABMP("LDFN"),0)),"^",12)
+ S ABMR(41,60)=$$FMT^ABMERUTL(ABMR(41,60),30)
+ Q
+70 ;83-112 Facility/Laboratory Street Address 2
+ S ABMR(41,70)=""
+ S ABMR(41,70)=$$FMT^ABMERUTL(ABMR(41,70),30)
+ Q
+80 ;113-132 Facility/Laboratory City
+ S ABMR(41,80)=$P($G(^AUTTLOC(ABMP("LDFN"),0)),"^",13)
+ S ABMR(41,80)=$$FMT^ABMERUTL(ABMR(41,80),20)
+ Q
+90 ;133-134 Facility/Laboratory State
+ S ABMR(41,90)=$P($G(^AUTTLOC(ABMP("LDFN"),0)),"^",14)
+ S ABMR(41,90)=$P($G(^DIC(5,+ABMR(41,90),0)),"^",2)
+ S ABMR(41,90)=$$FMT^ABMERUTL(ABMR(41,90),2)
+ Q
+100 ;135-143 Facility/Laboratory Zip Code    
+ S ABMR(41,100)=$P($G(^AUTTLOC(ABMP("LDFN"),0)),"^",15)
+ S ABMR(41,100)=$TR(ABMR(41,100),"-")
+ S ABMR(41,100)=$$FMT^ABMERUTL(ABMR(41,100),9)
+ Q
+110 ;144-160 Medical Record Number
+ S ABMR(41,110)=""
+ S ABMR(41,110)=$$FMT^ABMERUTL(ABMR(41,110),17)
+ Q
+120 ;161-168 Return to Work Date
+ S ABMR(41,120)=""
+ S ABMR(41,120)=$$FMT^ABMERUTL(ABMR(41,120),8)
+ Q
+130 ;169-176 Consult/Surgery Date
+ S ABMR(41,130)=""
+ S ABMR(41,130)=$$FMT^ABMERUTL(ABMR(41,130),8)
+ Q
+140 ;177-184 Admission Date-2
+ S ABMR(41,140)=""
+ S ABMR(41,140)=$$FMT^ABMERUTL(ABMR(41,140),8)
+ Q
+150 ;185-192 Discharge Date-2
+ S ABMR(41,150)=""
+ S ABMR(41,150)=$$FMT^ABMERUTL(ABMR(41,150),8)
+ Q
+160 ;193-207 Supervising Provider National Provider Identifier
+ S ABMR(41,160)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),"^",12)
+ S ABMR(41,160)=$$FMT^ABMERUTL(ABMR(41,160),15)
+ Q
+170 ;208-222 Reserved-Filler
+ S ABMR(41,170)=""
+ S ABMR(41,170)=$$FMT^ABMERUTL(ABMR(41,170),15)
+ Q
+180 ;223-242 Supervising Provider Last Name
+ S ABMR(41,180)=""
+ S ABMR(41,180)=$$FMT^ABMERUTL(ABMR(41,180),20)
+ Q
+190 ;243-254 Suoervising Provider First Name
+ S ABMR(41,190)=""
+ S ABMR(41,190)=$$FMT^ABMERUTL(ABMR(41,190),12)
+ Q
+200 ;255-255 Supervising Provider Middle Initial
+ S ABMR(41,200)=""
+ S ABMR(41,200)=$$FMT^ABMERUTL(ABMR(41,200),1)
+ Q
+210 ;256-257 Supervising Provider State
+ S ABMR(41,210)=""
+ S ABMR(41,210)=$$FMT^ABMERUTL(ABMR(41,210),2)
+ Q
+220 ;258-277 EMT/Paramedic Last
+ S ABMR(41,220)=""
+ S ABMR(41,220)=$$FMT^ABMERUTL(ABMR(41,220),20)
+ Q
+230 ;278-289 EMT/Paramedic First
+ S ABMR(41,230)=""
+ S ABMR(41,230)=$$FMT^ABMERUTL(ABMR(41,230),12)
+ Q
+240 ;290-290 EMT/Paramedic MI
+ S ABMR(41,240)=""
+ S ABMR(41,240)=$$FMT^ABMERUTL(ABMR(41,240),1)
+ Q
+250 ;291-298 Date Care was Assumed
+ S ABMR(41,250)=""
+ S ABMR(41,250)=$$FMT^ABMERUTL(ABMR(41,250),8)
+ Q
+260 ;299-303 Diagnosis Code-5
+ S ABMR(41,260)=""
+ S ABMR(41,260)=$$FMT^ABMERUTL(ABMR(41,260),5)
+ Q
+270 ;304-308 Diagnosis Code-6
+ S ABMR(41,270)=""
+ S ABMR(41,270)=$$FMT^ABMERUTL(ABMR(41,270),5)
+ Q
+280 ;309-313 Diagnosis Code-7
+ S ABMR(41,280)=""
+ S ABMR(41,280)=$$FMT^ABMERUTL(ABMR(41,280),5)
+ Q
+290 ;314-318 Diagnosis Code-8
+ S ABMR(41,290)=""
+ S ABMR(41,290)=$$FMT^ABMERUTL(ABMR(41,290),5)
+ Q
+300 ;319-32- Filler - National
+ S ABMR(41,300)=""
+ S ABMR(41,300)=$$FMT^ABMERUTL(ABMR(41,300),2)
+ Q
+ ;
+EX(ABMX,ABMY)      ;EXTRINSIC FUNCTION HERE
+ ;
+ ;  INPUT:  ABMX = data element
+ ;          Y    = bill internal entry number
+ ;
+ ; OUTPUT:  Y    = bill internal entry number
+ ;
+ I '$G(ABMP("NOFMT")) S ABMP("FMT")=0
+ D @ABMX
+ S Y=ABMR(41,ABMX)
+ I $D(ABMP("FMT")) S ABMP("FMT")=1
+ K ABMR(41,ABMX),ABMX,ABMY
+ Q Y

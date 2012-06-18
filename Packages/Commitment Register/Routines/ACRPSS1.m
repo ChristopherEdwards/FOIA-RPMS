@@ -1,0 +1,59 @@
+ACRPSS1 ; GENERATED FROM 'ACR ORDER FOR SUP/SER' PRINT TEMPLATE (#3918) ; 09/29/09 ; (continued)
+ G BEGIN
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ S DISTP=DISTP+1,DILCT=DILCT+1 D:'(DISTP#100) CSTP^DIO2
+ Q
+DT I $G(DUZ("LANG"))>1,Y W $$OUT^DIALOGU(Y,"DD") Q
+ I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1 S DISTP=$G(DISTP),DILCT=$G(DILCT)
+ D N:$X>0 Q:'DN  W ?0 I $D(ACRPOL),ACRPOL>5 W "17. SCHEDULE (SEE SCHEDULE OF ITEM(S) 1" K DIP K:DN Y
+ I $D(ACRPOL),ACRPOL>5 W:ACRJ>1 " THROUGH ",ACRJ K DIP K:DN Y
+ I $D(ACRPOL),ACRPOL>5 W " ON CONTINUATION SHEET)" K DIP K:DN Y
+ W ?11 I $D(ACRPOL),ACRPOL<6 D PAUSE^ACRFWARN K DIP K:DN Y
+ D N:$X>19 Q:'DN  W ?19 I $D(ACRPOL),ACRPOL<6 W "17. SCHEDULE OF SUPPLIES/SERVICES" K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 X DXS(21,9) K DIP K:DN Y
+ I $D(ACRPOL),ACRPOL<6 S ACRDOCDA=D0,ACRDOC=$P(^ACRDOC(D0,0),U,2) D DISPLAY^ACRFSS12 K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "--------------------------------------------------------------------------------"
+ D N:$X>0 Q:'DN  W ?0 W "18. SHIPPING POINT"
+ D N:$X>19 Q:'DN  W ?19 W "|19. GROSS SHIP WT"
+ D N:$X>39 Q:'DN  W ?39 W "|20. INVOICE NO."
+ D N:$X>59 Q:'DN  W ?59 W "|17(H) TOTAL"
+ S X=$G(^ACRDOC(D0,"PO")) D T Q:'DN  W ?2,$E($P(X,U,14),1,20)
+ D N:$X>19 Q:'DN  W ?19 W "|"
+ D N:$X>24 Q:'DN  W ?24,$E($P(X,U,15),1,10)
+ D N:$X>39 Q:'DN  W ?39 W "|"
+ D N:$X>44 Q:'DN  W ?44,$E($P(X,U,16),1,15)
+ D N:$X>59 Q:'DN  W ?59 W "|"
+ D N:$X>0 Q:'DN  W ?0 W "--------------------------------------------------------------------------------"
+ D N:$X>0 Q:'DN  W ?0 W "21. MAIL INVOICE TO:"
+ D N:$X>59 Q:'DN  W ?59 W "|17(I) GRAND TOTAL"
+ S X=$G(^ACRDOC(D0,"POMI")) D N:$X>4 Q:'DN  W ?4 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>59 Q:'DN  W ?59 W "|"
+ D N:$X>4 Q:'DN  W ?4 X DXS(22,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>59 Q:'DN  W ?59 W "|"
+ W ?62 W:$D(ACRPOTOT) $J($FN(ACRPOTOT,"P,",2),17) K DIP K:DN Y
+ D N:$X>4 Q:'DN  W ?4 X DXS(23,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>59 Q:'DN  W ?59 W "|"
+ D N:$X>4 Q:'DN  W ?4 X DXS(24,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(25,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W "  "
+ X DXS(26,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>59 Q:'DN  W ?59 W "|"
+ D N:$X>4 Q:'DN  W ?4 W "PHONE:"
+ W ?12 X DXS(27,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>59 Q:'DN  W ?59 W "|"
+ W ?62 D PAUSE^ACRFWARN K DIP K:DN Y
+ D T Q:'DN  W ?2 D ^ACRFPAPV K DIP K:DN Y
+ W ?13 I $D(ACRPOL),ACRPOL>5 W @IOF N DXS,DIP,DN D ^ACRPSH K DIP K:DN Y
+ I $D(ACRPOL),ACRPOL>5 S ACRDOCDA=D0,ACRDOC=$P(^ACRDOC(D0,0),U,2) D DISPLAY^ACRFSS12 K DIP K:DN Y
+ W ?24 D PBOIL^ACRFBOIL K DIP K:DN Y
+ K Y
+ Q
+HEAD ;
+ W !,"--------------------------------------------------------------------------------",!!

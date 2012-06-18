@@ -1,0 +1,45 @@
+ADGSTAT ; IHS/ADC/PDW/ENM - INPATIENT STATISTICS BY SERVICE ; [ 03/25/1999  11:48 AM ]
+ ;;5.0;ADMISSION/DISCHARGE/TRANSFER;;MAR 25, 1999
+ ;
+ W @IOF,!!!?18,"INPATIENT STATISTICS BY SERVICE",!!
+ ;
+ ;***> get date range
+BDATE S %DT="AEQ",%DT("A")="Select beginning date: ",X="" D ^%DT
+ G END:Y=-1 S DGBDT=Y
+EDATE S %DT="AEQ",%DT("A")="Select ending date: ",X="" D ^%DT
+ G END:Y=-1
+ I Y<DGBDT D  G BDATE
+ . W !!,*7,"Ending date cannot be earlier than beginning date!"
+ . W !,"Let's start over . . ",!
+ S DGEDT=Y
+ ;
+ ;***> get print device
+ S %ZIS="PQ" D ^%ZIS G END:POP,QUE:$D(IO("Q")) U IO G CALC
+QUE K IO("Q") S ZTRTN="CALC^ADGSTAT",ZTDESC="INPATIENT STATS"
+ S ZTSAVE("DGBDT")="",ZTSAVE("DGEDT")=""
+ D ^%ZTLOAD D ^%ZISC K ZTSK Q
+END K Y,DGBDT,DGEDT D HOME^%ZIS Q
+ ;
+ ;
+CALC ;***> Beginning of calculate of ADPL & inpatient data
+ S DGZ=0 F  S DGZ=$O(^ADGTX(DGZ)) Q:DGZ'?1N.N  S (DGA(DGZ),DGP(DGZ))=0
+ S DGZ=0
+C1 S DGZ=$O(^ADGTX(DGZ)) G NEXT:DGZ'?1N.N S DGD=DGBDT-.001
+C2 S DGD=$O(^ADGTX(DGZ,1,DGD)) G C1:DGD>DGEDT,C1:DGD=""
+ S DGSTR=$G(^ADGTX(DGZ,1,DGD,0)) S DGSTR1=$G(^ADGTX(DGZ,1,DGD,1))
+ S $P(DGA(DGZ),U)=$P(DGA(DGZ),U)+$P(DGSTR,U,3)
+ S $P(DGA(DGZ),U,2)=$P(DGA(DGZ),U,2)+$P(DGSTR,U,4)
+ S $P(DGA(DGZ),U,3)=$P(DGA(DGZ),U,3)+$P(DGSTR,U,7)
+ S $P(DGA(DGZ),U,4)=$P(DGA(DGZ),U,4)+$P(DGSTR,U,2)+$P(DGSTR,U,8)
+ S $P(DGA(DGZ),U,5)=$P(DGA(DGZ),U,5)+$P(DGSTR,U,9)
+ S $P(DGA(DGZ),U,6)=$P(DGA(DGZ),U,6)+$P(DGSTR,U,6)
+ S $P(DGA(DGZ),U,7)=$P(DGA(DGZ),U,7)+$P(DGSTR,U,5)
+ S $P(DGP(DGZ),U)=$P(DGP(DGZ),U)+$P(DGSTR1,U,2)
+ S $P(DGP(DGZ),U,2)=$P(DGP(DGZ),U,2)+$P(DGSTR1,U,3)
+ S $P(DGP(DGZ),U,3)=$P(DGP(DGZ),U,3)+$P(DGSTR1,U,6)
+ S $P(DGP(DGZ),U,4)=$P(DGP(DGZ),U,4)+$P(DGSTR1,U)+$P(DGSTR1,U,7)
+ S $P(DGP(DGZ),U,5)=$P(DGP(DGZ),U,5)+$P(DGSTR1,U,8)
+ S $P(DGP(DGZ),U,6)=$P(DGP(DGZ),U,6)+$P(DGSTR1,U,5)
+ S $P(DGP(DGZ),U,7)=$P(DGP(DGZ),U,7)+$P(DGSTR1,U,4) G C2
+ ;
+NEXT G ^ADGSTAT1

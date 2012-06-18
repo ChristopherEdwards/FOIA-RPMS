@@ -1,0 +1,25 @@
+AZHKDELF ;CHANGE DELETE FLAG FOR TOP NODE, WILL ALLOW YOU TO DELETE THE ENTRY IN THE GLOBAL [ 08/05/88  8:24 AM ]
+ ;RFD ON ALTOS 12-7-87
+ S GN="",OF="",YN=""
+ S:'$D(DTIME) DTIME=300 S:DTIME="" DTIME=300
+ W !!,"This Routine disallows/allows DELETE ACCESS"
+RDL R !,"Enter the Global Number ",GN:DTIME G:GN=""!(GN="^") KILL
+ I '$D(^DD(GN)) W !!,"GLOBAL DOES NOT EXIST, TRY AGAIN",$C(7) G RDL
+RD1 W !!,"Enter 1 to DISALLOW, 0 to ALLOW DELETE ACCESS "
+ R !,"or '^' to Quit ",OF:DTIME
+ G @$S(OF=1:"RDSET1",OF=0:"RDSET0",OF="^":"KILL",1:"ERROR")
+RDSET0 ;
+ S ^DD(GN,.01,"DEL",.01,0)="I 0"
+ W !!,"You now have DELETE ACCESS for GLOBAL "_GN G EOJ
+RDSET1 S ^DD(GN,.01,"DEL",.01,0)="I 1"
+ W !!,"You DO NOT have DELETE ACCESS for GLOBAL "_GN G AGAIN
+EOJ W !!,"REMEMBER TO RESET THE DELETE ACCESS",$C(7)
+AGAIN ;
+ W !!,"Do you want to change another entry?"
+ R !,"Enter either Y or N ",YN:DTIME
+ G:YN="Y" RDL
+KILL K GN,OF,YN
+ Q
+ERROR ;
+ W !!,$C(7),"INVALID ENTRY",!!
+ G RD1

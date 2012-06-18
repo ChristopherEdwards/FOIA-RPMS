@@ -1,0 +1,47 @@
+APCLNJ22 ; IHS/CMI/LAB - PRINT VISITS WITH INJURIES ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+INIT ;initialize variables
+ S Y=APCLBD D DD^%DT S APCLBDD=Y S Y=APCLED D DD^%DT S APCLEDD=Y
+ D ^APCLNJ23 K APCLSTOP,APCLPAGE
+ S APCLSTOP="",APCLPAGE=0 D HEAD
+ I '$G(APCLGTOT) W !,"No injury visits to report."  G END
+ ;
+PRNT ;
+ ;I $Y>(IOSL-8) D HEAD Q:APCLSTOP="^"
+ W !
+ ;W !,"HOWDY DOODY",!
+ ;W "GRAND TOTAL= ",APCLGTOT,!
+ S APCLZ=0
+ F  S APCLZ=$O(APCLCNTR(APCLZ)) Q:APCLZ'=+APCLZ  S APCLTEXT=$O(APCLCNTR(APCLZ,"")) D
+ . I $Y>(IOSL-2) D HEAD Q:APCLSTOP="^"
+ . W !,?5,APCLTEXT W ?40,$J(APCLCNTR(APCLZ,APCLTEXT),3,0) S APCLPER=(APCLCNTR(APCLZ,APCLTEXT)/APCLGTOT)*100 W ?50,$J(APCLPER,3,0)
+ . W ?65,$P(APCLCNTR(APCLZ,APCLTEXT),U,2)
+ W !,?39,"_____",?49,"_____",?63,"_____",!!
+ W !,?5,"TOTALS:",?41,APCLGTOT,?50,"100%",?65,APCLATOT,!
+ ;W "ALCOHOL RELATED TOTAL = ",APCLATOT,!
+ G END
+ Q
+HEAD I 'APCLPAGE G HEAD1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCLSTOP="^" Q
+HEAD1 ;
+ W:$D(IOF) @IOF S APCLPAGE=APCLPAGE+1
+ W !
+ S X=$P(^DIC(4,DUZ(2),0),"^")
+ W !,$P(^VA(200,DUZ,0),"^",2),?(80-$L(X)/2),X,?72,"Page ",APCLPAGE,!
+ W !,?22,"INJURY SURVEILLANCE SUMMARY REPORT",!,?32,"(E-CODES)",!
+ W ?24,"Visits with Injury Diagnosis",!
+ W ?32,"Visit Dates:  ",!,?24,APCLBDD," to ",APCLEDD
+ W !,?63,"CAUSE OF DX",!
+ W ?5,"E-CODE CATEGORY SUMMARY",?38,"COUNT",?48,"% TOTAL",?60,"(ALCOHOL RELATED)"
+ W !,"--------------------------------------------------------------------------------"
+ Q
+TIME NEW Y,%A,%B,%C S Y="" Q:'$D(X)  Q:X<0!(X>86400)
+ S %A=X\60,%B=%A\60 S:%B>12 %B=%B-12 S:%B=0 %B=12 S:%B<10 %B=" "_%B
+ S %C=$S(%A=0:"M ",%A=720:"N ",%A=1440:"M ",%A<720:"am",1:"pm")
+ S Y=%B_":"_$E(%A#60+100,2,3)_" "_%C K %A,%B,%C Q
+ ;
+END ;
+ D DONE^APCLOSUT
+ K APCLGOT
+ Q

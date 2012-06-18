@@ -1,0 +1,22 @@
+ABMDKCPT ; IHS/ASDST/DMJ - Keyword Lookup Maintenance for CPT File ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+KEYW ;OLD EP for adding keywords
+ S DIE="^AICDKWLC("
+ S DA=$O(^AICDKWLC("B","CPT PROCEDURES","")) I 'DA W *7,"-- No CPT PROCEDURES subfile in KEYWORD LOOKUP CONTROL file",! Q
+ S DR="1"
+ D ^ABMDDIE K DR
+ Q
+ ;
+REPL ;EP
+ S DIE="^AICDKWLC("
+ S DA=$O(^AICDKWLC("B","CPT PROCEDURES","")) I 'DA W *7,"-- No CPT PROCEDURES subfile in KEYWORD LOOKUP CONTROL file",! Q
+ S DR="2"
+ D ^ABMDDIE K DR
+ Q
+ ;
+FREQ S DIE="^AICDKWLC("
+ S DA=$O(^AICDKWLC("B","CPT PROCEDURES","")) I 'DA W *7,"-- No CPT PROCEDURES subfile in KEYWORD LOOKUP CONTROL file",! Q
+ S DR="1"
+ D ^ABMDDIE K DR
+ Q

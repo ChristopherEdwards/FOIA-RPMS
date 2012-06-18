@@ -1,0 +1,114 @@
+FHINI09X	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,6780,2)
+	;;=0^0^0^0^0^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6780,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6781,0)
+	;;=FRUIT FLAVOR BEV.,KOOL-AID,FROM SUGAR SWEETENED PWDR^BC-00054^8-floz.^240
+	;;^UTILITY(U,$J,112,6781,1)
+	;;=0^0^8.75^34.167^^^^10.833^^^4.583^.417^7.917^0^^^^0^2.5^0
+	;;^UTILITY(U,$J,112,6781,2)
+	;;=0^0^0^0^0^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6781,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6782,0)
+	;;=FRUIT FLAVOR BEV.,KOOL-AID,KOOLERS FROM PWDR^BC-00055^8.45-floz.^254
+	;;^UTILITY(U,$J,112,6782,1)
+	;;=.079^0^13.858^52.362^^^^.787^.039^.394^.394^14.567^1.181^^.004^^^.394^2.362^.004
+	;;^UTILITY(U,$J,112,6782,2)
+	;;=.004^.039^.008^.004^0^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6782,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6783,0)
+	;;=FRUIT FLAVOR BEV.,SUGAR-FREE,FROM PWDR (ALL FLAVOR)^BC-00056^8-floz.^240
+	;;^UTILITY(U,$J,112,6783,1)
+	;;=.042^0^.125^1.25^^^^10^^^7.083^3.75^5.417^0^^^^0^2.5^0
+	;;^UTILITY(U,$J,112,6783,2)
+	;;=0^0^0^0^0^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6783,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6784,0)
+	;;=FRUIT FLAVOR BEV.,LEMONADE FROM PWDR,COUNTRY TIME^BC-00057^8-floz.^240
+	;;^UTILITY(U,$J,112,6784,1)
+	;;=0^0^8.542^34.167^91.667^^^^^6.667^0^5^8.75^0^0^^^0^2.5^0
+	;;^UTILITY(U,$J,112,6784,2)
+	;;=0^0^0^0^0^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6784,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6785,0)
+	;;=FRUIT FLAVOR BEV.,LEMONADE FROM PWDR,COUNTRY TIME SUG-FREE^BC-00058^8-floz.^239
+	;;^UTILITY(U,$J,112,6785,1)
+	;;=.042^0^.084^1.674^99.163^^^^^9.623^^15.9^0^0^0^^^0^2.51^0
+	;;^UTILITY(U,$J,112,6785,2)
+	;;=0^0^0^0^0^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6785,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6786,0)
+	;;=FRUIT FLAVOR BEV.,LEMONADE FROM PWDR,CRYSTAL LIGHT^BC-00059^8-floz.^239
+	;;^UTILITY(U,$J,112,6786,1)
+	;;=.042^0^.084^2.092^99.163^^^^^10.042^^^0^0^^^^0^2.51^0
+	;;^UTILITY(U,$J,112,6786,2)
+	;;=0^0^0^0^0^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6786,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6787,0)
+	;;=FRUIT FLAVOR BEV.,LEMONADE FROM PWDR,WYLER'S^BC-00060^8-floz.^240
+	;;^UTILITY(U,$J,112,6787,1)
+	;;=0^0^8.083^32.5^^^^0^0^0^0^^16.25^0^0^0^^0^7.917^0
+	;;^UTILITY(U,$J,112,6787,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,6787,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6788,0)
+	;;=FRUIT FLAVOR BEV.,ORANGE GELATIN DRK PWDR W/NUTRASWEET,KNOX^BC-00061^pkts.^10
+	;;^UTILITY(U,$J,112,6788,1)
+	;;=57^1^40^390^^^^0^0^0^0^0^170^0^0^0^^0^1130^0
+	;;^UTILITY(U,$J,112,6788,2)
+	;;=0^0^^^^^^^0
+	;;^UTILITY(U,$J,112,6788,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6789,0)
+	;;=FRUIT FLAVOR BEV.,TANG,ORANGE,FROM PWDR^BC-00062^6-floz.^185
+	;;^UTILITY(U,$J,112,6789,1)
+	;;=0^0^11.838^46.486^87.297^^^10.811^.973^^9.73^24.324^.541^0^^^^270.27^32.432^0
+	;;^UTILITY(U,$J,112,6789,2)
+	;;=.092^1.081^0^.108^43.243^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6789,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6790,0)
+	;;=FRUIT FLAVOR BEV.,TANG,ORANGE,SUG-FREE,FROM PWDR^BC-00063^6-floz.^180
+	;;^UTILITY(U,$J,112,6790,1)
+	;;=.056^0^.222^2.778^98.833^^^3.889^0^2.778^5.556^28.333^1.111^0^^^^277.778^33.333^0
+	;;^UTILITY(U,$J,112,6790,2)
+	;;=.094^1.111^0^.111^44.444^0^^^0^0^0^0
+	;;^UTILITY(U,$J,112,6790,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6791,0)
+	;;=FRUIT FLAVOR BEV.,TANG,ORANGE,READY-TO-DRINK FRUIT BOX^BC-00064^boxes^262
+	;;^UTILITY(U,$J,112,6791,1)
+	;;=0^0^11.832^48.473^^^^1.145^^1.145^1.908^86.641^.382^^.008^^^8.779^22.901^.008
+	;;^UTILITY(U,$J,112,6791,2)
+	;;=.065^.763^.019^.076^30.534
+	;;^UTILITY(U,$J,112,6791,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6792,0)
+	;;=MALT BEV.,O'DOUL'S (NONALCOHOLIC)^BC-00065^cans^361
+	;;^UTILITY(U,$J,112,6792,1)
+	;;=.388^0^3.878^19.391^95.014^^^4.709^.003^6.925^45.706^38.504^3.324^.003^.003^.008^^^^0
+	;;^UTILITY(U,$J,112,6792,2)
+	;;=.03^.72^.08^.066^^0^^^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,6792,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6793,0)
+	;;=TEA,ICED,INST MIX,LIPTON^BC-00066^pkts.^1.2
+	;;^UTILITY(U,$J,112,6793,1)
+	;;=0^0^25^83.333^^^^0^0^83.333^83.333^1916.667^500^0^^^^0^0^0
+	;;^UTILITY(U,$J,112,6793,2)
+	;;=0^0^^^^^^^0
+	;;^UTILITY(U,$J,112,6793,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,6794,0)
+	;;=TEA,ICED,INST MIX W/NUTRASWEET,LIPTON^BC-00067^pkts.^2.3

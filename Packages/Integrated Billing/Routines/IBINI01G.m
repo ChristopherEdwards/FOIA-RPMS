@@ -1,0 +1,70 @@
+IBINI01G	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	Q:'DIFQR(350.1)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,350.1)
+	;;=^IBE(350.1,
+	;;^UTILITY(U,$J,350.1,0)
+	;;=IB ACTION TYPE^350.1^67^67
+	;;^UTILITY(U,$J,350.1,1,0)
+	;;=PSO NSC RX COPAY NEW^NSC CO^23^12^1^3^4^NSC PHARMACY COPAY^1^^5
+	;;^UTILITY(U,$J,350.1,1,10)
+	;;=D PTL^IBAUTL
+	;;^UTILITY(U,$J,350.1,1,20)
+	;;=S:'$D(^(10)) X="" I $D(^(10)) X ^(10) S X=$S($D(Y(0)):$P(Y(0),U),1:"UNK") I $D(Y(0)) S X=X_"-"_$S($D(^PSDRUG(+$P(Y(0),U,6),0)):$P(^(0),"^"),1:"UNK DRUG"),X=$E(X,1,18)_"-"_$S($D(IBUNIT):IBUNIT,$D(IBX):$P(IBX,U,2),1:"")
+	;;^UTILITY(U,$J,350.1,1,30)
+	;;=I $D(X) D EN^PSOCPVW
+	;;^UTILITY(U,$J,350.1,1,40)
+	;;=S X=0,X1="",X2="" G:'$D(VAEL) 1^IBAERR I VAEL(4),'+VAEL(3),'IBDOM,'$$RXEXMT^IBARXEU0(DFN,DT) S X=1,X2=$P(^IBE(350.1,DA,0),"^",4) D COST^IBAUTL
+	;;^UTILITY(U,$J,350.1,2,0)
+	;;=PSO SC RX COPAY NEW^SC COPAY^22^12^1^5^6^SC PHARMACY COPAY^2^^5
+	;;^UTILITY(U,$J,350.1,2,10)
+	;;=D PTL^IBAUTL
+	;;^UTILITY(U,$J,350.1,2,20)
+	;;=S:'$D(^(10)) X="" I $D(^(10)) X ^(10) S X=$S($D(Y(0)):$P(Y(0),U),1:"UNK") I $D(Y(0)) S X=X_"-"_$S($D(^PSDRUG(+$P(Y(0),U,6),0)):$P(^(0),"^"),1:"UNK DRUG"),X=$E(X,1,18)_"-"_$S($D(IBUNIT):IBUNIT,$D(IBX):$P(IBX,U,2),1:"")
+	;;^UTILITY(U,$J,350.1,2,30)
+	;;=I $D(X) D EN^PSOCPVW
+	;;^UTILITY(U,$J,350.1,2,40)
+	;;=S X=0,X1="",X2="" G:'$D(VAEL) 1^IBAERR I VAEL(4),+VAEL(3),'IBDOM S X=$S($P(VAEL(3),"^",2)<50:2,1:0) I X S:$$RXEXMT^IBARXEU0(DFN,DT) X=0 I X S X2=$P(^IBE(350.1,DA,0),"^",4) D COST^IBAUTL
+	;;^UTILITY(U,$J,350.1,3,0)
+	;;=PSO NSC RX COPAY CANCEL^CAN NSC^23^12^2^3^4^^1^^
+	;;^UTILITY(U,$J,350.1,3,10)
+	;;=D PTL^IBAUTL
+	;;^UTILITY(U,$J,350.1,3,20)
+	;;=S:'$D(^(10)) X="" I $D(^(10)) X ^(10) S X=$S($D(Y(0)):$P(Y(0),U),1:"UNK") I $D(Y(0)) S X=X_"-"_$S($D(^PSDRUG(+$P(Y(0),U,6),0)):$P(^(0),"^"),1:"UNK DRUG"),X=$E(X,1,18)_"-"_$S($D(IBUNIT):IBUNIT,$D(IBX):$P(IBX,U,2),1:"")
+	;;^UTILITY(U,$J,350.1,3,30)
+	;;=I $D(X) D EN^PSOCPVW
+	;;^UTILITY(U,$J,350.1,4,0)
+	;;=PSO NSC RX COPAY UPDATE^UPDAT NS^23^12^3^3^4^^1^^5
+	;;^UTILITY(U,$J,350.1,4,10)
+	;;=D PTL^IBAUTL
+	;;^UTILITY(U,$J,350.1,4,20)
+	;;=S:'$D(^(10)) X="" I $D(^(10)) X ^(10) S X=$S($D(Y(0)):$P(Y(0),U),1:"UNK") I $D(Y(0)) S X=X_"-"_$S($D(^PSDRUG(+$P(Y(0),U,6),0)):$P(^(0),"^"),1:"UNK DRUG"),X=$E(X,1,18)_"-"_$S($D(IBUNIT):IBUNIT,$D(IBX):$P(IBX,U,2),1:"")
+	;;^UTILITY(U,$J,350.1,4,30)
+	;;=I $D(X) D EN^PSOCPVW
+	;;^UTILITY(U,$J,350.1,5,0)
+	;;=PSO SC RX COPAY CANCEL^CAN SC^22^12^2^5^6^^2^^
+	;;^UTILITY(U,$J,350.1,5,10)
+	;;=D PTL^IBAUTL
+	;;^UTILITY(U,$J,350.1,5,20)
+	;;=S:'$D(^(10)) X="" I $D(^(10)) X ^(10) S X=$S($D(Y(0)):$P(Y(0),U),1:"UNK") I $D(Y(0)) S X=X_"-"_$S($D(^PSDRUG(+$P(Y(0),U,6),0)):$P(^(0),"^"),1:"UNK DRUG"),X=$E(X,1,18)_"-"_$S($D(IBUNIT):IBUNIT,$D(IBX):$P(IBX,U,2),1:"")
+	;;^UTILITY(U,$J,350.1,5,30)
+	;;=I $D(X) D EN^PSOCPVW
+	;;^UTILITY(U,$J,350.1,6,0)
+	;;=PSO SC RX COPAY UPDATE^UPDA SC^22^12^3^5^6^^2^^5
+	;;^UTILITY(U,$J,350.1,6,10)
+	;;=D PTL^IBAUTL
+	;;^UTILITY(U,$J,350.1,6,20)
+	;;=S:'$D(^(10)) X="" I $D(^(10)) X ^(10) S X=$S($D(Y(0)):$P(Y(0),U),1:"UNK") I $D(Y(0)) S X=X_"-"_$S($D(^PSDRUG(+$P(Y(0),U,6),0)):$P(^(0),"^"),1:"UNK DRUG"),X=$E(X,1,18)_"-"_$S($D(IBUNIT):IBUNIT,$D(IBX):$P(IBX,U,2),1:"")
+	;;^UTILITY(U,$J,350.1,6,30)
+	;;=I $D(X) D EN^PSOCPVW
+	;;^UTILITY(U,$J,350.1,7,0)
+	;;=IB OPT MEDICARE RATE 1^RATE 1^^^1^^^HCFA AMB. SURG. RATE 1^7^^
+	;;^UTILITY(U,$J,350.1,8,0)
+	;;=IB OPT MEDICARE RATE 2^RATE 2^^^1^^^HCFA AMB. SURG. RATE 2^8^^
+	;;^UTILITY(U,$J,350.1,9,0)
+	;;=IB OPT MEDICARE RATE 3^RATE 3^^^1^^^HCFA AMB. SURG. RATE 3^9^^
+	;;^UTILITY(U,$J,350.1,10,0)
+	;;=IB OPT MEDICARE RATE 4^RATE 4^^^1^^^HCFA AMB. SURG. RATE 4^10^^
+	;;^UTILITY(U,$J,350.1,11,0)
+	;;=IB OPT MEDICARE RATE 5^RATE 5^^^1^^^HCFA AMB. SURG. RATE 5^11^^

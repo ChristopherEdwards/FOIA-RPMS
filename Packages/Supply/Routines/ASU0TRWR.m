@@ -1,0 +1,210 @@
+ASU0TRWR ; IHS/ITSC/LMH -WRITE HIST OR TRANS ;  
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;;This routine provides entry point 'WRITE' data into SAMS
+ ;;trans or hist files from an array.
+WRITE(X,Z) ;EP ;Write hist or trans
+ ;  X - Record entry number
+ ;  Z - 'H' for hist, 1-7 for trans
+ ;  Requires local array ASUT
+ S ASUHDA=X,ASUT("FIL")=$G(Z),ASUF("NEW")=1 N W F W=0:1:5 S ASUT(W)=""
+ I ASUT("FIL")="H" D
+ .S ASUT("GLOB")="^ASUH("
+ E  D
+ .S ASUT("GLOB")="^ASUT("_ASUT("FIL")_",",ASUT("GBL0")="^ASUT("
+ S ASUV("NODE")=ASUT("GLOB")_"ASUHDA)"
+ I $D(@ASUV("NODE")) D
+ .S ASUF("NEW")=0,DA=ASUHDA,DIK=ASUT("GLOB")
+ .D ^DIK ;Delete old record and xrefs
+ S $P(ASUT(0),U)=ASUT(ASUT,"TRKY"),$P(ASUT(1),U)=ASUT("TRCD")
+ S ASUT(ASUT,"PT","AR")=$G(ASUT(ASUT,"PT","AR"))
+ S ASUT(ASUT,"AR")=$G(ASUT(ASUT,"AR"))
+ D PAR
+ S $P(ASUT(0),U,2)=ASUT(ASUT,"PT","AR"),$P(ASUT(1),U,2)=ASUT(ASUT,"AR")
+ S ASUT(ASUT,"PT","STA")=$G(ASUT(ASUT,"PT","STA"))
+ D PSTA
+ S $P(ASUT(0),U,3)=ASUT(ASUT,"PT","STA"),$P(ASUT(1),U,3)=ASUT(ASUT,"STA")
+ S ASUT(ASUT,"PT","ACC")=$G(ASUT(ASUT,"PT","ACC"))
+ S ASUT(ASUT,"ACC")=$G(ASUT(ASUT,"ACC"))
+ D PTF("ACC")
+ S $P(ASUT(0),U,4)=ASUT(ASUT,"PT","ACC"),$P(ASUT(1),U,4)=ASUT(ASUT,"ACC")
+ S ASUT(ASUT,"PT","IDX")=$G(ASUT(ASUT,"PT","IDX"))
+ S ASUT(ASUT,"IDX")=$G(ASUT(ASUT,"IDX"))
+ D PIDX
+ S $P(ASUT(0),U,5)=ASUT(ASUT,"PT","IDX"),$P(ASUT(1),U,5)=ASUT(ASUT,"IDX")
+ S:$G(ASUT(ASUT,"ENTR BY"))']"" ASUT(ASUT,"ENTR BY")=$P(ASUT(ASUT,"TRKY"),".",3) S $P(ASUT(0),U,6)=ASUT(ASUT,"ENTR BY")
+ S:$G(ASUT(ASUT,"DTE"))']"" ASUT(ASUT,"DTE")=$P(ASUT(ASUT,"TRKY"),".")
+ S $P(ASUT(0),U,7)=ASUT(ASUT,"DTE")
+ S $P(ASUT(0),U,8)=ASUT(ASUT,"DTP"),$P(ASUT(0),U,9)=ASUT(ASUT,"DTW")
+ ;The following line may be a problem and probably should be changed
+ ;S $P(ASUT(0),U,10)="Y"  ;CSC 1-99
+ S $P(ASUT(0),U,10)=ASUT(ASUT,"STATUS")   ;IHS/DSD/JLG 4/26/99
+ ;S $P(ASUT(0),U,7)=ASUT(ASUT,"DTE"),$P(ASUT(0),U,8)=ASUT(ASUT,"DTP"),$P(ASUT(0),U,9)=ASUT(ASUT,"DTW"),$P(ASUT(0),U,10)=ASUT(ASUT,"STATUS")
+ S ASUT(ASUT,"PT","SSA")=$G(ASUT(ASUT,"PT","SSA"))
+ S ASUT(ASUT,"SSA")=$G(ASUT(ASUT,"SSA"))
+ D PTR("SSA")
+ ;In file 9002036.6 and maybe others, this is putting values into
+ ;that are not defined in the DD!!
+ S $P(ASUT(0),U,11)=$G(ASUT(ASUT,"PT","SSA"))
+ S $P(ASUT(1),U,11)=$G(ASUT(ASUT,"SSA"))
+ I ASUT("TRCD")=12 S ASUJT("SSA")=ASUT(ASUT,"SSA")  ;WAR 5/13/99
+ S ASUT(ASUT,"PT","SRC")=$G(ASUT(ASUT,"PT","SRC"))
+ S ASUT(ASUT,"SRC")=$G(ASUT(ASUT,"SRC"))
+ D PTF("SRC")
+ S $P(ASUT(0),U,12)=ASUT(ASUT,"PT","SRC"),$P(ASUT(1),U,12)=ASUT(ASUT,"SRC")
+ S ASUT(ASUT,"PT","SST")=$G(ASUT(ASUT,"PT","SST"))
+ S ASUT(ASUT,"SST")=$G(ASUT(ASUT,"SST"))
+ D PTR("SST")
+ S $P(ASUT(0),U,13)=ASUT(ASUT,"PT","SST"),$P(ASUT(1),U,13)=ASUT(ASUT,"SST")
+ S ASUT(ASUT,"PT","USR")=$G(ASUT(ASUT,"PT","USR"))
+ S ASUT(ASUT,"USR")=$G(ASUT(ASUT,"USR"))
+ D PTR("USR")
+ S $P(ASUT(0),U,14)=ASUT(ASUT,"PT","USR"),$P(ASUT(1),U,14)=ASUT(ASUT,"USR")
+ S ASUT(ASUT,"PT","REQ")=$G(ASUT(ASUT,"PT","REQ"))
+ D PTR("REQ")
+ S $P(ASUT(0),U,15)=ASUT(ASUT,"PT","REQ")
+ S $P(ASUT(0),U,16)=$G(ASUT(ASUT,"PT","EOQ TYP"))
+ S $P(ASUT(1),U,16)=$G(ASUT(ASUT,"EOQ TYP"))
+ S ASUT(ASUT,"PT","SOBJ")=$G(ASUT(ASUT,"PT","SOBJ"))
+ S ASUT(ASUT,"SOBJ")=$G(ASUT(ASUT,"SOBJ"))
+ D PTF("SOBJ")
+ S $P(ASUT(0),U,17)=$G(ASUT(ASUT,"PT","SOBJ"))
+ S $P(ASUT(1),U,17)=ASUT(ASUT,"SOBJ"),$P(ASUT(1),U,19)=$G(ASUT(ASUT,"D/IF"))
+ S $P(ASUT(0),U,20)=$G(ASUT(ASUT,"CALCED"))
+ S:$G(ASUT(ASUT,"MST","QTY"))']"" ASUT(ASUT,"MST","QTY")=$G(ASUMS("QTY","O/H")) S $P(ASUT(0),U,21)=ASUT(ASUT,"MST","QTY")
+ S:$G(ASUT(ASUT,"MST","VAL"))']"" ASUT(ASUT,"MST","VAL")=$G(ASUMS("VAL","O/H")) S $P(ASUT(0),U,22)=ASUT(ASUT,"MST","VAL")
+ S:$G(ASUT(ASUT,"MST","D/I"))']"" ASUT(ASUT,"MST","D/I")=$G(ASUMS("D/I","QTY-TOT")) S $P(ASUT(0),U,23)=ASUT(ASUT,"MST","D/I")
+ ;**Next 2 lines if no sign field.  ;IHS/ITSC/LMH 6/23/00
+ I $G(ASUT(ASUT,"SIGN"))="" D
+ .S ASUT(ASUT,"SIGN")=$P(^ASUL(11,ASUL(11,"TRN","E#"),0),U,5)  ;LMH 6/16/00
+ S $P(ASUT(0),U,24)=ASUT(ASUT,"SIGN")
+ S $P(ASUT(0),U,25)=$G(ASUT(ASUT,"RMK"))
+ I Z="H" S $P(ASUT(0),U,30)=ASUT("TYPE")   ;IHS/DSD/JLG 5/17/99
+ S $P(ASUT(1),U,6)=$G(ASUT(ASUT,"QTY"))
+ S $P(ASUT(1),U,7)=$G(ASUT(ASUT,"VAL"))
+ S $P(ASUT(1),U,8)=$G(ASUT(ASUT,"VOU"))
+ S $P(ASUT(1),U,9)=$G(ASUT(ASUT,"PON"))
+ I ASUT("TRCD")=12 S ASUJT("PON")=ASUT(ASUT,"PON")  ;WAR 5/13/99
+ S $P(ASUT(1),U,10)=$G(ASUT(ASUT,"DTS"))
+ ;$G added to each of the following lines  IHS/DSD/JLG 5/17/99
+ I $G(ASUT("TYPE"))=1 S $P(ASUT(1),U,10)=$G(ASUT(ASUT,"DTD"))
+ I $G(ASUT("TYPE"))=2 S $P(ASUT(1),U,10)=ASUT(ASUT,"DTX")
+ I $G(ASUT("TYPE"))=3 D
+ .S $P(ASUT(1),U,6)=ASUT(ASUT,"QTY","REQ")
+ .S $P(ASUT(1),U,10)=$G(ASUT(ASUT,"DTR"))
+ .S $P(ASUT(3),U)=$G(ASUT(ASUT,"PST"))
+ .S $P(ASUT(3),U,2)=$G(ASUT(ASUT,"ISSTY"))
+ .S $P(ASUT(3),U,3)=$G(ASUT(ASUT,"REQ TYP"))
+ .S $P(ASUT(3),U,4)=$G(ASUT(ASUT,"RQN"))
+ .S $P(ASUT(3),U,5)=$G(ASUT(ASUT,"CTG"))
+ .S $P(ASUT(3),U,6)=$G(ASUT(ASUT,"QTY","ISS"))
+ .I ASUT(ASUT,"PST")="I",$G(ASUT(ASUT,"QTY","ISS"))']0 D
+ ..S ASUT(ASUT,"QTY","ISS")=ASUT(ASUT,"QTY","REQ")
+ .S $P(ASUT(3),U,7)=$G(ASUT(ASUT,"B/O"))
+ .S $P(ASUT(3),U,8)=$G(ASUT(ASUT,"QTY","ADJ"))
+ I $G(ASUT("TYPE"))=4 D
+ .I '$G(ASUT(ASUT,"BCD")) S ASUT(ASUT,"BCD")=""  ;CSC THINK ITS BARCODE
+ .S ASUT(ASUT,"PT","CAT")=$G(ASUT(ASUT,"PT","CAT"))
+ .S ASUT(ASUT,"CAT")=$G(ASUT(ASUT,"CAT"))
+ .D PTF("CAT")
+ .S $P(ASUT(0),U,19)=$G(ASUT(ASUT,"PT","CAT"))
+ .S $P(ASUT(4),U,4)=ASUT(ASUT,"CAT")
+ .S $P(ASUT(4),U)=$G(ASUT(ASUT,"DESC"))
+ .S $P(ASUT(4),U,2)=ASUT(ASUT,"AR U/I")
+ .S $P(ASUT(4),U,3)=ASUT(ASUT,"NSN"),$P(ASUT(4),U,5)=ASUT(ASUT,"BCD")
+ I $G(ASUT("TYPE"))=5 D
+ .S $P(ASUT(5),U,2)=ASUT(ASUT,"EOQ MM")
+ .S $P(ASUT(5),U,3)=ASUT(ASUT,"EOQ QM")
+ .S $P(ASUT(5),U,4)=ASUT(ASUT,"EOQ AM")
+ .S $P(ASUT(1),U,9)=ASUT(ASUT,"ORD#")
+ .S $P(ASUT(0),U,18)=ASUT(ASUT,"PT","VEN")
+ .S $P(ASUT(5),U,8)=ASUT(ASUT,"VEN NM")
+ .S $P(ASUT(0),U,19)=ASUT(ASUT,"PT","SLC")
+ .S $P(ASUT(5),U)=ASUT(ASUT,"SLC")
+ .S $P(ASUT(5),U,5)=ASUT(ASUT,"LTM")
+ .I ASUT(ASUT,"LTM")?2N D
+ ..S ASUT(ASUT,"LTM")=ASUT(ASUT,"LTM")*.1
+ .S $P(ASUT(5),U,6)=ASUT(ASUT,"RPQ")
+ .S $P(ASUT(5),U,7)=ASUT(ASUT,"UCS")
+ .S $P(ASUT(5),U,9)=ASUT(ASUT,"SUI")
+ .S $P(ASUT(5),U,10)=ASUT(ASUT,"ULVQTY")
+ .S $P(ASUT(5),U,11)=ASUT(ASUT,"SPQ")
+ S $P(ASUT(1),U,15)=$G(ASUT(ASUT,"CAN"))
+ S $P(ASUT(1),U,18)=$G(ASUT(ASUT,"FPN"))
+ S ASUT("FND")=$S(ASUT("FIL")?1N:ASUT("FIL"),1:$G(ASUJV))
+ F W=0,1,ASUT("FND") S ASUV("NODE")=ASUT("GLOB")_ASUHDA_","_W_")" S:$G(ASUT(W))]"" @ASUV("NODE")=ASUT(W)
+ K D0,DA,DIC,DIR,DIU,W,X
+ S DA=ASUHDA,DIK=ASUT("GLOB")
+ D IX^DIK ;Re xref new record
+ I ASUF("NEW") D
+ .S ASUVN0=ASUT("GLOB")_"0)",$P(@ASUVN0,U,4)=$P(@ASUVN0,U,4)+1
+ .K ASUF("NEW")
+ I $G(ASUF("SV")) K:ASUF("SV")=1 ASUF("SV") Q
+ K ASUT(ASUT)
+ Q
+RETURN ;
+ S Y=0,X=ASUHDA Q
+ERR ;
+ S Y=-1 Q
+PACC ;EP ;account
+ I ASUT(ASUT,"PT","ACC")]"" D
+ .D ACC^ASULDIRF(ASUT(ASUT,"PT","ACC"))
+ E  D
+ .I ASUT(ASUT,"ACC")]"" D ACC^ASULDIRF(ASUT(ASUT,"ACC"))
+ S:ASUT(ASUT,"PT","ACC")']"" ASUT(ASUT,"PT","ACC")=$G(ASUMX("ACC"))
+ S:ASUT(ASUT,"ACC")']"" ASUT(ASUT,"ACC")=$G(ASUMX("ACC"))
+ Q
+PAR ;EP ;area
+ I ASUT(ASUT,"AR")]"" S:ASUT(ASUT,"PT","AR")']"" ASUT(ASUT,"PT","AR")=ASUT(ASUT,"AR")
+ ;Following line modified  ihs/pimc/JLG  9/10/99
+ I ASUT("TRCD")="4A"!(ASUT("TRCD")="4C")!(ASUT("TRCD")="4D") D
+ .S ASUT(ASUT,"PT","STA")=ASUL(1,"AR","STA1")
+ .S ASUT(ASUT,"STA")=""  ;CSC 4A HAS NO STATION CODE
+ Q:ASUL(1,"AR","AP")=91  Q:ASUL(1,"AR","AP")=ASUT(ASUT,"PT","AR")
+ S Y=-2 Q
+ ;
+PSTA ;EP ;sta
+ I ASUT(ASUT,"PT","STA")?5N D
+ .D STA^ASULARST(ASUT(ASUT,"PT","STA"))
+ E  D
+ .I ASUT(ASUT,"STA")]"" D STA^ASULARST(ASUT(ASUT,"STA"))
+ S:ASUT(ASUT,"PT","STA")']"" ASUT(ASUT,"PT","STA")=$G(ASUL(2,"STA","E#"))
+ S:ASUT(ASUT,"STA")']"" ASUT(ASUT,"STA")=$G(ASUL(2,"STA","CD"))
+ Q
+PIDX ;EP ;idx
+ ;The following IF is always true in its original form.  Changed to
+ ;reflect hopefully the correct logic.
+ ;I ASUT(ASUT,"IDX")["" D
+ I ASUT(ASUT,"IDX")="" D   ;IHS/DSD/JLG 4/22/99
+ .I ASUT("TYPE")=0 D
+ ..S ASUT(ASUT,"IDX")=999998
+ ..S ASUT(ASUT,"PT","IDX")=ASUL(1,"AR","AP")_999998 Q
+ .I ASUT(ASUT,"PT","IDX")']"",$P(ASUT(1),U,5)]"" D
+ ..S ASUT(ASUT,"PT","IDX")=ASUT(ASUT,"PT","AR")_$P(ASUT(1),U,5)
+ D IDX^ASUMXDIO(ASUT(ASUT,"PT","IDX"))
+ Q
+PTRR(X,Y)          ;
+ S ASUT(ASUT,"PT",X)=$P(ASUT(0),U,Y)
+ S ASUT(ASUT,X)=$P(ASUT(1),U,Y)
+ D PTR(.X) Q
+PTR(X) ;
+ N Z S Z="D "_X_"^ASULDIRR(ASUT(ASUT,",Z(0)="X))",Z(1)=Z_Z(0),Z(2)=Z_"""PT"","_Z(0),Z(3)=$S(X="SSA":17,X="SST":18,X="USR":19,X="REQ":20)
+ I ASUT(ASUT,"PT",X)]"" D
+ .X Z(2)
+ E  D
+ .I $G(ASUT(ASUT,X))]"" X Z(1)
+ S:$G(ASUT(ASUT,"PT",X))']"" ASUT(ASUT,"PT",X)=$G(ASUL(Z(3),X,"E#"))
+ S:$G(ASUT(ASUT,X))']"" ASUT(ASUT,X)=$G(ASUL(Z(3),X))
+ Q
+PTFR(X,Y)          ;
+ S ASUT(ASUT,"PT",X)=$P(ASUT(0),U,Y)
+ S ASUT(ASUT,X)=$P(ASUT(1),U,Y)
+ D PTF(.X) Q
+PTF(X) ;
+ N Z S Z="D "_X_"^ASULDIRF(ASUT(ASUT,",Z(0)="X))",Z(1)=Z_Z(0),Z(2)=Z_"""PT"","_Z(0),Z(3)=$S(X="ACC":9,X="SRC":5,X="SOBJ":3,X="CAT":7)
+ I ASUT(ASUT,"PT",X)]"" D
+ .X Z(2)
+ E  D
+ .I ASUT(ASUT,X)]"" X Z(1)
+ S:ASUT(ASUT,"PT",X)']"" ASUT(ASUT,"PT",X)=$G(ASUL(Z(3),X,"E#"))
+ S:ASUT(ASUT,X)']"" ASUT(ASUT,X)=$G(ASUL(Z(3),X))
+ Q

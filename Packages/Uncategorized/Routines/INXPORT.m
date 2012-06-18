@@ -1,0 +1,227 @@
+INXPORT ; cmi/flag/maw - IN GIS Package Exporter ;  [ 10/09/2002  11:05 AM ]
+ ;;3.01;BHL IHS Interfaces with GIS;**2,15**;OCT 15, 2002
+ ;
+ ;
+ ;this routine will take all components of a package and export
+ ;to transport global ^INXPORT.  This global will then get moved to
+ ;the remote system and get imported into GIS.  This will act as a
+ ;replacement to the KIDS data install
+ ;
+MAIN ;PEP - this is the main routine driver
+ D ASK
+ Q:$D(DIRUT)
+ Q:$G(INSTND)=""
+ Q:$G(INST)=""
+ D MSG(INSTND,INST,ININT)
+ W !!,"The export of ",INMSGPR," has completed successfully.  The content"
+ W !,"is in the global ^'INXPORT' which can be saved to a host file."
+ D EOJ
+ Q
+ ;
+ASK ;-- ask the site and project
+ S DIR(0)="S^HL7:HL;X12:X1"
+ S DIR("A")="What is the type of messaging you are exporting from"
+ D ^DIR
+ I $D(DIRUT) W !!,"Export aborted..." H 2 Q
+ S INSTND=Y(0)
+ K DIC
+ K DIR
+ S DIR(0)="F^2:10"
+ S DIR("A")="What is the site you are exporting from............."
+ D ^DIR
+ I $D(DIRUT) W !!,"Export aborted..." H 2 Q
+ S INST=Y
+ S DIC(0)="AEMQZ",DIC="^INRHNS("
+ S DIC("A")="What is the interface you are exporting from........: "
+ S DIC("S")="I $D(^(1))"
+ D ^DIC
+ I +Y<0 W !!,"Export aborted..." H 2 Q
+ S ININTI=+Y
+ S (INIF,ININT)=$P(Y,U,2)
+ I ININT="" S INIF="CORE"
+ I INIF="CORE" S ININTI=$O(^INRHNS("B","CORE",0))
+ S INMPRE="^INXPORT(INSTND,INST,INIF)"
+ Q
+ ;
+MSG(STD,SIT,INT)   ;PEP - get the data
+ ;lets find the message, tt, dest, bp, then segment, then field
+ K ^INXPORT
+ S INMSGPR=$G(STD)_" "_$G(SIT)_$S($G(INT)'="":" "_INT,1:"")
+ D SETD(INMSGPR)
+ D SETT(INMSGPR)
+ D SETBP(INMSGPR)
+ S INMDA=0 F  S INMDA=$O(^INTHL7M("B",INMDA)) Q:INMDA=""  D
+ . Q:INMDA'[INMSGPR
+ . S INIEN=0 F  S INIEN=$O(^INTHL7M("B",INMDA,INIEN)) Q:'INIEN  D
+ .. D TT(INIEN)
+ .. D MD(INIEN)
+ Q
+ ;
+TT(MSG) ;-- set up the transaction types based upon the message
+ S INTTDA=0
+ F  S INTTDA=$O(^INTHL7M(INIEN,2,INTTDA)) Q:'INTTDA  D
+ . S INSCNT=0
+ . S INTTI=$P($G(^INTHL7M(INIEN,2,INTTDA,0)),U)
+ . S INOUT=$$GET1^DIQ(4000,INTTI,.08,"E")
+ . S @INMPRE@(INIEN,"INOUT")=INOUT
+ . F INCNTI=$P($G(^INRHT(INTTI,0)),U,6),INTTI D
+ .. I INCNTI,'$D(@INMPRE@("TT",INCNTI)) D TTFIELD(INCNTI)
+ . D DEST(INTTI)
+ . Q:INDI=""
+ . D BP(INDI)
+ Q
+ ;
+DEST(TTI) ;-- setup the destination information
+ S INDI=$P($G(^INRHT(TTI,0)),U,2)
+ Q:'INDI
+ I '$D(@INMPRE@("DEST",INDI)) D DFIELD(INDI)
+ Q
+ ;
+BP(DSTI) ;-- setup the background process infomation
+ S INBPI=$O(^INTHPC("DEST",DSTI,0))
+ Q:'INBPI
+ I '$D(@INMPRE@("BP",INBPI)) D BPFIELD(INBPI)
+ Q
+ ;the following can be added if IP port and IP address are sent
+ S INBPDA=0 F  S INBPDA=$O(^INTHPC(INBPI,5,INBPDA)) Q:'INBPDA  D
+ . S INSRVP=$G(^INTHPC(INBPI,5,INBPDA,0))
+ . S @INMPRE@(INIEN,"BP",INBPI,5,INBPDA)=INSRVP
+ S INBPIEN=0 F  S INBPIEN=$O(^INTHPC(INBPI,6,INBPIEN)) Q:'INBPIEN  D
+ . S INSCNT=1
+ . S INCLIP=$G(^INTHPC(INBPI,6,INBPIEN,0))
+ . S $P(@INMPRE@(INIEN,"BP",INBPI,6,INBPIEN),U,INSCNT)=INCLIP
+ . S INBPOEN=0 F  S INBPOEN=$O(^INTHPC(INBPI,6,INBPIEN,1,INBPOEN)) Q:'INBPOEN  D
+ .. S INSCNT=INSCNT+1
+ .. S INCLP=$G(^INTHPC(INBPI,6,INBPIEN,1,INBPOEN,0))
+ .. S $P(@INMPRE@(INIEN,"BP",INBPI,6,INBPIEN),U,INSCNT)=INCLP
+ Q
+ ;
+MD(INIEN) ;-- setup the message structure
+ S INCNT=0
+ F INMF=.01,.02,.03,.04,.05,.06,.07,.08,.1,.11,.12,5,7.01,7.02,7.03,7.04 D
+ . S INCNT=INCNT+1
+ . S $P(@INMPRE@(INIEN,"MD"),";",INCNT)=INMF_"///"_$$GET1^DIQ(4011,INIEN,INMF,"E")
+ S INIMC=0 F  S INIMC=$O(^INTHL7M(INIEN,6,INIMC)) Q:'INIMC  D
+ . S @INMPRE@(INIEN,"MD","OIMC",INIMC)=$G(^INTHL7M(INIEN,6,INIMC,0))  ;8/2/2007 cmi/maw patch 15
+ S INIMC=0 F  S INIMC=$O(^INTHL7M(INIEN,4,INIMC)) Q:'INIMC  D
+ . S @INMPRE@(INIEN,"MD","MCFL",INIMC)=$G(^INTHL7M(INIEN,4,INIMC,0))
+ S INMDS=0 F  S INMDS=$O(^INTHL7M(INIEN,3,INMDS)) Q:'INMDS  D
+ . S @INMPRE@(INIEN,"MD","DESC",INMDS)=$G(^INTHL7M(INIEN,3,INMDS,0))
+ S INMTT=0 F  S INMTT=$O(^INTHL7M(INIEN,2,INMTT)) Q:'INMTT  D
+ . S INMTTI=+$G(^INTHL7M(INIEN,2,INMTT,0))
+ . Q:'INMTTI
+ . S INMTTE=$$GET1^DIQ(4000,INMTTI,.01,"E")
+ . S @INMPRE@(INIEN,"MD","TT",INMTT)=INMTTE
+ S INMS=0 F  S INMS=$O(^INTHL7M(INIEN,1,INMS)) Q:'INMS  D
+ . S INCNT=0
+ . K INFILE,INPNTE
+ . S INSIEN=$P($G(^INTHL7M(INIEN,1,INMS,0)),U)
+ . S INSDT=$G(^INTHL7M(INIEN,1,INMS,0))
+ . S INSEG=$P($G(^INTHL7S(INSIEN,0)),U)
+ . S INSEQ=$P($G(^INTHL7M(INIEN,1,INMS,0)),U,2)
+ . S INREP=$P($G(^INTHL7M(INIEN,1,INMS,0)),U,3)
+ . S INOF=$P($G(^INTHL7M(INIEN,1,INMS,0)),U,4)
+ . S INFILI=$P($G(^INTHL7M(INIEN,1,INMS,0)),U,5)
+ . I INFILI]"" S INFILE=$P($G(^DIC(INFILI,0)),U)
+ . S INPAR=$P($G(^INTHL7M(INIEN,1,INMS,0)),U,7)
+ . S INMULT=$P($G(^INTHL7M(INIEN,1,INMS,0)),U,8)
+ . S INPNTI=$P($G(^INTHL7M(INIEN,1,INMS,0)),U,11)
+ . I INPNTI]"" S INPNTE=$P($G(^INTHL7S(INPNTI,0)),U)
+ . S INUDI=$P($G(^INTHL7M(INIEN,1,INMS,0)),U,12)
+ . S INSTR=INSEG_U_INSEQ_U_INREP_U_INOF_U_$G(INFILE)_U_INPAR_U_INMULT
+ . S INSTR=INSTR_U_$G(INPNTE)_U_INUDI
+ . S @INMPRE@(INIEN,"MD","SEG",INSIEN)=INSTR
+ . S INOMC=0 F  S INOMC=$O(^INTHL7M(INIEN,1,INMS,5,INOMC)) Q:'INOMC  D
+ .. S @INMPRE@(INIEN,"MD","SEG",INSIEN,"OMC",INOMC)=$G(^INTHL7M(INIEN,1,INMS,5,INOMC,0))
+ . D SD(INSIEN)
+ Q
+ ;
+SD(SIEN) ;-- get the segment definition
+ S INCNT=0
+ F INSF=.01,.02 D
+ . S INCNT=INCNT+1
+ . S $P(@INMPRE@(INIEN,"SD",SIEN),U,INCNT)=$$GET1^DIQ(4010,SIEN,INSF,"E")
+ S INSDA=0 F  S INSDA=$O(^INTHL7S(SIEN,1,INSDA)) Q:'INSDA  D
+ . S INFIEN=$P($G(^INTHL7S(SIEN,1,INSDA,0)),U)
+ . S INFLD=$P($G(^INTHL7F(INFIEN,0)),U)
+ . S INFSEQ=$P($G(^INTHL7S(SIEN,1,INSDA,0)),U,2)
+ . S INFREQ=$P($G(^INTHL7S(SIEN,1,INSDA,0)),U,3)
+ . S @INMPRE@(INIEN,"SD",SIEN,"FD",INSDA)=INFLD_U_INFSEQ_U_INFREQ
+ . D FD(INFIEN)
+ Q
+ ;
+FD(FIEN) ;-- define the fields in this message
+ S INCNT=0
+ F INF=.01,.02,.03,3 D
+ . S INCNT=INCNT+1
+ . S $P(@INMPRE@(INIEN,"FD",FIEN),U,INCNT)=$$GET1^DIQ(4012,FIEN,INF,"E")
+ S @INMPRE@(INIEN,"FD",FIEN,"OUT")=$$GET1^DIQ(4012,FIEN,5,"E")
+ S INFD=0 F  S INFD=$O(^INTHL7F(FIEN,1,INFD)) Q:'INFD  D
+ . S @INMPRE@(INIEN,"FD",FIEN,"DESC",INFD)=$G(^INTHL7F(FIEN,1,INFD,0))
+ S INFS=0 F  S INFS=$O(^INTHL7F(FIEN,10,INFS)) Q:'INFS  D
+ . S INFSFI=$P($G(^INTHL7F(FIEN,10,INFS,0)),U)
+ . S INFSFE=$P($G(^INTHL7F(INFSFI,0)),U)
+ . S INFSFDT=$P($G(^INTHL7F(INFSFI,0)),U,2)
+ . S INFSFLN=$P($G(^INTHL7F(INFSFI,0)),U,3)
+ . S INFSFDL=$G(^INTHL7F(INFSFI,"C"))
+ . S INFSFOT=$G(^INTHL7F(INFSFI,5))
+ . S INFSFS=$P($G(^INTHL7F(FIEN,10,INFS,0)),U,2)
+ . S @INMPRE@(INIEN,"FD",INFSFI)=INFSFE_U_INFSFDT_U_INFSFLN_U_INFSFDL
+ . S @INMPRE@(INIEN,"FD",INFSFI,"OUT")=INFSFOT
+ . S @INMPRE@(INIEN,"FD",FIEN,"SUB",INFS)=INFSFE_U_INFSFS
+ Q
+ ;
+EOJ ;-- kill variables and quit
+ D EN^XBVK("IN")
+ Q
+ ;
+LIST(INTI) ;-- return a list for the DIR reader
+ S INCNT=0
+ S INLDA=0 F  S INLDA=$O(^INRHNS(INTI,1,INLDA)) Q:INLDA=""  D
+ . S INCNT=INCNT+1
+ . S INDATA=$P($G(^INRHNS(INTI,1,INLDA,0)),U)
+ . S $P(INVAR,";",INCNT)=$E(INDATA,1,3)_":"_INDATA
+ Q INVAR
+ ;
+SETD(MSGPR)        ;-- get all destinations for this package
+ S INDA=0
+ F  S INDA=$O(^INRHD(INDA)) Q:'INDA  D
+ . S INPT=$$GET1^DIQ(4005,INDA,.02)
+ . S INPTX=$$GET1^DIQ(4005,INDA,.01)
+ . Q:INPT'[MSGPR&(INPTX'[MSGPR)
+ . D DFIELD(INDA)
+ Q
+DFIELD(INDA) ;
+ S INCNT=0
+ F INF=.01,.02,.03,.05,.06,.08,.1,.11 D
+ . S INCNT=INCNT+1
+ . S $P(@INMPRE@("DEST",INDA),";",INCNT)=INF_"///"_$$GET1^DIQ(4005,INDA,INF,"E")
+ Q
+ ;
+SETT(MSGPR)        ;-- get all destinations for this package
+ S INDA=0
+ F  S INDA=$O(^INRHT(INDA)) Q:'INDA  D
+ . S INTPT=$$GET1^DIQ(4000,INDA,.01)
+ . Q:INTPT'[MSGPR
+ . D TTFIELD(INDA)
+ Q
+TTFIELD(INDA) ;
+ S INCNT=0
+ F INF=.01,.02,.05,.06,.08,.09,.1,.11 D
+ . S INCNT=INCNT+1
+ . S $P(@INMPRE@("TT",INDA),";",INCNT)=INF_"///"_$$GET1^DIQ(4000,INDA,INF,"E")
+ Q
+ ;
+SETBP(MSGPR)        ;-- get all destinations for this package
+ S INDA=0 F  S INDA=$O(^INTHPC(INDA)) Q:'INDA  D
+ . S INTPT=$$GET1^DIQ(4004,INDA,.01)
+ . Q:INTPT'[MSGPR
+ . D BPFIELD(INDA)
+ Q
+BPFIELD(INDA) ;
+ S INCNT=0
+ F INF=.01,.02,.06,.07,.08,.09,1.8,1,8 D
+ . S INCNT=INCNT+1
+ . S $P(@INMPRE@("BP",INDA),";",INCNT)=INF_"///"_$$GET1^DIQ(4004,INDA,INF,"E")
+ Q
+ ;

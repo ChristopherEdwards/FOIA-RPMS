@@ -1,0 +1,71 @@
+BNIGVLP1 ; IHS/CMI/LAB - CONT OF BNIGVLP ;
+ ;;1.0;BNI CPHD ACTIVITY DATASYSTEM;;DEC 20, 2006
+ ;
+ ;
+COVPAGE ;EP
+ W:$D(IOF) @IOF
+ ;I $G(BNIGUI) W "ZZZZZZZ",!
+ W !?20,"CPHAD General Retrieval Report ",$S(BNIGCTYP="D":"LISTING",1:"COUNT")
+ W !?34,"SUMMARY PAGE"
+ W !!,"REPORT REQUESTED BY: ",$P(^VA(200,DUZ,0),U),!
+SHOW ;
+ W !,"CPHAD Activity Record Selection Criteria"
+ W !?6,"Date range:  ",BNIGBDD," to ",BNIGEDD
+ I '$D(^BNIRTMP(BNIGRPT,11)) G SHOWP
+ S BNIGI=0 F  S BNIGI=$O(^BNIRTMP(BNIGRPT,11,BNIGI)) Q:BNIGI'=+BNIGI  D
+ .I $Y>(BNIIOSL-5) D PAUSE^BNIGVL W @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ .W !?6,$P(^BNIGRI(BNIGI,0),U),":  "
+ .K BNIGQ S BNIGY="",C=0 K BNIGQ F  S BNIGY=$O(^BNIRTMP(BNIGRPT,11,BNIGI,11,"B",BNIGY)) S C=C+1 W:C'=1&(BNIGY'="") " ; " Q:BNIGY=""!($D(BNIGQ))  S X=BNIGY X:$D(^BNIGRI(BNIGI,2)) ^(2) W X
+ K BNIGQ
+SHOWP ;
+ W !!,"REPORT/OUTPUT TYPE",!
+ I BNIGCTYP="F" D  D PAUSE^BNIGVL W @IOF W:$G(BNIGUI) "ZZZZZZZ",! Q
+ .W ?6,"A File of records called ",BNIGFILE," will be created."
+ .W !?6,"Total number of procedures counted is ",BNIGRCNT,"."
+ I BNIGCTYP="T" D COUNT Q
+ I BNIGCTYP="S" D  I 1
+ .I $Y>(BNIIOSL-6) D PAUSE^BNIGVL W @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ .W ?6,"Report will contain sub-totals by ",$P(^BNIGRI(BNIGSORT,0),U)," and ",!?6,"total counts."
+ .I '$D(^XTMP("BNIGVL",BNIGJOB,BNIGBTH)) W !!,"NO DATA TO REPORT.",! D PAUSE^BNIGVL W:$D(IOF) @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ .Q
+ I BNIGCTYP'="D",BNIGCTYP'="L" D PAUSE^BNIGVL W:$D(IOF) @IOF W:$G(BNIGUI) "ZZZZZZZ",! Q
+ I $Y>(BNIIOSL-4) D PAUSE^BNIGVL W @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ W ?6,"Detailed Listing containing"
+ I BNIGCTYP="L" D
+ .W !?5,"PLEASE NOTE:  The first column of the delimited output will always"
+ .W !?5,"              be the record internal entry number which uniquely"
+ .W !?5,"              identifies the record. "
+ .W ?6,"A File of records called ",BNIGDELF," will be created."
+ I BNIGCTYP="L" W !?6,"Delimited output file will contain:"
+ I '$D(^BNIRTMP(BNIGRPT,12)) G PAUSE
+ S BNIGI=0 F  S BNIGI=$O(^BNIRTMP(BNIGRPT,12,BNIGI)) Q:BNIGI'=+BNIGI  S BNIGCRIT=$P(^BNIRTMP(BNIGRPT,12,BNIGI,0),U) D
+ .I $Y>(BNIIOSL-4) D PAUSE^BNIGVL W:$D(IOF) @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ .W !?6,$P(^BNIGRI(BNIGCRIT,0),U),"  (" S X=$O(^BNIRTMP(BNIGRPT,12,"B",BNIGCRIT,"")) W $P(^BNIRTMP(BNIGRPT,12,X,0),U,2),")"
+ I $Y>(BNIIOSL-4) D PAUSE^BNIGVL W:$D(IOF) @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ W !?10,"     TOTAL column width: ",BNIGTCW
+ Q:'$G(BNIGSORT)
+ I $Y>(BNIIOSL-4) D PAUSE^BNIGVL W:$D(IOF) @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ W !!,"CPHAD Activity Records will be SORTED by:  ",$P(^BNIGRI(BNIGSORT,0),U),!
+ I $Y>(BNIIOSL-4) D PAUSE^BNIGVL W:$D(IOF) @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ I $G(BNIGSPAG) W !?6,"Each ",$P(^BNIGRI(BNIGSORT,0),U)," will be on a separate page.",!
+ I '$D(^XTMP("BNIGVL",BNIGJOB,BNIGBTH)) W !!,"NO DATA TO REPORT.",!
+PAUSE D PAUSE^BNIGVL W:$D(IOF) @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ Q
+COUNT ;if COUNTING entries only   
+ I $Y>(BNIIOSL-5) D PAUSE^BNIGVL W:$D(IOF) @IOF I $G(BNIGUI) W "ZZZZZZZ",!
+ W ?6,"Totals Displayed"
+ I '$D(^XTMP("BNIGVL",BNIGJOB,BNIGBTH)) W !!!,"NO DATA TO REPORT.",!
+ W:$D(BNIGRCNT) !!!?6,"Total COUNT of CPHAD Activity Records:  ",?34,BNIGRCNT
+ Q
+WP ;EP - Entry point to print wp fields pass node in BNIGNODE
+ ;PASS FILE IN BNIGFILE, ENTRY IN BNIGDA
+ K ^UTILITY($J,"W")
+ S BNIGRLX=0
+ S BNIGG1=^DIC(BNIGFILE,0,"GL"),BNIGG=BNIGG1_BNIGDA_","_BNIGNODE_",BNIGRLX)",BNIGGR=BNIGG1_BNIGDA_","_BNIGNODE_",BNIGRLX"
+ S DIWL=1,DIWR=$P(^BNIRTMP(BNIGRPT,12,BNIGI,0),U,2) F  S BNIGRLX=$O(@BNIGG) Q:BNIGRLX'=+BNIGRLX  D
+ .S Y=BNIGGR_",0)" S X=@Y D ^DIWP
+ .Q
+ S Z=0 F  S Z=$O(^UTILITY($J,"W",DIWL,Z)) Q:Z'=+Z  S BNIGPCNT=BNIGPCNT+1,BNIGPRNM(BNIGPCNT)=^UTILITY($J,"W",DIWL,Z,0)
+ K DIWL,DIWR,DIWF,Z
+ K ^UTILITY($J,"W"),BNIGNODE,BNIGFILE,BNIGDA,BNIGG1,BNIGGR,BNIGRLX
+ Q

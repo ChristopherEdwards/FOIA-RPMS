@@ -1,0 +1,31 @@
+BQI11P2 ;VNGT/HS/ALA - Post Install for Patch 2 ; 20 Aug 2008  3:29 PM
+ ;;1.1;ICARE MANAGEMENT SYSTEM;**2**;Jun 17, 2008
+ ;
+EN ;  Set up TaskMan to reset clean up immunization data
+ NEW ZTDESC,ZTRTN,ZTIO,JBNOW,ZTDTH,ZTSK
+ S ZTDESC="ICARE CLEAN UP IMMUN",ZTRTN="CLN^BQI11P2",ZTIO=""
+ S JBNOW=$$NOW^XLFDT()
+ S ZTDTH=$$FMADD^XLFDT(JBNOW,,,3)
+ D ^%ZTLOAD
+ Q
+ ;
+CLN ; Clean up immunization entries in BQIPAT
+ NEW DFN,DA,DIK,RMDR,IEN,BQIUPD
+ S RMDR="AUTTIMM"
+ F  S RMDR=$O(^BQI(90506.1,"B",RMDR)) Q:RMDR=""!($P(RMDR,"_",1)'="AUTTIMM")  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"B",RMDR,IEN)) Q:IEN=""  D
+ .. S BQIUPD(90506.1,IEN_",",.1)=1
+ .. I $P(^BQI(90506.1,IEN,0),U,11)="" S BQIUPD(90506.1,IEN_",",.11)=$$DT^XLFDT()
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ S DFN=0
+ F  S DFN=$O(^BQIPAT(DFN)) Q:'DFN  D
+ . S DA(1)=DFN,DIK="^BQIPAT("_DA(1)_",40,"
+ . S RMDR="AUTTIMM"
+ . F  S RMDR=$O(^BQIPAT(DFN,40,"B",RMDR)) Q:RMDR=""!($E(RMDR,1,7)'="AUTTIMM")  D
+ .. S DA=""
+ .. F  S DA=$O(^BQIPAT(DFN,40,"B",RMDR,DA)) Q:DA=""  D ^DIK
+ ;
+ D ^BQISCHED
+ Q

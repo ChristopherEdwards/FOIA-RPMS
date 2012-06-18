@@ -1,0 +1,112 @@
+FHINI0GU	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,10191,2)
+	;;=.211^2.807^^^^^^^0^.351^^1.053
+	;;^UTILITY(U,$J,112,10191,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10192,0)
+	;;=TOMATO PASTE,NO SALT ADDED,HUNT^BC-03465^2-oz.^57
+	;;^UTILITY(U,$J,112,10192,1)
+	;;=3.509^0^19.298^78.947^^^^35.088^3.158^^^929.825^43.86^^^^^^49.123^.211
+	;;^UTILITY(U,$J,112,10192,2)
+	;;=.123^2.807^^^^^^^0^^^^333.333^^^^3.509
+	;;^UTILITY(U,$J,112,10192,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10193,0)
+	;;=TOMATO PUREE,CND,CONTADINA^BC-03466^1/2-cup^119
+	;;^UTILITY(U,$J,112,10193,1)
+	;;=1.681^0^6.723^33.613^89.916^^^10.084^1.311^13.445^26.05^436.975^29.412^^^^^1230.252^25.21^.067
+	;;^UTILITY(U,$J,112,10193,2)
+	;;=.042^1.092
+	;;^UTILITY(U,$J,112,10193,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10194,0)
+	;;=TOMATO PUREE,CND,HUNT^BC-03467^4-oz.^113
+	;;^UTILITY(U,$J,112,10194,1)
+	;;=1.77^0^8.85^39.823^^^^19.469^.619^^^495.575^132.743^^^^^^23.894^.106
+	;;^UTILITY(U,$J,112,10194,2)
+	;;=.062^1.416^^^^^^^0^^^^141.593
+	;;^UTILITY(U,$J,112,10194,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10195,0)
+	;;=TOMATO,RED,BOTTLED,KOSHER,CLAUSSEN^BC-03468^oz.^28
+	;;^UTILITY(U,$J,112,10195,1)
+	;;=.714^0^3.571^17.857^92.143^^^14.286^.286^7.143^10.714^146.429^1157.143^.071^.071^^^^0^.036
+	;;^UTILITY(U,$J,112,10195,2)
+	;;=0^.357^.107^.071^3.571^^^^0
+	;;^UTILITY(U,$J,112,10195,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10196,0)
+	;;=TOMATO,RED,CRUSHED IN TOMATO PUREE,CND,CONTADINA^BC-03469^1/2-cup^120
+	;;^UTILITY(U,$J,112,10196,1)
+	;;=.833^0^5^25^90^^^38.333^.967^10.833^25^291.667^291.667^^^^^416.667^5^.025
+	;;^UTILITY(U,$J,112,10196,2)
+	;;=.042^.917^^^^^^^0^0^^0
+	;;^UTILITY(U,$J,112,10196,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10197,0)
+	;;=TOMATO,RED,CUT,PEELED,CND,HUNT CHOICE^BC-03470^4-oz.^113
+	;;^UTILITY(U,$J,112,10197,1)
+	;;=.885^0^4.425^17.699^^^^38.053^.531^^^203.54^407.08^^^^^^15.929^.053
+	;;^UTILITY(U,$J,112,10197,2)
+	;;=.044^.619^^^^^^^0^^^^104.425^^^^.885
+	;;^UTILITY(U,$J,112,10197,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10198,0)
+	;;=TOMATO,RED,SLICED,CND,CONTADINA^BC-03471^1/2-cup^120
+	;;^UTILITY(U,$J,112,10198,1)
+	;;=.833^.833^7.5^29.167^^^^14.167^.4^^^311.667^308.333^^^^^199.167^4.167^.017
+	;;^UTILITY(U,$J,112,10198,2)
+	;;=.025^.667
+	;;^UTILITY(U,$J,112,10198,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10199,0)
+	;;=TOMATO,RED,STEWED,CND,CONTADINA^BC-03472^1/2-cup^123
+	;;^UTILITY(U,$J,112,10199,1)
+	;;=.813^0^6.504^28.455^^^^35.772^.602^12.195^20.325^284.553^284.553^^^^^554.472^13.008^.049
+	;;^UTILITY(U,$J,112,10199,2)
+	;;=.033^.65^^^^^^^^0^^0
+	;;^UTILITY(U,$J,112,10199,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10200,0)
+	;;=TOMATO,RED,STWED,CND,NO SALT ADDED,HUNT^BC-03473^4-oz.^113
+	;;^UTILITY(U,$J,112,10200,1)
+	;;=.885^0^7.08^30.973^^^^42.478^.708^^^247.788^17.699^^^^^^15.929^.053
+	;;^UTILITY(U,$J,112,10200,2)
+	;;=.027^.708^^^^^^^0^^^^66.372^^^^0
+	;;^UTILITY(U,$J,112,10200,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10201,0)
+	;;=TOMATO,RED,STEWED,CND,W/JALAPENOS,CONTADINA^BC-03474^1/2-cup^122
+	;;^UTILITY(U,$J,112,10201,1)
+	;;=.82^0^6.557^28.689^^^^36.066^.689^13.115^22.951^213.115^204.918^^^^^559.016^13.115^.049
+	;;^UTILITY(U,$J,112,10201,2)
+	;;=.049^.656
+	;;^UTILITY(U,$J,112,10201,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10202,0)
+	;;=TOMATO,RED,WHOLE,CND,HUNT^BC-03475^4-oz.^113
+	;;^UTILITY(U,$J,112,10202,1)
+	;;=.885^0^4.425^17.699^^^^33.628^.354^^^203.54^292.035^^^^^^10.619^.053
+	;;^UTILITY(U,$J,112,10202,2)
+	;;=.027^.708^^^^^^^0^^^^66.372^^^^0
+	;;^UTILITY(U,$J,112,10202,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10203,0)
+	;;=TOMATO,RED,WHOLE,NO SALT ADDED,CND,HUNT^BC-03476^4-oz.^113
+	;;^UTILITY(U,$J,112,10203,1)
+	;;=.885^0^4.425^17.699^^^^35.398^.619^^^212.389^13.274^^^^^^15.929^.053
+	;;^UTILITY(U,$J,112,10203,2)
+	;;=.027^.708^^^^^^^0^^^^66.372^^^^0
+	;;^UTILITY(U,$J,112,10203,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10204,0)
+	;;=TOMATO,RED,WHOLE,PEELED,CND,CONTADINA^BC-03477^1/2-cup^120
+	;;^UTILITY(U,$J,112,10204,1)
+	;;=.833^0^4.167^20.833^93.25^^^47.5^.6^15^19.167^275^216.667^^^^^585.833^15.833^.042
+	;;^UTILITY(U,$J,112,10204,2)
+	;;=.033^.667^^^^^^^0^0^^0
+	;;^UTILITY(U,$J,112,10204,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

@@ -1,0 +1,10 @@
+FACILITY SUFFIX
+ZWR
+^DIC(45.68,0)="FACILITY SUFFIX^45.68O^"
+^DIC(45.68,0,"GL")="^DIC(45.68,"
+^DIC(45.68,"%D",0)="^^5^5^2950719^"
+^DIC(45.68,"%D",1,0)="This file contains suffixes assigned to various stations and facilities."
+^DIC(45.68,"%D",2,0)="These suffixes are determined by VACO MAS and should not be added to or"
+^DIC(45.68,"%D",3,0)="deleted.  Data in this file is utilized by the PTF portion of PIMS (MAS)."
+^DIC(45.68,"%D",4,0)="It should be edited through this application and not edited directly"
+^DIC(45.68,"%D",5,0)="through VA FileMan."

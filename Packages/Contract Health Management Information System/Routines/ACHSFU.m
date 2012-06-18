@@ -1,0 +1,123 @@
+ACHSFU ; IHS/ITSC/PMF - CHS STANDARD SUB-ROUTINES ;     [ 03/25/2003  12:28 PM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5**;JUN 11, 2001
+ ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - FYCVT no future FY.
+ ;8/23/00 ... PMF  year fix to tag FYCVT
+ ;
+BM ;EP
+ S ACHSBM=IOSL-10
+ I '$D(IO("S")),$D(ACHSIO),ACHSIO=IO S ACHSBM=IOSL-4
+ Q
+ ;
+DIRD ;EP
+ I X="@" W "   DELETED!" S Y=""
+ Q
+ ;
+FYCVT ;EP
+ ;8/23/00 ... PMF adjusted to handle future years
+ I ACHSX>$E(ACHSCFY,4) S ACHSY=((+$E(ACHSCFY,1,3)-1)_"0")+ACHSX Q  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ S ACHSY=($E(ACHSCFY,1,3)_"0")+ACHSX ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ Q  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ ;
+ ;input:
+ ;ACHSX   - the last digit of the fiscal year we want to use
+ ;ACHSCFY - the current fiscal year
+ ;output:
+ ;ACHSY   - the fiscal year to use expressed as 4 digits
+ S ACHSY=($E(ACHSCFY,1,3)_"0")+ACHSX
+ ;the fiscal year to use cannot be more than 7 years ago or more
+ ;than 1 year ahead
+ I ACHSY+7<ACHSCFY S ACHSY=ACHSY+10
+ I ACHSCFY+1<ACHSY S ACHSY=ACHSY-10
+ Q
+ ;
+LINES ;EP
+ S ACHS("-")=$$REPEAT^XLFSTR("-",79),ACHS("=")=$$REPEAT^XLFSTR("=",79),ACHS("*")=$$REPEAT^XLFSTR("*",79)
+ Q
+ ;
+PRMT(T,V,L) ;EP - T = TAB; V= VAR; L = LENGTH
+ S T=$G(T),V=$G(V),L=$G(L)
+ Q $$REPEAT^XLFSTR(" ",T+1)_$S($L(V):$$REPEAT^XLFSTR(" ",$L(V)+3),1:"")_"|"_$$REPEAT^XLFSTR("-",L)_"|"
+ ;
+READ ;EP
+ K DTOUT,DUOUT,ACHSQUIT
+ N ACHSDOIT
+ S ACHSDOIT="R"_" Y:"_DTIME
+ X ACHSDOIT
+ I '$T S (DTOUT,Y)=""
+ S:Y="/.," DTOUT=""
+ S:Y="^" (DUOUT,Y)=""
+ I $D(DTOUT)!$D(DUOUT) S ACHSQUIT=1
+ Q
+ ;
+KILL ;EP
+ K ACHSBAL,ACHSBLT,ACHSDCR,ACHSCC,ACHSERR,ACHSPATF,ACHSFML,ACHSACFY,ACHSCFY,ACHSFYWK,ACHSHRN,ACHS,ACHSDES,ACHSREFT,ACHSUCI,ACHSACN,ACHSACO,ACHSTAO
+ K ACHSARCO,ACHSOPAY,ACHSDEST,ACHSQUIT,ACHSSIG,ACHSSLOC,ACHSX,ACHSY,ACHSTIEN,ACHSACWK,ACHSSVDT,ACHSWKLD,ACHSCT,DRENT,ACHSLCA,LS,ZTSK
+ K DA,ACHSRR,ACHSPAMT,ACHSF638,DFN,X1,ACHSXY,X,X2,ACHSGCHK,ACHSFYDT
+ K ACHSRT,ACHSI,ACHSJ,ACHSCTNA,ACHSAGRN
+ K ^ACHSUSE($J)
+ D ^ACHSKILL
+ Q
+ ;
+SB1 ;EP
+ W !!?10,"The Following are Valid Fiscal Years",!
+ F ACHS=0:0 S ACHS=$O(ACHSFYWK(DUZ(2),ACHS)) Q:'ACHS  W !?20,ACHS
+ Q
+ ;
+SLV ;EP
+ ;SET OPEN AND CLOSE FOR SLAVE DEVICE
+ K ACHSPPO,ACHSPPC
+ S ACHSPPO=$P(^%ZIS(2,IO("S"),10),U)    ;OPEN PARM
+ S ACHSPPC=$P(^%ZIS(2,IO("S"),11),U)    ;CLOSE PARM
+ I ('$L(ACHSPPO))!('$L(ACHSPPC)) K ACHSPPO,ACHSPPC Q
+ X ACHSPPC
+ Q
+ ;
+ ;CHECK TO SEE IF OBLIGATION LIMIT IS EXCEEDED FOR THIS TYPE DOC.
+OBLM ;EP
+ K DUOUT
+ ;
+ ;we are testing the amount of the supplement or the adjustment.
+ ;figure out which one.
+ N AMT
+ S AMT=$G(ACHSADAM)
+ I AMT="" S AMT=$G(ACHSPDAT)
+ ;
+ ;9/11/01  pmf  add next line to get the right number during EOBR
+ ;              processing
+ I $D(ACHSISAO) S AMT=Y
+ I AMT="" Q
+ ;
+ I '$D(^ACHSF(DUZ(2),"N",ACHSTYP,0)) Q
+ ;
+ ;NO OBLIG. LIMITS    ;PER MARIA WE DON'T CARE ABOUT THIS LIMIT IT 
+ ;SHOULD POST REGARDLESS- SEE E-MAIL 10/2/00 /fiscal/financial 
+ ;issues/adjustments to paid documents
+ ;
+ N X
+ S X=$P($G(^ACHSF(DUZ(2),"N",ACHSTYP,0)),U,3)
+ ;
+ I AMT>X D
+ . I $D(ACHSISAO) S ACHSERRE=34 Q
+ . W !!,*7,"The OBLIGATION LIMIT for this type of document is "
+ . D FMT^ACHS
+ . W ".",!!,"Enter a lesser amount of money or exit the document.",!!
+ . W:0 "" ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ .S DUOUT=""
+ ;
+ Q
+ ;
+BRPT ;EP
+ I $D(ACHSQIO) S:$L($P(ACHSQIO,U,2)) %ZIS("IOPAR")=$P(ACHSQIO,U,2),ACHSQIO=$P(ACHSQIO,U,1) F  S IOP=ACHSQIO  D ^%ZIS Q:'POP  H 30
+ D BM,LINES,NOW^ACHS
+ S ACHSTIME=$$C^XBFUNC(ACHSTIME,80),ACHSLOC=$$C^XBFUNC($$LOC^ACHS,80),ACHSPG=0,ACHSUSR=$$USR^ACHS
+ U IO
+ Q
+ ;
+ ;Begin New Code;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+638() ;EP - 638 menu control.
+ I $P(^ACHSF(DUZ(2),0),U,8)="Y" Q 1
+ S XQUIT=""
+ W !,"FACILITY IS NOT 638 FACILITY",!
+ Q 0
+ ;
+ ;End New Code;IHS/SET/GTH ACHS*3.1*5 12/06/2002

@@ -1,0 +1,67 @@
+BARPUC3A ; IHS/SD/LSL - UNALLOCATED COMMAND CONTINUED ; 07/16/2008
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,6**;OCT 26, 2005
+ ;
+ ;** A/R posting program
+ ;   continuation of command processing
+ ;
+ Q
+ ;
+SETTMP(BARTYP,BARAMT,BARLIN,BARCAT,BARATYP) ; EP; HEAVILY MODIFIED ;BAR*1.8*4 DD 4.1.7.2
+ ;SEE SETTMPO BELOW FOR ORIGINAL CODE
+ ; command processing continued
+ K BARFLG("BARWARN")
+ S BARSTOP=0
+ S BARDA=$O(^BARTMP($J,"B",BARLIN,""))
+ S BARBBAL=$P(^BARTMP($J,BARDA,BARLIN),U,5)
+ I BARCAT'=21&(BARCAT'=22) D  ;DON'T CHECK BALANCE FOR PENDING/GEN INFO
+ .N BARZZZZ S BARZZZZ=1       ;DON'T CHECK BATCH/ITEM/LOCATION BALANCES;MRS:BAR*1.8*6 DD 4.2.5
+ .D CKNEG^BARPST4(BARBBAL,0,BARAMT)
+ Q:BARSTOP
+ I BARTYP="P" D  Q:BARSTOP
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,6)=$P($G(^BARTMP($J,BARDA,BARLIN)),U,6)+BARAMT
+ .S BARPMT=BARPMT+BARAMT
+ I BARTYP="A" D
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,7)=$P($G(^BARTMP($J,BARDA,BARLIN)),U,7)+BARAMT
+ .S BARADJ=BARADJ+BARAMT
+ I BARCAT'=21&(BARCAT'=22) D
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,5)=$P(^BARTMP($J,BARDA,BARLIN),U,5)-BARAMT
+ S BARJ=$O(BARTR(BARLIN,""),-1)
+ S BARJ=BARJ+1
+ S BARTR(BARLIN,BARJ)=BARTYP_U_BARAMT_U_BARCAT_U_$G(BARATYP)
+ Q
+SETTMP0(BARTYP,BARAMT,BARLIN,BARCAT,BARATYP) ; EP; ORIGINAL CODE ;BAR*1.8*4 DD 4.1.7.2
+ ; command processing continued
+ K BARFLG("BARWARN")
+ S BARSTOP=0
+ S BARDA=$O(^BARTMP($J,"B",BARLIN,""))
+ I BARTYP="P" D  Q:BARSTOP
+ .I (BARTX(2)-(BARPMT+BARAMT))<0 D WARN Q
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,6)=$P($G(^BARTMP($J,BARDA,BARLIN)),U,6)+BARAMT
+ .S BARPMT=BARPMT+BARAMT
+ I BARTYP="A" D
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,7)=$P($G(^BARTMP($J,BARDA,BARLIN)),U,7)+BARAMT
+ .S BARADJ=BARADJ+BARAMT
+ S $P(^BARTMP($J,BARDA,BARLIN),U,5)=$P(^BARTMP($J,BARDA,BARLIN),U,5)-BARAMT
+ S BARJ=$O(BARTR(BARLIN,""),-1)
+ S BARJ=BARJ+1
+ S BARTR(BARLIN,BARJ)=BARTYP_U_BARAMT_U_BARCAT_U_$G(BARATYP)
+ Q
+ ; *********************************************************************
+ ;
+HELP ;
+ W $$EN^BARVDF("IOF"),!!
+ W "Select one of the following: ",!
+ W !?5,"P - Post transactions to A/R."
+ W !?5,"M - More transaction processing."
+ W !?5,"C - Cancel all transactions and start over."
+ W !!,"This is a required response - Please select one to proceed!"
+ D EOP^BARUTL(1)
+ D HIT1^BARPUC2(BARPASS),EOP^BARUTL(2)
+ Q
+ ; *********************************************************************
+ ;
+WARN       ;
+ W *7,!,"Warning - Posted amount exceeds the UNALLOCATED transaction amount!"
+ S BARSTOP=1
+ D EOP^BARUTL(1)
+ Q

@@ -1,0 +1,116 @@
+FHINI0CD	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,7956,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7957,0)
+	;;=SHELF ENTREES,LASAGNA,LUNCH BUCKET^BC-01230^8.5-oz.^241
+	;;^UTILITY(U,$J,112,7957,1)
+	;;=3.734^1.66^18.672^103.734^^^^^^^^^390.041
+	;;^UTILITY(U,$J,112,7957,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7958,0)
+	;;=SHELF ENTREES,MACARONI 'N BEEF,LUNCH BUCKET^BC-01231^8.5-oz.^241
+	;;^UTILITY(U,$J,112,7958,1)
+	;;=3.734^1.66^18.257^103.734^^^^^^^^^385.892
+	;;^UTILITY(U,$J,112,7958,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7959,0)
+	;;=SHELF ENTREES,PASTA & GARDEN VEG,LIGHT BALANCE^BC-01232^8.25-oz.^234
+	;;^UTILITY(U,$J,112,7959,1)
+	;;=2.735^.128^15.256^72.65^^^^20.94^.765^^^^316.239^^^^^417.949^0^.051
+	;;^UTILITY(U,$J,112,7959,2)
+	;;=.081^.855^^^^^^^0^.043^.043^.043
+	;;^UTILITY(U,$J,112,7959,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7960,0)
+	;;=SHELF ENTREES,PASTA ITALIANO,LUNCH BUCKET^BC-01233^8.5-oz.^241
+	;;^UTILITY(U,$J,112,7960,1)
+	;;=3.32^3.734^17.012^116.183^^^^^^^^^377.593
+	;;^UTILITY(U,$J,112,7960,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7961,0)
+	;;=SHELF ENTREES,PASTA 'N CHICKEN,LUNCH BUCKET^BC-01234^8.5-oz.^241
+	;;^UTILITY(U,$J,112,7961,1)
+	;;=4.149^3.32^10.788^91.286^^^^^^^^^398.34
+	;;^UTILITY(U,$J,112,7961,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7962,0)
+	;;=SHELF ENTREES,RAVIOLI,BEEF,LUNCH BUCKET^BC-01235^8.25-oz.^234
+	;;^UTILITY(U,$J,112,7962,1)
+	;;=4.701^1.709^19.658^115.385^^^^^^^^^346.154
+	;;^UTILITY(U,$J,112,7962,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7963,0)
+	;;=SHELF ENTREES,SPAGHETTI 'N MEAT SCE,LUNCH BUCKET^BC-01236^8.25-oz.^234
+	;;^UTILITY(U,$J,112,7963,1)
+	;;=3.846^1.709^19.231^106.838^^^^^^^^^401.709
+	;;^UTILITY(U,$J,112,7963,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7964,0)
+	;;=SHELF ENTREES,STROGANOFF,MUSHROOM,LIGHT BALANCE^BC-01237^8.25-oz.^234
+	;;^UTILITY(U,$J,112,7964,1)
+	;;=2.821^2.479^10.812^81.197^^^^11.111^.671^^^^304.701^^^^^93.162^0^.038
+	;;^UTILITY(U,$J,112,7964,2)
+	;;=.09^1.026^^^^^^^6.838
+	;;^UTILITY(U,$J,112,7964,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7965,0)
+	;;=BAGEL,BURGER KING^BC-01238^bagels^92
+	;;^UTILITY(U,$J,112,7965,1)
+	;;=10.87^6.522^47.826^295.652^^^^^^^^^476.087
+	;;^UTILITY(U,$J,112,7965,2)
+	;;=^^^^^^^^31.522^1.087^1.087^3.261
+	;;^UTILITY(U,$J,112,7965,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7966,0)
+	;;=BAGEL SANDWICH W/BACON,EGG & CHEESE,BURGER KING^BC-01239^sandwich^169
+	;;^UTILITY(U,$J,112,7966,1)
+	;;=12.426^11.834^27.219^268.047^^^^^^^^^515.976
+	;;^UTILITY(U,$J,112,7966,2)
+	;;=^^^^^^^^149.112^4.142^4.142^2.367
+	;;^UTILITY(U,$J,112,7966,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7967,0)
+	;;=BAGEL SANDWICH W/EGG & CHEESE,BURGER KING^BC-01240^sandwich^161
+	;;^UTILITY(U,$J,112,7967,1)
+	;;=11.801^9.938^28.571^252.795^^^^^^^^^471.429
+	;;^UTILITY(U,$J,112,7967,2)
+	;;=^^^^^^^^153.416^3.106^3.106^2.484
+	;;^UTILITY(U,$J,112,7967,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7968,0)
+	;;=BAGEL SANDWICH W/HAM,EGG & CHEESE,BURGER KING^BC-01241^sandwich^196
+	;;^UTILITY(U,$J,112,7968,1)
+	;;=12.755^8.673^23.469^223.469^^^^^^^^^568.367
+	;;^UTILITY(U,$J,112,7968,2)
+	;;=^^^^^^^^135.714^3.061^3.061^2.041
+	;;^UTILITY(U,$J,112,7968,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7969,0)
+	;;=BAGEL SANDWICH W/SAUSAGE,EGG & CHEESE,BURGER KING^BC-01242^sandwich^210
+	;;^UTILITY(U,$J,112,7969,1)
+	;;=12.857^17.143^23.333^298.095^^^^^^^^^541.429
+	;;^UTILITY(U,$J,112,7969,2)
+	;;=^^^^^^^^139.524^5.714^7.143^2.857
+	;;^UTILITY(U,$J,112,7969,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7970,0)
+	;;=BAGEL W/CREAM CHEESE,BURGER KING^BC-01243^bagels^120
+	;;^UTILITY(U,$J,112,7970,1)
+	;;=10^13.333^37.5^308.333^^^^^^^^^435.833
+	;;^UTILITY(U,$J,112,7970,2)
+	;;=^^^^^^^^48.333^5^4.167^2.5
+	;;^UTILITY(U,$J,112,7970,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7971,0)
+	;;=BISCUIT,BURGER KING^BC-01244^biscuits^94
+	;;^UTILITY(U,$J,112,7971,1)
+	;;=5.319^18.085^44.681^353.191^^^^^^^^^802.128
+	;;^UTILITY(U,$J,112,7971,2)
+	;;=^^^^^^^^2.128^3.191^9.574^2.128
+	;;^UTILITY(U,$J,112,7971,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7972,0)
+	;;=BISCUIT W/BACON,BURGER KING^BC-01245^biscuits^102

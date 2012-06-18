@@ -1,0 +1,167 @@
+BARPUC4 ; IHS/SD/LSL - UNALLOCATED POSTING CONTINUED ; 08/22/2008
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,6,7**;OCT 26, 2005
+ ;
+ ; IHS/SD/LSL - 12/24/02 - V1.7 - XJG-1202-160021
+ ;      Allow new adjustment categories 21 and 22
+ ;
+ ; IHS/SD/LSL - 06/23/03 - V1.7 Patch 2 - IM10402
+ ;       Insert press return to continue if exceed limits message
+ ;
+ ; *********************************************************************
+ ;
+EN ;EP - editing of temporary buffer
+ I '$D(BARTR(BARLIN)) D  G ASKCOM^BARPUC3
+ .W *7,!!,"No transactions to Edit."
+ .D EOP^BARUTL(1)
+ N BARSEL
+ S (BARSEL,BARJ)=0
+ S BARSEL=$$DSPLY(BARLIN)
+ W !
+ S DIR(0)="N^1:"_BARSEL
+ D ^DIR
+ I $D(DUOUT) G ASKCOM^BARPUC3
+ S BARSEL=Y
+ ; -------------------------------
+ ;
+PARSE ;
+ S BARLIN=$O(BARSEL(BARSEL,""))
+ Q:'BARLIN
+ S BARV=$O(BARSEL(BARSEL,BARLIN,""))
+ Q:'BARV
+ N BARREC
+ S BARREC=BARTR(BARLIN,BARV)
+ S BARTYP=$P(BARREC,U,1)
+ S (BAROAMT,BARAMT)=$P(BARREC,U,2)
+ S BARCAT=$P(BARREC,U,3)
+ S BARATYP=$P(BARREC,U,4)
+ ; -------------------------------
+ ;
+ASKAMT ;
+ S BARASK=$S(BARTYP="P":"Payment ",BARTYP="A":"Adjustment ",1:"")_"Amount: "
+ W !!,BARASK_$J(BARAMT,0,2)_"// " R X:DTIME
+ I X="" S X=BARAMT
+ ;S X=$$AMT^BARPUCU(X)                        ;MRS:BAR*1.8*6 DD 4.2.5
+ S X=$$AMT^BARPUCU(X,0,BARTX(2))              ;MRS:BAR*1.8*6 DD 4.2.5
+ I X="^" G ASKCOM^BARPUC3
+ I X="?" W *7,"  Must be a valid number!" G ASKAMT
+ S BARAMT=X
+ I BARTYP="P" G S1
+ ; -------------------------------
+ ;
+ ;** adjustment category/type dialog
+ S DIC("B")=BARCAT
+ S DIC=90052.01
+ S DIC(0)="AEMNQZ"
+ S DIC("A")="Adjustment Category: "
+ S DIC("S")="I Y=3!(Y=4)!(Y=13)!(Y=14)!(Y=15)!(Y=16)!(Y=20)!(Y=21)!(Y=22)"
+ K DD,DO
+ D ^DIC
+ K DIC
+ I +Y<0 W *7 W !! G ASKAMT
+ S BARCAT=+Y
+ S:BARCAT=16 BARAMT=-BARAMT ;grouper
+ S BARX=0,BARJ=0
+ K BARK
+ F  S BARX=$O(^BARTBL("D",BARCAT,BARX)) Q:'BARX  D  Q:BARJ>1
+ .S BARJ=BARJ+1
+ .Q:BARJ>1
+ .S BARK=BARX
+ I BARJ=1,$G(BARK) S BARATYP=BARK G S1
+ S DIC("B")=BARATYP
+ S DIC=90052.02
+ S DIC(0)="AEMNQZ"
+ S DIC("A")="Adjustment Type: "
+ S DIC("S")="I $P(^(0),U,2)=BARCAT"
+ K DD,DO
+ D ^DIC
+ K DIC
+ I +Y<0 W *7,!! G ASKAMT
+ S BARATYP=+Y
+ ; -------------------------------
+ ;
+S1 ;
+ ;D SETTMP(BARTYP,BARAMT,BARLIN,BARCAT,BARATYP)        ;BAR*1.8*4 DD 4.1.7.2
+ D SETTMP(BARTYP,BARAMT,BARLIN,BARCAT,BARATYP,BAROAMT) ;BAR*1.8*4 DD 4.1.7.2
+ G ASKCOM^BARPUC3
+ ; *********************************************************************
+ ;
+SETTMP(BARTYP,BARAMT,BARLIN,BARCAT,BARATYP,BAROAMT) ;HEAVILY MODIFIED;BAR*1.8*4 DD 4.1.7.2
+ K BARFLG("BARWARN")
+ S BARSTOP=0
+ S BARDA=$O(^BARTMP($J,"B",BARLIN,""))
+ ; -------------------------------
+B1 ;
+ S BARZZZZ=1                                  ;MRS:BAR*1.8*6 DD 4.2.6
+ S BARBBAL=$P(^BARTMP($J,BARDA,BARLIN),U,5)
+ I BARCAT'=21&(BARCAT'=22) D
+ .S BARBBAL=BARBBAL+BAROAMT  ;ADD BACK TO BAL IF NOT PENDING/GENERAL INFO
+ .D CKNEG^BARPST4(BARBBAL,BAROAMT,BARAMT)      ;CHECK FOR NEGATIVE BALANCES
+ Q:BARSTOP
+ I BARTYP="P" D
+ .Q:BAROAMT=BARAMT           ;AMOUNT NOT CHANGED;MRS:BAR*1.8*7 IM30227
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,6)=$P($G(^BARTMP($J,BARDA,BARLIN)),U,6)+BARAMT-BAROAMT
+ .S BARPMT=BARPMT+BARAMT-BAROAMT
+ I BARTYP="A" D
+ .Q:BAROAMT=BARAMT           ;AMOUNT NOT CHANGED;MRS:BAR*1.8*7 IM30227
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,7)=$P($G(^BARTMP($J,BARDA,BARLIN)),U,7)+BARAMT-BAROAMT
+ .S BARADJ=BARADJ+BARAMT-BAROAMT
+ I BARCAT'=21&(BARCAT'=22) D
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,5)=$P(^BARTMP($J,BARDA,BARLIN),U,5)-BARAMT+BAROAMT
+ S BARTR(BARLIN,BARV)=BARTYP_U_BARAMT_U_BARCAT_U_BARATYP
+ K BAROAMT,BARBBAL
+ Q
+ ; *********************************************************************
+ ;
+DSPLY(BARLIN) ;EP
+ N BARPG,BARJ
+ S BARPG=0
+ D HEAD
+ S (BARJ,BARSEL)=0
+ F  S BARJ=$O(BARTR(BARLIN,BARJ)) Q:'BARJ  D
+ . S BARSEL=BARSEL+1
+ . W !,?1,BARSEL_"."
+ . W ?8,$P(BARTR(BARLIN,BARJ),U,1)
+ . W ?13,$J($P(BARTR(BARLIN,BARJ),U,2),8,2)
+ . S Y=$P(BARTR(BARLIN,BARJ),U,3)
+ . I Y W ?25,$E($P(^BAR(90052.01,Y,0),U,1),1,23)
+ . S Y=$P(BARTR(BARLIN,BARJ),U,4)
+ . I Y W ?50,$E($P(^BARTBL(Y,0),U,1),1,28)
+ . S BARSEL(BARSEL,BARLIN,BARJ)=""
+ . Q
+ Q BARSEL
+ ; *********************************************************************
+ ;
+HEAD ;
+ W $$EN^BARVDF("IOF"),!
+ S BARPG=BARPG+1
+ W "Transactions for "_$P(^DPT(+BARPASS,0),U,1)_"  from "_$$SDT^BARDUTL($P(BARPASS,U,2))_" to "_$$SDT^BARDUTL($P(BARPASS,U,3))
+ W ?(IOM-15),"Page: "_BARPG
+ W !!,"Trans",?8,"Type",?15,"Amount",?25,"Category",?50,"Adj. Type"
+ S BARDSH=""
+ S $P(BARDSH,"-",IOM)=""
+ W !,BARDSH
+ Q
+SETTMP0(BARTYP,BARAMT,BARLIN,BARCAT,BARATYP) ; ORIGINAL CODE ;BAR*1.8*4 DD 4.1.7.2
+ K BARFLG("BARWARN")
+ S BARSTOP=0
+ S BARDA=$O(^BARTMP($J,"B",BARLIN,""))
+ ; -------------------------------
+B1O ;
+ I BARTYP="P" D  Q:BARSTOP
+ .I (BARCLV(17)-(BARPMT+BARAMT-BAROAMT))<0 D WARN^BARPST3A(1)
+ .I (BARITV(19)-(BARPMT+BARAMT-BAROAMT))<0 D WARN^BARPST3A(2)
+ .I +$G(BAREOB),(BAREOV(4)-(BARPMT+BARAMT-BAROAMT))<0 D WARN^BARPST3A(3)
+ .I $G(BARFLG("BARWARN")) D  Q:BARSTOP
+ ..K BARFLG("BARWARN")
+ ..W *7,!!,"Sorry - Exceeding Limits Not Allowed",!!
+ .. D PAZ^BARRUTL
+ ..S BARSTOP=1
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,6)=$P($G(^BARTMP($J,BARDA,BARLIN)),U,6)+BARAMT-BAROAMT
+ .S BARPMT=BARPMT+BARAMT-BAROAMT
+ I BARTYP="A" D
+ .S $P(^BARTMP($J,BARDA,BARLIN),U,7)=$P($G(^BARTMP($J,BARDA,BARLIN)),U,7)+BARAMT-BAROAMT
+ .S BARADJ=BARADJ+BARAMT-BAROAMT
+ S $P(^BARTMP($J,BARDA,BARLIN),U,5)=$P(^BARTMP($J,BARDA,BARLIN),U,5)-BARAMT+BAROAMT
+ S BARTR(BARLIN,BARV)=BARTYP_U_BARAMT_U_BARCAT_U_BARATYP
+ K BAROAMT,BARBBAL
+ Q

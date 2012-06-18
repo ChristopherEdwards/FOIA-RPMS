@@ -1,0 +1,168 @@
+CIAUSTX1 ;MSC/IND/DKM - Continuation of CIAUSTX;04-May-2006 08:19;DKM
+ ;;1.2;CIA UTILITIES;;Mar 20, 2007
+ ;;Copyright 2000-2006, Medsphere Systems Corporation
+ ;=================================================================
+ ; Parse an expression
+EXP(CIAEX) ;
+ N CIAF,CIAC,CIAPN
+ S (CIAF,CIAPN)=0,CIAEX=$G(CIAEX)
+ F  D  Q:CIAF<0!CIAERR
+ .S CIAC=$E(CIAM,CIAPSN),CIAPSN=CIAPSN+1
+ .D @("OP"_CIAF)
+ I 'CIAERR,CIAPN S CIAERR=3
+ S CIAEX=$S($G(CIAPN(CIAPN,"@")):"@",1:"")_CIAEX
+ Q
+ ; Operands
+OP0 I CIAC'=".",CIAEX["." S CIAEX=$TR(CIAEX,".")
+ G:CIAC'="" COLON2:CIAC=":",GLBL:CIAC=U,DOT:CIAC=".",INDIR:CIAC="@",FCN:CIAC="$",UNARY:"'+-"[CIAC,QT:CIAC=CIAQT,NUM:CIAC?1N,OPNPAR:CIAC="(",VAR:CIAC?1A,VAR:CIAC="%"
+ S CIAERR=6
+ Q
+ ; Operators
+OP1 G END:CIAC="",INDIR2:CIAC="@",DONE:CIAEX["="&'CIAPN!(CIAC=" ")
+ K CIAPN(CIAPN,"@")
+ I CIAC="*",$$NEXT(CIAC)
+ G COLON:CIAC=":",CLSPAR:CIAC=")",RBRKT:CIAC="]",BINARY:"!#&*-_+=\/<>["[CIAC,NOT:CIAC="'",PTRN:CIAC="?"
+DONE S CIAPSN=CIAPSN-1
+END S CIAF=-1
+ Q
+ ; Negated operator
+NOT S:'$$NEXT("=<>[]?&!",0) CIAERR=2
+ Q
+ ; Parse a global reference
+GLBL D:$$NEXT("[") PLIST(";1-2","]")
+ Q:CIAERR
+ S:'$$NEXT("(",0) CIAPSN=$$NAME^CIAUSTX0(CIAPSN,"$%")
+ I 'CIAERR,$$NEXT("(") D PLIST(";1-999")
+ S CIAF=1
+ Q
+ ; Indirection (prefix)
+INDIR S CIAPN(CIAPN,"@")=$G(CIAPN(CIAPN,"@"))+1
+ Q
+ ; Indirection (suffix)
+INDIR2 I +$G(CIAPN(CIAPN,"@"))'>0 S CIAERR=2
+ E  I '$$NEXT("(") S CIAERR=2
+ E  D
+ .S CIAPN(CIAPN,"@")=-(CIAPN(CIAPN,"@")>1)
+ .D PLIST()
+ Q
+ ; Intrinsic function/system variable
+FCN G:$$NEXT("$") EXT
+INT N CIAZ,CIAZ1
+ S CIAZ1=$E(CIAM,CIAPSN),CIAZ=$$INT^CIAUSTX0(.CIAPSN),CIAF=1
+ I 'CIAERR,$$NEXT("(") D PLIST(CIAZ)
+ Q
+ ; Extrinsic function
+EXT S:'$$NEXT(U,0) CIAPSN=$$LABEL^CIAUSTX0
+ Q:CIAERR
+ S:$$NEXT(U) CIAPSN=$$LABEL^CIAUSTX0
+ Q:CIAERR
+ D:$$NEXT("(") PLIST(".;0-999")
+ S CIAF=1
+ Q
+ ; Unary operator
+UNARY Q
+ ; String literal
+QT D QT2
+ S CIAF=1
+ Q
+ ; Find matching quote
+QT2 F CIAPSN=CIAPSN:1:CIALEN I $$NEXT(CIAQT),'$$NEXT(CIAQT,0) Q
+ S:$E(CIAM,CIAPSN-1)'=CIAQT CIAERR=9
+ Q
+ ; Numeric constant
+NUM N CIAZ,CIAZ1
+ S CIAZ=0,CIAF=1
+ F CIAPSN=CIAPSN-1:1 S CIAZ1=$E(CIAM,CIAPSN) D @("NUM"_CIAZ) Q:CIAZ<0
+ S:CIAZ=-2 CIAERR=2
+ Q
+NUM0 S CIAZ=$S(CIAZ1?1N:1,CIAZ1=".":2,1:-2)
+ Q
+NUM1 S CIAZ=$S(CIAZ1?1N:1,CIAZ1=".":3,1:-1)
+ Q
+NUM2 S CIAZ=$S(CIAZ1?1N:3,1:-2)
+ Q
+NUM3 S CIAZ=$S(CIAZ1?1N:3,CIAZ1="E":4,1:-1)
+ Q
+NUM4 S CIAZ=$S(CIAZ1="+":5,CIAZ1="-":5,CIAZ1=".":7,CIAZ1?1N:6,1:-2)
+ Q
+NUM5 S CIAZ=$S(CIAZ1?1N:6,CIAZ1=".":7,1:-2)
+ Q
+NUM6 S CIAZ=$S(CIAZ1?1N:6,CIAZ1=".":8,1:-1)
+ Q
+NUM7 S CIAZ=$S(CIAZ1?1N:8,1:-2)
+ Q
+NUM8 S CIAZ=$S(CIAZ1?1N:8,1:-1)
+ Q
+ ; Open parenthesis
+OPNPAR S CIAPN=CIAPN+1
+ K CIAPN(CIAPN)
+ Q
+ ; Period (variable by reference or FP number)
+DOT I CIAEX[".",$E(CIAM,CIAPSN)'?1N D
+ .I '$$NEXT("@") S CIAPSN=$$NAME^CIAUSTX0(CIAPSN,"%"),CIAF=-1
+ .E  D INDIR
+ E  D NUM
+ Q
+ ; Variable name
+VAR S CIAPSN=$$NAME^CIAUSTX0(CIAPSN-1,"%"),CIAF=1
+ D:$$NEXT("(") PLIST()
+ Q
+ ; Closing parenthesis
+CLSPAR I 'CIAPN,CIAEX[")" G DONE
+ I CIAPN S CIAPN=CIAPN-1
+ E  S CIAERR=3
+ Q
+ ; Right bracket (] or ]])
+RBRKT I 'CIAPN,CIAEX["]" G DONE
+ I $$NEXT(CIAC)
+ ; Binary operator
+BINARY S CIAF=0
+ Q
+ ; Colon operand
+COLON2 S:CIAEX'["M" CIAERR=6
+ Q
+ ; Colon operator
+COLON G:CIAEX'[":" DONE
+ S CIAF=0
+ S:CIAEX'["M" CIAEX=$TR(CIAEX,":")
+ Q
+ ; Pattern match
+PTRN N CIAZ,CIAZ1
+ I $$NEXT("@") S CIAF=0 Q
+ S CIAZ=CIAPSN,@$$TRAP^CIAUOS("PERR^CIAUSTX1"),CIAZ1=0
+ F  D  Q:CIAZ1<0!CIAERR
+ .D QT2:$$NEXT(CIAQT),PTRN1:$$NEXT("("),PTRN2:$$NEXT(")")
+ .I CIAZ1,$$NEXT(",")
+ .S:'$$NEXT("ACELNPU.0123456789") CIAZ1=-1
+ S:'CIAERR CIAZ=CIAZ?@$E(CIAM,CIAZ,CIAPSN-1)
+ Q
+PTRN1 S CIAZ1=CIAZ1+1
+ Q
+PTRN2 S CIAZ1=CIAZ1-1
+ S:CIAZ1<0 CIAPSN=CIAPSN-1
+ Q
+PERR S CIAERR=10
+ Q
+ ; Process a parameter list
+PLIST(CIAP,CIAT) ;
+ N CIAC,CIAP1,CIAP2,CIAZ
+ S CIAT=$G(CIAT,")"),CIAP=$G(CIAP,";0-999"),CIAP2=$P(CIAP,";",2),CIAP1=+CIAP2,CIAP2=+$P(CIAP2,"-",2),CIAC=0,CIAZ=$P(CIAP,";")
+ I '$$NEXT(CIAT,0) D
+ .F CIAC=1:1 D  Q:CIAERR!'$$NEXT(",")
+ ..D @("PL"_$P(CIAP,";",CIAC+2))
+ I 'CIAERR,CIAC<CIAP1!(CIAC>CIAP2) S CIAERR=8
+ I 'CIAERR,'$$NEXT(CIAT) S CIAERR=3
+ Q
+PL N CIAEX
+ I CIAZ=".",$$NEXT(",",0) Q
+ S CIAEX=CIAT_CIAZ
+ D EXP(.CIAEX)
+ I CIAZ[":",CIAEX[":" S CIAERR=2
+ Q
+PLV D LVAL^CIAUSTX0("LG")
+ Q
+PLL D LBL1^CIAUSTX0()
+ Q
+ ; Get next character
+NEXT(CIAC,CIAI) ;
+ Q $$NEXT^CIAUSTX0(CIAC,.CIAI)

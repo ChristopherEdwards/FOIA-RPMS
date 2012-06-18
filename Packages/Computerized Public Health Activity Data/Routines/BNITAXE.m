@@ -1,0 +1,154 @@
+BNITAXE ; IHS/CMI/LAB - taxonomy update community ;
+ ;;1.0;BNI CPHD ACTIVITY DATASYSTEM;;DEC 20, 2006
+ ;; ;
+EP ;EP - CALLED FROM OPTION
+ D EN
+ Q
+EOJ ;EP
+ D ^XBFMK
+ K BNIITEM,BNIX,BNITAXI,BNIITMI,BNIHIGH,BNITXLI
+ Q
+ ;; ;
+EN ;EP -- main entry point for 
+ D EN^VALM("BNI TAXONOMY GENERIC EDIT")
+ D CLEAR^VALM1
+ D FULL^VALM1
+ W:$D(IOF) @IOF
+ D EOJ
+ Q
+ ;
+PAUSE ;EP
+ Q:$E(IOST)'="C"!(IO'=IO(0))
+ W ! S DIR(0)="EO",DIR("A")="Press enter to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q
+HDR ; -- header code
+ S VALMHDR(1)="Updating the "_BNITAXN_" taxonomy"
+ Q
+ ;
+INIT ; -- init variables and list array
+ I BNIFILE=60 D LAB Q
+ I $P(^ATXAX(BNITAXI,0),U,13) D CANDISP Q
+ K BNIITEM S BNIHIGH="",C=0
+ S BNIX=0 F  S BNIX=$O(^ATXAX(BNITAXI,21,BNIX)) Q:BNIX'=+BNIX  D
+ .S C=C+1
+ .S BNIITMI=$P(^ATXAX(BNITAXI,21,BNIX,0),U)
+ .I BNIFILE=9999999.05 S BNIITEM(C,0)=C_")  "_BNIITMI I 1
+ .E  S BNIITEM(C,0)=C_")  "_$$VAL^XBDIQ1($P(^ATXAX(BNITAXI,0),U,15),BNIITMI,.01)
+ .S BNIITEM("IDX",C,C)=BNIITMI
+ .Q
+ S (VALMCNT,BNIHIGH)=C
+ Q
+CANDISP ;
+ K BNIITEM S BNIHIGH="",C=0
+ S BNIX=0 F  S BNIX=$O(^ATXAX(BNITAXI,21,BNIX)) Q:BNIX'=+BNIX  D
+ .S C=C+1
+ .S BNIITEM(C,0)=C_")  "_$P(^ATXAX(BNITAXI,21,BNIX,0),U)_"-"_$P(^ATXAX(BNITAXI,21,BNIX,0),U,2)
+ .S BNIITEM("IDX",C,C)=BNIX
+ .Q
+ S (VALMCNT,BNIHIGH)=C
+ Q
+LAB ;
+ K BNIITEM S BNIHIGH="",C=0
+ S BNIX=0 F  S BNIX=$O(^ATXLAB(BNITAXI,21,BNIX)) Q:BNIX'=+BNIX  D
+ .S C=C+1
+ .S BNIITMI=$P(^ATXLAB(BNITAXI,21,BNIX,0),U)
+ .S BNIITEM(C,0)=C_")  "_$P($G(^LAB(60,BNIITMI,0)),U)
+ .S BNIITEM("IDX",C,C)=BNIITMI
+ .Q
+ S (VALMCNT,BNIHIGH)=C
+ Q
+ ;
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+BACK ;go back to listman
+ D TERM^VALM0
+ S VALMBCK="R"
+ D INIT
+ D HDR
+ K DIR
+ K X,Y,Z,I
+ Q
+ ;
+REM ;
+ D FULL^VALM1
+ W !
+ I BNIFILE=60,$P(^ATXLAB(BNITAXI,0),U,22) W !!,"The ",$P(^ATXLAB(BNITAXI,0),U)," Taxonomy is READ ONLY.",!,"You can not update it." D PAUSE G REMX
+ I BNIFILE'=60,$P(^ATXAX(BNITAXI,0),U,22) W !!,"The ",$P(^ATXAX(BNITAXI,0),U)," Taxonomy is READ ONLY.",!,"You can not update it." D PAUSE G REMX
+ W ! K DIR
+ I BNIFILE'=60,$P(^ATXTYPE(BNITAXT,0),U,4)=1 D ICD9ADD G REMX
+ S DIR(0)="NO^1:"_BNIHIGH,DIR("A")="Remove Which Item"
+ D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y="" W !,"No item selected." G REMX
+ I $D(DIRUT) W !,"No item selected." G REMX
+ S BNIITMI=BNIITEM("IDX",Y,Y)
+ ;sure
+ I BNIFILE=60 K DIR S DIR(0)="Y",DIR("A")="Are you sure you want to remove the "_$P(^LAB(60,BNIITMI,0),U)_" lab test",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I BNITAXT K DIR D
+ .S DIR(0)="Y",DIR("A")="Are you sure you want to remove the "_$S(BNIFILE'=9999999.05:$$VAL^XBDIQ1($P(^ATXAX(BNITAXI,0),U,15),BNIITMI,.01),1:BNIITMI)_" "_$$VAL^XBDIQ1(9002226,BNITAXI,.15),DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I 'Y G REM
+ I $D(DIRUT) G REMX
+ D ^XBFMK
+ I BNIFILE=60 S DA(1)=BNITAXI,DA=$O(^ATXLAB(BNITAXI,21,"B",BNIITMI,0)),DIE="^ATXLAB("_BNITAXI_",21,",DR=".01///@" D ^DIE
+ I BNIFILE'=60 S DA(1)=BNITAXI,DA=$O(^ATXAX(BNITAXI,21,"B",BNIITMI,0)),DIE="^ATXAX("_BNITAXI_",21,",DR=".01///@" D ^DIE
+REMX ;
+ D ^XBFMK
+ D BACK
+ Q
+ADD ;EP - add an item to the selected list - called from a protocol
+ D FULL^VALM1
+ W !
+ I BNIFILE=60,$P(^ATXLAB(BNITAXI,0),U,22) W !!,"The ",$P(^ATXLAB(BNITAXI,0),U)," is READ ONLY.",!,"You can not update it." D PAUSE G ADDX
+ I BNIFILE'=60,$P(^ATXAX(BNITAXI,0),U,22) W !!,"The ",$P(^ATXAX(BNITAXI,0),U)," is READ ONLY.",!,"You can not update it." D PAUSE G ADDX
+ I BNIFILE=60 D LABADD G ADDX
+ I BNIFILE=80 D ICD9ADD G ADDX
+ I BNIFILE=80.1 D ICD0ADD G ADDX
+ I BNIFILE=81 D ICPTADD G ADDX
+ K DIC
+ S DIC(0)="AEMQ",DIC=$P(^ATXAX(BNITAXI,0),U,15) D ^DIC
+ I Y=-1 G ADDX
+ I $D(^ATXAX(BNITAXI,21,"B",$S(BNIFILE'=9999999.05:+Y,1:$P(^AUTTCOM(+Y,0),U,1)))) W !!,"That item is already in the taxonomy." H 2 G ADD
+ S DA=BNITAXI
+ S (X,BNITXLI)=+Y
+ I BNIFILE=9999999.05 S (X,BNITXLI)=$P(^AUTTCOM(+Y,0),U)  ;special processing for community
+ S BNIFILE=$P(^ATXAX(BNITAXI,0),U,15)
+ S DA(1)=BNITAXI
+ S DIC="^ATXAX("_DA_",21,"
+ S DIC(0)="L",DIC("DR")=".02////"_BNITXLI K DD,DO
+ S:'$D(^ATXAX(DA,21,0)) ^ATXAX(DA,21,0)="^9002226.02101A"
+ D FILE^DICN
+ I '$D(^ATXAX(BNITAXI,21,"B",BNITXLI)) W !!,"adding ITEM failed." H 2 G ADD
+ G ADDX
+LABADD ;
+ K DIC
+ S DIC(0)="AEMQ",DIC="^LAB(60,",DIC("A")="Which LAB Test: " D ^DIC
+ I Y=-1 G ADDX
+ I $D(^ATXLAB(BNITAXI,21,"B",+Y)) W !!,"Lab test ",$P(^LAB(60,+Y,0),U)," is already in the taxonomy." H 2 G ADD
+ S DA=BNITAXI
+ S (X,BNITXLI)=+Y
+ S DA(1)=BNITAXI
+ S DIC="^ATXLAB("_DA_",21,"
+ S DIC(0)="L" K DD,DO
+ S:'$D(^ATXLAB(DA,21,0)) ^ATXLAB(DA,21,0)="^9002228.02101PA"
+ D FILE^DICN
+ I '$D(^ATXLAB(BNITAXI,21,"B",BNITXLI)) W !!,"adding lab test failed." H 2 G ADD
+ADDX ;
+ K DIC,DA,DR,BNITXLI,DD,DO
+ D BACK
+ Q
+ICD9ADD ;
+ ;D ICD9ADD^BNITAXF
+ Q
+ICD0ADD ;
+ ;D ICD0ADD^BNITAXH
+ Q
+ICPTADD ;
+ ;D ICPTADD^BNITAXL
+ Q

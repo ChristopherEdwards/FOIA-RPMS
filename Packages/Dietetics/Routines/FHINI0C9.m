@@ -1,0 +1,114 @@
+FHINI0C9	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,7903,0)
+	;;=KIDS MEAL,CHICKEN CHUNKS,BUGS BUNNY,TYSON^BC-01176^7.35-oz.^208
+	;;^UTILITY(U,$J,112,7903,1)
+	;;=8.173^9.615^14.904^177.885^^^^^^^^^370.192
+	;;^UTILITY(U,$J,112,7903,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7904,0)
+	;;=KIDS MEAL,CHICKEN,FRIED,KID CUISINE^BC-01177^7.25-oz.^206
+	;;^UTILITY(U,$J,112,7904,1)
+	;;=7.282^10.68^19.903^203.883^^^^16.505^.971^^^^509.709^^^^^^1.942^.053
+	;;^UTILITY(U,$J,112,7904,2)
+	;;=.083^1.359
+	;;^UTILITY(U,$J,112,7904,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7905,0)
+	;;=KIDS MEAL,CHICKEN NUGGETS,KID CUISINE^BC-01178^6.25-oz.^177
+	;;^UTILITY(U,$J,112,7905,1)
+	;;=6.215^10.734^25.989^225.989^^^^15.254^1.13^^102.26^225.989^344.633^^^^^^1.695^.085
+	;;^UTILITY(U,$J,112,7905,2)
+	;;=.096^1.017^^^^^^^33.898
+	;;^UTILITY(U,$J,112,7905,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7906,0)
+	;;=KIDS MEAL,CHICKEN SANDWICH,ROAD RUNNER,TYSON^BC-01179^6.95-oz.^197
+	;;^UTILITY(U,$J,112,7906,1)
+	;;=4.569^5.584^23.35^162.437^^^^^^^^^309.645
+	;;^UTILITY(U,$J,112,7906,2)
+	;;=^^^^^^^^^^^^^^^^.508
+	;;^UTILITY(U,$J,112,7906,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7907,0)
+	;;=KIDS MEAL,ENCHILADAS,BEEF,SPEEDY GONZALES,TYSON^BC-01180^9.5-oz.^269
+	;;^UTILITY(U,$J,112,7907,1)
+	;;=4.461^5.948^19.331^148.699^^^^^^^^^308.55
+	;;^UTILITY(U,$J,112,7907,2)
+	;;=^^^^^^^^^^^^^^^^.372
+	;;^UTILITY(U,$J,112,7907,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7908,0)
+	;;=KIDS MEAL,FISH NUGGETS,KID CUISINE^BC-01181^7-oz.^198
+	;;^UTILITY(U,$J,112,7908,1)
+	;;=6.566^7.576^16.667^161.616^^^^36.364^1.01^^86.364^146.465^378.788^^^^^46.97^1.01^.126
+	;;^UTILITY(U,$J,112,7908,2)
+	;;=.126^.758^^^^^^^22.727
+	;;^UTILITY(U,$J,112,7908,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7909,0)
+	;;=KIDS MEAL,FISH STICKS,SYLVESTER,TYSON^BC-01182^6.25-oz.^177
+	;;^UTILITY(U,$J,112,7909,1)
+	;;=6.78^8.475^16.384^169.492^^^^^^^^^378.531
+	;;^UTILITY(U,$J,112,7909,2)
+	;;=^^^^^^^^^^^^^^^^.565
+	;;^UTILITY(U,$J,112,7909,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7910,0)
+	;;=KIDS MEAL,MACARONI & CHEESE,TWEETY,TYSON^BC-01183^9.75-oz.^276
+	;;^UTILITY(U,$J,112,7910,1)
+	;;=3.623^2.899^15.217^101.449^^^^^^^^^228.261
+	;;^UTILITY(U,$J,112,7910,2)
+	;;=^^^^^^^^^^^^^^^^.362
+	;;^UTILITY(U,$J,112,7910,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7911,0)
+	;;=KIDS MEAL,MACARONI & CHEESE W/MINI  FRANKS,KID CUISINE^BC-01184^9-oz.^255
+	;;^UTILITY(U,$J,112,7911,1)
+	;;=3.529^5.49^21.569^149.02^^^^41.176^.784^^62.745^125.49^392.157^^^^^25.098^2.353^.106
+	;;^UTILITY(U,$J,112,7911,2)
+	;;=.102^.392^^^^^^^15.686
+	;;^UTILITY(U,$J,112,7911,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7912,0)
+	;;=KIDS MEAL,PIZZA,CHEESE,KID CUISINE^BC-01185^6.5-oz.^184
+	;;^UTILITY(U,$J,112,7912,1)
+	;;=5.435^2.174^22.283^130.435^^^^114.13^1.087^^99.457^211.957^211.957^^^^^305.978^2.717^.136
+	;;^UTILITY(U,$J,112,7912,2)
+	;;=.114^.707^^^^^^^10.87
+	;;^UTILITY(U,$J,112,7912,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7913,0)
+	;;=KIDS MEAL,PIZZA,HAMBURGER,WILE E. COYOTE,TYSON^BC-01186^6-oz.^170
+	;;^UTILITY(U,$J,112,7913,1)
+	;;=5.882^7.059^21.765^176.471^^^^^^^^^364.706
+	;;^UTILITY(U,$J,112,7913,2)
+	;;=^^^^^^^^^^^^^^^^.588
+	;;^UTILITY(U,$J,112,7913,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7914,0)
+	;;=KIDS MEAL,RAVIOLI,CHEESE,MINI,KID CUISINE^BC-01187^8.75-oz.^248
+	;;^UTILITY(U,$J,112,7914,1)
+	;;=2.419^.806^20.968^100.806^^^^33.065^.806^^51.613^185.484^294.355^^^^^191.532^2.823^.085
+	;;^UTILITY(U,$J,112,7914,2)
+	;;=.069^.444^^^^^^^8.065
+	;;^UTILITY(U,$J,112,7914,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7915,0)
+	;;=KIDS MEAL,SPAGHETTI & MEATBALLS,DAFFY DUCK,TYSON^BC-01188^8.65-oz.^245
+	;;^UTILITY(U,$J,112,7915,1)
+	;;=4.898^3.265^18.776^122.449^^^^^^^^^334.694
+	;;^UTILITY(U,$J,112,7915,2)
+	;;=^^^^^^^^^^^^^^^^.408
+	;;^UTILITY(U,$J,112,7915,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7916,0)
+	;;=KIDS MEAL,SPAGHETTI W/MEAT SCE,KID CUISINE^BC-01189^9.25-oz.^262
+	;;^UTILITY(U,$J,112,7916,1)
+	;;=3.435^4.58^16.412^118.321^^^^27.099^.763^^49.237^141.221^263.359^^^^^269.466^3.435^.084
+	;;^UTILITY(U,$J,112,7916,2)
+	;;=.073^.611^^^^^^^13.359
+	;;^UTILITY(U,$J,112,7916,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

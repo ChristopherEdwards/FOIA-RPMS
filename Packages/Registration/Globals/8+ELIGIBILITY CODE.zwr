@@ -1,0 +1,11 @@
+ELIGIBILITY CODE
+ZWR
+^DIC(8,0)="ELIGIBILITY CODE^8I^0^0"
+^DIC(8,0,"DD")="@"
+^DIC(8,0,"DEL")="@"
+^DIC(8,0,"GL")="^DIC(8,"
+^DIC(8,0,"LAYGO")="@"
+^DIC(8,0,"WR")="@"
+^DIC(8,"%",0)="^1.005^1^1"
+^DIC(8,"%",1,0)="VA"
+^DIC(8,"%","B","VA",1)=""

@@ -1,0 +1,154 @@
+BWRPPCD2 ;IHS/ANMC/MWR - REPORT: PROCEDURES STATISTICS;03-Sep-2003 20:12;PLS
+ ;;2.0;WOMEN'S HEALTH;**6,8,9**;MAY 16, 1996
+ ;IHS/CMI/LAB - patch 6 added current community screen
+ ;IHS/CIA/PLS - patch 8 skips procedure lacking a procedure type
+ ;;* MICHAEL REMILLARD, DDS * ALASKA NATIVE MEDICAL CENTER *
+ ;;  COLLATING CODE CALLED BY BWRPPCD.
+ ;
+ ;
+SORT ;EP
+ ;---> SORT AND STORE LOCAL ARRAY IN ^TMP("BW",$J,1,
+ K ^TMP("BW",$J),BWRES
+ ;---> BWBEGDT1=ONE SECOND BEFORE BEGIN DATE.
+ ;---> BWENDDT1=THE LAST SECOND OF END DATE.
+ S BWBEGDT1=BWBEGDT-.0001,BWENDDT1=BWENDDT+.9999
+ S BWDATE=BWBEGDT1
+ N BWDFN,BWIEN,BWPCD,Y
+ F  S BWDATE=$O(^BWPCD("D",BWDATE)) Q:'BWDATE!(BWDATE>BWENDDT1)  D
+ .S BWIEN=0
+ .F  S BWIEN=$O(^BWPCD("D",BWDATE,BWIEN)) Q:'BWIEN  D
+ ..S Y=^BWPCD(BWIEN,0)
+ ..;---> QUIT IF THIS PROCEDURE HAS A RESULT OF "ERROR/DISREGARD".
+ ..Q:$P(Y,U,5)=8
+ ..S BWDFN=$P(Y,U,2),BWPCD=$P(Y,U,4)
+ ..; Must have a valid procedure. WiseWoman entries lack a procedure.
+ ..Q:'BWPCD
+ ..S BWAGE=$$BWAGE(BWDFN,$P(Y,U,12),BWAGRG)
+ ..;---> QUIT IF PATIENT'S AGE IS UNKNOWN OR OUTSIDE OF AGE RANGE.
+ ..Q:'BWAGE
+ ..;IHS/CMI/LAB - added current comm screen patch 6
+ ..;---> QUIT IF NOT SELECTING ALL CURRENT COMMUNITIES AND IF THIS
+ ..;---> IS NOT ONE OF THE SELECTED.
+ ..I '$D(BWCC("ALL")) S X=$P($G(^AUPNPAT(BWDFN,11)),U,18) Q:'X  Q:'$D(BWCC(X))
+ ..;
+ ..;---> QUIT IF NOT SELECTING FOR ALL PROCEDURES AND IF THIS IS
+ ..;---> NOT ONE OF THE SELECTED PROCEDURES.
+ ..I '$D(BWARR("ALL")) Q:'$D(BWARR(BWPCD))
+ ..;---> FOR BWRES: 0=NORMAL, 1=ABNORMAL, 2=NO RESULT.
+ ..I BWPCD'=44 D
+ ...S BWRES=$$NORMAL^BWUTL4($P(Y,U,5))
+ ..E  D
+ ...; Evaluate result for Mammography Project
+ ...S BWRES=$$MPNORM(BWIEN)
+ ..I '$D(^TMP("BW",$J,BWPCD,BWAGE,BWDFN,BWRES)) D  Q
+ ...S ^TMP("BW",$J,BWPCD,BWAGE,BWDFN,BWRES)=1
+ ..S X=^TMP("BW",$J,BWPCD,BWAGE,BWDFN,BWRES)+1
+ ..S ^TMP("BW",$J,BWPCD,BWAGE,BWDFN,BWRES)=X
+ ;
+ ;
+TOTALS ;EP
+ ;---> N=BWPCD, Q=BWAGE, M=BWDFN, P=BWRES (0,1,2)
+ N I,M,N,P,Q
+ S N=0
+ F  S N=$O(^TMP("BW",$J,N)) Q:N=""  D
+ .S Q=0
+ .F  S Q=$O(^TMP("BW",$J,N,Q)) Q:Q=""  D
+ ..F I=0,1,2 S BWRES(N,Q,I,"P")=0 S BWRES(N,Q,I,"T")=0
+ ..S M=0,BWRES(N,Q,"P")=0,BWRES(N,Q,"T")=0
+ ..F  S M=$O(^TMP("BW",$J,N,Q,M)) Q:M=""  D
+ ...S P=-1,BWRES(N,Q,"P")=BWRES(N,Q,"P")+1
+ ...F  S P=$O(^TMP("BW",$J,N,Q,M,P)) Q:P=""  D
+ ....S BWRES(N,Q,P,"P")=BWRES(N,Q,P,"P")+1
+ ....S BWRES(N,Q,P,"T")=BWRES(N,Q,P,"T")+^TMP("BW",$J,N,Q,M,P)
+ ;
+ ;---> NOW COMPUTE TOTAL #PROCEDURES FOR EACH PROCEDURE, EACH AGE GROUP.
+ S N=0
+ F  S N=$O(BWRES(N)) Q:'N  D
+ .S Q=0
+ .F  S Q=$O(BWRES(N,Q)) Q:'Q  D
+ ..S M=-1
+ ..F  S M=$O(BWRES(N,Q,M)) Q:M=""!(M'?1N.N)  D
+ ...S BWRES(N,Q,"T")=BWRES(N,Q,"T")+BWRES(N,Q,M,"T")
+ ;
+ ;
+ ;---> NOW COMPUTE TOTAL #PROCEDURES FOR EACH PROCEDURE.
+ ;---> BWRES(N,"P")=TOTAL PATIENTS WHO RECEIVED THIS PROCEDURE.
+ ;---> BWRES(N,"T")=TOTAL TIMES THIS PROCEDURE WAS PERFORMED.
+ S N=0
+ F  S N=$O(BWRES(N)) Q:'N  D
+ .S Q=0,BWRES(N,"P")=0,BWRES(N,"T")=0
+ .F  S Q=$O(BWRES(N,Q)) Q:'Q  D
+ ..S BWRES(N,"P")=BWRES(N,"P")+BWRES(N,Q,"P")
+ ..S BWRES(N,"T")=BWRES(N,"T")+BWRES(N,Q,"T")
+ ;
+ ;
+FLATFL ;EP
+ ;---> WRITE OUT RESULTS AND PECENTAGES IN A FLAT FILE.
+ ;---> PIECE VALUES: 1=PROC TYPE, 2=NORMAL PATS, 3=NORMAL PATS%
+ ;--->               4=NORMAL PROC, 5=NORMAL PROC%, 6=ABNORM PATS
+ ;--->               7=ABNORM PATS%, 8=ABNORM PROC, 9=ABNORM PROC%
+ ;--->               10=NO RES PATS, 11=NO RES PATS%, 12=NO RES PROC
+ ;--->               13=NO RES PROC%, 14=TOTAL PATS, 15=TOTAL PROC,
+ ;--->               16=AGE GROUP
+ S N=0
+ F  S N=$O(BWRES(N)) Q:'N  D
+ .S M=0,(BWPN,X)=$P(^BWPN(N,0),U)
+ .F  S M=$O(BWRES(N,M)) Q:'M  D
+ ..S X=BWPN
+ ..F I=0,1,2 D
+ ...S X=X_U_BWRES(N,M,I,"P")
+ ...S X=X_U_$J((BWRES(N,M,I,"P")*100/BWRES(N,M,"P")),1,0)
+ ...S X=X_U_BWRES(N,M,I,"T")
+ ...S X=X_U_$J((BWRES(N,M,I,"T")*100/BWRES(N,M,"T")),1,0)
+ ..S X=X_U_BWRES(N,M,"P")_U_BWRES(N,M,"T")_U_M
+ ..S BWRES("R",BWPN,M)=X
+ .;--->
+ .;---> NOW GET TOTALS FOR THIS PROCEDURE.
+ .N A,B,C,D,E,F
+ .S (A,B,C,D,E,F,M)=0
+ .F  S M=$O(BWRES("R",BWPN,M)) Q:'M  D
+ ..S Y=BWRES("R",BWPN,M)
+ ..S A=A+$P(Y,U,2),B=B+$P(Y,U,4),C=C+$P(Y,U,6)
+ ..S D=D+$P(Y,U,8),E=E+$P(Y,U,10),F=F+$P(Y,U,12)
+ .S X=BWPN_U_A_U_$J(A*100/BWRES(N,"P"),1,0)
+ .S X=X_U_B_U_$J(B*100/BWRES(N,"T"),1,0)
+ .S X=X_U_C_U_$J(C*100/BWRES(N,"P"),1,0)
+ .S X=X_U_D_U_$J(D*100/BWRES(N,"T"),1,0)
+ .S X=X_U_E_U_$J(E*100/BWRES(N,"P"),1,0)
+ .S X=X_U_F_U_$J(F*100/BWRES(N,"T"),1,0)
+ .S X=X_U_BWRES(N,"P")_U_BWRES(N,"T")_U_"ALL"
+ .S BWRES("R",BWPN,"ALL")=X
+ Q
+ ;
+ ;
+BWAGE(DFN,DATE,X) ;EP
+ ;---> SET AGE CATEGORY.
+ ;---> REQUIRED VARIABLES: DATE=DATE PATIENT RECEIVED THIS PROCEDURE.
+ ;--->                     DFN, X=BWAGRG (AGE RANGE).
+ ;---> IF NOT DISPLAY BY AGE, SET ALL BWAGE=1
+ Q:X=1 1
+ N AGE,Y,Z
+ S AGE=$P($$AGEAT^BWUTL1(DFN,DATE),"y/o")
+ ;---> RETURN 0 IF PATIENT'S AGE IS UNKNOWN.
+ Q:'+AGE 0
+ ;
+ F I=1:1:$L(X,",") S Y=$P($P(X,",",I),"-",2) Q:AGE'>Y
+ S Z=$P($P(X,",",I),"-")
+ ;---> RETURN 0 IF PATIENT IS OUTSIDE DATE RANGE.
+ Q:(AGE<Z!(AGE>Y)) 0
+ Q Y
+ ; Return a result based on Mammography Assessment Fields
+ ; Input:  BWPCD = IEN to BW Procedure File
+ ; Uses: Fields 12.02,12.03,12.04,12.05,12.06
+ ; Result yields one of the following values:
+ ;   Normal    - 0
+ ;   Abnormal  - 1
+ ;   NO Result - 2
+MPNORM(BWPCD) ;
+ N RES,NORES,NORM,ABNORM,LP
+ S RES="",NORES=2,NORM=0,ABNORM=1
+ ; Check Negative Finding
+ Q:$$GET1^DIQ(9002086.1,BWPCD,12.02,"I")!($$GET1^DIQ(9002086.1,BWPCD,12.03,"I")) NORM
+ F LP=12.04,12.05,12.06 D
+ .S RES=RES+$$GET1^DIQ(9002086.1,BWPCD,LP,"I")
+ Q $S('RES:NORES,1:ABNORM)

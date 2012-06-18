@@ -1,0 +1,18 @@
+ADGCRBL ; IHS/ADC/PDW/ENM - PRINT LIST OF COMPLETED A SHEETS ; [ 03/25/1999  11:48 AM ]
+ ;;5.0;ADMISSION/DISCHARGE/TRANSFER;;MAR 25, 1999
+ ;
+ W @IOF W !!?27,"LISTING OF CODED A SHEETS",!!
+ ;
+BDATE S %DT="AEQ",%DT("A")="Select beginning discharge date: ",X="" D ^%DT
+ G END:Y=-1
+ S DGZBDT=Y I $E(Y,6,7)="00" W *7,"  ?? Enter exact date" G BDATE
+EDATE S %DT="AEQ",%DT("A")="Select ending discharge date: ",X="" D ^%DT
+ G BDATE:Y=-1
+ S DGZEDT=Y I $E(Y,6,7)="00" W *7,"  ?? Enter exact date" G EDATE
+ ;
+ZIS S %ZIS="PQ" D ^%ZIS G END:POP,QUE:$D(IO("Q")) U IO G ^ADGCRBL1
+QUE K IO("Q") S ZTRTN="ADGCRBL1",ZTDESC="CODED A SHEETS"
+ S ZTSAVE("DGZBDT")="" S ZTSAVE("DGZEDT")=""
+ D ^%ZTLOAD D ^%ZISC K ZTSK
+ ;
+END K Y,DGZBDT,DGZEDT D HOME^%ZIS Q

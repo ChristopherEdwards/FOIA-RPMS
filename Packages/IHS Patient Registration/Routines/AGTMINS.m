@@ -1,0 +1,15 @@
+AGTMINS ; IHS/ASDS/EFG - Table Maintenance of INSURER FILE ; 
+ ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;
+ S U="^"
+ S AG("DUZ")=DUZ,DUZ="#"
+ W !
+INS W !! K DIC,DIE,DR,DIR,DINUM S DIC="^AUTNINS(",DIC("S")="I ""20""'[$P(^(1),U,7)",DIC("A")="Select INSURER: ",DIC(0)="QEALM" D ^DIC K DIC
+ G XIT:X=""!$D(DUOUT)!$D(DTOUT)
+ I +Y<1 G INS
+ S DA=+Y
+ S DIE="^AUTNINS(",DR="W !;.01;.21R;.41;.02;.03;.04;.05;.06;.09;1;2;3;4;5;.17R;.35;.36;.37;.38;.39;" D ^DIE K DR
+ G INS
+XIT S DUZ=AG("DUZ")
+ K AG,DIC,DIE
+ Q

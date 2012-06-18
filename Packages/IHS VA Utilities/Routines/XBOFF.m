@@ -1,0 +1,15 @@
+XBOFF ; IHS/ADC/GTH - SET REVERSE VIDEO OFF ; [ 02/07/97   3:02 PM ]
+ ;;3.0;IHS/VA UTILITIES;;FEB 07, 1997
+ ;
+ ; Original routine from IHS/OHPRD/EDE.  08-25-95
+ ;
+ ; See also routine XBVIDEO.
+ ;
+START ;
+ NEW %,X,IORVON,IORVOFF
+ I '$G(IOST(0)) D HOME^%ZIS
+ S X="IORVON;IORVOFF"
+ D ENDR^%ZISS
+ W IORVOFF
+ Q
+ ;

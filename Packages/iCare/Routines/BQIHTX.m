@@ -1,0 +1,9 @@
+BQIHTX ;VNGT/HS/ALA-CREATED BY ^ATXSTX ON SEP 15, 2008;
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^BQIHTXA ;   BQI KNOWN CVD-1 PROCEDURES
+ D ^BQIHTXB ;   BGP SMOKER ONLY DXS
+ Q

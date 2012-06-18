@@ -1,0 +1,130 @@
+FHINI099	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,6405,1)
+	;;=1.42^.448^5.55^31.91^92^^^11.2^.249^^^32^183^^^^^^^.048
+	;;^UTILITY(U,$J,112,6405,2)
+	;;=.03^.299
+	;;^UTILITY(U,$J,112,6405,20)
+	;;=Webster Van Winkle Corp. Prod. Lit. undated. DOE: 102584 #516
+	;;^UTILITY(U,$J,112,6406,0)
+	;;=GRAVY, CHICKEN LOW SODIUM FROM A MIX^^oz.^28.35
+	;;^UTILITY(U,$J,112,6406,1)
+	;;=1.86^1.02^7.75^47.6^88.9^^^24.9^.241^^^41^144^^^^^^^.014
+	;;^UTILITY(U,$J,112,6406,2)
+	;;=.022^1.08
+	;;^UTILITY(U,$J,112,6406,20)
+	;;=Webster Van Winkle Corp. Prod. Lit. undate. DOE:102584 #516
+	;;^UTILITY(U,$J,112,6407,0)
+	;;=SAUCE, SPAGHETTI LOW SODIUM, FROM A MIX^^oz.^28.35
+	;;^UTILITY(U,$J,112,6407,1)
+	;;=1.55^2.23^11.82^73.57^83.4^^^26.4^.666^^^375^106^^^^^685^1^.006
+	;;^UTILITY(U,$J,112,6407,2)
+	;;=.046^.769
+	;;^UTILITY(U,$J,112,6407,20)
+	;;=Webster Van Winkle Corp. Prod. Lit, undated. DOE: 102584 #516
+	;;^UTILITY(U,$J,112,6408,0)
+	;;=GELATIN, LOW CAL, LOW SODIUM^^oz.^28.35
+	;;^UTILITY(U,$J,112,6408,1)
+	;;=1.41^.313^1.43^14.18^96.7^^^12^.092^^^33.4^14.4^^^^^^^.004
+	;;^UTILITY(U,$J,112,6408,2)
+	;;=.01^.046
+	;;^UTILITY(U,$J,112,6408,20)
+	;;=Webster Van Winkle Corp. Prod. Lit, undated. DOE:102584 #516
+	;;^UTILITY(U,$J,112,6409,0)
+	;;=BROTH, LOW SODIUM BEEF, FROM BASE^^oz.^28.35
+	;;^UTILITY(U,$J,112,6409,1)
+	;;=.35^.653^1.411^12.35^99^^^^^^^3.65^.876
+	;;^UTILITY(U,$J,112,6409,20)
+	;;=Webster Van Winkle Corp Prod Lit, undated. DOE: 102584 #516
+	;;^UTILITY(U,$J,112,6410,0)
+	;;=BROTH, LOW SODIUM CHICKEN, FROM BASE^^oz.^28.35
+	;;^UTILITY(U,$J,112,6410,1)
+	;;=.345^.553^1.538^11.76^99^^^^^^^1.529^.588
+	;;^UTILITY(U,$J,112,6410,20)
+	;;=Webster Van Winkle Corp Prod Lit, undated. DOE:102584 #516
+	;;^UTILITY(U,$J,112,6411,0)
+	;;=CAKE, LOW SODIUM YELLOW, FROM MIX^^1.5-oz srv.^42.5
+	;;^UTILITY(U,$J,112,6411,1)
+	;;=6.195^17.258^61.899^402.9^19.6^^^.03^1.175^^^430^23.5^^^^^60.02^^.181
+	;;^UTILITY(U,$J,112,6411,2)
+	;;=.168^.997^^^^^^^17.45
+	;;^UTILITY(U,$J,112,6411,20)
+	;;=Webster Van Winkle Corp Prod Lit, undated. DOE:102584 #516
+	;;^UTILITY(U,$J,112,6412,0)
+	;;=SPICED BEET SALAD^^2-oz srv.^60
+	;;^UTILITY(U,$J,112,6412,1)
+	;;=.6^.1
+	;;^UTILITY(U,$J,112,6413,0)
+	;;=MEATLOAF (STOUFFER)^^oz.^28.35
+	;;^UTILITY(U,$J,112,6413,1)
+	;;=17^9^8^182^63^^^22^1.8^^^769^1241^^^^^118^0^.05
+	;;^UTILITY(U,$J,112,6413,2)
+	;;=.23^3.5
+	;;^UTILITY(U,$J,112,6413,20)
+	;;=Stouffer foods corp, product literature 1983.DOE 112084 #516
+	;;^UTILITY(U,$J,112,6414,0)
+	;;=SUGAR SUB (DIAMOND)^^tsp.^4
+	;;^UTILITY(U,$J,112,6414,1)
+	;;=0^0^90^350^^^^600^^^^^25
+	;;^UTILITY(U,$J,112,6414,2)
+	;;=^^^^^^^^^^^0^^^^^0
+	;;^UTILITY(U,$J,112,6414,20)
+	;;=Bowes & Church, 13th ed., 1980. DOE: 112084 #516
+	;;^UTILITY(U,$J,112,6415,0)
+	;;=SUGAR TWIN^^tbsp.^1
+	;;^UTILITY(U,$J,112,6415,1)
+	;;=0^0^90^400^^^^1000^^^^100^600
+	;;^UTILITY(U,$J,112,6415,20)
+	;;=Bowes & Church 13th ed, 1980. DOE: 112084 #516
+	;;^UTILITY(U,$J,112,6416,0)
+	;;=SWEET N LOW^^tsp.^5
+	;;^UTILITY(U,$J,112,6416,1)
+	;;=0^0^90^360^^^^^^^^4500^400
+	;;^UTILITY(U,$J,112,6416,20)
+	;;=Bowes & Church 13th ed, 1980. DOE: 112084 #516
+	;;^UTILITY(U,$J,112,6417,0)
+	;;=SALT SUB (DIAMOND)^^tsp.^5
+	;;^UTILITY(U,$J,112,6417,1)
+	;;=0^0^0^0^^^^380^0^20^180^51500^20^^^^^0^0^0
+	;;^UTILITY(U,$J,112,6417,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,6417,20)
+	;;=Bowes & Church 13th ed. 1980. DOE: 112084 #516
+	;;^UTILITY(U,$J,112,6418,0)
+	;;=MORTON LITE SALT^^tsp.^5
+	;;^UTILITY(U,$J,112,6418,1)
+	;;=0^0^0^0^^^^100^^80^640^26000^19500^^^^^0^0^0
+	;;^UTILITY(U,$J,112,6418,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,6418,20)
+	;;=Bowes & Church 13th ed. 1980. DOE: 112084 #516
+	;;^UTILITY(U,$J,112,6419,0)
+	;;=JELLY, DIET (FEATHERWEIGHT)^^tbsp.^20
+	;;^UTILITY(U,$J,112,6419,1)
+	;;=0^0^20^80
+	;;^UTILITY(U,$J,112,6419,20)
+	;;=Bowes & Church 13th ed. 1980. DOE:112084 #516
+	;;^UTILITY(U,$J,112,6420,0)
+	;;=MEATLOAF NO.1 (VACO)^^oz.^28.35
+	;;^UTILITY(U,$J,112,6420,1)
+	;;=19.2^9.3^11.7^209.7^66.9^^^59.6^2.23^5.93^191^396.2^356.7^.5^.013^0^^354.98^4.79^.169
+	;;^UTILITY(U,$J,112,6420,2)
+	;;=.227^3.922^.175^.058^2.675^.201^.454^.065^58.25^3.96^1.75^.454
+	;;^UTILITY(U,$J,112,6420,20)
+	;;=VACO Recipe E-60, DOE:  112384 #516
+	;;^UTILITY(U,$J,112,6421,0)
+	;;=POLYCOSE LIQ^^oz.^28.35
+	;;^UTILITY(U,$J,112,6421,1)
+	;;=0^0^50^200^70^^^15.83^0^0^2.92^4.17^70^0^0^0^0^0^0^0
+	;;^UTILITY(U,$J,112,6421,2)
+	;;=0^0^0^0^0^0^0^0^0^0^0^0^^^^^0
+	;;^UTILITY(U,$J,112,6421,20)
+	;;=Bowes & Church 13th ed.1980. DOE: 112684 #516
+	;;^UTILITY(U,$J,112,6422,0)
+	;;=COOKIES, LOW PROTEIN (DP)^^cookies^14
+	;;^UTILITY(U,$J,112,6422,1)
+	;;=.214^28.56^71.4^499.8^^^^^^^28.56^57.12^2.8
+	;;^UTILITY(U,$J,112,6422,20)
+	;;=Package Labeling, Henkel Corp, 4620 W. 77th, Minneapolis DOE: 112684 #516

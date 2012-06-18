@@ -1,0 +1,186 @@
+ABMER41A ; IHS/ASDST/DMJ - UB92 EMC RECORD 41 (Claim Data Condition-Value) cont'd ; 
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;
+ ;
+ ; IHS/SD/SDR - v2.5 p8 - IM13324/IM15558
+ ;   Format change to 0.00
+ ;
+ ; IHS/SD/SDR - v2.5 p11 - NPI
+ ;
+LOOP ;LOOP HERE
+ F I=10:10:210 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),41,I)) D @(^(I))
+ .I '$G(ABMP("NOFMT")) S ABMREC(41,ABME("S#"))=$G(ABMREC(41,ABME("S#")))_ABMR(41,I)
+ Q
+ ;
+10 ;Record type
+ S ABMR(41,10)=41
+ Q
+ ;
+20 ;Sequence
+ S ABMR(41,20)=ABME("S#")
+ S ABMR(41,20)=$$FMT^ABMERUTL(ABMR(41,20),"2RN")
+ Q
+ ;
+30 ;Patient Control Number, (SOURCE: FILE=9000001.41,FIELD=.02)
+ S ABMR(41,30)=$$EX^ABMER20(30,ABMP("BDFN"))
+ S ABMR(41,30)=$$FMT^ABMERUTL(ABMR(41,30),20)
+ Q
+ ;
+40 ;Condition Code - 1 (SOURCE: FILE=9002274.4053 FIELD=.01)
+ ; form locator #24
+ D GET53
+ S ABMR(41,40)=ABM(53,1)
+ S ABMR(41,40)=$$FMT^ABMERUTL(ABMR(41,40),"2")
+ Q
+ ;
+50 ;Condition Code - 2 (SOURCE: FILE=9002274.4053 FIELD=.01)
+ ; form locator #25
+ D GET53
+ S ABMR(41,50)=ABM(53,2)
+ S ABMR(41,50)=$$FMT^ABMERUTL(ABMR(41,50),"2")
+ Q
+ ;
+60 ;Condition Code - 3 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ ; form locator #26
+ D GET53
+ S ABMR(41,60)=ABM(53,3)
+ S ABMR(41,60)=$$FMT^ABMERUTL(ABMR(41,60),"2")
+ Q
+ ;
+70 ;Condition Code - 4 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ ; form locator #27
+ D GET53
+ S ABMR(41,70)=ABM(53,4)
+ S ABMR(41,70)=$$FMT^ABMERUTL(ABMR(41,70),"2")
+ Q
+ ;
+80 ;Condition Code - 5 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ ; form locator #28
+ D GET53
+ S ABMR(41,80)=ABM(53,5)
+ S ABMR(41,80)=$$FMT^ABMERUTL(ABMR(41,80),"2")
+ Q
+ ;
+90 ;Condition Code - 6 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ ; form locator #29
+ D GET53
+ S ABMR(41,90)=ABM(53,6)
+ S ABMR(41,90)=$$FMT^ABMERUTL(ABMR(41,90),"2")
+ Q
+100 ;Condition Code - 7 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ ; form locator #30
+ D GET53 S ABMR(41,100)=ABM(53,7)
+ S ABMR(41,100)=$$FMT^ABMERUTL(ABMR(41,100),"2")
+ Q
+ ;
+110 ;Condition Code - 8 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ D GET53
+ S ABMR(41,110)=ABM(53,8)
+ S ABMR(41,110)=$$FMT^ABMERUTL(ABMR(41,110),"2")
+ Q
+ ;
+120 ;Condition Code - 9 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ D GET53
+ S ABMR(41,120)=ABM(53,9)
+ S ABMR(41,120)=$$FMT^ABMERUTL(ABMR(41,120),"2")
+ Q
+ ;
+130 ;Condition Code - 10 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ D GET53
+ S ABMR(41,130)=ABM(53,10)
+ S ABMR(41,130)=$$FMT^ABMERUTL(ABMR(41,130),"2")
+ Q
+ ;
+140 ;Form Locator 31 (Upper) (SOURCE: FILE=, FIELD=)
+ S ABMR(41,140)=""
+ S ABMR(41,140)=$$FMT^ABMERUTL(ABMR(41,140),5)
+ Q
+ ;
+150 ;Form Locator 31 (Lower) (SOURCE: FILE= FIELD=)
+ S ABMR(41,150)=""
+ S ABMR(41,150)=$$FMT^ABMERUTL(ABMR(41,150),6)
+ Q
+ ;
+160 ;Value Code - 1 (SOURCE: FILE=9002274.4055, FIELD=.01)
+ ; form locator #39a
+ D GET55
+ S ABMR(41,160)=$P(ABM(55,1),U)
+ S ABMR(41,160)=$$FMT^ABMERUTL(ABMR(41,160),"2RN")
+ Q
+ ;
+170 ;Value Amount - 1 (SOURCE: FILE=9002274.4055, FIELD=.02)
+ ; form locator #39a
+ D GET55
+ S ABMR(41,170)=$P(ABM(55,1),"^",2)
+ I $TR($G(ABMR(41,160))," ")="" S ABMR(41,170)=ABM("9SP") Q
+ S ABMR(41,170)=$$FMT^ABMERUTL(ABMR(41,170),"9RN2")
+ Q
+ ;
+180 ;Value Code - 2 (SOURCE: FIlE=9002274.4055, FIELD=.01)
+ ; form locator #40a
+ D GET55
+ S ABMR(41,180)=$P(ABM(55,2),U)
+ S ABMR(41,180)=$$FMT^ABMERUTL(ABMR(41,180),"2RN")
+ Q
+ ;
+190 ;Value Amount - 2 (SOURCE: FILE=9002274.4055, FIELD=.02)
+ ; form locator #40a
+ D GET55
+ S ABMR(41,190)=$P(ABM(55,2),"^",2)
+ I $TR($G(ABMR(41,180))," ")="" S ABMR(41,190)=ABM("9SP") Q
+ S ABMR(41,190)=$$FMT^ABMERUTL(ABMR(41,190),"9RN2")
+ Q
+ ;
+200 ;Value Code - 3 (SOURCE: FILE=9002274.4055, FIELD=.01) D GET55
+ ; form locator #40a
+ D GET55
+ S ABMR(41,200)=$P(ABM(55,3),U)
+ S ABMR(41,200)=$$FMT^ABMERUTL(ABMR(41,200),"2RN")
+ Q
+ ;
+210 ;Condition Code - 11 (SOURCE: FILE=9002274.4053, FIELD=.01)
+ D GET53
+ S ABMR(41,210)=$G(ABM(53,11))
+ S ABMR(41,210)=$$FMT^ABMERUTL(ABMR(41,210),"2")
+ Q
+ ;
+GET53 ;GET CONDITION CODES
+ Q:$D(ABM(55))
+ N I
+ S I=0,CNT=0
+ F  S I=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),53,I)) Q:'I  D
+ .S CNT=CNT+1
+ .S ABM(53,CNT)=^ABMDBILL(DUZ(2),ABMP("BDFN"),53,I,0)
+ .S ABM(53,CNT)=$P($G(^ABMDCODE(+ABM(53,CNT),0)),U)
+ .S:$L(ABM(53,CNT))=1 ABM(53,CNT)="0"_ABM(53,CNT)
+ F I=1:1:10 I '$D(ABM(53,I)) S ABM(53,I)=""
+ Q
+ ;
+GET55 ;GET VALUE CODES
+ Q:$D(ABM(55))
+ N I
+ S I=0,CNT=0
+ F  S I=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),55,I)) Q:'I  D
+ .S CNT=CNT+1
+ .S ABM(55,CNT)=^ABMDBILL(DUZ(2),ABMP("BDFN"),55,I,0)
+ .S $P(ABM(55,CNT),U)=$P($G(^ABMDCODE(+ABM(55,CNT),0)),U)
+ F I=1:1:12 I '$D(ABM(55,I)) S ABM(55,I)="  "
+ Q
+ ;
+EX(ABMX,ABMY)      ;EXTRINSIC FUNCTION HERE
+ ;
+ ;  INPUT:  ABMX = data element
+ ;             Y = bill internal entry number
+ ;
+ ; OUTPUT:     Y = bill internal entry number
+ ;
+ S ABMP("BDFN")=ABMY
+ D SET^ABMERUTL
+ I '$G(ABMP("NOFMT")) S ABMP("FMT")=0
+ D @ABMX
+ S Y=ABMR(41,ABMX)
+ I $D(ABMP("FMT")) S ABMP("FMT")=1
+ K ABMR(41,ABMX),ABMX,ABMY,ABMZ
+ Q Y

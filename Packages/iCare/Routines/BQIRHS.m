@@ -1,0 +1,77 @@
+BQIRHS ;PRXM/HC/DLS - Patient Health Summary ; 20 Dec 2005  3:53 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+ Q
+ ;
+EN(DATA,DFN,SUMMTYP) ; EP -- BQI PATIENT HEALTH SUMMARY
+ ;Description
+ ;  Generates a Patient Health Summary for a given DFN
+ ;
+ ;Input
+ ;  DFN - Patient Internal ID
+ ;  SUMMTYP - Health Summary Type ID
+ ;
+ ;Output
+ ;  DATA - Name of global in which data is stored(^TMP("BQIRHS"))
+ ;
+ N UID,X,BQII,HSOS
+ N HSTEXT,HSPATH,HSFN,Y,IOSL,IOST,IOM,I,N
+ N APCHSPAT,APCHSTYP
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIRHS",UID))
+ K @DATA
+ ;
+ S BQII=0
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIRHS D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ D HDR
+ ;
+ ;S HSPATH=$$DEFDIR^%ZISH("")
+ ;I HSPATH="" S HSPATH=$$PWD^%ZISH()
+ ;S HSFN=UID_"_"_DFN_".DAT"
+ ;D OPEN^%ZISH("BQIFILE",HSPATH,HSFN,"W") I POP G DONE
+ I $$TMPFL^BQIUL1("W",UID,DFN) G DONE
+ ;
+ S IOSL=999,IOM=80,IOST="P-OTHER80"
+ S APCHSPAT=DFN         ; APCHSPAT variable is required by APCHS.
+ S APCHSTYP=SUMMTYP     ; APCHSTYP variable is required by APCHS.
+ ;
+ U IO D EN^APCHS
+ U IO W $C(9)
+ ;
+ ;D CLOSE^%ZISH("BQIFILE")
+ I $$TMPFL^BQIUL1("C") G DONE
+ ;D OPEN^%ZISH("BQIFILE",HSPATH,HSFN,"R") I POP G DONE
+ I $$TMPFL^BQIUL1("R",UID,DFN) G DONE
+ ;
+ F  U IO R HSTEXT:.1 Q:HSTEXT[$C(9)  D
+ . S HSTEXT=$$STRIP^XLFSTR(HSTEXT,"^")
+ . I HSTEXT="" S HSTEXT=" "
+ . S BQII=BQII+1,@DATA@(BQII)=HSTEXT_$C(13)_$C(10)
+ S BQII=BQII+1,@DATA@(BQII)=$C(30)
+ ;
+ ;Drop down to DONE.
+ ;
+ ;D CLOSE^%ZISH("BQIFILE")
+ I $$TMPFL^BQIUL1("C") G DONE
+ ;S Y=$$DEL^%ZISH(HSPATH,HSFN)
+ I $$TMPFL^BQIUL1("D",UID,DFN) G DONE
+ ;
+DONE ;
+ ;
+ S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ Q
+ ;
+HDR ;
+ S @DATA@(BQII)="T00120REPORT_TEXT"_$C(30)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(BQII),$D(DATA) S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ I $$TMPFL^BQIUL1("C")
+ Q

@@ -1,0 +1,67 @@
+BCHRLP1 ; IHS/TUCSON/LAB - CONT OF BCHRLP ;  [ 10/31/01  10:21 AM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**7,11,12**;OCT 28, 1996
+ ;IHS/CMI/LAB - tmp to xtmp
+ ;
+ ;
+COVPAGE ;EP
+ ;W:$D(IOF) @IOF
+ W:IOST["C-" @IOF
+ W !?5,"RPMS/CHR-PCC  ",$S(BCHPTVS="P":"PATIENT",1:"CHR RECORD")," ",$S(BCHCTYP="D":"LISTING",1:"COUNT")
+ W !!,"REPORT REQUESTED BY: ",$P(^VA(200,DUZ,0),U)
+ W !,$$CTR^BCHRLU($$LOC^BCHRLU),!
+ W !!,"The following report contains a ",$S(BCHPTVS="V":"CHR Record",1:"Patient")," report based on the",!,"following criteria:",!
+SHOW ;
+ W !,$S(BCHPTVS="P":"PATIENT",1:"VISIT")," Selection Criteria"
+ I $D(BCHRDTR),$D(BCHBDD) W !!?6,"Date of Service range:  ",BCHBDD," to ",BCHEDD,!
+ W:BCHTYPE="D" !!?6,"Date of Service range:  ",BCHBDD," to ",BCHEDD,!
+ W:BCHTYPE="S" !!?6,"Search Template: ",$P(^DIBT(BCHSEAT,0),U),!
+ I '$D(^BCHTRPT(BCHRPT,11)) G SHOWP
+ S BCHI=0 F  S BCHI=$O(^BCHTRPT(BCHRPT,11,BCHI)) Q:BCHI'=+BCHI  D
+ .I $Y>(IOSL-5) D PAUSE^BCHRL01 W @IOF
+ .W !?6,$P(^BCHSORT(BCHI,0),U),":  "
+ .S BCHY=0,C=0 K BCHQ F  S BCHY=$O(^BCHTRPT(BCHRPT,11,BCHI,11,"B",BCHY)) S C=C+1 Q:BCHY=""!($D(BCHQ))  W:C'=1&(BCHY'="") " ; " S X=BCHY X:$D(^BCHSORT(BCHI,2)) ^(2) W X
+ K BCHQ
+SHOWP ;
+ I BCHCTYP="T" D COUNT Q
+ I BCHCTYP="S" D  I 1
+ .I $Y>(IOSL-6) D PAUSE^BCHRL01 W @IOF
+ .W !!,"Report will contain sub-totals by ",$P(^BCHSORT(BCHSORT,0),U),"."
+ .I '$D(^XTMP("BCHRL",BCHJOB,BCHBTH)) W !!,$S(BCHPTVS="V":"NO VISITS",1:"NO PATIENTS")_" TO REPORT.",! D PAUSE^BCHRL01 W:$D(IOF) @IOF
+ .Q
+ I BCHCTYP'="D" D PAUSE^BCHRL01 W:$D(IOF) @IOF Q
+ I $Y>(IOSL-4) D PAUSE^BCHRL01 W @IOF
+ W !!,"PRINT Field Selection"
+ I '$D(^BCHTRPT(BCHRPT,12)) G PAUSE
+ S BCHI=0 F  S BCHI=$O(^BCHTRPT(BCHRPT,12,BCHI)) Q:BCHI'=+BCHI  S BCHCRIT=$P(^BCHTRPT(BCHRPT,12,BCHI,0),U) D
+ .I $Y>(IOSL-4) D PAUSE^BCHRL01 W:$D(IOF) @IOF
+ .W !?6,$P(^BCHSORT(BCHCRIT,0),U),"  (" S X=$O(^BCHTRPT(BCHRPT,12,"B",BCHCRIT,"")) W $P(^BCHTRPT(BCHRPT,12,X,0),U,2),")"
+ I $Y>(IOSL-4) D PAUSE^BCHRL01 W:$D(IOF) @IOF
+ W !?10,"     TOTAL column width: ",BCHTCW
+ Q:'$G(BCHSORT)
+ I $Y>(IOSL-4) D PAUSE^BCHRL01 W:$D(IOF) @IOF
+ W !!?6,$S(BCHPTVS="V":"Records",1:"Patients")," will be sorted by:  ",$P(^BCHSORT(BCHSORT,0),U),!
+ I $Y>(IOSL-4) D PAUSE^BCHRL01 W:$D(IOF) @IOF
+ I $G(BCHSPAG) W !?6,"Each ",$P(^BCHSORT(BCHSORT,0),U)," will be on a separate page.",!
+ I '$D(^XTMP("BCHRL",BCHJOB,BCHBTH)) W !!,$S(BCHPTVS="V":"NO VISITS",1:"NO PATIENTS")_" TO REPORT.",!
+ Q
+PAUSE ;
+ D PAUSE^BCHRL01 W:IOST["C-" @IOF
+ ;D PAUSE^BCHRL01 W:$D(IOF) @IOF
+ Q
+COUNT ;if COUNTING entries only   
+ I $Y>(IOSL-5) D PAUSE^BCHRL01 W:$D(IOF) @IOF
+ I '$D(^XTMP("BCHRL",BCHJOB,BCHBTH)) W !!!,$S(BCHPTVS="V":"NO VISITS",1:"NO PATIENTS")_" TO REPORT.",!
+ I $D(BCHRCNT),BCHPTVS="V" W !!!,"Total COUNT of ",$S(BCHPTVS="P":"Patients",1:"Records"),":  ",BCHRCNT
+ I $D(BCHPTCT),BCHPTVS="P" W !!!,"Total COUNT of ",$S(BCHPTVS="P":"Patients",1:"Records"),":  ",BCHPTCT
+ Q
+WP ;EP - Entry point to print wp fields pass node in BCHNODE
+ ;PASS FILE IN BCHFILE, ENTRY IN BCHDA
+ K ^UTILITY($J,"W")
+ S BCHG=^DIC(BCHFILE,0,"GL"),BCHG=BCHG_BCHDA_",BCHX)"
+ S DIWL=1,DIWR=$P(^BCHTRPT(BCHRPT,12,BCHI,0),U,2) F  S BCHX=$O(@BCHG) Q:BCHX'=+BCHX  D
+ .S Y=BCHG_",0)" S X=@Y D ^DIWP
+ .Q
+ S Z=0 F  S Z=$O(^UTILITY($J,"W",DIWL,Z)) Q:Z'=+Z  S BCHPCNT=BCHPCNT+1,BCHPRNM(BCHPCNT)=^UTILITY($J,"W",DIWL,Z,0)
+ K DIWL,DIWR,DIWF,Z
+ K ^UTILITY($J,"W"),BCHNODE,BCHFILE,BCHDA
+ Q

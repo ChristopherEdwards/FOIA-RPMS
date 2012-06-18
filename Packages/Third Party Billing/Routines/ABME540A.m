@@ -1,0 +1,175 @@
+ABME540A ; IHS/ASDST/DMJ - UB92 V5 EMC RECORD 40 (Claim Data) cont'd ;  
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;
+ ;
+LOOP ;LOOP HERE
+ F I=10:10:170 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),40,I)) D @(^(I))
+ .I '$G(ABMP("NOFMT")) S ABMREC(40,ABME("S#"))=$G(ABMREC(40,ABME("S#")))_ABMR(40,I)
+ Q
+ ;
+10 ;Record type, 1-2
+ S ABMR(40,10)=40
+ Q
+ ;
+20 ;Sequence, 3-4
+ S ABMR(40,20)=ABME("S#")
+ S ABMR(40,20)=$$FMT^ABMERUTL(ABMR(40,20),"2RN")
+ Q
+ ;
+30 ;Patient Control Number, 5-24 (SOURCE: FILE=9000001.41,FIELD=.02)
+ S ABMR(40,30)=$$EX^ABMER20(30,ABMP("BDFN"))
+ S ABMR(40,30)=$$FMT^ABMERUTL(ABMR(40,30),20)
+ Q
+ ;
+40 ;Type of Bill, 25-27 (SOURCE: FILE=9002274.4 FIELD=.02)
+ S ABME("FLD")=.02
+ D DIQ1
+ S ABMR(40,40)=ABM(9002274.4,ABMP("BDFN"),.02,"E")
+ S ABMR(40,40)=$$FMT^ABMERUTL(ABMR(40,40),3)
+ Q
+ ;
+50 ;Treatment Authorization Code-A, 28-45 (SOURCE: FILE=9002274.4 FIELD=.58)
+ ; form locator #63a
+ S ABME("FLD")=.54
+ D DIQ1
+ S ABMR(40,50)=ABM(9002274.4,ABMP("BDFN"),.58,"E")
+ S ABMR(40,50)=$$FMT^ABMERUTL(ABMR(40,50),18)
+ Q
+ ;
+60 ;Treatment Authorization Code-B, 46-63 (SOURCE: FILE=9002274.4, FIELD=)
+ ; form locator #63b
+ S ABMR(40,60)=""
+ S ABMR(40,60)=$$FMT^ABMERUTL(ABMR(40,60),18)
+ Q
+ ;
+70 ;Treatment Authorization Code-C, 64-81 (SOURCE: FILE=9002274.4, FIELD=)
+ ; form locator #63c
+ S ABMR(40,70)=""
+ S ABMR(40,70)=$$FMT^ABMERUTL(ABMR(40,70),18)
+ Q
+ ;
+80 ;Occurrence Code 1, 82-83 (SOURCE: FILE=9002274.4051, FIELD=.01)
+ ; form locator #32a
+ D GET51
+ S ABMR(40,80)=$P($G(ABM(51,1)),U)
+ S ABMR(40,80)=$$FMT^ABMERUTL(ABMR(40,80),"2")
+ Q
+ ;
+90 ;Occurrence Date 1, 84-91 (SOURCE: FILE=9002274.4051, FIELD=.02)
+ ; form locator #32a
+ D GET51
+ S Y=$P($G(ABM(51,1)),"^",2)
+ S ABMR(40,90)=$$Y2KD2^ABMDUTL(Y)
+ S ABMR(40,90)=$$FMT^ABMERUTL(ABMR(40,90),8)
+ Q
+ ;
+100 ;Occurrence Code 2, 92-93 (SOURCE: FILE=9002274.4051 FIELD=.01)
+ ; form locator #33a
+ D GET51
+ S ABMR(40,100)=$P($G(ABM(51,2)),U)
+ S ABMR(40,100)=$$FMT^ABMERUTL(ABMR(40,100),"2")
+ Q
+ ;
+110 ;Occurrence Date 2, 94-101 (SOURCE: FILE=9002274.4051, FIELD=.02)
+ ; form locator #33a
+ D GET51
+ S Y=$P($G(ABM(51,2)),"^",2)
+ S ABMR(40,110)=$$Y2KD2^ABMDUTL(Y)
+ S ABMR(40,110)=$$FMT^ABMERUTL(ABMR(40,110),8)
+ Q
+ ;         
+120 ;Occurrence Code 3, 102-103 (SOURCE: FILE=9002274.4051, FIELD=.01)
+ ; form locator #34a
+ D GET51
+ S ABMR(40,120)=$P($G(ABM(51,3)),U)
+ S ABMR(40,120)=$$FMT^ABMERUTL(ABMR(40,120),"2")
+ Q
+ ;
+130 ;Occurrence Date 3, 104-111 (SOURCE: FILE=9002274.4051, FIELD=.02)
+ ; form locator #34a
+ D GET51
+ S Y=$P($G(ABM(51,3)),"^",2)
+ S ABMR(40,130)=$$Y2KD2^ABMDUTL(Y)
+ S ABMR(40,130)=$$FMT^ABMERUTL(ABMR(40,130),8)
+ Q
+ ;
+140 ;Occurrence Code 4, 112-113 (SOURCE: FILE=9002274.4051, FIELD=.01)
+ ; form locator #35a
+ D GET51
+ S ABMR(40,140)=$P($G(ABM(51,4)),U)
+ S ABMR(40,140)=$$FMT^ABMERUTL(ABMR(40,140),"2")
+ Q
+ ;
+150 ;Occurrence Date 4, 114-121 (SOURCE: FILE=9002274.4051, FIELD=.02)
+ ; form locator #35a
+ D GET51
+ S Y=$P($G(ABM(51,4)),"^",2)
+ S ABMR(40,150)=$$Y2KD2^ABMDUTL(Y)
+ S ABMR(40,150)=$$FMT^ABMERUTL(ABMR(40,150),8)
+ Q
+ ;
+160 ;Occurrence Code 5, 122-123 (SOURCE: FILE=9002274.4051, FIELD=.01)
+ ; form locator #32b
+ D GET51 S ABMR(40,160)=$P($G(ABM(51,5)),U)
+ S ABMR(40,160)=$$FMT^ABMERUTL(ABMR(40,160),"2")
+ Q
+170 ;Occurrence Date 5, 124-131 (SOURCE: FILE=9002274.4051, FIELD=.02)
+ ; form locator #32b
+ D GET51
+ S Y=$P($G(ABM(51,5)),"^",2)
+ S ABMR(40,170)=$$Y2KD2^ABMDUTL(Y)
+ S ABMR(40,170)=$$FMT^ABMERUTL(ABMR(40,170),8)
+ Q
+ ;
+DIQ1 ;PULL POLICY HOLDER DATA VIA DIQ1
+ Q:$D(ABM(9002274.4,ABMP("BDFN"),ABME("FLD")))
+ N I
+ S DIQ="ABM("
+ S DIQ(0)="EI"
+ S DIC="^ABMDBILL(DUZ(2),"
+ S DA=ABMP("BDFN")
+ S DR=".02;.54;.55;.56;.58;.76;.77;.78;.79"
+ D EN^DIQ1
+ K DIQ
+ Q
+ ;
+GET51 ;GET OCCURANCE CODES
+ Q:$D(ABM(51))
+ N I
+ S I=0,CNT=0
+ F  S I=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),51,I)) Q:'I  D
+ .S CNT=CNT+1
+ .S ABM(51,CNT)=^ABMDBILL(DUZ(2),ABMP("BDFN"),51,I,0)
+ .S $P(ABM(51,CNT),U)=$P($G(^ABMDCODE(+ABM(51,CNT),0)),U)
+ .S:$L($P(ABM(51,CNT),U))=1 ABM(51,CNT)="0"_ABM(51,CNT)
+ F I=1:1:10 I '$D(ABM(51,I)) S ABM(51,I)=""
+ Q
+ ;
+GET57 ;GET OCCURRENCE SPAN CODES
+ Q:$D(ABM(57))
+ N I
+ S I=0,CNT=0
+ F  S I=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),57,I)) Q:'I  D
+ .S CNT=CNT+1
+ .S ABM(57,CNT)=^ABMDBILL(DUZ(2),ABMP("BDFN"),57,I,0)
+ .S $P(ABM(57,CNT),U)=$P($G(^ABMDCODE(+ABM(57,CNT),0)),U)
+ F I=1,2 I '$D(ABM(57,I)) S ABM(57,I)=""
+ Q
+ ;
+EX(ABMX,ABMY)      ;EXTRINSIC FUNCTION HERE
+ ;
+ ;  INPUT: ABM X = data element
+ ;             Y = bill internal entry number
+ ;
+ ; OUTPUT:     Y = bill internal entry number
+ ;
+ S ABMP("BDFN")=ABMY
+ D SET^ABMERUTL
+ I '$G(ABMP("NOFMT")) S ABMP("FMT")=0
+ D @ABMX
+ S Y=ABMR(40,ABMX)
+ I $D(ABMP("FMT")) S ABMP("FMT")=1
+ K ABMR(40,ABMX),ABME,ABMX,ABMY,ABMZ,ABM
+ Q Y

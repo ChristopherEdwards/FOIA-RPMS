@@ -1,0 +1,80 @@
+APCLTAX ; IHS/CMI/LAB - REPORT FOR ANMC ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+ ;
+INFORM ;
+ W:$D(IOF) @IOF
+ W !!,?20,"*********HOSPITAL DISCHARGE BY RANGE OF TAXONOMY*******",!
+ W !!,?40,"TEMPLATE CREATION",!!
+ W !!,"This is a special report written to create a patient search template.",!,"The patients selected will be based on the following criteria:",!,?5,"- living patients with a discharge in a user defined time frame"
+ W !?5,"- excluding patients discharged before they were 10 days old",!?5,"- excluding patients whose LOS was less than 1",!?5,"- excluding patietns whose primary dx is not in a user selected taxonomy",!
+GETDATES ;
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Discharge Date for Search" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S APCLBD=Y
+ED ;get ending date
+ W ! S DIR(0)="D^"_APCLBD_":DT:EP",DIR("A")="Enter ending Discharge Date for Search" S Y=APCLBD D DD^%DT S DIR("B")=Y,Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S APCLED=Y
+ S X1=APCLBD,X2=-1 D C^%DTC S APCLSD=X
+ ;
+TAX ;get icd taxonomy
+ S APCLTAX=""
+ S DIC="^ATXAX(",DIC(0)="AEMQ",DIC("S")="I $P(^(0),U,15)=80",DIC("A")="Enter the Diagnoses Taxonomy: "
+ D ^DIC K DIC,DA
+ I Y=-1 G BD
+ S APCLTAX=+Y
+SEARCH ;
+ S APCLSRCH=""
+ S DIC="^DIBT(",DIC(0)="AELMQZ",DIC("A")="Search Template: ",DIC("DR")="2///"_DT_";4///9000001;5///"_DUZ
+ W !
+ D ^DIC
+ I +Y<1 W !!,"No Search Template selected." G TAX
+ I +Y,$D(^DIBT(+Y)) W !!,"An unduplicated patient list resulting from this report will be stored in the",!!?20,"**  ",Y(0,0),"  ** Search Template." K ^DIBT(+Y,1)
+ ;
+ S APCLSRCH=+Y
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G SEARCH
+GO ;process
+ W !!,"OKAY -- HOLD ON WHILE I FIND ALL THE DISCHARGES..."
+START ;
+ S APCLPCNT=0
+ ;
+V ; Run by visit date
+ S APCLODAT=APCLSD_".9999" F  S APCLODAT=$O(^AUPNVINP("B",APCLODAT)) Q:APCLODAT=""!((APCLODAT\1)>APCLED)  D V1
+ ;
+ W !!,"ALL DONE - FOUND ",APCLPCNT," PATIENTS.",!
+END ;EOJ
+ D XIT
+ K APCLTAX,APCLSRCH,APCLBD,APCLSD,APCLODAT,APCLED,APCLVSIT,APCLVDFN,APCLP,APCLVREC,APCLFOUN,APCLPCNT,DFN
+ Q
+V1 ;
+ S APCLVDFN="" F  S APCLVDFN=$O(^AUPNVINP("B",APCLODAT,APCLVDFN)) Q:APCLVDFN'=+APCLVDFN  I $D(^AUPNVINP(APCLVDFN,0)) S APCLVREC=^(0) D PROC
+ Q
+PROC ;
+ S DFN=$P(APCLVREC,U,2)
+ Q:$$DEMO^APCLUTL(DFN,$G(APCLDEMO))
+ Q:$P($G(^DPT(DFN,.35)),U)]""
+ S X2=$P(^DPT(DFN,0),U,3) Q:X2=""  S X1=$P($P(APCLVREC,U),".") D ^%DTC
+ Q:X<10  ;QUIT IF LESS THAN 10 DAYS OLD
+ S APCLVSIT=$P(APCLVREC,U,3)
+ S X1=$P($P(APCLVREC,U),"."),X2=$P($P(^AUPNVSIT(APCLVSIT,0),U),".") D ^%DTC
+ Q:X<1
+DXHIT ;
+ K APCLFOUN,APCLP S APCL1=0 F  S APCL1=$O(^AUPNVPOV("AD",APCLVSIT,APCL1)) Q:APCL1=""  I $P(^AUPNVPOV(APCL1,0),U,4)="P" S APCLP=APCL1
+ I '$D(APCLP) S APCLP=$O(^AUPNVPOV("AD",APCLVSIT,0))
+ Q:'$D(APCLP)  ;NO POV
+ Q:APCLP=""
+ Q:'$$ICD^ATXCHK($P(^AUPNVPOV(APCLP,0),U),APCLTAX,9)
+ S APCLPCNT=APCLPCNT+1
+ S ^DIBT(APCLSRCH,1,DFN)=""
+ W "."
+ Q
+XIT ;
+ K APCLSITE,APCLRPT,APCLINFO,APCLSORT,APCLPROC,APCLINF,APCLBD,APCLED,APCLSD,APCLDT,APCLLOC,APCLODAT,APCLVDFN,APCLVLOC,APCLVREC,APCLCLIN,APCLSKIP,APCL1,APCL2,APCLAP,APCLDISC,APCLPPOV,APCLX,APCLHIGH,APCLDATE,APCLPRNT,APCLJOB,APCLAPCC
+ K APCLDX,APCLLOW,APCLICD,APCLDA1,APCLDA2,APCLY,APCLTITL,APCL80S,APCLEDD,APCLHD1,APCLHD2,APCLLENG,APCLLOCT,APCLPG,APCLSRT2,APCLTOT,APCLBDD,APCLPROV,APCLSEC,APCLZ,APCLADIS,APCLQUIT,APCLLOCC,APCLBT,APCLBTH
+ K APCLJOB,APCLRXCL,APCLOTHC
+ K X,X1,X2,IO("Q"),%,Y,POP,DIRUT,ZTSK,ZTQUEUED,H,S,TS,M
+ Q

@@ -1,0 +1,10 @@
+BUD6TX ; IHS/CMI/LAB -CREATED BY ^ATXSTX ON DEC 02, 2006 ;
+ ;;6.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2012;Build 25
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^BUD6TXA ;   BGP HIV TEST LOINC CODES
+ D ^BUD6TXB ;   BUD CPT HIV TESTS
+ D ^BUD6TXC ;   BGP PAP LOINC CODES
+ Q

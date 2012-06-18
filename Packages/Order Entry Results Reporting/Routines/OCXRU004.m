@@ -1,0 +1,352 @@
+OCXRU004 ;SLC/RJS,CLA - OCX PACKAGE RULE TRANSPORT ROUTINE (Delete after Install of OR*3*96) ;JAN 30,2001 at 11:16
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**96**;Dec 17,1997
+ ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
+ ;
+S ;
+ ;
+ D DOT^OCXRULE
+ ;
+ ;
+ K REMOTE,LOCAL,OPCODE,REF
+ F LINE=1:1:500 S TEXT=$P($T(DATA+LINE),";",2,999) Q:TEXT  I $L(TEXT) D  Q:QUIT
+ .S ^TMP("OCXRULE",$J,$O(^TMP("OCXRULE",$J,"A"),-1)+1)=TEXT
+ ;
+ G ^OCXRU005
+ ;
+ Q
+ ;
+DATA ;
+ ;
+ ;;D^2
+ ;;EOR^
+ ;;KEY^863.7:^GCC NUMERIC LESS THAN
+ ;;R^"863.7:",.01,"E"
+ ;;D^GCC NUMERIC LESS THAN
+ ;;R^"863.7:",.02,"E"
+ ;;D^EXTRINSIC FUNCTION
+ ;;R^"863.7:",3,"E"
+ ;;D^LESS^OCXF20
+ ;;R^"863.7:","863.74:1",.01,"E"
+ ;;D^PRIMARY DATA FIELD
+ ;;R^"863.7:","863.74:1",1.1,"E"
+ ;;D^1
+ ;;R^"863.7:","863.74:2",.01,"E"
+ ;;D^COMPARISON VALUE
+ ;;R^"863.7:","863.74:2",1.1,"E"
+ ;;D^2
+ ;;EOR^
+ ;;EOF^OCXS(863.7)^1
+ ;;SOF^863.9  OCX MDD CONDITION/FUNCTION
+ ;;KEY^863.9:^DATE AFTER
+ ;;R^"863.9:",.01,"E"
+ ;;D^DATE AFTER
+ ;;R^"863.9:",.02,"E"
+ ;;D^DATE/TIME
+ ;;R^"863.9:",.03,"E"
+ ;;D^GCC DATE/TIME AFTER
+ ;;R^"863.9:",.04,"E"
+ ;;D^IS AFTER
+ ;;R^"863.9:","863.91:1",.01,"E"
+ ;;D^OCXO GENERATE CODE FUNCTION
+ ;;R^"863.9:","863.91:1",1,"E"
+ ;;D^GCC DATE/TIME AFTER
+ ;;R^"863.9:","863.92:1",.01,"E"
+ ;;D^AFTER
+ ;;R^"863.9:","863.92:2",.01,"E"
+ ;;D^GREATER THAN
+ ;;R^"863.9:","863.92:3",.01,"E"
+ ;;D^SINCE
+ ;;R^"863.9:","863.92:4",.01,"E"
+ ;;D^>
+ ;;EOR^
+ ;;KEY^863.9:^EQ FREE TEXT
+ ;;R^"863.9:",.01,"E"
+ ;;D^EQ FREE TEXT
+ ;;R^"863.9:",.02,"E"
+ ;;D^FREE TEXT
+ ;;R^"863.9:",.04,"E"
+ ;;D^IS EQUAL TO
+ ;;R^"863.9:","863.91:3",.01,"E"
+ ;;D^OCXO GENERATE CODE FUNCTION
+ ;;R^"863.9:","863.91:3",1,"E"
+ ;;D^GCC FREE TEXT EQUALS
+ ;;R^"863.9:","863.92:1",.01,"E"
+ ;;D^EQUALS
+ ;;EOR^
+ ;;KEY^863.9:^EQUALS ELEMENT IN SET
+ ;;R^"863.9:",.01,"E"
+ ;;D^EQUALS ELEMENT IN SET
+ ;;R^"863.9:",.02,"E"
+ ;;D^FREE TEXT
+ ;;R^"863.9:",.04,"E"
+ ;;D^EQUALS AN ELEMENT IN THE SET
+ ;;R^"863.9:","863.91:1",.01,"E"
+ ;;D^OCXO GENERATE CODE FUNCTION
+ ;;R^"863.9:","863.91:1",1,"E"
+ ;;D^GCC FREE TEXT EQUALS ELEMENT IN SET
+ ;;EOR^
+ ;;KEY^863.9:^GREATER THAN
+ ;;R^"863.9:",.01,"E"
+ ;;D^GREATER THAN
+ ;;R^"863.9:",.02,"E"
+ ;;D^NUMERIC
+ ;;R^"863.9:",.04,"E"
+ ;;D^IS GREATER THAN
+ ;;R^"863.9:","863.91:3",.01,"E"
+ ;;D^OCXO GENERATE CODE FUNCTION
+ ;;R^"863.9:","863.91:3",1,"E"
+ ;;D^GCC NUMERIC GREATER THAN
+ ;;EOR^
+ ;;KEY^863.9:^LESS THAN
+ ;;R^"863.9:",.01,"E"
+ ;;D^LESS THAN
+ ;;R^"863.9:",.02,"E"
+ ;;D^NUMERIC
+ ;;R^"863.9:",.04,"E"
+ ;;D^IS LESS THAN
+ ;;R^"863.9:","863.91:3",.01,"E"
+ ;;D^OCXO GENERATE CODE FUNCTION
+ ;;R^"863.9:","863.91:3",1,"E"
+ ;;D^GCC NUMERIC LESS THAN
+ ;;EOR^
+ ;;KEY^863.9:^LOGICAL TRUE
+ ;;R^"863.9:",.01,"E"
+ ;;D^LOGICAL TRUE
+ ;;R^"863.9:",.02,"E"
+ ;;D^BOOLEAN
+ ;;R^"863.9:",.03,"E"
+ ;;D^GCC BOOLEAN LOGICAL TRUE
+ ;;R^"863.9:",.04,"E"
+ ;;D^IS TRUE
+ ;;R^"863.9:","863.91:1",.01,"E"
+ ;;D^OCXO GENERATE CODE FUNCTION
+ ;;R^"863.9:","863.91:1",1,"E"
+ ;;D^GCC BOOLEAN LOGICAL TRUE
+ ;;R^"863.9:","863.92:1",.01,"E"
+ ;;D^TRUE
+ ;;EOR^
+ ;;KEY^863.9:^NOT EQUAL TO
+ ;;R^"863.9:",.01,"E"
+ ;;D^NOT EQUAL TO
+ ;;R^"863.9:",.02,"E"
+ ;;D^FREE TEXT
+ ;;R^"863.9:",.04,"E"
+ ;;D^IS NOT EQUAL TO
+ ;;R^"863.9:","863.91:1",.01,"E"
+ ;;D^OCXO GENERATE CODE FUNCTION
+ ;;R^"863.9:","863.91:1",1,"E"
+ ;;D^GCC FREE TEXT NOT EQUALS
+ ;;R^"863.9:","863.91:2",.01,"E"
+ ;;D^OCXO NULL VALUE ALLOWED
+ ;;R^"863.9:","863.91:2",1,"E"
+ ;;D^1
+ ;;EOR^
+ ;;KEY^863.9:^STARTS WITH
+ ;;R^"863.9:",.01,"E"
+ ;;D^STARTS WITH
+ ;;R^"863.9:",.02,"E"
+ ;;D^FREE TEXT
+ ;;R^"863.9:",.04,"E"
+ ;;D^STARTS WITH
+ ;;R^"863.9:","863.91:3",.01,"E"
+ ;;D^OCXO GENERATE CODE FUNCTION
+ ;;R^"863.9:","863.91:3",1,"E"
+ ;;D^GCC FREE TEXT STARTS WITH
+ ;;R^"863.9:","863.92:1",.01,"E"
+ ;;D^BEGINS WITH
+ ;;EOR^
+ ;;EOF^OCXS(863.9)^1
+ ;;SOF^863.4  OCX MDD ATTRIBUTE
+ ;;KEY^863.4:^CANCELED BY
+ ;;R^"863.4:",.01,"E"
+ ;;D^CANCELED BY
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^CREAT CLEAR DATE
+ ;;R^"863.4:",.01,"E"
+ ;;D^CREAT CLEAR DATE
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^DATE/TIME
+ ;;EOR^
+ ;;KEY^863.4:^CREAT. CLEAR. VALUE
+ ;;R^"863.4:",.01,"E"
+ ;;D^CREAT. CLEAR. VALUE
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^NUMERIC
+ ;;EOR^
+ ;;KEY^863.4:^FILLER
+ ;;R^"863.4:",.01,"E"
+ ;;D^FILLER
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^FOOD-DRUG INTERACTION MED
+ ;;R^"863.4:",.01,"E"
+ ;;D^FOOD-DRUG INTERACTION MED
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^BOOLEAN
+ ;;EOR^
+ ;;KEY^863.4:^HL7 CONTROL CODE
+ ;;R^"863.4:",.01,"E"
+ ;;D^HL7 CONTROL CODE
+ ;;R^"863.4:",.02,"E"
+ ;;D^HL7CCODE
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^HL7 ENTERED BY
+ ;;R^"863.4:",.01,"E"
+ ;;D^HL7 ENTERED BY
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^HL7 FILLER
+ ;;R^"863.4:",.01,"E"
+ ;;D^HL7 FILLER
+ ;;R^"863.4:",.02,"E"
+ ;;D^HL7FILLR
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^IEN
+ ;;R^"863.4:",.01,"E"
+ ;;D^IEN
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^NUMERIC
+ ;;EOR^
+ ;;KEY^863.4:^INPATIENT
+ ;;R^"863.4:",.01,"E"
+ ;;D^INPATIENT
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^BOOLEAN
+ ;;EOR^
+ ;;KEY^863.4:^LAB RESULTS
+ ;;R^"863.4:",.01,"E"
+ ;;D^LAB RESULTS
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^ORDER MODE
+ ;;R^"863.4:",.01,"E"
+ ;;D^ORDER MODE
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^ORDER NUMBER
+ ;;R^"863.4:",.01,"E"
+ ;;D^ORDER NUMBER
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^NUMERIC
+ ;;EOR^
+ ;;KEY^863.4:^ORDERABLE ITEM
+ ;;R^"863.4:",.01,"E"
+ ;;D^ORDERABLE ITEM
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^ORDERED BY
+ ;;R^"863.4:",.01,"E"
+ ;;D^ORDERED BY
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;KEY^863.4:^PT LOCATION
+ ;;R^"863.4:",.01,"E"
+ ;;D^PT LOCATION
+ ;;R^"863.4:","863.41:1",.01,"E"
+ ;;D^DATA TYPE
+ ;;R^"863.4:","863.41:1",1,"E"
+ ;;D^FREE TEXT
+ ;;EOR^
+ ;;EOF^OCXS(863.4)^1
+ ;;SOF^863.2  OCX MDD SUBJECT
+ ;;KEY^863.2:^PATIENT
+ ;;R^"863.2:",.01,"E"
+ ;;D^PATIENT
+ ;;R^"863.2:","863.21:1",.01,"E"
+ ;;D^FILE
+ ;;R^"863.2:","863.21:1",1,"E"
+ ;;D^2
+ ;;EOR^
+ ;;EOF^OCXS(863.2)^1
+ ;;SOF^863.3  OCX MDD LINK
+ ;;KEY^863.3:^HL7_ENTERED BY
+ ;;R^"863.3:",.01,"E"
+ ;;D^HL7_ENTERED BY
+ ;;R^"863.3:",.02,"E"
+ ;;D^PATIENT
+ ;;R^"863.3:",.05,"E"
+ ;;D^HL7 ENTERED BY
+ ;;R^"863.3:",.06,"E"
+ ;;D^99
+ ;;R^"863.3:","863.32:1",.01,"E"
+ ;;D^OCXO VARIABLE NAME
+ ;;R^"863.3:","863.32:1",1,"E"
+ ;;D^OCXODATA("ORC",10)
+ ;;R^"863.3:","863.32:2",.01,"E"
+ ;;D^OCXO UP-ARROW PIECE NUMBER
+ ;;R^"863.3:","863.32:2",1,"E"
+ ;;D^1
+ ;;EOR^
+ ;;KEY^863.3:^INPATIENT
+ ;;R^"863.3:",.01,"E"
+ ;;D^INPATIENT
+ ;;R^"863.3:",.02,"E"
+ ;;D^PATIENT
+ ;;R^"863.3:",.05,"E"
+ ;;D^INPATIENT
+ ;;R^"863.3:",.06,"E"
+ ;;D^99
+ ;;R^"863.3:","863.32:1",.01,"E"
+ ;;D^OCXO EXTERNAL FUNCTION CALL
+ ;;R^"863.3:","863.32:1",1,"E"
+ ;;D^WARDRMBD(|PATIENT IEN|)
+ ;;R^"863.3:","863.32:2",.01,"E"
+ ;;D^OCXO UP-ARROW PIECE NUMBER
+ ;;R^"863.3:","863.32:2",1,"E"
+ ;;D^1
+ ;;EOR^
+ ;;KEY^863.3:^ORDER.CANCELED BY
+ ;;R^"863.3:",.01,"E"
+ ;;D^ORDER.CANCELED BY
+ ;;R^"863.3:",.02,"E"
+ ;;D^PATIENT
+ ;;R^"863.3:",.05,"E"
+ ;;D^CANCELED BY
+ ;;R^"863.3:",.06,"E"
+ ;;D^998
+ ;;R^"863.3:","863.32:1",.01,"E"
+ ;;D^OCXO EXTERNAL FUNCTION CALL
+ ;1;
+ ;

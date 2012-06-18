@@ -1,0 +1,118 @@
+FHINI0CL	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8070,1)
+	;;=3.846^14.744^42.308^320.513^^^^16.667^1.282^^^493.59^115.385
+	;;^UTILITY(U,$J,112,8070,2)
+	;;=^^^^^^^^0^3.205^7.051^5.128
+	;;^UTILITY(U,$J,112,8070,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8071,0)
+	;;=FRENCH FRIES (LARGE),HARDEE'S^BC-01344^4-oz.^113
+	;;^UTILITY(U,$J,112,8071,1)
+	;;=3.54^15.044^42.478^318.584^^^^16.814^.885^^^495.575^119.469
+	;;^UTILITY(U,$J,112,8071,2)
+	;;=^^^^^^^^0^2.655^7.08^5.31
+	;;^UTILITY(U,$J,112,8071,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8072,0)
+	;;=FRENCH FRIES (REG),HARDEE'S^BC-01345^2.5-oz.^71
+	;;^UTILITY(U,$J,112,8072,1)
+	;;=4.225^15.493^42.254^323.944^^^^16.901^1.408^^^492.958^119.718
+	;;^UTILITY(U,$J,112,8072,2)
+	;;=^^^^^^^^0^2.817^7.042^5.634
+	;;^UTILITY(U,$J,112,8072,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8073,0)
+	;;=HAMBURGER,HARDEE'S^BC-01346^sandwich^110
+	;;^UTILITY(U,$J,112,8073,1)
+	;;=11.818^9.091^30^245.455^^^^100.909^2.727^^^181.818^445.455
+	;;^UTILITY(U,$J,112,8073,2)
+	;;=^^^^^^^^18.182^3.636^3.636^1.818
+	;;^UTILITY(U,$J,112,8073,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8074,0)
+	;;=HASH ROUNDS,HARDEE'S^BC-01347^serving^79
+	;;^UTILITY(U,$J,112,8074,1)
+	;;=3.797^17.722^30.38^291.139^^^^12.658^1.266^^^506.329^708.861
+	;;^UTILITY(U,$J,112,8074,2)
+	;;=^^^^^^^^0^3.797^8.861^5.063
+	;;^UTILITY(U,$J,112,8074,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8075,0)
+	;;=HOT DOG,ALL BEEF,HARDEE'S^BC-01348^hotdog^120
+	;;^UTILITY(U,$J,112,8075,1)
+	;;=9.167^14.167^20.833^250^^^^66.667^2.5^^^150^591.667
+	;;^UTILITY(U,$J,112,8075,2)
+	;;=^^^^^^^^20.833^6.667^6.667^1.667
+	;;^UTILITY(U,$J,112,8075,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8076,0)
+	;;=HOT HAM 'N CHEESE SANDWICH,HARDEE'S^BC-01349^sandwich^149
+	;;^UTILITY(U,$J,112,8076,1)
+	;;=15.436^8.054^21.477^221.477^^^^193.289^2.013^^^201.342^953.02
+	;;^UTILITY(U,$J,112,8076,2)
+	;;=^^^^^^^^43.624^3.356^2.685^1.342
+	;;^UTILITY(U,$J,112,8076,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8077,0)
+	;;=MUSHROOM & SWISS BURGER,HARDEE'S^BC-01350^sandwich^186
+	;;^UTILITY(U,$J,112,8077,1)
+	;;=16.129^14.516^17.742^263.441^^^^158.065^2.688^^^198.925^505.376
+	;;^UTILITY(U,$J,112,8077,2)
+	;;=^^^^^^^^37.634^6.989^6.452^1.075
+	;;^UTILITY(U,$J,112,8077,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8078,0)
+	;;=PANCAKES,HARDEE'S^BC-01351^3-pancakes^137
+	;;^UTILITY(U,$J,112,8078,1)
+	;;=5.839^1.46^40.876^204.38^^^^45.985^2.19^^^175.182^649.635
+	;;^UTILITY(U,$J,112,8078,2)
+	;;=^^^^^^^^10.949^.73^.73^0
+	;;^UTILITY(U,$J,112,8078,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8079,0)
+	;;=PANCAKES & BACON,HARDEE'S^BC-01352^3-cak,2-st^150
+	;;^UTILITY(U,$J,112,8079,1)
+	;;=8.667^6^37.333^233.333^^^^43.333^2.667^^^193.333^740
+	;;^UTILITY(U,$J,112,8079,2)
+	;;=^^^^^^^^16.667^2^2.667^.667
+	;;^UTILITY(U,$J,112,8079,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8080,0)
+	;;=PANCAKES & SAUSAGE PATTIE,HARDEE'S^BC-01353^3-cak,1-pa^176
+	;;^UTILITY(U,$J,112,8080,1)
+	;;=9.091^9.091^31.818^244.318^^^^39.773^2.273^^^198.864^732.955
+	;;^UTILITY(U,$J,112,8080,2)
+	;;=^^^^^^^^22.727^3.409^4.545^1.136
+	;;^UTILITY(U,$J,112,8080,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8081,0)
+	;;=PANCAKE SYRUP,HARDEE'S^BC-01354^serving^43
+	;;^UTILITY(U,$J,112,8081,1)
+	;;=0^0^72.093^279.07^^^^2.326^2.326^^^23.256^58.14
+	;;^UTILITY(U,$J,112,8081,2)
+	;;=^^^^^^^^0^0^0^0
+	;;^UTILITY(U,$J,112,8081,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8082,0)
+	;;=ROAST BEEF SANDWICH,HARDEE'S^BC-01355^sandwich^114
+	;;^UTILITY(U,$J,112,8082,1)
+	;;=13.158^7.895^27.193^228.07^^^^92.105^3.509^^^228.07^640.351
+	;;^UTILITY(U,$J,112,8082,2)
+	;;=^^^^^^^^30.702^3.509^3.509^1.754
+	;;^UTILITY(U,$J,112,8082,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8083,0)
+	;;=ROAST BEEF SANDWICH,BIG,HARDEE'S^BC-01356^sandwich^134
+	;;^UTILITY(U,$J,112,8083,1)
+	;;=13.433^8.209^23.881^223.881^^^^79.104^3.731^^^238.806^656.716
+	;;^UTILITY(U,$J,112,8083,2)
+	;;=^^^^^^^^33.582^3.731^3.731^1.493
+	;;^UTILITY(U,$J,112,8083,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8084,0)
+	;;=SALAD DRESSING,BLUE CHEESE,HARDEE'S^BC-01357^2-oz.^57
+	;;^UTILITY(U,$J,112,8084,1)
+	;;=1.754^31.579^17.544^368.421^^^^40.351^^^^61.404^1385.965

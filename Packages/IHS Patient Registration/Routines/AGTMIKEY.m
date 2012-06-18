@@ -1,0 +1,19 @@
+AGTMIKEY ; IHS/ASDS/EFG - Keyword Lookup Maintenance for INSURER File ; 
+ ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;
+KEYW S DIE="^AICDKWLC("
+ S DA=$O(^AICDKWLC("B","INSURERS","")) I 'DA W *7,"-- No INSURER subfile in KEYWORD LOOKUP CONTROL file",! Q
+ S DR="1"
+ D ^DIE K DR
+ Q
+REPL ;EP -
+ S DIE="^AICDKWLC("
+ S DA=$O(^AICDKWLC("B","INSURERS","")) I 'DA W *7,"-- No INSURER subfile in KEYWORD LOOKUP CONTROL file",! Q
+ S DR="2",DIC("W")="W "" - "",$P(^(0),U,2)"
+ D ^DIE K DR
+ Q
+FREQ S DIE="^AICDKWLC("
+ S DA=$O(^AICDKWLC("B","INSURERS","")) I 'DA W *7,"-- No INSURER subfile in KEYWORD LOOKUP CONTROL file",! Q
+ S DR="1"
+ D ^DIE K DR
+ Q

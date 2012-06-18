@@ -1,0 +1,116 @@
+FHINI0FG	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9504,2)
+	;;=.175^.877^^^^^^^0^^^^78.947^^^^0
+	;;^UTILITY(U,$J,112,9504,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9505,0)
+	;;=SAUCE,PICANTE,MEDIUM,CHUNKY,ROSARITA^BC-02778^3-tbsp.^57
+	;;^UTILITY(U,$J,112,9505,1)
+	;;=0^0^7.018^28.07^^^^21.053^.351^^^228.07^1140.351^^^^^^17.544^.07
+	;;^UTILITY(U,$J,112,9505,2)
+	;;=.175^.877^^^^^^^0^^^^78.947^^^^0
+	;;^UTILITY(U,$J,112,9505,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9506,0)
+	;;=SAUCE,PIZZA,CONTADINA ORIGINAL^BC-02779^1/4-cup^60
+	;;^UTILITY(U,$J,112,9506,1)
+	;;=1.667^1.667^8.333^50^83.333^^^21.667^1.2^13.333^23.333^366.667^550^^^^^1115^23.333^.067
+	;;^UTILITY(U,$J,112,9506,2)
+	;;=.033^1^^^^^^^0
+	;;^UTILITY(U,$J,112,9506,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9507,0)
+	;;=SAUCE,PIZZA,CONTADINA W/ITALIAN CHEESES^BC-02780^1/4-cup^60
+	;;^UTILITY(U,$J,112,9507,1)
+	;;=1.667^1.667^8.333^50^80.667^^^35^1.183^30^31.667^466.667^633.333^^^^^1106.667^23.333^.067
+	;;^UTILITY(U,$J,112,9507,2)
+	;;=.033^1^^^^^^^0
+	;;^UTILITY(U,$J,112,9507,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9508,0)
+	;;=SAUCE,PIZZA,CONTADINA W/ PEPPERONI^BC-02781^1/4-cup^60
+	;;^UTILITY(U,$J,112,9508,1)
+	;;=1.667^3.333^8.333^66.667^80.333^^^21.667^1.217^13.333^26.667^433.333^650^^^^^1098.333^21.667^.067
+	;;^UTILITY(U,$J,112,9508,2)
+	;;=.033^.167^^^^^^^0^.667^^1.167
+	;;^UTILITY(U,$J,112,9508,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9509,0)
+	;;=SAUCE,PIZZA,CONTADINA W/TOMATO CHUNKS^BC-02782^1/4-cup^60
+	;;^UTILITY(U,$J,112,9509,1)
+	;;=0^1.667^8.333^41.667^87.167^^^31.667^.633^^^293.333^466.667^^^^^486.667^3.333^.017
+	;;^UTILITY(U,$J,112,9509,2)
+	;;=.017^1
+	;;^UTILITY(U,$J,112,9509,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9510,0)
+	;;=SAUCE,PLUM,TANGY,LACHOY^BC-02783^tbsp.^15
+	;;^UTILITY(U,$J,112,9510,1)
+	;;=0^0^40^166.667^^^^^^^^66.667^66.667
+	;;^UTILITY(U,$J,112,9510,2)
+	;;=^^^^^^^^0^^^^^^^^0
+	;;^UTILITY(U,$J,112,9510,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9511,0)
+	;;=SAUCE,SALSA,HOT CHUNKY,ROSARITA^BC-02784^3-tbsp.^43
+	;;^UTILITY(U,$J,112,9511,1)
+	;;=2.326^0^13.953^58.14^^^^46.512^1.628^^^232.558^697.674^^^^^^39.535^.116
+	;;^UTILITY(U,$J,112,9511,2)
+	;;=.465^1.628^^^^^^^0^^^^213.953^^^^0
+	;;^UTILITY(U,$J,112,9511,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9512,0)
+	;;=SAUCE,SALSA,MED CHUNKY,ROSARITA^BC-02785^3-tbsp.^43
+	;;^UTILITY(U,$J,112,9512,1)
+	;;=2.326^0^13.953^58.14^^^^81.395^.465^^^302.326^813.953^^^^^^39.535^.116
+	;;^UTILITY(U,$J,112,9512,2)
+	;;=.651^1.628^^^^^^^0^^^^218.605^^^^0
+	;;^UTILITY(U,$J,112,9512,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9513,0)
+	;;=SAUCE,KIKKOMAN^BC-02786^1/4-cup^58
+	;;^UTILITY(U,$J,112,9513,1)
+	;;=8.793^0^7.759^65.517^68.448^^^^^^^400^5300
+	;;^UTILITY(U,$J,112,9513,2)
+	;;=^^^^^^^^0^^^^^^^^0
+	;;^UTILITY(U,$J,112,9513,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9514,0)
+	;;=SAUCE,KIKKOMAN LITE^BC-02787^1/4-cup^58
+	;;^UTILITY(U,$J,112,9514,1)
+	;;=8.448^0^10^74.138^71.724^^^^^^^300^3300
+	;;^UTILITY(U,$J,112,9514,2)
+	;;=^^^^^^^^0^^^^^^^^0
+	;;^UTILITY(U,$J,112,9514,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9515,0)
+	;;=SAUCE,SPAGHETTI,CND,HUNT CHUNKY^BC-02788^4-oz.^113
+	;;^UTILITY(U,$J,112,9515,1)
+	;;=.885^0^10.619^44.248^^^^22.124^.973^^^407.08^415.929^^^^^^7.965^.071
+	;;^UTILITY(U,$J,112,9515,2)
+	;;=.053^.885^^^^^^^0^^^^53.097^^^^1.77
+	;;^UTILITY(U,$J,112,9515,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9516,0)
+	;;=SAUCE,SPAGHETTI,CND,HUNT HOMESTYLE^BC-02789^4-oz.^113
+	;;^UTILITY(U,$J,112,9516,1)
+	;;=1.77^1.77^8.85^53.097^^^^18.584^1.504^^^353.982^469.027^^^^^^10.619^.08
+	;;^UTILITY(U,$J,112,9516,2)
+	;;=.053^2.655^^^^^^^0^.265^^.796^88.496^^^^1.77
+	;;^UTILITY(U,$J,112,9516,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9517,0)
+	;;=SAUCE,SPAGHETTI,CND,HUNT HOMESTYLE W/MEAT^BC-02790^4-oz.^113
+	;;^UTILITY(U,$J,112,9517,1)
+	;;=2.655^1.77^7.965^53.097^^^^15.044^1.504^^^353.982^504.425^^^^^^15.929^.08
+	;;^UTILITY(U,$J,112,9517,2)
+	;;=.053^2.566^^^^^^^1.77^.177^^.708^129.204^^^^1.77
+	;;^UTILITY(U,$J,112,9517,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9518,0)
+	;;=SAUCE,SPAGHETTI,CND,HUNT HOMESTYLE W/MUSHROOMS^BC-02791^4-oz.^113
+	;;^UTILITY(U,$J,112,9518,1)
+	;;=1.77^.885^8.85^44.248^^^^15.044^1.504^^^309.735^469.027^^^^^^15.929^.08

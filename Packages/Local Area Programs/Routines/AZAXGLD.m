@@ -1,0 +1,122 @@
+AZAXGLD	;IHS/PHXAO/AEF - CLEAN UP GLD NAMESPACE
+	;1.0;ANNE'S SPECIAL ROUTINES;;OCT 19, 2004
+	;
+	;
+	;============================================================
+	;=====   THIS SECTION CLEANS UP THE LAB TEST FILE #60   =====
+	;============================================================
+LAB60	;EP
+	;----- CLEAN UP LAB TEST FILE #60
+	;
+	N IEN0
+	;
+	S IEN0=0
+	F  S IEN0=$O(^LAB(60,IEN0)) Q:'IEN0  D
+	. D LABONE(IEN0)
+	Q
+LABONE(IEN0)	;
+	;----- DELETE DATA FROM ONE ENTRY
+	;
+	N SUBS
+	;
+	D LABFLDS(IEN0)
+	;
+	F SUBS=2,3,5,6,7,8,9,9.1,11 D LABSUB(IEN0,SUBS)
+	;
+	Q
+LABFLDS(IEN0)	;
+	;----- DELETE FIELDS FROM ONE FILE 60 ENTRY
+	;
+	N DA,DIE,DR,X,Y
+	;
+	S DA=IEN0
+	S DIE="^LAB(60,"
+	S DR="400///@;99.1///@;99.2///@;504///@;999999901///@"
+	D ^DIE
+	Q
+LABSUB(IEN0,SUBS)	;
+	;----- DELETE DATA FROM ONE SUBSCRIPT NODE OF ONE ENTRY
+	;
+	N IEN1
+	;
+	S IEN1=0
+	F  S IEN1=$O(^LAB(60,IEN0,SUBS,IEN1)) Q:'IEN1  D
+	. D LABDEL(IEN0,SUBS,IEN1)
+	Q
+LABDEL(IEN0,SUBS,IEN1)	;
+	;----- ACTUALLY DELETE THE DATA
+	;
+	N DA,DIK,X,Y
+	;
+	S DA=IEN1
+	S DA(1)=IEN0
+	S DIK="^LAB(60,"_DA(1)_","_SUBS_","
+	D ^DIK
+	Q
+	;
+	;================================================================
+	;=====          THIS SECTION CLEANS UP THE V FILES          =====
+	;================================================================
+	;
+VFILES	;EP
+	;----- CLEAN UP V FILES
+	;
+	N FNUM,GL,GLOB,I,X
+	;
+	D ^XBKVAR
+	;
+	F I=1:1 S X=$T(VFLS+I) Q:X["$$END"  D
+	. S FNUM=$P(X,";;",2)
+	. Q:'FNUM
+	. S GL=$P($G(^DIC(FNUM,0,"GL")),U,2)
+	. S GLOB=$P(GL,"(")
+	. D VK1G(GLOB)
+	Q
+VK1G(GLOB)	;
+	;----- KILL ONE ENTIRE GLOBAL AND PUT BACK THE ZERO NODE
+	;
+	W !,GLOB
+	;
+	S GLOB(GLOB)=@(U_GLOB_"(0)")
+	S $P(GLOB(GLOB),U,3,4)=U
+	K @(U_GLOB)
+	S @(U_GLOB_"(0)")=GLOB(GLOB)
+	Q
+VFLS	;----- THE V FILE NUMBERS TO BE CLEANED UP
+	;;9000010
+	;;9000010.01
+	;;9000010.02
+	;;9000010.03
+	;;9000010.04
+	;;9000010.05
+	;;9000010.06
+	;;9000010.07
+	;;9000010.08
+	;;9000010.09
+	;;9000010.11
+	;;9000010.12
+	;;9000010.13
+	;;9000010.14
+	;;9000010.15
+	;;9000010.16
+	;;9000010.17
+	;;9000010.18
+	;;9000010.19
+	;;9000010.21
+	;;9000010.22
+	;;9000010.23
+	;;9000010.24
+	;;9000010.25
+	;;9000010.28
+	;;9000010.29
+	;;9000010.31
+	;;9000010.32
+	;;9000010.33
+	;;9000010.34
+	;;9000010.35
+	;;9000010.37
+	;;9000010.38
+	;;9000010.39
+	;;9000010.41
+	;;9000010.42
+	;;$$END

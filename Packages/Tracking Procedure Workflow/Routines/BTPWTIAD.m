@@ -1,0 +1,39 @@
+BTPWTIAD ;VNGT/HS/ALA-Create an Addendum to a Note ; 07 Jun 2010  6:54 AM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;
+ ;
+EN(NDATA,TIUDA,TEXT) ; EP -- BTPW TIU ADDENDUM
+ ; Input
+ ;   TIUDA - IEN of the original document
+ ;   TEXT  - TEXT of the addendum to be created
+ NEW UID,II,TIUX,RESULT
+ S II=0
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BTPWTINT D UNWIND^%ZTER" ; SAC 2006 2.2.3
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S NDATA=$NA(^TMP("BTPWTIAD",UID))
+ K @NDATA
+ S TIUX(1202)=DUZ
+ S TIUX(1301)=$$NOW^XLFDT()
+ S @NDATA@(II)="I00010RESULT^T01024MSG^I00010ADIEN"_$C(30)
+ ;
+ S TEXT=$G(TEXT,"")
+ I TEXT="" D
+ . N LIST,BN
+ . S LIST="",BN=""
+ . F  S BN=$O(TEXT(BN)) Q:BN=""  S LIST=LIST_TEXT(BN)
+ . K TEXT
+ . S TEXT=LIST
+ . K LIST
+ ;
+ ;Define Addendum Text
+ I TEXT'="" F I=1:1:$L(TEXT,$C(10)) S TIUX("TEXT",I,0)=$P(TEXT,$C(10),I)
+ I '$D(TIUX("TEXT")) S TIUX("TEXT",1,0)="CMET Notification marked as Entered in Error"
+ ;
+ D MAKEADD^TIUSRVP(.RESULT,TIUDA,.TIUX,1)
+ I $P(RESULT,U,1)=0 D  Q
+ . S II=II+1,@NDATA@(II)="-1^"_$P(RESULT,U,2)_$C(30)
+ . S II=II+1,@NDATA@(II)=$C(31)
+ S II=II+1,@NDATA@(II)="1^^"_$P(RESULT,U,1)_$C(30)
+ S II=II+1,@NDATA@(II)=$C(31)
+ Q

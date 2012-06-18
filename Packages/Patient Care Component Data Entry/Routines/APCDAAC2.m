@@ -1,0 +1,34 @@
+APCDAAC2 ; IHS/CMI/LAB - CDMIS PCC LINK ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+ ;
+E ;EP - edited a cdmis record
+ I '$G(ACDEV("VFILES",9000010)) S ACDEV("TYPE")="A" D A^APCDAACD Q  ;no pcc visit ever created to edit, act like add
+ S APCDVSIT=ACDEV("VFILES",9000010)
+ D DELVFS
+ I $P(^AUPNVSIT(APCDVSIT,0),U,11) S ACDEV("TYPE")="A" D A^APCDAACD Q  ;if pcc visit gone get rid of 15th, v file multiple and then act like add
+ ;if not deleted, do visit mod and then re-add vfiles
+ S APCDALVR("APCDVSIT")=APCDVSIT
+ S APCDALVR("APCDATMP")="[APCDALVR 9000010 (MOD)]"
+ D VISIT^APCDAACD
+ D ^APCDALVR
+ I $D(APCDALVR("APCDAFLG")) S APCDQUIT=28 D VSERROR^APCDAACD Q
+ D VFILES^APCDAAC1
+ S APCDV("9000010")=APCDVSIT
+ D COMPLETE^APCDALD
+ Q
+ ;
+D ;EP cdmis visit deleted
+ I '$G(ACDEV("VFILES",9000010)) Q  ;no visit to begin with
+ S APCDVSIT=ACDEV("VFILES",9000010)
+ D DELVFS
+ Q
+ ;
+DELVFS ;delete vfiles
+ S APCDF=0 F  S APCDF=$O(ACDEV("VFILES",APCDF)) Q:APCDF'=+APCDF  D
+ .S APCDN=0 F  S APCDN=$O(ACDEV("VFILES",APCDF,APCDN)) Q:APCDN'=+APCDN  S DA=APCDN,DIK=^DIC(APCDF,0,"GL") D ^DIK
+ .K DA,DIK
+ .Q
+ I '$P(^AUPNVSIT(APCDVSIT,0),U,9),'$P(^(0),U,11) S APCDVDLT=APCDVSIT D ^APCDVDLT ;if no dependent entries delete visit
+ K APCDF,APCDN,APCDVDLT
+ Q

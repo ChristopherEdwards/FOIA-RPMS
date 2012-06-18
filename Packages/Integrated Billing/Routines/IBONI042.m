@@ -1,0 +1,52 @@
+IBONI042	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,"PRO",1082,1,0)
+	;;=^^1^1^2931124^
+	;;^UTILITY(U,$J,"PRO",1082,1,1,0)
+	;;=Allows forms to be compiled into a format that is very fast to print.
+	;;^UTILITY(U,$J,"PRO",1082,2,0)
+	;;=^101.02A^1^1
+	;;^UTILITY(U,$J,"PRO",1082,2,1,0)
+	;;=RC
+	;;^UTILITY(U,$J,"PRO",1082,2,"B","RC",1)
+	;;=
+	;;^UTILITY(U,$J,"PRO",1082,20)
+	;;=D CMPLACTN^IBDF19
+	;;^UTILITY(U,$J,"PRO",1082,99)
+	;;=55853,51175
+	;;^UTILITY(U,$J,"PRO",1102,0)
+	;;=IBCNSC INS CO RX CLAIMS^Prescr Claims Of^^A^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"PRO",1102,4)
+	;;=^^^PC
+	;;^UTILITY(U,$J,"PRO",1102,10,0)
+	;;=^101.01PA^^
+	;;^UTILITY(U,$J,"PRO",1102,15)
+	;;=S VALMBG=27
+	;;^UTILITY(U,$J,"PRO",1102,20)
+	;;=S IBY=",11," D EA^IBCNSC1
+	;;^UTILITY(U,$J,"PRO",1102,99)
+	;;=55886,42441
+	;;^UTILITY(U,$J,"PRO",1103,0)
+	;;=IBCNS QUIT^Exit^^A^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"PRO",1103,4)
+	;;=^^^EX
+	;;^UTILITY(U,$J,"PRO",1103,15)
+	;;=S VALMBCK="Q"
+	;;^UTILITY(U,$J,"PRO",1103,20)
+	;;=S VALMBCK="Q"
+	;;^UTILITY(U,$J,"PRO",1103,99)
+	;;=55894,56470
+	;;^UTILITY(U,$J,"PRO",1104,0)
+	;;=IBTRC CHANGE PATIENT^Change Patient^^A^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"PRO",1104,20)
+	;;=D CP^IBTRC1
+	;;^UTILITY(U,$J,"PRO",1104,99)
+	;;=55900,51856
+	;;^UTILITY(U,$J,"PRO",1105,0)
+	;;=IBTRV CHANGE PATIENT^Change Patient^^A^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"PRO",1105,20)
+	;;=D CP^IBTRV1
+	;;^UTILITY(U,$J,"PRO",1105,99)
+	;;=55900,51918

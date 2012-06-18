@@ -1,0 +1,91 @@
+APCLHDD ; IHS/CMI/LAB - hospital discharge list ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;This report replaces the old fileman HDD report
+ ;
+ W:$D(IOF) @IOF W !!?20,"LISTING OF HOSPITAL DISCHARGES BY DATE AND LOCATION",!!
+ W "This report is for direct services only, contract health discharges are not"
+ W !,"included.",!!
+GETDATES ;
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Discharge Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G END
+ S APCLBD=Y
+ED ;get ending date
+ W ! S DIR(0)="DA^"_APCLBD_":DT:EP",DIR("A")="Enter ending Discharge Date:  " S Y=APCLBD D DD^%DT S Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S APCLED=Y
+ S X1=APCLBD,X2=-1 D C^%DTC S APCLSD=X
+ ;
+ ;
+LOC ;
+ S DIR(0)="YO",DIR("A")="Include DISCHARGES from ALL Locations",DIR("?")="If you wish to include visits from ALL locations answer Yes.  If you wish to tabulate for only one location of encounter enter NO." D ^DIR K DIR
+ G:$D(DIRUT) BD
+ I Y=1 S APCLLOC="" G ZIS
+LOC1 ;enter location
+ S DIC("A")="Which Location: ",DIC="^AUTTLOC(",DIC(0)="AEMQ" D ^DIC K DIC,DA G:Y<0 LOC
+ S APCLLOC=+Y
+ZIS ;
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G LOC
+ S XBRC="PROC^APCLHDD",XBRP="PRINT^APCLHDD",XBNS="APCL",XBRX="END^APCLHDD"
+ D ^XBDBQUE
+END ;EP
+ D EN^XBVK("APCL")
+ Q
+PROC ;EP
+ ;
+ S APCLJOB=$J,APCLBT=$H
+ D XTMP^APCLOSUT("APCLHDD","PCC DISCHARGES")
+ S APCLDDT=APCLBD-.0001
+ F  S APCLDDT=$O(^AUPNVINP("B",APCLDDT)) Q:APCLDDT=""!($P(APCLDDT,".")>APCLED)  D
+ .S APCLHDFN=0 F  S APCLHDFN=$O(^AUPNVINP("B",APCLDDT,APCLHDFN)) Q:APCLHDFN'=+APCLHDFN  D
+ ..Q:'$D(^AUPNVINP(APCLHDFN,0))
+ ..S APCLVDFN=$P(^AUPNVINP(APCLHDFN,0),U,3)
+ ..Q:'APCLVDFN
+ ..Q:'$D(^AUPNVSIT(APCLVDFN,0))
+ ..Q:$P(^AUPNVSIT(APCLVDFN,0),U,11)
+ ..Q:$P(^AUPNVSIT(APCLVDFN,0),U,7)'="H"
+ ..I APCLLOC,$P(^AUPNVSIT(APCLVDFN,0),U,6)'=APCLLOC Q  ;not location of interest
+ ..S APCLVLOC=$P(^AUPNVSIT(APCLVDFN,0),U,6),DFN=$P(^AUPNVSIT(APCLVDFN,0),U,5)  Q:$$DEMO^APCLUTL(DFN,$G(APCLDEMO))
+ ..S APCLNAME=$P(^DPT(DFN,0),U)
+ ..S ^XTMP("APCLHDD",APCLJOB,APCLBT,APCLVLOC,APCLDDT,APCLVDFN)=APCLNAME_U_$$HRN^AUPNPAT(DFN,DUZ(2))_U_$$DATE($P($P(^AUPNVSIT(APCLVDFN,0),U),"."))_U_$$DATE($P($P(^AUPNVINP(APCLHDFN,0),U),"."))_U_$$VAL^XBDIQ1(9000010.02,APCLHDFN,.05)
+ Q
+DATE(D) ;
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_(1700+$E(D,1,3))
+PRINT ;EP
+INIT ;initialize variables
+ S APCLSTOP="",APCLPAGE=0
+ I '$D(^XTMP("APCLHDD",APCLJOB,APCLBT)) D HEAD W !,"No discharges to report."  D END1 Q
+ S APCLVLOC=0
+ F  S APCLVLOC=$O(^XTMP("APCLHDD",APCLJOB,APCLBT,APCLVLOC)) Q:APCLVLOC=""!(APCLSTOP="^")  D
+ .D HEAD
+ .W !,"LOCATION: ",$P(^DIC(4,APCLVLOC,0),U)
+ .S APCLCNT=0
+ .S APCLDDT=0 F  S APCLDDT=$O(^XTMP("APCLHDD",APCLJOB,APCLBT,APCLVLOC,APCLDDT)) Q:APCLDDT=""!(APCLSTOP="^")  D
+ ..S APCLVDFN=0 F  S APCLVDFN=$O(^XTMP("APCLHDD",APCLJOB,APCLBT,APCLVLOC,APCLDDT,APCLVDFN)) Q:APCLVDFN'=+APCLVDFN!(APCLSTOP="^")  D
+ ...S APCLX=^XTMP("APCLHDD",APCLJOB,APCLBT,APCLVLOC,APCLDDT,APCLVDFN)
+ ...I $Y>(IOSL-5) D HEAD Q:APCLSTOP="^"
+ ...W !,$E($P(APCLX,U),1,25),?27,$P(APCLX,U,2),?35,$P(APCLX,U,3),?46,$P(APCLX,U,4),?57,$P(APCLX,U,5)
+ ...S APCLCNT=APCLCNT+1
+ .I APCLSTOP="" W !!,"Total Discharges for ",$P(^DIC(4,APCLVLOC,0),U),":  ",APCLCNT
+END1 ;
+ K ^XTMP("APCLHDD",APCLJOB,APCLBT)
+ Q
+HEAD I 'APCLPAGE G HEAD1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCLSTOP="^" Q
+HEAD1 ;
+ S APCLPAGE=APCLPAGE+1
+ W:$D(IOF) @IOF,!?11,"*****Confidential Patient Data Covered by Privacy Act*****"
+ S X=$P(^DIC(4,DUZ(2),0),"^"),APCLPAGE=APCLPAGE+1
+ W !,$P(^VA(200,DUZ,0),"^",2),?(80-$L(X)/2),X,?72,"Page ",APCLPAGE
+ W !,$$CTR("HOSPITAL DISCHARGE LISTING BY DISCHARGE DATE")
+ W !?23,"for ",$$FMTE^XLFDT(APCLBD)," to ",$$FMTE^XLFDT(APCLED)
+ S X=$S(APCLLOC:"Location of Encounter: "_$P(^DIC(4,APCLLOC,0),U),1:"All Locations")
+ W !!,"NAME",?27,"HRCN",?35,"ADMIT DATE",?46,"DISCH DATE",?57,"DISCHARGE SERVICE",!
+ W $TR($J("",80)," ","-"),!
+ Q
+ ;
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------

@@ -1,0 +1,114 @@
+FHINI0CV	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8211,0)
+	;;=SALAD W/O DRESSING,CHEF,MCDONALD'S^BC-01484^salad^283
+	;;^UTILITY(U,$J,112,8211,1)
+	;;=7.244^4.7^2.65^81.272^^^^90.459^.534^^^^173.145^^^^^1453.71^4.947^.11
+	;;^UTILITY(U,$J,112,8211,2)
+	;;=.102^1.272^^^^^^^45.23^2.085^2.297^.318
+	;;^UTILITY(U,$J,112,8211,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8212,0)
+	;;=SALAD W/O DRESSING,CHUNKY CHICKEN,MCDONALD'S^BC-01485^salad^250
+	;;^UTILITY(U,$J,112,8212,1)
+	;;=9.24^1.36^2.12^56^^^^13.6^.408^^^^92^^^^^1464^8^.088
+	;;^UTILITY(U,$J,112,8212,2)
+	;;=.068^3.4^^^^^^^31.2^.36^.8^.2
+	;;^UTILITY(U,$J,112,8212,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8213,0)
+	;;=SALAD W/O DRESSING,GARDEN,MCDONALD'S^BC-01486^salad^213
+	;;^UTILITY(U,$J,112,8213,1)
+	;;=3.333^3.099^2.911^51.643^^^^69.953^.592^^^^75.117^^^^^1838.028^6.103^.047
+	;;^UTILITY(U,$J,112,8213,2)
+	;;=.075^.282^^^^^^^38.967^1.362^1.502^.235
+	;;^UTILITY(U,$J,112,8213,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8214,0)
+	;;=SALAD W/O DRESSING,SIDE,MCDONALD'S^BC-01487^salad^115
+	;;^UTILITY(U,$J,112,8214,1)
+	;;=3.217^2.87^2.87^52.174^^^^66.087^.583^^^^73.913^^^^^1889.565^6.087^.043
+	;;^UTILITY(U,$J,112,8214,2)
+	;;=.07^.261^^^^^^^35.652^1.304^1.391^.261
+	;;^UTILITY(U,$J,112,8214,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8215,0)
+	;;=SAUSAGE,MCDONALD'S^BC-01488^serving^48
+	;;^UTILITY(U,$J,112,8215,1)
+	;;=17.5^33.958^0^375^^^^16.667^1.396^^^^729.167^^^^^0^0^.563
+	;;^UTILITY(U,$J,112,8215,2)
+	;;=.208^0^^^^^^^100^12.292^17.708^3.958
+	;;^UTILITY(U,$J,112,8215,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8216,0)
+	;;=SAUSAGE MCMUFFIN,MCDONALD'S^BC-01489^mcmuffin^117
+	;;^UTILITY(U,$J,112,8216,1)
+	;;=14.103^18.718^23.333^316.239^^^^200.855^1.966^^^^709.402^^^^^205.128^0^.513
+	;;^UTILITY(U,$J,112,8216,2)
+	;;=.248^4.103^^^^^^^54.701^6.667^10^2.051
+	;;^UTILITY(U,$J,112,8216,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8217,0)
+	;;=SAUSAGE MCMUFFIN W/EGG,MCDONALD'S^BC-01490^mcmuffin^167
+	;;^UTILITY(U,$J,112,8217,1)
+	;;=13.533^16.048^16.707^263.473^^^^157.485^2^^^^586.826^^^^^298.802^0^.383
+	;;^UTILITY(U,$J,112,8217,2)
+	;;=.251^2.874^^^^^^^157.485^5.689^8.503^1.916
+	;;^UTILITY(U,$J,112,8217,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8218,0)
+	;;=SCRAMBLED EGGS,MCDONALD'S^BC-01491^serving^100
+	;;^UTILITY(U,$J,112,8218,1)
+	;;=12.4^9.8^1.2^140^^^^57^2.08^^^^290^^^^^518^0^.07
+	;;^UTILITY(U,$J,112,8218,2)
+	;;=.26^.1^^^^^^^399^3.3^5^1.4
+	;;^UTILITY(U,$J,112,8218,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8219,0)
+	;;=SHAKE,LOWFAT,CHOCOLATE,MCDONALD'S^BC-01492^shake^293
+	;;^UTILITY(U,$J,112,8219,1)
+	;;=3.959^.58^22.526^109.215^^^^113.311^.287^^^^81.911^^^^^104.437^0^.044
+	;;^UTILITY(U,$J,112,8219,2)
+	;;=.171^.137^^^^^^^3.413^.273^.307^.034
+	;;^UTILITY(U,$J,112,8219,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8220,0)
+	;;=SHAKE,LOWFAT,STRAWBERRY,MCDONALD'S^BC-01493^shake^239
+	;;^UTILITY(U,$J,112,8220,1)
+	;;=4.477^.544^28.033^133.891^^^^136.82^.038^^^^71.13^^^^^128.033^0^.054
+	;;^UTILITY(U,$J,112,8220,2)
+	;;=.201^.126^^^^^^^4.184^.251^.251^.042
+	;;^UTILITY(U,$J,112,8220,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8221,0)
+	;;=SHAKE,LOWFAT,VANILLA,MCDONALD'S^BC-01494^shake^239
+	;;^UTILITY(U,$J,112,8221,1)
+	;;=4.519^.544^25.105^121.339^^^^136.82^.042^^^^71.13^^^^^128.033^0^.054
+	;;^UTILITY(U,$J,112,8221,2)
+	;;=.201^.126^^^^^^^4.184^.251^.293^.042
+	;;^UTILITY(U,$J,112,8221,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8222,0)
+	;;=PAN PIZZA,CHEESE,MED,PIZZA HUT^BC-01495^2-slices^205
+	;;^UTILITY(U,$J,112,8222,1)
+	;;=14.634^8.78^27.805^240^^^^^^^^156.098^458.537
+	;;^UTILITY(U,$J,112,8222,2)
+	;;=^^^^^^^^16.585^4.39^^^^^^^2.439
+	;;^UTILITY(U,$J,112,8222,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8223,0)
+	;;=PAN PIZZA,PEPPERONI,MED,PIZZA HUT^BC-01496^2-slices^211
+	;;^UTILITY(U,$J,112,8223,1)
+	;;=13.744^10.427^29.384^255.924^^^^^^^^191.943^534.123
+	;;^UTILITY(U,$J,112,8223,2)
+	;;=^^^^^^^^19.905^4.36^^^^^^^2.370
+	;;^UTILITY(U,$J,112,8223,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8224,0)
+	;;=PAN PIZZA,SUPER SUPREME,MED,PIZZA HUT^BC-01497^2-slices^257
+	;;^UTILITY(U,$J,112,8224,1)
+	;;=12.84^10.117^20.623^219.066^^^^^^^^207.004^563.035
+	;;^UTILITY(U,$J,112,8224,2)
+	;;=^^^^^^^^21.401^4.669^^^^^^^2.335

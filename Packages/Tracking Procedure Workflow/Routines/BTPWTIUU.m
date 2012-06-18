@@ -1,0 +1,62 @@
+BTPWTIUU ;VNGT/HS/BEE-CMET TIU UTILITIES ; 24 Aug 2009  6:50 PM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;
+TITLE(DATA,FAKE) ; EP - BTPW GET TIU TITLES
+ ; Input
+ ;   BTPWDFN  = Patient IEN
+ ;
+ NEW UID,I,II,LIST,NLIST,TENTRY,TIEN,TITLE,CAT,SI,LI
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BTPWTIUU",UID))
+ K @DATA
+ I $G(DT)=""!($G(U)="") D DT^DICRW
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BTPWTIUU D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ;Header
+ S II=II+1,@DATA@(II)="I00010TIEN^T00050TITLE"_$C(30)
+ ;
+ ;Pull list of entries
+ D LIST^TIUSRVD(.LIST,3)
+ S I="" F  S I=$O(LIST(I)) Q:I=""  S:LIST(I)["~SHORT" SI=I S:LIST(I)["~LONG" LI=I
+ ;
+ ;Loop through, pull long list entries, sort, and format
+ S I=""
+ F  S I=$O(LIST(I)) Q:I=""  D
+ .S TENTRY=$G(LIST(I)) Q:$E(TENTRY,1)'="i"
+ .I I<LI S CAT="S"
+ .I I>LI S CAT="L"
+ .S TIEN=$E($P(TENTRY,U),2,99) Q:TIEN'>0
+ .;
+ .;Get NAME (RPC returns PRINT NAME
+ .;S TITLE=$$GET1^DIQ(8925.1,TIEN_",",".01","E") Q:TITLE=""
+ .S TITLE=$P(LIST(I),U,2)
+ .I $$UP^XLFSTR(TITLE)="ADDENDUM" Q
+ .I CAT="L",$D(NLIST("S",TITLE,TIEN)) Q
+ .S NLIST(CAT,TITLE,TIEN)=""
+ ;
+ ;Output
+ S CAT=""
+ F  S CAT=$O(NLIST(CAT),-1) Q:CAT=""  D
+ . S TITLE=""
+ . F  S TITLE=$O(NLIST(CAT,TITLE)) Q:TITLE=""  D
+ .. S TIEN="" F  S TIEN=$O(NLIST(CAT,TITLE,TIEN)) Q:TIEN=""  D
+ ... S II=II+1,@DATA@(II)=TIEN_U_TITLE_$C(30)
+ . D UP
+ ;
+DONE ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+UP ;
+ S II=II+1,@DATA@(II)="  "_$C(30)
+ Q

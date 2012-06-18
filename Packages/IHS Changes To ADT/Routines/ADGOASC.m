@@ -1,0 +1,60 @@
+ADGOASC ; IHS/ADC/PDW/ENM - CALC OUTSTANDING A SHEETS LIST ; [ 03/25/1999  11:48 AM ]
+ ;;5.0;ADMISSION/DISCHARGE/TRANSFER;;MAR 25, 1999
+ ;
+ K ^TMP("DGZOAS",$J)
+ K DGCT,DGCCT,DGCOT,DGERR,DGCTEX
+A ; -- driver
+ D LP3,CNT,Q
+ G ^ADGOASP
+ ;
+LP3 ; -- loop discharges
+ N DGDT,DFN,IFN
+ S DGDT=$E(DGMON,1,5)_"00",DGMON2=$E(DGMON2,1,5)_"31"
+ F  S DGDT=$O(^DGPM("AMV3",DGDT)) Q:'DGDT!(DGDT>(DGMON2+.2400))  D
+ . S DFN=0 F  S DFN=$O(^DGPM("AMV3",DGDT,DFN)) Q:'DFN  D
+ .. S IFN=0 F  S IFN=$O(^DGPM("AMV3",DGDT,DFN,IFN)) Q:'IFN  D 1
+ Q
+ ;
+1 ; -- discharge count
+ N VINP,VIFN
+ S DGM=$E(DGDT,1,5),DGCT(DGM)=$S($D(DGCT(DGM)):DGCT(DGM)+1,1:1)
+ ;--check v hosp
+ S VINP=$O(^AUPNVINP("AA",DFN,9999999-$E(DGDT,1,7),0))
+ I 'VINP D ERR Q
+ I '$D(^AUPNVINP(VINP,0)) D ERR  Q
+ S VIFN=$P(^AUPNVINP(VINP,0),U,3) I '$D(^AUPNVSIT(VIFN,0)) D ERR Q
+ ;--count # exported
+ I $P(^AUPNVSIT(VIFN,0),U,14)]"" S DGCTEX(DGM)=$G(DGCTEX(DGM))+1
+ ;--check if coding complete
+ I $P(^AUPNVINP(VINP,0),U,15)=1 D OUT Q
+ S DGCCT(DGM)=$S($D(DGCCT(DGM)):DGCCT(DGM)+1,1:1)
+ Q
+ ;
+OUT ;--discharges not coded yet
+ N TS
+ S DGCOT(DGM)=$S($D(DGCOT(DGM)):DGCOT(DGM)+1,1:1)
+ S TS=$P(^AUPNVINP(VINP,0),U,5)
+ S ^TMP("DGZOAS",$J,"ZOUT",$E(DGDT,1,7),DFN)=TS
+ Q
+ ;
+CNT ;--store counts
+ N X
+ S X=0 F  S X=$O(DGCT(X)) Q:'X  D
+ . S ^TMP("DGZOAS",$J,"CT",X)=DGCT(X)
+ S X=0 F  S X=$O(DGCCT(X)) Q:'X  D
+ . S ^TMP("DGZOAS",$J,"CT1",X)=DGCCT(X)
+ S X=0 F  S X=$O(DGCOT(X)) Q:'X  D
+ . S ^TMP("DGZOAS",$J,"CT2",X)=DGCOT(X)
+ S X=0 F  S X=$O(DGERR(X)) Q:'X  D
+ . S ^TMP("DGZOAS",$J,"CT3",X)=DGERR(X)
+ S X=0 F  S X=$O(DGCTEX(X)) Q:'X  D
+ . S ^TMP("DGZOAS",$J,"CT4",X)=DGCTEX(X)
+ Q
+ ;
+Q ; -- end
+ K DGCT,DGCCT,DGCOT,DGERR,DGCTEX,DGM,DFN
+ Q
+ ;
+ERR ;--visit errors
+ S DGERR(DGM)=$S($D(DGERR(DGM)):DGERR(DGM)+1,1:1)
+ S ^TMP("DGZOAS",$J,"ZERR",DGDT,DFN)="" Q

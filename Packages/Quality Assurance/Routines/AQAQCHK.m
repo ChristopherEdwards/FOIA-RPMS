@@ -1,0 +1,67 @@
+AQAQCHK ; GENERATED FROM 'AQAQCHKLST' PRINT TEMPLATE (#410) ; 03/01/90 ; (FILE 9002155, MARGIN=80)
+ G BEGIN
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ Q
+DT I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1
+ I $D(DXS)<9 F X=0:0 S X=$O(^DIPT(410,"DXS",X)) Q:'X  S Y=$O(^(X,"")) F X=X:0 Q:Y=""  S DXS(X,Y)=^(Y),Y=$O(^(Y))
+ D N:$X>2 Q:'DN  W ?2 W "STAFF CREDENTIALS CHECKLIST"
+ D N:$X>2 Q:'DN  W ?2 W "---------------------------"
+ S X=$S($D(^AQAQ(D0,0)):^(0),1:"") D T Q:'DN  D N D N W ?0 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^DIC(6,Y,0))#2:$P(^(0),U,1),1:Y) S Y=$S(Y="":Y,$D(^DIC(16,Y,0))#2:$P(^(0),U,1),1:Y) W $E(Y,1,30)
+ W ?32 S Y=$P(X,U,2) W:Y]"" $S($D(DXS(16,Y)):DXS(16,Y),1:Y)
+ W ?32 W "APPLIED: "
+ S Y=$P(X,U,3) D DT
+ D N:$X>32 Q:'DN  W ?32 X DXS(1,9.2) S X=$S('$D(^DIC(7,+$P(DIP(101),U,4),0)):"",1:$P(^(0),U,1)) S D0=I(0,0) K DIP,Y W X
+ D N:$X>54 Q:'DN  W ?54 X DXS(2,9.2) S DIP(101)=$S($D(^DIC(6,D0,9999999)):^(9999999),1:"") S X=$P($P(DIP(102),$C(59)_$P(DIP(101),U,1)_":",2),$C(59),1) S D0=I(0,0) K DIP,Y W X
+ D T Q:'DN  D N D N W ?0 W "INITIAL APPLICATION:"
+ D T Q:'DN  D N D N:$X>2 Q:'DN  W ?2 W "HEALTH STATUS STATEMENT ON FILE:"
+ D N:$X>39 Q:'DN  W ?39 X DXS(3,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,1)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "INTERNSHIP CERTIFICATE ON FILE: "
+ D N:$X>39 Q:'DN  W ?39 X DXS(4,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,5)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "RESIDENCY CERTIFICATE ON FILE: "
+ D N:$X>39 Q:'DN  W ?39 X DXS(5,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,4)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "PROFESSIONAL DEGREE ON FILE:"
+ D N:$X>39 Q:'DN  W ?39 X DXS(6,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,6)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "PROFESSIONAL DEGREE VERIFIED:"
+ D N:$X>39 Q:'DN  W ?39 X DXS(7,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,14)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "BYLAWS AGREEMENT SIGNED:"
+ D N:$X>39 Q:'DN  W ?39 X DXS(8,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,9)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "INFORMATION RELEASE SIGNED:"
+ D N:$X>39 Q:'DN  W ?39 X DXS(9,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,10)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "CURRICULUM VITAE ON FILE:"
+ D N:$X>39 Q:'DN  W ?39 X DXS(10,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,11)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "DEA REGISTRATION NUMBER:"
+ D N:$X>39 Q:'DN  W ?39 X DXS(11,9) K DIP,Y W X
+ D N:$X>2 Q:'DN  W ?2 W "3 LETTERS OF REFERENCE ON FILE:"
+ D N:$X>39 Q:'DN  W ?39 X DXS(12,9.3) S X=$P($P(DIP(6),$C(59)_$P(DIP(1),U,13)_":",2),$C(59),1),X=$S(DIP(3):DIP(4),DIP(5):X) K DIP,Y W X
+ D N:$X>4 Q:'DN  W ?4 W ""
+ D N:$X>3 Q:'DN  W ?3 W ""
+ D N:$X>0 Q:'DN  W ?0 W "RECURRING ITEMS:"
+ D T Q:'DN  D N D N:$X>2 Q:'DN  W ?2 W "BOARD CERTIFICATION:"
+ D N:$X>2 Q:'DN  W ?2 W "BOARD                  CERTIFIED      VERIFIED"
+ D N:$X>3 Q:'DN  W ?3 W ""
+ S I(1)=1,J(1)=9002155.013 F D1=0:0 Q:$N(^AQAQ(D0,1,D1))'>0  X:$D(DSC(9002155.013)) DSC(9002155.013) S D1=$N(^(D1)) Q:D1'>0  D:$X>5 T Q:'DN  D A1
+ G A1R
+A1 ;
+ S X=$S($D(^AQAQ(D0,1,D1,0)):^(0),1:"") D N:$X>2 Q:'DN  W ?2 S Y=$P(X,U,2) S Y=$S(Y="":Y,$D(^AQAQBD(Y,0))#2:$P(^(0),U,1),1:Y) W $E(Y,1,21)
+ W ?25 S Y=$P(X,U,1) D DT
+ W ?40 S Y=$P(X,U,3) D DT
+ Q
+A1R ;
+ D N:$X>3 Q:'DN  W ?3 W ""
+ D N:$X>2 Q:'DN  W ?2 W "HEALTH STATUS VERIFICATION:"
+ S I(1)=6,J(1)=9002155.018 F D1=0:0 Q:$N(^AQAQ(D0,6,D1))'>0  X:$D(DSC(9002155.018)) DSC(9002155.018) S D1=$N(^(D1)) Q:D1'>0  D:$X>31 T Q:'DN  D B1
+ G B1R
+B1 ;
+ S X=$S($D(^AQAQ(D0,6,D1,0)):^(0),1:"") D N:$X>31 Q:'DN  W ?31 S Y=$P(X,U,1) D DT
+ Q
+B1R ;
+ D N:$X>2 Q:'DN  W ?2 W "MEDICAL LICENSE EXP. DATE:"
+ D N:$X>31 Q:'DN  W ?31 X DXS(13,9) S Y=X K DIP,Y S Y=X D DT
+ D N:$X>2 Q:'DN  W ?2 W "MEDICAL LICENSE VERIFIED:"
+ G ^AQAQCHK1

@@ -1,0 +1,38 @@
+ABMDFALN ; IHS/ASDST/DMJ - ALIGNMENT TEST ; 
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;TMD;03/28/96 1:01 PM
+ W !
+ S DIC="^ABMDEXP("
+ S DIC(0)="AEMQ"
+ S DIC("S")="I $P($G(^(1)),""^"",5)'=""E"""
+ D ^DIC
+ K DIC
+ Q:Y<0
+ S ABMP("EXP")=+Y
+ I $P(^ABMDEXP(ABMP("EXP"),0),U,5)="" D  Q
+ . W !,"TEST PRINT ROUTINE UNDEFINED FOR FORM "
+ . W $P(^ABMDEXP(ABMP("EXP"),0),U)
+ . Q
+ ;
+DEV ;OPEN DEVICE
+ D ^%ZIS
+ Q:POP
+ ;
+LOOP ;LOOP TILL IT'S RIGHT
+ S Y=0
+ F  D  Q:Y=1
+ . I $D(IOP) D ^%ZIS K IOP I POP S Y=1 Q
+ . U IO
+ . D @("TEST^"_$P(^ABMDEXP(ABMP("EXP"),0),U,5))
+ . W $$EN^ABMVDF("IOF")
+ . I $D(IO("S")) S IOP=ION D ^%ZISC
+ . U IO(0)
+ . W !
+ . S DIR(0)="Y"
+ . S DIR("A")="IS THE ALIGNMENT CORRECT"
+ . S DIR("B")="Y"
+ . D ^DIR
+ . K DIR
+ D ^%ZISC
+ K IOP
+ Q

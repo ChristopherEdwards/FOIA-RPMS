@@ -1,0 +1,87 @@
+BDMSDX ; IHS/CMI/LAB - SWITCH CMS DIAGNOSIS LIST ENTRY ;
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4**;JUN 14, 2007
+ ;
+ ;This routine provides a utility to standardize entires in the CMS
+ ;DIAGNOSIS LIST ENTRY file for diabetes related diagnoses.
+ ;
+EN ;EP
+ F  D EN1 Q:$D(BDMQUIT)!$D(BDMOUT)
+EXIT K BDMQUIT,BDMOUT,BDMDX,BDMX,BDMY,BDMNEW,BDMOLD,BDMJ
+ Q
+EN1 D EXIT
+ D NEW
+ Q:$D(BDMQUIT)
+ D OLD
+ Q:$D(BDMQUIT)!'$D(BDMDX)
+ D SURE
+ I $D(BDMQUIT) K BDMQUIT Q
+ D POINT
+ Q
+NEW ;LIST NEW DMS DIAGNOSES AND SELECT DX TO UPDATE
+ W @IOF
+ W !,"Select the DMS DIAGNOSIS"
+ S DIR(0)="SO^1:TYPE 1;2:TYPE 2;3:GESTATIONAL DM;4:IMPAIRED GLUCOSE TOLERANCE"
+ S DIR("A")="Which DX"
+ D DIR^BDMFDIC
+ I Y<1 S BDMQUIT="" Q
+ S BDMX=$O(^ACM(44.1,"B",Y(0),0))
+ I 'BDMX S BDMQUIT="" Q
+ S BDMX=BDMX_U_$P(^ACM(44.1,BDMX,0),U)
+ Q
+OLD ;SELECT OLD CMS DIAGNOSES TO REPORT TO NEW DMS DIAGNOSIS
+ S J=0
+ F  D O1 Q:$D(BDMQUIT)!$D(BDMOUT)
+ K BDMQUIT
+ Q
+O1 D LOLD
+ S DIC="^ACM(44.1,"
+ S DIC(0)="AEMQZ"
+ S DIC("A")="CMS DIAGNOSIS LIST ENTRY: "
+ W !
+ D DIC^BDMFDIC
+ I Y<1 S BDMQUIT="" Q
+ I +Y=+BDMX W !!,"Same as current Official DMS Diagnosis" H 3 Q
+ S J=J+1
+ S BDMDX(J)=+Y_U_Y(0)
+ Q
+LOLD ;LIST OLD DX'S
+ W @IOF
+ W !,"Current CMS DIAGNOSIS LIST ENTRIES that will be changed to:"
+ W !?5,$P(BDMX,U,2)
+ W !!?5,"NO.",?10,"NAME"
+ W !?5,"---",?10,"------------------------------"
+ N X
+ S X=0
+ F  S X=$O(BDMDX(X)) Q:'X  D
+ .W !?5,X,?10,$P(BDMDX(X),U,2)
+ Q
+SURE ;LIST CHANGES TO BE MADE AND AFIRM
+ S DIR(0)="YO"
+ S DIR("A")="Are you certain you want to make these changes"
+ S DIR("B")="NO"
+ W !
+ D DIR^BDMFDIC
+ I Y'=1 S BDMQUIT="" Q
+ Q
+POINT ;RE-POINT OLD CMS ENTRIES TO NEW DMS DX
+ N BDM,BDMJ
+ S BDMJ=0
+ F  S BDMJ=$O(BDMDX(BDMJ)) Q:'BDMJ  D P1
+ Q
+P1 N BDMNEW,BDMOLD
+ ;S BDMNEW=+BDMX  ;maw orig
+ S BDMNEW=$P(BDMX,U,2)  ;maw mod because of 4 slash stuff below not allowed 9/7/06
+ S BDMOLD=+BDMDX(BDMJ)
+ S BDMDA=0
+ F  S BDMDA=$O(^ACM(44,"B",BDMOLD,BDMDA)) Q:'BDMDA  D
+ .S DA=BDMDA
+ .S DIE="^ACM(44,"
+ .S DR=".01///"_BDMNEW
+ .W "."
+ .D DIE^BDMFDIC
+ S DA=+BDMDX(BDMJ)
+ S DIE="^ACM(44.1,"
+ S DR=".01///"_"ZZ "_$P(BDMDX(BDMJ),U,2)
+ W "."
+ D DIE^BDMFDIC
+ Q

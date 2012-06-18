@@ -1,0 +1,104 @@
+APCPEPRN ; IHS/TUCSON/LAB - Display TX ERRORS AUGUST 14, 1992 ; [ 12/27/02  10:00 AM ]
+ ;;2.0;IHS PCC DATA EXTRACTION SYSTEM;**6**;APR 03, 1998
+ ;
+LOG ;get log entry
+ W !!,"PCC Data Transmission Error Listing",!
+ S DIC="^APCPLOG(",DIC(0)="AEMQ" D ^DIC K DIC I Y=-1 W !!,"Goodbye" G XIT
+ S APCPLOG=+Y S APCPD=APCPLOG
+ I '$D(^APCPLOG(APCPLOG,51)) W !!,"No TX errors generated on that run." G LOG
+LOC ;
+ K APCPLOCT
+ S DIR(0)="S^A:ALL Locations/Facilities;S:One SERVICE UNIT'S Locations/Facilities;O:ONE Location/Facility",DIR("A")="Include Visits to Which Location/Facilities",DIR("B")="A"
+ S DIR("A")="Enter a code indicating what LOCATIONS/FACILITIES are of interest",DIR("B")="O" K DA D ^DIR K DIR,DA
+ G:$D(DIRUT) LOG
+ S APCPLOCT=Y
+ I APCPLOCT="A" K APCPLOCT G ZIS
+ D @APCPLOCT
+ G:$D(APCPQ) LOC
+ZIS ;call xbdbque
+ S XBRC="DRIVER^APCPEPRN",XBRP="PRINT^APCPEPRN",XBRX="XIT^APCPEPRN",XBNS="APCP"
+ D ^XBDBQUE
+ D XIT
+ Q
+DRIVER ;EP entry point for taskman
+ S APCPH=$H,APCPJ=$J
+ K ^XTMP("APCPEPRN",APCPJ,APCPH)
+ S APCPE=0 F  S APCPE=$O(^APCPLOG(APCPLOG,51,APCPE)) Q:APCPE'=+APCPE  D
+ .S APCPE1=$P(^APCPLOG(APCPLOG,51,APCPE,0),U,2),APCPF=$P(APCPE1,";",2),APCPE2=$P(APCPE1,";",1)
+ .S APCPERR=$P(^APCPLOG(APCPLOG,51,APCPE,0),U,3)
+ .S APCPV=$P(^APCPLOG(APCPLOG,51,APCPE,0),U,4)
+ .Q:APCPV=""
+ .Q:'$D(^AUPNVSIT(APCPV,0))
+ .I $P(^AUPNVSIT(APCPV,0),U,5)="" Q
+ .I $P(^AUPNVSIT(APCPV,0),U,6)="" Q
+ .I $D(APCPLOCT),'$D(APCPLOCT($P(^AUPNVSIT(APCPV,0),U,6))) Q
+ .S ^XTMP("APCPEPRN",APCPJ,APCPH,"ERRORS",$P(^AUPNVSIT(APCPV,0),U,6),$P(^AUPNVSIT(APCPV,0),U,1),APCPE)=APCPV_U_APCPERR_U_APCPF_U_APCPE2
+ Q
+PRINT ;EP
+ S APCPPG=0,APCPQ=""
+ D HEAD
+ S APCPL=0 F  S APCPL=$O(^XTMP("APCPEPRN",APCPJ,APCPH,"ERRORS",APCPL)) Q:APCPL'=+APCPL!(APCPQ)  D
+ .S APCPD="" F  S APCPD=$O(^XTMP("APCPEPRN",APCPJ,APCPH,"ERRORS",APCPL,APCPD)) Q:APCPD=""!(APCPQ)  D
+ ..S APCPE=0 F  S APCPE=$O(^XTMP("APCPEPRN",APCPJ,APCPH,"ERRORS",APCPL,APCPD,APCPE)) Q:APCPE'=+APCPE!(APCPQ)  D
+ ...S APCPV=$P(^XTMP("APCPEPRN",APCPJ,APCPH,"ERRORS",APCPL,APCPD,APCPE),U),APCPERR=$P(^(APCPE),U,2),APCPDFN=$P(^AUPNVSIT(APCPV,0),U,5)
+ ...I $Y>(IOSL-5) D HEAD Q:APCPQ
+ ...W !!,$E($$VAL^XBDIQ1(9000010,APCPV,.05),1,20)
+ ...S APCPHRN=$$HRN^AUPNPAT(APCPDFN,APCPL,2)
+ ...I APCPHRN="" S APCPHRN=$$HRN^AUPNPAT(APCPDFN,DUZ(2),2)
+ ...I APCPHRN="" S APCPHRN="?????"
+ ...W ?22,APCPHRN,?34,$$FMTE^XLFDT(APCPD,1),?53,$E($P(^DIC(4,APCPL,0),U,1),1,12),?67,$P(^AUPNVSIT(APCPV,0),U,3),?69,$P(^AUPNVSIT(APCPV,0),U,7),?73,$P(^AUPNVSIT(APCPV,0),U,9)
+ ...W !,?2,"Clinic: ",$$VAL^XBDIQ1(9000010,APCPV,.08)
+ ...W !?2,"Error: ",APCPERR
+ K ^XTMP("APCPEPRN",APCPJ,APCPH)
+ Q
+XIT ;EP
+ D EN^XBVK("APCP")
+ D ^XBFMK
+ Q
+O ;one community
+ S DIC="^AUTTLOC(",DIC(0)="AEMQ",DIC("A")="Which LOCATION: " D ^DIC K DIC
+ I Y=-1 S APCPQ="" Q
+ S APCPLOCT(+Y)=""
+ Q
+S ;all communities within APCPSU su
+ S DIC="^AUTTSU(",DIC("B")=$$VAL^XBDIQ1(9999999.06,DUZ(2),.05),DIC(0)="AEMQ",DIC("A")="Which SERVICE UNIT: " D ^DIC K DIC
+ I Y=-1 S APCPQ="" Q
+ W !!,"Gathering up ",$P(^AUTTSU(+Y,0),U),"'s Facilities.."
+ S X=0 F  S X=$O(^AUTTLOC(X)) Q:X'=+X  I $P(^AUTTLOC(X,0),U,5)=+Y S APCPLOCT(X)=""
+ Q
+ ;
+HEAD ;EP
+ G:'APCPPG HEAD1
+ K DIR I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCPQ=1 Q
+HEAD1 ;
+ W:$D(IOF) @IOF S APCPPG=APCPPG+1
+ W !?35,$$FMTE^XLFDT(DT),?70,"Page ",APCPPG
+ S X="***** PCC EXPORT ERROR LISTING *****" W !,?((80-$L(X))/2),X
+ S X="Log Entry: "_APCPLOG_"  Dates: "_$$FMTE^XLFDT($P(^APCPLOG(APCPLOG,0),U,1))_" to "_$$FMTE^XLFDT($P(^APCPLOG(APCPLOG,0),U,2)) W !,$$CTR(X,80),!
+ I '$D(APCPLOCT) S X="ALL Locations/Facilities Included" W $$CTR(X,80),!
+ I $D(APCPLOCT) S X="Selected Facilities/Locations Included" W $$CTR(X,80),!
+ W !,"Name",?22,"HRN",?34,"Visit Date/Time",?53,"Location",?66,"TY",?69,"SC",?73,"DEP"
+ W !,$TR($J("",80)," ","-")
+ Q
+LBLK(V,L) ;left blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=" "_V
+ Q V
+RBLK(V,L) ;EP right blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=V_" "
+ Q V
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ NEW DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------

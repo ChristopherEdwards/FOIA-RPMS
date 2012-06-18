@@ -1,0 +1,26 @@
+BCHEXDSP ; IHS/TUCSON/LAB - DISPLAY CHR EXPORT LOG DATA ;  [ 10/28/96  2:05 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+ ;
+ ;Display Export Log entry.
+ ;
+ S DIC="^BCHXLOG(",DIC(0)="AEMQ" D ^DIC K DIC I Y=-1 W !!,"Goodbye" G EOJ
+ S DFN=+Y
+ W !! S %ZIS="PQ" D ^%ZIS
+ I POP G EOJ
+ I $D(IO("Q")) G TSKMN
+EN U IO ;W @IOF
+ S Y=$P(^BCHXLOG(DFN,0),U) X ^DD("DD") S BCHD=Y
+DIQ ; CALL TO DIQ
+ W !!,"Information for Log Entry ",DFN," Beginning Date: ",BCHD,!
+ S DIC="^BCHXLOG(",DA=DFN,DR="0;11",DIQ(0)="C" D EN^DIQ
+ I $D(ZTQUEUED) S ZTREQ="@" D ^%ZISC G EOJ
+ D ^%ZISC U IO(0)
+ S DIR(0)="FO^1:1",DIR("A")="Press 'RETURN' to Continue" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+EOJ ;
+ D ^%ZISC
+ K BCHD,DFN,IO("Q"),X,Y,%,%ZIS
+ K DIC,DR,DA,DIQ,DIQ(0),DIC(0)
+ Q
+TSKMN ;
+ K ZTSAVE F %="DFN","BCHD" S ZTSAVE(%)=""
+ S ZTRTN="EN^BCHDISP",ZTDTH="",ZTDESC="PCC DATA TX - LOG ENTRY" D ^%ZTLOAD D EOJ Q

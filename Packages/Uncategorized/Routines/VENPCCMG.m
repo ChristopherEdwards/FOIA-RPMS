@@ -1,0 +1,143 @@
+VENPCCMG ; IHS/OIT/GIS - GLOBAL EDITING OF DIAGNOSES AND ICD CODES ;
+ ;;2.6;PCC+;;NOV 12, 2007
+ ;
+ ;
+ ; 
+NEW N OLDICD,NEWICD,PROV,NAME,X,DIC,Y,%,%Y,NEWNAR,OLDNAR,PIEN,DO,AICDWD2
+INTRO W !!,"GLOBAL CHANGE OF SPECIFIED ICD CODES AND NARRATIVES FOR ONE OR MORE PROVIDERS",!!!
+PROV ; GET PROVIDER NAME
+ W !,"Enter the name of the provider or '*' for ALL: "
+ R NAME:$G(DTIME,60) E  Q
+ I NAME?1."^" Q
+ I NAME="ALL"!(NAME="all")!(NAME="*") S PROV="ALL" G ICD
+ S DIC("S")="I $D(^VEN(7.1,""B"",+$G(Y)))"
+ S DIC=200,DIC(0)="EQM",X=NAME D ^DIC K DIC
+ I Y=-1 Q
+ S PROV=+Y
+ICD ; CHANGE ICD CODE
+ S DIC="^ICD9(",DIC(0)="AEQM",DIC("A")="Enter the OLD ICD code that you want to change: "
+ D ^DIC
+ I X="" G NARR
+ I Y=-1 Q
+ S OLDICD=$P(Y,U,2)
+ S DIC("A")="Enter the NEW ICD code that will replace the old one: "
+ D ^DIC I Y=-1 Q
+ S NEWICD=$P(Y,U,2)
+NARR ; CHANGE NARRATIVE
+ S DIR(0)="FO^",DIR("A")="Enter the OLD ICD narrative that you want to change" K DA
+ D ^DIR K DIR
+ I Y="" G RUN
+ I $D(DUOUT)!$D(DTOUT)!$D(DIROUT) Q
+ S OLDNAR=Y
+ S DIR(0)="F^",DIR("A")="Enter the NEW ICD narrative that will replace the old one" K DA
+ D ^DIR K DIR
+ I $D(DUOUT)!$D(DTOUT)!$D(DIROUT) Q
+ S NEWNAR=Y
+RUN ; MAKE CHANGES
+ W !
+ I $L($G(NEWICD)) W !,OLDICD," will be changed to ",NEWICD
+ I $L($G(NEWNAR)) W !,OLDNAR," will be changed to ",NEWNAR
+ W !,"Is this ok" S %=1 D YN^DICN I %'=1 Q
+ W !!,"Making changes..."
+ I $G(OLDICD)="",$G(OLDNAR)="" W !,"Request cancelled!" Q
+ I $G(NEWFLAG),$G(PROV) D NCHG(PROV) G FIN ; GLOBAL EDIT OF NEW ICD PREF FILE
+ I $G(PROV) D CHG(PROV) G FIN
+ I $G(NEWFLAG),$G(PROV)="ALL" S PIEN=0 F  S PIEN=$O(^VEN(7.34,"B",PIEN)) Q:'PIEN  D NCHG(PIEN)
+ I $G(PROV)="ALL" S PIEN=0 F  S PIEN=$O(^VEN(7.1,"B",PIEN)) Q:'PIEN  D CHG(PIEN)
+FIN D ^XBFMK
+ W !,"Done!"
+ Q
+ ; 
+CHG(PIEN) ; EP-EDIT THE FILE
+ N CIEN,DIK,DA,STG
+ S CIEN=0 F  S CIEN=$O(^VEN(7.1,"B",PIEN,CIEN)) Q:'CIEN  S STG=$G(^VEN(7.1,CIEN,0)) I $L(STG) D
+ . I $L($G(OLDICD)),OLDICD=$P(STG,U,2) D
+ .. S $P(STG,U,2)=NEWICD
+ .. K ^VEN(7.1,"AC",OLDICD,CIEN)
+ .. S ^VEN(7.1,"AC",NEWICD,CIEN)=""
+ .. W "."
+ .. Q
+ . I $L($G(OLDNAR)),OLDNAR=$P(STG,U,3) S $P(STG,U,3)=NEWNAR W "."
+ . S ^VEN(7.1,CIEN,0)=STG
+ . Q
+ Q
+ ; 
+NCHG(PIEN) ; EP-GLOBAL EDIT OF EDIT THE NEW ICD PREF FILE
+ N CIEN,DIK,DA,STG
+ S CIEN=0 F  S CIEN=$O(^VEN(7.34,"B",PIEN,CIEN)) Q:'CIEN  S STG=$G(^VEN(7.34,CIEN,0)) I $L(STG) D
+ . I $L($G(OLDICD)),OLDICD=$P(STG,U,4) D
+ .. S $P(STG,U,4)=NEWICD
+ .. W "."
+ .. Q
+ . I $L($G(OLDNAR)),OLDNAR=$P(STG,U,3) S $P(STG,U,3)=NEWNAR W "."
+ . S ^VEN(7.34,CIEN,0)=STG
+ . Q
+ Q
+ ; 
+VUE ; EP-PRINT ALL ICDS AND ASSOCIATED NARRATIVES AND FORMS
+ N TMP,CODE,NARR,PIEN,PNAME,IEN,X,TXT,CIEN,CLASS,ICD,IIEN,Y,VENJ,%,%Y,SS,IPC,NPC,Z,I
+ S SS=7.1,IPC=2,NPC=3
+ I $G(NEWFLAG) S SS=7.34,IPC=4,NPC=3
+ W !,"Want to generate a current list of ICD preferences for this site"
+ S %=1 D YN^DICN I %'=1 Q
+ D WAIT^DICD W !!
+ S TMP="^TMP(""VEN GICD"","_$J_")" K @TMP
+ S IEN=0,VENJ=$J
+ F  S IEN=$O(^VEN(SS,IEN)) Q:'IEN  D  ; BUILD THE ARRAY
+ . S X=$G(^VEN(SS,IEN,0)) I '$L(X) Q
+ . S PIEN=+X I 'PIEN Q  ; PROVIDER
+ . S ICD=$P(X,U,IPC) I '$L(ICD) Q  ; ICD
+ . S NARR=$P(X,U,NPC) I '$L(NARR) Q  ; PROVIDER NARRATIVE
+ . I '$G(NEWFLAG) S CIEN=$P(X,U,4) I 'CIEN Q  ; CLASS
+ . I $G(NEWFLAG) S Z="",CIEN="",Y=$G(^VEN(7.34,IEN,1)) F I=1:2:15 D
+ .. S Z=$P(Y,U,I)
+ .. I 'Z Q
+ .. I CIEN'="" S CIEN=CIEN_","
+ .. S CIEN=CIEN_$P("I^^C^^TF^^TM^^F^^M^^SF^^SM",U,I)
+ .. Q
+ . S IIEN=$$ICD^VENPCCU(ICD) I 'IIEN Q
+ . S TXT=$P($G(^ICD9(IIEN,0)),U,3) I '$L(TXT) Q  ; ICD TEXT
+ . S @TMP@(ICD,NARR)=TXT_U_PIEN_U_CIEN
+ . Q
+OUT ; OUTPUT USING %ZIS
+ S %ZIS="PM"
+ D ^%ZIS
+ I POP K DIR,DIRUT,DTOUT,DUOUT,X,Y Q
+NOQUE D LIST
+ D ^%ZISC
+ W !!,"Done!!"
+ K DIR,DIRUT,DTOUT,DUOUT,X,Y
+ Q
+ ; 
+LIST ; EP-PRINT ICD LIST
+ X ("I $D("_$C(73,79)_")") ; SCREEN VARS MUST EXIST
+ E  Q
+ I '$G(VENJ) Q  ; MISSING JOB NUMBER
+ N TMP,Y,X,ICD,NARR,TXT,LINE,STOP
+LINIT S TMP="^TMP(""VEN GICD"","_VENJ_")",LINE=0 X $C(85,32,73,79) ; INITIALIZE THE LIST
+ D LINE W "LIST ALL ICD PREFERENCES AND ASSOCIATED PROVIDER NARRATIVE(S)"
+ S Y=$G(ZDTTH) I 'Y S Y=$G(DT)
+ I Y X ^DD("DD") W "  (",Y,")",!!
+ D LINE W "ICD",?7,"ICD NARRATIVE",?35,"PROVIDER NARRATIVE"
+ D LINE W "------",?7,"--------------------------",?35,"----------------------------------"
+ S ICD="" F  Q:$G(STOP)  S ICD=$O(@TMP@(ICD)) Q:ICD=""  S NARR="" F  S NARR=$O(@TMP@(ICD,NARR)) Q:NARR=""  D  I $G(STOP) Q
+ . S X=$G(@TMP@(ICD,NARR)) I '$L(X) Q
+ . S TXT=$P(X,U)
+ . D LINE W ICD,?7,$E(TXT,1,27),?35,NARR
+ . Q
+ K @TMP ; CLEANUP
+ Q
+ ;
+LINE ; PAUSE IF NECESSARY
+ N X
+ W !
+ I '$D(IOST) Q
+ I $E(IOST,1,2)'="C-" Q
+ S LINE=LINE+1
+ I LINE'=22 Q
+ S LINE=0
+ W "<>" R X:$G(DTIME,60) E  Q
+ I X?1."^" S STOP=1
+ W $C(13),?79,$C(13)
+ Q
+ ; 

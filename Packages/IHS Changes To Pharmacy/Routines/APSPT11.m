@@ -1,0 +1,48 @@
+APSPT11 ; GENERATED FROM 'APSP DUE STUDY PRINT' PRINT TEMPLATE (#494) ; 02/14/03 ; (FILE 9009032.1, MARGIN=80)
+ G BEGIN
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ S DISTP=DISTP+1,DILCT=DILCT+1 D:'(DISTP#100) CSTP^DIO2
+ Q
+DT I $G(DUZ("LANG"))>1,Y W $$OUT^DIALOGU(Y,"DD") Q
+ I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1 S DISTP=$G(DISTP),DILCT=$G(DILCT)
+ I $D(DXS)<9 F X=0:0 S X=$O(^DIPT(494,"DXS",X)) Q:'X  S Y=$O(^(X,"")) F X=X:0 Q:Y=""  S DXS(X,Y)=^(Y),Y=$O(^(Y))
+ S X=$G(^APSPDUE(32.1,D0,0)) D T Q:'DN  D N D N D N W ?0,$E($P(X,U,1),1,30)
+ W ?32 S Y=$P(X,U,2) D DT
+ W ?52 S Y=$P(X,U,3) D DT
+ S DIXX(1)="A1",I(0,0)=D0 S I(0,0)=$S($D(D0):D0,1:"") X DXS(1,9.2) S X="" S D0=I(0,0)
+ G A1R
+A1 ;
+ I $D(DSC(9009032.2)) X DSC(9009032.2) E  Q
+ W:$X>72 ! S I(100)="^APSPDUE(32.2,",J(100)=9009032.2
+ D T Q:'DN  D N D N:$X>0 Q:'DN  W ?0 W "CRITERIA #"
+ S X=$G(^APSPDUE(32.2,D0,0)) W ?12,$E($P(X,U,1),1,2)
+ S I(101)=11,J(101)=9009032.211 F D1=0:0 Q:$O(^APSPDUE(32.2,D0,11,D1))'>0  S D1=$O(^(D1)) D:$X>16 T Q:'DN  D A2
+ G A2R
+A2 ;
+ S X=$G(^APSPDUE(32.2,D0,11,D1,0)) S DIWL=17,DIWR=78 D ^DIWP
+ Q
+A2R ;
+ D A^DIWW
+ Q
+A1R ;
+ K J(100),I(100) S:$D(I(0,0)) D0=I(0,0)
+ D T Q:'DN  D N D N:$X>0 Q:'DN  W ?0 W:$D(^APSPDUE(32.1,D0,12)) "REMARKS: " K DIP K:DN Y
+ S:'$D(DIWF) DIWF="" S:DIWF'["N" DIWF=DIWF_"N" S X="" S I(1)=12,J(1)=9009032.112 F D1=0:0 Q:$O(^APSPDUE(32.1,D0,12,D1))'>0  S D1=$O(^(D1)) D:$X>11 T Q:'DN  D B1
+ G B1R
+B1 ;
+ S X=$G(^APSPDUE(32.1,D0,12,D1,0)) S DIWL=12,DIWR=78 D ^DIWP
+ Q
+B1R ;
+ D A^DIWW
+ D T Q:'DN  W ?2 D ^APSPDDUE K DIP K:DN Y
+ K Y K DIWF
+ Q
+HEAD ;
+ W !,?0,"NAME",?32,"START DATE",?52,"ENDING DATE"
+ W !,"--------------------------------------------------------------------------------",!!

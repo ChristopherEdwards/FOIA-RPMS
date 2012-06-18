@@ -1,0 +1,70 @@
+ASURD08P ; IHS/ITSC/LMH -RPT 8 IDX MAST REC CHGS/DELS ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;This routine formats and prints report 8, Index Change/Delete
+EN ;EP;PRIMARY ENTRY POINT FOR REPORT 08
+ I '$D(IO) D HOME^%ZIS
+ I '$D(DUZ(2)) W !,"Report must be run from Kernel option" Q
+ I '$D(ASUL(1,"AR","AP")) D SETAREA^ASULARST
+ S ASUK("PTRSEL")=$G(ASUK("PTRSEL")) I ASUK("PTRSEL")]"" G PSER
+ S ZTRTN="PSER^ASURD08P",ZTDESC="SAMS RPT 08" D O^ASUUZIS
+ I POP S IOP=$I D ^%ZIS Q
+ I ASUK(ASUK("PTR"),"Q") Q
+PSER ;EP;FOR TASKMAN QUEUE OF PRINT
+ S ASUT="IDX"
+ D:'$D(^XTMP("ASUR","R08")) CMPT
+ D U^ASUUZIS
+ S ASUV("RPT")="R08",ASUQ("HDR")="HEADER^ASURD08P"
+ D ^ASUUDATA I ASUX("NDTA") G K
+ S ASUX("IX")=0
+ S ASUX("SQ")=""
+ S ASUC("TOT")=0
+ F  S ASUX("IX")=$O(^XTMP("ASUR","R08",ASUX("IX"))) Q:ASUX("IX")=""  D  Q:$D(DUOUT)
+ .I $G(ASUV("AR"))'=$E(ASUX("IX"),1,2) S ASUV("AR")=$E(ASUX("IX"),1,2) D HEADER  Q:$D(DUOUT)
+ .F  S ASUX("SQ")=$O(^XTMP("ASUR","R08",ASUX("IX"),ASUX("SQ"))) Q:ASUX("SQ")=""  D  Q:$D(DUOUT)
+ ..S ASUHDA=^XTMP("ASUR","R08",ASUX("IX"),ASUX("SQ"))
+ ..D READ^ASU0TRRD(.ASUHDA,"H") Q:$G(ASUT)']""
+ ..I $G(ASUC("LN"))>IOSL D HEADER Q:$D(DUOUT)
+ ..S ASUC("TOT")=ASUC("TOT")+1
+ ..W ! S X=ASUT(ASUT,"DTS")
+ ..S ASUC("LN")=$G(ASUC("LN"))+1
+ ..I $L(X)>0 W ?1,$E(X,2,3),"-",$E(X,4,5)
+ ..W ?11,ASUT("TRCD"),?16,$E(ASUT(ASUT,"DESC"),1,30),?48,ASUT(ASUT,"AR U/I")
+ ..S X=ASUT(ASUT,"IDX")
+ ..I $L(X)>0 W ?53,$E(X,1,5),".",$E(X,6,6)
+ ..W ?62,ASUT(ASUT,"AR"),?69,ASUT(ASUT,"ACC"),?76,ASUT(ASUT,"SOBJ"),?84,ASUT(ASUT,"CAT")
+ ..S X=ASUT(ASUT,"NSN")
+ ..I $L(X)>0 W ?91,$E(X,1,4)
+ ..I $L(X)>4 W "-",$E(X,5,6),"-",$E(X,7,9),"-",$E(X,10,13)
+ ..W !?16,$E(ASUT(ASUT,"DESC"),31,60)
+ ..S ASUC("LN")=ASUC("LN")+1
+ W !!?2,"NUMBER LINE ITEMS: ",ASUC("TOT"),!!
+K ;
+ D PAZ^ASUURHDR
+ K ASUX,ASUV,ASUC,ASUQ
+ I ASUK("PTRSEL")]"" W @IOF Q
+ D C^ASUUZIS
+ Q
+CMPT ;EP;COMPUTE REPORT CONTENTS
+ K ^XTMP("ASUR","R08") S ^XTMP("ASUR","R08",0)=ASUK("DT","FM")+10000_U_ASUK("DT","FM") N Z
+ D:$G(ASUN("TYP"))']"" ^ASUURANG
+ S (ASUV("DA"),ASUHDA)=ASUN("B#")-1
+ S Z="4C" D LOOP S ASUHDA=ASUV("DA"),Z="4D" D LOOP
+ Q
+LOOP ;
+ F  S ASUHDA=$O(^ASUH("T",Z,ASUHDA)) Q:ASUHDA>$G(ASUN("E#"))  Q:ASUHDA']""  D
+ .D READ^ASU0TRRD(.ASUHDA,"H") Q:$G(ASUT)']""
+ .Q:$P(ASUT(ASUT,"TRKY"),"-")'=ASUL(2,"STA","E#")
+ .S ^XTMP("ASUR","R08",ASUT(ASUT,"PT","IDX"),ASUHDA)=ASUHDA
+ Q
+HEADER ;PRINT REPORT HEADING LINES
+ S ASUC("PG")=$G(ASUC("PG"))+1
+ I ASUC("PG")>1 D PAZ^ASUURHDR Q:$D(DUOUT)  W @IOF
+ W !?5,"REPORT #8.   INDEX MASTER RECORD CHANGES/DELETES TRANSACTIONS"
+ W ?100,"DATE: ",ASUX("DT"),?120,"PAGE: ",ASUC("PG")
+ S X=ASUL(1,"AR","AP") W !?3,"AREA: ",ASUL(1,"AR","AP")
+ W ?15,ASUL(1,"AR","NM")
+ W !!?2,"DATE",?10,"TRAN",?16,"DESCRIPTION",?46,"UNIT",?54,"INDEX",?61,"AREA",?67,"ACCOUNT",?75,"OBJECT",?84,"CATM",?92,"NATIONAL"
+ W !?2,"FYMM",?10,"CODE",?46,"ISSUE",?53,"NUMBER",?61,"CODE",?75,"SUB-OBJ",?84,"CODE",?92,"STOCK NUMBER"
+ W !,"------------------------------------------------------------------------------------------------------------------------------------",!!
+ S ASUC("LN")=10
+ Q

@@ -1,0 +1,23 @@
+SDC1 ;ALB/GRR - PRINT CLINIC PRE-CANCELLATION LIST ; [ 09/13/2001  2:19 PM ]
+ ;;5.3;Scheduling;;Aug 13, 1993
+ ;IHS/ANMC/LJF 11/30/2000 changed $N to $O
+ ;             12/13/2000 added date to report heading
+ ;
+ S DGVAR="SD^SC^SDTIME",DGPGM="START^SDC1" D ZIS^DGUTQ Q:POP
+START U IO S SDCNT=0 K DUOUT,DTOUT
+ ;
+ ;IHS/ANMC/LJF 11/30/2000 $N->$O
+ ;F J=SD:0 S J=$N(^SC(SC,"S",J)) Q:J<0!(J\1-SD)!$D(DTOUT)!$D(DUOUT)  F J2=0:0 S J2=$N(^SC(SC,"S",J,1,J2)) Q:J2<0  S DFN=+^(J2,0),SDLE=$P(^(0),U,2) I $D(^DPT(DFN,"S",J,0)),$P(^(0),U,2)'["C"!($P(^(0),U,14)=SDTIME) D PLST Q:$D(DTOUT)!$D(DUOUT)
+ F J=SD:0 S J=$O(^SC(SC,"S",J)) Q:J<1!(J\1-SD)!$D(DTOUT)!$D(DUOUT)  F J2=0:0 S J2=$O(^SC(SC,"S",J,1,J2)) Q:J2<1  S DFN=+^(J2,0),SDLE=$P(^(0),U,2) I $D(^DPT(DFN,"S",J,0)),$P(^(0),U,2)'["C"!($P(^(0),U,14)=SDTIME) D PLST Q:$D(DTOUT)!$D(DUOUT)
+ ;
+ Q:$D(DUOUT)!$D(DTOUT)  I SDCNT=0 S NOAP=1 W !,"NO APPOINTMENTS SCHEDULED"
+ I $E(IOST,1,2)'="C-" W @IOF
+ K DUOUT,DTOUT W !! D CLOSE^DGUTQ Q
+PLST I SDCNT=0!($Y+2>IOSL) S DIR(0)="E" D:$E(IOST,1,2)="C-" ^DIR K DIR Q:$D(DTOUT)!$D(DUOUT)  D HED
+ N VA D PID^VADPT6
+ W !,$P(^DPT(DFN,0),"^",1),?30,VA("PID") S X=J D TM^SDROUT0 W ?43,$J(X,8),?58,SDLE W:$D(^DPT(DFN,.13)) ?64,$P(^(.13),"^",1)
+ S SDCNT=SDCNT+1 Q
+HED ;W @IOF,!,$P(^SC(SC,0),"^",1)," Clinic Pre-cancellation list",!,"PATIENT NAME",?34,"ID",?43,"APPT TIME",?56,"LENGTH",?64,"TELEPHONE"   ;IHS/ANMC/.LJF 12/13/2000
+ W @IOF,!,$P(^SC(SC,0),"^",1)," Clinic Pre-cancellation list for ",$$FMTE^XLFDT(SD,"D"),!,"PATIENT NAME",?34,"ID",?43,"APPT TIME",?56,"LENGTH",?64,"TELEPHONE"  ;IHS/ANMC/LJF 12/13/2000
+ W ! F I=1:1:79 W "-"
+ Q

@@ -1,0 +1,118 @@
+FHINI0B0	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,7300,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7301,0)
+	;;=PUDDINGS,VANILLA TAPIOCA (REG MIX),JELL-O AMERICANA^BC-00574^1/2-cup^145
+	;;^UTILITY(U,$J,112,7301,1)
+	;;=2.759^2.828^18.897^110.345^74.69^^^101.379^.062^11.724^79.31^128.276^117.241^.331^.038^^^106.207^.69^.034
+	;;^UTILITY(U,$J,112,7301,2)
+	;;=.138^.069^.262^.034^4.138^.303^^^11.724^1.793^^.138
+	;;^UTILITY(U,$J,112,7301,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7302,0)
+	;;=CAKE & COOKIE DECORATOR,PILSBURY^BC-00575^tbsp.^18
+	;;^UTILITY(U,$J,112,7302,1)
+	;;=0^11.111^76.111^400^13.889^^^0^0^^0^27.778^0^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7302,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,7302,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7303,0)
+	;;=CAKE & COOKIE DECORATOR (CHOC),PILSBURY^BC-00576^tbsp.^16
+	;;^UTILITY(U,$J,112,7303,1)
+	;;=1.25^11.25^76.25^400^18.125^^^0^.813^^68.75^31.25^0^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7303,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,7303,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7304,0)
+	;;=SAUCES,CARAMEL,KNORR^BC-00577^tbsp.^21
+	;;^UTILITY(U,$J,112,7304,1)
+	;;=0^0^70^285.714^25.714^^^^^^^^23.81
+	;;^UTILITY(U,$J,112,7304,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,7304,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7305,0)
+	;;=SYRUPS,CHOC,HERSHEY^BC-00578^2-tbsp.^28
+	;;^UTILITY(U,$J,112,7305,1)
+	;;=3.214^1.429^58.571^260.714^^^^14.286^1.786^71.429^128.571^171.429^64.286^.786^.5^.4^^21.429^^.036
+	;;^UTILITY(U,$J,112,7305,2)
+	;;=.036^.357^^^^^^^0
+	;;^UTILITY(U,$J,112,7305,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7306,0)
+	;;=ICING FROM MIX (CHOC),DUNCAN HINES^BC-00579^1/12-pkg.^38
+	;;^UTILITY(U,$J,112,7306,1)
+	;;=1.316^18.421^63.158^421.053^17.895^^^15.789^2.368^^^^236.842^^^^^^^.026
+	;;^UTILITY(U,$J,112,7306,2)
+	;;=.053^.263^^^^^^^0^5.263^12.105^1.053
+	;;^UTILITY(U,$J,112,7306,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7307,0)
+	;;=ICING FROM MIX (CHOC FUDGE),GENERAL MILLS^BC-00580^1/12-pkg.^37
+	;;^UTILITY(U,$J,112,7307,1)
+	;;=0^16.216^81.081^486.486^^^^^^^^162.162^189.189
+	;;^UTILITY(U,$J,112,7307,2)
+	;;=^^^^^^^^0^5.405^8.108^2.703
+	;;^UTILITY(U,$J,112,7307,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7308,0)
+	;;=ICING FROM MIX (COCONUT PECAN),GENERAL MILLS^BC-00581^1/12-pkg.^35
+	;;^UTILITY(U,$J,112,7308,1)
+	;;=0^22.857^54.286^428.571^^^^^^^^85.714^142.857
+	;;^UTILITY(U,$J,112,7308,2)
+	;;=^^^^^^^^0^8.571^8.571^5.714
+	;;^UTILITY(U,$J,112,7308,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7309,0)
+	;;=ICING FROM MIX (CREAM CHEESE),DUNCAN HINES^BC-00582^1/12-pkg.^38
+	;;^UTILITY(U,$J,112,7309,1)
+	;;=.263^21.053^63.158^421.053^^^^^^^^^315.789
+	;;^UTILITY(U,$J,112,7309,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,7309,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7310,0)
+	;;=ICING FROM MIX (DARK DUTCH FUDGE),DUNCAN HINES^BC-00583^1/12-pkg.^38
+	;;^UTILITY(U,$J,112,7310,1)
+	;;=1.579^18.421^63.158^421.053^18.947^^^18.421^2.053^^^^250^^^^^^^0
+	;;^UTILITY(U,$J,112,7310,2)
+	;;=.026^.263^^^^^^^18.421^5.263^12.105^1.053
+	;;^UTILITY(U,$J,112,7310,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7311,0)
+	;;=ICING FROM MIX (MILK CHOC POLKA DOT),DUNCAN HINES^BC-00584^1/12-pkg.^38
+	;;^UTILITY(U,$J,112,7311,1)
+	;;=1.579^21.053^65.789^447.368^^^^^^^^^250
+	;;^UTILITY(U,$J,112,7311,2)
+	;;=^^^^^^^^0
+	;;^UTILITY(U,$J,112,7311,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7312,0)
+	;;=ICING FROM MIX (RAINBOW CHIP),GENERAL MILLS^BC-00585^1/12-pkg.^40
+	;;^UTILITY(U,$J,112,7312,1)
+	;;=0^17.5^80^475^^^^^^^^37.5^125
+	;;^UTILITY(U,$J,112,7312,2)
+	;;=^^^^^^^^0^5^10^2.5
+	;;^UTILITY(U,$J,112,7312,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7313,0)
+	;;=ICING FROM MIX (SOUR CREAM CHOC FUDGE),GENERAL MILLS^BC-00586^1/12-pkg.^37
+	;;^UTILITY(U,$J,112,7313,1)
+	;;=2.703^16.216^81.081^486.486^^^^^^^^202.703^202.703
+	;;^UTILITY(U,$J,112,7313,2)
+	;;=^^^^^^^^0^5.405^8.108^2.703
+	;;^UTILITY(U,$J,112,7313,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7314,0)
+	;;=ICING FROM MIX (SOUR CREAM WHITE),GENERAL MILLS^BC-00587^1/12-pkg.^37
+	;;^UTILITY(U,$J,112,7314,1)
+	;;=0^13.514^83.784^459.459^^^^^^^^27.027^270.27
+	;;^UTILITY(U,$J,112,7314,2)
+	;;=^^^^^^^^0^2.703^8.108^2.703
+	;;^UTILITY(U,$J,112,7314,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

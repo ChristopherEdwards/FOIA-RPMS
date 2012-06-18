@@ -1,0 +1,90 @@
+ACHSRP31 ; IHS/ITSC/PMF - PRINT CHS (43 & 64) FORMS (2/2) ;
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**13**;JUN 11,2001
+ ;ACHS*3.1*13 11/22/06 IHS/OIT/FCJ PRT POLICY # & COV FR CORRECT FILES
+ ;
+ I $$PARM^ACHS(2,16)'="Y" W !!!!
+ ;
+EN ;EP - From PO entry and CHEF report.
+ I $G(DFN)="" W !!,"DFN variable MUST be defined when entering this routine!!" Q
+ ;
+ W !!?ACHSTAB,"Type of Coverage",?30,"Policy #",?55,"Cov. type EligDt TermDt",!?ACHSTAB,"----------------",?30,"--------",?55,"--------- ------ ------"
+ ;
+ ;LETS LOOK AT POSSIBLE MEDICARE COVERAGE
+MCR ;
+ I '$D(^AUPNMCR(DFN)) W !?ACHSTAB,"No Known Medicare Coverage" G MCD
+ ;[
+ G MCD:'$P($G(^AUPNMCR(DFN,0)),U,3)
+ ;
+ S X=$J("",ACHSTAB)_$P($G(^AUTNINS($P($G(^AUPNMCR(DFN,0)),U,2),0)),U)
+ I $P($G(^AUPNMCR(DFN,0),"UNDEFINED"),U,2)'="" D
+ .S X=$J("",ACHSTAB)_$P($G(^AUTNINS($P($G(^AUPNMCR(DFN,0)),U,2),0)),U)
+ E  S X=$J("",ACHSTAB)
+ S X=X_$J("",30-$L(X))
+ S X=X_$P($G(^AUPNMCR(DFN,0)),U,3)
+ ;
+ I $P($G(^AUPNMCR(DFN,0)),U,4)'="" D
+ .S:$D(^AUTTMCS($P(^AUPNMCR(DFN,0),U,4),0)) X=X_$P(^AUPNMCR(DFN,0),U)
+ ;
+ ;GO THRU 'MEDICARE ELIGIBLE' FILE
+ S I=0
+ F  S I=$O(^AUPNMCR(DFN,11,I)) Q:+I=0  D
+ .W !,X,?60,$P($G(^AUPNMCR(DFN,11,I,0)),U,3)      ;'COVERAGE TYPE'
+ .W ?65,$$MDY($P($G(^AUPNMCR(DFN,11,I,0)),U))     ;'ELIG. DATE'
+ .W ?72,$$MDY($P($G(^AUPNMCR(DFN,11,I,0)),U,2))   ;'ELIG. END DATE'
+ ;
+ ;LETS LOOK AT POSSIBLE MEDICAID COVERAGE
+MCD ;
+ G RRE:'$D(^AUPNMCD("B",DFN))
+ K ^TMP("ACHSRP31",$J,"MCD")
+ F I=0:0 S I=$O(^AUPNMCD("B",DFN,I)) Q:'I  F JJ=0:0 S JJ=$O(^AUPNMCD(I,11,JJ)) Q:'JJ  D
+ . S ^TMP("ACHSRP31",$J,"MCD",9999999-JJ)=$G(^AUPNMCD(I,11,JJ,0))
+ .S $P(^TMP("ACHSRP31",$J,"MCD",9999999-JJ),U,4,6)=$P($G(^AUPNMCD(I,0)),U,2,4)
+ .Q
+ ;
+ ;
+ S JJ=0
+ F ACHS=1:1:4 S JJ=$O(^TMP("ACHSRP31",$J,"MCD",JJ)) Q:'JJ  I $P(^TMP("ACHSRP31",$J,"MCD",JJ),U,6)]"",$D(^DIC(5,$P(^(JJ),U,6),0)) S $P(^TMP("ACHSRP31",$J,"MCD",JJ),U,6)=$P(^(0),U,2)
+ S I=0
+ F ACHS=1:1:4 S I=$O(^TMP("ACHSRP31",$J,"MCD",I)) Q:'I  W !?ACHSTAB,$P(^AUTNINS($P(^TMP("ACHSRP31",$J,"MCD",I),U,4),0),U),?30,$P(^TMP("ACHSRP31",$J,"MCD",I),U,5),$P(^(I),U,6),?60,$P(^(I),U,3),?65,$$MDY($P(^(I),U)),?72,$$MDY($P(^(I),U,2))
+ K ^TMP("ACHSRP31",$J,"MCD")
+RRE ;
+ G PVT:'$D(^AUPNRRE(DFN,0))
+ W !?ACHSTAB
+ W:$P($G(^AUPNRRE(DFN,0)),U,2)'="" $P($G(^AUTNINS($P(^AUPNRRE(DFN,0),U,2),0)),U),?30
+ W:$P($G(^AUPNRRE(DFN,0)),U,3)'="" $P(^AUTTRRP($P(^AUPNRRE(DFN,0),U,3),0),U)
+ W $P($G(^AUPNRRE(DFN,0)),U,4)
+ ;
+ ;******LOOP THRU RAILROAD ELIGIBLE FILE
+ S JJ=$O(^AUPNRRE(DFN,11,0))
+ I JJ F I=JJ:0 S I=$O(^AUPNRRE(DFN,11,I)) Q:+I'=I  S:$P(^AUPNRRE(DFN,11,I,0),U)>$P(^AUPNRRE(DFN,11,JJ,0),U) JJ=I
+ I JJ W ?60,$P(^AUPNRRE(DFN,11,JJ,0),U,3),?65,$$MDY($P(^(0),U)),?72,$$MDY($P(^(0),U,2))
+PVT ;
+ G END:'$D(^AUPNPRVT(DFN,11))
+ S I=0
+PVT1 ;
+ ;****LOOP THRU PRIVATE INSURANCE
+ S I=$O(^AUPNPRVT(DFN,11,I))
+ G END:'I
+ ;ACHS*3.1*13 11/22/06 IHS/OIT/FCJ PRT POLICY # & COV FR CORRECT FILES
+ ;W !?ACHSTAB,$E($P(^AUTNINS($P(^AUPNPRVT(DFN,11,I,0),U),0),U),1,26),?30,$P(^AUPNPRVT(DFN,11,I,0),U,2)," "
+ ;I $P(^AUPNPRVT(DFN,11,I,0),U,3) S X=$P(^AUTTPIC($P(^(0),U,3),0),U) W ?64-$L(X),$E(X,1,64-$X)
+ S ACHSINS=^AUPNPRVT(DFN,11,I,0)
+ W !?ACHSTAB,$E($P(^AUTNINS($P(ACHSINS,U),0),U),1,26)
+ I $P(ACHSINS,U,8),$D(^AUPN3PPH($P(ACHSINS,U,8),0)) D
+ .S I2=$P(^AUPNPRVT(DFN,11,I,0),U,8)
+ .W ?30,$P(^AUPN3PPH(I2,0),U,4)," "
+ .I $P(^AUPN3PPH(I2,0),U,5) D
+ ..S X=$P(^AUTTPIC($P(^AUPN3PPH(I2,0),U,5),0),U)
+ ..W ?64-$L(X),$E(X,1,64-$X)
+ ;ACHS*3.1*13 11/22/06 IHS/OIT/FCJ PRT END OF CHANGES
+ W ?65,$$MDY($P(^AUPNPRVT(DFN,11,I,0),U,6)),?72,$$MDY($P(^(0),U,7))
+ G PVT1
+ ;
+ ;
+END ;
+ K I,I2,JJ,ACHSINS
+ Q
+ ;
+MDY(X) ;
+ Q $E(X,4,7)_$E(X,2,3)
+ ;

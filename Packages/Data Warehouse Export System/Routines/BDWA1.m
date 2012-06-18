@@ -1,0 +1,226 @@
+BDWA1 ;IHS/CMI/LAB - DW EXPORT - OLD, NOT USED;
+ ;;1.0;IHS DATA WAREHOUSE;;JAN 23, 2006
+ ;
+ NEW DFN,BDWADONE,BDWAP3,DX,DY,BDWASITE,BDWAN11,BDWADPT0,BDWAPAT0,T
+ S (BDWALDAT,DFN)=0,BDWAFDAT=9999999,BDWAP3=$P(^AUPNPAT(0),U,3)
+ S DX=$X,DY=$Y+1
+ F  S DFN=$O(^AUPNPAT(DFN)) Q:'DFN  D  I '(DFN#100),'$D(ZTQUEUED) X IOXY W "On IEN ",DFN," of ",BDWAP3," in ^AUPNPAT(..."
+ . Q:'$D(^DPT(DFN))
+ . Q:$P(^DPT(DFN,0),U,19)  ; merged pt
+ . S (BDWADONE,BDWASITE)=0
+ . F  S BDWASITE=$O(^AUPNPAT(DFN,41,BDWASITE)) Q:'BDWASITE  D  Q:BDWADONE
+ .. I $L($P(^AUPNPAT(DFN,41,BDWASITE,0),U,5)) Q:"DM"[$P(^(0),U,5)  ; deleted or merged patient
+ .. Q:"T"=$E($P(^AUPNPAT(DFN,41,BDWASITE,0),U,2))  ; Temp HRN
+ .. KILL T
+ .. S BDWADPT0=$G(^DPT(DFN,0)),BDWAPAT0=$G(^AUPNPAT(DFN,0)),BDWAN11=$G(^AUPNPAT(DFN,11))
+ .. D RG1,RG2,RG4,RG5
+ .. S BDWADONE=1 ; pt is done, one and only one time
+ .. S BDWAIN03=BDWAIN03+1
+ .. I $P(BDWAPAT0,U,2),$P(BDWAPAT0,U,2)<BDWAFDAT S BDWAFDAT=$P(BDWAPAT0,U,2)
+ .. I $P(BDWAPAT0,U,2)>BDWALDAT S BDWALDAT=$P(BDWAPAT0,U,2)
+ ..Q
+ .Q
+ ;
+ Q
+ ;
+RG1 ;
+ S T(1)="RG1"
+ ;
+ ; R1P4:LastName^FirstName^MI
+ D NAMECVT($P(BDWADPT0,U))
+ S $P(T(1),U,4)=BDWALN,$P(T(1),U,5)=BDWAFN,$P(T(1),U,6)=BDWAMN
+ ;
+ ; R1P7:Classification
+ S X=$P(BDWAN11,U,11)
+ I X S $P(T(1),U,7)=$P($G(^AUTTBEN(X,0)),U,2)
+ ;
+ ; R1P8:DateOfBirth
+ S $P(T(1),U,8)=$P(BDWADPT0,U,3)+17000000
+ ;
+ ; R1P9:Gender
+ S $P(T(1),U,9)=$P(BDWADPT0,U,2)
+ ;
+ ; R1P10:SocialSecNum
+ S $P(T(1),U,10)=$TR($P(BDWADPT0,U,9),"-")
+ ;
+ ; R1P11:TribeCode
+ S X=$P(BDWAN11,U,8)
+ I X S $P(T(1),U,11)=$P($G(^AUTTTRI(X,0)),U,2)
+ ;
+ ; R1P12:BloodQuantum
+ I $P(BDWAN11,U,10)]"" D  I Y]"" S $P(T(1),U,12)=Y
+ . NEW V
+ . S V=$P(BDWAN11,U,10),(Y,X)=""
+ . I +V>0 S X=$P(V,"/",1)/$P(V,"/",2)
+ . S Y=$S((V="FULL"!(X=1)):1,V="NONE":5,V="UNSPECIFIED":6,V="UNKNOWN":7,+V'>0:7,1:Y) Q:Y]""
+ . S Y=$S(X'<.5:2,X'<.25:3,X'<.125:4,X<.125:4,1:Y)
+ .Q
+ ;
+ ; R1P13:Father's LastName^FirstName^MI
+ I $D(^DPT(DFN,.24)) D NAMECVT($P(^DPT(DFN,.24),U)) S $P(T(1),U,13)=BDWALN,$P(T(1),U,14)=BDWAFN,$P(T(1),U,15)=$E(BDWAMN)
+ ;
+ ; R1P16:CurrentCommunity
+ S X=$P(BDWAN11,U,17)
+ I X,$D(^AUTTCOM(X,0)) S X=$P(^AUTTCOM(X,0),U,8),$P(T(1),U,16)=$E(X,5,7)_$E(X,3,4)_$E(X,1,2)
+ ;
+ I '$D(^DPT(DFN,.11)) G SET1
+ ;
+ ; R1P17:AddressStreet^AddressTown
+ S $P(T(1),U,17)=$P(^DPT(DFN,.11),U),$P(T(1),U,18)=$P(^(.11),U,4),X=$P(^(.11),U,5)
+ ;
+ ; R1P19:AddressState
+ I X S $P(T(1),U,19)=$P(^DIC(5,X,0),U,2)
+ ;
+ ; R1P20:AddressZip
+ S $P(T(1),U,20)=$TR($P(^DPT(DFN,.11),U,6),"-")
+SET1 ;
+ D SET(1)
+ Q
+ ;
+NAMECVT(%) ;
+ S %=$TR(%,"abcdefghijklmnopqrstuvwxyz)(/","ABCDEFGHIJKLMNOPQRSTUVWXYZ---")
+ S BDWALN=$P(%,",",1),BDWAFN=$P($P(%,",",2)," ",1),BDWAMN=$P($P(%,",",2)," ",2)
+ I $P(%,",",3)]"" S BDWALN=BDWALN_" "_$P(%,",",3)
+ Q
+ ;
+RG2 ;
+ S T(2)="RG2",T(5)="RG5"
+ ;
+ ; R2P2:MotherMaiden Last^First^MI
+ I $D(^DPT(DFN,.24)) D NAMECVT($P(^(.24),U,3)) S $P(T(2),U,2)=BDWALN,$P(T(2),U,3)=BDWAFN,$P(T(2),U,4)=$E(BDWAMN)
+ ;
+ ; R2P5:DateOfDeath
+ I $D(^DPT(DFN,.35)) S $P(T(2),U,5)=^(.35)+17000000
+ ;
+ KILL BDWAFLG
+ S BDWACT=""
+ G MCR:'$D(^AUPNRRE(DFN,0)),MCR:$P(^AUPNRRE(DFN,0),U,3)=""!($P(^(0),U,4)="")
+ S BDWANUMB=$P(^AUTTRRP($P(^AUPNRRE(DFN,0),U,3),0),U)_$P(^AUPNRRE(DFN,0),U,4),BDWARR=0
+RRD ;
+ S BDWARR=$O(^AUPNRRE(DFN,11,BDWARR))
+ G MCR:BDWARR=""
+ S BDWAR1=BDWARR,BDWACT=$P(^AUPNRRE(DFN,11,BDWAR1,0),U,3),BDWAVAL=$P(^(0),U),BDWAELGE=$P(^(0),U,2)
+ D PTA
+ S:$P(^AUPNRRE(DFN,11,BDWAR1,0),U,2)]"" $P(T(2),U,BDWAN1)="N"
+ G RRD
+ ;
+MCR ;
+ G MCD:'$D(^AUPNMCR(DFN,0)),MCD:$P(^AUPNMCR(DFN,0),U,3)=""!($P(^(0),U,4)="")
+ S BDWANUMB=$P(^AUPNMCR(DFN,0),U,3)_$P(^AUTTMCS($P(^AUPNMCR(DFN,0),U,4),0),U),BDWARR=0
+ G:'$D(^AUPNMCR(DFN,21)) MCRCONT
+ I $P(^AUPNMCR(DFN,21),U)]"" D NAMECVT($P(^(21),U)) S $P(T(5),U,7)=BDWALN,$P(T(5),U,8)=BDWAFN,$P(T(5),U,9)=BDWAMN
+ ;Set Medicare Elig. date to CCYYMMDD -- RG5^13
+ I $P(^AUPNMCR(DFN,21),U,2)]"" S $P(T(5),U,13)=$P(^(21),U,2)+17000000
+MCRCONT ;
+ S BDWARR=$O(^AUPNMCR(DFN,11,BDWARR))
+ G MCD:BDWARR=""
+ S BDWAR1=BDWARR,BDWACT=$P(^AUPNMCR(DFN,11,BDWAR1,0),U,3),BDWAVAL=$P(^(0),U),BDWAELGE=$P(^(0),U,2)
+ D PTA
+ S:$P(^AUPNMCR(DFN,11,BDWAR1,0),U,2)]"" $P(T(2),U,BDWAN1)="N"
+ G MCRCONT
+ ;
+MCD ; remember that ^AUPNMCD( is -not- DINUM'd.
+ S BDWACT="MM"
+ G PRVINS:'$D(^AUPNMCD("AB",DFN))!('$O(^AUPNPAT(DFN,51,""),-1))
+ ; lookup previous community
+ S BDWA("LKDATA")=$P(^AUPNPAT(DFN,51,$O(^AUPNPAT(DFN,51,""),-1),0),U,3)
+ G PRVINS:BDWA("LKDATA")=""
+ G:'$D(^AUTTCOM(BDWA("LKDATA"),0)) PRVINS
+ S BDWA("STATE")=$P(^AUTTCOM(BDWA("LKDATA"),0),U,3),(BDWA("NM"),BDWA("DT"))=0,BDWAELGE=""
+MCD2 ;
+ S BDWA("NM")=$O(^AUPNMCD("AB",DFN,BDWA("STATE"),BDWA("NM")))
+ G MCD4:BDWA("NM")=""
+ S DA=0
+MCD3 ;
+ S DA=$O(^AUPNMCD("AB",DFN,BDWA("STATE"),BDWA("NM"),DA))
+ G MCD2:DA=""
+ F I=0:0 S I=$O(^AUPNMCD(DA,11,I)) Q:'(I=+I)  D
+ . S BDWA("LKDATA")=$P(^AUPNMCD(DA,11,I,0),U,1)
+ . I BDWA("LKDATA")>BDWA("DT") S BDWA("DT")=BDWA("LKDATA")_U_DA,BDWAELGE=$P(^AUPNMCD(DA,11,I,0),U,2),BDWA("MCDCT")=$P(^AUPNMCD(DA,11,I,0),U,3),BDWA("MCDST")=$P(^AUPNMCD(DA,0),U,4)
+ .Q
+ G MCD3
+ ;
+MCD4 ;
+ G PRVINS:+BDWA("DT")=0
+ S DA=$P(BDWA("DT"),U,2),BDWANUMB=$E($P(^AUPNMCD(DA,0),U,3),1,14),BDWAVAL=+BDWA("DT")
+ D PTA
+ ;
+ ; R2P22:Veteran
+ S $P(T(2),U,22)=$G(^DPT(DFN,"VET"))
+ ;
+ ; R2P32:MCaidState
+ S $P(T(2),U,32)=$P(^DIC(5,BDWA("MCDST"),0),U,3)
+ ;
+ ; R2P33:MCaidCovType
+ S $P(T(2),U,33)=BDWA("MCDCT")
+ ;
+ G:'$D(^AUPNMCD(DA,21)) PRVINS
+ ;
+ ; R5P10:MCaidName Last^First^MI
+ I $P(^AUPNMCD(DA,21),U)]"" D NAMECVT($P(^(21),U)) S $P(T(5),U,10)=BDWALN,$P(T(5),U,11)=BDWAFN,$P(T(5),U,12)=BDWAMN
+ ;
+ ; R5P14:MCaidDOB
+ I $P(^AUPNMCD(DA,21),U,2)]"" S $P(T(5),U,14)=$P(^(21),U,2)+17000000
+ ;
+PRVINS ; R2P24:OtherEligible
+ S:$D(^AUPNPRVT(DFN,0)) $P(T(2),U,24)="Y"
+ ;
+ ; R2P25:CHSEligibility
+ S:$P(BDWAN11,U,12)="C" $P(T(2),U,25)="Y"
+ ;
+ ; R2P26:(?)PtSigned
+ ;
+ ; R2P27:AddModCode
+ S $P(T(2),U,27)=1
+ ;
+ ; R2P28:MMReleaseDate
+ I $P(BDWAPAT0,U,4) S $P(T(2),U,28)=$P(BDWAPAT0,U,4)+17000000
+ ;
+ ; R2P29:Eligilibity^BICElig^BICIssued
+ S $P(T(2),U,29)=$P(BDWAN11,U,12),$P(T(2),U,30)=$P(BDWAN11,U,24)
+ S:$P(BDWAN11,U,26)="Y" $P(T(2),U,31)="Y"
+ ;
+ ; R2P34:DateLastUpdate
+ I $P(BDWAPAT0,U,3) S $P(T(2),U,34)=$P(BDWAPAT0,U,3)+17000000
+ ;
+ D SET(2)
+ Q
+ ;
+PTA ; R2/R5 MMInfo
+ Q:'$D(BDWACT)  Q:(BDWACT'?1A.A)  Q:$D(BDWAFLG(BDWACT))
+ S BDWAN1=$S(BDWACT="A":6,BDWACT="B":10,BDWACT="AB":14,BDWACT="MM":18,1:0)
+ Q:BDWAN1=0
+ S $P(T(2),U,BDWAN1)="Y",$P(T(2),U,BDWAN1+1)=BDWANUMB,$P(T(2),U,BDWAN1+2)=""
+ ;Set Medicaid & Medicare Elig. dates to CCYYMMDD -- RG2^9,13,17,21
+ I $G(BDWAVAL) S $P(T(2),U,BDWAN1+3)=BDWAVAL+17000000
+ ;Set Medicaid & Medicare Elig. end dates to CCYYMMDD -- RG5^15,16,17,18
+ I $G(BDWAELGE) S BDWAELGE=BDWAELGE+17000000
+ S $P(T(5),U,$S(BDWACT="A":15,BDWACT="B":16,BDWACT="AB":17,BDWACT="MM":18))=BDWAELGE
+ S BDWAFLG(BDWACT)=""
+ Q
+ ;
+RG4 ;
+ D NAMECVT($P(BDWADPT0,U))
+ S BDWARSIT=0
+ F  S BDWARSIT=$O(^AUPNPAT(DFN,41,BDWARSIT)) Q:BDWARSIT'>0  D
+ . I $L($P(^AUPNPAT(DFN,41,BDWASITE,0),U,5)) Q:"DM"[$P(^(0),U,5)
+ . Q:"T"=$E($P(^AUPNPAT(DFN,41,BDWARSIT,0),U,2))
+ . S T(4)="RG4"_U_$P($G(^AUTTLOC(BDWATXST,0)),U,10)_U_$E(BDWALN)_U_$E(BDWAFN)_U_$P(BDWADPT0,U,2)_U_$P($G(^AUPNPAT(DFN,41,BDWATXST,0)),U,2)_"^^"_$P($G(^AUTTLOC(BDWARSIT,0)),U,10)_U_$P($G(^AUPNPAT(DFN,41,BDWARSIT,0)),U,2)
+ . D SET(4)
+ .Q
+ KILL BDWARSIT
+ Q
+ ;
+RG5 ;
+ NEW I
+ F I=6,10,14,18 I $P(T(2),U,I)="Y" D  ;>Set Coverages
+ . S $P(T(5),U,2,6)=$P(T(2),U,I+1)_U_$P(T(2),U,I+2)_U_$S(I=6:1,I=10:2,I=14:3,1:4)_U_$P(T(1),U,8)_U_$P(T(2),U,I+3)
+ . D SET(5)
+ .Q
+ Q
+ ;
+SET(%) ;
+ S BDWAROUT=BDWAROUT+1,^BDWRDATA(BDWAROUT)=$P(T(%),U,1)_U_$$UID^BDWAID(DFN)_U_$P(T(%),U,2,999),BDWA("TOT")=BDWA("TOT")+1
+ S BDWAIN06=BDWAIN06+$L(^BDWRDATA(BDWAROUT))+$L(BDWAROUT)+11
+ Q
+ ;

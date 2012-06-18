@@ -1,0 +1,257 @@
+BQIRGPL ;PRXM/HC/ALA-Registers and Panels ; 01 Nov 2007  1:00 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+ Q
+ ;
+EN(DATA,OWNR,PLIEN,REG,PLIST) ;EP -- BQI GET REG DATA BY PANEL
+ ;Description - Entry point for the panel
+ ;Input Parameters
+ ;  OWNR  - Owner of panel
+ ;  PLIEN - Panel IEN
+ ;  REG   - Register
+ ;  PLIST - List of DFNs (optional)
+ NEW UID,II,X,BQIRM,VAL,HIEN,E,J,K,L,MAX,MIN,NAFLG,BN,LIST,BQI,DFN
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIRGPL",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIRGPL D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ; If a list of DFNs, process them instead of entire panel
+ I $D(PLIST)>0 D  G DONE
+ . I $D(PLIST)>1 D
+ .. S LIST="",BN=""
+ .. F  S BN=$O(PLIST(BN)) Q:BN=""  S LIST=LIST_PLIST(BN)
+ .. K PLIST S PLIST=LIST
+ . F BQI=1:1 S DFN=$P(PLIST,$C(28),BQI) Q:DFN=""  D
+ .. I $P($G(^BQICARE(OWNR,1,PLIEN,40,DFN,0)),"^",2)="R" Q
+ .. D PAT(.DATA,OWNR,PLIEN,REG,DFN)
+ ;
+ ;S DFN=$G(DFN,0)
+ ;
+ ;I DFN'=0 D PAT(.DATA,OWNR,PLIEN,REG,DFN) G DONE
+ ;
+ S DFN=0
+ I $O(^BQICARE(OWNR,1,PLIEN,40,DFN))="" D PAT(.DATA,OWNR,PLIEN,REG,"") G DONE
+ ;
+ F  S DFN=$O(^BQICARE(OWNR,1,PLIEN,40,DFN)) Q:'DFN  D
+ . I $P($G(^BQICARE(OWNR,1,PLIEN,40,DFN,0)),"^",2)="R" Q
+ . D PAT(.DATA,OWNR,PLIEN,REG,DFN)
+ ;
+DONE ;
+ I II=0,'$D(@DATA) D PAT(.DATA,OWNR,PLIEN,REG,"")
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+PAT(DATA,OWNR,PLIEN,REG,DFN) ;EP - Build record by patient
+ ; Get standard display
+ NEW IEN,HDR,VALUE,HEADR,SENS,HDOB,Y,STVW,TEXT,ORD,GMET,GHDR,RGIEN,CRIEN,CARE,CTYP
+ NEW GIEN,CIEN,ATAGN,ATAGNM,ATAGST
+ S VALUE="",RGIEN=""
+ I DFN'="" S Y=$$GET1^DIQ(9000001,DFN_",",1102.2,"I"),HDOB=$$FMTE^BQIUL1(Y)
+ I DFN'="" S VALUE=DFN_U_$$FLG^BTPWPPAT(DFN)_U_$$FLG^BQIULPT(DUZ,PLIEN,DFN)_U_$$SENS^BQIULPT(DFN)_U_$$CALR^BQIULPT(DFN)_U_$$MFLAG^BQIULPT(OWNR,PLIEN,DFN)_U_HDOB_U
+ S HEADR="I00010DFN^T00001TICKLER_INDICATOR^T00001FLAG_INDICATOR^T00001SENS_FLAG^T00001COMM_FLAG^T00001HIDE_MANUAL^D00030HIDE_DOB^"
+ S HEADR=HEADR_"I00010HIDE_ASSOC_TAG_IEN^T00030HIDE_ASSOC_TAG_NAME^T00001HIDE_ASSOC_TAG_STATUS^"
+ I REG'="" S RGIEN=$O(^BQI(90507,"B",REG,""))
+ I RGIEN="" S @DATA@(II)=HEADR_$C(30) Q
+ S CRIEN=$O(^BQI(90506.5,"D",RGIEN,""))
+ I CRIEN="" S @DATA@(II)=HEADR_$C(30) Q
+ S ATAGN=$O(^BQI(90506.2,"AD",RGIEN,"")),ATAGNM="{None}",ATAGST=""
+ I ATAGN'="" S ATAGNM=$P(^BQI(90506.2,ATAGN,0),U,1)
+ I DFN'="" S ATAGST=$$CTAG^BQITDUTL(DFN,ATAGNM)
+ I ATAGST="" S ATAGN="",ATAGNM="{None}"
+ S VALUE=VALUE_ATAGN_U_ATAGNM_U_ATAGST_U
+ S CARE=$P(^BQI(90506.5,CRIEN,0),U,1),CTYP=$P(^BQI(90506.5,CRIEN,0),U,2)
+ ; Find IEN
+ S IEN=""
+ F  S IEN=$O(^BQI(90506.1,"AC",CTYP,IEN)) Q:IEN=""  D
+ . I $P(^BQI(90506.1,IEN,0),U,6)'=".001" Q
+ . S HEADR=HEADR_$P(^BQI(90506.1,IEN,0),U,8)_U
+ . S STVW=IEN
+ . N CRIEN  ;New'd variable since it gets used in executable calls
+ . X ^BQI(90506.1,STVW,1)
+ . S VALUE=VALUE_VAL_U
+ ;
+ ; Check for template
+ NEW DA,IENS,TEMPL,LYIEN,QFL
+ S TEMPL=""
+ I OWNR'=DUZ D
+ . S DA=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,4,"C",CTYP,""))
+ . I DA="" Q
+ . S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=DUZ,IENS=$$IENS^DILF(.DA)
+ . S TEMPL=$$GET1^DIQ(90505.34,IENS,.01,"E")
+ I OWNR=DUZ D
+ . S DA=$O(^BQICARE(OWNR,1,PLIEN,4,"C",CTYP,""))
+ . I DA="" Q
+ . S DA(2)=OWNR,DA(1)=PLIEN,IENS=$$IENS^DILF(.DA)
+ . S TEMPL=$$GET1^DIQ(90505.14,IENS,.01,"E")
+ ;
+ ; If template, use it
+ I TEMPL'="" S QFL=0 D  G FIN:'QFL
+ . ;S LYIEN=$$DEF^BQILYUTL(OWNR,"M")
+ . S LYIEN=$$TPN^BQILYUTL(DUZ,TEMPL)
+ . I LYIEN="" S QFL=1 Q
+ . S DOR=""
+ . F  S DOR=$O(^BQICARE(DUZ,15,LYIEN,1,"C",DOR)) Q:DOR=""  D
+ .. S IEN=""
+ .. F  S IEN=$O(^BQICARE(DUZ,15,LYIEN,1,"C",DOR,IEN)) Q:IEN=""  D
+ ... S CODE=$P(^BQICARE(DUZ,15,LYIEN,1,IEN,0),U,1)
+ ... S GIEN=$O(^BQI(90506.1,"B",CODE,"")) I GIEN="" Q
+ ... S STVW=GIEN
+ ... I $P($G(^BQI(90506.1,GIEN,0)),U,10)=1 Q
+ ... D CVAL
+ ... S VALUE=VALUE_VAL_"^"
+ ... S HEADR=HEADR_HDR_"^"
+ ;
+ ; If no template, check for customized
+ I OWNR=DUZ D
+ . S CIEN=$O(^BQICARE(OWNR,1,PLIEN,23,"B",CARE,""))
+ . I CIEN'="" D
+ .. S IEN=0
+ .. I $O(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN))="" D DEF Q
+ .. F  S IEN=$O(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN)) Q:'IEN  D
+ ... S GIEN=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",1)
+ ... S STVW=GIEN
+ ... I $P($G(^BQI(90506.1,GIEN,0)),U,10)=1 Q
+ ... D CVAL
+ ... S VALUE=VALUE_VAL_"^"
+ ... S HEADR=HEADR_HDR_"^"
+ . ;
+ . ; If no customized, use default
+ . I CIEN="" D DEF
+ ;
+ I OWNR'=DUZ D
+ . S CIEN=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,"B",CARE,""))
+ . I CIEN'="" D
+ .. S IEN=0
+ .. I $O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN))="" D DEF Q
+ .. F  S IEN=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN)) Q:'IEN  D
+ ... S GIEN=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",1)
+ ... S STVW=GIEN
+ ... I $P($G(^BQI(90506.1,GIEN,0)),U,10)=1 Q
+ ... K VAL
+ ... D CVAL
+ ... S HEADR=HEADR_HDR_"^"
+ ... ;I VALUE=$$TKO^BQIUL1(VAL,";") Q
+ ... I VALUE=$P(VAL,";"),$P(VAL,";",2)'="" S VALUE=VALUE_$P(VAL,";",2)_"^"  Q
+ ... S VALUE=VALUE_VAL_"^"
+ . I CIEN="" D DEF
+ ;
+FIN ; Finish
+ S HEADR=$$TKO^BQIUL1(HEADR,"^")
+ S VALUE=$$TKO^BQIUL1(VALUE,"^")
+ ;
+ I DFN="" S VALUE=""
+ ;
+ I II=0 S @DATA@(II)=HEADR_$C(30)
+ I VALUE'="",$P($G(@DATA@(II)),$C(30),1)'=VALUE S II=II+1,@DATA@(II)=VALUE_$C(30)
+ Q
+ ;
+CVAL ; Get demographic values
+ ;Parameters
+ ;  FIL  = FileMan file number
+ ;  FLD  = FileMan field number
+ ;  EXEC = If an executable is needed to determine value
+ ;  HDR  = Header value
+ ;the executable expects the value to be returned in variable VAL
+ NEW FIL,FLD,EXEC,RCODE,RGIEN,RIEN,RHDR,MVALUE,CODE
+ S VAL=""
+ S FIL=$$GET1^DIQ(90506.1,STVW_",",.05,"E")
+ S FLD=$$GET1^DIQ(90506.1,STVW_",",.06,"E")
+ S EXEC=$$GET1^DIQ(90506.1,STVW_",",1,"E")
+ S HDR=$$GET1^DIQ(90506.1,STVW_",",.08,"E")
+ I $G(DFN)="" S VAL="" Q
+ ;
+ I $G(EXEC)'="" X EXEC Q
+ ;
+ S RCODE=$$GET1^DIQ(90506.1,STVW_",",.01,"E")
+ S RGIEN=$O(^BQI(90506.3,"AC",CRIEN,"")),VAL=""
+ I RGIEN'="" D  Q:VAL'=""
+ . S RIEN=$O(^BQI(90506.3,RGIEN,10,"AC",RCODE,""))
+ . I RIEN'="",$P($G(^BQI(90506.3,RGIEN,10,RIEN,1)),U,1)="M" D  Q
+ .. S RHDR=$P(^BQI(90506.3,RGIEN,10,RIEN,0),U,2),MVALUE=""
+ .. NEW SNAME,SRIEN,SORD,SXREF,SIEN
+ .. S SNAME=$P(^BQI(90506.3,RGIEN,10,RIEN,0),U,1)
+ .. S SRIEN=$O(^BQI(90506.3,"B",SNAME,"")) I SRIEN="" Q
+ .. S SORD="",SXREF=$S($D(^BQI(90506.3,SRIEN,10,"AF")):"AF",1:"C")
+ .. F  S SORD=$O(^BQI(90506.3,SRIEN,10,SXREF,SORD)) Q:SORD=""  D
+ ... S SIEN=""
+ ... F  S SIEN=$O(^BQI(90506.3,SRIEN,10,SXREF,SORD,SIEN)) Q:SIEN=""  D
+ .... I $P(^BQI(90506.3,SRIEN,10,SIEN,0),U,4)'="S" Q
+ .... S CODE=$P(^BQI(90506.3,SRIEN,10,SIEN,0),U,7) I CODE="" Q
+ .... S STVW=$O(^BQI(90506.1,"B",CODE,"")) I STVW="" Q
+ .... I $$GET1^DIQ(90506.1,STVW_",",.1,"I")=1 Q
+ .... NEW FIL,FLD,EXEC
+ .... S FIL=$$GET1^DIQ(90506.1,STVW_",",.05,"E")
+ .... S FLD=$$GET1^DIQ(90506.1,STVW_",",.06,"E")
+ .... S EXEC=$$GET1^DIQ(90506.1,STVW_",",1,"E")
+ .... S HDR=RHDR
+ .... I $G(DFN)="" S VAL="" Q
+ .... ;
+ .... I $G(EXEC)'="" X EXEC S VAL=VAL_$S(VAL'="":$C(10),1:"") Q
+ .... I FIL'="",FLD'="" S VAL=$$GET1^DIQ(FIL,DFN_",",FLD,"E")
+ .... S VAL=VAL_$S(VAL'="":$C(10),1:"")
+ .... ;S VALUE=VALUE_VAL_$S(VAL'="":$C(10),1:"")
+ .... ;S VAL=VALUE
+ ... S MVALUE=MVALUE_$$TKO^BQIUL1(VAL,$C(10))
+ ... ;S MVALUE=MVALUE_VAL
+ .. S VAL=MVALUE
+ ;
+ I FIL'="",FLD'="" S VAL=$$GET1^DIQ(FIL,DFN_",",FLD,"E")
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+DEF ; Default list of fields
+ NEW CRIEN,TYP,ORD,IEN,STVW
+ ; Check for any alternate display order which trumps source display order
+ S CRIEN=$$FIND1^DIC(90506.5,"","B",CARE,"","","ERROR")
+ S TYP=$P(^BQI(90506.5,CRIEN,0),U,2)
+ S ORD=""
+ F  S ORD=$O(^BQI(90506.1,"AF",TYP,ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AF",TYP,ORD,IEN)) Q:IEN=""  D
+ .. I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
+ .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
+ ... S STVW=IEN
+ ... I $P($G(^BQI(90506.1,IEN,0)),U,10)=1 Q
+ ... D CVAL
+ ... S VALUE=VALUE_VAL_"^"
+ ... S HEADR=HEADR_HDR_"^"
+ ;
+ S CRIEN=$$FIND1^DIC(90506.5,"","B","Patient","","","ERROR")
+ S TYP=$P(^BQI(90506.5,CRIEN,0),U,2)
+ S ORD=""
+ F  S ORD=$O(^BQI(90506.1,"AD",TYP,ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AD",TYP,ORD,IEN)) Q:IEN=""  D
+ .. I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
+ .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
+ ... S STVW=IEN
+ ... I $P($G(^BQI(90506.1,IEN,0)),U,10)=1 Q
+ ... D CVAL
+ ... S VALUE=VALUE_VAL_"^"
+ ... S HEADR=HEADR_HDR_"^"
+ ;
+ NEW CRIEN,TYP,ORD,IEN,STVW
+ S CRIEN=$$FIND1^DIC(90506.5,"","B",CARE,"","","ERROR")
+ S TYP=$P(^BQI(90506.5,CRIEN,0),U,2)
+ S ORD=""
+ F  S ORD=$O(^BQI(90506.1,"AD",TYP,ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AD",TYP,ORD,IEN)) Q:IEN=""  D
+ .. I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
+ .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
+ ... S STVW=IEN
+ ... I $P($G(^BQI(90506.1,IEN,0)),U,10)=1 Q
+ ... D CVAL
+ ... S VALUE=VALUE_VAL_"^"
+ ... S HEADR=HEADR_HDR_"^"
+ Q

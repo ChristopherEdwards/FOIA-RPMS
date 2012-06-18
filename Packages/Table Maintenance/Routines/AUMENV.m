@@ -1,0 +1,11 @@
+AUMENV ;IHS/ASDST/DMJ - AUM PRE INSTALL [ 06/07/2005  4:17 PM ]
+ ;;5.1;AUM - SCB UPDATE;**8**;MAY 9, 2005
+ ;
+START ;START
+ I '($$PATCH^XPDUTL("AUM*5.1*7")) D
+ .W !,"Need patch AUM*5.1*7."
+ .S XPDQUIT=1
+ I $$PATCH^XPDUTL("AUM*5.1*8") D
+ .W !,"AUM*5.1*8 already installed."
+ .S XPDQUIT=1
+ Q

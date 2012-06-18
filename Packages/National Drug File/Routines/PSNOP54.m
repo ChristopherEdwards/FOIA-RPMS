@@ -1,0 +1,137 @@
+PSNOP54 ;BHAM ISC/SAB - build array of outpatient current meds ;14 Dec 01
+ ;;4.0; NATIONAL DRUG FILE;**54**; 30 Oct 98
+ ;External reference ^PS(55 supported by DBIA 2191
+ ;External reference ^PSDRUG( supported by DBIA 2192
+ ;External reference ^PSRX( supported by DBIA 1977
+ ;This report searches Outpatient Medications looking for drug 
+ ;interactions based on the data in
+ ;^XTMP("PSNINT",VA PRODUCT,VA PRODUCT,1)
+ ;--------------------------------------------------------------- 
+START ;
+ I '$$PATCH^XPDUTL("PSN*4.0*54") D EN^DDIOL("Patch PSN*4.0*54 must be installed before this report can be run.","","!") Q
+ W !,"This report searches Outpatient Medications looking for drug interactions",!,"based on the data in ^XTMP(""PSNINT"",VA PRODUCT,VA PRODUCT,1)",!
+ K ^TMP("PSN PSO",$J),^TMP("PSN PSOEX",$J),DIR,DIRUT
+ K ^TMP("ZPSN PSOEX",$J)
+ W ! S DIR(0)="SB^R:REPORT;S:SPREAD SHEET;B:BOTH",DIR("B")="Report",DIR("A")="What format would you like your data" D ^DIR G:$D(DIRUT) EOJ S RPT=Y
+ ;
+ S X="T-485",%DT="" D ^%DT X ^DD("DD")
+ W ! D EN^DDIOL("Default Starting Date is equal to One Year plus 120 days.","","!")
+ S %DT("B")=Y,%DT="AEP",%DT("A")="Starting Date: " D ^%DT I Y=-1 G EOJ
+ S PSOCUTDT=Y
+ ;
+ W ! K IOP,%ZIS,POP S %ZIS="QM" D ^%ZIS I POP W !,"Nothing Printed" G EOJ
+ I $D(IO("Q")) D  G EOJ
+ .S ZTRTN="EN^PSNOP54",ZTDESC="Report of Possible Non-Reported Drug Interactions",ZTSAVE("RPT")="",ZTSAVE("PSOCUTDT")=""
+ .S ZTREQ="@" D ^%ZTLOAD W !,"Report"_$S('$D(ZTSK):" NOT ",1:" ")_"Queued to Print!",!
+ ;
+EN D BUILD G EOJ
+ Q
+ ;
+BUILD ;build profiles
+ I '$D(^XTMP("PSNINT")) W !,"The primary data for this report does not exist",!! Q
+ S PT=0
+PT S PSOEXPDT=PSOCUTDT-1 S PT=$O(^PS(55,PT)) G:'PT BUILDX D
+ .F  S PSOEXPDT=$O(^PS(55,PT,"P","A",PSOEXPDT)) Q:'PSOEXPDT  F RX=0:0 S RX=$O(^PS(55,PT,"P","A",PSOEXPDT,RX)) Q:'RX  I $D(^PSRX(RX,0)) D GET
+ .D DIDI K ^TMP("PSN PSO",$J)
+ G PT
+BUILDX ;
+ I $G(RPT)="B" G BUILDXB
+ S PSONISS=0 D OUT
+ I $O(^TMP("ZPSN PSOEX",$J,0)) S PSONISS=1 D  D OUT
+ .I RPT'="S" W @IOF
+ Q
+BUILDXB ;
+ S RPT="R",PSONISS=0 D OUT
+ I $O(^TMP("ZPSN PSOEX",$J,0)) S PSONISS=1 W @IOF D OUT
+ S RPT="S",PSONISS=0 D OUT
+ I $O(^TMP("ZPSN PSOEX",$J,0)) S PSONISS=1 D OUT
+ Q
+GET ;med list
+ Q:'$P(^PSRX(RX,0),"^",2)!($P(^(0),"^",2)'=PT)!('$P(^(0),"^",6))
+ S PSORX0=^PSRX(RX,0),RX2=$G(^(2)),PSOST0=+$G(^("STA"))
+ S STA="ACTIVE^NON-VERIFIED^REFILL^HOLD^NON-VERIFIED^ACTIVE^^^^^^EXPIRED^DISCONTINUED^MARKED FOR DELETION^DISCONTINUED^DISCONTINUED^HOLD"
+ S STATUS=$P(STA,"^",(PSOST0+1))
+ G:PSOST0=13 GETX
+ S PSODRG=+$P(PSORX0,"^",6)
+ I '$D(^PSDRUG(PSODRG,0)) G GETX
+ S PSODRUGN=$P(^PSDRUG(PSODRG,0),"^")
+ S PSONDF=$S($G(^PSDRUG(PSODRG,"ND"))]"":$P(^PSDRUG(PSODRG,"ND"),"^",3),1:0)
+ S Y=$P(RX2,"^",2) X ^DD("DD") S FD=Y,Y=$P(RX2,"^",6) X ^DD("DD") S ED=Y
+ S ^TMP("PSN PSO",$J,RX,0)=$P(^PSRX(RX,0),"^")_"^"_PSODRG_"^"_PSODRUGN_"^"_PSONDF_"^"_STATUS_"^"_FD_"^"_ED
+GETX Q
+ ;
+EOJ K PSOEXPDT,PSODRG,PSONDF,PSORX0,PSOST0,PSODRUGN,RX,RX2,SS,STA,STATUS
+ K DIR,DIRUT,DUOUT,DTOUT,RPT,^TMP("PSN PSOEX",$J),XI,XT,PT,PG,X,PSOCUTDT
+ K ^TMP("PSN PSO",$J),%,%DT,ED,FD,NDF1,NDF2
+ K ^TMP("ZPSN PSOEX",$J),PSOZZACT,PSOININD,PSOINN1,PSOINN2,PSOISSD1,PSOISSD2,PSOISLAT,PSONISS,PSNVP,PSOSETIN,PSOW,PSOF,PSOG
+ D ^%ZISC
+ Q
+DIDI ;check for interactions
+ F XI=0:0 S XI=$O(^TMP("PSN PSO",$J,XI)) Q:'XI  S NDF1=+$P(^TMP("PSN PSO",$J,XI,0),"^",4) D
+ .F XT=0:0 S XT=$O(^TMP("PSN PSO",$J,XT)) Q:'XT  I XI'=XT D
+ ..;Q:$G(^TMP("PSN PSO",$J,XI,XT))!($G(^TMP("PSN PSO",$J,XT,XI)))
+ ..S NDF2=+$P(^TMP("PSN PSO",$J,XT,0),"^",4)  ;I $G(^XTMP("PSNINT",NDF1,NDF2,1))]""!($G(^XTMP("PSNINT",NDF2,NDF1,1))) D  D EXC S ^TMP("PSN PSO",$J,XI,XT)=1
+ ..S PSNVP="" F  S PSNVP=$O(^XTMP("PSNINT",NDF1,NDF2,PSNVP)) Q:PSNVP=""  I $G(^XTMP("PSNINT",NDF1,NDF2,PSNVP))]""!($G(^XTMP("PSNINT",NDF2,NDF1,PSNVP))]"") D
+ ...K PSOININD,PSOINN1,PSOINN2,PSNW
+ ...S PSOINN1=$P($G(^XTMP("PSNINT",NDF1,NDF2,PSNVP)),"^"),PSOINN2=$P($G(^XTMP("PSNINT",NDF2,NDF1,PSNVP)),"^")
+ ...I '$G(PSOINN1),'$G(PSOINN2) Q
+ ...I PSOINN1 S PSOININD=$P($G(^PS(56,PSOINN1,0)),"^",7) D
+ ....I 'PSOININD K PSOININD
+ ....I '$G(^TMP("PSN PSO",$J,XI,XT,PSOINN1)),'$G(^TMP("PSN PSO",$J,XT,XI,PSOINN1)) S ^TMP("PSN PSO",$J,XI,XT,PSOINN1)=1 S PSOW=PSOINN1 D EXC
+ ...I PSOINN2,PSOINN2'=$G(PSOINN1) S PSOININD=$P($G(^PS(56,PSOINN2,0)),"^",7) D
+ ....I 'PSOININD K PSOININD
+ ....I '$G(^TMP("PSN PSO",$J,XI,XT,PSOINN2)),'$G(^TMP("PSN PSO",$J,XT,XI,PSOINN2)) S ^TMP("PSN PSO",$J,XI,XT,PSOINN2)=1 S PSOW=PSOINN2 D EXC
+ ;^XTMP("PSNINT",14544,46,1) = 846^COLCHICINE/CYCLOSPORINE^7^1363^1^1^228
+ Q
+EXC ;builds exceptions
+ S PSOZZACT=0 I $G(PSOININD) D
+ .;find later issue date of the 2 Rx's
+ .S PSOISSD1=$P($G(^PSRX(XI,0)),"^",13),PSOISSD2=$P($G(^PSRX(XT,0)),"^",13)
+ .K PSOISLAT I PSOISSD1,'PSOISSD2 S PSOISLAT=PSOISSD1 Q
+ .I PSOISSD2,'PSOISSD1 S PSOISLAT=PSOISSD2 Q
+ .S PSOISLAT=$S(PSOISSD2>PSOISSD1:PSOISSD2,1:PSOISSD1)
+ .I '$G(PSOISLAT) S PSOISLAT=DT
+ I $G(PSOININD),$G(PSOININD)'>$G(PSOISLAT) S PSOZZACT=1
+ I '$D(^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0)) D
+ .S DFN=PT D DEM^VADPT K DFN
+ .S ^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0)=VADM(1)_"^"_$P(VADM(2),"^",2)_"^"_$P(VADM(3),"^",2)_" ("_VADM(4)_") ("_$P(VADM(5),"^")_")"
+ .K VADM
+ S ^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,XI,XT,PSOW,0)=$P(^TMP("PSN PSO",$J,XI,0),"^")_"^"_$P(^TMP("PSN PSO",$J,XI,0),"^",3)_"^"_$P(^TMP("PSN PSO",$J,XI,0),"^",5)
+ S ^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,XI,XT,PSOW,0)=^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,XI,XT,PSOW,0)_"^"_$P(^TMP("PSN PSO",$J,XT,0),"^")_"^"_$P(^TMP("PSN PSO",$J,XT,0),"^",3)_"^"_$P(^TMP("PSN PSO",$J,XT,0),"^",5)
+ S ^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,XI,XT,PSOW,0)=^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,XI,XT,PSOW,0)_"^"_$P(^XTMP("PSNINT",NDF1,NDF2,PSNVP),"^",2)
+ S ^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,XI,XT,PSOW,0)=^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,XI,XT,PSOW,0)_"^"_$S($P(^XTMP("PSNINT",NDF1,NDF2,PSNVP),"^",5)=1:"Critical",1:"Significant")
+ S ^TMP($S(PSOZZACT:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,XI,XT,PSOW,1,0)=$P(^TMP("PSN PSO",$J,XI,0),"^",6)_"^"_$P(^TMP("PSN PSO",$J,XI,0),"^",7)_"^"_$P(^TMP("PSN PSO",$J,XT,0),"^",6)_"^"_$P(^TMP("PSN PSO",$J,XT,0),"^",7)
+ ;Next line, using variables such as X1, so won't call File, Date OK?
+ I PSOZZACT S ^TMP("ZPSN PSOEX",$J,PT,XI,XT,PSOW,1,0)=$G(^TMP("ZPSN PSOEX",$J,PT,XI,XT,PSOW,1,0))_"^"_$E($G(PSOININD),4,5)_"/"_$E($G(PSOININD),6,7)_"/"_$E($G(PSOININD),2,3)
+ Q
+OUT ;data print
+ D:RPT'="S" HDR I '$O(^TMP("PSN PSOEX",$J,0)),'$O(^TMP("ZPSN PSOEX",$J,0)) U IO W !!,"NO EXCEPTIONS FOUND!",! Q
+ I RPT="S" D RPT Q
+ F PT=0:0 S PT=$O(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT)) Q:'PT  D  W ! F SS=1:1:IOM-2 W "_"
+ .I ($Y+7)>IOSL D HDR
+ .W !,$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0),"^"),?40,"PID: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0),"^",2),?60,"DOB: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0),"^",3)
+ .F RX=0:0 S RX=$O(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX)) Q:'RX  S PSOF="" F  S PSOF=$O(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF)) Q:PSOF=""  D
+ ..S PSOG="" F  S PSOG=$O(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG)) Q:PSOG=""  D
+ ...I ($Y+7)>IOSL D HDR W !,$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0),"^"),?40,"PID: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0),"^",2),?60,"DOB: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0),"^",3)
+ ...W !,"Interaction: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0),"^",7),?55,"Severity: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0),"^",8)
+ ...I PSONISS W !,"Interaction Inactivation Date: "_$P($G(^TMP("ZPSN PSOEX",$J,PT,RX,PSOF,PSOG,1,0)),"^",5)
+ ...W !?5,"Rx#: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0),"^"),?50,"Rx#: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0),"^",4)
+ ...W !?5,$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0),"^",2),?50,$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0),"^",5)
+ ...W !?5,$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0),"^",3),?50,$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0),"^",6)
+ ...W !?5,"Filled: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,1,0),"^"),?50,"Filled: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,1,0),"^",3)
+ ...W !?5,"Expires: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,1,0),"^",2),?50,"Expires: "_$P(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,1,0),"^",4),!
+ Q
+RPT U IO W ! F PT=0:0 S PT=$O(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT)) Q:'PT  D
+ .W !,^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,0),! F RX=0:0 S RX=$O(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX)) Q:'RX  S PSOF="" F  S PSOF=$O(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF)) Q:PSOF=""  D
+ ..S PSOG="" F  S PSOG=$O(^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG)) Q:PSOG=""  D
+ ...W ^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,0)
+ ...W !,^TMP($S(PSONISS:"ZPSN PSOEX",1:"PSN PSOEX"),$J,PT,RX,PSOF,PSOG,1,0),!
+ ...I PSONISS W "Interaction inactivated on "_$P($G(^TMP("ZPSN PSOEX",$J,PT,RX,PSOF,PSOG,1,0)),"^",5),!
+ Q
+HDR ;
+ S PG=$G(PG)+1 D NOW^%DTC S Y=$P(%,".") X ^DD("DD")
+ U IO W @IOF,"Possible Unreported Drug Interactions",?($X+5),"Print Date: "_Y,?($X+10),"Page: "_PG
+ I PSONISS W !,"Inactivated Drug Interactions"
+ W ! F SS=1:1:IOM-2 W "="
+ W !
+ Q

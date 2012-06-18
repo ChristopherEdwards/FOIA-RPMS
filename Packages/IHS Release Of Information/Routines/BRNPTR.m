@@ -1,0 +1,75 @@
+BRNPTR ; IHS/PHXAO/TMJ - PT RECORD ; 
+ ;;2.0;RELEASE OF INFO SYSTEM;;APR 10, 2003
+ ;
+ ;
+START ;Get Patient
+ S BRNPAT=""
+ D GETPAT
+ I BRNPAT="" W !!,"No PATIENT Selected!" D EOJ Q
+ S BRNANS=0,BRNQ=0
+ D GETANS
+ I BRNQ=1 D EOJ Q
+ D GETDIS
+ D EOJ
+ Q
+ ;
+GETPAT ;Get Patient Name
+ S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC
+ Q:Y<0
+ S BRNPAT=+Y
+ Q
+ ;
+ ;
+GETANS ;Ask if User wants to Print Suspended Disclosures
+ ;
+ S DIR(0)="YO",DIR("A")="Do You Wish to print SUSPENDED Disclosures",DIR("B")="NO" K DA D ^DIR K DIR
+ I $D(DIRUT) S BRNQ=1 Q
+ ;I Y=0 S BRNQ=1 Q
+ S BRNANS=+Y
+ Q
+GETDIS ;Get this Patient's Disclosure Records
+ ;
+ Q:'BRNPAT
+ S BRNCT=0
+ W ! K IOP S %ZIS="P" K IO("Q") D ^%ZIS
+ D HEADER
+BEGIN ;Begin $ORDER
+ S BRNIEN="" F  S BRNIEN=$O(^BRNREC("E",BRNPAT,BRNIEN)) Q:BRNIEN'=+BRNIEN  D
+ . S BRNQUIT=0
+ . S BRNSSDT=$P($G(^BRNREC(BRNIEN,24)),U,3) ;SUSPEND START DATE
+ . S BRNSEDT=$P($G(^BRNREC(BRNIEN,24)),U,4) ;SUSPEND END DATE
+ . I BRNSSDT'=""  D
+ . . Q:BRNANS'=0  ;Quit if User wants to Print Suspsended Disclosures
+ . . I BRNSSDT<DT&(BRNSEDT>DT) S BRNQUIT=1
+ . Q:BRNQUIT=1
+ . S BRNCT=BRNCT+1
+ . S BRNDN=$P($G(^BRNREC(BRNIEN,0)),U,2)
+ . S BRNDT=$P($G(^BRNREC(BRNIEN,0)),U)
+ . S BRNDTP=$$FMTE^XLFDT(BRNDT,"2P")
+ . S BRNPTY=$P($G(^BRNREC(BRNIEN,0)),U,6)
+ . S BRNPTYP=$P($G(^BRNTREQ(BRNPTY,0)),U)
+ . S BRNPTYP=$E(BRNPTYP,1,21)
+ . S BRNTYP=$P($G(^BRNREC(BRNIEN,0)),U,4)
+ . S BRNST=$P($G(^BRNREC(BRNIEN,0)),U,8)
+ . W ?5,BRNCT_")",?12,BRNDN,?23,BRNDTP,?37,BRNPTYP,?62,BRNTYP,?73,BRNST,!
+ I BRNCT=0 W !,?5,"**NO DISCLOSURE RECORDS TO PRINT FOR THIS PATIENT**",!
+ ;
+ Q
+PRINT ;Print the Disclosure Records
+ ;
+ ;
+ Q
+ ;
+HEADER ;Print the Header for Display
+ W !!,?5,"CUMMULATIVE DISCLOSURE RECORDS FOR: "_$P($G(^DPT(BRNPAT,0)),U),!
+ W ?5,"HEALTH RECORD #: " W ?25,$$HRN^AUPNPAT(BRNPAT,DUZ(2),2),!
+ W ?5,"DISPLAY DATE: "_$$FMTE^XLFDT(DT,"1P")
+ ;W !!,?5,"PT NAME",?40,"DISCLOSURE #",?55,"DISC DT",!!
+ W !!,?3,"Number",?12,"DISC #",?23,"DT REC'D",?37,"REQUESTING PARTY",?60,"TYPE",?70,"STATUS",!
+ W ?3,"____________________________________________________________________________",!
+ Q
+EOJ ;End of Job
+ K %,%DT,%X,%Y
+ K BRNPAT,BRNDIS,BRNCT,BRNDN,BRNDT,BRNDTP,BRNIEN,BRNPTY,BRNPTYP,BRNTYP,BRNST,BRNSEDT,BRNSSDT,BRNQUIT,BRNANS,BRNQ
+ D KILL^AUPNPAT
+ Q

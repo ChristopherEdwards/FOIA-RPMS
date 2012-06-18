@@ -1,0 +1,376 @@
+BQICMVW ;VNGT/HS/ALA - Care Management Views ; 06 Jun 2008  2:22 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+RET(DATA,OWNR,PLIEN,CARE) ; EP -- BQI GET CARE MGMT VIEW
+ ; Input
+ ;   OWNR  - Owner of the panel
+ ;   PLIEN - Panel internal entry number
+ ;   CARE  - Care Management Type
+ ;Output
+ ;  DATA  - name of global (passed by reference) in which the data
+ ;          is stored
+ ;Variables used
+ ;  UID - TMP global subscript. Will be either $J or "Z" plus the
+ ;        TaskMan Task ID
+ ;        
+ NEW UID,II,MVALUE,IEN,GIEN,SIEN,DISPLAY,SOR,SDIR,TEMPL,LYIEN,BN,CIEN,CODE
+ NEW DVALUE,ORD,RIEN,SD,SORT,SR,SVALUE,STVCD,CRN
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQICMVW",UID))
+ K @DATA
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQICMVW D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S @DATA@(II)="I00010TEMPL_IEN^T00040TEMPLATE_NAME^T00001DEFAULT^T00001TYPE^T00120DISPLAY_ORDER^T00120SORT_ORDER^T00120SORT_DIRECTION"_$C(30)
+ ;
+ S OWNR=$G(OWNR,DUZ),PLIEN=$G(PLIEN,"") ; If no owner supplied use DUZ
+ I $G(CARE)="" S BMXSEC="No Care Management Selected" Q
+ I CARE?.N S CARE=$P(^BQI(90506.5,CARE,0),U,1),TYP=$P(^(0),U,2)
+ I CARE'?.N S CRN=$O(^BQI(90506.5,"B",CARE,"")),TYP=$P(^BQI(90506.5,CRN,0),U,2)
+ ;
+ ; If there is a template
+ I $$TMPL(CARE) G DONE
+ ;
+ ; If there is a customized view
+ I $$CVW(CARE) G DONE
+ ;
+ S TIEN="",TEMPL="",DEF=""
+ S DISPLAY=$$DFNC()_$C(29)_$$CDEF()
+ S SORT=$$SFNC()
+ S SDIR="A",TEMPL="System Default"
+ S II=II+1,@DATA@(II)=TIEN_U_TEMPL_U_DEF_U_TYP_U_DISPLAY_U_SORT_U_SDIR_$C(30)
+ ;S II=II+1,@DATA@(II)=DISPLAY_"^"_$G(SORT)_"^"_$G(SDIR)_$C(30)
+ ;
+DONE ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+UPD(DATA,OWNR,PLIEN,CARE,TEMPL,SOR,SDIR,DOR) ; EP -- BQI SET CARE MGMT VIEW
+ ;
+ ;Description
+ ;   Update the display and sort order for a specified owner and panel
+ ;Input
+ ;   CARE - Source View Type
+ ;   SOR  - The sort order
+ ;   SDIR - The sort direction
+ ;   DOR  - The display order
+ ;
+ ; If the Owner and the User are the same person.
+ NEW UID,II,IEN,ERROR,BQIDEL,DI,GIEN,SI,GCODE,LIST,BN
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQICMVW",UID))
+ K @DATA
+ S II=0
+ S @DATA@(II)="I00010RESULT^T00120MSG"_$C(30)
+ ;
+ S TEMPL=$G(TEMPL,""),SOR=$G(SOR,""),SDIR=$G(SDIR,""),DOR=$G(DOR,"")
+ I DOR="" D
+ . S LIST="",BN=""
+ . F  S BN=$O(DOR(BN)) Q:BN=""  S LIST=LIST_DOR(BN)
+ . K DOR
+ . S DOR=LIST
+ . K LIST
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQICMVW D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ D FIL(OWNR,PLIEN,CARE,TEMPL,SOR,SDIR,DOR)
+ ;
+ I $D(ERROR) S II=II+1,@DATA@(II)="-1^"_$G(ERROR("DIERR",1,"TEXT",1))_$C(30)
+ I '$D(ERROR) S II=II+1,@DATA@(II)="1^"_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+FIL(OWNR,PLIEN,CARE,TEMPL,SOR,SDIR,DOR) ; EP - Filer
+ NEW CRN,CTYP
+ S CRN=$O(^BQI(90506.5,"B",CARE,""))
+ S CTYP=$P(^BQI(90506.5,CRN,0),U,2)
+ ; If the user is the owner, delete the previous view values
+ I OWNR=DUZ D  Q
+ . S CRIEN=$O(^BQICARE(OWNR,1,PLIEN,23,"B",CARE,""))
+ . I CRIEN="" D
+ .. NEW DA,DIC
+ .. S DA(2)=OWNR,DA(1)=PLIEN,X=CARE
+ .. S DIC="^BQICARE("_DA(2)_",1,"_DA(1)_",23,",DIC(0)="L",DLAYGO=90505.123
+ .. K DO,DD D FILE^DICN
+ .. S CRIEN=+Y
+ . NEW DA,IENS
+ . S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=CRIEN,DA=0
+ . F  S DA=$O(^BQICARE(OWNR,1,PLIEN,23,CRIEN,1,DA)) Q:'DA  D
+ .. S IENS=$$IENS^DILF(.DA)
+ .. S BQIDEL(90505.1231,IENS,.01)="@"
+ . I $D(BQIDEL) D FILE^DIE("","BQIDEL","ERROR")
+ . K DA,IENS
+ . ;
+ . N DA,IENS
+ . S DA(2)=OWNR,DA(1)=PLIEN
+ . S DA=0
+ . F  S DA=$O(^BQICARE(OWNR,1,PLIEN,4,DA)) Q:'DA  D
+ .. S IENS=$$IENS^DILF(.DA)
+ .. I $$GET1^DIQ(90505.14,IENS,.02,"I")'=CTYP Q
+ .. S BQIDEL(90505.14,IENS,.01)="@"
+ . I $D(BQIDEL) D FILE^DIE("","BQIDEL","ERROR")
+ . K DA,IENS
+ . ;
+ . ; If template
+ . I $G(TEMPL)'=""  D  Q
+ .. NEW DA,DIC,DLAYGO,IENS,DIE
+ .. S DA(2)=OWNR,DA(1)=PLIEN
+ .. S DIC="^BQICARE("_DA(2)_",1,"_DA(1)_",4,",DIE=DIC
+ .. S DLAYGO=90505.14,DIC(0)="L",DIC("P")=DLAYGO
+ .. I '$D(^BQICARE(DA(2),1,DA(1),4,0)) S ^BQICARE(DA(2),1,DA(1),4,0)="^90505.14^^"
+ .. S X=TEMPL
+ .. D ^DIC
+ .. S DA=+Y
+ .. S IENS=$$IENS^DILF(.DA)
+ .. S BQIUPD(90505.14,IENS,.02)=CTYP
+ .. I $D(BQIUPD) D FILE^DIE("","BQIUPD","ERROR")
+ .. K BQIUPD
+ . ; If customized 
+ . F DI=1:1:$L(DOR,$C(29)) S GCODE=$P(DOR,$C(29),DI) Q:GCODE=""  D
+ .. NEW DA,X,DINUM,DIC,DIE,DLAYGO,IENS
+ .. S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=CRIEN
+ .. S DIC="^BQICARE("_DA(3)_",1,"_DA(2)_",23,"_DA(1)_",1,",DIE=DIC
+ .. S DLAYGO=90505.1231,DIC(0)="L",DIC("P")=DLAYGO
+ .. S GIEN=$O(^BQI(90506.1,"B",GCODE,""))
+ .. S X=GIEN
+ .. I $G(^BQICARE(DA(3),1,DA(2),23,DA(1),0))="" S ^BQICARE(DA(3),1,DA(2),23,DA(1),0)="^90505.1231^^"
+ .. K DO,DD D FILE^DICN
+ .. S DA=+Y I DA<1 S ERROR=1 Q
+ .. S IENS=$$IENS^DILF(.DA)
+ .. S BQIUPD(90505.1231,IENS,.02)=DI
+ .. D FILE^DIE("","BQIUPD","ERROR")
+ . ;
+ . F SI=1:1:$L(SOR,$C(29)) S SIEN=$P(SOR,$C(29),SI) Q:SIEN=""  D
+ .. NEW DA,X,IENS,BQIUPD
+ .. I SIEN'?.N S SIEN=$O(^BQI(90506.1,"B",SIEN,""))
+ .. S SN=$O(^BQICARE(OWNR,1,PLIEN,23,CRIEN,1,"B",SIEN,""))
+ .. S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=CRIEN,DA=SN,IENS=$$IENS^DILF(.DA)
+ .. ;S BQIUPD(90505.1231,IENS,.03)=SIEN
+ .. S BQIUPD(90505.1231,IENS,.03)=SI
+ .. S BQIUPD(90505.1231,IENS,.04)=$P(SDIR,$C(29),SI)
+ .. D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ ; If the user is sharing someone else's panel.
+ I OWNR'=DUZ D
+ . S CRIEN=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,"B",CARE,""))
+ . I CRIEN="" D
+ .. NEW DA,DIC
+ .. S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=DUZ,X=CARE
+ .. S DIC="^BQICARE("_DA(3)_",1,"_DA(2)_",30,"_DA(1)_",23,",DIC(0)="L",DLAYGO=90505.323
+ .. K DO,DD D FILE^DICN
+ .. S CRIEN=+Y
+ . NEW DA,IENS
+ . S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=DUZ,DA(1)=CRIEN,DA=0
+ . F  S DA=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CRIEN,1,DA)) Q:'DA  D
+ .. S IENS=$$IENS^DILF(.DA)
+ .. S BQIDEL(90505.3231,IENS,.01)="@"
+ . I $D(BQIDEL) D FILE^DIE("","BQIDEL","ERROR")
+ . K DA,IENS
+ . ;
+ . N DA,IENS
+ . S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=DUZ
+ . S DA=0
+ . F  S DA=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,4,DA)) Q:'DA  D
+ .. S IENS=$$IENS^DILF(.DA)
+ .. I $$GET1^DIQ(90505.34,IENS,.02,"I")'=CTYP Q
+ .. S BQIDEL(90505.34,IENS,.01)="@"
+ . I $D(BQIDEL) D FILE^DIE("","BQIDEL","ERROR")
+ . K DA,IENS
+ . ;
+ . ; If template
+ . I $G(TEMPL)'=""  D  Q
+ .. NEW DA,DIC,DLAYGO,IENS,DIE
+ .. S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=DUZ
+ .. S DIC="^BQICARE("_DA(3)_",1,"_DA(2)_",30,"_DUZ_",4,",DIE=DIC
+ .. S DLAYGO=90505.34,DIC(0)="L",DIC("P")=DLAYGO
+ .. I '$D(^BQICARE(DA(3),1,DA(2),30,DA(1),20,0)) S ^BQICARE(DA(3),1,DA(2),30,DA(1),4,0)="^90505.34^^"
+ .. S X=TEMPL
+ .. D ^DIC
+ .. S DA=+Y
+ .. S IENS=$$IENS^DILF(.DA)
+ .. S BQIUPD(90505.34,IENS,.02)=CTYP
+ .. I $D(BQIUPD) D FILE^DIE("","BQIUPD","ERROR")
+ .. K BQIUPD
+ . ; If customized
+ . F DI=1:1:$L(DOR,$C(29)) S GCODE=$P(DOR,$C(29),DI) Q:GCODE=""  D
+ .. NEW DA,X,DINUM,DIC,DIE,DLAYGO,IENS
+ .. S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=DUZ,DA(1)=CRIEN
+ .. S DIC="^BQICARE("_DA(4)_",1,"_DA(3)_",30,"_DA(2)_",23,"_DA(1)_",1,",DIE=DIC
+ .. S DLAYGO=90505.3231,DIC(0)="L",DIC("P")=DLAYGO
+ .. S GIEN=$O(^BQI(90506.1,"B",GCODE,""))
+ .. S X=GIEN
+ .. I $G(^BQICARE(DA(4),1,DA(3),30,DA(2),23,DA(1),0))="" S ^BQICARE(DA(4),1,DA(3),30,DA(2),23,DA(1),0)="^90505.321^^"
+ .. K DO,DD D FILE^DICN
+ .. S DA=+Y I DA<1 S ERROR=1
+ . ;
+ . F SI=1:1:$L(SOR,$C(29)) S SIEN=$P(SOR,$C(29),SI) Q:SIEN=""  D
+ .. NEW DA,X,IENS
+ .. I SIEN'?.N S SIEN=$O(^BQI(90506.1,"B",SIEN,""))
+ .. S SN=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CRIEN,1,"B",SIEN,""))
+ .. S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=DUZ,DA(1)=CRIEN,DA=SN,IENS=$$IENS^DILF(.DA)
+ .. ;S BQIUPD(90505.3231,IENS,.02)=SIEN
+ .. S BQIUPD(90505.3231,IENS,.02)=SI
+ .. S BQIUPD(90505.3231,IENS,.03)=$P(SDIR,$C(29),SI)
+ . D FILE^DIE("I","BQIUPD","ERROR")
+ . K BQIUPD
+ Q
+ ;
+DFNC() ;EP -- Get the standard display order
+ NEW CRIEN,TYP,ORD
+ S DVALUE=""
+ ; Check for any alternate display order which trumps source display order
+ S CRIEN=$$FIND1^DIC(90506.5,"","B",CARE,"","","ERROR")
+ S TYP=$P(^BQI(90506.5,CRIEN,0),U,2)
+ S ORD=""
+ F  S ORD=$O(^BQI(90506.1,"AF",TYP,ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AF",TYP,ORD,IEN)) Q:IEN=""  D
+ .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
+ ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
+ ... S DVALUE=DVALUE_STVCD_$C(29)
+ ;
+ ; Get demographic data display order
+ S CRIEN=$$FIND1^DIC(90506.5,"","B","Patient","","","ERROR")
+ S TYP=$P(^BQI(90506.5,CRIEN,0),U,2)
+ ; Check for alternate display order first
+ S ORD=""
+ F  S ORD=$O(^BQI(90506.1,"AF",TYP,ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AF",TYP,ORD,IEN)) Q:IEN=""  D
+ .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
+ ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
+ ... S DVALUE=DVALUE_STVCD_$C(29)
+ ;
+ ; Check for normal display order
+ S ORD=""
+ F  S ORD=$O(^BQI(90506.1,"AD",TYP,ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AD",TYP,ORD,IEN)) Q:IEN=""  D
+ .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
+ ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
+ ... S DVALUE=DVALUE_STVCD_$C(29)
+ S DVALUE=$$TKO^BQIUL1(DVALUE,$C(29))
+ Q DVALUE
+ ;
+SFNC() ;EP -- Get the standard sort order
+ NEW CRIEN,TYP,ORD
+ S SVALUE=""
+ S CRIEN=$$FIND1^DIC(90506.5,"","B","Patient","","","ERROR")
+ S TYP=$P(^BQI(90506.5,CRIEN,0),U,2)
+ S ORD=""
+ F  S ORD=$O(^BQI(90506.1,"AE",TYP,ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AE",TYP,ORD,IEN)) Q:IEN=""  D
+ .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
+ ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
+ ... S SVALUE=SVALUE_STVCD_$C(29)
+ S SVALUE=$$TKO^BQIUL1(SVALUE,$C(29))
+ Q SVALUE
+ ;
+CDEF() ; EP - Get Care Management source default fields
+ NEW CRIEN,TYP,ORD
+ S MVALUE=""
+ S CRIEN=$$FIND1^DIC(90506.5,"","B",CARE,"","","ERROR")
+ S TYP=$P(^BQI(90506.5,CRIEN,0),U,2)
+ ;
+ ; Check for normal display order
+ S ORD=""
+ F  S ORD=$O(^BQI(90506.1,"AD",TYP,ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AD",TYP,ORD,IEN)) Q:IEN=""  D
+ .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
+ ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
+ ... S MVALUE=MVALUE_STVCD_$C(29)
+ ;
+ S MVALUE=$$TKO^BQIUL1(MVALUE,$C(29))
+ Q MVALUE
+ ;
+TMPL(CARE) ;EP - Check if layout template is used
+ ; CTYP = Care Mgmt type
+ NEW CRN,CTYP,RESULT
+ S CRN=$O(^BQI(90506.5,"B",CARE,""))
+ S CTYP=$P(^BQI(90506.5,CRN,0),U,2),RESULT=0
+ NEW DA,IENS,TEMPL,LYIEN
+ S TEMPL=""
+ I OWNR'=DUZ D
+ . I $G(PLIEN)="" Q
+ . S DA=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,4,"C",CTYP,""))
+ . I DA="" Q
+ . S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=DUZ,IENS=$$IENS^DILF(.DA)
+ . S TEMPL=$$GET1^DIQ(90505.34,IENS,.01,"E")
+ I OWNR=DUZ D
+ . I $G(PLIEN)="" Q
+ . S DA=$O(^BQICARE(OWNR,1,PLIEN,4,"C",CTYP,""))
+ . I DA="" Q
+ . S DA(2)=OWNR,DA(1)=PLIEN,IENS=$$IENS^DILF(.DA)
+ . S TEMPL=$$GET1^DIQ(90505.14,IENS,.01,"E")
+ I TEMPL'="" D
+ . ;S LYIEN=$$DEF^BQILYUTL(OWNR,"M")
+ . S LYIEN=$$TPN^BQILYUTL(DUZ,TEMPL)
+ . I LYIEN="" Q
+ . D DEF^BQILYDEF(LYIEN)
+ . S RESULT=1
+ . ;S DISPLAY=$P(@DATA@(II),U,3),SOR=$P(@DATA@(II),U,4),SDIR=$P(@DATA@(II),U,5)
+ Q RESULT
+ ;
+CVW(CARE) ;EP - Get Customized Care Management view
+ NEW FL,TIEN,TEMPL,DEF,TYP,DISPLAY,SORT,SDIR,CIEN,IEN,GIEN,SIEN,RIEN,CODE,SOR
+ S DISPLAY="",SORT="",SDIR="",TIEN="",TEMPL="",RESULT=0,DEF=""
+ I $G(PLIEN)="" Q 0
+ ;
+ ; Owner and user are the same
+ S FL=1
+ I OWNR=DUZ D  I FL=0 Q 0
+ . S CIEN=$O(^BQICARE(OWNR,1,PLIEN,23,"B",CARE,"")) I CIEN="" S FL=0 Q
+ . S CRN=$O(^BQI(90506.5,"B",CARE,""))
+ . S TYP=$P(^BQI(90506.5,CRN,0),U,2)
+ . S IEN=0,DISPLAY="",SORT="",SDIR=""
+ . F  S IEN=$O(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN)) Q:'IEN  D
+ .. S GIEN=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",1)
+ .. S SIEN=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",3)
+ .. S RIEN=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",4)
+ .. S CODE=$P(^BQI(90506.1,GIEN,0),U,1)
+ .. S DISPLAY=DISPLAY_CODE_$C(29)
+ .. I SIEN'="" D
+ ... ;I SIEN?.N S CODE=$P(^BQI(90506.1,SIEN,0),U,1)
+ ... ;E  S CODE=SIEN
+ ... ;S SORT=SORT_CODE_$C(29)
+ ... S $P(SORT,$C(29),SIEN)=CODE
+ ... S $P(SDIR,$C(29),SIEN)=RIEN
+ .. ;S SDIR=SDIR_RIEN_$C(29)
+ ;
+ ; User is not owner but share
+ I OWNR'=DUZ D  I FL=0 Q 0
+  .S CIEN=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,"B",CARE,"")) I CIEN="" S FL=0 Q
+ . S CRN=$O(^BQI(90506.5,"B",CARE,""))
+ . S TYP=$P(^BQI(90506.5,CRN,0),U,2)
+ . S IEN=0,DISPLAY="",SORT="",SDIR=""
+ . F  S IEN=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN)) Q:'IEN  D
+ .. S GIEN=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",1)
+ .. S SIEN=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",3)
+ .. S RIEN=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",4)
+ .. S CODE=$P(^BQI(90506.1,GIEN,0),U,1)
+ .. S DISPLAY=DISPLAY_CODE_$C(29)
+ .. I SIEN'="" D
+ ... ;I SIEN?.N S CODE=$P(^BQI(90506.1,SIEN,0),U,1)
+ ... ;E  S CODE=SIEN
+ ... ;S SORT=SORT_CODE_$C(29)
+ ... S $P(SORT,$C(29),SIEN)=CODE
+ ... S $P(SDIR,$C(29),SIEN)=RIEN
+ .. ;S SDIR=SDIR_RIEN_$C(29)
+ ;
+ S DISPLAY=$$TKO^BQIUL1(DISPLAY,$C(29))
+ S SORT=$$TKO^BQIUL1(SORT,$C(29))
+ S SDIR=$$TKO^BQIUL1(SDIR,$C(29))
+ I DISPLAY'="" D
+ . S RESULT=1
+ . S II=II+1,@DATA@(II)=TIEN_U_TEMPL_U_DEF_U_TYP_U_DISPLAY_U_SORT_U_SDIR_$C(30)
+ Q RESULT

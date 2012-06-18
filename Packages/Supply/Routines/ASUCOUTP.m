@@ -1,0 +1,39 @@
+ASUCOUTP ; IHS/ITSC/LMH -CLOSEOUT PROCESS ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;This routine controls the closeout processing
+ S ASUP("CKP")=+($G(ASUP("CKP")))
+ I ASUP("CKP")=0 S ASUP("CKP")=1 D SETSP^ASUCOSTS
+ I ASUP("TYP")=2,ASUP("CKP")=1 D  G:ASUP("HLT") KILL
+ .;Yearly closeout
+ .D CLYR^ASUMKBPS
+ .I ASUP("CKY")'=5 S ASUP("HLT")=1
+ .Q:ASUP("HLT")
+ .S ASUP("CKY")=0 D SETSY^ASUCOSTS S ASUP("CKP")=2 D SETSP^ASUCOSTS
+ E  I ASUP("CKP")=1 S ASUP("CKP")=2 D SETSP^ASUCOSTS
+ D ^ASUCOHKP Q:ASUP("HLT")
+ I ASUP("CKP")=3 D
+ .S ASUP("CKP")=4 D SETSP^ASUCOSTS
+ I ASUP("TYP")=1,ASUP("CKP")=4 D
+ .;Monthly Update
+ .D ^ASUCOMOR
+ .I ASUP("CKM")=16 D
+ ..S ASUP("CKP")=5 D SETSTAT^ASUCOSTS
+ .E  D
+ ..S ASUP("HLT")=1
+ E  D
+ .;not monthly update
+ .S ASUP("CKP")=5 D SETSTAT^ASUCOSTS
+ G:$G(ASUP("HLT"))=1 KILL
+ I ASUP("CKP")=5 D
+ .;Sort report extracts
+ .D ^ASUCORPX
+ .I ASUP("CKX")=0 D
+ ..S ASUP("CKP")=6 D SETSTAT^ASUCOSTS
+ .E  D
+ ..S ASUP("HLT")=1
+ Q
+KILL ;
+ D SETSTAT^ASUCOSTS
+ D ^ASUCOKIL
+ K ASUP("LST"),ASUF
+ Q

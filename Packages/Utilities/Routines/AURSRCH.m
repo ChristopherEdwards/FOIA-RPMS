@@ -1,0 +1,44 @@
+AURSRCH ; SEARCH FILE FOR CALLED ROUTINES [ 04/06/88  8:41 AM ]
+ ;
+ W !,"This routine searches a dictionary for called routines, excluding %DT* and DIC.",!
+ S U="^"
+ R !,"[D]etail or [L]ist only: L//",X S:X'="D" AURSRCH("NO DETAIL")=1
+ W !
+ S AURSRCH("QFLG")=0 F AURSRCH("L")=0:0 D LOOP Q:AURSRCH("QFLG")
+ K AURSRCH
+ Q
+ ;
+LOOP ; ASK FILES UNTIL ALL DONE
+ K ^UTILITY("AURSRCH",$J)
+ S DIC="^DIC(",DIC(0)="AEMQ" D ^DIC
+ I Y<0 D EOJ S AURSRCH("QFLG")=1 Q
+ S AURSRCH("FILE")=+Y
+ W !!,"INPUT TRANSFORMS",!
+ S AUSINP("FILE")=AURSRCH("FILE")
+ D EN^AURSRCH2
+ W !!,"OUTPUT TRANSFORMS",!
+ S AUSOUT("FILE")=AURSRCH("FILE")
+ D EN^AURSRCH3
+ W !!,"CROSS-REFERENCES",!
+ S AUSXREF("FILE")=AURSRCH("FILE")
+ D EN^AURSRCH4
+ W !!,"MISCELLANEOUS ^DD ENTRIES",!
+ S AUSM("FILE")=AURSRCH("FILE")
+ D EN^AURSRCH5
+ W !
+ D LIST
+ D EOJ
+ Q
+ ;
+LIST ; LIST ROUTINE NAMES
+ Q:'$D(^UTILITY("AURSRCH",$J))
+ W !!,"Sorted list of routines found:",!
+ S X="" F AURSRCH("L")=0:0 S X=$O(^UTILITY("AURSRCH",$J,X)) Q:X=""  W !,"^",X
+ W !
+ Q
+ ;
+EOJ ;
+ K ^UTILITY("AURSRCH",$J)
+ K X,Y
+ K DIC
+ Q

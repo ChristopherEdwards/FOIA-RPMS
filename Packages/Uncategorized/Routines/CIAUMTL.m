@@ -1,0 +1,109 @@
+CIAUMTL ;MSC/IND/DKM - Multi-term lookup support ;04-May-2006 08:19;DKM
+ ;;1.2;CIA UTILITIES;;Mar 20, 2007
+ ;;Copyright 2000-2006, Medsphere Systems Corporation
+ ;=================================================================
+ ; Parse term into component words (KWIC)
+PARSE2(CIATRM,CIARTN,CIAMIN) ;
+ N X,L,C,%
+ K CIARTN
+ S %="CIARTN(I)",X=$$UP^XLFSTR(CIATRM),CIAMIN=+$G(CIAMIN)
+ D S^XTLKWIC
+ S L="",C=0
+ F  S L=$O(CIARTN(L)) Q:L=""  D
+ .I $L(L)<CIAMIN K CIARTN(L)
+ .E  S C=C+1
+ Q C
+ ; Parse term into component words
+PARSE(CIATRM,CIARTN,CIAMIN) ;
+ N X,Y,Z,L,C
+ K CIARTN
+ S CIATRM=$$UP^XLFSTR(CIATRM),C=0,CIAMIN=+$G(CIAMIN,1),Z=""
+ F X=1:1 Q:'$L(CIATRM)  D:$E(CIATRM,X)'?1AN
+ .S Y=Z,Z=$E(CIATRM,X),L=$E(CIATRM,1,X-1),CIATRM=$E(CIATRM,X+1,999),X=0
+ .I $L(L)'<CIAMIN,L'=+L,'$D(CIARTN(L)) S CIARTN(L)=Y,C=C+1,Y=""
+ Q C
+ ; Create/delete an MTL cross reference for term
+XREF(CIART,CIATRM,CIADA,CIADEL) ;
+ N CIAZ,CIAG
+ S CIAZ=$L(CIART),CIAG=$S($E(CIART,CIAZ)=")":$E(CIART,1,CIAZ-1)_",",1:CIART_"(")_"CIAZ,",CIAZ=$C(1)
+ F  S CIAZ=$O(CIADA(CIAZ),-1) Q:'CIAZ  S CIAG=CIAG_""""_CIADA(CIAZ)_""","
+ S CIAG=CIAG_""""_CIADA_""")"
+ Q:'$$PARSE(CIATRM,.CIAZ)
+ S CIAZ="",CIADEL=''$G(CIADEL)
+ L +@CIART:30
+ F  S CIAZ=$O(CIAZ(CIAZ)) Q:CIAZ=""  D
+ .I ''$D(@CIAG)=CIADEL D
+ ..I CIADEL K @CIAG  K:$D(@CIART@(CIAZ))<10 @CIART@(CIAZ)
+ ..E  D:'$D(@CIART@(CIAZ)) REFNEW(CIAZ) S @CIAG=""
+ ..D REFCNT(CIAZ,$S(CIADEL:-1,1:1))
+ L -@CIART
+ Q
+ ; Increment/decrement reference count for term and its stems
+REFCNT(CIAX,CIAI) ;
+ Q:'$L(CIAX)
+ I $D(@CIART@(CIAX)) D
+ .N CIAZ
+ .S CIAZ=$G(@CIART@(CIAX))+CIAI
+ .I CIAZ<1 K @CIART@(CIAX)
+ .E  S @CIART@(CIAX)=CIAZ
+ D REFCNT($E(CIAX,1,$L(CIAX)-1),CIAI)
+ Q
+ ; Create new term reference
+REFNEW(CIAX) ;
+ N CIAZ,CIAC,CIAABR
+ S CIAZ=CIAX,CIAC=0,CIAABR=0
+ F  S CIAZ=$$STEM(CIAZ,CIAX) Q:'$L(CIAZ)  S CIAC=CIAC+$G(@CIART@(CIAZ)),CIAZ=CIAZ_$C(255)
+ S @CIART@(CIAX)=CIAC
+ Q
+ ; Lookup a term in an MTL index
+ ; CIART  = Root of index (e.g., ^CIACOD(990.9,"AD"))
+ ; CIATRM = Term to lookup
+ ; CIARTN = Root of returned array (note: killed before populated)
+ ; CIAABR = If nonzero, user can abort lookup with ^
+LKP(CIART,CIATRM,CIARTN,CIAABR) ;
+ N CIAX,CIAY,CIAW,CIAF,CIAIEN,CIAL,CIAM,CIATRM1
+ I $$NEWERR^%ZTER N $ET S $ET=""
+ K @CIARTN
+ S CIAABR=+$G(CIAABR),@$$TRAP^CIAUOS("LKP2^CIAUMTL")
+ I $$PARSE(CIATRM,.CIATRM)=1 S CIAW(1,$O(CIATRM("")))=""
+ E  D
+ .S CIATRM="",CIAM=9999999999
+ .F  S CIATRM=$O(CIATRM(CIATRM)) Q:CIATRM=""  D  Q:CIAL<0
+ ..S CIAX=CIATRM(CIATRM)["=",CIAY=CIATRM(CIATRM)["~",CIATRM1="",CIAL=$S(CIAY:9999999999,1:-1)
+ ..I 'CIAY F  S CIATRM1=$$STEM(CIATRM1,CIATRM,CIAX) Q:CIATRM1=""  D:$D(^(CIATRM1))>1  Q:CIAL>CIAM
+ ...S:CIAL=-1 CIAL=0
+ ...S CIAL=CIAL+$G(^(CIATRM1))
+ ...S CIATRM1=CIATRM1_$C(255)
+ ..S CIAW(CIAL,CIATRM)=""
+ ..I CIAL>0,CIAL<CIAM S CIAM=CIAL
+ ..D:CIAABR ABORT
+ Q:$D(CIAW(-1)) 0
+ S CIAW="",CIAF=0
+ F  S CIAW=$O(CIAW(CIAW)),CIATRM="" Q:CIAW=""  D  Q:CIAF=-1
+ .F  S CIATRM=$O(CIAW(CIAW,CIATRM)) Q:CIATRM=""  D  Q:CIAF=-1
+ ..S CIAX=CIATRM(CIATRM)["=",CIAY=CIATRM(CIATRM)["~"
+ ..I CIAF D
+ ...S CIAIEN=0
+ ...F  S CIAIEN=$O(@CIARTN@(CIAIEN)),CIATRM1="" Q:'CIAIEN  D  Q:CIAF=-1
+ ....F  S CIATRM1=$$STEM(CIATRM1,CIATRM,CIAX) Q:CIATRM1=""  Q:$D(^(CIATRM1,CIAIEN))
+ ....I CIAY-(CIATRM1="") K @CIARTN@(CIAIEN) S:$D(@CIARTN)'>1 CIAF=-1
+ ..E  D
+ ...S CIATRM1="",CIAF=1
+ ...F  S CIATRM1=$$STEM(CIATRM1,CIATRM,CIAX) Q:CIATRM1=""  M @CIARTN=^(CIATRM1)
+ ...S:$D(@CIARTN)'>1 CIAF=-1
+ Q $D(@CIARTN)>1
+LKP2 K @CIARTN
+ Q -1
+ ; Check for user abort
+ABORT N CIAZ
+ R CIAZ#1:0
+ D:CIAZ=U RAISE^CIAUOS()
+ Q
+ ; Return in successive calls all terms sharing common stem
+ ; (sets naked reference)
+STEM(CIALAST,CIASTEM,CIAF) ;
+ D:CIAABR ABORT
+ I CIALAST="" S CIALAST=CIASTEM Q:$D(@CIART@(CIALAST)) CIALAST
+ Q:$G(CIAF) ""
+ S CIALAST=$O(@CIART@(CIALAST))
+ Q $S($E(CIALAST,1,$L(CIASTEM))=CIASTEM:CIALAST,1:"")

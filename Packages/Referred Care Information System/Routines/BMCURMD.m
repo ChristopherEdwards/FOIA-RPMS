@@ -1,0 +1,54 @@
+BMCURMD ; IHS/PHXAO/TMJ - ; 
+ ;;4.0;REFERRED CARE INFO SYSTEM;;JAN 09, 2006
+ ;4.0 IHS/OIT/FCJ REMOVED DATE LOOP AND ADDED SELECT OF INDIVIDUAL REFERRALS
+ ;
+ ;
+ W !!,"This option is used for utilization review.",!
+GETREF ;Screens out closed Referrals
+ S BMCQ=1,BMCCURFY=1
+ W !
+ S DIC="^BMCREF(",DIC("S")="I $$FILTER^BMCFLTR(0,BMCCURFY,2)",DIC(0)="AEMQ",DIC("A")="Select RCIS REFERRAL by Patient or by Referral Date or #: "
+ D DIC^BMCFMC
+ Q:Y<1
+ S BMCRIEN=+Y
+ S BMCQ=0
+ D PROCR
+ ;
+ K BMCODAT,BMCURQ,BMCSD,BMCBD,BMCURC,BMCVI,BMCVFLE
+ Q
+PROCR ;
+ Q:$P($G(^BMCREF(BMCRIEN,11)),U,25)]""
+PROCR1 ;
+ D BROWSE
+ W !! S DA=BMCRIEN,DIE="^BMCREF(",DR="[BMC UTIL/MGD CARE]" D DIE^BMCFMC
+ D XIT
+ Q
+ ;
+BROWSE ;
+ S XBRP="DISP^BMCRD1"
+ S XBRC="",XBRX="",XBIOP=0 D ^XBDBQUE
+ ;D VIEWR^XBLM("^BMCVLP")
+ Q
+XIT ;EP
+ D ^BMCKILL
+ K ^TMP("BMCRDSP",$J)
+ Q
+DISP ;EP
+ D EN^VALM("BMC RECORD DISPLAY")
+ D CLEAR^VALM1
+ Q
+HDR ; -- header code
+ S VALMHDR(1)="User:  "_$P(^VA(200,DUZ,0),U)
+ Q
+ ;
+INIT ; -- init variables and list array
+ D EP^BMCRD(BMCRIEN)
+ S VALMCNT=$O(^TMP("BMCRDSP",$J,""),-1)
+ Q
+ ;
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ Q

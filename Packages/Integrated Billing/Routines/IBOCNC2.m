@@ -1,0 +1,82 @@
+IBOCNC2	;ALB/ARH - CPT USAGE IN CLINICS (PRINT) ; 1/23/92
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	;
+START	;set up headers and dates then do appropriate print
+	D NOW^%DTC S Y=$E(%,1,12) D DD^%DT S IBCDT=$P(Y,"@",1)_"  "_$P(Y,"@",2)
+	S Y=IBBDT X ^DD("DD") S IBBDTE=Y,Y=IBEDT X ^DD("DD") S IBEDTE=Y
+	S IBHDR="CLINIC CPT USAGE FOR "_IBBDTE_" - "_IBEDTE
+	S (IBPGN,IBLN)=0,IBDSH="" F IBI=1:1:IOM S IBDSH=IBDSH_"-"
+	D:IBSRT=0 PRINTC D:IBSRT=1 PRINTP D:IBSRT=2 PRINTD
+	K IBCDT,IBBDTE,IBEDTE,IBPGN,IBLN,IBI,IBDSH,IBHDR,Y
+	Q
+	;
+PRINTC	;print the report from the temp sort file to the appropriate device, by clinic
+	S IBLBL="W !,?3,""CLINIC"",?36,""AMBULATORY PROCEDURE"",?75,"" COUNT"",?84,""OPC STATUS"",?114,""  CHARGE"",!" D HDR
+	S IBCLNN="" F  S IBCLNN=$O(^TMP("IBCU",$J,IBCLNN)) Q:IBCLNN=""!(IBQ)  D
+	. S IBCLN=$G(^TMP("IBCU",$J,IBCLNN,"N")),IBCP=1,IBCT=0
+	. S IBCPT=0 F  S IBCPT=$O(^TMP("IBCU",$J,IBCLNN,IBCPT)) Q:IBCPT'?1N.N!(IBQ)  D
+	.. S IBCPTP=$J($P($G(^ICPT(IBCPT,0)),"^",1),5)_"  "_$P($G(^ICPT(IBCPT,0)),"^",2)
+	.. S (IBNA,IBHCFA)="" D CPT I (IBLN+1)>IOSL D HDR S IBCP=1
+	.. W !,?3,$S(IBCP:IBCLNN,1:""),?36,IBCPTP,?75,$J(^TMP("IBCU",$J,IBCLNN,IBCPT),6),?84,IBNA,?114,$J(IBHCFA,8)
+	.. S IBLN=IBLN+1,IBCT=IBCT+1,IBCP=0
+	. I 'IBQ D:(IBLN+2)>IOSL HDR W !,?36,$E(IBDSH,1,35),?76,$E(IBDSH,1,5),!,?36,"TOTAL:  ",$J(IBCT,5),?75,$J(^TMP("IBCU",$J,IBCLNN),6),!
+	. S IBLN=IBLN+3
+	D:'IBQ PAUSE
+	K IBCLN,IBCLNN,IBCP,IBCT,IBCPT,IBCPTP,IBNA,IBHCFA,IBLBL,X,Y
+	Q
+	;
+PRINTP	;print report from temp sort file by procedure
+	S IBLBL="W !,""AMBULATORY PROCEDURE"",?38,"" COUNT"",?46,""#BILLED"",?55,""OPC STATUS"",?85,""  CHARGE"",!" D HDR
+	S (IBCT,IBCPT)=0 F  S IBCPT=$O(^TMP("IBCU",$J,IBCPT)) Q:IBCPT'?1N.N!(IBQ)  D
+	. S IBCPTP=$J($P($G(^ICPT(IBCPT,0)),"^",1),5)_"  "_$P($G(^ICPT(IBCPT,0)),"^",2)
+	. S (IBNA,IBHCFA)="" D CPT I (IBLN+1)>IOSL D HDR Q:IBQ
+	. W !,IBCPTP,?38,$J($G(^TMP("IBCU",$J,IBCPT)),6),?46,$J($G(^TMP("IBCU",$J,IBCPT,"B")),6),?55,IBNA,?85,$J(IBHCFA,8)
+	. S IBLN=IBLN+1,IBCT=IBCT+1
+	I 'IBQ,($D(^TMP("IBCU",$J))#2!$D(^TMP("IBCU",$J,"B"))#2) D:(IBLN+2)>IOSL HDR D
+	. W !,$E(IBDSH,1,34),?39,$E(IBDSH,1,5),?47,$E(IBDSH,1,5),!,"TOTAL:  ",$J(IBCT,6),?38,$J(+$G(^TMP("IBCU",$J)),6),?46,$J(+$G(^TMP("IBCU",$J,"B")),6)
+	D:'IBQ PAUSE
+	K IBCPT,IBCPTP,IBNA,IBCT,IBHCFA,IBLBL,X,Y
+	Q
+	;
+PRINTD	;print report from temp sort file by procedure with extended description
+	S IBLBL="W !,""AMBULATORY PROCEDURE"",?78,"" COUNT"",?86,""#BILLED"",?95,""OPC STATUS"",?124,""  CHARGE"",!" D HDR
+	S IBCPT=0 F  S IBCPT=$O(^TMP("IBCU",$J,IBCPT)) Q:IBCPT'?1N.N!(IBQ)  D
+	. S IBCPTP=$J($P($G(^ICPT(IBCPT,0)),"^",1),5)_"  "_$P($G(^ICPT(IBCPT,0)),"^",2)
+	. S (IBNA,IBHCFA)="" D CPT,DESC I (IBLN+1)>IOSL D HDR Q:IBQ
+	. W !!,IBCPTP,?78,$J($G(^TMP("IBCU",$J,IBCPT)),6),?86,$J($G(^TMP("IBCU",$J,IBCPT,"B")),6),?95,IBNA,?124,$J(IBHCFA,8)
+	. S IBLN=IBLN+2 I $D(IBD) S IBX=0 F  S IBX=$O(IBD(IBX)) Q:IBX=""!(IBQ)  D
+	.. D:(IBLN+1)>IOSL HDR Q:IBQ  W !,?7,IBD(IBX) S IBLN=IBLN+1
+	D:'IBQ PAUSE
+	K IBCPT,IBCPTP,IBNA,IBHCFA,IBLBL,IBD,IBX,X,Y
+	Q
+	;
+CPT	;get CPT status and charge data
+	S D0=IBCPT S IBNA=$P(^DD(409.71,205,0),"^",5,999) X IBNA S IBNA=X
+	S X=$$CPTBSTAT^IBEFUNC1(IBCPT,DT),IBHCFA=$P(X,"^",2)
+	I +X S IBHCFA=$$CPTCHG^IBEFUNC1(IBCPT,$S($D(IBCLN):$P($G(^SC(+IBCLN,0)),"^",15),1:""),DT),IBHCFA=$J(IBHCFA,8,2)
+	K D0,X
+	Q
+	;
+DESC	;if sort by proc & user wants desc, get procedure description, store in IBD at proper length for printing
+	Q:'$D(^ICPT(IBCPT,"D"))  K IBD S IBY=1,IBX=0,IBLNG=68
+	F  S IBX=$O(^ICPT(IBCPT,"D",IBX)) Q:IBX'?1N.N  S IBZ=$G(^ICPT(IBCPT,"D",IBX,0)) D
+	. F IBJ=1:1 S IBW=$P(IBZ," ",IBJ) Q:IBW=""  D
+	.. I $L(IBW)>IBLNG S:$G(IBD(IBY))'="" IBY=IBY+1 S IBD(IBY)=$E(IBW,1,IBLNG-1)_"-",IBY=IBY+1,IBD(IBY)=$E(IBW,IBLNG,999)_" " Q
+	.. I ($L($G(IBD(IBY)))+$L(IBW)+1)'>IBLNG S IBD(IBY)=$G(IBD(IBY))_IBW_" " Q
+	.. S IBY=IBY+1,IBD(IBY)=IBW_" "
+	K IBY,IBX,IBLNG,IBZ,IBJ,IBW
+	Q
+	;
+HDR	;print the report header
+	S IBQ=$$STOP^IBOCNC1 Q:IBQ  D:IBPGN>0 PAUSE Q:IBQ  I IBPGN>0!($E(IOST,1,2)["C-") W @IOF
+	S IBPGN=IBPGN+1,IBLN=5 W IBHDR I IOM<85 W !
+	W ?(IOM-30),IBCDT,?(IOM-8),"PAGE ",IBPGN,!
+	I $D(IBPRC) S IBI="" F  S IBI=$O(IBPRC(IBI)) Q:IBI=""  W !,IBPRC(IBI) S IBLN=IBLN+1
+	X IBLBL F IBI=1:1:IOM W "-"
+	K IBI
+	Q
+	;
+PAUSE	;pause at end of screen if being displayed on a terminal
+	Q:$E(IOST,1,2)'["C-"
+	S DIR(0)="E" D ^DIR K DIR I $D(DUOUT)!($D(DIRUT)) S IBQ=1
+	Q

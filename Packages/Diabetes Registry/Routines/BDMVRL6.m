@@ -1,0 +1,356 @@
+BDMVRL6 ; IHS/CMI/LAB - REPORTS INTERFACE ; [ 02/23/2009 9:13 AM ]
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,4**;JUN 14, 2007
+ ;VARIOUS INTERFACE CALLS FOR REPORTS
+ ;GUI INTERFACE CODE & AND APPOINTMENT REPORTS
+ ;
+ACTIVE ;EP;TO SELECT PATIENT STATUS FOR REPORTS
+ K BDMQUIT
+ W !!,"Select the Patient Status for this report"
+ S DIR(0)="SO^A:Active;I:Inactive;T:Transient;U:Unreviewed;D:Deceased;N:Non-IHS;NON:Noncompliant;Z:All Patients"
+ S DIR("A")="Select patient status"
+ S DIR("B")="Active"
+ D DIR^BDMFDIC
+ I Y]"","AITUDNONZ"[Y S BDM("STATUS")=Y ;IHS/CMI/TMJ Non Compliant Fix
+ E  S BDMQUIT=""
+ Q
+REPORTS ;EP;TO SELECT REPORTS
+ S DIR(0)="SO^1:Individual Case Summary;2:Case Summary for Multiple Patients;3:Master List of Diabetes Register Patients;4:Statistical Reports"
+ S DIR("A")="Which Report"
+ W !
+ D DIR^BDMFDIC
+ I 'Y S BDMQUIT="" Q
+ I Y=1 D R1 Q
+ I Y=2 D R2 Q
+ I Y=3 D R3 Q
+ I Y=4 D R4 Q
+ Q
+SORT1 ;EP;TO SORT DIAGNOSIS AND COMPLICATION REPORTS
+ W !,"Sort the ",$G(BDM("REPORT"))," Report by"
+ S DIR(0)="SO^1:Alpha Order by Patient;2:Alpha Order by Patient within Community;3:Alpha Order within Complication"
+ S DIR("A")="Which One"
+ S DIR("B")=1
+ D DIR^BDMFDIC
+ I 'Y S BDMQUIT="" Q
+ S BDM("ORDER")=Y
+ Q
+R1 ;INDIVIDUAL HEALTH SUMMARY
+ Q
+R2 ;MULTIPLE HEALTH SUMMARY
+ Q
+R3 ;MASTER LIST
+ Q
+R4 ;STATISTICAL REPORTS
+ Q
+SORT ;SORT REPORTS
+ Q
+COMM ;SELECT COMMUNITY     
+ S DIC="^AUTTCOM("
+ S DIC(0)="AEMQZ"
+ S DIC("A")="Which COMMUNITY: "
+ W !,"Press ENTER to include all communities)"
+ D DIC^BDMFDIC
+ I $D(BDMQUIT)!$D(BDMOUT) S BDMQUIT="" Q
+ I X="" S BDM("COMMUNITY")="ALL"
+ E  S BDM("COMMUNITY")=+Y
+ Q
+PROVIDER ;EP;SELECT PROVIDER
+ S DIC=$S(^DD(9000001,.14,0)[200:"^VA(200,",1:"^DIC(16,")
+ S DIC(0)="AEMQZ"
+ S DIC("A")="Which PROVIDER: "
+ W !,"Press ENTER to include all PROVIDERS)"
+ D DIC^BDMFDIC
+ I $D(BDMQUIT)!$D(BDMOUT) S BDMQUIT="" Q
+ I X="" S BDM("PROVIDER")="ALL"
+ E  S BDM("PROVIDER")=+Y
+ Q
+A1 ;
+ S DIR(0)="SO^1:Active Patients Only;2:All Patients in the Register"
+ S DIR("A")="Which one"
+ S DIR("A",1)="Do you want Active patients Only"
+ S DIR("A")="or All Patients in the Register"
+ S DIR("B")="Active Patients Only"
+ D DIR^BDMFDIC
+ I Y<1 S BDMQUIT="" Q
+ S BDM("ACTIVE")=$S(Y=1:"ACTIVE",1:"ALL")
+ Q
+C1 ;
+ S DIR(0)="SO^1:All Complications;2:One Particular Complication"
+ S DIR("A",1)="Do you want All Complications"
+ S DIR("A")="or One Particular Complication"
+ S DIR("B")="All Complications"
+ W !
+ D DIR^BDMFDIC
+ I Y<1 S BDMQUIT="" Q
+ I Y=1 S BDM("COMPLICATION")="ALL" Q
+ E  D COMP
+ Q
+D1 ;
+ S DIR(0)="SO^1:All Diagnoses;2:One Particular Diagnosis"
+ S DIR("A",1)="Do you want All Diagnoses"
+ S DIR("A")="or One Particular Diagnosis"
+ S DIR("B")="All Diagnoses"
+ W !
+ D DIR^BDMFDIC
+ I Y<1 S BDMQUIT="" Q
+ I Y=1 S BDM("DIAGNOSIS")="ALL" Q
+ E  D COMP
+ Q
+COMP ;SELECT COMPLICATION
+ S DIC="^ACM(42.1,"
+ S DIC(0)="AEMQZ"
+ S DIC("A")="Which COMPLICATION: "
+ S DIC("S")="I $D(^ACM(42.1,""RG"",BDMRG,+Y))"
+ W !
+ D DIC^BDMFDIC
+ I $D(BDMQUIT)!$D(BDMOUT) S BDMQUIT="" Q
+ I X="" D  Q
+ .S BDM("COMPLICATION")="ALL"
+ .W !!,"No COMPLICATION was selected."
+ .W !,"The report will include all COMPLICATIONS."
+ .H 2
+ E  S BDM("COMPLICATION")=+Y
+ Q
+DIAG ;SELECT DIAGNOSIS
+ S DIC="^ACM(44.1,"
+ S DIC(0)="AEMQZ"
+ S DIC("A")="Which DIAGNOSIS: "
+ S DIC("S")="I $D(^ACM(44.1,""RG"",BDMRG,+Y))"
+ W !
+ D DIC^BDMFDIC
+ I $D(BDMQUIT)!$D(BDMOUT) S BDMQUIT="" Q
+ I X="" D  Q
+ .S BDM("DIAGNOSIS")="ALL"
+ .W !!,"No DIAGNOSIS was selected."
+ .W !,"The report will include all DIAGNOSES."
+ .H 2
+ E  S BDM("DIAGNOSIS")=+Y
+ Q
+ D A1,C1,SORT1
+ Q
+MCS ;EP;TO PRINT MULTIPLE CASE SUMMARY
+ K ACMES,ACMEP,ACMPS
+ S (ACMEP,ACMPP,ACMRGTP)=""
+ D:'$D(ACMDM) ^ACMGTP
+ S ACMENTRY="MPS"
+ D ENTRY^ACMSRT
+ Q
+ICS ;EP;TO PRINT INDIVIDUAL CASE SUMMARY
+ D REG^BDMFUTIL
+ Q:$D(BDMQUIT)
+ K ACMES,ACMEP,ACMPS
+ S (ACMEP,ACMPP,ACMRGTP)=""
+ D:'$D(ACMDM) ^ACMGTP
+ S ACMPP=""
+ D QONE^ACMED
+ Q
+ML ;EP;TO PRINT MASTER LIST
+ D REG^BDMFUTIL
+ Q:$D(BDMQUIT)
+ K ACMES,ACMEP,ACMPS
+ S (ACMEP,ACMPP,ACMRGTP)=""
+ D:'$D(ACMDM) ^ACMGTP
+ S ACMENTRY="ML"
+ D ENTRY^ACMSRT
+ Q
+PSR ;EP;TO PRINT PATIENT AND STATISTICAL REPORTS
+ D REG^BDMFUTIL
+ Q:$D(BDMQUIT)
+ K ACMES,ACMEP,ACMPS
+ S (ACMPP,ACMRGTP)=""
+ D:'$D(ACMDM) ^ACMGTP
+ S ACMPP=""
+ S ACMRG=BDMRDA
+ S ACMRGNA=BDMREGNM
+ S ACMCTRLP="REG;CMP;DX;FM;PROB;CR;CT"
+ S ACMCTRLS="CMPL;DXL;AD"
+ D ^ACMQK
+ K ACMPP
+ Q
+GENRET ;EP;TO ACCESS GENERAL RETRIEVAL (LISTER)
+ W @IOF
+ D REG^BDMFUTIL
+ Q:$D(BDMQUIT)
+ D CONTROL^ACMCTRL
+ S ACMCTRLP=ACMCTRL
+ D INFORM^ACMRL01
+ K ACMES,ACMEP,ACMPS
+ S (ACMEP,ACMPP,ACMRGTP)=""
+ D:'$D(ACMDM) ^ACMGTP
+ K ACMPP
+ D ^ACMRL
+ K ACMPP,ACMEP,ACMRGTP,ACMCTRLP,ACMCTRL,ACMCRTLS
+ Q
+APPT ;EP;TO PRINT LIST OF DM PATIENT'S APPOINTMENTS
+ D REG^BDMFUTIL
+ Q:$D(BDMQUIT)
+ D APP1
+APPEXIT K BDM,BDMQUIT,BDMOUT
+ K ^TMP("BDMVR",$J)
+ Q
+APP1 S BDMRDA=$O(^ACM(41.1,"B",BDMREGNM,0))
+ Q:'BDMRDA
+ D ^BDMDATE
+ Q:$D(BDMQUIT)
+ S BDMBROWS=1  ;cmi/maw 1/17/2006 so it asks for print or browse
+ D ZIS
+ K BDMBROWS  ;cmi/maw 1/17/2006 so variable does not hang around
+ Q
+APPINIT ;DISPLAY APPOINTMENTS
+ K ^TMP("BDMTMP",$J),^TMP("BDMVR",$J)
+ S (BDMJ,VALMCNT)=0
+ D APPHEAD
+ N X,Y,Z,DFN,PAT
+ S BDMRPDA=0
+ F  S BDMRPDA=$O(^ACM(41,"B",BDMRDA,BDMRPDA)) Q:'BDMRPDA  D
+ .S DFN=$P($G(^ACM(41,BDMRPDA,0)),U,2)
+ .Q:'$D(^DPT(+DFN,"S"))
+ .D PAT^BDMVRL4(DFN,BDMRPDA)
+ .Q:$D(^DPT(DFN,.35))
+ .D APP(DFN,BDMBEGIN,BDMEND)
+ S Y=""
+ F  S Y=$O(^TMP("BDMTMP",$J,Y)) Q:Y=""  D
+ .S Z=0
+ .F  S Z=$O(^TMP("BDMTMP",$J,Y,Z)) Q:'Z  D
+ ..S X=^TMP("BDMTMP",$J,Y,Z)
+ ..D Z(X)
+ Q
+APP(DFN,BDMBEGIN,BDMEND) ;EP;TO LIST UPCOMING APPOINTMENTS
+ Q:'$G(DFN)!'$G(BDMBEGIN)!'$G(BDMEND)
+ N X,Y,Z,PAT
+ S Y=BDMBEGIN-.0001
+ S X=""
+ F  S Y=$O(^DPT(DFN,"S",Y)) Q:'Y!(BDMEND+.9999<Y)  D
+ .S Z=$G(^DPT(DFN,"S",Y,0))
+ .Q:Z=""
+ .S X=""
+ .S (PAT,X)=$E($P($G(^DPT(DFN,0)),U),1,20)
+ .S $E(X,22)=$E($P($G(^SC(+Z,0)),U),1,20)
+ .S DATE=Y
+ .X ^DD("DD")
+ .S $E(X,44)=$P(Y,"@")
+ .S $E(X,56)="at "_$P(Y,"@",2)
+ .S BDMJ=BDMJ+1
+ .S ^TMP("BDMTMP",$J,PAT,BDMJ)=X
+ .;S X=""  ;cmi/maw 1/17/2007 this should get reset prior to follow up appts
+ .I $D(BDMFUAPP) D
+ ..S Y=$E(X,22,999)
+ ..S X=""
+ ..S $E(X,6)="NEXT APPT: "
+ ..S $E(X,17)=Y
+ .D Z(X)  ;cmi/maw 9/7/06 test to see if this works for next appt.
+ Q
+APPHEAD ;PRINT APPOINTMENT LIST HEADER
+ N X,Y,Z
+ S X=""
+ S $E(X,10)="DIABETES MANAGEMENT SYSTEM - PATIENT APPOINTMENTS"
+ D Z(X)
+ S Y=DT
+ X ^DD("DD")
+ S X=""
+ S $E(X,10)="REPORT DATE....: "_Y
+ D Z(X)
+ S Y=BDMBEGIN
+ X ^DD("DD")
+ S X=""
+ S $E(X,10)="APPTS BEGINNING: "_Y
+ D Z(X)
+ S Y=BDMEND
+ X ^DD("DD")
+ S X=""
+ S $E(X,10)="APPTS ENDING...: "_Y
+ D Z(X)
+ S X="  "
+ D Z(X)
+ S X="PATIENT"
+ S $E(X,22)="CLINIC"
+ S $E(X,44)="APPT DATE/TIME"
+ D Z(X)
+ S X="--------------------"
+ S $E(X,22)="---------------------"
+ S $E(X,44)="---------------------"
+ D Z(X)
+ Q
+Z(X) ;SET TMP GLOBAL
+ I IO'=IO(0) W !,X Q
+ S VALMCNT=VALMCNT+1
+ S ^TMP("BDMVR",$J,VALMCNT,0)=X
+ Q
+ZIS ;DEVICE INTERFACE
+ S ZTSAVE("BDM*")=""
+ S (ZTRTN,BDMRTN)="APRINT^BDMVRL6"
+ D ^BDMFZIS
+ Q
+APRINT ;EP;TO PRINT APPOINTMENT LIST
+ D REG^BDMFUTIL
+ Q:$D(BDMQUIT)
+ D APPINIT
+ I IO=IO(0),'$G(BDMPRINT) D  Q  ;cmi/maw 1/17/2006 don't browse if they select print
+ .S BDMHDR=""
+ .S BDMVALM="BDM APPOINTMENT LIST"
+ .D VALM^BDMVRL(BDMVALM) Q
+ S J=0
+ F  S J=$O(^TMP("BDMVR",$J,J)) Q:'J!$D(BDMQUIT)  D
+ .S X=$G(^TMP("BDMVR",$J,J,0))
+ .I X]"" U IO W !,X
+ .I IOSL-4<$Y D PAUSE^BDMFMENU Q:$D(BDMQUIT)  W @IOF S J=J-8 D APPHEAD
+ Q
+ ;
+BDMGA(BDMRET,BDMBEGIN,BDNEND,BDMRDA,BDMGUI) ;PEP - gui call
+ S BDMJ=$J
+ S BDMH=$H
+ F X="BDMJ","BDMH","BDMBEGIN","BDMEND","BDMRDA" S @X=$G(@X)
+ I $G(BDMJ)="" S BDMRET=-1 Q
+ I $G(BDMH)="" S BDMRET=-1 Q
+ ;create entry in fileman file to hold output
+ N BDMOPT  ;maw
+ S BDMOPT="List Patient Appointments"
+ D NOW^%DTC
+ S BDMNOW=$G(%)
+ K DD,D0,DIC
+ S X=DUZ_"."_BDMH
+ S DIC("DR")=".02////"_DUZ_";.03////"_BDMNOW_";.05///1;.06///"_$G(BDMOPT)_";.07///R"
+ S DIC="^BDMGUI(",DIC(0)="L",DIADD=1,DLAYGO=9003002.4
+ D FILE^DICN
+ K DIADD,DLAYGO,DIC,DA
+ I Y=-1 S BDMRET=-1 Q
+ S BDMIEN=+Y
+ S BDMRET=BDMIEN
+ D ^XBFMK
+ K ZTSAVE S ZTSAVE("*")=""
+ ;D GUIEP  ;for interactive testing
+ S ZTIO="",ZTDTH=$$NOW^XLFDT,ZTRTN="GUIEP^BDMVRL6",ZTDESC="GUI DM LIST PATIENT APPOINTMENTS" D ^%ZTLOAD
+ D XIT
+ Q
+ ;
+GUIEP ;EP - called from taskman
+ ;D ^FUPRINT
+ K ^TMP($J,"BDMLPA")
+ S IOM=80  ;cmi/maw added
+ D GUIR^XBLM("APPINIT^BDMVRL6","^TMP($J,""BDMLPA"",")
+ ;Q:$G(BDMDSP)  ;quit if to screen
+ S X=0,C=0 F  S X=$O(^TMP($J,"BDMLPA",X)) Q:'X  D
+ . N BDMGDATA
+ . S BDMGDATA=^TMP($J,"BDMLPA",X)
+ . I BDMGDATA="ZZZZZZZ" S BDMGDATA=$C(12)
+ . S ^BDMGUI(BDMIEN,11,X,0)=BDMGDATA
+ . S C=C+1
+ S ^BDMGUI(BDMIEN,11,0)="^^"_C_"^"_C_"^"_DT_"^"
+ S DA=BDMIEN,DIK="^BDMGUI(" D IX1^DIK
+ D ENDLOG
+ S ZTREQ="@"
+ Q
+ ;
+ENDLOG ;-- write the end of the log
+ D NOW^%DTC
+ S BDMNOW=$G(%)
+ S DIE="^BDMGUI(",DA=BDMIEN,DR=".04////"_BDMNOW_";.07///C"
+ D ^DIE
+ K DIE,DR,DA
+ Q
+ ;
+XIT ;-- remove variables and quit
+ D EN^XBVK("AUPN")
+ D ^XBFMK,KILL^AUPNPAT
+ K ^TMP($J,"PATS")
+ Q
+ ;

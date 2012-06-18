@@ -1,0 +1,63 @@
+APCLAUD3 ; IHS/CMI/LAB - MORE AUDIT SEARCH ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+AGE ;
+ S DIR(0)="YO",DIR("A")="Do you want to restrict the Audit Search to Patients within an Age Range",DIR("B")="NO",DIR("?")="" D ^DIR K DIR
+ I $D(DIRUT) G EXIT
+ I Y'=1 K APCLLAGE,APCLHAGE,APCLLAG,APCLHAG G SEX
+AGEL ;
+ S DIR(0)="N^0:199:0",DIR("A")="Enter the lower limit for Age (in Years) at the time",DIR("B")="0" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G AGE
+ S APCLLAGE=Y
+ I APCLLAGE="" S (APCLLAGE,APCLLAG)=0 G AGEH
+ S APCLLAG=(APCLLAGE*365.25)\1
+AGEH ;
+ S DIR(0)="N^0:199:0",DIR("A")="Enter the upper limit for Age (in Years) at the time" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G AGEL
+ S APCLHAGE=Y
+ S APCLHAG=(((APCLHAGE+1)*365.25)\1)-1
+ ;
+SEX ;Sex Screening
+ K DIR S:$D(DUOUT) DIRUT=1 K DIR,APCLSEX,APCLSEXP
+ W ! S DIR(0)="YO",DIR("B")="NO",DIR("A")="Want to restrict the Audit Search to Visits with a particular SEX",DIR("?")="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) K APCLSEXP,APCLSEX Q
+ I $E(X)="N" G SC
+ S DIR(0)="2,.02",DIR("A")="Which SEX" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G SEX
+ S APCLSEX=Y,APCLSEXP=Y(0)
+ ;
+SC ;
+ K DIR S:$D(DUOUT) DIRUT=1 K DIR,APCLSC,APCLSCP
+ W ! S DIR(0)="YO",DIR("B")="NO",DIR("A")="Want to restrict the Audit Search to Visits with a particular SERVICE CATEGORY",DIR("?")="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) K APCLSC,APCLSCP,APCLSEX,APCLSEXP Q
+ I $E(X)="N" G TYPE
+ S DIR(0)="9000010,.07",DIR("A")="Which Service Category" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G SC
+ S APCLSC=Y,APCLSCP=Y(0)
+TYPE ;
+ K DIR S:$D(DUOUT) DIRUT=1 K DIR,APCLTYPE,APCLTYPP
+ W ! S DIR(0)="YO",DIR("B")="NO",DIR("A")="Want to restrict the audit search by VISIT TYPE",DIR("?")="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) K APCLSC,APCLSCP,APCLTYPE,APCLTYPP,APCLSEX,APCLSEXP Q
+ I $E(X)="N" G CLN
+ S DIR(0)="9000010,.03",DIR("A")="Which Visit Type" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G TYPE
+ S APCLTYPE=Y,APCLTYPP=Y(0)
+CLN ;
+ I $D(APCLTYPE),"CV"[APCLTYPE G LOC
+ I $D(APCLSC),"H"[APCLSC G LOC
+ W ! S DIR(0)="YO",DIR("A")="Want to restrict the audit search by CLINIC TYPE",DIR("B")="NO",DIR("?")="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) K APCLCLN,APCLCLNP,APCLSC,APCLSCP,APCLTYPE,APCLTYPP,APCLSEX,APCLSEXP Q
+ I $E(X)="N" G LOC
+ S DIC="^DIC(40.7,",DIC(0)="AEQM",DIC("A")="Clinic:"
+ D ^DIC K DIC
+ I Y<0 G CLN
+ S APCLCLN=+Y,APCLCLNP=$P(^DIC(40.7,APCLCLN,0),U)
+LOC ;
+ W ! S DIR(0)="YO",DIR("A")="Want to restrict the audit search by LOCATION of ENCOUNTER",DIR("B")="NO",DIR("?")="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) K APCLLOC,APCLLOCP,APCLCLN,APCLCLNP,APCLLOCP,APCLSC,APCLSCP,APCLTYPE,APCLTYPP Q
+ I $E(X)="N" G EXIT
+ S DIC="^AUTTLOC(",DIC(0)="AEQM",DIC("A")="What Location:  "
+ D ^DIC K DIC
+ I Y<0 G LOC
+ S APCLLOC=+Y,APCLLOCP=$P(^DIC(4,APCLLOC,0),U)
+EXIT ;
+ Q

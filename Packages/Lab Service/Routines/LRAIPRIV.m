@@ -1,0 +1,8 @@
+LRAIPRIV ; IHS/DIR/FJE - DOD SITE'S PRIVACY ACT STATEMENT GEM/LL ;
+ ;;5.2;LR;**1013**;JUL 15, 2002
+ ;
+ ;;5.2;LAB SERVICE;;Sep 27, 1994
+ ;formerly named IAAPRIV
+ ;used by DOD sites only
+ S:'$D(IOM) IOM=80
+ W ?(IOM-41)\2,"** PERSONAL DATA - PRIVACY ACT OF 1974 **",!

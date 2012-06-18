@@ -1,0 +1,24 @@
+BGPD31 ; IHS/CMI/LAB - indicator 31 ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;
+I31 ;EP ;EP - indicator 31
+ ;Q:'$D(BGPIND(29))
+ S BGPP=$$HIV(DFN,BGPEDATE)
+ I BGPP D S(BGPRPT,$S(BGPTIME=1:19,BGPTIME=0:49,BGPTIME=8:89,1:999),10,1)
+ ;I $D(BGPLIST(29)),BGPTIME=1 S ^XTMP("BGPD",BGPJ,BGPH,"LIST",29,$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN"),$P(^DPT(DFN,0),U,2),BGPAGEE,DFN)=BGPP
+ Q
+S(R,N,P,V) ;
+ I 'V Q  ;no value to add
+ S $P(^BGPD(R,N),U,P)=$P($G(^BGPD(R,N)),U,P)+V
+ Q
+ ;
+HIV(P,EDATE) ;is patient hiv
+ I $G(P)="" Q ""
+ ;check povs
+ NEW X,E,BGPG,Y
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^LAST DX [BGP HIV/AIDS DXS;DURING "_$$FMTE^XLFDT($P(^DPT(P,0),U,3))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) Q 1  ;has a dx
+ Q 0
+ ;

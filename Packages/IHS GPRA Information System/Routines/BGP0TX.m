@@ -1,0 +1,19 @@
+BGP0TX ; IHS/CMI/LAB -CREATED BY ^ATXSTX ON APR 22, 2010 ;
+ ;;10.0;IHS CLINICAL REPORTING;;JUN 18, 2010
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^BGP00
+ D ^BGP01
+ D ^BGP02
+ D ^BGP03
+ D ^BGP04
+ D ^BGP05
+ D ^BGP06
+ D ^BGP07
+ D ^BGP08
+ D ^BGP09
+ D ^BGP0Z
+ D ^BGP0Y
+ Q

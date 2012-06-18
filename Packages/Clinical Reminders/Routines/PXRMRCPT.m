@@ -1,0 +1,71 @@
+PXRMRCPT ; SLC/PKR - Code to handle radiology CPT data. ;10/03/2000
+ ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+ ;
+ ;=======================================================================
+EVAL(DFN,TAXIEN,FLIST) ;Find all the entries for this patient in the
+ ;radiology file based on CPT codes.
+ N CODE,DATE,RADPTIEN,RADPROC,RCPTP,STATUS,TEMP,TLIST
+ ;Make a list of radiology procedures from CPT taxonomy entries.
+ S RCPTP=$O(^PXD(811.3,TAXIEN,71,"RCPTP",""))
+ I RCPTP="" Q
+ ;Lock the expanded taxonomy cache.
+ I '$$LOCKXTL^PXRMBXTL(TAXIEN) Q
+ K ^TMP($J,"RADPROC")
+ S RADPROC=RCPTP
+ F  S RCPTP=$O(^PXD(811.3,TAXIEN,71,"RCPTP",RCPTP)) Q:+RCPTP=0  D
+ . S RADPROC=RADPROC_U_RCPTP
+ D ULOCKXTL^PXRMBXTL(TAXIEN)
+ D CLIN^RAO7PC2(DFN,RADPROC)
+ ;If this is an unknown radiology patient we are done.
+ I $G(^TMP($J,"RADPROC"))["Invalid" Q
+ ;
+ ;Process the list.
+ ;STATUS can be "CANCELLED", "COMPLETE", "IN PROGRESS", or "NONE".
+ S RADPTIEN=$O(^TMP($J,"RADPROC",""))
+ ;Ignore any that are cancelled.
+ S RADPROC=""
+ F  S RADPROC=$O(^TMP($J,"RADPROC",RADPTIEN,RADPROC)) Q:RADPROC=""  D
+ . S STATUS=""
+ . F  S STATUS=$O(^TMP($J,"RADPROC",RADPTIEN,RADPROC,STATUS)) Q:STATUS=""  D
+ .. I (STATUS="NONE")!(STATUS="CANCELLED") Q
+ .. S TEMP=^TMP($J,"RADPROC",RADPTIEN,RADPROC,STATUS)
+ .. S DATE=$P(TEMP,U,1)
+ .. S INVDATE=$$INVFFMDL^PXRMDATE(DATE,1)
+ .. S TLIST(STATUS,INVDATE,RADPROC)=TEMP
+ I '$D(TLIST("COMPLETE")) Q
+ S INVDATE=$O(TLIST("COMPLETE",""))
+ S RADPROC=$O(TLIST("COMPLETE",INVDATE,""))
+ S TEMP=TLIST("COMPLETE",INVDATE,RADPROC)
+ S CODE=$P(^RAMIS(71,RADPROC,0),U,9)
+ S FLIST(INVDATE,"RADPT")=RADPROC_U_U_$P(TEMP,U,1)_U_CODE_U_$P(TEMP,U,2,4)
+ K ^TMP($J,"RADPROC")
+ Q
+ ;
+ ;======================================================================
+OUTPUT(NLINES,TEXT,FINDING,FIEVAL) ;Produce the clinical
+ ;maintenance output. The VCPT information is:  DATE, ICPT CODE,
+ ;SHORT NAME, PROVIDER NARRATIVE.
+ N CODE,CPT,CPTDATA,DATE,ICPTP,FIEN,RADPROC,TEMP
+ S FIEN=$P(FIEVAL(FINDING,"SOURCE"),";",1)
+ S DATE=FIEVAL(FINDING,"DATE")
+ S TEMP=$$EDATE^PXRMDATE(DATE)
+ S TEMP=TEMP_" Radiology Procedure: "
+ S ICPTP=FIEVAL(FINDING,"CODEP")
+ S CPTDATA=$$CPT^ICPTCOD(ICPTP)
+ S CODE=$P(CPTDATA,U,2)
+ S SNAME=$P(CPTDATA,U,3)
+ S RADPROC=$P(^RAMIS(71,FIEN,0),U,1)
+ S TEMP=TEMP_RADPROC
+ S TEMP=TEMP_"-CPT: "_CODE
+ ;If the finding has expired add "EXPIRED"
+ I $D(FIEVAL(FINDING,"EXPIRED")) S TEMP=TEMP_" - EXPIRED"
+ S NLINES=NLINES+1
+ S TEXT(NLINES)=TEMP
+ I $D(PXRMDEV) D
+ . N UID
+ . S UID="RADPROC "_ICPTP
+ . S ^TMP(PXRMPID,$J,PXRMITEM,UID,"DATE")=DATE
+ . S ^TMP(PXRMPID,$J,PXRMITEM,UID,"PROCECURE")=RADPROC
+ . S ^TMP(PXRMPID,$J,PXRMITEM,UID,"CODE")=CODE
+ Q
+ ;

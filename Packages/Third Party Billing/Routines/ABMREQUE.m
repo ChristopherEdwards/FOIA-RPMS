@@ -1,0 +1,107 @@
+ABMREQUE ; IHS/SD/SDR - Requeue bills in UFMS session ;   
+ ;;2.6;IHS 3P BILLING SYSTEM;**4**;NOV 12, 2009
+CR8SESS ;EP - create new session in file
+ ;location
+ K DIC,DIE,X,Y,DA
+ S DIC="^ABMUCASH("
+ S DIC(0)="AMNEQ"
+ D ^DIC
+ I Y<0 Q
+ S ABMLOC=+Y
+ ;
+ ;user
+ K DIC,DIE,X,Y,DA
+ S DA(1)=ABMLOC
+ S DIC="^ABMUCASH(DA(1),10,"
+ S DIC(0)="AEQMN"
+ S DIC("P")=$P(^DD(9002274.45,".02",0),U,2)
+ D ^DIC
+ I Y<0 Q
+ S ABMUSER=+Y
+ ;
+ K ABMO,ABMR,ABM,ABMTOT
+ S ABMFD=0
+ S ABMSDT=0
+ F  S ABMSDT=$O(^ABMUCASH(ABMLOC,10,ABMUSER,20,ABMSDT)) Q:+ABMSDT=0  D  Q:ABMFD'=0
+ .I $P($G(^ABMUCASH(ABMLOC,10,ABMUSER,20,ABMSDT,0)),U,4)="T" Q  ;skip transmitted sessions
+ .S ABMST=$P($G(^ABMUCASH(ABMLOC,10,ABMUSER,20,ABMSDT,0)),U,4)
+ .S ABMST=$S(ABMST="C":"CLOSED",ABMST="O":"OPEN",1:"")
+ .S ABMO(ABMSDT)=ABMST
+ ;
+ I $D(ABMO) D  Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ .W !!!,"SESSIONS FOUND FOR USER "_$P($G(^VA(200,ABMUSER,0)),U)_":"
+ .S ABMCNT=1
+ .S ABMSDT=0
+ .S ABMDIR=""
+ .F  S ABMSDT=$O(ABMO(ABMSDT)) Q:'ABMSDT  D
+ ..S ABMR(ABMCNT)=ABMSDT
+ ..S:(ABMDIR'="") ABMDIR=ABMDIR_";"_ABMCNT_":"_ABMSDT_" ("_$G(ABMO(ABMSDT))_")"
+ ..S:(ABMDIR="") ABMDIR=ABMCNT_":"_ABMSDT_" ("_$G(ABMO(ABMSDT))_")"
+ ..S ABMCNT=+$G(ABMCNT)+1
+ .K DIR,DIE,DIC,X,Y,DA
+ .S DIR(0)="SO^"_ABMDIR_";"_(ABMCNT)_":NEW SESSION"
+ .S DIR("A")="Select session to use"
+ .D ^DIR K DIR
+ .Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ .I Y(0)="NEW SESSION" K ABMO Q
+ .W !!!,"Using session "_$G(ABMR(Y))
+ .S ABMSDT=$G(ABMR(Y))
+ ;
+ ;sign in date
+ I '$D(ABMO) D
+ .K DIC,DIE,X,Y,DA
+ .S DA(2)=ABMLOC
+ .S DA(1)=ABMUSER
+ .S DIC="^ABMUCASH("_DA(2)_",10,"_DA(1)_",20,"
+ .S X="NOW"
+ .S DIC(0)="LMO"
+ .S DIC("P")=$P(^DD(9002274.4502,".02",0),U,2)
+ .S DIC("DR")=".03///NOW;.04////C"
+ .D ^DIC
+ .S ABMSDT=+Y
+ .W !!!,"Created session "_ABMSDT
+ ;
+ADDBENTR ;EP - Add claim/bill to session log
+ S ABMTRIBL=$P($G(^ABMDPARM(DUZ(2),1,4)),U,14)
+ ;
+ S ABMFLG=0
+ F  D  Q:ABMFLG=1
+ .W !!
+ .K DIC,DIE,X,Y,DA
+ .S DA(3)=ABMLOC
+ .S DA(2)=ABMUSER
+ .S DA(1)=ABMSDT
+ .S DIC="^ABMUCASH("_DA(3)_",10,"_DA(2)_",20,"_DA(1)_",11,"
+ .S DIC(0)="AEQLM"  ;insurer type
+ .D ^DIC
+ .I +Y<0 S ABMFLG=1 Q
+ .S ABMBA=+Y
+ .S ABMBAOUT=$P(Y,U,2)
+ .S ABMBAOUT=$P($T(@ABMBAOUT^ABMUCASH),";;",2)
+ .S ABMFLG1=0
+ .F  D  Q:ABMFLG1=1
+ ..K DIC,DIE,X,Y,DA
+ ..S DA(4)=ABMLOC
+ ..S DA(3)=ABMUSER
+ ..S DA(2)=ABMSDT
+ ..S DA(1)=ABMBA
+ ..S DIC="^ABMUCASH("_DA(4)_",10,"_DA(3)_",20,"_DA(2)_",11,"_DA(1)_",2,"
+ ..S DIC("P")=$P(^DD(9002274.4510211,2,0),U,2)
+ ..S DIC(0)="LMAEQ"
+ ..D ^DIC
+ ..I +Y<0 S ABMFLG1=1 Q
+ ..S DIE=DIC
+ ..S DA=+Y
+ ..S DR=".01//;.02//;.03//"
+ ..D ^DIE
+ ..S ABM(ABMBAOUT,"CNT")=+$G(ABM(ABMBAOUT,"CNT"))+1
+ ..S ABM(ABMBAOUT,"AMT")=+$G(ABM(ABMBAOUT,"AMT"))+$P($G(^ABMDBILL($P($G(^ABMUCASH(DA(4),10,DA(3),20,DA(2),11,DA(1),2,DA,0)),U,2),$P($G(^ABMUCASH(DA(4),10,DA(3),20,DA(2),11,DA(1),2,DA,0)),U,3),2)),U)
+ ..S ABMTOT("CNT")=+$G(ABMTOT("CNT"))+1
+ ..S ABMTOT("AMT")=+$G(ABMTOT("AMT"))++$P($G(^ABMDBILL($P($G(^ABMUCASH(DA(4),10,DA(3),20,DA(2),11,DA(1),2,DA,0)),U,2),$P($G(^ABMUCASH(DA(4),10,DA(3),20,DA(2),11,DA(1),2,DA,0)),U,3),2)),U)
+ W !!?3,"Budget Activity",?20,"Count",?30,"Amount"
+ S ABMBAOUT=""
+ F  S ABMBAOUT=$O(ABM(ABMBAOUT)) Q:ABMBAOUT=""  D
+ .W !?3,ABMBAOUT,?20,$G(ABM(ABMBAOUT,"CNT")),?26,$J($FN(ABM(ABMBAOUT,"AMT"),",",2),10)
+ W !?20,"=====",?26,"=========="
+ W !,?20,ABMTOT("CNT"),?26,$J($FN(ABMTOT("AMT"),",",2),10)
+ Q

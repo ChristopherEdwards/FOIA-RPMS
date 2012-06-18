@@ -1,0 +1,338 @@
+AZAXHRN ;IHS/PHXAO/AEF - HEALTH RECORD NUMBER HISTORICAL LOG
+ ;;1.0;ANNE'S SPECIAL ROUTINES;;JUNE 30, 2004
+ ;
+ ;THIS ROUTINE IS USED TO READ THE CONTENTS OF THE REGISTRATION
+ ;EXPORT FILES INTO A FILEMAN FILE SO THAT LOOKUPS AND REPORTS
+ ;CAN BE DONE.  THE HEALTH RECORD NUMBERS ARE STORED FOR HISTORICAL
+ ;PURPOSES.
+ ;
+ ;
+EN ;EP -- MAIN ENTRY POINT - USER INTERACTIVE
+ ;
+ N ANS,FILE,OUT,PATH
+ ;
+ D ^XBKVAR
+ D HOME^%ZIS
+ ;
+ S OUT=0
+ ;
+ D PF("PATH",.ANS,.OUT)
+ Q:OUT
+ S PATH=ANS
+ ;
+ D PF("FILE",.ANS,.OUT)
+ Q:OUT
+ S FILE=ANS
+ ;
+ D READ(PATH,FILE,.OUT)
+ Q:OUT
+ ;
+ I '$O(^TMP("AZAX",$J,"HRNDATA",0)) D  Q
+ . W !,"NO DATA FOUND"
+ ;
+ I $G(^TMP("AZAX",$J,"HRNDATA",2,0))'["Registration Export Global" D  Q
+ . W !,"This does not appear to be a REGISTRATION EXPORT file... "
+ . W !,"UNABLE TO PROCEED!"
+ . D KILL
+ ;
+ D CHK(.OUT)
+ Q:OUT
+ ;
+ D PROC(FILE)
+ ;
+ D KILL
+ ;
+ Q
+PROC(FILE) ;
+ ;----- PROCESS DATA IN ^TMP GLOBAL AND PUT INTO FM FILE
+ ;
+ N AZAX,CNT,EXPDT,EXPFAC
+ ;
+ W !,"Processing ^TMP global..."
+ ;
+ S CNT=0
+ S EXPDT=$G(^TMP("AZAX",$J,"HRNDATA",1,0))
+ S EXPFAC=$P($G(^TMP("AZAX",$J,"HRNDATA",4,0)),U,2)
+ ;
+ S AZAX=0
+ F  S AZAX=$O(^TMP("AZAX",$J,"HRNDATA",AZAX)) Q:'AZAX  D
+ . D ONE(AZAX,EXPDT,EXPFAC,FILE,.CNT)
+ ;
+ W !,CNT," entries added to 'AZAX HRN HISTORICAL LOG' file"
+ ;
+ Q
+ONE(AZAX,EXPDT,EXPFAC,FILE,CNT) ;
+ ;----- PROCESS ONE ENTRY
+ ;
+ N ASUFAC,DA,DATA,DFN,DR,HRN,LOC,X,Y
+ ;
+ S DATA=$G(^TMP("AZAX",$J,"HRNDATA",AZAX,0))
+ Q:$P(DATA,U)']""
+ Q:"RG1^RG4"'[$P(DATA,U)
+ ;
+ S DA=+$$NEW
+ Q:DA'>0
+ ;
+ S DFN=$$DFN($P(DATA,U,2))
+ I $P(DATA,U)="RG1" D
+ . S HRN=$P(DATA,U,4)
+ . S ASUFAC=$P(DATA,U,3)
+ I $P(DATA,U)="RG4" D
+ . S HRN=$P(DATA,U,10)
+ . S ASUFAC=$P(DATA,U,9)
+ S LOC=$$LOC(ASUFAC)
+ ;
+ S DR=".02////^S X=DFN;.03///^S X=HRN;.04///^S X=ASUFAC;.05////^S X=LOC"
+ S DR=DR_";.07///^S X=EXPDT;.08///^S X=FILE;.09///^S X=EXPFAC"
+ ;
+ D EDIT(DA,DR)
+ ;
+ S CNT=CNT+1
+ I '(CNT#100) W "."
+ ;
+ Q
+EDIT(DA,DR) ;
+ ;----- EDIT ENTRY
+ ;
+ N DIE,X,Y
+ ;
+ S DIE="^AZAX(1991288,"
+ D ^DIE
+ Q
+DFN(X) ;
+ ;----- RETURN PATIENT INTERNAL ENTRY NUMBER
+ ;
+ ;      X  =  UNIQUE REGISTRATION ID FROM EXPORT FILE RECORD
+ ;      
+ N Y
+ S Y="" 
+ I X D
+ . Q:$L(X)'=16
+ . S Y=+$E(X,7,16)
+ Q Y
+ ;
+LOC(X) ;
+ ;----- RETURN LOCATION NAME
+ ;
+ ;      X  =  ASUFAC CODE
+ ;      
+ N Y
+ S Y=""
+ I X D
+ . S Y=$O(^AUTTLOC("C",X,0))
+ . I Y S Y=$P($G(^DIC(4,Y,0)),U)
+ Q Y
+ ;
+NEW() ;
+ ;----- CREATE NEW ENTRY IN AZAX HRN HISTORICAL LOG FILE
+ ;
+ N DD,DIC,DLAYGO,DO,X,Y
+ L +^AZAX(1991288,0)
+ S X=$$NEXT
+ S DIC="^AZAX(1991288,"
+ S DLAYGO=1991288
+ S DIC(0)=""
+ D FILE^DICN
+ L -^AZAX(1991288,0)
+ Q Y
+NEXT() ;
+ ;----- RETURN NEXT IEN FROM AZAX HRN HISTORICAL LOG FILE
+ ;
+ N Y
+ S Y=0
+ I $D(^AZAX(1991288,0)) D
+ . S Y=+$P($G(^AZAX(1991288,0)),U,3)
+ I $D(^AZAX(1991288,Y)) D
+ . F  S Y=Y+1 Q:'$D(^AZAX(1991288,Y))
+ Q Y
+ ;
+PF(TXT,ANS,OUT) ;
+ ;----- ASK PATH/FILE PROMPTS
+ ;
+ N DIR,DIRUT,DTOUT,DUOUT,X,Y
+ ;
+ S ANS=""
+ S DIR(0)="F"
+ I TXT="PATH" D
+ . S DIR("?")="EXAMPLE: 'c:\inetpub\ftproot\pub\' or '/usr/spool/uucppublic/'"
+ I TXT="FILE" D 
+ . S DIR(0)=DIR(0)_"^^K:X'[""BGTX"" X"
+ . S DIR("?")="Select only Registration Export files beginning with 'BGTX'"
+ S DIR("A")="Select "_TXT
+ D ^DIR
+ I $D(DUOUT)!($D(DIRUT))!($D(DTOUT)) S OUT=1
+ Q:OUT
+ S ANS=Y
+ Q
+READ(PATH,FILE,OUT) ;
+ ;----- READ CONTENTS OF UNIX FILE AND PUT IN ^TMP("AZAX",$J,"HRNDATA" GLOBAL
+ ;
+ N END,I,J,POP,X
+ ;
+ K ^TMP("AZAX",$J,"HRNDATA")
+ S END=0
+ ;
+ D OPEN^%ZISH("FILE",PATH,FILE,"R")
+ I POP D  Q
+ . W !,"UNABLE TO OPEN FILE '"_PATH_FILE_"'"
+ . S OUT=1
+ ;
+ U 0 W !,"Reading export file '",PATH_FILE,"'..."
+ ;
+ F I=1:1 D  Q:END
+ . U IO
+ . R X:DTIME
+ . I $$STATUS^%ZISH S END=1 Q
+ . F J="":1:31 S X=$TR(X,$C(J))   ;REMOVE ALL CONTROL CHARACTERS
+ . S ^TMP("AZAX",$J,"HRNDATA",I,0)=X
+ . S ^TMP("AZAX",$J,"HRNDATA",0)=$G(^TMP("AZAX",$J,"HRNDATA",0))+1
+ . I '(I#1000) U 0 W "."
+ D CLOSE^%ZISH("FILE")
+ W !,I," records added to ^TMP global"
+ Q
+KILL ;
+ ;----- KILL ^TMP("AZAX",$J,"HRNDATA") GLOBAL
+ ;
+ K ^TMP("AZAX",$J,"HRNDATA")
+ Q
+CNTDFN() ;
+ ;----- COUNT THE NUMBER OF UNIQUE DFNS IN THE ^TMP GLOBAL
+ ;
+ N CNT,X,Y
+ K DFN
+ S CNT=0
+ S X=0
+ F  S X=$O(^TMP("AZAX",$J,"HRNDATA",X)) Q:'X  D
+ . S Y=$G(^TMP("AZAX",$J,"HRNDATA",X,0))
+ . Q:$P(Y,U)'="RG1"
+ . S DFN=$P(Y,U,2)
+ . S DFN=+$E(DFN,7,16)
+ . Q:'DFN
+ . I '$D(DFN(DFN)) D
+ . . S DFN(DFN)=""
+ . . S CNT=CNT+1
+ Q CNT
+CHK(OUT) ;
+ ;----- CHECKS TO SEE IF FILE HAS ALREADY BEEN DOWNLOADED
+ ;
+ N DIR,X,Y
+ ;
+ S OUT=0
+ ;
+ S X=$G(^TMP("AZAX",$J,"HRNDATA",1,0))
+ Q:X']""
+ S %DT="RSTX"
+ D ^%DT
+ Q:'$D(^AZAX(1991288,"AC",Y))
+ ;
+ W !
+ S DIR(0)="Y"
+ S DIR("A",1)="WARNING!!!  It appears that this file has already been downloaded"
+ S DIR("A",2)="Downloading it again may cause duplicate entries in your AZAX HRN"
+ S DIR("A",3)="HISTORICAL LOG file."
+ S DIR("A",4)=""
+ S DIR("A")="Are you SURE you want to download this file"
+ S DIR("B")="NO"
+ D ^DIR
+ I 'Y S OUT=1
+ Q
+EN1 ;EP -- NON-USER INTERACTIVE ENTRY POINT
+ ;      LOOPS THROUGH EACH FILE IN 'FILES' AND EXTRACTS THE DATA
+ ;
+ D ^XBKVAR
+ D HOME^%ZIS
+ S OUT=0
+ ;
+ F I=1:1 D  Q:OUT
+ . S TXT=$T(FILES+I)
+ . I TXT["$$END" S OUT=1
+ . Q:OUT
+ . S FILE=$P(TXT,";",6)
+ . Q:FILE'["BGTX"
+ . Q:FILE']""
+ . S PATH=$P(TXT,";",5)
+ . Q:PATH']""
+ . ;
+ . D READ(PATH,FILE,.OUT)
+ . Q:OUT
+ . Q:'$O(^TMP("AZAX",$J,"HRNDATA",0))
+ . Q:$G(^TMP("AZAX",$J,"HRNDATA",2,0))'["Registration Export Global"
+ . ;
+ . D PROC(FILE)
+ Q
+CNT ;----- COUNT THE REUSED HRNS AT SAME SITE
+ ;
+ N DFN,FAC,HRN,X,Y
+ ;
+ K ^TMP("AZAX",$J)
+ ;
+ S X=0
+ F  S X=$O(^AZAX(1991288,X)) Q:'X  D  
+ . S Y=$G(^AZAX(1991288,X,0))
+ . S DFN=$P(Y,U,2)
+ . S HRN=$P(Y,U,3)
+ . S FAC=$P(Y,U,4) 
+ . S ^TMP("AZAX",$J,"AHD",FAC,HRN,DFN)=""
+ ;
+ S FAC=0
+ F  S FAC=$O(^TMP("AZAX",$J,"AHD",FAC)) Q:'FAC  D
+ . S HRN=0
+ . F  S HRN=$O(^TMP("AZAX",$J,"AHD",FAC,HRN)) Q:'HRN  D
+ . . S DFN=0
+ . . F  S DFN=$O(^TMP("AZAX",$J,"AHD",FAC,HRN,DFN)) Q:'DFN  D
+ . . . S ^TMP("AZAX",$J,"CNT",FAC,HRN)=$G(^TMP("AZAX",$J,"CNT",FAC,HRN))+1
+ ;
+ S FAC=0
+ F  S FAC=$O(^TMP("AZAX",$J,"CNT",FAC)) Q:'FAC  D
+ . S HRN=0
+ . F  S HRN=$O(^TMP("AZAX",$J,"CNT",FAC,HRN)) Q:'HRN  D
+ . . Q:$G(^TMP("AZAX",$J,"CNT",FAC,HRN))=1
+ . . W !,"ASUFAC: "_FAC_" HRN: "_HRN_" = "_$G(^TMP("AZAX",$J,"CNT",FAC,HRN))
+ Q
+PNAME(X) ;
+ ;EP -- RETURN PATIENT NAME
+ ;      CALLED BY PATIENT NAME COMPUTED FIELD IN AZAX HRN HISTORICAL LOG FILE
+ ;
+ N Y
+ S Y=""
+ I X S Y=$P($G(^AZAX(1991288,X,0)),U,2)
+ I Y S Y=$P($G(^DPT(Y,0)),U)    
+ Q Y
+FILES ;
+ ;----- FILES CONTAINING PAT REG EXPORT DATA FROM PARKER
+ ;;10-01 BASELINE;3011017;/usr5/exports/;BGTX606401.290
+ ;;11-01;3011102;/usr5/exports/;BGTX606401.305
+ ;;12-01;3011129;/usr5/exports/;BGTX606401.333
+ ;;01-02;3020102;/usr5/exports/;BGTX606401.2
+ ;;02-02;3020204;/usr5/exports/;BGTX606401.35
+ ;;03-02;3020228;/usr5/exports/;BGTX606401.59
+ ;;04-02;3020401;/usr5/exports/;BGTX606401.91
+ ;;05-02;3020430;/usr5/exports/;BGTX606401.120
+ ;;06-02;3020530;/usr5/exports/;BGTX606401.150
+ ;;07-02;3020701;/usr5/exports/;BGTX606401.182
+ ;;08-02;3020725;/usr5/exports/;BGTX606401.206
+ ;;09-02;3020903;/usr5/exports/;BGTX606401.246
+ ;;10-02;3021001;/usr5/exports/;BGTX606401.274
+ ;;12-02;3021102;/usr5/exports/;BGTX606401.306
+ ;;12-02;3021126;/usr5/exports/;BGTX606401.330
+ ;;01-03;3021231;/usr5/2003/;BGTX606401.365
+ ;;02-03;3020205;/usr5/2003/;BGTX606401.36
+ ;;03-03;3020303;/usr5/2003/;BGTX606401.62
+ ;;04-03;3030408;/usr5/2003/;BGTX606401.98
+ ;;05-03;3030501;/usr5/2003/;BGTX606401.121
+ ;;06-03;3030530;/usr5/jaysexports2003/;BGTX606401.150
+ ;;07-03;3030627;/usr5/jaysexports2003/;BGTX606401.178
+ ;;08-03;3030725;/usr5/jaysexports2003/;BGTX606401.206
+ ;;08-03;3030731;/usr5/jaysexports2003/;BGTX606401.212
+ ;;09-03;3030828;/usr5/jaysexports2003/;BGTX606401.240
+ ;;10-03;3030930;/usr5/jaysexports2003/;BGTX606401.273
+ ;;10-03;3031001;/usr5/jaysexports2003/;BGTX606401.274
+ ;;11-03;3031103;/usr5/jaysexports2003/;BGTX606401.307
+ ;;12-03;3031201;/usr5/jaysexports2003/;BGTX606401.335
+ ;;01-04;3031231;/usr5/jaysexports2004/;BGTX606401.365
+ ;;02-04;3040131;/usr5/jaysexports2004/;BGTX606401.31
+ ;;03-04;3040301;/usr5/jaysexports2004/;BGTX606401.61
+ ;;04-04;3040401;/usr5/jaysexports2004/;BGTX606401.92
+ ;;05-04;3040430;/usr/spool/uucppublic/;BGTX606401.121
+ ;;06-04;3040528;/usr/spool/uucppublic/;BGTX606401.149
+ ;;$$END

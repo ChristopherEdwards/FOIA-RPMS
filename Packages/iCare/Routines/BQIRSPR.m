@@ -1,0 +1,49 @@
+BQIRSPR ;PRXM/HC/ALA-Retrieve Supplement List ; 16 Oct 2007  1:21 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+EN(DATA,FAKE) ;EP -- BQI SUPPLEMENT TYPE
+ ;
+ ; Input
+ ;  FAKE - extra 'blank' parameter required by BMXNET async 'feature'
+ ;  
+ NEW UID,BQII,II,SUPP,SUPNM,IEN,DESC,DN
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIRSPR",UID))
+ ; Initialize global array
+ K @DATA
+ S BQII=0
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIRSPR D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ; Only register related supplements should be selected
+ F II=1:1 S SUPL=$P($T(SUP+II)," ;;",2) Q:SUPL=""  D
+ . S SUPP($P(SUPL,"^",1))=$P(SUPL,"^",2)
+ ;
+ S @DATA@(BQII)="I00010SUPPLEMENT_IEN^T00030SUPPLEMENT_NAME^T00030TAX_CHECK^T01024SUPP_DESC"_$C(30)
+ ;
+ S SUPNM=""
+ F  S SUPNM=$O(^APCHSUP("B",SUPNM)) Q:SUPNM=""  I $D(SUPP(SUPNM)) D
+ . S IEN=""
+ . F  S IEN=$O(^APCHSUP("B",SUPNM,IEN)) Q:IEN=""  D
+ .. S DESC="",DN=0
+ .. F  S DN=$O(^APCHSUP(IEN,12,DN)) Q:'DN  D
+ ... S DESC=DESC_^APCHSUP(IEN,12,DN,0)_$C(10)
+ .. S BQII=BQII+1,@DATA@(BQII)=IEN_"^"_SUPNM_"^"_SUPP(SUPNM)_"^"_DESC_$C(30)
+ S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ Q
+ ;
+ERR ;Error trap
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(BQII),$D(DATA) S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ Q
+ ;
+SUP ; Valid Supplement names
+ ;;ASTHMA^
+ ;;ASTHMA PATIENT CARE SUMMARY^
+ ;;DIABETIC CARE SUMMARY^
+ ;;HMS PATIENT CARE SUPPLEMENT^HMS Register
+ ;;PRE-DIABETES CARE SUMMARY^
+ ;;WOMEN'S HEALTH PROFILE^

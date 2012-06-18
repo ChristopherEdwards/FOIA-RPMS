@@ -1,0 +1,83 @@
+BMCVDV2 ; IHS/OIT/FCJ - YTD PAID VENDOR INFO BY FY ; 
+ ;;4.0;REFERRED CARE INFO SYSTEM;**5**;JAN 09, 2006
+ ;BMC*4.0*5 5.13.2009 IHS.OIT.FCJ ORIGIAL ROUTINE FR ACHSVDV2
+ ;
+ N BMCIEN
+ S BMCIEN=$O(^BMCVPMT(DUZ(2),1,"B",BMCPROV,0))
+ I 'BMCIEN W !!,"None on file." Q
+ I '$D(^BMCVPMT(DUZ(2),1,BMCIEN,1,0)) W !!,"None on file." Q
+ ;
+ W !!,"FISCAL YEAR",?16,"A M O U N T",?30,"LAST PMT DATE",!!
+ F BMC=0:0 S BMC=$O(^BMCVPMT(DUZ(2),1,BMCIEN,1,BMC)) Q:'BMC  W ?2,BMC,?14,"$",$J($FN($P(^(BMC,0),U,2),",",2),12),?30,$$FMTE^XLFDT($P(^(0),U,3)),!
+ Q
+ ;
+AGRDSP ;EP
+ G:'$D(^AUTTVNDR(BMCPROV,18,"AGR",BMCAGTP)) AGRNEW
+ D HDR
+ S R="",BMCI=0
+ K BMCAGRL
+AGRDSP1 ;
+ S R=$O(^AUTTVNDR(BMCPROV,18,"AGR",BMCAGTP,R))
+ G AGRDSPZ:+R=0
+A2A ;
+ S BMCI=BMCI+1,BMCAGRL(BMCI)=R
+ W !,$J(BMCI,2),?3,BMCAGTP,?9,$E($P(^AUTTVNDR(BMCPROV,18,R,0),U,1),1,2),$S(BMCAGTP="BPA":"-A-",BMCAGTP="PA":"-PA-",BMCAGTP="RQ":"-R-",1:"")
+ S X=$E($P(^AUTTVNDR(BMCPROV,18,R,0),U,1),3,6)
+ I BMCAGTP="PA" W $E(X,2,4) G A2C
+ W $E(X,1,4)
+A2C ;
+ W ?20,$$MDY($P(^AUTTVNDR(BMCPROV,18,R,0),U,8)),?30,$$MDY($P(^AUTTVNDR(BMCPROV,18,R,0),U,9))
+ S X=$P(^AUTTVNDR(BMCPROV,18,R,0),U,4)
+ I X="",($P(^AUTTVNDR(BMCPROV,18,R,0),U,2)="") G A2D
+ S Y=$S(X="Y":"YES",X="N":" NO",1:"   ")
+ I Y="   ",($P(^AUTTVNDR(BMCPROV,18,R,0),U,2)="") G A2D
+ S Y=Y_"  INP: "
+ S:$P(^AUTTVNDR(BMCPROV,18,R,0),U,2)'="" Y=Y_$P(^(0),U,2)
+ W ?40,Y,!
+A2D ;
+ S X=$P(^AUTTVNDR(BMCPROV,18,R,0),U,5)
+ I X="",($P(^AUTTVNDR(BMCPROV,18,R,0),U,3)="") G A2E
+ S Y=$S(X="Y":"YES",X="N":" NO",1:"   ")
+ I Y="   ",($P(^AUTTVNDR(BMCPROV,18,R,0),U,3)="") G A2E
+ S Y=Y_"  OUT: "
+ S:$P(^AUTTVNDR(BMCPROV,18,R,0),U,3)'="" Y=Y_$P(^(0),U,3)
+ W ?40,Y,!
+A2E ;
+ W:$P(^AUTTVNDR(BMCPROV,18,R,0),U,7)'="" ?45,"PRO: ",$P(^(0),U,7),!
+ G AGRDSP1
+ ;
+AGRDSPZ ;
+ Q:$D(BMCRQFL)!$D(BMCPAFL)!$D(BMCBPFL)
+AGRSEL ;
+ S DA=""
+ S Y=$$DIR^XBDIR("NO^1:"_BMCI,"Enter # to Edit","","","","",2)
+ Q:$D(DUOUT)!$D(DTOUT)
+ I Y="" G AGRNEW
+ S DA=BMCAGRL(+Y)
+ Q
+ ;
+AGRNEW ;ADD NEW AGREEMENT INFORMATION HERE
+ Q:'$D(^XUSEC("BMCZVEN",DUZ))
+ S Y=$$DIR^XBDIR("Y","Want to enter a new Vendor "_$S(BMCAGTP="RQ":"RATE QUOTATION",BMCAGTP="PA":"PROVIDER AGREEMENT",BMCAGTP="BPA":"BLANKET PURCHASE AGREEMENT",1:" "),"N","","","",2)
+ Q:$D(DTOUT)!$D(DUOUT)
+ I 'Y S DA="" W @IOF Q
+ S:'$D(^AUTTVNDR(BMCPROV,18,0)) ^AUTTVNDR(BMCPROV,18,0)=$$ZEROTH^BMC(9999999.11,1801)
+ S DIC="^AUTTVNDR("_BMCPROV_",18,",DIC(0)="QAZEML",DA(1)=BMCPROV,DIC("W")="W ""    "",$P(^(0),U,10)"
+ D ^DIC
+ Q:+Y<1
+ S DA(1)=BMCPROV,DA=+Y
+ W !
+ K DIE,DR
+ S DIE("NO^")="",DIE=DIC,DR=".11///^S X=BMCAGTP;.02;.04;.03;.05;.07;.06;.08;.09"
+ D ^DIE
+ K DIE
+ D AGRDSP
+ Q
+ ;
+HDR ;
+ W !!," #",?3,"Type",?9,"Number",?20,"Eff-Date",?30,"Exp-Date",?40,"MCR",?45,"Description",!?3,"----",?9,"---------",?20,"--------",?30,"--------",?40,"---",?45,"----------------------------"
+ Q
+ ;
+MDY(X) ;
+ Q $E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3)
+ ;

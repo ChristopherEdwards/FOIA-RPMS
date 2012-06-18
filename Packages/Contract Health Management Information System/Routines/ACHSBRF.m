@@ -1,0 +1,131 @@
+ACHSBRF ; IHS/ITSC/PMF - FIX CHS REGISTER BALANCES ;   [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+ ; Prompt user for FY and register number.
+ ; Check to see if the register balances are correct.
+ ; If not, calculate and fix.
+ ;
+ ;  THANKS TO FONDA JACKSON OF PORTLAND FOR THE ORIGINAL ROUTINE.
+ ;
+START ;
+ ;  -----  Initialize vars.
+ I $G(ACHSFLG) G VARS
+ N ACHSFY,ACHSREG
+VARS ;
+ N ACHSDOCR,ACHSDIEN,ACHSTYPE,ACHSAMT,ACHSDCR,ACHSMAX,ACHSMIN,ACHSTOTL,ACHSBDT,ACHSEDT,ACHSTIEN,ACHSROUT,ACHSRPRV,ACHSRCOR
+ ;
+ F %=1:1:7 S ACHSDCR(%)=0      ;INITIALIZE 
+ ;
+ I $G(ACHSFLG) G DATES
+ ;
+ F %=0:0 S %=$O(ACHSFYWK(DUZ(2),%)) Q:'%  S ACHSMIN=$S('$D(ACHSMIN):%,1:ACHSMIN),ACHSMAX=%
+ ;
+FY ;  -----  Display FYs, ask FY.
+ ;
+ ;
+ D SB1^ACHSFU      ;DISPLAY VALID FISCAL YEARS
+ ;
+ S ACHSFY=$$DIR^XBDIR("N^"_ACHSMIN_":"_ACHSMAX_":0","ENTER FISCAL YEAR",ACHSMAX,"","ENTER FISCAL YEAR WITH ALL FOUR DIGITS","^D SB1^ACHSFU",1)
+ Q:$D(DUOUT)!$D(DTOUT)
+ I '$D(ACHSFYWK(DUZ(2),ACHSFY)) W !,"FY DOES NOT EXIST." G FY
+ ;
+REG ;  -----  Ask Register.
+ S ACHSREG=$$DIR^XBDIR("N^1:"_$P($G(^ACHS(9,DUZ(2),"FY",ACHSFY,"W",0)),U,3)_":0","ENTER THE REGISTER NUMBER","","","","",1)
+ Q:$D(DUOUT)!$D(DTOUT)
+ I '$L($G(^ACHS(9,DUZ(2),"FY",ACHSFY,"W",ACHSREG,0))) W !!,"REGISTER DOES NOT EXIST." G REG
+ ;
+DATES ;
+ S ACHSBDT=$$BDT(ACHSFY,ACHSREG)
+ S ACHSEDT=$$EDT(ACHSFY,ACHSREG)
+ ;
+ ;
+ ;  -----  Total up the Transactions.
+ W !,"Checking transactions for FY ",ACHSFY,", Register ",ACHSREG,"."
+ ;
+ D WAIT^DICD    ;DISPLAY FILEMAN WAIT MESSAGE
+ ;
+ ;
+ F  S ACHSBDT=$O(^ACHSF(DUZ(2),"TB",ACHSBDT)) Q:(ACHSBDT>ACHSEDT)!(ACHSBDT'?1N.N)  S ACHSTYPE="" D
+ . F  S ACHSTYPE=$O(^ACHSF(DUZ(2),"TB",ACHSBDT,ACHSTYPE)) Q:ACHSTYPE'?1A.A  S ACHSDIEN=0 D
+ .. F  S ACHSDIEN=$O(^ACHSF(DUZ(2),"TB",ACHSBDT,ACHSTYPE,ACHSDIEN)) Q:ACHSDIEN'?1N.N  W "." S ACHSTIEN=0 D
+ ... F  S ACHSTIEN=$O(^ACHSF(DUZ(2),"TB",ACHSBDT,ACHSTYPE,ACHSDIEN,ACHSTIEN)) Q:ACHSTIEN'?1N.N  D
+ .... S ACHSDOCR=$G(^ACHSF(DUZ(2),"D",ACHSDIEN,0))   ;GET DOCUMENT 0 NODE
+ ....;
+ .... Q:$P(ACHSDOCR,U,14)'=$E(ACHSFY,4)          ;USE ONLY CHOSEN FY
+ ....;
+ ....;'IHS PAYMENT AMOUNT'
+ .... S ACHSAMT=$P($G(^ACHSF(DUZ(2),"D",ACHSDIEN,"T",ACHSTIEN,0)),U,4)
+ ....;IF TYPE = "PAYMENT" OVERWRITE 'IHS PAYMENT AMOUNT' WITH
+ ....;'PAYMENT OBLIG ADJUST'   ?????
+ .... S:ACHSTYPE="P" ACHSAMT=$P($G(^ACHSF(DUZ(2),"D",ACHSDIEN,"PA")),U,2)
+ ....;
+ ....;IF TYPE = "ADJUSTMENT" OVERWRITE 'IHS PAYMENT AMOUNT' WITH
+ ....;'PAYMENT OBLIG ADJUST'
+ .... S:ACHSTYPE="ZA" ACHSAMT=$P($G(^ACHSF(DUZ(2),"D",ACHSDIEN,"ZA")),U,2)
+ ....;
+ ....;IF TYPE = "CANCELATION" OVERWRITE 'IHS PAYMENT AMOUNT' THEN NEGATE
+ .... S:ACHSTYPE="C" ACHSAMT=-ACHSAMT
+ ....;
+ ....;ADD TO ACCOUNT  
+ .... S %=$P(ACHSDOCR,U,19)               ;'DCR ACCOUNT NUMBER'
+ .... S ACHSDCR(%)=ACHSDCR(%)+ACHSAMT
+ ....Q
+ ...Q
+ ..Q
+ .Q
+ ;
+ ;
+ ;  -----  Compare Transactions to Global
+ S (ACHSDOCR,ACHSTOTL,ACHSRPRV,ACHSRCOR)=0
+ ;
+ ;GET DCR BALANCES NODE 1    ;WHY -1 OFF ACHSREG??????
+ I ACHSREG>1 S ACHSRPRV=$G(^ACHS(9,DUZ(2),"FY",ACHSFY,"W",ACHSREG-1,1))
+ ;
+ F %=1:1:7 S $P(ACHSRCOR,U,%)=$P(ACHSRPRV,U,%)+ACHSDCR(%)
+ ;
+ ;GET DCR BALANCES NODE 1    ;NO -1 OFF ACHSREG?????
+ S ACHSROUT=$G(^ACHS(9,DUZ(2),"FY",ACHSFY,"W",ACHSREG,1))
+ ;
+ ;
+ F %=1:1:7 S ACHSDCR(%)=$P(ACHSRCOR,U,%)-$P(ACHSROUT,U,%) D
+ .I ACHSDCR(%)'=0 D
+ ..S ACHSTOTL=ACHSDCR(%)+ACHSTOTL
+ ..W !!,"Balance for Account ",%
+ ..W " (",$P($G(^ACHS(9,DUZ(2),"RN")),U,%)             ;R-% NAME
+ ..W ") is off by ",$FN(ACHSDCR(%),",",2),"."      ;
+ ;
+ I ACHSTOTL=0 W !!,"Account Balances are correct." I '$O(^ACHS(9,DUZ(2),"FY",ACHSFY,"W",ACHSREG)) D
+ . S ACHS=0
+ . F %=1:1:7 S ACHS=ACHS+$P(ACHSRCOR,U,%)
+ . I $P($G(^ACHS(9,DUZ(2),"FY",ACHSFY,0)),U,3)'=ACHS W !,"YTD Amount is ",$FN($P($G(^ACHS(9,DUZ(2),ACHSFY,0)),U,3),",",2)," and should be ",$FN(ACHS,",",2),"."
+ .Q
+ ;
+ ;  -----  Check Totals, Update Global.
+ I '$$LOCK^ACHS("^ACHS(9,DUZ(2),""FY"",ACHSFY)","+") W !!,"FILE IN USE BY ANOTHER USER, TRY LATER.........." G EXIT
+ W !!,"UPDATING ACCOUNT BALANCES FOR THE REGISTERS."
+ S ^ACHS(9,DUZ(2),"FY",ACHSFY,"W",ACHSREG,1)=ACHSRCOR
+ I '$O(^ACHS(9,DUZ(2),"FY",ACHSFY,"W",ACHSREG)) D
+ . S ACHS=0
+ . F %=1:1:7 S ACHS=ACHS+$P(ACHSRCOR,U,%)
+ . W !,"UPDATING YTD OBLIGATED."
+ . S $P(^ACHS(9,DUZ(2),"FY",ACHSFY,0),U,3)=ACHS
+ .Q
+ I $$LOCK^ACHS("^ACHS(9,DUZ(2),""FY"",ACHSFY)","-")
+ W !,"Done."
+EXIT ;
+ Q
+ ;
+BDT(F,R) ; Given FY and Reg #, return the Beginning date of the Register.
+ I R>1 Q $P($G(^ACHS(9,DUZ(2),"FY",F,"W",R-1,0)),U,2)
+ Q ((F-1700)_$P($G(^ACHSF(DUZ(2),0)),U,6))-1
+ ;
+EDT(F,R) ; Given FY and Reg #, return the Ending date of the Register.
+ S X=$P($G(^ACHS(9,DUZ(2),"FY",F,"W",R,0)),U,2)
+ I X Q X
+ Q DT
+ ;
+FIX(ACHSFY,ACHSREG) ;EP - Fix the Acct Balances and YTD obligated.
+ N ACHSFLG
+ S ACHSFLG=1
+ G START
+ ;

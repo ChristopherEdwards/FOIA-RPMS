@@ -1,0 +1,231 @@
+ACRFSSU ;IHS/OIRM/DSD/AEF - UTILITY ROUTINE: CALCULATE TRAVEL VOUCHER AMOUNTS [ 08/18/2006  3:00 PM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;**5,17,20**;NOV 05, 2001
+ ;
+ ;
+ ;This routine calculates the Total Expenses, Reimbursable,
+ ;and other amounts for the travel voucher.
+ ;
+PERDIEM(ACRDOCDA)  ;EP
+ ;----- EXTRINSIC FUNCTION - CALCULATE PER DIEM
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS: PER DIEM AMOUNT
+ ;
+ N X,Y
+ S X=$$TOTALS(ACRDOCDA)
+ S Y=$P(X,U,5)+$P(X,U,6)
+ Q Y
+ ;
+OTHER(ACRDOCDA)    ;EP
+ ;----- EXTRINSIC FUNCTION - CALCULATE OTHER CHARGES
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS: OTHER COLUMN AMOUNT
+ ;
+ N X,Y
+ S X=$$TOTALS(ACRDOCDA)
+ S Y=$P(X,U,10)+$P(X,U,32)-$P(X,U,31)
+ Q Y
+ ;
+TOTOTH(ACRDOCDA)   ;EP
+ ;----- EXTRINSIC FUNCTION - CALCULATE GRAND TOTAL OTHER
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS: GRAND TOTAL OTHER AMOUNT
+ ;
+ N X,Y
+ S X=$$TOTALS(ACRDOCDA)
+ S Y=$P(X,U,30)+$P(X,U,31)+$P(X,U,8)+$P(X,U,9)+$$OTHER(ACRDOCDA)
+ Q Y
+ ;
+REIMB(ACRDOCDA)    ;EP
+ ;----- EXTRINSIC FUNCTION - CALCULATE TRAVEL VOUCHER REIMBURSABLE
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS: TRAVEL VOUCHER REIMBURSABLE AMOUNT
+ ;
+ N X,Y
+ S Y=0
+ S X=$$TOTALS(ACRDOCDA)
+ S Y=$P(X,U,5)+$P(X,U,6)+$P(X,U,8)+$P(X,U,9)+$P(X,U,10)+$P(X,U,15)+$P(X,U,30)+$P(X,U,32)+$P(X,U,36)
+ I $P($G(^ACRDOC(ACRDOCDA,"TOAU")),U,5)=1 S Y=Y+$P(X,U,33)
+ I $P($G(^ACRSYS(1,400)),U,4) S Y=Y+$P(X,U,37)
+ S Y=Y-$P(X,U,34)
+ S Y=$$DOL^ACRFUTL(Y)
+ Q Y
+ ;
+TOTAMT(ACRDOCDA)   ;EP
+ ;----- EXTRINSIC FUNCTION - CALCULATE TOTAL AMOUNT CLAIMED
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS: TRAVEL VOUCHER TOTAL AMOUNT CLAIMED
+ ;
+ N X,Y
+ S X=$$TOTALS(ACRDOCDA)
+ S Y=$P(X,U,33)+$$PERDIEM(ACRDOCDA)+$P(X,U,37)+$P(X,U,15)+$$TOTOTH(ACRDOCDA)+$P(X,U,36)
+ Q Y
+ ;
+MILES(ACRDOCDA)    ;EP
+ ;----- EXTRINSIC FUNCTION - CALCULATE TOTAL MILEAGE COST
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS: TRAVEL VOUCHER TOTAL MILEAGE COST
+ ;
+ N X,Y
+ S X=$$TOTALS(ACRDOCDA)
+ S Y=$P(X,U,30)+$P(X,U,31)
+ Q Y
+ ;
+TOTALS(ACRDOCDA)   ;EP
+ ;----- EXTRINSIC FUNCTION - RETURN STRING CONTAINING TOTALS
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS:   STRING CONTAINING TRAVEL AMOUNT TOTALS
+ ;
+ N ACRDAY,ACRDUZ,X,Y
+ S Y=""
+ S ACRDAY=0
+ F  S ACRDAY=$O(^ACRTV("D",ACRDOCDA,ACRDAY)) Q:'ACRDAY  D
+ . S X=^ACRTV(ACRDAY,"DT")
+ . S $P(Y,U,5)=$P(Y,U,5)+$P(X,U,5)                    ;MEALS M&IE
+ . S $P(Y,U,6)=$P(Y,U,6)+$P(X,U,6)                    ;LODGING
+ . S $P(Y,U,7)=$P(Y,U,7)+$P(X,U,7)                    ;MILES TO AIRPT
+ . S $P(Y,U,8)=$P(Y,U,8)+$P(X,U,8)                    ;TAXI/SHUTTLE
+ . S $P(Y,U,9)=$P(Y,U,9)+$P(X,U,9)                    ;PHONE HOME
+ . S $P(Y,U,10)=$P(Y,U,10)+$P(X,U,10)                 ;OTHER
+ . S $P(Y,U,15)=$P(Y,U,15)+$P(X,U,15)                 ;RENTAL CAR
+ . S $P(Y,U,20)=$P(Y,U,20)                            ;MILEAGE RATE
+ . S $P(Y,U,21)=$P(Y,U,21)+$P(X,U,21)                 ;POV/OTH MILES
+ . S $P(Y,U,22)=$P(Y,U,22)+$P(X,U,22)                 ;AIRPORT PARKING
+ . S $P(Y,U,23)=$P(X,U,23)                            ;POV MILE RATE
+ . S $P(Y,U,30)=$P(Y,U,30)+($P(X,U,21)*$P(X,U,23))    ;TOTAL POV MILEAGE COST
+ . S $P(Y,U,31)=$P(Y,U,31)+($P(X,U,7)*$P(X,U,20))     ;TOTAL MILES TO AIRPORT COST
+ . S $P(Y,U,32)=$P(Y,U,31)+$P(Y,U,22)                 ;AIRPT MLS+PK
+ . S $P(Y,U,38)=$P(Y,U,38)+1                          ;# TRAVEL DAYS
+ S $P(Y,U,33)=$$AIRLINE(ACRDOCDA)                     ;AIRLINE COST
+ S $P(Y,U,34)=$P($G(^ACROTA(ACRDOCDA,0)),U,3)         ;TRAVEL ADV
+ S $P(Y,U,35)=$P($G(^ACROTA(ACRDOCDA,0)),U,4)         ;TA LIQUIDATED
+ S $P(Y,U,36)=$P($G(^ACRDOC(ACRDOCDA,"TO")),U,26)     ;ATM CHG
+ S $P(Y,U,37)=$$TMFEE(ACRDOCDA)                       ;TRAVEL MGT FEE
+ ;
+ ;----- Adjust PHONE HOME rate to MAXIMUM AMOUNT whichever is less
+ I $P($G(^ACRSYS(1,"DT")),U,17) D
+ . S X=($P(Y,U,38)-1)*$P($G(^ACRSYS(1,"DT")),U,17)
+ . I X,X<$P(Y,U,9) D
+ . . S $P(Y,U,9)=X
+ ;
+ ;----- Adjust POV MILEAGE COST to MAXIMUM POV TRANSPORTATION EXPENSE
+ ;      whichever is less
+ S X=$P($G(^ACRDOC(ACRDOCDA,"TOAU")),U,6)             ;MAX POV EXP
+ I X,X<$P(Y,U,30) D
+ . S $P(Y,U,30)=X
+ ;
+ ;----- Adjust MAXIMUM MILES TO AIRPORT+AIRPORT PARKING EXPENSE to
+ ;      AVERAGE ROUNDTRIP COST BY TAXI FROM HOME TO AIRPORT whichever
+ ;      is less
+ S ACRDUZ=$P($G(^ACRDOC(ACRDOCDA,"TO")),U,9)
+ S X=$P($G(^ACRAU(ACRDUZ,1)),U,9)                     ;MAX APT MLS+PK
+ I X,X<($P(Y,U,22)+$P(Y,U,31)) D
+ . S $P(Y,U,32)=X
+ Q Y
+ ;
+AIRLINE(ACRDOCDA)  ;EP
+ ;----- EXTRINSIC FUNCTION - CALCULATE AIRLINE COST
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS: AIRLINE COST FOR TRAVEL
+ ;
+ N X,Y
+ S (X,Y)=0
+ F  S X=$O(^ACRAL("E",ACRDOCDA,X)) Q:'X  D
+ . S Y=Y+$P($G(^ACRAL(X,"DT")),U,9)
+ Q Y
+ ;
+TMFEE(ACRDOCDA)    ;EP
+ ;----- EXTRINSIC FUNCTION - RETURN TRAVEL MANAGEMENT FEE
+ ;
+ ;      INPUT:
+ ;      ACRDOCDA = DOCUMENT IEN
+ ;
+ ;      RETURNS: TRAVEL MANAGEMENT FEE
+ ;
+ N X,Y
+ S (X,Y)=0
+ F  S X=$O(^ACRSS("C",ACRDOCDA,X)) Q:'X  D
+ . Q:$P($G(^ACRSS(X,"NMS")),U,5)'="Travel Mgt Fee"
+ . S Y=Y+$P($G(^ACRSS(X,"DT")),U,4)
+ Q Y
+OBLS(ACRDOCDA)     ;EP
+ ;----- EXTRINSIC FUNCTION - RETURNS TOTAL OBLIGATIONS FOR A
+ ;      DOCUMENT
+ ;
+ N AMT,D0,X,Y
+ S (D0,Y)=0
+ F  S D0=$O(^ACRDHR("E",ACRDOCDA,D0)) Q:'D0  D
+ . S X=$G(^ACRDHR(D0,1))
+ . Q:$P(X,U,3)'="050"
+ . S AMT=$P(X,U,14)
+ . S AMT=+AMT/100
+ . I $P(X,U,4)=2 S AMT=0-AMT
+ . S Y=Y+AMT
+ Q Y
+PMTS(ACRDOCDA)     ;EP
+ ;----- EXTRINSIC FUNCTION - RETURNS TOTAL PAYMENTS AGAINST A
+ ;      DOCUMENT
+ ;
+ N AMT,D0,X,Y
+ S (D0,Y)=0
+ F  S D0=$O(^ACRDHR("E",ACRDOCDA,D0)) Q:'D0  D
+ . S X=$G(^ACRDHR(D0,1))
+ . Q:"^181^182^190^191^192"'[$P(X,U,3)
+ . S AMT=$P(X,U,14)
+ . S AMT=+AMT/100
+ . I $P(X,U,4)=2 S AMT=0-AMT
+ . S Y=Y+AMT
+ Q Y
+NET(D0,D1,D2)      ;EP
+ ;----- EXTRINSIC FUNCTION - USED BY ACR REVIEW PAYMENT-T SCREENMAN
+ ;      FORM TO RETURN THE NET TO TRAVELER AMOUNT FOR TRAVEL
+ ;      PAYMENTS
+ ;  RETURNS PAYMENT AMOUNT FOR ALL TRANSACTION CODES
+ ;   AMOUNT ADJUSTED TO SUBTRACT DIS-AMT IF PRESENT
+ ;   AMOUNT ADJUSTED; NOT SUBTRACTED IF TRAVEL ADVANCE
+ ;
+ ;N X,Y                                  ;ACR*2.1*17.12 IM17438
+ N X,Y,ACRBTYP                           ;ACR*2.1*17.12 IM17438
+ S Y=0
+ S ACRBTYP=$P($G(^AFSLAFP(D0,1,D1,0)),U,4)  ;ACR*2.1*17.12 IM17438
+ S X=$G(^AFSLAFP(D0,1,D1,1,D2,0))
+ S Y=$P(X,U,11)                          ;ACR*2.1*17.12 IM17438
+ I ACRBTYP="V" Q Y                       ;ACR*2.1*17.12 IM17438
+ S Y=$P(X,U,11)-$P(X,U,12)           ;DEFAULT VALUE ;ACR*2.1*5.02
+ I $E($P(X,U,18),1,3)="061" D  ;TRAVEL ADVANCE, DON'T SUBTRACT ;ACR*2.1*5.01
+ .I $P(X,U,12)>0 S Y=$P(X,U,12)
+ .I $P(X,U,12)'>0 S Y=$P(X,U,11)
+ Q Y
+ ;
+REQTP(X) ;EP ----- RETURNS REQUEST TYPE IEN^TRANSACTION TYPE NAME  ;ACR*2.1*5.17 ACR*2.1*20.15
+ ;
+ ;      X  =  DOCUMENT IEN
+ ;
+ N Y
+ S Y=""
+ I X S Y=$P($G(^ACRDOC(X,0)),U,4)
+ I Y S Y=Y_U_$P($G(^ACRTXTYP(Y,0)),U)
+ Q Y

@@ -1,0 +1,11 @@
+LETTER
+ZWR
+^VA(407.5,0)="LETTER^407.5I^1^1"
+^VA(407.5,1,0)="APPOINTMENT SLIP^P"
+^VA(407.5,1,1,0)="^407.52^1^1"
+^VA(407.5,1,1,1,0)="   Your next appointment in our clinic is as follows:"
+^VA(407.5,1,2,0)="^407.53^1^1"
+^VA(407.5,1,2,1,0)="To reschedule any appointments listed, please call our main appointment desk at XXX-XXXX."
+^VA(407.5,1,"IHS")="1"
+^VA(407.5,"B","APPOINTMENT SLIP",1)=""
+^VA(407.5,"C","P",1)=""

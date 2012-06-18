@@ -1,0 +1,232 @@
+BMXRPC3 ; IHS/OIT/HMW - BMX REMOTE PROCEDURE CALLS ; 23 Jul 2009  3:03 PM
+ ;;4.0;BMX;;JUN 28, 2010
+ ;
+ ;
+VARVAL(RESULT,VARIABLE) ;returns value of passed in variable
+ S VARIABLE=$TR(VARIABLE,"~","^")
+ S RESULT=VARIABLE ;can do this with the REFERENCE type parameter
+ Q
+ ;See GETV^XWBBRK for how we get the REFERENCE type parameter
+ ;
+USER(RESULT,D) ;
+ ;
+ I '+D S RESULT="" Q
+ S RESULT=$P($G(^VA(200,D,0)),"^")
+ Q
+ ;
+NTUSER(BMXY,BMXNTUSE)   ;EP
+ ;Old code.  Retain for reference
+ ;Returns NTDomain^NTUserName^RPMSName for user having DUZ=D
+ ;TODO:  Move ANMC NT USERS file
+ ;from AZZWNT to BMX namespace and numberspace
+ ;
+ ;N BMX,BMXNOD,BMXDOM,BMXNAM,BMXCOL,BMXRNAM
+ ;S (BMXDOM,BMXNAM,BMXRNAM)=""
+ ;S U="^"
+ ;I '+D S RESULT="" Q
+ ;S BMXRNAM=$G(^VA(200,D,0)),BMXRNAM=$P(BMXRNAM,U)
+ ;I '$D(^AZZWNT("DUZ",D)) D NTU1 Q
+ ;S BMX=$O(^AZZWNT("DUZ",D,0))
+ ;I '+BMX D NTU1 Q
+ ;I '$D(^AZZWNT(BMX,0)) D NTU1 Q
+ ;S BMXNOD=^AZZWNT(BMX,0)
+ ;S BMXDOM=$P(BMXNOD,U,2)
+ ;S BMXNAM=$P(BMXNOD,U) ;,4)
+ ;D NTU1
+ Q
+ ;
+ ;
+NTUGETD(BMXY,BMXNTNAM) ;EP
+ ;Entry point for debugging
+ ;
+ ;D DEBUG^%Serenji("NTUGETD^BMXRPC3(.BMXY,BMXNTNAM)")
+ Q
+ ;
+NTUGET(BMXY,BMXNTNAM) ;EP
+ ;
+ ;Returns A ENCRYPTED and V ENCRYPTED for NT User BMXNTNM
+ ;Called by RPC BMXNetGetCodes
+ N BMXI,BMXNTID,BMXNTID,BMXNOD,BMXA,BMXV
+ S BMXI=0
+ S BMXY="^BMXTMP("_$J_")"
+ S X="NTUET^BMXRPC3",@^%ZOSF("TRAP")
+ S BMXI=BMXI+1
+ I BMXNTNM="" S ^BMXTMP($J,BMXI)="^" Q
+ S BMXNTID=$O(^BMXUSER("B",BMXNTNAM,0))
+ I '+BMXNTID S ^BMXTMP($J,BMXI)="^" Q
+ S BMXNOD=$G(^BMXUSER(BMXNTID,0))
+ S BMXA=$P(BMXNOD,U,2)
+ S BMXV=$P(BMXNOD,U,3)
+ S ^BMXTMP($J,BMXI)=BMXA_"^"_BMXV_"^"
+ Q
+ ;
+WINUGET(BMXWINID) ;EP
+ ;Returns DUZ for user having Windows Identity BMXWINID
+ ;Returns 0 if no Windows user found
+ ;
+ N BMXIEN,BMXNOD,BMXDUZ
+ I BMXWINID="" Q 0
+ S BMXIEN=$O(^BMXUSER("B",BMXWINID,0))
+ I '+BMXIEN Q 0
+ S BMXNOD=$G(^BMXUSER(BMXIEN,0))
+ S BMXDUZ=$P(BMXNOD,U,2)
+ Q BMXDUZ
+ ;
+NTUSET(BMXY,BMXNTNAM) ;EP
+ ;Sets NEW PERSON map entry for Windows Identity BMXNTNM
+ ;Returns ERRORID 0 if all ok
+ ;Called by RPC BMXNetSetUser
+ ;
+ ;
+ N BMXI,BMXNTID,BMXFDA,BMXF,BMXIEN,BMXMSG,BMXAPPTD
+ S BMXI=0
+ S BMXY="^BMXTMP("_$J_")"
+ S X="NTUET^BMXRPC3",@^%ZOSF("TRAP")
+ S BMXI=BMXI+1
+ ; Quit with error if no DUZ exists
+ I '+$G(DUZ) D NTUERR(BMXI,500) Q
+ ; Create entry or file in existing entry in BMX USER
+ I $D(^BMXUSER("B",BMXNTNAM)) S BMXF="?1,"
+ E  S BMXF="+1,"
+ S BMXFDA(90093.1,BMXF,.01)=BMXNTNAM
+ S BMXFDA(90093.1,BMXF,.02)=$G(DUZ)
+ K BMXIEN,BMXMSG
+ D UPDATE^DIE("","BMXFDA","BMXIEN","BMXMSG")
+ S BMXAPPTD=+$G(BMXIEN(1))
+ S BMXI=BMXI+1
+ S ^BMXTMP($J,BMXI)=BMXAPPTD_"^0"
+ Q
+ ;
+NTUET ;EP
+ ;Error trap from REGEVNT
+ ;
+ I '$D(BMXI) N BMXI S BMXI=999
+ S BMXI=BMXI+1
+ D NTUERR(BMXI,99)
+ Q
+ ;
+NTUERR(BMXI,BMXERID) ;Error processing
+ S BMXI=BMXI+1
+ S ^BMXTMP($J,BMXI)="^"_BMXERID
+ Q
+ ;
+ ;
+NTU1 ;S BMXCOL="T00030NT_DOMAIN^T00030NT_USERNAME^T00030RPMS_USERNAME"_$C(30)
+ ;S RESULT=BMXCOL_BMXDOM_U_BMXNAM_U_BMXRNAM_$C(30)_$C(31)
+ Q
+ ;
+GETFC(BMXFACS,DUZ) ;Gets all facilities for a user
+ ; Input DUZ - user IEN from the NEW PERSON FILE
+ ; Output - Number of facilities;facility1 name&facility1 IEN;...facilityN&facilityN IEN
+ N BMXFN,BMXN
+ S BMXFN=0,BMXFACS=""
+ F BMXN=1:1 S BMXFN=$O(^VA(200,DUZ,2,BMXFN)) Q:BMXFN=""  D
+ . S:BMXN>1 BMXFACS=BMXFACS_";" S BMXFACS=BMXFACS_$P(^DIC(4,BMXFN,0),U,1)_"&"_BMXFN
+ I BMXN=1 S BMXFN=$P(^AUTTSITE(1,0),U,1) D
+ . S BMXFACS=BMXFACS_$P(^DIC(4,BMXFN,0),U,1)_"&"_BMXFN
+ S BMXFACS=BMXN-(BMXN>1)_";"_BMXFACS
+ Q
+ ;
+GETFCRS(BMXFACS,BMXDUZ) ;Gets all facilities for a user - returns RECORDSET
+ ;
+ ;TODO: return as global array, add error checking
+ N BMXFN,BMXN,BMXSUB,BMXRCNT
+ S BMXDUZ=$TR(BMXDUZ,$C(13),"")
+ S BMXDUZ=$TR(BMXDUZ,$C(10),"")
+ S BMXDUZ=$TR(BMXDUZ,$C(9),"")
+ S BMXFN=0
+ S BMXSUB="^VA(200,"_BMXDUZ_",2,"
+ S BMXFACS="T00030FACILITY_NAME^T00030FACILITY_IEN^T00002MOST_RECENT_LOOKUP"_$C(30)
+ ;F BMXN=1:1 S BMXFN=$O(^VA(200,BMXDUZ,2,BMXFN)) Q:BMXFN=""  D
+ S BMXRCNT=0  ;cmi/maw mod 10/17/2006
+ F BMXN=1:1 S BMXFN=$O(^VA(200,BMXDUZ,2,BMXFN)) Q:'BMXFN  D  ;IHS/ANMC/LJF 8/9/01
+ . ;S BMXFACS=BMXFACS_$P(^DIC(4,BMXFN,0),U,1)_"^"_BMXFN_$C(30)
+ . S BMXFACS=BMXFACS_$P(^DIC(4,BMXFN,0),U,1)_"^"_BMXFN
+ . ;S BMXRCNT=0  ;cmi/maw orig
+ . ;I $D(^DISV(BMXDUZ,BMXSUB)),^DISV(BMXDUZ,BMXSUB)=BMXFN S BMXRCNT=1
+ . ;I $G(DUZ(2))=BMXFN S BMXRCNT=1  ;cmi/maw orig
+ . S BMXRCNT=BMXRCNT+1  ;cmi/maw mod
+ . S BMXFACS=BMXFACS_"^"_BMXRCNT_$C(30)
+ I BMXN=1 S BMXFN=$P(^AUTTSITE(1,0),U,1) D
+ . S BMXFACS=BMXFACS_$P(^DIC(4,BMXFN,0),U,1)_"^"_BMXFN_"^"_1_$C(30)
+ S BMXFACS=BMXFACS_$C(31)
+ Q
+ ;
+SETFCRS(BMXY,BMXFAC)      ;
+ ;
+ ;Sets DUZ(2) to value in BMXFAC
+ ;Fails if BMXFAC is not one of the current user's divisions
+ ;Returns Recordset
+ ; 
+ S X="ERFC^BMXRPC3",@^%ZOSF("TRAP")
+ S BMXY="T00030DUZ^T00030FACILITY_IEN^T00030FACILITY_NAME"_$C(30)
+ N BMXSUB,BMXFACN
+ I '+DUZ S BMXY=BMXY_0_"^"_0_"^"_0_$C(30)_$C(31) Q
+ I '+BMXFAC S BMXY=BMXY_DUZ_"^"_0_"^"_0_$C(30)_$C(31) Q
+ ;I '$D(^VA(200,DUZ,2,+BMXFAC,0)) S BMXY=BMXY_DUZ_"^"_0_"^"_0_$C(30)_$C(31) Q ; GIS/OIT Feb 9, 2010
+ S DUZ(2)=BMXFAC ;IHS/OIT/HMW SAC Exemption Applied For
+ S BMXFACN=$G(^DIC(4,+DUZ(2),0))
+ S BMXFACN=$P(BMXFACN,"^")
+ S BMXSUB="^VA(200,"_DUZ_",2,"
+ S ^DISV(DUZ,BMXSUB)=BMXFAC
+ S BMXY=BMXY_DUZ_"^"_BMXFAC_"^"_BMXFACN_$C(30)_$C(31)
+ Q
+ ;
+ERFC ;
+ D ^%ZTER
+ S BMXY=$G(BMXY)_0_"^"_0_$C(30)_$C(31) Q
+ Q
+ ;
+SETFC(BMXY,BMXFAC) ;
+ ;Sets DUZ(2) to value in BMXFAC
+ ;Fails if BMXFAC is not one of the current user's divisions
+ ;Returns 1 if successful, 0 if failed
+ ;
+ S BMXY=0
+ N BMXSUB
+ I '+DUZ S BMXY=0 Q
+ I '+BMXFAC S BMXY=0 Q
+ I '$D(^VA(200,DUZ,2,+BMXFAC,0)) S BMXY=0 Q
+ S DUZ(2)=BMXFAC ;IHS/OIT/HMW SAC Exemption Applied For
+ S BMXSUB="^VA(200,"_DUZ_",2,"
+ S ^DISV(DUZ,BMXSUB)=BMXFAC
+ S BMXY=1
+ Q
+ ;
+APSEC(BMXY,BMXKEY)       ;EP
+ ;Return IHSCD_SUCCEEDED (-1) if user has key BMXKEY
+ ;OR if user has key XUPROGMODE
+ ;Otherwise, returns IHSCD_FAILED (0)
+ N BMXIEN,BMXPROG,BMXPKEY
+ I '$G(DUZ) S BMXY=0 Q
+ I BMXKEY="" S BMXY=0 Q
+ ;
+ ;Test for programmer mode key
+ S BMXPROG=0
+ I $D(^DIC(19.1,"B","XUPROGMODE")) D
+ . S BMXPKEY=$O(^DIC(19.1,"B","XUPROGMODE",0))
+ . I '+BMXPKEY Q
+ . I '$D(^VA(200,DUZ,51,BMXPKEY,0)) Q
+ . S BMXPROG=1
+ I BMXPROG S BMXY=-1 Q
+ ;
+ I '$D(^DIC(19.1,"B",BMXKEY)) S BMXY=0 Q
+ S BMXIEN=$O(^DIC(19.1,"B",BMXKEY,0))
+ I '+BMXIEN S BMXY=0 Q
+ I '$D(^VA(200,DUZ,51,BMXIEN,0)) S BMXY=0 Q
+ S BMXY=-1
+ Q
+ ;
+SIGCHK(BMXY,BMXSIG)         ;EP
+ ;Checks BMXSIG against hashed value in NEW PERSON
+ ;Return IHSCD_SUCCEEDED (-1) if BMXSIG matches
+ ;Otherwise, returns IHSCD_FAILED (0)
+ N X
+ S BMXY=0
+ I '$G(DUZ) Q
+ I '$D(^VA(200,DUZ,20)) Q  ;TODO What if no signature?
+ S BMXHSH=$P(^VA(200,DUZ,20),U,4)
+ S X=$G(BMXSIG)
+ D HASH^XUSHSHP
+ I X=BMXHSH S BMXY=-1
+ Q

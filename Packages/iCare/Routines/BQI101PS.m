@@ -1,0 +1,21 @@
+BQI101PS ;PRXM/HC/ALA-Version 1.0 Patch 1 Post-Install ; 30 Jul 2007  5:54 PM
+ ;;1.0;ICARE MANAGEMENT SYSTEM;**1**;May 21, 2007
+ ;
+EN ;  Delete CVD Knowns
+ NEW DA,DIK,DFN
+ S DFN=0
+ F  S DFN=$O(^BQIPAT(DFN)) Q:'DFN  D
+ . S DA(1)=DFN,DA=6,DIK="^BQIPAT("_DA(1)_",20,"
+ . D ^DIK
+ ;
+ ; Set up task to run to regenerate Dx Categories
+ NEW ZTDESC,ZTRTN,ZTIO,JBNOW,JBDATE,ZTDTH,ZTSK
+ S ZTDESC="ICARE DX CAT PROGRAM",ZTRTN="DXC^BQITASK2",ZTIO=""
+ S JBNOW=$$NOW^XLFDT()
+ S JBDATE=$S($E($P(JBNOW,".",2),1,2)<20:DT,1:$$FMADD^XLFDT(DT,+1))
+ S ZTDTH=JBDATE_".20"
+ D ^%ZTLOAD
+ ;
+ ; Update taxonomies
+ D ^BQIETX
+ Q

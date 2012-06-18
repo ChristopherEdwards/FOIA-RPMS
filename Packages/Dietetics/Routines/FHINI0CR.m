@@ -1,0 +1,112 @@
+FHINI0CR	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8157,2)
+	;;=.288^5.288^^^^^^^118.269^5.096^^2.981
+	;;^UTILITY(U,$J,112,8157,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8158,0)
+	;;=CHICKEN,FRIED,ORIGINAL RECIPE,WING,KENTUCKY FRIED^BC-01431^wing^55
+	;;^UTILITY(U,$J,112,8158,1)
+	;;=22.182^21.273^10.909^323.636^^^^87.273^2.182^^^^676.364^^^^^101.818^0^.055
+	;;^UTILITY(U,$J,112,8158,2)
+	;;=.145^6.727^^^^^^^116.364^5.455^^3.273
+	;;^UTILITY(U,$J,112,8158,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8159,0)
+	;;=CHICKEN NUGGETS,KENTUCKY FRIED CHICKEN^BC-01432^nugget^16
+	;;^UTILITY(U,$J,112,8159,1)
+	;;=17.5^18.125^13.75^287.5^^^^12.5^.813^^^^875^^^^^^0^0
+	;;^UTILITY(U,$J,112,8159,2)
+	;;=.188^6.25^^^^^^^75^4.375^^1.875
+	;;^UTILITY(U,$J,112,8159,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8160,0)
+	;;=CHICKEN NUGGET SCE,BARBEQUE,KENTUCKY FRIED CHICKEN^BC-01433^oz.^28
+	;;^UTILITY(U,$J,112,8160,1)
+	;;=1.071^2.143^25.357^125^^^^21.429^.857^^^^1607.143^^^^^1321.429^0^0
+	;;^UTILITY(U,$J,112,8160,2)
+	;;=.036^.071^^^^^^^0^.357^^1.071
+	;;^UTILITY(U,$J,112,8160,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8161,0)
+	;;=CHICKEN NUGGET SCE,HONEY,KENTUCKY FRIED CHICKEN^BC-01434^.5-oz.^14
+	;;^UTILITY(U,$J,112,8161,1)
+	;;=0^0^86.429^350^^^^7.143^.786^^^^^^^^^^0^0
+	;;^UTILITY(U,$J,112,8161,2)
+	;;=0^0^^^^^^^0^0^^0
+	;;^UTILITY(U,$J,112,8161,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8162,0)
+	;;=CHICKEN NUGGET SCE,MUSTARD,KENTUCKY FRIED CHICKEN^BC-01435^oz.^28
+	;;^UTILITY(U,$J,112,8162,1)
+	;;=3.214^3.214^21.786^128.571^^^^35.714^.929^^^^1235.714^^^^^^0^0
+	;;^UTILITY(U,$J,112,8162,2)
+	;;=.036^.714^^^^^^^0^.357^^3.929
+	;;^UTILITY(U,$J,112,8162,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8163,0)
+	;;=CHICKEN NUGGET SCE,SWEET & SOUR,KENTUCKY FRIED CHICKEN^BC-01436^oz.^28
+	;;^UTILITY(U,$J,112,8163,1)
+	;;=.357^2.143^46.429^207.143^^^^17.857^.571^^^^528.571^^^^^214.286^0^0
+	;;^UTILITY(U,$J,112,8163,2)
+	;;=.071^0^^^^^^^0^.357^^1.071
+	;;^UTILITY(U,$J,112,8163,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8164,0)
+	;;=CHICKEN SANDWICH,CHICKEN LITTLES,KENTUCKY FRIED CHICKEN^BC-01437^1.7-oz.^47
+	;;^UTILITY(U,$J,112,8164,1)
+	;;=12.128^21.489^29.362^359.574^^^^48.936^3.617^^^^704.255^^^^^^0^.34
+	;;^UTILITY(U,$J,112,8164,2)
+	;;=.255^4.681^^^^^^^38.298^4.255^^7.234
+	;;^UTILITY(U,$J,112,8164,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8165,0)
+	;;=CHICKEN SANDWICH,COLONEL'S,KENTUCKY FRIED CHICKEN^BC-01438^5.9-oz.^166
+	;;^UTILITY(U,$J,112,8165,1)
+	;;=12.53^16.446^23.253^290.361^^^^27.711^.783^^^^638.554^^^^^^0^.229
+	;;^UTILITY(U,$J,112,8165,2)
+	;;=.163^6.687^^^^^^^28.313^3.434^^5.422
+	;;^UTILITY(U,$J,112,8165,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8166,0)
+	;;=FRENCH FRIES,KENTUCKY FRIED CHICKEN^BC-01439^serving^77
+	;;^UTILITY(U,$J,112,8166,1)
+	;;=4.156^15.455^40.39^316.883^^^^16.883^.779^^^^180.519^^^^^^20.779^.195
+	;;^UTILITY(U,$J,112,8166,2)
+	;;=.065^2.597^^^^^^^2.597^3.377^^.909
+	;;^UTILITY(U,$J,112,8166,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8167,0)
+	;;=HOT WINGS,KENTUCKY FRIED CHICKEN^BC-01440^6-pieces^119
+	;;^UTILITY(U,$J,112,8167,1)
+	;;=18.824^20.252^14.538^315.966^^^^^^^^^568.908
+	;;^UTILITY(U,$J,112,8167,2)
+	;;=^^^^^^^^124.37^4.454^^3.445
+	;;^UTILITY(U,$J,112,8167,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8168,0)
+	;;=POTATOES,MASHED W/GRAVY,KENTUCKY FRIED CHICKEN^BC-01441^serving^98
+	;;^UTILITY(U,$J,112,8168,1)
+	;;=2.449^1.633^11.939^72.449^^^^22.449^.357^^^^345.918^^^^^^0^0
+	;;^UTILITY(U,$J,112,8168,2)
+	;;=.041^1.224^^^^^^^0^.408^^.204
+	;;^UTILITY(U,$J,112,8168,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8169,0)
+	;;=BIG MAC,MCDONALD'S^BC-01442^sandwich^215
+	;;^UTILITY(U,$J,112,8169,1)
+	;;=11.721^15.07^19.767^260.465^^^^119.07^1.86^^^^441.86^^^^^163.721^.93^.223
+	;;^UTILITY(U,$J,112,8169,2)
+	;;=.191^3.163^^^^^^^47.907^4.698^9.721^.698
+	;;^UTILITY(U,$J,112,8169,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8170,0)
+	;;=BISCUIT,MCDONALD'S^BC-01443^biscuit^75
+	;;^UTILITY(U,$J,112,8170,1)
+	;;=6.133^16.933^42.533^346.667^^^^100^1.747^^^^973.333^^^^^0^0^.307
+	;;^UTILITY(U,$J,112,8170,2)
+	;;=.147^2.267^^^^^^^1.333^4.533^11.467^.8
+	;;^UTILITY(U,$J,112,8170,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

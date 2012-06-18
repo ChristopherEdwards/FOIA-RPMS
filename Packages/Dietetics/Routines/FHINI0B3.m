@@ -1,0 +1,118 @@
+FHINI0B3	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,7343,2)
+	;;=^^^^^^^^0^5.263^10.526^0
+	;;^UTILITY(U,$J,112,7343,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7344,0)
+	;;=ICING R-T-S (SOUR CREAM VAN),PILSBURY SUPREME^BC-00617^1/12-cake^38
+	;;^UTILITY(U,$J,112,7344,1)
+	;;=.526^16.316^70.789^428.947^11.579^^^7.895^.132^^13.158^47.368^205.263^^^^^84.211^2.632^.026
+	;;^UTILITY(U,$J,112,7344,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,7344,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7345,0)
+	;;=ICING R-T-S (SOUR CREAM WHITE),CREAMY DELUXE^BC-00618^1/12-tub^38
+	;;^UTILITY(U,$J,112,7345,1)
+	;;=0^15.789^71.053^421.053^^^^^^^^39.474^131.579
+	;;^UTILITY(U,$J,112,7345,2)
+	;;=^^^^^^^^0^5.263^7.895^0
+	;;^UTILITY(U,$J,112,7345,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7346,0)
+	;;=ICING R-T-S (STRAWBERRY),PILSBURY SUPREME^BC-00619^1/12-cake^38
+	;;^UTILITY(U,$J,112,7346,1)
+	;;=0^16.316^69.474^423.684^13.684^^^0^.053^^2.632^26.316^205.263^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7346,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,7346,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7347,0)
+	;;=ICING R-T-S (VAN),CREAMY DELUXE^BC-00620^1/12-tub^38
+	;;^UTILITY(U,$J,112,7347,1)
+	;;=0^15.789^71.053^421.053^^^^^^^^39.474^78.947
+	;;^UTILITY(U,$J,112,7347,2)
+	;;=^^^^^^^^0^5.263^7.895^0
+	;;^UTILITY(U,$J,112,7347,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7348,0)
+	;;=ICING R-T-S (VAN),PILSBURY^BC-00621^1/8-cake^28
+	;;^UTILITY(U,$J,112,7348,1)
+	;;=0^16.071^67.143^414.286^15^^^0^.071^^0^25^203.571^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7348,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,7348,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7349,0)
+	;;=ICING R-T-S (VAN),PILSBURY SUPREME^BC-00622^1/12-cake^38
+	;;^UTILITY(U,$J,112,7349,1)
+	;;=0^16.316^69.211^421.053^13.684^^^0^.053^^0^26.316^194.737^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7349,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,7349,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7350,0)
+	;;=ICING R-T-S (VAN FUNFETTI),PILSBURY^BC-00623^1/12-can^36
+	;;^UTILITY(U,$J,112,7350,1)
+	;;=0^15.833^68.056^416.667^14.167^^^2.778^.056^^0^25^200^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7350,2)
+	;;=0^0
+	;;^UTILITY(U,$J,112,7350,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7351,0)
+	;;=TOPPINGS,MARSHMALLOW CREME,KRAFT^BC-00624^oz.^28
+	;;^UTILITY(U,$J,112,7351,1)
+	;;=1.071^0^82.143^321.429^17.5^^^32.143^0^0^10.714^32.143^60.714^^^^^0^0^0
+	;;^UTILITY(U,$J,112,7351,2)
+	;;=.036^0^0^0^17.857^0^^^0^0^^0
+	;;^UTILITY(U,$J,112,7351,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7352,0)
+	;;=EGG DISHES,CORN PUDDING,FRZN,STOUFFERS^BC-00625^4-oz.^113
+	;;^UTILITY(U,$J,112,7352,1)
+	;;=4.159^6.018^16.018^135.398^73.009^^^39.823^.504^^^179.646^409.735^^^^^90.265^2.655^.088
+	;;^UTILITY(U,$J,112,7352,2)
+	;;=.168^.885^^^^^^^41.593
+	;;^UTILITY(U,$J,112,7352,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7353,0)
+	;;=EGG DISHES,QUICHE,POUR-A-QUICHE^BC-00626^4.3-oz.^123
+	;;^UTILITY(U,$J,112,7353,1)
+	;;=10.569^14.634^4.878^186.992^^^^^^^^138.211^313.008
+	;;^UTILITY(U,$J,112,7353,2)
+	;;=^^^^^^^^195.122
+	;;^UTILITY(U,$J,112,7353,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7354,0)
+	;;=EGG DISHES,QUICHE,HAM,POUR-A-QUICHE^BC-00627^4.3-oz.^123
+	;;^UTILITY(U,$J,112,7354,1)
+	;;=10.569^13.821^3.252^186.992^^^^^^^^134.146^292.683
+	;;^UTILITY(U,$J,112,7354,2)
+	;;=^^^^^^^^191.057
+	;;^UTILITY(U,$J,112,7354,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7355,0)
+	;;=EGG DISHES,QUICHE,SPINACH & ONION,POUR-A-QUICHE^BC-00628^4.3-oz.^123
+	;;^UTILITY(U,$J,112,7355,1)
+	;;=9.756^13.008^4.878^178.862^^^^^^^^170.732^296.748
+	;;^UTILITY(U,$J,112,7355,2)
+	;;=^^^^^^^^186.992
+	;;^UTILITY(U,$J,112,7355,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7356,0)
+	;;=EGG DISHES,QUICHE,THREE CHEESES,POUR-A-QUICHE^BC-00629^4.3-oz.^123
+	;;^UTILITY(U,$J,112,7356,1)
+	;;=10.488^15.203^3.415^191.87^^^^234.959^.78^^205.691^125.203^265.041^^^^^565.854^.813^.049
+	;;^UTILITY(U,$J,112,7356,2)
+	;;=.244^.081^^^^^^^203.252
+	;;^UTILITY(U,$J,112,7356,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7357,0)
+	;;=EGG DISHES,SOUFFLE,BROCCOLI & CHEESE,FRZN,STOUFFERS^BC-00630^4-oz.^113
+	;;^UTILITY(U,$J,112,7357,1)
+	;;=7.434^8.496^6.814^133.628^75.044^^^115.044^.796^^^139.823^450.442^^^^^290.265^7.965^.071
+	;;^UTILITY(U,$J,112,7357,2)
+	;;=.274^.442^^^^^^^124.779

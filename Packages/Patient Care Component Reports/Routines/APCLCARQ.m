@@ -1,0 +1,177 @@
+APCLCARQ ; IHS/CMI/LAB - California Report ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+ ;
+PRINT ;
+ S APCLH1="Principal Service"
+ D HEADER
+ W !?5,"Evaluation and Management Services"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"1",?6,"Evaluation and Management (new patient)",?54,"99201-99205",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",1)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"2",?6,"Evaluation and Management (established patient)",?54,"99211-99215",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",2)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"3",?6,"Hospital Related Services",?54,"99217-99223",!?54,"99231-99239",!?54,"99477",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",3)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"4",?6,"Consultations",?54,"99241-99255",!?54,"99441-99444",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",4)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"99291-99292"
+ W !?54,"99354-99360"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"5",?6,"Other Evaluation and Management Services",?54,"99450",!?54,"99455-99456",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",5)),0,8)
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,?54,"99499" D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"6",?6,"Nursing Facility Related Services",?54,"99304-99318",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",6)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"7",?6,"Case Management Services",?54,"99363-99368",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",7)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,?54,"99381-99384"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"8",?6,"Preventive Medicine (infant,child,adolescent)",?54,"99391-99394",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",8)),0,8)
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,?54,"99431-99440" D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"99385-99387"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"9",?6,"Preventive Medicine (adults)",?54,"99395-99397",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",9)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"10",?6,"Counseling",?54,"99401-99429",!?54,"99605-99607",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",10)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,?5,"All Other Services"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"11",?6,"Anesthesia",?54,"00100-01999",!?54,"99100, 99116",!?54,"99135, 99140"
+ W !?54,"99143-99150",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",11)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"12",?6,"Integumentary System",?54,"10021-19499",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",12)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"13",?6,"Musculoskeletal System",?54,"20000-29999",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",13)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"14",?6,"Respiratory System",?54,"30000-32999",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",14)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"15",?6,"Cardiovascular System",?54,"33010-37799",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",15)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"16",?6,"Hemic and Lymphatic System",?54,"38100-38999",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",16)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"17",?6,"Mediastinum and Diaphragm System",?54,"39000-39599",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",17)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"18",?6,"Digestive System",?54,"40490-49999",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",18)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"19",?6,"Urinary System",?54,"50010-53899",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",19)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"20",?6,"Male Genital System",?54,"54000-55899",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",20)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"21",?6,"Intersex Surgery",?54,"55970, 55980",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",21)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"22",?6,"Female Genital System",?54,"56405-58999",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",22)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"23",?6,"Maternity Care and Delivery",?54,"59000-59899",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",23)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"24",?6,"Endocrine System",?54,"60000-60699",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",24)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"25",?6,"Nervous System",?54,"61000-64999",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",25)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"26",?6,"Eye and Ocular Adnexa System",?54,"65091-68899",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",26)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"27",?6,"Auditory System",?54,"69000-69990",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",27)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"28",?6,"Radiologyic and Lymphatic System",?54,"70010-79999",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",28)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"29",?6,"Pathology/Laboratory",?54,"80047-89356",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",29)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"30",?6,"Medicine - Special Services",?54,"90281-99091",!?54,"99170-99199",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",30)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"31",?6,"Family Planning 'Z' Codes",?54,"'Z' Codes",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",31)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"32",?6,"Dental Encounters",?54,"cdt codes",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",32)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"33",?6,"Category III Codes",?54,"0016T-9999T",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",33)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"44",?6,"All Other encounters",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",44)),0,8) D L
+ W !,"45",?6,"Total",?68,$$C(APCLTOTR,0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !!,"Visits with NO CPT Codes",?72,$$C(APCLNCPT,0,8)
+SPEC ;
+ S APCLH1="Selected Principal Service" D HEADER Q:APCLQUIT
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ ;W !?54,"76082-76083"
+ W !,"50",?6,"Mammogram",?54,"77051-77059",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",50)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"86689, 86701-86703"
+ W !,"51",?6,"HIV Testing",?54,"87390-87391",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",51)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"88141-88155"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"52",?6,"Pap Smear",?54,"88164-88167",!?54,"88174-88175",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",52)),0,8) D L
+ ;W !?54,"88174-88175"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"11975-11977"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"55250,55450,57170"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"53",?6,"Contraceptive Management",?54,"58300-58301",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",53)),0,8)
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"58600-58611",!?54,"58670-58671" D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,?5,"Vaccinations:" D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"60",?6,"DTAP, DTP, Diphtheria",?54,"90698,90700-90703,"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"90714-90715"
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !?54,"90718-90723",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",60)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"61",?6,"Hemophilus Influenza B (Hib)",?54,"90645-90648",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",61)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"62",?6,"Hepatitis A",?54,"90632-90634",!?54,"90636",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",62)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"63",?6,"Hepatitis B or HepB-HIB",?54,"90740-90747",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",63)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"64",?6,"HepB and Hib",?54,"90748",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",64)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"65",?6,"Influenza Virus Vaccine",?54,"90655-90658",!?54,"90660",!?54,"90661-90663",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",65)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"66",?6,"Measles, Mumps, Rubella"
+ W !,?6,"and Varicella (MMRV)",?54,"90704-90708",!?54,"90710",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",66)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"67",?6,"Pneumococcal",?54,"90669,90732",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",67)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"68",?6,"Poliovirus",?54,"90712-90713",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",68)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"69",?6,"Varicella",?54,"90716",?68,$$C($G(^XTMP("APCLCAR",APCLJ,APCLH,"CPT",69)),0,8) D L
+ I $Y>(IOSL-4) D HEADER Q:APCLQUIT
+ W !,"75",?6,"Total Selected Encounters",?68,$$C(APCLSPE1+APCLSPE2,0,8) D L
+EOJ ;
+ ;K ^XTMP("APCLCAR",APCLJ,APCLH)
+ K N,%,T,F,X,Y,B,C,E,F,H,L,N,P,T,W
+ Q
+C(X,X2,X3) ;
+ D COMMA^%DTC
+ Q X
+HEADER ;
+ G:'APCLPG HEAD1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCLQUIT=1 Q
+HEAD1 ;
+ W:$D(IOF) @IOF S APCLPG=APCLPG+1
+ W !?3,$P(^VA(200,DUZ,0),U,2),?35,$$FMTE^XLFDT(DT),?70,"Page ",APCLPG,!
+ W !,$$CTR("***  CALIFORNIA ANNUAL UTILIZATION REPORT OF PRIMARY CARE CLINICS, 2008  ***",80),!
+ ;W $$CTR($P(^DIC(4,DUZ(2),0),U)),!
+ I '$D(APCLLOCT) S X="ALL LOCATIONS OF ENCOUNTER SELECTED" W $$CTR(X,80),!
+ I $D(APCLLOCT) D
+ .S X="Locations Selected:"
+ .S Y=0 F  S Y=$O(APCLLOCT(Y)) Q:Y'=+Y  S X=X_"  "_$P(^DIC(4,Y,0),U)
+ .W X,!
+ S X="Reporting Period: "_$$FMTE^XLFDT(APCLBD)_" to "_$$FMTE^XLFDT(APCLED) W $$CTR(X,80),!
+ W !,"ENCOUNTERS BY PRINCIPAL SERVICE - SECTION 5"
+ W !,$TR($J("",80)," ","_")
+ W !,"Line",?54,"2006",?68,"(1) No."
+ W !,"No.",?7,APCLH1,?54,"CPT Codes",?68,"of Encs",!
+ W !,$TR($J("",80)," ","_")
+ Q
+L ;
+ W !,$TR($J("",80)," ","_")
+ Q
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+ ;

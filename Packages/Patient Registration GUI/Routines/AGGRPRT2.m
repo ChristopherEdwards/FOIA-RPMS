@@ -1,0 +1,46 @@
+AGGRPRT2 ; VNGT/HS/KDC - ; 
+ ;;1.0;PATIENT REGISTRATION GUI;;Nov 15, 2010
+ ;
+ ; Copied from AGREPRT2
+ ; 
+ S AGBDT=AG("B"),AGB=AGBDT,AGEDT=AG("E"),AGBDT=AGBDT-.1,(AGTOTAL,AGPGPG)=0
+ I '$D(AG("TOTPAT")) S AG("FAC")=AGGDUZ2 D ^AGPATCNT
+ S X=$P(^DIC(4,AGGDUZ2,0),U) D CTR^AG S AG("LOC")=X,AG("USR")=$P(^VA(200,DUZ,0),U),AGBM=IOSL-10 I $D(AGIO),AGIO=IO S AGBM=IOSL-4
+ X ^%ZOSF("UCI") S X="UCI: "_$P(Y,",") D CTR^AG S AGUCI=X,Y=AGB D DD^%DT S B=Y,Y=AGEDT D DD^%DT S E=Y
+ K ^TMP("AGG",$J)
+ G A3:$D(AGREPRNT),A1:$D(ZTQUEUED)
+ S Y=AG("B") D DD^%DT S AG("B")=Y,Y=AG("E") D DD^%DT S AG("E")=Y
+ NEW G
+ ;X ^%ZOSF("UCI") S ZTRTN="^AGREPRT2",ZTUCI=Y,(AG,ZTDTH)=$H,ZTDESC="REGISTRATION ACTIVITY REPORT for "_$P(^AUTTLOC(AGGDUZ2,0),U,2)_", "_AG("B")_" to "_AG("E")_"." F G="AG(""TYPE"")","AG(""B"")","AG(""E"")" S ZTSAVE(G)=""
+A1 F  S AGBDT=$O(^AGPATCH(AGBDT)) Q:'AGBDT!((AGBDT\1)>AGEDT)  D
+ .S DFN=0 F  S DFN=$O(^AGPATCH(AGBDT,AGGDUZ2,DFN)) Q:'DFN  D
+ ..Q:'$D(^AUPNPAT(DFN,41,AGGDUZ2,0))
+ ..I ^AGPATCH(AGBDT,AGGDUZ2,DFN)="NEW" S ^TMP("AGG",$J,DFN)="" Q
+ ..Q:'$D(^AUPNPAT(DFN,0))  S X=^(0),AGED=$P(X,U,2)
+ ..Q:AGED<AGBDT  S ^TMP("AGG",$J,DFN)=""
+A3 ;EP - From TaskMan.
+ S DFN=0,AGTOTAL=0 F  S DFN=$O(^TMP("AGG",$J,DFN)) Q:'DFN!($G(AG("QUIT")))  S AGTOTAL=AGTOTAL+1
+ G END:AG("TYPE")=3
+ D HDR,HDR1
+ S DFN=0 F  S DFN=$O(^TMP("AGG",$J,DFN)) Q:'DFN!($G(AG("QUIT")))  D
+ .W ?5,$P(^DPT(DFN,0),U),?43,$J($P(^AUPNPAT(DFN,41,AGGDUZ2,0),U,2),6)
+ .;K ^UTILITY("DIQ1",$J) S DIC=2,DR=.09,DA=DFN D EN^DIQ1 W:$D(^(DR)) ?52,^(DR) S DR=.03 D EN^DIQ1 W:$D(^(DR)) ?66,$J(^(DR),10)
+ .W ?52,$$GET1^DIQ(9000001,DFN_",",1107.3)  ;IHS/SD/TPF AG*7.1*4
+ .W ?66,$J($P($$GET1^DIQ(2,DFN_",",.03),"@"),10)  ;IHS/SD/TPF AG*7.1*4
+ .W ! ;I $Y>AGBM D
+ ;..D RTRN^AG I 'Y S AG("QUIT")=1 Q
+ ;..D HDR,HDR1
+ G:$G(AG("QUIT")) K
+ ;D RTRN^AG
+END D HDR
+ W !!,"New Patients Registered from ",$E(AGB,4,5)_"/"_$E(AGB,6,7)_"/"_$E(AGB,2,3)," to ",$E(AGEDT,4,5)_"/"_$E(AGEDT,6,7)_"/"_$E(AGEDT,2,3)," Totaled : ",AGTOTAL
+ W !!,"TOTAL PATIENTS REGISTERED : ",AG("TOTPAT"),!!
+ K AG("HAT") ;D RTRN^AG
+ ;W $$S^AGVDF("IOF")  *** comited out to  prevent control c
+K K AG,AGE,AGIO,AGTIME,AGB,AGBDT,AGED,AGEDT,AGREPRNT,AGTOTAL,B,AGBM,DA
+ K DIC,DR,E,I,J,AGPGPG,AGUCI,AG("USR"),X,Y,Z,^TMP("AGG",$J),ZTQUEUED
+ Q
+HDR S AGPGPG=AGPGPG+1 W AG("USR"),?72,"page ",AGPGPG,!,AG("LOC"),!?25,"NEW PATIENT REGISTRATION REPORT",!,AGUCI,!,AGTIME,!!?80-$L("Report from "_B_" thru "_E)/2,"Report from ",B," thru ",E,!!
+ Q
+HDR1 W !?23,"The Following Patients Were Added: ",!!?13,"Name",?44,"IHS #",?56,"SSN",?70,"DOB",!,"-----------------------------------",?43,"------",?52,"-----------",?66,"------------",!
+ Q

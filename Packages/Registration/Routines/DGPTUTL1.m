@@ -1,0 +1,73 @@
+DGPTUTL1 ;ALB/MJK - PTF Utility ; 12/13/89@8
+ ;;5.3;Registration;**33,45,54**;Aug 13, 1993
+ ;
+FLAG ; -- select PTF rec to update xmit flags
+ S DGMAX=25
+ W ! S DIC="^DGPT(",DIC(0)="AEMQ",DIC("S")="I '$P(^(0),U,6),$P(^(0),U,11)=1 D CHK^DGPTUTL1 I $D(DGMTY)>9"
+ D ^DIC K DIC G FLAGQ:+Y<0 S (Y,PTF)=+Y D CHK
+ F DGMTY=501,535 I $D(DGMTY(DGMTY)) D UP Q:$D(DGOUT)
+FLAGQ K DGMAX,DGT,DGADM,DGX,DGA1,DGA,DGMTY,C,DGOUT Q
+ ;
+UP ; -- select mvt and update xmit flag
+ I DGMTY=501 S DIC="^DGPT("_PTF_",""M"",",DIC("S")="I Y'=1,'$D(^(""P""))"
+ I DGMTY=535 S DIC="^DGPT("_PTF_",535,",DIC("S")="I Y'=1"
+ W ! S DIC(0)="AEMQ" D ^DIC S DIE=DIC K DIC
+ K DGOUT I X["^" S DGOUT=""
+ I +Y<0 G UPQ
+ S DA=+Y,DR=17 D ^DIE K DE,DQ G UP
+UPQ K DIE,DR Q
+ ;
+CHK ;
+ N T1,T2,C K DGMTY S T1=0,T2=9999999
+ F DGMTY=501,535 D @DGMTY^DGPTFVC2 S:C>DGMAX DGMTY(DGMTY)=""
+ Q
+ ;
+INCOME ;-- load ptf income information
+ ;   Use discharge date if available; else use current date/time
+ D NOW^%DTC
+ S X=$S($D(^DGPT(PTF,70)):+^(70),1:%),DGX=$S($D(^DGPT(PTF,101)):^(101),1:"")
+ D INC
+ G INQ:Y=$P(DGX,U,7)
+ S DIE="^DGPT(",DA=PTF,DR="101.07////"_Y
+ D ^DIE
+INQ ;
+ K DGX,DGINCM,DIE,DA,DR,DGI,DG30,DG362,DGT,%
+ Q
+ ;
+INC ;-- load income information  Input:X date,Output:Y-income
+ N DGINCM,DGI,DG30,DG362,DGT,DGX
+ I '$D(X) S Y="" G INCQ
+ S Y=+$P($$INCOME^VAFMON(DFN,X),".")
+ I Y<0 S Y=0
+INCQ Q
+ ;
+CHQUES ;-- This function will deterime if the patient has any of the following
+ ;   indicated : AO, IR and EC. If so the array DGEXQ will contain
+ ;     DGEXQ(1)="" - AO
+ ;     DGEXQ(2)="" - IR
+ ;     DGEXQ(3)="" - EC
+ ;   Otherwise they will be undefined.
+ K DGEXQ
+ S DGEXQ(1)="",DGEXQ(2)="",DGEXQ(3)=""
+ Q
+ ;
+SETTRAN ;-- set transmission if error DGOUT=1, will return XMZ
+ K DGXMZ
+ S DGOUTX=0
+ S Y=$S($P(DGD,".",2)=99:DGSD,1:DGD) X ^DD("DD")
+ S XMSUB=Y_"  "_$P(DGRTY0,U)_" TRANSMISSION ",XMDUZ=.5
+ D GET^XMA2
+ I $D(XMZ),XMZ>0 S DGXMZ=XMZ K XMZ G SETQ
+ W !!,"*** ERROR *** Unable to create Mail Message #... Try again later."
+ S DGOUTX=1
+SETQ ;
+ Q
+ ;
+KVAR ; -- clean up for l/e
+ K DA,DFN,A,B,I,ANS,DIE,DR,%,%DT,DGPR,DGREL,DGST,DIC,HEAD,J,K,L,M,MT,NU,PTF,DGPTFE,Y,DGZM0,DGZS0,DOB,L1,PT,SEX,AGE,CC,DAM,DOB,DXLS,EXP,NOR,NO,DRG,DRGCAL,DGZSUR,S1,SUR,M1,MOV,P,P1
+ K DGDX,DGER,DGI,DGINFO,DGLOS,DGNXD,DGP,DGPAS,DGPSV,DGTLOS,DGTY,DIS2,DGJUMP,DGPRD,DGPC,DGDRGNM,DGMOVM,DR,DGQWK,ST1,DGX,DQ,TY,DGRTY,DGRTY0,DGPTFMT,DG,DGA1,DGDC,DGNEXT,RC,DP,POP,DGICD0,DGPROCD,DGPROCI,DGPROCM,DGVAR,DGAD
+ K TAC,TRS,SD,PD,MDC,NDR,NSD,OR,ORG,T,DGZDIAG,DGZPRO,DGZSER,J1,I1,L2,L3,L4,L5,L6,PM,DGFC,S,M2,PROC,SU,ST,NL,DGDD,SD1,D,DFN,DFN1,DFN2,D0,P2,S2,X,DGNUM,DGN,DGERR,DGVI,DGVO,Z,Z1,DGZ,DGADM,DGNODE,^UTILITY($J),DGCFL
+ K DGPM2X,DGPMDA,DGPMDCD,DGPMVI,DGAMY,VAERR,VAIP,DGPTSCRN,DGREC,DGHOLD,DG300,DG300A,DG300B,DG701,DGBPC,DGPTIT,DGMOV,DGSUR
+ K M3,DGLAST,DGMVT
+ Q
+ ;

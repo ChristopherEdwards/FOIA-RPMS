@@ -1,0 +1,67 @@
+ASUVOLRV ; IHS/ITSC/LMH -ONLINE REVIEW ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;This routine is a utility which allows online Inventory Master file
+ ;review.
+ D:'$D(U) ^XBKVAR
+ I $G(ASUL(2,"STA","E#"))']"" D STA^ASUV0NT I $D(DTOUT)!($D(DUOUT)) Q
+ F  D  Q:$D(DTOUT)!($D(DUOUT))
+ .S ASUC("LN")=0
+ .D CLS^ASUUHDG
+ .S DIR("A")="REVIEW INVENTORY FOR WHAT ACCOUNT? "
+ .S DIR(0)="PO^9002039.09:MXEZ"
+ .S DIR("?")="Enter valid Account Code "
+ .D ^DIR K DIR
+ .Q:$D(DTOUT)!($D(DUOUT))
+ .I X="" S DUOUT=1 Q
+ .I Y>0 D
+ ..S ASUMV("ACC")=$P(Y,U),ASUMV("E#","ASA")=ASUL(2,"STA","E#")_ASUMV("ACC")
+ ..D ACC^ASULDIRF(ASUMV("ACC"))
+ ..Q:ASUMV("E#","ASA")=""
+ ..D SLCL
+ ..D PAUSE
+ .E  D
+ ..W !,"INVALID ACCOUNT CODE -ENTER '?' TO SEE VALID ACCOUNTS"
+ ..D PAUSE
+ G EXIT
+SLCL ;
+ D ACCOUNT^ASUV9IMR
+ I ASUF("ACC")=0 D  Q
+ .W !!,"NO INVENTORY ACTIVE FOR ACCOUNT ",ASUMV("ACC")," ",ASUL(9,"ACC","NM")
+ .D PAUSE
+ S:ASUC("LN")'=0 ASUC("LN")=20
+ S ASUMV("E#","SLC")=0
+ F  S ASUMV("E#","SLC")=$O(^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"))) Q:ASUMV("E#","SLC")'?1N.N  D  Q:$D(DUOUT)  Q:$D(DTOUT)
+ .S ASUMV("SLC")=$P(^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),0),U)
+ .S ASUMV("E#","INDX")=0
+ .F  S ASUMV("E#","INDX")=$O(^ASUMV(ASUMV("E#","ASA"),1,ASUMV("E#","SLC"),1,ASUMV("E#","INDX"))) Q:ASUMV("E#","INDX")'?1N.N  D  Q:$D(DUOUT)  Q:$D(DTOUT)
+ ..D INDEX^ASUV9IMR,READ^ASUMXDIO
+ ..S ASUV("CNT","LST")=$S($L(ASUMV("CNT","2ND"))>0:ASUMV("CNT","2ND"),1:ASUMV("CNT","1ST"))
+ ..S ASUV("VAL","DIF")=ASUMV("QTY","DIF")*ASUMV("U/C")
+ ..I ASUC("LN")>19 S DIR(0)="E" D ^DIR K DIR D CLS^ASUUHDG S ASUC("LN")=0
+ ..Q:$D(DTOUT)  Q:$D(DUOUT)
+ ..I ASUC("LN")=0 D
+ ...W !?12,"ACCOUNT ",ASUMX("ACC")," INVENTORY RECORD -FOR "
+ ...W $E(ASUMV("INVBEG"),4,5),"-",$E(ASUMV("INVBEG"),6,7),"-",$E(ASUMV("INVBEG"),2,3),!
+ ..D DISPLAY
+ Q
+DISPLAY ;
+ W !,"INDEX NO: ",$E(ASUMX("IDX"),1,5),".",$E(ASUMX("IDX"),6,6),?19,"DESC: ",ASUMX("DESC",1)," ",ASUMX("DESC",2)
+ W !?5,"SLC: ",ASUMV("SLC"),?17,"UI: ",ASUMX("AR U/I")
+ W ?30,"PHY CNT: ",?40,$J($FN(ASUV("CNT","LST"),","),8)
+ W ?55,"BGN BAL: ",?65,$J($FN(ASUMV("QTY","STAM"),","),8)
+ W !?5,"UNIT COST:     ",$J($FN(ASUMV("U/C"),",",2),8)
+ W ?30,"RSCH QTY: ",?40,$J($FN(ASUMV("ADJQTY"),","),8),!
+ ;W ?55,"ADJ QTY: ",?65,$J($FN(ASUMV("QTY","DIF"),","),8)
+ ;S ASUV("END BAL")=ASUMV("QTY","STAM")+ASUMV("QTY","DIF")
+ ;S ASUV("END VAL")=ASUV("END BAL")*ASUMV("U/C")
+ ;W !?5,"END VALUE: ",$J($FN(ASUV("END VAL"),",",2),12)
+ ;W ?30,"ADJ QTY: ",?40,$J($FN(ASUMV("QTY","DIF"),","),8)
+ ;W ;?55,"END BAL: ",?65,$J($FN(ASUV("END BAL"),","),8),!
+ S ASUC("LN")=ASUC("LN")+4
+ Q
+PAUSE ;
+ S DIR(0)="E" D ^DIR K DIR
+EXIT ;
+ D XK^ASUMXDIO
+ K ASUU(12),ASUV,ASUMV,ASUV,DUOUT,DTOUT,ASUMX("E#"),ASUF,ASUC
+ Q

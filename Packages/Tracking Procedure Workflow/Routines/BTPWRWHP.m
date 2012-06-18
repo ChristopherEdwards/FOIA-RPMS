@@ -1,0 +1,67 @@
+BTPWRWHP ;VNGT/HS/ALA - Women's Health Procedure Display ; 10 Jul 2008  5:51 PM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;
+ ;
+EN(DATA,WHIEN) ; EP -- BTPW WH DISPLAY
+ ;Description
+ ;  Generates a Display of a Women's Health Procedure Record
+ ;
+ ;Input
+ ;  WHIEN - Procedure IEN
+ ;
+ ;Output
+ ;  DATA - Name of global in which data is stored(^TMP("BQIRSPMT"))
+ ;
+ NEW UID,BQII
+ NEW HSTEXT,HSPATH,HSFN,Y,IOSL,IOST,IOM,I,N
+ NEW APCHSPAT,APCHSHDR,APCHSTIM
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BTPWRWHP",UID))
+ K @DATA
+ ;
+ S BQII=0
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BTPWRWHP D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ D HDR
+ ;
+ I $$TMPFL^BQIUL1("W",UID,WHIEN) G DONE
+ ;
+ S IOSL=999,IOM=80,IOST="P-OTHER80"
+ ;
+ U IO
+ S DIC="^BWPCD(",DA=WHIEN
+ D EN^DIQ
+ U IO W $C(9)
+ ;
+ I $$TMPFL^BQIUL1("C") G DONE
+ ;
+ I $$TMPFL^BQIUL1("R",UID,WHIEN) G DONE
+ ;
+ F  U IO R HSTEXT:.1 Q:HSTEXT[$C(9)  D
+ . S HSTEXT=$$STRIP^XLFSTR(HSTEXT,"^")
+ . I HSTEXT="" S HSTEXT=" "
+ . S BQII=BQII+1,@DATA@(BQII)=HSTEXT_$C(13)_$C(10)
+ S BQII=BQII+1,@DATA@(BQII)=$C(30)
+ ;
+ I $$TMPFL^BQIUL1("C") G DONE
+ ;
+ I $$TMPFL^BQIUL1("D",UID,WHIEN) G DONE
+ ;
+DONE ;
+ ;
+ S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ Q
+ ;
+HDR ;
+ S @DATA@(BQII)="T01024REPORT_TEXT"_$C(30)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ I $$TMPFL^BQIUL1("C")
+ Q

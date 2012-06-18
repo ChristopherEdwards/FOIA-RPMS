@@ -1,0 +1,67 @@
+BLRSHPM1 ;cmi/anch/maw - BLR Reference Lab Shipping Manifest (con't) 2/7/91 14:29 ;JUL 06, 2010 3:14 PM
+ ;;5.2;IHS LABORATORY;**1027**;NOV 01, 1997;Build 9
+ ;
+ ;;5.2;LAB SERVICE;**121,153**;Sep 27, 1994
+LST1 ;from LRWRKLST
+ D CHKPAGE
+ Q:$G(LRSTOP)=1
+ S LRDX=^LRO(68,LRAA,1,LRAD,1,LRAN,0),LRCE=$S($D(^(.1)):^(.1),1:""),LRACC=$S($D(^(.2)):^(.2),1:"")
+ Q:'$D(^LR(+LRDX,0))#2
+ S LRDPF=$P(^LR(+LRDX,0),U,2),DFN=$P(^(0),U,3)
+ D PT^LRX
+ S (LRDLA,LRDLC,LRACO)=""
+ I $D(^LRO(68,LRAA,1,LRAD,1,LRAN,3)) S Y=^(3),LRDLA=$P(Y,U,3),LRACO=$P(Y,U,6),Y=$P(Y,U) D
+ . D:Y DD^LRX S LRDLC=Y,Y=LRDLA D:Y DD^LRX S LRDLA=Y
+ S Y=$P(LRDX,U,4) D:Y DD^LRX S LRDTO=Y
+ W !
+ D DASH^LRX
+ S LN=$G(LN)+4
+ D CHKPAGE
+ Q:$G(LRSTOP)
+ W !,"ACCESSION: ",LRACC,?25,$S(LRCE]"":"ORDER #: "_LRCE,1:"")
+ ;W ?40,"PATIENT: ",PNM,"  ",SSN,! S X=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^") W:X'="" ?6,"UID: "_X,?41,"   DOB: ",$$DTF^LRAFUNC1(DOB)
+ ;W ?40,"PATIENT: ",PNM,"  ",HRCN,! S X=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^") W:X'="" ?6,"UID: "_X,?41,"   DOB: ",$$DTF^LRAFUNC1(DOB)  ;IHS/ANMC/CLS 08/18/96
+ W ?40,"PATIENT: ",PNM,"  ",HRCN,! S X=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^") W:X'="" ?6,"UID: "_X,?40,"SEX:  "_$G(SEX)_"   DOB: ",DOB
+ W:$P(LRDX,U,6) !,"IDENTITY: ",$P(LRDX,U,6)
+ W !,"  LOCATION:",$P(LRDX,"^",7)
+ W:$L(LRDTO) ?40,"DATE ORDERED: ",LRDTO
+ W:$L(LRDLC) !?40,"COLLECTED: ",LRDLC
+ W !
+ S LN=$G(LN)+6
+ D CHKPAGE
+ Q:$G(LRSTOP)=1
+ S LRPRAC=+$P(LRDX,"^",8)
+ I LRPRAC W "  PRACTITIONER: ",$S($D(^VA(200,LRPRAC,0)):$P(^(0),"^"),1:LRPRAC) S LN=LN+1
+ W:$L(LRDLA) ?40,"LAB ARRIVAL: ",LRDLA D LEDI
+ N PRAC,PR D PRAC^LR7OMERG(LRAA,LRAD,LRAN,.PRAC) I $O(PRAC(0)) S PR=0 F  S PR=$O(PRAC(PR)) Q:PR<1  I $D(^VA(200,PR,0)) W !?16,$P(^(0),"^")
+ S X1=+$P(LRDX,U,4),X2=+$P(LRDX,U,5)
+ I $D(^LRO(69,X1,1,X2,6)) D
+ . W !,"  Order Comment:" S LN=LN+1
+ . S I=0
+ . F  S I=$O(^LRO(69,X1,1,X2,6,I)) Q:I<1  I I>1 W ! W ?11,^(I,0) S LN=LN+1 D CHKPAGE Q:$G(LRSTOP)
+TSTCOM ;
+ Q:$G(LRSTOP)
+ S LRTS=0 F  S LRTS=$O(^LRO(69,X1,1,X2,2,LRTS)) Q:LRTS<1  S LRTST=$G(^(LRTS,0)) I LRTST D
+ . Q:'$O(^LRO(69,X1,1,X2,2,LRTS,1,0))
+ . Q:'$D(^LAB(60,+LRTST,0))#2  W !,"Test [ ",$P(^(0),U)_" ] Comment "
+ . S X3=0 F  S X3=$O(^LRO(69,X1,1,X2,2,LRTS,1,X3)) Q:X3<1  I $D(^(X3,0)) W !,?5,^(0) S LN=LN+1 D CHKPAGE Q:$G(LRSTOP)
+ Q:$G(LRSTOP)
+ I $L(LRACO) W !,"  Accession Comment: ",LRACO S LN=LN+1
+ W:$L($P(LRDX,U,6,7))>1 !
+ Q
+CHKPAGE ;
+ Q:$G(LRSTOP)!($D(ZTQUEUED))!($E(IOST,1,2)'="C-")
+ Q:$G(LN)<(IOSL-2)
+ K DIR
+ S DIR(0)="E"
+ D ^DIR
+ I $D(DUOUT)!($D(DIRUT)) S LRSTOP=1 Q
+ S LREND=$G(LRSTOP)
+ S LN=1
+ W !
+ Q
+LEDI ; print LEDI information
+ N LRUIDX S LRUIDX=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3))
+ S Y=$P(LRUIDX,"^",2) I Y!($P(LRUIDX,"^",5)'="") W ! S C=$P(^DD(68.02,16.1,0),"^",2) D Y^DIQ W:Y'="" "  ORDERING SITE: "_$E(Y,1,20) W:$P(LRUIDX,"^",5)'="" ?40,"ORDERING SITE UID: "_$P(LRUIDX,"^",5) S LN=LN+1
+ S Y=$P(LRUIDX,"^",3) I Y!($P(LRUIDX,"^",4)'="") W ! S C=$P(^DD(68.02,16.2,0),"^",2) D Y^DIQ W:Y'="" "  COLLECTING SITE: "_$E(Y,1,20) W:$P(LRUIDX,"^",4)'="" ?40,"HOST UID: "_$P(LRUIDX,"^",4) S LN=LN+1
+ Q

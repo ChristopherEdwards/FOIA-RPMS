@@ -1,0 +1,80 @@
+ABMUCAPI ; IHS/SD/SDR - 3PB/UFMS CAN crosswalk API   
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ ; New routine - v2.5 p12 SDD item 4.2
+ ; Budget activity and Cost Center will be used along with the
+ ; ASUFAC to find the CAN in the IE for UFMS.  The CAN tables
+ ; will be maintained in the IE.
+ ;
+EP(W,X,Y,Z) ;PEP - Returns BUDGET ACTIVITY^COST CENTER or -1 for ea. if
+ ; it can't find effective entry
+ ;w=insurer type
+ ;x=clinic ptr
+ ;y=date/time approved (FM format)
+ ;z=ASUFAC for location
+ S ABMIT=W
+ S ABMC=$P($G(^DIC(40.7,X,0)),U,2)  ;clinic code
+ S ABMDT=Y
+ S ABMASUF=Z
+ ;
+ S U="^"
+ S ABMRTURN=""
+ ;
+ ;acct pt/federal loc
+ ;S ABMACTPT=""
+ ;S ABMFLOC=""
+ ;S ABMTIEN=$O(^ABMUAPFL("C",ABMASUF,0))
+ ;I +ABMTIEN'=0 D
+ ;.S ABMEFDT=$P($G(^ABMUAPFL(ABMTIEN,0)),U,5)
+ ;.S ABMENDT=$P($G(^ABMUAPFL(ABMTIEN,0)),U,6)
+ ;.I (ABMEFDT=ABMDT!(ABMEFDT<ABMDT)),((ABMENDT="")!(ABMENDT>ABMDT)) D
+ ;..S ABMACTPT=$P($G(^ABMUAPFL(ABMTIEN,0)),U,3)
+ ;..S ABMFLOC=$P($G(^ABMUAPFL(ABMTIEN,0)),U,4)
+ ;S ABMACTPT=$$FMT^ABMERUTL(ABMACTPT,"3NR")
+ ;S ABMFLOC=$$FMT^ABMERUTL(ABMFLOC,"4NR")
+ ;S ABMRTURN=ABMACTPT_ABMFLOC
+ ;
+ ;budget activity
+ S ABMTIEN=0
+ S ABMAFLG=0
+ S ABMAREA=$E(ABMASUF,1,2)
+ S ABMAREA=$O(^AUTTAREA("C",ABMAREA,0))
+ F  S ABMTIEN=$O(^ABMUITBA("C",ABMAREA,ABMIT,ABMTIEN)) Q:+ABMTIEN=0  D  Q:ABMAFLG=1
+ .S ABMREC=$G(^ABMUITBA(ABMTIEN,0))
+ .S ABMEFDT=$P(ABMREC,U,3)
+ .S ABMENDDT=$P(ABMREC,U,4)
+ .I (ABMEFDT=ABMDT!(ABMEFDT<ABMDT)),((ABMENDDT="")!(ABMENDDT>ABMDT)) D
+ ..S ABMAFLG=1
+ S ABMRTURN=ABMRTURN_$$FMT^ABMERUTL($S(+ABMTIEN'=0:$P($G(^ABMUITBA(ABMTIEN,0)),U,2),1:""),"10R")
+ ;
+ ;cost center
+ S ABMAFLG=0
+ S ABMTIEN=0
+ S:$G(ABMC)="" ABMC="XX"  ;default
+ F  S ABMTIEN=$O(^ABMUCTCC("B",ABMC,ABMTIEN)) Q:+ABMTIEN=0  D  Q:ABMAFLG=1
+ .S ABMREC=$G(^ABMUCTCC(ABMTIEN,0))
+ .S ABMEFDT=$P(ABMREC,U,4)
+ .S ABMENDDT=$P(ABMREC,U,5)
+ .I (ABMEFDT=ABMDT!(ABMEFDT<ABMDT)),((ABMENDDT="")!(ABMENDDT>ABMDT)) D
+ ..S ABMAFLG=1
+ S ABMRTURN=ABMRTURN_$$FMT^ABMERUTL($S(+ABMTIEN'=0:$P($G(^ABMUCTCC(ABMTIEN,0)),U,3),1:""),"3R")
+ ;
+ Q ABMRTURN
+ ;
+COSTCENT(X,Y) ;PEP - return cost center and cost center desc. only
+ ;x=clinic ptr
+ ;y=date/time approved (FM format)
+ S ABMC=$P($G(^DIC(40.7,X,0)),U,2)  ;clinic code
+ S ABMDT=Y
+ ;
+ S ABMAFLG=0
+ S ABMTIEN=0
+ S:$G(ABMC)="" ABMC="XX"  ;default
+ F  S ABMTIEN=$O(^ABMUCTCC("B",ABMC,ABMTIEN)) Q:+ABMTIEN=0  D  Q:ABMAFLG=1
+ .S ABMREC=$G(^ABMUCTCC(ABMTIEN,0))
+ .S ABMEFDT=$P(ABMREC,U,4)
+ .S ABMENDDT=$P(ABMREC,U,5)
+ .I (ABMEFDT=ABMDT!(ABMEFDT<ABMDT)),((ABMENDDT="")!(ABMENDDT>ABMDT)) D
+ ..S ABMAFLG=1
+ S:+ABMTIEN'=0 ABMRTURN=$P($G(^ABMUCTCC(ABMTIEN,0)),U,3)_"^"_$P($G(^ABMUCTCC(ABMTIEN,0)),U,6)
+ Q ABMRTURN

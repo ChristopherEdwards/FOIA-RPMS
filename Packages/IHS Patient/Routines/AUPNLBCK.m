@@ -1,0 +1,33 @@
+AUPNLBCK ; IHS/CMI/LAB - Backbilling Check ;
+ ;;99.1;IHS DICTIONARIES (PATIENT);;MAR 09, 1999
+ ;
+ ;PATCH 1 - Modified MCD, MCR, RR, and PI Lines to do line CK which
+ ;  checks to ensure the existance of DA(1) and DA before running
+ ;
+MCD ;EP
+ D CK G XIT:'AUPNX("OK"),XIT:'$D(^AUPNMCD(DA(1),0))  S AUPNX("PDFN")=$P(^(0),U),AUPNX("DT")=DA G VSTCK
+ ;
+MCR ;EP
+ D CK G XIT:'AUPNX("OK") S AUPNX("PDFN")=DA(1),AUPNX("DT")=DA G VSTCK
+ ;
+RR ;EP
+ D CK G XIT:'AUPNX("OK") S AUPNX("PDFN")=DA(1),AUPNX("DT")=DA G VSTCK
+ ;
+PI ;EP
+ Q:'+$G(X)  D CK G XIT:'AUPNX("OK") S AUPNX("PDFN")=DA(1),AUPNX("DT")=X
+ ;
+VSTCK S AUPNX("DT")=9999999-AUPNX("DT")
+ S AUPNX=0 F  S AUPNX=$O(^AUPNVSIT("AA",AUPNX("PDFN"),AUPNX)) Q:AUPNX>AUPNX("DT")!'+AUPNX  S AUPNX("VDFN")=$O(^(AUPNX,"")) I AUPNX("VDFN")]"" D
+ .Q:$G(^AUPNVSIT(AUPNX("VDFN"),0))=""
+ .Q:$P(^AUPNVSIT(AUPNX("VDFN"),0),U,11)=1
+ .S AUPNX("EDT")=$S($P(^AUPNVSIT(AUPNX("VDFN"),0),U,13)]"":$P(^(0),U,13),1:$P(^(0),U,2))
+ .S ^AUPNVSIT("ABILL",AUPNX("EDT"),AUPNX("VDFN"))=""
+ G XIT
+ ;
+CK S AUPNX("OK")=0
+ Q:'$D(^AUTTSITE(1,0))  Q:$P(^(0),U,15)'="Y"
+ I $D(DA(1)),$D(DA) S AUPNX("OK")=1
+ Q
+ ;
+XIT K AUPNX
+ Q

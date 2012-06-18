@@ -1,0 +1,13 @@
+AGG REPORTS
+ZWR
+^AGG(9009068.6,0)="AGG REPORTS^9009068.6^5^5"
+^AGG(9009068.6,1,0)="Community Report^AGG COMMUNITY REPORT^30^^T^M"
+^AGG(9009068.6,2,0)="Daily Report^AGG DAILY REG ACTIVITY REPORT^31^^T^M"
+^AGG(9009068.6,3,0)="Face Sheet^AGG PATIENT FACE SHEET^^^T"
+^AGG(9009068.6,4,0)="Under 18 Over 64^^^1^T^E"
+^AGG(9009068.6,5,0)="Dup Pat Report^AGG DUP PAT REPORT^35^^T^M"
+^AGG(9009068.6,"B","Community Report",1)=""
+^AGG(9009068.6,"B","Daily Report",2)=""
+^AGG(9009068.6,"B","Dup Pat Report",5)=""
+^AGG(9009068.6,"B","Face Sheet",3)=""
+^AGG(9009068.6,"B","Under 18 Over 64",4)=""

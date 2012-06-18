@@ -1,0 +1,270 @@
+VENPCCAM ; IHS/OIT/GIS - NEW CHECK IN MODULE ;
+ ;;2.6;PCC+;;NOV 12, 2007
+ ;
+ ; ASK ABOUT CC AND MEASUREMENTS
+ ;
+MSR(VIEN,DEPTIEN) ; EP-GET MEASUREMENT VALUES AND STORE THEM IN V FILES FOR USE IN THIS ENCOUNTER
+ I '$D(^AUPNVSIT(+$G(VIEN),0)) Q
+ N DFN,DOB,BP,HT,WT,CC,HC,TMP,PU,RS,X,MMN,DIRX,DIRA,DIRB,DIRQ,DIRL
+ N VAL,Z,X,Y,IVAL,HCFLAG,PFLAG,CCFLAG,PULFLAG,DATA,MSR
+ S DFN=$P($G(^AUPNVSIT(VIEN,0)),U,5) I '$D(^DPT(+DFN,0)) Q
+ S DOB=$P(^DPT(DFN,0),U,3) I 'DOB Q
+ S HCFLAG=0 I ((DT-DOB)\10000)<2 S HCFLAG=1 ; HEAD CIRC FLAG
+ S PFLAG=0 I DT-DOB>90000 S PFLAG=1 ; PAIN FLAG
+ S CCFLAG='$P($G(^VEN(7.95,+$G(DEPTIEN),4)),U) ; CHIEF COMPLAINT FLAG
+ S PULFLAG=$P($G(^VEN(7.95,+$G(DEPTIEN),4)),U,2) ; PULMONARY DATA FLAG
+ W !!,"Record check-in data now."
+ W !,"'^'=Back up/edit  '^^'=Stop  '?'=Get help  '@'=Erase an existing entry",!
+CC ; EP - CHIEF COMPLAINT
+ I 'CCFLAG G HT
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:240",DIRA="Chief complaint(s)",DIRB=$E($$CCTXT(VIEN),1,240)
+ S DIRQ="Example: 'URI, Fever'"
+ I $D(MSR(0)) S DIRB=MSR(0)
+ S VAL=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL=""  K MSR(0) G HT
+ I VAL=U  W "  ??" G CC
+ I VAL?2."^" G MFILE
+ S MSR(0)=VAL
+HT ; EP - HEIGHT IN IN OR CM
+ S DIRX="FO^1:10",DIRA="Height",DIRB=""
+ S DIRQ="EXAMPLES: 5-11, 5 11, 67"""", 67 INCHES, 135 CM, 99C,  60I"
+ I $D(MSR("HT")) S DIRB=MSR("HT")
+ S (IVAL,VAL)=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("HT") G WT
+ I VAL=U,'CCFLAG W "  ??" G HT
+ I VAL=U G CC
+ I VAL?2."^" G MFILE
+ I VAL'>0 W "  ??" G HT
+ I VAL?1N1P1.2N,VAL'=+VAL S IVAL=(+VAL*12)+(+$E(VAL,3,99))
+ E  I VAL?1.3N1.E S Z="" D  I Z="" W "  <- Please specifiy inches or cm" G HT
+ . S Z=$P(VAL,+VAL,2)
+ . I Z'["""",Z'["c",Z'["C",Z'["i",Z'["I" S Z="" Q
+ . I Z'["C",Z'["c" S Z="IN",IVAL=+VAL Q
+ . S Z="CM",IVAL=(+VAL)/2.54
+ . Q
+ I IVAL["." S IVAL=(IVAL\1)_"."_(+$E($P(IVAL,".",2)))
+ S X=IVAL D HT^AUPNVMSR
+ I '$D(X) W "  <- Invalid height.  Try again..." G HT
+ S MSR("HT")=VAL,MSR("HT",0)=IVAL
+WT ; EP - WEIGHT IN LBS OR KGS
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:10",DIRA="Weight",DIRB=""
+ S DIRQ="Lbs. assumed unless metric weight specified.  EXAMPLES: 75 LBS, 2144 GM, 71 KG, 65.2K"
+ I $D(MSR("WT")) S DIRB=MSR("WT")
+ S (VAL,IVAL)=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("WT") G HC
+ I VAL=U G HT
+ I VAL?2."^" G MFILE
+ I +VAL<1 W "  ??" G WT
+ I VAL'=+VAL D  I Z="" W "  <- Unknown units or invalid entry" G WT
+ . S Z=$P(VAL,+VAL,2)
+ . I Z["L"!(Z["l") S IVAL=+VAL,Z="LBS" Q
+ . I Z["K"!(Z["k") S IVAL=VAL/.45959237,Z="KG" Q
+ . I Z["G"!(Z["g") S IVAL=VAL/459.59237,Z="GM" Q
+ . S Z=""
+ . Q
+ I IVAL["." S IVAL=(IVAL\1)_"."_(+$E($P(IVAL,".",2)))
+ S X=IVAL D WT^AUPNVMSR
+ I '$D(X) W "  <- Invalid weight.  Try again..." G WT
+ S MSR("WT")=VAL,MSR("WT",0)=IVAL
+HC ; EP - HEAD CIRC IN INCHES AND CM
+ I 'HCFLAG G BP
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:10",DIRA="Head Circumference",DIRB=""
+ S DIRQ="You must specify units. EXAMPLES: 17"""", 17 INCHES, 48 CM, 45C,  16I"
+ I $D(MSR("HC")) S DIRB=MSR("HC")
+ S (VAL,IVAL)=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("HC") G BP
+ I VAL=U G WT
+ I VAL?2."^" G MFILE
+ I VAL'>0 W "  ??" G HC
+ S Z=$P(VAL,+VAL,2)
+ I Z'["""",Z'["c",Z'["C",Z'["i",Z'["I" W "  <- Please specifiy inches or cm" G HC
+ S IVAL=+VAL
+ I Z["C"!(Z["c") S IVAL=IVAL/2.54
+ I IVAL["." S IVAL=(IVAL\1)_"."_(+$E($P(IVAL,".",2)))
+ S X=IVAL D HC^AUPNVMSR
+ I '$D(X) W "  <- Invalid HEAD CIRCUMFERENCE.  Try again..." G HC
+ S MSR("HC")=VAL,MSR("HC",0)=IVAL
+BP ; EP - BLOOD PRESSURE
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:7",DIRA="B/P",DIRB=""
+ S DIRQ="Example: 120/88"
+ I $D(MSR("BP")) S DIRB=MSR("BP")
+ S VAL=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL=""  K MSR("BP") G TMP
+ I VAL=U,'HCFLAG G WT
+ I VAL=U G HC
+ I VAL?2."^" G MFILE
+ S X=VAL D BP^AUPNVMSR
+ I '$D(X) W "  <- Invalid B/P.  Try again..." G BP
+ S MSR("BP")=VAL,MSR("BP",0)=VAL
+TMP ; EP - TEMPERATURE IN F OR C
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:8",DIRA="Temperature",DIRB=""
+ S DIRQ="Fahrenheit assumed unless metric temp specified.  EXAMPLES: 98.6, 102.0 F, 39.5C"
+ I $D(MSR("TMP")) S DIRB=MSR("TMP")
+ S (IVAL,VAL)=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("TMP") G PU
+ I VAL=U G BP
+ I VAL?2."^" G MFILE
+ I +VAL<30 W "  ??" G TMP
+ I VAL'=+VAL D  I Z="" W "  <- Unknown units or invalid entry" G TMP
+ . S Z=$P(VAL,+VAL,2)
+ . I Z["F"!(Z["f") S IVAL=+VAL,Z="F" Q
+ . I Z["C"!(Z["c") S IVAL=(+VAL)*9/5+32,Z="C" Q
+ . S Z=""
+ I IVAL["." S IVAL=(IVAL\1)_"."_(+$E($P(IVAL,".",2)))
+ S X=IVAL D TMP^AUPNVMSR
+ I '$D(X) W "  <- Invalid temperature.  Try again..." G TMP
+ S MSR("TMP")=VAL,MSR("TMP",0)=IVAL
+PU ; EP - PULSE
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:3",DIRA="Pulse",DIRB=""
+ S DIRQ="Example: 64"
+ I $D(MSR("PU")) S DIRB=MSR("PU")
+ S VAL=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("PU") G RS
+ I VAL=U G TMP
+ I VAL?2."^" G MFILE
+ S X=VAL D PU^AUPNVMSR
+ I '$D(X) W "  <- Invalid pulse.  Try again..." G PU
+ S MSR("PU")=VAL,MSR("PU",0)=VAL
+RS ; EP - RESPIRATIONS
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:3",DIRA="Respirations",DIRB=""
+ S DIRQ="Example: 18"
+ I $D(MSR("RS")) S DIRB=MSR("RS")
+ S VAL=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("RS") G PA
+ I VAL=U G PU
+ I VAL?2."^" G MFILE
+ S X=VAL D RS^AUPNVMSR
+ I '$D(X) W "  <- Invalid respiration rate.  Try again..." G RS
+ S MSR("RS")=VAL,MSR("RS",0)=VAL
+PA ; EP - PAIN
+ I 'PFLAG G O2
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:2",DIRA="Pain",DIRB=""
+ S DIRQ="Select a PAIN SCALE number between 0 and 10"
+ I $D(MSR("PA")) S DIRB=MSR("PA")
+ S VAL=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("PA") G O2
+ I VAL=U G RS
+ I VAL?2."^" G MFILE
+ S X=VAL D PA^AUPNVMSR
+ I '$D(X) W "  <- Invalid PAIN SCALE value.  Try again..." G PA
+ S MSR("PA")=VAL,MSR("PA",0)=VAL
+O2 ; EP - O2 SATURATION
+ I 'PULFLAG G MFILE
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:3",DIRA="O2 Saturation",DIRB=""
+ S DIRQ="Select a value between 1 and 100"
+ I $D(MSR("O2")) S DIRB=MSR("O2")
+ S VAL=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("O2") G PF
+ I VAL=U,'PFLAG G RS
+ I VAL=U G PA
+ I VAL?2."^" G MFILE
+ I (+VAL)'>0 W "  ??" G O2
+ S X=+VAL D O2^AUPNVMSR
+ I '$D(X) W "  <- Invalid O2 Sat value.  Try again..." G O2
+ S MSR("O2")=VAL,MSR("O2",0)=VAL
+PF ; EP - PEAK FLOW
+ K X,Y,Z,VAL,IVAL
+ S DIRX="FO^1:3",DIRA="Peak flow",DIRB=""
+ S DIRQ="Select a value between 100 and 500"
+ I $D(MSR("PF")) S DIRB=MSR("PF")
+ S VAL=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I VAL="" K MSR("PF") G MFILE
+ I VAL=U G O2
+ I VAL?2."^" G MFILE
+ I +VAL'>0 W "  ??" G PF
+ S X=VAL D PF^AUPNVMSR
+ I '$D(X) W "  <- Invalid Peak flow value.  Try again..." G PF
+ S MSR("PF")=VAL,MSR("PF",0)=VAL
+MFILE ; EP - FILE RESULTS
+ I $O(MSR(""))="" Q  ; NOTHING HAS BEEN ENTERED
+ S DIRX="SO^S:SUBMIT;E:EDIT;C:CANCEL"
+ S DIRB="SUBMIT",DIRA="Your choice",DIRQ=""
+ S VAL=$$DIR(DIRX,DIRA,DIRB,DIRQ) K DIRX,DIRA,DIRB,DIRQ
+ I $E(VAL)?1A S VAL=$$UP^XLFSTR($E(VAL))
+ I VAL="E" G CC ; EDIT THE RESULTS FROM THE TOP
+ I VAL="C" W !,"Request cancelled!  No data submitted..." S NCCANCEL=1 Q
+ I VAL'="S" Q
+FILE ; EP - PROCESS THE CHECKIN DATA ; PATCHED BY GIS/OIT 2/1/06 ; PCC + VERSION 2.5, PATCH 4
+ I 'VIEN Q
+ N DIC,DIE,DA,DR,X,Y
+ I $L($G(MSR(0))) D NFILE(VIEN,MSR(0)) ; FILE THE CHIEF COMPLAINT
+ S MMN="A",DLAYGO=9000010.01,DIC(0)="L",DIC="^AUPNVMSR(",DIE=DIC
+ S DR=".02////"_DFN_";.03////"_VIEN_";.04////^ S X=VAL"
+ F  S MMN=$O(MSR(MMN)) Q:MMN=""  D  ; LOOP THROUGH RESULTS AND FILE THEM IN V MEASUREMENTS
+ . S VAL=$G(MSR(MMN,0)) I '$L(VAL) Q
+ . S X=""""_MMN_""""
+ . D ^DIC I Y=-1 Q
+ . S DA=+Y
+ . L +^AUPNVMSR(DA):0 I $T D ^DIE L -^AUPNVMSR(DA)
+ . Q
+ D ^XBFMK
+ Q
+ ;
+DIR(DIRX,DIRA,DIRB,DIRQ) ; EP-QUERY GENERATOR
+ N X,Y,VAL,DIR
+ I '$L($G(DIRX)) Q ""
+ S DIR(0)=DIRX,DIR("A")=DIRA,DIR("?")=DIRQ
+ I $L($G(DIRB)) S DIR("B")=DIRB
+ D ^DIR
+ S VAL=X
+ I VAL="@" S VAL="" W "  <- Deleted"
+ D ^XBFMK K DIROUT
+ Q VAL
+ ; 
+CCTXT(VIEN) ; EP - RETURN THE CC TEXT IN A SINGLE STRING
+ ; PATCHED BY GIS/OIT 7/21/06 ; PCC + VERSION 2.5, PATCH 5
+ N NIEN,TXT,TTIEN,DFN,A,B,DA,LINE,LAST
+ S TTIEN=$O(^AUTTNTYP("B","CHIEF COMPLAINT",0)) I 'TTIEN Q ""
+ S DA=0,NIEN=0
+ F  S DA=$O(^AUPNVNT("AD",+$G(VIEN),DA)) Q:'DA  I +$G(^AUPNVNT(DA,0))=TTIEN S NIEN=DA
+ I 'NIEN Q ""
+ S TXT="",LINE=0,LAST=""
+ F  S LINE=$O(^AUPNVNT(NIEN,11,LINE)) Q:'LINE  D
+ . S (A,B)=$G(^AUPNVNT(NIEN,11,LINE,0))
+ . I '$L(A) Q
+ . I $L(LAST),$E(A,$L(A))'=" ",$E(LAST)'=" " S A=" "_A
+ . S TXT=TXT_A
+ . S LAST=B
+ . Q
+ Q TXT
+ ;
+NFILE(VIEN,TXT) ; EP - POPULTES THE V NARRATIVE TEXT FILE WITH A CC
+ ; PATCHED BY GIS/OIT 7/21/06 ; PCC + VERSION 2.5, PATCH 5
+ N X,Y,Z,%,ARR,CNT,DA,DR,DIE,DIC,DLAYGO,TTIEN,CREF,LINE,A,B,NIEN,DFN
+ I $L($G(TXT)),$D(^AUPNVSIT($G(VIEN),0))
+ E  Q
+ S DFN=$P($G(^AUPNVSIT(VIEN,0)),U,5) I 'DFN Q
+ S TTIEN=$O(^AUTTNTYP("B","CHIEF COMPLAINT",0)) I 'TTIEN Q
+ S DA=0,NIEN=0
+ F  S DA=$O(^AUPNVNT("AD",+$G(VIEN),DA)) Q:'DA  I +$G(^AUPNVNT(DA,0))=TTIEN S NIEN=DA
+ I 'NIEN D  I 'NIEN Q
+ . S (DIC,DIE,DLAYGO)=9000010.34,DIC(0)="L",X="""`"_TTIEN_""""
+ . D ^DIC I Y=-1 Q
+ . S (NIEN,DA)=+Y
+ . S DR=".02////"_DFN_";.03////"_VIEN
+ . L +^AUPNVNT(DA):1 I  D ^DIE L -^AUPNVNT(DA)
+ . Q
+ S CREF=$NA(^AUPNVNT(NIEN,11))
+ K @CREF ; CLEAN OUT THE EXISITING ENTRY
+ S (X,Y)=TXT,CNT=0
+ F  D  I '$L(X) Q  ; MAKE THE LINE ARRAY
+ . S A=$E(X,1,75)
+ . S %=$L(A," ")
+ . I %=1!($L(A)<75) S CNT=CNT+1,LINE(CNT)=A,X="" Q
+ . S B=$P(A," ",1,(%-1)),X=$P(X," ",%,999)
+ . S CNT=CNT+1,LINE(CNT)=B
+ . Q
+ I 'CNT Q
+ S @CREF@(0)="^^"_CNT_U_CNT_U_DT_U ; FILE THE DATA
+ F X=1:1:CNT S @CREF@(X,0)=LINE(X)
+ Q
+ ; 

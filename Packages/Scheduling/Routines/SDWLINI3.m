@@ -1,0 +1,11 @@
+SDWLINI3 ;;IOFO BAY PINES/- PATCH 279;01/22/2003 ; 20 Aug 2002  2:10 PM
+ ;;5.3;scheduling;**279**;AUG 13 1993
+ ;
+ ;
+ ;
+EN ;
+ S X="SD WAIT LIST TRANS TO AAC",D="B",DIC(0)="MNZ",DIC=19 D ^DIC Q:Y<0  S DA=+Y
+ S DIE=19,DR="3///@" D ^DIE
+ S DR="20///@" D ^DIE
+ S DR="25///^S X=""INIT^SDWLTR""" D ^DIE
+ Q 

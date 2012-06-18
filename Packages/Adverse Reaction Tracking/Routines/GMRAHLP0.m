@@ -1,0 +1,15 @@
+GMRAHLP0 ;HIRMFO/YMP,RM-ALLERGY HELP MODULES ; 10/16/91
+ ;;4.0;Adverse Reaction Tracking;;Mar 29, 1996
+EN1 ; PRINT HELP FOR CAUSATIVE AGENT FIELD
+ W !?3,"ENTER THE NAME OF THE CAUSATIVE AGENT, 3-30 CHARACTERS."
+ Q
+HELP ; HELP FOR A/AR LOOKUP
+ I $D(GMRAHLP) D:'$D(GMRAL) EN1^GMRADPT D EN1^GMRADSP0(.GMRAL) Q:GMRAOUT
+EXHLP W !!?4,"Would you like to see a list of:",!?6,"1  Local Allergies (Food/Drug/Other)",!?6,"2  Drug Classes",!?6,"3  Drug Ingredients",!?6,"4  National Drugs",!?6,"5  Local Drugs"
+ R !?4,"Select a number (1-5):",X:DTIME S:'$T X="^^" I "^^"[X S:X="^^"!(X="^") GMRAOUT=1 Q
+ I X\1'=X!(X<1)!(X>5) W !?7,$C(7),"ANSWER WITH THE NUMBER (1-5) OF THE SELECTION FOR",!?7,"WHICH YOU WISH TO SEE MORE HELP." G EXHLP
+ S DIC=$S(X=1:120.82,X=2:50.605,X=3:50.416,X=4:50.6,1:50) D HLPLK
+ G EXHLP
+HLPLK ; LOOKUP ON FILE IN DIC
+ S DIC(0)="E",X="??" S:DIC=50.416 D="P" S:DIC=50.605 DIC("W")="W ?10,$P(^(0),U,2)",DIC(0)="SE",D="C" D ^DIC:DIC'=50.605&(DIC'=50.416),IX^DIC:DIC=50.605!(DIC=50.416)
+ Q

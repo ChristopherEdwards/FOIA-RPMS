@@ -1,0 +1,381 @@
+APCLVLU ; IHS/CMI/LAB - GEN RETR UTILITIES ; 
+ ;;2.0;IHS PCC SUITE;**2,4,5**;MAY 14, 2009
+ ;IHS/CMI/LAB  - patch 4 added anyins
+ ;
+RZERO(V,L) ;EP right zero fill 
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=V_"0"
+ Q V
+LZERO(V,L) ;EP left zero fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V="0"_V
+ Q V
+LBLK(V,L) ;left blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=" "_V
+ Q V
+ANYINS(P,D) ;EP return 1 or 0 if patient has any insurance
+ NEW APCLA
+ S APCLA=0
+ S APCLA=$$MCR^AUPNPAT(P,D) I APCLA Q APCLA
+ S APCLA=$$MCD^AUPNPAT(P,D) I APCLA Q APCLA
+ S APCLA=$$PI^AUPNPAT(P,D)
+ Q APCLA
+ ;
+MCR(P,D,F) ;is patient medicare eligible on this date
+ NEW APCLMIFN,APCLFLG
+ S APCLFLG=0
+ S F=$G(F)
+ I '$D(^DPT(P,0)) G MCRX
+ I $P(^DPT(P,0),U,19) G MCRX
+ I '$D(^AUPNPAT(P,0)) G MCRX
+ I '$D(^AUPNMCR(P,11)) G MCRX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCRX
+ S APCLMIFN=0 F  S APCLMIFN=$O(^AUPNMCR(P,11,APCLMIFN)) Q:APCLMIFN'=+APCLMIFN  D
+ .I F]"",$P(^AUPNMCR(P,11,APCLMIFN,0),U,3)'=F Q
+ .Q:$P(^AUPNMCR(P,11,APCLMIFN,0),U)>D
+ .I $P(^AUPNMCR(P,11,APCLMIFN,0),U,2)]"",$P(^(0),U,2)<D Q
+ .S APCLFLG=1
+ .Q
+MCRX ;
+ Q APCLFLG
+ ;
+MCD(P,D) ;
+ NEW APCLMIFN,APCLNIFN,APCLFLG
+ S APCLFLG=0
+ I '$D(^DPT(P,0)) G MCDX
+ I $P(^DPT(P,0),U,19) G MCDX
+ I '$D(^AUPNPAT(P,0)) G MCDX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCDX
+ S APCLMIFN=0 F  S APCLMIFN=$O(^AUPNMCD("B",P,APCLMIFN)) Q:APCLMIFN'=+APCLMIFN  D
+ .Q:'$D(^AUPNMCD(APCLMIFN,11))
+ .S APCLNIFN=0 F  S APCLNIFN=$O(^AUPNMCD(APCLMIFN,11,APCLNIFN)) Q:APCLNIFN'=+APCLNIFN  D
+ ..Q:APCLNIFN>D
+ ..I $P(^AUPNMCD(APCLMIFN,11,APCLNIFN,0),U,2)]"",$P(^(0),U,2)<D Q
+ ..S APCLFLG=1
+ ..Q
+ .Q
+ ;
+MCDX ;
+ Q APCLFLG
+ ;
+MCDPN(P,D,F) ;EP - return medicaid plan name
+ NEW APCLMIFN,APCLNIFN,APCLPN
+ S APCLPN=""
+ I '$D(^DPT(P,0)) G MCDPNX
+ I $P(^DPT(P,0),U,19) G MCDPNX
+ I '$D(^AUPNPAT(P,0)) G MCDPNX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCDPNX
+ S APCLMIFN=0 F  S APCLMIFN=$O(^AUPNMCD("B",P,APCLMIFN)) Q:APCLMIFN'=+APCLMIFN  D
+ .Q:'$D(^AUPNMCD(APCLMIFN,11))
+ .S APCLNIFN=0 F  S APCLNIFN=$O(^AUPNMCD(APCLMIFN,11,APCLNIFN)) Q:APCLNIFN'=+APCLNIFN  D
+ ..Q:APCLNIFN>D
+ ..I $P(^AUPNMCD(APCLMIFN,11,APCLNIFN,0),U,2)]"",$P(^(0),U,2)<D Q
+ ..S APCLPN=$P(^AUPNMCD(APCLMIFN,0),U,10) I APCLPN]"" S APCLPN=$S(F="E":$P(^AUTNINS(APCLPN,0),U),1:APCLPN)
+ ..Q
+ .Q
+ ;
+MCDPNX ;
+ Q APCLPN
+PI(P,D) ;
+ NEW APCLMIFN,APCLFLG
+ S APCLFLG=0
+ I '$D(^DPT(P,0)) G PIX
+ I $P(^DPT(P,0),U,19) G PIX
+ I '$D(^AUPNPAT(P,0)) G PIX
+ I '$D(^AUPNPRVT(P,11)) G PIX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PIX
+ S APCLMIFN=0 F  S APCLMIFN=$O(^AUPNPRVT(P,11,APCLMIFN)) Q:APCLMIFN'=+APCLMIFN  D
+ .Q:$P(^AUPNPRVT(P,11,APCLMIFN,0),U)=""
+ .S APCLNAME=$P(^AUPNPRVT(P,11,APCLMIFN,0),U) Q:APCLNAME=""
+ .Q:$P(^AUTNINS(APCLNAME,0),U)["AHCCCS"
+ .Q:$P(^AUPNPRVT(P,11,APCLMIFN,0),U,6)>D
+ .I $P(^AUPNPRVT(P,11,APCLMIFN,0),U,7)]"",$P(^(0),U,7)<D Q
+ .S APCLFLG=1
+ .Q
+PIX ;
+ Q APCLFLG
+PIV(P,D) ;EP - return 1 or 0 if current pi policy has been verified, return 1
+ NEW APCLMIFN,APCLFLG
+ S APCLFLG=0
+ I '$D(^DPT(P,0)) G PIX
+ I $P(^DPT(P,0),U,19) G PIX
+ I '$D(^AUPNPAT(P,0)) G PIX
+ I '$D(^AUPNPRVT(P,11)) G PIX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PIX
+ S APCLMIFN=0 F  S APCLMIFN=$O(^AUPNPRVT(P,11,APCLMIFN)) Q:APCLMIFN'=+APCLMIFN  D
+ .Q:$P(^AUPNPRVT(P,11,APCLMIFN,0),U)=""
+ .S APCLNAME=$P(^AUPNPRVT(P,11,APCLMIFN,0),U) Q:APCLNAME=""
+ .Q:$P(^AUTNINS(APCLNAME,0),U)["AHCCCS"
+ .Q:$P(^AUPNPRVT(P,11,APCLMIFN,0),U,6)>D
+ .I $P(^AUPNPRVT(P,11,APCLMIFN,0),U,7)]"",$P(^(0),U,7)<D Q
+ .Q:$P(^AUPNPRVT(P,11,APCLMIFN,0),U,9)=""
+ .S APCLFLG=1
+ .Q
+PIVX ;
+ Q APCLFLG
+ ;
+PIN(P,D,F) ;EP private insurer name (external or internal)
+ NEW APCLMIFN,APCLPIN,Y
+ S:$G(F)="" F="E"
+ S APCLPIN="",Y=""
+ I '$D(^DPT(P,0)) G PINX
+ I $P(^DPT(P,0),U,19) G PINX
+ I '$D(^AUPNPAT(P,0)) G PINX
+ I '$D(^AUPNPRVT(P,11)) G PINX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PINX
+ S APCLMIFN=0 F  S APCLMIFN=$O(^AUPNPRVT(P,11,APCLMIFN)) Q:APCLMIFN'=+APCLMIFN  D
+ .Q:$P(^AUPNPRVT(P,11,APCLMIFN,0),U)=""
+ .S Y=$P(^AUPNPRVT(P,11,APCLMIFN,0),U)
+ .I $P(^AUTNINS(Y,0),U)["AHCCCS" Q
+ .I $P(^AUPNPRVT(P,11,APCLMIFN,0),U,6)>D Q
+ .I $P(^AUPNPRVT(P,11,APCLMIFN,0),U,7)]"",$P(^(0),U,7)<D Q
+ .S APCLPIN=$S(F="E":$P(^AUTNINS(Y,0),U),1:Y)
+ .Q
+PINX ;
+ Q APCLPIN
+LOS(V) ;EP called from pcc man rpts visit sort
+ I 'V Q ""
+ I '$D(^AUPNVSIT(V)) Q ""
+ I $P(^AUPNVSIT(V,0),U,7)'="H" Q ""
+ I $P(^AUPNVSIT(V,0),U,3)="C",'$D(^AUPNVCHS("AD",V)) Q ""
+ I $P(^AUPNVSIT(V,0),U,3)'="C",'$D(^AUPNVINP("AD",V)) Q ""
+ NEW D,E,F,A
+ S A=$P($P(^AUPNVSIT(V,0),U),".")
+ S F=$S($D(^AUPNVINP("AD",V)):$O(^AUPNVINP("AD",V,0)),$D(^AUPNVCHS("AD",V)):$O(^AUPNVCHS("AD",V,0)),1:"")
+ I F="" Q F
+ S D=$S($D(^AUPNVINP("AD",V)):$P(^AUPNVINP(F,0),U),$D(^AUPNVCHS("AD",V)):$P(^AUPNVCHS(F,0),U,12),1:"")
+ I D="" Q D
+ S E=$$FMDIFF^XLFDT(D,A,1)
+ Q $S('E:1,1:E)
+THIRD ;EP
+ S APCLPRNT=""
+ S X=$$MCR^AUPNPAT(DFN,$S(APCLPTVS="V":$P(APCLVREC,U),1:DT)) S:X APCLPRNT=APCLPRNT_"MEDICARE  "
+ S X=$$MCD^AUPNPAT(DFN,$S(APCLPTVS="V":$P(APCLVREC,U),1:DT)) S:X APCLPRNT=APCLPRNT_"MEDICAID  "
+ S X=$$PI^AUPNPAT(DFN,$S(APCLPTVS="V":$P(APCLVREC,U),1:DT)) S:X APCLPRNT=APCLPRNT_"PRVT INS  "
+ S:APCLPRNT="" APCLPRNT="<none>"
+ Q
+LASTHF(P,C,F) ;EP - get last factor in category C for patient P
+ I '$G(P) Q ""
+ I $G(C)="" Q ""
+ I $G(F)="" S F="N"
+ S C=$O(^AUTTHF("B",C,0)) ;ien of category passed
+ I '$G(C) Q ""
+ NEW H,D,O S H=0 K O
+ F  S H=$O(^AUTTHF("AC",C,H))  Q:'+H  D
+ .  Q:'$D(^AUPNVHF("AA",P,H))
+ .  S D=$O(^AUPNVHF("AA",P,H,""))
+ .  Q:'D
+ .  S O(D)=$O(^AUPNVHF("AA",P,H,D,""))
+ .  Q
+ S D=$O(O(0))
+ I D="" Q D
+ I F="I" Q $P(^AUPNVHF(O(D),0),U)
+ I F="N" Q $P(^AUTTHF($P(^AUPNVHF(O(D),0),U),0),U)_" "_$$FMTE^XLFDT((9999999-D),2)
+ Q ""
+ ;
+LASTTOHF(P,C,F) ;EP - get last factor in tobacco categories for patient P
+ I '$G(P) Q ""
+ I $G(C)="" S C=""
+ I $G(F)="" S F="N"
+ NEW L,M,N
+ S L=$O(^AUTTHF("B","TOBACCO (SMOKING)",0))
+ S M=$O(^AUTTHF("B","TOBACCO (SMOKELESS - CHEWING/DIP)",0))
+ S N=$O(^AUTTHF("B","TOBACCO (EXPOSURE)",0))
+ NEW H,D,O S H=0 K O
+ F C=L,M,N F  S H=$O(^AUTTHF("AC",C,H))  Q:'+H  D
+ .  Q:'$D(^AUPNVHF("AA",P,H))
+ .  S D=$O(^AUPNVHF("AA",P,H,""))
+ .  Q:'D
+ .  S O(D)=$O(^AUPNVHF("AA",P,H,D,9999999999),-1)
+ .  Q
+ S D=$O(O(0))
+ I D="" Q D
+ I F="I" Q $P(^AUPNVHF(O(D),0),U)
+ I F="N" Q $P(^AUTTHF($P(^AUPNVHF(O(D),0),U),0),U)_" "_$$FMTE^XLFDT((9999999-D),2)
+ Q ""
+ ;
+HFC(V) ;EP - get last factor in category C for patient P
+ NEW A,B,C,D
+ S A=0 F  S A=$O(^AUPNVHF("AD",V,A)) Q:A'=+A  D
+ .S B=$P($G(^AUPNVHF(A,0)),U)
+ .Q:B=""
+ .S C=$P($G(^AUTTHF(B,0)),U,3)
+ .Q:C=""
+ .S X(C)=""
+ .Q
+ Q
+HFCP ;EP get all hfs in category stored
+ NEW A,B,C,D
+ S A=0 F  S A=$O(^AUPNVHF("AD",APCLVIEN,A)) Q:A'=+A  D
+ .S B=$P($G(^AUPNVHF(A,0)),U)
+ .Q:B=""
+ .S C=$P($G(^AUTTHF(B,0)),U,3)
+ .Q:C=""
+ .S D=$P(^APCLVRPT(APCLRPT,12,APCLI,0),U)
+ .Q:'$D(^APCLVRPT(APCLRPT,11,D,11,"B",C))
+ .S APCLPRNT=$P(^AUTTHF(B,0),U)
+ .S APCLPCNT=APCLPCNT+1,APCLPRNM(APCLPCNT)=APCLPRNT_" "_$$VD^APCLV(APCLVIEN,"S"),APCLPRNM(APCLPCNT,"I")=C
+ .Q
+ Q
+ ;
+ADMWARD(V) ;EP return admission ward for this visit
+ ;must be running PIMS
+ ;
+PN(V,R,I) ;EP
+ NEW Y,N,Z,G,A S A=""
+ S Y=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y  D
+ .S N=$P($G(^AUPNVPOV(Y,0)),U,4)
+ .Q:N=""
+ .S N=$P($G(^AUTNPOV(N,0)),U)
+ .Q:N=""
+ .S Z=0 F  S Z=$O(^APCLVRPT(R,11,I,11,Z)) Q:Z'=+Z  D
+ ..S G=$P($G(^APCLVRPT(R,11,I,11,Z,0)),U)
+ ..I N[G S A=1
+ ..Q
+ .Q
+ Q A
+EDOB(V,R,I) ;EP
+ NEW Y,N,Z,G,A S A=""
+ S Y=0 F  S Y=$O(^AUPNVPED("AD",V,Y)) Q:Y'=+Y  D
+ .S N=$P($G(^AUPNVPED(Y,0)),U,14)
+ .S N=$$UP^XLFSTR(N)
+ .S Z=0 F  S Z=$O(^APCLVRPT(R,11,I,11,Z)) Q:Z'=+Z  D
+ ..S G=$$UP^XLFSTR($P($G(^APCLVRPT(R,11,I,11,Z,0)),U))
+ ..I N[G S A=1
+ ..Q
+ .Q
+ Q A
+MCRD(P,D) ;is patient medicare eligible on this date
+ NEW APCLMIFN,APCLFLG
+ S APCLFLG=0
+ S F=$G(F)
+ I '$D(^DPT(P,0)) G MCRX
+ I $P(^DPT(P,0),U,19) G MCRX
+ I '$D(^AUPNPAT(P,0)) G MCRX
+ I '$D(^AUPNMCR(P,11)) G MCRX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCRX
+ S APCLMIFN=0 F  S APCLMIFN=$O(^AUPNMCR(P,11,APCLMIFN)) Q:APCLMIFN'=+APCLMIFN  D
+ .I $P(^AUPNMCR(P,11,APCLMIFN,0),U,3)'="D" Q
+ .Q:$P(^AUPNMCR(P,11,APCLMIFN,0),U)>D
+ .I $P(^AUPNMCR(P,11,APCLMIFN,0),U,2)]"",$P(^(0),U,2)<D Q
+ .S APCLFLG=1
+ .Q
+ I APCLFLG Q APCLFLG
+ ;now check PI for D- or MD in 2nd piece of 2 node (per Shonda)
+ S APCLFLG=$$PIDD^APCLOS21(DFN,D)  ;check for D- in private insurer name
+ Q APCLFLG
+ ;
+LASTINUD(P,D) ;EP - last date internet access was updated as of date D
+ I $G(D)="" S D=DT
+ I '$G(P)="" Q ""
+ I '$D(^AUPNPAT(P,81)) Q ""
+ NEW X,Y
+ S X=0,Y="" F  S X=$O(^AUPNPAT(P,81,"B",X)) Q:X'=+X!(X>D)  S Y=X
+ Q Y
+ ;
+DATE(D) ;EP
+ I D="" Q ""
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_$E(D,2,3)
+ ;
+LASTINYN(P,F,D) ;EP - last response to does patient have internet access? as of date D
+ I '$G(P)="" Q ""
+ I $G(D)="" S D=DT
+ S F=$G(F)
+ I '$D(^AUPNPAT(P,81)) Q ""
+ NEW X,Y,Z
+ S Z=""
+ S X=0,Y="" F  S X=$O(^AUPNPAT(P,81,"B",X)) Q:X'=+X!(X>D)  S Y=0 F  S Y=$O(^AUPNPAT(P,81,"B",X,Y))  Q:Y'=+Y  S Z=Y
+ I Z="" Q Z
+ I F="I" Q $P(^AUPNPAT(P,81,Z,0),U,2)
+ Q $$GET1^DIQ(9000001.81,Z_","_P_",",.02)
+ ;
+LASTINAC(P,F,D) ;EP - last response to does patient have internet access?
+ ;as of date D
+ I '$G(P)="" Q ""
+ S F=$G(F)
+ S D=$G(D)
+ I D="" S D=DT
+ I '$D(^AUPNPAT(P,81)) Q ""
+ NEW X,Y,Z
+ S Z=""
+ S X=0,Y="" F  S X=$O(^AUPNPAT(P,81,"B",X)) Q:X'=+X!(X>D)  S Y=0 F  S Y=$O(^AUPNPAT(P,81,"B",X,Y))  Q:Y'=+Y  S Z=Y
+ I Z="" Q Z
+ I F="I" Q $P(^AUPNPAT(P,81,Z,0),U,3)
+ Q $$GET1^DIQ(9000001.81,Z_","_P_",",.03)
+ ;
+MEDQD ;EP - return med/qty/days formatted
+ NEW P,X,Q,D
+ S APCLPCNT=0
+ S P=0 F  S P=$O(^AUPNVMED("AD",APCLVIEN,P)) Q:P'=+P  D
+ .S APCLPRNT="",X=""
+ .S X=$$RBLK^APCLUTL($E($$VAL^XBDIQ1(9000010.14,P,.01),1,30),30)
+ .S Q=$$RBLK^APCLUTL("  Qty: "_$P(^AUPNVMED(P,0),U,6),13)
+ .S D="  Days: "_$P(^AUPNVMED(P,0),U,7)
+ .S APCLPCNT=APCLPCNT+1
+ .S APCLPRNM(APCLPCNT)=X_Q_D
+ .S APCLPRNM(APCLPCNT,"I")=$P(^AUPNVMED(P,0),U)
+ .Q
+ Q
+FAMHX ;EP - return FAMILY HISTORY AND RELATIONSHIP
+ NEW P,X,Q,D
+ S APCLPCNT=0
+ S P=0 F  S P=$O(^AUPNFH("AC",DFN,P)) Q:P'=+P  D
+ .S APCLPRNT="",X=""
+ .S X=$$VAL^XBDIQ1(9000014,P,.01)
+ .S Q=$$VAL^XBDIQ1(9000014,P,.09)
+ .S APCLPCNT=APCLPCNT+1
+ .S APCLPRNM(APCLPCNT)=Q_" "_$$VAL^XBDIQ1(9000014.1,$P(^AUPNFH(P,0),U,9),.03)_"; "_X
+ .;S APCLPRNM(APCLPCNT,"I")=$P(^AUPNVMED(P,0),U)
+ .Q
+ Q
+FAMHXP ;EP - return FAMILY HISTORY DESCRIPTION
+ NEW P,X,Q,D
+ S APCLPCNT=0
+ S P=0 F  S P=$O(^AUPNFH("AC",DFN,P)) Q:P'=+P  D
+ .S APCLPRNT="",X=""
+ .S X=$$VAL^XBDIQ1(9000014,P,.01)
+ .S Q=$$VAL^XBDIQ1(9000014,P,.09)
+ .S APCLPCNT=APCLPCNT+1
+ .S APCLPRNM(APCLPCNT)=Q_" "_$$VAL^XBDIQ1(9000014.1,$P(^AUPNFH(P,0),U,9),.03)_"; "_X_"; "_$$VAL^XBDIQ1(9000014,P,.04)_"; Age at Onset: "_$$VAL^XBDIQ1(9000014,P,.11)
+ .;S APCLPRNM(APCLPCNT,"I")=$P(^AUPNVMED(P,0),U)
+ .Q
+ Q
+ALLCPTS(V,RETVAL) ;EP - return in array RETVAL all cpts ien of visit V - used in VGEN
+ NEW A,B,C,D
+ S C=0
+ ;V CPT
+ S A=0 F  S A=$O(^AUPNVCPT("AD",V,A)) Q:A'=+A  I $P($G(^AUPNVCPT(A,0)),U) S RETVAL($P(^AUPNVCPT(A,0),U))=""
+ ;V PROCEDURE
+ S A=0 F  S A=$O(^AUPNVPRC("AD",V,A)) Q:A'=+A  I $P($G(^AUPNVPRC(A,0)),U,16) S RETVAL($P(^AUPNVPRC(A,0),U,16))=""
+ ;VISIT E&M
+ S A=$P(^AUPNVSIT(V,0),U,17) I A S RETVAL(A)=""
+ ;V TRAN CODES
+ S A=0 F  S A=$O(^AUPNVTC("AD",V,A)) Q:A'=+A  I $P($G(^AUPNVTC(A,0)),U,7) S RETVAL($P(^AUPNVTC(A,0),U,7))=""
+ ;V PAT ED
+ S A=0 F  S A=$O(^AUPNVPED("AD",APCLVIEN,A)) Q:A'=+A  I $P($G(^AUPNVPED(A,0)),U,9) S X($P(^AUPNVPED(A,0),U,9))=""
+ Q
+ALLCPTSP(V,RETVAL) ;EP - return in array RETVAL all cpts ien of visit V - used in VGEN
+ NEW A,B,C,D
+ S C=0
+ ;V CPT
+ S A=0 F  S A=$O(^AUPNVCPT("AD",V,A)) Q:A'=+A  S Z=$P($G(^AUPNVCPT(A,0)),U) I Z S C=C+1,RETVAL(C)=$$VAL^XBDIQ1(9000010.18,A,.01),RETVAL(C,"I")=Z
+ ;V PROCEDURE
+ S A=0 F  S A=$O(^AUPNVPRC("AD",V,A)) Q:A'=+A  S Z=$P($G(^AUPNVPRC(A,0)),U,16) I Z S C=C+1,RETVAL(C)=$$VAL^XBDIQ1(9000010.08,A,.16),RETVAL(C,"I")=Z
+ ;VISIT E&M
+ S A=$P(^AUPNVSIT(V,0),U,17) I A S C=C+1,RETVAL(C)=$$VAL^XBDIQ1(9000010,A,.17),RETVAL(C,"I")=A
+ ;V TRAN CODES
+ S A=0 F  S A=$O(^AUPNVTC("AD",V,A)) Q:A'=+A  S Z=$$VALI^XBDIQ1(9000010.33,A,.07) I Z S C=C+1,RETVAL(C)=$$VAL^XBDIQ1(9000010.33,A,.07),RETVAL(C,"I")=Z
+ ;V PAT ED
+ S A=0 F  S A=$O(^AUPNVPED("AD",APCLVIEN,A)) Q:A'=+A  S Z=$$VALI^XBDIQ1(9000010.16,A,.09) I Z S C=C+1,RETVAL(C)=$$VAL^XBDIQ1(9000010.16,A,.09),RETVAL(C,"I")=Z
+ Q
+PMEAS ;
+ NEW APCLX
+ S APCLX=0 F  S APCLX=$O(^AUPNVMSR("AD",APCLVIEN,APCLX)) Q:APCLX'=+APCLX  D
+ .Q:$P($G(^AUPNVMSR(APCLX,2)),U)
+ .S APCLPRNT=$$VAL^XBDIQ1(9000010.01,APCLX,.01)
+ .S APCLPCNT=APCLPCNT+1
+ .S APCLPRNM(APCLPCNT)=APCLPRNT_"  "_$P(^AUPNVMSR(APCLX,0),U,4)
+ .S APCLPRNM(APCLPCNT,"I")=$P(^AUPNVMSR(APCLX,0),U)
+ .Q
+ Q

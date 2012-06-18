@@ -1,0 +1,39 @@
+ATXTDL ; IHS/OHPRD/TMJ -  DELETES PATIENT LIST AND TAXONOMY ENTRY IN PT TAXONOMY FLE ; 
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ; ACC 1/24/94 added set and kill of ATXDEL, which were missing
+ ;
+ S U="^"
+ ;SINCE A DELETE NODE FOR THE TAXONOMY FILE CHECKS $D(ATXDEL)
+ S ATXDEL="" ;ACC 1/24/94
+ F ATXL=0:0 D START Q:ATXSTP
+ D EOJ
+ Q
+ ;
+START ;
+ D ASK Q:ATXSTP
+ Q
+ ;
+ASK ;
+ S ATXSTP=0
+ S DIC="^ATXPAT(",DIC(0)="AEMQ",DIC("DR")="",DIC("S")="I $P(^(0),U,3)=DUZ&($P(^ATXAX(Y,0),U,4)="""")" D ^DIC K DIC
+ I Y<1 S ATXSTP=1 Q
+ I $D(^TMP("ATXTAX",+Y)) W !,$C(7),"This taxonomy now",^(+Y)," Try later.",! G ASK
+ W !,$C(7),"Are you sure you want to delete the patient list for this taxonomy" S %=1 D YN^DICN
+ I %=1 S ATXX=+Y,ATXQT="" D CALLDIK
+ I %=2 Q
+ I %=0 G ASK
+ I %=-1 S ATXSTP=1 Q
+ Q
+ ;
+CALLDIK ;DELETES TAXONOMY FROM PT TAXONOMY FILE, DELETES TAX START DATE FOR PT LIST
+ ;TO ALLOW PATIENTS TO BE RENTERED AGAIN
+ S DIK="^ATXPAT(",DA=ATXX D ^DIK K DIK,DA
+ S DIE="^ATXAX(",DA=ATXX,DR=".06///@" D ^DIE K DIE,DR,DA
+ W !,"Done!",!
+ Q
+ ;
+EOJ ;
+ K ATXL,ATXSTP,ATXX,ATXQT
+ K ATXDEL ;ACC 1/24/94
+ Q
+ ;

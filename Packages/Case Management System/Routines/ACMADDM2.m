@@ -1,0 +1,184 @@
+ACMADDM2 ; IHS/TUCSON/TMJ - CONTINUATION OF ADD IHS PRE-DIABETES REGISTER ; [ 10/17/05  11:49 AM ]
+ ;;2.0;ACM CASE MANAGEMENT SYSTEM;*6*;JAN 10, 1996
+ ;This routine allows the user to convert existing Pre-Diabetes Register data
+ ;to IHS standard data.
+ ;IHS/CMI/TMJ - PATCH #6 - INSTALL NEW PRE-DIABETES REGISTER
+ ;ROUTINE IS CALLED FROM ACMADDMP AND ENTERED VIA TAG CDIAG OR CCOMP
+ ;OR CRISK OR CDXCR - DX - COMPLICATIONS - RISK FACTORS - DX CRITERIA
+ Q
+ ;
+CDIAG ;EP;CONVERTS USER DIAGNOSES TO IHS STANDARD DIAGNOSES
+ W !,"I will now check your patient's diagnoses against the IHS standards:"
+SETD ;FINDS STANDARD DIAGNOSIS AND PUT IN ^TMP($J,"STD"   
+ K ACME S (ACMDIR,ACME)="" F I=1:1 S ACME=$T(DIAG+I^ACMRGA02) Q:ACME["*"  S ACME=$P(ACME,";;",3),ACMD="",ACMD=$O(^ACM(44.1,"B",ACME,ACMD)),^TMP($J,"STD",ACMD)=ACME,ACMDIR=ACMDIR_I_":"_ACME_";"
+ S ACMDIR=ACMDIR_I_":DELETE ENTIRELY;"
+ S ACMDIR=ACMDIR_(I+1)_":LEAVE AS IS"
+ ;
+FINDD ;FINDS REGISTER DIAGNOSIS AND PUT IN ^TMP($J,"REG"
+ S ACME="" F I=1:1 S ACME=$O(^ACM(44,"E",ACMRG,ACME)) Q:ACME=""  S ACMD=$P(^ACM(44,ACME,0),U,1) I '$D(^TMP($J,"STD",ACMD)) S:'$D(^TMP($J,"REG",ACMD)) ^TMP($J,"REG",ACMD)="" S ^TMP($J,"REG",ACMD,ACME)=ACME_U_ACMD_U_$P(^ACM(44.1,ACMD,0),U,1)
+ S ACMD="",ACMQ=0 F  S ACMD=$O(^TMP($J,"REG",ACMD)) Q:ACMD=""  D MATCHD Q:ACMQ
+ Q:ACMQ
+ D:$D(^TMP($J,"REG")) DIRYND
+ D END
+ Q
+DIRYND S DIR(0)="YO",DIR("A")="Are you ready to change your patient's diagnoses to the new diagnoses",DIR("B")="YES"
+ W ! D ^DIR K DIR Q:Y=0!(Y["^")  I Y=1 D CHGD
+ Q
+CHGD ;LOOPS AND CHANGES DIAGNOSES TO NEW VALUES
+ W !,"Changing diagnosis..." S ACMD="" F  S ACMD=$O(^TMP($J,"REG",ACMD)) Q:ACMD=""  D CHGD1
+ Q
+CHGD1 Q:^TMP($J,"REG",ACMD)="LEAVE AS IS"
+ I ^TMP($J,"REG",ACMD)="DELETE ENTIRELY" D CHGDD Q
+ S ACME="" F  S ACME=$O(^TMP($J,"REG",ACMD,ACME)) Q:ACME=""  S DIE="^ACM(44,",DA=ACME,DR=".01///^S X=^TMP($J,""REG"",ACMD);.04///^S X=ACMRG" D ^DIE K DA,DR W "."
+ K ^ACM(44,"AC") S DIK="^ACM(44,",DIK(1)=".04^AC" D ENALL^DIK K DIK
+ Q
+ ;
+CHGDD ;
+ S ACMX=0 F  S ACMX=$O(^ACM(44,"B",ACMD,ACMX)) Q:+ACMX=0  S DA=ACMX,DIK="^ACM(44," D ^DIK K DIK,DA W "."
+ S DIK="^ACM(44.1,"_ACMD_",""RG"",",DA(1)=ACMD,DA=ACMRG D ^DIK K DA,DA(1),DIK
+ I '$D(^ACM(44.1,ACMD,"RG","B")) S DIK="^ACM(44.1,",DA=ACMD D ^DIK K DA,DIK
+ Q
+MATCHD ;
+ W !,"Choose a new diagnosis from the list below:",!
+ W !,"for your diagnosis:  ",$P(^ACM(44.1,ACMD,0),U,1)
+ S DIR(0)="S^"_ACMDIR,DIR("A")="Choose a Diagnosis: " D ^DIR
+ I Y="" S ^TMP($J,"REG",ACMD)="LEAVE AS IS" Q
+ I Y["^" S ACMQ=1 Q
+ S ^TMP($J,"REG",ACMD)=Y(0) Q
+ Q
+ ;
+CCOMP ;EP;CONVERTS USER COMPLICATIONS TO IHS STANDARD COMPLICATIONS
+ W !,"I will now check your patient's complications against the IHS standards:"
+ ;
+SETC ;FINDS STANDARD COMPLICATIONS AND PUT IN ^TMP($J,"STD"   
+ K ACME S (ACMDIR,ACME)="" F I=1:1 S ACME=$T(COMP+I^ACMRGA02) Q:ACME["*"  S ACME=$P(ACME,";;",3),ACMD="",ACMD=$O(^ACM(42.1,"B",ACME,ACMD)),^TMP($J,"STD",ACMD)=ACME,ACMDIR=ACMDIR_I_":"_ACME_";"
+ S ACMDIR=ACMDIR_I_":DELETE ENTIRELY;"
+ S ACMDIR=ACMDIR_(I+1)_":LEAVE AS IS"
+ ;
+FINDC ;FINDS REGISTER COMPLICATION AND PUT IN ^TMP($J,"REG"
+ S ACME="" F I=1:1 S ACME=$O(^ACM(42,"E",ACMRG,ACME)) Q:ACME=""  S ACMD=$P(^ACM(42,ACME,0),U,1) I '$D(^TMP($J,"STD",ACMD)) S:'$D(^TMP($J,"REG",ACMD)) ^TMP($J,"REG",ACMD)="" S ^TMP($J,"REG",ACMD,ACME)=ACME_U_ACMD_U_$P(^ACM(42.1,ACMD,0),U,1)
+ S ACMD="",ACMQ=0 F  S ACMD=$O(^TMP($J,"REG",ACMD)) Q:ACMD=""  D MATCHC Q:ACMQ
+ Q:ACMQ
+ D:$D(^TMP($J,"REG")) DIRYNC
+ D END
+ Q
+DIRYNC S DIR(0)="YO",DIR("A")="Are you ready to change your patient's complications to the new complications",DIR("B")="YES"
+ W ! D ^DIR K DIR Q:Y=0!(Y["^")  I Y=1 D CHGC
+ Q
+ ;
+CHGC ;LOOPS AND CHANGES COMPLICATIONS TO NEW VALUES
+ W !,"Changing complication..." S ACMD="" F  S ACMD=$O(^TMP($J,"REG",ACMD)) Q:ACMD=""  D CHGC1
+ Q
+CHGC1 Q:^TMP($J,"REG",ACMD)="LEAVE AS IS"
+ I ^TMP($J,"REG",ACMD)="DELETE ENTIRELY" D CHGCD Q
+ S ACME="" F  S ACME=$O(^TMP($J,"REG",ACMD,ACME)) Q:ACME=""  S DIE="^ACM(42,",DA=ACME,DR=".01///^S X=^TMP($J,""REG"",ACMD);.04///^S X=ACMRG" D ^DIE K DA,DR W "."
+ K ^ACM(42,"AC") S DIK="^ACM(42,",DIK(1)=".04^AC" D ENALL^DIK K DIK
+ Q
+ ;
+CHGCD ;
+ S ACMX=0 F  S ACMX=$O(^ACM(42,"B",ACMD,ACMX)) Q:+ACMX=0  S DA=ACMX,DIK="^ACM(42," D ^DIK K DIK,DA W "."
+ S DIK="^ACM(42.1,"_ACMD_",""RG"",",DA(1)=ACMD,DA=ACMRG D ^DIK K DA,DA(1),DIK
+ I '$D(^ACM(42.1,ACMD,"RG","B")) S DIK="^ACM(42.1,",DA=ACMD D ^DIK K DA,DIK
+ Q
+MATCHC ;MATCHES COMPLICATION TO STD
+ W !,"Choose a new complication from the list below:",!
+ W !,"for your complication:  ",$P(^ACM(42.1,ACMD,0),U,1)
+ S DIR(0)="S^"_ACMDIR,DIR("A")="Choose a Complication: " D ^DIR
+ I Y="" S ^TMP($J,"REG",ACMD)="LEAVE AS IS" Q
+ I Y["^" S ACMQ=1 Q
+ S ^TMP($J,"REG",ACMD)=Y(0) Q
+ Q
+ ;
+ ;
+CRISK ;EP;FINDS STANDARD RISK FACTORS AND PUT IN ^TMP($J,"STD"
+ W !,"I will now check your patient's Risk Factors against the IHS standards:"
+ ;
+ ;
+SETR ;FINDS THE STANDARDS AND PUTS IN ^TMP($J,"STD"
+ K ACME S (ACMDIR,ACME)="" F I=1:1 S ACME=$T(RISK+I^ACMRGA02) Q:ACME["*"  S ACME=$P(ACME,";;",3),ACMD="",ACMD=$O(^ACM(45.1,"B",ACME,ACMD)),^TMP($J,"STD",ACMD)=ACME,ACMDIR=ACMDIR_I_":"_ACME_";"
+ S ACMDIR=ACMDIR_I_":DELETE ENTIRELY;"
+ S ACMDIR=ACMDIR_(I+1)_":LEAVE AS IS"
+ ;
+FINDR ;
+ S ACME="" F I=1:1 S ACME=$O(^ACM(45,"E",ACMRG,ACME)) Q:ACME=""  S ACMD=$P(^ACM(45,ACME,0),U,1) I '$D(^TMP($J,"STD",ACMD)) S:'$D(^TMP($J,"REG",ACMD)) ^TMP($J,"REG",ACMD)="" S ^TMP($J,"REG",ACMD,ACME)=ACME_U_ACMD_U_$P(^ACM(45.1,ACMD,0),U,1)
+ S ACMD="",ACMQ=0 F  S ACMD=$O(^TMP($J,"REG",ACMD)) Q:ACMD=""  D MATCHR Q:ACMQ
+ Q:ACMQ
+ D:$D(^TMP($J,"REG")) DIRYNR
+ D END
+ Q
+ ;
+DIRYNR S DIR(0)="YO",DIR("A")="Are you ready to change your patient's Risk Factors to the new Risk Factors",DIR("B")="YES"
+ W ! D ^DIR K DIR Q:Y=0!(Y["^")  I Y=1 D CHGR
+ Q
+CHGR ;
+ W !,"Changing Risk Factors..." S ACMD="" F  S ACMD=$O(^TMP($J,"REG",ACMD)) Q:ACMD=""  D CHGR1
+ Q
+ ;
+CHGR1 Q:^TMP($J,"REG",ACMD)="LEAVE AS IS"
+ I ^TMP($J,"REG",ACMD)="DELETE ENTIRELY" D CHGRD Q
+ S ACME="" F  S ACME=$O(^TMP($J,"REG",ACMD,ACME)) Q:ACME=""  S DIE="^ACM(45,",DA=ACME,DR=".01///^S X=^TMP($J,""REG"",ACMD);.04///^S X=ACMRG" D ^DIE K DA,DR W "."
+ K ^ACM(45,"AC") S DIK="^ACM(45,",DIK(1)=".04^AC" D ENALL^DIK K DIK
+ Q
+ ;
+CHGRD ;
+ S ACMX=0 F  S ACMX=$O(^ACM(45,"B",ACMD,ACMX)) Q:+ACMX=0  S DA=ACMX,DIK="^ACM(45," D ^DIK K DIK,DA W "."
+ S DIK="^ACM(45.1,"_ACMD_",""RG"",",DA(1)=ACMD,DA=ACMRG D ^DIK K DA,DA(1),DIK
+ I '$D(^ACM(45.1,ACMD,"RG","B")) S DIK="^ACM(45.1,",DA=ACMD D ^DIK K DA,DIK
+ Q
+ ;
+MATCHR ;
+ W !,"Choose a new Risk Factor from the list below:",!
+ W !,"for your Risk Factor:  ",$P(^ACM(45.1,ACMD,0),U,1)
+ S DIR(0)="S^"_ACMDIR,DIR("A")="Choose a Risk Factor: " D ^DIR
+ I Y="" S ^TMP($J,"REG",ACMD)="LEAVE AS IS" Q
+ I Y["^" S ACMQ=1 Q
+ S ^TMP($J,"REG",ACMD)=Y(0) Q
+ Q
+ ;
+ ;
+CDXCR ;EP;CONVERT DIAGNOSTIC CRITERIA TO STANDARD
+ W !,"I will now check your patient's Diagnostic Criteria agains the IHS Standards:"
+ ;
+SETDC ;FINDS STANDARD DX CRITERIA AND PUT IN ^TMP($J,"STD"
+ K ACME S (ACMDIR,ACME)="" F I=1:1 S ACME=$T(DXCRIT+I^ACMRGA02) Q:ACME["*"  S ACME=$P(ACME,";;",3),ACMD="",ACMD=$O(^ACM(51.1,"B",ACME,ACMD)),^TMP($J,"STD",ACMD)=ACME,ACMDIR=ACMDIR_I_":"_ACME_";"
+ S ACMDIR=ACMDIR_I_":DELETE ENTIRELY;"
+ S ACMDIR=ACMDIR_(I+1)_":LEAVE AS IS"
+ ;
+FINDDC ;FINDS REGISTER DX CRIERIA AND PUT IN TMP($J,"REG"
+ S ACME="" F I=1:1 S ACME=$O(^ACM(51,"E",ACMRG,ACME)) Q:ACME=""  S ACMD=$P(^ACM(51,ACME,0),U,1) I '$D(^TMP($J,"STD",ACMD)) S:'$D(^TMP($J,"REG",ACMD)) ^TMP($J,"REG",ACMD)="" S ^TMP($J,"REG",ACMD,ACME)=ACME_U_ACMD_U_$P(^ACM(51.1,ACMD,0),U,1)
+ S ACMD="",ACMQ=0 F  S ACMD=$O(^TMP($J,"REG",ACMD)) Q:ACMD=""  D MATCHDC Q:ACMQ
+ Q:ACMQ
+ D:$D(^TMP($J,"REG")) DIRYNDC
+ D END
+ Q
+ ;
+DIRYNDC S DIR(0)="YO",DIR("A")="Are you ready to change your patient's Diagnostic Criteria to the new Standard",DIR("B")="YES"
+ W ! D ^DIR K DIR Q:Y=0!(Y["^")  I Y=1 D CHGDC
+ Q
+CHGDC ;LOOPS & CHANGES DX CRITERIA TO NEW VALUES
+ W !,"Changing Diagnostic Criteria..." S ACMD="" F  S ACMD=$O(^TMP($J,"REG",ACMD)) Q:ACMD=""  D CHGDC1
+ Q
+ ;
+CHGDC1 Q:^TMP($J,"REG",ACMD)="LEAVE AS IS"
+ I ^TMP($J,"REG",ACMD)="DELETE ENTIRELY" D CHGDCD Q
+ S ACME="" F  S ACME=$O(^TMP($J,"REG",ACMD,ACME)) Q:ACME=""  S DIE="^ACM(51,",DA=ACME,DR=".01///^S X=^TMP($J,""REG"",ACMD);.04///^S X=ACMRG" D ^DIE K DA,DR W "."
+ K ^ACM(51,"AC") S DIK="^ACM(51,",DIK(1)=".04^AC" D ENALL^DIK K DIK
+ Q
+ ;
+CHGDCD ;
+ S ACMX=0 F  S ACMX=$O(^ACM(51,"B",ACMD,ACMX)) Q:+ACMX=0  S DA=ACMX,DIK="^ACM(51," D ^DIK K DIK,DA W "."
+ S DIK="^ACM(51.1,"_ACMD_",""RG"",",DA(1)=ACMD,DA=ACMRG D ^DIK K DA,DA(1),DIK
+ I '$D(^ACM(51.1,ACMD,"RG","B")) S DIK="^ACM(51.1,",DA=ACMD D ^DIK K DA,DIK
+ Q
+ ;
+MATCHDC ;
+ W !,"Choose a new Diagnostic Criteria from the list below:",!
+ W !,"for your Diagnostic Criteria:  ",$P(^ACM(51.1,ACMD,0),U,1)
+ S DIR(0)="S^"_ACMDIR,DIR("A")="Choose a Diagnostic Criteria: " D ^DIR
+ I Y="" S ^TMP($J,"REG",ACMD)="LEAVE AS IS" Q
+ I Y["^" S ACMQ=1 Q
+ S ^TMP($J,"REG",ACMD)=Y(0) Q
+ Q
+END ;CLEANUP IHS/OHPRD/TMJ Patch #1 - Removed Kill ACMQ
+ K ^TMP($J,"REG"),^TMP($J,"STD"),ACMD,ACMDIR,ACME,DA,DIE,DIR,DR,I
+ Q

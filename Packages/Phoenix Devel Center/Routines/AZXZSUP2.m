@@ -1,0 +1,66 @@
+AZXZSUP2 ;SUPPORT DATABASE PROGRAM [ 05/01/95   1:25 PM ]
+ ;04/10/92   JOHN H. LYNCH
+ ;
+ ;THIS ROUTINE WILL ALLOW A USER TO UPDATE
+ ;THE STATUS OF ALL SUPPORT CALLS CURRENTLY
+ ;STORED IN THE SUBBDB DATABASE.
+ 
+MAIN ;AZXZSUP2 PROGRAM CONTROL
+ ;SET LOCAL VARIABLES
+ S DIC="^DIZ(1991012,"   ;SET LOOK-UP FILE NUMBER
+ D EDIT
+ K DIC,DIE("NO^"),DIE,INUM,SNUM,PIEC,DA,DR,YN
+ Q
+ 
+EDIT ;EDIT SUPPORT CALLS STATUS
+ ;SET LOCAL VARIABLES
+ S DIE("NO^")="NO JUMPING/EXIT" ;KEEP THEM FROM JUMPING OR EXITING
+ S DIE="1991012"  ;1991012 = ^SUPPDB (DATABASE GLOBAL)
+ 
+ ;CLEAR SCREEN
+ W @IOF
+ 
+ W !!!,"One moment please..."
+ W !!!!  H 1
+ 
+EDITNUM ;Select SUPPORT NUMBER to EDIT:  SUB-ROUTINE
+ ;SET LOCAL VARIABLES
+ S INUM=$P(^DIZ(DIE,0),U,3) ;INUM = CURRENT INTERNAL NUMBER
+ 
+ R !,"Select Support Number to Edit: ",SNUM
+ 
+ 
+ ;IF "^" OR "" QUIT AND RETURN TO MAINMENU
+ I (SNUM="^")!(SNUM="")  Q
+ 
+ ;IF "?" GIVE HELP AND RETURN TO EDITNUM SUB-ROUTINE
+ I SNUM="?" W !!,"Please enter your Support Log Number to EDIT.",! G EDITNUM
+ 
+ ;USER IS TRYING TO ENTER A NUMBER OUT OF SEQUENCE
+ I SNUM>INUM  W !!,"Support Number, ",SNUM," does not exist" H 3 G EDIT
+ ;CHECK TO SEE IF SUPPORT NUMBER HAS ALREADY BEEN DELETED
+ S PIEC=0
+ I '$O(^DIZ(DIE,"B",SNUM,PIEC)) W !!,"Support Number, ",SNUM,", has already been deleted!",! H 3 G EDITNUM
+ 
+ W @IOF                           ;CLEAR SCREEN
+ S DA=SNUM
+ S DR=".01;.05;1;4:7"             ;SET SUBSCRIPTS TO BE VIEWED
+ L ^DIZ(DIE,DA):0 I '$T W !!,"Record has been locked, try again later!" H 3 G EDITNUM
+ D EN^DIQ                         ;DO DATA DISPLAY OF SUPPORT NUMBER
+ 
+ W !!,"Do you want to continue to edit Support Number, ",SNUM,"? N//"
+ R YN
+ 
+ I YN'="Y"  L  G MAIN             ;IF NOT "Y" UNLOCK RECORD/GOTO EDIT
+ 
+ W @IOF                           ;CLEAR SCREEN
+ W !!,"Editing Support Number, ",DA,!!
+ S DR=".01///^S X=DA;4;6.5;7"     ;DR - STUFF .01(SUPPORT NUMBER)
+ ;CALL FILEMAN TO EDIT STATUS OF ^SUPPDB (DATABASE GLOBAL)
+ D ^DIE L  
+ 
+ W !!!!
+ R !,"Do you want to continue with Enter/Edit? Y// ",YN
+ 
+ I (YN="Y")!(YN="") G EDIT  ;STAY IN EDIT SUB-ROUNTINE
+ Q                           ;OTHERWISE RETURN TO MAINMENU

@@ -1,0 +1,141 @@
+ACHSEOBZ ; IHS/ITSC/TPF/PMF - PROCESS EOBRS (5/6) - UPDATE DOCUMENT(2/2) ;  
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**18**;JUN 11, 2001
+ ;
+ ;
+CPTREV ;EP - Process EOBR CPT / REVENUE / ADA codes.
+ N ACHSX,ACHSY,ACHSDIC
+ S ACHS=0
+C1 ;
+ S ACHS=$O(^TMP("ACHSEOB",$J,"F",ACHS))
+ Q:'ACHS
+ S ACHSMRCA="" ; NO WARNING MESSAGE FOR REV/CPT/ADA YET
+ S ACHSEOBR("F")=$G(^TMP("ACHSEOB",$J,"F",ACHS))
+ S ACHSX=$E(ACHSEOBR("F"),39,43)              ;PROCEDURE CODE
+ S ACHSX=$$STRIP^XLFSTR(ACHSX," ")
+ ;
+ ;IF LENGTH IS 5 ASSUME 'CPT' FILE GLOBAL ^ICPT(
+ ;IF LENGTH IS 4 ASSUME 'ADA CODE' FILE GLOBAL ^AUTTADA(
+ ;IF LENGTH IS 3 ASSUME 'REVENUE CODES' FILE GLOBAL ^AUTTREVN(
+ ;OTHERWISE ASSUME A GLOBAL DON'T LOOK FOR SPECIAL LOOKUP
+ S X=$S($L(ACHSX)=5:81,$L(ACHSX)=4:9999999.31,$L(ACHSX)=3:9999999.72,1:""),DIC(0)="M"
+ I X]"" S X=$G(^DD(X,0,"DIC"))      ;IS THERE A SPECIAL LOOKUP PROGRAM?
+ I X]"" X ^%ZOSF("TEST") E  S DIC(0)="IM"  ;CHECK TO SEE IF RTN EXISTS
+ ;
+ S DIC=$S($L(ACHSX)=5:"^ICPT(",$L(ACHSX)=4:"^AUTTADA(",1:"^AUTTREVN(")
+ ;
+ S X=ACHSX I $E(X,1)?1A S X="~"_X
+ ; 
+ I $L(ACHSX)=5 S Y=$P($$CPT^ICPTCOD(ACHSX),U,1,2) G C2     ;ACHS*3.1*18 IHS.OIT.FCJ CSV CHANGES
+ D ^DIC
+ ;
+C2 ;ACHS*3.1*18 NEW LINE
+ S ACHSY=Y
+ S ACHSDIC=DIC
+ ;
+ ;IF FOUND IN TABLE THEN ADD TO DOCUMENT FILE
+ I +Y>0 D DOCUMENT(ACHSX,ACHSY,ACHSDIC) G C1
+ ;
+ G REV:$L(ACHSX)=3    ;ADD REVENUE CODE
+ G ADA:$L(ACHSX)=4    ;ADD ADA CODE
+ G CPT                ;ADD CPT CODE
+ ;
+REV ; Add missing Revenue Code.
+ S ACHSERRE=19
+ S ACHSEDAT=ACHSX
+ D ^ACHSEOBG
+ S DIC=ACHSDIC
+ S X="PT CONVENCE/OTH"
+ D ^DIC
+ S ACHSMRCA="WARNING: REV["_ACHSEDAT_"] FAILED, USING["_X_"]"
+ D DOCUMENT(X,Y,DIC)
+ G C1
+ ;
+ADA ; Add missing ADA code.
+ S ACHSERRE=33
+ S ACHSEDAT=ACHSX
+ D ^ACHSEOBG         ;ERROR MESSAGE STUFF
+ S DIC=ACHSDIC
+ S X="UNSPECIFIED TREATMENT"
+ D ^DIC
+ S ACHSMRCA="WARNING: ADA["_ACHSEDAT_"] FAILED, USING["_X_"]"
+ D DOCUMENT(X,Y,DIC)
+ G C1
+ ;
+CPT ; Add missing CPT code.
+ S ACHSERRE=18
+ S ACHSEDAT=ACHSX
+ D ^ACHSEOBG
+ S DIC=ACHSDIC
+ S X="UNCODED"
+ S DIC(0)="MI"
+ D ^DIC
+ S DIC(0)="M"
+ S ACHSMRCA="WARNING: CPT["_ACHSEDAT_"] FAILED, USING["_X_"]"
+ D DOCUMENT(X,Y,DIC)
+ G C1
+ ;
+DOCUMENT(ACHSX,ACHSY,ACHSDIC) ; Add EOBR info to CPT/REV/ADA multiple in DOCUMENT multiple.
+ ;
+ N ACHSDR,ACHSFDA,I,DR,ACHSTMP
+ ;
+ D REC2^ACHSEOBB(ACHSEOBR("F"),.ACHSEOBR) ; set new "F" in array
+ S ACHSDR(1)=ACHSEOBR("F",8)-17000000 ; DOS to
+ S ACHSDR(2)=ACHSEOBR("F",9)-17000000 ; DOS from
+ S ACHSDR(3)=+ACHSEOBR("F",11) ; Unit #
+ S ACHSDR(4)=+$E(ACHSEOBR("F",12),1,7)_"."_$E(ACHSEOBR("F",12),8,9) ; Charges billed
+ S ACHSDR(5)=+$E(ACHSEOBR("F",13),1,7)_"."_$E(ACHSEOBR("F",13),8,9) ; Charges allowable
+ S (ACHSMSG,ACHSDR(6))=$P(ACHSEOBR("F",14)," ") ; Message
+ S ACHSDR(7)=$P(ACHSEOBR("F",15)," ") ; Tooth number
+ S ACHSDR(8)=$P(ACHSEOBR("F",16)," ") ; Tooth surface
+ S ACHSDR(10)=ACHSTDA ;EOBR transaction number
+ ;
+CK ; Following code creates DR and tmp string that will resemble what
+ ; will be in the document file before it is set
+ ; This allows a check against the file itself for possible duplicates
+ ; If it does find a duplicate, it sets error code and quits
+ S I=0,DR="",ACHSTMP=U
+ F  S I=$O(ACHSDR(I)) Q:I=""  D
+ .S:DR'="" DR=DR_";"
+ .S DR=DR_I_"////"_ACHSDR(I),ACHSTMP=ACHSTMP_U_ACHSDR(I)
+ ;Set achsdr=to entire data string for comparison
+ K ACHSDR S ACHSDR=+ACHSY_";"_$P($P(ACHSDIC,"("),U,2)_"("_ACHSTMP
+ S I=0 F  S I=$O(^ACHSF(DUZ(2),"D",ACHSDIEN,11,I)) Q:'I  D
+ .I $P(ACHSDR,1,U,6)=$P(^ACHSF(DUZ(2),"D",ACHSDIEN,11,I,0),U,1,6) D  Q
+ ..S ACHSERRE=8,ACHSEDAT=DR D ^ACHSEOBG Q
+ Q:$G(ACHSERRE)=8  ; Do not set duplicate transactions
+ D SET
+ Q
+ ;
+SET ;Check/create zero/.01 nodes X/Y set in C1,REV,ADA or CPT
+ N X,Y,DIC,DA,ACHSDICP
+ S X=$P(ACHSDR,U,1),DIC(0)="",DA(1)=ACHSDIEN,DA(2)=DUZ(2)
+ S DIC="^ACHSF("_DA(2)_","_"""D"""_","_DA(1)_",11,"
+ S (ACHSDICP,DIC("P"))=$P(^DD(9002080.01,97,0),U,2)
+ K DO,DD D FILE^DICN
+ I Y<1 S ACHSERRE=$S(+ACHSX>999:18,1:19),ACHSEDAT=ACHSX D ^ACHSEOBG Q
+ S (ACHSDA,DA)=+Y ;Save da for use in msgset
+ S DIE=DIC
+ D ^DIE
+ I $G(Y)]"" D
+ .S ACHSERRE=$S(ACHSDIC["CPT":18,ACHSDIC["ADA":33,1:19)
+ .S ACHSEDAT=ACHSX D ^ACHSEOBG
+ D:ACHSMRCA]"" MSGSET(ACHSMRCA) ;Special error message text
+ D:ACHSMSG]"" NEXT,MSGSET(ACHSMSG) ; Message from FI
+ Q
+MSGSET(X) ; Set message node
+ Q:X=""  ; ACHSMSG can be reset in NEXT
+ S DIC(0)="",DA(2)=ACHSDIEN,DA(3)=DUZ(2),DA(1)=ACHSDA
+ S DIC="^ACHSF("_DA(3)_","_"""D"""_","_DA(2)_",11,"_DA(1)_",1,"
+ S (ACHSDICP,DIC("P"))=$P(^DD(9002080.197,9,0),U,2)
+ K DO,DD D FILE^DICN
+ I Y<1 S ACHSERRE=$S(+ACHSX>999:18,1:19),ACHSEDAT=ACHSX D ^ACHSEOBG Q
+ Q
+ ;
+NEXT ;Prepare for messages 
+ N ACHSX
+ F ACHSX=1:2 Q:'$D(^TMP("ACHSEOB",$J,"G",ACHSX))  D
+ .S ACHSEOBR("G")=$G(^TMP("ACHSEOB",$J,"G",ACHSX))
+ .I ACHSMSG=$E(ACHSEOBR("G"),1,4) D
+ ..S ACHSMSG=ACHSMSG_" -"_$E(ACHSEOBR("G"),5,99)
+ S:ACHSMSG'["-" ACHSMSG="" ; No special message in G record
+ Q

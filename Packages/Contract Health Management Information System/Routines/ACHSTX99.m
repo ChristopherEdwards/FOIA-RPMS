@@ -1,0 +1,53 @@
+ACHSTX99 ; IHS/ITSC/PMF - copy export records for examination   [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+ Q
+ ;
+ S DOLH=$G(DOLH) I DOLH="" S DOLH=$TR($H,",","_")
+ S PMFCOUNT=$G(PMFCOUNT)+1
+ ;
+ I $G(ACHSDOCR)="" Q
+ I $G(PMFF)="" S PMFF=$G(^ACHSDATA(ACHSRCT))
+ ;
+ I PMFF="" Q
+ ;
+ ;
+ S PMFDIEN=$G(ACHSDIEN)
+ ;
+ I PMFDIEN="" S PMFDIEN=$G(P)
+ I PMFDIEN="" S PMFDIEN=$G(R)
+ ;
+ ;for test
+ ;I PMFDIEN="" W !,"no dien" R G Q
+ ;
+ ;
+ S ^ACHSF(DUZ(2),"XPRT4",PMFDIEN,DOLH)=ACHSDOCR
+ S ^ACHSF(DUZ(2),"XPRT4",PMFDIEN,DOLH,PMFF)=""
+ ;
+ S SDA=$G(SDA) I SDA="" S SDA="??"
+ S ^ACHSF(DUZ(2),"XPRT8",PMFDIEN,SDA,DOLH,PMFCOUNT)=PMFF
+ ;
+ S PPMF=$E(PMFF)
+ S ^ACHSF(DUZ(2),"XPRT7",PMFDIEN,DOLH)=$G(^ACHSF(DUZ(2),"XPRT7",PMFDIEN,DOLH))+1
+ S ^ACHSF(DUZ(2),"XPRT7",PMFDIEN,DOLH,PPMF)=$G(^ACHSF(DUZ(2),"XPRT7",PMFDIEN,DOLH,PPMF))+1
+ ;
+ ;
+ K PMFF,PPMF,PMFDIEN
+ ;
+ Q
+ ;
+CLEAN ;
+ N A,B,C,FAC,KILLH
+ S KILLH=$H-7
+ S FAC=0 F  S FAC=$O(^ACHSF(FAC)) Q:FAC=""!'FAC  D
+ . S A="XPR" F  S A=$O(^ACHSF(FAC,A)) Q:A=""  Q:$E(A,1,3)'="XPR"  D
+ .. S B="" F  S B=$O(^ACHSF(FAC,A,B)) Q:B=""  D
+ ... I A="XPRT",+B<KILLH K ^ACHSF(FAC,A,B) Q
+ ... I A="XPRT" Q
+ ... S C="" F  S C=$O(^ACHSF(FAC,A,B,C)) Q:C=""  D
+ .... I +C<KILLH K ^ACHSF(FAC,A,B,C)
+ .... Q
+ ... Q
+ .. Q
+ . Q
+ Q

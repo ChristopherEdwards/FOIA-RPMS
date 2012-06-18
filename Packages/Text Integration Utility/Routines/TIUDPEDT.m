@@ -1,0 +1,10 @@
+TIUDPEDT ; SLC/JER - Document Parameter Edit ;2/19/93  16:15
+ ;;1.0;TEXT INTEGRATION UTILITIES;;Jun 20, 1997
+MAIN ; Controls branching
+ N DIC,DA,DIE,DR,DLAYGO,X,Y,DWPK,TIUFPRIV S TIUFPRIV=1
+ W !,"First edit Institution-wide parameters:",!
+ S (DIC,DLAYGO)=8925.95,DIC(0)="AEMQL",DIC("A")="Select DOCUMENT DEFINITION: "
+ D ^DIC K DLAYGO Q:+Y'>0  S DA=+Y
+ S DIE=8925.95,DR="[TIU DOCUMENT PARAMETER EDIT]"
+ D ^DIE
+ Q

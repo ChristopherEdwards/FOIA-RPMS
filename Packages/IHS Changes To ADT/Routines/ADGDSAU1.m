@@ -1,0 +1,79 @@
+ADGDSAU1 ; IHS/ADC/PDW/ENM - DAY SURGERY AUDIT REPORT PRINT ; [ 03/25/1999  11:48 AM ]
+ ;;5.0;ADMISSION/DISCHARGE/TRANSFER;;MAR 25, 1999
+ ;
+ ;***> initialize variables
+ S (AGE,DGPRC,DGCNT,DGLOS,DGOBS,DGADM,DGADWK,DGCAN,DGCHT)=""
+ S (DGDT,DGCCNT,DGWCNT,DGADCNT,DGACNT,DGNCNT,DGOCNT)=0
+ S DGFAC=$P(^DIC(4,DUZ(2),0),U),DGPAGE=0  ;facility name/page #
+ S DGDUZ=$P(^VA(200,DUZ,0),U,2)  ;user's initials
+ S (DGLIN,DGLIN1)="",$P(DGLIN,"=",132)="",$P(DGLIN1,"-",132)="" ;lines
+ S Y=DGBDT D DD^%DT S DGX=Y S Y=DGEDT-.2400 D DD^%DT S DGY=Y
+ S DGDTLIN="from "_DGX_" to "_DGY  ;date range line set
+ S X=132,DGZRM=IOM X ^%ZOSF("RM") D HEAD  ;set margin/print heading
+ ;
+ ;***> step thru sorted list then print
+A1 S DGDT=$O(^TMP("DGDSAU",$J,DGDT)) G TOTALS:DGDT="" S DGSRV=0
+A2 S DGSRV=$O(^TMP("DGDSAU",$J,DGDT,DGSRV)) G A1:DGSRV="" S DGNM=0
+A3 S DGNM=$O(^TMP("DGDSAU",$J,DGDT,DGSRV,DGNM)) G A2:DGNM="" S DFN=0
+A3A S DFN=$O(^TMP("DGDSAU",$J,DGDT,DGSRV,DGNM,DFN)) G A3:DFN="" S DGDFN1=0
+A4 S DGDFN1=$O(^TMP("DGDSAU",$J,DGDT,DGSRV,DGNM,DFN,DGDFN1)) G A3A:DGDFN1=""
+ ;
+ S DGSTR=^TMP("DGDSAU",$J,DGDT,DGSRV,DGNM,DFN,DGDFN1)
+ S DGCHT=$P(DGSTR,"^"),AGE=$P(DGSTR,"^",2)  ;chrt #/age
+ S DGPRC=$P(DGSTR,"^",3),DGLOS=$P(DGSTR,"^",4)  ;proc/length of stay
+ ;sent to observ?/admitted? directly?/admitted w/in a week?
+ S DGOBS=$P(DGSTR,"^",5),DGADM=$P(DGSTR,"^",6),DGADWK=$P(DGSTR,"^",7)
+ S:DGADM'="" DGADCNT=DGADCNT+1 S:DGADWK'="" DGWCNT=DGWCNT+1  ;counts
+ S:DGOBS>0 DGOCNT=DGOCNT+1 S DGCAN=$P(DGSTR,"^",8) ;obsv cnt/cancel?
+ S DGUNES=$P(DGSTR,"^",9),DGNS=$P(DGSTR,"^",10) ;unescorted?/no-show?
+ S DGCMT=$P(DGSTR,"^",11),DGCNT=DGCNT+1  ;comments/count
+ ;
+PRINT ;***> print line
+ W !,$E(DGDT,4,5)_"/"_$E(DGDT,6,7)_"/"_$E(DGDT,2,3),?11,$E(DGNM,1,20)
+ W ?34,DGCHT,?41,AGE,?46,$E(DGSRV,1,3),?52,$E(DGPRC,1,20)
+ W ?75,$J(DGLOS,5),?82,$J(DGOBS,5),?91,DGUNES
+ S:DGUNES="Y" DGACNT=DGACNT+1
+ W ?97,$S(+DGADM=DGADM:"Y",1:DGADM)
+ W:DGADWK'="" ?105,$E(DGADWK,4,5)_"/"_$E(DGADWK,6,7)
+ I DGCAN="Y" W ?114,"C" S DGCCNT=DGCCNT+1
+ I DGNS="Y" W ?114,"N" S DGNCNT=DGNCNT+1
+ W ?120,DGCMT
+ I $Y>(IOSL-8) D NEWPG G END:DGSTOP=U
+ G A4
+ ;
+ ;***> print totals
+TOTALS W !!,DGLIN1,!?5,"TOTAL PATIENTS:  ",DGCNT I $Y>(IOSL-9) D NEWPG
+ W !!?65,"TOTAL SENT TO OBS",?85,DGOCNT
+ W !?65,"TOTAL UNESCORTED",?90,DGACNT
+ W !?65,"TOTAL ADMITTED FROM DS",?99,DGADCNT
+ W !?65,"TOTAL ADMITTED W/IN WEEK",?106,DGWCNT
+ W !?65,"TOTAL CANCELLED",?114,DGCCNT
+ W !?65,"TOTAL NO-SHOWS",?114,DGNCNT
+ I IOST["C-" D
+ . K DIR S DIR(0)="E"
+ . S DIR("A")="End of Report; Press RETURN to continue" D ^DIR
+ ;
+END ;***> eoj
+ W @IOF S X=DGZRM X ^%ZOSF("RM") K DGZRM
+ D KILL^ADGUTIL D ^%ZISC Q
+ ;
+NEWPG ;***> subrtn for end of page control
+ I IOST'?1"C-".E D HEAD S DGSTOP="" Q
+ I DGPAGE>0 K DIR S DIR(0)="E" D ^DIR S DGSTOP=X
+ I DGSTOP'="^" D HEAD
+ Q
+ ;
+HEAD ;***> subrtn to print heading
+ I (IOST["C-")!(DGPAGE>0) W @IOF
+ S DGPAGE=DGPAGE+1
+ W ?37,"*****Confidential Patient Data Covered by Privacy Act*****",!
+ W DGDUZ,?132-$L(DGFAC)\2,DGFAC,?125,"Page ",DGPAGE
+ W ! D TIME^ADGUTIL W ?52,"DAY SURGERY AUDIT REPORT"
+ S Y=DT D DD^%DT W !,Y,?48,DGDTLIN
+ W !!?98,"ADMITTED",?112,"CANCEL"
+ W !,"SURGERY",?77,"LOS",?83,"OBSV",?96,"FROM",?104,"W/IN"
+ W ?113,"OR",?120,"POST-OP",!,"DATE",?11,"PATIENT",?34,"HRCN"
+ W ?41,"AGE",?47,"SRV",?52,"PROCEDURE",?77,"HRS",?83,"LOS"
+ W ?89,"UNESC",?97,"DS",?104,"WEEK",?112,"NOSHOW",?120,"COMMENTS"
+ W !,DGLIN,!! Q
+ Q

@@ -1,0 +1,116 @@
+FHINI0E8	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8900,2)
+	;;=.018
+	;;^UTILITY(U,$J,112,8900,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8901,0)
+	;;=BF,FRUIT,APPLESCE & BANANAS,BEECH-NUT STAGE 2^BC-02174^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8901,1)
+	;;=0^0^13.594^57.031^^^^^^^^^2.344^^^^^^12.5^.008
+	;;^UTILITY(U,$J,112,8901,2)
+	;;=.008^.156
+	;;^UTILITY(U,$J,112,8901,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8902,0)
+	;;=BF,FRUIT,APPLESCE & CHERRIES,BEECH-NUT STAGE 3^BC-02175^6-oz.^170
+	;;^UTILITY(U,$J,112,8902,1)
+	;;=0^0^14.412^58.824^^^^^.4^^^^^^^^^47.059^9.412^.012
+	;;^UTILITY(U,$J,112,8902,2)
+	;;=.018^.118
+	;;^UTILITY(U,$J,112,8902,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8903,0)
+	;;=BF,FRUIT,APPLESCE & CHERRIES,BEECH-NUT STAGE 2^BC-02176^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8903,1)
+	;;=0^0^13.828^56.25^^^^10.156^.398^^^^^^^^^70.313^12.5^.023
+	;;^UTILITY(U,$J,112,8903,2)
+	;;=.031
+	;;^UTILITY(U,$J,112,8903,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8904,0)
+	;;=BF,FRUIT,APPLESCE & PINEAPPLE,GERBER SECOND FOODS^BC-02177^4-oz.^113
+	;;^UTILITY(U,$J,112,8904,1)
+	;;=.177^.177^10.973^46.903^^^^4.425^.088^4.425^7.08^78.761^.885^.027^.027^.142^^^12.389^.027
+	;;^UTILITY(U,$J,112,8904,2)
+	;;=.027^.088^^.035^^^^^^^^^.885
+	;;^UTILITY(U,$J,112,8904,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8905,0)
+	;;=BF,FRUIT,APPLES,PEACHES & STRAWBERRIES,BEECH-NUT STAGE 2^BC-02178^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8905,1)
+	;;=0^0^17.422^72.656^^^^^.297^^^^^^^^^199.219^12.5^.008
+	;;^UTILITY(U,$J,112,8905,2)
+	;;=.031^.391
+	;;^UTILITY(U,$J,112,8905,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8906,0)
+	;;=BF,FRUIT,APPLES, PEARS & BANANAS,BEECH-NUT STAGE 2^BC-02179^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8906,1)
+	;;=0^0^18.438^75.781^^^^^^^^^^^^^^^12.5^.023
+	;;^UTILITY(U,$J,112,8906,2)
+	;;=.039^.234
+	;;^UTILITY(U,$J,112,8906,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8907,0)
+	;;=BF,FRUIT,APRICOTS W/PEARS & APPLESCE,BEECH-NUT STAGE 2^BC-02180^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8907,1)
+	;;=.625^0^15.938^67.969^^^^10.938^.398^^^^^^^^^929.688^12.5^.023
+	;;^UTILITY(U,$J,112,8907,2)
+	;;=.031^.469
+	;;^UTILITY(U,$J,112,8907,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8908,0)
+	;;=BF,FRUIT,APRICOTS W/PEARS & APPLES,BEECH-NUT STAGE 3^BC-02181^6-oz.^170
+	;;^UTILITY(U,$J,112,8908,1)
+	;;=.706^0^15.412^65.882^^^^^.4^^^^^^^^^840^9.412^.018
+	;;^UTILITY(U,$J,112,8908,2)
+	;;=.029^.471
+	;;^UTILITY(U,$J,112,8908,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8909,0)
+	;;=BF,FRUIT,APRICOTS W/TAPIOCA,GERBER THIRD FOOD^BC-02182^6-oz.^170
+	;;^UTILITY(U,$J,112,8909,1)
+	;;=.353^.176^16.882^70.588^^^^7.647^.235^5.294^8.824^108.235^5.294^.059^.035^.035^^^9.412^.018
+	;;^UTILITY(U,$J,112,8909,2)
+	;;=.012^.235^^.035^^^^^^^^^92.353
+	;;^UTILITY(U,$J,112,8909,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8910,0)
+	;;=BF,FRUIT,APRICOTS W/TAPIOCA,GERBER SECOND FOOD^BC-02183^4-oz.^113
+	;;^UTILITY(U,$J,112,8910,1)
+	;;=.354^.177^15.929^66.372^^^^7.08^.177^5.31^9.735^110.619^6.195^.062^.035^.035^^^12.389^.009
+	;;^UTILITY(U,$J,112,8910,2)
+	;;=.018^.265^^.035^^^^^^^^^112.389
+	;;^UTILITY(U,$J,112,8910,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8911,0)
+	;;=BF,FRUIT,BANANAS,INST,HEINZ^BC-02184^3-tbsp.^14
+	;;^UTILITY(U,$J,112,8911,1)
+	;;=7.143^0^92.857^357.143^^^^28.571^1.429^^114.286^1685.714^28.571^.714^.357^^^428.571^114.286^.071
+	;;^UTILITY(U,$J,112,8911,2)
+	;;=.286^1.429^^1.714
+	;;^UTILITY(U,$J,112,8911,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8912,0)
+	;;=BF,FRUIT,BANANAS,BEECH-NUT STAGE 1^BC-02185^2.8-oz.^79
+	;;^UTILITY(U,$J,112,8912,1)
+	;;=.886^0^19.367^82.278^^^^^.304^^^^^^^^^79.747^20.253^.025
+	;;^UTILITY(U,$J,112,8912,2)
+	;;=.051^.506
+	;;^UTILITY(U,$J,112,8912,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8913,0)
+	;;=BF,FRUIT,BANANAS,BEECH-NUT STAGE 2^BC-02186^4.5-oz.^128
+	;;^UTILITY(U,$J,112,8913,1)
+	;;=.938^0^19.766^84.375^^^^^.297^^^^^^^^^89.844^12.5^.023
+	;;^UTILITY(U,$J,112,8913,2)
+	;;=.039^.391
+	;;^UTILITY(U,$J,112,8913,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8914,0)
+	;;=BF,FRUIT,BANANAS,GERBER FIRST FOOD^BC-02187^2.5-oz.^71
+	;;^UTILITY(U,$J,112,8914,1)
+	;;=1.127^.282^22.958^98.592^^^^4.225^.282^28.169^22.535^360.563^2.817^.155^.085^.38^^^22.535^.028

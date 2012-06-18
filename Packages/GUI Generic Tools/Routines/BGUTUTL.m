@@ -1,0 +1,40 @@
+BGUTUTL ; IHS/OIT/MJL - Trace utilities ;
+ ;;1.5;BGU;;MAY 26, 2005
+ ;
+ ; BGUST = 1 --> Start trace
+ ; BGUST = 0 --> Stop trace
+START ;EP Called by option BGU START TRACE
+ ; Start trace
+ S BGUST=1 D ASKDJ,SET:'$D(DIRUT)
+ D KILL
+ Q
+ ;
+STOP ;EP Called by option BGU STOP TRACE
+ ;Stop trace
+ S BGUST=0 D ASKDJ
+ I '$D(DIRUT) D SET:BGUALL,DEL:'BGUALL
+ D KILL
+ Q
+ ;
+ASKDJ ;
+ ; Ask for $J
+ S U="^",BGUALL=1,DIR(0)="YO",DIR("A")="TURN "_$S(BGUST:"ON",1:"OFF")_" TRACE FOR ALL JOBS ?"
+ D ^DIR Q:$D(DUOUT)  I '$D(DIRUT) S BGUANS=X K DIRUT Q
+ S BGUALL=0,DIR(0)="NO^1:999999",DIR("A")="ENTER $J TO "_$S(BGUST:"START",1:"HALT")_" TRACING"
+ S DIR("?")="Enter numeric characters for the $J you want to "_$S(BGUST:"start",1:"halt")_" tracing"
+ D ^DIR Q:$D(DIRUT)
+ S BGUDJ=Y
+ Q
+ ;
+SET ;
+ I BGUALL S BGUFDA(90062,"?1,",.01)=1,BGUFDA(90062,"?1,",.02)=$S(BGUST&(BGUANS="Y"):"Y",'BGUST&(BGUANS="N"):"Y",1:"N") D UPDATE^DIE("","BGUFDA","BGUDJ","BGUEMSG") Q
+ S BGUFDA(90062.01,"?+1,1,",.01)=BGUDJ D UPDATE^DIE("","BGUFDA","BGUDJ","BGUEMSG")
+ Q
+ ;
+DEL ;
+ S DIK="^BGUSP(1,1,",DA(1)=1 S BGUN=0 F BGUQ=0:0 S BGUN=$O(^BGUSP(1,1,"B",BGUDJ,BGUN)) Q:BGUN=""  S DA=BGUN D ^DIK
+ Q
+ ;
+KILL ;
+ K BGUALL,BGUDJ,BGUFDA,BGUN,BGUQ,BGUST,DA,DIK,DIR,DIRUT,DUOUT,X,Y
+ Q

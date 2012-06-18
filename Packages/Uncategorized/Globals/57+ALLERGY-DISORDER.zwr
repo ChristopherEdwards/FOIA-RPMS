@@ -1,0 +1,17 @@
+ALLERGY/DISORDER
+ZWR
+^DIC(57,0)="ALLERGY/DISORDER^57^"
+^DIC(57,0,"DD")="#"
+^DIC(57,0,"DEL")="p"
+^DIC(57,0,"GL")="^DIC(57,"
+^DIC(57,0,"LAYGO")="P"
+^DIC(57,0,"RD")="Pp"
+^DIC(57,0,"WR")="P"
+^DIC(57,"%",0)="^1.005^1^1"
+^DIC(57,"%",1,0)="PS"
+^DIC(57,"%","B","PS",1)=""
+^DIC(57,"%D",0)="^^4^4^2890710^^^^"
+^DIC(57,"%D",1,0)="This file holds a list of terms that describe the nature of the patient's"
+^DIC(57,"%D",2,0)="allergy/disorder.  This information is purely documentary and is not"
+^DIC(57,"%D",3,0)="used in any computer decision algorithm.  This information is supplied"
+^DIC(57,"%D",4,0)="by the center as needed (LAYGO) when interviwing the patient."

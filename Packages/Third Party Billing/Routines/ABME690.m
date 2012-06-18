@@ -1,0 +1,83 @@
+ABME690 ; IHS/ASDST/DMJ - UB92 EMC RECORD 90 (Claim Control Screen) ;    
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;08/18/95 10:11 AM
+ ;
+ ; IHS/ASDS/DMJ - 01/23/01 - V2.4 Patch 3 - NOIS HQW-0101-100032
+ ;   Modified to correct rejections from electronic Medicare trans.
+ ;
+START ;START HERE
+ K ABMREC(90)
+ S ABME("RTYPE")=90
+ D SET^ABMERUTL,LOOP
+ K ABM,ABME,ABMRT(90)
+ Q
+LOOP ;LOOP HERE
+ F I=10:10:180 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),90,I)) D @(^(I))
+ .I '$G(ABMP("NOFMT")) S ABMREC(90)=$G(ABMREC(90))_ABMR(90,I)
+ Q
+10 ;1-2 Record type
+ S ABMR(90,10)=90
+ Q
+20 ;3-4 Filler 
+ S ABMR(90,20)=""
+ S ABMR(90,20)=$$FMT^ABMERUTL(ABMR(90,20),2)
+ Q
+30 ;5-24 Patient Control Number, (SOURCE: FILE=9000001.41,FIELD=.02)
+ S ABMR(90,30)=$$EX^ABMER20(30,ABMP("BDFN"))
+ S ABMR(90,30)=$$FMT^ABMERUTL(ABMR(90,30),20)
+ Q
+40 ;25-28 Physical Record Count
+ S ABMR(90,40)=$$FMT^ABMERUTL(+$G(ABMRT(90,40)),"4NR")
+ Q
+50 ;29-30 Record Type 2n Count
+ S ABMR(90,50)=ABMRT(90,50)
+ S ABMR(90,50)=$$FMT^ABMERUTL(+$G(ABMRT(90,50)),"2NR")
+ Q
+60 ;31-32 Record Type 3n Count
+ S ABMR(90,60)=$$FMT^ABMERUTL(+$G(ABMRT(90,60)),"2NR")
+ Q
+70 ;33-34 Record Type 4n Count
+ S ABMR(90,70)=$$FMT^ABMERUTL(+$G(ABMRT(90,70)),"2NR")
+ Q
+80 ;35-37 Record Type 5n Count
+ S ABMR(90,80)=$$FMT^ABMERUTL(+$G(ABMRT(90,80)),"3NR")
+ Q
+90 ;38-40 Record Type 6n Count
+ S ABMR(90,90)=$$FMT^ABMERUTL(+$G(ABMRT(90,90)),"3NR")
+ Q
+100 ;41-42 Record Type 7n Count
+ S ABMR(90,100)=$$FMT^ABMERUTL(+$G(ABMRT(90,100)),"2NR")
+ Q
+110 ;43-44 Record Type 8n Count
+ S ABMR(90,110)=$$FMT^ABMERUTL(+$G(ABMRT(90,110)),"2NR")
+ Q
+120 ;45 Record Type 91 Qualifier
+ S ABMR(90,120)=0
+ Q
+130 ;46-55 Total Charges Accommodations
+ S ABMR(90,130)=$$FMT^ABMERUTL(+$G(ABMRT(90,130)),"10NRJ2")
+ Q
+140 ;56-65 Total Non-Covered Charges - Accommodations
+ S ABMR(90,140)=$$FMT^ABMERUTL(+$G(ABMRT(90,140)),"10NRJ2")
+ Q
+150 ;66-75 Total Charges - Ancillary
+ S ABMR(90,150)=$$FMT^ABMERUTL(+$G(ABMRT(90,150)),"10NRJ2")
+ Q
+160 ;76-85 Total Non-Covered Charges - Ancillary
+ S ABMR(90,160)=$$FMT^ABMERUTL(+$G(ABMRT(90,160)),"10NRJ2")
+ Q
+170 ;86-87 Filler
+ S ABMR(90,170)="  "
+ Q
+180 ;88-192 Remarks
+ S ABMR(90,180)=""
+ ;
+ N I F I=1:1:4 D
+ .Q:'$D(^ABMDBILL(DUZ(2),ABMP("BDFN"),61,I,0))
+ .S:I>1 ABMR(90,180)=ABMR(90,180)_" "
+ .S ABMR(90,180)=ABMR(90,180)_^ABMDBILL(DUZ(2),ABMP("BDFN"),61,I,0)
+ ;
+ S ABMR(90,180)=$$FMT^ABMERUTL(ABMR(90,180),105)
+ Q

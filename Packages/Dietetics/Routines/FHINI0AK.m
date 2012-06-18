@@ -1,0 +1,116 @@
+FHINI0AK	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,7093,0)
+	;;=COOKIES,SUGAR,FIBER ENRICHED,KEEBLER^BC-00366^cookies^15
+	;;^UTILITY(U,$J,112,7093,1)
+	;;=4.667^23.333^64^473.333^^^^13.333^1.933^^^60^386.667^^^^^^^.267
+	;;^UTILITY(U,$J,112,7093,2)
+	;;=.2^2^^^^^^^0^4^^1.333
+	;;^UTILITY(U,$J,112,7093,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7094,0)
+	;;=COOKIES,SUGAR,KEEBLER OLD FASHIONED^BC-00367^cookies^18
+	;;^UTILITY(U,$J,112,7094,1)
+	;;=5.556^17.222^72.222^461.111^^^^16.667^2.5^^^72.222^394.444^^^^^^^.278
+	;;^UTILITY(U,$J,112,7094,2)
+	;;=.222^2.778^^^^^^^0^5^^2.222
+	;;^UTILITY(U,$J,112,7094,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7095,0)
+	;;=COOKIES,VANILLA WAFERS,KEEBLER^BC-00368^4-cookies^15
+	;;^UTILITY(U,$J,112,7095,1)
+	;;=5.333^22^67.333^493.333^^^^46.667^2.2^^^120^373.333^^^^^^^.133
+	;;^UTILITY(U,$J,112,7095,2)
+	;;=.333^2.667^^^^^^^0^6^^2
+	;;^UTILITY(U,$J,112,7095,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7096,0)
+	;;=CUSTARDS,FLAN,CREME CARAMEL,FROM MIX,KNORR^BC-00369^1/2-cup^110
+	;;^UTILITY(U,$J,112,7096,1)
+	;;=4.545^5.455^20.909^145.455^^^^180.909^.273^23.636^158.182^258.182^180^.909^.027^^^^.909^.073
+	;;^UTILITY(U,$J,112,7096,2)
+	;;=.282^.182^.727^.082^10^.636^^^73.636
+	;;^UTILITY(U,$J,112,7096,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7097,0)
+	;;=CUSTARDS,FLAN,FROM MIX,JELL-O^BC-00370^1/2-cup^113
+	;;^UTILITY(U,$J,112,7097,1)
+	;;=3.54^3.54^23.009^133.628^^^^133.628^.088^14.159^100.885^169.912^57.522^^.018^^^136.283^.885^.044
+	;;^UTILITY(U,$J,112,7097,2)
+	;;=.177^.088^.336^.044^5.31^.354^^^15.044^^^^^^^^.177
+	;;^UTILITY(U,$J,112,7097,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7098,0)
+	;;=CUSTARDS,GOLDEN EGG,FROM MIX,JELL-O,AMERICANA^BC-00371^1/2-cup^113
+	;;^UTILITY(U,$J,112,7098,1)
+	;;=4.425^5.31^20.354^141.593^^^^176.106^.265^23.009^153.982^251.327^175.221^.885^.027^^^203.54^.885^.071
+	;;^UTILITY(U,$J,112,7098,2)
+	;;=.274^.177^.708^.08^9.735^.619^^^71.681
+	;;^UTILITY(U,$J,112,7098,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7099,0)
+	;;=CUSTARDS,SWISS MISS^BC-00372^4-oz.^113
+	;;^UTILITY(U,$J,112,7099,1)
+	;;=4.425^5.31^18.584^139.823^^^^132.743^1.239^^^150.442^168.142^^^^^^^.035
+	;;^UTILITY(U,$J,112,7099,2)
+	;;=.133^.088^^^^^^^4.425^1.062^^.796
+	;;^UTILITY(U,$J,112,7099,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7100,0)
+	;;=COUGHNUTS,CAKE,HOSTESS^BC-00373^doughnuts^28
+	;;^UTILITY(U,$J,112,7100,1)
+	;;=3.571^25^42.857^392.857^^^^^^^^^482.143^^^^^0^0
+	;;^UTILITY(U,$J,112,7100,2)
+	;;=^^^^^^^^25
+	;;^UTILITY(U,$J,112,7100,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7101,0)
+	;;=DOUGHNUTS,CHOC COATED DONETTE,HOSTESS^BC-00374^donettes^13
+	;;^UTILITY(U,$J,112,7101,1)
+	;;=7.692^23.077^46.154^461.538^^^^0^0^^^^384.615^^^^^0^0
+	;;^UTILITY(U,$J,112,7101,2)
+	;;=^0^^^^^^^30.769
+	;;^UTILITY(U,$J,112,7101,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7102,0)
+	;;=DOUGHNUTS,CHOC COATED,HOSTESS^BC-00375^doughnuts^28
+	;;^UTILITY(U,$J,112,7102,1)
+	;;=3.571^28.571^50^464.286^^^^^^^^^535.714^^^^^0^0
+	;;^UTILITY(U,$J,112,7102,2)
+	;;=^^^^^^^^14.286
+	;;^UTILITY(U,$J,112,7102,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7103,0)
+	;;=DOUGHNUTS,CINN.,HOSTESS^BC-00376^doughnuts^28
+	;;^UTILITY(U,$J,112,7103,1)
+	;;=3.571^21.429^53.571^392.857^^^^^^^^^500^^^^^0^0
+	;;^UTILITY(U,$J,112,7103,2)
+	;;=^^^^^^^^21.429
+	;;^UTILITY(U,$J,112,7103,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7104,0)
+	;;=DOUGHNUTS,GLAZED,OLD FASHIONED,HOSTESS^BC-00377^doughnuts^57
+	;;^UTILITY(U,$J,112,7104,1)
+	;;=3.509^21.053^52.632^403.509^^^^^^^^^350.877^^^^^0^0
+	;;^UTILITY(U,$J,112,7104,2)
+	;;=^^^^^^^^19.298
+	;;^UTILITY(U,$J,112,7104,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7105,0)
+	;;=DOUGHNUTS,GLAZED,RICH'S EVER FRESH^BC-00378^1.2-oz.^34
+	;;^UTILITY(U,$J,112,7105,1)
+	;;=7.059^20.588^50.588^414.706^26.176^^^144.118^2.029^^^^^^^^^^^.294
+	;;^UTILITY(U,$J,112,7105,2)
+	;;=.235^2.941
+	;;^UTILITY(U,$J,112,7105,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,7106,0)
+	;;=DOUGHNUTS,JELLY,RICH'S EVER FRESH^BC-00379^2.17-oz.^62
+	;;^UTILITY(U,$J,112,7106,1)
+	;;=5.806^15.323^41.935^343.548^19.516^^^141.935^2^^^^^^^^^^^.29
+	;;^UTILITY(U,$J,112,7106,2)
+	;;=.226^2.742
+	;;^UTILITY(U,$J,112,7106,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

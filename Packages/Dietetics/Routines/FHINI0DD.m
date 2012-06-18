@@ -1,0 +1,112 @@
+FHINI0DD	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8482,2)
+	;;=.4^3.2^.6^.08^^0^^^^^^^^^^^4.4
+	;;^UTILITY(U,$J,112,8482,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8483,0)
+	;;=GRAINED PRODUCTS,CROISSANT,ALL BUTTERED,PEPPERIDGE FARMS^BC-01756^croissant^30
+	;;^UTILITY(U,$J,112,8483,1)
+	;;=8.667^19.667^44.667^390^^^^83.333^3^^^116.667^553.333^^^^^0^0^.467
+	;;^UTILITY(U,$J,112,8483,2)
+	;;=.267^3
+	;;^UTILITY(U,$J,112,8483,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8484,0)
+	;;=GRAINED PRODUCTS,FRENCH^BC-01757^slice^28
+	;;^UTILITY(U,$J,112,8484,1)
+	;;=9.643^3.929^52.857^289.286^29.643^^^78.571^3.286^21.429^107.143^114.286^582.143^.857^.2^.55^^^^.393
+	;;^UTILITY(U,$J,112,8484,2)
+	;;=.25^4.286^.429^.036^32.143^^^^^^^^^^^^2.143
+	;;^UTILITY(U,$J,112,8484,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8485,0)
+	;;=GRAINED PRODUCTS,HONEY & OAT BRAN,ROMAN MEAL^BC-01758^slice^28
+	;;^UTILITY(U,$J,112,8485,1)
+	;;=11.429^4.286^45.357^253.571^38.571^^^67.857^3.571^^^^464.286^^^^^^^.643
+	;;^UTILITY(U,$J,112,8485,2)
+	;;=.429^3.929^^^^^^^0^^^^^^^^3.214
+	;;^UTILITY(U,$J,112,8485,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8486,0)
+	;;=GRAINED PRODUCTS,HONEY BRAN,PEPPERIDGE FARMS^BC-01759^1.2-oz.^34
+	;;^UTILITY(U,$J,112,8486,1)
+	;;=8.529^2.941^52.647^270.588^^^^29.412^3.824^^^167.647^473.529^^^^^0^0^.412
+	;;^UTILITY(U,$J,112,8486,2)
+	;;=.265^4.118
+	;;^UTILITY(U,$J,112,8486,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8487,0)
+	;;=GRAINED PRODUCTS,HONEY NUT RICE BRAN,ROMAN MEAL^BC-01760^oz.^28
+	;;^UTILITY(U,$J,112,8487,1)
+	;;=9.286^5.714^45.714^253.571^^^^28.571^3.929^^^^453.571^^^^^^^.571
+	;;^UTILITY(U,$J,112,8487,2)
+	;;=.321^5.714^^^^^^^0^^^^^^^^4.643
+	;;^UTILITY(U,$J,112,8487,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8488,0)
+	;;=GRAINED PRODUCTS,HONEY WHEAT BERRY,PEPPERIDGE FARMS^BC-01761^.9-oz.^25
+	;;^UTILITY(U,$J,112,8488,1)
+	;;=8.4^3.6^54.4^284^^^^28^3.2^^^168^572^^^^^0^0^.32
+	;;^UTILITY(U,$J,112,8488,2)
+	;;=.24^3.2
+	;;^UTILITY(U,$J,112,8488,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8489,0)
+	;;=GRAINED PRODUCTS,HONEY WHEATBERRY,ROMAN MEAL^BC-01762^oz.^28
+	;;^UTILITY(U,$J,112,8489,1)
+	;;=10.357^3.929^45.357^235.714^38.571^^^67.857^3.929^^^^503.571^^^^^^^.714
+	;;^UTILITY(U,$J,112,8489,2)
+	;;=.357^4.286^^^^^^^0^^^^^^^^5.357
+	;;^UTILITY(U,$J,112,8489,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8490,0)
+	;;=GRAINED PRODUCTS,ITALIAN^BC-01763^slice^28
+	;;^UTILITY(U,$J,112,8490,1)
+	;;=10^2.143^53.214^278.571^31.786^^^50^2.643^25^92.857^110.714^539.286^.857^.2^.479^^^^.357
+	;;^UTILITY(U,$J,112,8490,2)
+	;;=.214^4.286^.393^.036^32.143^^^^^^^^^^^^1.071
+	;;^UTILITY(U,$J,112,8490,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8491,0)
+	;;=GRAINED PRODUCTS,MIXED GRAIN^BC-01764^slice^25
+	;;^UTILITY(U,$J,112,8491,1)
+	;;=10^3.6^46.8^256^37.6^^^104^3.28^48^212^220^412^1.2^.284^1.4^^0^0^.4
+	;;^UTILITY(U,$J,112,8491,2)
+	;;=.4^4^.64^.12^64^0^^^^^^^^^^^4
+	;;^UTILITY(U,$J,112,8491,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8492,0)
+	;;=GRAINED PRODUCTS,MULTI-GRAINED,ROMAN MEAL SUN GRAIN^BC-01765^oz.^28
+	;;^UTILITY(U,$J,112,8492,1)
+	;;=11.429^5^43.929^242.857^38.571^^^71.429^4.036^^^^500^^^^^^^.821
+	;;^UTILITY(U,$J,112,8492,2)
+	;;=.321^3.571^^^^^^^0^^^^^^^^6.071
+	;;^UTILITY(U,$J,112,8492,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8493,0)
+	;;=GRAINED PRODUCTS,OAT & HONEY,PEPPERIDGE FARMS^BC-01766^.8-oz.^23
+	;;^UTILITY(U,$J,112,8493,1)
+	;;=11.304^9.565^48.261^321.739^^^^21.739^3.478^^^104.348^465.217^^^^^0^0^.348
+	;;^UTILITY(U,$J,112,8493,2)
+	;;=.261^3.043
+	;;^UTILITY(U,$J,112,8493,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8494,0)
+	;;=GRAINED PRODUCTS,OAT BRAN,SPLIT TOP,ROMAN MEAL^BC-01767^slice^28
+	;;^UTILITY(U,$J,112,8494,1)
+	;;=10.357^3.214^47.143^242.857^^^^89.286^3.929^^^^500^^^^^^^.429
+	;;^UTILITY(U,$J,112,8494,2)
+	;;=.357^4.643^^^^^^^0^^^^^^^^3.929
+	;;^UTILITY(U,$J,112,8494,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8495,0)
+	;;=GRAINED PRODUCTS,OATMEAL^BC-01768^slice^28
+	;;^UTILITY(U,$J,112,8495,1)
+	;;=8.571^4.286^46.429^253.571^36.786^^^60.714^2.643^35.714^125^157.143^492.857^.964^.221^.861^^^^.357
+	;;^UTILITY(U,$J,112,8495,2)
+	;;=.214^3.214^.357^.036^32.143^^^^^^^^^^^^2.143
+	;;^UTILITY(U,$J,112,8495,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

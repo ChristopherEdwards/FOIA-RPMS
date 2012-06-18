@@ -1,0 +1,177 @@
+ABMUCPR ; IHS/SD/SDR - UFMS Cashiering Session Productivity Report ;
+ ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;
+ ; IHS/SD/SDR - abm*2.6*1 - NO HEAT - Added averages and fixed
+ ; "^" out of report
+ ;
+ K ABM,ABMY
+ S ABM("HD",0)="Cashiering Session Productivity Report"
+ S ABM("POS")=1
+ S ABM("SSTAT","A")=""
+ S $P(ABMDASH,"=",79)="="
+ ; start new code abm*2.6*1 NOHEAT
+ W !!!?5,"This report will only look at closed or transmitted/reconciled sessions."
+ W !?5,"All open/reopened sessions will be ignored."
+ ;end new code abm*2.6*1
+ ;
+SEL ;
+ S ABM("NODX")="" D ^ABMURSEL Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ D ^ABMURHD
+ S ABMQ("RC")="COMPUTE^ABMUCPR"
+ S ABMQ("RX")="POUT^ABMDRUTL"
+ S ABMQ("NS")="ABM"
+ S ABMQ("RP")="PRINT^ABMUCPR"
+ D ^ABMDRDBQ
+ ;
+COMPUTE ;EP - Entry Point for Setting up Data
+ S ABM("SUBR")="ABM-UCR" K ^TMP("ABM-UCR",$J)
+ S ABM("PG")=0
+LOOP ; loop through sessions
+ S ABMLOC=$$FINDLOC^ABMUCUTL
+ K ABMZ  ;abm*2.6*1 NO HEAT
+ S ABM("HD",1)="For Location: "_$P($G(^DIC(4,ABMLOC,0)),U)
+ I '$D(ABMY("USER")) S ABM("HD",2)="For ALL users"_$S($G(ABMY("POS"))=1:" Including",1:" Excluding")_" POS Claims"
+ E  D
+ .S ABM("HD",2)="For user(s): "
+ .S ABMU=0
+ .F  S ABMU=$O(ABMY("USER",ABMU)) Q:+ABMU=0  S ABM("HD",2)=ABM("HD",2)_$S($G(ABMFLG)=1:", ",1:"")_$P($G(^VA(200,ABMU,0)),U),^TMP("ABM-UCR",$J,$P($G(^VA(200,ABMU,0)),U))="",ABMFLG=1
+ .S ABM("HD",2)=ABM("HD",2)_$S($G(ABMFLG)=1:",",1:"")_$S($G(ABMY("POS"))=1:" Including",1:" Excluding")_" POS CLAIMS"
+ S ABMU=0
+ S ABMLOOP=10
+ F  S ABMU=$O(^ABMUCASH(ABMLOC,10,ABMU)) Q:+ABMU=0  D
+ .I $D(ABMY("USER")) Q:'$D(ABMY("USER",ABMU))  ;select users only
+ .S ABMUO=$P($G(^VA(200,ABMU,0)),U)
+ .S ABMFROM=$S($G(ABMY("DT",1)):ABMY("DT",1),1:0)  ;from date
+ .S ABMTO=$S($G(ABMY("DT",2)):ABMY("DT",2)_".999999",1:9999999)  ;to date
+ .F  S ABMFROM=$O(^ABMUCASH(ABMLOC,10,ABMU,20,ABMFROM)) Q:+ABMFROM=0!(ABMFROM>ABMTO)  D
+ ..;check session status
+ ..I "^O^S^"[("^"_$P($G(^ABMUCASH(ABMLOC,10,ABMU,20,ABMFROM,0)),U,4)_"^") Q  ;skip open/reopened sessions  ;abm*2.6*1 NO HEAT
+ ..I '$D(ABMY("SSTAT","A"))&'$D(ABMY("SSTAT",$P($G(^ABMUCASH(ABMLOC,10,ABMU,20,ABMFROM,0)),U,4))) Q
+ ..D DATA
+ I $G(ABMY("POS"))=1 D
+ .S ABMLOOP=20
+ .S ABMU=1,ABMUO="POS CLAIMS"
+ .S ABMFROM=$S($G(ABMY("DT",1)):ABMY("DT",1),1:0)  ;from date
+ .S ABMTO=$S($G(ABMY("DT",2)):ABMY("DT",2),1:9999999)  ;to date
+ .F  S ABMFROM=$O(^ABMUCASH(ABMLOC,20,ABMU,20,ABMFROM)) Q:+ABMFROM=0!(ABMFROM>ABMTO)  D
+ ..;check session status
+ ..I "^O^S^"[("^"_$P($G(^ABMUCASH(ABMLOC,20,ABMU,20,ABMFROM,0)),U,4)_"^") Q  ;skip open/reopened sessions  ;abm*2.6*1 NO HEAT
+ ..I '$D(ABMY("SSTAT","A"))&'$D(ABMY("SSTAT",$P($G(^ABMUCASH(ABMLOC,20,ABMU,20,ABMFROM,0)),U,4))) Q
+ ..D DATA
+ Q
+ ;
+DATA ;
+ S ABMDAYS=+($S($P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,0)),U,3):$P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,0)),U,3),1:DT)-ABMFROM)  ;abm*2.6*1 NO HEAT
+ I ABMDAYS<1 S ABMDAYS=1  ;abm*2.6*1 NO HEAT
+ S ABMZ(ABMUO,"ABMTDAYS")=+$G(ABMZ(ABMUO,"ABMTDAYS"))+ABMDAYS  ;abm*2.6*1 NO HEAT
+ S ABMZ(ABMUO,"SCNT")=+$G(ABMZ(ABMUO,"SCNT"))+1  ;abm*2.6*1 NO HEAT
+ ;budget activity
+ ;S ^TMP("ABM-UCR",$J,ABMUO,ABMFROM)=$P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,0)),U,4)  ;abm*2.6*1 NO HEAT
+ S ^TMP("ABM-UCR",$J,ABMUO,ABMFROM)=$P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,0)),U,4)_"^"_$P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,0)),U,3)  ;abm*2.6*1 NO HEAT
+ S ABMB=0
+ F  S ABMB=$O(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB)) Q:+ABMB=0  D
+ .S ABMBA=$P($T(@$G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB,0))),";;",2)
+ .;
+ .;approved bills
+ .S ABMAB=0
+ .F  S ABMAB=$O(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB,2,ABMAB)) Q:+ABMAB=0  D
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"AB",ABMBA,"CNT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"AB",ABMBA,"CNT"))+1
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"TOT","AB","CNT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","AB","CNT"))+1
+ ..S ABMDUZ=$P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB,2,ABMAB,0)),U,2)
+ ..S ABMIEN=$P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB,2,ABMAB,0)),U,3)
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"AB",ABMBA,"AMT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"AB",ABMBA,"AMT"))+$P($G(^ABMDBILL(ABMDUZ,ABMIEN,2)),U)
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"TOT","AB","AMT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","AB","AMT"))+$P($G(^ABMDBILL(ABMDUZ,ABMIEN,2)),U)
+ .Q:ABMLOOP=20  ;don't do cancelled anything for POS user
+ .;
+ .;cancelled claims
+ .S ABMCC=0
+ .F  S ABMCC=$O(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB,1,ABMCC)) Q:+ABMCC=0  D
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"CC",ABMBA,"CNT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"CC",ABMBA,"CNT"))+1
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"TOT","CC","CNT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","CC","CNT"))+1
+ .;
+ .;cancelled bills
+ .S ABMCB=0
+ .F  S ABMCB=$O(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB,3,ABMCB)) Q:+ABMCB=0  D
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"CB",ABMBA,"CNT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"CB",ABMBA,"CNT"))+1
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"TOT","CB","CNT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","CB","CNT"))+1
+ ..S ABMDUZ=$P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB,3,ABMCB,0)),U,2)
+ ..S ABMIEN=$P($G(^ABMUCASH(ABMLOC,ABMLOOP,ABMU,20,ABMFROM,11,ABMB,3,ABMCB,0)),U,3)
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"CB",ABMBA,"AMT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"CB",ABMBA,"AMT"))+$P($G(^ABMDBILL(ABMDUZ,ABMIEN,2)),U)
+ ..S ^TMP("ABM-UCR",$J,ABMUO,"TOT","CB","AMT")=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","CB","AMT"))+$P($G(^ABMDBILL(ABMDUZ,ABMIEN,2)),U)
+ Q
+PRINT ;
+ D HDB
+ S ABMUO=""
+ S ABMO=""
+ F  S ABMUO=$O(^TMP("ABM-UCR",$J,ABMUO)) Q:ABMUO=""  D  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ .I ($G(ABMO)'=""),($G(ABMO)'=ABMUO) W !,ABMDASH
+ .S ABMO=ABMUO
+ .W !,"Statistics for ",ABMUO
+ .F ABMBC="AB","CC","CB" D  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ ..Q:(ABMUO="POS CLAIMS")&(ABMBC'="AB")
+ ..W !?5,$S(ABMBC="AB":"BILLED",ABMBC="CC":"CANCELLED CLAIMS",1:"CANCELLED BILLS")
+ ..F ABMBA="MEDICARE","MEDICAID","PRIVATE INSURANCE","OTHER" D  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ ...W !?10,ABMBA
+ ...W ?35,$J(+$G(^TMP("ABM-UCR",$J,ABMUO,ABMBC,ABMBA,"CNT")),6)
+ ...I ABMBC="AB"!(ABMBC="CB") W ?50,$J($FN(+$G(^TMP("ABM-UCR",$J,ABMUO,ABMBC,ABMBA,"AMT")),",",2),"10R")
+ ..W !?35,"------"
+ ..W:ABMBC["B" ?50,"----------"
+ ..W !?20,"Total "_$S(ABMBC="AB"!(ABMBC="CB"):"Bills",1:"Claims"),?35,$J(+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT",ABMBC,"CNT")),6)
+ ..W:ABMBC["B" ?50,$J($FN(+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT",ABMBC,"AMT")),",",2),"10R")
+ ..W !
+ ..I $Y>(IOSL-5) D HD Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)  W " (cont)"
+ .;
+ .;start new code abm*2.6*1 NO HEAT
+ .S (ABMABAVG,ABMABTOT,ABMCBAVG,ABMCBTOT,ABMCCAVG,ABMSAVG)=0
+ .D CALC
+ .W !,"Average approved bills a day: "_$J(ABMABAVG,",",3)_" for $"_$J(ABMABTOT,",",2)
+ .W !,"Average cancelled BILLS a day: "_$J(ABMCBAVG,",",3)_" for $"_$J(ABMCBTOT,",",2)
+ .W !,"Average cancelled CLAIMS a day: "_$J(ABMCCAVG,",",3)
+ .W !,"Average hours/mins session was open: "_ABMSAVG
+ .;end new code NO HEAT
+ .;
+ .W !!,"Cashiering Sessions used:"
+ .I +$O(^TMP("ABM-UCR",$J,ABMUO,0))=0 W !?5,"NO SESSIONS FOUND"
+ .S ABMFROM=0
+ .F  S ABMFROM=$O(^TMP("ABM-UCR",$J,ABMUO,ABMFROM)) Q:+ABMFROM=0  D
+ ..W !?5,ABMFROM
+ ..;S ABMST=$G(^TMP("ABM-UCR",$J,ABMUO,ABMFROM))  ;abm*2.6*1 NO HEAT
+ ..W " - "_$P($G(^TMP("ABM-UCR",$J,ABMUO,ABMFROM)),U,2)_" "  ;abm*2.6*1 NO HEAT
+ ..S ABMST=$P($G(^TMP("ABM-UCR",$J,ABMUO,ABMFROM)),U)  ;abm*2.6*1 NO HEAT
+ ..S ABMST=$S(ABMST="O":"OPEN",ABMST="C":"CLOSED",ABMST="R":"RECONCILED",ABMST="S":"RE-OPENED",1:"TRANSMITTED")
+ ..W ?20,"(",ABMST,")"
+ Q
+HD D PAZ^ABMDRUTL Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+HDB S ABM("PG")=ABM("PG")+1,ABM("I")="" D WHD^ABMURHD
+ Q
+ ;start new code abm*2.6*1 NO HEAT
+CALC ;
+ Q:'$D(ABMZ(ABMUO))  ;user doesn't have any sessions  ;abm*2.6*1 NO HEAT
+ABILLS S ABMABAVG=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","AB","CNT"))/(ABMZ(ABMUO,"ABMTDAYS"))
+ S ABMABTOT=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","AB","AMT"))/+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","AB","CNT"),1)
+CBILLS S ABMCBAVG=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","CB","CNT"))/(ABMZ(ABMUO,"ABMTDAYS"))
+ S ABMCBTOT=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","CB","AMT"))/+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","CB","CNT"),1)
+CCLMS S ABMCCAVG=+$G(^TMP("ABM-UCR",$J,ABMUO,"TOT","CC","CNT"))/(ABMZ(ABMUO,"ABMTDAYS"))
+ S ABMSAVG=$P(ABMZ(ABMUO,"ABMTDAYS"),".")*24  ;convert days to hours
+ S ABMSAVG=(ABMSAVG+($E($P(ABMZ(ABMUO,"ABMTDAYS"),".",2),1,2)))*60  ;convert hours to minutes
+ S ABMSAVG=ABMSAVG+$E($P(ABMZ(ABMUO,"ABMTDAYS"),".",2),3,4)  ;add remaining minutes
+ S ABMSAVG=ABMSAVG_"."_$E($P(ABMZ(ABMUO,"ABMTDAYS"),".",2),5,6)  ;seconds as decimal
+ S ABMSAVG=ABMSAVG/(+$G(ABMZ(ABMUO,"SCNT"),1))  ;divide by number of sessions
+ S ABMSAVG=ABMSAVG/60  ;convert back to hours/mins
+ Q
+ ;end new code NO HEAT
+R ;;MEDICARE
+MD ;;MEDICARE
+MH ;;MEDICARE
+D ;;MEDICAID
+K ;;MEDICAID
+F ;;PRIVATE INSURANCE
+P ;;PRIVATE INSURANCE
+H ;;PRIVATE INSURANCE
+M ;;PRIVATE INSURANCE
+T ;;PRIVATE INSURANCE
+N ;;OTHER
+I ;;OTHER
+W ;;OTHER
+C ;;OTHER
+G ;;OTHER

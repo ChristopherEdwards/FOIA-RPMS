@@ -1,0 +1,10 @@
+%AUKVAR ;SET MINIMUM KERNEL VARIABLES; [ 06/15/89  1:14 PM ]
+ ;IHS/OHPD - ACC
+ ;IHS/MFD changed D:'$D(DT) DT^DICRW to I '$D(DT) D NOW^%DTC S DT=X
+ S U="^"
+ I '$D(DUZ(2)),$D(^AUTTSITE(1,0)) S DUZ(2)=+^(0)
+ I '$D(DUZ(2)),$D(^AUTTLOC("SITE")) S DUZ(2)=+^(0)
+ S:'($D(DUZ)#2) DUZ=0 S:'($D(DUZ(0))#2) DUZ(0)="" S:'($D(DUZ(2))#2) DUZ(2)=0
+ I '$D(DT) D NOW^%DTC S DT=X
+ S:'$D(DTIME) DTIME=300
+ Q

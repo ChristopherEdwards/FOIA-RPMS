@@ -1,0 +1,126 @@
+BQI11P3 ;VNGT/HS/ALA-iCare Version 1.1 Patch 2 Post-Install ; 20 Jun 2008  10:14 AM
+ ;;1.1;ICARE MANAGEMENT SYSTEM;**3**;Jul 08, 2008
+ ;
+EN ;
+ ;
+ ; Clean up Elder Care bad records
+ NEW BJPCX
+ S BJPCX=0 F  S BJPCX=$O(^AUPNVELD(BJPCX)) Q:BJPCX'=+BJPCX  D
+ . I $P(^AUPNVELD(BJPCX,0),U,1)["""" D
+ .. S DA=BJPCX,DIE="^AUPNVELD(",DR=".01///IHS-1-865" D ^DIE K DA,DIE,DR
+ ; Add new BGP SMOKER CPTS and update BQI KNOWN CVD-1 PROCEDURES
+ D ^BQIHTX
+ ; Change BGP GPRA SMOKING DXS to BGP SMOKER ONLY DXS
+ S BQIDA=$$SPM^BQIGPUTL()
+ NEW DA,IENS,TIEN
+ S DA(1)=BQIDA,DA=18,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90508.03,IENS,.01)="BGP SMOKER ONLY DXS"
+ S TIEN=$O(^ATXAX("B","BGP SMOKER ONLY DXS",""))
+ S BQIUPD(90508.03,IENS,.02)=TIEN_";ATXAX("
+ S BQIUPD(90508.03,IENS,.06)="@"
+ D FILE^DIE("","BQIUPD","ERROR")
+ K BQIUPD
+ ;
+ NEW DA,DIK,DIC,X,DLAYGO,IENS,BQIUPD,TIEN
+ S DA(1)=$O(^BQI(90508,0)),DIK="^BQI(90508,"_DA(1)_",10,"
+ S DA=45 F  S DA=$O(^BQI(90508,DA(1),10,DA)) Q:'DA  D ^DIK
+ S DA(1)=$O(^BQI(90508,0))
+ S DIC(0)="L",DIC="^BQI(90508,"_DA(1)_",10,",X="BGP SMOKER CPTS",DLAYGO=90508.03
+ K DD,DO
+ D FILE^DICN
+ S DA=+Y I DA=-1 S DA=46
+ S IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90508.03,IENS,.01)="BGP SMOKER CPTS"
+ S TIEN=$O(^ATXAX("B","BGP SMOKER CPTS",""))
+ S BQIUPD(90508.03,IENS,.06)="BQIHTX"
+ D FILE^DIE("","BQIUPD","ERROR")
+ S BQIUPD(90508.03,IENS,.02)=TIEN_";ATXAX("
+ S BQIUPD(90508.03,IENS,.03)=2
+ S BQIUPD(90508.03,IENS,.05)="C"
+ D FILE^DIE("I","BQIUPD","ERROR")
+ K BQIUPD
+ ;
+ ; Fix Lab entry in 90506.3
+ NEW VIEN,DA,IENS,DIEN
+ S VIEN=$O(^BQI(90506.3,"B","Lab","")),DA(1)=VIEN
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Site/Specimen",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,.05)=7,BQIUPD(90506.31,IENS,.08)="@"
+ S BQIUPD(90506.31,IENS,.09)="@",BQIUPD(90506.31,IENS,.1)="@"
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Result",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,.05)=5
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Units",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,.05)=21
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Range",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,.05)=9
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Normal/Abnormal",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,.05)=6
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Ordering Physician",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,.04)="H"
+ D FILE^DIE("","BQIUPD","ERROR")
+ K BQIUPD
+ ;
+ ; Fix Patient Education entry in 90506.3
+ NEW VIEN,DA,IENS,DIEN
+ S VIEN=$O(^BQI(90506.3,"B","Patient Education","")),DA(1)=VIEN
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Provider",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,2.01)="APCDTPRO",BQIUPD(90506.31,IENS,2.02)="EPRV(APCDTPRO)"
+ D FILE^DIE("","BQIUPD","ERROR")
+ K BQIUPD
+ ;
+ ; Update alternate help text in 90506.3
+ NEW VIEN,DA,IENS
+ S VIEN=$O(^BQI(90506.3,"B","PCC Visit","")),DA(1)=VIEN
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Date",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,3.06)="Enter date of visit.  Must be between patient's DOB and today."
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Outside Location",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,3.06)="Enter the name of the outside facility where the visit occurred, e.g. Smith Nursing Home."
+ S DIEN=$O(^BQI(90506.3,VIEN,10,"B","Outside Provider Name",""))
+ S DA=DIEN,IENS=$$IENS^DILF(.DA)
+ S BQIUPD(90506.31,IENS,3.06)="Enter the name of the patient's provider for this visit."
+ D FILE^DIE("","BQIUPD","ERROR")
+ K BQIUPD
+ ;
+ ; Update generated panel description for those sites that may
+ ; have encountered an error in the original install due to
+ ; deleted QMan templates
+ D PDSC
+ ;
+ ; Set up task to run to regenerate Dx Categories
+ NEW ZTDESC,ZTRTN,ZTIO,JBNOW,JBDATE,ZTDTH,ZTSK
+ S ZTDESC="ICARE DX CAT PROGRAM",ZTRTN="DXC^BQITASK2",ZTIO=""
+ S JBNOW=$$NOW^XLFDT()
+ S JBDATE=$S($E($P(JBNOW,".",2),1,2)<18:DT,1:$$FMADD^XLFDT(DT,+1))
+ S ZTDTH=JBDATE_".18"
+ D ^%ZTLOAD
+ K ZTDESC,ZTRTN,ZTIO,JBNOW,JBDATE,ZTDTH,ZTSK
+ Q
+ ;
+PRE ; Pre-install
+ NEW DIK,DA
+ S DIK="^BQI(90506.2,"
+ S DA=0 F  S DA=$O(^BQI(90506.2,DA)) Q:'DA  D ^DIK
+ Q
+ ;
+PDSC ; Load revised generated descriptions for all panels
+ ;
+ NEW OWNR,PLIEN
+ S OWNR=0
+ F  S OWNR=$O(^BQICARE(OWNR)) Q:'OWNR  D
+ . S PLIEN=0
+ . F  S PLIEN=$O(^BQICARE(OWNR,1,PLIEN)) Q:'PLIEN  D
+ .. NEW DA,IENS
+ .. S DA(1)=OWNR,DA=PLIEN,IENS=$$IENS^DILF(.DA)
+ .. K DESC
+ .. D PEN^BQIPLDSC(OWNR,PLIEN,.DESC)
+ .. D WP^DIE(90505.01,IENS,5,"","DESC")
+ .. K DESC,BMXSEC
+ Q

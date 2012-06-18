@@ -1,0 +1,305 @@
+ABMEH61 ; IHS/ASDST/DMJ - HCFA-1500 EMC RECORD FA0 (Claim Root Segment) ;     
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ ; IHS/ASDS/DMJ - 06/22/00 - Patch 3 - NOIS NHA-0600-180066
+ ;     AHCCCS denies Medicare zero pays.
+ ;
+ ; IHS/FCS/DRS - 09/17/01 - ABM*2.4*9
+ ;     Several fixes: Parts 1a,1b,5b,6,8,8f,13a,b,e,f,18 
+ ;
+ ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
+ ;     Modified to display 2nd and 3rd modifiers and units
+ ;
+ ; IHS/SD/SDR - v2.5 p10 - IM20395
+ ;   Split out lines bundled by rev code
+ ;
+START ;START HERE
+ K ABMR(61)
+ S ABME("S#")=0
+ D SET^ABMERUTL
+ K ABMP("FLAT") D FRATE^ABMDF11
+ D ^ABMEHGRV
+ D LOOP
+ K ABM,ABME,ABMRV
+ Q
+LOOP ;LOOP HERE
+ S J=0 F  S J=$O(ABMRV(J)) Q:'J  D
+ .S K=0 F  S K=$O(ABMRV(J,K)) Q:K=""  D
+ ..S L=0
+ ..F  S L=$O(ABMRV(J,K,L)) Q:L=""  D
+ ...K ABMREC(61)
+ ...I $$ENVOY^ABMEF19 N ABMEH61 D
+ ....N X S X=$P(ABMRV(J,K,L),U,7)
+ ....S ABMEH61("RENDERING")=$S(X:X,1:ABMAPRV)
+ ...S ABME("S#")=ABME("S#")+1
+ ...F I=10:10:500 D
+ ....D @I
+ ....I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),61,I)) D @(^(I))
+ ....D ADD
+ ...Q:J=9999
+ ...S ABM("ACTOT")=+$P(ABMRV(J,K,L),U,6)
+ ...S ABM("NCTOT")=+$P(ABMRV(J,K,L),U,7)
+ ...D ADTT^ABMER60
+ ...S ABMEF("LINE")=ABMREC(61)
+ ...D WRITE^ABMEF19
+ ...S ABME("RTYPE")=61 D S90^ABMERUTL
+ ...S ABMRT(95,"LTOT")=+$G(ABMRT(95,"LTOT"))+1
+ ...I $$DOFB0 D
+ ....D ^ABMEH62
+ ...I $$DOFB1 D ^ABMEH63
+ Q
+DOFB0() ; Should we do a FB0? 
+ I J=23,'$G(ABMP("FLAT")) Q 1
+ I ABMP("VTYP")=50,$$RCID^ABMERUTL(ABMP("INS"))=99999 Q 1
+ Q 0
+DOFB1() ; ABM*2.4*9 Part 1b  - check for '$$ENVOY^ABMEF19 
+ I '$$ENVOY^ABMEF19 Q 0
+ I $P(ABMRV(J,K,L),U,7) Q 1
+ I ABMAPRV Q 1
+ Q 0
+ADD ;ADD TO RECORD
+ I '$G(ABMP("NOFMT")) S ABMREC(61)=$G(ABMREC(61))_ABMR(61,I)
+ Q
+10 ;1-3 Record type
+ S ABMR(61,10)="FA0"
+ Q
+20 ;4-5 Sequence 
+ S ABMR(61,20)=ABME("S#")
+ S ABMR(61,20)=$$FMT^ABMERUTL(ABMR(61,20),"2NR")
+ Q
+30 ;6-22 Patient Control Number
+ S ABMR(61,30)=ABMP("PCN")
+ S ABMR(61,30)=$$FMT^ABMERUTL(ABMR(61,30),17)
+ Q
+40 ;23-39 Line Item Control #
+ S ABMR(61,40)=""
+ S ABMR(61,40)=$$FMT^ABMERUTL(ABMR(61,40),17)
+ Q
+50 ;40-47 Service Date From
+ S ABMR(61,50)=$P(ABMRV(J,K,L),U,10)
+ S:ABMR(61,50)="" ABMR(61,50)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U)
+ S ABMR(61,50)=$$Y2KD2^ABMDUTL(ABMR(61,50))
+ S ABMR(61,50)=$$FMT^ABMERUTL(ABMR(61,50),8)
+ Q
+60 ;48-55 Service Date To
+ S ABMR(61,60)=$P(ABMRV(J,K,L),U,10)
+ S:ABMR(61,60)="" ABMR(61,60)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),"^",2)
+ S ABMR(61,60)=$$Y2KD2^ABMDUTL(ABMR(61,60))
+ S ABMR(61,60)=$$FMT^ABMERUTL(ABMR(61,60),8)
+ Q
+70 ;56-57 Place of Service Code
+ S ABMR(61,70)=$$POS^ABMERUTL
+ S ABMR(61,70)=$$FMT^ABMERUTL(ABMR(61,70),2)
+ Q
+80 ;58-59 Type of Service Code
+ I $$ENVOY^ABMEF19 D
+ .S ABMR(61,80)=$$TOS^ABMEH63 ;
+ E  S ABMR(61,80)=$$TOS^ABMERUTL(J)
+ S ABMR(61,80)=$$FMT^ABMERUTL(ABMR(61,80),2)
+ Q
+90 ;60-64 HCPCS Procedure Code
+ S ABMR(61,90)=$P(ABMRV(J,K,L),U,2)
+ S ABMR(61,90)=$$FMT^ABMERUTL(ABMR(61,90),5)
+ Q
+100 ;65-66 Modifier 1
+ S ABMR(61,100)=$P(ABMRV(J,K,L),U,3)
+ S ABMR(61,100)=$$FMT^ABMERUTL(ABMR(61,100),2)
+ Q
+110 ;67-68 Modifier 2
+ S ABMR(61,110)=$P(ABMRV(J,K,L),U,4)
+ S ABMR(61,110)=$$FMT^ABMERUTL(ABMR(61,110),2)
+ Q
+120 ;69-70 Modifier 3
+ S ABMR(61,120)=$P(ABMRV(J,K,L),U,12)
+ S ABMR(61,120)=$$FMT^ABMERUTL(ABMR(61,120),2)
+ Q
+130 ;71-77 Line Charges
+ S ABMR(61,130)=$P(ABMRV(J,K,L),U,6)
+ S ABMRT(90,"DTOT")=+$G(ABMRT(90,"DTOT"))+ABMR(61,130)
+ S ABMR(61,130)=$$FMT^ABMERUTL(ABMR(61,130),"7NRJ2")
+ Q
+140 ;78-78 Diag Code Pointer 1
+ S ABMCDX=$P(ABMRV(J,K,L),U,11)
+ D
+ .; because there are only four diags stored in EA0 record (ABMEH40)
+ .N I F I=1:1:$L(ABMCDX,",") D
+ ..N X S X=$P(ABMCDX,",",I) Q:'X
+ ..I X>4 S $P(ABMCDX,",",I)="" Q
+ ..; and also remove pointers to non-existent diags
+ ..I '$D(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",X)) S $P(ABMCDX,",",I)=""
+ S:$P(ABMCDX,",")="" $P(ABMCDX,",")=1
+ S ABMR(61,140)=$P(ABMCDX,",",1)
+ S ABMR(61,140)=$$FMT^ABMERUTL(ABMR(61,140),1)
+ Q
+150 ;79-79 Diag Code Pointer 2
+ S ABMR(61,150)=$P(ABMCDX,",",2)
+ S ABMR(61,150)=$$FMT^ABMERUTL(ABMR(61,150),1)
+ Q
+160 ;80-80 Diag Code Pointer 3
+ S ABMR(61,160)=$P(ABMCDX,",",3)
+ S ABMR(61,160)=$$FMT^ABMERUTL(ABMR(61,160),1)
+ Q
+170 ;81-81 Diag Code Pointer 4
+ S ABMR(61,170)=$P(ABMCDX,",",4)
+ S ABMR(61,170)=$$FMT^ABMERUTL(ABMR(61,170),1)
+ K ABMCDX
+ Q
+180 ;82-85 Units of Service
+ S ABMR(61,180)=$P(ABMRV(J,K,L),U,5)
+ S ABMR(61,180)=$$FMT^ABMERUTL(ABMR(61,180),"4NRJ1")
+ Q
+190 ;86-89 Anesthesia/Oxygen Min
+ S ABMR(61,190)=""
+ S ABMR(61,190)=$$FMT^ABMERUTL(ABMR(61,190),"4NR")
+ Q
+200 ;90-90 Emergency Ind
+ S ABMR(61,200)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),8)),"^",5)
+ S:ABMR(61,200)="" ABMR(61,200)="N"
+ S ABMR(61,200)=$$FMT^ABMERUTL(ABMR(61,200),1)
+ Q
+210 ;91-91 COB Ind
+ S ABMR(61,210)=""
+ S ABMR(61,210)=$$FMT^ABMERUTL(ABMR(61,210),1)
+ Q
+220 ;92-92 HPSA Ind
+ S ABMR(61,220)=""
+ S ABMR(61,220)=$$FMT^ABMERUTL(ABMR(61,220),1)
+ Q
+230 ;93-107 Rendering Prov ID     
+ S ABMR(61,230)=""
+ ; SSN/EIN it's supposed to be there,
+ ; it's supposed to be SSN or EIN, even though spec has X(15) and 
+ ; mention of any such thing.
+ I $$ENVOY^ABMEF19 D
+ .I $G(ABMEH61("RENDERING")) D
+ ..N X
+ ..S X=$$SSN^ABMEEPRV(ABMEH61("RENDERING"))
+ ..S X=$$FMT^ABMERUTL(X,"9S")
+ ..S X=$J(+X,9)
+ ..S X=$TR(X," ","0")
+ ..S ABMR(61,230)=X
+ S ABMR(61,230)=$$FMT^ABMERUTL(ABMR(61,230),15)
+ Q
+240 ;108-122 Referring Prov ID
+ S ABMR(61,240)=""
+ S ABMR(61,240)=$$FMT^ABMERUTL(ABMR(61,240),15)
+ Q
+250 ;123-124 Referring Prov State
+ S ABMR(61,250)=""
+ S ABMR(61,250)=$$FMT^ABMERUTL(ABMR(61,250),2)
+ Q
+260 ;125-125 Pur Svc Ind
+ S ABMR(61,260)=""
+ S ABMR(61,260)=$$FMT^ABMERUTL(ABMR(61,260),1)
+ Q
+270 ;126-132 Disallowed Cost Cont
+ S ABMR(61,270)=""
+ S ABMR(61,270)=$$FMT^ABMERUTL(ABMR(61,270),"7NRJ2")
+ Q
+280 ;133-139 Disallowed Other
+ S ABMR(61,280)=""
+ S ABMR(61,280)=$$FMT^ABMERUTL(ABMR(61,280),"7NRJ2")
+ Q
+290 ;140-140 Review By Code Ind
+ S ABMR(61,290)=""
+ S ABMR(61,290)=$$FMT^ABMERUTL(ABMR(61,290),1)
+ Q
+300 ;141-141 Multi Procedure Ind
+ S ABMR(61,300)=""
+ S ABMR(61,300)=$$FMT^ABMERUTL(ABMR(61,300),1)
+ Q
+310 ;142-151 Mammography Cert No
+ S ABMR(61,310)=""
+ S ABMR(61,310)=$$FMT^ABMERUTL(ABMR(61,310),10)
+ Q
+320 ;152-160 Class Findings
+ S ABMR(61,320)=""
+ S ABMR(61,320)=$$FMT^ABMERUTL(ABMR(61,320),9)
+ Q
+330 ;161-163 Podiatry Svc Cond
+ S ABMR(61,330)=""
+ S ABMR(61,330)=$$FMT^ABMERUTL(ABMR(61,330),3)
+ Q
+340 ;164-178 CLIA ID #
+ S ABMR(61,340)=""
+ S ABMR(61,340)=$$FMT^ABMERUTL(ABMR(61,340),15)
+ Q
+350 ;179-185 Primary Paid Amount (Other Insurance)
+ S ABMR(61,350)=""
+ S ABMR(61,350)=$$FMT^ABMERUTL(ABMR(61,350),"7NRJ2")
+ Q
+360 ;186-187 HCPCS Modifier 4
+ S ABMR(61,360)=""
+ S ABMR(61,360)=$$FMT^ABMERUTL(ABMR(61,360),2)
+ Q
+370 ;188-190 Provider Specialty
+ S ABMR(61,370)=""
+ S ABMR(61,370)=$$FMT^ABMERUTL(ABMR(61,370),3)
+ Q
+380 ;191-191 Podiatry Therapy Ind     
+ S ABMR(61,380)=""
+ S ABMR(61,380)=$$FMT^ABMERUTL(ABMR(61,380),1)
+ Q
+390 ;192-192 Podiatry Therapy Type
+ S ABMR(61,390)=""
+ S ABMR(61,390)=$$FMT^ABMERUTL(ABMR(61,390),1)
+ Q
+400 ;193-193 Hospice Employed Prov Ind
+ S ABMR(61,400)=""
+ S ABMR(61,400)=$$FMT^ABMERUTL(ABMR(61,400),1)
+ Q
+410 ;194-201 HGB/HCT Date
+ S ABMR(61,410)=""
+ S ABMR(61,410)=$$FMT^ABMERUTL(ABMR(61,410),8)
+ Q
+420 ;202-204 HGB Result
+ S ABMR(61,420)=""
+ S ABMR(61,420)=$$FMT^ABMERUTL(ABMR(61,420),"3NR")
+ Q
+430 ;205-206 HCT Result
+ S ABMR(61,430)=""
+ S ABMR(61,430)=$$FMT^ABMERUTL(ABMR(61,430),"2NR")
+ Q
+440 ;207-209 Patient Weight
+ S ABMR(61,440)=""
+ S ABMR(61,440)=$$FMT^ABMERUTL(ABMR(61,440),"3NR")
+ Q
+450 ;210-212 EPO Dosage
+ S ABMR(61,450)=""
+ S ABMR(61,450)=$$FMT^ABMERUTL(ABMR(61,450),"3NR")
+ Q
+460 ;213-220 Serum Creatine Date
+ S ABMR(61,460)=""
+ S ABMR(61,460)=$$FMT^ABMERUTL(ABMR(61,460),8)
+ Q
+470 ;221-223 Creatine Result
+ S ABMR(61,470)=""
+ S ABMR(61,470)=$$FMT^ABMERUTL(ABMR(61,470),"3NR")
+ Q
+480 ;224-230 Obligated Accept Amt
+ S ABMR(61,480)=""
+ S ABMR(61,480)=$$FMT^ABMERUTL(ABMR(61,480),"7NRJ2")
+ Q
+490 ;231-237 Drug Discount Amt
+ S ABMR(61,490)=""
+ S ABMR(61,490)=$$FMT^ABMERUTL(ABMR(61,490),"7NRJ2")
+ Q
+500 ;238-320 Filler (National)
+ S ABMR(61,500)=""
+ S ABMR(61,500)=$$FMT^ABMERUTL(ABMR(61,500),83)
+ ; TYPE OF SERVICE X(3) POSITIONS 238-240
+ ; An Envoy-specific extension required by some payers.
+ ; We use the two-character standard Type of Service code and fill the
+ ; third space with a blank.
+ I $$ENVOY^ABMEF19 D
+ .S $E(ABMR(61,500),1,3)=ABMR(61,80)_" "
+ Q
+EX(ABMX,ABMY,ABMZ) ;EXTRINSIC FUNCTION HERE
+ ;X=data element, Y=bill internal entry number
+ S ABMP("BDFN")=ABMY D SET^ABMERUTL
+ I '$G(ABMP("NOFMT")) S ABMP("FMT")=0
+ D @ABMX
+ S Y=ABMR(61,ABMX)
+ I $D(ABMP("FMT")) S ABMP("FMT")=1
+ K ABMR(61,ABMX),ABME,ABMX,ABMY,ABMZ,ABM
+ Q Y

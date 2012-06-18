@@ -1,0 +1,260 @@
+BKMVIST4 ;PRXM/HC/JGH - Save 90459 data to V-Files and 90451.1 ; 07 Jun 2005  5:31 PM
+ ;;2.1;HIV MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+ ;PRXM/HC/BHS - 04/12/2006 - Removed HMS* tags related to File 90451.1
+ ;                            which was removed September 2005 as v-file data
+ ;                            is always filed to PCC rather than in HMS as well.
+ ;                            
+ ; Update PCC, V-Files, Visit File, using HMS
+ Q
+ ;
+HF(DFN,VISIT,DATABASE) ; EP - File Health Factor Visit data from File 90459
+ ; Input variables:
+ ;  DFN - IEN for Patient
+ ;  VISIT - Visit ID
+ ;  DATABASE - 'PCC'
+ ; Output variables: n/a
+ ; Initialize
+ N HFVALUE,HFDATE,HFDT,HFTYPE,HFCAT,ERFLAG,DA,DA0,DA1,IENS,APCDADD,VISITDT,BKMTMP
+ ; PCC Buffer IEN
+ S DA1=$O(^BKM(90459,"B",$J,""))
+ Q:DA1=""
+ ; Init
+ K ^TMP("BKMVIST4 DATES",$J)
+ ; HF subfiles
+ S HFDT=""
+ F  S HFDT=$O(^BKM(90459,DA1,18,"B",HFDT)) Q:HFDT=""  D
+ . S DA0=""
+ . F  S DA0=$O(^BKM(90459,DA1,18,"B",HFDT,DA0)) Q:DA0=""  D
+ . . S DA=DA0,DA(1)=DA1
+ . . S IENS=$$IENS^DILF(.DA)
+ . . S HFVALUE=""
+ . . S HFDATE=HFDT
+ . . S HFTYPE=$$GET1^DIQ(90459.1818,IENS,.02,"I")
+ . . Q:HFTYPE=""
+ . . S HFCAT=$$GET1^DIQ(9999999.64,HFTYPE_",",.03,"I")
+ . . Q:HFCAT=""
+ . . ; Add V-File entry
+ . . S VISITDT=$P(HFDATE,".",1)
+ . . S VISIT=$G(^TMP("BKMVIST4 DATES",$J,VISITDT))
+ . . ; Create PCC Visit
+ . . I VISIT="" S APCDADD=1,(^TMP("BKMVIST4 DATES",$J,VISITDT),VISIT)=$$CRVISIT3(VISITDT,DFN)
+ . . I VISIT="" W !,"Unable to create PCC Visit!" S BKMTMP=$$PAUSE^BKMIXX3() Q
+ . . ; File PCC Health Factor V-File entry
+ . . S:DATABASE="PCC" ERFLAG=$$CRVFILE2("HF",DFN,VISIT,HFTYPE,HFVALUE,HFDATE,"[APCDALVR 9000010.23 (ADD)]") ;,ERFLAG=$$REVEDHF(DFN,HFCAT,HFTYPE) 
+ . . I ERFLAG="" W !,"Unable to create V-File entry!" S BKMTMP=$$PAUSE^BKMIXX3()
+ K ^TMP("BKMVIST4 DATES",$J)
+ Q
+ ;
+DELHF ; EP - Delete 90459.1818 HF subfiles
+ ; Input variables:  n/a
+ ; Output variables: n/a
+ ; Initialize
+ N DA,DA1,DA0,DIK,HF
+ ; PCC Buffer IEN
+ S DA1=$O(^BKM(90459,"B",$J,""))
+ Q:DA1=""
+ ; HF subfiles
+ S HF=""
+ F  S HF=$O(^BKM(90459,DA1,18,"B",HF)) Q:HF=""  D
+ . S DA0=""
+ . F  S DA0=$O(^BKM(90459,DA1,18,"B",HF,DA0)) Q:DA0=""  D
+ . . K DA
+ . . S DA(1)=DA1,DA=DA0
+ . . ; Delete subfile
+ . . S DIK="^BKM(90459,"_DA(1)_",18,"
+ . . D ^DIK
+ Q
+ ;
+EDUC(DFN,VISIT,DATABASE)  ; EP - File Elder Visit data from File 90459
+ ; Input variables:
+ ;  DFN - IEN for Patient
+ ;  VISIT - Visit ID
+ ;  DATABASE - 'PCC'
+ ; Initialize
+ N DA1,DA0,EDU,EDUDATE,EDUTYPE,X,G,ERFLAG,APCDADD,EDUDT,VISITDT
+ N EDULOU,EDUOBJ,EDUTIG,EDUMIN,EDUTBC,EIENS,DA,BKMTMP,EDUPRO
+ ; PCC Buffer IEN
+ S DA1=$O(^BKM(90459,"B",$J,""))
+ Q:DA1=""
+ ; Init
+ K ^TMP("BKMVIST4 DATES",$J)
+ ; Education subfiles
+ S EDUDT=""
+ F  S EDUDT=$O(^BKM(90459,DA1,12,"B",EDUDT)) Q:EDUDT=""  D
+ . S DA0=""
+ . F  S DA0=$O(^BKM(90459,DA1,12,"B",EDUDT,DA0)) Q:DA0=""  D
+ . . S DA=DA0,DA(1)=DA1
+ . . S EIENS=$$IENS^DILF(.DA)
+ . . S EDUDATE=EDUDT
+ . . S EDUTYPE=$$GET1^DIQ(90459.1212,EIENS,.02,"I")
+ . . Q:EDUTYPE?." "
+ . . S EDULOU=$$GET1^DIQ(90459.1212,EIENS,.03,"I")
+ . . S EDUPRO=$$GET1^DIQ(90459.1212,EIENS,.04,"I")
+ . . S EDUOBJ=$$GET1^DIQ(90459.1212,EIENS,.05,"I")
+ . . S EDUTIG=$$GET1^DIQ(90459.1212,EIENS,.06,"I")
+ . . S EDUMIN=$$GET1^DIQ(90459.1212,EIENS,.07,"I")
+ . . S EDUTBC=$$GET1^DIQ(90459.1212,EIENS,.08,"I")
+ . . ; Add V-File entry
+ . . S VISITDT=$P(EDUDATE,".",1)
+ . . S VISIT=$G(^TMP("BKMVIST4 DATES",$J,VISITDT))
+ . . ; Create PCC Visit
+ . . I VISIT="" S APCDADD=1,(^TMP("BKMVIST4 DATES",$J,VISITDT),VISIT)=$$CRVISIT3(VISITDT,DFN)
+ . . I VISIT="" W !,"Unable to create PCC Visit!" S BKMTMP=$$PAUSE^BKMIXX3() Q
+ . . ; File PCC Patient Education V-File entry
+ . . S:DATABASE="PCC" ERFLAG=$$CRVFILE2("EDUC",DFN,VISIT,EDUTYPE,EIENS,EDUDATE,"[APCDALVR 9000010.16 (ADD)]")
+ . . I ERFLAG="" W !,"Unable to create V-File entry!" S BKMTMP=$$PAUSE^BKMIXX3()
+ K ^TMP("BKMVIST4 DATES",$J)
+ Q
+ ;
+DELEDUC ; EP - Delete 90459.1212 Education subfiles
+ ; Input variables:  n/a
+ ; Output variables: n/a
+ ; Initialize
+ N DA,DA1,DA0,DIK,EDU
+ ; PCC Buffer IEN
+ S DA1=$O(^BKM(90459,"B",$J,""))
+ Q:DA1=""
+ ; Education subfiles
+ S EDU=""
+ F  S EDU=$O(^BKM(90459,DA1,12,"B",EDU)) Q:EDU=""  D
+ . S DA0=""
+ . F  S DA0=$O(^BKM(90459,DA1,12,"B",EDU,DA0)) Q:DA0=""  D
+ . . K DA
+ . . ; Delete subfile
+ . . S DA(1)=DA1,DA=DA0
+ . . S DIK="^BKM(90459,"_DA(1)_",12,"
+ . . D ^DIK
+ Q
+ ;
+CRVISIT3(EDATE,PATIENT) ; EP - Create File 9000010 entry
+ ; Extrinsic function returns Visit (File 9000010) IEN or "", if error
+ ; Assumes DUZ(2) and DT
+ ; Input variables:
+ ;  DATE - Event date/time
+ ;  PATIENT - IEN for Patient
+ ; Output variables: n/a
+ ; Initialize
+ K APCDALVR
+ N BKMVSIT
+ S BKMVSIT=""
+ ; Input variables
+ S APCDALVR("APCDADD")=""  ; Force new visit
+ S APCDALVR("AUPNTALK")="" ; Non-interactive
+ S APCDALVR("APCDANE")=""  ; No echo to screen
+ ; Data fields
+ S APCDALVR("APCDDATE")=EDATE  ; Internal event date/time
+ S APCDALVR("APCDTYPE")=$$GET1^DIQ(9001000,DUZ(2)_",",.04,"I") ; Type of visit
+ S APCDALVR("APCDPAT")=PATIENT ; Patients DFN
+ S APCDALVR("APCDLOC")=DUZ(2)  ; Site Location
+ S APCDALVR("APCDCAT")="E"     ; Event (historical)
+ ; Create visit
+ D EN^APCDALV
+ ; Check for error
+ I '$G(APCDALVR("APCDAFLG")) S BKMVSIT=$G(APCDALVR("APCDVSIT"))
+ ; Cleanup
+ K APCDALVR
+ ; Return with Visit ID or null if error
+ Q BKMVSIT
+ ;
+CRVFILE2(VFILE,PATIENT,VISIT,TYPE,VALUE,CRVDATE,TEMPLATE) ; EP - Create Visit-related file (V files)
+ ; Input variables:
+ ;  VFILE - Visit related file type ex., HF, MED, etc.
+ ;  PATIENT - IEN for Patient
+ ;  VISIT - Visit ID
+ ;  TYPE - Type to add to the APCDALVR array
+ ;  VALUE - Value to add to the APCDALVR array or IENS to identify value
+ ;  CRVDATE - Event date/time
+ ;  TEMPLATE - Template name
+ ; Output variables: n/a
+ ;  Returns V-File IEN or "" (if error)
+ ; Initialize
+ K APCDALVR
+ N BKMVFIL
+ S BKMVFIL=""
+ ;
+ ; All the same
+ S APCDALVR("APCDPAT")=PATIENT
+ S APCDALVR("APCDVSIT")=VISIT
+ S APCDALVR("APCDATMP")=TEMPLATE
+ S APCDALVR("APCDTCDT")=CRVDATE
+ ;
+ ; Build APCDALVR array
+ I VFILE="MSR" D
+ . S APCDALVR("APCDTTYP")="`"_TYPE
+ . S APCDALVR("APCDTVAL")=VALUE
+ ELSE  I VFILE="PRC" D
+ . S APCDALVR("APCDTPRC")="`"_TYPE
+ . S APCDALVR("APCDTNQ")=VALUE
+ . S APCDALVR("APCDTPD")=CRVDATE\1
+ ELSE  I VFILE="LAB" D
+ . S APCDALVR("APCDTLAB")="`"_TYPE
+ . S APCDALVR("APCDTRES")=$$GET1^DIQ(90459.1313,VALUE,.03,"I")
+ . S APCDALVR("APCDTUNI")=$$GET1^DIQ(90459.1313,VALUE,1101,"I")
+ . S APCDALVR("APCDTRFL")=$$GET1^DIQ(90459.1313,VALUE,1104,"I")
+ . S APCDALVR("APCDTRFH")=$$GET1^DIQ(90459.1313,VALUE,1105,"I")
+ ELSE  I VFILE="IMMUN" D
+ . S APCDALVR("APCDTIMM")="`"_TYPE
+ . S APCDALVR("APCDTSER")=$$GET1^DIQ(90459.2323,VALUE,.04,"I")
+ . S APCDALVR("APCDTLOT")=$$GET1^DIQ(90459.2323,VALUE,.05,"I")
+ . S APCDALVR("APCDTREC")=$$GET1^DIQ(90459.2323,VALUE,.06,"I")
+ ELSE  I VFILE="SKIN" D
+ . S APCDALVR("APCDTSK")="`"_TYPE
+ . S APCDALVR("APCDTRES")=$$GET1^DIQ(90459.2222,VALUE,.04,"I")
+ . S APCDALVR("APCDTREA")=$$GET1^DIQ(90459.2222,VALUE,.05,"I")
+ . ;S APCDALVR("APCDTEPR")=$$GET1^DIQ(90459.2222,VALUE,.08,"I")
+ ELSE  I VFILE="MED" D
+ . S APCDALVR("APCDTRX")="`"_TYPE
+ . S APCDALVR("APCDTSIG")=$$GET1^DIQ(90459.1414,VALUE,.04,"I")
+ . S APCDALVR("APCDTQTY")=$$GET1^DIQ(90459.1414,VALUE,.03,"I")
+ . S APCDALVR("APCDTDAY")=$$GET1^DIQ(90459.1414,VALUE,.07,"I")
+ ELSE  I VFILE="RAD" D
+ . S APCDALVR("APCDTRAD")="`"_TYPE
+ . S APCDALVR("APCDTABN")=VALUE
+ ELSE  I VFILE="XAM" D
+ . S APCDALVR("APCDTEX")="`"_TYPE
+ . S APCDALVR("APCDTRES")=VALUE
+ ELSE  I VFILE="EDUC" D
+ . S APCDALVR("APCDTTOP")="`"_TYPE
+ . S EDUPRO=$$GET1^DIQ(90459.1212,VALUE,.04,"I")
+ . S APCDALVR("APCDTPRO")=$S(EDUPRO'="":"`"_EDUPRO,1:"")
+ . S APCDALVR("APCDTLOU")=$$GET1^DIQ(90459.1212,VALUE,.03,"I")
+ . S APCDALVR("APCDTIG")=$$GET1^DIQ(90459.1212,VALUE,.06,"I")
+ . S APCDALVR("APCDTMIN")=$$GET1^DIQ(90459.1212,VALUE,.07,"I")
+ . S APCDALVR("APCDTBC")=$$GET1^DIQ(90459.1212,VALUE,.08,"I")
+ . S APCDALVR("APCDTOBJ")=$$GET1^DIQ(90459.1212,VALUE,.05,"I")
+ ELSE  I VFILE="HF" D
+ . S APCDALVR("APCDTHF")="`"_TYPE
+ ELSE  I VFILE="ELDER" D
+ . ; One Elder Care form per visit
+ . S APCDALVR("APCDTTYP")=VISIT
+ . S APCDALVR("FORMID")=TYPE
+ . S APCDALVR("TOILET")=$$GET1^DIQ(90459.1616,VALUE,".04","I")
+ . S APCDALVR("BATH")=$$GET1^DIQ(90459.1616,VALUE,".05","I")
+ . S APCDALVR("DRESS")=$$GET1^DIQ(90459.1616,VALUE,".06","I")
+ . S APCDALVR("TRANSFER")=$$GET1^DIQ(90459.1616,VALUE,".07","I")
+ . S APCDALVR("FEED")=$$GET1^DIQ(90459.1616,VALUE,".08","I")
+ . S APCDALVR("CONTINEN")=$$GET1^DIQ(90459.1616,VALUE,".09","I")
+ . S APCDALVR("FINANCES")=$$GET1^DIQ(90459.1616,VALUE,".11","I")
+ . S APCDALVR("COOK")=$$GET1^DIQ(90459.1616,VALUE,".12","I")
+ . S APCDALVR("SHOP")=$$GET1^DIQ(90459.1616,VALUE,".13","I")
+ . S APCDALVR("HOUSEWK")=$$GET1^DIQ(90459.1616,VALUE,".14","I")
+ . S APCDALVR("MEDICAT")=$$GET1^DIQ(90459.1616,VALUE,".15","I")
+ . S APCDALVR("TRANSP")=$$GET1^DIQ(90459.1616,VALUE,".16","I")
+ . S APCDALVR("CHFUNC")=$$GET1^DIQ(90459.1616,VALUE,".17","I")
+ . S APCDALVR("CAREGVR")=$$GET1^DIQ(90459.1616,VALUE,".18","I")
+ . S APCDALVR("OPROV")=$$GET1^DIQ(90459.1616,VALUE,"1202","I")
+ . S APCDALVR("CLINIC")=$$GET1^DIQ(90459.1616,VALUE,"1203","I")
+ . S APCDALVR("EPROV")=$$GET1^DIQ(90459.1616,VALUE,"1204","I")
+ . S APCDALVR("EXKEY")=$$GET1^DIQ(90459.1616,VALUE,"1209","I")
+ . S APCDALVR("OPNAME")=$$GET1^DIQ(90459.1616,VALUE,"1210","I")
+ ; Create V files
+ D EN^APCDALVR
+ ; Check for error
+ I '$G(APCDALVR("APCDAFLG")) S BKMVFIL=$G(APCDALVR("APCDADFN"))
+ ; Cleanup
+ K APCDALVR
+ ; Return with Visit ID or null if error
+ Q BKMVFIL
+ ;
+ ;

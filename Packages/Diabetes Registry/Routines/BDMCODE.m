@@ -1,0 +1,89 @@
+BDMCODE ; IHS/CMI/LAB - INTERFACE TO SELECT ICD CODES ;
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;;JUN 14, 2007
+ ;
+ ;cmi/anch/maw 9/10/2007 code set versioning in DISPLAY
+ ;
+ D INIT
+BEGIN D ASK1
+ I Y="^" S BDMSTP=1 G X
+ I $D(BDMTBLE) D CHECK I Y'=1 G @$S(Y=0:"BEGIN",1:"X")
+X D EOJ
+ Q
+ ;
+INIT ;
+ S BDM("NO DISPLAY")=0
+ I $D(BDMX) D  I 1
+ . I $D(BDMTBLE) S BDM("MODIFY")=1 D RANGES I 1
+ . E  S BDM("ENTER")=1
+ E  S BDM("NOT TAX")=""
+ Q
+ ;
+ASK1 ;
+ S BDMA=0
+ K BDM("LOW"),BDM("HI")
+ S DIR("A")=$S('$D(BDMTBLE):"ENTER DX",1:"ENTER ANOTHER DX") D SETDIR^BDMCOD0,^DIR K DIR
+ I "^"[Y G X1
+ D PROCESS
+ I $D(BDMTBLE),'BDM("NO DISPLAY") D RANGES
+ S BDM("NO DISPLAY")=0
+ G ASK1
+X1 Q
+ ;
+PROCESS ;EVALUATE USER RESPONSE
+ S (BDMSUB,BDMONE)=0 ;BDMSUB=0 => NO DELETE OF CODE(S),BDMONE=0 => RANGE OF CODES ENTERED
+ I $E(X,1,2)="-[" W $C(7),"  ?? Not allowed" S BDM("NO DISPLAY")=1 G X2
+ I $E(X)="[" D TAX G X2
+ I X'["-" S BDMTYP="LOW",BDMONE=1 D LOOK^BDMCOD0 G X2
+ I $E(X)="-",'$D(BDMTBLE) W $C(7),"  ??  No previous codes entered!" G X2
+ I $L(X,"-")>3 W $C(7),"  ??"  S BDMA=1 S BDM("NO DISPLAY")=1 G X2
+ I $L(X,"-")=3,$E(X,$L(X))="-" W $C(7),"  ??" S BDMA=1 S BDM("NO DISPLAY")=1 G X2
+ I $L(X,"-")=3,$P(X,"-")]"" W $C(7),"  ??" S BDMA=1 S BDM("NO DISPLAY")=1 G X2
+ I $E(X)="-" S BDMSUB=1 D  I 1
+ . S BDMSAVE("X")=X
+ . I $L(X,"-")=3 S X=$P(BDMSAVE("X"),"-",2),BDMTYP="LOW" D LOOK^BDMCOD0 I 'BDMA S X=$P(BDMSAVE("X"),"-",3),BDMTYP="HI" W ! D LOOK^BDMCOD0 Q
+ . I $L(BDMSAVE("X"),"-")=2 S X=$E(X,2,99),BDMTYP="LOW",BDMONE=1 D LOOK^BDMCOD0
+ E  S BDMSAVE("X")=X S BDMTYP="LOW",X=$P(BDMSAVE("X"),"-") D LOOK^BDMCOD0 I 'BDMA S BDMTYP="HI",X=$P(BDMSAVE("X"),"-",2) W ! D LOOK^BDMCOD0
+X2 Q
+ ;
+DISPLAY ;EP - SHOW CODES IN RANGE SELECTED
+ W:$D(IOF) @IOF
+ ;W !!,"ICD codes in this range =>",!! W $P(BDM("LOW")," ") S BDMDFN=$O(^ICD9("BA",BDM("LOW"),"")) W ?9,$P(^ICD9(BDMDFN,0),U,3)  ;cmi/anch/maw 9/10/2007 orig line
+ W !!,"ICD codes in this range =>",!! W $P(BDM("LOW")," ") S BDMDFN=$O(^ICD9("BA",BDM("LOW"),"")) W ?9,$P($$ICDDX^ICDCODE(BDMDFN),U,4)  ;cmi/anch/maw 9/10/2007 csv
+ ;S BDM=BDM("LOW"),BDMCNT=IOSL-2 F  S BDM=$O(^ICD9("BA",BDM)) Q:BDM]BDM("HI")  S BDMDFN=$O(^(BDM,"")) W !,$P(BDM," "),?9,$P(^ICD9(BDMDFN,0),U,3) S BDMCNT=BDMCNT-1 I BDMCNT=0 S BDMCNT=IOSL-2 D  I BDMR=U Q  ;cmi/anch/maw orig line
+ S BDM=BDM("LOW"),BDMCNT=IOSL-2 F  S BDM=$O(^ICD9("BA",BDM)) Q:BDM]BDM("HI")  S BDMDFN=$O(^(BDM,"")) W !,$P(BDM," "),?9,$P($$ICDDX^ICDCODE(BDMDFN),U,4) S BDMCNT=BDMCNT-1 I BDMCNT=0 S BDMCNT=IOSL-2 D  I BDMR=U Q  ;cmi/maw csv
+A1 . R !,"<>",BDMR:DTIME W:BDMR["?" " Enter ""^"" to stop display, return to continue" G:BDMR["?" A1
+ I $S('$D(BDMR):1,BDMR'=U:1,1:0) R !!,"Press return to continue",BDMR:DTIME
+ W !
+ K BDMR Q
+ ;
+RANGES ;DISPLAY TABLE OF ALL RANGES
+ W:$D(IOF) @IOF
+ W !!,"ICD Code Range(s) Selected So Far =>",!
+ S (BDM("NUM"),BDM)=0 F  S BDM=$O(BDMTBLE(BDM)) Q:BDM=""  S BDM("NUM")=BDM("NUM")+1 W !,BDM("NUM"),")  ",BDM,$S(BDM'=BDMTBLE(BDM):"- "_BDMTBLE(BDM),1:"")
+ I '$D(BDM("BANG")) W !
+ Q
+ ;
+SHOW ; ENTRY POINT - ALLOW USER TO SELECT FROM RANGES TO DISPLAY CODES
+ D RANGES
+A W !,"Enter an Item Number from the table above to display code(s): " R BDM("N"):300 W:"^"[BDM("N") ! Q:"^"[BDM("N")  I BDM("N")'?1N!(BDM("N")>BDM("NUM")) W "  ??",$C(7) G A
+ F BDMI=1:1:BDM("N") S BDM=$O(BDMTBLE(BDM)) I BDMI=BDM("N") S BDM("LOW")=BDM,BDM("HI")=BDMTBLE(BDM) D DISPLAY Q
+ S BDM("BANG")="" D RANGES K BDM("BANG")
+ Q
+ ;
+TAX ;PLACE CODES FROM SELECTED TAXONOMY IN BDMTBLE
+ S BDM("S")="I Y'=BDMX",BDM("S")=$S($D(BDMX):BDM("S")_",$O(^ATXAX(Y,21,0))",1:"I $O(^(21,0))"),DIC("A")="TAXONOMY FROM WHICH TO SELECT CODES: ",BDM("S")=BDM("S")_$S('$D(BDMX):"",1:",$P(^ATXAX(BDMX,0),U,15)=$P(^ATXAX(Y,0),U,15)")
+ I $E(X,2)="?" S X="?",DIC="^ATXAX(",DIC(0)="EM",DIC("S")=BDM("S") D ^DIC S DIC(0)="AEMQ",DIC("S")=BDM("S"),DIC="^ATXAX(" D ^DIC K DIC I 1
+ E  S X=$E(X,2,99),DIC(0)="EMQ",DIC("S")=BDM("S"),DIC="^ATXAX(" D ^DIC K DIC
+ I Y=-1 G X3
+ S BDM("CODE")=0 F  S BDM("CODE")=$O(^ATXAX(+Y,21,"AA",BDM("CODE"))) Q:BDM("CODE")=""  S BDMTBLE(BDM("CODE"))=$O(^(BDM("CODE"),""))
+X3 W ! Q
+ ;
+CHECK ;ASKS USER IF SATISFIED WITH ENTERED RANGES
+ W ! S DIR(0)="Y",DIR("B")="Y",DIR("A")="Is everything okay" D ^DIR K DIR
+ W !
+ Q
+ ;
+EOJ ;
+ K BDMSUB,BDMTYP,BDMDFN,DIR,BDMSAVE,BDMA,BDMCNT,BDM,BDMR,BDMI,BDMONE,BDMFLG,BDMSTP
+ Q
+ ;

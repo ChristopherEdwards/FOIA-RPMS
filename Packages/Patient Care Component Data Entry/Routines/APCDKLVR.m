@@ -1,0 +1,117 @@
+APCDKLVR ; IHS/CMI/LAB - PCC DATA ENTRY ORPHAN LAB PRINT ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+ W:$D(IOF) @IOF
+ W !,"****** PCC DATA DATA ENTRY REPORT OF COMPLETED 'ORPHAN' LAB/RADIOLOGY/PHARMACY",!,"VISITS ******",!
+ W !!,"This report will list all visits that were completed using the option",!,"to complete orphaned lab or radiology or pharmacy visits.",!!
+TYPE ;
+ S APCDRTYP=""
+ S DIR(0)="S^L:Lab Visits;R:Radiology Visits;P:Pharmacy Visits;I:Immunization;B:Blood Bank;M:Microbiology;A:All Completed Visits",DIR("A")="Which type of Completed Visits to you wish to list",DIR("B")="A" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D XIT Q
+ S APCDRTYP=Y
+GETDATES ;
+ W !,"Please enter the date range for which you would like to see",!,"a list of completed ",$$V(APCDRTYP)," visits.",!
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning date for the report " D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S APCDBD=Y
+ED ;get ending date
+ W ! S DIR(0)="DA^"_APCDBD_":DT:EP",DIR("A")="Enter ending date for the report:  " S Y=APCDBD D DD^%DT S Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S APCDED=Y
+ S X1=APCDBD,X2=-1 D C^%DTC S APCDSD=X
+ ;
+ZIS ;
+ S DIR(0)="S^P:PRINT Output;B:BROWSE Output on Screen",DIR("A")="Do you wish to ",DIR("B")="P" K DA D ^DIR K DIR
+ I $D(DIRUT) G XIT
+ I $G(Y)="B" D BROWSE,XIT Q
+ S XBRC="PROCESS^APCDKLVR",XBRP="PROCPRN^APCDKLVR",XBRX="XIT^APCDKLVR",XBNS="APCD"
+ D ^XBDBQUE
+ D XIT
+ Q
+BROWSE ;
+ S XBRP="VIEWR^XBLM(""PROCPRN^APCDKLVR"")"
+ S XBNS="APCD",XBRC="PROCESS^APCDKLVR",XBRX="XIT^APCDKLVR",XBIOP=0 D ^XBDBQUE
+ Q
+ ;
+PROCESS ; Entry point for Taskman
+ S APCDJOB=$J,APCDBTH=$H
+ K ^XTMP("APCDKLVR",APCDJOB,APCDBTH)
+ S ^XTMP("APCDKLVR",0)=$$FMADD^XLFDT(DT,14)_"^"_DT_"^"_"PCC DATA ENTRY LAB REPORT"
+ S APCDD=APCDSD F  S APCDD=$O(^APCDLLOG("AC",APCDD)) Q:APCDD=""!(APCDD>APCDED)  D
+ .S APCDV=0 F  S APCDV=$O(^APCDLLOG("AC",APCDD,APCDV)) Q:APCDV'=+APCDV  D
+ ..I APCDRTYP="A" S ^XTMP("APCDKLVR",APCDJOB,APCDBTH,"VISITS",APCDD,$P(^APCDLLOG(APCDV,0),U))="" Q
+ ..I APCDRTYP=$P(^APCDLLOG(APCDV,0),U,3) S ^XTMP("APCDKLVR",APCDJOB,APCDBTH,"VISITS",APCDD,$P(^APCDLLOG(APCDV,0),U))="" Q
+ Q
+PROCPRN ;EP - called from xbdbque to print report
+ S APCD80E="==============================================================================="
+ S APCD80D="-------------------------------------------------------------------------------"
+ S APCDPG=0 D @("HEAD"_(2-($E(IOST,1,2)="C-"))) I '$D(^XTMP("APCDKLVR",APCDJOB,APCDBTH)) W !,"No visits to report",! G DONE
+ S APCDDATE=0 F  S APCDDATE=$O(^XTMP("APCDKLVR",APCDJOB,APCDBTH,"VISITS",APCDDATE)) Q:APCDDATE=""  D
+ .S APCDV=0 K APCDQUIT
+ .I $Y>(IOSL-4) D HEAD Q:$D(APCDQUIT)
+ .W !,"Date 'Orphan' Visit Completed: ",$$FMTE^XLFDT(APCDDATE)
+ .F  S APCDV=$O(^XTMP("APCDKLVR",APCDJOB,APCDBTH,"VISITS",APCDDATE,APCDV)) Q:APCDV=""!($D(APCDQUIT))  D PRINT
+DONE ;
+ K ^XTMP("APCDKLVR",APCDJOB,APCDBTH)
+ I $E(IOST)="C",IO=IO(0) S DIR(0)="E",DIR("A")="End of report.  Press return." KILL DA D ^DIR KILL DIR
+ Q
+PRINT ;
+ I $Y>(IOSL-6) D HEAD Q:$D(APCDQUIT)
+ S APCDV0=^AUPNVSIT(APCDV,0)
+ S DFN=$P(APCDV0,U,5),APCDHRN="" S:$D(^AUPNPAT(DFN,41,DUZ(2),0)) APCDHRN=$P(^AUPNPAT(DFN,41,DUZ(2),0),U,2)
+PRN ;
+ S (APCDLAB,X)=0 F  S X=$O(^AUPNVLAB("AD",APCDV,X)) Q:X'=+X  S APCDLAB=APCDLAB+1
+ S (APCDRAD,X)=0 F  S X=$O(^AUPNVRAD("AD",APCDV,X)) Q:X'=+X  S APCDRAD=APCDRAD+1
+ S (APCDMED,X)=0 F  S X=$O(^AUPNVMED("AD",APCDV,X)) Q:X'=+X  S APCDMED=APCDMED+1
+ S (APCDIMM,X)=0 F  S X=$O(^AUPNVIMM("AD",APCDV,X)) Q:X'=+X  S APCDIMM=APCDIMM+1
+ S (APCDBB,X)=0 F  S X=$O(^AUPNVBB("AD",APCDV,X)) Q:X'=+X  S APCDBB=APCDBB+1
+ S (APCDMIC,X)=0 F  S X=$O(^AUPNVMIC("AD",APCDV,X)) Q:X'=+X  S APCDMIC=APCDMIC+1
+ W !,$$VDTM^APCLV(APCDV,"E"),?19,APCDHRN,?26,$E($$LOCENC^APCLV(APCDV,"E"),1,10),?38,$$TYPE^APCLV(APCDV,"I"),?43,$$SC^APCLV(APCDV,"I")
+ W ?46,$$T(APCDV),?54,$S($$T(APCDV)="LAB":APCDLAB,$$T(APCDV)="MED":APCDMED,$$T(APCDV)="RAD":APCDRAD,$$T(APCDV)="IMM":APCDIMM,$$T(APCDV)="BB":APCDBB,$$T(APCDV)="MIC":"MICROBIOLOGY",1:""),?61,$$VAL^XBDIQ1(9000010,APCDV,.28)
+ Q
+HEAD ;ENTRY POINT
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCDQUIT="" Q
+HEAD1 ;
+ W:$D(IOF) @IOF
+HEAD2 ;
+ S APCDPG=APCDPG+1
+ W !?13,"********** CONFIDENTIAL PATIENT INFORMATION **********"
+ W !?(80-$L($P(^DIC(4,DUZ(2),0),U))/2),$P(^DIC(4,DUZ(2),0),U),?72,"Page ",APCDPG,!
+ W ?10,"ANCILLARY VISITS FOR WHICH A PROVIDER AND POV WERE APPENDED",!
+ W ?20,"Dates range: ",$$FMTE^XLFDT(APCDBD),"-",$$FMTE^XLFDT(APCDED),!
+ W !,"VISIT DATE/TIME",?20,"HRN",?26,"LOCATION",?37,"TYPE",?43,"SC",?52,"# ",$$V1(APCDRTYP),?61,"BILLING LINK DATE"
+ W !,APCD80D
+ Q
+XIT ;
+ K DA,DIE,DIC,DIR,DFN
+ K APCD80E,APCD80D,APCDJOB,APCDV0,APCDBTH,APCDBD,APCDD,APCDDATE,APCDED,APCDHRN,APCDLAB,APCDPG,APCDSD,APCDV
+ Q
+ ;
+T(V) ;
+ I '$G(V) Q ""
+ I $D(^AUPNVLAB("AD",APCDV)) Q "LAB"
+ I $D(^AUPNVRAD("AD",APCDV)) Q "RAD"
+ I $D(^AUPNVMED("AD",APCDV)) Q "MED"
+ I $D(^AUPNVIMM("AD",APCDV)) Q "IMM"
+ I $D(^AUPNVBB("AD",APCDV)) Q "BB"
+ I $D(^AUPNVMIC("AD",APCDV)) Q "MIC"
+ Q "??"
+V1(R) ;
+ I R="R" Q "RADS"
+ I R="L" Q "LABS"
+ I R="P" Q "MEDS"
+ I R="A" Q "ENT"
+ I R="I" Q "IMM"
+ I R="B" Q "BB"
+ I R="M" Q "MIC"
+ Q ""
+V(R) ;
+ I R="R" Q "RADIOLOGY"
+ I R="L" Q "LAB"
+ I R="P" Q "PHARMACY"
+ I R="I" Q "IMMUNIZATION"
+ I R="A" Q "LAB/RAD/RX/IMM/BB/MICRO"
+ I R="B" Q "BLOOD BANK"
+ I R="M" Q "MICROBIOLOGY"
+ Q ""

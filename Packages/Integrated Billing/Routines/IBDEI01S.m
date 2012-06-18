@@ -1,0 +1,12 @@
+IBDEI01S	; ; 18-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	Q:'DIFQR(358.7)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,358.7)
+	;;=^IBE(358.7,
+	;;^UTILITY(U,$J,358.7,0)
+	;;=IMP/EXP FORM LINE^358.7I^2^2
+	;;^UTILITY(U,$J,358.7,1,0)
+	;;=H(0,0)^0^0^H^132^3
+	;;^UTILITY(U,$J,358.7,2,0)
+	;;=H(0,0)^0^0^H^132^8

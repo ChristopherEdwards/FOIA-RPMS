@@ -1,0 +1,100 @@
+APCPREDO ; IHS/TUCSON/LAB - OHPRD-TUCSON/EDE REDO A PREVIOUS RUN AUGUST 14, 1992 ; [ 12/16/03  8:06 AM ]
+ ;;2.0;IHS PCC DATA EXTRACTION SYSTEM;**1,2,3,6,7**;APR 03, 1998
+ ;IHS/CMI/LAB - xtmp/new stat record
+START ;
+ S APCPO("RUN")="REDO" ;     Let ^APCPDRI know this is a 'REDO'
+ D ^APCPDRI ;           
+ I APCP("QFLG") D EOJ W !!,"Bye",!! Q
+ D INIT ;               Get Log entry to redo
+ I APCP("QFLG") D EOJ W !!,"Bye",!! Q
+ D QUEUE^APCPDRI
+ I APCP("QFLG") D EOJ W !!,"Bye",!! Q
+ I $D(APCPO("QUEUE")) D EOJ W !!,"Okay your request is queued!",!! Q
+ ;
+EN ;EP FROM TASKMAN
+ S APCPCNT=$S('$D(ZTQUEUED):"X APCPCNT1  X APCPCNT2",1:"S APCPCNTR=APCPCNTR+1"),APCPCNT1="F APCPCNTL=1:1:$L(APCPCNTR)+1 W @APCPBS",APCPCNT2="S APCPCNTR=APCPCNTR+1 W APCPCNTR,"")"""
+ D NOW^%DTC S APCP("RUN START")=%,APCP("MAIN TX DATE")=$P(%,".") K %,%H,%I
+ S APCP("BT")=$HOROLOG
+ S X2=$E(DT,1,3)_"0101",X1=DT D ^%DTC S APCPJD=X+1
+ S APCP("FILENAME")=""
+ I $P(^AUTTSITE(1,0),U,21)=1 S APCP("FILENAME")="BAPC"_$P(^AUTTSITE(1,1),U,3)_"."_APCPJD
+ I $P(^AUTTSITE(1,0),U,21)'=1 D
+ .I ^%ZOSF("OS")["NT" S APCP("FILENAME")="BAPC"_$P(^AUTTSITE(1,1),U,3)_"."_APCPJD Q
+ .S APCP("FILENAME")="BAPC"_$E($P(^AUTTSITE(1,1),U,3),3,6)_"."_APCPJD
+ D ^XBFMK S DA=APCP("RUN LOG"),DR=".24///"_APCP("FILENAME")_";.25///1",DIE="^APCPLOG(" D ^DIE D ^XBFMK
+ D PROCESS ;            Generate transactions
+ I APCP("QFLG") W:'$D(ZTQUEUED) !!,"Abnormal termination!  QFLG=",APCP("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
+ D ^APCPRLOG ;                Update Log entry
+ I APCP("QFLG") W:'$D(ZTQUEUED) !!,"Log error! ",APCP("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
+ D:'$D(ZTQUEUED) RUNTIME^APCPEOJ
+ I APCP("QFLG") W:'$D(ZTQUEUED) !!,"Tape creation error! QFLG=",APCP("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
+ D:'$D(ZTQUEUED) CHKLOG ;             See if Log needs cleaning
+ D RESETV ;             Reset VISITs processed in Log
+ D TAPE ; Write transactions to tape
+ I '$D(ZTQUEUED) S DIR(0)="EO",DIR("A")="DONE -- Press RETURN to Continue" K DA D ^DIR K DIR
+ D EOJ
+ K APCP
+ Q
+ ;
+PROCESS ;
+ S ^XTMP("APCPREDO",0)=$$FMADD^XLFDT(DT,14)_U_DT_U_"PCC EXPORT REDO" ;IHS/CMI/LAB
+ W:'$D(ZTQUEUED) !,"Generating transactions.  Counting visits.  (1)" S APCPCNTR=0
+ S APCP("V DFN")=0 F  S APCP("V DFN")=$O(^APCPLOG(APCP("RUN LOG"),21,APCP("V DFN"))) Q:APCP("V DFN")'=+APCP("V DFN")  D PROCESS2 Q:APCP("QFLG")
+ Q
+PROCESS2 ;
+ K APCPE,APCPV
+ X APCPCNT
+ S ^XTMP("APCPREDO","MAIN TX",APCP("V DFN"))="",APCPV("TX GENERATED")=0,APCPV("STAT TX GEN")=0
+ I '$D(^AUPNVSIT(APCP("V DFN"))) Q
+ I $P($G(^AUPNVSIT(APCP("V DFN"),11)),U,4)="" S $P(^AUPNVSIT(APCP("V DFN"),11),U,4)=$$UID^AUPNVSIT(APCP("V DFN"))
+ S APCPV("V REC")=^AUPNVSIT(APCP("V DFN"),0)
+ ;I $P(APCPV("V REC"),U,11) S APCPV("DEP COUNT")=0,APCPV("TYPE")=$P(APCPV("V REC"),U,3),APCP("DELETED")=$G(APCP("DELETED"))+1 D SETUTIL Q
+ S APCPV("V DATE")=+APCPV("V REC")\1
+ S APCP("POSTING DATE")="      "
+ D ^APCPDR2
+SETUTIL S ^XTMP("APCPREDO",APCP("V DFN"))=APCP("V DFN")_U_APCPV("TX GENERATED")_U_APCPV("DEP COUNT")_U_APCPV("TYPE")_U_$S(^XTMP("APCPREDO","MAIN TX",APCP("V DFN"))]"":1,1:0)_U_U_APCPV("STAT TX GEN")
+ Q
+ ;
+TAPE ; COPY TRANSACTIONS TO TAPE
+ S APCP("DEF DEVICE")=$P(^APCPSITE(1,0),U,2)
+ I APCP("DEF DEVICE")="" W:'$D(ZTQUEUED) !,"No Default Device in SITE File",!," NOTIFY YOUR SUPERVISOR, I cannot continue until there is a default device ",!," in the Site File",$C(7),$C(7) S APCP("QFLG")=4 Q
+ I APCP("DEF DEVICE")="F",$P(^APCPSITE(1,0),U,11)'="N" D EN^APCPTAPE I $D(ZTQUEUED),APCP("QFLG") D ABORT
+ Q:APCP("QFLG")
+ Q:$D(ZTQUEUED)
+ Q:$P(^APCPSITE(1,0),U,11)="Y"
+ S DIR(0)="Y",DIR("A")="Do you want to write the Transactions to an output device",DIR("B")="N" K DA D ^DIR K DIR
+ Q:$D(DIRUT)
+ Q:'Y
+ I Y S APCP("APCPTAPE")="" D EN^APCPTAPE
+ I APCP("QFLG")=99 S APCP("QFLG")=0
+ Q
+ ;
+ ;
+CHKLOG ; CHECK LOG FILE
+ S APCP("X")=0 F APCP("I")=APCP("RUN LOG"):-1:1 Q:'$D(^APCPLOG(APCP("I")))  I $O(^APCPLOG(APCP("I"),21,0)) S APCP("X")=APCP("X")+1
+ I APCP("X")>3 W !!,"-->There are more than three generations of VISITs stored in the LOG file.",!,"-->Time to do a purge."
+ Q
+ ;
+RESETV ; RESET VISIT DATA IN LOG
+ W:'$D(ZTQUEUED) !,"Resetting VISIT specific data in Log file.  (1)" S APCPCNTR=0
+ S APCP("X")=0 F  S APCP("X")=$O(^XTMP("APCPREDO",APCP("X"))) Q:APCP("X")'=+APCP("X")  S APCP("Y")=^(APCP("X")),^APCPLOG(APCP("RUN LOG"),21,APCP("X"),0)=APCP("Y") X APCPCNT ;FORGIVE ME LORD
+ W:'$D(ZTQUEUED) !,"Resetting VISIT TX Flags. (1)" S APCPCNTR=0
+ S APCP("X")=0 F  S APCP("X")=$O(^XTMP("APCPREDO","MAIN TX",APCP("X"))) Q:APCP("X")'=+APCP("X")  D
+ .S DIE="^AUPNVSIT(",DA=APCP("X"),DR=".14///"_$S(^XTMP("APCPREDO","MAIN TX",APCP("X"))]"":^XTMP("APCPREDO","MAIN TX",APCP("X")),1:"@") D ^DIE K DA,DR X APCPCNT
+ .Q
+ K ^XTMP("APCPREDO")
+ Q
+ ;
+INIT ;
+ D INIT^APCPRED1
+ Q
+ABORT ; ABNORMAL TERMINATION
+ I $D(APCP("RUN LOG")) S APCP("QFLG1")=$O(^APCPERRC("B",APCP("QFLG"),"")),DA=APCP("RUN LOG"),DIE="^APCPLOG(",DR=".15///F;.16////"_APCP("QFLG1")
+ I $D(ZTQUEUED) D ERRBULL^APCPDRI3,EOJ Q
+ W !!,"Abnormal termination!!  QFLG=",APCP("QFLG")
+ S DIR(0)="EO",DIR("A")="Press any key to continue" K DA D ^DIR K DIR
+ Q
+ ;
+EOJ ;
+ D ^APCPEOJ
+ Q

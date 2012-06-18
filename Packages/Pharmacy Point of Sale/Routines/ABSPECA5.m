@@ -1,0 +1,100 @@
+ABSPECA5 ; IHS/FCS/DRS - Parse Claim Response ;   [ 09/12/2002  9:57 AM ]
+ ;;1.0;PHARMACY POINT OF SALE;**1,3,39**;JUN 21, 2001
+ ;----------------------------------------------------------------------
+ ;----------------------------------------------------------------------
+ ;File FDATA() Array Data in Claim Response File (9002313.03)
+ ;
+ ;Parameters:  RESPIEN  - Claim Response Record IEN (9002313.03)
+ ;---------------------------------------------------------------------
+ ; Called from ABSPECA4 from ABSPOSQL from ABSPOSQ4
+ ;
+ ; IHS/DSD/lwj  9/26/01 added one more quit condition to response
+ ; section.  For some odd reason BC/BS if Alabama sent across
+ ; response code with nulls in them - this caused error at the 
+ ; Poarch Creek site.  No other sites reported the problem, but
+ ; the change was made and included in Patch 1 as a safe guard.
+ ;
+ ;
+FILE(RESPIEN) ;EP - from ABSPECA4
+ I 'RESPIEN Q:$$IMPOSS^ABSPOSUE("P",,,,,$T(+0))
+ N MEDN,COUNT,INDEX,RJTN,RJTCOUNT,RJTCODE,NEXT,CLAIMIEN
+ ;
+ ;Clean up FDATA() array
+ S NEXT=0
+ F  D  Q:'NEXT
+ .S NEXT=$O(FDATA(NEXT)) Q:'NEXT
+ .S FDATA(NEXT)=$$CLIP^ABSPOSU9($G(FDATA(NEXT)))
+ S MEDN=""
+ F  D  Q:MEDN=""
+ .S MEDN=$O(FDATA("M",MEDN))
+ .Q:MEDN=""
+ .S NEXT=0
+ .F  D  Q:'+NEXT
+ ..S NEXT=$O(FDATA("M",MEDN,NEXT))
+ ..Q:'+NEXT
+ ..S FDATA("M",MEDN,NEXT)=$$CLIP^ABSPOSU9($G(FDATA("M",MEDN,NEXT)))
+ ;
+ S ^ABSPR(RESPIEN,100)=U_$G(FDATA(102))_U_$G(FDATA(103))
+ S $P(^ABSPR(RESPIEN,500),U,1)=$G(FDATA(501))
+ S $P(^ABSPR(RESPIEN,500),U,24)=$G(FDATA(524))
+ ;
+ S CLAIMIEN=$P($G(^ABSPR(RESPIEN,0)),U,1)
+ S INDEX=$S(CLAIMIEN="":0,1:$O(^ABSPC(CLAIMIEN,400,0))-1)
+ S:INDEX<0 INDEX=0
+ S COUNT=0
+ S MEDN=""
+ F  D  Q:MEDN=""
+ .S MEDN=$O(FDATA("M",MEDN))
+ .Q:MEDN=""
+ .;
+ .S COUNT=COUNT+1
+ .S INDEX=INDEX+1
+ .;
+ .S ^ABSPR(RESPIEN,1000,INDEX,0)=INDEX
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,1)=$G(FDATA("M",MEDN,501))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,3)=$G(FDATA("M",MEDN,503))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,5)=$G(FDATA("M",MEDN,505))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,6)=$G(FDATA("M",MEDN,506))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,7)=$G(FDATA("M",MEDN,507))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,8)=$G(FDATA("M",MEDN,508))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,9)=$G(FDATA("M",MEDN,509))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,10)=$G(FDATA("M",MEDN,510))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,12)=$G(FDATA("M",MEDN,512))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,13)=$G(FDATA("M",MEDN,513))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,14)=$G(FDATA("M",MEDN,514))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,17)=$G(FDATA("M",MEDN,517))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,18)=$G(FDATA("M",MEDN,518))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,19)=$G(FDATA("M",MEDN,519))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,20)=$G(FDATA("M",MEDN,520))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,21)=$G(FDATA("M",MEDN,521))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,22)=$G(FDATA("M",MEDN,522))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,500),U,23)=$G(FDATA("M",MEDN,523))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,504),U,1)=$G(FDATA("M",MEDN,504))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,525),U,1)=$G(FDATA("M",MEDN,525))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,526),U,1)=$G(FDATA("M",MEDN,526))
+ .S $P(^ABSPR(RESPIEN,1000,INDEX,1000),U,1)=$G(FDATA("M",MEDN,1000))
+ .;
+ .;S "AC" cross-reference
+ .D:'($G(FDATA("M",MEDN,501))="")
+ ..S ^ABSPR("AC",$G(FDATA("M",MEDN,501)),RESPIEN,INDEX)=""
+ .;File Reject CODEs
+ .S RJTN="",RJTCOUNT=0
+ .F  D  Q:RJTN=""
+ ..S RJTN=$O(FDATA("M",MEDN,511,RJTN))
+ ..Q:RJTN=""
+ ..S RJTCODE=$G(FDATA("M",MEDN,511,RJTN))
+ ..;IHS/OIT/CNI/RAN 04/13/2010 Patch 39 Emdeon is sending extra spaces...RJTCODE must not contain spaces
+ ..I RJTCODE[" " S RJTCODE=$TR(RJTCODE," ","")
+ ..Q:RJTCODE="  "
+ ..Q:RJTCODE="00"
+ ..Q:RJTCODE=""   ;IHS/DSD/lwj 9/26/01 no nulls allowed
+ ..S RJTCOUNT=RJTCOUNT+1
+ ..;
+ ..S ^ABSPR(RESPIEN,1000,INDEX,511,RJTCOUNT,0)=RJTCODE
+ ..S ^ABSPR(RESPIEN,1000,INDEX,511,"B",RJTCODE,RJTCOUNT)=""
+ .S ^ABSPR(RESPIEN,1000,INDEX,511,0)="^9002313.03511A^"_RJTCOUNT_"^"_RJTCOUNT
+ .;
+ .S ^ABSPR(RESPIEN,1000,"B",INDEX,INDEX)=""
+ ;
+ S ^ABSPR(RESPIEN,1000,0)="^9002313.0301A^"_INDEX_"^"_COUNT
+ Q

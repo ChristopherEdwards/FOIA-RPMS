@@ -1,0 +1,105 @@
+ASUL20EN ; IHS/ITSC/LMH - ADD/EDIT REQUISITIONER TABLE #20 ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;;Y2K/OK AEF/2970717
+ ;
+ ;
+ADD ;EP -- ENTRY POINT TO ADD NEW ENTRY
+ ;
+ N ASUL,ASUL65,ASUOUT
+ D INIT Q:$G(ASUOUT)
+ F  D A1 Q:$G(ASUOUT)  W !
+ W !
+ Q:$G(ASUOUT)
+ G ADD
+ Q
+A1 ;----- ADD NEW ENTRY
+ ;
+ N ASUAREA,ASUNM,ASUREQ,ASUSST,ASUUSR,DA,DD,DIC,DINUM,DO,X,Y
+ Q:'$G(ASUL(1,"AR","AP"))
+ S ASUAREA=$G(ASUL(1,"AR","AP"))
+ D DIC("^ASUL(18,","AELMQ","Select Sub-Station: ",.Y)
+ I ($D(DTOUT)!($D(DUOUT))) S ASUOUT=1 Q
+ I Y'>0 S ASUOUT=1 Q
+ I $P(Y,U,3) W !,"Sub-station "_+Y_"  "_$P(Y,U,2)_"   ADDED"
+ S ASUSST=+Y
+ D USR G A1:'$G(ASUUSR)
+ S ASUREQ=ASUSST_$E(ASUUSR,3,6)
+ S ASUNM=$P(^ASUL(19,ASUUSR,0),U)_" @ "_$P(^ASUL(18,ASUSST,0),U)
+ W !,"Requisitioner "_ASUREQ_"  "_ASUNM
+ I '$D(^ASUL(20,+ASUREQ)) D  Q:$G(ASUOUT)
+ .K DD,DO
+ .S DIC="^ASUL(20,",DIC(0)="",(DA,DINUM)=ASUREQ,X=ASUNM
+ .S DIC("DR")=".02///^S X=ASUUSR;.03///^S X=ASUSST;.04///^S X=ASUAREA"
+ .D FILE^DICN
+ .I Y'>0 W *7,"  ??" S ASUOUT=1 Q
+ .W "   ADDED"
+ .S ASUREQ=Y
+ Q:$G(ASUOUT)
+ D E2(+ASUREQ)
+ W !
+ Q
+USR ;----- PROMPT FOR USER
+ ;
+ K ASUL(19)
+ D A1^ASUL19EN
+ S ASUUSR=$G(ASUL(19,"USR","E#"))
+ Q
+EDIT ;EP -- ENTRY POINT TO EDIT EXISTING REQUISITIONER ENTRY
+ ;
+ N ASUL,ASUL65,ASUOUT,ASUREQ
+ D INIT Q:$G(ASUOUT)
+ F  D E1 Q:$G(ASUOUT)
+ Q:$G(ASUOUT)
+ W !
+ G EDIT
+ Q
+ ;
+E1 ;----- LOOK UP ENTRY
+ ;
+ N DA,DIC,X,Y
+ D DIC("^ASUL(20,","AEMQ","Select Requisitioner: ",.Y)
+ I Y'>0 S ASUOUT=1 Q
+ S DA=+Y
+ D E2(DA)
+ W !
+ G E1
+ Q
+E2(DA) ;----- EDIT ENTRY     
+ ;
+ N DIE,DR,X,Y
+ K ASUL(20)
+ D REQ^ASULDIRR(DA)
+ S DIE="^ASUL(20,"
+ S DR="1//1.5;3"
+ D ^DIE
+ Q
+DIC(F,D,A,Y)       ;
+ ;----- LOOK UP FILE ENTRIES
+ ;
+ ;      F  =  file reference
+ ;      D  =  value of DIC(0)
+ ;      A  =  prompt
+ ;      Y  =  entry number returned in Y
+ ;
+ N DIC
+ S DIC=F
+ S DIC(0)=D
+ S DIC("A")=A
+ D ^DIC
+ Q
+INIT ;----- SET UP REQUIRED VARIABLES
+ ;
+ I '$D(DUZ(2)) D
+ .W !!!?10,"DIVISION NOT SET, PLEASE SEE SITE MANAGER",!! S ASUOUT=1
+ .S DIR(0)="E" D ^DIR
+ E  D
+ .I '$D(ASUL(1,"AR","AP")) D SETAREA^ASULARST
+ .I ASUL(1,"AR","AP")=65 S ASUL65=1
+ .D AREA
+ Q
+AREA ;----- PROMPT USER FOR AREA
+ ;
+ Q:'$G(ASUL65)
+ D FINDAREA^ASULARST
+ I Y'>0 S ASUOUT=1
+ Q

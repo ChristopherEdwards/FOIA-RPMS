@@ -1,0 +1,224 @@
+BWGRVLU ; IHS/CMI/LAB - GEN RETR UTILITIES ;06-Oct-2003 15:36;DKM
+ ;;2.0;WOMEN'S HEALTH;**6,8,9**;MAY 16, 1996
+ ;
+RZERO(V,L) ;ep right zero fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=V_"0"
+ Q V
+LZERO(V,L) ;left zero fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V="0"_V
+ Q V
+LBLK(V,L) ;left blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=" "_V
+ Q V
+MCR(P,D) ;is patient medicare eligible on this date
+ NEW BWGRMIFN,BWGRFLG
+ S BWGRFLG=0
+ I '$D(^DPT(P,0)) G MCRX
+ I $P(^DPT(P,0),U,19) G MCRX
+ I '$D(^AUPNPAT(P,0)) G MCRX
+ I '$D(^AUPNMCR(P,11)) G MCRX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCRX
+ S BWGRMIFN=0 F  S BWGRMIFN=$O(^AUPNMCR(P,11,BWGRMIFN)) Q:BWGRMIFN'=+BWGRMIFN  D
+ .Q:$P(^AUPNMCR(P,11,BWGRMIFN,0),U)>D
+ .I $P(^AUPNMCR(P,11,BWGRMIFN,0),U,2)]"",$P(^(0),U,2)<D Q
+ .S BWGRFLG=1
+ .Q
+MCRX ;
+ Q BWGRFLG
+ ;
+MCD(P,D) ;
+ NEW BWGRMIFN,BWGRNIFN,BWGRFLG
+ S BWGRFLG=0
+ I '$D(^DPT(P,0)) G MCDX
+ I $P(^DPT(P,0),U,19) G MCDX
+ I '$D(^AUPNPAT(P,0)) G MCDX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCDX
+ S BWGRMIFN=0 F  S BWGRMIFN=$O(^AUPNMCD("B",P,BWGRMIFN)) Q:BWGRMIFN'=+BWGRMIFN  D
+ .Q:'$D(^AUPNMCD(BWGRMIFN,11))
+ .S BWGRNIFN=0 F  S BWGRNIFN=$O(^AUPNMCD(BWGRMIFN,11,BWGRNIFN)) Q:BWGRNIFN'=+BWGRNIFN  D
+ ..Q:BWGRNIFN>D
+ ..I $P(^AUPNMCD(BWGRMIFN,11,BWGRNIFN,0),U,2)]"",$P(^(0),U,2)<D Q
+ ..S BWGRFLG=1
+ ..Q
+ .Q
+ ;
+MCDX ;
+ Q BWGRFLG
+ ;
+MCDPN(P,D,F) ;EP - return medicaid plan name
+ NEW BWGRMIFN,BWGRNIFN,BWGRPN
+ S BWGRPN=""
+ I '$D(^DPT(P,0)) G MCDPNX
+ I $P(^DPT(P,0),U,19) G MCDPNX
+ I '$D(^AUPNPAT(P,0)) G MCDPNX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCDPNX
+ S BWGRMIFN=0 F  S BWGRMIFN=$O(^AUPNMCD("B",P,BWGRMIFN)) Q:BWGRMIFN'=+BWGRMIFN  D
+ .Q:'$D(^AUPNMCD(BWGRMIFN,11))
+ .S BWGRNIFN=0 F  S BWGRNIFN=$O(^AUPNMCD(BWGRMIFN,11,BWGRNIFN)) Q:BWGRNIFN'=+BWGRNIFN  D
+ ..Q:BWGRNIFN>D
+ ..I $P(^AUPNMCD(BWGRMIFN,11,BWGRNIFN,0),U,2)]"",$P(^(0),U,2)<D Q
+ ..S BWGRPN=$P(^AUPNMCD(BWGRMIFN,0),U,10) I BWGRPN]"" S BWGRPN=$S(F="E":$P(^AUTNINS(BWGRPN,0),U),1:BWGRPN)
+ ..Q
+ .Q
+ ;
+MCDPNX ;
+ Q BWGRPN
+PI(P,D) ; EP
+ NEW BWGRMIFN,BWGRFLG
+ S BWGRFLG=0
+ I '$D(^DPT(P,0)) G PIX
+ I $P(^DPT(P,0),U,19) G PIX
+ I '$D(^AUPNPAT(P,0)) G PIX
+ I '$D(^AUPNPRVT(P,11)) G PIX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PIX
+ S BWGRMIFN=0 F  S BWGRMIFN=$O(^AUPNPRVT(P,11,BWGRMIFN)) Q:BWGRMIFN'=+BWGRMIFN  D
+ .Q:$P(^AUPNPRVT(P,11,BWGRMIFN,0),U)=""
+ .S BWGRNAME=$P(^AUPNPRVT(P,11,BWGRMIFN,0),U) Q:BWGRNAME=""
+ .Q:$P(^AUTNINS(BWGRNAME,0),U)["AHCCCS"
+ .Q:$P(^AUPNPRVT(P,11,BWGRMIFN,0),U,6)>D
+ .I $P(^AUPNPRVT(P,11,BWGRMIFN,0),U,7)]"",$P(^(0),U,7)<D Q
+ .S BWGRFLG=1
+ .Q
+PIX ;
+ Q BWGRFLG
+PIV(P,D) ;EP - return 1 or 0 if current pi policy has been verified, return 1
+ NEW BWGRMIFN,BWGRFLG
+ S BWGRFLG=0
+ I '$D(^DPT(P,0)) G PIX
+ I $P(^DPT(P,0),U,19) G PIX
+ I '$D(^AUPNPAT(P,0)) G PIX
+ I '$D(^AUPNPRVT(P,11)) G PIX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PIX
+ S BWGRMIFN=0 F  S BWGRMIFN=$O(^AUPNPRVT(P,11,BWGRMIFN)) Q:BWGRMIFN'=+BWGRMIFN  D
+ .Q:$P(^AUPNPRVT(P,11,BWGRMIFN,0),U)=""
+ .S BWGRNAME=$P(^AUPNPRVT(P,11,BWGRMIFN,0),U) Q:BWGRNAME=""
+ .Q:$P(^AUTNINS(BWGRNAME,0),U)["AHCCCS"
+ .Q:$P(^AUPNPRVT(P,11,BWGRMIFN,0),U,6)>D
+ .I $P(^AUPNPRVT(P,11,BWGRMIFN,0),U,7)]"",$P(^(0),U,7)<D Q
+ .Q:$P(^AUPNPRVT(P,11,BWGRMIFN,0),U,9)=""
+ .S BWGRFLG=1
+ .Q
+PIVX ;
+ Q BWGRFLG
+ ;
+PIN(P,D,F) ;EP private insurer name (external or internal)
+ NEW BWGRMIFN,BWGRPIM
+ S:$G(F)="" F="E"
+ S BWGRPIN=""
+ I '$D(^DPT(P,0)) G PINX
+ I $P(^DPT(P,0),U,19) G PINX
+ I '$D(^AUPNPAT(P,0)) G PINX
+ I '$D(^AUPNPRVT(P,11)) G PINX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PINX
+ S BWGRMIFN=0 F  S BWGRMIFN=$O(^AUPNPRVT(P,11,BWGRMIFN)) Q:BWGRMIFN'=+BWGRMIFN  D
+ .Q:$P(^AUPNPRVT(P,11,BWGRMIFN,0),U)=""
+ .S BWGRPIN=$P(^AUPNPRVT(P,11,BWGRMIFN,0),U)
+ .I $P(^AUTNINS(BWGRPIN,0),U)["AHCCCS" S BWGRPIN="" Q
+ .I $P(^AUPNPRVT(P,11,BWGRMIFN,0),U,6)>D S BWGRPIN="" Q
+ .I $P(^AUPNPRVT(P,11,BWGRMIFN,0),U,7)]"",$P(^(0),U,7)<D S BWGRPIN="" Q
+ .S BWGRPIN=$S(F="E":$P(^AUTNINS(BWGRPIN,0),U),1:BWGRPIN)
+ .Q
+PINX ;
+ Q BWGRPIN
+LOS(V) ;EP called from pcc man rpts visit sort
+ I 'V Q ""
+ I '$D(^AUPNVSIT(V)) Q ""
+ I $P(^AUPNVSIT(V,0),U,7)'="H" Q ""
+ I $P(^AUPNVSIT(V,0),U,3)="C",'$D(^AUPNVCHS("AD",V)) Q ""
+ I $P(^AUPNVSIT(V,0),U,3)'="C",'$D(^AUPNVINP("AD",V)) Q ""
+ NEW D,E,F,A
+ S A=$P($P(^AUPNVSIT(V,0),U),".")
+ S F=$S($D(^AUPNVINP("AD",V)):$O(^AUPNVINP("AD",V,0)),$D(^AUPNVCHS("AD",V)):$O(^AUPNVCHS("AD",V,0)),1:"")
+ I F="" Q F
+ S D=$S($D(^AUPNVINP("AD",V)):$P(^AUPNVINP(F,0),U),$D(^AUPNVCHS("AD",V)):$P(^AUPNVCHS(F,0),U,12),1:"")
+ I D="" Q D
+ S E=$$FMDIFF^XLFDT(D,A,1)
+ Q $S('E:1,1:E)
+THIRD ;EP
+ S BWGRPRNT=""
+ S X=$$MCR^AUPNPAT(DFN,$S(BWGRPTVS="R":$P(BWGRVREC,U),1:DT)) S:X BWGRPRNT=BWGRPRNT_"MEDICARE  "
+ S X=$$MCD^AUPNPAT(DFN,$S(BWGRPTVS="R":$P(BWGRVREC,U),1:DT)) S:X BWGRPRNT=BWGRPRNT_"MEDICAID  "
+ S X=$$PI^AUPNPAT(DFN,$S(BWGRPTVS="R":$P(BWGRVREC,U),1:DT)) S:X BWGRPRNT=BWGRPRNT_"PRVT INS  "
+ S:BWGRPRNT="" BWGRPRNT="<none>"
+ Q
+XTMP(N,D) ;EP - set xtmp 0 node
+ Q:$G(N)=""
+ S ^XTMP(N,0)=$$FMADD^XLFDT(DT,14)_"^"_DT_"^"_$G(D)
+ Q
+PROC ;EP
+ NEW BWGRZ,BWGRY,BWGRP
+ S BWGRZ=0 F  S BWGRZ=$O(^BWPCD("C",DFN,BWGRZ)) Q:BWGRZ=""  D
+ .S BWGRY=$P(^BWPCD(BWGRZ,0),U,12)
+ .Q:BWGRY<BWGRBD
+ .Q:BWGRY>BWGRED
+ .Q:$P(^BWPCD(BWGRZ,0),U,4)=""
+ .S X($P(^BWPCD(BWGRZ,0),U,4))=""
+ .Q
+ K BWGRZ,BWGRY,BWGRP
+ Q
+CALC ;ENTRY POINT
+ I Y=0!(X=0) S Z="**" G COMMA
+ S Z=(((X/Y)-1)*100),Z=$FN(Z,"+,",1)
+COMMA ;
+ S X=$FN(X,",")
+ ;S X2=0,X3=$S($L(X)>3:($L(X)+($L(X)\3)),1:$L(X)) D COMMA^%DTC S X=$E(X,1,($L(X)-1))
+ Q
+DONE ;ENTRY POINT - END OF REPORT TIME DISPLAY
+ I $D(BWGRET) S BWGRTS=(86400*($P(BWGRET,",")-$P(BWGRBT,",")))+($P(BWGRET,",",2)-$P(BWGRBT,",",2)),BWGRH=$P(BWGRTS/3600,".") S:BWGRH="" BWGRH=0 D
+ .S BWGRTS=BWGRTS-(BWGRH*3600),BWGRM=$P(BWGRTS/60,".") S:BWGRM="" BWGRM=0 S BWGRTS=BWGRTS-(BWGRM*60),BWGRS=BWGRTS W !!,"RUN TIME (H.M.S): ",BWGRH,".",BWGRM,".",BWGRS
+ I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of report.  HIT RETURN" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ W:$D(IOF) @IOF
+ K BWGRTS,BWGRS,BWGRH,BWGRM,BWGRET
+ Q
+ ; Print Notifications Types that contain the TXT value in their name
+ ; VIEN = Represents either Patient or Procedure IEN dependent upon report context
+ ; TXT = Notification Type must contain this text if present
+ ; PRM = 0= just time, 1=time and date, 2=time, date, and type
+NOTIFP(VIEN,TXT,PRM) ;
+ N NIEN,XRF,LP
+ S TXT=$G(TXT,""),PRM=$G(PRM,0)
+ I BWGRPTVS="P" D
+ .; Process patient
+ .S XRF="B"
+ .S LP=VIEN
+ E  D
+ .; Process procedure
+ .S XRF="C"
+ .S LP=$$GET1^DIQ(9002086.1,VIEN,.01,"I")
+ S NIEN=0 F  S NIEN=$O(^BWNOT(XRF,LP,NIEN)) Q:NIEN=""  D
+ .D ADDNOTIF(NIEN,TXT,PRM)
+ Q
+ADDNOTIF(NIEN,TXT,PRM) ; Add notification to array
+ N NTYP,VAL
+ S NTYP=$$GET1^DIQ(9002086.4,NIEN,.03,"E")
+ ; Check to see if notification types have been restricted
+ Q:($L(TXT)&(NTYP'[TXT))
+ S VAL=$$GET1^DIQ(9002086.4,NIEN,.15,"I")
+ S:PRM>0 VAL=VAL_"  "_$$FMTE^XLFDT($$GET1^DIQ(9002086.4,NIEN,.02,"I"),"5ZD")
+ S:PRM>1 VAL=VAL_"  "_NTYP
+ S BWGRPCNT=$G(BWGRPCNT)+1,BWGRPRNM(BWGRPCNT)=VAL
+ Q
+ ; Time Required Notification Screen
+ ; VIEN = Represents either Patient or Procedure IEN dependent upon report context
+ ; TXT = Notification Type must contain this text if present
+ ;
+NOTIFS(VIEN,TXT) ;
+ N NIEN,XRF,LP,TM,RVAL1,RVAL2
+ S TXT=$G(TXT,"")
+ I BWGRPTVS="P" D
+ .; Process patient
+ .S XRF="B"
+ .S LP=VIEN
+ E  D
+ .; Process procedure
+ .S XRF="C"
+ .S LP=$$GET1^DIQ(9002086.1,VIEN,.01,"I")
+ S NIEN=0 F  S NIEN=$O(^BWNOT(XRF,LP,NIEN)) Q:NIEN=""  D
+ .S RVAL1=$P(^BWGRTRPT(BWGRRPT,11,BWGRI,11,1,0),U),RVAL2=$P(^(0),U,2)
+ .S TM=$$GET1^DIQ(9002086.4,NIEN,.15,"I")
+ .Q:RVAL1>TM!(X>RVAL2)
+ .S X(RVAL1)=""
+ Q

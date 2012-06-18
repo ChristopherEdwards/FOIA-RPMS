@@ -1,0 +1,73 @@
+BGP6SDP ; IHS/CMI/LAB - IHS summary page ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;
+START ;
+ I '$G(BGPAREAA) Q
+ I BGPRTYPE'=1 Q
+ S BGPQUIT="",BGPGPG=0
+ D HEADER
+ S BGPC=0 F  S BGPC=$O(^TMP($J,"SUMMARY DETAIL PAGE",BGPC)) Q:BGPC'=+BGPC!(BGPQUIT)  D
+ .I $Y>(BGPIOSL-3) D HEADER Q:BGPQUIT
+ .W !
+ .I BGPC=1 W !,"DIABETES"
+ .I BGPC=2 W !,"DENTAL"
+ .I BGPC=3 W !,"IMMUNIZATIONS"
+ .I BGPC=4 W !,"CANCER-RELATED"
+ .I BGPC=5 W !,"BEHAVIORAL HEALTH"
+ .I BGPC=6 W !,"CARDIOVASCULAR DISEASE-RELATED"
+ .I BGPC=7 W !,"OTHER CLINICAL"
+ .S BGPO="" F  S BGPO=$O(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO)) Q:BGPO=""!(BGPQUIT)  D
+ ..S BGPPC=$O(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,0))
+ ..I $Y>(BGPIOSL-3) D HEADER Q:BGPQUIT
+ ..W !!,$P(^BGPINDSC(BGPPC,14),U,4) I $P(^BGPINDSC(BGPPC,14),U,7)]"" W !,$P(^BGPINDSC(BGPPC,14),U,7)
+ ..S F=$O(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,0))
+ ..S F=$P(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,F),U,4)
+ ..W ?46,F,$S($P(^BGPINDSC(BGPPC,0),U,4)["014."!($P(^BGPINDSC(BGPPC,0),U,4)["023.")!($P(^BGPINDSC(BGPPC,0),U,4)["016."):"",1:"%"),?55,$P(^BGPINDSC(BGPPC,14),U,8),?65,$P(^BGPINDSC(BGPPC,14),U,2),?74,$P(^BGPINDSC(BGPPC,14),U,3)
+ ..;I $P(^BGPINDSC(BGPPC,14),U,9)]""!($P(^BGPINDSC(BGPPC,14),U,10)]"") W !?55,$TR($P(^BGPINDSC(BGPPC,14),U,9),"$","^"),?65,$TR($P(^BGPINDSC(BGPPC,14),U,10),"$","^")
+ ..I $P(^BGPINDSC(BGPPC,14),U,9)]""!($P(^BGPINDSC(BGPPC,14),U,10)]"")!($P(^BGPINDSC(BGPPC,14),U,11)]"") W !?55,$TR($P(^BGPINDSC(BGPPC,14),U,9),"$","^"),?64,$TR($P(^BGPINDSC(BGPPC,14),U,10),"$","^"),?73,$P(^BGPINDSC(BGPPC,14),U,11)
+ ..S BGPSN=0 F  S BGPSN=$O(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,BGPSN)) Q:BGPSN'=+BGPSN!(BGPQUIT)  D
+ ...S BGPSASU=$P(^BGPGPDCS(BGPSN,0),U,9),X=$O(^AUTTLOC("C",BGPSASU,0)) S BGPSNAM=$S(X:$P(^DIC(4,X,0),U),1:"?????"),BGPSNAM=$S($P(^BGPGPDCS(BGPSN,0),U,17):"+"_BGPSNAM,1:BGPSNAM)
+ ...I $P(^BGPINDSC(BGPPC,0),U,4)["014."!($P(^BGPINDSC(BGPPC,0),U,4)["023.")!($P(^BGPINDSC(BGPPC,0),U,4)["016.") D  I 1
+ ....I $Y>(BGPIOSL-3) D HEADER Q:BGPQUIT
+ ....W !?1,BGPSASU,?8,$E(BGPSNAM,1,12)
+ ....W ?20,$J($P(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,BGPSN),U),7,0)
+ ....W ?29,$J($P(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,BGPSN),U,2),7,0)
+ ....W ?38,$J($P(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,BGPSN),U,3),7,0)
+ ....;W ?60,$P(^BGPINDSC(BGPPC,14),U,2),?71,$P(^BGPINDSC(BGPPC,14),U,3)
+ ...E  D
+ ....I $Y>(BGPIOSL-3) D HEADER Q:BGPQUIT
+ ....W !?1,BGPSASU,?8,$E(BGPSNAM,1,12)
+ ....W ?20,$J($P(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,BGPSN),U),7,1),"%"
+ ....W ?29,$J($P(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,BGPSN),U,2),7,1),"%"
+ ....W ?38,$J($P(^TMP($J,"SUMMARY DETAIL PAGE",BGPC,BGPO,BGPPC,BGPSN),U,3),7,1),"%"
+ ....;W ?60,$P(^BGPINDSC(BGPPC,14),U,2),?71,$P(^BGPINDSC(BGPPC,14),U,3)
+ I $Y>(BGPIOSL-6) D HEADER Q:BGPQUIT
+ W !!,"(* - Not GPRA measure for FY 2006)"
+ W !,"(@ - National Retinopathy goal/rate)"
+ W !,"(# - Designated site goal/rate)"
+ W !,"(& - Data source other than CRS)"
+ W !,"(! - Included in National GPRA report for 2005 but not GPRA measure in 2005)"
+ W !,"(** - Age range for IPV/DV changed from 16-24 to 15-40 in 2005)"
+ W !,"(+ - denotes a CHS Only Facility)"
+ W !
+ Q
+ ;
+HEADER ;EP
+ D HEADER^BGP6DPH
+ D H1
+ Q
+H1 ;
+ I BGPRTYPE=1 S X="CLINICAL PERFORMANCE DETAIL" W !,$$CTR(X,80)
+ W !?22," Site",?32,"Site",?40,"Site",?46,"Area",?55,"GPRA06",?64,"National",?74,"2010"
+ W !?22,"Current",?32,"Prev",?40,"Base",?46,"Current",?55,"Goal",?65,"2005",?74,"Goal"
+ W !,$TR($J("",80)," ","-")
+ Q
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------

@@ -1,0 +1,118 @@
+FHINI0F6	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9358,2)
+	;;=.141^2.588
+	;;^UTILITY(U,$J,112,9358,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9359,0)
+	;;=CHICKEN,PATTIES,SOUTHERN FRIED,FROZEN,COUNTRY PRIDE^BC-02632^3-oz.^85
+	;;^UTILITY(U,$J,112,9359,1)
+	;;=12.941^18.824^15.294^282.353^^^^9.412^1.176^^174.118^188.235^741.176^^^^^^3.529^.141
+	;;^UTILITY(U,$J,112,9359,2)
+	;;=.176^2.941
+	;;^UTILITY(U,$J,112,9359,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9360,0)
+	;;=CHICKEN,RONDELET,FRZN,WEAVER,CHEESE^BC-02633^3-oz.^85
+	;;^UTILITY(U,$J,112,9360,1)
+	;;=15.294^14.118^16.471^258.824^^^^^^^^^611.765
+	;;^UTILITY(U,$J,112,9360,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9361,0)
+	;;=CHICKEN,RONDELET,FRZN,WEAVER,HOME STYLE^BC-02634^3-oz.^85
+	;;^UTILITY(U,$J,112,9361,1)
+	;;=14.118^12.941^15.294^235.294^^^^^^^^^600
+	;;^UTILITY(U,$J,112,9361,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9362,0)
+	;;=CHICKEN,RONDELET,FRZN,WEAVER,ITALIAN^BC-02635^3-oz.^85
+	;;^UTILITY(U,$J,112,9362,1)
+	;;=14.118^12.941^16.471^241.176^^^^^^^^^658.824
+	;;^UTILITY(U,$J,112,9362,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9363,0)
+	;;=CHICKEN,RONDELET,FRZN,WEAVER,ORIGINAL^BC-02636^3-oz.^85
+	;;^UTILITY(U,$J,112,9363,1)
+	;;=14.118^11.765^16.471^229.412^^^^^^^^^717.647
+	;;^UTILITY(U,$J,112,9363,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9364,0)
+	;;=CHICKEN,SNACK 'N,HOT 'N SPICY,FROZEN,BANQUET^BC-02637^3.75-oz.^106
+	;;^UTILITY(U,$J,112,9364,1)
+	;;=5.66^8.491^7.547^132.075^^^^7.547^.943^^^^452.83^^^^^28.302^0^.019
+	;;^UTILITY(U,$J,112,9364,2)
+	;;=.028^1.321
+	;;^UTILITY(U,$J,112,9364,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9365,0)
+	;;=CHICKEN,TENDERS,BREADED & FRIED,PERDUE^BC-02638^4-oz.^113
+	;;^UTILITY(U,$J,112,9365,1)
+	;;=17.699^10.619^7.08^187.611^^^^^^^^^169.912
+	;;^UTILITY(U,$J,112,9365,2)
+	;;=^^^^^^^^60.177
+	;;^UTILITY(U,$J,112,9365,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9366,0)
+	;;=CHICKEN,TENDERS,HONEY BATTER,FROZEN,WEAVER^BC-02639^3-oz.^85
+	;;^UTILITY(U,$J,112,9366,1)
+	;;=14.118^10.588^15.294^211.765^^^^^^^^^588.235
+	;;^UTILITY(U,$J,112,9366,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9367,0)
+	;;=CHICKEN,TENDERS,PREMIUM,FROZEN,WEAVER^BC-02640^3-oz.^85
+	;;^UTILITY(U,$J,112,9367,1)
+	;;=14.118^10.588^12.941^200^^^^^^^^^588.235
+	;;^UTILITY(U,$J,112,9367,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9368,0)
+	;;=CHICKEN,WINGS,FROZEN,WEAVER^BC-02641^2.7-oz.^77
+	;;^UTILITY(U,$J,112,9368,1)
+	;;=22.078^1.299^1.299^220.779^^^^^^^^^870.13
+	;;^UTILITY(U,$J,112,9368,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9369,0)
+	;;=TURKEY,BACON,CKD,LOUIS RICH^BC-02642^2-slices^18
+	;;^UTILITY(U,$J,112,9369,1)
+	;;=30^27.778^3.333^377.778^32.778^^^11.111^2.111^33.333^455.556^400^2288.889^3
+	;;^UTILITY(U,$J,112,9369,2)
+	;;=^^^^^^^^100^7.778^11.111^7.778
+	;;^UTILITY(U,$J,112,9369,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9370,0)
+	;;=TURKEY,BREAST,BARBECUED,LOUIS RICH^BC-02643^3.5-oz.^100
+	;;^UTILITY(U,$J,112,9370,1)
+	;;=18.6^3.2^3.7^118^71.1^^^16^.68^19^305^298^1107^.79
+	;;^UTILITY(U,$J,112,9370,2)
+	;;=^^^^^^^^39^1^1.4^.9
+	;;^UTILITY(U,$J,112,9370,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9371,0)
+	;;=TURKEY,BREAST,CKD,LOUIS RICH^BC-02644^3.5-oz.^100
+	;;^UTILITY(U,$J,112,9371,1)
+	;;=29.1^5.1^1.1^164^64.2^^^9^.82^20^232^332^71^1.37
+	;;^UTILITY(U,$J,112,9371,2)
+	;;=^^^^^^^^62^2^2.4^1.6
+	;;^UTILITY(U,$J,112,9371,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9372,0)
+	;;=TURKEY,BREAST,FILLET W/ CHEESE,LAND O' LAKES^BC-02645^5-oz.^142
+	;;^UTILITY(U,$J,112,9372,1)
+	;;=17.817^10.986^10.986^214.085^^^^88.028^.958^^276.056^221.831^587.324^^^^^^^.07
+	;;^UTILITY(U,$J,112,9372,2)
+	;;=.218^6.127^^^^^^^23.944^3.169^^2.606
+	;;^UTILITY(U,$J,112,9372,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9373,0)
+	;;=TURKEY,BREAST,HICKORY SMOKED,LOUIS RICH^BC-02646^3.5-oz.^100
+	;;^UTILITY(U,$J,112,9373,1)
+	;;=18.8^3.6^3^120^70.9^^^8^.93^22^331^301^1262^.85
+	;;^UTILITY(U,$J,112,9373,2)
+	;;=^^^^^^^^44^.8^1^.7
+	;;^UTILITY(U,$J,112,9373,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9374,0)
+	;;=TURKEY,BREAST,OVEN ROASTED,LOUIS RICH^BC-02647^3.5-oz.^100
+	;;^UTILITY(U,$J,112,9374,1)
+	;;=18.8^3.2^1.7^111^73.1^^^10^.91^20^273^280^1070^1.01

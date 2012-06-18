@@ -1,0 +1,114 @@
+FHINI0F9	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9403,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9404,0)
+	;;=SALAD DRESSING,ITALIAN,CREAMY,NUTRADIET^BC-02677^tbsp.^15
+	;;^UTILITY(U,$J,112,9404,1)
+	;;=0^6.667^6.667^66.667^^^^^^^^^1200
+	;;^UTILITY(U,$J,112,9404,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9405,0)
+	;;=SALAD DRESSING,ITALIAN,CREAMY,WISH-BONE^BC-02714^.5-floz.^15
+	;;^UTILITY(U,$J,112,9405,1)
+	;;=.667^36.667^9.333^360^^^^26.667^.667^0^0^0^993.333^0^0^0^^186.667^6.667^0
+	;;^UTILITY(U,$J,112,9405,2)
+	;;=0^0^^^^^^^0^6^16^13.333
+	;;^UTILITY(U,$J,112,9405,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9406,0)
+	;;=SALAD DRESSING,ITALIAN,FROM MIX,GOOD SEASONS LITE^BC-02679^tbsp.^15
+	;;^UTILITY(U,$J,112,9406,1)
+	;;=.667^16.667^5.333^180^72.667^^^6.667^.2^0^13.333^46.667^1180^.067^.007^^^300^0^0
+	;;^UTILITY(U,$J,112,9406,2)
+	;;=0^0^0^0^0^0^^^0^2.667^^6.667
+	;;^UTILITY(U,$J,112,9406,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9407,0)
+	;;=SALAD DRESSING,ITALIAN,GARLIC,FROM MIX,GOOD SEASONS LITE^BC-02680^tbsp.^15
+	;;^UTILITY(U,$J,112,9407,1)
+	;;=0^0^6.667^26.667^^^^^^^^600^100
+	;;^UTILITY(U,$J,112,9407,2)
+	;;=^^^^^^^^0^0
+	;;^UTILITY(U,$J,112,9407,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9408,0)
+	;;=SALAD DRESSING,ITALIAN,GARLIC,LITE,MARIE'S^BC-02681^tbsp.^15
+	;;^UTILITY(U,$J,112,9408,1)
+	;;=2.667^20.667^22.667^286.667^^^^86.667^.667^^^133.333^1206.667^^^^^0^0^0
+	;;^UTILITY(U,$J,112,9408,2)
+	;;=.067^0^^^^^^^20^4^^11.333
+	;;^UTILITY(U,$J,112,9408,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9409,0)
+	;;=SALAD DRESSING,ITALIAN,NO OIL,FROM MIX,GOOD SEASONS^BC-02682^tbsp.^17
+	;;^UTILITY(U,$J,112,9409,1)
+	;;=.588^0^10.588^41.176^88.824^^^5.882^.118^0^11.765^41.176^188.235^.059^.012^^^423.529^0^0
+	;;^UTILITY(U,$J,112,9409,2)
+	;;=0^0^0^0^0^0^^^0^0^^0
+	;;^UTILITY(U,$J,112,9409,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9410,0)
+	;;=SALAD DRESSING,ITALIAN,NO OIL,NUTRADIET^BC-02683^tbsp.^15
+	;;^UTILITY(U,$J,112,9410,1)
+	;;=0^0^0^13.333^^^^^^^^^1933.333
+	;;^UTILITY(U,$J,112,9410,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9411,0)
+	;;=SALAD DRESSING,ITALIAN,WISH-BONE^BC-02719^.5-floz.^15
+	;;^UTILITY(U,$J,112,9411,1)
+	;;=0^30^8.667^300^^^^6.667^.667^^^^1873.333^^^^^133.333^6.667^0
+	;;^UTILITY(U,$J,112,9411,2)
+	;;=0^0^^^^^^^0^4.667^12.667^11.333
+	;;^UTILITY(U,$J,112,9411,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9412,0)
+	;;=SALAD DRESSING,ITALIAN,ZESTY,FROM MIX,GOOD SEASONS LITE^BC-02685^tbsp.^15
+	;;^UTILITY(U,$J,112,9412,1)
+	;;=.667^17.333^5.333^173.333^74^^^13.333^.2^6.667^13.333^46.667^886.667^.067^.013^^^126.667^0^0
+	;;^UTILITY(U,$J,112,9412,2)
+	;;=0^0^0^0^^0^^^0^2.667^^6.667
+	;;^UTILITY(U,$J,112,9412,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9413,0)
+	;;=SALAD DRESSING,RANCH,FROM MIX,GOOD SEASONS LITE^BC-02686^tbsp.^15
+	;;^UTILITY(U,$J,112,9413,1)
+	;;=6.667^13.333^13.333^193.333^^^^140^^13.333^113.333^186.667^766.667^^.067^^^173.333^^.067
+	;;^UTILITY(U,$J,112,9413,2)
+	;;=.2^^.4^.133^6.667^.667^^^20
+	;;^UTILITY(U,$J,112,9413,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9414,0)
+	;;=SALAD DRESSING,RANCH,MARIE'S LITE^BC-02687^tbsp.^15
+	;;^UTILITY(U,$J,112,9414,1)
+	;;=2^22^25.333^306.667^^^^93.333^.667^^^93.333^1413.333^^^^^20^0^.067
+	;;^UTILITY(U,$J,112,9414,2)
+	;;=0^0^^^^^^^13.333^4^^12.667
+	;;^UTILITY(U,$J,112,9414,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9415,0)
+	;;=SALAD DRESSING,RANCH,WISH-BONE LITE^BC-02688^.5-floz.^15
+	;;^UTILITY(U,$J,112,9415,1)
+	;;=1.333^23.333^16.667^280^^^^0^0^0^0^0^986.667^0^0^0^^0^0^0
+	;;^UTILITY(U,$J,112,9415,2)
+	;;=0^0^^^^^^^33.333^4.667^6.667^15.333
+	;;^UTILITY(U,$J,112,9415,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9416,0)
+	;;=SALAD DRESSING,RED WINE VINEGAR,ESTEE^BC-02689^tbsp.^15
+	;;^UTILITY(U,$J,112,9416,1)
+	;;=0^0^2.667^13.333^^^^^^^^833.333^66.667
+	;;^UTILITY(U,$J,112,9416,2)
+	;;=^^^^^^^^0^0
+	;;^UTILITY(U,$J,112,9416,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9417,0)
+	;;=SALAD DRESSING,RUSSIAN,WISH-BONE^BC-02725^.5-floz.^15
+	;;^UTILITY(U,$J,112,9417,1)
+	;;=.667^16.667^39.333^306.667^^^^13.333^.667^0^0^0^980^0^0^0^^280^6.667^0
+	;;^UTILITY(U,$J,112,9417,2)
+	;;=0^0^^^^^^^0^2.667^7.333^6
+	;;^UTILITY(U,$J,112,9417,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.

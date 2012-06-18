@@ -1,0 +1,53 @@
+APCLRX9 ; IHS/CMI/LAB - RX'S BY DATE/TIME DISPENSED ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+START ; 
+ S APCLJOB=$J,APCLBTH=$H
+ D INFORM
+GETDATES ;
+BD ;
+ S DIR(0)="D^::EP",DIR("A")="Enter Beginning RX Release Date",DIR("?")="Enter the beginning visit date for the search." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) XIT
+ S APCLBD=Y
+ED ;
+ S DIR(0)="DA^::EP",DIR("A")="Enter Ending RX Release Date:  " D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) XIT
+ I Y<APCLBD W !,"Ending date must be greater than or equal to beginning date!" G ED
+ S APCLED=Y
+ S X1=APCLBD,X2=-1 D C^%DTC S APCLSD=X
+LOC ;enter DIVISION
+ W !! S APCLLOC="",APCLDIVN=""
+ S DIR(0)="YO",DIR("A")="Include RX's from ALL DIVISIONS",DIR("?")="If you wish to include RX's from ALL Divisions answer Yes.  If you wish to tabulate for only one Division enter NO." D ^DIR K DIR
+ G:$D(DIRUT) BD
+ I Y=1 S APCLLOC="" G ZIS
+LOC1 ;enter DIVISION
+ S DIC("A")="Which Division: ",DIC="^PS(59,",DIC(0)="AEMQ" D ^DIC K DIC,DA G:Y<0 LOC
+ S APCLLOC=+Y
+ I $D(DIRUT) W !!,"No Division entered." G BD
+ S APCLDIVN=$P(^PS(59,APCLLOC,0),U) ;Division Printable Name
+ZIS ;
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G LOC
+ S XBRP="^APCLRX9P",XBRC="^APCLRX91",XBRX="XIT^APCLRX9",XBNS="APCL"
+ D ^XBDBQUE
+ D XIT
+ Q
+XIT ;
+ K APCLAPC,APCLBD,APCLBT,APCLBTH,APCLCLIN,APCLCLN,APCLED,APCLGRAN,APCLJOB,APCLLOC,APCLPG,APCLSC,APCLSD,APCLTYPE,APCLTOT,APCLVIEN,APCLX,APCLVREC
+ K DFN,C,APCLLOCN,APCL1,APCL2,APCL3,APCL4,APCL5,APCL6,APCL7,APCL8,APCL9,APCL10,APCL11,APCL12,APCL13,APCLRXHR,APCLRXTM,APCLGTOT
+ K DA,D0,S,TS,X,Y,DIC,DR,H,M,POP,ZTSK
+ K APCL2,APCLA2P,APCL3,APCLA3P,APCLG,APCLGO,APCLJ,APCLJ10,APCLJ11,APCKJ13,APCLJ3,APCLJ4,APCLJ5,APCLJ6,APCLJ7,APCLJ8,APCLJ9,APCLDIVN
+ K APCLRX1,APCLRX10,APCLRX11,APCLRX12,APCLRX13,APCLRX2,APCLRX3,APCLRX4,APCLRX5,APCLRX6,APCLRX7,APCLRX8,APCLRX9,APCLJ12,APCLJ13,APCLA2AP,APCLA3AP,APCL4,APCLA4P,APCLA4AP
+ K APCL14,APCL15,APCL16,APCL17,APCLRX14,APCLRX15,APCLRX16,APCLRX17,APCLJ14,APCLJ15,APCJ16,APCLJ17,APCL14,APCL15,APCL16,APCL17
+ Q
+ ;
+INFORM ;
+ W:$D(IOF) @IOF
+ W !!,?10,"**************   RX DATA ANALYSIS REPORT   **************",!!
+ W !,"This report will tally all RX's for the Date Range specified and break them",!,"down by Time Released & Count by Hour increments.",!!
+ W ?10,"It will also allow printing the report for ALL DIVISIONS",!,?10,"or for the one specified DIVISION.",!
+ W !,"ACT Total is all RX's dispensed for all Hours during specified Timeframe.",!
+ W "ADJ Total excludes all evening and Non-Pharmacy RX's that are typically",!,"encoded between 8:00 AM and 9:00 AM.",!
+ Q
+ ;

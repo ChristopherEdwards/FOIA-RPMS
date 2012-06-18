@@ -1,0 +1,33 @@
+ABMDBXRF ; IHS/DSD/DMJ - x-ref all indexs in Bill file ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ Q:'$G(DA)  Q:'$D(^ABMDBILL(DA))
+ S ABM("X")=""
+ S ABM="" F  S ABM=$O(^DD(9002274.4,0,"IX",ABM)) Q:ABM=""  D
+ .S ABM("X")=ABM("X")_ABM_","
+ .Q
+ I ABM("X")="AA,AC,AD,AE,AJ,AP,APC,AS,AV,AX,AZ,B,D," G XREF
+ S DIK="^ABMDBILL(" D IX1^DIK
+ Q
+ ;
+XREF S ABM(0)=^ABMDBILL(DA,0),ABM(1)=$G(^(1)),ABM(2)=$G(^(2)),ABM(7)=$G(^(7))
+ S:$P(ABM(1),U,6)]"" ^ABMDBILL("AA",$P(ABM(1),U,6),DA)=""
+ S ^ABMDBILL("AC",$P(ABM(0),U,4),DA)=""
+ S:$P(ABM(7),U,1)]"" ^ABMDBILL("AD",$P(ABM(7),U,1),DA)=""
+ S ^ABMDBILL("AJ",$P(ABM(0),U,8),DA)=""
+ S:$P(ABM(1),U,5)]"" ^ABMDBILL("AP",$P(ABM(1),U,5),DA)=""
+ S ^ABMDBILL("AS",+$P(ABM(0),U),$P(ABM(0),U,4),DA)=""
+ S:$P(ABM(1),U,7)]"" ^ABMDBILL("AX",$P(ABM(1),U,7),DA)=""
+ S:$P(ABM(1),U,8)]"" ^ABMDBILL("AZ",$P(ABM(1),U,8),DA)=""
+ S ^ABMDBILL("B",$P(ABM(0),U),DA)=""
+ S ^ABMDBILL("D",$P(ABM(0),U,5),DA)=""
+ S ABM=0 F  S ABM=$O(^ABMDBILL(DA,11,ABM)) Q:'ABM  D
+ .S ABM(0)=$G(^ABMDBILL(DA,11,ABM,0)) Q:'ABM(0)
+ .S ^ABMDBILL("AV",+ABM(0),DA,ABM)=""
+ S ABM=0 F  S ABM=$O(^ABMDBILL(DA,15,ABM)) Q:'ABM  D
+ .S ABM(0)=$G(^ABMDBILL(DA,15,ABM,0)) Q:'ABM(0)
+ .S ^ABMDBILL("APC",+ABM(0),DA,ABM)=""
+ S ABM=0 F  S ABM=$O(^ABMDBILL(DA,3,ABM)) Q:'ABM  D
+ .S ABM(0)=$G(^ABMDBILL(DA,3,ABM,0)) Q:'ABM(0)
+ .S ^ABMDBILL("AE",+ABM(0),DA,ABM)=""
+ Q

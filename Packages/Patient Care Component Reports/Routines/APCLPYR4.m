@@ -1,0 +1,126 @@
+APCLPYR4 ; IHS/CMI/LAB - Patients by Payer (Insurer) - Pvt Insurance ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ Q
+ ;
+PVTLOOP ;EP
+ I $E(IOST)="C" W !!,"Please be patient.  This may take a few minutes.",!! H 6
+ S APCLINAM=$P(^AUTNINS(APCLPYR,0),U)
+ K ^TMP($J,"APCLPYR")
+ S APCLPAGE=0
+ ;
+ D HEADING
+ ;
+ S APCLDFN=0
+ F  S APCLDFN=$O(^AUPNPRVT(APCLDFN)) Q:'APCLDFN  D  Q:$D(DUOUT)
+ .;Check if Patient is registered here
+ .S Y=$$HRN^AUPNPAT(APCLDFN,APCLFAC)
+ .I Y="" Q
+ .I Y<1 Q
+ .;
+ .I APCLSORT="NAME" S APCLSRT=$P(^DPT(APCLDFN,0),U)_U_APCLDFN
+ .I APCLSORT="HRNO" S APCLSRT=Y
+ .;
+ .;-->  Check for Other Insurance if user picked this option
+ .I APCLOTH=1 D  Q:APCLICTR>1
+ ..S APCLICTR=0
+ ..I +$O(^AUPNMCR("B",APCLDFN,0)) S APCLICTR=APCLICTR+1
+ ..I +$O(^AUPNMCD("B",APCLDFN,0)) S APCLICTR=APCLICTR+1
+ ..I +$O(^AUPNRRE("B",APCLDFN,0)) S APCLICTR=APCLICTR+1
+ ..S X=0
+ ..F  S X=$O(^AUPNPRVT("B",APCLDFN,11,X)) Q:'X  S APCLICTR=APCLICTR+1
+ .;
+ .S APCLCTR=0
+ .S APCLIEN=0
+ .S APCLFLAG=0
+ .F  S APCLIEN=$O(^AUPNPRVT(APCLDFN,11,APCLIEN)) Q:'APCLIEN  D
+ ..S APCLCTR=APCLCTR+1
+ ..I $P(^AUPNPRVT(APCLDFN,11,APCLIEN,0),U)'=APCLPYR Q
+ ..S APCLFLAG=APCLIEN
+ ..S APCLBEG=$P(^AUPNPRVT(APCLDFN,11,APCLIEN,0),U,6)
+ ..S APCLEND=$P(^AUPNPRVT(APCLDFN,11,APCLIEN,0),U,7)
+ ..S APCLPVNO=$S($P($G(^AUPNPRVT(APCLDFN,11,APCLIEN,2)),U)]"":$P(^AUPNPRVT(APCLDFN,11,APCLIEN,2),U),$P(^AUPNPRVT(APCLDFN,11,APCLIEN,0),U,8):$P(^AUPN3PPH($P(^AUPNPRVT(APCLDFN,11,APCLIEN,0),U,8),0),U,4),1:$P(^AUPNPRVT(APCLDFN,11,APCLIEN,0),U,2))
+ ..;--> There is no Beg Date 
+ ..I APCLACT,APCLBEG="" S APCLFLAG=0
+ ..;--> User wants to restrict to beg dates after begin date
+ ..I APCLACT=2,APCLBEG<APCLBDAT S APCLFLAG=0
+ ..;--> Beg Date is earlier than selected end date 
+ ..I APCLACT,APCLEDAT>0,APCLBEG>APCLEDAT S APCLFLAG=0
+ ..;--> End date is before selected begin date 
+ ..I APCLACT,APCLEND>0,APCLEND<APCLBDAT S APCLFLAG=0
+ ..I APCLFLAG D
+ ...I APCLOTH,APCLCTR=1 D STORE
+ ...I APCLOTH=0 D STORE
+ ;
+ S APCLCTR=0
+ S APCLSRT=""
+ F  S APCLSRT=$O(^TMP($J,"APCLPYR",APCLSRT)) Q:APCLSRT=""  D  Q:$D(DUOUT)
+ .S APCLIEN=0
+ .F  S APCLIEN=$O(^TMP($J,"APCLPYR",APCLSRT,APCLIEN)) Q:'APCLIEN  D  Q:$D(DUOUT)
+ ..S X=^TMP($J,"APCLPYR",APCLSRT,APCLIEN)
+ ..S APCLDFN=$P(X,U)
+ ..S APCLBEG=$P(X,U,2)
+ ..S APCLEND=$P(X,U,3)
+ ..S APCLPVNO=$P(X,U,4)
+ ..D WRT
+ ..S APCLCTR=APCLCTR+1
+ ..I $Y>(IOSL-5) D  I '$D(DUOUT) D HEADING
+ ...I $E(IOST)="C" K DIR S DIR(0)="E" D ^DIR K DIR
+ ;
+ I '$D(DUOUT) W !!,"Total: ",APCLCTR
+ Q
+ ;
+STORE ;
+ S ^TMP($J,"APCLPYR",APCLSRT,APCLIEN)=APCLDFN_U_APCLBEG_U_APCLEND_U_APCLPVNO
+ Q
+ ;
+WRT ;
+ W $P(^DPT(APCLDFN,0),U)
+ W ?32,$J($$HRN^AUPNPAT(APCLDFN,APCLFAC),6)
+ W ?40,APCLPVNO
+ I APCLALL=0 D  Q
+ .W ?58,$E(APCLBEG,4,5),"/",$E(APCLBEG,6,7),"/",$E(APCLBEG,2,3)
+ .I APCLEND W ?68,$E(APCLEND,4,5),"/",$E(APCLEND,6,7),"/",$E(APCLEND,2,3)
+ .W !
+ S APCLBEG=$P(^AUPNPRVT(APCLDFN,11,APCLIEN,0),U,6)
+ S APCLEND=$P(^AUPNPRVT(APCLDFN,11,APCLIEN,0),U,7)
+ W ?58,$E(APCLBEG,4,5),"/",$E(APCLBEG,6,7),"/",$E(APCLBEG,2,3)
+ I APCLEND W ?68,$E(APCLEND,4,5),"/",$E(APCLEND,6,7),"/",$E(APCLEND,2,3)
+ W !
+ Q
+ ;
+HEADING ;
+ D ^XBCLS
+ W !
+ S X=DT
+ W $E(X,4,5),"/",$E(X,6,7),"/",$E(X,2,3)
+ S X=$P($G(^DIC(4,APCLFAC,0)),U)
+ W ?((IOM-$L(X))/2),X
+ S APCLPAGE=APCLPAGE+1
+ W ?70,"Page ",APCLPAGE
+ W !
+ ;
+ S X="Patient List for "_APCLINAM
+ W ?((IOM-$L(X))/2),X,!
+ ;
+ S X=""
+ I APCLOTH=1 S X=X_"Having only this insurance"
+ I X]"" W ?((IOM-$L(X))/2),X,!
+ ;
+ S X=""
+ I APCLACT=0 S X=X_"With any eligibility dates"
+ I APCLACT D
+ .S X=X_"With eligibility from "
+ .S X=X_$E(APCLBDAT,4,5)_"/"_$E(APCLBDAT,6,7)_"/"_$E(APCLBDAT,2,3)
+ .I $G(APCLEDAT)="" Q
+ .S X=X_" to "
+ .S X=X_$E(APCLEDAT,4,5)_"/"_$E(APCLEDAT,6,7)_"/"_$E(APCLEDAT,2,3)
+ I X]"" W ?((IOM-$L(X))/2),X,!
+ ;
+ W !
+ ;
+ W "Patient Name",?33,"HRNO",?42,"Policy #",?60,"Begin",?70,"End"
+ W !
+ ;
+ W "------------",?32,"------",?40,"----------------",?58,"--------",?68,"--------"
+ W !
+ Q

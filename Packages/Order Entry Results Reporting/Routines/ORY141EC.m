@@ -1,0 +1,67 @@
+ORY141EC ; SLC/JDL Event Capture Report ;6/14/02  13:06
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141**;Dec 17, 1997
+ ;
+POST ;Add ECS report to 101.24 and parameter ORWRP REPORT LIST
+ ;
+ D CHKEC
+ ;
+ ;Add ECS report entry to 101.24
+ ;
+ N ECPCE0,ECPCE2,ECPT0,ECPT2,ECS0,ECS2,PCEIEN,PTIEN,ECIEN
+ S ECPCE0="ORRP ECS PCE SUMMARY^OR_ECS1^^2^^^1^R^1^^^R"
+ S ECPCE2="^^Patient PCE Summary^Report from Event Capture"
+ S PCEIEN=$$ADDEC(ECPCE0,ECPCE2,"","")
+ S ECPT0="ORRP ECS PT SUMMARY^OR_ECS2^^2^^^1^R^1^^^R"
+ S ECPT2="^^Patient Data Summary^Report from Event Capture"
+ S PTIEN=$$ADDEC(ECPT0,ECPT2,"","")
+ S ECS0="ORRP ECS^OR_ECS^^^^^^R^1^^^M"
+ S ECS2="^^Event Capture^Event Capture Report"
+ S ECIEN=$$ADDEC(ECS0,ECS2,PCEIEN,PTIEN)
+ ;
+ ;Add ECS report to Reports tab
+ ;
+ N OREC,ORI,ORP,ORT,FOUND,ORLST,ORERR
+ S ORERR=""
+ S ORP="ORWRP REPORT LIST",ORT=$O(^ORD(101.24,"B","ORRP ECS",0))
+ S OREC=$O(^ORD(101.24,"B","ORRP ECS",0)),ORI=0,FOUND=0
+ D GETLST^XPAR(.ORLST,"PKG",ORP,"Q",.ORERR)
+ F  S ORI=$O(ORLST(ORI)) Q:+ORI=0!(FOUND)  D
+ . S:$P(ORLST(ORI),U,2)=OREC FOUND=1
+ Q:+FOUND
+ S ORS=+ORLST(ORLST)+5
+ D PUT^XPAR("PKG",ORP,ORS,ORT)
+ Q
+ ;
+ADDEC(ND0,ND2,PCEID,PTID) ;Add ECS report to 101.24
+ N Y,I,LAST,TOTAL,HDR
+ S Y=0
+ S HDR=$G(^ORD(101.24,0)),TOTAL=$P(HDR,U,4),LAST=$O(^ORD(101.24,"?"),-1)
+ F I=1:1:10 L +^ORD(101.24,0):1 Q:$T  H 2
+ S I=LAST F I=(I+1):1 Q:'$D(^ORD(101.24,I,0))
+ S Y=I,$P(HDR,U,3,4)=Y_U_(TOTAL+1)
+ S ^ORD(101.24,0)=HDR L -^ORD(101.24,0)
+ I $P(ND0,U,2)="OR_ECS" D
+ . S ^ORD(101.24,Y,0)=ND0
+ . S ^ORD(101.24,Y,2)=ND2
+ . S ^ORD(101.24,Y,10,0)="^101.241P^2^2"
+ . S ^ORD(101.24,Y,10,1,0)=PCEID_"^^1"
+ . S ^ORD(101.24,Y,10,2,0)=PTID_"^^2"
+ . S ^ORD(101.24,Y,10,"B",PCEID,1)=""
+ . S ^ORD(101.24,Y,10,"B",PTID,2)=""
+ . S ^ORD(101.24,"AC",$P(ND0,U,2),Y)=""
+ . S ^ORD(101.24,"B",$P(ND0,U,1),Y)=""
+ E  D
+ . S ^ORD(101.24,Y,0)=ND0
+ . S ^ORD(101.24,Y,2)=ND2
+ . S ^ORD(101.24,"AC",$P(ND0,U,2),Y)=""
+ . S ^ORD(101.24,"B",$P(ND0,U,1),Y)=""
+ Q Y
+ ;
+CHKEC ;Check and Delete ECS entry from 101.24 and ORWRP REPROT LIST
+ N ORI,DA,DIK,X0
+ S ORI=0
+ F  S ORI=$O(^ORD(101.24,ORI)) Q:'ORI  D
+ . S X0=$P(^ORD(101.24,ORI,0),U,2)
+ . I (X0="OR_ECS")!(X0="OR_ECS1")!(X0="OR_ECS2") D
+ . . S DA=ORI,DIK="^ORD(101.24," D ^DIK
+ Q

@@ -1,0 +1,110 @@
+FHINI0CT	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,8184,2)
+	;;=.218^2.545^^^^^^^30.909^3.818^11.818^1.455
+	;;^UTILITY(U,$J,112,8184,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8185,0)
+	;;=DANISH,RASPBERRY,MCDONALD'S^BC-01458^danish^117
+	;;^UTILITY(U,$J,112,8185,1)
+	;;=5.214^13.59^52.564^350.427^^^^11.966^1.256^^^^264.957^^^^^100^2.564^.282
+	;;^UTILITY(U,$J,112,8185,2)
+	;;=.265^1.795^^^^^^^22.222^2.65^8.718^.94
+	;;^UTILITY(U,$J,112,8185,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8186,0)
+	;;=EGG MCMUFFIN,MCDONALD'S^BC-01459^mcmuffin^138
+	;;^UTILITY(U,$J,112,8186,1)
+	;;=13.188^8.116^20.362^210.145^^^^185.507^2.007^^^^536.232^^^^^361.594^0^.341
+	;;^UTILITY(U,$J,112,8186,2)
+	;;=.239^2.681^^^^^^^163.768^2.754^4.42^.942
+	;;^UTILITY(U,$J,112,8186,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8187,0)
+	;;=ENGLISH MUFFIN W/BUTTER,MCDONALD'S^BC-01460^muffin^59
+	;;^UTILITY(U,$J,112,8187,1)
+	;;=9.153^7.797^45.254^288.136^^^^255.932^2.729^^^^457.627^^^^^206.78^0^.559
+	;;^UTILITY(U,$J,112,8187,2)
+	;;=.237^4.237^^^^^^^15.254^4.068^2.881^.847
+	;;^UTILITY(U,$J,112,8187,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8188,0)
+	;;=FILLET-O-FISH SAANDWICH,MCDONALD'S^BC-01461^sandwich^142
+	;;^UTILITY(U,$J,112,8188,1)
+	;;=9.718^18.38^26.69^309.859^^^^116.197^1.289^^^^725.352^^^^^102.817^0^.211
+	;;^UTILITY(U,$J,112,8188,2)
+	;;=.106^1.901^^^^^^^35.211^3.662^7.183^7.606
+	;;^UTILITY(U,$J,112,8188,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8189,0)
+	;;=FRENCH FRIES,LARGE,MCDONALD'S^BC-01462^large^122
+	;;^UTILITY(U,$J,112,8189,1)
+	;;=4.59^17.705^37.623^327.869^^^^14.754^.762^^^^163.934^^^^^0^12.295^.197
+	;;^UTILITY(U,$J,112,8189,2)
+	;;=0^2.705^^^^^^^13.115^7.459^9.508^.738
+	;;^UTILITY(U,$J,112,8189,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8190,0)
+	;;=FRENCH FRIES,SMALL,MCDONALD'S^BC-01463^small^68
+	;;^UTILITY(U,$J,112,8190,1)
+	;;=4.559^17.647^37.647^323.529^^^^14.706^.765^^^^161.765^^^^^0^11.765^.206
+	;;^UTILITY(U,$J,112,8190,2)
+	;;=0^2.647^^^^^^^13.235^7.5^9.559^.735
+	;;^UTILITY(U,$J,112,8190,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8191,0)
+	;;=FRZN YOGART,LOWFAT,HOT FUDGE SUNDAE,MCDONALD'S^BC-01464^sundae^169
+	;;^UTILITY(U,$J,112,8191,1)
+	;;=4.32^1.893^29.882^142.012^^^^139.053^.284^^^^100.592^^^^^126.627^0^.047
+	;;^UTILITY(U,$J,112,8191,2)
+	;;=.207^.178^^^^^^^3.55^1.42^.473^.059
+	;;^UTILITY(U,$J,112,8191,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8192,0)
+	;;=FRZN YOGART,LOWFAT,STRAWBERRY SUNDAE,MCDONALD'S^BC-01465^sundae^171
+	;;^UTILITY(U,$J,112,8192,1)
+	;;=3.333^.643^28.772^122.807^^^^111.111^.094^^^^55.556^^^^^125.146^.585^.041
+	;;^UTILITY(U,$J,112,8192,2)
+	;;=.17^.175^^^^^^^2.924^.351^.234^0
+	;;^UTILITY(U,$J,112,8192,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8193,0)
+	;;=FRZN YOGART,LOWFAT,VANILLA CONE,MCDONALD'S^BC-01466^cone^86
+	;;^UTILITY(U,$J,112,8193,1)
+	;;=4.651^.93^25.581^116.279^^^^130.233^.267^^^^93.023^^^^^148.837^0^.047
+	;;^UTILITY(U,$J,112,8193,2)
+	;;=.209^.465^^^^^^^3.488^.465^.349^.116
+	;;^UTILITY(U,$J,112,8193,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8194,0)
+	;;=HAMBURGER,MCDONALD'S^BC-01467^sandwich^102
+	;;^UTILITY(U,$J,112,8194,1)
+	;;=11.961^9.314^30^254.902^^^^119.608^2.245^^^^490.196^^^^^149.02^1.961^.275
+	;;^UTILITY(U,$J,112,8194,2)
+	;;=.157^3.725^^^^^^^36.275^3.529^5^.784
+	;;^UTILITY(U,$J,112,8194,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8195,0)
+	;;=HASH BROWN POTATOES,MCDONALD'S^BC-01468^serving^53
+	;;^UTILITY(U,$J,112,8195,1)
+	;;=2.642^13.774^28.113^245.283^^^^11.321^.509^^^^622.642^^0^^^0^3.774^.113
+	;;^UTILITY(U,$J,112,8195,2)
+	;;=.038^1.698^^^^^^^16.981^6.038^6.981^.755
+	;;^UTILITY(U,$J,112,8195,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8196,0)
+	;;=HOTCAKES W/ BUTTER & SYRUP,MCDONALD'S^BC-01469^serving^176
+	;;^UTILITY(U,$J,112,8196,1)
+	;;=4.659^5.227^42.273^232.955^^^^64.773^1.182^^^^363.636^^0^^^98.295^0^.182
+	;;^UTILITY(U,$J,112,8196,2)
+	;;=.188^1.591^^^^^^^11.932^2.102^1.761^1.42
+	;;^UTILITY(U,$J,112,8196,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,8197,0)
+	;;=MCCHICKEN,MCDONALD'S^BC-01470^6.7-oz.^190
+	;;^UTILITY(U,$J,112,8197,1)
+	;;=10.105^15.053^20.947^257.895^^^^60^1.095^^^^410.526^^^^^54.737^1.053^.168
+	;;^UTILITY(U,$J,112,8197,2)
+	;;=.111^1.474^^^^^^^11.053^1.947^1.632^1.316

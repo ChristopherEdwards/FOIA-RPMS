@@ -1,0 +1,39 @@
+BGOVPRV ; IHS/BAO/TMD - V PROVIDER file RPCs ;21-Jun-2011 08:20;MGH
+ ;;1.1;BGO COMPONENTS;**1,3,9**;Mar 20, 2007
+ ; Return primary provider for a visit
+PRIPRV(RET,VIEN) ;EP
+ S RET=$$PRIPRV^BGOUTL(VIEN)
+ Q
+ ; Set primary provider
+ ;  INP = Visit IEN [1] ^ Patient IEN [2] ^ Provider IEN [3] ^ Primary/Secondary (P/S) [4] ^
+ ;        Force Conversion to Primary (Y/N) [5]
+SETVPRV(RET,INP) ;
+ N X,VIEN,VPRV,DFN,PRV,PRI,FORCE,PRIPRV,IENS,FDA,FNUM
+ S RET="",FNUM=$$FNUM
+ S VIEN=+INP
+ S DFN=$P(INP,U,2)
+ S RET=$$CHKVISIT^BGOUTL(VIEN,DFN)
+ Q:RET
+ S PRV=$P(INP,U,3)
+ Q:PRV=0
+ S PRI=$P(INP,U,4)
+ S:'$L(PRI) PRI="S"
+ S FORCE=$P(INP,U,5)
+ S FORCE=FORCE!(FORCE="Y")
+ S PRIPRV=$$PRIPRV^BGOUTL(VIEN)
+ I PRIPRV>0,PRI="P",+PRIPRV'=PRV D  Q:RET
+ .I FORCE S FDA(FNUM,$P(PRIPRV,U,3)_",",.04)="S"
+ .E  S RET=$$ERR^BGOUTL(1098,$P(PRIPRV,U,2))
+ S (X,VPRV)=0
+ F  S X=$O(^AUPNVPRV("AD",VIEN,X)) Q:'X  D  Q:VPRV
+ .S:$P($G(^AUPNVPRV(X,0)),U)=PRV VPRV=X
+ S IENS=$S(VPRV:VPRV_",",1:"+1,")
+ S FDA=$NA(FDA(FNUM,IENS))
+ S @FDA@(.01)=PRV
+ S @FDA@(.02)=DFN
+ S @FDA@(.03)=VIEN
+ S @FDA@(.04)=PRI
+ S RET=$$UPDATE^BGOUTL(.FDA)
+ Q
+ ; Return V File #
+FNUM() Q 9000010.06

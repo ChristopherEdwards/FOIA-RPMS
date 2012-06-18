@@ -1,0 +1,127 @@
+ACRPPO ; GENERATED FROM 'ACR PURCHASE ORDER INFO' PRINT TEMPLATE (#3838) ; 09/30/09 ; (FILE 9002196, MARGIN=80)
+ G BEGIN
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ S DISTP=DISTP+1,DILCT=DILCT+1 D:'(DISTP#100) CSTP^DIO2
+ Q
+DT I $G(DUZ("LANG"))>1,Y W $$OUT^DIALOGU(Y,"DD") Q
+ I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1 S DISTP=$G(DISTP),DILCT=$G(DILCT)
+ I $D(DXS)<9 M DXS=^DIPT(3838,"DXS")
+ S I(0)="^ACRDOC(",J(0)=9002196
+ W ?0 I $E($G(IOST),1,2)="C-" W @IOF K DIP K:DN Y
+ W ?11 I $E($G(IOST),1,2)="P-",$Y>1 W @IOF K DIP K:DN Y
+ W ?22 K ACRX I '$D(^ACROBL(D0,"APV")) S ACRX="" K DIP K:DN Y
+ W ?33 I '$D(ACRX),$D(^ACROBL(D0,"APV")),$P(^("APV"),U,3)'="A" S ACRX="" K DIP K:DN Y
+ W ?44 X DXS(1,9) K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "UNITED STATES GOVERNMENT PURCHASE ORDER #"
+ S X=$G(^ACRDOC(D0,0)) W ?43,$E($P(X,U,2),1,15)
+ D N:$X>60 Q:'DN  W ?60 W "(OMB NO. 0990-0115)"
+ D N:$X>25 Q:'DN  W ?25 W "DHHS #  "
+ W $$EXPDN^ACRFUTL(D0) K DIP K:DN Y
+ I 1 S DC=$S($D(DC):DC+1,1:1) K DIP K:DN Y
+ D N:$X>59 Q:'DN  W ?59 W "PAGE:"
+ W ?66 S X=$S($D(DC)#2:DC,1:"") K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 W "================================================================================"
+ D N:$X>0 Q:'DN  W ?0 X DXS(2,9) K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "ISSUING OFFICE:"
+ D N:$X>40 Q:'DN  W ?40 W "SHIP TO:"
+ D N:$X>0 Q:'DN  W ?0 W "USPHS INDIAN HEALTH SERVICE"
+ D N:$X>40 Q:'DN  W ?40 W "USPHS INDIAN HEALTH SERVICE"
+ S X=$G(^ACRDOC(D0,"POIO")) D N:$X>0 Q:'DN  W ?0 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>40 Q:'DN  W ?40 W "PO #:"
+ S X=$G(^ACRDOC(D0,0)) W ?47,$E($P(X,U,2),1,15)
+ D N:$X>0 Q:'DN  W ?0 X DXS(3,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ S X=$G(^ACRDOC(D0,"POST")) D N:$X>40 Q:'DN  W ?40 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>0 Q:'DN  W ?0 X DXS(4,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(5,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 X DXS(6,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(7,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W " "
+ X DXS(8,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(9,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 W "PHONE:"
+ W ?8 X DXS(10,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(11,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(12,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W " "
+ X DXS(13,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>40 Q:'DN  W ?40 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "CONTRACTOR:"
+ D N:$X>40 Q:'DN  W ?40 W "MAIL INVOICE TO:"
+ D N:$X>40 Q:'DN  W ?40 W "USPHS INDIAN HEALTH SERVICE"
+ S X=$G(^ACRDOC(D0,"PO")) D N:$X>4 Q:'DN  W ?4 S Y=$P(X,U,5) S Y=$S(Y="":Y,$D(^AUTTVNDR(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ S X=$G(^ACRDOC(D0,"POMI")) D N:$X>40 Q:'DN  W ?40 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>4 Q:'DN  W ?4 X DXS(14,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(15,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>4 Q:'DN  W ?4 X DXS(16,9.2) S X=$P(DIP(101),U,10) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(17,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>4 Q:'DN  W ?4 X DXS(18,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(19,9) K DIP K:DN Y W X
+ W " "
+ X DXS(20,9.2) S X=$P(DIP(101),U,4) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 X DXS(21,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(22,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W " "
+ X DXS(23,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>40 Q:'DN  W ?40 W "PHONE:"
+ W ?48 X DXS(24,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ I 1 S ACRVDA=$P(^ACRDOC(D0,"PO"),U,5) K DIP K:DN Y
+ I ACRVDA,$D(^AUTTVNDR(ACRVDA,13)),$P(^(13),U,6)'="" W !,"SEND PAYMENT TO:" K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 X DXS(25,9.2) S X=$P(DIP(101),U,6) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 X DXS(26,9.2) S X=$P(DIP(101),U,7) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(27,9) K DIP K:DN Y W X
+ W "  "
+ X DXS(28,9.2) S X=$P(DIP(101),U,9) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>0 Q:'DN  W ?0 I 1 W ! F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D N:$X>40 Q:'DN  W ?40 F ACRI=1:1:38 W "-" K DIP K:DN Y
+ D PAUSE^ACRFWARN K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "DATE OF ORDER:"
+ S X=$G(^ACRDOC(D0,"PO")) W ?16 S Y=$P(X,U,1) D DT
+ D N:$X>40 Q:'DN  W ?40 W "TYPE OF ORDER.:"
+ W ?57 S Y=$P(X,U,6) W:Y]"" $S($D(DXS(30,Y)):DXS(30,Y),1:Y)
+ D N:$X>0 Q:'DN  W ?0 W "REFERENCE....:"
+ S X=$G(^ACRDOC(D0,"POIO")) W ?16,$E($P(X,U,7),1,30)
+ D N:$X>0 Q:'DN  W ?0 W "GOV CONTRACT#:"
+ S X=$G(^ACRDOC(D0,"PO")) W ?16,$E($P(X,U,2),1,15)
+ D N:$X>40 Q:'DN  W ?40 W "BUSIN. CLASS..:"
+ W ?57 X DXS(29,9) K DIP K:DN Y W $E(X,1,22)
+ D N:$X>0 Q:'DN  W ?0 W "REQUESTED BY.:"
+ S X=$G(^ACRDOC(D0,"REQ")) W ?16 S Y=$P(X,U,3) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,23)
+ D N:$X>40 Q:'DN  W ?40 W "REQUISITION #.:"
+ S X=$G(^ACRDOC(D0,0)) W ?57,$E($P(X,U,1),1,17)
+ D N:$X>0 Q:'DN  W ?0 W "FOB POINT....:"
+ S X=$G(^ACRDOC(D0,"PO")) W ?16 S Y=$P(X,U,9) W:Y]"" $S($D(DXS(31,Y)):DXS(31,Y),1:Y)
+ D N:$X>40 Q:'DN  W ?40 W "DISCOUNT TERMS:"
+ W ?57,$E($P(X,U,13),1,20)
+ D N:$X>0 Q:'DN  W ?0 W "SHIP VIA.....:"
+ W ?16,$E($P(X,U,18),1,23)
+ D N:$X>40 Q:'DN  W ?40 W "DELIVER BY....:"
+ W ?57 S Y=$P(X,U,12) D DT
+ D N:$X>0 Q:'DN  W ?0 W "INSPECTION PT:"
+ W ?16 S Y=$P(X,U,11) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,23)
+ D N:$X>40 Q:'DN  W ?40 W "GBL NO........:"
+ W ?57,$E($P(X,U,10),1,10)
+ D T Q:'DN  D N W ?0 W "NOTE: PO NO. MUST APPEAR ON ALL PACKAGES, INVOICES, PAPERS RELATING TO THIS PO."
+ D N:$X>0 Q:'DN  W ?0 W "PURCHASE NEGOTIATED UNDER AUTHORITY OF:"
+ W ?41 S Y=$P(X,U,22) W:Y]"" $S($D(DXS(32,Y)):DXS(32,Y),1:Y)
+ D N:$X>0 Q:'DN  W ?0 W "ATTACHED TERMS AND CONDITIONS ARE APPLICABLE TO THIS ORDER."
+ D PAUSE^ACRFWARN K DIP K:DN Y
+ W ?61 D ^ACRFPSS K DIP K:DN Y
+ D T Q:'DN  W ?2 D ^ACRFPAPV K DIP K:DN Y
+ S ACRDOCDA=D0,ACRDOC=$P(^ACRDOC(D0,0),U,2) D DISPLAY^ACRFSS12 K DIP K:DN Y
+ W ?13 D PCERT^ACRFCERT,PBOIL^ACRFBOIL K DIP K:DN Y
+ K Y
+ Q
+HEAD ;
+ W !,"--------------------------------------------------------------------------------",!!

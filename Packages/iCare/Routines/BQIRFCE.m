@@ -1,0 +1,73 @@
+BQIRFCE ;PRXM/HC/ALA-FACE Sheet ; 06 Jul 2006  12:57 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+ Q
+ ;
+EN(DATA,DFN) ; EP -- BQI PATIENT FACE SHEET
+ ;Description
+ ;  Generates a Patient Face Sheet for a given DFN
+ ;
+ ;Input
+ ;  DFN - Patient Internal ID
+ ;
+ ;Output
+ ;  DATA - Name of global in which data is stored(^TMP("BQIRFCE"))
+ ;
+ NEW UID,X,BQII,HSTEXT,HSPATH,HSFN,Y,IOSL,IOST,IOM,I,N,RHIFLAG,RHI
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIRFCE",UID))
+ K @DATA
+ ;
+ S BQII=0
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIRFCE D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S RHI=""
+ S IOSL=999,IOM=80,IOST="P-OTHER80"
+ S IOST(0)=$$FIND1^DIC(3.2,,"X",IOST)
+ D CHKRHI^AG
+ I $D(RHIFLAG)&(RHIFLAG="A") S RHI="This patient has Restricted Health Information"
+ ;
+ D HDR
+ ;
+ I $$TMPFL^BQIUL1("W",UID,DFN) G DONE
+ ;
+ K AG
+ D ^AGDATCK
+ I AG("DTOT")>0 D ^BQIRFCRQ
+ S AGVQQFS=1
+ U IO D START^AGFACE
+ U IO W $C(9)
+ ;
+ K AGVQQFS
+ ;
+ I $$TMPFL^BQIUL1("C") G DONE
+ I $$TMPFL^BQIUL1("R",UID,DFN) G DONE
+ ;
+ S BQII=BQII+1,@DATA@(BQII)=RHI_"^"
+ F  U IO R HSTEXT:.1 Q:HSTEXT[$C(9)  D
+ . S HSTEXT=$$STRIP^XLFSTR(HSTEXT,"^"),HSTEXT=$$CTRL^BQIUL1(HSTEXT)
+ . I HSTEXT="" S HSTEXT=" "
+ . S BQII=BQII+1,@DATA@(BQII)=HSTEXT_$C(13)_$C(10)
+ S BQII=BQII+1,@DATA@(BQII)=$C(30)
+ ;
+ I $$TMPFL^BQIUL1("C") G DONE
+ I $$TMPFL^BQIUL1("D",UID,DFN) G DONE
+ ;
+DONE ;
+ ;
+ S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ Q
+ ;
+HDR ;
+ S @DATA@(BQII)="T00120RHI_MSG^T01024REPORT_TEXT"_$C(30)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(BQII),$D(DATA) S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ I $$TMPFL^BQIUL1("C")
+ Q

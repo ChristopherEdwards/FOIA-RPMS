@@ -1,0 +1,103 @@
+AGGPALTR ;VNGT/HS/BEE-Alternate Resources Field Handling ; 02 May 2010  9:08 AM
+ ;;1.0;PATIENT REGISTRATION GUI;;Nov 15, 2010
+ ;
+ Q
+ ;
+UROI(AGPATDFN,AGROI) ;PEP - Update RELEASE OF INFORMATION (#3601)
+ ;
+ ;Input:
+ ; AGPATDFN - Patient IEN
+ ; AGROI - New Release of Information Date
+ ;
+ ;Output:
+ ;Returns -1^Error Message - on Failure
+ ;        "" - on Success
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^AGGPALTR D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ Q:AGPATDFN="" "-1^Missing Patient IEN"
+ Q:AGROI="" ""
+ ;
+ N AGG,DA,DIC,DLAYGO,ERROR,X,Y
+ ;
+ ;Define new entry and save
+ S DIC="^AUPNPAT("_AGPATDFN_",36,",DA(1)=AGPATDFN
+ S DIC(0)="L"
+ S X=$$DATE^AGGUL1(AGROI)
+ S DLAYGO="9000001.03601",DIC("P")=DLAYGO
+ I '$D(^AUPNPAT(AGPATDFN,36,0)) S ^AUPNPAT(AGPATDFN,36,0)="^9000001.03601D^^"
+ D ^DIC
+ ;
+ ;Successful Save
+ Q ""
+ ;
+UAOB(AGPATDFN,AGAOB) ;PEP - Update ASSIGN BENEFITS OBTAINED DATE (#7101)
+ ;
+ ;Input:
+ ; AGPATDFN - Patient IEN
+ ; AGAOB - New ASSIGN BENEFITS OBTAINED DATE Date
+ ;
+ ;Output:
+ ;Returns -1^Error Message - on Failure
+ ;        "" - on Success
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^AGGPALTR D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ Q:AGPATDFN="" "-1^Missing Patient IEN"
+ Q:AGAOB="" ""
+ ;
+ N AGG,DA,DIC,DLAYGO,ERROR,X,Y
+ ;
+ ;Define new entry and save
+ S DIC="^AUPNPAT("_AGPATDFN_",71,",DA(1)=AGPATDFN
+ S DIC(0)="L"
+ S X=$$DATE^AGGUL1(AGAOB)
+ S DLAYGO="9000001.71",DIC("P")=DLAYGO
+ I '$D(^AUPNPAT(AGPATDFN,71,0)) S ^AUPNPAT(AGPATDFN,71,0)="^9000001.71D^^"
+ D ^DIC
+ ;
+ ;Successful Save
+ Q ""
+ ;
+AOB(DATA,AGGPTAOB,AGGPTROI) ; EP -- AGG ALT RES AOB TRG
+ ; Input
+ ;   AGGPTAOB - The current AOB Date
+ ;   AGGPTROI - The current ROI Date
+ ;
+ NEW UID,II,VALUE,SOURCE,IEN,HELP,TYPE,ABLE,HDR
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("AGGPALTR",UID))
+ K @DATA
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^AGGPPALTR D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ D HDR
+ S @DATA@(II)=HDR_$C(30)
+ ;
+ ;Populate ROI if blank, Link parameter is yes, and AOB is populated
+ I $G(AGGPTAOB)]"",$G(AGGPTROI)="" D
+ . D ^AGVAR
+ . ;
+ . I AGOPT(25)="Y" D
+ .. N AOB,ROI,AGAOB,DA,ERROR,DIC,X,Y
+ .. ;
+ .. ;Plug in AOB
+ .. S SOURCE="AGGPTROI",VALUE=AGGPTAOB,HELP="",ABLE="Y",REQ="",CLEAR="",CLFLAG="",TYPE="D",VISIBLE="" D UP
+ ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+UP ;
+ S II=II+1,@DATA@(II)=SOURCE_U_TYPE_U_VALUE_U_ABLE_U_$G(CLEAR)_U_HELP_U_REQ_U_$G(VISIBLE)_$C(30)
+ Q
+ ;
+HDR ;
+ S HDR="T00008SOURCE^T00001CODE_TYPE^T01024PARMS^T00001ABLE_FLAG^T00100CLEAR_FIELDS^T00200HELP_TEXT^T00001REQ_OPT^T00001VISIBLE"
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q

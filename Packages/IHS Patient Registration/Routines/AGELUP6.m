@@ -1,0 +1,26 @@
+AGELUP6 ;IHS/ASDS/EFG - UPDATE ELIGIBILITY FROM FILE  
+ ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;
+HEAD ;EP - page header
+ S $P(AGEQ,"=",80)=""
+ S $P(AGDSH,"-",80)=""
+ U IO(0)
+ W $$S^AGVDF("IOF")
+ W !,"HOST FILE RECORD #: ",AGRCNT
+ W !,"PATIENT: "
+ W $P(^DPT(AG("DFN"),0),"^",1)
+ W ?35,"SSN: "
+ W $E(AG("FSSN"),1,3)_"-"_$E(AG("FSSN"),4,5)_"-"_$E(AG("FSSN"),6,9)
+ W !,AGEQ
+ W !,?3,"RAILROAD ELIGIBLE FILE"
+ W ?48,"HCFA FILE"
+ W !,AGDSH
+ Q
+PEND ;EP - end of page
+ U IO(0) F  W ! Q:($Y+3)>IOSL
+ K DIR S DIR(0)="SBM^F:FILE;S:SKIP;Q:QUIT"
+ S DIR("A")="ACTION: (F)ILE, (S)KIP, (Q)UIT"
+ S DIR("B")="QUIT"
+ D ^DIR K DIR
+ S AGACT=Y
+ Q

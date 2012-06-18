@@ -1,0 +1,9 @@
+BGP7P1X ;IHS/CMI/LAB-CREATED BY ^ATXSTX ON FEB 07, 2007;
+ ;;7.0;IHS CLINICAL REPORTING;**1**;JAN 24, 2007
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^BGP7P1XA ;  BGP CPT MAMMOGRAM
+ D ^BGP7P1XB ;  BGP CPT MAMMOGRAM HEDIS
+ Q

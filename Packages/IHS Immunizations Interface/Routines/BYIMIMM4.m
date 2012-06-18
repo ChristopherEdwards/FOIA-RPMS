@@ -1,0 +1,318 @@
+BYIMIMM4 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**2**;MAY 01, 2011
+ ;
+ ;;PATCH 2
+ ;;
+ ;;HFSA     - NEW EP TO EXPORT TO HOST FILE
+ ;;
+ ;
+ ;-----
+MULT ;EP;PROCESS MULTIPLE INBOUND MESSAGES
+ K BYIMQUIT
+ N AUTOIMP,AUTOADD,DIR,FILE
+ S AUTOIMP=1
+ S AUTOADD=0
+ D PATH^BYIMIMM
+ Q:IPATH=""
+ S DIR=$$LIST^%ZISH(IPATH,"*",.DIR)
+ S FILE=""
+ S XX=0
+ F  S XX=$O(DIR(XX)) Q:'XX  S:DIR(XX)]"" FILE(DIR(XX))=""
+ S XX=""
+ F  S XX=$O(FILE(XX)) Q:XX=""  D
+ .S:XX["izdata"&(XX[".dat"!(XX[".hl7")) FILE=XX
+ .Q:FILE=""
+ .N DA
+ .S DA=0
+ .F  S DA=$O(^BYIMPARA("FILE",FILE,DUZ(2),DA)) Q:'DA  I $P($G(^BYIMPARA(DUZ(2),2,+DA,0)),U,3)="I" S BYIMQUIT=""
+ .I $D(BYIMQUIT) K BYIMQUIT Q
+ .D I1^BYIMIMM1
+ Q
+ ;-----
+ASITE ;EP;ADDITIONAL EXPORT SITES
+ I $O(^BYIMPARA(BYIMDA,3,0)) D AS Q
+ K DIR
+ S DIR(0)="YO"
+ S DIR("A")="Add export/import path for additional states"
+ S DIR("B")="NO"
+ W !!
+ D ^DIR
+ K DIR
+ Q:'Y
+AS N BYIMAS
+ S BYIMQUIT=0
+ F  D ASACT Q:BYIMQUIT
+ Q
+ ;-----
+ASACT ;ADDITIONAL SITE ACTION
+ I '$O(^BYIMPARA(BYIMDA,3,0)) D ASADD
+ I '$O(^BYIMPARA(BYIMDA,3,0)) S BYIMQUIT=1 Q
+ D ASD
+ K DIR
+ S DIR(0)="SO^1:Edit site;2:Add site;3:Delete site"
+ W !!
+ D ^DIR
+ K DIR
+ I 'Y S BYIMQUIT=1 Q
+ I Y=1 D ASEDIT Q
+ I Y=2 D ASADD Q
+ I Y=3 D ASDEL
+ Q
+ ;-----
+ASSEL ;SELECT ADDITION SITE
+ I J=1 S Y=1 D ASSEL1 Q
+ K DIR
+ S DIR(0)="NO^1:"_J
+ S DIR("A")="Select site number"
+ W !!
+ D ^DIR
+ K DIR
+ASSEL1 Q:'Y
+ Q:'$G(BYIMAS(Y))
+ S DA=BYIMAS(Y)
+ Q
+ ;-----
+ASD ;DISPLAY OTHER EXPORT/IMPORT SITES
+ W @IOF
+ W !!?10,"Additional EXPORT/IMPORT Site Directories"
+ W !!?5,"NUM",?10,"SITE/STATE"
+ W !?5,"---",?10,"--------------------------------------------------"
+ S J=0
+ S BYIMAS=0
+ F  S BYIMAS=$O(^BYIMPARA(BYIMDA,3,BYIMAS)) Q:'BYIMAS  D
+ .S X=^BYIMPARA(BYIMDA,3,BYIMAS,0)
+ .S J=J+1
+ .S BYIMAS(J)=BYIMAS
+ .W !?5,J,?10,$P(X,U)
+ .W !?15,"OUTBOUND: ",$P(X,U,2)
+ .W !?15," INBOUND: ",$P(X,U,3)
+ Q
+ ;-----
+ASADD ;ADD SITES
+ N BYIMQUIT
+ S BYIMQUIT=0
+ S J=0
+ F  D AS1 Q:BYIMQUIT
+ Q
+ ;-----
+AS1 ;INPUT FOR ADDITIONAL EXPORT SITES
+ N BYIMAS
+ S J=J+1
+ K DIR
+ S DIR(0)="FO^1:50"
+ S DIR("A")="Export site (state) name"
+ W !
+ D ^DIR
+ K DIR
+ I X=""!(X[U) S BYIMQUIT=1 Q
+ S BYIMAS(J)=X
+AS1O K DIR,X
+ S DIR(0)="FO^1:50"
+ S DIR("A")=" PATH FOR OUTBOUND MESSAGES to "_BYIMAS(J)
+ D ^DIR
+ K DIR
+ I X[U S BYIMQUIT=1 Q
+ I X="" D  G AS1O
+ .W !!,"The drive/directory path for outbound messages for ",BYIMAS(J)
+ .W !,"must be entered.  Enter '^' to exit."
+ S BYIMAS(J,"OUT")=X
+AS1I K DIR,X
+ S DIR(0)="FO^1:50"
+ S DIR("A")="PATH FOR INBOUND MESSAGES from "_BYIMAS(J)
+ D ^DIR
+ K DIR
+ I X[U S BYIMQUIT=1 Q
+ I X="" D  G AS1I
+ .W !!,"The drive/directory path for inbound messages for ",BYIMAS(J)
+ .W !,"must be entered.  Enter '^' to exit."
+ S BYIMAS(J,"IN")=X
+ S DA(1)=BYIMDA
+ S X=BYIMAS(J)
+ S DIC="^BYIMPARA("_BYIMDA_",3,"
+ S DIC(0)="L"
+ S DIC("DR")=".02////"_BYIMAS(J,"OUT")_";.03////"_BYIMAS(J,"IN")
+ S:'$D(^BYIMPARA(1,3,0)) ^BYIMPARA(BYIMDA,3,0)="^90480.03"
+ D FILE^DICN
+ Q
+ ;-----
+ASEDIT ;EDIT SITE
+ D ASSEL
+ Q:'DA
+ S DA(1)=BYIMDA
+ S DR=".01;.02;.03"
+ S DIE="^BYIMPARA("_BYIMDA_",3,"
+ D ^DIE
+ K DA,DR,DIE
+ Q
+ ;-----
+ASDEL ;DELETE SITE
+ D ASSEL
+ Q:'DA
+ S X=^BYIMPARA(BYIMDA,3,DA,0)
+ W !?10,$P(X,U)
+ K DIR
+ S DIR(0)="YO"
+ S DIR("A")="Delete export/import site: "_$P(X,U)
+ S DIR("B")="NO"
+ W !
+ D ^DIR
+ K DIR
+ Q:Y'=1
+ S DA(1)=BYIMDA
+ S DIK="^BYIMPARA("_BYIMDA_",3,"
+ D ^DIK
+ K DA,DIK
+ Q
+ ;-----
+CP(DFN) ;EP;DETERMINE VARICELLA EXPOSURE
+ ;DFN   = PATIENT DFN
+ Q:'$D(^BIPC("B",+DFN))
+ N BIX,VDAT
+ S BIX=0
+ F  S BIX=$O(^BIPC("B",DFN,BIX)) Q:'BIX  S:$P($G(^BIPC(BIX,0)),U,3)=12 VDAT=$P(^(0),U,4)
+ Q:$L($G(VDAT))'=7
+ S VDAT=VDAT+17000000
+ S RXA="RXA|0|1|"_VDAT_"|"_VDAT_"|998^No vaccine administered^CVX|999"
+ S OBX="OBX|1|CE|59784-9^Disease with presumed immunity ^LN|1|38907003^Varicella infection^SCT||||||F|CR|"
+ N LINE
+ S LINE=$O(^UTILITY("INH",$J,9999999999),-1)+1
+ S X=U_"UTILITY(""INH"","_$J_","_LINE_")"
+ S @X=RXA
+ S X=U_"UTILITY(""INH"","_$J_","_(LINE+1)_")"
+ S @X=OBX
+ Q
+ ;-----
+IMMDUP ;EP;TO DEDUP IMMUNIZATIONS
+ S DIK="^AUPNVIMM("
+ S DFN=0
+ F  S DFN=$O(^AUPNVIMM("AC",DFN)) Q:'DFN  D
+ .K TMP
+ .S IEN=0
+ .F  S IEN=$O(^AUPNVIMM("AC",DFN,IEN)) Q:'IEN  D
+ ..S X=$P($G(^AUPNVIMM(IEN,0)),U,1,3)
+ ..S VIS=$P(X,U,3)
+ ..Q:'$P(X,U,2)!'X!'VIS
+ ..S DAT=$P($G(^AUPNVSIT(VIS,0)),".")
+ ..Q:'DAT
+ ..S X=$P(X,U,1,2)_U_DAT
+ ..I +X=242 S $P(X,U)=148
+ ..I +X=243 S $P(X,U)=148
+ ..S TMP(X,IEN)=""
+ .S X=""
+ .F  S X=$O(TMP(X)) Q:X=""  D
+ ..S J=0
+ ..S IEN=0
+ ..F  S IEN=$O(TMP(X,IEN)) Q:'IEN  D
+ ...S J=J+1
+ ...Q:J<2
+ ...W:'$D(ZTQUEUED) !,DFN,?10,J,?15,IEN,?25,X,?45,$P(^AUTTIMM(+X,0),U,3)
+ ...M ^BYIMTMP("BYIM IMM DUPS",DA)=^AUPNVIMM(DA)
+ ...S DA=IEN
+ ...;D ^DIK
+ Q
+ ;-----
+HFSA(DEST,BYIMHDIR,BYIMHFNM) ;EP - export from this destination
+ ;PATCH 2
+ F BYIMJOB="FORMAT CONTROLLER","OUTPUT CONTROLLER" D
+ .S SH=0,BYIMY=$$CHK^BHLBCK(BYIMJOB,SH)
+ Q:$G(DEST)=""
+ Q:'$D(^INLHDEST(DEST))
+ S Y=$$OPEN^%ZISH(BYIMHDIR,BYIMHFNM,"W")
+ Q:Y
+ S BYIMH=0
+ F  S BYIMH=$O(^INLHDEST(DEST,0,BYIMH)) Q:'BYIMH  D
+ .S BYIMU=0
+ .F  S BYIMU=$O(^INLHDEST(DEST,0,BYIMH,BYIMU)) Q:'BYIMU  D
+ ..D LPINTHU(BYIMU)
+ ..K ^INLHDEST(DEST,0,BYIMH,BYIMU)
+ D ^%ZISC
+ Q
+ ;-----
+LPINTHU(BYIMUIEN)       ;EP - loop through UIF and set to file
+ S BYIMUDA=0
+ F  S BYIMUDA=$O(^INTHU(BYIMUIEN,3,BYIMUDA)) Q:'BYIMUDA  D
+ .N XX
+ .S XX=$G(^INTHU(BYIMUIEN,3,BYIMUDA,0))
+ .Q:XX=""
+ .I XX'["|CR|" D
+ ..S XX=XX_$G(^INTHU(BYIMUIEN,3,BYIMUDA+1,0))
+ ..S:XX["|CR|" BYIMUDA=BYIMUDA+1
+ .Q:XX'["|CR|"
+ .U IO W $P(XX,"|CR|"),!
+ Q
+ ;-----
+ ;PATCH 2
+DEXIT ;EP;CLEAN UP AFTER IZAD
+ K ^BYIMTMP($J,"BYIM DISP")
+ Q
+ ;-----
+ALOT(LDA,IVDA) ;EP;ACTIVATE LOT NUMBER
+ Q:'LDA
+ Q:'$D(^AUTTIML(LDA,0))
+ S NEWLOT(LDA)=^AUTTIML(LDA,0)
+ I '$P(NEWLOT(LDA),U,4) D
+ .S $P(NEWLOT(LDA),U,4)=IVDA
+ .S ^AUTTIML("C",IVDA,LDA)=""
+ S $P(^AUTTIML(LDA,0),U,3)=0
+ S $P(^AUTTIML(LDA,0),U,4)=IVDA
+ Q
+ ;-----
+ILOT(LDA) ;EP;INACTIVATE LOT NUMBER
+ Q:'LDA
+ Q:'$D(^AUTTIML(LDA,0))
+ S ^AUTTIML(LDA,0)=$G(NEWLOT(LDA))
+ K NEWLOT
+ Q
+ ;-----
+LV(DFN,IVDA,LOTDA) ;EP;CALCULATE LAST V IMM FOR PATIENT
+ Q:'$G(DFN)!'$G(IVDA)!'$G(LOTDA)
+ N XX,YY,ZZ
+ S XX=$O(^AUPNVIMM("AC",DFN,9999999999),-1)
+ Q:'XX
+ S XX0=$G(^AUPNVIMM(XX,0))
+ Q:+XX0'=IVDA
+ Q:$P(XX0,U,5)
+ S $P(^AUPNVIMM(XX,0),U,5)=LOTDA
+ Q
+ ;-----
+MAN(MAN) ;EP;CHECK IMMUNIZATION MANUFACTURER
+ ;PATCH 2
+ Q:MAN=""
+ S MAN=$P(MAN,"\T\")_$P(MAN,"\T\",2)
+ N X,Y,Z
+ S X=MAN
+ X ^%ZOSF("UPPERCASE")
+ S MAN=Y
+ S MANA=$P(MAN,U)
+ S MANN=$P(MAN,U,2)
+ S MANDA=$O(^AUTTIMAN("B",MANN,0))
+ Q:MANDA
+ S X=MANN
+ S DIC="^AUTTIMAN("
+ S DIC(0)="L"
+ S DIC("DR")=".02////"_MANA
+ D FILE^DICN
+ I Y>0 S MANDA=+Y
+ Q
+ ;-----
+LOT(LOT,MAN,IVDA) ;EP;EVALUATE LOT AND MANUFACTURER DATA
+ ;PATCH 2
+ S LOTDA=""
+ S MANDA=""
+ Q:$G(LOT)=""
+ D:MAN]"" MAN^BYIMIMM4(MAN)
+ S X=LOT
+ X ^%ZOSF("UPPERCASE")
+ S LOT=Y
+ S LOTDA=$O(^AUTTIML("B",LOT,0))
+ I LOTDA D ALOT^BYIMIMM4(LOTDA,IVDA) Q
+ S X=LOT
+ S DIC="^AUTTIML("
+ S DIC(0)="L"
+ S DIC("DR")=".02////"_$G(MANDA)_";.03////0;.04////"_IVDA
+ D FILE^DICN
+ Q:Y<0
+ S LOTDA=+Y
+ D ALOT^BYIMIMM4(LOTDA,IVDA)
+ Q
+ ;-----

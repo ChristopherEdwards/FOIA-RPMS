@@ -1,0 +1,116 @@
+FHINI0GC	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9952,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9953,0)
+	;;=SPREADS,BLUE BONNET,STICK,70% FAT^BC-03226^tbsp.^14
+	;;^UTILITY(U,$J,112,9953,1)
+	;;=0^714.286^0^642.857^^^^^^^^71.429^678.571
+	;;^UTILITY(U,$J,112,9953,2)
+	;;=^^^^^^^^0^14.286^^21.429
+	;;^UTILITY(U,$J,112,9953,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9954,0)
+	;;=SPREADS,COUNTRY CROCK 52% CORN OIL,SOFT^BC-03227^tbsp.^14
+	;;^UTILITY(U,$J,112,9954,1)
+	;;=0^52.143^0^457.143^46.429^^^0^^^7.143^21.429^792.857^^^^^3735.714
+	;;^UTILITY(U,$J,112,9954,2)
+	;;=^^^^^^^^0^8.571^^22.857
+	;;^UTILITY(U,$J,112,9954,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9955,0)
+	;;=SPREADS,COUNTRY CROCK,SOFT,WHIPPED HONEY^BC-03228^tbsp.^11
+	;;^UTILITY(U,$J,112,9955,1)
+	;;=0^63.636^16.364^627.273^7.273^^^0^^^9.091^18.182^636.364^^^^^3736.364
+	;;^UTILITY(U,$J,112,9955,2)
+	;;=^^^^^^^^0^10.909^^30
+	;;^UTILITY(U,$J,112,9955,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9956,0)
+	;;=SPREADS,COUNTRY CROCK,SQUEEZE^BC-03229^tbsp.^14
+	;;^UTILITY(U,$J,112,9956,1)
+	;;=0^64.286^.714^564.286^32.857^^^7.143^^^14.286^50^807.143^^^^^3735.714
+	;;^UTILITY(U,$J,112,9956,2)
+	;;=^^^^^^^^0^10^^28.571
+	;;^UTILITY(U,$J,112,9956,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9957,0)
+	;;=SPREADS,COUNTRY MORNING BLEND,STICK^BC-03230^tbsp.^14
+	;;^UTILITY(U,$J,112,9957,1)
+	;;=.714^80.714^0^721.429^^^^14.286^.071^^14.286^21.429^771.429^^^^^3400^0^0
+	;;^UTILITY(U,$J,112,9957,2)
+	;;=0^0^^^^^^^85.714^28.571^21.429^13.571
+	;;^UTILITY(U,$J,112,9957,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9958,0)
+	;;=SPREADS,COUNTRY MORNING BLEND,STICK,UNSALTED^BC-03231^tbsp.^14
+	;;^UTILITY(U,$J,112,9958,1)
+	;;=.714^80.714^.714^721.429^^^^14.286^.071^^14.286^42.857^7.143^^^^^3450^0^0
+	;;^UTILITY(U,$J,112,9958,2)
+	;;=0^0^^^^^^^85.714^29.286^21.429^13.571
+	;;^UTILITY(U,$J,112,9958,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9959,0)
+	;;=SPREADS,COUNTRY MORNING BLEND,WHIPPED^BC-03232^tbsp.^13
+	;;^UTILITY(U,$J,112,9959,1)
+	;;=.769^80.769^0^723.077^^^^15.385^.077^^15.385^23.077^761.538^^^^^3500^0^0
+	;;^UTILITY(U,$J,112,9959,2)
+	;;=0^0^^^^^^^84.615^29.231^21.538^13.846
+	;;^UTILITY(U,$J,112,9959,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9960,0)
+	;;=SPREADS,FLEISCHMANN'S SOFT/STICK,LIGHT CORN OIL^BC-03233^tbsp.^14
+	;;^UTILITY(U,$J,112,9960,1)
+	;;=0^57.143^0^571.429^^^^^^^^71.429^500
+	;;^UTILITY(U,$J,112,9960,2)
+	;;=^^^^^^^^0^14.286^^21.429
+	;;^UTILITY(U,$J,112,9960,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9961,0)
+	;;=SPREADS,IMPERIAL LIGHT 45%,SOFT^BC-03234^tbsp.^14
+	;;^UTILITY(U,$J,112,9961,1)
+	;;=0^45^0^392.857^53.571^^^0^^^7.143^21.429^742.857^^^^^3735.714
+	;;^UTILITY(U,$J,112,9961,2)
+	;;=^^^^^^^^0^7.857^^21.429
+	;;^UTILITY(U,$J,112,9961,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9962,0)
+	;;=SPREADS,IMPERIAL SAVORY,SQUEEZE^BC-03235^tbsp.^14
+	;;^UTILITY(U,$J,112,9962,1)
+	;;=0^70^.714^614.286^27.143^^^14.286^^^14.286^42.857^514.286^^^^^3735.714
+	;;^UTILITY(U,$J,112,9962,2)
+	;;=^^^^^^^^0^10.714^^31.429
+	;;^UTILITY(U,$J,112,9962,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9963,0)
+	;;=SPREADS,LAND O LAKES,64% SOY OIL,TUB^BC-03236^tbsp.^14
+	;;^UTILITY(U,$J,112,9963,1)
+	;;=0^64.286^0^535.714^^^^^^^^0^535.714
+	;;^UTILITY(U,$J,112,9963,2)
+	;;=^^^^^^^^0^21.429^21.429^21.429
+	;;^UTILITY(U,$J,112,9963,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9964,0)
+	;;=SPREADS,MAZOLA LIGHT CORN OIL^BC-03237^tbsp.^14
+	;;^UTILITY(U,$J,112,9964,1)
+	;;=0^40^0^357.143^58.571^^^^^^^^714.286^^^^^3571.429
+	;;^UTILITY(U,$J,112,9964,2)
+	;;=^^^^^^^^0^6.429^17.857^15
+	;;^UTILITY(U,$J,112,9964,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9965,0)
+	;;=SPREADS,PROMISE 40% EXTRA LIGHT QUARTERS,STICK^BC-03238^tbsp.^15
+	;;^UTILITY(U,$J,112,9965,1)
+	;;=2.667^40^.667^366.667^55.333^^^13.333^^^13.333^53.333^406.667^^^^^3733.333
+	;;^UTILITY(U,$J,112,9965,2)
+	;;=^^^^^^^^0^6.667^^16.667
+	;;^UTILITY(U,$J,112,9965,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9966,0)
+	;;=SPREADS,PROMISE 40% EXTRA LITE,SOFT^BC-03239^tbsp.^14
+	;;^UTILITY(U,$J,112,9966,1)
+	;;=1.429^40^.714^357.143^57.143^^^7.143^^^14.286^50^407.143^^^^^3735.714
+	;;^UTILITY(U,$J,112,9966,2)
+	;;=^^^^^^^^0^6.429^^17.857

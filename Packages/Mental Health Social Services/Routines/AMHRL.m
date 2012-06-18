@@ -1,0 +1,155 @@
+AMHRL ; IHS/CMI/LAB - BH GENERAL RETRIEVAL DRIVER ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+START ; 
+ I '$D(IOF) D HOME^%ZIS
+ I '$G(DUZ(2)) W $C(7),$C(7),!!,"SITE NOT SET IN DUZ(2) - NOTIFY SITE MANAGER!!",!! Q
+ I '$G(DUZ) W $C(7),$C(7),!!,"USER NOT SET IN DUZ - NOTIFY SITE MANAGER!!",!! Q
+ K AMHQUIT
+ I AMHPTVS="P" S AMHPTTX="Patient",AMHPTTS="Patients"
+ I AMHPTVS="S" S AMHPTTX="Suicide Form",AMHPTTS="Suicide Forms"
+ I AMHPTVS="V" S AMHPTTX="Visit",AMHPTTS="Visits"
+TYPE ;--- get type of report (patient, date range or search template)
+ D INFORM^AMHRL01
+ I AMHPTVS="S" S AMHTYPE="SU" D SU,XIT Q
+ K DIR,X,Y S DIR(0)="S^S:Search Template"_$S(AMHPTVS="V":";D:Date Range",1:";P:Patient File"),DIR("A")="Select and Print "_$S(AMHPTVS="P":"Patient ",1:"Encounter ")_"List from" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) XIT
+ S AMHTYPE=Y
+ D @AMHTYPE
+ D XIT
+ Q
+P ;patient lister
+ D ADD I $D(AMHQUIT) D DEL K AMHQUIT G TYPE
+ I '$D(AMHCAND) D P1 Q
+ I $D(AMHCAND),$P(^AMHTRPT(AMHRPT,0),U,11) D  I $D(DIRUT)!'($D(AMHBDD))!('$D(AMHEDD)) Q
+ .S AMHRDTR=""
+ .W !!,"You have selected at least one item that requires a date range selection."
+ .D GETDATES
+ D TITLE I $D(AMHQUIT) K AMHQUIT G TYPE
+ D ZIS
+ Q
+P1 ;if patient, no prev defined report used
+P11 K ^AMHTRPT(AMHRPT,11),AMHRDTR D SCREEN I $D(AMHQUIT) K AMHQUIT D DEL Q:AMHPTVS="S"  G TYPE
+ I $D(AMHRDTR) D
+ .W !!,"You have selected at least one item that requires a date range selection."
+ .D GETDATES
+ .I '$D(AMHBDD)!('$D(AMHEDD))!($D(DIRUT)) G P11
+P12 K ^AMHTRPT(AMHRPT,12) S AMHTCW=0 D COUNT I $D(AMHQUIT) K AMHQUIT G P11
+P13 D TITLE I $D(AMHQUIT) K AMHQUIT G P12
+ D SAVE
+ D ZIS
+ Q
+S ;--- search template
+ D S0
+ Q:$D(AMHQUIT)
+S1 ;EP
+ D ADD I $D(AMHQUIT) G S
+S12 K ^AMHTRPT(AMHRPT,12) S AMHTCW=0 D COUNT I $D(AMHQUIT) K AMHQUIT G S
+S13 D TITLE I $D(AMHQUIT) K AMHQUIT G S12
+ D ZIS
+ Q
+S0 ;
+ S:AMHPTVS="V" DIC("S")="I $P(^(0),U,4)=9002011" S:AMHPTVS="P" DIC("S")="I $P(^(0),U,4)=2!($P(^(0),U,4)=9000001)" S DIC="^DIBT(",DIC("A")="Enter SEARCH TEMPLATE name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
+ I Y=-1 S AMHQUIT="" Q
+ S AMHSEAT=+Y
+ ;
+ Q
+D ;
+GETDATES ;
+BD ;get beginning date
+ W ! K DIR,X,Y S DIR(0)="D^:DT:EP",DIR("A")="Enter Beginning Encounter Date for search" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) D DEL G TYPE
+ S AMHBD=Y
+ED ;get ending date
+ W ! K DIR,X,Y S DIR(0)="D^"_AMHBD_":DT:EP",DIR("A")="Enter Ending Encounter Date for search" S Y=AMHBD D DD^%DT D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S AMHED=Y
+ S X1=AMHBD,X2=-1 D C^%DTC S AMHD=X S Y=AMHBD D DD^%DT S AMHBDD=Y S Y=AMHED D DD^%DT S AMHEDD=Y
+ Q:$D(AMHRDTR)
+ D ADD I $D(AMHQUIT) D DEL K AMHQUIT G D
+ I '$D(AMHCAND) D D1 Q
+ D TITLE I $D(AMHQUIT) K AMHQUIT G TYPE
+ D ZIS
+ Q
+SU ;
+SBD ;get beginning date
+ W ! K DIR,X,Y S DIR(0)="D^:DT:EP",DIR("A")="Enter Beginning Date for search" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) D XIT Q
+ S AMHBD=Y
+SED ;get ending date
+ W ! K DIR,X,Y S DIR(0)="D^"_AMHBD_":DT:EP",DIR("A")="Enter Ending Date for search" S Y=AMHBD D DD^%DT D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G SBD
+ S AMHED=Y
+ S X1=AMHBD,X2=-1 D C^%DTC S AMHD=X S Y=AMHBD D DD^%DT S AMHBDD=Y S Y=AMHED D DD^%DT S AMHEDD=Y
+ D ADD I $D(AMHQUIT) D DEL K AMHQUIT D XIT Q
+ I '$D(AMHCAND) D P1 Q
+D1 ;if visit, no prev defined report used
+D11 K ^AMHTRPT(AMHRPT,11),AMHRDTR D SCREEN I $D(AMHQUIT) K AMHQUIT D DEL D XIT Q
+D12 K ^AMHTRPT(AMHRPT,12) S AMHTCW=0 D COUNT I $D(AMHQUIT) K AMHQUIT G D11
+D13 D TITLE I $D(AMHQUIT) K AMHQUIT G D12
+ D SAVE
+ D ZIS
+ Q
+SCREEN ;
+ ;D SCREEN^AMHRL3
+ S AMHCNTL="S" D ^AMHRL4
+ Q
+COUNT ;count only or detailed report
+ D COUNT^AMHRL3
+ Q
+TITLE ;
+ Q:AMHCTYP="F"
+ Q:AMHCTYP="T"
+ K DIR,X,Y S DIR(0)="Y",DIR("A")="Would you like a custom title for this report",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) S AMHQUIT=1 Q
+ Q:Y=0
+ S AMHLENG=$S(AMHTCW:AMHTCW-8,1:60)
+ I Y=1 K DIR,X,Y S DIR(0)="F^3:"_AMHLENG,DIR("A")="Enter custom title",DIR("?")="    Enter from 3 to "_AMHLENG_" characters" D ^DIR K DIR
+ G:$D(DIRUT) TITLE
+ S AMHTITL=Y
+ Q
+SAVE ;
+ Q:$D(AMHCAND)
+ Q:AMHCTYP'="D"  ;--- must be a detailed report to be saved
+ S AMHSAVE=""
+ K DIR,X,Y S DIR(0)="Y",DIR("A")="Do you wish to SAVE this "_$S('$D(AMHEP1):"SEARCH/",1:"")_"PRINT/SORT logic for future use",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ Q:'Y
+ K DIR,X,Y S DIR(0)="9001003.8,.03",DIR("A")="Enter NAME for this REPORT DEFINITION" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) SAVE
+ S AMHNAME=Y
+ S DIE="^AMHTRPT(",DA=AMHRPT,DR=".02////1;.03///"_AMHNAME_";.06///"_AMHPTVS_";.05///"_AMHCTYP_";.11///"_$G(AMHRDTR) S:$D(AMHEP1) DR=DR_";.09///"_AMHPACK D CALLDIE^AMHLEIN
+ Q
+ZIS ;call to XBDBQUE
+DEMO ;
+ D DEMOCHK^AMHUTIL1(.AMHDEMO)
+ I AMHDEMO=-1 Q
+ I 'AMHTCW S AMHTCW=IOM
+ S AMHDONE=""
+ D SHOW^AMHRLS,SHOWP^AMHRLS I AMHCTYP'="T",AMHCTYP'="S" D SHOWR^AMHRLS
+ D XIT1
+ I AMHCTYP="D"!(AMHCTYP="S") D
+ .S DIR(0)="S^P:PRINT Output;B:BROWSE Output on Screen",DIR("A")="Do you wish to ",DIR("B")="P" K DA D ^DIR K DIR
+ .I $D(DIRUT) S AMHQUIT="" Q
+ .S AMHOPT=Y
+ G:$G(AMHQUIT) SAVE
+ I $G(AMHOPT)="B" D BROWSE,XIT Q
+ S XBRP="^AMHRLP",XBRC="^AMHRL1",XBRX="XIT^AMHRL",XBNS="AMH"
+ D ^XBDBQUE
+ D XIT
+ Q
+DEL ;EP DELETE LOG ENTRY IF ONE EXISTS AND USER "^" OUT
+ I $G(AMHRPT),$D(^AMHTRPT(AMHRPT,0)),'$P(^AMHTRPT(AMHRPT,0),U,2) S DIK="^AMHTRPT(",DA=AMHRPT D ^DIK K DIK,DA,DIC
+ Q
+ADD ;
+ D ADD^AMHRL01
+ Q
+BROWSE ;
+ S XBRP="VIEWR^XBLM(""^AMHRLP"")"
+ S XBRC="^AMHRL1",XBRX="XIT^AMHRL",XBIOP=0 D ^XBDBQUE
+ Q
+XIT ;
+ D XIT^AMHRL1
+ K AMHOPT
+XIT1 ;
+ D XIT1^AMHRL1
+ Q

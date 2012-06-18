@@ -1,0 +1,51 @@
+BCHUDSP ; IHS/TUCSON/LAB - display record in detail ;  [ 10/28/96  2:05 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+ ;
+ ;CALLER passes BCHR as record ien
+EN ;EP
+ Q:'$G(BCHR)
+ Q:'$D(^BCHR(BCHR,0))
+ D @("HEAD"_(2-($E(IOST,1,2)="C-")))
+ ;D EOP
+ D EOJ
+ Q
+ ;
+HEAD1 ; if terminal
+ W:$D(IOF) @IOF
+HEAD2 ; if printer    
+ NEW D0,DA,DIC,DIQ,DR,DL,DK,DX,S
+ S BCHBRK=0 ;ACC
+ S BCHVDSH="----------------------------"
+ ;S X="",$P(X,"~",80)="" W X,!!
+ S X="",$P(X,"~",80)="" W !,X,!!
+ W ?13,"********** CONFIDENTIAL PATIENT INFORMATION **********",!
+ W BCHVDSH,"     CHR RECORD     ",BCHVDSH
+ S DIC="^BCHR(",DA=BCHR D EN^DIQ
+DSPLY1 ;DISPLAY V FILE DATA
+ S BCHVFLE=90002 F BCHVL=0:0 S BCHVFLE=$O(^DIC(BCHVFLE)) Q:BCHVFLE>90002.09!(BCHVFLE'=+BCHVFLE)!(BCHBRK)  D DSPLY2 Q:BCHBRK  ;ACC
+ I 'BCHBRK S X="",$P(X,"~",80)="" W !!,X,!!
+ Q
+ ;
+DSPLY2 S BCHVNM=$P(^DIC(BCHVFLE,0),U)
+ S BCHVDG=^DIC(BCHVFLE,0,"GL"),BCHVIGR=BCHVDG_"""AD"",BCHR,BCHVDFN)"
+ S BCHVDFN=""!(BCHBRK) F BCHVI=1:1 S BCHVDFN=$O(@BCHVIGR) Q:BCHVDFN=""  D DSPLY3 Q:BCHBRK  ;ACC
+ Q
+ ;
+DSPLY3 ;
+ ;I $Y<(IOSL-5) W !!,"Return to continue, '^' to halt " R BCHX:DTIME S:'$T BCHBRK=1 S:BCHX="^" BCHBRK=1 K S W:$D(IOF) @IOF
+ I $Y>(IOSL-5) D EOP
+ Q:BCHBRK
+ I BCHVI<2 S X=20-$L(BCHVNM),Y=X\2,Z=X-Y W !,BCHVDSH," ",$J("",Z),BCHVNM,$J("",Y)," ",BCHVDSH
+ K DR
+ S DIC=BCHVDG,DA=BCHVDFN,DIQ(0)="C" D EN^DIQ
+ Q
+ ;
+EOJ ; EOJ CLEANUP
+ I 'BCHBRK,IOST["C-" W ! S DIR(0)="E",DIR("A")="End of record display, HIT <RETURN> to continue" K DA D ^DIR K DIR
+ K BCHVDFN,BCHVDG,BCHVDSH,BCHVFLE,BCHVI,BCHVIGR,BCHVL,BCHVNM,BCHX,BCHBRK
+ Q
+ ;
+EOP ; pause OR form feed between pages for terminal/printer
+ I $E(IOST,1,2)="P-"!($D(IO("S"))) W @IOF Q
+ W ! S DIR(0)="EO" D ^DIR K DIR S:$D(DUOUT) (DIRUT,BCHBRK)=1
+ Q

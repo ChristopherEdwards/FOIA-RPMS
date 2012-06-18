@@ -1,0 +1,58 @@
+LR52IHS ; IHS/DIR/FJE - IHS/ANMC/CLS - NEW PERSON CONVERSION FOR V LAB ; [ 1/23/91 ]
+ ;;5.2;LR;;NOV 01, 1997
+ ;
+ ;;5.2;LAB SERVICE;;Sep 27, 1994
+ ;
+EN ;
+ Q:'$D(ZTQUEUED)
+ N D0,D1,D2,LRFLD,LRFILE,LRTSK
+ S LRFILE="V-LAB",LRTSK=$G(ZTSK)
+ ;  ^XTMP("LR52","V-LAB",0) is the last record converted successfully
+ I '$D(^XTMP("LR52",LRFILE,0))#2&(^DD(9000010.09,0,"VR")>5.15) Q
+EN1 ;
+ I '$D(^XTMP("LR52",LRFILE,0))#2 S ^XTMP("LR52",LRFILE,0)=0
+ S D0=$G(^XTMP("LR52",LRFILE,0)),^XTMP("LR52TIME",LRFILE)=$$NOW^LR52CNV1
+ F  S D0=$O(^AUPNVLAB(D0)) Q:'D0  D A1 S D1=0 F  S D1=$O(^LRD(65,D0,2,D1)) Q:'D1  S D2=0 F  S D2=$O(^LRD(65,D0,2,D1,1,D2)) S:'D2 ^XTMP("LR52",LRFILE,0)=D0 Q:'D2  D A2
+ S $P(^XTMP("LR52TIME",LRFILE),U,2)=$$NOW^LR52CNV1
+ D OUT
+ Q
+ ;
+A2 ; Change PROVIDER NUMBER field .08, subfile 65.02
+ ; sub file of the PATIENT XMATCHED/ASSIGNED subfile
+ ;
+ S LRSB(0)=2,LRSB(1)=1
+ S LRPRV=$P($G(^LRD(65,D0,2,D1,1,D2,0)),U,8) I LRPRV S LRPRV=$$PROV^LR52CNV0("65.02,.08",LRPRV,.LRSB) W !,LRPRV ; testing code
+ ;S LRPRV=$P($G(^LRD(65,D0,2,D1,1,D2,0)),U,8) I LRPRV S $P(^LRD(65,D0,2,D1,1,D2,0),U,8)=$$PROV^LR52CNV0("65.02,.08",LRPRV,.LRSB)
+ Q
+ ;
+A1 ; subscript (6) Change PROVIDER NUMBER field 6.6
+ ;S LRPRV=$P($G(^LRD(65,D0,6)),U,6) I LRPRV W !,$$PROV^LR52CNV0("6.6",LRPRV,.LRSB) ;testing code
+ S LRPRV=$P($G(^LRD(65,D0,6)),U,6) I LRPRV S $P(^LRD(65,D0,6),U,6)=$$PROV^LR52CNV0("6.6",LRPRV,.LRSB)
+ Q
+ ;
+OUT ;
+ I $D(LRIO) D REQUE Q
+ ;
+REENT ; re-entry for reque if LRIO is busy from above
+ ;
+ D HEAD^LR52CNV0(LRFILE)
+ I '$O(^XTMP("LR52",LRFILE,0)) W !!?(IOM-$L("****  none found ****"))\2,"**** NONE FOUND ****" G END
+ F LRD0=0:0 S LRD0=$O(^XTMP("LR52",LRFILE,LRD0)) Q:LRD0'>0  F LRD1=0:0 S LRD1=$O(^XTMP("LR52",LRFILE,LRD0,2,LRD1)) Q:LRD1'>0  F LRD2=0:0 S LRD2=$O(^XTMP("LR52",LRFILE,LRD0,2,LRD1,1,LRD2)) Q:LRD2'>0  D WRITE
+END W @IOF D ^%ZISC K LRD0,LRD1,LRD2,LRFILE,LRFLD,LRTIT,LRVL,ZTSK,LRTSK
+ Q
+ ;
+WRITE ;
+ S LRFLD=$O(^XTMP("LR52",LRFILE,LRD0,2,LRD1,1,LRD2,0)),LRVL=$G(^XTMP("LR52",LRFILE,LRD0,2,LRD1,1,LRD2,LRFLD))
+ I LRFLD["," S LRTIT=$P($G(@("^DD("_LRFLD_",0)")),U)
+ I LRFLD'["," S LRTIT=$P($G(@("^DD("_$P(LRFILE,"-",2)_","_LRFLD_",0)")),U)
+ S LRD0(0)=$G(^LRD(65,LRD0,0)),LRD1(0)=$G(^LRD(65,LRD0,2,LRD1,0)),LRD2(0)=$G(^LRD(65,LRD0,2,LRD1,1,LRD2,0))
+ I ($Y+10)>IOSL D HEAD^LR52CNV0(LRFILE)
+ W !!!,"The value ("_+LRVL_") """_$P(LRVL,U,2)_""",",!,"in field "_LRTIT_", could not be repointed.",!,"This occurred in:",LRD0,!,"The BLOOD SAMPLE DATE/TIME: subfile of",?54,"entry: "_$P(LRD2(0),U)
+ W !,"The PATIENT XMATCHED/ASSIGNED: subfile of",?54,"entry: "_$P(LRD1(0),U)
+ W !,"The BLOOD INVENTORY FILE:",?54,"entry: "_$P(LRD0(0),U)
+ Q
+ ;
+REQUE ; reque task to print out exceptions
+ S ZTIO=LRIO,ZTDESC="Requeue of exception report FILE 65 conversion",ZTDTH=$H,ZTRTN="REENT^LR52CNV5"
+ S ZTSAVE("LRFILE")="",ZTSAVE("LRTSK")=""
+ D ^%ZTLOAD Q

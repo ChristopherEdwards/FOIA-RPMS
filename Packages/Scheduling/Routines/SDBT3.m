@@ -1,0 +1,3 @@
+SDBT3 ; ;10/29/04
+ S X=DE(20),DIC=DIE
+ K ^SC("ALTA",$E(X,1,30),DA)

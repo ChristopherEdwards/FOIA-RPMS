@@ -1,0 +1,154 @@
+BGPMUGP7 ; IHS/MSC/MMT - MU EP  measure NQF0389 ;31-Aug-2011 14:26;DU
+ ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;Get printout for Prostate Cancer
+PROSTATE ;EP
+ D CANCER
+ K ^TMP("BGPMU0389")
+ Q
+CANCER ;Write individual measure
+ N X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRD2,PRN,PRN1,PRN2,PRD1,PRD3,PRN3,PRN4,PRN5,PRD4,PRD5
+ S STRING1=$$NUM389("C")
+ S STRING2=$$NUM389("P")
+ S STRING3=$$NUM389("B")
+ D SUMMARY1(STRING1,STRING2,STRING3)
+ S PRD1=$P(STRING1,U,5)-$P(STRING2,U,5)
+ S PRD2=$P(STRING1,U,6)-$P(STRING2,U,6)
+ S PRD3=$P(STRING1,U,7)-$P(STRING2,U,7)
+ S PRD4=$P(STRING1,U,9)-$P(STRING2,U,9)
+ S PRN1=$P(STRING1,U,5)-$P(STRING3,U,5)
+ S PRN2=$P(STRING1,U,6)-$P(STRING3,U,6)
+ S PRN3=$P(STRING1,U,7)-$P(STRING3,U,7)
+ S PRN4=$P(STRING1,U,9)-$P(STRING3,U,9)
+ D HEADER^BGPMUPH Q:BGPQUIT
+ D HDRBLK^BGPMUPH
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"Pts w/low risk",?33,$P(STRING1,U,1),?44,$P(STRING2,U,1),?64,$P(STRING3,U,1)
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"prostate cancer"
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"# Excluded (Exc)",?33,$P(STRING1,U,4),?44,$P(STRING2,U,4),?64,$P(STRING3,U,4)
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"Pts w/low risk",?33,$P(STRING1,U,3),?44,$P(STRING2,U,3),?64,$P(STRING3,U,3)
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"prostate cancer less Exc"
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !!,"# w/o bone scan study",?33,$P(STRING1,U,2),?38,$J($P(STRING1,U,5),5,1),?44,$P(STRING2,U,2),?49,$J($P(STRING2,U,5),5,1),?56,$J($FN(PRD1,",+",1),6),?64,$P(STRING3,U,2),?68,$J($P(STRING3,U,5),5,1),?74,$J($FN(PRN1,",+",1),6)
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ W !,"# w/bone scan study",?33,$P(STRING1,U,8),?38,$J($P(STRING1,U,9),5,1),?44,$P(STRING2,U,8),?49,$J($P(STRING2,U,9),5,1),?56,$J($FN(PRD4,",+",1),6),?64,$P(STRING3,U,8),?68,$J($P(STRING3,U,9),5,1),?74,$J($FN(PRN4,",+",1),6)
+ I $Y>(BGPIOSL-3) D HEADER^BGPMUPH,HDRBLK^BGPMUPH Q:BGPQUIT
+ I $D(BGPLIST(BGPIC)) D CANCER2
+ Q
+CANCER2 ;Do the Details
+ N PT,NODE,NAME,BP,PTCT,BGPARR,LINE
+ D HEADERL^BGPMUPH
+ S X="Patients with an active diagnosis of prostate cancer before or during the" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="reporting period who had a prostate cancer treatment during the reporting" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="period AND who had all of the following before or simultaneously to the" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="prostate cancer treatment:" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="--Procedure results of AJCC cancer stage low-risk recurrence" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="--Prostate-specific antigen test result of <=10 mg/dL" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="--Gleason score test result of <=6" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="AND who did not have a diagnostic bone scan study performed on or after the" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="date of the prostate cancer treatment, if any." D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="Patients who do not meet the numerator criteria are listed first (NM:), followed" D W^BGPMUPP(X,0,2,BGPPTYPE)
+ S X="by patients who do meet the numerator criteria (M:).  Excluded patients" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="are listed last." D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="The following are the abbreviations used in the denominator and numerator " D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="columns:" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="PCDX=Prostate Cancer Diagnosis" D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="PCTM=Prostate Cancer Treatment"  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="AJCC=AJCC Cancer Stage Low Risk Recurrence Prostate Cancer"  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="ANT=Prostate Specific Antigen Lab Test Result <=10 mg/dL"  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="GLE=Gleason Score <= 6"  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S X="BSDS=Bone Scan Diagnostic Study"  D W^BGPMUPP(X,0,1,BGPPTYPE)
+ S PTCT=0
+ I $Y>(BGPIOSL-6) D HEADERL^BGPMUPH Q:BGPQUIT
+ W !!,"PATIENT NAME",?23,"HRN",?30,"COMMUNITY",?41,"SEX",?45,"AGE",?49,"DENOMINATOR",?64,"NUMERATOR"
+ S LINE="",$P(LINE,"-",81)="" W !,LINE
+ I BGPLIST="D"!(BGPLIST="A") D
+ .K BGPARR
+ .D PTLSORT^BGPMUUTL(.BGPARR,"^TMP(""BGPMU0389"","_$J_",""PAT"",""C"",""NOT"")")
+ .S PT=0 F  S PT=$O(BGPARR(PT)) Q:PT=""  D
+ ..S PTCT=PTCT+1
+ ..S NODE=$G(BGPARR(PT))
+ ..D DATA2(NODE)
+ I BGPLIST="N"!(BGPLIST="A") D
+ .K BGPARR
+ .D PTLSORT^BGPMUUTL(.BGPARR,"^TMP(""BGPMU0389"","_$J_",""PAT"",""C"",""NUM"")")
+ .S PT=0 F  S PT=$O(BGPARR(PT)) Q:PT=""  D
+ ..S PTCT=PTCT+1
+ ..S NODE=$G(BGPARR(PT))
+ ..D DATA2(NODE)
+ I BGPLIST="A" D
+ .K BGPARR
+ .D PTLSORT^BGPMUUTL(.BGPARR,"^TMP(""BGPMU0389"","_$J_",""PAT"",""C"",""EXC"")")
+ .S PT=0 F  S PT=$O(BGPARR(PT)) Q:PT=""  D
+ ..S PTCT=PTCT+1
+ ..S NODE=$G(BGPARR(PT))
+ ..D DATA2(NODE)
+ W !!,"Total # of patients on list: "_PTCT
+ Q
+DATA2(NODE) ;GET DATA
+ N NAME,HRN,DEN,SEX,COMM,DEN1,DEN2,DEN3,DEN4,DEN5,NUM1,NUM2,LINE
+ S DFN=$P(NODE,U,1)
+ S NAME=$E($$GET1^DIQ(2,$P(NODE,U,1),.01),1,18)
+ S HRN=$$HRN^AUPNPAT(DFN,DUZ(2))
+ S AGE=$$AGE^AUPNPAT(DFN,BGPED)
+ S SEX=$P(^DPT(DFN,0),U,2)
+ S COMM=$E($$GET1^DIQ(9000001,DFN,1118),1,10)
+ S DEN=$P(NODE,U,2)
+ S DEN1=$P(DEN,";",1),DEN2=$P(DEN,";",2),DEN3=$P(DEN,";",3),DEN4=$P(DEN,";",4),DEN5=$P(DEN,";",5)
+ S NUM=$P(NODE,U,3)
+ S NUM1=$P(NUM,";",1),NUM2=$P(NUM,";",2)
+ I $Y>(BGPIOSL-2) D
+ .D HEADERL^BGPMUPH Q:BGPQUIT
+ .W !,"PATIENT NAME",?23,"HRN",?30,"COMMUNITY",?41,"SEX",?45,"AGE",?49,"DENOMINATOR",?64,"NUMERATOR"
+ .S LINE="",$P(LINE,"-",81)="" W !,LINE
+ W !,NAME,?23,HRN,?30,COMM,?42,SEX,?45,AGE,?49,DEN1,?64,NUM1
+ I DEN2'="" D
+ .W !,?49,DEN2,?64,NUM2
+ I DEN3'="" D
+ .W !,?49,DEN3
+ I DEN4'="" D
+ .W !,?49,DEN4
+ I DEN5'="" D
+ .W !,?49,DEN5
+ Q
+NUM389(TF) ;Get the numbers for this measure
+ N ARRAY,DEN,NUM,EXC,NOT,PC1,PC11,PC2,PC13,NNUM,PC14
+ S DEN=+$G(^TMP("BGPMU0389",$J,TF,"DEN"))
+ S NUM=+$G(^TMP("BGPMU0389",$J,TF,"NUM"))
+ S NOT=+$G(^TMP("BGPMU0389",$J,TF,"NOT"))
+ S EXC=+$G(^TMP("BGPMU0389",$J,TF,"EXC"))
+ S NNUM=DEN-EXC
+ I DEN=0 S (PC1,PC11,PC13,PC14)=0
+ I DEN>0&(NNUM=0) D
+ .S (PC1,PC11,PC14)=0
+ .S PC13=$$ROUND^BGPMUA01((EXC/DEN),3)*100
+ I DEN>0&(NNUM>0) D
+ .S PC1=$$ROUND^BGPMUA01((NUM/NNUM),3)*100
+ .S PC11=$$ROUND^BGPMUA01((NNUM/DEN),3)*100
+ .S PC13=$$ROUND^BGPMUA01((EXC/DEN),3)*100
+ .S PC14=$$ROUND^BGPMUA01((NOT/NNUM),3)*100
+ S ARRAY=DEN_U_NUM_U_NNUM_U_EXC_U_PC1_U_PC11_U_PC13_U_NOT_U_PC14
+ Q ARRAY
+SUMMARY1(STRING1,STRING2,STRING3) ;Summary setup
+ N DESC
+ K ^TMP("BGPMU SUMMARY",$J,BGPIC)
+ S ^TMP("BGPMU SUMMARY",$J,BGPIC)="0389^102"
+ S DESC="# w/o bone scan study"
+ S LINE="MU.EP.0389.1"_U_DESC_U_$P(STRING1,U,4)_U_$P(STRING1,U,1)_U_$P(STRING1,U,2)_U_$P(STRING1,U,5)_U_U_U_U_U
+ S LINE=LINE_$P(STRING2,U,4)_U_$P(STRING2,U,1)_U_$P(STRING2,U,2)_U_$P(STRING2,U,5)_U_$P(STRING3,U,4)_U_$P(STRING3,U,1)_U_$P(STRING3,U,2)_U_$P(STRING3,U,5)
+ S ^TMP("BGPMU SUMMARY",$J,BGPIC,1)=LINE
+ Q
+XML389 ;XML output for Prostate cancer
+ ; BGPXML(i)=Population Number^Numerator Number^Denominator Count^exclusion number
+ N STRING,TOTN,TOTD,TOTE
+ S STRING=$$NUM389("C")
+ S TOTD=$P(STRING,U,1)
+ S TOTN=$P(STRING,U,2)
+ S TOTE=$P(STRING,U,4)
+ S BGPXML(1)="102"_U_U_+TOTD_U_TOTN_U_TOTE
+ K ^TMP("BGPMU0389",$J)
+ Q

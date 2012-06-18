@@ -1,0 +1,57 @@
+ACRCTV1 ; COMPILED XREF FOR FILE #9002193.5 ; 09/30/09
+ ; 
+ S DIKZK=2
+ S DIKZ(0)=$G(^ACRTV(DA,0))
+ S X=$P(DIKZ(0),U,3)
+ I X'="" K ^ACRTV("D",$E(X,1,30),DA)
+ S X=$P(DIKZ(0),U,7)
+ I X'="" K ^ACRTV("C",$E(X,1,30),DA)
+ S DIKZ("DT")=$G(^ACRTV(DA,"DT"))
+ S X=$P(DIKZ("DT"),U,1)
+ I X'="" K ^ACRTV("E",$E(X,1,30),DA)
+ S X=$P(DIKZ("DT"),U,2)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,2,1,1,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,5),X=X S DIU=X K Y X ^DD(9002193.5,2,1,1,2.1) X ^DD(9002193.5,2,1,1,2.4)
+ S DIKZ("DT")=$G(^ACRTV(DA,"DT"))
+ S X=$P(DIKZ("DT"),U,3)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,3,1,1,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,6),X=X S DIU=X K Y X ^DD(9002193.5,3,1,1,2.1) X ^DD(9002193.5,3,1,1,2.4)
+ S X=$P(DIKZ("DT"),U,3)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,3,1,2,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,5),X=X S DIU=X K Y X ^DD(9002193.5,3,1,2,2.1) X ^DD(9002193.5,3,1,2,2.4)
+ S DIKZ("DT")=$G(^ACRTV(DA,"DT"))
+ S X=$P(DIKZ("DT"),U,13)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,13,1,1,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"RCJ")):^("RCJ"),1:"") S X=$P(Y(1),U,1),X=X S DIU=X K Y S X="" X ^DD(9002193.5,13,1,1,2.4)
+ S X=$P(DIKZ("DT"),U,13)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,13,1,2,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"RCJ")):^("RCJ"),1:"") S X=$P(Y(1),U,2),X=X S DIU=X K Y S X="" X ^DD(9002193.5,13,1,2,2.4)
+ S X=$P(DIKZ("DT"),U,13)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,13,1,3,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"RCJ")):^("RCJ"),1:"") S X=$P(Y(1),U,3),X=X S DIU=X K Y S X="" X ^DD(9002193.5,13,1,3,2.4)
+ S X=$P(DIKZ("DT"),U,13)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,13,1,4,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"RCJ")):^("RCJ"),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y S X="" X ^DD(9002193.5,13,1,4,2.4)
+ S X=$P(DIKZ("DT"),U,13)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,13,1,5,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"RCJ")):^("RCJ"),1:"") S X=$P(Y(1),U,5),X=X S DIU=X K Y S X="" X ^DD(9002193.5,13,1,5,2.4)
+ S X=$P(DIKZ("DT"),U,13)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,13,1,6,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,15),X=X S DIU=X K Y S X="" X ^DD(9002193.5,13,1,6,2.4)
+ S X=$P(DIKZ("DT"),U,13)
+ I X'="" D
+ .N DIK,DIV,DIU,DIN
+ .X ^DD(9002193.5,13,1,7,2.3) I X S X=DIV S Y(1)=$S($D(^ACRTV(D0,"DT")):^("DT"),1:"") S X=$P(Y(1),U,14),X=X S DIU=X K Y S X="" X ^DD(9002193.5,13,1,7,2.4)
+ S DIKZ(0)=$G(^ACRTV(DA,0))
+ S X=$P(DIKZ(0),U,1)
+ I X'="" K ^ACRTV("B",$E(X,1,30),DA)
+END Q

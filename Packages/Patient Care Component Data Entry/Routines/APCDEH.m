@@ -1,0 +1,101 @@
+APCDEH ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 21-SEP-1996 ;
+ ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;; ;
+START ;
+ W:$D(IOF) @IOF
+ F J=1:1:5 S X=$P($T(TEXT+J),";;",2) W !?80-$L(X)\2,X
+ K X,J
+ W !!
+ S APCDPAT="" D GETPAT
+ I APCDPAT="" W !!,"No PATIENT selected!" D EOJ Q
+ D GETLOC
+ I APCDLOC="" W !!,"No location entered!!" D EOJ Q
+ D GETDATE
+ I APCDDATE="" W !!,"No date entered!!" D EOJ Q
+ D ^APCDEIN
+ D EN,FULL^VALM1,EXIT K APCDPAT
+ D EOJ
+ Q
+GETLOC ; GET LOCATION
+ S APCDLOC="" S DIC="^AUTTLOC(",DIC(0)="AEMQ" D ^DIC
+ Q:Y<0
+ S APCDLOC=+Y
+ Q
+ ;
+GETDATE ; GET DATE
+ S APCDDATE="",%DT="AEPX",%DT("A")="Enter Date Information Was Collected: " D ^%DT
+ Q:Y<0
+ S APCDDATE=+Y
+ I AUPNDOB]"" S X2=AUPNDOB,X1=APCDDATE D ^%DTC S AUPNDAYS=X ; re-set days of age to visit date-dob
+ Q
+ ;
+GETPAT ; GET PATIENT
+ W !
+ S APCDPAT=""
+ I '$P($G(^APCDSITE(DUZ(2),0)),U,34) S AUPNLK("INAC")=1
+ S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC
+ Q:Y<0
+ W !?25,"Ok" S %=1 D YN^DICN Q:%'=1
+ S APCDPAT=+Y
+ D INAC^APCDEA(APCDPAT,.X) I 'X S APCDPAT="" Q
+ Q
+ ;
+EN ;PEP  -- main entry point for APCDEHM PCC DATA ENTRY
+ ;APCDPAT must = patient ien
+ ;caller must set APCDVSIT,APCDPAT
+ ;caller must kill APCDVSIT,APCDPAT and must call
+ ;D ^APCDEKL to clean up d/e variables
+ Q:'$G(APCDPAT)
+ Q:'$D(^DPT(APCDPAT))
+ D ^APCDEIN
+ D EN^VALM("APCD HISTORICAL DATA ENTRY")
+ D CLEAR^VALM1
+ K APCDDISP,APCDSEL,^TMP("APCDEH",$J),C,X,I,K,J,APCDHIGH,APCDCUT,APCDCSEL,APCDCNTL
+ D ^XBFMK
+ Q
+ ;
+HDR ;EP -- header code
+ S VALMHDR(2)="Patient Name: "_IORVON_$P(^DPT(APCDPAT,0),U)_IOINORM_"   DOB: "_$$FTIME^VALM1(AUPNDOB)_"   Sex: "_$P(^DPT(APCDPAT,0),U,2)_"   HRN: "_$S($D(^AUPNPAT(APCDPAT,41,DUZ(2),0)):$P(^AUPNPAT(APCDPAT,41,DUZ(2),0),U,2),1:"????")
+ S VALMHDR(3)="Date of Update: "_$$FMTE^XLFDT(DT)
+ Q
+ ;
+INIT3 ;EP
+ K APCDDISP,APCDSEL,APCDHIGH,^TMP("APCDEH",$J)
+ S APCDHIGH=0,X=0 F  S X=$O(^APCDTKW("ANVI",X)) Q:X'=+X  S Y=$O(^APCDTKW("ANVI",X,"")) S APCDHIGH=APCDHIGH+1,APCDSEL(APCDHIGH)=Y
+ S APCDCUT=((APCDHIGH/3)+1)\1
+ S (C,I)=0,J=1,K=1 F  S I=$O(APCDSEL(I)) Q:I'=+I!($D(APCDDISP(I)))  D
+ .S C=C+1,^TMP("APCDEH",$J,C,0)=I_") "_$S($D(APCDCSEL(I)):"*",1:" ")_$S($P(^APCDTKW(APCDSEL(I),0),U,12)="":$E($P(^(0),U),1,20),1:$P(^(0),U,12)) S APCDDISP(I)="",^TMP("APCDEH",$J,"IDX",C,C)=""
+ .S J=I+APCDCUT I $D(APCDSEL(J)),'$D(APCDDISP(J)) S $E(^TMP("APCDEH",$J,C,0),28)=J_") "_$S($D(APCDCSEL(J)):"*",1:" ")_$S($P(^APCDTKW(APCDSEL(J),0),U,12)="":$E($P(^APCDTKW(APCDSEL(J),0),U),1,20),1:$P(^(0),U,12)) S APCDDISP(J)=""
+ .S K=J+APCDCUT I $D(APCDSEL(K)),'$D(APCDDISP(K)) S $E(^TMP("APCDEH",$J,C,0),55)=K_") "_$S($D(APCDCSEL(K)):"*",1:" ")_$S($P(^APCDTKW(APCDSEL(K),0),U,12)="":$E($P(^APCDTKW(APCDSEL(K),0),U),1,20),1:$P(^(0),U,12)) S APCDDISP(K)=""
+ K APCDDISP,APCDOTHR
+ S VALMCNT=C
+ Q
+ ;
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ K DISP,APCDSEL,APCHIGH,APCDCUT,APCDANS,APCDC,APCDI,APCDX,APCDY,APCDCRIT,APCDTEXT,APCDMOD,APCDMODE,APCDMNE,APCDVLK,APCDLOOK
+ Q
+ ;
+EOJ ;
+ K VALMHDR,VALMCNT
+ D EN^APCDEKL
+ D EN2^APCDEKL
+ D ^XBFMK
+ K APCDPAT,APCDVSIT,APCDCUT,APCDHIGH,APCDSEL,APCDDISP,APCDANS,APCDC,APCDI
+ K X,Y,C,I
+ D KILL^AUPNPAT
+ Q
+EXPND ; -- expand code
+ Q
+ ;
+TEXT ;
+ ;;Patient Care Component (PCC)
+ ;;
+ ;;**********************************************************
+ ;;*****  PCC DATA ENTRY UPDATE HISTORICAL DATA BY ITEM *****
+ ;;**********************************************************
+ ;;
+ Q

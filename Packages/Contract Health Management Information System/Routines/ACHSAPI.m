@@ -1,0 +1,5 @@
+ACHSAPI ; IHS/ITSC/PMF - CHS APPLICATION PROGRAMMER INTERFACES ;  [ 10/16/2001   8:16 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;;JUN 11, 2001
+ ;
+OCC(P) ; Given P.O. number, return Object Class Code as 4 characters.
+ ;

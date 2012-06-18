@@ -1,0 +1,16 @@
+LRDOWN1 ;SLC/DG - UTILITY PARTS OF DOWNLOAD ;4/4/89  21:37 ;
+ ;;V~5.0~;LAB;;02/27/90 17:09
+BUILD ;Build a test expansion and codes into ^UTILITY
+ K ^UTILITY($J),S1,J1
+ F I=0:0 S I=$O(^LAB(62.4,LRINST,3,I)) Q:I'>0  S T=^(I,0),^UTILITY($J,+T,+T)=$P(T,"^",6)
+ ;Expand the LL test.
+ F P1=0:0 S P1=$O(^LRO(68.2,LRLL,10,P1)) Q:P1'>0  F P2=0:0 S P2=$O(^LRO(68.2,LRLL,10,P1,1,P2)) Q:P2'>0  S P3=^(P2,0) D BU2
+ K I,T,P1,P2,P3,S1,J1 Q
+BU2 S (J,S1)=0,(T,X)=+P3 D TREE Q
+TREE I '$D(^LAB(60,X,0)) Q  ;BAD LRTEST NUMBER; FROM LREXPD
+ I $P(^(0),U,5)]"",$D(^UTILITY($J,X,X)) S ^UTILITY($J,T,X)=^UTILITY($J,X,X)
+ Q:'$D(^LAB(60,X,2,0))  Q:$N(^(0))<1  ;NOT A PANEL
+ S S1=S1+1,S1(S1)=X,J1(S1)=J
+ F J=0:0 S J=$N(^LAB(60,S1(S1),2,J)) Q:J<1  S X=^(J,0) D TREE
+ S J=J1(S1),X=S1(S1),S1=S1-1
+ Q

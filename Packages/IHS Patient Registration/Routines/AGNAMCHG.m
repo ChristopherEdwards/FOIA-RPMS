@@ -1,0 +1,70 @@
+AGNAMCHG ;IHS/SD/EFG - ADD/EDIT NAME CHANGE DOC ; 
+ ;;7.1;PATIENT REGISTRATION;**4**;AUG 25,2005
+ ;
+ Q
+NAMCHG ;EP - PROOF OF NAME CHANGE
+ N DIC,DIR,DA,X,Y
+ K DTOUT,DUOUT
+ I $D(^AUPNNAMC("C",DFN))  D
+ . S (PTR,REC,PRFPTR)=0
+ . S (DTCHG,CHGTO,PROOF)=""
+ . W !,"DT CHANGED"
+ . W ?15,"CHANGED TO"
+ . W ?48,"PROOF"
+ . F  S PTR=$O(^AUPNNAMC("C",DFN,PTR)) Q:'PTR  D
+ .. S REC=$G(^AUPNNAMC(PTR,0))
+ .. S DTCHG=$P(REC,U)
+ .. S CHGTO=$P(REC,U,3)
+ .. S PRFPTR=$P(REC,U,4)
+ .. I PRFPTR>0 S PROOF=$P($G(^AUPNELM(PRFPTR,0)),U)
+ .. W !,$$FMTE^XLFDT(DTCHG,1)
+ .. W ?15,$E(CHGTO,1,30)
+ .. I PRFPTR>0 W ?48,$E(PROOF,1,30)
+ S DIR(0)="F"
+ S DIR("A")="Do you wish to E(dit) or A(dd) a new Proof of Name Change ? "
+ D ^DIR
+ Q:$D(DTOUT)!(Y="^")
+ I Y'="E"&(Y'="A") G NAMCHG
+ I Y="E" D EDITNAM
+ I Y="A" D ADDNAM
+ Q
+EDITNAM ;EDIT PROOF OF NAME CHANGE
+ N DIE,DR,X,Y,DIR,REC,D
+ S DIC(0)="AEQZ"
+ S DA=DFN
+ S D="C"
+ S DIC("S")="I $P(^(0),U,2)=DFN"
+ S DIC="^AUPNNAMC("
+ D ^DIC S REC=+Y
+ Q:$D(DTOUT)!($D(DUOUT))!(Y=-1)
+ S DIE=DIC
+ S DA=REC
+ S DR=".03"
+ D ^DIE
+ I $P($G(^AUPNNAMC(DA,0)),U,3)=""  D
+ . S DIK="^AUPNNAMC("
+ . S DA=REC
+ . D ^DIK
+ I $P($G(^AUPNNAMC(DA,0)),U,3)'=""  D
+ . ;S DR=".04"
+ . S DR=".04;.05"  ;AG*7.1*4 PER SCR
+ . S DA=REC
+ . D ^DIE
+ Q
+ADDNAM ;EP - ADD PROOF OF NAME CHANGE
+ N DA,DIC,DD,DLAYGO,DO,X,Y
+ K DD,DO
+ K AG("NAMFAIL")
+ S DA=DFN
+ D NOW^%DTC
+ S X=%
+ S DIC="^AUPNNAMC("
+ S DIC(0)="L"
+ S DLAYGO=9000033
+ I $D(AG("NEWNAME")) D
+ . S DIC("DR")=".03///^S X=AG(""NEWNAME"");.04R;.05;.06////^S X=DUZ;.02////^S X=DFN"
+ E  S DIC("DR")=".03R;.04R;.05;.06////^S X=DUZ;.02////^S X=DFN"
+ D ^DIC
+ I Y=-1 S AG("NAMFAIL")=""
+ Q:$D(DTOUT)!($D(DUOUT))!(Y=-1)
+ Q

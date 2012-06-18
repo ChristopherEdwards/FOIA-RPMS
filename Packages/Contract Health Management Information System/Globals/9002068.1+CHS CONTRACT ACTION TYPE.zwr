@@ -1,0 +1,15 @@
+CHS CONTRACT ACTION TYPE
+ZWR
+^ACHSCTYP(0)="CHS CONTRACT ACTION TYPE^9002068.1^4^4"
+^ACHSCTYP(1,0)="Simplified Acquisition Open Market/Rate Quote^P^This pertains to any Open Market or RATE QUOTE order."
+^ACHSCTYP(2,0)="Government Contracts^U^Contracts w/or through Federal Gov. Depmts. (e.g.VA)"
+^ACHSCTYP(3,0)="Micro Purchases (<$2500)^M^Purchases less than $2,500.00"
+^ACHSCTYP(4,0)="Task Order^T^Orders against existing Contracts."
+^ACHSCTYP("B","Government Contracts",2)=""
+^ACHSCTYP("B","Micro Purchases (<$2500)",3)=""
+^ACHSCTYP("B","Simplified Acquisition Open Ma",1)=""
+^ACHSCTYP("B","Task Order",4)=""
+^ACHSCTYP("C","M",3)=""
+^ACHSCTYP("C","P",1)=""
+^ACHSCTYP("C","T",4)=""
+^ACHSCTYP("C","U",2)=""

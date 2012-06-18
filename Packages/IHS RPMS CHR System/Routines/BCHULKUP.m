@@ -1,0 +1,68 @@
+BCHULKUP ; IHS/TUCSON/LAB - lookup up record ;  [ 10/28/96  2:05 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+ ;
+EN ;
+ ;
+ ;Display all records for the provider, on this date.
+ D HOME^%ZIS W:$D(IOF) @IOF
+ D EOJ
+ I BCHPROV]"",'$D(^BCHR("AA",BCHDATE,BCHPROV)) W !!,"No records currently on file for ",$P(^VA(200,BCHPROV,0),U),".",! Q
+ S BCHDASH="--------------------------------------------------------------------------------"
+ D COLLECT
+ I BCHRCNT=1 S BCHR=BCHVRECS(1) D EOJ Q
+ I BCHRCNT=0 K BCHR D EOJ Q
+ D DISPRECS
+ D SELECT
+EOJ ;
+ K BCHQUIT,BCHPG,BCHODAT,BCHDASH,BCHVRECS,BCHP,BCHR0,BCHRCNT,BCHRECN,BCHX
+ Q
+HEAD ;
+ I 'BCHPG G HEAD1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BCHQUIT="" Q
+HEAD1 ;
+ S BCHPG=BCHPG+1
+ W:$D(IOF) @IOF
+ W !,BCHDASH
+ W !,"CHR records for " S Y=BCHDATE D DD^%DT W Y I BCHPROV]"" W ?32,"CHR (Provider):  ",$P(^VA(200,BCHPROV,0),U)
+ W !,BCHDASH
+ W !," #",?5,"CHR/PROVIDER",?21,"HP  SC  MIN  NARRATIVE",?53,"LOC",?60,"PATIENT NAME",!,BCHDASH
+ Q
+SELECT ;
+ K BCHR
+ W ! S DIR(0)="NO^1:"_BCHRCNT_":0",DIR("A")="Select record" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) W !,"No Records selected." D PAUSE^BCHUTIL1 Q
+ I '$D(BCHVRECS(+Y)) W !,"Invalid selection!!" G SELECT
+ S BCHR=BCHVRECS(+Y)
+ Q
+COLLECT ;
+ S BCHODAT=(BCHDATE-1)_".9999",(BCHRCNT,BCHR)=0 F  S BCHODAT=$O(^BCHR("B",BCHODAT)) Q:BCHODAT=""!(BCHODAT>(BCHDATE_".9999"))!($D(BCHQUIT))  D
+ .S BCHR=0 F  S BCHR=$O(^BCHR("B",BCHODAT,BCHR)) Q:BCHR'=+BCHR!($D(BCHQUIT))  S BCHR0=^BCHR(BCHR,0) D
+ ..I BCHPROV]"",BCHPROV'=$P(BCHR0,U,3) Q
+ ..S BCHRCNT=BCHRCNT+1,BCHVRECS(BCHRCNT)=BCHR
+ ..Q
+ .Q
+ Q
+DISPRECS ;display records for selection by user
+ S BCHPG=0
+ D HEAD
+ S (BCHPG,BCHRECN,BCHR)=0 F  S BCHRECN=$O(BCHVRECS(BCHRECN)) Q:BCHRECN'=+BCHRECN  S BCHR=BCHVRECS(BCHRECN),BCHR0=^BCHR(BCHR,0) D
+ .I $Y>(IOSL-2) D HEAD Q:$D(BCHQUIT)
+ .W !,BCHRECN,?5,$E($$PPNAME^BCHUTIL(BCHR),1,15)
+ .I '$D(^BCHRPROB("AD",BCHR)) W ?25,"           --"
+ .E  D GETPROB W ?21,BCHX
+ .W ?53,$S($P(^BCHR(BCHR,0),U,6)]"":$E($P(^BCHTACTL($P(^BCHR(BCHR,0),U,6),0),U),1,5),1:"????")
+ .I $P(^BCHR(BCHR,0),U,4)]"" W ?60,$E($P(^DPT($P(^BCHR(BCHR,0),U,4),0),U),1,20)
+ .E  I $P($G(^BCHR(BCHR,11)),U)]"" W ?60,$E($P(^BCHR(BCHR,11),U),1,20)
+ .E  W ?66,"<none>"
+ .Q
+ Q
+GETPROB ;
+ S BCHX=""
+ S BCHP=$O(^BCHRPROB("AD",BCHR,0)),BCHPREC=^BCHRPROB(BCHP,0)
+ S X=$P(^BCHTPROB($P(BCHPREC,U),0),U,2)_"  "
+ S X=X_$S($P(BCHPREC,U,4)]"":$P(^BCHTSERV($P(BCHPREC,U,4),0),U,3),1:"  ")_"  "
+ S X=X_$J($P(BCHPREC,U,5),3)_"  "
+ S X=X_$S($P(BCHPREC,U,6)]"":$E($P(^AUTNPOV($P(BCHPREC,U,6),0),U),1,16),1:"  ")
+ S X=$$RBLK^BCHUARL(X,31)
+ S BCHX=BCHX_X
+ Q

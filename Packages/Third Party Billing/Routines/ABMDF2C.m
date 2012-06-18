@@ -1,0 +1,33 @@
+ABMDF2C ; IHS/ASDST/DMJ - Set HCFA1500 Print Array ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;TMD;
+ ;
+VAR S ABM("CNT")=0
+ S ABMP("C0")=^ABMDBILL(DUZ(2),ABMP("BDFN"),0)
+ S ABMP("GL")="^ABMDBILL(DUZ(2),"_ABMP("BDFN")_","
+ S ABMP("VDT")=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),7),U),$P(ABMP("C0"),U,2)=ABMP("VDT")
+ S ABMP("VTYP")=$P(ABMP("C0"),U,7)
+LOOP S ABM("IN")="" F ABM("I")=41:1:43 S ABM("IN")=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,"C",ABM("IN"))) Q:'ABM("IN")  S ABM("XIEN")=$O(^(ABM("IN"),"")) S ABM("Z")=$S(ABM("I")=41:"A",ABM("I")=42:"B",1:"C") D INS
+ K ABM,ABME,ABMV
+ G ^ABMDF2D
+ ;
+INS Q:'$D(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,ABM("XIEN"),0))
+ S ABM("INSCO")=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,ABM("XIEN"),0),U)
+ I ABM("INSCO")=$P(ABMP("B0"),U,8),$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,ABM("XIEN"),0),"^",3)="I" D ^ABMDE2X1 S ABMP("EXP")=2
+PAYOR S Y=ABM("INSCO") D SEL^ABMDE2X
+ S ABM("I0")=+ABMV("X1")
+ I ABM("INSCO")'=$P(ABMP("B0"),U,8),ABM("CNT")=0,$P($G(^AUTNINS(ABM("I0"),2)),U)'="N" S $P(ABMF(12),U)=$P(^AUTNINS(ABM("I0"),0),U),$P(ABMF(13),U)=$P($P(ABMV("X2"),U),";",2)
+ I  S $P(ABMF(14),U)=$P(ABMV("X2"),U,3),$P(ABMF(15),U)=$P(ABMV("X2"),U,4),$P(ABMF(16),U)=$P(ABMV("X1"),U,4),ABM("CNT")=ABM("CNT")+1
+ I ABM("INSCO")=$P(ABMP("B0"),U,8),$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,ABM("XIEN"),0),"^",3)="I" D
+ .S $P(ABMF(4),U,5)=$P($P(ABMV("X2"),U),";",2)
+ .S $P(ABMF(6),U,4)=$P(ABMV("X1"),U,4)
+ .I $P(ABMV("X3"),U,7)]"" S $P(ABMF(9),U,2)=$P(ABMV("X3"),U,7)_"/"_$P(ABMV("X3"),U,6)
+ .I $P(ABMV("X3"),U,1)]""&($P(ABMV("X3"),U,6)]"") S $P(ABMF(10),U,6)="X"
+ .S $P(ABMF(12),U,2)=$P(ABMV("X2"),U,3)
+ .S $P(ABMF(13),U,4)=$P(ABMV("X2"),U,4)
+ .S $P(ABMF(14),U,2)=$P(ABMV("X2"),U,5)
+ .S ABM("RLSH")=$S($P(ABMV("X2"),U,2)]"":+$P($G(^AUTTRLSH(+$P(ABMV("X2"),U,2),0)),U,2),1:"")
+ .I ABM("RLSH")>0&(ABM("RLSH")<4) S ABM("RLSH")=ABM("RLSH")+1
+ .E  S ABM("RLSH")=$S(ABM("RLSH")=5:4,1:5)
+ .S $P(ABMF(10),U,ABM("RLSH"))="X"
+ Q

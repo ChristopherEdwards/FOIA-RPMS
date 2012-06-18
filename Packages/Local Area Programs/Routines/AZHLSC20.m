@@ -1,0 +1,23 @@
+AZHLSC20 ; IHS/ADC/GTH:KEU:JN - SAC CHAPTER 2: M LANGUAGE STANDARDS & CONVENTIONS ;  [ 06/05/1998  7:28 AM ]
+ ;;5.0;AZHLSC;;JUL 10, 1996
+ ;
+ NEW AZHLB,AZHLFLD,AZHL0,BFN,DIF,EFN,F,G,XCNP,Z
+ D END S AZHL0=""
+ K ^TMP($J,"Z") ;K Z
+218 D TTL^AZHLSC("2.1.8,  (9.5/6)  LAYGO Restrictions")
+ I 'AZHLPIEN D NPKG^AZHLSC Q
+ S EFN=$T(@AZHLNMSP^AZHLSC1),BFN=+$P(EFN,";",3),EFN=$P(EFN,";",4) S:EFN="" EFN=BFN S EFN=EFN_".9999999"
+ S %=0 F  S %=$O(^DIC(9.4,AZHLPIEN,4,"B",%)) Q:'%  D FLD
+ Q
+FLD S AZHLFLD=0 F  S AZHLFLD=$O(^DD(%,AZHLFLD)) Q:'AZHLFLD  D
+ .I +$P(^DD(%,AZHLFLD,0),U,2) S AZHL=+$P(^(0),U,2) D  Q
+ ..NEW %,AZHLFLD S %=AZHL D FLD
+ ..Q
+ .Q:$P(^DD(%,AZHLFLD,0),U,2)'["P"  I $P(^(0),U,2)'["'" S F=+$P($P(^(0),U,2),"P",2) I F<BFN!(F>EFN) W !?10,"File ",%,", field ",AZHLFLD,", LAYGO to file ",F D
+ ..S G=$E($P($G(^DIC(F,0,"GL")),U,2),1,4)="AUTT"
+ ..W $S((F=3)!(F=6)!(F=16)!(F=200)!(F=8004100):" << FILE "_F,(F>9999999)&G:"<< STANDARD TBL",1:"")
+ ..Q
+ .Q
+ Q
+END K ^("Z"),Z
+ Q

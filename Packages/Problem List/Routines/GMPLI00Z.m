@@ -1,0 +1,138 @@
+GMPLI00Z	; ; 25-AUG-1994
+	;;2.0;Problem List;;Aug 25, 1994
+	F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,"OR",219,1,13,1,1,0)
+	;;=GMPL HIDDEN MENU
+	;;^UTILITY(U,$J,"OR",219,1,13,1,2,0)
+	;;=GMPL PROBLEM LIST
+	;;^UTILITY(U,$J,"OR",219,1,13,1,3,0)
+	;;=GMPL DATA ENTRY
+	;;^UTILITY(U,$J,"OR",219,1,13,1,4,0)
+	;;=GMPL DT MENU
+	;;^UTILITY(U,$J,"OR",219,1,13,1,5,0)
+	;;=GMPL EDIT MENU
+	;;^UTILITY(U,$J,"OR",219,1,13,1,6,0)
+	;;=GMPL USER PREFS
+	;;^UTILITY(U,$J,"OR",219,1,13,1,7,0)
+	;;=GMPL LIST MENU
+	;;^UTILITY(U,$J,"OR",219,1,13,1,8,0)
+	;;=GMPL MENU BUILD LIST
+	;;^UTILITY(U,$J,"OR",219,1,13,1,9,0)
+	;;=GMPL MENU BUILD GROUP
+	;;^UTILITY(U,$J,"OR",219,1,13,1,10,0)
+	;;=GMPL CODE LIST
+	;;^UTILITY(U,$J,"OR",219,1,14,0)
+	;;=VALM BLANK 2
+	;;^UTILITY(U,$J,"OR",219,1,14,1,0)
+	;;=^100.99511PA^1^1
+	;;^UTILITY(U,$J,"OR",219,1,14,1,1,0)
+	;;=GMPL HIDDEN MENU
+	;;^UTILITY(U,$J,"OR",219,1,15,0)
+	;;=VALM BLANK 3
+	;;^UTILITY(U,$J,"OR",219,1,15,1,0)
+	;;=^100.99511PA^1^1
+	;;^UTILITY(U,$J,"OR",219,1,15,1,1,0)
+	;;=GMPL HIDDEN MENU
+	;;^UTILITY(U,$J,"PKG",219,0)
+	;;=PROBLEM LIST^GMPL^Automated Patient Problem List
+	;;^UTILITY(U,$J,"PKG",219,1,0)
+	;;=^^3^3^2940825^^^^
+	;;^UTILITY(U,$J,"PKG",219,1,1,0)
+	;;=This package allows for entry and tracking of a patient's problems
+	;;^UTILITY(U,$J,"PKG",219,1,2,0)
+	;;=within DHCP.  Other components of the clinical record may be linked
+	;;^UTILITY(U,$J,"PKG",219,1,3,0)
+	;;=to a problem, such as orders, procedures, and progress notes.
+	;;^UTILITY(U,$J,"PKG",219,2,0)
+	;;=^9.42A^40^35
+	;;^UTILITY(U,$J,"PKG",219,2,1,0)
+	;;=GMPL
+	;;^UTILITY(U,$J,"PKG",219,2,2,0)
+	;;=GMPL1
+	;;^UTILITY(U,$J,"PKG",219,2,3,0)
+	;;=GMPLDISP
+	;;^UTILITY(U,$J,"PKG",219,2,5,0)
+	;;=GMPLEDIT
+	;;^UTILITY(U,$J,"PKG",219,2,6,0)
+	;;=GMPLEDT1
+	;;^UTILITY(U,$J,"PKG",219,2,7,0)
+	;;=GMPLEDT2
+	;;^UTILITY(U,$J,"PKG",219,2,9,0)
+	;;=GMPLMGR
+	;;^UTILITY(U,$J,"PKG",219,2,10,0)
+	;;=GMPLMGR1
+	;;^UTILITY(U,$J,"PKG",219,2,11,0)
+	;;=GMPLSAVE
+	;;^UTILITY(U,$J,"PKG",219,2,12,0)
+	;;=GMPLX
+	;;^UTILITY(U,$J,"PKG",219,2,13,0)
+	;;=GMPLPRNT
+	;;^UTILITY(U,$J,"PKG",219,2,14,0)
+	;;=GMPLDIS1
+	;;^UTILITY(U,$J,"PKG",219,2,15,0)
+	;;=GMPLENFM
+	;;^UTILITY(U,$J,"PKG",219,2,16,0)
+	;;=GMPLCODE
+	;;^UTILITY(U,$J,"PKG",219,2,18,0)
+	;;=GMPLEDT3
+	;;^UTILITY(U,$J,"PKG",219,2,19,0)
+	;;=GMPLHIST
+	;;^UTILITY(U,$J,"PKG",219,2,20,0)
+	;;=GMPLHS
+	;;^UTILITY(U,$J,"PKG",219,2,21,0)
+	;;=GMPLHSPL
+	;;^UTILITY(U,$J,"PKG",219,2,22,0)
+	;;=GMPLUTL
+	;;^UTILITY(U,$J,"PKG",219,2,24,0)
+	;;=GMPLPREF
+	;;^UTILITY(U,$J,"PKG",219,2,25,0)
+	;;=GMPLEDT4
+	;;^UTILITY(U,$J,"PKG",219,2,26,0)
+	;;=GMPLRPTS
+	;;^UTILITY(U,$J,"PKG",219,2,27,0)
+	;;=GMPLX1
+	;;^UTILITY(U,$J,"PKG",219,2,28,0)
+	;;=GMPLPRF1
+	;;^UTILITY(U,$J,"PKG",219,2,30,0)
+	;;=GMPLMENU
+	;;^UTILITY(U,$J,"PKG",219,2,31,0)
+	;;=GMPLBLD
+	;;^UTILITY(U,$J,"PKG",219,2,32,0)
+	;;=GMPLBLD1
+	;;^UTILITY(U,$J,"PKG",219,2,33,0)
+	;;=GMPLBLD2
+	;;^UTILITY(U,$J,"PKG",219,2,34,0)
+	;;=GMPLBLDC
+	;;^UTILITY(U,$J,"PKG",219,2,35,0)
+	;;=GMPLBLDF
+	;;^UTILITY(U,$J,"PKG",219,2,36,0)
+	;;=GMPLMGR2
+	;;^UTILITY(U,$J,"PKG",219,2,37,0)
+	;;=GMPLBLD3
+	;;^UTILITY(U,$J,"PKG",219,2,38,0)
+	;;=GMPLRPTR
+	;;^UTILITY(U,$J,"PKG",219,2,39,0)
+	;;=GMPLPRF0
+	;;^UTILITY(U,$J,"PKG",219,2,40,0)
+	;;=GMPLUTL1
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPL",1)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPL1",2)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPLBLD",31)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPLBLD1",32)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPLBLD2",33)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPLBLD3",37)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPLBLDC",34)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPLBLDF",35)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPLCODE",16)
+	;;=
+	;;^UTILITY(U,$J,"PKG",219,2,"B","GMPLDIS1",14)
+	;;=

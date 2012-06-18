@@ -1,0 +1,15 @@
+SCHEDULING REPORT QUERY TEMPLATE
+ZWR
+^SD(404.95,0)="SCHEDULING REPORT QUERY TEMPLATE^404.95^1^1"
+^SD(404.95,1,0)="System Default^-1^2^1^3001206.101156"
+^SD(404.95,1,1,0)="^404.9501^2^2^3010705^"
+^SD(404.95,1,1,1,0)="This is the standard query template used when the user"
+^SD(404.95,1,1,2,0)="has not specified a default query."
+^SD(404.95,1,"FIELDS",0)="^404.9502P^1^1"
+^SD(404.95,1,"FIELDS",1,0)="2^HOST FILE SERVER #1"
+^SD(404.95,1,"FIELDS","B",2,1)=""
+^SD(404.95,"AC",-1,1)=""
+^SD(404.95,"AC",.5,1)=""
+^SD(404.95,"AD",2,1)=""
+^SD(404.95,"B","System Default",1)=""
+^SD(404.95,"C",1,1)=""

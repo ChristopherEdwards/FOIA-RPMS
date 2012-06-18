@@ -1,0 +1,210 @@
+ABMP2511 ; IHS/SD/SDR - 3P BILLING 2.5 Patch 11 PRE/POST INIT ;  
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ ;
+ Q
+PREINST ;
+ Q
+EN ; EP
+ ;WHAT ABOUT PATCH 10 INSTALL CHECK?
+ I $G(^DD(9002274.3021,.18,0))="" D EN^ABMPT259  ;if patch 9 not loaded do p9 post install
+ D EXPMODES  ;add new export modes 27,28,29 (NPI formats)
+ D ERRCODES  ;new 3P Error codes
+ D REINDEX^ABMPT259  ;re-index 3p provider taxonomy file
+ D PAGE3QS  ;change some page 3 questions to use new display routine ABMDE301
+ D UPDT3PCD  ;Update 3P Codes entries
+ D TURNON^DIAUTL(9002274.4,.02,"y")  ;turn on audit for 3P BILL field .02
+ D TURNON^DIAUTL(9002274.4,.49,"y")  ;turn on audit for 3P BILL field .49
+ D TURNON^DIAUTL(9002274.4,411,"y")  ;turn on audit for 3P BILL field 411
+ Q
+EXPMODES ;
+ K DIC,DR,DINUM,DLAYGO,DIE
+ S DIC="^ABMDEXP("
+ S DIC(0)="LM"
+ S DLAYGO=9002274
+ S X="CMS-1500 (08/05)",DINUM=27
+ K DD,DO
+ D ^DIC
+ Q:Y<0
+ S DA=+Y
+ S DIE="^ABMDEXP("
+ S DR=".04////ABMDF27;.05////ABMDF27X;.06///0;.07///OMB No. 0938-0999;.08///1,2,3,4B,5,7,9,10,12B,13,15,22,34,35,19,25;.11////ABMDES3;.15///H"
+ D ^DIE
+ ;
+ K DIC,DR,DINUM,DLAYGO,DIE
+ S DIC="^ABMDEXP("
+ S DIC(0)="LM"
+ S DLAYGO=9002274
+ S X="UB-04",DINUM=28
+ K DD,DO
+ D ^DIC
+ Q:Y<0
+ S DA=+Y
+ S DIE="^ABMDEXP("
+ S DR=".04////ABMDF28;.05////ABMDF28X;.06///0;.07///OMB No. 0938-0997;.08///1,2,3,4,5,6,8,13,19,21,22,23,24;.11////ABMDES1;.15///H"
+ D ^DIE
+ ;
+ K DIC,DR,DINUM,DLAYGO,DIE
+ S DIC="^ABMDEXP("
+ S DIC(0)="LM"
+ S DLAYGO=9002274
+ S X="ADA-2006",DINUM=29
+ K DD,DO
+ D ^DIC
+ Q:Y<0
+ S DA=+Y
+ S DIE="^ABMDEXP("
+ S DR=".04////ABMDF29;.05////ABMDF29X;.06///C;.07///ADA-2006 Dental Claim Form;.08///1,2,3,4,9,16,17,18,34,35;.11////ABMDES4;.15///H"
+ D ^DIE
+ Q
+ERRCODES ;
+ ;220 - E FOR NPI UNSPECIFIED IN NEW PERSON FILE FOR PROVIDER
+ K DIC,X
+ S DIC="^ABMDERR("
+ S DIC(0)="LM"
+ S DINUM=220
+ S X="NPI UNSPECIFIED IN NEW PERSON FILE FOR PROVIDER"
+ S DIC("DR")=".02///Use TM\PETM option to add NPI"
+ S DIC("DR")=DIC("DR")_";.03///E"
+ K DD,DO
+ D FILE^DICN
+ D SITE(220)
+ ;221 - W FOR NPI UNSPECIFIED IN NEW PERSON FILE FOR PROVIDER
+ K DIC,X
+ S DIC="^ABMDERR("
+ S DIC(0)="LM"
+ S DINUM=221
+ S X="NPI UNSPECIFIED IN NEW PERSON FILE FOR PROVIDER"
+ S DIC("DR")=".02///Use TM\PETM option to add NPI"
+ S DIC("DR")=DIC("DR")_";.03///W"
+ K DD,DO
+ D FILE^DICN
+ D SITE(221)
+ ;222 - E FOR EXPORT MODE DOESN'T SUPPORT NPI
+ K DIC,X
+ S DIC="^ABMDERR("
+ S DIC(0)="LM"
+ S DINUM=222
+ S X="NPI USAGE SAYS NPI BUT EXPORT MODE DOESN'T SUPPORT IT"
+ S DIC("DR")=".02///Change export mode to NPI format"
+ S DIC("DR")=DIC("DR")_";.03///E"
+ K DD,DO
+ D FILE^DICN
+ D SITE(222)
+ ;223 - NPI UNSPECIFIED FOR REFERRING PROVIDER
+ K DIC,X
+ S DIC="^ABMDERR("
+ S DIC(0)="LM"
+ S DINUM=223
+ S X="NPI UNSPECIFIED FOR REFERRING PROVIDER"
+ S DIC("DR")=".02///Add NPI for referring provider on page 3"
+ S DIC("DR")=DIC("DR")_";.03///E"
+ K DD,DO
+ D FILE^DICN
+ D SITE(223)
+ ;224 - NPI UNSPECIFIED FOR SUPERVISING PROVIDER
+ K DIC,X
+ S DIC="^ABMDERR("
+ S DIC(0)="LM"
+ S DINUM=224
+ S X="NPI UNSPECIFIED FOR SUPERVISING PROVIDER"
+ S DIC("DR")=".02///Add NPI for supervising provider on page 3"
+ S DIC("DR")=DIC("DR")_";.03///E"
+ K DD,DO
+ D FILE^DICN
+ D SITE(224)
+ Q
+SITE(ABMX) ;Add SITE multiple
+ S DUZHOLD=DUZ(2)
+ S DUZ(2)=0
+ F  S DUZ(2)=$O(^ABMDCLM(DUZ(2))) Q:'+DUZ(2)  D
+ .S DIC(0)="LX"
+ .S DA(1)=ABMX
+ .S DIC="^ABMDERR("_DA(1)_",31,"
+ .S DIC("P")=$P(^DD(9002274.04,31,0),U,2)
+ .S DINUM=DUZ(2)
+ .S X=$P($G(^DIC(4,DUZ(2),0)),U)
+ .S DIC("DR")=".03////"_$S(DA(1)=221:"W",1:"E")
+ .D ^DIC
+ .K DA,DIC,DINUM
+ S DUZ(2)=DUZHOLD
+ K DUZHOLD,DLAYGO,ABMX
+ Q
+PAGE3QS ;
+ K DIC,DIE,X,Y,DA
+ F DA=30:1:35 D
+ .S DIE="^ABMQUES("
+ .S DR=".03////ABMDE301"
+ .D ^DIE
+ ;
+ K DIC,DIE,X,Y,DA
+ S DIK="^ABMQUES("
+ S DA=15
+ D ^DIK
+ K DIC,DIE,X,Y,DA
+ S DIC="^ABMQUES("
+ S DIC(0)="LM"
+ S DINUM=15
+ S X="RESUBMISSION (CONTROL) NUMBER"
+ S DIC("DR")=".02////W15;.03////ABMDE30;.04////15;1////ABMDE3C"
+ D ^DIC
+ Q
+UPDT3PCD ; Use below tags to update 3P Codes
+ F ABMI=1:1 S ABMLN=$P($T(CODES+ABMI),";;",2) Q:ABMLN="END"  D
+ .S ABMCTYP=$P(ABMLN,U)
+ .S ABMCD=$P(ABMLN,U,2)
+ .S ABMDESC=$P(ABMLN,U,3)
+ .S ABMIFLG=$P(ABMLN,U,4)
+ .S DA=+$O(^ABMDCODE("AC",ABMCTYP,ABMCD,0))
+ .Q:DA=0  ;no entry found; may need to replace with DIC to add the entry
+ .S DIE="^ABMDCODE("
+ .S DR=".03////"_ABMDESC
+ .I ABMIFLG'="" S DR=DR_";.04////1"
+ .D ^DIE
+ Q
+CODES ;
+A ;;A^A^Transfer from a Critical Access Hospital
+C ;;C^17^PATIENT IS HOMELESS
+ ;;C^A0^TRICARE EXTERNAL PARTNERSHIP PROGRAM
+ ;;C^A6^VACCINES/MEDICARE 100%
+ ;;C^D2^CHANGES IN REVENUE CODES/HCPCS/HIPPS RATE CODES
+ ;;C^D4^CHANGE IN CLINICAL CODES (ISD) FOR DIAGNOSIS AND/OR PROCEDURE
+ ;;C^D5^CANCEL TO CORRECT INSURED'S ID OR PROVIDER ID
+ ;;C^69^IME/DGME/N&AH Payment only
+ ;;C^70^Self Administered Anemia Management Drug
+O ;;O^1^ACCIDENT/MEDICAL COVERAGE
+ ;;O^2^NO FAULT INSURANCE INVOLVED-INCLUDES AUTO ACCIDENT/OTHER
+ ;;O^4^ACCIDENT/EMPLOYMENT RELATED
+ ;;O^5^ACCIDENT/NO MEDICAL OR LIABILITY COVERAGE
+ ;;O^20^DATE GUARANTEE OF PAYMENT BEGAN
+ ;;O^21^DATE UR NOTICE RECEIVED
+ ;;O^23^PAYER CODE
+ ;;O^12^Date of Onset for a Chronically Dependent Individual
+ ;;O^27^Date of Hospice Certification or Re-Certification
+ ;;O^30^Date Outpatient Speech Pathology Plan Established or Reviewed
+ ;;O^A3^Benefits Exhausted-Payer A
+ ;;O^E1^Birthdate-Insured D^I
+ ;;O^E2^Effective Date-Insured D Policy^I
+ ;;O^E3^Benefits Exhausted^I
+ ;;O^F1^Birthdate - Insured E^I
+ ;;O^F2^Effective Date - Insured E Policy^I
+ ;;O^F3^Benefits Exhausted^I
+ ;;O^G1^Birthdate - Insured F^I
+ ;;O^G2^Effective Date - Insured F Policy^I
+ ;;O^G3^Benefits Exhausted^I
+S ;;S^74^NON-COVERED LEVEL OF CARE/LEAVE OF ABSENCE DATES
+ ;;S^M0^QIO/UR APPROVED STAY DATES
+V ;;V^4^PROFESSIONAL COMPONENT CHARGES WHICH ARE COMBINED
+ ;;V^23^RECURRING MONTHLY INCOME
+ ;;V^40^NEW COVERAGE NOT IMPLEMENTED BY HMO
+ ;;V^E1^Deductible Payer D^I
+ ;;V^E2^Coinsurance Payer D^I
+ ;;V^E3^Estimated Responsibility Payer D^I
+ ;;V^F1^Deductible Payer E^I
+ ;;V^F2^Coinsurance Payer E^I
+ ;;V^F3^Estimated Responsibility Payer E^I
+ ;;V^G1^Deductible Payer F^I
+ ;;V^G2^Coinsurance Payer F^I
+ ;;V^G3^Estimated Responsibility Payer F^I
+ ;;END
+ Q

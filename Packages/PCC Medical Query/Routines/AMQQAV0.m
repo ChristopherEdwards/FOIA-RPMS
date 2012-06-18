@@ -1,0 +1,175 @@
+AMQQAV0 ;IHS/CMI/THL - SUBROUTINE FOR AGE, DATE, SET, NUMBER AND LOOKUP;
+ ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;-----
+COMPA ; ENTRY POINT FROM AMQQAV
+ I AMQQNOCO>1 D COMPA2 Q
+ I $D(AMQQXX) G COMPA1
+GETAGE R !,?(5*$D(AMQQZNM)),"Age: ",X:DTIME E  S AMQQQUIT="" Q
+COMPA1 I X="" Q
+ I X=U S AMQQQUIT="" Q
+ I X?1.3N S AMQQCOMP=X Q
+ D SPEC
+ I $D(AMQQCOMP) Q
+ I $D(AMQQXX) Q
+ W "  ??",*7
+ G GETAGE
+ Q
+ ;
+COMPA2 I $D(AMQQXX) N Z S Z=X,X=+X G COMPN21
+ R !,?(5*$D(AMQQZNM)),"Start with (and include) AGE: ",X:DTIME E  S AMQQQUIT="" Q
+COMPA21 I X="" S AMQQCOMP=";" G A2
+ I X=U S AMQQQUIT="" Q
+ I X'?1.3N W "  ??",*7 G COMPA2
+ S AMQQCOMP=X_";"
+ I $D(AMQQXX) S X=$P(Z,";",2) G A21
+A2 R !,?(5*$D(AMQQZNM)),"End with (and include) AGE: ",X:DTIME E  S AMQQQUIT="" Q
+A21 I X="",AMQQCOMP=";" K AMQQCOMP Q
+ I X="" Q
+ I X=U S AMQQQUIT="" Q
+ I X'?1.3N W "  ??",*7 G A2
+ I X<+AMQQCOMP W "  ??",*7 G A2
+ I AMQQCOMP=";" S AMQQCOMP="0;"
+ S AMQQCOMP=AMQQCOMP_X
+ Q
+ ;
+COMPD ; ENTRY POINT FROM AMQQAV
+ I AMQQATNM="ALIVE" D ALIVE^AMQQAV Q
+ I $G(AMQQNOCO)>1 D COMPD2 Q
+ S %DT="AETX"
+ S %DT("A")="Exact date: "
+ I $D(AMQQADAM) S %DT="AET"
+ I $D(AMQQXX) S %DT="" K %DT("A")
+ D ^%DT
+ I $D(DTOUT) K DTOUT S AMQQQUIT="" Q
+ I X="" S X=U,AMQQQUIT="" Q
+ I Y'=-1,AMQQSYMB="=" S AMQQCOMP=Y_";"_Y Q
+ I Y'=-1,AMQQSYMB=">",Y?7N S Y=Y+.235959
+ I Y'=-1 S AMQQCOMP=Y Q
+ I X=U S AMQQQUIT=""
+ Q
+ ;
+COMPD2 I '$D(AMQQXX) G COMPD29
+ N Z
+ S Z=X
+ S X=$P(X,";")
+ S %DT=""
+ D ^%DT
+ G COMPD21
+COMPD29 S %DT="AETX"
+ S %DT("A")="Exact starting date: "
+ S:$D(AMQQADAM) %DT="ATE"
+ D ^%DT
+COMPD21 I $D(DTOUT) K DTOUT S AMQQQUIT="" Q
+ I X="" S AMQQCOMP=";" G D2
+ I X=U S AMQQQUIT="" Q
+ S AMQQCOMP=Y_";"
+ I $D(AMQQXX) S X=$P(Z,";",2),%DT="" D ^%DT G D21
+D2 S %DT("A")="Exact ending date: "
+ D ^%DT
+D21 I $D(DTOUT) K DTOUT S AMQQQUIT="" Q
+ I X="",AMQQCOMP=";" S AMQQCOMP="0;"_DT Q
+ I X="" Q
+ I X=U S AMQQQUIT="" Q
+ I Y<+AMQQCOMP W "  ??",*7 G COMPD2
+ I Y?7N S Y=Y+.235959
+ S AMQQCOMP=AMQQCOMP_Y
+ Q
+ ;
+ ;
+COMPS ;ENTRY POINT FROM AMQQAV
+ N AMQQSSS
+ S X=$P(^AMQQ(1,AMQQLINK,0),U,6)
+ I X="",AMQQLINK>1000 S %=$G(^AMQQ(1,AMQQLINK,4,1,1)) S %=$P(%,"S Y=",2) S %=$P(%,""",X=$F") S AMQQSSS=% G COMPSXX
+ S Y=+X
+ S Z=$P(X,",",2)
+ S AMQQSSS=";"_$P(^DD(Y,Z,0),U,3)
+COMPSXX I $D(AMQQXX),$D(AMQQXXVV) S X=AMQQXXVV G COMPSA
+ I $D(AMQQXX),$D(AMQQNVAL) S X=AMQQNVAL G COMPSA
+COMPSR R !,?(5*$D(AMQQZNM)),"Value: ",X:DTIME E  S AMQQQUIT="" Q
+ I X=U S AMQQQUIT="" Q
+ I X?1."?" W !,"CHOOSE FROM: " F I=2:1 S A=$P(AMQQSSS,";",I) G:A="" COMPS W !,?7,$P(A,":"),?15,$P(A,":",2)
+ I X="" D ACA^AMQQAC
+ I X="" W !! K AMQQCOND Q
+COMPSA K AMQQCOMP
+ I $G(AMQQLINK)=758 D
+ .I X S ^UTILITY("AMQQ TAX",$J,-999999999,X)="" Q
+ .I X="ALL" N I,J F I=2:1 S J=+$P(AMQQSSS,";",I) Q:'J  S ^UTILITY("AMQQ TAX",$J,-999999999,J)=""
+ S A=";"_X_":"
+ S A=$F(AMQQSSS,A)
+ I A D  Q
+ .S AMQQCOMP=$S($G(^AMQQ(1,+$G(AMQQLINK),1))'["AUPNVXAM"&($G(^(1))'["AUPNVNTS"):X,1:$S(X="A":1,1:0)) ;PATCH XXX
+ .W:'$D(AMQQXX) "  ",$P($E(AMQQSSS,A,99),";")
+ F I=2:1 S A=$P(AMQQSSS,";",I) Q:A=""  S B=$P(A,":",2),C=$P(A,":") I $E(B,1,$L(X))=X S AMQQCOMP=C W:'$D(AMQQXX) $E(B,$L(X)+1,99) Q
+ I $D(AMQQCOMP) Q
+ D SPEC
+ I $D(AMQQCOMP) Q
+ I $D(AMQQXX) Q
+ W "  ??",*7
+ G COMPSR
+ Q
+ ;
+COMPN ; ENTRY POINT FROM AMQQAV
+ I AMQQNOCO>1 D COMPN2 Q
+ I $D(AMQQXX) G COMPN1
+ I AMQQLINK>764,AMQQLINK<768 D DAYS I 1
+ E  W !,?(5*$D(AMQQZNM)),"Value: " R X:DTIME E  S AMQQQUIT="" Q
+ I X?1."?" W !!,"Enter a number to be used as the comparison value.",!! G COMPN
+ I X=U S AMQQQUIT="" Q
+ I X="" Q
+ I $D(AMQQCCHK),AMQQCCHK'="" X AMQQCCHK G:$D(X) CN W "  ??",*7 G COMPN
+COMPN1 I X=+X S AMQQCOMP=X Q
+ D SPEC
+ I $D(AMQQCOMP) Q
+ I $D(AMQQXX) Q
+ W "  ??",*7
+ G COMPN
+CN S AMQQCOMP=X
+ Q
+ ;
+COMPN2 I $D(AMQQXX) N Z S Z=X,X=+X G COMPN21
+ R !,?(5*$D(AMQQZNM)),"Enter the lower limiting value: ",X:DTIME E  S AMQQQUIT="" Q
+COMPN21 I X="" S AMQQCOMP="" Q
+ I X=U S AMQQQUIT="" Q
+ I X?1."?" W !,"Enter a number",!!! G COMPN2
+ I $D(AMQQCCHK),AMQQCCHK'="" X AMQQCCHK G N:$D(X) W "  ??",*7 G COMPN2
+ I X'=+X W "  ??",*7 G COMPN2
+N S AMQQCOMP=X_";"
+ I $D(AMQQXX) S X=$P(Z,";",2) G N21
+N2 R !,?(5*$D(AMQQZNM)),"Enter the upper limiting value: ",X:DTIME E  S AMQQQUIT="" Q
+N21 I X="" S AMQQCOMP="" Q
+ I X?1."?" W !,"Enter a number",!!! G N2
+ I X=U S AMQQQUIT="" Q
+ I $D(AMQQCCHK),AMQQCCHK'="" X AMQQCCHK G:$D(X) CN2 W "  ??",*7 G N2
+ I X'=+X!(X<+AMQQCOMP) W "  ??",*7 G COMPN2
+CN2 S AMQQCOMP=AMQQCOMP_X
+ Q
+ ;
+SPEC I X="*" S X="EXISTS" W "  (List all values)"
+ K AMQQCOMP
+ S Z="ANY;SAVE;ALL;EXISTS;BLANK;EMPTY;NULL;@"
+ F I=1:1 S %=$P(Z,";",I) Q:%=""  I X=$E(%,1,$L(X)) W $E(%,$L(X)+1,99) S X=% D S1 Q
+ Q
+ ;
+S1 I $D(AMQQMULT) Q
+ I I>2,$E(X,1,4)="NOT " S I=$S(I>4:4,1:5)
+ S X=$S(I>4:"NULL",I>2:"EXISTS",I=1:"ANY",1:"SAVE")
+ I X="ANY" D ANY^AMQQAC
+ S AMQQSYMB="'="
+ S AMQQCOMP=";;;"_$S($G(AMQQLINK)'=758:X,1:"")
+ Q
+ ;-----
+DAYS ;EP;
+ ;SPECIAL CONDITION PROCESSING FOR BREAST FEEDING STOPPED,
+ ;FORMULA STARTED, ... ATTRIBUTES
+ W !!,"Enter the number of 'D'ays, 'W'eeks, 'M'onths or 'Y'ears in the format:"
+ W !?5,"4D for 4 days, or 3M for 3 months, etc.,"
+ W !?5,"to use in the ",AMQQATNM,$S(AMQQATNM["STA":" on or after",1:" on or before")," query."
+ W !!,?(5*$D(AMQQZNM)),"Value: "
+ R X:DTIME E  S AMQQQUIT="" Q
+ I X[U S AMQQQUIT="" Q
+ D INP^AUPNCIX
+ S:$G(X)="" X=""
+ W !
+ S X=$$CONVDAYS^AUPNCIX(X)
+ S X=X+1
+ Q

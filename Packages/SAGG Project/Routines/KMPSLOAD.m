@@ -1,0 +1,14 @@
+KMPSLOAD ;SF/KAK - Manager UCI Loader Routine ;14 OCT 92 4:30 pm
+ ;;1.8;SAGG PROJECT;;Jun 16, 1998
+CLEAN ;
+ F KMPS1="A1B5","%A1B5" F KMPS2="GE","GS" F KMPS3="I","M","P","V" S KMPSDL=KMPS1_KMPS2_KMPS3 D DEL
+ S KMPSDL="A1B5LOAD" D DEL
+ ;
+END ;
+ W !!,"Finished",!
+ K KMPS1,KMPS2,KMPS3,KMPSDL
+ Q
+DEL ;
+ S X=KMPSDL X ^%ZOSF("TEST") Q:'$T
+ W !,"Deleting ",X X ^%ZOSF("DEL")
+ Q

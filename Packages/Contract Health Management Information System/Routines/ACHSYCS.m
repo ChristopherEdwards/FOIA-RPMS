@@ -1,0 +1,82 @@
+ACHSYCS ; IHS/ITSC/PMF - RETRANSMIT BY TRANSACTION CODE AND DATE RANGE ; [ 12/06/2002  10:36 AM ]
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5**;JUN 11, 2001
+ ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ ;IHS/DSD/CS;2991001;FIND ALL OF A TYPE OF TRANSITION AND RETRANSMIT
+ ;
+ ;Variables Used
+ ;  ZCS1=BATCH DATE (?)
+ ;  ZCS1S=START DATE
+ ;  ZCS1E=END DATE
+ ;  ZCS2=TYPE
+ ;  ZCS3=DOCUMENT IEN
+ ;  ZCS4=TRANSACTION IEN
+ ;
+BEGIN ;
+ ;TEST FOR EXISTANCE OF DATA
+ I '$D(^ACHSF(DUZ(2),"TB")) W *7,!!,*7,"No data to process.  Quiting." Q
+ S (ZCS1,ZCS1S,ZCS1E,ZCS2,ZCS3,ZCS4,ZCS5)=""
+ ;
+ ;GET TRANSACTION TYPE
+ K DIR
+ S DIR(0)="F^1:2^K:X'?.U X"
+ S DIR("A",1)="Select Transaction Type:"
+ S DIR("A",2)="  C   Cancelation"
+ S DIR("A",3)="  I   Initial"
+ S DIR("A",4)="  P   Payment"
+ S DIR("A",5)="  IP  Intrim Payment"
+ S DIR("A",6)="  ZA  Adjustment"
+ S DIR("A")="Select C, I, P, IP, or ZA: "
+ S DIR("B")="C"
+ D ^DIR
+ Q:X=""
+ S ZCS2=X
+ ;
+BDATE ;GET START DATE
+ N DIR,Y
+ W !!
+ S DIR(0)="DO^::EX"
+ S DIR("A")="Enter Start Date: "
+ D ^DIR
+ I Y="" W *7,"  No date supplyed.  Terminating." Q
+ I Y>DT W *7,"  NO FUTURE DATES ALLOWED" G BDATE
+ S ZCS1S=Y
+ ;
+EDATE ;GET END DATE
+ N DIR,Y
+ W !
+ S DIR(0)="DO^::EX"
+ S DIR("A")="Enter End Date: "
+ S DIR("B")=ZCS1S
+ D ^DIR
+ I Y="" W *7,"  No date supplyed. Returning to Start Date Entry." G BDATE
+ I Y>DT W *7,"  NO FUTURE DATES ALLOWED" G EDATE
+ I Y<ZCS1S W *7,"  Ending date must be after beginning date." G EDATE
+ S ZCS1E=Y
+ ;
+PROC ;ACTUAL PROCESSING STARTS HERE
+ S ZCS1=ZCS1S-1
+ F  S ZCS1=$O(^ACHSF(DUZ(2),"TB",ZCS1)) Q:ZCS1>ZCS1E!(ZCS1="")  D
+ .Q:'$D(^ACHSF(DUZ(2),"TB",ZCS1,ZCS2))
+ .S ZCS3=""
+ .F  S ZCS3=$O(^ACHSF(DUZ(2),"TB",ZCS1,ZCS2,ZCS3)) Q:ZCS3=""  D
+ ..S ZCS4=""
+ ..F  S ZCS4=$O(^ACHSF(DUZ(2),"TB",ZCS1,ZCS2,ZCS3,ZCS4)) Q:ZCS4=""  D
+ ...;IF PROMPTING IS REQUIRED BEFORE CLEARING, IT GOES HERE.
+ ...I ZCS2="C",$P(^ACHSF(DUZ(2),"D",ZCS3,"T",ZCS4,0),U,5)'="F" Q  ; NOT FULL
+ ...S ^TMP("ACHSTXAR",$J,ZCS1,ZCS3,ZCS4)=""
+ ...S ZCS5=1
+ ; GO AND TRANSMIT THIS DATA NOW
+ S ACHSIO=IO ; JUST BECAUSE WE WANT TO
+ S ACHSARCO=$P(^ACHSF(DUZ(2),0),U,11) ; AREA CONTRACTING NUMBER
+ ;I +ACHSARCO<1!($L(ACHSARCO)'=3) D  G EXIT ; CAN'T CONTINUE W/O THIS;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ ;. W !,"MISSING AREA CONTRACTING NUMBER - JOB ABBORTING";IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ I '(ACHSARCO?3UN) U IO(0) W *7,!!,"Area Contracting Number is not 3 Upper-case Alpha-Numerics",!,"JOB CANCELLED" G EXIT ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ ;
+ S ACHSRCT=0 ; INITIALIZE RECORD COUNTER
+ ;
+ ;pmf  6/6/1  add next line.  init the re-export flag to NO.
+ S ACHSREEX=0
+ D:ZCS5 ^ACHSTXA1
+ ;
+EXIT ; PUT CLEANUP STUFF HERE IF NEEDED
+ Q

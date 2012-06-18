@@ -1,0 +1,7 @@
+PSJAINI5 ; ; 20-MAR-1996
+ ;;4.5;Inpatient Medications;**27**;OCT 07, 1994
+ K ^UTILITY("DIF",$J) S DIFRDIFI=1 F I=1:1:2 S ^UTILITY("DIF",$J,DIFRDIFI)=$T(IXF+I),DIFRDIFI=DIFRDIFI+1
+ Q
+IXF ;;
+ ;;59.5;IV ROOM;^PS(59.5,;0;y;;;n;;;n
+ ;;

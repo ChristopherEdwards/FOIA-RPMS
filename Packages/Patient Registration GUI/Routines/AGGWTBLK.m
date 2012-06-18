@@ -1,0 +1,304 @@
+AGGWTBLK ;VNGT/HS/ALA-WINDOW DEFINITION TABLE LOOKUP ; 07 Apr 2010  4:06 PM
+ ;;1.0;PATIENT REGISTRATION GUI;;Nov 15, 2010
+ ;;
+ ;
+ Q
+ ;
+LKP(DATA,FNBR,VALUE,SCREEN) ;EP -- AGG WINDOW TABLE LOOKUP
+ ;
+ ;Input
+ ;  FNBR   - File number to look up value
+ ;  VALUE  - Value to look up in File number
+ ;  SCREEN - If this table has special screening logic
+ ;
+ NEW UID,II,X,DDATA
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("AGGWTBLK",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^AGGWTBLK D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S FNBR=$G(FNBR,""),VALUE=$G(VALUE,"")
+ I VALUE="" S BMXSEC="RPC Call Failed: No value to look up" Q
+ I FNBR="" S BMXSEC="RPC Call Failed: No file identified to search for value" Q
+ ;
+ NEW FILE,FIELD,INDEX,FLAGS,NUMB,JJ,IEN,TEXT,DESC,IGN,SDATA
+ NEW MAP,HDR,MII,NFLD,TYPE,ERROR,XTLKUT
+ S FILE=FNBR,NUMB="*",INDEX=""
+ S SCREEN=$G(SCREEN,""),SCREEN=$TR(SCREEN,"~","^")
+ S FIELD="FID;-WID"_$$WP(FILE)
+ S:FNBR=50 FIELD=FIELD_";31"
+ S:FNBR=9999999.06 FIELD="FID;.04;.05;.07;.12",INDEX="B^C",FLAGS="P"
+ ;S FLAGS=$S(FILE=95.3:"P",1:"MP")
+ S FLAGS="MP"
+ I $E(VALUE,1)="`" S FLAGS="AP"
+ I FNBR=9999999.88 S XTLKUT=1,INDEX="B",FLAGS="P"
+ ;
+ D FIND^DIC(FILE,"",FIELD,FLAGS,VALUE,"",INDEX,SCREEN,"","","ERROR")
+ ;
+ I $D(ERROR)>0 S BMXSEC="RPC Call Failed: "_$G(ERROR("DIERR",1,"TEXT",1)) Q
+ ;
+ S DDATA=$NA(^TMP("DILIST",UID))
+ S MAP=$G(@DDATA@(0,"MAP"))
+ I MAP="" S @DATA@(II)="T00015IEN^T00030TEXT^T00120DESCRIPTION"_$C(30)
+ I MAP'="" D
+ . S HDR=""
+ . F MII=1:1:$L(MAP,"^") D
+ .. I $P(MAP,"^",MII)="IEN" S HDR=HDR_"T00015IEN^" Q
+ .. I $P(MAP,"^",MII)[".01" D CHK(.01) S HDR=HDR_TYPE_"^" Q
+ .. I FNBR=9999999.05,$P(MAP,"^",MII)="FID(.08)" S IGN=MII Q
+ .. S NFLD=$P(MAP,"^",MII)
+ .. I NFLD["FID(" S NFLD=$P($P(NFLD,"FID(",2),")",1) D CHK(NFLD) S HDR=HDR_TYPE_"^" Q
+ .. D CHK(NFLD) S HDR=HDR_TYPE_"^"
+ . I FILE=80.1!(FILE=80)!(FILE=81) S HDR=HDR_"T00060LOOK_DISPLAY"
+ . I FILE=9999999.06 D
+ .. S HDR=HDR_"T00120LOOK_DISPLAY"
+ .. S HDR=$TR(HDR," ","_")
+ . S HDR=$$TKO^AGGUL1(HDR,"^"),HDR=$TR(HDR," ","_")
+ . S @DATA@(II)=HDR_$C(30)
+ . I FNBR=9000003.1 D
+ .. S $P(@DATA@(II),U,1)="T00015AGGPLIEN",$P(@DATA@(II),U,2)="T00035AGGPIHLD",$P(@DATA@(II),U,5)="T00020AGGPINUM"
+ .. S $P(@DATA@(II),U,3)="I00010AGGPTIINS"
+ I FNBR=9999999.06 D PRST
+ S JJ=0
+ F  S JJ=$O(@DDATA@(JJ)) Q:'JJ  D
+ . I MAP="" D
+ .. S IEN=$P(@DDATA@(JJ,0),U,1)
+ .. S TEXT=$P(@DDATA@(JJ,0),U,2)
+ .. S DESC=""
+ .. S FLD=$S(FNBR=80:3,FNBR=80.1:4,FNBR=81:2,FNBR=81:2,FNBR=9999999.31:.02,1:"")
+ .. I FLD'="" S DESC=$$GET1^DIQ(FNBR,IEN,FLD,"E")
+ .. S II=II+1,@DATA@(II)=IEN_"^"_TEXT_"^"_DESC_$C(30)
+ . I MAP'="" D
+ .. NEW IEN,TEXT,DESC,QFL
+ .. S IEN=$P(@DDATA@(JJ,0),U,1),QFL=0
+ .. S TEXT=$P(@DDATA@(JJ,0),U,2)
+ .. I TEXT?.N D
+ ... S DESC=$$GET1^DIQ(FNBR,IEN,.01,"E")
+ ... S $P(@DDATA@(JJ,0),U,2)=DESC
+ .. I FILE=80.1!(FILE=80)!(FILE=81) S @DDATA@(JJ,0)=@DDATA@(JJ,0)_U_$P(@DDATA@(JJ,0),U,2)_"-"_$P(@DDATA@(JJ,0),U,3)
+ .. I FILE=9999999.06 D  Q:QFL
+ ... I $P($G(^DIC(4,IEN,0)),U,11)="L" S QFL=1 Q
+ ... S @DDATA@(JJ,0)=@DDATA@(JJ,0)_U_$P(@DDATA@(JJ,0),U,2)_"-"_$P(@DDATA@(JJ,0),U,3)_"-"_$P(@DDATA@(JJ,0),U,4)
+ .. I $G(IGN) S II=II+1,@DATA@(II)=$P(@DDATA@(JJ,0),U,1,(IGN-1))_$C(30) Q
+ .. S II=II+1,@DATA@(II)=@DDATA@(JJ,0)_$C(30)
+ .. I FILE=9000003.1 D
+ ... I $P(^AUPN3PPH(IEN,0),U,3)'="" S $P(@DATA@(II),U,3)=$P(^AUPN3PPH(IEN,0),U,3)
+ ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,^TMP("AGGWTBLK",UID,II)=$C(31)
+ Q
+ ;
+CHK(BFLD) ;EP - Check for definition of a field
+ NEW DLEN
+ D FIELD^DID(FNBR,BFLD,"","TYPE","BQX")
+ D FIELD^DID(FNBR,BFLD,"","FIELD LENGTH","BQX")
+ D FIELD^DID(FNBR,BFLD,"","LABEL","BQX")
+ S TYPE=$S(BQX("TYPE")["DATE":"D",1:"T")
+ S DLEN=BQX("FIELD LENGTH")+5
+ S TYPE=TYPE_$E("00000",$L(DLEN)+1,5)_DLEN_BQX("LABEL")
+ K BQX
+ Q
+ ;
+TAB(DATA,FNBR) ;EP -- AGG GET WINDOW DEF TABLE
+ ;Input
+ ;  FNBR  - File number to look up value
+ ;
+ NEW UID,II,X
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("AGGWTBLK",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^AGGWTBLK D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S FNBR=$G(FNBR,""),IACT=""
+ I FNBR="" S BMXSEC="RPC Call Failed: No file identified to search for value" Q
+ ;
+ I FNBR=9999999.25 D TBL(.DATA,FNBR,"0;3","I") Q
+ ;
+ I FNBR=10 S IACT=".02;1"
+ I FNBR=10.2 S IACT=".02;1"
+ ;
+ I FNBR=40.7 S IACT=""
+ I FNBR=11 S IACT=""
+ I FNBR=23 S IACT=""
+ I FNBR=9999999.78 S IACT=""
+ I FNBR=9999999.75 S IACT=""
+ I FNBR=9999999.77 S IACT=""
+ I FNBR=9999999.32 S IACT=""
+ I FNBR=9999999.02 S IACT=""
+ I FNBR=9999999.99 S IACT=""
+ I FNBR=9999999.36 S IACT="0;6"
+ ;
+ I FNBR=5 D ST(DATA,5) Q
+ I FNBR="PL9999999.18" D PLN(.DATA,"9999999.18") Q
+ I FNBR="LG9000030" D LEG(.DATA,"9000030") Q
+ I FNBR="CV9999999.65" D COV(.DATA,"9999999.65") Q
+ ;
+ I FNBR="PN9999999.18" D MEDPD(.DATA,"9999999.18") Q
+ ;
+ I FNBR=9999999.03 D TBL(.DATA,FNBR,"0;4","Y") Q
+ ;
+ D TBL^AGGUTB(.DATA,FNBR,IACT)
+ Q
+ ;
+CLS(DATA,FILE) ; EP - Get Clinical Classifications
+ NEW IEN,NAME,DESC
+ S @DATA@(II)="I00010IEN^T00160"_$C(30)
+ S IEN=0
+ F  S IEN=$O(^BKMV(FILE,IEN)) Q:'IEN  D
+ . S NAME=$P(^BKMV(FILE,IEN,0),U,1)
+ . S DESC=$P(^BKMV(FILE,IEN,0),U,2)
+ . S II=II+1,@DATA@(II)=IEN_U_NAME_"-"_DESC_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+PLN(DATA,FILE) ; EP - Get Plan names
+ NEW IEN,NAME
+ S @DATA@(II)="I00010IEN^T00030"_$C(30)
+ S IEN=0
+ F  S IEN=$O(^AUTNINS(IEN)) Q:'IEN  D
+ . I $P($G(^AUTNINS(IEN,2)),U,1)'="D",($P($G(^AUTNINS(IEN,2)),U,1)'="K") Q
+ . ;I $P($G(^AUTNINS(IEN,1)),U,7)'=1 Q
+ . S NAME=$P(^AUTNINS(IEN,0),U,1)
+ . S II=II+1,@DATA@(II)=IEN_U_NAME_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ ;S DIC("S")="I $P($G(^(2)),""^"",1)=""D""!($P($G(^(2)),""^"",1)=""K"")"
+ Q
+ ;
+COV(DATA,FILE) ; EP - Get Coverage types
+ NEW IEN,NAME,INS
+ S @DATA@(II)="I00010IEN^T00030^I00010AGGPIINS"_$C(30)
+ S IEN=0
+ F  S IEN=$O(^AUTTPIC(IEN)) Q:'IEN  D
+ . I $P($G(^AUTTPIC(IEN,0)),U,6)'="" Q
+ . S NAME=$P(^AUTTPIC(IEN,0),U,1),INS=$P(^AUTTPIC(IEN,0),U,2) I INS="" Q
+ . S II=II+1,@DATA@(II)=IEN_U_NAME_U_INS_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+LEG(DATA,FILE) ; EP - Get 
+ NEW IEN,NAME
+ S @DATA@(II)="I00010IEN^T00030"_$C(30)
+ S IEN=0
+ F  S IEN=$O(^AUPNELM(IEN)) Q:'IEN  D
+ . I $P($G(^AUPNELM(IEN,0)),U,2)'["N" Q
+ . S NAME=$P(^AUPNELM(IEN,0),U,1)
+ . S II=II+1,@DATA@(II)=IEN_U_NAME_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+MEDPD(DATA,FILE) ; EP - Get Insurance Table for Part D
+ NEW IIEN,IENS,II
+ S II=0
+ S @DATA@(II)="I00010IEN^T00030"_$C(30) ;NAME^T00030STREET^T00015CITY^T00030STATE^T00010ZIP^T00025TYPE^T00013PHONE"_$C(30)
+ S IIEN=0
+ F  S IIEN=$O(^AUTNINS(IIEN)) Q:'IIEN  D
+ . I $P($G(^AUTNINS(IIEN,1)),"^",7)=0 Q
+ . Q:$P($G(^AUTNINS(IIEN,2)),U)'="MD"
+ . S INS=^AUTNINS(IIEN,0)
+ . S ST=$P(INS,U,4) I ST'="" S ST=$P(^DIC(5,ST,0),U,1)
+ . S II=II+1,@DATA@(II)=IIEN_U_$P(INS,U,1)_$C(30) ;_U_$P(INS,U,2)_U_$P(INS,U,3)_U_ST_U_$P(INS,U,5)_U_$P($G(^AUTNINS(IIEN,2)),U,1)_U_$P(INS,U,6)_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ST(DATA,FILE) ; EP - Get State names
+ NEW IEN,NAME,CODE,FULL
+ S @DATA@(II)="I00010IEN^T00035"_$C(30)
+ S IEN=0
+ F  S IEN=$O(^DIC(5,IEN)) Q:'IEN  D
+ . S FULL=$P(^DIC(5,IEN,0),U,1),CODE=$P(^DIC(5,IEN,0),U,2)
+ . S NAME=CODE_"-"_FULL
+ . S II=II+1,@DATA@(II)=IEN_U_NAME_$C(30)
+ Q
+ ;
+WP(FILE) ; Exclude identifiers that are word processing fields
+ ;
+ NEW ID,TYPE,WPFLD
+ S ID="",WPFLD=""
+ F  S ID=$O(^DD(FILE,0,"ID",ID)) Q:ID=""  D
+ . S TYPE=$P($G(^DD(FILE,ID,0)),"^",2) Q:'TYPE
+ . I $P($G(^DD(+TYPE,.01,0)),"^",2)["W" S WPFLD=WPFLD_";-"_ID
+ Q WPFLD
+ ;
+TBL(DATA,FILE,INAC,VALS) ;EP - Get table data if generic table lookup cannot
+ ;                       be used since inactive field may have length if active
+ ;
+ ;Input
+ ; FILE - FileMan file number where table resides
+ ; INAC - Location of inactive field to check, contains
+ ;         the node and piece in 'NODE;PIECE' format
+ ; VALS - Value(s) that constitute an inactive record (delimited by a comma)
+ ; 
+ ;Description
+ ;  Return the values in a table
+ ;
+ NEW GLBREF,LENGTH,DLEN,INACFLG,PC,VAL,VFVAL
+ ;  
+ I '$$VFILE^DILFD(FILE) S BMXSEC="RPC Call Failed: Table doesn't exist in RPMS" Q
+ ;
+ S GLBREF=$$ROOT^DILFD(FILE,"",1)
+ S LENGTH=$$GET1^DID(FILE,.01,"","FIELD LENGTH","TEST1","ERR")
+ S DLEN=$E("00000",$L(LENGTH)+1,5)_LENGTH
+ S @DATA@(II)="I00010IEN^T"_DLEN_$C(30)
+ ;
+ I INAC'="" S NODE=$P(INAC,";",1),PEC=$P(INAC,";",2)
+ S IEN=0
+ F  S IEN=$O(@GLBREF@(IEN)) Q:'IEN  D
+ . I $G(@GLBREF@(IEN,0))="" Q
+ . I INAC'="" S INACFLG=0 D  Q:INACFLG
+ .. S VFVAL=$P($G(@GLBREF@(IEN,NODE)),"^",PEC)
+ .. F PC=1:1:$L(VALS,",") S VAL=$P(VALS,",",PC) I VFVAL=VAL S INACFLG=1 Q
+ . S II=II+1,@DATA@(II)=IEN_"^"_$$GET1^DIQ(FILE,IEN_",",.01,"E")_$C(30)
+ ;
+DONE S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+PRST ; Presort results so that matching SERVICE UNIT (and, if possible, AREA) are listed 1st
+ NEW SVCUN,DAREA,SEL,ZERO,MAP,CT,AREA,SVCU,NN
+ S SVCUN=$$GET1^DIQ(9999999.06,DUZ(2)_",",.05,"E")
+ S DAREA=$$GET1^DIQ(9999999.06,DUZ(2)_",",.04,"E")
+ S SDATA=$NA(^TMP("AGGVFSORT",UID))
+ S SEL=""
+ K AGGAS,AGGSA,AGGSORT
+ S JJ=0 F  S JJ=$O(@DDATA@(JJ)) Q:'JJ  D  Q:SEL
+ . S AREA=$P(@DDATA@(JJ,0),U,3),SVCU=$P(@DDATA@(JJ,0),U,4)
+ . S:AREA="" AREA="unknown" S:SVCU="" SVCU="unknown"
+ . S AGGAS(AREA,SVCU,JJ)="",AGGSA(SVCU,AREA,JJ)=""
+ I DAREA'="",SVCUN'="",$D(AGGAS(DAREA,SVCUN)) D
+ . S SEL=$O(AGGAS(DAREA,SVCUN,"")),AGGSORT("@",SEL)=@DDATA@(SEL,0)
+ I 'SEL,SVCUN'="",$D(AGGSA(SVCUN)) D
+ . S AREA=$O(AGGSA(SVCUN,"")),SEL=$O(AGGSA(SVCUN,AREA,"")),AGGSORT("@",SEL)=@DDATA@(SEL,0)
+ I 'SEL,DAREA'="",$D(AGGAS(DAREA)) D
+ . S SVCU=$O(AGGAS(DAREA,"")),SEL=$O(AGGAS(DAREA,SVCU,"")),AGGSORT("@",SEL)=@DDATA@(SEL,0)
+ I 'SEL,$D(AGGAS) D
+ . S AREA=$O(AGGAS("")),SVCU=$O(AGGAS(AREA,"")),SEL=$O(AGGAS(AREA,SVCU,"")),AGGSORT("@",SEL)=@DDATA@(SEL,0)
+ K AGGAS,AGGSA
+ S JJ=0,CT=0
+ F  S JJ=$O(@DDATA@(JJ)) Q:'JJ  I JJ'=SEL D
+ . S CT=CT+1,AGGSORT(CT,JJ)=@DDATA@(JJ,0)
+ S ZERO=$G(@DDATA@(0))
+ S MAP=$G(@DDATA@(0,"MAP"))
+ K @DDATA
+ S @DDATA@(0)=ZERO
+ S @DDATA@(0,"MAP")=MAP
+ S CT=0,AREA="@",NN=0
+ F  S NN=$O(AGGSORT(AREA,NN)) Q:NN=""  D
+ . S CT=CT+1,@DDATA@(CT,0)=AGGSORT(AREA,NN)
+ . K AGGSORT(AREA,NN)
+ S AREA=""
+ F  S AREA=$O(AGGSORT(AREA)) Q:AREA=""  D
+ . S NN=""
+ . F  S NN=$O(AGGSORT(AREA,NN)) Q:NN=""  D
+ .. S CT=CT+1,@DDATA@(CT,0)=AGGSORT(AREA,NN)
+ K AGGSORT
+ Q

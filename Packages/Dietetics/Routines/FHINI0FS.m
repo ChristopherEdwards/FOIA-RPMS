@@ -1,0 +1,116 @@
+FHINI0FS	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9670,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9671,0)
+	;;=SOUPS,BEEF NOODLE,CAMPBELL'S^BC-02944^7.3-oz.^206
+	;;^UTILITY(U,$J,112,9671,1)
+	;;=2.184^1.262^3.786^35.437^^^^6.311^.534^^^37.864^394.175^^^^^169.417^0^.049
+	;;^UTILITY(U,$J,112,9671,2)
+	;;=.039^.631
+	;;^UTILITY(U,$J,112,9671,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9672,0)
+	;;=SOUPS,BEEF NOODLE,HOME COOKIN'^BC-02945^10.76-oz.^305
+	;;^UTILITY(U,$J,112,9672,1)
+	;;=5.541^1.246^3.41^47.213^^^^11.148^.984^^^115.082^370.164^^^^^680.656^2.623^.023
+	;;^UTILITY(U,$J,112,9672,2)
+	;;=.062^1.311
+	;;^UTILITY(U,$J,112,9672,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9673,0)
+	;;=SOUPS,BEEF NOODLE,LUNCH BUCKET^BC-02946^8.25-oz.^234
+	;;^UTILITY(U,$J,112,9673,1)
+	;;=4.274^.855^6.41^51.282^^^^^^^^^423.077
+	;;^UTILITY(U,$J,112,9673,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9674,0)
+	;;=SOUPS,BEEF RAVIOLI ROMANO,CHUNKY,CAMPBELL'S^BC-02947^9.5-oz.^269
+	;;^UTILITY(U,$J,112,9674,1)
+	;;=3.011^3.086^11.487^85.874^^^^23.792^1.152^^^153.16^389.219^^^^^2405.204^4.833^.041
+	;;^UTILITY(U,$J,112,9674,2)
+	;;=.052^1.152
+	;;^UTILITY(U,$J,112,9674,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9675,0)
+	;;=SOUPS,BEEF,PROGRESSO^BC-02948^9.5-oz.^269
+	;;^UTILITY(U,$J,112,9675,1)
+	;;=4.461^1.487^7.063^59.48^^^^^^^^154.647^516.729
+	;;^UTILITY(U,$J,112,9675,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9676,0)
+	;;=SOUPS,BEEF STROGANOFF W/NOODLES,CHUNKY,CAMPBELL'S^BC-02949^10.8-oz.^305
+	;;^UTILITY(U,$J,112,9676,1)
+	;;=5.082^4.623^9.115^98.361^^^^24.918^.951^^^108.525^397.377^^^^^972.459^0^.036
+	;;^UTILITY(U,$J,112,9676,2)
+	;;=.102^1.049
+	;;^UTILITY(U,$J,112,9676,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9677,0)
+	;;=SOUPS,BEEF VEG,PROGRESSO^BC-02950^9.5-oz.^269
+	;;^UTILITY(U,$J,112,9677,1)
+	;;=4.461^.743^7.063^55.762^^^^^^^^167.286^423.792
+	;;^UTILITY(U,$J,112,9677,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9678,0)
+	;;=SOUPS,BEEF W/MUSHROOM,CHUNKY,LOW NA,CAMPBELL'S^BC-02951^10.76-oz.^305
+	;;^UTILITY(U,$J,112,9678,1)
+	;;=4.393^2.164^7.508^66.885^^^^13.443^.82^^^157.377^21.311^^^^^1950.492^3.607^.043
+	;;^UTILITY(U,$J,112,9678,2)
+	;;=.115^1.41
+	;;^UTILITY(U,$J,112,9678,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9679,0)
+	;;=SOUPS,BEEF W/NOODLES,STROGANOFF STYLE CHUNKY,CAMPBELL'S^BC-02952^10.76-oz.^305
+	;;^UTILITY(U,$J,112,9679,1)
+	;;=5.049^4.623^9.148^98.361^^^^24.918^.951^^^108.197^400.656^^^^^978.689^0^.046
+	;;^UTILITY(U,$J,112,9679,2)
+	;;=.102^1.049
+	;;^UTILITY(U,$J,112,9679,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9680,0)
+	;;=SOUPS,CHICKEN,HEARTY,LUNCH BUCKET^BC-02953^8.25-oz.^234
+	;;^UTILITY(U,$J,112,9680,1)
+	;;=2.564^1.282^6.838^47.009^^^^^^^^^491.453
+	;;^UTILITY(U,$J,112,9680,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9681,0)
+	;;=SOUPS,CHICKEN,HOME COOKIN'^BC-02954^10.8-oz.^305
+	;;^UTILITY(U,$J,112,9681,1)
+	;;=4.393^1.016^34.426^40.656^^^^11.475^.557^^^52.459^377.049^^^^^1229.508^1.311^.023
+	;;^UTILITY(U,$J,112,9681,2)
+	;;=.046^1.344
+	;;^UTILITY(U,$J,112,9681,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9682,0)
+	;;=SOUPS,CHICKEN,PROGRESSO HEARTY^BC-02955^9.5-oz.^269
+	;;^UTILITY(U,$J,112,9682,1)
+	;;=3.717^2.974^4.461^63.197^^^^^^^^66.914^375.465
+	;;^UTILITY(U,$J,112,9682,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9683,0)
+	;;=SOUPS,CHICKEN,PROGRESSO HOME STYLE^BC-02956^9.5-oz.^269
+	;;^UTILITY(U,$J,112,9683,1)
+	;;=3.346^.743^2.974^33.457^^^^^^^^^442.379
+	;;^UTILITY(U,$J,112,9683,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9684,0)
+	;;=SOUPS,CHICKEN BROTH,LOW NA. CAMPBELL'S^BC-02957^10.5-oz.^298
+	;;^UTILITY(U,$J,112,9684,1)
+	;;=1.174^.235^.537^9.06^^^^5.369^.336^^^47.987^24.161^^^^^0^.336^.01
+	;;^UTILITY(U,$J,112,9684,2)
+	;;=.037^1.174^^^^^^^.336
+	;;^UTILITY(U,$J,112,9684,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9685,0)
+	;;=SOUPS,CHICKEN BROTH,SWANSON CUP-O-BROTH^BC-02958^7.3-oz.^206
+	;;^UTILITY(U,$J,112,9685,1)
+	;;=1.214^.583^.388^11.65^^^^4.369^.243^^^67.961^435.922^^^^^0^0^.005
+	;;^UTILITY(U,$J,112,9685,2)
+	;;=.029^1.408
+	;;^UTILITY(U,$J,112,9685,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9686,0)
+	;;=SOUPS,CHICKEN,CHUNKY,CAMPBELL'S OLD FASHIONED^BC-02959^9.5-oz.^269

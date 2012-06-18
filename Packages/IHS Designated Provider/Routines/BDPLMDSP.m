@@ -1,0 +1,99 @@
+BDPLMDSP ; IHS/CMI/TMJ - UPDATE USING LISTMAN ;  
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+ ;
+START ;
+ W:$D(IOF) @IOF
+ W $$CTR("View Designated Provider List",80)
+PROV ;
+ D ^XBFMK
+ S BDPPAT=""
+ W !! S DIC("A")="Enter Patient Name: ",DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DLAYGO,DIADD
+ I Y<0 W !,"No Patient Selected." Q
+ S BDPPAT=+Y
+ D EN
+END ;
+ D EOJ
+ K BDPP,BDPQUIT,BDPW
+ Q
+ ;
+PPEP(BDPPAT,BDPDETL) ;PEP - entry point to view/update one provider's panel
+ I '$G(BDPPAT) Q
+ S BDPDETL=$G(BDPDETL)
+ ;D EN^XBNEW("EN^BDPLMDSP","BDPPAT")
+ D EN
+ Q
+EN ; -- main entry point for BDP UPDATE PATIENT CASE DATA
+ D EN^VALM("BDP DESG PROV DISP - 1 PAT")
+ D EN^XBVK("BDP")
+ Q
+ ;
+HDR ; -- header code
+ S VALMHDR(1)=$TR($J(" ",80)," ","-")
+ S VALMHDR(2)="Designated Provider List for: "_IORVON_$P(^DPT(BDPPAT,0),U)_IOINORM_"    HRN: "_$$HRN^AUPNPAT(BDPPAT,DUZ(2),2)
+ S VALMHDR(3)=$TR($J(" ",80)," ","-")
+ S VALMHDR(4)="Category",$E(VALMHDR(4),32)="Current Provider",$E(VALMHDR(4),57)="Updated",$E(VALMHDR(4),66)="Updated by"
+ Q
+ ;
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+INIT ; -- init variables and list array
+ S VALMSG="?? for more actions  + next screen  - prev screen"
+ D GATHER ;gather up all records for display
+ S VALMCNT=BDPLINE
+ Q
+ ;
+GATHER ;
+ K BDPLIST
+ S BDPRCNT=0,BDPLINE=0
+ S BDPD=0 F  S BDPD=$O(^BDPRECN("AA",BDPPAT,BDPD)) Q:BDPD'=+BDPD  D
+ .S BDPX=$O(^BDPRECN("AA",BDPPAT,BDPD,0))
+ .;Q:$P($G(^BDPRECN(BDPX,0)),U,3)=""
+ .S BDPRCNT=BDPRCNT+1,BDPLINE=BDPLINE+1,Y=""
+ .S $E(Y,1)=$E($$VAL^XBDIQ1(90360.1,BDPX,.01),1,30)
+ .S $E(Y,32)=$E($$VAL^XBDIQ1(90360.1,BDPX,.03),1,25)
+ .;S BDPY=$P(^BDPRECN(BDPX,0),U,3)
+ .;S $E(Y,57)=$E($$VAL^XBDIQ1(200,BDPY,53.5),1,13)
+ .S $E(Y,57)=$$DATE($P(^BDPRECN(BDPX,0),U,5))
+ .S $E(Y,66)=$$VAL^XBDIQ1(90360.1,BDPX,.04)
+ .S BDPLIST(BDPLINE,0)=Y,BDPLIST("IDX",BDPLINE,BDPRCNT)=BDPX
+ .Q:'$G(BDPDETL)
+ .S BDPLINE=BDPLINE+1
+ .S BDPLIST(BDPLINE,0)=IORVON_"   History Detail:"_IORVOFF
+ .S BDPLINE=BDPLINE+1
+ .S BDPLIST(BDPLINE,0)="   OLD Provider",$E(BDPLIST(BDPLINE,0),50)="Updated",$E(BDPLIST(BDPLINE,0),60)="Updated by"
+ .S BDPZ=0 F  S BDPZ=$O(^BDPRECN(BDPX,1,BDPZ)) Q:BDPZ'=+BDPZ  D
+ ..S BDPN=^BDPRECN(BDPX,1,BDPZ,0)
+ ..S BDPLINE=BDPLINE+1
+ ..S BDPY="",$E(BDPY,4)=$P(^VA(200,$P(BDPN,U),0),U)
+ ..I $P(BDPN,U,3) S $E(BDPY,50)=$$DATE($P(BDPN,U,3))
+ ..I $P(BDPN,U,2) S $E(BDPY,60)=$P(^VA(200,$P(BDPN,U,2),0),U)
+ ..S BDPLIST(BDPLINE,0)=BDPY
+ .S BDPLINE=BDPLINE+1,BDPLIST(BDPLINE)=""
+ Q
+ ;
+EOJ ;
+ D EN^XBVK("BDP")
+ K DFN
+ K DDSFILE,DIPGM,Y
+ K X,Y,%,DR,DDS,DA,DIC
+ K BDPCASE,BDPX,BDPD,BDPRCNT,BDPLINE,BDPCDATE
+ D:$D(VALMWD) CLEAR^VALM1
+ K VALM,VALMHDR,VALMKEY,VALMMENU,VALMSGR,VALMUP,VALMWD,VALMLST,VALMVAR,VALMLFT,VALMBCK,VALMCC,VALMAR,VALMBG,VALMCAP,VALMCOFF,VALMCNT,VALMCON,BALMON,VALMEVL,VALMIOXY
+ D KILL^AUPNPAT
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+EXIT ;
+ Q
+HELP ;EP -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+DATE(D) ;EP
+ I D="" Q ""
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_$E(D,2,3)
+ ;

@@ -1,0 +1,238 @@
+PXRMEXU1 ; SLC/PKR/PJH - Reminder exchange repository utilities, #1. ;09/04/2001
+ ;;1.5;CLINICAL REMINDERS;**5,7**;Jun 19, 2000
+ ;======================================================================
+CLIST(IEN) ;Build the list of components for the repository
+ ;entry IEN.
+ N CMPNT,COMIND,COMORDR,CSTART,CSUM,END,FILENAME,FILENUM
+ N IND,INDEXAT,JND,LINE,NCMPNT,NCTYPE,NITEMS,NLINES,NUCMPNT
+ N PT01,START,TEMP,TAG,TYPE,UCOM,VRSN
+ S LINE=^PXD(811.8,IEN,100,1,0)
+ ;Make sure it is XML version 1.
+ I LINE'["<?xml version=""1.0""" D  Q
+ . W !,"Exchange file entry not in proper format!"
+ . S IEN=-1
+ . H 2
+ S LINE=^PXD(811.8,IEN,100,2,0)
+ I LINE'="<REMINDER_EXCHANGE_FILE_ENTRY>" D  Q
+ . W !,"Not an Exchange File entry!"
+ . S IEN=-1
+ . H 2
+ ;S CSUM=$P(LINE,U,2)
+ S LINE=^PXD(811.8,IEN,100,3,0)
+ S VRSN=$$GETTAGV^PXRMEXU3(LINE,"<PACKAGE_VERSION>")
+ S LINE=^PXD(811.8,IEN,100,4,0)
+ S INDEXAT=+$P(LINE,"<INDEX_AT>",2)
+ S LINE=^PXD(811.8,IEN,100,INDEXAT,0)
+ I LINE'="<INDEX>" D  Q
+ . W !,"Index missing, cannot continue!"
+ . S IEN=-1
+ . H 2
+ S JND=INDEXAT+1
+ S LINE=^PXD(811.8,IEN,100,JND,0)
+ S NCMPNT=+$$GETTAGV^PXRMEXU3(LINE,"<NUMBER_OF_COMPONENTS>")
+ F IND=1:1:NCMPNT D
+ . K END,START
+ . F  S JND=JND+1,LINE=^PXD(811.8,IEN,100,JND,0) Q:LINE="</COMPONENT>"  D
+ .. S TAG=$$GETTAG^PXRMEXU3(LINE)
+ .. I TAG["START" S START(TAG)=+$$GETTAGV^PXRMEXU3(LINE,TAG)
+ .. I TAG["END" S END(TAG)=+$$GETTAGV^PXRMEXU3(LINE,TAG)
+ . I $D(START("<M_ROUTINE_START>")) D
+ .. S CSTART=START("<M_ROUTINE_START>")
+ .. S CMPNT(IND,"TYPE")="ROUTINE"
+ .. S LINE=^PXD(811.8,IEN,100,CSTART+1,0)
+ .. S CMPNT(IND,"NAME")=$$GETTAGV^PXRMEXU3(LINE,"<ROUTINE_NAME>")
+ .. S CMPNT(IND,"FILENUM")=0
+ ..;Save the actual start and end of the code.
+ .. S CMPNT(IND,"START")=START("<ROUTINE_CODE_START>")
+ .. S CMPNT(IND,"END")=END("<ROUTINE_CODE_END>")
+ . I $D(START("<FILE_START>")) D
+ .. S CSTART=START("<FILE_START>")
+ .. S LINE=^PXD(811.8,IEN,100,CSTART+1,0)
+ .. S (CMPNT(IND,"TYPE"),CMPNT(IND,"FILENAME"))=$$GETTAGV^PXRMEXU3(LINE,"<FILE_NAME>")
+ .. S LINE=^PXD(811.8,IEN,100,CSTART+2,0)
+ .. S CMPNT(IND,"FILENUM")=$$GETTAGV^PXRMEXU3(LINE,"<FILE_NUMBER>")
+ .. S LINE=^PXD(811.8,IEN,100,CSTART+3,0)
+ .. S (CMPNT(IND,"NAME"),CMPNT(IND,"POINT_01"))=$$GETTAGV^PXRMEXU3(LINE,"<POINT_01>")
+ ..;Save the actual start and end of the FileMan FDA.
+ .. S CMPNT(IND,"FDA_START")=START("<FDA_START>")
+ .. S CMPNT(IND,"FDA_END")=END("<FDA_END>")
+ .. S CMPNT(IND,"IEN_ROOT_START")=$G(START("<IEN_ROOT_START>"))
+ .. S CMPNT(IND,"IEN_ROOT_END")=$G(END("<IEN_ROOT_END>"))
+ ;Build some indexes to order the component list.
+ F IND=1:1:NCMPNT D
+ . S TYPE=CMPNT(IND,"TYPE")
+ . S COMIND(TYPE,IND)=""
+ . S UCOM(TYPE)=""
+ ;Build the component order for display. The order is Routines,
+ ;Sponsors, ..., Definition, Dialog. Where ... stands for all other
+ ;components.
+ S NUCMPNT=0
+ I $D(UCOM("ROUTINE")) D
+ . S NUCMPNT=NUCMPNT+1
+ . S COMORDR(NUCMPNT,"ROUTINE")=""
+ . K UCOM("ROUTINE")
+ I $D(UCOM("REMINDER SPONSOR")) D
+ . S NUCMPNT=NUCMPNT+1
+ . S COMORDR(NUCMPNT,"REMINDER SPONSOR")=""
+ . K UCOM("REMINDER SPONSOR")
+ S TYPE=""
+ F  S TYPE=$O(UCOM(TYPE)) Q:TYPE=""  D
+ . I (TYPE="REMINDER DEFINITION")!(TYPE="REMINDER DIALOG") Q
+ . S NUCMPNT=NUCMPNT+1
+ . S COMORDR(NUCMPNT,TYPE)=""
+ . K UCOM(TYPE)
+ I $D(UCOM("REMINDER DEFINITION")) D
+ . S NUCMPNT=NUCMPNT+1
+ . S COMORDR(NUCMPNT,"REMINDER DEFINITION")=""
+ . K UCOM("REMINDER DEFINITION")
+ I $D(UCOM("REMINDER DIALOG")) D
+ . S NUCMPNT=NUCMPNT+1
+ . S COMORDR(NUCMPNT,"REMINDER DIALOG")=""
+ . K UCOM("REMINDER DIALOG")
+ ;Set the 0 node.
+ S ^PXD(811.8,IEN,120,0)=U_"811.802A"_U_NCMPNT_U_NCMPNT
+ S NCTYPE=0
+ S NITEMS=0
+ F NCTYPE=1:1:NUCMPNT D
+ . S TYPE=$O(COMORDR(NCTYPE,""))
+ . S NITEMS=0
+ . S IND=""
+ . F  S IND=$O(COMIND(TYPE,IND)) Q:IND=""  D
+ .. S NITEMS=NITEMS+1
+ .. I NITEMS=1 S FILENUM=CMPNT(IND,"FILENUM")
+ .. I TYPE="ROUTINE" S TEMP=CMPNT(IND,"NAME")_U_CMPNT(IND,"START")_U_CMPNT(IND,"END")
+ .. E  S TEMP=CMPNT(IND,"NAME")_U_CMPNT(IND,"FDA_START")_U_CMPNT(IND,"FDA_END")_U_$G(CMPNT(IND,"IEN_ROOT_START"))_U_$G(CMPNT(IND,"IEN_ROOT_END"))
+ .. S ^PXD(811.8,IEN,120,NCTYPE,1,NITEMS,0)=TEMP
+ . S ^PXD(811.8,IEN,120,NCTYPE,0)=TYPE_U_FILENUM_U_NITEMS
+ . S ^PXD(811.8,IEN,120,NCTYPE,1,0)=U_"811.8021A"_U_NITEMS_U_NITEMS
+ ;
+ ;Save the number of component types.
+ S ^PXD(811.8,IEN,119)=NCTYPE
+ Q
+ ;
+ ;======================================================================
+DELETE(LIST) ;Delete the repository entries in LIST.
+ N DA,DIK
+ S DIK="^PXD(811.8,"
+ S DA=""
+ F  S DA=$O(LIST(DA)) Q:+DA=0  D ^DIK
+ Q
+ ;
+ ;======================================================================
+DELHIST(RIEN,IHIND) ;Delete install history IHIND in repository entry RIEN.
+ N DATE
+ S DATE=$P(^PXD(811.8,RIEN,130,IHIND,0),U)
+ K ^PXD(811.8,RIEN,130,IHIND)
+ K ^PXD(811.8,RIEN,130,"B",DATE)
+ Q
+ ;
+ ;======================================================================
+DESC(RIEN,RNAME,SOURCE,DATEP,DESC,KEYWORD) ;Build the description.
+ N JND,LC,NKEYW
+ S LC=1
+ S ^PXD(811.8,RIEN,110,LC,0)="Reminder:    "_RNAME
+ S LC=LC+1
+ S ^PXD(811.8,RIEN,110,LC,0)="Source:      "_SOURCE
+ S LC=LC+1
+ S ^PXD(811.8,RIEN,110,LC,0)="Date Packed: "_DATEP
+ S LC=LC+1
+ S ^PXD(811.8,RIEN,110,LC,0)=""
+ ;Add the user's description.
+ S LC=LC+1
+ S ^PXD(811.8,RIEN,110,LC,0)="Description:"
+ F JND=1:1:+$P($G(@DESC@(1,0)),U,4) D
+ . S LC=LC+1
+ . S ^PXD(811.8,RIEN,110,LC,0)=@DESC@(1,JND,0)
+ S LC=LC+1
+ S ^PXD(811.8,RIEN,110,LC,0)=""
+ ;Add the keywords.
+ S LC=LC+1
+ S ^PXD(811.8,RIEN,110,LC,0)="Keywords:"
+ S NKEYW=+$P($G(@KEYWORD@(1,0)),U,4)
+ I NKEYW=0 D
+ . S LC=LC+1
+ . S ^PXD(811.8,RIEN,110,LC,0)="No keywords given"
+ F JND=1:1:NKEYW D
+ . S LC=LC+1
+ . S ^PXD(811.8,RIEN,110,LC,0)=@KEYWORD@(1,JND,0)
+ S LC=LC+1
+ S ^PXD(811.8,RIEN,110,LC,0)=""
+ S LC=LC+1
+ S ^PXD(811.8,RIEN,110,LC,0)="Components:"
+ S ^PXD(811.8,RIEN,110,0)=U_811.804_U_LC_U_LC
+ Q
+ ;
+ ;======================================================================
+RIEN(LIEN) ;Given the list ien return the repository ien.
+ N RIEN
+ S RIEN=$G(^TMP("PXRMEXLR",$J,"IDX",LIEN,LIEN))
+ Q RIEN
+ ;
+ ;======================================================================
+SAVHIST ;Save the installation history in the repository.
+ N ACTION,DATE,CMPNT,FTYPE,IND,INDEX,ITEM,JND,NEWNAME,TEMP,USER
+ ;Find the first open spot in the Installation History node.
+ S (IND,JND)=0
+ F  S IND=+$O(^PXD(811.8,PXRMRIEN,130,IND)) S JND=JND+1 Q:(IND=0)!(JND>IND)
+ ;Set the 0 node.
+ S ^PXD(811.8,PXRMRIEN,130,0)=U_"811.803DA"_U_JND_U_JND
+ S IND=JND
+ S DATE=^TMP("PXRMEXIA",$J,"DT")
+ S USER=$$GET1^DIQ(200,DUZ,.01,"")
+ S ^PXD(811.8,PXRMRIEN,130,IND,0)=DATE_U_USER
+ S ^PXD(811.8,PXRMRIEN,130,"B",DATE,IND)=""
+ S (INDEX,JND)=0
+ F  S INDEX=$O(^TMP("PXRMEXIA",$J,INDEX)) Q:+INDEX=0  D
+ . S JND=JND+1
+ . S CMPNT=$O(^TMP("PXRMEXIA",$J,INDEX,""))
+ . S ITEM=$O(^TMP("PXRMEXIA",$J,INDEX,CMPNT,""))
+ . S ACTION=$O(^TMP("PXRMEXIA",$J,INDEX,CMPNT,ITEM,""))
+ . S NEWNAME=$G(^TMP("PXRMEXIA",$J,INDEX,CMPNT,ITEM,ACTION))
+ . S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,0)=INDEX_U_CMPNT_U_ITEM_U_ACTION_U_NEWNAME
+ .;Set the 0 node.
+ . S ^PXD(811.8,PXRMRIEN,130,IND,1,0)=U_"811.8031A"_U_JND_U_JND
+ .;Check for finding item changes and save them.
+ . S FTYPE=""
+ . I CMPNT["DEFINITION" S FTYPE="DEFF"
+ . I CMPNT["DIALOG" S FTYPE="DIAF"
+ . I CMPNT["TERM" S FTYPE="TRMF"
+ . I (FTYPE'=""),($D(^TMP("PXRMEXIA",$J,FTYPE))) D
+ .. N FI,FINDING,KND,OFINDING
+ .. S KND=2
+ .. S FI=""
+ .. F  S FI=$O(^TMP("PXRMEXIA",$J,FTYPE,FI)) Q:FI=""  D
+ ... S OFINDING=$O(^TMP("PXRMEXIA",$J,FTYPE,FI,""))
+ ... S FINDING=^TMP("PXRMEXIA",$J,FTYPE,FI,OFINDING)
+ ... I OFINDING=FINDING Q
+ ... S KND=KND+1
+ ... S TEMP=$E(OFINDING,1,33)
+ ... S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,1,KND,0)="    "_TEMP_$$INSCHR^PXRMEXLC((35-$L(TEMP))," ")_FINDING
+ .. S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,1,0)=U_"811.80315A"_U_KND_U_KND
+ .. I KND>2 D
+ ... S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,1,1,0)="   Finding Changes"
+ ... S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,1,2,0)="     Original"_$$INSCHR^PXRMEXLC(27," ")_"New"
+ .;
+ .;Check for TIU template replacements and save them.
+ . I CMPNT["DIALOG" S FTYPE="DIATIU"
+ . E  S FTYPE=""
+ . I (FTYPE'=""),($D(^TMP("PXRMEXIA",$J,FTYPE))) D
+ .. N KND,OTIUT,TIUT,TYPE
+ .. S TYPE=""
+ .. S KND=2
+ .. F  S TYPE=$O(^TMP("PXRMEXIA",$J,FTYPE,TYPE)) Q:TYPE=""  D
+ ... S OTIUT=""
+ ... F  S OTIUT=$O(^TMP("PXRMEXIA",$J,FTYPE,TYPE,OTIUT)) Q:OTIUT=""  D
+ .... S TIUT=$G(^TMP("PXRMEXIA",$J,FTYPE,TYPE,OTIUT))
+ .... I OTIUT=TIUT Q
+ .... I '$D(^TMP("PXRMEXIA",$J,FTYPE,TYPE,OTIUT,ITEM)) Q
+ .... S KND=KND+1
+ .... S TEMP=$E(OTIUT,1,33)
+ .... S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,1,KND,0)="    "_TEMP_$$INSCHR^PXRMEXLC((35-$L(TEMP))," ")_TIUT
+ ... S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,1,0)=U_"811.80315A"_U_KND_U_KND
+ ... I KND>2 D
+ .... S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,1,1,0)="   "_TYPE
+ .... S ^PXD(811.8,PXRMRIEN,130,IND,1,JND,1,2,0)="     Original"_$$INSCHR^PXRMEXLC(27," ")_"New"
+ ;
+ K ^TMP("PXRMEXIA",$J)
+ Q
+ ;

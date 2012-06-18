@@ -1,0 +1,46 @@
+ABPACLG5 ;CHECK LOG UTILITY FUNCTIONS - PART 4; [ 06/26/91  9:48 PM ]
+ ;;1.4;AO PVT-INS TRACKING;*0*;IHS-OKC/KJR;JULY 25, 1991
+ Q  ;;NOT AN ENTRY POINT
+START W ! D WAIT^DICD
+ ;--------------------------------------------------------------
+ ;PROCEDURE TO MODIFY THE CURRENT CHECK ENTRY
+ K DIR,DIC,DIE,DA,DR
+ S DA(2)=ABPADFN(1),DA(1)=ABPADFN(2),DA=ABPADFN(3)
+ S DIE="^ABPACHKS("_DA(2)_",""I"","_DA(1)_",""C"","
+ S Y(0)=^ABPACHKS(DA(2),"I",DA(1),"C",DA,0)
+ S RBAL=$P(Y(0),"^",9)-ABPA("AMT")
+ S DR="4///"_DUZ_";5///NOW;8///"_RBAL D ^DIE
+ I RBAL=0 K ^ABPACHKS("RB",DA(2),DA(1),DA),RBAL
+ I $D(^ABPACHKS(DA(2),"I",DA(1),"C",DA,"SP",0))'=1 D
+ .S ^ABPACHKS(DA(2),"I",DA(1),"C",DA,"SP",0)="^9002270.31113DA^^0"
+ S %DT="T",X="NOW" D ^%DT K DIC,DIE,DR
+ S DIC="^ABPACHKS("_DA(2)_",""I"","_DA(1)_",""C"","_DA_",""SP"","
+ K DA S DA(3)=ABPADFN(1),DA(2)=ABPADFN(2),DA(1)=ABPADFN(3)
+ S DIC(0)="LZ",X=Y D ^DIC S ABPADFN(4)=+Y K DIC,DIE,DA,DR
+ S DA(3)=ABPADFN(1),DA(2)=ABPADFN(2),DA(1)=ABPADFN(3),DA=ABPADFN(4)
+ S DIE="^ABPACHKS("_DA(3)_",""I"","_DA(2)_",""C"","_DA(1)_",""SP"","
+ S DR="1///"_ABPA("FUNC")_";2///"_DUZ_";3///"_ABPA("AMT")_";4"
+ W ! D ^DIE W ! D WAIT^DICD
+ ;--------------------------------------------------------------------
+ ;PROCEDURE TO SET UP THE TRANSFERED CHECK ENTRY
+ K DIC,DIK,DIE,DA,DR
+ S DIC="^ABPACHKS(",DIC(0)="L",X=$P(^DIC(4,ABPA("TO"),0),"^") D ^DIC
+ S DA(1)=+Y,X=+^ABPACHKS(ABPADFN(1),"I",ABPADFN(2),0)
+ I $D(^ABPACHKS(DA(1),"I","B",X))=10 D
+ .S DA(2)=DA(1),DA(1)="",DA(1)=$O(^ABPACHKS(DA(2),"I","B",X,DA(1)))
+ I $D(DA(2))=0 D
+ .S ABPAP3=+$P(^ABPACHKS(DA(1),"I",0),"^",3)+1
+ .S ABPAP4=+$P(^ABPACHKS(DA(1),"I",0),"^",4)+1
+ .F DA=ABPAP3:1 Q:$D(^ABPACHKS(DA(1),"I",DA,0))'=1
+ .S ^ABPACHKS(DA(1),"I",DA,0)=X
+ .S $P(^ABPACHKS(DA(1),"I",0),"^",3)=DA
+ .S $P(^ABPACHKS(DA(1),"I",0),"^",4)=ABPAP4 K ABPAP3,ABPAP4
+ .K DIK S DIK="^ABPACHKS("_DA(1)_",""I""," D IX1^DIK
+ .I $D(^ABPACHKS(DA(1),"I",DA,"C",0))'=1 D
+ ..S ^ABPACHKS(DA(1),"I",DA,"C",0)="^9002270.311AI^^0"
+ .S DAH1=DA(1),DAH=DA K DA S DA(2)=DAH1,DA(1)=DAH K DAH1,DAH
+ K DIC,DIK,DIE,DR
+ S DIC="^ABPACHKS("_DA(2)_",""I"","_DA(1)_",""C"",",DIC(0)="LZ"
+ S X=ABPACHK("NUM") D ^DIC S DA=+Y
+ K DIE,DR S DIE="^ABPACHKS("_DA(2)_",""I"","_DA(1)_",""C"","
+ G START^ABPACLG6

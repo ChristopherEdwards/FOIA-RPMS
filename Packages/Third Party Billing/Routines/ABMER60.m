@@ -1,0 +1,129 @@
+ABMER60 ; IHS/ASDST/DMJ - UB92 EMC RECORD 60 (Inpatient Ancillary Services) ; 
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;07/08/96 4:56 PM
+ ;
+ ; IHS/FCS/DRS 09/17/01 ABM*2.4*9 
+ ;   Part 17 - Proper init of ancillary charges slots.
+ ;   They demand that even unused slots have 0 in numeric bytes,
+ ;   not spaces.
+ ;
+ ; IHS/SD/SDR - v2.5 p10 - IM20395
+ ;  Split out lines bundled by rev code
+ ;
+START ;START HERE
+ K ABMR(60),ABMREC(60)
+ S ABME("RTYPE")=60,ABME("S#")=0
+ S $P(ABME("SPACE1")," ",113)=""
+ S $P(ABME("SPACE2")," ",57)=""
+ I $$ENVOY^ABMEF16 D
+ .N X S X="0000         000000000000000000000000000    000000      "
+ .S ABME("SPACE1")=X_X,ABME("SPACE2")=X
+ D SET^ABMERUTL
+ K ABMP("FLAT") D FRATE^ABMDF11
+ D ^ABMERGRV
+ D LOOP
+ S L=0 F  S L=$O(ABMREC(60,L)) Q:'L  D S90^ABMERUTL
+ K ABM,ABME,ABMRV
+ Q
+ ;
+LOOP ;LOOP HERE
+ I $$RCID^ABMERUTL(ABMP("INS"))["MAD" D
+ .K ABMRV(9999)
+ S L=0
+ S J=219 F  S J=$O(ABMRV(J)) Q:'J  D
+ .S K=-1 F  S K=$O(ABMRV(J,K)) Q:K=""  D
+ ..S M=0
+ ..F  S M=$O(ABMRV(J,K,M)) Q:M=""  D
+ ...S L=L+1 I L#3=1 D
+ ....S ABME("S#")=ABME("S#")+1
+ ....F I=10:10:30 D @(I_"^ABMER60"),ADD
+ ...F I=40:10:120 D @(I_"^ABMER60"),ADD
+ ...Q:J=9999
+ ...S ABM("ACTOT")=+$P(ABMRV(J,K,M),U,6)
+ ...S ABM("NCTOT")=+$P(ABMRV(J,K,M),U,7)
+ ...D ADTT
+ I '$G(ABMP("NOFMT")) S ABMREC(60,ABME("S#"))=ABMREC(60,ABME("S#"))_$S(L#3=1:ABME("SPACE1"),L#3=2:ABME("SPACE2"),1:"")
+ Q
+ ;
+ADD ;ADD TO RECORD
+ I '$G(ABMP("NOFMT")) S ABMREC(60,ABME("S#"))=$G(ABMREC(60,ABME("S#")))_ABMR(60,I)
+ Q
+ ;
+10 ;Record type
+ S ABMR(60,10)=60
+ Q
+ ;
+20 ;Sequence 
+ S ABMR(60,20)=ABME("S#")
+ S ABMR(60,20)=$$FMT^ABMERUTL(ABMR(60,20),"2NR")
+ Q
+ ;
+30 ;Patient Control Number, (SOURCE: FILE=9000001.41,FIELD=.02)
+ S ABMR(60,30)=$$EX^ABMER20(30,ABMP("BDFN"))
+ S ABMR(60,30)=$$FMT^ABMERUTL(ABMR(60,30),20)
+ Q
+ ;
+40 ;Outpatient Revenue Code 1 (SOURCE: FILE=, FIELD=)
+ S ABMR(60,40)=$P(ABMRV(J,K,M),U)
+ S ABMR(60,40)=$$FMT^ABMERUTL(ABMR(60,40),"4NR")
+ Q
+ ;
+50 ;HCPCS Procedure Code 1
+ S ABMR(60,50)=$P(ABMRV(J,K,M),U,2)
+ S ABMR(60,50)=$$FMT^ABMERUTL(ABMR(60,50),5)
+ Q
+ ;
+60 ;Modifier 1 (CPT-4 and HCPCS) 1 (SOURCE: FILE=, FIELD=)
+ S ABMR(60,60)=$P(ABMRV(J,K,M),U,3)
+ S ABMR(60,60)=$$FMT^ABMERUTL(ABMR(60,60),2)
+ Q
+ ;
+70 ;Modifier 2 (CPT-4 and HCPCS) 1 (SOURCE: FILE=, FIELD=)
+ S ABMR(60,70)=$P(ABMRV(J,K,M),U,4)
+ S ABMR(60,70)=$$FMT^ABMERUTL(ABMR(60,70),2)
+ Q
+ ;
+80 ;Units of Service 1 (SOURCE: FILE= FIELD=)
+ S ABMR(60,80)=$P(ABMRV(J,K,M),U,5)
+ S ABMR(60,80)=$$FMT^ABMERUTL(ABMR(60,80),"7NR")
+ Q
+ ;
+90 ;Charges Total 1 (SOURCE: FILE= FIELD=)
+ S ABMR(60,90)=$P(ABMRV(J,K,M),U,6)
+ S ABMR(60,90)=$$FMT^ABMERUTL(ABMR(60,90),"10NRJ2")
+ Q
+ ;
+100 ;Charges Non-Covered 1
+ S ABMR(60,100)=""
+ S ABMR(60,100)=$$FMT^ABMERUTL(ABMR(60,100),"10NRJ2")
+ Q
+ ;
+110 ;Form Locator 49 1 (SOURCE: FILE= FIELD=)
+ S ABMR(60,110)=""
+ S ABMR(60,110)=$$FMT^ABMERUTL(ABMR(60,110),4)
+ Q
+ ;
+120 ;Filler (National Use)
+ S ABMR(60,120)=""
+ S ABMR(60,120)=$$FMT^ABMERUTL(ABMR(60,120),12)
+ Q
+ ;
+EX(ABMX,ABMY,ABMZ) ;EXTRINSIC FUNCTION HERE
+ ;X=data element, Y=bill internal entry number
+ S ABMP("BDFN")=ABMY D SET^ABMERUTL
+ I '$G(ABMP("NOFMT")) S ABMP("FMT")=0
+ D @ABMX
+ S Y=ABMR(60,ABMX)
+ I $D(ABMP("FMT")) S ABMP("FMT")=1
+ K ABMR(60,ABMX),ABME,ABMX,ABMY,ABMZ,ABM
+ Q Y
+ ;
+ADTT ; EP
+ ; Add to totals
+ S ABMRT(90,150)=+$G(ABMRT(90,150))+ABM("ACTOT")
+ S ABMRT(90,160)=+$G(ABMRT(90,160))+ABM("NCTOT")
+ S ABMRT(95,100)=+$G(ABMRT(95,100))+ABM("ACTOT")
+ S ABMRT(95,110)=+$G(ABMRT(95,110))+ABM("NCTOT")
+ S ABMRT(99,80)=+$G(ABMRT(99,80))+ABM("ACTOT")
+ S ABMRT(99,90)=+$G(ABMRT(99,90))+ABM("NCTOT")
+ Q

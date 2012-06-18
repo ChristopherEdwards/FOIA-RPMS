@@ -1,0 +1,51 @@
+ABPAPDEM ;MULTI-ENTRY LOOKUP; [ 06/27/91  3:32 PM ]
+ ;;1.4;AO PVT-INS TRACKING;*0*;IHS-OKC/KJR;JULY 25, 1991
+ D CURRENT^%ZIS K ABPADDFN S R=0 F ABPA("I")=0:1 D  Q:+R=0
+ .S R=$O(^ABPVAO("BD",ABPABDFN,ABPATDFN,R)) Q:+R=0
+ .S ABPADDFN=+R
+ I +ABPA("I")<1 K ABPADDFN Q
+ I +ABPA("I")<2 D  Q
+ .I $D(^ABPVAO(ABPATDFN,"P",ABPADDFN,0))'=1 K ABPADDFN Q
+ S D0=ABPATDFN,DC=1 K DXS W @IOF,! D ^ABPAPDA K DXS,D0
+A0A S $P(ABPAXX,"-",81)="" W ! S DX=0,DY=6 X XY W @ABPAEOP
+ S X="-- Multiple payment transactions for this batch date --"
+ W !?(40-($L(X)/2)),X
+ W !!?15,"       .....CLAIMS......     .......PAYMENT......."
+ W !?14,"TRN #     FROM      TO           AMOUNT    CODE",!,ABPAXX
+A1 K ABPA("QF") S ABPADDFN=0 F ABPA("I")=0:0 D  Q:$D(ABPA("QF"))=1
+ .S ABPADDFN=$O(^ABPVAO("BD",ABPABDFN,ABPATDFN,ABPADDFN))
+ .I +ABPADDFN<1 S ABPA("QF")="" Q
+ .Q:$D(^ABPVAO(ABPATDFN,"P",ABPADDFN,0))'=1  W !?14,$J(ABPADDFN,4)
+ .S ABPADT=0,ABPADT=$O(^ABPVAO(ABPATDFN,"P",ABPADDFN,"D",ABPADT))
+ .Q:+ABPADT'>0  S ABPADT=+^ABPVAO(ABPATDFN,"P",ABPADDFN,"D",ABPADT,0)
+ .S ABPADT=$E(ABPADT,4,5)_"/"_$E(ABPADT,6,7)_"/"_$E(ABPADT,2,3)
+ .W ?22,ABPADT_"-"
+ .S ABPADT=$P(^ABPVAO(ABPATDFN,"P",ABPADDFN,"D",0),"^",3)
+ .S ABPADT=+^ABPVAO(ABPATDFN,"P",ABPADDFN,"D",ABPADT,0)
+ .S ABPADT=$E(ABPADT,4,5)_"/"_$E(ABPADT,6,7)_"/"_$E(ABPADT,2,3)
+ .W ABPADT K ABPADT,ABPA("III")
+ .S DA=0 F ABPA("II")=1:1 D  I $D(ABPA("III"))=1 K ABPA("III") Q
+A2 ..S DA=$O(^ABPVAO(ABPATDFN,"P",ABPADDFN,"A",DA))
+ ..I +DA=0 S ABPA("III")="" Q
+ ..W:+ABPA("II")>1 !
+ ..W ?44,$J($P(^ABPVAO(ABPATDFN,"P",ABPADDFN,"A",DA,0),"^"),9,2)
+ ..W ?59,$P(^ABPVAO(ABPATDFN,"P",ABPADDFN,"A",DA,0),"^",2)
+A3 K ABPADDFN W !,"Select TRANSACTION #// " D SBRS
+ I $D(DFOUT)!$D(DTOUT)!$D(DLOUT)!$D(DUOUT) Q
+ I $D(DQOUT) D  G A3
+ .W !!?10,"Enter the payment TRN number you wish to edit as it is"
+ .W !?10,"shown in the far left column of the 'Transactions"
+ .W " Listing'",!?10,"displayed above.",!
+ I +Y<1 W *7,"  ??",! G A3
+ I $D(^ABPVAO(ABPATDFN,"P",+Y,0))'=1 D  W ! G A3
+ .W *7,!!?10,"<<< TRANSACTION NUMBER NOT FOUND >>>"
+ S ABPADDFN=+Y
+ Q
+ ;
+SBRS K DFOUT,DTOUT,DUOUT,DQOUT,DLOUT
+ R Y:DTIME I '$T W *7 R Y:5 G SBRS:Y="." I '$T S (DTOUT,Y)="" Q
+ I Y="/.," S (DFOUT,Y)="" Q
+ I Y="" S DLOUT="" Q
+ I Y="^" S (DUOUT,Y)="" Q
+ I Y?1"?".E!(Y["^") S (DQOUT,Y)="" Q
+ Q

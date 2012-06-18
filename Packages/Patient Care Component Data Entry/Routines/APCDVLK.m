@@ -1,0 +1,73 @@
+APCDVLK ; IHS/CMI/LAB - VISIT LOOKUP ;
+ ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;IHS/CMI/LAB - added VCN display
+ ;
+ ;EP;CALLED BY THIS PACKAGE AND OTHER PACKAGES
+ ;This routine is a 'published', callable entry point used to
+ ;look-up a visit for a patient.
+ ;Called by QA.
+ ;Caller can pass the visit date in APCDVLDT or this routine
+ ;will prompt for the visit date/time.
+ ;Variable APCDPAT must contain the patient DFN.
+ ;User will be returned the following variables:
+ ;APCDVSIT-ien of visit
+ ;APCDCAT-service category of visit
+ ;APCDTYPE-type of visit
+ ;APCDDATE-date of visit
+ ;APCDCLN-clinic of visit
+ ;APCDLOC-location of visit
+ ;APCDPAT-patient dfn
+ ;Caller is responsible for killing these variables
+ ;This routine is called by INPUT TEMPLATES, therefore, I would
+ ;prefer NOT to use DIR for reads until I'm sure that DIE and DIR
+ ;do not collide with each other.  Especially using the variables
+ ;X and Y.
+ ; ADD DUZ(2) LOGIC WHEN STABLE ********
+ S U="^",APCDLOOK=""
+ I $D(APCDVLK),APCDVLK S APCDLOOK=APCDVLK Q  ;*** FOR MODIFY IN ADD MODE ***
+ I $D(APCDVLDT) S Y=$P(APCDVLDT,".") G VDPASSED
+RDV W !,"Enter VISIT date: " R X:$S($D(DTIME):DTIME,1:300) S:'$T X="" I X=" " W $C(7),"  ??" G RDV
+ Q:X=""!(X="^")
+ S %DT="EX" D ^%DT
+ G:X="?" RDV
+ I Y<0 K Y Q
+VDPASSED ; FOR CALLER PASSING VISIT DATE
+ K APCDVLKT
+ S APCDVLDC=Y,(APCDVLI,APCDVLV)=0 K Y
+ ;IHS/CMI/LAB - modified to use AA xref rather than AC to speed it up
+ ;F APCDVLL=0:0 S APCDVLV=$O(^AUPNVSIT("AC",APCDPAT,APCDVLV)) Q:APCDVLV=""  I APCDVLDC=$P(+^AUPNVSIT(APCDVLV,0),"."),'$P(^(0),U,11) D
+ S APCDVLID=9999999-APCDVLDC,APCDVLL=$$FMADD^XLFDT(APCDVLDC,1),APCDVLL=9999999-APCDVLL,APCDVLL=APCDVLL_".9999"
+ F  S APCDVLL=$O(^AUPNVSIT("AA",APCDPAT,APCDVLL)) Q:APCDVLL'=+APCDVLL!($P(APCDVLL,".")'=APCDVLID)  D
+ .S APCDVLV=0 F  S APCDVLV=$O(^AUPNVSIT("AA",APCDPAT,APCDVLL,APCDVLV)) Q:APCDVLV'=+APCDVLV  I $D(^AUPNVSIT(APCDVLV,0)),'$P(^(0),U,11) D
+ ..S APCDVLI=APCDVLI+1,APCDVLKT(APCDVLI)=APCDVLV
+ .Q
+ G:'$D(APCDVLKT) XIT
+ I APCDVLI=1,'$D(APCDVLDT) S APCDLOOK=APCDVLKT(1) G XIT
+SELECT ; SELECT EXISTING VISIT
+ W !!,"PATIENT: ",$P(^DPT(APCDPAT,0),U)," has one or more VISITs on this date.",!
+ S APCDVLI="" F APCDVLL=0:0 S APCDVLI=$O(APCDVLKT(APCDVLI)) Q:APCDVLI=""  S APCDVLX=^AUPNVSIT(APCDVLKT(APCDVLI),0),APCDA11=$G(^AUPNVSIT(APCDVLKT(APCDVLI),11)) D WRITE
+ S APCDVLV=""
+SRDR W !!,"Select one: " R APCDVLI:$S($D(DTIME):DTIME,1:300) I '$T S APCDVLI=""
+ G:APCDVLI=""!(APCDVLI="^") XIT
+ I APCDVLI'?1N.N W $C(7),$C(7) G SELECT
+ I '$D(APCDVLKT(APCDVLI)) W $C(7),$C(7) G SELECT
+ S APCDLOOK=APCDVLKT(APCDVLI)
+ G XIT
+ ;
+WRITE ; WRITE VISITS FOR SELECT
+ S APCDVLT=$P(+APCDVLX,".",2),APCDVLT=$S(APCDVLT="":"<NONE>",$L(APCDVLT)=1:APCDVLT_"0:00 ",1:$E(APCDVLT,1,2)_":"_$E(APCDVLT,3,4)_$E("00",1,2-$L($E(APCDVLT,3,4)))_" ")
+ S APCDVLOC=""
+ I $P(APCDVLX,U,6),$D(^AUTTLOC($P(APCDVLX,U,6),0)) S APCDVLOC=$P(^(0),U,7),APCDVLOC=APCDVLOC_$E("    ",1,4-$L(APCDVLOC))
+ S:APCDVLOC="" APCDVLOC="...."
+ W !,APCDVLI,"  TIME: ",APCDVLT,"LOC: ",APCDVLOC," TYPE: ",$P(APCDVLX,U,3)," CAT: ",$P(APCDVLX,U,7)," CLINIC: ",$S($P(APCDVLX,U,8)]"":$E($P(^DIC(40.7,$P(APCDVLX,U,8),0),U),1,8),1:"<NONE>") D
+ .W ?57,"DEC: ",$S($P(APCDVLX,U,9):$P(APCDVLX,U,9),1:0),$S($P(APCDA11,U,3)]"":" VCN:"_$P(APCDA11,U,3),1:"")
+ .I $P(APCDVLX,U,22) W !?3,"Hospital Location: ",$P($G(^SC($P(APCDVLX,U,22),0)),U)
+ .I $$PRIMPROV^APCLV(APCDVLKT(APCDVLI))]"" W !?3,"Primary Provider: ",$$PRIMPROV^APCLV(APCDVLKT(APCDVLI),"N")
+ K APCDVLT,APCDVLOC
+ Q
+ ;
+XIT ; KILL VARIABLES AND QUIT
+ I APCDLOOK S APCDVSIT=APCDLOOK,APCDDATE=+^AUPNVSIT(APCDLOOK,0),APCDTYPE=$P(^AUPNVSIT(APCDLOOK,0),U,3),APCDCAT=$P(^(0),U,7),APCDLOC=$P(^(0),U,6),APCDCLN=$P(^(0),U,8)
+ I APCDVLI="^",$D(APCDGHVD) S APCDGHVD="^"
+ K APCDVLDC,APCDVLDT,APCDVLI,APCDVLKT,APCDVLL,APCDVLOC,APCDVLT,APCDVLV,APCDVLX,Y,APCDA11,APCDVLID
+ Q

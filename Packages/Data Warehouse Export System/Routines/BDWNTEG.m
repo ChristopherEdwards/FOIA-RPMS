@@ -1,0 +1,27 @@
+BDWNTEG ;ISC/XTSUMBLD KERNEL - Package checksum checker ;3080605.214822
+ ;;0.0;
+ ;;7.3;3080605.214822
+ S XT4="I 1",X=$T(+3) W !!,"Checksum routine created on ",$P(X,";",4)," by KERNEL V",$P(X,";",3),!
+CONT F XT1=1:1 S XT2=$T(ROU+XT1) Q:XT2=""  S X=$P(XT2," ",1),XT3=$P(XT2,";",3) X XT4 I $T W !,X X ^%ZOSF("TEST") S:'$T XT3=0 X:XT3 ^%ZOSF("RSUM") W ?10,$S('XT3:"Routine not in UCI",XT3'=Y:"Calculated "_$C(7)_Y_", off by "_(Y-XT3),1:"ok")
+ ;
+ K %1,%2,%3,X,Y,XT1,XT2,XT3,XT4 Q
+ONE S XT4="I $D(^UTILITY($J,X))",X=$T(+3) W !!,"Checksum routine created on ",$P(X,";",4)," by KERNEL V",$P(X,";",3),!
+ W !,"Check a subset of routines:" K ^UTILITY($J) X ^%ZOSF("RSEL")
+ W ! G CONT
+ROU ;;
+BDW10P1 ;;1555092
+BDW1BLR ;;9180223
+BDW1VBL ;;15919431
+BDW1VBLI ;;29123550
+BDWBHL ;;22392644
+BDWBHL1 ;;15290135
+BDWDDR ;;31233025
+BDWDWPX ;;29003390
+BDWPRADD ;;3423540
+BDWRDR ;;29685779
+BDWRDR2 ;;9303592
+BDWRDRI ;;14642342
+BDWRDRI2 ;;13320337
+BDWREDO ;;16638467
+BDWRXP ;;6552005
+BDWUTIL1 ;;19067718

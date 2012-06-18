@@ -1,0 +1,115 @@
+BGOVUPD ; IHS/MSC/MGH - Manage V UPDATE/REVIEWED file ;08-Mar-2011 17:30;DU
+ ;;1.1;BGO COMPONENTS;**8**;Mar 20, 2007;Build 1
+ ; Get entries for a patient and either a VIEN Or a date
+ ;  INP = Patient IEN [1]^ VIEN [2] ^Start DT [3] ^End dt [4]
+ ; .RET returned as a list of records in the format:
+ ;   IEN[1] ^ ACTION [2] ^ Action Type [3] ^Visit Date [4] ^Date/time entered [5] ^ entered by [6] ^Event dt/time [7] ^ encounter provider [8]
+GET(RET,INP) ;EP
+ N DFN,LRN,VFIEN,TYPE,CNT,VDT,VIEN,IEN,VDATE,UDATE,START
+ S RET=$$TMPGBL^BGOUTL
+ S DFN=+INP
+ S VIEN=$P(INP,U,2)
+ S START=$P(INP,U,3),END=$P(INP,U,4)
+ S (TYPE,CNT)=0
+ I +VIEN D
+ .S IEN="" F  S IEN=$O(^AUPNVRUP("AD",VIEN,IEN)) Q:IEN=""  D CNT(IEN)
+ E  D
+ .S:'START START=DT+1
+ .S:START<END X=START,START=END,END=X
+ .S START=9999999-$S(START#1:START,1:START+.9),END=9999999-END
+ .F  S START=$O(^AUPNVRUP("AE",DFN,START)) Q:'START!(START>END)  D
+ ..S TYPE="" F  S TYPE=$O(^AUPNVRUP("AE",DFN,START,TYPE)) Q:TYPE=""  D
+ ...S IEN="" F  S IEN=$O(^AUPNVRUP("AE",DFN,START,TYPE,IEN)) Q:IEN=""  D CNT(IEN)
+ Q
+CNT(IEN) ;Put the data in to array for return
+ N TYPE,VDATE,DENT,VISIT,ETYPE,ATYPE,ENTBY,EVDT,ENCPRV,ZERO,ONE,TWELVE,X
+ Q:$D(^AUPNVRUP(IEN,2))   ;Skip entries that are in error
+ S TYPE=$P($G(^AUPNVRUP(IEN,0)),U,1)
+ S ETYPE=$$GET1^DIQ(9000010.54,IEN,.01)
+ S ATYP=$S(ETYPE["ALLERG":"A",ETYPE["PROBLEM":"P",ETYPE["MEDICATION":"M",1:"")
+ S VDATE=$$GET1^DIQ(9000010.54,IEN,.03)
+ S DENT=$$GET1^DIQ(9000010.54,IEN,1.01)
+ S ENTBY=$$GET1^DIQ(9000010.54,IEN,1.02)
+ S EVDT=$$GET1^DIQ(9000010.54,IEN,1201)
+ S ENCPRV=$$GET1^DIQ(9000010.54,IEN,1204)
+ S CNT=CNT+1
+ S @RET@(CNT)=IEN_U_TYPE_"~"_ETYPE_U_ATYP_U_VDATE_U_DENT_U_ENTBY_U_EVDT_U_ENCPRV
+ Q
+ ; Add/edit entry in update/reviewed file
+ ;  INP = Update Type IEN [1] ^ V file IEN [2] ^ DFN [3] ^ Visit String [4] ^ Evnt day/time[5] ^ Provider IEN [6] ^ Delete [7] ^ Delete Reason~free text reason [8]
+ ;  RET= IEN or error message [1] ^ VISIT IEN [2] ^ IEN OF REVIEW MESSAGE IF ADDED AUTOMATICALLY [3]
+SET(RET,INP) ;EP
+ N VIEN,TYPE,VSTR,PRV,VFIEN,VFNEW,EVDT,FNUM,FDA,ATYP,ETYP,DFN,ACTION,UPDATE,REV
+ S FNUM=$$FNUM
+ S TYPE=+INP
+ I 'TYPE S RET=$$ERR^BGOUTL(1008) Q
+ ;S VFIEN=$P(INP,U,2)
+ ;For now, all SETS are new entries
+ S VFIEN=0
+ S DFN=$P(INP,U,3)
+ I $P(INP,U,7)="D" D EIE(INP) Q
+ S VFNEW='VFIEN
+ S VSTR=$P(INP,U,4)
+ S EVDT=$P(INP,U,5)
+ S PRV=$P(INP,U,6)
+ I VSTR="" S RET="-1^You must first create a visit context to store data" Q
+ ;If a visit has not yet been created, create the visit
+ S VIEN=$$VSTR2VIS^BEHOENCX(DFN,VSTR,1,PRV)
+ I VIEN=0 S RET="-1^No visit created" Q
+ I 'VFIEN D  Q:'VFIEN
+ .D VFNEW^BGOUTL2(.RET,FNUM,TYPE,VIEN)
+ .S:RET>0 VFIEN=RET,RET=""
+ S UPDATE=$$FILEDATA(VFIEN)
+ D:'UPDATE VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)
+ S:'UPDATE RET=VFIEN_U_VIEN
+ ;If this is an update, auto file the review data
+ S ETYP=$P($G(^AUTTCRA(TYPE,0)),U,1)
+ S ACTION=$S(ETYP["UPDATED":1,1:0)
+ S ATYP=$S(ETYP["ALLERG":"A",ETYP["PROBLEM":"P",ETYP["MEDICATION":"M",1:"")
+ I +ACTION D
+ .I ATYP="A" S TYPE=$O(^AUTTCRA("B","ALLERGY LIST REVIEWED",""))
+ .I ATYP="P" S TYPE=$O(^AUTTCRA("B","PROBLEM LIST REVIEWED",""))
+ .I ATYP="M" S TYPE=$O(^AUTTCRA("B","MEDICATION LIST REVIEWED",""))
+ .S VFIEN=0
+ .D VFNEW^BGOUTL2(.REV,FNUM,TYPE,VIEN)
+ .S:REV>0 VFIEN=REV,REV=""
+ .Q:'VFIEN
+ .S UPDATE=$$FILEDATA(VFIEN)
+ .S:'UPDATE RET=RET_U_VFIEN
+ ;If this is an allergy update, check for inaccessible entries
+ S DFN=$P($G(^AUPNVRUP(VFIEN,0)),U,2)
+ I ATYP="A" D
+ .D CKIN^BEHOARMU(DFN)
+ .D FIREEVT^BEHOART(DFN,2,"")
+ Q
+FILEDATA(TYPE) ;Store the data
+ N RET
+ S FDA=$NA(FDA(FNUM,VFIEN_","))
+ S @FDA@(1.01)="N"
+ S @FDA@(1.02)="`"_DUZ
+ I EVDT="" S EVDT="N"
+ S @FDA@(1201)=EVDT
+ I PRV="" S PRV=DUZ
+ S @FDA@(1204)="`"_PRV
+ S RET=$$UPDATE^BGOUTL(.FDA,"E")
+ I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
+ Q RET
+EIE(INP) ;Mark this entry as entered in error
+ N REASON,VFIEN,FNUM,TYPE,VFIEN
+ S FNUM=$$FNUM
+ S TYPE=+INP
+ S VFIEN=$P(INP,U,2)
+ I 'VFIEN D ERR^BGOUTL(1059) Q
+ S REASON=$P($P(INP,U,7),"~",1)
+ S FDA=$NA(FDA(FNUM,VFIEN_","))
+ S @FDA@(2.01)=1
+ S @FDA@(2.02)="`"_DUZ
+ S REASON=$S(REASON="DUPLICATE":"D",REASON="D":"D",REASON="ENTERED IN ERROR":"E",REASON="E":"E",REASON="OTHER":"O",1:"O")
+ S @FDA@(2.03)=REASON
+ I REASON="O" S @FDA@(2.04)=$P($P(INP,U,7),"~",2)
+ S RET=$$UPDATE^BGOUTL(.FDA,"E")
+ D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,2)
+ S:'RET RET=VFIEN
+ Q
+ ; Return V File #
+FNUM() Q 9000010.54

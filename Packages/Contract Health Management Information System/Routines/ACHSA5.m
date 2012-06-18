@@ -1,0 +1,255 @@
+ACHSA5 ; IHS/ITSC/TPF/PMF - ENTER DOCUMENTS (6/8)-(SCC,DCR,DEST,REF,COM,DAYS) ;JUL 10, 2008   
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**14,15,16**;JUN 11,2001
+ ;ACHS*3.1*14 IHS/OIT/FCJ Fixed the lookup problem when crosswalk was not definned
+ ;ACHS*3.1*15 2.5.2009 IHS/OIT/FCJ FED FACILITIES REQUIRED TO USE VALID SCC
+ ;ACHS*3.1*16 6.10.2009 IHS.OIT.FCJ FX FOR TRIBAL SITE USING NON STANDARD SCC'S
+ ;
+B1 ;EP - Input Service Class Code.
+ W !!,"Service Class Code: "
+ I $G(ACHSSCC),$D(ACHSSAME),ACHSSAME=$G(ACHSCAN),$D(^ACHS(3,DUZ(2),1,$G(ACHSSCC,"UNDEFINED"),0)) W $P($G(^ACHS(3,DUZ(2),1,ACHSSCC,0)),U),"// "
+ S ACHSSAME=ACHSCAN
+ D READ^ACHSFU
+ I Y="",ACHSSCC S Y=$P($G(^ACHS(3,DUZ(2),1,ACHSSCC,0)),U)
+ E  S ACHSSCC=""
+ ;
+ I $G(ACHSQUIT) D END^ACHSA Q
+ ;
+ ;GO TO REENTER CAN NUMBER
+ G A1^ACHSA4:$D(DUOUT),B5:Y'?1"?".E
+ S (R,ACHSCT)=0
+ W !!?3,"ITEM #",?12,"SER CL",?20,"DESCRIPTION",!?3,"------",?12,"------",?20,"-----------",!
+B2 ;
+ ;LOOP THROUGH 'CHS OBJECT CLASSIFICATION' FILE UNDOCUMENTED X-REF "AC"
+ S R=$O(^ACHS(3,DUZ(2),"AC",ACHSCC,R))   ;GET 'CODE' IEN
+ G B4:R=""
+ S ACHS=$P($G(^ACHS(3,DUZ(2),1,R,0)),U)   ;GET ACTUAL 'CODE'
+ ;
+ ;IF CODE IS 252G "NON-FEDERAL HOSPITALIZATION" AND ITS A BLANKET DOC
+ ;           252R "RENAL DIALYSIS (HOSP INP)
+ ;           254B "PHYS INP NON-IHS"
+ ;           254P "RENAL DIALYSIS - PHYS INP"
+ ;SKIP AND CONTINUE LOOP WHY?????
+ I $D(ACHSBLKF),((ACHS="252G")!(ACHS="252R")!(ACHS="254B")!(ACHS="254P")) G B2
+ ;
+ ;IF 'TYPE OF SERVICE' IS HOSPITAL
+ ; 
+ I ACHSTYP=1,+ACHS=252,("FGMR"[$E(ACHS,4)) G B3
+ ;
+ ;IF 'TYPE OF SERVICE' IS DENTAL AND
+ ;CODE IS     252D "DENTAL LAB SERVICES"
+ ;            254E "DENTIST (DENTAL CARE)
+ I ACHSTYP=2,((ACHS="252D")!(ACHS="254E")) G B3
+ ;
+ ;                                                 DENTIST (DENTAL CARE)
+ G B2:ACHSTYP'=3,B2:((+ACHS=252)&("DFGM"[$E(ACHS,4)))!(ACHS="254E")
+B3 ;
+ D OBJCHK
+ I '$D(ACHSOBOK) G B2
+B3A ;
+ S ACHSCT=ACHSCT+1,ACHS(ACHSCT)=R
+ W !?5,$J(ACHSCT,3)
+ W ?12,$P($G(^ACHS(3,DUZ(2),1,R,0),"UNDEFINED"),U)   ;'CODE'
+ W ?20,$P($G(^ACHS(3,DUZ(2),1,R,0),"UNDEFINED"),U,2) ;'DESCRIPTION'
+ ;
+ I '(ACHSCT#18),'$$DIR^XBDIR("E") G B4
+ G B2
+ ;
+B4 ;
+ I ACHSCT=0 W *7,!,"No SERVICE CLASS CODES for CAN.",!!,"Notify Site Manager.",! S ACHSSCC="" G A1^ACHSA4        ;GO BACK TO ENTERING CAN NUMBER
+ W !!?20,"SELECT ITEM (1-",ACHSCT,")  "
+ D READ^ACHSFU
+ I $G(ACHSQUIT) D END^ACHSA Q
+ G ACHK^ACHSA4:$D(DUOUT)
+ G ACHK^ACHSA4:Y=""               ;GET CHECK CAN NUMBER
+ G B4:Y<1!(Y>ACHSCT)
+ S ACHSSCC=ACHS(Y),Y=$P($G(^ACHS(3,DUZ(2),1,ACHSSCC,0)),U)
+ W "  ",Y
+B5 ;
+ I Y["." S Y=$P(Y,".")_$P(Y,".",2,99)
+ S:Y]"" ACHSDCR=""
+ I Y="",ACHSSCC]"" S Y=$P($G(^ACHS(3,DUZ(2),1,ACHSSCC,0)),U) G B6
+ I Y,'$D(^ACHS(3,DUZ(2),1,"B",Y)) S Y=""
+ I Y="" W *7,"  Required" G B1
+ I +Y=0 G B1
+B6 ;
+ S ACHSOBJC=$$STO(Y)
+ I $D(ACHSBLKF),((Y="252G")!(Y="252R")!(Y="254B")!(Y="254P")) D NOBLK^ACHSAB G B1
+ I ACHSTYP=2 G B8:Y="252D"!(Y="254E") W !!,*7," ONLY 252D or 254E FOR DENTAL." G B1
+ I ACHSTYP=1 G B8:(+Y=252)&("FGMR"[$E(Y,4)) W !!,*7," ONLY 252G, 252M, 252F OR 252R FOR HOSPITAL CARE" G B1
+ I ACHSTYP=3,Y="252G"!(Y="252M") W *7,"INVALID INPATIENT SERVICE CLASS." G B1
+B8 ;
+ I ACHSSCC G B9    ;IF WE ALREADY HAVE A SERVICE CLASS CODE SKIP
+ ;
+ I $L(Y)=4 S X=$O(^ACHS(3,DUZ(2),1,"B",Y,"")) I X,'$P($G(^ACHS(3,DUZ(2),1,X,0)),U,3),'$O(^ACHS(3,DUZ(2),1,"B",Y,X)) S ACHSSCC=X G B9
+ W *7,"  ??"
+ G B1
+ ;
+B9 ;
+ S R=ACHSSCC
+ D OBJCHK
+ I '$D(ACHSOBOK) W "  ",*7,"INVALID SERVICE CLASS" G B1
+ K ACHSOBOK,ACHSOBIF
+ ;
+ D ^ACHSLDCR        ;LOCATE DCR FROM CHS SERVICE CLASS DICTIONARY
+ ;
+ G B1:ACHSDCR=-1
+ I 'ACHSDCR W *7,!!,"Unspecified DCR For CAN/SERVICE CLASS CODE pair" S ACHSSCC="" G A1^ACHSA4
+B10 ;
+ I +ACHSDCR W !!,"DCR ACCOUNT = ",$P($G(^ACHS(9,DUZ(2),"RN")),U,ACHSDCR)
+ S ACHSOBJC=$$STO($P($G(^ACHS(3,DUZ(2),1,ACHSSCC,0)),U))
+ ;ACHS*3.1*14 2.27.2008 IHS/OIT/FCJ Fixed the lookup problem when crosswalk was not definned, was setting IEN instead of code
+ ;I ACHSOBJC=-1 W !,"WARNING - NO EQUIVALENT OBJECT CLASS CODE.",!,"USING SERVICE CLASS CODE." S ACHSOBJC=ACHSSCC G B10A
+ ; I ACHSOBJC=-1 W !,"WARNING - NO EQUIVALENT OBJECT CLASS CODE.",!,"USING SERVICE CLASS CODE." S ACHSOBJC=($P($G(^ACHS(3,DUZ(2),1,ACHSSCC,0)),U)) G B10A
+ ;ACHS*3.1*15 2.5.2009 IHS/OIT/FCJ FEDERAL SITES REQUIRED TO USE APPROVED SCC
+ I ACHSF638="N",ACHSOBJC=-1 W !,"This is an invalid Service class code - NO EQUIVALENT OBJECT CLASS CODE." G B1
+ I ACHSOBJC=-1 W !,"WARNING - NO EQUIVALENT SERVICE CLASS CODE.",!,"USING OBJECT CLASS CODE." S ACHSOBJC=$P($G(^ACHS(3,DUZ(2),1,ACHSSCC,0)),U)
+ W !,"OBJECT CLASS CODE = ",$E(ACHSOBJC,1,2),".",$E(ACHSOBJC,3,4)
+ ;ACHS*3.1*16 IHS.OIT.FCJ MODIFIED NXT LINE FOR NON FED OCC'S
+ I $O(^ACHSOCC("B",ACHSOBJC,0))'="" S ACHSOBJC=$O(^(0)) ; Convert to Pointer.
+ E  S ACHSOBJC=$O(^ACHS(3,DUZ(2),1,"B",ACHSOBJC,0)) G:ACHSOBJC'="" B10A
+ I ACHSOBJC="" W "INVALID OBJECT CLASS CODE" G B1
+ W " : ",$P($G(^ACHSOCC(ACHSOBJC,0)),U,2)
+B10A ;
+ S ACHSDEST=$P($G(^ACHS(3,DUZ(2),1,ACHSSCC,0)),U,3)
+ S:ACHSDEST'="F" ACHSDEST="I"
+ I $$PARM^ACHS(2,3)'="Y",ACHSDEST="F",$D(ACHSBLKF) G BLKERR
+B11 ;
+ W !
+ S DIR(0)="9002080.01,13.5"
+ S:ACHSDEST]"" DIR("B")=ACHSDEST
+ D ^DIR
+ K DIR
+ I $D(DTOUT) D END^ACHSA Q
+ G ACHK^ACHSA4:$D(DUOUT)        ;CHECK CAN NUMBER
+ S ACHSDEST=Y
+ D:ACHSDEST="F" SSNCHK
+ ;
+B12 ; Check blanket parm., input Dental Referral Type.
+ I $$PARM^ACHS(2,3)'="Y",ACHSDEST="F",$D(ACHSBLKF) W *7,!,"SITE PARAMETER PREVENTS ISSUE OF BLANKET FOR FI DOCUMENT." G B10
+ S:'$D(ACHSREFT) ACHSREFT=""
+ G C1:'((ACHSTYP=2)&(ACHSDEST="F"))
+ W !
+ S DIR(0)="9002080.01,83.12",DIR("??")="^D DISPMPC^ACHSA5"
+ S:ACHSREFT]"" DIR("B")=ACHSREFT
+ D ^DIR
+ G B11:$D(DUOUT)!$D(DTOUT),B12:$D(DIRUT)
+ S ACHSREFT=Y
+ K DIR
+C1 ;EP - Input optional comment.
+ I $$PARM^ACHS(2,3)'="Y",ACHSDEST="F",$D(ACHSBLKF) G BLKERR
+ I $D(ACHSSLOC) S ACHSCOPT="SPEC. TRNS" W !!,"Optional comments: ",ACHSCOPT G C2
+ W !,$$PRMT^ACHSFU(17,ACHSCOPT,10),!,"Optional Comments: "
+ W:ACHSCOPT]"" ACHSCOPT,"// "
+ D READ^ACHSFU
+ I $D(ACHSQUIT) D END^ACHSA Q
+ G B10:$D(DUOUT)
+ I Y?1"?".E W !,"  Enter a Comment (10 chars max) If You Wish",!,"  Enter An '@' To Delete Current Comment" G C1
+ G C2:Y=""
+ I $L(Y)<11 S ACHSCOPT=$S(Y="@":"",1:Y) W:Y="@" "   Deleted" G C2
+ W *7,"  Too Long"
+ G C1
+ ;
+C2 ;
+ G E1:ACHSTYP'=1
+D1 ; Input estimated LOS.
+ S:'$D(ACHSESDA) ACHSESDA=""
+ S DIR(0)="9002080.01,25"
+ S:ACHSESDA]"" DIR("B")=ACHSESDA
+ D ^DIR,DIRD^ACHSFU:X="@"
+ I $D(DTOUT) D END^ACHSA Q
+ G C1:$D(DUOUT)
+ S ACHSESDA=Y
+ K DIR
+ I Y<15 G E1
+ W *7
+D2 ;
+ S Y=$$DIR^XBDIR("Y","  Are You Sure "_ACHSESDA_" Days Is Correct","NO","","","",2)
+ I $D(DIRUT) D END^ACHSA Q
+ G D1:$D(DUOUT),D1:'Y
+E1 ;
+ G ^ACHSA6        ;ENTER DOCUMENTS (7/8)-(EST. COST, MED DATA)
+ ;
+ ;
+BLKERR ; Blanket not allowed.
+ W !!,*7,"Blankets only valid for IHS Payment Documents",!,"Transaction Cancelled",!!,"'",$P($G(^DD(9002080,14.03,0)),U),"' parameter = '",$$PARM^ACHS(2,3),"'.",!!
+ D RTRN^ACHS
+ Q
+ ;
+SSNCHK ; Check for SSN.
+ I $D(DFN),'$P($G(^DPT(DFN,0)),U,9) D
+ .W *7,!!?17,"***   SSN IS MISSING FOR THIS PATIENT   ***",!!?6,"Determination of billing by the Fiscal Intermediary will be greatly",!?11,"aided if you can provide the SSN before printing this PO.",!,*7
+ .Q
+ Q
+ ;
+OBJCHK ;EP - Check if object class inactivated.
+ K ACHSOBOK
+ S ACHSOBIF=$P($G(^ACHS(3,DUZ(2),1,R,0)),U,4)
+ I ACHSOBIF'="I" S ACHSOBOK="" Q
+ ;
+ ;                                'INACTIVATION DATE'
+ S X=ACHSACFY-1701_"1001",Y=$P($G(^ACHS(3,DUZ(2),1,R,0)),U,5)
+ I +Y<2900000 W !,*7,?12,$P($G(^ACHS(3,DUZ(2),1,R,0)),U),"   INVALID INACTIVATION DATE" Q
+ Q:X'<7
+ S ACHSOBOK=""
+ Q
+ ;
+DISPMPC ;EP - From call to DIR, display medical priorities
+ W !! S %=0
+ F  S %=$O(^DD(9002080.01,83.12,21,%)) Q:'%  D  Q:$G(ACHSQUIT)
+ .W !,$G(^DD(9002080.01,83.12,21,%,0))
+ .I $G(^DD(9002080.01,83.12,21,%+1,0))["REFERRAL" W !,"Press RETURN..." D READ^ACHSFU
+ Q
+ ;
+STO(S) ; Given an SCC, return the OCC.
+ I '($L(S)=4) Q -1  ; SCC is 4AN.
+ I ACHSACFY<1998 Q S  ; Document must be FY98 or later.
+ E  I ACHSEDOS<$P($$FY^ACHSVAR(98),U) Q S  ; Estimated Date of Service must be in FY98 or later.
+ ;Q:'("Q"[$E($P($G(^ACHS(2,ACHSCAN,0)),U),5)) S  ; CAN must be FY98 or later.
+ ;Q:'("DQ"[$E($P($G(^ACHS(2,ACHSCAN,0)),U),5)) S  ; CAN must be FY98 or later.
+ I S>2581,S<2586 G 418
+ N O,T
+ S O=-1
+ F %=1:1 S T=$P($T(DATA+%),";",3) Q:T="END"  I $P(T,U)=S S O=$P(T,U,2) Q
+ Q O
+ ;
+418 ; Ask user to ID x-walk for Tribal Ops, Contracts, or Indirect
+ N DIC
+ S DIC="^ACHSOCC(",DIC(0)="AEMQZ",DIC("S")="I $P(^(0),U)[""418"""
+ S DIC("S")=DIC("S")_","""_$S(S=2582:"123ABC",S=2584:"4D",S=2585:"5E",1:"")_"""[$E($P(^(0),U),4)"
+ K S
+ D ^DIC
+ I Y>0 Q $P(Y(0),U)
+ Q -1
+ ;
+DATA ;; SCC^OCC
+ ;;2185^2185
+ ;;252A^256Q
+ ;;252B^256Q
+ ;;252H^256Q
+ ;;252J^256Q
+ ;;252D^256R
+ ;;252G^256R
+ ;;252L^256R
+ ;;252M^256R
+ ;;252Q^256R
+ ;;252S^256R
+ ;;254B^256R
+ ;;254D^256R
+ ;;254E^256R
+ ;;254G^256R
+ ;;254J^256R
+ ;;254L^256R
+ ;;254A^256T
+ ;;254C^256T
+ ;;252Z^256Z
+ ;;252F^256W
+ ;;254V^256W
+ ;;2611^2611
+ ;;263A^263A
+ ;;263L^263A
+ ;;263G^263G
+ ;;263K^263K
+ ;;4319^4319
+ ;;8116^8116
+ ;;END
+ ;

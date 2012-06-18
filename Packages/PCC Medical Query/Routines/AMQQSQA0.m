@@ -1,0 +1,96 @@
+AMQQSQA0 ; IHS/CMI/THL - AMQQSQA SUBROUTINE...GETS ATTRIBUTE ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;-----
+FUNQ W !,AMQQSQQQ
+ R X:DTIME E  S X=U
+ K AMQQSVAL
+ I $E(X)="\" S X=$E(X,2,999),AMQQLCOF=""
+ I X="",AMQQSQFN=1,"ILG"'[AMQQSQST D WHAT
+ I X="AGAIN" W ! G FUNQ
+ I X="ALL",AMQQSQFN=1,AMQQSQST="I" S X=""
+ I X="" S AMQQSQQT="QUIT" Q
+ I $E(X)=U S AMQQQUIT="" Q
+ I X?1."?",AMQQSQSN=378 S X="AF^29" D EN1^AMQQHELP G FUNQ
+ I $D(AMQQSQDV),X?1."?" D EN2^AMQQHEL2 G FUNQ
+ I $D(AMQQGVF)!($G(AMQQSQSN)=226),X?1."?" S X="AF^17" D ^AMQQHELP G FUNQ
+ I X="?" N %A,%B S XQH=$O(^DIC(9.2,"B","AMQQHELP","")) D EN1^XQH G FUNQ
+ I X?4."?" N %A,%B S XQH=$O(^DIC(9.2,"B","AMQQANAL","")) D EN1^XQH G FUNQ
+ I X?2.3"?",$D(AMQQSQCF) N %A,%B S XQH=$O(^DIC(9.2,"B","AMQQBOOL","")) D EN1^XQH G FUNQ
+ I X="??" D EN1^AMQQHEL2 G FUNQ
+TEMPLOOK I X="????",AMQQCCLS="P" D ITEM^AMQQHELP G FUNQ
+ I X[" ",$E(X,$L(X))?1N S AMQQSVAL=$P(X," ",$L(X," ")),X=$P(X," ",1,$L(X," ")-1)
+ I "><="[$E(X) S X=$TR(X," ","") I +$E(X,2,9) S AMQQSVAL=$E(X,2,99),X=$E(X)
+EN1 ; ENTRY POINT FROM AMQQQ1
+ I X["NOT"!(X["'") D NOT I X="" G FUNQ
+ I X="VISIT" W !!,"Enter a specific VISIT characteristic like: LOCATION, CLINIC, PROVIDER etc.",!! G FUNQ
+ADIC S DIC="^AMQQ(5,"
+ S DIC(0)="ES"
+ S D="C"
+ S DIC("S")="I +Y<1000"
+ I $D(AMQQXX),$D(AMQQNECO) S DIC(0)=""
+ D ^AMQQSQAC
+ D IX^DIC
+ K DIC
+SY I +Y=315!(+Y=35) D ^AMQQSQP Q:$D(AMQQQUIT)  G FUNQ
+ I Y'=-1,AMQQCCLS="V",'$D(AMQQXX),$P(^AMQQ(5,+Y,0),U,20)="M" D NOVM G FUNQ
+ I $D(AMQQSQNT),"EV"[AMQQSQST,$P(^AMQQ(5,+Y,0),U,20)="B",Y["BETWEEN" S X="",Y=-1,AMQQSQFN=1 K AMQQSQNT
+ I Y=-1 D SPEC I '$D(Y) Q
+ I Y=-1,$D(AMQQXX) S AMQQFAIL=10 Q
+ I Y=-1 W "  ??",*7,! K AMQQSQNT G FUNQ
+ I $P(Y,U,2)="VALUE" W !,"OK, enter the logical condition to be applied to the attribue ""VALUE""...",! G FUNQ
+ I $P(^AMQQ(5,+Y,0),U,4)=99 W !,"Enter the specific name of the ",$P($P(Y,U,2),",") W !! G FUNQ
+ I $P(^AMQQ(5,+Y,0),U,5)=9 D EN1^AMQQATAL I $D(AMQQNOL) K AMQQNOL S Y=-1 K AMQQSQNT G FUNQ
+ S %=^AMQQ(5,+Y,0),%=$P(%,U,5) I % S:%=9 %=+Y+($J/100000) S %=^AMQQ(1,%,0),%=$P(%,U,5) I %=7 S AMQQSQRD=""
+ I $D(AMQQZSQL),+Y S %=AMQQZSQL K AMQQSQZL S ^UTILITY("AMQQ",$J,"SQXL",+%,$P(%,U,2),$P(%,U,3))=""
+ I AMQQSQST="V",$P(^AMQQ(5,+Y,0),U,20)="B" D ^AMQQSQVS G:('$D(AMQQQUIT)&($G(AMQQSQCV)="")) FUNQ Q
+ I AMQQSQST="E",$P(^AMQQ(5,+Y,0),U,20)="B" S AMQQDISV=$P(Y,U,2) D ^AMQQSQBP G:('$D(AMQQQUIT)&($G(AMQQSQCV)="")) FUNQ Q
+ Q
+ ;
+NOT I $E(X,1,4)="NOT " S X=$E(X,5,99),AMQQSQNT="" Q
+ I $E(X)="'" S X=$E(X,2,99),AMQQSQNT="" Q
+ S %=$L(X)
+ I $E(X,%-3,%)=" NOT" S X=$E(X,1,%-4),AMQQSQNT=""
+ Q
+ ;
+SPEC I X="*" W "  (All values)"
+ I X="@" W "  (Null)"
+SCK ; ENTRY POINT FROM AMQQSQA
+ S Z="ANY;*;ALL;EXISTS;BLANK;EMPTY;NULL;@"
+ F I=1:1 S %=$P(Z,";",I) Q:%=""  I X=$E(%,1,$L(X)) W $E(%,$L(X)+1,99) S X=% D S1 G SCKEXIT
+ I $G(AMQQSQST)="Q",$L(X)>2 S %=$E(X,1,3) F I=1:1 S Z=$P("POS^ABN^NEG^NML^NOR",U,I) Q:Z=""  I Z=% S AMQQSVAL=$S($E(Z)="N":"NEG",1:"POS"),Y="72^IS" G SCKEXIT
+ I $G(AMQQSQST)="S",$L(X)>2 D SET^AMQQSQA1 G SCKEXIT
+SCKEXIT I $D(AMQQRECV),$G(AMQQCOMP)'="" S $P(AMQQRECV,U,11)=$P(AMQQCOMP,";",4)
+ Q
+ ;
+S1 S X=$S(I=1:"ANY",I<5:"ALL",1:"NULL")
+ K Y
+ I AMQQSQST="I" S $P(AMQQCOMP,";",5)=X,AMQQSQQT="" Q
+ I X'="NULL",$G(AMQQCOMP)'=";;"!($G(AMQQSQFN)>1) S Y=-1 Q
+ I $D(AMQQSQNT),X="NULL" S X="EXISTS" K AMQQSQNT W " = ",X
+ I $D(AMQQSQNT),X="EXISTS" S X="NULL" K AMQQSQNT W " = ",X
+ I $D(AMQQNMAS),X'="NULL" S Y=-1 Q
+ I $G(AMQQCOMP)?1.";",'$D(^UTILITY("AMQQ",$J,"SQ",$S($D(AMQQSQNN):AMQQSQNN,1:"ZZZ"))) S $P(AMQQCOMP,";",4)=X,AMQQSQCV=AMQQCOMP,AMQQSQQT="" Q
+ S AMQQSQCV=AMQQCOMP
+ S AMQQSQQT=""
+ S AMQQSQNN=+$G(AMQQSQNN)
+ S:$D(AMQQFSQN) ^UTILITY("AMQQ",$J,"SQ",AMQQSQNN,X)=""
+ I X="NULL",'$D(AMQQFSQN) S AMQQFSQX=""
+ I X="NULL",$G(AMQQSQAA),$D(AMQQSQGF) S ^UTILITY("AMQQ",$J,$S(AMQQUSQL>1:"SQXS",1:"SQXQ"),AMQQSQAA,AMQQSQNN)=""
+ I $D(AMQQYYMI) S AMQQYYMS="" Q
+ I '$D(AMQQXX) D ^AMQQSQL
+ Q
+ ;
+NOVM W !!,"Sorry, """,$P(Y,U,2),""" should be entered as a new attribute of VISIT"
+ W !,"and not a subquery of """,AMQQATNM,""""
+ W !!,*7
+ Q
+ ;
+WHAT S DIR(0)="SO^1:WHOOPS...let me try again;2:"_$S($G(AMQQONE)="":("FIND ALL "_AMQQCNAM_" who have a "_AMQQSQAN_" recorded"),1:("SHOW every "_AMQQSQAN_" for "_AMQQONE))_";3:EXIT"
+ S DIR("A")=$C(10)_"     What do you want to do"
+ S DIR("B")=1,DIR("?")=""
+ D ^DIR
+ K DIR
+ I $D(DUOUT)+$D(DTOUT)+$D(DIRUT) K DTOUT,DIRUT,DTOUT S X="" Q
+ S X=$S(Y=1:"AGAIN",Y=2:"ALL",Y=3:"^",1:"")
+ Q
+ ;

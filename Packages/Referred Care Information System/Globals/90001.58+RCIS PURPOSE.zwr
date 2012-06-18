@@ -1,0 +1,13 @@
+RCIS PURPOSE
+ZWR
+^BMCPRP(0)="RCIS PURPOSE^90001.58^7^5"
+^BMCPRP(1,0)="Call-In"
+^BMCPRP(3,0)="ER Visit/Admission"
+^BMCPRP(5,0)="Evaluation"
+^BMCPRP(6,0)="F/U Visit or F/U Surgery"
+^BMCPRP(7,0)="Evaluation/Treatment"
+^BMCPRP("B","Call-In",1)=""
+^BMCPRP("B","ER Visit/Admission",3)=""
+^BMCPRP("B","Evaluation",5)=""
+^BMCPRP("B","Evaluation/Treatment",7)=""
+^BMCPRP("B","F/U Visit or F/U Surgery",6)=""

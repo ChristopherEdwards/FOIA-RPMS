@@ -1,0 +1,195 @@
+BGPMUH07 ; IHS/MSC/MGH - MU measure NQF0439-STK-6 ;02-Mar-2011 16:18;DU
+ ;;11.0;IHS CLINICAL REPORTING;**4**;JAN 06, 2011;Build 84
+ ;meaningful use hospital measure STROKE-6 - High Cholest w/ Statin Rx
+ ;
+ENTRY ;PEP  Stroke Measure 6 - High Cholest w/ Statin RxHigh Cholest w/ Statin Rx
+ N START,END,BGPIEN,DFN,BGPVST,BGPISDX,BGPAGEE,BGPBIRTH,BGPIPROB,STROKE,EXC,NUM,BGPDIS,BGPCHOL,BGPLIPID
+ N BGPADM
+ ;Start by finding all admissions during the reporting period
+ S START=BGPBDATE
+ S END=BGPEDATE_".2359"
+ F  S START=$O(^DGPM("B",START)) Q:START=""!(START>END)  D
+ .S BGPIEN="" F  S BGPIEN=$O(^DGPM("B",START,BGPIEN)) Q:BGPIEN=""  D
+ ..Q:$P($G(^DGPM(BGPIEN,0)),U,2)'=1    ;Only include admissions
+ ..S DFN=$P($G(^DGPM(BGPIEN,0)),U,3)
+ ..S BGPBIRTH=$$DOB^AUPNPAT(DFN)
+ ..Q:DFN=""
+ ..S BGPACTUP=$$ACTUPAP^BGPMUEHD(DFN,BGPBDATE,BGPEDATE,BGPBEN)
+ ..I 'BGPACTUP,'$G(BGPXPXPX),'$G(BGPIISO) Q
+ ..S BGPVST=$P($G(^DGPM(BGPIEN,0)),U,27)  ;Get the visit
+ ..Q:BGPVST=""
+ ..S BGPDIS=$P($G(^DGPM(BGPIEN,0)),U,17)  ;Don't use if pt is still an inpt
+ ..Q:BGPDIS=""
+ ..S BGPADM=$P($$GET1^DIQ(9000010,BGPVST_",",.01,"I"),".",1) ;get admin date
+ ..S BGPAGEE=$$AGE^AUPNPAT(DFN,BGPADM)
+ ..;Check for a diagnosis of stroke
+ ..S STROKE=0,EXC=0,NUM=0
+ ..S BGPISDX=$$VSTPOVA^BGPMUUT3(DFN,BGPVST,"BGPMU ISCHEMIC STROKE DX")
+ ..;S BGPIPROB=$$PLTAX^BGPMUUT1(DFN,"BGPMU ISCHEMIC STROKE DX","A")
+ ..;Pt must have both a POV of stoke and it must be an active problem
+ ..;I +BGPISDX&(+BGPIPROB) S STROKE=1
+ ..I +BGPISDX S STROKE=1
+ ..Q:'STROKE
+ ..;Pt must have high cholest OR (not measured) OR (on a lipid lowering drug prior to arrival)
+ ..S BGPCHOL=$$CHOLEST(DFN,BGPIEN,BGPVST)  ; returns 0 for normal, 1^<value>, or 2 for not measured
+ ..S BGPLIPID=$$LIPIDRX(DFN,BGPVST)
+ ..;quit if normal cholest AND not on a lipid lowering agent
+ ..I 'BGPCHOL,'BGPLIPID Q
+ ..;Next check for exclusions
+ ..S EXC=$$EXCLUDE(DFN,BGPIEN,BGPVST,BGPBIRTH)
+ ..;If no exclusions see if they have high cholesterol and an Rx for statin
+ ..I '+EXC S NUM=$$NUMER(DFN,BGPVST,BGPIEN,BGPDIS)
+ ..;Now add it all up
+ ..D TOTAL(BGPIEN)
+ Q
+TOTAL(BGPIEN) ;add up the totals
+ N PTCNT,EXCCT,DENCT,NUMCT,TOTALS,DATE,NOTCT
+ S TOTALS=$G(^TMP("BGPMU0439",$J,BGPMUTF,"TOT"))
+ S DENCT=+$G(^TMP("BGPMU0439",$J,BGPMUTF,"DEN"))
+ S NUMCT=+$G(^TMP("BGPMU0439",$J,BGPMUTF,"NUM"))
+ S EXCCT=+$G(^TMP("BGPMU0439",$J,BGPMUTF,"EXC"))
+ S NOTCT=+$G(^TMP("BGPMU0439",$J,BGPMUTF,"NOT"))
+ S PTCNT=TOTALS
+ S PTCNT=PTCNT+1
+ S DATE=$$DATE^BGPMUUTL($P($G(^DGPM(BGPIEN,0)),U,1))
+ S DENCT=DENCT+1 S ^TMP("BGPMU0439",$J,BGPMUTF,"DEN")=DENCT
+ I +EXC D
+ .S EXCCT=EXCCT+1 S ^TMP("BGPMU0439",$J,BGPMUTF,"EXC")=EXCCT
+ .I BGPMUTF="C" S ^TMP("BGPMU0439",$J,"PAT",BGPMUTF,"EXC",PTCNT)=DFN_U_$P(EXC,U,2)
+ I '+EXC D
+ .I +NUM=1 D
+ ..S NUMCT=NUMCT+1 S ^TMP("BGPMU0439",$J,BGPMUTF,"NUM")=NUMCT
+ ..S ^TMP("BGPMU0439",$J,"PAT",BGPMUTF,"NUM",PTCNT)=DFN_U_DATE_U_$P(NUM,U,3)_U_$P(NUM,U,2)_U_$P(BGPCHOL,U,2)_U_$P(BGPLIPID,U,2)
+ .I +NUM=0 D
+ ..S NOTCT=NOTCT+1 S ^TMP("BGPMU0439",$J,BGPMUTF,"NOT")=NOTCT
+ ..S ^TMP("BGPMU0439",$J,"PAT",BGPMUTF,"NOT",PTCNT)=DFN_U_DATE_U_$P(NUM,U,3)_U_$P(NUM,U,2)_U_$P(BGPCHOL,U,2)_U_$P(BGPLIPID,U,2)
+ S ^TMP("BGPMU0439",$J,BGPMUTF,"TOT")=PTCNT
+ S BGPICARE("MU.STK.0439.1",BGPMUTF,DFN)=1_U_+$G(NUM)_U_+EXC_U_DATE_";"_$P($G(NUM),U,3)_";"_$P(EXC,U,2)
+ Q
+CHOLEST(DFN,BGPIEN,BGPVST) ; RETURNS 0^value^dt for normal, 1^value^date if high or a 2 if cholesterol not measured
+ ;search for LDL-c measurement in LAB data
+ ;  from 30-days prior to the admission date through the
+ ;  first 48 hours of the encounter
+ N LDLSDATE,LDLEDATE,ADMDATE,BGPLDL,LIEN,LABVAL,%,LDLFOUND
+ S %=2
+ S ADMDATE=$P($G(^DGPM(BGPIEN,0)),U,1)
+ S LDLSDATE=$$FMADD^XLFDT(ADMDATE,-30),LDLEDATE=$$FMADD^XLFDT(ADMDATE,2)
+ S BGPLDL=$$LOINC^BGPMUUT2(DFN,LDLSDATE,LDLEDATE,"BGPMU LDL LOINC")
+ I +BGPLDL D
+ .S LIEN=$P(BGPLDL,U,2)
+ .S LABVAL=$P($G(^AUPNVLAB(LIEN,0)),U,4)
+ .I LABVAL>=100 D
+ ..S %=1_U_LABVAL_U_$P(BGPLDL,U,1) Q
+ .I LABVAL<100 D
+ ..S %=0_U_LABVAL_U_$P(BGPLDL,U,1)
+ Q %
+LIPIDRX(DFN,BGPVST) ;
+ Q $$FIND^BGPMUUT4(DFN,"BGPMU LIPID LOWERING NDCS",$P($G(^DGPM(BGPIEN,0)),U,1),"OP")
+EXCLUDE(DFN,BGPIEN,BGPVST,BGPBIRTH) ;See if there are exclusions
+ N REASON,BGPLOS,BGPHOS,BGPCLIN,BGPECI,BGPATH,DTYPE1,DTYPE1C,DTYPE2,DTYPE2C,BGPALL,BGPREF
+ S REASON=""
+ I BGPAGEE<18 S REASON="1^AGE" Q REASON
+ ;Check for LOS
+ S BGPLOS=$$LOS^BGPMUH08(BGPIEN,BGPDIS)
+ I BGPLOS>120 S REASON="1^LOS" Q REASON
+ ;Check for hospice care
+ S BGPHOS=$$HOSPICE^BGPMUH08(DFN,BGPVST)
+ I +BGPHOS S REASON=BGPHOS Q REASON
+ ;Check for clinical trials
+ S BGPCLIN=$$TRIAL^BGPMUH08(DFN,BGPVST)
+ I +BGPCLIN S REASON=BGPCLIN Q REASON
+ ;Check for elective carotid intervention procedure
+ S BGPECI=$$ELECTIVE^BGPMUH08(DFN,BGPVST,BGPIEN)
+ I +BGPECI S REASON=BGPECI Q REASON
+ ;Check for no evidence of Atherosclerosis
+ S BGPATH=$$ATHERO(DFN,BGPVST,BGPIEN,BGPBIRTH)
+ I 'BGPATH S REASON="1^No Atherosclerosis" Q REASON
+ ;
+ ; ajf ; Getting specific discharge reasons
+ ;Check for discharge reasons
+ S DTYPE1=$P($G(^DGPM(BGPDIS,0)),U,4)
+ S DTYPE2=$P($G(^DGPM(BGPDIS,"IHS")),U,7)
+ ;I DTYPE1'=12 S REASON="1^"_DTYPE1
+ ;I DTYPE2'=1 S REASON="1^"_DTYPE2
+ I DTYPE1 S DTYPE1C=$$MOVE(DTYPE1) I +DTYPE1C S REASON=DTYPE1C Q REASON
+ I DTYPE2 S DTYPE2C=$$PSTAT(DTYPE2) I +DTYPE2C S REASON=DTYPE2C Q REASON
+ ;
+ ;Check for allergies to statins
+ S BGPALL=$$ALLER(DFN)
+ I +BGPALL S REASON=BGPALL Q REASON
+ ;Check for refusals
+ S BGPREF=$$REF(DFN,BGPVST,BGPDIS)
+ I +BGPREF S REASON=BGPREF
+ Q REASON
+ALLER(DFN) ;Find if pt has allergies to statins
+ N AA,BB,X,Y,TEST
+ S (AA,TEST)=0
+ I '$D(^GMR(120.8,"B",DFN)) Q TEST
+ F  S AA=$O(^GMR(120.8,"B",DFN,AA)) Q:AA'>0!(TEST=1)  D
+ . I $P(^GMR(120.8,AA,0),"^",16)'=1 Q    ;Quit if not verified
+ . I $D(^GMR(120.8,AA,"ER")),$P(^GMR(120.8,AA,"ER"),"^",1)=1 Q         ;
+ . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
+ . I (Y["LIST DRUG")!(Y["NAMES HERE???") S TEST="1^"_Y  ; <----- NEEDS ATTENTION
+ . S BB=0
+ . F  S BB=$O(^GMR(120.8,AA,3,"B",BB)) Q:BB'>0  D
+ . . I $P(^PS(50.605,BB,0),"^",1)="CV350" S TEST="1^"_Y
+ Q TEST
+REF(DFN,BGPVST,BGPDIS) ;Find refuals for this medication
+ N ENDDT,X1,X2,X,MED,BGPEVT,DISDT,TAX
+ S MED=0
+ S BGPEVT=$P($G(^AUPNVSIT(BGPVST,0)),U,1)
+ S DISDT=$P($G(^DGPM(BGPDIS,0)),U,1)
+ S ENDDT=$$FMADD^XLFDT(DISDT,+1)
+ S TAX="BGPMU STATIN NDCS"
+ S MED=$$MEDREF^BGPMUUT2(DFN,BGPEVT,ENDDT,TAX)
+ Q MED
+ATHERO(DFN,BGPVST,BGPIEN,BGPBIRTH) ;Find evidence of atherosclerosis
+ N BGPF,BGPF1,BGPF2,BGPI,BGPADX,BGPAPROB,BGPCS,BGPTMP
+ S BGPF=0 ;DX pair found
+ F BGPI=1:1 Q:+BGPF  S BGPCS=$T(ATHEROT+BGPI) Q:$P(BGPCS,";;",2)=""  D
+ .S BGPF1=$$LASTDXI^BGPMUUT2(DFN,$P(BGPCS,";;",2),BGPBIRTH,BGPEDATE)
+ .S BGPF2=$$LASTDXI^BGPMUUT2(DFN,$P(BGPCS,";;",3),BGPBIRTH,BGPEDATE)
+ .S BGPF=(+BGPF1)&(+BGPF2)
+ I +BGPF Q BGPF1
+ S BGPADX=$$LASTDX^BGPMUUT2(DFN,BGPBIRTH,BGPEDATE,"BGPMU ATHEROSCLEROSIS DX")
+ I +BGPADX Q BGPADX
+ S BGPAPROB=$$PLTAX^BGPMUUT1(DFN,"BGPMU ATHEROSCLEROSIS DX","C")
+ Q BGPAPROB
+ATHEROT ;;
+ ;;250.70;;443.81
+ ;;250.80;;443.9
+ ;;250.81;;443.89
+ ;;414.06;;996.83
+ ;;434.91;;784.51
+ ;;414.00;;997.1
+ ;
+NUMER(DFN,BGPVST,BGPIEN,BGPDIS) ;Check to see if pt is in the numerator
+ N %,DISCHKDT,EDATE
+ S EDATE=$P($G(^DGPM(BGPDIS,0)),U,1)
+ S %=0
+ S DISCHKDT=$$FMADD^XLFDT(EDATE,1),$P(DISCHKDT,".",2)="0001"
+ S %=$$FIND^BGPMUUT4(DFN,"BGPMU STATIN NDCS",DISCHKDT,"OP")
+ S:+% $P(%,U,3)=EDATE
+ Q %
+ ;
+MOVE(IEN) ;Check to see if movement is part of exclusions
+ ; Transfer status from Facility Movement Type 405.1
+ ; 2,3,13,14
+ I IEN=2!IEN=3!IEN=13!IEN=14 Q "1^TRANSFER"
+ ;Death -
+ ; 15,16,17,18
+ I IEN=15!IEN=16!IEN=17!IEN=18 Q "1^DEATH"
+ Q 0
+ ;
+PSTAT(IEN) ;Check to see if patient status code is part of exclusions
+ ; Transfer status from Patient Status Code 99999.04
+ I IEN>19,IEN<30 Q "1^DEATH"
+ I IEN=40!IEN=41!IEN=42 Q "1^DEATH"
+ ;
+ ;Discharged/Transferred to a Hospice
+ I IEN=50!IEN=51 Q "1^HOSPICE"
+ ;
+ ;Transferred to Federal HealthCARE Facility
+ I IEN=3!IEN=4!IEN=62!IEN=63!IEN=63 Q "1^FH TRANSFER"
+ ;
+ Q 0

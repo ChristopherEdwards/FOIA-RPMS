@@ -1,0 +1,142 @@
+APCDDVE ; IHS/CMI/LAB - AUTO MERGE E VISITS ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+START ;EP - called from option
+ W:$D(IOF) @IOF
+ W !!,"This option will go through the visit file, find all instances where there",!,"are 2 'E - Historical Event' visits on the same day to the same location",!,"and AUTOMATICALLY merge them together.",!
+ W !,"You will be asked for a date range for which to run this report.",!,"It takes a long time to process so you may want to queue it to run after hours."
+ W !,"You may optionally receive a report detailing which visits where merged ",!,"together.",!!
+RDPV ; Determine to run by Posting date or Visit date
+ S APCDBEEP=$C(7)_$C(7),APCDSITE="" S:$D(DUZ(2)) APCDSITE=DUZ(2)
+ I '$D(DUZ(2)) S APCDSITE=+^AUTTSITE(1,0)
+ S DIR(0)="S^1:Posting Date;2:Visit Date",DIR("A")="Run Report by",DIR("B")="P" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S Y=$E(Y),APCDPROC=$S(Y=1:"P",Y=2:"V",1:Y)
+GETDATES ;
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning "_$S(APCDPROC="P":"Posting",APCDPROC="V":"Visit",1:"Posting")_" Date for Search" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S APCDBD=Y
+ED ;get ending date
+ W ! S DIR(0)="DA^"_APCDBD_":DT:EP",DIR("A")="Enter ending "_$S(APCDPROC="P":"Posting",APCDPROC="V":"Visit",1:"Posting")_" Date for Search: " S Y=APCDBD D DD^%DT S DIR("B")=Y,Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S APCDED=Y
+ S X1=APCDBD,X2=-1 D C^%DTC S APCDSD=X
+ ;
+REPORT ;
+ S APCDRPT=""
+ S DIR(0)="Y",DIR("A")="Would you like a report of those visits that were merged?",DIR("B")="Y" K DA D ^DIR K DIR
+ G:$D(DIRUT) GETDATES
+ S APCDRPT=Y
+ZIS ;call xbdbque
+ S XBRC="DRIVER^APCDDVE",XBRP="PRINT^APCDDVE",XBRX="XIT^APCDDVE",XBNS="APCD"
+ D ^XBDBQUE
+ D XIT
+ Q
+DRIVER ;EP entry point for taskman
+ S APCDBT=$H,APCDJOB=$J,APCDC=0
+ K ^XTMP("APCDDVE",APCDJOB,APCDBT)
+ I APCDRPT S:'$D(^XTMP("APCDDVE",0)) ^XTMP("APCDDVE",0)="" S $P(^XTMP("APCDDVE",0),U)=$$FMADD^XLFDT(DT,7),$P(^XTMP("APCDDVE",0),U,2)=DT,$P(^XTMP("APCDDVE",0),U,3)="PCC E VISIT AUTO MERGE"
+ D PROCESS
+ S APCDET=$H
+ Q
+PRINT ;EP
+ S APCDQUIT=0,APCDPG=0
+ G:'APCDRPT DONE
+ D @("HEAD"_(2-($E(IOST,1,2)="C-")))
+ I '$D(^XTMP("APCDDVE",APCDJOB,APCDBT)) W !!,"NO Event Visits in the date range were auto merged.",! G DONE
+ S APCDC=0 F  S APCDC=$O(^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC)) Q:APCDC'=+APCDC!(APCDQUIT)  D PRN1
+DONE ;
+ I 'APCDQUIT,$E(IOST)="C",IO=IO(0) S DIR(0)="E" D ^DIR K DIR
+ W:$D(IOF) @IOF
+ K ^XTMP("APCDDVE",APCDJOB,APCDBT)
+ D XIT
+ Q
+PRN1 ;print each set of visits
+ I $Y>(IOSL-5) D HEAD Q:APCDQUIT
+ S F=^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"FROM")
+ S T=^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"TO")
+ W !!,"FROM VISIT: ",?14,$$FMTE^XLFDT($P($P(F,U),"."),"5D"),?26,$$HRN^AUPNPAT($P(F,U,4),DUZ(2),2),?41,$P(^AUTTLOC($P(F,U,5),0),U,7),?47,$P(F,U,6),?65,$P(F,U,7)
+ F X=8:1:1 Q:$P(^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"FROM"),U,X)=""  W !,?65,$P(^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"FROM"),U,X)
+ W !,"  TO VISIT: ",?14,$$FMTE^XLFDT($P(T,U),"5D"),?26,$$HRN^AUPNPAT($P(T,U,4),DUZ(2),2),?41,$P(^AUTTLOC($P(T,U,5),0),U,7),?47,$P(T,U,6),?65,$P(T,U,7)
+ F X=8:1:1 Q:$P(^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"TO"),U,X)=""  W !,?65,$P(^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"TO"),U,X)
+ Q
+XIT ;EP
+ K APCDVSIT,APCDV,APCDPG,APCDQUIT,APCDODAT,APCDED,APCDSD,APCDBD,APCDBT,APCDJOB,APCDVREC,APCDC,APCDP,APCDBDFN,APCDBEEP,APCDET,APCDPROC,APCDRPT,APCDSITE,DFN
+ K X,X1,X2,IO("Q"),%DT,%ZIS,%,DUOUT,DLOUT,Y
+ Q
+PROCESS ;process report
+ D @APCDPROC
+ Q
+P ; Run by Posting date  
+ S APCDBDFN=$O(^AUPNVSIT("AMRG",APCDSD)) Q:APCDBDFN=""  S APCDBDFN=$O(^AUPNVSIT("AMRG",APCDBDFN,""))
+ S APCDVSIT=APCDBDFN-1 F  S APCDVSIT=$O(^AUPNVSIT(APCDVSIT)) Q:APCDVSIT'=+APCDVSIT  Q:$P(^AUPNVSIT(APCDVSIT,0),U,2)>APCDED  D PROC
+ Q
+PV ;
+ S APCDVSIT="" F  S APCDVSIT=$O(^AUPNVSIT("ADWO",APCDODAT,APCDVSIT)) Q:APCDVSIT'=+APCDVSIT  D PROC
+ Q
+V ; Run by visit date
+ S APCDODAT=$O(^AUPNVSIT("B",APCDSD)) Q:APCDODAT=""
+ S APCDODAT=APCDSD_".9999" F  S APCDODAT=$O(^AUPNVSIT("B",APCDODAT)) Q:APCDODAT=""!((APCDODAT\1)>APCDED)  D V1
+ Q
+V1 ;
+ S APCDVSIT="" F  S APCDVSIT=$O(^AUPNVSIT("B",APCDODAT,APCDVSIT)) Q:APCDVSIT'=+APCDVSIT  I $D(^AUPNVSIT(APCDVSIT,0)) D PROC
+ Q
+PROC ;
+ Q:'$P(^AUPNVSIT(APCDVSIT,0),U,9)  ;no dependent entry count
+ Q:$P(^AUPNVSIT(APCDVSIT,0),U,2)=""  ;no posting date
+ Q:$P(^AUPNVSIT(APCDVSIT,0),U,11)  ;deleted visit
+ Q:$P(^AUPNVSIT(APCDVSIT,0),U,7)'="E"  ;only process service category of E
+ S APCDVREC=^AUPNVSIT(APCDVSIT,0),DFN=$P(APCDVREC,U,5)
+ D MRG
+ Q
+MRG ;find all visits that could be merged to visit in APCDVSIT
+ S APCDV=0 F  S APCDV=$O(^AUPNVSIT("AC",DFN,APCDV)) Q:APCDV=""  D
+ .Q:$P(^AUPNVSIT(APCDV,0),U,11)  ;deleted
+ .Q:$P(^AUPNVSIT(APCDV,0),U,7)'="E"  ;not E
+ .Q:'$P(^AUPNVSIT(APCDV,0),U,9)  ;0 entries
+ .Q:APCDV=APCDVSIT  ;don't merge to self
+ .I $$VD^APCLV(APCDV,"I")'=$$VD^APCLV(APCDVSIT,"I") Q  ;not same date
+ .Q:$P(^AUPNVSIT(APCDV,0),U,3)'=$P(APCDVREC,U,3)
+ .Q:$P(^AUPNVSIT(APCDV,0),U,5)'=$P(APCDVREC,U,5)
+ .Q:$P(^AUPNVSIT(APCDV,0),U,6)'=$P(APCDVREC,U,6)
+ .S X=$P($G(^AUPNVSIT(APCDV,21)),U),Y=$P($G(^AUPNVSIT(APCDVSIT,21)),U) I X'=Y Q  ;outside locations not the same
+ . D SETTMP
+ . D MRG1
+ Q
+MRG1 ;call visit merge utility
+ S APCDVMT=APCDVSIT,APCDVMF=APCDV D ^APCDVM2
+ S $P(^AUPNVSIT(APCDVMF,22),U)="AUTO EVENT VISIT MERGE"
+ D UPDLOG^APCDVDEL(APCDVMF,APCDVMT)
+ S AUPNVSIT=APCDVMF D DEL^AUPNVSIT
+ K APCDVMT,APCDVMF,AUPNVSIT
+ Q
+SETTMP ;set tmp for report
+ Q:'APCDRPT
+ S APCDC=APCDC+1,%1=0,^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"TO")="" F %=.01,.02,.03,.05,.06,2101 S %1=%1+1,$P(^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"TO"),U,%1)=$$VALI^XBDIQ1(9000010,APCDVSIT,%)
+ S APCDP=6,APCDVFLE=9000010,APCDVIST=APCDVSIT F  S APCDVFLE=$O(^DIC(APCDVFLE)) Q:APCDVFLE>9000010.99!(APCDVFLE'=+APCDVFLE)  D DE2
+ S %1=0,^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"FROM")="" F %=.01,.02,.03,.05,.06,2101 S %1=%1+1,$P(^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"FROM"),U,%1)=$$VALI^XBDIQ1(9000010,APCDVSIT,%)
+ S APCDP=6,APCDVFLE=9000010,APCDVIST=APCDV F  S APCDVFLE=$O(^DIC(APCDVFLE)) Q:APCDVFLE>9000010.99!(APCDVFLE'=+APCDVFLE)  D DE2
+ Q
+ ;
+DE2 ;
+ S APCDVDG=^DIC(APCDVFLE,0,"GL"),APCDVIGR=APCDVDG_"""AD"",APCDVIST,APCDVDFN)"
+ S APCDVDFN="" I $O(@APCDVIGR)]"" S APCDP=APCDP+1,$P(^XTMP("APCDDVE",APCDJOB,APCDBT,"E MERGE",APCDC,"FROM"),U,APCDP)=$P($P(^DIC(APCDVFLE,0),U),"V ",2)
+ Q
+ ;
+HEAD ;
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCDQUIT="" Q
+HEAD1 ;
+ W:$D(IOF) @IOF
+HEAD2 ;
+ S APCDPG=APCDPG+1
+ W !,$P(^VA(200,DUZ,0),U,2),?50,$$FMTE^XLFDT(DT),?72,"Page ",APCDPG,!
+ W !?29,"PCC Data Entry Module"
+ W !?23,"*********************************"
+ W !?23,"*   VISIT REVIEW ERROR REPORT   *"
+ W !?23,"*********************************"
+ S X="PCC DATA ENTRY AUTO MERGE EVENT VISIT REPORT"
+ W !?((80-$L(X))/2),X
+ W !!,"Report of Visits Merged for ",$S(APCDPROC="P":"Posting",APCDPROC="V":"VISIT",1:"Posting")," Date Range: ",$$FMTE^XLFDT(APCDBD,"5D")," through ",$$FMTE^XLFDT(APCDED,"5D")
+ W !,$TR($J(" ",80)," ","-")
+ Q

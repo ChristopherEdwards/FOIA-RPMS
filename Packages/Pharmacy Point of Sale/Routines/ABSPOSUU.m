@@ -1,0 +1,91 @@
+ABSPOSUU ; IHS/OIT/CNI/RAN REPORT - utilities[ 05/04/2010  5:18 PM ]
+ ;;1.0;PHARMACY POINT OF SALE;**38,39,40**;JUN 21, 2001
+ Q
+ ;----------------------------------------------------------------------
+ ;IHS/OIT/CNI/RAN 05042010 patch 38 - Following two subroutines are new and facilitate paging.
+PRESSANY()  ;EP from ABSPOSR9 and other places IHS/OIT/CNI/RAN 05042010 patch 38
+ N TIMEOUT
+ I '$$TOSCREEN^ABSPOSU5 Q 0  ;Only do if printing to screen
+ N X,I,DONE
+ S DONE=0
+ S NLF=+$G(NLF)
+ S:+$G(TIMEOUT)=0 TIMEOUT=60
+ F I=1:1:NLF W !
+ ;W !,"Press ENTER to continue:  " R X:TIMEOUT
+ S X=$$FREETEXT^ABSPOSU2("Press ENTER to continue: ",,1,1,1,TIMEOUT)   ;IHS/OIT/CNI/SCR patch 39 alpha - reolaced line above
+ W @IOF
+ ;I X="^" S DONE=1
+ I (X="^")!(X="^^")!(X=-1) S DONE=1    ;IHS/OIT/CNI/SCR patch 39 alpha
+ Q DONE
+WRITE(TEXT)  ;EP from ABSPOSR9 and other places IHS/OIT/CNI/RAN 05042010 patch 38 
+ S ABSPQUIT=0
+ I $Y>21 S ABSPQUIT=$$PRESSANY
+ I ABSPQUIT Q ABSPQUIT
+ W @TEXT
+ Q ABSPQUIT
+GTNDCDRG(ABSPCLMI,ABSPPRX)  ;IHS/OIT/CNI/RAN 04282010 patch 39 - Add NDC # and Drug name
+ N ABSPDRNM,ABSPNDC,ABSPTRNS,CHECK,CHECK1,CHECK2,D1
+ S (ABSPDRNM,ABSPNDC)=""
+ S CHECK1="D2"_ABSPPRX,CHECK2="D20"_ABSPPRX
+ S D1=""
+ F  S D1=$O(^ABSPC(ABSPCLMI,400,D1)) Q:D1=""  D
+ .S CHECK=$P($G(^ABSPC(ABSPCLMI,400,D1,400)),"^",2)
+ .;I (CHECK=CHECK1)||(CHECK=CHECK2) D    ;IHS/OIT/CNI/SCR patch 39 alpha - replaced with line below
+ .I ((CHECK=CHECK1)!(CHECK=CHECK2)) D
+ ..S ABSPDRNM=$P($G(^ABSPC(ABSPCLMI,400,D1,0)),"^",4)
+ ..S ABSPNDC=$P($P($G(^ABSPC(ABSPCLMI,400,D1,400)),"^",7),"D7",2)
+ Q ABSPNDC_"^"_ABSPDRNM
+ ;IHS/OIT/CNI/RAN Patch 40 - Following 5 subroutines used by RCR and CPR reports
+GETDO(ABSPRSMI,ABSPRESC)   ; GET DO FOR THIS PARTICULAR RESPONSE
+ N DO,D1,ABSIRESC,ABSORESC
+ S DO=""
+ S ABSORESC="0"_ABSPRESC
+ S D1=0
+ F  S D1=$O(^ABSPR(ABSPRSMI,1000,D1)) Q:+D1=0  D
+ . S ABSIRESC=$P(^ABSPR(ABSPRSMI,1000,D1,400),U,2)
+ . I (ABSORESC=ABSIRESC)!(ABSPRESC=ABSIRESC) S DO=D1
+ I (DO="")&($D(^ABSPR(ABSPRSMI,1000,0))) D
+ . S D1=$P(^ABSPR(ABSPRSMI,1000,0),U,3)
+ . I $D(^ABSPR(ABSPRSMI,1000,D1)) S DO=D1
+ Q DO
+INS() ; SELECT THE INSURER OR CHOOSE ALL INSURERS
+ N DIC,X,Y
+ S DIC="^ABSPEI("
+ S DIC(0)="AEMNQZ"
+ S DIC("A")="Please choose an insurer or leave blank for ALL POS electronic insurers: "
+ D ^DIC K DIC
+ I X[U Q -1
+ I Y=-1 S ABSPINS="ALL"
+ I Y'=-1 S ABSPINS=$P(Y,U,1),ABSPINSN=$P(Y,U,2)
+ Q 1
+CODE()  ;SELECT THE REJECTION CODE OR CHOOSE ALL CODES
+ ;IHS/OIT/SCR 082109 START changes patch 34
+ N DIC,X,Y
+ S DIC="^ABSPRJC("
+ S DIC(0)="AEMNQZ"
+ S DIC("A")="Please choose a REJECTION CODE or leave blank for ALL: "
+ D ^DIC K DIC
+ I X[U Q -1
+ I Y=-1 S ABSPREJ="ALL"
+ I Y'=-1 S ABSPREJ=$P(Y,U,1),ABSPREJX=$P(Y,U,2)
+ Q 1
+CLNC() ; PICK WHICH OR ALL CLINIC PHARMACIES
+ N DIC,X,Y
+ S DIC="^ABSP(9002313.56,"
+ S DIC(0)="AEMQVZ"
+ S DIC("A")="Please Select a Pharmacy or leave blank for ALL:  "
+ D ^DIC K DIC
+ I X[U Q -1
+ I Y=-1 S ABSPPPHM="ALL"
+ I Y>-1 S ABSPPPHM=$P(Y,U,1),ABSPPHMN=$P(Y,U,2)
+ Q 1
+USER() ; PICK WHICH OR ALL NEW PERSON
+ N DIC,X,Y
+ S DIC="^VA(200,"
+ S DIC(0)="AEMQVZ"
+ S DIC("A")="Please Select a User or leave blank for ALL:  "
+ D ^DIC K DIC
+ I X["^" Q -1
+ I Y=-1 S ABSPUSER="ALL"
+ I Y>-1 S ABSPUSER=$P(Y,"^",1)
+ Q 1

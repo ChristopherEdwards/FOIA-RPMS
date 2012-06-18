@@ -1,0 +1,32 @@
+BTPWTIUS ;VNGT/HS/ALA-Check for Electronic Signature ; 15 Jun 2010  2:55 PM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;
+SIG(DATA,FAKE) ; EP - BTPW CHECK FOR ESIG
+ ;
+ NEW UID,II,RESULT,MSG,X1,X2
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BTPWTIUS",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BTPWTIUS D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ;Header
+ S @DATA@(II)="I00010RESULT^T01024MSG"_$C(30)
+ S RESULT=1
+ S X2=$G(^VA(200,+$G(DUZ),20)),X1=$P(X2,U,4)
+ I X1="" S RESULT=-1,MSG="You have no Electronic Signature code on file"
+ S II=II+1,@DATA@(II)=RESULT_U_$G(MSG)_$C(30)
+ ;
+ ;
+DONE ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ S II=II+1,@DATA@(II)=$C(31)
+ Q

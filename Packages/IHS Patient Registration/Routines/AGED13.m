@@ -1,0 +1,244 @@
+AGED13 ; IHS/ASDS/EFG - EDIT PAGE 6 - VETERAN'S INFO ;   
+ ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;
+VAR ;
+ S AG("PG")=6
+ G READ:$G(^DPT(DFN,"VET"))="Y"
+ S AG("N")=1
+ S DA=DFN
+ S ROUTID=$P($T(+1)," ")  ;SET ROUTINE ID FOR PROGRAMMER VIEW
+ D ^AGED
+ ;THESE KILLS NEED TO BE DONE VIA FILEMAN CORRECTLY. COMMENT BY TPF 4/27/2005
+ I $G(^DPT(DFN,"VET"))="N" K ^DPT(DFN,.3),^DPT(DFN,.31),^DPT(DFN,.321),^DPT(DFN,.32),^DPT("APOS",9,DFN),^AUPNPAT(DFN,32),^AUPNPAT(DFN,19)
+ K ^UTILITY("DIQ1",$J)
+ F AG=1:1:AG("N") D
+ . S AGSCRN=$P($T(@1+AG),";;",2,10)
+ . S DIC=$P(AGSCRN,U,3)
+ . S DR=$P(AGSCRN,U,4)
+ . W !,AG,".",?(40-$L($P($G(^DD(DIC,DR,0)),U))),$P($G(^DD(DIC,DR,0)),U)," : "
+ . S AGVETFLD=$$GET1^DIQ(DIC,DFN,DR)
+ . I $G(^AUPNPAT(DFN,35))'="" W AGVETFLD,?50,"Obtained on " S Y=$P($G(^AUPNPAT(DFN,35)),U) X ^DD("DD") W Y
+ W !,$G(AGLINE("-"))
+ D VERIF^AGUTILS  ;ADDED
+ W !!,AGLINE("EQ")
+ Q:$D(AGSEENLY)
+ K DIR
+ S DIR("A")="CHANGE which item? (1-"_AG("N")_") NONE// "
+ S DIR("?")="Enter your choice now."
+ S DIR("?",1)="You may enter the item number of the field you wish to edit,"
+ S DIR("?",2)="OR you can enter 'P#' where P stands for 'page' and '#' stands for"
+ S DIR("?",3)="the page you wish to jump to, OR enter '^' to go back one page"
+ S DIR("?",4)="OR, enter '^^' to exit the edit screens, OR RETURN to go to the next screen."
+ D READ^AGED1
+ G END:$D(DTOUT)!$D(DFOUT)!$D(DLOUT)!$D(DUOUT)!$D(DIROUT)
+ G:$D(AG("ED"))&'$D(AGXTERN) @("^AGED"_AG("ED")) I $D(DQOUT)!(+Y<1)!(+Y>AG("N")) W !!,"You must enter a number from 1 to ",AG("N") H 2 G VAR
+ S AGY=Y
+ F AGI=1:1 S AG("SEL")=+$P(AGY,",",AGI) Q:AG("SEL")<1!(AG("SEL")>AG("N"))  D @($P("VET,",",",AG("SEL")))
+ D UPDATE1^AGED(DUZ(2),DFN,13,"")
+ G VAR
+NONE ;
+READ D DRAW
+ Q:$D(AGSEENLY)
+ W !!,AGLINE("EQ")
+ K DIR
+ S DIR("A")="CHANGE which item? (1-"_AG("N")_") NONE// "
+ D READ^AGED1
+ G END:$D(DTOUT)!$D(DFOUT)!$D(DLOUT)!$D(DUOUT)!$D(DIROUT)
+ G:$D(AG("ED"))&'$D(AGXTERN) @("^AGED"_AG("ED")) I $D(DQOUT)!(+Y<1)!(+Y>AG("N")) W !!,"You must enter a number from 1 to ",AG("N") H 2 G READ
+ I +Y>1,'$D(^DPT(DFN,"VET")) W *7,"  Must be VETERAN.  Edit #1 first." H 2 G READ
+ S AGY=Y
+ F AGI=1:1 S AG("SEL")=+$P(AGY,",",AGI) Q:AG("SEL")<1!(AG("SEL")>AG("N"))  D @($P("VET,SVCBR,SVCENT,SVCSEP,VIETSVC,SVCCON,CLMNUM,DISAB,VACARD,",",",AG("SEL")))
+ D UPDATE1^AGED(DUZ(2),DFN,13,"")
+ G VAR
+ Q
+END K ^UTILITY("DIQ1",$J),AG,AGI,AGY,DTOUT,DLOUT,DQOUT,DA,DIC,DIE,DR,AGSCRN,AGVETFLD
+ K ROUTID
+ Q:$D(DFOUT)
+ Q:$D(AGXTERN)
+ Q:$D(AGSEENLY)
+ I $D(DUOUT) K DIR G ^AGEDBEA
+ K DIR
+ G ^AGED8
+DRAW ;EP
+ S AG("N")=9
+ S DA=DFN
+ S AG("PG")=6
+ S ROUTID=$P($T(+1)," ")  ;SET ROUTINE ID FOR PROGRAMMER VIEW
+ D ^AGED
+ I $G(^DPT(DFN,"VET"))="N" K ^DPT(DFN,.3),^DPT(DFN,.31),^DPT(DFN,.321),^DPT(DFN,.32),^DPT("APOS",9,DFN),^AUPNPAT(DFN,32),^AUPNPAT(DFN,19)
+ K ^UTILITY("DIQ1",$J)
+ F AG=1:1:AG("N") D
+ . S AGSCRN=$P($T(@1+AG),";;",2,10)
+ . S DIC=$P(AGSCRN,U,3)
+ . S DR=$P(AGSCRN,U,4)
+ . W !,AG,".",?(40-$L($P($G(^DD(DIC,DR,0)),U))),$P($G(^DD(DIC,DR,0)),U)," : "
+ . S AGVETFLD=$$GET1^DIQ(DIC,DFN,DR)
+ . I $D(AGVETFLD)&(AG=1) W AGVETFLD,?50,"Obtained on " S Y=$P($G(^AUPNPAT(DFN,35)),U) X ^DD("DD") W Y
+ . I $D(AGVETFLD)&(AG=8) D
+ .. I $L(AGVETFLD)>37 W $E(AGVETFLD,1,37),! W ?43,$E(AGVETFLD,38,60)
+ .. I $L(AGVETFLD)<38 W AGVETFLD
+ . I $D(AGVETFLD)&(AG'=8)&(AG'=1) D
+ .. W AGVETFLD
+ . I AG=9,$P($G(^AUPNPAT(DFN,32)),U)="Y" D
+ .. S Y=$P($G(^AUPNPAT(DFN,32)),U,2) D DD^%DT
+ .. W ?49,"DATE OBTAINED: ",Y
+ . I AG=9,$P($G(^AUPNPAT(DFN,32)),U)="N" D
+ .. W ?48,"TOLD HOW TO OBTAIN VA CARD? "
+ .. I $P($G(^AUPNPAT(DFN,32)),U,3)["N" W "NO"
+ .. I $P($G(^AUPNPAT(DFN,32)),U,3)["Y" W "YES"
+ W !,$G(AGLINE("-"))
+ D VERIF^AGUTILS
+ Q
+VET ;VETERAN FIELD
+ K DUOUT
+ S DIE="^DPT("
+ S DA=DFN
+ S DR=1901
+ S DIE("NO^")=""
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ ;ADD NEW FIELD FOR VET DATA TO TRACK WHEN VETERAN FIELD IS EDITED
+ S DIE="^AUPNPAT("
+ S DA=DFN
+ S DR="3501////^S X=DT"
+ D ^DIE
+ Q
+SVCBR ;LAST SERVICE BRANCH FIELD
+ K DUOUT
+ S DIE="^DPT("
+ S DA=DFN
+ S DR=.325
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ Q
+SVCENT ;LAST SERVICE ENTRY DATE
+ K DUOUT
+ S DIE="^DPT("
+ S DA=DFN
+ S DR=.326
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ Q
+SVCSEP ;LAST SERVICE SEPARATION DATE
+ K DUOUT
+ S DIE="^DPT("
+ S DA=DFN
+ S DR=.327
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ Q
+VIETSVC ;VIETNAM SERVICE INDICATED
+ K DUOUT
+ S DIE="^DPT("
+ S DA=DFN
+ S DR=.32101
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ Q
+SVCCON ;SERVICE CONNECTED
+ K DUOUT
+ S DIE="^DPT("
+ S DA=DFN
+ S DR=.301
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ Q
+CLMNUM ;CLAIM NUMBER
+ K DUOUT
+ S DIE="^DPT("
+ S DA=DFN
+ S DR=.313
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ Q
+DISAB ;RATED DISABILITIES
+ K DUOUT
+ S DIE="^AUPNPAT("
+ S DA=DFN
+ S DR=1901
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ Q
+VACARD ;DOES PATIENT HAVE A VALID VA CARD
+ N DUOUT
+ S DIE="^AUPNPAT("
+ S DA=DFN
+ S DR=3201
+ D ^DIE
+ S:$D(Y) DUOUT=""
+ ;IF VALID VA CARD, PROMPT FOR DATE CARD COPY WAS OBTAINED
+ I $P($G(^AUPNPAT(DFN,32)),U)="Y" D
+ . I $P($G(^AUPNPAT(DFN,32)),U,3)'="" D
+ .. S $P(^AUPNPAT(DFN,32),U,3)=""
+ . N DUOUT
+ . S DIE="^AUPNPAT("
+ . S DA=DFN
+ . S DR=3202
+ . D ^DIE
+ . S:$D(Y) DUOUT=""
+ ;IF NO VALID VA CARD AND DATE OBTAINED EXISTS, DELETE DATE OBTAINED
+ I $P($G(^AUPNPAT(DFN,32)),U)'="Y",$P($G(^AUPNPAT(DFN,32)),U,2)'="" D
+ . S $P(^AUPNPAT(DFN,32),U,2)=""
+ ;IF VALID CARD=NULL CLEAR FIELDS 3202 AND 3203
+ I $P($G(^AUPNPAT(DFN,32)),U)="" D
+ . S $P(^AUPNPAT(DFN,32),U,2)=""
+ . S $P(^AUPNPAT(DFN,32),U,3)=""
+ ;IF VALID VA CARD = NO, PROMPT FOR INFORMED HOW TO OBTAIN
+ I $P($G(^AUPNPAT(DFN,32)),U)="N" D
+ . I $P(^AUPNPAT(DFN,32),U,2)'="" D
+ .. S DIR(0)="Y"
+ .. S DIR("A")="There is a card copy date obtained field on this record. Are you sure this what you want to do ? "
+ .. D ^DIR K DIR
+ .. G:Y=0 VACARD
+ . N DUOUT
+ . S DIE="^AUPNPAT("
+ . S DA=DFN
+ . S DR=3203
+ . D ^DIE
+ . S:$D(Y) DUOUT=""
+ . K DIC,DIE
+ Q
+ ;NOT IN USE AT THIS TIME
+ ;CHECK TO SEE IF PATIENT TOO YOUNG FOR SERVICE. THIS IS TAKEN FROM
+ ;VA CODE IN RTN ^DGINP AND MODIFIED SLIGHTLY
+ ;X= PAT DOB,
+TOOYUNG(AGDA,X) ;
+ N L
+ S L=^DPT(AGDA,0),Y=+$P(L,"^",3)
+ I X-Y\10000<15 X ^DD("DD") W !!,"This service entry date would make the patient too young for service.",!,"DOB ",Y,!,*7 K X Q 1
+ Q
+EDIT S DIE=2,DA=DFN,DR=$P($P(AGSCRN,";;",AG("SEL")),U,4)
+ I AG("SEL")'=1,$D(^DPT(DFN,"VET")),^DPT(DFN,"VET")="N" K ^("VET"),^DPT(DFN,.3),^DPT(DFN,.31),^DPT(DFN,.321),^DPT(DFN,.32),^DPT("APOS",9,DFN) Q
+ I AG("SEL")'=1,'$D(^DPT(DFN,"VET")) Q
+ D ^DIE
+ Q
+ADD ;EP - ADD A PATIENT
+ D VET
+ I $D(^DPT(DFN,"VET")),^("VET")="Y"  D
+ . D SVCBR Q:$D(Y)
+ . D SVCENT Q:$D(Y)
+ . D SVCSEP Q:$D(Y)
+ . D VIETSVC Q:$D(Y)
+ . D SVCCON Q:$D(Y)
+ . D CLMNUM Q:$D(Y)
+ . D DISAB Q:$D(Y)
+ . D VACARD Q:$D(Y)
+ K AGSCRN I $D(^DPT(DFN,"VET")),^("VET")="N" K ^DPT("APOS",9,DFN)
+ D UPDATE1^AGED(DUZ(2),DFN,13,"")
+ G L11^AG0
+ ; ****************************************************************
+ ; ON LINES BELOW:
+ ; PIECE 1= FLD LBL
+ ; PIECE 2= POSITION ON LINE TO DISP FLD
+ ; PIECE 3= FILE #
+ ; PIECE 4= FLD #
+1 ;
+ ;;VETERAN (Y/N)?^26^2^1901
+ ;;SERVICE BRANCH [LAST]^19^2^.325
+ ;;SERVICE ENTRY DATE [LAST]^15^2^.326
+ ;;SERVICE SEPARATION DATE [LAST]^10^2^.327
+ ;;VIETNAM SERVICE INDICATED?^14^2^.32101
+ ;;SERVICE CONNECTED?^22^2^.301
+ ;;CLAIM NUMBER^28^2^.313
+ ;;DESC OF VA DISABILITY^19^9000001^1901
+ ;;DOES THE PATIENT HAVE A VALID VA CARD?^1^9000001^3201

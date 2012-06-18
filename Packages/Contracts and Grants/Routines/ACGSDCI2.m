@@ -1,0 +1,69 @@
+ACGSDCI2 ;IHS/OIRM/DSD/THL,AEF - ROUTINE CALLED TO CONVERT IHSCIS TO DCIS CODES; [ 03/27/2000   2:22 PM ]
+ ;;2.0t1;CONTRACT INFORMATION SYSTEM;;FEB 16, 2000
+ ;;
+ ;;ROUTINE CALLED TO CONVERT IHSCIS TO DCIS CODES
+9 ;EP;CONVERT IHSCIS 1 TO DCIS 9
+ I X="L" S X="A" Q
+ I X="S" S X="B" Q
+ I "AD"[X S X="C" Q
+ I X="P" S X="D" Q
+ I X="I" S X="E" Q
+ I X="G" S X="G" Q
+ I "CMR"[X S X="H" Q
+ I X="T" S X="J" Q
+ I X="U" S X="K" Q
+ I X="Q" S X="Q" Q
+ Q
+24 ;EP;CONVERT IHSCIS 15 TO DCIS 24
+ I X=13!(X=14) S X="A" Q
+ I X=10 S X="J" Q
+ I X=11 S X="K" Q
+ I X=12 S X="L" Q
+ I X=24 S X="R" Q
+ I X=20 S X="S" Q
+ I X=21 S X="T" Q
+ I X=23 S X="U" Q
+ I X=22 S X="V" Q
+ I X=30 S X="Y" Q
+ I X=31 S X="Z" Q
+ Q
+27 ;EP;CONVERT IHSCIS 18 TO DCIS 27
+ I X=70 S X="A" Q
+ I X=71 S X="B" Q
+ I X=72 S X="C" Q
+ I X=73 S X="D" Q
+ I X=74 S X="E" Q
+ I X=75 S X="F" Q
+ I X=76 S X="G" Q
+ I X=77 S X="H" Q
+ I X=78 S X="J" Q
+ I X=79 S X="K" Q
+ I X=80 S X="L" Q
+ I X=81 S X="M" Q
+ I X=82 S X="N" Q
+ I X=83 S X="P" Q
+ I X=84 S X="Q" Q
+ Q
+30 ;EP;TO CONVERT IHSCIS 13 TO DCIS 30
+ I "A1A2"[X S X="A" Q
+ I X="A3" S X="B" Q
+ I "B1B2"[X S X="C" Q
+ I X="C1" S X="E"
+ I X="C2" S X="F" Q
+ I "C3C4"[X S X="G" Q
+ I X="C5" S X="D" Q
+ I X="D1" S X="H" Q
+ I X="D2" S X="J" Q
+ I "D3D4"[X S X="K" Q
+ I X="E1"[X S X="L"
+ I X="E2"[X S X="M"
+ Q
+32 ;EP;TO CONVERT IHSCIS 19 TO DCIS 32
+ I X=59!(X=60) S X="B" Q
+ I X=52!(X=55) S X="C" Q
+ I X=50!(X=53) S X="D" Q
+ I X=51!(X=54) S X="E" Q
+ I X=57 S X="F" Q
+ I X=58!(X=61)!(X=62) S X="G" Q
+ I X=56!(X=63) S X="H" Q
+ Q

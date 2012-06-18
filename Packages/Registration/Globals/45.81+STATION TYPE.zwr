@@ -1,0 +1,16 @@
+STATION TYPE
+ZWR
+^DIC(45.81,0)="STATION TYPE^45.81I^"
+^DIC(45.81,0,"DD")="#"
+^DIC(45.81,0,"DEL")="d"
+^DIC(45.81,0,"GL")="^DIC(45.81,"
+^DIC(45.81,0,"LAYGO")="d"
+^DIC(45.81,0,"RD")="dD"
+^DIC(45.81,0,"WR")="d"
+^DIC(45.81,"%D",0)="^^6^6^2950623^^"
+^DIC(45.81,"%D",1,0)="This file holds the different types of stations "
+^DIC(45.81,"%D",2,0)="available.  It contains both the station type (a "
+^DIC(45.81,"%D",3,0)="numeric code), name, and the allowable suffixes for "
+^DIC(45.81,"%D",4,0)="the station type.  This is pointed to by both File "
+^DIC(45.81,"%D",5,0)="#45.1-SOURCE OF ADMISSION and #45.82-CATEGORY OF "
+^DIC(45.81,"%D",6,0)="BENEFICIARY."

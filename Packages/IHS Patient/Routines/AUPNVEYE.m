@@ -1,0 +1,25 @@
+AUPNVEYE ; IHS/CMI/LAB - EDITS FOR AUPNVEYE (V EYE GLASS:9000010.04) 24-MAY-1993 ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+VEYE1902 ;EP -9000010.04,1902 (V EYE GLASS,DRE SPHERE)
+ I X="BAL"!(X="bal")!(X="Bal") Q
+VEYE1905 ;EP 9000010.04,1905 (V EYE GLASS,DLE SPHERE)
+ I X="BAL"!(X="bal")!(X="Bal") Q
+ S X=$S($E(X,1,5)="PLANO":"PLANO",1:X)
+ I '((($E(X)="+")!($E(X)="-")!($E(X)="P"))&(($L(X)'<4)!($L(X)'>6))) K X Q
+ D VEYEEDIT Q:'$D(X)
+ I $L(X)=4 K:$E(X,2,4)'?1"."2N X Q
+ I $L(X)=5 K:'(X="PLANO"!($E(X,2,5)?1N1"."2N)) X Q
+ I ($E(X,2,6)'?2N1"."2N)!(($E(X)="+")&($E(X,2,6)>16.00))!(($E(X)="-")&($E(X,2,6)>28.00)) K X Q
+ Q
+VEYE1903 ;EP 9000010.04,1903 (V EYE GLASS,DRE CYLINDER)
+VEYE1906 ;EP 9000010.04,1906 (V EYE GLASS,DLE CYLINDER)
+ I '(($E(X)="+")!($E(X)="-"))&(($L(X)=4)!($L(X)=5)) K X Q
+ D VEYEEDIT Q:'$D(X)
+ I $L(X)=4 K:$E(X,2,4)'?1"."2N X Q
+ I $E(X,2,5)'?1N1"."2N!($E(X,2,5)>9.50) K X Q
+ Q
+VEYEEDIT ; REMOVE LEADING "0" FROM EYE GLASS RX
+ F L=1:1:$L(X) S:$E(X,2)=0 X=$E(X)_$E(X,3,6)
+ I $E(X,2,4)=".00" K X
+ Q

@@ -1,0 +1,54 @@
+AMEROUT3 ; IHS/ANMC/GIS - GETS OVERFLOW FROM AMEROUT2 ;
+ ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+MC ; ENTRY POINT FROM AMEROUT2
+ S DIR(0)="SO^1:Sort by all communities;2:Limit output to one particular community",DIR("A")="Your choice",DIR("B")="1" D ^DIR K DIR
+ D OUT^AMER I $D(AMERQUIT) Q
+ I Y=1 S AMERBY=AMERBY_";""COMMUNITY: """,(AMERFR,AMERTO)="",AMERNXT="Within "_AMERATNM_" sort by" S:$D(AMERSTAT) AMERBY="+"_AMERBY,FLDS="!.02:CURR" Q
+ S DIC("A")="Select "_AMERATNM_": "
+ S DIC=U_AMERGBL,DIC(0)="AEQ" I $D(AMERSCR) S DIC("S")=AMERSCR
+ D ^DIC K DIC
+ D OUT^AMER I $D(AMERQUIT) Q
+ S AMERNXT="Then sort by",(AMERFR,AMERTO)="",AMERBY=AMERBY_"="""_$P(^AUTTCOM(+Y,0),U)_""";""C0MMUNITY: """
+ I $D(AMERSTAT) S FLDS="+.02:CURR",AMERBY="+"_AMERBY
+ S ^TMP("AMER",$J,8,AMERATNM)=$P(Y,U,2)
+ Q
+ ;
+MA ; ENTRY POINT FROM AMEROUT2
+ N AMERA1,AMERA2
+ I '$D(AMERSTAT) G MA1
+ S DIR(0)="SO^1:Do statistatical analysis of patient ages now;2:Limit analysis to patients in a certain age range",DIR("A")="Your choice",DIR("B")="1",DIR("?")="" D ^DIR K DIR
+ D OUT^AMEROUT I $D(AMERQUIT) Q
+ I Y=1 D STAT Q
+MA1 S DIR(0)="NO^0:199:0",DIR("A")="Start with what age" D ^DIR K DIR
+ D OUT^AMEROUT I $D(AMERQUIT) Q
+ S AMERA1=Y I 'AMERA1 S AMERA1=0 W "  (0)"
+ S DIR(0)="NO^0:199:0",DIR("A")="Go to what age" D ^DIR K DIR
+ D OUT^AMEROUT I $D(AMERQUIT) Q
+ S AMERA2=Y I 'AMERA2 S AMERA2=199 W "  (199)"
+ I AMERA2<AMERA1 W "  ??",*7,! G MA1
+ S AMERFR=AMERA1,AMERTO=AMERA2
+ S AMERBY="'.17" I $D(AMERSTAT) S FLDS="#AGE"
+ S AMERNEXT="Then sort by",^TMP("AMER",$J,8,"AGE")=AMERA1_"-"_AMERA2
+ Q
+ ;
+STAT S AMERSTAT=1,FLDS="#AGE"
+ S (AMERFR,AMERTO)="",AMERBY=""
+ Q
+ ;
+MU ; ENTRY POINT FROM AMEROUT2
+ N AMERU1,AMERU2
+ I '$D(AMERSTAT) G MU1
+ S DIR(0)="SO^1:Do statistatical analysis of patient acuities now;2:Limit analysis to patients in a certain acuity range",DIR("A")="Your choice",DIR("B")="1",DIR("?")="" D ^DIR K DIR
+ D OUT^AMEROUT I $D(AMERQUIT) Q
+ I Y=1 S AMERSTAT=1,FLDS="!FINAL ACUITY",(AMERFR,AMERTO)="",AMERBY="+FINAL ACUITY" Q
+MU1 S DIR(0)="NO^1:5:0",DIR("A")="Start with what acuity" D ^DIR K DIR
+ D OUT^AMEROUT I $D(AMERQUIT) Q
+ S AMERU1=Y I 'AMERU1 S AMERU1=1 W "  (1)"
+ S DIR(0)="NO^1:5:0",DIR("A")="Go to what acuity" D ^DIR K DIR
+ D OUT^AMEROUT I $D(AMERQUIT) Q
+ S AMERU2=Y I 'AMERU2 S AMERU2=5 W "  (5)"
+ I AMERU2<AMERU1 W "  ??",*7,! G MU1
+ S AMERFR=AMERU1,AMERTO=AMERU2
+ S AMERBY="'5.4" I $D(AMERSTAT) S FLDS="#FINAL ACUITY"
+ S AMERNEXT="Within ACUITY sort by",^TMP("AMER",$J,8,"FINAL ACUITY")=AMERU1_"-"_AMERU2
+ Q

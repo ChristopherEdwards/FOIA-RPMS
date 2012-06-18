@@ -1,0 +1,100 @@
+APCL3023 ; IHS/CMI/LAB -  environment check ;   
+ ;;3.0;IHS PCC REPORTS;**23**;FEB 05, 1997
+ ;
+ ;
+ ; The following line prevents the "Disable Options..." and "Move
+ ; Routines..." questions from being asked during the install.
+ I $G(XPDENV)=1 S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0
+ F X="XPO1","XPZ1","XPZ2","XPI1" S XPDDIQ(X)=0
+ I $$VERSION^XPDUTL("BJPC")'="2.0" W !,"version 2.0 of BJPC is required" D SORRY(2)
+ I $$VERSION^XPDUTL("BGP")'="9.0" W !,"version 9.0 of BGP is required" D SORRY(2)
+ I '$$INSTALLD("APCL*3.0*22") D SORRY(2)
+ ;
+ Q
+ ;
+PRE ;
+ Q
+POST ;
+OPTIONS ;
+ S X=$$ADD^XPDMENU("APCL M OTHER REPORTS","APCL EDIT SURV ILI STOP DATE","USSD")
+ I 'X W "Attempt to add APCL EDIT SURV ILI STOP DATE option failed.." H 3
+ S DA=$O(^APCLCNTL("B","ILI STOP DATE",0))
+ I 'DA W !!,"ILI CONTROL FILE ENTRY MISSING.  NOTIFY PROGRAMMER." K DA Q
+ I $P(^APCLCNTL(DA,0),U,3)>3100801 G POST1
+ S DIE="^APCLCNTL(",DR=".03////3100801"
+ D ^DIE
+ K DIE,DA
+POST1 ;
+ D CLTAX
+ D ^APCL23
+ D ZISH
+ S X=$$ADD^XPDMENU("APCL M MAN QUALITY ASSURANCE","APCL SURVEILLANCE ILI TEMPLATE","ILI")
+ I 'X W "Attempt to add SURVEILLANCE ILI report option failed.." H 3
+ Q
+ ;
+ZISH ;create entry in ZISH SEND PARAMETERS file
+ D ^XBFMK K DIADD,DLAYGO,DIC,DD,D0,DO
+ Q:$D(^%ZIB(9888888.93,"B","SURVEILLANCE ILI SEND"))
+ S APCLY=0 F  S APCLY=$O(^%ZIB(9888888.93,"B","SURVEILLANCE ILI SEND",0)) Q:APCLY'=+APCLY  D
+ .I APCLY S DA=APCLY,DIK="^%ZIB(9888888.93," D ^DIK K DA,DIK
+ S X="SURVEILLANCE ILI SEND",DIC(0)="L",DIC="^%ZIB(9888888.93," D FILE^DICN
+ I Y=-1 W !!,"error creating ZISH SEND PARAMETERS entry" Q
+ S DA=+Y,DIE="^%ZIB(9888888.93,",DR=".02///QUOVADX-IE.DOMAIN.NAME;.03///fludata;.04///etgx7h;.06///-u;.07///B;.08///sendto"
+ D ^DIE
+ I $D(Y) W !!,"error updating ZISH SEND PARAMETERS entry" Q
+ Q
+ ;
+CLTAX ;
+ S ATXFLG=1
+ Q:$D(^ATXAX("B","SURVEILLANCE ILI CLINICS"))
+ W !,"Creating Surveillance ILI Clinics taxonomy..."
+ S APCLDA=0 S APCLDA=$O(^ATXAX("B","SURVEILLANCE ILI CLINICS",APCLDA)) I APCLDA S DA=APCLDA S DIK="^ATXAX(" D ^DIK K DA,DIK
+ S X="SURVEILLANCE ILI CLINICS",DIC="^ATXAX(",DIC(0)="L",DIADD=1,DLAYGO=9002226 D ^DIC K DIC,DA,DIADD,DLAYGO,I
+ I Y=-1 W !!,"ERROR IN CREATING SURVEILLANCE ILI CLINICS TAX" Q
+ S APCLTX=+Y,$P(^ATXAX(APCLTX,0),U,2)="SURVEILLANCE ILI CLINICS",$P(^(0),U,5)=DUZ,$P(^(0),U,8)=0,$P(^(0),U,9)=DT,$P(^(0),U,12)=172,$P(^(0),U,13)=0,$P(^(0),U,15)=40.7,^ATXAX(APCLTX,21,0)="^9002226.02101A^0^0"
+ D ^XBFMK K DIADD,DLAYGO S APCLTEXT="CLINICS" F APCLX=1:1 S X=$P($T(@APCLTEXT+APCLX),";;",2) Q:X=""  S Y=$O(^DIC(40.7,"C",X,0)) I Y D
+ .S ^ATXAX(APCLTX,21,APCLX,0)=+Y,$P(^ATXAX(APCLTX,21,0),U,3)=APCLX,$P(^(0),U,4)=APCLX,^ATXAX(APCLTX,21,"AA",+Y,+Y)=""
+ .Q
+ S DA=APCLTX,DIK="^ATXAX(" D IX1^DIK
+ Q
+ ;
+INSTALLD(APCLSTAL) ;EP - Determine if patch APCLSTAL was installed, where
+ ; APCLSTAL is the name of the INSTALL.  E.g "AG*6.0*11".
+ ;
+ NEW APCLY,DIC,X,Y
+ S X=$P(APCLSTAL,"*",1)
+ S DIC="^DIC(9.4,",DIC(0)="FM",D="C"
+ D IX^DIC
+ I Y<1 D IMES Q 0
+ S DIC=DIC_+Y_",22,",X=$P(APCLSTAL,"*",2)
+ D ^DIC
+ I Y<1 D IMES Q 0
+ S DIC=DIC_+Y_",""PAH"",",X=$P(APCLSTAL,"*",3)
+ D ^DIC
+ S APCLY=Y
+ D IMES
+ Q $S(APCLY<1:0,1:1)
+IMES ;
+ D MES^XPDUTL($$CJ^XLFSTR("Patch """_APCLSTAL_""" is"_$S(Y<1:" *NOT*",1:"")_" installed.",IOM))
+ Q
+SORRY(X) ;
+ KILL DIFQ
+ I X=3 S XPDQUIT=2 Q
+ S XPDQUIT=X
+ W *7,!,$$CJ^XLFSTR("Sorry....FIX IT!",IOM)
+ Q
+CLINICS ;
+ ;;30
+ ;;10
+ ;;12
+ ;;13
+ ;;20
+ ;;24
+ ;;28
+ ;;57
+ ;;70
+ ;;80
+ ;;89
+ ;;01
+ ;;06
+ ;;

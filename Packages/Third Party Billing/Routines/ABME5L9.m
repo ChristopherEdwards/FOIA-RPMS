@@ -1,0 +1,92 @@
+ABME5L9 ; IHS/ASDST/DMJ - Header 
+ ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;Header Segments
+EP ;START HERE
+ N ABM
+ K ABMP("PRV")  ;reset provider array
+ D GETPRV^ABMEEPRV             ; Build Claim Level Provider array
+ S ABMPAYER=ABMP("INS")
+ ;
+ ; Loop 2310A - Referring Physician Name
+ S ABMLOOP="2310A"
+ I $D(ABMP("PRV","F")) D
+ .S ABM("PRV")=$O(ABMP("PRV","F",0))
+ .D EP^ABME5NM1("DN")
+ .D WR^ABMUTL8("NM1")
+ .I $P($G(ABMB8),U,18)'="" D
+ ..D EP^ABME5REF($S($P($G(ABMB8),U,18)'="":$P(ABMB8,U,18),1:ABMP("RTYPE")),200,ABM("PRV"))
+ ..D WR^ABMUTL8("REF")
+ ;
+ ; Loop 2310B - Rendering Physician Name
+ S ABMLOOP="2310B"
+ I $D(ABMP("PRV","R"))!($D(ABMP("PRV","A"))) D
+ .Q:$G(ABMP("VTYP"))=831  ;don't write provider info for ASC
+ .Q:$G(ABMP("CLIN"))="A3"
+ .S ABM("PRV")=$S($D(ABMP("PRV","R")):$O(ABMP("PRV","R",0)),1:$O(ABMP("PRV","A",0)))
+ .D EP^ABME5NM1("82")
+ .D WR^ABMUTL8("NM1")
+ .D EP^ABME5PRV("PE",ABM("PRV"))
+ .D WR^ABMUTL8("PRV")
+ .Q:$P($G(^AUTNINS(ABMP("INS"),0)),U)["OKLAHOMA MEDICAID"
+ .;D EP^ABME5REF("EI",9999999.06,DUZ(2)) ;5010 837P
+ .K ABMLOOP
+ ;
+ ; Loop 2310C - Service Facility Name
+ S ABMLOOP="2310C"
+ S ABMTRUE=(ABMP("LDFN")'=DUZ(2))
+ I 'ABMTRUE D
+ .Q:$$POS^ABMERUTL<12
+ .Q:$$POS^ABMERUTL=12
+ .S ABMTRUE=1
+ ;I ABMTRUE D
+ ;.D EP^ABME5NM1(77)
+ ;.D OVER^ABMUTLP(51)
+ ;.D WR^ABMUTL8("NM1")
+ ;.S ABMFILE=4,ABMIEN=ABMP("LDFN")
+ ;.D EP^ABME5N3(ABMFILE,ABMIEN)
+ ;.D OVER^ABMUTLP(52)
+ ;.D WR^ABMUTL8("N3")
+ ;.S ABMFILE=4,ABMIEN=ABMP("LDFN")
+ ;.D EP^ABME5N4(ABMFILE,ABMIEN)
+ ;.D OVER^ABMUTLP(53)
+ ;.D WR^ABMUTL8("N4")
+ ;.D EP^ABME8REF("LU",9999999.06,ABMP("LDFN"))
+ ;.D WR^ABMUTL8("REF")
+ ;
+ ; Loop 2310D - Supervising Physician Name
+ S ABMLOOP="2310D"
+ I $D(ABMP("PRV","S")) D
+ .S ABM("PRV")=$O(ABMP("PRV","S",0))
+ .D EP^ABME5NM1("DQ")
+ .D WR^ABMUTL8("NM1")
+ ;.I ABMNPIU="N" D ;5010 837P
+ ;..;D EP^ABME5REF("EI",9999999.06,DUZ(2)) ;5010 837P
+ ;..D EP^ABME5REF("EI",9999999.06,DUZ(2)) ;5010 837P
+ ;..D WR^ABMUTL8("REF") ;5010 837P
+ ;.I ABMNPIU'="N" D ;5010 837P
+ ;..;D EP^ABME5REF("1G",200,ABM("PRV")) ;5010 837P
+ ;..D EP^ABME5REF("1G",200,ABM("PRV")) ;5010 837P
+ ;..D WR^ABMUTL8("REF") ;5010 837P
+ ;
+ ; LOOP 2310E - Ambulance Pick-Up Location
+ S ABMLOOP="2310E"
+ ;I $G(ABMP("CLIN"))="A3"&($P($G(^ABMDBILL(DUZ(2),+ABMP("PCN"),12)),U,2)'="") D  ;abm*2.6* HEAT45242
+ I $G(ABMP("CLIN"))="A3"&($P($G(^ABMDBILL(DUZ(2),+ABMP("BDFN"),12)),U,2)'="") D  ;abm*2.6* HEAT45242
+ .D EP^ABME5NM1("PW")
+ .D WR^ABMUTL8("NM1")
+ .D EP^ABME5N3("AMB","PU")
+ .D WR^ABMUTL8("N3")
+ .D EP^ABME5N4("AMB","PU")
+ .D WR^ABMUTL8("N4")
+ ;
+ ; LOOP 2310F - Ambulance Drop-Off Location
+ S ABMLOOP="2310F"
+ ;I $G(ABMP("CLIN"))="A3"&($P($G(^ABMDBILL(DUZ(2),+ABMP("PCN"),12)),U,7)'="") D  ;abm*2.6*8 HEAT45242
+ I $G(ABMP("CLIN"))="A3"&($P($G(^ABMDBILL(DUZ(2),+ABMP("BDFN"),12)),U,7)'="") D  ;abm*2.6*8 HEAT45242
+ .D EP^ABME5NM1(45)
+ .D WR^ABMUTL8("NM1")
+ .D EP^ABME5N3("AMB","DO")
+ .D WR^ABMUTL8("N3")
+ .D EP^ABME5N4("AMB","DO")
+ .D WR^ABMUTL8("N4")
+ Q

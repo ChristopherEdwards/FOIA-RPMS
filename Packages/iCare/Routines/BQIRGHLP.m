@@ -1,0 +1,109 @@
+BQIRGHLP ;PRXM/HC/ALA-Register Help ; 08 Nov 2007  2:04 PM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+ Q
+ ;
+EN(DATA,REG,CODE) ;EP -- BQI GET REGISTER HELP TEXT
+ ; Input
+ ;   REG  - A Register NAME
+ ;   CODE - A field CODE if wanting the help text for a specific register field
+ ;         otherwise if it is null, then retrieves the help text for all register fields
+ ; 
+ NEW UID,II,RGIEN,RIEN,SIEN,TYPE,ORD,IEN,BQIHELP,AVHELP
+ ;
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIRGHLP",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIRGHLP D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S REG=$G(REG,""),CODE=$G(CODE,"")
+ ;
+ S @DATA@(II)="T00050REG_NAME^T00015CODE^T01024REPORT_TEXT"_$C(30)
+ ;
+ I $G(REG)'="" D  Q:$G(BMXSEC)'=""
+ . S RGIEN=$O(^BQI(90506.3,"B",REG,""))
+ . I RGIEN="" S BMXSEC="No Register found" Q
+ . D GREG(RGIEN)
+ . ;
+ . I CODE'="" D
+ .. S RIEN=$O(^BQI(90506.1,"B",CODE,""))
+ .. D GETDATA(RIEN)
+ ;
+ I $G(REG)="" D
+ . S RGIEN=0
+ . F  S RGIEN=$O(^BQI(90506.3,RGIEN)) Q:'RGIEN  D
+ .. I $P(^BQI(90506.3,RGIEN,0),U,3)=1 Q
+ .. I $P(^BQI(90506.3,RGIEN,0),U,6)'="R" Q
+ .. I $P(^BQI(90506.3,RGIEN,0),U,7)=1 Q
+ .. S REG=$P(^BQI(90506.3,RGIEN,0),U,1)
+ .. D GREG(RGIEN)
+ ;
+DONE ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ ;
+GREG(RGIEN) ;
+ S ORD=""
+  F  S ORD=$O(^BQI(90506.3,RGIEN,10,"C",ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.3,RGIEN,10,"C",ORD,IEN)) Q:IEN=""  D
+ .. I $P(^BQI(90506.3,RGIEN,10,IEN,0),U,4)'="S" Q
+ .. S CODE=$P(^BQI(90506.3,RGIEN,10,IEN,0),U,7) I CODE="" Q
+ .. S TYPE=$P($G(^BQI(90506.3,RGIEN,10,IEN,1)),U,1)
+ .. S AVHELP=$P($G(^BQI(90506.3,RGIEN,10,IEN,3)),U,6)
+ .. ; If this is a multiple, go to the subdefinition
+ .. I TYPE="M" D  Q
+ ... NEW SNAME,SRIEN,SORD
+ ... S SNAME=$P(^BQI(90506.3,RGIEN,10,IEN,0),U,1)
+ ... S SRIEN=$O(^BQI(90506.3,"B",SNAME,"")) I SRIEN="" Q
+ ... S SORD=""
+ ... F  S SORD=$O(^BQI(90506.3,SRIEN,10,"C",SORD)) Q:SORD=""  D
+ .... S SIEN=""
+ .... F  S SIEN=$O(^BQI(90506.3,SRIEN,10,"C",SORD,SIEN)) Q:SIEN=""  D
+ ..... I $P(^BQI(90506.3,SRIEN,10,SIEN,0),U,4)'="S" Q
+ ..... S CODE=$P(^BQI(90506.3,SRIEN,10,SIEN,0),U,7) I CODE="" Q
+ ..... S RIEN=$O(^BQI(90506.1,"B",CODE,"")) I RIEN="" Q
+ ..... S AVHELP=$P($G(^BQI(90506.3,SRIEN,10,SIEN,3)),U,6)
+ ..... NEW REG
+ ..... S REG=SNAME
+ ..... D GETDATA(RIEN)
+ .. I CODE="" Q
+ .. S RIEN=$O(^BQI(90506.1,"B",CODE,"")) I RIEN="" Q
+ .. ;
+ .. D GETDATA(RIEN)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+GETDATA(RIEN) ;EP - Get the reminder help text
+ NEW VHELP,FILE,FIELD,NAME,BQIHELPW,BN,VN
+ I $$GET1^DIQ(90506.1,RIEN_",",.1,"I")=1 Q
+ S NAME=$P(^BQI(90506.1,RIEN,0),U,3)
+ S VHELP="",VN=0
+ F  S VN=$O(^BQI(90506.1,RIEN,4,VN)) Q:'VN  D
+ . S VHELP=VHELP_^BQI(90506.1,RIEN,4,VN,0)_$C(10)
+ ;S FILE=$P(^BQI(90506.1,RIEN,0),U,5)
+ ;S FIELD=$P(^BQI(90506.1,RIEN,0),U,6)
+ ;D FIELD^DID(FILE,FIELD,"","HELP-PROMPT","BQIHELP")
+ ;S VHELP=$G(BQIHELP("HELP-PROMPT"))
+ ;I VHELP="" D
+ ;. D FIELD^DID(FILE,FIELD,"Z","DESCRIPTION","BQIHELPW")
+ ;. I $G(BQIHELPW("DESCRIPTION"))="" Q
+ ;. S BN=0,VHELP=""
+ ;. F  S BN=$O(BQIHELPW("DESCRIPTION",BN)) Q:BN=""  D
+ ;.. S VHELP=VHELP_BQIHELPW("DESCRIPTION",BN,0)_$C(10)
+ S VHELP=$$TKO^BQIUL1(VHELP,$C(10))
+ I $G(AVHELP)'="" S VHELP=AVHELP
+ ;
+ S II=II+1,@DATA@(II)=REG_U_CODE_U_VHELP_$C(30)
+ S CODE=""
+ Q

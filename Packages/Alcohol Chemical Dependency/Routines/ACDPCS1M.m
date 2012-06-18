@@ -1,0 +1,129 @@
+ACDPCS1M ;IHS/ADC/EDE/KML - DISPLAY PATIENT CS BY PROVIDER FOR 1 MONTH; 
+ ;;4.1;CHEMICAL DEPENDENCY MIS;;MAY 11, 1998
+ ;
+ ; This routine displays a patient's CDMIS client services by provider for one month.
+ ;
+START ;
+ F  D PATLOOP Q:ACDQ
+ D EOJ
+ Q
+ ;
+PATLOOP ; DISPLAY PATIENTS UNTIL DONE
+ D GETPAT
+ Q:ACDQ
+ S ACDTCTG="CS"
+ D GETVSITS^ACDDEU
+ K ACDTCTG
+ Q:ACDQ
+ I '$D(^TMP("ACD",$J,"VISITS")) W !!,"No CDMIS VISIT history for patient ",ACDDFN,! Q
+ D DSPHIST ;                             display visit history
+ D GETMONTH
+ Q:ACDQ
+ S ACDSTART=$$FMADD^XLFDT(ACDMONTH_"01",-1)
+ S X=$O(^TMP("ACD",$J,"VISITS",ACDSTART))
+ I $E(X,1,5)'=ACDMONTH W !!,"No CDMIS VISITs during selected month for patient ",ACDDFN,! Q
+ I $D(IO("Q")) D  Q
+ . S ZTRTN="DISPLAY^ACDCSH1M",ZTDESC="CDMIS VISITS ONE MONTH",ZTDTH=$H,ZTSAVE("ACD*")="",ZTSAVE("^TMP(""ACD"",$J,""VISITS"",")=""
+ . D ^%ZTLOAD
+ . Q
+ D DISPLAY
+ I '$D(ACDSLAVE),$E(IOST,1,2)'="P-" D PAUSE^ACDDEU
+ S ACDQ=0
+ D DEV^ACDDEU Q:ACDQ
+ I $D(ACDSLAVE)!(IO'=IO(0)) D DISPLAY
+ K ACDSLAVE S IO=IO(0)
+ Q
+ ;
+DSPHIST ; DISPLAY VISIT HISTORY TO HELP USER SELECT
+ NEW IOST
+ S IOST="C-VT100"
+ D DSPHIST^ACDDEU ;                      display visit history
+ Q
+ ;
+DISPLAY ; EP - FOR TASKMAN
+ I $D(ACDSLAVE) S IOP=ACDSLAVE D ^%ZIS
+ U IO
+ D DISPLAY2
+ I $E(IOST,1,2)="P-" W @IOF
+ I $D(ACDSLAVE) D ^%ZISC
+ I $D(ZTQUEUED) D EOJ S ZTREQ="@"
+ U 0
+ Q
+ ;
+DISPLAY2 ; DISPLAY VISIT FOR SELECTED MONTH
+ I $E(IOST,1,2)="C-" W @IOF
+ D CONF^ACDDEU W !
+ W "CDMIS CLIENT SERVICE history for client ",ACDDFN,!!
+ W "----------",!
+ S ACDX=ACDSTART,ACDQ=0
+ F  S ACDX=$O(^TMP("ACD",$J,"VISITS",ACDX)) Q:$E(ACDX,1,5)'=ACDMONTH  D  Q:ACDQ
+ .  S ACDY=0
+ .  F  S ACDY=$O(^TMP("ACD",$J,"VISITS",ACDX,ACDY)) Q:'ACDY  D  Q:ACDQ
+ ..  Q:$P(^ACDVIS(ACDY,0),U,4)'="CS"
+ ..  S ACDVIEN=ACDY
+ ..  D DSPV^ACDDEU
+ ..  D DSPCSH
+ ..  Q
+ .  Q
+ W "----------",!
+ Q
+ ;
+DSPCSH ; DISPLAY CDMIS CLIENT SERVICE HISTORY FOR ONE CS VISIT
+ K ^TMP("ACD",$J,"CS")
+ S YY=0
+ F  S YY=$O(^ACDCS("C",ACDVIEN,YY)) Q:'YY  S X=^ACDCS(YY,0) D
+ .  S Z=0
+ .  F  S Z=$O(^ACDCS(YY,1,Z)) Q:'Z  D
+ ..  S ACDPRV=$P(^ACDCS(YY,1,Z,0),U)
+ ..  S ^TMP("ACD",$J,"CS",ACDPRV,$P(X,U),YY)=$P(X,U,2)
+ ..  Q
+ .  Q
+ S ACDPRV=0
+ F  S ACDPRV=$O(^TMP("ACD",$J,"CS",ACDPRV)) Q:'ACDPRV  D  Q:ACDQ
+ .; D PFTV^XBPFTV(6,ACDPRV,.X)
+ .  S X=$P(^VA(200,ACDPRV,0),U)
+ .  W ?5,X,!
+ .  S YY=0
+ .  F  S YY=$O(^TMP("ACD",$J,"CS",ACDPRV,YY)) Q:'YY  S Z=0 F  S Z=$O(^TMP("ACD",$J,"CS",ACDPRV,YY,Z)) Q:'Z  D  Q:ACDQ
+ ..  S X=^TMP("ACD",$J,"CS",ACDPRV,YY,Z)
+ ..  D PFTV^XBPFTV(9002170.6,X,.W)
+ ..  D F Q:ACDQ
+ ..  W ?15,YY,?19,W,?55,$J(+$P(^ACDCS(Z,0),U,4),5,2)_" h",!
+ ..  Q
+ .  Q
+ K ^TMP("ACD",$J,"CS")
+ Q
+ ;
+F ;Form feed
+ I $Y+4>IOSL D
+ . I '$D(ZTQUEUED),'$D(ACDSLAVE),$E(IOST,1,2)'="P-" D PAUSE^ACDDEU S:$D(DIRUT) ACDQ=1
+ . W @IOF
+ . Q
+ Q
+ ;
+GETVSITS ; EP - GET CDMIS VISITS FOR THIS CLIENT
+ ;
+GETPAT ; GET PATIENT
+ S ACDQ=1
+ S AUPNLK("ALL")=1
+ S DIC="^AUPNPAT(",DIC(0)="AEMQ",DIC("S")="I $D(^ACDVIS(""D"",+Y))" D DIC^ACDFMC
+ K AUPNLK("ALL")
+ Q:Y<0
+ S ACDDFNP=+Y,ACDDFN=$P(^DPT(ACDDFNP,0),U)
+ S ACDQ=0
+ Q
+ ;
+GETMONTH ; GET MONTH
+ S ACDQ=1
+ S DIR(0)="DO^::E",DIR("A")="Enter month/year" K DA D ^DIR K DIR
+ Q:$D(DIRUT)
+ Q:Y=""
+ S ACDMONTH=$E(Y,1,5)
+ S ACDQ=0
+ Q
+ ;
+EOJ ;
+ D ^%ZISC
+ K ^TMP("ACD",$J)
+ D ^ACDKILL
+ Q

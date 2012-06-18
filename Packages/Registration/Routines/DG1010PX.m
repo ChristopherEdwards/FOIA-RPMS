@@ -1,0 +1,43 @@
+DG1010PX ;ALB/REW - 1010 PRINT--FORM 10-10 (PART V EXTENSION) ; 8/18/00 9:54am
+ ;;5.3;Registration;**1,247,343**;Aug 13, 1993
+ ; THIS IS A CONTINUATION OF DG1010P5
+ ;
+Q11PTV W !!,"11. OTHER ELIGIBILITY DATA",?131,$C(13),DGLUND
+ ;
+ W !,"A. VETERAN",?51,"|",$$YN(DGP("VET"),1)
+ W ?64,"|| ","L. SERVICE IN PERSIAN GULF THEATER",?117,"|",$$YN(DGP(.322),10),?130,"|",$C(13),DGLUND
+ S DGXX=$$YN(DGP(.52),5)
+ W !,"B. PRISONER OF WAR STATUS",$S((X="Y"):(": "_$$POINT^DG1010P0(DGP(.52),6,22)),1:""),?51,"|",DGXX
+ W ?64,"|| ","M. DENTAL INJ. |",$$YN(DGP(.36),8),?95,"|  ","   TEETH EXTRACTED",?117,"|",$$YN(DGP(.36),9),?130,"|",$C(13),DGLUND
+ W !,"C. EXPOSURE TO AGENT ORANGE",?51,"|",$$YN(DGP(.321),2)
+ S DGXX=$$YN(DGP(.3),1)
+ W ?64,"|| ","N. SERVICE CONNECTED",$S((X'="Y"):"",1:(": "_$$DISP^DG1010P0(DGP(.3),2)_"%")),?117,"|",DGXX,?130,"|",$C(13),DGLUND
+ W !,"D. EXPOSURE TO RADIATION",?51,"|",$$YN(DGP(.321),3)
+ W ?64,"|| ","O. RECEIVING AID & ATTENDANCE",?117,"|",$$YN(DGP(.362),12),?130,"|",$C(13),DGLUND
+ W !,"E. COMBAT SERVICE",?51,"|",$$YN(DGP(.52),11)
+ W ?64,"|| ","P. RECEIVING HOUSEBOUND",?117,"|",$$YN(DGP(.362),13),?130,"|",$C(13),DGLUND
+ W !,"F. MILITARY DISABILITY",?51,"|",$$YN(DGP(.36),2)
+ W ?64,"|| ","Q. RECEIVING VA PENSION",?117,"|",$$YN(DGP(.362),14),?130,"|",$C(13),DGLUND
+ W !,"G. VIETNAM SERVICE",?51,"|",$$YN(DGP(.321),1)
+ W ?64,"|| ","R. RECEIVING VA DISABILITY",?117,"|",$$YN(DGP(.3),11),?130,"|",$C(13),DGLUND
+ W !,"H. LEBANON SERVICE",?51,"|",$$YN(DGP(.322),1)
+ W ?64,"|| ","S. SERVICE IN SOMALIA",?117,"|",$$YN(DGP(.322),16),?130,"|",$C(13),DGLUND
+ W !,"I. GRENADA SERVICE",?51,"|",$$YN(DGP(.322),4)
+ W ?64,"|| ","T. SERVICE IN YUGOSLAVIA",?117,"|",$$YN(DGP(.322),19),?130,"|",$C(13),DGLUND
+ W !,"J. PANAMA SERVICE",?51,"|",$$YN(DGP(.322),7)
+ W ?64,"|| ","U. PURPLE HEART RECIPIENT",?117,"|",$$YN(DGP(.53),1),?130,"|",$C(13),DGLUND
+ W !,"K. PERSIAN GULF SERVICE",?51,"|",$S($$POINT^DG1010P0(DGP(.32),3,21)["PERSIAN":"    YES",1:"     NO")
+ S DGX=$S(($P($G(^DPT(DFN,.362)),U,12,14)_$P($G(^DPT(DFN,.3)),U,11)'["Y"):1,1:0)
+ S DGXX=$$DISP^DG1010P0(DGP(.362),20,DGX)
+ S:DGXX DGXX="$ "_DGXX
+ W ?64,"|| ","V. VA MONETARY AMOUNT:",?97,DGXX,?130,"|",$C(13),DGLUND
+ G PARTVI^DG1010P6
+ ;
+YN(N,P) ;
+ ; Ext Val of YES/NO -W/SPACES
+ ;IN:
+ ; N  -- Value of Node
+ ; P  -- Piece
+ ;OUT:[RETURN] -- Ext Val
+ S X=$P(N,"^",P)
+ Q " "_$S((X="Y"):"    YES",(X="N"):"    NO",(X="U"):" UNKNOWN",(X=""):"UNANSWERED",("0"[X):"    NO",("12"[X):"    YES",("3"[X):" UNKNOWN",1:" INVALID")

@@ -1,0 +1,34 @@
+AGSSM ; IHS/ASDS/EFG - MONITOR PROGRAM ;  
+ ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;
+ ;this program monitors the background SSA SSN processing
+ D DT^DICRW
+ S DIC="^AUTTLOC(",DIC(0)="AEMQ",DIC("A")="Monitor which Site: " D ^DIC
+ Q:+Y<0  S AGSSITE=+Y
+ F  Q:($G(DROUT)!$G(DIROUT)!$G(DUOUT))  D DISP W !!!,"The display will recycle every 10 seconds",! K DIR S DIR("T")=10,DIR(0)="E" D ^DIR
+ D QUIT
+ Q
+DISP ;EP
+ U IO(0) W $$S^AGVDF("IOF")
+ W !,?10,"Monitor Program for the SSA SSN Matching Process"
+ S %H=$H D YX^%DTC W !!,"The current time is :  ",Y
+ I '$D(^AGSSTEMP) W !,"The processing program has not started",!! G EDISP
+ S AGSSBGT=$G(^AGSSTEMP(AGSSITE,0,"BEGIN-TIME")),AGSSTM=$G(^AGSSTEMP(AGSSITE,0,"CURRENT-TIME")),AGSS1BGT=$G(^AGSSTEMP(AGSSITE,0,"1ST-BEGIN-TIME"))
+ S AGSS1LRC=$G(^AGSSTEMP(AGSSITE,0,"1ST-LAST-RECORD")),AGSSLRC=$G(^AGSSTEMP(AGSSITE,0,"LAST-RECORD")),AGSSVOL=$G(^AGSSTEMP(AGSSITE,0,"VOL-REC"))
+ W !,"Last Record Processed: "
+ W !,AGSSLRC
+ I ($P(AGSSTM,",")'=$P($H,","))!($P($H,",",2)-$P(AGSSTM,",",2)>600) W !!!,"The process has been idle for more than 10 minutes",!,*7,"PLEASE CHECK WITH THE SITE MANAGER !!",! G EDISP
+ S AGSSDAY=(AGSSTM/1)-(AGSSBGT/1)*24*60*60,AGSSSEC=AGSSDAY+$P(AGSSTM,",",2)-$P(AGSSBGT,",",2)
+ W:$G(^AGSSTEMP(AGSSITE,0,"END-PROCESS")) !!,"PROCESS COMPLETE",!!
+ W:$G(^AGSSTEMP(AGSSITE,0,"NOPEN")) !!,"Could not open host file.",!!
+EDISP ;EP END MONITOR DISPLAY
+QUIT K DROUT,DIROUT,DUOUT,DTOUT
+ Q
+SET ;
+ S ^AGSSTEMP(AGSSITE,0,"VOL-RECORD")=25000
+ S ^AGSSTEMP(AGSSITE,0,"LAST-RECORD")=1000
+ S ^AGSSTEMP(AGSSITE,0,"CURRENT-TIME")=$H
+ S ^AGSSTEMP(AGSSITE,0,"BEGIN-TIME")=$P($H,",")_","_($P($H,",",2)-600)
+ S ^AGSSTEMP(AGSSITE,0,"1ST-LAST-RECORD")=0
+ S ^AGSSTEMP(AGSSITE,0,"1ST-BEGIN-TIME")=0
+ Q

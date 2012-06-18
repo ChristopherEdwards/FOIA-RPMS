@@ -1,0 +1,25 @@
+ORY12708 ;SLC/RJS,CLA - OCX PACKAGE RULE TRANSPORT ROUTINE (Delete after Install of OR*3*127) ;SEP 17,2002 at 13:48
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**127**;Dec 17,1997
+ ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
+ ;
+S ;
+ ;
+ D DOT^ORY127ES
+ ;
+ ;
+ K REMOTE,LOCAL,OPCODE,REF
+ F LINE=1:1:500 S TEXT=$P($T(DATA+LINE),";",2,999) Q:TEXT  I $L(TEXT) D  Q:QUIT
+ .S ^TMP("OCXRULE",$J,$O(^TMP("OCXRULE",$J,"A"),-1)+1)=TEXT
+ ;
+ ;
+ ;
+ Q
+ ;
+DATA ;
+ ;
+ ;;R^"860.2:","860.22:1",6,"E"
+ ;;D^Duplicate opioid medications: |DUPLICATE OPIOID MEDICATIONS TEXT|
+ ;;EOR^
+ ;;EOF^OCXS(860.2)^1
+ ;1;
+ ;

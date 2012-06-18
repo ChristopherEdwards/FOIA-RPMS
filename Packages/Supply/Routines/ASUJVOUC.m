@@ -1,0 +1,49 @@
+ASUJVOUC ; IHS/ITSC/LMH -SCREENMAN FOR DATA ENTRY ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;This routine will be used to save Voucher Batch variables
+ S ASUJT("CAN")=$G(ASUT(ASUT,"CAN"))
+ S ASUJT("ACC")=$G(ASUT(ASUT,"ACC"))
+ S ASUJT("CTG")=$G(ASUT(ASUT,"CTG"))
+ S ASUJT("PON")=$G(ASUT(ASUT,"PON"))
+ S ASUJT("PST")=$G(ASUT(ASUT,"PST"))
+ S ASUJT("REQ")=$G(ASUT(ASUT,"REQ"))
+ S ASUJT("RQN")=$G(ASUT(ASUT,"RQN"))
+ S ASUJT("SOBJ")=$G(ASUT(ASUT,"SOBJ"))
+ S ASUJT("SRC")=$G(ASUT(ASUT,"SRC"))
+ S ASUJT("SSA")=$G(ASUT(ASUT,"SSA"))
+ S ASUJT("SST")=$G(ASUT(ASUT,"SST"))
+ S ASUJT("USR")=$G(ASUT(ASUT,"USR"))
+ S ASUJT("VOU")=$G(ASUT(ASUT,"VOU"))
+ S ASUJT("PT","ACC")=$G(ASUT(ASUT,"PT","ACC"))
+ S ASUJT("PT","REQ")=$G(ASUT(ASUT,"PT","REQ"))
+ S ASUJT("PT","SOBJ")=$G(ASUT(ASUT,"PT","SOBJ"))
+ S ASUJT("PT","DOBJ")=$G(ASUT(ASUT,"PT","DOBJ"))
+ S ASUJT("PT","SRC")=$G(ASUT(ASUT,"PT","SRC"))
+ S ASUJT("PT","SSA")=$G(ASUT(ASUT,"PT","SSA"))
+ S ASUJT("PT","SST")=$G(ASUT(ASUT,"PT","SST"))
+ S ASUJT("PT","USR")=$G(ASUT(ASUT,"PT","USR"))
+ S ASUF("TRAN")=2
+ Q
+CLRFLDS ;EP;
+ S ASUJT("CAN")=""
+ S ASUJT("ACC")=""
+ S ASUJT("CTG")=""
+ S ASUJT("PON")=""
+ S ASUJT("PST")=""
+ S ASUJT("REQ")=""
+ S ASUJT("RQN")=""
+ S ASUJT("SOBJ")=""
+ S ASUJT("SRC")=""
+ S ASUJT("SSA")=""
+ S ASUJT("SST")=""
+ S ASUJT("USR")=""
+ S ASUJT("VOU")=""
+ S ASUJT("PT","ACC")=""
+ S ASUJT("PT","REQ")=""
+ S ASUJT("PT","SOBJ")=""
+ S ASUJT("PT","DOBJ")=""
+ S ASUJT("PT","SRC")=""
+ S ASUJT("PT","SSA")=""
+ S ASUJT("PT","SST")=""
+ S ASUJT("PT","USR")=""
+ Q

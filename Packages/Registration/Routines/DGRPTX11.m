@@ -1,0 +1,3 @@
+DGRPTX11 ; ;10/29/04
+ S X=DG(DQ),DIC=DIE
+ ;

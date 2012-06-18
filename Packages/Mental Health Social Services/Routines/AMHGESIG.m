@@ -1,0 +1,161 @@
+AMHGESIG ; IHS/CMI/MAW - AMHG GUI ESig Utilities 6/22/2009 11:14:59 AM ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;
+ ;
+ ;
+ ;
+DEBUG(RETVAL,AMHSTR)  ;replace tag below to allow Serenji debug of GUI
+ D DEBUG^%Serenji("GETPAT^AMHGU(.RETVAL,.AMHSTR)")
+ Q
+ ;
+CHKESIG(RETVAL,AMHSTR) ;-- check esig status
+ S X="MERR^AMHGU",@^%ZOSF("TRAP") ; m error trap
+ N P,AMHREC,AMHGRP,AMHVAL
+ S P="|"
+ S AMHI=0
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S ^AMHTMP($J,AMHI)="T00250Value"_$C(30)
+ S AMHREC=$P(AMHSTR,P)
+ S AMHGRP=+$P(AMHSTR,P,2)
+ S AMHVAL=$$ESIG^AMHESIG(AMHREC,AMHGRP)
+ S AMHI=AMHI+1
+ S @RETVAL@(AMHI)=$TR(AMHVAL,U,"~")_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;
+CHKIESIG(RETVAL,AMHSTR) ;-- check esig status
+ S X="MERR^AMHGU",@^%ZOSF("TRAP") ; m error trap
+ N P,AMHREC,AMHGRP,AMHVAL
+ S P="|"
+ S AMHI=0
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S ^AMHTMP($J,AMHI)="T00250Value"_$C(30)
+ S AMHREC=$P(AMHSTR,P)
+ S AMHGRP=+$P(AMHSTR,P,2)
+ S AMHVAL=$$ESIGINT^AMHESIG(AMHREC,AMHGRP)
+ S AMHI=AMHI+1
+ S @RETVAL@(AMHI)=$TR(AMHVAL,U,"~")_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;
+CHKGESIG(RETVAL,AMHSTR) ;-- check esig status
+ S X="MERR^AMHGU",@^%ZOSF("TRAP") ; m error trap
+ N P,AMHREC,AMHGRP,AMHVAL
+ S P="|"
+ S AMHI=0
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S ^AMHTMP($J,AMHI)="T00250Value"_$C(30)
+ S AMHREC=$P(AMHSTR,P)
+ S AMHGRP=+$P(AMHSTR,P,2)
+ S AMHVAL=$$GESIG(AMHREC,AMHGRP)
+ S AMHI=AMHI+1
+ S @RETVAL@(AMHI)=$TR(AMHVAL,U,"~")_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;
+SIGN(RETVAL,AMHSTR) ;-- sign the record if valid, if not return invalid
+ S X="MERR^AMHGU",@^%ZOSF("TRAP") ; m error trap
+ N P,AMHREC,AMHESIG,AMHEESIG,AMHPESIG,AMHVAL
+ S P="|"
+ S AMHI=0
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S AMHREC=$P(AMHSTR,P)
+ S AMHESIG=$P(AMHSTR,P,2)
+ S X=AMHESIG
+ D HASH^XUSHSHP
+ S AMHEESIG=X
+ S AMHPESIG=$P($G(^VA(200,DUZ,20)),U,4)
+ S AMHVAL=$S(AMHEESIG=AMHPESIG:1,1:0)
+ I $G(AMHVAL) D UPDREC(AMHREC,DUZ)
+ S @RETVAL@(AMHI)="T00001Valid"_$C(30)
+ S AMHI=AMHI+1
+ S @RETVAL@(AMHI)=$G(AMHVAL)_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;
+GSIGN(RETVAL,AMHSTR) ;-- sign the group record if valid, if not return invalid
+ S X="MERR^AMHGU",@^%ZOSF("TRAP") ; m error trap
+ N P,AMHREC,AMHESIG,AMHEESIG,AMHPESIG,AMHVAL
+ S P="|"
+ S AMHI=0
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S AMHREC=$P(AMHSTR,P)
+ S AMHESIG=$P(AMHSTR,P,2)
+ S X=AMHESIG
+ D HASH^XUSHSHP
+ S AMHEESIG=X
+ S AMHPESIG=$P($G(^VA(200,DUZ,20)),U,4)
+ S AMHVAL=$S(AMHEESIG=AMHPESIG:1,1:0)
+ I $G(AMHVAL) D UPDGREC(AMHREC,DUZ)
+ S @RETVAL@(AMHI)="T00001Valid"_$C(30)
+ S AMHI=AMHI+1
+ S @RETVAL@(AMHI)=$G(AMHVAL)_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;
+ISIGN(RETVAL,AMHSTR) ;-- sign the record if valid, if not return invalid
+ S X="MERR^AMHGU",@^%ZOSF("TRAP") ; m error trap
+ N P,AMHREC,AMHESIG,AMHEESIG,AMHPESIG,AMHVAL
+ S P="|"
+ S AMHI=0
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S AMHREC=$P(AMHSTR,P)
+ S AMHESIG=$P(AMHSTR,P,2)
+ S X=AMHESIG
+ D HASH^XUSHSHP
+ S AMHEESIG=X
+ S AMHPESIG=$P($G(^VA(200,DUZ,20)),U,4)
+ S AMHVAL=$S(AMHEESIG=AMHPESIG:1,1:0)
+ I $G(AMHVAL) D UPDRECI(AMHREC,DUZ)
+ S @RETVAL@(AMHI)="T00001Valid"_$C(30)
+ S AMHI=AMHI+1
+ S @RETVAL@(AMHI)=$G(AMHVAL)_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;
+UPDREC(REC,DZ) ;EP -- update the record with the date and user
+ N AMHFDA,AMHIENS,AMHERRR,AMHNOW
+ S AMHIENS=REC_","
+ S AMHNOW=$$NOW^XLFDT()
+ S AMHFDA(9002011,AMHIENS,1112)=AMHNOW
+ S AMHFDA(9002011,AMHIENS,1113)=$P($G(^VA(200,DUZ,20)),U,2)
+ S AMHFDA(9002011,AMHIENS,1116)=$P($G(^VA(200,DUZ,20)),U,3)
+ D FILE^DIE("K","AMHFDA","AMHERRR(1)")
+ Q
+ ;
+UPDRECI(REC,DZ) ;EP -- update the record with the date and user
+ N AMHFDA,AMHIENS,AMHERRR,AMHNOW
+ S AMHIENS=REC_","
+ S AMHNOW=$$NOW^XLFDT()
+ S AMHFDA(9002011.13,AMHIENS,.11)=AMHNOW
+ S AMHFDA(9002011.13,AMHIENS,.12)=$P($G(^VA(200,DUZ,20)),U,2)
+ D FILE^DIE("K","AMHFDA","AMHERRR(1)")
+ Q
+ ;
+UPDGREC(REC,DZ) ;-- update the record with the date and user
+ N AMHFDA,AMHIENS,AMHERRR,AMHNOW
+ S AMHIENS=REC_","
+ S AMHNOW=$$NOW^XLFDT()
+ S AMHFDA(9002011.67,AMHIENS,.18)=1
+ S AMHFDA(9002011.67,AMHIENS,.21)=AMHNOW
+ S AMHFDA(9002011.67,AMHIENS,.19)=$P($G(^VA(200,DUZ,20)),U,2)
+ D FILE^DIE("K","AMHFDA","AMHERRR(1)")
+ Q
+ ;
+GESIG(R,G) ;EP - called for esig
+ NEW X1,DA,DR,DIE,D
+ S D=$P($P(^AMHGROUP(R,0),U),".")
+ I '$$ESIGREQ^AMHESIG(,D) Q "0^1^E Sig not required for this group, visit is prior to Version 4.0 install date."  ;not required
+ I $P($G(^AMHGROUP(R,0)),U,18)]"" Q "0^1^Note already signed, no E Sig necessary." ;
+ I $$PP^AMHEGR(R)="" Q "0^0^No primary provider to check.  No PCC link."
+ I $D(^AMHSITE(DUZ(2),19,"B",$$PP^AMHEGR(R))) Q "0^1^Provider opted out of E Sig, no E Sig required."
+ I DUZ'=$$PP^AMHEGR(R) Q "0^0^Only the Primary provider is permitted to sign a note."
+ ;I '$O(^AMHGROUP(R,61,0)) Q "0^0^There were no visits created for this group."
+ Q "1^1"
+ ;

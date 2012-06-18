@@ -1,0 +1,122 @@
+BCHRL ; IHS/TUCSON/LAB - CHR GENERAL RETRIEVAL DRIVER ;  [ 10/28/96  2:05 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+START ; 
+ I '$D(IOF) D HOME^%ZIS
+ I '$G(DUZ(2)) W $C(7),$C(7),!!,"SITE NOT SET IN DUZ(2) - NOTIFY SITE MANAGER!!",!! Q
+ I '$G(DUZ) W $C(7),$C(7),!!,"USER NOT SET IN DUZ - NOTIFY SITE MANAGER!!",!! Q
+ K BCHQUIT
+TYPE ;--- get type of report (patient, date range or search template)
+ D INFORM^BCHRL01
+ K DIR,X,Y S DIR(0)="S^S:Search Template"_$S(BCHPTVS="V":";D:Date Range",1:";P:Patient File"),DIR("A")="Select and Print "_$S(BCHPTVS="P":"Patient ",1:"Encounter ")_"List from" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) XIT
+ S BCHTYPE=Y
+ D @BCHTYPE
+ D XIT
+ Q
+P ;patient lister
+ D ADD I $D(BCHQUIT) D DEL K BCHQUIT G TYPE
+ I '$D(BCHCAND) D P1 Q
+ I $D(BCHCAND),$P(^BCHTRPT(BCHRPT,0),U,11) D  I $D(DIRUT)!'($D(BCHBDD))!('$D(BCHEDD)) Q
+ .S BCHRDTR=""
+ .W !!,"You have selected at least one item that requires a date range selection."
+ .D GETDATES
+ D TITLE I $D(BCHQUIT) K BCHQUIT G TYPE
+ D ZIS
+ Q
+P1 ;if patient, no prev defined report used
+P11 K ^BCHTRPT(BCHRPT,11),BCHRDTR D SCREEN I $D(BCHQUIT) K BCHQUIT D DEL G TYPE
+ I $D(BCHRDTR) D
+ .W !!,"You have selected at least one item that requires a date range selection."
+ .D GETDATES
+P12 K ^BCHTRPT(BCHRPT,12) S BCHTCW=0 D COUNT I $D(BCHQUIT) K BCHQUIT G P11
+P13 D TITLE I $D(BCHQUIT) K BCHQUIT G P12
+ D SAVE
+ D ZIS
+ Q
+S ;--- search template
+ D S0
+ Q:$D(BCHQUIT)
+S1 ;EP
+ D ADD I $D(BCHQUIT) G S
+S12 K ^BCHTRPT(BCHRPT,12) S BCHTCW=0 D COUNT I $D(BCHQUIT) K BCHQUIT G S
+S13 D TITLE I $D(BCHQUIT) K BCHQUIT G S12
+ D ZIS
+ Q
+S0 ;
+ S:BCHPTVS="V" DIC("S")="I $P(^(0),U,4)=9000010" S:BCHPTVS="P" DIC("S")="I $P(^(0),U,4)=2!($P(^(0),U,4)=9000001)" S DIC="^DIBT(",DIC("A")="Enter SEARCH TEMPLATE name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
+ I Y=-1 S BCHQUIT="" Q
+ S BCHSEAT=+Y
+ ;
+ Q
+D ;
+GETDATES ;
+BD ;get beginning date
+ W ! K DIR,X,Y S DIR(0)="D^:DT:EP",DIR("A")="Enter Beginning Date of Service for search" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) D DEL G TYPE
+ S BCHBD=Y
+ED ;get ending date
+ W ! K DIR,X,Y S DIR(0)="D^"_BCHBD_":DT:EP",DIR("A")="Enter Ending Date of Service for search" S Y=BCHBD D DD^%DT S DIR("B")=Y,Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S BCHED=Y
+ S X1=BCHBD,X2=-1 D C^%DTC S BCHD=X S Y=BCHBD D DD^%DT S BCHBDD=Y S Y=BCHED D DD^%DT S BCHEDD=Y
+ Q:$D(BCHRDTR)
+ D ADD I $D(BCHQUIT) D DEL K BCHQUIT G D
+ I '$D(BCHCAND) D D1 Q
+ D TITLE I $D(BCHQUIT) K BCHQUIT G TYPE
+ D ZIS
+ Q
+D1 ;if visit, no prev defined report used
+D11 K ^BCHTRPT(BCHRPT,11),BCHRDTR D SCREEN I $D(BCHQUIT) K BCHQUIT D DEL G D
+D12 K ^BCHTRPT(BCHRPT,12) S BCHTCW=0 D COUNT I $D(BCHQUIT) K BCHQUIT G D11
+D13 D TITLE I $D(BCHQUIT) K BCHQUIT G D12
+ D SAVE
+ D ZIS
+ Q
+SCREEN ;
+ D SCREEN^BCHRL3
+ Q
+COUNT ;count only or detailed report
+ D COUNT^BCHRL3
+ Q
+TITLE ;
+ Q:BCHCTYP="T"
+ K DIR,X,Y S DIR(0)="Y",DIR("A")="Would you like a custom title for this report",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) S BCHQUIT=1 Q
+ Q:Y=0
+ S BCHLENG=$S(BCHTCW:BCHTCW-8,1:60)
+ I Y=1 K DIR,X,Y S DIR(0)="F^3:"_BCHLENG,DIR("A")="Enter custom title",DIR("?")="    Enter from 3 to "_BCHLENG_" characters" D ^DIR K DIR
+ G:$D(DIRUT) TITLE
+ S BCHTITL=Y
+ Q
+SAVE ;
+ Q:$D(BCHCAND)
+ Q:BCHCTYP'="D"  ;--- must be a detailed report to be saved
+ S BCHSAVE=""
+ K DIR,X,Y S DIR(0)="Y",DIR("A")="Do you wish to SAVE this "_$S('$D(BCHEP1):"SEARCH/",1:"")_"PRINT/SORT logic for future use",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ Q:'Y
+ K DIR,X,Y S DIR(0)="9001003.8,.03",DIR("A")="Enter NAME for this REPORT DEFINITION" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) SAVE
+ S BCHNAME=Y
+ S DIE="^BCHTRPT(",DA=BCHRPT,DR=".02////1;.03///"_BCHNAME_";.06///"_BCHPTVS_";.05///"_BCHCTYP_";.11///"_$G(BCHRDTR) S:$D(BCHEP1) DR=DR_";.09///"_BCHPACK D CALLDIE^BCHUTIL
+ Q
+ZIS ;call to XBDBQUE
+ I 'BCHTCW S BCHTCW=IOM
+ S BCHDONE=""
+ D SHOW^BCHRLS,SHOWP^BCHRLS,SHOWR^BCHRLS
+ D XIT1
+ S XBRP="^BCHRLP",XBRC="^BCHRL1",XBRX="XIT^BCHRL",XBNS="BCH"
+ D ^XBDBQUE
+ D XIT
+ Q
+DEL ;EP DELETE LOG ENTRY IF ONE EXISTS AND USER "^" OUT
+ I $G(BCHRPT),$D(^BCHTRPT(BCHRPT,0)),'$P(^BCHTRPT(BCHRPT,0),U,2) S DIK="^BCHTRPT(",DA=BCHRPT D ^DIK K DIK,DA,DIC
+ Q
+ADD ;
+ D ADD^BCHRL01
+ Q
+XIT ;
+ D XIT^BCHRL1
+XIT1 ;
+ D XIT1^BCHRL1
+ Q

@@ -1,0 +1,313 @@
+ABMUVBCH ; IHS/SD/SDR - 3PB/UFMS View Batch option   
+ ;;2.6;IHS Third Party Billing;**1,3**;NOV 12, 2009
+ ; New routine - v2.5 p12 SDD item 4.9.2.1
+ ; View Batch
+ ; IHS/SD/MRS - v2.5 p13 - NO IM - Modified to include export page options
+ ; IHS/SD/SDR - v2.6 p1 - NO HEAT - Added totals for cash. sessions
+START ;START HERE
+ ; Find the requested UFMS export batch in the UFMS export file.
+BEG ;
+ ; Find beginning export batch
+ S ABMTRIBL=$P($G(^ABMDPARM(DUZ(2),1,4)),U,14)
+ W !
+ K DIC,DIE,X,Y,DA
+ S DIC="^ABMUTXMT("
+ S DIC(0)="AEMQ"
+ S DIC("A")="Select beginning export: "
+ S ABMSCRND=$P($G(^ABMDPARM(DUZ(2),1,4)),U,16)  ;only show limited entries
+ S DIC("S")="S X1=DT,X2=$P(^ABMUTXMT(Y,0),U) D ^%DTC I X<ABMSCRND"
+ D ^DIC
+ Q:Y<0
+ S ABME("XMITB")=+Y
+END ;Find ending export batch
+ W !
+ S DIC("A")="Select ending export: "
+ D ^DIC
+ K DIC
+ Q:Y<0
+ S ABME("XMITE")=+Y
+ I ABME("XMITE")<ABME("XMITB") W !!,"INVALID RANGE!" G BEG
+SUMDET ;summary or detail?
+ K DIC,DIE,DIR,X,Y,DA
+ S DIR(0)="S^S:SUMMARY;D:DETAIL;P:SUMMARY WITH EXPORT PAGE;X:DETAIL WITH EXPORT PAGE;G:GRAND TOTAL ALL FILES BY TRANSMISSION DATE"
+ S DIR("A")="SUMMARY OR DETAIL"
+ S DIR("B")="SUMMARY"
+ D ^DIR K DIR
+ S ABMSUMDT=Y
+ K ABMSAV
+SEL ;Select device
+ S %ZIS="NQ"
+ S %ZIS("A")="Enter DEVICE: "
+ D ^%ZIS Q:POP
+ I IO'=IO(0) D QUE,HOME^%ZIS S DIR(0)="E" D ^DIR K DIR Q
+ I $D(IO("S")) S IOP=ION D ^%ZIS
+PRINT ;EP
+ ; Callable point for queuing
+ S ABME("PG")=0
+ S ABMP("XMIT")=ABME("XMITB")-1
+ D SET  Q:(IOST["C")&(($G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ W !!,$$EN^ABMVDF("HIN"),"E N D   O F   R E P O R T",$$EN^ABMVDF("HIF"),!
+ I $E(IOST)="C" S DIR(0)="E" D ^DIR K DIR
+ I $E(IOST)="P" W $$EN^ABMVDF("IOF")
+ I $D(IO("S")) D ^%ZISC
+ K ABME
+ Q
+SET ;SET UP SOME THINGS
+ ;
+ ; ABME("BDATE")  = Batch export date
+ ; ABME("FNAME")  = File Name
+ S ABMSAV=ABMSUMDT  ;save original option
+ K Y,DIRUT,DIROUT,DTOUT,DUOUT
+ S ABMSUMDT=$S(ABMSUMDT="X"!(ABMSUMDT="D"):"D",1:"S")  ;change option back for summary
+ F  S ABMP("XMIT")=$O(^ABMUTXMT(ABMP("XMIT"))) Q:'+ABMP("XMIT")!(ABMP("XMIT")>ABME("XMITE"))  D  Q:(IOST["C")&(($G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ .S Y=$P(^ABMUTXMT(ABMP("XMIT"),0),U)
+ .D DD^%DT
+ .S ABME("BDATE")=Y
+ .S ABME("FNAME")=$P($G(^ABMUTXMT(ABMP("XMIT"),0)),U,2)
+ .S ABME("LOC")=$P($G(^ABMUTXMT(ABMP("XMIT"),0)),U,4)
+ .S ABME("TOT")=0
+ .S ABME("STOT")=0
+ .S ABME("CNT")=0
+ .S $P(ABME("-"),"-",81)=""
+ .S $P(ABME("EQ"),"=",81)=""
+ .I "PXG"[ABMSAV D  ;print reconcile page before summary
+ ..D LOOP^ABMUVBCR(ABMP("XMIT"),ABME("LOC"))
+ ..S ABME("PG")=0  ;reset page cntr
+ .F ABMI=1,2 D
+ ..S ABMUS=0
+ ..F  S ABMUS=$O(^ABMUTXMT(ABMP("XMIT"),ABMI,ABMUS)) Q:+ABMUS=0  D
+ ...S ABMUSR=$G(^ABMUTXMT(ABMP("XMIT"),ABMI,ABMUS,0))
+ ...Q:+ABMUSR=0
+ ...S ABMSDT=0
+ ...F  S ABMSDT=$O(^ABMUTXMT(ABMP("XMIT"),ABMI,ABMUSR,2,ABMSDT)) Q:+ABMSDT=0  D
+ ....S ABMLOOP=$S(ABMI=1:10,1:20)
+ ....S ABM0=$G(^ABMUCASH(ABME("LOC"),ABMLOOP,ABMUSR,20,ABMSDT,0))
+ ....S ABMSTR=$P(ABM0,U,4)_U_$P(ABM0,U,3)     ;SESSION STATUS^SIGN OUT DATE
+ ....S ABMUSER=$S(ABMLOOP=20:"POS",1:ABMUSR)  ;SUB "POS" FOR USER IEN 
+ ....S ABMC(ABMSDT,ABMUSER,ABMSDT)=ABMSTR               ;Create local ABMC array
+ .D HD
+ .D:ABMSAV'="G" LOOP Q:(IOST["C")&(($G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ .D:ABMSAV="G" GLOOP,GRANDTOT Q:(IOST["C")&(($G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ Q
+LOOP ; Loop through the bills of specified batch to gather data and
+ ; print the report.
+ S ABMSDT=0
+ F  S ABMSDT=$O(ABMC(ABMSDT)) Q:+ABMSDT=0  D
+ .S ABMUSER=""
+ .F  S ABMUSER=$O(ABMC(ABMSDT,ABMUSER)) Q:ABMUSER=""  D
+ ..S ABMLOOP=$S(+ABMUSER'=0:1,1:2)
+ ..S ABMUS=ABMUSER
+ ..I ABMUS="POS" S ABMUS=1
+ ..W !!,"SESSION ID: ",ABMSDT
+ ..;start old code abm*2.6*1
+ ..;W:ABMUS'=1 ?30,"BILLER: ",$P($P($G(^VA(200,ABMUS,0)),U),",")_","_$E($P($P($G(^VA(200,ABMUS,0)),U),",",2),1),!
+ ..;W:ABMUS=1 ?30,"BILLER: POS CLAIMS",!
+ ..;end old code start new code
+ ..W:ABMUS'=1 ?30,"BILLER: ",$P($P($G(^VA(200,ABMUS,0)),U),",")_","_$E($P($P($G(^VA(200,ABMUS,0)),U),",",2),1)
+ ..W:ABMUS=1 ?30,"BILLER: POS CLAIMS"
+ ..;end new code
+ ..;start new code abm*2.6*1 NO HEAT
+ ..D TOTAL^ABMUVBC1
+ ..W ?55,"TOTAL: ",$J($FN(ABME("TAMT"),",",2),10)
+ ..;end new code NO HEAT
+ ..S ABMBA=0,ABMEXCNT=0,ABMEXAMT=0
+ ..F  S ABMBA=$O(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA)) Q:+ABMBA=0  D   Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ ...S ABMBAOUT=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,0)),U)
+ ...K ABME(ABMBAOUT)
+ ...S ABMBIEN=0
+ ...W !?2,$P($T(@ABMBAOUT^ABMUCASH),";;",2)
+ ...F  S ABMBIEN=$O(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,2,ABMBIEN)) Q:+ABMBIEN=0  D  Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ ....I ABMSUMDT="D" D DTAIL
+ ....I ABMSUMDT="S" D SUMMARY
+ ....Q:((IOST["C")&(+$G(Y)=0))!$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ ...I ABMSUMDT="S" D
+ ....W ?35,+$G(ABME(ABMBAOUT)),$S(+$G(ABME(ABMBAOUT))=1:" bill",1:" bills")
+ ....W ?50,$J($FN(ABME(ABMBAOUT,"AMT"),",",2),10)
+ ...;start new code abm*2.6*1 NO HEAT
+ ...I ABMSUMDT="D" D
+ ....W !?68,"----------"
+ ....W !?68,$J($FN(ABME(ABMBAOUT,"AMT"),",",2),10)
+ ...;end new code NO HEAT
+ ..I +$G(ABMEXCNT)'=0 D
+ ...W !?26,+$G(ABMEXCNT)," excluded "_$S(+$G(ABMEXCNT)=1:"bill",1:"bills"),?45,$J($FN(ABMEXAMT,",",2),10),!
+ W !!,$$EN^ABMVDF("HIN"),"TOTAL BILLS FOR THIS EXPORT: ",$$EN^ABMVDF("HIF"),?35,ABME("CNT")_$S(ABME("CNT")=1:" bill",1:" bills"),?$S(ABMSUMDT="S":50,1:69),$J($FN(ABME("TOT"),",",2),10)
+ S ABME("TOT")=0
+ Q
+SUMMARY ;
+ K ABMDUZ2,ABMBDFN
+ S ABME(ABMBAOUT)=+$G(ABME(ABMBAOUT))+1  ;cnt budget activity bills
+ S ABMDUZ2=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,2,ABMBIEN,0)),U,2)
+ S ABMBDFN=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,2,ABMBIEN,0)),U,3)
+ S ABME(ABMBAOUT,"AMT")=+$G(ABME(ABMBAOUT,"AMT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;cnt bill amt
+ S ABME("CNT")=+$G(ABME("CNT"))+1  ;cnt total bills
+ S ABME("TOT")=+$G(ABME("TOT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;cnt total bill amt
+ I $P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,2,ABMBIEN,0)),U,5)=1 D  ;excluded bills
+ .S ABMEXCNT=+$G(ABMEXCNT)+1
+ .S ABMEXAMT=+$G(ABMEXAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))
+ Q
+DTAIL ;DISPLAY DETAIL
+ ;
+ S ABME(ABMBAOUT)=+$G(ABME(ABMBAOUT))+1  ;cnt budget activity bills
+ S ABMDUZ2=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,2,ABMBIEN,0)),U,2)
+ S ABMBDFN=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,2,ABMBIEN,0)),U,3)
+ S ABME(21)=$P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U)
+ S ABME(ABMBAOUT,"AMT")=$G(ABME(ABMBAOUT,"AMT"))+(ABME(21))  ;count bill amt
+ S ABME("CNT")=+$G(ABME("CNT"))+1  ;cnt total bills
+ S ABME("TOT")=+$G(ABME("TOT"))+(ABME(21))  ;cnt total bill amt
+ S ABME(71)=$$SDT^ABMDUTL($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,7)),U))
+ S ABME(1)=$P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,0)),U)
+ S ABME(3)=$P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,0)),U,3)
+ S ABME(5)=$P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,0)),U,5)
+ S ABME(15)=$$SDT^ABMDUTL($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,1)),U,5))
+ S ABME("HRN")=$P($G(^AUPNPAT(+ABME(5),41,+ABMDUZ2,0)),U,2)
+ S ABME("SUFFIX")=$P($G(^ABMDPARM(ABME(3),1,2)),U,4)
+ W !,ABME("SUFFIX")
+ ;W ?4,ABME(1),?13,ABME("HRN"),?21,$P($G(^DPT(+ABME(5),0)),U),?48,ABME(15)  ;abm*2.6*1 NO HEAT
+ W ?4,ABME(1),?13,ABME("HRN"),?21,$E($P($G(^DPT(+ABME(5),0)),U),1,22),?45,ABME(15)  ;abm*2.6*1 NO HEAT
+ ;W ?59,ABME(71),?70,$J($FN(ABME(21),",",2),10)  ;abm*2.6*1 NO HEAT
+ W ?57,ABME(71),?68,$J($FN(ABME(21),",",2),10)  ;abm*2.6*1 NO HEAT
+ S ABMXMIT=$O(^ABMDBILL(ABMDUZ2,ABMBDFN,69,"B",ABMP("XMIT"),0))
+ ;excluded/tribal data
+ I (ABMTRIBL=1),(+$G(ABMXMIT)'=0),($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,69,ABMXMIT,0)),U,3)=1) W "*"
+ I $Y+5>IOSL D HD Q:(IOST["C")&((+$G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ Q
+GLOOP ; Loop thru bills of specified batch to gather data and print the report.
+ K ABMT
+ S ABMEXCNT=0,ABMEXAMT=0
+ K ABMBAT  ;abm*2.6*3
+ F ABMLOOP=1,2 D  Q:(IOST["C")&(($G(Y)<0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ .S ABMU=0
+ .F  S ABMU=$O(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMU)) Q:+ABMU=0  D  Q:(IOST["C")&(($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ ..S ABMUS=$G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMU,0))
+ ..Q:+ABMUS=0
+ ..S ABMDT=0
+ ..F  S ABMDT=$O(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMDT)) Q:+ABMDT=0  D  Q:(IOST["C")&(($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ ...S ABMBA=0
+ ...F  S ABMBA=$O(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMDT,11,ABMBA)) Q:+ABMBA=0  D   Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ ....S ABMBAOUT=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMDT,11,ABMBA,0)),U)
+ ....S ABMBAOUT=$P($T(@ABMBAOUT),";;",2)
+ ....S ABMBIEN=0
+ ....F  S ABMBIEN=$O(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMDT,11,ABMBA,2,ABMBIEN)) Q:+ABMBIEN=0  D  Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ .....K ABMDUZ2,ABMBDFN
+ .....S ABMDUZ2=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMDT,11,ABMBA,2,ABMBIEN,0)),U,2)
+ .....S ABMBDFN=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMDT,11,ABMBA,2,ABMBIEN,0)),U,3)
+ .....S ABMT(ABMDUZ2,ABMBAOUT)=+$G(ABMT(ABMDUZ2,ABMBAOUT))+1  ;cnt b.a. bills for location
+ .....;start new code abm*2.6*3 NOHEAT
+ .....S ABMBAT(ABMBAOUT,"CNT")=+$G(ABMBAT(ABMBAOUT,"CNT"))+1  ;cnt b.a. tot
+ .....S ABMBAT(ABMBAOUT,"AMT")=+$G(ABMBAT(ABMBAOUT,"AMT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;cnt b.a. total amt
+ .....;end new code abm*2.6*3
+ .....S ABMT(ABMDUZ2,ABMBAOUT,"AMT")=+$G(ABMT(ABMDUZ2,ABMBAOUT,"AMT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;cnt bill amt
+ .....S ABM(ABMDUZ2,"CNT")=+$G(ABM(ABMDUZ2,"CNT"))+1  ;cnt bills for loc
+ .....S ABM("CNT")=+$G(ABM("CNT"))+1  ;cnt total bills
+ .....S ABM(ABMDUZ2,"TOT")=+$G(ABM(ABMDUZ2,"TOT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;cnt amt for location
+ .....S ABM("TOT")=+$G(ABM("TOT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;cnt tot bill amt
+ .....I $P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMDT,11,ABMBA,2,ABMBIEN,0)),U,5)=1 D  ;excluded bills
+ ......S ABMT(ABMDUZ2,ABMBAOUT,"ECNT")=+$G(ABMT(ABMDUZ2,ABMBAOUT,"ECNT"))+1  ;cnt excluded by loc/Budget act.
+ ......S ABMT(ABMDUZ2,ABMBAOUT,"EAMT")=+$G(ABMT(ABMDUZ2,ABMBAOUT,"EAMT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;excl. amt
+ ......;start new code abm*2.6*3 NOHEAT
+ ......S ABMBAT(ABMBAOUT,"ECNT")=+$G(ABMBAT(ABMBAOUT,"ECNT"))+1  ;cnt b.a. E-total
+ ......S ABMBAT(ABMBAOUT,"EAMT")=+$G(ABMBAT(ABMBAOUT,"ETOT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;cnt b.a. total E-amt
+ ......;end new code abm*2.6*3
+ ......S ABMEXCNT=+$G(ABMEXCNT)+1
+ ......S ABMEXAMT=+$G(ABMEXAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))
+ .....S ABMU(ABMDT,ABMUS)=""
+ Q
+GRANDTOT ;EP
+ S ABMDT=0
+ F  S ABMDT=$O(ABMU(ABMDT)) Q:+ABMDT=0  D
+ .S ABMUS=0
+ .F  S ABMUS=$O(ABMU(ABMDT,ABMUS)) Q:+ABMUS=0  D
+ ..W !,"SESSION ID: ",ABMDT,?32,"BILLER: ",$S(ABMUS=1:"POS CLAIMS",1:$P($G(^VA(200,ABMUS,0)),U))
+ W !,ABMLINE
+ ;
+ S ABMDUZ2=0
+ F  S ABMDUZ2=$O(ABMT(ABMDUZ2)) Q:+ABMDUZ2=0  D
+ .W !,$P($G(^DIC(4,ABMDUZ2,0)),U)  ;facility name
+ .S ABMBAOUT=""
+ .F  S ABMBAOUT=$O(ABMT(ABMDUZ2,ABMBAOUT)) Q:ABMBAOUT=""  D
+ ..W !?3,ABMBAOUT,?26,$J(+$G(ABMT(ABMDUZ2,ABMBAOUT)),6),$S(+$G(ABMT(ABMDUZ2,ABMBAOUT))=1:" bill ",1:" bills")
+ ..W ?40,$J($FN(ABMT(ABMDUZ2,ABMBAOUT,"AMT"),",",2),10)
+ ..W ?55,$J(+$G(ABMT(ABMDUZ2,ABMBAOUT,"ECNT")),6)_$S(+$G(ABMT(ABMDUZ2,ABMBAOUT,"ECNT"))=1:" bill ",1:" bills")
+ ..W ?65,$J($FN(+$G(ABMT(ABMDUZ2,ABMBAOUT,"EAMT")),",",2),10)
+ .W !?5,"Total for facility",?26,$J(+$G(ABM(ABMDUZ2,"CNT")),6),$S(+$G(ABM(ABMDUZ2,"CNT"))=1:" bill ",1:" bills")
+ .W ?40,$J($FN(ABM(ABMDUZ2,"TOT"),",",2),10),!
+ ;
+ W !?5,$$EN^ABMVDF("HIN"),"TOTAL BILLS: ",$$EN^ABMVDF("HIF"),?26,$J(+$G(ABM("CNT")),6)_$S(+$G(ABM("CNT"))=1:" bill",1:" bills"),?$S($G(ABMSUMDT)="S":40,1:69),$J($FN(+$G(ABM("TOT")),",",2),10)
+ W ?55,$J(+$G(ABMEXCNT),6),$S(+$G(ABMEXCNT)=1:" bill",1:" bills"),?65,$J($FN(+$G(ABMEXAMT),",",2),10),!
+ ;start new code abm*2.6*3 NOHEAT
+ W !,$E(ABMLINE,1,3)_" EXPORT SUMMARY "_$E(ABMLINE,1,60)
+ S ABMBAOUT=""
+ F  S ABMBAOUT=$O(ABMBAT(ABMBAOUT)) Q:($G(ABMBAOUT)="")  D
+ .W !?2,ABMBAOUT,?26,$J(+$G(ABMBAT(ABMBAOUT,"CNT")),6),$S(+$G(ABMBAT(ABMBAOUT,"CNT"))=1:" bill ",1:" bills")
+ .W ?40,$J($FN(ABMBAT(ABMBAOUT,"AMT"),",",2),10)
+ .W ?55,$J(+$G(ABMBAT(ABMBAOUT,"ECNT")),6),$S(+$G(ABMBAT(ABMBAOUT,"ECNT"))=1:" bill ",1:" bills")
+ .W ?65,$J($FN(+$G(ABMBAT(ABMBAOUT,"EAMT")),",",2),10)
+ W !,ABMLINE
+ ;end new code abm*2.6*3 NOHEAT
+ W !!?5,"TOTAL EXPORTED: ",?26,$J((+$G(ABM("CNT"))-(+$G(ABMEXCNT))),6)_$S(+$G(ABM("CNT"))=1:" bill",1:" bills"),?40,$J($FN((+$G(ABM("TOT"))-(+$G(ABMEXAMT))),",",2),10)
+ ;
+ S ABM("TOT")=0
+ Q
+HD ;HEADER FOR DETAIL LISTING
+ I $G(ABME("PG")),($E(IOST)="C") S DIR(0)="E" D ^DIR K DIR Q:Y=0!$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
+ S ABME("PG")=ABME("PG")+1
+ W $$EN^ABMVDF("IOF"),!,?30,$$EN^ABMVDF("HIN"),"UFMS EXPORT SUMMARY",?70,"Page: ",$$EN^ABMVDF("HIF"),ABME("PG")
+ W !,$$EN^ABMVDF("HIN"),"LOCATION: ",$$EN^ABMVDF("HIF"),$P($G(^AUTTLOC(ABME("LOC"),0)),U,2)
+ W !,$$EN^ABMVDF("HIN"),"EXPORT DATE: ",$$EN^ABMVDF("HIF"),ABME("BDATE")
+ W !,$$EN^ABMVDF("HIN"),"FILE NAME: ",$$EN^ABMVDF("HIF"),ABME("FNAME")
+ W !,$$EN^ABMVDF("HIN")
+ ;
+ W "EXPORT(S) RESENT: ",$$EN^ABMVDF("HIF")
+ S ABMEU=0
+ F  S ABMEU=$O(^ABMUTXMT(ABMP("XMIT"),1,ABMEU)) Q:+ABMEU=0  D
+ .S ABMEDT=""
+ .F  S ABMEDT=$O(^ABMUTXMT(ABMP("XMIT"),1,ABMEU,2,ABMEDT)) Q:+$G(ABMEDT)=0  D
+ ..S ABMREXP=0
+ ..F  S ABMREXP=$O(^ABMUTXMT(ABMP("XMIT"),1,ABMEU,2,ABMEDT,3,ABMREXP)) Q:+ABMREXP=0  D
+ ...S ABMRXIEN=$P($G(^ABMUTXMT(ABMP("XMIT"),1,ABMEU,2,ABMEDT,3,ABMREXP,0)),U)
+ ...S ABMRXFIL=$P($G(^ABMUTXMT(ABMRXIEN,0)),U,2),ABMREXPF=1
+ ...W !?3,ABMRXFIL_" IN SESSION "_ABMEDT
+ I $G(ABMREXPF)'=1 W " <<NONE>>"
+ ;
+ W !,$$EN^ABMVDF("HIN")
+ W ABME("EQ")
+ ;
+ ;I ABMSUMDT="D" D  ;abm*2.6*1
+ I ABMSUMDT="D"!(ABMSUMDT="X") D  ;abm*2.6*1
+ .W:(ABMTRIBL=1) !,"NOTE: ""*"" by amount means it was excluded from export"
+ .W !,?48,"APPROVAL",?60,"DATE OF"
+ .W !,"LOC",?4,"BILL #",?13,"HRN",?21,"PATIENT",?48,"DATE",?60,"SERVICE",?72,"AMOUNT"
+ ;I ABMSAV="S" D  ;abm*2.6*1
+ I "^S^P^"[("^"_ABMSAV_"^") D  ;abm*2.6*1
+ .W !,?4,"BUDGET ACTIVITY",?35,"BILL COUNT",?50,"AMOUNT"
+ I ABMSAV="G" D
+ .W !,?4,"BUDGET ACTIVITY",?30,"BILL CNT",?43,"AMOUNT",?54,"EXCL.CNT",?67,"EXCL.AMT"
+ W !,ABME("-"),$$EN^ABMVDF("HIF")
+ Q
+QUE ;QUE TO TASKMAN
+ S ZTRTN="PRINT^ABMUVBCH"
+ S ZTDESC="3P UFMS TX EXPORT SUMMARY"
+ S ZTSAVE("ABM*")=""
+ K ZTSK
+ D ^%ZTLOAD
+ W:$G(ZTSK) !,"Task # ",ZTSK," queued.",!
+ Q
+STOT ;SITE TOTAL
+ W !!,$$EN^ABMVDF("HIN"),"SITE/BILL TYPE TOTAL:",$$EN^ABMVDF("HIF"),?68,$J($FN(ABME("STOT"),",",2),10)
+ S ABME("STOT")=0
+ Q
+R ;;MEDICARE
+MD ;;MEDICARE
+MH ;;MEDICARE
+D ;;MEDICAID
+K ;;MEDICAID
+F ;;PRIVATE INSURANCE
+P ;;PRIVATE INSURANCE
+H ;;PRIVATE INSURANCE
+M ;;PRIVATE INSURANCE
+T ;;PRIVATE INSURANCE
+N ;;OTHER
+I ;;OTHER
+W ;;OTHER
+C ;;OTHER
+G ;;OTHER

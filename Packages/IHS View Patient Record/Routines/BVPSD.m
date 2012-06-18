@@ -1,0 +1,71 @@
+BVPSD ; IHS/ITSC/LJF - DEMO/APPTS ACTION ;
+ ;;1.0;VIEW PATIENT RECORD;;NOV 17, 2004
+ ;
+ I $L($T(^BSDAM)) D PIMS Q                             ;Scheduling v5.3
+ I $$PKGCK^BVPU("ASDREG","SCHEDULING V5.0") D MENU Q   ;Scheduling v5.0
+ Q
+ ;
+PIMS ; -- access to Scheduling v5.3
+ D HDLKILL^SDAMEVT
+ NEW SDY
+ S SDY=DFN_";DPT("
+ D EN1^SDAM,HDLKILL^SDAMEVT
+ S DFN=BVPSAV D SETPT^BVPMAIN(DFN)
+ Q
+ ;
+MENU ; -- menu of scheduling actions for v5.0
+ NEW DIR,I,DIRUT,Y
+ D ^XBCLS,FULL^VALM1
+ D MSG^BVPU($$SP(10)_"SCHEDULING ACTIONS AVAILABLE",2,2,0)
+ S DIR(0)="NO^1:5",DIR("A")="Select Action by number"
+ F I=1:1:5 S DIR("A",I)=$P($T(CHOICE+I),";;",2)
+ D ^DIR K DIR Q:$D(DIRUT)  D @Y G MENU
+ ;
+1 ; -- make appt
+ NEW SDPEP,SDMM,DIC
+ D MSG^BVPU($$SP(10)_"Make Appointment for "_$$NAME,2,2,0)
+ S SDPEP=1,SDMM=0 D EN1^SDM S DFN=BVPSAV D SETPT^BVPMAIN(DFN)
+ Q
+ ;
+2 ; -- cancel appt
+ NEW SDPEP,DA,NAME
+ D MSG^BVPU($$SP(10)_"Cancel Appointment for "_$$NAME,2,2,0)
+ S SDPEP=1,DA=DFN,NAME=$$NAME D EN^SDCNP
+ S DFN=BVPSAV D SETPT^BVPMAIN(DFN)
+ Q
+ ;
+3 ; -- check-in/walkin
+ NEW SDPEP,DIV
+ S SDPEP=1 D PAT2^ASDI,PAUSE^BVPU
+ S DFN=BVPSAV D SETPT^BVPMAIN(DFN)
+ Q
+ ;
+4 ; -- display appts
+ NEW SDPEP,HDT,APL,SDRG,SDEDT,OTH,SDEND,DA,NAME
+ S SDPEP=1,NAME=$$NAME,HDT=DT,(APL,SDEDT,OTH)="",(SDRG,SDEND)=0
+ S DA=DFN D RD1^SDDPA,PAUSE^BVPU
+ S DFN=BVPSAV D SETPT^BVPMAIN(DFN)
+ Q
+ ;
+5 ; -- record no-show
+ NEW SDPEP,DA,NAME
+ D MSG^BVPU($$SP(10)_"Record No-Show for "_$$NAME,2,2,0)
+ S SDPEP=1,DA=DFN,NAME=$$NAME D ^SDN
+ S DFN=BVPSAV D SETPT^BVPMAIN(DFN)
+ Q
+ ;
+NAME() ; -- returns printable name
+ Q $$GET1^DIQ(9000001,DFN,.01)
+ ;
+PAD(DATA,LENGTH) ; -- SUBRTN to pad length of data
+ Q $E(DATA_$$REPEAT^XLFSTR(" ",LENGTH),1,LENGTH)
+ ;
+SP(NUM) ; -- SUBRTN to pad spaces
+ Q $$PAD(" ",NUM)
+ ;
+CHOICE ;;
+ ;; 1. MAKE APPOINTMENT
+ ;; 2. CANCEL APPOINTMENT
+ ;; 3. CHECK-IN/WALK-IN/CHART REQUEST
+ ;; 4. DISPLAY APPOINTMENT
+ ;; 5. RECORD NO-SHOW

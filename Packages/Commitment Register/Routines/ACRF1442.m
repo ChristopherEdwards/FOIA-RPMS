@@ -1,0 +1,78 @@
+ACRF1442 ;IHS/OIRM/DSD/THL,AEF - AWARD/CONTRACT - CON'T; [ 11/01/2001   9:44 AM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;;NOV 05, 2001
+PSC D H
+ W !!?20,$G(ACR7A)
+ W ?48,$G(ACR7B)
+ W ?72,$G(ACR8)
+ W !!?2
+ W $G(ACR9(1))
+ W ?41,$G(ACR10)
+ W ?50,$G(ACR11)
+ W ?64,$G(ACR12)
+ W !?2
+ W $G(ACR9(2))
+ W !?2
+ W $G(ACR9(3))
+ W ?48,$G(ACR13A)
+ W !?2,$G(ACR9(4)),", ",$G(ACR9(5)),"  ",$G(ACR9(6))
+ W !?9,$G(ACR9(7)),?60,$G(ACR13B)
+ W !!
+ W ?43,"SIC",$G(ACRSIC),?50,"SIZE",$G(ACRSIZE),?60,$G(ACR14)
+ I $G(ACR15(3))=""&($G(ACR16(3))="") W !
+ W !?2
+ W $G(ACR15(1)),?41,$G(ACR16(1))
+ W !?2
+ W $G(ACR15(2)),?41,$G(ACR16(2))
+ I $G(ACR15(3))]""!($G(ACR16(3))]"") D
+ .W !?2,$G(ACR15(3)),?41,$G(ACR16(3))
+ W !?2,$G(ACR15(4)),", ",$G(ACR15(5))," ",$G(ACR15(6))," (",$G(ACR15(7))_")"
+ W ?41,$G(ACR16(4)),", ",$G(ACR16(5))," ",$G(ACR16(6))," (",$G(ACR16(7))_")"
+ W !!
+ I $G(ACR17(3))=""&($G(ACR18(3))]"") W !
+ W !?2
+ W $G(ACR17(1)),?41,$G(ACR18(1))
+ W !?2
+ W $G(ACR17(2)),?41,$G(ACR18(2))
+ I $G(ACR17(3))]""!($G(ACR18(3))]"") D
+ .W !?2,$G(ACR17(3)),?41,$G(ACR18(3))
+ W !?2,$G(ACR17(4)),", ",$G(ACR17(5))," ",$G(ACR17(6))," (",$G(ACR17(7))_")"
+ W ?41,$G(ACR18(4)),", ",$G(ACR18(5))," ",$G(ACR18(6))," (",$G(ACR18(7))_")"
+ W !?9,$G(ACR17(7))
+ W ?49,$G(ACR18(7))
+ W !
+ W !?2,$G(ACR17B)
+ W ?40,$G(ACR18B)
+ W !
+ W !
+ K ACRTOP
+ D DISPLAY^ACRFSS12
+ I $D(ACRTOP) K ACRTOP Q
+DISP ;EP;
+ D ^ACRFPSS
+ W !
+ W !?2,$G(ACR27A)
+ W ?53,$G(ACR27A1)
+ W !?2,$G(ACR27B)
+ W ?53,$G(ACR27B1)
+ D ^ACRFPAPV
+ F X=$Y:1:45 W !
+ W !?41,ACRUS,"  ",$P(ACRAP,"@")
+ W:'$D(ACRTOP) @IOF
+ K ACRTOP
+ Q
+L W $$DASH^ACRFMENU
+ Q
+HEAD ;EP;
+ W !,"SOLICITATION/CONTRACT/ORDER FOR COMMERCIAL ITEMS  (CON'T)"
+ W !?2,"CONTRACT NO.",?18,"EFFECTIVE",?30,"ORDER NUMBER",?48,"SOLICITATION NO.",?72,"ISSUED"
+ W $$DASH^ACRFMENU
+H G @("L"_ACRADJST)
+L0 W !?48,$G(ACR1)
+ W ?67,$G(ACRPOPG)
+L1 W !
+L2 W !?2,$P($G(ACRDOC0),U,2)
+ W ?18,$G(ACREFFD)
+ W ?30,$G(ACR4)
+ W ?48,$G(ACR5)
+ W ?72,$G(ACR6)
+ Q

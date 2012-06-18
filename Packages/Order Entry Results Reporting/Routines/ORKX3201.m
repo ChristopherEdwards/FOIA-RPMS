@@ -1,0 +1,24 @@
+ORKX3201 ; slc/CLA - Package Level Parameter Data ; Dec 11, 1998@14:57:23
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17, 1997
+LOAD ; load data into ^TMP (expects ROOT to be defined)
+ S I=1 F  S REF=$T(DATA+I) Q:REF=""  S VAL=$T(DATA+I+1) D
+ . S I=I+2,REF=$P(REF,";",3,999),VAL=$P(VAL,";",3,999)
+ . S @(ROOT_REF)=VAL
+ Q
+DATA ; parameter data
+ ;;2718,"KEY")
+ ;;ORK PROCESSING FLAG^GLUCOPHAGE-LAB RESULTS
+ ;;2718,"VAL")
+ ;;Enabled
+ ;;2719,"KEY")
+ ;;ORK CLINICAL DANGER LEVEL^GLUCOPHAGE-LAB RESULTS
+ ;;2719,"VAL")
+ ;;High
+ ;;2839,"KEY")
+ ;;ORK GLUCOPHAGE CREATININE^1
+ ;;2839,"VAL")
+ ;;60
+ ;;2840,"KEY")
+ ;;ORK POLYPHARMACY^1
+ ;;2840,"VAL")
+ ;;7

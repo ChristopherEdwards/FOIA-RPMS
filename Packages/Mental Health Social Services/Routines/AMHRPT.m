@@ -1,0 +1,122 @@
+AMHRPT ; IHS/CMI/LAB - APC visit counts by selected vars ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+START ; 
+ D HOME^%ZIS
+ K AMHQUIT
+ I '$G(DUZ(2)) W $C(7),$C(7),!!,"SITE NOT SET IN DUZ(2) - NOTIFY SITE MANAGER!!",!! Q
+ I $D(AMHRPTC) D
+ .S AMHRPTI=$P(^AMHRCNT(AMHRPTC,0),U,2),AMHRPTPA=$P(^(0),U,3),AMHRPTP=$P(^(0),U,4),AMHRPTST=$P(^AMHRCNT(AMHRPTC,0),U,7) S:AMHRPTST]"" AMHRPTST=$TR(AMHRPTST,"~","^")
+ .S AMHRPRCR=$P(^AMHRCNT(AMHRPTC,0),U,5) S:AMHRPRCR]"" AMHRPRCR=$TR(AMHRPRCR,"~","^")
+ I AMHRPTI]"" S AMHRPTI=$TR(AMHRPTI,"~","^") D @(AMHRPTI) ;inform user what report will do
+ G:$D(AMHQUIT) XIT
+ S AMHTCW=0,AMHPCNT=0
+ S AMHPTVS="V",AMHXREF=$S(AMHPTVS="V":"C",1:"PO")
+GETDATES ;
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Visit Date for Search" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G XIT
+ S AMHBD=Y
+ED ;get ending date
+ W ! S DIR(0)="D^"_AMHBD_":DT:EP",DIR("A")="Enter ending Visit Date for Search" S Y=AMHBD D DD^%DT D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S AMHED=Y
+ S X1=AMHBD,X2=-1 D C^%DTC S AMHSD=X S Y=AMHBD D DD^%DT S AMHBDD=Y S Y=AMHED D DD^%DT S AMHEDD=Y
+ D ADD ;add report to temporary fileman report file
+ I $D(AMHQUIT) W !!,"Unable to create report temporary file entry!!," G XIT
+ ;
+ D SHOW
+SCREEN ;
+ K ^AMHTRPT(AMHRPT,11) S AMHCNTL="S",AMHTYPE="D",AMHPTTX="Visit",AMHPTTS="Visits" D ^AMHRL4 K AMHCNTL I $D(AMHQUIT) D DEL^AMHRL G GETDATES
+PRINT ;print portion of report
+ I $G(AMHRPTP)]"" S AMHRPTPA=$TR(AMHRPTPA,"~","^"),AMHRPTP=$TR(AMHRPTP,"~","^") D:$G(AMHRPTPA)]"" @(AMHRPTPA) G:$D(AMHQUIT) START G SORT
+ D PMENU^AMHRPT0
+ S DIR(0)="LO^1:"_AMHHIGH,DIR("A")="Select print item(s)" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y="" G SORT
+ I $D(DIRUT) D DEL G START
+ W !!?15,"Total Report width (including column margins - 2 spaces):  ",AMHTCW
+ D PSELECT^AMHRPT1
+ D SHOWP
+ W !! S DIR(0)="Y",DIR("A")="      Would you like to select additional PRINT items",DIR("B")="NO" D ^DIR K DIR
+ S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) START
+ I Y=0 G SORT
+ G PRINT
+SORT ;
+ I '$D(^AMHTRPT(AMHRPT,12)),'$D(AMHRPTP) W !!,"NO PRINT FIELDS SELECTED!!",$C(7),$C(7) D DEL G START
+ I '$P(^AMHRCNT(AMHRPTC,0),U,8) G DEMO
+ S AMHSORT="",AMHCTYP="D"
+ D SHOWR
+ S AMHCNTL="R" D ^AMHRL4 K AMHCNTL
+PAGE ;
+ Q:'$D(AMHSORV)
+ K AMHSPAG
+ S DIR(0)="Y",DIR("A")="Do you want a separate page for each "_AMHSORV,DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G SORT
+ S AMHSPAG=Y
+DEMO ;
+ D DEMOCHK^AMHUTIL1(.AMHDEMO)
+ I AMHDEMO=-1 G PAGE
+ZIS ;call to XBDBQUE
+ D TERM^VALM0
+ D KILLVARS
+ I "36"[AMHRPTC,$D(^AMHBHUSR(DUZ)),$O(^AMHBHUSR(DUZ,11,0)) D
+ .W !!,$G(IORVON),"Please note:",$G(IORVOFF),"  Only visits to the following locations will"
+ .W !?15,"be tallied in this report:"
+ .S X=0 F  S X=$O(^AMHBHUSR(DUZ,11,X)) Q:X'=+X  W !?15,$P(^DIC(4,X,0),U)
+ .W !!
+ S DIR(0)="S^P:PRINT Output;B:BROWSE Output on Screen",DIR("A")="Do you wish to ",DIR("B")="P" K DA D ^DIR K DIR
+ I $D(DIRUT) G XIT
+ I $G(Y)="B" D BROWSE,XIT Q
+ S XBRP=$S($G(AMHRPTP)]"":AMHRPTP,1:"^AMHRPTP"),XBRC=$S($G(AMHRPRCR)]"":AMHRPRCR,1:"^AMHRPT4"),XBRX="XIT^AMHRPT",XBNS="AMH"
+ D ^XBDBQUE
+ D XIT
+ Q
+BROWSE ;
+ S P=$S($G(AMHRPTP)]"":AMHRPTP,1:"^AMHRPTP"),XBRP="VIEWR^XBLM("""_P_""")"
+ S XBNS="AMH",XBRC=$S($G(AMHRPRCR)]"":AMHRPRCR,1:"^AMHRPT4"),XBRX="XIT^AMHRPT",XBIOP=0 D ^XBDBQUE
+ Q
+SHOW ;
+ W:$D(IOF) @IOF
+ I $D(AMHDONE) S AMHLHDR="REPORT SUMMARY" W ?((80-$L(AMHLHDR))/2),AMHLHDR,!
+ W !?6,"Record selection criteria:"
+ W !,"Encounter Date range:  ",AMHBDD," to ",AMHEDD,"."
+ Q:'$D(^AMHTRPT(AMHRPT,11))
+ S AMHI=0 F  S AMHI=$O(^AMHTRPT(AMHRPT,11,AMHI)) Q:AMHI'=+AMHI  D
+ .I $Y>(IOSL-5) D PAUSE^AMHRPTU W @IOF
+ .W !?12,$P(^AMHSORT(AMHI,0),U),":  "
+ .S Y=0,C=0 F  S Y=$O(^AMHTRPT(AMHRPT,11,AMHI,11,"B",Y)) S C=C+1 W:C'=1&(Y'="") " ; " Q:Y=""  S X=Y X:$D(^AMHSORT(AMHI,2)) ^(2) D
+ ..W X
+ K C
+ Q
+SHOWP ;
+ I '$D(AMHDONE) W:$D(IOF) @IOF
+ W !!?6,"PRINT Field(s) Selected:"
+ ;Q:'$D(^AMHTRPT(AMHRPT,12))
+ S (AMHI,AMHTCW)=0 F  S AMHI=$O(^AMHTRPT(AMHRPT,12,AMHI)) Q:AMHI'=+AMHI  S AMHCRIT=$P(^AMHTRPT(AMHRPT,12,AMHI,0),U) D
+ .W !?12,$P(^AMHSORT(AMHCRIT,0),U)," - column width ",$P(^AMHTRPT(AMHRPT,12,AMHI,0),U,2) S AMHTCW=AMHTCW+$P(^(0),U,2)+2
+ .I $Y>(IOSL-5) D PAUSE^AMHRPTU W:$D(IOF) @IOF
+ W !!?12,"Total Report width (including column margins - 2 spaces):   ",AMHTCW
+ Q
+SHOWR ;
+ I '$D(AMHDONE) W:$D(IOF) @IOF
+ W !!?6,"Record SORTING Criteria"
+ Q:'$G(AMHTRPT)
+ W !!?12,"Records will be sorted by:  ",$P(^AMHSORT(AMHTRPT,0),U),!
+ Q
+DEL ;EP - delete entry in temp file
+ I $G(AMHRPT) S DIK="^AMHTRPT(",DA=AMHRPT D ^DIK K DIK,DA,DIC
+ Q
+KILLVARS ;
+ K AMHDISP,AMHSEL
+ Q
+XIT ;
+ D KILL^AMHRPTX
+ Q
+ADD ;EP
+ S %H=$H D YX^%DTC S X=$P(^VA(200,DUZ,0),U)_"-"_Y,DIC(0)="L",DIC="^AMHTRPT(",DLAYGO=9002013.8,DIADD=1 D ^DIC K DIC,DA,DR,DIADD,DLAYGO I Y=-1 W !!,"UNABLE TO CREATE REPORT FILE ENTRY - NOTIFY SITE MANAGER!" S AMHQUIT=1 Q
+ S AMHRPT=+Y
+ K DIC,DIADD,DLAYGO,DR,DA,DD,X,Y,DINUM
+ ;DELETE ALL 11 MULTIPLE HERE
+ K ^AMHTRPT(AMHRPT,11)
+ Q

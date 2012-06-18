@@ -1,0 +1,339 @@
+BGP0D861 ; IHS/CMI/LAB - measure C ;
+ ;;10.0;IHS CLINICAL REPORTING;;JUN 18, 2010
+ ;
+NDC(A,B) ;
+ S BGPNDC=$P($G(^PSDRUG(A,2)),U,4)
+ I BGPNDC]"",B,$D(^ATXAX(B,21,"B",BGPNDC)) Q 1
+ Q 0
+CBC4(P,BDATE,EDATE) ;EP
+ K BGPC,BGPLAB
+ S BGPC=0
+ S %="",E=+$$CODEN^ICPTCOD(85025),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(85027),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(85025),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(85027),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP CBC LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","BGP CBC TESTS",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(9999999-D)="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(9999999-D)=""
+ ...Q
+ ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
+ S (X,Y)="",C=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPC(X) Q
+ .S Y=X
+ S C=0,X=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1
+ Q $S(C>3:1,1:"")
+CBC6(P,BDATE,EDATE) ;EP
+ K BGPC,BGPLAB
+ S BGPC=0
+ S %="",E=+$$CODEN^ICPTCOD(85025),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(85027),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(85025),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(85027),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP CBC LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","BGP CBC TESTS",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(9999999-D)="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(9999999-D)=""
+ ...Q
+ ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
+ S (X,Y)="",C=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPC(X) Q
+ .S Y=X
+ S C=0,X=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1
+ Q $S(C>5:1,1:"")
+SERUM6(P,BDATE,EDATE) ;EP
+ K BGPC,BGPLAB
+ S BGPC=0
+ S T=$O(^ATXAX("B","BGP CREATININE CPTS",0))
+ S %=$$CPT^BGP0DU(P,BDATE,EDATE,T,3)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,1))=""
+ S T=$O(^ATXAX("B","BGP CREATININE CPTS",0))
+ S %=$$TRAN^BGP0DU(P,BDATE,EDATE,T,3)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,1))=""
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP CREATININE LOINC CODES",0))
+ S BGPLT=$O(^ATXLAB("B","DM AUDIT CREATININE TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(9999999-D)="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(9999999-D)=""
+ ...Q
+ ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
+ S (X,Y)="",C=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPC(X) Q
+ .S Y=X
+ S C=0,X=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1
+ Q $S(C>5:1,1:"")
+LFT6(P,BDATE,EDATE) ;EP
+ K BGPC
+ S BGPC=0
+ S %="",E=+$$CODEN^ICPTCOD(84460),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(84450),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(80076),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ ;TRAN
+ S %="",E=+$$CODEN^ICPTCOD(84460),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(84450),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ S %="",E=+$$CODEN^ICPTCOD(80076),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,2))=""
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP ALT LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","DM AUDIT ALT TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(9999999-D)="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(9999999-D)=""
+ ...Q
+ ;now get all AST
+ S T=$O(^ATXAX("B","BGP AST LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","DM AUDIT AST TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(9999999-D)="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(9999999-D)=""
+ ...Q
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP LIVER FUNCTION LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","BGP LIVER FUNCTION TESTS",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(9999999-D)="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(9999999-D)=""
+ ...Q
+ ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
+ S (X,Y)="",C=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPC(X) Q
+ .S Y=X
+ S C=0,X=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1
+ Q $S(C>5:1,1:"")
+CBC(P,BDATE,EDATE) ;EP
+ K BGPC
+ S BGPC=0
+ S %="",E=+$$CODEN^ICPTCOD(85025),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"85025"
+ S %="",E=+$$CODEN^ICPTCOD(85027),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"85027"
+ S %="",E=+$$CODEN^ICPTCOD(85025),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"85025 TRAN"
+ S %="",E=+$$CODEN^ICPTCOD(85027),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"85027 TRAN"
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP CBC LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","BGP CBC TESTS",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D)_U_"LAB" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=1_U_(9999999-D)_U_"LOINC"
+ ...Q
+ Q BGPC
+POT(P,BDATE,EDATE) ;EP
+ K BGPC
+ S BGPC=0
+ S %="",E=+$$CODEN^ICPTCOD(84132),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"84132"
+ S %="",E=+$$CODEN^ICPTCOD(84132),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"84132 TRAN"
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP POTASSIUM LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","BGP POTASSIUM TESTS",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D)_U_"LAB" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=1_U_(9999999-D)_U_"LOINC"
+ ...Q
+ Q BGPC
+LFT(P,BDATE,EDATE) ;EP
+ K BGPC
+ S BGPC=0
+ S %="",E=+$$CODEN^ICPTCOD(84460),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"84460"
+ S %="",E=+$$CODEN^ICPTCOD(84450),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"84450"
+ S %="",E=+$$CODEN^ICPTCOD(80076),%=$$CPTI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"80076"
+ ;TRAN
+ S %="",E=+$$CODEN^ICPTCOD(84460),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"84460 TRAN"
+ S %="",E=+$$CODEN^ICPTCOD(84450),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"84450 TRAN"
+ S %="",E=+$$CODEN^ICPTCOD(80076),%=$$TRANI^BGP0DU(P,BDATE,EDATE,E)
+ I %]"" S BGPC=1_U_$P(%,U,2)_U_"80076 TRAN"
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP ALT LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","DM AUDIT ALT TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D)_U_"LAB" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=1_U_(9999999-D)_U_"LOINC"
+ ...Q
+ I BGPC Q BGPC
+ ;now get all AST
+ S T=$O(^ATXAX("B","BGP AST LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","DM AUDIT AST TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D)_U_"LAB" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=1_U_(9999999-D)_U_"LOINC"
+ ...Q
+ I BGPC Q BGPC
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP LIVER FUNCTION LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","BGP LIVER FUNCTION TESTS",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D)_U_"LAB" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=1_U_(9999999-D)_U_"LOINC"
+ ...Q
+ Q BGPC
+SERUM12(P,BDATE,EDATE) ;EP
+ K BGPC,BGPLAB
+ S BGPC=0
+ S T=$O(^ATXAX("B","BGP CREATININE CPTS",0))
+ S %="",E=+$$CODEN^ICPTCOD(85025),%=$$CPT^BGP0DU(P,BDATE,EDATE,T,3)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,1))=""
+ S T=$O(^ATXAX("B","BGP CREATININE CPTS",0))
+ S %="",E=+$$CODEN^ICPTCOD(85025),%=$$TRAN^BGP0DU(P,BDATE,EDATE,T,3)
+ I %]"" S BGPC=BGPC+1,BGPC($P(%,U,1))=""
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP CREATININE LOINC CODES",0))
+ S BGPLT=$O(^ATXLAB("B","DM AUDIT CREATININE TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(9999999-D)="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(9999999-D)=""
+ ...Q
+ ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
+ S (X,Y)="",C=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPC(X) Q
+ .S Y=X
+ S C=0,X=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1
+ Q $S(C>11:1,1:"")
+UP4(P,BDATE,EDATE) ;EP
+ K BGPC,BGPLAB
+ S BGPC=0
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","DM AUDIT URINE PROTEIN TAX",0))
+ S BGPLT=$O(^ATXLAB("B","BGP URINE PROTEIN LOINC CODES",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPC(9999999-D)="" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=BGPC+1,BGPC(9999999-D)=""
+ ...Q
+ ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
+ S (X,Y)="",C=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPC(X) Q
+ .S Y=X
+ S C=0,X=0 F  S X=$O(BGPC(X)) Q:X'=+X  S C=C+1
+ Q $S(C>3:1,1:"")
+GLUCOSE(P,BDATE,EDATE) ;EP
+ K BGPC
+ S BGPC=0
+ S T=$O(^ATXAX("B","BGP GLUCOSE CPTS",0))
+ S %=$$CPT^BGP0DU(P,BDATE,EDATE,T,5)
+ I %]"" S BGPC=1_U_$P(%,U,1)_U_$P(%,U,2)
+ S T=$O(^ATXAX("B","BGP GLUCOSE CPTS",0))
+ S %=$$TRAN^BGP0DU(P,BDATE,EDATE,T,5)
+ I %]"" S BGPC=1_U_$P(%,U,1)_U_$P(%,U,2)
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP GLUCOSE LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","DM AUDIT GLUCOSE TESTS TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D)_U_"LAB" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP0D21(J,T)
+ ...S BGPC=1_U_(9999999-D)_U_"LOINC"
+ ...Q
+ Q BGPC

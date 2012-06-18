@@ -1,0 +1,159 @@
+AMQQDOW ; IHS/CMI/THL - GS&CS/OHPRD&ANMC/IHS DAY OF WEEK ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ; This routine is dedicated to my friend and management guru, Dr. Mike Westley, ANMC
+ ;-----
+ I '$D(AMQRZZZ) S (AMQRZZZ,AMQRDXXX)=0
+ S AMQRZZZ=AMQRZZZ+1
+ I IOST["C-",AMQRZZZ>1 W *13,AMQRZZZ I AMQRDXXX W "  (",AMQRDXXX,")"
+ I AMQRZZZ>1 D SET Q
+ I IOST["C-" W !!!!,"CRUNCH, CRUNCH....",!!
+ D PRE
+ D SET
+ Q
+ ;
+FAIL S AMQRDXXX=AMQRDXXX+1
+ I AMQRZZZ>1 W *13,AMQRZZZ,"  (",AMQRDXXX,")"
+ Q
+ ;
+COUNT F Y=2,1 S X=@("D"_Y) D H^%DTC S X(Y)=%H
+ S X(0)=%Y
+ S X=X(2)-X(1)+1
+ S Y=X\7,Z=X#7
+ S %=$E("01234560123456",%Y+1,%Y+Z)
+ S X=""
+ F I=1:1:7 S X=X_(Y+(%[(I-1)))_U
+ S AMQRDD=X
+ Q
+ ;
+PRE K ^UTILITY("AMQRD",$J)
+ S DIOEND="D BLIST^AMQRDOW"
+ F I=0:1:23 S ^UTILITY("AMQRD",$J,"B",I)=0
+ F I=0:1:6 S ^UTILITY("AMQRD",$J,"C",I)=0
+ S AMQRDTOT=0
+ Q
+ ;
+SET S %=+^AUPNVSIT(D0,0)
+ S AMQRDAY=%\1
+ I %'["." D FAIL Q
+ S %=$P(%,".",2)
+ S %="."_%
+ S %=$J(%,1,4)
+ S AMQRDTIM=(%*100)\1
+ S X=AMQRDAY
+ D H^%DTC
+ S AMQRDAY=%Y
+ S %=$G(^UTILITY("AMQRD",$J,"A",AMQRDTIM,AMQRDAY)),^(AMQRDAY)=%+1
+ S %=$G(^UTILITY("AMQRD",$J,"B",AMQRDTIM)),^(AMQRDTIM)=%+1
+ S %=$G(^UTILITY("AMQRD",$J,"C",AMQRDAY)),^(AMQRDAY)=%+1
+ S AMQRDTOT=AMQRDTOT+1
+ Q
+ ;
+BLIST I IOST["C-" R !!,"<>",AMQRX:DTIME
+ D HEADER
+BLVAR S G="^UTILITY(""AMQRD"",$J)"
+ F AMQRLINE=0:1:23 D:AMQRLINE&'(AMQRLINE#(IOSL-4)) PAUSE G:AMQRLINE=999999 EXIT D B1
+ W !!,"TOTAL"
+ S I=0
+ F J=16:8 W ?J,@G@("C",I) S I=I+1 I I=7 W ?(J+8),AMQRDTOT Q
+ I $D(AMQRDD) W !,"DAYS" S (I,N)=0 F J=16:8 S I=I+1 W ?J,$P(AMQRDD,U,I) S N=N+$P(AMQRDD,U,I) I I=7 W ?(J+8),N Q
+ I $D(AMQRDD) W !,"AVERAGE" S I=0 F J=16:8 D AVE I I=7 W ?(J+8) S %=AMQRDTOT/N,%=$J(%,1,1) W % Q
+ I IOST'?1"C-".E W @IOF X ^%ZIS("C") G EXIT
+ X ^%ZIS("C")
+ R !!,"<>",AMQRX:DTIME
+EXIT K X,Y,Z,A,G,AMQRZZZ,AMQRDXXX,AMQRLINE,N,AMQRDAY,AMQRDTIM,AMQRDTOT,%H,%Y,%T,AMQRX
+ Q
+ ;
+AVE S I=I+1
+ I '$P(AMQRDD,U,I) S %=0
+ E  S %=@G@("C",I-1)/$P(AMQRDD,U,I)
+ S %=$J(%,1,1)
+ W ?J,%
+ Q
+ ;
+B1 S %=AMQRLINE
+ S %=%*100
+ S X=%
+ S Y=%+59
+ S I=0
+ I %<1000 S X="0"_X,Y="0"_Y
+ I X="00" S X="0000",Y="0059"
+ W !,X,"-",Y
+ F J=16:8 W ?J,$S($D(@G@("A",AMQRLINE,I)):^(I),1:".") S I=I+1 I I=7 W ?(J+8),@G@("B",AMQRLINE) Q
+ Q
+ ;
+PAUSE I IOST["C-" R !,"<>",AMQRQ:DTIME S:'$T!(AMQRQ=U) AMQRLINE=999999 K AMQRQ
+ I AMQRLINE=999999 Q
+ D HEADER
+ Q
+ ;
+HEADER W @IOF
+ W !,"WORKLOAD REPORT FOR ",$P(AMQRINFO,U),?54,$P(AMQRINFO,U,2)," to ",$P(AMQRINFO,U,3),!
+ W "VISIT TIME"
+ S I=0
+ F J=14:8 S I=I+1 W ?J,$P("SUN^MON^TUE^WED^THU^FRI^SAT",U,I) I I=7 W ?(J+8),"TOT" Q
+ S AMQRX=""
+ S $P(AMQRX,"-",80)=""
+ W !,AMQRX
+ K AMQRI,AMQRJ,AMQRX
+ Q
+ ;
+INFO ; GET TIME FRAME AND CLINIC TYPE
+ S DIR(0)="D"
+ S DIR("A")="Enter the starting date of the time frame"
+ S DIR("?")=""
+ D ^DIR
+ K DIR
+ I $D(DUOUT)!($D(DTOUT)) G EXITINFO
+ I X="" S Y=2600101
+ S D1=Y
+ S DIR(0)="D"
+ S DIR("A")="Enter the ending date of the time frame"
+ S DIR("?")=""
+ D ^DIR
+ K DIR
+ I $D(DUOUT)!($D(DTOUT)) G EXITINFO
+ I X="" S Y=DT
+ S D2=Y
+ D COUNT
+ S DIC=40.7
+ S DIC(0)="AEQ"
+ S DIC("A")="Enter the clinic: "
+ D ^DIC
+ K DIC
+ I $D(DUOUT)!($D(DTOUT)) G EXITINFO
+ I X="" S Y=0 G DIP
+ I Y=-1 G EXITINFO
+DIP S DIC="^AUPNVSIT("
+ S FLDS="+.01,+D ^AMQRDOW"
+ S FR=D1
+ S TO=D2
+ S BY="@.01"
+ S DHD="@"
+ I Y S DIS(0)="N % S %=^(0),%=$P(%,U,8) I %="_+Y
+ S AMQRINFO=$P(Y,U,2)_U
+ S Y=D1
+ S %DT=""
+ X ^DD("DD")
+ S AMQRINFO=AMQRINFO_Y_U
+ S Y=D2
+ S %DT=""
+ X ^DD("DD")
+ S AMQRINFO=AMQRINFO_Y
+PRINT S %IS="Q"
+ D ^%ZIS
+ I POP G EXITINFO
+ I $D(IO("Q")),IO=IO(0) W !!,"You can not queue a job to a slave printer..Try again",!!,*7 G PRINT
+ I '$D(IO("Q")) S IOP=IO K IOBS,IOF,ION,IOPAR,IOSL,IOT,POP D EN1^DIP X ^%ZIS("C") U 0 G EXITINFO
+ S ZTRTN="EN1^DIP"
+ S ZTIO=ION
+ S ZTDTH="NOW"
+ S ZTDESC="CLINIC WORKLOAD REPORT"
+ F I=1:1 S %=$P("DT;DTIME;DUZ(;DUZ;U;AMQRINFO;BY;FR;TO;FLDS;DIC;DHD",";",I) Q:%=""  S ZTSAVE(%)=""
+ D ^%ZTLOAD
+ W !!,$S($D(ZTSK):"Request queued!",1:"Request cancelled!"),!!!
+ H 3
+ Q
+ ;
+EXITINFO K DIC,AMQRINFO,AMQRDD,B,DIJ,DP,P,C
+ Q
+ ;

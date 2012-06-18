@@ -1,0 +1,126 @@
+ACGSRT1 ;IHS/OIRM/DSD/THL,AEF - ACGSRT SUBROUTINE; [ 03/27/2000   2:22 PM ]
+ ;;2.0t1;CONTRACT INFORMATION SYSTEM;;FEB 16, 2000
+SD ;EP;FOR DATE RANGE SELECTION
+ W !!
+ S %DT("A")="Start with what date: ",%DT="AEQ" D ^%DT
+ I X=U S ACGQUIT="" Q
+ I X="" S Y=X
+ S FR=FR_Y_","
+ S %DT("A")="End with what date: ",%DT="AEQ" D ^%DT
+ I X=U S ACGQUIT="" Q
+ I X="" S Y=X
+ S TO=TO_Y_","
+ Q
+ ;
+SS ;EP;FOR SET OF CODE SELECTION
+ W !!
+ S %="^ACGS(0)",ACGYX=$P(^ACGSRT(ACGSNO,0),U,8),%=+$P(@%,U,2),%=^DD(%,ACGYX,0),ACGSET=";"_$P(%,U,3)
+ W "Do you want to sort by a particular ",ACGSNA
+ S %=2 D YN^DICN
+ I %Y=U!(%=2) S:%Y=U ACGQUIT="" S:%=2 FR=FR_",",TO=TO_"," Q
+ D SL
+ I %Y?1."?" G SS
+SSG S DIR(0)="FOA^1:10",DIR("A")="Your choice: ",DIR("?")="Type either the code of the item you wish to select"
+ D DIR^ACGSDIC
+ Q:$D(ACGQUIT)!(Y<1)
+ S %=ACGSET,Y=$F(%,(";"_Y))
+ I Y S ACGYZ=$E(%,Y,99),ACGYZ=$P(ACGYZ,":",2),ACGYZ=$P(ACGYZ,";"),FR=FR_ACGYZ_",",TO=TO_ACGYZ_"," W " = ",ACGYZ Q
+ F ACGI=2:1 S ACGYZ=$P(%,":",ACGI) Q:ACGYZ=""  I $E(ACGYZ,1,$L(ACGYX))=ACGYX S ACGYZ=$P(ACGYZ,";"),FR=FR_ACGYZ_",",TO=TO_ACGYZ_"," W $E(ACGYZ,$L(ACGYX)+1,99) Q
+ I ACGYZ="" W "  ??",*7 G SSG
+ Q
+ ;
+SL ;EP;FOR LIST SELECTION
+ W !!,"You may select one of the following choices",!
+ F ACGI=2:1 S %=$P(ACGSET,";",ACGI) Q:%=""  S ACGYX=$P(%,":"),Y=$P(%,":",2) W !,?5,ACGYX," = ",Y
+ Q
+ ;
+SP ;EP;FOR POINTER SELECTION
+ W !!
+ S DIC=U_$P(^ACGSRT(ACGSNO,0),U,7),ACGPP=$P(^(0),U,3)
+ W "Do you want to sort by a particular ",ACGSNA
+ S %=2 D YN^DICN
+ I %Y=U S ACGQUIT="" Q
+ I %=2 S FR=FR_",",TO=TO_"," Q
+SPQ S DIC("A")="Which "_ACGSNA_": "
+ S DIC(0)="AEMQZ"
+ N I
+ W !
+ D DIC^ACGSDIC
+ K ACGDIC1
+ I X=U!(+Y<1) S:X=U ACGQUIT="" K ACGBY Q
+SPQ1 G SPQ11
+ N ACGYX,ACGYZ,%
+ S %=ACGBY
+ Q:%=""
+SPQ11 S ACGFR=$P(Y(0),U,ACGPP),ACGTO=ACGFR
+ S:ACGTO="P" ACGTO="PM"
+ S FR=FR_ACGFR_","
+ S TO=TO_ACGTO_","
+ Q
+ ;
+SF ;EP;FOR FREE TEST SELECTION
+ S ACGLNG1=$P(^ACGSRT(ACGSNO,0),U,6),ACGLNG2=$P(^(0),U,9),ACGXREF=$P(^(0),U,4)
+ W !!
+ W "Do you want to sort by a particular ",ACGSNA
+ S %=2 D YN^DICN
+ I %Y=U S ACGQUIT="" Q
+ I %=2 S FR=FR_",",TO=TO_"," Q
+SFQ S DIR("A")="Which "_ACGSNA_": "
+ S DIR(0)="FOA^"_ACGLNG1_":"_ACGLNG2
+ S DIR("?",1)="Enter a "_ACGSNA,DIR("?")="from "_ACGLNG1_" to "_ACGLNG2_" characters in length."
+ W !!
+ D DIR^ACGSDIC
+ I $D(ACGQUIT) K:X=U ACGQUIT K ACGBY Q
+ I ACGSNA["CONTRACT NUMBER",$L(Y)=9 S Y=Y_"000" ;,DIS(0)="I $P(^ACGS(D0,0),U)=0"
+ I ACGXREF'="",$D(^ACGS(ACGXREF,Y)),ACGSNA["CONTRACT NUMBER" S ACGY=$O(^ACGS(ACGXREF,Y,0)) Q:'ACGY  S ACGY=Y G SFQ1
+ S ACGUPPER="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",ACGLOWER="abcdefghijklmnopqrstuvwxyz0123456789",Y=$TR(Y,ACGLOWER,ACGUPPER)
+ S ACGY=$E(Y,1,($L(Y)-1))_$C($A($E(Y,$L(Y)))-1)_"z"
+ N ACG,ACGX
+ I ACGXREF'="" F ACG=1:1 S ACGY=$O(^ACGS(ACGXREF,ACGY)) Q:ACGY=""!(ACGY'[Y)  S ACGY(ACG)=ACGY
+ I ACG=1,'$D(ACGY(1)) W !!,"No such ",ACGSNA," found." H 2 S ACGBY="" Q
+ I ACG=2,'$D(ACGY(2)),$D(ACGY(1)) D  Q:'$D(ACGBY)
+ .S DIR(0)="YO",DIR("A")="Do you mean "_ACGY(1),DIR("B")="NO",ACGY=ACGY(1)
+ .W !
+ .D DIR^ACGSDIC
+ .I +Y'=1 K ACGBY
+ .S ACGY=ACGY(1)
+ I ACG>1,$D(ACGY(2)) D  I $D(ACGQUIT) K ACGQUIT G SF
+ .S ACG=0
+ .W !
+ .F  S ACG=$O(ACGY(ACG)) Q:'ACG  W !?10,ACG,?15,ACGY(ACG) S ACG1=ACG
+ .S DIR(0)="NO^1:"_ACG1,DIR("A")="Which one"
+ .K ACG1
+ .W !
+ .D DIR^ACGSDIC
+ .I '+Y K ACGBY,ACGY S ACGQUIT="" Q
+ .I $D(ACGY(+Y)) S ACGY=ACGY(+Y) Q
+ .K ACGBY,ACGY Q
+SFQ1 S:ACGY["," ACGY=$P(ACGY,",")
+ S FR=FR_$S(ACGY&(ACGSNA["CONTRACT NUMBER"):ACGY-1,1:ACGY)_","
+ I 'ACGY S ACGY=ACGY_"z"
+ S TO=TO_ACGY_","
+ Q
+EXIT ;EP; TO KILL VARIABLES
+ K ACGYX,Y,ACGYZ,%Y,ACGZ,ACGZZ,ACGDIC,ACGN,ACGPTMP,BY,FR,TO,FLDS,I,ACGSNO,ACGSNA,ACGU,ACGUB,ACGXZ,ACGQUIT,ACGX,ACGY,ACGRPT,ACGSET,ACGMAND,ACGCSTG,ACGMANN,ACGMAN,ACGFILE,ACGSRT,APCRREG,APCRREGP,APCRN,APCHSPAT,APCHSTYP,ACGYZ,ACGXZ
+ K ACGLNG1,ACGLNG2,ACGFR,ACGJJ,ACGPP,ACGXREF,ACGXZZ,ACGYY
+ D ^%ZISC
+ S IOP=ION D ^%ZIS K IOP
+ Q
+SN ;EP;FOR NUMBER RANGE SELECTION
+ S ACGLNG1=$P(^ACGSRT(ACGSNO,0),U,6),ACGLNG2=$P(^(0),U,9),ACGXREF=$P(^(0),U,4)
+ S DIR("A")="Start with "_ACGSNA_": "
+ S DIR(0)="NOA^0:99999999"
+ S DIR("?",1)="From "_ACGSNA,DIR("?")="from 0 to 99999999"_$S(ACGSNA="DOLLAR AMOUNT":".  Do not include commas or dollar sign.",1:"")
+ W !
+ D DIR^ACGSDIC
+ I X=""!$D(ACGQUIT) K:X=U ACGQUIT K ACGBY Q
+ S FR=FR_Y_",",ACGDF=Y
+ S DIR("A")="End with "_ACGSNA_": "
+ S DIR(0)="NOA^0:99999999"
+ S DIR("?",1)="Enter a "_ACGSNA,DIR("?")="from 0 to 99999999"_$S(ACGSNA="DOLLAR AMOUNT":".  Do not include commas or dollar sign.",1:"")
+ W !
+ D DIR^ACGSDIC
+ I X="" S Y=99999999 K ACGQUIT
+ I $D(ACGQUIT) K:X=U ACGQUIT K ACGBY Q
+ S TO=TO_Y_",",ACGDT=Y
+ Q

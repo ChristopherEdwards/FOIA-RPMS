@@ -1,0 +1,91 @@
+ABMDREL1 ; IHS/ASDST/DMJ - PRINT MCR,MCD OR PI HOLDERS ; 
+ ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;Original;TMD;
+ ; IHS/SD/SDR - abm*2.6*1 - HEAT5278 - Fix for policy number not displaying
+ ;
+START K ABMD("80D") S $P(ABMD("80D"),"-",80)=""
+ S ABMD("ET")=$H
+ S ABMD("PG")=0 D HEAD
+ S ABMD("PN")=0 K ABMD("Q")
+ F  S ABMD("PN")=$O(^TMP("ABMDBRH",ABMD("$J"),ABMD("PN"))) Q:ABMD("PN")=""!($D(ABMD("Q")))  D DFN
+ G:$D(ABMD("Q")) DONE
+ I $Y>(IOSL-6) D HEAD G:$D(ABMD("Q")) DONE
+ W !!,?10,"TOTAL NUMBER OF ",ABMD("TITL"),":  ",ABMD("TOT"),!
+DONE D DONE^ABMDREL0
+ Q
+DFN ;
+ S ABMD("DFN")="" F  S ABMD("DFN")=$O(^TMP("ABMDBRH",ABMD("$J"),ABMD("PN"),ABMD("DFN"))) Q:ABMD("DFN")=""!($D(ABMD("Q")))  D @ABMD("PROC")
+ Q
+MCRA ;
+ I $Y>(IOSL-6) D HEAD Q:$D(ABMD("Q"))
+ S (ABMD("OB"),Y)=$P(^DPT(ABMD("DFN"),0),U,3) I ABMD("OB")]"" D DD^%DT S ABMD("OB")=Y
+ S ABMD("HRN")=$P(^AUPNPAT(ABMD("DFN"),41,ABMD("SU"),0),U,2)
+ S ABMD("MN")=$S($D(^AUPNMCR(ABMD("DFN"),21)):$P(^AUPNMCR(ABMD("DFN"),21),U,1),1:"")
+ S ABMD("MDOB")=$S($D(^AUPNMCR(ABMD("DFN"),21)):$P(^AUPNMCR(ABMD("DFN"),21),U,2),1:"") I ABMD("MDOB")]"" S Y=ABMD("MDOB") D DD^%DT S ABMD("MDOB")=Y
+ S ABMD("MEDN")=$P(^AUPNMCR(ABMD("DFN"),0),U,3)_$P(^(0),U,4)
+ W !,"(REG) ",ABMD("PN"),?36,$J(ABMD("HRN"),6),?49,ABMD("MEDN"),?64,ABMD("OB"),!,"(MCR) ",ABMD("MN"),?64,ABMD("MDOB")
+ S ABMD("MDFN")=0 F  S ABMD("MDFN")=$O(^TMP("ABMDBRH",ABMD("$J"),ABMD("PN"),ABMD("DFN"),ABMD("MDFN"))) Q:'ABMD("MDFN")!($D(ABMD("Q")))  I $D(^AUPNMCR(ABMD("DFN"),11,ABMD("MDFN"),0)) S ABMD("R")=^(0) D MCRA2
+ W !,ABMD("80D")
+ Q
+MCRA2 ;
+ I $Y>(IOSL-5) D HEAD Q:$D(ABMD("Q"))
+ W !,?19,$P(ABMD("R"),U,3) S Y=$P(ABMD("R"),U,1) D:Y]"" DD^%DT W ?32,Y S Y=$P(ABMD("R"),U,2) D:Y]"" DD^%DT W ?50,Y
+ Q
+PI ;
+ I $Y>(IOSL-9) D HEAD Q:$D(ABMD("Q"))
+ S (ABMD("OB"),Y)=$P(^DPT(ABMD("DFN"),0),U,3) I ABMD("OB")]"" D DD^%DT S ABMD("OB")=Y
+ S ABMD("HRN")=$P(^AUPNPAT(ABMD("DFN"),41,ABMD("SU"),0),U,2)
+ W !,ABMD("PN"),?40,ABMD("HRN"),?56,ABMD("OB")
+ S ABMD("MDFN")=0 F  S ABMD("MDFN")=$O(^TMP("ABMDBRH",ABMD("$J"),ABMD("PN"),ABMD("DFN"),ABMD("MDFN"))) Q:'ABMD("MDFN")!($D(ABMD("Q")))  S ABMD("R")=^AUPNPRVT(ABMD("DFN"),11,ABMD("MDFN"),0) D PI2
+ W !,ABMD("80D")
+ Q
+PI2 ;
+ Q:$P($G(^AUPNPRVT(ABMD("DFN"),11,ABMD("MDFN"),0)),U)=""
+ S ABMD("COVT")=$P($G(^AUTTPIC(+$P(ABMD("R"),U,3),0)),U)
+ I $Y>(IOSL-7) D HEAD Q:$D(ABMD("Q"))
+ W !,"   INSURER:  ",$P(^AUTNINS($P(ABMD("R"),U,1),0),U,1)
+ ;W !,"   POLICY #: ",$P(ABMD("R"),U,2),?47,"COVERAGE TYPE: ",$E(ABMD("COVT"),1,16)  ;abm*2.6*1 HEAT5278
+ W !,"   POLICY #: ",$S($P(ABMD("R"),U,8):$P($G(^AUPN3PPH($P(ABMD("R"),U,8),0)),U,4),1:""),?47,"COVERAGE TYPE: ",$E(ABMD("COVT"),1,16)  ;abm*2.6*1 HEAT5278
+ W !,"   INSURED:  ",$P(ABMD("R"),U,4),?47,"REL:  ",$S($P(ABMD("R"),U,5)]"":$P(^AUTTRLSH($P(ABMD("R"),U,5),0),U),1:"")
+ W !,"   ELIG BEG DATE:  " S Y=$P(ABMD("R"),U,6) D:Y]"" DD^%DT W Y,?47,"ELIG END DATE:  " S Y=$P(ABMD("R"),U,7) D:Y]"" DD^%DT W Y
+ Q
+MCD ;
+ I $Y>(IOSL-8) D HEAD Q:$D(ABMD("Q"))
+ S (ABMD("OB"),Y)=$P(^DPT(ABMD("DFN"),0),U,3) I Y]"" D DD^%DT S ABMD("OB")=Y
+ S ABMD("HRN")=$P(^AUPNPAT(ABMD("DFN"),41,ABMD("SU"),0),U,2)
+ W !,"(REG) ",ABMD("PN"),?46,ABMD("HRN"),?61,ABMD("OB")
+ S ABMD("MDFN")=0 F  S ABMD("MDFN")=$O(^TMP("ABMDBRH",ABMD("$J"),ABMD("PN"),ABMD("DFN"),ABMD("MDFN"))) Q:'ABMD("MDFN")!($D(ABMD("Q")))  S ABMD("R")=^AUPNMCD(ABMD("MDFN"),0) D MCD2
+ W !,ABMD("80D")
+ Q
+MCD2 ;
+ I $Y>(IOSL-5) D HEAD Q:$D(ABMD("Q"))
+ S ABMD("MN")=$S($D(^AUPNMCD(ABMD("MDFN"),21)):$P(^AUPNMCD(ABMD("MDFN"),21),U,1),1:"")
+ S ABMD("MDOB")=$S($D(^AUPNMCD(ABMD("MDFN"),21)):$P(^AUPNMCD(ABMD("MDFN"),21),U,2),1:"")
+ W !,"(MCD) ",ABMD("MN"),?61,ABMD("MDOB")
+ W !,"   MEDICAID #: ",$P(ABMD("R"),U,3),?50,"STATE: ",$S($P(ABMD("R"),U,4)]"":$P(^DIC(5,$P(ABMD("R"),U,4),0),U),1:"")
+ W !,"   NAME/INSURED: ",$P(ABMD("R"),U,5),?50,"SEX OF INSURED: ",$P(ABMD("R"),U,7)
+ S ABMD("NDFN")=0 F  S ABMD("NDFN")=$O(^TMP("ABMDBRH",ABMD("$J"),ABMD("PN"),ABMD("DFN"),ABMD("MDFN"),ABMD("NDFN"))) Q:'ABMD("NDFN")!($D(ABMD("Q")))  S ABMD("NREC")=^AUPNMCD(ABMD("MDFN"),11,ABMD("NDFN"),0) D MCD3
+ Q
+MCD3 ;
+ W !,"   ELIG BEG DATE: " S Y=$P(ABMD("NREC"),U,1) D:Y]"" DD^%DT W ?20,Y,?35,"COVERAGE: ",$P(ABMD("NREC"),U,3),?50,"ELIG END DATE: " S Y=$P(ABMD("NREC"),U,2) D:Y]"" DD^%DT W Y
+ Q
+HEAD I 'ABMD("PG") G HEAD1
+ I $E(IOST)="C",'$D(IO("S")) W ! S DIR(0)="EO" D ^DIR K DIR I $D(DTOUT)!($D(DUOUT))!($D(DIROUT)) S ABMD("Q")="" Q
+HEAD1 ;
+ W $$EN^ABMVDF("IOF") S ABMD("PG")=ABMD("PG")+1
+ W ?(80-$L($P(^DIC(4,ABMD("SU"),0),U))/2),$P(^DIC(4,ABMD("SU"),0),U),?72,"Page ",ABMD("PG"),!
+ S ABMD("LENG")=22+$L(ABMD("TITL"))
+ W ?((80-ABMD("LENG"))/2),"REGISTERED PATIENTS -  ",ABMD("TITL"),!
+ W ?23,"Actively enrolled as of ",ABMD("ACEY"),!
+ W !
+ D @(ABMD("PROC")_"H")
+ W ABMD("80D")
+ Q
+MCRAH ;
+ W !,"         NAME",?36,"CHART #",?49,"MEDICARE #",!,"(TYPE)",?14,"COVERAGE",?32,"ELIG BEG DATE",?49,"ELIG END DATE",?64,"DATE OF BIRTH",!
+ Q
+PIH W !,"PATIENT NAME",?40,"CHART #",?55,"DATE OF BIRTH",!
+ Q
+MCDH ;
+ W !,"PATIENT NAME",?40,"CHART #",?55,"DATE OF BIRTH",!
+ Q

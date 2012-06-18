@@ -1,0 +1,59 @@
+ADGAD1 ; IHS/ADC/PDW/ENM - A&D ADMISSIONS ; [ 02/26/2004  11:24 AM ]
+ ;;5.0;ADMISSION/DISCHARGE/TRANSFER;;MAR 25, 1999
+ ;
+ ; RD,GL is defined by VA routine.
+ ;
+ N FR,TO,IFN,DFN,N,NAME,AGE,WD,FAC,COM,HRCN,UTL,PR,TS,X,X1,X2,DGDT
+A ;--main
+ D INI,LP1,^ADGAD3,^ADGAD2,^ADGAD6,^ADGAD4,^ADGAD5,Q Q
+ ;
+INI ;--initialize variables
+ S DGDATE=RD,DGADULT=$P($G(^DG(43,1,9999999)),U,5)
+ S X1=RD,X2=-1 D C^%DTC S FR=X_".999999",TO=$P(RD,".",1)_".999999"
+ S (DGT10,DGT1N,DGT30,DGT3N,DGT3D,DGTSI,DGT2,DGT6)=0
+ S WD=0 F  S WD=$O(^DIC(42,WD)) Q:'WD  D
+ . S (DGWD(WD),DGLWD(WD),DGWD("NB",WD),DGLWD("NB",WD))=0
+ S TS=0 F  S TS=$O(^DIC(45.7,TS)) Q:'TS  D
+ . S (DGTSA(TS),DGTSP(TS),DGLTSA(TS),DGLTSP(TS))=0
+ Q
+ ;
+LP1 ;--loop admissions
+ S DGDT=FR F  S DGDT=$O(^DGPM("AMV1",DGDT)) Q:'DGDT!(DGDT>TO)  D
+ . S DFN=0 F  S DFN=$O(^DGPM("AMV1",DGDT,DFN)) Q:'DFN  D
+ .. S IFN=0 F  S IFN=$O(^DGPM("AMV1",DGDT,DFN,IFN)) Q:'IFN  D 1
+ Q
+ ;
+1 S N=^DPT(DFN,0),NAME=$P(N,U),AGE=$$AGE
+ S N=^DGPM(IFN,0),WD=$P(N,U,6),FAC=$P(N,U,5)
+ S N=$$RPM,TS=$P(N,U,9),PR=$P(N,U,8)
+ S COM=$P($G(^AUPNPAT(DFN,11)),U,18),HRCN=$$HRCN^ADGF
+ S UTL=PR_U_AGE_U_WD_U_TS_U_COM_U_FAC
+ ; -- census counts
+ ; -- ward (newborn vs all others)
+ I $D(^DIC(45.7,"B","NEWBORN",+TS)) D
+ . S:GL ^TMP("DGZADS",$J,"AN",NAME,HRCN,IFN)=UTL
+ . S DGT1N=DGT1N+1,DGWD("NB",WD)=DGWD("NB",WD)+1
+ I '$D(^DIC(45.7,"B","NEWBORN",+TS)) D
+ . S:GL ^TMP("DGZADS",$J,"AA",NAME,HRCN,IFN)=UTL
+ . S DGT10=DGT10+1,DGWD(WD)=DGWD(WD)+1
+ ; -- treating specialty
+ ; -- peds counts
+ I +AGE<DGADULT,TS]"" S DGTSP(TS)=DGTSP(TS)+1 Q
+ ; -- adult counts
+ I TS]"" S DGTSA(TS)=DGTSA(TS)+1 Q
+ Q  ;IHS/DSD/ENM 03/15/99
+ ;
+Q ;--cleanup all
+ K DGT10,DGT1N,DGT30,DGT3N,DGT3D,DGTSI,DGT2,DGT6
+ K DGADULT,DGLWD,DGLTSA,DGLTSP,DGWD,DGTSA,DGTSP
+ ;--unlock census files
+ L -^ADGWD L -^ADGTX Q
+ ;
+RPM() ;--related mvmnt 
+ N X S X=$O(^DGPM("APHY",IFN,0)) Q $G(^DGPM(+X,0))
+ ;
+AGE() ;--age at admit
+ N X,X1,X2 S X1=DGDT,X2=$P(N,U,3) D ^%DTC Q:'X "" Q X\365.25
+ ;
+AS() ;--admitting service (yes=1,no=0)
+ Q $S($P($G(^DIC(45.7,+TS,9999999)),U,3)="Y":1,1:0)

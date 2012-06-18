@@ -1,0 +1,108 @@
+APCLTAXT ; IHS/CMI/LAB - DISPLAY TAX ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;; ;
+EP ;EP - CALLED FROM OPTION
+ D EN
+ Q
+ ;; ;
+EN ;EP -- main entry point for 
+ D EN^VALM("APCL TAXONOMY GENERIC LIST")
+ D CLEAR^VALM1
+ D FULL^VALM1
+ W:$D(IOF) @IOF
+ K APCLLIST,J,C
+ D ^XBFMK
+ Q
+ ;
+PAUSE ;EP
+ Q:$E(IOST)'="C"!(IO'=IO(0))
+ W ! S DIR(0)="EO",DIR("A")="Press enter to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q
+HDR ; -- header code
+ S VALMHDR(1)="ADD OR EDIT "_$P(^ATXTYPE(APCLTAXT,0),U)_" TAXONOMIES"
+ S VALMHDR(2)="TAXONOMY NAME",$E(VALMHDR(2),38)="DESCRIPTION",$E(VALMHDR(2),70)="FILE"
+ Q
+ ;
+INIT ; -- init variables and list array
+ I APCLFILE=60 D LABINIT Q
+ K APCLLIST S APCLHIGH="",C=0
+ S J=0 F  S J=$O(^ATXAX(J)) Q:J'=+J  D
+ .I $P(^ATXAX(J,0),U,15)'=APCLFILE Q
+ .S C=C+1
+ .S D=$P(^ATXAX(J,0),U,2)
+ .S APCLLIST(C,0)=C_")  "_$P(^ATXAX(J,0),U),$E(APCLLIST(C,0),38)=D,$E(APCLLIST(C,0),70)=APCLFILE
+ .S APCLLIST("IDX",C,C)=J
+ .Q
+ S (VALMCNT,APCLHIGH)=C
+ Q
+LABINIT ;
+ K APCLLIST S APCLHIGH="",C=0
+ S J=0 F  S J=$O(^ATXLAB(J)) Q:J'=+J  D
+ .S C=C+1
+ .S D=$P(^ATXLAB(J,0),U,2)
+ .S APCLLIST(C,0)=C_")  "_$P(^ATXLAB(J,0),U),$E(APCLLIST(C,0),38)=D,$E(APCLLIST(C,0),70)=APCLFILE
+ .S APCLLIST("IDX",C,C)=J
+ .Q
+ S (VALMCNT,APCLHIGH)=C
+ Q
+ ;
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+BACK ;go back to listman
+ D TERM^VALM0
+ S VALMBCK="R"
+ D INIT
+ D HDR
+ K DIR
+ K X,Y,Z,I
+ Q
+ ;
+SEL ;EP - add an item to the selected list - called from a protocol
+ D FULL^VALM1
+ W !
+ S DIR(0)="NO^1:"_APCLHIGH,DIR("A")="Which Taxonomy"
+ D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y="" W !,"No taxonomy selected." G ADDX
+ I $D(DIRUT) W !,"No taxonomy selected." G ADDX
+ S APCLTAXI=$P(APCLLIST("IDX",Y,Y),U,1),APCLTAXN=$S(APCLFILE=60:$P(^ATXLAB(APCLTAXI,0),U),1:$P(^ATXAX(APCLTAXI,0),U))
+ D FULL^VALM1 W:$D(IOF) @IOF
+ D EP^APCLTAXE
+ADDX ;
+ D BACK
+ Q
+ADDNEW ;EP  add new taxonomy of this type
+ I APCLFILE=60 D LABADD G ADDNEWX
+ S ATXADD=1,ATXFLG=1
+ K DIC
+ S DIC="^ATXAX(",DIC("DR")=".02",DIC(0)="AEMLQ" D ^DIC K DIC
+ I Y=-1 G ADDNEWX
+ S APCLTAXI=+Y
+ S DA=APCLTAXI,DIE="^ATXAX("
+ S DR=".09////"_DT_";.12////"_$P(^ATXTYPE(APCLTAXT,0),U,3)_";.13////"_$S(APCLFILE=80:1,APCLFILE=80.1:1,APCLFILE=81:1,1:"")_";.15////"_$P(^ATXTYPE(APCLTAXT,0),U,2)
+ D ^DIE K DIE,DA,DR
+ I $D(Y) W !!,"error creating taxonomy........" S DA=APCLTAXI,DIK="^ATXAX(" D ^DIK K DIK,DA D PAUSE G ADDNEWX
+ S APCLTAXN=$P(^ATXAX(APCLTAXI,0),U)
+ D EP^APCLTAXE
+ADDNEWX ;
+ D BACK
+ Q
+LABADD ;
+ K DIC
+ S DIC="^ATXLAB(",DIC("DR")=".02",DIC(0)="AEMLQ" D ^DIC K DIC
+ I Y=-1 G ADDNEWX
+ S APCLTAXI=+Y
+ S DA=APCLTAXI,DIE="^ATXLAB("
+ S DR=".09////"_DT_";.11Should this taxonomy include Panels?"
+ D ^DIE K DIE,DA,DR
+ I $D(Y) W !!,"error creating taxonomy........" S DA=APCLTAXI,DIK="^ATXAX(" D ^DIK K DIK,DA D PAUSE G ADDNEWX
+ S APCLTAXN=$P(^ATXLAB(APCLTAXI,0),U)
+ D EP^APCLTAXE
+ G ADDNEWX

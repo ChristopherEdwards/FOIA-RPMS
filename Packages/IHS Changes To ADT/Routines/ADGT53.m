@@ -1,0 +1,42 @@
+ADGT53 ; GENERATED FROM 'ADGDSLIST' PRINT TEMPLATE (#2142) ; 10/29/04 ; (FILE 9009012, MARGIN=80)
+ G BEGIN
+CP G CP^DIO2
+C S DQ(C)=Y
+S S Q(C)=Y*Y+Q(C) S:L(C)>Y L(C)=Y S:H(C)<Y H(C)=Y
+P S N(C)=N(C)+1
+A S S(C)=S(C)+Y
+ Q
+D I Y=DITTO(C) S Y="" Q
+ S DITTO(C)=Y
+ Q
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ S DISTP=DISTP+1,DILCT=DILCT+1 D:'(DISTP#100) CSTP^DIO2
+ Q
+DT I $G(DUZ("LANG"))>1,Y W $$OUT^DIALOGU(Y,"DD") Q
+ I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1 S DISTP=$G(DISTP),DILCT=$G(DILCT)
+ I $D(DXS)<9 M DXS=^DIPT(2142,"DXS")
+ S I(0)="^ADGDS(",J(0)=9009012
+ S X=$G(^ADGDS(D0,0)) W:$X>8 ! D N:$X>0 Q:'DN  W ?0 S Y=$P(X,U,1) S:Y]"" N(1)=N(1)+1 S Y=$S(Y="":Y,$D(^AUPNPAT(Y,0))#2:$P(^(0),U),1:Y) S Y=$S(Y="":Y,$D(^DPT(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,25)
+ D N:$X>29 Q:'DN  W ?29 S X=$S($D(^AUPNPAT(D0,41,DUZ(2),0)):$P(^(0),"^",2),1:"") W $E(X,1,7) K Y(9009012,2)
+ S I(1)="""DS""",J(1)=9009012.01 F D1=0:0 Q:$O(^ADGDS(D0,"DS",D1))'>0  X:$D(DSC(9009012.01)) DSC(9009012.01) S D1=$O(^(D1)) Q:D1'>0  D:$X>38 T Q:'DN  D A1
+ G A1R
+A1 ;
+ D N:$X>39 Q:'DN  W ?39 S DIP(1)=$S($D(^ADGDS(D0,"DS",D1,0)):^(0),1:"") S X=$P(DIP(1),U,1) S:X X=$E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3) K DIP K:DN Y W X
+ D N:$X>49 Q:'DN  W ?49 X DXS(1,9.2) S X=$E(DIP(2),DIP(3),X) K DIP K:DN Y W $E(X,1,4)
+ D N:$X>54 Q:'DN  W ?54 X ^DD(9009012.01,8,9.4) S X=X/60,Y(9009012.01,8,6)=X S X=1,Y(9009012.01,8,7)=X S X="",X=$S(Y(9009012.01,8,2):Y(9009012.01,8,6),Y(9009012.01,8,7):X) S X=$J(X,0,1) W $E(X,1,4) K Y(9009012.01,8)
+ D N:$X>59 Q:'DN  W ?59 X ^DD(9009012.01,10,9.6) S Y(9009012.01,10,10)=X S X=1,Y(9009012.01,10,11)=X S X="",X=$S(Y(9009012.01,10,2):Y(9009012.01,10,10),Y(9009012.01,10,11):X) S X=$J(X,0,1) W:X'?."*" $J(X,9,1) K Y(9009012.01,10)
+ S X=$G(^ADGDS(D0,"DS",D1,2)) D N:$X>69 Q:'DN  W ?69 S Y=$P(X,U,2) W:Y]"" $S($D(DXS(2,Y)):DXS(2,Y),1:Y)
+ D T Q:'DN  D N W ?0 W " "
+ Q
+A1R ;
+ K Y
+ Q
+HEAD ;
+ W !,?0,"PATIENT",?29,"HRCN",?39,"SURG DATE",?49,"SRVC",?54,"LOS",?59,"EXTND LOS",?69,"ADMIT?"
+ W !,"--------------------------------------------------------------------------------",!!

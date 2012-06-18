@@ -1,0 +1,145 @@
+AMQQATAL ; IHS/CMI/THL - SETS TEMP METADICTIONARY ENTRY FOR LAB TESTS ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;-----
+ ; All hard sets in this routine are for temporary purposes only
+SETLAB ; ENTRY POINT
+ N X,%,Y,A
+ S %=$G(^AMQQ(5,+AMQQATN,4))
+ Q:%=""
+ S AMQQLTYP=$P(%,U)
+ S AMQQLDFN=$P(%,U,2)
+ S AMQQLSIT=$P(%,U,3)
+ S AMQQLHED=$P(%,U,4)
+ S AMQQLHDL=$P(%,U,5)
+ S AMQQLUNT=$P(%,U,6)
+ S AMQQLOUT=$P(%,U,7)
+ S AMQQLINK=AMQQATN
+ S AMQQNOL=""
+ S:'AMQQLSIT AMQQLSIT=+$O(^LAB(61,"B","UNKNOWN",0))
+ D OK
+ I $D(AMQQNOL) W:'$D(AMQQXX) !,"No results for this test are in the database.  Don't bother asking.",!,*7 G EXIT
+ D MSG
+ I $D(AMQQNOL) Q
+ S AMQQLINK=AMQQLINK+($J/100000)
+ S %=AMQQLTYP
+ S AMQQLNNA=$S(%=9:1,%=12:2,%=11:3,%=15:4,%=6:6,1:"")
+ S %="^2^9000010.09^.04^9^^1^1^^AUPNVLAB^^3.7^AC^^^^"
+ S $P(%,U,1)="PATIENT;"_AMQQATNM
+ S $P(%,U,5)=AMQQLTYP
+ S $P(%,U,9)=AMQQATNM
+ S $P(%,U,11)=AMQQLDFN
+ S $P(%,U,15)=AMQQLDFN
+ S ^AMQQ(1,AMQQLINK,0)=%
+ S %=^AMQQ(1,9,1)
+ S %=$P(%,"XXX")_AMQQLDFN_$P(%,"XXX",2)
+ S ^AMQQ(1,AMQQLINK,1)=%
+ S ^AMQQ(1,AMQQLINK,1.1)=^AMQQ(1,9,1.1)
+ D STG
+ S %=^AMQQ(1,9,1.2)
+ S %=$P(%,"XXX")_X_$P(%,"XXX",2)
+ S %=$P(%,"YYY")_AMQQLNNA_$P(%,"YYY",2)
+ S ^AMQQ(1,AMQQLINK,1.2)=%
+ S %=^AMQQ(1,9,2)
+ S %=$P(%,"XXX")_X_$P(%,"XXX",2)
+ S %=$P(%,"YYY")_AMQQLNNA_$P(%,"YYY",2)
+ S ^AMQQ(1,AMQQLINK,2)=%
+ S ^AMQQ(1,AMQQLINK,4,0)="^9009071,01^2^2"
+ S ^AMQQ(1,AMQQLINK,4,1,0)=AMQQLHED_U_9000010.09_U_.04_U_AMQQLHED_U_AMQQLHDL_U_AMQQLHDL_U_AMQQLUNT I AMQQLOUT'="" S ^(1)=AMQQLOUT
+ S ^AMQQ(1,AMQQLINK,4,2,0)=AMQQLHED_" DATE"_U_9000010_U_.01_U_AMQQLHED_" DATE"_U_12_U_12,^(1)="S Y=X X ^DD(""DD"") S X=Y"
+ S ^AMQQ(1,AMQQLINK,9)=AMQQATNM_" RESULTS^RESULTS^EXPANDED LAB REPORT"
+EXIT K AMQQLDFN,AMQQLTYP,AMQQLSIT,AMQQLHED,AMQQLHDL,AMQQLUNT,AMQQLOUT,AMQQLUNT,AMQQLNNA,I,J,X,Y,Z,%,B,N,A
+ Q
+ ;
+EN1 ; ENTRY POINT FROM AMQQSQA0
+ N AMQQLINK,AMQQ,AMQQATNM S AMQQATN=+Y,AMQQATNM=$P(Y,U,2) N X,Y,%
+ D SETLAB
+ Q
+ ;
+OKATTRIB(AMQQATN) ;EP;
+ S %=^AMQQ(5,AMQQATN,4)
+ S AMQQLTYP=$P(%,U)
+ S AMQQLDFN=$P(%,U,2)
+ S AMQQLSIT=$P(%,U,3)
+ S AMQQLHED=$P(%,U,4)
+ S AMQQLHDL=$P(%,U,5)
+ S AMQQLUNT=$P(%,U,6)
+ S AMQQLOUT=$P(%,U,7)
+ S AMQQLINK=AMQQATN
+ S AMQQNOL=""
+ S:'AMQQLSIT AMQQLSIT=+$O(^LAB(61,"B","UNKNOWN",0))
+ S AMQQNOL=""
+ D:AMQQLDFN OK
+ I '$D(AMQQNOL)
+ Q
+OK N AMQQLX,AMQQLI,X,Y,%
+ I $D(^AUPNVLAB("B",AMQQLDFN)) K AMQQNOL S AMQQLENO=AMQQLDFN_"."_AMQQLSIT
+ I $G(AMQQLSIT)=44 S AMQQLDFN(AMQQLENO)="" Q
+ I AMQQLSIT'=72 D  Q
+ .F %=0:0 S %=$O(^AMQQ(5,"LC",AMQQLINK\1,%)) Q:'%  I $D(^AUPNVLAB("B",%)) K AMQQNOL S AMQQLDFN(%,".",AMQQLSIT)="",AMQQLDFN(AMQQLDFN_"."_AMQQLSIT)=""
+ S AMQQLX=AMQQLDFN_U
+ F %=0:0 S %=$O(^AMQQ(5,"LC",AMQQLINK,%)) Q:'%  S AMQQLX=AMQQLX_%_U
+ F AMQQLI=1:1 S X=$P(AMQQLX,U,AMQQLI) Q:'X  I $D(^AUPNVLAB("B",X)) K AMQQNOL D
+ .F Y=72,70,73 I $D(^LAB(60,X,1,Y)) S AMQQLDFN(X_"."_Y)=""
+ Q
+MSG I $D(AMQQXX) Q
+ W !
+ I $D(AMQQLCOF) D SEL Q
+ I $D(AMQQLDFN)<9 S X=AMQQLDFN D LINE Q
+ S %=$O(AMQQLDFN(0))
+ I % S %=$O(AMQQLDFN(%)) I % W !,"The following tests will be included in the query =>",!
+ E  Q
+ S AMQQLI=0
+ F  S AMQQLI=$O(AMQQLDFN(AMQQLI)) Q:'AMQQLI  S X=AMQQLI D LINE
+ K AMQQLI
+ Q
+ ;
+LINE W !,?2
+ I $D(AMQQLCOF) W J,") "
+ I AMQQLSIT=72 S %=+$P(X,".",2) S %=$S(%=7:"BLOOD ",%=70:"BLOOD ",%=72:"SERUM ",%=73:"PLASMA ",1:"") W %
+ W $P(^LAB(60,X\1,0),U)
+ S Y=AMQQLSIT
+ I %'="" S Y=+$P(X,".",2)
+ S %=$G(^LAB(60,X\1,1,Y,0))
+ I %'="" W:$P(%,U,2) "   ",$P(%,U,2)," - ",$P(%,U,3)," ",$P(%,U,7) I $P(%,U,4)*$P(%,U,5) W "  [critical: <",$P(%,U,4)," and >",$P(%,U,5),"]"
+ Q
+ ;
+SEL ;
+ I $D(AMQQLDFN)=0 G SELEXIT
+ I $D(AMQQLDFN)=1 S X=AMQQLDFN_"."_AMQQLSIT D LINE G SELEXIT
+ S (N,J)=0
+ S I=0
+ F  S I=$O(AMQQLDFN(I)) Q:'I  S N=N+1
+ I N=1 S X=$O(AMQQLFDN(0)),X=AMQQLDFN(X) D LINE G SELEXIT
+ S X=0
+ F  S X=$O(AMQQLDFN(X)) Q:'X  S J=J+1,AMQQLCOF(X)=J D LINE
+SELR R !!,?2,"Your choice: ",X:DTIME E  S X=U
+ I X?1."?" W !,"Enter a number from 1 to ",N," or string numbers together with commas; e.g. 1,",N G SELR
+ I "^"[$E(X) S AMQQNOL="" W !!,"ATTRIBUTE CANCELLED...",!!,*7 G SELEXIT
+ S Z=U
+ F I=1:1 S Y=$P(X,",",I) Q:Y=""  S:(('Y)!(Y>N)) Y="" W:Y'?1N "  ??",*7 G:Y'?1N SELR S Z=Z_Y_U
+ S I=0
+ F  S I=$O(AMQQLDFN(I)) Q:'I  S N=+$G(AMQQLCOF(I)) I Z'[(U_N_U) K AMQQLDFN(I)
+SELEXIT K AMQQLCOF
+ Q
+ ;
+STG ;
+ I $D(AMQQLDFN)=1 S X=AMQQLDFN D STG1 Q
+ S X=""
+ S %=$O(AMQQLDFN(0))
+ Q:'%  D  S:X'="" X=X_":" S X=X_A
+ .S Y=(%\1)-.0000001,A="",%=Y+1
+ .S Z=Y F  S Z=$O(AMQQLDFN(Z)) Q:'Z  Q:Z>(Y+1)  D
+ ..S B=Z
+ ..I B=(B\1) S B=B_".00"
+ ..I A="" S A=B Q
+ ..S A=A_"."_+$P(B,".",2)
+ Q
+STG1 ;
+ N %,N S N=0
+ F %=70:1:79 I $D(^LAB(60,AMQQLDFN,1,%)) D
+ .I ((%=70)!(%=73)),$D(^LAB(60,AMQQLDFN,1,72)) Q
+ .S N=N+1
+ .I N=2 S %=99
+ I N=2 S X=X_"."_AMQQLSIT
+ Q
+ ;

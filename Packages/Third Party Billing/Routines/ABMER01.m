@@ -1,0 +1,153 @@
+ABMER01 ; IHS/ASDST/DMJ - UB92 EMC RECORD 01 (Processor Label Data) ;   
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;DMJ;07/08/96 4:53 PM
+ ;
+ ; IHS/DSD/LSL - 04/15/98  - NOIS XCA-0498-200040
+ ;               Modified to allow a unique transmission
+ ;               number in positions 179-184 for Arizona Medicaid.
+ ;
+ ; IHS/ASDS/DMJ - 09/21/01 - V2.4 Patch 9 - NOIS NGA-0901-180084
+ ;     AHCCCS Medicaid needs the tax id to be 10 alpha characters.
+ ;
+ ; IHS/ASDS/SDH - 09/27/01 - v2.4 Patch 9 - NOIS XAA-0901-200095
+ ;     After moving Kidscare to Page 5 from Page 7 found that there are
+ ;     checks that are done for Medicaid that should also be done for
+ ;     Kidscare.
+ ;
+ ; *********************************************************************
+ ;
+START ;START HERE
+ K ABMREC(1),ABMR(1)
+ S ABME("RTYPE")=1
+ D BCBS^ABMERUTL
+ D LOOP
+ K ABME,ABM
+ Q
+LOOP ;LOOP HERE
+ F I=10:10:240 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),1,I)) D @(^(I))
+ .I '$G(ABMP("NOFMT")) S ABMREC(1)=$G(ABMREC(1))_ABMR(1,I)
+ Q
+10 ;Record type
+ S ABMR(1,10)="01"
+ Q
+20 ;Submitter EIN (SOURCE: FILE=9999999.06, FIELD=.21)
+ D DIQ2 S ABMR(1,20)=ABM(9999999.06,DUZ(2),.21,"E")
+ I $$RCID^ABMERUTL(ABMP("INS"))=99999 D
+ .S ABMR(1,20)=$$FMT^ABMERUTL(ABMR(1,20),10)
+ I $$RCID^ABMERUTL(ABMP("INS"))'=99999 D
+ .S ABMR(1,20)=$$FMT^ABMERUTL(ABMR(1,20),"10NR")
+ S ABMRT(99,20)=ABMR(1,20)
+ Q
+30 ;Multiple Provider Billing 
+ S ABMR(1,30)=1
+ Q
+40 ;Filler (National Use)
+ S ABMR(1,40)=""
+ S ABMR(1,40)=$$FMT^ABMERUTL(ABMR(1,40),17)
+ Q
+50 ;Receiver Type Code (SOURCE: FILE=, FIELD=)
+ S ABMR(1,50)=$S(ABMP("ITYPE")="W":"B",ABMP("ITYPE")="R":"C",ABMP("ITYPE")="D"!(ABMP("ITYPE")="K"):"D",ABMP("ITYPE")="P":"F",ABMP("ITYPE")="C":"H",$G(ABMP("BCBS")):"G",1:"I")
+ S ABMR(1,50)=$$FMT^ABMERUTL(ABMR(1,50),1)
+ Q
+60 ;Receiver Identification (SOURCE: FILE=9999999.18, FIELD=.08)
+ S ABMR(1,60)=$$RCID^ABMERUTL(ABMP("INS"))
+ Q
+70 ;Receiver Sub-Identification
+ S ABMR(1,70)=""
+ S ABMR(1,70)=$$FMT^ABMERUTL(ABMR(1,70),4)
+ Q
+80 ;Processing Date (SOURCE: CURRENT DATE)
+ S ABMR(1,80)=$E(DT,4,5)_$E(DT,6,7)_$E(DT,2,3)
+ Q
+90 ;Submitter Name (SOURCE: FILE=9999999.06, FIELD=.01)
+ D DIQ2 S ABMR(1,90)=ABM(9999999.06,DUZ(2),.01,"E")
+ S ABMR(1,90)=$$FMT^ABMERUTL(ABMR(1,90),21)
+ Q
+100 ;Submitter Address (SOURCE: FILE=9999999.06, FIELD=.14)
+ D DIQ2 S ABMR(1,100)=ABM(9999999.06,DUZ(2),.14,"E")
+ S ABMR(1,100)=$$FMT^ABMERUTL(ABMR(1,100),18)
+ Q
+110 ;Submitter City (SOURCE: FILE=9999999.06 FIELD=.15)
+ D DIQ2 S ABMR(1,110)=ABM(9999999.06,DUZ(2),.15,"E")
+ S ABMR(1,110)=$$FMT^ABMERUTL(ABMR(1,110),15)
+ Q
+120 ;Submitter State (SOURCE: FILE=9999999.06, FIELD=.16)
+ D DIQ2 S ABMR(1,120)=ABM(9999999.06,DUZ(2),.16,"I")
+ S ABMR(1,120)=$P($G(^DIC(5,+ABMR(1,120),0)),"^",2)
+ S ABMR(1,120)=$$FMT^ABMERUTL(ABMR(1,120),2)
+ Q
+130 ;Submitter Zip (SOURCE: FILE=9999999.06, FIELD=.17)
+ D DIQ2 S ABMR(1,130)=ABM(9999999.06,DUZ(2),.17,"E")
+ S ABMR(1,130)=$$FMT^ABMERUTL(ABMR(1,130),9)
+ Q
+140 ;Submitter FAX Number (SOURCE: FILE=, FIELD=)
+ S ABMR(1,140)=""
+ S ABMR(1,140)=$$FMT^ABMERUTL(ABMR(1,140),"10R")
+ Q
+150 ;Country Code (SOURCE: FILE= FIELD=)
+ S ABMR(1,150)=""
+ S ABMR(1,150)=$$FMT^ABMERUTL(ABMR(1,150),4)
+ Q
+160 ;Submitter Telephone Number (SOURCE: FILE=, FIELD=)
+ D DIQ2 S ABMR(1,160)=ABM(9999999.06,DUZ(2),.13,"E")
+ S ABMR(1,160)=$TR(ABMR(1,160),"() -")
+ S ABMR(1,160)=$$FMT^ABMERUTL(ABMR(1,160),"10R")
+ Q
+170 ;File Sequence & Serial Number (SOURCE: FILE= FIELD=)
+ S ABMR(1,170)="0000"_$G(ABMP("XMIT"))
+ S ABMR(1,170)=$E(ABMR(1,170),$L(ABMR(1,170))-3,$L(ABMR(1,170)))
+ S ABMR(1,170)=$E(DUZ(2),$L(DUZ(2))-1,$L(DUZ(2)))_ABMR(1,170)
+ S ABMR(1,170)=ABMR(1,170)+1000000
+ S ABMR(1,170)=$$FMT^ABMERUTL(ABMR(1,170),"7NR")
+ Q
+180 ;Filler (National Use)
+ S ABMR(1,180)=""
+ S ABMR(1,180)=$$FMT^ABMERUTL(ABMR(1,180),23)
+ Q
+190 ;Password (166-171)
+ S ABMR(1,190)=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),0)),"^",3)
+ S ABMR(1,190)=$$FMT^ABMERUTL(ABMR(1,190),6)
+ Q
+200 ;Submitter ID (172-177)
+ S ABMR(1,200)=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),0)),"^",2)
+ S ABMR(1,200)=$$FMT^ABMERUTL(ABMR(1,200),6)
+ Q
+210 ;Test Indicator (178)
+ S ABMR(1,210)=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),0)),"^",4)
+ S ABMR(1,210)=$$FMT^ABMERUTL(ABMR(1,210),1)
+ Q
+220 ;Arizona Medicaid Transmission Number (179-184)
+ ;Use the last 6 digits of Batch ID
+ S ABMR(1,220)=""
+ I $$RCID^ABMERUTL(ABMP("INS"))=99999 S ABMR(1,220)=$E(ABMR(1,170),2,7)
+ S ABMR(1,220)=$$FMT^ABMERUTL(ABMR(1,220),"6R")
+ Q
+230 ;Filler (185-189)
+ S ABMR(1,230)=""
+ S ABMR(1,230)=$$FMT^ABMERUTL(ABMR(1,230),5)
+ Q
+240 ;Version Code (190-192)
+ S ABMR(1,240)="004"
+ Q
+DIQ1 ;PULL BILL DATA VIA DIQ1
+ Q:$D(ABM(9002274.4,ABMP("BDFN"),ABME("FLD")))
+ N I S DIQ="ABM(",DIQ(0)="EI",DIC="^ABMDBILL(DUZ(2),",DA=ABMP("BDFN")
+ S DR=".01;.21;.51;.52;.53;.61;.62;.63;.64;.71;.72;.99"
+ D EN^DIQ1 K DIQ
+ Q
+DIQ2 ;GET LOCATION INFORMATION
+ Q:$D(ABM(9999999.06,DUZ(2)))
+ N I S DIQ="ABM",DIQ(0)="IE",DIC="^AUTTLOC(",DA=DUZ(2)
+ S DR=".01;.13;.14;.15;.16;.17;.21"
+ D EN^DIQ1 K DIQ
+ Q
+EX(ABMX,ABMY) ;EXTRINSIC FUNCTION HERE (X=data element, Y=bill internal entry number)
+ S ABMP("BDFN")=ABMY D SET^ABMERUTL
+ I '$G(ABMP("NOFMT")) S ABMP("FMT")=0
+ D @ABMX
+ S Y=ABMR(20,ABMX)
+ K ABMR(20,ABMX),ABME,ABM,ABMX,ABMY
+ I $D(ABMP("FMT")) S ABMP("FMT")=1
+ Q Y

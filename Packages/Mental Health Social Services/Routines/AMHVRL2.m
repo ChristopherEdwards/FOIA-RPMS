@@ -1,0 +1,86 @@
+AMHVRL2 ; IHS/CMI/LAB - DEMO/APPTS ACTION ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;
+SENDPAT  ;EP - called from protocol
+ D FULL^VALM1
+ S AMHVSAV=DFN
+ S Y=DFN D ^AUPNPAT
+ I '$$PKGCK^AMHVU("LROW","LAB VERSION 5.2") Q
+ Q:'$G(DFN)
+ I '$D(^AMHSITE(DUZ(2),14,"B",DUZ)) W !!,$C(7),$C(7),"I am sorry, you do not have access to this option.  See your supervisor." H 2 Q
+ D SENDPAT^LRORD
+ S DFN=AMHVSAV
+ D RESET^AMHVRL
+ Q
+APPT(DFN) ;EP; called by AMHV APPT protocol
+ NEW AUPNPAT,AUPNSEX,AUPNDOB,AUPNDOD
+ S AMHVSAV=DFN
+ S Y=DFN D ^AUPNPAT
+ I $T(EN1^SDAM)]"" Q:'$G(DFN)  S SDY=DFN_";DPT(" D EN1^SDAM S (DFN,AMHPAT)=AMHVSAV Q
+ I '$$PKGCK^AMHVU("ASDI","SCHEDULING VERSION 5.0") Q
+ Q:'$G(DFN)
+ ;
+MENU ; -- menu of scheduling actions
+ NEW DIR,I,DIRUT
+ D ^XBCLS
+ D MSG^AMHVU($$SP(10)_"SCHEDULING ACTIONS AVAILABLE",2,2,0)
+ S DIR(0)="NO^1:4",DIR("A")="Select Action by number"
+ F I=1:1:4 S DIR("A",I)=$P($T(CHOICE+I),";;",2)
+ D ^DIR K DIR Q:$D(DIRUT)  D @Y G MENU
+ ;
+1 ; -- make appt
+ NEW SDPEP,SDMM,DIC
+ D MSG^AMHVU($$SP(10)_"Make Appointment for "_$$NAME,2,2,0)
+ S SDPEP=1,SDMM=0 D EN1^SDM S DFN=AMHVSAV
+ Q
+ ;
+2 ; -- cancel appt
+ NEW SDPEP,DA,NAME
+ D MSG^AMHVU($$SP(10)_"Cancel Appointment for "_$$NAME,2,2,0)
+ S SDPEP=1,DA=DFN,NAME=$$NAME D EN^SDCNP S DFN=AMHVSAV
+ Q
+ ;
+3 ; -- check-in/walkin
+ NEW SDPEP,DIV
+ S SDPEP=1 D PAT2^ASDI,RETURN^AMHVU S DFN=AMHVSAV
+ Q
+ ;
+4 ; -- display appts
+ NEW SDPEP,HDT,APL,SDRG,SDEDT,OTH,SDEND,DA,NAME
+ S SDPEP=1,NAME=$$NAME,HDT=DT,(APL,SDEDT,OTH)="",(SDRG,SDEND)=0
+ S DA=DFN D RD1^SDDPA,RETURN^AMHVU S DFN=AMHVSAV
+ Q
+ ;
+HDR ; -- print header
+ NEW X
+ S X=IOUON_$$PAD($$SP(10)_"APPOINTMENTS"_$$SP(8)_$$NOW,77)_IOUOFF
+ D MSG^AMHVU(X,1,0,0)
+ D MSG^AMHVU($$SP(10)_$$CONFID^AMHVU("Patient"),0,0,0)
+ D MSG^AMHVU($$NAME_$$SP(5)_$$HRCN,1,0,0)
+ D MSG^AMHVU($$REPEAT^XLFSTR("_",80),1,1,0)
+ Q
+ ;
+NOW() ; -- returns readable now
+ Q $$FMTE^XLFDT($$NOW^XLFDT,1)
+ ;
+NAME() ; -- returns printable name
+ Q $$VAL^XBDIQ1(9000001,DFN,.01)
+ ;
+HRCN() ; -- returns chart # for this facility
+ Q "#"_$P($G(^AUPNPAT(DFN,41,+DUZ(2),0)),U,2)
+ ;
+PAD(DATA,LENGTH) ; -- SUBRTN to pad length of data
+ Q $E(DATA_$$REPEAT^XLFSTR(" ",LENGTH),1,LENGTH)
+ ;
+SP(NUM) ; -- SUBRTN to pad spaces
+ Q $$PAD(" ",NUM)
+ ;
+PIMS ;
+ Q:'$G(DFN)
+ D EN1^SDAM
+ Q
+CHOICE ;;
+ ;; 1. MAKE APPOINTMENT
+ ;; 2. CANCEL APPOINTMENT
+ ;; 3. CHECK-IN/WALK-IN/CHART REQUEST
+ ;; 4. DISPLAY APPOINTMENT

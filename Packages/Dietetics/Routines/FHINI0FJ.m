@@ -1,0 +1,114 @@
+FHINI0FJ	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9546,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9547,0)
+	;;=SAUCE,TOMATO,CND,HUNT ITALIAN^BC-02820^4-oz.^113
+	;;^UTILITY(U,$J,112,9547,1)
+	;;=1.77^1.77^8.85^53.097^^^^30.973^.708^^^389.381^407.08^^^^^^17.699^.071
+	;;^UTILITY(U,$J,112,9547,2)
+	;;=.053^2.301^^^^^^^0^.442^^.619^110.619^^^^1.77
+	;;^UTILITY(U,$J,112,9547,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9548,0)
+	;;=SAUCE,TOMATO,CND,HUNT,NO SALT ADDED^BC-02821^4-oz.^113
+	;;^UTILITY(U,$J,112,9548,1)
+	;;=.885^0^7.08^30.973^^^^12.389^.619^^^309.735^17.699^^^^^^23.894^.053
+	;;^UTILITY(U,$J,112,9548,2)
+	;;=.027^1.062^^^^^^^0^^^^110.619^^^^1.77
+	;;^UTILITY(U,$J,112,9548,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9549,0)
+	;;=SAUCE,TOMATO,CND,HUNT SPECIAL^BC-02822^4-oz.^113
+	;;^UTILITY(U,$J,112,9549,1)
+	;;=.885^0^7.08^30.973^^^^10.619^.531^^^247.788^247.788^^^^^^13.274^.053
+	;;^UTILITY(U,$J,112,9549,2)
+	;;=.027^1.062^^^^^^^0^^^^88.496^^^^1.77
+	;;^UTILITY(U,$J,112,9549,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9550,0)
+	;;=SAUCE,TOMATO,CND,HUNT W/BITS^BC-02823^4-oz.^113
+	;;^UTILITY(U,$J,112,9550,1)
+	;;=.885^0^6.195^26.549^^^^7.965^.354^^^238.938^548.673^^^^^^15.929^.053
+	;;^UTILITY(U,$J,112,9550,2)
+	;;=.027^1.062^^^^^^^0^^^^110.619^^^^1.77
+	;;^UTILITY(U,$J,112,9550,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9551,0)
+	;;=SAUCE,TOMATO,CND,HUNT W/GARLIC^BC-02824^4-oz.^113
+	;;^UTILITY(U,$J,112,9551,1)
+	;;=1.77^1.77^8.85^61.947^^^^29.204^2.478^^^548.673^424.779^^^^^^21.239^.08
+	;;^UTILITY(U,$J,112,9551,2)
+	;;=.062^1.77^^^^^^^0^^^^154.867^^^^1.77
+	;;^UTILITY(U,$J,112,9551,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9552,0)
+	;;=SAUCE,TOMATO,CND,HUNT W/MUSHROOMS^BC-02825^4-oz.^113
+	;;^UTILITY(U,$J,112,9552,1)
+	;;=.885^0^5.31^22.124^^^^18.584^.531^^^353.982^628.319^^^^^^13.274^.053
+	;;^UTILITY(U,$J,112,9552,2)
+	;;=.027^.708^^^^^^^0^^^^88.496^^^^1.77
+	;;^UTILITY(U,$J,112,9552,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9553,0)
+	;;=SAUCE,TOMATO,CND,HUNT W/ONIONS^BC-02826^4-oz.^113
+	;;^UTILITY(U,$J,112,9553,1)
+	;;=.885^0^7.965^35.398^^^^22.124^1.77^^^292.035^575.221^^^^^^15.929^.053
+	;;^UTILITY(U,$J,112,9553,2)
+	;;=.027^1.062^^^^^^^0^^^^88.496^^^^1.77
+	;;^UTILITY(U,$J,112,9553,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9554,0)
+	;;=SAUCE,TOMATO,CND,PREGO,W/MUSHROOMS AL FRESCO^BC-02827^4-oz.^113
+	;;^UTILITY(U,$J,112,9554,1)
+	;;=1.416^4.336^9.912^84.071^^^^22.124^.442^^^387.611^482.301^^^^^709.735^15.929^.053
+	;;^UTILITY(U,$J,112,9554,2)
+	;;=.053^.973
+	;;^UTILITY(U,$J,112,9554,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9555,0)
+	;;=SAUCE,TOMATO,CND,PRAGO,W/RED PEPPERS AL FRESCO^BC-02828^4-oz.^113
+	;;^UTILITY(U,$J,112,9555,1)
+	;;=1.327^4.425^9.027^81.416^^^^19.469^.708^^^374.336^469.912^^^^^856.637^18.584^.062
+	;;^UTILITY(U,$J,112,9555,2)
+	;;=.053^.973
+	;;^UTILITY(U,$J,112,9555,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9556,0)
+	;;=SAUCE,VELOUTE,STOUFFERS^BC-02829^2-oz.^57
+	;;^UTILITY(U,$J,112,9556,1)
+	;;=2.807^15.965^5.263^175.439^74.035^^^87.719^.123^^^119.298^459.649^^^^^50.877^0^.035
+	;;^UTILITY(U,$J,112,9556,2)
+	;;=.158^^^^^^^^40.351
+	;;^UTILITY(U,$J,112,9556,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9557,0)
+	;;=SAUCE,WHITE CREAM (BECHAMEL),CND,CAMPBELL'S^BC-02830^2-oz.^57
+	;;^UTILITY(U,$J,112,9557,1)
+	;;=1.228^7.895^6.667^103.509^^^^24.561^.351^^^56.14^464.912^^^^^0^0^.018
+	;;^UTILITY(U,$J,112,9557,2)
+	;;=.035^.175
+	;;^UTILITY(U,$J,112,9557,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9558,0)
+	;;=GRAVIES,AU JUS,CND,FRANCO-AMERICAN^BC-02831^2-oz.^57
+	;;^UTILITY(U,$J,112,9558,1)
+	;;=1.053^.175^2.632^15.789^^^^5.263^.351^^^68.421^554.386^^^^^0^0^0
+	;;^UTILITY(U,$J,112,9558,2)
+	;;=.018^1.053
+	;;^UTILITY(U,$J,112,9558,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9559,0)
+	;;=GRAVIES,BEEF,CND,FRANCO-AMERICAN^BC-02832^2-oz.^57
+	;;^UTILITY(U,$J,112,9559,1)
+	;;=1.93^1.754^4.912^43.86^^^^7.018^.351^^^57.895^517.544^^^^^0^0^.035
+	;;^UTILITY(U,$J,112,9559,2)
+	;;=.035^.877
+	;;^UTILITY(U,$J,112,9559,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9560,0)
+	;;=GRAVIES,BROWN,CND,CAMPBELL'S^BC-02833^2-oz.^57
+	;;^UTILITY(U,$J,112,9560,1)
+	;;=2.105^5.614^5.789^82.456^^^^5.263^.351^^^45.614^529.825^^^^^0^0^0

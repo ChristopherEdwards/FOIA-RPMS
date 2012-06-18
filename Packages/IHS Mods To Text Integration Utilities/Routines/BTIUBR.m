@@ -1,0 +1,33 @@
+BTIUBR ; IHS/ITSC/LJF - Browse Action Subroutines ;
+ ;;1.0;TEXT INTEGRATION UTILITIES;;NOV 04, 2004
+ ; Called by ^TIUBR - IHS mods to browse display
+ ;
+LT1 ;EP; -- set unsigned data into display
+ NEW X S X=$$GET1^DIQ(8925,+TIUDA,.05)
+ I (X="UNSIGNED")!(X="UNCOSIGNED") D
+ . S TIUL=TIUL+1
+ . S @VALMAR@(TIUL,0)=$$UNSIG^BTIURPT(+TIUDA,X)
+ Q
+ ;
+ ;
+LT2 ;EP; -- sets cosigner data into display
+ S TIUY=$$SETSTR^VALM1("COSIGNER REQ: "_TIUREC(8925,+TIUDA,1506),$G(TIUY),1,32)
+ S TIUY=$$SETSTR^VALM1("EXP COSIGNER: "_TIUREC(8925,+TIUDA,1208),$G(TIUY),36,40)
+ S TIUL=TIUL+1,TIUY=""
+ S @VALMAR@(TIUL,0)=TIUY
+ Q
+ ;
+ ;
+LT3 ;EP; -- sets visit data into display
+ S TIUL=+$G(TIUL)+1,@VALMAR@(TIUL,0)=$$VLINE^BTIUPCC(+TIUDA)
+ S TIUL=+$G(TIUL)+1,@VALMAR@(TIUL,0)=$$REPEAT^XLFSTR("-",78)
+ Q
+ ;
+ ;
+ ;
+BLANKS(LINE) ;EP; -- returns line with blanks highlighted ;IHS added
+ NEW ARRAY,BLANK
+ I '$D(TIUPRM1) D SETPARM^TIULE
+ S BLANK=$P(TIUPRM1,U,6) I BLANK="" Q LINE
+ S ARRAY(BLANK)=IORVON_BLANK_IORVOFF
+ Q $$REPLACE^XLFSTR(LINE,.ARRAY)

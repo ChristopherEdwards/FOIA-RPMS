@@ -1,0 +1,491 @@
+BYIMIMM2 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**2**;MAY 01, 2011
+ ;;CONTINUATION OF BYIMIMM
+ ;
+ ;;PATCH 2
+ ;;
+ ;;P2       - ENTRY POINT FOR PATCH 2 POST-INIT PROCESSING
+ ;;NEWMSG   - CHANGE GLOBAL TO DISTINGUISH
+ ;;N1       - ENSURE THE ESCAPE FROM NO NAME LIST WORKS
+ ;
+ ;-----
+MATCH ;EP;COUNT NUMBER OF MATCHES
+ N A,B,C,DOB,K
+ S K=0
+ S DOB=0
+ F  S DOB=$O(^BYIMXTMP("BYIM",DOB)) Q:'DOB  D
+ .S A=""
+ .F  S A=$O(^BYIMXTMP("BYIM",DOB,A)) Q:A=""  D
+ ..S B=0
+ ..F  S B=$O(^BYIMXTMP("BYIM",DOB,A,B)) Q:'B  D
+ ...S C=0
+ ...F  S C=$O(^BYIMXTMP("BYIM",DOB,A,B,C)) Q:'C  D
+ ....S X=0
+ ....F  S X=$O(^BYIMXTMP("BYIM",DOB,A,B,C,X)) Q:'X  D
+ .....S K=K+1
+ U 0
+ W !!,"Import information:"
+ W !,"-------------------"
+ W !,"Number of patients in import file.....: ",MSGCNT
+ W !,"Number of immunizations in import file: ",RXACNT
+ W !,"Number of immunizations that can be added to RPMS..: ",K
+ W !,"Number of immunizations that can't be added to RPMS: ",RXACNT-K
+ W !,"(No Patient match or immunization already in RPMS)",!
+ D PAUSE^BYIMIMM
+ Q:'$O(^BYIMPARA(DUZ(2),4,0))
+ ;-----
+NN ;EP;TO SELECT DEVICE FOR THE NO MATCH REPORT
+ N NMXREF,NMDATE,NMDOB,NMX,NMY,NMZ,NMXX,NMYY,NMZZ
+ W @IOF
+ W !?10,"Select sequence for NO MATCH report"
+ K DIR
+ S DIR(0)="SO^1:Patient Name;2:Date of Birth;3:Import File Date"
+ S DIR("A")="Report sequence"
+ D ^DIR
+ K DIR
+ Q:'Y
+ I Y=1 D
+ .S NMXREF="NMNAME"
+ .S NMXX="------------------------------"
+ .S NMYY="--------"
+ .S NMZZ="--------"
+ .S NMX="PATIENT NAME"
+ .S NMY="DOB"
+ .S NMZ="IMP DATE"
+ I Y=2 D
+ .S NMXREF="NMDOB"
+ .S NMXX="--------"
+ .S NMYY="------------------------------"
+ .S NMZZ="--------"
+ .S NMX="DOB"
+ .S NMY="PATIENT NAME"
+ .S NMZ="IMP DATE"
+ I Y=3 D
+ .S NMXREF="NMDATE"
+ .S NMXX="--------"
+ .S NMYY="------------------------------"
+ .S NMZZ="--------"
+ .S NMX="IMP DATE"
+ .S NMY="PATIENT NAME"
+ .S NMZ="DOB"
+ S BYIMRTN="NONAME^BYIMIMM2"
+ D ZIS^BYIMXIS
+ Q
+ ;-----
+NONAME ;EP;TO DISPLAY NO MATCH REPORT
+ N XX,YY,J,JJ,XXX,BYIMX
+ D NN1
+ S J=0
+ S XXX=""
+ S DFN=""
+ F  S DFN=$O(^BYIMPARA(NMXREF,DFN)) Q:DFN=""!(XXX=U)  D
+ .S YY=0
+ .F  S YY=$O(^BYIMPARA(NMXREF,DFN,DUZ(2),YY)) Q:'YY!(XXX=U)  D
+ ..S Y=^BYIMPARA(DUZ(2),4,YY,0)
+ ..D N1
+ Q:'JJ
+ Q:$D(ZTQUEUED)
+ Q:IO'=$P(IO("HOME"),U,2)
+ S DIR(0)="LO^1:"_JJ
+ S DIR("A")="Select Names to Remove from the No Match List"
+ W !
+ D ^DIR
+ K DIR
+ Q:'Y
+ N XX,BYIMY,JJ
+ M BYIMY=Y
+ S XX=""
+ F  S XX=$O(BYIMY(XX)) Q:XX=""  D
+ .S YY=BYIMY(XX)
+ .F JJ=1:1 S ZZ=$P(YY,",",JJ) Q:ZZ=""  D
+ ..S DA(1)=DUZ(2)
+ ..S DA=$G(BYIMX(ZZ))
+ ..Q:'DA
+ ..S DIK="^BYIMPARA("_DUZ(2)_",4,"
+ ..D ^DIK
+ W @IOF
+ Q
+ ;-----
+N1 S NAME=$P(Y,U)
+ S DOB=$P(Y,U,2)
+ S:$L(DOB)=7 DOB=DOB+17000000
+ S FILE=$P(Y,U,3)
+ S SEX=$P(Y,U,4)
+ S MM=$P(Y,U,5)
+ S MES=$P(Y,U,6)
+ I NMXREF="NMNAME" S X=DFN,Y=DOB,Z=FILE
+ I NMXREF="NMDATE" S X=DFN,Y=NAME,Z=DOB
+ I NMXREF="NMDOB" S X=DFN,Y=NAME,Z=FILE
+ S J=J+1
+ S BYIMX(J)=YY
+ W !,J,?4,X
+ I NMXREF="NMNAME" W ?35
+ I NMXREF="NMDATE"!(NMXREF="NMDOB") W ?13
+ W Y,?44,Z,?53,SEX
+ N XPAT
+ S XPAT=$O(^DPT("B",X,0))
+ I 'XPAT!(MM]"") W " (",$S(MM]"":MM,1:"NAME")," MISMATCH)"
+ S ^BYIMXTMP("BYIM","NO MATCH NAME",J)=DUZ(2)_U_YY
+ ;PATCH 2
+ I '$D(ZTQUEUED),IO=$P(IO("HOME"),U,2),J#20=0 W ! D PAUSE^BYIMIMM S:X["^" BYIMQUIT="",XXX=U
+ Q
+ ;-----
+NN1 ;NO NAME HEADER
+ S JJ=0
+ S X=0
+ F  S X=$O(^BYIMPARA(DUZ(2),4,X)) Q:'X  S JJ=JJ+1
+ W !!,"Patients for whom there is no matching patient in RPMS: (TOTAL: ",JJ,")"
+ W !!,"#",?4,NMX
+ I NMXREF="NMNAME" W ?35
+ I NMXREF="NMDATE"!(NMXREF="NMDOB") W ?13
+ W NMY
+ W ?44,NMZ,?53,"SEX"
+ W !,"---",?4,NMXX
+ I NMXREF="NMNAME" W ?35
+ I NMXREF="NMDATE"!(NMXREF="NMDOB") W ?13
+ W NMYY
+ W ?44,"--------",?53,"---"
+ Q
+ ;-----
+AUTOIMP ;EP;TO AUTOMATICALLY IMPORT IMMUNIZATIONS
+ K BYIMQUIT
+ N AUTOIMP,AUTOADD,DIR,FILE
+ S AUTOIMP=$P($G(^BYIMPARA(DUZ(2),0)),U,4)
+ S AUTOADD=$P($G(^BYIMPARA(DUZ(2),0)),U,5)
+ D PATH^BYIMIMM
+ Q:IPATH=""
+ S DIR=$$LIST^%ZISH(IPATH,"*",.DIR)
+ S FILE=""
+ S XX=0
+ F  S XX=$O(DIR(XX)) Q:'XX  S:DIR(XX)]"" FILE(DIR(XX))=""
+ S XX=""
+ F  S XX=$O(FILE(XX)) Q:XX=""  S:XX["izdata"&(XX[".dat"!(XX[".hl7")) FILE=XX
+ Q:FILE=""
+ N DA
+ S DA=$O(^BYIMPARA("FILE",FILE,DUZ(2),0))
+ Q:$P($G(^BYIMPARA(DUZ(2),2,+DA,0)),U,3)="I"
+ D I1^BYIMIMM1
+ Q
+ ;-----
+FLIP ;EP;FLIP OLD HIPAA FORMAT TO NEW
+ W !!,"Please standby and do not interrupt this process..."
+ N DATE,BYIMDFN,IMM,XX
+ S XX=0
+ F  S XX=$O(^BYIMPARA(XX)) Q:'XX  D F1
+ Q
+ ;-----
+F1 S DATE=0
+ M ^BYIMTEMP(XX,"LAST EXPORT")=^BYIMPARA(XX,"LAST EXPORT")
+ F  S DATE=$O(^BYIMPARA(XX,"LAST EXPORT",DATE)) Q:'DATE  D
+ .S IMM=0
+ .F  S IMM=$O(^BYIMPARA(XX,"LAST EXPORT",DATE,1,IMM)) Q:'IMM  D
+ ..S BYIMDFN=$P($G(^AUPNVIMM(IMM,0)),U,2)
+ ..Q:'BYIMDFN
+ ..Q:$D(^BYIMEXP("AC",BYIMDFN,DATE))
+ ..K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ ..S DIC="^BYIMEXP("
+ ..S DIC(0)="L"
+ ..S DIC("DR")=".02////"_DATE_";.03////"_IMM
+ ..S X=BYIMDFN
+ ..D FILE^DICN
+ ..K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ ..K ^BYIMPARA(XX,"LAST EXPORT",DATE,1,IMM)
+ Q
+ ;-----
+SHOW ;EP;TO SHOW ALL EXPORTS FOR SELECTED PATIENT
+ K BYIMQUIT
+ F  D S1 Q:$D(BYIMQUIT)
+ Q
+ ;-----
+S1 ;SELECT PATIENT AND DATE
+ D SKILL
+ D SPAT
+ Q:'$G(BYIMDFN)
+ D SZIS
+ Q
+ ;-----
+SKILL ;KILL SHOW VARIABLES
+ K BYIMDFN,DIC,DIE,DIR,DA,DR,XX,BYIMDATE
+ Q
+ ;-----
+SPAT ;SELECT SHOW PATIENT
+ S DIC="^DPT("
+ S DIC(0)="AEMQZ"
+ S DIC("A")="Enter Name, HRN or DOB: "
+ S DIC("S")="I $D(^BYIMEXP(""B"",+Y))"
+ W !,@IOF
+ W !!,?10,"Select the patient to review:",!!
+ D ^DIC
+ K DIC,DINUM,DR,DA,DLAYGO
+ I +Y<1 S BYIMQUIT="" Q
+ S BYIMDFN=+Y
+ Q
+ ;-----
+SDATE ;SELECT EXPORT DATE
+ S DIR(0)="DO^:"_DT
+ S DIR("A")="Select EXPORT DATE"
+ D ^DIR
+ K DIR
+ Q:$L(Y)'=7
+ S BYIMDATE=Y
+ Q
+ ;-----
+SZIS ;SELECT DEVICE AND DISPLAY REPORT
+ S BYIMRTN="SDISP^BYIMIMM2"
+ D ZIS^BYIMXIS
+ Q
+ ;-----
+SDISP ;EP;SHOW DISPLAY OF PATIENT'S IMMUNIZATIONS EXPORTED
+ S NAME=$P(^DPT(BYIMDFN,0),U)
+ S DOB=$P(^DPT(BYIMDFN,0),U,3)+17000000
+ S HRN=$P(^AUPNPAT(BYIMDFN,41,DUZ(2),0),U,2)
+ D SHEAD
+ S J=0
+ S XX=0
+ F  S XX=$O(^BYIMEXP("B",BYIMDFN,XX)) Q:'XX!$D(BYIMQUIT)  D
+ .S X=^BYIMEXP(XX,0)
+ .I $G(TYPE)]"" Q:$P(X,U,4)'=TYPE
+ .S DAT=$P(X,U,2)+17000000
+ .S IMM=$P(X,U,3)
+ .S DAT=$E(DAT,5,6)_"/"_$E(DAT,7,8)_"/"_$E(DAT,1,4)
+ .S VIS=$P($G(^AUPNVSIT(+$P($G(^AUPNVIMM(+IMM,0)),U,3),0)),".")+17000000
+ .S IMM=$P($G(^AUTTIMM(+$G(^AUPNVIMM(+IMM,0)),0)),U)
+ .S VIS=$E(VIS,5,6)_"/"_$E(VIS,7,8)_"/"_$E(VIS,1,4)
+ .W !?5,DAT,?18,$E(IMM,1,20),?40,VIS
+ .S J=J+1
+ .I IOST["C-",J#15=0 D READ,SHEAD
+ K BYIMQUIT
+ ;-----
+READ N XXX
+ I '$D(ZTQUEUED) D PAUSE^BYIMIMM S:X["^" BYIMQUIT="" Q
+ Q
+ ;-----
+SHEAD ;EP;HEADER FOR EXPORT LIST DISPLAY
+ W @IOF
+ W !!,"Immunization Export summary for: "
+ W !,NAME,?30,"DOB: ",$E(DOB,5,6),"/",$E(DOB,7,8),"/",$E(DOB,1,4),?47,"HRN: ",HRN
+ W !!?5,"Export Date",?18,"Immunization",?40,"Admin Date"
+ W !?5,"-----------",?18,"--------------------",?40,"----------"
+ Q
+ ;-----
+INSET ;EP;TO PROCESS INCOMING HL7 MESSAGES
+ N MSH
+ S MSH=$E(X,1,3)
+ S:MSH="MSH" MSHX=X
+ Q:MSHX'["|VX"&(MSHX'["^V0")
+ Q:MSH["|"
+ S BYIMX=X
+ I MSH="MSH" D
+ .S MSGCNT=MSGCNT+1
+ .S J=J+1
+ .D NEWMSG
+ .S ^INTHU(INHDA,3,1,0)=BYIMX
+ .I '$D(ZTQUEUED) U 0 W "."
+ S:MSH="PID" ^INTHU(INHDA,3,2,0)=BYIMX
+ S:MSH="RXA" BYIMJ=BYIMJ+1,^INTHU(INHDA,3,BYIMJ,0)=BYIMX,RXACNT=RXACNT+1
+ Q
+ ;-----
+NEWMSG ;CREATE NEW INTHU ENTRY
+ D NOW^%DTC
+ S X=%
+ K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ S DIC="^INTHU("
+ S DIC(0)="L"
+ S DLAYGO=4001
+ D FILE^DICN
+ K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ S INHDA=+Y
+ S BYIMJ=2
+ ;PATCH 2
+ S ^BYIMTMP($J,"BYIM IMM",INHDA)=""
+ Q
+ ;-----
+LOG(FILE,ACT,DFNCNT,IMMCNT,NODFNCNT,NEWIMCNT,ADDIMCNT,PATH) ;EP;LOG AUTO IMPORT FILES THAT HAVE BEEN PROCESSED
+ ;FILE     = NAME OF FILE IMPORTED OR EXPORTED
+ ;ACT      = ACTION - 'I'MPORT OR 'E'XPORT
+ ;DFNCNT   = NUMBER OF PATIENTS
+ ;IMMCNT   = NUMBER OF IMMUNIZATIONS
+ ;NODFNCNT = NUMBER OF PATIENTS FOR WHOM THERE IS NO PATIENT MATCH
+ ;NEWIMCNT = NUMBER OF NEW IMMUNIZATIONS
+ ;ADDIMCNT = NUMBER OF NEW IMMUNIZATIONS ADDED TO V IMMUNIZATIONS
+ ;PATH     = DRIVE/DIRECTORY FILE SENT TO
+ Q:$G(FILE)=""!($G(ACT)="")
+ S X=FILE
+ K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ S DA(1)=DUZ(2)
+ S DIC="^BYIMPARA("_DA(1)_",2,"
+ S DIC(0)="L"
+ S DIC("DR")=".02////"_DT_";.03////"_ACT_";.04////"_$G(DFNCNT)_";.05////"_$G(IMMCNT)
+ S:$G(NODFNCNT) DIC("DR")=DIC("DR")_";.06////"_NODFNCNT
+ S:$G(NEWIMCNT) DIC("DR")=DIC("DR")_";.07////"_NEWIMCNT
+ S:$G(ADDIMCNT) DIC("DR")=DIC("DR")_";.08////"_ADDIMCNT
+ S:$G(PATH)]"" DIC("DR")=DIC("DR")_";.09////"_PATH
+ D FILE^DICN
+ K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ N BYIMACT
+ S BYIMACT=$S(ACT="I":"imported from",1:"exported to")
+ ;-----
+BULLETIN ;EP;CREATE EXPORT/IMPORT BULLETIN
+ N %X,%Y,X,XMB,XMDT,XMDUZ,Y1
+ S XMB="BYIM EXPORT/IMPORT MESSAGE"
+ S XMB(1)="The file '"_FILE_"' was "_BYIMACT_" the State Immunization Registry on "_$$HTE^XLFDT($H)
+ S XMDUZ=.5
+ D ^XMB
+ Q
+ ;-----
+KILL ;EP;KILL TEMP GLOBAL ENTRY IF THERE IS EXACT MATCH OR MATCH FOR
+ ;AN EQUIVALENT IMMUNIZATION OR IMMUNIZATION MATCH WITHIN 5 DAYS
+ N KILL,K,ZB,ZA,X,ZZ,DO
+ S KILL=$P(^AUTTIMM(+Y,0),U,12)
+ S:+Y=103 KILL=$P(^AUTTIMM(133,0),U,12)
+ S:+Y=106 KILL=$P(^AUTTIMM(107,0),U,12)
+ S:+Y=148 KILL=KILL_",140,141"
+ S:+Y=242 KILL=KILL_",15,141"
+ S:+Y=243 KILL=KILL_",15,140"
+ S Y=+$P($G(^AUTTIMM(+Y,0)),U,3)
+ S KILL=Y_","_KILL
+ S DO="T"_Y
+ S X=$T(@DO)
+ D:X]"" @DO
+ D K1
+ Q
+ ;-----
+K1 ;KILL TEMP GLOBAL IF EQUIVALENT IMM ON FILE
+ ;I "^20^22^28^50^102^106^"[(U_Y_U) S KILL="1,"_KILL
+ ;I "^10^"[(U_Y_U) S KILL="2,"_KILL
+ ;I "^42^43^44^45^51^104^"[(U_Y_U) S KILL="8,"_KILL
+ I "^20^22^28^50^102^106^"[(U_Y_U) S KILL="1,20,22,28,50,102,106,"_KILL
+ I "^10^"[(U_Y_U) S KILL="2,10,"_KILL
+ I "^42^43^44^45^51^104^"[(U_Y_U) S KILL="8,42,43,44,45,51,104,"_KILL
+ F K=1:1 S Y=$P(KILL,",",K) Q:Y=""  D:$D(^BYIMXTMP("BYIM",DOB,NAME,DFN,Y))
+ .S ^BYIMXTMP("BYIM",DOB,NAME,DFN,Y,Z)=""
+ .K ^BYIMXTMP("BYIM",DOB,NAME,DFN,Y,Z)
+ .Q:'$D(^BYIMXTMP("BYIM",DOB,NAME,DFN,Y))
+ .S (X1,ZZ)=$O(^BYIMXTMP("BYIM",DOB,NAME,DFN,Y,Z),-1)
+ .D:X1
+ ..S X2=Z
+ ..D ^%DTC
+ ..S:X<0 X=X*-1
+ ..I X<6 K ^BYIMXTMP("BYIM",DOB,NAME,DFN,Y,ZZ),^(Z)
+ .S (X1,ZZ)=$O(^BYIMXTMP("BYIM",DOB,NAME,DFN,Y,Z))
+ .Q:'X1
+ .S X2=Z
+ .D ^%DTC
+ .S:X<0 X=X*-1
+ .I X<6 K ^BYIMXTMP("BYIM",DOB,NAME,DFN,Y,ZZ),^(Z)
+ Q
+ ;-----
+T1 D T20
+ Q
+ ;-----
+T2 S KILL=2
+ Q
+ ;-----
+T5 S KILL=$P(KILL,",94")_$P(KILL,",94",2)
+ Q
+ ;-----
+T6 S KILL=$P(KILL,",94")_$P(KILL,",94",2)
+ Q
+ ;-----
+T7 S KILL=$P(KILL,",94")_$P(KILL,",94",2)
+ Q
+ ;-----
+T8 S KILL=$P(KILL,",51")_$P(KILL,",51",2)
+ S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T10 S KILL=10
+ Q
+ ;-----
+T17 S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ Q
+ ;-----
+T20 S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ S KILL=$P(KILL,",50")_$P(KILL,",50",2)
+ Q
+ ;-----
+T21 S KILL=21
+ Q
+ ;-----
+T28 S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ S KILL=$P(KILL,",50")_$P(KILL,",50",2)
+ Q
+ ;-----
+T38 S KILL=$P(KILL,",94")_$P(KILL,",94",2)
+ Q
+ ;-----
+T42 S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T43 S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T44 S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T45 S KILL=$P(KILL,",51")_$P(KILL,",51",2)
+ S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T50 S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ S KILL=$P(KILL,",51")_$P(KILL,",51",2)
+ S KILL=$P(KILL,",120")_$P(KILL,",120",2)
+ Q
+ ;-----
+T52 S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T83 S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T84 S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T85 S KILL=$P(KILL,",104")_$P(KILL,",104",2)
+ Q
+ ;-----
+T104 S KILL=$P(KILL,",51")_$P(KILL,",51",2)
+ S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ Q
+ ;-----
+T106 S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ S KILL=$P(KILL,",50")_$P(KILL,",50",2)
+ Q
+ ;-----
+T107 S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ S KILL=$P(KILL,",50")_$P(KILL,",50",2)
+ Q
+ ;-----
+T110 S KILL=$P(KILL,",22")_$P(KILL,",22",2)
+ S KILL=$P(KILL,",102")_$P(KILL,",102",2)
+ S KILL=$P(KILL,",50")_$P(KILL,",50",2)
+ Q
+ ;-----
+T120 S KILL=$P(KILL,",51")_$P(KILL,",51",2)
+ S KILL=$P(KILL,",102")_$P(KILL,",102",2)
+ S KILL=$P(KILL,",110")_$P(KILL,",110",2)
+ Q
+ ;-----
+T121 S KILL=$P(KILL,",94")_$P(KILL,",94",2)
+ S KILL=$P(KILL,",117")_$P(KILL,",117",2)
+ Q
+ ;-----
+P2 ;EP;FOR PATCH 2 POST INSTALL PROCESSING
+ ;PATCH 2
+ D LOC^BYIMIMM3
+ I $P($G(^DIC(9.4,+$O(^DIC(9.4,"C","BYIM",0)),"VERSION")),U)=2.01 S $P(^("VERSION"),U)="2.0"
+ N TMP
+ S TMP=0
+ F  S TMP=$O(^BYIMTMP(TMP)) Q:'TMP  K ^(TMP,"NUM")
+ S NAME=""
+ F  S NAME=$O(^BYIMPARA("NMNAME",NAME)) Q:NAME=""  D
+ .S DA(1)=0
+ .F  S DA(1)=$O(^BYIMPARA("NMNAME",NAME,DA(1))) Q:'DA(1)  D
+ ..S J=0
+ ..S DA=0
+ ..F  S DA=$O(^BYIMPARA("NMNAME",NAME,DA(1),DA)) Q:'DA  S J=J+1 D:J>1
+ ...S DIK="^BYIMPARA("_DA(1)_",4,"
+ ...D ^DIK
+ Q

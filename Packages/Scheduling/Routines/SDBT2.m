@@ -1,0 +1,3 @@
+SDBT2 ; ;10/29/04
+ S X=DG(DQ),DIC=DIE
+ S ^SC("ALTC",$E(X,1,30),DA)=""

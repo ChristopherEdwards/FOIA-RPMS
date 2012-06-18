@@ -1,0 +1,227 @@
+BGUTCPH ; IHS/OIT/MJL - Service TCP Messages ; [ 04/14/2008  4:48 PM ]
+ ;;1.5;BGU;**2,4**;MAY 26, 2005
+EN(BGUIP,BGUSKT) ; EP-- MAIN entry point (usually jobbed)
+ ;  params:  BGUIP := address of client requiring connection
+ ;          BGUSKT := client socket to call
+ ;
+ ;  Activity time out default value is 3600 seconds and is set by the
+ ;  SERVER TIMEOUT field in the BGU SITE PARAMETER file.
+IP ;
+ Q:BGUIP'?1.3N1"."1.3N1"."1.3N1"."1.3N  S BGUSKT=$G(BGUSKT,8000)
+ ;N BGUTBUF,BGUTLEN,BGUTLEN1,BGUTLEN2,BGUTREF,BGUTRTN,BGUTYPE,X,BGUDATA
+ S XWBCLMAN=$G(XWBCLMAN)
+ S XWBOS=$S(^%ZOSF("OS")["DSM":"DSM",^("OS")["UNIX":"UNIX",^("OS")["OpenM":"OpenM",1:"MSM")
+ N BGUMSM S BGUMSM=$S(XWBOS["MSM":1,1:0)
+ ;IF $$NEWERR^%ZTER S $ETRAP="D ^%ZTER H"
+ ;E  S X="^%ZTER",@^%ZOSF("TRAP")
+ K XRTL IF XWBOS="DSM" S XRTL=1 ;log response time data for DSM
+ S XWBTIME=1
+ ;call client on new port
+ ;IF XWBOS="DSM" O XWBTSKT:(TCPCHAN:ADDRESS=XWBTIP:SHARE)
+ ;IF XWBOS="MSM"!(XWBOS="UNIX") O 56 U 56::"TCP" W /SOCKET(XWBTIP,XWBTSKT)
+ ;IF XWBOS="OpenM" S XWBTDEV="|TCP|"_XWBTSKT O XWBTDEV:(XWBTIP:XWBTSKT:"ST":$C(13,10):512:512) ;RWF
+ ;Use Kernel to open the connection back to the client
+ S XWBTIP=BGUIP,XWBTSKT=BGUSKT
+ IF XWBOS'="OpenM" D CALL^%ZISTCP(XWBTIP,XWBTSKT) Q:POP  S XWBTDEV=IO,IO(0)=IO
+ IF XWBOS="OpenM" S XWBTDEV=$P
+ ;S XWBTDEV="|TCP|"_BGUSKT
+ ;O XWBTDEV:(BGUIP:BGUSKT:"S"::512:512):5 Q:'$T
+ ;setup null device "NULL"
+ ;D OPEN^%ZISUTL("XWBNULL","NULL","0") ;Need to suppress HOME device
+ ;S XWBNULL=IO
+ IF XWBOS="DSM" S XWBNULL="_NLA0:" O XWBNULL S (IO,IO(0))=XWBNULL,IOT="TRM",IOST="P-OTHER",IOST(0)=0
+ ELSE  S IOP="NULL" D ^%ZIS S XWBNULL=IO
+ ;change process name
+ ;D CHPRN("ip"_$P(XWBTIP,".",3,4)_":"_XWBTSKT)
+ D INIT
+ ;O 56 U 56::"TCP"
+ ;W /SOCKET(BGUIP,BGUSKT) ; -- connect to client
+ ;S $ZTRAP="ETRAP^BGUTCPH" ; -- set error trap
+ ;S X="ETRAP^BGUTCPH",@^%ZOSF("TRAP") ; -- set error trap
+ ;
+RESTART ;IF ERROR OCCURRED CAPTURE ERROR AND COME BACK TO HERE
+ IF $$NEWERR^%ZTER N $ESTACK,$ETRAP S $ETRAP="D ETRAP^BGUTCPH H"
+ E  S X="ETRAP^BGUTCPH",@^%ZOSF("TRAP")
+ S DIQUIET=1,U="^" D DT^DICRW
+ U XWBTDEV D TCP
+ ;Turn off the error for the exit
+ IF $$NEWERR^%ZTER S $ETRAP=""
+ E  S X="",@^%ZOSF("TRAP")
+ I $G(DUZ) D LOGOUT^XUSRB
+ K XWBR,XWBARY
+ C XWBTDEV
+ D USE^%ZISUTL("XWBNULL"),CLOSE^%ZISUTL("XWBNULL")
+ Q
+ ;
+TCP ; -- TCP PROCESSING LOOP
+ I 'BGUMSM N BGUTBUF,BGUTLEN,BGUTLEN1,BGUTLEN2,BGUTREF,BGUTRTN,BGUTYPE,X,BGUDATA,BGUWEB S BGUWEB="" ;,$ZTRAP="ETRAP^BGUTCPH"
+ F  D  Q:BGUTBUF="#BYE#"
+ .I 'BGUMSM U XWBTDEV
+ .; -- read client request
+ .;Get the first 2 length bytes
+ .R *BGUTLEN1:BGUDTIME I '$T S BGUTBUF="#BYE#" Q
+ .R *BGUTLEN2:BGUDTIME I '$T S BGUTBUF="#BYE#" Q
+ .;Calculate the length
+ .S BGUTLEN=BGUTLEN1+(256*BGUTLEN2)
+ .I 'BGUTLEN S BGUTBUF="#BYE#" Q
+ .R BGUTBUF#BGUTLEN:BGUDTIME
+ .I BGUTBUF="#BYE#" D LOGOUT W "#BYE#",$C(4,13,10) Q  ; -- clean disconnect
+ .I '$D(DUZ),$P(BGUTBUF,"^")'="BGU AVLOGON" S BGUTBUF="#BYE#" W "#BYE#",$C(4,13,10) Q  ;-- disconnect if no DUZ or the message is not for a logon
+ .;
+ .; -- if statistics is turned on
+ .; -- if running interactively in debug mode
+ .D MAIN
+ ;I BGUMSM C 56
+ ;E  C BGUIOC
+ ;C 56
+ Q
+ ;
+WEB ;
+ S BGUWEB=1,BGUIP="",BGUERR=""
+ S BGUHTMLS="<INPUT TYPE=""HIDDEN"" NAME=""RESULT"" VALUE="" "">"
+ D INIT,MAIN
+ Q
+ ;
+INIT ;
+ S U="^",BGUDTIME=$P($G(^BGUSP(1,0)),U,6) S:'BGUDTIME BGUDTIME=3600
+ S BGUWEB=""
+ Q
+ ;
+MAIN ;
+ ;
+ ; -- set up for routine call
+ K X,BGUDATA  N DIQUIET,BGUGUI
+ S BGUTREF=$O(^XWB(8994,"B",$P(BGUTBUF,"^"),0))
+ I BGUTREF="" D  Q
+ .S BGUDATA(1)=-1,BGUDATA(2)="NO MESSAGE HEADER DEFINED! ("_BGUTBUF_")",BGUTYPE=2
+ .D PGHDR:BGUWEB,RESULT,PGFTR:BGUWEB
+ S BGUITYPE=$P($G(^XWB(8994,BGUTREF,9999999)),"^",1)
+ S BGUTREF=$G(^XWB(8994,BGUTREF,0))
+ S BGUTRTN=$P(BGUTREF,"^",2,3)_"(.BGUDATA"
+ S BGUTYPE=$P(BGUTREF,"^",4)
+ ;S (BGULGM,BGUMSG)=BGUTBUF,BGUTBUF=$P(BGUTBUF,"^",2,999)
+ S BGUMSG=BGUTBUF,BGUTBUF=$P(BGUTBUF,"^",2,999)
+ I BGUTBUF'="" D
+ .I BGUITYPE S BGUTRTN=BGUTRTN_",.BGUTBUF" Q
+ .F I=1:1:$L(BGUTBUF,"^") S X(I)=$P(BGUTBUF,"^",I) S:X(I)[$C(26) X(I)=$TR(X(I),$C(26),"^") S BGUTRTN=BGUTRTN_",X("_I_")"
+ S BGUTBUF=""
+ S BGUTRTN=BGUTRTN_")" S (DIQUIET,BGUGUI)=1 D @BGUTRTN ; -- call routine
+ D:$S($P(BGUMSG,"TRACE=",2)'="":1,$D(BGUTRACE):1,$P($G(^BGUSP(1,0)),"^",2)="Y":1,1:$D(^BGUSP(1,1,"B",$J))) ^BGUTRACE
+ ; -- if statistics is on, logs data
+ ;I $D(DUZ),$P(BGULGM,"^")="BGU AVLOGON",$P($G(^BGUSP(1,0)),"^",3)="Y" S BGUETH=$P(BGULGM,U,4),BGUAPP=$P(BGULGM,U,5),BGUPRM=$P(BGULGM,U,6),BGUSEC=$$LOG^BGUGUTL(DUZ,BGUIP,BGUSKT,BGUETH,BGUAPP,BGUPRM)
+ ;I $P($G(^BGUSP(1,0)),"^",3)="Y" S:'$D(BGUSTAT($P(BGULGM,"^"))) BGUSTAT($P(BGULGM,"^"))=0 S BGUSTAT($P(BGULGM,"^"))=BGUSTAT($P(BGULGM,"^"))+1
+ I $D(DUZ),$P(BGUMSG,"^")="BGU AVLOGON",$P($G(^BGUSP(1,0)),"^",3)="Y" S BGUETH=$P(BGUMSG,U,4),BGUAPP=$P(BGUMSG,U,5),BGUPRM=$P(BGUMSG,U,6),BGUSEC=$$LOG^BGUGUTL(DUZ,BGUIP,BGUSKT,BGUETH,BGUAPP,BGUPRM)
+ I $P($G(^BGUSP(1,0)),"^",3)="Y" S:'$D(BGUSTAT($P(BGUMSG,"^"))) BGUSTAT($P(BGUMSG,"^"))=0 S BGUSTAT($P(BGUMSG,"^"))=BGUSTAT($P(BGUMSG,"^"))+1
+ D PGHDR:BGUWEB,RESULT,PGFTR:BGUWEB
+ K BGUMSG
+ Q
+ ;
+RESULT ;
+ ; -- write returned data (in BGUDATA) to client
+ ; BGUTYPE =
+ ;     1 -- single value
+ ;     2 -- table delimited by RS
+ ;     3 -- word processing
+ ;     4 -- global array type
+ ;     5 -- raw buffer string
+ D
+ .I BGUTYPE=1 D WRITE(BGUDATA) Q
+ .I "23"[BGUTYPE D  Q
+ ..S BGURS=$S(BGUTYPE=2:$C(30),1:$C(13,10)),I="" F  S I=$O(BGUDATA(I)) Q:I=""  D WRITE(BGUDATA(I))
+ .Q:$G(BGUDATA)=""
+ .S BGUI=BGUDATA,BGUCK=$P(BGUI,")",1)_",",BGUCKL=$L(BGUCK) D:$D(@BGUI)#2 WRITE(@BGUI)
+ .F  S BGUI=$Q(@BGUI) Q:$E(BGUI,1,BGUCKL)'=BGUCK  D WRITE(@BGUI)
+ .K @BGUDATA
+ W:BGUIP'="" $C(4,13,10) W:'BGUMSM !
+ Q
+ ;
+WRITE(BGUX) ;
+ I '$G(BGUWEB) W BGUX,BGURS Q
+ S BGUX1=BGUHTMLS,$E(BGUX1,43)=BGUX W BGUX1
+ Q
+ ;
+PGHDR ;
+ W "<HTML><HEAD>"
+ W "<SCRIPT LANGUAGE=""VBScript"">"
+ W "<!--",!
+ W "Sub Window_OnLoad()",!
+ W "document.frmInfo.submit",!
+ W "End Sub",!
+ W "-->"
+ W "</SCRIPT>"
+ W "<TITLE>LOGIN RESULTS</TITLE></HEAD>"
+ W "<BODY" W:BGUBGRND'="" " BACKGROUND=""",BGUBGRND,"""" W ">"
+ W "<FORM NAME=""frmInfo"" METHOD=""POST"" ACTION="""_BGUASP_""">"
+ Q
+ ;
+PGFTR ;
+ W "</FORM></BODY></HTML>"
+ Q
+ ;
+OLDETRAP ; -- on trapped error, send error info to client
+ ;I BGUTLEN U 56 W "-1",$C(30),"SERVER ERROR=",$$EC^%ZOSV_"  LAST REF="_$$LGR^%ZOSV,$C(4,13,10)
+ ;D ERR^ZU
+ ;D ^%ZTER U 56
+ ;G TCP
+ ;
+ ;ETRAP -- on trapped error, send error info to client
+ ;N XWBERC,XWBERR
+ ;S XWBERC=$$EC^%ZOSV
+ ;G:XWBERC["<WRITE>" RESTART
+ ;G:XWBERC["<READ>" RESTART
+ ;S XWBERR="-1"_$C(30)_"M ERROR="_$$EC^%ZOSV_$C(13,10)_"LAST REF="_$$LGR^%ZOSV_$C(4)
+ ;S XWBERR=$C(24)_"M ERROR="_$$EC^%ZOSV_$C(13,10)_"LAST REF="_$$LGR^%ZOSV_$C(4)
+ ;Turn off trapping during trap.
+ ;IF $$NEWERR^%ZTER S $ETRAP=""
+ ;E  S X="",@^%ZOSF("TRAP")
+ ;U XWBTDEV
+ ;D ^%ZTER ;%ZTER clears $ZE and $ZCODE
+ ;U XWBTDEV
+ ;IF XWBOS="MSM"!(XWBOS="OpenM") W XWBERR,! G RESTART
+ ;IF XWBOS="DSM" D
+ . I $D(XWBTLEN),XWBTLEN,XWBERR'["SYSTEM-F" D SNDERR W XWBERR,!
+ ;IF XWBOS'="DSM" D
+ ;. D SNDERR W XWBERR,!
+ ;I (XWBERR["READERR")!(XWBERR["DISCON")!(XWBERR["SYSTEM-F") D:$G(DUZ) LOGOUT^XUSRB HALT
+ ;I '$$NEWERR^%ZTER G RESTART
+ ;S $ETRAP="Q:($ESTACK&'$QUIT)  Q:$ESTACK -9 S $ECODE="""" G RESTART^BGUTCPH",$ECODE=",U99,"
+ ;
+ ;Q
+ETRAP ; -- on trapped error, send error info to client
+ N XWBERC,XWBERR
+ ;Change trapping during trap.
+ S $ETRAP="D ^%ZTER H"
+ ;S $ETRAP="G RESTART^BGUTCPH"
+ S XWBERC=$$EC^%ZOSV,XWBERR=$C(24)_"M  ERROR="_XWBERC_$C(13,10)_"LAST REF="_$$LGR^%ZOSV_$C(4)
+ S XWBOS=$S(^%ZOSF("OS")["DSM":"DSM",^("OS")["UNIX":"UNIX",^("OS")["OpenM":"OpenM",1:"MSM")
+ D ^%ZTER ;%ZTER clears $ZE and $ECODE
+ I (XWBERC["READ")!(XWBERC["WRITE")!(XWBERC["SYSTEM-F") D:$G(DUZ) LOGOUT^XUSRB HALT
+ U XWBTDEV
+ I XWBOS="DSM" D
+ . I $D(XWBTLEN),XWBTLEN D SNDERR,WRITE(XWBERR) W:$X !
+ I XWBOS'="DSM" D
+ . D SNDERR,WRITE(XWBERR) W:$X !
+ ;S $ETRAP="G RESTART^BGUTCPH"
+ S $ETRAP="Q:($ESTACK&'$QUIT)  Q:$ESTACK -9 S $ECODE="""" G RESTART^BGUTCPH"
+ G RESTART
+ Q
+ ;
+SNDERR ;send error information
+ ;XWBSEC is the security packet, XWBERROR is application packet
+ N X
+ S X=$G(XWBSEC)
+ W $C($L(X))_X W:($X+$L(X)+1)>512 !
+ S X=$G(XWBERROR)
+ W $C($L(X))_X W:($X+$L(X)+1)>512 !
+ S XWBERROR="" ;clears parameters
+ Q
+ ;
+LOGOUT ;
+ Q:'$D(BGUSEC)
+ S $P(^BGUSEC(BGUSEC,0),"^",4)=$$NOW^XLFDT K ^BGUSEC("CUR",DUZ,BGUSEC)
+ Q:$P($G(^BGUSP(1,0)),"^",3)'="Y"
+ Q:'$D(^BGUSEC(BGUSEC,0))
+ S:'$D(^BGUSEC(BGUSEC,20,0)) ^(0)="^90062.11A^0^0"
+ S X="" F I=1:1 S X=$O(BGUSTAT(X)) Q:X=""  S Y=X_U_BGUSTAT(X),^BGUSEC(BGUSEC,20,I,0)=$E(Y,1,255)
+ S $P(^BGUSEC(BGUSEC,20,0),"^",3,4)=I_"^"_I
+ Q

@@ -1,0 +1,128 @@
+IBDEI00X	; ; 18-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	Q:'DIFQR(358.5)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,358.5,23,2,1,0)
+	;;=(__)^^^0^10^10^5^45^1
+	;;^UTILITY(U,$J,358.5,23,2,2,0)
+	;;=% - SERVICE CONNECTED^^I^^^10^51^24^5
+	;;^UTILITY(U,$J,358.5,24,0)
+	;;=INSURED?^6^12
+	;;^UTILITY(U,$J,358.5,24,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,24,2,1,0)
+	;;=Health Insurance:^^^3^12^12^21^7^1
+	;;^UTILITY(U,$J,358.5,25,0)
+	;;=INSURANCE 1^6^13^0^1
+	;;^UTILITY(U,$J,358.5,25,2,0)
+	;;=^357.52I^4^4
+	;;^UTILITY(U,$J,358.5,25,2,1,0)
+	;;=Insurance^^U^3^13^14^3^30^1
+	;;^UTILITY(U,$J,358.5,25,2,2,0)
+	;;=Policy #^^U^35^13^14^35^20^3
+	;;^UTILITY(U,$J,358.5,25,2,3,0)
+	;;=Group #^^U^58^13^14^58^17^4
+	;;^UTILITY(U,$J,358.5,25,2,4,0)
+	;;=Holder^^U^77^13^14^77^9^7
+	;;^UTILITY(U,$J,358.5,26,0)
+	;;=INSURANCE 2^6^13^0^2
+	;;^UTILITY(U,$J,358.5,26,2,0)
+	;;=^357.52I^4^4
+	;;^UTILITY(U,$J,358.5,26,2,1,0)
+	;;=COMPANY^^I^^^15^3^30^1
+	;;^UTILITY(U,$J,358.5,26,2,2,0)
+	;;=POLICY #^^I^^^15^35^20^3
+	;;^UTILITY(U,$J,358.5,26,2,3,0)
+	;;=GROUP #^^I^^^15^58^17^4
+	;;^UTILITY(U,$J,358.5,26,2,4,0)
+	;;=HOLDER^^I^^^15^77^9^7
+	;;^UTILITY(U,$J,358.5,27,0)
+	;;=INSURANCE 3^6^13^1^3
+	;;^UTILITY(U,$J,358.5,27,2,0)
+	;;=^357.52I^4^4
+	;;^UTILITY(U,$J,358.5,27,2,1,0)
+	;;=COMPANY^^I^^^16^3^30^1
+	;;^UTILITY(U,$J,358.5,27,2,2,0)
+	;;=POLICY #^^I^^^16^35^20^3
+	;;^UTILITY(U,$J,358.5,27,2,3,0)
+	;;=GROUP #^^I^^^16^58^17^4
+	;;^UTILITY(U,$J,358.5,27,2,4,0)
+	;;=HOLDER^^I^^^16^77^9^7
+	;;^UTILITY(U,$J,358.5,28,0)
+	;;=FACILITY^6^14
+	;;^UTILITY(U,$J,358.5,28,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,28,2,1,0)
+	;;=FACILITY:^^^90^0^0^100^30^1
+	;;^UTILITY(U,$J,358.5,29,0)
+	;;=ADDRESS LINE 3^6^9^1^3
+	;;^UTILITY(U,$J,358.5,29,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,29,2,1,0)
+	;;=LINE 3^^I^^^2^39^45^1
+	;;^UTILITY(U,$J,358.5,30,0)
+	;;=PROCEDURE NOTE^7^2^^^Procedure Note:^^^^0^0^4^2^132
+	;;^UTILITY(U,$J,358.5,31,0)
+	;;=Preop Dx:^7^2^^^Preop Dx:^^^^0^4^2^2^132
+	;;^UTILITY(U,$J,358.5,32,0)
+	;;=POSTOP DX^7^2^^^Postop Dx:^^^^0^6^2^2^132
+	;;^UTILITY(U,$J,358.5,33,0)
+	;;=PROCEDURE^7^2^^^Procedure:^^^^0^8^2^2^132
+	;;^UTILITY(U,$J,358.5,34,0)
+	;;=ANESTHESIA^7^2^^^Anesthesia:^^^^0^10^2^2^132
+	;;^UTILITY(U,$J,358.5,35,0)
+	;;=SURGEON^7^2^^^Surgeon:^^^^0^12^2^2^132
+	;;^UTILITY(U,$J,358.5,36,0)
+	;;=ATTENDING^7^2^^^Attending:^^^^0^14^2^2^132
+	;;^UTILITY(U,$J,358.5,37,0)
+	;;=FINDINGS^7^2^^^Findings:^^^^0^16^2^2^132
+	;;^UTILITY(U,$J,358.5,38,0)
+	;;=PLAN^7^2^^^Plan:^^^^0^18^8^2^132
+	;;^UTILITY(U,$J,358.5,39,0)
+	;;=APPT DATE^8^4
+	;;^UTILITY(U,$J,358.5,39,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,39,2,1,0)
+	;;=Appt Date:^^^60^0^0^71^12^2
+	;;^UTILITY(U,$J,358.5,40,0)
+	;;=PAGE NUMBER^8^3
+	;;^UTILITY(U,$J,358.5,40,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,40,2,1,0)
+	;;=PAGE: 1^^^110^0
+	;;^UTILITY(U,$J,358.5,41,0)
+	;;=CLINIC^8^5
+	;;^UTILITY(U,$J,358.5,41,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,41,2,1,0)
+	;;=Clinic:^^^0^0^0^8^30^1
+	;;^UTILITY(U,$J,358.5,42,0)
+	;;=SIGNATURE^9^3
+	;;^UTILITY(U,$J,358.5,42,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,42,2,1,0)
+	;;=Signature of Provider^^^60^4^3^60^40^1
+	;;^UTILITY(U,$J,358.5,43,0)
+	;;=CLINIC^9^5
+	;;^UTILITY(U,$J,358.5,43,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,43,2,1,0)
+	;;=Clinic:^^^0^4^4^8^30^1
+	;;^UTILITY(U,$J,358.5,44,0)
+	;;=PATEINT NAME^11^6
+	;;^UTILITY(U,$J,358.5,44,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,44,2,1,0)
+	;;=NAME^^I^^^0^0^30^1
+	;;^UTILITY(U,$J,358.5,45,0)
+	;;=PID^11^7
+	;;^UTILITY(U,$J,358.5,45,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,45,2,1,0)
+	;;=PID^^I^^^1^0^15^1
+	;;^UTILITY(U,$J,358.5,46,0)
+	;;=ELIGIBILITY^11^8
+	;;^UTILITY(U,$J,358.5,46,2,0)
+	;;=^357.52I^1^1
+	;;^UTILITY(U,$J,358.5,46,2,1,0)
+	;;=Elig:^^^0^2^2^6^30^1

@@ -1,0 +1,36 @@
+APCPAPC ; IHS/TUCSON/LAB - create APC,INPT and Contract transactions AUGUST 14, 1992 ; [ 04/15/02 8:52 AM ]
+ ;;2.0;IHS PCC DATA EXTRACTION SYSTEM;**6**;APR 03, 1998
+ ;
+START ;process APC transactios
+ ;
+APC ;
+ Q:"CV"[APCPV("TYPE")
+ D CHKCL
+ Q:$D(APCPV("SKIP"))
+ D GETACC
+ D ^APCPDRPP
+ I $D(APCPE) D COUNT^APCPDR2 Q
+ D ^APCPAA
+ Q
+ ;
+ ;
+CHKCL ;
+ Q  ;don't do this
+ Q:APCPV("CLINIC CODE")'=56
+ I '$D(^AUPNVMED("AD",APCP("V DFN"))) S APCPV("SKIP")=1 Q
+ S APCPV("CLINIC CODE")=39
+ Q
+ ;
+GETACC ;EP - Get accept command if there is one and save variable
+ ;$O THRU V POV'S FOR ACCEPT
+ S APCPT(2)=0 F  S APCPT(2)=$O(^AUPNVPOV("AD",APCP("V DFN"),APCPT(2))) Q:APCPT(2)=""  I $P($G(^AUPNVPOV(APCPT(2),0)),U,14)]"" S APCPV("ACC")="ACC"
+ Q:$D(APCPV("ACC"))
+ ;$O THRU V PROCEDURES FOR ACCEPT
+ S APCPT(2)=0 F  S APCPT(2)=$O(^AUPNVPRC("AD",APCP("V DFN"),APCPT(2))) Q:APCPT(2)=""  I $P(^AUPNVPRC(APCPT(2),0),U,9)]"" S APCPV("ACC")="ACC"
+ Q:$D(APCPV("ACC"))
+ S APCPT(1)=$O(^AUPNVINP("AD",APCP("V DFN"),""))
+ Q:APCPT(1)=""
+ S:$P(^AUPNVINP(APCPT(1),0),U,14)]"" APCPV("ACC")="ACC"
+ Q
+ ;
+ ;

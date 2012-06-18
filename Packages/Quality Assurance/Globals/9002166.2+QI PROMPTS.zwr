@@ -1,0 +1,14 @@
+QI PROMPTS
+ZWR
+^AQAQP(0)="QI PROMPTS^9002166.2^5^5"
+^AQAQP(1,0)="Choose ITEM # (0 for ALL) or press RETURN to continue"
+^AQAQP(2,0)="Choose ONE from list OR hit <return> to continue"
+^AQAQP(3,0)="Choose Application Date from list OR <return> to continue"
+^AQAQP(4,0)="Choose Health Status Date from list OR <return> to continue"
+^AQAQP(5,0)="Do you wish to edit"
+^AQAQP("B","Choose Application Date from l",3)=""
+^AQAQP("B","Choose Health Status Date from",4)=""
+^AQAQP("B","Choose ITEM # (0 for ALL) or p",1)=""
+^AQAQP("B","Choose Item # to Edit (Enter 0",1)=""
+^AQAQP("B","Choose ONE from list OR hit <r",2)=""
+^AQAQP("B","Do you wish to edit",5)=""

@@ -1,0 +1,21 @@
+ABMDTCOV ; IHS/ASDST/DMJ - Table Maintenance of COVERAGE TYPES ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ S U="^"
+INS W !! K DIC S DIC="^AUTNINS(",DIC("S")="I $P($G(^(1)),U,7)'=0",DIC("A")="Select INSURER: ",DIC(0)="QEAM" D ^DIC K DIC
+ G XIT:X=""!$D(DUOUT)!$D(DTOUT)
+ I +Y<1 G INS
+ S ABM("INS")=+Y
+ ;
+EDIT W !! K DIC S DIC="^AUTTPIC(",DIC("A")="Select COVERAGE TYPE to Edit: ",DIC(0)="QEALM",DIC("S")="I $P(^(0),U,2)=ABM(""INS"")",DIC("DR")=".02////"_ABM("INS") D ^DIC K DIC
+ G XIT:X=""!$D(DUOUT)!$D(DTOUT)
+ I +Y<1 G EDIT
+ S DA=+Y
+ S DIE="^AUTTPIC("
+ I $P(^AUTNINS(ABM("INS"),0),U)="MEDICARE" S DR="W !;.04;11;13;15"
+ E  S DR="W !;.01;.03;.04;.05;11;13;15"
+ D ^ABMDDIE K DR G XIT:$D(ABM("DIE-FAIL"))
+ G INS
+ ;
+XIT K ABM,DIR,DIC,DIE
+ Q

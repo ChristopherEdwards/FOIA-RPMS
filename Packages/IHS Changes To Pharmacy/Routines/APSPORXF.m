@@ -1,0 +1,85 @@
+APSPORXF ;IHS/DSD/ENM - FUNCTION CALLS FROM PCC ;09-Oct-2008 11:26;SM
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1007**;Sep 23, 2004
+ ;
+ ;Modified - IHS/MSC/PLS - 05/19/08 - Line MEDS+13
+ ;function calls from pcc
+MEDS(DFN,APSPA,APSPBD,APSPED,APSPSC,APSPVT) ;EP - GET MEDS IN DATE RANGE FOR A PATIENT, SCREEN OPTIONALLY ON SERV CAT OR TYPE
+ NEW APSPX,APSPDFE,APSPDAT,APSPV,APSPVR,APSPI,APSPC,APSPR,APSPER
+ S APSPER=0
+ I 'DFN S APSPER=1 Q APSPER ;no patient
+ I '$D(^DPT(DFN)) S APSPER=1 Q APSPER ;patient not valid
+ I $G(APSPA)="" S APSPER=2 Q APSPER ;no array defined
+ I $G(APSPSC)="" S APSPSC=""
+ I $G(APSPVT)="" S APSPVT=""
+ ;set up data fetcher call
+ S APSPX=DFN_"^ALL MEDS" D
+ .I APSPED="" S APSPED=DT
+ .I APSPBD]""!(APSPED]"") S APSPX=APSPX_";DURING "_APSPBD_"-"_APSPED
+ .Q
+ ;IHS/MSC/PLS - 05/19/08 - Updated call to PCC
+ ;S APSPDFE=$$^APCLDF(APSPX,"APSPDAT(")
+ S APSPDFE=$$START1^APCLDF(APSPX,"APSPDAT(")
+ I APSPDFE S APSPER=3 Q APSPER  ;date fetcher error
+ I '$D(APSPDAT) Q APSPER
+ S (APSPX,APSPC)=0 F  S APSPX=$O(APSPDAT(APSPX)) Q:APSPX'=+APSPX  D
+ .S APSPV=$P(APSPDAT(APSPX),U,5),APSPVR=^AUPNVSIT(APSPV,0)
+ .I APSPSC]"",APSPSC'[$P(APSPVR,U,7) Q
+ .I APSPVT]"",APSPVT'[$P(APSPVR,U,3) Q
+ .S APSPI=+$P(APSPDAT(APSPX),U,4),APSPR=^AUPNVMED(APSPI,0)
+ .S A=APSPA_APSPX_")" S @A=APSPI_U_APSPV_U_$P(APSPDAT(APSPX),U)_U_$P(APSPR,U)_U_$P(APSPDAT(APSPX),U,2)
+ .F X=4:1:8 S @A=@A_U_$P(APSPR,U,X)
+ .S @A=@A_U_$P($G(^AUPNVSIT(APSPV,21)),U)
+ .I $G(^AUPNVMED(APSPI,12)) F X=1:1:4 S @A=@A_U_$P(^AUPNVMED(APSPI,12),U,X)
+ .Q
+ Q APSPER
+ ;
+START ;EP called from option to display all outside Rx/s
+ W:$D(IOF) @IOF
+ W !!?18,"DISPLAY OUTSIDE RX's",!!
+GETPAT ;
+ D GETPAT^APSPORXA ; get patient
+ I 'DFN D EXIT Q
+GETDATES ;
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Date for Rx display" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G GETPAT
+ S APSPBD=Y
+ED ;get ending date
+ W ! S DIR(0)="D^"_APSPBD_":DT:EP",DIR("A")="Enter ending Date for Rx display" S Y=APSPBD D DD^%DT S DIR("B")=Y,Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S APSPED=Y
+ ;
+GETMEDS ; get vmeds to display
+ K APSPQUIT
+ S APSPERR=$$MEDS(DFN,"APSPORX(",APSPBD,APSPED,"E")
+ I APSPERR W !!,$C(7),$C(7),"Error occurred when attempting to find outside Rx's!! Notify supervisor" D PAUSE G EXIT
+ I '$D(APSPORX) W !!,$C(7),"No Outside Rx's on file for ",$P(^DPT(DFN,0),U),!,"in that time period",! D PAUSE G GETPAT
+ S APSPPG=0 D HEAD
+ S APSPY=0 F  S APSPY=$O(APSPORX(APSPY)) Q:APSPY'=+APSPY!($D(APSPQUIT))  S X=APSPORX(APSPY) D
+ .I $Y>(IOSL-4) D HEAD Q:$D(APSPQUIT)
+ .;W !!,APSPY,")",?5,"Drug Name:  ",?23,$S($P(X,U,5)]"":$P(X,U,5),1:$P(X,U,4))
+ .W !!,APSPY,")",?5,"Drug Name:  ",?23,$S($P(X,U,6)]"":$P(X,U,6),1:$P(X,U,5)) ;IHS/DSD/ENM 01/06/98 OKCAO POC 12/15/97
+ .W !?5,"Where Dispensed:  ",?21,$P(X,U,11)
+ .W !?5,"Sig:",?23,$P(X,U,7) ;IHS/DSD/ENM 09/06/96 CHNG 5 TO A 7
+ .W !?5,"Quantity:",?23,$P(X,U,8),?40,"Days Prescribed:",?58,$P(X,U,9) ;IHS/DSD/ENM 09/06/96 CHNG 6 TO 8, 7 TO 9
+ .W !?5,"DATE PRESCRIBED: ",$$FMTE^XLFDT($P(X,U,3)) ;IHS/DSD/ENM/POC 05/11/98
+ .Q
+ I '$D(APSPQUIT) S DIR("A")="End of Display.  Hit return to continue" D PAUSE
+ D EXIT
+ Q
+ ;
+PAUSE ;
+ W ! S DIR(0)="E" D ^DIR K DIR W !
+ Q
+HEAD ;write header
+ I 'APSPPG G HEAD1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APSPQUIT="" Q
+HEAD1 ;
+ W:$D(IOF) @IOF W !,"Outside Rx's for ",$P(^DPT(DFN,0),U)," from ",! S Y=APSPBD D DD^%DT W Y S Y=APSPED D DD^%DT W " to ",Y,":"
+ S APSPPG=APSPPG+1
+ Q
+EXIT ;
+ K APSPBD,APSPED,APSPERR,APSPPG,APSPORX,APSPQUIT,APSPER,APSPY
+ K X,Y,%DT,DIR
+ D KILL^AUPNPAT
+ Q

@@ -1,0 +1,134 @@
+BCH1I003 ; IHS/TUCSON/LAB - NO DESCRIPTION PROVIDED ; 
+ ;;1.0;IHS RPMS CHR SYSTEM;**2**;OCT 28, 1996
+ F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,999) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q Q
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ",4,125,3,"D")
+ ;;=7^26^3^.07
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ",4,125,3,"N")
+ ;;=2^0^0^2^0
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ",4,"FIRST")
+ ;;=2,125
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","# SERVED",1,1,31,11)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","ACTIVITY LOCATION",1,1,31,4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","BP",2,2,113,2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","CHR",3,3,123,4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","DATE",2,2,113,18)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","DATE",2,2,113,23)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","DATE",2,2,113,24)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","DATE",2,2,113,25)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","DATE OF SERVICE",1,1,31,2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","DATE OF SERVICE",3,3,123,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","EDIT ASSESSMENTS/POVS?",1,1,31,16)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","EDIT MEASUREMENTS/TESTS/REPROD?",1,1,31,15)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","EVALUATION",1,1,31,8)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","FP METHOD",2,2,113,15)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","HC",2,2,113,5)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","HLTH PROB",3,3,124,1)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","HOSPITAL/CLINIC NAME",1,1,31,6)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","HT",2,2,113,4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","INSURER",1,1,31,14)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","LMP",2,2,113,14)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","NARRATIVE",4,4,125,2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","OBJECTIVE",1,1,31,18)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","PLANS/TREATMENTS",1,1,31,19)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","PPD",2,2,113,16)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","PROGRAM",1,1,31,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","PROVIDER",1,1,31,5)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","PULSE",2,2,113,9)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","PURPOSE OF REFERRAL",1,1,31,13)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","REFERRED BY CHR TO",1,1,31,9)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","REFERRED TO CHR BY",1,1,31,7)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","RESP",2,2,113,10)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","RESULT",2,2,113,19)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","RESULT",2,2,113,26)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","RESULT",2,2,113,27)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","RESULT",2,2,113,28)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","SUBJECTIVE:",1,1,31,17)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","SUBSTANCE RELATED (Y/N)",4,4,125,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","SVC CODE",3,3,124,2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","SVC MINS",3,3,124,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","TEMP",2,2,113,8)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","TEMP RESIDENCE",1,1,31,12)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","TRAVEL TIME",1,1,31,10)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","VC",2,2,113,7)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","VU",2,2,113,6)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","CAP","WT",2,2,113,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F0","15,31","L",1,31,15)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F0","16,31","L",1,31,16)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.01,"L",1,31,2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.01,"L",3,123,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.02,"L",1,31,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.03,"L",1,31,5)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.03,"L",3,123,4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.05,"L",1,31,6)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.06,"L",1,31,4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.07,"L",1,31,7)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.08,"L",1,31,9)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.09,"L",1,31,8)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.11,"L",1,31,10)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.12,"L",1,31,11)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.13,"L",2,113,14)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",.14,"L",2,113,15)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.403,",11,"AZ","F90002",1108,"L",1,31,12)
+ ;;=

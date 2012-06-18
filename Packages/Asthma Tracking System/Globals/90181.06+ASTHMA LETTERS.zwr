@@ -1,0 +1,17 @@
+ASTHMA LETTERS
+ZWR
+^BATAL(0)="ASTHMA LETTERS^90181.06^1^1"
+^BATAL(1,0)="ASTHMA VISIT REMINDER"
+^BATAL(1,1,0)="^^11^11^3030127^"
+^BATAL(1,1,1,0)="As part of our caring for you and your asthma, we feel it is important to"
+^BATAL(1,1,2,0)="see you at least twice per year.  Our records show that we haven't seen"
+^BATAL(1,1,3,0)="you for at least six months, and we would like to invite you to make an"
+^BATAL(1,1,4,0)="appointment in the next few months."
+^BATAL(1,1,5,0)=" "
+^BATAL(1,1,6,0)="We will review how you are doing in general and perhaps test your lungs"
+^BATAL(1,1,7,0)="with the spirometer.  If you have been using your peak flow meter, please"
+^BATAL(1,1,8,0)="bring in some of those recent values."
+^BATAL(1,1,9,0)=" "
+^BATAL(1,1,10,0)=" "
+^BATAL(1,1,11,0)="Thank you very much and we look forward to seeing you."
+^BATAL("B","ASTHMA VISIT REMINDER",1)=""

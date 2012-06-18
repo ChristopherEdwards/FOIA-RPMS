@@ -1,0 +1,84 @@
+ASURD09P ; IHS/ITSC/LMH -RPT 9 STA MAST REC CHGS TRANS ; 
+ ;;4.2T2;Supply Accounting Mgmt. System;;JUN 30, 2000
+ ;This routine formats and prints report 9, Station Change/Delete
+ ;Transaction List.
+EN ;EP;PRIMARY ENTRY POINT FOR REPORT 09
+ I '$D(IO) D HOME^%ZIS
+ I '$D(DUZ(2)) W !,"Report must be run from Kernel option" Q
+ I '$D(ASUL(1,"AR","AP")) D SETAREA^ASULARST
+ S ASUK("PTRSEL")=$G(ASUK("PTRSEL")) I ASUK("PTRSEL")]"" G PSER
+ S ZTRTN="PSER^ASURD09P",ZTDESC="SAMS RPT 09" D O^ASUUZIS
+ I POP S IOP=$I D ^%ZIS Q
+ I ASUK(ASUK("PTR"),"Q") Q
+PSER ;EP;FOR TASKMAN QUEUE OF PRINT
+ D:'$D(^XTMP("ASUR","R09")) CMPT
+ D U^ASUUZIS
+ S ASUV("RPT")="R09",ASUQ("HDR")="HEADER^ASURD09P"
+ D ^ASUUDATA I ASUX("NDTA") G K
+ S (ASUX("IX"),ASUX("SQ"))="",ASUC("TOT")=0
+ F  S ASUX("AS")=$O(^XTMP("ASUR","R09",ASUX("AS"))) Q:ASUX("AS")=""  D  Q:$D(DUOUT)
+ .I ASUV("ARST")'=ASUX("AS") D HEADER Q:$D(DUOUT)
+ .S ASUV("ARST")=ASUX("AS")
+ .F  S ASUX("IX")=$O(^XTMP("ASUR","R09",ASUX("AS"),ASUX("IX"))) Q:ASUX("IX")=""  D  Q:$D(DUOUT)
+ ..F  S ASUX("SQ")=$O(^XTMP("ASUR","R09",ASUX("AS"),ASUX("IX"),ASUX("SQ"))) Q:ASUX("SQ")=""  D  Q:$D(DUOUT)
+ ...S ASUHDA=^XTMP("ASUR","R09",ASUX("AS"),ASUX("IX"),ASUX("SQ"))
+ ...D READ^ASU0TRRD(.ASUHDA,"H") Q:$G(ASUT)']""
+ ...I ASUC("LN")>(IOSL-2) D HEADER Q:$D(DUOUT)
+ ...S ASUV("VAL")=ASUT(ASUT,"UCS"),ASUC("TOT")=ASUC("TOT")+1
+ ...W !?1,$E(ASUT(ASUT,"DTS"),2,3),"-",$E(ASUT(ASUT,"DTS"),4,5)
+ ...S ASUC("LN")=ASUC("LN")+1
+ ...W ?8,ASUT("TRCD"),?13,ASUT(ASUT,"SLC")
+ ...W:ASUT(ASUT,"RPQ")]"" ?16,$J($FN(ASUT(ASUT,"RPQ"),",",0),6)
+ ...W:ASUV("VAL")]"" ?23,$J($FN(ASUV("VAL"),",",2),12)
+ ...W ?36,ASUT(ASUT,"EOQ TYP")
+ ...W:ASUT(ASUT,"EOQ MM")]"" ?40,$J($FN(ASUT(ASUT,"EOQ MM"),",",0),5)
+ ...W:ASUT(ASUT,"EOQ QM")]"" ?47,$J($FN(ASUT(ASUT,"EOQ QM"),",",0),5)
+ ...W ?54,$E(ASUT(ASUT,"EOQ AM")),?56,$E(ASUT(ASUT,"EOQ AM"),2,2)
+ ...W ?58,$E(ASUT(ASUT,"EOQ AM"),3,3),?60,$E(ASUT(ASUT,"EOQ AM"),4,5)
+ ...W ?65,$E(ASUT(ASUT,"IDX"),1,5),".",$E(ASUT(ASUT,"IDX"),6,6)
+ ...S X=ASUT(ASUT,"ORD#")
+ ...I X]"",X'=" ",$E(X)'="M" D
+ ....W ?74,$E(X,1,4),"-",$E(X,5,6),"-",$E(X,7,9),"-",$E(X,10,14)
+ ...E  D
+ ....W ?74,X
+ ...W ?93,ASUT(ASUT,"VEN NM")
+ ...W ?110,ASUT(ASUT,"SRC"),?114
+ ...S X=ASUT(ASUT,"LTM") I $L(X)>0 W $FN(X,"-",1)
+ ...W ?119,ASUT(ASUT,"SUI")
+ ...W:ASUT(ASUT,"SPQ")]"" ?125,$J($FN(ASUT(ASUT,"SPQ"),",",0),6)
+ W !!?2,"NUMBER LINE ITEMS: ",ASUC("TOT"),!!
+K ;
+ K ASUX,ASUV,ASUC,ASUQ,ASUL(2)
+ D PAZ^ASUURHDR
+ I ASUK("PTRSEL")]"" W @IOF Q
+ D C^ASUUZIS
+ Q
+CMPT ;EP;COMPUTE REPORT CONTENTS
+ K ^XTMP("ASUR","R09") S ^XTMP("ASUR","R09",0)=ASUK("DT","FM")+10000_U_ASUK("DT","FM")
+ D:$G(ASUN("TYP"))']"" ^ASUURANG S ASUV("DA")=ASUHDA
+ E  S (ASUV("DA"),ASUHDA)=ASUN("B#")-1
+ S Z="5C" D LOOP S ASUHDA=ASUV("DA"),Z="5D" D LOOP
+ Q
+LOOP ;
+ F  S ASUHDA=$O(^ASUH("T",Z,ASUHDA)) Q:ASUHDA>$G(ASUN("E#"))  Q:ASUHDA']""  D
+ .D READ^ASU0TRRD(.ASUHDA,"H") Q:$G(ASUT)']""  Q:$P(ASUT(ASUT,"TRKY"),"-")'=ASUL(2,"STA","E#")
+ .S ^XTMP("ASUR","R09",ASUT(ASUT,"PT","STA"),ASUT(ASUT,"PT","IDX"),ASUHDA)=ASUHDA
+ Q
+HEADER ;PRINT REPORT HEADING LINES
+ S ASUC("PG")=$G(ASUC("PG"))+1
+ I ASUC("PG")>1 D PAZ^ASUURHDR Q:$D(DUOUT)  W @IOF
+ W !?5,"REPORT #9.    STATION MASTER RECORD CHANGES TRANSACTIONS"
+ W ?100,"DATE: ",ASUX("DT"),?120,"PAGE: ",ASUC("PG")
+ S X=ASUL(1,"AR","AP") W !?3,"AREA: ",ASUL(1,"AR","AP")
+ W ?15,ASUL(1,"AR","NM")
+ I ASUX("AS")'=$G(ASUL(2,"STA","E#")) D STA^ASULARST(ASUX("AS"))
+ W !?3,"STATION: ",$G(ASUL(2,"STA","CD"))
+ W ?15,$G(ASUL(2,"STA","NM"))
+ W !!?1,"DATE",?7,"TRAN",?12,"SLC",?17,"REVIEW",?30,"UNIT",?36,"EOQ",?42,"EOQ",?49,"EOQ",?54,"EOQ ACTION"
+ W ?66,"INDEX",?76,"ORDER",?93,"VENDOR",?108,"SOUR",?113,"LEAD",?119,"SOU",?124,"STANDARD"
+ W !?1,"FYMM",?7,"CODE",?17,"POINT",?30,"COST",?36,"TYP",?42,"MON",?49,"QTY",?54,"MONTHS MOD"
+ W ?66,"NUMBER",?76,"NUMBER",?93,"NAME",?108,"CODE",?113,"TIME",?119,"U.I",?124,"PACK QTY"
+ W !?54,"1Q2Q3Q4Q"
+ W !,"------------------------------------------------------------------------------------------------------------------------------------",!
+ S ASUC("LN")=9
+ Q

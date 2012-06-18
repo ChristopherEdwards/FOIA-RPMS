@@ -1,0 +1,262 @@
+BKMVAUC ;PRXM/HC/CLT - CONTROL AUDIT PRINTOUT ; 14 Jun 2005  6:09 PM
+ ;;2.1;HIV MANAGEMENT SYSTEM;;Feb 07, 2011
+ QUIT
+ ;
+PAT ;ENTRY POINT - PRINT AUDIT REPORT FOR ONE PATIENT
+ ; Input variables:
+ ;  n/a
+ ; Output variables:
+ ;  n/a
+ S BKMHDR="HMS REGISTER AUDIT REPORT FOR ONE PATIENT"
+PAT0 ; Return tag if no patient selected
+ ; Prompt for patient lookup type
+ S BKMPTYP=$$TYPE()
+ Q:$G(BKMPTYP)="^"!($G(BKMPTYP)="")
+ ; Prompt for patient - C (Current HMS patients) or A (All RPMS - to include deleted HMS patients)
+ I BKMPTYP="C" D RLK^BKMPLKP("")
+ I BKMPTYP="A"  D PLK^BKMPLKP
+ Q:$G(DUOUT)!$G(DTOUT)
+ I $G(DFN)="" G PAT0
+ S BKMPT=DFN
+ ; Prompt for date range
+ D DTRNG
+ I BKMBDT=""!(BKMEDT="") G XIT
+ ; Get Device
+ K %ZIS,IOC,IOF,IOP,POP,ZTIO,ZTRTN,ZTSAVE S %ZIS="MQ" D ^%ZIS Q:POP
+ ; Set up TaskMan variables
+ I $D(IO("Q")) D  W !,"REQUEST QUEUED" H 2 Q
+ . S ZTRTN="PAT1^BKMVAUC",ZTSAVE("BKMHDR")="",ZTSAVE("BKMBDT")="",ZTSAVE("BKMEDT")="",ZTSAVE("BKMPT")=""
+ . K IO("Q")
+ . D ^%ZTLOAD
+ D PAT1^BKMVAUC
+ Q
+ ;
+PAT1 ;ENTRY POINT - FROM TASKMAN QUEUE
+ I '$G(BKMPT)="" Q
+ S BKMRTN=""
+ S BKMPAGE=0
+ S BKMNONE=1
+ D HDR
+ ; Loop through audit entries for the selected patient
+ S BKMDT=$O(^BKMV(90455,"AG",BKMPT,BKMBDT),-1)
+ F  S BKMDT=$O(^BKMV(90455,"AG",BKMPT,BKMDT)) Q:BKMDT=""!(BKMDT\1>BKMEDT)  D  Q:BKMRTN="^"
+ . S BKMX=0
+ . F  S BKMX=$O(^BKMV(90455,"AG",BKMPT,BKMDT,BKMX)) Q:BKMX=""  D  Q:BKMRTN="^"
+ . . I BKMNONE S BKMNONE=0
+ . . I BKMPAGE>0,IOSL-$Y<8 D  Q:BKMRTN="^"
+ . . . I IOST["C-",$$PAUSE^BKMIXX3 S BKMRTN="^" Q
+ . . . D HDR
+ . . D EN1^BKMVAUP(BKMX)
+ ; If no records found - display message
+ I BKMNONE D NODATA
+ D FOOTER
+ D ^%ZISC
+ G XIT
+ ;
+REG ;ENTRY POINT - PRINT AUDIT REPORT FOR A REGISTRY
+ S BKMHDR="REGISTRY/PATIENT AUDIT REPORT"
+ ; Prompt for registry
+ S DIC="^BKM(90450,",DIC(0)="AEQM",DIC("A")="Enter registry for an audit report: "
+ D ^DIC
+ I Y=-1!$D(DTOUT)!$D(DUOUT) G XIT
+ S BKMREG=+Y
+ ; Prompt for date range
+ D DTRNG
+ I BKMBDT=""!(BKMEDT="") G XIT
+ ; Get Device
+ K %ZIS,IOC,IOF,IOP,POP,ZTIO,ZTRTN,ZTSAVE S %ZIS="MQ" D ^%ZIS Q:POP
+ ; Set up TaskMan variables
+ I $D(IO("Q")) D  W !,"REQUEST QUEUED" H 2 Q
+ . S ZTRTN="REG1^BKMVAUC",ZTSAVE("BKMREG")="",ZTSAVE("BKMBDT")="",ZTSAVE("BKMEDT")="",ZTSAVE("BKMHDR")=""
+ . K IO("Q")
+ . D ^%ZTLOAD
+ D REG1^BKMVAUC
+ Q
+ ;
+REG1 ;ENTRY POINT - FROM TASKMAN QUEUE
+ I '$G(BKMREG)="" Q
+ S BKMRTN=""
+ S BKMPAGE=0
+ S BKMNONE=1
+ D HDR
+ ; Loop through audit entries for the selected registry
+ S BKMDT=$O(^BKMV(90455,"AE",BKMREG,BKMBDT),-1)
+ F  S BKMDT=$O(^BKMV(90455,"AE",BKMREG,BKMDT)) Q:BKMDT=""!(BKMDT\1>BKMEDT)  D  Q:BKMRTN="^"
+ . S BKMX=0
+ . F  S BKMX=$O(^BKMV(90455,"AE",BKMREG,BKMDT,BKMX)) Q:BKMX=""  D  Q:BKMRTN="^"
+ . . I BKMNONE S BKMNONE=0
+ . . I BKMPAGE>0,IOSL-$Y<8 D  Q:BKMRTN="^"
+ . . . I IOST["C-",$$PAUSE^BKMIXX3 S BKMRTN="^" Q
+ . . . D HDR
+ . . D EN1^BKMVAUP(BKMX)
+ ; If no records found - display message
+ I BKMNONE D NODATA
+ D FOOTER
+ D ^%ZISC
+ G XIT
+ ;
+USR ;ENTRY POINT - REPORT BY USER
+ S BKMHDR="REGISTRY/USER AUDIT REPORT"
+ ; Prompt for user
+ S DIC="^VA(200,",DIC(0)="AEQM",DIC("A")="Enter user to review: "
+ D ^DIC
+ I $D(DTOUT)!$D(DUOUT) G XIT
+ S BKMUSR=+Y
+ ; Prompt for date range
+ D DTRNG
+ I BKMBDT=""!(BKMEDT="") G XIT
+ ; Get Device
+ K %ZIS,IOC,IOF,IOP,POP,ZTIO,ZTRTN,ZTSAVE S %ZIS="MQ" D ^%ZIS Q:POP
+ ; Set up TaskMan variables
+ I $D(IO("Q")) D  W !,"REQUEST QUEUED" H 2 Q
+ . S ZTRTN="USR1^BKMVAUC",ZTSAVE("BKMBDT")="",ZTSAVE("BKMEDT")="",ZTSAVE("BKMUSR")="",ZTSAVE("BKMHDR")=""
+ . K IO("Q")
+ . D ^%ZTLOAD
+ D USR1^BKMVAUC
+ Q
+ ;
+USR1 ;ENTRY POINT - FROM TASKMAN QUE
+ I '$G(BKMUSR)="" Q
+ S BKMRTN=""
+ S BKMPAGE=0
+ S BKMNONE=1
+ D HDR
+ ; Loop through audit entries for the selected user
+ S BKMDT=$O(^BKMV(90455,"AC",BKMUSR,BKMBDT),-1)
+ F  S BKMDT=$O(^BKMV(90455,"AC",BKMUSR,BKMDT)) Q:BKMDT=""!(BKMDT\1>BKMEDT)  D  Q:BKMRTN="^"
+ . S BKMX=0
+ . F  S BKMX=$O(^BKMV(90455,"AC",BKMUSR,BKMDT,BKMX)) Q:BKMX=""  D  Q:BKMRTN="^"
+ . . I BKMNONE S BKMNONE=0
+ . . I BKMPAGE>0,IOSL-$Y<8 D  Q:BKMRTN="^"
+ . . . I IOST["C-",$$PAUSE^BKMIXX3 S BKMRTN="^" Q
+ . . . D HDR
+ . . D EN1^BKMVAUP(BKMX)
+ ; If no records found - display message
+ I BKMNONE D NODATA
+ D FOOTER
+ D ^%ZISC
+ G XIT
+ ;
+CUM ;ENTRY POINT - CUMULATIVE AUDIT REPORT
+ ; Prompt for date range
+ D DTRNG
+ I BKMBDT=""!(BKMEDT="") G XIT
+ S BKMHDR="CUMULATIVE REGISTER AUDIT REPORT"
+ ; Get Device
+ K %ZIS,IOC,IOF,IOP,POP,ZTIO,ZTRTN,ZTSAVE S %ZIS="MQ" D ^%ZIS Q:POP
+ ; Set up TaskMan variables
+ I $D(IO("Q")) D  W !,"REQUEST QUEUED" H 2 Q
+ . S ZTRTN="CUM1^BKMVAUC",ZTSAVE("BKMBDT")="",ZTSAVE("BKMEDT")="",ZTSAVE("BKMHDR")=""
+ . K IO("Q")
+ . D ^%ZTLOAD
+ D CUM1^BKMVAUC
+ Q
+ ;
+CUM1 ;ENTRY POINT - FROM TASKMAN QUE FOR CUMULATIVE REPORT
+ S BKMRTN=""
+ S BKMPAGE=0
+ S BKMNONE=1
+ D HDR
+ ; Loop through audit entries for the selected date range
+ S BKMDT=$O(^BKMV(90455,"B",BKMBDT),-1)
+ F  S BKMDT=$O(^BKMV(90455,"B",BKMDT)) Q:BKMDT=""!(BKMDT\1>BKMEDT)  D   Q:BKMRTN="^"
+ . S BKMX=0
+ . F  S BKMX=$O(^BKMV(90455,"B",BKMDT,BKMX)) Q:BKMX=""  D  Q:BKMRTN="^"
+ . . I BKMNONE S BKMNONE=0
+ . . I BKMPAGE>0,IOSL-$Y<8 D  Q:BKMRTN="^"
+ . . . I IOST["C-",$$PAUSE^BKMIXX3 S BKMRTN="^" Q
+ . . . D HDR
+ . . D EN1^BKMVAUP(BKMX)
+ ; If no records found - display message
+ I BKMNONE D NODATA
+ D FOOTER
+ D ^%ZISC
+ G XIT
+ ;
+OPTC ;ENTRY POINT - OPTION ACCESS CUMULATIVE
+ ; Prompt for date range
+ D DTRNG
+ I BKMBDT=""!(BKMEDT="") G XIT
+ S BKMHDR="CUMULATIVE HMS OPTION ACCESS REPORT"
+ ; Get Device
+ K %ZIS,IOC,IOF,IOP,POP,ZTIO,ZTRTN,ZTSAVE S %ZIS="MQ" D ^%ZIS Q:POP
+ ; Set up TaskMan variables
+ I $D(IO("Q")) D  W !,"REQUEST QUEUED" H 2 Q
+ . S ZTRTN="OPTC1^BKMVAUC",ZTSAVE("BKMBDT")="",ZTSAVE("BKMEDT")="",ZTSAVE("BKMHDR")=""
+ . K IO("Q")
+ . D ^%ZTLOAD
+ D OPTC1^BKMVAUC
+ Q
+ ;
+OPTC1 ;ENTRY POINT - FROM TASKMAN QUE FOR OPTION CUM REPORT
+ S BKMRTN=""
+ S BKMPAGE=0
+ S BKMNONE=1
+ D HDR
+ ; Loop through audit entries for the accessed menus/options only
+ S BKMVO=0
+ F  S BKMVO=$O(^BKMV(90455,"AF",BKMVO)) Q:BKMVO=""  D  Q:BKMRTN="^"
+ . S BKMDT=$O(^BKMV(90455,"AF",BKMVO,BKMBDT),-1)
+ . F  S BKMDT=$O(^BKMV(90455,"AF",BKMVO,BKMDT)) Q:BKMDT=""!(BKMDT\1>BKMEDT)  D  Q:BKMRTN="^"
+ . . S BKMX=0
+ . . F  S BKMX=$O(^BKMV(90455,"AF",BKMVO,BKMDT,BKMX)) Q:BKMX=""  D  Q:BKMRTN="^"
+ . . . I BKMNONE S BKMNONE=0
+ . . . I BKMPAGE>0,IOSL-$Y<8 D  Q:BKMRTN="^"
+ . . . . I IOST["C-",$$PAUSE^BKMIXX3 S BKMRTN="^" Q
+ . . . . D HDR
+ . . . D ENO^BKMVAUPO(BKMX)
+ ; If no records found - display message
+ I BKMNONE D NODATA
+ D FOOTER
+ D ^%ZISC
+ G XIT
+ ;
+HDR ; REPORT HEADER
+ N Y
+ ; Update page #
+ S:'$D(BKMPAGE) BKMPAGE=0 S BKMPAGE=BKMPAGE+1
+ ; Only form feed to non-CRT devices after page 1
+ I IOST["C-" W @IOF
+ I IOST'["C-",BKMPAGE>1 W @IOF
+ ;PRXM/HC/DLS 11/3/2005 ; NEW HEADER
+ W !?1,$P(^VA(200,DUZ,0),U,2) S Y=$$FMTE^XLFDT(DT,1) W ?IOM-$L(Y)/2,Y,?70,"Page: ",BKMPAGE
+ S Y=$P(^DIC(4,DUZ(2),0),U,1) W !,?IOM-$L(Y)\2,Y
+ W !,?IOM-$L(BKMHDR)\2,BKMHDR
+ S Y="DATE RANGE: "_$$FMTE^XLFDT(BKMBDT)_" - "_$$FMTE^XLFDT(BKMEDT)
+ W !,?IOM-$L(Y)\2,Y
+ W !,?IOM-$L("*** CONFIDENTIAL PATIENT INFORMATION ***")\2,"*** CONFIDENTIAL PATIENT INFORMATION ***",!
+ Q
+ ;
+NODATA ; NO DATA MESSAGE
+ W !!,?IOM-$L("*** NO RECORDS FOUND ***")\2,"*** NO RECORDS FOUND ***",!!
+ Q
+ ;
+DTRNG ; SELECT REPORT DATE RANGE
+ S (BKMBDT,BKMEDT)=""
+ S %DT="AEXP",%DT("A")="Enter report beginning date: " D ^%DT
+ I Y=-1 Q
+ S BKMBDT=+Y
+DTRNG1 S %DT("A")="Enter report ending date: " D ^%DT
+ I Y=-1 Q
+ S BKMEDT=+Y
+ I BKMEDT<BKMBDT W !!,*7,"The end date cannot be before the beginning date!  Please reenter." G DTRNG1
+ Q
+ ;
+TYPE() ; SELECT PATIENT TYPE
+ K DIR
+ S DIR("A")="Select Patient Lookup Option"
+ S DIR(0)="SO^C:Current HMS Register Patients;A:All RPMS (Removed HMS Register Patients)"
+ D ^DIR
+ ; Treat timeout as '^'
+ I $D(DTOUT)!$D(DUOUT) Q "^"
+ Q Y
+ ;
+FOOTER ; Confidentiality notice
+ W !!,?IOM-$L("****  END CONFIDENTIAL PATIENT INFORMATION  ****")\2,"****  END CONFIDENTIAL PATIENT INFORMATION  ****",!
+ I IOST["C-",$G(BKMRTN)'="^" S BKMTMP=$$PAUSE^BKMIXX3
+ Q
+ ;
+XIT ; EXIT AND CLEAN UP
+ K DIC,X,Y,%DT,BKMREG,BKMHDR,BKMPT,BKMPAGE,ZTRTN,ZTSAVE,DTOUT,DUOUT,BKMX,BKMVDT
+ K BKMBDT,BKMEDT,BKMRTN,BKMUSR,BKMDT,BKMVO,BKMRIEN,BKMTMP,BKMNONE,BKMPTYP
+ Q

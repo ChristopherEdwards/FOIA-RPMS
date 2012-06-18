@@ -1,0 +1,183 @@
+AMHRPSU3 ; IHS/CMI/LAB - Suicide Form data element tally ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;
+ ;
+START ;
+ W:$D(IOF) @IOF
+ D EOJ
+ W:$D(IOF) @IOF
+ W !!,"Extract Suicide Form Data Elements in Delimited format"
+ W !!,"This report will extract all data elements on the Suicide Form in a ",!,"delimited form for a date range specified by the user.",!!
+ D DBHUSRP^AMHUTIL
+GETDATES ;
+BD ;
+ S DIR(0)="D^::EP",DIR("A")="Enter Beginning Date of Suicide Act",DIR("?")="Enter the beginning date of suicide act for the search." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) EOJ
+ S AMHBD=Y
+ED ;
+ S DIR(0)="DA^::EP",DIR("A")="Enter Ending Date of Suicide Act:  " D ^DIR K DIR,DA S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) EOJ
+ I Y<AMHBD W !,"Ending date must be greater than or equal to beginning date!" G ED
+ S AMHED=Y
+ S X1=AMHBD,X2=-1 D C^%DTC S AMHSD=X
+SELF ;
+ K AMHSELF
+ W !?5,1,?10,"IDEATION WITH PLAN AND INTENT"
+ W !?5,2,?10,"ATTEMPT"
+ W !?5,3,?10,"COMPLETED SUICIDE"
+ W !?5,4,?10,"ATTEMPTED SUICIDE WITH HOMICIDE (INACTIVE)"
+ W !?5,5,?10,"COMPLETED SUICIDE WITH HOMICIDE (INACTIVE)"
+ W !?5,6,?10,"ATTEMPTED SUICIDE WITH ATTEMPTED HOMICIDE"
+ W !?5,7,?10,"ATTEMPTED SUICIDE WITH COMPLETED HOMICIDE"
+ W !?5,8,?10,"COMPLETED SUICIDE WITH ATTEMPTED HOMICIDE"
+ W !?5,9,?10,"COMPLETED SUICIDE WITH COMPLETED HOMICIDE"
+ W !?5,0,?10,"ALL OF THE ABOVE (ALSO INCLUDES BLANKS)"
+ S DIR(0)="L^0:9",DIR("A")="Include which Suicidal Behaviors",DIR("B")="0" KILL DA D ^DIR KILL DIR
+ S AMHANS=Y,AMHC="" F AMHI=1:1 S AMHC=$P(AMHANS,",",AMHI) Q:AMHC=""  S AMHSELF(AMHC)=""
+ I AMHANS[0 F X=1:1:9 S AMHSELF(X)=""
+DEMO ;
+ D DEMOCHK^AMHUTIL1(.AMHDEMO)
+ I AMHDEMO=-1 G SELF
+ZIS ;
+ S DIR(0)="S^P:PRINT Output;B:BROWSE Output on Screen",DIR("A")="Do you wish to ",DIR("B")="P" K DA D ^DIR K DIR
+ I $D(DIRUT) G EOJ
+ I $G(Y)="B" D BROWSE,EOJ Q
+ W !! S XBRP="PRINT^AMHRPSU3",XBRC="PROC^AMHRPSU3",XBNS="AMH",XBRX="EOJ^AMHRPSU3"
+ D ^XBDBQUE
+ D EOJ
+ Q
+BROWSE ;
+ S XBRP="VIEWR^XBLM(""PRINT^AMHRPSU3"")"
+ S XBNS="AMH",XBRC="PROC^AMHRPSU3",XBRX="EOJ^AMHRPSU3",XBIOP=0 D ^XBDBQUE
+ Q
+ ;
+PAUSE ; 
+ S DIR(0)="E",DIR("A")="Press return to continue or '^' to quit" D ^DIR K DIR,DA
+ S:$D(DIRUT) AMHQUIT=1
+ W:$D(IOF) @IOF
+ Q
+EOJ ;
+ D EN^XBVK("AMH")
+ K L,M,S,T,X,X1,X2,Y,Z,B,A
+ D KILL^AUPNPAT
+ D ^XBFMK
+ Q
+PROC ;EP
+ S AMHJ=$J,AMHH=$H
+ K ^XTMP("AMHRPSU3",AMHJ,AMHH)
+ D XTMP("AMHRPSU3","AMH - SUICIDE")
+V ; Run by visit date
+ F  S AMHSD=$O(^AMHPSUIC("AD",AMHSD)) Q:AMHSD=""!((AMHSD\1)>AMHED)  D V1
+ Q
+ ;
+V1 ;
+ S AMHVDFN="" F  S AMHVDFN=$O(^AMHPSUIC("AD",AMHSD,AMHVDFN)) Q:AMHVDFN'=+AMHVDFN  D
+ .I $P(^AMHPSUIC(AMHVDFN,0),U,13)="",AMHANS'[0 Q
+ .I $P(^AMHPSUIC(AMHVDFN,0),U,13),'$D(AMHSELF($P(^AMHPSUIC(AMHVDFN,0),U,13))) Q
+ .S P=$P(^AMHPSUIC(AMHVDFN,0),U,4)
+ .Q:$$DEMO^AMHUTIL1(P,$G(AMHDEMO))
+ .;I '$$ALLOW^AMHSFR(DUZ,AMHVDFN) Q
+ .S AMHREC=""
+ .F AMHX=1:1:20 S AMHT=$T(@AMHX) D
+ ..S AMHP=$P(AMHT,";;",1),AMHV=$P(AMHT,";;",3)
+ ..X AMHV
+ ..S $P(AMHREC,U,AMHP)=X
+ ..Q
+ .F AMHX=$S(AMHBD<$$DV4^AMHUTIL:22,1:21):1:23 S AMHT=$T(@AMHX) D
+ ..S AMHP=$P(AMHT,";;",1),AMHV=$P(AMHT,";;",3)
+ ..X AMHV
+ ..S $P(AMHREC,U,AMHP)=X
+ ..Q
+ .;rest of multiples
+ .S AMHC=23,AMHX=0 F  S AMHX=$O(^AMHPSUIC(AMHVDFN,11,AMHX)) Q:AMHX'=+AMHX!(AMHC>26)  D
+ ..S AMHC=AMHC+1
+ ..S Y=$P(^AMHPSUIC(AMHVDFN,11,AMHX,0),U),$P(AMHREC,U,AMHC)=$$EXTSET^XBFUNC(9002011.6511,.01,Y)
+ ..I $P(^AMHPSUIC(AMHVDFN,11,AMHX,0),U,2)]"" S $P(AMHREC,U,27)=$P(^AMHPSUIC(AMHVDFN,11,AMHX,0),U,2)
+ ..;METHOD IF OTHER
+ .S AMHC=28,AMHX=0 S AMHX=$P(^AMHPSUIC(AMHVDFN,0),U,26)  D
+ ..S Y=$P(^AMHPSUIC(AMHVDFN,0),U,26),$P(AMHREC,U,AMHC)=$$EXTSET^XBFUNC(9002011.65,.26,Y)
+ .;substance used
+ .S AMHC=28,AMHX=0 F  S AMHX=$O(^AMHPSUIC(AMHVDFN,15,AMHX)) Q:AMHX'=+AMHX!(AMHC>31)  D
+ ..S AMHC=AMHC+1
+ ..S Y=$P(^AMHPSUIC(AMHVDFN,15,AMHX,0),U),$P(AMHREC,U,AMHC)=$P(^AMHTSSU(Y,0),U,1)
+ ..I $P(^AMHPSUIC(AMHVDFN,15,AMHX,0),U,2)]"" S $P(AMHREC,U,32)=$P(^AMHPSUIC(AMHVDFN,15,AMHX,0),U,2)
+ .S AMHC=32,AMHX=0 F  S AMHX=$O(^AMHPSUIC(AMHVDFN,13,AMHX)) Q:AMHX'=+AMHX!(AMHC>35)  D
+ ..S AMHC=AMHC+1
+ ..S Y=$P(^AMHPSUIC(AMHVDFN,13,AMHX,0),U),$P(AMHREC,U,AMHC)=$P(^AMHTSCF(Y,0),U,1)
+ ..I $P(^AMHPSUIC(AMHVDFN,13,AMHX,0),U,2)]"" S $P(AMHREC,U,36)=$P(^AMHPSUIC(AMHVDFN,13,AMHX,0),U,2)
+ .S ^XTMP("AMHRPSU3",AMHJ,AMHH,"RECS",AMHVDFN)=AMHREC
+ Q
+PRINT ;EP called from xbdbque
+ W:$D(IOF) @IOF
+ W !,$$LOC,"^^^",$$FMTE^XLFDT(DT)
+ S X="***** AGGREGATED SUICIDE DATA *****" W !,X,!
+ W "Act Occurred","^",$$FMTE^XLFDT(AMHBD),"^",$$FMTE^XLFDT(AMHED),!
+ F AMHX=1:1:23 S AMHT=$T(@AMHX),AMHT=$P(AMHT,";;",2) S $P(X,U,AMHX)=AMHT
+ F AMHX=24:1:26 S $P(X,U,AMHX)="Method "_(AMHX-23)
+ S $P(X,U,27)="Method if OTHER"
+ F AMHX=28 S $P(X,U,AMHX)="Substance Involved "
+ F AMHX=29:1:31 S $P(X,U,AMHX)="Substance DRUG "_(AMHX-28)
+ S $P(X,U,32)="Substance if Other"
+ F AMHX=33:1:35 S $P(X,U,AMHX)="Contributing Factor "_(AMHX-32)
+ S $P(X,U,36)="Contributing Factor, if other"
+ W !!,X
+ S AMHVDFN="" F  S AMHVDFN=$O(^XTMP("AMHRPSU3",AMHJ,AMHH,"RECS",AMHVDFN)) Q:AMHVDFN=""  D
+ .W !,^XTMP("AMHRPSU3",AMHJ,AMHH,"RECS",AMHVDFN)
+DONE ;
+ I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of report.  PRESS RETURN" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ K ^XTMP("AMHRPSU3",AMHJ,AMHH)
+ Q
+LBLK(V,L) ;left blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=" "_V
+ Q V
+RBLK(V,L) ;EP right blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=V_" "
+ Q V
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+EOP ;EP - End of page.
+ Q:$E(IOST)'="C"
+ Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
+ NEW DIR
+ K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR(0)="E" D ^DIR
+ Q
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------
+XTMP(N,D) ;EP - set xtmp 0 node
+ Q:$G(N)=""
+ S ^XTMP(N,0)=$$FMADD^XLFDT(DT,14)_"^"_DT_"^"_$G(D)
+ Q
+ ;
+LABEL ;
+1 ;;Unique Case ID;;S X=$P(^AMHPSUIC(AMHVDFN,0),U)
+2 ;;Local Case #;;S X=$P(^AMHPSUIC(AMHVDFN,0),U,2)
+3 ;;Event logged by;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.031)
+4 ;;Discipline of Prov;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.032)
+5 ;;Unique ID of Patient;;S X=$P(^AMHPSUIC(AMHVDFN,0),U,4),X=$$UID^AGTXID(X)
+6 ;;Sex of Patient;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.041)
+7 ;;Age of Patient on date of act;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.043)
+8 ;;Tribe of Enrollment;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.044)
+9 ;;Community of Residence;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.045)
+10 ;;Employment Status;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.05)
+11 ;;Date of Act;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.06)
+12 ;;Community where act occurred;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.07)
+13 ;;Relationship Status;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.08)
+14 ;;Relationship if Other;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.09)
+15 ;;Education Level;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.11)
+16 ;;If less than 12;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.12)
+17 ;;Suicidal Behavior;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.131)
+18 ;;Previous Attempts;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.14)
+19 ;;Location of Act;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.15)
+20 ;;Location of Act, if other;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,1401)
+21 ;;Lethality;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.24)
+22 ;;Disposition;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,.25)
+23 ;;Disposition if other;;S X=$$VAL^XBDIQ1(9002011.65,AMHVDFN,1402)

@@ -1,0 +1,38 @@
+BCHEXRE1 ; IHS/TUCSON/LAB - CONT. OF REDO CHR EXPORT ;  [ 06/03/99  6:47 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**7**;OCT 28, 1996
+ ;IHS/CMI/LAB - added $J to ^TMP
+ ;
+INIT ;EP
+ D CHKOLD^BCHEXDI2
+ Q:BCH("QFLG")
+ S DIC="^BCHXLOG(",DIC(0)="AEQ",DIC("S")="I $D(^(21)),$P(^(0),U,9)=DUZ(2)" D ^DIC K DIC
+ I Y<0 S BCH("QFLG")=99 Q
+ S BCH("RUN LOG")=+Y
+ ;
+ S X=^BCHXLOG(BCH("RUN LOG"),0),BCH("RUN BEGIN")=$P(X,U),BCH("RUN END")=$P(X,U,2),BCH("COUNT")=$P(X,U,6),BCH("ORIG TX DATE")=$P($P(X,U,3),"."),BCH("BATCH")=$P(X,U,17)
+ S Y=BCH("RUN BEGIN") X ^DD("DD") S BCH("PRINT BEGIN")=Y
+ S Y=BCH("RUN END") X ^DD("DD") S BCH("PRINT END")=Y
+ S BCH("RECS")=$P(^BCHXLOG(BCH("RUN LOG"),21,0),U,4)
+ W !!,"Log entry ",BCH("RUN LOG"),"  was for date range ",BCH("PRINT BEGIN")," through ",BCH("PRINT END"),!,"and generated ",BCH("COUNT")," transactions from ",BCH("RECS")," records."
+ ;
+ W !!!,$C(7),$C(7),"This routine will generate CHRIS II transactions.",!
+RDD ;
+ S DIR(0)="Y",DIR("A")="Do you want to regenerate the transactions for this run",DIR("B")="N" K DA D ^DIR K DIR
+ I $D(DIRUT) S BCH("QFLG")=99 Q
+ I 'Y S BCH("QFLG")=99 Q
+ Q
+DELETES ;EP
+ S BCHRTYPE="D"
+ S BCHR="" F  S BCHR=$O(^BCHEXDEL("AD",BCH("ORIG TX DATE"),BCHR)) Q:BCHR=""  D DELETES2 Q:BCH("QFLG")
+ Q
+DELETES2 ;
+ S BCHTX=""
+ S BCHV("TX GENERATED")=0,^TMP("BCHREDO",$J,"DELETES",BCH("MAIN TX DATE"),BCHR)=BCH("MAIN TX DATE")
+ X BCHCNT
+ S X=$P(^BCHEXDEL(BCHR,0),U),X=$$LBLK^BCHEXD2(X,6) D TX^BCHEXD2
+ S X=$P(^BCHEXDEL(BCHR,0),U,2) S X=$$LBLK^BCHEXD2(X,7) D TX^BCHEXD2
+ S X=$P(^BCHEXDEL(BCHR,0),U,3) S X=$$LBLK^BCHEXD2(X,7) D TX^BCHEXD2
+ S X=$P(^BCHEXDEL(BCHR,0),U,4) S X=$$LZERO^BCHEXD2(X,3) D TX^BCHEXD2
+ S $E(BCHTX,68)=BCHRTYPE
+ D CNTBUILD^BCHEXRE
+ Q

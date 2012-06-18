@@ -1,0 +1,51 @@
+BSDAMEP ; IHS/ANMC/LJF - Extended Display; 
+ ;;5.3;PIMS;**1012**;APR 26, 2002
+ ;
+EN ;EP; Selection of appointment
+ ; requires DFN, SDT, SDCL, and SDW be set
+ K ^TMP("SDAMEP",$J)
+ S VALMBCK=""
+ N SDWIDTH,SDPT,SDSC
+ W ! D WAIT^DICD,EN^VALM("BSDAM APPT PROFILE")
+ S VALMBCK="R"
+ENQ Q
+ ;
+HDR ; Header
+ N VA,VAERR
+ ;S VALMHDR(1)=$$SP^BDGF(15)_$$CONF^BDGF  cmi/maw 5/14/2010 PATCH 1012 RQMT148 orig line
+ S VALMHDR(1)=$S($$GET1^DIQ(44,SDCL,3.5)]"":$$GET1^DIQ(44,SDCL,3.5),$$GET1^DIQ(44,SDCL,3)]"":$$GET1^DIQ(44,SDCL,3),1:"")_$$SP^BDGF(5)_$$CONF^BDGF  ;cmi/maw 5/14/2010 PATCH 1012 RQMT148 mod line
+ D PID^VADPT
+ S VALMHDR(2)=$E($P("Patient: "_$G(^DPT(DFN,0)),"^",1),1,30)_" ("_VA("BID")_")"_" Phone: "_$$GET1^DIQ(2,DFN,.131)
+ I $$DEAD^BDGF2(DFN) S X=$G(IORVON)_"Died on "_$$DOD^BDGF2(DFN)_$G(IORVOFF),VALMHDR(2)=$$SETSTR^VALM1(X,VALMHDR(2),40,60)
+ S X=$S($D(^DPT(DFN,.1)):"Ward: "_^(.1),1:"Outpatient")
+ S VALMHDR(2)=$$SETSTR^VALM1(X,VALMHDR(2),81-$L(X),$L(X))
+ S X="Clinic: "_$P(^SC(SDCL,0),U)
+ S VALMHDR(3)=$$SETSTR^VALM1(X,"Appointment #: "_SDW,81-$L(X),$L(X))
+ Q
+ ;
+INIT ;
+ N VA,VAERR,SDFSTCOL,SDSECCOL,CTRLCOL
+ D PID^VADPT
+ S SDDA=$$SCIEN^BSDU2(DFN,SDCL,SDT),SDLN=0
+ D INIT^SDAMEP1
+ D APDATA^SDAMEP1 ;        Appointment Data
+ D APLOG^SDAMEP3 ;         Appointment Event Log
+ S VALMCNT=SDLN
+ Q
+ ;
+EXIT ;EP;
+ K ^TMP("SDAMEP",$J)
+ K VALMCNT,SDT,SDCL,SDDA,SDLN,DFN,SDW,SDOE,SDPOV,SDPV
+ Q
+ ;
+VISIT ; -- set up IHS visit display lines
+ ; Appointment Check Out Data
+ ;
+ D SET^SDAMEP1($$SETSTR^VALM1("*** Check Out ***","",24,17))
+ D CNTRL^VALM10(SDLN,24,17,IOINHI,IOINORM)
+ D SET^SDAMEP1("")
+ ;
+ I '$$CODT^SDCOU(DFN,SDT,SDCL) D  G APCOQ
+ .D SET^SDAMEP1($$SETSTR^VALM1("No check out information.","",2,25))
+ D EN^SDCO0("SDAMEP",SDOE,SDLN,.SDLN)
+APCOQ Q

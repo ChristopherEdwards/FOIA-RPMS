@@ -1,0 +1,12 @@
+TELEHEALTH TYPE
+ZWR
+^AUTTTHT(0)="TELEHEALTH TYPE^90636.01^3^3"
+^AUTTTHT(1,0)="REAL TIME VIDEO^Describes two-way synchronous data transmission allowing direct interaction between patient and caregiver.^RTV"
+^AUTTTHT(2,0)="REMOTE MONITORING^Devices used to remotely collect and send data to a monitoring station for interpretation. (e.g. Devices to capture blood pressure, glucose, ECG or weight.)^RM"
+^AUTTTHT(3,0)="STORE & FORWARD^Technology to acquire and store clinical information (e.g. data, images, sound, video) that is then forwared or retrieved by another site.^S&F"
+^AUTTTHT("B","REAL TIME VIDEO",1)=""
+^AUTTTHT("B","REMOTE MONITORING",2)=""
+^AUTTTHT("B","STORE & FORWARD",3)=""
+^AUTTTHT("C","RM",2)=""
+^AUTTTHT("C","RTV",1)=""
+^AUTTTHT("C","S&F",3)=""

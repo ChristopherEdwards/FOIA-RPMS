@@ -1,0 +1,125 @@
+BDMVRL2 ; cmi/anch/maw - DEMO/APPTS ACTION ;
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;;AUG 11, 2006
+ ;
+ ;
+RDINIT ;EP;TO INITIALIZE PATIENT REGISTER DATA FOR DISPLAY
+ D REG^BDMFUTIL
+ Q:$D(BDMQUIT)
+ Q:'$G(BDMRPDA)
+ D GRD^BDMVRL5
+ K ^TMP("BDMVR",$J)
+ N A,B,C,X,Y,Z
+ S VALMCNT=0
+ S X="       PATIENT: "_$G(BDM("PATIENT"))
+ S $E(X,60)="AGE: "_$G(BDM("AGE"))
+ D Z(X)
+ S X="       ADDRESS: "_$G(BDM("ADDRESS"))
+ S $E(X,60)="DOB: "_$G(BDM("DOB"))
+ D Z(X)
+ S X="         PHONE: "_$G(BDM("PHONE"))
+ S $E(X,60)="HRN: "_$G(BDM("HRN"))
+ D Z(X)
+ S X="PRIM CARE PROV: "_$G(BDM("PRIMARY PROVIDER"))
+ S $E(X,60)="RES: "_$S($G(BDM("RES")):$P($G(^AUTTCOM(+BDM("RES"),0)),U),1:$G(BDM("RES")))
+ D Z(X)
+ S X="        STATUS: "_$G(BDM("STATUS"))
+ D Z(X)
+ S X="WHERE FOLLOWED: "_$G(BDM("WHERE FOLLOWED"))
+ D Z(X)
+ S X=" REGISTER PROV: "_$G(BDM("REGISTER PROVIDER"))
+ S $E(X,40)="CASE MGR: "_$E($G(BDM("CASE MANAGER")),1,40)
+ D Z(X)
+ S X="       CONTACT: "_$G(BDM("CLIENT CONTACT"))
+ D Z(X)
+ S X="    ENTRY DATE: "_$G(BDM("INITIAL ENTRY DATE"))
+ S $E(X,52)="LAST EDITED: "_$G(BDM("DATE LAST EDITED"))
+ D Z(X)
+ S X="   LAST REVIEW: "_$G(BDM("LAST REVIEW DATE"))
+ S $E(X,52)="NEXT REVIEW: "_$G(BDM("NEXT REVIEW DATE"))
+ S J=$O(BDM("DX",0))
+ S X="     DIAGNOSIS: "
+ I 'J S X=X_"(NO DIAGNOSIS ON FILE FOR THIS PATIENT)" D Z(X)
+ I J D
+ .N Z
+ .S Z=0
+ .F  S Z=$O(BDM("DX",Z)) Q:'Z  D
+ ..S X="     DIAGNOSIS: "_$P($G(BDM("DX",Z)),U)
+ ..S $E(X,53)="ONSET DATE: "_$S($P($G(BDM("DX",Z)),U,3)]"":$P(BDM("DX",Z),U,3),1:"")  ;IHS/CMI/LAB - 02/05/06
+ ..D Z(X)
+ I '$D(BDM("COMP")) D
+ .S X=" COMPLICATIONS: (NO COMPLICATIONS LISTED FOR THIS PATIENT)"
+ .D Z(X)
+ N J
+ S J=0
+ F  S J=$O(BDM("COMP",J)) Q:'J  D
+ .I J=1 D  Q
+ ..S Y=$P(BDM("COMP",J),U,2)
+ ..S X=" COMPLICATIONS: "_$P($G(BDM("COMP",J)),U)
+ ..S $E(X,53)="ONSET DATE: "_Y
+ ..D Z(X)
+ .S Y=$P(BDM("COMP",J),U,2)
+ .S X="                "_$P($G(BDM("COMP",J)),U)
+ .S $E(X,65)=Y
+ .D Z(X)
+ S VALMBCK="R"
+ Q
+Z(X) ;SET TMP NODE
+ S VALMCNT=VALMCNT+1
+ S ^TMP("BDMVR",$J,VALMCNT,0)=X
+ Q
+DX ;EP;TO SELECT DIABETES DIAGNOSIS
+ W !!,"Select the Diabetes Diagnosis for this report"
+ S DIR(0)="SO^1:Type 1;2:Type 2;3:Type 1 & Type 2;4:Gestational DM;5:Impaired Glucose Tolerance;6:All Diagnoses"
+ S DIR("A")="Which Diagnosis"
+ S DIR("B")="All Diagnoses"
+ D DIR^BDMFDIC
+ I 'Y S BDMQUIT="" Q
+ S BDM("DM DIAGNOSIS")=$S(Y=1:"TYPE 1",Y=2:"TYPE 2",Y=3:"TYPE 1 & TYPE 2",Y=4:"GESTATIONAL DM",Y=5:"IMPAIRED GLUCOSE TOLERANCE",1:"")
+ Q
+PATDX ;EP;INCLUDE PATIENTS WITH SPECIFIC DIAGNOSIS
+ S BDMQUIT=""
+ Q:'$D(^ACM(44,"D",BDMRPDA))
+ N X,Y,Z
+ S X=0
+ F  S X=$O(^ACM(44,"D",BDMRPDA,X)) Q:'X  D
+ .S Y=+$G(^ACM(44,X,0))
+ .I $P($G(^ACM(44.1,+Y,0)),U)]"",BDM("DM DIAGNOSIS")[$P(^(0),U) K BDMQUIT
+ Q
+LMEDS ;EP;TO LIST MEDS
+ K BDMQUIT
+ D NOW^%DTC
+ S BDMDT=X
+ S Z=0
+ F  S Z=$O(^ATXAX(+BDM("LIVER MEDS TAX"),21,Z)) Q:'Z!$D(BDMQUIT)  S X=+$G(^ATXAX(+BDM("LIVER MEDS TAX"),21,Z,0)) D LM1:X
+ Q
+LM1 ;DETERMINE IF PATIENT HAS CURRENT RX FOR TARGET MEDS
+ Q:'$D(^PS(55,DFN,"P",0))
+ S XX=0
+ F  S XX=$O(^PS(55,DFN,"P",XX)) Q:'XX!$D(BDMQUIT)  D
+ .S PS0=$G(^PS(55,DFN,"P",XX,0))
+ .Q:'PS0
+ .Q:'$D(^PSRX(+PS0,0))  S PSRX0=^(0)
+ .Q:$P(PSRX0,U,6)'=X
+ .Q:(($P(PSRX0,U,15)>0)&($P(PSRX0,U,15)<4)!($P(PSRX0,U,15)>5))
+ .Q:$P(PSRX0,U,15)=""
+ .Q:$P(^PSRX(+PS0,2),U,6)<BDMDT
+ .S BDMQUIT=""
+ Q
+NEWPAT ;EP;CREATE ENTRY FOR NEW REGISTER PATIENT
+ S DIR(0)="YO"
+ S DIR("A",1)="     "_$P(^DPT(DFN,0),U)_" is not on"
+ S DIR("A",2)="     the "_$S($G(BDMREGNM)]"":BDMREGNM_$S(BDMREGNM'["REGISTER"&(BDMREGNM'["Register"):" Register",1:""),1:"DIABETES Register")
+ S DIR("A",3)="          "
+ S DIR("A")="Add this client to the Register"
+ S DIR("B")="NO"
+ W !
+ D DIR^BDMFDIC
+ I Y'=1 S BDMQUIT="" Q
+ S X=BDMRDA
+ S DIC="^ACM(41,"
+ S DIC(0)="L"
+ S DIC("DR")=".02////"_DFN_";1////A;2////"_DT_";4////"_DT
+ D FILE^BDMFDIC
+ I +Y<1 S BDMQUIT="" Q
+ S BDMRPDA=+Y
+ Q

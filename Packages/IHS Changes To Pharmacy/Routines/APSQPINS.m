@@ -1,0 +1,100 @@
+APSQPINS ;IHS/ITSC/ENM - FIND ALL PRIVATE INSURANCE [ 08/29/2003  3:26 PM ];30-Aug-2006 10:40;SM
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1005**;11/11/2002
+ ; Modified - IHS/CIA/PLS - 03/11/04
+ ;            IHS/MSC/PLS - 08/30/06 - updated MCR API
+ Q
+PIN(P,D,F,CNT) ;EP - return private insurer name for patient P on date D in form F
+ I '$G(P) Q 0
+ I '$G(D) Q 0
+ N I,Y,Z
+ S Z=""
+ S F=$G(F)
+ S Y="",U="^"
+ I '$D(^DPT(P,0)) G PINX
+ I $P(^DPT(P,0),U,19) G PINX
+ I '$D(^AUPNPAT(P,0)) G PINX
+ I '$D(^AUPNPRVT(P,11)) G PINX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G PINX
+ S I=0
+ S CNT("A")=0
+ F  S I=$O(^AUPNPRVT(P,11,I)) Q:I'=+I  D
+ . Q:$P(^AUPNPRVT(P,11,I,0),U)=""
+ . S Y=$P(^AUPNPRVT(P,11,I,0),U)
+ . Q:$P(^AUTNINS(Y,0),U)["AHCCCS"
+ . Q:$P(^AUPNPRVT(P,11,I,0),U,6)>D
+ . N GP,DE  ;GRACE PERIOD FOR THIS INSURER
+ . S GP=$$GP(Y)
+ . S DE=$$FMADD^XLFDT(D,-GP)  ;TAKE INTO ACCOUNT GRACE PERIOD
+ . Q:($P(^AUPNPRVT(P,11,I,0),U,7)]"")&($P(^(0),U,7)<DE)
+ . S Y=$S(F="E":$P(^AUTNINS(Y,0),U),1:Y)
+ . S Z=$G(Z)_", "_Y_"*"_GP_"*"
+ . S CNT("A")=CNT("A")+1
+ . Q
+ S Z=$E(Z,3,999)  ;GET RID OF FIRST LETTER ','
+PINX ;
+ Q Z
+ ;
+MCR(P,D) ;EP - patient P medicare eligible on date D. IHS/OKCAO/POC 11/23/2001
+ ; I = IEN in ^AUPNMCR multiple.
+ ;Returns the Medicare Insurer IEN^Plan IEN
+ Q:'$G(P) 0
+ Q:'$G(D) 0
+ N I,Y
+ S Y=0
+ I '$D(^DPT(P,0)) G MCRX
+ I $P(^DPT(P,0),U,19) G MCRX
+ I '$D(^AUPNPAT(P,0)) G MCRX
+ I '$D(^AUPNMCR(P,11)) G MCRX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCRX
+ S I=0
+ F  S I=$O(^AUPNMCR(P,11,I)) Q:I'=+I  D
+ .Q:$P(^AUPNMCR(P,11,I,0),U)>D
+ .N GP,DE  ;GRACE PERIOD,DATE ENDING
+ .S GP=$$GP($P(^AUPNMCR(P,0),U,2))
+ .S DE=$$FMADD^XLFDT(D,-GP)
+ .I $P(^AUPNMCR(P,11,I,0),U,2)]"",$P(^(0),U,2)<DE Q
+ .S Y=$P(^AUPNMCR(P,0),U,2)_U_$P(^AUPNMCR(P,11,I,0),U,4)  ;IHS/MSC/PLS - 08/30/06 - Added Plan IEN
+MCRX Q Y
+ ;
+MCD(P,D) ;EP - patient P medicaid eligible on date D. IHS/OKCAO/POC 11/23/2001
+ ;RETURNS THE PATIENT IEN IN THE INSURER FILE IHS/OKCAO/POC
+ ; I = IEN.
+ ; J = Node 11 IEN in ^AUPNMCD.
+ I '$G(P) Q 0
+ I '$G(D) Q 0
+ N I,J,Y,INSURER,STATE,NODE0
+ S Y=0,U="^"
+ I '$D(^DPT(P,0)) G MCDX
+ I $P(^DPT(P,0),U,19) G MCDX
+ I '$D(^AUPNPAT(P,0)) G MCDX
+ I $D(^DPT(P,.35)),$P(^(.35),U)]"",$P(^(.35),U)<D G MCDX
+ S I=0 F  S I=$O(^AUPNMCD("B",P,I)) Q:I'=+I  D
+ .Q:'$D(^AUPNMCD(I,11))
+ .S J=0 F  S J=$O(^AUPNMCD(I,11,J)) Q:J'=+J  D
+ ..Q:J>D
+ ..N GP,DE,NODE0,INSURER,INSURERR  ;GRACE PERIOD ENDING DATE,NODE 0 ,INSURER FILE,POINTER TO STATE MEDICAID INSURER
+ ..S NODE0=$G(^AUPNMCD(I,0))
+ ..S INSURER=$P(NODE0,U,2),STATE=$P(NODE0,U,4)
+ ..I 'INSURER!('STATE) Q
+ ..S INSURERR=$P($G(^AUTNINS(INSURER,13,STATE,0)),U,2)
+ ..S GP=$$GP(INSURERR)
+ ..S DE=$$FMADD^XLFDT(DT,-GP)
+ ..  ;I $P(^AUPNMCD(I,11,J,0),U,2)]"",$P(^(0),U,2)<D Q
+ ..I $P(^AUPNMCD(I,11,J,0),U,2)]"",$P(^(0),U,2)<DE Q
+ ..S Y=INSURERR
+ ..Q
+ .Q
+ ;
+MCDX ;
+ Q Y
+ ;
+ ;
+GP(INS) ;EP - GRACE PERIOD FOR AN INSURER-LOOK AT DEFAULT AND INDIVIDUAL INSURER IHS/OKCAO/POC 11/23/2001
+ N DEFINS,SPECINS,Y
+ S Y=0
+ I '+INS Q Y
+ S DEFINS=$$GET1^DIQ(9002313.99,"1,",951)
+ S Y=+DEFINS
+ S SPECINS=$$GET1^DIQ(9002313.4,INS_",",100.08)
+ S:+SPECINS Y=+SPECINS
+ Q Y

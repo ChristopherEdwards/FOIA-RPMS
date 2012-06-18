@@ -1,0 +1,314 @@
+BGP5ASL ; IHS/CMI/LAB - DISPLAY IND LISTS ;
+ ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;; ;
+EP ;EP - CALLED FROM OPTION
+ K BGPSUL
+ D EN
+ Q
+EOJ ;EP
+ K BGPTIND,BGPHIGH,BGPANS,BGPC,BGPGANS,BGPGC,BGPGI,BGPI,BGPX
+ Q
+ ;; ;
+EN ;EP -- main entry point for APCH HMR DISPLAY
+ D EN^VALM("BGP 05 AREA SELECT SITES")
+ D CLEAR^VALM1
+ D FULL^VALM1
+ W:$D(IOF) @IOF
+ D EOJ
+ Q
+ ;
+HDR ; -- header code
+ S VALMHDR(1)="Area Aggregate Site Selection"
+ S VALMHDR(2)="* indicates the site has been selected"
+ S X="#",$E(X,6)="SU",$E(X,17)="FACILITY",$E(X,32)="BEG DATE",$E(X,42)="END DATE",$E(X,52)="BASE BEG",$E(X,62)="BASE END",$E(X,72)="DATE RUN"
+ S VALMHDR(3)=X
+ Q
+ ;
+INIT ; -- init variables and list array
+ I BGPRTYPE=1 D NGR Q
+ I BGPRTYPE=3 D HED Q
+ I BGPRTYPE=5 D ELD Q
+NGR ;
+ K BGPTIND S BGPHIGH=""
+ S BGPSUCNT=0,BGPSU="",BGPSUC=0
+ S BGPX=0 F  S BGPX=$O(^BGPGPDCV(BGPX)) Q:BGPX'=+BGPX  S V=$G(^BGPGPDCV(BGPX,0)) D
+ .Q:$P(V,U)'=BGPBD
+ .Q:$P(V,U,2)'=BGPED
+ .Q:$P(V,U,7)'=BGPPER
+ .Q:$P(V,U,12)'=1
+ .Q:$P(V,U,5)'=BGPBBD
+ .Q:$P(V,U,6)'=BGPBED
+ .Q:$P(V,U,14)'=BGPBEN
+ .S BGPSUC=BGPSUC+1,BGPTIND(BGPSUC,0)=BGPSUC_")"
+ .S Y=""
+ .S $E(Y,4)=$E($$SU($P(V,U,11)),1,10)
+ .S $E(Y,15)=$E($$FAC($P(V,U,9)),1,13)
+ .S $E(Y,30)=$$DATE^BGP5UTL($P(V,U))
+ .S $E(Y,40)=$$DATE^BGP5UTL($P(V,U,2))
+ .S $E(Y,50)=$$DATE^BGP5UTL($P(V,U,5))
+ .S $E(Y,60)=$$DATE^BGP5UTL($P(V,U,6))
+ .S $E(Y,70)=$$DATE^BGP5UTL($P(V,U,13))
+ .S BGPTIND(BGPSUC,0)=BGPTIND(BGPSUC,0)_Y
+ .S BGPTIND(BGPSUC,BGPSUC)=BGPX
+ .I $D(BGPSUL(BGPX)) S BGPTIND(BGPSUC,0)="*"_BGPTIND(BGPSUC,0)
+ .Q
+ S (VALMCNT,BGPHIGH)=BGPSUC
+ Q
+ ;
+ELD ;
+ K BGPTIND S BGPHIGH=""
+ S BGPSUCNT=0,BGPSU="",BGPSUC=0
+ S BGPX=0 F  S BGPX=$O(^BGPELDCV(BGPX)) Q:BGPX'=+BGPX  I BGPX S V=$G(^BGPELDCV(BGPX,0)) D
+ .Q:$P(V,U)'=BGPBD
+ .Q:$P(V,U,2)'=BGPED
+ .Q:$P(V,U,7)'=BGPPER
+ .Q:$P(V,U,12)'=5
+ .Q:$P(V,U,5)'=BGPBBD
+ .Q:$P(V,U,6)'=BGPBED
+ .Q:$P(V,U,14)'=BGPBEN
+ .S BGPSUC=BGPSUC+1,BGPTIND(BGPSUC,0)=BGPSUC_")"
+ .S Y=""
+ .S $E(Y,4)=$E($$SU($P(V,U,11)),1,10)
+ .S $E(Y,15)=$E($$FAC($P(V,U,9)),1,13)
+ .S $E(Y,30)=$$DATE^BGP5UTL($P(V,U))
+ .S $E(Y,40)=$$DATE^BGP5UTL($P(V,U,2))
+ .S $E(Y,50)=$$DATE^BGP5UTL($P(V,U,5))
+ .S $E(Y,60)=$$DATE^BGP5UTL($P(V,U,6))
+ .S $E(Y,70)=$$DATE^BGP5UTL($P(V,U,13))
+ .S BGPTIND(BGPSUC,0)=BGPTIND(BGPSUC,0)_Y
+ .S BGPTIND(BGPSUC,BGPSUC)=BGPX
+ .I $D(BGPSUL(BGPX)) S BGPTIND(BGPSUC,0)="*"_BGPTIND(BGPSUC,0)
+ .Q
+ S (VALMCNT,BGPHIGH)=BGPSUC
+ Q
+ ;
+HED ;
+ K BGPTIND S BGPHIGH=""
+ S BGPSUCNT=0,BGPSU="",BGPSUC=0
+ S BGPX=0 F  S BGPX=$O(^BGPHEDCV(BGPX)) Q:'BGPX  I BGPX S V=$G(^BGPHEDCV(BGPX,0)) D
+ .Q:$P(V,U)'=BGPBD
+ .Q:$P(V,U,2)'=BGPED
+ .Q:$P(V,U,7)'=BGPPER
+ .Q:$P(V,U,12)'=3
+ .Q:$P(V,U,5)'=BGPBBD
+ .Q:$P(V,U,6)'=BGPBED
+ .Q:$P(V,U,14)'=BGPBEN
+ .S BGPSUC=BGPSUC+1,BGPTIND(BGPSUC,0)=BGPSUC_")"
+ .S Y=""
+ .S $E(Y,4)=$E($$SU($P(V,U,11)),1,10)
+ .S $E(Y,15)=$E($$FAC($P(V,U,9)),1,13)
+ .S $E(Y,30)=$$DATE^BGP5UTL($P(V,U))
+ .S $E(Y,40)=$$DATE^BGP5UTL($P(V,U,2))
+ .S $E(Y,50)=$$DATE^BGP5UTL($P(V,U,5))
+ .S $E(Y,60)=$$DATE^BGP5UTL($P(V,U,6))
+ .S $E(Y,70)=$$DATE^BGP5UTL($P(V,U,13))
+ .S BGPTIND(BGPSUC,0)=BGPTIND(BGPSUC,0)_Y
+ .S BGPTIND(BGPSUC,BGPSUC)=BGPX
+ .I $D(BGPSUL(BGPX)) S BGPTIND(BGPSUC,0)="*"_BGPTIND(BGPSUC,0)
+ .Q
+ S (VALMCNT,BGPHIGH)=BGPSUC
+ Q
+FAC(S) ;
+ NEW N S N=$O(^AUTTLOC("C",S,0))
+ I N="" Q N
+ Q $P(^DIC(4,N,0),U)
+SU(S) ;
+ NEW N S N=$O(^AUTTSU("C",S,0))
+ I N="" Q N
+ Q $P(^AUTTSU(N,0),U)
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+BACK ;go back to listman
+ D TERM^VALM0
+ S VALMBCK="R"
+ D INIT
+ D HDR
+ K DIR
+ K X,Y,Z,I
+ Q
+ ;
+ADD ;EP - add an item to the selected list - called from a protocol
+ W !
+ S DIR(0)="LO^1:"_BGPHIGH,DIR("A")="Which Facility"
+ D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y="" W !,"No facilities selected." G ADDX
+ I $D(DIRUT) W !,"No facilities selected." G ADDX
+ D FULL^VALM1 W:$D(IOF) @IOF
+ S BGPANS=Y,BGPC="" F BGPI=1:1 S BGPC=$P(BGPANS,",",BGPI) Q:BGPC=""  S BGPSUL(BGPTIND(BGPC,BGPC))=""
+ADDX ;
+ D BACK
+ Q
+ ;
+ADDALL ;
+ F X=1:1:BGPHIGH S BGPSUL(BGPTIND(X,X))=""
+ D BACK
+ Q
+ ;
+REM ;
+ W ! S DIR(0)="LO^1:"_BGPHIGH,DIR("A")="Which Facility(s)" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y="" W !,"No facilities selected." G ADDX
+ I $D(DIRUT) W !,"No facilities selected." G ADDX
+ D FULL^VALM1 W:$D(IOF) @IOF
+ S BGPANS=Y,BGPC="" F BGPI=1:1 S BGPC=$P(BGPANS,",",BGPI) Q:BGPC=""  K BGPSUL(BGPTIND(BGPC,BGPC))
+REMX ;
+ D BACK
+ Q
+GET(BGPSUL,BGPFILE,BGPRT,BGPPER,BGPQTR,BGPVDT,BGPBEN) ;EP - CALLED FROM GUI TO GET FILES FOR DISPLAY ON AREA REPORT
+ ;BGPSUL is array returned with iens from the file
+ ;BGPFILE is the file these iens belong to and is returned to you
+ ;input:
+ ;  BGPRT:  1 if national gpra
+ ;          9 if area performance
+ ;          3 if HEDIS
+ ;          5 if Elder report
+ ;          
+ ;  BGPPER - this is the year they select if they answered the above question
+ ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2005)
+ ;           if they chose 5 then this will be the end date the enter
+ ;           if this is the national gpra report (AGP) you can pass a blank here
+ ;   BGPQTR - this is equal to 1,2,3,4 or 5 depending on how the user answers the following
+ ;           DIR call:
+ ;               Select one of the following:
+ ;
+ ;         1         January 1 - December 31
+ ;         2         April 1 - March 31
+ ;         3         July 1 - June 30
+ ;         4         October 1 - September 30
+ ;         5         User defined date range
+ ;       Enter the date range for your report:
+ ;
+ ;  BGPVDT - baseline year entered by user in internal fileman format, year only
+ ;           e.g.  3010000
+ ;           if this is the national gpra report (AGP) you can pass a blank here
+ ;
+ ;  BGPBEN - 1 for Indians only, 2 for Not Indian, 3 for both (see reader call
+ ;           at subroutine BEN in BGP5DL 
+ ;           if this is the national gpra report (AGP) you can pass a blank here
+ ;
+ ;               
+ K BGPTIND S BGPHIGH=""
+ S BGPSUCNT=0,BGPSU="",BGPSUC=0
+ I BGPRT=1 D G1
+ I BGPRT=3 D G3
+ I BGPRT=5 D G5
+ I BGPRT=9 D G9
+ Q
+G1 ;
+ S BGPBD=3040701,BGPED=3050630
+ S BGPBBD=2990701,BGPBED=3000630
+ S BGPPBD=3030701,BGPPED=3040630
+ S BGPPER=3050000,BGPQTR=3,BGPBEN=1
+ S BGPFILE=90371.03
+ S BGPX=0 F  S BGPX=$O(^BGPGPDCV(BGPX)) Q:BGPX'=+BGPX  S V=^BGPGPDCV(BGPX,0) D
+ . N BGPSU,BGPFAC,BGPEBD,BGPEED,BGPEBBD,BGPEBED,BGPEDRR
+ .Q:$P(V,U)'=BGPBD
+ .Q:$P(V,U,2)'=BGPED
+ .Q:$P(V,U,7)'=BGPPER
+ .Q:$P(V,U,12)'=1
+ .Q:$P(V,U,5)'=BGPBBD
+ .Q:$P(V,U,6)'=BGPBED
+ .Q:$P(V,U,14)'=BGPBEN
+ . S BGPSU=$E($$SU($P(V,U,11)),1,10)
+ . S BGPFAC=$E($$FAC($P(V,U,9)),1,13)
+ . S BGPEBD=$$DATE^BGP5UTL($P(V,U))
+ . S BGPEED=$$DATE^BGP5UTL($P(V,U,2))
+ . S BGPEBBD=$$DATE^BGP5UTL($P(V,U,5))
+ . S BGPEBED=$$DATE^BGP5UTL($P(V,U,6))
+ . S BGPEDRR=$$DATE^BGP5UTL($P(V,U,13))
+ . S BGPSUL(BGPX)=BGPSU_U_BGPFAC_U_BGPEBD_U_BGPEED_U_BGPEBBD_U_BGPEBED_U_BGPEDRR
+ .Q
+ Q
+G3 ;
+ I BGPQTR=1 S BGPBD=$E(BGPPER,1,3)_"0101",BGPED=$E(BGPPER,1,3)_"1231"
+ I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
+ I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
+ I BGPQTR=4 S BGPBD=($E(BGPPER,1,3)-1)_"1001",BGPED=$E(BGPPER,1,3)_"0930"
+ I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-365),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ S X=$E(BGPPER,1,3)-$E(BGPVDT,1,3)
+ S X=X_"0000"
+ S BGPBBD=BGPBD-X,BGPBBD=$E(BGPBBD,1,3)_$E(BGPBD,4,7)
+ S BGPBED=BGPED-X,BGPBED=$E(BGPBED,1,3)_$E(BGPED,4,7)
+ S BGPFILE=90372.03
+ S BGPX=0 F  S BGPX=$O(^BGPHEDCV(BGPX)) Q:'BGPX  I BGPX S V=^BGPHEDCV(BGPX,0) D
+ .Q:$P(V,U)'=BGPBD
+ .Q:$P(V,U,2)'=BGPED
+ .Q:$P(V,U,7)'=BGPPER
+ .Q:$P(V,U,12)'=3
+ .Q:$P(V,U,5)'=BGPBBD
+ .Q:$P(V,U,6)'=BGPBED
+ .Q:$P(V,U,14)'=BGPBEN
+ . S BGPSU=$E($$SU($P(V,U,11)),1,10)
+ . S BGPFAC=$E($$FAC($P(V,U,9)),1,13)
+ . S BGPEBD=$$DATE^BGP5UTL($P(V,U))
+ . S BGPEED=$$DATE^BGP5UTL($P(V,U,2))
+ . S BGPEBBD=$$DATE^BGP5UTL($P(V,U,5))
+ . S BGPEBED=$$DATE^BGP5UTL($P(V,U,6))
+ . S BGPEDRR=$$DATE^BGP5UTL($P(V,U,13))
+ . S BGPSUL(BGPX)=BGPSU_U_BGPFAC_U_BGPEBD_U_BGPEED_U_BGPEBBD_U_BGPEBED_U_BGPEDRR
+ .Q
+ Q
+G5 ;
+ I BGPQTR=1 S BGPBD=$E(BGPPER,1,3)_"0101",BGPED=$E(BGPPER,1,3)_"1231"
+ I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
+ I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
+ I BGPQTR=4 S BGPBD=($E(BGPPER,1,3)-1)_"1001",BGPED=$E(BGPPER,1,3)_"0930"
+ I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-365),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ S X=$E(BGPPER,1,3)-$E(BGPVDT,1,3)
+ S X=X_"0000"
+ S BGPBBD=BGPBD-X,BGPBBD=$E(BGPBBD,1,3)_$E(BGPBD,4,7)
+ S BGPBED=BGPED-X,BGPBED=$E(BGPBED,1,3)_$E(BGPED,4,7)
+ S BGPFILE=90373.03
+ S BGPX=0 F  S BGPX=$O(^BGPELDCV(BGPX)) Q:'BGPX  I BGPX S V=^BGPELDCV(BGPX,0) D
+ .Q:$P(V,U)'=BGPBD
+ .Q:$P(V,U,2)'=BGPED
+ .Q:$P(V,U,7)'=BGPPER
+ .Q:$P(V,U,12)'=5
+ .Q:$P(V,U,5)'=BGPBBD
+ .Q:$P(V,U,6)'=BGPBED
+ .Q:$P(V,U,14)'=BGPBEN
+ . S BGPSU=$E($$SU($P(V,U,11)),1,10)
+ . S BGPFAC=$E($$FAC($P(V,U,9)),1,13)
+ . S BGPEBD=$$DATE^BGP5UTL($P(V,U))
+ . S BGPEED=$$DATE^BGP5UTL($P(V,U,2))
+ . S BGPEBBD=$$DATE^BGP5UTL($P(V,U,5))
+ . S BGPEBED=$$DATE^BGP5UTL($P(V,U,6))
+ . S BGPEDRR=$$DATE^BGP5UTL($P(V,U,13))
+ . S BGPSUL(BGPX)=BGPSU_U_BGPFAC_U_BGPEBD_U_BGPEED_U_BGPEBBD_U_BGPEBED_U_BGPEDRR
+ .Q
+ Q
+G9 ;
+ I BGPQTR=1 S BGPBD=$E(BGPPER,1,3)_"0101",BGPED=$E(BGPPER,1,3)_"1231"
+ I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
+ I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
+ I BGPQTR=4 S BGPBD=($E(BGPPER,1,3)-1)_"1001",BGPED=$E(BGPPER,1,3)_"0930"
+ I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-365),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ S X=$E(BGPPER,1,3)-$E(BGPVDT,1,3)
+ S X=X_"0000"
+ S BGPBBD=BGPBD-X,BGPBBD=$E(BGPBBD,1,3)_$E(BGPBD,4,7)
+ S BGPBED=BGPED-X,BGPBED=$E(BGPBED,1,3)_$E(BGPED,4,7)
+ S BGPX=0 F  S BGPX=$O(^BGPGPDCV(BGPX)) Q:'BGPX  I BGPX S V=^BGPGPDCV(BGPX,0) D
+ .Q:$P(V,U)'=BGPBD
+ .Q:$P(V,U,2)'=BGPED
+ .Q:$P(V,U,7)'=BGPPER
+ .Q:$P(V,U,12)'=1
+ .Q:$P(V,U,5)'=BGPBBD
+ .Q:$P(V,U,6)'=BGPBED
+ .Q:$P(V,U,14)'=BGPBEN
+ . S BGPSU=$E($$SU($P(V,U,11)),1,10)
+ . S BGPFAC=$E($$FAC($P(V,U,9)),1,13)
+ . S BGPEBD=$$DATE^BGP5UTL($P(V,U))
+ . S BGPEED=$$DATE^BGP5UTL($P(V,U,2))
+ . S BGPEBBD=$$DATE^BGP5UTL($P(V,U,5))
+ . S BGPEBED=$$DATE^BGP5UTL($P(V,U,6))
+ . S BGPEDRR=$$DATE^BGP5UTL($P(V,U,13))
+ . S BGPSUL(BGPX)=BGPSU_U_BGPFAC_U_BGPEBD_U_BGPEED_U_BGPEBBD_U_BGPEBED_U_BGPEDRR
+ .Q
+ Q

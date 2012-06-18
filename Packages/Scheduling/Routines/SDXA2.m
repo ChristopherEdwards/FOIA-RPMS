@@ -1,0 +1,7 @@
+SDXA2 ; ;12/15/03
+ S X=DG(DQ),DIC=DIE
+ K DIV S DIV=X,D0=DA(1),DIV(0)=D0,D1=DA,DIV(1)=D1 S Y(0)=X S X="369"'[X I X S X=DIV S Y(1)=$S($D(^SDV(D0,"CS",D1,0)):^(0),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y X ^DD(409.51,5,1,1,1.1) X ^DD(409.51,5,1,1,1.4)
+ S X=DG(DQ),DIC=DIE
+ X ^DD(409.51,5,1,2,1.3) I X S X=DIV S Y(1)=$S($D(^SDV(D0,"CS",D1,0)):^(0),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y X ^DD(409.51,5,1,2,1.1) X ^DD(409.51,5,1,2,1.4)
+ S X=DG(DQ),DIC=DIE
+ S:X=10 ^SDV("ACG",DA(1),DA)=""

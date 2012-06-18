@@ -1,0 +1,43 @@
+ABMDRPR3 ; IHS/ASDST/DMJ - Productivity Stats ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;TMD;
+ ;
+PRINT ;EP for writing data
+ S ABM("PG")=0
+ D HDB
+ S ABM("CNT")=0,ABM("AMT")=0,ABM("O")="",ABM("OL")=""
+ F  S ABM("O")=$O(ABM("ST",ABM("O"))) Q:'ABM("O")!($G(ABM("F1")))  D
+ .I '$G(ABMY("APPR")) W !!?5,"Approving Official: ",$P(^VA(200,ABM("O"),0),U)
+ .S ABM("L")="",(ABM("SUBCNT"),ABM("V"),ABM("SUBAMT"))=0
+ .F  S ABM("L")=$O(ABM("ST",ABM("O"),ABM("L"))) Q:ABM("L")=""!($G(ABM("F1")))  D
+ ..S (ABM("SSCNT"),ABM("V"),ABM("SSAMT"))=0
+ ..F  S ABM("V")=$O(ABM("ST",ABM("O"),ABM("L"),ABM("V"))) Q:'ABM("V")!($G(ABM("F1")))  D
+ ...I $Y>(IOSL-5) D HD Q:$G(ABM("F1"))  S ABM("OL")=""
+ ...I ABM("L")'=ABM("OL") W !!,$E(ABM("L"),1,30) S ABM("OL")=ABM("L")
+ ...E  W !
+ ...I ABMY("SORT")="V" W ?32,$E($P(^ABMDVTYP(ABM("V"),0),U),1,26)
+ ...I ABMY("SORT")="C" W ?32,$E($P(^DIC(40.7,ABM("V"),0),U),1,26)
+ ...S ABM("T")=$P(ABM("ST",ABM("O"),ABM("L"),ABM("V")),U,1)
+ ...S ABM("A")=$P(ABM("ST",ABM("O"),ABM("L"),ABM("V")),U,2)
+ ...W ?60,$J($FN(ABM("T"),",",0),5)
+ ...W ?67,$J($FN(ABM("A"),",",2),12)
+ ...S ABM("CNT")=ABM("CNT")+ABM("T"),ABM("SUBCNT")=ABM("SUBCNT")+ABM("T")
+ ...S ABM("AMT")=ABM("AMT")+ABM("A"),ABM("SUBAMT")=ABM("SUBAMT")+ABM("A")
+ ...S ABM("SSAMT")=ABM("SSAMT")+ABM("A"),ABM("SSCNT")=ABM("SSCNT")+ABM("T")
+ ..Q:$G(ABM("F1"))
+ ..W !?60,"-----",?69,"----------",!?49,"Subtotal:",?60,$J($FN(ABM("SSCNT"),",",0),5)
+ ..W ?67,$J($FN(ABM("SSAMT"),",",2),12)
+ .Q:$G(ABM("F1"))
+ .W !?60,"-----",?69,"----------",!?52,"Total:",?60,$J($FN(ABM("SUBCNT"),",",0),5)
+ .W ?67,$J($FN(ABM("SUBAMT"),",",2),12)
+ I ABM("CNT")'=+$G(ABM("SUBCNT")),'$G(ABM("F1")) W !?59,"======",?68,"===========",!?46,"Grand Total:",?59,$J($FN(ABM("CNT"),",",0),6),?67,$J($FN(ABM("AMT"),",",2),12)
+ Q
+ ;
+HD D PAZ^ABMDRUTL I $D(DTOUT)!$D(DUOUT)!$D(DIROUT) S ABM("F1")=1 Q
+HDB S ABM("PG")=ABM("PG")+1 D WHD^ABMDRHD
+ W !,?58,"Number of",?72,"Amount"
+ W !,"Location",?32,$S(ABMY("SORT")="C":"Clinic",1:"Visit Type"),?60,"Claims",?72,"Billed"
+ S $P(ABM("LINE"),"-",80)="" W !,ABM("LINE") K ABM("LINE")
+ Q
+XIT ;EXIT POINT
+ Q

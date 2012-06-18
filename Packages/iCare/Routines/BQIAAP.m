@@ -1,0 +1,67 @@
+BQIAAP ;VNGT/HS/BEE - Print Asthma Action Plan ; 19 Jul 2006  10:35 AM
+ ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;
+ Q
+ ;
+EN(DATA,DFN) ; EP - BQI ASTHMA ACTION PLAN
+ ;Description
+ ;  Generates an Asthma Action Plan for a given DFN
+ ;
+ ;Input
+ ;  DFN - Patient Internal ID
+ ;
+ ;Output
+ ;  DATA - Name of global in which data is stored(^TMP("BQIAAP"))
+ ;
+ NEW UID,BQII,HSTEXT,X
+ NEW APCHB,APCHC,APCHCONT,APCHF,APCHG,APCHL,APCHQ,APCHREL,F  ;Used by called routine
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIAAP",UID))
+ K @DATA
+ ;
+ S BQII=0
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIAAP D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ D HDR
+ ;
+ I $$VERSION^XPDUTL("BJPC")<2.0 D  G DONE
+ . S BMXSEC="RPC Call Failed: Patient Asthma Action Plan does not exist in RPMS" Q
+ ;
+ I $$TMPFL^BQIUL1("W",UID,DFN) G DONE
+ ;
+ NEW APCHRELM,APCHRESM,IOSL,IOM,IOST
+ S (APCHRELM,APCHRESM)=""
+ S IOSL=999,IOM=80,IOST="P-OTHER80"
+ U IO D PRINT^APCHAAP1
+ U IO W $C(9)
+ ;
+ I $$TMPFL^BQIUL1("C") G DONE
+ I $$TMPFL^BQIUL1("R",UID,DFN) G DONE
+ ;
+ F  U IO R HSTEXT:.1 Q:HSTEXT[$C(9)  D
+ . S HSTEXT=$$STRIP^XLFSTR(HSTEXT,"^")
+ . I HSTEXT="" S HSTEXT=" "
+ . S BQII=BQII+1,@DATA@(BQII)=HSTEXT_$C(13)_$C(10)
+ S BQII=BQII+1,@DATA@(BQII)=$C(30)
+ ;
+ I $$TMPFL^BQIUL1("C") G DONE
+ I $$TMPFL^BQIUL1("D",UID,DFN) G DONE
+ ;
+DONE ;
+ ;
+ S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ Q
+ ;
+HDR ;
+ S @DATA@(BQII)="T01024REPORT_TEXT"_$C(30)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(BQII),$D(DATA) S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ I $$TMPFL^BQIUL1("C")
+ Q

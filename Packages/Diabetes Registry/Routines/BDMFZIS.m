@@ -1,0 +1,79 @@
+BDMFZIS ; cmi/anch/maw - DEVICE CALLS AND QUEUING ;
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;;AUG 11, 2006
+ ;;ROUTINE USED AS CENTRAL POINT FOR ALL DEVICE HANDLING AND QUEUING
+ZIS ;EP;TO CALL DEVICE
+ I $G(BDMBROWS) D  Q
+ .K BDMPRINT  ;cmi/maw kill off so not hanging around
+ .S DIR(0)="SO^P:PRINT Output;B:BROWSE Output on Screen"
+ .S DIR("A")="Do you want to "
+ .S DIR("B")="PRINT"
+ .W !
+ .D DIR^BDMFDIC
+ .Q:$D(BDMQUIT)!$D(BDMOUT)
+ .I $E($G(X))="P" S BDMPRINT=1 D ZIS1 Q  ;cmi/maw 1/17/2006 to look for print select or not
+ .I $E($G(Y))="B" D BROWSE Q
+ZIS1 ;EP;
+ K DN
+ S %ZIS="AEMNPQ"
+ S ZIBH=$TR($H,",","")_$R(1000)
+ W !
+ D ^%ZIS
+ I POP>0 D CLOSE Q
+ S:$G(IOPAR)]"" %ZIS("IOPAR")=IOPAR
+ S ZTSAVE("%ZIS*")=""
+ S ZTSAVE("ZIBH")=""
+ S ZTRTN="OPEN^BDMFZIS"
+ I $D(IO("Q")),IO=IO(0)!$D(IO("S")) D  G ZIS
+ .W *7,*7
+ .W !!,"CANNOT QUEUE TO HOME OR SLAVE DEVICE."
+ I '$D(IO("Q")) D  D CLOSE Q
+ .I $E(IOST,1,2)="P-" D
+ ..W !!,"...One moment please, while I complete your print request..."
+ ..W !
+ .D:$D(BDMRTN) @ZTRTN
+ E  D ZTLOAD
+ Q
+CLOSE ;EP;TO CLOSE DEVICE
+ D ^%ZISC
+ K IOP,IOPAR,%ZIS,ZTSK,ZTQUEUED,ZTREQ
+ Q
+ZTLOAD ;EP;TO CALL %ZTLOAD
+ K BDMDR
+ S ZTIO=ION
+ S ZTSAVE("BDM*")=""
+ D ^%ZTLOAD
+ W !!,$S($G(ZTSK)]"":"Request queued!",1:"Request cancelled.")
+ D CLOSE
+ H 2
+ Q
+OPEN ;EP;TO OPEN DEVICE AND PRINT SELECTED REPORT
+ I '$D(ZTQUEUED)!(ION["HOST") S IOP=ION D ^%ZIS I POP S BDMQUIT="" Q
+ U IO
+ D @BDMRTN
+ S:$D(ZTQUEUED) ZTREQ="@"
+ D:'$D(ZTQUEUED) CLOSE
+ Q
+HOST ;EP;TO OPEN HOST FILE
+ ;%FN - FILE NAME REQUIRED
+ ;BDMOP - 'R' FOR READ, 'W' FOR WRITE REQUIRED, 'M' FOR READ/WRITE
+ Q:'$D(%FN)!'$D(BDMOP)
+ S POP=1
+ F BDMI=51:1:54 Q:'POP  D
+ .S (IOP,ION)=BDMI
+ .S %ZIS("IOPAR")="("""_%FN_""":"""_BDMOP_""")"
+ .D ^%ZIS
+ I POP D  G HOST:$G(BDMX)<2 S BDMQUIT="" Q
+ .W !!,"Waiting for HOST FILE SERVER."
+ .S BDMX=$G(BDMX)+1
+ K IOP,POP
+ Q
+BROWSE ;EP;TO BROWSE
+ Q:$G(BDMRTN)=""
+ S BDMFLD("BROWSE")=1
+ D VIEWR^XBLM(BDMRTN)
+ I $D(BDMQUIT) D  Q
+ .K BDMQUIT
+ .W !!,"BROWSE function temporarily unavailable."
+ .D ZIS1
+ D CLEAR^VALM1
+ Q

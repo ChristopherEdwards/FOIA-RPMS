@@ -1,0 +1,152 @@
+APCDDVL3 ; IHS/CMI/LAB - report on checked in visits with no pov ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;IHS/CMI/LAB - patch 1 Y2K
+ ;
+ ;
+START ;
+ D EOJ
+ D INFORM
+GETDATES ;
+BD ;get beginning date
+ W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Visit Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G EOJ
+ S APCDBD=Y
+ED ;get ending date
+ W ! S DIR(0)="DA^"_APCDBD_":DT:EP",DIR("A")="Enter ending Visit Date:  " S Y=APCDBD D DD^%DT S Y="" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G BD
+ S APCDED=Y
+ ;
+SORT ;
+ S APCDCSRT=""
+ S DIR(0)="S^T:Terminal Digit Order;H:Health Record Number Order;D:Visit Date Order;C:Clinic Code Order",DIR("A")="Sort the report by",DIR("B")="T" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) G ED
+ S APCDCSRT=Y
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCDDEMO)
+ I APCDDEMO=-1 G BD
+ZIS ;call to XBDBQUE
+ S XBRP="PRINT^APCDDVL3",XBRC="PROCESS^APCDDVL3",XBRX="EOJ^APCDDVL3",XBNS="APCD"
+ D ^XBDBQUE
+ D EOJ
+ Q
+ ;
+EOJ ;
+ D EN^XBVK("APCD")
+ Q
+PROCESS ;EP - called from XBDBQUE
+ S ^XTMP("APCDDVL3",0)=$$FMADD^XLFDT(DT,14)_"^"_DT_"^"_"APCD - 12:00 VISITS W NO BILL LINK"
+ S APCDJ=$J,APCDBT=$H
+ S APCDT=APCDBD-.0001,APCDEND=APCDED+.2400
+ F  S APCDT=$O(^AUPNVSIT("B",APCDT)) Q:'APCDT!(APCDT>APCDEND)  D
+ . S APCDV=0
+ . F  S APCDV=$O(^AUPNVSIT("B",APCDT,APCDV)) Q:'APCDV  D
+ .. I $P($P(^AUPNVSIT(APCDV,0),U),".",2)'=12 Q  ;no a 12:00 visit
+ .. Q:$$DEMO^APCLUTL($P(^AUPNVSIT(APCDV,0),U,5),APCDDEMO)
+ .. I $P(^AUPNVSIT(APCDV,0),U,28)]"" Q  ;has billing link
+ .. I $P(^AUPNVSIT(APCDV,0),U,6)'=DUZ(2) Q  ;another facilities visit
+ .. ;I $$PRIMPROV^APCLV(APCDV)]"",$D(^AUPNVPOV("AD",APCDV)) Q  ;COMPLETE VISIT
+ .. Q:"AORS"'[$P(^AUPNVSIT(APCDV,0),U,7)
+ .. S APCDSORT="" D GETSORT I APCDSORT="" S APCDSORT="??"
+ .. S ^XTMP("APCDDVL3",APCDJ,APCDBT,"VISITS",APCDSORT,APCDV)=""
+ .. Q
+ . Q
+ Q
+GETSORT ;get sort value
+ I APCDCSRT="D" S APCDSORT=$P(^AUPNVSIT(APCDV,0),U) Q
+ I APCDCSRT="C" S APCDSORT=$$CLINIC^APCLV(APCDV,"C") Q  ;clinic code
+ ;hrn sort values
+ S APCDSORT=$$HRN^AUPNPAT($P(^AUPNVSIT(APCDV,0),U,5),DUZ(2))
+ Q:APCDCSRT'="T"
+ S APCDSORT=APCDSORT+10000000,APCDSORT=$E(APCDSORT,7,8)_"-"_+$E(APCDSORT,2,8)
+ Q
+PRINT ;EP - called from XBDBQUE
+ S APCDQUIT="",APCDPG=0 D HDR
+ I '$D(^XTMP("APCDDVL3",APCDJ,APCDBT)) D HDR W !!,"NO DATA TO REPORT",! G DONE
+ S APCDSORT="" F  S APCDSORT=$O(^XTMP("APCDDVL3",APCDJ,APCDBT,"VISITS",APCDSORT)) Q:APCDSORT=""!(APCDQUIT)  D
+ . S APCDV=0 F  S APCDV=$O(^XTMP("APCDDVL3",APCDJ,APCDBT,"VISITS",APCDSORT,APCDV)) Q:APCDV'=+APCDV!(APCDQUIT)  D
+ .. I $Y>(IOSL-4) D HDR Q:APCDQUIT
+ .. S APCDVR=^AUPNVSIT(APCDV,0)
+ .. ;beginning Y2K - change 2 parameter to 5
+ .. ;W !!,$E($P(^DPT($P(APCDVR,U,5),0),U),1,15),?16,$$HRN^AUPNPAT($P(APCDVR,U,5),DUZ(2)),?23,$$FMTE^XLFDT($P(APCDVR,U),"2"),?38,$P(APCDVR,U,7),?40,$$CLINIC^APCLV(APCDV,"C") ;Y2000
+ .. W !!,$E($P(^DPT($P(APCDVR,U,5),0),U),1,15),?16,$$HRN^AUPNPAT($P(APCDVR,U,5),DUZ(2)),?23,$$FMTE^XLFDT($P(APCDVR,U),"5"),?38,$P(APCDVR,U,7),?40,$$CLINIC^APCLV(APCDV,"C") ;Y2000
+ .. ;end Y2K
+ .. K APCDX,APCDD D DE
+ .. S APCDY=0 F  S APCDY=$O(APCDX(APCDY)) Q:APCDY'=+APCDY!(APCDQUIT)  D
+ ... I $Y>(IOSL-3) D HDR Q:APCDQUIT
+ ... W:APCDY>1 !
+ ... ;beginning Y2K
+ ... ;W ?43,$P(APCDX(APCDY),U),?54,$E($P(APCDX(APCDY),U,2),1,15),?70,$$FMTE^XLFDT($P(APCDX(APCDY),U,3),"2") ;Y2000
+ ... W ?43,$P(APCDX(APCDY),U),?54,$E($P(APCDX(APCDY),U,2),1,15),?70,$$FMTE^XLFDT($P(APCDX(APCDY),U,3),"5") ;Y2000
+ ... ;end Y2K
+ .. S APCDP=$P(^AUPNVSIT(APCDV,0),U,5)
+ .. S APCDY=0,APCDORDT="" F  S APCDY=$O(APCDX(APCDY)) Q:APCDY'=+APCDY!(APCDORDT)  S APCDORDT=$P(APCDX(APCDY),U,3)
+ .. Q:APCDORDT=""
+ .. S C=0,APCDDATE=(9999999-APCDORDT)-.0001,END=(9999999-APCDORDT)+.9999999
+ .. F  S APCDDATE=$O(^AUPNVSIT("AA",APCDP,APCDDATE)) Q:'APCDDATE!(APCDDATE>END)!(APCDQUIT)  D
+ ... S APCDX=0 F  S APCDX=$O(^AUPNVSIT("AA",APCDP,APCDDATE,APCDX)) Q:APCDX'=+APCDX!(APCDQUIT)  I APCDX'=APCDV,'$P(^AUPNVSIT(APCDX,0),U,11) S C=C+1 D
+ .... I $Y>(IOSL-3) D HDR Q:(APCDQUIT)
+ .... W ! W:C=1 ?3,"Order date vsts: "
+ .... ;beginning Y2K
+ .... ;W ?21,$$FMTE^XLFDT($P(^AUPNVSIT(APCDX,0),U),"2"),?38,$P(^AUPNVSIT(APCDX,0),U,7),?39,$$CLINIC^APCLV(APCDX,"C"),?42,$E($$VAL^XBDIQ1(9000010,APCDX,.22),1,15),?58,$E($$PRIMPROV^APCLV(APCDX,"N"),1,15),?74,$$PRIMPOV^APCLV(APCDX,"C") ;Y2000
+ .... W ?21,$$FMTE^XLFDT($P(^AUPNVSIT(APCDX,0),U),"5"),?38,$P(^AUPNVSIT(APCDX,0),U,7),?39,$$CLINIC^APCLV(APCDX,"C"),?42,$E($$VAL^XBDIQ1(9000010,APCDX,.22),1,15),?58,$E($$PRIMPROV^APCLV(APCDX,"N"),1,15),?74,$$PRIMPOV^APCLV(APCDX,"C") ;Y2000
+ .... ;end Y2K
+ .... Q
+ ... Q
+ .. Q
+ .Q
+DONE ;
+ K ^XTMP("APCDDVL3",APCDJ,APCDBT),APCDJ,APCDBT
+ I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of report.  PRESS ENTER" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ W:$D(IOF) @IOF
+ Q
+DTC(V) ;any v tran code with an ordering provider? 1 or 0
+ I '$G(V) Q 0
+ I '$D(^AUPNVSIT(V,0)) Q 0
+ I '$D(^AUPNVTC("AD",V)) Q 0
+ NEW C
+ S (X,C)=0 F  S X=$O(^AUPNVTC("AD",V,X)) Q:X'=+X  I $P($G(^AUPNVTC(X,12)),U,11) S C=C+1
+ Q C
+ ;
+DE ;EP;FIND DEP ENTRIES
+ K APCDX,APCDD S APCDC=0
+ S APCDVFLE=9000010 F  S APCDVFLE=$O(^DIC(APCDVFLE)) Q:APCDVFLE>9000010.99!(APCDVFLE'=+APCDVFLE)  D DE2
+ Q
+ ;
+DE2 ;
+ S APCDVDG=^DIC(APCDVFLE,0,"GL"),APCDVIGR=APCDVDG_"""AD"",APCDV,APCDVDFN)"
+ S APCDVDFN="" I $O(@APCDVIGR)]"" S APCDC=APCDC+1,APCDX(APCDC)=$E($P($P(^DIC(APCDVFLE,0),U),"V ",2),1,3)_"'s" S Y=$O(@APCDVIGR) S $P(APCDX(APCDC),U,3)=$$VALI^XBDIQ1(APCDVFLE,Y,1211),$P(APCDX(APCDC),U,2)=$$VAL^XBDIQ1(APCDVFLE,Y,1202)
+ Q
+ ;
+HDR ;header for report
+ I 'APCDPG G HDR1
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCDQUIT=1 Q
+HDR1 ;
+ W:$D(IOF) @IOF S APCDPG=APCDPG+1
+ W $P(^VA(200,DUZ,0),U,2),$$CTR($$FMTE^XLFDT(DT)),?71,"Page ",APCDPG,!
+ W $$CTR($$LOC),!
+ W $$CTR("12:00 Visits with No Billing Link"),!
+ W !?3,"PATIENT NAME",?17,"HRN",?22,"VISIT DATE",?37,"SC",?40,"CL",?43,"V FILE'S",?54,"ORDER PROV",?70,"ORDER DATE"
+ W $TR($J(" ",80)," ","-"),!
+ Q
+CTR(X,Y) ;EP - Center X in a field Y wide.
+ Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
+ ;----------
+USR() ;EP - Return name of current user from ^VA(200.
+ Q $S($G(DUZ):$S($D(^VA(200,DUZ,0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ UNDEFINED OR 0")
+ ;----------
+LOC() ;EP - Return location name from file 4 based on DUZ(2).
+ Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
+ ;----------
+INFORM ;let user know what is gong on
+ W:$D(IOF) @IOF
+ W !!,$$CTR($$LOC,80)
+ W !,$$CTR($$USR,80),!!
+ F I=1:1 S X=$P($T(INTRO+I),";;",2) Q:X="END"  W !,X
+ K I,X
+ Q
+INTRO ;;
+ ;;This report will list all visits with a time of 12:00 that have no billing
+ ;;link.  Only visits with a service category of A,O,R and s are reviewed.
+ ;;Only visits to the location list above are reviewed.
+ ;;
+ ;;END

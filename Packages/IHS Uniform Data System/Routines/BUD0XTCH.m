@@ -1,0 +1,118 @@
+BUD0XTCH ; IHS/CMI/LAB - TAXONOMY CHECK FOR FY04 GPRA REPORT ;
+ ;;6.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2012;Build 25
+ ;
+ ;
+ D HOME^%ZIS
+ W:$D(IOF) @IOF
+ W !!,"Checking for Taxonomies to support the 2010 UDS Report. ",!,"Please enter the device for printing.",!
+ZIS ;
+ S XBRC="",XBRP="TAXCHK^BUD0TXCH",XBNS="",XBRX="XIT^BUD0TXCH"
+ D ^XBDBQUE
+ D XIT
+ Q
+TAXCHK ;EP
+ D HOME^%ZIS
+ K BUDQUIT
+ W !,"Checking for Taxonomies to support the 2010 UDS Report...",!
+ NEW A,BUDX,I,Y,Z,J
+ K A
+ I $G(BUDT6) S T="TAXS" F J=1:1 S Z=$T(@T+J),BUDX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BUDX=""  D
+ .I '$D(^ATXAX("B",BUDX)) S A(BUDX)=Y_"^is Missing" Q
+ .S I=$O(^ATXAX("B",BUDX,0))
+ .I '$D(^ATXAX(I,21,"B")) S A(BUDX)=Y_"^has no entries "
+ I $G(BUDT6) S T="LAB" F J=1:1 S Z=$T(@T+J),BUDX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BUDX=""  D
+ .I '$D(^ATXLAB("B",BUDX)) S A(BUDX)=Y_"^is Missing " Q
+ .S I=$O(^ATXLAB("B",BUDX,0))
+ .I '$D(^ATXLAB(I,21,"B")) S A(BUDX)=Y_"^has no entries "
+ I $G(BUDT6B) S T="TAXB6" F J=1:1 S Z=$T(@T+J),BUDX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BUDX=""  D
+ .I '$D(^ATXAX("B",BUDX)) S A(BUDX)=Y_"^is Missing" Q
+ .S I=$O(^ATXAX("B",BUDX,0))
+ .I '$D(^ATXAX(I,21,"B")) S A(BUDX)=Y_"^has no entries "
+ I $G(BUDT6B) S T="LAB6B" F J=1:1 S Z=$T(@T+J),BUDX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BUDX=""  D
+ .I '$D(^ATXLAB("B",BUDX)) S A(BUDX)=Y_"^is Missing " Q
+ .S I=$O(^ATXLAB("B",BUDX,0))
+ .I '$D(^ATXLAB(I,21,"B")) S A(BUDX)=Y_"^has no entries "
+ I $G(BUDT7) S T="TAX7" F J=1:1 S Z=$T(@T+J),BUDX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BUDX=""  D
+ .I '$D(^ATXAX("B",BUDX)) S A(BUDX)=Y_"^is Missing" Q
+ .S I=$O(^ATXAX("B",BUDX,0))
+ .I '$D(^ATXAX(I,21,"B")) S A(BUDX)=Y_"^has no entries "
+ I $G(BUDT7) S T="LAB7" F J=1:1 S Z=$T(@T+J),BUDX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BUDX=""  D
+ .I '$D(^ATXLAB("B",BUDX)) S A(BUDX)=Y_"^is Missing " Q
+ .S I=$O(^ATXLAB("B",BUDX,0))
+ .I '$D(^ATXLAB(I,21,"B")) S A(BUDX)=Y_"^has no entries "
+ I '$D(A) W !,"All taxonomies are present.",! K A,BUDX,Y,I,Z D DONE Q
+ W !!,"In order for the UDS Report to find all necessary data, several",!,"taxonomies must be established.  The following taxonomies are missing or have",!,"no entries:"
+ S BUDX="" F  S BUDX=$O(A(BUDX)) Q:BUDX=""!($D(BUDQUIT))  D
+ .;I $Y>(IOSL-2) D PAGE Q:$D(BUDQUIT)
+ .W !,$P(A(BUDX),U)," [",BUDX,"] ",$P(A(BUDX),U,2)
+ .Q
+DONE ;
+ K BUDQUIT
+ I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of taxonomy check.  PRESS ENTER" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q
+XIT ;EP
+ K BUD,BUDX,BUDQUIT,BUDLINE,BUDJ,BUDX,BUDTEXT,BUD
+ K X,Y,J
+ Q
+PAGE ;
+ I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BUDQUIT="" Q
+ Q
+TAXS ;
+ ;;BUD CPT HEPATITIS B TESTS
+ ;;BUD CPT HEPATITIS C TESTS
+ ;;BUD CPT HIV TESTS
+ ;;BUD 10 CPT IMM LINE 24
+ ;;BUD CPT PAP 10
+ ;;BGP PAP LOINC CODES
+ ;;BGP HIV TEST LOINC CODES
+ ;;
+LAB ;
+ ;;BGP PAP SMEAR TAX
+ ;;BGP HIV TEST TAX
+ ;;BUD HEPATITIS B TESTS
+ ;;BUD HEPATITIS C TESTS
+ ;;
+LAB6B ;;
+ ;;BGP PAP SMEAR TAX
+ ;;
+TAXB6 ;;
+ ;;BUD HYSTERECTOMY CPTS
+ ;;BUD HYSTERECTOMY PROCEDURES
+ ;;BGP PAP LOINC CODES
+ ;;BUD CPT PAP TABLE 6B 10
+ ;;BUD IPV EVID DISEASE
+ ;;BGP MMR CONTRAINDICATIONS
+ ;;BGP MEASLES EVIDENCE
+ ;;BGP MUMPS EVIDENCE
+ ;;BGP HEP EVIDENCE
+ ;;BGP RUBELLA EVIDENCE
+ ;;BUD HIB EVIDENCE
+ ;;BGP VARICELLA EVIDENCE
+ ;;BGP PERTUSSIS EVIDENCE
+ ;;BGP DIPHTHERIA EVIDENCE
+ ;;BGP GPRA PREGNANCY DIAGNOSES
+ ;;BGP MISCARRIAGE/ABORTION DXS
+ ;;BGP ABORTION PROCEDURES
+ ;;BGP CPT ABORTION
+ ;;BGP CPT MISCARRIAGE
+ ;;
+TAX7 ;;
+ ;;BGP HIV/AIDS DXS
+ ;;BGP GPRA PREGNANCY DIAGNOSES
+ ;;BGP MISCARRIAGE/ABORTION DXS
+ ;;BGP ABORTION PROCEDURES
+ ;;BGP CPT ABORTION
+ ;;BGP CPT MISCARRIAGE
+ ;;BUD HYPERTENSION DXS
+ ;;BUD GEST/STEROID DM DX
+ ;;BUD HGBA1C CPTS
+ ;;BGP HGBA1C LOINC CODES
+ ;;BUD DIABETES MEDS NDC
+ ;;BUD DIABETES MEDS TAX
+ ;;BUD DIABETES DXS FOR TABLE 7
+ ;;BUD DIASTOLIC BP CPTS
+ ;;BUD SYSTOLIC BP CPTS
+ ;;
+LAB7 ;;
+ ;;DM AUDIT HGB A1C TAX
+ ;;

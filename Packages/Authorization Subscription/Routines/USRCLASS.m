@@ -1,0 +1,67 @@
+USRCLASS ; SLC/JER - User Class Management actions ;08/17/1999
+ ;;1.0;AUTHORIZATION/SUBSCRIPTION;**7,11**;Jun 20, 1997
+EDIT ; Edit user classes
+ N USRDA,USRDATA,USREXPND,USRI,USRSTAT,DIROUT,USRCHNG,USRLST
+ D:'$D(VALMY) EN^VALM2(XQORNOD(0)) S USRI=0
+ F  S USRI=$O(VALMY(USRI)) Q:+USRI'>0  D  Q:$D(DIROUT)
+ . S USRDATA=$S(VALMAR="^TMP(""USRCLASS"",$J)":$G(^TMP("USRCLASSIDX",$J,USRI)),1:$G(^TMP("USREXPIDX",$J,USRI)))
+ . W !!,"Editing #",+USRDATA,!
+ . S USRDA=+$P(USRDATA,U,2) D EDIT1
+ . I +$G(USRCHNG) S USRLST=$S($L($G(USRLST)):$G(USRLST)_", ",1:"")_USRI
+ . I $D(USRDATA) D UPDATE^USRL(USRDATA)
+ W !,"Refreshing the list."
+ S VALMSG="** "_$S($L($G(USRLST)):"Item"_$S($L($G(USRLST),",")>1:"s ",1:" ")_$G(USRLST),1:"Nothing")_" Edited **"
+ K VALMY S VALMBCK="R"
+ Q
+EDIT1 ; Single record edit
+ ; Receives USRDA
+ N DA,DIE,DR
+ I '+$G(USRDA) W !,"No Classes selected." H 2 Q
+ S DIE="^USR(8930,",DA=USRDA,DR="[USR CLASS STRUCTURE EDIT]"
+ D FULL^VALM1,^DIE
+ S USRCHNG=1
+ Q
+EXPAND ; Expand/Collapse user class hierarchy display
+ N USRDNM,USRLNM,USRSTAT
+ D:'$D(VALMY) EN^VALM2(XQORNOD(0))
+ I $D(VALMY) D EC^USRECCL(.VALMY)
+ W !,"Refreshing the list."
+ ;S VALMSG="** "_$S($L($G(USRLST)):"Item"_$S($L($G(USRLST),",")>1:"s ",1:" ")_$G(USRLST),1:"Nothing")_" Edited **"
+ K VALMY S VALMBCK="R"
+ ;
+ S USRSTAT=+$P($G(^TMP("USRCLASS",$J,0)),U,2)
+ S USRDNM=$P($G(^TMP("USRCLASS",$J,0)),U,3)
+ S USRLNM=$P($G(^TMP("USRCLASS",$J,0)),U,4)
+ ;
+ S VALMCNT=+$G(@VALMAR@(0))
+ S VALMBCK="R"
+ Q
+CREATE ; Class constructor
+ N USRCREAT
+ N DIC,DLAYGO,X,Y,USRSTAT,USRDNM,USRLNM D FULL^VALM1
+ S (DIC,DLAYGO)=8930,DIC(0)="AELMQ",DIC("A")="Select CLASS: "
+ D ^DIC Q:+Y'>0
+ S USRCREAT=+$P(Y,U,3)
+ S DA=+Y,DIE=DIC,DIE("NO^")="BACK",DR="[USR CLASS STRUCTURE EDIT]"
+ D ^DIE
+ S USRSTAT=+$P($G(^TMP("USRCLASS",$J,0)),U,2)
+ S USRDNM=$P($G(^TMP("USRCLASS",$J,0)),U,3)
+ S USRLNM=$P($G(^TMP("USRCLASS",$J,0)),U,4)
+ I 'USRCREAT Q  ; Don't rebuild without cause
+ W !,"Rebuilding main class list."
+ D BUILD^USRCLST(USRSTAT,USRDNM,USRLNM)
+ S VALMCNT=+$G(@VALMAR@(0))
+ S VALMBCK="R"
+ Q
+MEMBERS ; List Members of classes and their subclasses
+ N USRDA,USRDATA,USREXPND,USRI,USRSTAT,VALMCNT,DIROUT
+ D:'$D(VALMY) EN^VALM2(XQORNOD(0)) S USRI=0
+ F  S USRI=$O(VALMY(USRI)) Q:+USRI'>0  D  Q:$D(DIROUT)
+ . S USRDATA=$S(VALMAR="^TMP(""USRCLASS"",$J)":$G(^TMP("USRCLASSIDX",$J,USRI)),1:$G(^TMP("USREXPIDX",$J,USRI)))
+ . W !!,"Listing Members of #",+USRDATA,!
+ . S USRDA=+$P(USRDATA,U,2) D EN^VALM("USR LIST MEMBERSHIP BY CLASS")
+ . I $D(USRDATA) D UPDATE^USRL(USRDATA)
+ W !,"Refreshing the list."
+ S VALMSG="Members listed"
+ K VALMY S VALMBCK="R"
+ Q

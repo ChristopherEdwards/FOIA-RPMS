@@ -1,0 +1,66 @@
+VENPCC1B ; IHS/OIT/GIS - MORE ENCOUNTER FORM DATA MINING ;
+ ;;2.6;PCC+;;NOV 12, 2007
+ ;
+ ; DEAD CODE REMOVED IN VER 2.5
+ ; 
+EXT(EXT) ; EP-PROCESS EXTERNAL DATA
+ ; DATA MUST BE A DELIMITED STRING IN THE FORMAT fieldname;value^
+ ; e.g. c1;val1^c2;val2^...
+ N I,X,Y,%,SAB,TAB,AB,FLD,SIEN
+ F I=1:1:$L(EXT,U) D
+ . S %=$P(EXT,U,I) I '$L(%) Q
+ . S X=$P(%,";") I '$L(X) Q
+ . S Y=$P(%,";",2,99)
+ . I X="CC" D CC(Y) Q
+ . I $E(X,1,3)="RF-" D RF(%) Q
+ . I $E(X,1,6)="ADMTXT" S @TMP@(1,"c50")=Y Q
+ . I $E(X,1,5)="ORDER" D ORD(Y) Q
+ . S SIEN=$O(^VEN(7.93,"B",X,0)) I SIEN="" Q
+ . S FLD=$P($G(^VEN(7.93,SIEN,0)),U,8) I '$L(FLD) Q
+ . I $L(Y) S @TMP@(1,FLD)=Y
+ . Q
+ I '$D(SAB),'$D(TAB) Q
+ S AB=$G(SAB) I $L(AB) S AB=" "_AB
+ S AB=AB_$G(TAB)
+ S @TMP@(1,"ab")=AB
+ Q
+ ; 
+RF(%) ; EP-GET RODUCTIVE FACTORS
+ N X,Z,VAL
+ S X=$P(%,";") I '$L(X) Q
+ S VAL=$P(%,";",2) I '$L(VAL) Q
+ S Z=$P(X,"-",2)
+ I Z'="LMP" Q
+ S @TMP@(1,"lab1")="LMP: "_VAL
+ Q
+ ; 
+ORD(IEN) ; EP-CHECK OFF AN ORDER ; NOT USED IN VERSION 1
+ N FLD,X
+ S IEN=+$G(IEN)
+ I '$D(^VEN(7.93,IEN,0)) Q
+ S X=$P($G(^VEN(7.93,IEN,0)),U,8) I '$L(X) Q
+ S FLD=X_"x"
+ S @TMP@(1,FLD)=4
+ Q
+ ; 
+CC(Y) ; EP-GETS CHIEF COMPLAINT ; NOT USED IN VER 1
+ N I,X,MAX
+ S MAX=$P($G(^VEN(7.41,DEFEF,14)),U,8)
+ I 'MAX S MAX=240
+ S Y=$E(Y,1,MAX)
+ S @TMP@(1,"c13")=Y
+ Q
+ ; 
+CLASS(DFN) ; EP-GIVEN A DFN, RETURN THE PATIENT CLASS FOR USER PREFERENCES
+ N AGE,SEX,DOB,X,Y
+ S X=$P($G(^DPT(DFN,0)),U,2,3),DOB=$P(X,U,2),SEX=$P(X,U)
+ I DOB,$L(SEX)
+ E  Q ""
+ S AGE=(DT-DOB)\10000
+ I AGE<2 Q 1
+ I AGE<12 Q 2
+ S Y=(SEX="F")
+ I AGE<18 Q (3+Y)
+ I AGE<65 Q (5+Y)
+ Q (7+Y)
+ ; 

@@ -1,0 +1,46 @@
+ABPAOC0 ;MERGE ^ABPVDATA TO ^ABPVGLOB-PART 1; [ 03/16/91  10:35 AM ]
+ ;;1.4;AO PVT-INS TRACKING;*0*;IHS-OKC/KJR;JULY 25, 1991
+A S ZOPT="NOKC"
+ K ABPA("HD") S ABPA("HD",1)=ABPATLE
+ S ABPA("HD",2)="MERGE FACILITY CLAIM DATA AT AREA OFFICE"
+ D ^ABPAHD W ! S IO(0)=$I,EFLG=0
+AA I $E(^%ZOSF("OS"),1,3)="MSM" D ^ABPAOC0A I +EFLG>0 D  G END1^ABPAOC1
+ .W !!,EMSG
+ I $E(^%ZOSF("OS"),1,3)'="MSM" D  I +EFLG>0 G END1^ABPAOC1
+ .S IOP=47 D ^%ZIS K IOP I IO="" D
+ ..W !,"<<< DEVICE NOT AVAILABLE >>>",!,"JOB TERMINATED"
+ ..S EFLG=EFLG+1
+A0 S EFLG=0
+ I $E(^%ZOSF("OS"),1,3)'="MSM" U IO X ^%ZOSF("MAGTAPE") W @(%MT("REW"))
+READ U IO R X,X1,X2,X3
+ S G=$P($P(X2,"(",1),"^",2)
+ I G'="ABPVDATA" U IO(0) W !!,*7,?10,"File DOES NOT Contain PRIVATE INSURANCE Data --  JOB CANCELLED" G END1^ABPAOC1
+CHECK I $D(^ABPVGLOB("COUNT"))=0 K Y D  G CHECK:$D(DQOUT) I ($D(DFOUT))!($D(DUOUT))!(Y="")!(Y?1"N".E) S EFLG=EFLG+1 G END1^ABPAOC1
+ .U IO(0) W !!,?10,"Are You Sure All Data was POSTED to the Area files?  NO// " D SBRS I ($D(DFOUT))!($D(DUOUT))!(Y="")!(Y?1"N".E) Q
+ .I Y="YES" D  Q
+ ..K ^ABPVGLOB
+ ..S ^ABPVGLOB("COUNT")=0,^ABPVGLOB(0)="9999999^0^0^0^^0"
+ .W !!,*7,"Enter Explicitly 'YES' or 'NO'" S DQOUT=""
+ S X=+X3,DIC="^AUTTLOC(",DIC(0)="",D="C" D IX^DIC
+ I +Y<0 S D="CTOO" D IX^DIC
+ I +Y<0 U IO(0) W *7,!,"FACILITY CODE LOOK-UP ERROR ON CODE '",X,"'" G END1^ABPAOC1
+ S ZSITE=X
+ I '$D(ZOPT) G B0
+ U IO(0) W !!,*7,?12,"File Contains PRIVATE INSURANCE Data  -- As listed Below: ",!
+ U IO(0) W !,?10,"FACILITY CODE = ",?40,$P(X3,"^",1)
+ W !,?10,"FACILITY NAME = ",?40,$P(X3,"^",2)
+ W !,?10,"DATE EXPORT CREATED = " S Y=$P(X3,"^",3) X ^DD("DD") W ?40,Y
+ W !,?10,"BEGINNING CLAIM DATE = " S Y=$P(X3,"^",4) X ^DD("DD") W ?40,Y
+ W !,?10,"ENDING CLAIM DATE = " S Y=$P(X3,"^",5) X ^DD("DD") W ?40,Y
+ W !,?10,"NUMBER OF CLAIM RECORDS = ",?40,$P(X3,"^",7),!
+ I '$D(^ABPVGLOB(ZSITE,0)) D  G END1^ABPAOC1:'$T G B0
+ .R !!,"Press the [RETURN] key to continue... ",X:DTIME
+ W !!,*7,?10,"Data Already on File for this Facility",!
+ W ?10,"Do you want to merge this File (Y/N) N// " D SBRS
+ G:$D(DLOUT)!($D(DUOUT)) END1^ABPAOC1 G B0:"Yy"[Y G END1^ABPAOC1:"Nn"[Y
+B0 K ^ASMPITMP
+ G B1^ABPAOC1
+ ;
+SBRS K DFOUT,DTOUT,DUOUT,DQOUT,DLOUT R Y:DTIME I '$T W *7 R Y:5 G SBRS:Y="." I '$T S (DTOUT,Y)="" Q
+ S:Y="/.," (DFOUT,Y)="" S:Y="" DLOUT="" S:Y="^" (DUOUT,Y)="" S:Y?1"?".E!(Y["^") DQOUT=""
+ Q

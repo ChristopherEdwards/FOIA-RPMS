@@ -1,0 +1,42 @@
+ACDRR1PC ;IHS/ADC/EDE/KML - BROKE UP ACDRR1PB;
+ ;;4.1;CHEMICAL DEPENDENCY MIS;;MAY 11, 1998
+ ;
+TRIBE ; EP-tribe
+ D F Q:ACDQ
+ W !!,?50,"SEX",?68,"AGE",!
+ W "PATIENT COUNT BY TRIBE",?48,"M",?55,"F",?62,"<13",?67,"13-20",?75,"21+",!!
+ F %="M","F" S @%=^TMP("ACDRR1",ACDJOB,ACDBT,"SEEN",%)
+ F %=1:1:3 S %(%)=^TMP("ACDRR1",ACDJOB,ACDBT,"SEEN","AGE",%)
+ W ?2,$$LJRF^ACD("TOTAL SEEN",28,".")," ",X,?44,$J(M,5),?51,$J(F,5),?60,$J(%(1),5),?67,$J(%(2),5),?73,$J(%(3),5),!
+ ; seen by tribe
+ S ACDTRIBE=""
+ F  S ACDTRIBE=$O(^TMP("ACDRR1",ACDJOB,ACDBT,"TRIBE",ACDTRIBE)) Q:ACDTRIBE=""  D  Q:ACDQ
+ .  D F Q:ACDQ
+ .  S Y=^TMP("ACDRR1",ACDJOB,ACDBT,"TRIBE",ACDTRIBE)
+ .  F %="M","F" S @%=^TMP("ACDRR1",ACDJOB,ACDBT,"TRIBE",ACDTRIBE,%)
+ .  F %=1:1:3 S %(%)=^TMP("ACDRR1",ACDJOB,ACDBT,"TRIBE",ACDTRIBE,"AGE",%)
+ .  W ?2,$$LJRF^ACD(ACDTRIBE,28,".")," ",Y W ?37,$J((Y/X*100),3,0),"%",?44,$J(M,5),?51,$J(F,5),?60,$J(%(1),5),?67,$J(%(2),5),?73,$J(%(3),5),!
+ .  Q
+ Q
+ ;
+LOS ; EP-length of stay by component code/type
+ D F Q:ACDQ
+ W !,"AVERAGE LENGTH OF STAY IN DAYS BY COMPONENT CODE/TYPE",!
+ W ?30,"COUNT",?40,"AVERAGE LOS",!
+ S ACDTC=""
+ F  S ACDTC=$O(^TMP("ACDRR1",ACDJOB,ACDBT,"LOS",ACDTC)) Q:ACDTC=""  D  Q:ACDQ
+ .  D F Q:ACDQ
+ .  S Y=^TMP("ACDRR1",ACDJOB,ACDBT,"LOS",ACDTC,"COUNT")
+ .  S Z=^TMP("ACDRR1",ACDJOB,ACDBT,"LOS",ACDTC,"AVG")
+ .  W ?2,$$LJRF^ACD(ACDTC,28,".")," ",Y,?44,$J(Z,5,0),!
+ .  Q
+ Q
+ ;
+F ;Form feed
+ NEW V,W,X,Y,Z
+ I $Y+4>IOSL D
+ . I '$D(ZTQUEUED),'$D(IO("S")),$E(IOST,1,2)'="P-" D PAUSE^ACDDEU S:$D(DIRUT) ACDQ=1
+ . W @IOF
+ . W !
+ . Q
+ Q

@@ -1,0 +1,13 @@
+MGR18B ; [ 08/07/01  2:01 PM ]
+ ;
+START ;LINE TAG START - TAB IN
+ S X=2,Y=3
+ S Z=X+Y
+ W !,?5,"BOY THIS IS FUN",!
+ W ?5,X,?10,Y,?15,Z,!
+ W ?10,Y,?15,Z,!
+ ;
+END ;END OF ROUTINE
+ K X,Y,Z
+ QUIT
+ ;

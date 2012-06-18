@@ -1,0 +1,44 @@
+BGOVTXC ; IHS/BAO/TMD - Manage V TREATMENT CONTRACT ;20-Mar-2007 13:52;DKM
+ ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+ ; Return treatment contract entries by individual entry, visit, or patient
+ ;  INP = Patient IEN [1] ^ V File IEN [2] ^ Visit IEN [3]
+GET(RET,INP) ;EP
+ D VFGET^BGOUTL2(.RET,INP,$$FNUM,".03;.01;.04;.05;1201;1204")
+ Q
+ ; Add/edit V Treatment Contract entry
+ ;  INP = V File IEN [1] ^ Visit IEN [2] ^ Type [3] ^ Date [4] ^ Provider IEN [5]
+SET(RET,INP) ;EP
+ N VIEN,VFIEN,VFNEW,TYPE,DAT,PRV,FDA,FNUM
+ S FNUM=$$FNUM
+ S VFIEN=+INP
+ S VFNEW='VFIEN
+ S VIEN=$P(INP,U,2)
+ S RET=$$CHKVISIT^BGOUTL(VIEN)
+ Q:RET
+ S TYPE=$P(INP,U,3)
+ S DAT=$P(INP,U,4)
+ S PRV=$P(INP,U,5)
+ I 'VFIEN D  Q:'VFIEN
+ .D VFNEW^BGOUTL2(.RET,FNUM,TYPE,VIEN)
+ .S:RET>0 VFIEN=RET,RET=""
+ S FDA=$NA(FDA(FNUM,VFIEN_","))
+ S @FDA@(.01)=TYPE
+ S @FDA@(.04)=DAT
+ S @FDA@(.05)=$S(PRV:"`"_PRV,1:"")
+ S @FDA@(1201)="N"
+ S @FDA@(1204)="`"_DUZ
+ S RET=$$UPDATE^BGOUTL(.FDA,"E")
+ I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
+ D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)
+ S:'RET RET=VFIEN
+ Q
+ ; Delete V Treatment Contract entry
+DEL(RET,VFIEN) ;EP
+ S RET=""
+ Q:'$D(^AUPNVTXC(VFIEN))
+ I $P($G(^AUPNVTXC(VFIEN,12)),U,4)'=DUZ,+$$PRIPRV^BGOUTL(VIEN)'=DUZ D  Q
+ .S RET=$$ERR^BGOUTL(1106)
+ D VFDEL^BGOUTL2(.RET,$$FNUM,VFIEN)
+ Q
+ ; Return V File #
+FNUM() Q 9000010.39

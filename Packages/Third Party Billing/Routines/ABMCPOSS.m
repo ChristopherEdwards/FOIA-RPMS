@@ -1,0 +1,87 @@
+ABMCPOSS ; IHS/SD/SDR - Mark POS bill with invoice number ;    
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ ; This routine will go thru POS Cashiering sessions and if the
+ ; session is marked as transmitted it will verify there is an
+ ; Invoice number on the bill and put one if not.
+ ;
+ Q
+EN ;
+ K ABMCNT
+ S DIC="^ABMUTXMT("
+ S DIC(0)="L"
+ D NOW^%DTC
+ S X=%
+ D ^DIC
+ K DIC
+ Q:Y<0
+ S ABMXIEN=+Y
+ S DUZ(2)=0
+ F  S DUZ(2)=$O(^ABMUCASH(DUZ(2))) Q:+DUZ(2)=0  D
+ .W !,DUZ(2)
+ .S ABMSGNI=0
+ .F  S ABMSGNI=$O(^ABMUCASH(DUZ(2),20,1,20,ABMSGNI)) Q:+ABMSGNI=0  D
+ ..Q:$P($G(^ABMUCASH(DUZ(2),20,1,20,ABMSGNI,0)),U,4)'="T"  ;check transmitted only
+ ..S ABMBA=0
+ ..F  S ABMBA=$O(^ABMUCASH(DUZ(2),20,1,20,ABMSGNI,11,ABMBA)) Q:+ABMBA=0  D
+ ...S ABMBILL=0
+ ...F  S ABMBILL=$O(^ABMUCASH(DUZ(2),20,1,20,ABMSGNI,11,ABMBA,2,ABMBILL)) Q:+ABMBILL=0  D
+ ....S ABMREC=$G(^ABMUCASH(DUZ(2),20,1,20,ABMSGNI,11,ABMBA,2,ABMBILL,0))
+ ....S ABMDUZ2=$P(ABMREC,U,2)
+ ....S ABMBDFN=$P(ABMREC,U,3)
+ ....I $$TRANSMIT^ABMUEAPI(ABMDUZ2,ABMBDFN)<1 D
+ .....D GETBILL^ABMUCUTL(ABMREC)
+ .....K DIC,DIE,DIR,X,Y,DA
+ .....S DIC(0)="L"
+ .....S DA(1)=ABMBDFN
+ .....;S X=$P($G(^ABMUCASH(DUZ(2),20,1,20,ABMSGNI,0)),U,8)
+ .....S X=ABMXIEN
+ .....S ABMHOLD=DUZ(2)
+ .....S DUZ(2)=ABMDUZ2
+ .....S DLAYGO=9002274
+ .....S DIC="^ABMDBILL(DUZ(2),"_DA(1)_",69,"
+ .....S DIC("P")=$P(^DD(9002274.4,69,0),U,2)
+ .....S DIC("DR")=".02////"_ABMPASUF_ABMSASUF_$S(+$G(ABMUAOF)'=0:$E($P($G(^DIC(4,ABMP("LDFN"),0)),U),1),1:"")_ABMP("BDFN")
+ .....D ^DIC
+ .....S DUZ(2)=ABMHOLD
+ .....W !,ABMREC_"^"_$G(DIC("DR"))_"^"_X_"^"_Y
+ .....S ABMCNT=+$G(ABMCNT)+1
+ W !,ABMCNT
+ D REGULAR
+ Q
+REGULAR ;
+ K ABMCNT
+ S DUZ(2)=0
+ F  S DUZ(2)=$O(^ABMUCASH(DUZ(2))) Q:+DUZ(2)=0  D
+ .W !,DUZ(2)
+ .S ABMUSER=0
+ .F  S ABMUSER=$O(^ABMUCASH(DUZ(2),10,ABMUSER)) Q:+ABMUSER=0  D
+ ..S ABMSGNI=0
+ ..F  S ABMSGNI=$O(^ABMUCASH(DUZ(2),10,ABMUSER,20,ABMSGNI)) Q:+ABMSGNI=0  D
+ ...Q:$P($G(^ABMUCASH(DUZ(2),10,ABMUSER,20,ABMSGNI,0)),U,4)'="T"  ;check transmitted only
+ ...S ABMBA=0
+ ...F  S ABMBA=$O(^ABMUCASH(DUZ(2),10,ABMUSER,20,ABMSGNI,11,ABMBA)) Q:+ABMBA=0  D
+ ....S ABMBILL=0
+ ....F  S ABMBILL=$O(^ABMUCASH(DUZ(2),10,ABMUSER,20,ABMSGNI,11,ABMBA,2,ABMBILL)) Q:+ABMBILL=0  D
+ .....S ABMREC=$G(^ABMUCASH(DUZ(2),10,ABMUSER,20,ABMSGNI,11,ABMBA,2,ABMBILL,0))
+ .....S ABMDUZ2=$P(ABMREC,U,2)
+ .....S ABMBDFN=$P(ABMREC,U,3)
+ .....I $$TRANSMIT^ABMUEAPI(ABMDUZ2,ABMBDFN)<1 D
+ ......D GETBILL^ABMUCUTL(ABMREC)
+ ......K DIC,DIE,DIR,X,Y,DA
+ ......S DIC(0)="L"
+ ......S DA(1)=ABMBDFN
+ ......;S X=$P($G(^ABMUCASH(DUZ(2),10,1,20,ABMSGNI,0)),U,8)
+ ......S X=ABMXIEN
+ ......S ABMHOLD=DUZ(2)
+ ......S DUZ(2)=ABMDUZ2
+ ......S DLAYGO=9002274
+ ......S DIC="^ABMDBILL(DUZ(2),"_DA(1)_",69,"
+ ......S DIC("P")=$P(^DD(9002274.4,69,0),U,2)
+ ......S DIC("DR")=".02////"_ABMPASUF_ABMSASUF_$S(+$G(ABMUAOF)'=0:$E($P($G(^DIC(4,ABMP("LDFN"),0)),U),1),1:"")_ABMP("BDFN")
+ ......D ^DIC
+ ......S DUZ(2)=ABMHOLD
+ ......W !,ABMREC_"^"_$G(DIC("DR"))_"^"_X_"^"_Y
+ ......S ABMCNT=+$G(ABMCNT)+1
+ W !,ABMCNT
+ Q

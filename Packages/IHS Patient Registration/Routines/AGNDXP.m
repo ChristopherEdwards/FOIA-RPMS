@@ -1,0 +1,42 @@
+AGNDXP ; IHS/ASDS/EFG - PRINT AN INDEX CARD-DFN REQUIRED ; 
+ ;;7.1;PATIENT REGISTRATION;**4**;AUG 25,2005
+ S AGLN=0
+ G END:'$D(DFN),END:'$D(^DPT(DFN,0)),END:'$D(^AUPNPAT(DFN,41,DUZ(2),0))
+ D NMCH F AG("I")=1:1:17-AGLN W !
+ I '$D(AGALIAS) G END
+ S (AGLN,AG("ALNO"))=0
+ALIASLP S AG("ALNO")=AG("ALNO")+1 G END:'$D(^DPT(DFN,.01,AG("ALNO"),0)),ALIASLP:$P(^DPT(DFN,.01,AG("ALNO"),0),U)=""
+ W $P(^DPT(DFN,.01,AG("ALNO"),0),U),"**ALIAS**",! S AGLN=AGLN+1
+ D NMCH F AG("I")=1:1:17-AGLN W !
+ S AGLN=0
+ G ALIASLP
+NMCH S AGDPT=^DPT(DFN,0),AG41=^AUPNPAT(DFN,41,DUZ(2),0)
+ W $P(AGDPT,U),?45-$L($P(AG41,U,2)),$P(AG41,U,2) D LINE ;Line 1
+ S AGDOB="",Y=$P(AGDPT,U,3) I +Y D DD^%DT S AGDOB=Y
+ S A=$P(AGDPT,U,2),AGSEX=$S(A="M":"MALE",A="F":"FEMALE",1:" ")
+ ;S A=$P(AGDPT,U,9) S:$L(A)=9 A=$E(A,1,3)_"-"_$E(A,4,5)_"-"_$E(A,6,99) S AGSSN=A
+ S AGSSN=$$GET1^DIQ(9000001,DFN_",",1107.3) ;IHS/SD/TPF AG*7.1*4
+ W AGDOB,?45-$L(AGSEX)\2,AGSEX,?45-$L(AGSSN),AGSSN D LINE ;Line 2
+ S (AGSTREET,AGADDR)="" I $D(^DPT(DFN,.11)) S A=^(.11),AGSTREET=$P(A,U) S:$P(A,U,4)]"" AGADDR=AGADDR_$P(A,U,4) I +$P(A,U,5),$D(^DIC(5,+$P(A,U,5),0)) S AGADDR=AGADDR_" "_$P(^(0),U,2)_" "_$P(A,U,6)
+ W AGSTREET I $D(^DPT(DFN,.13)),$P(^(.13),U)]"" S X="HOME PH: "_$P(^(.13),U) W ?45-$L(X),X ; Line 3
+ W !,AGADDR I $D(^DPT(DFN,.13)),$P(^(.13),U,2)]"" S X="OFFICE PH: "_$P(^(.13),U,2) W ?45-$L(X),X ; Line 4
+ D LINE
+ I $D(^DPT(DFN,.24)) W "      FATHER: ",$P(^(.24),U),!,"MOTHER (MDN): ",$P(^(.24),U,3) S AGLN=AGLN+1 D LINE
+ S Y=DT D DD^%DT W "CARD PRINTED: ",Y G NMCHEND:$P(AG41,U,3)=""
+ I $P(AG41,U,3),+$P(AG41,U,4),$D(^AUTTDIS($P(AG41,U,4),0)) W !,"CHART ",$S($P(^(0),U)["ARCH":"ARCHIVED: ",1:"INACTIVATED: ") S Y=$P(AG41,U,3) D DD^%DT W Y S AGLN=AGLN+1
+NMCHEND Q
+END K A,AGADDR,AG41,AGDOB,AGDPT,AGSEX,AGSSN,AGSTREET,AGLN,X
+ Q
+LINE W ! F AG("I")=1:1:45 W "-"
+ W !
+ S AGLN=AGLN+2
+ Q
+ALIAS ;EP
+ W !!!,"Do you want to print index cards for ALIASES also? (Y/N) Y// " D READ^AG S Y=$E(Y_"Y") I $D(DQOUT) W !!,"An index card will be printed for the patients NAME and each ALIAS",!,"if you answer ""Y"" " G ALIAS
+ Q:$D(DTOUT)!$D(DFOUT)!$D(DUOUT)  I "NY"'[Y D YN^AG G ALIAS
+ K AGALIAS I Y="Y" S AGALIAS=""
+TEST W !!!,"DO YOU WANT TO PRINT A TEST LABEL?  (Y/N) N// " D READ^AG S Y=$E(Y_"N") I $D(DQOUT) W !!,"A sample label will be printed so that you",!,"may allign your labels on the printer." G TEST
+ Q:(Y="N")!$D(DTOUT)!$D(DFOUT)!$D(DUOUT)  I Y'="Y" D YN^AG G TEST
+ D ^%ZIS Q:POP  U IO F I=1:1:3 W "TESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTXX",!
+ W !!!!!!!!!!!!!!! D ^%ZISC
+ G TEST

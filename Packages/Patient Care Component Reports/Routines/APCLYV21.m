@@ -1,0 +1,35 @@
+APCLYV21 ; IHS/CMI/LAB - PRINT OUTPT VISITS WITH ICD CODES (CALC) ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;
+INIT ;initialize variables
+ S APCLJOB=$J,APCLBT=$H
+ D XTMP^APCLOSUT("APCLYV2","PCC LIST OF OUTP VISITS")
+ S APCLDEN=$O(^DIC(40.7,"C",56,0)) ;dental clinic stop code
+ ;
+CALC ;find visits by date then store by patient name
+ ;
+ S APCLVDT=APCLBD-.0001
+VST S APCLVDT=$O(^AUPNVSIT("B",APCLVDT))
+ G END:APCLVDT="",END:APCLVDT>(APCLED+.2359) S APCLVDFN=0
+VST1 S APCLVDFN=$O(^AUPNVSIT("B",APCLVDT,APCLVDFN)) G VST:APCLVDFN=""
+ ;
+ G VST1:'$D(^AUPNVSIT(APCLVDFN,0)) S APCLSTR=^(0)
+ G VST1:$P(APCLSTR,"^",11) ;screen out deleted visits
+ G VST1:$$DEMO^APCLUTL($P(APCLSTR,U,5),$G(APCLDEMO))
+ I APCLLOC]"",$P(APCLSTR,U,6)'=APCLLOC G VST1 ;screen out other facilities
+ ;screen out all but ambulatory, in-hospital, & day surgery
+ S X=$P(APCLSTR,"^",7) I X'="A",(X'="I"),(X'="S") G VST1
+ I $D(^APCLCNTL(4,11,"B",$P(APCLSTR,"^",3))) G VST1 ;LAB ADDED TO SCREEN OUT C AND V
+ I APCLPROV]"" S APCLFOUN=0 D GETPROV G:'APCLFOUN VST1
+ G VST1:$P(APCLSTR,"^",8)=APCLDEN ;screen out dental visits
+ ;
+ S APCLDFN=$P(APCLSTR,"^",5),APCLNAME=$P(^DPT(APCLDFN,0),"^")
+ S ^XTMP("APCLYV2",APCLJOB,APCLBT,APCLNAME,APCLDFN,APCLVDT,APCLVDFN)="" G VST1
+ ;
+END ;
+ S APCLET=$H
+ K APCLNAME,APCLSTR
+ Q
+GETPROV ;check to see if correct provider is either primary or secondary
+ NEW X S X=0 S X=$O(^AUPNVPRV("AD",APCLVDFN,X)) Q:X'=+X!(APCLFOUN)  I $P(^AUPNVPRV(X,0),U)=APCLPROV S APCLFOUN=1
+ Q

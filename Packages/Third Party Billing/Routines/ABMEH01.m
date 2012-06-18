@@ -1,0 +1,170 @@
+ABMEH01 ; IHS/ASDST/DMJ - HCFA-1500 EMC RECORD AA0 (Submitter Data) ;     
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;
+ ; IHS/ASDS/DMJ - 10/18/00 - V2.4 Patch 3 - NOIS HQW-1000-100031
+ ;     Modified to add Federal Tax ID number
+ ;
+ ; IHS/ASDS/DMJ - 01/23/01 - V2.4 Patch3 - NOIS HQW-0800-100133
+ ;     Modified to pick up provider number that was missing from BA1
+ ;       record for satellite locations.
+ ;
+ ; IHS/ASDS/DMJ - 02/07/01 - V2.4 Patch4 - NOIS NCA-0201-180004
+ ;     Modified to fix issue with submitter ID in electronic trans.
+ ;
+START ;START HERE
+ K ABMREC(1),ABMR(1)
+ S ABME("RTYPE")=1
+ D LOOP
+ S ABMRT(99,"RTOT")=1
+ K ABME,ABM
+ Q
+LOOP ;LOOP HERE
+ F I=10:10:290 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),1,I)) D @(^(I))
+ .I '$G(ABMP("NOFMT")) S ABMREC(1)=$G(ABMREC(1))_ABMR(1,I)
+ Q
+10 ;1-3 Record type
+ S ABMR(1,10)="AA0"
+ Q
+20 ;4-19 Submitter ID
+ S ABMR(1,20)=$P($G(^AUTTLOC(DUZ(2),0)),"^",18)
+ S ABMR(1,20)=$TR(ABMR(1,20),"-")
+ I $$RCID^ABMERUTL(ABMP("INS"))=99999 D
+ .S ABMR(1,20)=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),0)),"^",19)
+ .S:ABMR(1,20)="" ABMR(1,20)=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),"^",2)
+ .S:ABMR(1,20)="" ABMR(1,20)=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),0)),"^",2)
+ S ABMR(1,20)=$$FMT^ABMERUTL(ABMR(1,20),16)
+ S ABMP("SUBID")=ABMR(1,20)
+ Q
+30 ;20-28 Reserved 
+ S ABMR(1,30)=""
+ S ABMR(1,30)=$$FMT^ABMERUTL(ABMR(1,30),9)
+ Q
+40 ;29-34 Submission Type
+ D SOP^ABMERUTL
+ S ABMR(1,40)=ABMP("SOP")
+ S ABMR(1,40)=$$FMT^ABMERUTL(ABMR(1,40),6)
+ Q
+50 ;35-40 Submission #
+ I $$RCID^ABMERUTL(ABMP("INS"))=99999 D  Q
+ .S ABMR(1,50)=$E($H,3,5)_$E($H,9,11)
+ .S ABMR(1,50)=$$FMT^ABMERUTL(ABMR(1,50),6)
+ S ABMR(1,50)="0000"_$G(ABMP("XMIT"))
+ S ABMR(1,50)=$E(ABMR(1,50),$L(ABMR(1,50))-2,$L(ABMR(1,50)))
+ S ABMR(1,50)=$E(DUZ(2),$L(DUZ(2))-1,$L(DUZ(2)))_ABMR(1,50)
+ S ABMR(1,50)=ABMR(1,50)+100000
+ S ABMR(1,50)=$$FMT^ABMERUTL(ABMR(1,50),6)
+ Q
+60 ;41-73 Submitter Name
+ D DIQ2 S ABMR(1,60)=ABM(9999999.06,ABMP("LDFN"),.01,"E")
+ S ABMR(1,60)=$$FMT^ABMERUTL(ABMR(1,60),33)
+ Q
+70 ;74-103 Submitter Address-1
+ D DIQ2 S ABMR(1,70)=ABM(9999999.06,ABMP("LDFN"),.14,"E")
+ S ABMR(1,70)=$$FMT^ABMERUTL(ABMR(1,70),30)
+ Q
+80 ;104-133 Submitter Address-2
+ S ABMR(1,80)=""
+ S ABMR(1,80)=$$FMT^ABMERUTL(ABMR(1,80),30)
+ Q
+90 ;134-153 Submitter City
+ D DIQ2 S ABMR(1,90)=ABM(9999999.06,ABMP("LDFN"),.15,"E")
+ S ABMR(1,90)=$$FMT^ABMERUTL(ABMR(1,90),20)
+ Q
+100 ;154-155 Submitter State
+ D DIQ2 S ABMR(1,100)=ABM(9999999.06,ABMP("LDFN"),.16,"I")
+ S ABMR(1,100)=$P($G(^DIC(5,+ABMR(1,100),0)),"^",2)
+ S ABMR(1,100)=$$FMT^ABMERUTL(ABMR(1,100),2)
+ Q
+110 ;156-164 Submitter Zip
+ D DIQ2 S ABMR(1,110)=ABM(9999999.06,ABMP("LDFN"),.17,"E")
+ S ABMR(1,110)=$$FMT^ABMERUTL(ABMR(1,110),9)
+ Q
+120 ;165-169 Submitter Region
+ S ABMR(1,120)=""
+ S ABMR(1,120)=$$FMT^ABMERUTL(ABMR(1,120),5)
+ Q
+130 ;170-202 Submitter Contact
+ S ABMR(1,130)="BUSINESS OFFICE MANAGER"
+ S ABMR(1,130)=$$FMT^ABMERUTL(ABMR(1,130),33)
+ Q
+140 ;203-212 Submitter Telephone Number
+ D DIQ2 S ABMR(1,140)=ABM(9999999.06,ABMP("LDFN"),.13,"E")
+ S ABMR(1,140)=$TR(ABMR(1,140),"() -")
+ S ABMR(1,140)=$$FMT^ABMERUTL(ABMR(1,140),10)
+ Q
+150 ;213-220 Creation Date
+ S ABMR(1,150)=$$Y2KD2^ABMDUTL(DT)
+ Q
+160 ;221-226 Submission Time
+ S ABMR(1,160)=""
+ S ABMR(1,160)=$$FMT^ABMERUTL(ABMR(1,160),6)
+ Q
+170 ;227-242 Receiver ID
+ S ABMR(1,170)=$$RCID^ABMERUTL(ABMP("INS"))
+ S ABMR(1,170)=$$FMT^ABMERUTL(ABMR(1,170),16)
+ Q
+180 ;243-243 Receiver Type
+ S ABMR(1,180)=$G(ABMR(1,40))
+ S ABMR(1,180)=$E(ABMR(1,180))
+ S:ABMR(1,180)="" ABMR(1,180)=" "
+ Q
+190 ;244-248 Version Code-National
+ S ABMR(1,190)="00200"
+ Q
+200 ;249-253 Version Code-Local
+ S ABMR(1,200)="00200"
+ Q
+210 ;254-257 Test/Prod Indicator
+ S ABMR(1,210)=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),"^",4)
+ S ABMR(1,210)=$S(ABMR(1,210)["T":"TEST",1:"PROD")
+ S ABMR(1,210)=$$FMT^ABMERUTL(ABMR(1,210),4)
+ Q
+220 ;258-265 Password
+ S ABMR(1,220)=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),"^",3)
+ S ABMR(1,220)=$$FMT^ABMERUTL(ABMR(1,220),8)
+ Q
+230 ;266-266 Retransmission Status
+ S ABMR(1,230)=" "
+ Q
+240 ;267-282 Original Submitter ID
+ S ABMR(1,240)=""
+ S ABMR(1,240)=$$FMT^ABMERUTL(ABMR(1,240),16)
+ Q
+250 ;283-283 Vendor Application Cat.
+ S ABMR(1,250)=" "
+ Q
+260 ;284-288 Vendor Software Version
+ S ABMR(1,260)="2.4  "
+ Q
+270 ;289-290 Vendor Software Update
+ S ABMR(1,270)="P3"
+ Q
+280 ;291-292 Filler (National Use)
+ S ABMR(1,280)="  "
+ Q
+290 ;293-320 Filler (Local Use)
+ S ABMR(1,290)=""
+ S ABMR(1,290)=$$FMT^ABMERUTL(ABMR(1,290),28)
+ Q
+DIQ1 ;PULL BILL DATA VIA DIQ1
+ Q:$D(ABM(9002274.4,ABMP("BDFN"),ABME("FLD")))
+ N I S DIQ="ABM(",DIQ(0)="EI",DIC="^ABMDBILL(DUZ(2),",DA=ABMP("BDFN")
+ S DR=".01;.21;.51;.52;.53;.61;.62;.63;.64;.71;.72;.99"
+ D EN^DIQ1 K DIQ
+ Q
+DIQ2 ;GET LOCATION INFORMATION
+ Q:$D(ABM(9999999.06,ABMP("LDFN")))
+ N I S DIQ="ABM",DIQ(0)="IE",DIC="^AUTTLOC(",DA=ABMP("LDFN")
+ S DR=".01;.13;.14;.15;.16;.17;.21"
+ D EN^DIQ1 K DIQ
+ Q
+EX(ABMX,ABMY) ;EXTRINSIC FUNCTION HERE (X=data element, Y=bill internal entry number)
+ S ABMP("BDFN")=ABMY D SET^ABMERUTL
+ I '$G(ABMP("NOFMT")) S ABMP("FMT")=0
+ D @ABMX
+ S Y=ABMR(20,ABMX)
+ K ABMR(20,ABMX),ABME,ABM,ABMX,ABMY
+ I $D(ABMP("FMT")) S ABMP("FMT")=1
+ Q Y

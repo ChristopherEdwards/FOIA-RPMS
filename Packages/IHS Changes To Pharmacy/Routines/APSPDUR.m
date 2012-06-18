@@ -1,0 +1,94 @@
+APSPDUR ;IHS/DSD/JCM/ENM - PHARMACY DUR;14-Sep-2010 12:41;SM
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1004,1008,1009**;Sep 23, 2004
+ ;THIS ROUTINE BUILDS THE PHARMACY DRUG UTILIZATION REVIEW GLOBAL
+ ;IT RUNS AND THEN CALLS APSPDUR1 TO DO THE ACUTAL PRINT OF LIST
+ ;
+EN ;EP
+ N APSPBD,APSPED,APSPBDF,APSPEDF,APSPDIV,APSPDRG,APSPDARY
+ N QFLG,DCNT
+ S (QFLG,DCNT)=0
+ W @IOF
+ W "Pharmacy DUR List ",!!
+ D ASKDATES^APSPUTIL(.APSPBD,.APSPED,.APSPQ,DT,DT)
+ Q:APSPQ
+ S APSPBDF=$P($TR($$FMTE^XLFDT(APSPBD,"5Z"),"@"," "),":",1,2)
+ S APSPEDF=$P($TR($$FMTE^XLFDT(APSPED,"5Z"),"@"," "),":",1,2)
+ S APSPBD=APSPBD-.01,APSPED=APSPED+.99
+ ;SELECT DIVISION
+ S APSPDIV=$$DIR^APSPUTIL("Y","Would you like all pharmacy divisions","Yes",,.APSPQ)
+ Q:APSPQ
+ I APSPDIV D
+ .S APSPDIV="*"
+ E  D  Q:APSPQ
+ .S APSPDIV=$$GETIEN^APSPUTIL(59,"Select Pharmacy Division: ",.APSPQ)
+ F  D  Q:QFLG
+ .S APSPDRG=$$GETIEN^APSPUTIL(50,"Select Drug Name: ",,"QM")
+ .I APSPDRG<1 S QFLG=1 Q
+ .S APSPDARY(APSPDRG)=""
+ .S DCNT=DCNT+1
+ .S QFLG='$$DIR^APSPUTIL("Y","Want to Select Another Drug","No",,.APSPQ)
+ .S:'QFLG QFLG=APSPQ
+ Q:'DCNT
+ D DEV
+ Q
+DEV ;EP
+ N XBRP,XBNS
+ S XBRP="OUT^APSPDUR"
+ S XBNS="APS*"
+ D ^XBDBQUE
+ Q
+OUT ;EP
+ U IO
+ K ^TMP($J)
+ D FIND(APSPBD,APSPED,"AD",.APSPDARY)
+ D FIND(APSPBD,APSPED,"ADP",.APSPDARY)
+ D EN^APSPDUR1
+ K ^TMP($J)
+ Q
+FIND(SDT,EDT,XREF,DARY) ;EP
+ N RXIEN,ACTIEN,RTSDT,FILLDT,A0,FDTLP,IEN,DRG
+ S FDTLP=SDT-.01
+ F  S FDTLP=$O(^PSRX(XREF,FDTLP)) Q:'FDTLP!(FDTLP>EDT)  D
+ .S RXIEN=0
+ .F  S RXIEN=$O(^PSRX(XREF,FDTLP,RXIEN)) Q:'RXIEN  D
+ ..Q:$$CHKSTAT(RXIEN)          ; check prescription status
+ ..S DRG=$P(^PSRX(RXIEN,0),U,6)
+ ..Q:'DRG   ; Prescription must have a drug
+ ..Q:'$D(^PSDRUG(DRG,0))
+ ..Q:'$D(DARY(DRG))
+ ..S IEN="" F  S IEN=$O(^PSRX(XREF,FDTLP,RXIEN,IEN)) Q:IEN=""  D
+ ...Q:'IEN&($$GET1^DIQ(52,RXIEN,32.1,"I"))  ; Quit if original fill anda return to stock date exists
+ ...Q:'$$DIVVRY(RXIEN,APSPDIV,XREF,IEN)  ;check division
+ ...Q:'$$DSPRDT(RXIEN,XREF,IEN)  ;check for release date
+ ...D SET(FDTLP,RXIEN,XREF,IEN)
+ Q
+ ; Check status business rules
+ ; Input: RX - Prescription IEN
+ ; Output: 0 - Prescription status OK, 1- Failed check
+CHKSTAT(RX) ; EP
+ N STA
+ S STA=$P($G(^PSRX(RX,"STA")),U)
+ Q:STA=13 1  ; Deleted
+ Q 0
+ ; Return release date for dispense
+DSPRDT(RX,TYP,SIEN) ;EP
+ Q $S($G(SIEN):+$P($G(^PSRX(RX,$S(TYP="ADP":"P",1:1),SIEN,0)),U,$S(TYP="ADP":19,1:18)),1:+$P(^PSRX(RX,2),U,13))
+ ; Return boolean flag indicating valid pharmacy division
+DIVVRY(RX,DIV,TYP,SIEN) ;EP
+ Q:DIV="*" 1
+ Q $S($G(SIEN):DIV=+$P($G(^PSRX(RX,$S(TYP="ADP":"P",1:1),SIEN,0)),U,9),1:DIV=+$P(^PSRX(RX,2),U,9))
+SET(FDT,RX,XREF,SIEN) ;EP
+ N RXN,DFN,QTY,DRGNM,REMARK,OPRV,FTYPE,DIV,NXT
+ S FTYPE=$S(XREF="ADP":"P",SIEN:"R",1:"F")
+ S NXT=$O(^TMP($J,"DATA",$C(1)),-1)
+ S NXT=NXT+1
+ S RXN=$P(^PSRX(RX,0),U)  ; Prescription number
+ S DFN=$P(^PSRX(RX,0),U,2)  ; Patient IFN
+ S DIV=$$GET1^DIQ($S(FTYPE="P":52.2,FTYPE="R":52.1,1:52),$S("PR"[FTYPE:SIEN_","_RXIEN_",",1:RXIEN),$S(FTYPE="P":.09,FTYPE="R":8,1:20),"I")  ; Pharmacy Division IEN
+ S QTY=$$GET1^DIQ($S(FTYPE="P":52.2,FTYPE="R":52.1,1:52),$S("PR"[FTYPE:SIEN_","_RX_",",1:RX),$S(FTYPE="P":.04,FTYPE="R":1,1:7))
+ S DRGNM=$P(^PSDRUG(DRG,0),U) ;Drug Name
+ S OPRV=$$GET1^DIQ($S(FTYPE="P":52.2,FTYPE="R":52.1,1:52),$S("PR"[FTYPE:SIEN_","_RX_",",1:RX),$S(FTYPE="P":6,FTYPE="R":15,1:4),"I")
+ S REMARK=$$GET1^DIQ($S(FTYPE="P":52.2,FTYPE="R":52.1,1:52),$S("PR"[FTYPE:SIEN_","_RX_",",1:RX),$S(FTYPE="P":.03,FTYPE="R":3,1:12))
+ S ^TMP($J,"DATA",NXT)=DIV_U_FDT_U_DRGNM_U_QTY_U_RXN_U_OPRV_U_REMARK
+ S ^TMP($J,"PSODUR",DIV,DFN,FDT,RX,NXT)=""
+ Q

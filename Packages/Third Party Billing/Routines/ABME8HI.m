@@ -1,0 +1,228 @@
+ABME8HI ; IHS/ASDST/DMJ - 837 HI Segment 
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Transaction Set Header
+ ;
+ ; IHS/SD/SDR 3/10/2004 - V2.5 P5
+ ;     Put fix to retrieve 6th Dx code
+ ;
+EP(X) ;EP
+ K ABMREC("HI"),ABMR("HI")
+ S ABME("RTYPE")="HI"
+ S ABMEIC=X
+ D LOOP
+ K ABME,ABM
+ Q
+LOOP ;LOOP HERE
+ F I=10:10:130 D
+ .D @I
+ .I $D(^ABMEXLM("AA",+$G(ABMP("INS")),+$G(ABMP("EXP")),ABME("RTYPE"),I)) D @(^(I))
+ .I $G(ABMREC("HI"))'="" S ABMREC("HI")=ABMREC("HI")_"*"
+ .S ABMREC("HI")=$G(ABMREC("HI"))_ABMR("HI",I)
+ Q
+10 ;segment
+ S ABMR("HI",10)="HI"
+ Q
+20 ;HI01 - Health Care Code Information
+ S ABMR("HI",20)=""
+ I ABMEIC="BK" D
+ .S ABMR("HI",20)=$$DXP^ABMUTL8(ABMP("BDFN"))
+ I ABMEIC="BF" D
+ .S ABMR("HI",20)=$G(ABMDX(2))
+ I ABMEIC="BP" D
+ .S ABMR("HI",20)=$G(ABMPX(1))
+ I ABMEIC="BO" D
+ .S ABMR("HI",20)=$G(ABMPX(2))
+ I ABMEIC="BI" D
+ .S ABMR("HI",20)=$G(ABMOS(1))
+ I ABMEIC="BH" D
+ .S ABMR("HI",20)=$G(ABMOC(1))
+ I ABMEIC="BE" D
+ .S ABMR("HI",20)=$G(ABMVA(1))
+ I ABMEIC="BG" D
+ .S ABMR("HI",20)=$G(ABMCD(1))
+ I ABMEIC="BZ" D
+ .S ABMR("HI",20)=$$DXP^ABMUTL8(ABMP("BDFN"))
+ Q
+30 ;HI02 - Health Care Code Information
+ S ABMR("HI",30)=""
+ I ABMEIC="BK" D
+ .S ABMR("HI",30)=$$DXA^ABMUTL8(ABMP("BDFN"))
+ I ABMEIC="BF" D
+ .S ABMR("HI",30)=$G(ABMDX(3))
+ I ABMEIC="BO" D
+ .S ABMR("HI",30)=$G(ABMPX(3))
+ I ABMEIC="BI" D
+ .S ABMR("HI",30)=$G(ABMOS(2))
+ I ABMEIC="BH" D
+ .S ABMR("HI",30)=$G(ABMOC(2))
+ I ABMEIC="BE" D
+ .S ABMR("HI",30)=$G(ABMVA(2))
+ I ABMEIC="BG" D
+ .S ABMR("HI",30)=$G(ABMCD(2))
+ I ABMEIC="BZ" D
+ .S ABMR("HI",30)=$G(ABMDX(2))
+ Q
+40 ;HI03 - Health Care Code Information
+ S ABMR("HI",40)=""
+ I ABMEIC="BK" D
+ .S ABMR("HI",40)=$$DXE^ABMUTL8(ABMP("BDFN"))
+ I ABMEIC="BF" D
+ .S ABMR("HI",40)=$G(ABMDX(4))
+ I ABMEIC="BO" D
+ .S ABMR("HI",40)=$G(ABMPX(4))
+ I ABMEIC="BI" D
+ .S ABMR("HI",40)=$G(ABMOS(3))
+ I ABMEIC="BH" D
+ .S ABMR("HI",40)=$G(ABMOC(3))
+ I ABMEIC="BE" D
+ .S ABMR("HI",40)=$G(ABMVA(3))
+ I ABMEIC="BG" D
+ .S ABMR("HI",40)=$G(ABMCD(3))
+ I ABMEIC="BZ" D
+ .S ABMR("HI",40)=$G(ABMDX(3))
+ Q
+50 ;HI04 - Health Care Code Information
+ S ABMR("HI",50)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",50)=$G(ABMDX(5))
+ I ABMEIC="BO" D
+ .S ABMR("HI",50)=$G(ABMPX(5))
+ I ABMEIC="BI" D
+ .S ABMR("HI",50)=$G(ABMOS(4))
+ I ABMEIC="BH" D
+ .S ABMR("HI",50)=$G(ABMOC(4))
+ I ABMEIC="BE" D
+ .S ABMR("HI",50)=$G(ABMVA(4))
+ I ABMEIC="BG" D
+ .S ABMR("HI",50)=$G(ABMCD(4))
+ I ABMEIC="BZ" D
+ .S ABMR("HI",50)=$G(ABMDX(4))
+ Q
+60 ;HI05 - Health Care Code Information
+ S ABMR("HI",60)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",60)=$G(ABMDX(6))
+ I ABMEIC="BO" D
+ .S ABMR("HI",60)=$G(ABMPX(6))
+ I ABMEIC="BI" D
+ .S ABMR("HI",60)=$G(ABMOS(5))
+ I ABMEIC="BH" D
+ .S ABMR("HI",60)=$G(ABMOC(5))
+ I ABMEIC="BE" D
+ .S ABMR("HI",60)=$G(ABMVA(5))
+ I ABMEIC="BG" D
+ .S ABMR("HI",60)=$G(ABMCD(5))
+ I ABMEIC="BZ" D
+ .S ABMR("HI",60)=$G(ABMDX(5))
+ Q
+70 ;HI06 - Health Care Code Information
+ S ABMR("HI",70)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",70)=$G(ABMDX(7))
+ I ABMEIC="BO" D
+ .S ABMR("HI",70)=$G(ABMPX(7))
+ I ABMEIC="BI" D
+ .S ABMR("HI",70)=$G(ABMOS(6))
+ I ABMEIC="BH" D
+ .S ABMR("HI",70)=$G(ABMOC(6))
+ I ABMEIC="BE" D
+ .S ABMR("HI",70)=$G(ABMVA(6))
+ I ABMEIC="BG" D
+ .S ABMR("HI",70)=$G(ABMCD(6))
+ I ABMEIC="BZ" D
+ .S ABMR("HI",70)=$G(ABMDX(6))
+ Q
+80 ;HI07 - Health Care Code Information
+ S ABMR("HI",80)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",80)=$G(ABMDX(8))
+ I ABMEIC="BO" D
+ .S ABMR("HI",80)=$G(ABMPX(8))
+ I ABMEIC="BI" D
+ .S ABMR("HI",80)=$G(ABMOS(7))
+ I ABMEIC="BH" D
+ .S ABMR("HI",80)=$G(ABMOC(7))
+ I ABMEIC="BE" D
+ .S ABMR("HI",80)=$G(ABMVA(7))
+ I ABMEIC="BG" D
+ .S ABMR("HI",80)=$G(ABMCD(7))
+ I ABMEIC="BZ" D
+ .S ABMR("HI",80)=$G(ABMDX(7))
+ Q
+90 ;HI08 - Health Care Code Information
+ S ABMR("HI",90)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",90)=$G(ABMDX(9))
+ I ABMEIC="BO" D
+ .S ABMR("HI",90)=$G(ABMPX(9))
+ I ABMEIC="BI" D
+ .S ABMR("HI",90)=$G(ABMOS(8))
+ I ABMEIC="BH" D
+ .S ABMR("HI",90)=$G(ABMOC(8))
+ I ABMEIC="BE" D
+ .S ABMR("HI",90)=$G(ABMVA(8))
+ I ABMEIC="BG" D
+ .S ABMR("HI",90)=$G(ABMCD(8))
+ I ABMEIC="BZ" D
+ .S ABMR("HI",90)=$G(ABMDX(8))
+ Q
+100 ;HI09 - Health Care Code Information
+ S ABMR("HI",100)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",100)=$G(ABMDX(10))
+ I ABMEIC="BO" D
+ .S ABMR("HI",100)=$G(ABMPX(10))
+ I ABMEIC="BI" D
+ .S ABMR("HI",100)=$G(ABMOS(9))
+ I ABMEIC="BH" D
+ .S ABMR("HI",100)=$G(ABMOC(9))
+ I ABMEIC="BE" D
+ .S ABMR("HI",100)=$G(ABMVA(9))
+ I ABMEIC="BG" D
+ .S ABMR("HI",100)=$G(ABMCD(9))
+ Q
+110 ;HI10 - Health Care Code Information
+ S ABMR("HI",110)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",110)=$G(ABMDX(11))
+ I ABMEIC="BO" D
+ .S ABMR("HI",110)=$G(ABMPX(11))
+ I ABMEIC="BI" D
+ .S ABMR("HI",110)=$G(ABMOS(10))
+ I ABMEIC="BH" D
+ .S ABMR("HI",110)=$G(ABMOC(10))
+ I ABMEIC="BE" D
+ .S ABMR("HI",110)=$G(ABMVA(10))
+ I ABMEIC="BG" D
+ .S ABMR("HI",110)=$G(ABMCD(10))
+ Q
+120 ;HI11 - Health Care Code Information
+ S ABMR("HI",120)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",120)=$G(ABMDX(12))
+ I ABMEIC="BO" D
+ .S ABMR("HI",120)=$G(ABMPX(12))
+ I ABMEIC="BI" D
+ .S ABMR("HI",120)=$G(ABMOS(11))
+ I ABMEIC="BH" D
+ .S ABMR("HI",120)=$G(ABMOC(11))
+ I ABMEIC="BE" D
+ .S ABMR("HI",120)=$G(ABMVA(11))
+ I ABMEIC="BG" D
+ .S ABMR("HI",120)=$G(ABMCD(11))
+ Q
+130 ;HI12 - Health Care Code Information
+ S ABMR("HI",130)=""
+ I ABMEIC="BF" D
+ .S ABMR("HI",130)=$G(ABMDX(13))
+ I ABMEIC="BO" D
+ .S ABMR("HI",130)=$G(ABMPX(13))
+ I ABMEIC="BI" D
+ .S ABMR("HI",130)=$G(ABMOS(12))
+ I ABMEIC="BH" D
+ .S ABMR("HI",130)=$G(ABMOC(12))
+ I ABMEIC="BE" D
+ .S ABMR("HI",130)=$G(ABMVA(12))
+ I ABMEIC="BG" D
+ .S ABMR("HI",130)=$G(ABMCD(12))
+ Q

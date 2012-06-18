@@ -1,0 +1,69 @@
+AMQQ2 ; IHS/CMI/THL - QUERY NAME LOOKUP ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;-----
+START S AMQQTXT=X
+ I AMQQTXT["," S AMQQNAME=AMQQTXT G RUN
+ I X?1N.N D HRN Q
+ I AMQQTXT'[" " S AMQQNAME=AMQQTXT G RUN
+ S (AMQQNAME,AMQQTXT)=$P(X," ",$L(X," "))_","_$P(X," ",1,$L(X," ")-1)
+RUN S AMQQDIC="^DPT("
+ D LOOKUP
+ S AMQQPTL=Z
+ S AMQQPRL=0
+ I '(AMQQPRL+AMQQPTL) G UNK
+ I '(AMQQPRL*AMQQPTL) S AMQQPTYP=$S(AMQQPRL:"PRO",1:"PT") D ONE G EXIT
+ W !,"Is ",AMQQNAME," a patient"
+ S %=1
+ D YN^DICN
+ I $D(DTOUT) K DTOUT S %Y=U
+ I $E(%Y)=U S AMQQQUIT="" G EXIT
+ I %Y="" S %Y="Y"
+ I "Yy"[$E(%Y) S AMQQPTYP="PT" D ONE G EXIT
+ W !,"Well then, is ",AMQQNAME," a provider"
+ S %=1
+ D YN^DICN
+ I $D(DTOUT) S %Y=U
+ I $E(%Y)=U S AMQQQUIT="" Q
+ I %Y="" S %Y="Y"
+ I "Yy"[$E(X) S AMQQPTYP="PRO" D ONE G EXIT
+UNK I '$D(AMQQXX) W !!,*7,"I have NO idea who or what "_AMQQNAME_" is." S AMQQFAIL=""
+EXIT ; 
+ K AMQQDIC,AMQQNAME,AMQQPRL,AMQQPTL,AMQQPTYP,AMQQTXT,%,X1,X2,A,B,N,Z
+ Q
+ ;
+ONE S (AMQQDIC,DIC)=$S(AMQQPTYP="PRO":($E(AMQQ200(16),1,$L(AMQQ200)-1)_","),1:"^DPT(")
+ S DIC(0)="I"
+ S X=AMQQTXT
+ I @$S(AMQQPTYP="PRO":"AMQQPRL",1:"AMQQPTL")=2 W !!,"Select one of the following "_$S(AMQQPTYP="PRO":"providers",1:"patients")_":",! S DIC(0)="IEQ"
+ D ^DIC
+ I Y=-1,Z'=1 S DIC(0)="E" D ^DIC K DIC G GO
+ S X="`"_+Y
+ S DIC(0)="E"
+ W !
+ D ^DIC
+ K DIC
+GO I Y=-1 S AMQQFAIL="" Q
+ S Y=AMQQDIC_U_Y
+ Q
+ ;
+LOOKUP S AMQQ=AMQQDIC_"""B"")"
+ S Z=0
+ S Y=AMQQNAME
+ S A=$E(Y,1,$L(Y)-1)
+ S B=$E(Y,$L(Y))
+ S B=$A(B)
+ S B=B-1
+ S B=$C(B)
+ S B=B_"|||"
+ S Y=A_B
+ F  S Y=$O(@AMQQ@(Y)) Q:$E(Y,1,$L(AMQQNAME))'=AMQQNAME  F N=0:0 S N=$O(@AMQQ@(Y,N)) Q:N=""  S Z=Z+1 I Z=2 G QL
+QL K N,Y,AMQQ
+ Q
+ ;
+HRN ;EP;TO EVALUATE HEALTH RECORD NUMBER
+ S DIC="^DPT("
+ S DIC(0)="EMQZ"
+ D ^DIC
+ S AMQQDIC="^DPT("
+ D GO
+ Q

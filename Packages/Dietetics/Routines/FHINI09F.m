@@ -1,0 +1,128 @@
+FHINI09F	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,6508,0)
+	;;=LOW PRO RUSKS^^slices^10
+	;;^UTILITY(U,$J,112,6508,1)
+	;;=1^9^80^430^^^^^^^^50^30
+	;;^UTILITY(U,$J,112,6508,20)
+	;;=HENKEL CORP. PROD. LIT. UNDATED,  DOE: 051685  #516
+	;;^UTILITY(U,$J,112,6509,0)
+	;;=LOW PRO COOKIES (BUTTERSCOTCH)^^cookies^14
+	;;^UTILITY(U,$J,112,6509,1)
+	;;=.22^28.56^71.4^499.8^^^^^^^28.56^57.12^142.8
+	;;^UTILITY(U,$J,112,6509,20)
+	;;=HENKEL CORP., MINNEAPOLIS PROD. LIT. UNDATED,  DOE: 051685  #516
+	;;^UTILITY(U,$J,112,6510,0)
+	;;=CAL PLUS^^cups^128
+	;;^UTILITY(U,$J,112,6510,1)
+	;;=0^0^94^400^6^^^^^^^6.9^110
+	;;^UTILITY(U,$J,112,6510,20)
+	;;=HENKEL CORP. MINNEAPOLIS PROD. LIT. UNDATED, DOE: 051685  #516
+	;;^UTILITY(U,$J,112,6511,0)
+	;;=BIG FRANKS (LOMA LINDA)^^franks^51
+	;;^UTILITY(U,$J,112,6511,1)
+	;;=20^10^8^200^58^^^33^1.8^^^150^430^1.2^^^^^^1.1
+	;;^UTILITY(U,$J,112,6511,2)
+	;;=1.2^16^1.6^.98^^2400
+	;;^UTILITY(U,$J,112,6511,20)
+	;;=Loma Linda Foods, INC. Prod. Lit. dated 4/85.  DOE: 052285 #516
+	;;^UTILITY(U,$J,112,6512,0)
+	;;=CHICKEN SUPREME (VEGETARIAN)^^slices^57
+	;;^UTILITY(U,$J,112,6512,1)
+	;;=17^14^7^220^59^^^35^1.3^^^330^790^.7^^^^^^1.1
+	;;^UTILITY(U,$J,112,6512,2)
+	;;=40^5.3^2.6^70^^2100
+	;;^UTILITY(U,$J,112,6512,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4-85.  DOE 052285  #516
+	;;^UTILITY(U,$J,112,6513,0)
+	;;=DINNER CUTS (VEGETARIAN)^^cuts^60
+	;;^UTILITY(U,$J,112,6513,1)
+	;;=21^1^4^110^59^^^35^2^^^180^550^1.3^^^^^^.2
+	;;^UTILITY(U,$J,112,6513,2)
+	;;=.27^.96^.21^.48^^1400
+	;;^UTILITY(U,$J,112,6513,20)
+	;;=Loma Linda Food INC Prod. Lit. dated 4/85.  DOE 052285   #516
+	;;^UTILITY(U,$J,112,6514,0)
+	;;=DINNER CUTS NSA (VEGETARIAN)^^cuts^50
+	;;^UTILITY(U,$J,112,6514,1)
+	;;=21^1^4^110^71^^^20^2^^^75^30^1.3^^^^^^.3
+	;;^UTILITY(U,$J,112,6514,2)
+	;;=.27^.96^.21^.48^^1400
+	;;^UTILITY(U,$J,112,6514,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6515,0)
+	;;=FRIED CHICKEN (VEGETARIAN)^^pieces^42.5
+	;;^UTILITY(U,$J,112,6515,1)
+	;;=11^12^5^170^70^^^23^1.7^^^300^400^.65^^^^^^.7
+	;;^UTILITY(U,$J,112,6515,2)
+	;;=.48^4.7^1.8^.5^^2100
+	;;^UTILITY(U,$J,112,6515,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.  DOE 052285.   #516
+	;;^UTILITY(U,$J,112,6516,0)
+	;;=LINKETTS (VEGETARIAN)^^links^37
+	;;^UTILITY(U,$J,112,6516,1)
+	;;=20^11^7^210^59^^^27^2.4^^^100^460^1.2^^^^^^.5
+	;;^UTILITY(U,$J,112,6516,2)
+	;;=.6^8.1^1.1^.5^^2000
+	;;^UTILITY(U,$J,112,6516,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6517,0)
+	;;=LITTLE LINKS (VEGETARIAN)^^links^23
+	;;^UTILITY(U,$J,112,6517,1)
+	;;=18^11^5^190^63^^^27^2.4^^^90^450^1.3^^^^^^1.2
+	;;^UTILITY(U,$J,112,6517,2)
+	;;=.9^13^3.3^.35^^4000
+	;;^UTILITY(U,$J,112,6517,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.   DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6518,0)
+	;;=NUTEENA (VEGETARIAN)^^slices^67
+	;;^UTILITY(U,$J,112,6518,1)
+	;;=12^18^8^240^59^^^32^1.8^^^300^180^1.3^^^^^^.7
+	;;^UTILITY(U,$J,112,6518,2)
+	;;=.86^21^4.2^.67^^2100
+	;;^UTILITY(U,$J,112,6518,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6519,0)
+	;;=OCEAN PLATTER (VEGETARIAN)^^slices^57
+	;;^UTILITY(U,$J,112,6519,1)
+	;;=14^14^9^220^61^^^45^1.3^^^290^460^.6^^^^^^1.1
+	;;^UTILITY(U,$J,112,6519,2)
+	;;=.5^5.3^2.6^.7^^2300
+	;;^UTILITY(U,$J,112,6519,20)
+	;;=Loma Linda Food Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6520,0)
+	;;=PATTY MIX (VEGETARIAN)^^patties^57
+	;;^UTILITY(U,$J,112,6520,1)
+	;;=16^16^7^240^57^^^54^1.3^^^270^570^.5^^^^^^1.1
+	;;^UTILITY(U,$J,112,6520,2)
+	;;=.6^6.2^2.6^1.1^^2800
+	;;^UTILITY(U,$J,112,6520,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6521,0)
+	;;=PROTEENA (VEGETARIAN)^^slices^71
+	;;^UTILITY(U,$J,112,6521,1)
+	;;=24^9^7^200^57^^^31^2.3^^^400^650^1.7^^^^^^.9
+	;;^UTILITY(U,$J,112,6521,2)
+	;;=.7^11^3.5^.7^^2100
+	;;^UTILITY(U,$J,112,6521,20)
+	;;=Loma Linda Food Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6522,0)
+	;;=REDI-BURGER (VEGETARIAN)^^slices^67
+	;;^UTILITY(U,$J,112,6522,1)
+	;;=21^9^8^200^58^^^29^2.1^^^180^550^1.8^^^^^^.9
+	;;^UTILITY(U,$J,112,6522,2)
+	;;=.6^10^2.3^1.2^^2400
+	;;^UTILITY(U,$J,112,6522,20)
+	;;=Loma Linda INC. Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6523,0)
+	;;=SAVORY DINNER LOAF (VEGETARIAN)^^slices^57
+	;;^UTILITY(U,$J,112,6523,1)
+	;;=16^13^7^210^60^^^45^1.2^^^250^670^.5^^^^^^1.1
+	;;^UTILITY(U,$J,112,6523,2)
+	;;=.5^6.5^2.9^1^^2100
+	;;^UTILITY(U,$J,112,6523,20)
+	;;=Loma Linda Food INC. Prod. Lit. dated 4/85.  DOE 052285.  #516
+	;;^UTILITY(U,$J,112,6524,0)
+	;;=SIZZLE FRANK (VEGETARIAN)^^franks^35

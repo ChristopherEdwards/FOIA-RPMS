@@ -1,0 +1,100 @@
+RAIPST13 ;HIRMFO/BNT - Post-init number one (patch twelve) ;5/19/99
+VERSION ;;5.0;Radiology/Nuclear Medicine;**12**;Mar 16, 1998
+ ;
+EN1 ; Add entries to the HL LL Protocol Param (869.2) file, HL Logical
+ ; Link (870) file, HL7 Application Param (771) and the Protocol (101)
+ ; file.
+ ; ***    Add entries to HL LL Protocol Param (869.2) file     ***
+ I '$D(^HLCS(869.2,"B","RA-PSCRIBE LLP")) D
+ . N RAFDA S RAFDA(869.2,"+1,",.01)="RA-PSCRIBE LLP"
+ . S RAFDA(869.2,"+1,",.02)=$$TCP^RAIPST12()
+ . S RAFDA(869.2,"+1,",400.03)=$$CLIENT^RAIPST12()
+ . S RAFDA(869.2,"+1,",400.04)=$$Y^RAIPST12()
+ . D MSG^RAIPST12("RA-PSCRIBE LLP",869.2),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HLCS(869.2,"B","RA-PSCRIBE LLP")) MSG^RAIPST12("RA-PSCRIBE LLP",869.2,1)
+ . Q
+ I '$D(^HLCS(869.2,"B","PSCRIBE-RA LLP")) D
+ . N RAFDA S RAFDA(869.2,"+1,",.01)="PSCRIBE-RA LLP"
+ . S RAFDA(869.2,"+1,",.02)=$$TCP^RAIPST12()
+ . S RAFDA(869.2,"+1,",400.03)=$$SLISTN^RAIPST12()
+ . S RAFDA(869.2,"+1,",400.04)=$$Y^RAIPST12()
+ . D MSG^RAIPST12("PSCRIBE-RA LLP",869.2),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HLCS(869.2,"B","PSCRIBE-RA LLP")) MSG^RAIPST12("PSCRIBE-RA LLP",869.2,1)
+ . Q
+ I '$D(^HLCS(869.2,"B","TALK-RA LLP")) D
+ . N RAFDA S RAFDA(869.2,"+1,",.01)="TALK-RA LLP"
+ . S RAFDA(869.2,"+1,",.02)=$$TCP^RAIPST12()
+ . S RAFDA(869.2,"+1,",400.03)=$$SLISTN^RAIPST12()
+ . S RAFDA(869.2,"+1,",400.04)=$$Y^RAIPST12()
+ . D MSG^RAIPST12("TALK-RA LLP",869.2),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HLCS(869.2,"B","TALK-RA LLP")) MSG^RAIPST12("TALK-RA LLP",869.2,1)
+ . Q
+ I '$D(^HLCS(869.2,"B","RA-TALK LLP")) D
+ . N RAFDA S RAFDA(869.2,"+1,",.01)="RA-TALK LLP"
+ . S RAFDA(869.2,"+1,",.02)=$$TCP^RAIPST12()
+ . S RAFDA(869.2,"+1,",400.03)=$$CLIENT^RAIPST12()
+ . S RAFDA(869.2,"+1,",400.04)=$$Y^RAIPST12()
+ . D MSG^RAIPST12("RA-TALK LLP",869.2),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HLCS(869.2,"B","RA-TALK LLP")) MSG^RAIPST12("RA-TALK LLP",869.2,1)
+ . Q
+ ; *** End adding entries to HL LL Protocol Param (869.2) file ***
+ D BMES^XPDUTL(" ") ; greater readability
+ ; ***    Add entries to HL Logical Link (870) file     ***
+ I '$D(^HLCS(870,"B","RA-PSCRIBE")) D
+ . N RAFDA S RAFDA(870,"+1,",.01)="RA-PSCRIBE"
+ . S RAFDA(870,"+1,",2)="TCP"  ;IHS/ITSC/CLS 04/24/2003
+ . D MSG^RAIPST12("RA-PSCRIBE",870),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HLCS(870,"B","RA-PSCRIBE")) MSG^RAIPST12("RA-PSCRIBE",870,1)
+ . Q
+ I '$D(^HLCS(870,"B","PSCRIBE-RA")) D
+ . N RAFDA S RAFDA(870,"+1,",.01)="PSCRIBE-RA"
+ . S RAFDA(870,"+1,",2)="TCP"  ;IHS/ITSC/CLS 04/24/2003
+ . D MSG^RAIPST12("PSCRIBE-RA",870),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HLCS(870,"B","PSCRIBE-RA")) MSG^RAIPST12("PSCRIBE-RA",870,1)
+ . Q
+ I '$D(^HLCS(870,"B","TALK-RA")) D
+ . N RAFDA S RAFDA(870,"+1,",.01)="TALK-RA"
+ . S RAFDA(870,"+1,",2)="TCP"  ;IHS/ITSC/CLS 04/24/2003
+ . D MSG^RAIPST12("TALK-RA",870),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HLCS(870,"B","TALK-RA")) MSG^RAIPST12("TALK-RA",870,1)
+ . Q
+ I '$D(^HLCS(870,"B","RA-TALK")) D
+ . N RAFDA S RAFDA(870,"+1,",.01)="RA-TALK"
+ . S RAFDA(870,"+1,",2)="TCP"  ;IHS/ITSC/CLS 04/24/2003
+ . D MSG^RAIPST12("RA-TALK",870),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HLCS(870,"B","RA-TALK")) MSG^RAIPST12("RA-TALK",870,1)
+ . Q
+ ; *** End adding entries to HL Logical Link (870) file ***
+ D BMES^XPDUTL(" ") ; greater readability
+ ; ***    Add entries to HL7 Application Param (771) file     ***
+ I '$D(^HL(771,"B","RA-VOICE-SERVER")) D
+ . N RAFDA S RAFDA(771,"+1,",.01)="RA-VOICE-SERVER"
+ . S RAFDA(771,"+1,",2)=$$ACTIVE^RAIPST12()
+ . S RAFDA(771,"+1,",7)=$$US^RAIPST12()
+ . S RAFDA(771,"+1,",100)="|"
+ . S RAFDA(771,"+1,",101)="~\&"  ;IHS/ITSC/CLS 08/03/2003 replaced "^~\&"
+ . D MSG^RAIPST12("RA-VOICE-SERVER",771),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HL(771,"B","RA-VOICE-SERVER")) MSG^RAIPST12("RA-VOICE-SERVER",771,1)
+ . Q
+ I '$D(^HL(771,"B","RA-PSCRIBE-TCP")) D
+ . N RAFDA S RAFDA(771,"+1,",.01)="RA-PSCRIBE-TCP"
+ . S RAFDA(771,"+1,",2)=$$ACTIVE^RAIPST12()
+ . S RAFDA(771,"+1,",7)=$$US^RAIPST12()
+ . S RAFDA(771,"+1,",100)="|"
+ . S RAFDA(771,"+1,",101)="~\&"  ;IHS/ITSC/CLS 08/03/2003 replaced "^~\&"
+ . D MSG^RAIPST12("RA-PSCRIBE-TCP",771),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HL(771,"B","RA-PSCRIBE-TCP")) MSG^RAIPST12("RA-PSCRIBE-TCP",771,1)
+ . Q
+ I '$D(^HL(771,"B","RA-TALKLINK-TCP")) D
+ . N RAFDA S RAFDA(771,"+1,",.01)="RA-TALKLINK-TCP"
+ . S RAFDA(771,"+1,",2)=$$ACTIVE^RAIPST12()
+ . S RAFDA(771,"+1,",7)=$$US^RAIPST12()
+ . S RAFDA(771,"+1,",100)="|"
+ . S RAFDA(771,"+1,",101)="~\&"  ;IHS/ITSC/CLS 08/03/2003 replaced "^~\&"
+ . D MSG^RAIPST12("RA-TALKLINK-TCP",771),UPDATE^DIE("E","RAFDA")
+ . D:'$D(^HL(771,"B","RA-TALKLINK-TCP")) MSG^RAIPST12("RA-TALKLINK-TCP",771,1)
+ . Q
+ ; *** End adding entries to HL7 Application Param (771) file ***
+ D BMES^XPDUTL(" ") ; greater readability
+ D EN1^RAIPST16
+ Q

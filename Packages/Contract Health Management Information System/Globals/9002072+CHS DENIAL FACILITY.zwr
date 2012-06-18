@@ -1,0 +1,16 @@
+CHS DENIAL FACILITY
+ZWR
+^ACHSDENR(0)="CHS DENIAL FACILITY^9002072P^7819^1"
+^ACHSDENR(7819,0)="7819^DIC^1^1^1^N"
+^ACHSDENR(7819,1,0)="^9002072.01P^1^1"
+^ACHSDENR(7819,1,1,0)="10"
+^ACHSDENR(7819,1,"B",10,1)=""
+^ACHSDENR(7819,2,0)="^^1^1^3101108^"
+^ACHSDENR(7819,2,1,0)="We have been requested to authorize payment for medical services received from the above provider(s).  Please understand that after careful review of the Contract Health Service rules and regulations, we must advise you the ACHSFAC will not authorize payment for the following reason(s):"
+^ACHSDENR(7819,3,0)="^^1^1^3101108^"
+^ACHSDENR(7819,3,1,0)="RECONSIDERATION AND APPEAL [Per 42 CFR 136.25]. You may appeal the denial in writing.  Please submit a statement supporting the reason for the appeal.  NOTE: If you fail to submit a written appeal within (30) days of receipt of this letter, payment will be denied through the CHS program. If you have additional information that may affect our decision, please submit it in writing within 30 days of receipt of this letter to: "
+^ACHSDENR(7819,9,0)="^^1^1^3101108^"
+^ACHSDENR(7819,9,1,0)="If you do not have additional information, you may appeal in writing, within 30 days of receipt of this letter:"
+^ACHSDENR(7819,100)="BOB"
+^ACHSDENR(7819,200)="BOB"
+^ACHSDENR("B",7819,7819)=""

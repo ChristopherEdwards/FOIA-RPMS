@@ -1,0 +1,14 @@
+^PSF
+ZWR
+^PSF("CUTDATE")="S X1=DT,X2=-$P(%PSITE,""^"",23) D C^%DTC S PSDTCUT=X,PSPRFPAS=$P(%PSITE,""^"",24)"
+^PSF("FIXEXPDT")="F J=0:0 S J=$N(^PSRX(J)) Q:J'>0  I $D(^(J,0))#2 S RX0=^(0),RX2=$S($D(^(2))#2:^(2),1:"""") D ^PSEXDT:'$P(RX2,""^"",6)"
+^PSF("MAD")="S X=X9 D H^%DTC S T*"
+^PSF("MAD TIMES")="S X1=X9,X2=1 D C^%DTC S ET=X_"".""_$P(X9,""."",2),D=X11\24,H=X11#24,(L,S)=X9 X:D>0 ^PSF(""MAD TIMES"",1) S CR=0 F I=1:1 S L=L+(H/100) X:(H=0)!("".""_$P(L,""."",2)'<.25)&('CR) ^PSF(""MAD TIMES"",1) Q:L'<ET  S S=S_""~""_L"
+^PSF("MAD TIMES",1)="S CR=1,X1=X9,X2=$S(D=0:1,1:D) D C^%DTC S L=X_(("".""_$P(L,""."",2)-$S('H:0,1:.24)))"
+^PSF("PREVER")="S DIC(0)=""Q"",DIC=""^DIC(9.4,"",D=""C"",X=""PS"" D IX^DIC K D,DIC Q:Y'>0  X ^PSF(""PREVER"",1)"
+^PSF("PREVER",1)="S DA=+Y,(Y,Y(1))=0 F J=0:0 S J=$N(^DIC(9.4,DA,22,J)) Q:J'>0  S Y=Y(1),Y(1)=+J"
+^PSF("RFL")="S:$D(^PSRX(II,2))#2 RFL=$P(^(2),""^"",2) X:'RFL ^PSF(""RFL"",1) S RFL1=0 F MJK=0:0 S MJK=$N(^PSRX(II,1,MJK)) Q:MJK'>0  S RFDATE=+^(MJK,0) S:RFL'>RFDATE RFL1=RFL,RFL=RFDATE"
+^PSF("STAT")="S ST0=$P(RX0,U,15) X:ST0<12&($D(^PS(52.5,""B"",J))) ^PSF(""STAT"",1) S:ST0<12&(DT>$P(RX2,U,6)) ST0=11 S ST=$P(""ERROR^ACTIVE^FILL^REFILL FILL^HOLD^^SUSPENDED^^^^^DONE^EXPIRED^CANCELLED"",U,ST0+2),RX0=$P(RX0_""^^^^^^^^^^^^"",U,1,14)_U_ST0_U_$P(RX0,U,16,99)"
+^PSF("STAT",1)="I $N(^PS(52.5,""B"",J,0))>0,$D(^PS(52.5,$N(^(0)),0)),'$D(^(""P"")) S ST0=5"
+^PSF("UDDC")="I $S('$D(^PSDRUG(+Y,""I"")):1,1:+^(""I"")>DT),$S($D(^(2)):$P(^(2),""^"",3)[""U"",1:0)"
+^PSF("UDDT")="S PSGOD=""*******"" I $D(PSGID),PSGID S PSGID=PSGID_$E(""."",PSGID'[""."")_""0000"",PSGOD=$E(PSGID,4,5)_""/""_$E(PSGID,6,7)_""/""_$E(PSGID,2,3)_""  ""_$E(PSGID,9,10)_"":""_$E(PSGID,11,12)"

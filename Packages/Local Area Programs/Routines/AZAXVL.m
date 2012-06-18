@@ -1,0 +1,32 @@
+AZAXVL ;IHS/PHXAO/AEF - PRINT VENDOR ADDRESS LIST
+ ;;1.0;ANNE'S SPECIAL ROUTINES;;JULY 16, 2004
+ ;
+EN ;EP -- MAIN ENTRY POINT
+ ;
+ Q
+LOOP ;
+ ;----- LOOP THROUGH VENDOR FILE
+ ;
+ N D0
+ S D0=0
+ F  S D0=$O(^AUTTVNDR(D0)) Q:'D0  D
+ . W !
+ . W $P($G(^AUTTVNDR(D0,0)),U)
+ . W ?33,$P($G(^AUTTVNDR(D0,11)),U,13)
+ . D MADD(D0)
+ . W !
+ Q
+MADD(D0) ;
+ ;----- PRINT MAILING ADDRESS
+ ;
+ N DATA
+ ;
+ S DATA=$G(^AUTTVNDR(D0,13))
+ W ?49,$P(DATA,U,1)
+ I $P(DATA,U,10)]"" W !?49,$P(DATA,U,10)
+ W !?49,$E($P(DATA,U,2),1,13)
+ W ", "
+ W $P($G(^DIC(5,+$P(DATA,U,3),0)),U,2)
+ W "  "
+ W $P(DATA,U,4)
+ Q

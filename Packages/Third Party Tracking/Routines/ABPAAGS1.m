@@ -1,0 +1,59 @@
+ABPAAGS1 ;COMPILE AGED CLAIMS SUMMARY; [ 05/17/91  3:35 PM ]
+ ;;1.4;AO PVT-INS TRACKING;*0*;IHS-OKC/KJR;JULY 25, 1991
+ W !!?5,"<<< NOT AN ENTRY POINT - ACCESS DENIED >>>",!! G ZTLEND
+ ;--------------------------------------------------------------------
+EXTRACT ;PROCEDURE TO LOOP THROUGH ALL OPEN CLAIMS
+ S R=0 F I=0:0 D  Q:+R=0
+ .S R=$O(^ABPVAO("CS","O",R)) Q:+R=0
+ .S RR=0 F J=0:0 D  Q:+RR=0
+ ..S RR=$O(^ABPVAO("CS","O",R,RR)) Q:+RR=0
+ ..Q:$D(^ABPVAO(R,1,RR,0))'=1
+ ..S DATA=^ABPVAO(R,1,RR,0)
+ ..I ABPAOPT(9)=1 S X2=$P(DATA,"^",12)
+ ..E  S X2=$P(DATA,"^",11)
+ ..Q:X2<BDT!(X2>EDT)  S X1=DT D ^%DTC S AGE=+X
+ ..S INSURER="*** UNKNOWN ***",ZIP="?????",INSPTR=$P(DATA,"^",6)
+ ..I ABPA("INS")'="ALL" D  Q:'FOUND
+ ...S FOUND=0
+ ...F K=1:1 Q:($D(ABPA("INS",K))'=1)!(FOUND)  D
+ ....I ABPA("INS",K)=INSPTR S FOUND=1
+ ..I $D(^AUTNINS(+INSPTR,0))=1 D
+ ...S INSURER=$P(^AUTNINS(+INSPTR,0),"^"),ZIP=$P(^(0),"^",5)
+ ..S AMT=+$P(DATA,"^",7)
+ ..I $D(^%ZTSK(ZTSK,"AGING",+INSPTR))'=1 D
+ ...S ^%ZTSK(ZTSK,"AGING",+INSPTR)="0^0^0^0"
+ ..I AGE<60 D
+ ...S CUR=$P(^%ZTSK(ZTSK,"AGING",+INSPTR),"^")
+ ...S $P(^%ZTSK(ZTSK,"AGING",+INSPTR),"^")=CUR+AMT
+ ..I AGE>59&(AGE<90) D
+ ...S CUR=$P(^%ZTSK(ZTSK,"AGING",+INSPTR),"^",2)
+ ...S $P(^%ZTSK(ZTSK,"AGING",+INSPTR),"^",2)=CUR+AMT
+ ..I AGE>89 D
+ ...S CUR=$P(^%ZTSK(ZTSK,"AGING",+INSPTR),"^",3)
+ ...S $P(^%ZTSK(ZTSK,"AGING",+INSPTR),"^",3)=CUR+AMT
+ ..S ^%ZTSK(ZTSK,"INSURER",INSURER_"/.:"_ZIP,+INSPTR)=""
+ S R=0 F I=0:0 D  Q:R=""
+ .S R=$O(^%ZTSK(ZTSK,"INSURER",R)) Q:R=""
+ .S RR=0 F J=0:0 D  Q:+RR=0
+ ..S RR=$O(^%ZTSK(ZTSK,"INSURER",R,RR)) Q:+RR=0
+ ..S P4=0 F J=1:1:3 S P4=P4+$P(^%ZTSK(ZTSK,"AGING",RR),"^",J)
+ ..S $P(^%ZTSK(ZTSK,"AGING",RR),"^",4)=P4
+ Q
+ ;--------------------------------------------------------------------
+ZTLOAD ;PROCEDURE TO LOAD BACKGROUND TASK MANAGER WITH JOB REQUEST
+ S ZTRTN="MAIN^ABPAAGS2",ZTDTH=$H,ZTIO=ABPA("IO")_";80",ZTN=ZTSK
+ S ZTDESC="PRINT AGED CLAIMS SUMMARY"
+ S ZTSAVE("BDT")="",ZTSAVE("EDT")="",ZTSAVE("ZTN")=""
+ S ZTSAVE("ABPATLE")="",ZTSAVE("ABPA(")="" D ^%ZTLOAD
+ Q
+ ;--------------------------------------------------------------------
+ZTLEND ;PROCEDURE TO KILL ALL LOCALLY USED TEMPORARY VARIABLES
+ K %DT,%ZIS,%IS,ZTSK,X,Y,BDT,EDT,ZTRTN,ZTSAVE,ZTIO,ZTDESC,ABPA
+ K DIC,%,IOP,I,K,FOUND,X1,X2,P5,AGE,CUR,R,RR,INSURER,INSPTR
+ Q
+ ;--------------------------------------------------------------------
+MAIN ;ENTRY POINT - CALLED BY TASK MANAGER
+ D EXTRACT
+ D ZTLOAD
+ D ZTLEND
+ Q

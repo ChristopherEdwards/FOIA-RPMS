@@ -1,0 +1,56 @@
+AGELUP7 ;IHS/ASDS/EFG - UPDATE ELIGIBILITY FROM FILE  
+ ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;
+FILE(AG) ;file RAILROAD RETIREMENT
+ S AGINSPT=$O(^AUTNINS("B","MEDICARE",0))
+ S DIE="^AUPNRRE("
+ S DA=AG("DFN")
+ I $D(^AUPNRRE(DA,0)) D EDITED
+ I '$D(^AUPNRRE(DA,0)) D
+ .S DR=".01////"_DA D ^DIE
+ .S $P(^AUPNRRE(0),"^",3)=DA
+ .S $P(^AUPNRRE(0),"^",4)=$P(^(0),"^",4)+1
+ .D ADDED
+ I AGINSPT D
+ .S $P(^AUPNRRE(DA,0),"^",2)=AGINSPT
+ I AG("FNBR")'="" D
+ .S DR=".04///"_AG("FNBR") D ^DIE
+ I AG("FSFX")'="" D
+ .S DR=".03///"_AG("FSFX") D ^DIE
+ I AG("FNM")'="" D
+ .S DR="2101///"_AG("FNM") D ^DIE
+ I AG("FDOB")'="" D
+ .S DR="2102///"_AG("FDOB") D ^DIE
+ S DA(1)=DA
+ S DIK="^AUPNRRE("_DA(1)_",11,"
+ S DA=0 F  S DA=$O(^AUPNRRE(DA(1),11,DA)) Q:'DA  D
+ .D ^DIK
+ S DIC="^AUPNRRE("_DA(1)_",11,"
+ S DIC(0)="LX"
+ S DIC("P")="9000003.11D"
+ K DD,DO
+ S AGI=0
+ F  S AGI=$O(AG("DT",AGI)) Q:'AGI  D
+ .S AGJ=0
+ .F  S AGJ=$O(AG("DT",AGI,AGJ)) Q:AGJ=""  D
+ ..S X=$P(AG("DT",AGI,AGJ),"^",1)
+ ..Q:'X
+ ..K DD,DO
+ ..D FILE^DICN
+ ..Q:+Y<0
+ ..S DIE=DIC,DA=+Y
+ ..S AGEDT=$P(AG("DT",AGI,AGJ),"^",2)
+ ..S DR=".02///"_AGEDT D ^DIE
+ ..S AGCVT=$P(AG("DT",AGI,AGJ),"^",3)
+ ..S DR=".03///"_AGCVT D ^DIE
+ D UPDATE1^AGED(DUZ(2),AG("DFN"),6,"")
+ K AGEDT,AGCVT,AGI,AGJ
+ Q
+ADDED ;patient added
+ S:'$D(^AGELUPLG(AGRUN,1,0)) ^(0)="^9009062.021P^^"
+ S ^AGELUPLG(AGRUN,1,AG("DFN"),0)=AG("DFN")
+ Q
+EDITED ;patient edited
+ S:'$D(^AGELUPLG(AGRUN,2,0)) ^(0)="^9009062.022P^^"
+ S ^AGELUPLG(AGRUN,2,AG("DFN"),0)=AG("DFN")
+ Q

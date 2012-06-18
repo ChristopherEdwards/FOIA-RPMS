@@ -1,0 +1,4 @@
+^HLC
+ZWR
+^HLC("FILE777","OUT")="1"
+^HLC("FILE778","OUT","TCP")="1"

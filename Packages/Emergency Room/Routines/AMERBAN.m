@@ -1,0 +1,62 @@
+AMERBAN ;IHS/SET/FCJ - BANNER FOR ER MENU ; 
+ ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;
+BAN ; ENTRY POINT FROM AMERMENU
+ ; Display BANNER info on main menu.
+ S AMERSVER=$$VERSION^XPDUTL("PIMS")
+ S AMERVER=$$VERSION^XPDUTL("AMER")
+ I AMERVER="" W !!,"THE VERSION FOR THE PACKAGE FILE ENTRY FOR THE 'EMERGENCY ROOM SYSTEM' IS INCOMPLETE!",!,"INFORM YOUR SITE MANAGER IMMEDIATELY!!" Q
+ S AMERHD1="Emergency Room System"
+ D DISPLAY
+ Q
+ ;
+  ;IHS/OIT/SCR 10/01/08 - Removed all Export code from version 3.0
+EXP ; ENTRY POINT FROM AMER EXPORT MENU
+ ;; Display BANNER info on Export menu.
+ ;S AMERHD1="Export Data Menu"
+ ;D DISPLAY
+ Q
+INST ; ENTRY POINT FROM AMER PATIENT INSTRUCTION MENU
+ ; Display BANNER info on Patient Instruction menu.
+ S AMERHD1="Patient Instruction Material Menu"
+ D DISPLAY
+ Q
+SET ; ENTRY POINT FROM AMER SET UP MENU
+ ; Display BANNER info on Export menu.
+ S AMERHD1="Facility Setup Menu"
+ D DISPLAY
+ Q
+RPTS ; ENTRY POINT FROM AMER REPORTS MENU
+ ; Display BANNER info on Export menu.
+ S AMERHD1="Reports Menu"
+ D DISPLAY
+ Q
+UP ; ENTRY POINT FROM [AMER EDIT VISIT] OPTION
+ ; Display BANNER info on Edit menu.
+ S AMERVER=$$VERSION^XPDUTL("AMER")
+ S AMERHD1="Editing Interface"
+ D DISPLAY
+ Q
+  ;IHS/OIT/SCR 10/01/08 - Removed all Export code from version 3.0
+ ;EXPTA ; EP From EN^AMEREXPT
+ ; Display BANNER info on Edit menu.
+ ;S AMERVER=$$VERSION^XPDUTL("AMER")
+ ;S AMERHD1="Pre-defined Exports"
+ ;D DISPLAY
+ ;Q
+DISPLAY ;
+ S L=18,R=61,D=R-L+1,N=R-L-1
+ S AMERVER=$$VERSION^XPDUTL("AMER")
+ S AMERHD2="Indian Health Service"
+ W @IOF,!,$$C^XBFUNC($$REPEAT^XLFSTR("*",D))
+ W !?L,"*",$$C^XBFUNC(AMERHD1,N),?R,"*"
+ W !?L,"*",$$C^XBFUNC(AMERHD2,N),?R,"*"
+ W !?L,"*",$$C^XBFUNC("Version "_AMERVER,N),?R,"*"
+ W !,$$C^XBFUNC($$REPEAT^XLFSTR("*",D))
+ W !,$$C^XBFUNC($P(^DIC(4,DUZ(2),0),U))
+ K L,R,D,N
+ Q
+EXT ; ENTRY POINT FROM EXIT OF MAIN MENU AMERMENU
+ ; KILL VAR     
+ K AMERVER,AMERHD1,AMERHD2,AMERSVER
+ Q

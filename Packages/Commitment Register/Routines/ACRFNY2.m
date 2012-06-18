@@ -1,0 +1,99 @@
+ACRFNY2 ;IHS/OIRM/DSD/THL,AEF - CONVERT TO NEW FINANCE INFO FOR M&M; [ 11/01/2001   9:44 AM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;;NOV 05, 2001
+ ;;ROUTINE TO CREATE FINANCIAL ACCOUNTS FOR THE NEW FISCAL YEAR
+EN D EN1
+EXIT K ACRPROC,ACRMMAPP,ACRMMALW,ACRMMSSA
+ Q
+EN1 K ACRMM
+ D HEAD
+ S DIR(0)="YO"
+ S DIR("A")="Convert to the new M&M Finance information"
+ S DIR("B")="NO"
+ W !
+ D DIR^ACRFDIC
+ Q:+Y'=1
+ S DIR(0)="SO^1:Create NEW FY accounts;2:Convert Finance Data on existing accounts"
+ S DIR("A")="Which action"
+ W !
+ D DIR^ACRFDIC
+ I Y'=1&(Y'=2) S ACRQUIT="" Q
+ S ACRPROC=+Y
+ S X=$O(^AUTTPRO("B","75X0390",0))
+ I 'X D  Q
+ .W !!,"The APPROPRIATION number '75X0390' is not on your system.",!,"Contact your ARMS manager to have this added."
+ .D PAUSE^ACRFWARN
+ .S ACRQUIT=""
+ S ACRMMAPP=X_U_^AUTTPRO(X,0)
+ S ACRAPP="75X0390"
+ S DIC="^AUTTALLW("
+ S DIC(0)="AEMQZ"
+ S DIC("A")="Which ALLOWANCE: "
+ S DIC("S")="I $E($P(^(0),U),1,3)=421!($E($P(^(0),U),1,3)=422)"
+ W !
+ D DIC^ACRFDIC
+ I +Y<1 K ACRMM S ACRQUIT="" Q
+ S ACRMMALW=+Y_U_Y(0)
+ I '$D(^AUTTSSA("D","01.01.21"))!'$D(^AUTTSSA("D","01.01.41"))!'$D(^AUTTSSA("D","02.01.22"))!'$D(^AUTTSSA("D","02.01.42")) D  Q
+ .W !!,"Required SUB-SUB-ACTIVITY entries are not on file."
+ .W !,"Contract your ARMS manager."
+ .D PAUSE^ACRFWARN
+ .S ACRQUIT=""
+ I $E($P(ACRMMALW,U,2),1,3)=421 S X="01.01.21",Z="01.01.41"
+ I $E($P(ACRMMALW,U,2),1,3)=422 S X="02.01.22",Z="02.01.42"
+ S Y=$O(^AUTTSSA("D",X,0))
+ I +Y<1 K ACRMM S ACRQUIT="" Q
+ S ACRMMSSA=+Y_U_X
+ S Y=$O(^AUTTSSA("D",Z,0))
+ I +Y<1 K ACRMM S ACRQUIT="" Q
+ S ACRMMSSA=ACRMMSSA_U_+Y_U_Z
+ S X=^AUTTSSA(+Y,"DT")
+ S ACRMM=+$G(ACRMMAPP)_U_+$G(ACRMMALW)_U_$P(X,U)_U_U_$G(ACRMMSSA)
+ W @IOF
+ W !?10,"APPROPRIATION...: ",$P(ACRMMAPP,U,2)
+ W !?10,"ALLOWANCE.......: ",$P(ACRMMALW,U,2)
+ W !?10,"SUB-SUB-ACTIVITY: ",$P(ACRMMSSA,U,2)," or ",$P(ACRMMSSA,U,4)
+ S DIR(0)="YO"
+ S DIR("A",1)="Are you CERTAIN you want to "_$S(ACRPROC=1:"CREATE NEW",1:"CONVERT EXISTING")
+ S DIR("A")="accounts "_$S(ACRPROC=1:"with",1:"to")_" the new Finance information listed above"
+ S DIR("B")="NO"
+ W !
+ D DIR^ACRFDIC
+ I +Y'=1 S ACRQUIT="" Q
+ D PROC
+ I ACRPROC=2 S ACRQUIT=""
+ Q
+HEAD ;
+ W @IOF
+ W !?10,"Are you CREATING or CONVERTING Medicaid or Medicare accounts which"
+ W !?10,"require the new finance information?  If so, please indicate 'YES'"
+ W !?10,"below then provide the correct information for the conversion."
+ W !
+ Q
+UP ;EP;TO UPDATE FINANCE INFO
+ I $G(ACROLD),ACROLD'=ACRNEWDA S X=$P(@$E(ACRDIK,1,$L(ACRDIK)-1)@(ACROLD,"DT"),U,8) S:X X=$P($G(^AUTTSSA(X,"DT")),U,4) I $E(X,7,8)=92!($E(X,7,8)=93) S X="TRIB"
+ S DIE=ACRDIK
+ S DA=ACRNEWDA
+ S DR="40////"_+ACRMM_";50////"_$P(ACRMM,U,2)_";60////"_+^AUTTSSA($P(ACRMM,U,$S(X'="TRIB":1,1:7)),"DT")_";80////"_$P(ACRMM,U,$S($G(X)'="TRIB":5,1:7))
+ D DIE^ACRFDIC
+ Q
+PROC ;UP DATE EXISTING ACCOUNTS
+ I ACRPROC=1 S $P(^ACRAPP(ACRACTDA,0),U,16)=1
+ S ACRALWDA=0
+ F  S ACRALWDA=$O(^ACRALW("M",ACRACTDA,ACRALWDA)) Q:'ACRALWDA  D
+ .S ACRDIK="^ACRALW("
+ .S ACRNEWDA=ACRALWDA
+ .I ACRPROC=1 S $P(^ACRALW(ACRALWDA,0),U,16)=1
+ .E  D UP
+ .S ACRALCDA=0
+ .F  S ACRALCDA=$O(^ACRALC("M",ACRALWDA,ACRALCDA)) Q:'ACRALCDA  D
+ ..S ACRDIK="^ACRALC("
+ ..S ACRNEWDA=ACRALCDA
+ ..I ACRPROC=1 S $P(^ACRALC(ACRALCDA,0),U,16)=1
+ ..E  D UP
+ ..S ACRLBDA=0
+ ..F  S ACRLBDA=$O(^ACRLOCB("M",ACRALCDA,ACRLBDA)) Q:'ACRLBDA  D
+ ...S ACRDIK="^ACRLOCB("
+ ...S ACRNEWDA=ACRLBDA
+ ...I ACRPROC=1 S $P(^ACRLOCB(ACRLBDA,0),U,16)=1
+ ...E  D UP
+ Q

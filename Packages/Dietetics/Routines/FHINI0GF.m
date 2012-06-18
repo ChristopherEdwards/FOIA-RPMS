@@ -1,0 +1,112 @@
+FHINI0GF	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9998,2)
+	;;=.094^.566^^^^^^^0^^^^^^^^1.038
+	;;^UTILITY(U,$J,112,9998,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9999,0)
+	;;=ASPARAGUS IN PASTRY,FROZEN,CAMPBELLS^BC-03272^3.6-oz.^103
+	;;^UTILITY(U,$J,112,9999,1)
+	;;=4.854^14.563^18.932^227.184^^^^47.573^1.359^^^97.087^298.058^^^^^315.534^2.913^.155
+	;;^UTILITY(U,$J,112,9999,2)
+	;;=.155^1.845
+	;;^UTILITY(U,$J,112,9999,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10000,0)
+	;;=BAMBOO SHOOTS,CND,LACHOY^BC-03273^1/4-cup^32
+	;;^UTILITY(U,$J,112,10000,1)
+	;;=0^0^3.125^18.75^^^^9.375^.313^^^78.125^6.25^^^^^0^^.031
+	;;^UTILITY(U,$J,112,10000,2)
+	;;=.031^.313^^^^^^^0^^^^^^^^0
+	;;^UTILITY(U,$J,112,10000,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10001,0)
+	;;=BEAN SALAD,CND,3 BEAN,JOAN OF ARC^BC-03274^1/2-cup^127
+	;;^UTILITY(U,$J,112,10001,1)
+	;;=1.89^.236^17.795^70.866^78.031^^^36.22^1.598^^34.646^159.055^581.102^^^^^152.756^1.575^.031
+	;;^UTILITY(U,$J,112,10001,2)
+	;;=.063^.787^^^^^^^^^^^^^^^2.52
+	;;^UTILITY(U,$J,112,10001,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10002,0)
+	;;=BEAN SALAD,CND,4 BEAN, LOAN OF ARC^BC-03275^1/2-cup^138
+	;;^UTILITY(U,$J,112,10002,1)
+	;;=2.319^.435^19.42^79.71^76.014^^^44.203^1.203^^39.13^123.188^544.928^^^^^186.957^4.348^.029
+	;;^UTILITY(U,$J,112,10002,2)
+	;;=.058^.87^^^^^^^^^^^^^^^2.681
+	;;^UTILITY(U,$J,112,10002,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10003,0)
+	;;=BEANS,CND,BAKED,B&M^BC-03276^7/8-cup^227
+	;;^UTILITY(U,$J,112,10003,1)
+	;;=7.048^3.524^21.586^145.374^^^^^^^^370.044^339.207
+	;;^UTILITY(U,$J,112,10003,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10004,0)
+	;;=BEANS,CND,BAKED,VAN CAMP'S^BC-03277^cup^227
+	;;^UTILITY(U,$J,112,10004,1)
+	;;=4.846^.881^22.907^114.537^^^^44.053^1.586^^^^449.339^^^^^0^0^.053
+	;;^UTILITY(U,$J,112,10004,2)
+	;;=.062^.529
+	;;^UTILITY(U,$J,112,10004,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10005,0)
+	;;=BEANS,CND,BAKED,VAN CAMP'S DELUXE^BC-03278^cup^227
+	;;^UTILITY(U,$J,112,10005,1)
+	;;=5.727^1.762^25.11^140.969^^^^^1.586^^^303.965^427.313^^^^^0^0^.132
+	;;^UTILITY(U,$J,112,10005,2)
+	;;=.044^.352
+	;;^UTILITY(U,$J,112,10005,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10006,0)
+	;;=BEANS,CND,BARBEQUE,CAMPBELL'S^BC-03279^8.2-oz.^223
+	;;^UTILITY(U,$J,112,10006,1)
+	;;=4.798^1.794^19.103^111.659^^^^43.049^1.345^^^278.924^397.758^^^^^229.596^2.242^.049
+	;;^UTILITY(U,$J,112,10006,2)
+	;;=.031^.493^^^^^^^^^^^^^^^5.157
+	;;^UTILITY(U,$J,112,10006,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10007,0)
+	;;=BEANS,CND,CHILI,CALIENTE,STYLE,JOAN OF ARC^BC-03280^1/2-cup^113
+	;;^UTILITY(U,$J,112,10007,1)
+	;;=5.044^.885^14.779^67.257^76.991^^^28.319^1.699^^76.991^258.407^438.938^^^^^107.965^0^.053
+	;;^UTILITY(U,$J,112,10007,2)
+	;;=.071^.708^^^^^^^^^^^^^^^5.221
+	;;^UTILITY(U,$J,112,10007,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10008,0)
+	;;=BEANS,CND,CHILI,HUNT'S^BC-03281^4-oz.^113
+	;;^UTILITY(U,$J,112,10008,1)
+	;;=5.31^0^15.929^88.496^^^^22.124^1.77^^^353.982^433.628^^^^^^2.655^.15
+	;;^UTILITY(U,$J,112,10008,2)
+	;;=.062^.442^^^^^^^0^^^^8.85^^^^5.31
+	;;^UTILITY(U,$J,112,10008,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10009,0)
+	;;=BEANS,CND,CHILI,MEXICAN STYLE,VAN CAMP'S^BC-03282^cup^227
+	;;^UTILITY(U,$J,112,10009,1)
+	;;=5.022^1.057^17.181^92.511^75.419^^^35.242^1.947^^^281.938^321.586^^^^^702.643^.441^.053
+	;;^UTILITY(U,$J,112,10009,2)
+	;;=.062^.396
+	;;^UTILITY(U,$J,112,10009,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10010,0)
+	;;=BEANS,CND,HEARTH STYLE,CAMPBELL'S^BC-03283^8-oz.^227
+	;;^UTILITY(U,$J,112,10010,1)
+	;;=3.921^1.982^20.485^115.419^^^^64.758^1.454^^^157.269^418.943^^^^^0^2.203^.048
+	;;^UTILITY(U,$J,112,10010,2)
+	;;=.04^0^^^^^^^^^^^^^^^4.053
+	;;^UTILITY(U,$J,112,10010,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10011,0)
+	;;=BEANS,CND,HOME STYLE,CAMPBELL'S^BC-03284^8-oz.^227
+	;;^UTILITY(U,$J,112,10011,1)
+	;;=5.022^1.366^21.057^116.74^^^^58.59^1.718^^^251.101^377.093^^^^^148.458^2.203^.04
+	;;^UTILITY(U,$J,112,10011,2)
+	;;=.031^.485^^^^^^^^^^^^^^^5.815
+	;;^UTILITY(U,$J,112,10011,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,10012,0)
+	;;=BEANS,CND,NEW ENGIAND STYLE,CAMPBELL'S^BC-03285^8-oz.^227

@@ -1,0 +1,22 @@
+IBINI03H	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	Q:'DIFQR(353)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,353)
+	;;=^IBE(353,
+	;;^UTILITY(U,$J,353,0)
+	;;=BILL FORM TYPE^353^4^4
+	;;^UTILITY(U,$J,353,1,0)
+	;;=UB-82^^^^
+	;;^UTILITY(U,$J,353,2,0)
+	;;=HCFA 1500^^^^
+	;;^UTILITY(U,$J,353,2,1)
+	;;=EN^IBCF2
+	;;^UTILITY(U,$J,353,3,0)
+	;;=UB-92^^
+	;;^UTILITY(U,$J,353,3,1)
+	;;=EN^IBCF3
+	;;^UTILITY(U,$J,353,4,0)
+	;;=BILL ADDENDUM^^
+	;;^UTILITY(U,$J,353,4,1)
+	;;=EN^IBCF4

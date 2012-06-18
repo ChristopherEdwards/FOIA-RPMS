@@ -1,0 +1,67 @@
+ACRPRQT ; GENERATED FROM 'ACR REQUISITION-TX' PRINT TEMPLATE (#3857) ; 09/30/09 ; (FILE 9002196, MARGIN=80)
+ G BEGIN
+N W !
+T W:$X ! I '$D(DIOT(2)),DN,$D(IOSL),$S('$D(DIWF):1,$P(DIWF,"B",2):$P(DIWF,"B",2),1:1)+$Y'<IOSL,$D(^UTILITY($J,1))#2,^(1)?1U1P1E.E X ^(1)
+ S DISTP=DISTP+1,DILCT=DILCT+1 D:'(DISTP#100) CSTP^DIO2
+ Q
+DT I $G(DUZ("LANG"))>1,Y W $$OUT^DIALOGU(Y,"DD") Q
+ I Y W $P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC",U,$E(Y,4,5))_" " W:Y#100 $J(Y#100\1,2)_"," W Y\10000+1700 W:Y#1 "  "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12) Q
+ W Y Q
+M D @DIXX
+ Q
+BEGIN ;
+ S:'$D(DN) DN=1 S DISTP=$G(DISTP),DILCT=$G(DILCT)
+ I $D(DXS)<9 M DXS=^DIPT(3857,"DXS")
+ S I(0)="^ACRDOC(",J(0)=9002196
+ I $E($G(IOST),1,2)="C-" W "ARMS REF: ",$P(^ACRDOC(D0,0),U,6),"/",D0 K DIP K:DN Y
+ X DXS(1,9) K DIP K:DN Y
+ X DXS(2,9) K DIP K:DN Y
+ X DXS(3,9) K DIP K:DN Y
+ D N:$X>31 Q:'DN  W ?31 W "DHHS #: "
+ W $$EXPDN^ACRFUTL(D0) K DIP K:DN Y
+ D T Q:'DN  D N W ?0 W "REQUISITION NO.....:"
+ S X=$G(^ACRDOC(D0,0)) W ?22,$E($P(X,U,1),1,17)
+ W "  (",$E("000000",1,6-$L(D0)),D0,")" K DIP K:DN Y
+ D N:$X>56 Q:'DN  W ?56 W "DATE.....:"
+ S X=$G(^ACRDOC(D0,"REQ")) W ?68 S Y=$P(X,U,5) D DT
+ I $P(^ACRDOC(D0,0),U,17)]"" W !,"ORIGINAL REQ NO....:  ",$P(^(0),U,17) K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "REQUESTED BY.......:"
+ S X=$G(^ACRDOC(D0,"REQ")) W ?22 S Y=$P(X,U,12) S Y(0)=Y S Y=$$NAME2^ACRFUTL1(Y) W $E(Y,1,30)
+ D N:$X>56 Q:'DN  W ?56 W "PHONE NO.:"
+ S X=$G(^ACRDOC(D0,"REQ")) W ?68,$E($P(X,U,8),1,12)
+ D N:$X>0 Q:'DN  W ?0 W "FOR REFERENCE CALL.:"
+ W ?22 S Y=$P(X,U,7) S Y(0)=Y S Y=$$NAME2^ACRFUTL1(Y) W $E(Y,1,30)
+ D N:$X>56 Q:'DN  W ?56 W "DATE"
+ D N:$X>0 Q:'DN  W ?0 W "DELIVER TO.........:"
+ S X=$G(^ACRDOC(D0,"REQ1")) W ?22 S Y=$P(X,U,1) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>56 Q:'DN  W ?56 W "REQUIRED.:"
+ S X=$G(^ACRDOC(D0,"REQ")) W ?68 S Y=$P(X,U,11) D DT
+ D N:$X>22 Q:'DN  W ?22 X DXS(4,9.2) S X=$P(DIP(101),U,1) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>56 Q:'DN  W ?56 W "PRIORITY.:"
+ S X=$G(^ACRDOC(D0,"DT")) W ?68 S Y=$P(X,U,4) W:Y]"" $S($D(DXS(10,Y)):DXS(10,Y),1:Y)
+ D N:$X>22 Q:'DN  W ?22 X DXS(5,9.2) S X=$P(DIP(101),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ D N:$X>22 Q:'DN  W ?22 X DXS(6,9.2) S X=$P(DIP(101),U,3) S D0=I(0,0) K DIP K:DN Y W X
+ W ", "
+ X DXS(7,9.3) S X=$P(DIP(201),U,2) S D0=I(0,0) K DIP K:DN Y W X
+ W "  "
+ X DXS(8,9.2) S X=$P(DIP(101),U,5) S D0=I(0,0) K DIP K:DN Y W X
+ X DXS(9,9) K DIP K:DN Y
+ D N:$X>0 Q:'DN  W ?0 W "REQUESTING OFFICE..:"
+ S X=$G(^ACRDOC(D0,"PO")) W ?22 S Y=$P(X,U,7) S Y=$S(Y="":Y,$D(^AUTTPRG(Y,0))#2:$P(^(0),U),1:Y) W $E(Y,1,30)
+ D N:$X>0 Q:'DN  W ?0 W "F.O.B. POINT.......:"
+ W ?22 S Y=$P(X,U,9) W:Y]"" $S($D(DXS(11,Y)):DXS(11,Y),1:Y)
+ I $D(ACRREV)!$D(ACRPRT) W ! D PAUSE^ACRFWARN K DIP K:DN Y
+ S X=$G(^ACRDOC(D0,"DT")) D N:$X>9 Q:'DN  W ?9,$E($P(X,U,5),1,40)
+ D N:$X>9 Q:'DN  W ?9,$E($P(X,U,6),1,40)
+ D N:$X>9 Q:'DN  W ?9,$E($P(X,U,7),1,40)
+ D N:$X>9 Q:'DN  W ?9,$E($P(X,U,8),1,40)
+ D N:$X>9 Q:'DN  W ?9,$E($P(X,U,9),1,40)
+ S ACRDOCDA=D0,ACRDOC=$P(^ACRDOC(D0,0),U) D DISPLAY^ACRFSS12 K DIP K:DN Y
+ D ^ACRFPSS K DIP K:DN Y
+ D:$D(ACRREV)&'$D(ACRPRT) ASUM^ACRFEA42 K DIP K:DN Y
+ D ^ACRFPAPV K DIP K:DN Y
+ D PCERT^ACRFCERT,PBOIL^ACRFBOIL K DIP K:DN Y
+ K Y
+ Q
+HEAD ;
+ W !,"--------------------------------------------------------------------------------",!!

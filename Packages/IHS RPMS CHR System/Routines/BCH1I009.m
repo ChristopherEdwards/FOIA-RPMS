@@ -1,0 +1,160 @@
+BCH1I009 ; IHS/TUCSON/LAB - NO DESCRIPTION PROVIDED ; 
+ ;;1.0;IHS RPMS CHR SYSTEM;**2**;OCT 28, 1996
+ F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,999) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q Q
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,15,20)
+ ;;=F
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,16,0)
+ ;;=6^Edit Assessments/POVs?^2
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,16,2)
+ ;;=6,38^1^6,13
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,16,3)
+ ;;=N
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,16,10)
+ ;;=I X="Y" S DDSSTACK="Page 1.4"
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,16,20)
+ ;;=S^^Y:YES;N:NO
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,17,0)
+ ;;=16^Subjective:^3
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,17,1)
+ ;;=5101
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,17,2)
+ ;;=16,17^1^16,4
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,18,0)
+ ;;=17^Objective^3
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,18,1)
+ ;;=6101
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,18,2)
+ ;;=16,36^1^16,25
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,19,0)
+ ;;=18^Plans/Treatments^3
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,19,1)
+ ;;=7101
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,19,2)
+ ;;=16,61^1^16,43
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",1,1)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",2,2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",3,3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",4,12)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",5,5)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",6,16)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",7,4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",8,6)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",9,7)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",10,9)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",11,8)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",12,10)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",13,11)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",14,13)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",15,14)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",16,17)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",17,18)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",18,19)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"B",19,15)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","# SERVED",11)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","**********   E D I T   C H R   R E C O R D  D A T A   *********",1)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","ACTIVITY LOCATION",4)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","DATE OF SERVICE",2)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","EDIT ASSESSMENTS/POVS?",16)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","EDIT MEASUREMENTS/TESTS/REPROD?",15)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","EVALUATION",8)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","HOSPITAL/CLINIC NAME",6)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","INSURER",14)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","OBJECTIVE",18)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","PLANS/TREATMENTS",19)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","PROGRAM",3)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","PROVIDER",5)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","PURPOSE OF REFERRAL",13)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","REFERRED BY CHR TO",9)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","REFERRED TO CHR BY",7)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","SUBJECTIVE:",17)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","TEMP RESIDENCE",12)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",31,40,"C","TRAVEL TIME",10)
+ ;;=
+ ;;^UTILITY(U,$J,"DIST(.404,",32,0)
+ ;;=BCH ENTER CHRIS II RECORD DATA^90002
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,0)
+ ;;=^.4044I^19^18
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,1,0)
+ ;;=1^**********  E N T E R  C H R  R E C O R D  D A T A  **********^1^
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,1,2)
+ ;;=^^1,8
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,2,0)
+ ;;=2^DATE OF SERVICE^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,2,1)
+ ;;=.01
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,2,2)
+ ;;=2,18^20^2,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,2,4)
+ ;;=^^^1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,3,0)
+ ;;=3^PROGRAM^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,3,1)
+ ;;=.02
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,3,2)
+ ;;=2,55^20^2,40
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,3,4)
+ ;;=^^^1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,4,0)
+ ;;=7^ACT LOCATION^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,4,1)
+ ;;=.06
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,4,2)
+ ;;=8,16^20^8,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,4,4)
+ ;;=1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,4,10)
+ ;;=S:X=4 DDSSTACK="Page 1.2"
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,5,0)
+ ;;=4^CHR PROVIDER^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,5,1)
+ ;;=.03
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,5,2)
+ ;;=3,18^20^3,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,5,4)
+ ;;=^^^1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,7,0)
+ ;;=8^REF TO CHR BY^3
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,7,1)
+ ;;=.07
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,7,2)
+ ;;=9,16^8^9,1
+ ;;^UTILITY(U,$J,"DIST(.404,",32,40,8,0)
+ ;;=9^REF BY CHR TO^3

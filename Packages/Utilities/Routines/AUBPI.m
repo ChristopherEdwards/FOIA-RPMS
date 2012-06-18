@@ -1,0 +1,69 @@
+AUBPI ;EDE/OHPD/TUCSON BUILD PACKAGE PRE-INIT ROUTINE [ 03/15/89  3:15 PM ]
+ ;
+ W !!,"This routine will build a pre-init routine for the specified package."
+ W !,"The pre-init routine will call %AUKD to delete the FileMan dictionaries"
+ W !,"being created by the package.  Data globals and templates will be saved.",!!
+ F AUBPLOOP=0:0 D PACKAGE Q:Y<0  D BUILD
+ K %,AUBPLOOP
+ Q
+ ;
+PACKAGE ;
+ S DIC="^DIC(9.4,",DIC(0)="AEMQ" D ^DIC K DIC
+ Q
+ ;
+BUILD ;
+ S AUBPDFN=+Y
+ S AUBPPRFX=$P(^DIC(9.4,AUBPDFN,0),U,2)
+ S AUBPVER=^DIC(9.4,AUBPDFN,"VERSION")  ;IHS/MFD ADDED VERSION SET
+ S AUBPPGM=AUBPPRFX_"PREI"
+ D CHECKRTN
+ I AUBPFLG D EOJ3 W !!,"Bye",! Q
+ K ^UTILITY("AUBPI",$J),^UTILITY("AUBPPGM",$J),^UTILITY("AUBPI EXEC",$J)
+ W "."
+ S (AUBPX,AUBPFLE)=0 F AUBPL=0:0 S AUBPFLE=$O(^DIC(9.4,AUBPDFN,4,"B",AUBPFLE)) Q:AUBPFLE'=+AUBPFLE  S ^UTILITY("AUBPI",$J,AUBPFLE)=""
+ W "."
+ S AUBPFLG=0,AUBPFLE="" F AUBPL=0:0 S AUBPFLE=$O(^UTILITY("AUBPI",$J,AUBPFLE)) Q:AUBPFLE'=+AUBPFLE  I '$D(^DIC(AUBPFLE)) S AUBPFLG=1 W !,AUBPFLE," does not exist in ^DIC!"
+ I AUBPFLG W !!,"All files in package must exist.  Fix and rerun.",!! D EOJ Q
+ W "."
+ S AUBPFLE="" F AUBPL=0:0 S AUBPFLE=$O(^UTILITY("AUBPI",$J,AUBPFLE)) Q:AUBPFLE'=+AUBPFLE  S ^(AUBPFLE)="^UTILITY(""AUDSET"",$J,"_AUBPFLE_")=S^S"
+ W "."
+ S %DT="",X="T" D ^%DT X ^DD("DD")
+ S ^UTILITY("AUBPPGM",$J,1)=AUBPPGM_" ;CREATED BY AUBPI ON "_Y
+ S ^UTILITY("AUBPPGM",$J,2)=" ;"_AUBPVER  ;IHS/MFD ADDED LINE
+ F AUBPI=1:1:3 S ^UTILITY("AUBPPGM",$J,AUBPI+2)=$P($T(DTA+AUBPI),";;",2,99)
+ S AUBPFLE=0 F AUBPI=6:1 S AUBPFLE=$O(^UTILITY("AUBPI",$J,AUBPFLE)) Q:AUBPFLE'=+AUBPFLE  S AUBPY=^(AUBPFLE),^UTILITY("AUBPPGM",$J,AUBPI)=" ;;"_AUBPY
+ S ^UTILITY("AUBPI EXEC",$J)="S AUBPP="""_AUBPPGM_""",AUBPY=0 ZR  X ""F AUBPL=0:0 S AUBPY=$O(^UTILITY(""""AUBPPGM"""",$J,AUBPY)) Q:AUBPY'=+AUBPY  ZI ^(AUBPY)"" ZS @AUBPP"
+ X ^UTILITY("AUBPI EXEC",$J)
+ D EOJ
+ Q
+ ;
+CHECKRTN ;
+ S AUBPFLG=0
+ Q:'$D(^DD("OS"))#2
+ Q:'$D(^DD("OS",^DD("OS"),18))#2
+ S X=AUBPPGM X ^(18)
+ E  Q
+CR2 W !!,AUBPPGM," already exists.  Want to recreate it (Y/N) Y//" D YN^DICN
+ S:$E(%Y)="N" AUBPFLG=1
+ Q
+ ;
+EOJ ;
+ W !!,"Routine ",AUBPPGM," has been filed.",!!
+ I '$D(^DIC(9.4,AUBPDFN,"PRE")) D EOJ2
+ I $D(^DIC(9.4,AUBPDFN,"PRE")),^("PRE")="" D EOJ2
+ E  I $D(^DIC(9.4,AUBPDFN,"PRE")),^("PRE")'=AUBPPGM W !!,"Package ",AUBPPRFX," has a pre-initialization routine entry but it is ",^("PRE"),"!"
+ D EOJ3
+ Q
+EOJ2 ;
+ W !,"Package ",AUBPPRFX," has no pre-initialization routine entry!",!
+ Q
+EOJ3 ;
+ K ^UTILITY("AUBPI",$J),^UTILITY("AUBPPGM",$J),^UTILITY("AUBPI EXEC",$J)
+ K %,%DT
+ K AUBPDFN,AUBPFLE,AUBPFLG,AUBPI,AUBPL,AUBPP,AUBPPGM,AUBPPRFX,AUBPX,AUBPY
+ Q
+ ;
+DTA ;
+ ;; K ^UTILITY("AUDSET",$J) F AUBPI=1:1 S AUBPIX=$P($T(Q+AUBPI),";;",2) Q:AUBPIX=""  S AUBPIY=$P(AUBPIX,"=",2,99),AUBPIX=$P(AUBPIX,"=",1) S @AUBPIX=AUBPIY
+ ;; K AUBPI,AUBPIX,AUBPIY D EN2^%AUKD
+ ;;Q Q

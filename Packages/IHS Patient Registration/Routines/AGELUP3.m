@@ -1,0 +1,138 @@
+AGELUP3 ;IHS/ASDS/EFG - PROCESS RRE ELIGIBILITY FROM CMS FILE ;  
+ ;;7.1;PATIENT REGISTRATION;**2**;JAN 31, 2007
+ ;
+R(AG) ;EP - process railroad retirement
+ KILL AG1,AG2,AGSAME
+ I $D(^AUPNRRE(AG("DFN"))) D MCRY I AGSAME S AGACT="S" Q
+ I AGAUTO'="A" D  Q
+ . D HEAD^AGELUPUT("RAILROAD")
+ . I '$D(^AUPNRRE(AG("DFN"))) D MCRN^AGELUP2
+ . D MDISP^AGELUP2(4),PEND^AGELUPUT
+ .Q
+ U IO(0)
+ W "."
+ W:'(AGRCNT#100) $J(AGRCNT,8)
+ Q
+MCRY ;if railroad coverage
+ S AGSAME=0
+ S (AGMNM,AG1(1))=$P($G(^AUPNRRE(AG("DFN"),21)),U,1)
+ S AGMDOB=$P($G(^AUPNRRE(AG("DFN"),21)),U,2)
+ S AG1(2)=AGMDOB
+ S (AGMNBR,AG1(3))=$P(^AUPNRRE(AG("DFN"),0),U,4)
+ S AGMSFX=$P(^AUPNRRE(AG("DFN"),0),U,3)
+ S (AGMSFX,AG1(4))=$P($G(^AUTTRRP(+AGMSFX,0)),U,1)
+ S DA=0
+ ;AG*7.1*2 SEPARATE TO READABLE LINES
+ ;F  S DA=$O(^AUPNRRE(AG("DFN"),11,DA)) Q:'DA  S %=^(DA,0) S:$P(%,U,3)="" $P(%,U,3)=" " S AG1("DT",$P(%,U,1),$P(%,U,3))=%
+ F  S DA=$O(^AUPNRRE(AG("DFN"),11,DA)) Q:'DA  D
+ .;S %=^(DA,0)
+ .S %=$P(^(DA,0),U,1,3)  ;PART D COVERAGES THREW THIS OFF AG*7.1*2 IM????? NO IM FOUND DURING TESTING ON NEW HRN LENGTH
+ .Q:$P(%,U,3)="D"        ;AG*7.1*2 IM22061 IGNORE PART D FOR DIFFERENCE COMPARISON
+ .S:$P(%,U,3)="" $P(%,U,3)=" "
+ .S AG1("DT",$P(%,U,1),$P(%,U,3))=%
+ KILL AGFL
+ D DFL^AGELUP2
+ S:'$D(AGFL) AGSAME=1
+ Q
+FILE(AG) ;EP - file RAILROAD FIELDS
+ I '$D(^AUTTRRP("B",AG("FSFX"))) D  I +Y<1 W !,"Add to RAILROAD PREFIX file failed for '",AG("FSFX"),"'.",$$DIR^XBDIR("E") Q
+ . NEW DIC,DLAYGO
+ . S (DIC,DLAYGO)=9999999.33,DIC(0)="FL",X=AG("FSFX")
+ . D ^DIC
+ .Q
+ NEW AGADD
+ I '$D(^AUPNRRE(AG("DFN"),0)) D  Q:+Y<0  S AGADD=1 I 1
+ . NEW DIC,DLAYGO,DD,DO
+ . S DIC="^AUPNRRE(",DIC(0)="F",DLAYGO=9000005,(DINUM,X)=AG("DFN")
+ . S DIC("DR")=".02////"_AGINSPT_";.03///"_AG("FSFX")_";.04///"_AG("FNBR")_";2101///"_AG("FNM")_";2102///"_AG("FDOB")
+ . K DO,DD
+ . D FILE^DICN,PTACT^AGELUP2(1,AG("DFN")):+Y>0
+ .Q
+ E  D  S AGADD=0
+ . NEW DA,DIE,DR
+ . S DIE="^AUPNRRE(",DA=AG("DFN"),DR=""
+ . I $P(^AUPNRRE(DA,0),U,2)'=AGINSPT S DR=".02////"_AGINSPT
+ . I AG("FSFX")'="" D
+ .. I $P(^AUPNRRE(DA,0),U,3),AG("FSFX")=$P(^AUTTRRP($P(^AUPNRRE(DA,0),U,3),0),U) Q
+ .. S DR=DR_$S($L(DR):";",1:"")_".03///"_AG("FSFX")
+ ..Q
+ . I AG("FNBR")'="",AG("FNBR")'=$P(^AUPNRRE(DA,0),U,4) S DR=DR_$S($L(DR):";",1:"")_".04///"_AG("FNBR")
+ . I AG("FNM")'="",AG("FNM")'=$P($G(^AUPNRRE(DA,21)),U) S DR=DR_$S($L(DR):";",1:"")_"2101///"_AG("FNM")
+ . I AG("FDOB")'="",AG("FDOB")'=$P($G(^AUPNRRE(DA,21)),U,2) S DR=DR_$S($L(DR):";",1:"")_"2102////"_AG("FDOB")
+ . I $L(DR) NEW DITC S DITC="" D ^DIE,PTACT^AGELUP2(2,AG("DFN")):'$D(Y) KILL DITC
+ .Q
+ S DA(1)=AG("DFN"),DIK="^AUPNRRE("_DA(1)_",11,",DA=0
+ ;F  S DA=$O(^AUPNRRE(DA(1),11,DA)) Q:'DA  D ^DIK
+ F  S DA=$O(^AUPNRRE(DA(1),11,DA)) Q:'DA  I $P($G(^AUPNRRE(DA(1),11,DA,0)),U,3)'="D" D ^DIK  ;IHS/SD/TPF 4/25/2006 AG*7.2*2 IM 20585
+ S DIC="^AUPNRRE("_DA(1)_",11,",DIC(0)="F",DIC("P")=$P(^DD(9000005,1101,0),U,2)
+ KILL DD,DO
+ S AGI=0
+ F  S AGI=$O(AG("DT",AGI)) Q:'AGI  D
+ . S AGJ=0
+ . F  S AGJ=$O(AG("DT",AGI,AGJ)) Q:AGJ=""  D
+ .. S X=$P(AG("DT",AGI,AGJ),U,1)
+ .. Q:'X
+ .. S DIC("DR")=".02///"_$P(AG("DT",AGI,AGJ),U,2)_";.03///"_$P(AG("DT",AGI,AGJ),U,3)
+ .. K DD,DO
+ .. D FILE^DICN
+ .. Q:AGADD
+ .. D:+Y>0 PTACT^AGELUP2(2,AG("DFN"))
+ ..Q
+ .Q
+ KILL AGI,AGJ
+ D
+ . NEW DFN
+ . S DFN=AG("DFN")
+ . D ^AGDATCK
+ . I $D(AG("ER")) KILL AG("DATE"),AG("DTOT"),AG("ER") Q
+ . D UPDATE1^AGED(DUZ(2),AG("DFN"),6,"")
+ .Q
+ Q
+LTR(P) ;EP - Lookup the Area indicator of the file name, based on Area code.
+ Q $P($T(@$E($P(^AUTTLOC($P(^AUTTSITE(1,0),U,1),0),U,10),1,2)),U,P)
+ ;;area name ^ 1st char of file ^ 3-letter_Area_ID
+10 ;;ABERDEEN^c^abr
+15 ;;ABERDEEN TRIBE/638^c^abr
+17 ;;ABERDEEN URBAN^c^abr
+30 ;;ALASKA^a^aka
+39 ;;ALASKA NON-IHS^a^aka
+35 ;;ALASKA TRIBE/638^a^aka
+20 ;;ALBUQUERQUE^q^alb
+25 ;;ALBUQUERQUE TRIBE/638^q^alb
+11 ;;BEMIDJI^d^bji
+18 ;;BEMIDJI NON-IHS^d^bji
+16 ;;BEMIDJI TRIBE/638^d^bji
+14 ;;BEMIDJI URBAN^d^bji
+40 ;;BILLINGS^b^bil
+45 ;;BILLINGS TRIBE/638^b^bil
+47 ;;BILLINGS URBAN^b^bil
+61 ;;CALIFORNIA^l^cao
+68 ;;CALIFORNIA NON-IHS^l^cao
+66 ;;CALIFORNIA TRIBE/638^l^cao
+64 ;;CALIFORNIA URBAN^l^cao
+99 ;;HEADQUARTERS EAST
+23 ;;HEADQUARTERS WEST
+51 ;;NASHVILLE^u^nsa
+58 ;;NASHVILLE NON-IHS^u^nsa
+56 ;;NASHVILLE TRIBE/638^u^nsa
+54 ;;NASHVILLE URBAN^u^nsa
+80 ;;NAVAJO^n^nav
+89 ;;NAVAJO NON-IHS^n^nav
+85 ;;NAVAJO TRIBE/638^n^nav
+50 ;;OKLAHOMA^o^okc
+59 ;;OKLAHOMA NON-IHS^o^okc
+55 ;;OKLAHOMA TRIBE/638^o^okc
+57 ;;OKLAHOMA URBAN^o^okc
+60 ;;PHOENIX^x^phx
+69 ;;PHOENIX NON-IHS^x^phx
+65 ;;PHOENIX TRIBE/638^x^phx
+67 ;;PHOENIX URBAN^x^phx
+70 ;;PORTLAND^p^por
+79 ;;PORTLAND NON-IHS^p^por
+75 ;;PORTLAND TRIBE/638^p^por
+77 ;;PORTLAND URBAN^p^por
+00 ;;TUCSON^s^tuc
+09 ;;TUCSON NON-IHS^s^tuc
+05 ;;TUCSON TRIBE/638^s^tuc
+07 ;;TUCSON URBAN^s^tuc
+ ;

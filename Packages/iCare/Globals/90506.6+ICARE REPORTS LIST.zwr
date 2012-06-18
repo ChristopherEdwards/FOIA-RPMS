@@ -1,0 +1,15 @@
+ICARE REPORTS LIST
+ZWR
+^BQI(90506.6,0)="ICARE REPORTS LIST^90506.6^6^6"
+^BQI(90506.6,1,0)="Face Sheet^BQI PATIENT FACE SHEET^^^T^PT"
+^BQI(90506.6,2,0)="Health Summary^BQI PATIENT HEALTH SUMMARY^15^^T^PT"
+^BQI(90506.6,3,0)="Supplement^BQI PATIENT SUPPLEMENT^16^^T^PT"
+^BQI(90506.6,4,0)="Patient Wellness Handout^BQI PATIENT WELLNESS SUMMARY^32^^T^PT"
+^BQI(90506.6,5,0)="Asthma Action Plan^BQI ASTHMA ACTION PLAN^^^T^PT"
+^BQI(90506.6,6,0)="Women's Health Profile - Brief^BQI WOMENS HEALTH PROFILE^^^T^PT"
+^BQI(90506.6,"B","Asthma Action Plan",5)=""
+^BQI(90506.6,"B","Face Sheet",1)=""
+^BQI(90506.6,"B","Health Summary",2)=""
+^BQI(90506.6,"B","Patient Wellness Handout",4)=""
+^BQI(90506.6,"B","Supplement",3)=""
+^BQI(90506.6,"B","Women's Health Profile - Brief",6)=""

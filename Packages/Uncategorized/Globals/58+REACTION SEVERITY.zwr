@@ -1,0 +1,17 @@
+REACTION SEVERITY
+ZWR
+^DIC(58,0)="REACTION SEVERITY^58^"
+^DIC(58,0,"DD")="#"
+^DIC(58,0,"DEL")="Pp"
+^DIC(58,0,"GL")="^DIC(58,"
+^DIC(58,0,"LAYGO")="Pp"
+^DIC(58,0,"RD")="Pp"
+^DIC(58,0,"WR")="Pp"
+^DIC(58,"%",0)="^1.005^1^1"
+^DIC(58,"%",1,0)="PS"
+^DIC(58,"%","B","PS",1)=""
+^DIC(58,"%D",0)="^^4^4^2890710^^^^"
+^DIC(58,"%D",1,0)="This file is the list of terms which describe the severity of a reaction."
+^DIC(58,"%D",2,0)="It is used primarily for documentation of a condition and is not used"
+^DIC(58,"%D",3,0)="at the present as any part of a computer decision process.  The entries"
+^DIC(58,"%D",4,0)="are supplied by the center as they are needed (LAYGO)."

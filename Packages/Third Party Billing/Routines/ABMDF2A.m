@@ -1,0 +1,39 @@
+ABMDF2A ; IHS/ASDST/DMJ - Set HCFA-1500 Print Array ;
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;Original;TMD;
+ ;
+ENT K ABMF,ABM,ABMU,ABMR,ABMS
+ S ABMP("B0")=^ABMDBILL(DUZ(2),ABMP("BDFN"),0),ABMP("INS")=$P(ABMP("B0"),U,8) Q:'ABMP("INS")
+ S ABMP("PDFN")=$P(ABMP("B0"),U,5),ABMP("LDFN")=$P(ABMP("B0"),U,3) Q:'ABMP("PDFN")!('+ABMP("LDFN"))
+ S ABMP("VDT")=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),7),U)
+ S ABMP("BTYP")=$P(ABMP("B0"),"^",12)
+ S (ABMV("X1"),ABMV("X2"),ABMV("X3"))=""
+ D PAT^ABMDE1X,REMPL^ABMDE1X1,LOC^ABMDE1X1 K ABME
+ ;
+LOC S $P(ABMF(52),U,2)=$P($P(ABMV("X1"),U),";",2),$P(ABMF(29),U)=$P($P(ABMV("X1"),U),";",2)_"    (see Block 31)"
+ I $P(ABMV("X1"),U,2)]"" S $P(ABMF(53),U,3)=$P(ABMV("X1"),U,2),$P(ABMF(54),U,2)=$P(ABMV("X1"),U,3),ABMF(55)=$P(ABMV("X1"),U,4)
+ E  S $P(ABMF(53),U,3)=$P(ABMV("X1"),U,3),$P(ABMF(54),U,2)=$P(ABMV("X1"),U,4),$P(ABMF(55),U)=$P(ABMV("X1"),U,5)
+BNUM S $P(ABMF(56),U)=$P(ABMP("B0"),U)_$S($P($G(^ABMDPARM(DUZ(2),1,2)),U,4)]"":"-"_$P(^(2),U,4),1:"") I $P($G(^(3)),U,3),$P($G(^AUPNPAT(ABMP("PDFN"),41,ABMP("LDFN"),0)),U,2) S $P(ABMF(56),U)=$P(ABMF(56),U)_" "_$P(^(0),U,2)
+INSNUM S ABM("I")=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,$P(ABMP("B0"),U,7),0)),U,6)
+ S ABM("INUM")=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,$S(ABM("I")="Y":999,1:$P(ABMP("B0"),U,7)),0)),U,8)
+ S:ABM("INUM")="" ABM("INUM")=$P($G(^AUTNINS(ABMP("INS"),15,ABMP("LDFN"),0)),U,2)
+ S $P(ABMF(56),U,3)=ABM("INUM")
+ I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R" S $P(ABMF(56),U,3)=$P(^AUTTLOC(ABMP("LDFN"),0),U,19)
+ S ABM("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U),ABM("ITYP")=$S(ABM("ITYP")="R":1,ABM("ITYP")="D":2,ABM("ITYP")="C":3,1:6),$P(ABMF(1),U,ABM("ITYP"))="X"
+TAX S $P(ABMF(56),U,2)=$P(ABMV("X1"),U,6)
+ ;
+PNODES S ABM("P0")=^DPT(ABMP("PDFN"),0)
+NAME S ABMF(4)=$P(ABM("P0"),U)
+ADDRESS S $P(ABMF(7),U)=$P(ABMV("X2"),U,3)
+ S $P(ABMF(8),U)=$P(ABMV("X2"),U,4)
+ S $P(ABMF(10),U)=$P(ABMV("X2"),U,5)
+ ;
+DOB S $P(ABMF(4),U,2)=$P($P(ABMV("X2"),U,6),"-")
+ S $P(ABMF(4),U,3)=$P($P(ABMV("X2"),U,6),"-",2)
+ S $P(ABMF(4),U,4)=$P($P(ABMV("X2"),U,6),"-",3)
+SEX I $P(ABMV("X2"),U,2)="M" S $P(ABMF(6),U,2)="X"
+ E  S $P(ABMF(6),U,3)="X"
+ K ABM("P0")
+ ;
+XIT K ABM,ABMX,ABMV
+ Q

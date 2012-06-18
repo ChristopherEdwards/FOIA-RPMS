@@ -1,0 +1,135 @@
+APCLW1 ; IHS/CMI/LAB - AGE BUCKET/DIAGNOSIS REPORT ;
+ ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;
+START ;
+ W !!?15,"*****  OVERWEIGHT/OBESITY PREVALENCE REPORT  *****",!!
+ D EXIT
+ S APCLSEAT="",APCLCMS=""
+ S APCLTYPE=""
+ ;
+ S DIR(0)="S^S:Search Template of Patients;P:Search All Patients;R:Case Management System Register"
+ S DIR("A")="   Select List " D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) EXIT
+ S APCLTYPE=Y
+ I APCLTYPE="S" D TEMPLATE
+ I APCLTYPE="R" D R I APCLSTP G START
+ ;
+DATE ;
+ W !!
+ S APCLDATE=""
+ S DIR(0)="D^::EP",DIR("A")="Enter As of Date" KILL DA D ^DIR KILL DIR
+ G:$D(DIRUT) START
+ I Y="" G START
+ I APCLDATE["00" W !!,"cannot be an imprecise date" H 1 W ! G DATE
+ S APCLDATE=Y
+AGE1 ;
+ S DIR(0)="SO^E:Each Age in Years listed separately;G:Age Groups listed",DIR("A")="Do you want to see the report with",DIR("B")="E" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) START
+ S APCLAGEG=Y
+ D @Y I '$D(APCLLOWA)!('$D(APCLHGHA)) G START
+ G SEX
+G ;
+ K APCLLOWA,APCLHGHA D SETBIN
+BIN ;
+ W !,"The Age Groups to be used are currently defined as:",! D LIST
+ S DIR(0)="Y",DIR("A")="Do you wish to modify these age groups",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) Q
+ I Y=0 S APCLLOWA=$P(APCLBIN,"-",1) F I=1:1 S X=$P(APCLBIN,";",I) Q:X=""  S APCLHGHA=$P(X,"-",2)
+ Q:Y=0
+RUN ;
+ K APCLQUIT S APCLY="",APCLA=-1 W ! F  D AGE Q:APCLX=""  I $D(APCLQUIT) G BIN
+ D CLOSE I $D(APCLQUIT) G BIN
+ D LIST G BIN
+ Q
+E ;
+ S DIR(0)="N^2:74:0",DIR("A")="Enter the low age",DIR("B")="2" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ S APCLLOWA=Y
+ S DIR(0)="N^2:74:0",DIR("A")="Enter the high age",DIR("B")="2" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q:$D(DIRUT)
+ S APCLHGHA=Y
+ Q
+ ;
+AGE ;
+ S APCLX=""
+ S DIR(0)="NO^2:74:0",DIR("A")="Enter the starting age of the "_$S(APCLY="":"first",1:"next")_" age group" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DUOUT)!($D(DTOUT)) S APCLQUIT="" Q
+ S APCLX=Y
+ I Y="" Q
+ I APCLX?1.3N,APCLX>APCLA D SET Q
+ W $C(7) W !,"Make sure the age is higher the beginning age of the previous group.",! G RUN
+ ;
+SET S APCLA=APCLX
+ I APCLY="" S APCLY=APCLX Q
+ S APCLY=APCLY_"-"_(APCLX-1)_";"_APCLX
+ Q
+ ;
+CLOSE I APCLY="" Q
+GC ;
+ S DIR(0)="NO^2:74:0",DIR("A")="Enter the highest age for the last group" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DUOUT)!($D(DTOUT)) S APCLQUIT="" Q
+ S APCLX=Y I Y="" S APCLX=74
+ I APCLX?1.3N,APCLX'<APCLA S APCLY=APCLY_"-"_APCLX,APCLBIN=APCLY Q
+ W "  ??",$C(7) G CLOSE
+ Q
+ ;
+ ;
+LIST ;
+ S %=APCLBIN
+ F I=1:1 S X=$P(%,";",I) Q:X=""  W !,$P(X,"-")," - ",$P(X,"-",2)
+ W !
+ Q
+ ;
+SETBIN ;
+ S APCLBIN="2-4;5-14;15-19;20-24;25-44;45-64;65-74"
+ Q
+SEX ;
+ S DIR(0)="S^M:Males;F:Females;B:Both",DIR("A")="Do you want the report run for",DIR("B")="B" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ G:$D(DIRUT) START
+ S APCLSEX=Y
+ ;
+INDBEN ;
+ W !
+ S DIR(0)="Y",DIR("A")="Do you wish to include ONLY Indian/Alaska Native Beneficiaries",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DUOUT) G SEX
+ S APCLIBEN=Y
+ZIS ;
+DEMO ;
+ D DEMOCHK^APCLUTL(.APCLDEMO)
+ I APCLDEMO=-1 G INDBEN
+ S XBRC="^APCLW11",XBRP="^APCLW1P",XBNS="APCL",XBRX="EXIT^APCLW1"
+ D ^XBDBQUE
+ D EXIT
+ Q
+EXIT ;
+ K APCLAGEG,APCLSEX,APCLBIN,APCLX,APCLY,APCLA,APCLQUIT,APCL1YR,APCL3YR,APCL80,APCLA,APCLAGE,APCLAGEP,APCLBBMI,APCLBD,APCLBHGH,APCLBIN,APCLBLOW,APCLBMI,APCLBOBE,APCLBOVR,APCLBTH,APCLBTUP,APCLDATE
+ K APCLCHT,APCLCWT,APCLDT,APCLER,APCLFBMI,APCLFHGH,APCLFLOW,APCLFOBE,APCLFOVR,APCLFTUP,APCLGHT,APCLGWT,APCLHGHA,APCLJOB,APCLLENG,APCLLOWA,APCLMBMI,APCLMHGH,APCLMHT,APCLMLOW,APCLMOBE,APCLOVRE,APCLMTUP,APCLMWT,APCLNN,APCLPAGE
+ K APCLPG,APCLQUIT,APCLREF,APCLROHT,APCLROWT,APCLSEX,APCLSEXP,APCLTEXT,APCLX,APCLY,APCLFOBE,APCLMOVR,APCLIBEN,APCLCLAS,APCLWT,APCLHBD
+ K AUPNSEX,AUPNPAT,AUPNDOB,AUPNDOD,AUPNDAYS
+ K B,D,DA,DFN,DIC,DIR,DIRUT,J,K,M,P,R,S,T,V,X,X1,X2,Y,Z
+ K DIR,DA,DIC,J,K,M,S,X,Y,APCLSEAT,APCLTYPE
+ Q
+ ;
+TEMPLATE ;If Template was selected
+ S APCLSEAT=""
+ ;
+ W ! S DIC("S")="I $P(^(0),U,4)=9000001" S DIC="^DIBT(",DIC("A")="Enter Patient SEARCH TEMPLATE name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
+ I Y=-1 K APCLTYPE Q
+ S APCLSEAT=+Y
+ Q
+R ;get register and status
+ S APCLSTP=""
+ S APCLCMS=""
+ S DIC="^ACM(41.1,",DIC(0)="AEMQ",DIC("A")="Enter the Name of the Register: " D ^DIC
+ I Y=-1 W !,"No register selected." S APCLSTP=1 Q
+ S APCLCMS=+Y
+ ;get status
+ S APCLSTAT=""
+ S DIR(0)="Y",DIR("A")="Do you want to select register patients with a particular status",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) S APCLSTP=1 Q
+ I Y=0 S APCLSTAT="" Q
+ ;which status
+ S DIR(0)="9002241,1",DIR("A")="Which status",DIR("B")="A" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) S APCLSTP=1 Q
+ S APCLSTAT=Y
+ Q

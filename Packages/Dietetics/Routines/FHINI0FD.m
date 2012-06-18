@@ -1,0 +1,116 @@
+FHINI0FD	; ; 11-OCT-1995
+	;;5.0;Dietetics;;Oct 11, 1995
+	Q:'DIFQR(112)  F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,112,9459,0)
+	;;=SALAD DRESSING,RED WINE,WISH-BONE^BC-02732^.5-floz.^15
+	;;^UTILITY(U,$J,112,9459,1)
+	;;=0^25.333^26.667^333.333^^^^0^0^0^0^0^1440^0^0^0^^0^0^0
+	;;^UTILITY(U,$J,112,9459,2)
+	;;=0^0^^^^^^^0^4^10.667^9.333
+	;;^UTILITY(U,$J,112,9459,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9460,0)
+	;;=SAUCES,ALFREDO,CONTADINA FRESH^BC-02733^6-oz.^170
+	;;^UTILITY(U,$J,112,9460,1)
+	;;=5.294^31.176^5.882^317.647^^^^155.882^.412^^^105.882^364.706^^^^^1019.412^0^.035
+	;;^UTILITY(U,$J,112,9460,2)
+	;;=.147^.235^^^^^^^50
+	;;^UTILITY(U,$J,112,9460,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9461,0)
+	;;=SAUCES,ALFREDO,FRESH CHEF^BC-02734^4-oz.^113
+	;;^UTILITY(U,$J,112,9461,1)
+	;;=9.912^23.717^2.655^263.717^^^^178.761^1.15^^^28.319^646.903^^^^^130.088^.885^.018
+	;;^UTILITY(U,$J,112,9461,2)
+	;;=.177^.088
+	;;^UTILITY(U,$J,112,9461,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9462,0)
+	;;=SAUCES,ALFREDO,PREGO^BC-02735^5-oz.^142
+	;;^UTILITY(U,$J,112,9462,1)
+	;;=5.423^8.873^18.732^176.761^^^^55.634^1.338^^^27.465^259.859^^^^^171.831^.704^.148
+	;;^UTILITY(U,$J,112,9462,2)
+	;;=.12^.915
+	;;^UTILITY(U,$J,112,9462,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9463,0)
+	;;=SAUCE,BARBEQUE,HEINZ CHUNKY/REG^BC-02736^tbsp.^16
+	;;^UTILITY(U,$J,112,9463,1)
+	;;=0^0^31.25^125^^^^^^^^^1437.5
+	;;^UTILITY(U,$J,112,9463,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9464,0)
+	;;=SAUCE,BARBEQUE,HEINZ ONION^BC-02737^tbsp.^16
+	;;^UTILITY(U,$J,112,9464,1)
+	;;=0^0^31.25^125^^^^^^^^^1250
+	;;^UTILITY(U,$J,112,9464,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9465,0)
+	;;=SAUCE,BARBEQUE,HUNT^BC-02738^.5-oz.^14
+	;;^UTILITY(U,$J,112,9465,1)
+	;;=0^0^37.143^142.857^^^^21.429^.929^^^300^1078.571^^^^^^14.286
+	;;^UTILITY(U,$J,112,9465,2)
+	;;=^^^^^^^^0^^^^107.143^^^^0
+	;;^UTILITY(U,$J,112,9465,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9466,0)
+	;;=SAUCE,BARBEQUE,KRAFT^BC-02739^2-tbsp.^33
+	;;^UTILITY(U,$J,112,9466,1)
+	;;=.909^1.818^27.879^127.273^65.152^^^24.242^.909^9.091^18.182^148.485^1539.394^.212^.055^^^978.788^0^.03
+	;;^UTILITY(U,$J,112,9466,2)
+	;;=.03^.606^.03^.03^0^0^^^0^.303^^.909
+	;;^UTILITY(U,$J,112,9466,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9467,0)
+	;;=SAUCE,BARBEQUE,OPEN PIT^BC-02740^tbsp.^18
+	;;^UTILITY(U,$J,112,9467,1)
+	;;=.556^1.111^30^122.222^63.889^^^5.556^.167^5.556^5.556^27.778^1383.333^.056^.039^^^66.667^0^0
+	;;^UTILITY(U,$J,112,9467,2)
+	;;=0^0^0^0^^0^^^0^0^^.556
+	;;^UTILITY(U,$J,112,9467,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9468,0)
+	;;=SAUCE,BARBEQUE,OPEN PIT HOT 'N TANGY FLAVOR^BC-02741^tbsp.^18
+	;;^UTILITY(U,$J,112,9468,1)
+	;;=.556^1.111^30^122.222^64.444^^^11.111^.556^5.556^11.111^38.889^1155.556^.111^.033^^^94.444^0^0
+	;;^UTILITY(U,$J,112,9468,2)
+	;;=0^0^0^0^^0^^^0^0^^.556
+	;;^UTILITY(U,$J,112,9468,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9469,0)
+	;;=SAUCE,BARBEQUE,OPEN PIT SWEET 'N TANGY FLAVOR^BC-02742^tbsp.^18
+	;;^UTILITY(U,$J,112,9469,1)
+	;;=.556^1.111^33.333^133.333^60.556^^^16.667^.611^5.556^11.111^100^1044.444^.056^.144^^^150^0^0
+	;;^UTILITY(U,$J,112,9469,2)
+	;;=0^0^.056^.056^^0^^^0^0^^.556
+	;;^UTILITY(U,$J,112,9469,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9470,0)
+	;;=SAUCE,BERNAISE,MIX,KNORR^BC-02743^1/4-cup^60
+	;;^UTILITY(U,$J,112,9470,1)
+	;;=3.333^28.333^8.333^283.333^^^^^^^^^566.667
+	;;^UTILITY(U,$J,112,9470,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9471,0)
+	;;=SAUCE,BOLOGNESE,CONTADINA FRESH^BC-02744^7.5-oz.^213
+	;;^UTILITY(U,$J,112,9471,1)
+	;;=10.329^5.164^5.634^107.981^^^^22.066^1.648^^^436.62^281.69^^^^^858.216^5.634^.117
+	;;^UTILITY(U,$J,112,9471,2)
+	;;=.146^2.394^^^^^^^23.474
+	;;^UTILITY(U,$J,112,9471,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9472,0)
+	;;=SAUCE,KATSUP,TOMATO,HEINZ^BC-02745^tbsp.^15
+	;;^UTILITY(U,$J,112,9472,1)
+	;;=1.333^0^26.667^120^^^^46.667^.667^^^^1200
+	;;^UTILITY(U,$J,112,9472,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9473,0)
+	;;=SAUCE,KATSUP,TOMATO,HEINZ LITE^BC-02746^tbsp.^15
+	;;^UTILITY(U,$J,112,9473,1)
+	;;=1.333^0^13.333^53.333^^^^46.667^.667^^^^733.333
+	;;^UTILITY(U,$J,112,9473,20)
+	;;=Bowes & Church's Food Values, Sixteenth Edition.
+	;;^UTILITY(U,$J,112,9474,0)
+	;;=SAUCE,KATSUP,TOMATO,HUNT^BC-02747^.5-oz.^14

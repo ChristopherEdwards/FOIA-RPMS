@@ -1,0 +1,18 @@
+A9ACHS5 ; IHS/ADC/GTH - CHS V 2.0 PATCH 5 R.P.I. ; [ 03/03/95  9:17 AM ]
+ ;;2.0;CONTRACT HEALTH MGMT SYSTEM;**5**;NOV 01, 1994
+ ;
+ D START^ACHSP5
+ ;
+ Q:'$L($G(^%ZOSF("DEL")))
+ NEW X
+ F %=1:1 S X=$P($T(DEL+%),";",3) Q:X=""  X ^%ZOSF("DEL")
+ Q
+ ;
+DEL ;
+ ;;ACHSP3
+ ;;ACHSP4
+ ;;ACHSP4A
+ ;;ACHSP5
+ ;;ACHSP5A
+ ;;A9ACHS3
+ ;;A9ACHS4

@@ -1,0 +1,149 @@
+DBTSB3 ;routine number 3 called from DBTSBEG [ 10/07/1999  1:42 PM ]
+ ;
+ ;ihs/bao/dmh 2/8/99
+ ;
+ST ;
+ D @ENT
+ Q
+13 ;    rectal exam chgs or adds
+ S REC=$G(^DBTSPAT(DBTSP,"REC"))
+ S DBTS("LDFN")=$P(REC,U,1),DBTS("LDT")=$P(REC,U,2)
+ S DBTSAU=0
+ S N=0
+ F  S N=$O(^AUPNVXAM("AC",DBTSP,N)) Q:+N=0  D  I DBTSAU=1 Q
+ .S EXAM=$G(^AUPNVXAM(N,0))
+ .S CODE=$P(EXAM,U,1)
+ .I CODE="" Q
+ .S CODE=$P($G(^AUTTEXAM(CODE,0)),U,2)
+ .Q:CODE'="14"
+ .I N>(DBTS("LDFN")) S DBTSAU=1 Q
+ .S VD=$P(EXAM,U,3)
+ .I VD'="" S DBTS("MODDT")=$P($G(^AUPNVSIT(VD,0)),U,13)
+ .E  S DBTS("MODDT")=""
+ .I DBTS("LDT")'>(DBTS("MODDT")) S DBTSAU=1
+ .Q
+ Q
+14 ;    cardiac chgs or adds
+ D ICDPRC Q
+ S REC=$G(^DBTSPAT(DBTSP,"CAR"))
+ S DBTS("LDFN")=$P(REC,U,1),DBTS("LDT")=$P(REC,U,2)
+ S DBTSAU=0
+ S N=0
+ F  S N=$O(^AUPNVPOV("AC",DBTSP,N)) Q:+N=0  D  I DBTSAU=1 Q
+ .S CAR=$G(^AUPNVPOV(N,0))
+ .Q:CAR=""
+ .S ICDP=$P(CAR,U,1)
+ .S ICDCODE=$P($G(^ICD9(ICDP,0)),U,1)
+ .S C=$O(^DBTSEXDI("B","CARDIAC",0))
+ .I C="" Q
+ .S NN=0
+ .F  S NN=$O(^DBTSEXDI(C,1,NN)) Q:+NN=0  D  Q:DBTSAU=1
+ ..S RANGE=^DBTSEXDI(C,1,NN,0)
+ ..S ST=$P(RANGE,U,1)
+ ..S END=$P(RANGE,U,2)
+ ..I (ICDCODE'<ST)&(ICDCODE'>END)
+ ..E  Q
+ ..I N>(DBTS("LDFN")) S DBTSAU=1 Q
+ ..S VD=$P(CAR,U,3)
+ ..I VD'="" S DBTS("MODDT")=$P($G(^AUPNVSIT(VD,0)),U,13)
+ ..E  S DBTS("MODDT")=""
+ ..I DBTS("LDT")'>(DBTS("MODDT")) S DBTSAU=1
+ ..Q
+ .Q
+ Q
+15 ;    ekg chgs or adds
+ S REC=$G(^DBTSPAT(DBTSP,"EKG"))
+ S DBTS("LDFN")=$P(REC,U,1),DBTS("LDT")=$P(REC,U,2)
+ S DBTSAU=0
+ S N=0
+ F  S N=$O(^AUPNVPRC("AC",DBTSP,N)) Q:+N=0  D  I DBTSAU=1 Q
+ .S EKG=$G(^AUPNVPRC(N,0))
+ .Q:EKG=""
+ .S EKGPRC=$P(EKG,U,1)
+ .S E=$O(^DBTSEXDI("B","EKG",0))
+ .I E="" Q
+ .I $D(^DBTSEXDI(E,21,"B",EKGPRC))
+ .E  Q
+ .I N>(DBTS("LDFN")) S DBTSAU=1 Q
+ .S VD=$P(EKG,U,3)
+ .I VD'="" S DBTS("MODDT")=$P($G(^AUPNVSIT(VD,0)),U,13)
+ .E  S DBTS("MODDT")=""
+ .I DBTS("LDT")'>(DBTS("MODDT")) S DBTSAU=1
+ .Q
+ Q
+ Q
+16 ;    medications chgs or adds
+ S REC=$G(^DBTSPAT(DBTSP,"MED"))
+ S DBTS("LDFN")=$P(REC,U,1),DBTS("LDT")=$P(REC,U,2)
+ S DBTSAU=0
+ S N=0
+ F  S N=$O(^AUPNVMED("AC",DBTSP,N)) Q:+N=0  D  I DBTSAU=1 Q
+ .I N>(DBTS("LDFN")) S DBTSAU=1 Q
+ .S VD=$P($G(^AUPNVMED(N,0)),U,3)
+ .I VD'="" S DBTS("MODDT")=$P($G(^AUPNVSIT(VD,0)),U,13)
+ .E  S DBTS("MODDT")=""
+ .I DBTS("LDT")'>(DBTS("MODDT")) S DBTSAU=1
+ .Q
+ Q
+17 ;    labs chgs or adds
+ F X="HAC","LIP","REN" D
+ .S REC=$G(^DBTSPAT(DBTSP,X))
+ .S LDFN=$P(REC,U,1),LDT=$P(REC,U,2)
+ .I '$D(DBTS("LDFN")) S DBTS("LDFN")=LDFN
+ .I '$D(DBTS("LDT")) S DBTS("LDT")=LDT
+ .I LDT>(DBTS("LDT")) S DBTS("LDT")=LDT
+ .I LDFN>(DBTS("LDFN")) S DBTS("LDFN")=LDFN
+ S DBTSAU=0
+ S N=0
+ F  S N=$O(^AUPNVLAB("AC",DBTSP,N)) Q:+N=0  D  I DBTSAU=1 Q
+ .I N>(DBTS("LDFN")) S DBTSAU=1 Q
+ .S VD=$P($G(^AUPNVLAB(N,0)),U,3)
+ .I VD'="" S DBTS("MODDT")=$P($G(^AUPNVSIT(VD,0)),U,13)
+ .E  S DBTS("MODDT")=""
+ .I DBTS("LDT")'>(DBTS("MODDT")) S DBTSAU=1
+ .Q
+ Q
+ICDPRC ;
+ICDCK ;
+ S REC=$G(^DBTSPAT(DBTSP,"ICD"))
+ S DBTS("LDFN")=$P(REC,U,1),DBTS("LDT")=$P(REC,U,2)
+ S ICDAU=0
+ S N=0
+ F  S N=$O(^AUPNVPOV("AC",DBTSP,N)) Q:+N=0  D  I ICDAU=1 Q
+ .S VPOV=$G(^AUPNVPOV(N,0))
+ .Q:VPOV=""
+ .I N>(DBTS("LDFN")) S ICDAU=1 Q
+ .S VD=$P(VPOV,U,3)
+ .I VD'="" S DBTS("MODDT")=$P($G(^AUPNVSIT(VD,0)),U,13)
+ .E  S DBTS("MODDT")=""
+ .I DBTS("LDT")'>(DBTS("MODDT")) S ICDAU=1
+ .Q
+PRCCK ;    ekg chgs or adds
+ S REC=$G(^DBTSPAT(DBTSP,"PRC"))
+ S DBTS("LDFN")=$P(REC,U,1),DBTS("LDT")=$P(REC,U,2)
+ S PRCAU=0
+ S N=0
+ F  S N=$O(^AUPNVPRC("AC",DBTSP,N)) Q:+N=0  D  I PRCAU=1 Q
+ .S VPRC=$G(^AUPNVPRC(N,0))
+ .Q:VPRC=""
+ .S PROCP=$P(VPRC,U,1)
+ .D EKGCK Q:DBTS("CFL")="Y"
+ .D AMPCK Q:DBTS("CFL")="Y"
+ .I N>(DBTS("LDFN")) S PRCAU=1 Q
+ .S VD=$P(VPRC,U,3)
+ .I VD'="" S DBTS("MODDT")=$P($G(^AUPNVSIT(VD,0)),U,13)
+ .E  S DBTS("MODDT")=""
+ .I DBTS("LDT")'>(DBTS("MODDT")) S PRCAU=1
+ .Q
+ S DBTSAU=ICDAU_U_PRCAU
+ Q
+EKGCK ;
+ S DBTS("CFL")="N"
+ S DBTS("EKG")=$O(^DBTSEXDI("B","EKG",0))
+ I $D(^DBTSEXDI(DBTS("EKG"),21,"B",PROCP)) S DBTS("CFL")="Y"
+ Q
+AMPCK ;
+ S DBTS("CFL")="N"
+ S DBTS("AMP")=$O(^DBTSEXDI("B","AMPUTATIONS",0))
+ I $D(^DBTSEXDI(DBTS("AMP"),21,"B",PROCP)) S DBTS("CFL")="Y"
+ Q

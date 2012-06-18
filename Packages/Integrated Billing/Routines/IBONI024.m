@@ -1,0 +1,132 @@
+IBONI024	; ; 21-MAR-1994
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	F I=1:2 S X=$T(Q+I) Q:X=""  S Y=$E($T(Q+I+1),4,999),X=$E(X,4,999) S:$A(Y)=126 I=I+1,Y=$E(Y,2,999)_$E($T(Q+I+1),5,99) S:$A(Y)=61 Y=$E(Y,2,999) X NO E  S @X=Y
+Q	Q
+	;;^UTILITY(U,$J,"PRO",926,10,3,0)
+	;;=902^BU^21
+	;;^UTILITY(U,$J,"PRO",926,10,3,"^")
+	;;=IBCNSM BENEFITS USED
+	;;^UTILITY(U,$J,"PRO",926,10,4,0)
+	;;=903^AP^11
+	;;^UTILITY(U,$J,"PRO",926,10,4,"^")
+	;;=IBCNSM ADD POLICY
+	;;^UTILITY(U,$J,"PRO",926,10,5,0)
+	;;=880^AB^14
+	;;^UTILITY(U,$J,"PRO",926,10,5,"^")
+	;;=IBCNSM UPDATE ANNUAL BENEFITS
+	;;^UTILITY(U,$J,"PRO",926,10,6,0)
+	;;=882^WP^32
+	;;^UTILITY(U,$J,"PRO",926,10,6,"^")
+	;;=IBCNSM PRINT WORKSHEET
+	;;^UTILITY(U,$J,"PRO",926,10,7,0)
+	;;=883^PC^33
+	;;^UTILITY(U,$J,"PRO",926,10,7,"^")
+	;;=IBCNSM PRINT PATIENT INS
+	;;^UTILITY(U,$J,"PRO",926,10,8,0)
+	;;=904^DP^13
+	;;^UTILITY(U,$J,"PRO",926,10,8,"^")
+	;;=IBCNSM DELETE POLICY
+	;;^UTILITY(U,$J,"PRO",926,10,9,0)
+	;;=919^EA^14
+	;;^UTILITY(U,$J,"PRO",926,10,9,"^")
+	;;=IBCNSM EDIT ALL
+	;;^UTILITY(U,$J,"PRO",926,10,11,0)
+	;;=884^VC^22
+	;;^UTILITY(U,$J,"PRO",926,10,11,"^")
+	;;=IBCNSM VERIFY INS
+	;;^UTILITY(U,$J,"PRO",926,10,12,0)
+	;;=1081^RI^27
+	;;^UTILITY(U,$J,"PRO",926,10,12,"^")
+	;;=IBCNSM PERSONAL RIDERS
+	;;^UTILITY(U,$J,"PRO",926,10,13,0)
+	;;=1103^EX^34
+	;;^UTILITY(U,$J,"PRO",926,10,13,"^")
+	;;=IBCNS QUIT
+	;;^UTILITY(U,$J,"PRO",926,26)
+	;;=D SHOW^VALM
+	;;^UTILITY(U,$J,"PRO",926,99)
+	;;=55895,49897
+	;;^UTILITY(U,$J,"PRO",927,0)
+	;;=IBCNS EXIT^Exit^^A^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"PRO",927,1,0)
+	;;=^^2^2^2930806^^^^
+	;;^UTILITY(U,$J,"PRO",927,1,1,0)
+	;;=Allows the user to exit the system without quitting through the hierarchy of
+	;;^UTILITY(U,$J,"PRO",927,1,2,0)
+	;;=screens, or the user can exit to the previous screen.
+	;;^UTILITY(U,$J,"PRO",927,2,0)
+	;;=^101.02A^1^1
+	;;^UTILITY(U,$J,"PRO",927,2,1,0)
+	;;=EX
+	;;^UTILITY(U,$J,"PRO",927,2,"B","EX",1)
+	;;=
+	;;^UTILITY(U,$J,"PRO",927,4)
+	;;=^^^EX
+	;;^UTILITY(U,$J,"PRO",927,10,0)
+	;;=^101.01PA^0^0
+	;;^UTILITY(U,$J,"PRO",927,20)
+	;;=D FASTEXIT^IBCNSM
+	;;^UTILITY(U,$J,"PRO",927,28)
+	;;=EX
+	;;^UTILITY(U,$J,"PRO",927,99)
+	;;=55768,35729
+	;;^UTILITY(U,$J,"PRO",930,0)
+	;;=IBCNSV ANNUAL BENEFITS^View An Ben^^M^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"PRO",930,4)
+	;;=26^4^^AB
+	;;^UTILITY(U,$J,"PRO",930,10,0)
+	;;=^101.01PA^2^2
+	;;^UTILITY(U,$J,"PRO",930,10,1,0)
+	;;=915^CY^11
+	;;^UTILITY(U,$J,"PRO",930,10,1,"^")
+	;;=IBCNSA AN BEN CH YR
+	;;^UTILITY(U,$J,"PRO",930,10,2,0)
+	;;=927^EX^21
+	;;^UTILITY(U,$J,"PRO",930,10,2,"^")
+	;;=IBCNS EXIT
+	;;^UTILITY(U,$J,"PRO",930,15)
+	;;=I $G(IBFASTXT)=1 S VALMBCK="Q"
+	;;^UTILITY(U,$J,"PRO",930,26)
+	;;=D SHOW^VALM
+	;;^UTILITY(U,$J,"PRO",930,28)
+	;;=Select Action: 
+	;;^UTILITY(U,$J,"PRO",930,99)
+	;;=55775,31789
+	;;^UTILITY(U,$J,"PRO",931,0)
+	;;=IBCNSV PATIENT INSURANCE^Patient Insurance^^M^^^^^^^^INTEGRATED BILLING
+	;;^UTILITY(U,$J,"PRO",931,4)
+	;;=26^4
+	;;^UTILITY(U,$J,"PRO",931,10,0)
+	;;=^101.01PA^5^6
+	;;^UTILITY(U,$J,"PRO",931,10,1,0)
+	;;=878^CP^22
+	;;^UTILITY(U,$J,"PRO",931,10,1,"^")
+	;;=IBCNSM CHANGE PATIENT
+	;;^UTILITY(U,$J,"PRO",931,10,3,0)
+	;;=933^AB^12
+	;;^UTILITY(U,$J,"PRO",931,10,3,"^")
+	;;=IBCNSV VIEW AN BEN
+	;;^UTILITY(U,$J,"PRO",931,10,4,0)
+	;;=932^VP^11
+	;;^UTILITY(U,$J,"PRO",931,10,4,"^")
+	;;=IBCNSV VIEW EXP POL
+	;;^UTILITY(U,$J,"PRO",931,10,5,0)
+	;;=934^BU^21
+	;;^UTILITY(U,$J,"PRO",931,10,5,"^")
+	;;=IBCNSV VIEW BEN USED
+	;;^UTILITY(U,$J,"PRO",931,10,6,0)
+	;;=1103^EX^31
+	;;^UTILITY(U,$J,"PRO",931,10,6,"^")
+	;;=IBCNS QUIT
+	;;^UTILITY(U,$J,"PRO",931,15)
+	;;=I $G(IBFASTXT)=1 S VALMBCK="Q"
+	;;^UTILITY(U,$J,"PRO",931,24)
+	;;=I 1 X:$D(^ORD(101,+$P(^ORD(101,DA(1),10,DA,0),"^"),24)) ^(24)
+	;;^UTILITY(U,$J,"PRO",931,26)
+	;;=D SHOW^VALM
+	;;^UTILITY(U,$J,"PRO",931,28)
+	;;=Select Action: 
+	;;^UTILITY(U,$J,"PRO",931,99)
+	;;=55894,57130
+	;;^UTILITY(U,$J,"PRO",932,0)
+	;;=IBCNSV VIEW EXP POL^View Policy Info^^A^^^^^^^^INTEGRATED BILLING

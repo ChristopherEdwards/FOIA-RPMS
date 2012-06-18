@@ -1,0 +1,140 @@
+AGGWDISP ;VNGT/HS/ALA-Build Window Display ; 09 Apr 2010  7:57 AM
+ ;;1.0;PATIENT REGISTRATION GUI;;Nov 15, 2010
+ ;
+ ;
+BLD(DATA,DEF,DFN) ; EP -- AGG BUILD WINDOW DISPLAY
+ ;
+ ;
+ NEW UID,II,AGIEN,AGCN,AGDATA,FLD,TYPE,CODE,DEXEC,ARRAY,AN,DQTY,VAL,VALUE,HEADR,HDATA,FILE,FL,FD
+ NEW VHD,J,K,LEN,LG,LN,ECHR,HDR,SECFILE,SECFLD,RET,VAL1,VAL2
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("AGGWDISP",UID))
+ K @DATA
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^AGGWDISP D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S AGIEN=$$FIND1^DIC(9009068.3,"","BX",DEF,"","","ERROR")
+ I AGIEN=0 S BMXSEC="RPC Failed: Passed in window name "_DEF_" not found" Q
+ ;
+ S FILE=$P(^AGG(9009068.3,AGIEN,0),U,2),SECFILE=$P(^AGG(9009068.3,AGIEN,0),U,14)
+ S HEADR="",HDATA=""
+ S AGCN=0
+ F  S AGCN=$O(^AGG(9009068.3,AGIEN,10,AGCN)) Q:'AGCN  D
+ . I $P(^AGG(9009068.3,AGIEN,10,AGCN,0),U,11)'="" Q
+ . S AGDATA=$G(^AGG(9009068.3,AGIEN,10,AGCN,0))
+ . S FLD=$P($G(^AGG(9009068.3,AGIEN,10,AGCN,3)),U,1),SECFLD=$P($G(^AGG(9009068.3,AGIEN,10,AGCN,3)),U,7)
+ . S RET=$P($G(^AGG(9009068.3,AGIEN,10,AGCN,3)),U,2)
+ . S TYPE=$P($G(^AGG(9009068.3,AGIEN,10,AGCN,1)),U,1)
+ . S CODE=$P(AGDATA,U,7),HDR=$P(AGDATA,U,2)
+ . S DEXEC=$G(^AGG(9009068.3,AGIEN,10,AGCN,8))
+ . I TYPE="M" S VALUE=""
+ . I TYPE="T" D
+ .. I DEXEC'="" D  Q
+ ... S VAL=""
+ ... I DEXEC'["DQTY" X DEXEC Q
+ ... S DQTY="I" X DEXEC S VAL=VALUE_$C(28)
+ ... S DQTY="E" X DEXEC S VALUE=VAL_VALUE
+ .. I FLD'="" S VALUE=$$GET1^DIQ(FILE,DFN_",",FLD,"I")_$C(28)_$$GET1^DIQ(FILE,DFN_",",FLD,"E") Q
+ .. S VALUE=$$GET1^DIQ(SECFILE,DFN_",",SECFLD,"I")_$C(28)_$$GET1^DIQ(SECFILE,DFN_",",SECFLD,"E")
+ . I (TYPE="C")!(TYPE="K") D
+ .. I DEXEC'="" D  Q
+ ... S VAL=""
+ ... I DEXEC'["DQTY" X DEXEC Q
+ ... S DQTY="I" X DEXEC S VAL=VALUE_$C(28)
+ ... S DQTY="E" X DEXEC S VALUE=VAL_VALUE
+ .. I FLD'="" D  Q
+ ... S VAL1=$$GET1^DIQ(FILE,DFN_",",FLD,"I") I VAL1="" Q
+ ... S VAL2=$O(^AGG(9009068.3,AGIEN,10,AGCN,5,"C",VAL1,"")) I VAL2="" Q
+ ... S VAL2=$P(^AGG(9009068.3,AGIEN,10,AGCN,5,VAL2,0),U,1)
+ ... S VALUE=VAL1_$C(28)_VAL2
+ .. S VAL1=$$GET1^DIQ(SECFILE,DFN_",",SECFLD,"I") I VAL1="" Q
+ .. S VAL2=$O(^AGG(9009068.3,AGIEN,10,AGCN,5,"C",VAL1,"")) I VAL2="" Q
+ .. S VAL2=$P(^AGG(9009068.3,AGIEN,10,AGCN,5,VAL2,0),U,1)
+ .. S VALUE=VAL1_$C(28)_VAL2
+ . I TYPE="X"!(TYPE="N") D
+ .. NEW TYPE
+ .. I DEXEC'="" X DEXEC Q
+ .. I FLD'="",FLD=.001 S VALUE=DFN Q
+ .. I FLD'="",RET="I" D  Q
+ ... S VALUE=$$GET1^DIQ(FILE,DFN_",",FLD,"I") Q
+ ... S VALUE=$$GET1^DIQ(SECFILE,DFN_",",SECFLD,"I")
+ .. I FLD'="" S VALUE=$$GET1^DIQ(FILE,DFN_",",FLD,"E") Q
+ .. S VALUE=$$GET1^DIQ(SECFILE,DFN_",",SECFLD,"E")
+ . I TYPE="D" D
+ .. I DEXEC'="" X DEXEC Q
+ .. I FLD'="" S VALUE=$$GET1^DIQ(FILE,DFN_",",FLD,"I"),VALUE=$$FMTE^AGGUL1(VALUE) Q
+ .. S VALUE=$$GET1^DIQ(SECFILE,DFN_",",SECFLD,"I"),VALUE=$$FMTE^AGGUL1(VALUE)
+ . I TYPE="W" D
+ .. NEW FL,FD
+ .. K ARRAY S VALUE=""
+ .. I DEXEC'="" X DEXEC
+ .. I DEXEC="" D
+ ... I FLD'="" D GETS^DIQ(FILE,DFN_",",FLD,"E","ARRAY") Q
+ ... D GETS^DIQ(SECFILE,DFN_",",SECFLD,"E","ARRAY")
+ .. S FL=$O(ARRAY("")) I FL="" Q
+ .. S FD=$O(ARRAY(FL,DFN_",","")) I FD="" Q
+ .. S AN=0,TXT=ARRAY(FL,DFN_",",FD,"E") I TXT="" Q
+ .. K @TXT@("E")
+ .. F  S AN=$O(@TXT@(AN)) Q:AN=""  S VALUE=VALUE_@TXT@(AN)_$C(10)
+ . S HEADR=HEADR_HDR_"^"
+ . S HDATA=HDATA_$G(VALUE)_"^",VALUE=""
+ S HEADR=$$TKO^AGGUL1(HEADR,"^"),HDATA=$$TKO^AGGUL1(HDATA,"^")
+ S @DATA@(II)=HEADR_$C(30)
+ I $$STRIP^XLFSTR(HDATA,$C(28)_"^")'="" S II=II+1,@DATA@(II)=HDATA_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ ;
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+CMP(DFN,WHICH,PART) ;EP - Get component part
+ ; Input
+ ;   DFN   - Patient IEN
+ ;   PART  - Part of name (1=Last, 2=First, 3=Middle, 4=Prefix, 5=Suffix, 6=Degree
+ ;   WHICH - Piece of "NAME" node corresponding to type of component
+ ;           1=Patient Name, 2=NOK Name, 3=NOK2 Name, 4=Father's Name, 5=Mother's Name
+ ;           6=Mother's Maiden Name, 7=EC Name, 8=EC2 Name, 9=Designee name
+ ;   ALT   - Alternate place for the data in NODE;PEC format
+ ;
+ NEW IEN,ALT,REF,NOD,PEC,VALUE,NAME,RESULT
+ S RESULT=""
+ I DFN="" Q RESULT
+ S IEN=$P($G(^DPT(DFN,"NAME")),"^",WHICH)
+ S ALT="0;1^.21;1^.211;1^.24;1^.24;2^.24;3^.33;1^.331;1^.34;1"
+ I $G(IEN)'="" S RESULT=$P($G(^VA(20,IEN,1)),"^",PART) I RESULT="" S IEN=""
+ I $G(IEN)="" D
+ . S REF=$P(ALT,"^",WHICH),NOD=$P(REF,";",1),PEC=$P(REF,";",2)
+ . S VALUE=$P($G(^DPT(DFN,NOD)),"^",PEC)
+ . K NAME
+ . S NAME=VALUE
+ . D STDNAME^XLFNAME(.NAME,"FC")
+ . S RESULT=$S(PART=1:NAME("FAMILY"),PART=2:NAME("GIVEN"),PART=3:NAME("MIDDLE"),PART=4:NAME("SUFFIX"),1:"")
+ Q RESULT
+ ;
+MUL(DFN,FILE,TFLD,LFLD,VAL) ;EP - Returns most recent (last entered) data from a multiple
+ ; Input
+ ;   FILE - File Number
+ ;   TFLD - Top level field number that references the lower fields
+ ;   LFLD - Lower level field number where data resides
+ ;   DFN  - Patient IEN
+ ;   VAL  - "I" for internal value, "E" for external value, "B" for both (pair) value, "D" for dates
+ ;
+ NEW DA,IENS,GLBREF,ARR,RESULT,SBFIL,NAM,REF,NOD
+ S GLBREF=$$ROOT^DILFD(FILE,"",0),RESULT=""
+ F NAM="GLOBAL SUBSCRIPT LOCATION","SPECIFIER" D FIELD^DID(FILE,TFLD,"",NAM,"ARR")
+ S NOD=$P($G(ARR("GLOBAL SUBSCRIPT LOCATION")),";",1),SBFIL=$G(ARR("SPECIFIER"))
+ S SBFIL=$$STRIP^XLFSTR(SBFIL,"ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ I $G(DFN)="" Q RESULT
+ S REF=GLBREF_DFN_","_NOD_")"
+ S DA=$O(@REF@("A"),-1) I DA=0!(DA="") Q RESULT
+ S DA(1)=DFN,IENS=$$IENS^DILF(.DA)
+ I VAL="D" S RESULT=$$GET1^DIQ(SBFIL,IENS,LFLD,"I"),RESULT=$$FMTE^AGGUL1(RESULT) Q RESULT
+ I VAL'="B" S RESULT=$$GET1^DIQ(SBFIL,IENS,LFLD,VAL)
+ I VAL="B" S RESULT=$$GET1^DIQ(SBFIL,IENS,LFLD,"I")_$C(28)_$$GET1^DIQ(SBFIL,IENS,LFLD,"E")
+ Q RESULT

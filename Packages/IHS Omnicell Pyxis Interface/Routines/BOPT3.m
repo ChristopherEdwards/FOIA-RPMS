@@ -1,0 +1,186 @@
+BOPT3 ;IHS/ILC/ALG/CIA/PLS - Transmitter ORC/OBX/RXE/RXR;20-Nov-2006 09:44;SM
+ ;;1.0;AUTOMATED DISPENSING INTERFACE;**1,2**;Jul 26, 2005
+ ;
+ ; Modified - IHS/MSC/PLS - 11/20/06 - Line AL1 - Changed to support allergies
+ Q
+ORC ;EP - Common Order Segment
+ N ORCC,PLCON,ORSTAT,ORDTM,WHO1,WHO2,PDOC,X,QT,BOPWHO,PDOCID
+ S NODE2=^BOP(90355.1,COUNTER,2)
+ S NODE3=^BOP(90355.1,COUNTER,3)
+ S ORCC=$P(NODE2,"^",1)
+ S PLCON=$P(NODE2,"^",8)
+ S ORSTAT=$P(NODE2,"^",3)
+ S ORDTM=$P(NODE2,"^",4)
+ S ORDTM=$$HLDATE^HLFNC(ORDTM),ORDTM=$P(ORDTM,"-",1)
+ S BOPWHO=$$INTFACE^BOPTU(1)
+ S BFLD="||||||||||"
+ S X=$P(NODE2,"^",5)
+ S WHO1=$$HLNAME^HLFNC(X)
+ S X=$P(NODE2,"^",6)
+ S WHO2=$$HLNAME^HLFNC(X)
+ S X=$P(NODE2,"^",7)
+ S PDOC=$$HLNAME^HLFNC(X)
+ S PDOCID=$P($P(NODE2,U,9),"-",3)
+ S QT="" I BOPWHO="P" S QT=$$QT^BOPT3(NODE3)
+ S OUT5="ORC"_FLD_ORCC_FLD_PLCON_FLD_FLD_FLD_ORSTAT_FLD_FLD_QT_FLD_FLD_ORDTM_FLD_COM_WHO1_FLD_COM_WHO2_FLD_PDOCID_COM_PDOC_"|"_$C(13)
+ S CONT=CONT+1,OUT(CONT)=OUT5
+ Q
+RXE ;EP - RXE SEGMENT
+ N QT,GC1,GC2,GAMN,GAMX,GUNIT,GUNITXT,GDOSE,PRINST,QUAN
+ N SPINST,ISINST,OUT6,NODE3,NODE4,NODE5,NODE6
+ S NODE3=^BOP(90355.1,COUNTER,3)
+ S NODE4=^BOP(90355.1,COUNTER,4)
+ S BOPWHO=$$INTFACE^BOPTU(1)
+ S GC1=$P(NODE4,"^",1)
+ S GC2=$P(NODE4,"^",2)
+ S GAMN=$P(NODE4,"^",3)
+ S GAMX=$P(NODE4,"^",4)
+ S GUNIT=$P(NODE4,"^",5)
+ S GUNITXT=$P(NODE4,"^",6)
+ S GDOSE=$P(NODE4,"^",7),GDOSE=COM_GDOSE
+ S NODE5=^BOP(90355.1,COUNTER,5)
+ S PRINST=$P(NODE5,"^",1)
+ S QUAN=$P(NODE5,"^",2)
+ S NODE6=^BOP(90355.1,COUNTER,6)
+ S SPINST=$P(NODE6,"^",1)
+ S ISINST=$P(NODE6,"^",2)
+ S SMFLD="|||||"
+ S BFLD="||||||||||"
+ S QT=$$QT(NODE3)
+ I BOPWHO="P" D  QUIT
+ . S BOPMM=$$MINMAX(GAMN) S GAMN=$P(BOPMM,U),GUNIT=$P(BOPMM,U,2),GAMX=$P(BOPMM,U,3)
+ . S OUT6="RXE"_FLD_QT_FLD_GC1_COM_GC2_FLD_GAMN_FLD_GAMX_FLD
+ . S OUT6=OUT6_GUNIT_COM_GUNITXT_FLD_GDOSE_FLD_ISINST
+ . S OUT6=OUT6_FLD_FLD_FLD_QUAN_"||||"_$C(13)
+ . S CONT=CONT+1
+ . S OUT(CONT)=OUT6
+ S BOPMM=$$MINMAX(GAMN) S GAMN=$P(BOPMM,U),GUNIT=$P(BOPMM,U,2),GAMX=$P(BOPMM,U,3)
+ ;
+ S QT="" I BOPWHO="O" S QT=$$QT^BOPT3(NODE3)
+ S OUT6="RXE"_FLD_QT_FLD_GC1_COM_GC2_FLD_GAMN_FLD_GAMX_FLD
+ I RECAPP="SUREMED" S OUT6=OUT6_GUNIT_FLD_GDOSE_FLD_ISINST
+ E  S OUT6=OUT6_GUNIT_COM_GUNITXT_FLD_GDOSE_FLD_ISINST
+ S BOPMLEN=$L(OUT6),BOPMPIN=$L(PRINST) I BOPMLEN+BOPMPIN>252 S PRINST="INSTR TOO LONG-SEE VISTA ORDER FOR DETAILS"
+ S OUT6=OUT6_FLD_FLD_FLD_QUAN_"|||||||||||"_PRINST
+ I $P(NODE3,U,11)&($P(NODE3,U,8)'="") N A,B S A=+$P(NODE3,U,8) S:A>0 $P(OUT6,FLD,24)=A S B="" D  S $P(OUT6,FLD,25)=B K A,B
+ . S A=$P(NODE3,U,8) N I F I=1:1:$L(A) I $E(A,I)?1A Q
+ . S B=$E(A,I,$L(A))
+ . K I Q
+ S OUT6=OUT6_$C(13)
+ S CONT=CONT+1
+ S OUT(CONT)=OUT6
+ Q
+OBXH ;EP - OBX record
+ S X=$P($G(^BOP(90355.1,COUNTER,9)),U) I X S CONT=CONT+1 D
+ .S OUT(CONT)="OBX||ST|1010.3^HEIGHT||"_X_"|cm|"_$C(13)
+ Q
+OBXW ;EP -  OBX weight
+ S X=$P($G(^BOP(90355.1,COUNTER,9)),U,2) I X S CONT=CONT+1 D
+ .S OUT(CONT)="OBX||ST|1010.1^WEIGHT||"_X_"|kg|"_$C(13)
+ Q
+DG1 ;EP -  DG1 record
+ ; I $G(BOPVA(9))]"" S CONT=CONT+1,OUT(CONT)="DG1||||"_BOPVA(9)_"|"_$C(13)
+ S BOPWHO=$$INTFACE^BOPTU(1)
+ I X=5 G DG15
+ ; free text diag from admit
+ S X=$G(^BOP(90355.1,COUNTER,12)) I X="" Q
+ S CONT=CONT+1,OUT(CONT)="DG1||||^"_X_"|"_$C(13)
+ Q
+DG15 ;  discharge icd9
+ S X=$G(^BOP(90355.1,COUNTER,14)) I X="" Q
+ S A=$$HLDATE^HLFNC($P(X,U,3)),A=$P(A,"-",1)
+ S CONT=CONT+1,OUT(CONT)="DG1|"_($S(BOPWHO="P":"|I9|",1:"1||"))_$P(X,U,1)_U_$P(X,U,2)_"||"_A_"|||||||||||"_$C(13)
+ Q
+AL1 ;EP -  AL1 record
+ N X,BOPN
+ Q:'$P($G(^BOP(90355.1,COUNTER,11,0)),U,4)
+ S BOPN=0 F  S BOPN=$O(^BOP(90355.1,COUNTER,11,BOPN)) Q:'BOPN  D
+ .S X=$G(^BOP(90355.1,COUNTER,11,BOPN,0))
+ .Q:X=""
+ .S A=$P(X,U,2)_U_$P(X,U,1)
+ .S CONT=CONT+1,OUT(CONT)="AL1||DA|"_A_"|"_$C(13)
+ Q
+RXR ;EP - Build RXR
+ S BOPWHO=$$INTFACE^BOPTU(1)
+ S NODE3=^BOP(90355.1,COUNTER,3)
+ S NODE8=^BOP(90355.1,COUNTER,8)
+ S ROUTE=$P(NODE8,"^",1)
+ I BOPWHO="P" S OUT7="RXR"_FLD_COM_ROUTE_FLD_$C(13) D FIN Q
+ I RECAPP="SUREMED" S OUT7="RXR"_FLD_ROUTE_FLD_$C(13)
+ E  S OUT7="RXR"_FLD_COM_ROUTE_FLD D  S OUT7=OUT7_$C(13)
+ . I '$P(NODE3,U,11) Q
+ . N A S A=$P(NODE3,U,5) I A'="" S $P(OUT7,FLD,5)=$S(A="A":"ADMIXTURE",A="P":"PIGGYBACK",A="H":"HYPERAL",A="S":"SYRINGE",A="C":"CHEMOTHERAPY",1:"")
+ . K A Q
+FIN S CONT=CONT+1
+ S OUT(CONT)=OUT7
+ K ROUTE,NODE8,OUT7
+ Q
+DOW ;SU;MO;TU;WE;TH;FR;SA
+ Q
+QT(Y) ; EP
+ ;  get the quantity/timing of the order
+ ; Y is from node3 ^BOP(90355.1,COUNTER
+ ; W IS IV FLAG
+ ;
+ N PSGSCH,PSGSD,PSGFD,PSGST,PSGS0Y,X,I,L,P,DOW
+ S PSGSCH=$P(Y,U)
+ S PSGSD=$P(Y,U,3),PSGSD=$$HLDATE^HLFNC(PSGSD),PSGSD=$P(PSGSD,"-",1)
+ S PSGFD=$P(Y,U,4),PSGFD=$$HLDATE^HLFNC(PSGFD),PSGFD=$P(PSGFD,"-",1)
+ S PSGST=$P(Y,U,5)
+ S PSGS0Y=$P(Y,U,7),PSGS0Y=$TR(PSGS0Y,"-",",")
+ I $L(PSGS0Y) D
+ .F I=1:1:$L(PSGS0Y,",") D
+ ..S P=$P(PSGS0Y,",",I),L=$L(P)
+ ..I L<4 S X=P,P=X_$E("0000",1,4-L),$P(PSGS0Y,",",I)=P
+ S DOW="00000000"
+ N I F I=1:1:7 I PSGSCH[$P($T(DOW),";",I+1) S $E(DOW,I)=1
+ I DOW'[1 S DOW=""
+ S X=COM_PSGSCH_"&"_PSGS0Y_COM_COM_PSGSD_COM_PSGFD
+ I $P(Y,U,11) S X=COM_"c"_COM_COM_PSGSD_COM_PSGFD
+ I BOPWHO="P" Q X
+ S X=X_COM_COM_$S(RECAPP="SUREMED":"",PSGST="P":1,1:0)_COM_DOW
+ Q X
+ ;
+MINMAX(X) ; extract quantity and units from free text field
+ N AMT1,AMT2,I,UNITS,Y,Y1,Y2,B,C S (AMT1,AMT2,I,UNITS,Y,Y1,Y2)=""
+ F I=1:1:$L(X) I $E(X,I)?1C S $E(X,I)="" ;remove control chars
+ X ^%ZOSF("UPPERCASE") S Y=$TR(Y,",","") ; x=input y = output
+ ; take out unnecessary spaces
+ I $E(Y)=" "!(Y["  ") F I=1:1:$L(Y) I $P(Y," ",I)]" " S Y1=Y1_$P(Y," ",I)_" "
+ I Y1 S Y=$E(Y1,1,$L(Y1)-1)
+ F I=1:1:$L(Y) I $E(Y,I)?1A,$E(Y,I-1)?1N S $E(Y,I)=" "_$E(Y,I)  ;create spaces
+ F I=1:1:$L(Y) I $E(Y,I)?1N,$E(Y,I-1)?1A S $E(Y,I)=" "_$E(Y,I)  ;create spaces
+ I $P(Y," ")?.A S B=$P(Y," ") D
+ . S $P(Y," ")=$S(B="ONE":1,B="TWO":2,B="THREE":3,B="FOUR":4,B="FIVE":5,B="SIX":6,B="SEVEN":7,B="EIGHT":8,B="NINE":9,1:B)
+ I $P(Y," ")?.A1"/".E S B=$P(Y,"/") D
+ . S C=$S(B="ONE":1,B="TWO":2,B="THREE":3,B="FOUR":4,B="FIVE":5,B="SIX":6,B="SEVEN":7,B="EIGHT":8,B="NINE":9,1:B)
+ . S $P(Y," ")=C_"/"_$P(Y,"/",2)
+ ; in the first 3 pieces, find a number, then reorder the pieces
+ I '+Y D  I '+Y S UNITS=X G MINMAXQ ; no units is unacceptable
+ .  I +$P(Y," ",2) S Y=$P(Y," ",2,99)_" "_$P(Y," ",1)
+ .  I +$P(Y," ",3) S Y=$P(Y," ",3,99)_" "_$P(Y," ",1,2)
+ I $P(Y," ")["/" S B=$P(Y," ") I B?1N1"/"1N S $P(Y," ")=$E($P(B,"/")/$P(B,"/",2),1,4)
+ I $P(Y," ",2)="TO"!($P(Y," ",2)="OR"),+$P(Y," ",3) S $P(Y," ",2)="-"
+ I Y["-" S:Y["- " $E(Y,$F(Y,"-"))="" S:Y[" -" $E(Y,$F(Y,"-")-2)=""
+ S Y1=$P(Y," ",1),UNITS=$P(Y," ",2,99) S:Y1["-" Y2=$P(Y1,"-",2),Y1=$P(Y1,"-",1) D  ;->
+ .  F I=1:1:$L(Y1) I $E(Y1,I)?1A D  Q  ;separaate dose amt num from units
+ .  .  S AMT1=+$E(Y1,1,I-1) I 'Y2 S UNITS=$E(Y1,I,99)_$S(UNITS="":UNITS,1:" "_UNITS)
+ I 'AMT1 S AMT1=+Y1
+ I Y2 F I=1:1:$L(Y2) I $E(Y2,I)?1A D  Q  ;if there is a maximum dose
+ .  S AMT2=+$E(Y2,1,I-1),UNITS=$E(Y2,I,99)_$S(UNITS="":UNITS,1:" "_UNITS)
+ I Y2,'AMT2 S AMT2=+Y2
+ I Y2,AMT1>AMT2 S Y=AMT1,AMT1=AMT2,AMT2=Y ; min dose less than max
+ I UNITS="" S (AMT1,AMT2)="",UNITS=X G MINMAXQ ; no units is unacceptable
+ S:AMT1=AMT2 AMT2="" S:$E(AMT1)="." AMT1=0_AMT1 S:$E(AMT2)="." AMT2=0_AMT2
+MINMAXQ Q AMT1_U_UNITS_U_AMT2
+ ;
+RXC ;EP
+ N A,B,C S (A,B,C)="",A=$O(^BOP(90355.1,COUNTER,20,0)) I A D  ;
+ . S B=0 F  S B=$O(^BOP(90355.1,COUNTER,20,B)) Q:'B  S C=$G(^BOP(90355.1,COUNTER,20,B,0)) Q:C=""  D  ;
+ . . S CONT=CONT+1
+ . . S OUT(CONT)="RXC"_FLD_"B"_FLD_$P(C,U,1)_COM_$P(C,U,2)_FLD_$P(C,U,3)_$C(13)
+ S (A,B,C)="",A=$O(^BOP(90355.1,COUNTER,21,0)) I A D  ;
+ . S B=0 F  S B=$O(^BOP(90355.1,COUNTER,21,B)) Q:'B  S C=$G(^BOP(90355.1,COUNTER,21,B,0)) Q:C=""  D  ;
+ . . S CONT=CONT+1
+ . . S OUT(CONT)="RXC"_FLD_"A"_FLD_$P(C,U,1)_COM_$P(C,U,2)_FLD_$P(C,U,3)_$C(13)
+ Q

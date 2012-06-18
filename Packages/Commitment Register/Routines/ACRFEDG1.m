@@ -1,0 +1,59 @@
+ACRFEDG1 ;IHS/OIRM/DSD/THL,AEF - CONTINUATION OF ACRFEDG; [ 11/01/2001   9:44 AM ]
+ ;;2.1;ADMIN RESOURCE MGT SYSTEM;;NOV 05, 2001
+ ;;CONTINUATION OF ACRFEDG
+GET ;EP;
+ K ACRDGDA,ACRDG
+ D HEAD
+ S ACRLVL=$S('$D(ACRENTRY):"",ACRENTRY["APPAMT":1,ACRENTRY["ALLAMT":1,ACRENTRY["ALCAMT":3,1:4)
+ S ACRX=0
+ F ACRJ=1:1 D G1 Q:'ACRX!$D(ACRPSE)
+ S DIC="^ACRDG("
+ S DIC(0)="AENLQZ"
+ S DIC("A")="Distribution Group..: "
+ W !!?21,"|" F ACRI=1:1:30 W "="
+ W "|"
+ D DIC^ACRFDIC
+ I X=""!(U[$E(X))!(+Y<1) S ACRQUIT="" Q
+ S ACRDGDA=+Y
+ S ACRDG=Y(0,0)
+ I $P(^ACRDG(+Y,0),U,3)="" D
+ .S DA=+Y
+ .S DR=".03T"
+ .S DIE="^ACRDG("
+ .D DIE^ACRFDIC
+ Q
+G1 S ACRX=$S(ACRLVL]"":$O(^ACRDG("LVL",ACRLVL,ACRX)),1:$O(^ACRDG(ACRX)))
+ Q:'ACRX
+ W:ACRJ#2=1 !
+ W:ACRJ#2=0 ?40,"| "
+ W ACRX
+ W ?$X+8-$L(ACRX),$P(^ACRDG(ACRX,0),U)
+ D:ACRJ#20=0 PAUSE
+ Q
+GETM ;EP;
+ K ACRDGMDA,ACRDGM
+ S DIC="^ACRDG("_ACRDGDA_",""GP"","
+ S DIC(0)="AENQZ"
+ S DIC("A")="Group Member........: "
+ W !!?21,"|" F ACRI=1:1:30 W "="
+ W "|"
+ D DIC^ACRFDIC
+ I X=""!(U[$E(X))!(+Y<1) S ACRQUIT="" Q
+ S ACRDGMDA=+Y,ACRDGM=Y(0,0)
+ Q
+PAUSE K ACRPSE
+ S DIR(0)="YO"
+ S DIR("A")="         List more MEMBERS"
+ W !
+ D DIR^ACRFDIC
+ S:Y'=1 ACRPSE=""
+ Q
+HEAD W @IOF
+ W !,"Select FUND DISTRIBUTION GROUP"
+ W !!,"ID NO."
+ W ?8,"DISTRIBUTION GROUP"
+ W ?40,"| ID NO."
+ W ?50,"DISTRIBUTION GROUP"
+ W !,"------  ------------------------------"
+ W ?40,"| ------  ----------------------------"
+ Q

@@ -1,0 +1,26 @@
+AQAOLARP ; IHS/ORDC/LJF - SET UP FACILITY REPORT FORMATS ;
+ ;;1.01;QAI MANAGEMENT;;OCT 05, 1995
+ ;
+ ;This rtn contains code for the user interface to set up facility
+ ;specific report formats for slected occurrence reports.
+ ;
+MENU ; >>> ask user for facility to edit then which links
+ I $D(AQAOFAC) L -^AQAGP(AQAOFAC)
+ W !! K DIC S DIC="^AQAGP(",DIC(0)="AEMZQ"
+ S DIC("A")="Select QI PARAMETER FACILITY:  " D ^DIC
+ G EXIT:$D(DTOUT),EXIT:$D(DUOUT),EXIT:X="",MENU:Y=-1 S AQAOFAC=+Y
+ L +^AQAGP(AQAOFAC):1 I '$T W !!,"CANNOT EDIT; ANOTHER USER IS EDITING THIS ENTRY. TRY AGAIN.",! G EXIT
+ ;
+REPORT ; >>> ask user to select report to set up
+ I '$D(^AQAGP(AQAOFAC,"FACRPT",0)) S ^(0)="^9002166.41"
+ W !! K DIC S DIC(0)="ALEMZQ",DIC="^AQAGP("_AQAOFAC_",""FACRPT"","
+ S DA(1)=AQAOFAC D ^DIC
+ G EXIT:$D(DTOUT),EXIT:$D(DOUT),MENU:X="",REPORT:Y=-1
+ S AQAORPT=+Y K DIE S DIE="^AQAGP("_AQAOFAC_",""FACRPT"","
+ S DA=AQAORPT,DA(1)=AQAOFAC
+ S DR=".01;.02;D ACCESS^AQAOHPAR;1;D MSF^AQAOHPAR;2;D FWIDE^AQAOHPAR;3;D KEYF^AQAOHPAR;4;D DIM^AQAOHPAR;6;D OTHER^AQAOHPAR;5"
+ D ^DIE
+ G REPORT
+ ;
+EXIT ; >>> eoj
+ D KILL^AQAOUTIL Q

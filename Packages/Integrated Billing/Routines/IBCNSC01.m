@@ -1,0 +1,84 @@
+IBCNSC01	;ALB/NLR - INSURANCE COMPANY EDIT -  ; 21-OCT-1993
+	;;Version 2.0 ; INTEGRATED BILLING ;; 21-MAR-94
+	;;Per VHA Directive 10-93-142, this routine should not be modified.
+	;
+PARAM	; -- Insurance company parameters region
+	N OFFSET,START,IBCNS0,IBCNS03,IBCNS06,IBCNS08,IBCNS13
+	S IBCNS0=$G(^DIC(36,+IBCNS,0))
+	S IBCNS03=$P(IBCNS0,"^",3),IBCNS06=$P(IBCNS0,"^",6),IBCNS08=$P(IBCNS0,"^",8)
+	S IBCNS13=$G(^DIC(36,+IBCNS,.13))
+	S START=1,OFFSET=2
+	D SET^IBCNSP(START,OFFSET+25," Billing Parameters ",IORVON,IORVOFF)
+	D SET^IBCNSP(START+1,OFFSET," Signature Required?: "_$S(+IBCNS03:"YES",1:"NO"))
+	D SET^IBCNSP(START+2,OFFSET,"          Reimburse?: "_$E($$EXPAND^IBTRE(36,1,$P(IBCNS0,"^",2)),1,21))
+	D SET^IBCNSP(START+3,OFFSET,"   Mult. Bedsections: "_$S(+IBCNS06:"YES",1:"NO"))
+	D SET^IBCNSP(START+4,OFFSET,"    Diff. Rev. Codes: "_$P(IBCNS0,"^",7))
+	D SET^IBCNSP(START+5,OFFSET,"      One Opt. Visit: "_$S(+IBCNS08:"YES",1:"NO"))
+	D SET^IBCNSP(START+6,OFFSET," Amb. Sur. Rev. Code: "_$P(IBCNS0,"^",9))
+	D SET^IBCNSP(START+7,OFFSET," Rx Refill Rev. Code: "_$P(IBCNS0,"^",15))
+	D SET^IBCNSP(START+8,OFFSET,"   Filing Time Frame: "_$P(IBCNS0,"^",12))
+	N START,OFFSET
+	S START=2,OFFSET=45
+	D SET^IBCNSP(START,OFFSET,"  Attending Phys. ID: "_$E($P(IBCNS0,"^",10),1,22))
+	D SET^IBCNSP(START+1,OFFSET,"  Hosp. Provider No.: "_$E($P(IBCNS0,"^",11),1,15))
+	D SET^IBCNSP(START+2,OFFSET,"   Primary Form Type: "_$$EXPAND^IBTRE(36,.14,$P(IBCNS0,"^",14)))
+	D SET^IBCNSP(START+3,OFFSET+7,"Billing Phone: "_$P(IBCNS13,"^",2))
+	D SET^IBCNSP(START+4,OFFSET+2,"Verification Phone: "_$P(IBCNS13,"^",4))
+	D SET^IBCNSP(START+5,OFFSET+2,"Precert Comp. Name: "_$P($G(^DIC(36,+$P(IBCNS13,"^",9),0)),"^",1))
+	D SET^IBCNSP(START+6,OFFSET+7,"Precert Phone: "_$$PHONE(IBCNS13))
+	Q
+	;
+PHONE(IBCNS13)	; -- Compute precert company phone
+	N IBX,IBSAVE,IBCNT S IBX=""
+	I '$P(IBCNS13,"^",9) S IBX=$P(IBCNS13,"^",3) G PHONEQ
+REDOX	S IBSAVE=+$P(IBCNS13,"^",9)
+	S IBCNT=$G(IBCNT)+1
+	; -- if you process the same co. more than once you are in an infinite loop
+	I $D(IBCNT(IBCNS)) G PHONEQ
+	S IBCNT(IBCNS)=""
+	S IBCNS13=$G(^DIC(36,+$P(IBCNS13,"^",9),.13))
+	S IBX=$P(IBCNS13,"^") S:$L($P(IBCNS13,"^",3)) IBX=$P(IBCNS13,"^",3)
+	; -- if process the same co. more than once you are in an infinite loop
+	I $P(IBCNS13,"^",9),$P(IBCNS13,"^",9)'=IBSAVE G REDOX
+PHONEQ	Q IBX
+	;
+MAIN	; -- Insurance company main address
+	N OFFSET,START,IBCNS11,IBADD
+	S IBCNS11=$G(^DIC(36,+IBCNS,.11))
+	S IBCNS13=$G(^DIC(36,+IBCNS,.13))
+	S START=14,OFFSET=25
+	D SET^IBCNSP(START,OFFSET," Main Mailing Address ",IORVON,IORVOFF)
+	N OFFSET S OFFSET=2
+	D SET^IBCNSP(START+1,OFFSET,"       Street: "_$P(IBCNS11,"^",1)) S IBADD=1
+	D SET^IBCNSP(START+2,OFFSET,"     Street 2: "_$P(IBCNS11,"^",2)) S IBADD=2
+	D SET^IBCNSP(START+3,OFFSET,"     Street 3: "_$P(IBCNS11,"^",3)) S IBADD=3
+	N OFFSET S OFFSET=45
+	D SET^IBCNSP(START+1,OFFSET,"   City/State: "_$E($P(IBCNS11,"^",4),1,15)_$S($P(IBCNS11,"^",4)="":"",1:", ")_$P($G(^DIC(5,+$P(IBCNS11,"^",5),0)),"^",2)_" "_$E($P(IBCNS11,"^",6),1,5))
+	D SET^IBCNSP(START+2,OFFSET,"        Phone: "_$P(IBCNS13,"^",1))
+	D SET^IBCNSP(START+3,OFFSET,"          Fax: "_$P(IBCNS11,"^",9))
+	Q
+	;
+REMARKS	;
+	;
+	N OFFSET,START,IBCNS0
+	S START=53,OFFSET=2
+	;
+	D SET^IBCNSP(START,OFFSET," Remarks ",IORVON,IORVOFF)
+	S (IBLCNT,IBI)=0 F  S IBI=$O(^DIC(36,+IBCNS,11,IBI)) Q:IBI<1  D
+	.S IBLCNT=IBLCNT+1
+	.D SET^IBCNSP(START+IBLCNT,OFFSET,"  "_$E($G(^DIC(36,+IBCNS,11,IBI,0)),1,80))
+	;. S VALMCNT=VALMCNT+1
+	;
+	;S IBCNS0=$G(^DIC(36,+IBCNS,0))
+	;D SET^IBCNSP(START,OFFSET," Remarks ",IORVON,IORVOFF)
+	;D SET^IBCNSP(START+1,OFFSET,"  "_$P(IBCNS0,"^",12))
+	Q
+	;
+SYN	;
+	N OFFSET,START,IBSN,SYN
+	S START=57+$G(IBLCNT),OFFSET=2
+	;F I=START:1:START+8 D BLANK^IBCNSC(.I)
+	D SET^IBCNSP(START,OFFSET," Synonyms ",IORVON,IORVOFF)
+	S SYN="" F I=1:1:8 S SYN=$O(^DIC(36,+IBCNS,10,"B",SYN)) Q:SYN=""  D SET^IBCNSP(START+I,OFFSET,$S(I>7:"  ...edit to see more...",1:"  "_SYN)) S IBLCNT=IBLCNT+1
+	;S IBSN=0 F I=1:1:8 S IBSN=+$O(^DIC(36,+IBCNS,10,IBSN)) Q:'IBSN  S SYN=^DIC(36,+IBCNS,10,IBSN,0) D SET^IBCNSP(START+I,OFFSET,$S(I>7:"  ...edit to see more...",1:"  "_SYN))
+	Q

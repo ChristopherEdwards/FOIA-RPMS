@@ -1,0 +1,138 @@
+AMQQVIEW ; IHS/CMI/THL - VIEW TAXONOMIES AND SEARCH TEMPLATES ;
+ ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ; CALLS TASKMAN
+CHK I $D(DTOUT)+$D(DUOUT)+(Y=-1)+(Y="") K DIRUT,DUOUT,DTOUT S AMQQQUIT="" Q
+ Q
+ ;
+TAX ; ENTRY POINT FROM AMQQOPT1
+ S AMQQVG="^ATXAX"
+ S AMQQVTYP="TAX"
+ S AMQQVSS=11
+ D OUT
+ G EXIT
+TMP ; ENTRY POINT FROM AMQQOPT1
+ W !!!,"You can view templates which store either PATIENTS or VISITS =>"
+ S DIR(0)="SO^1:PATIENTS;2:VISITS;3:BOTH patients and visits"
+ S DIR("A")=$C(10)_"     Your choice"
+ D ^DIR
+ K DIR
+ D CHK
+ I  Q
+ S AMQQVCK=$S(Y=1:"I %=2!(%=9000001)",Y=2:"I %=9000010",1:"I %=2!(%=9000001)!(%=9000010)")
+ S AMQQVG="^DIBT"
+ S AMQQVTYP="TMP"
+ S AMQQVSS="%D"
+ D OUT
+EXIT K AMQQQUIT,AMQQVENO,AMQQVNL,AMQQVWP,AMQQVENA,AMQQVG,AMQQVTYP,AMQQVSS,AMQQVIX,AMQQVCK,AMQQVOFF,%,I,Z
+ W @IOF
+ Q
+ ;
+OUT S AMQQVOFF=0
+ W !!
+ S %ZIS="Q"
+ D ^%ZIS
+ I POP Q
+ I $D(IO("Q")),IO=IO(0) W !!,"You can not queue a job to a slave printer..Try again",!!,*7 G OUT
+ I $E(IOST,1,2)="P-" N AMQQRV,AMQQNV,AMQQXV S (AMQQRV,AMQQNV)="AMQQXV",AMQQXV=""
+ I $E(IOST,1,2)="C-" W !,@AMQQRV,@AMQQNV S AMQQVOFF=$X
+ I '$D(IO("Q")) U IO D TASK D ^%ZISC Q
+ S ZTRTN="TASK^AMQQVIEW"
+ S ZTIO=ION
+ S ZTDTH="NOW"
+ S ZTDESC="Q-MAN LIST OF TAXONOMIES AND TEMPLATES"
+QUEUE F I=1:1 S %=$P("DT;DTIME;DUZ(;DUZ;U;AMQQV*;AMQQ200(;AMQQRV;AMQQNV;AMQQXV",";",I) Q:%=""  S ZTSAVE(%)=""
+ D ^%ZTLOAD
+ D ^%ZISC
+ W !!,$S($D(ZTSK):"Request queued!",1:"Request cancelled!"),!!!
+ H 3
+ Q
+ ;
+TASK D HEADER
+ S AMQQVNL=0
+ I AMQQVTYP="TMP" F AMQQVIX="F9000001","F2","F9000010" I $D(@AMQQVG@(AMQQVIX)) S AMQQVENA="" F  S AMQQVENA=$O(@AMQQVG@(AMQQVIX,AMQQVENA)) Q:AMQQVENA=""  F AMQQVENO=0:0 S AMQQVENO=$O(@AMQQVG@(AMQQVIX,AMQQVENA,AMQQVENO)) Q:'AMQQVENO  D TLSET
+ I AMQQVTYP="TAX" S AMQQVENA="" F  S AMQQVENA=$O(@AMQQVG@("B",AMQQVENA)) Q:AMQQVENA=""  F AMQQVENO=0:0 S AMQQVENO=$O(@AMQQVG@("B",AMQQVENA,AMQQVENO)) Q:'AMQQVENO  D TLSET,MEM
+ I '$D(AMQQQUIT),$E(IOST,1,2)="C-" S DIR(0)="E" D ^DIR K DIR D CHK
+ Q
+ ;
+TLSET I AMQQVTYP="TAX" G TLS1
+ S %=$P($G(@AMQQVG@(AMQQVENO,0)),U,4)
+ X AMQQVCK E  Q
+ I $D(@AMQQVG@(AMQQVENO,1))<10 Q
+ D TLS1
+ Q
+MEM ; List members of taxonomy
+ N AMQQTX
+ I $O(^ATXAX(AMQQVENO,21,0)) D PAUSE Q:$D(AMQQQUIT)  W !,$P(^ATXAX(AMQQVENO,0),U)_" Taxonomy Members:",! D PAUSE S AMQQTX=0 F  S AMQQTX=$O(^ATXAX(AMQQVENO,21,AMQQTX)) Q:'AMQQTX!($D(AMQQQUIT))!(AMQQVENO=99999999)  D
+ .D PAUSE
+ .I $D(AMQQQUIT) Q
+ .N %,%A,%B
+ .S %=$P(^ATXAX(AMQQVENO,21,AMQQTX,0),U,2),%A=$P(^(0),U)
+ .I %]"",%?1N.N S %B=% D PTRVAL S %=%B
+ .I %A?1N.N S %B=%A D PTRVAL S %A=%B
+ .I %]"" W !,$S(%=%A:%,1:%A_"-"_%)
+ .E  W !,%A
+ .D PAUSE
+ W !! D PAUSE,PAUSE
+ Q
+ ;
+PTRVAL ; Change from ptr val to actual val
+ N X,G
+ I $P(^ATXAX(AMQQVENO,0),U,15) S G=^DIC($P(^(0),U,15),0,"GL")
+AGIN I $P(@(G_"0)"),U,2)["P" S G=^DIC(+$P($P(^DD(+$P(@(G_"0)"),U,2),.01,0),U,2),"P",2),0,"GL") G AGIN
+ Q:$P($G(@(G_%B_",0)")),U)=""
+ S %B=$P(@(G_%B_",0)"),U)
+ Q
+ ;
+TLS1 S X=@AMQQVG@(AMQQVENO,0)
+ D PAUSE
+ I $D(AMQQQUIT) Q
+ S %=$P(X,U)
+ S %=$E(%,1,31)
+ W @AMQQRV,%,@AMQQNV
+ D @(AMQQVTYP_"SET")
+ W !
+ S Z=$S($G(@AMQQVG@(AMQQVENO,AMQQVSS,1,0))="":"   No description entered",1:("    "_$E(^(0),1,75)))
+ I Z?1.P S Z=$S($G(@AMQQVG@(AMQQVENO,AMQQVSS,2,0))="":"  No description entered",1:("    "_$E(^(0),1,75)))
+ W Z,!
+ D PAUSE
+ W !
+ D PAUSE
+ Q
+ ;
+TAXSET S %=$P(X,U,9)
+ S Y=%
+ X ^DD("DD")
+ I Y'=% W ?32+AMQQVOFF,$P(Y,"@")
+ S %=$P(X,U,5)
+ I %'="" S %=$P($G(@AMQQ200(3)@(%,0)),U),%=$P(%,","),%=$E(%,1,15) W ?46+AMQQVOFF,%
+ S %=$P(X,U,15)
+ I %]"" S %=$P($G(^DIC(%,0)),U),%=$E(%,1,18-AMQQVOFF) W ?62+AMQQVOFF,%
+ Q
+ ;
+TMPSET S %=$P(X,U,2)
+ S Y=%
+ X ^DD("DD")
+ I Y'=% W ?32+AMQQVOFF,$P(Y,"@")
+ S %=$P(X,U,5)
+ I %'="" S %=$P($G(@AMQQ200(3)@(%,0)),U),%=$P(%,","),%=$E(%,1,15) W ?46+AMQQVOFF,%
+ S %=$P(X,U,$S(AMQQVTYP="TMP":4,1:15))
+ S %=$P($G(^DIC(%,0)),U)
+ S %=$E(%,1,18-AMQQVOFF)
+ W ?62+AMQQVOFF,%
+ Q
+ ;
+WPAUSE W !
+PAUSE S AMQQVNL=AMQQVNL+1
+ I AMQQVNL#(IOSL-4) Q
+ I $E(IOST,1,2)="P-" W @IOF Q
+ W !!,"<>"
+ R %:DTIME E  S %=U
+ I $E(%)=U S AMQQQUIT="",(AMQQVWP,AMQQVENO)=99999999,AMQQVENA="zzzzzzzz" Q
+HEADER S %=""
+ S $P(%,"-",79)=""
+ W @IOF,$C(13)
+ W $S(AMQQVTYP="TAX":"TAXONOMY",1:"TEMPLATE"),?32,"DATE",?46,"CREATOR",?62,"FILEMAN FILE"
+ W !,?4,"Narrative description of ",$S(AMQQVTYP="TAX":"taxonomy",1:"template")
+ W !,%,!
+ Q
+ ;

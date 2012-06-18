@@ -1,0 +1,129 @@
+BCHEXD2 ; IHS/TUCSON/LAB -PROCESS RECORD ;  [ 06/27/00  2:16 PM ]
+ ;;1.0;IHS RPMS CHR SYSTEM;**7,10**;OCT 28, 1996
+ ;IHS/CMI/LAB - added $J to ^TMP
+ ;
+ ;Create export record.  68 characters in length.
+ ;
+RECORD ;EP
+ S (BCHE,BCHTX)=""
+ D ^BCHEXD21 ;IHS/CMI/LAB - new export format
+ Q  ;IHS/CMI/LAB - new export
+PROV ;get providers (1-4) 
+ I $P(BCHREC,U,3)="" S BCHE="E022" Q
+ S BCHAFF=$$PPAFFL^BCHUTIL(BCHR,"I") I BCHAFF=""!(BCHAFF["?") S BCHE="E023" Q
+ S BCHDISC=$$PPCLSC^BCHUTIL(BCHR) I BCHDISC=""!(BCHDISC["?") S BCHE="E024" Q
+ S BCHINI=$$PPINI^BCHUTIL(BCHR) I BCHINI["?" S BCHE="E025" Q
+PROV1 S X=BCHAFF_BCHDISC_BCHINI
+ S X=$$LBLK(X,6)
+ D TX
+PROG ;
+ S X=$P(BCHREC,U,2) I X]"" S X=$P(^BCHTPROG(X,0),U,5)
+ I X="" S X="-1"
+ S X=$$LBLK(X,7)
+ D TX
+DATE ;
+ S X=$P($P(BCHREC,U),".")
+ D TX
+FORM ;
+ S X=$P(BCHREC,U,25),X=$$LZERO(X,3) D TX
+ARN S X=BCHCPOV,X=$$LZERO(X,2) D TX
+RH S X=$P(BCHREC,U,26) S:X="" X="-" D TX
+ S X="  " D TX
+SC ;
+ S P=$P(^BCHRPROB(BCHPOVD,0),U,4),X=$S(P]"":$P(^BCHTSERV(P,0),U,3),1:" -")
+ S:X="" X=" -"
+ D TX
+ S X=" " D TX
+POV ;
+ S X=$P(^BCHRPROB(BCHPOVD,0),U),X=$P(^BCHTPROB(X,0),U,2)
+ S:X="" X="-1"
+ S:X="-" X=" -"
+ D TX
+ S X=" " D TX
+ACTL ;
+ S X=$P(BCHREC,U,6),X=$S(X]"":$P(^BCHTACTL(X,0),U,5),1:" -") S:X="-" X=" -" S:X="" X=" -" S:X="--" X=" -"
+ D TX
+NS ;
+ S X=$P(BCHREC,U,12) S:'X X=0 S X=$$LZERO(X,4)
+ D TX
+ST ;
+ S X=$P(^BCHRPROB(BCHPOVD,0),U,5) S:'X X=1 S X=$$LZERO(X,4)
+ D TX
+TT ;
+ I BCHCPOV=1 S X=$P(BCHREC,U,11) S:'X X=0 S X=$$LZERO(X,4)
+ E  S X="   0"
+ D TX
+ S X=" " D TX
+AGE ;
+ S X2=$P($G(^BCHR(BCHR,11)),U,2)
+ I X2]"" D  I 1
+ .S X1=$P($P(BCHREC,U),".") D ^%DTC S BCHAGE=X,BCHAGE=$J(BCHAGE/365.25,3,0) S X=$$LZERO(BCHAGE,3)
+ E  S X=" ",X=$$LBLK(X,3)
+ D TX
+ S X=" " D TX
+SEX ;
+ S X=$S($P($G(^BCHR(BCHR,11)),U,3)]"":$P($G(^BCHR(BCHR,11)),U,3),1:" ")
+ S X=$$LBLK(X,2)
+ D TX
+ S X=" " D TX
+REFF ;
+ S X="" I BCHCPOV=1 S X=$P(BCHREC,U,7) S:X'="" X=$P(^BCHTREF(X,0),U,3)
+ S:X="" X="  "
+ D TX
+ S X=" " D TX
+REFT ;
+ S X="" I BCHCPOV=1 S X=$P(BCHREC,U,8) S:X'="" X=$P(^BCHTREF(X,0),U,3)
+ S:X="" X="  "
+ D TX
+ S X=" " D TX
+SUB ;
+ S X=$P(^BCHRPROB(BCHPOVD,0),U,7)
+ S:X="" X=" "
+ D TX
+ S X=" " D TX
+EVAL ;
+ S X="" I BCHCPOV=1 S X=$P(BCHREC,U,9)
+ S:X="" X="  "
+ D TX
+ S X=" " D TX
+TYPE ;
+ S X="U"
+ D TX
+ Q
+TX ;EP
+ S BCHTX=BCHTX_X
+ Q
+ ;
+LZERO(V,L) ;EP - left zero fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V="0"_V
+ Q V
+LBLK(V,L) ;EP - left blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=" "_V
+ Q V
+RBLK(V,L) ;right blank fill
+ NEW %,I
+ S %=$L(V),Z=L-% F I=1:1:Z S V=V_" "
+ Q V
+DELETES ;EP - called from BCHEXD , send delete txs
+ Q  ;IHS/CMI/LAB - new format
+ S BCH("CONTROL DATE")=BCH("RUN BEGIN")-1
+ F  S BCH("CONTROL DATE")=$O(^BCHEXDEL("AEX",BCH("CONTROL DATE"))) Q:BCH("CONTROL DATE")=""!(BCH("CONTROL DATE")>BCH("RUN END"))  D DELETES2 Q:BCH("QFLG")
+ Q
+DELETES2 ;
+ S BCHR="" F  S BCHR=$O(^BCHEXDEL("AEX",BCH("CONTROL DATE"),BCHR)) Q:BCHR=""  D DELETES3 Q:BCH("QFLG")
+ Q
+DELETES3 ;
+ S BCHTX=""
+ S BCHV("TX GENERATED")=0,^TMP("BCHDR",$J,"DELETES",BCH("CONTROL DATE"),BCHR)=BCH("MAIN TX DATE")
+ X BCHCNT
+ S X=$P(^BCHEXDEL(BCHR,0),U),X=$$LBLK(X,6) D TX
+ S X=$P(^BCHEXDEL(BCHR,0),U,2) S X=$$LBLK(X,7) D TX
+ S X=$P(^BCHEXDEL(BCHR,0),U,3) S X=$$LBLK(X,7) D TX
+ S X=$P(^BCHEXDEL(BCHR,0),U,4) S X=$$LZERO(X,3) D TX
+ S $E(BCHTX,68)=BCHRTYPE
+ D CNTBUILD^BCHEXD
+ K ^BCHEXDEL("AEX",BCH("CONTROL DATE"),BCHR)
+ Q
+ ;
