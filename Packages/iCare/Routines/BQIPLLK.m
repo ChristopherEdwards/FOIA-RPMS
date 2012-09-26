@@ -1,9 +1,9 @@
-BQIPLLK ;PRXM/HC/KJH-Panel Lock/Unlock Functions ; 23 Feb 2006  5:08 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+BQIPLLK ;VNGT/HS/KJH-Panel Lock/Unlock Functions ; 23 Feb 2006  5:08 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
-LOCK(DATA,OWNR,PLIEN) ; EP - BQI LOCK PANEL
+LOCK(DATA,OWNR,PLIEN) ; EP -- BQI LOCK PANEL
  ; Description
  ;   Attempt to lock the panel specified by OWNR and PLIEN for
  ;   exclusive editing access.
@@ -67,7 +67,7 @@ LOCK(DATA,OWNR,PLIEN) ; EP - BQI LOCK PANEL
  S BQII=BQII+1,^TMP("BQIPLLK",UID,BQII)=$C(31)
  Q
  ;
-UNLOCK(DATA,OWNR,PLIEN) ; EP - BQI UNLOCK PANEL
+UNLOCK(DATA,OWNR,PLIEN) ; EP -- BQI UNLOCK PANEL
  ; Description
  ;   Unlock the panel specified by OWNR and PLIEN which was
  ;   previously locked for exclusive editing access. If the
@@ -121,4 +121,51 @@ ERR ;
  N Y,ERRDTM
  S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
  S BMXSEC="Recording that an error occurred at "_ERRDTM
+ Q
+ ;
+ULK(DATA,OWNR) ; EP -- BQI LOCK ICARE USER
+ ; Input:
+ ;   OWNR   - Owner of the panel to be locked
+ ;   
+ ;   RESULT = 1 if the lock succeeded
+ ;          = 0 if the lock failed
+ NEW UID,X,BQII,RESULT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPLULK",UID))
+ K @DATA
+ S BQII=0,OWNR=$G(OWNR,DUZ)
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPLLK D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ; Create header record
+ S @DATA@(BQII)="I00010RESULT"_$C(30)
+ ;
+ ; Attempt lock and set RESULT accordingly
+ S RESULT=1
+ L +^BQICARE(OWNR,0):1 E  S RESULT=0
+ ;
+ ; Report results
+ S BQII=BQII+1,@DATA@(BQII)=RESULT_$C(30)
+ S BQII=BQII+1,@DATA@(BQII)=$C(31)
+ Q
+ ;
+UULK(DATA,OWNR) ; EP -- BQI UNLOCK ICARE USER
+ NEW UID,X,BQII,RESULT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPLUULK",UID))
+ K @DATA
+ S BQII=0,OWNR=$G(OWNR,DUZ)
+ ;
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPLLK D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ; Create header record
+ S @DATA@(BQII)="I00010RESULT"_$C(30)
+ ;
+ ; Unlock and set RESULT
+ S RESULT=1
+ L -^BQICARE(OWNR,0)
+ ;
+ ; Report results
+ S BQII=BQII+1,@DATA@(BQII)=RESULT_$C(30)
+ S BQII=BQII+1,@DATA@(BQII)=$C(31)
  Q

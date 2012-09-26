@@ -1,5 +1,5 @@
-TIUEDI3 ; SLC/MAM - Additional Edit Code ;3/16/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**100**;Jun 20, 1997
+TIUEDI3 ; SLC/MAM - Additional Edit Code ;4/18/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**100,113**;Jun 20, 1997
  ;
 GETRECNW(DFN,TIU,TIUTYP1,TIUNEW,TIUDPRM,TIUINQ,PERSON,EDIT) ; New GETREC.
  ;  Code rewritten from the old GETREC^TIUEDI1.
@@ -164,12 +164,12 @@ CREATREC(DFN,TIU,TIUTYP1) ; Create document record - Returns DA
  S X=""""_"`"_TIUTYPDA_"""" D ^DIC
  I +Y'>0 W !,TIUTYPNM," record could not be created.",! G CREXIT
  ; -- Stuff patient, visit, parent doc type, status,
- ;    visit type, hosp loc, visit loc: --
+ ;    visit type, hosp loc, visit loc, division: --
  S DA=+Y
  N DIE,DR S DIE=8925
  S TIUVTYP=$P($G(TIUVSTR),";",3)
  S TIUVISIT=$S(+$G(TIU("VISIT")):+$G(TIU("VISIT")),1:"")
- S DR=".02////"_DFN_";.03////"_TIUVISIT_";.04////"_$$DOCCLASS^TIULC1(+$P(Y,U,2))_";.05///"_$$UP^XLFSTR($$STATUS^TIULC(DA))_";.13////"_TIUVTYP_";1205////"_$P($G(TIU("LOC")),U)_";1211////"_$P($G(TIU("VLOC")),U)
+ S DR=".02////"_DFN_";.03////"_TIUVISIT_";.04////"_$$DOCCLASS^TIULC1(+$P(Y,U,2))_";.05///"_$$UP^XLFSTR($$STATUS^TIULC(DA))_";.13////"_TIUVTYP_";1205////"_$P($G(TIU("LOC")),U)_";1211////"_$P($G(TIU("VLOC")),U)_";1212////"_$P($G(TIU("INST")),U)
  D ^DIE
  ; -- [Mark record for deferred crediting of stop code (fld #.11)]: --
  I +$G(TIU("STOP")) D DEFER^TIUVSIT(DA,+$G(TIU("STOP")))

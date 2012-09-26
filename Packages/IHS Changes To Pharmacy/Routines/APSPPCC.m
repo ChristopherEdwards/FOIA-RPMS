@@ -1,5 +1,5 @@
-APSPPCC ;IHS/CIA/DKM/PLS - PCC Hook for Pharmacy Package ;21-Apr-2011 10:37;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1006,1007,1008,1009,1010**;Sep 23, 2004
+APSPPCC ;IHS/CIA/DKM/PLS - PCC Hook for Pharmacy Package ;28-Oct-2011 12:23;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1006,1007,1008,1009,1010,1013**;Sep 23, 2004;Build 33
  ; EP - Called by event protocol.
  ;   DATA  = Event message.  May either be a global reference or
  ;           a local array passed by reference.
@@ -117,7 +117,9 @@ DOIT ;EP
  S POV=$TR($$GET^XPAR("SYS","APSP POV CACHE",+IEN_","_+REF),"~",U)
  ; Refills or suspended prescriptions will be set to 1300 unless the
  ; suspended prescription is an original dispensed on the day of release.
- I $L(POV),$P(RX0,U,13)'=$P(DAT,".") D  ; if issue date<>fill date
+ I $L(POV),$$GET1^DIQ(9009033,PSOSITE,405,"I") D  ;IHS/MSC/PLS - 10/28/11 - Capture POV for all prescriptions
+ .S DAT=$P(DAT,".")_".13"
+ E  I $L(POV),$P(RX0,U,13)'=$P(DAT,".") D  ; if issue date<>fill date
  .S DAT=$P(DAT,".")_".13"
  E  D
  .D:$L(POV)&(ACT'="-") DEL^XPAR("SYS","APSP POV CACHE",+IEN_","_+REF)
@@ -128,7 +130,7 @@ DOIT ;EP
  ;S PRV=$S($D(POV):$$NPF($P(RF0,U,7)),1:$$NPF(+$P(RX0,U,4)))
  ;IHS/MSC/PLS - 10/23/07 - Changed following line to add support for requesting refill provider
  ;S PRV=$S($D(POV):$$NPF($P(RF0,U,7)),REF:$$NPF($P(RF0,U,17)),1:$$NPF(+$P(RX0,U,4)))
- S PRV=$S($D(POV):$S(REF:$$NPF($P(RF0,U,7)),1:$$NPF(+$P($G(^PSRX(IEN,"OR1")),U,5))),REF:$$REFPRV(IEN,REF),1:$$NPF(+$P(RX0,U,4)))
+ S PRV=$S($D(POV):$S(REF:$$NPF($P(RF0,U,7)),1:$$NPF(+$P($G(^PSRX(IEN,"OR1")),U,5))),REF:$$REFPRV(IEN,REF),1:$$NPF(+$P(RX0,U,4)))  ;p1010
  S OPV=$S(REF:$$NPF($P(RF0,U,17)),1:$$NPF(+$P(RX0,U,4)))  ;Provider
  S PHM=$$NPF(+$P(RX2,U,3))                       ;Pharmacist
  S:REF PHM=$$NPF($P(RF0,U,7))                    ;Clerk Code

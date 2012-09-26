@@ -1,5 +1,5 @@
-PSGSICHK ;BIR/CML3-CHECKS SPECIAL INSTRUCTIONS ;17 Aug 98 / 8:33 AM
- ;;5.0; INPATIENT MEDICATIONS ;**3,9,26,29,44,49,59**;16 DEC 97
+PSGSICHK ;BIR/CML3-CHECKS SPECIAL INSTRUCTIONS ;10-Feb-2012 14:22;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**3,9,26,29,44,49,59,1013**;16 DEC 97;Build 33
  ;
  ; Reference to EN^PSOORDRG is supported by DBIA 2190.
  ; Reference to ^PSI(58.1 is supported by DBIA 2284.
@@ -9,6 +9,7 @@ PSGSICHK ;BIR/CML3-CHECKS SPECIAL INSTRUCTIONS ;17 Aug 98 / 8:33 AM
  ; Reference to ^PS(51.2 is supported by DBIA 2178.
  ; Reference to ^PS(51 is supported by DBIA 2176.
  ;
+ ;Modified - IHS/MSC/MGH - 02/08/2012 - Line ENDL+2
 START ;
  I $S(X'?.ANP:1,X["^":1,1:$L(X)>180) K X Q
  S Y="" F Y(1)=1:1:$L(X," ") S Y(2)=$P(X," ",Y(1)) I Y(2)]"" D CHK Q:'$D(X)
@@ -76,8 +77,10 @@ CONT ; Ask user if they wish to continue in spite of an order check.
  ;
 ENDL ; used by PSGTRAIN DRUG LOOK-UP option
  D ENCV^PSGSETU Q:$D(XQUIT)
- F  S DIC="^PSDRUG(",DIC(0)="AEIMOQZ",DIC("A")="Select DRUG: " W ! D ^DIC K DIC Q:+Y'>0  D SF
- D ENKV^PSGSETU K N5,ND,Q,Y Q
+ ;IHS/MSC/MGH changed for mixed case lookup, uses new cross-reference
+ ;F  S DIC="^PSDRUG(",DIC(0)="AEIMOQZ",DIC("A")="Select DRUG: " W ! D ^DIC K DIC Q:+Y'>0  D SF
+ F  S DIC="^PSDRUG(",DIC(0)="AEIMOQZ",D="BCAP",DIC("A")="Select DRUG: " W ! D IX^DIC K DIC Q:+Y'>0  D SF
+ D ENKV^PSGSETU K N5,ND,Q,Y,D Q
  ;
 SF ;
  S Y=+Y,ND=$G(^PSDRUG(Y,0)),PSGID=+$G(^("I")) I PSGID W !!,"THIS DRUG IS INACTIVE AS OF ",$E($$ENDTC^PSGMI(PSGID),1,8)

@@ -1,5 +1,5 @@
 BGPMUUT1 ; IHS/MSC/MGH - Meaningful use utility calls ;01-Mar-2011 15:35;MGH
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 WH(P,BDATE,EDATE,T,F) ;EP
@@ -175,7 +175,7 @@ LASTITEM(P,BD,ED,BGPT,BGPV) ;PEP - return last item APCLV OF TYPE APCLT DURING B
  I '$D(BGPR(1)) Q ""
  Q 1_U_$P(BGPR(1),U,1)_U_$P(BGPR(1),U,3)_U_$P(BGPR(1),U,2)
  ;
-PRV(VISIT,PROV) ;Is this provider a provider for this visit
+PRV(VISIT,PROV) ;EP - Is this provider a provider for this visit
  ;CHANGED ON 10/26 TO ONLY RETURN TRUE IF PRIMARY PROVIDER - PER Aneel Advani
  N I,PRVIEN,PRVDATA
  S I=""

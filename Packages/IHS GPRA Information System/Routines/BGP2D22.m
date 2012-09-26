@@ -1,5 +1,5 @@
 BGP2D22 ; IHS/CMI/LAB - measure I2 ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 I2 ;EP
  K BGPN1,BGPN2,BGPN3,BGPN4,BGPVALUE,BGPLHGB,BGPN5,BGPN6,BGPN7,BGPN8,BGPD7
@@ -26,7 +26,7 @@ I2 ;EP
  I S<130&(DS<80) S BGPN7=1,BGPV="BP: <130/80: BP: "_S_"/"_DS I 1
  E  S BGPV="BP: "_S_"/"_DS
 BPS ;
- S BGPVALUE=BGPVALUE_$S(BGPVALUE]"":"; ",1:"")_BGPV
+ I BGPV]"" S BGPVALUE=BGPVALUE_$S(BGPVALUE]"":"; ",1:"")_BGPV
  ;
 23 ;
  S BGPLDL=$$LDL^BGP2D2(DFN,BGP365,BGPEDATE,1)
@@ -68,14 +68,14 @@ IOMW ;EP
  S (BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPN7)=0
  I BGPAGEB<67 S BGPSTOP=1 Q
  I $P(^DPT(DFN,0),U,2)'="F" S BGPSTOP=1 Q
- S BGPFRAC=$$FRACTURE^BGP2EL3(DFN,$$FMADD^XLFDT(BGPBDATE,-180),$$FMADD^XLFDT(BGPBDATE,180))
+ S BGPFRAC=$$FRACTURE^BGP2EL3(DFN,$$FMADD^XLFDT(BGPBDATE,-182),$$FMADD^XLFDT(BGPBDATE,182))
  I '$P(BGPFRAC,U) S BGPSTOP=1 Q
  I BGPACTCL S BGPD1=1
  I BGPACTUP S BGPD2=1
  S BGPISD=$P(BGPFRAC,U,2),BGPISV=$P(BGPFRAC,U,3),BGPISV=$P(BGPFRAC,U,4)
  S BGPBMD=""
  I $P(BGPFRAC,U,3)="H" S BGPBMD=$$TXBMD^BGP2EL4(DFN,$P($P(^AUPNVSIT(BGPISV,0),U),"."),$$DSCHDATE^APCLV(BGPISV,"I"),1)
- I $P(BGPFRAC,U,3)'="H" S BGPBMD=$$TXBMD^BGP2EL4(DFN,BGPISD,$$FMADD^XLFDT(BGPISD,180))
+ I $P(BGPFRAC,U,3)'="H" S BGPBMD=$$TXBMD^BGP2EL4(DFN,BGPISD,$$FMADD^XLFDT(BGPISD,182))
  I $P(BGPBMD,U) S BGPN1=1
  S BGPVALUE=$S(BGPRTYPE=3:"AC",BGPD1:"UP,AC",1:"UP")
  S Y=""
@@ -189,7 +189,7 @@ PERASTH(P,BDATE,EDATE) ;EP
  ;item 1 - one visit to er w/493 OR hosp
  K ^TMP($J,"A")
  S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(B,A)
- I '$D(^TMP($J,"A",1)) Q 0  ;not asthma or hosp or meds
+ I '$D(^TMP($J,"A",1)) Q 0
  S T=$O(^ATXAX("B","BGP ASTHMA DXS",0))
  S (X,G)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G)  S V=$P(^TMP($J,"A",X),U,5) D
  .Q:'$D(^AUPNVSIT(V,0))
@@ -206,7 +206,7 @@ PERASTH(P,BDATE,EDATE) ;EP
  ;
  I G Q 1_U_"DX ON HOSP/OR ER ON "_$P(G,U,2)  ;had prim dx on 30 or H so meets denom
 PER3 ;
- ;now check for meds
+ ;meds
  S BGPT=$O(^ATXAX("B","BGP ASTHMA DXS",0))
  S T=$O(^ATXAX("B","BGP HEDIS ASTHMA MEDS",0))
  S T3=$O(^ATXAX("B","BGP HEDIS ASTHMA NDC",0))
@@ -245,13 +245,12 @@ PER3 ;
  Q ""
  ;
 ASSEV(P,EDATE) ;EP - NOW CHECK ASTHMA PACKAGE SEV
- ;NEW D,G,I
  ;find problem list active for asthma with 2, 3 or 4 in 15th piece
  NEW S,A,B,T,X,G,V,Y
  S G=""
  S T=$O(^ATXAX("B","BGP ASTHMA DXS",0))
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(G)  D
- .Q:$P(^AUPNPROB(X,0),U,8)>EDATE  ;if added to pl after end of time period
+ .Q:$P(^AUPNPROB(X,0),U,8)>EDATE  ;if added to pl after end
  .S Y=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)'="A"
  .Q:'$$ICD^ATXCHK(Y,T,9)
@@ -306,7 +305,7 @@ FOOT(P,BDATE,EDATE,REFUSAL) ;
  I Y Q 1_"^"_D_"^Cl "_R
  S (X,Y)=0,D="" F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(Y)  S R=$$PRIMPROV^APCLV($P(^TMP($J,"A",X),U,5),"D") I (R=33!(R=84)!(R=25)),'$$DNKA^BGP2D21($P(^TMP($J,"A",X),U,5)) S Y=1,D=$P(^TMP($J,"A",X),U)
  I Y Q "1^"_D_"^Prv "_R
- ;now check for Refusal of diabetic eye exam
+ ;now check for Refusal
  S G=$$CPTI^BGP2DU(P,BDATE,EDATE,+$$CODEN^ICPTCOD("2028F"))
  I G Q G_"^CPT: 2028F"
  I $G(REFUSAL) Q ""
@@ -322,7 +321,6 @@ BPCPT(P,BDATE,EDATE,GDEV) ;EP
  .Q:'$D(^AUPNVSIT(V,0))
  .Q:$$CLINIC^APCLV(V,"C")=30  ;clinic ER
  .I $G(GDEV) Q:$$GDEV^BGP2D2(V)
- .;Q:'$D(^AUPNVCPT("AD",V))  ;no cpt codes
  .S E=0 F  S E=$O(^AUPNVCPT("AD",V,E)) Q:E'=+E  D
  ..S C=$P($G(^AUPNVCPT(E,0)),U)
  ..I 'C Q
@@ -341,10 +339,10 @@ BPCPT(P,BDATE,EDATE,GDEV) ;EP
  .S E=0 F  S E=$O(^AUPNVPOV("AD",V,E)) Q:E'=+E  D
  ..S Y=$$VAL^XBDIQ1(9000010.07,E,.01)
  ..I Y="" Q
- ..Q:Y'="V81.1"
+ ..Q:'$$ICD^ATXCHK($$VALI^XBDIQ1(9000010.07,E,.01),$O(^ATXAX("B","BGP HYPERTENSION SCREEN DXS",0)),9)
  ..S D=$P($P(^AUPNVSIT(V,0),U),"."),D=(9999999-D)_"."_$P(D,".",2)
  ..S:'$D(M(D)) M(D)=Y,A(D)=Y_U_"M"
- I '$D(S),'$D(T),'$D(M) Q ""  ;no cpts at all
+ I '$D(S),'$D(T),'$D(M) Q ""  ;
  S L=$O(A(0)),Z=$P(A(L),U,2) I Z="M" Q 0_U_$P(A(L),U,1)
  S S=$O(S(0)) I S S S=S(S)
  S D=$O(T(0)) I D S D=T(D)

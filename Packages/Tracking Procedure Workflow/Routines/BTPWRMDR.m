@@ -1,12 +1,12 @@
 BTPWRMDR ;VNGT/HS/ALA-CMET Reminders ; 13 Nov 2009  1:49 PM
- ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;**2**;Feb 07, 2011;Build 52
  ;
  ;
 PAT(DATA,DFN) ; EP -- BTPW GET CMET REMINDERS BY PAT
  ; Input
  ;   DFN - Patient internal entry number
  ;
- NEW UID,II,ERROR,BQIDFN,EVT,EVDT,CMIEN,EVNAM,LAST
+ NEW UID,II,ERROR,BQIDFN,EVT,EVDT,CMIEN,EVNAM,LAST,CODE,EVDATE,LSTN,LSUPD,QFL,VISIT
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  S DATA=$NA(^TMP("BTPWRMDR",UID))
  K @DATA
@@ -19,10 +19,10 @@ PAT(DATA,DFN) ; EP -- BTPW GET CMET REMINDERS BY PAT
  ;
  S EVT=""
  F  S EVT=$O(^BTPWP("AG",BQIDFN,EVT)) Q:EVT=""  D
- . S EVDT=""
- . F  S EVDT=$O(^BTPWP("AG",BQIDFN,EVT,EVDT)) Q:EVDT=""  D
+ . S EVDT="",QFL=0
+ . F  S EVDT=$O(^BTPWP("AG",BQIDFN,EVT,EVDT),-1) Q:EVDT=""  D  Q:QFL
  .. S CMIEN=""
- .. F  S CMIEN=$O(^BTPWP("AG",BQIDFN,EVT,EVDT,CMIEN)) Q:CMIEN=""  D
+ .. F  S CMIEN=$O(^BTPWP("AG",BQIDFN,EVT,EVDT,CMIEN)) Q:CMIEN=""  D  Q:QFL
  ... S EVNAM=$P(^BTPW(90621,EVT,0),U,1),LAST="",VISIT=""
  ... S LSUPD=$P($G(^BTPWP(CMIEN,1)),U,2)\1
  ... S LSTN=$P(^BTPWP(CMIEN,0),U,11) I LSTN'="" D
@@ -33,9 +33,9 @@ PAT(DATA,DFN) ; EP -- BTPW GET CMET REMINDERS BY PAT
  .... F  S PRI=$O(^XTMP("BTPWPRC",BQIDFN,EVT,LAST,PRI)) Q:PRI=""  D
  ..... S VIS=""
  ..... F  S VIS=$O(^XTMP("BTPWPRC",BQIDFN,EVT,LAST,PRI,VIS)) Q:VIS=""  I VIS'="~" S VISIT=VIS Q
- ... S CODE="CMET_"_EVT,EVDT=EVDT\1
+ ... S CODE="CMET_"_EVT,EVDATE=EVDT\1,QFL=1
  ... S II=II+1,@DATA@(II)="CMET^"_$$CAT^BTPWPDSP(EVT)_U_CODE_U_EVNAM_U_$$FMTE^BQIUL1(LAST)_U
- ... S @DATA@(II)=@DATA@(II)_$$FMTE^BQIUL1(EVDT)_U_$$FMTE^BQIUL1(EVDT)_U_$$FMTE^BQIUL1(LSUPD)_U_VISIT_U_$C(30)
+ ... S @DATA@(II)=@DATA@(II)_$$FMTE^BQIUL1(EVDATE)_U_$$FMTE^BQIUL1(EVDATE)_U_$$FMTE^BQIUL1(LSUPD)_U_VISIT_U_$C(30)
  ;
  S II=II+1,@DATA@(II)=$C(31)
  Q
@@ -54,35 +54,43 @@ HDR ; Header
  S @DATA@(II)=@DATA@(II)_"T00040REM_NEXT^D00010REM_DUE^D00030LAST_UPDATED^I00010VISIT_IEN^I00003DISPLAY_ORDER"_$C(30)
  Q
  ;
-REC(BQIDFN) ; EP - Get records
- S EVT=""
- F  S EVT=$O(^BTPWP("AG",BQIDFN,EVT)) Q:EVT=""  D
- . S EVDT=""
- . F  S EVDT=$O(^BTPWP("AG",BQIDFN,EVT,EVDT)) Q:EVDT=""  D
- .. S CMIEN=""
- .. F  S CMIEN=$O(^BTPWP("AG",BQIDFN,EVT,EVDT,CMIEN)) Q:CMIEN=""  D
- ... S EVNAM=$P(^BTPW(90621,EVT,0),U,1),LAST=$$FMTE^BQIUL1($P($G(^BTPW(90621,EVT,1)),U,2))
- ... S II=II+1,@DATA@(II)="CMET^"_$$CAT^BTPWPDSP(EVT)_U_U_EVNAM_U_U_U_$$FMTE^BQIUL1(EVDT)_U_LAST_U_U_$C(30)
- Q
- ;
-EVT(BQIDFN,EVENT,SYS) ; PEP - Return CMET Event information
+REC(BQIDFN,DATA) ; PEP - Get future CMET records for a patient
  ; Input
  ;   BQIDFN - Patient IEN
- ;   EVENT   - CMET Event IEN or CMET Event Name
- ;   SYS    - '1' = EHR for a structure for EHR
+ ;   DATA   - Target
+ ; Output
+ ;   Identifier^Category^Event Name^Next Event Due
+ ; 
+ NEW EVT,EVDT,QFL,CMIEN,EVNAM,LAST,EVDUE,II
+ K @DATA
+ S EVT="",II=0
+ F  S EVT=$O(^BTPWP("AG",BQIDFN,EVT)) Q:EVT=""  D
+ . S EVDT="",QFL=0
+ . F  S EVDT=$O(^BTPWP("AG",BQIDFN,EVT,EVDT),-1) Q:EVDT=""  D  Q:QFL
+ .. S CMIEN=""
+ .. F  S CMIEN=$O(^BTPWP("AG",BQIDFN,EVT,EVDT,CMIEN)) Q:CMIEN=""  D  Q:QFL
+ ... S EVNAM=$P(^BTPW(90621,EVT,0),U,1),LAST=$$FMTE^BQIUL1($P($G(^BTPW(90621,EVT,1)),U,2)),QFL=1
+ ... S EVDUE=EVDT\1
+ ... S II=II+1,@DATA@(II)="CMET^"_$$CAT^BTPWPDSP(EVT)_U_EVNAM_U_$$FMTE^BQIUL1(EVDUE)
+ Q
  ;
- ;  Output
- ;  SYS = 1 (for EHR) - 0 is no result, 1 is result RESULT_"^"_LAST_"^"_DUE
- ;  SYS not = 1 (for Health Summary) - BLANK is returned for no result
- ;       CMET^BREAST^CMET_24^MAMMOGRAM SCREENING^JAN 14,2008^JAN 13,2009^3090113^OCT 21,2010^2631823^
- ;    where from^category^internal value^event name^last done^next due normal date^next due FileMan date^last updated^visit IEN
- ;  
- NEW EVDT,CMIEN,EVNAM,LAST,VISIT,LSUPD,LSTN,PRI,VIS,CODE,RESULT,EVDUE,EVNT
+EVT(BQIDFN,EVNT,SYS) ; PEP
+ ; Input
+ ;   BQIDFN - Patient IEN
+ ;   EVNT   - CMET Event IEN
+ ;   SYS    - '1' = EHR
+ ; Output
+ ;   Result - -1 is an error,1 is the most recent event due, 0 is none found
+ ;      If SYS is EHR (1) then Last Event Date^Date Next Due
+ ;      If SYS is not EHR (0) then Category^Event Code^Event Name^Last Event Date^Next Event Due^next event due fileman^Last Updated Date^Event Visit IEN
+ ;   
+ ;
+ NEW EVDT,CMIEN,EVNAM,LAST,VISIT,LSUPD,LSTN,PRI,VIS,CODE,RESULT,EVDUE
  S SYS=$G(SYS,0)
- I EVENT'?.N S EVNT=$O(^BTPW(90621,"B",EVENT,"")) I EVNT="" Q "-1^Event "_EVENT_" not found"
- I EVENT?.N S EVNT=EVENT
- S EVDT="",LAST=""
- F  S EVDT=$O(^BTPWP("AG",BQIDFN,EVNT,EVDT)) Q:EVDT=""  D
+ I EVNT'?.N S EVNT=$O(^BTPW(90621,"B",EVNT,""))
+ I EVNT="" Q "-1"
+ S EVDT="",LAST="",RESULT=0
+ F  S EVDT=$O(^BTPWP("AG",BQIDFN,EVNT,EVDT),-1) Q:EVDT=""  D
  . S CMIEN=""
  . F  S CMIEN=$O(^BTPWP("AG",BQIDFN,EVNT,EVDT,CMIEN)) Q:CMIEN=""  D
  .. S EVNAM=$P(^BTPW(90621,EVNT,0),U,1),LAST="",VISIT=""
@@ -99,8 +107,8 @@ EVT(BQIDFN,EVENT,SYS) ; PEP - Return CMET Event information
  ;
  S CODE="CMET_"_EVNT
  I 'SYS D
- . I $G(EVNAM)="" S RESULT="" Q
- . S RESULT="CMET^"_$$CAT^BTPWPDSP(EVNT)_U_CODE_U_EVNAM_U_$$FMTE^BQIUL1(LAST)_U
+ . I $G(EVNAM)="" S RESULT=0 Q
+ . S RESULT="1^"_$$CAT^BTPWPDSP(EVNT)_U_CODE_U_EVNAM_U_$$FMTE^BQIUL1(LAST)_U
  . S RESULT=RESULT_$$FMTE^BQIUL1(EVDUE)_U_EVDUE_U_$$FMTE^BQIUL1(LSUPD)_U_VISIT_U
  I SYS D
  . I $G(EVNAM)="" S RESULT=0 Q

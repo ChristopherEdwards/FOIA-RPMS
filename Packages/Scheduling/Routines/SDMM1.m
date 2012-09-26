@@ -1,8 +1,9 @@
 SDMM1 ;ALB/GRR - MULTIPLE BOOKINGS ; [ 04/22/2004  5:18 PM ]
- ;;5.3;Scheduling;**28,206,168,1001**;Aug 13, 1993
+ ;;5.3;Scheduling;**28,206,168,1001,1014**;Aug 13, 1993
  ;IHS/ANMC/LJF 7/06/2000 hard set of date appt made now includes time
  ;            12/13/2000 added check for overbook access by clinic
  ;             6/22/2001 added call to create xref on date appt made
+ ;ihs/cmi/maw 02/02/2012 patch 1014, changed set of appointment mode to silent fileman call
  ;
 MAKE S (SDX3,X,SD)=Y,SM=0 D DOW^SDM0 I $D(^DPT(DFN,"S",X)) S I=^(X,0) I $P(I,"^",2)'["C" W !,"PATIENT ALREADY HAS APPOINTMENT ON ",$P("JAN^FEB^MAR^APR^MAY^JUN^JUL^AUG^SEP^OCT^NOV^DEC","^",$E(X,4,5))," ",$E(X,6,7)," AT THAT TIME" Q
  S SDX7=X D SDFT^SDMM S X=SDX7 I $P(SDX3,".")'<SDEDT W !,*7,"EXCEEDS MAXIMUM DAYS FOR FUTURE APPOINTMENT!!",*7 Q
@@ -23,8 +24,11 @@ S1 ;L ^SC(SC,"S",X,1):5 G:'$T S1 F Y=1:1 I '$D(^SC(SC,"S",X,1,Y)) S:'$D(^(0)) ^(
  I $D(^SC(SC,"RAD")),^("RAD")="Y"!(^("RAD")=1) S ^SC("ARAD",SC,X,DFN)=""
  S SDINP=$$INP^SDAM2(DFN,X)
  ;S COV=3,SDYC="",COV=$S(COLLAT=1:1,1:3),SDYC=$S(COLLAT=7:1,1:""),^DPT(DFN,"S",X,0)=SC_"^"_$$STATUS^SDM1A(SC,SDINP,X)_"^^^^^"_COV_"^^^^"_SDYC_"^^^^^"_SDAPTYP_"^^^"_DT_"^^^^^^M^0",SDMADE=1
- S COV=3,SDYC="",COV=$S(COLLAT=1:1,1:3),SDYC=$S(COLLAT=7:1,1:""),^DPT(DFN,"S",X,0)=SC_"^"_$$STATUS^SDM1A(SC,SDINP,X)_"^^^^^"_COV_"^^^^"_SDYC_"^^^^^"_SDAPTYP_"^^^"_$$NOW^XLFDT_"^^^^^^M^0",SDMADE=1   ;IHS/ANMC/LJF 7/06/2000
- D XRDT(DFN,X)  ;xref DATE APPT. MADE field
+ ;S COV=3,SDYC="",COV=$S(COLLAT=1:1,1:3),SDYC=$S(COLLAT=7:1,1:""),^DPT(DFN,"S",X,0)=SC_"^"_$$STATUS^SDM1A(SC,SDINP,X)_"^^^^^"_COV_"^^^^"_SDYC_"^^^^^"_SDAPTYP_"^^^"_$$NOW^XLFDT_"^^^^^^M^0",SDMADE=1   ;IHS/ANMC/LJF 7/06/2000
+ S COV=3,SDYC="",COV=$S(COLLAT=1:1,1:3),SDYC=$S(COLLAT=7:1,1:"")  ;ihs/cmi/maw 2/2/2012 moved to itself patch 1014
+ D SDM^BSDMMU(COV,SDYC,DFN,X,SC,SDINP,SDAPTYP,"","","M",0,"","",.BSDER)  ;ihs/cmi/maw 2/2/2012 patch 1014 for GUI Scheduling
+ I $G(BSDER)]"" W !,"Error making appointment in file 2.98" Q  ;ihs/cmi/maw 2/2/2012 patch 1014 for GUI Scheduling
+ ;D XRDT(DFN,X)  ;xref DATE APPT. MADE field  ihs/cmi/maw 2/2/2012 patch 1014 not used after 1013
  K:$D(^DPT("ASDCN",SC,X,DFN)) ^(DFN) K:$D(^DPT(DFN,"S",X,"R")) ^("R")
  S SDRT="A",SDTTM=X,SDPL=SDY,SDSC=SC D RT^SDUTL
  L  W !,"APPOINTMENT MADE ON " S Y=X D DT^DIQ

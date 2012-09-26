@@ -1,5 +1,5 @@
 BQITDTG ;VNGT/HS/ALA-Update one tag ; 18 Aug 2008  12:15 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 POP(TAG) ;EP - Update a tag by population
  ;

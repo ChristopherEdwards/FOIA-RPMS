@@ -1,20 +1,21 @@
-PSODRDUP ;BIR/SAB - Dup drug class checker ;28-Mar-2011 18:30;DU
- ;;7.0;OUTPATIENT PHARMACY;**11,23,27,32,39,56,130,132,1006,1009,1011**;DEC 1997;Build 17
+PSODRDUP ;BIR/SAB - Dup drug class checker ;20-Mar-2012 15:22;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,23,27,32,39,56,130,132,1006,1009,1011,1013**;DEC 1997;Build 33
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ; Modified - IHS/MSC/PLS - 10/05/07 - Added auto RTS/Delete feature
  ;                          09/27/10 - Added Expired med to ASKCAN1+8
  ;                          10/19/10 - Added EXPCMF API
  ;                          03/28/11 - Added ASKCAN+12
+ ;                          03/20/12 - Added $$UP to PSODRUG("NAME") +13,+17,+18
  S $P(PSONULN,"-",79)="-",(STA,DNM)="" K CLS
  F  S STA=$O(PSOSD(STA)) Q:STA=""  F  S DNM=$O(PSOSD(STA,DNM)) Q:DNM=""!$G(PSORX("DFLG"))  I $P(PSOSD(STA,DNM),"^")'=$G(PSORENW("OIRXN")) D  Q:$G(PSORX("DFLG"))
  .I STA="PENDING" D ^PSODRDU1 Q
  .I STA="ZNONVA" D NVA^PSODRDU1 Q
- .D:PSODRUG("NAME")=$P(DNM,"^")&('$D(^XUSEC("PSORPH",DUZ)))  Q:$G(PSORX("DFLG"))
+ .D:$$UP^XLFSTR(PSODRUG("NAME"))=$P(DNM,"^")&('$D(^XUSEC("PSORPH",DUZ)))  Q:$G(PSORX("DFLG"))
  ..I $P($G(PSOPAR),"^",16) D DUP Q:$G(PSORX("DFLG"))
  ..I $P(PSOPAR,"^",2),'$P($G(PSOPAR),"^",16) D DUP Q:$G(PSORX("DFLG"))
  ..I '$P(PSOPAR,"^",2),'$P($G(PSOPAR),"^",16) D DUP
- .D:PSODRUG("NAME")=$P(DNM,"^")&($D(^XUSEC("PSORPH",DUZ))) DUP Q:$G(PSORX("DFLG"))
- .I PSODRUG("VA CLASS")]"",$E(PSODRUG("VA CLASS"),1,4)=$E($P(PSOSD(STA,DNM),"^",5),1,4),PSODRUG("NAME")'=$P(DNM,"^") D CLS
+ .D:$$UP^XLFSTR(PSODRUG("NAME"))=$P(DNM,"^")&($D(^XUSEC("PSORPH",DUZ))) DUP Q:$G(PSORX("DFLG"))
+ .I PSODRUG("VA CLASS")]"",$E(PSODRUG("VA CLASS"),1,4)=$E($P(PSOSD(STA,DNM),"^",5),1,4),$$UP^XLFSTR(PSODRUG("NAME"))'=$P(DNM,"^") D CLS
  G EXIT
 DOSE ;I '$D(PSOCLOZ) G EXIT
  S DIR(0)="N^12.5:3000:1",DIR("A")="CLOZAPINE dosage (mg/day) ? " D ^DIR K DIR I $D(DIRUT) S (ANQX,ANQNO)=1 G EXIT

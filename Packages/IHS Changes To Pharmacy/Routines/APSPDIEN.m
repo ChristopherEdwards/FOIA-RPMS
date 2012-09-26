@@ -1,0 +1,70 @@
+APSPDIEN ;IHS/MSC/MGH - DRUG IEN REPORT ;04-Jan-2012 12:33;MGH
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1013**;Sep 23, 2004;Build 33
+EN ;EP-
+ N APSPTYP,APSPNUM,APSPQ,APSPDRG,APSPDARY,APSPNAME,QFLG,APSPCNT
+ S (APSPQ,APSPTYP)=""
+ S APSPCNT=0
+ ;All or individual drugs
+ W @IOF
+ W !,"Drug List Report",!!
+ S APSPNUM=$$DIR^APSPUTIL("S^I:Individual Drug;A:All Drugs","Lookup Individual Drug or List ALL Drugs? ",,,.APSPQ)
+ Q:APSPQ
+ I APSPNUM="A" D
+ .S APSPTYP=$$DIR^APSPUTIL("S^A:Active;I:Inactive;B:Both","Drug Type ",,,.APSPQ)
+ I APSPNUM="I" D
+ .F  D  Q:QFLG
+ ..S APSPDRG=$$GETIEN1^APSPUTIL(50,"Select Drug Name: ",-1,"B^C^D")
+ ..I APSPDRG<1 S QFLG=1 Q
+ ..S APSPNAME=$$GET1^DIQ(50,APSPDRG,.01)
+ ..S APSPDARY(APSPNAME)=APSPDRG
+ ..S APSPCNT=APSPCNT+1
+ ..S QFLG='$$DIRYN^APSPUTIL("Want to Select Another Drug","No","Enter a 'Y' or 'YES' to include more drugs in your search",.APSPQ)
+ ..S:'QFLG QFLG=APSPQ
+ Q:APSPQ
+ D DEV
+ Q
+DEV ;EP
+ N XBRP,XBNS
+ S XBRP="OUT^APSPDIEN"
+ S XBNS="APS*"
+ D ^XBDBQUE
+ Q
+OUT ;EP
+ N IEN,INACT,DRUG,INACTDT
+ U IO
+ D HDR
+ K ^TMP($J)
+ I APSPNUM="A" D
+ .S APSPCNT=0
+ .S IEN=0 F  S IEN=$O(^PSDRUG(IEN)) Q:IEN=""!('+IEN)  D
+ ..S INACTDT=$$GET1^DIQ(50,IEN,100,"I")
+ ..I INACTDT'="" D
+ ...I INACTDT<DT!(INACTDT=DT) S INACT=1
+ ...I INACTDT>DT S INACT=0
+ ..I INACTDT="" S INACT=0
+ ..I (APSPTYP="A"!(APSPTYP="B"))&(INACT=0) D
+ ...S APSPNAME=$$GET1^DIQ(50,IEN,.01)
+ ...S APSPDARY(APSPNAME)=IEN
+ ...S APSPCNT=APSPCNT+1
+ ..I (APSPTYP="I"!(APSPTYP="B"))&(INACT=1) D
+ ...S APSPNAME=$$GET1^DIQ(50,IEN,.01)
+ ...S APSPDARY(APSPNAME)=IEN
+ ...S APSPCNT=APSPCNT+1
+ S APSPQ=0
+ S DRUG="" F  S DRUG=$O(APSPDARY(DRUG)) Q:DRUG=""!(+APSPQ)  D
+ .W !,DRUG,?50,$G(APSPDARY(DRUG))
+ .I $Y+4>IOSL,IOST["C-" D PAUS Q:APSPQ  D HDR
+ .Q:APSPQ=1
+ Q
+PAUS ;
+ N DTOUT,DUOUT,DIR
+ S DIR("?")="Enter '^' to Halt or Press Return to continue"
+ S DIR(0)="FO",DIR("A")="Press Return to continue or '^' to Halt"
+ D ^DIR
+ I $D(DUOUT) S APSPQ=1
+ Q
+HDR ;
+ I IOST["C-" W @IOF
+ W !,"Drug List Report"
+ W !,"Drug Name",?50,"Drug IEN",!
+ Q

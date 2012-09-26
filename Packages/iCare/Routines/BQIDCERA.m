@@ -1,12 +1,12 @@
 BQIDCERA ;PRXM/HC/ALA-Emergency Room Visits ; 09 Dec 2005  3:15 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
 VIS(DATA,PARMS,MPARMS) ;EP
  ;
  ;Description
- ;  Executable to retrieve appointments for the specified parameters
+ ;  Executable to retrieve ER visits for the specified parameters
  ;Input
  ;  PARMS = Array of parameters and their values
  ;  MPARMS = Multiple array of a parameter

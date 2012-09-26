@@ -1,5 +1,5 @@
-TIUCPFIX ; SLC/JER,RMO - Resolve Filing errors for CP Documents ;10/30/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**109,167**;Jun 20, 1997
+TIUCPFIX ; SLC/JER,RMO - Resolve Filing errors for CP Documents ;4/18/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**109,167,113**;Jun 20, 1997
  ; This routine is a modified version of TIUPEFIX
 MAKE(SUCCESS,DFN,TITLE,TIU,TIUBUF,TIUPLDA) ; File new TIU Document
  ; SUCCESS = (by ref) SUCCESS Returns TIU DOCUMENT # (PTR to 8925)
@@ -120,6 +120,7 @@ STUFREC(DA,DFN,PARENT,TIU,TIUPSC,TIUDTP,TIUPLDA) ; Stuff fixed field data
  . . S @FDARR@(1401)=$P($G(TIU("AD#")),U),@FDARR@(1402)=$P($G(TIU("TS")),U)
  . . S @FDARR@(1201)=$$NOW^TIULC
  . . S @FDARR@(1205)=$S(+$P($G(TIU("LOC")),U):$P($G(TIU("LOC")),U),1:$P($G(TIU("VLOC")),U))
+ . . S @FDARR@(1212)=$S(+$P($G(TIU("INST")),U):$P($G(TIU("INST")),U),1:DUZ(2))
  . . S @FDARR@(1404)=$P($G(TIU("SVC")),U)
  . S @FDARR@(.05)=$S(+$$REQVER(+$P($G(TIUDPRM(0)),U,3)):4,1:5)
  . S @FDARR@(.08)=$P(TIU("LDT"),U)
@@ -130,6 +131,7 @@ STUFREC(DA,DFN,PARENT,TIU,TIUPSC,TIUDTP,TIUPLDA) ; Stuff fixed field data
  . S @FDARR@(.06)=PARENT
  . S @FDARR@(.07)=$P($G(TIU("EDT")),U),@FDARR@(.08)=$P($G(TIU("LDT")),U)
  . S @FDARR@(1205)=$P($G(^TIU(8925,+PARENT,12)),U,5)
+ . S @FDARR@(1212)=$P($G(^TIU(8925,+PARENT,12)),U,12)
  . S @FDARR@(1401)=$P($G(^TIU(8925,+PARENT,14)),U)
  . S @FDARR@(1402)=$P($G(^TIU(8925,+PARENT,14)),U,2)
  . S @FDARR@(1404)=$P($G(^TIU(8925,+PARENT,14)),U,4)

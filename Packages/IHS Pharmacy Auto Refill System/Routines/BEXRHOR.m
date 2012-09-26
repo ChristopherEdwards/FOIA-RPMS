@@ -1,9 +1,9 @@
-BEXRHOR ;CMI/BJI/DAY - BEX - Transactions by Hour Report ; 21 Nov 2009  7:37 PM [ 03/02/2010  11:13 AM ]
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4**;DEC 01, 2009
+BEXRHOR ;IHS/CMI/DAY - BEX - Transactions by Hour Report ; 12 Mar 2012  7:14 PM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4,5**;MAR 12, 2012;Build 1
  ;
  ;Prints the Transactions by Hour Report
  ;
- D ^XBCLS
+ W #
  ;
  W !,"Transactions by Hour Report"
  W !
@@ -96,7 +96,7 @@ LIST ;EP - Entry Point from XBDBQUE
  ;---------------------------------------------------------------
  ;
  ;
- D ^XBCLS
+ W #
  D HEADER
  ;
  K ^BEXTMP($J,"BEXRHOR")
@@ -215,7 +215,7 @@ LIST ;EP - Entry Point from XBDBQUE
 HEADER ;EP - Write the Header
  ;---------------------------------------------------------------
  ;
- D ^XBCLS
+ W #
  W !,"REPORT:      Transactions by Hour Report"
  W " for "
  I BEXSITE>0 W $$GET1^DIQ(59,BEXSITE,.01)

@@ -1,9 +1,9 @@
-BEXRDAT ;CMI/BJI/DAY - BEX - Transactions by Date Report ; 21 Nov 2009  7:53 PM [ 03/02/2010  11:12 AM ]
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4**;DEC 01, 2009
+BEXRDAT ;IHS/CMI/DAY - BEX - Transactions by Date Report ; 12 Mar 2012  7:12 PM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4,5**;MAR 12, 2012;Build 1
  ;
  ;Prints the Transactions by Date Report
  ;
- D ^XBCLS
+ W #
  ;
  W !,"Transactions by Date Report"
  W !
@@ -95,7 +95,7 @@ LIST ;EP - Entry Point from XBDBQUE
  ;---------------------------------------------------------------
  ;
  ;
- D ^XBCLS
+ W #
  D HEADER
  ;
  K BEXTOT
@@ -233,7 +233,7 @@ LIST ;EP - Entry Point from XBDBQUE
 HEADER ;EP - Write the Header
  ;---------------------------------------------------------------
  ;
- D ^XBCLS
+ W #
  W !,"REPORT:      Transactions by Date Report"
  W " for "
  I BEXSITE>0 W $$GET1^DIQ(59,BEXSITE,.01)

@@ -1,5 +1,5 @@
 BGP2D38 ; IHS/CMI/LAB - IMMUNIZATIONS ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 INFLU(P,EDATE) ;EP
  NEW BGPC,BGPG,BGPX,BGPFLU,C,X,ED,BD,G,V,Y,T,I,R,BGPIMM,BGPNMI
@@ -24,7 +24,7 @@ INFLU(P,EDATE) ;EP
  ..S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
  ...S Y=$P(^AUPNVPOV(X,0),U,1) Q:'Y  S Z=$P(^ICD9(Y,0),U,1) I $$ICD^ATXCHK(Y,$O(^ATXAX("B","BGP FLU IZ DXS",0)),9) S BGPFLU(9999999-$P(ED,"."))=""
  ..S X=0 F  S X=$O(^AUPNVPRC("AD",V,X)) Q:X'=+X  D
- ...S Y=$P(^AUPNVPRC(X,0),U,1) Q:'Y  S Z=$P(^ICD0(Y,0),U,1) I Z="99.52" S BGPFLU(9999999-$P(ED,"."))=""
+ ...S Y=$P(^AUPNVPRC(X,0),U,1) Q:'Y  I $$ICD^ATXCHK(Y,$O(^ATXAX("B","BGP FLU IZ PROCEDURES",0)),0) S BGPFLU(9999999-$P(ED,"."))=""
  ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
  S X="",Y="",C=0 F  S X=$O(BGPFLU(X)) Q:X'=+X  S C=C+1 D
  .I C=1 S Y=X Q
@@ -118,7 +118,7 @@ HIB4(P,EDATE) ;EP
  I BGPHIB>3 Q 1_U_"4 4-Dose Hib"
  ;now get povs
  K BGPHIB M BGPHIB=BGPAHIB
- K BGPG S %=P_"^ALL DX V03.81;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ K BGPG S %=P_"^ALL DX [BGP HIB IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
  I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPHIB($P(BGPG(X),U))="",BGPAHIB($P(BGPG(X),U))=""
  ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
  S X="",Y="",C=0 F  S X=$O(BGPHIB(X)) Q:X'=+X  S C=C+1 D
@@ -169,8 +169,8 @@ ADDONE(P,EDATE) ;
  ;I BGPHIB>0 Q 1_U_"3 3-DOSE Hib"
  ;now get povs
  K BGPHIB M BGPHIB=BGPAHIB
- K BGPG S %=P_"^ALL DX V03.81;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
- I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPHIB($P(BGPG(X),U))="V03.81",BGPAHIB($P(BGPG(X),U))="V03.81"
+ K BGPG S %=P_"^ALL DX [BGP HIB IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPHIB($P(BGPG(X),U))=$P(BGPG(1),U,2),BGPAHIB($P(BGPG(X),U))=$P(BGPG(X),U,2)
  ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
  S X="",Y="",C=0 F  S X=$O(BGPHIB(X)) Q:X'=+X  S C=C+1 D
  .I C=1 S Y=X Q

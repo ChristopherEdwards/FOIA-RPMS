@@ -1,5 +1,5 @@
 BQIGPUTL ;PRXM/HC/ALA - GPRA Utilities ; 10 Feb 2006  5:11 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -23,7 +23,7 @@ SPM() ;EP -- Get site parameter entry
  ;
  S X=$$GET1^DIQ(4,BGPHOME,.01,"E"),DIC(0)="XZ",DIC="^BQI(90508,"
  D ^DIC
- I Y=-1 S ^BQI(90508,1,0)=BGPHOME,^BQI(90508,"B",BGPHOME,1)="",Y=1
+ I Y=-1 S $P(^BQI(90508,1,0),U,1)=BGPHOME,^BQI(90508,"B",BGPHOME,1)="",Y=1
  Q +Y
  ;
 LKP(BQIGYR) ;EP -- Lookup CRS year in the parameter file
@@ -59,3 +59,17 @@ HME() ;EP - Get Home Site
  I $G(BHOME)="" S BHOME=$P($G(^XTV(8989.3,1,"XUS")),U,17)
  ;S BHM=$O(^BGPSITE(0)) I BHM'="" S BHOME=$P($G(^BGPSITE(BHM,0)),U,1)
  Q $G(BHOME)
+ ;
+MEAS(GCODE) ;EP - Get the reverse direction code
+ NEW BQIH,BQIYR,BQMEAS,VER
+ S PDIR=""
+ I $P(GCODE,"_",1)'?.N Q PDIR
+ S YEAR=$P(GCODE,"_",1)
+ S BQMEAS=$P(GCODE,"_",2)
+ S BQIH=$$SPM()
+ S BQIYR=$$LKP(YEAR)
+ S VER=$$VERSION^XPDUTL("BGP")
+ I VER>7.0 D
+ . D GFN(BQIH,BQIYR)
+ . S PDIR=$$GET1^DIQ(BQIMEASF,BQMEAS_",",1705,"E")
+ Q PDIR

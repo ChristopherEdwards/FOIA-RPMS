@@ -1,5 +1,5 @@
 ABSPECA8 ; IHS/FCS/DRS - construct a claim reversal ;   [ 11/18/2002  10:07 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,4,7,9,10,12**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,4,7,9,10,12,43**;JUN 21, 2001
  Q
  ; The way we build the claim reversal is to take the source data
  ; from the original claim (IEN) and position therein (RX).
@@ -109,13 +109,17 @@ R4 ; create a new prescription multiple therein
  ;IHS/SD/lwj 8/15/02 NCPDP 5.1 changes
  ; if the version is 5.1, the transaction code needs to be B2 not 11
  ; following line added
- S:TMP(CLAIM,IEN,102,"I")[5 TMP(CLAIM,IEN,103,"I")="B2"
+ ;IHS/OIT/CASSEVERN/RCS patch43 4/18/2012 Include D.0 version
+ ;S:TMP(CLAIM,IEN,102,"I")[5 TMP(CLAIM,IEN,103,"I")="B2"
+ S:TMP(CLAIM,IEN,102,"I")'[3 TMP(CLAIM,IEN,103,"I")="B2"
  ;
  ;IHS/SD/lwj 11/18/02 NCPDP 5.1 changes
  ; when it's a 5.1 reversal, we ALWAYS want the transaction code
  ; (fld 109) to be a 1 - ALWAYS
  ; next line added
- S:TMP(CLAIM,IEN,102,"I")[5 TMP(CLAIM,IEN,109,"I")=1
+ ;IHS/OIT/CASSEVERN/RCS patch43 4/18/2012 Include D.0 version
+ ;S:TMP(CLAIM,IEN,102,"I")[5 TMP(CLAIM,IEN,109,"I")=1
+ S:TMP(CLAIM,IEN,102,"I")'[3 TMP(CLAIM,IEN,109,"I")=1
  ;
  ; Must agree with field list above.
  ;IHS/SD/lwj 8/15/02 NCPDP 5.1 new fields need to be used

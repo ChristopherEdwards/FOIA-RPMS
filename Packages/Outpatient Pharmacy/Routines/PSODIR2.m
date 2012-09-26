@@ -1,5 +1,5 @@
-PSODIR2 ;IHS/DSD/JCM - rx order entry contd ;30-Dec-2008 16:36;PLS
- ;;7.0;OUTPATIENT PHARMACY;**3,9,26,46,124,146,139,152,166,1005,1008**;DEC 1997
+PSODIR2 ;IHS/DSD/JCM - rx order entry contd ;13-Feb-2012 14:35;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**3,9,26,46,124,146,139,152,166,1005,1008,1013**;DEC 1997;Build 33
  ;External reference to ^DD(52 supported by DBIA 999
  ;External reference to ^VA(200 supported by DBIA 10060
  ;External reference to ^%DTC supported by DBIA 10000
@@ -9,6 +9,8 @@ PSODIR2 ;IHS/DSD/JCM - rx order entry contd ;30-Dec-2008 16:36;PLS
  ;---------------------------------------------------------------------
  ; Modified - IHS/CIA/PLS - 12/29/03 - Line DIR+4 and CLERK+6
  ;            IHS/MSC/PLS - 12/30/2008 - Line FILLDT+11
+ ;                          10/31/2011 - Line CLERK+1
+ ;                          02/13/2012 - Line FILLDT+7
 EXP(PSODIR) ;
  K DIR,DIC
  I $G(PSODRUG("EXPIRATION DATE"))]"" S Y=PSODRUG("EXPIRATION DATE") X ^DD("DD") S PSORX("EXPIRATION DATE")=Y
@@ -74,10 +76,11 @@ FILLDT(PSODIR) ;
  S DIR("A")="FILL DATE",DIR("B")=$S($G(PSORX("FILL DATE"))]"":PSORX("FILL DATE"),1:"TODAY")
  S X2=PSONEW("DAYS SUPPLY")*(PSONEW("# OF REFILLS")+1)\1
  S X1=$S($G(PSOID):PSOID,1:DT)
- S X2=$S(PSONEW("DAYS SUPPLY")=X2:X2,+$G(PSODIR("CS")):184,1:366)
- I X2<30 D
- . N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
- . S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
+ ;S X2=$S(PSONEW("DAYS SUPPLY")=X2:X2,+$G(PSODIR("CS")):184,1:366)
+ S X2=$S(+$G(PSODIR("CS")):184,1:366)  ;IHS/MSC/PLS - 02/10/2012
+ ;I X2<30 D
+ ;. N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
+ ;. S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
  D C^%DTC S PSOFDMX=$P(X,".") I DT>X S Y=$S($G(PSOID):PSOID,1:PSORX("ISSUE DATE")) X ^DD("DD") S DIR("B")=Y
  ;IHS/MSC/PLS - 12/30/2008 - Check for Suspense
  ;S DIR(0)="D^"_$S($G(PSOID):PSOID,+$G(PSODIR("ISSUE DATE")):PSODIR("ISSUE DATE"),1:DT)_$S($G(DUZ("AG"))="I":":"_DT_":EX",1:":"_PSOFDMX_":EX")
@@ -93,7 +96,9 @@ FILLDTX K X,Y,PSOFDMX
  Q
  ;
 CLERK(PSODIR) ;
- I $G(DUZ("AG"))'="I" D  G CLERKX
+ ;IHS/MSC/PLS - 10/31/2011
+ ;I $G(DUZ("AG"))'="I" D  G CLERKX
+ D  G CLERKX
  .S PSODIR("CLERK CODE")=$S($G(PSOFDR):$P(OR0,"^",4),1:DUZ),PSORX("CLERK CODE")=$P($G(^VA(200,PSODIR("CLERK CODE"),0)),"^")
  K DIR,DIC
  S DIR("A")="CLERK",DIR("B")=$S($G(PSORX("CLERK CODE"))]"":PSORX("CLERK CODE"),1:$P($G(^VA(200,DUZ,0)),"^",2)),DIR(0)="52,16"

@@ -1,5 +1,5 @@
-PSORENW0 ;IHS/DSD/JCM-renew main driver continuation ;23-Oct-2009 11:05;SM
- ;;7.0;OUTPATIENT PHARMACY;**11,27,32,59,64,46,71,96,100,130,1008**;DEC 1997
+PSORENW0 ;IHS/DSD/JCM-renew main driver continuation ;01-Nov-2011 10:42;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,32,59,64,46,71,96,100,130,1008,1013**;DEC 1997;Build 33
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
@@ -7,6 +7,7 @@ PSORENW0 ;IHS/DSD/JCM-renew main driver continuation ;23-Oct-2009 11:05;SM
  ;                        - 04/05/04 - Line EDIT+1
  ;                        - 04/20/04 - FILDATE+6
  ;                        - 10/23/09 - FILDATE+8
+ ;                        - 11/01/11 - RXN+2,GETRXN EP
 PROCESS ;
  D ^PSORENW1
  D INST2^PSORENW
@@ -119,6 +120,15 @@ DRUG ;
  ;
 RXN ;
  K PSOX
+ ;IHS/MSC/PLS - 11/01/11 - Added next 8 lines
+ I $P(PSORENW("RX2"),U,9)'=+PSOSITE D  Q
+ .N RXN
+ .I $$GETRXN(PSOSITE,.RXN) D
+ ..S PSORENW("NRX #")=$G(RXN)
+ .E  D
+ ..W !,"Unable to assign a prescription number for the new pharmacy division."
+ ..D DIRZ^APSPUTIL()
+ ..S VALMSG="Cannot renew Rx # "_PSORENW("ORX #")_", Prescription number not available.",VALMBCK="R" S PSORENW("DFLG")=1
  S PSOX=$E(PSORENW("ORX #"),$L(PSORENW("ORX #")))
  S PSORENW("NRX #")=$S(PSOX?1N:PSORENW("ORX #")_"A",1:$E(PSORENW("ORX #"),1,$L(PSORENW("ORX #"))-1)_$C($A(PSOX)+1))
 RETRY I $O(^PSRX("B",PSORENW("NRX #"),0)) D  G:'$G(PSORENW("DFLG")) RETRY
@@ -210,3 +220,13 @@ CDOSE ;Validate Dosage field on Renewel, Copy, Edit
  I '$P($G(^PSRX(PSOOCPRX,"SIG")),"^",2),$P($G(^("SIG")),"^")'="" S PSOOKZ=1
  I 'PSOOKZ S PSONOSIG=1
  Q
+ ; Return new Rx number
+GETRXN(PSOSITE,NEWRXN) ;EP-
+ N PSONEW,RES
+ D AUTO^PSONRXN
+ I 'PSONEW("QFLG") D
+ .S NEWRXN=PSONEW("RX #")
+ .S RES=1
+ E  D
+ .S RES=0
+ Q RES

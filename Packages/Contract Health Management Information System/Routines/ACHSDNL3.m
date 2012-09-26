@@ -1,13 +1,13 @@
 ACHSDNL3 ; IHS/ITSC/PMF - DENIAL LTR/FS (LTR2) (4/6) ;7/23/10  15:32
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,5,6,12,18**;JUNE 11, 2001
- ;ACHS*3.1*3 print alt ins info,change chart no display,fx opt printing, allow for a third sig
- ;ACHS*3.1*4  include effective dates on alt ins and even up the left margin
- ;ACHS*3.1*5 12/06/2002 display of Medicare dates
- ;ACHS*3.1*6 3.24.03 IHS/SET/FCJ CHECK FOR PRT SUD AND AREA DIR, TEST PROV,ALT RES AND FOR TOT $ AMT TO PRINT
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,5,6,12,18,21**;JUNE 11, 2001
+ ;ACHS*3.1*3 prt alt ins, chg chart no display,fx opt prt, allow for a third sig
+ ;ACHS*3.1*4 include effective dates on alt ins and fx left margin
+ ;ACHS*3.1*5 12/06/2002 display of Medicare dt
+ ;ACHS*3.1*6 3.24.03 IHS/SET/FCJ CHECK FOR PRT SUD AND AREA DIR, TEST PROV,ALT RES AND FOR TOT $ AMT TO PRT
  ;ACHS*3.1*18 6.11.10 IHS/SET/ABK Top, Lft Mar par BC name and phone no
  ;ACHS*3.1*18 9.31.10 IHS.OIT.FCJ MULT Chng FOR NEW DEN REA AND OPT, EDIT OPT is calling this rtn-ACHSDN4
 BODY ;EP - Print body of Den let
- ;CHECK 'PRINT DENIAL AMOUNT ON LETTERS?' PAR
+ ;CHECK 'PRT DEN AMOUNT ON LETTERS?' PAR
  ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADD COUNT TEST
  I ACHSCNT>0,$P($G(^ACHSDENR(DUZ(2),0)),U,6)="Y" S DA=ACHSA D AMT^ACHSDNA ;ACHS*3.1*6
  ;I $P($G(^ACHSDENR(DUZ(2),0)),U,6)="Y" S DA=ACHSA D AMT^ACHSDNA ;ACHS*3.1*6
@@ -20,7 +20,7 @@ A ;
  S DIWR=75,DIWF="W",ACHD=0,ACHDPRE=""
  W !!,?DIWL-1,"Dear ",$S($G(ACHDALT)'="N":$G(ACHDNAMP),1:$G(ACHDALTN)),",",!!
  ;
-MIDTXT ; --- Print Mid Text of Den let
+MIDTXT ; --- Prt Mid Text of Den let
  ;{ABK, 6/11/10} SET TOPM AND DIWL FROM CHS DENIAL PAR
  S T2=$G(^ACHSDENR(DUZ(2),0)),DIWL=$P(T2,U,9),TOPM=$P(T2,U,11)
  S:DIWL="" DIWL=5 S:TOPM="" TOPM=5
@@ -96,7 +96,7 @@ OTHTXT ;OTH DEN REA
  F  S ACHDI=$O(^ACHSDEN(DUZ(2),"D",ACHSA,300,ACHDI)) Q:+ACHDI=0  I $D(^ACHSDEN(DUZ(2),"D",ACHSA,300,ACHDI,0)) D
  .S A=0,DA=$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,300,ACHDI,0)),U) D PG:$Y>ACHSBM Q:$G(ACHSQUIT)
  .S ACHDO=^ACHSDEN(DUZ(2),"D",ACHSA,300,ACHDI,0)
- .;WRITE THE OTHER REASON
+ .;WRITE OTH REA
  .W !?DIWL-1,$P($G(^ACHSDENS(DA,0)),U) S A=0 D
  ..;WRITE THE TEXT
  ..F  S A=$O(^ACHSDENS(DA,1,A)) Q:+A=0  S X=$G(^ACHSDENS(DA,1,A,0)) D ^DIWP,PG:$Y>ACHSBM Q:$G(ACHSQUIT)
@@ -131,7 +131,7 @@ A5 ;
  D PG:$Y>ACHSBM Q:$G(ACHSQUIT)
  S ACHD=0,DIWF="W",DIWR=75
  ;
-BOTTXT ; --- Print Bottom Text of Denial letter
+BOTTXT ; --Prt Bot Text of Den let
  W !!
  ;{ABK, 6/11/10} SET TOPM AND DIWL
  S T2=$G(^ACHSDENR(DUZ(2),0)),DIWL=$P(T2,U,9),TOPM=$P(T2,U,11)
@@ -143,12 +143,12 @@ BOTTXT ; --- Print Bottom Text of Denial letter
  D PG:$Y>ACHSBM
  Q:$G(ACHSQUIT)
  ;
- ;PRINT SUD info
+ ;PRT SUD info
  ;ITSC/SET/JVK ACHS*3.1*12 1-27-05 ADD NXT 2 LINES
  I +$P($G(^AUTTLOC(DUZ(2),0)),U,10)'=353610,+$P($G(^AUTTLOC(DUZ(2),0)),U,10)'=353601 D SUD(20)
  ;D SUD(20)
  ;
-CLOSTXT ; --- Print closing text
+CLOSTXT ; --- Prt closing text
  W !!
  F ACHD=0:0 S ACHD=$O(^ACHSDENR(DUZ(2),9,ACHD)) Q:+ACHD=0  S X=$G(^ACHSDENR(DUZ(2),9,ACHD,0)) D ^DIWP,PG:(($Y+7)>ACHSBM) Q:$G(ACHSQUIT)
  D ^DIWW
@@ -271,7 +271,7 @@ PINSM ;
  ;ACHS*3.1*3 new module;ACHS*3.1*4 overhauled-print medicare ins
  W !,?DIWL+4,"Medicare"
  S DAT1=$G(^AUPNMCR(DFN,0))
- W ?30," ",$P(DAT1,U,3)
+ W ?30," ",$P(DAT1,U,3) I $P(DAT1,U,4) W $G(^AUTTMCS($P(DAT1,U,4),0),U)  ;ACHS*3.1*21 ADDED TEST FOR PRINTING SUF
  S DAT2=$P(DAT2,U,3) I DAT2="" Q
  S DAT2=$G(^AUPNMCR(DFN,11,DAT2,0))
  W ?42," " S DAT=$P(DAT2,U,1) D PDATE  ;ACHS*3.1*5
@@ -326,8 +326,8 @@ PDATE ;
  W $E(DAT,4,5),"/",$E(DAT,6,7),"/",($E(DAT,1,3)+1700)
  Q
 PADD ;PRINT INS ADDRESS;ACHS*3.1*18-NEW
- Q:'$P(DAT1,U,2)
- S DATADD=$G(^AUTNINS($P(DAT1,U,2),0),0)
+ Q:'$P(DAT1,U,10)
+ S DATADD=$G(^AUTNINS($P(DAT1,U,10),0),0)  ;ACHS*3.1*21 CHANGED 2 TO 10
  W !?DIWL+4,$P(DATADD,U,2)," ",$P(DATADD,U,3),", " I $P(DATADD,U,4) W $P(^DIC(5,$P(DATADD,U,4),0),U,2)
  W " ",$P(DATADD,U,5)
  Q

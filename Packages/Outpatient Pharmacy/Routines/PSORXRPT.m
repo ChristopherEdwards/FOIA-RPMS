@@ -1,9 +1,11 @@
-PSORXRPT ;BIR/SAB-reprint of a prescription label ;22-Dec-2003 14:09;PLS
- ;;7.0;OUTPATIENT PHARMACY;**3,21,27,34,120,138**;DEC 1997
+PSORXRPT ;BIR/SAB-reprint of a prescription label ;12-Oct-2011 14:55;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**3,21,27,34,120,138,1013**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 27
  ; Modified - IHS/CIA/PLS - 12/22/03 - BCK+33,BCK+51 and ACT+1
+ ;            IHS/MSC/PLS - 09/16/2011 - BCK+1,BCK+13
 BCK I $G(PSOBEDT) W $C(7),$C(7) S VALMSG="Invalid Action at this time !",VALMBCK="" Q
+ Q:'$$ESIG^APSPFUNC  ;IHS/MSC/PLS - patch 1013
  S PSORPLRX=$P(PSOLST(ORN),"^",2)
  D PSOL^PSSLOCK(PSORPLRX) I '$G(PSOMSG) S VALMSG=$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing this order."),VALMBCK="" K PSOMSG Q
  I $G(POERR) K QFLG D  I $G(QFLG) D ULR G KILL
@@ -16,7 +18,8 @@ BCK I $G(PSOBEDT) W $C(7),$C(7) S VALMSG="Invalid Action at this time !",VALMBCK
  I $P(^PSRX(RX,"STA"),"^")=14 S VALMBCK="",VALMSG="Cannot Reprint! Discontinued by Provider.",QFLG=1 D ULR,KILL Q
  I $P(^PSRX(RX,"STA"),"^")=15 S VALMBCK="",VALMSG="Cannot Reprint! Discontinued due to editing.",QFLG=1 D ULR,KILL Q
  I $P(^PSRX(RX,"STA"),"^")=16 S VALMBCK="",VALMSG="Cannot Reprint! Placed on HOLD by Provider.",QFLG=1 D ULR,KILL Q
- I DT>$P(^PSRX(RX,2),"^",6) D  G PAUSE
+ ;IHS/MSC/PLS - /2011 - Removed branch logic
+ I DT>$P(^PSRX(RX,2),"^",6) D  ;G PAUSE - IHS/MSC/PLS - 09/16/2011 - Remove branch
  .W !,$C(7),"Medication Expired on "_$E($P(^PSRX(RX,2),"^",6),4,5)_"-"_$E($P(^(2),"^",6),6,7)_"-"_$E($P(^(2),"^",6),2,3) I $P(^PSRX(DA,"STA"),"^")<11 S $P(^PSRX(DA,"STA"),"^")=11 D
  ..S COMM="Medication Expired on "_$E($P(^PSRX(RX,2),"^",6),4,5)_"-"_$E($P(^(2),"^",6),6,7)_"-"_$E($P(^(2),"^",6),2,3) D EN^PSOHLSN1(DA,"SC","ZE",COMM) K COMM
  S DFN=$P(PDA,"^",2) D DEM^VADPT I $P(VADM(6),"^",2)]"" D  G PAUSE

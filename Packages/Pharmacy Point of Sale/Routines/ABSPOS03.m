@@ -1,5 +1,5 @@
 ABSPOS03 ; IHS/FCS/DRS - 9002313.03 utilities ;     [ 09/17/2002  10:04 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,42,43**;JUN 21, 2001
  ;-----------------------------------------------------------
  ;IHS/SD/lwj  9/11/02  When running this report, the sites 
  ; were encountering an undefined error.  The error was caused
@@ -31,12 +31,14 @@ NETPAID1(N,RX) ; EP - computed field in 9002313.57
  . ;S FMT=$P(^ABSPEI(INS,100),U) Q:'FMT    ;IHS/SD/lwj 9/11/02
  . S INS=$P($G(^ABSPC(IEN02,0)),U,2) Q:'INS    ;IHS/SD/lwj 9/11/02
  . ;IHS/OIT/CASSEVER/RAN 03/24/2011 patch 42 Get rid of references to formats for new method of claims processing START
+ . ;IHS/OIT/CASSEVERN/RAN 01/09/2012 patch 43, fix use of variable X
  . I $G(^ABSP(9002313.99,1,"ABSPICNV"))=1 D
- . . S X=$$GET1^DIQ(9002313.4,INS_",",100.4,"I")
+ . . N X S X=$$GET1^DIQ(9002313.4,INS_",",100.4,"I")
+ . . I X S SUB=0
  . ELSE  D
  . . S FMT=$P($G(^ABSPEI(INS,100)),U) Q:'FMT     ;IHS/SD/lwj 9/11/02
  . . N X S X=$P(^ABSPF(9002313.92,FMT,1),U,10)
- . I X S SUB=0 ; Total paid means total paid by insurance
+ . . I X S SUB=0 ; Total paid means total paid by insurance
  I SUB S X=X-$$505(N,RX)
  I X<0,SUB D  ; apparently this format is supposed to be excl.
  . I ($G(^ABSP(9002313.99,1,"ABSPICNV"))=1),IEN02 D

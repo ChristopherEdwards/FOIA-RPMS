@@ -1,5 +1,5 @@
-PSONEW ;BIR/SAB-new rx order main driver ;15-Jan-2004 14:49;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,27,32,46,94,130**;DEC 1997
+PSONEW ;BIR/SAB-new rx order main driver ;04-Nov-2011 11:07;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,32,46,94,130,1013**;DEC 1997;Build 33
  ;External references L and UL^PSSLOCK supported by DBIA 2789
  ;External reference to ^VA(200 supported by DBIA 224
  ;External reference to ^XUSEC supported by DBIA 10076
@@ -8,6 +8,8 @@ PSONEW ;BIR/SAB-new rx order main driver ;15-Jan-2004 14:49;PLS
  ;External reference to ^TIUEDIT supported by DBIA 2410
  ;---------------------------------------------------------------
  ; Modified - IHS/CIA/PLS - 01/02/04 - Line AGAIN+10 and COUN+2
+ ;            IHS/MSC/PLS - 09/21/11 - Line DIR+2
+ ;                          10/28/11 - Line AGAIN+10
 OERR ;backdoor new rx for v7
  K PSOREEDT,COPY,SPEED,PSOEDIT,DUR,DRET
  S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY S VALMSG=$S($P($G(PSOPLCK),"^",2)'="":$P($G(PSOPLCK),"^",2)_" is working on this patient.",1:"Another person is entering orders for this patient.") K PSOPLCK S VALMBCK="" Q
@@ -22,6 +24,7 @@ AGAIN N VALMCNT K PSODRUG,PSOCOU,PSOCOUU,PSONOOR,PSORX("FN") W ! D HLDHDR^PSOLMU
  D ^PSONEW2 I PSONEW("DFLG") D DEL S:$G(POERR) POERR("DFLG")=1,VALMBCK="R" G END ; Asks if correct
  G:$G(PSORX("FN")) END
  D EN^PSON52(.PSONEW) ; Files entry in File 52
+ D EN^APSPPCC1(PSODFN,PSONEW("IRXN"))  ;P1013 - prompt for POV
  I $G(APSP("CM"))]"" S $P(^PSRX(PSONEW("IRXN"),9999999),"^",2)=APSP("CM")   ; IHS/CIA/PLS - 01/02/04 Set chronic med
  I $D(P(99)) S $P(^PSRX(PSONEW("IRXN"),9999999),"^")=+P(99)   ; IHS/CIA/PLS - 01/02/04 Set Expiration Date
  D NPSOSD^PSOUTIL(.PSONEW) ; Adds newly added rx to PSOSD array
@@ -80,7 +83,8 @@ NOORX K X,Y,DIR,DUOUT,DTOUT,DIRUT
  Q
 DIR ;ask nature of order
  K DIR,DTOUT,DTOUT,DIRUT I $T(NA^ORX1)]""  D  Q
- .S PSONOOR=$$NA^ORX1($S($G(PSONOODF)!($G(PSONOBCK)):"S",1:"W"),0,"B","Nature of Order",0,"WPSDIVX"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))
+ .;S PSONOOR=$$NA^ORX1($S($G(PSONOODF)!($G(PSONOBCK)):"S",1:"W"),0,"B","Nature of Order",0,"WPSDIVX"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))  ;IHS/MSC/PLS - 09/21/11 Commented out line
+ .S PSONOOR=$$NA^ORX1($S($G(PSONOODF)!($G(PSONOBCK)):"S",1:$$GET1^DIQ(100.02,$$GET1^DIQ(9009033,PSOSITE,407,"I"),.02)),0,"B","Nature of Order",0,"WPSDIVX"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))  ;IHS/MSC/PLS - 09/21/11
  .I +PSONOOR S (Y,PSONOOR)=$P(PSONOOR,"^",3) Q
  .S DIRUT=1 K PSONOOR
  I $D(PSONOOR) S DF=PSONOOR,PSONODF=$S(DF="E":"PROVIDER ENTERED",DF="V":"VERBAL",DF="P":"TELEPHONE",DF="D":"DUPLICATE",DF="S":"SERVICE CORRECTED",DF="X":"REJECTED",DF="I":"POLICY",1:"WRITTEN")

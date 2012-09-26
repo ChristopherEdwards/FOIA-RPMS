@@ -1,16 +1,5 @@
-TIUSRVP1 ; SLC/JER - More API's in support of PUT ;17-OCT-2001 12:00:00
- ;;1.0;TEXT INTEGRATION UTILITIES;**19,59,89,100,109,167**;Jun 20, 1997
- ; SUCCESS = (by ref) SUCCESS Returns TIU DOCUMENT # (PTR to 8925)
- ;         = 0^Explanatory message if no SUCCESS
- ; DFN     = Patient (#2)
- ; TITLE   = Pointer to TIU Document Definition (#8925.1)
- ; [VDT]   = Date(/Time) of Visit
- ; [VLOC]  = Visit Location (pointer to HOSPITAL LOCATION
- ; [VSIT]  = Pointer to visit file (#9000010)
- ; [VSTR]  = Visit string (i.e., VLOC;VDT;VTYPE)
- ; [NOASF] = Flag if set to 1=Do Not Set ASAVE cross-reference
- ; TIUX    = (by ref) array containing identifying fields, as
- ;           well as the body of the document
+TIUSRVP1 ; SLC/JER - More API's in support of PUT ;22-Dec-2011 11:21;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**19,59,89,100,109,167,113,112,1009**;Jun 20, 1997;Build 22
 SITEPARM(TIUY) ; Get site parameters for GUI
  N TIUPRM0,TIUPRM1
  D SETPARM^TIULE
@@ -62,18 +51,24 @@ STUB(TIUDA,TIUTITL,DFN) ; Create a stub
  S DR=".02////"_+DFN_";.03////"_$P($G(TIU("VISIT")),U)_";.04////"_+$$DOCCLASS^TIULC1(TIUTITL)_";.05///UNDICTATED;.13////E;1301////"_+$$NOW^XLFDT
  D ^DIE
  Q
-EVENT(TIUY,DFN) ; Create an Event-type Visit Entry
- N VDT,VSTR,DGPM
+EVENT(TIUY,DFN,VDT,VLOC,VSTR) ; Create an Event-type Visit Entry
+ ;IHS/MSC/MGH This call was modified to use the IHS visit
+ ;creation for a historical entry Patch 1009
+ ;N VDT,VSTR,DGPM
+ N DGPM,VIEN
  S DGPM=$G(^DPT(DFN,.105))
- I +DGPM'>0 D
- . S VDT=$$NOW^XLFDT
- . S VSTR=";"_VDT_";"_"E"
+ ;I +DGPM'>0 D
+ ;. S VDT=$$NOW^XLFDT
+ ;. S VSTR=";"_VDT_";"_"E"
  D PATVADPT^TIULV(.TIUY,+DFN,DGPM,$G(VSTR))
+ S TIUY("LOC")=VLOC_U_$P($G(^SC(VLOC,0)),U,1)
  I $G(TIUY("LOC"))="",+DUZ D
  .N TIUPREF,IDX
  .S TIUPREF=$$PERSPRF^TIULE(DUZ)
  .S IDX=+$P(TIUPREF,U,2)
  .I IDX S TIUY("LOC")=IDX_U_$P($G(^SC(IDX,0)),U,1)
+ S VIEN=$$FNDVIS^BEHOENCX(DFN,VDT,"E",VLOC,-1,,"")
+ I +VIEN S TIU("VISIT")=VIEN
  Q
 GETPNAME(TIUY,TIUTYPE) ; Get Print Name of a Document
  S TIUY=$$PNAME^TIULC1(TIUTYPE)
@@ -114,12 +109,14 @@ STUFREC(TIUDA,TIUREC,DFN,PARENT,TITLE,TIU) ; load TIUREC for create
  . S TIUREC(1401)=$P($G(^TIU(8925,+PARENT,14)),U)
  . S TIUREC(1402)=$P($G(^TIU(8925,+PARENT,14)),U,2)
  . S TIUREC(1404)=$P($G(^TIU(8925,+PARENT,14)),U,4)
+ . S TIUREC(1405)=$P($G(^TIU(8925,+PARENT,14)),U,5)
  S TIUREC(.04)=$$DOCCLASS^TIULC1(TITLE)
  S TIUSCAT=$S(+$L($P($G(TIU("CAT")),U)):$P($G(TIU("CAT")),U),+$L($P($G(TIU("VSTR")),";",3)):$P($G(TIU("VSTR")),";",3),1:"")
  S TIUREC(.13)=TIUSCAT
  ;If the document is a member of the Clinical Procedures Class, set the
  ;Author/Dictator and the Expected Signer fields to Null
  S (TIUREC(1202),TIUREC(1204))=$S(+$G(TIUREC(1202)):+$G(TIUREC(1202)),TIUCPF:"",1:+$G(DUZ))
+ S TIUREC(1212)=$P($G(TIU("INST")),U)
  S TIUREC(1205)=$P($G(TIU("LOC")),U)
  S TIUREC(1211)=$P($G(TIU("VLOC")),U)
  S TIUREC(1201)=$$NOW^XLFDT
@@ -131,7 +128,7 @@ STUFREC(TIUDA,TIUREC,DFN,PARENT,TITLE,TIU) ; load TIUREC for create
  ;If the document is a member of the Clinical Procedures Class, set the
  ;Entered By field to Null
  S TIUREC(1303)="R",TIUREC(1302)=$S(TIUCPF:"",1:$G(DUZ))
- I $S(+$G(TIUREC(1208)):1,+$G(TIUREQCS):1,1:0) S TIUREC(1506)=1
+ I $S(+$G(TIUREC(1208))&(+$G(TIUREC(1204))'=+$G(TIUREC(1208))):1,+$G(TIUREQCS):1,1:0) S TIUREC(1506)=1
  Q
 REFDT(TIUX) ; Hack Ref Date/time for DS's
  S TIUX(1301)=$S(+$G(TIU("LDT")):+$G(TIU("LDT")),1:$G(TIUX(1301)))
@@ -164,3 +161,5 @@ IDDTCH(TIUY,TIUDA) ; Detach TIUDA from its ID Parent
  D AUDLINK^TIUGR1(TIUDA,"d",IDDAD)
  D IDDEL^TIUALRT1(TIUDA)
  Q
+CANDEL(TIUDA) ; Boolean function to evaluate delete request
+ Q $S($P(^TIU(8925,TIUDA,0),U,5)>3:0,'+$$EMPTYDOC^TIULF(TIUDA):0,1:1)

@@ -1,5 +1,5 @@
-BTIULO5 ; IHS/ITSC/LJF - STILL MORE OBJECTS FOR EHR ;01-Jun-2010 09:22;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1004,1005,1006**;NOV 04, 2004
+BTIULO5 ; IHS/ITSC/LJF - STILL MORE OBJECTS FOR EHR ;05-Jan-2012 13:49;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1004,1005,1006,1009**;NOV 04, 2004;Build 22
  ;IHS/ITSC/LJF 12/10/2004 PATCH 1001 V Orders object was not displaying a modified order
  ;             04/08/2005 PATCH 1002 Indented display of medication sig
  ;                        PATCH 1004 Changed to EHR 1.1 visit selection
@@ -33,7 +33,7 @@ GETORD(RETURN,VSIT) ;
  K ^TMP("ORR",$J)
  ;
  I '$L($T(EN^ORQ1)) Q
- D EN^ORQ1(DFN_";DPT(",,1,1,DAT,DAT,1)
+ D EN^ORQ1(DFN_";DPT(",1,2,"",DAT,DAT,1)
  Q:'$D(ORLIST)
  ;
  F X=0:0 S X=$O(^TMP("ORR",$J,ORLIST,X)) Q:'X  K ORD M ORD=^(X) D
@@ -71,15 +71,22 @@ VPOV(TARGET,MULTI) ; returns diagnoses for current vuecentric visit context
 GETPOV(RETURN,VIEN,MULTI) ;return every diagnosis for current visit
  ; VISIT=Visit IEN
  ;
- NEW IEN,CNT,BTIU,LINE
+ NEW IEN,CNT,BTIU,LINE,ASTHMA,CODE,PAT,CON
  K RETURN
  ;
  S IEN=0 F  S IEN=$O(^AUPNVPOV("AD",VIEN,IEN)) Q:'IEN  D
+ . S ASTHMA=0
  . I 'MULTI S RETURN(1)=$G(RETURN(1))_$$GET1^DIQ(9000010.07,IEN,.04)_"; " Q
  . S CNT=$G(CNT)+1
- . K BTIU D ENP^XBDIQ1(9000010.07,IEN,".01:.13","BTIU(")
+ . K BTIU D ENP^XBDIQ1(9000010.07,IEN,".01:.13","BTIU(","I")
  . S LINE=""
  . I (BTIU(.12)="PRIMARY")!(CNT=1) S LINE=" [P] "         ;mark if primary dx
+ . S CODE=$G(BTIU(.01,"I"))
+ . S ASTHMA=$$CHECK^BGOASLK(CODE)
+ . I +ASTHMA D
+ .. S PAT=BTIU(.02,"I")
+ .. S CON=$$ACONTROL(PAT)
+ .. I CON'="" S LINE=LINE_" Control: "_CON
  . F I=.06,.05,.09,.13,.11 D                   ;check for other fields
  .. I (I=.09),BTIU(.09)]"" S LINE=LINE_"; "_$$ECODE(IEN) Q
  .. I BTIU(I)]"" S LINE=LINE_"; "_BTIU(I)
@@ -90,7 +97,18 @@ ECODE(IEN) ; return narrative for e-code
  NEW X
  S X=$$GET1^DIQ(9000010.07,IEN,.09,"I") I 'X Q ""
  Q $$GET1^DIQ(80,X,3)
- ;
+ACONTROL(DFN) ;Find last entry of patient's asthma control
+ N LEVEL,ADT,IEN,ENTER
+ S LEVEL=""
+ I DUZ("AG")'="I" Q LEVEL
+ S ADT="" S ADT=$O(^AUPNVAST("AAC",DFN,ADT))
+ I ADT="" Q LEVEL
+ S IEN="" S IEN=$O(^AUPNVAST("AAC",DFN,ADT,IEN),-1)  ;Reverse $O if there is more than one on a given date  - p6
+ I IEN="" Q LEVEL
+ S LEVEL=$G(^AUPNVAST("AAC",DFN,ADT,IEN))
+ S LEVEL=$S(LEVEL="W":"WELL CONTROLLED",LEVEL="N":"NOT WELL CONTROLLED",LEVEL="V":"VERY POORLY CONTROLLED",1:"")
+ S ENTER=$P($G(^AUPNVAST(IEN,12)),U,1),ENTER=$$FMTE^XLFDT($P(ENTER,".",1))
+ Q LEVEL_"("_ENTER_")"
 VPTED(TARGET,MULTI) ; returns patient education topics for current vuecentric visit context
  ; MULTI=0 return one line of education topic names; MULTI=1 return 1 line per topic
  I $T(GETVAR^CIAVMEVT)="" S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)

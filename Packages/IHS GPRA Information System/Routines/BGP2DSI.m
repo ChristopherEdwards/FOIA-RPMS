@@ -1,5 +1,5 @@
 BGP2DSI ; IHS/CMI/LAB - DISPLAY IND LISTS ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;; ;
 EP ;EP - CALLED FROM OPTION
  D EN
@@ -61,6 +61,8 @@ BACK ;go back to listman
  Q
  ;
 ADD ;EP - add an item to the selected list - called from a protocol
+ NEW BGPMCNT
+ S BGPMCNT=0
  W !
  I $G(BGPYNPLT)=1 S DIR(0)="NO^1:"_BGPHIGH,DIR("A")="Select Only One Measure" G ADD1
  I $G(BGPRTYPE)'=1 S DIR(0)="LO^1:"_BGPHIGH,DIR("A")="Which item(s)"
@@ -71,10 +73,13 @@ ADD1 ;
  I $D(DIRUT) W !,"No items selected." G ADDX
  D FULL^VALM1 W:$D(IOF) @IOF
  S BGPANS=Y,BGPC="" F BGPI=1:1 S BGPC=$P(BGPANS,",",BGPI) Q:BGPC=""  S BGPIND(BGPTIND(BGPC,BGPC))=""
+ I BGPYRPTH="A" D   I BGPMCNT>15 W !!,"You can only select up to 15 Topics, please choose command 'S' again",!,"and reselect your topics." K BGPIND D PAUSE^BGP2DU
+ .S X=0 F  S X=$O(BGPIND(X)) Q:X'=+X  S BGPMCNT=BGPMCNT+1
 ADDX ;
  D BACK
  Q
 ADDALL ;
+ I $G(BGPYRPTH)="A" W !!,"Sorry, this option isn't available when running for ALL Communities." D PAUSE^BGP2DU,BACK Q
  F X=1:1:BGPHIGH S BGPIND(X)=""
  D BACK
  Q

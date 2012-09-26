@@ -1,9 +1,9 @@
 BQIUL1 ;PRXM/HC/DLS - Miscellaneous BQI Utilities ; 26 Oct 2005  9:43 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
-FMTE(Y) ;EP - Convert Fileman Date/Time to 'MMM DD,CCYY HH:MM:SS' format.
+FMTE(Y) ;EP - Convert Fileman Date/Time to 'MMM DD, CCYY HH:MM:SS' format.
  ;Description
  ;  Receives Date (Y) in FileMan format and returns formatted date.
  ;
@@ -13,9 +13,11 @@ FMTE(Y) ;EP - Convert Fileman Date/Time to 'MMM DD,CCYY HH:MM:SS' format.
  ;Output
  ;  Date/Time in External format (i.e. OCT 24,2005 12:34:56).
  ;  
- NEW DATM
+ NEW DATM,XX,I,V
  S DATM=$TR($$FMTE^DILIBF(Y,"5U"),"@"," ")
  I DATM["24:00" S DATM=$P(DATM," ",1,2)_" 00:00"
+ S XX="" F I=1:1:$L(DATM) S V=$E(DATM,I,I),XX=XX_V I V="," S XX=XX_" "
+ S DATM=XX
  Q DATM
  ;
 DATE(DATE) ;EP - Convert standard date/time to a FileMan date/time

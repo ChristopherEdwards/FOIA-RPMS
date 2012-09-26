@@ -1,5 +1,5 @@
 BGP2DPP ; IHS/CMI/LAB - IHS GPRA 10 SELECTED REPORT DRIVER ALL PATIENTS 29 Apr 2012 8:36 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -14,7 +14,7 @@ INTRO ;
  D EOP
  D TAXCHK^BGP2XTCH
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,XIT Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,XIT Q
 TEMPLAT ;
  D XIT
  W !!,"Please enter the search template name.  The template will contain a",!,"panel of patients defined by the user.",!

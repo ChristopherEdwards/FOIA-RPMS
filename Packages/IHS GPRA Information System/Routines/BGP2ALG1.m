@@ -1,5 +1,5 @@
 BGP2ALG1 ; IHS/CMI/LAB - measure AHR.A ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 BETA ;EP - BETA BLOCKER CONTRAINDICATION/NMI REFUSAL
@@ -7,34 +7,35 @@ BETA ;EP - BETA BLOCKER CONTRAINDICATION/NMI REFUSAL
  S EDATE=$G(EDATE)
  I EDATE="" S EDATE=DT
  NEW BGPC,BGPG,BGPY,Y,E,X,N,Z,T
- ;get all povs with 995.0-995.3 with ecode of e935.3 up to discharge date
+ ;get all povs with 995.0-995.3 with ecode of e935.3
  S BGPC=0
 BETAPOV ;
  K BGPG,BGPY S Y="BGPG(",X=P_"^ALL DX [BGP ASA ALLERGY 995.0-995.3;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04) S N=$$UP^XLFSTR(N)
  .I N["BETA BLOCK"!(N["BBLOCK")!(N["B BLOCK") S BGPC=BGPC+1,BGPY(BGPC)="POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.0" S BGPC=BGPC+1,BGPY(BGPC)="POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.0]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.0" S BGPC=BGPC+1,BGPY(BGPC)="POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.0]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.0" S BGPC=BGPC+1,BGPY(BGPC)="POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.0]  "_N Q
+ .S T=$O(^ATXAX("B","BGP ADV EFF CARD RHYTH",0))
+ .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
  .Q
  I BGPC>0 Q 1_U_BGPY(BGPC)
- K BGPG S BGPC=0 S Y="BGPG(",X=P_"^ALL DX V14.8;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ K BGPG S BGPC=0 S Y="BGPG(",X=P_"^ALL DX [BGP HX DRUG ALLERGY NEC;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
  .I N["BETA BLOCK"!(N["BBLOCK")!(N["B BLOCK") S BGPC=BGPC+1,BGPY(BGPC)="POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N
  I BGPC>0 Q 1_U_BGPY(BGPC)
- ;now check problem list for these codes
+ ;now check problem list
  S BGPC=0
  S T="",T=$O(^ATXAX("B","BGP ASA ALLERGY 995.0-995.3",0))
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^ICDCODE(I),U,2)
  .S N=$$VAL^XBDIQ1(9000011,X,.05),N=$$UP^XLFSTR(N)
  .Q:$P(^AUPNPROB(X,0),U,8)>EDATE
- .I Y="V14.8"!($$ICD^ATXCHK(I,T,9)),N["BETA BLOCK"!(N["BBLOCK")!(N["B BLOCK") S BGPC=BGPC+1,BGPY(BGPC)="PROBLEM LIST:  "_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
+ .I $$ICD^ATXCHK(I,$O(^ATXAX("B","BGP HX DRUG ALLERGY NEC",0)),9)!($$ICD^ATXCHK(I,T,9)),N["BETA BLOCK"!(N["BBLOCK")!(N["B BLOCK") S BGPC=BGPC+1,BGPY(BGPC)="PROBLEM LIST:  "_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
  .Q
  I BGPC>0 Q 1_U_BGPY(BGPC)
- ;now check allergy tracking
+ ;now check allergy 
  S BGPC=0
  S X=0 F  S X=$O(^GMR(120.8,"B",P,X)) Q:X'=+X  D
  .Q:$P($P($G(^GMR(120.8,X,0)),U,4),".")>EDATE  ;entered after end date
@@ -43,7 +44,7 @@ BETAPOV ;
  I BGPC>0 Q 1_U_BGPY(BGPC)
  Q ""
  ;
-ASA ;EP does patient have an aspirin allergy documented on or before EDATE
+ASA ;EP does patient have an aspirin allergy documented
  ;get all povs with 995.0-995.3 with ecode of e935.3 up to EDATE
  I $G(P)="" Q ""
  S EDATE=$G(EDATE)
@@ -56,12 +57,13 @@ ASA ;EP does patient have an aspirin allergy documented on or before EDATE
  .S Y=+$P(BGPG(X),U,4)
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
  .I N["ASPIRIN"!(N["ASA") S G=1_U_$$DATE^BGP2UTL($P(BGPG(X),U))_" POV code "_$$VAL^XBDIQ1(9000010.07,Y,.01)_" "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E935.3" S G=1_U_$$DATE^BGP2UTL($P(BGPG(X),U,1))_" POV: "_$$VAL^XBDIQ1(9000010.07,Y,.01)_" w/E935.3 " Q
- .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E935.3" S G=1_U_$$DATE^BGP2UTL($P(BGPG(X),U,1))_" POV: "_$$VAL^XBDIQ1(9000010.07,Y,.01)_" w/E935.3 " Q
- .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E935.3" S G=1_U_$$DATE^BGP2UTL($P(BGPG(X),U,1))_" POV: "_$$VAL^XBDIQ1(9000010.07,Y,.01)_" w/E935.3 " Q
+ .S T=$O(^ATXAX("B","BGP ADV EFF SALICYLATES",0))
+ .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
  .Q
  I G Q G  ;found pov with ecode or narrative
- K BGPG S Y="BGPG(",X=P_"^ALL DX V14.8;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ K BGPG S Y="BGPG(",X=P_"^ALL DX [BGP HX DRUG ALLERGY NEC;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X!(G)  D
  .S Y=+$P(BGPG(X),U,4)
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
@@ -74,7 +76,7 @@ ASA ;EP does patient have an aspirin allergy documented on or before EDATE
  .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^ICDCODE(I),U,2)
  .S N=$$VAL^XBDIQ1(9000011,X,.05),N=$$UP^XLFSTR(N)
  .Q:$P(^AUPNPROB(X,0),U,8)>EDATE  ;added after EDATE
- .I Y="V14.8"!($$ICD^ATXCHK(I,T,9)),N["ASPIRIN"!(N["ASA") S G=1_U_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_" Problem List code "_$$VAL^XBDIQ1(9000011,X,.01)_" "_N
+ .I $$ICD^ATXCHK(I,$O(^ATXAX("B","BGP HX DRUG ALLERGY NEC",0)),9)!($$ICD^ATXCHK(I,T,9)),N["ASPIRIN"!(N["ASA") S G=1_U_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_" Problem List code "_$$VAL^XBDIQ1(9000011,X,.01)_" "_N
  .Q
  I G Q G
  ;now check allergy tracking
@@ -95,12 +97,13 @@ ACEI ;EP - ACE ALLERGY
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04) S N=$$UP^XLFSTR(N)
  .I N["ACEI"!(N["ACE I") S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.6" S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.6]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.6" S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.6]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.6" S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.6]  "_N Q
+ .S T=$O(^ATXAX("B","BGP ADV EFF ANTIHYPERTEN AGT",0))
+ .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
  .Q
  I G Q G
- K BGPG S Y="BGPG(",X=P_"^ALL DX V14.8;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ K BGPG S Y="BGPG(",X=P_"^ALL DX [BGP HX DRUG ALLERGY NEC;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
  .I N["ACEI"!(N["ACE I") S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N
@@ -110,7 +113,7 @@ ACEI ;EP - ACE ALLERGY
  .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^ICDCODE(I),U,2)
  .S N=$$VAL^XBDIQ1(9000011,X,.05),N=$$UP^XLFSTR(N)
  .Q:$P(^AUPNPROB(X,0),U,8)>EDATE  ;added after discharge date
- .I Y="V14.8"!($$ICD^ATXCHK(I,T,9)),N["ACEI"!(N["ACE I") S G=1_U_"PROBLEM LIST:  "_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
+ .I $$ICD^ATXCHK(I,$O(^ATXAX("B","BGP HX DRUG ALLERGY NEC",0)),9)!($$ICD^ATXCHK(I,T,9)),N["ACEI"!(N["ACE I") S G=1_U_"PROBLEM LIST:  "_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
  .Q
  I G Q G
  S X=0 F  S X=$O(^GMR(120.8,"B",P,X)) Q:X'=+X  D
@@ -129,12 +132,13 @@ ARB ;EP - ARB ALLERGIES
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04) S N=$$UP^XLFSTR(N)
  .I N["ARB"!(N["ANGIOTENSIN RECEPTOR BLOCKER") S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.6" S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.6]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.6" S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.6]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.6" S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.6]  "_N Q
+ .S T=$O(^ATXAX("B","BGP ADV EFF ANTIHYPERTEN AGT",0))
+ .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
  .Q
  I G Q G
- K BGPG S Y="BGPG(",X=P_"^ALL DX V14.8;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ K BGPG S Y="BGPG(",X=P_"^ALL DX [BGP HX DRUG ALLERGY NEC;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
  .I N["ARB"!(N["ANGIOTENSIN RECEPTOR BLOCKER") S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N
@@ -144,7 +148,7 @@ ARB ;EP - ARB ALLERGIES
  .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^ICDCODE(I),U,2)
  .S N=$$VAL^XBDIQ1(9000011,X,.05),N=$$UP^XLFSTR(N)
  .Q:$P(^AUPNPROB(X,0),U,8)>EDATE  ;added after discharge date
- .I Y="V14.8"!($$ICD^ATXCHK(I,T,9)),N["ARB"!(N["ANGIOTENSIN RECEPTOR BLOCKER") S G=1_U_"PROBLEM LIST:  "_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
+ .I $$ICD^ATXCHK(I,$O(^ATXAX("B","BGP HX DRUG ALLERGY NEC",0)),9)!($$ICD^ATXCHK(I,T,9)),N["ARB"!(N["ANGIOTENSIN RECEPTOR BLOCKER") S G=1_U_"PROBLEM LIST:  "_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
  .Q
  I G Q G
  S X=0 F  S X=$O(^GMR(120.8,"B",P,X)) Q:X'=+X  D
@@ -164,12 +168,13 @@ STATIN ;EP
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04) S N=$$UP^XLFSTR(N)
  .I N["STATIN"!(N["STATINS") S BGPC=1_U_"Alg Statin POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.9" S BGPC=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.9]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.9" S BGPC=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.9]  "_N Q
- .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.9" S BGPC=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.9]  "_N Q
+ .S T=$O(^ATXAX("B","BGP ADV EFF CARDIOVASC NEC",0))
+ .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$$ICD^ATXCHK(Z,T,9) S G=1_U_"POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^ICDCODE(Z),U,2)_"]  "_N Q
  .Q
  I BGPC Q BGPC
- K BGPG S BGPC=0 S Y="BGPG(",X=P_"^ALL DX V14.8;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ K BGPG S BGPC=0 S Y="BGPG(",X=P_"^ALL DX [BGP HX DRUG ALLERGY NEC;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
  .I N["STATIN"!(N["STATINS") S BGPC=1_U_"alg statin POV:  "_$$DATE^BGP2UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N
@@ -181,7 +186,7 @@ STATIN ;EP
  .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^ICDCODE(I),U,2)
  .S N=$$VAL^XBDIQ1(9000011,X,.05),N=$$UP^XLFSTR(N)
  .Q:$P(^AUPNPROB(X,0),U,8)>EDATE  ;added after discharge date
- .I Y="V14.8"!($$ICD^ATXCHK(I,T,9)),N["STATIN"!(N["STATINS") S BGPC=1_U_"alg statin PROBLEM LIST:  "_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
+ .I $$ICD^ATXCHK(I,$O(^ATXAX("B","BGP HX DRUG ALLERGY NEC",0)),9)!($$ICD^ATXCHK(I,T,9)),N["STATIN"!(N["STATINS") S BGPC=1_U_"alg statin PROBLEM LIST:  "_$$DATE^BGP2UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
  .Q
  I BGPC Q BGPC
  ;now check allergy tracking

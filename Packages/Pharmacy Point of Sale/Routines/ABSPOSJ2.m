@@ -1,5 +1,5 @@
 ABSPOSJ2 ;IHS/OIT/SCR - pre and post init for V1.0 patch 28 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**29,39**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**29,39,43**;Jun 21,2001
  ;
  ; Pre and Post init routine use in absp0100.29k
  ;------------------------------------------------------------------
@@ -125,6 +125,7 @@ CLNREJ ;Clean out the unrecognized reject codes in response file.
  . . . S RJCTCODE=$G(^ABSPR(RESP,1000,NUMB,511,RJNUMB,0))
  . . . I RJCTCODE[" " D CLEANUP(RESP,NUMB,RJNUMB,RJCTCODE)
  Q
+ ;
 CLEANUP(RESP,NUMB,RJNUMB,RJCTCODE) ;Clean up that particular resp file entry
  N NRJCTCD,DR,DA,DIE
  S NRJCTCD=$TR(RJCTCODE," ","")
@@ -135,3 +136,21 @@ CLEANUP(RESP,NUMB,RJNUMB,RJCTCODE) ;Clean up that particular resp file entry
  S DIE="^ABSPR("_DA(2)_",1000,"_DA(1)_",511,"
  L +^ABSPR(DA(2)):0 I $T D ^DIE L -^ABSPR(DA(2))
  Q
+ ;
+CLNREV ;IHS/OIT/RCS 3/2/2012 patch 43 run fix for errored reversals
+ I '$D(^ABSP(9002313.99,1,"ABSPREVF")) D  ;Run once
+ . D MES^XPDUTL("Running reversal transaction fix...")
+ . N CLM,X,CLMN
+ . S CLM=0
+ . F  S CLM=$O(^ABSPC(CLM)) Q:CLM=""!(CLM'?1N.N)  D
+ . . S X=$G(^ABSPC(CLM,100)) I X="" Q
+ . . S CLMN=$P($G(^ABSPC(CLM,0)),"^") I CLMN="" Q
+ . . I CLMN'["R" Q
+ . . I $P(X,"^",2)="D0",$P(X,"^",3)=11 S $P(X,"^",3)="B2",^ABSPC(CLM,100)=X ;Reset Transaction type to 'B2'
+ . . I $P(X,"^",9)<2 Q  ;Reversal Transaction count not greated than 1
+ . . S $P(X,"^",9)=1,^ABSPC(CLM,100)=X ;Reset Transaction count to '1'
+ . . S X=$G(^ABSPC(CLM,"M",1,0)) I X="" Q
+ . . S X=$E(X,1,20)_1_$E(X,22,999),^ABSPC(CLM,"M",1,0)=X ;Reset Transaction count to '1' in raw data record
+ . S ^ABSP(9002313.99,1,"ABSPREVF")=1
+ Q
+ ;

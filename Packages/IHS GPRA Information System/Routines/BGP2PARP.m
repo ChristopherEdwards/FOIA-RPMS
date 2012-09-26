@@ -1,5 +1,5 @@
 BGP2PARP ; IHS/CMI/LAB - IHS gpra print ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 PRINT ;EP
@@ -29,7 +29,7 @@ DEL ;create delimited output file
  D AREACP^BGP2DH
  S BGPQUIT="",BGPGPG=0,BGPRPT=0
  D PRINT1^BGP2DP
- D SAVEDEL^BGP2PDL   ;D ^BGP2PDL ;create ^tmp of delimited report
+ I '$G(BGPNODEL) D SAVEDEL^BGP2PDL   ;D ^BGP2PDL ;create ^tmp of delimited report
  S BGPIFTR=1
  K ^TMP($J)
  Q

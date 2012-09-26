@@ -1,5 +1,5 @@
-PSOORFI1 ;BIR/SAB - finish OP orders from OE/RR continued ;28-Jan-2009 15:24;SM
- ;;7.0;OUTPATIENT PHARMACY;**7,15,23,27,32,44,51,46,71,90,108,131,152,1003,1005,1006,1008**;DEC 1997
+PSOORFI1 ;BIR/SAB - finish OP orders from OE/RR continued ;24-Oct-2011 14:27;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**7,15,23,27,32,44,51,46,71,90,108,131,152,1003,1005,1006,1008,1013**;DEC 1997;Build 33
  ;Ref. ^PS(50.7 supp. DBIA 2223
  ;Ref. ^PSDRUG( supp. DBIA 221
  ;Ref. L^PSSLOCK supp. DBIA 2789
@@ -12,6 +12,7 @@ PSOORFI1 ;BIR/SAB - finish OP orders from OE/RR continued ;28-Jan-2009 15:24;SM
  ;                          03/06/08 - ISSDT+14 - Added logic to set Substitution response
  ;                          03/13/08 - PST+46 - Added line for Substitution display
  ;                          01/23/09 - PST+47 - Added line for Cash Due display
+ ;                          10/24/11 - OBX+1
  S SIGOK=1
 DSPL K ^TMP("PSOPO",$J),CLOZPAT,PSOPRC,PSODSPL
  S (OI,PSODRUG("OI"))=$P(OR0,"^",8),PSODRUG("OIN")=$P(^PS(50.7,$P(OR0,"^",8),0),"^"),OID=$P(OR0,"^",9)
@@ -118,6 +119,9 @@ INST ;displays provider comments and pharmacy instructions
  K INST,TY,MIG,SG
  Q
 OBX ;formats obx section
+ I 1 D
+ .N X
+ .S X="IORVON;IORVOFF;IOBON;IOBOFF" D ENDR^%ZISS   ;Patch 1013
  D OBX^PSOORFI4
  Q
 ST ;sort by route or patient

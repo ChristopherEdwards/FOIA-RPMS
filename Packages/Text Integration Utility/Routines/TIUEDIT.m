@@ -1,5 +1,5 @@
-TIUEDIT ; SLC/JER - Enter/Edit a Document ; 3/7/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,22,52,100,109**;Jun 20, 1997
+TIUEDIT ; SLC/JER - Enter/Edit a Document ;01-Aug-2011 11:29;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,22,52,100,109,112,1009**;Jun 20, 1997;Build 22
  ; Moved LOADDFLT, BOIL, CANXEC, REPLACE, INSMULT to TIUEDI4
  ; Moved DIE, TEXTEDIT from TIUEDIT to TIUEDI4
  ; Separated out modules SETTL, GETVST, ASKOK
@@ -8,7 +8,6 @@ TIUEDIT ; SLC/JER - Enter/Edit a Document ; 3/7/01
  ;IHS/ITSC/LJF 02/26/2003  create v note entry & clean up TIUTITLE variable
  ;IHS/ITSC/LJF 08/22/2003  quit patient loop if called by IPD option (BTIURPT)
  ;IHS/ITSC/LJF 12/11/2003  review previous notes works for all notes
- ;
 MAIN(TIUCLASS,SUCCESS,DFN,TIUTITLE,EVNTFLAG,NOSAVE,TIUNDA,TIUSNGL,TIUCHNG) ; Create new document(s)
  ; May branch off to edit existing docmt instead of creating new one.
  ; Call with: [TIUCLASS] --> pointer to file (8925) corresponding to
@@ -55,7 +54,7 @@ MAIN(TIUCLASS,SUCCESS,DFN,TIUTITLE,EVNTFLAG,NOSAVE,TIUNDA,TIUSNGL,TIUCHNG) ; Cre
  I $P(TIUPREF,U,6)="M",(+$G(ORVP)'>0),(+$G(NOSAVE)'>0),'+$G(TIUSNGL) D MAIN^TIUEDIM(TIUCLASS,.TIUOUT,.TIUNDA,.TIUCHNG) Q
  ; -- Loop: Create docmt --
  ;F  D  Q:+$G(ORVP)!+$G(TIUOUT)!+$G(NOSAVE)!+$G(TIUSNGL)
- F  D  Q:+$G(ORVP)!+$G(TIUOUT)!+$G(NOSAVE)!+$G(TIUSNGL)!$G(BTIURPT)   ;IHS/ITSC/LJF 08/22/2003
+ F  D  Q:+$G(ORVP)!+$G(TIUOUT)!+$G(NOSAVE)!+$G(TIUSNGL)!$G(BTIURPT)  ;IHS/ITSC/LJF 08/22/2003
  . N TIU,TIUCMMTX,TIUBY,TIUEDIT,TIUNEW,TIUTYP,VADM,VAIN,CANEDIT
  . ; -- User specifies basic info for new docmt --
  . ; -- Get patient --
@@ -72,6 +71,8 @@ MAIN(TIUCLASS,SUCCESS,DFN,TIUTITLE,EVNTFLAG,NOSAVE,TIUNDA,TIUSNGL,TIUCHNG) ; Cre
  . I +$G(DIROUT)!+$G(DUOUT)!+$G(DTOUT) S TIUOUT=1 Q
  . ; -- Set title array TIUTYP (use TIUTITLE or ask user) --
  . D SETTL^TIUEDI4(.TIUTYP,TIUCLASS,$G(TIUTITLE)) I +$G(TIUTYP)'>0 S TIUOUT=1 Q
+ . ; --- Re-direct SURGICAL REPORTS ---
+ . I +$$ISA^TIULX(TIUTYP,+$$CLASS^TIUSROI("SURGICAL REPORTS")) D ENTEROP^TIUSROI(DFN,TIUTYP) Q
  . ; -- Get doc parameters for title, X entry action --
  . D DOCPRM^TIULC1(TIUTYP,.TIUDPRM)
  . S TIUENTRY=$$GETENTRY^TIUEDI2(+TIUTYP)
@@ -87,7 +88,7 @@ MAIN(TIUCLASS,SUCCESS,DFN,TIUTITLE,EVNTFLAG,NOSAVE,TIUNDA,TIUSNGL,TIUCHNG) ; Cre
  . . ; -- Get record DA --
  . . ; DA is either: new stub record, ready for edit, or
  . . ;               existing record, for edit, or
- . . ;               existing record, for addendum      
+ . . ;               existing record, for addendum
  . . N DA
  . . S DA=$$GETRECNW^TIUEDI3(DFN,.TIU,TIUTYP(1),.TIUNEW,.TIUDPRM,1,DUZ,.CANEDIT)
  . . I +DA'>0 W !,"Unable to enter/edit." Q
@@ -112,13 +113,13 @@ MAIN(TIUCLASS,SUCCESS,DFN,TIUTITLE,EVNTFLAG,NOSAVE,TIUNDA,TIUSNGL,TIUCHNG) ; Cre
  . . I +$G(TIU("STOP")),(+$P($G(TIUDPRM(0)),U,14)'=1) D DEFER^TIUVSIT(DA,TIU("STOP")) I 1 ;piece 14 = suppress DX/CPT on entry
  . . E  D QUE^TIUPXAP1 ; Post workload now in background
  . . ;
- . . D VNOTE^BTIUPCC(DA,+TIU("VISIT"),DFN,"ADD")  ;IHS/ITSC/LJF 02/26/2003 update VNote file
+ . . D VNOTE^BTIUPCC(DA,+TIU("VISIT"),DFN,"ADD")  ;IHS/ITSC/LJF 02/26/2003
  . . ;
  . . S TIUCMMTX=$$COMMIT^TIULC1(+$P(TIUTYP(1),U,2))
  . . I TIUCMMTX]"" X TIUCMMTX
  . . D RELEASE^TIUT(DA)
  . . D VERIFY^TIUT(DA)
- . . ; -- Get signature for DA 
+ . . ; -- Get signature for DA
  . . D EDSIG^TIURS(DA)
  . . ; - execute EXIT ACTION -
  . . S TIUEXIT=$$GETEXIT^TIUEDI2(+$P(TIUTYP(1),U,2))

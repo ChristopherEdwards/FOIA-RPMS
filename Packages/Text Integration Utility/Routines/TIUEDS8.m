@@ -1,3 +1,0 @@
-TIUEDS8 ; ;11/17/04
- S X=DE(17),DIC=DIE
- K ^TIU(8925,"F",$E(X,1,30),DA)

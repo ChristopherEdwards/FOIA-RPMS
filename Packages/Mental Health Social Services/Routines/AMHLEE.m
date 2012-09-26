@@ -1,5 +1,5 @@
 AMHLEE ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 23 Jun 2009 3:26 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2**;JUN 18, 2010;Build 23
  ;
 EDITR ;EP - called from protocol
  I AMHRCNT=0 W !,"There are no visits in the list to edit." D PAUSE^AMHLEA D XIT Q
@@ -152,10 +152,11 @@ DGSECD ;
  D NOTICE^DGSEC4(.AMHRESU,AMHPAT,,3)
 EDITD9 ;
  S AMHACTN=4
- D EN^AMHRDSP
- W !! S DIR(0)="Y",DIR("A")="Are you sure you want to DELETE this record",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
- Q:$D(DIRUT)
- Q:'Y
+ I '$G(AMHGRPDE) D  I 'Y!($D(DIRUT)) Q
+ .D EN^AMHRDSP
+ .W !! S DIR(0)="Y",DIR("A")="Are you sure you want to DELETE this record",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ .Q:$D(DIRUT)
+ .Q:'Y
  D DEL^AMHLEA
  S AMHACTN=4 D PCCLINK^AMHLEA
  I '$D(AMHPATCE),'$G(AMHGRPDE) D XIT
@@ -337,7 +338,7 @@ ESIG9 ;
  D PCCLINK^AMHLEA
  D XIT
  Q
-XIT ;
+XIT ;EP
  S VALMBCK="R"
  D TERM^VALM0
  D GATHER^AMHLEL

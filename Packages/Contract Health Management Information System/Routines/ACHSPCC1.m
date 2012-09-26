@@ -1,5 +1,5 @@
 ACHSPCC1 ; IHS/ITSC/TPF/PMF - CHS AREA SPLITOUT (1/5) ; JUL 10, 2008
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**14**;JUN 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**14,21**;JUN 11,2001
  ;ACHS*3.1*14 IHS/OIT/FCJ call new routine for printing UFMS and FI totals
  ;
  D HOME^%ZIS
@@ -29,7 +29,11 @@ ACHSPCC1 ; IHS/ITSC/TPF/PMF - CHS AREA SPLITOUT (1/5) ; JUL 10, 2008
  I $L(ACHSPFX)'=3 D CPFXERR Q
  W !,$$C^XBFUNC("AREA PREFIX="_$E(ACHSPFX,2,3)),!
  U IO(0)
- W !,"Your CHS FACILITY DHR Transactions Should be TRANSMITTED to:",!?10,"(1) HAS and/or CORE",!?10,$S($$AOP^ACHS(2,8)="Y":"(2) Fiscal Intermediary",1:" ")
+ ;ACHS*3.1*21 CHANGED HAS/CORE TO UFMS
+ ;W !,"Your CHS FACILITY DHR Transactions Should be TRANSMITTED to:",!?10,"(1) HAS and/or CORE",!?10,$S($$AOP^ACHS(2,8)="Y":"(2) Fiscal Intermediary",1:" ")
+ W !,"Your CHS FACILITY DHR Transactions Should be TRANSMITTED to:"
+ W !?10,"(1) United Finacial Management System for Federal Facilities"
+ W !?10,$S($$AOP^ACHS(2,3)="Y":"(2) Fiscal Intermediary",1:" ")
  U IO(0)
  I '$$DIR^XBDIR("E","","","","","",2) D JOBABEND^ACHSPCC4 Q
  I $D(DUOUT)!$D(DTOUT) D JOBABEND^ACHSPCC4 Q

@@ -1,5 +1,5 @@
 AMEREDIT ; IHS/OIT/SCR - Primary Routine for ER VISIT edit interface 
- ;;3.0;ER VISIT SYSTEM;**1**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**1,3**;DEC 07, 2011;Build 11
  ;
  ; ALGORITHM:
  ;    1. Allow user to select from ER VISITS
@@ -123,8 +123,8 @@ EDITERV(AMERDA,AMERAIEN,AMEREDNO)  ; EDIT SELECTED VISIT
  .I '$D(^XUSEC("AMERZ9999",DUZ)) Q  ;only holders of the coding key can update a DX
  .S AMERQUIT=1
  .I '$$CHKVSIT^AMEREDPC(AMERDA,AMERAIEN) D
- ..D EN^DDIOL("**This PCC Visit contains uncoded ICD9 entries **","","!!")
- ..S DIR(0)="Y",DIR("A")="Would you like to update them now",DIR("B")="YES"
+ ..D EN^DDIOL("**The primary diagnosis for this ER visit is uncoded**","","!!")
+ ..S DIR(0)="Y",DIR("A")="Would you like to update the .9999 code now",DIR("B")="YES"
  ..D ^DIR
  ..I Y=0 S Y=""
  ..I Y=1 S AMERQUIT=0,Y=5

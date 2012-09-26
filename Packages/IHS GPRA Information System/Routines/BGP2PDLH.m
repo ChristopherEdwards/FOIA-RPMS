@@ -1,5 +1,5 @@
 BGP2PDLH ; IHS/CMI/LAB - cover page;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  S X="" D SET(X,1,1)
  S X="Cover Page" D SET(X,1,1)
@@ -45,17 +45,17 @@ N ;
  I BGPRTYPE=7 D ONMHDR
  I BGPRTYPE=6 D PEHDR
  I $G(BGPEXPT),BGPRTYPE=1 D
- .S X="A file will be created called BG12"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT_"." D SET(X,1,1)
+ .S X="A file will be created called BG121"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT_"." D SET(X,1,1)
  .S X="It will reside in the public/export directory." D SET(X,1,1)
  .S X="This file should be sent to your Area Office." D SET(X,1,1)
  S X=" " D SET(X,1,1)
  I $G(BGPEXPT),BGPRTYPE=7 D
- .S X="A file will be created called BG12"_$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT_"." D SET(X,1,1)
+ .S X="A file will be created called BG121"_$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT_"." D SET(X,1,1)
  .S X="It will reside in the public/export directory." D SET(X,1,1)
  .S X="This file should be sent to your Area Office." D SET(X,1,1)
  I $G(BGPYWCHW)=2 S X="HT/WT Filename:  "_BGPFN D SET(X,1,1) S X=" " D SET(X,1,1)
  I BGPRTYPE=6,$G(BGPPEEXP) D
- .S X="A file will be created called BG12"_$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT_"." D SET(X,1,1)
+ .S X="A file will be created called BG121"_$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT_"." D SET(X,1,1)
  .S X="This file will reside in the public/export directory." D SET(X,1,1)
  .S X="This file should be sent to your Area Office." D SET(X,1,1)
  .S X=" " D SET(X,1,1)

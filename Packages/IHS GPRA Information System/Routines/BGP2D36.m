@@ -1,12 +1,12 @@
 BGP2D36 ; IHS/CMI/LAB - measure C 06 Nov 2009 2:03 PM 28 May 2012 4:23 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 MEN(P,EDATE) ;EP
- K BGPC,BGPG,BGPX
+ NEW BGPC,BGPG,BGPX,BGPMENI,C,ED,BD,V,X,Y,BGPZ,B,BGPIMM,R,G
  ;gather up all immunizations, cpts, povs and check for 3 each ten days apart
  K BGPMENI
  ;get all immunizations
- S C="32^108^114^136"
+ S C="32^108^114^136^147"
  D GETIMMS^BGP2D32(P,EDATE,C,.BGPX)
  ;go through and set into array if 10 days apart
  I $O(BGPX(0)) Q 1_U_"Meningococcal"
@@ -21,11 +21,11 @@ MEN(P,EDATE) ;EP
  ...S Y=$P(^AUPNVTC(X,0),U,7) Q:'Y  S Y=$P($$CPT^ICPTCOD(Y),U,2) I Y=90733!(Y=90734) S BGPMENI(9999999-$P(ED,"."))=""
  I $D(BGPMENI) Q 1_U_"Meningococcal"
  ;check for Evidence of desease and Contraindications and if yes, then quit
- F BGPZ=32,108,114 S X=$$ANCONT^BGP2D31(P,BGPZ,EDATE) Q:X]""
+ F BGPZ=32,108,114,136,147 S X=$$ANCONT^BGP2D31(P,BGPZ,EDATE) Q:X]""
  I X]"" Q 4_U_"Contra Meningococcal"
  ;now go to Refusals
  S B=$$DOB^AUPNPAT(P),E=EDATE,BGPNMI="",R=""
- F BGPIMM=32,108,114,136  D
+ F BGPIMM=32,108,114,136,147  D
  .S I=$O(^AUTTIMM("C",BGPIMM,0)) Q:'I
  .S X=0 F  S X=$O(^AUPNPREF("AA",P,9999999.14,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,9999999.14,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) S:$P(^AUPNPREF(Y,0),U,7)="N" BGPNMI=1 S R=1
  I R Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI Meningococcal",1:"Ref Meningococcal")
@@ -34,14 +34,13 @@ MEN(P,EDATE) ;EP
  .S X=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) S:$P(^AUPNPREF(Y,0),U,7)="N" BGPNMI=1 S R=1
  I R Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI Meningococcal",1:"Ref Meningococcal")
  ;now check Refusals in imm pkg
- F BGPIMM=32,108,114 S R=$$IMMREF^BGP2D32(P,BGPIMM,$$DOB^AUPNPAT(P),EDATE)+R
+ F BGPIMM=32,108,114,136,147 S R=$$IMMREF^BGP2D32(P,BGPIMM,$$DOB^AUPNPAT(P),EDATE)+R
  I R Q 3_U_"Ref imm pkg Meningococcal"
  Q ""
  ;
 HPV(P,EDATE) ;EP
- K BGPC,BGPG,BGPX
+ NEW BGPC,BGPG,BGPX,BGPHPV,C,X,ED,BD,V,G,R,BGPIMM,Y,Z,B,BGPNMI
  ;gather up all immunizations, cpts, povs and check for 3 each ten days apart
- K BGPHPV
  ;get all immunizations
  S C="62^118^137"
  D GETIMMS^BGP2D32(P,EDATE,C,.BGPX)
@@ -183,7 +182,7 @@ AGE(P,BGPZ,BGPDT) ;EP
  ;
 ACTPREG(P,ED) ;EP
  I $P(^DPT(P,0),U,2)'="F" Q ""
- NEW T,X,Y,Q,BD,APCL,LPD,%,G
+ NEW T,X,Y,Q,BD,BGPG,LPD,%,G
  S BD=3091001  ;MEASURE IN H1N1 YEAR ONLY ****LORI CHANGE TO 309
  S G=""
  S T=$O(^ATXAX("B","SURVEILLANCE H1N1 PREGNANCY DX",0))
@@ -205,25 +204,18 @@ ACTPREG(P,ED) ;EP
  S LPD=$O(APCLJ(0))  ;get date of latest
  I LPD="" Q ""
  S LPD=9999999-LPD  ;date of prenatal dx, find miscarriage, abortion or delivery between this date and ED
- NEW APCLF
- S APCLF=""
+ NEW BGPGF
+ S BGPGF=""
  ;check abortion / misc dxs
- K APCL S X=P_"^LAST DX [BGP MISCARRIAGE/ABORTION DXS;DURING "_LPD_"-"_ED S E=$$START1^APCLDF(X,"APCL(")
- I $D(APCL) Q ""  ;FOUND SO NOT PREG ANYMORE
- K APCL S X=P_"^LAST PROC [BGP ABORTION PROCEDURES;DURING "_LPD_"-"_ED S E=$$START1^APCLDF(X,"APCL(")
- I $D(APCL) Q ""  ;FOUND SO NOT PREG ANYMORE
+ K BGPG S X=P_"^LAST DX [BGP MISCARRIAGE/ABORTION DXS;DURING "_LPD_"-"_ED S E=$$START1^APCLDF(X,"APCL(")
+ I $D(BGPG) Q ""  ;FOUND SO NOT PREG ANYMORE
+ K BGPG S BGPG=$$LASTPRC^BGP2UTL1(P,"BGP ABORTION PROCEDURES",LPD,ED)
+ I BGPG Q ""  ;FOUND SO NOT PREG ANYMORE
  ;now check CPTs for Abortion and Miscarriage
  S %=$$LASTCPTT^APCLAPIU(P,LPD,ED,"BGP CPT ABORTION","D")
  I %]"" Q ""
  S %=$$LASTCPTT^APCLAPIU(P,LPD,ED,"BGP CPT MISCARRIAGE","D")
  I %]"" Q ""
- ;K APCL S X=P_"^LAST DX [SURVEILLANCE H1N1 DELIVERY DX;DURING "_LPD_"-"_ED S E=$$START1^APCLDF(X,"APCL(")
- ;I $D(APCL) Q ""  ;FOUND SO NOT PREG ANYMORE
- ;K APCL S X=P_"^LAST PROC [SURVEILLANCE H1N1 DEL PROC;DURING "_LPD_"-"_ED S E=$$START1^APCLDF(X,"APCL(")
- ;I $D(APCL) Q ""  ;FOUND SO NOT PREG ANYMORE
- ;now check CPTs for Abortion and Miscarriage
- ;S %=$$LASTCPTT^APCLAPIU(P,LPD,ED,"SURVEILLANCE H1N1 DELIVERY CPT","D")
- ;I %]"" Q ""
  Q 1
 HIGHRISK(P,BDATE,EDATE,AGEB) ;
  I AGEB<25 Q ""

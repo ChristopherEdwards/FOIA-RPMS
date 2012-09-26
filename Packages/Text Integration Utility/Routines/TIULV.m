@@ -1,16 +1,15 @@
-TIULV ; SLC/JER - Visit/Movement related library ;11-Jun-2010 15:33;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,30,55,45,52,148,156,152,1001,1007**;Jun 20, 1997
+TIULV ; SLC/JER - Visit/Movement related library ;02-Mar-2012 08:43;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,30,55,45,52,148,156,152,113,1001,1007,1009**;Jun 20, 1997;Build 22
  ;IHS/ITSC/LJF 02/26/2003 set chart #, visit and facility fields
- ;                        used file DD to determine service category external format
+ ;     used file DD to determine service category external format
  ;             04/08/2004 fixed code to prevent UNDEF if no ward
  ;IHS/ITSC/LJF 11/05/2004 PATCH 1001 if called by EHR, BTIUVSIT may not be set
- ;
 PATPN(TIUY,DFN) ; Get minimum demographics for PN Print
  N VADM,VAIP,VAIN,VA,VAPA
  D OERR^VADPT
  S TIUY("PNMP")=$E($G(VADM(1)),1,30)
  S TIUY("SSN")=$G(VA("PID"))
- S TIUY("HRCN")=$G(HRCN)                   ;IHS/ITSC/LJF 02/26/2003 set chart #
+ S TIUY("HRCN")=$G(HRCN)                   ;IHS/ITSC/LJF 02/26/2003 set chart#
  S TIUY("DOB")="DOB:"_$$DATE^TIULS(+$G(VADM(3)),"MM/DD/CCYY")
  D ADD^VADPT
  I $G(VAPA(8))'="" S TIUY("PH#")="Ph:"_VAPA(8)
@@ -77,20 +76,19 @@ PATVADPT(TIUY,DFN,TIUMVN,TIUVSTR,TIUSDC) ; Extract MAS data
  I '$G(BTIUVSIT),$G(TIUMVN) NEW BTIUVSIT S BTIUVSIT=$$GET1^DIQ(405,TIUMVN,.27,"I")  ;visit ien
  ;
  ;IHS/ITSC/LJF 11/05/2004 PATCH 1001 if called by EHR, BTIUVSIT may not be set
- ;S TIUY("VISIT")=+$G(BTIUVSIT)_U_+$G(^AUPNVSIT(+$G(BTIUVSIT),0))                    ;visit ien ^ date
+ ;S TIUY("VISIT")=+$G(BTIUVSIT)_U_+$G(^AUPNVSIT(+$G(BTIUVSIT),0))
  I $G(BTIUVSIT)<1,$G(TIUVSIT)>0 S TIUY("VISIT")=(+TIUVSIT)_U_+$G(^AUPNVSIT(+TIUVSIT,0))
- E  S TIUY("VISIT")=+$G(BTIUVSIT)_U_+$G(^AUPNVSIT(+$G(BTIUVSIT),0))                    ;visit ien ^ date
+ E  S TIUY("VISIT")=+$G(BTIUVSIT)_U_+$G(^AUPNVSIT(+$G(BTIUVSIT),0))
  ;end of PATCH 1001 change
  ;
- S TIUY("DIV")=+$O(^DG(40.8,"AD",DUZ(2),0))_U_$$GET1^DIQ(4,DUZ(2),.01)               ;division ^ facility name
- ;IHS/ITSC/LJF 02/26/2003 end of new code
- ;
+ S TIUY("DIV")=+$O(^DG(40.8,"AD",DUZ(2),0))_U_$$GET1^DIQ(4,DUZ(2),.01)
+ ;IHS/ITSC/LJF 02/26/2003 end of new code use AD cross-reference
  ; if pt an inpt + doc class is pn- default to current inpt loc
  S TIUTYPE=$S(+$P($G(TIUTYP(1)),U,2)>0:$P($G(TIUTYP(1)),U,2),1:+$G(TIUTYP))
- I +$G(TIUDA) S TIUTYPE=+$G(^TIU(8925,+TIUDA,0))  ;IHS/ITSC/LJF 02/26/2003 added
- Q:+TIUTYPE'>0
+ I +TIUTYPE'>0 S TIUY("INST")=$$DIVISION^TIULC1(+TIUY("LOC")) Q
  I +$G(TIUMVN),$D(^DPT(DFN,.1)),+$$ISPN^TIULX(TIUTYPE) D
  . I $D(VAIP(14,4)) S TIUY("LOC")=$G(^DIC(42,+VAIP(14,4),44))_U_$P(VAIP(14,4),U,2)
+ S TIUY("INST")=$$DIVISION^TIULC1(+TIUY("LOC"))
  Q
 WARD(DA) ; Compute ward at discharge
  N %,D0,DIC,DIQ,DR,MOVE,X,Y

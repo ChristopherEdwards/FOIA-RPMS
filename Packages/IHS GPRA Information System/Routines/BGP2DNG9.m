@@ -1,5 +1,5 @@
 BGP2DNG9 ; IHS/CMI/LAB - NATL COMP EXPORT 13 Nov 2006 12:31 PM 31 Jul 2012 11:21 AM 13 Aug 2012 5:44 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -110,7 +110,7 @@ EXPORT ;export to area or not?
  S BGPEXPT=Y I BGPEXPT S BGPYWCHW=$S($P($G(^BGPSITE(DUZ(2),0)),U,11)=0:0,1:1) I 'BGPYWCHW D  I 'Y D XIT Q
  .W !!,"***WARNING***  Because your site parameter for exporting height and weight "
  .W !,"data to the Area Office is set to ","""","No",""""," your Area Office export file (file "
- .W !,"beginning with ","""","BG12","""",") will not contain height and weight data."
+ .W !,"beginning with ","""","BG121","""",") will not contain height and weight data."
  .W !,"This data is sent to the IHS Division of Epidemiology to track and analyze "
  .W !,"BMI data over time.  All IHS and Urban facilities should have the site "
  .W !,"parameter set to ","""","Yes",""""," and only Tribal facilities have the option"
@@ -145,7 +145,7 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPEXPT D
- .W !!,"A file will be created called BG12",$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG121",$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, these files may need to be manually",!,"sent to your Area Office.",!
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS

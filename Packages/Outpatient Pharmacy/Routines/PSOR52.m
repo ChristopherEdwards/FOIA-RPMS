@@ -1,5 +1,5 @@
-PSOR52 ;IHS/DSD/JCM-files refill entries in prescription file ;24-Oct-2007 11:21;SM
- ;;7.0;OUTPATIENT PHARMACY;**10,22,27,1005,1006**;DEC 1997
+PSOR52 ;IHS/DSD/JCM-files refill entries in prescription file ;04-Nov-2011 08:43;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**10,22,27,1005,1006,1013**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
  ; This routine is responsible for the actual
@@ -9,6 +9,7 @@ PSOR52 ;IHS/DSD/JCM-files refill entries in prescription file ;24-Oct-2007 11:21
  ;            IHS/MSC/PLS - 05/16/07 - DD section
  ;                          05/27/06 - FINISH+13 section - AudioCare
  ;                          10/24/07 - DD section
+ ;                          09/27/11 - APSPPRIO support
 EN(PSOX) ;Entry Point
 START ;
  D:$D(XRTL) T0^%ZOSV ; Start RT monitor
@@ -38,6 +39,7 @@ INIT ;
  I $P(PSOX("RX2"),"^",12)]"" S PSOX("GENERIC PROVIDER")=$P(PSOX("RX2"),"^",12)
  S PSOX("PROVIDER")=$P(PSOX("RX0"),"^",4)
  S:'$D(PSOX("CLERK CODE")) PSOX("CLERK CODE")=DUZ
+ S:$L($G(APSPPRIO)) PSOX("APSPPRIO")=APSPPRIO  ;IHS/MSC/PLS - 09/27/11
 INITX Q
  ;
 FILE ;
@@ -125,3 +127,4 @@ DD ;rx data nodes
  ;;PSOX("DUR");;9999999;;13 ;IHS/SD/lwj 6/24/2003
  ;;PSOX("CLINIC");;9999999;;16  ;IHS/MSC/PLS 05/16/06
  ;;PSOX("REQ PROVIDER");;9999999;;1 ; IHS/MSC/PLS 10/24/2007
+ ;;PSOX("APSPPRIO");;9999999;;18  ;IHS/MSC/PLS - 09/27/2011

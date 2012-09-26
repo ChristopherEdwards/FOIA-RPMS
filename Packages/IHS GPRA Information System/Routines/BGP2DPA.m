@@ -1,5 +1,5 @@
 BGP2DPA ; IHS/CMI/LAB - COMP NATIONAL GPRA FOR PTS W/APPT 03 Jun 2012 2:54 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 EP ;EP - called from option interactive
  D EOJ
@@ -13,13 +13,22 @@ EP ;EP - called from option interactive
  ;
  D TAXCHK^BGP2XTCN
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,EOJ Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,EOJ Q
 RTYPE ;
  S BGPRT1=""
  S DIR(0)="S^C:By CLINIC NAME for a specified appointment date range;P:Selected Patients w/Appointments;D:One Facility's or Divisions Appointments;A:Any selected set of patients regardless of appt status"
  S DIR("A")="Create List/Sort by",DIR("B")="C" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D EOJ Q
  S BGPRT1=Y
+GPRAYR ;
+ W !
+ D F
+ I BGPPER="" W !,"Year not entered.",! G RTYPE
+ S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
+ S BGPPBD=($E(BGPBD,1,3)-1)_$E(BGPBD,4,7)
+ S BGPPED=($E(BGPED,1,3)-1)_$E(BGPED,4,7)
+ S BGPBBD=BGPBD-X,BGPBBD=$E(BGPBBD,1,3)_$E(BGPBD,4,7)
+ S BGPBED=BGPED-X,BGPBED=$E(BGPBED,1,3)_$E(BGPED,4,7)
  I BGPRT1="C" D CLIN G:$G(BGPQUIT) RTYPE G TEMP
  I BGPRT1="D" D DIV G:$G(BGPQUIT) RTYPE G TEMP
  I BGPRT1="P" D GETPAT G:$G(BGPQUIT) RTYPE G TEMP
@@ -67,10 +76,10 @@ ENDDATE ;
  S X=0 F  S X=$O(^BGPINDW("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
  S X=$O(^BGPCTRL("B",2012,0))
  S Y=^BGPCTRL(X,0)
- S BGPBD=$P(Y,U,8),BGPED=$P(Y,U,9)
- S BGPPBD=$P(Y,U,10),BGPPED=$P(Y,U,11)
- S BGPBBD=$P(Y,U,12),BGPBED=$P(Y,U,13)
- S BGPPER=$P(Y,U,14),BGPQTR=3
+ ;S BGPBD=$P(Y,U,8),BGPED=$P(Y,U,9)
+ ;S BGPPBD=$P(Y,U,10),BGPPED=$P(Y,U,11)
+ ;S BGPBBD=$P(Y,U,12),BGPBED=$P(Y,U,13)
+ ;S BGPPER=$P(Y,U,14),BGPQTR=3
  G NT
  S BGPBD=3030101,BGPED=3031231
  S BGPPBD=3020101,BGPPED=3021231
@@ -373,4 +382,17 @@ DUP I '$P(Y,U,3) D  I Q K BGPSTMP,Y G EN2
  .S DIE="^DIBT(",DA=BGPSTMP,DR="2////"_DT_";3////M;4////9000001;5////"_DUZ_";6////M"
  .D ^DIE
  .K DIE,DA,DR
+ Q
+F ;calendar year
+ S (BGPPER,BGPVDT,BGPNGR09)=""
+ S DIR(0)="D^::EP"
+ S DIR("A")="Run report for GPRA year 2012 or 2013"
+ S DIR("?")="This report is compiled for a period.  Enter a valid date."
+ D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ I $D(DUOUT) S DIRUT=1 Q
+ S BGPVDT=Y
+ I $E(Y,4,7)'="0000" W !!,"Please enter a year only!",! G F
+ S BGPPER=BGPVDT
+ I BGPPER="3130000" S BGPNGR09=1
  Q

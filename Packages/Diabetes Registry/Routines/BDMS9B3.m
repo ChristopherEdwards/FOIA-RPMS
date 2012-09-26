@@ -1,5 +1,5 @@
 BDMS9B3 ; IHS/CMI/LAB - women's health supplement ; 27 Jan 2011  6:56 AM
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5**;JUN 14, 2007
  ;
 BI() ;EP- check to see if using new imm package or not 1/5/1999 IHS/CMI/LAB
  Q $S($O(^AUTTIMM(0))<100:0,1:1)
@@ -55,7 +55,7 @@ TD(P,BDMSED) ;EP
  Q "No   "_$$DATE^BDMS9B1(TDD)
 FLU(P) ;EP
  NEW BDMY,%,LFLU,E,T,X
- S LFLU=$$LASTFLU^BDMD113(P,"D")
+ S LFLU=$$LASTFLU^BDMD413(P,"D")
  I LFLU="" G FLUR
 FLU1 NEW D S D=$S($E(DT,4,5)>7:$E(DT,1,3)_"0801",1:$E(DT,1,3)-1_"0801")
  I LFLU'<D Q "Yes  "_$$DATE^BDMS9B1($P(LFLU,U))

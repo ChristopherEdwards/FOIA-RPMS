@@ -1,5 +1,5 @@
 ABSPOSEV ; IHS/SD/lwj  - Point of Sale environment checker  [ 05/28/2002  10:03 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**20,23,28,31,32,33,34,36,37,38,39,40,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**20,23,28,31,32,33,34,36,37,38,39,40,42,43**;JUN 21, 2001
  ;
  ;IHS/SD/RLT - 3/22/07 - Patch 20
  ;          New environment checker.  Replaced ABSPOSEC.
@@ -53,7 +53,8 @@ CHECK ;EP - called from Kids install routine
  ;W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **38**.",IOM),!
  ;W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **39**.",IOM),!
  ;W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **40**.",IOM),!
- W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **42**.",IOM),!
+ ;W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **42**.",IOM),!
+ W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **43**.",IOM),!
  ;
  ; Suppress the "Disable Options..." and "Move Routines..." install questions
  S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0

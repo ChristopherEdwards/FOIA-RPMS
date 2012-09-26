@@ -1,5 +1,5 @@
 BQITASK2 ;PRXM/HC/ALA-Separate tasks for post-installs ; 31 Jul 2007  11:24 AM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 DXC ;EP - Entry point to identify the diagnostic tags
  ; Variables

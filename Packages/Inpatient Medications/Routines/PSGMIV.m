@@ -1,8 +1,9 @@
-PSGMIV ;BIR/MV-IV ORDER FOR THE 24 HOUR MAR. ;25 Nov 98 / 9:07 AM
- ;;5.0; INPATIENT MEDICATIONS ;**4,20,21,28,58**;16 DEC 97
+PSGMIV ;BIR/MV-IV ORDER FOR THE 24 HOUR MAR. ;12-Oct-2011 22:32;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**4,20,21,28,58,1013**;16 DEC 97;Build 33
  ;
  ; Reference to ^PS(55 supported by DBIA #2191.
  ; Reference to ^PS(52.7 supported by DBIA #2173.
+ ; Modified - IHS/MSC/PLS - 10/12/2011 - Line PRTIV+20, L+2
  ;
 START ;*** Read IV orders
  S ON=""
@@ -65,11 +66,15 @@ PRTIV ;*** Print IV order on MAR
  I '$O(DRG("AD",0))!('$O(DRG("SOL",0))) W !?48,PSGL,$G(TS(L)),?55,"|" S L=5
  I P(4)="C",'(L#5),P("OPI")="" W !,"*CAUTION-CHEMOTHERAPY*" S L=L+1 Q
  I P(4)="C" D L(1) W !,"*CAUTION-CHEMOTHERAPY*",?48,PSGL,$G(TS(L)),?55,"|"
+ ;IHS/MSC/PLS - 10/12/2011
  I (L#5)=0,($L($P(P("OPI"),"^"))<29),(TS<7) S L=L+1
  E  D L(1)
+ ;I $L($P(P("OPI"),U)) D L(1) W !
+ ;E  S L=L+1
  W:P("OPI")=""&(TS>6) !
  I P("OPI")'="" D
- . W:(L#6)=1 !
+ .; W:(L#6)=1 !  ;IHS/MSC/PLS - 10/12/2011 - Changed to match PSJ*5.0*145
+ . W:(L#6)=0 !
  . F Y=1:1:$L($P(P("OPI"),"^")," ") S Y1=$P($P(P("OPI"),"^")," ",Y) D  W Y1," "
  . I ($X+$L(Y1))>47 W ?48,PSGL,$G(TS(L)),?55,"|" D L(1) W !
  I L>TS,(L#6) W ?48,PSGL,$G(TS(L)),?55,"|" S L=L+1 W:L#6=0 !
@@ -82,9 +87,11 @@ PRTIV ;*** Print IV order on MAR
  W ?29,"RPH: ",PSGLRPH,?38,"RN: ",PSGLRN,?48,PSGL,$G(TS(L)),?55,"|" W:PSGMAROC<6 !?7,LN2
  Q
  ;
-L(X) ;***Check to see if a new block if needed.
+L(X) ;***Check to see if a new block is needed.
  S L=L+X
- I L#6=0,PSGMAROC<6 W !,"See next label for continuation",?48,PSGL,$G(TS(L)),?55,"|" W:PSGMAROC<6 !?7,LN2 S PSGMAROC=PSGMAROC+1,L=L+1 D
+ ;IHS/MSC/PLS - 10/12/2011
+ ;I L#6=0,PSGMAROC<6 W !,"See next label for continuation",?48,PSGL,$G(TS(L)),?55,"|" W:PSGMAROC<6 !?7,LN2 S PSGMAROC=PSGMAROC+1,L=L+1 D
+ I L#6=0,PSGMAROC<6 W !,"See next label for continuation",?48,PSGL,$G(TS(L)),?55,"|" W:PSGMAROC<6 !?7,LN2,! S PSGMAROC=PSGMAROC+1,L=L+1 D
  .I LN>6,(PSGMAROC>5) S MSG1="*** CONTINUE ON NEXT PAGE ***" D BOT^PSGMAR3,HEADER^PSGMAR3 S PSGMAROC=1
  Q
 ORSET ; order record set
@@ -110,6 +117,6 @@ RPHINIT(RPH) ; Find initial for the person who completed the IV order.
  S:+RPH RPH=$$DEFINIT(+RPH)
  I RPH="" S RPH="_____"
  Q
-DEFINIT(X)         ;
+DEFINIT(X) ;
  S X=$G(^VA(200,X,0)),RPH=$P(X,U,2) Q:RPH]"" RPH
  S X=$P(X,U),RPH=$E(X,$F(X,","))_$E(X) Q RPH

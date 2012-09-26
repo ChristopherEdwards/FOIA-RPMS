@@ -1,9 +1,10 @@
-PSODIR ;BHAM ISC/SAB - asks data for rx order entry ; 02/12/93 8:49
- ;;7.0;OUTPATIENT PHARMACY;**37,46,111,117,146,164**;DEC 1997
+PSODIR ;BHAM ISC/SAB - asks data for rx order entry ;23-Sep-2011 15:54;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**37,46,111,117,146,164,1013**;DEC 1997;Build 33
  ;External reference PSDRUG( supported by DBIA 221
  ;External reference PS(50.7 supported by DBIA 2223
  ;External reference to VA(200 is supported by DBIA 10060
  ;----------------------------------------------------------------
+ ;Modified - IHS/MSC/PLS - /2011 - Line PROVEN+13
  ;
 PROV(PSODIR) ;
 PROVEN ; Entry point for failed lookup
@@ -19,9 +20,12 @@ PROVEN ; Entry point for failed lookup
  I $D(DTOUT)!$D(DUOUT) S PSODIR("DFLG")=1 G PROVX
  I '$G(SPEED),Y=-1 G PROVEN
  Q:$G(SPEED)&(Y=-1)
+ ;IHS/MSC/PLS - Add VistA change in PSO*7.0*211
+ I $P($G(PSODIR("CS")),"^",1)!($D(CLOZPAT)) I '$L($P($G(^VA(200,+Y,"PS")),U,2)),'$L($P($G(^VA(200,+Y,"PS")),U,3)) D  G PROVEN
+ .W $C(7),!!,"Provider must have a DEA# or VA#"_$S($D(CLOZPAT):" to write prescriptions for clozapine.",1:""),!
  I '$G(PSODRUG("IEN")),'$G(PSORENW("DRUG IEN")) G NODRUG
- I '$G(SPEED),$P($G(^PSDRUG($S($G(PSODRUG("IEN")):PSODRUG("IEN"),1:PSORENW("DRUG IEN")),"CLOZ1")),"^")="PSOCLO1",$P(^VA(200,+Y,"PS"),"^",2)'?2U7N D  K Y,PSORX("PROVIDER NAME"),DIC("B") G PROVEN
- .W $C(7),!!,"Only providers with DEA numbers can write prescriptions for clozaril.",!
+ ;I '$G(SPEED),$P($G(^PSDRUG($S($G(PSODRUG("IEN")):PSODRUG("IEN"),1:PSORENW("DRUG IEN")),"CLOZ1")),"^")="PSOCLO1",$P(^VA(200,+Y,"PS"),"^",2)'?2U7N D  K Y,PSORX("PROVIDER NAME"),DIC("B") G PROVEN
+ ;.W $C(7),!!,"Only providers with DEA numbers can write prescriptions for clozaril.",!
 NODRUG S PSODIR("PROVIDER")=+Y
  S (PSODIR("PROVIDER NAME"),PSORX("PROVIDER NAME"))=$P(Y,"^",2)
  I $G(PSODIR("OLD VAL"))'=+Y K PSODIR("GENERIC PROVIDER"),PSODIR("COSIGNING PROVIDER")

@@ -1,5 +1,5 @@
 BGP2HEH ; IHS/CMI/LAB - cover page for HEDIS ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  I $G(BGPAREAA) G AREACP
@@ -19,7 +19,7 @@ BGP2HEH ; IHS/CMI/LAB - cover page for HEDIS ;
  W !,"Population: ",$S(BGPBEN=1:"AI/AN Only (Classification 01)",BGPBEN=2:"non AI/AN Only (Classification NOT 01)",BGPBEN=3:"All (Both AI/AN and non AI/AN)",1:"")
  D ENDTIME
  D HEDISHDR
- I $G(BGPEXPT) W !!,"A file will be created called BG12",$P(^AUTTLOC(DUZ(2),0),U,10)_".HE"_BGPRPT,".",!,"It will reside in the public/export directory.",!,"This file should be sent to your Area Office.",!
+ I $G(BGPEXPT) W !!,"A file will be created called BG121",$P(^AUTTLOC(DUZ(2),0),U,10)_".HE"_BGPRPT,".",!,"It will reside in the public/export directory.",!,"This file should be sent to your Area Office.",!
  I '$D(BGPGUI),BGPROT'="P" W !!,"A delimited output file called ",BGPDELF,!,"has been placed in the "_$$GETDEDIR^BGP2UTL2()_" directory for your use in Excel or some",!,"other software package.",!,"See your site manager to access this file.",!
  I $G(BGPALLPT) W !!,"All Communities Included.",!
  I '$G(BGPALLPT),'$G(BGPSEAT) W !!?10,"Community Taxonomy Name: ",$P(^ATXAX(BGPTAXI,0),U)
@@ -63,7 +63,7 @@ AREACP ;EP - area cover page
  S BGPCHSO="",X=0 F  S X=$O(BGPSUL(X)) Q:X'=+X  I $P(^BGPHEDCB(X,0),U,17) S BGPCHSO=1
  S BGPCHSN="",X=0 F  S X=$O(BGPSUL(X)) Q:X'=+X  I '$P(^BGPHEDCB(X,0),U,17) S BGPCHSN=1
  D HEDISHDR
- ;I $G(BGPEXPT) W !!,"A file will be created called BG12",$P(^AUTTLOC(DUZ(2),0),U,10)_".HE"_BGPRPT,".",!,"It will reside in the public/export directory.",!,"This file should be sent to your Area Office.",!
+ ;I $G(BGPEXPT) W !!,"A file will be created called BG121",$P(^AUTTLOC(DUZ(2),0),U,10)_".HE"_BGPRPT,".",!,"It will reside in the public/export directory.",!,"This file should be sent to your Area Office.",!
  I '$D(BGPGUI),BGPROT'="P" W !!,"A delimited output file called ",BGPDELF,!,"has been placed in the "_$$GETDEDIR^BGP2UTL2()_" directory for your use in Excel or some",!,"other software package.",!,"See your site manager to access this file.",!
  W !!?1,"Report includes data from the following facilities:"
  NEW BGPX

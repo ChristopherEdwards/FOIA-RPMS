@@ -1,5 +1,5 @@
-PSOLMUTL ;BIR/SAB - listman utilities ;11-Oct-2007 15:56;SM
- ;;7.0;OUTPATIENT PHARMACY;**19,46,84,99,131,132,1005,1006**;DEC 1997
+PSOLMUTL ;BIR/SAB - listman utilities ;23-Sep-2011 15:54;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**19,46,84,99,131,132,1005,1006,1013**;DEC 1997;Build 33
  ;External reference FULL^VALM1 supported by dbia 10116
  ;External reference $$SETSTR^VALM1 supported by dbia 10116
  ;External reference EN2^GMRAPEMO supported by dbia 190
@@ -7,6 +7,7 @@ PSOLMUTL ;BIR/SAB - listman utilities ;11-Oct-2007 15:56;SM
  ;
  ; Modified - IHS/CIA/PLS - 12/10/03 - Line HDR+3
  ;            IHS/MSC/PLS - 10/11/07 - Line HDR+12 and HDR+14
+ ;                          09/16/2011 - Line HDR+8
 EN W @IOF S VALMCNT=0
  D:'$D(PSOPAR) ^PSOLSET I '$D(PSOPAR) W $C(7),!!?5,"Site parameter must be defined!",! G INITQ
  D EN^PSOLMPI
@@ -19,7 +20,9 @@ HDR ;patient med profile display
  ;S VALMHDR(2)=$$SETSTR^VALM1("Ht(cm): "_^TMP("PSOHDR",$J,7,0),HDR,52,27)
  ;S HDR="  DOB: "_^TMP("PSOHDR",$J,3,0)_" ("_^TMP("PSOHDR",$J,4,0)_")"
  ;S VALMHDR(3)=$$SETSTR^VALM1(" Wt(kg): "_^TMP("PSOHDR",$J,6,0),HDR,51,28)
- S HDR="  PID: "_^TMP("PSOHDR",$J,2,0)_"  (HRN: "_$G(VA("PID"))_")"
+ ;IHS/MSC/PLS - 09/16/2011 - Added mask to SSN
+ ;S HDR="  PID: "_^TMP("PSOHDR",$J,2,0)_"  (HRN: "_$G(VA("PID"))_")"
+ S HDR="  PID: "_$$FMTSSN^APSPFUNC(^TMP("PSOHDR",$J,2,0))_"  (HRN: "_$G(VA("PID"))_")"
  S VALMHDR(2)=$$SETSTR^VALM1("Ht(cm): "_^TMP("PSOHDR",$J,7,0),HDR,52,27)
  S HDR="  DOB: "_^TMP("PSOHDR",$J,3,0)_" ("_^TMP("PSOHDR",$J,4,0)_")"
  S VALMHDR(3)=$$SETSTR^VALM1(" Wt(kg): "_^TMP("PSOHDR",$J,6,0),HDR,51,28)

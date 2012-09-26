@@ -1,5 +1,5 @@
-APSPSITE ;IHS/CIA/PLS - IHS Site Parameter Setup;29-Jun-2010 15:35;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1008,1009**;Sep 23, 2004
+APSPSITE ;IHS/CIA/PLS - IHS Site Parameter Setup;04-Nov-2011 08:52;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1008,1009,1013**;Sep 23, 2004;Build 33
  ; Modified - IHS/CIA/PLS - 04/05/05 - SIGLBL API
  ;            IHS/MSC/PLS - 03/17/09 - PDEDWM commented out
  ;                                   - Added PMIS printer default

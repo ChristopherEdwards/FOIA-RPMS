@@ -1,5 +1,5 @@
 BQIDCDF ;PRXM/HC/ALA-Predefined Panel Definition ; 24 Oct 2005  6:21 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -60,6 +60,50 @@ PTYP(SOURCE,PNAME) ;EP - Return the parameter type
  S DA(1)=PPIEN,DA=BQN,IENS=$$IENS^DILF(.DA)
  I $$GET1^DIQ(90506.03,IENS,.13,"I")=1 Q ""
  Q $$GET1^DIQ(90506.03,IENS,.02,"I")
+ ;
+PEXE(SOURCE,PNAME) ;EP - Return the parameter executable
+ ;
+ ;Input
+ ;  SOURCE - Predefined panel name
+ ;  PNAME  - Parameter name
+ ;
+ NEW PPIEN,DA,IENS,BQN
+ S PPIEN=$$PP(SOURCE)
+ S BQN=$O(^BQI(90506,PPIEN,3,"B",PNAME,""))
+ I BQN="" Q ""
+ S DA(1)=PPIEN,DA=BQN,IENS=$$IENS^DILF(.DA)
+ I $$GET1^DIQ(90506.03,IENS,.13,"I")=1 Q ""
+ Q $$GET1^DIQ(90506.03,IENS,2,"I")
+ ;
+PORD(SOURCE,PNAME) ;EP - Return the parameter DESCRIPTION ORDER
+ ;
+ ;Input
+ ;  SOURCE - Predefined panel name
+ ;  PNAME  - Parameter name
+ ;
+ NEW PPIEN,DA,IENS,BQN
+ S PPIEN=$$PP(SOURCE)
+ S BQN=$O(^BQI(90506,PPIEN,3,"B",PNAME,""))
+ I BQN="" Q ""
+ S DA(1)=PPIEN,DA=BQN,IENS=$$IENS^DILF(.DA)
+ I $$GET1^DIQ(90506.03,IENS,.13,"I")=1 Q ""
+ Q $$GET1^DIQ(90506.03,IENS,.1,"I")
+ ;
+PMAP(SOURCE,PNAME) ;EP - Return the parameter MAP parameter
+ ;
+ ;Input
+ ;  SOURCE - Predefined panel name
+ ;  PNAME  - Parameter name
+ ;
+ NEW PPIEN,DA,IENS,BQN
+ S PPIEN=$$PP(SOURCE)
+ S BQN=$O(^BQI(90506,PPIEN,3,"B",PNAME,""))
+ I BQN="" Q ""
+ S DA(1)=PPIEN,DA=BQN,IENS=$$IENS^DILF(.DA)
+ I $$GET1^DIQ(90506.03,IENS,.13,"I")=1 Q ""
+ I $$GET1^DIQ(90506.03,IENS,.11,"I")'=1 Q ""
+ Q $$GET1^DIQ(90506.03,IENS,.12,"I")
+ ;
  ;
 FILN(SOURCE,PNAME) ;EP - Return the filenumber
  ;

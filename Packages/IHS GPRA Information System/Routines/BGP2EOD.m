@@ -1,5 +1,5 @@
 BGP2EOD ; IHS/CMI/LAB - IHS GPRA 10 REPORT DRIVER ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -23,7 +23,7 @@ CHOICE ;
  S BGPRTC=Y
 INTRO ;
  S BGPFYI=$O(^BGPCTRL("B",2012,0))
- I BGPRTC="H" D  G:X COMM I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,XIT Q
+ I BGPRTC="H" D  G:X COMM I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,XIT Q
  .W !!,"This will produce an Executive Order Quality Transparency Measures report"
  .W !,"for all performance measures.  You will be asked to provide the"
  .W !,"community taxonomy to determine which patients will be included."
@@ -80,7 +80,7 @@ NT .;END TEST STUFF
  I BGPINDZ="A" S X=0 F  S X=$O(^BGPEOMB(X)) Q:X'=+X  S BGPIND(X)=""
  D TAXCHK^BGP2XTEO
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,XIT Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,XIT Q
 TP ;get time period
  S BGPRTYPE=8
  S (BGPBD,BGPED,BGPTP)=""
@@ -190,7 +190,7 @@ SUM ;display summary of this report
  S BGPUF=$$GETDIR^BGP2UTL2()
  ;I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
  ;I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic/"
- I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2CL,XIT Q
+ I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2DU,XIT Q
  W:$D(IOF) @IOF
  W !,$$CTR("SUMMARY OF CRS 11 EXECUTIVE ORDER REPORT TO BE GENERATED")
  W !!,"The date ranges for this report are:"
@@ -206,7 +206,7 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPEXPT D
- .W !!,"A file will be created called BG12",$P(^AUTTLOC(DUZ(2),0),U,10)_".EO"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG121",$P(^AUTTLOC(DUZ(2),0),U,10)_".EO"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, this file may need to be manually",!,"sent to your Area Office.",!
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS

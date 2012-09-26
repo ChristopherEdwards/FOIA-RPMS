@@ -1,5 +1,5 @@
 BQIPLVW ;PRXM/HC/ALA-Panel View ; 17 Oct 2005  1:19 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -15,7 +15,7 @@ LST(DATA,FAKE) ; EP - BQI GET PANEL VIEW
  ;  UID - TMP global subscript. Will be either $J or "Z" plus the
  ;        TaskMan Task ID
  ;        
- NEW UID,II,IEN,DOR,DVALUE,SOR,SVALUE,X,STVCD
+ NEW UID,II,IEN,DOR,DVALUE,SOR,SVALUE,X,STVCD,KEY
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  S DATA=$NA(^TMP("BQIPLVW",UID))
  K @DATA
@@ -44,7 +44,8 @@ DFNC() ;EP - Get the standard display order
  S DOR="" F  S DOR=$O(^BQI(90506.1,"AD","D",DOR)) Q:DOR=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AD","D",DOR,IEN)) Q:IEN=""  D
- .. ;I $$GET1^DIQ(90506.1,IEN_",",.04,"I")'="O" D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S DVALUE=DVALUE_STVCD_$C(29)
@@ -56,7 +57,8 @@ SFNC() ;EP - Get the standard sort order
  S SOR="" F  S SOR=$O(^BQI(90506.1,"AE","D",SOR)) Q:SOR=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AE","D",SOR,IEN)) Q:IEN=""  D
- .. ;I $$GET1^DIQ(90506.1,IEN_",",.04,"I")'="O" D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S SVALUE=SVALUE_STVCD_$C(29)

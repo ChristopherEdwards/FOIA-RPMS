@@ -1,13 +1,24 @@
 AMHHS1 ; IHS/CMI/LAB - BH HEALTH SUMMARY COMPONENT PART 2 ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
  ;
  ;
 PROB ;EP
+ ;get date last reviewed and display
  X APCHSCKP Q:$D(APCHSQIT)  S X="******************** BH ACTIVE PROBLEMS ********************",AMHS="",$P(AMHS," ",80-1-$L(X)/2)="" W !,AMHS,X,AMHS,!
  S AMHTCVD="S:Y]"""" Y=+Y,Y=$E(Y,4,5)_""/""_$E(Y,6,7)_""/""_$E(Y,2,3)"
  S AMHTTAT="A" D COMMON
  X APCHSCKP Q:$D(APCHSQIT)  S X="******************** BH INACTIVE PROBLEMS ******************** ",AMHS="",$P(AMHS," ",80-1-$L(X)/2)="" W !,AMHS,X,AMHS,!
  S AMHTTAT="I" D COMMON
+ S AMHSX=$$LASTPLR^AMHAPI6(APCHSPAT,,DT,"A")
+ X APCHSCKP Q:$D(APCHSQIT)
+ W !,"BH Problem List Reviewed: ",?36,$$FMTE^XLFDT($P(AMHSX,U,1)) W ?51,"By: ",?54,$E($S($P(AMHSX,U,3):$P($G(^VA(200,$P(AMHSX,U,3),0)),U),1:""),1,25),!
+ S AMHSX=$$LASTPLU^AMHAPI6(APCHSPAT,,DT,"A")
+ X APCHSCKP Q:$D(APCHSQIT)
+ W "BH Problem List Updated: ",?36,$$FMTE^XLFDT($P(AMHSX,U,1)) W ?51,"By: ",?54,$E($S($P(AMHSX,U,3):$P($G(^VA(200,$P(AMHSX,U,3),0)),U),1:""),1,25),!
+ S AMHSX=$$LASTNAP^AMHAPI6(APCHSPAT,,DT,"A")
+ X APCHSCKP Q:$D(APCHSQIT)
+ ;I '$$ANYACTP^APCDAPRB(APCHSPAT) W !,"No Active Problems: ",?24,$$FMTE^XLFDT($P(AMHSX,U,1)) I $P(AMHSX,U,3) W ?39,"Documented By: ",?54,$E($P($G(^VA(200,$P(AMHSX,U,3),0)),U),1,25),!
+ W "No Active BH Problems Documented: ",?36,$$FMTE^XLFDT($P(AMHSX,U,1)) W ?51,"By: ",$E($S($P(AMHSX,U,3):$P($G(^VA(200,$P(AMHSX,U,3),0)),U),1:""),1,25),!
  K AMHTCVD,AMHTQ,Y,AMHHS,AMHPTP,AMHTTPT
  D PROBX
  Q

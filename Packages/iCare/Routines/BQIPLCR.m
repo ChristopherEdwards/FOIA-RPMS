@@ -1,10 +1,10 @@
 BQIPLCR ;PRXM/HC/ALA-Create Panel Functions ; 18 Oct 2005  3:45 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
 APTM(DFN) ;EP - Add patient record manually
- NEW DIC,DIE,BQIPTUP,IENS,DA
+ NEW DIC,DIE,BQIPTUP,IENS,DA,RESULT
  S DA(2)=OWNR,DA(1)=PLIEN
  S (X,DINUM)="`"_DFN
  S DIC="^BQICARE("_DA(2)_",1,"_DA(1)_",40,",DIC(0)="LN"
@@ -26,7 +26,7 @@ APTM(DFN) ;EP - Add patient record manually
  Q
  ;
 RPTM(DFN) ;EP - Remove patient record manually
- NEW DA,IENS,BQIPTUP
+ NEW DA,IENS,BQIPTUP,RESULT
  S DA(2)=OWNR,DA(1)=PLIEN
  S DA=DFN,IENS=$$IENS^DILF(.DA)
  S BQIPTUP(90505.04,IENS,.02)="R"
@@ -91,7 +91,7 @@ CNTP(OWNR,PLIEN) ;EP - Count patients and file the total
  D CNTP^BQIFLG(OWNR,PLIEN)
  Q
  ;
-CRPNL(DATA,OWNR,PLIEN,PLNM,PLDES,SRCNM,SRC,FSOURCE,AUFL,STATUS,ASSOC) ; Create/Update a new panel
+CRPNL(DATA,OWNR,PLIEN,PLNM,PLDES,SRCNM,SRC,FSOURCE,AUFL,STATUS,ASSOC,IPCPL,PCAT) ; Create/Update a new panel
  ; EP - BQI SET PANEL DEF
  ; Description
  ;   Adds/updates a panel using the user defined panel name and description.
@@ -109,6 +109,8 @@ CRPNL(DATA,OWNR,PLIEN,PLNM,PLDES,SRCNM,SRC,FSOURCE,AUFL,STATUS,ASSOC) ; Create/U
  ;   AUFL    - Autopopulate flag
  ;   STATUS  - I=in progress, T=temporary, @=remove status flag
  ;   ASSOC   - associated panel IEN (either existing to TEMP or vice versa), @=remove association
+ ;   IPCPL   - IPC Panel flag
+ ;   PCAT    - Category for folder grouping
  ; Output:
  ;   PLIEN   - panel IEN
  ;   PLID    - panel ID (owner and panel ien)
@@ -124,7 +126,7 @@ CRPNL(DATA,OWNR,PLIEN,PLNM,PLDES,SRCNM,SRC,FSOURCE,AUFL,STATUS,ASSOC) ; Create/U
  ;
  S AUFL=$G(AUFL),SRCNM=$G(SRCNM),SRC=$G(SRC),FSOURCE=$G(FSOURCE)
  S PLNM=$G(PLNM),PLDES=$G(PLDES),PLIEN=$G(PLIEN),STATUS=$G(STATUS)
- S ASSOC=$G(ASSOC)
+ S ASSOC=$G(ASSOC),IPCPL=$G(IPCPL),PCAT=$G(PCAT)
  ;
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPLCR D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
  ;
@@ -182,7 +184,7 @@ FILE ;File new panel
  Q
  ;
 UPD ;  Update panel definition values
- NEW DA,IENS,BQIPLUP,ERROR
+ NEW DA,IENS,BQIPLUP,ERROR,OPLNM
  S DA(1)=OWNR,DA=PLIEN
  S IENS=$$IENS^DILF(.DA)
  ;
@@ -231,6 +233,15 @@ UPD ;  Update panel definition values
  I AUFL]"" S BQIPLUP(90505.01,IENS,.06)=AUFL
  I STATUS]"" S BQIPLUP(90505.01,IENS,.13)=STATUS
  I ASSOC]"" S BQIPLUP(90505.01,IENS,.15)=ASSOC
+ I IPCPL'="" S BQIPLUP(90505.01,IENS,2.1)=$S(IPCPL="Y":1,1:IPCPL)
+ ;I IPCPL="" S BQIPLUP(90505.01,IENS,2.1)="@"
+ I PCAT'="" D
+ . I OWNR=DUZ S BQIPLUP(90505.01,IENS,2.2)=PCAT Q
+ . NEW DA,IENS
+ . S DA(2)=OWNR,DA(1)=PLIEN,DA=DUZ,IENS=$$IENS^DILF(.DA)
+ . S BQIPLUP(90505.03,IENS,.06)=PCAT
+ ;
+ ;I PCAT="" S BQIPLUP(90505.01,IENS,2.2)="@"
  D FILE^DIE("","BQIPLUP","ERROR")
  I $D(ERROR) S BMXSEC="Error encountered while filing panel." Q
  ;
@@ -318,6 +329,7 @@ CPY(OWNR,PLIEN,OPLIEN) ;EP - Copy a temporary panel
  ;Copy template information into new panels
 TMPL(OWNR,PLIEN) ;EP - Copy template information into new panel
  ;
+ N IEN
  I $G(OWNR)="" Q  ;Quit if no owner
  I $G(PLIEN)="" Q  ;Quit if no panel ien
  ;
@@ -339,6 +351,9 @@ TMPL(OWNR,PLIEN) ;EP - Copy template information into new panel
  . S DA(1)=OWNR,DA=IEN
  . S IENS=$$IENS^DILF(.DA)
  . S TMPLN=$$GET1^DIQ(90505.015,IENS,.01,"E")
+ . ;
+ . ;Only copy if set to default
+ . I $$GET1^DIQ(90505.015,IENS,.03,"I")'="Y" Q
  . ;
  . ;Get the code
  . S TMPLT=$$GET1^DIQ(90505.015,IENS,.02,"I")

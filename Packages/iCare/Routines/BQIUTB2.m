@@ -1,5 +1,5 @@
 BQIUTB2 ;PRXM/HC/ALA-Get Reminders List and Help ; 15 Feb 2007  5:35 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -91,7 +91,7 @@ UCL(DATA) ;EP - Get User Classes
 FLTR(DATA) ;EP - Get list of filters
  S II=0
  S @DATA@(II)="I00010VDEF_IEN^T00030VDEF_TYPE^T00030FILTER_NAME^T00030FILTER_CATEGORY^T00030FILTER_CLINICAL_GROUP"_$C(30)
- NEW IEN,VALUE,FN,FLN
+ NEW IEN,VALUE,FN,FLN,CGRP,CLN,CAT,NAME
  S IEN=0
  F  S IEN=$O(^BQI(90506.3,IEN)) Q:'IEN  D
  . ; If vfile entry is flagged 'Do not display or extract', quit
@@ -109,5 +109,55 @@ FLTR(DATA) ;EP - Get list of filters
  .. F  S CLN=$O(^BQI(90506.5,FLN,6,CLN)) Q:'CLN  D
  ... S CGRP=$P(^BQI(90506.5,FLN,6,CLN,0),U,2)
  ... S II=II+1,@DATA@(II)=VALUE_U_NAME_U_CAT_U_CGRP_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+IPCAT(DATA) ;EP - Get the table of IPC categories
+ NEW IEN,TEXT,CAT2,CAT1,SBN,SBN
+ S II=0
+ S @DATA@(II)="T00010IEN^T00030CAT1^T00030CAT2"_$C(30)
+ S IEN=0
+ F  S IEN=$O(^BQI(90506.8,IEN)) Q:'IEN  D
+ . I $P(^BQI(90506.8,IEN,0),U,3)'="C" Q
+ . S CAT1=$P(^BQI(90506.8,IEN,0),"^",1)
+ . S CAT2=$$GET1^DIQ(90506.8,IEN_",",.04,"E")
+ . I CAT2'="" S TEXT=CAT2,CAT2=CAT1
+ . I CAT2="" S TEXT=CAT1
+ . ; If inactive
+ . I $P(^BQI(90506.8,IEN,0),"^",2)=1 Q
+ . I '$D(^BQI(90506.8,"AC",IEN)) S II=II+1,@DATA@(II)=IEN_"^"_TEXT_"^"_CAT2_$C(30) Q
+ . S SBN=""
+ . F  S SBN=$O(^BQI(90506.8,"AC",IEN,SBN)) Q:SBN=""  D
+ .. I $P(^BQI(90506.8,SBN,0),"^",2)=1 Q
+ .. S CAT1=$P(^BQI(90506.8,SBN,0),"^",1)
+ .. S CAT2=$$GET1^DIQ(90506.8,SBN_",",.04,"E")
+ .. I CAT2'="" S TEXT=CAT2,CAT2=CAT1
+ .. I CAT2="" S TEXT=CAT1
+ .. S II=II+1,@DATA@(II)=SBN_"^"_TEXT_"^"_CAT2_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+CLIN(DATA) ;EP - Get the clinic codes
+ NEW IEN,TEXT
+ S II=0
+ S @DATA@(II)="T00010IEN^T00030"_$C(30)
+ S IEN=0
+ F  S IEN=$O(^DIC(40.7,IEN)) Q:'IEN  D
+ . S TEXT=$P(^DIC(40.7,IEN,0),"^",1)_" ("_$P(^(0),U,2)_")"
+ . S II=II+1,@DATA@(II)=IEN_"^"_TEXT_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+IPCL(DATA) ;EP - Get the IPC clinic codes
+ Q
+ ;
+DPCP(DATA) ;EP - Get DPCPs
+ NEW IEN,TEXT
+ S II=0
+ S @DATA@(II)="T00010IEN^T00030"_$C(30)
+ S IEN=""
+ F  S IEN=$O(^AUPNPAT("AK",IEN)) Q:IEN=""  D
+ . S TEXT=$P(^VA(200,IEN,0),U,1)
+ . S II=II+1,@DATA@(II)=IEN_"^"_TEXT_$C(30)
  S II=II+1,@DATA@(II)=$C(31)
  Q

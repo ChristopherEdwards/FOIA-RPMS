@@ -1,5 +1,5 @@
 BGP2D862 ; IHS/CMI/LAB - measure C ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 RHEUAR(P,BDATE,EDATE) ;EP
  ;must have osteoarthritis on pl prior to BDATE or have a pov prior to bdate

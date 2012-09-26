@@ -1,5 +1,5 @@
 BQITASK ;PRXM/HC/ALA-Scheduled Task Program ; 20 Dec 2006  4:56 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  Q
  ;
 EN ;EP - Entry point
@@ -46,6 +46,7 @@ DXC ;EP - Tag the diagnosis categories
  S DA=$O(^BQI(90508,0)) I 'DA Q
  S BQIUPD(90508,DA_",",4.01)=$$NOW^XLFDT()
  S BQIUPD(90508,DA_",",4.03)=1
+ S BQIUPD(90508,DA_",",24.04)=$G(ZTSK)
  D FILE^DIE("","BQIUPD","ERROR")
  K BQIUPD
  ;
@@ -95,6 +96,7 @@ DXC ;EP - Tag the diagnosis categories
  S DA=$O(^BQI(90508,0)) I 'DA Q
  S BQIUPD(90508,DA_",",4.02)=$$NOW^XLFDT()
  S BQIUPD(90508,DA_",",4.03)="@"
+ S BQIUPD(90508,DA_",",24.04)="@"
  D FILE^DIE("","BQIUPD","ERROR")
  K BQIUPD
  Q
@@ -122,6 +124,7 @@ GPR ;EP - Entry point to get GPRA values for all users
  S DA=$O(^BQI(90508,0)) I 'DA Q
  S BQIUPD(90508,DA_",",4.04)=$$NOW^XLFDT()
  S BQIUPD(90508,DA_",",4.06)=1
+ S BQIUPD(90508,DA_",",24.05)=$G(ZTSK)
  D FILE^DIE("","BQIUPD")
  K BQIUPD
  ;
@@ -141,8 +144,6 @@ GPR ;EP - Entry point to get GPRA values for all users
  ;  Initialize GPRA variables
  NEW VER,BQX,XN
  S VER=$$VERSION^XPDUTL("BGP")
- I VER<8.0 D
- . S X=0 F  S X=$O(@BQIINDG@("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
  ;
  I VER>7.0 D
  . S BQX=""
@@ -220,6 +221,7 @@ EXIT ; Set the DATE/TIME GPRA STOPPED
  S DA=$O(^BQI(90508,0)) I 'DA Q
  S BQIUPD(90508,DA_",",4.05)=$$NOW^XLFDT()
  S BQIUPD(90508,DA_",",4.06)="@"
+ S BQIUPD(90508,DA_",",24.05)="@"
  D FILE^DIE("","BQIUPD","ERROR")
  K BQIUPD
  Q

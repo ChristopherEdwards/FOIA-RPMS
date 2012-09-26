@@ -1,5 +1,5 @@
 BGP2DHE ; IHS/CMI/LAB - IHS GPRA 10 REPORT DRIVER ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 START ;
  W:$D(IOF) @IOF
@@ -125,7 +125,7 @@ SUM ;display summary of this report
  S BGPUF=$$GETDIR^BGP2UTL2()
  ;I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
  ;I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic/"
- I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2CL,XIT Q
+ I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2DU,XIT Q
  W:$D(IOF) @IOF
  W !,$$CTR("SUMMARY OF FY 11 HEDIS REPORT TO BE GENERATED")
  W !!,"The date ranges for this report are:"
@@ -142,7 +142,7 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPEXPT D
- .W !!,"A file will be created called BG12",$P(^AUTTLOC(DUZ(2),0),U,10)_".HE"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG121",$P(^AUTTLOC(DUZ(2),0),U,10)_".HE"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, this file may need to be manually",!,"sent to your Area Office.",!
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS

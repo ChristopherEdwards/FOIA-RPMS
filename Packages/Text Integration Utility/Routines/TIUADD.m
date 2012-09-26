@@ -1,9 +1,8 @@
-TIUADD ; SLC/JER - Enter/Edit an addendum online ;3/16/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,88,100**;Jun 20, 1997
+TIUADD ; SLC/JER - Enter/Edit an addendum online ;01-Aug-2011 11:16;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,88,100,112,1009**;Jun 20, 1997;Build 22
  ; 2/3: Update TEXTEDIT from TIUEDIT to TIUEDI4
- ;IHS/ITSC/LJF 02/21/2003 added code so user who cannot view a document, cannot add
+ ;IHS/ITSC/LJF 02/21/2003 added code so user who cannot view a document,cannot
  ;                           addendum to it either
- ;
 ADDENDUM(TIUDA,TIUADD,TIUCHNG,TIUNOASK) ; Control branching
  N TIUY,TIUEDIT,TIUDADD K ^TMP("TIUADD",$J)
  I '$D(TIUPRM0)!'$D(TIUPRM1) D SETPARM^TIULE
@@ -102,6 +101,7 @@ ADD(TIUDA,TIUCHNG) ;Add new addendum
  . W !!,"Adding ADDENDUM"
  . S DIE="^TIU(8925,"
  . S DR=".03////"_TIUDV_";.04////"_+$$ADDCLASS_";.05////3;.06////"_TIUDA
+ . S DR=DR_";1405////^S X=$P(TIUD14,U,5)"
  . D ^DIE
  . S TIUTYP=+$G(^TIU(8925,+DA,0)),TIUT0=$G(^TIU(8925.1,+TIUTYP,0))
  . S TIUTYP(1)="1^"_+TIUTYP_U_$P(TIUT0,U,3)_U

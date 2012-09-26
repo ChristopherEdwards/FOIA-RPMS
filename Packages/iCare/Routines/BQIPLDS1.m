@@ -1,5 +1,5 @@
 BQIPLDS1 ;PRXM/HC/ALA-Panel Description Utility (cont) ; 7 Apr 2008  4:28 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -268,9 +268,9 @@ PSVST(BQITYPE,BQIVST,BQITIME,BQIMPRM) ;EP - Assemble Primary/Secondary Provider 
  K BQIMPRM("TYPE",BQITYPE)
  ;
  ;Assemble Visit Check Description
- S STR=$S(BQITYPE="PRIM":"PRIMARY VISIT PROVIDER",1:"Primary/Secondary Visit provider")
- S STR=STR_" "_BQIVST_$S(BQIVST>1:" visits",1:" visit")
- S STR=STR_" in "_$S(BQITIME="T-24M":"2 YRS",BQITIME="T-12M":"1 YR",1:$P(BQITIME,"T-",2))
+ S STR=$S(BQITYPE="PRIM":"PRIMARY VISIT PROVIDER",1:"PRIMARY/SECONDARY VISIT PROVIDER")
+ S STR=STR_" "_BQIVST_$S(BQIVST>1:" VISITS",1:" VISIT")
+ S STR=STR_" IN "_$S(BQITIME="T-24M":"2 YRS",BQITIME="T-12M":"1 YR",1:$P(BQITIME,"T-",2))
  ;
  ;Save New Entry With Visit Check Description
  S BQIMPRM("TYPE",STR)=""

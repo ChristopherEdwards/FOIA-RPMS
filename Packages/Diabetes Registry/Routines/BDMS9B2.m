@@ -1,11 +1,12 @@
 BDMS9B2 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5**;JUN 14, 2007
  ;
  ;
 MORE ;EP
  S X="Immunizations:" D S(X,1)
  S X="Seasonal Flu vaccine since August 1st: "_$$FLU^BDMS9B3(BDMSDFN) D S(X)
  S X="Pneumovax ever:",$E(X,32)=$$PNEU^BDMS9B4(BDMSDFN) D S(X)
+ S X="Hepatitis B series complete (ever): "_$P($$HEP^BDMD413(BDMSDFN,DT),"  ",2,99) D S(X)
  S X="Td in past 10 yrs:",$E(X,32)=$$TD^BDMS9B3(BDMSDFN,(DT-100000)) D S(X)
  S Y=$$PPDS^BDMS9B4(BDMSDFN) I Y]"" S X="PPD Status:  "_Y D S(X)
  I Y="" S X="Last Documented TB Test:",$E(X,27)=$$PPD^BDMS9B4(BDMSDFN) D S(X)

@@ -1,7 +1,8 @@
-PSGMAR3 ;BIR/CML3-24 HOUR MAR(HEADER,BOT) ;09-Dec-2008 22:49;PLS
- ;;5.0; INPATIENT MEDICATIONS ;**8,20,85,1008**;16 DEC 97
+PSGMAR3 ;BIR/CML3-24 HOUR MAR(HEADER,BOT) ;02-Nov-2011 15:21;DU
+ ;;5.0; INPATIENT MEDICATIONS ;**8,20,85,1008,1013**;16 DEC 97;Build 33
  ;
  ;Modified - IHS/MSC/PLS - 12/09/08 - Line HEADER+3
+ ;Modified - IHS/MSC/MGH - 11/01/11 - Line HEADER+12
 HEADER ; pat info
  S:'$G(PSGXDT) PSGXDT=PSGDT
  S PSGFORM="VA FORM 10-"_$S(PST["C":"2970",1:"5568d")
@@ -12,7 +13,9 @@ HEADER ; pat info
  W !?6,"PID:  "_PSSN,?25,"DOB: "_BD_"  ("_PAGE_")",?62,"Height (cm): "_HT,?99,"Room-Bed: "_PRB
  W !?6,"Sex:  "_PSEX,?25," Dx: "_DX,?$S(TD:94,1:99),$S(TD:"Last Transfer: "_TD,1:"Admitted: "_AD)
  I '$D(PSGALG) W !,"Allergies:  See attached list of Allergies/Adverse Reactions"
- NEW PSGX S PSGX=0 D ATS(.PSGX) D:PSGX HEADER Q:PSGX
+ ;Updated patch 1013 to display all allergies on each page
+ ;NEW PSGX S PSGX=0 D ATS(.PSGX) D:PSGX HEADER Q:PSGX
+ NEW PSGX S PSGX=0 D ATS(.PSGX)
  ;* W !,?49,"Admin" W !?1,"Order",?8,"Start",?20,"Stop",?49,"Times" W ?59 F X=PSGMARSD:1 S:X>24 X=1 W $S(X<10:0_X,1:X)," " Q:X=+PSGMARFD
  W !,?49,"Admin"
  W:$G(PSJDIET)]"" ?57,"Diet: ",PSJDIET
@@ -32,13 +35,13 @@ ATS(PSGX) ;*** Print allergies and reactions.
  S PSGX=1
  W !!,"Verified Allergies:",!
  F X=0:0 S X=$O(PSGVALG(X)) Q:'X  W ?12,PSGVALG(X),!
- W !!,"Non-Verified Allergies:",!
+ W !,"Non-Verified Allergies:",!
  F X=0:0 S X=$O(PSGALG(X)) Q:'X  W ?12,PSGALG(X),!
- W !!,"Verified Adverse Reactions:",!
+ W !,"Verified Adverse Reactions:",!
  F X=0:0 S X=$O(PSGVADR(X)) Q:'X  W ?12,PSGVADR(X),!
- W !!,"Non-Verified Adverse Reactions:",!
+ W !,"Non-Verified Adverse Reactions:",!
  F X=0:0 S X=$O(PSGADR(X)) Q:'X  W ?12,PSGADR(X),!
- K PSGALG,PSGADR,PSGVALG,PSGVADR
+ ;K PSGALG,PSGADR,PSGVALG,PSGVADR
  Q
 TMSTR ;*** Set up the Admin times to print across on the the 24 hour MAR.
  W ?59 S MPH=PSGPLS\1,(HRS,TIM)="" F MPH=1:1:$L(TMSTR,"-") S HRS=HRS_$E($P(TMSTR,"-",MPH),1,2)_"-"

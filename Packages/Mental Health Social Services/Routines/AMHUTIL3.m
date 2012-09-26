@@ -1,5 +1,5 @@
 AMHUTIL3 ; IHS/CMI/LAB - provider functions ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
  ;IHS/CMI/LAB - added stage as output parameter
  ;
  ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
@@ -118,6 +118,12 @@ ADMDX ;EP
  S %="" D @F
  Q %
  ;
+OTHMETH ;EP - called from screenman
+ I $G(X)=$G(DDSOLD) Q  ;no change
+ I Y=-1 Q  ;no change
+ I X'=8 D PUT^DDSVAL(DIE,.DA,.02,"",,"I") Q
+ ;I X=8 D REQ^DDSUTL(2,1,1.4,1)
+ Q
 I ;
  S %=P Q
 E ;
@@ -132,7 +138,7 @@ J ;
 P ;
  S %=$P(^AMHRPA(Z,0),U,11) Q
 N ;
- S %=$P(^AMHRPA(Z,0),U,4) I %,$D(^AUTNPOV(%,0)) S %=$P(^AUTNPA(%,0),U)
+ S %=$P(^AMHRPA(Z,0),U,4)
  Q
 S ;stage
  S %=$P(^AMHRPA(Z,0),U,5) Q

@@ -1,5 +1,5 @@
 BTPWPTRG ;VNGT/HS/ALA-Event Worksheet Trigger ; 24 Nov 2009  11:13 AM
- ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;**2**;Feb 07, 2011;Build 52
  ;
  ;
 INIT(DATA,CMIEN) ;EP -- BTPW EVENT WORKSHEET INITIAL
@@ -119,6 +119,7 @@ LNK(TRIEN,FLD) ; EP - Get links for a tracked event
  I WHR'="" S LINK=PRCDT_$C(28)_"WH RECORD"_$C(28)_"W:"_WHR
  I RDR'="" S LINK=PRCDT_$C(28)_RCTP_$C(28)_"R:"_RDR
  I ACCN'="" D
+ . I $E(ACCN,1,2)="WH" Q
  . NEW RES
  . S RES=$P($G(^AUPNVLAB(RIEN,0)),U,4)
  . I RES="",$P($G(^AUPNVLAB(RIEN,11)),U,9)'="R" Q
@@ -139,6 +140,7 @@ QLNK(QRIEN,FLD) ; EP - Get links for a queued event
  I WHR'="" S LINK=PRCDT_$C(28)_"WH RECORD"_$C(28)_"W:"_WHR
  I RDR'="" S LINK=PRCDT_$C(28)_RCTP_$C(28)_"R:"_RDR
  I ACCN'="" D
+ . I $E(ACCN,1,2)="WH" Q
  . NEW RES
  . S RES=$P($G(^AUPNVLAB(RIEN,0)),U,4)
  . I RES="",$P($G(^AUPNVLAB(RIEN,11)),U,9)'="R" Q

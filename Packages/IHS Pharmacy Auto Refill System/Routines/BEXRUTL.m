@@ -1,8 +1,9 @@
-BEXRUTL ;CMI/BJI/DAY - Print reports [ 03/02/2010  11:14 AM ]
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4**;DEC 01, 2009
+BEXRUTL ;IHS/CMI/DAY - Print reports [ 03/02/2010  11:14 AM ] ; 12 Mar 2012  4:21 PM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4,5**;MAR 12, 2012;Build 1
  ;
  ;Report Utilities
  ;
+ ;IHS/CMI/DAY - 07/26/2011 - Patch 5 - Add Mail/Window field for CMOP
  Q
  ;
 PARSE ;EP - Parse BEX Transaction and lookup variables
@@ -40,6 +41,8 @@ PARSE ;EP - Parse BEX Transaction and lookup variables
  ;Set Result
  S BEXRESLT=""
  S BEXRESLT=$P(BEX(0),U,5)
+ ;Check for invalid result, like ",0"
+ I BEXRESLT?1P.E S BEXRESLT=""
  ;
  ;Set Renewal
  S BEXRENWL=""
@@ -77,6 +80,10 @@ PARSE ;EP - Parse BEX Transaction and lookup variables
  ..;Set Pharmacist
  ..S BEXRPH=""
  ..S BEXRPH=$P(^PSRX(BEXRXIEN,1,Y,0),U,5)
+ ..;
+ ..;IHS/CMI/DAY - Patch 5 - Add Mail/Window field for CMOP
+ ..;Get Mail or Window for CMOP
+ S BEXMAIL=$P(BEX(0),U,12)
  ;
  Q
  ;

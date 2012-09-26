@@ -1,5 +1,5 @@
 ABSP5B1D ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" Claims for 5.1 (DURR,CLINICAL,COMPOUND, and COUPON segments)
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42,43**;JUN 21, 2001
 DURRPPS ;EP CALLED FROM ABSP5B1 to set up DURR/PPS SEGMENT  (Repeating Fields Segment treated Differently)
  Q:$D(SUPRESSG("DURR/PPS"))
  N RECCNT,DUR
@@ -267,8 +267,8 @@ CLINICAL ;EP CALLED FROM ABSP5B1 to set up CLINICAL SEGMENT (Repeating Fields Se
 111CSET ;This isn't used for the 111 Field
  Q
  ;Diagnosis Code Count
-491GET I '$D(SPECIAL(491,DIAG)) S ABSP("X")=$G(ABSP("RX",MEDN,"DIAG",0,491))
- ELSE  X SPECIAL(491,DIAG)
+491GET I '$D(SPECIAL(491)) S ABSP("X")=$G(ABSP("RX",MEDN,"DIAG",0,491))
+ ELSE  X SPECIAL(491)
  Q
 491FMT S:ABSP("X")'="" ABSP("X")="VE"_$$NFF^ABSPECFM(ABSP("X"),1)
  Q

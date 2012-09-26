@@ -1,9 +1,11 @@
-PSORXRP1 ;BIR/SAB-rx speed reprint listman ;03/06/95
- ;;7.0;OUTPATIENT PHARMACY;**11,27,120**;DEC 1997
+PSORXRP1 ;BIR/SAB-rx speed reprint listman ;12-Oct-2011 15:09;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,120,1013**;DEC 1997;Build 33
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
+ ; Modified - IHS/MSC/PLS - 10/12/2011 - Line SEL+3
 SEL N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
  S RXCNT=0 K PSOFDR,DIR,DUOUT,DIRUT S DIR("A")="Select Orders by number",DIR(0)="LO^1:"_PSOCNT D ^DIR S LST=Y I $D(DTOUT)!($D(DUOUT)) K DIR,DIRUT,DTOUT,DUOUT S VALMBCK="" Q
  K DIR,DIRUT,DTOUT,PSOOELSE,PSOREPX I +LST S PSOOELSE=1 D
+ .I '$$ESIG^APSPFUNC S VALMBCK="" Q  ;IHS/MSC/PLS - 10/12/2011 - Added call to validate esig
  .D FULL^VALM1 K DIR S DIR("A")="Number of Copies? ",DIR(0)="N^1:99:0",DIR("?")="Enter the number of copies you want (1 TO 99)"
  .D ^DIR K DIR S:$D(DIRUT) PSOREPX=1 Q:$D(DIRUT)  S COPIES=Y
  .K DIR S DIR("A")="Print adhesive portion of label only? ",DIR(0)="Y",DIR("B")="N",DIR("?",1)="If entire label, including trailers are to print press RETURN for default."

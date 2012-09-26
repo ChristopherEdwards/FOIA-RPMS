@@ -1,5 +1,5 @@
-BGP2DPED ; IHS/CMI/LAB - IHS gpra print ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+BGP2DPED ; IHS/CMI/LAB - IHS gpra print ; 10 Apr 2012  2:46 PM
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 PRINT ;
@@ -164,7 +164,7 @@ C(X,X2,X3) ;
  .I BGPBLD=999999999 S BGPBLD=""
  .I BGPPRD=999999999 S BGPPRD=""
  S X="" D S(X,1,1)
- S X="Minimum Time Spent" D S(X,2,1) S X="All Provders (minutes)" D S(X,1,1)
+ S X="Minimum Time Spent" D S(X,2,1) S X="All Providers (minutes)" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  I '$G(BGPAREAA) D
  .S BGPCYD=$$V(1,BGPRPT,11,5)

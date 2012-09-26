@@ -1,5 +1,5 @@
 BQITDUTL ;APTIV/HC/ALA-Diagnostic Tag Utilities ; 25 Feb 2008  2:30 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 CMP(BQIDFN,BQITAG) ;EP - Compare data
  NEW BQIFN,BQIFAC,BQIDID,BQIRN,BQIREC,BQIRDT,BQIREX,BQIIEN,ADD
@@ -42,7 +42,7 @@ CHKR() ; Check for record
  ;
 NCR(BQIDFN,BQITAG) ;EP - If no criteria found, check if patient is already
  ;  in Permanent Tag file BQIREG
- NEW RIEN,HOK,THCFL,RSTAT,TGDATA
+ NEW RIEN,HOK,THCFL,RSTAT,TGDATA,OK,MESG,NPREG
  S THCFL=+$P(^BQI(90506.2,BQITAG,0),U,10)
  S RIEN=""
  F  S RIEN=$O(^BQIREG("C",BQIDFN,BQITAG,RIEN)) Q:RIEN=""  D
@@ -53,9 +53,17 @@ NCR(BQIDFN,BQITAG) ;EP - If no criteria found, check if patient is already
  . ; if the current status is 'Proposed', move the factors before setting the
  . ; current status to 'No Longer Valid' or 'Superseded'
  . I RSTAT="P" D MOV^BQITDPRC(BQIDFN,BQITAG)
+ . S MESG="SYSTEM UPDATE"
  . I 'THCFL D  Q
  .. I $$REG(BQIDFN,BQITAG)=1 Q
- .. D EN^BQITDPRC(.TGDATA,BQIDFN,BQITAG,"V",,"SYSTEM UPDATE",3) Q
+ .. ; Pregnant tag
+ .. I BQITAG=16 S OK=0 D  Q:OK
+ ... ; If 'accepted' and no evidence of delivery, miscarriage or abortion, quit
+ ... I RSTAT="A" D
+ .... S NPREG=$$EPG^BQITD13(BQIDFN)
+ .... I 'NPREG S OK=1 Q
+ .... I NPREG S MESG="NO LONGER PREGNANT"
+ .. D EN^BQITDPRC(.TGDATA,BQIDFN,BQITAG,"V",,MESG,3) Q
  . ;S LOK=$$LOW(BQIDFN,BQITAG)
  . S HOK=$$HIGH(BQIDFN,BQITAG)
  . ; If higher tag and it's active, superseded

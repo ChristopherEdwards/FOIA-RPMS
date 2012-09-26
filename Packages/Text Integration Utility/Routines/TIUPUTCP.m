@@ -1,5 +1,5 @@
-TIUPUTCP ; SLC/JER,RMO - CP Look-up Method ; 5-MAR-2001 09:20:09
- ;;1.0;TEXT INTEGRATION UTILITIES;**109**;Jun 20, 1997
+TIUPUTCP ; SLC/JER,RMO - CP Look-up Method ;4/18/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**109,113**;Jun 20, 1997
  ; This routine is a modified version of TIUPUTCN
 LOOKUP ; Look-up code used by router/filer
  ; Required: TIUSSN, TIUVDT, TIUCNNBR
@@ -9,6 +9,7 @@ LOOKUP ; Look-up code used by router/filer
  I TIUSSN["?" S Y=-1 G LOOKUPX
  S TIULOC=+$$ILOC(TIULOC)
  I '$D(^SC(+$G(TIULOC),0)) S Y=-1 G LOOKUPX
+ S TIUINST=+$$DIVISION^TIULC1(TIULOC)
  S TIUEDT=$$IDATE^TIULC(TIUVDT),TIULDT=$$FMADD^XLFDT(TIUEDT,1)
  I +TIUEDT'>0 S Y=-1 Q
  S TIUTYPE=$$WHATITLE(TIUTITLE)
@@ -50,8 +51,8 @@ ILOC(LOCATION) ; Get pointer to file 44
  N DIC,X,Y
  S DIC=44,DIC(0)="M",X=LOCATION D ^DIC
  Q Y
-CANEDIT(DA) ; Check whether or not document is signed
- Q $S(+$P($G(^TIU(8925,+DA,0)),U,5)<6:1,1:0)
+CANEDIT(DA) ; Check if document is not released yet
+ Q $S(+$P($G(^TIU(8925,+DA,0)),U,5)<4:1,1:0) ;TIU*1*131
  ;
 CHKCN(TIUCDA,DFN,TIUDA,TIUDNB) ;Check if Consult is associated with correct patient
  ;and document
@@ -127,6 +128,7 @@ STUFREC(DA,PARENT) ; Stuff fixed field data
  . S @FDARR@(1404)=$P($G(^TIU(8925,+PARENT,14)),U,4)
  . S @FDARR@(1201)=$$NOW^TIULC
  I '$G(TIUPLDA) S @FDARR@(1205)=$P($G(TIU("LOC")),U)
+ S @FDARR@(1212)=$P($G(TIU("INST")),U)
  S @FDARR@(1301)=$S($G(TIUDDT)]"":$$IDATE^TIULC($G(TIUDDT)),1:"")
  I @FDARR@(1301)'>0 S @FDARR@(1301)=$G(@FDARR@(.07))
  S @FDARR@(1303)="U"

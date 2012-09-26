@@ -1,5 +1,5 @@
 BGP2D721 ; IHS/CMI/LAB - measure AHR.A ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 IAHRA ;EP
@@ -310,8 +310,8 @@ WAR2 .;
  .S R=R_$$DATE^BGP2UTL($P($P(^AUPNVSIT(V,0),U),"."))_"("_S_")"
  I K>BGPNDAYS Q 1_U_"asp Contra total days WARFARIN: "_K
 ASAC2 ;now check for dx 459
- K BGPG S BGPG=$$LASTDXI^BGP2UTL1(P,"459.0",$$DOB^AUPNPAT(P),EDATE)
- I BGPG Q 1_U_"asa Contra 459.0 "_$$DATE^BGP2UTL($P(BGPG,U,3))
+ K BGPG S BGPG=$$LASTDX^BGP2UTL1(P,"BGP HEMORRHAGE DXS",$$DOB^AUPNPAT(P),EDATE)
+ I BGPG Q 1_U_"asa Contra "_$P(BGPG,U,2)_" "_$$DATE^BGP2UTL($P(BGPG,U,3))
  ;
  ;nmi in Refusal file for aspirin
  S BGPG=""

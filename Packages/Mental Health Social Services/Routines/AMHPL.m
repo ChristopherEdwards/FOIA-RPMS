@@ -1,6 +1,7 @@
 AMHPL ; IHS/CMI/LAB - PROBLEM LIST UPDATE ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
  ;; ;
+ ;
 GETLOC ;
  S AMHLOC="",DIC="^AUTTLOC(",DIC(0)="AEMQ",DIC("B")=$P(^DIC(4,$S($G(AMHLOC):AMHLOC,1:DUZ(2)),0),U),DIC("A")="Location where Problem List update occurred: " D ^DIC K DIC
  Q:Y<0
@@ -21,13 +22,15 @@ EOJ ;End of job cleanup
  K AMHPLPT,AMHLOC,AMHPAT,AMHDATE,AMHPIEN,AMHAF,AMHPRB,APCDOVRR,AMHLOOK,AMHPDFN
  Q
 EN1 ;EP - requires DFN to be set to patient
+ NEW AMHDATE,AMHLOC,AMHPLPT
+ I '$G(AMHR) W !!,"No record IEN" Q
  K ^TMP($J,"AMHPL")
  Q:'$G(DFN)
  S AMHPLPT=DFN
  Q:'$G(AMHPLPT)
  Q:'$D(^AUPNPAT(AMHPLPT))
  Q:'$D(^DPT(AMHPLPT))
- S Y=AMHPLPT D ^AUPNPAT
+ ;S Y=AMHPLPT D ^AUPNPAT
  D GETLOC
  I '$G(AMHLOC) D EXIT Q
  D GETDATE
@@ -62,7 +65,7 @@ GATHER ;EP
  ;**** set up the array that contains the list
  K ^TMP($J,"AMHPL")
  K AMHQUIT,AMHPL S AMHRCNT=0,AMHLINE=0
- I '$D(^AUPNPROB("AC",AMHPLPT)) S ^TMP($J,"AMHPL",1,0)="No Problems currently on file",^TMP($J,"AMHPL","IDX",1,1)="" S AMHRCNT=1 Q
+ I '$D(^AUPNPROB("AC",AMHPLPT)) S ^TMP($J,"AMHPL",1,0)="No Problems currently on file",^TMP($J,"AMHPL","IDX",1,1)="" S AMHLINE=1 Q
  S AMHAF="A" D GATHER1 S AMHAF="I" D GATHER1
  Q
 GATHER1 ;

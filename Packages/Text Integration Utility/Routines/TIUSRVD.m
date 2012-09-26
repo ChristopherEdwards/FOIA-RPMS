@@ -1,7 +1,6 @@
-TIUSRVD ; SLC/JER - RPC's for document definition ; 04/23/2003
- ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,22,47,103,100,115,164**;Jun 20, 1997
+TIUSRVD ; SLC/JER - RPC's for document definition ;01-Aug-2011 12:08;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,22,47,103,100,115,164,112,1009**;Jun 20, 1997;Build 22
  ;IHS/ITSC/LJF 12/16/2003 CIA/DKM - TIU ignores alternate setting of TIUY
- ;
 NOTES(TIUY) ; Get list of PN Titles
  D LIST(.TIUY,3)
  Q
@@ -69,7 +68,6 @@ BLRSHELL(TIUY,TITLE,DFN,VSTR) ; Shell for boilerplate RPC
 BLRPLT(TIUY,TITLE,DFN,VSTR,ROOT) ; Load/Execute the Boilerplate for TITLE
  ;                                 or ROOT
  N TIU,TIUI,TIUJ,TIUK,TIUL,VADM,VAIN,VA,VAERR S TIUI=0
- ;
  ;IHS/ITSC/LJF 12/16/2003 per CIA
  ;S:'$D(TIUY) TIUY=$NA(^TMP("TIUBOIL",$J))
  S TIUY=$NA(^TMP("TIUBOIL",$J))
@@ -116,7 +114,7 @@ REPLACE(LINE,X,TIUI) ; Replace the TIUIth object in LINE w/X
 INSMULT(LINE,TARGET,TIULCNT) ; Mult-valued results
  N TIUPC,TIULGTH
  ; TIU*1*164 ;
- S TIULGTH=73 ; 2 replacements of 73 below for TIULGTH
+ S TIULGTH=80 ; 2 replacements of 73 below for TIULGTH
  S:$$BROKER^XWBLIB TIULGTH=80
  F TIUPC=2:2:$L(LINE,"~@") D
  . N TIUI,TIULINE,TIUX,TIUSRC,TIUSCNT,TIUTAIL
@@ -145,6 +143,13 @@ LNGCNSLT(Y,FROM,DIR) ; Handle long list of titles for CONSULTS
  N CLASS S CLASS=+$$CLASS^TIUCNSLT Q:+CLASS'>0
  D LONGLIST(.Y,CLASS,$G(FROM),$G(DIR,1))
  Q
+LNGSURG(Y,FROM,DIR,CLNAME) ; long list SURGICAL REPORT titles
+ ; CLNAME = "SURGICAL REPORTS" or "PROCEDURE REPORTS (NON-O.R.)"
+ ;           depending on context
+ N CLASS S CLNAME=$S($G(CLNAME)]"":CLNAME,1:"OPERATION REPORTS")
+ S CLASS=$$CLASS^TIUSROI(CLNAME) Q:+CLASS'>0
+ D LONGLIST(.Y,CLASS,$G(FROM),$G(DIR,1))
+ Q
 LONGLIST(Y,CLASS,FROM,DIR,IDNOTE) ; long list of titles for a class
  ; .Y=returned list, CLASS=ptr to class in 8925.1, FROM=text to $O from,
  ; DIR=$O direction, IDNOTE=flag to indicate selection for ID Entry
@@ -158,4 +163,12 @@ LONGLIST(Y,CLASS,FROM,DIR,IDNOTE) ; long list of titles for a class
  Q
 CNSLCLAS(Y) ; RPC to identify class CONSULTS
  S Y=$$CLASS^TIUCNSLT
+ Q
+SURGCLAS(Y,CLNAME) ; RPC to identify class
+ ; CLNAME = "SURGICAL REPORTS" or "PROCEDURE REPORTS (NON-O.R.)"
+ S CLNAME=$G(CLNAME,"SURGICAL REPORTS")
+ S Y=$$CLASS^TIUSROI(CLNAME)
+ Q
+CANLINK(Y,TIUTTL) ; Wrap call to $$CANLINK^TIULP
+ S Y=$$CANLINK^TIULP(TIUTTL)
  Q

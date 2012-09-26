@@ -1,9 +1,11 @@
-PSGMAR0 ;BIR/CML3-GATHERS INFO FOR 24 HOUR MAR ;14 Oct 98 / 4:28 PM
- ;;5.0; INPATIENT MEDICATIONS ;**8,15,20**;16 DEC 97
+PSGMAR0 ;BIR/CML3-GATHERS INFO FOR 24 HOUR MAR ;11-Nov-2011 14:10;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**8,15,20,1013**;16 DEC 97;Build 33
  ;
  ; Reference to ^PS(55 supported by DBIA #2191.
  ; Reference to ^PS(59.7 supported by DBIA #2181.
  ; Reference to CUR^FHORD7 supported by DBIA #2019.
+ ;
+ ; Modified - IHS/MSC/PLS - 11/11/2011 - Line ORSET+3
 ENQ ;
  S PSGMSORT=$P($G(^PS(59.7,1,26)),U,4)
  K ^TMP($J) D NOW^%DTC S PSGDT=%,PSGMARWN="",PSJACNWP=1 D @("G"_PSGSS) I $D(^TMP($J))<10 U IO W:$Y @IOF W !!,"(No data found or 24 hour MAR run.)"
@@ -43,11 +45,11 @@ GPI ; get patient info
  D:$S(PSGSS["P":$D(^TMP($J,PPN)),1:$D(^TMP($J,TM,PSGMARWN,SUB1,SUB2))) SPN
  Q
  ;
-2 ;Loop thru UD orders       
+2 ;Loop thru UD orders
  F PST="C","O","OC","P","R" F PSGMARED=PSGPLS-.0001:0 S PSGMARED=$O(^PS(55,PSGP,5,"AU",PST,PSGMARED)) Q:'PSGMARED  F PSGMARO=0:0 S PSGMARO=$O(^PS(55,PSGP,5,"AU",PST,PSGMARED,PSGMARO)) Q:'PSGMARO  D ORSET
  S PST="S" D ^PSGMIV
  Q
-3 ;Loop thru IV orders that are Piggy back and Syringes types. 
+3 ;Loop thru IV orders that are Piggy back and Syringes types.
  F PST="P","S" D ^PSGMIV
  Q
 4 ;Loop thru IV orders(Additives).
@@ -64,7 +66,8 @@ GPI ; get patient info
 ORSET ; order record set
  S PSGMFOR="",ND2=$G(^PS(55,PSGP,5,PSGMARO,2)),(SD,X)=$P($P(ND2,"^",2),".") Q:X>PSGPLF  S FD=$P($P(ND2,"^",4),"."),T=$P(ND2,"^",6)
  NEW MARX D DRGDISP^PSJLMUT1(PSGP,+PSGMARO_"U",20,0,.MARX,1)
- S DRG=MARX(1)_U_PSGMARO_"U",QST=$S(PST="C"!(PST="O"):PST,PST="OC":"OA",PST="P":"OP",$P(ND2,"^")["PRN":"OR",1:"CR")
+ ;IHS/MSC/MGH patch 1013 uppercase sort for MAR
+ S DRG=$$UP^XLFSTR(MARX(1))_U_PSGMARO_"U",QST=$S(PST="C"!(PST="O"):PST,PST="OC":"OA",PST="P":"OP",$P(ND2,"^")["PRN":"OR",1:"CR")
  S X="" I "OB"]QST,$P(ND2,U)'["@",$P(ND2,U,2)'>PSGPLS,$P(ND2,U,4)'<PSGPLF,$P(ND2,U,5),$P(ND2,U,6)<1441,$P(ND2,U,6)'="D" S X=$P(ND2,U,5),PSGPLC=1
  E  I "OB"]QST S PSGPLO=PSGMARO K PSGMAR D ^PSGPL0 S (Q,X)="" F QX=0:0 S Q=$O(PSGMAR(Q)) Q:Q=""  S X=X_$E("0",2-$L(Q))_Q_"-"
  S X=$S(QST["C"!(QST["O"):$P(ND2,"^",5),1:"")_"^"_X

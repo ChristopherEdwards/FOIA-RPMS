@@ -1,5 +1,5 @@
-BGP2ULF ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 27 May 2012 4:26 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+BGP2ULF ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 27 May 2012 4:26 PM ; 09 Apr 2012  3:29 PM
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -16,10 +16,10 @@ DIR ;
 FILENAME ;
  W !!
  S BGPFILE=""
- S DIR(0)="FO^2:30",DIR("A")="Enter filename w /ext (i.e. BG12101201.5)" K DA D ^DIR K DIR
+ S DIR(0)="FO^2:30",DIR("A")="Enter filename w /ext (i.e. BG121101201.5)" K DA D ^DIR K DIR
  G:$D(DIRUT) DIR
  I Y="" G DIR
- I $E($$UP^XLFSTR(Y),1,4)'="BG12" W !!,"Filename must begin with BG12" G FILENAME
+ I $E($$UP^XLFSTR(Y),1,5)'="BG121" W !!,"Filename must begin with BG121" G FILENAME
  S BGPFILE=Y
  W !,"Directory=",BGPDIR,"  ","File=",BGPFILE
  D READF

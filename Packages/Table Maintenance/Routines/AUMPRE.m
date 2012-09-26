@@ -1,5 +1,5 @@
-AUMPRE ;IHS/OIT/NKD - AUM v 10.3 pre-init 11/29/2011 ;
- ;;12.0;TABLE MAINTENACE;**1**;SEP 27,2011;Build 1
+AUMPRE ;IHS/OIT/NKD - AUM v 10.3 pre-init 03/01/2012 ;
+ ;;12.0;TABLE MAINTENACE;**2**;SEP 27,2011;Build 1
  ;
  ; This is the pre-init for AUM 10.1. It strips all control chars
  ; out of multiple globals prior to the install of the patch.

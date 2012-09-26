@@ -1,5 +1,5 @@
 BGPMUUT5 ;IHS/MSC/MGH - Find lab results for date range ;16-Dec-11 13:21;MMT
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  Q
 LAB(DATA,DFN,TAX,BDATE,EDATE,FLG) ; EP
  ;This function is designed to see if the patient has any labs

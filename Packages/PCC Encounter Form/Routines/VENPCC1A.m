@@ -1,5 +1,5 @@
 VENPCC1A ; IHS/OIT/GIS - ENCOUNTER FORM DATA MINING ;
- ;;2.6;PCC+;**1,3**;OCT 26, 2011;Build 20
+ ;;2.6;PCC+;**1,3**;APR 03, 2012;Build 24
  ; Patched for BCMA barcode string by GIS/OIT.  Sting len
  ;
  ;

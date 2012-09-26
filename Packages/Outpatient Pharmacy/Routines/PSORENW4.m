@@ -1,5 +1,5 @@
-PSORENW4 ;BIR/SAB - rx speed renew ;09-Dec-2010 09:15;SM
- ;;7.0;OUTPATIENT PHARMACY;**11,23,27,32,37,64,46,75,71,100,130,117,152,1004,1005,1009**;DEC 1997
+PSORENW4 ;BIR/SAB - rx speed renew ;05-Oct-2011 10:17;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,23,27,32,37,64,46,75,71,100,130,117,152,1004,1005,1009**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External references L, UL, PSOL, and PSOUL^PSSLOCK supported by DBIA 2789
@@ -7,6 +7,7 @@ PSORENW4 ;BIR/SAB - rx speed renew ;09-Dec-2010 09:15;SM
  ;
  ; Modified - IHS/CIA/PLS - 12/26/05 - Line PROCESS+18
  ;            IHS/MSC/PLS - 12/09/10 - Added three lines at PROCESS+35
+ ;                          12/05/11 - Line PROCESS+1,PROCESS+3
 SEL I $P(PSOPAR,"^",4)=0 S VALMSG="Renewing is NOT Allowed. Check Site Parameters!",VALMBCK="" Q
  N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!",VALMBCK="" Q
  S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY S VALMSG=$S($P($G(PSOPLCK),"^",2)'="":$P($G(PSOPLCK),"^",2)_" is working on this patient.",1:"Another person is entering orders for this patient.") K PSOPLCK S VALMBCK="" Q
@@ -22,7 +23,11 @@ SELQ K PSORNSPD,RTE,DRET,PRC,PHI S X=PSODFN_";DPT(" D ULK^ORX2,UL^PSSLOCK(PSODFN
  Q
  ;
 PROCESS D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) W $C(7),!!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing Rx "_$P(^PSRX($P(PSOLST(ORN),"^",2),0),"^")),! K DIR,PSOMSG D PAUSE^VALM1 Q
+ N APSPDRG
  K RET,DRET,PRC,PHI S PSORENW("OIRXN")=$P(PSOLST(ORN),"^",2),PSOFROM="NEW"
+ ;IHS/MSC/MGH Text for REM medication. Patch 1013
+ S APSPDRG=$P($G(^PSRX(PSORENW("OIRXN"),0)),"^",6)
+ I +APSPDRG D REMMSG^APSPFUNC(APSPDRG)
  S PSORENW("RX0")=^PSRX(PSORENW("OIRXN"),0),PSORENW("RX2")=^(2),PSORENW("RX3")=^(3),PSORENW("STA")=^("STA"),PSORENW("TN")=$G(^("TN")),SIGOK=$P($G(^PSRX(PSORENW("OIRXN"),"SIG")),"^",2)
  I SIGOK F I=0:0 S I=$O(^PSRX(PSORENW("OIRXN"),"SIG1",I)) Q:'I  S SIG(I)=^PSRX(PSORENW("OIRXN"),"SIG1",I,0)
  S PSOIBOLD=$G(PSORENW("OIRXN")) D SETIB^PSORENW1

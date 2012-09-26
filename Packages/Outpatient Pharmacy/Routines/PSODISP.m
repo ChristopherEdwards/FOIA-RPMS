@@ -1,5 +1,5 @@
-PSODISP ;BIR/SAB-MANUAL BARCODE RELEASE FUNCTION ;15-Feb-2008 10:54;SM
- ;;7.0;OUTPATIENT PHARMACY;**15,71,131,1006**;DEC 1997
+PSODISP ;BIR/SAB-MANUAL BARCODE RELEASE FUNCTION ;07-Feb-2012 11:35;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**15,71,131,1006,1013**;DEC 1997;Build 33
  ;Reference to $$SERV^IBARX1 supported by DBIA 2245
  ;Reference to ^PSD(58.8 supported by DBIA 1036
  ;Reference to ^PS(55 supported by DBIA 2228
@@ -8,6 +8,7 @@ PSODISP ;BIR/SAB-MANUAL BARCODE RELEASE FUNCTION ;15-Feb-2008 10:54;SM
  ;Reference to ^XTMP("PSA" supported by DBIA 1036
  ;Reference to ^PS(59.7 supported by DBIA 694
  ; Modified - IHS/CIA/PLS - 08/26/04 - BATCH+11
+ ;            IHS/MSC/PLS - 10/13/11 - UPDATE+3
 AC K CX,PSODA,PSODT,PSRH,DA,DR,DIE,X,X1,X2,Y,RXP,CX,PX,REC,DIR,YDT,REC,RDUZ,DIRUT,PSOCPN,PSOCPRX,YY,QDRUG,QTY,TYPE,XTYPE,DUOUT
  K ^UTILITY($J,"PSOPCE") S PSOPCECT=1
  I '$D(PSOPAR) D ^PSOLSET I '$D(PSOPAR) W $C(7),!!,?5,"Site Parameters must be defined to use the Release option!",! G EXIT
@@ -67,6 +68,12 @@ REF ;release refills and partials
 UPDATE I $G(ISUF) W $C(7),!!?7,"Prescription "_$P(^PSRX(RXP,0),"^")_" - Original Fill on Suspense !",!,$C(7) Q
  ; I +$G(^PSRX(RXP,"IB")) S PSOCPRX=$P(^PSRX(RXP,0),"^") D CP^PSOCP
  S PSOCPRX=$P(^PSRX(RXP,0),"^") D CP^PSOCP
+ ;IHS/MSC/PLS - 10/13/2011
+ I 1 D
+ .N APSPEXPD,DIE,DA,DR
+ .S APSPEXPD=$$EXPDT^APSPAUTO(RXP)
+ .I APSPEXPD,APSPEXPD<$P($G(^PSRX(RXP,2)),U,6) D
+ ..S DIE="^PSRX(",DA=RXP,DR="26///"_APSPEXPD D ^DIE
  W !?7,"Prescription Number "_$P(^PSRX(RXP,0),"^")_" Released"
  ;initialize bingo board variables
  I $G(LBLP),$P(^PSRX(RXP,0),"^",11)["W" S BINGRO="W",BINGNAM=$P(^PSRX(RXP,0),"^",2),BINGDIV=$P(^PSRX(RXP,2),"^",9)

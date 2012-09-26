@@ -1,5 +1,5 @@
 BGP2EOH ; IHS/CMI/LAB - cover page for ELDER 02 Jul 2010 9:27 AM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  I $G(BGPAREAA) D AREACP Q
@@ -21,7 +21,7 @@ BGP2EOH ; IHS/CMI/LAB - cover page for ELDER 02 Jul 2010 9:27 AM ;
  D ENDTIME
  D EOHDR
  I $G(BGPEXPT) D
- .D W("A file will be created called BG12"_$P(^AUTTLOC(DUZ(2),0),U,10)_".EO"_BGPRPT_".",0,2,BGPPTYPE)
+ .D W("A file will be created called BG121"_$P(^AUTTLOC(DUZ(2),0),U,10)_".EO"_BGPRPT_".",0,2,BGPPTYPE)
  .D W("It will reside in the public/export directory.",0,1,BGPPTYPE)
  .D W("This file should be sent to your Area Office.",0,1,BGPPTYPE)
  .;D W("",0,1,BGPPTYPE)

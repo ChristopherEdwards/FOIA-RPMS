@@ -1,8 +1,7 @@
-TIUEDITR ; SLC/JER - Enter/Edit a Document for Transcriber ;1/21/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,41,48,100,109**;Jun 20, 1997
+TIUEDITR ; SLC/JER - Enter/Edit a Document for Transcriber ;01-Aug-2011 11:29;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,41,48,100,109,112,1009**;Jun 20, 1997;Build 22
  ; 2/2: Update DIE from TIUEDIT to TIUEDI4
  ;IHS/ITSC/LJF 02/26/2003 added code to edit visit and update V Note file
- ;
 MAIN(TIUCLASS) ; Control Branching
  N TIUPREF,TIUOUT,TIUAUTH
  ; --- Get user's preferences ---
@@ -23,6 +22,8 @@ MAIN(TIUCLASS) ; Control Branching
  . D DOCSPICK^TIULA2(.TIUTYP,TIUCLASS,"1A","LAST","","$P(^TIU(8925.1,+Y,0),U,7)'=13,+$$CANENTR^TIULP(+Y)")
  . I +$G(TIUTYP)'>0 S TIUOUT=1 Q
  . S TIUTYP=+$P($G(TIUTYP(1)),U,2)
+ . ; --- Re-direct surgical reports ---
+ . I +$$ISA^TIULX(TIUTYP,+$$CLASS^TIUSROI("SURGICAL REPORTS")) D ENTEROP^TIUSROI(DFN,TIUTYP) Q
  . ; --- Initialize document parameters ---
  . D DOCPRM^TIULC1(TIUTYP,.TIUDPRM)
  . ; --- If an ENTRY ACTION exists, execute it ---
@@ -69,7 +70,7 @@ MAIN(TIUCLASS) ; Control Branching
  . . E  D QUE^TIUPXAP1
  . . ;
  . . ; --- Link PN to V Note file ---
- . . D VNOTE^BTIUPCC(DA,+TIU("VISIT"),DFN,"ADD") ;IHS/ITSC/LJF 02/26/2003 call to update V Note file
+ . . D VNOTE^BTIUPCC(DA,+TIU("VISIT"),DFN,"ADD") ;IHS/ITSC/LJF 02/26/2003
  . . ;
  . . ; --- Execute COMMIT procedure ---
  . . S TIUCMMTX=$$COMMIT^TIULC1(+$G(^TIU(8925,+DA,0)))

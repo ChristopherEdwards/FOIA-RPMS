@@ -1,5 +1,5 @@
 BGP2DHW ; IHS/CMI/LAB - NATL COMP EXPORT 13 Nov 2006 12:31 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -16,7 +16,7 @@ INTRO ;
  ;
  D TAXCHK^BGP2XTCN
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,XIT Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,XIT Q
 TP ;get time period
  D XIT
  S BGPRTYPE=1,BGPYRPTH=""
@@ -100,7 +100,7 @@ EXPORT ;export to area or not?
 EISSEX ;
  S BGPEXCEL=""
  S BGPUF=$$GETDIR^BGP2UTL2()
- I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2CL,XIT Q
+ I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2DU,XIT Q
  ;
 CHW ;
  S BGPYWCHW=2 D  I BGPONEF="" G COMM

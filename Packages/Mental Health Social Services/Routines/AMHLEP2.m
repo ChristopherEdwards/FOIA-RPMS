@@ -1,5 +1,5 @@
 AMHLEP2 ; IHS/CMI/LAB - ADD NEW BH ACTIVITY RECORDS 06 Nov 2009 9:21 AM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2**;JUN 18, 2010;Build 23
  ;
 ADD ;EP
  S APCDOVRR=""
@@ -168,9 +168,9 @@ OTHER ;EP - collect other data if patient related
 OTHERX D FULL^VALM1
  W @IOF,!!!?20,"*******  OTHER INFORMATION  *******",!!
  D RMENU
- S DIR("B")=9,DIR(0)="NO^1:9",DIR("A")="Choose one of the above" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ S DIR("B")=10,DIR(0)="NO^1:10",DIR("A")="Choose one of the above" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  Q:$D(DIRUT)
- Q:Y=9
+ Q:Y=10
  S AMHSELE=+Y D OTHER1
  G OTHER
 OTHER1 ;
@@ -220,7 +220,8 @@ RMENU ;EP
  W !?5,"6). Print an Encounter Form"
  W !?5,"7). Add/Update/Print Intake Document"
  W !?5,"8). Add/Update Suicide Forms"
- W !,?5,"9). None of the Above (Quit)"
+ W !?5,"9). Problem List Update"
+ W !,?5,"10). None of the Above (Quit)"
  Q
 HEADER ;
  W:$D(IOF) @IOF
@@ -269,4 +270,25 @@ EXIT ;CLEAN UP AND EXIT
  Q
 8 ;suicide forms
  I $G(AMHR) D EN^AMHLESF
+ Q
+9 ;
+ I '$G(AMHR) W !!,"Visit not identified." Q
+ D START^AMHBPL(AMHR)
+ Q
+PL ;EP - called from PDE Problem list protocol
+ D FULL^VALM1
+ W !,"Problem List updates must be attached to a visit. If you are updating the "
+ W !,"Problem List in the context of a patient visit select the appropriate existing"
+ W !,"visit and then update the Problem List. If you are updating the Problem List "
+ W !,"outside of the context of a patient visit, first create a chart review visit "
+ W !,"and then update the Problem List."
+ D ^AMHLEIN
+ S AMHPATCE=1
+ D GETDATE^AMHLE
+ I $G(AMHDATE)="" D EXIT Q
+ S AMHPAT=DFN,AMHLOC=""
+ D EN^AMHRLKUP
+ I '$G(AMHR) W !!,"No visits to select on that date." D PAUSE,EXIT Q
+ D START^AMHBPL(AMHR)
+ D EXIT
  Q

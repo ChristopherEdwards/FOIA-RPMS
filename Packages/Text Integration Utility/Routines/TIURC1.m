@@ -1,9 +1,8 @@
-TIURC1 ; SLC/JER - Additional Review screen actions ;3/16/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**100**;Jun 20, 1997
+TIURC1 ; SLC/JER - Additional Review screen actions ;01-Aug-2011 12:05;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**100,113,1009**;Jun 20, 1997;Build 22
  ;9/28 split TIURC, with COPY to end going here to new rtn TIURC1
  ;IHS/ITSC/LJF 7/10/2003 made mod to ORU1 call until OR v3 installed
  ;             8/22/2003 bypass VA rebuild if called by BTIURPT
- ;
 COPY ; Copy
  N DA,DIE,DR,TIU,TIUCHNG,TIUDATA,TIUI,TIUY,Y,DIROUT
  N TIUVIEW,TIULST,TIUNREC,TIUDAARY,OLDNREC
@@ -34,8 +33,8 @@ COPY ; Copy
  ;I $G(TIULST)]"" S VALMSG="** Item"_$S($L(TIULST,",")>1:"s ",$L(TIULST,"-")>1:"s ",1:" ")_TIULST_" Copied; See end of list **"
  ;E  S VALMSG="** No changes made... **"
  S TIUCHNG("REFRESH")=1
- ;D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY               ;IHS/ITSC/LJF 08/22/2003
- D:'$G(BTIURPT) UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY   ;IHS/ITSC/LJF 08/22/2003 don't rebuild if called by BTIURPT
+ ;D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY
+ D:'$G(BTIURPT) UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY   ;IHS/ITSC/LJF
  S VALMBCK="R"
  D VMSG^TIURS1($G(TIULST),.TIUDAARY,"copied")
  Q
@@ -72,8 +71,8 @@ COPY1 ; Copy a document
  S TIUTYP(1)="1^"_+TIUTYP_U_TIUTNM_U
  W !!,"Please Choose One or More Patients for whom the document should be copied:",!
  F  D  Q:+TIUPOP
- . ;D PATIENT^ORU1(.TIUPAT,1)    ;IHS/ITSC/LJF 7/10/2003
- . D PATIENT^ORU1(.TIUPAT)       ;IHS/ITSC/LJF 7/10/2003 extra subsrcipt requires OR v3
+ . ;D PATIENT^ORU1(.TIUPAT,1)
+ . D PATIENT^ORU1(.TIUPAT)       ;IHS/ITSC/LJF 7/10/2003 extra subsrcipt
  . I +TIUPAT'>0 D  Q
  . . W !,$C(7),"No patient(s) selected..."
  . . I $$READ^TIUU("EA","Press RETURN to continue...") W !
@@ -134,7 +133,7 @@ COPY12(DA,TIUD0,TIUD12,TIU) ; Copy 12-node
  S DR="1201////"_$$NOW^TIULC_";1202////"_+$G(DUZ)_";1203////"_$P(TIUD12,U,3)_";1204////"_$G(DUZ)_";1205////"_$P($G(TIU("LOC")),U)
  S DR=DR_";1206////"_$P(TIUD12,U,6)_";1207////"_$P(TIUD12,U,7)_";1209////"_$P(TIUD12,U,9)
  I +$$REQCOSIG^TIULP(+TIUD0,DA,+$G(DUZ)) S DR=DR_";1208////"_$P(TIUD12,U,8)
- S DR=DR_";1210////"_$P(TIUD12,U,10)_";1211////"_+$G(TIU("VLOC"))
+ S DR=DR_";1210////"_$P(TIUD12,U,10)_";1211////"_+$G(TIU("VLOC"))_";1212////"_$P($G(TIU("INST")),U)
  D ^DIE
  Q
 COPY13(DA,TIUD13,TIU) ; Copy 13-node

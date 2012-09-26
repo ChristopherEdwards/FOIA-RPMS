@@ -1,5 +1,5 @@
 BGP2DU ; IHS/CMI/LAB - gpra utility calls ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 WH(P,BDATE,EDATE,T,F) ;EP
@@ -189,6 +189,10 @@ PRINT W:$D(IOF) @IOF
 SITE G XIT:'$D(DUZ(2)) G:'DUZ(2) XIT S BGP("SITE")=$P(^DIC(4,DUZ(2),0),"^") W !!?80-$L(BGP("SITE"))\2,BGP("SITE")
 XIT ;
  K BGPJ,BGPX,BGPTEXT,BGPLINE,BGP("SITE"),BGP("VERSION")
+ Q
+PAUSE ;EP - pause
+ K DIR,DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR("A")="Press Enter to Continue",DIR(0)="E" D ^DIR KILL DIR
  Q
 TEXT ;
  ;;*******************************************************

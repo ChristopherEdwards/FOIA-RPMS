@@ -1,5 +1,5 @@
 BQITASK1 ;PRXM/HC/ALA-Reminders Update Task ; 24 May 2007  1:10 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 EN ;EP - Entry point
  ;NEW UID
@@ -11,6 +11,7 @@ REM ;EP - Redo reminders
  S DA=$O(^BQI(90508,0)) I 'DA Q
  S BQIUPD(90508,DA_",",4.07)=$$NOW^XLFDT()
  S BQIUPD(90508,DA_",",4.09)=1
+ S BQIUPD(90508,DA_",",24.06)=$G(ZTSK)
  D FILE^DIE("","BQIUPD","ERROR")
  K BQIUPD
  ;
@@ -19,8 +20,8 @@ REM ;EP - Redo reminders
  ;
  D DZ
  ;
- S BQDFN=0
- F  S BQDFN=$O(^AUPNPAT(BQDFN)) Q:'BQDFN  D
+ S BQDFN=0,ERRCNT=0
+ F  S BQDFN=$O(^AUPNPAT(BQDFN)) Q:'BQDFN  D  Q:ERRCNT>100
  . NEW BQIDATA
  . S BQIDATA=$NA(^BQIPAT)
  . K @BQIDATA@(BQDFN,40)
@@ -34,16 +35,18 @@ REM ;EP - Redo reminders
  ;
  NEW DA
  S DA=$O(^BQI(90508,0)) I 'DA Q
- S BQIUPD(90508,DA_",",4.08)=$$NOW^XLFDT()
+ I ERRCNT'>100 S BQIUPD(90508,DA_",",4.08)=$$NOW^XLFDT()
  S BQIUPD(90508,DA_",",4.09)="@"
+ S BQIUPD(90508,DA_",",24.06)="@"
  D FILE^DIE("","BQIUPD","ERROR")
- K BQIUPD
+ K BQIUPD,ERRCNT,BQDFN
  Q
  ;
 ORM ; EP - Update all patients for one reminder
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIRMDR D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
  ; Create a reminder record for every patient with new reminder
- S BQDFN=0
- F  S BQDFN=$O(^BQIPAT(BQDFN)) Q:'BQDFN  D
+ S BQDFN=0,ERRCNT=0
+ F  S BQDFN=$O(^BQIPAT(BQDFN)) Q:'BQDFN  D  Q:ERRCNT>100
  . ; If deceased, don't include
  . I $P($G(^DPT(BQDFN,.35)),U,1)'="" Q
  . ; If no active HRN, don't include
@@ -70,9 +73,4 @@ DZ ;EP - Check for DUZ(2), it is usually missing for Postmaster
  . I $P(FAC,U,4)'=0 S ^XTMP("BQIRMDR","DUZ",2)=$P(FAC,U,4) Q
  . S BQIHM=$O(^BQI(90508,0)) I BQIHM'="" S FAC=$P($G(^BQI(90508,BQIHM,0)),U,1)
  . S ^XTMP("BQIRMDR","DUZ",2)=$G(FAC)
- ;
- NEW KEY,BUSER,QFL
- S KEY="XUMGR",BUSER="",QFL=0
- F  S BUSER=$O(^XUSEC(KEY,BUSER),-1) Q:BUSER=""!(QFL)  I $$ACTIVE^XUSER(BUSER) S QFL=1
- I ^XTMP("BQIRMDR","DUZ")=.5,BUSER'="" S ^XTMP("BQIRMDR","DUZ")=BUSER
  Q

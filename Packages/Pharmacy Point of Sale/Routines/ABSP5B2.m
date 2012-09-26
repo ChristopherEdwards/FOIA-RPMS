@@ -1,6 +1,5 @@
 ABSP5B2 ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of NCPDP Reversal "B2" Claims for 5.1
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
- ;
+ ;;1.0;PHARMACY POINT OF SALE;**42,43**;JUN 21, 2001
  ;
  ;
  ;			SO FAR THIS IS JUST A COPY OF ABSPB1 "BILLING" TRANSACTION....MOST OF BELOW CODE WILL BE REPLACED!!!
@@ -28,7 +27,7 @@ EN(ACTION,MEDN,IEN) ;EP
  ;I $D(SPECIAL) D ADDSEG^ABSPB1F(.SPECIAL,.ADDSEG)		;Figure out based on Special fields which segments we need
  I (ACTION="CLAIMHD")!(ACTION="OUTHD") D
  . D HEADER ;Every time
- . ;D INSURANCE				;Every time
+ . D INSURANCE ;Every time;IHS/OIT/CASSevern/Pieran/RCS; Patch 43 - Add back in
  I (ACTION="CLAIMRST")!(ACTION="OUTRST") D
  . I +$G(IEN(9002313.01))=0 S IEN(9002313.01)=1
  . D CLAIM^ABSP5B2A ;Every time
@@ -86,15 +85,15 @@ HEADER ;Header Segment
  Q
 104APD S RECORD=RECORD_$G(ABSP(9002313.02,MEDN,FIELD,"I"))
  Q
- ;Transaction count	
-109GET I '$D(SPECIAL(109)) S ABSP("X")=$G(ABSP("Transaction Count"))
+ ;Transaction count
+109GET I '$D(SPECIAL(109)) S ABSP("X")=1 ;IHS/OIT/CASSevern/Pieran/RCS; Patch 43 - Force to a '1'
  ELSE  X SPECIAL(109)
  Q
 109FMT S ABSP("X")=$$ANFF^ABSPECFM(ABSP("X"),1)
  Q
 109SET S $P(^ABSPC(ABSP(9002313.02),100),U,9)=ABSP("X")
  Q
-109APD S RECORD=RECORD_$G(ABSP(9002313.02,MEDN,FIELD,"I"))
+109APD S RECORD=RECORD_1 ;IHS/OIT/CASSevern/Pieran/RCS; Patch 43 - Force to '1'
  Q
  ;Service provider ID
 202GET I '$D(SPECIAL(202)) S ABSP("X")=$G(ABSP("Header","Service Prov ID Qual"))

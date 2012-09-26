@@ -1,15 +1,15 @@
-TIUSRVA ; SLC/JER,AJB - API's for Authorization ; 12/03/03
- ;;1.0;TEXT INTEGRATION UTILITIES;**19,28,47,80,100,116,152,160,178**;Jun 20, 1997
+TIUSRVA ; SLC/JER,AJB - API's for Authorization ; 03/18/04
+ ;;1.0;TEXT INTEGRATION UTILITIES;**19,28,47,80,100,116,152,160,178,175**;Jun 20, 1997
  ;
  ;External reference to File ^AUPNVSIT supported by DBIA 3580
-REQCOS(TIUY,TIUTYP,TIUDA,TIUSER) ; Evaluate cosignature requirement
+REQCOS(TIUY,TIUTYP,TIUDA,TIUSER,TIUDT) ; Evaluate cosignature requirement
  ; Initialize return value
  N TIUDPRM
  S TIUY=0
  I +$G(TIUTYP)'>0,'+$G(TIUDA) Q
  I +$G(TIUDA) S TIUTYP=+$G(^TIU(8925,+$G(TIUDA),0))
  S:'+$G(TIUSER) TIUSER=+$G(DUZ)
- S TIUY=+$$REQCOSIG^TIULP(TIUTYP,+$G(TIUDA),+$G(TIUSER))
+ S TIUY=+$$REQCOSIG^TIULP(TIUTYP,+$G(TIUDA),+$G(TIUSER),+$G(TIUDT))
  Q
 URGENCY(Y) ; -- retrieve set values from dd for discharge summary urgency
  N TIUDD,I,X
@@ -49,7 +49,7 @@ AUTHSIGN(TIUY,TIUDA,TIUUSR) ; Has Author signed?
  D:$P(TIUD12,U,8)=TIUUSR  Q
  . S:$P(TIUD12,U,2)'=$P(TIUD15,U,2) TIUY=0
  Q
-TIUVISIT(TIUY,DOCTYP,DFN,VISIT) ;  DK - Check for a 1 time only doc
+TIUVISIT(TIUY,DOCTYP,DFN,VISIT) ;  Check for a 1 time only doc
  ;  TIUY    =    return value
  ;          = 0 if can add more than one or none already exist
  ;          = 1 if cannot add more than one and one already exists

@@ -1,5 +1,5 @@
-PSOORFI4 ;BIR/SAB-CPRS order checks and display con't ;13-Feb-2004 14:02;PLS
- ;;7.0;OUTPATIENT PHARMACY;**46,74,78,99,117,131**;DEC 1997
+PSOORFI4 ;BIR/SAB-CPRS order checks and display con't ;28-Sep-2011 16:54;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**46,74,78,99,117,131,1013**;DEC 1997;Build 33
  ;External reference to ^PS(51.2 supported by DBIA 2226
  ;External reference to ^PS(50.607 supported by DBIA 2221
  ;External reference ^PS(55 supported by DBIA 2228
@@ -7,6 +7,8 @@ PSOORFI4 ;BIR/SAB-CPRS order checks and display con't ;13-Feb-2004 14:02;PLS
  ;External reference to $$PDA^PPPPDA1 is supported by DBIA 1374
  ;
  ; Modified - IHS/CIA/PLS - 02/13/04 - Line PROVCOM+6 and new EXPPRC API
+ ;            IHS/MSC/PLS - 09/21/11 - Line OBX+2
+ ;                        - 09/28/11 - Line PROVCOM+2
 ORCHK D ORCHK^PSOORNE6
  Q
 INST ;displays patient instructions
@@ -27,7 +29,10 @@ INST1 ;
  Q
 PROVCOM ;
  I $G(PKI1)=1,'$G(PSORX("VERIFY")) D REA^PSOPKIV1 Q:$G(PSORX("DFLG"))
- I $O(PRC(0)),'$G(PSOPRC) D  D KV^PSOVER1
+ ;IHS/MSC/PLS - 09/28/2011
+ ;I $O(PRC(0)),'$G(PSOPRC) D  D KV^PSOVER1
+ N APSPSARY M APSPSARY=PSONEW("SIG")
+ I $O(PRC(0)),'$G(PSOPRC),'$$SRCHARY^APSPFUNC(.APSPSARY,.PRC) D  D KV^PSOVER1
  .D KV^PSOVER1 S DIR(0)="Y",DIR("A")="Copy Provider Comments into the Patient Instructions",DIR("B")="No"
  .D ^DIR Q:'Y!($D(DIRUT))
  .S PSOPRC=1,NI=0 F I=0:0 S I=$O(PSONEW("SIG",I)) Q:'I  S NI=I
@@ -96,8 +101,11 @@ DO I '$G(PSONEW("DOSE ORDERED",I)),$P($G(^PS(55,PSODFN,"LAN")),"^") S IEN=IEN+1,
  Q
 OBX ;formats obx section
  D:$G(PKI1) L1^PSOPKIV1
+ N ORDID  ;IHS/MSC/PLS - 09/21/2011
+ S ORDID=$P(^PS(52.41,ORD,0),U) ;IHS/MSC/PLS - 09/21/2011
  I $O(^PS(52.41,ORD,"OBX",0)) S (T,IEN)=0,IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="Order Checks:" F  S T=$O(^PS(52.41,ORD,"OBX",T)) Q:'T  D  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)=" "
- .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     "_$G(^PS(52.41,ORD,"OBX",T,0))
+ .;S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     "_$G(^PS(52.41,ORD,"OBX",T,0))  ;IHS/MSC/PLS - 09/21/2011
+ .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     "_$S($$ISADCHK^APSPFUNC(ORDID,T):IOBON,1:"")_$G(^PS(52.41,ORD,"OBX",T,0))_IOBOFF  ;IHS/MSC/PLS - 09/21/2011
  .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     Overriding Provider: "_$G(^PS(52.41,ORD,"OBX",T,1))
  .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     Overriding Reason:"
  .F T1=0:0 S T1=$O(^PS(52.41,ORD,"OBX",T,2,T1)) Q:'T1  D

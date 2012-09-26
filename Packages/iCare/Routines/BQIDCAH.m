@@ -1,5 +1,5 @@
 BQIDCAH ;PRXM/HC/ALA-Ad Hoc Search ; 16 Nov 2005  6:26 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -14,10 +14,11 @@ PARMS(DATA,FGLOB,PARMS,MPARMS,APARMS,MAPARMS) ;EP -  Execute Ad Hoc Search
  ;  MPARMS = Multiple array of a parameter
  ;Expected to return DATA
  ;
- NEW JJ,KK,UID,TGLOB,SEX,COMM,PROV,FROM,THRU,AGE,CRIT1
- NEW CRIT2,NM,DXCAT,PLIDEN,NUMVIS,COMMTX,BEN,VDATA,VNDATA,VODATA
+ NEW JJ,KK,UID,TGLOB,SEX,COMM,PROV,FROM,THRU,AGE,CRIT1,MRANGE,MRFROM,MRTHRU
+ NEW CRIT2,NM,DXCAT,PLIDEN,NUMVIS,COMMTX,BEN,VDATA,VNDATA,VODATA,EMPL,VISOP
  NEW CLIN,DXOP,RANGE,RFROM,RTHRU,DEC,DECDT,BNEW,VCRIT1,VCRIT2,DECFDT,DECTDT
- NEW ALLERGY,ALLOP
+ NEW ALLERGY,ALLOP,LFROM,LTHRU,LRANGE,LRFROM,LRTHRU,LAB,MED,MFROM,MTHRU,VSDTM
+ NEW VIS,MEDTX,LABTX,MDOP,LIV,LBOP,INAC,IEN
  ;
  I '$D(PARMS),'$D(MPARMS),'$D(APARMS),'$D(MAPARMS) Q
  S NM=""
@@ -35,13 +36,28 @@ PARMS(DATA,FGLOB,PARMS,MPARMS,APARMS,MAPARMS) ;EP -  Execute Ad Hoc Search
  S INAC=$G(INAC,"N") ; Inactive patients
  S DECFDT=$G(DECFDT,""),DECTDT=$G(DECTDT,"") ;Deceased Date Range
  S ALLERGY=$G(ALLERGY,""),ALLOP=$G(ALLOP,"!")
+ S LAB=$G(LAB,""),MED=$G(MED,"")
+ S LABTX=$G(LABTX,""),MEDTX=$G(MEDTX,"")
+ S LBOP=$G(LBOP,"!"),MDOP=$G(MD,"!")
+ S EMPL=$G(EMPL,"")
+ S LNOT=$S($G(LNOT)="Y":1,1:0)
+ S MNOT=$S($G(MNOT)="Y":1,1:0)
  ;
  ; If timeframe is selected populate start and end dates
- I RANGE'="",$G(PPIEN)'="" D RANGE(RANGE,PPIEN)
- ;
+ I RANGE'="",$G(PPIEN)'="" D RANGE(RANGE,PPIEN,"RANGE")
  S RFROM=$G(RFROM,""),RTHRU=$G(RTHRU,"")
  S FROM=$S($G(RFROM)'="":RFROM,1:$G(FROM))
  S THRU=$S($G(RTHRU)'="":RTHRU,1:$G(THRU))
+ ;
+ I $G(LRANGE)'="",$G(PPIEN)'="" D RANGE(LRANGE,PPIEN,"LRANGE")
+ S LRFROM=$G(RFROM,""),LRTHRU=$G(RTHRU,"")
+ S LFROM=$S($G(LRFROM)'="":LRFROM,1:$G(LFROM))
+ S LTHRU=$S($G(LRTHRU)'="":LRTHRU,1:$G(LTHRU))
+ ;
+ I $G(MRANGE)'="",$G(PPIEN)'="" D RANGE(MRANGE,PPIEN,"MRANGE")
+ S MRFROM=$G(RFROM,""),MRTHRU=$G(RTHRU,"")
+ S MFROM=$S($G(MRFROM)'="":MRFROM,1:$G(MFROM))
+ S MTHRU=$S($G(MRTHRU)'="":MRTHRU,1:$G(MTHRU))
  ;
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  F KK=0:1:10 K ^TMP("BQITO"_KK,UID)
@@ -55,12 +71,18 @@ PARMS(DATA,FGLOB,PARMS,MPARMS,APARMS,MAPARMS) ;EP -  Execute Ad Hoc Search
  ;Alternate cross-reference test
  ;I $G(FROM)'="",$G(PROV)'="" D PRVS^BQIDCAH2(TGLOB,PROV,FROM,THRU),UPD
  ;
+ I $G(EMPL)'="" D EMP(FGLOB,TGLOB,EMPL,.MPARMS),UPD
+ ;
  I $G(PLIDEN)'=""!$D(MPARMS("PLIDEN")) D PNL(FGLOB,TGLOB,PLIDEN,.MPARMS),UPD
  ;
  I $G(DXCAT)'=""!$D(MPARMS("DXCAT")) D DIAG^BQIDCAH1(FGLOB,TGLOB,DXCAT,.MPARMS),UPD
  ;
  I $G(FROM)'="" D VIS^BQIDCAH2(FGLOB,TGLOB,FROM,THRU,.MAPARMS),UPD
  I $G(FROM)="",$G(RANGE)'="" D VIS^BQIDCAH2(FGLOB,TGLOB,FROM,THRU,.MAPARMS),UPD
+ ;
+ I $G(LAB)'=""!$D(MPARMS("LAB"))!($G(LABTX)'="") D LAB^BQIDCAH3(FGLOB,TGLOB,LAB,LABTX,LFROM,LTHRU,LNOT,.MPARMS),UPD
+ ;
+ I $G(MED)'=""!$D(MPARMS("MED"))!($G(MEDTX)'="") D MED^BQIDCAH3(FGLOB,TGLOB,MED,MEDTX,MFROM,MTHRU,MNOT,.MPARMS),UPD
  ;
  ;I $G(PROV)'="" D PROV^BQIDCAH2(FGLOB,TGLOB,PROV),UPD
  ;
@@ -147,9 +169,27 @@ GEN(FGLOB,TGLOB,GEN) ;EP - Gender search
  . F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  D GCHK
  Q
  ;
-GCHK ;  Gender check
+GCHK ;EP  Gender check
  I $P($G(^DPT(IEN,0)),U,2)'=GEN Q
  S @TGLOB@(IEN)=""
+ Q
+ ;
+EMP(FGLOB,TGLOB,EMPL,MPARMS) ;EP - Employer search
+ I $G(TGLOB)="" Q
+ I $G(EMPL)'="" D
+ . S EMPL=""
+ . F  S EMPL=$O(^BQI(90508,1,18,"B",EMPL)) Q:EMPL=""  D EMD
+ Q
+ ;
+EMD ;EP
+ NEW IEN,DFN
+ I $G(FGLOB)'="" D
+ . S IEN=""
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  I $P($G(^AUPNPAT(IEN,0)),U,19)=EMPL S @TGLOB@(IEN)=""
+ ;
+ I $G(FGLOB)="" D
+ . S DFN=""
+ . F  S DFN=$O(^AUPNPAT("AF",EMPL,DFN)) Q:DFN=""  S @TGLOB@(DFN)=""
  Q
  ;
 COMM(FGLOB,TGLOB,COM,MPARMS) ;EP - Community search
@@ -158,7 +198,7 @@ COMM(FGLOB,TGLOB,COM,MPARMS) ;EP - Community search
  I $D(MPARMS("COMM")) S COM="" F  S COM=$O(MPARMS("COMM",COM)) Q:COM=""  D COMM1
  Q
  ;
-COMM1 ;
+COMM1 ;EP
  ; Get Community Name and use x-ref for speed improvement.
  ; If community ien is passed use it to determine if patient community matches ***
  NEW COMM,COMMNM ;***
@@ -193,99 +233,7 @@ COMMTX(TAX,COML) ;EP
  . S COML(COMM)=""
  Q
  ;
-VIS(FGLOB,TGLOB,FDT,TDT) ;EP - Visit search
- I $G(TGLOB)="" Q
- ;
- NEW DFN,IEN,RIEN,CLNFLG,PRVFLG,VCLIN,PRIEN,VPRV,OK,NOVST
- S IEN=0
- S CLNFLG=$S($D(MPARMS("CLIN")):1,$G(CLIN)'="":1,1:0)
- S PRVFLG=$G(PROV)'=""
- ;
- F  S FDT=$O(^AUPNVSIT("B",FDT)) Q:FDT=""!(FDT\1>TDT)  D
- . S RIEN=""
- . F  S RIEN=$O(^AUPNVSIT("B",FDT,RIEN)) Q:'RIEN  D
- .. ; If the visit is deleted, quit
- .. I $$GET1^DIQ(9000010,RIEN_",",.11,"I")=1 Q
- .. S DFN=$$GET1^DIQ(9000010,RIEN_",",.05,"I") I DFN="" Q
- .. ;
- .. I $G(FGLOB)'="",'$D(@FGLOB@(DFN)) Q
- .. S @TGLOB@(DFN)=$G(@TGLOB@(DFN))+1,@VODATA@(DFN)=""
- .. S @VDATA@(RIEN)=DFN
- .. I CLNFLG D  ;Find associated clinic
- ... S VCLIN=$$GET1^DIQ(9000010,RIEN_",",.08,"I")
- ... I VCLIN'="" S @VODATA@(DFN,"CLN",VCLIN)=$G(@VODATA@(DFN,"CLN",VCLIN))+1
- .. I PRVFLG D  ;Find associated providers
- ... S PRIEN="" F  S PRIEN=$O(^AUPNVPRV("AD",RIEN,PRIEN)) Q:PRIEN=""  D
- .... S VPRV=$$GET1^DIQ(9000010.06,PRIEN_",",.01,"I") Q:VPRV=""
- .... ;S @VODATA@(DFN,"PRV",VPRV)=""
- .... S @VODATA@(DFN,"PRV",VPRV)=$G(@VODATA@(DFN,"PRV",VPRV))+1
- ;
- ;NOVST = flag to check for patients with no visits in the range
- ;      = 2 ... only check for patients with no visits in the range
- ;      = 1 ... check for patients with number of visits as well as no visits in the range
- ;      = 0 ... do not check for patients with no visits in the range
- ;
- S NOVST=0
- ;
- S BNEW=0 ;Temporary addition to work with old and new pre-GUI
- I $G(NUMVIS)'="",NUMVIS'?1N.N S BNEW=1
- I $D(MPARMS("NUMVIS")) S BNEW=1
- ;*** New code for #visit range
- I BNEW,$D(NUMVIS),'$D(MPARMS("NUMVIS")) D
- . I NUMVIS="=0"!(NUMVIS="<0")!(NUMVIS="<1")!(NUMVIS="'>0") S NOVST=2 Q  ; only check patients with no visits
- . I $E(NUMVIS)="<" S NOVST=1 Q
- . I $E(NUMVIS,1,2)="'>" S NOVST=1
- I $D(MPARMS("NUMVIS")) D
- . S VCRIT1=$O(MPARMS("NUMVIS","")),VCRIT2=$O(MPARMS("NUMVIS",VCRIT1))
- . I $E(VCRIT1,1,2)="'<" S NOVST=1 Q
- . I $E(VCRIT1)="<" S NOVST=1
- I BNEW,NOVST<2,$G(PROV)="" D
- . S DFN=""
- . F  S DFN=$O(@TGLOB@(DFN)) Q:DFN=""  D
- .. I $G(NUMVIS)'="" D  Q
- ... I CLIN'="" D
- .... I '$D(@VODATA@(DFN,"CLN",CLIN)) K @TGLOB@(DFN),@VODATA@(DFN) Q
- ... I CLIN="" D
- .... I @(@TGLOB@(DFN)_NUMVIS) Q
- .... K @TGLOB@(DFN)
- .. ; If criteria includes a "not" it is inclusive and both must be true
- .. I $E(VCRIT1)="'",@(@TGLOB@(DFN)_VCRIT1),@(@TGLOB@(DFN)_VCRIT2) Q
- .. ; If criteria does not includes a "not" it is exclusive and one must be true
- .. I $E(VCRIT1)'="'",@(@TGLOB@(DFN)_VCRIT1_"!("_(@TGLOB@(DFN)_VCRIT2)_")") Q
- .. K @TGLOB@(DFN)
- ;
- I $G(NUMVIS)=0 S NOVST=2 ; ***Replace*** - temporary
- ;
- I 'BNEW,NUMVIS'=0 D  ;***Replace*** temporary
- . S DFN=""
- . F  S DFN=$O(@TGLOB@(DFN)) Q:DFN=""  I @TGLOB@(DFN)<NUMVIS K @TGLOB@(DFN)
- ;
- I NOVST D
- . S DFN=0
- . F  S DFN=$O(^BQIPAT(DFN)) Q:'DFN  D
- .. I $D(@VODATA@(DFN)) Q
- .. S @VNDATA@(DFN)=""
- . I NOVST=2 D
- .. K @TGLOB
- .. S DFN="" F  S DFN=$O(@VNDATA@(DFN)) Q:DFN=""  S @TGLOB@(DFN)=""
- . K @VNDATA
- ;
- I CLIN'="" D
- . S DFN=""
- . F  S DFN=$O(@TGLOB@(DFN)) Q:DFN=""  D
- .. I '$D(@VODATA@(DFN,"CLN",CLIN)) K @TGLOB@(DFN),@VODATA@(DFN)
- . Q
- I CLIN="",$D(MPARMS("CLIN")) D
- . S DFN=""
- . F  S DFN=$O(@TGLOB@(DFN)) Q:DFN=""  D
- .. S OK=0
- .. S VCLIN="" F  S VCLIN=$O(MPARMS("CLIN",VCLIN)) Q:VCLIN=""  D  Q:OK
- ... I $D(@VODATA@(DFN,"CLN",VCLIN)) S OK=1
- .. I 'OK K @TGLOB@(DFN),@VODATA@(DFN)
- . Q
- Q
- ;
-RANGE(VAL,ENT) ; EP - Load relative from and through dates when RANGE
+RANGE(VAL,ENT,RTYP) ; EP - Load relative from and through dates when RANGE, LRANGE, MRANGE
  ;                    parameter or filter has been selected.
  ; Input:
  ;   VAL - Range value - e.g. last week
@@ -294,7 +242,7 @@ RANGE(VAL,ENT) ; EP - Load relative from and through dates when RANGE
  Q:$G(VAL)=""
  Q:$G(ENT)=""
  N RNGIEN,CHOICE
- S RNGIEN=$O(^BQI(90506,ENT,3,"B","RANGE",""))
+ S RNGIEN=$O(^BQI(90506,ENT,3,"B",RTYP,""))
  I RNGIEN D
  . S CHOICE=$O(^BQI(90506,ENT,3,RNGIEN,3,"B",VAL,""))
  . I CHOICE D
@@ -312,7 +260,7 @@ PNL(FGLOB,TGLOB,PLIDEN,MPARMS) ;EP - Panel search
  I $D(MPARMS("PLIDEN")) S PLIDEN="" F  S PLIDEN=$O(MPARMS("PLIDEN",PLIDEN)) Q:PLIDEN=""  D PLD
  Q
  ;
-PLD ;
+PLD ;EP
  NEW OWNR,PLNME,DA,IENS,PLIEN
  S OWNR=$P(PLIDEN,$C(26),1),PLNME=$P(PLIDEN,$C(26),2)
  S DA="",DA(1)=OWNR,IENS=$$IENS^DILF(.DA)
@@ -331,7 +279,7 @@ PLD ;
  .. S @TGLOB@(DFN)=""
  Q
  ;
-DECHK(DDFN) ; Is patient eligible based on date of death
+DECHK(DDFN) ;EP Is patient eligible based on date of death
  N DOD,DFLG
  S DOD=$P($G(^DPT(DDFN,.35)),U,1)
  I DOD="" Q 0
@@ -381,7 +329,7 @@ STCK ;EP - Check
  . I $$DECHK(IEN),$$HRN^BQIUL1(IEN) S @TGLOB@(IEN)="" Q
  I LIV="N",DEC="N",INAC="Y" D
  . ; inactive
- . I $$HRN^BQIUL1(IEN) S @TGLOB@(IEN)="" Q
+ . I '$$HRN^BQIUL1(IEN) S @TGLOB@(IEN)="" Q
  I LIV="N",DEC="Y",INAC="N" D
  . ; Deceased but not inactive
  . I $$DECHK(IEN),$$HRN^BQIUL1(IEN) S @TGLOB@(IEN)="" Q

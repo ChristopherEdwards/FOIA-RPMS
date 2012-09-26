@@ -1,5 +1,5 @@
 VENPCCKG ; IHS/OIT/GIS - KNOWLEDGEBASE RPCS FOR GUI EDITOR ;
- ;;2.6;PCC+;**1,3**;OCT 26, 2011;Build 20
+ ;;2.6;PCC+;**1,3**;APR 03, 2012;Build 24
  ;
  ;
  ;

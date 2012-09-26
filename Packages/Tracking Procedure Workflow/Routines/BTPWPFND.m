@@ -1,19 +1,21 @@
 BTPWPFND ;VNGT/HS/ALA-Find Events for Tracking ; 22 Apr 2008  7:15 PM
- ;;1.0;CARE MANAGEMENT EVENT TRACKING;**1**;Feb 07, 2011;Build 37
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;**1,2**;Feb 07, 2011;Build 52
  ;
  ;
 EN(JOB) ;EP - Entry point
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BTPWPFND D UNWIND^%ZTER"
  NEW PRCN,TGLOB,USER,TMFRAME,TXN,ERROR
- ;
- ; Clean up merged visits
- D ^BTPWPFNC
+ ; Clean up superceded records
+ NEW STAT,DA,DIK
+ S STAT="S",DA="",DIK="^BTPWQ("
+ F  S DA=$O(^BTPWQ("AC",STAT,DA)) Q:DA=""  D ^DIK
  ;
  S PRCN=0,TGLOB=$NA(^XTMP("BTPWPRC"))
  S JOB=$G(JOB,"")
  S USER=$S(JOB="Nightly":JOB_" ",1:"Initial ")_"job"
  NEW BTPWUP
  S BTPWUP(90628,"1,",.06)=$$NOW^XLFDT()
+ S BTPWUP(90508,"1,",24.11)=$G(ZTSK)
  D FILE^DIE("","BTPWUP","ERROR")
  K @TGLOB
  S @TGLOB@(0)=$$FMADD^XLFDT(DT,1)_U_DT_U_"CMET Find Events"
@@ -59,6 +61,7 @@ EN(JOB) ;EP - Entry point
  .... ; if the visit has no dependents, quit
  .... I $$GET1^DIQ(9000010,VISIT,.09,"I")=0 Q
  .... S VSDTM=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:VSDTM=0
+ .... Q:"DXCTI"[$P(^AUPNVSIT(VISIT,0),U,7)
  .... I $D(MOD)>0 S QFL=0,MN=0 D  Q:QFL
  ..... NEW BTJ
  ..... F  S MN=$O(MOD(MN)) Q:MN=""  D  Q:QFL
@@ -84,8 +87,17 @@ EN(JOB) ;EP - Entry point
  ... I $P(^BWPCD(PIEN,0),U,15)'="" S FILE="V RADIOLOGY" Q
  ... I PROC=40 S FILE="V LAB"
  .. I FREF'="" S FRN=$O(^BTPW(90621.1,"B",FILE,""))
- .. I FRN'="" S ORD=$$GET1^DIQ(90621.1,FRN_",",.05,"E")
+ .. I $G(FRN)'="" S ORD=$$GET1^DIQ(90621.1,FRN_",",.05,"E")
  .. S VISIT=$P($G(^BWPCD(PIEN,"PCC")),U,1),IEN=$P($G(^BWPCD(PIEN,"PCC")),U,2)
+ .. I $$UP^XLFSTR($$GET1^DIQ(9002086.1,PIEN_",",.05,"E"))["ERROR" D  Q
+ ... S:VISIT="" VISIT="~" S:IEN="" IEN="~"
+ ... I '$D(^BTPWQ("C",DFN,PRCN,VISIT,IEN,FRN)) Q
+ ... NEW QIEN,DA,DIK
+ ... S QIEN=$O(^BTPWQ("C",DFN,PRCN,VISIT,IEN,FRN,"")) I QIEN="" Q
+ ... I $P(^BTPWQ(QIEN,0),U,8)="P" S DA=QIEN,DIK="^BTPWQ(" D ^DIK
+ .. I IEN'="",$$GET1^DIQ(FREF,IEN_",",.03,"I")'=VISIT D
+ ... S VISIT=$$GET1^DIQ(FREF,IEN_",",.03,"I")
+ ... I $$GET1^DIQ(FREF,IEN_",",.01,"E")="" S IEN=""
  .. S:VISIT="" VISIT="~" S:IEN="" IEN="~"
  .. S @TGLOB@(DFN,PRCN,PRCDTM,ORD,VISIT,IEN,PROC)=PIEN_U_FREF_U_FILE
  ;
@@ -122,7 +134,7 @@ STOR ; Store the records found
  .. I DFN'="",PRCN'="",VISIT'="",RIEN'="",FRIL'="",$D(^BTPWQ("C",DFN,PRCN,VISIT,RIEN,FRIL)) Q
  .. ;
  .. I FREF=9000010.09 D
- ... I RIEN'="~",RIEN'="",WHIEN="" S ACCN=$P($G(^AUPNVLAB(RIEN,0)),U,6)
+ ... I RIEN'="~",RIEN'="" S ACCN=$P($G(^AUPNVLAB(RIEN,0)),U,6)
  ... I $G(ACCN)'="",$E(ACCN,1,2)="WH" S WHIEN=$O(^BPWCD("B",$E(ACCN,3,$L(ACCN)),"")) I WHIEN'="" S ACCN=""
  .. ;
  .. NEW DIC,DLAYGO,X,Y,IEN,BTPUPD,PXSEC
@@ -148,16 +160,14 @@ STOR ; Store the records found
  .. ;I $D(ERROR) D ERR Q
  .. ;
  .. ; Check to supercede previously existing record
- .. NEW PVISIT,PRIEN,PFRIL,PIEN,BTPUPD
- .. S PVISIT=$O(^BTPWQ("C",DFN,PRCN,VISIT),-1)
- .. I PVISIT'="" D
- ... S PRIEN=$O(^BTPWQ("C",DFN,PRCN,PVISIT,""))
- ... S PFRIL=$O(^BTPWQ("C",DFN,PRCN,PVISIT,PRIEN,""))
- ... S PIEN=$O(^BTPWQ("C",DFN,PRCN,PVISIT,PRIEN,PFRIL,""))
- ... I $$GET1^DIQ(90629,PIEN_",",.08,"I")="P" D
+ .. NEW PIEN,BTPUPD
+ .. S PIEN=""
+ .. F  S PIEN=$O(^BTPWQ("AD",DFN,PIEN)) Q:PIEN=""  D
+ ... I $P(^BTPWQ(PIEN,0),U,1)'=PRCN Q
+ ... I PIEN=IEN Q
+ ... I $P(^BTPWQ(PIEN,0),U,8)="P" D
  .... S BTPUPD(90629,PIEN_",",.08)="S"
  .... D FILE^DIE("","BTPUPD","ERROR")
- .... ;I $D(ERROR) D ERR
  .. ;
  .. ; Check for possible match with future followup
  .. NEW TIEN
@@ -167,8 +177,27 @@ STOR ; Store the records found
  ... S BTPUPD(90629,IEN_",",1.01)=TIEN
  ... D FILE^DIE("","BTPUPD","ERROR")
  ;
+ ; Clean up events that could have been changed by a change in a taxonomy or other
+ NEW DFN,PIEN,EVNT,STAT,VDATE
+ S DFN=""
+ F  S DFN=$O(^BTPWQ("AD",DFN)) Q:DFN=""  D
+ . S PIEN=""
+ . F  S PIEN=$O(^BTPWQ("AD",DFN,PIEN)) Q:PIEN=""  D
+ .. S EVNT=$P(^BTPWQ(PIEN,0),U,1),STAT=$P(^(0),U,8),VDATE=$P(^(0),U,3)
+ .. ; If event exists for this patient, quit
+ .. I $D(^XTMP("BTPWPRC",DFN,EVNT,VDATE)) Q
+ .. ; if someone tracked the event, have to quit
+ .. I STAT="T" Q
+ .. ; delete queued record if not found
+ .. NEW DA,DIK
+ .. S DIK="^BTPWQ(",DA=PIEN D ^DIK
+ ;
+ ; Clean up merged visits
+ D ^BTPWPFNC
+ ;
  NEW BTPWUP
  S BTPWUP(90628,"1,",.07)=$$NOW^XLFDT()
+ S BTPWUP(90508,"1,",24.11)="@"
  D FILE^DIE("","BTPWUP","ERROR")
  K BCT,BQARRAY,BTPWIEN,CT,DA,DFN,DIC,DLAYGO,FILE,FREF,FRIL,FRN,IEN
  K ORD,PIEN,PRCDTM,PROC,PSEX,QFL,RADATA,RAIEN,RARPN,RARPT,RDIEN,RDTM
@@ -181,7 +210,6 @@ ERR ;
  NEW Y,ERRDTM
  S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
  S BMXSEC="Recording that an error occurred at "_ERRDTM
- I $G(II)'="" S II=II+1,@DATA@(II)=$C(31)
  Q
  ;
 CHK(DFN,ARRAY) ;EP - Take raw data for a patient and refine to one most recent procedure

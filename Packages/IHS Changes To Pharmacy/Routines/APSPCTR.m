@@ -1,11 +1,12 @@
-APSPCTR ; IHS/DSD/ENM/BAO/DMH/CIA/PLS - CONTROLLED DRUG LIST BY DIV;15-Dec-2009 11:03;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1004,1006,1008,1009**;Sep 23, 2004
+APSPCTR ; IHS/DSD/ENM/BAO/DMH/CIA/PLS - CONTROLLED DRUG LIST BY DIV;10-Nov-2011 13:16;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1004,1006,1008,1009,1013**;Sep 23, 2004;Build 33
  ; Modified - IHS/CIA/PLS - 01/13/04 - Updated version
  ; Modified - IHS/CIA/PLS - 02/24/06 - Patch 1004
  ; Modified - IHS/MSC/PLS - 09/26/07 - Patch 1006 - Added CHKSTAT check and business rule for DE date=Fill date for exclusion
  ;            IHS/MSC/PLS - 12/30/08 - Patch 1008 - Routine updated
  ;                        - 08/31/09 - Patch 1008 - Added DSPRDT for release date check
  ;                        - 12/14/09 - Patch 1009 - removed check for $$DIVVRY in the inital loop of Find.
+ ;                        - 11/10/11 - Patch 1013 - TallMan support
 EN ;EP
  N APSP,APSPAT,APSPATN,APSPBD,APSPCHN,APSPD,APSPDES,APSPDR,APSPBD,APSPED,APSPX,APSPN,APSPRX,APSPSH,DIC,APSPANS,APSPDTDR
  N APSPDRUG,APSPED,APSPGO,APSPITM,APSPMD,APSPMSG,APSPOP,APSPQTY,APSPRN,APSPRXN,APSPZZ,APSPBD,APSPCLER,APSPDIV,APSPDV
@@ -122,6 +123,7 @@ SET(FDT,RX,XREF,SIEN) ;EP
  ;                1            2             3                  4             5            6       7         8         9       10      11         12          13          14        15       16
  ;Format: Prescription IEN^Fill Date^Xref ("AD" or "ADP")^Fill SubIEN^Prescription Number^QTY^Drug Class^Drug Name^Fill Type^RI Flg^Drug IEN^RX Division^Days Supply^Prescriber^Pharmacist^Clerk
  S ^TMP($J,"DATA",NXT)=RXIEN_U_FDT_U_XREF_U_SIEN_U_$P(NODE0,U)_U_QTY_U_EDCLS_U_DRGNM_U_FTYPE_U_RIFLG_U_DRUG_U_DIV_U_DAYS_U_OPRV_U_PHRM_U_CLERK
+ S DRGNM=$$UP^XLFSTR(DRGNM)  ;1013
  S ^TMP($J,"XREF",DIV,"FDT",FDT,DCLS,DRGNM,NXT)=""
  S ^TMP($J,"XREF",DIV,"DRUG",DRGNM,DCLS,FDT,NXT)=""
  S ^TMP($J,"XREF","RX",RX,FTYPE,SIEN)=NXT

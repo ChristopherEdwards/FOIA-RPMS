@@ -1,5 +1,5 @@
-PSONEW2 ;IHS/DSD/JCM - displays new rx information for edit ;19-Oct-2010 13:05;SM
- ;;7.0;OUTPATIENT PHARMACY;**32,37,46,71,94,124,139,157,1005,1006,1009**;DEC 1997
+PSONEW2 ;IHS/DSD/JCM - displays new rx information for edit ;13-Feb-2012 14:34;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**32,37,46,71,94,124,139,157,1005,1006,1009,1013**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^DPT supported by DBIA 10035
  ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
@@ -10,6 +10,7 @@ PSONEW2 ;IHS/DSD/JCM - displays new rx information for edit ;19-Oct-2010 13:05;S
  ;          - IHS/MSC/PLS - 10/05/07 - Line RX52 - added call to APSPFNC3
  ;                          09/27/10 - Line RX52+1 Added call to KILLOCM^PSORN52
  ;                          10/19/10 - Added RX52E line tag
+ ;                          02/13/12 - Line STOP+2
 EP ; IHS/CIA/PLS - 01/02/04 - Check for DUE Questionnarie
  ;N APFLAG S APFLAG="N" D ^APSPQ  ; PLS 06/21/04 COMMENTED OUT
 START ;
@@ -38,10 +39,12 @@ END D EOJ
  ;------------------------------------------------------------
 STOP K PSEXDT,X,%DT S PSON52("QFLG")=0
  S X1=PSOID,X2=PSONEW("DAYS SUPPLY")*(PSONEW("# OF REFILLS")+1)\1
- S X2=$S(PSONEW("DAYS SUPPLY")=X2:X2,+$G(PSONEW("CS")):184,1:366)
- I X2<30 D
- . N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
- . S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
+ ;IHS/MSC/PLS - 02/13/2012 - Next four lines commented out
+ ;S X2=$S(PSONEW("DAYS SUPPLY")=X2:X2,+$G(PSONEW("CS")):184,1:366)
+ ;I X2<30 D
+ ;. N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
+ ;. S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
+ S X2=$S(+$G(PSONEW("CS")):184,1:366)
  D C^%DTC I PSONEW("FILL DATE")>$P(X,".") S PSEXDT=1_"^"_$P(X,".")
  K X1,X2,X,%DT
  Q

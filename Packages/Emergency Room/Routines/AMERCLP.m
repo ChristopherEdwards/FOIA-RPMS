@@ -1,5 +1,5 @@
 AMERCLP ; IHS/ANMC/GIS - SELECT PATIENTS & PRINT CHART LABELS ;  
- ;;3.0;ER VISIT SYSTEM;**2**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**2,3**;DEC 07, 2011;Build 11
  ;
 EN(DFN)  ; EP FROM AMERBSDU TO ALLOW PARAMATER TO BE PASSED IN CORRECT NAMESPACE
  N X
@@ -13,9 +13,10 @@ AMER  ;
  ;S DIR("?",1)="Enter up to 10 labels to print"
  S DIR("?",1)="Enter up to 50 labels to print"
  ;S DIR(0)="N^1:10:0",DIR("A")="Enter number of labels to print"
- S DIR(0)="N^1:50:0",DIR("A")="Enter number of labels to print" ;IHS/SCR/OIT 072709 patch 2
+ S DIR(0)="N^0:50:0",DIR("A")="Enter number of labels to print" ;IHS/SCR/OIT 072709 patch 2 ; IHS/OIT/GIS 07/12/2011 ; PATCH 3
  D ^DIR
  S:+Y'=-1 AMERCOPY=+Y
+ I Y=0 G START ; IHS/OIT/GIS 07/12/2011 ; PATCH 3
  K DIR,Y
 DEV  ;
  S %ZIS("A")="LABEL PRINTER: "

@@ -1,5 +1,5 @@
 BQICEVW ;VNGT/HS/BEE - CMET Views ; 06 Jun 2008  2:22 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 RET(DATA,OWNR,PLIEN,CARE) ; EP - BQI GET CMET VIEW
  ; Input
@@ -139,8 +139,8 @@ FIL(OWNR,PLIEN,CARE,TEMPL,SOR,SDIR,DOR) ; EP - Filer
  .. S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=CRIEN
  .. S DIC="^BQICARE("_DA(3)_",1,"_DA(2)_",23,"_DA(1)_",1,",DIE=DIC
  .. S DLAYGO=90505.1231,DIC(0)="L",DIC("P")=DLAYGO
- .. S GIEN=$O(^BQI(90506.1,"B",GCODE,""))
- .. S X=GIEN
+ .. ;S GIEN=$O(^BQI(90506.1,"B",GCODE,""))
+ .. S X=GCODE
  .. I $G(^BQICARE(DA(3),1,DA(2),23,DA(1),0))="" S ^BQICARE(DA(3),1,DA(2),23,DA(1),0)="^90505.1231^^"
  .. K DO,DD D FILE^DICN
  .. S DA=+Y I DA<1 S ERROR=1 Q
@@ -150,7 +150,7 @@ FIL(OWNR,PLIEN,CARE,TEMPL,SOR,SDIR,DOR) ; EP - Filer
  . ;
  . F SI=1:1:$L(SOR,$C(29)) S SIEN=$P(SOR,$C(29),SI) Q:SIEN=""  D
  .. NEW DA,X,IENS,BQIUPD
- .. I SIEN'?.N S SIEN=$O(^BQI(90506.1,"B",SIEN,""))
+ .. ;I SIEN'?.N S SIEN=$O(^BQI(90506.1,"B",SIEN,""))
  .. S SN=$O(^BQICARE(OWNR,1,PLIEN,23,CRIEN,1,"B",SIEN,""))
  .. S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=CRIEN,DA=SN,IENS=$$IENS^DILF(.DA)
  .. ;S BQIUPD(90505.1231,IENS,.03)=SIEN
@@ -205,15 +205,15 @@ FIL(OWNR,PLIEN,CARE,TEMPL,SOR,SDIR,DOR) ; EP - Filer
  .. S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=DUZ,DA(1)=CRIEN
  .. S DIC="^BQICARE("_DA(4)_",1,"_DA(3)_",30,"_DA(2)_",23,"_DA(1)_",1,",DIE=DIC
  .. S DLAYGO=90505.3231,DIC(0)="L",DIC("P")=DLAYGO
- .. S GIEN=$O(^BQI(90506.1,"B",GCODE,""))
- .. S X=GIEN
+ .. ;S GIEN=$O(^BQI(90506.1,"B",GCODE,""))
+ .. S X=GCODE
  .. I $G(^BQICARE(DA(4),1,DA(3),30,DA(2),23,DA(1),0))="" S ^BQICARE(DA(4),1,DA(3),30,DA(2),23,DA(1),0)="^90505.321^^"
  .. K DO,DD D FILE^DICN
  .. S DA=+Y I DA<1 S ERROR=1
  . ;
  . F SI=1:1:$L(SOR,$C(29)) S SIEN=$P(SOR,$C(29),SI) Q:SIEN=""  D
  .. NEW DA,X,IENS
- .. I SIEN'?.N S SIEN=$O(^BQI(90506.1,"B",SIEN,""))
+ .. ;I SIEN'?.N S SIEN=$O(^BQI(90506.1,"B",SIEN,""))
  .. S SN=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CRIEN,1,"B",SIEN,""))
  .. S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=DUZ,DA(1)=CRIEN,DA=SN,IENS=$$IENS^DILF(.DA)
  .. ;S BQIUPD(90505.3231,IENS,.02)=SIEN
@@ -224,7 +224,7 @@ FIL(OWNR,PLIEN,CARE,TEMPL,SOR,SDIR,DOR) ; EP - Filer
  Q
  ;
 DFNC() ;EP -- Get the standard display order
- NEW CRIEN,TYP,ORD
+ NEW CRIEN,TYP,ORD,KEY
  S DVALUE=""
  ; Check for any alternate display order which trumps source display order
  S CRIEN=$$FIND1^DIC(90506.5,"","B",CARE,"","","ERROR")
@@ -233,6 +233,8 @@ DFNC() ;EP -- Get the standard display order
  F  S ORD=$O(^BQI(90506.1,"AF",TYP,ORD)) Q:ORD=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AF",TYP,ORD,IEN)) Q:IEN=""  D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S DVALUE=DVALUE_STVCD_$C(29)
@@ -245,6 +247,8 @@ DFNC() ;EP -- Get the standard display order
  F  S ORD=$O(^BQI(90506.1,"AF",TYP,ORD)) Q:ORD=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AF",TYP,ORD,IEN)) Q:IEN=""  D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S DVALUE=DVALUE_STVCD_$C(29)
@@ -254,6 +258,8 @@ DFNC() ;EP -- Get the standard display order
  F  S ORD=$O(^BQI(90506.1,"AD",TYP,ORD)) Q:ORD=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AD",TYP,ORD,IEN)) Q:IEN=""  D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S DVALUE=DVALUE_STVCD_$C(29)
@@ -261,7 +267,7 @@ DFNC() ;EP -- Get the standard display order
  Q DVALUE
  ;
 SFNC(CRN,TYP) ;EP -- Get the standard sort order
- NEW IEN,ORD,STVCD,SVALUE
+ NEW IEN,ORD,STVCD,SVALUE,KEY
  S SVALUE=""
  ;
  ;Get CMET Sort(s) First
@@ -269,6 +275,8 @@ SFNC(CRN,TYP) ;EP -- Get the standard sort order
  F  S ORD=$O(^BQI(90506.1,"AE",TYP,ORD)) Q:ORD=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AE",TYP,ORD,IEN)) Q:IEN=""  D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S SVALUE=SVALUE_$S(SVALUE]"":$C(29),1:"")_STVCD
@@ -280,13 +288,15 @@ SFNC(CRN,TYP) ;EP -- Get the standard sort order
  F  S ORD=$O(^BQI(90506.1,"AE",TYP,ORD)) Q:ORD=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AE",TYP,ORD,IEN)) Q:IEN=""  D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S SVALUE=SVALUE_$S(SVALUE]"":$C(29),1:"")_STVCD
  Q SVALUE
  ;
 CDEF() ; EP - Get Care Management source default fields
- NEW CRIEN,TYP,ORD
+ NEW CRIEN,TYP,ORD,KEY
  S MVALUE=""
  S CRIEN=$$FIND1^DIC(90506.5,"","B",CARE,"","","ERROR")
  S TYP=$P(^BQI(90506.5,CRIEN,0),U,2)
@@ -296,10 +306,29 @@ CDEF() ; EP - Get Care Management source default fields
  F  S ORD=$O(^BQI(90506.1,"AD",TYP,ORD)) Q:ORD=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AD",TYP,ORD,IEN)) Q:IEN=""  D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S MVALUE=MVALUE_STVCD_$C(29)
  ;
+ NEW KEY,DXCL,FDATA,CAT,REQ,SRC
+ S KEY=$P(^BQI(90506.5,CRIEN,0),U,12)
+ I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
+ S DXCL=0
+ F  S DXCL=$O(^BQI(90506.5,CRIEN,10,DXCL)) Q:'DXCL  D
+ . S FDATA=^BQI(90506.5,CRIEN,10,DXCL,0)
+ . I $P(FDATA,U,6)'="",$P(FDATA,U,6)'="O" D
+ .. S MVALUE=MVALUE_$P(FDATA,U,1)_$C(29)
+ ;Get locally created care management columns if associated with a dx tag
+ NEW DXTN
+ S DXTN=$P($G(^BQI(90506.5,CRIEN,0)),U,11)
+ I DXTN'="" D
+ . S DXCL=0
+ . F  S DXCL=$O(^BQI(90506.2,DXTN,6,DXCL)) Q:'DXCL  D
+ .. S FDATA=^BQI(90506.2,DXTN,6,DXCL,0)
+ .. I $P(FDATA,U,6)'="",$P(FDATA,U,6)'="O" D
+ ... S MVALUE=MVALUE_$P(FDATA,U,1)_$C(29)
  S MVALUE=$$TKO^BQIUL1(MVALUE,$C(29))
  Q MVALUE
  ;
@@ -344,10 +373,11 @@ CVW(CARE) ;EP - Get Customized Care Management view
  . S TYP=$P(^BQI(90506.5,CRN,0),U,2)
  . S IEN=0,DISPLAY="",SORT="",SDIR=""
  . F  S IEN=$O(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN)) Q:'IEN  D
- .. S GIEN=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",1)
+ .. ;S GIEN=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",1)
+ .. S CODE=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",1)
  .. S SIEN=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",3)
  .. S RIEN=$P(^BQICARE(OWNR,1,PLIEN,23,CIEN,1,IEN,0),"^",4)
- .. S CODE=$P(^BQI(90506.1,GIEN,0),U,1)
+ .. ;S CODE=$P(^BQI(90506.1,GIEN,0),U,1)
  .. S DISPLAY=DISPLAY_CODE_$C(29)
  .. I SIEN'="" D
  ... ;I SIEN?.N S CODE=$P(^BQI(90506.1,SIEN,0),U,1)
@@ -364,10 +394,11 @@ CVW(CARE) ;EP - Get Customized Care Management view
  . S TYP=$P(^BQI(90506.5,CRN,0),U,2)
  . S IEN=0,DISPLAY="",SORT="",SDIR=""
  . F  S IEN=$O(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN)) Q:'IEN  D
- .. S GIEN=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",1)
+ .. ;S GIEN=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",1)
+ .. S CODE=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",1)
  .. S SIEN=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",3)
  .. S RIEN=$P(^BQICARE(OWNR,1,PLIEN,30,DUZ,23,CIEN,1,IEN,0),"^",4)
- .. S CODE=$P(^BQI(90506.1,GIEN,0),U,1)
+ .. ;S CODE=$P(^BQI(90506.1,GIEN,0),U,1)
  .. S DISPLAY=DISPLAY_CODE_$C(29)
  .. I SIEN'="" D
  ... ;I SIEN?.N S CODE=$P(^BQI(90506.1,SIEN,0),U,1)

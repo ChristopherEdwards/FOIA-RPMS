@@ -1,8 +1,9 @@
-BTIUPCC5 ; IHS/CIA/MGH - IHS PCC PERSONAL HEALTH OBJECTS ;25-Jun-2010 09:03;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1005,1006**;NOV 04, 2004
+BTIUPCC5 ; IHS/CIA/MGH - IHS PCC PERSONAL HEALTH OBJECTS ;31-Aug-2011 17:47;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1005,1006,1009**;NOV 04, 2004;Build 22
  ;This routine creates objects for the personal health
  ;data entered
  ;Patch 1006 changed the data in the V asthma lookup
+ ;Patch 1009 changed the functional assessment to use entry date
  ;==============================================================
 INFANT(DFN,TARGET) ;EP
  ; Infant feeding data
@@ -18,28 +19,46 @@ INFANT(DFN,TARGET) ;EP
  .S @TARGET@(CNT,0)=RESULT_" "_DATE
  I CNT=0 S @TARGET@(1,0)="No infant feeding data on file"
  Q "~@"_$NA(@TARGET)
-FUNC(DFN,TARGET) ;EP
+FUNC(DFN,TARGET,ITEMS) ;EP
  ;Functional assessment
- N DATA,ARRAY,FNUM,CNT,RESULT,DATE,ENTRY
+ N DATA,ARRAY,ARRAY2,IDATE,FNUM,CNT,RESULT,DATE,ENTRY,EDATE,FIEN,CHECK,LEN
  S FNUM=9000010.35,CNT=0,ENTRY=""
  D VFGET^BGOUTL2(.ARRAY,DFN,FNUM,".03;.04;.05;.06;.07;.08;.09;.11;.12;.13;.14;.15;.16;.17;.18")
- F  S ENTRY=$O(@ARRAY@(ENTRY)) Q:+ENTRY'>0  D
+ F  S ENTRY=$O(@ARRAY@(ENTRY)) Q:+ENTRY'>0!(CNT>ITEMS)  D
  .S CNT=CNT+1
  .S DATA=$G(@ARRAY@(ENTRY))
- .S DATE=$P($P(DATA,U,3),"|",1)
+ .S FIEN=$P(DATA,U,1)
+ .S EDATE=9999999-$P($G(^AUPNVELD(FIEN,12)),U,1)
+ .S ARRAY2(EDATE)=DATA
+ S CNT=0
+ S IDATE="" F  S IDATE=$O(ARRAY2(IDATE)) Q:IDATE=""  D
+ .S CNT=CNT+1
+ .S DATA=$G(ARRAY2(IDATE))
+ .S DATE=9999999-IDATE S DATE=$$FMTE^XLFDT(DATE)
  .S @TARGET@(CNT,0)="Assessment Date:"_DATE
  .S CNT=CNT+1
- .S @TARGET@(CNT,0)=" Status Change: "_$P($P(DATA,U,16),"|",1)_" Caregiver: "_$P($P(DATA,U,17),"|",1)
+ .S CHECK=$P($P(DATA,U,16),"|",1)
+ .S @TARGET@(CNT,0)=" Status Change: "_$$PAD(CHECK,17)_" Caregiver:   "_$P($P(DATA,U,17),"|",1)
  .S CNT=CNT+1
- .S @TARGET@(CNT,0)=" Toileting:  "_$P($P(DATA,U,4),"|",1)_" Finances:     "_$P($P(DATA,U,5),"|",1)
+ .S CHECK=$P($P(DATA,U,4),"|",1)
+ .S @TARGET@(CNT,0)=" Toileting:     "_$$PAD(CHECK,17)_" Finances:    "_$P($P(DATA,U,10),"|",1)
  .S CNT=CNT+1
- .S @TARGET@(CNT,0)=" Bathing:    "_$P($P(DATA,U,5),"|",1)_" Cooking:     "_$P($P(DATA,U,7),"|",1)
+ .S CHECK=$P($P(DATA,U,5),"|",1)
+ .S @TARGET@(CNT,0)=" Bathing:       "_$$PAD(CHECK,17)_" Cooking:     "_$P($P(DATA,U,11),"|",1)
  .S CNT=CNT+1
- .S @TARGET@(CNT,0)=" Dressing:   "_$P($P(DATA,U,5),"|",1)_" Shopping:    "_$P($P(DATA,U,5),"|",1)
+ .S CHECK=$P($P(DATA,U,6),"|",1)
+ .S @TARGET@(CNT,0)=" Dressing:      "_$$PAD(CHECK,17)_" Shopping:    "_$P($P(DATA,U,12),"|",1)
  .S CNT=CNT+1
- .S @TARGET@(CNT,0)=" Transfers:  "_$P($P(DATA,U,7),"|",1)_" Housework:   "_$P($P(DATA,U,5),"|",1)
+ .S CHECK=$P($P(DATA,U,7),"|",1)
+ .S @TARGET@(CNT,0)=" Transfers:     "_$$PAD(CHECK,17)_" Housework:   "_$P($P(DATA,U,13),"|",1)
  .S CNT=CNT+1
- .S @TARGET@(CNT,0)=" Continence: "_$P($P(DATA,U,8),"|",1)_" Medications: "_$P($P(DATA,U,5),"|",1)
+ .S CHECK=$P($P(DATA,U,8),"|",1)
+ .S @TARGET@(CNT,0)=" Feeding:       "_$$PAD(CHECK,17)_" Medications: "_$P($P(DATA,U,14),"|",1)
+ .S CHECK=$P($P(DATA,U,9),"|",1)
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)=" Continence:    "_$$PAD(CHECK,17)_" Transportation: "_$P($P(DATA,U,15),"|",1)
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)=""
  I CNT=0 S @TARGET@(1,0)="No functional assessment on file"
  Q "~@"_$NA(@TARGET)
 BMEA(DFN,TARGET) ;EP
@@ -145,3 +164,16 @@ ER(DFN,TARGET) ;EP
  .S @TARGET@(CNT,0)=" Condition at Departure: "_$P($P(DATA,U,13),"|",1)
  I CNT=0 S @TARGET@(1,0)="No ER visits on file"
  Q "~@"_$NA(@TARGET)
+PAD(D,L,C) ;EP
+ ;---> Pad the length of data to a total of L characters
+ ;---> by adding spaces to the end of the data.
+ ;     Example: S X=$$PAD("MIKE",7)  X="MIKE   " (Added 3 spaces.)
+ ;---> Parameters:
+ ;     1 - D  (req) Data to be padded.
+ ;     2 - L  (req) Total length of resulting data.
+ ;     3 - C  (opt) Character to pad with (default=space).
+ ;
+ Q:'$D(D) ""
+ S:'$G(L) L=$L(D)
+ S:$G(C)="" C=" "
+ Q $E(D_$$REPEAT^XLFSTR(C,L),1,L)

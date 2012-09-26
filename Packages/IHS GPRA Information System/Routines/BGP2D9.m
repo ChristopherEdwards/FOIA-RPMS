@@ -1,5 +1,5 @@
 BGP2D9 ; IHS/CMI/LAB - measure J ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 I0303 ;EP
@@ -91,7 +91,6 @@ MEDPED(P,BDATE,EDATE) ;
  .Q:'$D(^AUTTEDT(T,0))
  .S T=$P(^AUTTEDT(T,0),U,2)
  .I $P(T,"-",2)="M"!($P(T,"-",1)="M")!(T="DMC-IN")!(T="FP-DPO")!(T="FP-OC")!($P(T,"-",2)="NEB")!($P(T,"-",2)="MDI")!(T="FP-TD") S E=1,$P(%,U,1)=$P(BGPG(X),U),$P(%,U,2)=T Q
- .;I $P(T,"-",1)="V68.1"!($P(T,"-",1)="V65.49") S E=1,$P(%,U,1)=$P(BGPG(X),U),$P(%,U,2)=T Q
  Q %
  ;
 MED(P,BDATE,EDATE) ;

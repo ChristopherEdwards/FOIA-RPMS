@@ -1,5 +1,5 @@
-APSPAUTO ;IHS/CIA/PLS - Auto Release Prescription ;14-Oct-2009 14:52;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1006,1008**;Sep 23, 2004
+APSPAUTO ;IHS/CIA/PLS - Auto Release Prescription ;13-Feb-2012 14:37;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1006,1008,1013**;Sep 23, 2004;Build 33
  ; This routine contains code from PSODISP and PSODISPS.
 AUTOREL ; EP
  N APSPZRP,APSP1,PSRH,PSIN,APSPRXP,POERR,APSPREL
@@ -64,6 +64,12 @@ REF ;release refills and partials
 UPDATE I $G(ISUF) W:'$G(APSPNOP) $C(7),!!?7,"Prescription "_$P(^PSRX(RXP,0),"^")_" - Original Fill on Suspense !",!,$C(7) Q
  ; I +$G(^PSRX(RXP,"IB")) S PSOCPRX=$P(^PSRX(RXP,0),"^") D CP^PSOCP
  S PSOCPRX=$P(^PSRX(RXP,0),"^") D CP^PSOCP
+ ;IHS/MSC/PLS - 10/13/2011
+ I 1 D
+ .N APSPEXPD,DIE,DA,DR
+ .S APSPEXPD=$$EXPDT(RXP)
+ .I APSPEXPD D
+ ..S DIE="^PSRX(",DA=RXP,DR="26///"_APSPEXPD D ^DIE
  W:'$G(APSPNOP) !?7,"Prescription Number "_$P(^PSRX(RXP,0),"^")_" Released"
  ;initialize bingo board variables
  I $G(LBLP),$P(^PSRX(RXP,0),"^",11)["W" S BINGRO="W",BINGNAM=$P(^PSRX(RXP,0),"^",2),BINGDIV=$P(^PSRX(RXP,2),"^",9)
@@ -92,3 +98,25 @@ QTY S PSOCPN=$P(^PSRX(RXP,0),"^",2),QDRUG=$P(^PSRX(RXP,0),"^",6) K LBLP
  .I $G(IFN),$P($G(^PSRX(RXP,XTYPE,IFN,0)),"^",2)["W" S BINGRPR="W",BNGPDV=$P(^PSRX(RXP,XTYPE,IFN,0),"^",9),BINGNAM=$P($G(^PSRX(RXP,0)),"^",2)
  K IFN
  Q
+ ; Return updated expiration date
+EXPDT(RX) ;EP-
+ ;CHECK FOR CALCULATED EXPIRATION DATE < CURRENT EXPIRATION DATE.
+ N RES,NREF,RX0,DS,RFCNT,EXTEXP,DE,CS,OEXPDT,ISSDT
+ S CS=0
+ S RX0=^PSRX(RX,0)
+ S ISSDT=$P(RX0,U,13)
+ S DE=+$$GET1^DIQ(50,$P(RX0,U,6),3)
+ I DE>1,DE<6 S CS=1 S:DE=2 $P(CS,U,2)=1
+ S RES=0
+ S NREF=+$P(RX0,U,9)
+ S DS=+$P(RX0,U,8)
+ S EXTEXP=$$GET1^DIQ(50,$P(RX0,U,6),9999999.08)
+ S X2=$S(EXTEXP:EXTEXP,$P(CS,U,2):184,CS:184,1:366)
+ S OEXPDT=$$FMADD^XLFDT(ISSDT,X2)
+ S DS=$S(EXTEXP:EXTEXP,1:DS)
+ I $$FMADD^XLFDT(DT,DS)'<OEXPDT S RES=0
+ E  I 'NREF S RES=1
+ E  D
+ .S RFCNT=$O(^PSRX(RX,1,$C(1)),-1)
+ .S RES=$S(RFCNT=NREF:1,1:0)  ; not eligible for change in expiration date
+ Q $S(RES:$$FMADD^XLFDT(DT,DS),1:0)

@@ -1,5 +1,5 @@
 BGP2D24 ; IHS/CMI/LAB - STI MEASURE 18 Oct 2009 8:37 AM 03 Jul 2010 7:56 AM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 STI ;EP
  D EN^BKMSTIDS(DFN,BGPBDATE,BGPEDATE,"KEY",.BGPYAR,.BGPZAR)
@@ -66,7 +66,7 @@ IASB ;EP
  I BGPN2 S X=0,BGPN3=0 F  S X=$O(BGPERV(X)) Q:X'=+X  D
  .I $P(BGPERV(X),U,5),$P(BGPERV(X),U,7) S BGPN3=BGPN3+1
  I BGPN3 S X=0 F  S X=$O(BGPERV(X)) Q:X'=+X  I $P(BGPERV(X),U,5) S:$P(BGPERV(X),U,10)=1 BGPN4=BGPN4+1 S:$P(BGPERV(X),U,10)=2 BGPN5=BGPN5+1
- S BGPVALUE="UP"_$S(BGPACTCL:",AC",1:"")
+ S BGPVALUE="UP"_$S(BGPACTCB:",AC+BH",1:"")
  S V="",X=0,D="" F  S X=$O(BGPERV(X)) Q:X'=+X  S D=D_$S(D]"":"; ",1:"")_"ER "_X_") "_$$DATE^BGP2UTL($P(BGPERV(X),U,1))_" POV "_$P(BGPERV(X),U,3) D
  .;S V=V_$S(V]"":"; ",1:"")
  .;S V=V_"ER Visit "_X_") "
@@ -143,8 +143,8 @@ ERAS(V) ;was there screening on this visit V and was it positive
  .Q
  I Z]"" Q Z
  ;screening pov
- S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X!($P(Z,U,2))  I $P($$ICDDX^ICDCODE(+$G(^AUPNVPOV(X,0))),U,2)="V79.1" D
- .S Z=1_U_U_"POV V79.1"
+ S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X!($P(Z,U,2))  I $$ICD^ATXCHK(+^AUPNVPOV(X,0),$O(^ATXAX("B","BGP SCREEN FOR ALCOHOLISM DX",0)),9) D
+ .S Z=1_U_U_"POV "_$$VAL^XBDIQ1(9000010.07,X,.01)
  .Q
  Q Z
  ;
@@ -225,11 +225,11 @@ IPC ;EP
  Q
  ;
 PCV(P,BDATE,EDATE) ;EP
- ;all dxs V66.7 and get unique visits count
+ ;all dxs BGP PALLIATIVE CARE  DXS and get unique visits count
  NEW BGPG,X,Y,E
  K BGPG
  S Y="BGPG("
- S X=P_"^ALL DX V66.7;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ S X=P_"^ALL DX [BGP PALLIATIVE CARE DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  I '$D(BGPG(1)) Q 0  ;no visits
  NEW X,C,R
  S R="",C=0
@@ -291,6 +291,9 @@ CANCER(P,BDATE,EDATE) ;EP - return # of different cancer visits
  I X S G=G+1
  I G>1 Q 1
  S X=$$LASTDX^BGP2UTL1(P,"BGP LYMPH NODE CANCER DXS",BDATE,EDATE)
+ I X S G=G+1
+ I G>1 Q 1
+ S X=$$LASTDX^BGP2UTL1(P,"BGP SECONDARY CANCER DXS",BDATE,EDATE)
  I X S G=G+1
  I G>1 Q 1
  Q 0

@@ -1,5 +1,5 @@
-BQIDCASN ;PRXM/HC/ALA-'Patients Assigned To' ; 15 Sep 2006  5:18 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+BQIDCASN ;VNGT/HS/ALA-'Patients Assigned To' ; 15 Sep 2006  5:18 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -12,7 +12,8 @@ FND(FDATA,PARMS,MPARMS) ;EP - Find records
  ;  MPARMS = Multiple array of a parameter
  ;Expected to return FDATA
  ;
- NEW UID,PSTMFRAM,PSVISITS,PTMFRAME,PVISITS,TYP,VDATA,SPEC
+ NEW UID,PSTMFRAM,PSVISITS,PTMFRAME,PVISITS,TYPE,VDATA
+ NEW TEAM,CAT,TYP,PROV,NOTA,SPEC,QFL,VISIT,VSDTM
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  S FDATA=$NA(^TMP("BQIDCASN",UID)),VDATA=$NA(^TMP("BQIFND",UID))
  K @FDATA,@VDATA
@@ -21,7 +22,24 @@ FND(FDATA,PARMS,MPARMS) ;EP - Find records
  I '$D(PARMS) Q
  ;
  S NM="" F  S NM=$O(PARMS(NM)) Q:NM=""  S @NM=PARMS(NM)
- S PROV=$G(PROV,""),TYPE=$G(TYPE,"")
+ S PROV=$G(PROV,""),TYPE=$G(TYPE,""),NOTA=$G(NOTA,"")
+ ;
+ ; If panel is patient not assigned to a DPCP
+ I $G(NOTA)'="" D  Q
+ . NEW BQDFN
+ . S BQDFN=0
+ . F  S BQDFN=$O(^AUPNPAT(BQDFN)) Q:'BQDFN  D
+ .. I $G(^AUPNPAT(BQDFN,0))="" Q
+ .. I $P(^AUPNPAT(BQDFN,0),U,14)'="" Q
+ .. S @DATA@(BQDFN)=""
+ . D SAV
+ ;
+ ; If team
+ I $G(TEAM)'="" D  Q
+ . S CAT=$$CT("DESIGNATED PRIMARY PROVIDER")
+ . S PROV=""
+ . F  S PROV=$O(^BSDPCT(TEAM,1,"B",PROV)) Q:PROV=""  D DP
+ . D SAV
  ;
  I '$D(MPARMS("TYPE")) D
  . I TYPE="CMGR"!(TYPE="DPCP") S DATA=$NA(^TMP("BQIBDP",UID))
@@ -29,6 +47,7 @@ FND(FDATA,PARMS,MPARMS) ;EP - Find records
  . K @DATA
  . I TYPE="PRIM" D PROV("P"),SAV Q
  . I TYPE="PRSC" D PROV(""),SAV Q
+ . I TYPE="" Q
  . D @TYPE,SAV
  I $D(MPARMS("TYPE")) D
  . ; types = CMGR,DPCP,PRIM,PRSC
@@ -52,22 +71,27 @@ SAV ;  Save the data
 CMGR ; Case Manager
  I $$VERSION^XPDUTL("BDP")="" Q
  ;  
- NEW DFN,CAT,DIC,IEN,NM,IEN,Y,X,CSMGR
- S DIC="^BDPTCAT("
- S DIC(0)="Z",X="CASE MANAGER" D ^DIC
- S CAT=+Y I CAT=-1 Q
+ NEW DFN,CAT,IEN,NM,IEN,Y,X,CSMGR
+ S CAT=$$CT("CASE MANAGER")
+ I 'CAT Q
  ;
  ;  Go through the BDP DESG SPECIALTY PROVIDER File to find any patient
  ;  with the specified case manager
  ;
- S IEN="",CSMGR=PROV
+ I $D(MPARMS("PROV")) D
+ . S CSMGR=""
+ . F  S CSMGR=$O(MPARMS("PROV",CSMGR)) Q:CSMGR=""  S IEN="" D CM
+ I '$D(MPARMS("PROV")) S CSMGR=PROV,IEN="" D CM
+ Q
+ ;
+CM ;
  F  S IEN=$O(^BDPRECN("AC",CSMGR,IEN)) Q:IEN=""  D
  . I $$GET1^DIQ(90360.1,IEN_",",.01,"I")'=CAT Q
  . S DFN=$$GET1^DIQ(90360.1,IEN_",",.02,"I") I DFN="" Q
- . ; User may now select Living, Deceased or both as a filter so
+ . ; User may now select Living, Deceased or Inactive as a filter so
  . ; if no filters defined assume living patients otherwise let filter decide
  . ;I $O(^BQICARE(OWNR,1,PLIEN,15,0))="",$P($G(^DPT(DFN,.35)),U,1)'="" Q
- . I '$$HRN^BQIUL1(DFN) Q
+ . ;I '$$HRN^BQIUL1(DFN) Q
  . ; If patient has no visit in last 3 years, quit
  . ;I '$$VTHR^BQIUL1(DFN) Q
  . S @DATA@(DFN)=""
@@ -75,32 +99,44 @@ CMGR ; Case Manager
  ;
 DPCP ;
  ;  If the DSPM package is installed
- I $$VERSION^XPDUTL("BDP")'="" D DSPM Q
+ I $$VERSION^XPDUTL("BDP")'="" D DSPM
  ;
  ;  If the DSPM package is NOT installed, use the alternate
  ;  primary provider definition
- NEW IEN
- S IEN=""
- F  S IEN=$O(^AUPNPAT("AK",PROV,IEN)) Q:IEN=""  D
- . I $P($G(^DPT(IEN,.35)),U,1)'="" Q
- . I '$$HRN^BQIUL1(IEN) Q
- . ; If patient has no visit in last 3 years, quit
- . ;I '$$VTHR^BQIUL1(IEN) Q
- . S @DATA@(IEN)=""
+ I $$VERSION^XPDUTL("BDP")="" D
+ . I $D(MPARMS("PROV")) D
+ .. S PROV=""
+ .. F  S PROV=$O(MPARMS("PROV",PROV)) Q:PROV=""  S IEN="" D DP
+ . I '$D(MPARMS("PROV")) S IEN="" D DP
+ . Q
+ . NEW IEN
+ . S IEN=""
+ . F  S IEN=$O(^AUPNPAT("AK",PROV,IEN)) Q:IEN=""  D
+ .. ;I $P($G(^DPT(IEN,.35)),U,1)'="" Q
+ .. ;I '$$HRN^BQIUL1(IEN) Q
+ .. ; If patient has no visit in last 3 years, quit
+ .. ;I '$$VTHR^BQIUL1(IEN) Q
+ .. S @DATA@(IEN)=""
  Q
  ;
 DSPM ;  Find the internal entry number
- NEW DFN,CAT,DIC,IEN,Y,X
- S DIC="^BDPTCAT("
- S DIC(0)="Z",X="DESIGNATED PRIMARY PROVIDER" D ^DIC
- S CAT=+Y I CAT=-1 Q
+ NEW DFN,DIC,IEN,Y,X
+ S CAT=$$CT("DESIGNATED PRIMARY PROVIDER")
+ I 'CAT Q
  ;
+ I $D(MPARMS("PROV")) D
+ . S PROV=""
+ . F  S PROV=$O(MPARMS("PROV",PROV)) Q:PROV=""  S IEN="" D DP
+ I '$D(MPARMS("PROV")) S IEN="" D DP
+ Q
+ ;
+DP ;
  S IEN=""
  F  S IEN=$O(^BDPRECN("AC",PROV,IEN)) Q:IEN=""  D
  . I $$GET1^DIQ(90360.1,IEN_",",.01,"I")'=CAT Q
  . S DFN=$$GET1^DIQ(90360.1,IEN_",",.02,"I") I DFN="" Q
- . I $P($G(^DPT(DFN,.35)),U,1)'="" Q
- . I '$$HRN^BQIUL1(DFN) Q
+ . ;I $P($G(^DPT(DFN,.35)),U,1)'="" Q
+ . ;I '$$HRN^BQIUL1(DFN) Q
  . ; If patient has no visit in last 3 years, quit
  . ;I '$$VTHR^BQIUL1(DFN) Q
  . S @DATA@(DFN)=""
@@ -110,9 +146,9 @@ DSPM ;  Find the internal entry number
  S IEN=""
  F  S IEN=$O(^AUPNPAT("AK",PROV,IEN)) Q:IEN=""  D
  . ; If patient is deceased, quit
- . I $P($G(^DPT(IEN,.35)),U,1)'="" Q
+ . ;I $P($G(^DPT(IEN,.35)),U,1)'="" Q
  . ; If patient has no active HRNs, quit
- . I '$$HRN^BQIUL1(IEN) Q
+ . ;I '$$HRN^BQIUL1(IEN) Q
  . ; If patient has no visit in last 3 years, quit
  . ;I '$$VTHR^BQIUL1(IEN) Q
  . S @DATA@(IEN)=""
@@ -127,18 +163,23 @@ PROV(FLAG) ;EP - Primary or Primary/Secondary Providers
  I FLAG="P" S FDT=$G(PTMFRAME,""),VISITS=$G(PVISITS,"")
  I FLAG'="P" S FDT=$G(PSTMFRAM,""),VISITS=$G(PSVISITS,"")
  S TDT=DT
+ I $G(PROV)'="" D PV Q
+ S PROV=""
+ F  S PROV=$O(MPARMS("PROV",PROV)) Q:PROV=""  D PV
+ Q
  ;
  ;  Go through the V PROVIDER File for the designated provider and
  ;  find out if they are a primary or secondary provider AND if the
  ;  visit falls within the time frame
+PV ;
  S IEN="",FLAG=$G(FLAG,"")
  F  S IEN=$O(^AUPNVPRV("B",PROV,IEN),-1) Q:IEN=""  D
  . I FLAG="P",$$GET1^DIQ(9000010.06,IEN_",",.04,"I")'="P" Q
  . S VISIT=$$GET1^DIQ(9000010.06,IEN_",",.03,"I") I VISIT="" Q
  . S VSDTM=$$GET1^DIQ(9000010,VISIT_",",.01,"I")\1 I VSDTM=0 Q
  . S DFN=$$GET1^DIQ(9000010.06,IEN_",",.02,"I") I DFN="" Q
- . I $P($G(^DPT(DFN,.35)),U,1)'="" Q
- . I '$$HRN^BQIUL1(DFN) Q
+ . ;I $P($G(^DPT(DFN,.35)),U,1)'="" Q
+ . ;I '$$HRN^BQIUL1(DFN) Q
  . ; If patient has no visit in last 3 years, quit
  . ;I '$$VTHR^BQIUL1(DFN) Q
  . ;
@@ -158,11 +199,26 @@ PROV(FLAG) ;EP - Primary or Primary/Secondary Providers
  Q
  ;
 SPEC ; Find the entries for a specialty provider
- NEW IEN,SPC
- I '$D(MPARMS("SPEC")) D SPC(SPEC,PROV) Q
+ NEW IEN,SPC,IEN
+ ; If single specialty
+ I '$D(MPARMS("SPEC")) D
+ . ; Multiple providers
+ . I $D(MPARMS("PROV")) D
+ .. S PROV=""
+ .. F  S PROV=$O(MPARMS("PROV",PROV)) Q:PROV=""  S IEN="" D SPC(SPEC,PROV)
+ . ; Single Provider
+ . I '$D(MPARMS("PROV")) S IEN="" D SPC(SPEC,PROV) Q
+ ;
+ ; If multiple specialties
  I $D(MPARMS("SPEC")) D
  . S SPC=""
- . F  S SPC=$O(MPARMS("SPEC",SPC),-1) Q:SPC=""  D SPC(SPC,PROV)
+ . F  S SPC=$O(MPARMS("SPEC",SPC),-1) Q:SPC=""  D
+ .. ; Multiple providers
+ .. I $D(MPARMS("PROV")) D
+ ... S PROV=""
+ ... F  S PROV=$O(MPARMS("PROV",PROV)) Q:PROV=""  S IEN="" D SPC(SPC,PROV)
+ .. ; Single Provider
+ .. I '$D(MPARMS("PROV")) S IEN="" D SPC(SPC,PROV) Q
  Q
  ;
 SPC(SPC,PRV) ;
@@ -170,9 +226,12 @@ SPC(SPC,PRV) ;
  F  S IEN=$O(^BDPRECN("B",SPC,IEN)) Q:IEN=""  D
  . I $P(^BDPRECN(IEN,0),U,3)'=PRV Q
  . S DFN=$P(^BDPRECN(IEN,0),U,2)
- . I $P($G(^DPT(DFN,.35)),U,1)'="" Q
- . I '$$HRN^BQIUL1(DFN) Q
+ . ;I $P($G(^DPT(DFN,.35)),U,1)'="" Q
+ . ;I '$$HRN^BQIUL1(DFN) Q
  . ; If patient has no visit in last 3 years, quit
  . ;I '$$VTHR^BQIUL1(DFN) Q
  . S @DATA@(DFN)=""
  Q
+ ;
+CT(TEXT) ; Find value
+ Q $$FIND1^DIC(90360.3,,"X",TEXT)

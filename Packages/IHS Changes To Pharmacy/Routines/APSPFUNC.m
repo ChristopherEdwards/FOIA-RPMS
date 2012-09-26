@@ -1,5 +1,5 @@
-APSPFUNC ;IHS/CIA/PLS - MISC FUNCTIONS ;03-Aug-2011 16:15;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1004,1005,1006,1007,1008,1009,1010,1011**;Sep 23, 2004;Build 17
+APSPFUNC ;IHS/CIA/PLS - MISC FUNCTIONS ;23-Mar-2012 13:29;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1004,1005,1006,1007,1008,1009,1010,1011,1013**;Sep 23, 2004;Build 33
  ;
 HRC(DFN,D) ;EP; -- IHS health record number
  ; Input: IEN to File 200
@@ -17,16 +17,20 @@ HRCD(X) ; Add dashes to given HRN value in X
  ; Return most recent vital of specified type
  ; Return value is IEN^VALUE^DATE
 VITAL(DFN,TYP) ; EP
- N IDT,IEN,DAT,VIS
+ N IDT,IEN,DAT,VIS,EIE,GOOD,RET
+ S GOOD=0,RET=""
  S:TYP'=+TYP TYP=$O(^AUTTMSR("B",TYP,0))
  Q:'TYP ""
- S IDT=$O(^AUPNVMSR("AA",DFN,TYP,0))
- Q:'IDT ""
- S IEN=+$O(^(IDT,$C(1)),-1)
- Q:'IEN ""
- S X=$G(^AUPNVMSR(IEN,0)),DAT=+$G(^(12))
- S:'DAT DAT=+$G(^AUPNVSIT(+$P(X,U,3),0))
- Q IEN_U_$P(X,U,4)_U_DAT
+ S IDT=0
+ F  S IDT=$O(^AUPNVMSR("AA",DFN,TYP,IDT)) Q:IDT=""!(+GOOD)  D
+ .S IEN=$C(1)
+ .F  S IEN=+$O(^AUPNVMSR("AA",DFN,TYP,IDT,IEN),-1) Q:'+IEN!(+GOOD)  D
+ ..S EIE=$$GET1^DIQ(9000010.01,IEN,2,"I")
+ ..Q:EIE=1
+ ..S X=$G(^AUPNVMSR(IEN,0)),DAT=+$G(^(12))
+ ..S:'DAT DAT=+$G(^AUPNVSIT(+$P(X,U,3),0))
+ ..S GOOD=1,RET=IEN_U_$P(X,U,4)_U_DAT
+ Q RET
  ; Return height in cm
 VITCHT(VAL) ; EP
  Q $J($G(VAL)*2.54,0,2)
@@ -294,3 +298,97 @@ RMNRFL(RX,FDT) ;EP-
  .I $G(FDT) Q:$P(^PSRX(RX,1,IEN,0),U)>FDT
  .S RFS=RFS-1
  Q RFS
+ ; Prompt for electronic signature
+ESIG() ;EP-
+ N X,X1
+ D SIG^XUSESIG
+ Q X1'=""
+ ; Return Masked SSN
+FMTSSN(SSN) ;EP-
+ N X
+ S SSN=$TR(SSN,"-","")
+ S X=$E(SSN,6,$L(SSN))
+ Q "XXX-XX-"_$S($L(X):X,1:"XXXX")
+ ; Prompt user for processing on pending flagged order
+PMTFORD(POIEN) ;EP-
+ N DRG,ORDITM,P0,FLG,ISSDT,PRV,HLP
+ S P0=$G(^PS(52.41,POIEN,0))
+ S FLG=$$ISORDFLG(+P0)
+ Q:'FLG 1
+ S DRG=$$GET1^DIQ(52.41,POIEN,11)
+ S ORDITM=$$GET1^DIQ(52.41,POIEN,8)
+ S ISSDT=$$FMTE^XLFDT($P($P(P0,U,6),"."),"5Z")
+ S PRV=$$GET1^DIQ(52.41,POIEN,5)
+ W !!,"Dispense or Orderable Item: "_$S($L(DRG):DRG,1:ORDITM)
+ W !,"Issue Date:                 "_ISSDT
+ W !,"Ordering Provider:          "_PRV
+ W !!,"This order has been flagged!",!
+ W !,"Date/Time flagged: "_$$FMTE^XLFDT($P(FLG,U,3),"5Z")_"   Flagged by: "_$$GET1^DIQ(200,$P(FLG,U,4),.01)
+ W !,"Reason for flag: "_$P(FLG,U,5)
+ W !!
+ Q ''$$DIR^APSPUTIL("Y","Continue Processing",,.HLP)
+ ; Return flagged status of order
+ISORDFLG(ORDID) ;EP-
+ N RES,LP,ACT0
+ S RES=0
+ S LP=0 F  S LP=$O(^OR(100,+ORDID,8,LP)) Q:'LP  D
+ .S ACT0=$G(^OR(100,+ORDID,8,LP,3))
+ .I ACT0 D
+ ..S RES=ACT0
+ Q RES
+ ; Return order check of type ALLERGY-DRUG INTERACTION
+ISADCHK(ORDID,CHKIEN) ;EP-
+ Q:'$G(CHKIEN) 0
+ Q $$GET1^DIQ(100.8,$P($G(^OR(100,+ORDID,9,CHKIEN,0)),U),.01)="ALLERGY-DRUG INTERACTION"
+ ; Check array for existing string
+SRCHARY(ARY,STR) ;EP-
+ N LINE,FLAG,STRX S LINE=0,FLAG=0,OUT=0
+ S STRX=""
+ Q:'$L($G(STR)) OUT
+ I $D(STR)>1 D
+ .F  S LINE=$O(STR(LINE)) Q:'LINE  D
+ ..S STRX=STRX_STR(LINE)
+ E  S STRX=STR
+ S LINE=0
+ S STRX=$$UP^XLFSTR(STRX)
+ S STRX=$TR(STRX," ","")
+ Q:'$L(STRX) 0
+ F  S LINE=+$O(ARY(LINE)) Q:'LINE  D  Q:'FLAG  Q:OUT
+ . N X1
+ . S X1=$$UP^XLFSTR(ARY(LINE)),X1=$TR(X1," ","")
+ . S FLAG=+$O(ARY(LINE))
+ . I 'FLAG S:X1[STRX OUT=1 Q
+ . S X1=X1_$$UP^XLFSTR(ARY(FLAG)),X1=$TR(X1," ","")
+ . I X1[STRX S OUT=1 Q
+ Q OUT
+ ; Display REM message to user
+REMMSG(DRG) ;EP-
+ N VAIEN,DNAME
+ S DNAME=$$GET1^DIQ(50,DRG,.01)
+ S VAIEN=$$GET1^DIQ(50,DRG,22,"I")
+ I $L($$GET1^DIQ(50.68,VAIEN,100)) D
+ .W !,DNAME_" is an FDA REM medication. Please take appropriate"
+ .W !,"action and print a patient medication guide if necessary."
+ .D DIRZ^APSPUTIL()
+ Q
+ ; Prompt for comment on Inpatient orders.
+INPTCOM(COM) ;EP-
+ W !
+ N DIR,DTOUT,DUOUT,DIRUT,COM,Y
+ S RES=""
+ S DIR("A")="Comments"_$S($D(PKIR):"/Reason for DCing",1:""),DIR(0)="F^5:75"
+ S DIR("?")="Comments must be entered.  Comments must be 5 to 75 characters and must not contain embedded uparrow"
+ S:$D(COM) DIR("B")=$G(COM)
+ D ^DIR
+ S COM=$S('$D(DIRUT):Y,1:"")
+ Q COM
+ ; Ask for Fill Priority
+APRTY ;EP-
+ D CLEAR^VALM1
+ N DA,DIR
+ S DIR("A")="Fill Priority"
+ S DIR("B")=$$GET1^DIQ(9009033,PSOSITE,406)
+ S DIR(0)="52,9999999.38" D ^DIR
+ S APSPPRIO=$S($L($G(Y(0))):Y,1:"")
+ W !
+ Q

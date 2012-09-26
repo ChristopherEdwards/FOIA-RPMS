@@ -1,5 +1,5 @@
 BGP2DPE1 ; IHS/CMI/LAB - calc measures 29 Apr 2009 7:38 PM 14 Nov 2006 5:02 PM 17 Jun 2012 9:39 AM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 PROC ;EP
  S BGPBT=$H
@@ -31,6 +31,7 @@ EDUALLOW(Y,T) ;EP - is this a valid topic?
  NEW D
  S D=$P(T,"-")
  I $P($$ICDDX^ICDCODE(D),U)'=-1 Q 1
+ I $P($$CPT^ICPTCOD(D),U)'=-1 Q 1
  Q ""
  ;
 ICDMAP(Y,T) ;EP - CAN THIS ICD CODE BE MAPPED TO A CATEGORY, IF YES, RETURN CATEGORY
@@ -38,16 +39,11 @@ ICDMAP(Y,T) ;EP - CAN THIS ICD CODE BE MAPPED TO A CATEGORY, IF YES, RETURN CATE
  I $G(Y)="" Q ""
  NEW C,X,G,Z,L,E,F,S
  S G="",X=0
+ S C=$P($$ICDDX^ICDCODE(T),U,1)  ;NOT A VALID ICD CODE
+ I C=-1 Q ""
  F  S X=$O(^BGPCTRL(Y,63,X)) Q:X'=+X!(G]"")  D
- .S Z=0 F  S Z=$O(^BGPCTRL(Y,63,X,11,Z)) Q:Z'=+Z!(G]"")  D
- ..S C=$P(^BGPCTRL(Y,63,X,11,Z,0),U),L=$P(^BGPCTRL(Y,63,X,11,Z,0),U,2),E=$P(^BGPCTRL(Y,63,X,11,Z,0),U,3)
- ..I C["-" D  Q
- ...S F=$P(C,"-",1),S=$P(C,"-",2)
- ...I 'E,$E(T,1,L)'<$E(F,1,L),$E(T,1,L)'>$E(S,1,L) S G=$P(^BGPCTRL(Y,63,X,0),U,2) Q
- ...I E,$L(F)=$L(T),$E(T,1,L)'<$E(F,1,L),$E(T,1,L)'>$E(S,1,L) S G=$P(^BGPCTRL(Y,63,X,0),U,2) Q
- ..I 'E,$E(T,1,L)=$E(C,1,L) S G=$P(^BGPCTRL(Y,63,X,0),U,2) Q
- ..I E,$E(T,1,L)=$E(C,1,L),$L(C)=$L(T) S G=$P(^BGPCTRL(Y,63,X,0),U,2)
- ..Q
+ .S Z=$P(^BGPCTRL(Y,63,X,0),U,3)
+ .I Z]"",$$ICD^ATXCHK(C,$O(^ATXAX("B",Z,0)),9) S G=$P(^BGPCTRL(Y,63,X,0),U,2)_U_$P(^BGPCTRL(Y,63,X,0),U,1)
  .Q
  Q G
 CAT(C) ;
@@ -224,10 +220,11 @@ SET23 ;
  .S BGPS=$O(^BGPCTRL(BGPFYCT,62,"B",T,0))
  .;add to total # of topics
  .S BGPT=$P(T,"-")  ;dx is first piece
- .I BGPS S BGPT1=$P(^BGPCTRL(BGPFYCT,62,BGPS,0),U,2)
- .I 'BGPS S BGPT1=$$ICDMAP(BGPFYCT,BGPT)
- .I BGPT1="" S BGPT1=BGPT
- .D S(BGPRPT,BGPGBL,11,8,1)  ;add to total # of topics
+ .I BGPS S BGPT1=$P(^BGPCTRL(BGPFYCT,62,BGPS,0),U,2) G S3
+ .S J="" S J=$$ICDMAP(BGPFYCT,BGPT),BGPT=$P(J,U,2),BGPT1=$P(J,U,1)
+ .I BGPT1="" S BGPT1=$P(T,"-")
+ .I BGPT="" S BGPT=$P(T,"-")
+S3 .D S(BGPRPT,BGPGBL,11,8,1)  ;add to total # of topics
  .I BGPTIME=1 D SET31
  .I BGPTIME=2 D SET32
  .I BGPTIME=3 D SET33

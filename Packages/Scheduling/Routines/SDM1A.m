@@ -1,14 +1,18 @@
 SDM1A ;SF/GFT,ALB/TMP - MAKE APPOINTMENT ; 07 Jun 2001  7:36 PM [ 03/08/2004  10:21 AM ]
- ;;5.3;Scheduling;**26,94,155,206,168,223,241,263,1005,1012,1013**;Aug 13, 1993
+ ;;5.3;Scheduling;**26,94,155,206,168,223,241,263,1005,1012,1013,1014**;Aug 13, 1993
  ;IHS/ANMC/LJF 07/06/2000 hard set of date appt made now includes time
  ;             12/13/2000 added clear display of appt just made
  ;             06/22/2001 added call to create xref on date appt made
  ;IHS/OIT/LJF  12/30/2005 PATCH 1005 enhanced OTHER INFO help text
  ;             01/06/2006 PATCH 1005 fixed code so OTHER INFO always set correctly
  ;cmi/flag/maw 05/14/2010 PATCH 1012 RQMT129, increased length of OTHER INFO
+ ;ihs/cmi/maw 02/02/2012 patch 1014, changed set of appointment mode to silent fileman call
  ;
 OK I $D(SDMLT) D ^SDM4 Q:X="^"!(SDMADE=2)
- S ^SC(SC,"ST",$P(SD,"."),1)=S,^DPT(DFN,"S",SD,0)=SC,^SC(SC,"S",SD,0)=SD S:'$D(^DPT(DFN,"S",0)) ^(0)="^2.98P^^" S:'$D(^SC(SC,"S",0)) ^(0)="^44.001DA^^" L
+ ;S ^SC(SC,"ST",$P(SD,"."),1)=S,^DPT(DFN,"S",SD,0)=SC,^SC(SC,"S",SD,0)=SD S:'$D(^DPT(DFN,"S",0)) ^(0)="^2.98P^^" S:'$D(^SC(SC,"S",0)) ^(0)="^44.001DA^^" L
+ S ^SC(SC,"ST",$P(SD,"."),1)=S
+ D SDM^BSDMMU("","",DFN,SD,SC,"","","","","","","","",.BSDER)  ;ihs/cmi/maw 02/12/2012 to call UPDATE^DIE
+ S ^SC(SC,"S",SD,0)=SD S:'$D(^DPT(DFN,"S",0)) ^(0)="^2.98P^^" S:'$D(^SC(SC,"S",0)) ^(0)="^44.001DA^^" L
 S1 L ^SC(SC,"S",SD,1):5 G:'$T S1 F SDY=1:1 I '$D(^SC(SC,"S",SD,1,SDY)) S:'$D(^(0)) ^(0)="^44.003PA^^" S ^(SDY,0)=DFN_U_(+SL) L  Q
  I SM S ^("OB")="O" ;NAKED REFERENCE - ^SC(IFN,"S",Date,1,SDY,"OB")
  I $D(^SC(SC,"RAD")),^("RAD")="Y"!(^("RAD")=1) S ^SC("ARAD",SC,SD,DFN)=""
@@ -18,15 +22,19 @@ S1 L ^SC(SC,"S",SD,1):5 G:'$T S1 F SDY=1:1 I '$D(^SC(SC,"S",SD,1,SDY)) S:'$D(^(0
  S:SD<DT SDSRTY="W"
  I $G(BSDSRFU) S SDSRFU=1  ;cmi/maw 6/8/2010 PATCH 1012 followup indicator
  ;
+ ;ihs/cmi/maw 02/02/2012 patch 1014 direct set no longer used
  ;S ^DPT(DFN,"S",SD,0)=SC_"^"_$$STATUS(SC,SDINP,SD)_"^^^^^"_COV_"^^^^"_SDYC_"^^^^^"_SDAPTYP_U_$G(SD17)_"^^"_DT_"^^^^^"_$G(SDXSCAT)_U_$P($G(SDSRTY),U,2)_U_$$NAVA^SDMANA(SC,SD,$P($G(SDSRTY),U,2))          ;IHS/ANMC/LJF 7/06/2000
- S ^DPT(DFN,"S",SD,0)=SC_"^"_$$STATUS(SC,SDINP,SD)_"^^^^^"_COV_"^^^^"_SDYC_"^^^^^"_SDAPTYP_U_$G(SD17)_"^^"_$$NOW^XLFDT_"^^^^^"_$G(SDXSCAT)_U_$P($G(SDSRTY),U,2)_U_$$NAVA^SDMANA(SC,SD,$P($G(SDSRTY),U,2))  ;IHS/ANMC/LJF 7/06/2000
+ ;S ^DPT(DFN,"S",SD,0)=SC_"^"_$$STATUS(SC,SDINP,SD)_"^^^^^"_COV_"^^^^"_SDYC_"^^^^^"_SDAPTYP_U_$G(SD17)_"^^"_$$NOW^XLFDT_"^^^^^"_$G(SDXSCAT)_U_$P($G(SDSRTY),U,2)_U_$$NAVA^SDMANA(SC,SD,$P($G(SDSRTY),U,2))  ;IHS/ANMC/LJF 7/06/2000
  ;
- S ^DPT(DFN,"S",SD,1)=$G(SDDATE)_U_$G(SDSRFU)
+ ;S ^DPT(DFN,"S",SD,1)=$G(SDDATE)_U_$G(SDSRFU)
+ D SDM^BSDMMU(COV,SDYC,DFN,SD,SC,SDINP,SDAPTYP,$G(SD17),$G(SDXSCAT),$P($G(SDSRTY),U,2),$$NAVA^SDMANA(SC,SD,$P($G(SDSRTY),U,2)),$G(SDDATE),$G(SDSRFU),.BSDER)
+ I $G(BSDER)]"" W !,"Error making appointment in file 2.98" Q  ;ihs/cmi/maw 2/2/2012 patch 1014 for GUI Scheduling
+ ;ihs/cmi/maw 02/02/2012 following commented lines no longer used patch 1014
  ;xref DATE APPT. MADE field
- D
- .N DIV,DA,DIK
- .S DA=SD,DA(1)=DFN,DIK="^DPT(DA(1),""S"",",DIK(1)=20 D EN1^DIK
- .Q
+ ;D
+ ;.N DIV,DA,DIK
+ ;.S DA=SD,DA(1)=DFN,DIK="^DPT(DA(1),""S"",",DIK(1)=20 D EN1^DIK
+ ;.Q
  K:$D(^DPT(DFN,"S",SD,"R")) ^("R") K:$D(^DPT("ASDCN",SC,SD,DFN)) ^(DFN)
  S SDRT="A",SDTTM=SD,SDPL=SDY,SDSC=SC D RT^SDUTL
  ;

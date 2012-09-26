@@ -1,5 +1,5 @@
 ABSPOSQA ; IHS/FCS/DRS - POS background, Part 1 ;   
- ;;1.0;PHARMACY POINT OF SALE;**10,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**10,42,43**;JUN 21, 2001
  ;------------------------------------------------
  ;IHS/SD/lwj 03/10/04 patch 10
  ; Routine adjusted to call ABSPFUNC to retrieve
@@ -35,7 +35,8 @@ ONE59 ;EP - from ABSPOSQ1
  . . ;I ABSBRXR S ABSBNDC=$P(^PSRX(ABSBRXI,1,ABSBRXR,0),U,13)
  . . I ABSBRXR S ABSBNDC=$$NDCVAL^ABSPFUNC(ABSBRXI,ABSBRXR) ;patch 10
  . . ;IHS/SD/lwj 03/10/04 patch 10 end changes
- . . E  S ABSBNDC=$P(^PSRX(ABSBRXI,2),U,7)
+ . . ;IHS/OIT/CASSEVERN/RCS patch43 3/21/2012 Strip out the dashes
+ . . E  S ABSBNDC=$P(^PSRX(ABSBRXI,2),U,7),ABSBNDC=$TR(ABSBNDC,"-")
  ;
  ; Set up lots of info about this claim
  ;
@@ -47,7 +48,7 @@ ONE59 ;EP - from ABSPOSQ1
  ;
  ; Check if the drug is billable
  ;
- N INSIEN,DRUGIEN,NDCNUM,BILLABLE
+ N INSIEN,DRUGIEN,NDCNUM,BILLABLE,BILLFLAG
  S INSIEN=$P(^ABSPT(IEN59,1),U,6)
  S DRUGIEN=$P(^PSRX(ABSBRXI,0),U,6)
  S NDCNUM=$P(^ABSPT(IEN59,1),U,2)
@@ -144,13 +145,22 @@ BILLABLE()         ; per field 9999999.07 ; only at Pawhuska in the beginning
  . I X=2!(X=3) S RESULT="1^Manual input, okay" Q
  . S RESULT="0^Manual Bill is indicated in prescription file."
  Q RESULT
+ ;IHS/OIT CASSEVERN/RCS patch 43 3/7/2012 Added Billing Flag Check
+BILLFLAG(INS)         ; per field .23 of ^AUTNINS
+ N RESULT,CUR
+ S RESULT=1
+ I 'INS Q RESULT
+ S CUR=$P($G(^AUTNINS(INS,2)),U,3) ; current value
+ I CUR'="P" S RESULT=0
+ Q RESULT
 FLAG23(INS,VAL) ; change field .23 of ^AUTNINS to appropriate value if needed
  ; A recent patch issued by (who? 3PBilling?) has a "P" value they want
  N CUR S CUR=$P($G(^AUTNINS(INS,2)),U,3) ; current value
  I VAL="P" D  ; make sure "P" is supported (recent patch they issued)
  . I $P($G(^DD(9999999.18,.23,0)),U,3)'["P:" S VAL="" ; nope, not yet
  I CUR=VAL Q  ; already set the value we want
- I CUR="U" Q  ; currently set to Unbillable for drugs? Can't be.
+ ;IHS/OIT CASSEVERN/RCS patch43 3/7/2012 Added 'O' and null so flag will not change
+ I CUR="U"!(CUR="O")!(CUR="") Q  ; currently set to Unbillable for drugs? Can't be.
  N FDA,MSG ; okay, we're going to change it
  S FDA(9999999.18,INS_",",.23)=VAL
 F23A D FILE^DIE(,"FDA","MSG")
@@ -160,17 +170,22 @@ F23A D FILE^DIE(,"FDA","MSG")
  Q
 PAPER() ; Return TRUE if this has to be sent as a paper claim.
  ; Also take care of the ^AUTNINS field .23 flag "P" value
- N INSURER,FORMAT,ACTDATE,FLAG23
+ N INSURER,FORMAT,ACTDATE,FLAG23,BIN
  S INSURER=+$P($G(^ABSPT(IEN59,1)),U,6)
  ;IHS/OIT/CASSEVERN/RAN patch42 3/31/2011 Added to prevent undefined error when insurer doesn't exist in ABSP INSURER file
+ ;IHS/OIT/CASSEVERN/RCS patch43 3/2/2012 Moved variable set to fix If/Else problem in Patch 42
  Q:'$D(^ABSPEI(INSURER)) 1
+ S (FORMAT,ACTDATE,FLAG23)=""
  I INSURER D
- . S FORMAT=$P($G(^ABSPEI(INSURER,100)),U)
+ . S FORMAT=$P($G(^ABSPEI(INSURER,100)),U),BIN=$P($G(^ABSPEI(INSURER,100)),U,16)
+ . S BILLFLAG=$$BILLFLAG(INSURER) I 'BILLFLAG S BIN="" ;IHS/OIT/CASSEVERN/RCS patch 43 3/21/2012 Check the Insurance flag if set as unbillable
+ . ;IHS/OIT/CASSEVERN/RCS patch 43 3/2/2012 Make sure if no BIN then FORMAT="", not real ins
+ . I FORMAT,'BIN,$G(^ABSP(9002313.99,1,"ABSPICNV"))=1 S FORMAT=""
  . ;IHS/OIT/CASSEVERN/RAN patch42 3/30/2011 Added to prevent claims without format from going paper
- . I 'FORMAT,$G(^ABSP(9002313.99,1,"ABSPICNV"))=1 S FORMAT=1	
+ . ;IHS/OIT CASSEVERN/RCS patch43 12/23/2011 Added BIN check to make sure valid Insurer
+ . I 'FORMAT,BIN,$G(^ABSP(9002313.99,1,"ABSPICNV"))=1 S FORMAT=1	
  . S ACTDATE=$P($G(^ABSPEI(INSURER,100)),U,3)
  . S FLAG23=$P($G(^AUTNINS(INSURER,2)),U,3)
- E  S (FORMAT,ACTDATE,FLAG23)=""
  I FORMAT,ACTDATE'>DT D  ; yes, this insurer is billed electronically
  . D FLAG23(INSURER,"P")
  E  D

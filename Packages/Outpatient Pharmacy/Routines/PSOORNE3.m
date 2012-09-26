@@ -1,5 +1,5 @@
-PSOORNE3 ;ISC-BHAM/SAB - display pending orders from backdoor ;23-Jan-2009 13:10;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,9,39,59,46,103,124,139,152,1005,1006,1008**;DEC 1997
+PSOORNE3 ;ISC-BHAM/SAB - display pending orders from backdoor ;13-Feb-2012 16:55;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,9,39,59,46,103,124,139,152,1005,1006,1008,1013**;DEC 1997;Build 33
  ;External reference to ^SC (File #44) (DBIA 10040)
  ;External reference to ^PSXOPUTL (DBIA 2200)
  ;External reference to ^PS(50.606 (DBIA 2174)
@@ -9,6 +9,7 @@ PSOORNE3 ;ISC-BHAM/SAB - display pending orders from backdoor ;23-Jan-2009 13:10
  ; Modified - IHS/CIA/PLS 01/27/04 - Added display of IHS Fields DSP+14 and PSOORNE3+44
  ;            IHS/MSC/PLS - 03/13/08 - Added line PSOORNE3+53 and DSP+24
  ;                          01/23/09 - Added line PSOORNE3+54 and DSP+25
+ ;                          02/13/12 - Line PST+6
  K ^TMP("PSOPO",$J) S ORD=$P(PSOLST(ORN),"^",2) D ORD^PSOORFIN Q
  S PSODRUG("OI")=$P(OR0,"^",8),PSODRUG("OIN")=$P(^PS(50.7,$P(OR0,"^",8),0),"^")
  I $P($G(OR0),"^",9) S DREN=$P(OR0,"^",9) S POERR=1 D DRG^PSOORDRG K POERR ;D POST^PSODRG
@@ -74,10 +75,12 @@ PST S:$G(PSODRUG("TRADE NAME"))]"" IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="          T
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="  (3)     Issue Date: "_PSONEW("ISSUE DATE")
  S X2=PSONEW("DAYS SUPPLY")*(PSONEW("# OF REFILLS")+1)\1
  S X1=$S($G(PSOID):PSOID,1:DT)
- S X2=$S(PSONEW("DAYS SUPPLY")=X2:X2,+$G(PSOX("CS")):184,1:366)
- I X2<30 D
- . N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
- . S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
+ ;IHS/MSC/PLS - 02/13/2012
+ ;S X2=$S(PSONEW("DAYS SUPPLY")=X2:X2,+$G(PSOX("CS")):184,1:366)
+ ;I X2<30 D
+ ;. N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
+ ;. S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
+ S X2=$S(+$G(PSOX("CS")):184,1:366)
  D C^%DTC I PSONEW("FILL DATE")>X S PSONEW("FILL DATE")=PSONEW("ISSUE DATE")
  S Y=PSONEW("FILL DATE") X ^DD("DD") S ^TMP("PSOPO",$J,IEN,0)=^TMP("PSOPO",$J,IEN,0)_"             (4) Fill Date: "_Y
  D DOSE^PSOBKDED

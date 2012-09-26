@@ -1,5 +1,5 @@
-APSPPCC1 ;IHS/CIA/PLS - PCC Hook for Pharmacy Package - Continued ;01-Mar-2011 05:14;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1005,1007,1009,1010**;Sep 23, 2004
+APSPPCC1 ;IHS/CIA/PLS - PCC Hook for Pharmacy Package - Continued ;28-Oct-2011 12:13;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1005,1007,1009,1010,1013**;Sep 23, 2004;Build 33
  ; Modified - IHS/MSC/PLS - 02/05/08 - POV API modified
  ;                          08/25/10 - SET+1
  ;                          02/10/11 - EN and new EN1 EP
@@ -8,7 +8,10 @@ EN(DFN,RXIEN,SUS) ;EP
  N POV,RFIEN
  S RFIEN=$O(^PSRX(RXIEN,1,$C(1)),-1)
  Q:$L($$GET^XPAR("SYS","APSP POV CACHE",+RXIEN_","_+RFIEN))  ; already have a POV stored
- I $G(SUS) D
+ I $$GET1^DIQ(9009033,+$G(PSOSITE),405,"I") D
+ .W !!,"Processing POV entry for prescription...",!
+ .D EN1
+ E  I $G(SUS) D
  .Q:'$$GET1^DIQ(9009033,+$G(PSOSITE),402,"I")
  .W !!,"Processing POV entry for suspense...",!
  .D EN1

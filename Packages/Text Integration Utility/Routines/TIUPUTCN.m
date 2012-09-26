@@ -1,5 +1,5 @@
-TIUPUTCN ; SLC/JER -  Uploading Consult Results ;4/19/02
- ;;1.0;TEXT INTEGRATION UTILITIES;**4,100,120,131**;Jun 20, 1997
+TIUPUTCN ; SLC/JER -  Uploading Consult Results ;4/18/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**4,100,120,131,113**;Jun 20, 1997
  ; External References in TIUPUTCN:
  ;   DBIA 3472  $$CPPAT^GMRCCP
 LOOKUP ; Lookup Method for Consults document definition
@@ -11,6 +11,7 @@ LOOKUP ; Lookup Method for Consults document definition
  I $G(TIUCNNBR)']"" S Y=-1 G LOOKUPX
  S TIULOC=+$$ILOC(TIULOC)
  I '$D(^SC(+$G(TIULOC),0)) S Y=-1 G LOOKUPX
+ S TIUINST=+$$DIVISION^TIULC1(TIULOC)
  S TIUEDT=$$IDATE^TIULC(TIUVDT),TIULDT=$$FMADD^XLFDT(TIUEDT,1)
  I +TIUEDT'>0 S Y=-1 Q
  S TIUTYPE=$$WHATITLE(TIUTITLE)
@@ -85,6 +86,7 @@ STUFREC(DA,PARENT) ; Stuff look-up header data, etc.
  . S @FDARR@(1404)=$P($G(^TIU(8925,+PARENT,14)),U,4)
  . S @FDARR@(1201)=$$NOW^TIULC
  S @FDARR@(1205)=$P($G(TIU("LOC")),U)
+ S @FDARR@(1212)=$P($G(TIU("INST")),U)
  S @FDARR@(1301)=$S($G(TIUDDT)]"":$$IDATE^TIULC($G(TIUDDT)),1:"")
  I @FDARR@(1301)'>0 S @FDARR@(1301)=$G(@FDARR@(.07))
  S @FDARR@(1303)="U"

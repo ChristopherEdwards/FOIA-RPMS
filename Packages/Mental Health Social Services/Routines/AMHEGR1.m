@@ -1,5 +1,5 @@
 AMHEGR1 ; IHS/CMI/LAB - GROUP ENTRY ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2**;JUN 18, 2010;Build 23
  ;
  ;
 DEL ;EP - called from protocol

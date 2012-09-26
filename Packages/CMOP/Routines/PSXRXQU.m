@@ -1,6 +1,7 @@
-PSXRXQU ;BIR/BAB,WPB-CMOP RX QUEUE File Utility ;22 Feb 2002  3:24 PM
- ;;2.0;CMOP;**7,12,25,33,40,41**;11 Apr 97
+PSXRXQU ;BIR/BAB,WPB-CMOP RX QUEUE File Utility ;23-Sep-2011 15:54;PLS
+ ;;2.0;CMOP;**7,12,25,33,40,41,1013**;11 Apr 97;Build 33
  ;Reference to ^PS(55, supported by DBIA #2228
+ ;Modified - IHS/MSC/PLS - 09/23/2011 - Line PID+9
 PURGE ;Purge 550.1 of any entries w/Message Status "IN TRANSITION"
  Q:'$D(^PSX(550.1,"AB"))  S MSG="" F  S MSG=$O(^PSX(550.1,"AB",MSG)) Q:'MSG  S DIK=550.1,DA=MSG D ^DIK
  K DIK,MSG,DA
@@ -27,6 +28,7 @@ PID ; build patients PID HL7 segment
  S PSXLANG=$P($G(^PS(55,DFN,"LAN")),"^",2)
  I $G(PSXLANG)'>1 S PSXLANG=1
  S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",15)=$G(PSXLANG) K PSXLANG
+ S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",18)=VA("PID")  ;IHS/MSC/PLS 7/29/10
  S TDT=$P(VAPA(10),"^")
  I $G(VAPA(3))]""!($G(TDT)]"") D
  .I $G(TDT)>1 S TDT=TDT+17000000,TDT1=$E(TDT,1,4),TDT2=$E(TDT,5,6),TDT3=$E(TDT,7,8) S:TDT2'>0 TDT2="01" S:TDT3'>0 TDT3="01" S TDT=$G(TDT1)_$G(TDT2)_$G(TDT3)

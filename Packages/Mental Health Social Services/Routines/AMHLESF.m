@@ -1,5 +1,5 @@
 AMHLESF ; IHS/CMI/LAB - SUICIDE FORM UPDATE ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2**;JUN 18, 2010;Build 23
  ;
  ;
 START ;
@@ -20,7 +20,7 @@ END ;
  K AMHP,AMHQUIT,AMHW
  Q
  ;
-EN ;EP -- main entry point for AMH UPDATE PATIENT CASE DATA
+EN ;EP -- main entry point
  NEW AMHLEAP
  D EN^VALM("AMH VIEW/UPDATE SUICIDE FORM")
  K AMHCASE,AMHX,AMHD,AMHRCNT,AMHLINE,AMHCDATE,AMHF,AMHLESF,AMHDP,AMHIISFE,AMHRCNT,AMHSF
@@ -35,9 +35,9 @@ HDR ; -- header code
 CTR(X,Y) ;EP - Center X in a field Y wide.
  Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
  ;----------
-INIT ; -- init variables and list array
+INIT ; 
  S VALMSG="?? for more actions  + next screen  - prev screen"
- D GATHER ;gather up all records for display
+ D GATHER
  S VALMCNT=AMHLINE
  Q
  ;
@@ -56,7 +56,7 @@ GATHER ;
  .S X="   Method: "_Y,AMHLINE=AMHLINE+1,AMHLESF(AMHLINE,0)=X,AMHLESF("IDX",AMHLINE,AMHRCNT)=AMHSF
  .I $$INCOMPSF(AMHSF) S X="   "_IORVON_"[Incomplete Form]"_IOINORM,AMHLINE=AMHLINE+1,AMHLESF(AMHLINE,0)=X,AMHLESF("IDX",AMHLINE,AMHRCNT)=AMHSF
  Q
-EDIT ;EP - called from protocol
+EDIT ;EP
  D EN^VALM2(XQORNOD(0),"OS")
  I '$D(VALMY) W !,"No records selected." G EXIT
  S R=$O(VALMY(0)) I 'R K R,VALMY,XQORNOD W !,"No record selected." G EXIT
@@ -67,19 +67,17 @@ EDIT ;EP - called from protocol
  D ADDDS
  D EXIT
  Q
-DISP ;EP - called from protocol
+DISP ;EP
  D EN^VALM2(XQORNOD(0),"OS")
  I '$D(VALMY) W !,"No records selected." G EXIT
  S R=$O(VALMY(0)) I 'R K R,VALMY,XQORNOD W !,"No record selected." G EXIT
  S AMHSF=0,(X,Y)=0 F  S X=$O(AMHLESF("IDX",X)) Q:X'=+X!(AMHSF)  I $O(AMHLESF("IDX",X,0))=R S Y=$O(AMHLESF("IDX",X,0)),AMHSF=AMHLESF("IDX",X,Y)
  I '$D(^AMHPSUIC(AMHSF,0)) W !,"Not a valid SUICIDE RECORD." K AMHRDEL,R,AMHSF,R1 D PAUSE D EXIT Q
  D FULL^VALM1
- ;NEW DFN,AMHPAT
  D EP^AMHLESF1(AMHSF)
  D EXIT
  Q
 DEL ;EP - called from protocol
- ;add code to not allow delete unless they have the key
  I '$D(^XUSEC("AMHZ DELETE RECORD",DUZ)) W !!,"You do not have the security access to delete a Suicide Form.",!,"Please see your supervisor or program manager.",! D PAUSE,EXIT Q
  D EN^VALM2(XQORNOD(0),"OS")
  I '$D(VALMY) W !,"No records selected." G EXIT
@@ -94,12 +92,11 @@ DEL ;EP - called from protocol
  D EXIT
  Q
 BV ;
- ;S DFN=AMHPAT
  NEW AMHPAT
  D EP^AMHVD(DFN)
  D EXIT
  Q
-HS ;EP called from protocol to generate hs
+HS ;EP
  D FULL^VALM1
  S Y=DFN D ^AUPNPAT
  D GETTYPE
@@ -121,7 +118,7 @@ DEFAULT ;
  I Y=-1 W !!,"PCC MENTAL HEALTH HEALTH SUMMARY TYPE IS MISSING!!  NOTIFY YOUR SUPERVISOR OR SITE MANAGER.",!! Q
  S APCHSTYP=+Y
  Q
-ADDSF(AMHPAT) ;EP called from protocol to add a new form
+ADDSF(AMHPAT) ;EP
  D FULL^VALM1
  W:$D(IOF) @IOF
 PROV ;
@@ -130,7 +127,7 @@ PROV ;
  W !! S DIC("A")="Provider Completing the Form: ",DIC="^VA(200,",DIC(0)="AEMQ",DIC("B")=$P(^VA(200,DUZ,0),U) D ^DIC K DIC,DA,DR,DLAYGO,DIADD
  I Y<0 W !,"No Provider Selected." D EXIT Q
  S AMHPROV=+Y
-GETDATE ;EP - GET DATE OF ENCOUNTER
+GETDATE ;EP 
  W !!
  S AMHDATE="",DIR(0)="DO^:"_DT_":EPTX",DIR("A")="Enter the DATE of the SUICIDE ACT" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  I $D(DIRUT) D EXIT G PROV
@@ -152,7 +149,7 @@ GETDATE ;EP - GET DATE OF ENCOUNTER
  D ADDDS
  D EXIT
  Q
-ADDDS ;screenman call
+ADDDS ;
  S AMHIISFE=1
  S DA=AMHSF,DDSFILE=9002011.65,DR="[AMH SUICIDE FORM UPDATE]" D ^DDS
  I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S AMHQUIT=1 K DIMSG D PAUSE,EXIT Q
@@ -166,18 +163,33 @@ CHECK ; check record for completeness
  S AMHC=0
  F AMHF=.03:.01:.08 I $$VAL^XBDIQ1(9002011.65,AMHSF,AMHF)="" W !,$P(^DD(9002011.65,AMHF,0),U)," is a required data element." S AMHC=1
  F AMHF=.11,.13:.01:.15,.25 I $$VAL^XBDIQ1(9002011.65,AMHSF,AMHF)="" W !,$P(^DD(9002011.65,AMHF,0),U)," is a required data element." S AMHC=1
- ;I $P(^AMHPSUIC(AMHSF,0),U,16)="",$P(^AMHPSUIC(AMHSF,0),U,17)="" W !,"INTERVENTION is a required data element." S AMHC=1
+ I $$VAL^XBDIQ1(9002011.65,AMHSF,.25)="OTHER",$$VAL^XBDIQ1(9002011.65,AMHSF,1402)="" S AMHC=1 W !,"Location of Act is OTHER, OTHER description is required."
+ I $$VAL^XBDIQ1(9002011.65,AMHSF,.25)'="OTHER",$$VAL^XBDIQ1(9002011.65,AMHSF,1402)]"" S DA=AMHSF,DIE="^AMHPSUIC(",DR="1402///@" D ^DIE K DA,DIE,DR
  S (Z,X,G)=0 F  S X=$O(^AMHPSUIC(AMHSF,11,X)) Q:X'=+X  D
  .I $P($G(^AMHPSUIC(AMHSF,11,X,0)),U)]"" S G=1
+ .I $P($G(^AMHPSUIC(AMHSF,11,X,0)),U)=8,$P(^AMHPSUIC(AMHSF,11,X,0),U,2)="" W !,"One of the Methods is OTHER.  OTHER description is Required." S AMHC=1
  .I $P(^AMHPSUIC(AMHSF,11,X,0),U,1)'=7 K ^AMHPSUIC(AMHSF,11,X,11)
+ .I $P(^AMHPSUIC(AMHSF,11,X,0),U,1)=7 D
+ ..S Y=0 F  S Y=$O(^AMHPSUIC(AMHSF,11,X,11,Y)) Q:Y'=+Y  D
+ ...S D=$P(^AMHPSUIC(AMHSF,11,X,11,Y,0),U,1)
+ ...I $P(^AMHTSDRG(D,0),U,2),$P(^AMHPSUIC(AMHSF,11,X,11,Y,0),U,2)="" S AMHC=1 W !,"Method is Overdose, Drug type is Other, Other description is required."
  .Q
  I 'G W !!,"You must enter a METHOD." S AMHC=1
  S G=$P(^AMHPSUIC(AMHSF,0),U,26)
  I G="" W !!,"You must enter a value for SUBSTANCE Use.  None or Unknown are valid values." S AMHC=1
+ I G=2 D
+ .S X=0 F  S X=$O(^AMHPSUIC(AMHSF,15,X)) Q:X'=+X  D
+ ..S D=$P(^AMHPSUIC(AMHSF,15,X,0),U,1)
+ ..I $P(^AMHTSSU(D,0),U,2),$P(^AMHPSUIC(AMHSF,15,X,0),U,2)="" S AMHC=1 W !,"Substance Involved is Alcohol/Drugs, Drug is Other, Other Description is Required."
  S (Z,G,X)=0 F  S X=$O(^AMHPSUIC(AMHSF,13,X)) Q:X'=+X  D
  .I $P($G(^AMHPSUIC(AMHSF,13,X,0)),U)]"" S G=1
+ .S D=$P(^AMHPSUIC(AMHSF,13,X,0),U,1)
+ .I $P(^AMHTSCF(D,0),U,1)="OTHER",$P(^AMHPSUIC(AMHSF,13,X,0),U,2)="" S AMHC=1 W !,"Contributing Factor is OTHER, OTHER description is required."
  .Q
+ ;NOW CHECK FOR OTHER
  I 'G W !!,"You must enter a CONTRIBUTING FACTOR.  Unknown is a valid value." S AMHC=1
+ I $P(^AMHPSUIC(AMHSF,0),U,15)=7,$$VAL^XBDIQ1(9002011.65,AMHSF,1401)="" S AMHC=1 W !,"Location of Act is OTHER, OTHER description is required."
+ I $P(^AMHPSUIC(AMHSF,0),U,15)'=7,$$VAL^XBDIQ1(9002011.65,AMHSF,1401)]"" S DIE="^AMHPSUIC(",DA=AMHSF,DR="1401///@" D ^DIE K DA,DIE,DR
  I AMHC W !!,"One or more required data elements are missing.",!! D  G:Y="E" ADDDS G:Y="L" EXIT W !,"Deleting form..." S DA=AMHSF,DIK="^AMHPSUIC(" D ^DIK D PAUSE
  .S DIR(0)="S^E:Edit and Complete the Form;D:Delete the Incomplete Form;L:Leave the Incomplete Form as is and Finish it Later",DIR("A")="What do you want to do",DIR("B")="E" KILL DA D ^DIR KILL DIR
  .I $D(DIRUT) S Y="L"
@@ -296,23 +308,47 @@ UPDATE(V,P,E) ;EP - called from xref
  S $P(^AMHPSUIC(E,51,0),U,3)=N
  S $P(^AMHPSUIC(E,51,0),U,4)=C
  Q
-INCOMPSF(AMHSF) ;EP -  check record for completeness  IF NOT COMPLETE RETURN A 1
+INCOMPSF(AMHSF) ;EP -  check record for completeness 
  NEW AMHC,G,AMHF,Z,X
  S AMHC=0
  S G=0 F AMHF=.03:.01:.08 I $$VAL^XBDIQ1(9002011.65,AMHSF,AMHF)="" S G=1
  I G Q G
  S G=0 F AMHF=.11,.13:.01:.15,.25 I $$VAL^XBDIQ1(9002011.65,AMHSF,AMHF)="" S G=1
  I G Q G
- ;I $P(^AMHPSUIC(AMHSF,0),U,16)="",$P(^AMHPSUIC(AMHSF,0),U,17)="" W !,"INTERVENTION is a required data element." S AMHC=1
+ I $P(^AMHPSUIC(AMHSF,0),U,15)=7,$$VAL^XBDIQ1(9002011.65,AMHSF,1401)="" S G=1
+ I G Q G
+ I $$VAL^XBDIQ1(9002011.65,AMHSF,.25)="OTHER",$$VAL^XBDIQ1(9002011.65,AMHSF,1402)="" S G=1
+ I G Q G
  S (Z,X,G)=0 F  S X=$O(^AMHPSUIC(AMHSF,11,X)) Q:X'=+X  D
  .I $P($G(^AMHPSUIC(AMHSF,11,X,0)),U)]"" S G=1
  .I $P(^AMHPSUIC(AMHSF,11,X,0),U,1)'=7 K ^AMHPSUIC(AMHSF,11,X,11)
  .Q
  I 'G Q 1
+ S (Z,X,G)=0 F  S X=$O(^AMHPSUIC(AMHSF,11,X)) Q:X'=+X  D
+ .I $P($G(^AMHPSUIC(AMHSF,11,X,0)),U)=8,$P(^AMHPSUIC(AMHSF,11,X,0),U,2)="" S G=1
+ .Q
+ I G Q G
+ S (Z,X,G)=0 F  S X=$O(^AMHPSUIC(AMHSF,11,X)) Q:X'=+X  D
+ .I $P(^AMHPSUIC(AMHSF,11,X,0),U,1)=7 D
+ ..S Y=0 F  S Y=$O(^AMHPSUIC(AMHSF,11,X,11,Y)) Q:Y'=+Y  D
+ ...S D=$P(^AMHPSUIC(AMHSF,11,X,11,Y,0),U,1)
+ ...I $P(^AMHTSDRG(D,0),U,2),$P(^AMHPSUIC(AMHSF,11,X,11,Y,0),U,2)="" S G=1
+ .Q
+ I G Q G
  S G=$P(^AMHPSUIC(AMHSF,0),U,26)
  I G="" Q 1
+ I G'=2 S G=0
+ I G=2 D
+ .S X=0,D=0,G=0 F  S X=$O(^AMHPSUIC(AMHSF,15,X)) Q:X'=+X  D
+ ..S D=$P(^AMHPSUIC(AMHSF,15,X,0),U,1)
+ ..I $P(^AMHTSSU(D,0),U,2),$P(^AMHPSUIC(AMHSF,15,X,0),U,2)="" S G=1
+ I G Q G
  S (Z,G,X)=0 F  S X=$O(^AMHPSUIC(AMHSF,13,X)) Q:X'=+X  D
  .I $P($G(^AMHPSUIC(AMHSF,13,X,0)),U)]"" S G=1
  .Q
  I 'G Q 1
+ S (Z,G,X)=0 F  S X=$O(^AMHPSUIC(AMHSF,13,X)) Q:X'=+X  D
+ .S D=$P(^AMHPSUIC(AMHSF,13,X,0),U,1)
+ .I $P(^AMHTSCF(D,0),U,1)="OTHER",$P(^AMHPSUIC(AMHSF,13,X,0),U,2)="" S G=1
+ I G Q G
  Q 0

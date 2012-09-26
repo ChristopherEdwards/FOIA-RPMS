@@ -1,5 +1,5 @@
 ACHSDN2 ; IHS/ITSC/PMF - DENIAL SET UP & DISPLAY ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,10,12,18,19**;JUN 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,10,12,18,19,21**;JUN 11,2001
  ;ACHS*3.1*3  improve denial/patient lookup
  ;            also, handle 'alt resource availabe' as special
  ;ACHS*3.1*4  close device before passing DUMP to taskman
@@ -88,7 +88,14 @@ OTHREAO ;EP-ACHSDN4 ;ACHS*3.1*18
  ;ask for option
  S Y=$$DICOPT(ACHDOTR,"Other ")
  G OTHREAO:$$OPTCK("O")     ;ACHS*3.1*19 TEST FOR USING SAME OPT
- I $D(DUOUT) Q:ACHDOPTR="E"  D DEL G OTHREAS
+ ;I $D(DUOUT) Q:ACHDOPTR="E"  D DEL G OTHREAS ;ACHS*3.1*21 TEST FOR OPT ALREADY Selected
+ I $D(DUOUT),ACHDOPTR'="E"  D DEL G OTHREAS
+ I $D(DUOUT),ACHDOPTR="E" D  Q
+ .;TEST FOR REASONS REQ AN OPTION, IF NONE SELECTED DELETE
+ .I (ACHDOREO["Residency")!(ACHDOREO["Notification")!(ACHDOREO["Alternate")!(ACHDOREO["Medical")!(ACHDOREO["Indian") D
+ ..S ACHDROPT=$P(^ACHSDEN(DUZ(2),"D",ACHSA,300,ACHDORNM,0),U,2)
+ ..I ACHDROPT="" D DEL Q
+ ..I ACHDOREO["Alternate",$P(^ACHSDENS(ACHDOTR,20,ACHDROPT,0),U)["Eligible",'$D(^ACHSDEN(DUZ(2),"D",ACHSA,300,ACHDORNM,4,"B")) D DEL
  I +Y<0,(ACHDOREO["Residency")!(ACHDOREO["Notification")!(ACHDOREO["Alternate")!(ACHDOREO["Medical")!(ACHDOREO["Indian") W !,"Must select an option for this Denial Reason." G OTHREAO  ;ACHS*3.1*18
  I +Y<0 G OTHREA1
  S DIE="^ACHSDEN("_DUZ(2)_",""D"","_ACHSA_",300,"
@@ -157,16 +164,25 @@ REASLST ; ---  Display the other Denials entered.
  .Q:'Y
  .Q:'$D(^ACHSDENS(Y))
  .W !?8,$P($G(^ACHSDENS(Y,0)),U)
- .W:Y1 !,?10,$P($G(^ACHSDENS(Y,20,Y1,0)),U)
+ .I Y1 D
+ ..W !,?10,$P($G(^ACHSDENS(Y,20,Y1,0)),U)
+ ..I (($P($G(^ACHSDENS(Y,20,Y1,0)),U)["Eligible")!($P($G(^ACHSDENS(Y,20,Y1,0)),U)["Failure")),$D(^ACHSDEN(DUZ(2),"D",ACHSA,256)) D
+ ...S R1=0 F  S R1=$O(^ACHSDEN(DUZ(2),"D",ACHSA,256,R1)) Q:R1'?1N.N  D
+ ....S R2=$P(^ACHSDEN(DUZ(2),"D",ACHSA,256,R1,0),U)
+ ....W !,?20,$P($G(^ACHSDENS(Y,30,R2,0)),U)
  W !?5,"SELECTED Other Denial Reasons: "
  S X=0
  F  S X=$O(^ACHSDEN(DUZ(2),"D",ACHSA,300,X)) Q:X=""!(X'?1.N)  D
- .;W !?10,$P($G(^ACHSDENS($P($G(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,0),"UNDEFINED"),U),0)),U)
  .S Y=$P(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,0),U),Y1=$P(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,0),U,2)
  .Q:'Y
  .Q:'$D(^ACHSDENS(Y))
  .W !?8,$P($G(^ACHSDENS($P(Y,U),0)),U)
- .W:Y1 !,?10,$P($G(^ACHSDENS(Y,20,Y1,0)),U)
+ .I Y1 D
+ ..W !,?10,$P($G(^ACHSDENS(Y,20,Y1,0)),U)
+ ..I (($P($G(^ACHSDENS(Y,20,Y1,0)),U)["Eligible")!($P($G(^ACHSDENS(Y,20,Y1,0)),U)["Failure")),$D(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,4)) D
+ ...S R1=0 F  S R1=$O(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,4,R1)) Q:R1'?1N.N  D
+ ....S R2=$P(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,4,R1,0),U)
+ ....W !,?20,$P($G(^ACHSDENS(Y,30,R2,0)),U)
  Q
  ;
 REASCK() ; ---  Check if the Denial reason has already been entered.
@@ -191,7 +207,7 @@ OPTCK(T) ; CHECK FOR OPTIONS ALREADY SELECTED ;ACHS*3.1*19 NEW SECTION
  F  S X=$O(^ACHSDEN(DUZ(2),"D",ACHSA,300,X)) Q:+X=0  D  Q:X1
  .I ACHDOPTR="E",X=ACHDORNM Q   ;ACHS*3.1*19
  .Q:$P($G(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,0)),U)'=ACHDOTR
- .I $P($G(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,0)),U,2)=+Y W !!,*7,*7,"DENIAL REASON OPTION ALREADY SELECTED.",!! S X1=1 H 1
+ .I $P($G(^ACHSDEN(DUZ(2),"D",ACHSA,300,X,0)),U,2)=+Y W !!,*7,*7,"DENIAL REASON OPTION ALREADY SELECTED.....",!! S X1=1 H 1
  Q X1
  ;
 DUMP ;EP - From Option.

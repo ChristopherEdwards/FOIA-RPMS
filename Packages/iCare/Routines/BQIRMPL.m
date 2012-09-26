@@ -1,5 +1,5 @@
 BQIRMPL ;PRXM/HC/ALA-Reminders By Panel ; 20 Feb 2007  4:04 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -130,7 +130,7 @@ FIN ; Finish
  Q
  ;
 STAND() ;EP - Get standard display
- NEW IEN,HDR,SENS,HDOB,Y,STVW,TEXT,ORD
+ NEW IEN,HDR,SENS,HDOB,Y,STVW,TEXT,ORD,KEY
  S VALUE=""
  I DFN'="" S Y=$$GET1^DIQ(9000001,DFN_",",1102.2,"I"),HDOB=$$FMTE^BQIUL1(Y)
  I DFN'="" S VALUE=DFN_U_$$FLG^BTPWPPAT(DFN)_U_$$FLG^BQIULPT(DUZ,PLIEN,DFN)_U_$$SENS^BQIULPT(DFN)_U_$$CALR^BQIULPT(DFN)_U_$$MFLAG^BQIULPT(OWNR,PLIEN,DFN)_U_HDOB_U
@@ -138,6 +138,8 @@ STAND() ;EP - Get standard display
  S IEN=""
  F  S IEN=$O(^BQI(90506.1,"AC","D",IEN)) Q:IEN=""  D
  . I $P(^BQI(90506.1,IEN,0),U,10)=1 Q
+ . S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ . I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  . I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  .. S STVW=IEN
  .. D CVAL
@@ -147,6 +149,8 @@ STAND() ;EP - Get standard display
  S IEN=""
  F  S IEN=$O(^BQI(90506.1,"AC","R",IEN)) Q:IEN=""  D
  . I $P(^BQI(90506.1,IEN,0),U,10)=1 Q
+ . S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ . I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  . I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  .. S STVW=$P(^BQI(90506.1,IEN,0),U,1)
  .. S HDR=$P(^BQI(90506.1,IEN,0),U,8)
@@ -216,7 +220,7 @@ RMVL ;  Reminder value
  Q
  ;
 RDEF() ;EP - Reminders default
- NEW RVALUE,IEN,STVCD,REMNM,BQIARRAY
+ NEW RVALUE,IEN,STVCD,REMNM,BQIARRAY,KEY
  S RVALUE=""
  ;
  ; Check for normal display order
@@ -224,12 +228,15 @@ RDEF() ;EP - Reminders default
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AD","D",DOR,IEN)) Q:IEN=""  D
  .. I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S RVALUE=RVALUE_STVCD_$C(29)
  S IEN=""
  F  S IEN=$O(^BQI(90506.1,"AC","R",IEN)) Q:IEN=""  D
- . ;I $$GET1^DIQ(90506.1,IEN_",",.09,"I")'="O" D
+ . S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ . I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  . I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  .. I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
  .. S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")

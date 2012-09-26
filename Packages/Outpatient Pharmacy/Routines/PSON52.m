@@ -1,11 +1,13 @@
-PSON52 ;IHS/DSD/JCM-files new entries in prescription file ;19-May-2011 09:07;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011**;DEC 1997;Build 17
+PSON52 ;IHS/DSD/JCM-files new entries in prescription file ;13-Feb-2012 13:45;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013**;DEC 1997;Build 33
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
  ; Modified - IHS/CIA/PLS - 12/30/03 - Starting at line DD+37
  ;            IHS/MSC/PLS - 09/17/07 - Added CLININD and CLININD2 to $T region
  ;            IHS/MSC/PLS - 12/08/08 - Added CASH DUE set
  ;                          04/15/11 - Added PRV* and DEA* fields
+ ;                          09/27/11 - Added APSPPRIO references
+ ;                          10/13/11 - Line INIT+5,INIT+9
 EN(PSOX) ;Entry Point
 START ;
  D:$D(XRTL) T0^%ZOSV ; Start RT Monitor
@@ -22,12 +24,17 @@ INIT ;
  S PSOX("CS")=0
  F DEA=1:1 Q:$E(PSODRUG("DEA"),DEA)=""  I $E(+PSODRUG("DEA"),DEA)>1,$E(+PSODRUG("DEA"),DEA)<6 S $P(PSOX("CS"),"^")=1 S:$E(+PSODRUG("DEA"),DEA)=2 $P(PSOX("CS"),"^",2)=1
  S PSON52("QFLG")=0,X1=PSOX("ISSUE DATE"),X2=PSOX("DAYS SUPPLY")*(PSOX("# OF REFILLS")+1)\1
- I $D(CLOZPAT) S X2=$S(X2=14:14,X2=7:7,1:X2) G DT
- S X2=$S(PSOX("DAYS SUPPLY")=X2:X2,+$G(PSOX("CS")):184,+$G(DEA("CS")):184,1:366)
- I X2<30 D
- . N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
- . S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
-DT ;IHS/MSC/PLS - 04/21/2011 - Added next three lines
+ ;IHS/MSC/PLS - 10/13/2011
+ ;I $D(CLOZPAT) S X2=$S(X2=14:14,X2=7:7,1:X2) G DT
+ I $D(CLOZPAT) S X2=$S(X2=28:28,X2=21:21,X2=14:14,X2=7:7,1:X2) G DT
+ S X2=$S(PSOX("DAYS SUPPLY")=X2:X2,+$P($G(PSOX("CS")),U,2):184,+$G(PSOX("CS")):184,+$G(DEA("CS")):184,1:366)
+ ;IHS/MSC/PLS - 10/13/2011 - Next three lines commented out
+ ;I X2<30 D
+ ;. N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
+ ;. S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
+DT ;IHS/MSC/PLS - 02/13/2012
+ S X2=$S(+$G(PSODIR("CS")):184,1:366)
+ ;IHS/MSC/PLS - 04/21/2011 - Added next three lines
  N EXTEXP
  S EXTEXP=$$GET1^DIQ(50,PSODRUG("IEN"),9999999.08)
  S X2=$S(EXTEXP:EXTEXP,1:X2)
@@ -37,6 +44,7 @@ DT ;IHS/MSC/PLS - 04/21/2011 - Added next three lines
  S PSOX("STATUS")=$S($G(PSOX("STATUS"))]"":PSOX("STATUS"),$D(PSORX("VERIFY")):1,1:0)
  S PSOX("COPIES")=$S($G(PSOX("COPIES"))]"":PSOX("COPIES"),1:1)
  I $G(PSORX("PHARM"))]"" S PSOX("PHARMACIST")=PSORX("PHARM") K PSORX("PHARM")
+ S:$L($G(APSPPRIO)) PSOX("APSPPRIO")=APSPPRIO  ;IHS/MSC/PLS - 09/27/11
  D INITPRV
 INITX Q
  ;
@@ -196,3 +204,4 @@ DD ;;PSOX("RX #");;0;;1
  ;;PSOX("PRV STATE");;999999931;;5
  ;;PSOX("PRV ZIP");;999999931;;6
  ;;PSOX("DEA_VA_USPHS");;999999931;;7
+ ;;PSOX("APSPPRIO");;999999931;;8

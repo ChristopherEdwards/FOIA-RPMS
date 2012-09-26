@@ -1,0 +1,130 @@
+BTPW12PS ;VNGT/HS/ALA-CMET Patch 2 ; 09 Sep 2011  8:52 AM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;**2**;Feb 07, 2011;Build 52
+ ;
+PRE ;EP - Preinstall
+ NEW DA,DIK
+ S DA=0,DIK="^BTPW(90621.1,"
+ F  S DA=$O(^BTPW(90621.1,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BTPW(90621,"
+ F  S DA=$O(^BTPW(90621,DA)) Q:'DA  D ^DIK
+ ;
+ K ^XTMP("BQITEMPL")
+ Q
+ ;
+POS ;EP - Postinstall
+ S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,3)
+ S ZTDESC="Clean up duplicate CMET records",ZTRTN="CLEAN^BTPW12PS",ZTIO=""
+ D ^%ZTLOAD
+ ;
+TMPL ; Set list for templates with |V | data objects
+ NEW XDATA
+ S XDATA=$NA(^XTMP("BTPWTEMPL"))
+ K @XDATA
+ S @XDATA@(0)=$$FMADD^XLFDT(DT,7)_U_DT_U_"Templates containing |V | data objects"
+ NEW TMPN,BLN
+ S TMPN=0
+ F  S TMPN=$O(^TIU(8927,TMPN)) Q:'TMPN  D
+ . S BLN=0
+ . F  S BLN=$O(^TIU(8927,TMPN,2,BLN)) Q:'BLN  D
+ .. I ^TIU(8927,TMPN,2,BLN,0)["|V " S @XDATA@(TMPN)=""
+ ;
+ ; Update pointers IN CMET
+ NEW PRCN,TXN,TTYP,VAL,BTPWUPD
+ S PRCN=0
+ F  S PRCN=$O(^BTPW(90621,PRCN)) Q:'PRCN  D
+ . S TXN=0
+ . F  S TXN=$O(^BTPW(90621,PRCN,1,TXN)) Q:'TXN  D
+ .. S TTYP=$P(^BTPW(90621,PRCN,1,TXN,0),U,3),TAX=$P(^(0),U,1)
+ .. S TTYP=$S(TTYP=3:"L",1:"N")
+ .. S VAL=$$STXPT(TAX,TTYP)
+ .. NEW DA,IENS
+ .. S DA(1)=PRCN,DA=TXN,IENS=$$IENS^DILF(.DA)
+ .. S BTPWUPD(90621.01,IENS,.02)=VAL
+ D FILE^DIE("","BTPWUPD","ERROR")
+ ;
+ ; set screening mammogram
+ NEW MAM,BTPWUPD
+ S MAM=$$FIND1^DIC(101.43,,"MX","SCREENING MAMMOGRAM")
+ S BTPWUPD(90621,24_",",.11)=MAM
+ D FILE^DIE("","BTPWUPD","ERROR")
+ ;
+ ; Add new patient entries to 90506.1
+ NEW BI,BJ,BK,BN,BQIUPD,ERROR,IEN,ND,NDATA,TEXT,VAL
+ F BI=1:1 S TEXT=$P($T(LYT+BI),";;",2) Q:TEXT=""  D
+ . F BJ=1:1:$L(TEXT,"~") D
+ .. S NDATA=$P(TEXT,"~",BJ)
+ .. S ND=$P(NDATA,"|",1),VAL=$P(NDATA,"|",2)
+ .. I ND=0 D
+ ... NEW DIC,X,Y
+ ... S DIC(0)="LQZ",DIC="^BQI(90506.1,",X=$P(VAL,U,1)
+ ... D ^DIC
+ ... S IEN=+Y
+ ... I IEN=-1 K DO,DD D FILE^DICN S IEN=+Y
+ .. I ND=1 S BQIUPD(90506.1,IEN_",",1)=VAL Q
+ .. F BK=1:1:$L(VAL,"^") D
+ ... S BN=$O(^DD(90506.1,"GL",ND,BK,"")) I BN="" Q
+ ... I $P(VAL,"^",BK)'="" S BQIUPD(90506.1,IEN_",",BN)=$P(VAL,"^",BK) Q
+ ... I $P(VAL,"^",BK)="" S BQIUPD(90506.1,IEN_",",BN)="@"
+ . D FILE^DIE("","BQIUPD","ERROR")
+ Q
+ ;
+CLEAN ;EP - clean up CMET records
+ NEW QIEN,VISIT,DA,DIK,QDATA,DFN,PRC,VDATE,LVDATE,N,LN,PDATA,IEN
+ K ^XTMP("BTPW12PS")
+ S QIEN=0
+ F  S QIEN=$O(^BTPWQ(QIEN)) Q:'QIEN  D
+ . S QDATA=^BTPWQ(QIEN,0)
+ . S VISIT=$P(QDATA,U,4) I VISIT=""!(VISIT="~") Q
+ . I $G(^AUPNVSIT(VISIT,0))="" Q
+ . I "DXCTI"[$P(^AUPNVSIT(VISIT,0),U,7) D  Q
+ .. I $P(^BTPWQ(QIEN,0),U,8)="T" Q
+ .. S DA=QIEN,DIK="^BTPWQ(" D ^DIK
+ . S DFN=$P(QDATA,U,2),PRC=$P(QDATA,U,1),VDATE=$P(QDATA,U,3)
+ . S ^XTMP("BTPW12PS",DFN,PRC,VDATE,QIEN)="",^XTMP("BTPW12PS",DFN,PRC)=$G(^XTMP("BTPW12PS",DFN,PRC))+1
+ ;
+ S DFN=""
+ F  S DFN=$O(^XTMP("BTPW12PS",DFN)) Q:DFN=""  D
+ . S PRC=""
+ . F  S PRC=$O(^XTMP("BTPW12PS",DFN,PRC)) Q:PRC=""  D
+ .. I ^XTMP("BTPW12PS",DFN,PRC)<2 K ^XTMP("BTPW12PS",DFN,PRC) Q
+ .. S VDATE=""
+ .. F  S VDATE=$O(^XTMP("BTPW12PS",DFN,PRC,VDATE)) Q:VDATE=""  S LVDATE=VDATE
+ .. K BQARRAY
+ .. D CHK^BTPWPFND(DFN,.BQARRAY)
+ .. S N=0 F  S N=$O(BQARRAY(N)) Q:N=""  I $P(BQARRAY(N),U,1)=PRC S LN=N
+ .. I $G(LN)'="" S PDATA=$G(BQARRAY(LN))
+ .. I $G(LN)="" S PDATA=""
+ .. K BQARRAY
+ .. S VISIT=$P(PDATA,U,2),RIEN=$P(PDATA,U,7)
+ .. S IEN=""
+ .. F  S IEN=$O(^XTMP("BTPW12PS",DFN,PRC,LVDATE,IEN)) Q:IEN=""  D
+ ... S QDATA=^BTPWQ(IEN,0)
+ ... I $P(QDATA,U,4)=VISIT,$P(QDATA,U,5)=RIEN Q
+ ... S BTPWUPD(90629,IEN_",",.08)="S"
+ .. F  S LVDATE=$O(^XTMP("BTPW12PS",DFN,PRC,LVDATE),-1) Q:LVDATE=""  D
+ ... S IEN=""
+ ... F  S IEN=$O(^XTMP("BTPW12PS",DFN,PRC,LVDATE,IEN)) Q:IEN=""  D
+ .... S BTPWUPD(90629,IEN_",",.08)="S"
+ . D FILE^DIE("","BTPWUPD","ERROR")
+ K ^XTMP("BTPW12PS")
+ Q
+ ;
+STXPT(TXNM,TYP) ;  Set taxonomy pointer
+ ;
+ ;Input
+ ;  TXNM - Taxonomy name
+ ;  TYP  - Taxonomy Type (L = LAB, N = Non Lab)
+ NEW IEN,SIEN,DA,IENS,BQUPD,VALUE,GLB
+ S VALUE=""
+ I TYP="L" D
+ . S IEN=$O(^ATXLAB("B",TXNM,"")),GLB="ATXLAB("
+ . I IEN="" S TYP="N"
+ I TYP="N" S IEN=$O(^ATXAX("B",TXNM,"")),GLB="ATXAX("
+ I IEN="" S VALUE="@"
+ I IEN'="" S VALUE=IEN_";"_GLB
+ Q VALUE
+ ;
+LYT ;EP - Layout items
+ ;;0|BTPWFUOR^18^Ordered^^^^^T00120BTPWFUOR~1|S VAL=$$GORD^BTPWPPAT(TIEN)~3|21^^^O^18~5|
+ ;;

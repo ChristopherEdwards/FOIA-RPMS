@@ -1,5 +1,5 @@
-TIURD1 ; SLC/JER - Reassign actions ;03/09/2001 13:10
- ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,61**;Jun 20, 1997
+TIURD1 ; SLC/JER - Reassign actions ;4/18/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,61,113**;Jun 20, 1997
 MOVEADD(TIUDA) ; Move an addendum to another document
  N DFN,TIUDAT,TIUSCRN,TIUMOVE,TIUTYP,TIUODA
  S TIUTYP=$$CLINDOC^TIULC1(+$G(^TIU(8925,+$P($G(^TIU(8925,+TIUDA,0)),U,6),0)))
@@ -27,7 +27,7 @@ MOVEADD(TIUDA) ; Move an addendum to another document
  . N TIUDD0,TIUDD12,TIUDD14
  . S TIUDD0=$G(^TIU(8925,+TIUDAT,0)),TIUDD12=$G(^(12)),TIUDD14=$G(^(14))
  . S DR=".02////"_$P(TIUDD0,U,2)_";.03////"_$P(TIUDD0,U,3)_";.06////"_+TIUDAT_";.07////"_$P(TIUDD0,U,7)_";.08////"_$S(+$P(TIUDD0,U,8):$P(TIUDD0,U,8),1:"@")_";.13////"_$P(TIUDD0,U,13)
- . S DR=DR_";1401////"_$P(TIUDD14,U)_";1402////"_$P(TIUDD14,U,2)_";1404////"_$P(TIUDD14,U,4)_";1205////"_$P(TIUDD12,U,5)_";1211////"_$P(TIUDD12,U,11)
+ . S DR=DR_";1401////"_$P(TIUDD14,U)_";1402////"_$P(TIUDD14,U,2)_";1404////"_$P(TIUDD14,U,4)_";1205////"_$P(TIUDD12,U,5)_";1211////"_$P(TIUDD12,U,11)_";1212////"_$P(TIUDD12,U,12)
  . S DIE=8925,DA=+TIUDA D ^DIE
  . K DR N TIUTYP
  . S DR=".05///"_$$STATUS^TIULC(+TIUDA) D ^DIE

@@ -1,5 +1,5 @@
 BDMS9B1 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT 12 Jan 2011 12:27 PM ; [ 12 Jan 2011 12:27 PM ]
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5**;JUN 14, 2007
  ;
  Q:'$G(APCHSPAT)
  S BDMSPAT=APCHSPAT
@@ -76,7 +76,7 @@ SETARRAY ;set up array containing dm care summary
  S X="Aspirin Use/Anti-platelet (in past yr):  "_BDMSX D S(X)
  I BDMSX="No" S X="",X=$$ASPREF^BDMS9B4(BDMSDFN) I X]"" S X="     "_X D S(X)
  S BDMDEPP=$$DEPPL(BDMSDFN,$$FMADD^XLFDT(DT,-365),DT)
- S BDMDEPS=$$DEPSCR^BDMD112(BDMSDFN,$$FMADD^XLFDT(DT,-365),DT)
+ S BDMDEPS=$$DEPSCR^BDMD412(BDMSDFN,$$FMADD^XLFDT(DT,-365),DT)
  S BDMDEPS=$P(BDMDEPS,"  ",2,99)
  S B=$$BP(BDMSDFN)
  S X="Last 3 BP:  "_$P($G(BDMX(1)),U,2)_"   "_$$DATE($P($G(BDMX(1)),U))
@@ -94,9 +94,9 @@ M12 ;
  ;determine date range
  S BDMSBEG=$$FMADD^XLFDT(DT,-365)
  S X="In past 12 months:" D S(X)
- S X="Diabetic Foot Exam:",$E(X,23)=$P($$DFE^BDMD117(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
- S X="Diabetic Eye Exam:",$E(X,23)=$P($$EYE^BDMD117(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
- S X="Dental Exam:",$E(X,23)=$P($$DENTAL^BDMD117(BDMSDFN,BDMSBEG,DT),"  ",2,99) D S(X)
+ S X="Diabetic Foot Exam:",$E(X,23)=$P($$DFE^BDMD417(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
+ S X="Diabetic Eye Exam:",$E(X,23)=$P($$EYE^BDMD417(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
+ S X="Dental Exam:",$E(X,23)=$P($$DENTAL^BDMD417(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
  K BDMSTEX,BDMSDAT,BDMX
  I $P(^DPT(BDMSDFN,0),U,2)="F",$$AGE^AUPNPAT(BDMSDFN)>17 D
  .S BDMMAM=$$LASTMAM^APCLAPI1(BDMSDFN,,,"A"),BDMSDAT=$P(BDMMAM,U,1)
@@ -104,8 +104,8 @@ M12 ;
  .S X="Last Mammogram:",$E(X,23)=$$DATE($P(BDMMAM,U,1))_"  "_$P(BDMMAM,U,2) D S(X)
  .I BDMMAMR]"" S X="",$E(X,10)="Note: "_$P(BDMMAMR,U,2) D S(X)
  .S BDMX=$$PAP^BDMS9B4(BDMSDFN) ;get date of last pap in pcc/refusal
- .S X="Last Pap Smear: ",$E(X,23)=$$DATE($P(BDMX,U))_"  "_$P(BDMX,U,3) D S(X)
- .I $P(BDMX,U,2)]"" S X="",$E(X,10)="Note: "_$P(BDMX,U,2) D S(X)
+ .S X="Last Pap Smear: ",$E(X,23)=$S($P(BDMX,U)]"":$$DATE($P(BDMX,U))_"  "_$P(BDMX,U,4),1:"<None on file>") D S(X)
+ .I $P(BDMX,U,2)]"" S X="",$E(X,10)="Note: "_$P(BDMX,U,3) D S(X)
  D MORE^BDMS9B2
  S X=$P(^DPT(BDMSDFN,0),U),$E(X,35)="DOB: "_$$DOB^AUPNPAT(BDMSDFN,"S"),$E(X,55)="Chart #"_$$HRN^AUPNPAT(BDMSDFN,DUZ(2),2) D S(X,1) ;IHS/CMI/LAB - X,3 to X,2
  Q

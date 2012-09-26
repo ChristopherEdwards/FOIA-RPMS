@@ -1,11 +1,12 @@
-PSOORED6 ;BHAM ISC/SAB-edit orders from backdoor ;30-Sep-2006 22:34;SM
- ;;7.0;OUTPATIENT PHARMACY;**78,104,117,133,1005**;DEC 1997
+PSOORED6 ;BHAM ISC/SAB-edit orders from backdoor ;25-Oct-2011 12:50;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**78,104,117,133,1005**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference ^PS(50.606 supported by DBIA 2174
  ; Modified - IHS/CIA/PLS - 06/15/04 - Line DRG+20
  ;                          09/07/04 - Line UPDATE+25
  ;                          09/15/06 - Line UPDATE+7 added
+ ;                          10/14/11 - Line UPDATE+11 and UPDATE+28
 DRG ;select drug
  S PSORX("EDIT")=1,RX0HLD=RX0
  S PSODRUG("IEN")=$S($G(PSODRUG("IEN"))]"":PSODRUG("IEN"),1:$P(RX0,"^",6)),PSODRUG("NAME")=$S($G(PSODRUG("NAME"))]"":PSODRUG("NAME"),1:$P(^PSDRUG($P(RX0,"^",6),0),"^"))
@@ -69,6 +70,7 @@ PSOI ;select orderable item
  S PSORXED("FLD",39.2)=PSOI
  Q
 UPDATE ;add new data to file
+ N APSPRCHK S APSPRCHK=0
  Q:'$G(PSORXED("IRXN"))
  I $O(PSORXED("FLD",0))!($G(^TMP($J,"INS1",0))]"")!($G(INSDEL))!($O(PSORXED("ODOSE",0))) D  G:'Y UPDX
  .K DIR,DIRUT,DTOUT,DUOUT
@@ -78,6 +80,7 @@ UPDATE ;add new data to file
  S:$O(PSORXED("FLD",0)) ^TMP("APSPPOS",$J,PSORXED("IRXN"))=1  ;IHS/MSC/PLS - 09/15/06
  K Y S DA=PSORXED("IRXN"),DIE="^PSRX(",FLD=0
  F  S FLD=$O(PSORXED("FLD",FLD)) Q:'FLD  D
+ .I FLD=9,PSORXED("FLD",FLD)>$P(PSORXED("RX0"),U,9) S APSPRCHK=1  ;IHS/MSC/PLS - 10/14/2011 - Change for update to expiration date
  .I FLD=12!(FLD=24)!(FLD=35) D  Q
  ..I FLD=12,PSORXED("FLD",12)="@" S $P(^PSRX(DA,3),"^",7)="" Q
  ..I FLD=12,PSORXED("FLD",12)]"" S $P(^PSRX(DA,3),"^",7)=PSORXED("FLD",12) Q
@@ -105,6 +108,17 @@ UPDATE ;add new data to file
  .S ^PSRX(DA,"INS1",0)=^TMP($J,"INS1",0)
  .I DD=1 S ^PSRX(DA,"INS")=^PSRX(DA,"INS1",1,0)
  .D DOLST^PSOORED3,EN^PSOFSIG(.PSORXED),UPDSIG^PSOORED3
+ ;IHS/MSC/PLS - 10/14/2011 - Update expiration date when more fills are added
+ I APSPRCHK D
+ .N CS,DE,EXTEXP,X2,NEXPDT,DA,DIE
+ .S CS=0
+ .S DE=+$E(PSODRUG("DEA"),1)
+ .I DE>1,DE<6 S CS=1 S:DE=2 $P(CS,U,2)=1
+ .S EXTEXP=$$GET1^DIQ(50,$P(PSORXED("RX0"),U,6),9999999.08)
+ .S X2=$S(EXTEXP:EXTEXP,$P(CS,U,2):184,CS:184,1:366)
+ .S NEXPDT=$$FMADD^XLFDT($P(PSORXED("RX0"),U,13),X2)
+ .S DA=PSORXED("IRXN"),DIE="^PSRX("
+ .S DR="26///"_NEXPDT D ^DIE
 UPDX K DIE,DA,DR,FLD,X,Y,PSORXED("FLD"),DD,^TMP($J,"INS1")
 KV K DIR,DIRUT,DTOUT,DUOUT
  Q

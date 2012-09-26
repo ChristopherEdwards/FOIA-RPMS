@@ -1,5 +1,6 @@
-PSOUTIL ;IHS/DSD/JCM - outpatient pharmacy utility routine ; 03/28/93 20:46
- ;;7.0;OUTPATIENT PHARMACY;**64**;DEC 1997
+PSOUTIL ;IHS/DSD/JCM - outpatient pharmacy utility routine ;05-Jan-2012 12:03;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**64,1013**;DEC 1997;Build 33
+ ; Modified - IHS/MSC/PLS - 11/07/2011 - Line PROV+17
  W !!,$C(7),"This routine not callable from PSOUTIL.."
  Q
  ;
@@ -42,6 +43,19 @@ CHKPRV ;check inactive providers and cosinging providers called from PSORENW (re
  .W !,$C(7),$P(^VA(200,PSORENW("PROVIDER"),0),"^")_" is inactive as a provider .. You must select a new provider"
  .S PSODIR("FIELD")=0 K PSORENW("PROVIDER") D PROV^PSODIR(.PSORENW)
  .I $G(PSORENW("PROVIDER"))']"" S PSORENW("DFLG")=1
+ ;
+ ;IHS/MSC/PLS - 11/07/2011
+ N CLOZPAT,APSPDIEN
+ S:'$D(PSORENW("CS")) PSORENW("CS")=0
+ S APSPDIEN=$S($G(PSORENW("DRUG IEN")):PSORENW("DRUG IEN"),$G(PSODRUG("IEN")):PSODRUG("IEN"),1:0)
+ I $P($G(^PSDRUG(APSPDIEN,"CLOZ1")),"^")="PSOCLO1" S CLOZPAT=1
+ ;S CLOZPAT=$S($P($G(^PSDRUG(APSPDIEN,"CLOZ1")),"^")="PSOCLO1":1,1:0)
+ I APSPDIEN,$$ISSCH^APSPFNC2(APSPDIEN,"2345")!($D(CLOZPAT)) D  G:PSORENW("DFLG") CHKPRVX
+ .S PSORENW("CS")=1
+ .I '$L($P($G(^VA(200,+PSORENW("PROVIDER"),"PS")),U,2)),'$L($P($G(^VA(200,+PSORENW("PROVIDER"),"PS")),U,3)) D
+ ..W $C(7),!!,"Provider must have a DEA# or VA#"_$S($D(CLOZPAT):" to write prescriptions for clozapine.",1:"."),!
+ ..S PSODIR("FIELD")=0 K PSORENW("PROVIDER") D PROV^PSODIR(.PSORENW)
+ ..I $G(PSORENW("PROVIDER"))']"" S PSORENW("DFLG")=1
  ;
  I '$D(PSORENW("COSIGNING PROVIDER")),$D(PSORENW("COSIGNER")) K PSOX S PSOX=$P(^VA(200,PSORENW("COSIGNER"),"PS"),"^",4) I PSOX,PSOX<DT D
  .W !,$C(7),"Inactive Cosigning Provider .. You must select a new cosigner"

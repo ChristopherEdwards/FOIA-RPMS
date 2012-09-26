@@ -1,5 +1,5 @@
 BGP2D87 ; IHS/CMI/LAB - measure calc ; 01 Nov 2011  2:35 PM
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 IHFL ;EP - heart failure/LVS
  S (BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPD1,BGPD2,BGPD3,BGPD4,BGPD5,BGPD6,BGPD7,BGPD8,BGPD9)=0
@@ -40,8 +40,8 @@ HFADM(P,BDATE,EDATE) ;
  ..S B=1
  .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U) I $$ICD^ATXCHK(%,T,9) S D=1
  .I D D
- ..;skip the hospital admission if there is a dx of V66.7
- ..S (A,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(A)  I $D(^AUPNVPOV(Y,0)) S %=$$VAL^XBDIQ1(9000010.07,Y,.01) I %="V66.7" S A=1
+ ..;skip the hospital admission if there is a dx of PALLITATIVE
+ ..S (A,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(A)  I $D(^AUPNVPOV(Y,0)) S %=$$VALI^XBDIQ1(9000010.07,Y,.01) I $$ICD^ATXCHK(%,$O(^ATXAX("B","BGP PALLIATIVE CARE DXS",0)),9) S A=1
  ..Q:A
  ..;skip if there was a LVAD/heart transplant procedure adm date to discharge date
  ..S A=$$LASTPRC^BGP2UTL1(P,"BGP CRS LVAD/HEART TRANS PROC",$P($P(^AUPNVSIT(V,0),U),"."),$P($P(^AUPNVINP(H,0),U),"."))

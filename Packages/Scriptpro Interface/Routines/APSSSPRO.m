@@ -1,5 +1,5 @@
-APSSSPRO ;IHS/CIA/PLS - ScriptPro Interface;06-Dec-2007 15:06;SM
- ;;1.0;IHS SCRIPTPRO INTERFACE;**1**;January 11, 2006
+APSSSPRO ;IHS/CIA/PLS - ScriptPro Interface;08-Mar-2012 16:37;PLS
+ ;;1.0;IHS SCRIPTPRO INTERFACE;**1**;January 11, 2006;Build 13
  ;Call via entry point placed in Field 900 of File 9009033
  ;Direct entry not supported
  ; Modified - IHS/MSC/PLS - 02/08/07 - Line ASK+2 - Added check for ZTSK
@@ -7,18 +7,25 @@ APSSSPRO ;IHS/CIA/PLS - ScriptPro Interface;06-Dec-2007 15:06;SM
  Q
 EP1(RXIEN,REPRINT,SGY,RXF,RXPI) ;PEP	- Main entry point
  N APSS,RX0,RX2,RX3,REFIEN,RXSTAT,QTY
- N ZTRTN,ZTIO,ZTDESC,ZTREQ,ZTSAVE,VAR,ZTSK
+ N DEVLP
  Q:'$G(RXIEN)  ; Prescription IEN required
  Q:'$D(^APSSPARM($G(DUZ(2))))
  Q:'$$SETUP(DUZ(2),.APSS)
 TASK ;
  I $G(APSS("ASK")),'$$ASK("Send to SCRIPT-PRO") U IO Q
  Q:'$G(APSS("DEV"))  ; No device
+ ;S DEVLP=0
+ ;F  S DEVLP=$O(APSS("DEV",DEVLP)) Q:'DEVLP  D
+ ;.
+ N ZTRTN,ZTIO,ZTDESC,ZTREQ,ZTSAVE,VAR,ZTSK
+ ;.
+ ;S DEV=$P(APSS("DEV",DEVLP),U,2)
+ ;.Q:'DEV  ;No device specified
  S ZTRTN="EPTASK^APSSSPRO"
  S ZTDESC="ScriptPro Interface for RXIEN: "_RXIEN
  S ZTDTH=$H
  S ZTIO="`"_APSS("DEV")
- F VAR="RXIEN","REPRINT","SGY(","RXF","RXPI" S:$D(VAR) ZTSAVE(VAR)=""
+ F VAR="RXIEN","REPRINT","SGY(","RXF","RXPI","PSOSITE" S:$D(VAR) ZTSAVE(VAR)=""
  D ^%ZTLOAD
  Q
  ;
@@ -81,17 +88,26 @@ ADD(VAL) ;
  S RET=$G(RET,"")_VAL
  Q
 SETUP(FAC,APSS) ;EP - Build configuration array
- N PARAM
+ N PARAM,DEVLP,CNT,DAT
  S APSS("PFL")="N"
  S (PARAM,APSS("PARM"))=$G(^APSSPARM(FAC,0))
  Q:'PARAM 0
  Q:'$$GETP(PARAM,2) 0   ; Interface is turned off
- S APSS("DEV")=+$$GETP(PARAM,3)
+ S APSS("DEV")=$$GETDEV(+$G(PSOSITE),+$$GETP(PARAM,3))
  S APSS("SIGLINE")=$S($$GETP(PARAM,4):$$GETP(PARAM,4),1:30)
  S APSS("CHKDRG")=''$$GETP(PARAM,5)
  S APSS("ASK")=''$$GETP(PARAM,6)
  S APSS("LOG")=''$$GETP(PARAM,7)
  Q 1
+ ;S CNT=1
+ ;S APSS("DEV",CNT)=U_$$GETP(PARAM,3)
+ ;S DEVLP=0
+ ;F  S DEVLP=$O(^APSSPARM(FAC,2,DEVLP)) Q:'DEVLP  D
+ ;.S DAT=^APSSPARM(FAC,2,DEVLP,0)
+ .Q:'$P(DAT,U,3)  ;Is device active?
+ ;.S CNT=CNT+1
+ ;.S APSS("DEV",CNT)=DAT
+ ;Q 1
  ;
 INIT ;EP - Build data for prescription
  S RX0=$G(^PSRX(RXIEN,0))
@@ -162,3 +178,10 @@ HASDRUG(DRUG) ; EP
 SETRM(X) ;
  X ^%ZOSF("RM")
  Q
+ ; Return device for pharmacy division or default
+GETDEV(PDIV,DEF) ;EP-
+ N PDIEN
+ S PDIEN=$O(^APSSPARM(FAC,2,"B",+$G(PDIV),0))
+ Q:'PDIEN DEF
+ S DAT=$G(^APSSPARM(FAC,2,PDIEN,0))
+ Q $S($P(DAT,U,3)&$P(DAT,U,2):$P(DAT,U,2),1:DEF)

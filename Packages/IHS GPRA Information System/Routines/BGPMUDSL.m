@@ -1,5 +1,5 @@
 BGPMUDSL ; IHS/MSC/MMT - DISPLAY Measure LISTS ;02-Mar-2011 14:00;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;;
 RT ;EP
  ;
@@ -30,7 +30,7 @@ HDR ; -- header code
  S VALMHDR(2)="* indicates the list has been selected"
  Q
  ;
-INIT ; -- init variables and list array
+INIT ;EP -- init variables and list array
  K BGPMUGL,BGPNOLI S BGPHIGH=""
  N X,C,I,O
  S (X,C,I,O)=0 F  S O=$O(^BGPMUIND(BGPMUYF,"ADO",O)) Q:O'=+O  S X=$O(^BGPMUIND(BGPMUYF,"ADO",O,0)) I $D(BGPIND(X)) D

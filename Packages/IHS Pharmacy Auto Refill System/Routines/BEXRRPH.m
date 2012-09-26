@@ -1,9 +1,9 @@
-BEXRRPH ;CMI/BJI/DAY - BEX - Refills Processed by RPHS Report ; 19 Nov 2009  10:57 AM [ 03/02/2010  11:13 AM ]
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4**;DEC 01, 2009
+BEXRRPH ;IHS/CMI/DAY - BEX - Refills Processed by RPHS Report ; 12 Mar 2012  9:19 PM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4,5**;MAR 12, 2012;Build 1
  ;
  ;Prints the Refills Processed by RPH Report
  ;
- D ^XBCLS
+ W #
  ;
  W !,"Refills Processed by RPH Report"
  W !
@@ -26,7 +26,7 @@ BEXRRPH ;CMI/BJI/DAY - BEX - Refills Processed by RPHS Report ; 19 Nov 2009  10:
  .K DIC,DIE,DIR,DA,DD,DR,DO
  .I X="" S BEXQUIT=1 Q
  .I Y<0 S BEXQUIT=1 Q
- S BEXSITE=+Y
+ .S BEXSITE=+Y
  .S BEXDIV=BEXDIV+1
  .S Y=$P($G(^PS(59,BEXSITE,"INI")),U)
  .I +Y S BEXDIV(Y)=""
@@ -84,7 +84,7 @@ LIST ;EP - Entry Point from XBDBQUE
  ;---------------------------------------------------------------
  ;
  ;
- D ^XBCLS
+ W #
  D HEADER
  ;
  K BEXTOT
@@ -153,7 +153,7 @@ LIST ;EP - Entry Point from XBDBQUE
 HEADER ;EP - Write the Header
  ;---------------------------------------------------------------
  ;
- D ^XBCLS
+ W #
  W !,"REPORT:      Refills Processed by RPH Report"
  W " for "
  I +BEXSITE W $$GET1^DIQ(59,BEXSITE,.01)

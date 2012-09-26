@@ -1,11 +1,15 @@
-PSIVOPT2 ;BIR/PR,MLM-OPTION DRIVER (CONT) ;09-Dec-2010 09:06;SM
- ;;5.0; INPATIENT MEDICATIONS ;**23,29,58,1009**;16 DEC 97
+PSIVOPT2 ;BIR/PR,MLM-OPTION DRIVER (CONT) ;17-Oct-2011 10:40;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**23,29,58,1009,1013**;16 DEC 97;Build 33
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191.
  ; Reference to ^PSSLOCK is supported by DBIA #2789
  ;
  ;Modified - IHS/MSC/PLS - 12/09/10 - Line R+3
+ ;                         10/16/11 - Line D+1
 D ; Discontinue order.
+ N INCOM
+ S INCOM=$$INPTCOM^APSPFUNC()
+ I '$L(INCOM) W !,$C(7),"Order Unchanged." Q
  D NATURE^PSIVOREN I '$D(P("NAT")) W !,$C(7),"Order Unchanged." Q
  ;* 8/2* D EN1^PSJHL2(DFN,"OD",+ON55_"V","ORDER DISCONTINUED"),D1
  I '$$REQPROV^PSGOEC W !,$C(7),"Order Unchanged." Q

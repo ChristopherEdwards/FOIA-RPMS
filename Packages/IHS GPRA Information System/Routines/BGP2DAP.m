@@ -1,5 +1,5 @@
 BGP2DAP ; IHS/CMI/LAB - IHS GPRA 04 SELECTED REPORT DRIVER ALL PATIENTS ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -10,7 +10,8 @@ INTRO ;
  W !,"This will produce a Performance Measure Report for one or more measures for a"
  W !,"year period you specify.  You will be asked to provide: 1) the"
  W !,"reporting period and, 2) the baseline period to compare data to."
- W !!,"NOTE:  With this option all patients in your database will be reviewed",!,"regardless of what community they live in.  You will NOT be asked to enter",!,"a community taxonomy name.",!
+ W !!,"NOTE:  With this option all patients in your database will be reviewed",!,"regardless of what community they live in.  You will NOT be asked to enter",!,"a community taxonomy name.  Since this may cause the report to be",!
+ W "very large, the SEL option will be limited to no more than 15 topics",!,"at one time.",!
 SETIND ;
  D XIT
  S BGPINDW=""
@@ -32,7 +33,7 @@ GI ;gather all measures
  I '$D(BGPIND) W !!,"no measures selected" G SETIND
  D TAXCHK^BGP2XTCH
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,XIT Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,XIT Q
 TP ;get time period
  S BGPRTYPE=4,BGPYRPTH="A"
  S (BGPBD,BGPED,BGPTP)=""

@@ -1,0 +1,389 @@
+BQIPTRP1 ;VNGT/HS/ALA - Patient Reproductive Factors ; 06 May 2008  7:40 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;
+REP(DATA,DFN,EDT) ; EP -- BQI PATIENT REPRODUCTIVE FACS
+ ;
+ ;Description - all the reproductive factors that a patient has
+ ;
+ ;Input
+ ;  DFN - Patient internal entry number
+ ;  EDT - 1 - Call was from Edit Load, otherwise Null
+ ;
+ NEW UID,II,SEX,AGE,DIEN,DORD,CIEN,CLIST,BQIACT,ERROR,FIEN,VER,EDFLD,FDATA
+ ;
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPTRP1",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPTRP1 D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S DIEN=$O(^BQI(90506.3,"B","Reproductive Factors","")) I DIEN="" S BMXSEC="Reproductive Factors Definition Issue" Q
+ S EDT=$G(EDT,"")
+ S SEX=$$GET1^DIQ(2,DFN_",",.02,"I"),AGE=$$AGE^BQIAGE(DFN)
+ I SEX'="F" D  Q
+ . S @DATA@(II)="I00010RESULT^T00080MESSAGE"_$C(30)
+ . S II=II+1,@DATA@(II)="-1^RPC Failed: Patient is not Female"_$C(30)
+ . S II=II+1,@DATA@(II)=$C(31)
+ ;
+ S FDATA=""
+ S @DATA@(II)="T00010COLUMN_NAME^T00045COLUMN_DESC^T00120COLUMN_VALUE^D00030DATE_LAST_MODIFIED^T00075PRV_LAST_MODIFIED"_$C(30)
+ ;
+ ;Set up EDD field array
+ D EDFLD
+ ;
+ ;Update VDEF Reproductive Factors entry
+ D UVDEF()
+ ;
+ ;Loop through GRID ORDER and get each row
+ S DORD="" F  S DORD=$O(^BQI(90506.3,DIEN,10,"AF",DORD)) Q:DORD=""  S CIEN="" F  S CIEN=$O(^BQI(90506.3,DIEN,10,"AF",DORD,CIEN)) Q:CIEN=""  D PFLD(DIEN,CIEN,EDT,FDATA)
+ ;
+ ;Age check
+ I 'FDATA,AGE<10 D  Q
+ . K @DATA
+ . S @DATA@(II)="I00010RESULT^T00080MESSAGE"_$C(30)
+ . S II=II+1,@DATA@(II)="-1^RPC Failed: Patient is less than 10 years of age"_$C(30)
+ . S II=II+1,@DATA@(II)=$C(31)
+ ;
+DONE ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+CMETH(DATA,DFN) ; EP -- BQI GET PATIENT CON METH
+ ;
+ NEW UID,II,HDR,MIEN
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPTRP1",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPTRP1 D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ S HDR="I00010CMIEN^T00050RFFPMT^D00030RFFPBDT^D00030RFFPEDT^T00100RFCMDSC^T00100RFCMCMT^D00030RFCFUPD"
+ S @DATA@(II)=HDR_$C(30)
+ ;
+ ;Pull Contraception Method Information
+ S MIEN=0 F  S MIEN=$O(^AUPNREP(DFN,2101,MIEN)) Q:'MIEN  D
+ . ;
+ . NEW DA,IENS,METH,XMTH,CBEG,CEND,CDIS,CCOM,CLDT
+ . S DA(1)=DFN,DA=MIEN,IENS=$$IENS^DILF(.DA)
+ . S METH=$$GET1^DIQ(9000017.02101,IENS,.01,"I")
+ . S XMTH=$$GET1^DIQ(9000017.02101,IENS,.01,"E")
+ . S CBEG=$$FMTE^BQIUL1($$GET1^DIQ(9000017.02101,IENS,.02,"I"))
+ . S CEND=$$FMTE^BQIUL1($$GET1^DIQ(9000017.02101,IENS,.03,"I"))
+ . S CLDT=$$FMTE^BQIUL1($$GET1^DIQ(9000017.02101,IENS,.04,"I"))
+ . S CDIS=$$GET1^DIQ(9000017.02101,IENS,.05,"E")
+ . S CCOM=$$GET1^DIQ(9000017.02101,IENS,.06,"E")
+ . S II=II+1,@DATA@(II)=MIEN_U_METH_$C(28)_XMTH_U_CBEG_U_CEND_U_CDIS_U_CCOM_U_CLDT_$C(30)
+ ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+UPDCM(DATA,BQIDFN,BQIIEN,BQIED,PARMS) ; EP - BQI UPD PAT CMETH
+ ; Input parameters
+ ;   BQIDFN - Patient DFN
+ ;   BQIIEN - Contraception Method Entry IEN
+ ;   BQIED  - E for Add/Edit, D for Delete
+ ;   PARMS  - Parameters and their values
+ ;
+ NEW UID,II,VFIEN,FILE,BQ,RFFPMT,RFFPBDT,RFFPEDT,RFCMDSC,RFCMCMT,RFCFUPD
+ NEW DA,IENS,BQ,BQICMT,ERROR,RESULT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPTRP1",UID))
+ K @DATA
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPTRP1 D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ S @DATA@(II)="I00010RESULT^T01024MSG^I00010HIDE_CMIEN"_$C(30)
+ ;
+ S BQIIEN=$G(BQIIEN,"")
+ S PARMS=$G(PARMS,"")
+ S RFFPMT=$G(RFFPMT,""),RFFPBDT=$G(RFFPBDT,""),RFFPEDT=$G(RFFPEDT,"")
+ S RFCMDSC=$G(RFCMDSC,""),RFCMCMT=$G(RFCMCMT,""),RFCFUPD=$G(RFCFUPD,"")
+ ;
+ I PARMS="" D
+ . NEW LIST,BN
+ . S LIST="",BN=""
+ . F  S BN=$O(PARMS(BN)) Q:BN=""  S LIST=LIST_PARMS(BN)
+ . K PARMS
+ . S PARMS=LIST
+ . K LIST
+ ;
+ S VFIEN=$O(^BQI(90506.3,"B","Contraceptive Methods",""))
+ I VFIEN="" S BMXSEC="RPC Call Failed: Contraceptive Methods VDEF does not exist." Q
+ S FILE=$P(^BQI(90506.3,VFIEN,0),U,2)
+ ;
+ ;Process Deletes
+ I BQIED="D" D  G XUPDCM
+ . NEW DA,IENS
+ . S DA(1)=BQIDFN,DA=BQIIEN,IENS=$$IENS^DILF(.DA)
+ . S BQICMT(FILE,IENS,".01")="@"
+ ;
+ F BQ=1:1:$L(PARMS,$C(28)) D  Q:$G(BMXSEC)'=""
+ . NEW PDATA,NAME,VALUE,PFIEN,PTYP,CHIEN
+ . S PDATA=$P(PARMS,$C(28),BQ) Q:PDATA=""
+ . S NAME=$P(PDATA,"=",1),VALUE=$P(PDATA,"=",2,99)
+ . I VALUE="" S VALUE="@"
+ . S PFIEN=$O(^BQI(90506.3,VFIEN,10,"AC",NAME,""))
+ . I PFIEN="" S BMXSEC=NAME_" not a valid parameter for this update" Q
+ . S PTYP=$P($G(^BQI(90506.3,VFIEN,10,PFIEN,1)),U,1)
+ . I PTYP="D" S VALUE=$$DATE^BQIUL1(VALUE)
+ . I PTYP="C" D
+ .. S CHIEN=$O(^BQI(90506.3,VFIEN,10,PFIEN,5,"B",VALUE,"")) I CHIEN="" Q
+ .. S VALUE=$P(^BQI(90506.3,VFIEN,10,PFIEN,5,CHIEN,0),U,2)
+ . S @NAME=VALUE
+ ;
+ I BQIIEN="",RFFPMT="" S BMXSEC="RPC Call Failed: No Contraceptive Method passed in." Q
+ I BQIIEN="" S BQIIEN=$$ADD(BQIDFN,RFFPMT)
+ ;
+ S DA(1)=BQIDFN,DA=BQIIEN,IENS=$$IENS^DILF(.DA)
+ ;
+ F BQ=1:1:$L(PARMS,$C(28)) D  Q:$G(BMXSEC)'=""
+ . NEW PDATA,NAME,PFIEN,PTYP,FMN
+ . S PDATA=$P(PARMS,$C(28),BQ) Q:PDATA=""
+ . S NAME=$P(PDATA,"=",1)
+ . S PFIEN=$O(^BQI(90506.3,VFIEN,10,"AC",NAME,""))
+ . I PFIEN="" S BMXSEC=NAME_" not a valid parameter for this update" Q
+ . S FMN=$P($G(^BQI(90506.3,VFIEN,10,PFIEN,3)),U,1)
+ . Q:FMN=""
+ . S BQICMT(FILE,IENS,FMN)=$G(@NAME)
+ S BQICMT(FILE,IENS,.04)=$$NOW^XLFDT()
+ ;
+XUPDCM I $D(BQICMT) D FILE^DIE("","BQICMT","ERROR")
+ ;
+ S RESULT=1
+ I $D(ERROR) S RESULT=-1
+ S II=II+1,@DATA@(II)=RESULT_"^^"_BQIIEN_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ADD(BQIDFN,RFFPMT) ; EP - Create new Contraception Methods record
+ NEW DA,DIC,DLAYGO,IENS,X,Y,DIC,DA,DLAYGO
+ S DA(1)=BQIDFN,X=RFFPMT
+ I '$D(^AUPNREP(DA(1),2101,0)) S ^AUPNREP(DA(1),2101,0)="^9000017.02101^^"
+ S DIC="^AUPNREP("_DA(1)_",2101,",DIC(0)="LMNZ",DLAYGO=9000017.02101,DIC("P")=DLAYGO
+ K DO,DD D FILE^DICN
+ Q +Y
+ ;
+PFLD(DIEN,CIEN,EDT,FDATA) ;EP - Process one field entry
+ ;
+ NEW DA,IENS,INACTIVE,CODE,COL,FMN,CEXEC
+ S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ S INACTIVE=$$GET1^DIQ(90506.31,IENS,.11,"I") Q:INACTIVE
+ ;
+ ;If display mode skip if not Col Type View = Show
+ I $G(EDT)'=1,$$GET1^DIQ(90506.31,IENS,.12,"I")'="S" Q
+ S CODE=$$GET1^DIQ(90506.31,IENS,.07,"I") Q:CODE=""
+ S COL=$$GET1^DIQ(90506.31,IENS,.01,"I") Q:COL=""
+ S FMN=$$GET1^DIQ(90506.31,IENS,3.01,"I")
+ S CEXEC=$$GET1^DIQ(90506.31,IENS,8,"I")
+ ;
+ ;Filter EDD fields if in display mode and not pregnant
+ I $$GET1^DIQ(9000017,DFN_",",1101,"I")'="Y",$G(EDT)'=1,$D(EDFLD(COL)) Q
+ ;
+ K DA,IENS
+ NEW DA,IENS,VAL
+ S DA=DFN,IENS=$$IENS^DILF(.DA)
+ S VAL=""
+ S:FMN]"" VAL=$$GET1^DIQ(9000017,IENS,FMN,"E")
+ ;
+ I CEXEC]"" X CEXEC
+ ;
+ ;Log that a row value was found
+ I $P(VAL,U)]"" S FDATA=1
+ ;
+ S II=$G(II)+1,@DATA@(II)=CODE_U_COL_U_$P(VAL,U)_U_$P(VAL,U,2)_U_$P(VAL,U,3)_$C(30)
+ Q
+ ;
+VALS(DFN,VAL,DTCOL,PVCOL) ;EP - Return date and provider values
+ NEW DTVAL,PVVAL
+ ;
+ ; Check the version of software
+ I $$VERSION^XPDUTL("IHS PCC SUITE")<2.0 Q $P($G(VAL),U)_"^^"
+ ;
+ S VAL=$G(VAL,""),DTCOL=$G(DTCOL,""),PVCOL=$G(PVCOL,"")
+ S (DTVAL,PVVAL)=""
+ ;
+ ;Make sure fields have been loaded (was patch installed?)
+ I DTCOL]"" S:($$GET1^DID(9000017,DTCOL,"","LABEL")="") DTCOL=""
+ I PVCOL]"" S:($$GET1^DID(9000017,PVCOL,"","LABEL")="") PVCOL=""
+ ;
+ I DTCOL]"" S DTVAL=$$FMTE^BQIUL1($$GET1^DIQ(9000017,DFN_",",DTCOL,"I"))
+ I PVCOL]"" S PVCOL=$$GET1^DIQ(9000017,DFN_",",PVCOL,"I")
+ S:PVCOL]"" PVVAL=$$GET1^DIQ(200,PVCOL_",",.01,"E")
+ I $L(VAL,U)>1 S VAL=$P(VAL,U)_U_$P(VAL,U,2)_U_$P(VAL,U,3)
+ E  S VAL=VAL_U_DTVAL_U_PVVAL
+ Q VAL
+ ;
+CONT(DFN) ;EP - Return patients most recent contraceptive method info
+ ;
+ NEW VALUE
+ ;
+ I $G(DFN)="" Q ""
+ ;
+ ; Check the version of software
+ I $$VERSION^XPDUTL("IHS PCC SUITE")<2.0 Q ""
+ ;
+ ; Return single field 3.05 if no patch 7
+ I '$$PATCH^XPDUTL("BJPC*2.0*7") D  Q VALUE
+ . NEW BGDT,DTLM
+ . S BGDT=$$FMTE^BQIUL1($$GET1^DIQ(9000017,DFN_",","3.05","I"))
+ . S DTLM=$$FMTE^BQIUL1($$GET1^DIQ(9000017,DFN_",","3.1","I"))
+ . S VALUE=$C(28)_BGDT_U_DTLM
+ ;
+ NEW CONDT,CONIEN,CONMET,CONLMD,DA,IENS,CONUPD
+ ;
+ S CONDT=$O(^AUPNREP(DFN,2101,"AD",""),-1) Q:CONDT="" ""
+ S CONIEN=$O(^AUPNREP(DFN,2101,"AD",CONDT,""),-1) Q:CONIEN="" ""
+ S DA(1)=DFN,DA=CONIEN,IENS=$$IENS^DILF(.DA)
+ S CONMET=$$GET1^DIQ(9000017.02101,IENS,.01,"E")
+ S CONLMD=$$FMTE^BQIUL1($P($$GET1^DIQ(9000017.02101,IENS,.02,"I"),"."))
+ S CONUPD=$$FMTE^BQIUL1($P($$GET1^DIQ(9000017.02101,IENS,.04,"I"),"."))
+ ;
+ Q CONMET_U_CONUPD_$C(28)_CONLMD_U_CONUPD
+ ;
+UVDEF() ;EP - Update Reproductive Factors VDEF
+ ;
+ NEW BJPC,CMIEN,DA,IENS,ERROR,EDFLD,CLIST,VER
+ ;
+ ;Set up EDD field array
+ D EDFLD
+ ;
+ ;Make Contraceptive Methods INACTIVE/ACTIVE
+ S BJPC=$$PATCH^XPDUTL("BJPC*2.0*7")
+ S CMIEN=$O(^BQI(90506.3,"B","Contraceptive Methods","")) I CMIEN="" S BMXSEC="Contraceptive Methods Definition Issue" Q
+ S DA=CMIEN,IENS=$$IENS^DILF(.DA)
+ I BJPC=1 S BQIACT(90506.3,IENS,".03")="@"
+ E  S BQIACT(90506.3,IENS,".03")=1
+ D FILE^DIE("","BQIACT","ERROR")
+ K BJPC,CMIEN,DA,IENS,BQIACT,ERROR
+ ;
+ ;Get field list from VDEF
+ NEW DIEN,CIEN,BQIACT,FIEN,ERROR
+ S DIEN=$O(^BQI(90506.3,"B","Reproductive Factors","")) I DIEN="" S BMXSEC="Reproductive Factors Definition Issue" Q
+ S CIEN=0 F  S CIEN=$O(^BQI(90506.3,DIEN,10,CIEN)) Q:'CIEN  D
+ . NEW FMN,DA,IENS
+ . S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ . S FMN=$$GET1^DIQ(90506.31,IENS,3.01,"I") Q:FMN=""
+ . S CLIST(FMN)=CIEN
+ ;
+ ; Check the version of software
+ S VER=$$VERSION^XPDUTL("IHS PCC SUITE")
+ ;
+ I VER<2.0 D
+ . NEW FMN,BQIACT,ERROR
+ . S FMN=0 F  S FMN=$O(CLIST(FMN)) Q:FMN=""  D
+ .. NEW ACTIVE,CIEN,DA,IENS
+ .. I ",.01,1,2,3,3.05,4,"[(","_FMN_",") S ACTIVE="@"
+ .. E  S ACTIVE=1
+ .. S CIEN=$G(CLIST(FMN)) Q:CIEN=""
+ .. S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ .. S BQIACT(90506.31,IENS,.11)=ACTIVE
+ . I $D(BQIACT) D FILE^DIE("","BQIACT","ERROR")
+ ;
+ ;Process Version 2.0 and above
+ I VER>1.0 D
+ . ;
+ . ;Make fields Active/Inactive
+ . S FIEN=0 F  S FIEN=$O(^DD(9000017,FIEN)) Q:'FIEN  D
+ .. NEW ACTIVE,CIEN,DA,IENS
+ .. I $E($$GET1^DID(9000017,FIEN,"","LABEL"),1)="*" S ACTIVE="1"
+ .. E  I $$GET1^DID(9000017,FIEN,"","LABEL")="" S ACTIVE="1"
+ .. E  S ACTIVE="@"
+ .. S CIEN=$G(CLIST(FIEN)) Q:CIEN=""
+ .. S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ .. S BQIACT(90506.31,IENS,.11)=ACTIVE
+ .. K CLIST(FIEN)
+ . ;
+ . ;Make any remaining fields Inactive
+ . S FIEN="" F  S FIEN=$O(CLIST(FIEN)) Q:'FIEN  D
+ .. NEW CIEN,DA,IENS
+ .. S CIEN=$G(CLIST(FIEN)) Q:CIEN=""
+ .. S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ .. S BQIACT(90506.31,IENS,.11)=1
+ .. K CLIST(FIEN)
+ . ;
+ . ;Special Contraceptive/Family Planning Method/Contraception Begun field handling
+ . D
+ .. NEW CIEN,DA,IENS
+ .. S CIEN=$O(^BQI(90506.3,DIEN,10,"B","Current Family Planning Method","")) Q:CIEN=""
+ .. S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ .. I $$PATCH^XPDUTL("BJPC*2.0*7") S BQIACT(90506.31,IENS,.11)=1 Q
+ .. S BQIACT(90506.31,IENS,.11)="@"
+ . D
+ .. NEW CIEN,DA,IENS
+ .. S CIEN=$O(^BQI(90506.3,DIEN,10,"B","Current Contraceptive Method","")) Q:CIEN=""
+ .. S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ .. I $$PATCH^XPDUTL("BJPC*2.0*7") S BQIACT(90506.31,IENS,.11)="@" Q
+ .. S BQIACT(90506.31,IENS,.11)="1"
+ . ;
+ . D
+ .. NEW CIEN,DA,IENS
+ .. S CIEN=$O(^BQI(90506.3,DIEN,10,"B","Contraception Begun","")) Q:CIEN=""
+ .. S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ .. I $$PATCH^XPDUTL("BJPC*2.0*7") S BQIACT(90506.31,IENS,.04)="H" Q
+ .. S BQIACT(90506.31,IENS,.04)="S"
+ . ;
+ . D
+ .. NEW CIEN,DA,IENS
+ .. S CIEN=$O(^BQI(90506.3,DIEN,10,"B","EDD Method","")) Q:CIEN=""
+ .. S DA(1)=DIEN,DA=CIEN,IENS=$$IENS^DILF(.DA)
+ .. I $$PATCH^XPDUTL("BJPC*2.0*7") S BQIACT(90506.31,IENS,.11)="1" Q
+ .. S BQIACT(90506.31,IENS,.11)="@"
+ . ;
+ . I $D(BQIACT) D FILE^DIE("","BQIACT","ERROR")
+ Q
+ ;
+EDFLD ;EP - Assemble list of EDD fields
+ ;
+ S EDFLD("Definitive EDD")=""
+ S EDFLD("EDD (LMP)")=""
+ S EDFLD("EDD (Ultrasound)")=""
+ S EDFLD("EDD (Clinical Parameters)")=""
+ S EDFLD("EDD (Method Unknown)")=""
+ S EDFLD("Definitive EDD Documenting Provider")=""
+ S EDFLD("EDD (LMP) Documenting Provider")=""
+ S EDFLD("EDD (Ultrasound) Documenting Provider")=""
+ S EDFLD("EDD (Clinical Parms) Documenting Provider")=""
+ S EDFLD("EDD (Meth Unk) Documenting Provider")=""
+ Q
+ ;
+TRGPRG(DATA,BQICPREG) ; EP - BQI REP FAC PRG TRIG
+ NEW UID,II,VALUE,SOURCE,HELP,ABLE,REQ,CLEAR,TYPE,CLFLAG
+ ;
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPTRP1",UID))
+ K @DATA
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPTRP1 D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ;Define Header
+ S @DATA@(II)="T00008SOURCE^T00001CODE_TYPE^T01024PARMS^T00030PROP_VALUE^T00001ABLE_FLAG^T00001REQ_OPT^T00200HELP_TEXT^T01024CLEAR_FIELDS^T00001CLEAR_FLAG"_$C(30)
+ ;
+ S BQICPREG=$G(BQICPREG,""),ABLE="Y"
+ I BQICPREG'="Y" S ABLE="N"
+ S SOURCE="RFDFEDD",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDLMP",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDULT",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDCLP",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDUNK",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDDPV",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDLPV",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDUPV",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDCPV",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ S SOURCE="RFEDDMPV",VALUE="",HELP="",REQ="",CLEAR="",CLFLAG="N",TYPE="C" D REC
+ ;
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ ;Set up entry
+REC S II=II+1,@DATA@(II)=$G(SOURCE)_U_$G(TYPE)_U_$G(VALUE)_U_U_$G(ABLE)_U_$G(REQ)_U_$G(HELP)_U_$G(CLEAR)_U_$G(CLFLAG)_$C(30)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S BMXSEC="Recording that an error occurred at "_ERRDTM
+ I $D(II),$D(DATA) S II=II+1,@DATA@(II)=$C(31)
+ Q

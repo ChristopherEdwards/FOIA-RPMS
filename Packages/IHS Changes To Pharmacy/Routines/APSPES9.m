@@ -1,6 +1,7 @@
-APSPES9 ;IHS/MSC/PLS - Master File SPI Request;24-Mar-2011 05:02;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1010**;Sep 23, 2004
+APSPES9 ;IHS/MSC/PLS - Master File SPI Request;23-Sep-2011 15:54;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1010,1013**;Sep 23, 2004;Build 33
  ; Modified - IHS/MSC/PLS - 03/24/2011 - EN+20 (removed checks for DEA)
+ ;                          09/14/2011 - Added support for service level
  Q
 ADDPRV(PVD,MFNTYP) ;
  Q:'$G(PVD)
@@ -32,9 +33,11 @@ ADDPRV(PVD,MFNTYP) ;
  Q
  ;
 MFI ;EP
- N MFI
+ N MFI,SLC
+ S SLC=(NEWRX*1)+(REFRX*2) ;Service Level code
  D SET(.ARY,"MFI",0)
  D SET(.ARY,"STF",1)  ; Master File Identifier
+ D SET(.ARY,SLC,1,4)
  D SET(.ARY,"UPD",3)  ; Update record
  D SET(.ARY,$$HLDATE^HLFNC($$NOW^XLFDT()),4)  ; Entered Date/Time
  D SET(.ARY,"MF",6)   ; Response level code
@@ -114,7 +117,7 @@ FAILURE ; EP
  Q
  ; Process MFK acknowledgement
 MFK ; EP -
- N ARY,SEGIEN,SEGDAT,PVD,PKV,SPI
+ N ARY,SEGIEN,SEGDAT,PVD,PKV,SPI,SLC
  D PARSE^APSPES2(.DATA,HLMSGIEN,.HLMSTATE)
  S SEGIEN=$$FSEGIEN^APSPES1(.DATA,"MFA")
  Q:'SEGIEN
@@ -131,7 +134,8 @@ MFK ; EP -
  .Q:'SEGIEN
  .M SEGDAT=DATA(SEGIEN)
  .S SPI=$$GET^HLOPRS(.SEGDAT,1)
- .D NOTIF($$GET1^DIQ(200,+PKV,.01)_": Please assign SPI "_SPI_" to user.")
+ .S SLC=$$GET^HLOPRS(.SEGDAT,1,4)  ;Service Level code
+ .D NOTIF($$GET1^DIQ(200,+PKV,.01)_": Please assign SPI "_SPI_" (SL:"_SLC_") to user.")
  Q
  ; Notify SPI mail group
 NOTIF(MSG) ; EP -
@@ -142,11 +146,12 @@ NOTIF(MSG) ; EP -
  Q
  ; Main entry point for selection of user
 EN ; EP -
- N USR,APSPPOP
+ N USR,APSPPOP,NEWRX,REFRX
  W @IOF
  W !,"SureScripts Provider ID Request Utility",!
  S USR=$$GETIEN1^APSPUTIL(200,"Select Provider: ",-1,,"I $S('$D(^VA(200,Y,0)):0,Y<1:1,$L($P(^(0),U,3)):1,1:0),$P($G(^VA(200,Y,""PS"")),U)")
  Q:USR<1
+ S (NEWRX,REFRX)=0
  W !!,"Processing request for: "_$$GET1^DIQ(200,+USR,.01)
  ; Check for active user
  I '$$ACTIVE^XUSER(+USR) D  Q
@@ -181,6 +186,10 @@ EN ; EP -
  .W !,"The selected facility, "_$$GET1^DIQ(4,DUZ(2),.01)_" lacks a phone number."
  .W !,"This will need to be corrected before you can continue with the request."
  .D DIRZ
+ I $$DIRYN^APSPUTIL("Will provider be writing New prescriptions electronically","YES",,.APSPPOP) D
+ .S NEWRX=1
+ I $$DIRYN^APSPUTIL("Will provider be taking Refill Requests electronically","YES",,.APSPPOP) D
+ .S REFRX=1
  I $$DIRYN^APSPUTIL("Request SPI","YES",,.APSPPOP) D
  .D ADDPRV(USR,"MAD")
  .W !!,"An SPI number has been requested. A Kernel Alert will be sent to"

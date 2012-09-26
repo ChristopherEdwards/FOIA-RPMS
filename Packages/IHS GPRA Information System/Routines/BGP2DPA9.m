@@ -1,5 +1,5 @@
 BGP2DPA9 ; IHS/CMI/LAB - COMP NATIONAL GPRA FOR PTS W/APPT 03 Jun 2012 2:54 PM ; 09 Sep 2012  10:30 AM
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 EP ;EP - called from option interactive
  D EOJ
@@ -22,7 +22,7 @@ EP ;EP - called from option interactive
  ;
  D TAXCHK^BGP2XTCN
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,EOJ Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,EOJ Q
 RTYPE ;
  S BGPRT1=""
  S DIR(0)="S^C:By CLINIC NAME for a specified appointment date range;P:Selected Patients w/Appointments;D:One Facility's or Divisions Appointments;A:Any selected set of patients regardless of appt status"

@@ -1,5 +1,5 @@
 BDMP11P ; IHS/CMI/LAB - 2003 DIABETES AUDIT PRINT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**4,5**;JUN 14, 2007
  ;
  ;
  S BDMQUIT=0,BDMIOSL=$S($G(BDMGUI):55,1:IOSL)
@@ -77,7 +77,7 @@ BDMP11P ; IHS/CMI/LAB - 2003 DIABETES AUDIT PRINT ;
  .I $Y>(BDMIOSL-1) D PAGE Q:BDMQUIT
  .W !?1,$$I(56),?4,"4 Glitazones",?41,"LDL Cholesterol: ",$$I(88)
  .I $Y>(BDMIOSL-1) D PAGE Q:BDMQUIT
- .W !?1,$$I(53),?4,"5 Other: Sulfonylurea, ",?41,"Triglycerides: ",$$I(90)
+ .W !?1,$$I(53),?4,"5 Other: Sulfonylurea, ",?41,"Triglycerides: ",$$I(190)
  .I $Y>(BDMIOSL-2) D PAGE Q:BDMQUIT
  .W !?1,?4,"    Glyburide, glipizide, etc)"
  .;I $Y>(BDMIOSL-1) D PAGE Q:BDMQUIT

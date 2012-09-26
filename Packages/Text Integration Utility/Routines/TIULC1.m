@@ -1,8 +1,16 @@
-TIULC1 ; SLC/JER - More computational functions ;4/25/02
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,4,40,49,100,131**;Jun 20, 1997
+TIULC1 ; SLC/JER - More computational functions ;11/01/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,4,40,49,100,131,113,112**;Jun 20, 1997
  ; External References
- ;   DBIA 2324  $$ISA^USRLM
- ;IHS/ITSC/LJF 02/26/2003  only those requiring cosig have attending as cosigner
+ ; DBIA 2324  $$ISA^USRLM
+ ; Any patch which makes ANY changes to this rtn must include a
+ ;note in the patch desc reminding sites to update the Imaging
+ ;Gateway.  See IA # 3622.
+ ; IN ADDITION, if changes are made to components used by Imaging, 
+ ;namely PNAME, backward compatibility may not be enough. If
+ ;changes call additional rtns, TIU should consult with Imaging
+ ;on need to add additional rtns to list of TIU rtns copied for
+ ;Imaging Gateway.
+ ;                         ****
  ;
 ENCRYPT(X,X1,X2) ; Encrypt Text Strings
  D EN^XUSHSHP
@@ -22,15 +30,7 @@ WHOCOSIG(DA) ; Evaluate who should be the expected cosigner
  I $P(TIU12,U,2)=$P(TIU12,U,9) D
  . I $P(TIU12,U,8)]"" S Y="@"
  . E  S Y=""
- ;
- ;IHS/ITSC/LJF 02/26/2003 if provider doesn't need cosigner, don't automatically make attending cosigner
- ;E  S Y=$P(TIU12,U,9)
- E  D
- . I $$REQCOSIG^TIULP(+$G(^TIU(8925,+DA,0)),+DA,$P(TIU12,U,4)) S Y=$P(TIU12,U,9) Q
- . I $P(TIU12,U,8)]"" S Y="@" Q
- . S Y=""
- ;IHS/ITSC/LJF 02/26/2003 end of mods
- ;
+ E  S Y=$P(TIU12,U,9)
  Q Y
  ;
 HASADDEN(DA,IDKIDFLG) ; Evaluate whether a given record has addenda
@@ -69,7 +69,8 @@ PNAME(DA) ; Receives pointer to 8925.1, returns display name of
 ABBREV(DA) ; Get abbreviaton for a document type or class
  Q $P($G(^TIU(8925.1,+DA,0)),U,2)
 PERSNAME(USER) ; Receives pointer to 200, returns name field
- Q $P($G(^VA(200,+USER,0),"UNKNOWN"),U)
+ N X S X=$$GET1^DIQ(200,USER,.01)
+ Q $S($L(X):X,1:"UNKNOWN")
 BEEP(USER) ; Get beeper #'s 
  Q $P($G(^VA(200,+USER,.13)),U,7,8)
 DOCPRM(TIUTYP,TIUDPRM,TIUDA) ; Get Document Parameters, support inheritance
@@ -187,3 +188,30 @@ REASSIGN(TIUTYP) ; Get Package Reassign Action, support inheritance
  S TIUDAD=$O(^TIU(8925.1,"AD",+TIUTYP,0))
  I +TIUDAD S TIUREASS=$$REASSIGN(TIUDAD)
 REASSIX Q TIUREASS
+ONBROWSE(TIUTYP)        ; Get OnBrowse Event, support inheritance
+ N TIUBRWS,TIUDAD
+ S TIUBRWS=$G(^TIU(8925.1,+TIUTYP,6.5))
+ I TIUBRWS]"" G ONBRWSX
+ S TIUDAD=$O(^TIU(8925.1,"AD",+TIUTYP,0))
+ I +TIUDAD S TIUBRWS=$$ONBROWSE(TIUDAD)
+ONBRWSX Q TIUBRWS
+ONRTRCT(TIUTYP) ; Get OnRetract Event, support inheritance
+ N TIURTRCT,TIUDAD
+ S TIURTRCT=$G(^TIU(8925.1,+TIUTYP,6.51))
+ I TIURTRCT]"" G ONRTRX
+ S TIUDAD=$O(^TIU(8925.1,"AD",+TIUTYP,0))
+ I +TIUDAD S TIURTRCT=$$ONRTRCT(TIUDAD)
+ONRTRX Q TIURTRCT
+DIVISION(TIULOC) ; Get Division
+ ; Input  -- TIULOC  HOSPITAL LOCATION file (#44) IEN
+ ; Output -- TIUIN   INSTITUTION file (#4) IEN^
+ ;                   INSTITUTION file (#4) NAME
+ N TIUDVHL,TIUSTN,TIUIN
+ S TIUDVHL=$P($G(^SC(+TIULOC,0)),U,15)
+ I +TIUDVHL D
+ . S TIUSTN=$$SITE^VASITE(,TIUDVHL)
+ . I $P(TIUSTN,U)>0,($P(TIUSTN,U,2)]"") D
+ . . S TIUIN=$P(TIUSTN,U)_U_$P(TIUSTN,U,2)
+ I '$G(TIUIN) D
+ . S TIUIN=+$G(DUZ(2))_U_$P($$NS^XUAF4(+$G(DUZ(2))),U)
+ Q TIUIN

@@ -1,7 +1,6 @@
-TIULP ; SLC/JER - Functions determining privilege ;2/18/03  3:29
- ;;1.0;TEXT INTEGRATION UTILITIES;**98,100,116,109,138,152**;Jun 20, 1997
+TIULP ; SLC/JER - Functions determining privilege ;01-Aug-2011 12:03;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**98,100,116,109,138,152,175,1009**;Jun 20, 1997;Build 22
  ;IHS/ITSC/LJF 08/20/2003 check if running Consults before checking for interpreter
- ;
 CANDO(TIUDA,TIUACT,PERSON) ; Can PERSON perform action now
  ; Receives: TIUDA=Record number in file 8925
  ;           TIUACT=Name of user action in 8930.8 (USR ACTION)
@@ -104,8 +103,8 @@ USRROLE(TIUDA,PERSON) ; Identify the user's role with respect to the document
  I PERSON=+$P(TIU12,U,4) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","EXPECTED SIGNER",0))_U
  I PERSON=+$P(TIU12,U,8) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","EXPECTED COSIGNER",0))_U
  ;Check if the person can be an Interpreter for this document via a Consult API
- ;I $$CPINTERP^GMRCCP(+TIUDA,PERSON) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","INTERPRETER",0))_U                           ;IHS/ITSC/LJF 08/20/2003
- I $L($T(CPINTERP^GMRCCP)) I $$CPINTERP^GMRCCP(+TIUDA,PERSON) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","INTERPRETER",0))_U  ;IHS/ITSC/LJF 08/20/2003
+ ;I $$CPINTERP^GMRCCP(+TIUDA,PERSON) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","INTERPRETER",0))_U                            ;IHS/ITSC/LJF 08/20/2003
+ I $L($T(CPINTERP^GMRCCP)) I $$CPINTERP^GMRCCP(+TIUDA,PERSON) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","INTERPRETER",0))_U   ;IHS/ITSC/LJF 08/20/2003
  I STATUS>6 D  I COMPLTR S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","COMPLETER",0))_U
  . S COMPLTR=0
  . I PERSON=+$P(TIU15,U,8) S COMPLTR=1 Q
@@ -133,12 +132,13 @@ CANPICK(TIUTYP) ; Screens selection of title by title status and
  S TIUPOWN=$P(TIUT0,U,5),TIUCOWN=+$P(TIUT0,U,6)
  I TIUTSTAT=10 S TIUY=$S(TIUPOWN=DUZ:1,+$$ISA^USRLM(DUZ,TIUCOWN):1,1:0)
 CANPIX Q +$G(TIUY)
-REQCOSIG(TIUTYP,TIUDA,USER) ; Evaluate whether user requires cosignature
+REQCOSIG(TIUTYP,TIUDA,USER,TIUDT) ; Evaluate whether user requires cosignature
  N TIUI,TIUY,TIUDPRM S USER=$S(+$G(USER):+$G(USER),1:+$G(DUZ))
  D DOCPRM^TIULC1(TIUTYP,.TIUDPRM,+$G(TIUDA))
  I $G(TIUDPRM(5))="" G REQCOSX
+ I +$G(TIUDT)'>0 S TIUDT=+$P($P(+$G(^TIU(8925,+$G(TIUDA),13)),U),".")
  F TIUI=1:1:$L(TIUDPRM(5),U) D  Q:+TIUY>0
- . S TIUY=+$$ISA^USRLM(+USER,+$P(TIUDPRM(5),U,TIUI))
+ . S TIUY=+$$ISA^USRLM(+USER,+$P(TIUDPRM(5),U,TIUI),,+$G(TIUDT))
 REQCOSX Q +$G(TIUY)
  ;
 REQCPF(TIUCDA) ;Check if clinical procedure fields are required

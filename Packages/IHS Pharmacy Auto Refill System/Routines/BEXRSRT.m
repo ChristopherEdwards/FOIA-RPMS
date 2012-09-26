@@ -1,20 +1,21 @@
-BEXRSRT ; cmi/anch/maw - BEX SORT PATIENTS AND DATE 4/6/95 ; 10 Nov 2009  5:43 PM [ 04/30/2010  11:17 AM ]
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**1,2,3,4**;DEC 01, 2009
+BEXRSRT ; cmi/anch/maw - BEX SORT PATIENTS AND DATE 4/6/95 ; 12 Mar 2012  4:22 PM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**1,2,3,4,5**;MAR 12, 2012;Build 1
  ;This routine optimizes sorting for
  ;option BEX TRANSACTIONS BY PATIENT.
  ;After sorting, it calls routine ^BEXRPAT, which is a compilation
  ;of print template [BEX TRANSACTIONS BY PATIENT].
  ;
  ;cmi/anch/maw 2/1/2007 patch 3 added check of piece 10 for DUZ(2)
- ;CMI/BJI/DAY - 4/28/2010 - patch 4 - allow time in sort
- ;CMI/BJI/DAY - 4/28/2010 - patch 4 - limit to one site
+ ;IHS/CMI/DAY - 4/28/2010 - patch 4 - allow time in sort
+ ;IHS/CMI/DAY - 4/28/2010 - patch 4 - limit to one site
+ ;IHS/CMI/DAY - 7/26/2011 - patch 5 - Fix if no RX# in Tran Global
  ;
 MAIN ;MAIN DRIVER SUBROUTINE
  N BEX,%DT,X,Y,DTOUT
  S DTIME=$S($D(DTIME):DTIME,1:180),U="^",BEX("OUT")=0
  D ASKDATE
  Q:$D(DTOUT)!(Y=-1)  ;QUIT IF TIMEOUT, "^", OR INVALID DATE
- ;CMI/BJI/DAY - Add question to limit by site (4/28/2010)
+ ;IHS/CMI/DAY - Add question to limit by site (4/28/2010)
  D ASKSITE
  I BEX("OUT")=1 Q
  D DEVICE Q:BEX("OUT")
@@ -22,7 +23,7 @@ MAINDQ ;ENTRY POINT FOR TASKMAN WHEN PRINTOUT IS QUEUED
  D SORT Q:BEX("OUT")
  D PRT
  I $D(ZTQUEUED) S ZTREQ="@" D ^%ZISC K BEX
- E  D HOME^%ZIS
+ I '$D(ZTQUEUED) D ^%ZISC D HOME^%ZIS
  ;I $D(ZTQUEUED) D
  ;.S ZTREQ="@" D ^%ZISC K BEX
  ;E  D
@@ -32,7 +33,7 @@ MAINDQ ;ENTRY POINT FOR TASKMAN WHEN PRINTOUT IS QUEUED
  K ^TMP($J)
  Q
 ASKDATE ;GET BEGINNING AND ENDING DATES
- ;CMI/BJI/DAY - Patch 4 - Add T to allow entry of time
+ ;IHS/CMI/DAY - Patch 4 - Add T to allow entry of time
  S %DT="AEXT"
  D ASKDATE1 Q:$D(DTOUT)!(Y=-1)
  D ASKDATE2
@@ -46,17 +47,20 @@ ASKDATE1 ;GET BEGINNING DATE
  ;cmi/anch/maw end of mods patch 3
  ;S %DT("B")=Y,%DT("A")="BEGIN WITH DATE: " D ^%DT  cmi/anch/maw 7/23/2007 orig line patch 3
  S %DT("B")=Y,%DT("A")="BEGIN WITH DATE: " D ^%DT  ;cmi/anch/maw 7/23/2007 new line for default date patch 3
- ;CMI/BJI/DAY - Patch 4 - Allow begin time to be used
+ ;IHS/CMI/DAY - Patch 4 - Allow begin time to be used
  ;S BEX("BEGIN")=$P(Y,".")
  S BEX("BEGIN")=Y
  Q
 ASKDATE2 ;GET ENDING DATE
  S BEX("END")=$O(^VEXHRX0(19080.1,"C","ZZZ"),-1)
  S BEX("END")=$P(BEX("END"),".")
+ ;IHS/CMI/DAY - Patch 5 - Make sure End Date default is later than Begin Date
+ I BEX("END")<BEX("BEGIN") S BEX("END")=BEX("BEGIN")
+ ;
  S Y=BEX("END") D DD^%DT
  S %DT(0)=BEX("BEGIN"),%DT("B")=Y,%DT("A")="END WITH DATE: "
  D ^%DT
- ;CMI/BJI/DAY - Patch 4 - Allow End date to use Time
+ ;IHS/CMI/DAY - Patch 4 - Allow End date to use Time
  S BEX("END")=Y
  I $P(Y,".",2)="" S BEX("END")=$P(Y,".")_"."_235959
  Q
@@ -67,6 +71,7 @@ ASKSITE ;EP - Ask to limit by site
  S DIR("B")="Y"
  S DIR(0)="YO"
  D ^DIR
+ K DIR
  I $D(DIRUT) S BEX("OUT")=1
  I Y=0 S BEXALL=0
  I Y=1 S BEXALL=1
@@ -101,6 +106,8 @@ SORT ;SORT ENTRIES TO BE PRINTED
  . .  S BEXSITE=$P($G(^VEXHRX0(19080.1,BEX("D0"),0)),U,10)
  . .  I $G(BEXALL)=1 Q:BEXSITE'=DUZ(2)  ;screen out patients not at this site added $G for patch 3 7/19/2007
  . .  K BEX("MED")
+ . . ;IHS/CMI/DAY - Patch 5 - fix if no RX # in Tran Global
+ . .  S BEX("MED")="None"
  . .  I $G(BEX("RX")) D
  . . . N BEXRXI
  . . . S BEXRXI=$O(^PSRX("B",BEX("RX"),0))
@@ -159,7 +166,7 @@ PRT2 ;BEGINNING OF PRINTING LOOP
  E  I $E(IOST,1,2)="C-" W !,*7,"Exiting report." H 1
  Q
 PRTHEAD ;PRINT PAGE HEADING
- ;CMI/BJI/DAY - Changed following read to use DIR
+ ;IHS/CMI/DAY - Changed following read to use DIR
  I $E(IOST,1,2)="C-",DC'=0 K DIR S DIR(0)="E" D ^DIR K DIR
  I $E(X)="^" S BEX("OUT")=1 Q
  I $E(X)="?" G PRTHEAD

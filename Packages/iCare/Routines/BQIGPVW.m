@@ -1,5 +1,5 @@
 BQIGPVW ;PRXM/HC/ALA-GPRA View ; 15 Aug 2006  10:12 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -11,7 +11,7 @@ LST(DATA,OWNR,PLIEN) ; EP - BQI GET GPRA VIEW
  ;  UID - TMP global subscript. Will be either $J or "Z" plus the
  ;        TaskMan Task ID
  ;        
- NEW UID,II,IENS,DA,YEAR,GIEN,DISPLAY,SORT,SDIR,SD,SR,GVALUE,STVCD,SVALUE,DVALUE
+ NEW UID,II,IENS,DA,YEAR,GIEN,DISPLAY,SORT,SDIR,SD,SR,GVALUE,STVCD,SVALUE,DVALUE,KEY
  NEW RIEN
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  S DATA=$NA(^TMP("BQIGPVW",UID))
@@ -223,7 +223,8 @@ DFNC() ;EP -- Get the standard display order
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AD","D",DOR,IEN)) Q:IEN=""  D
  .. I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
- .. ;I $$GET1^DIQ(90506.1,IEN_",",.09,"I")'="O" D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S DVALUE=DVALUE_STVCD_$C(29)
@@ -236,7 +237,8 @@ SFNC() ;EP -- Get the standard sort order
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AE","D",SOR,IEN)) Q:IEN=""  D
  .. I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
- .. ;I $$GET1^DIQ(90506.1,IEN_",",.09,"I")'="O" D
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. I $$GET1^DIQ(90506.1,IEN_",",3.04,"I")'="O" D
  ... S STVCD=$$GET1^DIQ(90506.1,IEN_",",.01,"E")
  ... S SVALUE=SVALUE_STVCD_$C(29)
@@ -244,11 +246,13 @@ SFNC() ;EP -- Get the standard sort order
  Q SVALUE
  ;
 GDEF() ; EP - Get GPRA default fields
- NEW CAT,ARRAY,TITLE,GCAT,TYP
+ NEW CAT,ARRAY,TITLE,GCAT,TYP,KEY
  S GVALUE=""
  S IEN=""
  F  S IEN=$O(^BQI(90506.1,"AC","G",IEN)) Q:IEN=""  D
  . I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
+ . S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ . I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  . S TYP=$P($G(^BQI(90506.1,IEN,3)),U,4)
  . I TYP="O" Q
  . S GCAT=$$GET1^DIQ(90506.1,IEN_",",3.03,"E")

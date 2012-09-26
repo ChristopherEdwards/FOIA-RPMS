@@ -1,10 +1,10 @@
 BGPMUUT2 ; IHS/MSC/MGH - MEANINGFUL USE UTILITIES 02 Jul 2008 2:07 PM ;01-Mar-2011 15:32;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
-NPI(USR) ;Return the NPI for the selected Provider
+NPI(USR) ;EP - Return the NPI for the selected Provider
  Q $S($D(^VA(200,USR,"NPI")):$P(^VA(200,USR,"NPI"),U),1:"UNKNOWN")
-TIN(USR) ;Return the Tax ID number for selected Provider
+TIN(USR) ;EP - Return the Tax ID number for selected Provider
  Q $S($D(^VA(200,USR,"TPB")):$P(^VA(200,USR,"TPB"),U,2),1:"UNKNOWN")
 INITIALS(USR) ;Return the initials for selected Provider
  Q $S($D(^VA(200,USR,0)):$P(^VA(200,USR,0),U,2),1:"UNKNOWN")

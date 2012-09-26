@@ -1,11 +1,12 @@
-BTIULO7 ;IHS/ITSC/LJF - IHS OBJECTS ADDED IN PATCHES;06-Oct-2010 17:05;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1003,1004,1005,1006,1007**;NOV 04, 2004
+BTIULO7 ;IHS/ITSC/LJF - IHS OBJECTS ADDED IN PATCHES;15-Dec-2011 11:52;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1003,1004,1005,1006,1007,1009**;NOV 04, 2004;Build 22
  ;IHS/CIA/MGH line up number of labs and only display test name
  ;Made changes to call ehr 1.1 visit creation
  ;Patch 1005 Changed lookup for dates without times
  ;Patch 1006 changed lookup for LAST #VITALS for multiple vitals on one day
  ;Patch 1006 incorporated reproductive history field changes
  ;Patch 1007 fixed total time for visit selection
+ ;Patch 1009 fixed reproductive history again and last # measurements
 LASTHFC(PAT,CTG,CAP) ;EP - return last factor in category CTG for patient PAT; PATCH 1001
  ; CAP = 1 if want caption to be returned; = 0 otherwise
  NEW CTGN,HF,HFDT,LIST,RESULT,X
@@ -62,7 +63,8 @@ NLAB(DFN,TIUTST,TIUCNT,BRIEF) ;EP; -- returns last # of current lab result for s
  ; TIUTST = lab test name;  TIUCNT = # of test results to return
  ;Brief is set to remove caption and only insert test name PATCH 1003
  ;IHS/CIA/MGH Modified to only display the test name and line up labs better
- NEW LAB,CAPTION,VDT,IEN,X,TIU,LINE,CNT,DATA,LGTH
+ ;UPDATED 1009 FOR MULTIPLE RESULTS ON SAME VISIT
+ NEW LAB,CAPTION,VDT,IEN,X,TIU,LINE,CNT,DATA,LGTH,ARR
  K ^TMP("BTIULO",$J)
  S LAB=$O(^LAB(60,"B",TIUTST,0)) I LAB="" Q ""
  I $G(BRIEF) S CAPTION=$E(TIUTST,1,30)_":"  ;PATCH 1003
@@ -75,10 +77,16 @@ NLAB(DFN,TIUTST,TIUCNT,BRIEF) ;EP; -- returns last # of current lab result for s
  .. Q:TIU(.04)=""                       ;skip if not resulted
  .. S DATE=$S(TIU(1201)]"":TIU(1201),1:TIU(.03))
  .. S CNT=CNT+1                         ;increment counter
- .. S Y=$S(CNT=1:CAPTION,1:$$SP($L(CAPTION)))    ;either caption if first one or spaces to line up under first one
  .. S LGTH=$L(TIU(.05)) ;PATCH 1003
  .. S DATA=$S(LGTH=1:"   "_DATE,LGTH=2:"  "_DATE,1:"    "_DATE)   ;PATCH 1003
- .. S ^TMP("BTIULO",$J,CNT,0)=Y_$J(TIU(.04),8)_"  "_TIU(.05)_"  "_DATA
+ .. S ARR(DATE,IEN)=$J(TIU(.04),8)_"  "_TIU(.05)_"  "_DATA
+ S CNT=0,DATE=""
+ ;IHS/MSC/MGH patch 1006 change to check for CNT inside a date
+ F  S DATE=$O(ARR(DATE),-1) Q:DATE=""!(CNT>=TIUCNT)  D
+ . S IEN="" F  S IEN=$O(ARR(DATE,IEN),-1)  Q:'IEN!(CNT>=TIUCNT)  D
+ .. S LINE=$G(ARR(DATE,IEN)),CNT=CNT+1
+ .. S Y=$S(CNT=1:CAPTION,1:$$SP($L(CAPTION)))
+ .. S ^TMP("BTIULO",$J,CNT,0)=Y_LINE
  ;
  I '$D(^TMP("BTIULO",$J)) S ^TMP("BTIULO",$J,1,0)=CAPTION_"No Results Found"
  Q "~@^TMP(""BTIULO"",$J)"
@@ -91,7 +99,7 @@ NVIT(DFN,TIUMSR,TIUCNT,TIUDATE,BRIEF) ;EP; returns last # of of a specific vital
  ;
  NEW LAB,CAPTION,VDT,IEN,X,TIU,LINE,CNT,STOP,DATE,ARR,MSR,TT
  K ^TMP("BTIULO",$J)
- S MSR=$O(^AUTTMSR("B",TIUMSR,0)) I MSR="" S @TARGET@(1,0)="No measurements" Q "~@"_$NA(@TARGET)
+ S MSR=$O(^AUTTMSR("B",TIUMSR,0)) I MSR="" S ^TMP("BTIULO",$J,1,0)="No measurements" Q "~@^TMP(""BTIULO"",$J)"
  I $G(BRIEF) S CAPTION=TIUMSR_": "            ;PATCH 1003
  E  S CAPTION="Last "_TIUCNT_" "_TIUMSR_": "
  ;
@@ -109,8 +117,8 @@ NVIT(DFN,TIUMSR,TIUCNT,TIUDATE,BRIEF) ;EP; returns last # of of a specific vital
  . . I TIUMSR="WT" S Y=$P(LINE,U),Y=$J(Y,5,2)_" lb ["_$J((Y*.454),5,2)_" kg]",$P(LINE,U)=Y
  . . ;
  . . ; set it array by date/time to find most recent
- . . ;IHS/MSC/MGH Changed lookup to not add a . if there is no time
- . . S DATE=$S($G(TIU(1201,"I"))]"":+TIU(1201,"I"),1:(9999999-$P(VDT,"."))_"."_$P(VDT,".",2))
+ . . ;IHS/MSC/MGH 1009 Changed lookup to not add a . if there is no time
+ . . S DATE=$S($G(TIU(1201,"I"))]"":+TIU(1201,"I"),1:(9999999-VDT))
  . . ;S DATE=$S($G(TIU(.07,"I"))]"":TIU(.07,"I"),$G(TIU(1201,"I"))]"":TIU(1201,"I"),1:(9999999-$P(VDT,"."))_$S($P(VDT,".",2)'="":"."_$P(VDT,".",2),1:""))
  . . S ARR(DATE,IEN)=LINE,CNT=CNT+1
  ;
@@ -148,7 +156,7 @@ EDC(DFN,MODE) ;EP; EDC-BRIEF and EDC-EXPANDED objects
 RHX(DFN,TARGET,MODE) ;EP; REPRODUCTIVE HX-BRIEF and REPRODUCTIVE HX-EXPANDED objects
  ;MODE="B" or "E"
  ;Patch 1006 updated to get data from new fields
- NEW X,GRAV,OTHER,PARA,LC,SA,TA,TOT,G,MB,FT,PRE,EC
+ NEW X,GRAV,OTHER,PARA,LC,SA,TA,TOT,G,MB,FT,PRE,EC,LAC,LAC1,LACDATE
  I '$D(MODE) S @TARGET@(1,0)="Please see your CAC to upgrade this object" Q "~@"_$NA(@TARGET)
  ;I '$D(MODE)!(MODE="") S MODE="B"
  I $P(^DPT(DFN,0),U,2)="M" S @TARGET@(1,0)="Patient is male" Q "~@"_$NA(@TARGET)
@@ -170,22 +178,30 @@ RHX(DFN,TARGET,MODE) ;EP; REPRODUCTIVE HX-BRIEF and REPRODUCTIVE HX-EXPANDED obj
  I MODE="E" S TA=TA_" ("_$$GET1^DIQ(9000017,+$G(DFN),1132)_")"
  S SA=$$GET1^DIQ(9000017,+$G(DFN),1133)
  I MODE="E" S SA=SA_" ("_$$GET1^DIQ(9000017,+$G(DFN),1106)_")"
+ S LAC=$G(^AUPNREP(DFN,2))
+ I LAC'="" D
+ .S LAC1=$$GET1^DIQ(9000017,DFN,2.01)
+ .S LACDATE=$$GET1^DIQ(9000017,DFN,2.02)
+ .I MODE="E" S LAC1=LAC1_" ("_LACDATE_")"
+ ;IHS/MSC/MGH patch 1009 changed order of display
  S CNT=1
  S @TARGET@(CNT,0)="Gravida: "_G
- S CNT=CNT+1
- S @TARGET@(CNT,0)="Multiple Births: "_MB
  S CNT=CNT+1
  S @TARGET@(CNT,0)="Full Term: "_FT
  S CNT=CNT+1
  S @TARGET@(CNT,0)="Premature Births: "_PRE
  S CNT=CNT+1
+ S @TARGET@(CNT,0)="Theraputic Abortions: "_TA
+ S CNT=CNT+1
+ S @TARGET@(CNT,0)="Spontaneous Abortions: "_SA
+ S CNT=CNT+1
  S @TARGET@(CNT,0)="Ectopics: "_EC
  S CNT=CNT+1
  S @TARGET@(CNT,0)="Living Children: "_LC
  S CNT=CNT+1
- S @TARGET@(CNT,0)="Theraputic Abortions: "_TA
+ S @TARGET@(CNT,0)="Multiple Births: "_MB
  S CNT=CNT+1
- S @TARGET@(CNT,0)="Spontaneous Abortions: "_SA
+ S @TARGET@(CNT,0)="Lactation Status: "_LAC1
  Q "~@"_$NA(@TARGET)
 OLD S X=$$GET1^DIQ(9000017,+$G(DFN),1)
  I X]"" D
@@ -207,47 +223,6 @@ FPM(DFN,MODE) ;EP; CONTRACEPTION-BRIEF object
  I (MODE="B")!(X="") Q "FP METHOD: "_$S(X="":"None Recorded",1:X)
  S FPBEGIN=$$GET1^DIQ(9000017,DFN,3.05),FPDATE=$$GET1^DIQ(9000017,DFN,3.1)
  Q "FP METHOD: "_X_" (begun "_FPBEGIN_"; recorded "_FPDATE_")"
- ;
-ACTIVITY(DFN,VISIT) ;EP; returns # of activity minutes for visit in V Activity file
- I '$G(VISIT) D  I $G(VISIT)<1 Q "Invalid visit"
- . I $T(GETVAR^CIAVMEVT)="" Q
- . NEW VST
- . S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
- . I VST="" Q
- . S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 Q
- . ;S X="CIAVCXEN" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^CIAVCXEN(DFN,VST) I VST<1 Q
- . S VISIT=VST
- ;
- NEW IEN,X S IEN=$O(^AUPNVTM("AD",VISIT,0)) I 'IEN Q " "
- S X=$$GET1^DIQ(9000010.19,IEN,.01)
- Q $S(X]"":X_" minutes",1:"")
- ;
-TRAVEL(DFN,VISIT) ;EP; returns # of travel minutes for visit in V Activity file
- I '$G(VISIT) D  I $G(VISIT)<1 Q "Invalid visit"
- . I $T(GETVAR^CIAVMEVT)="" Q
- . NEW VST
- . S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
- . I VST="" Q
- . S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 Q
- . ;S X="CIAVCXEN" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^CIAVCXEN(DFN,VST) I VST<1 Q
- . S VISIT=VST
- ;
- NEW IEN,X S IEN=$O(^AUPNVTM("AD",VISIT,0)) I 'IEN Q ""
- S X=$$GET1^DIQ(9000010.19,IEN,.04)
- Q $S(X]"":X_" minutes",1:"")
- ;
-TOTTIME(DFN,VISIT) ;EP; returns total # of minutes (activity & travel)
- NEW A,T
- I '$G(VISIT) D  I $G(VISIT)<1 Q "Invalid visit"
- . I $T(GETVAR^CIAVMEVT)="" Q
- . NEW VST
- . S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
- . I VST="" Q
- . S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 Q
- . S VISIT=VST
- ;
- S A=$$ACTIVITY($G(DFN),$G(VISIT)),T=$$TRAVEL($G(DFN),$G(VISIT))
- Q (A+T)_" minutes"
  ;
 TODAYVIT(PAT) ;EP; returns all vitals taken today
  NEW MEAS,VST,VDT,END,APCLV,ERR,TYPE,VALUE

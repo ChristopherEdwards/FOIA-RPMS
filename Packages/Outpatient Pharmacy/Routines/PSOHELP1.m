@@ -1,9 +1,10 @@
-PSOHELP1 ;BIR/SAB-OUTPATIENT HELP TEXT/UTILITY ROUTINE 2 ;18-Dec-2003 11:52;PLS
- ;;7.0;OUTPATIENT PHARMACY;**23,36,88,146**;DEC 1997
+PSOHELP1 ;BIR/SAB-OUTPATIENT HELP TEXT/UTILITY ROUTINE 2 ;23-Sep-2011 15:54;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**23,36,88,146,1013**;DEC 1997;Build 33
  ;External reference ^DIC(19.2 supported by DBIA 1472
  ;External reference ^PSDRUG( supported by DBIA 221
  ;External reference ^PS(55 supported by DBIA 2228
  ; Modified - IHS/CIA/PLS - 12/15/03 - Line AUTOQ+7
+ ;            IHS/MSC/PLS - 09/16/2011 - Line AUTOQ+9
 2001 N PSOHLP S PSOHLP(1,"F")="!!"
  S PSOHLP(1)="Enter the lowest prescription number for this site."
  S PSOHLP(2,"F")="!"
@@ -55,6 +56,7 @@ AUTOQ ;entry point to queue all background jobs
  D SETUP^PSOHLEXP ;ques exipration status update
  D AUTO^PSOSUDEL ;ques job to deleted rxs printed from 52.5
  D AUTOQ^APSAWP2  ; IHS/CIA/PLS - 12/15/03
+ D AUTOQ^APSPCSM  ;IHS/MSC/PLS - 09/16/2011
 CLO K Y,C,D,D0,DI,DQ,DA,DIE,DR,DIC,Y,X,PSOTM,PSOOPTN,%DT,PSOPTN
  Q
 QUP K %DT,DIC,DTOUT S DIC(0)="XZM",DIC="^DIC(19.2,",X="PSO AMIS COMPILE" D ^DIC

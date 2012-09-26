@@ -1,5 +1,5 @@
-APSPCSM1 ; IHS/MSC/PLS - CONTROLLED SUBSTANCE MANAGEMENT REPORT ;22-Jul-2011 09:30;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1007,1011**;Sep 23, 2004;Build 17
+APSPCSM1 ; IHS/MSC/PLS - CONTROLLED SUBSTANCE MANAGEMENT REPORT ;10-Nov-2011 12:48;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1007,1011,1013**;Sep 23, 2004;Build 33
  ;
  Q
 PRINT ;EP
@@ -93,7 +93,8 @@ PRINTSUM(RPTTYP,DRGNM,STATS,FDT) ;EP -
  I APSPXML D
  .W !,$$TAG("DispenseSummary")
  .W:$G(FDT) !,$$TAG("FillDate",2,$P($TR($$FMTE^XLFDT(FDT,"5Z"),"@"," "),":",1,2))
- .W !,$$TAG("DrugName",2,DRGNM)
+ .;W !,$$TAG("DrugName",2,DRGNM)
+ .W !,$$TAG("DrugName",2,$P(DAT,U,3)) ;P1013
  .;W !,$$TAG("RXCnt",2,$J(STATS("RXCNT"),6))
  .W !,$$TAG("FillCnt",2,$J(STATS("FILLS"),6))
  .W !,$$TAG("UnitType",2,$P(DAT,U,2))
@@ -107,7 +108,8 @@ PRINTSUM(RPTTYP,DRGNM,STATS,FDT) ;EP -
  ..S LSTFDT=FDT
  .;W DRGNM,?44,$J(STATS("RXCNT"),6),?51,$P(DAT,U,2),?63,$J(+$G(STATS("DRUG",+DAT)),8),?73,$J(+$G(STATS("DRUG",+DAT))\STATS("RXCNT"),6,1),!
  .;W DRGNM,?44,$J(STATS("FILLS"),6),?51,$P(DAT,U,2),?63,$J(+$G(STATS("DRUG",+DAT)),8),?73,$J(+$G(STATS("DRUG",+DAT))\STATS("FILLS"),6,1),!
- .W DRGNM,?44,$E($P(DAT,U,2),1,10),?55,$J(STATS("FILLS"),6),?62,$J(+$G(STATS("DRUG",+DAT)),8),?74,$J(+$G(STATS("DRUG",+DAT))\STATS("FILLS"),6,1),!
+ .;W DRGNM,?44,$E($P(DAT,U,2),1,10),?55,$J(STATS("FILLS"),6),?62,$J(+$G(STATS("DRUG",+DAT)),8),?74,$J(+$G(STATS("DRUG",+DAT))\STATS("FILLS"),6,1),!
+ .W $P(DAT,U,3),?44,$E($P(DAT,U,2),1,10),?55,$J(STATS("FILLS"),6),?62,$J(+$G(STATS("DRUG",+DAT)),8),?74,$J(+$G(STATS("DRUG",+DAT))\STATS("FILLS"),6,1),!
  .S NEWPG=0
  .D PRINT3  ; check page length
  Q
@@ -118,7 +120,8 @@ PRTDSUM ; EP -
  I APSPXML D
  .W !,$$TAG("ReportSubTotals")
  .S DRUGN="" F  S DRUGN=$O(STATS("RXDRUG",DRUGN)) Q:DRUGN=""  D
- ..W !,$$TAG("DrugName",2,DRUGN)
+ ..;W !,$$TAG("DrugName",2,DRUGN)
+ ..W !,$$TAG("DrugName",2,$P(STATS("DRUGN",DRUGN),U,3))
  ..W !,$$TAG("RXCount",2,$J(STATS("RXDRUG",DRUGN),6,0))
  ..S RX=0 F  S RX=$O(STATS("RXS",RX)) Q:'RX  D
  ...S RXCNT=$G(RXCNT)+1
@@ -130,7 +133,8 @@ PRTDSUM ; EP -
  .W !,"Report sub-totals",!
  .W !,?5,"Drug Name",?47,"# of fills",!
  .S DRUGN="" F  S DRUGN=$O(STATS("RXDRUG",DRUGN))  Q:DRUGN=""  D
- ..W ?5,DRUGN,?47,$J(STATS("RXDRUG",DRUGN),6,0),!
+ ..;W ?5,DRUGN,?47,$J(STATS("RXDRUG",DRUGN),6,0),!
+ ..W ?5,$P(STATS("DRUGN",DRUGN),U,3),?47,$J(STATS("RXDRUG",DRUGN),6,0),!
  ..D PRINT3
  .S RX=0 F  S RX=$O(STATS("RXS",RX)) Q:'RX  D
  ..S RXCNT=$G(RXCNT)+1
@@ -156,7 +160,8 @@ PRTRTOT ; EP -
  .W !!,"Report Totals",!
  .W !,?5,"Drug Name",?47,"# of fills",!
  .S DRUGN="" F  S DRUGN=$O(APSPRTOT("RXDRUG",DRUGN))  Q:DRUGN=""  D
- ..W ?5,DRUGN,?47,$J(APSPRTOT("RXDRUG",DRUGN),6,0),!
+ ..;W ?5,DRUGN,?47,$J(APSPRTOT("RXDRUG",DRUGN),6,0),!
+ ..W ?5,$P(APSPRTOT("DRUGN",DRUGN),U,3),?47,$J(APSPRTOT("RXDRUG",DRUGN),6,0),!
  ..D PRINT3
  .S RX=0 F  S RX=$O(APSPRTOT("RXS",RX)) Q:'RX  D
  ..S RXCNT=$G(RXCNT)+1

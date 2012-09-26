@@ -1,11 +1,11 @@
 BGP2DP1N ; IHS/CMI/LAB - print ind 1 12 Nov 2010 7:38 AM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;mta age dist x 2
 I1AGE ;EP  special age tallies
  Q:$G(BGPSUMON)
  Q:BGPRTYPE'=4
- Q:BGPINDW'="S"
+ I BGPINDW'="S",BGPINDW'="A" Q
  S BGPHD1="Active Clinical Pts =>5 w/Persistent Asthma and LABA Rx",BGPHD2="Active Clinical Pts =>5 w/persistent",BGPHD3=" asthma and LABA Rx"
  K BGPDAC,BGPDAP,BGPDAB
  S (BGPX,BGPDD)=0 F BGPXX=2 D I1AGE1

@@ -1,7 +1,8 @@
-PSODISP1 ;BHAM ISC/SAB,PDW - Rx released/unrelease report ; 08 Oct 1999  9:58 AM
- ;;7.0;OUTPATIENT PHARMACY;**15,9,33**;DEC 1997
+PSODISP1 ;BHAM ISC/SAB,PDW - Rx released/unrelease report ;07-Oct-2011 08:46;DU
+ ;;7.0;OUTPATIENT PHARMACY;**15,9,33,1013**;DEC 1997;Build 33
  ;External reference to ^PS(59.7 supported by DBIA 694
  ;External reference to ^PSDRUG( supported by DBIA 221
+ ;Modified - IHS/MSC/MGH - 10/07/2011  - Added fields for patch 1013
  I '$D(PSOPAR) D ^PSOLSET I '$D(PSOPAR) W $C(7),!!,"Pharmacy Division must be selected!",! G EXIT
 AC S (I,MUL)=0,SITE=PSOSITE,PSIN=+$P($G(^PS(59.7,1,49.99)),"^",2)
  F  S I=$O(^PS(59,I)) Q:'I  S MUL=MUL+1
@@ -50,7 +51,12 @@ RPT2 I $P($G(^PSRX(RXN,2)),"^",13),DUD Q
  I $P($G(^PSRX(RXN,2)),"^",9)'=SITE Q
  S XY=$P(^PSRX(RXN,"STA"),"^") I (XY=3)!(XY=4)!(XY=13)!(XY=16) Q
  I $$CSDEA(RXN)=0 Q  ; quit if CS Criteria fails
- I $P(^PSRX(RXN,2),"^",13) W !,$P(^PSRX(RXN,0),"^"),?16,"Original" S Y=$P(^PSRX(RXN,2),"^",13) X ^DD("DD") W ?29,$S(Y["@":$P(Y,"@"),1:Y),?50,"YES" D CP1 Q
+ ;IHS/MSC/MGH - 10/07/2011
+ ;I $P(^PSRX(RXN,2),"^",13) W !,$P(^PSRX(RXN,0),"^"),?16,"Original" S Y=$P(^PSRX(RXN,2),"^",13) X ^DD("DD") W ?29,$S(Y["@":$P(Y,"@"),1:Y),?50,"YES" D CP1 Q
+ I $P(^PSRX(RXN,2),"^",13) D  Q
+ .W !,$P(^PSRX(RXN,0),"^"),?12,"Original"
+ .S Y=$P(^PSRX(RXN,2),"^",2) X ^DD("DD") W ?25,$S(Y["@":$P(Y,"@"),1:Y)  ;IHS/MSC/MGH added fill date
+ .S Y=$P(^PSRX(RXN,2),"^",13) X ^DD("DD") W ?39,$S(Y["@":$P(Y,"@"),1:Y),?52,"YES" D CP1
  I '$P(^PSRX(RXN,2),"^",13) D  Q:('$G(LBLP)&($G(PSX(0))']""))  W !,$P(^PSRX(RXN,0),"^"),?16,"Original",?50,"No" S UNREL=UNREL+1 D CP1
  .F LB=0:0 S LB=$O(^PSRX(RXN,"L",LB)) Q:'LB  I '$P(^PSRX(RXN,"L",LB,0),"^",2),$P(^(0),"^",3)'["INTERACTION",'$P(^(0),"^",5) S LBLP=1 Q
  ;I $G(PSX(0))]"" W ?85,"YES",?95,$S(PSX(0)=0:"Transmitted",PSX(0)=1:"DISPENSED",PSX(0)=2:"Retransmitted",PSX(0)=3:"Not Dispensed",1:"Unknown")
@@ -61,19 +67,28 @@ REF ;
  I $P($G(^PSRX(RXN,$S('$G(PAR):1,1:"P"),NODE,0)),"^",16)]"" Q
  S XY=$P(^PSRX(RXN,"STA"),"^") I (XY=3)!(XY=4)!(XY>12) Q
  I $$CSDEA(RXN)=0 Q  ; quit if CS Criteria fails
- I $P($G(^PSRX(RXN,$S('$G(PAR):1,1:"P"),NODE,0)),"^",$S('$G(PAR):18,1:19)) D   G CP1
- .W !,$P(^PSRX(RXN,0),"^"),?16,$S('$G(PAR):"Refill",1:"Partial")_" #",NODE S Y=$P(^PSRX(RXN,$S('$G(PAR):1,1:"P"),NODE,0),"^",$S('$G(PAR):18,1:19)) X ^DD("DD") W ?29,$S(Y["@":$P(Y,"@"),1:Y),?50,"Yes"
- I '$P(^PSRX(RXN,$S('$G(PAR):1,1:"P"),NODE,0),"^",$S('$G(PAR):18,1:19)) D  Q:('$G(LBLP)&($G(PSX(NODE))']""))  D TEST Q:'$G(LBLP)&($G(PSOLCMF))  W !,$P(^PSRX(RXN,0),"^"),?16,$S('$G(PAR):"Refill",1:"Partial")_" #",NODE,?50,"No" S UNREL=UNREL+1
+ I $P($G(^PSRX(RXN,$S('$G(PAR):1,1:"P"),NODE,0)),"^",$S('$G(PAR):18,1:19)) D  G CP1
+ .W !,$P(^PSRX(RXN,0),"^"),?12,$S('$G(PAR):"Refill",1:"Partial")_" #",NODE
+ .S Y=$P(^PSRX(RXN,$S('$G(PAR):1,1:"P"),NODE,0),"^",1) X ^DD("DD") W ?25,$S(Y["@":$P(Y,"@"),1:Y)  ;IHS/MSC/MGH added fill date
+ .S Y=$P(^PSRX(RXN,$S('$G(PAR):1,1:"P"),NODE,0),"^",$S('$G(PAR):18,1:19)) X ^DD("DD") W ?39,$S(Y["@":$P(Y,"@"),1:Y),?52,"Yes"
+ I '$P(^PSRX(RXN,$S('$G(PAR):1,1:"P"),NODE,0),"^",$S('$G(PAR):18,1:19)) D  Q:('$G(LBLP)&($G(PSX(NODE))']""))  D TEST Q:'$G(LBLP)&($G(PSOLCMF))  W !,$P(^PSRX(RXN,0),"^"),?12,$S('$G(PAR):"Refill",1:"Partial")_" #",NODE,?52,"No" S UNREL=UNREL+1
  .F LB=0:0 S LB=$O(^PSRX(RXN,"L",LB)) Q:'LB  I $P(^PSRX(RXN,"L",LB,0),"^",2)=$S('$G(PAR):NODE,1:99-NODE) S LBLP=1 Q
 CP1 W ?60,$S(XY=1:"Non-verified",XY=2:"Refill",XY=3!(XY=16):"Hold",XY=5:"Suspended",XY=10:"Done",XY=11:"Expired",XY=12!(XY=14)!(XY=15):"Discontinued",1:"Active")
- Q:$G(PAR)  I $P($G(^PSRX(RXN,"IB")),"^") W ?75,"Yes" S CP=CP+1
- I $G(PSX(NODE))]"" W ?85,"Yes",?95,$S(PSX(NODE)=0:"Transmitted",PSX(NODE)=1:"Dispensed",PSX(NODE)=2:"Retransmitted",PSX(NODE)=3:"Not Dispensed",1:"Unknown")
+ ;IHS/MSC/MGH Patch 10103 Added call to add a second line of items for report
+ I '$G(PAR) D
+ .I $P($G(^PSRX(RXN,"IB")),"^") W ?75,"Yes" S CP=CP+1
+ .I $G(PSX(NODE))]"" W ?85,"Yes",?95,$S(PSX(NODE)=0:"Transmitted",PSX(NODE)=1:"Dispensed",PSX(NODE)=2:"Retransmitted",PSX(NODE)=3:"Not Dispensed",1:"Unknown")
+ D PTDATA1
  Q
  ;
 HD W @IOF,?$S('DUD:17,1:20),$S('DUD:"Release/",1:"")_"Unreleased Report for "_$P(^PS(59,SITE,0),"^",1),!
  I $G(DUD1)="N" W ?13,"Non-controlled Substance Prescriptions Only"
  I $G(DUD1)="C" W ?17,"Controlled Substance Prescriptions Only"
- W !?18,PSDATE_" to "_PEDATE,?70,"Page: "_PG,!!,?16,"Fill/",?32,"Date",!,"Rx #",?16,"Refill",?30,"Released",?49,"Released",?61,"Status",?74,"Copay      " W:$G(PSXSYS) "CMOP       CMOP Status" W ! F LIN=1:1:$S($G(PSXSYS):115,1:80) W "-"
+ W !?18,PSDATE_" to "_PEDATE,?70,"Page: "_PG,!!,?12,"Fill/",?25,"Date",?39,"Date"
+ W !,"Rx #",?12,"Refill",?25,"Filled",?39,"Released",?52,"Released",?61,"Status",?74,"Copay      " W:$G(PSXSYS) "CMOP       CMOP Status"
+ ;IHS/MSC/MGH added line to header patch 1013
+ W !?2,"Pt Name",?23,"DOB",?36,"HRN",?46,"Pharmacist",?66,"Finisher"
+ W ! F LIN=1:1:$S($G(PSXSYS):115,1:80) W "-"
  W ! S PG=PG+1 Q
  ;
 TEST ;
@@ -94,3 +109,24 @@ CSDEA(X) ;CS Critera .. returns a 1 if both DEA on drug & criteria 'N/C/B' are s
  I DUD1="N",DEA=0 Q 1 ; no CS
  I DUD1="C",DEA=1 Q 1 ; CS only
  Q 0
+PTDATA1 ;Extra fields added to report Patch 1013
+ N PT,NAME,DOB,HRCN,PHARM,FILL,IEN
+ S (PHARM,FILL)=""
+ S PT=$P($G(^PSRX(RXN,0)),U,2)
+ Q:PT=""
+ S NAME=$$GET1^DIQ(2,PT,.01)
+ S DOB=$$GET1^DIQ(2,PT,.03)
+ S HRCN=$$HRCN^TIUR2(PT,+$G(DUZ(2)))
+ I +NODE D
+ .S IEN=NODE_","_RXN_","
+ .I '$G(PAR) D
+ ..S PHARM=$$GET1^DIQ(52.1,IEN,4)
+ .I $G(PAR) D
+ ..S PHARM=$$GET1^DIQ(52.2,IEN,.05)
+ E  D
+ .S PHARM=$$GET1^DIQ(52,RXN,23)
+ .S FILL=$$GET1^DIQ(52,RXN,38)
+ W !,?2,$E(NAME,1,19),?23,DOB,?36,HRCN,?46,$E(PHARM,1,19),?66,$E(FILL,U,14),!
+ Q
+HRCN(PT,SITE) ;EP; IHS/MSC/MGH return chart number
+ Q $P($G(^AUPNPAT(PT,41,SITE,0)),U,2)

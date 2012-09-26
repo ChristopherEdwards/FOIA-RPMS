@@ -1,5 +1,5 @@
 BQIPLSH ;PRXM/HC/ALA - Panel Sharing Update ; 07 Nov 2005  3:53 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -227,7 +227,7 @@ CPLAY(OWNR,PLIEN,WHO,LTYPE,OVRRD) ;EP -- Copy Owner Layout to Shared User
  .. N CD S CD=""
  .. I FLD=".01" D  Q:CD=""
  ... S CD=$P($G(OLAY(90505.151,IEN,FLD,"I")),U) Q:CD=""
- ... I LTYPE="D"!(LTYPE="A")!(LTYPE="H")!(LTYPE="T")!(LTYPE="Q")!(LTYPE="N") S CD=$O(^BQI(90506.1,"B",CD,"")) Q:CD=""
+ ... ;I (LTYPE="A")!(LTYPE="H")!(LTYPE="T")!(LTYPE="Q")!(LTYPE="N") S CD=$O(^BQI(90506.1,"B",CD,"")) Q:CD=""
  ... S $P(OLAY(90505.151,IEN,FLD,"I"),U)=CD
  .. S OLAY("O",$P(IEN,","),FLD)=$G(OLAY(90505.151,IEN,FLD,"I"))
  .. K OLAY(90505.151,IEN,FLD,"I")

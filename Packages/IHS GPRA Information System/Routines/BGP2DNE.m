@@ -1,5 +1,5 @@
 BGP2DNE ; IHS/CMI/LAB - NATL COMP EXPORT 05 Dec 2006 7:09 PM 07 Mar 2010 2:29 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -75,7 +75,7 @@ EXPORT ;export to area or not?
  S BGPUF=$$GETDIR^BGP2UTL2()
  ;I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
  ;I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic/"
- I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2CL,XIT Q
+ I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2DU,XIT Q
  S BGPFN="CRSCNT"_$P(^AUTTLOC(DUZ(2),0),U,10)_$$D^BGP2UTL(BGPXPWD)_$$D^BGP2UTL(BGPXPWDT)_$$D^BGP2UTL(BGPNOW)_"_001_of_001.TXT"
 LOCALF ;
  S BGPLOCAL=""

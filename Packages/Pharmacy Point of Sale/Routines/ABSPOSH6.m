@@ -1,5 +1,5 @@
 ABSPOSH6  ;IHS/SD/lwj - NCPDP 5.1 Post 5.1 response [ 09/04/2002  12:57 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,9,39,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,9,39,42,43**;JUN 21, 2001
  ;-------------------------------------------------------------
  ; Originally, the entire response was processed in the 
  ; ABSPOSH5 routine - but it exceed SAC limitations on 
@@ -114,9 +114,8 @@ REPAPP ; This subroutine will process the approved repeating field
  Q:COUNT'>0
  ;
  F CNTR=1:1:COUNT  D
- . S (APP)=""
  . S APP=$G(FDATA("M",MEDN,548,CNTR))   ;approved message code
- . I $D(APP) D
+ . I $L(APP) D
  .. S $P(^ABSPR(RESPIEN,1000,INDEX,548,CNTR,0),U)=APP
  .. S ^ABSPR(RESPIEN,1000,INDEX,548,"B",APP,CNTR)=""
  .. S RLCNT=RLCNT+1

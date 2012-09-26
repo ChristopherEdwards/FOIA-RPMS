@@ -1,5 +1,5 @@
 BGP2CON1 ; IHS/CMI/LAB - measure AHR.A 30 May 2010 9:32 AM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 BETA ;EP - BETA BLOCKER CONTRAINDICATION/NMI REFUSAL
@@ -20,7 +20,7 @@ BETA ;EP - BETA BLOCKER CONTRAINDICATION/NMI REFUSAL
  I $P(BGPG,U)=1 Q 1_U_"Hypotension dx-Beta Blocker contraindication"  ;has hypotension dx
  S BGPG=$$LASTDX^BGP2UTL1(P,"BGP CMS 2/3 HEART BLOCK DXS",BDATE,EDATE)
  I $P(BGPG,U)=1 Q 1_U_"heart blk dx-Beta Blocker contraindication"  ;has heart block dx
- S BGPG=$$LASTDXI^BGP2UTL1(P,"427.81",BDATE,EDATE)
+ S BGPG=$$LASTDX^BGP2UTL1(P,"BGP SINUS BRADYCARDIA DXS",BDATE,EDATE)
  I $P(BGPG,U)=1 Q 1_U_"sinus bradycardia-Beta Blocker contraindication"
  K BGPG,BGPD
  S X=P_"^ALL DX [BGP COPD DXS BB CONT;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,"BGPG(")
@@ -81,8 +81,8 @@ WAR71 .;
  .I J]"" Q:J<BDATE  ;discontinued before beginning date
  I BGPG Q 1_U_"asa Contra warfarin rx "_$P(BGPG,U,2)_" "_$P(BGPG,U,3)
  ;now check for dx 459
- K BGPG S BGPG=$$LASTDXI^BGP2UTL1(P,"459.0",$$DOB^AUPNPAT(P),EDATE)
- I BGPG Q 1_U_"asa Contra 459.0 "_$$DATE^BGP2UTL($P(BGPG,U,3))
+ K BGPG S BGPG=$$LASTDX^BGP2UTL1(P,"BGP HEMORRHAGE DXS",$$DOB^AUPNPAT(P),EDATE)
+ I BGPG Q 1_U_"asa Contra "_$P(BGPG,U,2)_" "_$$DATE^BGP2UTL($P(BGPG,U,3))
  ;
  ;nmi in Refusal file for aspirin
  S BGPG=""
@@ -174,7 +174,7 @@ STATIN ;EP does patient have an STATIN Contraidication
  .Q
  I BGPG Q BGPG
  ;breastfeeding
- K BGPG S Y="BGPG(",X=P_"^LAST DX V24.1;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ K BGPG S Y="BGPG(",X=P_"^LAST DX [BGP BREASTFEEDING DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  I $D(BGPG(1)) Q 1_U_"STATIN Contra POV:  "_$$DATE^BGP2UTL($P(BGPG(1),U))_" ["_$P(BGPG(1),U,2)_"]    "_$$VAL^XBDIQ1(9000010.07,+$P(BGPG(1),U,4),.04)
  ;now check education
  K BGPG
@@ -195,9 +195,8 @@ STATIN ;EP does patient have an STATIN Contraidication
  .I T="BF-M" S %=T_" "_$$DATE^BGP2UTL($P(BGPG(X),U)) Q
  .I T="BF-MK" S %=T_" "_$$DATE^BGP2UTL($P(BGPG(X),U)) Q
  .I T="BF-N" S %=T_" "_$$DATE^BGP2UTL($P(BGPG(X),U)) Q
- .;I $P(T,"-")="V24.1" S %=T_U_$P(BGPG(X),U) Q
  I %]"" Q 1_U_"Statin Contra "_%
  ;NOW CHECK ALCOHOL HEPATITIS
- K BGPG S Y="BGPG(",X=P_"^LAST DX 571.1;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ K BGPG S Y="BGPG(",X=P_"^LAST DX [BGP ALCOHOL HEPATITIS DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  I $D(BGPG(1)) Q 1_U_"STATIN Contra POV:  "_$$DATE^BGP2UTL($P(BGPG(1),U))_" ["_$P(BGPG(1),U,2)_"]  "_$$VAL^XBDIQ1(9000010.07,+$P(BGPG(1),U,4),.04)
  Q ""

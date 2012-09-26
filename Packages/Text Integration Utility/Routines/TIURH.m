@@ -1,5 +1,5 @@
-TIURH ; SLC/JER - Review Screen Header ;4/20/94  16:18
- ;;1.0;TEXT INTEGRATION UTILITIES;;Jun 20, 1997
+TIURH ; SLC/JER - Review Screen Header ;5/7/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**113**;Jun 20, 1997
 HDR ; Initialize header for clinician's review screen
  N BY,TIUI,TIUX,SCREEN,STATUS,RANGE,TIUBY,TIUDOCS,XREF
  S TIUX=$G(^TMP("TIUR",$J,0)),STATUS=$P(TIUX,U,2),SCREEN=$P(TIUX,U,3,99)
@@ -10,7 +10,10 @@ HDR ; Initialize header for clinician's review screen
  I +TIUEDT>1 S RANGE=" from "_$$DATE^TIULS(TIUEDT,"MM/DD/YY")_" to "_$$DATE^TIULS(TIULDT,"MM/DD/YY")
  F TIUI=1:1:$L(SCREEN,";") D
  . S XREF=$P($P(SCREEN,";",TIUI),U),XREF=$O(^TIU(8925.8,"C",XREF,0))
- . S TIUBY=$G(TIUBY)_$S($G(TIUBY)]"":" or ",1:"")
+ . I $D(TIUQUIK) D
+ . . S TIUBY=$G(TIUBY)_$S($G(TIUBY)]"":" or ",1:"")
+ . E  D
+ . . S TIUBY=$G(TIUBY)_$S($G(TIUBY)]"":" and ",1:"")
  . S TIUBY=$G(TIUBY)_$P($G(^TIU(8925.8,+XREF,0)),U)
  . S:$P($P(SCREEN,";",TIUI),U,3)]"" TIUBY=$G(TIUBY)_" ("_$P($P(SCREEN,";",TIUI),U,3)_")"
  S BY="by "_TIUBY

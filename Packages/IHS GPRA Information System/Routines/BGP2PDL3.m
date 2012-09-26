@@ -1,5 +1,5 @@
 BGP2PDL3 ; IHS/CMI/LAB - print ind 1 ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  ;this routine for Measure I23 ONLY

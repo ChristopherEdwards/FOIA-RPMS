@@ -1,9 +1,9 @@
-BEXRREJ ;CMI/BJI/DAY - BEX - Refill Rejections Percentage Report ; 19 Nov 2009  10:56 AM [ 03/02/2010  11:13 AM ]
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4**;DEC 01, 2009
+BEXRREJ ;IHS/CMI/DAY - BEX - Refill Rejections Percentage Report ; 12 Mar 2012  7:15 PM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4,5**;MAR 12, 2012;Build 1
  ;
  ;Prints the Refill Rejections Percentage Report
  ;
- D ^XBCLS
+ W #
  ;
  W !,"Refill Rejections Percentage Report"
  W !
@@ -85,7 +85,7 @@ LIST ;EP - Entry Point from XBDBQUE
  ;---------------------------------------------------------------
  ;
  ;
- D ^XBCLS
+ W #
  D HEADER
  ;
  K BEXTOT
@@ -237,7 +237,7 @@ LIST ;EP - Entry Point from XBDBQUE
 HEADER ;EP - Write the Header
  ;---------------------------------------------------------------
  ;
- D ^XBCLS
+ W #
  W !,"REPORT:      Refill Rejections Percentage Report"
  W " for "
  I +BEXSITE W $$GET1^DIQ(59,BEXSITE,.01)

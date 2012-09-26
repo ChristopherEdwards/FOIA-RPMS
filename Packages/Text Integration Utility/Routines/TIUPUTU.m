@@ -1,23 +1,24 @@
-TIUPUTU ; SLC/JER - Utilities for Filer/Router ;11-JUL-2001 15:58
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,100,120**;Jun 20, 1997
- ;IHS/ITSC/LJF 02/27/2003 stripped dashes from HRCN; set into TIUSSN variable
- ;                        if addendum arrives in same batch as original, it will be added as separate entry
- ;                        added creation of v notes entry
- ;                        added check to set cosig needed only if signer requires cosig
- ;             07/29/2004 remove screen for 4 digit chart number
- ;
+TIUPUTU ; SLC/JER - Utilities for Filer/Router ;01-Aug-2011 12:04;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,100,120,113,1009**;Jun 20, 1997;Build 22
+ ;IHS/ITSC/LJF 02/27/2003 stripped dashes from HRCN;set into TIUSSN variable
+ ;if addendum arrives in same batch as original, it will be added as
+ ;separate entry
+ ;added creation of v notes entry
+ ;added check to set cosig needed only if signer requires cosig
+ ;07/29/2004 remove screen for 4 digit chart number
 LOOKUP ; Look-up code used by router/filer
  ; Required: TIUSSN, TIUADT
  N DA,DFN,TIU,TIUDAD,TIUDPRM,TIUEDIT,TIUEDT,TIULDT,TIUXCRP S TIUXCRP=1
  ;I $S('$D(TIUSSN):1,'$D(TIUADT):1,$G(TIUSSN)?4N:1,$G(TIUSSN)']"":1,1:0) S Y=-1 G LOOKUPX
  I $S('$D(TIUSSN):1,'$D(TIUADT):1,$G(TIUSSN)']"":1,1:0) S Y=-1 G LOOKUPX   ;IHS/ITSC/LJF 7/29/2004 remove screen for 4 digits
  I TIUSSN?3N1P2N1P4N.E S TIUSSN=$TR(TIUSSN,"-/","")
- S TIUSSN=+$$STRIP^XLFSTR(TIUSSN,"-")  ;IHS/ITSC/LJF 02/27/2003 strip dashes from HRCN
+ S TIUSSN=+$$STRIP^XLFSTR(TIUSSN,"-")  ;IHS/ITSC/LJF 02/27/2003 strip dashes
  I TIUSSN["?" S Y=-1 G LOOKUPX
  S TIUEDT=$$IDATE^TIULC(TIUADT),TIULDT=$$FMADD^XLFDT(TIUEDT,1)
  I +TIUEDT'>0 S Y=-1 Q
  D MAIN^TIUMOVE(.TIU,.DFN,TIUSSN,TIUEDT,TIULDT,1,"LAST",0)
  I $S($D(TIU)'>9:1,+$G(DFN)'>0:1,1:0) S Y=-1 G LOOKUPX
+ S TIUINST=+$$DIVISION^TIULC1(TIU("LOC"))
  I $P(+$G(TIU("EDT")),".")'=$P($$IDATE^TIULC(TIUADT),".") S Y=-1 G LOOKUPX
  I '+$G(TIU("LDT")),($G(TIUDICDT)]""),(+$$IDATE^TIULC(TIUDICDT)=-1) S Y=-1 Q
  D DOCPRM^TIULC1(RECORD("TYPE"),.TIUDPRM)
@@ -26,7 +27,6 @@ LOOKUP ; Look-up code used by router/filer
  I +Y'>0 G LOOKUPX
  S TIUEDIT=$$CANEDIT(+Y)
  ; If record has text and can be edited, then replace existing text
- ;
  ;IHS/ITSC/LJF 02/27/2003 if text already exists in this batch, add addendum
  ;I +TIUEDIT>0,$D(^TIU(8925,+Y,"TEXT")) D DELTEXT(+Y)
  ;I +TIUEDIT'>0 S TIUDAD=+Y,Y=$$MAKEADD
@@ -65,6 +65,7 @@ STUFREC(DA,PARENT) ; Stuff fixed field data
  . S @FDARR@(1402)=$P(^TIU(8925,+PARENT,14),U,2)
  . S @FDARR@(1201)=$$NOW^TIULC
  S @FDARR@(1205)=$P($G(TIU("LOC")),U)
+ S @FDARR@(1212)=$P($G(TIU("INST")),U)
  I +$G(TIU("LDT")) S TIURDT=+$G(TIU("LDT"))
  I +$G(TIU("LDT"))'>0 D
  . S TIUDICDT=+$$IDATE^TIULC($G(TIUDICDT))
@@ -113,7 +114,7 @@ FOLLOWUP(TIUDA) ; Post-filing code for Discharge Summaries
  I +$P($G(^TIU(8925,+TIUDA,12)),U,4)'=+$P($G(^(12)),U,9) D
  . I '$$REQCOSIG^TIULP(+$P($G(^TIU(8925,+DA,0)),U),+DA,+$P($G(^(12)),U,4)) Q  ;IHS/ITSC/LJF 02/27/2003 don't cosig unless reqd
  . S @FDARR@(1506)=1 D FILE^DIE(FLAGS,"FDA","TIUMSG")
- ;D ENQ^TIUPXAP1 ; In-line call to get/file the visit             ;IHS;ITSC;LJF 09/09/2004 don't call PCE
+ ;D ENQ^TIUPXAP1 ; In-line call to get/file the visit   ;IHS;ITSC;LJF 09/09/2004 don't call PCE
  D VNOTE^BTIUPCC(TIUDA,$$IVST^BTIUU1(+TIUDA),$$IPAT^BTIUU1(+TIUDA),"ADD")  ;IHS/ITSC/LJF 02/27/2003 update V Note file;9/10/2004 changed DA to TIUDA
  D RELEASE^TIUT(TIUDA,1),UPDTIRT^TIUDIRT(.TIU,TIUDA)
  D AUDIT^TIUEDI1(TIUDA,0,$$CHKSUM^TIULC("^TIU(8925,"_+TIUDA_",""TEXT"")"))

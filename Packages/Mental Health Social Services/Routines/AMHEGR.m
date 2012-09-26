@@ -1,5 +1,5 @@
 AMHEGR ; IHS/CMI/LAB - GROUP ENTRY ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
  ;
  ;
 START ;
@@ -200,7 +200,7 @@ ADDREC2 ;
  I $D(Y) D  S AMHDELQ=1 Q
  .W !!,"ERROR -- Incomplete record!! You have exited before a complete record"
  .W !,"had been added.  I have to delete the record.  Please complete the",!,"entry of patient visits for this group at a later time.",!!
- .D DELR^AMHEGR1 Q
+ .S AMHGRPDE=1 D DELR^AMHEGR1 K AMHGRPDE Q
  S AMHVTYPE=$P(^AMHREC(AMHR,0),U,33)
  K DIADD,DLAYGO
  D ^XBFMK
@@ -229,6 +229,9 @@ ADDPOV ;
  .K DIC,DA,DO,DD,D0,DG,DH,DI,DIW,DIU,DIADD,DIE,DQ,DLAYGO
  .I Y=-1 W !!,"Creating POV entry failed!!!",$C(7),$C(7) H 2
  D EP2^AMHEGRPV
+ I $G(AMHDELTV) D  Q
+ .W !!,"ERROR -- Incomplete record!! Deleting record.",!!
+ .S AMHGRPDE=1 D DELR^AMHEGR1 K AMHGRPDE Q
 ADDCPTS ;
  S AMHP=0 F  S AMHP=$O(^AMHGROUP(AMHNG,41,AMHP)) Q:AMHP'=+AMHP  D
  .S AMHP1=$P(^AMHGROUP(AMHNG,41,AMHP,0),U)
@@ -254,10 +257,15 @@ ADDPTED ;
  .I AMHP11]"" S $P(^AMHREDU(+Y,11),U,1)=AMHP11
 CC ;
  W !!
- S DA=AMHR,DIE="^AMHREC(",DR=2101 D ^DIE
+ S DA=AMHR,DIE="^AMHREC(",DR=2101 D ^DIE K DA,DIE,DR D ^XBFMK
  W !
 SOAP ;put in standard soap
  D SOAP^AMHEGR1
+MCPT ;
+ D EP^AMHEGRCP
+ D ^XBFMK
+ W !
+ S DA=AMHR,DIE="^AMHREC(",DR=".27VISIT FLAG: " D ^DIE,^XBFMK
  Q
 PAUSE ;EP
  K DIR

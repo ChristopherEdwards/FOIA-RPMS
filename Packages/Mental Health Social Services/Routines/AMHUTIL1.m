@@ -1,5 +1,5 @@
 AMHUTIL1 ; IHS/CMI/LAB - provider functions 06 Aug 2009 11:15 AM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2**;JUN 18, 2010;Build 23
  ;IHS/CMI/LAB - added stage as output parameter
  ;
  ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
@@ -69,7 +69,7 @@ POVICD9(Y,D,R,A,E) ;EP
  S A=$G(A)
  S Y=$G(Y)
  I 'Y Q 0  ;pass an IEN!
- NEW I,V,M,Z,J
+ NEW I,V,M,Z,J,K
  I '$D(^AMHPROB(Y,0)) Q 0  ;pass a VALID IEN!
  S M=$P(^AMHPROB(Y,0),U,13) I M D  Q Z
  .S Z=1
@@ -78,6 +78,12 @@ POVICD9(Y,D,R,A,E) ;EP
  .I D="",R S D=$P($P($G(^AMHREC(R,0)),U),".")
  .I D]"",J]"",J<D S Z=0
  .I D="" S Z=0
+ S J=$P(^AMHPROB(Y,0),U,16)
+ I J D  Q Z
+ .S Z=1
+ .I D="",R S D=$P($P($G(^AMHREC(R,0)),U),".")
+ .I D]"",J]"",J>D S Z=0
+ .I J>DT S Z=0
  S I=$P(^AMHPROB(Y,0),U,5)  ;GET ICD9 code that this is mapped to
  I I="" Q $S('$P(^AMHPROB(Y,0),U,13):1,1:0)   ;if there is no icd9 code to look at then just check status field and quit
  ;now figure out if valid based on what data is passed.

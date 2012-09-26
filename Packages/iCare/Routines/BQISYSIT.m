@@ -1,5 +1,5 @@
 BQISYSIT ;APTIV/HC/ALA-System Site Parameters for iCare ; 11 Apr 2008  3:43 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 GET(DATA,FAKE) ;EP -- BQI GET SYSTEM PARAMETERS
  ; Get specific iCare system parameters from the Site Parameter file
@@ -30,7 +30,7 @@ ERR ;
  ;
 JOB(DATA,FAKE) ; EP - BQI GET SYSTEM JOB DATA
  NEW UID,II,NUM,IEN,OPTN,JOB,FLDS,BQSCHED,BQI,SDATA,TYPE,START,FROM,THRU
- NEW END,STAT,OPN,TYP
+ NEW END,STAT,OPN,TYP,TASK,TSK
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  S DATA=$NA(^TMP("BQISYSIT",UID))
  K @DATA
@@ -50,13 +50,17 @@ JOB(DATA,FAKE) ; EP - BQI GET SYSTEM JOB DATA
  S START=$$FMTE^BQIUL1($P(^BTPW(90628,IEN,0),U,6))
  S END=$$FMTE^BQIUL1($P(^BTPW(90628,IEN,0),U,7))
  S STAT=$$GET1^DIQ(90628,IEN_",",.08,"E")
+ S TASK=24.11,TSK=$$GET1^DIQ(90508,IEN_",",TASK,"E") I TSK'="" S STAT=$$TSK(TSK)
  S II=II+1,@DATA@(II)=JOB_U_"CMET Data Mining"_U_START_U_END_U_STAT_U_BQSCHED_$C(30)
  ;
  S OPTN=$$FIND^BQISCHED("BQI UPDATE TASK")
  I $O(^DIC(19.2,"B",OPTN,""))="" S BQSCHED="Not scheduled"
- S JOB="WEEKLY",FLDS="Diagnostic Tags;4.01;4.02;4.03^Natl Measures;4.04;4.05;4.06^Reminders;4.07;4.08;4.09^Best Practice Prompts;4.1;4.11;4.12" D RET
- S JOB="WEEKLY",FLDS="Care Mgmt Update;4.13;4.14;4.15^MU Performance Update (90 Days);4.16;4.17;4.18^MU Clinical Quality Update (90 Days);4.19;4.2;4.21" D RET
- S JOB="",FLDS="MU Performance Update (1 Year);8.04;8.05;8.06^MU Clinical Quality Update (1 Year);8.07;8.08;8.09" D RET
+ S JOB="WEEKLY",FLDS="Diagnostic Tags;4.01;4.02;4.03;24.04^Natl Measures;4.04;4.05;4.06;24.05^Reminders;4.07;4.08;4.09;24.06^Best Practice Prompts;4.1;4.11;4.12;24.02" D RET
+ S JOB="WEEKLY",FLDS="Care Mgmt Update;4.13;4.14;4.15;24.03^MU Performance Update (90 Days);4.16;4.17;4.18;24.09" D RET
+ ;
+ S JOB="",FLDS="MU Performance Update (1 Year);8.04;8.05;8.06;24.1" D RET
+ ;
+ S JOB="MONTHLY",FLDS="MU Clinical Quality;4.19;4.2;4.21;24.07^IPC Update;8.1;8.11;8.12;24.08" D RET
  ;
  S II=II+1,@DATA@(II)=$C(31)
  Q
@@ -64,11 +68,13 @@ JOB(DATA,FAKE) ; EP - BQI GET SYSTEM JOB DATA
 RET ; Retrieve data
  F BQI=1:1:$L(FLDS,"^") D
  . S SDATA=$P(FLDS,"^",BQI)
- . S TYP=$P(SDATA,";",1),FROM=$P(SDATA,";",2),THRU=$P(SDATA,";",3),STAT=$P(SDATA,";",4)
+ . S TYP=$P(SDATA,";",1),FROM=$P(SDATA,";",2),THRU=$P(SDATA,";",3),STAT=$P(SDATA,";",4),TASK=$P(SDATA,";",5)
  . S START=$$FMTE^BQIUL1($$GET1^DIQ(90508,IEN_",",FROM,"I"))
  . S END=$$FMTE^BQIUL1($$GET1^DIQ(90508,IEN_",",THRU,"I"))
  . S STAT=$$GET1^DIQ(90508,IEN_",",STAT,"E"),BQSCHED=""
+ . S TSK=$$GET1^DIQ(90508,IEN_",",TASK,"E") I TSK'="" S STAT=$$TSK(TSK)
  . I JOB="NIGHTLY" D
+ .. I STAT'="" S TASK=24.01,TSK=$$GET1^DIQ(90508,IEN_",",TASK,"E") I TSK'="" S STAT=$$TSK(TSK)
  .. S OPTN=$$FIND^BQISCHED("BQI NIGHTLY BACKGROUND")
  .. I OPTN'>0 S BQSCHED="Not scheduled" Q
  .. S OPN=$O(^DIC(19.2,"B",OPTN,""))
@@ -88,7 +94,16 @@ RET ; Retrieve data
  .. I TYP="MU Clinical Quality Update (90 Days)" D OPRET("BQI UPDATE MU CQM 90 DAYS")
  . I JOB="" D
  .. I TYP="MU Performance Update (1 Year)" D OPRET("BQI UPDATE MEAN USE 1 YEAR")
- .. I TYP="MU Clinical Quality Update (1 Year)" D OPRET("BQI UPDATE MU CQM 1 YEAR")
+ .. ;I TYP="MU Clinical Quality Update (1 Year)" D OPRET("BQI UPDATE MU CQM 1 YEAR")
+ . I JOB="MONTHLY" D
+ .. I TYP="MU Clinical Quality" D
+ ... NEW ZTSK
+ ... S ZTSK=$P(^BQI(90508,1,12),U,5)
+ ... I ZTSK="" D NXRUN("01") Q
+ .. I TYP="IPC Update" D
+ ... NEW DY
+ ... S DY=$P(^BQI(90508,1,11),U,2)
+ ... D NXRUN("0"_DY) Q
  . S II=II+1,@DATA@(II)=JOB_U_TYP_U_START_U_END_U_STAT_U_BQSCHED_$C(30)
  Q
  ;
@@ -163,3 +178,17 @@ OPRET(RPC) ;EP
  I OPN="" S BQSCHED="Not scheduled" Q
  S BQSCHED=$$FMTE^BQIUL1($P(^DIC(19.2,OPN,0),U,2))
  Q
+ ;
+NXRUN(DAY) ;EP
+ S BQMON=$E(DT,4,5),CYR=$E(DT,1,3)
+ I BQMON=12 S BQMON=1,CYR=CYR+1
+ E  S BQMON=BQMON+1
+ I $L(BQMON)=1 S BQMON="0"_BQMON
+ S BEGDT=CYR_BQMON_DAY
+ S BQSCHED=$$FMTE^BQIUL1(BEGDT)
+ Q
+ ;
+TSK(ZTSK) ;EP
+ I $G(ZTSK)="" Q ""
+ D STAT^%ZTLOAD
+ Q $G(ZTSK(2))

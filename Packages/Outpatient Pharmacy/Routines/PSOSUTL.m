@@ -1,17 +1,20 @@
-PSOSUTL ;BIR/RTR - Suspense utility routine ;09-Feb-2009 16:29;SM
- ;;7.0;OUTPATIENT PHARMACY;**10,34,139,167,1008**;DEC 1997
+PSOSUTL ;BIR/RTR - Suspense utility routine ;29-Nov-2011 15:02;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**10,34,139,167,1008,1013**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PSNDF supported by DBIA 2195
  ; Modified - IHS/MSC/PLS- 02/09/09 - Line AREC
+ ;                         09/20/2011 - Line AREC1+6,AREC1+9
 AREC1 ;
  S $P(^PSRX(RX,"STA"),"^")=0,PSOZZD="Label printed from suspense" D EN^PSOHLSN1(RX,"SC","ZU",PSOZZD) K PSOZZD
  S SFN=$O(^PS(52.5,"B",RX,0)) I 'SFN Q
  D NOW^%DTC S DTTM=% S COM="Suspense "_$S($G(RXRP(RX)):"(Reprint) ",1:"")_"Label Pulled Early"_$S($G(RXP):" (Partial)",1:"") S CNT=0 F JJ=0:0 S JJ=$O(^PSRX(RX,"A",JJ)) Q:'JJ  S CNT=JJ
  D DEL S $P(^PSRX(RX,"STA"),"^")=0 K PSODEL S RFCNT=0 F RF=0:0 S RF=$O(^PSRX(RX,1,RF)) Q:'RF  S RFCNT=RF
  I 'RFCNT,'$G(RXP),'$D(RXRP(RX)) S (X,OLD)=$P(^PSRX(RX,2),"^",2) D  K DIE
- .K DIE S DA=RX,DR="22////"_DT_";101////"_DT_";25////"_DT,DIE=52 D ^DIE
+ .;K DIE S DA=RX,DR="22////"_DT_";101////"_DT_";25////"_DT,DIE=52 D ^DIE
+ .K DIE S DA=RX,DR="22////"_DT_";101////"_DT_";25////"_DT_";20///"_PSOSITE,DIE=52 D ^DIE  ;IHS/MSC/PLS - 09/20/2011
  I RFCNT,'$G(RXP),'$D(RXRP(RX)) S (OLD,X)=+$P($G(^PSRX(RX,1,RFCNT,0)),"^") D  K DIE S $P(^PSRX(RX,3),"^")=DT
- .K DIE S DA(1)=RX,DA=RFCNT,DIE="^PSRX("_DA(1)_",1,",DR=".01///"_DT_";10.1///"_DT D ^DIE
+ .;K DIE S DA(1)=RX,DA=RFCNT,DIE="^PSRX("_DA(1)_",1,",DR=".01///"_DT_";10.1///"_DT D ^DIE
+ .K DIE S DA(1)=RX,DA=RFCNT,DIE="^PSRX("_DA(1)_",1,",DR=".01///"_DT_";10.1///"_DT_";8///"_PSOSITE D ^DIE  ;IHS/MSC/PLS - 09/20/2011
  S:'$D(PDUZ) PDUZ=DUZ S CNT=CNT+1,^PSRX(RX,"A",0)="^52.3DA^"_CNT_"^"_CNT
  S ^PSRX(RX,"A",CNT,0)=DTTM_"^S^"_PDUZ_"^"_$S($G(RXP):6,'RFCNT:RFCNT,RFCNT<6:RFCNT,1:(RFCNT+1))_"^"_COM
  Q

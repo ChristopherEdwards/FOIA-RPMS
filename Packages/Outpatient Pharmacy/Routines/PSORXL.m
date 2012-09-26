@@ -1,14 +1,18 @@
-PSORXL ;BHAM ISC/SAB - action to be taken on prescriptions ;15-Sep-2009 09:50;SM
- ;;7.0;OUTPATIENT PHARMACY;**8,21,24,32,47,135,1008**;DEC 1997
+PSORXL ;BHAM ISC/SAB - action to be taken on prescriptions ;04-Nov-2011 10:22;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**8,21,24,32,47,135,1008,1013**;DEC 1997;Build 33
  ;External reference to File #50 supported by DBIA 221
  ;External references CHPUS^IBACUS and TRI^IBACUS supported by DBIA 2030
  ; Modified - IHS/CIA/PLS - 12/23/2003 - Line QLBL+2 and P1
  ;            IHS/MSC/PLS - 04/30/2009 - Line PSORXL+12
+ ;                        - 11/04/2011 - Line PSORXL+9
  I $G(PSOTRVV),$G(PPL) S PSORX("PSOL",1)=PPL K PPL
  N SLBL,PSOSONE,PSOKLRXS
+ N APSPPRIO
+ D APRTY^APSPFUNC
  ; IHS/CIA/PLS - 03/24/04 - Removed conditional call to label prompt
  ;S:'$G(PPL) PPL=$G(PSORX("PSOL",1)) G:$P(PSOPAR,"^",26) P
  S:'$G(PPL) PPL=$G(PSORX("PSOL",1))
+ D SAVEPRI(PPL)  ;IHS/MSC/PLS - 11/04/11 - P13
  I '$$GET1^DIQ(9009033,+$G(PSOSITE),316,"I") D ^APSPNE4 Q  ; IHS/CIA/PLS - 01/18/04 - Call IHS Label prompt
  D CHKFDT^APSPFUNC(.PPL) S PSORX("PSOL",1)=PPL  ;IHS/MSC/PLS - 04/30/09 - Remove RXs with future fill dates
  I 'PPL,'$D(RXRS) D  Q
@@ -138,4 +142,18 @@ RREST N PMXZ
  S PMXZ="" F  S PMXZ=$O(PSORSAVE(PMXZ)) Q:PMXZ=""  S RXRP(PMXZ)=PSORSAVE(PMXZ)
  S PMXZ="" F  S PMXZ=$O(PSOPSAVE(PMXZ)) Q:PMXZ=""  S RXPR(PMXZ)=PSOPSAVE(PMXZ)
  S PSMX="" F  S PMXZ=$O(PSOHSAVE(PMXZ)) Q:PMXZ=""  S RXRH(PMXZ)=PSOHSAVE(PMXZ)
+ Q
+ ; Store Fill Priority
+SAVEPRI(RXS) ;EP-
+ N PPLARY,RX,LFN
+ Q:'$L($G(RXS))
+ D BPPLARY^APSPFUNC(RXS)
+ S RX=0
+ F  S RX=$O(PPLARY(RX)) Q:'RX  D
+ .Q:'$D(^PSRX(RX,0))
+ .S LFN=+$O(^(1,$C(1)),-1)
+ .I LFN D  ;Refill
+ ..S $P(^PSRX(RX,1,LFN,9999999),U,18)=APSPPRIO
+ .E  D  ;
+ ..S $P(^PSRX(RX,999999931),U,8)=APSPPRIO
  Q

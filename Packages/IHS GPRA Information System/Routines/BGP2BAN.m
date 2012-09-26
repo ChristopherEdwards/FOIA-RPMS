@@ -1,11 +1,11 @@
-BGP2BAN ; IHS/CMI/LAB - BANNER FOR CRS 11 13 Aug 2010 11:31 AM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+BGP2BAN ; IHS/CMI/LAB - BANNER FOR CRS 11 13 Aug 2010 11:31 AM ; 21 Feb 2012  7:39 AM
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
 BANNER ;EP
 V ; GET VERSION
  NEW BGPV,BGPL,BGPJ,BGPX
- S BGPV="12.0"
+ S BGPV="12.1"
  I $G(BGPTEXT)="" S BGPTEXT="TEXT",BGPL=3 G PRINT
  S BGPTEXT="TEXT"_BGPTEXT
  F BGPJ=1:1 S BGPX=$T(@BGPTEXT+BGPJ),BGPX=$P(BGPX,";;",2) Q:BGPX="QUIT"!(BGPX="")  S BGPL=BGPJ
@@ -16,7 +16,7 @@ SITE W !!,$$CTR($$LOC,80)
  K BGPTEXT
  Q
 RPTVER() ;EP
- Q "CRS 2012, Version 12.0"
+ Q "CRS 2012, Version 12.1"
 TEXT ;
  ;;****************************************************
  ;;**    IHS/RPMS CLINICAL REPORTING SYSTEM (CRS)    **
@@ -56,6 +56,13 @@ TEXT6 ;
  ;;**      IHS/RPMS CRS 2012      **
  ;;**  Clinical Reporting System  **
  ;;*********************************
+ ;;QUIT
+ ;
+TEXTA ;;
+ ;;***************************
+ ;;**   IHS/RPMS CRS 2012   **
+ ;;**   Report Automation   **
+ ;;***************************
  ;;QUIT
  ;
 TEXTR ;

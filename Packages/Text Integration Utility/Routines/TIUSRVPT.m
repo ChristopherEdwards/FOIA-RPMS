@@ -1,10 +1,14 @@
-TIUSRVPT ; SLC/JER - Set Methods for Documents ;31-OCT-2001 16:44:33
- ;;1.0;TEXT INTEGRATION UTILITIES;**122**;Jun 20, 1997
+TIUSRVPT ; SLC/JER - Set Methods for Documents ; 03/31/04
+ ;;1.0;TEXT INTEGRATION UTILITIES;**122,175**;Jun 20, 1997
 SETTEXT(TIUY,TIUDA,TIUX,SUPPRESS) ; Save Text - use Buffered I/O
  N PAGES,PAGE S TIUY=0,SUPPRESS=$G(SUPPRESS,0)
- I '$D(^TIU(8925,TIUDA)) S TIUY="0^0^0^Attempt to file data in a Nonexistent Entry." Q
+ I $S(+$G(TIUDA)'>0:1,'$D(^TIU(8925,+TIUDA,0)):1,1:0) D  Q
+ . S TIUY="0^0^0^Attempt to file data in a Nonexistent Entry."
+ . D ERROR(TIUY)
  S PAGE=$P($G(TIUX("HDR")),U),PAGES=$P($G(TIUX("HDR")),U,2)
- I $S('PAGE:1,'PAGES:1,1:0) S TIUY="0^0^0^Invalid Message" Q
+ I $S('PAGE:1,'PAGES:1,1:0) D  Q
+ . S TIUY="0^0^0^Invalid text block header"
+ . D ERROR(TIUY)
  I PAGE=1 D MERGTEMP^TIUEDI1(TIUDA) K ^TIU(8925,+TIUDA,"TEMP"),^("TEXT")
  M ^TIU(8925,+TIUDA,"TEMP")=TIUX("TEXT")
  ;if done, commit changes
@@ -20,7 +24,7 @@ SETTEXT(TIUY,TIUDA,TIUX,SUPPRESS) ; Save Text - use Buffered I/O
  ; Acknowledge success / ask for next page
  S TIUY=TIUDA_U_PAGE_U_PAGES
  Q
-ADMNCLOS(TIUY,TIUDA,MODE,PERSON)       ; Post Administrative Closure Information
+ADMNCLOS(TIUY,TIUDA,MODE,PERSON) ; Post Administrative Closure Information
  N TIUX,TIUI,TIUCLBY,TIUCLTTL
  I '$D(^TIU(8925,TIUDA)) S TIUY="0^Attempt to file data in a Nonexistent Entry." Q
  S MODE=$G(MODE,"S")
@@ -46,4 +50,16 @@ ADMNCLOS(TIUY,TIUDA,MODE,PERSON)       ; Post Administrative Closure Information
  S ^TIU(8925,TIUDA,"TEXT",TIUI,0)="                        "_TIUCLTTL
  S ^TIU(8925,+TIUDA,"TEXT",0)="^^"_TIUI_U_TIUI_U_DT_"^^"
  D ALERTDEL^TIUALRT(TIUDA)
+ Q
+ERROR(ECODE) ; Register AUTOSAVE Error
+ N ERRDT S ERRDT=+$$NOW^XLFDT
+ Q:+$G(^XTMP("TIUERR","COUNT"))'<100
+ I '$D(^XTMP("TIUERR",0)) D
+ . S ^XTMP("TIUERR",0)=$$FMADD^XLFDT(DT,90)_U_DT
+ S ^XTMP("TIUERR",ERRDT,"ECODE")=ECODE
+ S ^XTMP("TIUERR",ERRDT,"USER")=DUZ
+ S ^XTMP("TIUERR",ERRDT,"TIUDA")=TIUDA
+ S ^XTMP("TIUERR",ERRDT,"TIUHDR")=$G(TIUX("HDR"))
+ S ^XTMP("TIUERR",ERRDT,"XWBHDR")=$G(XWBS1("HDR"))
+ S ^XTMP("TIUERR","COUNT")=$G(^XTMP("TIUERR","COUNT"))+1
  Q

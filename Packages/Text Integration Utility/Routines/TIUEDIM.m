@@ -1,10 +1,9 @@
-TIUEDIM ; SLC/JER - Enter/Edit Multiple Document ; 3/7/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,41,52,100,109**;Jun 20, 1997
+TIUEDIM ; SLC/JER - Enter/Edit Multiple Document ;01-Aug-2011 11:26;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,41,52,100,109,112,1009**;Jun 20, 1997;Build 22
  ; 2/2: Update DIE from TIUEDIT to TIUEDI4
  ;IHS/ITSC/LJF  02/26/2003  added call to stuff V Note file
  ;                          added call to edit PCC visit
  ;              12/11/2003  review previous notes works for all notes
- ;
 MAIN(TIUCLASS,TIUOUT,TIUNDA,TIUCHNG) ; Control Branching
  N TIUREL,TIUCHK,TIUDA,TIUEDIT,TIUY,TIUNEW,TIUTYP,TIUPAT
  N TIUI,DTOUT S TIUDFLT=""
@@ -20,13 +19,13 @@ MAIN(TIUCLASS,TIUOUT,TIUNDA,TIUCHNG) ; Control Branching
  . W !!,"For Patient ",$P(TIUPAT(TIUI),U,2)
  . S TIUCLASS=$G(TIUCLASS,38)
  . ;
- . ;IHS/ITSC/LJF 12/11/2003
  . ;I TIUCLASS=3,$S(+$$ISA^USRLM(DUZ,"TRANSCRIPTIONIST"):0,1:1),(+$G(NOSAVE)'>0) D EXSTNOTE^TIUEDI2(DFN) D:$G(VALMAR)="^TMP(""OR"",$J,""CURRENT"")" FULL^VALM1
  . I $S(+$$ISA^USRLM(DUZ,"TRANSCRIPTIONIST"):0,1:1),(+$G(NOSAVE)'>0) D EXSTNOTE^TIUEDI2(DFN) D:$G(VALMAR)="^TMP(""OR"",$J,""CURRENT"")" FULL^VALM1
- . ;
  . I +$G(DIROUT)!+$G(DUOUT)!+$G(DTOUT) S TIUOUT=1 Q
  . ; -- Set title array TIUTYP (use TIUTITLE or ask user) --
  . D SETTL^TIUEDI4(.TIUTYP,TIUCLASS,$G(TIUTITLE)) I +$G(TIUTYP)'>0 S TIUOUT=1 Q
+ . ; --- Re-direct surgical reports ---
+ . I +$$ISA^TIULX(TIUTYP,+$$CLASS^TIUSROI("SURGICAL REPORTS")) D ENTEROP^TIUSROI(DFN,TIUTYP) Q
  . ; -- Get doc parameters for title, X entry action --
  . D DOCPRM^TIULC1(TIUTYP,.TIUDPRM)
  . S TIUENTRY=$$GETENTRY^TIUEDI2(+TIUTYP)
@@ -54,7 +53,7 @@ MAIN(TIUCLASS,TIUOUT,TIUNDA,TIUCHNG) ; Control Branching
  . . ; -- Get record DA --
  . . ; DA is either: new stub record, ready for edit, or
  . . ;               existing record, for edit, or
- . . ;               existing record, for addendum      
+ . . ;               existing record, for addendum
  . . N DA
  . . S DA=$$GETRECNW^TIUEDI3(DFN,.TIU,TIUTYP(1),.TIUNEW,.TIUDPRM,1,DUZ,.CANEDIT)
  . . I +DA'>0 W !,"Unable to enter/edit." Q
@@ -81,12 +80,12 @@ MAIN(TIUCLASS,TIUOUT,TIUNDA,TIUCHNG) ; Control Branching
  . . S TIUCMMTX=$$COMMIT^TIULC1(+$P(TIUTYP(1),U,2))
  . . I TIUCMMTX]"" X TIUCMMTX
  . . ;
- . . ; --- Link PN to VNote file ---
- . . D VNOTE^BTIUPCC(DA,TIU("VISIT"),DFN,"ADD") ;IHS/ITSC/LJF 02/26/2003 added call
+ . . ; -- Link PN to VNote file --
+ . . D VNOTE^BTIUPCC(DA,TIU("VISIT"),DFN,"ADD") ;IHS/ITSC/LJF 02/26/2003
  . . ;
  . . D RELEASE^TIUT(DA)
  . . D VERIFY^TIUT(DA)
- . . ; -- Get signature for DA 
+ . . ; -- Get signature for DA
  . . D EDSIG^TIURS(DA)
  . . ; - execute EXIT ACTION -
  . . S TIUEXIT=$$GETEXIT^TIUEDI2(+$P(TIUTYP(1),U,2))

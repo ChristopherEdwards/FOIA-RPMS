@@ -1,11 +1,12 @@
-PSOOREDT ;BHAM ISC/SAB-edit orders from backdoor ;27-Jan-2009 19:40;SM
- ;;7.0;OUTPATIENT PHARMACY;**4,20,27,37,57,46,78,102,104,119,1002,1008**;DEC 1997
+PSOOREDT ;BHAM ISC/SAB-edit orders from backdoor ;22-Feb-2012 09:02;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**4,20,27,37,57,46,78,102,104,119,1002,1008,1013**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to PSSLOCK supported by DBIA 2789
  ;External reference to ^VA(200 supported by DBIA 10060
  ; Modified - IHS/CIA/PLS - 01/15/04 - Lines SEL+3
  ;                        - 12/13/04 - Line EDT+13
  ;            IHS/MSC/PLS - 01/27/09 - Line EDT+20, EDT+21
+ ;                          02/15/12 - Line PROV+1
 SEL K PSOISLKD,PSOLOKED S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY D SVAL K PSOPLCK S VALMBCK="" Q
  K PSOPLCK D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) D UL^PSSLOCK(+$G(PSODFN)) D SVALO K PSOMSG S VALMBCK="" Q
  K PSOMSG S PSOLOKED=1
@@ -108,6 +109,7 @@ CHK S CHK=1 I $G(^PSDRUG($P(PSORXED("RX0"),"^",6),"I"))]"",^("I")<DT S VALMSG="T
 CHKX K PSPOP,DIR,DTOUT,DUOUT,Y,X Q
  Q
 PROV ;select provider
+ S:$$ISSCH^APSPFNC2($G(PSODRUG("IEN")),"2345") PSORXED("CS")=1  ;IHS/MSC/PLS - 02/15/2012
  S PSORXED("PROVIDER")=$P(RX0,"^",4),PSORXED("PROVIDER NAME")=$P(^VA(200,$P(RX0,"^",4),0),"^")
  D PROV^PSODIR(.PSORXED) I PSORXED("PROVIDER")'=$P(RX0,"^",4) D
  .K DIR,DIRUT W ! S DIR(0)="Y",DIR("A",1)="You have changed the name of the provider entered for this Rx."

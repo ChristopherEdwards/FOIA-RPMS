@@ -1,5 +1,5 @@
 BQILYUTL ;PRXM/HC/ALA-Layout Template Utilities ; 04 Jun 2007  4:03 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 DEF(OWNR,TYPE) ;EP - Get the IEN of the default layout template
  ; Input
@@ -14,4 +14,12 @@ DEF(OWNR,TYPE) ;EP - Get the IEN of the default layout template
  Q MIEN
  ;
 TPN(OWNR,TEMPL) ;EP - Get the IEN of the template
- Q $O(^BQICARE(OWNR,15,"B",TEMPL,""))
+ I $G(TEMPL)="" Q ""
+ ;
+ NEW DIC,X,Y
+ S DIC="^BQICARE("_OWNR_",15,",DIC(0)="X"
+ S X=TEMPL
+ D ^DIC
+ I Y=-1 Q ""
+ Q:+Y +Y
+ Q ""

@@ -1,5 +1,5 @@
 BGP2DL ; IHS/CMI/LAB - IHS GPRA 10 SELECTED REPORT DRIVER 21 May 2010 12:10 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -29,7 +29,7 @@ GI ;gather all measures
  I '$D(BGPIND) W !!,"no measures selected" G SETIND
  D TAXCHK^BGP2XTCH
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,XIT Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,XIT Q
 TP ;get time period
  S BGPRTYPE=4,BGPYRPTH="C"
  S (BGPBD,BGPED,BGPTP)=""
@@ -170,13 +170,13 @@ NODEV1 ;
  D ^%ZISC
  D XIT
  Q
-DI ;
+DI ;EP
  S X=0 F  S X=$O(^BGPINDWC("ADM",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDWC(X,0),U,1))=""
  Q
-CI ;
+CI ;EP
  S X=0 F  S X=$O(^BGPINDWC("ACARD",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDWC(X,0),U,1))=""
  Q
-AI ;
+AI ;EP
  S X=0 F  S X=$O(^BGPINDWC("AAST",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDWC(X,0),U,1))=""
  Q
 II ;EP
@@ -185,13 +185,13 @@ II ;EP
 PI ;EP
  S X=0 F  S X=$O(^BGPINDWC("APQA",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDWC(X,0),U,1))=""
  Q
-WI ;
+WI ;EP
  S X=0 F  S X=$O(^BGPINDWC("AWH",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDWC(X,0),U,1))=""
  Q
-EI ;
+EI ;EP
  S X=0 F  S X=$O(^BGPINDWC("AEL",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDWC(X,0),U,1))=""
  Q
-SI ;
+SI ;EP
  K BGPIND
  D EN^BGP2DSI
  I '$D(BGPIND) Q

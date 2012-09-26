@@ -1,5 +1,5 @@
-APSPES3 ;IHS/MSC/PLS - SureScripts HL7 interface - con't;03-May-2011 10:09;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1011**;Sep 23, 2004;Build 17
+APSPES3 ;IHS/MSC/PLS - SureScripts HL7 interface - con't;12-Dec-2011 16:08;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1011,1013**;Sep 23, 2004;Build 33
  ; Send denial message
  ; Input:  ORID - ^OR(100 IEN
  ;        RXIEN - Prescription IEN
@@ -11,7 +11,7 @@ DENY(ORID,RXIEN,OCC,MSGTXT,STA) ;
  S RR=$$VALUE^ORCSAVE2(+ORID,"SSRREQIEN")
  Q:'RR
 DENY1 N DATA,HLMSGIEN,HLMSTATE,ARY,SEG
- N PARMS,ACK,ERR,I,FLG,LP,LOG
+ N PARMS,ACK,ERR,I,FLG,LP,LOG,DNYC,DNYR
  S ORID=+$G(ORID)
  S RXIEN=+$G(RXIEN)
  S OCC=$G(OCC,"DF")
@@ -22,6 +22,14 @@ DENY1 N DATA,HLMSGIEN,HLMSTATE,ARY,SEG
  S PARMS("MESSAGE TYPE")="RRE"
  S PARMS("EVENT")="O26"
  S PARMS("ACCEPT ACK TYPE")="AL"
+ I $L($G(MSGTXT)) D
+ .S DNYC="AF"
+ E  D
+ .S DNYR=$$VALUE^ORCSAVE2(+ORID,"SSDENYRSN")
+ .I $L(DNYR) D
+ ..S DNYC=$P(DNYR,"-")
+ ..S MSGTXT=$P(DNYR,"-",2)
+ .E  S DNYC="AF"
  S MSGTXT=$G(MSGTXT,"Have patient return to clinic.")
  D PARSE^APSPES2(.DATA,HLMSGIEN,.HLMSTATE)
  I '$$ACK^HLOAPI2(.HLMSTATE,.PARMS,.ACK,.ERR) W !,ERR Q
@@ -31,7 +39,7 @@ DENY1 N DATA,HLMSGIEN,HLMSTATE,ARY,SEG
  D PREPARY^APSPES1(.DATA,"ORC",.ARY)
  D SET(.ARY,OCC,1)  ; Order Control Code
  D SET(.ARY,$$HLDATE^HLFNC($$NOW^XLFDT()),9)  ; Written Date/Time
- D SET(.ARY,"AF",16,1)  ; Order Control Code Reason Identifier
+ D SET(.ARY,DNYC,16,1)  ; Order Control Code Reason Identifier
  D SET(.ARY,$E(MSGTXT,1,70),16,2)  ; Order Control Code Reason Text
  D SET(.ARY,"NCPDP1131",16,3)  ; Order Control Code Reason System
  S SEG=$$ADDSEG^HLOAPI(.ACK,.ARY)
@@ -121,7 +129,7 @@ ACCEPT(RX,ORID,MSGTXT) ;
  .N LOG,RET
  .S LOG("REASON")="X"
  .S LOG("RX REF")=0
- .S ARY("TYPE")="U"
+ .S LOG("TYPE")="U"
  .S LOG("COM")="E-Prescribe accept response sent to "_$$PHMINFO^APSPES2(RX)
  .D UPTLOG^APSPFNC2(.RET,RX,0,.LOG)
  Q

@@ -1,27 +1,33 @@
-PSOREF ;BIR/SAB-refill data entry ;21-Nov-2010 19:42;SM
- ;;7.0;OUTPATIENT PHARMACY;**1,23,27,36,46,78,130,131,1001,1006,1009**;DEC 1997
+PSOREF ;BIR/SAB-refill data entry ;05-Oct-2011 10:08;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**1,23,27,36,46,78,130,131,1001,1006,1009,1013**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ;
  ; Modified - IHS/CIA/PLS - 10/27/04 - Line SPEED+16
  ;            IHS/MSC/PLS - 11/20/2010 - Line REFILL+6
+ ;                          10/05/2011 - Line OERR+1,OERR+8,SPEED+1,SPEED+10
 EOJ ;
  K PSOMSG,PSOREF,PSORX("BAR CODE"),PSOLIST,LFD,MAX,MIN,NODE,PS,PSOERR,REF,RF,RXO,RXN,RXP,RXS,SD,VAERR,PSORX("FILL DATE")
  D PSOUL^PSSLOCK($P(PSOLST(ORN),"^",2))
  Q
 OERR ;single refil
+ N APSPDRG
  I $D(RXRP($P(PSOLST(ORN),"^",2))) S VALMBCK="",VALMSG="A Reprint Label has been requested!" Q
  I $D(RXPR($P(PSOLST(ORN),"^",2))) S VALMBCK="",VALMSG="A Partial has already been requested!" Q
  I $D(RXRS($P(PSOLST(ORN),"^",2))) S VALMBCK="",VALMSG="Rx is being pulled from suspense!" Q
  I $D(RXFL($P(PSOLST(ORN),"^",2))) S PTRX=$P(PSOLST(ORN),"^",2) D ^PSOCMOPT I '$G(PSOXFLAG) K PSOXFLAG S VALMBCK="",VALMSG="Fill already requested for CMOP!" Q
  K PSOXFLAG
  D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) S VALMSG=$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing this order."),VALMBCK="" K PSOMSG Q
+ ;IHS/MSC/MGH Text for REM medication. Patch 1013
+ S APSPDRG=$P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^",6)
+ I +APSPDRG D REMMSG^APSPFUNC(APSPDRG)
  N RXN K PSORX("FILL DATE") D FULL^VALM1 S:$G(PSOFROM)'="NEW" PSOFROM="REFILL" S PSOREF("DFLG")=0,PSOREF("IRXN")=$P(PSOLST(ORN),"^",2),PSOREF("QFLG")=0
  K PSOID D ^PSOREF1 I PSOREF("DFLG") D EOJ S VALMBCK="R" Q
  D ^PSOREF0
  W ! K DIR,DIRUT,DTOUT,DUOUT S DIR(0)="E",DIR("A")="Press Return to Continue" D ^DIR K DIR,DIRUT,DTOUT,DUOUT S PSORXED=1 D ^PSOBUILD,ACT^PSOORNE2 K PSORXED S VALMBCK="Q" D EOJ
  Q
 SPEED ;speed refill
+ N APSPDRG
  K LST,PSORX("FILL DATE") N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
  K DIR,DIRUT S DIR(0)="Y",DIR("B")="NO",DIR("A")="Barcode Refill",DIR("?")="If you want to use a barcode reader to process refills enter 'Y'."
  D ^DIR K DIR,DUOUT,DTOUT I $D(DIRUT) S VALMBCK="" Q
@@ -30,6 +36,9 @@ SPEED ;speed refill
  K DIR,DIRUT,DTOUT,PSOOELSE,DTOUT I +Y S (ASK,SPEED,PSOOELSE)=1 D FULL^VALM1 S LST=Y D  G:$G(PSOREF("DFLG"))!($G(PSOREF("QFLG"))) SPEEDX
  .F ORD=1:1:$L(LST,",") Q:$P(LST,",",ORD)']""!($G(PSOREF("QFLG")))  S ORN=$P(LST,",",ORD) D:+PSOLST(ORN)=52
  ..;F ORD=1:1:$L(LST,",") Q:$P(LST,",",ORD)']""  S ORN=$P(LST,",",ORD) D:+PSOLST(ORN)=52
+ ..;IHS/MSC/MGH Text for REM medication. Patch 1013
+ ..S APSPDRG=$P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^",6)
+ ..I +APSPDRG D REMMSG^APSPFUNC(APSPDRG)
  ..D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) W $C(7),!!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing Rx "_$P(^PSRX($P(PSOLST(ORN),"^",2),0),"^")),! D PAUSE^VALM1 K PSOMSG Q
  ..K PSOMSG I $D(RXRP($P(PSOLST(ORN),"^",2))) W $C(7),!!,"A Reprint Label has been requested!" D ULK D PAUSE^VALM1 Q
  ..I $D(RXPR($P(PSOLST(ORN),"^",2))) W $C(7),!!,"A Partial has already been requested!" D ULK D PAUSE^VALM1 Q

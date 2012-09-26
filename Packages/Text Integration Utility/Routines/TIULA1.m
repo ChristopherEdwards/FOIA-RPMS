@@ -1,5 +1,6 @@
-TIULA1 ; SLC/JER - More interactive functions ;26-MAY-1999 13:40:52
- ;;1.0;TEXT INTEGRATION UTILITIES;**75**;Jun 20, 1997
+TIULA1 ; SLC/JER - More interactive functions ;01-Aug-2011 11:30;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**75,113,1009**;Jun 20, 1997;Build 22
+ ;IHS/MSC/MGH Changes made to correspond with IHS division setup
 TRAVERSE(DA,RETURN,PARM,TYPE) ; Select Document Type(s)
  N C,I,XQORM,Y N:'$D(LEVEL) LEVEL S LEVEL=+$G(LEVEL)+1
  S:$G(TYPE)']"" TYPE="D"
@@ -106,3 +107,24 @@ GETTERM(X) ; Get Lexicon term
  . S USEX=$$READ^TIUU("Y",">>>  Use "_X,"Yes")
  . I +USEX S Y=1_U_X
  Q Y
+GETDIV() ; Get Institution Number and Name
+ N TIUDIV,TIUSTN,Y,IHSDIV
+ ;IHS/MSC/MGH Division changes to be in line with IHS
+ ;S TIUDIV=$S($P($G(^DG(43,1,"GL")),U,2):$$MULTDIV,1:$$PRIM^VASITE)
+ D DIVGET^XUSRB2(.IHSDIV,DUZ)
+ I IHSDIV(2)>1 S TIUDIV=$$MULTDIV
+ E  S TIUDIV=$$PRIM^VASITE
+ S TIUSTN=$$SITE^VASITE(,TIUDIV)
+ ; end of IHS mod
+ I $P(TIUSTN,U)>0,($P(TIUSTN,U,2)]"") D
+ . S Y=$P(TIUSTN,U)_U_$P(TIUSTN,U,2)
+ E  D
+ . S Y=-1
+ Q Y
+MULTDIV() ; User selects from active divisions
+ N DIR,X,Y
+ S DIR(0)="PA^40.8:EM"
+ S DIR("A")="Select DIVISION: "
+ S DIR("S")="I $$SITE^VASITE(,+Y)>0"
+ D ^DIR
+ Q +Y

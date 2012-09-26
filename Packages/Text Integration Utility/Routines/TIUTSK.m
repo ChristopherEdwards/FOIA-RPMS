@@ -1,5 +1,5 @@
-TIUTSK ; SLC/JER - TIU's Nightly Daemon ;1/22/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,53,100**;Jun 20, 1997
+TIUTSK ; SLC/JER - TIU's Nightly Daemon ;4/18/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,53,100,113**;Jun 20, 1997
 MAIN ; All records are read. DC date updated, Record purged, Alerts are 
  ; generated if appropriate
  N TIUDA,TIUPRM0,TIUPRM1,TIUDATE,TIUENTDT,TIUPDT,TIUODT
@@ -69,6 +69,7 @@ FIXDC(DA,PARENT,DFN,TIU) ; Stuff fixed field data
  . S @FDARR@(1401)=$P(^TIU(8925,+PARENT,14),U)
  . S @FDARR@(1402)=$P(^TIU(8925,+PARENT,14),U,2)
  S @FDARR@(1205)=$P($G(TIU("LOC")),U)
+ S @FDARR@(1212)=$P($G(TIU("INST")),U)
  S @FDARR@(.12)="@"
  S @FDARR@(1301)=+$G(TIU("LDT"))
  D FILE^DIE(FLAGS,"FDA","TIUMSG") ; File record

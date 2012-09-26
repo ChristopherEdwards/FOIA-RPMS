@@ -1,5 +1,5 @@
 BQIUTB1 ;PRXM/HC/ALA-Table Utilities continued ; 13 Jul 2006  3:47 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -142,3 +142,32 @@ UPD ; Update temporary global
  S @DATA@(II)=@DATA@(II)_$C(10)
  S II=II+1,@DATA@(II)=TEXT
  Q
+ ;
+IUSR(DATA,TYPE) ;EP - Retrieve a list of iCare Users/Employer Health Key Holding Users
+ ;
+ ;Input
+ ;  TYPE - "I" - All iCare users
+ ;         "E" - All Employer Health iCare users
+ ;
+ S II=0
+ S LENGTH=$$GET1^DID(200,.01,"","FIELD LENGTH","TEST1","ERR")
+ S DLEN=$E("00000",$L(LENGTH)+1,5)_LENGTH
+ S @DATA@(II)="I00010IEN^T"_DLEN_"^T00001PROVIDER"_$C(30)
+ ;
+ NEW IEN,NAME,PFLAG,EFLAG
+ S IEN=0
+ F  S IEN=$O(^BQICARE(IEN)) Q:'IEN  D
+ . I $G(^VA(200,IEN,0))="" Q
+ . I IEN\1'=IEN Q
+ . I (+$P($G(^VA(200,IEN,0)),U,11)'>0&$P(^(0),U,11)'>DT)!(+$P($G(^VA(200,IEN,0)),U,11)>0&$P(^(0),U,11)>DT) D
+ .. S NAME=$$GET1^DIQ(200,IEN_",",.01,"E")
+ .. I NAME="" Q
+ .. ;
+ .. ;Select only Employer Health iCare users
+ .. I TYPE="E",'$D(^XUSEC("BQIZEMPHLTH",IEN)) Q
+ .. ;
+ .. S PFLAG=$S($D(^VA(200,"AK.PROVIDER",NAME,IEN)):"P",1:"")
+ .. S II=II+1,@DATA@(II)=IEN_"^"_NAME_"^"_PFLAG_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;

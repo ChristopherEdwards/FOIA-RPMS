@@ -1,5 +1,5 @@
 BGP2CU5 ; IHS/CMI/LAB - calc CMS measures 26 Sep 2004 11:28 AM 04 May 2010 2:38 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 SCIP(P,BDATE,EDATE,BGPY) ;EP - major surgical procedure during hospital stay?
  NEW X,BD,ED,C,T,Y

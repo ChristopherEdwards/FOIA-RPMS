@@ -1,0 +1,76 @@
+BQIIPBNL ;VNGT/HS/ALA-IPC Bundle Logic ; 24 Jun 2011  11:53 AM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;
+ ;
+EN(CRSN,BNIEN,BQDATE,CODE) ;EP - do the bundle for monthly update
+ ; Input
+ ;   CRSN  - Current IPC IEN
+ ;   BNIEN - Bundle IEN
+ ;   CODE  - Code name
+ ;   BQI(90508,1,22,CRN,1,MSN,1
+ ;
+ NEW TDEN,TNUM,CNT,CD,BQIDOD
+ S TDEN=0,TNUM=0,CNT=0
+ K XX
+ D BUN(CRSN,BNIEN,.XX)
+ S CD="" F  S CD=$O(XX(CD)) Q:CD=""  S CNT=CNT+1
+ ;
+ S PRV=""
+ F  S PRV=$O(^AUPNPAT("AK",PRV)) Q:PRV=""  D
+ . S DFN="",PCT=0,TP=0
+ . F  S DFN=$O(^AUPNPAT("AK",PRV,DFN)) Q:DFN=""  D
+ .. ;I PRV=3094,CODE="IPC_HRISK" B:DFN=2096  B:DFN=1811
+ .. I '$$HRN^BQIUL1(DFN) Q
+ .. S VAL=$$PAT(DFN,.XX)
+ .. I VAL="N/A"!(VAL="{D}") Q
+ .. S TP=TP+1
+ .. I VAL="YES" S PCT=PCT+1
+ .. Q
+ .. S CD="",BCT=0,NA=0,YES=0,NO=0,NDA=0
+ .. F  S CD=$O(XX(CD)) Q:CD=""  D
+ ... S IEN=$O(^BQIPAT(DFN,30,"B",CD,"")) I IEN="" S NDA=NDA+1 Q
+ ... S BQIDOD=$$GET1^DIQ(2,DFN_",",.351,"I")
+ ... I BQIDOD'="" Q
+ ... S NUM=$P(^BQIPAT(DFN,30,IEN,0),U,3)
+ ... S DEN=$P(^BQIPAT(DFN,30,IEN,0),U,4)
+ ... S TP=TP+1
+ ... I NUM="",DEN="" S BCT=BCT+1,NA=NA+1 Q
+ ... I DEN'="",NUM="" S NO=NO+1 Q
+ ... I DEN'="",NUM'="" S BCT=BCT+1,YES=YES+1
+ .. ;B:DFN=14565
+ .. I NDA S NO=NO+1
+ .. I 'NO S PCT=PCT+1
+ .. Q
+ .. S PCT=$S(BCT=CNT:PCT+1,1:PCT)
+ . D STORP^BQIIPUTL(PRV,CODE,BQDATE,TP,PCT)
+ . S TDEN=TDEN+TP,TNUM=TNUM+PCT
+ S FAC=$$HME^BQIGPUTL()
+ D STORF^BQIIPUTL(FAC,CODE,BQDATE,TDEN,TNUM)
+ Q
+ ;
+BUN(CRSN,BNIEN,XX) ;EP - Get values for bundle
+ NEW BN,BCODE
+ S BN=0
+ F  S BN=$O(^BQI(90508,1,22,CRSN,1,BNIEN,2,BN)) Q:'BN  D
+ . S BCODE=$P(^BQI(90508,1,22,CRSN,1,BNIEN,2,BN,0),U,1)
+ . S XX(BCODE)=""
+ Q
+ ;
+PAT(DFN,XX) ;EP - See if patient meets bundle criteria
+ NEW BCT,PCT,CNT,CD,IEN,NUM,DEN,BQIDOD
+ S BCT=0,PCT=0,CNT=0,NA=0,YES=0,NO=0,NDA=0
+ S BQIDOD=$$GET1^DIQ(2,DFN_",",.351,"I")
+ I BQIDOD'="" Q "{D}"
+ S CD="" F  S CD=$O(XX(CD)) Q:CD=""  S CNT=CNT+1
+ F  S CD=$O(XX(CD)) Q:CD=""  D
+ . S IEN=$O(^BQIPAT(DFN,30,"B",CD,"")) I IEN="" S NDA=NDA+1 Q
+ . S NUM=$P(^BQIPAT(DFN,30,IEN,0),U,3)
+ . S DEN=$P(^BQIPAT(DFN,30,IEN,0),U,4)
+ . I NUM="",DEN="" S BCT=BCT+1,NA=NA+1 Q
+ . I DEN'="",NUM="" S NO=NO+1 Q
+ . I DEN'="",NUM'="" S BCT=BCT+1,YES=YES+1
+ I NDA Q "NO"
+ I NA=CNT Q "N/A"
+ I YES=CNT Q "YES"
+ I 'NO Q "YES"
+ Q "NO"

@@ -1,5 +1,5 @@
 AMERENV1 ; IHS/OIT/SCR - ERS V3.0 ENVIRONMENT CHECK ROUTINE ;
- ;;3.0;ER VISIT SYSTEM;**1,2**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**1,2,3**;DEC 07, 2011;Build 11
  ;
  ;
 PRECHK ; EP
@@ -27,6 +27,12 @@ USERID ; CHECK FOR USER ID
  ;
 LETSGO ; USER IDENTIFIED -- LET'S GO
  D MES^XPDUTL("Hello, "_$P(X,",",2)_" "_$P(X,","))
+ ; 
+AMER ; CHECK FOR AMER PATCH 2 ;IHS/OIT/GIS 8/23/11 patch 3
+ D BMES^XPDUTL("Need AMER 3.0, Patch 2")
+ I $T(+2^AMER0)'["2**;" D SORRY("AMER 3.0, Patch 2 NOT installed!") Q
+ D OKAY("AMER 3.0, Patch 2 has been installed!")
+ ; 
 FILEMAN ; CHECK FOR FILEMAN 22.0
  S X=$G(^DD("VERSION"))
  D BMES^XPDUTL("Need at least FileMan 22.0")

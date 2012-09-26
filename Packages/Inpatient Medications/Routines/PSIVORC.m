@@ -1,11 +1,12 @@
-PSIVORC ;BIR/MLM-COMPLETE IV ORDERS ENTERED THROUGH OE/RR ;02 Mar 99 / 10:16 AM
- ;;5.0; INPATIENT MEDICATIONS ;**23,53,80**;16 DEC 97
+PSIVORC ;BIR/MLM-COMPLETE IV ORDERS ENTERED THROUGH OE/RR ;17-Oct-2011 09:46;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**23,53,80,1013**;16 DEC 97;Build 33
  ;
  ; Reference to ^DIC(42 is supported by DBIA 10039
  ; Reference to ^DPT is supported by DBIA 10035
  ; Reference to ^%DTC is supported by DBIA 10000
  ; Reference to ^DID is supported by DBIA 2052
  ;
+ ; Modified - IHS/MSC/PLS - 10/16/2011 - DISCONT+1
 EN ; Set IV parameters.
  D SITE^PSIVORE Q:'$G(PSIVQ)  K PSIVQ
  ;
@@ -74,7 +75,9 @@ GP ;
  F ON=0:0 S ON=$O(^PS(53.1,"AS","P",DFN,ON)) Q:'ON  S Y=$G(^PS(53.1,ON,0)),TYP=$S($P(Y,U,4)]"":$P(Y,U,4),1:"Z"),^TMP("PSIV",$J,WDN,PNME,TYP,ON)=""
  Q
 DISCONT ; Cancel incomplete order
- D:'$D(PSJIVORF) ORPARM^PSIVOREN I PSJIVORF D NATURE^PSIVOREN I '$D(P("NAT")) W !,$C(7),"Order Unchanged." Q
+ N INCOM
+ ;D:'$D(PSJIVORF) ORPARM^PSIVOREN I PSJIVORF D NATURE^PSIVOREN I '$D(P("NAT"))!(INCOM="") W !,$C(7),"Order Unchanged." Q
+ D:'$D(PSJIVORF) ORPARM^PSIVOREN I PSJIVORF S INCOM=$$INPTCOM^APSPFUNC() D NATURE^PSIVOREN I '$D(P("NAT"))!(INCOM="") W !,$C(7),"Order Unchanged." Q
  ;Prompt for requesting provider
  W ! I '$$REQPROV^PSGOEC W !,$C(7),"Order Unchanged." Q
  W !

@@ -1,5 +1,5 @@
 BGP2DSTM ; IHS/CMI/LAB - national patient list 20 Dec 2004 9:24 AM 07 Mar 2010 2:31 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  ;
@@ -20,7 +20,7 @@ INTRO ;
  K DIR S DIR(0)="E",DIR("A")="Press enter to continue" D ^DIR K DIR
  D TAXCHK^BGP2XTCN
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,XIT Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,XIT Q
 TP ;get time period
  D XIT
  S BGPRTYPE=1,BGPYRPTH="",BGPNPL=1,BGPINDW="G",BGPYGPU=1,BGPYNPLT=1

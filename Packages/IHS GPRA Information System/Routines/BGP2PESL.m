@@ -1,5 +1,5 @@
 BGP2PESL ; IHS/CMI/LAB - FY 06 DISPLAY IND LISTS ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;; ;
 RT ;EP
  ;for each measure list, choose report type

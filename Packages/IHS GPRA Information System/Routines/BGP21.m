@@ -1,5 +1,5 @@
 BGP21 ;IHS/CMI/LAB-CREATED BY ^ATXSTX ON OCT 21, 2011; ; 21 Nov 2011  9:06 AM
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ; See referenced routines to see taxonomies being loaded.
  ;

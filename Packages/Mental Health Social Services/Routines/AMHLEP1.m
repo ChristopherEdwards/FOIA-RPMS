@@ -1,5 +1,5 @@
 AMHLEP1 ; IHS/CMI/LAB - DEMO/APPTS ACTION 08 Aug 2007 1:27 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
  ;
  Q
 OTHER ;EP
@@ -65,7 +65,7 @@ MENU ; -- menu of scheduling actions
  D EN2^AMHEKL
  Q
  ;
-3 ; -- display visit
+3 ;EP -- display visit
  D ^AMHLEIN
  S (AMHPAT,DFN)=AMHHDFN
  S AMHPATCE=1

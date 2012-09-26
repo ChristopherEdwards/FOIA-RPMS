@@ -1,5 +1,5 @@
 BQIPLVWP ;PRXM/HC/ALA-Get Patient Data by View ; 17 Oct 2005  4:49 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -19,7 +19,7 @@ EN(DATA,OWNR,PLIEN,DFN) ;EP - Starting point
  ;  II    - counter variable
  ;
  ; if the user is the owner of the panel, use the owner's display order
- NEW BQI,CTYP,SRC,HEADR,VALUE,QFL
+ NEW BQI,CTYP,SRC,HEADR,VALUE,QFL,KEY,VCODE
  S CTYP="D",SRC=$O(^BQI(90506.5,"C",CTYP,""))
  S HEADR="I00010DFN^T00001TICKLER_INDICATOR^T00001FLAG_INDICATOR^T00001SENS_FLAG^T00001COMM_FLAG^T00001HIDE_MANUAL^",VALUE=""
  I $G(DFN)'="" S VALUE=DFN_U_$$FLG^BTPWPPAT(DFN)_U_$$FLG^BQIULPT(DUZ,PLIEN,DFN)_U_$$SENS^BQIULPT(DFN)_U_$$CALR^BQIULPT(DFN)_U_$$MFLAG^BQIULPT(OWNR,PLIEN,DFN)_U
@@ -45,8 +45,10 @@ EN(DATA,OWNR,PLIEN,DFN) ;EP - Starting point
  . F  S DOR=$O(^BQICARE(DUZ,15,LYIEN,1,"C",DOR)) Q:DOR=""  D
  .. S VWIEN=""
  .. F  S VWIEN=$O(^BQICARE(DUZ,15,LYIEN,1,"C",DOR,VWIEN)) Q:VWIEN=""  D
- ... S CODE=$P(^BQICARE(DUZ,15,LYIEN,1,VWIEN,0),U,1)
- ... S GIEN=$O(^BQI(90506.1,"B",CODE,"")) I GIEN="" Q
+ ... S VCODE=$P(^BQICARE(DUZ,15,LYIEN,1,VWIEN,0),U,1)
+ ... S GIEN=$O(^BQI(90506.1,"B",VCODE,"")) I GIEN="" Q
+ ... S KEY=$$GET1^DIQ(90506.1,GIEN_",",3.1,"E")
+ ... I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  ... S STVW=GIEN
  ... ; if the field has been inactivated, don't get data
  ... I $$GET1^DIQ(90506.1,STVW_",",.1,"I")=1 Q
@@ -62,11 +64,14 @@ EN(DATA,OWNR,PLIEN,DFN) ;EP - Starting point
  .. F  S VWIEN=$O(^BQICARE(OWNR,1,PLIEN,20,VWIEN)) Q:'VWIEN  D
  ... NEW DA,IENS,STVW
  ... S DA(2)=OWNR,DA(1)=PLIEN,DA=VWIEN,IENS=$$IENS^DILF(.DA)
- ... S STVW=$$GET1^DIQ(90505.05,IENS,.01,"I")
+ ... S VCODE=$$GET1^DIQ(90505.05,IENS,.01,"I")
+ ... S STVW=$O(^BQI(90506.1,"B",VCODE,"")) I STVW="" Q
  ... ; if the field has been inactivated, don't get data
  ... I $$GET1^DIQ(90506.1,STVW_",",.1,"I")=1 Q
  ... ; if the source does not match, quit
  ... I $$GET1^DIQ(90506.1,STVW_",",3.01,"I")'=SRC Q
+ ... S KEY=$$GET1^DIQ(90506.1,STVW_",",3.1,"E")
+ ... I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  ... D GVAL
  ... S VALUE=VALUE_VAL_"^"
  ... S HEADR=HEADR_HDR_"^"
@@ -81,11 +86,14 @@ EN(DATA,OWNR,PLIEN,DFN) ;EP - Starting point
  ... NEW DA,IENS,STVW
  ... S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=DUZ,DA=VWIEN
  ... S IENS=$$IENS^DILF(.DA)
- ... S STVW=$$GET1^DIQ(90505.06,IENS,.01,"I")
+ ... S VCODE=$$GET1^DIQ(90505.06,IENS,.01,"I")
+ ... S STVW=$O(^BQI(90506.1,"B",VCODE,"")) I STVW="" Q
  ... ; if the field has been inactivated, don't get data
  ... I $$GET1^DIQ(90506.1,STVW_",",.1,"I")=1 Q
  ... ; if the source does not match, quit
  ... I $$GET1^DIQ(90506.1,STVW_",",3.01,"I")'=SRC Q
+ ... S KEY=$$GET1^DIQ(90506.1,STVW_",",3.1,"E")
+ ... I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  ... D GVAL
  ... S VALUE=VALUE_VAL_"^"
  ... S HEADR=HEADR_HDR_"^"
@@ -116,6 +124,8 @@ STAND() ;EP - Get standard display
  .. S STVW=VWIEN
  .. ; if the field has been inactivated, don't get data
  .. I $$GET1^DIQ(90506.1,STVW_",",.1,"I")=1 Q
+ .. S KEY=$$GET1^DIQ(90506.1,STVW_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. ; For a standard display,  display the 'R'equired and 'D'efault fields
  .. I $$GET1^DIQ(90506.1,STVW_",",3.04,"I")'="O" D
  ... D GVAL

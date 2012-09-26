@@ -1,5 +1,5 @@
 BQINIGH1 ;VNGT/HS/ALA - iCare Nightly Job continued ; 11 Jun 2008  11:22 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 MEAS ;EP - Check for new Measurement Types in File #9999999.07
  NEW VFIEN,DSIEN,MSIEN,NAME,CODE,CHIEN,TEXT,BTAG,BQIXTYP,BIL,XCLLFH
@@ -166,6 +166,7 @@ COMM ;EP - Set up communities
  . S CNTY=$$GET1^DIQ(FILE,IEN,.02,"E")
  . S CSTE=$$GET1^DIQ(FILE,IEN,.03,"E")
  . S STCOCOMM=$$GET1^DIQ(FILE,IEN,.08,"E")
+ . I CNME=""!(CSTE="")!(CNTY="") Q
  . ; Set data into a 'sort' global.
  . S @SGLOB@(CNME,CSTE)=CIEN
  . S @SGLOB@(CNME,CSTE,CNTY,CIEN)=STCOCOMM

@@ -1,8 +1,9 @@
-PSGMMAR2 ;BIR/CML3-MD MARS - PRINT C ORDERS(UD) ;09-Dec-2008 22:54;PLS
- ;;5.0; INPATIENT MEDICATIONS ;**8,20,1008**;16 DEC 97
+PSGMMAR2 ;BIR/CML3-MD MARS - PRINT C ORDERS(UD) ;02-Nov-2011 15:03;DU
+ ;;5.0; INPATIENT MEDICATIONS ;**8,20,1008,1013**;16 DEC 97;Build 33
  ; Modified - IHS/CIA/PLS - 01/25/04 - SITE+5
  ;                          06/21/04 - ENB+5
  ;            IHS/MSC/PLS - 12/09/08 - HEADER+2
+ ;            IHS/MSC/PLS - 11/02/11 - HEADER+11
 S1 ;
  I PSGMARB'=1 S:PSGRBPPN="P" X=PN,Y=RB S:PSGRBPPN="R" X=RB,Y=PN S NO=$S(PSGSS="P":$O(^TMP($J,PN,0)),1:$O(^TMP($J,TM,WDN,X,Y,0)))'["C"
  I $S(PSGMARB'=2:1,"34"[PSGMARS:NO,1:0) D:PSGMARS'=4 HEADER,BOT D:PSGMARS'=1 BLANK^PSGMMAR3 Q:PSGMARB=1
@@ -32,7 +33,9 @@ HEADER ; pat info
  W !?6,"PID:  "_PSSN,?25,"DOB: "_BD_"  ("_PAGE_")",?62,"Height (cm): "_HT,?99,"Room-Bed: "_PRB
  W !?6,"Sex:  "_PSEX,?25," Dx: "_DX,?$S(TD:94,1:99),$S(TD:"Last Transfer: "_TD,1:"Admitted: "_AD)
  I '$D(PSGALG) W !,"Allergies:  See attached list of Allergies/Adverse Reactions"
- NEW PSGX S PSGX=0 D ATS^PSGMAR3(.PSGX) D:PSGX HEADER Q:PSGX
+ ;Updated patch 1013 to display all allergies on each page
+ ;NEW PSGX S PSGX=0 D ATS^PSGMAR3(.PSGX) D:PSGX HEADER Q:PSGX
+ NEW PSGX S PSGX=0 D ATS^PSGMAR3(.PSGX)
  ;* W !,?49,"Admin" W:PSGMARDF=14 ?55,LN14 W !?1,"Order",?9,"Start",?21,"Stop",?49,"Times" W ?55,LN3," notes",!,LN1
  W !,?49,"Admin"
  W:$G(PSJDIET)]"" ?57,"Diet: ",PSJDIET

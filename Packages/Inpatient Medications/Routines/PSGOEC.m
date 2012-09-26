@@ -1,7 +1,8 @@
-PSGOEC ;BIR/CML3-CANCEL ORDERS ;02 Mar 99 / 9:29 AM
- ;;5.0; INPATIENT MEDICATIONS ;**23,58**;16 DEC 97
+PSGOEC ;BIR/CML3-CANCEL ORDERS ;17-Oct-2011 10:39;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**23,58,1013**;16 DEC 97;Build 33
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191.
+ ; Modified - IHS/MSC/PLS - 10/17/2011 - Line SOC+2
 ENA ; all orders
  D ENCV^PSGSETU Q:$D(XQUIT)  S CF=$P(PSJSYSP0,U,5) N ND,ND1 S ND="$D(^PS(55,PSGP,5,PSGDA,4)),$P(^(4),U,12),$P(^(4),U,13)",ND1="$D(^PS(53.1,PSGDA,4)),$P(^(4),U,12),$P(^(4),U,13)"
  F  W !!,"Do you want to ",$S(CF:"discontinue",1:"mark for discontinuation")," all of this patient's orders" S %=1 D YN^DICN Q:%  D ENCAM^PSGOEM
@@ -32,7 +33,7 @@ ENO(PSGP,PSGORD) ; single order
  G DONE
 SOC ;
  I 'CF,'$P($S(PSGORD["U":$G(^PS(55,PSGP,5,+PSGORD,0)),1:$G(^PS(53.1,+PSGORD,0))),U,21) W !!,"...one moment, please..."
- E  I CF S PSJNOO=$$ENNOO^PSJUTL5("D") I PSJNOO<0 D ABORT^PSGOEE G DONE
+ E  I CF S INCOM=$$INPTCOM^APSPFUNC() S PSJNOO=$$ENNOO^PSJUTL5("D") I PSJNOO<0 D ABORT^PSGOEE G DONE  ;IHS/MSC/PLS - 10/17/2011
  ; prompt for requesting provider
  I CF,'$$REQPROV D ABORT^PSGOEE G DONE
  K DA D NOW^%DTC S PSGDT=%,T=$E("T",'PSJSYSU),PSGALR=20,DA=+PSGORD,DA(1)=PSGP I PSGORD["U" D ASET:CF,AC G OUT
@@ -68,7 +69,7 @@ RS ;
  ; naked ref below is from variable ND1, ^PS(53.1,PSGDA,4)
  S $P(^(4),U,11,14)="^^^" Q
  ;
-REQPROV()          ;
+REQPROV() ;
  K PSJDCPRV,DIC,DUOUT,DTOUT,Y
  N PROVIDER,PROVNAME,RESULT,RSB S RESULT=0
  S PROVIDER=+$P($G(^PS(55,DFN,5.1)),"^",2),PROVNAME=""

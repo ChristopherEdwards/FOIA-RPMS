@@ -1,5 +1,5 @@
-BQIULPT ;PRXM/HC/ALA-Patient Data Utilities ; 17 Oct 2005  3:17 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;**1**;Feb 07, 2011;Build 5
+BQIULPT ;VNGT/HS/ALA-Patient Data Utilities ; 17 Oct 2005  3:17 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  ; This is a utility program containing special function calls
  ; needed for patient demographic data.
@@ -109,9 +109,13 @@ LVD(DFN) ;EP -- Get patient's last visit
  NEW VIEN,LVISIT,QFL,LVSDT
  S VIEN="",LVISIT="",QFL=0,LVSDT=""
  S LVSDT=$O(^AUPNVSIT("AA",DFN,LVSDT)) I LVSDT="" Q LVISIT
- F  S VIEN=$O(^AUPNVSIT("AA",DFN,LVSDT,VIEN)) Q:VIEN=""  D  Q:QFL
- . I $$GET1^DIQ(9000010,VIEN,.11,"I")=1 Q
- . S LVISIT=VIEN,QFL=1
+ S LVSDT=""
+ F  S LVSDT=$O(^AUPNVSIT("AA",DFN,LVSDT)) Q:LVSDT=""  D  Q:QFL
+ . F  S VIEN=$O(^AUPNVSIT("AA",DFN,LVSDT,VIEN)) Q:VIEN=""  D  Q:QFL
+ .. I $$GET1^DIQ(9000010,VIEN,.11,"I")=1 Q
+ .. I $G(^AUPNVSIT(VIEN,0))="" Q
+ .. Q:"DXCTI"[$P(^AUPNVSIT(VIEN,0),U,7)
+ .. S LVISIT=VIEN,QFL=1
  Q LVISIT
  ;
 LVDT(DFN) ;EP -- Get patient's last visit date/time
@@ -417,3 +421,16 @@ COUN(DFN) ;EP - Get the county of the patient's current community
  NEW COMM
  S COMM=$$GET1^DIQ(9000001,DFN_",",1117,"I") I COMM="" Q ""
  Q $$GET1^DIQ(9999999.05,COMM_",",.02,"E")
+ ;
+LVDPCP(DFN) ;EP - Last visit with the DPCP
+ NEW DPN,IEN,VSDT,VISIT,QFL
+ S DPN=$P($$DPCP(DFN),U,1) I DPN="" Q ""
+ S IEN="",VSDT="",QFL=0
+ F  S IEN=$O(^AUPNVPRV("AC",DFN,IEN),-1) Q:IEN=""  D  Q:QFL
+ . I $P($G(^AUPNVPRV(IEN,0)),U,1)'=DPN Q
+ . S VISIT=$P(^AUPNVPRV(IEN,0),U,3)
+ . I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
+ . I $G(^AUPNVSIT(VISIT,0))="" Q
+ . Q:"DXCTI"[$P(^AUPNVSIT(VISIT,0),U,7)
+ . S VSDT=$P(^AUPNVSIT(VISIT,0),U,1)\1,QFL=1
+ Q $$FMTE^BQIUL1(VSDT)

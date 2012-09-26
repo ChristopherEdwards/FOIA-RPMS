@@ -1,18 +1,20 @@
 BQINIGHT ;PRXM/HC/ALA-Nightly Background Job ; 05 Jan 2006  1:31 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  ;
 EN ;EP - Entry point
  ;
- ; Check date to turn off HMS
- ;D HIV^BKMOFF
- ;
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQI1POJB"
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  ;
+ S BQIUPD(90508,"1,",24.01)=$G(ZTSK)
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ D EN^BQIMUMON("")
+ D JBC
  D MEAS^BQINIGH1
  D FLG
- D CMA
+ D CMA^BQINIGH2
  D DXC
  D CRS
  D NUM^BQIMUSIT
@@ -21,12 +23,20 @@ EN ;EP - Entry point
  D TRT
  D REG
  D AST^BQINIGH1
- ;
+ ;Run IPC
+ D EN^BQIIPMON("")
  ; Run CMET
  D EN^BTPWPFND("Nightly")
  ; Run Autopopulate
  D NGHT^BQINIGH2
  ;
+ S BQIUPD(90508,"1,",24.01)="@"
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ ; Clean up any remaining TMPs
+ NEW BQTSK,TSK,TUID
+ S TSK="BQI",BQTSK=TSK
+ F  S BQTSK=$O(^TMP(BQTSK)) Q:$E(BQTSK,1,3)'=TSK  S TUID="" F  S TUID=$O(^TMP(BQTSK,TUID)) Q:TUID=""  I $E(TUID,1,1)="Z" K ^TMP(BQTSK,TUID)
  Q
  ;
 FLG ;EP - Flag updates
@@ -69,11 +79,13 @@ FLG ;EP - Flag updates
  F  S VLIEN=$O(^AUPNVSIT(VLIEN)) Q:'VLIEN  D
  . ; If visit has been deleted, don't include
  . I $P(^AUPNVSIT(VLIEN,0),U,11)=1 Q
+ . Q:"DXCTI"[$P(^AUPNVSIT(VLIEN,0),U,7)
  . S DFN=$P(^AUPNVSIT(VLIEN,0),U,5) Q:DFN=""
  . S ^XTMP("BQINIGHT",DFN)=""
  ;
  F  S PRIEN=$O(^AUPNPROB(PRIEN)) Q:'PRIEN  D
  . S DFN=$P(^AUPNPROB(PRIEN,0),U,2)
+ . I $P(^AUPNPROB(PRIEN,0),U,12)'="A" Q
  . S ^XTMP("BQINIGHT",DFN)=""
  ;
  ; Use new Date Last Modified cross-reference
@@ -82,6 +94,7 @@ FLG ;EP - Flag updates
  . S VLIEN=""
  . F  S VLIEN=$O(^AUPNVSIT("ADLM",LMDT,VLIEN)) Q:VLIEN=""  D
  .. I $P(^AUPNVSIT(VLIEN,0),U,11)=1 Q
+ .. Q:"DXCTI"[$P(^AUPNVSIT(VLIEN,0),U,7)
  .. S DFN=$P(^AUPNVSIT(VLIEN,0),U,5) Q:DFN=""
  .. S ^XTMP("BQINIGHT",DFN)=""
  Q
@@ -99,7 +112,6 @@ DXC ;EP - Update Diagnosis Categories
  ;
  S DFN=0
  F  S DFN=$O(^XTMP("BQINIGHT",DFN)) Q:'DFN  D
- . ;I $G(^BQIPAT(DFN,0))="" D NPT^BQITASK(DFN)
  . D PAT^BQITDPAT(.DATA,DFN)
  . Q
  ;
@@ -108,12 +120,13 @@ DXC ;EP - Update Diagnosis Categories
  K AGE,BQEXEC,BQDEF,BQPRG,DFN,PRGM,SEX,TXDXCN,TXDXCT,TXT,Y
  ;
  ;  Set the DATE/TIME DXN CATEGORY STOPPED field
- NEW DA
+ NEW DA,BQTSK
  S DA=$O(^BQI(90508,0)) I 'DA Q
  S BQIUPD(90508,DA_",",3.05)=$$NOW^XLFDT()
  S BQIUPD(90508,DA_",",3.06)="@"
  D FILE^DIE("","BQIUPD","ERROR")
  K BQIUPD
+ F BQTSK="BQIBMI","BQIBP","BQIPREG","BQITAX","BQITAX1","BQITDPRC","BQITMPO","BQITDPAT" K ^TMP(BQTSK,UID)
  Q
  ;
 CRS ;EP - Find all GPRA indicators
@@ -144,8 +157,8 @@ CRS ;EP - Find all GPRA indicators
  ;  Initialize GPRA variables
  NEW VER,BQX,XN
  S VER=$$VERSION^XPDUTL("BGP")
- I VER<8.0 D
- . S X=0 F  S X=$O(@BQIINDG@("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
+ ;I VER<8.0 D
+ ;. S X=0 F  S X=$O(@BQIINDG@("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
  ;
  I VER>7.0 D
  . S BQX=""
@@ -258,8 +271,8 @@ REM ;EP - Find any new reminders
  ;
  ; Reset Reminders
  NEW BKDFN
- S BKDFN=0
- F  S BKDFN=$O(^XTMP("BQINIGHT",BKDFN)) Q:'BKDFN  D
+ S BKDFN=0,ERRCNT=0
+ F  S BKDFN=$O(^XTMP("BQINIGHT",BKDFN)) Q:'BKDFN  D  Q:ERRCNT>100
  . I $G(^BQIPAT(BKDFN,0))="" D NPT^BQITASK(BKDFN)
  . D PAT^BQIRMDR(BKDFN)
  ;
@@ -269,7 +282,7 @@ REM ;EP - Find any new reminders
  S BQIUPD(90508,DA_",",3.11)=$$NOW^XLFDT()
  S BQIUPD(90508,DA_",",3.12)="@"
  D FILE^DIE("","BQIUPD","ERROR")
- K BQIUPD
+ K BQIUPD,ERRCNT
  Q
  ;
 TRT ;EP - Update treatment prompts
@@ -318,27 +331,6 @@ INP ;EP - Initialize GPRA variables
  S BQIMEASF=$$GET1^DIQ(90508.01,IENS,.03,"E")
  S BQIMEASG=$$ROOT^DILFD(BQIMEASF,"",1)
  S BQIROU=$$GET1^DIQ(90508.01,IENS,.04,"E")
- Q
- ;
-CMA ;EP - Do Community Alerts
- NEW DA
- S DA=$O(^BQI(90508,0)) I 'DA Q
- S BQIUPD(90508,DA_",",3.16)=$$NOW^XLFDT()
- S BQIUPD(90508,DA_",",3.18)=1
- D FILE^DIE("","BQIUPD","ERROR")
- K BQIUPD
- NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQI1POJB D UNWIND^%ZTER"
- D ^BQICALRT
- D ^BQICASUI
- NEW DA
- S DA=$O(^BQI(90508,0)) I 'DA Q
- S BQIUPD(90508,DA_",",3.17)=$$NOW^XLFDT()
- S BQIUPD(90508,DA_",",3.18)="@"
- D FILE^DIE("","BQIUPD","ERROR")
- K BQIUPD
- ;
- ; Do Export
- D ^BQICAEXP
  Q
  ;
 REG ;EP - Check for register updates and apply in iCare
@@ -397,4 +389,55 @@ REG ;EP - Check for register updates and apply in iCare
  .. NEW DA,DIK
  .. S DA(1)=DFN,DA=TAG,DIK="^BQIPAT("_DA(1)_",20,"
  .. D ^DIK
+ Q
+ ;
+JBC ;EP - Check on MU jobs
+ NEW ZTSK,NJOB,YJOB,NXDT
+ S NJOB=$P($G(^BQI(90508,1,12)),U,5)
+ ;S YJOB=$P($G(^BQI(90508,1,12)),U,6)
+ ;
+ ; check on ninety day job
+ I NJOB'="" D  Q
+ . S ZTSK=NJOB D STAT^%ZTLOAD
+ . I $G(ZTSK(2))'="Active: Pending" D
+ .. I $G(ZTSK(2))="Active: Running" Q
+ .. I $G(ZTSK(2))="Inactive: Finished" S $P(^BQI(90508,1,12),U,5)="" D  Q
+ ... NEW BMDT
+ ... S BMDT=$P(^BQI(90508,1,12),U,9),BMDT=$$FMADD^XLFDT(BMDT,1)
+ ... I $D(^XTMP("BQIMMON",BMDT)) K ^XTMP("BQIMMON",BMDT)
+ ... I $O(^XTMP("BQIMMON",""),-1)="" K ^XTMP("BQIMMON") Q
+ ... D NJB
+ .. I $G(ZTSK(2))="Inactive: Interrupted"!($G(ZTSK(2))="Undefined") D
+ ... S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,3)
+ ... S ZTDESC="MU CQ Continue Compile",ZTRTN="NIN^BQITASK6",ZTIO=""
+ ... D ^%ZTLOAD
+ ... S BQIUPD(90508,"1,",12.05)=ZTSK
+ ... D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ ; If both job do not have a task number, quit
+ I NJOB="" D NJB Q
+ Q
+ ;
+ ; check on year job
+ ;I YJOB'="" D
+ ;. S ZTSK=YJOB D STAT^%ZTLOAD
+ ;. I $G(ZTSK(2))'="Active: Pending" D
+ ;.. I $G(ZTSK(2))="Active: Running" Q
+ ;.. I $G(ZTSK(2))="Inactive: Finished" S $P(^BQI(90508,1,12),U,6)="" Q
+ ;.. I $G(ZTSK(2))="Inactive: Interrupted"!($G(ZTSK(2))="Undefined") D
+ ;... S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,3)
+ ;... S ZTDESC="MU CQM Continue Compile",ZTRTN="CQM^BQITASK5",ZTIO=""
+ ;... D ^%ZTLOAD
+ ;... S BQIUPD(90508,"1,",12.06)=ZTSK
+ ;... D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ Q
+ ;
+NJB ;EP - Next job
+ I $P($G(^BQI(90508,1,12)),U,3)=0 D
+ . ; Check if aggregation needed
+ . ;D EN^BQIMUAGG
+ . ; Get next date to process
+ . S NXDT=$O(^XTMP("BQIMMON",""),-1) I 'NXDT Q
+ . D EN^BQIMUMON(NXDT)
  Q

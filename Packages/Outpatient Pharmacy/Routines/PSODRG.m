@@ -1,10 +1,12 @@
-PSODRG ;IHS/DSD/JCM-ORDER ENTRY DRUG SELECTION ;05-Jan-2007 09:40;SM
- ;;7.0;OUTPATIENT PHARMACY;**20,23,36,53,54,46,112,139,1005**;DEC 1997
+PSODRG ;IHS/DSD/JCM-ORDER ENTRY DRUG SELECTION ;10-Feb-2012 14:23;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**20,23,36,53,54,46,112,139,1005,1013**;DEC 1997;Build 33
  ;External reference ^PSDRUG supported by DBIA 221
  ;External reference ^PS(50.7 supported by DBIA 2223
  ;External reference to PSSDIN supported by DBIA 3166
  ; Modified IHS/CIA/PLS - 12/30/03 - Line SET+15 and POST+4
  ;          IHS/MSC/PLS - 01/05/07 - Line SET+9
+ ;          IHS/MSC/MGH - 10/05/11 - Line START+7
+ ;          IHS/MSC/MGH - 02/08/12 - Line SELECT+11
  ;----------------------------------------------------------
 START ;
  S (PSONEW("DFLG"),PSONEW("FIELD"),PSODRG("QFLG"))=0
@@ -13,6 +15,8 @@ START ;
  G:PSONEW("DFLG")!(PSODRG("QFLG"))!($G(PSORXED("DFLG"))) END
  D SET ; Set various drug information
  D NFI ; Display dispense drug/orderable item text
+ ;IHS/MSC/MGH Add text for REM medication Patch 1013
+ D REMMSG^APSPFUNC(PSODRUG("IEN"))
  D:'$G(PSOEDIT) POST I $G(PSORX("DFLG")) S PSONEW("DFLG")=1 K:'$G(PSORX("EDIT")) PSORX("DFLG") ; Do any post selection action
 END ;D EOJ
  Q
@@ -29,7 +33,8 @@ SELECT ;
  I $G(PSORXED),X["^" S PSORXED("DFLG")=1 G SELECTX
  I X="^"!(X["^^")!($D(DTOUT)) S PSONEW("DFLG")=1 G SELECTX
  I '$G(POERR),X[U,$L(X)>1 S PSODIR("FLD")=PSONEW("FLD") D JUMP^PSODIR1 S:$G(PSODIR("FIELD")) PSONEW("FIELD")=PSODIR("FIELD") K PSODIR S PSODRG("QFLG")=1 G SELECTX
- S DIC=50,DIC(0)="EMQZVT",DIC("T")="",D="B^C^VAPN^VAC"
+ ;IHS/MSC/MGH changed for mixed case lookup, uses new cross-reference
+ S DIC=50,DIC(0)="EMQZVT",DIC("T")="",D="BCAP^C^VAPN^VAC"
  S DIC("S")="I $S('$D(^PSDRUG(+Y,""I"")):1,'^(""I""):1,DT'>^(""I""):1,1:0),$S($P($G(^PSDRUG(+Y,2)),""^"",3)'[""O"":0,1:1),$D(^PSDRUG(""ASP"",+$G(^(2)),+Y))"
  D MIX^DIC1 K DIC,D
  I $D(DTOUT) S PSONEW("DFLG")=1 G SELECTX

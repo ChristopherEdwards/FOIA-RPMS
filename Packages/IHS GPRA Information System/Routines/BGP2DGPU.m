@@ -1,5 +1,5 @@
 BGP2DGPU ; IHS/CMI/LAB - IHS AREA CLIN 05 REPORT DRIVER ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
  ;
  W:$D(IOF) @IOF
@@ -20,7 +20,7 @@ INTRO ;
  S BGPYGPU=1
  D TAXCHK^BGP2XTCN
  S X=$$DEMOCHK^BGP2UTL2()
- I 'X W !!,"Exiting Report....." D PAUSE^BGP2CL,XIT Q
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP2DU,XIT Q
  D XIT
 ST ;
  W !!
@@ -142,7 +142,7 @@ EISSEX ;
  S BGPUF=$$GETDIR^BGP2UTL2()
  ;I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
  ;I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic/"
- I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2CL,XIT Q
+ I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP2DU,XIT Q
 SUM ;display summary of this report
  W:$D(IOF) @IOF
  W !,$$CTR("SUMMARY OF IHS GPRA & PART PERFORMANCE REPORT TO BE GENERATED")
@@ -163,7 +163,7 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPEXPT D
- .W !!,"A file will be created called BG12",$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG121",$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, this file may need to be manually",!,"sent to your Area Office.",!
  I BGPEXCEL,BGPEXPT D
  .W !,"A file will be created called ",BGPFN,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!

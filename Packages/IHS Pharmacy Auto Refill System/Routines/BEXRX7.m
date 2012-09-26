@@ -1,18 +1,11 @@
-BEXRX7 ;cmi/anch/maw - BEX Audiocare Refill Driver - Pharmacy Version 7 Only [ 06/15/2010  9:18 PM ]
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**1,2,4**;DEC 01, 2009
- ;This routine is for Outpatient version 7 only
+BEXRX7 ;cmi/anch/maw - BEX Audiocare Refill Driver - Pharmacy Version 7 Only [ 06/15/2010  9:18 PM ] ; 12 Mar 2012  4:22 PM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**1,2,4,5**;MAR 12, 2012;Build 1
+ ;For O/P V7 only 
  ;
- ;
- ;cmi/anch/maw 2/5/2007 added code in CR to check piece 10 of VEXHRX0(19080.1
- ;for DUZ(2), and screen on it
- ;cmi/anch/maw 2/6/2007 added code to mark node as completed in CR, modified TSK
- ;cmi/bji/day - Audiocare has a parameter that sets the VEXHRX global
- ;based on that parameter.  The value can either be null or ^^^W so
- ;this routine was modified to look at the first piece only - 3/17/10
  ;
 START ;
  S PSOBEX=1
- S (VEXRX,BEXRX)=1  ;cmi/maw
+ S (VEXRX,BEXRX)=1
  K PSOBEXI,PSOISITE,PSOBEXFL F PSOVX=0:0 S PSOVX=$O(^PS(59,PSOVX)) Q:'PSOVX  I $P($G(^PS(59,PSOVX,"I")),"^"),DT>$P($G(^("I")),"^") S PSOBEXI(PSOVX)=""
  I $O(PSOBEXI(0)) W !,"Looking for refill requests for inactive Outpatient divisions..." F PSOVIN=0:0 S PSOVIN=$O(^VEXHRX(19080,PSOVIN)) Q:'PSOVIN  S PSOVXLP="" F  S PSOVXLP=$O(^VEXHRX(19080,PSOVIN,PSOVXLP)) Q:PSOVXLP=""  D
  .S PSOISITE=$P($G(^PSRX(+$P(PSOVXLP,"-",2),2)),"^",9) Q:$G(PSOBEXI(+$G(PSOISITE)))
@@ -20,37 +13,77 @@ START ;
  I '$G(PSOBEXFL),$O(PSOBEXI(0)) W ".none found.",!
  I $G(PSOBEXFL) W !!,"The following Inactive Outpatient sites have refill requests:",! F PSOVX=0:0 S PSOVX=$O(PSOBEXI(PSOVX)) Q:'PSOVX  I $G(PSOBEXI(PSOVX)) W !?5,$P($G(^PS(59,+$G(PSOVX),0)),"^")
  I $G(PSOBEXFL) K DIR W ! S DIR(0)="E",DIR("A")="Press Return to Continue, '^'to exit" D ^DIR W ! I Y'=1 G END
+ ;
+ ;IHS/CMI/DAY - Patch 5 - If more than one Division, ask it
+ I $P($G(^PS(59,0)),U,3)>1 K PSOPAR
+ ;*
+ ;
  D:'$D(PSOPAR) ^PSOLSET G:'$D(PSOPAR) END
  W !!!?20,"Division: "_$P(^PS(59,PSOSITE,0),"^"),!!
+ ;
+ ;IHS/CMI/DAY - Patch 5 - Set DUZ(2) for ScriptPro labeller
+ I +$G(PSOSITE) S DUZ(2)=+$P($G(^PS(59,PSOSITE,"INI")),U)
+ ;*
+ ;
  S PSOBBC1("FROM")="REFILL",PSOBBC("QFLG")=0,PSOBBC("DFLG")=0
  I '$G(PSOINST) S PSOINST=000 I $D(^DD("SITE",1)) S PSOINST=^DD("SITE",1)  ;maw 9/9/02
- S PSOFROM="REFILL"  ;cmi/maw for release
- I '$D(^VEXHRX(19080,PSOINST)) S BEXANS="N" W !!?7,$C(7),"There are no telephone refills to process." G END
+ S PSOFROM="REFILL"
+ I '$D(^VEXHRX(19080,PSOINST)) S BEXANS="N" W !!?7,$C(7),"No telephone refills to process." G END
  D ASK^PSOBBC W:PSOBBC("QFLG")=1 !?7,$C(7),"No telephone refills were processed." G:PSOBBC("QFLG")=1 END
-BEX I $$CUT G END  ;cmi/maw  check for cutoff
+BEX I $$CUT G END
  W ! S DIR("B")="YES",DIR("A")="Process telephone refill requests at this time",DIR(0)="Y" D ^DIR K DIR S BEXANS="N" I $G(DIRUT) S BEXPTRX="" G END
  G:Y=0 END S BEXPTRX="" I Y=1 S BEXANS="Y"
- I BEXANS["Y" S DIR("B")="NO",DIR("A")="Process telephone refills for all divisions",DIR(0)="Y" D ^DIR K DIR S BEXANS2="S" S:Y=1 BEXANS2="M" I $G(DIRUT) S BEXANS="N" G END
- S (BEXCTR,VEXCTR)=0  ;cmi/maw for summary label
-BEX6 S PSOBBC("DFLG")=""  ;cmi/maw reset flag
- I BEXANS["Y",$G(BEXPTRX) D BEX5 ;MARK PROCESSED NODES
+ ;
+ ;IHS/CMI/BJI - Patch 5 - Selection by division
+ K BEXOPSIT
+ S (BEXOPSIT,BEXQUIT,BEXEXIT)=0
+ I BEXANS="Y" D
+ .W !!,"Press Enter to process refills for ALL Outpatient Sites, or"
+ .F  D  Q:BEXQUIT=1
+ ..K DIC,DIE,DUOUT,DA
+ ..S DIC(0)="AEQMZ"
+ ..S DIC("A")="Select an 'Outpatient Site': "
+ ..S DIC=59
+ ..D ^DIC
+ ..K DIR,DIC,DIR,DR
+ ..I $G(DUOUT) K DUOUT S (BEXQUIT,BEXEXIT)=1 Q
+ ..I X="" S BEXQUIT=1 Q
+ ..I Y<1 Q
+ ..S BEXOPSIT=BEXOPSIT+1
+ ..S BEXOPSIT(+Y)=""
+ ;
+ I BEXEXIT=1 K DUOUT Q
+ ;*
+ ;
+ ;IHS/CMI/BJI - Patch 5 - Limit to Mail, Local or Window
+ K DIR
+ S DIR(0)="S^A:All;L:Local;M:Mail;W:Window"
+ S DIR("A")="Process All, Local Mail, Mail, or Window"
+ D ^DIR
+ K DIR
+ I $D(DIRUT) K DIRUT S BEXANS="N" G END
+ S BEXMAIL=Y
+ W !
+ ;*
+ ;
+ S (BEXCTR,VEXCTR)=0
+BEX6 S PSOBBC("DFLG")=""
+ I BEXANS["Y",$G(BEXPTRX) D BEX5
  D BEX3 I $G(BEXANS)="N" D ULK G END
  I $P(X,"-")'=PSOINST W !?7,$C(7),$C(7),$C(7),"Not from this institution.",! D ULK G BEX6
  S (PSOBBC("IRXN"),PSOBBC("OIRXN"))=$P(X,"-",2)
- ;S BEX("SUM")=$G(PSORX("PSOL",1))_PSOBBC("IRXN")_","  ;cmi/maw 5/9/2006
- S PSORX("PSOL",1)=$G(PSORX("PSOL",1))_PSOBBC("IRXN")_","  ;cmi/anch/maw 5/10/2006
+ S PSORX("PSOL",1)=$G(PSORX("PSOL",1))_PSOBBC("IRXN")_","
  I $D(^PSRX(PSOBBC("IRXN"),0))']"" W !,$C(7),"Rx data is not on file!",! D ULK G BEX6
  I $P($G(^PSRX(PSOBBC("IRXN"),"STA")),"^")=13 W !,$C(7),"Rx has already been deleted." D ULK G BEX6
  I $G(PSOBBC("DONE"))[PSOBBC("IRXN")_"," W !,$C(7),"Rx has already been entered." D ULK G BEX6
- K X,Y  ;D:PSOBBC("QFLG") PROCESSX^PSOBBC  cmi/anch/maw 5/10/2006
+ K X,Y
  S PSOSELSE=0 I $G(PSODFN)'=$P(^PSRX(PSOBBC("IRXN"),0),"^",2) D KSRX S PSOSELSE=1 D PT^PSOBBC I $G(PSOBBC("DFLG")) K PSOSELSE D ULK G BEX6
- ;I '$G(PSOSELSE) D PTC^PSOBBC I $G(PSOBBC("DFLG")) K PSOSELSE D ULK G BEX6 cmi/maw
- K PSOSELSE D PROFILE^PSORX1   ;S X="PPPPDA1" X ^%ZOSF("TEST") I  S X=$$PDA^PPPPDA1(PSODFN) cmi/maw
+ K PSOSELSE D PROFILE^PSORX1
  W !!
- S PSOBBC("DONE")=PSOBBC("IRXN")_"," D REFILL^PSOBBC D ULK G BEX6  ;cmi/maw 5/10/2006 added kill of PSORX("PSOL",1)
+ S PSOBBC("DONE")=PSOBBC("IRXN")_"," D REFILL^PSOBBC D ULK G BEX6
  Q
  ;
-KSRX ;-- kill and reset PSORX MAW 5/10/2006
+KSRX ;-- kill and reset PSORX
  Q:$G(PSODFN)=""
  K PSORX("PSOL",1)
  S PSORX("PSOL",1)=PSOBBC("IRXN")_","
@@ -59,22 +92,49 @@ KSRX ;-- kill and reset PSORX MAW 5/10/2006
 BEX3 K PSOBBC("IRXN"),BEXXFLAG F  S BEXPTRX=$O(^VEXHRX(19080,PSOINST,BEXPTRX)) D  Q:BEXANS="N"!($G(BEXXFLAG))
  .I BEXPTRX="" S BEXANS="N" Q
  .I '$D(^PSRX(+$P(BEXPTRX,"-",2),0)),$P(^VEXHRX(19080,PSOINST,BEXPTRX),U)="" D BEX5,BEX12 Q  ;SKIPS ERRONEOUS ENTRIES
-BEX4 .I BEXANS["Y" Q:$P(^VEXHRX(19080,PSOINST,BEXPTRX),U)'=""  S X=PSOINST_"-"_$P(BEXPTRX,"-",2)  ;SKIPS ENTRIES ALREADY PROCESSED AND FORMATS VARIABLE X
-BEX10 .I BEXANS2["S",$D(^PSRX(+$P(BEXPTRX,"-",2),0)),PSOSITE'=$P($G(^PSRX(+$P(BEXPTRX,"-",2),2)),"^",9) Q
+BEX4 .I BEXANS["Y" Q:$P(^VEXHRX(19080,PSOINST,BEXPTRX),U)'=""  S X=PSOINST_"-"_$P(BEXPTRX,"-",2)
+ .;
+ .;IHS/CMI/DAY - Screen by O/P Site
+ .;If quit, stay in loop and get next RX
+ .S BEXOPIEN=0
+ .S BEXRXIEN=+$P(BEXPTRX,"-",2)
+ .I +BEXRXIEN S BEXOPIEN=$P($G(^PSRX(BEXRXIEN,2)),"^",9)
+ .S BEXRFIEN=0
+ .I +BEXRXIEN S BEXRFIEN=$O(^PSRX(BEXRXIEN,1,99),-1)
+ .I +BEXRFIEN S BEXOPIEN=$P($G(^PSRX(BEXRXIEN,1,BEXRFIEN,0)),U,9)
+ .I +BEXOPSIT,+BEXOPIEN=0 Q
+ .I +BEXOPSIT,'$D(BEXOPSIT(BEXOPIEN)) Q
+BEX10 .;
+ .;*
+ .;
+ .;IHS/CMI/DAY - Patch 5 - Limit for Mail, Local, Window
+ .S BEXFLAG=$G(^VEXHRX(19080,PSOINST,BEXPTRX))
+ .I BEXFLAG="" S BEXFLAG="^^^M"
+ .I $P(BEXFLAG,U,4)="M",BEXMAIL="W" Q
+ .I $P(BEXFLAG,U,4)="M",BEXMAIL="L" Q
+ .I $P(BEXFLAG,U,4)="L",BEXMAIL="W" Q
+ .I $P(BEXFLAG,U,4)="L",BEXMAIL="M" Q
+ .I $P(BEXFLAG,U,4)="W",BEXMAIL="L" Q
+ .I $P(BEXFLAG,U,4)="W",BEXMAIL="M" Q
+ .I $P(BEXFLAG,U,4)="M" S PSOBBC("MAIL/WINDOW")="M"
+ .I $P(BEXFLAG,U,4)="L" S PSOBBC("MAIL/WINDOW")="M"
+ .I $P(BEXFLAG,U,4)="W" S PSOBBC("MAIL/WINDOW")="W"
+ .;*
+ .;
  .S BEXPSORX=+$P($G(BEXPTRX),"-",2) I BEXPSORX D PSOL^PSSLOCK(BEXPSORX) I '$G(PSOMSG) K BEXPSORX,PSOMSG Q
  .K PSOMSG S BEXXFLAG=1
  Q
- ;LINES CALLED TO MARK PROCESSED NODES
-BEX5 I '$G(PSOINST) S PSOINST=000 I $D(^DD("SITE",1)) S PSOINST=^DD("SITE",1)  ;maw 9/9/02
- S ^VEXHRX(19080,PSOINST,BEXPTRX)=DT ;MARKS NODE AS PROCESSED
- I $D(PSOBBC("DFLG")),PSOBBC("DFLG")=1 D BEX12 ;FLAGS UNSUCCESSFUL ATTEMPTS TO REFILL.
+ ;MARK PROCESSED NODES
+BEX5 I '$G(PSOINST) S PSOINST=000 I $D(^DD("SITE",1)) S PSOINST=^DD("SITE",1)
+ S ^VEXHRX(19080,PSOINST,BEXPTRX)=DT
+ I $D(PSOBBC("DFLG")),PSOBBC("DFLG")=1 D BEX12
  Q
 BEX12 S $P(^VEXHRX(19080,PSOINST,BEXPTRX),U,2)="NOT FILLED" W !!,$C(7),"REFILL WAS NOT PROCESSED!  PLEASE TAKE APPROPRIATE ACTION."
- S PSOBBC("DFLG")=""  ;cmi/maw reset flag
+ S PSOBBC("DFLG")=""
  W ! S DIR("A")="Do you wish to continue processing",DIR(0)="Y" D ^DIR K DIR I Y'=1 S BEXANS="N" Q
  Q
 END D PROCESSX^PSOBBC
- K BEXRX,BEXPPL,PSORX  ;cmi/maw
+ K BEXRX,BEXPPL,PSORX
  I $P($G(^PS(59,+$G(PSOSITE),"I")),"^"),DT>$P($G(^("I")),"^") D FINAL^PSOLSET W !!,"Your Outpatient Site parameters have been deleted because you selected an",!,"inactive Outpatient Site!",!
  K DIR,PSOBBC,PSOBBC1,PSOVIN,PSOISITE,PSOBEXFL,PSOVXLP,PSOBEX,PSOVX,PSOBEXI,BEXANS,BEXANS2,BEXPTRX,BEXXFLAG,BEXPSORX,X,Y,PSODFN
  Q
@@ -107,7 +167,7 @@ CUT() ;check cutoff time and now
  ;
 CR(BEXVIEN) ;EP - add a chart request
  I $G(U)="" S U="^"
- I $P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U,5)="" Q  ;cmi/maw 6/1/2006 don't do anything for entries with no status
+ I $P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U,5)="" Q
  S BEXPAT=$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U)
  I '$G(BEXPAT) Q
  S BEXTS=$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U,2)
@@ -120,10 +180,10 @@ CR(BEXVIEN) ;EP - add a chart request
  I '$G(BEXVSITO) Q
  S BEXVSITE=$P($G(^BEXHRXP(BEXVSITO,0)),U)
  I '$G(BEXVSITE) Q
- ;cmi/anch/maw 2/5/2007 added for site screen
+ ;site screen
  N BEXSLOC
  S BEXSLOC=$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U,10)
- ;cmi/bji/day - P10 not always set, so calculate manually
+ ;IHS/CMI/DAY - Patch 4 - P10 not always set, so calculate manually
  I BEXSLOC="" D
  .;Get Prescription Number
  .S Y=$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U,3)
@@ -140,7 +200,7 @@ CR(BEXVIEN) ;EP - add a chart request
  .S BEXSLOC=Y
  ;
  I $G(BEXSLOC)]"",BEXSLOC'=DUZ(2) Q
- ;cmi/anch/maw end of mods
+ ;
  S BEXTSCA=$P($G(^BEXHRXP(BEXVSITO,0)),U,7)
  S BEXTSRA=$P($G(^BEXHRXP(BEXVSITO,0)),U,8)
  S BEXTSRP=$P($G(^BEXHRXP(BEXVSITO,0)),U,9)
@@ -158,7 +218,7 @@ CR(BEXVIEN) ;EP - add a chart request
  S BEXCLNB=$P($G(^BEXHRXP(BEXVSITO,0)),U,5)
  S BEXCUT=$P($G(^BEXHRXP(BEXVSITO,0)),U,3)
  S BEXREFO=$P($G(^BEXHRXP(BEXVSITO,0)),U,2)
- I '$G(BEXCLNA) S BEXCLNA=BEXCLNB  ;cmi/maw 5/31/2006 added for a blank am clinic
+ I '$G(BEXCLNA) S BEXCLNA=BEXCLNB  ;for blank am clinic
  I '$G(BEXCLNA) Q
  I '$D(^DPT(BEXPAT,0)) Q
  S BEXCLNI=BEXCLNA
@@ -167,10 +227,9 @@ CR(BEXVIEN) ;EP - add a chart request
  . I (BEXOTM>BEXCUT)!(BEXOTM<BEXTSCA) S BEXCLNI=BEXCLNB,BEXTS=BEXTSP,BEXPM=1
  I 'BEXCLNI S BEXCLNI=BEXCLNA
  I 'BEXCLNI Q
- ;cmi/anch/maw 2/6/2007 added call to mark routing slip as printed
+ ;mark routing slip as printed
  I $G(BEXREFO),$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U,5)'="REFILLABLE" Q
- ;I $$PIMS53 D ADDCR(BEXCLNI,BEXPAT,BEXTS,+$G(BEXPM)),ADDDPT(BEXCLNI,BEXPAT,BEXTS)  Q "1^Chart Request Successful"  ;for PIMS 5.3 6/2/06 orig
- I $$PIMS53 D ADDCR(BEXCLNI,BEXPAT,BEXTS,+$G(BEXPM)),MARK(BEXVIEN) Q  ;for PIMS 5.3 6/2/06 per linda fels changed time stamp to be only date as it appears the AIHSCR cross reference will fail otherwise
+ I $$PIMS53 D ADDCR(BEXCLNI,BEXPAT,BEXTS,+$G(BEXPM)),MARK(BEXVIEN) Q
  I $$LKPT(BEXPAT,BEXCLNI,BEXTS) Q
  I '$D(^SC(BEXCLNI,"S",BEXTS,0)) D
  . S ^SC(BEXCLNI,"S",BEXTS,0)=BEXTS
@@ -187,38 +246,36 @@ CR(BEXVIEN) ;EP - add a chart request
  D MARK(BEXVIEN)
  Q
  ;
-PIMS53() ;-- check for pims 5.3
+PIMS53() ;check for pims 5.3
  N BEXPIMS
  S BEXPIMS=$O(^DIC(9.4,"C","PIMS",0))
  I '$G(BEXPIMS) Q 0
  I $G(^DIC(9.4,BEXPIMS,"VERSION"))>5.29 Q 1
  Q 0
  ;
-ADDCR(CLN,PAT,TS,PM) ;-- add a chart request and print a routing slip for pims 5.3
- S BEXTSO=TS   ;cmi/maw 10/22/06
+ADDCR(CLN,PAT,TS,PM) ;-- add cr and print rs
+ S BEXTSO=TS
  S TS=$P(TS,".")
- ;look at the following code
- ;Q:$D(^SC(CLN,"C",TS,1,PAT))  ;1/11/05 cmi/maw don't print if already printed for this time
- Q:$O(^SC("AIHSCR",PAT,CLN,TS,0))  ;cmi/anch/maw 10/22/06 quit if there is a chart request there already
+ Q:$O(^SC("AIHSCR",PAT,CLN,TS,0))  ;quit if chart request there already
  N BEXIENS,BEXERR,BEXFDA,BEXDATE,BEXNOW,BEXCLNE,BEXDEV
  S BEXIENS=""
  S BEXIENS(1)=CLN
  S BEXIENS(2)=TS
- ;S BEXIENS(3)=PAT  ;cmi/maw 10/22/06 should not be ien of patient
+ ;
  S BEXCLNE=$P($G(^SC(CLN,0)),U)
  S BEXFDA(44.006,"?+2,"_BEXIENS(1)_",",.01)=TS
  S BEXFDA(44.007,"?+3,?+2,"_BEXIENS(1)_",",.01)=PAT
- S BEXFDA(44.007,"?+3,?+2,"_BEXIENS(1)_",",9999999.01)=BEXTSO  ;cmi/maw 10/22/06 modified
+ S BEXFDA(44.007,"?+3,?+2,"_BEXIENS(1)_",",9999999.01)=BEXTSO
  S BEXFDA(44.007,"?+3,?+2,"_BEXIENS(1)_",",9999999.02)=$G(DUZ)
  S BEXFDA(44.007,"?+3,?+2,"_BEXIENS(1)_",",9999999.03)="Audiocare Telephone Refill"
  S BEXFDA(44.007,"?+3,?+2,"_BEXIENS(1)_",",9999999.04)=$$NOW^XLFDT()
  D UPDATE^DIE("","BEXFDA","BEXIENS","BEXERR(1)")
  Q:$D(BEXERR)
  I $G(PM) D
- . S BEXDEV=$$GET1^DIQ(90350.2,BEXVSITO,2)  ;maw for pm clinic printer
- I $G(BEXDEV)="" S BEXDEV=$$GET1^DIQ(90350.2,BEXVSITO,1)  ;maw new print parm
+ . S BEXDEV=$$GET1^DIQ(90350.2,BEXVSITO,2)
+ I $G(BEXDEV)="" S BEXDEV=$$GET1^DIQ(90350.2,BEXVSITO,1)
  Q:BEXDEV=""
- S DGQUIET=1  ;for routing slip
+ S DGQUIET=1
  D WISD^BSDROUT(PAT,$P(TS,"."),"CR",BEXDEV)
  Q
  ;
@@ -230,27 +287,27 @@ ADDDPT(CLN,PAT,TS) ;-- add the appointment to the patient file
  S BEXIENS(2)=TS
  S BEXPATE=$P($G(^DPT(PAT,0)),U)
  S BEXFDA(2.98,"?+2,"_BEXIENS(1)_",",.01)=CLN
- S BEXFDA(2.98,"?+2,"_BEXIENS(1)_",",8)=DT  ;routing slip print date 5/14/2006 maw
+ S BEXFDA(2.98,"?+2,"_BEXIENS(1)_",",8)=DT
  S BEXFDA(2.98,"?+2,"_BEXIENS(1)_",",9.5)=BEXAPTP
  D UPDATE^DIE("","BEXFDA","BEXIENS","BEXERR(1)")
  Q:$D(BEXERR)
  Q
  ;
 RS(DFN,CI) ;-- print a routine slip
- Q:'$P($G(^BEXHRXP(BEXVSITO,0)),U,6)  ;auto print
- S VAR="DIV^ORDER^SDX^DFN^SDREP^SDSTART^SDZHS^ASDLONG^SDZSC^SDZCV^SDPR",DGPGM="EN1^SDROUT1"  ;for routing slips
- ;S BEXDEV=$$VAL^XBDIQ1(40.8,$$DIV^ASDUT,9999999.11)  ;maw old
- S BEXDEV=$$GET1^DIQ(90350.2,BEXVSITO,1)  ;maw new print parm
+ Q:'$P($G(^BEXHRXP(BEXVSITO,0)),U,6)
+ S VAR="DIV^ORDER^SDX^DFN^SDREP^SDSTART^SDZHS^ASDLONG^SDZSC^SDZCV^SDPR",DGPGM="EN1^SDROUT1"
+ ;
+ S BEXDEV=$$GET1^DIQ(90350.2,BEXVSITO,1)
  I $G(BEXDEV)="" Q
  S DIV=$P($G(^SC(CI,0)),U,15)  ;for routing slip
  S (SDZZWI,SDZCV,DGUTQND)=1
  S IOP=BEXDEV,POP=0,%ZIS="Q" D ^%ZIS Q:$G(POP)
  ;D ^%ZIS  ;for testing
- ;D EN^XBNEW("EN1^SDROUT1","SD*;DFN;DIV;IO*")
+ ;
  D EN^XBNEW("Q1^DGUTQ","SD*;DFN;DG*;DIV;VAR;IO*")
  Q
  ;
-LKPT(PT,CI,TM) ;-- check to see if patient has chart request already
+LKPT(PT,CI,TM) ;-- check if patient has cr already
  K BEXCRE
  S BEXIEN=0 F  S BEXIEN=$O(^SC(CI,"S",TM,1,BEXIEN)) Q:'BEXIEN  D
  . I $P($G(^SC(CI,"S",TM,1,BEXIEN,0)),U)=PT S BEXCRE=1 Q
@@ -270,7 +327,7 @@ EOJCR ;-- kill vars
  K OTM,PAT,TS,TSM,TSCA,TSCP
  Q
  ;
-TSK ;EP - loop the transactiopn file and request charts
+TSK ;EP - loop trans file and request charts
  D ^XBKVAR
  S BEXRDA=0 F  S BEXRDA=$O(^VEXHRX0(19080.1,BEXRDA)) Q:'BEXRDA  D
  . Q:$P($G(^VEXHRX0(19080.1,BEXRDA,0)),U,9)
@@ -306,7 +363,7 @@ DIE ;EP
  K DIE,BEXIDA,BEXNIDT,BEXIIEN
  Q
  ;
-HDR ;EP - header
+HDR ;EP
  S BEXPKG="BEXR Audiocare Pharmacy Refill System"
  S BEXLOC="Location: "_$P($G(^DIC(4,DUZ(2),0)),U)
  S BEXTAB=(80-$L(BEXLOC))/2
@@ -314,7 +371,7 @@ HDR ;EP - header
  W !,?BEXTAB,BEXLOC
  Q
  ;
-MED ;-- lets populate 90350.1 with medication name in the 11th piece
+MED ;-- populate 90350.1 with med name in 11th piece
  N BEXDA
  S BEXDA=0 F  S BEXDA=$O(^VEXHRX0(19080.1,BEXDA)) Q:'BEXDA  D
  . Q:$P($G(^VEXHRX0(19080.1,BEXDA,0)),U,11)

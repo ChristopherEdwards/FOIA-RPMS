@@ -1,16 +1,19 @@
-PSOORNW1 ;ISC BHAM/SAB - continuation of finish of new order ;02-Apr-2008 08:12;SM
- ;;7.0;OUTPATIENT PHARMACY;**23,46,78,117,131,133,172,1006**;DEC 1997
+PSOORNW1 ;ISC BHAM/SAB - continuation of finish of new order ;08-May-2012 14:04;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**23,46,78,117,131,133,172,1013**;DEC 1997;Build 33
  ;External reference ^YSCL(603.01 supported by DBIA 2697
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference ^PSDRUG( supported by DBIA 221
+ ;
  ; Modified - IHS/MSC/PLS - 04/02/08 - Line CT1+5  - Set PSONEW("NDC")
+ ; Modified - IHS/MSC/PLS - 09/22/2011 - Line 2+6
 2 I $G(ORD) W !!,"Instructions: " D
  .S INST=0 F  S INST=$O(^PS(52.41,ORD,2,INST)) Q:'INST  S (MIG,INST(INST))=^PS(52.41,ORD,2,INST,0) D
  ..F SG=1:1:$L(MIG," ") W:$X+$L($P(MIG," ",SG)_" ")>IOM !?14 W $P(MIG," ",SG)_" "
  .S:'$D(PSODRUG("OI")) PSODRUG("OI")=$P(OR0,"^",8)
  .K INST,TY,MIG,SG
  S (PSDC,PSI)=0 W !!,"The following Drug(s) are available for selection:"
- F PSI=0:0 S PSI=$O(^PSDRUG("ASP",PSODRUG("OI"),PSI)) Q:'PSI  I $S('$D(^PSDRUG(PSI,"I")):1,'^("I"):1,DT'>^("I"):1,1:0),$S($P($G(^PSDRUG(PSI,2)),"^",3)'["O":0,1:1) D
+ ;F PSI=0:0 S PSI=$O(^PSDRUG("ASP",PSODRUG("OI"),PSI)) Q:'PSI  I $S('$D(^PSDRUG(PSI,"I")):1,'^("I"):1,DT'>^("I"):1,1:0),$S($P($G(^PSDRUG(PSI,2)),"^",3)'["O":0,1:1) D  ;IHS/MSC/PLS - 09/22/2011
+ F PSI=0:0 S PSI=$O(^PSDRUG("ASP",PSODRUG("OI"),PSI)) Q:'PSI  I $$SCREEN^APSPMULT(PSI,,1) I $S('$D(^PSDRUG(PSI,"I")):1,'^("I"):1,DT'>^("I"):1,1:0),$S($P($G(^PSDRUG(PSI,2)),"^",3)'["O":0,1:1) D  ;IHS/MSC/PLS - 09/22/2011
  .S PSDC=PSDC+1 W !,PSDC_". "_$P(^PSDRUG(PSI,0),"^")_$S($P(^(0),"^",9):"     (N/F)",1:"")
  .S PSDC(PSDC)=PSI
  I PSDC=0 D

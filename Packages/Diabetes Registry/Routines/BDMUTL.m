@@ -1,6 +1,45 @@
 BDMUTL ; IHS/CMI/LAB - Area Database Utility Routine ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**5**;JUN 14, 2007
  ;
+GETIMMS(P,EDATE,C,BDMX) ;EP
+ K BDMX
+ NEW X,Y,I,Z,V
+ S X=0 F  S X=$O(^AUPNVIMM("AC",P,X)) Q:X'=+X  D
+ .Q:'$D(^AUPNVIMM(X,0))  ;happens
+ .S Y=$P(^AUPNVIMM(X,0),U)
+ .Q:'Y  ;happens too
+ .S I=$P($G(^AUTTIMM(Y,0)),U,3)  ;get HL7/CVX code
+ .F Z=1:1:$L(C,U) I I=$P(C,U,Z) S V=$P(^AUPNVIMM(X,0),U,3) I V S D=$P($P($G(^AUPNVSIT(V,0)),U),".") I D]"",D'>EDATE S BDMX(D)=Y
+ .Q
+ Q
+IMMREF(P,IMM,BD,ED) ;EP
+ NEW X,Y,G,D,R
+ I 'IMM Q ""
+ S (X,G)=0,Y=$O(^AUTTIMM("C",IMM,0))
+ I 'Y Q ""
+ F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .Q:$P(^BICONT(R,0),U,1)'["Refusal"
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .Q:$P(^BIPC(X,0),U,4)<BD
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .S G=G+1
+ Q G
+ANCONT(P,C,ED) ;EP - ANALPHYLAXIS CONTRAINDICATION
+ NEW X
+ S X=0,G="",Y=$O(^AUTTIMM("C",C,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S R=$P(^BIPC(X,0),U,3)
+ .Q:R=""
+ .Q:'$D(^BICONT(R,0))
+ .S D=$P(^BIPC(X,0),U,4)
+ .Q:D=""
+ .;Q:$P(^BIPC(X,0),U,4)<BD
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .I $P(^BICONT(R,0),U,1)="Anaphylaxis" S G="2  No - Contraindication Anaphylaxis"
+ Q G
 DEMO(P,T) ;EP - called to exclude demo patients
  I $G(P)="" Q 0
  I $G(T)="" S T="I"

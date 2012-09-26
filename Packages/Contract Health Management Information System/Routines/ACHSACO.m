@@ -1,5 +1,5 @@
 ACHSACO ; IHS/ITSC/PMF - AREA CONSOLIDATION (1/3) ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,11,13,18,19**;JUN 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,11,13,18,19,21**;JUN 11,2001
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - Clarified error message.
  ;IHS/SET/JVK ACHS*3.1*11 Add check for area to test ACHS version
  ; added a call to %ZISC in tag S15 - 10/5/00 - pmf
@@ -15,13 +15,24 @@ ACHSACO ; IHS/ITSC/PMF - AREA CONSOLIDATION (1/3) ;
  I '$O(^XMB(3.6,X,2,0)) D  D XIT^ACHSACOA Q
  . W *7,!,"Mail Bulletin 'ACHS AREA BALANCES' does not have a MAIL GROUP."
  . S X=$$DIR^XBDIR("E","Press RETURN...")
- ;
+ ;ACHS*3.1*21 CHECK FOR ACCOUNTING POINT
+ S ACHSAPN=$P(^AUTTSITE(1,0),U,2)
+ I ACHSAPN']"" D  Q
+ . W *7,!,"ACCOUNTING POINT NUMBER is missing from RPMS SITE file...",!
+ . D XIT^ACHSACOA
  ;SHOW AREA OFFICE PARAMETERS SETTINGS
  W !!,"         PROCESS FI DATA parameter = '",$$AOP^ACHS(2,3),"'"
  W !,"PROCESS AREA OFFICE DATA parameter = '",$$AOP^ACHS(2,4),"'"
- W !,"        HAS/CORE CONTROL parameter = '",$$AOP^ACHS(2,2),"'",!!
+ ;W !,"        HAS/CORE CONTROL parameter = '",$$AOP^ACHS(2,2),"'",!!  ;ACHS*3.1*21
  ;
+ ;ACHS*3.1*21 ADDED TEST FOR SPLIT OUT NOT COMPLETED WILL RUN SPLIT OUT
+ S Y=1
+ I $G(^ACHSPCC("PROC"))="C" D
+ .W !!,"********** SPLIT OUT HAS NOT BEEN COMPLETED **********"
+ .I $$DIR^XBDIR("Y","Do you want to Continue to splitout files","Y","","","",1) D ^ACHSPCC1
+ .I $$DIR^XBDIR("Y","Do you want to Continue to consolidation of files","Y","","","",1)
  ;ACHS*3.1*13 IHS/OIT/FCJ Added ufms workglobal to nxt line
+ Q:Y'=1
  F ACHS="^ACHSPCC","^ACHSBCBS","^ACHSAOPD","^ACHSAOVU","^ACHSZOCT","^ACHSPIG","^ACHSSVR","^ACHSCORE","^ACHSUFMS" D
  . W !,"KILL'ing work global ",ACHS
  . I $$KILLOK^ZIBGCHAR($P(ACHS,U,2)) W !,$$ERR^ZIBGCHAR($$KILLOK^ZIBGCHAR($P(ACHS,U,2)))
@@ -62,11 +73,11 @@ FSEL ;
  ;          P^3=VENDOR NUMBER????
  ;          P^4=DATE OF GLOBAL SAVE
  ;          P^5=Y IF CHOSEN?????
- ;ACHS*3.1*18 IHS.OIT.FCJ ADDED LINE AND MODIFIED NXT LINE
- S X=$$ASF^ACHS(DUZ(2)) S ACHSPTH=$S((X=808301)!(X=252611):$$EX^ACHS,1:$$IM^ACHS)
+ ;ACHS*3.1*18 IHS.OIT.FCJ ADDED LINE AND MODIFIED NXT LINE;ACHS*3.1*21 ADDED PARA FOR DIRECTORY
+ S ACHSPTH=$$AOP^ACHS(3,1)
+ I ACHSPTH="" S X=$$ASF^ACHS(DUZ(2)),ACHSPTH=$S((X=808301)!(X=252611):$$EX^ACHS,1:$$IM^ACHS)
  I $$LIST^%ZISH(ACHSPTH,"ACHS*",.ACHSLIST) D ERROR^ACHSTCK1 D XIT^ACHSACOA Q   ;ACHS*3.1*18
  ;I $$LIST^%ZISH($$IM^ACHS,"ACHS*",.ACHSLIST) D ERROR^ACHSTCK1 D XIT^ACHSACOA Q   ;ACHS*3.1*18
- ;
  ;
  ;GO THRU LIST OF FILES TO CONSOLIDATE
  S ACHSCNT=0,ACHSNCNT=0
@@ -83,14 +94,14 @@ FSEL ;
  .;
  .;THE FORMAT IS THE SAVE OF GLOBAL ^ACHSDATA(
  . U IO
- . R X:DTIME
+ . R X:DTIME     ; SAC - FILE READ
  . S $P(ACHSLIST(ACHSCNT),U,4)=X   ;READ DATE/TIME STAMP
  .                                 ;THIS IS THE DATE WHEN SAVED NOT SENT
  .;
  .;
- .R X:DTIME      ;READ AREA
- .R X:DTIME      ;READ GLOBAL NODE
- .R X:DTIME      ;READ FIRST GLOBAL RECORD
+ .R X:DTIME      ;READ AREA  ;SAC-FILE READ
+ .R X:DTIME      ;READ GLOBAL NODE ;SAC-FILE READ
+ .R X:DTIME      ;READ FIRST GLOBAL RECORD ;SAC-FILE READ
  .;
  .S $P(ACHSLIST(ACHSCNT),U,2)=$P(X,U,2)   ;FACILITY NAME
  .S $P(ACHSLIST(ACHSCNT),U,3)=$P(X,U,7)   ;TOTAL ALL RECORD TYPES
@@ -159,10 +170,10 @@ FIL2 ;
  .I $$OPEN^%ZISH(ACHSPTH,$P(ACHSPLST(ACHSZ),U,1),"R") D ERROR^ACHSTCK1 D XIT^ACHSACOA  ;ACHS*3.1*18
 RDHDR .; Read the header of the file being processed.
  .U IO
- .R X:DTIME          ;READ BLANK LINE
- .R X:DTIME          ;READ BLANK LINE
- .R ACHSXD1:DTIME    ;READ GLOBAL NODE
- .R ACHSXD2:DTIME    ;READ RECORD
+ .R X:DTIME          ;READ BLANK LINE   ;SAC-FILE READ
+ .R X:DTIME          ;READ BLANK LINE   ;SAC-FILE READ
+ .R ACHSXD1:DTIME    ;READ GLOBAL NODE  ;SAC-FILE READ
+ .R ACHSXD2:DTIME    ;READ RECORD       ;SAC-FILE READ
  .;
  .U IO(0)
  .;
@@ -206,21 +217,31 @@ RDHDR .; Read the header of the file being processed.
 S15F .;
  .;IF NO ENTRY IN THE LOG FILE CONTINUE PROCESS
  .;USE FACILITY PTR FROM ^AUTTLOC AND LOOK AT LOG FILE
- .I '$D(^ACHSAOLG(ACHSFCPT,1,ACHSDRUN)) D S15X Q
- .U IO(0)
- .;                                        INSTITUTION NAME
- .W !!,*7,"DATA ALREADY PROCESSED FOR: ",$E($P($G(^DIC(4,ACHSFCPT,0)),U),1,20),"  EXPORT DATE OF: ",$$FMTE^XLFDT(ACHSDRUN),!!
- .I $$DIR^XBDIR("E","Enter <RETURN> to Continue Processing")
+ .;ACHS*3.1*21;ALLOW PROCESSING IF DEPENDING ON USER RESPONSE
+ .;I '$D(^ACHSAOLG(ACHSFCPT,1,ACHSDRUN)) D S15X Q
+ .S Y=1
+ .I $D(^ACHSAOLG(ACHSFCPT,1,ACHSDRUN)) D
+ ..U IO(0)
+ ..;                                        INSTITUTION NAME
+ ..W !!,*7,"DATA ALREADY PROCESSED FOR: ",$E($P($G(^DIC(4,ACHSFCPT,0)),U),1,20),"  EXPORT DATE OF: ",$$FMTE^XLFDT(ACHSDRUN),!!
+ ..W !?10,"******* ARE YOU SURE YOU WANT TO REPROCESS *******"
+ ..W !,"******* THIS COULD CAUSE DUPLICATE RECORDS AT UFMS AND THE FI *******",!
+ ..;I $$DIR^XBDIR("E","Enter <RETURN> to Continue Processing OR ^ TO EXIT")
+ ..I $$DIR^XBDIR("Y","Enter YES to process the file or NO to skip the file.")
+ .I Y=1 D S15X Q
+ .;ACHS*3.1*21 end of changes
  .;
  .;added next line - 10/5/00 - pmf
  .;now CLOSE the file, since we are not going to process it.
  .D ^%ZISC
  .;
  D REPORT^ACHSACOA            ;DO CONSOLIDATION REPORTS
+ I $$DIR^XBDIR("Y","Do you want to Continue to splitout files","Y","","","",1) D ^ACHSPCC1 Q  ;ACHS*3.1*21
  Q
  ;
  ;
 S15X ;
+ S ^ACHSPCC("PROC")="C"   ;ACHS*3.1*21
  D RSLT(ACHSFACD_$J($$FMTE^XLFDT(ACHSDRUN),15)_$J("$"_$FN($P(ACHSXD2,U,10),",",2),18)_$J("$"_$FN($P(ACHSXD2,U,11),",",2),18)_$J("$"_$FN($P(ACHSXD2,U,10)-$P(ACHSXD2,U,11),",",2),18))
  ;
  ;

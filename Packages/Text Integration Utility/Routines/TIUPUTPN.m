@@ -1,14 +1,12 @@
-TIUPUTPN ; SLC/JER - PN Look-up Method ;4/20/02
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,100,131,1001**;Jun 20, 1997
- ;IHS/ITSC/LJF 02/26/2003 removed dashes from HRCN
- ;                        bypass VA code if no clinic location
- ;                        added IHS call to link with visit
- ;                        changed code so duplicates added as addendums
- ;                        added creation of v notes entry
- ;                        added check to set cosig needed only if signer requires cosig
+TIUPUTPN ; SLC/JER - PN Look-up Method ;01-Aug-2011 12:04;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,100,131,113,1001,1009**;Jun 20, 1997;Build 22
+ ;                 bypass VA code if no clinic location
+ ;                 added IHS call to link with visit
+ ;                 changed code so duplicates added as addendums
+ ;                 added creation of v notes entry
+ ;                 added check to set cosig needed only if signer requires cosig
  ;             07/29/2004 removed screen for 4 digit chart number
  ;IHS/ITSC/LJF 01/05/2005 PATCH 1001 check for exisitence of TIULOC variable
- ;
 LOOKUP ; Look-up code used by router/filer
  ; Required: TIUSSN, TIUVDT
  N DA,DFN,TIU,TIUDAD,TIUEDIT,TIUEDT,TIULDT,TIUXCRP,TIUTYPE,TIUNEW
@@ -16,12 +14,13 @@ LOOKUP ; Look-up code used by router/filer
  ;I $S('$D(TIUSSN):1,'$D(TIUVDT):1,$G(TIUSSN)?4N:1,$G(TIUSSN)']"":1,1:0) S Y=-1 G LOOKUPX
  I $S('$D(TIUSSN):1,'$D(TIUVDT):1,$G(TIUSSN)']"":1,1:0) S Y=-1 G LOOKUPX    ;IHS/ITSC/LJF 07/29/2004 4 digit HRCN okay
  I TIUSSN?3N1P2N1P4N.E S TIUSSN=$TR(TIUSSN,"-/","")
- S TIUSSN=+$$STRIP^XLFSTR(TIUSSN,"-")         ;IHS/ITSC/LJF 02/26/2003 is really HRCN
+ S TIUSSN=+$$STRIP^XLFSTR(TIUSSN,"-")         ;IHS/ITSC/LJF 02/26/2003
  I TIUSSN["?" S Y=-1 G LOOKUPX
  ;S TIULOC=+$$ILOC(TIULOC)
  S TIULOC=+$$ILOC($G(TIULOC))       ;IHS/ITSC/LJF 01/05/2005 PATCH 1001
- ;I '$D(^SC(+$G(TIULOC),0)) S Y=-1 G LOOKUPX  ;IHS/ITSC/LJF 05/07/2003
- I TIULOC<1 S TIULOC=""                       ;IHS/ITSC/LJF 05/07/2003 not all visits have clinic
+ ;I '$D(^SC(+$G(TIULOC),0)) S Y=-1 G LOOKUPX
+ I TIULOC<1 S TIULOC=""                       ;IHS/ITSC/LJF 05/07/2003
+ S TIUINST=+$$DIVISION^TIULC1(TIULOC)
  S TIUEDT=$$IDATE^TIULC(TIUVDT),TIULDT=$$FMADD^XLFDT(TIUEDT,1)
  I +TIUEDT'>0 S Y=-1 Q
  S TIUTYPE=$$WHATITLE(TIUTITLE)
@@ -34,7 +33,7 @@ LOOKUP ; Look-up code used by router/filer
  ;I $P($G(^SC(+TIULOC,0)),U,3)="W" D  I 1
  ;. D MAIN^TIUMOVE(.TIU,.DFN,TIUSSN,TIUEDT,TIULDT,1,"LAST",0,TIULOC)
  ;E  D MAIN^TIUVSIT(.TIU,.DFN,TIUSSN,TIUEDT,TIULDT,"LAST",0,TIULOC)
- NEW BTIUVSIT D ^BTIUPUTP  ;IHS/ITSC/LJF 02/26/2003 IHS code to link uploaded notes
+ NEW BTIUVSIT D ^BTIUPUTP  ;IHS/ITSC/LJF 02/26/2003 IHS code to link upl
  I +$G(TIU("VISIT"))=0 S Y=-1 G LOOKUPX
  ;IHS/ITSC/LJF 02/26/2003
  ;
@@ -97,6 +96,7 @@ STUFREC(DA,PARENT) ; Stuff fixed field data
  . S @FDARR@(1404)=$P($G(^TIU(8925,+PARENT,14)),U,4)
  . S @FDARR@(1201)=$$NOW^TIULC
  S @FDARR@(1205)=$P($G(TIU("LOC")),U)
+ S @FDARR@(1212)=$P($G(TIU("INST")),U)
  S @FDARR@(1301)=$S($G(TIUDDT)]"":$$IDATE^TIULC($G(TIUDDT)),1:"")
  I $S(@FDARR@(1301)'>0:1,$P(@FDARR@(1301),".",2)']"":1,1:0) D
  . S @FDARR@(1301)=$S($P($G(TIU("VSTR")),";",3)="H":$$NOW^XLFDT,1:$G(@FDARR@(.07)))
@@ -131,10 +131,10 @@ FOLLOWUP(TIUDA) ; Post-filing code for PROGRESS NOTES
  . S @FDARR@(1208)=$$WHOCOSIG^TIULC1(TIUDA)
  D FILE^DIE(FLAGS,"FDA","TIUMSG")
  I +$P($G(^TIU(8925,+TIUDA,12)),U,8),(+$P($G(^TIU(8925,+TIUDA,12)),U,4)'=+$P($G(^(12)),U,8)) D
- . K TIUDPRM                                                                        ;IHS/ITSC/LJF 02/26/2003
- . I '$$REQCOSIG^TIULP(+$P($G(^TIU(8925,+TIUDA,0)),U),+TIUDA,+$P($G(^(12)),U,4)) Q  ;IHS/ITSC/LJF 02/26/2003 don't add cosig if not requried
+ . K TIUDPRM
+ . I '$$REQCOSIG^TIULP(+$P($G(^TIU(8925,+TIUDA,0)),U),+TIUDA,+$P($G(^(12)),U,4)) Q  ;IHS/ITSC/LJF 02/26/2003 don't add cosig if not required
  . S @FDARR@(1506)=1 D FILE^DIE(FLAGS,"FDA","TIUMSG")
- D VNOTE^BTIUPCC(TIUDA,$$IVST^BTIUU1(+TIUDA),$$IPAT^BTIUU1(+TIUDA),"ADD")        ;IHS/ITSC/LJF 02/26/2003 add V Note entry; 9/10/2004 changed DA to TIUDA
+ D VNOTE^BTIUPCC(TIUDA,$$IVST^BTIUU1(+TIUDA),$$IPAT^BTIUU1(+TIUDA),"ADD")        ;IHS/ITSC/LJF 02/26/2003 add V Note entry
  D RELEASE^TIUT(TIUDA,1)
  D AUDIT^TIUEDI1(TIUDA,0,$$CHKSUM^TIULC("^TIU(8925,"_+TIUDA_",""TEXT"")"))
  I '$D(TIU("VSTR")) D
@@ -146,5 +146,5 @@ FOLLOWUP(TIUDA) ; Post-filing code for PROGRESS NOTES
  . I $S(+DFN'>0:1,+TIUEDT'>0:1,+TIULDT'>0:1,+TIUVLOC'>0:1,1:0) Q
  . D MAIN^TIUVSIT(.TIU,DFN,"",TIUEDT,TIULDT,"LAST",0,+TIUVLOC)
  Q:'$D(TIU("VSTR"))
- ;D ENQ^TIUPXAP1 ; Get/file VISIT     ;IHS/ITSC/LJF 09/09/2004 don't call PCE
+ ;D ENQ^TIUPXAP1 ; Get/file VISIT ;IHS/ITSC/LJF 09/09/2004 don't call PCE
  Q

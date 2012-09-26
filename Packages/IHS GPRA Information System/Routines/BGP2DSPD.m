@@ -1,5 +1,5 @@
 BGP2DSPD ; IHS/CMI/LAB - IHS summary page ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 START ;
  I BGPRTYPE'=1 Q
@@ -122,8 +122,8 @@ HEADERP ;EP
  Q
 H1P ;
  S X="GPRA DEVELOPMENTAL & PART MEASURES CLINICAL PERFORMANCE SUMMARY" W !,$$CTR(X,80)
- I $G(BGPAREAA) W !?28," Area",?36," Area",?45," Area",?53,$S($G(BGPNGR09):"PART11",1:"PART11"),?64,"Nat'l",?73,"2012"
- I '$G(BGPAREAA) W !?28," Site",?36," Site",?45," Site",?53,$S($G(BGPNGR09):"PART11",1:"PART11"),?64,"Nat'l",?73,"2012"
+ I $G(BGPAREAA) W !?28," Area",?36," Area",?45," Area",?53,$S($G(BGPNGR09):"PART",1:"PART"),?64,"Nat'l",?73,"2012"
+ I '$G(BGPAREAA) W !?28," Site",?36," Site",?45," Site",?53,$S($G(BGPNGR09):"PART",1:"PART"),?64,"Nat'l",?73,"2012"
  W !?28,"Current",?36,"Previous",?45,"Baseline",?53,"Target",?64,"2011",?73,"Target"
  W !,$TR($J("",80)," ","-")
  W !!,"PART MEASURE"

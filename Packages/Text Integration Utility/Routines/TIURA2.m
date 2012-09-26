@@ -1,9 +1,8 @@
-TIURA2 ; SLC/JER - More review screen actions ;8/28/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**88,58,100,123,1002**;Jun 20, 1997
+TIURA2 ; SLC/JER - More review screen actions ;31-Aug-2011 17:32;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**88,58,100,123,112,1002,1009**;Jun 20, 1997;Build 22
  ; 6/20/00: Moved DISPLAY, BROWSE, & BROWS1 from TIURA to TIURA2
  ;IHS/ITSC/LJF 7/30/2003 bypass rebuild if called by BTIURPT
- ;IHS/OIT/LJF 03/17/2005 PATCH #1002 - added PEP to BROWS1 subroutine
- ;                                     to be called by PCC Audit function
+ ;IHS/OIT/LJF 03/17/2005 PATCH #1002
  ;
 DISPLAY ; Detailed Display
  N TIUDA,TIUD,TIUDATA,TIUI,Y,DIROUT,TIUQUIT,RSTRCTD
@@ -51,14 +50,14 @@ BROWSE(TIULTMP) ; Browse selected documents
  ; -- Update or Rebuild list: --
  I $G(TIUCHNG("DELETE"))!$G(TIUCHNG("ADDM")) S TIUCHNG("RBLD")=1
  S TIUCHNG("UPDATE")=1 ; default
- ;D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY     ;IHS/ITSC/LJF 7/30/2003
- K VALMY                                      ;IHS/ITSC/LJF 7/30/2003
+ ;D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY   ;IHS/ITSC/LJF 7/30/2003
+ K VALMY                                    ;IHS/ITSC/LJF 7/30/2003
  S VALMBCK="R"
  Q
 GETSORT(PRMSORT,EXPSORT) ; Get order for ID entries
  Q $S($G(EXPSORT)'="":EXPSORT,1:PRMSORT)
  ;
-BROWS1(TIULTMP,TIUDA,TIUGDATA) ;PEP; Browse single document;IHS/OIT/LJF 3/17/2005 PATCH #1002
+BROWS1(TIULTMP,TIUDA,TIUGDATA) ;  PEP ; Browse single document ;IHS/OIT/LJF 3/17/2005 PATCH #1002
  ;  Calls EN^VALM
  N %DT,C,D0,DIQ2,FINISH,TIU,TIUVIEW
  I '$D(TIUGDATA) S TIUGDATA=$$IDDATA^TIURECL1(TIUDA)
@@ -103,4 +102,48 @@ PRNTSCRN(VALMY) ; Evaluate whether a record may be printed
  . . K VALMY(TIUI)
  . . I $$READ^TIUU("EA","Press RETURN to continue...")
  . I +$G(TIUPFLG) S TIUFLAG=+$$CHARTONE^TIURA1(TIUDA)
+ Q
+DICTATED ; Mark Document(s) "dictated"
+ N TIUCHNG,TIUI,TIUY,Y,DIROUT
+ I '$D(VALMY) D EN^VALM2(XQORNOD(0))
+ S TIUI=0
+ F  S TIUI=$O(VALMY(TIUI)) Q:+TIUI'>0  D  Q:$D(DIROUT)
+ . N TIU,DFN,TIUDA,TIUDATA,RSTRCTD
+ . S TIUDATA=$G(^TMP("TIURIDX",$J,TIUI))
+ . S TIUDA=+$P(TIUDATA,U,2) S RSTRCTD=$$DOCRES^TIULRR(TIUDA)
+ . I RSTRCTD D  Q
+ . . W !!,$C(7),"Ok, no harm done...",!
+ . . I $$READ^TIUU("EA","RETURN to continue...") ; pause
+ . D EN^VALM("TIU DOCUMENT DICTATED")
+ ; -- Update or Rebuild list: --
+ S TIUCHNG("UPDATE")=1
+ D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY
+ S VALMBCK="R"
+ Q
+DICTATE1(TIUDA) ; Single record sign on chart
+ N DICMSG D FULL^VALM1
+ D DICT(TIUDA,.DICMSG)
+ W !!,$G(DICMSG(1)),!,$G(DICMSG(2)),! H $S($D(DICMSG(0)):+DICMSG(0),1:3)
+ Q
+DICT(DA,MSG) ; Mark signed on chart. Edit on-chart signatures.
+ N AUTHOR,DIE,DR,Y,TIUSTAT,EXPCSNR,ATTNDNG,TIUDA,TIUPRMT,TIU0,TIU12,TIU13
+ S TIU0=$G(^TIU(8925,+DA,0)),TIU12=$G(^(12)),TIU13=$G(^(13))
+ S TIUSTAT=$P(TIU0,U,5)
+ S TIUPRMT=$S(TIUSTAT>1:"Edit Dictation Data? ",1:"Has this document been dictated? ")
+ W ! S MSG=$$READ^TIUU("YAO",TIUPRMT,"NO") W !
+ I 'MSG S TIUCHNG=0 G DICTX
+ S TIUCHNG=1
+ S AUTHOR=$$PERSNAME^TIULC1(+$P(TIU12,U,2))
+ S EXPCSNR=$$PERSNAME^TIULC1(+$P(TIU12,U,8))
+ S:+$P(TIU12,U,9) ATTNDNG=$$PERSNAME^TIULC1(+$P(TIU12,U,9))
+ S DR="1202//^S X=AUTHOR;1307//^S X=$S(+$P(TIU13,U,7)'>0:""NOW"",1:$$DATE^TIULS(+$P(TIU13,U,7),""MM/DD/CCYY@HR:MIN:SEC""))"
+ I $D(ATTNDNG) S DR=DR_";1209//^S X=ATTNDNG"
+ E  I $D(EXPCSNR) S DR=DR_";1208//^S X=EXPCSNR"
+ S DR=DR_";1204////^S X=$$WHOSIGNS^TIULC1(DA);1208////^S X=$$WHOCOSIG^TIULC1(DA)"
+ S DIE=8925 D ^DIE
+ S TIU0=$G(^TIU(8925,+DA,0)),TIU12=$G(^(12)),TIU13=$G(^(13))
+ ;Toggle status between undictated and untranscribed, depending on Dict Date
+ S DR=".05///^S X=$S(+$P(TIU13,U,7):""UNTRANSCRIBED"",1:""UNDICTATED"")",DIE=8925 D ^DIE
+ D UPDTIRT^TIUDIRT(.TIU,+DA)
+DICTX S MSG(1)="  Dictation data "_$S(TIUCHNG:"",1:"NOT ")_"changed."
  Q

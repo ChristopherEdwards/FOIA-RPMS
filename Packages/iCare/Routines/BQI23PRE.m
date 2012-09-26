@@ -1,0 +1,35 @@
+BQI23PRE ;VNGT/HS/ALA-Preinstall ; 10 Aug 2011  11:22 AM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;
+ ;
+EN ;
+ NEW DA,DIK
+ S DA=0,DIK="^BQI(90505.2,"
+ F  S DA=$O(^BQI(90505.2,DA)) Q:'DA  D ^DIK
+ ; 
+ S DA=0,DIK="^BQI(90506,"
+ F  S DA=$O(^BQI(90506,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.2,"
+ F  S DA=$O(^BQI(90506.2,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.3,"
+ F  S DA=$O(^BQI(90506.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.4,"
+ F  S DA=$O(^BQI(90506.4,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.5,"
+ F  S DA=$O(^BQI(90506.5,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.7,"
+ F  S DA=$O(^BQI(90506.7,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.8,"
+ F  S DA=$O(^BQI(90506.8,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90508.2,"
+ F  S DA=$O(^BQI(90508.2,DA)) Q:'DA  D ^DIK
+ ;
+ I $G(^BQI(90508.1,1,0))="Asthma^5" S DIK="^BQI(90508.1,",DA=1 D ^DIK
+ Q

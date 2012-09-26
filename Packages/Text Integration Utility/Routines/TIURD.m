@@ -1,6 +1,5 @@
 TIURD ; SLC/JER - Reassign actions ;13-MAY-2002 11:41:59
- ;;1.0;TEXT INTEGRATION UTILITIES;**4,58,61,100,109**;Jun 20, 1997
- ;IHS/ITSC/LJF 02/27/2003 cleaned up IHS variable BTIUVSIT
+ ;;1.0;TEXT INTEGRATION UTILITIES;**4,58,61,100,109,173**;Jun 20, 1997
  ;
 REASSIGN ; Reassign selected Documents
  N TIUCHNG,TIULST,TIUI,TIUY,RSTRCTD,TIUDAARY
@@ -11,6 +10,7 @@ REASSIGN ; Reassign selected Documents
  . S TIUDATA=$G(^TMP("TIURIDX",$J,TIUI))
  . S TIUDA=+$P(TIUDATA,U,2) S RSTRCTD=$$DOCRES^TIULRR(TIUDA)
  . W !!,"Processing Item #",TIUI,"..."
+ . D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY W !,"This action is no longer permitted for SURGICAL REPORTS" H 1 Q
  . I RSTRCTD D  Q
  . . W !!,$C(7),"Ok, no harm done...",! ; Echo denial message
  . . I $$READ^TIUU("EA","RETURN to continue...") ; pause
@@ -34,8 +34,8 @@ REASSIGN ; Reassign selected Documents
 REASSIG1 ; Single record reassign
  N TIUAUTH,TIURSSG,TIUNAME,DA,DR,DIE,TIUTYPE,TIUEDIT,TIUADD,TIUPROMO,TIUY
  N TIUD0,TIUD12,TIUD13,TIUD14,TIUODA,TIUOUT K ^TMP("TIURTRCT",$J)
- NEW BTIUVSIT   ;IHS/ITSC/LJF 02/27/2003 so variable not left over
  D FULL^VALM1
+ D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY W !,"This action is no longer permitted for SURGICAL REPORTS" H 3 Q
  L +^TIU(8925,+TIUDA):1
  E  W !?5,$C(7),$C(7),$C(7),"Another user is editing this entry." S TIUY=$$READ^TIUU("EA","Press RETURN to continue...") Q
  ; Authorized? NO: echo why not & quit
@@ -121,10 +121,11 @@ CLAPPLNK ; Re-link selected Documents to different Client Records
  Q
  ;
 CLAPPLN1(TIUDA) ; Re-link a single record to the client application
- N TIUREASX,TIUCVP,CANLNK
+ N TIUREASX,TIUCVP,CANLNK,TIUY
  I '$D(^TIU(8925,TIUDA,0)) D  Q
  . W !!,$C(7),"Document no longer exists.",!
  . I $$READ^TIUU("EA","Press RETURN to continue...") W ""
+ D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY W !,"This action is no longer permitted for SURGICAL REPORTS" H 3 Q
  S TIUCVP=$P($G(^TIU(8925,TIUDA,14)),U,5)
  I +$$ISADDNDM^TIULC1(TIUDA) D  Q
  . W !!,$C(7),"Links for ADDENDA can't be independently changed.",!

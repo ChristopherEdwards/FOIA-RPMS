@@ -1,22 +1,29 @@
-PSOORNE5 ;BIR/SAB - display orders from backdoor con't ;10/24/97
- ;;7.0;OUTPATIENT PHARMACY;**11,27,32,46,78,99,117,131,146,171,180**;DEC 1997
+PSOORNE5 ;BIR/SAB - display orders from backdoor con't ;10-Oct-2011 11:48;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,32,46,78,99,117,131,146,171,180,1013**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references L and UL^PSSLOCK supported by DBIA 2789
  ;External reference to ^PS(51.2 supported by DBIA 2226
  ;External reference to ^PS(50.607 supported by DBIA 2221
  ;External reference ^PS(55 supported by DBIA 2228
  ;called from PSOORNE2
+ ; Modified - IHS/MSC/PLS - 09/20/2011 - Line PEN+6
+ ;                        - 10/05/2011 - Line PEN+14
 PEN ;pending orders
  K ^TMP("PSOPO",$J),PSORX("ISSUE DATE"),PSORX("FILL DATE") S ORSV=ORD,ORD=$P(PSOLST(ORN),"^",2)
  I $P($G(^PS(52.41,ORD,0)),"^",3)="DC"!($P($G(^(0)),"^",3)="DE") S VALMBCK="R" Q
  I $G(PSODFN)'=$P($G(^PS(52.41,ORD,0)),"^",2) S VALMBCK="" Q
  I $G(PSOTPBFG) N PSOTPPEN,PSOTPPEX S PSOTPPEN=ORD,PSOTPPEX=0 D VOPNR^PSOTPCAN I PSOTPPEX K PSOTPPEX,PSOTPPEN S VALMBCK="R" Q
  K PSOTPPEX,PSOTPPEN
+ ;IHS/MSC/PLS - 09/20/2011
+ D FULL^VALM1
+ I '$$PMTFORD^APSPFUNC(ORD) S ORD=ORSV,VALMBCK="R" Q
  ;I '$G(PSOTPBFG) D DSPL^PSOTPCAN(ORD)
  ;S X=PSODFN_";DPT(" D LK^ORX2 I 'Y S VALMSG="Another person is entering orders for this patient.",VALMBCK="" Q
  I '$G(PSOFIN) S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) S VALMSG=$S($P($G(PSOPLCK),"^",2)'="":$P($G(PSOPLCK),"^",2)_" is working on this patient.",1:"Another person is entering orders for this patient."),VALMBCK="" K PSOPLCK Q
  K PSOPLCK ; D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)_"S") I '$G(PSOMSG) S VAMLSG=$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing this order."),PSOACT="" K PSOMSG G OK ;VALMBCK="" Q
  S PSODRG=+$P($G(^PS(52.41,ORD,0)),"^",9) I $G(^PSDRUG(PSODRG,"I"))]"",DT>$G(^("I")) S VALMSG="This Drug has been Inactivated."
+ ;IHS/MSC/MGH Add text for REM medication Patch 1013
+ D REMMSG^APSPFUNC(PSODRG)
  K PSOMSG S PSOACT=$S($D(^XUSEC("PSORPH",DUZ)):"DEF",'$D(^XUSEC("PSORPH",DUZ))&($P($G(PSOPAR),"^",2)):"F",1:"")
 OK S PAT=PSODFN,PSORNSV=ORN,PSORNLT=PSLST D ORD^PSOORFIN S PSLST=PSORNLT,ORD=ORSV,ORN=PSORNSV K ORSV,PSORNSV,PSORNLT,PSODRUG S VALMBCK="R"
  K ORCHK,ORDRG,PSOFDR,SIGOK,PSONEW,PSORX("ISSUE DATE"),PSORX("FILL DATE"),PSORX("FN")

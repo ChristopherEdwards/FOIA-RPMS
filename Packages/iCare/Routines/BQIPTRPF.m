@@ -1,5 +1,5 @@
 BQIPTRPF ;VNGT/HS/ALA-Reproductive Factors Grid RPC ; 25 Jan 2010  1:26 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
 EN(DATA,DFN) ; EP -- BQI REPRODUCTIVE FACTORS GRID
  ;
@@ -20,7 +20,7 @@ EN(DATA,DFN) ; EP -- BQI REPRODUCTIVE FACTORS GRID
  S SEX=$$GET1^DIQ(2,DFN_",",.02,"I"),AGE=$$AGE^BQIAGE(DFN)
  I SEX'="F" S BMXSEC="RPC Failed: Patient is not Female" Q
  ;
- D REP^BQIPTREP(.NDATA,DFN)
+ D REP^BQIPTRP1(.NDATA,DFN,1)
  S VFIEN=$O(^BQI(90506.3,"B","Reproductive Factors",""))
  S N=0,HEADR="",VALUE=""
  F  S N=$O(@NDATA@(N)) Q:'N  D
@@ -35,7 +35,9 @@ EN(DATA,DFN) ; EP -- BQI REPRODUCTIVE FACTORS GRID
  .. I TYP="C"!(TYP="T"),VAL'="" D
  ... I TYP="T" D
  .... S TBL=$P($G(^BQI(90506.3,VFIEN,10,IEN,2)),U,3)
- .... S GROOT=$$ROOT^DILFD(TBL),GBL=GROOT_"""B"""_")"
+ .... I VAL?1N.N S VAL=VAL_$C(28)_$$GET1^DIQ(TBL,VAL_",",".01","E") Q
+ .... S GROOT=$$ROOT^DILFD(TBL)
+ .... S GBL=GROOT_"""B"""_")"
  .... S VAL=$O(@GBL@(VAL,""))
  ... I TYP="C" D
  .... S CCIEN=$O(^BQI(90506.3,VFIEN,10,IEN,5,"B",VAL,"")) I CCIEN="" Q

@@ -1,11 +1,13 @@
-APSPLBL ;IHS/DSD/ENM - MOD VER OF PSOLBL/BHAM - SETS VAR TO PRINT LABEL ;16-Sep-2009 22:24;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1003,1004,1006,1008**;Sep 23, 2004
+APSPLBL ;IHS/DSD/ENM - MOD VER OF PSOLBL/BHAM - SETS VAR TO PRINT LABEL ;15-Dec-2011 11:27;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1003,1004,1006,1008,1013**;Sep 23, 2004;Build 33
  ; Modified - IHS/CIA/PLS - 12/23/03 - Line DQ1+11
  ;                          12/27/04 - Lines DQ1+1, C+3, C+7, STA+5, STA+17, STATCHK
  ;                          03/22/05 - Line DQ1+6
  ;            IHS/CIA/PLS - 03/01/06 - Line ORIG+1
  ;            IHS/MSC/PLS - 04/01/09 - Line DQ1+1
  ;                          06/15/09 - C EP - add logic from PSOLBL to handle suspense labels
+ ;                          09/20/11 - Line STAT+13
+ ;                          12/15/11 - Wrapped APSQSGLB in $GET
 DQ I $D(PSOIOS),PSOIOS]"" D DEVBAR^PSOBMST
  I $G(PSOBAR0)]"",$G(PSOBAR1)]"",$D(^PS(59,PSOSITE,1)) S PSOBARS=1
 DQ1 ;EP
@@ -19,12 +21,12 @@ DQ1 ;EP
  .; Output signature label
  .; IHS/CIA/PLS - 03/22/05 - Additional parameters added
  .;D ENL^APSQSIGN($G(PPL),0,0,"TWO")
- .D ENL^APSQSIGN($G(PPL),0,0,"TWO",APSQSGLB,PSOSITE)
+ .D ENL^APSQSIGN($G(PPL),0,0,"TWO",$G(APSQSGLB),PSOSITE)
  E  D
  .D PARM,ENLBL^PSOBSET F PI=1:1 Q:$P(PPL,",",PI)=""  S RX=$P(PPL,",",PI) D C
  .;IHS/CIA/PLS - 8/23/05 - Signature labels for non-laser sites were not printing on the selected signature device.
  .;D EN^APSQSIGN(.ARRAY,$G(APSQSTOP,1),0,"TWO") ;IHS/OKCAO/POC 01/09/2001 ENTRY POINT FOR SIGNATURE LABEL,APSQSTOP DEFINED IN APSPNE4
- .D ENL^APSQSIGN($G(PPL),0,0,"TWO",APSQSGLB,PSOSITE,1)
+ .D ENL^APSQSIGN($G(PPL),0,0,"TWO",$G(APSQSGLB),PSOSITE,1)
  .;I $D(PSZK),PSZK,'(($G(PX)["B")!($G(PX)["S")) S L=PSZL+PSZE+PSZB*PSZK F I=1:1:L W ! ;IHS/DSD/ENM/POC 7/7/98  ADDED TO ALLOW NO SKIP BETWEEN  LBL & SUM IF SUM LBL PRINT
  ;
  D AUTOREL^APSPAUTO   ; IHS/CIA/PLS - 12/23/03
@@ -129,7 +131,9 @@ STA S STATE=$S($D(^DIC(5,+$P(PS,"^",8),0)):$P(^(0),"^",2),1:"UNKNOWN")
  .S PSMP=^PSRX(RX,"MP"),PSJ=0 F PSI=1:1 S PSMP(PSI)="",PSJ=PSJ+1 Q:PSMPEX  F PSJ=PSJ:1 S PSMP(PSI)=PSMP(PSI)_$P(PSMP," ",PSJ)_" " S:$P(PSMP," ",PSJ+1)="" PSMPEX=1 Q:PSMPEX!($L(PSMP(PSI))+$L($P(PSMP," ",PSJ+1))>30)
  .K PSMP(PSI)
  S X=$S($D(^PS(55,DFN,0)):^(0),1:""),PSCAP=$P(X,"^",2) S:MW="M" MW=$S(+$P(X,"^",3):"R",1:MW) S MW=$S(MW="M":"REGULAR",MW="R":"CERTIFIED",1:"WINDOW")
- S DATE=$E(FDT,1,7),REF=$P(RXY,"^",9)-RXF S:'$G(RXP) $P(^PSRX(RX,3),"^")=FDT S:REF<1 REF=0 S PSZRM="  MRx"_REF D ^APSPLBL2 S II=RX D ^PSORFL
+ ;IHS/MSC/PLS - 09/20/2011
+ ;S DATE=$E(FDT,1,7),REF=$P(RXY,"^",9)-RXF S:'$G(RXP) $P(^PSRX(RX,3),"^")=FDT S:REF<1 REF=0 S PSZRM="  MRx"_REF D ^APSPLBL2 S II=RX D ^PSORFL
+ S DATE=$E(FDT,1,7),REF=$P(RXY,"^",9)-RXF S:'$G(RXP) $P(^PSRX(RX,3),"^")=FDT S:REF<1 REF=0 S PSZRM="  Fill "_(RXF+1)_" of "_(1+$P(RXY,"^",9)) D ^APSPLBL2 S II=RX D ^PSORFL
  S PATST=^PS(53,$P(RXY,"^",3),0) S PRTFL=1 I REF=0 S:('$P(PATST,"^",5))!(DEA["A"&(DEA'["B"))!(DEA["W") PRTFL=0
  S VRPH=$P(^PSRX(RX,2),"^",10),PSCLN=+$P(RXY,"^",5),PSCLN=$S($D(^SC(PSCLN,0)):$P(^(0),"^",2),1:"UNKNOWN")
  S PATST=$P(PATST,"^",2),X1=DT,X2=$P(RXY,"^",8)-10 D C^%DTC:REF I $D(^PSRX(RX,2)),$P(^(2),"^",6),REF,X'<$P(^(2),"^",6) S REF=0,VRPH=$P(^(2),"^",10)

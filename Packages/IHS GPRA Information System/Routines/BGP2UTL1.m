@@ -1,10 +1,29 @@
 BGP2UTL1 ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 02 Jul 2010 2:07 PM ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
+ ;
+SETPRC(P,BDATE,EDATE,T,BGPG) ;EP
+ K BGPG
+ NEW BGPDX1,BGPDX2,BGPDX3,BGPDX4,BGPTX5
+ ;RETURN BGPDX4=1 or 0^dx code^date found^IEN OF ICD CODE^IEN OF V PROC
+ S (BGPDX1,BGPDX2,BGPDX3,BGPDX4,BGPTX5)=""
+ I $G(BDATE)="" S BDATE=$P(^DPT(P,0),U,3)  ;if no date then set to DOB
+ I $G(EDATE)="" S EDATE=DT  ;if no end date then set to today
+ S BGPTX5=$O(^ATXAX("B",T,0))  ;get taxonomy ien
+ I BGPTX5="" Q  ;not a valid taxonomy
+ S BGPDX4=0  ;return value
+ F  S BGPDX1=$O(^AUPNVPRC("AC",P,BGPDX1)) Q:BGPDX1=""  D
+ .S BGPDX3=$P($G(^AUPNVPRC(BGPDX1,0)),U)
+ .Q:BGPDX3=""  ;bad
+ .Q:'$$ICD^ATXCHK(BGPDX3,BGPTX5,0)
+ .S BGPDX4=BGPDX4+1,BGPG(BGPDX4)=$$VD^APCLV($P(^AUPNVPRC(BGPDX1,0),U,3))_"^"_$P($$ICDOP^ICDCODE(BGPDX3),U,2)_"^"_$P($$ICDOP^ICDCODE(BGPDX3),U,2)_"^"_BGPDX1_";AUPNVPRC"_"^"_$P(^AUPNVPRC(BGPDX1,0),U,3)
+ .Q
+ Q
  ;
 LASTDX(P,T,BDATE,EDATE) ;EP
  I '$G(P) Q ""
  ;RETURN BGPDX4=1 or 0^dx code^date found^IEN OF ICD CODE^IEN OF V POV
+ NEW BGPDX1,BGPDX2,BGPDX3,BGPDX4,BGPTX5
  S (BGPDX1,BGPDX2,BGPDX3,BGPDX4,BGPTX5)=""
  I $G(BDATE)="" S BDATE=$P(^DPT(P,0),U,3)  ;if no date then set to DOB
  I $G(EDATE)="" S EDATE=DT  ;if no end date then set to today
@@ -228,7 +247,7 @@ CPTREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)_"^"_$P(^ICPT(I,0),U)
  .Q
  Q G
-PRCREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
+PRCREFT(P,BDATE,EDATE,T) ;EP - return ien of proc
  I '$G(P) Q ""
  I '$G(T) Q ""
  I $G(EDATE)="" Q ""
@@ -238,7 +257,7 @@ PRCREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  S I=0 F  S I=$O(^AUPNPREF("AA",P,80.1,I)) Q:I=""!($P(G,U))  D
  .S (X,G)=0 F  S X=$O(^AUPNPREF("AA",P,80.1,I,X)) Q:X'=+X!($P(G,U))  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,80.1,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
  ..Q:'$$ICD^ATXCHK(I,T,0)
- ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)
+ ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)_"^"_$P($$ICDOP^ICDCODE(I),U,2)
  .Q
  Q G
 STI16A() ;EP

@@ -1,8 +1,8 @@
 BGP2D35 ; IHS/CMI/LAB - measure C ; 01 Nov 2011  12:11 PM
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 VAR(P,EDATE) ;EP
- K BGPC,BGPG,BGPX
+ NEW BGPC,BGPG,BGPX,BGPVARI,C,ED,BD,G,V,X,Y,BGPZ,B,BGPIMM,R,BGPNMI
  ;gather up all immunizations, cpts, povs and check for 3 each ten days apart
  K BGPVARI
  ;get all immunizations
@@ -20,7 +20,7 @@ VAR(P,EDATE) ;EP
  ..S X=0 F  S X=$O(^AUPNVTC("AD",V,X)) Q:X'=+X  D
  ...S Y=$P(^AUPNVTC(X,0),U,7) Q:'Y  S Y=$P($$CPT^ICPTCOD(Y),U,2) I Y=90710!(Y=90716) S BGPVARI(9999999-$P(ED,"."))=""
  I $D(BGPVARI) Q 1_U_"Vari"
- K BGPG S %=P_"^ALL DX V05.4;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ K BGPG S %=P_"^ALL DX [BGP VARICELLA IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
  I $D(BGPG(1)) Q 2_U_"Vari"
  ;check for Evidence of desease and Contraindications and if yes, then quit
  K BGPG S %=P_"^LAST DX [BGP VARICELLA EVIDENCE;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
@@ -48,8 +48,7 @@ VAR(P,EDATE) ;EP
  I R Q 3_U_"Ref imm pkg Vari"
  Q ""
 HEP(P,EDATE) ;EP
- K BGPC,BGPG,BGPX
- K BGPHEP
+ NEW BGPC,BGPG,BGPX,BGPHEP,X,ED,BD,G,T,BGP10743,V,Z,Y,C
  ;get all immunizations
  S C="8^42^43^44^45^51^102^104^110^132^146"
  D GETIMMS^BGP2D32(P,EDATE,C,.BGPX)
@@ -119,7 +118,7 @@ HIB(P,EDATE) ;EP
  I BGPHIB>2 Q 1_U_"3 Hib"
  ;now get povs
  K BGPHIB M BGPHIB=BGPAHIB
- K BGPG S %=P_"^ALL DX V03.81;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ K BGPG S %=P_"^ALL DX [BGP HIB IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
  I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPHIB($P(BGPG(X),U))="",BGPAHIB($P(BGPG(X),U))=""
  ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
  S X="",Y="",C=0 F  S X=$O(BGPHIB(X)) Q:X'=+X  S C=C+1 D
@@ -174,16 +173,7 @@ PNEUMO(P,EDATE,MINN) ;EP
  I BGPPNU>(MINN-1) Q 1_U_MINN_" Pneumo"
  ;now get povs
  K BGPPNU M BGPPNU=BGPAPNU
- K BGPG S %=P_"^ALL DX V03.82;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
- I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPPNU($P(BGPG(X),U))="",BGPAPNU($P(BGPG(X),U))=""
- ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
- S X="",Y="",C=0 F  S X=$O(BGPPNU(X)) Q:X'=+X  S C=C+1 D
- .I C=1 S Y=X Q
- .I $$FMDIFF^XLFDT(X,Y)<11 K BGPPNU(X) Q
- .S Y=X
- ;now get povs
- K BGPPNU M BGPPNU=BGPAPNU
- K BGPG S %=P_"^ALL DX V06.6;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ K BGPG S %=P_"^ALL DX [BGP PNEUMO IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
  I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPPNU($P(BGPG(X),U))="",BGPAPNU($P(BGPG(X),U))=""
  ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
  S X="",Y="",C=0 F  S X=$O(BGPPNU(X)) Q:X'=+X  S C=C+1 D

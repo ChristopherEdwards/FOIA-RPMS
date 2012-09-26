@@ -1,5 +1,5 @@
 BGP2D2 ; IHS/CMI/LAB - measure 1,2,3,4 ;
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;
 I1 ;EP - measure 1 general processing
  S BGPN1=0

@@ -1,9 +1,10 @@
-PSGMMAR4 ;BIR/CML3-MD MARS - PRINT O/P ORDERS ;17-Nov-2009 13:09;SM
- ;;5.0; INPATIENT MEDICATIONS ;**8,12,20,1008**;16 DEC 97
+PSGMMAR4 ;BIR/CML3-MD MARS - PRINT O/P ORDERS ;02-Nov-2011 15:05;DU
+ ;;5.0; INPATIENT MEDICATIONS ;**8,12,20,1008,1013**;16 DEC 97;Build 33
  ;
  ; Modified - IHS/CIA/PLS - 06/21/04 - Line ENB+5
  ;            IHS/MSC/PLS - 12/09/08 - Line HEADER+2
  ;                          11/17/09 - Line BOT+2
+ ;            IHS/MSC/MGH - 11/02/11 - Line HEADER+10
 PSGMARB ;***Print blank MAR for PRN orders.
  NEW L1 S L1="      |           |"
  D HEADER F X=1:1:(BL/2) D
@@ -32,13 +33,15 @@ EN ;***Start print prn orders.
 HEADER ;*** Patient info
  S:'$G(PSGXDT) PSGXDT=PSGDT
  ;W:$G(PSGPG) @IOF S PSGPG=1 W ?1,"ONE-TIME/PRN SHEET",?61,PSGMARDF_" DAY MAR",?100,PSGMARSP_"  through  "_PSGMARFP
- W:$G(PSGPG) @IOF S PSGPG=1 W !?1,"ONE-TIME/PRN SHEET",?31,PSGMARDF_" DAY MAR",?60,PSGMARSP_"  through  "_PSGMARFP,?110,"Page ___ of ___"
+ W:$G(PSGPG) @IOF S PSGPG=1 W ?1,"ONE-TIME/PRN SHEET",?31,PSGMARDF_" DAY MAR",?60,PSGMARSP_"  through  "_PSGMARFP,?110,"Page ___ of ___"
  W !?5,$P($$SITE^PSGMMAR2(80),U,2),?102,"Printed on  ",$$ENDTC2^PSGMI(PSGXDT)
  W !?5,"Name:  "_PPN,?62,"Weight (kg): "_WT,?103,"Ward: "_PWDN
  W !?6,"PID:  "_PSSN,?25,"DOB: "_BD_"  ("_PAGE_")",?62,"Height (cm): "_HT,?99,"Room-Bed: "_PRB
  W !?6,"Sex:  "_PSEX,?25," Dx: "_DX,?$S(TD:94,1:99),$S(TD:"Last Transfer: "_TD,1:"Admitted: "_AD)
  I '$D(PSGALG) W !,"Allergies:  See attached list of Allergies/Adverse Reactions"
- NEW PSGX S PSGX=0 D ATS^PSGMAR3(.PSGX) D:PSGX HEADER Q:PSGX
+ ;Updated patch 1013 to display all allergies on each page
+ ;NEW PSGX S PSGX=0 D ATS^PSGMAR3(.PSGX) D:PSGX HEADER Q:PSGX
+ NEW PSGX S PSGX=0 D ATS^PSGMAR3(.PSGX)
  I $G(PSJDIET)]"" W !?57,"Diet: ",PSJDIET
  E  W !
  ;* W !!?1,"Order",?9,"Start",?21,"Stop",?77,"Order",?85,"Start",?97,"Stop",!,LN1

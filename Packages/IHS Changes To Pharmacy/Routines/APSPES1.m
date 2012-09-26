@@ -1,5 +1,5 @@
-APSPES1 ;IHS/MSC/PLS - SureScripts HL7 interface  ;03-May-2011 09:59;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1011**;Sep 23, 2004;Build 17
+APSPES1 ;IHS/MSC/PLS - SureScripts HL7 interface  ;19-Dec-2011 08:49;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1011,1013**;Sep 23, 2004;Build 33
  Q
  ; Build NewRx HL7 segments
 NEWRX(RXIEN) ;EP
@@ -96,7 +96,7 @@ CACK ; EP - Commit ACK callback - called when CA, CE or CR is received.
  ;
 ARSP ; EP - callback for ORP/O10 event
  N AACK,MSG,WHO,OPRV,ARY,RET,RXIEN,DATA,HLMSTATE,MSA
- N SEGIEN,SEGMSA,MSGIEN
+ N SEGIEN,SEGMSA,MSGIEN,SEGERR,ERRTXT
  S MSGIEN=0
  D PARSE^APSPES2(.DATA,HLMSGIEN,.HLMSTATE)
  S SEGIEN=$$FSEGIEN(.DATA,"MSA")
@@ -111,10 +111,13 @@ ARSP ; EP - callback for ORP/O10 event
  S ARY("RX REF")=0
  S ARY("USER")=OPRV
  I AACK'="AA" D  Q
+ .S SEGIEN=$$FSEGIEN(.DATA,"ERR")
+ .M SEGERR=DATA(SEGIEN)
+ .S ERRTXT=$$GET^HLOPRS(.SEGERR,8)
  .D BADORP
  .I RXIEN D
  ..S ARY("TYPE")="F"
- ..S ARY("COM")="ERROR: Electronic Prescription did not transmit."
+ ..S ARY("COM")=$S($L($G(ERRTXT)):ERRTXT,1:"ERROR: Electronic Prescription did not transmit.")
  ..D UPTLOG^APSPFNC2(.RET,RXIEN,0,.ARY)
  ..D NOTIF(RXIEN,"ERROR: Electronic Prescription did not transmit.")
  ;.S MSG(1)="HL7 Message: "_$G(^HLB(MSGIEN,1))_$G(^HLB(MSGIEN,2))
@@ -136,7 +139,8 @@ BADORP ; EP - Send bulletin regarding bad ORP acknowledgement message
  S MSG(3)="did not receive a valid NEWRX acknowledgement."
  S MSG(4)=" "
  S MSG(5)="Acknowledgement code: "_$G(AACK)
- S MSG(6)=" "
+ S MSG(6)="Error: "_$G(ERRTXT)
+ S MSG(7)=" "
  S WHO("G.APSP EPRESCRIBING")=""
  S:$G(OPRV) WHO(OPRV)=""
  D BULL^APSPES2("HL7 ERROR","APSP e-Prescribing Interface",.WHO,.MSG)

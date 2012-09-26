@@ -1,5 +1,5 @@
 BGPMUA03 ; IHS/MSC/MGH - MI measure NQF0031 ;29-Nov-2011 7:37;MMT
- ;;12.0;IHS CLINICAL REPORTING;;JAN 9, 2012;Build 51
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;Code to collect meaningful use report for breast cancer screening
 ENTRY ;EP
  ; expects:

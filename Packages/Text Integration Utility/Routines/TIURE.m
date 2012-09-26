@@ -1,7 +1,6 @@
-TIURE ; SLC/JER - Error handler actions ; 4/10/02
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,81,131**;Jun 20, 1997
+TIURE ; SLC/JER - Error handler actions ;01-Aug-2011 12:06;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,81,131,113,1009**;Jun 20, 1997;Build 22
  ;IHS/ITSC/LJF 02/27/2003 added ability to delete garbage upload entries
- ;
 PRINT ; Print Buffer record associated w/unresolved filing error
  N TIUDA,TIUDATA,TIUI,DIROUT
  I '$D(VALMY) D EN^VALM2(XQORNOD(0))
@@ -25,7 +24,7 @@ PRINT1 ; Print a single buffer record
  . D EN1^DIP
  Q
 EDIT ; Edit Buffer record associated w/unresolved filing error
- N TIUDA,BUFDA,TIUDATA,TIUI,DIROUT
+ N TIUDA,BUFDA,TIUDATA,TIUI,DIROUT,TIUDI
  I '$D(VALMY) D EN^VALM2(XQORNOD(0))
  S TIUI=0
  F  S TIUI=$O(VALMY(TIUI)) Q:+TIUI'>0  D  Q:$D(DIROUT)
@@ -37,7 +36,8 @@ EDIT ; Edit Buffer record associated w/unresolved filing error
  . D EN^VALM("TIU DISPLAY FILING EVENT")
  . D RESTORE^TIULM(+$O(@VALMAR@("PICK",TIUI,0)))
  W !,"Refreshing the list."
- D BUILD^TIUELST($P(^TMP("TIUERR",$J,0),U,2),$P(^(0),U,3),TIUEDT,TIULDT)
+ M TIUDI=^TMP("TIUERR",$J,"DIV")
+ D BUILD^TIUELST($P(^TMP("TIUERR",$J,0),U,2),$P(^(0),U,3),TIUEDT,TIULDT,.TIUDI)
  K VALMY S:'$D(VALMBCK) VALMBCK="R"
  Q
 EDIT1 ; Single record edit

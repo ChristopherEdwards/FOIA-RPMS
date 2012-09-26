@@ -1,5 +1,5 @@
 ACHSTX7 ;IHS/ITSC/PMF - EXPORT DATA (8/9) - RECORD 7(638 STATISTICAL DATA FOR NPIRS) ;JUL 10, 2008
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**2,3,5,7,11,12,14,15**;JUN 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**2,3,5,7,11,12,14,15,21**;JUN 11,2001
  ;ACHS*3.1*2; add missing FOR loop
  ;ACHS*3.1*3  Add UID number to type 7 transaction
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - Add AGE to Dental 638.
@@ -41,7 +41,8 @@ GOTSOME ;
  ;this is the central loop of the program.
  ;For each document listed, see if it qualifies to create a record
  ;
- I $G(ACHSFDTT) S ACHSFDT=ACHSFDTT ;ACHS*3.1*15 AND 16 IHS.OIT.FCJ Added test for re-export opt
+ ;ACHS*3.1*21;ADDED PARM TEST TO NEXT LINE
+ I $G(ACHSFDTT),$$PARM^ACHS(2,11)'="Y" S ACHSFDT=ACHSFDTT ;ACHS*3.1*15 AND 16 IHS.OIT.FCJ Added test for re-export opt
  W !!?10,"BUILDING ",$$REC^ACHSACO1(7)," : ",!?9
  ;
  S ACHSTOS=0 F  S ACHSTOS=$O(^ACHSTXPG(ACHSTOS)) Q:'ACHSTOS  D

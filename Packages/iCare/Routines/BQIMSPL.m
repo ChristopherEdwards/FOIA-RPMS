@@ -1,5 +1,5 @@
 BQIMSPL ;PRXM/HC/ALA-Get Measures by Panel ; 12 Jun 2007  2:57 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
@@ -52,7 +52,7 @@ NCOWN(OWNR,PLIEN,DFN) ;EP - Get customized display for an owner
  ;  HEADR = Record header
  ;  STVW  = Panel view definition internal entry number
  ;  VALUE = Record value
- NEW IEN,HDR,VALUE,HEADR,DORD,HDOB,Y,ORD
+ NEW IEN,HDR,VALUE,HEADR,DORD,HDOB,Y,ORD,KEY
  S VALUE=""
  I DFN'="" S Y=$$GET1^DIQ(9000001,DFN_",",1102.2,"I"),HDOB=$$FMTE^BQIUL1(Y)
  I DFN'="" S VALUE=DFN_"^"_$$FLG^BQIULPT(DUZ,PLIEN,DFN)_"^"_$$SENS^BQIULPT(DFN)_"^"_$$CALR^BQIULPT(DFN)_"^"_$$MFLAG^BQIULPT(OWNR,PLIEN,DFN)_"^"_HDOB_"^"
@@ -64,6 +64,8 @@ NCOWN(OWNR,PLIEN,DFN) ;EP - Get customized display for an owner
  . S STVW=$$GET1^DIQ(90505.13,IENS,.01,"I"),STVWCD=STVW
  . S SIEN=$O(^BQI(90506.1,"B",STVW,"")) I SIEN="" Q
  . I $$GET1^DIQ(90506.1,SIEN_",",.1,"I")=1 Q
+ . S KEY=$$GET1^DIQ(90506.1,SIEN_",",3.1,"E")
+ . I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  . I $P(^BQI(90506.1,SIEN,0),U,10)=1 Q
  . S HDR=$$GET1^DIQ(90506.1,SIEN_",",.08,"E")
  . ;I $P(^BQI(90506.1,SIEN,2),U,1)="D" S STVW=SIEN D CVAL
@@ -92,7 +94,7 @@ NCOWN(OWNR,PLIEN,DFN) ;EP - Get customized display for an owner
  ;
 NCDUZ(OWNR,PLIEN,DFN) ;EP - Get customized display for a shared user
  ; New (in DEV) CDUZ
- NEW IEN,HDR,VALUE,HEADR,DORD,HDOB,Y
+ NEW IEN,HDR,VALUE,HEADR,DORD,HDOB,Y,KEY
  S VALUE=""
  I DFN'="" S Y=$$GET1^DIQ(9000001,DFN_",",1102.2,"I"),HDOB=$$FMTE^BQIUL1(Y)
  I DFN'="" S VALUE=DFN_"^"_$$FLG^BQIULPT(DUZ,PLIEN,DFN)_"^"_$$SENS^BQIULPT(DFN)_"^"_$$CALR^BQIULPT(DFN)_"^"_$$MFLAG^BQIULPT(OWNR,PLIEN,DFN)_"^"_HDOB_"^"
@@ -106,6 +108,8 @@ NCDUZ(OWNR,PLIEN,DFN) ;EP - Get customized display for a shared user
  . NEW SIEN
  . S SIEN=$O(^BQI(90506.1,"B",STVW,"")) I SIEN="" Q
  . I $$GET1^DIQ(90506.1,SIEN_",",.1,"I")=1 Q
+ . S KEY=$$GET1^DIQ(90506.1,SIEN_",",3.1,"E")
+ . I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  . NEW STVW
  . S STVW=SIEN
  . S HDR=$$GET1^DIQ(90506.1,SIEN_",",.08,"E")
@@ -133,7 +137,7 @@ NCDUZ(OWNR,PLIEN,DFN) ;EP - Get customized display for a shared user
  Q
  ;
 STAND() ;EP - Get standard display
- NEW IEN,HDR,VALUE,HEADR,SENS,HDOB,Y,STVW,TEXT,ORD
+ NEW IEN,HDR,VALUE,HEADR,SENS,HDOB,Y,STVW,TEXT,ORD,KEY
  S VALUE=""
  I DFN'="" S Y=$$GET1^DIQ(9000001,DFN_",",1102.2,"I"),HDOB=$$FMTE^BQIUL1(Y)
  I DFN'="" S VALUE=DFN_"^"_$$FLG^BQIULPT(DUZ,PLIEN,DFN)_"^"_$$SENS^BQIULPT(DFN)_"^"_$$CALR^BQIULPT(DFN)_"^"_$$MFLAG^BQIULPT(OWNR,PLIEN,DFN)_"^"_HDOB_"^"
@@ -149,6 +153,8 @@ STAND() ;EP - Get standard display
  F TYP="G","R","A","H" S IEN="" D
  . F  S IEN=$O(^BQI(90506.1,"AC",TYP,IEN)) Q:IEN=""  D
  .. I $$GET1^DIQ(90506.1,IEN_",",.1,"I")=1 Q
+ .. S KEY=$$GET1^DIQ(90506.1,IEN_",",3.1,"E")
+ .. I KEY'="",'$$KEYCHK^BQIULSC(KEY,DUZ) Q
  .. S STVW=$P(^BQI(90506.1,IEN,0),U,1)
  .. S HDR=$$GET1^DIQ(90506.1,IEN_",",.08,"E")
  .. ;I $P($G(^BQI(90506.1,IEN,2)),U,1)="R" D RMVL

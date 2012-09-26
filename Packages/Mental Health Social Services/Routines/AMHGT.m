@@ -1,5 +1,5 @@
 AMHGT ; IHS/CMI/MAW - AMH Behavioral Health GUI Tables 9/30/2008 10:31:41 AM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
  ;
  ;
  ;
@@ -73,7 +73,7 @@ SEARCHO(RETVAL,AMHSTR) ;-- return search results to frmSearchSingle and frmSearc
  Q
  ;
 SEARCH(RETVAL,AMHSTR) ;-- return search results to frmSearchSingle and frmSearchMultiple
- N AMHDA,AMHI,P,AMHFL,AMHIDX,AMHGB,AMHS,AMHSZ,AMHL,AMHTGT,AMHFLDS,AMHSCR,AMHPR,AMHFLD1,AMHFLD2,AMHDT
+ N AMHDA,AMHI,P,AMHFL,AMHIDX,AMHGB,AMHS,AMHSZ,AMHL,AMHTGT,AMHFLDS,AMHSCR,AMHPR,AMHFLD1,AMHFLD2,AMHDT,AMHECD
  S P="|"
  S AMHI=0
  D ADO^AMHGU
@@ -89,6 +89,10 @@ SEARCH(RETVAL,AMHSTR) ;-- return search results to frmSearchSingle and frmSearch
  S AMHFLD1=$P(AMHSTR,P,4)
  S AMHFLD2=$P(AMHSTR,P,5)
  S AMHSCR=$P(AMHSTR,P,6)
+ I AMHSCR="E" D  ;this is for e codes
+ . I $E(AMHS,1,1)'="E" S AMHS="E"_AMHS  ;add the e code to e code lookup
+ . S AMHECD=1
+ . S AMHSCR=""  ;if screen is E code set this up
  S AMHDT=$P(AMHSTR,P,8)
  I $G(AMHSCR)["" S AMHSCR=$TR(AMHSCR,"*","^")
  S AMHPR=$P(AMHSTR,P,7)
@@ -108,6 +112,8 @@ SEARCH(RETVAL,AMHSTR) ;-- return search results to frmSearchSingle and frmSearch
  .. S AMHBMX=$G(@AMHTGT@("DILIST",2,AMHDA))
  .. I AMHFL=9002012.2,'$$CHKD^AMHUTIL1(AMHBMX,AMHDT) K AMHBMX Q
  .. I AMHFL=81,'$$CHKCPT^AMHUTIL1(AMHBMX,AMHDT) K AMHBMX Q
+ .. I AMHFL=80,'$G(AMHECD),'$$CHK^AUPNSICD(AMHBMX) K AMHBMX Q  ;for ecodes
+ .. I AMHFL=80,$G(AMHECD),'$$CHKE1^AUPNSICD(AMHBMX) K AMHBMX Q  ;for ecodes
  .. S AMHFLD(AMHIEN)=$G(@AMHTGT@("DILIST","ID",AMHDA,AMHIEN))
  . Q:'$G(AMHBMX)
  . S AMHI=AMHI+1

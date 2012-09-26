@@ -1,5 +1,5 @@
 AMHLEA ; IHS/CMI/LAB - ADD NEW CHR ACTIVITY RECORDS ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2**;JUN 18, 2010;Build 23
  ;
  ;add new records
  ;get all items for a record, check record, file record
@@ -168,9 +168,9 @@ OTHERN ;
 OTHERO ;
  W @IOF,!!!?20,"*******  OTHER INFORMATION  *******",!!
  D RMENU
- S DIR("B")=9,DIR(0)="NO^1:9",DIR("A")="Choose one of the above" D ^DIR K DIR ;S:$D(DUOUT) DIRUT=1
+ S DIR("B")=10,DIR(0)="NO^1:10",DIR("A")="Choose one of the above" D ^DIR K DIR ;S:$D(DUOUT) DIRUT=1
  Q:$D(DIRUT)
- Q:Y=9
+ Q:Y=10
  S AMHSELE=+Y D OTHER1
  G OTHERN
 OTHER1 ;
@@ -222,7 +222,8 @@ RMENU ;EP - called form AMHLEA
  W !?5,"6). Print an Encounter Form"
  W !?5,"7). Add/Update/Print Intake Document"
  W !?5,"8). Add/Update Suicide Forms"
- W !,?5,"9). None of the Above (Quit)"
+ W !,?5,"9). Problem List Update"
+ W !?5,"10). None of the Above (Quit)"
  Q
 HEADER ;EP
  W:$D(IOF) @IOF
@@ -280,6 +281,9 @@ EXIT ;CLEAN UP AND EXIT
  .I $P(^AMHREC(AMHR,0),U,34) W !!,"You cannot add/update a suicide form on a visit created in a group.",! D PAUSE^AMHLEA Q
  .S DFN=$P(^AMHREC(AMHR,0),U,8) D EN^AMHLESF
  .Q
+ Q
+9 ;problem list
+ D START^AMHBPL(AMHR)
  Q
 CHECK ;EP
  S AMHZDEL=0,AMHZED=0

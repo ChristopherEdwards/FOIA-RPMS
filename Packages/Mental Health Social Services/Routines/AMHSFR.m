@@ -1,5 +1,5 @@
 AMHSFR ; IHS/CMI/LAB - REVIEW SF BY DATE 28 Apr 2009 10:46 AM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2**;JUN 18, 2010;Build 23
  ;
  ;
 START ;
@@ -221,18 +221,34 @@ CHECK ; check record for completeness
  S AMHC=0
  F AMHF=.03:.01:.08 I $$VAL^XBDIQ1(9002011.65,AMHSF,AMHF)="" W !,$P(^DD(9002011.65,AMHF,0),U)," is a required data element." S AMHC=1
  F AMHF=.11,.13:.01:.15,.25 I $$VAL^XBDIQ1(9002011.65,AMHSF,AMHF)="" W !,$P(^DD(9002011.65,AMHF,0),U)," is a required data element." S AMHC=1
+ I $$VAL^XBDIQ1(9002011.65,AMHSF,.25)="OTHER",$$VAL^XBDIQ1(9002011.65,AMHSF,1402)="" S AMHC=1 W !,"Location of Act is OTHER, OTHER description is required."
+ I $$VAL^XBDIQ1(9002011.65,AMHSF,.25)'="OTHER",$$VAL^XBDIQ1(9002011.65,AMHSF,1402)]"" S DA=AMHSF,DIE="^AMHPSUIC(",DR="1402///@" D ^DIE K DA,DIE,DR
  ;I $P(^AMHPSUIC(AMHSF,0),U,16)="",$P(^AMHPSUIC(AMHSF,0),U,17)="" W !,"INTERVENTION is a required data element." S AMHC=1
  S (Z,X,G)=0 F  S X=$O(^AMHPSUIC(AMHSF,11,X)) Q:X'=+X  D
  .I $P($G(^AMHPSUIC(AMHSF,11,X,0)),U)]"" S G=1
+ .I $P($G(^AMHPSUIC(AMHSF,11,X,0)),U)=8,$P(^AMHPSUIC(AMHSF,11,X,0),U,2)="" W !,"One of the Methods is OTHER.  OTHER description is Required." S AMHC=1
  .I $P(^AMHPSUIC(AMHSF,11,X,0),U,1)'=7 K ^AMHPSUIC(AMHSF,11,X,11)
+ .I $P(^AMHPSUIC(AMHSF,11,X,0),U,1)=7 D
+ ..S Y=0 F  S Y=$O(^AMHPSUIC(AMHSF,11,X,11,Y)) Q:Y'=+Y  D
+ ...S D=$P(^AMHPSUIC(AMHSF,11,X,11,Y,0),U,1)
+ ...I $P(^AMHTSDRG(D,0),U,2),$P(^AMHPSUIC(AMHSF,11,X,11,Y,0),U,2)="" S AMHC=1 W !,"Method is Overdose, Drug type is Other, Other description is required."
  .Q
  I 'G W !!,"You must enter a METHOD." S AMHC=1
  S G=$P(^AMHPSUIC(AMHSF,0),U,26)
- I G="" W !!,"You must enter a value for SUBSTANCE Use.  None and Unknown are valid values." S AMHC=1
+ I G="" W !!,"You must enter a value for SUBSTANCE Use.  None or Unknown are valid values." S AMHC=1
+ I G=2 D
+ .S X=0 F  S X=$O(^AMHPSUIC(AMHSF,15,X)) Q:X'=+X  D
+ ..S D=$P(^AMHPSUIC(AMHSF,15,X,0),U,1)
+ ..I $P(^AMHTSSU(D,0),U,2),$P(^AMHPSUIC(AMHSF,15,X,0),U,2)="" S AMHC=1 W !,"Substance Involved is Alcohol/Drugs, Drug is Other, Other Description is Required."
  S (Z,G,X)=0 F  S X=$O(^AMHPSUIC(AMHSF,13,X)) Q:X'=+X  D
  .I $P($G(^AMHPSUIC(AMHSF,13,X,0)),U)]"" S G=1
+ .S D=$P(^AMHPSUIC(AMHSF,13,X,0),U,1)
+ .I $P(^AMHTSCF(D,0),U,1)="OTHER",$P(^AMHPSUIC(AMHSF,13,X,0),U,2)="" S AMHC=1 W !,"Contributing Factor is OTHER, OTHER description is required."
  .Q
+ ;NOW CHECK FOR OTHER
  I 'G W !!,"You must enter a CONTRIBUTING FACTOR.  Unknown is a valid value." S AMHC=1
+ I $P(^AMHPSUIC(AMHSF,0),U,15)=7,$$VAL^XBDIQ1(9002011.65,AMHSF,1401)="" S AMHC=1 W !,"Location of Act is OTHER, OTHER description is required."
+ I $P(^AMHPSUIC(AMHSF,0),U,15)'=7,$$VAL^XBDIQ1(9002011.65,AMHSF,1401)]"" S DIE="^AMHPSUIC(",DA=AMHSF,DR="1401///@" D ^DIE K DA,DIE,DR
  I AMHC W !!,"One or more required data elements are missing.",!! D  G:Y="E" ADDDS G:Y="L" EXIT W !,"Deleting form..." S DA=AMHSF,DIK="^AMHPSUIC(" D ^DIK D PAUSE
  .S DIR(0)="S^E:Edit and Complete the Form;D:Delete the Incomplete Form;L:Leave the Incomplete Form as is and Finish it Later",DIR("A")="What do you want to do",DIR("B")="E" KILL DA D ^DIR KILL DIR
  .I $D(DIRUT) S Y="L"

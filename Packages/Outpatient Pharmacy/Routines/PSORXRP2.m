@@ -1,18 +1,23 @@
-PSORXRP2 ;BIR/SAB-main menu entry reprint of a Rx label ;01-Feb-2004 13:02;DM
- ;;7.0;OUTPATIENT PHARMACY;**11,27,120,138,135**;DEC 1997
+PSORXRP2 ;BIR/SAB-main menu entry reprint of a Rx label ;12-Oct-2011 15:00;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,120,138,135,1013**;DEC 1997;Build 33
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to ^PSDRUG supported by DBIA 221
  ; Modified - IHS/CIA/PLS - 12/22/03 - Line GOOD+12, GOOD+31, and ACT+1
  ; Modified - IHS/CIA/DKM - 02/01/04 - Line ACT+3
+ ;          - IHS/MSC/PLS - 09/16/2011 - Line PSORXRP2+9,LRP+1,LRP+7
  I '$D(PSOPAR) D ^PSOLSET I '$D(PSOPAR) G KILL
-LRP K REPRINT W !! S DIC("S")="I $P($G(^(0)),""^"",2),$D(^(""STA"")),$P($G(^(""STA"")),""^"")<10",DIC="^PSRX(",DIC("A")="Reprint Prescription Label: ",DIC(0)="QEAZ" D ^DIC K P,DIC("A") I Y<0!("^"[X) K PCOM,PCOMX G KILL
+ Q:'$$ESIG^APSPFUNC  ;IHS/MSC/PLS - patch 1013
+LRP ;K REPRINT W !! S DIC("S")="I $P($G(^(0)),""^"",2),$D(^(""STA"")),$P($G(^(""STA"")),""^"")<10",DIC="^PSRX(",DIC("A")="Reprint Prescription Label: ",DIC(0)="QEAZ" D ^DIC K P,DIC("A") I Y<0!("^"[X) K PCOM,PCOMX G KILL
+ K REPRINT W !! S DIC("S")="I $P($G(^(0)),""^"",2),$D(^(""STA"")),$P($G(^(""STA"")),""^"")<12",DIC="^PSRX(",DIC("A")="Reprint Prescription Label: ",DIC(0)="QEAZ" D ^DIC K P,DIC("A") I Y<0!("^"[X) K PCOM,PCOMX G KILL  ;Changed to include expired
  S (PPL,DA,RX,PSORPRX)=+Y,PDA=Y(0),RXF=0,ZD(DA)=DT,REPRINT=1,STA=+$G(^PSRX(+Y,"STA"))
  D PSOL^PSSLOCK(PSORPRX) I '$G(PSOMSG) W !!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing this order."),! K PSOMSG G LRP
  I $P(^PSRX(RX,"STA"),"^")=14 W $C(7),!,"Cannot Reprint! Discontinued by Provider." D ULR,KILL Q
  I $P(^PSRX(RX,"STA"),"^")=15 W $C(7),!,"Cannot Reprint! Discontinued due to editing." D ULR,KILL Q
  I $P(^PSRX(RX,"STA"),"^")=16 W $C(7),!,"Cannot Reprint! Placed on HOLD by Provider." D ULR,KILL Q
- I DT>$P(^PSRX(RX,2),"^",6) D  D ULR,KILL G LRP
+ ;IHS/MSC/PLS - /2011 - Removed branch logic
+ ;I DT>$P(^PSRX(RX,2),"^",6) D  D ULR,KILL G LRP
+ I DT>$P(^PSRX(RX,2),"^",6) D  ;D ULR,KILL G LRP
  .W !,$C(7),"Medication Expired on "_$E($P(^PSRX(RX,2),"^",6),4,5)_"-"_$E($P(^(2),"^",6),6,7)_"-"_$E($P(^(2),"^",6),2,3) I $P(^PSRX(DA,"STA"),"^")<11 S $P(^PSRX(DA,"STA"),"^")=11 D
  ..S COMM="Medication Expired on "_$E($P(^PSRX(RX,2),"^",6),4,5)_"-"_$E($P(^(2),"^",6),6,7)_"-"_$E($P(^(2),"^",6),2,3) D EN^PSOHLSN1(DA,"SC","ZE",COMM) K COMM
  S DFN=$P(PDA,"^",2) D DEM^VADPT I $P(VADM(6),"^",2)]"" D  G LRP

@@ -1,5 +1,5 @@
 AMHPLK ; IHS/CMI/LAB - LOOKUP PROBLEM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
  ;CALLED FROM AMH INPUT TEMPLATES
  ; Problem based on a problem # that is entered through data entry.
  S U="^",AMHPERR=""

@@ -1,5 +1,5 @@
 BGPMUDSI ; IHS/MSC/MMT - DISPLAY MEASURE LISTS ;02-Mar-2011 16:50;MGH
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;12.1;IHS CLINICAL REPORTING;;MAY 17, 2012;Build 66
  ;; ;
 EP ;EP - CALLED FROM OPTION
  D EN
@@ -48,7 +48,7 @@ INIT ; ALL EP Measures -- init variables and list array
  .Q
  S (VALMCNT,BGPHIGH)=C
  Q
-INITM ; Only Menu Set Measures -- init variables and list array
+INITM ;EP - Only Menu Set Measures -- init variables and list array
  K BGPMUMEA S BGPHIGH=""
  N X,Y,Z,C
  S (X,Y,Z,C)=0 F  S X=$O(^BGPMUIND(BGPMUYF,"ADO",X)) Q:X'=+X  S Y=0 F  S Y=$O(^BGPMUIND(BGPMUYF,"ADO",X,Y))  Q:Y'=+Y  I $D(^BGPMUIND(BGPMUYF,"AMS","M",Y)) D
@@ -56,7 +56,7 @@ INITM ; Only Menu Set Measures -- init variables and list array
  .Q
  S (VALMCNT,BGPHIGH)=C
  Q
-INITH ; ALL Hospital Measures -- init variables and list array
+INITH ;EP - ALL Hospital Measures -- init variables and list array
  K BGPMUMEA S BGPHIGH=""
  N X,Y,Z,C
  S (X,Y,Z,C)=0 F  S X=$O(^BGPMUIND(BGPMUYF,"ADO",X)) Q:X'=+X  S Y=0 F  S Y=$O(^BGPMUIND(BGPMUYF,"ADO",X,Y))  Q:Y'=+Y  I $D(^BGPMUIND(BGPMUYF,Y)),$P($G(^BGPMUIND(BGPMUYF,Y,0)),U,4)="H" D

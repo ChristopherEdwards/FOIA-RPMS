@@ -1,5 +1,5 @@
-TIUTHLP ; SLC/JER - Help for Transcription ;4/16/98@09:19:09
- ;;1.0;TEXT INTEGRATION UTILITIES;**21**;Jun 20, 1997
+TIUTHLP ; SLC/JER - Help for Transcription ;4/18/03
+ ;;1.0;TEXT INTEGRATION UTILITIES;**21,113**;Jun 20, 1997
 MAIN ; Control branching
  N DIC,DTOUT,DUOUT,X,Y,TIUFPRIV S TIUFPRIV=1
  I '$D(TIUPRM0)!'$D(TIUPRM1) D SETPARM^TIULE
@@ -45,4 +45,10 @@ RESTHDR(TIUX,TIUPRM0,TIUPRM1) ;Header info that is same for both types
  W !!,"*** File should be ASCII with width no greater than 80 columns."
  W !,"*** Use ","""",$P(TIUPRM1,U,6),""""," for ","""BLANKS"""
  W " (word or phrase in dictation that isn't understood)."
+ Q
+DIV ; Display user log-on division
+ W $C(7),!!,"You are currently logged into DIVISION: "
+ W $P($$NS^XUAF4(+$G(DUZ(2))),U),!!,"If a hospital location cannot be"
+ W " determined for an uploaded document,",!,"the document's division"
+ W " may be loaded with your log-in division."
  Q

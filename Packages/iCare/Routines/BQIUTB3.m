@@ -1,35 +1,49 @@
-BQIUTB3 ;PRXM/HC/ALA-Taxonomy table ; 20 Jun 2007  11:40 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+BQIUTB3 ;VNGT/HS/ALA-Taxonomy table
+ ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
  ;
  Q
  ;
-EN(DATA,TAXTY) ;EP -- BQI GET TAXONOMY LIST **for future use**
+EN(DATA,TAXTY) ;EP -- BQI GET TAXONOMIES
  NEW UID,II
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  S DATA=$NA(^TMP("BQIUTB3",UID))
  K @DATA
  S II=0
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIUTB1 D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
- S @DATA@(II)="I00010IEN^T00030TAX_NAME"_$C(30)
+ S @DATA@(II)="T00030TAXONOMY_NAME^T00015TAXONOMY_IEN"_$C(30)
  S TAXTY=$G(TAXTY,""),FILE=""
- I TAXTY'="" S FILE=$S(TAXTY="DX":80,TAXTY="M":50,TAXTY="CP":81,TAXTY="PR":80.1,1:"")
- S TN=0
- F  S TN=$O(^ATXAX(TN)) Q:'TN  D
- . I FILE'="",$P(^ATXAX(TN,0),U,15)'=FILE Q
- . I $P(^ATXAX(TN,0),U,12)="" Q
- . I $O(^ATXAX(TN,21,0))="" Q
- . S NM=$P(^ATXAX(TN,0),U,1)
- . S Z(NM,TN)=""
+ I TAXTY'="" S FILE=$S(TAXTY="DX":80,TAXTY="M":50,TAXTY="CP":81,TAXTY="PR":80.1,TAXTY="LB":60,1:"")
+ I TAXTY'="LB" D
+ . S TN=0
+ . F  S TN=$O(^ATXAX(TN)) Q:'TN  D
+ .. I FILE'="",$P(^ATXAX(TN,0),U,15)'=FILE Q
+ .. I $P(^ATXAX(TN,0),U,12)="" Q
+ .. I $O(^ATXAX(TN,21,0))="" Q
+ .. S NM=$P(^ATXAX(TN,0),U,1)
+ .. S Z(NM,TN)=""
+ . ;
+ . S NM=""
+ . F  S NM=$O(Z(NM)) Q:NM=""  D
+ .. S TN=""
+ .. F  S TN=$O(Z(NM,TN)) Q:TN=""  S II=II+1,@DATA@(II)=NM_U_TN_";ATXAX("_$C(30)
  ;
- S NM=""
- F  S NM=$O(Z(NM)) Q:NM=""  D
- . S TN=""
- . F  S TN=$O(Z(NM,TN)) Q:TN=""  S II=II+1,@DATA@(II)=TN_U_NM_$C(30)
- ;
+ I TAXTY="LB" D
+ . S TN=0
+ . F  S TN=$O(^ATXLAB(TN)) Q:'TN  D
+ .. I FILE'="",$P(^ATXLAB(TN,0),U,9)'=FILE Q
+ .. ;I $P(^ATXLAB(TN,0),U,7)="" Q
+ .. I $O(^ATXLAB(TN,21,0))="" Q
+ .. S NM=$P(^ATXLAB(TN,0),U,1)
+ .. S Z(NM,TN)=""
+ . ;
+ . S NM=""
+ . F  S NM=$O(Z(NM)) Q:NM=""  D
+ .. S TN=""
+ .. F  S TN=$O(Z(NM,TN)) Q:TN=""  S II=II+1,@DATA@(II)=NM_U_TN_";ATXLAB("_$C(30)
  S II=II+1,@DATA@(II)=$C(31)
  Q
  ;
-ALG(DATA) ;Get a list of allergies
+ALG(DATA) ;EP - Get a list of allergies
  NEW TEXT,IEN,VALUE
  S II=0
  S @DATA@(II)="T00080IEN^T00080"_$C(30)
@@ -45,4 +59,44 @@ ALG(DATA) ;Get a list of allergies
  F  S TEXT=$O(@VALUE@(TEXT)) Q:TEXT=""  S II=II+1,@DATA@(II)=TEXT_U_TEXT_$C(30)
  S II=II+1,@DATA@(II)=$C(31)
  K @VALUE
+ Q
+ ;
+LAB(DATA) ;EP - Lab Tests
+ NEW LN
+ S II=0,LN=0
+ S @DATA@(II)="T00010IEN^T00060"_$C(30)
+ F  S LN=$O(^AUPNVLAB("B",LN)) Q:LN=""  D
+ . I $G(^LAB(60,LN,0))="" Q
+ . S II=II+1,@DATA@(II)=LN_U_$P(^LAB(60,LN,0),U,1)_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+MED(DATA) ;EP - Medications
+ NEW MN
+ S II=0,MN=0
+ S @DATA@(II)="T00010IEN^T00060"_$C(30)
+ F  S MN=$O(^AUPNVMED("B",MN)) Q:MN=""  D
+ . I $G(^PSDRUG(MN,0))="" Q
+ . S II=II+1,@DATA@(II)=MN_U_$P(^PSDRUG(MN,0),U,1)_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+DXN(DATA) ;EP - Diagnoses
+ NEW DN
+ S II=0,DN=0
+ S @DATA@(II)="T00010IEN^T00010^T00030DESCRIPTION"_$C(30)
+ F  S DN=$O(^AUPNVPOV("B",DN)) Q:DN=""  D
+ . I $G(^ICD9(DN,0))="" Q
+ . S II=II+1,@DATA@(II)=DN_U_$P(^ICD9(DN,0),U,1)_U_$P(^ICD9(DN,0),U,3)_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+EMP(DATA) ;EP - Employers
+ NEW EN
+ S II=0,EN=""
+ S @DATA@(II)="T00010IEN^T00060"_$C(30)
+ F  S EN=$O(^AUPNPAT("AF",EN)) Q:EN=""  D
+ . I $G(^AUTNEMPL(EN,0))="" Q
+ . S II=II+1,@DATA@(II)=EN_U_$P(^AUTNEMPL(EN,0),U,1)_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
  Q

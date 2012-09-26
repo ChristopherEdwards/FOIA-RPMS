@@ -1,5 +1,5 @@
 ACHS31E1 ;IHS/OIT/FCJ - ACHS 3.1 PATCH ENV CHECK ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**20**;JUN 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**21**;JUN 11,2001
  ;3.1*14 1/11/2008;IHS/OIT/FCJ
  ; CHANGE INTROE SECTION WITH EACH PATCH
  ;
@@ -25,9 +25,9 @@ AR ;
  I $D(DTOUT)!$D(DUOUT)!$D(DIRUT) W !,"User stopped environment check." Q
  S ACHSAR=+Y
 CHK ;
- I '$$INSTALLD("ACHS*3.1*19") S XPDQUIT=2
+ I '$$INSTALLD("ACHS*3.1*20") S XPDQUIT=2
  I $$VCHK("DI","22.0",2,"<")
- I $$VCHK("XU","8.0",2,"<")
+ I '$$INSTALLD("XU*8.0*1017") S XPDQUIT=2
  I '$$INSTALLD("AUPN*99.1*16") S XPDQUIT=2
  I '$$INSTALLD("AUT*98.1*20") S XPDQUIT=2
  I $$VCHK("ATX","5.1",2,"<")
@@ -43,7 +43,7 @@ CHK ;
  .W !,$$CJ^XLFSTR(IORVON_"One entry needs to be deleted."_IORVOFF,IOM)
  .D SORRY(2)
  ;
- I $G(XPDQUIT) W !,$$CJ^XLFSTR(IORVON_"You must FIX IT, Before Proceeding."_IORVOFF,IOM),!!,*7,*7,*7 Q
+ I $G(XPDQUIT) W !,$$CJ^XLFSTR(IORVON_"You must install it, Before Proceeding."_IORVOFF,IOM),!!,*7,*7,*7 Q
  W !!,$$CJ^XLFSTR("ENVIRONMENT OK.",IOM)
  D HELP^XBHELP("INTROE","ACHS31E1")
  I '$$DIR^XBDIR("E","","","","","",1) D SORRY(2) Q
@@ -80,6 +80,7 @@ INSTALLD(ACHS) ;EP; Determine if patch ACHS was installed, where ACHS is
  S DIC=DIC_+Y_",""PAH"",",X=$P(ACHS,"*",3)
  D ^DIC
  I Y<1 S P=DIC_"""B"","_X_")" I $O(@P)'="" S Y=1
+ I $D(P),$P(ACHS,"*")["XU" I '$D(@P) S Y=-1
  I Y>0 W !,$$CJ^XLFSTR("Need at least "_ACHS_"....."_ACHS_" Present",IOM)
  I Y<0 W !,$$CJ^XLFSTR("Need at least "_ACHS_".....",IOM)
  Q $S(Y<1:0,1:1)
@@ -87,10 +88,34 @@ INSTALLD(ACHS) ;EP; Determine if patch ACHS was installed, where ACHS is
 INTROE ; Intro text during KIDS Environment check.
  ;;In this distribution:
  ;;(1)Modifications: 
- ;;    1. ACHSRPFU,ACHSRPF,ACHSRPF1 - Routines for using the GUI
- ;;       formless printing.
- ;;    2. ACHSRPU - Fixed the document number printing.
- ;;    3. ACHSMERG - Added entry point for patient merge.
+ ;;   1. Displaying a PO, added space after blood quantum
+ ;;   2. SSC are not required for tribal sites, added test for parameter
+ ;;   3. Duplicate document removal, added test for dangling indexes to
+ ;;      be removed.
+ ;;   4. In Denial Add option the Insurance Display will now only
+ ;;      display based on the DOS.
+ ;;   5. Denial Reason if Alt Resource entered twice caused an error
+ ;;   6. Denial Reason edit - multiple changes on editing reasons
+ ;;   7. Print Denial Letters - pulling the wrong pointer, now using
+ ;;      plan name instead of insurer and printing suffix for Medicare
+ ;;      number.
+ ;;   8. Data Dictionary change for output transform on Other Denial
+ ;;      Reasons in the CHS Denial Data File.
+ ;;   9. Removed checks for re-exporting a file that has already been
+ ;;      sent to the Area Office.
+ ;;  10. Area Processing changes
+ ;;      a. Area CHS options-combined consolidation and splitout for
+ ;;         EOBR and Facility file processing.
+ ;;      b. Added testing for splitout completion during consolidating
+ ;;         files
+ ;;      c. Added new fields for directories: UFMS, Facilty files and
+ ;;         EOBR Files
+ ;;      d. New field for sending files to separate servers
+ ;;      e. Modifed Area parameter option for new fields
+ ;;      f. Removed references to tape backup
+ ;;      g. Changed messages from HFS error to No EOBR files available
+ ;;      h. Added new prompt to all re-processing a file if already
+ ;;         processsed
  ;;
  ;;###
  ;

@@ -1,7 +1,8 @@
-APSPNE4 ; IHS/DSD/ENM - OUTPATIENT LABEL ASK OPTION 11/10/93 ;14-Oct-2009 14:39;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1008**;Sep 23, 2004
+APSPNE4 ; IHS/DSD/ENM - OUTPATIENT LABEL ASK OPTION 11/10/93 ;23-Sep-2011 15:54;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1008,1013**;Sep 23, 2004;Build 33
  ; Modified - IHS/CIA/PLS - 01/21/04
  ;            IHS/MSC/PLS - 04/30/09
+ ;                        - 09/16/2011 - Added PWH prompt
 OUT ;
  S:'$D(PPL) PPL=$G(PSORX("PSOL",1))
  I $G(PSORX("PSOL",1))]"" S PPL=PSORX("PSOL",1)
@@ -13,16 +14,17 @@ OPT ;EP - ASK PRINT OPTION
  S PMI("IN")="" ;IHS/DSD/ENM 05/22/01
  S X="APSEPPIM" X ^%ZOSF("TEST") I $T S PMI("IN")=1 ;IHS/DSD/EM 05/22/01
  S APSPZ1=$P($G(^APSPCTRL(PSOSITE,0)),"^",12),APSPZ2=$S(APSPZ1=1:"Summary",1:""),APSPZ3=$S(APSPZ1=1:"B=Sum+Cpro",1:"") ;IHS/DSD/ENM 08/01/96
- S DIR(0)="SA^P:Print Label;Q:Queue Labels;C:Labels & Chronic Med Profile;R:Refill Rx;M:Med Sheet;MS:Med Sheet+Summary;CA:Cancel Rx" ;_";"_APSPZ2_";"_APSPZ3
+ S DIR(0)="SA^P:Print Label;Q:Queue Labels;C:Labels & Chronic Med Profile;R:Refill Rx;M:Med Sheet;MS:Med Sheet+Summary;W:PWH;CA:Cancel Rx" ;_";"_APSPZ2_";"_APSPZ3
  I APSPZ2]""!APSPZ3]"" S DIR(0)=DIR(0)_";S:"_APSPZ2_";B:"_APSPZ3
  S DIR(0)=DIR(0)_$S($P(PSOPAR,"^",23):";H:Hold",1:"")_$S($P(PSOPAR,"^",24):";SU:Suspense",1:"")
- S DIR("A")="Print/Queue/Cpro/Med sheet/"_$S($P(PSOPAR,U,23):"Hold/",1:"")_$S($P(PSOPAR,U,24):"SUspend/",1:"")_"Refill/CAncel"_"/"_APSPZ2_"/"_APSPZ3_"/'^'=Exit: ",DIR("B")="P" ;IHS/OKCAO/POC 6/9/98
+ S DIR("A")="Print/Queue/Cpro/Med sheet/pWh/"_$S($P(PSOPAR,U,23):"Hold/",1:"")_$S($P(PSOPAR,U,24):"SUspend/",1:"")_"Refill/CAncel"_"/"_APSPZ2_"/"_APSPZ3_"/'^'=Exit: ",DIR("B")="P" ;IHS/OKCAO/POC 6/9/98
  S DIR("?",1)="Enter 'P' to Immediately Print Label(s) only",DIR("?",2)="Enter 'Q' to Queue Label(s) to a Printer",DIR("?",3)="Enter 'C' to Print Label(s) and Chronic Med Profile"
  S DIR("?",4)="Enter 'R' to Refill Prescription",DIR("?",5)="Enter 'CA' to Cancel Prescription",DIR("?",6)="*Enter 'S' to Print Labels + Summary Labels"
  S DIR("?",7)="*Enter 'B' to Print Label(s) + Chronic Med Profiles + Summary Labels"
  S DIR("?",8)="*Note: Summary labels depend on parameter setting in APSP CONTROL FILE"
  S DIR("?",9)="ENTER 'M' to print label(s) and patient med sheet" ;IHS/OKCAO/POC 6/9/98
  S DIR("?",10)="ENTER 'MS' to print label(s), patient med sheet, and summary label" ;IHS/OKCAO/POC 6/9/98
+ S DIR("?",11)="Enter 'W' to print a Patient Wellness Handout"
  S:$P(PSOPAR,U,23) DIR("?",11)="Enter 'H' to hold label until Rx can be filled"
  S:$P(PSOPAR,U,24) DIR("?",12)="Enter 'SU' to suspend labels to print later"
  S DIR("?")="ENTER '^' TO EXIT"
@@ -47,6 +49,7 @@ OUT1 ;
  ;IHS/ASD/ENM 05/22/01 NEXT TWO LINES CHECK IF PMI'S EXIST
  I "M"[PX,PMI("IN")=1 S APSQSTOP=0 D EN^APSEPPIM,P^PSORXL K APSQSTOP G CQ ;IHS/ASDS/ENM 03/26/01 IHS/OKCAO/POC 01/09/2001 APSQSTOP USED TO DECIDE IF PRINT SIGNATURE LABEL IN RTN APSPLBL AND PSORXL ;IHS/ASDS/ENM 03/26/01
  I "M"[PX,PMI("IN")="" S APSQSTOP=0 D P^PSORXL K APSQSTOP G CQ ;IHS/ASDS/ENM 03/26/01 IHS/OKCAO/POC 01/09/2001 APSQSTOP USED TO DECIDE IF PRINT SIGNATURE LABEL IN RTN APSPLBL AND PSORXL ;IHS/ASDS/ENM 03/26/01
+ I "W"[PX D EN2^APCHPWHG(2,PSODFN),P^PSORXL G CQ  ;IHS/MSC/PLS - 09/16/2011
  I "C"[PX S APSQSTOP=0 D PCOPY,P^PSORXL,CPCK K APSQSTOP G CQ ;IHS/OKCAO/POC 01/09/2001 APSQSTOP SET FOR PRINTING SIGNATURE LABEL IN RTNS PSORXL AND APSPLBL
  I "S"[PX K ARRAY S APSQSTOP=0 D P^PSORXL,EP2^APSPSLBL:$D(ARRAY(1)) K APSQSTOP G CQ ;IHS/DSD/ENM 08/02/96 IHS/OKCAO/POC 01/09/2001 APSQSTOP USED TO PRINT SIGNATURE LABEL IN RTNS APSPLBL AND PSORXL
  ;IHS/ASD/ENM 05/22/01 NEXT TWO LINES CHECK IF PMI EXIST

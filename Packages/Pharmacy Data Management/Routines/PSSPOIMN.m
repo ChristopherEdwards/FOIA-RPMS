@@ -1,16 +1,21 @@
-PSSPOIMN ;BIR/RTR/WRT-Orderable Item manual create ;09/01/98
- ;;1.0;PHARMACY DATA MANAGEMENT;**15,32,34,38,51,57**;9/30/97
+PSSPOIMN ;BIR/RTR/WRT-Orderable Item manual create ;10-Feb-2012 14:26;PLS
+ ;;1.0;PHARMACY DATA MANAGEMENT;**15,32,34,38,51,57,1013**;9/30/97;Build 33
  ;
  ;Reference to $$PSJDF^PSNAPIS(P1,P3) supported by DBIA #2531
  ;Reference to $$VAGN^PSNAPIS(P1) supported by DBIA #2531
+ ;
+ ;Modified - IHS/MSC/MGH - 02/08/2012 - Line BEG+2
  ;
  S PSSITE=+$O(^PS(59.7,0)) I +$P($G(^PS(59.7,PSSITE,80)),"^",2)<2 W !!?3,"Orderable Item Auto-Create has not been completed yet!",! K PSSITE,DIR S DIR(0)="E",DIR("A")="Press RETURN to continue" D ^DIR K DIR Q
  K PSSITE D MESS^PSSPOIM1
 BEG I $D(PSIEN) L -^PSDRUG(PSIEN)
  K PSSCROSS,DOSEFV,DOSEFORM,POINT,SPHOLD,NEWSP,PSVAR1,PSITEM,PSTOP,PSMASTER,DIC("S")
- S PSOUT=0 W !! K DIC S DIC(0)="QEAM",DIC="^PSDRUG(",DIC("A")="Select DISPENSE DRUG: "
+ ;IHS/MSC/MGH changed for mixed case lookup, uses new cross-reference
+ ;S PSOUT=0 W !! K DIC S DIC(0)="QEAM",DIC="^PSDRUG(",DIC("A")="Select DISPENSE DRUG: "
+ S PSOUT=0 W !! K DIC S DIC(0)="QEAM",D="BCAP",DIC="^PSDRUG(",DIC("A")="Select DISPENSE DRUG: "
  ;DIC("S")="I $P($G(^PSDRUG(+Y,2)),""^"",3)[""I""!($P($G(^(2)),""^"",3)[""O"")!($P($G(^(2)),""^"",3)[""U"")"
- D ^DIC G:$D(DTOUT)!($D(DUOUT))!(Y<1) END K DIC("S") S PSIEN=+Y,PSNAME=$P(^PSDRUG(PSIEN,0),"^") L +^PSDRUG(PSIEN):0 I '$T W !,$C(7),"Another person is editing this one." Q
+ ;D ^DIC G:$D(DTOUT)!($D(DUOUT))!(Y<1) END K DIC("S") S PSIEN=+Y,PSNAME=$P(^PSDRUG(PSIEN,0),"^") L +^PSDRUG(PSIEN):0 I '$T W !,$C(7),"Another person is editing this one." Q
+ D IX^DIC G:$D(DTOUT)!($D(DUOUT))!(Y<1) END K DIC("S") S PSIEN=+Y,PSNAME=$P(^PSDRUG(PSIEN,0),"^") L +^PSDRUG(PSIEN):0 I '$T W !,$C(7),"Another person is editing this one." Q
 MAS I $G(PSMASTER) S PSOUT=0 N DOSEFV,DOSEFORM,POINT,SPHOLD,NEWSP,PSVAR1,PSITEM,PSTOP
  S NODE=$G(^PSDRUG(PSIEN,"ND")),DOSEPTR=0,DA=$P(NODE,"^"),X=$$VAGN^PSNAPIS(DA),VAGEN=X I +$P(NODE,"^"),+$P(NODE,"^",3),VAGEN'=0 S K=$P(NODE,"^",3),X=$$PSJDF^PSNAPIS(DA,K),DOSEFV=X I DOSEFV'=0 D
  .S DOSEPTR=$P(X,"^"),DOSEFORM=$P(X,"^",2)

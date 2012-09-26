@@ -1,5 +1,5 @@
-PSORENW ;BIR/SAB-renew main driver ;25-Jan-2011 06:50;SM
- ;;7.0;OUTPATIENT PHARMACY;**11,27,30,46,71,96,100,130,1004,1009,1010**;DEC 1997
+PSORENW ;BIR/SAB-renew main driver ;05-Oct-2011 10:13;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,30,46,71,96,100,130,1004,1009,1010**;DEC 1997;Build 33
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references L, UL, PSOL, and PSOUL^PSSLOCK supported by DBIA 2789
  ;External reference to LK^ORX2 and ULK^ORX2 supported by DBIA 867
@@ -8,6 +8,7 @@ PSORENW ;BIR/SAB-renew main driver ;25-Jan-2011 06:50;SM
  ;Modified - IHS/CIA/DKM - 10/11/2005 - Line RENEW
  ;           IHS/MSC/JDS - 11/20/2010 - Line RENEW+7
  ;           IHS/MSC/JDS - 01/25/2011 - Line OERR+5
+ ;                       - 10/25/2011 - Line OERR+1,OERR+8
 ASK ;
  K PSORENW("FILL DATE") D FILLDT^PSODIR2(.PSORENW) S:$G(PSORENW("DFLG")) VALMSG="Renew Rx request canceled",VALMBCK="R"
  I PSORENW("DFLG")!('$D(PSORENW("FILL DATE"))) S PSORENW("QFLG")=1,PSORENW("DFLG")=0 G ASKX
@@ -29,12 +30,16 @@ EOJ ;
  K PSONOTE
  Q
 OERR ;entry for renew backdoor
+ N APSPDRG
  S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY S VALMSG=$S($P($G(PSOPLCK),"^",2)'="":$P($G(PSOPLCK),"^",2)_" is working on this patient.",1:"Another person is entering orders for this patient.") K PSOPLCK S VALMBCK="" Q
  K PSOPLCK S X=PSODFN_";DPT(" D LK^ORX2 I 'Y S VALMSG="Another person is entering orders for this patient.",VALMBCK="" D UL^PSSLOCK(PSODFN) Q
  K PSOID,PSOFDMX,PSORX("FILL DATE"),PSORENW("FILL DATE"),PSORX("QS"),PSORENW("QS"),PSOBARCD,COPY
  D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) S VALMSG=$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing this order."),VALMBCK="" K PSOMSG D ULPAT Q
  ;IHS/MSC/JDS - 01/25/2011
  I '$$SCREEN^APSPMULT(+$P($G(^PSRX(+$P(PSOLST(ORN),"^",2),0)),"^",6),,1) S VALMSG="Drug is not currently available in this facility",VALMBCK="" D ULPAT Q
+ ;IHS/MSC/MGH Text for REM medication. Patch 1013
+ S APSPDRG=$P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^",6)
+ I +APSPDRG D REMMSG^APSPFUNC(APSPDRG)
  S PSOBCKDR=1,PSOFROM="NEW",PSORENW("OIRXN")=$P(PSOLST(ORN),"^",2),PSOOPT=3,(PSORENW("DFLG"),PSORENW("QFLG"),PSORX("DFLG"))=0
  S PSONEW("DAYS SUPPLY")=$P(^PSRX(PSORENW("OIRXN"),0),"^",8),PSONEW("# OF REFILLS")=$P(^(0),"^",9)
  D FULL^VALM1,ASK D:PSORENW("QFLG") KLIB^PSORENW1 D:PSORENW("QFLG") ULPAT D:PSORENW("QFLG") PSOUL^PSSLOCK($P(PSOLST(ORN),"^",2)) G:PSORENW("QFLG") EOJ D ^PSORENW0

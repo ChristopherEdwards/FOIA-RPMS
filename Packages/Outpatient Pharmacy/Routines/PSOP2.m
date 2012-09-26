@@ -1,14 +1,17 @@
-PSOP2 ;BIR/SAB - medication profile long or short ;02/25/94
- ;;7.0;OUTPATIENT PHARMACY;**15,98,132**;DEC 1997
+PSOP2 ;BIR/SAB - medication profile long or short ;08-Nov-2011 17:45;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**15,98,132,1013**;DEC 1997;Build 33
  ;External reference to File #55 supported by DBIA 2228
  ;External reference to PSDRUG supported by DBIA 221
  ;External reference ^PS(50.606 supported by DBIA 2174
  ;External reference ^PS(50.7 supported by DBIA 2223
+ ;
+ ;Modified - IHS/MSC/PLS - 11/08/2011 - Line DRUG+1
 DATE I $G(DTS) D  Q:'$G(TRDT)
  .S:$P(^PSRX(J,0),"^",13)'<SDT&($P(^(0),"^",13)'>EDT) TRDT=1
  S X=$P(^PSRX(J,0),"^",13),X=999999999-X,^TMP($J,X,J)=^(0) K TRDT
  Q
-DRUG Q:'$D(^PSDRUG(+$P(^PSRX(J,0),"^",6),0))  S DRG=$P(^(0),"^")
+DRUG ;Q:'$D(^PSDRUG(+$P(^PSRX(J,0),"^",6),0))  S DRG=$P(^(0),"^")
+ Q:'$D(^PSDRUG(+$P(^PSRX(J,0),"^",6),0))  S DRG=$$UP^XLFSTR($P(^(0),"^"))  ;IHS/MSC/PLS - 11/08/2011
  I $G(DRS) D  Q:'$G(TRDR)
  .I DRG]PSFR,PSTO]DRG S TRDR=1
  I $P($G(^PSRX(J,3)),"^",5),$P($G(^PSRX(J,3)),"^",5)<PSODTCT,$P($G(^("STA")),"^")>11,$P($G(^("STA")),"^")'=16 K TRDR Q

@@ -1,5 +1,5 @@
 VENPCCQ8 ; IHS/OIT/GIS - BUILD VALIDATION ROUTINE ;  [ 03/05/09   4:34 PM ]
- ;;2.6;PCC+;**1,4**;OCT 26, 2011;Build 20
+ ;;2.6;PCC+;**1,4,5**;APR 03, 2012;Build 24
  ;
  ;
  ; VALIDATE PCC+ GUI INSTALLATION ; CAN ONLY BE RUN AFTER FULL KIDS INSTALL HAS BEEN COMPLETED ; 
@@ -24,9 +24,9 @@ RTN W !,"Checking required ROUTINES..."
  . Q
  I 'OK D
  . W "   < All ROUTINES installed"
- . I $L($T(^VENCS264)) D
+ . I $L($T(^VENCS265)) D
  .. W !,"ROUTINE checksum verification..."
- .. D CSUM^VENCS264(.OK)
+ .. D CSUM^VENCS265(.OK)
  .. I OK S ERR=1,OK=0 W !?5,"Integrity check violation!!" Q
  .. W "  < All ROUTINES passed"
  .. Q
@@ -41,6 +41,11 @@ FILE W !,"Checking required FILES..."
  . S OK=1,ERR=1
  . Q
  I 'OK W "   < All FILES present"
+ I $P($G(^VEN(7.14,5,0)),U,2)'=15.64 D  ; IHS/OIT/GIS  2/6/2012
+ . I OK W !
+ . W "   < The VEN EHP ASQ QUESTIONNAIRE file has not been updated!"
+ . S OK=1,ERR=1
+ . Q
  I $$STOP S OK=2 Q
  ; 
 MEAS W !,"Checking MEASUREMENT TYPES..."
