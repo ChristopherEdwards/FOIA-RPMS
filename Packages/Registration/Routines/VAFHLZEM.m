@@ -1,5 +1,5 @@
-VAFHLZEM ;ALB/KCL - Create generic HL7 ZEM segment ; 22 Febuary 1993
- ;;5.3;Registration;**68**;Aug 13, 1993
+VAFHLZEM ;ALB/KCL,TDM - Create generic HL7 ZEM segment ; 12/22/08 4:37pm
+ ;;5.3;PIMS;**68,1016**;JUN 30, 2012;Build 20
  ;
  ;
 EN(DFN,VAFSTR,VAFREQ,VAFNUM) ; This generic extrinsic function was
@@ -21,7 +21,7 @@ EN(DFN,VAFSTR,VAFREQ,VAFNUM) ; This generic extrinsic function was
  ;
  N X,X1,VAFY
  I '$G(DFN)!($G(VAFSTR)']"") G QUIT
- S $P(VAFY,HLFS,8)="",VAFSTR=","_VAFSTR_",",VAFREQ=$G(VAFREQ)
+ S $P(VAFY,HLFS,9)="",VAFSTR=","_VAFSTR_",",VAFREQ=$G(VAFREQ)
  S $P(VAFY,HLFS,1)=$S($G(VAFNUM):VAFNUM,1:1) ; Sequential number (required field)
  I VAFREQ'=2 S $P(VAFY,HLFS,2)=1 D PATZEM
  I VAFREQ=2 S $P(VAFY,HLFS,2)=2 D SPOUZEM
@@ -37,6 +37,7 @@ PATZEM ; Patient data requested.
  I VAFSTR[",7," S X1=$$HLPHONE^HLFNC($P(X,"^",9)),$P(VAFY,HLFS,7)=$S(X1]"":X1,1:HLQ) ; Employer Phone.
  I VAFSTR[",8," S X1=$$YN^VAFHLFNC($P(X,"^",2)),$P(VAFY,HLFS,8)=$S(X1]"":X1,1:HLQ) ; Government Agency.
  ;I VAFSTR[",8," S $P(VAFY,HLFS,8)=$S($P(X,"^",2)]"":$P(X,"^",2),1:HLQ) ; Government Agency.
+ I VAFSTR[",9," S X1=$$HLDATE^HLFNC($P(X,"^",16)),$P(VAFY,HLFS,9)=$S(X1]"":X1,1:HLQ)  ;Retirement Date
  Q
  ;
 SPOUZEM ; Spousal data requested.
@@ -47,4 +48,5 @@ SPOUZEM ; Spousal data requested.
  I VAFSTR[",6," S X1=$$ADDR^VAFHLFNC($P(X,"^",2,6)_"^"_$P($G(^DPT(DFN,.22)),"^",6)),$P(VAFY,HLFS,6)=$S(X1]"":X1,1:HLQ) ; Employer Address.
  I VAFSTR[",7," S X1=$$HLPHONE^HLFNC($P(X,"^",8)),$P(VAFY,HLFS,7)=$S(X1]"":X1,1:HLQ) ; Employer Phone.
  I VAFSTR[",8," S $P(VAFY,HLFS,8)=HLQ
+ I VAFSTR[",9," S X1=$$HLDATE^HLFNC($P(X,"^",16)),$P(VAFY,HLFS,9)=$S(X1]"":X1,1:HLQ)  ;Retirement Date
  Q

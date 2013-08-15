@@ -1,5 +1,5 @@
 DGPTODA1 ;ALB/AS - PTF DRG ALOS REPORTS (DRIVER ROUTINE) ; 8/29/01 2:28pm
- ;;5.3;Registration;**375**;Aug 13, 1993
+ ;;5.3;Registration;**375,1015**;Aug 13, 1993;Build 21
  S $P(DGLN,"=",132)="",$P(DGLN2,"-",132)="",DGCPG(2)="For "_$S(DGD:"Discharge dates from ",1:"Active Admissions")
  I DGD S Y=(DGSD+.1) X ^DD("DD") S DGCPG(2)=DGCPG(2)_$P(Y,"@")_" to ",Y=$P(DGED,".") X ^DD("DD") S DGCPG(2)=DGCPG(2)_Y,DGCPG(3)=$S('DGB:"not ",1:"")_"including TRANSFER DRGs"
  I DGS'="S"&($D(^UTILITY($J,"DGPTFR","D"))) D IN S DGRNO=1,DGFLAG="Medical Center by DRG",DGCPG(1)="AVERAGE LOS Report for "_DGFLAG,DGTCH="Average LOS by DRG^DRG^PAGE #" D C^DGUTL,HD,^DGPTODA2 G:DGS="D" Q

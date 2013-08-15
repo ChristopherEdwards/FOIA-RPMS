@@ -1,6 +1,7 @@
 LRAPMRL ;DALOI/WTY/KLL- AP MODIFY RELEASED REPORT;12/04/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259,295,317**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 259,295,317,368
  ;
 MAIN ;
  N LRQUIT,LRMSG,LREND,LRDATA,LRREL,LRAU,LREFPD,LRWM,LRCT,LRTMP,LRGMDF
@@ -110,10 +111,9 @@ WHAT ;What is to be edited
  ;  off at data entry for SP, CY, EM's
  S LRASK=1,XASK=""
  I 'LRAU D
- .S X=$G(^LAB(69.9,1,11))
- .S XASK=$S(LRSS="SP":$P(X,"^",2),LRSS="CY":$P(X,"^",3),1:"")
- .S:XASK="" XASK=$S(LRSS="EM":$P(X,"^",4),1:"")
- .S LRASK=$$GET1^DIQ(69.9,1,XASK,"I")
+ .S XASK=$S(LRSS="SP":11.2,LRSS="CY":11.3,1:"")
+ .S:XASK="" XASK=$S(LRSS="EM":11.4,1:"")
+ .S LRASK=$$GET1^DIQ(69.9,"1,",XASK,"I")
  S:LRASK DIR(0)="S^1:Edit Report;2:Edit Diagnosis"
  S:LRASK DIR("A")="Enter selection",DIR("B")=1
  S:'LRASK DIR(0)="Y",DIR("B")="YES",DIR("A")="Edit Report?"
@@ -126,7 +126,7 @@ WHAT ;What is to be edited
  Q
 CPTCHK ;Determine if CPT is activated
  Q:$T(ES^LRCAPES)=""
- S LRESCPT=$$ES^LRCAPES()
+ I $$PATCH^BLRUTIL4("PX*1.0*119") S LRESCPT=$$ES^LRCAPES()       ; IHS/MSC/MKK - LR*5.2*1031
  Q
 SECTION ;Choose Anatomic Pathology section (AU,SP,CY,EM)
  W !
@@ -263,6 +263,7 @@ SUPRPT ;Supplementary Report
  Q
 UNLOCK ;Unlock the record
  ; D UPDATE^LRPXRM(LRDFN,$G(LRSS,"AU"),$G(LRI))  ; IHS/OIT/MKK - LR*5.2*1030 - RPMS Does NOT use Clinical Reminders
+ I $$PATCH^BLRUTIL4("PXRM*1.5*12") D UPDATE^LRPXRM(LRDFN,$G(LRSS,"AU"),$G(LRI))  ; IHS/MSC/MKK - LR*5.2*1031
  L -@(LRLOCK)
  Q
 END ;Clean-up variables and quit

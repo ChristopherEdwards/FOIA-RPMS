@@ -1,5 +1,5 @@
-BTIULO12 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;31-Jan-2012 11:58;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009**;NOV 04, 2004;Build 22
+BTIULO12 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;04-Jun-2012 16:04;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009,1010**;NOV 04, 2004;Build 24
 TORDER(DFN,TARGET) ;EP Orders for today
  NEW X,I,CNT,RESULT
  S CNT=0
@@ -89,3 +89,49 @@ PAD(DATA,LENGTH) ; -- SUBRTN to pad length of data
  ;
 SP(NUM) ; -- SUBRTN to pad spaces
  Q $$PAD(" ",NUM)
+ ;IHS/MSC/MGH Added patch 1010
+PHN(DFN,TARGET,NUM) ;Return PHN data
+ N CNT,CT,VDT,PHN,VPHN,FNUM,LONG,LVL,NSG,PSYCH,REC,SHORT,VDATE
+ S CT=0,CNT=0,PHN=""
+ S NUM=NUM-1
+ I NUM="" S NUM=1
+ S FNUM=9000010.32
+ F  S PHN=$O(^AUPNVPHN("AA",DFN,PHN)) Q:PHN=""  D
+ .S VDT=0
+ .F  S VDT=$O(^AUPNVPHN("AA",DFN,PHN,VDT)) Q:'VDT  D
+ ..S VPHN=""
+ ..F  S VPHN=$O(^AUPNVPHN("AA",DFN,PHN,VDT,VPHN)) Q:'VPHN!(CNT>NUM)  D
+ ...S REC=$G(^AUPNVPHN(VPHN,0))
+ ...S CNT=CNT+1
+ ...S LVL=$$GET1^DIQ(FNUM,VPHN,.05)
+ ...S TYPE=$$GET1^DIQ(FNUM,VPHN,.06)
+ ...S PSYCH=$G(^AUPNVPHN(VPHN,21))
+ ...S NSG=$G(^AUPNVPHN(VPHN,22))
+ ...S SHORT=$G(^AUPNVPHN(VPHN,23))
+ ...S LONG=$G(^AUPNVPHN(VPHN,24))
+ ...S VDATE=9999999-VDT
+ ...S VDATE=$$FMTDATE^BGOUTL(VDATE)
+ ...I CNT>1 D
+ ....S CT=CT+1
+ ....S @TARGET@(CT,0)=""
+ ...S CT=CT+1
+ ...S @TARGET@(CT,0)="Visit Date: "_VDATE
+ ...I LVL'="" D
+ ....S CT=CT+1
+ ....S @TARGET@(CT,0)="Level of Intervention: "_LVL
+ ...I TYPE'="" D
+ ....S CT=CT+1
+ ....S @TARGET@(CT,0)="Type of Decision Making: "_TYPE
+ ...I PSYCH'="" D
+ ....S CT=CT+1
+ ....S @TARGET@(CT,0)="Psycho/Social/Envron: "_PSYCH
+ ...I NSG'="" D
+ ....S CT=CT+1
+ ....S @TARGET@(CT,0)="Nursing DX: "_NSG
+ ...I SHORT'="" D
+ ....S CT=CT+1
+ ....S @TARGET@(CT,0)="Short Term Goals: "_SHORT
+ ...I LONG'="" D
+ ....S CT=CT+1
+ ....S @TARGET@(CT,0)="Long Term Goals: "_LONG
+ Q "~@"_$NA(@TARGET)

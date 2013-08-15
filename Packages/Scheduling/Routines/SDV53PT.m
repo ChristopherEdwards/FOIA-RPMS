@@ -1,5 +1,5 @@
 SDV53PT ;alb/mjk - SD Post-Init Driver for v5.3 ; 3/26/93
- ;;5.3;Scheduling;**132**;Aug 13, 1993
+ ;;5.3;Scheduling;**132,1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- main entry point
  D DEL

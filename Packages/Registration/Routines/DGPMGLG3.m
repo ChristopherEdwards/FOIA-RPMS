@@ -1,5 +1,5 @@
 DGPMGLG3 ;ALB/LM - G&L GENERATION, CONT.; 24 MAY 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 A Q:'GL
  I +MV("MT")=20,$P(MD,"^",24)]"" I $D(^DGPM(+$P(MD,"^",24),0)) I +MV("TT")=6,$P(^DGPM($P(MD,"^",24),0),"^",2)=1 Q

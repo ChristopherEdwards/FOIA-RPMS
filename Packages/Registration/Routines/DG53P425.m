@@ -1,5 +1,5 @@
 DG53P425 ;ALB/RPM - PATCH DG*5.3*425 INSTALL UTILITIES ; 8/21/03 4:52pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,1015**;Aug 13, 1993;Build 21
  ;
 ENV ;Main entry point for Environment check point.
  ;

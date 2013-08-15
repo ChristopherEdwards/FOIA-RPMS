@@ -1,5 +1,6 @@
-DGPT60PR ;ALB/MTC - Edit procedure codes.  In ICD0 Procedures, current, gender ok ; 17 NOV 92
- ;;5.3;Registration;;Aug 13, 1993
+DGPT60PR ;ALB/MTC/ADL - Edit procedure codes.  In ICD0 Procedures, current, gender ok ; 17 NOV 92
+ ;;5.3;Registration;**510,1015**;Aug 13, 1993;Build 21
+ ;;ADL;Update for CSV project;;Mar. 24, 2003
  ;
 EN ;
 LOOP ;
@@ -15,11 +16,12 @@ CHKPRC ;
  Q
 GEN ;
  S DGPTPP=$O(^ICD0("AB",DGPTOP1,0)) I DGPTPP="" S DGPTERC=604+DGPTL3 Q
- I '$D(^ICD0(DGPTPP)) S DGPTERC=604+DGPTL3 Q
- I '$D(^ICD0(DGPTPP,0)) S DGPTERC=604+DGPTL3 Q
- I $P(^ICD0(DGPTPP,0),U,10)]""&(DGPTGEN'=$P(^(0),U,10)) S DGPTERC=651 Q
+ S DGPTTMP=$$ICDOP^ICDCODE(DGPTPP,$S($G(DGPTPDTS)'="":DGPTPDTS,1:DT))  ;use date of procedure if defined, else today
+ I DGPTTMP<1!('$P(DGPTTMP,U,10)) S DGPTERC=604+DGPTL3 Q
+ I $P(DGPTTMP,U,11)]""&(DGPTGEN'=$P(DGPTTMP,U,11)) S DGPTERC=651 Q
 CURR ;
- I ($P(^ICD0(DGPTPP,0),U,9)=1)&($E(DGPTPDTS,1,7)>$P(^(0),U,11)) S DGPTERC=604+DGPTL3 Q
+ S DGPTTMP=$$ICDOP^ICDCODE(DGPTPP,$S($G(DGPTPDTS)'="":DGPTPDTS,1:DT))  ;use date of procedure if defined, else today
+ I ($P(DGPTTMP,U,10)=0)&($E(DGPTPDTS,1,7)>$P(DGPTTMP,U,12)) S DGPTERC=604+DGPTL3 Q
 SAVE ;
  S @("DGPTPC"_DGPTL3)=DGPTOP1
 ARRAY ;

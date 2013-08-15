@@ -1,5 +1,5 @@
 DGPMGL1 ;ALB/MRL/LM/MJK - G&L ENTRY POINT CONT.; [ 09/13/2001  3:56 PM ]
- ;;5.3;Registration;**1005**;Aug 13, 1993
+ ;;5.3;Registration;**1005,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  3/30/2001 changed references to IHS files
  ;                        added calls to IHS routines for calculate
  ;                        commented out code not needed

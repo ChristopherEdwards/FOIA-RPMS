@@ -1,5 +1,5 @@
 DGMTU23 ;ALB/CAW/LD,LBD - Display means test information 12/20/01
- ;;5.3;Registration;**33,182,254,272,420,435,456**;Aug 13, 1993
+ ;;5.3;Registration;**33,182,254,272,420,435,456,624,1015**;Aug 13, 1993;Build 21
  ;
  ;
 DISPLAY(DGMTI,DGMTYPT) ;Display means test data
@@ -45,7 +45,7 @@ DISPLAY(DGMTI,DGMTYPT) ;Display means test data
  .W !,X
  S X=""
  S X=$$SETSTR^VALM1("Deductible Expenses:",X,3,20)
- S X=$$SETSTR^VALM1($S($P(DGMTDIS,U,15)'="":"$"_$P(DGMTDIS,U,15),1:""),X,DGFCOL,25)
+ S X=$$SETSTR^VALM1($S($P(DGMTDIS,U,15)'="":$$AMT^DGMTSCU1($P(DGMTDIS,U,15)),1:""),X,DGFCOL,25)
  I DGMTYPT=1 D
  .S X=$$SETSTR^VALM1("Category Changed By:",X,44,25)
  .S X=$$SETSTR^VALM1($P($G(^VA(200,+$P(DGMTDIS,U,8),0)),U),X,DGSCOL,15)

@@ -1,5 +1,5 @@
-DGPFLF6 ;ALB/RPM - PRF FLAG MANAGEMENT LM SUB-ROUTINE ; 4/10/03
- ;;5.3;Registration;**425**;Aug 23, 1993
+DGPFLF6 ;ALB/RPM - PRF FLAG MANAGEMENT LM SUB-ROUTINE ; 4/19/04 4:25pm
+ ;;5.3;Registration;**425,554,1015**;Aug 23, 1993;Build 21
  ;
  Q
  ;
@@ -112,3 +112,45 @@ ASGNCNT(DGFIEN,DGDFNLST) ;counts existing assignments for a given flag
  . . S DGDFNLST(DGDFN)=+$O(^DGPF(26.13,"AFLAG",DGFIEN,DGDFN,0))
  ;
  Q DGCNT
+ ;
+ ;
+CKTIUPN(DGTITLE,DGARRAY) ;check for progress notes linked to a record flag
+ ;This function is used to check all assignment history records of
+ ;patients that are assigned to a given Record Flag for any existing
+ ;associated Progress Note ien values setup.
+ ;
+ ;If any associated Progress Notes are found, the given Record Flag's
+ ;Progress Note Title should not be edited until all the assignment
+ ;history records are un-linked from that given record flag.
+ ;
+ ;  Input:
+ ;    DGTITLE - IEN pointer to the TIU DOCUMENT (#8925.1) file
+ ;    DGARRAY - Name of temp global closed root reference that
+ ;              contains the list of DFNs assigned to record flag
+ ;  i.e.  ^TMP("DGPHTIU",564715668,7172421)=assignment IEN of (#26.13)
+ ;
+ ;  Output:
+ ;    Function result - "1" = if any linked Progress Notes are found
+ ;                    - "0" = if none found
+ ;
+ N DGRSLT  ;function output - 0 or 1
+ N DGDFN   ;pointer to PATIENT (#2) file
+ N DGHTIU  ;array of return values for each assignment history record
+ N DGI     ;for loop var
+ ;
+ S DGRSLT=0
+ ;
+ I $G(DGTITLE),$G(DGARRAY)]"" D
+ . ;
+ . S DGHTIU=$NA(^TMP("DGHTIU",$J))
+ . S DGDFN=0
+ . F  S DGDFN=$O(@DGARRAY@(DGDFN)) Q:DGDFN=""  D  Q:DGRSLT
+ . . K @DGHTIU
+ . . I $$GETHTIU^DGPFAPI1(DGDFN,DGTITLE,DGHTIU) D
+ . . . S DGI=""
+ . . . F  S DGI=$O(@DGHTIU@("HISTORY",DGI)) Q:DGI=""  D  Q:DGRSLT
+ . . . . I $P($G(@DGHTIU@("HISTORY",DGI,"TIUIEN")),U)]"" S DGRSLT=1
+ . ;
+ . K @DGHTIU
+ ;
+ Q DGRSLT

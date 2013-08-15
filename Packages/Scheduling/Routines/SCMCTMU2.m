@@ -1,5 +1,5 @@
 SCMCTMU2 ;ALB/REW - Team-Patient Utilities ; 1 Apr 96
- ;;5.3;Scheduling;**41,51,148**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,51,148,1015**;AUG 13, 1993;Build 21
  ;1
 RESTENR ;call when pt is set to 'restrict consults' & he is enrolled in clinic
  G:'$G(DFN) END

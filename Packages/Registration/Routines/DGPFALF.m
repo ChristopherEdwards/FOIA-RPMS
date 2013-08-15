@@ -1,5 +1,5 @@
-DGPFALF ;ALB/KCL,RBS - PRF LOCAL FLAG API'S ; 4/9/03 12:25pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFALF ;ALB/KCL,RBS - PRF LOCAL FLAG API'S ; 4/8/04 4:03pm
+ ;;5.3;Registration;**425,554,1015**;Aug 13, 1993;Build 21
  ;
  ;- no direct entry
  QUIT
@@ -25,6 +25,7 @@ GETLF(DGPFIEN,DGPFLF) ;retrieve a single PRF LOCAL FLAG (#26.11) record
  ;                    "REVFREQ"           .04      internal^external
  ;                    "NOTIDAYS"          .05      internal^external
  ;                    "REVGRP"            .06      internal^external
+ ;                    "TIUTITLE"          .07      internal^external
  ;                    "DESC",line#,0      1        character string
  ;                    "PRININV",line#,0   2        character string
  ;
@@ -48,6 +49,7 @@ GETLF(DGPFIEN,DGPFLF) ;retrieve a single PRF LOCAL FLAG (#26.11) record
  . S DGPFLF("REVFREQ")=$G(DGFLDS(26.11,DGIENS,.04,"I"))_U_$G(DGFLDS(26.11,DGIENS,.04,"E"))
  . S DGPFLF("NOTIDAYS")=$G(DGFLDS(26.11,DGIENS,.05,"I"))_U_$G(DGFLDS(26.11,DGIENS,.05,"E"))
  . S DGPFLF("REVGRP")=$G(DGFLDS(26.11,DGIENS,.06,"I"))_U_$G(DGFLDS(26.11,DGIENS,.06,"E"))
+ . S DGPFLF("TIUTITLE")=$G(DGFLDS(26.11,DGIENS,.07,"I"))_U_$G(DGFLDS(26.11,DGIENS,.07,"E"))
  . ;-- flag description word processing array
  . M DGPFLF("DESC")=DGFLDS(26.11,DGIENS,1)
  . K DGPFLF("DESC","E"),DGPFLF("DESC","I")
@@ -86,7 +88,7 @@ STOFLAG(DGPFLF,DGPFERR) ;store a single PRF LOCAL FLAG (#26.11) file record
  ;
  N DGSUB,DGFLD,DGIEN,DGIENS,DGFDA,DGFDAIEN,DGERR
  ;
- F DGSUB="FLAG","STAT","TYPE","REVFREQ","NOTIDAYS","REVGRP" D
+ F DGSUB="FLAG","STAT","TYPE","REVFREQ","NOTIDAYS","REVGRP","TIUTITLE" D
  . S DGFLD(DGSUB)=$P($G(DGPFLF(DGSUB)),U)
  I $D(DGPFLF("DESC")) M DGFLD("DESC")=DGPFLF("DESC")
  I $D(DGPFLF("PRININV")) M DGFLD("PRININV")=DGPFLF("PRININV")
@@ -105,6 +107,7 @@ STOFLAG(DGPFLF,DGPFERR) ;store a single PRF LOCAL FLAG (#26.11) file record
  . S DGFDA(26.11,DGIENS,.04)=DGFLD("REVFREQ")
  . S DGFDA(26.11,DGIENS,.05)=DGFLD("NOTIDAYS")
  . S DGFDA(26.11,DGIENS,.06)=DGFLD("REVGRP")
+ . S DGFDA(26.11,DGIENS,.07)=DGFLD("TIUTITLE")
  . S DGFDA(26.11,DGIENS,1)="DGFLD(""DESC"")"
  . ;-- principal investigator(s) multiple
  . I $D(DGFLD("PRININV")) D PRININV(+DGIEN,.DGFDA)

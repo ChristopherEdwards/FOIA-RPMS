@@ -1,5 +1,5 @@
 DGPMVBM ;ALB/MIR - BUILDING MANAGMENT BULLETIN GENERATOR ; 9 OCT 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;This routine will generate a bulletin to building management (if
  ;a site so desires).  This bulletin gets fired under the following
  ;conditions:

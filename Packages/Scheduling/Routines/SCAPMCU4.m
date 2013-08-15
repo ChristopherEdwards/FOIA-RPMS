@@ -1,5 +1,5 @@
 SCAPMCU4 ;ALB/REW - TEAM API UTILITIES ; 30 Mar 96
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;;1.0
 RESTPT(DFN,SCDATE,SCRPA) ;is pt a restricted consult pt?
  ;   DFN - ien to PATIENT File

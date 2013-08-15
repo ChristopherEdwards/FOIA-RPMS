@@ -1,5 +1,5 @@
 SCMCMU11 ;ALB/MJK - PCMM Mass Team/Position Unassignment ; 10-JUL-1998
- ;;5.3;Scheduling;**148**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,1015**;AUG 13, 1993;Build 21
  ;
  ;
 PTTPLST(SCTEAM,SCDATE,SCPTTP) ; -- create list of patients assigned to team positions

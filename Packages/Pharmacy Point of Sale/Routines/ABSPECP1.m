@@ -1,5 +1,5 @@
 ABSPECP1 ; IHS/FCS/DRS - printing for PCS ;  [ 10/09/2002  8:01 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,12,17,23,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,12,17,23,42,44**;JUN 21, 2001
  ;
  ;---------------------------------
  ;IHS/SD/lwj 10/08/02  NCPDP 5.1 changes
@@ -164,7 +164,8 @@ FMTFIELD ; given FILE,DA,FIELD,@SRC@(FILE,DA,FIELD,"E" and "I"), set @TMP
  ;Allow for double zeros in fields 440 and 441
  ;I FIELD'=407,FIELD'=302 D
  ;Patch 23 added 492 below
- I FIELD'=407,FIELD'=302,FIELD'=440,FIELD'=441,FIELD'=492 D
+ ;OIT/CAS/RCS 10022012 - Patch 44, added fields 101, 104, 301, 303 and 110
+ I FIELD'=407,FIELD'=302,FIELD'=440,FIELD'=441,FIELD'=492,FIELD'=101,FIELD'=104,FIELD'=301,FIELD'=110,FIELD'=303 D
  .F  Q:$E(EXT)'=0  Q:$L(EXT)=1  S EXT=$E(EXT,2,$L(EXT))
  I FIELD=426!(FIELD=430) D  ; for some reason they're missed
  .S EXT="$"_$J($$DFF2EXT^ABSPECFM(EXT),7,2)

@@ -1,5 +1,5 @@
 DGRUGZDC ;ALB/GRR - HL7 ZDC SEGMENT BUILDER ;06/08/99
- ;;5.3;Registration;**190**;Aug 13, 1993
+ ;;5.3;Registration;**190,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will build an HL7 ZDC segment for an inpatient.
  ;

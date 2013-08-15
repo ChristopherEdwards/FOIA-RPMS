@@ -1,11 +1,13 @@
 ABMDRAL3 ; IHS/ASDST/DMJ - Bills Stats Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**4**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,9**;NOV 12, 2009
  ;Original;TMD;
  ; IHS/SD/SDR - abm*2.6*4 - HEAT12210 - put subscripts in correct order
+ ; IHS/SD/SDR - 2.6*9 - HEAT35406 - Correction to itemized report
  ;
 PRINT ;EP for printing data
  S ABM("PG")=0
- W:$D(ABM("PRINT",16)) @ABM("PRINT",16) D HDB
+ ;W:$D(ABM("PRINT",16)) @ABM("PRINT",16) D HDB  ;abm*2.6*9 HEAT35406
+ W:$D(ABM("PRINT",16)) @ABM("PRINT",16) D ^ABMDRHD,HDB  ;abm*2.6*9 HEAT35406
  S ABM("L")="",ABM("OL")=""
  F ABM="N","B","PD","DD","WO","OB" S ABM("T"_ABM)=0
  ;F  S ABM("L")=$O(^TMP(ABM("SUBR"),"ST",$J,ABM("L"))) Q:ABM("L")=""  D  ;abm*2.6*4 HEAT12210

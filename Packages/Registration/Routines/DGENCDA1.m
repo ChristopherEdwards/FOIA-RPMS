@@ -1,5 +1,5 @@
-DGENCDA1 ;ALB/CJM,RMM Zoltan,JAN,PHH - Catastrophic Disabilty API - File Data;Sep 16, 2002
- ;;5.3;Registration;**121,147,232,302,356,387,475**;Aug 13,1993
+DGENCDA1 ;ALB/CJM,RMM Zoltan,JAN,PHH,BRM,CKN - Catastrophic Disabilty API - File Data;Sep 16, 2002 ; 9/22/05 5:25pm
+ ;;5.3;Registration;**121,147,232,302,356,387,475,451,653,1015**;Aug 13,1993;Build 21
  ;
 LOCK(DFN) ;
  ;Description: Locks the catastrophic disability record for a patient
@@ -31,6 +31,7 @@ CHECK(DGCDIS,ERROR) ;
  ;          reference
  N VALID,RESULT,EXTERNAL,ITEM,EIEN,EXIT,OK,ISCD,POP,FLD
  S ERROR=""
+ Q:DGCDIS("VCD")="@" 1  ;this is a deletion
  D  ;drops out of block if invalid condition found
  . S VALID=0 ; Usually invalid if it exits early.
  . ; CD Flag must have a value if any other CD field is populated
@@ -159,6 +160,9 @@ DELETE(DFN) ;
  . S DR=DR_";.393////@"
  . S DR=DR_";.394////@"
  . S DR=DR_";.395////@"
+ . S DR=DR_";.3951////@"
+ . S DR=DR_";.3952////@"
+ . S DR=DR_";.3953////@"
  . S DA=DFN
  . D ^DIE
  . N SIEN,SUBFILE

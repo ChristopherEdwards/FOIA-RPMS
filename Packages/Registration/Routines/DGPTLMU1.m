@@ -1,5 +1,5 @@
 DGPTLMU1 ;ALM/MTC - Utilities used for the List Manager; 9-17-92
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;
 EXINT ;-- init routine to call List Manager

@@ -1,5 +1,5 @@
 DGYPREG2 ;ALB/REW - POST INIT CONVERSION/REPORTING ;2-APR-93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 HEAD(REP) ;
  Q:'$G(REP)
  N DGTAG,DGTXT,DGX1

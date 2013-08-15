@@ -1,5 +1,5 @@
 SCCVEAE1 ;ALB/RMO,TMP - Add/Edit Conversion cont.; [ 04/05/95  8:46 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 CON(SCCVEVT,SCDTM,SCVALDT,SCDA) ;Should conversion event be processed for add/edit
  ; Input  -- SCCVEVT  Conversion event

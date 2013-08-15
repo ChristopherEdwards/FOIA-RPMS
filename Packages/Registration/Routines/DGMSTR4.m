@@ -1,5 +1,5 @@
 DGMSTR4 ;ALB/SCK - MST History report ; 7/9/01 4:07pm
- ;;5.3;Registration;**195,379**;Aug 13, 1993
+ ;;5.3;Registration;**195,379,1015**;Aug 13, 1993;Build 21
 EN ;  Main entry point
  N VAUTN,VAUTNI,VA,Y,ZTSAVE
  ;

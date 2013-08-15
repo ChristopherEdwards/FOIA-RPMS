@@ -1,5 +1,5 @@
 DGV53PT5 ;MTC/ALB - Provider Conversion Continued ; 21 JAN 93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 CON411 ;-- This routine will perform the conversion to file #200 for the
  ;   Scheduled Admission File (#41.1)

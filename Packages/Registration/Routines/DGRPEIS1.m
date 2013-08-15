@@ -1,5 +1,5 @@
-DGRPEIS1 ;ALB/MIR - CALLS TO ADD NEW PATIENT RELATIONS AND INCOME PERSONS ; 27 FEB 92
- ;;5.3;Registration;**10,45,108**;Aug 13, 1993
+DGRPEIS1 ;ALB/MIR - CALLS TO ADD NEW PATIENT RELATIONS AND INCOME PERSONS ; 6/19/09 11:33am
+ ;;5.3;PIMS;**10,45,108,624,688,1015,1016**;JUN 30, 2012;Build 20
  ;Adds entries to FILES #408.12 & 408.13
  ;
 NEW ;check if data in FILE #408.12
@@ -15,11 +15,18 @@ NEW ;check if data in FILE #408.12
 NEWIP ;Add relation to #408.13 file
  ; In - DFN=IEN of File #2
  ;      DGRP0ND=0 node of 408.13
+ ;      DGDEP=Optional count of children dependents associated with patient
  ;Out - DGIPI=408.13 IEN
  K DINUM N DGRPDOB,DGSEX,I,X
+ S:('$D(DGDEP)) DGDEP=""
  S DGRPDOB=$P(DGRP0ND,"^",3),DGSEX=$P(DGRP0ND,"^",2)
+ N CNT,I S CNT=0
+ F I=2,3,9 D
+ .S CNT=CNT+1,$P(DIC("DR"),";",CNT)=".0"_I_"////"_$P(DGRP0ND,U,I)
+ F I=10,11 D
+ .S CNT=CNT+1,$P(DIC("DR"),";",CNT)="."_I_"////"_$P(DGRP0ND,U,I)
+ F I=1:1:8 S DIC("DR")=DIC("DR")_";1."_I_"////"_$P(DGRP1ND,U,I)
  S (DIK,DIC)="^DGPR(408.13,",DIC(0)="L",DLAYGO=408.13,X=$P(DGRP0ND,"^",1) K DD,DO D FILE^DICN S (DGIPI,DA)=+Y K DLAYGO
- L +^DGPR(408.13,+DGIPI) S ^DGPR(408.13,+DGIPI,0)=DGRP0ND D IX1^DIK L -^DGPR(408.13,+DGIPI)
  S Y=DGIPI,DGRP0ND=DFN_"^"_$S(SPOUSE:2,1:"")_"^"_+Y_";DGPR(408.13,"
  ;FALLS THRU!
 NEWPR ;Add entry to file #408.12
@@ -29,15 +36,35 @@ NEWPR ;Add entry to file #408.12
  K DINUM N DOB,X
  I '$D(DGTSTDT) N DGTSTDT S DGTSTDT=$S($D(DGMTDT):DGMTDT,1:DT)
  S DOB=$G(DGRPDOB) I 'DOB S DOB=$E(DGTSTDT,1,3)-1_"0101" ; use dob for effective date...default = Jan 1 of prior year
-DIC I $P(DGRP0ND,"^",2)']"" S DIC="^DG(408.11,",DIC(0)="AEQMZ",DIC("A")="RELATIONSHIP: ",DIC("S")="I Y>2,""E""_DGSEX[$P(^(0),""^"",3),$S(DGTYPE=""D"":1,Y<7:1,1:0)" D ^DIC I '$D(DTOUT),(Y'>0) W *7,"   Required!!" G DIC
+DIC ;* GTS - DG*6.3*688 restructured the IF code and DIC("S") that follows
+ N DGDEPCNT
+ S DGDEPCNT=$$CNTDEPS^DGMTU11(DFN)
+ I $P(DGRP0ND,"^",2)']"" DO
+ .S DIC="^DG(408.11,"
+ .S DIC(0)="AEQMZ"
+ .S DIC("A")="RELATIONSHIP: "
+ .S DIC("S")="I Y>2,""E""_DGSEX[$P(^(0),""^"",3),$S((DGTYPE=""D"")&(+DGDEPCNT<19):1,(DGTYPE=""D"")&(+DGDEPCNT>18)&(Y>6):1,(DGTYPE=""C"")&(Y<7):1,1:0)"
+ I $P(DGRP0ND,"^",2)']"" D ^DIC I '$D(DTOUT),(Y'>0) W *7,"   Required!!" G DIC
  I $D(DTOUT) K DTOUT S DGFL=-2 G NEWPRQ
  I $P(DGRP0ND,"^",2)']"" S $P(DGRP0ND,"^",2)=+Y
  D ACT^DGRPEIS2 I DGFL<0 D  G NEWPRQ
  .W !?3,*7,"Entry incomplete...deleted",!
  .Q:'$G(DA)!($G(DIK)'="^DGPR(408.13,")  ;defined for deps in newip
  .D ^DIK
- S (DIK,DIC)="^DGPR(408.12,",DIC(0)="L",DLAYGO=408.12,X=+DGRP0ND K DD,DO D FILE^DICN S DGPRI=+Y K DLAYGO
- S DA=+DGPRI L +^DGPR(408.12,+DGPRI) S ^DGPR(408.12,+DGPRI,0)=DGRP0ND,^DGPR(408.12,+DGPRI,"E",0)="^408.1275D^1^1",^(1,0)=DGACT_"^"_1 D IX1^DIK L -^DGPR(408.12,+DGPRI)
+ ; ADDED FOR 834
+ I $G(DFN),$$GET1^DIQ(2,DFN,.03,"I")>DGACT D  G NEWPRQ
+ . W !?3,*7,"Effective date is prior to veteran's DOB (",$$GET1^DIQ(2,DFN,.03),")...deleted",!
+ . Q:'$G(DA)!($G(DIK)'="^DGPR(408.13,")
+ . D ^DIK
+ . N DIR S DIR(0)="FAO",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
+ S DIC("DR")=".02////"_$P(DGRP0ND,U,2)
+ N VAR S VAR=$P(DGRP0ND,U,3)
+ S DIC("DR")=DIC("DR")_";.03////^S X=VAR"
+ S (DIK,DIC)="^DGPR(408.12,",DIC(0)="L",DLAYGO=408.12,X=+DGRP0ND K DD,DO D FILE^DICN S DGPRI=+Y K DLAYGO D
+ .N DD,D0,DA,DLAYGO,DIC,X
+ .S DA(1)=DGPRI,DIC(0)="L",DIC="^DGPR(408.12,"_DA(1)_",""E"","
+ .S DLAYGO=408.1275,DIC("DR")=".02////1",X=DGACT
+ .D FILE^DICN
  D RESET^DGMTU11(DFN)
  S Y=DGPRI
 NEWPRQ K DGACT,DGSEX,DGRPDOB,DA,DIC,DIK,DIRUT,DTOUT,DUOUT,X,Y

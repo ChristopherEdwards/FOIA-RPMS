@@ -1,5 +1,5 @@
 SCRPSLT2 ;ALB/CMM - Summary Listing of Teams Continued ; 9/15/99 10:43am
- ;;5.3;Scheduling;**41,174,177,231**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,174,177,231,520,1015**;AUG 13, 1993;Build 21
  ;
  ;Summary Listing of Teams Report
  ;
@@ -22,8 +22,10 @@ KEEP(TNODE,APOS,TPOS,ROL,TM,TPCN,TNPC) ;
  ;
  S POS=$P(TNODE,"^") ;position name
  ;SD*5.3*231 - call SCMCLK to determine in AP or not
- S PPC=$S($P(TNODE,"^",4)<1:"NPC",+$$OKPREC3^SCMCLK(APOS,DT)>1:" AP",1:"PCP") ;PC?
- S PCLIN=$P($G(^SC(+$P(TNODE,"^",9),0)),"^") ;associated clinic
+ S PPC=$S($P(TNODE,"^",4)<1:"NPC",+$$OKPREC3^SCMCLK(APOS,DT)>0:" AP",1:"PCP") ;PC?
+ ;S PCLIN=$P($G(^SC(+$P(TNODE,"^",9),0)),"^") ;associated clinic
+ D SETASCL^SCRPRAC2(APOS,.PCLIN)
+ S PCLIN=$G(PCLIN(0))
  S ROLN=$P($G(^SD(403.46,+ROL,0)),U) ;role name
  ;
  S (PRCPC,PRCNPC)="",SCI="^TMP(""SCRATCH"",$J)"
@@ -54,6 +56,9 @@ KEEP(TNODE,APOS,TPOS,ROL,TM,TPCN,TNPC) ;
  S TNPC(TM)=$G(TNPC(TM))+NPC
  ;
  D FORMAT(APOS,POS,PCLIN,VAE,PRACT,PPC,DIV,TM,NPC,MAX,PCN,XDAT)
+ N SCAC
+ S SCAC=0
+ F  S SCAC=$O(PCLIN(SCAC)) Q:SCAC=""  D FORMATAC(APOS,POS,PCLIN(SCAC),VAE,DIV,TM)
  Q
  ;
 TEAMT(TM,TPASS,TMAX,TPCN,TOA,TNPC) ;
@@ -93,6 +98,9 @@ FORMAT(APOS,POS,PCLIN,VAE,PRACT,PPC,DIV,TM,NPC,MX,PC,XDAT) ;
  S $E(@STORE@(DIV,TM,VAE,APOS),121)=$J(TMP(1),5,0) ;precepted PC
  S $E(@STORE@(DIV,TM,VAE,APOS),128)=$J(TMP(2),5,0) ;precepted NPC
  ;New code ends
+ Q
+FORMATAC(APOS,POS,PCLIN,VAE,DIV,TM) ;clinic multiples
+ S $E(@STORE@(DIV,TM,VAE,APOS,SCAC),72)=$E(PCLIN,1,30)
  Q
  ;
 TOTAL(INST,TEM) ;

@@ -1,5 +1,5 @@
-DGPMV3 ;ALB/MIR - ENTER TRANSACTION INFORMATION; [ 03/15/2002  10:10 AM ]
- ;;5.3;Registration;**34,54,62,95,1003,1005,1013**;Aug 13, 1993
+DGPMV3 ;ALB/MIR - ENTER TRANSACTION INFORMATION; 8 MAY 89 ; 5/23/06 8:32am
+ ;;5.3;Registration;**34,54,62,95,692,715,1003,1005,1013,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  2/21/2000 changed to IHS input templates
  ;              3/08/2001 set ^utility for IHS fields
  ;              7/25/2001 added code for silent APIs
@@ -11,13 +11,10 @@ DGPMV3 ;ALB/MIR - ENTER TRANSACTION INFORMATION; [ 03/15/2002  10:10 AM ]
  D NOW^%DTC S DGNOW=%,DGPMHY=DGPMY,DGPMOUT=0 G:'DGPMN DT S X=DGPMY
  S DGPM0ND=DGPMY_"^"_DGPMT_"^"_DFN_"^^^^^^^^^^^"_$S("^1^4^"[("^"_DGPMT_"^"):"",1:DGPMCA)
  ;
- ;
  I DGPMT=1 S $P(DGPM0ND,"^",25)=$S(DGPMSA:1,1:0)
  ;-- provider change
  I DGPMT=6,$D(DGPMPC) S DGPM0ND=$$PRODAT(DGPM0ND)
  D NEW G Q:Y'>0 S (DA,DGPMDA)=+Y
- ;
- ;
  S:DGPMT=1!(DGPMT=4) DGPMCA=DA,DGPMAN=^DGPM(DA,0) D VAR G DR
  I $G(BDGAPI) D VAR G DR   ;IHS/ANMC/LJF 7/25/2001
 DT D VAR G:DGPM1X DR S (DGPMY,Y)=DGPMHY X ^DD("DD") W !,DGPMUC," DATE: ",Y,"// " R X:DTIME G Q:'$T!(X["^") I X="" G DR
@@ -26,7 +23,6 @@ DT D VAR G:DGPM1X DR S (DGPMY,Y)=DGPMHY X ^DD("DD") W !,DGPMUC," DATE: ",Y,"// "
  D ^%DT I Y<0 D HELP^%DTC G DT
  K %DT S DGPMY=Y D CHK^DGPMV30:(X]"")&(DGPMY'=+DGPMP) I $D(DGPME) S DGPMY=DGPMHY W !,DGPME K DGPME G DT
 DR ;select input template for transaction type
- ;
  ;IHS/ITSC/LJF 04/14/2005 PATCH 1003 always set no-hat out, not just for new entries
  ;S DIE="^DGPM(" I "^1^4^6^"[("^"_DGPMT_"^"),DGPMN S DIE("NO^")=""
  ;IHS/OIT/LJF 05/26/2006 PATCH 1005 don't aloow hat-out for discharge either
@@ -43,19 +39,16 @@ DR ;select input template for transaction type
  ;IHS/ANMC/LJF 2/21/2001;7/25/2001 end of changes
  ;
  I $D(Y)#2 S DGPMOUT=1
- S ^UTILITY("DGPM",$J,DGPMT,DGPMDA,"IHSA")=$G(^DGPM(DGPMDA,"IHS"))  ;IHS/ANMC/LJF 3/08/2001  set ^utility for IHS fields
- K DGZ S (^UTILITY("DGPM",$J,DGPMT,DGPMDA,"A"),DGPMA)=$S($D(^DGPM(DGPMDA,0)):^(0),1:"")
+ ;Modified in patch dg*5.3*692 to include privacy indicator node "DIR"
+ K DGZ S (^UTILITY("DGPM",$J,DGPMT,DGPMDA,"A"),DGPMA)=$S($D(^DGPM(DGPMDA,0)):^(0)_$S($G(^("DIR"))'="":U_^("DIR"),1:""),1:"")
  D:DGPMT'=4 @("^DGPMV3"_DGPMT)
  I DGPMT=4,$S('$D(^DGPM(DGPMDA,"LD")):1,'$P(^("LD"),"^",1):1,1:0) S DIK="^DGPM(",DA=DGPMDA W !,"Incomplete check-in...deleted" D ^DIK K DIK S DGPMA=""
- S ^UTILITY("DGPM",$J,DGPMT,DGPMDA,"IHSA")=$G(^DGPM(DGPMDA,"IHS"))  ;IHS/ANMC/LJF 3/08/2001  set ^utility for IHS fields
- S (^UTILITY("DGPM",$J,DGPMT,DGPMDA,"A"),DGPMA)=$G(^DGPM(DGPMDA,0)) I DGPMT=6 S Y=DGPMDA D AFTER^DGPMV36
+ S (^UTILITY("DGPM",$J,DGPMT,DGPMDA,"A"),DGPMA)=$G(^DGPM(DGPMDA,0))_$S($G(^("DIR"))'="":U_^("DIR"),1:"") I DGPMT=6 S Y=DGPMDA D AFTER^DGPMV36
 EVENTS ;
  I DGPMT=4!(DGPMT=5) D RESET^DGPMDDLD
  I DGPMT'=4&(DGPMT'=5) D RESET^DGPMDDCN I (DGPMT'=6) D SI^DGPMV33
- ;
  D:DGPMA]"" START^DGPWB(DFN)
  D EN^DGPMVBM ;notify building management if room-bed change
- ;
  ;IHS/ANMC/LJF 3/08/2001 add check for IHS node of ^utility
  ;S DGOK=0 F I=0:0 S I=$O(^UTILITY("DGPM",$J,I)) Q:'I  F J=0:0 S J=$O(^UTILITY("DGPM",$J,I,J)) Q:'J  I ^(J,"A")'=^("P") S DGOK=1 Q
  S DGOK=0 F I=0:0 S I=$O(^UTILITY("DGPM",$J,I)) Q:'I  F J=0:0 S J=$O(^UTILITY("DGPM",$J,I,J)) Q:'J  I (^(J,"A")'=^("P"))!($G(^("IHSA"))'=$G(^("IHSP"))) S DGOK=1 Q
@@ -76,18 +69,16 @@ OKD ;IHS/ANMC/LJF 3/08/2001 added set of IHS node in ^utility
  D @(DGPMT_"^DGPMVDL"_$S(DGPMT>2:1,1:""))
  S BDGDLREA=$$DELREAS()  ;ihs/cmi/maw 04/08/2011 Patch 1013 RQMT157 add delete reason
  I DGPMT'=3,(DGPMT'=5) S DIK="^DGPM(",DA=DGPMDA D ^DIK:DGPMDA
- ;
  ;IHS/ANMC/LJF 3/08/2001 added setting of IHS nodes in ^utility
  ;S (^UTILITY("DGPM",$J,DGPMT,DGPMDA,"A"),DGPMA)=$S($P(DGPMP,"^",18)'=47:"",1:^DGPM(+DGPMDA,0)) I DGPMT=6 S Y=DGPMDA D AFTER^DGPMV36
  S (^UTILITY("DGPM",$J,DGPMT,DGPMDA,"A"),DGPMA)=$S($P(DGPMP,"^",18)'=47:"",1:^DGPM(+DGPMDA,0)),^UTILITY("DGPM",$J,DGPMT,DGPMDA,"IHSA")=$G(^DGPM(+DGPMDA,"IHS")) I DGPMT=6 S Y=DGPMDA D AFTER^DGPMV36
  ;I DGPMDA,$O(^DGPM("APHY",DGPMDA,0)) S DIK="^DGPM(",DA=+$O(^(0)) I $D(^DGPM(+DA,0)) S ^UTILITY("DGPM",$J,6,DA,"P")=^(0),^("A")="",Y=DA D PRIOR^DGPMV36,^DIK S Y=DA D AFTER^DGPMV36
  I DGPMDA,$O(^DGPM("APHY",DGPMDA,0)) S DIK="^DGPM(",DA=+$O(^(0)) I $D(^DGPM(+DA,0)) S ^UTILITY("DGPM",$J,6,DA,"P")=^(0),^("A")="",^("IHSA")="",^("IHSP")=$G(^DGPM(+DA,"IHS")),Y=DA D PRIOR^DGPMV36,^DIK S Y=DA D AFTER^DGPMV36
  ;IHS/ANMC/LJF 3/08/2001 end of changes
- ;
  G EVENTS
 VAR ;Set up variables
- S DA=DGPMDA,(^UTILITY("DGPM",$J,DGPMT,DGPMDA,"P"),DGPMP)=$S(DGPMN=1:"",1:$G(^DGPM(DA,0))) ;DGPMP=Before edit
- ;
+ ;Modified in patch dg*5.3*692 to include privacy indicator node "DIR"
+ S DA=DGPMDA,(^UTILITY("DGPM",$J,DGPMT,DGPMDA,"P"),DGPMP)=$S(DGPMN=1:"",1:$G(^DGPM(DA,0))_$S($G(^("DIR"))'="":U_^("DIR"),1:""),1:"") ;DGPMP=Before edit
  ;IHS/ANMC/LJF 3/08/2001 added setting of IHS node in ^utility
  S ^UTILITY("DGPM",$J,DGPMT,DGPMDA,"IHSP")=$G(^DGPM(+DGPMDA,"IHS"))
  ;

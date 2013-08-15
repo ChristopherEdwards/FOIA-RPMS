@@ -1,5 +1,5 @@
 APCHPWH2 ; IHS/CMI/LAB - PCC HEALTH SUMMARY - MAIN DRIVER PART 2 ;  
- ;;2.0;IHS PCC SUITE;**4,6,7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**4,6,7,8**;MAY 14, 2009;Build 2
  ;
 ASK3 ;EP - called from pwh
  D SUBHEAD^APCHPWHU
@@ -173,7 +173,7 @@ HTWTBMI ;EP - ht/wt/bmi component
  .;BMI
  .S APCLBMI=$$BMI($P(APCHHT,U,3),$P(APCHWT,U,3))
  .D S^APCHPWH1("Your Body Mass Index on "_$$FMTE^XLFDT($P(APCHWT,U,1))_" was "_APCLBMI_".",1)
- .I $L($P(APCLBMI,".")>2) D  Q
+ .I $L($P(APCLBMI,"."))>2 D  Q
  ..D S^APCHPWH1("You are above a healthy weight.  Ask your health care provider about")
  ..D S^APCHPWH1("a weight that is good for you.")
  .I $E(APCLBMI,1,2)>18,$E(APCLBMI,1,2)<26 D

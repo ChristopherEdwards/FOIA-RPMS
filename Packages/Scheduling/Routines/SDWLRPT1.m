@@ -1,5 +1,5 @@
 SDWLRPT1 ;;IOFO BAY PINES/TEH - WAIT LIST REPORT FORMAT 1;06/12/2002 ; 29 Aug 2002  2:54 PM
- ;;5.3;scheduling;**263**;AUG 13 1993
+ ;;5.3;scheduling;**263,399,394,1015**;AUG 13 1993;Build 21
  ;
  ;
  ;******************************************************************
@@ -51,6 +51,7 @@ SORT ;Sort Records
  .I SDWLCT2'="ALL" D
  ..I '$D(SDWLCT2(SDWLTYPE)) S SDWLERR=3
  .I SDWLTYP="" S SDWLERR=4 Q
+ .I $P(SDWLX,U,3)=""!($P(SDWLX,U,16)="") S SDWLERR=5 Q
  .I SDWLOPEN'["C",$P(SDWLX,U,17)'[SDWLOPEN S SDWLERR=6 Q
  .Q:SDWLERR  D
  ..S SDWLSCC=2,DFN=SDWLDFN D ELIG^VADPT I $D(VAEL(3)) S SDWLSCN=$P(VAEL(3),U,2) I SDWLSCN>49 S SDWLSCC=1
@@ -80,6 +81,9 @@ PRINT ;Print Report
  .....W !!,SDWLNAM
  .....W ?35,SDWLSSN I SDWLAPTD'="" W ?50,"Desired Date: ",SDWLAPTD
  .....W !,"Primary Eligibility: ",$P(SDWLELIG,U,2)
+ .....;PATCH SD*5.3*394 See Note.
+ .....N SDWLSCP
+ .....W !,"Service Connected Priority: " S SDWLSCP=$$GET1^DIQ(409.3,SDWLE_",",15,"I") W $S(SDWLSCP=1:"YES",1:"NO")
  .....W !,"Comments: ",SDWLCOM,!
  .....I SDWLRBY W !,"Requested by: ",$$EXTERNAL^DILFD(409.3,11,,SDWLRBY)
  .....I SDWLRPV W ?35,"Requesting Provider: " S X=$$EXTERNAL^DILFD(409.3,12,,SDWLRPV) W X

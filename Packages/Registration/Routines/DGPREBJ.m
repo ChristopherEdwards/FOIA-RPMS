@@ -1,5 +1,5 @@
-DGPREBJ ;Boise/WRL/ALB/SCK-PreRegistration Night Task Job ; 12/13/96
- ;;5.3;Registration;**109**;Aug 13, 1993
+DGPREBJ ;Boise/WRL/ALB/SCK/EG-PreRegistration Night Task Job ; 1/20/05 1:08pm
+ ;;5.3;Registration;**109,581,568,585,1015**;Aug 13, 1993;Build 21
  Q
  ;
 EN ;  Main entry point for the Pre-Registration Background Job.
@@ -18,14 +18,42 @@ EN ;  Main entry point for the Pre-Registration Background Job.
  S DGPTOD=$$DT^XLFDT()
  ;
  S DGPNL=1
+ ;
  S DGPFNC=$P($G(^DG(43,1,"DGPRE")),U,3)
  I DGPFNC']""!(DGPFNC="N") D MES("MES1") G EXIT
  ;
+ ; Get Appointment Information
+ D SDAMAPI^DGPREBJ1(0)
+ ;
+ ; Check for Appointment Database Availability
+ ;if there is no lower level data from the 101 subscript, then it is
+ ;an error, otherwise it could be a valid patient or clinic
+ ;eg 01/20/2005
+ I $D(^TMP($J,"SDAMA301")) I $D(^TMP($J,"SDAMA301",101))=1 D SETTEXT^DGPREBJ("SDAMAPI - Appointment Database is Unavailable."),SETTEXT^DGPREBJ("Unable to update Call List."),SEND K ^TMP($J,"SDAMA301") Q
+ ;
+ ; DG/581 - delete certain entries in DGS(41.42
+ N DGTDAY,DGIEN,DGOLD,DGZERO,DGDFN,DGAPDT,DGKFLAG,DGCLN,DGSTAT
+ D NOW^%DTC S DGTDAY=%
+ S (DGIEN,DGOLD)=0
+ F  S DGIEN=$O(^DGS(41.42,DGIEN)) Q:'DGIEN  D
+ .S DGZERO=$G(^DGS(41.42,DGIEN,0)) Q:DGZERO=""
+ .S DGDFN=$P(DGZERO,U),DGAPDT=$P(DGZERO,U,8),DGCLN=$P(DGZERO,U,7)
+ .Q:('DGDFN)!('DGAPDT)
+ .S DGKFLAG=0
+ .; delete if appt date less than NOW
+ .I DGAPDT<DGTDAY S DGKFLAG=1
+ .; check status of appt - delete if no-show, cancelled...
+ .S DGSTAT=$P($P($G(^TMP($J,"SDAMA301",DGCLN,DGDFN,DGAPDT)),U,3),";")
+ .I DGSTAT'="",DGSTAT'="R" S DGKFLAG=1
+ .I DGKFLAG S DIK="^DGS(41.42,",DA=DGIEN D ^DIK K DIK S DGOLD=DGOLD+1
+ D SETTEXT("Number of old or cancelled records deleted from the Call List: "_DGOLD)
+ D SETTEXT("")
+ ;
  I DGPFNC="D" D KILLALL
  I DGPFNC="P" D PURGECP
- I DGPFNC="DA" D KILLALL,ADDNEW^DGPREBJ1(0)
- I DGPFNC="PA" D ADDNEW^DGPREBJ1(0),PURGECP
- I DGPFNC="AO" D ADDNEW^DGPREBJ1(0)
+ I DGPFNC="DA" D KILLALL,ADDNEW^DGPREBJ1(0,DGPDT)
+ I DGPFNC="PA" D ADDNEW^DGPREBJ1(0,DGPDT),PURGECP
+ I DGPFNC="AO" D ADDNEW^DGPREBJ1(0,DGPDT)
  ;
  ; Purge call log entries beyond Days to Keep limit
  S DGPNDAY=$P($G(^DG(43,1,"DGPRE")),U,4)

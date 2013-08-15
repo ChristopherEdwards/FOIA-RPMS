@@ -1,5 +1,5 @@
 SCUTBK10 ;ALB/SCK - Scheduling Broker Utilities ; 04 Sep 2002  12:53 PM
- ;;5.3;Scheduling;**41,264**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,264,297,1015**;AUG 13, 1993;Build 21
  ;
  Q
  ;
@@ -159,5 +159,6 @@ MNTEST(SCOK,SC) ;
  D TMP^SCUTBK
  S DFN=+SC
  S SCOK=$$LST^DGMTU(DFN),$P(SCOK,U,10)=$$ONWAIT^SCMCWAIT(DFN),$P(SCOK,U,11)=$$SC^SCMCWAIT(SC)
+ S $P(SCOK,U,12)=$$IU^SCMCTSK1(DFN)
  Q
  ;

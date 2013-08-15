@@ -1,5 +1,5 @@
-DGUTQ ;ALB/AAS - QUEUEING UTILITY (%ZTLOAD) ; [ 09/13/2001  4:04 PM ]
- ;;5.3;Registration;;Aug 13, 1993
+DGUTQ ;ALB/AAS - QUEUEING UTILITY (%ZTLOAD) ; 16-JUL-2003
+ ;;5.3;Registration;**539,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/15/2000 added code to handle default printers
  ;
 Q1 S ZTDTH=$H
@@ -10,9 +10,9 @@ QUE K IO("Q") I '$D(ZTIO),$D(ION),ION="" S ZTIO=""
  I $D(DGPGM),'$D(ZTSAVE("DGPGM")) S ZTSAVE("DGPGM")=""
 LOAD D ^%ZTLOAD W:'$D(DGUTQND) !!,$S($D(ZTSK):"Request Queued!",1:"Request Cancelled!") S:'$D(ZTSK) X="^" S:$D(ZTSK) X="" G CLOSE:$D(ZTSK),END
  Q
-ZIS ;
- I $D(BDGDEV) S %ZIS("B")=BDGDEV K BDGDEV  ;IHS/ANMC/LJF 11/15/2000
- W ! K IOP,IO("Q") S POP=0,%ZIS="QMP" D ^%ZIS K %ZIS,IOP Q:POP  I $D(IO("Q")) D QUE S POP=1 G CLOSE
+ZIS  I $D(BDGDEV) S %ZIS("B")=BDGDEV K BDGDEV  ;IHS/ANMC/LJF 11/15/2000
+ W ! K IOP,IO("Q") S POP=0,%ZIS="QMP" S:$D(DGFZIS) IOP="Q"
+ D ^%ZIS K %ZIS,IOP Q:POP  I $D(IO("Q")) D QUE S POP=1 G CLOSE
  U IO Q
 SAVE D:DGZTSAVE["#" ARRAY F DGI=1:1 S DGVAR=$P(DGZTSAVE,"^",DGI) Q:DGVAR']""  I '$D(ZTSAVE(DGVAR)) S ZTSAVE(DGVAR)="" S:$E(DGVAR,$L(DGVAR))="(" ZTSAVE($E(DGVAR,1,($L(DGVAR)-1)))=""
  Q
@@ -26,3 +26,6 @@ DQ D @($S($D(DGPGM):DGPGM,$D(PGM):PGM,1:"CLOSE"))
  Q
 DTQ I $D(ZTSK("D")) S DGX=ZTSK("D"),%H=$P(DGX,",") D YMD^%DTC S DGX=$P(DGX,",",2),Z=X_((DGX#3600\60)/100+(DGX\3600)/100) ;Find time queued
  Q
+FZIS ;Settings for force queuing
+ N DGFZIS
+ S DGFZIS=1 G ZIS

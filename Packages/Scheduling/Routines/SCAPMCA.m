@@ -1,5 +1,5 @@
 SCAPMCA ;BP-CIOFO/KEITH - API to return all patient assignment information ;7/8/99  18:16
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;
 GETALL(DFN,SCDT,SCARR) ;Get all assignment information
  ;Input: DFN=patient ifn

@@ -1,5 +1,5 @@
 DGGECSA ;ALB/RMO - Auto Generate Code Sheets for MAS AMIS(s) ; 13 AUG 90 8:52 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;==============================================================
  ;Entry Points:
  ; ASK     -Prompt user to generate AMIS code sheets

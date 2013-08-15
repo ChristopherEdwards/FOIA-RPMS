@@ -1,5 +1,5 @@
 DGMTOREQ ;ALB/TET,CAW,CKN - List Means Test Status  ; 5/6/92 ; 07/22/02 11:00am
- ;;5.3;Registration;**33,100,166,182,456**;Aug 13, 1993
+ ;;5.3;Registration;**33,100,166,182,456,1015**;Aug 13, 1993;Build 21
 EN ;Entry point to list required/pending means tests
 ST ;select means test status
  I DGMTYPT=1 S DIC("S")="I ""^R^P^""[$P(^(0),U,2)&($P(^(0),U,19)=DGMTYPT)"

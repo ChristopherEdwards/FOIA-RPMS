@@ -1,5 +1,5 @@
 APCLDE3 ; IHS/CMI/LAB - list DEPRESSION screenings ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
  ;
  ;
 INFORM ;
@@ -10,7 +10,7 @@ INFORM ;
  W !,"DEPRESSION screening or a refusal documented in the time frame specified by "
  W !,"the user.  Depression Screening is defined as any of the following documented:"
  W !?5,"- Depression Screening Exam (Exam code 36)"
- W !?5,"- Measurements: PHQ2, PHQ9"
+ W !?5,"- Measurements: PHQ2, PHQ9, PHQT"
  W !?5,"- Diagnoses V79.0, 14.1 (Behavioral Health Problem Code)"
  W !?5,"- Education Topics: DEP-SCR"
  W !?5,"- refusal of exam code 36"
@@ -117,7 +117,7 @@ PRV1 ;
 PRVSCR ;
  S (APCLSSRT,APCLSPUN)="" K APCLSPRV
  S DIR(0)="SO^O:One Provider Only;P:Any/All Providers (including unknown);U:Unknown Provider Only"
- S DIR("A")="Select which providers who performed the screening should be included"
+ S DIR("A")="Select which providers WHO PERFORMED THE SCREENING should be included"
  S DIR("?")="If you wish to count only one Provider enter a 'O'.  To include ALL providers enter an 'A'.  To include all providers of one discipline enter a 'D'." D ^DIR K DIR
  G:$D(DIRUT) XIT
  S APCLSSRT=Y

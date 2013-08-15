@@ -1,5 +1,5 @@
 BQITD05 ;PRXM/HC/ALA-CVD Significant Risk ; 02 Mar 2006  1:17 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  Q
  ;
 POP(BQARY,TGLOB) ; EP -- By population
@@ -152,7 +152,7 @@ PAT(DEF,BTGLOB,BDFN) ; EP -- By patient
  .. I SYS=""!(DIA="") Q
  .. I SYS<140!(DIA<90) Q
  .. S @BQGLB1@(BDFN)=$G(@BQGLB1@(BDFN))+1,FREF=9000010.01
- .. S @BQGLB1@(BDFN,"CRITERIA","Risk Factor-High Blood Pressure","V",VISIT,N)=$P($G(^AUPNVIST(VISIT,0)),U,1)_U_EXDT_U_N_U_FREF
+ .. S @BQGLB1@(BDFN,"CRITERIA","Risk Factor-High Blood Pressure","V",VISIT,N)=$P($G(^AUPNVSIT(VISIT,0)),U,1)_U_EXDT_U_N_U_FREF
  I $G(@BQGLB1@(BDFN))>1 D STOR(BDFN,"Risk Factor-High Blood Pressure",TMGLB)
  K @BQGLB1
  ;

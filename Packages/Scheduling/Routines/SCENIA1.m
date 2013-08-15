@@ -1,5 +1,5 @@
 SCENIA1 ;ALB/SCK - INCOMPLETE ENCOUNTER ERROR DISPLAY PROTOCOLS ; 09 Oct 98  3:03 PM
- ;;5.3;Scheduling;**66,154**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,154,323,378,1015**;AUG 13, 1993;Build 21
  ;
 VE ; View Expanded Error
  N SDHDR1,SDHDR2
@@ -69,6 +69,9 @@ DEM ; Entry point for the SCENI PATIENT DEMOGRAPHICS protocol
  S DFN=$G(^TMP("SCENI DFN",$J,0)) Q:'DFN
  S SDXMT=$G(^TMP("SCENI XMT",$J,0)) Q:'SDXMT
  D FULL^VALM1
+ ;SD*5.3*323 add sensitive record warning if applicable
+ ;reference to DGRPU1 allowed in Integration Agreement 413
+ N DIC S DIC=2,DIC(0)="EM",X="`"_DFN D ^DIC I Y=-1 S SDOK=1 Q
  D QUES^DGRPU1(DFN,"ADD3")
  ;
  I '$D(SDOK) D
@@ -89,8 +92,12 @@ INTV() ;  Entry point for correction logic for checkout errors
 CO ;  Entry point for SCENI CHECKOUT INTERVIEW
  N SDXMT,SCENFLG,SDOE,SDDT,SDOEND
  K SCINF
- ;
+ ;SD*5.3*323 add sensitive record warning if applicable next 5 lines
+ N DFN
+ S DFN=$G(^TMP("SCENI DFN",$J,0)) Q:'DFN
  S SDXMT=$G(^TMP("SCENI XMT",$J,0)) Q:'SDXMT
+ D FULL^VALM1
+ N DIC S DIC=2,DIC(0)="EM",X="`"_DFN D ^DIC I Y=-1 S SDOK=1 Q
  S SCSTAT=$$OPENC^SCUTIE1(SDXMT,"SCINF")
  I SCSTAT D  G COQ
  . D FULL^VALM1
@@ -135,6 +142,8 @@ LE ;  Entry point patient load edit.
  S SDXMT=$G(^TMP("SCENI XMT",$J,0)) Q:'SDXMT
  S VALMBCK="",DGNEW=0
  D FULL^VALM1
+ ;SD*5.3*323 add sensitive record warning if applicable
+ N DIC S DIC=2,DIC(0)="EM",X="`"_DFN D ^DIC I Y=-1 S SDOK=1 Q
  D A1^DG10
  I '$D(SDOK) D
  . W !,"Performing Ambulatory Care Validation Checks."

@@ -1,6 +1,8 @@
 LRMINEW1 ;SLC/CJS/BA - NEW DATA TO BE REVIEWED/VERIFIED ;5/6/04  12:04
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1013,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 295
+ ;
 VER W !!,"Indicate those you wish to exclude from verification."
  D CHECK
  I $O(LRAN(0))>0 W !,"Verifying all but the following:" F LRAN=0:0 S LRAN=$O(LRAN(LRAN)) Q:LRAN=""  W !,LRAN
@@ -16,6 +18,7 @@ VER W !!,"Indicate those you wish to exclude from verification."
 STUFF Q:'$D(^LRO(68,LRAA,1,LRAD,1,LRAN,0))  Q:'$D(^(3))  S Y=^(0),LRDFN=+Y,LRLLOC=$P(Y,U,7),LRODT=$S($P(Y,U,4):$P(Y,U,4),1:$P(Y,U,3)),LRSN=$P(Y,U,5),LRIDT=9999999-^(3),LRDPF=$P(^LR(LRDFN,0),U,2),DFN=$P(^(0),U,3) D PT^LRX
  S $P(^LR(LRDFN,"MI",LRIDT,LRSB),U)=DT,$P(^(LRSB),U,$S(LRSB=11:5,1:3))=DUZ
  ; D UPDATE^LRPXRM(LRDFN,"MI",LRIDT)   ; IHS/OIT/MKK - LR*5.2*1030 - RPMS Does NOT use Clinical Reminders
+ I $$PATCH^BLRUTIL4("PXRM*1.5*12") D UPDATE^LRPXRM(LRDFN,"MI",LRIDT)   ; IHS/MSC/MKK - LR*5.2*1031
  S LRCDT=9999999-LRIDT,Y=DT D VT^LRMIUT1
  K ^LRO(68,LRAA,1,LRAD,"AC",LRSB,LRAN)
  D:LRMIQUE TSKM^LRMIUT

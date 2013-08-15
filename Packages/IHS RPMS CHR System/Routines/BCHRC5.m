@@ -1,5 +1,5 @@
-BCHRC5 ; IHS/TUCSON/LAB - CHRIS II Report 1 ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHRC5 ; IHS/CMI/LAB - CHR Report 1 ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
 START ; 
  I '$G(DUZ(2)) W $C(7),$C(7),!!,"SITE NOT SET IN DUZ(2) - NOTIFY SITE MANAGER!!",!! Q
@@ -18,17 +18,33 @@ ED ;get ending date
  ;
 PROG ;
  S BCHPRG=""
- S DIR(0)="Y",DIR("A")="Include data from ALL CHR Programs",DIR("?")="If you wish to include visits from ALL programs answer Yes.  If you wish to tabulate for only one program enter NO." D ^DIR K DIR
+ S DIR(0)="Y",DIR("A")="Include data from ALL CHR Programs",DIR("B")="N",DIR("?")="If you wish to include visits from ALL programs answer Yes.  If you wish to tabulate for only one program enter NO." D ^DIR K DIR
  G:$D(DIRUT) BD
- I Y=1 S BCHPRG="" G GETAGE
+ I Y=1 S BCHPRG="" G CHRT
 PROG1 ;enter program
  K X,DIC,DA,DD,DR,Y S DIC("A")="Which CHR Program: ",DIC="^BCHTPROG(",DIC(0)="AEMQ" D ^DIC K DIC,DA G:Y<0 PROG
  S BCHPRG=+Y
  ;G ZIS
+CHRT ;
+ K BCHPROVT
+ S DIR(0)="S^O:One CHR;A:All CHRs",DIR("A")="Include Data for",DIR("B")="A" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G PROG
+ S BCHPROVT=Y
+ I BCHPROVT="A" G GETAGE
+CHR1 ;
+ K DIC
+ S DIC=200,DIC(0)="AEMQ",DIC("A")="Enter the CHR: " D ^DIC
+ I Y=-1 G CHRT
+ S BCHCHR1=+Y
 GETAGE ;
  K BCHQUIT
  D PI
  I $D(BCHQUIT) G PROG
+REG ;
+ S BCHREG="",BCHREGN=""
+ S DIR(0)="S^R:Registered Patients;N:Non-Registered Patients;B:Both Registered and Non-Registered Patients",DIR("A")="Include which Patients",DIR("B")="B" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G GETAGE
+ S BCHREG=Y,BCHREGN=Y(0)
 ZIS ;CALL TO XBDBQUE
  S XBRP="^BCHRC5P",XBRC="^BCHRC51",XBRX="XIT^BCHRC5",XBNS="BCH"
  D ^XBDBQUE
@@ -43,9 +59,10 @@ XIT ;
 INFORM ;
  W:$D(IOF) @IOF
  W !?20,"**********  CHR REPORT NO. 5  **********"
- W !!?18,"CLIENT CONTACTS BY HEALTH PROBLEM, AGE AND SEX",!!,"You must enter the time frame and the program for which the report",!,"will be run."
- W !!,"You can also define your own age groups, if you so desire.",!!
- W "THIS REPORT REQUIRES A PRINTER THAT IS CAPABLE OF PRINTING 132 COLUMN OUTPUT.",!,"SEE YOUR SITE MANAGER IF YOU NEED ASSISTANCE FINDING SUCH A PRINTER.",!!
+ W !!?2,"NUMBER OF SERVICES (LINES OF ASSESSMENT) BY HEALTH PROBLEM, AGE AND SEX",!!,"You must enter the time frame and the program for which the report",!,"will be run."
+ W !!,"You can also define your own age groups, if you so desire.",!
+ W "If you do, Please LIMIT the # of age groups to 5"
+ ;THIS REPORT REQUIRES A PRINTER THAT IS CAPABLE OF PRINTING 132 COLUMN OUTPUT.",!,"SEE YOUR SITE MANAGER IF YOU NEED ASSISTANCE FINDING SUCH A PRINTER.",!!
  Q
  ;
  ;
@@ -57,13 +74,14 @@ BIN D SETBIN
  I $D(DIRUT) S BCHQUIT="" Q
  I Y=0 Q
 RUN ;
- K BCHQUIT S BCHRY="",BCHRA=-1 W ! F  D AGE Q:BCHRX=""  I $D(BCHQUIT) G BIN
+ K BCHQUIT S BCHRY="",BCHRA=-1,BCHRACNT=1 W ! F  D AGE Q:BCHRX=""!(BCHRACNT>4)  I $D(BCHQUIT) G BIN
  D CLOSE I $D(BCHQUIT) G BIN
  D LIST
  Q
  ;
 AGE ;
  S BCHRX=""
+ I BCHRA'=-1 W !!,BCHRACNT," Age groups selected so far, no more than 5 are allowed.",!
  S DIR(0)="NO^0:150:0",DIR("A")="Enter the STARTING age of the "_$S(BCHRY="":"FIRST",1:"NEXT")_" age group" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  I $D(DUOUT)!($D(DTOUT)) S BCHQUIT="" Q
  S BCHRX=Y
@@ -73,9 +91,8 @@ AGE ;
  ;
 SET S BCHRA=BCHRX
  I BCHRY="" S BCHRY=BCHRX Q
- S BCHRY=BCHRY_"-"_(BCHRX-1)_";"_BCHRX
+ S BCHRY=BCHRY_"-"_(BCHRX-1)_";"_BCHRX,BCHRACNT=BCHRACNT+1
  Q
- ;
 CLOSE I BCHRY="" Q
 GC ;
  S DIR(0)="NO^0:150:0",DIR("A")="Enter the highest age for the last group" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
@@ -93,5 +110,5 @@ LIST ;
  Q
  ;
 SETBIN ;
- S BCHRBIN="0-4;5-9;10-19;20-34;35-54;55-199"
+ S BCHRBIN="0-9;10-19;20-34;35-54;55-199"
  Q

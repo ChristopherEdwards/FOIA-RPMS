@@ -1,55 +1,59 @@
-SCMCQK1 ;ALB/REW - Single Pt Tm/Pt Tm Pos Assign and Discharge ; 07 Oct 2002  12:10 PM
- ;;5.3;Scheduling;**148,177,231,264**;AUG 13, 1993
+SCMCQK1 ;ALBOI/REW - Single Pt Tm/Pt Tm Pos Assign and Discharge;11/07/02
+ ;;5.3;PIMS;**148,177,231,264,436,297,446,524,1015,1016**;JUN 30, 2012;Build 20
  ;
+ ;04/25/2006 SD*5.3*446 INTER-FACILITY TRANSFER
 UNTP ;unassign patient from pc prac position
- IF '$G(SCTP) W !,"No position defined" Q
+ I '$G(SCTP) W !,"No position defined" Q
  N OK,SCER,SCCL,SCBEGIN,SCN,SCLIST,SCEND,SCINCL,SCLSEQ,SCDATES,SCDTS
  S OK=0
  W !,"About to Unassign "_$$NAME(DFN)_" from: ",!,?8,$$POSITION(SCTP)_" position   ["_$P($$GETPRTP^SCAPMCU2(SCTP,DT),U,2)_"]"
  S SCDISCH=$$DATE("D")
  G:SCDISCH<1 QTUNTP
  G:'$$CONFIRM() QTUNTP
- S OK=$$INPTSCTP^SCAPMC22(DFN,SCTP,SCDISCH,.SCER)
+ S OK=$$INPTSCTP^SCAPMC22(DFN,SCTP,SCDISCH,.SCER)  ; og/sd/524
  G:OK'>0 QTUNTP
- S SCCL=$P($G(^SCTM(404.57,+$G(SCTP),0)),U,9)
- IF SCCL D DISCL
+ ;comment out following lines in SD*5.3*535 - clinic enrollment no longer used
+ ;S SCCL=$P($G(^SCTM(404.57,+$G(SCTP),0)),U,9)
+ ;I SCCL D DISCL
 QTUNTP W !,"Position Unassignment "_$S(OK:"made.",1:"NOT made.")
  Q
- ;
-ENRCL ;
+ENRCL ; no longer used with SD*5.3*535
+ Q
  N SCRESTA,SCREST,SCCLNM,SCTM
- G:$$ACTCL(DFN,SCCL) QTECL
- W !!!,"The "_$$POSITION(SCTP)_" is associated with the ",$$CLINIC(SCCL)_" clinic."
- ; SCRESTA = Array of pt's teams causing restricted consults
- N SCRESTA
- S SCREST=$$RESTPT^SCAPMCU4(DFN,DT,"SCRESTA")
- IF SCREST D
- .N SCTM
- . S SCCLNM=Y
- . W !,?5,"Patient has restricted consults due to team assignment(s):"
- .S SCTM=0
- .F  S SCTM=$O(SCRESTA(SCTM)) Q:'SCTM  W !,?10,SCRESTA(SCTM)
- IF SCREST&'$G(SCOKCONS) D  G QTECL
- .W !,?5,"This patient may only be enrolled in clinics via"
- .W !,?15,"Edit Clinic Enrollment Data option"
- W !,"Do you wish to enroll the patient from this clinic on "
- S Y=SCASSDT X ^DD("DD") W Y,"?"
- IF $$YESNO() D
- .W !,"Clinic Enrollment"
- .IF $$ACPTCL^SCAPMC18(DFN,SCCL,,SCASSDT,"SCENER") W " made"
- .ELSE  W "NOT made"
+ N SCCL
+ F SCCL=0:0 S SCCL=$O(^SCTM(404.57,+$G(SCTP),5,SCCL)) Q:'SCCL  D
+ .Q:$$ACTCL(DFN,SCCL)
+ .W !!!,"The "_$$POSITION(SCTP)_" is associated with the ",$$CLINIC(SCCL)_" clinic."
+ .;SCRESTA = Array of pt's teams causing restricted consults
+ .N SCRESTA
+ .S SCREST=$$RESTPT^SCAPMCU4(DFN,DT,"SCRESTA")
+ .I SCREST D
+ ..N SCTM
+ ..S SCCLNM=Y
+ ..W !,?5,"Patient has restricted consults due to team assignment(s):"
+ ..S SCTM=0
+ ..F  S SCTM=$O(SCRESTA(SCTM)) Q:'SCTM  W !,?10,SCRESTA(SCTM)
+ .I SCREST&'$G(SCOKCONS) D  G QTECL
+ ..W !,?5,"This patient may only be enrolled in clinics via"
+ ..W !,?15,"Edit Clinic Enrollment Data option"
+ .W !,"Do you wish to enroll the patient from this clinic on "
+ .S Y=SCASSDT X ^DD("DD") W Y,"?"
+ .I $$YESNO() D
+ ..W !,"Clinic Enrollment"
+ ..I $$ACPTCL^SCAPMC18(DFN,SCCL,,SCASSDT,"SCENER") W " made"
+ ..E  W "NOT made "
 QTECL Q
- ;
-DISCL ;
- G:'$$ACTCL(DFN,SCCL) QTDCL
- W !,$$NAME(DFN)," is enrolled in the associated "_$$CLINIC(SCCL)_" clinic."
- W !,"Do you wish to discharge the patient from this clinic on "
- S Y=SCDISCH X ^DD("DD") W Y,"?"
- G:'$$YESNO() QTDCL
- N SDFN,SDCLN S SDFN=DFN,SDCLN=SCCL
- N DFN D ^SDCD
+DISCL ; no longer used with SD*5.3*535
+ Q
+ N SCCL F SCCL=0:0 S SCCL=$O(^SCTM(404.57,+$G(SCTP),5,SCCL)) Q:'SCCL  D
+ .Q:'$$ACTCL(DFN,SCCL)
+ .W !,$$NAME(DFN)," is enrolled in the associated "_$$CLINIC(SCCL)_" clinic."
+ .W !,"Do you wish to discharge the patient from this clinic on "
+ .S Y=SCDISCH X ^DD("DD") W Y,"?"
+ .Q:'$$YESNO()
+ .N SDFN,SDCLN S SDFN=DFN,SDCLN=SCCL
+ .N DFN D ^SDCD
 QTDCL Q
- ;
 UNTM ;
  ;assign patient from pc team (and pc position if possible)
  N OK,SCER,SCBEGIN,SCN,SCLIST,SCEND,SCINCL,SCLSEQ,SCDATES,SCDTS,OK2,OK3
@@ -65,18 +69,17 @@ UNTM ;
  .IF OK2>0 D
  ..W "made."
  ..S SCCL=$P(^SCTM(404.57,SCTP,0),U,9)
- ..D:SCCL DISCL
+ ..;D:SCCL DISCL ;commented out in SD*5.3*535
  S OK3=$$ALLPOS()
  IF $$OKINPTTM^SCMCTMU2(DFN,SCTM,SCDISCH) D
  .S OK=$$INPTSCTM^SCAPMC7(DFN,SCTM,SCDISCH,.SCER)
  ELSE  D
- . W !,"Future/Current Patient-Position Assignment exists"
+ .W !,"Future/Current Patient-Position Assignment exists"
 QTUNTM W !,"Team Unassignment "_$S(OK:"made",1:"NOT made.")
  Q
- ;
 ALLPOS() ;unassign all patient-positions for team
- ; not stand-alone - needs dfn,sctm
- ;   return 1=No positions left assigned|0=At least 1 position assigned
+ ;not stand-alone - needs dfn,sctm
+ ;return 1=No positions left assigned|0=At least 1 position assigned
  N OK,SCDT1,SCPTTPX,SCERRR,SCTP,SCCNT,SCPTTPI,SCLOC,SCNODE,SCPTTP2
  S SCDT1("BEGIN")=SCDISCH+1
  S SCDT1("END")=3990101
@@ -103,7 +106,6 @@ ALLPOS() ;unassign all patient-positions for team
  .S OK=$$INPTSCTP^SCAPMC22(DFN,SCTP,SCDISCH,.SCER)
  .W:'OK !,?10,"Problem with unassignment, correct via PCMM GUI"
 QTALL Q OK
- ;
 ASTM ;assign patient to PC team
  N DIC,Y,OK,SCTM,SCTMFLDS,SCER,SCBEGIN,SCN,SCLIST,SCEND,SCINCL,SCLSEQ,SCDATES,SCDTS
  S OK=0
@@ -112,10 +114,19 @@ ASTM ;assign patient to PC team
  S DIC="^SCTM(404.51,"
  S DIC(0)="AEMQZ"
  S DIC("S")="IF $$ACTTM^SCMCTMU(Y,DT)&($P($G(^SCTM(404.51,Y,0)),U,5))"
- ;  - select from active teams that can be PC Teams
+ ;select from active teams that can be PC Teams
  D ^DIC
  G:Y<1 QTASTM
  S SCTM=+Y
+ ;The following logic to present warning message added per SD*5.3*436
+ I $P($G(^SCTM(404.51,SCTM,0)),U,10) D  G:'SCFLAG QTASTM
+ .S SCFLAG=0
+ .W !!,"This team is closed to further patient assignments.  While you are"
+ .W !,"not currently prevented from assigning this patient, you may want to"
+ .W !,"check before continuing."
+ .Q:'$$YESNO1()  ; new function call per SD*5.3*436
+ .Q:'$$CONFIRM()
+ .S SCFLAG=1 W !
  S SCASSDT=$$DATE("A")
  G:SCASSDT<1 QTASTM
  S SCTMCT=$$TEAMCNT^SCAPMCU1(SCTM)
@@ -135,6 +146,7 @@ ASTM ;assign patient to PC team
  .D:$L(SCSELECT) ASTP ;prompt for position prompt
  .S OK=1
 QTASTM W !,"Team Assignment "_$S(OK:"made",1:"NOT made.")
+ S:$D(SDWLPCMM) SDWLPCMM=OK  ; 446
  Q
 ASTP ;assign patient to PC practitioner
  N DIC,Y,OK,SCCL,X,SCTPFLDS,SCER,SCBEGIN,SCN,SCLIST,SCEND,SCINCL,SCLSEQ,SCDATES,SCDTS
@@ -176,28 +188,30 @@ ASTP ;assign patient to PC practitioner
  D NOW^%DTC S SCTPFLDS(.07)=%
  IF $$ACPTTP^SCAPMC21(DFN,SCTP,"SCTPFLDS",SCASSDT,"SCTPTME",0) D
  .S OK=1
- .S SCCL=$P(^SCTM(404.57,SCTP,0),U,9)
+ .S SCCL=$O(^SCTM(404.57,+$G(SCTP),5,0))
  .D:SCCL ENRCL
 QTASTP W !,"Position Assignment "_$S(OK:"made",1:"NOT made.")
+ S:$D(SDWLPCMM) SDWLPCMM=OK ;446
  Q
 NAME(DFN) ;return patient name
  Q $P($G(^DPT(DFN,0)),U,1)
- ;
 POSITION(SCTP) ;return position name
  Q $P($G(^SCTM(404.57,SCTP,0)),U,1)
- ;
 TEAMNM(SCTM) ;return team name
  Q $P($G(^SCTM(404.51,SCTM,0)),U,1)
- ;
 CLINIC(SCCL) ;return clinic name
  Q $P($G(^SC(+SCCL,0)),U,1)
- ;
 YESNO() ;
  N DIR,X,Y
  S DIR(0)="Y",DIR("B")="YES"
  D ^DIR
  Q Y>0
- ;
+YESNO1() ; added per SD*5.3*436
+ N DIR,X,Y
+ S DIR(0)="Y",DIR("A")="Do you wish to assign this patient now (Yes/No)?"
+ S DIR("B")="NO"
+ D ^DIR
+ Q Y>0
 YESNO2() ;
  N DIR,X,Y
  S DIR(0)="Y",DIR("B")="NO"
@@ -210,7 +224,6 @@ CONFIRM() ;confirmation call
  S DIR(0)="Y"
  D ^DIR
  Q +Y=1
- ;
 SELPOS() ;return way to select position: 1=PRACT,2=POSIT,3=NONE
  N DIR,X,Y
  W !,"Choose way to select PC POSITION Assignment: "
@@ -218,7 +231,6 @@ SELPOS() ;return way to select position: 1=PRACT,2=POSIT,3=NONE
  S DIR("B")=1
  D ^DIR
  Q $S(Y'>0:"",+Y=1:"PRACT",1:"POSIT")
- ;
 DATE(TYPE) ;return date type=A or D
  N DIR,X,Y
  S DIR("A")=$S(TYPE="A":"Assignment",1:"Unassignment")_" date: "
@@ -228,11 +240,11 @@ DATE(TYPE) ;return date type=A or D
  S DIR("B")=Y
  D ^DIR
  Q Y
-ACTCL(DFN,SCCL) ;is patient enrolled in clinic?
+ACTCL(DFN,SCCL) ;is patient enrolled in clinic? - not called with SD*5.3*535
+ Q
  N SCXX
  S SCXX=$O(^DPT(DFN,"DE","B",SCCL,9999),-1)
  Q $S('SCXX:0,($P(^DPT(DFN,"DE",+SCXX,0),U,2)="I"):0,1:1)
- ;
 PRACSCR(SC40452) ;screen for for file 404.52
  N SCP,SCNODE,OK
  S SCP=$G(^SCTM(404.52,SC40452,0))
@@ -241,7 +253,6 @@ PRACSCR(SC40452) ;screen for for file 404.52
  S SCNODE=$G(^SCTM(404.57,+SCP,0))
  S OK=$S($P(SCNODE,U,2)'=SCTM:0,'$P(SCNODE,U,4):0,($O(^SCTM(404.52,"AIDT",+SCP,1,""))'=-$P(SCP,U,2)):0,($O(^SCTM(404.52,"AIDT",+SCP,0,-$P(SCP,U,2)),-1)):0,($$ACTTP^SCMCTPU(+SCP)>0):1,1:0)
 QTPP Q OK
- ;
 POSSCR(SCTP) ;screen for file 404.57
  N SCNODE
  S SCNODE=$G(^SCTM(404.57,SCTP,0))
@@ -251,10 +262,6 @@ WAITYN() ;
  N %,OK,Y
  I SCTMCT<SCTMMAX Q 0
  N A,SC S A=$$ONWAIT^SCMCWAIT(DFN) I A W:(+A=3) !,$P(A,";",2) I $S($G(SCTP):A>1,1:1) Q 0
- ;S SC1=$$SC^SCMCWAIT(DFN_U_SCTM) I SC1 S SC="" D  I SC="" Q 0
- ;.S SC1("DFN")=DFN W !,"Service Connected %: "_SC1 D SCLI^SCMCWAIT(.RES,.SC1) I $D(RES(1)) W !,"Condition",?35,"SC%" N I F I=0:0 S I=$O(RES(I)) Q:'I  W !,$P(RES(I),U,1),?35,$P(RES(I),U,2)
- ;.S %=2 W !,"Are you seeking Primary Care panel assignment",!," for your service connected disability"
- ;.D YN^DICN S SC=$S(%=1:"Y",%=2:"N",1:"")
  N DIR,X,Y
  S DIR(0)="Y",DIR("B")="NO"
  S DIR("A")="Do you wish to place the patient on the wait list (Yes/No)?"

@@ -1,5 +1,5 @@
-BCHUFP ; IHS/TUCSON/LAB - PRINT ENCOUNTER RECORD ;  [ 06/27/00  2:28 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**2,10**;OCT 28, 1996
+BCHUFP ; IHS/CMI/LAB - PRINT ENCOUNTER RECORD ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;IHS/TUCSON/LAB - patch 2 - 06/03/97 - added a few variables to kill in XIT+1
  ;
@@ -59,23 +59,31 @@ V1 ;
  .I BCHPROV=$P(^BCHR(BCHR,0),U,3) S F=1
  Q
 DEMO ;EP
+ I $P(^BCHR(BCHR,0),U,4)="",$P($G(^BCHR(BCHR,11)),U,12)="" D  Q
+ .I $Y>(IOSL-4) D FF^BCHUFPP Q:BCHQUIT
+ .W !!,"<No Demographic Information...Non-Patient Encounter>",!
+ .W !,$TR($J("",80)," ","*")
+ .D FF^BCHUFPP
+ .Q
  I $Y>(IOSL-9) D FF^BCHUFPP Q:BCHQUIT
  S BCHR11=$G(^BCHR(BCHR,11))
  S DFN=$P(BCHR0,U,4)
  S BCHHRN=$S(DFN]"":$P($G(^AUPNPAT(DFN,41,DUZ(2),0)),U,2),1:$P(BCHR11,U,11))
  S:BCHHRN="" BCHHRN="<?????>"
- W !!?3,"HR#:  ",BCHHRN,?35,"SEX: ",$S(DFN]"":$$EXTSET^XBFUNC(2,.02,$P(^DPT(DFN,0),U,2)),1:$P(BCHR11,U,3))
+ I DFN W !!?3,"HR#:  ",BCHHRN
+ I 'DFN,$P($G(^BCHR(BCHR,11)),U,12) W !!?3,"CHR NON REG ID: ",$P(^BCHR(BCHR,11),U,13)
+ W ?35,"SEX: ",$S(DFN]"":$$EXTSET^XBFUNC(2,.02,$P(^DPT(DFN,0),U,2)),1:$P(BCHR11,U,3))
  W !?3,"NAME:  ",$S(DFN]"":$P(^DPT(DFN,0),U),1:$P(BCHR11,U))
  W ?35,"Tribe:  " I DFN]"",$P($G(^AUPNPAT(DFN,11)),U,8) W $P(^AUTTTRI($P(^AUPNPAT(DFN,11),U,8),0),U)
  E  I $P(BCHR11,U,5) W $P(^AUTTTRI($P(BCHR11,U,5),0),U)
- W !?3,"SSN:  ",$S(DFN]"":$P(^DPT(DFN,0),U,9),1:$P(BCHR11,U,4))
+ W !?3,"SSN:  ",$S(DFN]"":"XXX-XX-"_$E($P(^DPT(DFN,0),U,9),6,9),1:$P(BCHR11,U,4))
  W ?35,"RESIDENCE:  " I DFN]"" W $P($G(^AUPNPAT(DFN,11)),U,18)
  E  W $P(BCHR11,U,7)
  W !?3,"DOB:  "  I DFN]"" S Y=$P(^DPT(DFN,0),U,3) I Y]"" D DD^%DT W Y
  I '$G(DFN) S Y=$P(BCHR11,U,2) I Y]"" D DD^%DT W Y
  W ?35,"FACILITY: " I $P(BCHR11,U,9)]"" W $P(^DIC(4,$P(BCHR11,U,9),0),U)
- W !?3,"PURPOSE OF REFERRAL:  ",$P($G(^BCHR(BCHR,21)),U)
- W !?3,"INSURER:  ",$P($G(^BCHR(BCHR,41)),U)
+ ;W !?3,"PURPOSE OF REFERRAL:  ",$P($G(^BCHR(BCHR,21)),U)
+ ;W !?3,"INSURER:  ",$P($G(^BCHR(BCHR,41)),U)
  W !!?35,"CHR SIGNATURE: _____________________________",!
  W !,$TR($J("",80)," ","*")
  D FF^BCHUFPP

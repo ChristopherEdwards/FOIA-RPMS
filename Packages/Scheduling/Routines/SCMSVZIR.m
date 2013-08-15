@@ -1,5 +1,5 @@
 SCMSVZIR ;ALB/ESD HL7 ZIR Segment Validation ;05/08/95
- ;;5.3;Scheduling;**44,55,66**;Aug 13, 1993
+ ;;5.3;Scheduling;**44,55,66,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN(ZIRSEG,HLQ,HLFS,VALERR) ;

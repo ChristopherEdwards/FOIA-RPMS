@@ -1,5 +1,5 @@
 ABMENVCK ;IHS/SD/SDR - ENVIRONMENT CHECKER ;   
- ;;2.6;IHS Third Party Billing;**1,2,3,4,5,6,7**;NOV 09, 2009
+ ;;2.6;IHS Third Party Billing;**1,2,3,4,5,6,7,8,9**;NOV 12, 2009
  ;
  ;
  I '$G(DUZ) W !,"DUZ UNDEFINED OR 0." D SORRY(2) Q
@@ -12,22 +12,11 @@ ABMENVCK ;IHS/SD/SDR - ENVIRONMENT CHECKER ;
  ;
  S XPDQUIT=0
  ;
- I '$$VCHK("XU","8.0",2) S XPDQUIT=2
- K X
- S X=$$PATCH^XPDUTL("XU*8.0*1013")
- I X'=1 W !,$$CJ^XLFSTR("KERNEL v8.0 Patch 1013 NOT INSTALLED",IOM) S XPDQUIT=2
- I X=1 W !,$$CJ^XLFSTR("XU Patch 1013 installed.",IOM)
- K X
- S X=$$PATCH^XPDUTL("XU*8.0*1014")
- I X'=1 W !,$$CJ^XLFSTR("KERNEL v8.0 Patch 1014 NOT INSTALLED",IOM) S XPDQUIT=2
- I X=1 W !,$$CJ^XLFSTR("XU Patch 1014 installed.",IOM)
- ;
  I '$$VCHK("DI","22.0",2) S XPDQUIT=2  ;abm*2.6*2
  ;AUM*9.1*4 needed for new clinic code mapping
- S ABM=1
  S X=$$PATCH^XPDUTL("AUM*9.1*4")  ;abm*2.6*4
- W !,$$CJ^XLFSTR("Need at least AUM v9.1 patch 4..... "_$S(ABM=0:"NOT ",1:"")_"Present",IOM)
  I X'=1 W !,$$CJ^XLFSTR("AUM v9.1 Patch 4 NOT INSTALLED",IOM) S XPDQUIT=2  ;abm*2.6*4
+ I X=1 W !,$$CJ^XLFSTR("AUM v9.1 Patch 4 installed.",IOM)  ;abm*2.6*4
  I '$$VCHK("AUM","10.1",2) S XPDQUIT=2  ;abm*2.6*2
  ;
  I '$$VCHK("ABM","2.6",2) S XPDQUIT=2  ;abm*2.6*1
@@ -41,18 +30,27 @@ ABMENVCK ;IHS/SD/SDR - ENVIRONMENT CHECKER ;
  ;end old code start new code abm*2.6*7
  N X,ABM,I
  S ABM=1
- F I=1:1:6 D
+ ;F I=1:1:6 D  ;abm*2.6*9
+ F I=1:1:8 D  ;abm*2.6*9
  .S X=$$PATCH^XPDUTL("ABM*2.6*"_I)
- .W !,$$CJ^XLFSTR("Need Third Party Billing v2.6 Patch "_I_"..... "_$S(ABM=0:"NOT ",1:"")_"Present",IOM)
- .I X'=1 S ABM=0
+ .I X'=1 S ABM=0 W !,$$CJ^XLFSTR("Need Third Party Billing v2.6 Patch "_I_"..... "_$S(ABM=0:"NOT ",1:"")_"Present",IOM)
  I ABM=0 S XPDQUIT=2
  ;end new code abm*2.6*7
  ;
  I '$$VCHK("AUT","98.1",2) S XPDQUIT=2
  ;
  S X=$$LAST^ABMENVCK("IHS DICTIONARIES (POINTERS)","98.1")
- W !,$$CJ^XLFSTR("Need at least AUT v98.1 patch 14..... "_$S(ABM=0:"NOT ",1:"")_"Present",IOM)
  I $P(X,U,1)'=14&($P(X,U,1)'>14) W !,$$CJ^XLFSTR("AUT v98.1 Patch 14 NOT INSTALLED",IOM) S XPDQUIT=2
+ ;
+ I '$$VCHK("XU","8.0",2) S XPDQUIT=2
+ K X
+ S X=$$PATCH^XPDUTL("XU*8.0*1013")
+ I X'=1 W !,$$CJ^XLFSTR("KERNEL v8.0 Patch 1013 NOT INSTALLED",IOM) S XPDQUIT=2
+ I X=1 W !,$$CJ^XLFSTR("XU Patch 1013 installed.",IOM)
+ K X
+ S X=$$PATCH^XPDUTL("XU*8.0*1014")
+ I X'=1 W !,$$CJ^XLFSTR("KERNEL v8.0 Patch 1014 NOT INSTALLED",IOM) S XPDQUIT=2
+ I X=1 W !,$$CJ^XLFSTR("XU Patch 1014 installed.",IOM)
  ;
  NEW DA,DIC
  S X="ABM",DIC="^DIC(9.4,",DIC(0)="",D="C"

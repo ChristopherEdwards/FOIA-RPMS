@@ -1,5 +1,5 @@
 SCMCBK7 ;bp/cmf - multiple patient assignments mail queue - RPCVersion = 1 ;;Aug 6, 1998
- ;;5.3;Scheduling;**148,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,177,1015**;AUG 13, 1993;Build 21
  Q
  ;
 MAILLST(SCTM,SCFIELDA,SCDATE,SCNEWTM,SCOLDTM,SCBADTM,SCTOTCNT) ;

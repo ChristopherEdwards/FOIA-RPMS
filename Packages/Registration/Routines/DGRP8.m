@@ -1,5 +1,5 @@
 DGRP8 ;ALB/MIR - FAMILY DEMOGRAPHIC SCREEN DISPLAY ; 12 FEB 92
- ;;5.3;Registration;**45,54,487**;Aug 13, 1993
+ ;;5.3;Registration;**45,54,487,1015**;Aug 13, 1993;Build 21
  ;
  ; Screen to display current spouse and dependents
  ;

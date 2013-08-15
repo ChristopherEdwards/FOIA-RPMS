@@ -1,5 +1,5 @@
 DGRUGDS ;ALB/GRR - RAI/MDS DATA COLLECTION
- ;;5.3;Registration;**303,359**;Aug 13, 1993
+ ;;5.3;Registration;**303,359,1015**;Aug 13, 1993;Build 21
  ;
  ;Display option description and allow user to terminate process
 EN ;

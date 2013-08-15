@@ -1,10 +1,8 @@
 BIUTL1 ;IHS/CMI/MWR - UTIL: PATIENT DEMOGRAPHICS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETRIEVE PATIENTS FOR DUE LISTS & LETTERS.
- ;;  PATCH 1: Correct test for Active Chart at site DUZ2.  INACTREG+11
- ;;           Also, add Street Address Line 2 ability.  STREET+0
- ;;           Also, provide test for patient Ineligibility  INELIG+0
+ ;;  PATCH 2: Add YY option to DOBF.  DOBF
  ;
  ;----------
 NAME(DFN,ORDER) ;EP
@@ -42,8 +40,10 @@ DOB(DFN) ;EP
  Q $P(^DPT(DFN,0),U,3)
  ;
  ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> Add BIYY option/parameter to DOBF
  ;----------
-DOBF(DFN,BIDT,BINOA,BISL,BIADT) ;EP
+DOBF(DFN,BIDT,BINOA,BISL,BIADT,BIYY) ;EP
  ;---> Date of Birth formatted "09-Sep-1994 (35 Months)"
  ;---> Parameters:
  ;     1 - DFN   (req) Patient's IEN (DFN).
@@ -51,18 +51,20 @@ DOBF(DFN,BIDT,BINOA,BISL,BIADT) ;EP
  ;     3 - BINOA (opt) 1=No age (don't append age).
  ;     4 - BISL  (opt) 1=Slash Date Format: MM/DD/YYYY
  ;     5 - BIADT (opt) 1=Append "on BIDT" to age.
+ ;     6 - BIYY  (opt) 1=2-digit year.
  ;
  N X,Y
  S X=$$DOB($G(DFN))
  Q:'X X
- S X=$S($G(BISL):$$SLDT2^BIUTL5(X),1:$$TXDT1^BIUTL5(X))
+ S X=$S($G(BISL):$$SLDT2^BIUTL5(X,+$G(BIYY)),1:$$TXDT1^BIUTL5(X))
  Q:$G(BINOA) X
  S Y=$$AGEF(DFN,$G(BIDT))
  S:Y["DECEASED" Y="DECEASED"
  S X=X_" ("_Y
- I $G(BIADT),$G(BIDT) S X=X_" on "_$$SLDT2^BIUTL5(BIDT)
+ I $G(BIADT),$G(BIDT) S X=X_" on "_$$SLDT2^BIUTL5(BIDT,+$G(BIYY))
  S X=X_")"
  Q X
+ ;**********
  ;
  ;
  ;----------

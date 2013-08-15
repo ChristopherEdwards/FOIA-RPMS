@@ -1,6 +1,8 @@
 LRRS ;SLC/DCM/BA/DALOI/FHS - INTERIM REPORT BY LOCATION (MANUAL QUEUE) ;2/19/91  11:39
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**283**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 283,337
+ ;
  ;from option LRRS
 BEGIN D:'$D(LRPARAM) ^LRPARAM G:$G(LREND) ^LRRK Q:$G(LREND)  S:'$D(LRSINGLE) LRSINGLE=0 S:'$D(LRPRTPG) LRPRTPG=0 D LOC
 END D ^LRRK
@@ -47,8 +49,12 @@ DIS ;
  F I=1:1:LRCNT W !,I,?4,LRLOCX(I) S I=I+1 Q:I>LRCNT  W:$D(LRLOCX(I)) ?39," ",I,?44,LRLOCX(I)
  W ! Q
  Q
-RANGE W !,"Select STARTING PATIENT LOCATION: " R X:DTIME S:X="" X="^" S:X="ALL"!(X="all") X="" S LRLLOC=X S LRFLOC=$S(LRLLOC="^":"",1:$E(LRLLOC,1,$L(LRLLOC)-1)_$C($A($E(LRLLOC,$L(LRLLOC)))-1))
- W !,"Select ENDING LOCATION: " R X:DTIME S:X="" X="^" S:X="ALL"!(X="all") X="" S LRLLOC=X Q:LRLLOC="^"  S LRELOC=$E(LRLLOC,1,15)
+RANGE W !,"Select STARTING PATIENT LOCATION: " R X:DTIME S:X="" X="^"
+ I X["?" W !,"Enter the first patient location (abbreviation) that you want." G RANGE
+ S:X="ALL"!(X="all") X="" S LRLLOC=X S LRFLOC=$S(LRLLOC="^":"",1:$E(LRLLOC,1,$L(LRLLOC)-1)_$C($A($E(LRLLOC,$L(LRLLOC)))-1))
+RANGE2 W !,"Select ENDING LOCATION: " R X:DTIME S:X="" X="^"
+ I X["?" W !,"Enter the last patient location (abbreviation) that you want." G RANGE2
+ S:X="ALL"!(X="all") X="" S LRLLOC=X Q:LRLLOC="^"  S LRELOC=$E(LRLLOC,1,15)
 QUE S %ZIS="MQ",ZTRTN="DQ^LRRS" D IO^LRWU
  Q
 DQ ;dequeued
@@ -61,7 +67,7 @@ SEL ;
  Q
 RNG ;
  S LRJ0=1
- F  S LRLLOC=$O(^LRO(69,LRODT,1,"AL",LRFLOC)) Q:LRLLOC=""!(LRLLOC]LRELOC)  D
+ F  S LRLLOC=$O(^LRO(69,LRODT,1,"AL",LRFLOC)) Q:LREND!(LRLLOC="")!(LRLLOC]LRELOC)  D
  .S LRFLOC=LRLLOC
  .W:'LRJ0 @IOF
  .S LRLTR=$S(LRLLOC="":"UNK",1:LRLLOC)

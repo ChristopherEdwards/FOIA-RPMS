@@ -1,5 +1,5 @@
 SCMCDD2 ;ALB/REW - DD Calls used by PCMM ; 27 March 1996
- ;;5.3;Scheduling;**41,107**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,107,520,1015**;AUG 13, 1993;Build 21
  ;1
 USEPCDEF(SCCL) ;how should pc practitioner be used for clinic
  ; return 2=always default 1=default if no provider listed 0 -never
@@ -23,7 +23,7 @@ OKTMCL(SCTM,SCTP,SCCL) ;does team have another position with this clinic as an a
  N SCXTP,SCOK
  S SCOK=0
  S SCXTP=0
- F  S SCXTP=$O(^SCTM(404.57,"D",SCCL,SCXTP)) Q:('SCXTP)!(SCXTP=SCTP)  D
+ F  S SCXTP=$O(^SCTM(404.57,"E",SCCL,SCXTP)) Q:('SCXTP)!(SCXTP=SCTP)  D
  .I $P(^SCTM(404.57,SCXTP,0),U,2)'=SCTM Q
  .S SCOK=1
  Q SCOK

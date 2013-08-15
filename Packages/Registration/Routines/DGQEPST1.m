@@ -1,5 +1,5 @@
 DGQEPST1 ;ALB/JFP- VIC POST INIT UTILITIES; 09/01/96
- ;;V5.3;REGISTRATION;**73**;DEC 11,1996
+ ;;5.3;REGISTRATION;**73,1015**;DEC 11,1996;Build 21
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
  ;
 APPUPD ;Updates HL7 Application parameter file (#771) with site #

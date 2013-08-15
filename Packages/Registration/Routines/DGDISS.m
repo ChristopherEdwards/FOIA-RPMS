@@ -1,5 +1,5 @@
 DGDISS ;ALB/JDS - DISPOSITION SUMMARY ; 26 AUG 84  14:14
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  D LO^DGUTL
 SD R !,"START DATE: ",X:DTIME G Q:X=""!(X["^") S %DT="XPE",%DT(0)=-DT D ^%DT G SD:Y'>0 S SD=+Y

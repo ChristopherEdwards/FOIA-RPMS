@@ -1,5 +1,5 @@
 SDCO3 ;ALB/RMO - Provider - Check Out;08 DEC 1992 4:05 pm
- ;;5.3;Scheduling;**28,27,44,67,71,132**;08/13/93
+ ;;5.3;Scheduling;**28,27,44,67,71,132,466,1015**;08/13/93;Build 21
  ;
 EN ;Entry point for SDCO PROVIDER protocol
  ; Input  -- SDOE
@@ -23,7 +23,7 @@ PRASK(SDOE) ;Ask Provider on Check Out
  S SDOE0=$G(^SCE(+SDOE,0)),SDCL=+$P(SDOE0,"^",4),SDORG=+$P(SDOE0,"^",8)
  I $$REQ^SDM1A(+SDOE0)'="CO" G PRASKQ
  I SDORG=1,'$$CLINIC^SDAMU(SDCL) G PRASKQ
- I "^1^2^"[("^"_SDORG_"^"),$$INP^SDAM2(+$P(SDOE0,"^",2),+SDOE0)="I" G PRASKQ
+ ;I "^1^2^"[("^"_SDORG_"^"),$$INP^SDAM2(+$P(SDOE0,"^",2),+SDOE0)="I" G PRASKQ  ;SD*5.3*466 allow provider check for inpatients 
  I +SDOE0<2961001 S Y=2 G PRASKQ
  I SDCL S Y=1 G PRASKQ
  I SDORG=3 S Y=1
@@ -56,7 +56,7 @@ EDITOK(SDOE,SDMODE) ; -- ok to edit?
  ;         SDMODE := 1 -- interactive ; 0 -- silent [required]
  ;
  ; returned:  1 -- yes, it's ok to edit or delete SDOE entry
- ;            0 -- no, cannt not change SDOE entry
+ ;            0 -- no, cannot not change SDOE entry
  ;
  N DIR,SDOK
  S SDOK=$$NEW^SDPCE($P($G(^SCE(+$G(SDOE),0)),U))
@@ -67,7 +67,7 @@ OLDMSG ; -- display message to user
  W !!,">>> Editing and deleting old encounters not allowed.",!
  N DIR
  S DIR(0)="E"
- S DIR("A")="Press Retrun key to continue"
+ S DIR("A")="Press Return key to continue"
  D ^DIR
  Q
  ;

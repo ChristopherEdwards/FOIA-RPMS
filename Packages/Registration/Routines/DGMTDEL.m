@@ -1,5 +1,5 @@
 DGMTDEL ;ALB/TET,RMO,CAW,LD,SCG - DELETE MEANS TEST for a Patient ;5/11/92  09:40
- ;;5.3;Registration;**33,45,182,344,407,433**;Aug 13, 1993
+ ;;5.3;Registration;**33,45,182,344,407,433,1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point to delete means test
  I '$D(^XUSEC("DG MTDELETE",+DUZ)) W !!,"ACCESS TO THIS OPTION IS RESTRICTED!!",*7 G EXIT

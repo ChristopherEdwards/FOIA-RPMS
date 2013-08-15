@@ -1,5 +1,5 @@
 DGBT1 ;ALB/SCK - BENEFICIARY TRAVEL DISPLAY SCREEN 1; 12/15/92  1/8/93 4/1/93
- ;;5.3;Registration;**35,60,119**;Aug 13, 1993
+ ;;5.3;Registration;**35,60,119,1015**;Aug 13, 1993;Build 21
  Q
 SCREEN ;  clear screen and write headers
  W @IOF

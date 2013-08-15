@@ -1,5 +1,8 @@
-LAGEN ;VA/DALOI/CJS - LAB AUTOMATED DATA ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**1,17,22,27,47,46,64,1027**;NOV 01, 1997
+LAGEN ;VA/DALOI/CJS - LAB AUTOMATED DATA ; 1 Feb 2005
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**1002,1027,1031**;NOV 01, 1997
+ ;
+ ;;VA LA Patche(s): 1,17,22,27,47,46,64,67
+ ;
  Q
  ;
 LOG ; Run by accession number.
@@ -12,9 +15,9 @@ LOG ; Run by accession number.
  . F  S I=$O(^LAH(LWL,1,"C",LOG,I)) Q:I<1  D  Q:ISQN
  . . S X=$G(^LAH(LWL,1,I,0))
  . . ; Quit if different accession area.
- . . I $P(X,"^",3),$P(X,"^",3)'=WL Q
+ . . I $P(X,"^",3)'=WL Q
  . . ; Quit if different accession date and not a rollover accession (same original accession date).
- . . I $P(X,"^",4),$P(X,"^",4)'=LADT,$P($G(^LRO(68,WL,1,LADT,1,LOG,0)),"^",3)'=$P($G(^LRO(68,WL,1,$P(X,"^",4),1,LOG,0)),"^",3) Q
+ . . I $P(X,"^",4)'=LADT,$P($G(^LRO(68,WL,1,LADT,1,LOG,0)),"^",3)'=$P($G(^LRO(68,WL,1,$P(X,"^",4),1,LOG,0)),"^",3) Q
  . . S ISQN=I
  . . D UPDT(LWL,ISQN)
  I '$D(^LRO(68,WL,1,LADT,1,LOG,0)) S LINK="^^"_+LOG G LG2

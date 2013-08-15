@@ -1,5 +1,5 @@
 SDQNAV ;ALB/MJK - Query Object Navigation Methods ;8/12/96
- ;;5.3;Scheduling;**131**;Aug 13, 1993
+ ;;5.3;Scheduling;**131,1015**;Aug 13, 1993;Build 21
  ;
 SCAN(SDQ,SDIR,SDERR) ; -- scan all records
  ;   API ID: 99

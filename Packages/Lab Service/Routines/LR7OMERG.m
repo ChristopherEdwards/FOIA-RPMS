@@ -1,6 +1,8 @@
-LR7OMERG ;SLC/DCM,BNM,FHS-MERGE ACCESSION ;8/11/97
- ;;5.2;LR;**1018,1024**;Nov 18, 2004
- ;;5.2;LAB SERVICE;**121,221**;Sep 27, 1994
+LR7OMERG ;VA/SLC/DCM,BNM,FHS-MERGE ACCESSION ;8/11/97
+ ;;5.2;LAB SERVICE;**1003,1024,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 121,221,386
+ ;
 EN ;Merge 2 accessions together
  D END
 EN1 S COMP=0,LRACC=1 W !!,"Merge from..." D LRACC^LRTSTOUT Q:LRAN<1
@@ -13,15 +15,15 @@ EN1 S COMP=0,LRACC=1 W !!,"Merge from..." D LRACC^LRTSTOUT Q:LRAN<1
 2 S LRACC=1 W !!,"Merge into..." D LRACC^LRTSTOUT I LRAN<1 D UL1 Q
  I '$D(^LRO(68,LRAA,1,LRAD,1,LRAN,0))#2 W !?5,"This is not a valid Accession number ",!,$C(7) G 2
  I LRAA=LR1AA,LRAD=LR1AD,LRAN=LR1AN W !!,$C(7),"Cannot merge into the same accession" G 2
- I $P(^LRO(68,LRAA,0),"^",2)'=LRSS W !!,$C(7),"Cannot merge a """_LRSS_""" accession into a """_$P(^(0),"^",2)_""" accession" G EN1
+ I $P(^LRO(68,LRAA,0),"^",2)'=LRSS W !!,$C(7),"Cannot merge a """_LRSS_""" accession into a """_$P(^(0),"^",2)_""" accession" G EN
  L +^LRO(68,LRAA,1,LRAD,1,LRAN):1 I '$T W !?5,"Someone else is editing this entry ",!,$C(7) G 2
  S X=^LRO(68,LRAA,1,LRAD,1,LRAN,0),LRORD=$G(^(.1)),LRIDT=$P($G(^(3)),"^",5),LRTOACC=$G(^(.1))_"/"_$G(^(.2)),SPEC=$O(^(5,0)),SPEC=$G(^(SPEC,0))
  S LRCCOM="*Merge to:"_LRTOACC,LRNATURE="^^^6^SERVICE CORRECTION^99ORR"
  S LRDFN=$P(X,U),LRAODT=$P(X,U,3),LRODT=$P(X,U,4),LRSN=$P(X,U,5),LRDPF=$P(^LR(LRDFN,0),U,2),DFN=$P(^(0),U,3) D PT^LRX W ?35,PNM,?65,SSN
- I +X'=+LRX1 W !!,$C(7),"Cannot merge accessions for different patients!" D UL2 G EN1
+ I +X'=+LRX1 W !!,$C(7),"Cannot merge accessions for different patients!" D UL2 G EN
  D WRITE(LRAA,LRAD,LRAN,+SPEC,.COMP,.LRTSAD)
- I +SPEC'=+SPEC1 W !!,$C(7),"Cannot merge accessions with different specimens" D UL2 G EN1
- I COMP W !!,$C(7),"Cannot merge accessions with completed results" D UL2 G EN1
+ I +SPEC'=+SPEC1 W !!,$C(7),"Cannot merge accessions with different specimens" D UL2 G EN
+ I COMP W !!,$C(7),"Cannot merge accessions with completed results" D UL2 G EN
  W ! S I=0 F  S I=$O(^LRO(68,LR1AA,1,LR1AD,1,LR1AN,4,I)) Q:I<1  I $D(^LAB(60,I,8,+DUZ(2),0)) S J=$P(^LAB(60,I,8,+DUZ(2),0),U,2) I J,J'=LRAA D
  . W !,"<<"_$P(^LAB(60,I,0),"^")_" normally belongs to accession area: "_$P(^LRO(68,J,0),"^")_">>",$C(7)
 OK S %=2 W !!,"Ok to merge" D YN^DICN

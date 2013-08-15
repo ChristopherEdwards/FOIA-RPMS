@@ -1,5 +1,5 @@
-DPTLK ;ALB/RMO,RTK - MAS Patient Look-up Main Routine ; 05/13/2003  2:20 PM
- ;;5.3;Registration;**32,72,93,73,136,157,197,232,265,277,223,327,244,513**;Aug 13, 1993
+DPTLK ;ALB/RMO,RTK - MAS Patient Look-up Main Routine ; 3/22/05 4:19pm
+ ;;5.3;Registration;**32,72,93,73,136,157,197,232,265,277,223,327,244,513,528,541,576,600,485,633,629,647,769,1016**;Aug 13, 1993;Build 20
  ;
  ; mods made for magstripe read 12/96 - JFP
  ;
@@ -7,6 +7,7 @@ DPTLK ;ALB/RMO,RTK - MAS Patient Look-up Main Routine ; 05/13/2003  2:20 PM
  ;                by patch DG*5.3*244
  ;
 EN ; -- Entry point
+ N DIE,DR
  K DPTX,DPTDFN,DPTSAVX I $D(DIC(0)) G QK:DIC(0)["I"!(DIC(0)'["A"&('$D(X)))
  I '$D(^DD("VERSION")) W !!?3,"Unable to proceed. Fileman version node ^DD(""VERSION"") is undefined." G QK
  I '$D(^DPT(0))!(^DD("VERSION")<17.2) W !!?3,"Unable to proceed. ",$S('$D(^DPT(0)):"0th node of ^DPT missing",^DD("VERSION")<17.2:"Fileman version must be at least 17.2",1:""),"." G QK
@@ -18,7 +19,7 @@ ASKPAT ; -- Prompt for patient
  .K DTOUT,DUOUT
  .W !,$S($D(DIC("A")):DIC("A"),1:"Select PATIENT NAME: ") W:$D(DIC("B")) DIC("B"),"// "
  .R X:DTIME
- .S DPTX=X S:'$T DTOUT=1 S:$T&(DPTX="")&($D(DIC("B"))) DPTX=DIC("B") S:DPTX["^" DUOUT=1
+ .S DPTX=X S:'$T DTOUT=1 S:$T&(DPTX="")&($D(DIC("B"))) DPTX=DIC("B") S:DPTX["^"&($E(DPTX)'="%") DUOUT=1
  ; -- Check for the IATA magnetic stripe input
  N MAG,GCHK
  S MAG=0
@@ -95,22 +96,33 @@ CHKDFN ; --
  .I $D(DDS) D CLRMSG^DDS S DX=0,DY=DDSHBX+1 X DDXY
  ;
  ; check for other patients in "BS5" xref on Patient file
- I '$G(DICR),DPTDFN>0,DIC(0)["E",$$BS5^DPTLK5(+DPTDFN) D  G ASKPAT:DIC(0)["A"&(%'=1),QK:DPTDFN<0
+ ;I '$G(DICR),DPTDFN>0,DIC(0)["E",$$BS5^DPTLK5(+DPTDFN) D  G ASKPAT:DIC(0)["A"&(%'=1),QK:DPTDFN<0
+ I DPTDFN>0,DIC(0)["E",$$BS5^DPTLK5(+DPTDFN) D  G ASKPAT:DIC(0)["A"&(%'=1),QK:DPTDFN<0  ;*TEST*
  .N DPTZERO,DPTLSNME,DPTSSN S DPTZERO=$G(^DPT(+DPTDFN,0)),DPTLSNME=$P($P(DPTZERO,U),","),DPTSSN=$E($P(DPTZERO,U,9),6,9)
  .W $C(7),!!,"There is more than one patient whose last name is '",DPTLSNME,"' and"
  .W !,"whose social security number ends with '",DPTSSN,"'."
  .W !,"Are you sure you wish to continue (Y/N)" S %=0 D YN^DICN
  .I %'=1 S DPTDFN=-1
  ;
- I '$G(DICR),DPTDFN>0 S Y=DPTDFN D ^DGSEC S DPTDFN=Y G ASKPAT:DIC(0)["A"&(DPTDFN<0),QK:DPTDFN<0
+ ;I '$G(DICR),DPTDFN>0 S Y=DPTDFN D ^DGSEC S DPTDFN=Y G ASKPAT:DIC(0)["A"&(DPTDFN<0),QK:DPTDFN<0
+ I DPTDFN>0,DIC(0)["E" S Y=DPTDFN D ^DGSEC S DPTDFN=Y G ASKPAT:DIC(0)["A"&(DPTDFN<0),QK:DPTDFN<0 S DPTBTDT=1
  S DPTX=DPTX_$P(DPTS(DPTDFN),U,2),DPTDFN=DPTDFN_U_$P(^DPT(DPTDFN,0),U)
  ;
 Q ; -- 
  S Y=$S('$D(DPTDFN):-1,'$D(DPTS(+DPTDFN)):-1,1:DPTDFN),X=$S($D(DPTX)&(+Y>0):DPTX,$D(DPTSAVX):DPTSAVX,$D(DPTX):DPTX,1:"")
  I Y>0 S:DIC(0)'["F" ^DISV($S($D(DUZ)#2:DUZ,1:0),"^DPT(")=+Y S:DIC(0)["Z" Y(0)=^DPT(+Y,0),Y(0,0)=$P(^(0),U,1)
- I DIC(0)["E",$P($G(^DPT(+Y,0)),U,21) W *7,!,"Warning : You have selected a test patient."
+ ;DG*600
+ ;I DIC(0)["E",$P($G(^DPT(+Y,0)),U,21) W *7,!,"Warning : You have selected a test patient."
+ I DIC(0)["E",$$TESTPAT^VADPT(+Y) W *7,!,"WARNING : You may have selected a test patient."
+ I DIC(0)["E",$$BADADR^DGUTL3(+Y) W *7,!,"WARNING : ** This patient has been flagged with a Bad Address Indicator."
+ I DIC(0)["E",$$VAADV^DPTLK3(+Y) W *7,!,"** Patient is VA ADVANTAGE."
+ ;DG*485
+ I $D(^DPT("AXFFP",1,+Y)) D FFP^DPTLK5
  ;Display enrollment information
  I Y>0,DIC(0)["E" D ENR
+ ;
+ ;Call Combat Vet check
+ I Y>0,DIC(0)["E" D CV
  ;
  ; check whether to display Means Test Required message
  D
@@ -123,15 +135,16 @@ Q ; --
  ;
 Q1 ; -- Clean up variables
  K D,DIC("W"),DO,DPTCNT,DPTDFN,DPTIFNS,DPTIX,DPTS
+ K:'$G(DICR) DPTBTDT  ; IF DICR LEAVE FOR DGSEC TO HANDLE
  K DPTSAVX,DPTSEL,DPTSZ,DPTX
  ;
  K:$D(IATA) IATA
  K:$D(DGFLDS) @DGFLDS,DGFLDS
  Q
  ;
-QK K DPTNOFZY G Q
+QK K:'$D(DPTNOFZK) DPTNOFZY G Q
  ;
-QK1 K DPTNOFZY G Q1
+QK1 K:'$D(DPTNOFZK) DPTNOFZY G Q1
  ;
 IX ; --
  I $D(D),$D(^DD(2,0,"IX",D)),($E(D)'="A") S DPTIX=D
@@ -189,6 +202,8 @@ ENR ;Display Enrollment information after patient selection
  ;If patient is NOT ELIGIBLE, display Enrollment Status (Ineligible Project Phase I)
  I $G(DGENR("STATUS"))=10!($G(DGENR("STATUS"))=19)!($G(DGENR("STATUS"))=20) D
  . W ?1,"Enrollment Status: ",$S($G(DGENR("STATUS")):$$EXT^DGENU("STATUS",DGENR("STATUS")),1:"") ;H 5
+ ;check for Combat Veteran Eligibility, if elig do not display EGT info
+ I $$CVEDT^DGCV(+DPTDFN) Q
  ;Get Enrollment Group Threshold Priority and Subgroup
  S DGEGTIEN=$$FINDCUR^DGENEGT
  S DGEGT=$$GET^DGENEGT(DGEGTIEN,.DGEGT)
@@ -202,4 +217,10 @@ ENR ;Display Enrollment information after patient selection
  .I DGENR("END")'="" W !?14 W:$D(IORVON) IORVON W "*** PATIENT ENROLLMENT END",$S(DT>+DGENR("END"):"ED",1:"S")," EFFECTIVE ",$$FMTE^XLFDT(DGENR("END"),"5DZ")," ***" W:$D(IORVOFF) IORVOFF Q
  .W !?5 W:$D(IORVON) IORVON W "*** PATIENT ENROLLMENT ENDING.  ENROLLMENT END DATE IS NOT KNOWN. ***" W:$D(IORVOFF) IORVOFF
  Q
- ;
+CV ;check for Combat Vet status
+ N DGCV
+ S DGCV=$$CVEDT^DGCV(+DPTDFN)
+ I $P(DGCV,U)=1 D  Q
+ . I '$$GET^DGENA($$FINDCUR^DGENA(+DPTDFN),.DGENR) W !
+ . W ?3,"Combat Vet Status: "_$S($P(DGCV,U,3)=1:"ELIGIBLE",1:"EXPIRED"),?57,"End Date: "_$$FMTE^XLFDT($P(DGCV,U,2),"5DZ")
+ Q

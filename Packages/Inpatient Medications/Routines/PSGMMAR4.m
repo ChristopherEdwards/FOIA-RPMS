@@ -1,10 +1,11 @@
-PSGMMAR4 ;BIR/CML3-MD MARS - PRINT O/P ORDERS ;02-Nov-2011 15:05;DU
- ;;5.0; INPATIENT MEDICATIONS ;**8,12,20,1008,1013**;16 DEC 97;Build 33
+PSGMMAR4 ;BIR/CML3-MD MARS - PRINT O/P ORDERS ;28-May-2012 15:26;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**8,12,20,1008,1013,1014**;16 DEC 97;Build 5
  ;
  ; Modified - IHS/CIA/PLS - 06/21/04 - Line ENB+5
  ;            IHS/MSC/PLS - 12/09/08 - Line HEADER+2
  ;                          11/17/09 - Line BOT+2
  ;            IHS/MSC/MGH - 11/02/11 - Line HEADER+10
+ ;            IHS/MSC/PLS - 05/24/12 - Line BOT+4
 PSGMARB ;***Print blank MAR for PRN orders.
  NEW L1 S L1="      |           |"
  D HEADER F X=1:1:(BL/2) D
@@ -51,7 +52,8 @@ HEADER ;*** Patient info
 BOT ; rest of PRN sheet
  W !,"|  DATE  |  TIME  |         MEDICATION/DOSE/ROUTE           | INIT |        REASON         |       RESULTS         |  TIME  | INIT |"
  ;S X=$S(BL=4:26,1:20) F Q=1:1:X W !,LN31
- S X=$S(BL=4:25,1:19) F Q=1:1:X W !,LN31  ;IHS/MSC/PLS - Patch 1008
+ ;S X=$S(BL=4:25,1:19) F Q=1:1:X W !,LN31  ;IHS/MSC/PLS - Patch 1008
+ S X=$S($G(APSPATS)&(BL=4):14,BL=4:25,$G(APSPATS):9,1:17) F Q=1:1:X W !,LN31  ;IHS/MSC/PLS - Patch 1014
  ;W "|        |        |                                         |      |                       |                       |        |      |"
 ENB ;
  I $D(PSGMPG) S PSGMPG=PSGMPG+1 S PSGMPGN=$S(PSGMPGN'["LAST":"PAGE: ",1:PSGMPGN)_PSGMPG

@@ -1,6 +1,5 @@
-DGPMVBUR ;ALB/MIR - UR ADMISSION BULLETIN FOR MCCR ; 8/7/03 2:25pm
- ;;5.3;Registration;**26,31,483**;AUG 13, 1993
- ;IHS/ANMC/LJF  7/06/2001 Added Quit to INS subroutine
+DGPMVBUR ;ALB/MIR - UR ADMISSION BULLETIN FOR MCCR ; 9/16/03 2:24pm
+ ;;5.3;Registration;**26,31,483,549,570,1015**;AUG 13, 1993;Build 21
  ;
 UR ;UR bulletin
  K DGPMUR
@@ -24,24 +23,31 @@ URQ K DGPMBL,DGPMBLN,DGPMLAST,DGPMUR,DGTMP,XMY,XMSUB,XMTEXT
  Q
  ;
 INS ;get insurance effective at time of admission, start at DGPMBLN=10
- Q  ;IHS/ANMC/LJF 7/6/2001 IHS doesn't use; don't have IB rtns
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1014 no IB
  S DGPMBLN=9
  K DGIBINS
- D ALL^IBCNS1(DFN,"DGIBINS") F I=0:0 S I=$O(DGIBINS(I)) Q:'I  S X=DGIBINS(I,0) D ACT
+ N DGX,DGDATA,DGIB
+ ;
+ S DGIB=$$INSUR^IBBAPI(DFN,"","",.DGDATA,"*") ; Returns Active, Reimbursable Ins. only
+ S DGX="DGDATA(""IBBAPI"",""INSUR"")" M DGIBINS=@DGX
+ F I=0:0 S I=$O(DGIBINS(I)) Q:'I  D ACT
+ ;
  I $D(DGPMUR(10)) S DGPMLAST=DGPMBLN
  Q
  ;
 ACT ;is insurance active?  If so, set in DGPMBLN array
- I $P(X,"^",4)<+DGPMA,$P(X,"^",4) Q  ;insurance expired before admission
- I $P(X,"^",8)>+DGPMA Q  ;insurance effective after admission
- Q:'$D(^DIC(36,+X,0))  S X1=^(0),X2=$S($D(^(.13)):^(.13),1:"") ;get insurance company information
- I $P(X1,"^",5)!($P(X1,"^",2)="N") Q  ;insurance company is inactive or doesn't reimburse
- S DGPMBL="Insurance Co.  : "_$P(X1,"^",1) D SETLN
- S DGTMP=$S(($P(X,"^",15)]""):$P(X,"^",15),1:$P(X,"^",3))
+ I DGIBINS(I,11)<+DGPMA,DGIBINS(I,11)]"" Q  ;insurance expired before admission
+ I DGIBINS(I,10)>+DGPMA Q  ;insurance effective after admission
+ Q:'+DGIBINS(I,1)
+ ; get insurance company information
+ S DGPMBL="Insurance Co.  : "_$P(DGIBINS(I,1),"^",2) D SETLN
+ S DGTMP=$P(DGIBINS(I,8),U,2)
+ I DGTMP']"" S DGTMP=$S($G(DGIBNS(I,18))]"":DGIBINS(I,18),1:"")
+ I DGTMP']"" S DGTMP=""
  I DGTMP]"" S DGPMBL="Group          : "_DGTMP D SETLN
- S DGPMBL="Policy Holder  : "_$P(X,"^",17) D SETLN
- S DGPMBL="Subscriber ID  : "_$P(X,"^",2) D SETLN
- S DGPMBL="Ins. Co Phone# : "_$S($P(X2,"^",2)]"":$P(X2,"^",2),$P(X2,"^",1)]"":$P(X2,"^",1),1:"UNKNOWN") D SETLN
+ S DGPMBL="Policy Holder  : "_DGIBINS(I,13) D SETLN
+ S DGPMBL="Subscriber ID  : "_DGIBINS(I,14) D SETLN
+ S DGPMBL="Ins. Co Phone# : "_$S(DGIBINS(I,6)]"":DGIBINS(I,6),1:"UNKNOWN") D SETLN
  S DGPMBL=" " D SETLN
  Q
 DIS ;rated disabilities
@@ -65,7 +71,10 @@ GVID ; CHECK FOR CORRECT PATIENT
  I IDEN="" G GVTIME
  I +$P($G(^AUPNVSIT(IDEN,0)),"^",5)'=+DFN G GVID
  S LOCN=$P(^AUPNVSIT(IDEN,0),"^",22)
- S HSPN=$P($G(^SC(LOCN,0)),"^",1)
+ ; DG/549
+ I $G(LOCN)>0 S HSPN=$P($G(^SC(LOCN,0)),"^",1)
+ E  S HSPN="Unknown location" I $P($G(^AUPNVSIT(IDEN,0)),"^",7)="E" S HSPN=HSPN_"-Event(Historical)"
+ ;
  S Y=+X X ^DD("DD")
  S DGPMBL="Previous Visit : "_HSPN_" "_Y
  D SETLN

@@ -1,5 +1,5 @@
 DG53376M ;;ALB/RTK DG*5.3*376 Edit Cat A Edit Mailman Msg; 04/11/01
- ;;5.3;Registration;**376**;Aug 13, 1993
+ ;;5.3;Registration;**376,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will be run as part of the Cat A MT Edit in
  ; patch DG*5.3*376.

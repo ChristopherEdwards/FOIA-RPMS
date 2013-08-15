@@ -1,9 +1,10 @@
 DGVPTIB2 ;alb/mjk - IBECEA3 for export with PIMS v5.3; 4/21/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 IBECEA3 ;ALB/RLW - Add/Update/Cancel Charges Part 3 ; 12-JUN-92
  ;;Version 1.5 ; INTEGRATED BILLING ;**4,14**; 29-JUL-92
  ;
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1014 no IB in IHS so entire routine not needed
 LAST ;find last entry
  S IBLAST=""
  S IBPARNT=$P(^IB(+IBIEN,0),"^",9) I 'IBPARNT S IBPARNT=IBIEN

@@ -1,5 +1,5 @@
 BLRSHPM1 ;cmi/anch/maw - BLR Reference Lab Shipping Manifest (con't) 2/7/91 14:29 ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1027**;NOV 01, 1997;Build 9
+ ;;5.2;IHS LABORATORY;**1027,1030,1031**;NOV 01, 1997
  ;
  ;;5.2;LAB SERVICE;**121,153**;Sep 27, 1994
 LST1 ;from LRWRKLST
@@ -21,7 +21,12 @@ LST1 ;from LRWRKLST
  W !,"ACCESSION: ",LRACC,?25,$S(LRCE]"":"ORDER #: "_LRCE,1:"")
  ;W ?40,"PATIENT: ",PNM,"  ",SSN,! S X=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^") W:X'="" ?6,"UID: "_X,?41,"   DOB: ",$$DTF^LRAFUNC1(DOB)
  ;W ?40,"PATIENT: ",PNM,"  ",HRCN,! S X=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^") W:X'="" ?6,"UID: "_X,?41,"   DOB: ",$$DTF^LRAFUNC1(DOB)  ;IHS/ANMC/CLS 08/18/96
- W ?40,"PATIENT: ",PNM,"  ",HRCN,! S X=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^") W:X'="" ?6,"UID: "_X,?40,"SEX:  "_$G(SEX)_"   DOB: ",DOB
+ ; W ?40,"PATIENT: ",PNM,"  ",HRCN,! S X=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^") W:X'="" ?6,"UID: "_X,?40,"SEX:  "_$G(SEX)_"   DOB: ",DOB
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ ;       DOB must be in human-readable format 
+ W ?40,"PATIENT: ",PNM,"  ",HRCN,!
+ S X=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^") W:X'="" ?6,"UID: "_X,?40,"SEX:  "_$G(SEX)_"   DOB: ",$S(+$G(DOB)>1950101:$$FMTE^XLFDT(DOB),1:$G(DOB))
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
  W:$P(LRDX,U,6) !,"IDENTITY: ",$P(LRDX,U,6)
  W !,"  LOCATION:",$P(LRDX,"^",7)
  W:$L(LRDTO) ?40,"DATE ORDERED: ",LRDTO

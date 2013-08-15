@@ -1,5 +1,5 @@
 DG53358N ;ALB/AEG - DG*5.3*358 MAIL MSG ;3-5-2001
- ;;5.3;Registration;**358**;3-5-2001
+ ;;5.3;Registration;**358,1015**;3-5-2001;Build 21
 DOAR ; Process those records that are in a 'REQUIRED' status and the patient
  ; has a date of death on file.  Implemented in 2 distinct portions
  ;

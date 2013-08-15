@@ -1,5 +1,5 @@
 SCMCCV5 ;ALB/JAM;Allow edits of invalid .03 field in 404.52;12/1/99@1055
- ;;5.3;Scheduling;**204**;DEC 01, 1999
+ ;;5.3;Scheduling;**204,297,1015**;DEC 01, 1999;Build 21
  ;
 EDIT ;Entry point for cnahes to .03 field in file 404.52
  N SCEND
@@ -98,7 +98,7 @@ LST() ;Returns list of invalid entries from file #404.52 for field .03
  S IEN=0
  F  S IEN=$O(^SCTM(404.52,IEN)) Q:'IEN  I $G(^SCTM(404.52,IEN,0))'="" D
  . S PRAC=$P(^SCTM(404.52,IEN,0),U,3)
- . I PRAC<0!('$D(^VA(200,PRAC))) S ^TMP("PCMM PRACTITIONER",$J,IEN)="" Q
+ . I PRAC'>0!('$D(^VA(200,+PRAC))) S ^TMP("PCMM PRACTITIONER",$J,IEN)="" Q
  . I $D(^USR(8930.3,"B",PRAC))!('$$USEUSR^SCMCTPU) Q
  . S ^TMP("PCMM PRACTITIONER",$J,IEN)=""
  Q $S($D(^TMP("PCMM PRACTITIONER",$J)):1,1:0)

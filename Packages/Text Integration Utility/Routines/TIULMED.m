@@ -1,51 +1,39 @@
-TIULMED ; SLC/JM,JH - Active/Recent Med Objects Routine ;3/17/2004 [3/16/04 10:34am]
- ;;1.0;TEXT INTEGRATION UTILITIES;**38,73,92,94,183**;Jun 20, 1997
+TIULMED ; SLC/JM,JH - Active/Recent Med Objects Routine ;12/07/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**38,73,92,94,183,193,197,198,202**;Jun 20, 1997
  Q
 LIST(DFN,TARGET,ACTVONLY,DETAILED,ALLMEDS,ONELIST,CLASSORT,SUPPLIES) ;
- ;
  ; This is the TIU Medication objects API.  Optional parameters not
  ; provided defaults to 0 (with the exception of SUPPLIES).
- ;
  ;Required Parameters:
- ;
  ;  DFN       Patient identifier
- ;
  ;  TARGET    Where the medication data will be stored
- ;
  ;Optional Parameters:
- ;
  ;  ACTVONLY  0 - Active and recently expired meds
  ;            1 - Active meds only
  ;            2 - Recently expired meds only
- ;
  ;  DETAILED  0 - One line per med only
  ;            1 - Detailed information on each med
- ;
  ;  ALLMEDS   0 - Specifies Inpatient Meds if patient is an
  ;                Inpatient, or Outpatient Meds if patient
  ;                is an Outpatient
  ;            1 - Specifies both Inpatient and Outpatient
  ;            2 or "I" - Specifies Inpatient only
  ;            3 or "O" - Specifies Outpatient only
- ;
  ;  ONELIST   0 - Separates Active, Pending and Inactive
  ;                medications into separate lists
  ;            1 - Combines Active, Pending and Inactive
  ;                medications into the same list
- ;
  ;  CLASSORT  0 - Sort meds alphabetically
  ;            1 - Sort meds by drug class, and within the
  ;                same drug class, sort alphabetically
  ;            2 - Same as #1, but show drug class in header
- ;
  ;  SUPPLIES  0 - Supplies are excluded
  ;            1 - Supplies are included (Default)
- ;
  N NEXTLINE,EMPTY,INDEX,NODE,ISINP,KEEPMED,STATUS,ASTATS,PSTATS,OK
  N STATIDX,INPTYPE,OUTPTYPE,TYPE,MEDTYPE,CNT,DATA,MED,IDATE,XSTR,LLEN
  N LASTMEDT,LASTSTS,COUNT,TOTAL,SPACE60,DASH73,TEMP,LINE,TAB,HEADER
  N DRUGCLAS,DRUGIDX,LASTCLAS,OLDTAB,OLDHEADR,UNKNOWNS
- N NVATYPE,NVAMED,NVASTR
+ N NVATYPE,NVAMED,NVASTR,TIUXSTAT
  N %,%H,STOP,LSTFD ;Clean up after external calls...
  S (NEXTLINE,TAB,HEADER,UNKNOWNS)=0,LLEN=47
  K @TARGET,^TMP("PS",$J)
@@ -88,10 +76,11 @@ LIST(DFN,TARGET,ACTVONLY,DETAILED,ALLMEDS,ONELIST,CLASSORT,SUPPLIES) ;
  .S KEEPMED=($L($P(NODE,U,2))>0) ;Discard Blank Meds
  .I KEEPMED D
  ..S STATUS=$P(NODE,U,9)
- ..I STATUS="SUSPENDED" S STATUS="ACTIVE (S)"
+ ..I STATUS="ACTIVE/SUSP" S STATUS="ACTIVE (S)"
  ..I $F(ASTATS,"^"_STATUS_"^")>0 S STATIDX=1
  ..E  I ($F(PSTATS,"^"_STATUS_"^")>0) S STATIDX=2
  ..E  S STATIDX=3
+ ..S TIUXSTAT=STATUS
  ..I ACTVONLY=1 S KEEPMED=(STATIDX<3)
  ..I ACTVONLY=2 S KEEPMED=(STATIDX=3)
  ..I +ONELIST S STATIDX=1
@@ -115,7 +104,7 @@ LIST(DFN,TARGET,ACTVONLY,DETAILED,ALLMEDS,ONELIST,CLASSORT,SUPPLIES) ;
  .S DRUGCLAS=" "
  .S MED=$P(NODE,U,2)
  .I KEEPMED,(CLASSORT!('SUPPLIES)) D
- ..S DRUGIDX=$O(^PSDRUG("B",MED,0))
+ ..S DRUGIDX=$$IENNAME^TIULMED2(MED)
  ..D GETCLASS
  ..I KEEPMED,+DRUGIDX=0 D  ;Find orderable item
  ...N IDX,ID,ORDIDX,TMPCLASS,CDONE,SDONE,TMPIDX,TMPNODE,ISSUPPLY
@@ -141,15 +130,17 @@ LIST(DFN,TARGET,ACTVONLY,DETAILED,ALLMEDS,ONELIST,CLASSORT,SUPPLIES) ;
  ....I $P($G(^PS(55,DFN,"IV",IDX,"AD",0)),U,4)=1 D
  .....S TMPIDX=$O(^PS(55,DFN,"IV",IDX,"AD",0)) I +TMPIDX D
  ......S TMPIDX=$P($G(^PS(55,DFN,"IV",IDX,"AD",TMPIDX,0)),U)
- ......I +TMPIDX S DRUGIDX=$P($G(^PS(52.6,TMPIDX,0)),U,2)
+ ......I +TMPIDX S DRUGIDX=$$DRGIEN^TIULMED2(TMPIDX)
  ....S ORDIDX=+$P($G(^PS(55,DFN,"IV",IDX,.2)),U)
  ...S DRUGCLAS=""
  ...D GETCLASS
  ...I KEEPMED,+DRUGIDX=0,+ORDIDX,DRUGCLAS="" D
  ....S IDX=0,ISSUPPLY=2,CDONE='CLASSORT,SDONE=+SUPPLIES
- ....F  S IDX=$O(^PSDRUG("ASP",ORDIDX,IDX)) Q:'IDX  D  Q:(CDONE&SDONE)
- .....S TMPNODE=$G(^PSDRUG(IDX,0))
- .....S TMPCLASS=$P(TMPNODE,U,2)
+ ....N LIST S LIST="TIULMED"
+ ....D DRGIEN^PSS50P7(ORDIDX,"",LIST)
+ ....F  S IDX=$O(^TMP($J,LIST,IDX)) Q:'IDX  D  Q:(CDONE&SDONE)
+ .....S TMPCLASS=$$DRGCLASS^TIULMED2(IDX)
+ .....S TMPNODE=U_TMPCLASS_U_$$DEA^TIULMED2(IDX)
  .....I 'CDONE,TMPCLASS="" S CDONE=1,DRUGCLAS=""
  .....I 'CDONE D
  ......I DRUGCLAS="" S DRUGCLAS=TMPCLASS
@@ -164,11 +155,12 @@ LIST(DFN,TARGET,ACTVONLY,DETAILED,ALLMEDS,ONELIST,CLASSORT,SUPPLIES) ;
  .;
  .I KEEPMED D
  ..D ADDMED^TIULMED1(1) ; Get XSTR to check for duplicates
+ ..;VMP OIFO BAY PINES;ELR;TIU*1.0*198;ADDED TIUXSTAT TO TMP GLOBAL
  ..S IDATE=$P(NODE,U,15)
- ..S OK='$D(@TARGET@("B",MED,XSTR))
- ..I 'OK,(IDATE>@TARGET@("B",MED,XSTR)) S OK=1
+ ..S OK='$D(@TARGET@("B",MED,XSTR,TIUXSTAT))
+ ..I 'OK,(IDATE>@TARGET@("B",MED,XSTR,TIUXSTAT)) S OK=1
  ..I OK D
- ...S @TARGET@("B",MED,XSTR)=IDATE_U_INDEX_U_MEDTYPE_STATIDX_U_TYPE_U_DRUGCLAS
+ ...S @TARGET@("B",MED,XSTR,TIUXSTAT)=IDATE_U_INDEX_U_MEDTYPE_STATIDX_U_TYPE_U_DRUGCLAS
  ...S EMPTY=0
  ...I DRUGCLAS=" " S UNKNOWNS=1
  ;
@@ -184,11 +176,12 @@ LIST(DFN,TARGET,ACTVONLY,DETAILED,ALLMEDS,ONELIST,CLASSORT,SUPPLIES) ;
  ;
  S MED="",CNT=1000000
  F  S MED=$O(@TARGET@("B",MED)) Q:MED=""  D
- .S XSTR=""
+ .S (XSTR,TIUXSTAT)=""
  .F  S XSTR=$O(@TARGET@("B",MED,XSTR)) Q:XSTR=""  D
- ..S NODE=@TARGET@("B",MED,XSTR)
- ..S DATA=$P(NODE,U,3)_U_$P(NODE,U,5)_U_MED,CNT=CNT+1
- ..S @TARGET@("C",DATA,(9999999-$P(NODE,U))_CNT)=$P(NODE,U,2)_U_$P(NODE,U,4)
+ .. F  S TIUXSTAT=$O(@TARGET@("B",MED,XSTR,TIUXSTAT)) Q:TIUXSTAT=""  D
+ ...S NODE=@TARGET@("B",MED,XSTR,TIUXSTAT)
+ ...S DATA=$P(NODE,U,3)_U_$P(NODE,U,5)_U_MED,CNT=CNT+1
+ ...S @TARGET@("C",DATA,(9999999-$P(NODE,U))_CNT)=$P(NODE,U,2)_U_$P(NODE,U,4)
  K @TARGET@("B")
  ;
  ; Read sorted data and save final version to TARGET
@@ -255,11 +248,6 @@ LIST(DFN,TARGET,ACTVONLY,DETAILED,ALLMEDS,ONELIST,CLASSORT,SUPPLIES) ;
 LISTX K ^TMP("PS",$J)
  Q "~@"_$NA(@TARGET)
  ;
-GETCLASS ; Get Drug Class, filter out supplies
- I +DRUGIDX D
- .N TEMPNODE
- .S TEMPNODE=$G(^PSDRUG(DRUGIDX,0))
- .S DRUGCLAS=$P(TEMPNODE,U,2)
- .I 'SUPPLIES,($E(DRUGCLAS,1,2)="XA") D
- ..S KEEPMED='($P(TEMPNODE,U,3)["S")
+GETCLASS ;
+ D GETCLASS^TIULMED3
  Q

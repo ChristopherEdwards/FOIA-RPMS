@@ -1,5 +1,5 @@
-SDAMA200 ;BPOIFO/ACS-Scheduling Replacement API Errors and Validation ;19 August 2003
- ;;5.3;Scheduling;**253,275,310,283**;13 Aug 1993
+SDAMA200 ;BPOIFO/ACS-Scheduling Replacement API Errors and Validation ; 12/13/04 3:13pm
+ ;;5.3;Scheduling;**253,275,310,283,347,1015**;13 Aug 1993;Build 21
  ;
  ;*******************************************************************
  ;              CHANGE LOG
@@ -9,22 +9,26 @@ SDAMA200 ;BPOIFO/ACS-Scheduling Replacement API Errors and Validation ;19 August
  ;09/20/02  SD*5.3*253    ROUTINE COMPLETED
  ;12/10/02  SD*5.3*275    ADDED PATIENT STATUS FILTER AND VALIDATION
  ;08/15/03  SD*5.3*310    ADD ERROR 114
- ;08/19/03  SD*5.3*283    ADDED 'NT' APPT STATUS.  MULTIPLE APPT STATUS
+ ;08/19/03  SD*5.3*283    ADDED 'NT' APPT STATUS  MULTIPLE APPT STATUS
  ;                        VALUES ALLOWED, NULL FIELD LIST ALLOWED.  
  ;                        REMOVED ERROR CODE 107.
+ ;07/26/04  SD*5.3*347    NEW VARIABLES USED IN ^%DTC CALL.
+ ;                        ALLOW FOR APPOINTMENT STATUSES R,NT OR
+ ;                        R AND NT TO BE PASSED IF THE PATIENT STATUS
+ ;                        IS SET TO O.
  ;
  ;*******************************************************************
  ;-------------------------------------------------------------------
  ;             *** VALIDATE INPUT PARAMETERS ***
  ;INPUT
- ;  SDIEN                Patient, clinic, or facility IEN (required)
- ;  SDFIELDS             Fields requested (optional)
- ;  SDAPSTAT             Appointment status (optional)
- ;  SDSTART              Start date (optional)
- ;  SDEND                End date (optional)
- ;  SDAPINAM             The API that is calling this routine (required)
- ;  SDRTNNAM             The routine that is calling this routine (required)
- ;  SDIOSTAT             Patient status filter
+ ;  SDIEN         Patient, clinic, or facility IEN (required)
+ ;  SDFIELDS      Fields requested (optional)
+ ;  SDAPSTAT      Appointment status (optional)
+ ;  SDSTART       Start date (optional)
+ ;  SDEND         End date (optional)
+ ;  SDAPINAM      The API that is calling this routine (required)
+ ;  SDRTNNAM      The routine that is calling this routine (required)
+ ;  SDIOSTAT      Patient status filter
  ;-------------------------------------------------------------------
  ;
 VALIDATE(SDIEN,SDFIELDS,SDAPSTAT,SDSTART,SDEND,SDAPINAM,SDRTNNAM,SDIOSTAT) ;
@@ -54,7 +58,7 @@ VALIDATE(SDIEN,SDFIELDS,SDAPSTAT,SDSTART,SDEND,SDAPINAM,SDRTNNAM,SDIOSTAT) ;
  I $G(SDAPSTAT)="" S SDAPSTAT=";R;C;N;NT;"
  ;
  ;Validate start and end date/time variables if they are passed in
- N SDSTVAL,SDENDVAL
+ N SDSTVAL,SDENDVAL,%H,%T,%Y,X
  S (SDSTVAL,SDENDVAL)=0
  I $G(SDSTART)'="" D
  . I +SDSTART'=SDSTART D ERROR(105,SDAPINAM,.SDERRFLG,SDRTNNAM) Q
@@ -106,7 +110,7 @@ VALIDATE(SDIEN,SDFIELDS,SDAPSTAT,SDSTART,SDEND,SDAPINAM,SDRTNNAM,SDIOSTAT) ;
  ;Validate Appt Status and Patient Status Filter Combination 
  ;if they specify a patient status, they must specify scheduled/kept appt type "R"
  I $G(SDIOSTAT)="I",$G(SDAPSTAT)'=";R;" D ERROR(113,SDAPINAM,.SDERRFLG,SDRTNNAM)
- I $G(SDIOSTAT)="O",$G(SDAPSTAT)'=";R;" D ERROR(113,SDAPINAM,.SDERRFLG,SDRTNNAM)
+ I $G(SDIOSTAT)="O",$S($G(SDAPSTAT)=";R;":0,$G(SDAPSTAT)=";NT;":0,$G(SDAPSTAT)=";R;NT;":0,$G(SDAPSTAT)=";NT;R;":0,1:1) D ERROR(113,SDAPINAM,.SDERRFLG,SDRTNNAM)
  ;
  I SDERRFLG>0 Q -1
  Q 1
@@ -134,6 +138,8 @@ ERROR(SDERRNUM,SDAPINAM,SDERRFLG,SDRTNNAM) ;
 112 ;;INVALID PATIENT STATUS FILTER
 113 ;;APPT STATUS AND PATIENT STATUS FILTER COMBINATION UNSUPPORTED IN VISTA
 114 ;;INVALID PATIENT ID
+116 ;;DATA MISMATCH
+117 ;;SDAPI ERROR
  ;
  ;------------------------------------------------------------------
  ;Additional APIs called from GETAPPT, GETPLIST, NEXTAPPT, GETALLCL

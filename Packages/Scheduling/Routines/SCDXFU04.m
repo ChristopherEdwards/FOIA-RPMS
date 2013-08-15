@@ -1,5 +1,5 @@
 SCDXFU04 ;ALB/JRP - ACRP FILE UTILITIES FOR CLOSE OUT;15-APR-97 ; 1/24/02 3:44pm
- ;;5.3;Scheduling;**121,140,247**;Aug 13, 1993
+ ;;5.3;Scheduling;**121,140,247,1015**;Aug 13, 1993;Build 21
  ;
 XMIT4DBC(XMITPTR) ;Determine if an entry in the TRANSMITTED OUTPATIENT
  ; ENCOUNTER file (#409.73) should be transmitted to the NPCD

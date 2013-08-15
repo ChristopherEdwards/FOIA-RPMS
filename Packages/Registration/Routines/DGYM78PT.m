@@ -1,5 +1,5 @@
 DGYM78PT ;ALB/MLI - Post-install routine for DG*5.3*78 ; 3/4/96@925
- ;;5.3;Registration;**78**;Aug 13, 1993
+ ;;5.3;Registration;**78,1015**;Aug 13, 1993;Build 21
  ;
  ; This post-install routine will check the Medical Center Division
  ; file to ensure that each entry has a unique pointer to the

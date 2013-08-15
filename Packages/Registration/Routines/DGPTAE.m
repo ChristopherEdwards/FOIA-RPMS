@@ -1,5 +1,5 @@
 DGPTAE ;ALB/MTC - Austin Edit Checks Driver ; 12 NOV 92
- ;;5.3;Registration;**58,415**;Aug 13, 1993
+ ;;5.3;Registration;**58,415,1015**;Aug 13, 1993;Build 21
  ;
  ; Check for 101, 501, 701; Route processing by type; call DRG and output routine
 EN ;

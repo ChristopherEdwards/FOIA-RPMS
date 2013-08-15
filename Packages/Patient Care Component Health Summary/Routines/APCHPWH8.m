@@ -1,5 +1,5 @@
 APCHPWH8 ; IHS/CMI/LAB - PCC HEALTH SUMMARY - MAIN DRIVER PART 2 ;  
- ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**7,8**;MAY 14, 2009;Build 2
  ;
  ;
 ADOLHTWT ;EP - ht/wt/bmi component
@@ -59,12 +59,12 @@ PEDHTWT ;EP - ht/wt/bmi component
  I 'APCHHWO D  G HC
  .D S^APCHPWH1("Your child is "_APCHFEET_" feet and "_APCHINCH_" inches tall.")
  .D S^APCHPWH1("Your child's last weight was "_APCHWTLB_" pounds on "_$$FMTE^XLFDT($P(APCHWT,U,1))_".")
- I APCHWT]"" D
+ I APCHWT]"" D  I 1
  .D S^APCHPWH1("Your child's last weight was "_APCHWTLB_" pounds on "_$$FMTE^XLFDT($P(APCHWT,U,1))_".")
- D S^APCHPWH1("No recent weight on file.  We recommend that you have your child's weight ") D S^APCHPWH1("rechecked at your next visit.")
- I APCHHT]"" D
+ E  D S^APCHPWH1("No recent weight on file.  We recommend that you have your child's weight ") D S^APCHPWH1("rechecked at your next visit.")
+ I APCHHT]"" D  I 1
  .D S^APCHPWH1("On "_$$FMTE^XLFDT($P(APCHHT,U,1))_" your child's height was "_APCHFEET_" feet and "_APCHINCH_" inches.",1)
- D S^APCHPWH1("No recent height on file.  We recommend that you have your child's height "),S^APCHPWH1("rechecked at your next visit.")
+ E  D S^APCHPWH1("No recent height on file.  We recommend that you have your child's height "),S^APCHPWH1("rechecked at your next visit.")
 HC ;
  I APCHAGE<3 D HC1
  Q
@@ -73,7 +73,7 @@ HC1 ;
  ;I $P(APCHHT,U)<DT S APCHHWO=1
  D S^APCHPWH1(" ")
  I APCHHC]"" D  Q
- .D S^APCHPWH1("Your child's most recent head circumference is "_$P(APCHHC,U,3)_" on "_$$FMTE^XLFDT($P(APCHHC,U,1))_".")
+ .D S^APCHPWH1("Your child's most recent head circumference is "_$J($P(APCHHC,U,3),5,2)_" on "_$$FMTE^XLFDT($P(APCHHC,U,1))_".")
  D S^APCHPWH1("No recent head circumference on file.  We recommend that you have your ") D S^APCHPWH1("child's head circumference rechecked at your next visit.")
  Q
 BMI(H,W) ;

@@ -1,16 +1,61 @@
-TIUCP ;SLC/RMO - Clinical Procedures API(s) and RPC(s) ;12/18/00@10:54:20
- ;;1.0;TEXT INTEGRATION UTILITIES;**109**;Jun 20, 1997
+TIUCP ;SLC/RMO - Clinical Procedures API(s) and RPC(s) ;5/12/04
+ ;;1.0;TEXT INTEGRATION UTILITIES;**109,182**;Jun 20, 1997
  ;
-CLASS() ;Get the CLINICAL PROCEDURES TIU Document Definition file (#8925.1) IEN
+CLASS() ;Get the CLINICAL PROCEDURES Class TIU Document Definition
+ ;file (#8925.1) IEN
  ; Input  -- None    
  ; Output -- TIU Document Definition file (#8925.1) IEN
- N Y
- S Y=+$O(^TIU(8925.1,"B","CLINICAL PROCEDURES",0))
+ N Y,TIUI,TYPE
+ S (Y,TIUI)=0
+ ; -- Make sure type is CLASS (P182):
+ F  S TIUI=+$O(^TIU(8925.1,"B","CLINICAL PROCEDURES",TIUI)) Q:'TIUI  D  Q:Y
+ . S TYPE=$P($G(^TIU(8925.1,TIUI,0)),U,4)
+ . I TYPE="CL" S Y=TIUI
  Q Y
  ;
-ISCP(TIUY,TITLE) ;RPC that evaluates whether or not a Title is under
- ;the CLINICAL PROCEDURES Class 
+HISTDC() ;Get Historical Procedures Document Class IEN (under Class CLINICAL PROCEDURES) in TIU DDEF file (#8925.1)
+ ; -- P182
+ ; Input  -- None    
+ ; Output -- TIU Document Definition file (#8925.1) IEN
+ N Y,TIUI,TYPE,TIUISCP
+ S (Y,TIUI)=0
+ F  S TIUI=+$O(^TIU(8925.1,"B","HISTORICAL PROCEDURES",TIUI)) Q:'TIUI  D  Q:Y
+ . S TYPE=$P($G(^TIU(8925.1,TIUI,0)),U,4)
+ . I TYPE="DC" D ISCP(.TIUISCP,TIUI) S:TIUISCP Y=TIUI
+ Q Y
+ ;
+ISHISTCP(TITLE) ; Function evaluates whether a Title is under the
+ ;Historical Procedures Document Class under Class CP
+ ; -- P182
  ; Input  -- TITLE    TIU Document Definition file (#8925.1) IEN
+ ; Output -- 1=True and 0=False
+ N TIUDCLAS,Y
+ ; -- Exit if Title is not defined:
+ I $G(TITLE)'>0 S Y=0 G ISHISTX
+ ; -- Get HISTORICAL PROCEDURES Document Class IEN in 8925.1:
+ S TIUDCLAS=$$HISTDC
+ ; -- Exit if Document Class is not found:
+ I TIUDCLAS'>0 S Y=0 G ISHISTX
+ ; -- Check if Title is under HISTORICAL PROCEDURES Document Class:
+ S Y=+$$ISA^TIULX(TITLE,TIUDCLAS)
+ISHISTX Q Y
+ ;
+HPCAN(TIUACT) ; Is action allowed (not prohibited outright) for HP docmts
+ ; Returns 1 if action allowed (not prohibited outright)
+ ;         0^WHYNOT if action not allowed (prohibited outright)
+ ; Requires TIUACT=IEN in USR ACTION file
+ N ALLOWED S ALLOWED=1
+ I TIUACT=19 S ALLOWED="0^ Historical Procedures may not be addended."
+ I TIUACT=20 S ALLOWED="0^ Historical Procedures may not have signers identified."
+ I TIUACT=21 S ALLOWED="0^ Historical Procedures may not be reassigned."
+ I TIUACT=22 S ALLOWED="0^ Historical Procedures may not have their titles changed."
+ I TIUACT=23 S ALLOWED="0^ Historical Procedures may not be linked with requests."
+ Q ALLOWED
+ ;
+ISCP(TIUY,TITLE) ;RPC that evaluates whether or not a Title is under
+ ;the CLINICAL PROCEDURES Class
+ ; Input  -- TITLE    TIU Document Definition file (#8925.1) IEN
+ ;                    (May be Document Class instead of Title.)
  ; Output -- TIUY     1=True and 0=False
  N TIUCLASS
  ;

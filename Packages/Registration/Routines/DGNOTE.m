@@ -1,5 +1,5 @@
 DGNOTE ;ALB/MRL - GENERATE RELEASE NOTES ;26 JUL 88@1318
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;Called by [DGNOTE] output template
 NR S DGN="NR" D W Q
 DR S DGN="DR" D W Q

@@ -1,5 +1,5 @@
-SDSCP ;ALB/MLI - STOP CODE PRINT ROUTINE ; 2 NOV 87 14:00 [ 08/20/2004  4:10 PM ]
- ;;5.3;Scheduling;**14,34,132,1001**;Aug 13, 1993
+SDSCP ;ALB/MLI - STOP CODE PRINT ROUTINE ; 2 NOV 87 14:00
+ ;;5.3;Scheduling;**14,34,132,1001,1015**;Aug 13, 1993;Build 21
  ;
 CL ; -- called from CL^SDCWL
  W ! S DIC="^DIC(40.7,",DIC(0)="EFQZM" D ^DIC K DIC("S") Q:X["?"  I Y'>0 W *7," No such stop code" Q

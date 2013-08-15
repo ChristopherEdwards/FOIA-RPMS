@@ -1,5 +1,5 @@
 SCAPMC8P ;bp/cmf - preceptor sub-array for practitioner list ; 8/10/99 1:19pm
- ;;5.3;Scheduling;**177,212**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,212,1015**;AUG 13, 1993;Build 21
  ;;1.0
  ;
 PRCTP ; preceptor practitioners for position

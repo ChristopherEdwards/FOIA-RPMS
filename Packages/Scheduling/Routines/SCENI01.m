@@ -1,5 +1,5 @@
 SCENI01 ;ALB/SCK - INCOMPLETE ENCOUNTER MGMT MAIN LM DISPLAY PROTOCOLS; 07-MAY-1997 ; 07 May 99  9:45 PM
- ;;5.3;Scheduling;**66,194**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,194,323,1015**;AUG 13, 1993;Build 21
  ;
 ASKDT(SDT) ; Ask for begin and end date for search
  ;  Variable Input
@@ -20,14 +20,14 @@ ASKDT(SDT) ; Ask for begin and end date for search
  S DIR("?")="^D HELP^%DTC"
  S DIR("B")=$$FMTE^XLFDT(SDBDT)
  D ^DIR K DIR
- I $D(DIRUT) K SDT G DTQ
+ I $D(DIRUT) S SDT="" G DTQ  ; SD*5.3*323 Change K SDT to S SDT=""
  K DIRUT,DIR
  S SDT=Y
  ;
  S DIR(0)="DA^2961001:NOW:EXP",DIR("A")="Enter end date for search: "
  S DIR("B")="TODAY"
  D ^DIR K DIR
- I $D(DIRUT) K SDT G DTQ
+ I $D(DIRUT) S SDT="" G DTQ  ; SD*5.3*323 Change K SDT to S SDT=""
  S SDT=SDT_U_Y
 DTQ S X=1
  I SDT1,'$D(SDT) S SDT=SDT1,X=0

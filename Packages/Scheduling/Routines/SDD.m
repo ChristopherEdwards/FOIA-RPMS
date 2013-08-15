@@ -1,10 +1,10 @@
-SDD ;SF/GFT,ALB/BOK,JSH,LDB - REMAP A CLINIC ; [ 09/13/2001  2:25 PM ]
- ;;5.3;Scheduling;;Aug 13, 1993
+SDD ;SF/GFT,ALB/BOK,JSH,LDB - REMAP A CLINIC ; 26 JAN 84  3:00 pm
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 8/2/2000 removed intro comment & changed $N to $O
- ;
  ;IHS/ANMC/LJF 8/2/2000
  ;W !,"REMAP will set the patterns for the holiday if the clinic was set up",!,"to not schedule on Holidays",!,"REMAP should always be done if a clinic is changed from not scheduling",!,"on holidays to schedule on holidays"
  ;
+ W !,"REMAP will set the patterns for the holiday if the clinic was set up",!,"to not schedule on Holidays",!,"REMAP should always be done if a clinic is changed from not scheduling",!,"on holidays to schedule on holidays"
 CL W !! D LO^DGUTL D ASK2^SDDIV G:Y<0 END S VAUTNI=1 D CLINIC^VAUTOMA G:Y<0 END
 DT D DATE^SDUTL G:POP END S DGVAR="SDBD^SDED^VAUTD#^VAUTC#^DUZ",DGPGM="START^SDD"
  D ZIS^DGUTQ G:POP END

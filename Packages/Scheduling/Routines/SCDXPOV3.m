@@ -1,5 +1,5 @@
 SCDXPOV3 ; ALB/SCK - VISIT REPORT BY NPCDB TRANSMISSION STATUS ; 05 Oct 98  8:38 PM
- ;;5.3;Scheduling;**73,159,173**;AUG 13, 1993
+ ;;5.3;Scheduling;**73,159,173,1015**;AUG 13, 1993;Build 21
  Q
 VISIT(SCXDT,SCXP,SCXE,SCXET,SCXV,SCXC) ; Update visit count for this encounter
  ;   Input:

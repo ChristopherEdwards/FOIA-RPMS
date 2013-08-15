@@ -1,5 +1,5 @@
 DG53440P ;SF/CMC-POST INSTALL FOR DG*5.3*440 ;2/11/02
- ;;5.3;Registration;**440**;Aug 13, 1993
+ ;;5.3;Registration;**440,1015**;Aug 13, 1993;Build 21
  ;
 PTXFR ; Create new x-ref in Patient file for SSN .09 field
  D BMES^XPDUTL(">>> Creating new cross reference on PATIENT (#2) file, field SOCIAL SECURITY NUMBER (#.09) --> 'ATSSN'")

@@ -1,5 +1,5 @@
 DPTNAME1 ;BPOIFO/KEITH - NAME STANDARDIZATION ; 12 Aug 2002@20:20
- ;;5.3;Registration;**244**;Aug 13, 1993
+ ;;5.3;Registration;**244,620,720,1015**;Aug 13, 1993;Build 21
  ;
 NCEVAL(DGC,DGX) ;Evaluate name component entry values
  ;Input: DGC=name component (e.g. FAMILY, GIVEN, etc.)
@@ -23,6 +23,16 @@ NCEVAL(DGC,DGX) ;Evaluate name component entry values
  I DGM("RESULT")'=DGX W "   (",DGM("RESULT"),")"
  S DGX=DGM("RESULT")
  Q
+ ;
+NOTES()  ;Produce value for the file #20 NOTES ABOUT NAME field ihs/cmi/maw 04/07/2012 PATCH 1015 put back in
+ ;Output: string representing when, who and how editing occurred
+ ;
+ N DGWHEN,DGWHO,DGHOW
+ S DGWHEN=$$FMTE^XLFDT($$NOW^XLFDT())
+ S DGWHO=$S($G(DUZ)>0:$$GET1^DIQ(200,DUZ_",",.01),1:"Unknown")
+ S DGWHO=DGWHO_" ("_$G(DUZ)_")"
+ S DGHOW=$P($G(XQY0),U)
+ Q "Edited: "_DGWHEN_" By: "_DGWHO_" With: "_DGHOW
  ;
 FAMILY ;Family name help text
  S DGM("LENGTH")="1-35"
@@ -48,20 +58,12 @@ PREFIX ;Name prefix help text
  ;
 SUFFIX ;Name suffix help text
  S DGM("LENGTH")="1-10"
- D HTEXT("suffix(es), such as JR, SR, II, or II.",DGM("LENGTH"))
+ D HTEXT("suffix(es), such as JR, SR, II, or III.",DGM("LENGTH"))
  Q
  ;
 DEGREE ;Name degree help text
  S DGM("LENGTH")="1-10"
  D HTEXT("academic degree, such as BS, BA, MD, or PHD.",DGM("LENGTH"))
- Q
- ;
-HTEXT(DGF,DGL) ;Generic help text
- ;Input: DGF=field name
- ;       DGL=field length
- S DGM("HELP",1)="Answer with this persons "_DGF
- S DGM("HELP",2)="The response must be "_DGL_" characters in length and may only contain"
- S DGM("HELP",3)="uppercase alpha characters, spaces, hyphens and apostrophes."
  Q
  ;
 CVALID(DGC,DGX,DGM) ;Name component validation
@@ -80,17 +82,15 @@ CVALID(DGC,DGX,DGM) ;Name component validation
  S DGF=$P(DGF,DGC),DGF=$L(DGF,U)
  D @DGC  ;Set up length and help text 
  S DGL=+$P(DGM("LENGTH"),"-")_U_+$P(DGM("LENGTH"),"-",2)
- ;Transform suffixes
- I DGC="SUFFIX" S DGX=$$CLEANC^XLFNAME(DGX)
- ;Clean/format input value 
- S DGX=$$FORMAT^DPTNAME(DGX,$P(DGL,U),$P(DGL,U,2),,3,,1,1)
- ;Validate against file 20 
- D CHK^DIE(20,DGF,"E",DGX,.DGR,"DGMSG")
- I $D(DGMSG("DIERR","E",701)) D
- .S DGI=$O(DGMSG("DIERR","E",701,""))
- .M DGM("ERROR")=DGMSG("DIERR",DGI,"TEXT")
- .Q
- S DGM("RESULT")=$S(DGR=U:"",1:DGR)
+ D CVALID^XLFNAME8(DGC,DGX,.DGM)
+ Q
+ ;
+HTEXT(DGF,DGL) ;Generic help text
+ ;Input: DGF=field name
+ ;       DGL=field length
+ S DGM("HELP",1)="Answer with this persons "_DGF
+ S DGM("HELP",2)="The response must be "_DGL_" characters in length and may only contain"
+ S DGM("HELP",3)="uppercase alpha characters, spaces, hyphens and apostrophes."
  Q
  ;
 JUMP(DGI) ;Evaluate request to jump fields
@@ -102,16 +102,6 @@ JUMP(DGI) ;Evaluate request to jump fields
  S DGI=$O(DGC($O(DGC(DGX)),0))
  S DGY=$P(DGCOM,U,DGI)_$P(DGCX,U,DGI) W $P(DGY,DGX,2)
  Q
- ;
-NOTES() ;Produce value for the file #20 NOTES ABOUT NAME field
- ;Output: string representing when, who and how editing occurred
- ;
- N DGWHEN,DGWHO,DGHOW
- S DGWHEN=$$FMTE^XLFDT($$NOW^XLFDT())
- S DGWHO=$S($G(DUZ)>0:$$GET1^DIQ(200,DUZ_",",.01),1:"Unknown")
- S DGWHO=DGWHO_" ("_$G(DUZ)_")"
- S DGHOW=$P($G(XQY0),U)
- Q "Edited: "_DGWHEN_" By: "_DGWHO_" With: "_DGHOW
  ;
 COMP(DGX,DGDNC) ;Use existing name array
  ;Input: DGX=name array (pass by reference)
@@ -209,3 +199,4 @@ FC1(DGC,DGCOMA) ;Transform single character
  I DGC?1L S DGC=$C($A(DGC)-32) Q 1
  ;Set all other characters to space
  S DGC=" " Q 1
+ ;

@@ -1,5 +1,5 @@
 DGGECSR ;ALB/MJK,RMO - Read Processor Routine ; 24 AUG 89 11:00am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 SET S:'$D(DGRD(0)) DGRD(0)="" W:DGRD(0)'["S" !?2,"Choose one of the following:"
  F I=0:0 S I=$O(DGRD(I)) Q:'I  W:DGRD(0)'["S" !?10,$P(DGRD(I),"^",1) S V=$P(DGRD(I),"^",1) D UPPER S $P(DGRD(I),"^",3)=S
 READ K S,I,J,L,I W !!,$S($D(DGRD("A")):DGRD("A"),1:"Enter Response: ")

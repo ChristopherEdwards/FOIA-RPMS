@@ -1,5 +1,5 @@
 DG53358A ;ALB/AEG - DG*5.3*358 POST INSTALL (CONT) ;3-5-2001
- ;;5.3;Registration;**358**;3-5-2001
+ ;;5.3;Registration;**358,1015**;3-5-2001;Build 21
  ;
 DOAN ; Process records that are in a 'NO LONGER REQUIRED' status and pt.
  ; has a date of death.

@@ -1,5 +1,5 @@
 DGOIL3 ;ALB/AAS - CALC LOS BY TRANSFER (CONT), GET ASIH MOVEMENTS ; 23-OCT-90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 SAVE ;variables needing saving
  S DGPMIFN(1)=DGPMIFN,DGPMIFN1(1)=DGPMIFN1,A(1)=A,A1(1)=A1,D(1)=D,I(1)=I,B("SAVE")=B

@@ -1,5 +1,5 @@
 ABME8SBR ; IHS/ASDST/DMJ - 837 SBR Segment 
- ;;2.6;IHS 3P BILLING SYSTEM;**8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**8,9**;NOV 12, 2009
  ;Transaction Set Header
  ;
  ; IHS/SD/SDR - v2.5 p8 - IM15307/IM14092
@@ -54,6 +54,7 @@ LOOP ;LOOP HERE
  S ABMR("SBR",60)=""
  D PREV^ABMDFUTL
  I (ABMPST=1)&(+$G(ABMP("PD"))=0)&(+$G(ABMP("DED"))=0)&(+$G(ABMP("COI"))=0)&(+$G(ABMP("NONC"))=0) Q
+ I $P(ABMP("INS",ABMPST),U,2)="R",(ABMPST=2),($P($G(^ABMNINS(ABMP("LDFN"),$P(ABMP("INS",1),U),0)),U,11)="Y") S ABMR("SBR",60)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),12)),U)  ;abm*2.6*9 tribal self-insured
  Q:ABMP("EXP")'=22
  I $P(ABMP("INS",ABMPST),U,2)="R",(ABMPST'=1) S ABMR("SBR",60)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),12)),U)
  I $P(ABMP("INS",ABMPST),U,2)="R",(ABMPST=1),($G(ABMLOOP)=2320) S ABMR("SBR",60)=$G(ABMP("SOP",ABMPST))
@@ -66,7 +67,8 @@ LOOP ;LOOP HERE
  I ABMI=1,ABMP("EXP")=23 D
  .I $G(ABMP("INS",2)) S ABMR("SBR",70)=1
  .I '$G(ABMP("INS",2)) S ABMR("SBR",70)=6
- .I ABMPST=1 S ABMR("SBR",70)=""  ;abm*2.6*8 HEAT28632 - Removes "1" from SBR06 for primary payer when 2ndry payer billed
+ .;I ABMPST=1 S ABMR("SBR",70)=""  ;abm*2.6*8 HEAT28632 - Removes "1" from SBR06 for primary payer when 2ndry payer billed  ;abm*2.6*9 NOHEAT
+ .I $G(ABMLOOP)=2320,ABMPST=1 S ABMR("SBR",70)=""  ;Removes "1" from SBR06 for primary payer when 2ndry payer billed  ;abm*2.6*9 NOHEAT
  Q
 80 ;SBR07 - Yes/No Condition or Response Code
  S ABMR("SBR",80)=""

@@ -1,5 +1,5 @@
 DGPFHLQ1 ;ALB/RPM - PRF HL7 BUILD QRD SEGMENT ; 02/02/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,1015**;Aug 13, 1993;Build 21
  ;
  ;
 QRD(DGQID,DGWHO,DGFLD,DGHL) ;QRD HL7 segment API

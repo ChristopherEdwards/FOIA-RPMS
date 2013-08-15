@@ -1,5 +1,5 @@
 DGDEPINA ;ALB/CAW Inactivate veteran when date of death entered; 11/14/94
- ;;5.3;Registration;**45**;Aug 13, 1993
+ ;;5.3;Registration;**45,1015**;Aug 13, 1993;Build 21
  ;
 SET N DGACT,DA,DGPR,DGPR0,DGPR1,DIK
  S DA=$O(^DGPR(408.12,"B",DFN,"")) I 'DA G SETQ

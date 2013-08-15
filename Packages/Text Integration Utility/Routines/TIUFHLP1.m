@@ -1,5 +1,5 @@
-TIUFHLP1 ; SLC/MAM - On-line help library: EDITVW, FIELD ;3/9/95  11:19
- ;;1.0;TEXT INTEGRATION UTILITIES;**14**;Jun 20, 1997
+TIUFHLP1 ; SLC/MAM - On-line help library: EDITVW, FIELD ;4/5/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**14,184**;Jun 20, 1997
  ;
 EDITVW ; Write Field Description for Fields Shown in Edit View Templates D
  N TIUI,FLDNM,FLDNO,MSG,FILEDA,TYPE,PFILEDA
@@ -8,11 +8,11 @@ EDITVW ; Write Field Description for Fields Shown in Edit View Templates D
  ; NOTE ON DISPLAY OF HERITABLE FIELDS: text in desc of protocol TIUFD ACTION MENU MGR:
  I "MN"[TIUFWHO,TYPE'="O" D ITEM^TIUFHLP(^TMP("TIUF",$J,"INHERIT"))
 BASICS W !!,$$CENTER^TIUFL("Help on Basics",80),! K DIROUT
- F FLDNO=.01,.02,.03,.04,.1,0,.13,.07,.05,.06,.11,.08,3.02,3.03 K DIRUT D  Q:$D(DIRUT)
+ F FLDNO=.01,.02,.03,.04,.1,0,.13,.07,.05,.06,.11,.08,.15,3.02,3.03 K DIRUT D  Q:$D(DIRUT)
  . I FLDNO=0!(FLDNO=3.03),"NM"'[TIUFWHO Q
  . I FLDNO=.11,TIUFTMPL'="A"!(TYPE="O") Q  ;orphan
  . I FLDNO=3.02,"N"'[TIUFWHO Q  ;OK to Distribute
- . I TYPE="O",(FLDNO=.1)!(FLDNO=.08)!(FLDNO=.12)!(FLDNO=3.03) Q
+ . I TYPE="O",(FLDNO=.1)!(FLDNO=.08)!(FLDNO=.15)!(FLDNO=.12)!(FLDNO=3.03) Q
  . D FIELD(8925.1,FLDNO)
  Q:$D(DTOUT)!$D(DIROUT)
  I TYPE="O" G BOILTX

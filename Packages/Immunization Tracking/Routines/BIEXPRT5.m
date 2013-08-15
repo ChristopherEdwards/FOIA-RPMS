@@ -1,11 +1,10 @@
 BIEXPRT5 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS; OCT 15, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: BUILD IMMSERVE EXPORT.
  ;;  CALLED BY BIEXPRT3.
- ;;  PATCH 1: KINFIX call no longer necessary; Immserve updated.
- ;;  PATCH 2: Translate new Flu CVX Codes 140 & 141 to 15 until Immserve can
- ;;           accommodate.  DOSES+44
+ ;;  PATCH 2: Include CVX 20 (DTaP) in translation to -13, so that
+ ;;           DTaP satisfies Tdap.   DOSES+42
  ;
  ;
  ;----------
@@ -263,8 +262,14 @@ DOSES(Y,BIAGE,BITMP,BIDOSES) ;EP
  .I $P(Y,U,2)=9!($P(Y,U,2)=113) I BIAGE>6 S BITMP=BITMP_U_-10 Q
  .;
  .;---> If this is Tdap, send -13 to ImmServe.
- .I $P(Y,U,2)=115 S BITMP=BITMP_U_-13 Q
  .;
+ .;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ .;---> Include CVX 20 (DTaP) in translation to -13, so that DTaP satisfies Tdap.
+ .;---> During Beta Test decision was made to abandon this for now, due to
+ .;---> complications.  However, Tdap CVX 115 translated to -13 on 7yrs and older.
+ .I $P(Y,U,2)=115 I BIAGE>6 S BITMP=BITMP_U_-13 Q
+ .;I $P(Y,U,2)=115!($P(Y,U,2)=20) I BIAGE>6 S BITMP=BITMP_U_-13 Q
+ .;**********
  .;
  .;********** PATCH 2, v8.4.2, Oct 15,2010, IHS/CMI/MWR
  .;---> Translate new Flu CVX Codes 140 & 141 to 15 until Immserve can accommodate.

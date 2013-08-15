@@ -1,5 +1,5 @@
 SCMSVZSC ;ALB/ESD HL7 ZSC Segment Validation ;05/08/95
- ;;5.3;Scheduling;**44,66,143**;Aug 13, 1993
+ ;;5.3;Scheduling;**44,66,143,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN(ZSCARRY,HLQ,HLFS,VALERR,ENCPTR) ;

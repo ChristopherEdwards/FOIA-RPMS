@@ -1,17 +1,17 @@
 BDMS9B2 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,6**;JUN 14, 2007;Build 6
  ;
  ;
 MORE ;EP
  S X="Immunizations:" D S(X,1)
- S X="Seasonal Flu vaccine since August 1st: "_$$FLU^BDMS9B3(BDMSDFN) D S(X)
- S X="Pneumovax ever:",$E(X,32)=$$PNEU^BDMS9B4(BDMSDFN) D S(X)
- S X="Hepatitis B series complete (ever): "_$P($$HEP^BDMD413(BDMSDFN,DT),"  ",2,99) D S(X)
- S X="Td in past 10 yrs:",$E(X,32)=$$TD^BDMS9B3(BDMSDFN,(DT-100000)) D S(X)
+ S X="Flu vaccine since August 1st: ",$E(X,36)=$$FLU^BDMS9B3(BDMSDFN) D S(X)
+ S X="Pneumovax ever:",$E(X,36)=$$PNEU^BDMS9B4(BDMSDFN) D S(X)
+ S X="Hepatitis B series complete (ever): ",$E(X,36)=$P($$HEP^BDMDA13(BDMSDFN,DT),"  ",2,99) D S(X)
+ S X="Td in past 10 yrs:",$E(X,36)=$$TD^BDMS9B3(BDMSDFN,(DT-100000)) D S(X)
  S Y=$$PPDS^BDMS9B4(BDMSDFN) I Y]"" S X="PPD Status:  "_Y D S(X)
  I Y="" S X="Last Documented TB Test:",$E(X,27)=$$PPD^BDMS9B4(BDMSDFN) D S(X)
  S X="Last TB Status Health Factor: "_$$TB(BDMSDFN) S $E(X,50)="Last CHEST X-RAY: "_$$CHEST^BDMS9B3(BDMSDFN) D S(X)
- S BDMEKG=$$EKG^BDMS9B3(BDMSDFN),X="EKG:",$E(X,32)=$P(BDMEKG,U,1) S:$P(BDMEKG,U,2)]"" $E(X,54)=$P(BDMEKG,U,2) D S(X)
+ ;S BDMEKG=$$EKG^BDMS9B3(BDMSDFN),X="EKG:",$E(X,32)=$P(BDMEKG,U,1) S:$P(BDMEKG,U,2)]"" $E(X,54)=$P(BDMEKG,U,2) D S(X)
 L ;
  S X="Laboratory Results (most recent):",$E(X,55)="RPMS LAB TEST NAME" D S(X,1)
  S X=" HbA1c:" S Y=$$HBA1C(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
@@ -21,7 +21,8 @@ L ;
  S X=" Creatinine:" S Y=$$CREAT(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  I $P(Y,"|||",4)]"" S X="   Note: "_$P(Y,"|||",4) D S(X)
  S X=" Estimated GFR:" S Y=$$GFR(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
- S X=" Total Cholesterol:" S Y=$$TCHOL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
+ S X=" Total Cholesterol:" S Y=$$TCHOL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X,1)
+ S X="  Non-HDL Cholesterol:" S Y=$$NONHDL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  LDL Cholesterol:" S Y=$$CHOL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  HDL Cholesterol:" S Y=$$HDL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  Triglycerides:" S Y=$$TRIG(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
@@ -147,6 +148,23 @@ TCHOL(P) ;EP
  I '$G(P) Q ""
  NEW T S T=$O(^ATXLAB("B","DM AUDIT CHOLESTEROL TAX",0)),LT=$O(^ATXAX("B","BGP TOTAL CHOLESTEROL LOINC",0)) I 'T Q "<Taxonomy Missing>"
  Q $$LAB(P,T,LT)
+NONHDL(P) ;
+ NEW V,D,TC,HDL,TCD,HDLD,NT
+ I '$G(P) Q ""
+ NEW T S T=$O(^ATXLAB("B","DM AUDIT NON-HDL TESTS",0)),LT=$O(^ATXAX("B","BGP NON-HDL LOINC CODES",0)) I 'T Q "<Taxonomy Missing>"
+ S V=$$LAB(P,T,LT) ;,V=$P(V,"|||"),D=$P(V,"|||",2),NT=$P(V,"|||",3),V=$P(V,"|||")
+ NEW T S T=$O(^ATXLAB("B","DM AUDIT CHOLESTEROL TAX",0)),LT=$O(^ATXAX("B","BGP TOTAL CHOLESTEROL LOINC",0)) I 'T Q "<Taxonomy Missing>"
+ S TC=$$LAB(P,T,LT),TCD=$P(TC,"|||",2),TC=$$STRIP^XLFSTR($P(TC,"|||")," ")
+ I TC="" Q V
+ I TCD<$P(V,"|||",2) Q V
+ NEW T S T=$O(^ATXLAB("B","DM AUDIT HDL TAX",0)),LT=$O(^ATXAX("B","BGP HDL LOINC CODES",0)) I 'T Q "<Taxonomy Missing>"
+ S HDL=$$LAB(P,T,LT),HDLD=$P(HDL,"|||",2),HDL=$$STRIP^XLFSTR($P(HDL,"|||")," ")
+ I HDL="" Q V
+ I HDLD<$P(V,"|||",2) Q V
+ S TC=+TC,HDL=+HDL
+ I 'TC Q ""
+ I 'HDL Q ""
+ Q $$LBLK(TC-HDL,6)_"|||"_TCD_"|||[Calculated Value]"
 TRIG(P) ;EP
  I '$G(P) Q ""
  NEW T S T=$O(^ATXLAB("B","DM AUDIT TRIGLYCERIDE TAX",0)),LT=$O(^ATXAX("B","BGP TRIGLYCERIDE LOINC CODES",0)) I 'T Q "<Taxonomy Missing>"

@@ -1,10 +1,13 @@
 DGUTL ;ALB/MRL - DG UTILITY FUNCTIONS ; 08 JAN 86
- ;;5.3;Registration;**279**;Aug 13, 1993
+ ;;5.3;Registration;**279,570,677,1015**;Aug 13, 1993;Build 21
  ;
 RI ;Reimbursable Insurance
- ; ** NOTE: The line below will cause errors if used.  Is it?? REW.
- S DGINS1=0 F DGINS=0:0 S DGINS=$O(^DPT(DFN,.312,DGINS)) Q:'DGINS  I $D(^DIC(36,DGINS,0)),$P(^(0),U,2)'="N" S DGINS1=1
- S DGINS=DGINS1 K DGINS1 Q
+ ; ** NOTE: This procedure appears to be obsolete, but code was modified
+ ; for IB/AR Encapsulation anyways.
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1014 no IB
+ S DGINS=$$INSUR^IBBAPI(DFN,"","A")
+ Q
+ ;
 TS ;Table of Contents SET
  I '$D(^UTILITY($J,"DGTC",DGPAG)) S ^UTILITY($J,"DGTC",DGPAG,DGPAG1)="" Q
 TP ;Table of Contents PRINT
@@ -110,9 +113,9 @@ ASKDIV(NOTALL) ;Ask for division (one/many/all)
  K VAUTD
  S FIRSTDIV=+$O(^DG(40.80,0))
  I '$D(^DG(40.8,FIRSTDIV,0)) D  G ASKDIVQ
- .W !
- .W $C(7),"***WARNING...MEDICAL CENTER DIVISION FILE IS NOT SET UP***"
- .W !
+ . W !
+ . W $C(7),"***WARNING...MEDICAL CENTER DIVISION FILE IS NOT SET UP***"
+ . W !
  S MULTIDIV=+$P($G(^DG(43,1,"GL")),"^",2)
  I 'MULTIDIV S VAUTD=1 G ASKDIVQ
  S (VAUTD,Y)=0
@@ -120,3 +123,19 @@ ASKDIV(NOTALL) ;Ask for division (one/many/all)
  D DIVISION^VAUTOMA
  I Y<0 K VAUTD
 ASKDIVQ Q $D(VAUTD)>0
+ ;
+EMGRES(DFN)     ;DG*5.3*677
+ ;This API returns the value of the Emergency Response
+ ;Indicator (file 2, field .181), or null if blank
+ ;
+ ;INPUT:
+ ;   DFN - pointer to the Patient File (#2)
+ ;
+ ;OUTPUT:
+ ;   Function value - returns value from E.R.I. field, or null if blank
+ ;
+ I 'DFN Q ""
+ ;
+ N RESULT
+ S RESULT=$P($G(^DPT(DFN,.18)),U)
+ Q RESULT

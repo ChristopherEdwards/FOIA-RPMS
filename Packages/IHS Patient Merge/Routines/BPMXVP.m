@@ -1,8 +1,10 @@
-BPMXVP ;IHS/PHXAO/AEF - REPOINT VARIABLE POINTER FIELDS
- ;;1.0;IHS PATIENT MERGE;;MAR 01, 2010
+BPMXVP ;IHS/PHXAO/AEF - REPOINT VARIABLE POINTER FIELDS - 6/26/12 ;
+ ;;1.0;IHS PATIENT MERGE;**2**;MAR 01, 2010;Build 1
  ;IHS/OIT/LJF 10/26/2006 routine originated from Phoenix Area Office
  ;                       changed namespace from BZXM to BPM
  ;            11/30/2006 removed files that don't really store data (like parameter files)
+ ;IHS/OIT/NKD  6/13/2012 Re-index all x-refs for merged entries in the Order file
+ ;                       NEW local variable X in I1 loop
  ;;
 DESC ;----- ROUTINE DESCRIPTION
  ;;BPMXVP:
@@ -62,6 +64,7 @@ I1(BPMFR,BPMTO) ;
  . S X=BPMFR_";AUPNPAT("
  . S BPMD0=0
  . F  S BPMD0=$O(^BARAC(DUZ(2),"B",X,BPMD0)) Q:'BPMD0  D
+ . . N X  ;IHS/OIT/NKD BPM*1.0*2 NEW X LOCAL VARIABLE
  . . S BPMPTR=$P($G(^BARAC(DUZ(2),BPMD0,0)),U)
  . . Q:+BPMPTR'=BPMFR
  . . Q:$P(BPMPTR,";",2)'="AUPNPAT("
@@ -171,7 +174,7 @@ V3(BPMFR,BPMTO) ;
  ;----- REPOINT 'OBJECT OF ORDER' FIELD #.02 OF THE 'ORDER' FILE #100
  ;   Waiting for VA to release patch that handles variable pointers correctly
  ;
- N BPM0,BPMD0,BPMPTR,DA,X
+ N BPM0,BPMD0,BPMPTR,DA,X,DIK
  ;
  S BPMD0=0
  F  S BPMD0=$O(^OR(100,BPMD0)) Q:'BPMD0  D
@@ -181,68 +184,74 @@ V3(BPMFR,BPMTO) ;
  . S BPM0=$G(^OR(100,BPMD0,0))
  . ;
  . ;----- XECUTE KILL LOGIC FOR XREFS
- . ;"AC" XREF #2:
- . I +$P(BPM0,U,2),$P(BPM0,U,7) D
- . . S DA=BPMD0
- . . S X=BPMPTR
- . . X ^DD(100,.02,1,2,2) ;KILL
- . ;"AS" XREF #5:
- . S DA=BPMD0
- . S X=BPMPTR
- . X ^DD(100,.02,1,5,2)
- . ;"AR" XREF #7:
- . S DA=BPMD0
- . S X=BPMPTR
- . X ^DD(100,.02,1,7,2)
- . ;"AW" XREF #9:
- . I +$P(BPM0,U,2),$P(BPM0,U,11) D
- . . S DA=BPMD0
- . . S X=BPMPTR
- . . X ^DD(100,.02,1,9,2)
- . ;"AOI1" XREF #10:
- . I +$P(BPM0,U,2) D
- . . S DA=BPMD0
- . . S X=BPMPTR
- . . X ^DD(100,.02,1,10,2)
- . ;"ACT1" XREF #11:
- . I $P(BPM0,U,11) D
- . . S DA=BPMD0
- . . S X=BPMPTR
- . . X ^DD(100,.02,1,11,2)
+ .;IHS/OIT/NKD BPM*1.0*2 RE-INDEXING ALL X-REFS
+ .; ;"AC" XREF #2:
+ .; I +$P(BPM0,U,2),$P(BPM0,U,7) D
+ .; . S DA=BPMD0
+ .; . S X=BPMPTR
+ .; . X ^DD(100,.02,1,2,2) ;KILL
+ .; ;"AS" XREF #5:
+ .; S DA=BPMD0
+ .; S X=BPMPTR
+ .; X ^DD(100,.02,1,5,2)
+ .; ;"AR" XREF #7:
+ .; S DA=BPMD0
+ .; S X=BPMPTR
+ .; X ^DD(100,.02,1,7,2)
+ .; ;"AW" XREF #9:
+ .; I +$P(BPM0,U,2),$P(BPM0,U,11) D
+ .; . S DA=BPMD0
+ .; . S X=BPMPTR
+ .; . X ^DD(100,.02,1,9,2)
+ .; ;"AOI1" XREF #10:
+ .; I +$P(BPM0,U,2) D
+ .; . S DA=BPMD0
+ .; . S X=BPMPTR
+ .; . X ^DD(100,.02,1,10,2)
+ .; ;"ACT1" XREF #11:
+ .; I $P(BPM0,U,11) D
+ .; . S DA=BPMD0
+ .; . S X=BPMPTR
+ .; . X ^DD(100,.02,1,11,2)
+ . S DIK="^OR(100,",DA=BPMD0
+ . D IX2^DIK
  . ;
  . ;----- RESET VARIABLE POINTER
  . S $P(^OR(100,BPMD0,0),U,2)=BPMTO_";DPT("
  . S BPM0=$G(^OR(100,BPMD0,0))
  . ;
  . ;----- XECUTE SET LOGIC FOR XREFS
- . ;"AC" XREF #2:
- . I +$P(BPM0,U,2),$P(BPM0,U,7) D
- . . S DA=BPMD0
- . . S X=BPMTO_";DPT("
- . . X ^DD(100,.02,1,2,1) ;SET
- . ;"AS" XREF #5:
- . S DA=BPMD0
- . S X=BPMTO_";DPT("
- . X ^DD(100,.02,1,5,1)
- . ;"AR" XREF #7:
- . S DA=BPMD0
- . S X=BPMTO_";DPT("
- . X ^DD(100,.02,1,7,1)
- . ;"AW" XREF #9:
- . I +$P(BPM0,U,2),$P(BPM0,U,11) D
- . . S DA=BPMD0
- . . S X=BPMTO_";DPT("
- . . X ^DD(100,.02,1,9,1)
- . ;"AOI1" XREF #10:
- . I +$P(BPM0,U,2) D
- . . S DA=BPMD0
- . . S X=BPMTO_";DPT("
- . . X ^DD(100,.02,1,10,1)
- . ;"ACT1" XREF #11:
- . I $P(BPM0,U,11) D
- . . S DA=BPMD0
- . . S X=BPMTO_";DPT("
- . . X ^DD(100,.02,1,11,1)
+ .;IHS/OIT/NKD BPM*1.0*2 RE-INDEXING ALL X-REFS
+ .; ;"AC" XREF #2:
+ .; I +$P(BPM0,U,2),$P(BPM0,U,7) D
+ .; . S DA=BPMD0
+ .; . S X=BPMTO_";DPT("
+ .; . X ^DD(100,.02,1,2,1) ;SET
+ .; ;"AS" XREF #5:
+ .; S DA=BPMD0
+ .; S X=BPMTO_";DPT("
+ .; X ^DD(100,.02,1,5,1)
+ .; ;"AR" XREF #7:
+ .; S DA=BPMD0
+ .; S X=BPMTO_";DPT("
+ .; X ^DD(100,.02,1,7,1)
+ .; ;"AW" XREF #9:
+ .; I +$P(BPM0,U,2),$P(BPM0,U,11) D
+ .; . S DA=BPMD0
+ .; . S X=BPMTO_";DPT("
+ .; . X ^DD(100,.02,1,9,1)
+ .; ;"AOI1" XREF #10:
+ .; I +$P(BPM0,U,2) D
+ .; . S DA=BPMD0
+ .; . S X=BPMTO_";DPT("
+ .; . X ^DD(100,.02,1,10,1)
+ .; ;"ACT1" XREF #11:
+ .; I $P(BPM0,U,11) D
+ .; . S DA=BPMD0
+ .; . S X=BPMTO_";DPT("
+ .; . X ^DD(100,.02,1,11,1)
+ . S DIK="^OR(100,",DA=BPMD0
+ . D IX1^DIK
  Q
  ;
 V4(BPMFR,BPMTO) ;

@@ -1,8 +1,9 @@
-SDCO1 ;ALB/RMO - Appointment - Check Out;Apr 23 1999 [ 08/20/2004  4:06 PM ]
- ;;5.3;Scheduling;**27,132,149,193,250,296,1001,1009**;08/13/93
- ;IHS/ANMC/LJF 9/10/2001 if no visit at checkin then can't do checkout
+SDCO1 ;ALB/RMO - Appointment - Check Out;Apr 23 1999  ; 12/11/08 5:30pm  ; Compiled December 12, 2008 13:01:34
+ ;;5.3;PIMS;**27,132,149,193,250,296,446,1001,1009,1015,1016**;JUN 30, 2012;Build 20
  ;
+ ;IHS/ANMC/LJF 9/10/2001 if no visit at checkin then can't do checkout
  ;cmi/anch/maw 05/09/2008 PATCH 1009 additional requirement in CO to call EVT^SDAMEVT upon checkout
+ ;check out if sd/369 is released before 446!!!
  ;
 EN ;Entry point for SDCO APPT CHECK OUT protocol
  N SDCOALBF,SDCOAP,SDCOBG,SDCODT,VALMY
@@ -42,15 +43,6 @@ CO(DFN,SDT,SDCL,SDDA,SDASK,SDCODT,SDCOACT,SDLNE,SDCOALBF) ;Appt Check Out
  . N SDCOED
  . S SDOE=$$GETAPT^SDVSIT2(DFN,SDT,SDCL)
  . ;
- . ;IHS/ANMC/LJF 9/10/2001
- . ; if no outpt encounter means no visit so cannot checkout
- . ;IHS/ITSC/WAR 4/30/2004 PATCH #1001 allow ck-out w/o a visit created
- . ;I 'SDOE D  Q
- . ;. W !,"No visit created at checkin, so cannot use checkout function."
- . ;. D PAUSE^BDGF
- . ;IHS/ANMC/LJF 9/10/2001
- . ;
- . ;
  . ; -- has appt already been checked out
  . S SDCOED=$$CHK($TR($$STATUS^SDAM1(DFN,SDT,SDCL,SDATA,SDDA),";","^"))
  . ;
@@ -65,6 +57,7 @@ CO(DFN,SDT,SDCL,SDDA,SDASK,SDCODT,SDCOACT,SDLNE,SDCOALBF) ;Appt Check Out
  . . . ;
  . . . ; -- Set flag to re-build appointment list
  . . . IF $G(SDCOMKF) S SDCOALBF=1
+ . . ;
  . . ;
  . . S SDCOQUIT=1  ;IHS/ANMC/LJF 7/12/2001 bypass c/o interview
  . . ;
@@ -83,13 +76,6 @@ CO(DFN,SDT,SDCL,SDDA,SDASK,SDCODT,SDCOACT,SDLNE,SDCOALBF) ;Appt Check Out
  . . . . .I $$NEWGAF^SDUTL2(DFN) D
  . . . . . .I '$$GAFCM^SDUTL2() S SDGAFC=1
  . . .I SDGAFC D EN^SDCO(SDOE,,1)
- . ;
- . ;
- . ;cmi/anch/maw 5/9/2008 PATCH 1009 lets see if checkout fires here for SDAMEVT
- . ;S SDHDL=$$HANDLE^SDAMEVT(1)
- . ;S SDATA("BEFORE","STATUS")=SDATA,SDATA("AFTER","STATUS")=SDATA
- . ;D AFTER(.SDATA,DFN,SDT,SDCL,SDDA,SDHDL,SDLNE)
- . ;cmi/anch/maw 5/9/2008 PATCH 1009 end of mods
  . ;IHS/ANMC/LJF 7/12/2001 calls shortened IHS c/o process
  . D CO^BSDCO1(SDOE,DFN,SDT,SDCL) Q
  . ;IHS/ANMC/LJF 7/12/2001 end of IHS code
@@ -101,7 +87,24 @@ CO(DFN,SDT,SDCL,SDDA,SDASK,SDCODT,SDCOACT,SDLNE,SDCOALBF) ;Appt Check Out
  S SDOE=$$GETAPT^SDVSIT2(DFN,SDT,SDCL)
  D EN^SDCO(SDOE,,1)
  ;
-COQ K % Q
+COQ K % D EWLCHK Q
+ Q
+EWLCHK ;check if patient has any open EWL entries (SD/372)
+ ;get appointment
+ ;
+ K ^TMP($J,"SDAMA301"),^TMP($J,"APPT")
+ W:$D(IOF) @IOF D APPT^SDWLEVAL(DFN,SDT,SDCL)
+ Q:'$D(^TMP($J,"APPT"))
+ N SDEV D EN^SDWLEVAL(DFN,.SDEV) I SDEV,$L(SDEV(1))>0 D
+ .K ^TMP("SDWLPL",$J),^TMP($J,"SDWLPL")
+ .D INIT^SDWLPL(DFN,"M")
+ .Q:'$D(^TMP($J,"SDWLPL"))
+ .D LIST^SDWLPL("M",DFN)
+ .F  Q:'$D(^TMP($J,"SDWLPL"))  N SDR D ANSW^SDWLEVAL(1,.SDR) I 'SDR D LIST^SDWLPL("M",DFN) D
+ ..F  N SDR  D ANSW^SDWLEVAL(0,.SDR) Q:'$D(^TMP($J,"SDWLPL"))  I 'SDR W !!,"MUST ACCEPT OR ENTER A REASON NOT TO DISPOSITION MATCHED EWL ENTRY",!
+ ..Q
+ .Q
+ Q
  ;
 BEFORE(SDATA,DFN,SDT,SDCL,SDDA,SDHDL) ; -- event driver before ; not used
  S SDATA=SDDA_"^"_DFN_"^"_SDT_"^"_SDCL,SDHDL=$$HANDLE^SDAMEVT(1)

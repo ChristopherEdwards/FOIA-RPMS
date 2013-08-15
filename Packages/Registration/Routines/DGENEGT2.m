@@ -1,5 +1,5 @@
 DGENEGT2 ;ALB/KCL - PROCESS INCOMING MFN TYPE HL7 MSGS; 04-MAY-1999 ; 3/7/01 9:14am
- ;;5.3;Registration;**232,417,363**;Aug 13, 1993
+ ;;5.3;Registration;**232,417,363,1015**;Aug 13, 1993;Build 21
  ;
  ;
 MFN ; Description: This entry point is the handler for incoming MFN type

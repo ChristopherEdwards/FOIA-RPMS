@@ -1,5 +1,5 @@
 ABMDTIN2 ; IHS/ASDST/DMJ - Maintenance of INSURER FILE part 3 ;   
- ;;2.6;IHS Third Party Billing;**6**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**6,9**;NOV 12, 2009
 PROV2 ;
  W !!
  S ABMENTRY=0
@@ -36,3 +36,10 @@ PROV2 ;
  ..W !,"Number "_ABMPRVN_" will be used from the New Person file"
  D PAZ^ABMDRUTL
  Q
+ ;start new code abm*2.6*9 HEAT57746
+SERVLOC ;EP
+ I $P(^ABMDEXP($P(ABM("0"),U,4),0),U)'["5010" Q
+ S DR="117Service Facility Location"
+ D ^DIE
+ Q
+ ;end new code HEAT57746

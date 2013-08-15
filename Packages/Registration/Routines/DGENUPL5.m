@@ -1,5 +1,5 @@
 DGENUPL5 ;ALB/KCL/GSN - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 5/6/03 2:45pm
- ;;5.3;Registration;**222,504**;08/13/93
+ ;;5.3;Registration;**222,504,1015**;08/13/93;Build 21
  ;
  ;DG*5.3*504 - Now, only updates the DG SECURITY LOG file #38.1 Zero
  ;             node, when SECURITY LEVEL [#2] goes from a Non-sensitive

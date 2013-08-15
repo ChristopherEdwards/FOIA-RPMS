@@ -1,5 +1,5 @@
-DGPFRFR ;ALB/RBS - PRF ASSIGNMENTS DUE REVIEW REPORT ; 5/20/03 3:04pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFRFR ;ALB/RBS - PRF ASSIGNMENTS DUE REVIEW REPORT ; 10/28/03 12:04pm
+ ;;5.3;Registration;**425,555,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will be used for selecting sort parameters to produce
  ; the FLAGS DUE FOR REVIEW REPORT for Patient Record Flags.
@@ -102,7 +102,7 @@ EN ;Entry point
  K DGASK,DGRSLT,DGNOW,DGFIRST,DGBEG
  ;
  ;-- prompt for device
- S ZTSAVE("DGSORT")=""
+ S ZTSAVE("DGSORT(")=""
  D EN^XUTMDEVQ("START^DGPFRFR1","Flags Due For Review Report",.ZTSAVE)
  D HOME^%ZIS
  Q

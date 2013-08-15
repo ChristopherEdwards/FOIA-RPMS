@@ -1,5 +1,5 @@
 SDACS0 ; IHS/ADC/PDW/ENM - EXTERNAL PACKAGE CALL TO ADD CODES 12:29 ;  [ 03/25/1999  11:48 AM ]
- ;;5.0;IHS SCHEDULING;;MAR 25, 1999
+ ;;5.3;IHS SCHEDULING;**1015**;MAR 25, 1999;Build 21
  ;;MAS VERSION 5.0;
  ;Parameter check - continues to SDACS1 for update
 APPT ;set appt type based on eligiblity - appt type 10=COMPUTER GENERATED

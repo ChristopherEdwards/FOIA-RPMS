@@ -1,5 +1,5 @@
 SCCVEGD2 ;ALB/MJK - Estimate Summary ; 30-NOV-1998
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- main entry point for SCCV GLOBAL ESTIMATE SUMMARY
  N SCDET,DIR

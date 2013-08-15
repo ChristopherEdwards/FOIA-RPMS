@@ -1,8 +1,9 @@
 BIOUTPT3 ;IHS/CMI/MWR - PROMPTS FOR REPORTS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  PROMPTS FOR REPORT PARAMETERS.
  ;;  PATCH 1: Clarify Date Range on Imms Received with added prompt.  IMMRCV+20
+ ;;  PATCH 2: Add two more questions, U19 and DELIM.
  ;
  ;
  ;----------
@@ -258,8 +259,8 @@ HISTORC(BIHIST,BIRTN) ;EP
  ;---> Select whether to include Historical Visits.
  ;---> Called by Protocol BI OUTPUT HISTORICAL.
  ;---> Parameters:
- ;     1 - BIHIST  (req) Include Historical (1=yes,0=no).
- ;     2 - BIRTN (req) Calling routine for reset.
+ ;     1 - BIHIST (ret) Include Historical (1=yes,0=no).
+ ;     2 - BIRTN  (req) Calling routine for reset.
  ;
  I $G(BIRTN)="" D ERRCD^BIUTL2(621,,1) Q
  ;
@@ -291,6 +292,87 @@ TEXT2 ;EP
  ;;Please select whether to include Historical Visits in this report.
  ;;
  D PRINTX("TEXT2")
+ Q
+ ;
+ ;
+U19(BIU19,BIRTN) ;EP
+ ;---> Select whether to limit Elig Report to patients <19 yrs of age.
+ ;---> Called by Protocol BI OUTPUT INCLUDE ADULTS.
+ ;---> Parameters:
+ ;     1 - BIU19 (ret) Include Adults (1=yes,0=no).
+ ;     2 - BIRTN (req) Calling routine for reset.
+ ;
+ I $G(BIRTN)="" D ERRCD^BIUTL2(621,,1) Q
+ ;
+ D FULL^VALM1
+ D TITLE^BIUTL5("INCLUDE ADULTS"),TEXT8
+ N A,B,Y S:($G(BIU19)="") BIU19=0
+ S A="     Include Adult visits (Yes/No): "
+ S B=$S(BIU19:"YES",1:"NO")
+ D DIR^BIFMAN("YA",.Y,,A,B)
+ S BIU19=+Y
+ D @("RESET^"_BIRTN)
+ Q
+ ;
+ ;
+ ;----------
+TEXT8 ;EP
+ ;;Should immunizations be included that were given when the patient
+ ;;was 19 years of age or older?
+ ;;
+ ;;If you are primarily interested in a Vaccine For Children (VFC)
+ ;;Eligibility report, then answer "No."
+ ;;
+ ;;If you are interested in an Eligibility report that covers adults
+ ;;as well as children, then answer "Yes."
+ ;;
+ D PRINTX("TEXT8")
+ Q
+ ;
+ ;
+DELIM(BIDELIM,BIRTN) ;EP
+ ;---> Select which Delimiter to use, "2 spaces" or "^".
+ ;---> Called by Protocol BI OUTPUT DILIMITER.
+ ;---> Parameters:
+ ;     1 - BIDELIM (ret) Delimiter (1="^", 2="2 spaces").
+ ;     2 - BIRTN   (req) Calling routine for reset.
+ ;
+ I $G(BIRTN)="" D ERRCD^BIUTL2(621,,1) Q
+ ;
+ D FULL^VALM1
+ D TITLE^BIUTL5("SELECT DELIMITER"),TEXT9
+ ;
+ N DIR,Y
+ S DIR("A")="     Select 1 for ""caret ^"" or 2 for ""2 spaces"":  "
+ S DIR("B")=$S($G(BIDELIM)=1:"caret",1:"2 spaces")
+ S DIR(0)="SAM^1:caret;2:2 spaces"
+ D ^DIR K DIR
+ D
+ .I Y=1 S BIDELIM=1 Q
+ .S BIDELIM=2
+ ;
+ D @("RESET^"_BIRTN)
+ Q
+ ;
+ ;
+ ;----------
+TEXT9 ;EP
+ ;;This report displays six data fields of each immunizatioin in
+ ;;six columns.  They are:
+ ;;
+ ;;(1)Date  2)Last,First Name  (3)DOB  (4)Eligibility  (5)Vaccine  (6)Lot#
+ ;;
+ ;;In the display, these six fields will be separated from each other by
+ ;;a "delimiter."  The delimiter can be either a caret "^" or "2 spaces".
+ ;;
+ ;;The default delimiter is "2 spaces".  However, when the intention is
+ ;;to print or copy the report to a text file for the purpose of importing
+ ;;it into Excel or some other spreadsheet, use of the caret "^" is
+ ;;preferable and recommended. (Spaces in the data itself might sometimes
+ ;;be confused with spaces in the delimiter and/or spaces used to make the
+ ;;columns line up.)
+ ;;
+ D PRINTX("TEXT9")
  Q
  ;
  ;

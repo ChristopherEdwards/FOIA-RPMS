@@ -1,5 +1,5 @@
 SCRPW21 ;RENO/KEITH - ACRP Ad Hoc Report (cont.) ; 18 Nov 98  3:30 PM
- ;;5.3;Scheduling;**144,166**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,166,1015**;AUG 13, 1993;Build 21
 BLD ;Build ^TMP global from data element parameters in file #409.92
  ;Output: ^TMP global (where "str"=string obtained by $TEXT)
  ;        ^TMP("SCRPW",$J,"ACT",$P(str,"~",2)_$P(str,"~",4))=minor category external value~type~type where~type screen~choice method~number of choices~code to set SDX

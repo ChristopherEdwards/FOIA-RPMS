@@ -1,5 +1,5 @@
 DGEN1 ;ALB/RMO - Patient Enrollment Protocols;16 JUN 1997 01:30 pm
- ;;5.3;Registration;**121,147**;08/13/93
+ ;;5.3;Registration;**121,147,624,1015**;08/13/93;Build 21
  ;
 EP ;Entry point for DGEN ENROLL PATIENT protocol 
  ; Input  -- DFN      Patient IEN
@@ -123,5 +123,16 @@ CHECK ;Entry point for the DGEN CHECK QUERY STATUS protocol
  .W !!,"Query is not pending ..."
  .D PAUSE^VALM1
  .D BLD^DGENL
+ S VALMBCK="R"
+ Q
+ ;
+PEZ ;Entry point for DGENUP PRINT 1010EZ-EZR protocol (DG*5.3*624)
+ N RPTSEL,DGTASK,MTIEN
+ D FULL^VALM1
+ S (RPTSEL,DGTASK,MTIEN)=""
+ S RPTSEL=$$SEL1010^DG1010P("") ;*Select 1010EZ/R form to print
+ D:RPTSEL'="-1"
+ .S MTIEN=$$MTPRMPT^DG1010P(DFN,"") ;select mt to print 
+ .S DGTASK=$$PRT1010^DG1010P(RPTSEL,DFN,MTIEN) ;*Print 1010EZ/R
  S VALMBCK="R"
  Q

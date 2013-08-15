@@ -1,5 +1,5 @@
 BDGM202B ; IHS/ANMC/LJF - M202 PRINT ; [ 01/04/2005  5:03 PM ]
- ;;5.3;PIMS;**1001,1006,1008,1013**;MAY 28, 2004
+ ;;5.3;PIMS;**1001,1006,1008,1013,1015**;MAY 28, 2004;Build 21
  ;IHS/ITSC/WAR 09/27/2004 PATCH 1001 Shift transfers Rt 1 position
  ;IHS/ITSC/LJF 10/25/2004 PATCH 1001 remove blank lines to fit new info
  ;IHS/OIT/LJF  08/24/2006 PATCH 1006 added lines for swing beds & observations
@@ -81,7 +81,7 @@ TOT ; -- totals
  . W $P($T(SRV+S),";;",2)
  . W ?32,$J(DGA(S,1),3),?40,$J(DGA(S,2),3) W:DGA(S,7) " ("_DGA(S,7)_"t)"
  . W ?48,$J(DGA(S,3),3),?55,$J(DGA(S,4),3) W:DGA(S,8) " ("_DGA(S,8)_"t)"
- . W ?64,$J(DGA(S,5),3),?72,$J(DGA(S,6),4),!
+ . W ?64,$J($S(DGA(S,5)<0:0,1:DGA(S,5)),3),?72,$J(DGA(S,6),4),!
  W DGLINE
  Q
  ;
@@ -100,7 +100,7 @@ PART2 ;W !?26,"Part II - Special Information",!,DGLINE
  ;W !!,"Minimum Census, Excluding Newborn..............................."
  W !,"Minimum Census, Excluding Newborn..............................."  ;IHS/ITSC/LJF 10/25/2004 PATCH 1001
  ;W ?64,DGMIN  ;cmi/maw 11/7/2007 orig line
- W ?64,+$G(DGMIN)  ;cmi/maw 11/7/2007 mod because PEAK^BDGM202A sometimes does not get set
+ W ?64,$S(+$G(DGMIN)<0:0,1:DGMIN)  ;cmi/maw 11/7/2007 mod because PEAK^BDGM202A sometimes does not get set
  Q
  ;
  ;IHS/OIT/LJF 08/24/2006 patch 1006 added Swing Beds & Observations to list below

@@ -1,9 +1,8 @@
-ABSPIN1 ; GENERATED FROM 'ABSP SETUP PHARMACY' INPUT TEMPLATE(#2388), FILE 9002313.56;05/21/12
+ABSPIN1 ; GENERATED FROM 'ABSP SETUP PHARMACY' INPUT TEMPLATE(#2388), FILE 9002313.56;11/16/12
  D DE G BEGIN
 DE S DIE="^ABSP(9002313.56,",DIC=DIE,DP=9002313.56,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^ABSP(9002313.56,DA,""))=""
- I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(11)=% S %=$P(%Z,U,3) S:%]"" DE(16)=% S %=$P(%Z,U,4) S:%]"" DE(49)=% S %=$P(%Z,U,6) S:%]"" DE(8)=%
- I $D(^("CAID")) S %Z=^("CAID") S %=$P(%Z,U,1) S:%]"" DE(22)=% S %=$P(%Z,U,2) S:%]"" DE(28)=%
- I $D(^("REP")) S %Z=^("REP") S %=$P(%Z,U,3) S:%]"" DE(38)=% S %=$P(%Z,U,4) S:%]"" DE(40)=%
+ I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(11)=% S %=$P(%Z,U,3) S:%]"" DE(16)=% S %=$P(%Z,U,6) S:%]"" DE(8)=%
+ I $D(^("CAID")) S %Z=^("CAID") S %=$P(%Z,U,1) S:%]"" DE(22)=%
  K %Z Q
  ;
 W W !?DL+DL-2,DLB_": "
@@ -154,9 +153,9 @@ X21 W ?10,"the Medicaid claim.",!
  S DE(DW)="C22^ABSPIN1"
  G RE
 C22 G C22S:$D(DE(22))[0 K DB
- S X=DE(22),DIIX=2_U_DIFLD D AUDIT^DIET
+ D ^ABSPIN12
 C22S S X="" G:DG(DQ)=X C22F1 K DB
- I $D(DE(22))'[0!(^DD(DP,DIFLD,"AUDIT")'="e") S X=DG(DQ),DIIX=3_U_DIFLD D AUDIT^DIET
+ D ^ABSPIN13
 C22F1 Q
 X22 K:$L(X)>12!($L(X)<3) X
  I $D(X),X'?.ANP K X
@@ -177,101 +176,4 @@ X26 W ?10,"used when you don't have a provider's Medicaid number on file",!
 27 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=27 D X27 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
 X27 W ?10,"enter that number here.",!
  Q
-28 D:$D(DG)>9 F^DIE17,DE S DQ=28,DW="CAID;2",DV="Fa",DU="",DLB="DEFAULT CAID PROVIDER #",DIFLD=3001.02
- S DE(DW)="C28^ABSPIN1"
- G RE
-C28 G C28S:$D(DE(28))[0 K DB
- S X=DE(28),DIIX=2_U_DIFLD D AUDIT^DIET
-C28S S X="" G:DG(DQ)=X C28F1 K DB
- I $D(DE(28))'[0!(^DD(DP,DIFLD,"AUDIT")'="e") S X=DG(DQ),DIIX=3_U_DIFLD D AUDIT^DIET
-C28F1 Q
-X28 K:$L(X)>10!($L(X)<1) X
- I $D(X),X'?.ANP K X
- Q
- ;
-29 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=29 D X29 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X29 W !!,"INSURER-ASSIGNED #:  Usually, private insurance claims require the",!
- Q
-30 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=30 D X30 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X30 W ?10,"NCPDP #.  But if any insurers have special numbers assigned to",!
- Q
-31 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=31 D X31 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X31 W ?10,"your pharmacy to be used on their claims, then enter those",!
- Q
-32 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=32 D X32 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X32 W ?10,"insurers and the numbers they assigned to you.",!
- Q
-33 D:$D(DG)>9 F^DIE17,DE S DQ=33,D=0 K DE(1) ;950
- S DIFLD=950,DGO="^ABSPIN12",DC="4^9002313.6P^INSURER-ASSIGNED #^",DV="9002313.6MP9999999.18'a",DW="0;1",DOW="INSURER",DLB=$P($$EZBLD^DIALOG(8042,DOW),":") S:D DC=DC_D
- S DU="AUTNINS("
- G RE:D I $D(DSC(9002313.6))#2,$P(DSC(9002313.6),"I $D(^UTILITY(",1)="" X DSC(9002313.6) S D=$O(^(0)) S:D="" D=-1 G M33
- S D=$S($D(^ABSP(9002313.56,DA,"INSURER-ASSIGNED #",0)):$P(^(0),U,3,4),$O(^(0))'="":$O(^(0)),1:-1)
-M33 I D>0 S DC=DC_D I $D(^ABSP(9002313.56,DA,"INSURER-ASSIGNED #",+D,0)) S DE(33)=$P(^(0),U,1)
- G RE
-R33 D DE
- S D=$S($D(^ABSP(9002313.56,DA,"INSURER-ASSIGNED #",0)):$P(^(0),U,3,4),1:1) G 33+1
- ;
-34 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=34 D X34 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X34 W !!,"Auto-Print Pharmacy Expense Report for:",!
- Q
-35 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=35 D X35 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X35 W ?10,"""1"" All Patients.",!
- Q
-36 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=36 D X36 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X36 W ?10,"""0"" No Patients. (Do not print)",!
- Q
-37 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=37 D X37 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X37 W ?10,"""NB"" Non-Beneficiary Patients only.",!
- Q
-38 S DW="REP;3",DV="Sa",DU="",DLB="AUTOPRINT PHARMACY EXPENSE RPT",DIFLD=115
- S DE(DW)="C38^ABSPIN1"
- S DU="1:All Patients;0:No Patients;NB:Only Non-Beneficiary Patients;"
- G RE
-C38 G C38S:$D(DE(38))[0 K DB
- S X=DE(38),DIIX=2_U_DIFLD D AUDIT^DIET
-C38S S X="" G:DG(DQ)=X C38F1 K DB
- I $D(DE(38))'[0!(^DD(DP,DIFLD,"AUDIT")'="e") S X=DG(DQ),DIIX=3_U_DIFLD D AUDIT^DIET
-C38F1 Q
-X38 Q
-39 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=39 D X39 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X39 W !!,"What Device should the Pharmacy Expense Reports print to? ",!
- Q
-40 D:$D(DG)>9 F^DIE17,DE S DQ=40,DW="REP;4",DV="P3.5'a",DU="",DLB="DEFAULT DEVICE",DIFLD=115.01
- S DE(DW)="C40^ABSPIN1"
- S DU="%ZIS(1,"
- G RE
-C40 G C40S:$D(DE(40))[0 K DB
- S X=DE(40),DIIX=2_U_DIFLD D AUDIT^DIET
-C40S S X="" G:DG(DQ)=X C40F1 K DB
- I $D(DE(40))'[0!(^DD(DP,DIFLD,"AUDIT")'="e") S X=DG(DQ),DIIX=3_U_DIFLD D AUDIT^DIET
-C40F1 Q
-X40 Q
-41 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=41 D X41 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X41 I '$$ILCAR^ABSPOSS1 S Y="@999"
- Q
-42 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=42 D X42 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X42 W !!,"These fields are used for printing pharmacy claims for non-electronic",!
- Q
-43 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=43 D X43 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X43 W "insurers.  If you omit this data, the system will use the general",!
- Q
-44 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=44 D X44 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X44 W "billing system setup information.",!
- Q
-45 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=45 D X45 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X45 W !!,"The AR TYPE is required.  When charges from this pharmacy",!
- Q
-46 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=46 D X46 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X46 W "are posted to Accounts Receivable, this is the AR TYPE assigned",!
- Q
-47 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=47 D X47 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X47 W "to those accounts.  It might default if you have an RX type",!
- Q
-48 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=48 D X48 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X48 W "but you should explicitly assign an A/R type here.",!
- Q
-49 D:$D(DG)>9 F^DIE17,DE S DQ=49,DW="0;4",DV="P9001626'",DU="",DLB="AR TYPE",DIFLD=.04
- S DU="ABSBTYP("
- G RE
-X49 Q
-50 D:$D(DG)>9 F^DIE17 G ^ABSPIN13
+28 D:$D(DG)>9 F^DIE17 G ^ABSPIN14

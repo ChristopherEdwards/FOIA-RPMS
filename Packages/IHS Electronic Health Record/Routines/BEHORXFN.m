@@ -1,5 +1,5 @@
-BEHORXFN ;MSC/IND/DKM/PLS - Supporting calls for EHR ;25-May-2011 10:11;DKM
- ;;1.1;BEH COMPONENTS;**009005,009006,009007**;Sep 18, 2007
+BEHORXFN ;MSC/IND/DKM/PLS - Supporting calls for EHR ;12-Dec-2011 16:27;PLS
+ ;;1.1;BEH COMPONENTS;**009005,009006,009007,009008**;Sep 18, 2007
  ;=================================================================
  ; RPC: BEHORXFN FINISH
  ; Finish a pending script
@@ -286,7 +286,7 @@ PSTATE(PSIFN) ;EP-
  .I PMY D
  ..; if pharmacy and either transmitted or failed to transmit and no print then return E
  ..; else
- ..I $$CKRXACT^APSPFNC6(PSIFN,"X","T")!($$CKRXACT^APSPFNC6(PSIFN,"X","F"))&('PRT) S RES="E"
+ ..I $$CKRXACT^APSPFNC6(PSIFN,"X","T")!($$CKRXACT^APSPFNC6(PSIFN,"X","F"))!($$CKRXACT^APSPFNC6(PSIFN,"X","U"))&('PRT) S RES="E"
  ..E  S RES=$S(PRT:"P",1:"Q")
  .E  D
  ..S RES=$S(PRT:"P",1:"Q")

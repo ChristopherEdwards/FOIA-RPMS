@@ -1,5 +1,5 @@
 SCMCHLRI ;BP/DJB - PCMM HL7 Rejects - Identify & Store Msg ; 2/28/00 12:10pm
- ;;5.3;Scheduling;**210**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,1015**;AUG 13, 1993;Build 21
  ;
 ACK ;Identify an acknowledgment message
  ;

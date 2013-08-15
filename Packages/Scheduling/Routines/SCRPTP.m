@@ -1,5 +1,5 @@
-SCRPTP ;ALB/CMM - List of Team's Patients ; 29 Jun 99  04:11PM [ 11/03/2000  7:23 AM ]
- ;;5.3;Scheduling;**41,48,174,177**;AUG 13, 1993
+SCRPTP ;ALB/CMM - List of Team's Patients ; 29 Jun 99  04:11PM
+ ;;5.3;Scheduling;**41,48,174,177,526,520,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/03/2000 changed 132 column message
  ;                        added call to list template
  ;                        changed spacing of patient data lines
@@ -23,7 +23,7 @@ QUE(INST,TEAM,ROLE,PSTAT,SORT,IOP,ZTDTH) ;queue report
  ;TEAM - teams selected (variable and array) 
  ;ROLE - roles selected (variable and array) 
  ;PSTAT - patient status - 1=all or OPT or AC 
- ;SORT - 1=d,t,ptname 2=d,t,last 4 Pt ID 3=d,t,pract,pt name 4=d,t,pract,last 4 Pt ID
+ ;SORT - 1=d,t,ptname 2=d,t,Pt ID 3=d,t,pract,pt name 4=d,t,pract,Pt ID
  N ZTSAVE,II
  F II="INST","TEAM","ROLE","ROLE(","SORT","PSTAT","INST(","TEAM(" S ZTSAVE(II)=""
  W ! D EN^XUTMDEVQ("QENTRY^SCRPTP","Team Patient Listing",.ZTSAVE)
@@ -34,7 +34,7 @@ ENTRY2(INST,TEAM,ROLE,PSTAT,SORT,IOP,ZTDTH) ;Second entry point for GUI to use
  ;TEAM - teams selected (variable and array)
  ;ROLE - roles selected (variable and array)
  ;PSTAT - patient status - 1=all or OPT or AC
- ;SORT - 1=d,t,ptname 2=d,t,last 4 Pt ID 3=d,t,pract,pt name 4=d,t,pract,last 4 Pt ID
+ ;SORT - 1=d,t,ptname 2=d,t,Pt ID 3=d,t,pract,pt name 4=d,t,pract,Pt ID
  ;IOP - print device
  ;ZTDTH - queue time (optional)
  ;
@@ -119,7 +119,41 @@ PST(PTIEN,CLIEN) ;
  .S FOUND=1
  Q FOUND
  ;
-FORMAT(INS,TIEN,PTIEN,PTNAME,PID,PIEN,PNAME,CNAME,LAST,NEXT,ROLN,PCAP) ;Format column information
+FORMAT(INS,TIEN,PTIEN,PTNAME,PID,PIEN,PNAME,CNAME,PINF,ROLN,PCAP) ;Format column information
+ ;INS - Institution ien
+ ;TIEN - team ien
+ ;PTIEN - patient ien
+ ;PTNAME - patient name
+ ;PID - SSN
+ ;PIEN - practitioner ien
+ ;PNAME - practitioner name
+ ;CNAME - clinic name
+ ;LAST - last appointment
+ ;NEXT - next appointment
+ ;ROLN - role name
+ ;PCAP - PC?
+ ;
+ N SEC,TRD
+ I PNAME="" S PNAME="[BAD DATA]"
+ I PTNAME="" S PTNAME="[BAD DATA]"
+ I PID="" S PID="*********"
+ S @STORE@("P",INS,TIEN,PNAME,PIEN)="" ;practitioner
+ S @STORE@("PT",INS,TIEN,PTNAME,PTIEN)="" ;patient
+ S @STORE@("PID",INS,TIEN,PID,PTIEN)=""
+ I (SORT=1)!(SORT=2) S SEC=PTIEN,TRD=PIEN ;sort doesn't include practitioner
+ I (SORT=3)!(SORT=4) S SEC=PIEN,TRD=PTIEN ;sort includes practitioner
+ S @STORE@(INS,TIEN,SEC,TRD)=$E(PTNAME,1,15) ;patient name
+ S $E(@STORE@(INS,TIEN,SEC,TRD),18)=PID ;9 digit pid
+ ;S $E(@STORE@(INS,TIEN,SEC,TRD),32)=$E(PNAME,1,22) ;practitioner name;IHS/ANMC/LJF 11/03/2000
+ S $E(@STORE@(INS,TIEN,SEC,TRD),34)=$E(PNAME,1,22) ;practitioner name;IHS/ANMC/LJF 11/03/2000
+ S $E(@STORE@(INS,TIEN,SEC,TRD),56)=$E($G(ROLN),1,22) ;role name
+ S $E(@STORE@(INS,TIEN,SEC,TRD),80)=$G(PCAP) ;PC?
+ S $E(@STORE@(INS,TIEN,SEC,TRD),85)=$P(PINF,"^",8) ;last appointment
+ ;S $E(@STORE@(INS,TIEN,SEC,TRD),97)=NEXT ;next appointment;IHS/ANMC/LJF 11/03/2000
+ S $E(@STORE@(INS,TIEN,SEC,TRD),105)=NEXT ;next appointment;IHS/ANMC/LJF 11/03/2000
+ ;S $E(@STORE@(INS,TIEN,SEC,TRD),109)=$E(CNAME,1,24) ;clinic name;IHS/ANMC/LJF 11/03/2000
+ Q
+FORMATAC(SCCNT,CNAME,PINF,INS,TIEN,PTIEN,PTNAME,PID,PIEN,PNAME,ROLN,PCAP) ;Format MULTIPLES
  ;INS - Institution ien
  ;TIEN - team ien
  ;PTIEN - patient ien
@@ -143,14 +177,9 @@ FORMAT(INS,TIEN,PTIEN,PTNAME,PID,PIEN,PNAME,CNAME,LAST,NEXT,ROLN,PCAP) ;Format c
  N TRD
  I (SORT=1)!(SORT=2) S SEC=PTIEN,TRD=PIEN ;sort doesn't include practitioner
  I (SORT=3)!(SORT=4) S SEC=PIEN,TRD=PTIEN ;sort includes practitioner
- S @STORE@(INS,TIEN,SEC,TRD)=$E(PTNAME,1,22) ;patient name
- S $E(@STORE@(INS,TIEN,SEC,TRD),25)=PID ;last 4 pid
- ;S $E(@STORE@(INS,TIEN,SEC,TRD),32)=$E(PNAME,1,22) ;practitioner name;IHS/ANMC/LJF 11/03/2000
- S $E(@STORE@(INS,TIEN,SEC,TRD),34)=$E(PNAME,1,22) ;practitioner name;IHS/ANMC/LJF 11/03/2000
- S $E(@STORE@(INS,TIEN,SEC,TRD),56)=$E($G(ROLN),1,22) ;role name
- S $E(@STORE@(INS,TIEN,SEC,TRD),80)=$G(PCAP) ;PC?
- S $E(@STORE@(INS,TIEN,SEC,TRD),85)=LAST ;last appointment
- ;S $E(@STORE@(INS,TIEN,SEC,TRD),97)=NEXT ;next appointment;IHS/ANMC/LJF 11/03/2000
- S $E(@STORE@(INS,TIEN,SEC,TRD),105)=NEXT ;next appointment;IHS/ANMC/LJF 11/03/2000
- ;S $E(@STORE@(INS,TIEN,SEC,TRD),109)=$E(CNAME,1,24) ;clinic name;IHS/ANMC/LJF 11/03/2000
+ I '$D(@STORE@(INS,TIEN,SEC,TRD,SCCNT))  D
+ .S $E(@STORE@(INS,TIEN,SEC,TRD,SCCNT),85)=$P(PINF,"^",8) ;last appointment
+ .S $E(@STORE@(INS,TIEN,SEC,TRD,SCCNT),97)=$P(PINF,"^",9) ;next appointment
+ .S $E(@STORE@(INS,TIEN,SEC,TRD,SCCNT),109)=$E(CNAME,1,24) ;clinic name
+ .Q
  Q

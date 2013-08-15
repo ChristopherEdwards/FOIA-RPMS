@@ -1,5 +1,5 @@
 SCMCHLA1 ;ALB/KCL - PCMM HL7 Trans Log Xref API's ; 15-JAN-2000
- ;;5.3;Scheduling;**210,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,272,1015**;AUG 13, 1993;Build 21
  ;
 ASTSET(SCLOGIEN,STATUS) ;
  ;Description: Sets the "AST" x-ref on the PCMM HL7 Trans Log file.

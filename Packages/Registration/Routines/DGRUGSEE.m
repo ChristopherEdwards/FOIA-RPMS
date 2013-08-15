@@ -1,5 +1,5 @@
 DGRUGSEE ;ALB/GRR - BACKGROUND CHECKER FOR MASTER FILE CHANGES ;10/19/99  11:00
- ;;5.3;Registration;**190,381,427**;Aug 13, 1993
+ ;;5.3;Registration;**190,381,427,1015**;Aug 13, 1993;Build 21
  Q:'$D(^DGRU(46.11,"AC"))
  I $D(^DGRU(46.11,"AC",2)) D  ;Check for Patient SSN changes
  .N DGFIEN S DGFIEN="" F  S DGFIEN=$O(^DGRU(46.11,"AC",2,DGFIEN)) Q:DGFIEN'>0  D  ;Loop through all SSN changes and call A08 builder

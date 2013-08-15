@@ -1,5 +1,5 @@
 SDCO6 ;ALB/RMO - Interview - Check Out;04 MAR 1993 10:00 am
- ;;5.3;Scheduling;**27,66,132**;08/13/93
+ ;;5.3;Scheduling;**27,66,132,1015**;08/13/93;Build 21
  ;
 EN ;Entry point for SDCO INTERVIEW protocol
  ; Input  -- SDOE

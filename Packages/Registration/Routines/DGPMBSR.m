@@ -1,5 +1,5 @@
 DGPMBSR ;ALB/LM - BED STATUS REPORT RECALCULATION; [ 05/30/2002  1:17 PM ]
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  3/30/2001 added call to purge IHS files
  ;                        changed call to calculate census
  ;              3/31/2001 stoppd updating file with auto-queue info

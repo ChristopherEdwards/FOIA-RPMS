@@ -1,5 +1,5 @@
 DG53426N ;ALB/AEG - DG*5.3*426 POST INSTALL CONT. ;2-21-02
- ;;5.3;Registration;**426**;2-21-02
+ ;;5.3;Registration;**426,1015**;2-21-02;Build 21
  ;
 CAT2P ; Process those tests where the patient was in a 'REQUIRED' status but
  ; had a test on file previously that was Category C, patient declined

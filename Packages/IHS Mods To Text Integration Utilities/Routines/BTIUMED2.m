@@ -1,5 +1,5 @@
-BTIUMED2 ; IHS/MSC/MGH - Active/Recent Med Objects Routine ;22-Sep-2011 10:53;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1007,1009**;Jun 20, 1997;Build 22
+BTIUMED2 ; IHS/MSC/MGH - Active/Recent Med Objects Routine ;30-Oct-2012 11:17;MGH
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1007,1009,1010**;Jun 20, 1997;Build 24
  Q
 LIST(DFN,TARGET,CLININC) ; EP
  ;
@@ -51,7 +51,7 @@ LIST(DFN,TARGET,CLININC) ; EP
  .;Group meds by status
  .S STATUS=$P(NODE,U,9)
  .S IDATE=$P(NODE,U,15)
- .I $P($P(NODE,U),";",2)["O" D
+ .I $P(NODE,U)["R;O" D
  ..S RXNO=+($P(NODE,U,1))
  ..S AUTO=$P($G(^PSRX(RXNO,999999921)),U,3)
  .S TYPE=$P($P(NODE,U),";",2)

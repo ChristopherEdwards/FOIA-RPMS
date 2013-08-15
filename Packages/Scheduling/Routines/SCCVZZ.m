@@ -1,5 +1,5 @@
 SCCVZZ ; ACRP DATABASE CONVERSION - Testing utility - ALPHA SITE ONLY;ALB/TMP - 2/1998
- ;;5.3T1;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
  ;  EN^SCCVZZ is called by the estimator as it determines what would
  ;     probably be converted

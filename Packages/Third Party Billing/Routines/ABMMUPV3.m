@@ -1,5 +1,5 @@
 ABMMUPV3 ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**7,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**7,8,9**;NOV 12, 2009
  ;
 PRINT ;EP
  I ABMY("RTYP")="GRP" D GRPPRT^ABMMUPV4 Q  ;abm*2.6*8
@@ -38,7 +38,7 @@ MET ;
  W !,"Patient Volume all calculated Facilities:  ",+$P($G(^XTMP("ABM-PVP",$J,"PRV TOP",ABMPRV)),U)_"%"
  W !!,"Total Patient Encounters All Facilities Total: ",?54,$J(+$G(^XTMP("ABM-PVP",$J,"PRV-DENOM",ABMSDT,ABMPRV)),8)
  W !,"Total Paid Medicaid Encounters All Facilities Total: ",?54,$J(+$G(^XTMP("ABM-PVP",$J,"PRV ENC CNT",ABMSDT,ABMPRV,"MCD")),8)
- W !,"Total Paid Kidscare/Chip Encounters All Facilities Total: ",?54,$J(+$G(^XTMP("ABM-PVP",$J,"PRV ENC CNT",ABMSDT,ABMPRV,"CHIP")),8)
+ W !,"Total Paid Kidscare/Chip Encounters All Facilities Total: ",?54,$J(+$G(^XTMP("ABM-PVP",$J,"PRV ENC CNT",ABMSDT,ABMPRV,"CHIP")),8)  ;abm*2.6*9 NOHEAT
  W !,"Total Paid Other Encounters All Facilities Total: ",?54,$J(+$G(^XTMP("ABM-PVP",$J,"PRV ENC CNT",ABMSDT,ABMPRV,"OTHR")),8)
  W !
  Q
@@ -167,9 +167,26 @@ PATIENT  ;EP
  ....F  S ABMPTF=$O(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF)) Q:ABMPTF=""  D  Q:(IOST["C")&((+$G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
  .....S ABMVDT=0
  .....F  S ABMVDT=$O(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)) Q:'ABMVDT  D  Q:(IOST["C")&((+$G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
- ......S ABMVDFN=$P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)),U)
- ......S ABMPT=$P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)),U,2)
- ......S ABMTRIEN=$P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)),U,3)
+ ......;start old code abm*2.6*9 HEAT56697
+ ......;S ABMVDFN=$P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)),U)
+ ......;S ABMPT=$P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)),U,2)
+ ......;S ABMTRIEN=$P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)),U,3)
+ ......;S IENS=ABMVLOC_","_ABMPT_","
+ ......;S ABMHRN=$$GET1^DIQ(9000001.41,IENS,.02)
+ ......;W !,$E(ABMPTL_", "_ABMPTF,1,16)  ;pt name
+ ......;W ?18,ABMHRN  ;HRN
+ ......;W ?25,$E($$GET1^DIQ(9000010,ABMVDFN,.07,"E"),1,3)  ;Category
+ ......;W ?29,$E($$GET1^DIQ(9000010,ABMVDFN,.08,"E"),1,8)  ;clinic
+ ......;W ?39,$S(ABMITYP="X":"",1:ABMITYP)  ;insurer type
+ ......;W ?42,$S(ABMINS="NO BILL":"NOT BILLED",1:$E(ABMINS,1,10))  ;insurer
+ ......;W ?53,$$CDT^ABMDUTL(ABMVDT)  ;visit date
+ ......;W ?70,$S(+ABMTRIEN:$$SDTO^ABMDUTL(ABMTRIEN),1:"") ;dt paid
+ ......;I $P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)),U,4)'="" W ?79,$P(^(ABMVDT),U,4)
+ ......;I $Y+5>IOSL D HD,PTHDR Q:(IOST["C")&((+$G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ ......;end old code start new code
+ ......S ABMVDFN=$O(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,0))
+ ......S ABMPT=$P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN)),U,2)
+ ......S ABMTRIEN=$P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN)),U,3)
  ......S IENS=ABMVLOC_","_ABMPT_","
  ......S ABMHRN=$$GET1^DIQ(9000001.41,IENS,.02)
  ......W !,$E(ABMPTL_", "_ABMPTF,1,16)  ;pt name
@@ -180,8 +197,9 @@ PATIENT  ;EP
  ......W ?42,$S(ABMINS="NO BILL":"NOT BILLED",1:$E(ABMINS,1,10))  ;insurer
  ......W ?53,$$CDT^ABMDUTL(ABMVDT)  ;visit date
  ......W ?70,$S(+ABMTRIEN:$$SDTO^ABMDUTL(ABMTRIEN),1:"") ;dt paid
- ......I $P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)),U,4)'="" W ?79,$P(^(ABMVDT),U,4)
+ ......I $P($G(^XTMP("ABM-PVP",$J,"PT LST",ABMSDT,ABMPRV,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN)),U,4)'="" W ?79,$P(^(ABMVDFN),U,4)
  ......I $Y+5>IOSL D HD,PTHDR Q:(IOST["C")&((+$G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
+ ......;end new code
  Q
 PTHDR    ;
  I IOST["C",(ABM("PG")=1) D HD  ;start data on 2nd page of report
@@ -222,14 +240,13 @@ HDR      ;EP
  .I ABMY("RTYP")="HOS" D
  ..W !!,"Participation Federal fiscal year: ",ABMY("PYR")
  ..W !,"Qualification Federal fiscal year: ",ABMY("QYR")
- .W !,"Reporting Period Identified: ",$S(ABMSDT:$$SDT^ABMDUTL(ABMSDT)_"thru "_$$SDT^ABMDUTL(ABMEDT),ABMY("SDT"):$$SDT^ABMDUTL(ABMY("SDT"))_" thru "_$$SDT^ABMDUTL(ABMEDT),1:"NONE FOUND")
+ .W !,"Reporting Period Identified: ",$S(ABMSDT:$$SDT^ABMDUTL(ABMSDT)_" thru "_$$SDT^ABMDUTL(ABMEDT),ABMY("SDT"):$$SDT^ABMDUTL(ABMY("SDT"))_" thru "_$$SDT^ABMDUTL(ABMEDT),1:"NONE FOUND")
  .I ABMY("RTYP")'="HOS" D
  ..W !,"Facility(s): ",!
  ..S ABML=0
  ..F  S ABML=$O(ABMF(ABML)) Q:'ABML  W ?10,$$GET1^DIQ(9999999.06,ABML,.01,"E"),$S($D(^ABMMUPRM(1,1,"B",ABML)):" (FQHC/RHC)",1:""),! I $D(^ABMMUPRM(1,1,"B",ABML)) S ABMFQHC=1
- I +$G(ABMY("TVDTS"))'=0 W !!,"Number of top volume dates to display ifminimum thresholds are not met: ",$J(ABMY("TVDTS"),3),!
+ I +$G(ABMY("TVDTS"))'=0 W !!,"Number of top volume dates to display if minimum thresholds are not met: ",$J(ABMY("TVDTS"),3),!
  I ABMY("RFMT")="P",ABM("PG")'=1 W !
- ;I ABMY("RTYP")'="HOS" W !,"Eligible Professional: ",$$GET1^DIQ(200,ABMPRV,".01")_" ("_$$GET1^DIQ(7,$$DOCLASS^ABMDVST2(ABMPRV),.01,"E")_")"  ;abm*2.6*8
  I ABMY("RTYP")="SEL" W !,"Eligible Professional: ",$$GET1^DIQ(200,ABMPRV,".01")_" ("_$$GET1^DIQ(7,$$DOCLASS^ABMDVST2(ABMPRV),.01,"E")_")"  ;abm*2.6*8
  ;start new code abm*2.6*8
  I ABMY("RTYP")="GRP" D

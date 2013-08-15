@@ -1,5 +1,5 @@
 DG53294E ;ALB/RTK DG*5.3*294 Add new Enrollment Statuses ; 10/31/00
- ;;5.3;Registration;**294**;Aug 13, 1993
+ ;;5.3;Registration;**294,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will add the two new ENROLLMENT STATUS (#27.15) 
  ;records required for the Ineligible Project.

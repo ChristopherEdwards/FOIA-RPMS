@@ -1,5 +1,5 @@
 SDAMOW ;ALB/CAW - Waiting Time Report ; 12/1/91
- ;;5.3;Scheduling;**12**;Aug 13, 1993
+ ;;5.3;Scheduling;**12,1015**;Aug 13, 1993;Build 21
  ;
 EN ; main entry point
  N DIC,SDBEG,SDEND,SDSEL,VAUTD,VAUTC,SDSORT,SDAMLIST

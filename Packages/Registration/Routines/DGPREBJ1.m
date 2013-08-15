@@ -1,5 +1,5 @@
-DGPREBJ1 ;ALB/SCK - PreRegistration Background job cont. ; 12/13/96
- ;;5.3;Registration;**109**;Aug 13, 1993
+DGPREBJ1 ;ALB/SCK/EG - PreRegistration Background job cont. ; 1/21/05 7:03am
+ ;;5.3;Registration;**109,568,585,1015**;Aug 13, 1993;Build 21
  Q
  ;
 EN ; Interactive entry (from option)
@@ -10,23 +10,23 @@ EN ; Interactive entry (from option)
  ;    DGPP     - Default date to look for appointments
  ;    I1,X1-2  - Local variables  for counters and date manipulation
  ;
- N DGPTOD,DGPNL,DGPTXT,DGPP,I1,X1,X2
- ;
  I '$D(^XUSEC("DGPRE SUPV",DUZ)) D  G ENQ
  . W !!,"You do not have the DG PREREGISTRATION Key allocated, contact your MAS ADPAC."
  ;
+ N DGPDT,DGPTOD,DGPNL,DGPTXT,DGPP,I1,X,X1,X2,Y
  S X1=$P($$NOW^XLFDT,"."),X2=$P($G(^DG(43,1,"DGPRE")),U,5) S:X2']"" X2=14
  S DGPP=$$FMADD^XLFDT(X1,X2)
  S DIR("B")=$$FMTE^XLFDT(DGPP,1)
  S DIR(0)="DA^::EX",DIR("A")="Enter Appointment date to search: "
  D ^DIR K DIR
  G:$D(DIRUT) ENQ
- S DGPNL=0,DGPTOD=DT
+ S DGPNL=0,DGPTOD=DT,DGPDT1=Y
  D WAIT^DICD
- D ADDNEW(1,Y)
+ D SDAMAPI(1,DGPDT1)
+ D ADDNEW(1,DGPDT1)
  I $D(DGPTXT) W !!,"Results of updating the Call List with new entries",!
  S I1=0 F  S I1=$O(DGPTXT(I1)) Q:'I1  W !,DGPTXT(I1)
-ENQ K DIRUT,DUOUT,DTOUT,DIROUT
+ENQ K DIRUT,DUOUT,DTOUT,DIROUT,DGARRAY,SCDNT,^TMP($J,"SDAMA301")
  Q
  ;
 ADDNEW(DGPREI,DGPDT1) ;  Searches for appointments to add to the Call List
@@ -60,77 +60,62 @@ ADDNEW(DGPREI,DGPDT1) ;  Searches for appointments to add to the Call List
  ;     DGPSN   - Patients last four
  ;     DGPN1-5 - Temporary variables for $O
  ;
- N DGPDT,DGPADD,DGPTOT,DGPTCE,DGPTPE,DGPTNC,DGPTDTH,DGPINP,DGPN1,DGPN2,DGPAPT,DGPPH,DGPDW,DGPEXCL,DGPN3,DGPN5,DGPNDTW,DGPNDY,DGPPRDT,DGPPT,DGPUPD,DGINPCHK
+ ; Check for Appointment Database Availability
+ ;if there is no lower level data from the 101 subscript, then it
+ ;really is a valid error, otherwise, it could be a patient
+ ;or clinic eg 01/20/2005
+ I $D(^TMP($J,"SDAMA301")) I $D(^TMP($J,"SDAMA301",101))=1 D SETTEXT^DGPREBJ("SDAMAPI - Appointment Database is Unavailable."),SETTEXT^DGPREBJ("Unable to update Call List.") Q
  ;
- S DGPNDY=$P($G(^DG(43,1,"DGPRE")),U,5)
- I DGPNDY']"" D  G EXIT
- . W:DGPREI !!,$P($T(MSG1),";;",2)
- . D:'DGPREI SETTEXT^DGPREBJ($P($T(MSG1),";;",2)),SETTEXT^DGPREBJ("  ")
- ;
- I DGPREI S DGPDT=DGPDT1
- E  S DGPDT=$$FMADD^XLFDT(DGPTOD,DGPNDY)
- ;
- S DGPDW=$$DOW^XLFDT(DGPDT,1)
- I $P($G(^DG(43,1,"DGPRE")),U,6)'=1&((DGPDW=6)!(DGPDW=0)) D  G EXIT
- . W:DGPREI !!,$P($T(MSG2),";;",2)
- . D:'DGPREI SETTEXT^DGPREBJ($P($T(MSG2),";;",2)),SETTEXT^DGPREBJ("  ")
- ;
- D SETTEXT^DGPREBJ("Running: Add New Patients to Call List for "_$$FMTE^XLFDT(DGPDT,2)),SETTEXT^DGPREBJ(" ")
- ;
- S (DGPN1,DGPADD,DGPTOT,DGPTCE,DGPTPE,DGPTNC,DGPTDTH,DGPINP,DGPUPD)=0
- ;
- F  S DGPN1=$O(^SC(DGPN1)) Q:'DGPN1  D
- . S DGPN2=DGPDT F  S DGPN2=$O(^SC(DGPN1,"S",DGPN2)) Q:'DGPN2!($P(DGPN2,".")>DGPDT)  D
- .. S DGPN3=0 F  S DGPN3=$O(^SC(DGPN1,"S",DGPN2,1,DGPN3)) Q:'DGPN3  D
- ... S DGPTOT=DGPTOT+1
- ... S DGPPT=$P(^SC(DGPN1,"S",DGPN2,1,DGPN3,0),U)
- ... I $P($G(^DPT(DGPPT,.35)),U)]"" S DGPTDTH=DGPTDTH+1 Q
- ... S DGPEXCL=0
- ... ; ***  Check for clinic exclusions in MAS PARAMETER File
- ... S DGPN5=0 F  S DGPN5=$O(^DG(43,1,"DGPREC",DGPN5)) Q:'DGPN5!(DGPEXCL)  D
- .... S:$P(^DG(43,1,"DGPREC",DGPN5,0),U)=DGPN1 DGPEXCL=1
- ... I DGPEXCL S DGPTCE=DGPTCE+1 Q
- ... S DGPEXCL=0
- ... ; *** Check for eligibility exclusions inthe MAS PARAMETER File 
- ... N DGPAELG
- ... S DGPN5=0 F  S DGPN5=$O(^DG(43,1,"DGPREE",DGPN5)) Q:'DGPN5!(DGPEXCL)  D
- .... S DGPAELG=$S($P($G(^SC(DGPN1,"S",DGPN2,1,DGPN3,0)),U,10)]"":$P($G(^SC(DGPN1,"S",DGPN2,1,DGPN3,0)),U,10),1:$P($G(^DPT(DGPPT,.36)),U))
- .... S:$P(^DG(43,1,"DGPREE",DGPN5,0),U)=DGPAELG DGPEXCL=1
- ... I DGPEXCL S DGPTPE=DGPTPE+1 Q
- ... ; ***  Check for inpatient status
- ... ; I $P($G(^DPT(DGPPT,.1)),U)]""!($P($G(^DPT(DGPPT,.101)),U)]"") S DGPINP=DGPINP+1 Q
- ... K DFN S DFN=DGPPT
- ... D INP^VADPT
- ... I $G(VAIN(1))]"" S DGPINP=DGPINP+1 Q 
- ... ; *** Check for last update in Pre-Registration Audit file
- ... S DGPPRDT=DGPTOD+.9999,DGPPRDT=$O(^DGS(41.41,"ADC",DGPPT,DGPPRDT),-1)
- ... S DGPNDTW=$P($G(^DG(43,1,"DGPRE")),U,2)
- ... I DGPPRDT]""&(DGPNDTW]"") I $$FMDIFF^XLFDT(DGPDT,DGPPRDT,1)<DGPNDTW S DGPTNC=DGPTNC+1 Q 
- ... ; *** Set up entries for adding to Pre-Registration Call List file
- ... K DFN S DFN=DGPPT
- ... D DEM^VADPT
- ... S DGPPH=$P($P($G(^DPT(DGPPT,.13)),U),"~")
- ... I DGPPH=""!(DGPPH["NO") D
- .... S DGPPH=$P($G(^DPT(DGPPT,.33)),U,9)
- .... I DGPPH]"" S DGPPH=$P(DGPPH,"~")_"(E)"
- .... E  S DGPPH="NO PHONE"
- ... ;
- ... I '$D(^DGS(41.42,"B",DFN)) D
- .... K DD,DO
- .... S DIC="^DGS(41.42,",DIC(0)="ML"
- .... S X=DFN,DGPAPT=$P($G(^SC(DGPN1,"S",DGPN2,0)),U)
- .... S DIC("DR")=$P($T(FIELDS),";;",2)
- .... D FILE^DICN
- .... S DGPADD=DGPADD+1
- ... E  D
- .... S DA="",DA=$O(^DGS(41.42,"B",DFN,DA),-1)
- .... Q:$P($G(^DGS(41.42,DA,0)),U,6)="Y"
- .... S DIE="^DGS(41.42,"
- .... S DGPAPT=$P($G(^SC(DGPN1,"S",DGPN2,0)),U)
- .... S DR=$P($T(FIELDS),";;",2)
- .... D ^DIE
- .... S DGPUPD=DGPUPD+1
- ... K DA,DR,DIE,DIC,VADM,VA,DFN,VAERR,VAIN
+ N DGPADD,DGPTOT,DGPTCE,DGPTPE,DGPTNC,DGPTDTH,DGPINP,DGPUPD,DGPN1,DGPAPT
+ N DGPPH,DGPDW,DGPPT,DGPPRDT,DGPNDTW,DGPN5,DGPEXCL,CKAPDT
+ S (DGPADD,DGPTOT,DGPTCE,DGPTPE,DGPTNC,DGPTDTH,DGPINP,DGPUPD)=0
+ S DGPN1=0 F  S DGPN1=$O(^TMP($J,"SDAMA301",DGPN1)) Q:'DGPN1  D
+ .S DGPPT=0 F  S DGPPT=$O(^TMP($J,"SDAMA301",DGPN1,DGPPT)) Q:'DGPPT  D
+ ..S CKAPDT=+$O(^TMP($J,"SDAMA301",DGPN1,DGPPT,DGPDT1))
+ ..Q:('CKAPDT!(CKAPDT>$$FMADD^XLFDT(DGPDT1,1)))
+ ..S DGPTOT=DGPTOT+1
+ ..I $P($G(^DPT(DGPPT,.35)),U)]"" S DGPTDTH=DGPTDTH+1 Q
+ ..; ***  Check for clinic exclusions in MAS PARAMETER File
+ ..S (DGPN5,DGPEXCL)=0
+ ..F  S DGPN5=$O(^DG(43,1,"DGPREC",DGPN5)) Q:'DGPN5!(DGPEXCL)  D
+ ...S:$P(^DG(43,1,"DGPREC",DGPN5,0),U)=DGPN1 DGPEXCL=1
+ ..I DGPEXCL S DGPTCE=DGPTCE+1 Q
+ ..; *** Check for eligibility exclusions inthe MAS PARAMETER File
+ ..N DGPAELG S (DGPN5,DGPEXCL)=0
+ ..F  S DGPN5=$O(^DG(43,1,"DGPREE",DGPN5)) Q:'DGPN5!(DGPEXCL)  D
+ ...S DGPAELG=$P($G(^DPT(DGPPT,.36)),U)
+ ...S:$P(^DG(43,1,"DGPREE",DGPN5,0),U)=DGPAELG DGPEXCL=1
+ ..I DGPEXCL S DGPTPE=DGPTPE+1 Q
+ ..; ***  Check for inpatient status
+ ..K DFN S DFN=DGPPT D INP^VADPT
+ ..I $G(VAIN(1))]"" S DGPINP=DGPINP+1 Q
+ ..; *** Check for last update in Pre-Registration Audit file
+ ..S DGPPRDT=DGPTOD+.9999,DGPPRDT=$O(^DGS(41.41,"ADC",DGPPT,DGPPRDT),-1)
+ ..S DGPNDTW=$P($G(^DG(43,1,"DGPRE")),U,2)
+ ..I DGPPRDT]""&(DGPNDTW]"") I $$FMDIFF^XLFDT(DGPDT,DGPPRDT,1)<DGPNDTW S DGPTNC=DGPTNC+1 Q 
+ ..; *** Set up entries for adding to Pre-Registration Call List file
+ ..K DFN S DFN=DGPPT D DEM^VADPT
+ ..S DGPPH=$P($P($G(^DPT(DGPPT,.13)),U),"~")
+ ..I DGPPH=""!(DGPPH["NO") D
+ ...S DGPPH=$P($G(^DPT(DGPPT,.33)),U,9)
+ ...I DGPPH]"" S DGPPH=$P(DGPPH,"~")_"(E)"
+ ... E  S DGPPH="NO PHONE"
+ ..;
+ ..I '$D(^DGS(41.42,"B",DFN)) D
+ ...K DD,DO S DIC="^DGS(41.42,",DIC(0)="ML"
+ ...S X=DFN,DGPAPT=$O(^TMP($J,"SDAMA301",DGPN1,X,DGPDT1))
+ ...S DIC("DR")=$P($T(FIELDS),";;",2)
+ ...D FILE^DICN
+ ...S DGPADD=DGPADD+1
+ ..E  D
+ ...S DA="",DA=$O(^DGS(41.42,"B",DFN,DA),-1)
+ ...Q:$P($G(^DGS(41.42,DA,0)),U,6)="Y"
+ ...S DIE="^DGS(41.42,"
+ ...S DGPAPT=$O(^TMP($J,"SDAMA301",DGPN1,DGPPT,DGPDT1))
+ ...S DR=$P($T(FIELDS),";;",2)
+ ...D ^DIE
+ ...S DGPUPD=DGPUPD+1
+ ..K DA,DR,DIE,DIC,VADM,VA,DFN,VAERR,VAIN
  ;
  D SETTEXT^DGPREBJ("      Total Entries Scanned: "_DGPTOT)
  D SETTEXT^DGPREBJ("  Called within Time Window: "_DGPTNC)
@@ -143,6 +128,30 @@ ADDNEW(DGPREI,DGPDT1) ;  Searches for appointments to add to the Call List
  D SETTEXT^DGPREBJ("Total Entries Updated with New Appt.: "_DGPUPD)
  D SETTEXT^DGPREBJ(" ")
 EXIT ;
+ Q
+SDAMAPI(DGPREI,DGPDT1) ;
+ ; Input: DGPDT1 - Date to look for appointments
+ ;
+ N DGPNDY S DGPNDY=$P($G(^DG(43,1,"DGPRE")),U,5)
+ I DGPNDY']"" D  G EXIT
+ . W:DGPREI !!,$P($T(MSG1),";;",2)
+ . D:'DGPREI SETTEXT^DGPREBJ($P($T(MSG1),";;",2)),SETTEXT^DGPREBJ("  ")
+ ;
+ I DGPREI S DGPDT=DGPDT1
+ E  S DGPDT=$$FMADD^XLFDT(DT,DGPNDY)
+ ;eg 01/18/2005 if coming from night job tax ('DGPREI)
+ ;and end date (DGPDT) is on a weekend, and the parameter
+ ;says to not run on weekend, it will never go find appointments
+ S DGPDW=$S(DGPREI:$$DOW^XLFDT(DGPDT),1:$$DOW^XLFDT(DT))
+ I $P($G(^DG(43,1,"DGPRE")),U,6)'=1&((DGPDW=6)!(DGPDW=0)) D  G EXIT
+ . W:DGPREI !!,$P($T(MSG2),";;",2)
+ . D:'DGPREI SETTEXT^DGPREBJ($P($T(MSG2),";;",2)),SETTEXT^DGPREBJ("  ")
+ D SETTEXT^DGPREBJ("Running: Add New Patients to Call List for "_$$FMTE^XLFDT(DGPDT,2)),SETTEXT^DGPREBJ(" ")
+ ;
+ N DGARRAY,SDCNT
+ S:DGPREI DGARRAY(1)=DGPDT1_";"_DGPDT1
+ S:'DGPREI DGARRAY(1)=DT_";"_DGPDT
+ S DGARRAY("FLDS")=3,SDCNT=$$SDAPI^SDAMA301(.DGARRAY)
  Q
  ;
 FIELDS ;;.1///^S X=$P($G(^SC(DGPN1,0)),U,15);1///^S X=$E(VADM(1))_VA("BID");2///^S X=DGPPH;3///^S X=$G(DGPPRDT);5////^S X=DGPN1;6///^S X=DGPAPT;7///^S X=$P(^SC(DGPN1,0),U,8)

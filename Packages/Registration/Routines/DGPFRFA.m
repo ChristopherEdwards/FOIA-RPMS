@@ -1,5 +1,5 @@
-DGPFRFA ;ALB/RBS - PRF FLAG ASSIGNMENT REPORT ; 5/20/03 3:04pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFRFA ;ALB/RBS - PRF FLAG ASSIGNMENT REPORT ; 7/26/05 3:41pm
+ ;;5.3;Registration;**425,555,554,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will be used for selecting sort parameters to produce
  ; the FLAG ASSIGNMENT REPORT for Patient Record Flags.
@@ -25,8 +25,14 @@ EN ;Entry point
  ; Output: Report generated using user selected parameters
  ;
  N DGASK,DGRSLT,DGDIRA,DGDIRB,DGDIRO,DGDIRH
- N DGSORT,DGCAT,DGFIL,DGSEL,DGFIRST,DGBEG,DGEND
+ N DGSORT,DGCAT,DGFIL,DGSEL,DGFIRST
  N ZTSAVE,DGQ
+ ;
+ ;check for database
+ S DGFIRST=$P(+$O(^DGPF(26.14,"D","")),".")    ;first assignment date
+ I 'DGFIRST D  Q
+ . W !?2,">>> No Patient Record Flag Assignments have been found.",*7
+ . I $$ANSWER^DGPFUT("Enter RETURN to continue","","E")  ;pause
  ;
  ;-- prompt for selection of a flag category
  S DGDIRA="Select Flag Category"
@@ -74,33 +80,37 @@ EN ;Entry point
  Q:(DGASK=-1)
  ;
  ;-- prompt for beginning date
- S DGFIRST=$P(+$O(^DGPF(26.14,"D","")),".")    ;first assignment date
- I 'DGFIRST D  Q
- . W !?2,">>> No Patient Record Flag Assignments have been found.",*7
- . I $$ANSWER^DGPFUT("Enter RETURN to continue","","E")  ;pause
- ;
  S DGDIRA="Select Beginning Date"
  S DGDIRB=""
- S DGDIRH="Enter the earliest Assignment Date to include in the report"
- S DGDIRO="D^::EX"
+ S DGDIRH="^D HELP^DGPFRFA(1)"
+ S DGDIRO="D^"_DGFIRST_":DT:EX"
  S DGASK=$$ANSWER^DGPFUT(DGDIRA,DGDIRB,DGDIRO,DGDIRH)
  Q:(DGASK=-1)
- S (DGSORT("DGBEG"),DGBEG)=DGASK
+ S DGSORT("DGBEG")=DGASK
  ;
  ;-- prompt for ending date
  S DGDIRA="Select Ending Date"
  S DGDIRB=""
- S DGDIRH="Enter the lastest Assignment Date to include in the report"
- S DGDIRO="D^::EX"
+ S DGDIRH="^D HELP^DGPFRFA(2)"
+ S DGDIRO="D^"_DGSORT("DGBEG")_":DT:EX"
  S DGASK=$$ANSWER^DGPFUT(DGDIRA,DGDIRB,DGDIRO,DGDIRH)
  Q:(DGASK=-1)
  S DGSORT("DGEND")=DGASK
  ;
  K DGCAT,DGFIL,DGSEL,DGDIRA,DGDIRB,DGDIRO,DGDIRH
- K DGASK,DGRSLT,DGFIRST,DGBEG
+ K DGASK,DGRSLT,DGFIRST
  ;
  ;-- prompt for device
- S ZTSAVE("DGSORT")=""
+ S ZTSAVE("DGSORT(")=""
  D EN^XUTMDEVQ("START^DGPFRFA1","Patient Record Flag Assignment Report",.ZTSAVE)
  D HOME^%ZIS
+ Q
+ ;
+HELP(DGSEL) ;provide extended DIR("?") help text.
+ ;
+ ;  Input: DGSEL - prompt var for help text word selection
+ ; Output: none
+ ;
+ W !,"  Enter the "_$S(DGSEL=1:"earliest",1:"latest")_" Assignment Date to include in the report."
+ W !,"  Please enter a date from the specified date range displayed."
  Q

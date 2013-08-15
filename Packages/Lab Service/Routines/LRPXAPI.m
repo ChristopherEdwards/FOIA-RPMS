@@ -1,6 +1,8 @@
 LRPXAPI ;VA/SLC/STAFF - Lab Extract APIs ;2/26/04  13:34
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 295
+ ;
  ;
  ; lab extract API routines
  ; dbia 4245
@@ -38,8 +40,11 @@ TESTS(TESTS,DFN,TYPE,MAX,NEXT,COND,DATE1,DATE2) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  I $G(TESTS)?1U1UN1.14UNP,'$G(MAX) S MAX=1000000000 ; default for ^TMP is all, else 100 tests
  E  S MAX=+$G(MAX,100)
  S TYPE=$G(TYPE,"C") ; default is CH data
@@ -53,8 +58,11 @@ RESULTS(VALUES,DFN,ITEM,MAX,NEXT,COND,DATE1,DATE2) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N TYPE
  I $G(VALUES)?1U1UN1.14UNP,'$G(MAX) S MAX=1000000000 ; default for ^TMP is all, else 100 results
  E  S MAX=+$G(MAX,100)
@@ -75,8 +83,11 @@ PATIENTS(PATS,ITEM,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N TYPE
  I $G(PATS)?1U1UN1.14UNP,'$G(MAX) S MAX=1000000000 ; default for ^TMP is all, else 100 patients
  E  S MAX=+$G(MAX,100)
@@ -97,8 +108,11 @@ DATES(DATES,DFN,TYPE,MAX,NEXT,DATE1,DATE2) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  I $G(DATES)?1U1UN1.14UNP,'$G(MAX) S MAX=1000000000 ; default for ^TMP is all, else 100 date/times
  E  S MAX=+$G(MAX,100)
  S TYPE=$G(TYPE,"C") ; default is CH data
@@ -111,8 +125,11 @@ VALUE(RESULT,DFN,DATE,TEST,COND,ERR) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns result node as RESULT; dfn, date, test required
  D VALUE^LRPXAPI2(.RESULT,+$G(DFN),+$G(DATE),+$G(TEST),$G(COND),.ERR)
  Q
@@ -121,8 +138,11 @@ LRVALUE(RESULT,LRDFN,LRIDT,LRDN,COND,ERR) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*130
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns result node as RESULT; lrdfn, lridt, lrdn required
  D LRVALUE^LRPXAPI2(.RESULT,+$G(LRDFN),+$G(LRIDT),+$G(LRDN),$G(COND),.ERR)
  Q
@@ -131,8 +151,11 @@ LRPXRM(RESULT,NODE,ITEM,TYPES) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns lab data using ^PXRMINDX indexes; node, item required
  ; types of data: V value, S specimen, C comments, or combinations
  D LRPXRM^LRPXAPI2(.RESULT,$G(NODE),$G(ITEM),$G(TYPES,"VS"))
@@ -142,8 +165,11 @@ SPEC(DATA,DFN,DATE,STYPE,ERR) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns specimen node, comments, data nodes
  ; returned in array DATA; dfn, date required
  D SPEC^LRPXAPI2(.DATA,+$G(DFN),+$G(DATE),$G(STYPE),.ERR)
@@ -153,8 +179,11 @@ LRSPEC(DATA,LRDFN,LRIDT,STYPE,ERR) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns specimen node, comments, data nodes
  ; returned in array DATA; lrdfn, lridt required
  D LRSPEC^LRPXAPI2(.DATA,+$G(LRDFN),+$G(LRIDT),$G(STYPE),.ERR)
@@ -164,56 +193,77 @@ VERIFIED(LRDFN,LRIDT) ; API $$(lrdfn,lridt) -> 1 if verified, else 0
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used. Return zero.
- Q 0
+ ; Q 0
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  Q $$VERIFIED^LRPXAPI2(+$G(LRDFN),+$G(LRIDT))
  ;
 MIVERIFY(LRDFN,LRIDT,SUB) ; $$(lrdfn,lridt,sub) -> 1 if verified, else 0
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used. Return zero.
- Q 0
+ ; Q 0
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  Q $$MIVERIFY^LRPXAPI2(+$G(LRDFN),+$G(LRIDT),$G(SUB,"MI"))
  ;
 APVERIFY(LRDFN,LRIDT,SUB) ; $$(lrdfn,lridt,sub) -> 1 if verified, else 0
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used. Return zero.
- Q 0
+ ; Q 0
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  Q $$APVERIFY^LRPXAPI2(+$G(LRDFN),+$G(LRIDT),$G(SUB))
  ;
 VAL(LRDFN,LRIDT,LRDN) ; API $$(lrdfn,lridt,lrdn) -> result node
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used. Return zero.
- Q 0
+ ; Q 0
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  Q $$VAL^LRPXAPI2(+$G(LRDFN),+$G(LRIDT),+$G(LRDN))
  ;
 REFVAL(NODE) ; API $$(reference node) -> data node
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used. Return zero.
- Q 0
+ ; Q 0
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  Q $$REFVAL^LRPXAPI2($G(NODE))
  ;
 COMMENT(LRDFN,LRIDT) ; API $$(lrdfn,lridt) --> 1 if comment exists, else 0
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used. Return zero.
- Q 0
+ ; Q 0
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  Q $$COMMENT^LRPXAPI2(+$G(LRDFN),+$G(LRIDT))
  ;
 ACCY(TESTS,ACC,BDN) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns TESTS from yearly accession, ACC, BDN required
  ; BDN is beginning date number
  D ACCY^LRPXAPI2(.TESTS,ACC,BDN)
@@ -223,13 +273,19 @@ CHNODE(ARRAY,NODE) ; API
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns ARRAY of values on CH result node
  D CHNODE^LRPXAPI2(.ARRAY,$G(NODE))
  Q
  ;
 HASITEM(DFN,ITEM) ; API $$(dfn,item) -> 1 if patient has item, else 0
+ ;
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0              ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  I $D(^PXRMINDX(63,"PI",+$G(DFN),$G(ITEM,0))) Q 1
  Q 0
  ;

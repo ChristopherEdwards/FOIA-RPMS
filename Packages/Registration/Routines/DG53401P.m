@@ -1,5 +1,5 @@
 DG53401P ;ALB/AEG - CLEAN UP REQUIRED TESTS THAT SHOULD BE NLR
- ;;5.3;Registration;**401**;23-AUG-01
+ ;;5.3;Registration;**401,1015**;23-AUG-01;Build 21
  ;
  ; This routine is a post-installation for DG*5.3*401 and will look
  ; at those patients that have a date of death and a primary means

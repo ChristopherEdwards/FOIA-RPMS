@@ -1,5 +1,5 @@
 SCRPW72 ;BP-CIOFO/KEITH,ESW - Clinic appointment availability extract (cont.) ; 5/23/03 12:16pm
- ;;5.3;Scheduling;**192,206,223,241,249,291**;AUG 13, 1993
+ ;;5.3;Scheduling;**192,206,223,241,249,291,1015**;AUG 13, 1993;Build 21
  ;
 START ;Gather data for printed report
  N SDCP,SC,SCNA,SDI,SDOUT,SDPAST,SDXM,MAX,X1,X2,X,SDIOM,SDFOOT

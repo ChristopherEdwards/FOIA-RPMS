@@ -1,5 +1,5 @@
 DGA4005 ;ALB/MRL - AMIS 401-420 REPORT GENERATION ;01 JAN 1988@2300
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 EN S DGPR=0 D SET
  F I=401:1:420 I $$OKDATE(I) F I1=0:0 S I1=$O(^DG(391.1,I,"D",I1)) Q:'I1  S DGDD(I1)="" S X=$S($D(^DG(391.1,I,"D",I1,"MY",DGA,"A1")):^("A1"),1:""),^UTILITY($J,"DGSEG",I1,I)=X S:'DGEN DGEN=$S($D(^DG(391.1,I,"D",I1,"MY",DGA,0)):^(0),1:"")
 EN1 F I=401:1:420 I $$OKDATE(I) F I1=0:0 S I1=$O(DGDD(I1)) Q:'I1  I '$D(^UTILITY($J,"DGSEG",I1,I)) S ^(I)=""

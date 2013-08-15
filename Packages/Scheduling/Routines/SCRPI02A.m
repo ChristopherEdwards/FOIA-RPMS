@@ -1,5 +1,5 @@
 SCRPI02A ; ALB/SCK - Print IEMM Statistical Summary Report ; 6/26/97
- ;;5.3;Scheduling;**66,143**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,143,1015**;AUG 13, 1993;Build 21
  ;
 PRINT ;  print Summary Report
  ;  Variables

@@ -1,5 +1,5 @@
 DGRUPAR ; ALB/SCK - RAI/MDS PARAMETER ENTRY/EDIT ; 13 OCT 99
- ;;5.3;Registration;**190**;Aug 13, 1993
+ ;;5.3;Registration;**190,1015**;Aug 13, 1993;Build 21
  ;
 WR ;
  N DGHEAD,DGMULT,DGX

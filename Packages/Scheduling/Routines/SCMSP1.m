@@ -1,5 +1,5 @@
 SCMSP1 ;ALB/JRP - POST INIT ROUTINE;07-JUN-1996
- ;;5.3;Scheduling;**44**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,1015**;AUG 13, 1993;Build 21
  ;
 FIXEVNT ;Enable Ambulatory Care event handler
  ;

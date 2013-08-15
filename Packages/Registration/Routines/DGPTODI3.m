@@ -1,5 +1,5 @@
 DGPTODI3 ;ALB/MTC - DRG INDEX(CONT),PRINT FROM ^UTILITY GLOBAL ; 8/29/01 11:08am
- ;;5.3;Registration;**51,158,164,375**;Aug 13, 1993
+ ;;5.3;Registration;**51,158,164,375,606,744,1015**;Aug 13, 1993;Build 21
  S (DGPAG,DGAT,DGBT,DGAAL,DGTP,DG1DAY,DGTDRG,DGTP(1),DGUNIQ,SSN(1))=0,$P(DGLN,"=",132)="",$P(DGLN2,"-",132)=""
  F DRG=0:0 D:DRG>0 TOT S DRG=$O(^UTILITY($J,"DGDRGI",DRG)) Q:DRG'>0  D HDR S J1=0 F J=0:0 S J1=$O(^UTILITY($J,"DGDRGI",DRG,J1)) Q:J1']""  S:DGP DGPT=J1 S:'DGP DGTD=J1 D L2
  W @IOF,!?61,"Summary Page",!!!,"Total combined hits for Medical Center of all DRGs: ",DGTP(1),!,"The following list gives the total hits by DRG:"
@@ -22,9 +22,15 @@ TOT W !,DGLN,!?3,"Total: ",DGTP,!,?3,"Total Unique Patients: ",DGUNIQ S %=$S('$D
  W !!,"FLAGS:  H - Total Above High Trim: ",DGAT,"   * - Total 1 Day LOS: ",DG1DAY,"   A - Total Above ALOS: ",DGAAL
  S DRG(DRG)=DGTP,DGTP(1)=DGTP(1)+DGTP,(DGTP,DGBT,DGAT,DG1DAY,DGAAL,DGUNIQ,SSN(1))=0 W !!?64,"-",DGPAG,"-" Q
 DT W $TR($$FMTE^XLFDT(Y,"5DF")," ","0") S Y="" Q
-HDR W @IOF,!,"DRG INDEX FOR DRG ",DRG,?30,"Weight: " S %=$S($D(^ICD(DRG,"FY",DGFY2K,0)):(^(0)),1:"") W $P(%,"^",2),?46,"Low Trim: " S DGLO=$P(%,"^",3),DGHI=$P(%,"^",4),DGAL=$P(%,"^",9) W DGLO,?60,"High Trim: ",DGHI,?76,"Avg LOS: ",DGAL
+HDR W @IOF,!,"DRG INDEX FOR DRG ",DRG,?30,"Weight: "
+HD1 S %=$S($D(^ICD(DRG,"FY",DGFY2K,0)):(^(0)),1:"")
+ I %="",DGFY2K="3070000" N DGFY2KSV,DGFY2KYR S DGFY2KSV=DGFY2K,DGFY2KYR=$E(DGFY2K,1,3)-1,DGFY2K=DGFY2KYR_"0000" G HD1
+ I $G(DGFY2KSV) S DGFY2K=DGFY2KSV
+ W $P(%,"^",2),?46,"Low Trim: " S DGLO=$P(%,"^",3),DGHI=$P(%,"^",4),DGAL=$P(%,"^",9) W DGLO,?60,"High Trim: ",DGHI,?76,"Avg LOS: ",DGAL
  W ?105,"PRINTED: " S Y=DT X ^DD("DD") W Y,!?3,"For ",$S(DGD:"Discharge Dates from: ",1:"Active Admissions") I DGD S Y=DGSD+.1 X ^DD("DD") W $P(Y,"@")," to " S Y=DGED X ^DD("DD") W $P(Y,"@") I DGB W " including TRANSFER DRGs"
- W !!,?5,"Description:" F %=0:0 S %=$O(^ICD(DRG,1,%)) Q:%'>0  W ?18,^ICD(DRG,1,%,0),!
+ ;W !!,?5,"Description:" F %=0:0 S %=$O(^ICD(DRG,1,%)) Q:%'>0  W ?18,^ICD(DRG,1,%,0),!
+ N DXD,DGDX S DXD=$$DRGD^ICDGTDRG(DRG,"DGDX",,DT)
+ W !!,?5,"Description:" F %=0:0 S %=$O(DGDX(%)) Q:'+%  Q:DGDX(%)=" "  W ?18,DGDX(%),!
  W !!,?44,"ADMISSION",?55,"DISCHARGE",?66,"TRANSFER",?97,"PTF",?103,"TRANSFERRING PROVIDER/"
  W !,"PATIENT NAME",?33,"SSN",?44,"DATE",?55,"DATE",?66,"DATE",?77,"LOS",?91,"FLGS",?97,"STAT",?103,"LOSING SPECIALTY"
  W !,DGLN S DGPAG=DGPAG+1 S:'$D(^UTILITY($J,"DGTC",DRG)) ^UTILITY($J,"DGTC",DRG,DGPAG)="" Q

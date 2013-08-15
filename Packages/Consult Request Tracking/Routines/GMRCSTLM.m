@@ -1,7 +1,8 @@
-GMRCSTLM ;SLC/DCM,dee,MA - List Manager Format Routine - Get Active Consults by service - pending,active,scheduled,incomplete,etc. ;11/21/02  05:29
- ;;3.0;CONSULT/REQUEST TRACKING;**1,7,21,23,22,29**;DEC 27, 1997
+GMRCSTLM ;SLC/DCM,dee,MA - List Manager Format Routine - Get Active Consults by service - pending,active,scheduled,incomplete,etc. ;23-Sep-2011 09:28;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,7,21,23,22,29,1002**;DEC 27, 1997;Build 1
  ; Patch #21 added a initialization KILL for ^TMP("GMRCTOT",$J)
  ; Patch #23 remove the default prompt "ALL SERVICES"
+ ; Modified - IHS/MSC/PLS - 09/20/2011 - Line EN+18
  Q
  ;
 EN ;Ask for new service and date range
@@ -16,23 +17,25 @@ EN ;Ask for new service and date range
  I Y<1 S VALMBCK="Q" Q
  S GMRCDG=+Y,GMRCSVNM=$P(Y,U,2)
  D SERV1^GMRCASV
- I '$O(^TMP("GMRCSLIST",$J,0)) S VALMBCK="Q" Q 
+ I '$O(^TMP("GMRCSLIST",$J,0)) S VALMBCK="Q" Q
  ;
  ;Ask for date range
  D ^GMRCSPD
  I $D(GMRCQUT) S VALMBCK="Q" G EXIT
  D LISTDATE^GMRCSTU1(GMRCDT1,GMRCDT2,.GMRCEDT1,.GMRCEDT2)
+ ;Patch 1002 Check for test patients
+ S GMRTST=$$TESTPT^GMRCPC1()
  Q
  ;
-ENOR(RETURN,GMRCSVC,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCCTRL,GMRCARRN) ;Entry point for GUI interface.
+ENOR(RETURN,GMRCSVC,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCCTRL,GMRCARRN,GMRTST) ;Entry point for GUI interface.
  ;.RETURN:   This is the root to the returned temp array.
  ;GMRCSVC:  Service for which consults are to be displayed.
  ;GMRCDT1:  Starting date or "ALL"
  ;GMRCDT2:  Ending date if not GMRCDT1="ALL"
  ;GMRCSTAT: The list of status to include separated by commas
- ;GMRCCTRL:   0, null or not define then just the display list is 
+ ;GMRCCTRL:   0, null or not define then just the display list is
  ;                displayed
- ;            1 then the list will be two pieces with the first piece 
+ ;            1 then the list will be two pieces with the first piece
  ;                being the ien of the consult for selection in the gui
  ;                and the second piece being the display text.
  ;           10 then the consults will have a line number on them for
@@ -42,7 +45,7 @@ ENOR(RETURN,GMRCSVC,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCCTRL,GMRCARRN) ;Entry point for
  ;      1, (10 or 20) and 100 can be added together to add there features
  ;GMRCARRN: List Template Array Name
  ;          "CP": pending; "IFC": inter-facility
- ;
+ ;GMRTST: Whether or not to return consults on test patients
  ;This temp array is used internally by the report:
  ;^TMP("GMRCSLIST",$J,n)=ien^name^parient ien^"+" if grouper^status
  ;  status is "" tracking and/or grouper
@@ -171,7 +174,7 @@ GROUPER .;Check if starting a new Grouper
  ..S GROUPER=GROUPER+1
  ..S GROUPER(GROUPER)=GMRCSVC
 STAT .;Loop for one status at a time
- .F LOOP=1:1:$L(GMRCSTAT,",") S STATUS=$P(GMRCSTAT,",",LOOP) D ONESTAT^GMRCSTL2(GMRCARRN)
+ .F LOOP=1:1:$L(GMRCSTAT,",") S STATUS=$P(GMRCSTAT,",",LOOP) D ONESTAT^GMRCSTL2(GMRCARRN,GMRTST)
  .F GRP=GROUPER:-1:1 D
  ..;  pending for this service to all of its groupers
  ..S ^TMP("GMRCTOT",$J,2,GROUPER(GRP),"P")=$G(^TMP("GMRCTOT",$J,2,GROUPER(GRP),"P"))+^TMP("GMRCTOT",$J,1,GMRCSVC,"P")

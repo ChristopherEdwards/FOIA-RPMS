@@ -1,5 +1,5 @@
 APCHAAP1 ; IHS/CMI/LAB - ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
  ;
 EN ;
  W:$D(IOF) @IOF
@@ -132,7 +132,7 @@ REDZONE(P) ;EP - get last recorded red zone instructions
  S D=""
  S S=""
  F  S D=$O(^AUPNVAST("AA",P,D)) Q:D'=+D!(R]"")  D
- .S I=0 F  S I=$O(^AUPNVAST("AA",P,D,I)) Q:I'=+I!(R]"")  D
+ .S I=0 F  S I=$O(^AUPNVAST("AA",P,D,I)) Q:I'=+I  D
  ..S R=$P($G(^AUPNVAST(I,13)),U,1),S=9999999-D
  ..Q
  .Q
@@ -142,7 +142,7 @@ YELZONE(P) ;EP - get last recorded yellow zone instructions
  S R=""  ;instructions
  S D="",S=""
  F  S D=$O(^AUPNVAST("AA",P,D)) Q:D'=+D!(R]"")  D
- .S I=0 F  S I=$O(^AUPNVAST("AA",P,D,I)) Q:I'=+I!(R]"")  D
+ .S I=0 F  S I=$O(^AUPNVAST("AA",P,D,I)) Q:I'=+I  D
  ..S R=$P($G(^AUPNVAST(I,11)),U,1),S=9999999-D
  ..Q
  .Q

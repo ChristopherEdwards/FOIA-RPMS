@@ -1,9 +1,9 @@
-DGPFHLU6 ;ALB/RPM - PRF HL7 ORU~R01 UTILITIES ; 5/21/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFHLU6 ;ALB/RPM - PRF HL7 ORU~R01 UTILITIES ; 8/31/05 1:09pm
+ ;;5.3;Registration;**425,554,1015**;Aug 13, 1993;Build 21
  ;
  Q  ;no direct entry
  ;
-XMIT(DGPFHIEN,HLEID,DGFAC,DGHLROOT,DGHL) ;transmit ORU messages
+XMIT(DGPFHIEN,DGHLEID,DGFAC,DGHLROOT,DGHL) ;transmit ORU messages
  ;This function loops through an array of treating facilities.  For
  ;each treating facility: the HL7 logical link is determined, the ORU
  ;message contained in the DGHLROOT input parameter is transmitted and
@@ -15,7 +15,7 @@ XMIT(DGPFHIEN,HLEID,DGFAC,DGHLROOT,DGHL) ;transmit ORU messages
  ;
  ;  Input:
  ; DGPFHIEN - pointer to PRF ASSIGNMENT HISTORY (#26.14) file
- ;    HLEID - event protocol ID
+ ;  DGHLEID - event protocol ID
  ;    DGFAC - treating facilities array
  ; DGHLROOT - name of array containing formatted ORU message
  ;     DGHL - VistA HL7 environment array
@@ -31,7 +31,7 @@ XMIT(DGPFHIEN,HLEID,DGFAC,DGHLROOT,DGHL) ;transmit ORU messages
  N DGLINST   ;pointer to INSTITUTION (#4) file for local site
  N DGRSLT    ;function value
  N HLL       ;logical links array
- N HLRSLT    ;message IEN on successful transmit
+ N DGHLRSLT    ;message IEN on successful transmit
  ;
  S DGHLS=$NA(^TMP("HLS",$J))
  S DGLINST=$P($$SITE^VASITE(),U,1)
@@ -39,12 +39,15 @@ XMIT(DGPFHIEN,HLEID,DGFAC,DGHLROOT,DGHL) ;transmit ORU messages
  ;
  S DGI=0
  F  S DGI=$O(DGFAC(DGI)) Q:'DGI  D
- . N HLRSLT
+ . N DGHLRSLT
  . N DGLOGERR
  . ;
  . ;convert the station number to INSTITUTION (#4) file IEN
  . S DGINST=+$$IEN^XUAF4($P(DGFAC(DGI),U,1))
  . Q:'DGINST!(DGINST=DGLINST)
+ . ;
+ . ;must be a medical treating facility
+ . Q:'$$TF^XUAF4(DGINST)
  . ;
  . ;get the HL7 LOGICAL LINK associated with the institution
  . S DGHLLNK=$$GETLINK^DGPFHLUT(DGINST)
@@ -58,11 +61,11 @@ XMIT(DGPFHIEN,HLEID,DGFAC,DGHLROOT,DGHL) ;transmit ORU messages
  . S HLL("LINKS",1)="DGPF PRF ORU/R01 SUBSC"_U_DGHLLNK
  . ;
  . ;generate the message
- . D GENERATE^HLMA(HLEID,"GM",1,.HLRSLT,"","")
- . Q:$P(HLRSLT,U,2)]""
+ . D GENERATE^HLMA(DGHLEID,"GM",1,.DGHLRSLT,"","")
+ . Q:$P(DGHLRSLT,U,2)]""
  . ;
  . ;store the message ID and destination site in the HL7 transmission log
- . D STOXMIT^DGPFHLL(DGPFHIEN,$P(HLRSLT,U),DGINST,.DGLOGERR)
+ . D STOXMIT^DGPFHLL(DGPFHIEN,$P(DGHLRSLT,U),DGINST,.DGLOGERR)
  . Q:$D(DGLOGERR)
  . ;
  . ;success

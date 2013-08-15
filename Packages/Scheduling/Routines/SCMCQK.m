@@ -1,18 +1,18 @@
 SCMCQK ;ALB/REW - Single Pt Tm/Pt Tm Pos Assign and Discharge ; 1 Jul 1998
- ;;5.3;Scheduling;**148,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,177,297,1015**;AUG 13, 1993;Build 21
  ;
 EN ; - main call
  W !,"Primary Care Team/PC Assignment/Unassignment",!
  W !,?6,"Prior to using this option, PCMM's Graphical User Interface (GUI)"
  W !,?6,"must be used to:"
- W !,?10,"1) Setup active primary care team(s)"
- W !,?10,"2) Setup active PC Practitioner position(s)"
+ W !,?10,"1) Setup active primary care and non-primary care team(s)"
+ W !,?10,"2) Setup active PC and non-primary care Practitioner position(s)"
  W !,?10,"3) Setup any necessary preceptor/preceptee relationships"
  W !,?10,"4) Assign practitioner to position(s)"
  W !!?6,"A patient can only have one PC team and one"
  W !?6,"PC Position assignment on a given day.  The patient must be"
  W !?6,"assigned to a position's team to be assigned to the position."
- W !!?6,"Note: You must the use the PCMM GUI if the patient was:"
+ W !!?6,"Note: You must use the PCMM GUI if the patient was:"
  W !?10,"o unassigned from PC assignment today or in the future"
  W !?10,"o assigned to a future PC assignment."
  N DFN
@@ -25,6 +25,16 @@ PAT ;process patient
  W !,"Checking PC Team and Position Status...",!
  ;display PC info, check if patient has a current PC team
  D PCMM^SCRPU4(DFN,DT)
+ D DSPL^SCMCQK2
+ N DATA
+ S DATA=$$IU^SCMCTSK1(DFN)
+ I $E(DATA)=1 I $D(^XUSEC("SC PCMM SETUP",+$G(DUZ))) D
+ .W !,"This patient was inactivated from "_$P(DATA,"~",2)_" TEAM"
+ .W !,$P(DATA,"~",4)_" Position"
+ .W !,"Do you wish to reactivate" S %=2 D YN^DICN
+ .I %=1 D FILEIN^SCMCTSK3(.DATA,+$P(DATA,"~",6))
+ W !,"Do you want to make a primary care assignment/unassignment" S %=1 D YN^DICN Q:%<0
+ I %=2 G NPC^SCMCQK2
  ;below functions return status^message^pointer
  S SCTMSTAT=$$YSPTTMPC^SCMCTMU2(DFN,DT)  ;ok to assign new PC team?
  S SCTPSTAT=$$YSPTTPPC^SCMCTPU2(DFN,DT,1)  ;ok to assign new PC prac?

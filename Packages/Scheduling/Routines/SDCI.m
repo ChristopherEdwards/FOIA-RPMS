@@ -1,5 +1,5 @@
 SDCI ;SF/GFT,MAN/GRR - CHECK-IN/UNSCHEDULED APPOINTMENT ; 20 SEP 84  8:20 am
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 PT ;
  N DFN,SDT,SC,SDT,SDDQ,SDD

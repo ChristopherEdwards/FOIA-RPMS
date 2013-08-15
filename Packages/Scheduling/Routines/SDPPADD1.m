@@ -1,5 +1,5 @@
 SDPPADD1 ;ALB/CAW - Patient Profile - Add/Edits ; 10/26/99 1:55pm
- ;;5.3;Scheduling;**2,6,140,132,180**;Aug 13, 1993
+ ;;5.3;Scheduling;**2,6,140,132,180,1015**;Aug 13, 1993;Build 21
  ;
 EN1 ; Set up variables
  N SDPPBEG,SDPPEND,SDPPQ

@@ -1,5 +1,5 @@
 DGGECS ;ALB/RMO/REW - MAS Generic Code Sheet Interface for AMIS ; 13 JUN 89 9:45 am
- ;;5.3;Registration;**50,70,151**;Aug 13, 1993
+ ;;5.3;Registration;**50,70,151,1015**;Aug 13, 1993;Build 21
  ;
  ;Interface includes AMIS Segments 334-341, 345-346 and 401-420
 AMS S DGRD("A")="Select AMIS SEGMENTS: ",DGRD(0)="S",DGRD(1)="334-341^generate code sheets for AMIS 334-341's."

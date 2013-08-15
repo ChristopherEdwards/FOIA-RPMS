@@ -1,5 +1,8 @@
-LA7VIN5A ;VA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VIN5A ;VA/DALOI/JMC - Process Incoming UI Msgs, continued ; Jan 12, 2004
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**1031**;NOV 01, 1997
+ ;
+ ;;VA LA Patche(s): 46,64,67
+ ;
  ; This routine is a continuation of LA7VIN5.
  ; It is performs processing of fields in OBX segments.
  Q
@@ -24,7 +27,7 @@ XFORM ; Transform the result based on fields 12,13,14,16,17 in the Chem Test
  I '$P(LA7XFORM,"^",3) S LA7VAL="" Q
  ;
  ; Only accept "FINAL" type results
- I $P(LA7XFORM,"^",3)=2,"CFU"'[LA7ORS S LA7VAL="" Q
+ I $P(LA7XFORM,"^",3)=2,"CFUX"'[LA7ORS S LA7VAL="" Q
  ;
  ; Accept ordered tests only
  ; If LEDI interface (10) and message indicates a reflex ("G") or add-on
@@ -113,16 +116,27 @@ PRDID(LA7PRDID,LA7SFAC,LA7CS) ; Process/Store Producer's ID
  ;            LA7SFAC = sending facility
  ;              LA7CS = component encoding character
  ;
- N LA74,LA7X,LA7Y
+ N LA74,LA7I,LA7X,LA7Y
  ;
  S LA7X=$P(LA7PRDID,LA7CS,2),LA74=""
  ;
- I $P(LA7PRDID,LA7CS,3)="99VA4" S LA74=$$FIND1^DIC(4,"","OMX",$P(LA7PRDID,LA7CS))
- I 'LA74 S LA74=$$FINDSITE^LA7VHLU2($P(LA7PRDID,LA7CS),1,1)
- I 'LA74 S LA74=$$FINDSITE^LA7VHLU2($P(LA7SFAC,LA7CS),1,1)
+ F LA7I=1,4 D  Q:LA74
+ . I $P(LA7PRDID,LA7CS,LA7I+2)="99VA4" S LA74=$$LKUP^XUAF4($P(LA7PRDID,LA7CS,I))
+ . I 'LA74 S LA74=$$LKUP^XUAF4($P(LA7PRDID,LA7CS,I+1))
+ . I 'LA74 S LA74=$$FINDSITE^LA7VHLU2($P(LA7PRDID,LA7CS),1,1)
+ . I 'LA74 S LA74=$$FINDSITE^LA7VHLU2($P(LA7SFAC,LA7CS),1,1)
  ;
  ; Store producer's id in LAH global with results.
- I LA74 S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",9)=LA74
+ I LA74 S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",9)=LA74 Q
+ ;
+ ; Don't store producer's id as comment.
+ I '$P(LA76241(2),"^",9) Q
+ ; If unable to identify producer in file #4
+ ;  then store as comment if field STORE PRODUCER'S ID (#20) enabled.
+ I LA7X="" Q
+ S LA7Y=$P(LA7RMK(0,+LA76241(0)),"^",2)
+ S LA7X=$S(LA7Y="":"P",1:"p")_"erformed by "_LA7X
+ D RMKSET^LASET(LA7LWL,LA7ISQN,LA7X,LA7Y)
  ;
  Q
  ;
@@ -131,6 +145,9 @@ REFRNG(LA7X) ; Process/Store References Range.
  ; Call with LA7X = reference range to store.
  ;
  N LA7Y,X,Y
+ ;
+ ; Check if site does not want to store reference ranges on POC test.
+ I LA7INTYP>19,LA7INTYP<30,+$P(LA76241(2),"^",10)=0 Q
  ;
  ; Remove leading and trailing quotes from reference range.
  S LA7X=$$TRIM^XLFSTR($G(LA7X),"RL","""")
@@ -170,7 +187,7 @@ ABFLAG(LA7X) ; Process/Store Abnormal Flags.
  ; Converts flag to interpretation based on HL7 Table 0078.
  ; If no match store code instead of interpretation
  ;
- N LA7I,LA7Y,X
+ N I,LA7I,LA7Y,X
  ;
  ; Store abnormal flags in LAH global with results.
  ; Currently only storing high/low and critical flags
@@ -185,6 +202,14 @@ ABFLAG(LA7X) ; Process/Store Abnormal Flags.
  . S X=LA7LWL_"^"_LA7ISQN_"^"_LA76304_"^"_LA76248_"^"_LA76249_"^"_LA7ORS_"^"_LA7TEST_"^"_$S(LA7TEST(0)'="":LA7TEST(0),1:LA7TEST(2,0))_"^"_$$P^LA7VHLU(.LA7SEG,9,LA7FS)
  . S ^TMP("LA7 ABNORMAL RESULTS",$J,LA7I)=X
  ;
+ ; If POC interface and abnormal flag is not handled by VistA above
+ ;  then store as comment.
+ I LA7INTYP>19,LA7INTYP<30,LA7Y="",LA7X'="" D
+ . S X=" L^ H^LL^HH^ <^ >^ N^ A^AA^ U^ D^ B^ W^ S^ R^ I^MS^VS"
+ . S I=$F(X,LA7X)\3
+ . S LA7Y="normalcy status - "_$P($T(ABFLAGS+I^LA7VHLU1),";;",2)
+ . D RMKSET^LASET(LA7LWL,LA7ISQN,LA7Y,$P(LA7RMK(0,+LA76241(0)),"^",2))
+ ;
  Q
  ;
  ;
@@ -197,7 +222,7 @@ EII ; Store equipment instance identifier in LAH global with results.
  . S X=$P(LA7EII,LA7CS,I)
  . I X="" Q
  . S $P(LA7X,"!",I)=$TR(X,"!","~")
- I LA7X]"" S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",11)=LA7X
+ I LA7X'="" S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",11)=LA7X
  Q
  ;
  ;
@@ -236,15 +261,15 @@ ORESULTS ; Process results that accompany order (ORM) messages
  . I LA7Y=1,(($L(LA7Y(1,0))+$L(LA7UNITS))<225) S LA7I=LA7I+1,LA7WP(LA7I,0)=" Test value: "_LA7Y(1,0)_$S(LA7UNITS]"":" "_LA7UNITS,1:"") Q
  . S LA7I=LA7I+1,LA7WP(LA7I,0)=" Test value:"
  . F I=1:1:LA7Y S LA7I=LA7I+1,LA7WP(LA7I,0)=LA7Y(I,0)
- . I LA7UNITS]"" S LA7I=LA7I+1,LA7WP(LA7I,0)=" Test units: "_LA7UNITS
+ . I LA7UNITS'="" S LA7I=LA7I+1,LA7WP(LA7I,0)=" Test units: "_LA7UNITS
  ; Normals/ Reference range
  S LA7X=$$P^LA7VHLU(.LA7SEG,8,LA7FS)
- I LA7X]"" S LA7I=LA7I+1,LA7WP(LA7I,0)=" Test normals: "_LA7X
+ I LA7X'="" S LA7I=LA7I+1,LA7WP(LA7I,0)=" Test normals: "_LA7X
  ; Normalcy status
  S LA7X=$$P^LA7VHLU(.LA7SEG,9,LA7FS)
- I LA7X]"" D
+ I LA7X'="" D
  . S X=" L^ H^LL^HH^ <^ >^ N^ A^AA^ U^ D^ B^ W^ S^ R^ I^MS^VS"
  . S I=$F(X,LA7X)\3,LA7X=$P($T(ABFLAGS+I^LA7VHLU1),";;",2)
- . I LA7X]"" S LA7I=LA7I+1,LA7WP(LA7I,0)=" Test normalcy status: "_LA7X
+ . I LA7X'="" S LA7I=LA7I+1,LA7WP(LA7I,0)=" Test normalcy status: "_LA7X
  I $D(LA7WP) D WP^DIE(69.6,LA7696_",",99,"A","LA7WP","LA7DIE(99)")
  Q

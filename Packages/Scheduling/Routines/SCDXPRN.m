@@ -1,5 +1,5 @@
 SCDXPRN ;ALB/MTC - PRINT ROUTINES;23-MAY-1996
- ;;5.3;Scheduling;**44**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,1015**;AUG 13, 1993;Build 21
  Q
 TRANS ;-- This report will print the NPCDB Transmissions for a Date Range.
  ;   The date to perform the sort is the date the Encounter tranaction

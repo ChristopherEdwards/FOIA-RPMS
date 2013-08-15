@@ -1,12 +1,5 @@
 ABMUTLP ; IHS/ASDST/DMJ - PAYER UTILITIES ;      
- ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8**;NOV 12, 2009
- ;V2.5 P5-837 mod - Remove "Unknown" from Group Name if Mcare
- ;IHS/SD/SDR-v2.5 p10-IM20089-Check new site parameter (ISA08 VALUE)
- ;IHS/SD/SDR-v2.5 p11-IM24104-Reset Y for RCID tag; it was carrying info over from a prev. call
- ;IHS/SD/SDR-v2.5 p13-IM25471-Changes for CAS when SAR=A2
- ;IHS/SD/SDR-v2.5 p13-IM25436-Mcare Suppl. i.type should be SP for SOP
- ;IHS/SD/SDR-abm*2.6*3-HEAT12676-Check insurer type or MEDICARE name
- ;IHS/SD/SDR-abm*2.6*3-HEAT7574-tribal self-insured changes
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9**;NOV 12, 2009
 SET(X,ABMDUZ2) ; EP - set up standard vars
  ;x=bill ien
  ;abmduz2=duz(2)
@@ -44,7 +37,6 @@ ISET ; EP
  F  S ABME("PRIO")=$O(^ABMDBILL(ABMDUZ2,ABMP("BDFN"),13,"C",ABME("PRIO"))) Q:'ABME("PRIO")!($G(ABMP("INS",3)))  D
  .N I
  .S I=0
- .;Loop entries
  .F  S I=$O(^ABMDBILL(ABMDUZ2,ABMP("BDFN"),13,"C",ABME("PRIO"),I)) Q:'I!($G(ABMP("INS",3)))  D
  ..;Quit if insurer unbillable
  ..Q:$P(^ABMDBILL(ABMDUZ2,ABMP("BDFN"),13,I,0),U,3)="U"  S ABME("INS")=$P(^(0),U)   ;Ins IEN
@@ -63,13 +55,13 @@ ISET ; EP
  ..S $P(ABMP("INS",ABME("INS#")),U,2)=ABME("ITYPE")
  Q
 PAYED ; EP
- ; Build Insurance Payment Array
+ ; Build Ins Pymt Array
  K ABMP("PAYED")
  S (ABMOACNT,ABMPRCNT)=1
  S ABMCOCNT=1
  S:'$G(ABMDUZ2) ABMDUZ2=DUZ(2)
  N L
- S L=+$P(^ABMDBILL(ABMDUZ2,ABMP("BDFN"),0),U)_" "  ;Bill number
+ S L=+$P(^ABMDBILL(ABMDUZ2,ABMP("BDFN"),0),U)_" "  ;Bill#
  F  S L=$O(^ABMDBILL(ABMDUZ2,"B",L)) Q:+L'=+$P(^ABMDBILL(ABMDUZ2,ABMP("BDFN"),0),U)!(L="")  D
  .N I
  .S I=$O(^ABMDBILL(ABMDUZ2,"B",L,0))  ;IEN
@@ -83,7 +75,7 @@ PAYED ; EP
  ..S ABMPAY=+$P(^ABMDBILL(ABMDUZ2,I,3,J,0),U,2)  ;Amt paid
  ..S ABMP("PAYED",K)=+$G(ABMP("PAYED",K))+ABMPAY  ;Add amt paid per insurer
  ..S $P(ABMP("PAYED",K),"^",2)=$P(^ABMDBILL(ABMDUZ2,I,3,J,0),U)
- ..S ABMP("PAYED")=+$G(ABMP("PAYED"))+ABMPAY      ;Add amt paid
+ ..S ABMP("PAYED")=+$G(ABMP("PAYED"))+ABMPAY  ;Add amt paid
  ..S ABMADJC=$P($G(^ABMDBILL(ABMDUZ2,I,3,J,0)),U,15)  ;adj category
  ..I $P($G(^ABMNINS(ABMP("LDFN"),K,0)),U,11)="Y" S ABMADJC=4,ABMSAR=96  ;abm*2.6*3 HEAT7574
  ..Q:(ABMADJC="")  ;no adj category
@@ -95,12 +87,14 @@ PAYED ; EP
  ..I ABMADJC=16 S ABMAMT=+$P($G(^ABMDBILL(ABMDUZ2,I,3,J,0)),U,12)  ;g. allow
  ..I ABMADJC=19 S ABMAMT=+$P($G(^ABMDBILL(ABMDUZ2,I,3,J,0)),U,13)  ;ref
  ..I ABMADJC=20 S ABMAMT=+$P($G(^ABMDBILL(ABMDUZ2,I,3,J,0)),U,14)  ;pymt credit
- ..;S ABMSAR=$$GET1^DIQ("90056.06",$P($G(^ABMDBILL(ABMDUZ2,I,3,J,0)),U,17),".01")  ;std reason  ;abm*2.6*3 HEAT7574
- ..S:(+$G(ABMSAR)=0) ABMSAR=$$GET1^DIQ("90056.06",$P($G(^ABMDBILL(ABMDUZ2,I,3,J,0)),U,17),".01")  ;std reason  ;abm*2.6*3 HEAT7574
- ..I ABMADJC=4,(ABMSAR=96),($P($G(^ABMNINS(ABMP("LDFN"),K,0)),U,11)="Y") S ABMAMT=$P($G(^ABMDBILL(ABMDUZ2,I,2)),U)  ;abm*2.6*3 HEAT7574
+ ..;S:(+$G(ABMSAR)=0) ABMSAR=$$GET1^DIQ("90056.06",$P($G(^ABMDBILL(ABMDUZ2,I,3,J,0)),U,17),".01")  ;std reason  ;abm*2.6*3 HEAT7574  ;abm*2.6*9 NOHEAT
+ ..S:(+$G(ABMSAR)'=0) ABMSAR=$$GET1^DIQ(90056.06,($P($G(^ABMDBILL(ABMDUZ2,I,3,J,0)),U,17)),".01","E")  ;std reason  ;abm*2.6*3 HEAT7574  ;abm*2.6*9 NOHEAT
+ ..;I ABMADJC=4,(ABMSAR=96),($P($G(^ABMNINS(ABMP("LDFN"),K,0)),U,11)="Y") S ABMAMT=$P($G(^ABMDBILL(ABMDUZ2,I,2)),U)  ;abm*2.6*3 HEAT7574  ;abm*2.6*9
+ ..I ABMADJC=4,($G(ABMSAR)=96),($P($G(^ABMNINS(ABMP("LDFN"),K,0)),U,11)="Y") S ABMAMT=$P($G(^ABMDBILL(ABMDUZ2,I,2)),U)  ;abm*2.6*3 HEAT7574  ;abm*2.6*9
  ..I ($G(ABMSAR)="A2") S ABMP(K,"CO",ABMCOCNT)=ABMSAR_"^"_ABMAMT_"^1",ABMCOCNT=ABMCOCNT+1 Q
  ..I $G(ABMSAR)=1!($G(ABMSAR)=2)!($G(ABMSAR)=3) S ABMP(K,"PR",ABMPRCNT)=ABMSAR_"^"_ABMAMT_"^1",ABMPRCNT=ABMPRCNT+1
- ..I $G(ABMSAR)'=1&($G(ABMSAR)'=2)&($G(ABMSAR)'=3) S ABMP(K,"OA",ABMOACNT)=ABMSAR_"^"_ABMAMT_"^1",ABMOACNT=ABMOACNT+1
+ ..;I $G(ABMSAR)'=1&($G(ABMSAR)'=2)&($G(ABMSAR)'=3) S ABMP(K,"OA",ABMOACNT)=ABMSAR_"^"_ABMAMT_"^1",ABMOACNT=ABMOACNT+1  ;abm*2.6*9 NOHEAT
+ ..I +$G(ABMSAR)'=0&($G(ABMSAR)'=1)&($G(ABMSAR)'=2)&($G(ABMSAR)'=3) S ABMP(K,"OA",ABMOACNT)=ABMSAR_"^"_ABMAMT_"^1",ABMOACNT=ABMOACNT+1  ;abm*2.6*9 NOHEAT
  Q
 TCR(X) ; EP
  ; Total credits for a bill
@@ -113,9 +107,9 @@ TCR(X) ; EP
  K ABM("TCREDITS")
  Q X
 MCDBFX(X,Y) ; EP
- ; Fix BILL Insurance Multiple if broken ptr medicaid
- ;  INPUT: X = IEN (CLAIM OR BILL)
- ;         Y = INSURER IEN UNDER FIELD #13 (INS MULTIPLE)
+ ; Fix BILL Ins Multiple if broken ptr medicaid
+ ;  INPUT:X = IEN (CLAIM OR BILL)
+ ;        Y = INSURER IEN UNDER FIELD #13 (INS MULTIPLE)
  ; OUTPUT:
  N ABMP
  S ABMP("D0")=X
@@ -141,7 +135,7 @@ MGET ; EP
  F I=1,2 S ABMP(I)=$P(ABML(ABMP("PRI"),ABMP("INS")),"^",I)
  Q
 SBR(X,ABMDUZ2) ;PEP - subscriber
- ;x=bill internal entry number
+ ;x=bill internal entry#
  ;abmduz2=duz(2)
  S:'$G(ABMDUZ2) ABMDUZ2=DUZ(2)
  D SET(X,ABMDUZ2)
@@ -244,7 +238,7 @@ PST(X) ;EP - primary, secondary, tertiary
  .I $P(ABMP("INS",I),U)=ABMP("INS"),$P(ABMP("INS",I),U,3)="I" S X=ABMCNT Q
  S X=$S(X=1:"P",X=2:"S",X=3:"T",1:"P")
  Q X
-GRP(X) ;EP - group name & number
+GRP(X) ;EP - group name & #
  ;x=policy holder ien
  S ABMP("GRP#",ABMI)=""
  S ABMP("GRPNM",ABMI)=""
@@ -282,7 +276,8 @@ SOP ;EP - source of pay (claim filing indicator)
  .S ABMP("SOP",ABMI)="BL"
  I ABMP("SOP",ABMI)="MA",(ABMP("VTYP")=999!($P($G(^ABMDPARM(DUZ(2),1,5)),U,3)="C00900"))!((ABMP("BTYP")=831)&(ABMP("EXP")=22)) D
  .S ABMP("SOP",ABMI)="MB"
- I ABMP("SOP",ABMI)="MA",(ABMP("VTYP")=999!($P($G(^ABMDPARM(DUZ(2),1,5)),U,3)="04402"))!((ABMP("BTYP")=831)&(ABMP("EXP")=22)) D
+ ;I ABMP("SOP",ABMI)="MA",(ABMP("VTYP")=999!($P($G(^ABMDPARM(DUZ(2),1,5)),U,3)="04402"))!((ABMP("BTYP")=831)&(ABMP("EXP")=22)) D  ;abm*2.6*10 NOHEAT
+ I ABMP("SOP",ABMI)="MA",(ABMP("VTYP")=999!($P($G(^ABMDPARM(DUZ(2),1,5)),U,3)="04402"))!((ABMP("BTYP")=831)&((ABMP("EXP")=22)!(ABMP("EXP")=32))) D  ;abm*2.6*10 NOHEAT
  .S ABMP("SOP",ABMI)="MB"
  Q
 MPP(X) ;EP - medicare primary payer
@@ -312,6 +307,7 @@ RCID(X) ;EP - receiver id
  S X=$G(X)
  ;start new abm*2.6*6 5010
  I $D(^ABMRECVR("C",X)) D
+ .Q:$G(ABMLOOP)="2330B"  ;abm*2.6*9 HEAT55022
  .S ABMCHIEN=$O(^ABMRECVR("C",X,0))
  .;S:ABMCHIEN Y=$P($G(^ABMRECVR(ABMCHIEN,0)),U,2)  ;abm*2.6*8
  .S:ABMCHIEN Y=$P($G(^ABMRECVR(ABMCHIEN,0)),U,3)  ;abm*2.6*8

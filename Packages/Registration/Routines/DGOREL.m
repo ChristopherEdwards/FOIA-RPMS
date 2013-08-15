@@ -1,5 +1,5 @@
 DGOREL ;ALB/MAC - PATIENT OUTPUT BY RELIGIOUS AFFILIATIONS ; 5 JUL 88@12:00
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  D QUIT1,DT^DICRW,ASK2^SDDIV G QUIT1:Y<0
 DISP W !!,"Display report for (D)ATE RANGE or (C)URRENT DATE:  CURRENT// " S Z="^CURRENT^DATE RANGE",X="" R X:DTIME G QUIT1:X["^"!('$T) S:X["d"!(X["c") X=$C($A(X)-32) I X="" S X="C" W X
  S DGL=$E(X) D IN^DGHELP I %=-1 W !!?3,"You may display report for :" D HELP2 S %="" G DISP

@@ -1,5 +1,5 @@
 SDUL40 ;ALB/MJK - Screen Malipulation Utilities (cont.) ; 12/1/91
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 FIND ; -- find text in list
  N START,BEG,SDQUIT,SDULHIT

@@ -1,5 +1,5 @@
 DGPMGLG4 ;ALB/ABR - G&L GENERATION CONT.;  17 MAY 94
- ;;5.3;Registration;**34**;Aug.13, 1993
+ ;;5.3;Registration;**34,1015**;Aug.13, 1993;Build 21
  ;
  ;This routine finds the division associated with a given
  ;Treating Specialty transaction.

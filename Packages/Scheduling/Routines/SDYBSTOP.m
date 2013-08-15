@@ -1,5 +1,5 @@
 SDYBSTOP ;ALB/MLI - Add new Clinic Stop Codes ; 12/10/93
- ;;5.3;Scheduling;**13**;Aug 13, 1993
+ ;;5.3;Scheduling;**13,1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- add/inactivate stop codes
  D ADD

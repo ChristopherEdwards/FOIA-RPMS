@@ -1,44 +1,64 @@
-PXRMDRUG ; SLC/PKR - Handle drug findings. ;19-Oct-2009 17:55;MGH
- ;;1.5;CLINICAL REMINDERS;**2,5,8,11,1003,1004,1007**;Jun 19, 2000
+PXRMDRUG ; SLC/PKR - Handle drug findings. ;09-Feb-2012 19:09;DU
+ ;;1.5;CLINICAL REMINDERS;**2,5,8,11,1003,1004,1007,1008**;Jun 19, 2000;Build 25
  ;IHS/CIA/MGH
  ;Patch 1007 changes made for eprescribing
+ ;Patch 1008 changes made for Non-Va meds
  ;=====================================================================
  ;Edited to allow V MED entries to be used in reminder resolution
  ;=======================================================================
 BLDCACHE(DFN) ;Build the patient drug cache.
  N PXRMDFN S PXRMDFN="PXRMDFN"_DFN
  K ^TMP("PS",$J),^XTMP(PXRMDFN,"PSDRUG")
- N DRUG,DRUGIEN,DSUP,IND,OITEM,ORDER,POI,RDATE,SDATE,STATUS,TEMP
+ N DRUG,DRUGIEN,DSUP,IND,OITEM,ORDER,POI,RDATE,SDATE,STATUS,TEMP,IDX,N0,ORIDX,FIVE
  ;Start the search for drugs on the patient's date of birth
  ;to make sure we get all of them.
- D OCL^PSOORRL(DFN,PXRMDOB,"")
+ ;IHS/MSC/MGH Changed to 5 years to avoid old errors and save lookup time
+ S FIVE=$$FMADD^XLFDT(DT,-1825)
+ D OCL^PSOORRL(DFN,FIVE,"")
  S IND=0
  F  S IND=$O(^TMP("PS",$J,IND)) Q:+IND=0  D
- . S TEMP=^TMP("PS",$J,IND,0)
- . S ORDER=$P(TEMP,U,1)
- . I $L(ORDER)=0 Q
- . S DRUG=$P(TEMP,U,2)
- . S STATUS=$P(TEMP,U,9)
+ .S TEMP=^TMP("PS",$J,IND,0)
+ .S ORDER=$P(TEMP,U,1)
+ .I $L(ORDER)=0 Q
+ .S DRUG=$P(TEMP,U,2)
+ .Q:DRUG=""     ;Patch 1008
+ .S STATUS=$P(TEMP,U,9)
  .;Look for DRUG file entries, if not there then probably pharmacy
  .;orderable item.
- . I $L(DRUG)=0 S DRUGIEN=0
- . E  S DRUGIEN=+$O(^PSDRUG("B",DRUG,""))
- . I DRUGIEN>0 D
- .. I ORDER["O" D
- ... S RDATE=+$P(TEMP,U,16)
- ... S DSUP=+$P(TEMP,U,17)
- ... S DATE=+$$FMADD^XLFDT(RDATE,DSUP)
- ... S ^XTMP(PXRMDFN,"PSDRUG",DRUG,DATE)=ORDER_U_STATUS_U_RDATE_U_DSUP
+ .I $L(DRUG)=0 S DRUGIEN=0
+ .;PATCH 1008 Change for TallMan
+ .E  S DRUGIEN=+$O(^PSDRUG("B",$$UPPER(DRUG),""))
+ .I DRUGIEN>0 D
+ ..I ORDER["O" D
+ ...S ORIDX=$P(ORDER,";",1)
+ ...I ORIDX["R" D
+ ....;1008 Changed to Fill Date
+ ....;S RDATE=+$P(TEMP,U,16)
+ ....S RDATE=+$P(TEMP,U,10)
+ ....S DSUP=+$P(TEMP,U,17)
+ ....S DATE=+$$FMADD^XLFDT(RDATE,DSUP)
+ ....S ^XTMP(PXRMDFN,"PSDRUG",DRUG,RDATE)=ORDER_U_STATUS_U_RDATE_U_DSUP
+ ...;PATCH 1008 FOR NON-VA MEDS
+ ...I ORIDX["N"   D
+ ....Q:STATUS="DISCONTINUED"
+ ....S IDX=+ORDER
+ ....S N0=$G(^PS(55,DFN,"NVA",IDX,0))
+ ....S DATE=$P(N0,U,10)
+ ....S SDATE=$P(N0,U,9) I SDATE="" S SDATE=$P(N0,U,10)
+ ....S ^XTMP(PXRMDFN,"PSDRUG",DRUG,DATE)=ORDER_U_STATUS_U_SDATE
+ ....;END MODS
  .. I ORDER["I" D
  ... S SDATE=+$P(TEMP,U,4)
  ... I SDATE=0 D SDERR(ORDER)  Q
  ... S ^XTMP(PXRMDFN,"PSDRUG",DRUG,SDATE)=ORDER_U_STATUS_SDATE
- . E  S POI(ORDER)=""
+ .E  S POI(ORDER)=""
  K ^TMP("PS",$J)
  ;Process the pharmacy orderable item list.
  S ORDER=""
  F  S ORDER=$O(POI(ORDER)) Q:ORDER=""  D
  . D OEL^PSOORRL(DFN,ORDER)
+ . ;IHS/MSC/MGH Check for meds without dispense drug
+ . I ORDER["N;O" D NONVA(ORDER,DRUG) Q
  . I '$D(^TMP("PS",$J,"DD")) K ^TMP("PS",$J) Q
  . S TEMP=^TMP("PS",$J,0)
  . S SDATE=+$P(TEMP,U,3)
@@ -72,6 +92,23 @@ BLDCACHE(DFN) ;Build the patient drug cache.
  K ^TMP("PS",$J)
  Q
  ;
+ ;=============================================================
+NONVA(ORDER,DRUG) ;Process meds without dispense drug
+ N TEMP,N0,IDX,DRUG2,POI,DRUGIEN
+ S TEMP=^TMP("PS",$J,0)
+ S STATUS=$P(TEMP,U,6)
+ Q:STATUS="DISCONTINUED"
+ S IDX=+ORDER
+ S N0=$G(^PS(55,DFN,"NVA",IDX,0))
+ S POI=$P(N0,U,1)
+ S DRUGIEN=""
+ S DRUGIEN=$O(^PSDRUG("ASP",POI,DRUGIEN))
+ Q:DRUGIEN=""
+ S DRUG=$P($G(^PSDRUG(DRUGIEN,0)),U,1)
+ S DATE=$P(N0,U,10)
+ S SDATE=$P(N0,U,9) I SDATE="" S SDATE=$P(N0,U,10)
+ S ^XTMP(PXRMDFN,"PSDRUG",DRUG,DATE)=ORDER_U_STATUS_U_SDATE
+ Q
  ;=======================================================================
 EVALFI(DFN,FIEVAL) ;Evaluate drug (file #50) findings.
  N DRUGIEN,FIND0,FIND3,FINDING
@@ -139,9 +176,9 @@ FIEVAL(DFN,DRUGIEN,FIND0,FIND3,TFIND0,TFIND3,FINDING,FIEVAL) ;
  ;=======================================================================
 LDATE(DFN,DRUG,RXTYPE,DSUP,LDATE,RDATE,SDATE,STATUS) ;Return last date
  ;patient is on drug, refill date, days supply, or stop date, and status.
- N DATE,ORDER,TEMP,AUTO,ARX,AREF,ADSP
+ N DATE,ORDER,TEMP,AUTO,ARX,AREF,ADSP,ORIDX
  I '$D(^XTMP(PXRMDFN,"PSDRUG")) D BLDCACHE(DFN)
- I '$D(^XTMP(PXRMDFN,"PSDRUG",DRUG))="" S FIEVAL(FINDING)=0 Q 0
+ I '$D(^XTMP(PXRMDFN,"PSDRUG",DRUG))="" Q 0
  S (DSUP,RDATE,SDATE)=0
  S LDATE=+$O(^XTMP(PXRMDFN,"PSDRUG",DRUG,""),-1)
  I LDATE=0 Q
@@ -149,19 +186,28 @@ LDATE(DFN,DRUG,RXTYPE,DSUP,LDATE,RDATE,SDATE,STATUS) ;Return last date
  S ORDER=$P(TEMP,U,1)
  ;Make sure the Rx Type is in the order. Null RXTYPE is contained in
  ;both I and O orders.
- ;IHS/MSC/MGH changes made for eprescribing
  I ORDER[RXTYPE S STATUS=$P(TEMP,U,2)
- E  S LDATE=0  Q
+ E  S LDATE=0 Q
  S DATE=$P(TEMP,U,3)
  I ORDER["O" D
- . S RDATE=DATE
- . S DSUP=$P(TEMP,U,4)
- . I DATE=0 D
- ..S ARX=+$P(TEMP,U,1)
- ..S AUTO=$P($G(^PSRX(ARX,999999921)),U,3)
- ..I AUTO=1 S (RDATE,LDATE)=$P($G(^PSRX(ARX,2)),U,2)
- ..S AREF=$P($G(^PSRX(ARX,0)),U,9),ADSP=$P($G(^PSRX(ARX,0)),U,8)
- ..S DSUP=ADSP+(ADSP*AREF)
+ .S ORIDX=$P(ORDER,";",1)
+ .I ORIDX["R" D
+ ..S RDATE=DATE
+ ..S DSUP=$P(TEMP,U,4)
+ ..I DATE=0 D
+ ...;1008 IHS/MSC/MGH changes made for e-prescribing
+ ...S ARX=+$P(TEMP,U,1)
+ ...S STATUS=$P(TEMP,U,2)
+ ...S AUTO=$P($G(^PSRX(ARX,999999921)),U,3)
+ ...I AUTO=1 D
+ ....S (RDATE,LDATE)=$P($G(^PSRX(ARX,2)),U,2)
+ ....S AREF=$P($G(^PSRX(ARX,0)),U,9),ADSP=$P($G(^PSRX(ARX,0)),U,8)
+ ....S DSUP=ADSP+(ADSP*AREF)
+ .;PATCH 1008 IHS/MSC/MGH changes made for non-VA meds
+ .I ORIDX["N" D
+ ..S LDATE=DT
+ ..S RDATE=DATE
+ ..S DSUP=365
  E  S SDATE=DATE
  Q
  ;
@@ -203,3 +249,5 @@ SDERR(ORDER) ;If the Stop Date is missing and the order is not pending
  D SEND^PXRMMSG(XMSUB)
  Q
  ;
+UPPER(X) ; Convert lower case X to UPPER CASE
+ Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")

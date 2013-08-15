@@ -1,5 +1,5 @@
 SCCVCST1 ; ALB/TMP - SCHED VSTS CONV/ARCHIVE - REQUEST/EDIT ; 25-NOV-97
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 REQ(SCFUNC,SCCVSCRN,ASKBULL) ; -- Schedule request to run/stop
  ; SCFUNC = 0 if from add new template, 1 if from edit or schedule

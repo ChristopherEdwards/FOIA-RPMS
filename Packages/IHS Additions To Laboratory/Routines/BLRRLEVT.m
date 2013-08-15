@@ -1,10 +1,8 @@
-BLRRLEVT ;cmi/anch/maw - BLR Reference Lab Event ; 13 Apr 2009  9:56 AM
- ;;5.2;IHS LABORATORY;**1027**;NOV 01, 1997;Build 9
- ;
+BLRRLEVT ;cmi/anch/maw - BLR Reference Lab Event ; 14 NOV 2012  9:56 AM
+ ;;5.2;IHS LABORATORY;**1027,1030,1031**;NOV 01, 1997;Build 185
  ;
  ;the content of this routine was moved from BLREVTQ and is now called from BLREVTQ
  ;cmi/maw 5/26/2010 added LA7 subroutine for LEDI III
- ;
  Q
  ;
 LEDI ;-- LEDI III insurance stuff
@@ -12,13 +10,16 @@ LEDI ;-- LEDI III insurance stuff
  K BLRRLC
  S BLRLEDI=1
  ;S (BLRDXS,BLRINS)=0
- S BLRTS=$S(+$G(LRTS):+LRTS,$G(LRTSTS):+LRTSTS,1:$G(LRTSORU))
+ S BLRTS=$S(+$G(LRTS):+LRTS,$G(LRTSTS):+LRTSTS,1:+$G(LRTSORU))
+ ; ----- BEGIN IHS/CMI/MAW - LR*5.2*1031
+ ;ihs/cmi/maw 11/15/2011 added the following for ehr ordering
+ Q:'$G(LROLLOC)
+ Q:'$P($G(^SC(LROLLOC,0)),U,4)
+ S BLRALTDZ=$S($P($G(^SC(LROLLOC,0)),U,4):$P($G(^SC(LROLLOC,0)),U,4),1:DUZ(2))
+ Q:'+$G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL"))
+ S LRDUZ(2)=BLRALTDZ
+ ; ----- END IHS/CMI/MAW - LR*5.2*1031
  I BLRPHASE="O" D  ;cmi/maw 5/30/2007 added for institution entry of file 44 so that it gets correct accession area from file 60 otherwise it gets duz(2)
- . Q:'$G(LROLLOC)
- . Q:'$P($G(^SC(LROLLOC,0)),U,4)
- . S BLRALTDZ=$P($G(^SC(LROLLOC,0)),U,4)
- . Q:'+$G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL"))
- . S LRDUZ(2)=BLRALTDZ
  . Q:'$$SENDOUT(BLRALTDZ,BLRTS)
  . S BLRO=$$ORD^BLRRLEDI(LRORD,DFN)
  . Q:'$G(BLRO)
@@ -28,14 +29,16 @@ LEDI ;-- LEDI III insurance stuff
  . I $P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)="T" D DX^BLRRLEDI(LRORD)
  . K BLRO,BLRRLC
  Q:BLRPHASE'="A"  ;quit if not an accession
- Q:'$$SENDOUT(BLRALTDZ,BLRTS)
+ ; Q:'$$SENDOUT(BLRALTDZ,BLRTS)
+ Q:'$$SENDOUT($G(BLRALTDZ),$G(BLRTS))  ; IHS/MSC/MKK - LR*5.2*1031 -- Possible null variable(s)
  I '$G(BLRO) S BLRO=$$ORD^BLRRLEDI(LRORD,DFN)
  S BLRA=$$ACC^BLRRLEDI(LRUID,LRORD,DFN,LRCDT)
  Q:'BLRA
  S BLRC=$$CLIENT^BLRRLEDI(LRORD,LRUID)
  I $P($G(^BLRRLO(BLRO,4,0)),U,4) D SETAO(BLRO),LEDIAAA
  S BLRB=$P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)
- I '$G(BLRINS) D BILL^BLRRLEDI(BLRB,LRORD,LRUID,LRCDT)
+ I '+$G(BLRAGUI),'$G(BLRINS) D BILL^BLRRLEDI(BLRB,LRORD,LRUID,LRCDT)
+ I $G(BLRAGUI) I "CTP"[$G(BLRBT) S BLRRL("BILL TYPE")=BLRBT,BLRINS=1 S BT=$$BTP^BLRRLEDI(LRORD,BLRBT)
  K BLRO,BLRRLC
  ;K BLRDXS,BLRINS
  Q
@@ -44,18 +47,14 @@ SETAO(RO) ;-- setup the ask at order array from whats in the BLRRLO global
  K BLRRLC
  S ADA=0 F  S ADA=$O(^BLRRLO(RO,4,ADA)) Q:'ADA  D
  . S DATA=$G(^BLRRLO(RO,4,ADA,0))
- . S TST=$P(DATA,U)
- . S QUES=$P(DATA,U,3)
- . S ANS=$P(DATA,U,4)
- . S RSC=$P(DATA,U,5)
+ . S TST=$P(DATA,U),QUES=$P(DATA,U,3),ANS=$P(DATA,U,4),RSC=$P(DATA,U,5)
  . S BLRRLC(TST,ADA)=RSC_U_QUES_U_ANS
  Q
  ;
 LEDIAAA ;-- ledi ask at order question
  I '$O(BLRRLC(0)),$P($G(XQY0),U)'="LRPHMAN" S BLRRLSUC=$$COM^BLRRLCOM(BLRTS,1)  ;cmi/anch/maw modified due to routine collect no LRTS 9/8/2004
  I $O(BLRRLC(0)) D
- . S DIR(0)="Y",DIR("A")="Are the responses to the Ask At Accession questions correct "
- . S DIR("B")="Y"
+ . S DIR(0)="Y",DIR("A")="Are the responses to the Ask At Accession questions correct ",DIR("B")="Y"
  . D ^DIR
  . I '$G(Y) D  G LEDIAAA
  .. D DISAAQ(.BLRCNT,BLRTS,.BLRRLC)
@@ -90,6 +89,8 @@ CLNAO(L) ;-- clean ot the ask at order questions
  Q
  ;
 SENDOUT(AC,LRT) ;-- check if a valid sendout test
+ Q:$G(AC)=""!($G(LRT)="") 0  ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  N RL,ACCA,AREA,MATCH
  S MATCH=0
  S RL=+$G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL"))
@@ -130,9 +131,8 @@ ACC ;EP - cmi/flag/maw added the following for ref lab accessions
  ;cmi/anch/maw 2/24/2006 added look for LRPHMAN before asking for comments
  ;cmi/anch/maw 2/28/2006 added AAA tag for allowing edit of ask at accession questions
 AAA I '$O(BLRRLC(0)),$P($G(XQY0),U)'="LRPHMAN" S BLRRLSUC=$$COM^BLRRLCOM(BLRRL("LRTS"),0)  ;cmi/anch/maw modified due to routine collect no LRTS 9/8/2004
- I $O(BLRRLC(0)) D
- . S DIR(0)="Y",DIR("A")="Are the responses to the Ask At Accession questions correct "
- . S DIR("B")="Y"
+ I ('$G(LRQUIET))&$O(BLRRLC(0)) D
+ . S DIR(0)="Y",DIR("A")="Are the responses to the Ask At Accession questions correct ",DIR("B")="Y"
  . D ^DIR
  . I '$G(Y) D  G AAA
  .. D DISAAQ(.BLRCNT,BLRRL("LRTS"),.BLRRLC)
@@ -220,7 +220,12 @@ AAA I '$O(BLRRLC(0)),$P($G(XQY0),U)'="LRPHMAN" S BLRRLSUC=$$COM^BLRRLCOM(BLRRL("
  ;cmi/anch/maw 3/3/2006 lets try this for account number
  ;cmi/maw 2/25/2008 code added to get multiple account numbers
  ;S BLRRL("BILL TYPE")="Client"
- I $P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)'="C" D BILL^BLRRLHL
+ ;I $P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)'="C" D BILL^BLRRLHL
+ I +$G(LRQUIET) D
+ .I $G(BLRBT)="T" S BLRRL("BILL TYPE")="T" D BILL^BLRAG05C    ; IHS/MSC/SAT - LR*5.2*1031
+ .S BLRRL("BILL TYPE")=$S($G(BLRBT)="C":"C",$G(BLRBT)="P":"P",1:"")
+ I '+$G(LRQUIET),$P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)'="C" D BILL^BLRRLHL   ; IHS/MSC/SAT - LR*5.2*1031
+ ;
  ;cmi/anch/maw 3/3/2006 end of mods
  I '$G(BLRRLCLA) D CLIENT^BLRRLHL
  I '$G(BLRRL("CLIENT")) S BLRRL("CLIENT")=$G(BLRRLCLT)
@@ -228,7 +233,7 @@ AAA I '$O(BLRRLC(0)),$P($G(XQY0),U)'="LRPHMAN" S BLRRLSUC=$$COM^BLRRLCOM(BLRRL("
  I $G(BLRRL("CLIENT"))="" S BLRRL("CLIENT")=$P($G(^BLRRL(BLRRL("RL"),0)),U,13)
  I $G(BLRRL("BILL TYPE"))="" S BLRRL("BILL TYPE")=$G(BLRRLBTP)
  D TMPSET(.BLRRL)
- I $P($G(XQY0),U)="LRPHMAN" D  ;cmi/anch/maw added for ward collection list 2/23/2006
+ I +$G(BLRAGUI)!($P($G(XQY0),U)="LRPHMAN") D  ;cmi/anch/maw added for ward collection list 2/23/2006
  . D PRT^BLRSHPM
  S X="BLR REFLAB ACCESSION A TEST",DIC=101 D EN^XQOR  ;call accession protocol
  K BLRRL,BLRRLC(BLRTSTDA),LRTEST,PAT
@@ -296,5 +301,3 @@ DISAAQ(BLRCNT,TIEN,AAQ) ;-- display the ask at order questions
  Q:$D(DIRUT)
  S $P(BLRRLC(TIEN,RES),U,3)=Y
  Q
- ;
- ;----- END IHS MODIFICATIONS LR*5.2*1021

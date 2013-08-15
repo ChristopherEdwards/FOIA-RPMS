@@ -1,5 +1,5 @@
 SCAPMC8C ;BP/DJB - Convert Practitioners List to PCP/AP ; 8/4/00 2:28pm
- ;;5.3;Scheduling;**177,224**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,224,1015**;AUG 13, 1993;Build 21
  ;;1.0
  ;
 PRTPC(SCTP,SCDATES,SCLIST,SCERR,SCALLHIS,ADJUSTDT) ;Convert list of providers

@@ -1,9 +1,6 @@
 BYIMPORT ;IHS/CIM/THL - IN Import GIS Package ;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**2**;MAY 01, 2011
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3**;JAN 15, 2013;Build 79
  ;
- ;;PATCH 2
- ;;
- ;;  MAIN     - Change default from 'NO' to 'YES'
  ;
  ;this routine will import a GIS package from the ^INXPORT global
  ;it will then populate the SCRIPT GENERATOR FIELD, SEGMENT, and
@@ -12,22 +9,7 @@ BYIMPORT ;IHS/CIM/THL - IN Import GIS Package ;
  ;
  ;-----
 MAIN ;EP - this is the main routine driver
- ;W !!,"Want to clean out existing sub-fields from all fields,"
- ;W !,"fields from all segments and segments from all messages?"
- ;W !
- ;N IOCON,IOCOFF
- ;S IOCON=$P($G(^%ZIS(2,+$G(IOST(0)),8.1)),U)
- ;S IOCOFF=$P($G(^%ZIS(2,+$G(IOST(0)),8.1)),U,2)
- ;I IOCON]"" W @IOCON
- ;S DIR(0)="YO"
- ;S DIR("A")="Yes or No?"
- ;PATCH 2
- ;S DIR("B")="NO"
- ;S DIR("B")="YES"
- ;D ^DIR
- ;K DIR
- ;I IOCOFF]"" W @IOCOFF
- ;I Y S CLEAN=1
+ S CLEAN=1
  I $O(^INXPORT(""))="" D  Q
  . W !,"Global ^INXPORT is missing, please restore and rerun"
  S KFM="K DIE,DR,DIC,DA,DD,DO,DIK"
@@ -90,7 +72,7 @@ FD(MDA,PASS)          ;-- parse the fields out of the message and check exist
  . S INY=+$$CHKF(INF01,INF02,INF03,INF3,INF5)
  . Q:'INY!'$D(@INMPRE@(MDA,"FD",INFDA,"SUB"))!'PASS
  . S INFS=0
- ..F  S INFS=$O(@INMPRE@(MDA,"FD",INFDA,"SUB",INFS)) Q:'INFS  D
+ . F  S INFS=$O(@INMPRE@(MDA,"FD",INFDA,"SUB",INFS)) Q:'INFS  D
  .. S INFSD=$G(@INMPRE@(MDA,"FD",INFDA,"SUB",INFS))
  .. S INFS01=$P(INFSD,U)
  .. S INFS02=$P(INFSD,U,2)
@@ -188,7 +170,7 @@ CHKF(F01,F02,F03,F3,F5)          ;-- check for field add/update
 CHKS(S01,S02)      ;-- check for seg existence add/update
  K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
  S SGIEN=$O(^INTHL7S("B",S01,0))
- I SGIEN D:$G(CLEAN)  Q SGIEN  ;THL
+ I SGIEN,S01["IZV04" D:$G(CLEAN)  Q SGIEN  ;THL
  .S DA(1)=SGIEN
  .S DIK="^INTHL7S("_DA(1)_",1,"
  .S DA=0
@@ -204,7 +186,7 @@ CHKS(S01,S02)      ;-- check for seg existence add/update
 CHKM(M01,MDT)      ;-- check for message process add/update
  K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
  S MIEN=$O(^INTHL7M("B",M01,0))
- I MIEN D  Q MIEN  ;THL
+ I MIEN,M01["IZV04" D  Q MIEN  ;THL
  . D:$G(CLEAN)&$O(^INTHL7M(MIEN,1,0))
  .. S DA(1)=MIEN
  .. S DIK="^INTHL7M("_DA(1)_",1,"
@@ -254,7 +236,7 @@ MSADD(MSGI,MSGN,AGN,AGS,AGR,AGOF,AGFL,AGP,AGM,AGPS,AGU)        ;-- add segment
 UPDF(FL01,FL02,FL03,FL3,FL5)  ;-- update an existing field 
  K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
  S INFIEN=$O(^INTHL7F("B",FL01,0))
- I $G(CLEAN),$O(^INTHL7F(INFIEN,10,0)) D  ;THL
+ I $G(CLEAN),FL01["IZV04",$O(^INTHL7F(INFIEN,10,0)) D  ;THL
  .S DA(1)=INFIEN
  .S DIK="^INTHL7F("_DA(1)_",10,"
  .S DA=0

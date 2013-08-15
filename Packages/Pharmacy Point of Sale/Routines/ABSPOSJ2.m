@@ -1,5 +1,5 @@
 ABSPOSJ2 ;IHS/OIT/SCR - pre and post init for V1.0 patch 28 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**29,39,43**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**29,39,43,44**;Jun 21,2001
  ;
  ; Pre and Post init routine use in absp0100.29k
  ;------------------------------------------------------------------
@@ -144,13 +144,21 @@ CLNREV ;IHS/OIT/RCS 3/2/2012 patch 43 run fix for errored reversals
  . S CLM=0
  . F  S CLM=$O(^ABSPC(CLM)) Q:CLM=""!(CLM'?1N.N)  D
  . . S X=$G(^ABSPC(CLM,100)) I X="" Q
- . . S CLMN=$P($G(^ABSPC(CLM,0)),"^") I CLMN="" Q
+ . . S CLMN=$P($G(^ABSPC(CLM,0)),U) I CLMN="" Q
  . . I CLMN'["R" Q
- . . I $P(X,"^",2)="D0",$P(X,"^",3)=11 S $P(X,"^",3)="B2",^ABSPC(CLM,100)=X ;Reset Transaction type to 'B2'
- . . I $P(X,"^",9)<2 Q  ;Reversal Transaction count not greated than 1
- . . S $P(X,"^",9)=1,^ABSPC(CLM,100)=X ;Reset Transaction count to '1'
+ . . I $P(X,U,2)="D0",$P(X,U,3)=11 S $P(X,U,3)="B2",^ABSPC(CLM,100)=X ;Reset Transaction type to 'B2'
+ . . I $P(X,U,9)<2 Q  ;Reversal Transaction count not greated than 1
+ . . S $P(X,U,9)=1,^ABSPC(CLM,100)=X ;Reset Transaction count to '1'
  . . S X=$G(^ABSPC(CLM,"M",1,0)) I X="" Q
  . . S X=$E(X,1,20)_1_$E(X,22,999),^ABSPC(CLM,"M",1,0)=X ;Reset Transaction count to '1' in raw data record
  . S ^ABSP(9002313.99,1,"ABSPREVF")=1
  Q
  ;
+DIAL ;IHS/OIT/RCS 8/31/2012 patch 44 fix for DIALOUT field - HEAT # 82109
+ ;Field should not be left blank and should have ENVOY DIRECT VIA T1 LINE
+ N INSIEN,X,DIAL
+ S INSIEN="" F  S INSIEN=$O(^ABSPEI(INSIEN)) Q:INSIEN=""  D
+ . S X=$G(^ABSPEI(INSIEN,100)) I X="" Q  ;PARTIAL SETUP
+ . S DIAL=$P(X,U,7) I DIAL'="" Q  ;ALREADY DATA IS FIELD
+ . S $P(X,U,7)=9,^ABSPEI(INSIEN,100)=X ;SET DIALOUT VALUE TO '9'-ENVOY DIRECT VIA T1 LINE
+ Q

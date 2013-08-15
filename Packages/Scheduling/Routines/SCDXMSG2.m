@@ -1,36 +1,26 @@
 SCDXMSG2 ;ALB/JRP - AMB CARE TRANSMISSION BULLETINS;01-JUL-1996 ; 1/17/02 5:07pm
- ;;5.3;Scheduling;**44,121,128,66,132,247**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,121,128,66,132,247,393,466,1015**;AUG 13, 1993;Build 21
  ;
-CMPLBULL(SENT,ERRCNT) ;Send completion bulletin
+CMPLBULL(SENT,ERRCNT,IPCNT,IPERR) ;Send completion bulletin
  ;
  ;Input  : SENT - Number of encounters sent to NPCDB (Defaults to 0)
  ;         ERRCNT - Contains the number of errored encounters
+ ;         IPCNT  - Number of inpatient encounters
+ ;         IPERR  - Contains the number of inpatient errored encounters
  ;Output : None
  ;
- ;Check input
- S SENT=+$G(SENT)
- S ERRCNT=$G(ERRCNT)
  ;Declare variables
  N MSGTXT,XMB,XMTEXT,XMY,XMDUZ,XMDT,XMZ,XMITPTR,LINE
  N ENCPTR,DELPTR,ENCDATE,ENCLOC,NAME,TMP,ENCZERO,SSN,PATZERO
- S MSGTXT="^TMP(""SCDX-XMIT-BLD"","_$J_",""BULLETIN"")"
- K @MSGTXT
- ;Put number of encounters transmitted into message text
- S @MSGTXT@(1)="Transmission of data to the National Patient Care Database has completed."
- S @MSGTXT@(2)=""
- S @MSGTXT@(3)="A total of "_SENT_" Outpatient Encounters were sent."
- ;Put number of nontransmitted encounters into message text
- S @MSGTXT@(4)="A total of "_ERRCNT_" Outpatient Encounters were not sent."
- S @MSGTXT@(5)=""
- S @MSGTXT@(6)="Please review the IEMM Error listing for further detail."
- ;Set bulletin subject
- S XMB(1)="Transmission of data to NPCDB completed"
  ;Deliver bulletin
  S XMB="SCDX AMBCARE TO NPCDB SUMMARY"
- S XMTEXT=$P(MSGTXT,")",1)_","
+ S XMB(1)=+$G(SENT)
+ S XMB(2)=+$G(ERRCNT)
+ S XMB(3)=+$G(SENT)-(+$G(IPCNT))
+ S XMB(4)=+$G(IPCNT)
+ S XMB(5)=+$G(ERRCNT)-(+$G(IPERR))
+ S XMB(6)=+$G(IPERR)
  D ^XMB
- ;Done - clean up and quit
- K @MSGTXT
  Q
  ;
 ERRBULL(REASON) ;Send error bulletin
@@ -59,7 +49,7 @@ ERRBULL(REASON) ;Send error bulletin
  ;
 LATEACT(XMITPTR,ACT,USER,DATE) ;Send late activity bulletin
  ;
- ;Inuput : XMITPTR - Pointer to TRANSMITTED OUTPATIENT ENCOUNTER file
+ ;Input :  XMITPTR - Pointer to TRANSMITTED OUTPATIENT ENCOUNTER file
  ;                   (#409.73) that was acted upon
  ;         ACT - Late activity that occurred
  ;               Free text (defaults to transmission event of XMITPTR)
@@ -98,7 +88,7 @@ LATEACT(XMITPTR,ACT,USER,DATE) ;Send late activity bulletin
  ;Set default values (if applicable)
  I (ACT="") D  Q:(ACT="")
  .S ACT=+$P(NODE,"^",5)
- .I (ACT=1)!(ACT=2) S ACT="Creation/Editting of encounter" Q
+ .I (ACT=1)!(ACT=2) S ACT="Creation/Editing of encounter" Q
  .I (ACT=3) S ACT="Deletion of encounter" Q
  .S ACT="Retransmission of encounter"
  I ('USER) D

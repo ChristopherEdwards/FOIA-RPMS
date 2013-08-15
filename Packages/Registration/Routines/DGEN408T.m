@@ -1,5 +1,5 @@
 DGEN408T ;ALB/SCK - IVMB SEED THE HEC WITH MPI POST INSTALL ; 5/1/02 12:58pm
- ;;5.3;Registration;**408**;Aug 13,1993
+ ;;5.3;Registration;**408,1015**;Aug 13,1993;Build 21
  Q
  ;
 EN ; Main entry point to populate the IVMB HEC MPI NOTIFICATION mail

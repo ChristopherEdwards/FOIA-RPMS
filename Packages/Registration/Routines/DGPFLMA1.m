@@ -1,5 +1,5 @@
 DGPFLMA1 ;ALB/KCL - PRF ASSIGNMENT LM PROTOCOL ACTIONS ; 6/10/03 3:57pm
- ;;5.3;Registration;**425**;Aug 13, 1993 
+ ;;5.3;Registration;**425,1015**;Aug 13, 1993 ;Build 21
  ;
  ;no direct entry
  QUIT

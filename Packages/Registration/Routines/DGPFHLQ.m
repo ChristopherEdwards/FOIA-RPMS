@@ -1,5 +1,5 @@
 DGPFHLQ ;ALB/RPM - PRF HL7 QRY/ORF PROCESSING ; 1/23/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,650,1015**;Aug 13, 1993;Build 21
  ;
 BLDQRY(DGDFN,DGICN,DGROOT,DGHL) ;Build QRY~R02 Message/Segments
  ;
@@ -70,18 +70,18 @@ BLDORF(DGROOT,DGHL,DGDFN,DGQRY,DGSEGERR,DGQRYERR) ;Build ORF~R04 Message/Segment
  S DGOBROOT=$NA(^TMP("DGPF OB",$J))
  K @DGOBROOT
  ;
- I $G(DGROOT)]"",+$G(DGDFN)>0,$D(DGQRY) D
+ I $G(DGROOT)]"",$D(DGQRY) D
  . S DGCNT=0
  . S DGACK=$S($D(DGSEGERR):"AE",$D(DGQRYERR):"AE",1:"AA")
  . ;
  . ;build OBR/OBX segments for any Category I record flag assignments
- . I DGACK="AA",$$GETALL^DGPFAA(DGDFN,.DGAIENS,"",1) D
+ . I DGACK="AA",$$GETALL^DGPFAA($G(DGDFN),.DGAIENS,"",1) D
  . . ;
  . . ;build and temporarily store OBR/OBX segments
  . . Q:$$BLDALLOB(DGOBROOT,.DGAIENS,.DGHL)
  . . ;
  . . ;if we get here then the data retrieval failed
- . . S DGQRYERR="FE"
+ . . S DGQRYERR=261130  ;unable to retrieve existing assignments
  . . S DGACK="AE"
  . . K @DGOBROOT
  . ;

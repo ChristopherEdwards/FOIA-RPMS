@@ -1,5 +1,5 @@
 DGPTXMS ; GENERATED FROM 'DG PTF ADD MESSAGE' INPUT TEMPLATE(#1792), FILE 45.5;09/10/03
- D DE G BEGIN
+ D DE G BEGIN;;;;;;Build 21
 DE S DIE="^DGM(",DIC=DIE,DP=45.5,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^DGM(DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(1)=% S %=$P(%Z,U,3) S:%]"" DE(2)=% S %=$P(%Z,U,4) S:%]"" DE(3)=%
  K %Z Q

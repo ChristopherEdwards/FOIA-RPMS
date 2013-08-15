@@ -1,13 +1,14 @@
-PXRMPROB ; SLC/PKR - Code to treat items from the Problem List. ;24-Sep-2009 16:14;MGH
- ;;1.5;CLINICAL REMINDERS;**2,1005,1006,1007**;Jun 19, 2000
+PXRMPROB ; SLC/PKR - Code to treat items from the Problem List. ;22-Dec-2011 09:18;DU
+ ;;1.5;CLINICAL REMINDERS;**2,1005,1006,1007,1008**;Jun 19, 2000;Build 25
  ;
  ;Patch 1005 fixed issue with empty conditions
  ;Patch 1006 fixed issue with empty date
+ ;Patch 1008 fixed issue with entered in error and reactivation
  ;=======================================================================
 BLDPC(DFN) ;Check and if necessary build the Problem List patient cache.
  N DATE,ICD9P,INVDATE,INVDT,NPATIEN,PROBIEN,TEMP
  N GMPLCOND,GMPLDLM,GMPLICD,GMPLLEX,GMPLODAT,GMPLPNAM,GMPLPRIO,GMPLPRV
- N GMPLSTAT,GMPLTXT,GMPLXDAT
+ N GMPLSTAT,GMPLTXT,GMPLXDAT,NODE2
  ;If the patient's problem list was modified since the cache was
  ;last built the cache will have been killed in PXRMPINF.
  I '$D(^XTMP(PXRMDFN,"PROB","NPATIEN")) D
@@ -16,6 +17,9 @@ BLDPC(DFN) ;Check and if necessary build the Problem List patient cache.
  . S PROBIEN=""
  . F  S PROBIEN=$O(^AUPNPROB("AC",DFN,PROBIEN)) Q:PROBIEN=""  D
  .. D CALL2^GMPLUTL3(PROBIEN)
+ .. ;IHS/MSC/MGH Patch 1008
+ .. S NODE2=$G(^AUPNPROB(PROBIEN,2))
+ .. I $P(NODE2,U,1)'="" Q
  .. ;IHS/MSC/MGH Line changed for IHS problems
  .. ;I (GMPLCOND="H")!(GMPLCOND="") Q
  .. I GMPLCOND="H" Q

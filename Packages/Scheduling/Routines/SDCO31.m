@@ -1,5 +1,5 @@
 SDCO31 ;ALB/RMO - Provider Cont. - Check Out;19 MAR 1993 9:04 am
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;
 PRHLP(SDCL) ;Provider Help for Clinic
  ; Input  -- SDCL     Hospital Location file IEN

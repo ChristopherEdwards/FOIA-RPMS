@@ -1,5 +1,5 @@
 SCMCTPU4 ;ALB/MJK - Team Position Dangler Bulletin ; 10-JUL-1998
- ;;5.3;Scheduling;**148,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,177,1015**;AUG 13, 1993;Build 21
  ;
 BULL ; -- send bulletin (called from SCMCTPU3)
  N XMY,XMTEXT,XMSUB,XMDUZ,SCLCNT

@@ -1,5 +1,5 @@
 DGYACPT ;ALB/ABR - CPT Utilities ;3/15/97
- ;;6.0;CPT/HCPCS;;May 19, 1997
+ ;;5.3;Registration;**1015**;May 19, 1997;Build 21
  ;
  ;    ************************************************
  ;     THIS ROUTINE WILL BE ELIMINATED 18 MONTHS AFTER

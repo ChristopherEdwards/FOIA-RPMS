@@ -1,5 +1,5 @@
 DGSEC2 ;ALB/RMO - Display User Access to Patient Record ; 22 JUN 87 1:00 pm
- ;;5.3;Registration;**391,1013**;Aug 13, 1993
+ ;;5.3;Registration;**391,1013,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  9/01/2000 added call to list template
  ;              1/04/2002 removed screen on lookup
  ;

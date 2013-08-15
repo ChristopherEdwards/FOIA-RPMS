@@ -1,8 +1,8 @@
 BQICMUTL ;VNGT/HS/ALA-Care Mgmt Utility ; 25 Jul 2011  7:25 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
  ;
-ITM(TMFRAME,BQDFN,FREF,RREF,TIEN,TAX) ;EP - Find the value
+ITM(TMFRAME,BQDFN,FREF,RREF,TIEN,TAX,TREF) ;EP - Find the value
  ; Find visits for a request item
  ; Input
  ;   TMFRAME - Time frame to search data for
@@ -11,11 +11,17 @@ ITM(TMFRAME,BQDFN,FREF,RREF,TIEN,TAX) ;EP - Find the value
  ;   RREF    - Search file table file
  ;   TIEN    - Item to search on
  ;   TAX     - Taxonomy
- NEW GREF,ENDT,IEN,QFL,RESULT,VISIT,VSDTM,RES,DTM,ITIEN,EDT,BDT,TIEN
+ ;   TREF    - Reference array
+ ;
+ NEW GREF,ENDT,IEN,QFL,RESULT,VISIT,VSDTM,RES,DTM,ITIEN,EDT,BDT
  S TMFRAME=$G(TMFRAME,"")
  I $G(TAX)'="" D
  . S TREF=$NA(^TMP("BQITAX",$J)) K @TREF
  . D BLD^BQITUTL(TAX,TREF)
+ I $G(TAX)="" D
+ . I $G(TIEN)="" Q
+ . S TREF="BQITAX" K @TREF
+ . S @TREF@(TIEN)=""
  S GREF=$$ROOT^DILFD(FREF,"",1)
  S ENDT=$$DATE^BQIUL1(TMFRAME)
  S IEN="",QFL=0,RESULT=0
@@ -34,7 +40,7 @@ ITM(TMFRAME,BQDFN,FREF,RREF,TIEN,TAX) ;EP - Find the value
  ... S RESULT=1_U_VSDTM_U_U_VISIT_U_IEN_U_RES,QFL=1
  . ; check for refusal
  . I $O(^AUPNPREF("AA",BQDFN,RREF,""))'="" D
- .. S TIEN="" F  S TIEN=$O(@TREF@(TIEN)) Q:TIEN=""  D
+ .. I $D(TREF) S TIEN="" F  S TIEN=$O(@TREF@(TIEN)) Q:TIEN=""  D
  ... S EDT=9999999-ENDT,BDT=""
  ... F  S BDT=$O(^AUPNPREF("AA",BQDFN,RREF,TIEN,BDT)) Q:BDT=""!(BDT>EDT)  D
  .... S IEN="" F  S IEN=$O(^AUPNPREF("AA",BQDFN,RREF,TIEN,BDT,IEN)) Q:IEN=""  D
@@ -54,7 +60,7 @@ ITM(TMFRAME,BQDFN,FREF,RREF,TIEN,TAX) ;EP - Find the value
  .. S RESULT=1_U_VSDTM_U_U_VISIT_U_IEN_U_RES,QFL=1
  . ; check for refusal
  . I $O(^AUPNPREF("AA",BQDFN,RREF,""))'="" D
- .. S TIEN="" F  S TIEN=$O(@TREF@(TIEN)) Q:TIEN=""  D
+ .. I $D(TREF) S TIEN="" F  S TIEN=$O(@TREF@(TIEN)) Q:TIEN=""  D
  ... ;S EDT=(9999999-DT)+.001,BDT=""
  ... S BDT="",STOP=0
  ... F  S BDT=$O(^AUPNPREF("AA",BQDFN,RREF,TIEN,BDT)) Q:BDT=""  D  Q:STOP
@@ -79,7 +85,7 @@ FTAG(TGN,COLN,BQDFN) ; EP - Find the last entry for a value in Tag
  ;S DIS=$$GET1^DIQ(90506.26,IENS,.05,"I")
  S NAM=$$GET1^DIQ(90506.26,IENS,.03,"E")
  S TAX=$$GET1^DIQ(90506.26,IENS,.07,"E")
- Q $$ITM^BQICMUTL("",BQDFN,FREF,RREF,ITM,TAX)
+ Q $$ITM^BQICMUTL("",BQDFN,FREF,RREF,ITM,TAX,"")
  ;
 FND(CRN,COLN,BQDFN) ;EP - Find the last entry for a value in Source
  ; Input Parameters
@@ -87,7 +93,7 @@ FND(CRN,COLN,BQDFN) ;EP - Find the last entry for a value in Source
  ;   COLN  - Column IEN
  ;   BQDFN - Patient IEN
  ;
- NEW DA,IENS
+ NEW DA,IENS,FRN,FREF,RREF,ITM,NAM,TAX,EXEC,NONT
  S DA(1)=CRN,DA=COLN,IENS=$$IENS^DILF(.DA)
  S FRN=$$GET1^DIQ(90506.51,IENS,.02,"I")
  S FREF=$$PTR^BQIUL2(90506.51,.02,FRN,.02)
@@ -96,4 +102,13 @@ FND(CRN,COLN,BQDFN) ;EP - Find the last entry for a value in Source
  ;S DIS=$$GET1^DIQ(90506.51,IENS,.05,"I")
  S NAM=$$GET1^DIQ(90506.51,IENS,.03,"E")
  S TAX=$$GET1^DIQ(90506.51,IENS,.07,"E")
- Q $$ITM^BQICMUTL("",BQDFN,FREF,RREF,ITM,TAX)
+ S EXEC=$$GET1^DIQ(90506.51,IENS,1,"E")
+ S NONT=$$GET1^DIQ(90506.51,IENS,2,"E")
+ I EXEC'="" X EXEC Q RESULT
+ I NONT'="" X NONT
+ Q $$ITM^BQICMUTL("",BQDFN,FREF,RREF,ITM,TAX,.TREF)
+ ;
+SKN ;EP - Skin Test
+ S TIEN=$O(^AUTTSK("B","PPD","")) I TIEN="" Q
+ S BTREF(TIEN)="PPD",TREF=$NA(BTREF)
+ Q

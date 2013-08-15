@@ -1,10 +1,12 @@
-BLRLINK3 ; IHS/HQT/MJL - CONT.OF BLR - IHS LABORATORY TO PCC ,PCC DATA TRANSFER ; 16 Jun 2011  10:31 AM ; [ Aug 18, 2010 ]
- ;;5.2;IHS LABORATORY;**1010,1011,1014,1015,1018,1021,1022,1024,1025,1027,1028,1029,1030**;NOV 01, 1997
+BLRLINK3 ; IHS/HQT/MJL - CONT. OF BLR - IHS LABORATORY VISIT CREATION ;   [ 02/20/2003  7:35 AM ]
+ ;;5.2;IHS LABORATORY;**1010,1011,1014,1015,1018,1021,1022,1024,1025,1027,1028,1029,1030,1031**;NOV 01, 1997
  ;
- ; EP
+EP ; EP
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("EP^BLRLINK3 0.0")
+ ;
  S BLRVFILE="9000010"_$S(BLRSS="CH":".09",BLRSS="MI":".25",BLRSS="BB":".31",1:"??")
  I BLRVFILE["??" S BLRERR=1,BLRBUL=2,BLRPCC="Unknown Test Subscript - link not yet implemented" Q
+ ;
  S BLRVGL=$$GETGREF(BLRVFILE)
  D VBUILD Q:BLRERR
  D VEDIT
@@ -13,6 +15,7 @@ BLRLINK3 ; IHS/HQT/MJL - CONT.OF BLR - IHS LABORATORY TO PCC ,PCC DATA TRANSFER 
  ;
 VBUILD ; EP create APCDALVR array which is the array containing the elements to be passed to PCC
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("VBUILD^BLRLINK3 0.0")
+ ;
  ;--- BEGIN cmi/anch/maw REF LAB -- LR*5.2*1021
  I $G(^BLRTXLOG("BVER",BLRIEN))]"" D  Q  ;cmi/maw don't move to pcc if held for verification, ref lab
  . S BLRERR=1,BLRBUL=0
@@ -25,8 +28,9 @@ VBUILD ; EP create APCDALVR array which is the array containing the elements to 
  D FIND^DIC(40.7,"","","","LABORATORY SERVICES","","","","","OUT")
  S LABCLIN=+$G(OUT("DILIST",2,1))
  I LABCLIN>0 D
+ . Q:$D(APCDALVR("APCDTCLN"))           ; If and Only If APCDALVR("APCDTCLN")=""  -- IHS/MSC/MKK - LR*5.2*1031
  . S APCDALVR("APCDTCLN")="`"_LABCLIN
- . S APCDALVR("APCDCLN")="`"_LABCLIN
+ . S APCDALVR("APCDTCLN")="`"_LABCLIN
  ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1022
  ;
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("VBUILD^BLRLINK3 1.0","APCDALVR")
@@ -46,11 +50,13 @@ VBUILD ; EP create APCDALVR array which is the array containing the elements to 
  ;
  ;----- BEGIN LR*5.2*1028;08/18/10;IHS/OIT/MPW - IHS LOINC/UCUM MODIFICATIONS 
  N XXX,LRIEN,BLRUNIT,SIEN
- S XXX=$G(BLRVAL(0)),LRIEN=$P(XXX,U,6)
- I $P(^LAB(60,LRIEN,0),U,5)="" S APCDALVR("APCDTLNC")="`"_$P($G(^LAB(60,LRIEN,9999999)),U,2)
+ S XXX=$G(BLRVAL(0)),LRIEN=+$P(XXX,U,6)
+ I LRIEN,$P(^LAB(60,LRIEN,0),U,5)="" S APCDALVR("APCDTLNC")="`"_$P($G(^LAB(60,LRIEN,9999999)),U,2)
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("VBUILD^BLRLINK3 3.0","APCDALVR")
  K XXX,LRIEN,BLRUNIT,SIEN
  ;----- END LR*5.2*1028 - IHS LOINC/UCUM MODIFICATIONS - IHS/OIT/MPW
+ ;
+ D:+$L($G(BLRCOMDT))<1 GETCOMPD(BLRLOGDA,BLRACC,$S(BLRTLAB="":BLRTNAM,1:BLRTLAB),.BLRCOMDT)     ; IHS/OIT/MKK - LR*5.2*1031
  ;
  S APCDALVR("APCDTRDT")=$G(BLRCOMDT)
  S APCDALVR("APCDTCLS")="`"_$G(BLRCOLSA)
@@ -70,6 +76,7 @@ VBUILD ; EP create APCDALVR array which is the array containing the elements to 
  S APCDALVR("APCDTRFH")=BLRRFH
  ;
  ;S APCDALVR("APCDTRES")=$E(BLRRES,1,10)
+ D:$G(BLRRES)'="" CHSETCOD^BLRLINK4   ; IHS/MSC/MKK - LR*5.2*1031
  S APCDALVR("APCDTRES")=$E(BLRRES,1,30)  ;cmi/maw 3/25/03 changed for ref lab
  ;S APCDALVR("APCDTRES")=BLRRES   ;IHS/ITSC/TPF 03/25/02 WHY A LIMIT OF 10?
  ;THIS IS OLD COMMENT STUFF
@@ -79,10 +86,13 @@ VBUILD ; EP create APCDALVR array which is the array containing the elements to 
  ;
  ;create micro or Blood Bank specific elements in the APCDALVR array
  I BLRSS="MI" D  ;IHS/DIR TUC/FJE 12/08/98
- . S APCDALVR("APCDTORG")=$S(BLRORG="":BLRORGN,1:"`"_BLRORG),APCDALVR("APCDTANT")=$S(BLRANT="":BLRANTN,1:"`"_BLRANT) ;IHS/DIR TUC/FJE 12/08/98
- . ;S APCDALVR("APCDTCOL")=$S($G(BLCOLSP)="":$G(BLCOLSP),1:"`"_BLRCOLSP) S:+BLRCOMPD APCDALVR("APCDTCMD")=BLRCOMPD  ;IHS/DIR TUC/FJE 12/08/98
- . S APCDALVR("APCDTCOL")=$S($G(BLCOLSP)'="":$G(BLCOLSP),1:"`"_BLRCOLSP) S:+BLRCOMPD APCDALVR("APCDTCMD")=BLRCOMPD  ;IHS/ITSC/TPF CHINLE FIX 08/16/02
+ . S APCDALVR("APCDTORG")=$S(BLRORG="":BLRORGN,1:"`"_BLRORG),APCDALVR("APCDTANT")=$S(BLRANT="":BLRANTN,1:"`"_BLRANT) ; IHS/DIR TUC/FJE 12/08/98
+ . S:$G(BLRCOLSP)="" BLRCOLSP=$P($G(^LAB(60,+$G(BLRTEST),0)),"^",9)                                                 ; IHS/MSC/MKK - LR*5.2*1031
+ . ;S APCDALVR("APCDTCOL")=$S($G(BLCOLSP)="":$G(BLCOLSP),1:"`"_BLRCOLSP) S:+BLRCOMPD APCDALVR("APCDTCMD")=BLRCOMPD   ; IHS/DIR TUC/FJE 12/08/98
+ . S APCDALVR("APCDTCOL")=$S($G(BLCOLSP)'="":$G(BLCOLSP),1:"`"_BLRCOLSP) S:+BLRCOMPD APCDALVR("APCDTCMD")=BLRCOMPD   ; IHS/ITSC/TPF CHINLE FIX 08/16/02
+ ;
  S:BLRSS="BB" APCDALVR("APCDTBTN")=BLRBTN,APCDALVR("APCDTANT")=$S(BLRANT="":BLRANTN,1:"`"_BLRANT)
+ ;
  S:BLREPRV'="" APCDALVR("APCDTEPR")="`"_BLREPRV
  S:BLROPRV'="" APCDALVR("APCDTPRV")="`"_BLROPRV
  S:BLROPRV="" APCDALVR("APCDTOPR")=$S(BLROPNM="":BLREPNM,1:BLROPNM)
@@ -93,11 +103,21 @@ VBUILD ; EP create APCDALVR array which is the array containing the elements to 
  Q
  ;
 VEDIT ; EP update V file entries
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ NEW REFLABF              ; REFerence LAB Flag
+ ;
+ S REFLABF=0              ; Initialize to FALSE
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("VEDIT^BLRLINK3 0.0","APCDALVR")
+ ;
  I BLRSTAT="D" S DIK=BLRVGL,DA=BLRVIEN D CALLDIK^BLRNLINK Q  ;;results null - do delete
  S BLRTRAN=1
  ;M ^BLRAPCD=APCDALVR
- S APCDALVR("APCDTABN")=$S('$D(BLRMOD):BLRABNL,BLRABNL'="":BLRABNL,BLRVIEN="":"",$P($G(@(BLRVGL_"BLRVIEN,0)")),U,5)'="":"@",1:"") ;must be deleted if result value changes
+ ; S APCDALVR("APCDTABN")=$S('$D(BLRMOD):BLRABNL,BLRABNL'="":BLRABNL,BLRVIEN="":"",$P($G(@(BLRVGL_"BLRVIEN,0)")),U,5)'="":"@",1:"") ;must be deleted if result value changes
+ ;
+ S APCDALVR("APCDTABN")=$S('$D(BLRMOD):$G(BLRABNL),BLRVIEN="":"",$P($G(@(BLRVGL_"BLRVIEN,11)")),U,9)="R":"@",$G(BLRABNL)'="":BLRABNL,1:"")  ; IHS/MSC/MKK - LR*5.2*1031 - code will delete flag if result value changes 
+ ;
  ; S APCDALVR("APCDATMP")=$S($D(BLRMOD):"[APCDALVR "_BLRVFILE_" (MOD)]",1:"[APCDALVR "_BLRVFILE_" (ADD)]") D ^APCDALVR
  ; ----- BEGIN IHS/OIT/MKK LR*5.2*1024 MODIFICATIONS
  ;   Several entries in the APCDALVR array were being cleared, so they are now being
@@ -115,8 +135,10 @@ VEDIT ; EP update V file entries
  . NEW IHSLPOV
  . I $G(BLRLPOV)["^" S IHSLPOV=$P(BLRLPOV,"^",2)
  . S:$G(IHSLPOV)="" IHSLPOV="`"_$P(BLRLPOV,"^")
+ . I +$$ICDDX^ICDCODE($P(IHSLPOV,"`",2))<1 S IHSLPOV=$P(IHSLPOV,"`",2)    ; IHS/MSC/MKK - LR*5.2*1031
  . S APCDALVR("APCDTLPV")=IHSLPOV
  ; ----- END IHS/OIT/MKK - LR*5.2*1027
+ ;
  ;APCDTLPV
  ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1025
  ; USER LAST UPDATE field in Visit file is populated by the DUZ.
@@ -129,24 +151,33 @@ VEDIT ; EP update V file entries
  ;
  ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
  D RESETDUZ^BLRPCCVC
- ; S APCDALVR("APCDTEPR")="`"_DUZ      ; IHS/OIT/MKK - LR*5.2*1029
+ ; S APCDALVR("APCDTEPR")="`"_DUZ      ; IHS/OIT/MKK - LR*5.2*1029 - Line commented out
  ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
  ;
  I $G(APCDALVR("BLRLINK"))="" S APCDALVR("BLRLINK")=1
  ;
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1027 -- Make sure Ref Lab Reference Ranges used, if they exist
- D HL7REFLR
- ; ----- END IHS/OIT/MKK - LR*5.2*1027
+ ; D HL7REFLR   ; IHS/OIT/MKK - LR*5.2*1027 -- Make sure Ref Lab Reference Ranges used, if they exist
+ D HL7REFLR^BLRLINK4(.REFLABF)    ; IHS/MSC/MKK - LR*5.2*1031 -- External Routine
+ ;
+ ; D CHKPCCRU   ; IHS/OIT/MKK - LR*5.2*1030
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ I 'REFLABF D
+ . D CHKPCCRU^BLRLINK4
+ . D CHKREFA^BLRLINK4
+ . D LOTZERO^BLRLINK4(.APCDALVR)
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
+ D RESETLOI        ; IHS/MSC/MKK - LR*5.2*1031 -- Have to reset LOINC each time
  ;
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("VEDIT^BLRLINK3 5.0","APCDALVR")
- ;
- D CHKPCCRU    ; IHS/OIT/MKK - LR*5.2*1030
  ;
  D ^APCDALVR
  ; 
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("VEDIT^BLRLINK3 6.0","APCDALVR")
  ;
  ; ----- END IHS/OIT/MKK LR*5.2*1024 MODIFICATIONS
+ ;
  ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1025
  S TSTR="DUZ"_"=OLDDUZ"
  ; S @TSTR                          ; Change DUZ back
@@ -169,137 +200,72 @@ VEDIT ; EP update V file entries
  .W:'BLRQUIET !,"Another user is editing this TX file entry..."_BLRIEN,! S BLRERR=1
  ;
  I $G(APCDALVR("APCDAFLG"))=1 S BLRBUL=2,BLRPCC="Invalid template for result display"_" FLG = 1" W:'BLRQUIET !,BLRPCC,!
+ ;
  D ^BLRLINKP:$G(APCDALVR("APCDAFLG"))=2
+ ;
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("VEDIT^BLRLINK3 9.0","APCDALVR")
  Q
- ;
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       Double check Ref Ranges & Units.  If null, reset -- if possible.
- ;       Need to do this because POC tests' Ref Ranges & Units variables are cleared out somewhere.
- ;       Also, reset Lab POV if necessary.
-CHKPCCRU ; EP
- NEW PCCLOW,PCCHIGH,PCCUNITS
- NEW ABNFLAG,CPTCODE,CRITLOW,CRITHIGH,LABPOV,REFLOW,REFHIGH,STR,UNITS
- NEW LABTIEN
- ;
- S PCCLOW=$G(APCDALVR("APCDTRFL"))
- S PCCHIGH=$G(APCDALVR("APCDTRFH"))
- S PCCUNITS=$G(APCDALVR("APCDTUNI"))
- ;
- ; If Ref Low, Ref High Ranges & Units already filled out, just return
- Q:$L(PCCLOW)&($L(PCCHIGH))&($L(PCCUNITS))
- ;
- ; If the test is part of a panel being processed, the BLRTLAB variable
- ; has the ATOMIC test's IEN.  If the test is not part of a panel, the
- ; BLRTLAB variable doesn't exist.
- S LABTIEN=$S(+$G(BLRTLAB):BLRTLAB,1:BLRTEST)
- ;
- S STR=$G(^LAB(60,+$G(LABTIEN),1,+$G(BLRSITE),0))     ; Ref Ranges & Units from File 60
- ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("CHKPCCRU^BLRLINK3 0.0","APCDALVR")
- ;
- Q:$L($TR(STR,"^"))<1       ; If no Ref Ranges nor units, skip
- ;
- S REFLOW=$P(STR,"^",2)
- S REFHIGH=$P(STR,"^",3)
- S CRITLOW=$P(STR,"^",4)
- S CRITHIGH=$P(STR,"^",5)
- S UNITS=$P(STR,"^",7)
- ;
- ; Reset PCC array only if PCC Ref Ranges or Units "empty".  Reset ^BLRTXLOG entries, if possible
- I '$L(PCCLOW)&($L(REFLOW)) S APCDALVR("APCDTRFL")=REFLOW  S:+$G(BLRIEN) $P(^BLRTXLOG(BLRIEN,20),"^",8)=REFLOW
- I '$L(PCCHIGH)&($L(REFHIGH)) S APCDALVR("APCDTRFH")=REFHIGH  S:+$G(BLRIEN) $P(^BLRTXLOG(BLRIEN,20),"^",9)=REFHIGH
- I '$L(PCCUNITS)&($L(UNITS)) S APCDALVR("APCDTUNI")=UNITS  S:+$G(BLRIEN) $P(^BLRTXLOG(BLRIEN,20),"^",3)=UNITS
- ;
- ; If LAB Point Of View has `, just make it a string.
- S LABPOV=$G(APCDALVR("APCDTLPV"))
- S:LABPOV["`" APCDALVR("APCDTLPV")=$P(LABPOV,"`",2)
- ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("CHKPCCRU^BLRLINK3 8.0","APCDALVR")
- ;
- ; The following have to be rechecked due to POC tests
- ;
- ; If CPT code exists in file 60, fix APCDALVR array if necessary
- I $L($G(APCDALVR("APCDTCPT")))<1 D
- . S CPTCODE=$P($G(^LAB(60,+$G(LABTIEN),1,+$G(BLRSITE),3)),"^")
- . S:$L(CPTCODE) APCDALVR("APCDTCPS")=CPTCODE
- ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("CHKPCCRU^BLRLINK3 9.0","APCDALVR")
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ;
 GETGREF(BLRX)      ; EP
  D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("GETGREF^BLRLINK3 0.0")
  Q $G(^DIC(BLRX,0,"GL"))
  ;
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1027
- ;       IF and ONLY IF the transaction is tied to an incoming HL7 message
- ;       get Reference Ranges & Units from HL7 message
-HL7REFLR ; EP 
- NEW ABNFLAG,REFHIGH,REFLOW,UNITS,WOT
- S WOT=$$CHKINHL7(BLRLOGDA)
- Q:WOT<1
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+RESETLOI ; EP - Reset LOINC
+ NEW LOINC,SITESPEC,STR,TIEN
  ;
- S:$G(UNITS)'="" APCDALVR("APCDTUNI")=UNITS
- S:$G(REFLOW)'="" APCDALVR("APCDTRFL")=REFLOW
- S:$G(REFHIGH)'="" APCDALVR("APCDTRFH")=REFHIGH
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("HL7REFLR^BLRLINK3 9.0","APCDALVR")
+ D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("RESETLOI^BLRLINK3 0.0","APCDALVR")
+ K APCDALVR("APCDTLNC")
+  ;
+ S TIEN=$G(APCDALVR("APCDTLAB"))
+ S:TIEN["`" TIEN=$P(TIEN,"`",2)
+ S TIEN=+$G(TIEN)
+ ;
+ Q:TIEN<1       ; If no pointer to File 60, skip
+ ;
+ S LOINC=$P($G(^LAB(60,TIEN,9999999)),"^",2)
+ ;
+ D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("RESETLOI^BLRLINK3 5.0","APCDALVR")
+ ;
+ I $L(LOINC) D  Q
+ . S BLRLOINC=LOINC
+ . S APCDALVR("APCDTLNC")="`"_LOINC
+ ;
+ S SITESPEC=$G(APCDALVR("APCDTSTE"))
+ S:SITESPEC["`" SITESPEC=+$P(SITESPEC,"`",2)
+ ;
+ Q:SITESPEC<1   ; If no pointer to File 61, skip
+ ;
+ S LOINC=$G(^LAB(60,TIEN,1,SITESPEC,95.3))
+ ;
+ S:$L(LOINC) APCDALVR("APCDTLNC")="`"_LOINC,BLRLOINC=LOINC
+ I +$G(LOINC),+$G(BLRLOGDA) S $P(^BLRTXLOG(BLRLOGDA,13),"^",10)=LOINC
+ ;
+ D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("RESETLOI^BLRLINK3 9.0","APCDALVR")
  Q
  ;
-CHKINHL7(BLRLOGDA) ; EP
- NEW DNIEN,DNDESC,F60IEN,HL7TEST,LRAA,LRAD,LRAN,LRAS,STR,UID
+ ; If Complete Date variable is null, but there is a complete date, reset it
+GETCOMPD(BLRLOGDA,LRAS,F60IEN,COMPDATE) ; EP
+ D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("GETCOMPD^BLRLINK3 0.0","APCDALVR")
  ;
- Q:+$G(BLRLOGDA)<1 0
+ NEW LRAA,LRAD,LRAN,LOGCOMPD,PTR,RESULTDT
  ;
- S F60IEN=+$P($G(^BLRTXLOG(BLRLOGDA,0)),"^",6)   ; File 60 IEN
+ Q:$$GETACCCP^BLRUTIL3(LRAS,.LRAA,.LRAD,.LRAN)<1
  ;
- S LRAS=$P($G(^BLRTXLOG(BLRLOGDA,12)),"^",2)     ; Accession Number
- D GETACCCP^BLRUTIL3(LRAS,.LRAA,.LRAD,.LRAN)
- Q:LRAA<1!(LRAD<1)!(LRAN<1) 0                    ; Don't check if no Accession
+ S PTR=+$O(^LRO(68,LRAA,1,LRAD,1,LRAN,4,"B",F60IEN,0))
+ Q:PTR<1
  ;
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- D REFLAB68^BLRLINKU                             ; Check on ^XTMP("BLRLINKU")
- Q:$D(^XTMP("BLRLINKU",+$G(DUZ(2)),LRAA))<1 0    ; Don't check if not a Ref Lab Accession
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ S RESULTDT=+$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,4,PTR,0)),"^",5)
+ Q:RESULTDT<1
  ;
- S UID=+$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3)),"^")
- Q:UID<1 0                                       ; Don't check if no UID
+ S COMPDATE=RESULTDT
  ;
- Q:$$GETINTHU^BLRLINKU(UID)<1 0                  ; IHS/OIT/MKK - LR*5.2*1030
+ Q:+$G(BLRLOGDA)<1
  ;
- S STR=$G(^TMP("BLR",$J,UID,F60IEN))
- Q:$L(STR)<1 0
+ ; Skip if Complete Date in ^BLRTXLOG
+ Q:+$P($G(^BLRTXLOG(BLRLOGDA,13)),"^",9)
  ;
- S ABNFLAG=$P(STR,"^",2)
- S REFLOW=$P(STR,"^",3)
- S REFHIGH=$P(STR,"^",4)
- S UNITS=$P(STR,"^",5)
- ;
- S:$L(ABNFLAG) APCDALVR("APCDTABN")=$G(ABNFLAG)
- S:$L(UNITS) APCDALVR("APCDTUNI")=$G(UNITS)
- S:$L(REFLOW) APCDALVR("APCDTRFL")=$G(REFLOW)
- S:$L(REFHIGH) APCDALVR("APCDTRFH")=$G(REFHIGH)
- ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("CHKINHL7^BLRLINK3 9.0","APCDALVR")
- Q 1
- ;
- ;
-CHSETCOD ; EP - Check to see if SET OF CODES & "Change" Result, if Necessary
- NEW CHANGED,DATANAME,F60PTR,LRPIECE,LRSET,Q2
- ;
- S F60PTR=+$TR($G(APCDALVR("APCDTLAB")),"`")
- S DATANAME=$G(^LAB(60,F60PTR,.2))
- Q:DATANAME<1
- ;
- Q:$P($G(^DD(63.04,DATANAME,0)),"^",2)'="S"   ; Quit if NOT Set of Codes
- ;
- S Q2=$P(^DD(63.04,DATANAME,0),U,3)
- S CHANGED=0
- F LRPIECE=1:1 S LRSET=$P(Q2,";",LRPIECE)  Q:LRSET'[":"!(CHANGED)  D
- . Q:$P(LRSET,":")'=BLRRES     ; Quit if NOT code
- . ;
- . S BLRRES=$P(LRSET,":",2)
- . S CHANGED=1
- ;
+ ; Complete Date not in ^BLRTXLOG, set it
+ S $P(^BLRTXLOG(BLRLOGDA,13),"^",9)=RESULTDT
  Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1027
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031

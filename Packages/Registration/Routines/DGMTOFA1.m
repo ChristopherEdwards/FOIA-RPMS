@@ -1,5 +1,5 @@
 DGMTOFA1 ;ALB/CAW - Output for Means/Copay Test List/Letter ; 8/24/92
- ;;5.3;Registration;**19,33,166,182**;Aug 13, 1993
+ ;;5.3;Registration;**19,33,166,182,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN S (DGTMP,DGTMP1,DGTMP2,DGTMP3)="",(DGSTOP,DGPAGE)=0,$P(DGLINE,"-",IOM+1)=""

@@ -1,5 +1,5 @@
 DGSEC3 ;ALB/RMO - Purge Record of User Access from Security Log ; [ 09/13/2001  4:02 PM ]
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 9/6/2000 improved error message when parameter not set
  ;
  I '$D(^XUSEC("DG SECURITY OFFICER",DUZ)) W !!?3,*7,"You do not have the appropriate access privileges to purge user access." Q

@@ -1,5 +1,5 @@
-SCRPO6 ;BP-CIOFO/KEITH - Historical Team Assignment Summary ; 9/14/99 10:07am [ 11/02/2000  9:02 AM ]
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+SCRPO6 ;BP-CIOFO/KEITH - Historical Team Assignment Summary ; 9/14/99 10:07am
+ ;;5.3;Scheduling;**177,297,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/02/2000 added call to list template
  ;                        changed 132 column message
  ;                        changed footer code for list template
@@ -8,6 +8,8 @@ SCRPO6 ;BP-CIOFO/KEITH - Historical Team Assignment Summary ; 9/14/99 10:07am [ 
  ;
 EN ;Queue report
  N LIST,RTN,DESC
+ S SUMON=0
+ W !,"Print Final Summary Only" S %=2 D YN^DICN I %=1 S SUMON=1
  S LIST="DIV,TEAM"
  S RTN="RUN^SCRPO6"
  S DESC="Historical Team Assignment Summary"
@@ -33,7 +35,7 @@ PROMPT(LIST,SCRTN,SCDESC) ;Prompt for report parameters, queue report
  G:'$$PPAR^SCRPO(.SC,1,.SCT) END
  ;W !!,"This report requires 132 column output!"  ;IHS/ANMC/LJF 11/2/2000
  W !!,"This report, when printed on paper,  requires wide paper or condensed print!"  ;IHS/ANMC/LJF 11/2/2000
- W ! N ZTSAVE S ZTSAVE("^TMP(""SC"",$J,")="",ZTSAVE("SC")=""
+ W ! N ZTSAVE S ZTSAVE("^TMP(""SC"",$J,")="",ZTSAVE("SC")="",ZTSAVE("SUMON")=""
  D EN^XUTMDEVQ(SCRTN,SCDESC,.ZTSAVE)
 END ;K ^TMP("SC",$J) D DISP0^SCRPW23,END^SCRPW50 Q  ;IHS/ANMC/LJF 11/2/2000
  K ^TMP("SC",$J) D DISP0^SCRPW23 Q  ;IHS/ANMC/LJF 11/2/2000
@@ -88,6 +90,7 @@ PRINT ;Print report
  Q:SCOUT
  S SCX=^TMP("SCRPT",$J,0,0) D SLINE("REPORT TOTAL:",SCX,12,.SCLF)
  Q:SCOUT  D FOOT^SCRPO7
+ Q:$G(SUMON)
  I $D(^TMP("SCRPT",$J,0,0,"TLIST")) D
  .S SCTITL(2)=$$HDRX("T") D HDR^SCRPO(.SCTITL,132),SHDR("T") Q:SCOUT
  .S SCDIV=""

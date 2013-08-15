@@ -1,5 +1,5 @@
-SDAMEP3 ;ALB/CAW - Extended Display (Appt. Event Log) ; 16 May 2001  6:31 PM [ 09/08/2004  8:42 AM ]
- ;;5.3;Scheduling;**20,241,1001,1005**;Aug 13, 1993
+SDAMEP3 ;ALB/CAW - Extended Display (Appt. Event Log) ; 16 May 2001  6:31 PM
+ ;;5.3;Scheduling;**20,241,1001,1005,1015,1016**;Aug 13, 1993;Build 20
  ;IHS/ANMC/LJF 12/13/2000 added display of date routing slip printed
  ;IHS/ITSC/WAR 08/19/2004 PATCH 1001 quit added by pass VA wait time display
  ;IHS/OIT/LJF  12/30/2005 PATCH 1005 added code to wrap long cancel remarks
@@ -30,6 +30,9 @@ APLOG ;
  ;
  S X=""
  S X=$$SETSTR^VALM1("  Cancel Remark:",X,5,SDWIDTH)
+ ;S X=$$SETSTR^VALM1(SDPT(2.98,SDT,17),X,SDFSTCOL+5,50)  ;ihs/cmi/maw removed patch 1016
+ ;D SET^SDAMEP1(X)
+ ;
  ;
  ;IHS/OIT/LJF 12/30/2005 PATCH 1005 wrap to multiple lines if longer than 60 characters
  ;S X=$$SETSTR^VALM1(SDPT(2.98,SDT,17),X,SDFSTCOL+5,50)

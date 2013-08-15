@@ -1,6 +1,7 @@
 LRAPM ;AVAMC/REG/WTY - ANATOMIC PATH MODIFY MICRO/DX ;10/23/04  22:55
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,91,130,231,248,295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1002,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 72,91,130,231,248,295
  ;
  ;Reference to ^%DT supported by IA #10003
  ;Reference to %XY^%RCR supported by IA #10022
@@ -68,7 +69,8 @@ A S:'$D(^LR(LRDFN,LRSS,LRI,LRE,0)) ^(0)=LRQ(LRB) S LRT(1)=^(0),(B,C)=0
  S X=^LR(LRDFN,LRSS,LRI,0),Y=$P(X,"^",15),$P(^(0),"^",11)="" S:'Y $P(^(0),"^",15)=$P(X,"^",11)
  I $G(SEX)["F","SPCY"[LRSS D DEL^LRWOMEN ;This sends notificatin to WHP
  ;that a previously verified report has been modified. ;cym 2/20/1999
- ; D UPDATE^LRPXRM(LRDFN,LRSS,LRI)     ; IHS/OIT/MKK - LR*5.2*130 - RPMS Does NOT use Clinical Reminders
+ ; D UPDATE^LRPXRM(LRDFN,LRSS,LRI)     ; IHS/OIT/MKK - LR*5.2*1030 - RPMS Does NOT use Clinical Reminders
+ I $$PATCH^BLRUTIL4("PXRM*1.5*12") D UPDATE^LRPXRM(LRDFN,LRSS,+$G(LRI))     ; IHS/MSC/MKK - LR*5.2*1031
  I '$D(^LRO(69.2,LRAA,2,LRAN,0)) D
  .L +^LRO(69.2,LRAA,2):5 I '$T D  Q
  ..S MSG(1)="The final reports queue is in use by another person.  "

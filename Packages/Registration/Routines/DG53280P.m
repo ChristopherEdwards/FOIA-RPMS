@@ -1,5 +1,5 @@
 DG53280P ;BP-CIOFO/MM - PTF QUARTERLY CENSUS DATES;3/14/00
- ;;5.3;Scheduling/Registration;**280**;Aug 13, 1993
+ ;;5.3;Scheduling/Registration;**280,1015**;Aug 13, 1993;Build 21
  ;
  ;
 CENSUS ;--- add new census date

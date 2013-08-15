@@ -1,7 +1,5 @@
-SDF1 ;SF/GFT - PRINT FILE ROOM LIST BY TERMINAL DIGIT ; [ 09/13/2001  2:26 PM ]
- ;;5.3;Scheduling;;Aug 13, 1993
- ;IHS/ANMC/LJF 11/30/2000 contains $N but report not used by IHS
- ;
+SDF1 ;SF/GFT - PRINT FILE ROOM LIST BY TERMINAL DIGIT ; 12 SEP 84  9:48 am
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  F C=0:0 S C=$N(^SC(C)) Q:C'>0  I $D(^SC(C,0)) D CHECK I $T F SC="S","C" F D=SDDT-.01:0 S D=$N(^SC(C,SC,D)) Q:D\1-SDDT  F P=0:0 S P=$N(^SC(C,SC,D,1,P)) Q:P'>0  S X=^(P,0) D C:$D(^DPT(+X,0))
  U IO W @IOF,!?9,"FILE ROOM LIST FOR APPOINTMENTS " S Y=SDDT D DT^DIQ W !?55,"PRINTED: " S Y=DT D DT^DIQ W !!! S DA=0
  F I=0:0 S DA=$N(^UTILITY($J,DA)) Q:DA<0  F X=0:0 S X=$N(^UTILITY($J,DA,X)) Q:X'>0  S SD1=0,D=^DPT(X,0) W !,$E($P(D,U,9),6,9),?6,$E($P(D,U,1),1,23),?30,$E($P(D,U,9),1,9) S C=0 F CC=1:1 S C=$N(^UTILITY($J,DA,X,C)) Q:C<0  D O

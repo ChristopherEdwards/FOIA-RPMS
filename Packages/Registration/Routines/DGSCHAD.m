@@ -1,5 +1,5 @@
 DGSCHAD ;ALB/MRL - SCHEDULED ADMISSIONS ENTRY/CANCEL ;12/4/91  14:14 ;
- ;;5.3;Registration;**117,187**;Aug 13, 1993
+ ;;5.3;Registration;**117,187,1015**;Aug 13, 1993;Build 21
  ;OERR MODIFICATIONS
 1 ;Schedule Admission
  D Q S DGNEW=0 K ORACTION G Q:$D(DGSKIP) W !! S DIC("A")="Schedule admission for patient:  ",DIC(0)="AEZQLM"

@@ -1,5 +1,5 @@
 DGPHSTAT ;ALB/RPM - PURPLE HEART STATUS REPORT ; 02/01/01 8:00am
- ;;5.3;Registration;**343**;Aug 13, 1993
+ ;;5.3;Registration;**343,1015**;Aug 13, 1993;Build 21
  ;
  ;This report lists all patients with Current PH Status of either
  ;In Process or Pending.  The report can be tasked using TaskMan

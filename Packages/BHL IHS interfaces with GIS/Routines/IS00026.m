@@ -1,6 +1,6 @@
-IS00026(UIF,INOA,INODA) ;Compiled from script 'Generated: HL IHS IZV04 V02VXX IN-I' on SEP 05, 2011
+IS00026(UIF,INOA,INODA) ;Compiled from script 'Generated: HL IHS IZV04 V02VXX IN-I' on FEB 28, 2013
  ;Part 1
- ;Copyright 2011 SAIC
+ ;Copyright 2013 SAIC
 EN S X="ERROR^IS00026",@^%ZOSF("TRAP")
  G START
 ERROR ;
@@ -23,7 +23,6 @@ START ;Initialize variables
  S INDEFSEG("QRD",0)=0
  S INDEFSEG("QRF",0)=0
  S INDEFSEG("PID",1)=1
- S INDEFSEG("NK1",1)=0
  ;Start of GROUP
  F  S MATCH=0 D  Q:'MATCH
  .D:'INVS MC^INHS
@@ -92,17 +91,6 @@ START ;Initialize variables
  .S:DO @("@INV@(""PID18"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,19)
  .S:DO @("@INV@(""PID19"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,20)
  .S:DO @("@INV@(""PID26"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,27)
- .D:'INVS MC^INHS
- .D GET^INHOU(UIF,0) S LINE=$G(LINE),DO=1
- .I LINE?1"N"1"K"1"1".ANPC S DO=1
- .E  S LCT=LCT-CNT,DO=0
- .S:DO @("@INV@(""NK11"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,2)
- .S:DO @("@INV@(""NK12"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,3)
- .S:DO @("@INV@(""NK13"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,4)
- .S:DO @("@INV@(""NK14"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,5)
- .S:DO @("@INV@(""NK15"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,6)
- .S:DO @("@INV@(""NK17"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,8)
- .S:DO @("@INV@(""NK113"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,14)
  .Q
  D:'INVS MC^INHS
  ;Entering TRANS section.
@@ -152,5 +140,18 @@ START ;Initialize variables
  .S (INX,X)=$G(@INV@("MSH10"))
  .I $P($G(INTHL7F2),U,4) S X=$$SUBESC^INHUT7(X,INDELIMS,"I")
  .S @INV@("MSH10")=$G(X)
+ .I '$D(X) D ERROR^INHS("Variable 'MSH10' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
+ .K DXS
+ .S (INX,X)=$G(@INV@("MSH12"))
+ .S:$L(X) X=+X
+ .S @INV@("MSH12")=$G(X)
+ .I '$D(X) D ERROR^INHS("Variable 'MSH12' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
+ .K DXS
+ .S (INX,X)=$G(@INV@("MSH13"))
+ .S:$L(X) X=+X
+ .S @INV@("MSH13")=$G(X)
+ .I '$D(X) D ERROR^INHS("Variable 'MSH13' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
+ .K DXS
+ .S (INX,X)=$G(@INV@("MSH14"))
 9 .D EN^IS00026A
  G C1^IS00026A

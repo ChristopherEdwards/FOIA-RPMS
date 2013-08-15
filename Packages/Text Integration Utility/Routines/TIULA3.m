@@ -1,5 +1,5 @@
-TIULA3 ; SLC/JER - Still more interactive functions ;24-FEB-2000 12:22:04
- ;;1.0;TEXT INTEGRATION UTILITIES;**50,79,98**;Jun 20, 1997
+TIULA3 ; SLC/JER - Still more interactive functions ;1/31/08
+ ;;1.0;TEXT INTEGRATION UTILITIES;**50,79,98,219**;Jun 20, 1997;Build 11
 TITLE ; Title Look-up
  N TIUI,TYPE,TIUCLASS S TIUI=0
  S TIUTYP=$NA(^TMP("TIUTYP",$J))
@@ -72,6 +72,29 @@ SCRCSNR(TIUDA,Y) ; Evaluate whether a person may be selected to cosign
  ; Others who require Cosignature may NOT be selected
  I +$$REQCOSIG^TIULP(+TIUD0,+TIUDA,+Y) S TIUY=0
 SCREENX Q +$G(TIUY)
+ ;
+SCRATT(TIUDA,PERSON) ; Can a person be an Attending for a given docmt?
+ N TIUD0,TIUTYP,CANSEL,DICTDT,TIUISDS,TIUPRNT,TIUPTYP,TIUPD0,TIUISAD
+ S PERSON=+PERSON,TIUDA=+TIUDA,CANSEL=1
+ S TIUD0=$G(^TIU(8925,TIUDA,0)),TIUPRNT=+$P(TIUD0,U,6)
+ S DICTDT=+$P($G(^TIU(8925,+TIUDA,13)),U,7)
+ I DICTDT>0 S DICTDT=$P(DICTDT,".")
+ ; Is Docmt an Addendum, a DS?
+ S TIUTYP=+TIUD0,(TIUPTYP,TIUISAD)=0
+ I TIUPRNT>0 S TIUPTYP=+$G(^TIU(8925,TIUPRNT,0))
+ I TIUPTYP>0,$P($G(^TIU(8925.1,TIUTYP,0)),U)["ADDENDUM" S TIUISAD=1
+ S TIUISDS=+$S('TIUISAD:$$ISDS^TIULX(TIUTYP),1:$$ISDS^TIULX(TIUPTYP))
+ ; A TERMINATED (as of NOW) User may NOT be selected:
+ I $$ISTERM^USRLM(PERSON) S CANSEL=0 G SCRATTX
+ ; If not DS, is person an active provider?
+ I 'TIUISDS S:'$$PROVIDER^TIUPXAP1(PERSON,DT) CANSEL=0 G SCRATTX
+ ; TIUDA is a DS:
+ ; Attendings must be in USR Class PROVIDER NOW:
+ I '$$ISA^USRLM(+PERSON,"PROVIDER") S CANSEL=0 G SCRATTX
+ ; Persons who require Cosignature on Dictation Dt may NOT be selected:
+ I +$$REQCOSIG^TIULP(TIUTYP,+TIUDA,PERSON,DICTDT) S CANSEL=0
+SCRATTX Q +$G(CANSEL)
+ ;
 SCRDFCS(USER,Y) ; Screen Default Cosigner selection for USER
  N TIUY S TIUY=1
  S USER=$G(USER,DUZ)

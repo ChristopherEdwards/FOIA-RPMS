@@ -1,5 +1,6 @@
-GMRCQCST ;SLC/DCM - Gather all consults for QC that do not have status of discontinued,complete, or expired ;5/21/98  10:53
- ;;3.0;CONSULT/REQUEST TRACKING;**1,22**;DEC 27, 1997
+GMRCQCST ;SLC/DCM - Gather all consults for QC that do not have status of discontinued,complete, or expired ;19-Dec-2005 10:05;MGH
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,22,1001**;DEC 27, 1997
+ ;IHS/CIA/MGH Code changed to use HRCN instead of SSN
 STS(SRV) ;;Set partial statistics into the ^TMP global for printing
  ;;SRV=Service being worked on
  ;;STS=OERR status of order (3=hold, 4=flagged, 5=pending, etc.)
@@ -37,10 +38,15 @@ EN1 ;Collect all consults for service chosen, excluding status discontinued
  D KILL
  Q
 PROC(GMRCSRV) ;Set status' info into the ^TMP global
+ N X
  F I=3,4,5,6,7,8,9,11,99 S GMRCXDT=0,GMRCTOT(GMRCSRV,I)=0 F  S GMRCXDT=$O(^GMR(123,"AE",GMRCSRV,I,GMRCXDT)) Q:GMRCXDT=""  D
  .S GMRCPT=0 F  S GMRCPT=$O(^GMR(123,"AE",GMRCSRV,I,GMRCXDT,GMRCPT)) Q:GMRCPT=""  D  S GMRCTOT=GMRCTOT+1,GMRCTOT(I)=GMRCTOT(I)+1,GMRCTOT(GMRCSRV,I)=GMRCTOT(GMRCSRV,I)+1
  ..S X=9999999-GMRCXDT D REGDTM^GMRCU S GMRCDT=$P(X," ",1)
- ..S GMRCDLA=$P(X," ",1),GMRCD(0)=^GMR(123,GMRCPT,0) S GMRCPTN=$P(^DPT($P(GMRCD(0),"^",2),0),"^",1),GMRCPTN=$P(GMRCPTN,",",1)_","_$E($P(GMRCPTN,",",2),1)_".",GMRCPTSN="("_$E($P(^(0),"^",9),6,9)_")"
+ ..S GMRCDLA=$P(X," ",1),GMRCD(0)=^GMR(123,GMRCPT,0)
+ ..;IHS/CIA/MGH  Code changed to use HRCN instead of SSN
+ ..;S GMRCPTN=$P(^DPT($P(GMRCD(0),"^",2),0),"^",1),GMRCPTN=$P(GMRCPTN,",",1)_","_$E($P(GMRCPTN,",",2),1)_".",GMRCPTSN="("_$E($P(^(0),"^",9),6,9)_")"
+ ..S GMRCPTN=$P(^DPT($P(GMRCD(0),"^",2),0),"^",1),GMRCPTN=$P(GMRCPTN,",",1)_","_$E($P(GMRCPTN,",",2),1)_"."
+ ..S X=$$HRCN^GMRCMP($P(GMRCS(0),"^",2),+$G(DUZ(2))),GMRCPTSN="("_X_")"
  ..S GMRCD=0,GMRCD=$O(^GMR(123,GMRCPT,40,"B",GMRCD)) I GMRCD]"" S GMRCDA="",GMRCDA=$O(^GMR(123,+GMRCPT,40,"B",GMRCD,GMRCDA)) I GMRCDA]"" S GMRCDA(0)=^GMR(123,GMRCPT,40,GMRCDA,0) D
  ...S GMRCDLA=$E($P($G(^GMR(123.1,$P(GMRCDA(0),"^",2),0)),"^"),1,20)
  ...Q

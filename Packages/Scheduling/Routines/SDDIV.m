@@ -1,5 +1,5 @@
-SDDIV ;BSN/GRR - MULTI-DIVISION SELECT ; [ 09/13/2001  2:25 PM ]
- ;;5.3;Scheduling;**20,1013**;Aug 13, 1993
+SDDIV ;BSN/GRR - MULTI-DIVISION SELECT ; 27 FEB 84  9:40 am
+ ;;5.3;Scheduling;**20,1013,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 6/30/2000 changed $N to $O
  ;ihs/cmi/maw 05/02/2011 PATCH 1013 added WLLET for wait list letters
  ;

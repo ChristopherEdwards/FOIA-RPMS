@@ -1,5 +1,5 @@
 SCRPW61 ;BP-CIOFO/KEITH - Patient Appointment Statistics (cont.) ; 07 May 99  4:33 PM
- ;;5.3;Scheduling;**163,176,194**;AUG 13, 1993
+ ;;5.3;Scheduling;**163,176,194,1015**;AUG 13, 1993;Build 21
 CNT ;Count clinic statistics
  S SDIV="" F  S SDIV=$O(^TMP("SCRPW",$J,SDIV)) Q:SDIV=""!SDOUT  D
  .S SDCLN="" F  S SDCLN=$O(^TMP("SCRPW",$J,SDIV,1,SDCLN)) Q:SDCLN=""  D STOP Q:SDOUT  D

@@ -1,5 +1,5 @@
 ABME5NM1 ; IHS/ASDST/DMJ - 837 NM1 Segment 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,9**;NOV 12, 2009
  ;Submitter Name
  ;
 EP(X,Y) ;EP - START HERE
@@ -175,20 +175,30 @@ LOOP ;LOOP HERE
  ;
  ;attending/operating/other provider
  I "71^72^ZZ^82^DN^QB^DQ^DK^P3"[ABMEIC D
- .;I ABMEIC="DQ" S ABMR("NM1",100)=$P($G(ABMP("PRV","S",ABMIEN)),U,2) Q
+ .I ABMEIC="DN" S ABMR("NM1",100)=$S($D(^VA(200,ABMIEN)):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","F",ABMIEN)),U,3)) Q  ;abm*2.6*9 HEAT53094
+ .I ABMEIC="DQ" S ABMR("NM1",100)=$S($D(^VA(200,ABMIEN)):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","S",ABMIEN)),U,3)) Q  ;abm*2.6*9 HEAT53094
  .S ABMR("NM1",100)=$P($$NPI^XUSNPI("Individual_ID",+ABM("PRV")),U) Q
  ;
  ; Payer
  I ABMEIC="PR" D
  .K Y
  .;S ABMR("NM1",100)=$$RCID^ABMUTLP(ABMP("INS"))  ;abm*2.6*8
- .;start new code abm*2.6*8 HEAT45044
- .I $D(^ABMRECVR("C",ABMP("INS"))) D
- ..S ABMCHIEN=$O(^ABMRECVR("C",ABMP("INS"),0))
- ..S:ABMCHIEN ABMR("NM1",100)=$P($G(^ABMRECVR(ABMCHIEN,1,ABMP("INS"),0)),U,2)
- .I ABMR("NM1",100)="" S ABMR("NM1",100)=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),0)),U,19)
- .I ABMR("NM1",100)="" S ABMR("NM1",100)=$$RCID^ABMUTLP(ABMP("INS"))
- .;end new code HEAT45044
+ .;start old code abm*2.6*9 HEAT55022
+ .;;start new code abm*2.6*8 HEAT45044
+ .;I $D(^ABMRECVR("C",ABMP("INS"))) D
+ .;.S ABMCHIEN=$O(^ABMRECVR("C",ABMP("INS"),0))
+ .;.S:ABMCHIEN ABMR("NM1",100)=$P($G(^ABMRECVR(ABMCHIEN,1,ABMP("INS"),0)),U,2)
+ .;I ABMR("NM1",100)="" S ABMR("NM1",100)=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),0)),U,19)
+ .;I ABMR("NM1",100)="" S ABMR("NM1",100)=$$RCID^ABMUTLP(ABMP("INS"))
+ .;;end new code HEAT45044
+ .;end old code start new code HEAT55022
+ .I $D(^ABMRECVR("C",ABMNIEN)) D
+ ..Q:$G(ABMLOOP)="2330B"  ;write what is in insurer file for this loop
+ ..S ABMCHIEN=$O(^ABMRECVR("C",ABMNIEN,0))
+ ..S:ABMCHIEN ABMR("NM1",100)=$P($G(^ABMRECVR(ABMCHIEN,1,ABMNIEN,0)),U,2)
+ .I ABMR("NM1",100)="" S ABMR("NM1",100)=$P($G(^ABMNINS(DUZ(2),ABMNIEN,1,ABMP("VTYP"),0)),U,19)
+ .I ABMR("NM1",100)="" S ABMR("NM1",100)=$$RCID^ABMUTLP(ABMNIEN)
+ .;end new code HEAT55022
  .S:$TR(ABMR("NM1",100)," ")="" ABMR("NM1",100)=99999
  ;
  ; Insured or Subscriber

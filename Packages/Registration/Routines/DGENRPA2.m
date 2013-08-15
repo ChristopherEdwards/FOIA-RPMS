@@ -1,5 +1,5 @@
 DGENRPA2 ;ALB/CJM/CKN - Enrolled Veterans Report Cont.; JUL 9,1997 ; 11/15/01 8:47am ; 07/22/02
- ;;5.3;Registration;**121,147,232,306,417,456**;Aug 13,1993
+ ;;5.3;Registration;**121,147,232,306,417,456,1015**;Aug 13,1993;Build 21
  ;
 PRINT ;
  N STATS,CRT,QUIT,PAGE1

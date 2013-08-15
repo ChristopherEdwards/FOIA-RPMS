@@ -1,5 +1,5 @@
 DG53P526 ;BAY/JAT - ADD RESOURCE DEVICE ; 6/3/03 3:26pm
- ;;5.3;Registration;**526**;AUG 13,1993 
+ ;;5.3;Registration;**526,1015**;AUG 13,1993 ;Build 21
 EN ; pre-init
  N DIC,DGLOC,DGNAME,DGI,DGSLOTS,DGTYP,DGSUBTYP,X
  D BMES^XPDUTL(">>>Adding Resource Device")

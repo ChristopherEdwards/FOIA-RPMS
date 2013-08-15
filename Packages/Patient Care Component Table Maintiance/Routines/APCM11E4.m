@@ -1,5 +1,5 @@
-APCM11E4 ;IHS/CMI/LAB - IHS MU;  ; 10 Feb 2011  2:09 PM
- ;;2.0;IHS PCC SUITE;**6,7**;MAY 14, 2009;Build 11
+APCM11E4 ;IHS/CMI/LAB - IHS MU; 
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2**;MAR 26, 2012;Build 11
  ;;;;;;Build 3
 AL ;EP - CALCULATE ALLERY LIST
  ;for each provider or for the facility find out if this
@@ -58,7 +58,7 @@ EPRES ;EP - CALCULATE EPRESCRIBING
  NEW APCMP,N,F
  S (APCMD1,APCMN1)=0
  I APCMRPTT=1 S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  D
- .I $D(APCM100R(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she had < 100 prescriptions issued during the time period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ .I $D(APCM100R(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she had < 100 prescriptions issued during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  .;set denominator value into field
  .S F=$P(^APCMMUM(APCMIC,0),U,8)  ;denom field for this measure
  .S N=$P($G(APCMRXS(APCMP)),U,1)  ;returns # of prescriptions^# not written by nature of order
@@ -102,6 +102,8 @@ TOTRX ;EP - did patient have a RX in file 52 with an issue date
  ..S S=$P($G(^PSRX(X,3)),U,7)
  ..Q:$$UP^XLFSTR(S)["ADMINISTERED IN CLINIC"
  ..S PAT=$P(^PSRX(X,0),U,2)
+ ..;quit if demo patient
+ ..Q:$$DEMO^APCLUTL(PAT,$G(APCMDEMO))
  ..S $P(APCMRXS(R),U,1)=$P(APCMRXS(R),U,1)+1,$P(^TMP($J,"PATSRX",R,PAT),U,1)=$P($G(^TMP($J,"PATSRX",R,PAT)),U,1)+1,^TMP($J,"PATSRX",R,PAT,"SCRIPTS",$P(^PSRX(X,0),U,1))=""
  ..;
  ..;now check to see if it has a nature of order not equal to 1-written
@@ -131,7 +133,7 @@ VS ;EP - CALCULATE VITAL SIGNS
  S (APCMD1,APCMN1)=0
  I APCMRPTT=1 D  Q
  .S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  D
- ..I $D(APCM2ON(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not see anyone over 2 during the time period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ ..I $D(APCM2ON(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not see anyone over 2 during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  ..Q:'$D(APCMHVTP(APCMP))  ;no visits to this provider for this patient so don't bother, the patient is not in the denominator
  ..D VS1
  .Q
@@ -172,12 +174,12 @@ ST ;EP - CALCULATE SMOKING STATUS
  S (APCMD1,APCMN1)=0
  I APCMRPTT=1 D  Q
  .S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  D
- ..I $D(APCM13ON(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not see anyone over 13 during the time period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ ..I $D(APCM13ON(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not see anyone over 13 during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  ..Q:'$D(APCMHVTP(APCMP))  ;no visits to this provider for this patient so don't bother, the patient is not in the denominator
  ..D ST1
  I APCMRPTT=2 D
  .S APCMP=APCMFAC
- .I $D(APCM13ON(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Hospital is excluded from this measure as did not admit anyone over 13 during the time period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ .I $D(APCM13ON(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Hospital is excluded from this measure as did not admit anyone over 13 during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  .Q:'$D(APCMHVTP(APCMP))
  .D ST1
  .Q
@@ -207,7 +209,7 @@ ECHI ;EP - electronic copy of HI
  S (APCMD1,APCMN1)=0
  I APCMRPTT=1 S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  D
  .I $D(APCMECHI(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D  Q
- ..D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not see anyone who requested a copy of their health information during the report period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ ..D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not see anyone who requested a copy of their health information during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  .D ALLV^APCLAPIU(DFN,$$FMADD^XLFDT(APCMEDAT,-365),APCMEDAT,"APCMECV")
  .S APCMHV=$$HADV^APCM11CI(DFN,APCMP,$$FMADD^XLFDT(APCMEDAT,-365),APCMEDAT,.APCMECV)
  .I 'APCMHV Q  ;no visits to this provider for this patient so don't bother, the patient is not in the denominator
@@ -275,6 +277,12 @@ HASCS(P,R,BD,ED,VSTS) ;does patient have a SMOKING STATUS
  .I '$D(^AUPNVSIT(V,0)) Q
  .I $P(^AUPNVSIT(V,0),U,11) Q  ;deleted
  .I "AOSM"'[$P(^AUPNVSIT(V,0),U,7) Q  ;not correct service category/OFFICE VISIT
+ .S C=$$CLINIC^APCLV(V,"C")
+ .Q:C=30
+ .Q:C=77
+ .I C=76 Q  ;no lab
+ .I C=63 Q  ;no radiology
+ .I C=39 Q  ;no pharmacy
  .S Y=0 F  S Y=$O(^AUPNVPRV("AD",V,Y)) Q:Y'=+Y!(G)  D
  ..I $P($G(^AUPNVPRV(Y,0)),U)'=R Q
  ..I $P($G(^AUPNVPRV(Y,0)),U,4)'="P" Q

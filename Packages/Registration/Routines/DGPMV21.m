@@ -1,5 +1,5 @@
 DGPMV21 ;ALB/MRL/MIR - PASS/FAIL MOVEMENT DATE; [ 09/13/2001  3:57 PM ]
- ;;5.3;Registration;**40,95,131**;Aug 13, 1993
+ ;;5.3;Registration;**40,95,131,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  3/08/2001 removed calls to PTF
  ;                        added check for lockout date range
  ;

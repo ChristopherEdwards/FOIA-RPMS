@@ -1,5 +1,5 @@
 DGBT2 ;ALB/LM - BENEFICIARY TRAVEL SCREEN 2 ;5/24/91  09:19
- ;;5.3;Registration;**151**;Aug 13, 1993
+ ;;5.3;Registration;**151,1015**;Aug 13, 1993;Build 21
  Q
 SCREEN ;
  W @IOF

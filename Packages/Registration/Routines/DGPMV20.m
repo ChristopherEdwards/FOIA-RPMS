@@ -1,5 +1,5 @@
 DGPMV20 ;ALB/MIR - DISPLAY DATES FOR SELECTION ; [ 03/11/2004  4:12 PM ]
- ;;5.3;Registration;**40**;Aug 13, 1993
+ ;;5.3;Registration;**40,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  3/02/2001 EPI now uses list template
  ;              3/08/2001 added admitting provider to display
  ;             11/08/2001 used short dx instead of comments line 1

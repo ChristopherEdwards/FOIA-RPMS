@@ -1,5 +1,5 @@
 SCRPW28 ;RENO/KEITH - ACRP Ad Hoc Report (cont.) ; 12/5/00 4:44pm
- ;;5.3;Scheduling;**144,232**;AUG 13, 1993
+ ;;5.3;PIMS;**144,232,1015,1016**;JUN 30, 2012;Build 20
 PDF ;Print delimited format
  S (SDOUT,SDSTOP)=0 D RPAR,RSUM,RDET G EXIT^SCRPW27
  ;
@@ -35,7 +35,7 @@ EXT() ;Return external value
 RSUM ;Print report summary
  W !,$$BRK("Report Summary") Q:SDOUT
  W !,$P(SDPAR("P",1,1),U,2),U,"ENCOUNTERS",U,"VISITS",U,"UNIQUES"
- I SDF(2) W U,"PRIOR YEAR ENCOUNTERS",U,"PRIOR YEAR VISITS",U,"PRIOR YEAR UNIQUES",U,"% CHANGE UNIQUES",U,"% CHANGE VISITS",U,"% CHANGE UNIQUES"
+ I SDF(2) W U,"PRIOR YEAR ENCOUNTERS",U,"PRIOR YEAR VISITS",U,"PRIOR YEAR UNIQUES",U,"% CHANGE ENCOUNTERS",U,"% CHANGE VISITS",U,"% CHANGE UNIQUES"  ;SD*562 correct heading to % change encounters
  I '$D(^TMP("SCRPW",$J,"RPT",1)) W !,"No data found within selected parameters." Q
  S SDORDV="" F  S SDORDV=$O(^TMP("SCRPW",$J,"MASTER",SDORDV),$S(SDORD="ALP":1,1:-1)) Q:SDORDV=""!SDOUT  D RSUM0
  Q:SDOUT  D RSUM1("TOT",1,1) Q

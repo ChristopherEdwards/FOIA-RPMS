@@ -1,5 +1,5 @@
-DGENRPT4 ;ALB/DW,LBD - EGT Actual Detailed Impact Report ; 11/2/01 10:23am ;07/22/02 9:40am
- ;;5.3;Registration;**232,306,417,456,491,513**;Aug 13,1993
+DGENRPT4 ;ALB/DW,LBD/EG - EGT Actual Detailed Impact Report ; 1/20/05 1:04pm
+ ;;5.3;Registration;**232,306,417,456,491,513,568,585,1015**;Aug 13,1993;Build 21
  ;
  ;
 ENPT ;Actual Detailed Report selected.
@@ -84,6 +84,7 @@ PRESRT1 ;Sort for patient's current record and get the potentially affected.
  ... S PSSN=$P($G(VADM(2)),U),^TMP($J,"CNT4",PRT,PSSN)=""
  I EGTSUB>4 S EGTSUB="ER" Q
  S EGTSUB=$$EXTERNAL^DILFD(27.16,.03,"F",EGTSUB)
+ D GETAPPT^DGENRPT5("BY4")
  Q
  ;
 EGTP ;Get patients EGT Priority.
@@ -143,8 +144,9 @@ WRD ;Get the patient WARD.
 FAP1 ;Get the patient FUTURE APPOINTMENTS.
  N J,POP,ADT S (X,J,ADT)="",POP=0
  K ^UTILITY("VASD",$J)
- D CALSDA
- I VAERR=1 S X="N/A" Q
+ ;if there is lower level data, then it is an error eg 01/20/2005
+ I $D(^TMP($J,"SDAMA",101))=1 S X="Appt. DB Unavail." Q
+ D BLDUTL^DGENRPT5(DFN)
  F  S J=$O(^UTILITY("VASD",$J,J)) Q:J=""!POP  D
  . S X=$P($G(^UTILITY("VASD",$J,J,"E")),U,2),X=$E(X,1,20)
  . S ADT=$P($G(^UTILITY("VASD",$J,J,"I")),U),ADT=$P(ADT,".",1)
@@ -159,20 +161,18 @@ FAP1 ;Get the patient FUTURE APPOINTMENTS.
 FAP0 ;See if the patient has future appointment.
  S X="NO"
  K ^UTILITY("VASD",$J)
- D CALSDA
- I VAERR=1 S X="N/A" Q
+ ;in order to be a valid appointment, there must be
+ ;lower level subscripts.  if not, then it is
+ ;an error eg 01/20/2005
+ I $D(^TMP($J,"SDAMA",101))=1 S X="Appt. DB Unavail." Q
+ D BLDUTL^DGENRPT5(DFN)
  I $G(^UTILITY("VASD",$J,1,"I"))'="" S X="YES"
- Q
- ;
-CALSDA ;Call API to get patient appoinments.
- N X
- S VASD("F")=DT,VASD("W")=12 D SDA^VADPT
  Q
  ;
 PCPVD ;Get the patient PC PROVIDER.
  ;;Site must use PCMM module.
  S X=""
- S X=$$OUTPTPR^SDUTL3(DFN)
+ S X=$$PCPRACT^DGSDUTL(DFN)
  I X="" S X="N/A" Q
  S X=$P(X,U,2),X=$E(X,1,10)
  Q

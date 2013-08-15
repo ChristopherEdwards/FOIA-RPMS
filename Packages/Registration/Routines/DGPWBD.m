@@ -1,5 +1,5 @@
 DGPWBD ;ALB/CAW - Device Specifications for Patient Wristband ;2/14/95
- ;;5.3;Registration;**62,82,246,385,1004,1009**;Aug 13, 1993
+ ;;5.3;Registration;**62,82,246,385,1004,1009,1015**;Aug 13, 1993;Build 21
  ;IHS/OIT/LJF 11/04/2005 PATCH 1004 barcode will be facility code & chart #
  ;cmi/anch/maw 02/18/2008 PATCH 1009 requirement 3
  ;

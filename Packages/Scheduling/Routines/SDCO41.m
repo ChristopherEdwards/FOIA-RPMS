@@ -1,5 +1,5 @@
 SDCO41 ;ALB/RMO - Diagnosis Cont. - Check Out;19 MAR 1993 9:15 am
- ;;5.3;Scheduling;**15**;Aug 13, 1993
+ ;;5.3;Scheduling;**15,351,1015**;Aug 13, 1993;Build 21
  ;
 DXHLP(SDCL) ;Diagnosis Help for Clinic
  ; Input  -- SDCL     Hospital Location file IEN
@@ -24,9 +24,11 @@ DXDEF(SDCL) ;Diagnosis Default for Clinic
  I $D(^SC("ADDX",SDCL)),$D(^SC(SDCL,"DX",+$O(^(SDCL,0)),0)) S Y=$$DX(+^(0))
  Q $G(Y)
  ;
-DX(SDICDI) ;Diagnosis Display Data
+DX(SDICDI,SDDXDT) ;Diagnosis Display Data
  ; Input  -- SDICDI   IDC Diagnosis IEN
+ ;        -- SDDXDT   Date to screen against
  ; Output -- Diagnosis Display Data - Code Number^Diagnosis
- N Y
- S Y=$S($D(^ICD9(SDICDI,0)):$P(^(0),"^")_"^"_$P(^(0),"^",3),1:"^Unknown")
+ N Y,SDXINF
+ S SDXINF=$$ICDDX^ICDCODE(SDICDI,$G(SDDXDT,$G(ICDVDT)))
+ S Y=$S(+SDXINF>0:$P(SDXINF,"^",2)_"^"_$P(SDXINF,"^",4),1:"^Unknown")
  Q $G(Y)

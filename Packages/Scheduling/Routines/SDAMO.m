@@ -1,5 +1,5 @@
-SDAMO ;ALB/MJK - AM Mgt Reports ;  [ 07/18/2002  3:44 PM ]
- ;;5.3;Scheduling;**132,1007**;Aug 13, 1993
+SDAMO ;ALB/MJK - AM Mgt Reports ; 12/1/91
+ ;;5.3;Scheduling;**132,1015**;Aug 13, 1993;Build 21
  ;
 EN ; main entry point
  N DIC,SDBEG,SDEND,SDSEL,VAUTD,VAUTC,SDSORT,SDAMLIST
@@ -27,7 +27,7 @@ SELECT() ; -- get selection criteria
  ; output: SDSEL := criteria selected
  ; return: was selection made [ 1|yes   0|no]
  ;
- W !!,$$LINE("Statistics Criteria")  ;cmi/anch/maw 8/14/2007 patch 1007 mispelled
+ W !!,$$LINE("Statistics Criteria")
  S X="S^"
  S X=X_"1:Statistics;"
  S X=X_"2:Division(s) Only Statistics"
@@ -35,7 +35,7 @@ SELECT() ; -- get selection criteria
  D ^DIR K DIR S SDSEL=$S($D(DIRUT):0,1:+Y)
  Q SDSEL>0
  ;
-DIV() ;EP -- get division data
+DIV() ; -- get division data
  ;  input: none
  ; output: VAUTD := divs selected (VAUTD=1 for all)
  ; return: was selection made [ 1|yes   0|no]
@@ -44,7 +44,7 @@ DIV() ;EP -- get division data
  D ASK2^SDDIV I Y<0 K VAUTD
  Q $D(VAUTD)>0
  ;
-CLINIC() ;EP -- get clinic data
+CLINIC() ; -- get clinic data
  ;  input: VAUTD  := divisions selected
  ; output: VAUTC := clinic selected (VAUTC=1 for all)
  ; return: was selection made [ 1|yes   0|no]
@@ -68,7 +68,7 @@ STOP() ; -- get stop code data
 STOPQ Q $D(VAUTC)>0
  ;
  ;
-LINE(STR) ;EP -- print line
+LINE(STR) ; -- print line
  ;  input: STR := text to insert
  ; output: none
  ; return: text to use

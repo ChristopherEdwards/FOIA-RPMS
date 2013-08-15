@@ -1,5 +1,5 @@
 SCDXMSG0 ;ALB/JRP - AMB CARE MESSAGE BUILDER;07-MAY-1996 ; 23 Oct 98  1:47 PM
- ;;5.3;Scheduling;**44,59,66,162**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,59,66,162,387,1015**;AUG 13, 1993;Build 21
  ;
 BUILDHL7(XMITPTR,HL,MID,XMITARRY,INSRTPNT,VALERR) ;Build an HL7 message for an
  ; entry in the TRANSMITTED OUTPATIENT ENCOUNTER file (#409.73)
@@ -37,7 +37,7 @@ BUILDHL7(XMITPTR,HL,MID,XMITARRY,INSRTPNT,VALERR) ;Build an HL7 message for an
  ;Declare variables
  N ENCDT,NODE,DFN,XMITEVNT,ENCPTR,DELPTR,LINESADD,LINETAG,EVNTDATE
  N CURLINE,EVNTHL7,VAFARRY,ORIGMTN,ORIGETN,RESULT
- N ERROR,VERROR,SEGMENTS,SEGORDR,SEGNAME,XMITDATE,VAFSTR
+ N ERROR,VERROR,SEGMENTS,SEGORDR,SEGNAME,XMITDATE,VAFSTR,ENCNDT
  ;Get zero node of Transmitted Outpatient Encounter
  S NODE=$G(^SD(409.73,XMITPTR,0))
  ;Get pointer to Outpatient Encounter file
@@ -59,17 +59,19 @@ BUILDHL7(XMITPTR,HL,MID,XMITARRY,INSRTPNT,VALERR) ;Build an HL7 message for an
  S EVNTDATE=+$P(NODE,"^",6)
  ;Determine patient and encounter date/time
  S DFN=0
- S ENCDT=0
+ S (ENCDT,ENCNDT)=0
  ;Get data from Outpatient Encounter
  I (ENCPTR) D
  .S NODE=$G(^SCE(ENCPTR,0))
  .S DFN=+$P(NODE,"^",2)
  .S ENCDT=+$P($P(NODE,"^"),".")
+ .S ENCNDT=+$P(NODE,"^")
  ;Get data from Deleted Outpatient Encounter
  I (DELPTR) D
  .S NODE=$G(^SD(409.74,DELPTR,1))
  .S DFN=+$P(NODE,"^",2)
  .S ENCDT=+$P($P(NODE,"^"),".")
+ .S ENCNDT=+$P(NODE,"^")
  ;Unable to determine patient - done
  Q:('DFN) "-1^"_$S(DELPTR:"Deleted ",1:"")_"Outpatient Encounter did not refer to a patient"
  ;Couldn't determine encounter date/time - use today

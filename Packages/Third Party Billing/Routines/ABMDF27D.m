@@ -1,5 +1,5 @@
 ABMDF27D ; IHS/ASDST/DMJ - Set HCFA1500 (08/05) Print Array - Part 4 ;  
- ;;2.6;IHS Third Party Billing;**1,2,4,6**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,2,4,6,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25331
  ;   Put taxonomy code if NPI ONLY
@@ -10,23 +10,38 @@ ABMDF27D ; IHS/ASDST/DMJ - Set HCFA1500 (08/05) Print Array - Part 4 ;
  ; IHS/SD/SDR - abm*2.6*1 - HEAT5612 - modifier wasn't printing
  ; IHS/SD/SDR - abm*2.6*2 - FIXPMS10006 - check for print date (FL31)
  ; IHS/SD/SDR - abm*2.6*4 - HEAT12115 - made change to allow 8 DX codes to print
+ ; IHS/SD/SDR - 2.6*9 - HEAT46087 - Changed so it will print 4 or 8 DXs based on parameter
  ; *********************************************************************
  ;
 DX ; Diagnosis Info
  K ABMP("DX")
  ;S ABM="" F ABM("I")=31:1:34 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM)) Q:'ABM  D  ;abm*2.6*4 HEAT12115
- S ABM="" F ABM("I")=31:1:38 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM)) Q:'ABM  D  ;abm*2.6*4 HEAT12115
+ ;S ABM="" F ABM("I")=31:1:38 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM)) Q:'ABM  D  ;abm*2.6*4 HEAT12115  ;abm*2.6*9 HEAT46087
+ S ABMEND=$S($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,16)=8:38,1:34)  ;abm*2.6*9 HEAT46087
+ S ABM="" F ABM("I")=31:1:ABMEND S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM)) Q:'ABM  D  ;abm*2.6*4 HEAT12115  ;abm*2.6*9 HEAT46087
  .S ABM("X")=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM,""))
  .S ABM(9)=$P(^AUTNPOV($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,ABM("X"),0),U,3),0),U)
  .S ABM(9)=$S(ABM(9)["*ICD*":$P(ABM(9),"  "),1:ABM(9))
  .;S ABM("ID")=$S(ABM("I")=32:33,ABM("I")=34:33,1:31)  ;abm*2.6*4 HEAT12115
- .S ABM("ID")=$S(ABM("I")=32:33,ABM("I")=34:33,ABM("I")=36:33,ABM("I")=38:33,1:31)  ;abm*2.6*4 HEAT12115
+ .;S ABM("ID")=$S(ABM("I")=32:33,ABM("I")=34:33,ABM("I")=36:33,ABM("I")=38:33,1:31)  ;abm*2.6*4 HEAT12115  ;abm*2.6*9 HEAT46087
  .;S ABM("TB")=$S(ABM("I")<33:1,1:2)  ;abm*2.6*4 HEAT12115
- .S ABM("TB")=$S(ABM("I")<33:1,ABM("I")<35:3,ABM("I")<37:2,1:4)  ;abm*2.6*4 HEAT12115
+ .;S ABM("TB")=$S(ABM("I")<33:1,ABM("I")<35:3,ABM("I")<37:2,1:4)  ;abm*2.6*4 HEAT12115  ;abm*2.6*9 HEAT46087
+ .;start new code abm*2.6*9 HEAT46087
+ .I ABMEND=38 D
+ ..S ABM("ID")=$S(ABM("I")=32:33,ABM("I")=34:33,ABM("I")=36:33,ABM("I")=38:33,1:31)
+ .I ABMEND=34 D
+ ..S ABM("ID")=$S(ABM("I")=32:33,ABM("I")=34:33,1:31)
+ .S ABM("TB")=$S(ABM("I")<33:1,ABM("I")<35:3,ABM("I")<37:2,1:4)
+ .;end new code HEAT46087
  .S ABM(9)=""
  .S ABM("DIAG")=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)  ; CSV-c
- .S ABM("DIAG")=$S(ABM("I")=35:"5. "_ABM("DIAG"),ABM("I")=36:"6. "_ABM("DIAG"),ABM("I")=37:"7. "_ABM("DIAG"),ABM("I")=38:"8. "_ABM("DIAG"),1:ABM("DIAG"))  ;abm*2.6*4 HEAT12115
- .I ABMP("ITYPE")'="R",(ABM("I")>34) Q  ;abm*2.6*6 HEAT12115
+ .;start old code abm*2.6*9 HEAT46087
+ .;S ABM("DIAG")=$S(ABM("I")=35:"5. "_ABM("DIAG"),ABM("I")=36:"6. "_ABM("DIAG"),ABM("I")=37:"7. "_ABM("DIAG"),ABM("I")=38:"8. "_ABM("DIAG"),1:ABM("DIAG"))  ;abm*2.6*4 HEAT12115
+ .;end old code start new code HEAT46087
+ .I $P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,16)=8 D
+ ..S ABM("DIAG")=$S(ABM("I")=35:"5. "_ABM("DIAG"),ABM("I")=36:"6. "_ABM("DIAG"),ABM("I")=37:"7. "_ABM("DIAG"),ABM("I")=38:"8. "_ABM("DIAG"),1:ABM("DIAG"))  ;abm*2.6*4 HEAT12115
+ .;end new code HEAT46087
+ .;I ABMP("ITYPE")'="R",(ABM("I")>34) Q  ;abm*2.6*6 HEAT12115  ;abm*2.6*9 HEAT46087
  .S $P(ABMF(ABM("ID")),U,ABM("TB"))=ABM("DIAG")_" "_ABM(9)
  .S ABMP("DX",ABM("DIAG"))=ABM("I")-30
  ;

@@ -1,5 +1,5 @@
 SCUTIE2 ;ALB/SCK - IEMM LIST MANAGER UTILITIES; 16-JUN-97
- ;;5.3;Scheduling;**66**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,1015**;AUG 13, 1993;Build 21
  ;
  Q
 ENTRY(SDYX) ;   Get entry for incomplete encounter lookup.  Mimics the selection process in

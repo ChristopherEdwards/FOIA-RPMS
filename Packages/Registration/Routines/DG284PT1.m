@@ -1,5 +1,5 @@
 DG284PT1 ;alb/sek-DG*5.3*284 post-install utilities ;4/20/2000
- ;;5.3;Registration;**284**;Aug 13, 1993
+ ;;5.3;Registration;**284,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine contains utilities called from ^DG284PT and ^DG284PT2.
  ;

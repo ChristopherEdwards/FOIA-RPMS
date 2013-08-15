@@ -1,5 +1,5 @@
 DGPMTSR ;ALB/LM - TREATING SPECIALTY REPORT PRINT ; 3/12/93
- ;;5.3;Registration;**34,134**;Aug 13, 1993
+ ;;5.3;Registration;**34,134,1015**;Aug 13, 1993;Build 21
  ;
 A ; This will output ^TMP totals by treating specialty ; by service ; by division ; and finally by grand total
  ;

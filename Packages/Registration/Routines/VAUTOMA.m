@@ -1,10 +1,13 @@
-VAUTOMA ;ALB/MLI - GENERIC ONE, MANY, ALL ROUTINE ; 15 APRIL 88 [ 10/19/2000  10:31 AM ]
- ;;5.3;Registration;**111,1010**;Aug 13, 1993
+VAUTOMA ;ALB/MLI - GENERIC ONE, MANY, ALL ROUTINE ; 03/26/2004
+ ;;5.3;Registration;**111,568,1010,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  8/17/2000 added inactivation info to clinic choice list
  ;             10/19/2000 removed N from DIC(0) so ?? in alpha order
  ;cmi/anch/maw 05/15/2009 added code to pass in div name for DIC("B") when selecting division
- ;
  ;;MAS VERSION 5.1;
+ ;DIVISION S VAUTVB="VAUTD",DIC="^DG(40.8,",VAUTNI=2,VAUTSTR="division" G FIRST
+ ;CLINIC S DIC="^SC(",DIC("S")="I $P(^(0),U,3)=""C""&'+$P($G(^(""OOS"")),U,1)&'+$P($G(^(""OOS"")),U,2)&$S(VAUTD:1,$D(VAUTD(+$P(^(0),U,15))):1,'+$P(^(0),U,15)&$D(VAUTD(+$O(^DG(40.8,0)))):1,1:0)",VAUTSTR="clinic",VAUTVB="VAUTC" G FIRST
+ ;  DIC("S") modified in CLINIC call, to exclude Occasion of Service locations.  abr - 11/25/96
+ ;
 DIVISION ;-- cmi/maw PATCH 1010 modified to get division name
  N VADIV,VADIVNM,VADICA
  S VADIV=$$DIV^BSDU()

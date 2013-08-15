@@ -1,5 +1,5 @@
 SCCVEGU0 ;ALB/JRP - UTILS FOR ENCNTR CNVRSN GLBL ESTMTR;11-JAN-1996
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
 INSERT(INSTR,OUTSTR,COLUMN,LENGTH) ;INSERT A STRING INTO ANOTHER
  ;INPUT  : INSTR - String to insert
  ;         OUTSTR - String to insert into

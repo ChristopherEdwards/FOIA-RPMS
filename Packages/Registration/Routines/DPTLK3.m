@@ -1,5 +1,5 @@
 DPTLK3 ;ALB/RMO - MAS Patient Look-up Check for Duplicates ; 22 JUN 87 1:00 pm
- ;;5.3;Patient File;**73,197**;Aug 13, 1993
+ ;;5.3;Patient File;**73,197,633,1015**;Aug 13, 1993;Build 21
  I $D(DDS) D CLRMSG^DDS S DX=0,DY=DDSHBX+1 X DDXY
  I '$D(DPTX)!('$D(DPTIDS(.03)))!('$D(DPTIDS(.09))) W !?3,*7,"Unable to search for potential duplicates, Date of Birth and",!?3,"Social Security Number must be defined." S DPTDFN=-1 G Q
 EP2 ; -- Entry point 2
@@ -10,3 +10,12 @@ ASKADD W !!?3,"Do you still want to add '",DPTX,"' as a new patient" S %=2 D YN^
  ;
 Q K DOB,DPTD,DPTKD,DPTKS,DPTNM,SSN
  Q
+VAADV(DFN) ;Check if VA ADVANTAGE PLAN
+ ;Returns 0, or 1 (VA ADVANTAGE PLAN)
+ Q 0 ;ihs/cmi/maw 02/08/2012 patch 1014 no IB in IHS
+ N DGARRY,DGVAADV,DGINS
+ S (DGVAADV,DGINS)=0
+ I $$INSUR^IBBAPI(DFN,,,.DGARRY,20) D
+ . F  S DGINS=$O(DGARRY("IBBAPI","INSUR",DGINS)) Q:'DGINS  D  Q:+DGVAADV
+ . . I +DGARRY("IBBAPI","INSUR",DGINS,20) S DGVAADV=1
+ Q DGVAADV

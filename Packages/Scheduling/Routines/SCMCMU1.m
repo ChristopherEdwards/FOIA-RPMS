@@ -1,5 +1,5 @@
 SCMCMU1 ;ALB/MJK - PCMM Mass Team/Position List Manager ; 10-JUL-1998
- ;;5.3;Scheduling;**148**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,1015**;AUG 13, 1993;Build 21
  ;
 EN(SCTEAM,SCPOS,SCTPDIS,SCMUTYPE,SCDATE) ; -- main entry point for SCMC MU MASS TEAM UNASSIGNMENT
  D EN^VALM("SCMC MU MASS TEAM UNASSIGNMENT")

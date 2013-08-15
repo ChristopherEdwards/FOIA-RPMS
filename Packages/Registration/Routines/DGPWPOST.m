@@ -1,5 +1,5 @@
 DGPWPOST ;ALB/CM POST INIT FOR WRISTBAND ; 12/4/95
- ;;5.3;Registration;**62**;Aug 13, 1993
+ ;;5.3;Registration;**62,1015**;Aug 13, 1993;Build 21
  ;
  ;This post init will add the Wristband entry to the EMBOSSED CARD
  ;TYPE file #39.1.  The entry is added via the post init due to the

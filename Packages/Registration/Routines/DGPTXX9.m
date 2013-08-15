@@ -1,26 +1,46 @@
-DGPTXX9 ; COMPILED XREF FOR FILE #45.05 ; 02/13/06
+DGPTXX9 ; COMPILED XREF FOR FILE #45 ; 10/15/12
  ; 
- S DA=0
-A1 ;
- I $D(DISET) K DIKLM S:DIKM1=1 DIKLM=1 G @DIKM1
-0 ;
-A S DA=$O(^DGPT(DA(1),"P",DA)) I DA'>0 S DA=0 G END
-1 ;
- S DIKZ(0)=$G(^DGPT(DA(1),"P",DA,0))
- S X=$P(DIKZ(0),U,3)
- I X'="" D
- .N DIK,DIV,DIU,DIN
- .K DIV S DIV=X,D0=DA(1),DIV(0)=D0,D1=DA,DIV(1)=D1 S Y(0)=X S X=$P(^DGPT(DA(1),0),U,11)=1 I X S X=DIV S Y(1)=$S($D(^DGPT(D0,"P",D1,0)):^(0),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y S X="" X ^DD(45.05,2,1,1,1.4)
- S DIKZ(0)=$G(^DGPT(DA(1),"P",DA,0))
- S X=$P(DIKZ(0),U,5)
- I X'="" S ^DGPT(DA(1),"P","AP6",$E(X,1,30),DA)=""
- S X=$P(DIKZ(0),U,6)
- I X'="" S ^DGPT(DA(1),"P","AP6",$E(X,1,30),DA)=""
- S X=$P(DIKZ(0),U,7)
- I X'="" S ^DGPT(DA(1),"P","AP6",$E(X,1,30),DA)=""
- S X=$P(DIKZ(0),U,8)
- I X'="" S ^DGPT(DA(1),"P","AP6",$E(X,1,30),DA)=""
- S X=$P(DIKZ(0),U,9)
- I X'="" S ^DGPT(DA(1),"P","AP6",$E(X,1,30),DA)=""
- G:'$D(DIKLM) A Q:$D(DISET)
+ I $G(X(1))]"",$G(X(2))]"",$G(X(3))]"",$G(X(4))]"" D
+ . K X1,X2 M X1=X,X2=X
+ . D SDGPT9D^DGPTDDCR(.X,.DA,"D SD8")
+CR13 S DIXR=378
+ K X
+ S DIKZ(0)=$G(^DGPT(DA,0))
+ S X(1)=$P(DIKZ(0),U,1)
+ S X(2)=$P(DIKZ(0),U,2)
+ S X(3)=$P(DIKZ(0),U,11)
+ S DIKZ(70)=$G(^DGPT(DA,70))
+ S X(4)=$P(DIKZ(70),U,24)
+ S X(5)=$P(DIKZ(70),U,1)
+ S X=$G(X(1))
+ I $G(X(1))]"",$G(X(2))]"",$G(X(3))]"",$G(X(4))]"" D
+ . K X1,X2 M X1=X,X2=X
+ . D SDGPT9D^DGPTDDCR(.X,.DA,"D SD9")
+CR14 S DIXR=379
+ K X
+ S DIKZ(0)=$G(^DGPT(DA,0))
+ S X(1)=$P(DIKZ(0),U,1)
+ S X(2)=$P(DIKZ(0),U,2)
+ S X(3)=$P(DIKZ(0),U,11)
+ S DIKZ(70)=$G(^DGPT(DA,70))
+ S X(4)=$P(DIKZ(70),U,10)
+ S X(5)=$P(DIKZ(70),U,1)
+ S X=$G(X(1))
+ I $G(X(1))]"",$G(X(2))]"",$G(X(3))]"",$G(X(4))]"" D
+ . K X1,X2 M X1=X,X2=X
+ . D SDGPT9D^DGPTDDCR(.X,.DA,"DXLS")
+CR15 S DIXR=390
+ K X
+ S DIKZ(0)=$G(^DGPT(DA,0))
+ S X(1)=$P(DIKZ(0),U,1)
+ S X(2)=$P(DIKZ(0),U,2)
+ S X(3)=$P(DIKZ(0),U,11)
+ S DIKZ(70)=$G(^DGPT(DA,70))
+ S X(4)=$P(DIKZ(70),U,11)
+ S X(5)=$P(DIKZ(70),U,1)
+ S X=$G(X(1))
+ I $G(X(1))]"",$G(X(2))]"",$G(X(3))]"",$G(X(4))]"" D
+ . K X1,X2 M X1=X,X2=X
+ . D SDGPT9D^DGPTDDCR(.X,.DA,"PDX")
+CR16 K X
 END G ^DGPTXX10

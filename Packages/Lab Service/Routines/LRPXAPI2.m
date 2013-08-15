@@ -1,34 +1,20 @@
 LRPXAPI2 ;VA/SLC/STAFF - Lab Extract API code ;2/26/04  15:15
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 295
  ;
 VERIFIED(LRDFN,LRIDT) ; $$(lrdfn,lridt) -> 1 if verified, else 0
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.  Return 0.
- Q 0
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; checks for date report completed
  I +$P($G(^LR(LRDFN,"CH",LRIDT,0)),U,3) Q 1
  Q 0
  ;
 MIVERIFY(LRDFN,LRIDT,SUB) ; $$(lrdfn,lridt,sub) -> 1 if verified, else 0
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.  Return 0.
- Q 0
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; checks for report date approved on subscript
  S SUB=+$G(SUB)
  I SUB>0,SUB<17,$G(^LR(LRDFN,"MI",LRIDT,SUB)) Q 1
  Q 0
  ;
 APVERIFY(LRDFN,LRIDT,APSUB) ; $$(lrdfn,lridt,ap subscrpt) -> 1 if verified
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.  Return 0.
- Q 0
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; autopsy checks for:
  ;   date of death, 
  ;   date autopsy report completed,
@@ -46,20 +32,10 @@ APVERIFY(LRDFN,LRIDT,APSUB) ; $$(lrdfn,lridt,ap subscrpt) -> 1 if verified
  Q OK
  ;
 VAL(LRDFN,LRIDT,LRDN) ; from LRPXAPI
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.  Return 0.
- Q 0
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; $$(lrdfn,lridt,lrdn) -> result node
  Q $G(^LR(LRDFN,"CH",LRIDT,LRDN))
  ;
 REFVAL(REF) ; from LRPXAPI
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.  Return 0.
- Q 0
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; $$(reference location in ^LR) -> data node
  N SUB
  I REF'[";" Q ""
@@ -71,11 +47,6 @@ REFVAL(REF) ; from LRPXAPI
  Q $G(@REF)
  ;
 LRPXRM(RESULT,REF,ITEM,TYPES) ; from LRPXAPI
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; returns result node from index subscript as RESULT
  N FILE,IEN,SECTION,TEST,VALUES
  S RESULT=""
@@ -113,11 +84,6 @@ LRPXRM(RESULT,REF,ITEM,TYPES) ; from LRPXAPI
  Q
  ;
 SC(RESULT,REF,TYPES) ;
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  N CNT,LINE,LRDFN,LRIDT,SPEC
  I TYPES["S" D
  . S $P(REF,";",4)=0
@@ -133,11 +99,6 @@ SC(RESULT,REF,TYPES) ;
  Q
  ;
 SPEC(DATA,DFN,DATE,STYPE,ERR) ; from LRPXAPI
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; returns specimen node, comment, values in array DATA
  N LRDFN,LRIDT K DATA
  S ERR=0
@@ -149,11 +110,6 @@ SPEC(DATA,DFN,DATE,STYPE,ERR) ; from LRPXAPI
  Q
  ;
 LRSPEC(DATA,LRDFN,LRIDT,STYPE,ERR) ; from LRPXAPI
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; returns specimen node, comment, values in array DATA
  K DATA
  S ERR=0
@@ -171,21 +127,11 @@ LRSPEC(DATA,LRDFN,LRIDT,STYPE,ERR) ; from LRPXAPI
  Q
  ;
 SSPEC(DATA,LRDFN,LRIDT) ; specimen node values
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  K DATA
  S DATA("S")=$G(^LR(LRDFN,"CH",LRIDT,0))
  Q
  ;
 CSPEC(DATA,LRDFN,LRIDT) ; specimen comments
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  N CMT,CNT K DATA
  I '$D(^LR(LRDFN,"CH",LRIDT,1,0)) Q
  S CNT=0
@@ -197,11 +143,6 @@ CSPEC(DATA,LRDFN,LRIDT) ; specimen comments
  Q
  ;
 VSPEC(DATA,LRDFN,LRIDT) ; test nodes for collected specimen
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  N CNT,LRDN,VALUE K DATA
  S CNT=0
  S LRDN=1
@@ -211,20 +152,10 @@ VSPEC(DATA,LRDFN,LRIDT) ; test nodes for collected specimen
  Q
  ;
 COMMENT(LRDFN,LRIDT) ; $$(lrdfn,lridt) --> 1 if comment exists, else 0
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.  Return 0.
- Q 0
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  I +$O(^LR(LRDFN,"CH",LRIDT,1,0)) Q 1
  Q 0
  ;
 VALUE(RESULT,DFN,DATE,TEST,COND,ERR) ; from LRPXAPI, LRPXAPI1
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; returns result node that has met conditions as RESULT
  N LRDFN,LRIDT,LRDN
  I $L(COND),'$$CONDOK^LRPXAPIU(COND,"C") S ERR=1 Q
@@ -241,11 +172,6 @@ VALUE(RESULT,DFN,DATE,TEST,COND,ERR) ; from LRPXAPI, LRPXAPI1
  Q
  ;
 LRVALUE(RESULT,LRDFN,LRIDT,LRDN,COND,ERR) ; from LRPXAPI, LRPXAPI1
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; returns result node that has met conditions as RESULT
  I $L(COND),'$$CONDOK^LRPXAPIU(COND,"C") S ERR=1 Q
  I $L(COND) S COND=$$REPLACE("I "_COND)
@@ -253,11 +179,6 @@ LRVALUE(RESULT,LRDFN,LRIDT,LRDN,COND,ERR) ; from LRPXAPI, LRPXAPI1
  Q
  ;
 LRVAL(RESULT,LRDFN,LRIDT,LRDN,COND,ERR) ;
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  N F,S,V,VALUE
  S RESULT=""
  S ERR=0
@@ -273,11 +194,6 @@ LRVAL(RESULT,LRDFN,LRIDT,LRDN,COND,ERR) ;
  Q
  ;
 CHNODE(ARRAY,NODE) ; from LRPXAPI
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  N NAME,NAME3,NAME5,NODE3,NODE5,PIECE,PIECE3,PIECE5,SUB K ARRAY
  I '$L(NODE) Q
  S NAME="RESULT^FLAG^CODES^VERIFIER^NORMALS^DATE-R^DATE-T^^INSTITUTION^LEDI^INSTRUMENT^TYPE"
@@ -299,11 +215,6 @@ CHNODE(ARRAY,NODE) ; from LRPXAPI
  Q
  ;
 ACCY(TESTS,ACC,BDN) ; from LRPXAPI
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; returns TESTS from yearly accession, ACC, BDN required
  ; BDN is beginning date number
  ; TESTS is array of file 60 iens
@@ -329,11 +240,6 @@ ACCY(TESTS,ACC,BDN) ; from LRPXAPI
  Q
  ;
 CONDOK(CONDO,TYPE) ; $$ from LRPXAPIU
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  N DEL,NUM,OK,OPER,PIECE,PIECES,VALID,VALIDOP,VALUE,VAR K PIECES
  I '(TYPE="C"!(TYPE="M")!(TYPE="A")) Q 0
  S COND=CONDO
@@ -383,19 +289,9 @@ CONDOK(CONDO,TYPE) ; $$ from LRPXAPIU
  Q 1
  ;
 REPLACE(COND) ; $$(condition) -> condition replacing | or ~ with commas
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.  Return " ".
- Q " "
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  Q $TR(COND,"~|",",,")
  ;
 SYNTAX(X) ; $$(condition) -> 1 if correct, else 0
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.  Return 0.
- Q 0
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ; check syntax when condition applies to an if statement
  S X="I "_X
  D ^DIM
@@ -403,11 +299,6 @@ SYNTAX(X) ; $$(condition) -> 1 if correct, else 0
  Q 1
  ;
 NORMALS(LOW,HIGH,TEST,SPEC) ; from LRPXAPIU
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- ;       RPMS Lab does not use Clinical Reminders.
- ;       None of the following code will be used.
- Q
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
  N NODE
  S (LOW,HIGH)=""
  S TEST=+$G(TEST)

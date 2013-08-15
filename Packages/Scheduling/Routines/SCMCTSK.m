@@ -1,34 +1,51 @@
-SCMCTSK ;ALB/JDS - PCMM ; 11 Dec 2002  3:10 PM
- ;;5.3;Scheduling;**264,278,272**;AUG 13, 1993
+SCMCTSK ;ALB/JDS - PCMM ; 03 Jun 2004  3:30 PM
+ ;;5.3;Scheduling;**264,278,272,297,1015**;AUG 13, 1993;Build 21
+ Q
+RPT1 ;REPORT
+ N DHD,DIOBEG
+ S DIOBEG="D INACTIVE^SCMCTSK",DIC="^SCPT(404.43,",(FLDS,BY)="[SCMC PENDING UNASSIGN]"
+ S DHD="Patients Flagged for Inactivation from Primary Care Panels"
+ D EN1^DIP
  Q
 INACTIVE ;run every night to determine if patient can be inactivated from
  ;team
  ;Inactivation happens for patients without activity for 24 months
- N I
+ N I,TEAMNM
  D DT^DICRW S X="T-12M" D ^%DT S STDT=Y
  S X="T-24M" D ^%DT S TYDT=+Y
+RPT ;eneter for report with STDT and TYDT defined
  S A="^SCPT(404.43,""ADFN""",L=""""""
  S Q=A_")"
  F  S Q=$Q(@Q) Q:Q'[A  D
  .S ENTRY=+$P(Q,",",6)
  .S TEAM=$P(Q,",",4)
- .I $P($G(^SCTM(404.51,+TEAM,0)),U,16) Q  ;no automatic for this team
+ .;I $P($G(^SCTM(404.51,+TEAM,0)),U,16) Q  ;no automatic for this team
  .;I $G(^DPT(DFN,.35)) D DIS Q  ;Patient is deceased
  .I $P(Q,",",5)>STDT Q  ;Later
  .S ZERO=$G(^SCPT(404.43,+ENTRY,0))
  .I $P(ZERO,U,4) Q  ;Already unassigned
+ .I '$P(ZERO,U,5) Q  ;not Primary Care
  .;I $P(ZERO,U,16) Q  ;No Automatic unassign
  .;Check if any activity
  .S DFN=$P(Q,",",3),DFN=+$G(^SCPT(404.42,+DFN,0))
  .S SEEN=0
  .S TEAM=$P(Q,",",4),TEAMNM=$P($G(^SCTM(404.51,+TEAM,0)),U)
- .F I=TYDT:0 S I=$O(^SCE("ADFN",DFN,I)) Q:'I  D  Q:SEEN
- ..S SEEN=1 Q  ;F J=0:0 S J=$O(^SCE("ADFN",DFN,I,J)) Q:'J  D  Q:SEEN
- ..;S CLINIC=$P($G(^SCE(J,0)),U,4)
- ..;I $D(^SDD(409.44,"AO",J,$G(PRO)) S SEEN=1 ;GET THE PROVIDERJ
- .Q:SEEN
- .;discharge them
- .D DIS
+ .;who was provider for this position
+ .Q:$$SEEN1(DFN,+$P(ZERO,U,2))
+ .;I $G(DIS) D DIS Q
+ .S ^TMP("SCMCTSK",$J,ENTRY)=""
+ Q
+SEEN1(DFN,POS) ;
+ S SEEN=0
+ K PROV F I=0:0 S I=$O(^SCTM(404.52,"B",+$G(POS),I)) Q:'I  D
+ .N A S A=$G(^SCTM(404.52,+I,0)) I $P(A,U,4) S PROV(+$P(A,U,3))="" Q
+ .I $P(A,U,2)<TYDT K PROV(+$P(A,U,3))
+ F PROV=0:0 S PROV=$O(PROV(PROV)) Q:'PROV  D SEEN
+ Q SEEN
+SEEN ;See if seen in last 24 months go through visits
+ F I=0:0 S I=$O(^AUPNVSIT("AA",DFN,I)) Q:'I  Q:(9999999-I<TYDT)  D  Q:SEEN
+ .F J=0:0 S J=$O(^AUPNVSIT("AA",DFN,I,J)) Q:'J  D
+ ..F P=0:0 S P=$O(^AUPNVPRV("AD",J,P))  Q:'P  S:PROV=(+$G(^AUPNVPRV(P,0))) SEEN=1 Q:SEEN  ;GET THE PROVIDERJ
  Q
 DIS ;discharge
  N ZERO S ZERO=$G(^SCPT(404.43,+ENTRY,0))
@@ -43,7 +60,7 @@ DEATH ;Called from date of death event
  I $G(DGFILE)'=2 Q
  I $G(DGFIELD)'=.351 Q
  S DFN=+$G(DGDA)
- N DEATH,I,DR
+ N DEATH,I,DR,SCJ
  D DEM^VADPT S DEATH=$G(VADM(6))
  ;loop through assignments
  F SCJ=0:0 S SCJ=$O(^SCPT(404.42,"B",DFN,SCJ)) Q:'SCJ  D
@@ -72,8 +89,8 @@ DEATH ;Called from date of death event
 POST ;
  D MES^XPDUTL("Deleting Traditional ASTAT CROSS REFERENCE from FILE 404.43")
  D DELIX^DDMOD(404.43,.12,1)
- N ENTRY
- K DGLEFDA
+ N ENTRY,DGDA,DGFIELD,DGFILE
+ K DGLEFDA,YEAR
  I '$D(^SCTM(404.46,"B","1.2.3.0")) D
  .K DO S DIC(0)="LM",DIC("DR")=".02////1;.03////"_DT,DIC="^SCTM(404.46,",X="1.2.3.0" D FILE^DICN
  I '$D(^SCTM(404.45,"B","SD*5.3*264")) D
@@ -108,15 +125,23 @@ FTEE(DATA,SCTEAM) ;return list of posistions for the team
  ..S K=0 S K=$O(^SCTM(404.52,"AIDT",I,1,J,K)) Q:'K
  ..S ZERO=$G(^SCTM(404.52,+K,0)) Q:'$P(ZERO,U,4)
  ..S CNT=CNT+1
- ..S DATA(CNT)=K_U_A_U_$P($G(^VA(200,+$P(ZERO,U,3),0)),U)_U_$P(ZERO,U,9)
+ ..S DATA(CNT)=K_U_A_U_$$GET1^DIQ(200,(+$P(ZERO,U,3))_",",.01)_U_$P(ZERO,U,9)_U_K_U_$P(ZERO,U,3)
  Q
 FILE(RES,DATA) ;File data on FTEE
  N I
  F I=1:1 Q:'$D(DATA(I))   D
  .S ZERO=$G(^SCTM(404.52,+DATA(I),0))
- .I $P(ZERO,U,9)=$P(DATA(I),U,5) Q
- .S FLDA(404.52,(+DATA(I))_",",.09)=+$TR($P(DATA(I),U,5)," ")
+ .I $P(ZERO,U,9)=$P(DATA(I),U,7) Q
+ .S FLDA(404.52,(+DATA(I))_",",.09)=+$TR($P(DATA(I),U,7)," ")
  I $O(FLDA(0)) D FILE^DIE("E","FLDA","ERR")
+ Q
+FTEXR ;Ftee cross reference
+ N DIC,DD,DO,DINUM,DS,ENTRY,VALUE
+ I '$D(^SCTM(404.52,+DA,1,0)) S ^(0)="^404.521DA"
+ S ENTRY=+$G(DA),VALUE=X
+ N DIC,FLDA,Y,DA,X S DIC="^SCTM(404.52,"_ENTRY_",1,",DA(1)=ENTRY
+ S DIC(0)="LM",X="NOW",DIC("DR")=".02////"_VALUE_";.03////"_$G(DUZ)
+ D ^DICN
  Q
 SCREEN ;Screen for active assignments
  N A S A=$G(^SCTM(404.52,D0,0))

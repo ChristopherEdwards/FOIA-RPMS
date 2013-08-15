@@ -1,5 +1,5 @@
 APCHSACG ; IHS/CMI/LAB - ; ANTI-COAG SUPPLEMENT 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
  ;
  ;BJPC v2.0 patch 1
 S(Y,F,C,T) ;EP - set up array
@@ -85,6 +85,16 @@ INRGOAL ;most recent goal from V ANTICOAG
  S X="    Duration of Anticoagulation Therapy Start Date",$E(X,60)=$$D1^APCHSMU($P($$MRSTART(DFN),U,1)) D S(X)
  S X="    Duration of Anticoagulation Therapy End Date",$E(X,60)=$$D1^APCHSMU($P($$MREND(DFN),U,1)) D S(X)
 CLN ;
+ ;display comments if there are any
+ S APCHX=$$MRCOM(DFN)
+ I APCHX]"" D
+ .D S(" ")
+ .NEW P S P=$$VAL^XBDIQ1(9000010.51,$P(APCHX,U,3),1204)
+ .S X="PROVIDER COMMENTS ("_P_$S(P]"":", ",1:"")_$$D1^APCHSMU($P(APCHX,U))_")  "_$P(APCHX,U,2)
+ .K ^UTILITY($J,"W") S DIWL=0,DIWR=70 D ^DIWP
+ .S P=^UTILITY($J,"W",0,1,0) D S(P)
+ .I $G(^UTILITY($J,"W",0))>1 F F=2:1:$G(^UTILITY($J,"W",0)) S X="",$E(X,3)=^UTILITY($J,"W",0,F,0) D S(X)
+ .K ^UTILITY($J,"W")
  K APCHV
  S APCHV="APCHV"
  D ALLV^APCLAPIU(DFN,$$FMADD^XLFDT(DT,-100),DT,.APCHV)
@@ -146,6 +156,7 @@ COMBBYDT ;combine the inrs and meds inverse by date
  ...S X="",$E(APCHSS,24)=^UTILITY($J,"W",0,1,0),$E(APCHSS,64)=$E($P(APCHVV,U,5),1,15) D S(APCHSS)
  ...I $G(^UTILITY($J,"W",0))>1 F F=2:1:$G(^UTILITY($J,"W",0)) S X="",$E(X,24)=^UTILITY($J,"W",0,F,0) D S(X)
  ..E  S $E(APCHSS,64)=$E($P(APCHVV,U,5),1,15) D S(APCHSS)
+ ..K ^UTILITY($J,"W")
 LAB ;
  S X="MOST RECENT RELATED LAB TESTS:" D S(X,1)
  S X="Date",$E(X,15)="Test",$E(X,50)="Results" D S(X)
@@ -235,6 +246,18 @@ MRGOAL(P) ;PEP - most recent INR goal and date
  ...I Z'=3 S S=$$VAL^XBDIQ1(9000010.51,I,.04)
  ...S R=$$VD^APCLV($P(^AUPNVACG(I,0),U,3))_"^"_S
  Q R
+MRCOM(P) ;PEP - most recent INR goal and date
+ I $G(P)="" Q ""
+ I '$D(^AUPNVACG("AA",P)) Q ""
+ NEW X,Y,D,R,I,Z,S
+ S R=""
+ S D=0 F  S D=$O(^AUPNVACG("AA",P,D)) Q:D'=+D!(R]"")  D
+ .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
+ ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
+ ...Q:$P($G(^AUPNVACG(I,11)),U,1)=""
+ ...S Z=$P(^AUPNVACG(I,11),U,1)
+ ...S R=$$VD^APCLV($P(^AUPNVACG(I,0),U,3))_"^"_Z_"^"_I
+ Q R
 MRDUR(P) ;PEP - most recent duration and date
  I $G(P)="" Q ""
  I '$D(^AUPNVACG("AA",P)) Q ""
@@ -245,7 +268,7 @@ MRDUR(P) ;PEP - most recent duration and date
  ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
  ...Q:$P($G(^AUPNVACG(I,0)),U,7)=""
  ...S Z=$$VAL^XBDIQ1(9000010.51,I,.07)
- ...S R=$$VD^APCLV($P(^AUPNVACG(I,0),U,3))_"^"_Z
+ ...S R=$$VD^APCLV($P(^AUPNVACG(I,0),U,3))_"^"_Z_"^"_I
  Q R
 MRSTART(P) ;PEP - most recent duration and date
  I $G(P)="" Q ""

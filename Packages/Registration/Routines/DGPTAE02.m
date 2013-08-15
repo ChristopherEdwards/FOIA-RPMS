@@ -1,33 +1,20 @@
-DGPTAE02        ;ALB/MTC - 701 Edit Checks ;5/26/2000
- ;;5.3;Registration;**8,22,39,114,176,251,247,270,446,418,482,466**;Aug 13, 1993
+DGPTAE02        ;ALB/MTC - 701 Edit Checks ;11/01/2005
+ ;;5.3;Registration;**8,22,39,114,176,251,247,270,446,418,482,466,683,729,1015**;Aug 13, 1993;Build 21
  ;10/06/1999 ACS - Added Place of Disposition codes M,Y,Z to the
  ;validity checks
  ;5/15/2000 ACS - Added Treating Specialty 37 as a valid code
  ;5/16/2000 MM  - Added Treating Specialties 38 & 39 as valid codes
  ;5/26/2000 JRP - Place of Disposition code M valid for station
  ;                types 10, 11, 30, and 40
+ ;09/27/2006 JRC - Added Treating Specialties 13, 30, 48, 49, 78,
+ ;                 82 and 97
  ;
 CHECK ;
- I (DGPTSP1'?1N)!(DGPTSP2'?1N) S DGPTERC=1 Q
- I DGPTSP1="0"&((DGPTSP2'?1N)!(DGPTSP2="0")) S DGPTERC=1 G EXIT
+ I (DGPTSP1'?1AN)!(DGPTSP2'?1AN) S DGPTERC=1 Q
+ I DGPTSP1="0"&((DGPTSP2'?1AN)!(DGPTSP2="0")) S DGPTERC=1 G EXIT
  ; No zero or double zeroes allowed
- I DGPTSP1=1&(DGPTSP2=3) S DGPTERC=1 G EXIT
- ; No codes 13
- ;I DGPTSP1=3&((DGPTSP2="0")!(DGPTSP2>6)) S DGPTERC=1 G EXIT
- I DGPTSP1=3&((DGPTSP2="0")) S DGPTERC=1 G EXIT
- ; No codes 30
- I DGPTSP1=4&(DGPTSP2>1) S DGPTERC=1 G EXIT
- ; No codes 42-49
  I DGPTSP1=5 G EXIT
  ; All codes 50-59 allowable
- I DGPTSP1=6&("46789"[DGPTSP2) S DGPTERC=1 G EXIT
- ; No codes 64 or 66-69
- I DGPTSP1=7&(DGPTSP2=8) S DGPTERC=1 G EXIT
- ; No code 78
- I DGPTSP1=8&(DGPTSP2=2) S DGPTERC=1 G EXIT
- ; No code 82
- I DGPTSP1=9&(DGPTSP2=7) S DGPTERC=1 G EXIT
- ; No code 97;
  ; New code 95:p-418
  ; New code 96;p-446
 EXIT ;
@@ -118,14 +105,24 @@ LEG ;
  ;I DGPTDDXE=482.8&("12"'[DGPT70LG) S DGPTERC=731 Q
  Q
 SUI ;
- I ($E(DGPTDDXE,1,3)="E95")&("12345678"[$E(DGPTDDXE,4))&("12"'[DGPT70SU) S DGPTERC=732 Q
+ N DGINACT
+ I ($E(DGPTDDXE,1,3)="E95")&("12345678"[$E(DGPTDDXE,4))&("12"'[DGPT70SU) D
+ . I '$D(DGSCDT) D DC
+ . S DGINACT=$$GET1^DIQ(45.88,"2,",.03,"I")
+ . I DGINACT]"",$D(DGSCDT) Q:DGSCDT>DGINACT
+ . S DGPTERC=732 Q
  Q
 DRUG ;
  S DGPTMSX=0
  I ($E(DGPTDDXE,1,4)="304.")&("013456"[$E(DGPTDDXE,5))&("0123"[$E(DGPTDDXE,6)) S DGPTMSX=1
  I ($E(DGPTDDXE,1,4)="305.")&("234579"[$E(DGPTDDXE,5))&("0123"[$E(DGPTDDXE,6)) S DGPTMSX=1
  Q:'DGPTMSX
- I $E(DGPT70DR,1)'="A"!($E(DGPT70DR,2,4)<1)!(+$E(DGPT70DR>16)) S DGPTERC=733
+ N DGINACT
+ I $E(DGPT70DR,1)'="A"!($E(DGPT70DR,2,4)<1)!(+$E(DGPT70DR>16)) D
+ . I '$D(DGSCDT) D DC
+ . S DGINACT=$$GET1^DIQ(45.88,"4,",.03,"I")
+ . I DGINACT]"",$D(DGSCDT) Q:DGSCDT>DGINACT
+ . S DGPTERC=733
  S DGPTMSX=0 Q
 AXIV ;
  I $E(DGPTDDXE,1,3)>295,$E(DGPTDDXE,1,3)<320,"0123456"'[DGPT70X4 S DGPTERC=734
@@ -136,4 +133,7 @@ AXV1 ;
 AXV2 ;
  Q:DGPTDXV2="  "
  I (DGPTDXV2<0)!(DGPTDXV2>90) S DGPTERC=735 Q
+ Q
+DC ;find discharge date
+ S DGSCDT=$S('$D(^DGPT(PTF,70)):DT,^(70):+^(70),1:DT)
  Q

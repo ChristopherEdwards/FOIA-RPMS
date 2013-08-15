@@ -1,0 +1,168 @@
+BCHADRS ; IHS/CMI/LAB - ROLL AND SCROLL POV ENTRY ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
+ ;
+POVS(BCHR) ;
+ D EN^XBNEW("POVS1^BCHADRS","BCHR")
+ K Y
+ Q
+POVS1 ;
+ NEW BCHC,BCHCM,BCHPAT
+ S BCHPAT=$P(^BCHR(BCHR,0),U,4)
+POV1 W !!?3,"Assessments/Purpose of Visits"
+ I '$O(^BCHRPROB("AD",BCHR,0)) S BCHC=0 W ":  None currently recorded" G FM12
+ D EN^DDIOL($$REPEAT^XLFSTR("~",75),"","!?3")
+ W !?1,"#",?5,"PROBLEM",?27,"SERVICE",?48,"MINUTES"
+ K BCHCM S X=0,BCHC=0 F  S X=$O(^BCHRPROB("AD",BCHR,X)) Q:X'=+X  D
+ .S BCHC=BCHC+1,BCHCM(BCHC)=X
+ .W !?1,BCHC,")  ",?5,$E($$VAL^XBDIQ1(90002.01,X,.01),1,20),?27,$E($$VAL^XBDIQ1(90002.01,X,.04),1,20),?50,$$VAL^XBDIQ1(90002.01,X,.05),!?5,"NARRATIVE: ",$$VAL^XBDIQ1(90002.01,X,.06)
+FM12 ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="S^A:Add a Problem/Activity"_$S(BCHC:";E:Edit an Existing Problem/Activity;D:Delete a Problem/Activity",1:"")_";Q:Quit, I'm Done with Assessment Entry"
+ S DIR("A")="Which action",DIR("B")="" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G FM13
+ I Y="Q" S BCHDONE=1 G FM13
+ S Y="FM"_Y
+ D @Y
+ G POV1
+FM13 ; 
+ K Y
+ Q
+ ;
+FME ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="N^1:"_BCHC_":0",DIR("A")="Edit Which One" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ K DIC,DA,DR
+ S DA=BCHCM(Y)
+ S DA(1)=BCHTP,DIE="^BCHRPROB("_DA(1)_",17,",DR=".01;.02" D ^DIE K DIE,DA,DR
+ Q
+FMD ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="N^1:"_BCHC_":0",DIR("A")="Delete Which One" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ S DA=BCHCM(Y)
+ S DA(1)=BCHTP,DIE="^BCHRPROB("_DA(1)_",17,",DR=".01///@" D ^DIE K DIE,DA,DR
+ K DIC,DA,DR
+ Q
+FMA ;
+ ;ADDING NEW
+ S DIE="^BCHR(",DA=BCHR,DR="[BCH POV ADD (535)]"
+ D ^DIE
+ K DIE,DA,DR
+ Q
+GETNARRS(PC,SC) ;
+ K BCHCANNN,BCHCOUNT
+ K ^BCHRPROB(DA,81)
+ NEW PCSC,SCE,C,X
+ S C=0
+ S SC=$G(SC)
+ I SC S SCE=$P(^BCHTSERV(SC,0),U,3)
+ S PC=$G(PC)
+ I PC S PC=$P(^BCHTPROB(PC,0),U,2)
+ S PCSC=PC_"-"_SCE
+ S X=0 F  S X=$O(^BCHTCNAR(X)) Q:X'=+X  D
+ .I $D(^BCHTCNAR(X,11,"B",SC))!($D(^BCHTSERV(X,12,"B",PCSC))) D
+ ..S C=C+1,BCHCANNN(C)=C_U_$$VAL^XBDIQ1(90002.59,X,.01)_U_X
+ ..;D PUT^DDSVAL(90002.0181,.DA,.01,$P(BCHCANNN(C),U,1),"","E")
+ ..;D PUT^DDSVAL(90002.0181,.DA,.02,$P(BCHCANNN(C),U,2),"","E")
+ ..S ^BCHRPROB(DA,81,C,0)=C_U_$P(BCHCANNN(C),U,2)
+ ..S ^BCHRPROB(DA,81,"B",C,C)=""
+ S ^BCHRPROB(DA,81,0)="^90002.0181A^"_C_"^"_C
+ S BCHCOUNT=C
+ Q
+GETNARR(BCHRDA) ;
+ D EN^XBNEW("GETNARR1^BCHADRS","BCHRDA")
+ K Y
+ Q
+CANNEDN(BCHRDA) ;EP - return canned narrative
+ NEW BCHX
+ ;*****CALLED FROM SCREENMAN
+ S BCHX=$P(^BCHRPROB(BCHRDA,0),U,4) I BCHX,$P($G(^BCHTSERV(BCHX,0)),U,4) D EN^DDIOL("For services PC, HE, CF, CM, MP, EC and HS you must enter a narrative.") Q ""
+ Q $E($P(^BCHTPROB($$VALI^XBDIQ1(90002.01,BCHRDA,.01),0),U),1,40)_":"_$E($P(^BCHTSERV($$VALI^XBDIQ1(90002.01,BCHRDA,.04),0),U),1,40)
+GETNARR1 ;
+ NEW BCHC,BCHCM,BCHPAT,BCHX,BCHNARR,APCDOVRR
+ ;S BCHPAT=$P(^BCHR(BCHR,0),U,4)
+CN ;
+ W ! K DIR S DIR(0)="Y",DIR("A")="  Canned Narrative" KILL DA D ^DIR KILL DIR
+ I X="^" W !,"Response is Required." G CN
+ S APCDOVRR=1
+ I Y G CN1
+ S BCHX=$P(^BCHRPROB(BCHRDA,0),U,4) I BCHX,$P($G(^BCHTSERV(BCHX,0)),U,4) D EN^DDIOL("Please Note: For services PC, HE, CF, CM, MP, EC and HS you must enter a narrative.")
+GN ;K DIR S DIR(0)="90002.01,.06O",DIR("A")="NARRATIVE" KILL DA D ^DIR KILL DIR
+ ;K DIR S DIR(0)="FO^1:80",DIR("A")="NARRATIVE" KILL DA D ^DIR KILL DIR
+ S DA=BCHRDA,DIE="^BCHRPROB(",DR="9101NARRATIVE" D ^DIE K DIE,DA,DR
+ S BCHNARR=$P($G(^BCHRPROB(BCHRDA,91)),U,1) I BCHNARR="" S BCHNARR=$$CANNEDN(BCHRDA) G:BCHNARR="" GN D  Q
+ .S DA=BCHRDA,DIE="^BCHRPROB(",DR=".06///"_BCHNARR D ^DIE K DIE,DA,DR
+ S DA=BCHRDA,DIE="^BCHRPROB(",DR=".06////"_BCHNARR D ^DIE K DIE,DA,DR
+ Q
+CN1 ;
+ ;write out narratives
+ W !,"Please select the narrative you wish to use.",!
+ NEW PCSC,SCE,C,X,PC,SC
+ S C=0
+ S SC=$P(^BCHRPROB(BCHRDA,0),U,4)
+ I SC S SCE=$P(^BCHTSERV(SC,0),U,3)
+ S PC=$P(^BCHRPROB(BCHRDA,0),U,1)
+ I PC S PC=$P(^BCHTPROB(PC,0),U,2)
+ S PCSC=PC_"-"_SCE
+ S X=0 F  S X=$O(^BCHTCNAR(X)) Q:X'=+X  D
+ .I $D(^BCHTCNAR(X,11,"B",SC))!($D(^BCHTSERV(X,12,"B",PCSC))) D
+ ..S C=C+1,BCHCANNN(C)=C_U_$$VAL^XBDIQ1(90002.59,X,.01)_U_X
+ S BCHCOUNT=C
+ S X=0 F  S X=$O(BCHCANNN(X)) Q:X'=+X  W !?5,X,") ",$P(BCHCANNN(X),U,2)
+ K DIR S DIR(0)="NO^1:"_BCHCOUNT_":0",DIR("A")="Which Narrative" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D GN Q
+ I Y="" D GN Q
+ S BCHNARR=$P(BCHCANNN(Y),U,2) S DA=BCHRDA,DIE="^BCHRPROB(",DR=".06//"_BCHNARR D ^DIE K DIE,DA,DR
+ Q
+WTD ;
+ D EN^XBNEW("WTD1^BCHADRS","BCHDEL")
+ K Y
+ Q
+WTD1 ;
+ K DIR
+ S DIR(0)="S^G:GO Back and Enter an Assessment;D:Delete the Record and Quit Entry of this Record",DIR("A")="What would you like to do",DIR("B")="G" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) S BCHDEL=0 Q
+ I Y="G" S BCHDEL=0 Q
+ S BCHDEL=1
+ Q
+DEFNS(R) ;EP - called from screenman screen
+ I '$G(R) Q ""
+ NEW X,Y,G,Z
+ S G=1
+ S X=0 F  S X=$O(^BCHRPROB("AD",R,X)) Q:X'=+X  D
+ .S Y=$P(^BCHRPROB(X,0),U,1)
+ .I Y S Y=$P(^BCHTPROB(Y,0),U,2)
+ .I Y="AM" S G=0 Q
+ .I Y="LT" S G=0 Q
+ .I Y["-" S G=0 Q
+ .S Z=$P(^BCHRPROB(X,0),U,4)
+ .I Z S Y=$P(^BCHTSERV(Z,0),U,3)
+ .I Y="LT" S G=0 Q
+ .I Y="AM" S G=0 Q
+ .I Y="NF" S G=0 Q
+ .I Y="OT" S G=0 Q
+ .Q
+ Q G
+DEFAL(R) ;EP - called from screenman screen
+ I '$G(R) Q ""
+ NEW X,Y,G,Z
+ S G=""
+ S X=0 F  S X=$O(^BCHRPROB("AD",R,X)) Q:X'=+X  D
+ .S Y=$P(^BCHRPROB(X,0),U,1)
+ .I Y S Y=$P(^BCHTPROB(Y,0),U,2)
+ .;I Y="AM" S G=0 Q
+ .I Y="LT" S G="NONE" Q
+ .;I Y["-" S G=0 Q
+ .S Z=$P(^BCHRPROB(X,0),U,4)
+ .I Z S Y=$P(^BCHTSERV(Z,0),U,3)
+ .I Y="LT" S G="NONE" Q
+ .;I Y="AM" S G=0 Q
+ .;I Y="NF" S G=0 Q
+ .I Y="OT" S G="NONE" Q
+ .Q
+ I G]"" Q $O(^BCHTACTL("B",G,0))
+ Q ""

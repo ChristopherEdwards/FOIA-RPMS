@@ -1,5 +1,5 @@
 BDWAID ; IHS/CMI/LAB - UNIQUE REGISTRATION RECORD ID ;
- ;;1.0;IHS DATA WAREHOUSE;;JAN 23, 2006
+ ;;1.0;IHS DATA WAREHOUSE;**3**;JAN 23, 2006
  ;
 UID(BDWA) ;PEP-Given DFN return unique patient record id.
  ; BDWA can be DFN, but is not required if DFN or DA exists.
@@ -28,6 +28,10 @@ UIDV(VISIT) ;EP - generate unique ID for visit
  ;I '$P($G(^AUTTSITE(1,1)),"^",3) S $P(^AUTTSITE(1,1),"^",3)=$P(^AUTTLOC($P(^AUTTSITE(1,0),"^",1),0),"^",10)
  S X=$$GET1^DIQ(9999999.06,$P(^AUTTSITE(1,0),U),.32)
  Q X_$$LZERO(VISIT,10)
+ ;
+ICN(BDWA) ;-- return the ICN number and concat in PID-3
+ I '$G(BDWA),$G(DFN) S BDWA=DFN
+ Q $$GET1^DIQ(2,BDWA,991.01)
  ;
 LZERO(V,L) ;EP - left zero fill
  NEW %,I

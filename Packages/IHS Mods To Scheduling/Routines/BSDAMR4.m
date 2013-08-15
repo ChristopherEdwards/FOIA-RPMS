@@ -1,5 +1,5 @@
 BSDAMR4 ;cmi/anch/maw - BSD Appointment Management Reports Cancelled Appointment Listing 2/12/2007 1:22:04 PM
- ;;5.3;PIMS;**1007**;DEC 01, 2006
+ ;;5.3;PIMS;**1007,1014,1016**;DEC 01, 2006;Build 20
  ;
  ;cmi/anch/maw new report for PATCH 1007 item 1007.19
  ;
@@ -16,8 +16,8 @@ ASK ; -- ask user questions
  S BSDED=$$READ^BDGF("DO^::EX","Select Last Date to Search") Q:'BSDED
  ;
  S BSDSTAT=$$READ^BDGF("S^C:Clinic;P:Patient","Cancelled By","Clinic")
- I BSDSTAT="C" S BSDSTAT("CA")="",BSDSTAT("PCA")="",BSDSTE="Clinic"
- I BSDSTAT="P" S BSDSTAT("C")="",BSDSTAT("PC")="",BSDSTE="Patient"
+ I BSDSTAT="C" S BSDSTAT("C")="",BSDSTAT("CA")="",BSDSTE="Clinic"
+ I BSDSTAT="P" S BSDSTAT("PC")="",BSDSTAT("PCA")="",BSDSTE="Patient"
  ;
  ;
  S Y=$$BROWSE^BDGF Q:"PB"'[Y  I Y="B" D EN Q  ;browse in list mgr mode
@@ -72,14 +72,14 @@ INIT ; -- init variables and list array
  .. S LINE=$$PAD(LINE,27)_$$GET1^DIQ(2,PAT,.131)       ;phone
  .. S LINE=$$PAD(LINE,42)_$$FMTE^XLFDT(BSDIEN)            ;appt date
  .. S LINE=$$PAD(LINE,62)_$S($G(BSDREA)]"":BSDREA_" "_BSDCANR,1:"")         ;reason for appoinTment
- .. S ^TMP("BSD",$J,SUB,NAME,BSDIEN)=LINE  ;sort by category,clinic,date
+ .. S ^TMP("BSD",$J,SUB,PAT,BSDIEN)=LINE  ;sort by category,clinic,date
  ;
  ; put sorted list into display array
  NEW S1,S2,S3
  S S1=0 F  S S1=$O(^TMP("BSD",$J,S1)) Q:S1=""  D
  . D SET(S1,.VALMCNT)
  . S S2=0 F  S S2=$O(^TMP("BSD",$J,S1,S2)) Q:S2=""  D
- .. I S1'=S2 D SET($$SP(2)_S2,.VALMCNT)
+ .. ;I S1'=S2 D SET($$SP(2)_S2,.VALMCNT)
  .. S S3=0 F  S S3=$O(^TMP("BSD",$J,S1,S2,S3)) Q:S3=""  D
  ... D SET(^TMP("BSD",$J,S1,S2,S3),.VALMCNT)
  .. I S1'=S2 D SET("",.VALMCNT)
@@ -98,7 +98,7 @@ HELP ; -- help code
  Q
  ;
 EXIT ; -- exit code
- K ^TMP("BSDAMR2",$J)
+ K ^TMP("BSDAMR4",$J)
  Q
  ;
 EXPND ; -- expand code
@@ -106,9 +106,9 @@ EXPND ; -- expand code
  ;
 PRINT ; print report to paper
  U IO D HDG
- NEW X S X=0 F  S X=$O(^TMP("BSDAMR2",$J,X)) Q:'X  D
+ NEW X S X=0 F  S X=$O(^TMP("BSDAMR4",$J,X)) Q:'X  D
  . I $Y>(IOSL-4) D HDG
- . W !,^TMP("BSDAMR2",$J,X,0)
+ . W !,^TMP("BSDAMR4",$J,X,0)
  D ^%ZISC,EXIT
  Q
  ;

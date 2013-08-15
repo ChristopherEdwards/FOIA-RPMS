@@ -1,5 +1,5 @@
 DGQEPEN ;ALB/JFP - VIC ENVIRONMENT CHECKER; 09/01/96
- ;;V5.3;REGISTRATION;**73**;DEC 11,1996
+ ;;5.3;REGISTRATION;**73,1015**;DEC 11,1996;Build 21
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
 CHKENV ; -- Main entry point for environment checker
  ;Input  : All variables set by KIDS

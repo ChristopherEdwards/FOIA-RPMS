@@ -1,5 +1,5 @@
 DGOVBC2 ;ALB/MRL - VBC OUTPUT, CONTINUED ; 12 FEB 87
- ;;5.3;Registration;**279**;Aug 13, 1993
+ ;;5.3;Registration;**279,1015**;Aug 13, 1993;Build 21
  N DGREL,DGINC,DGINR,DGDEP,DG421
  S DGD=$S($D(^DPT(DFN,.362)):^(.362),1:"")
  W ! D L D MB^VADPT W !,"8. Aid & Attendance:  ",$S(VAMB(1):"$"_+$P(VAMB(1),"^",2),1:"NONE"),?40,"Housebound         :  ",$S(VAMB(2):"$"_+$P(VAMB(2),"^",2),1:"NONE"),?90,"Social Security:  ",$S(VAMB(3):"$"_+$P(VAMB(3),"^",2),1:"NONE")

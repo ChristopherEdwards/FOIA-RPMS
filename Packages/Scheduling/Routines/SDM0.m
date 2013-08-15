@@ -1,5 +1,5 @@
 SDM0 ;SF/GFT - MAKE APPOINTMENT ; 11 Jun 2001  5:20 PM
- ;;5.3;Scheduling;**140,167,206,186,223,237,241,1005**;Aug 13, 1993
+ ;;5.3;PIMS;**140,167,206,186,223,237,241,384,334,1005,1015,1016**;JUN 30, 2012;Build 20
  ;IHS/ANMC/LJF 06/29/2000 bypassed asking scheduling request type
  ;                        calls BSDM0 for month-at-a-glance display
  ;             06/15/2001 bypassed calculate f/u status
@@ -36,7 +36,7 @@ EN S:$L(X)=1 X=$TR(X,"tnN","TTT") S:X="NOW" X="T" I X?.A!(+X=X),X<13,X'?1"T".E S
  .Q
  S:$S($D(DUZ)'[0:1,1:0) ^DISV(DUZ_U_+SC)=Y
 DISP S IOF=$S('$D(IOF):"!#",IOF']"":"!#",1:IOF) W @IOF S SDSOH=$S('$D(^SC(+SC,"SL")):0,$P(^("SL"),"^",8)']"":0,1:1),SDAV=0
- I $D(SDINA),Y'<SDINA,SDRE>Y!('SDRE) S SDHY=Y,Y=SDINA D DTS^SDUTL W !,*7,"Clinic is inactive ",$S(SDRE:"from ",1:"as of "),Y S Y=SDRE D:Y DTS^SDUTL W $S(SDRE:" to "_Y,1:"") S Y=SDHY K SDHY Q:'SDRE
+ I $D(SDINA),Y'<SDINA,SDRE>Y!('SDRE) S SDHY=Y,Y=SDINA D DTS^SDUTL W !,*7,"Clinic is inactive ",$S(SDRE:"from ",1:"as of "),Y S Y=SDRE D:Y DTS^SDUTL W $S(SDRE:" to "_Y,1:"") S Y=SDHY K SDHY D PAUSE^VALM1 Q:'SDRE
  S:Y#100=0 Y=Y+1 S X=Y D D:$E(X,4,5) S (SDX,X1)=X,X2=1 D C^%DTC S X=SDX K SDX G:SDAV ^SDM1 Q
  ;
 NEXT D SET I $S('$D(FND):1,'FND:1,1:0) D  G EN
@@ -54,11 +54,14 @@ D ;IHS/ANMC/LJF 6/29/2000 separated line to add code
  D EN^BSDM0(X),FULL^VALM1 Q  ;IHS/ANMC/LJF 6/29/2000
  W #!?36,$P(SC,U,2) S:$O(^SC(+SC,"T",0))>X X=+$O(^(0)) D DOW S I=Y+32,D=Y S SDXF=0 D WM I SDXF D WMH
 X1 S X1=X\100_$P("31^28^31^30^31^30^31^31^30^31^30^31",U,+$E(X,4,5)) ;28
-W I '$D(^SC(+SC,"ST",X,1)) S Y=D#7 G L:'$D(J(Y)),H:$D(^HOLIDAY(X))&('SDSOH) S SS=+$O(^SC(+SC,"T"_Y,X)) G L:SS'>0,L:^(SS,1)="" S ^SC(+SC,"ST",$P(X,"."),1)=$E($P($T(DAY),U,Y+2),1,2)_" "_$E(X,6,7)_$J("",SI+SI-6)_^(1),^(0)=$P(X,".")
+ ;SD*5.3*547 next line don't allow past dates to be added to pattern if prior to date DOW was added
+W I '$D(^SC(+SC,"ST",X,1)) S DWFLG=1,POP=0,XDT=X D DOWCHK K DWFLG,XDT G L:POP
+ I '$D(^SC(+SC,"ST",X,1)) S Y=D#7 G L:'$D(J(Y)),H:$D(^HOLIDAY(X))&('SDSOH) S SS=+$O(^SC(+SC,"T"_Y,X)) G L:SS'>0,L:^(SS,1)="" S ^SC(+SC,"ST",$P(X,"."),1)=$E($P($T(DAY),U,Y+2),1,2)_" "_$E(X,6,7)_$J("",SI+SI-6)_^(1),^(0)=$P(X,".")
  S SDHX=X,SDAV=1 D:X>SM WM I SDXF<2 D WMH
  I $D(^SC(+SC,"ST",X,1)),^(1)["["!(^(1)["CANCELLED")!($D(^HOLIDAY(X))) W !,$E(^SC(+SC,"ST",X,1),1,80) S:'$D(^HOLIDAY(X))&('SDAV) SDAV=1
  I $Y>18 W ! Q
-L S X=X+1,D=D+1
+L K POP
+ S X=X+1,D=D+1
  I $D(SDINA),X>SDINA,SDRE>X!('SDRE) D:'SDAV NOAV S SDHY=Y,Y=SDINA D DTS^SDUTL W !,*7,?8,"Clinic is inactive ",$S(SDRE:"from ",1:"as of "),Y S Y=SDRE D:Y DTS^SDUTL W $S(SDRE:" to "_Y,1:"") S Y=SDHY K SDHY Q:'SDRE  D DIFF
  G W:X'>X1 S X2=X-X1 D C^%DTC
  I $D(SDINA),X>SDINA,SDRE>X!('SDRE) D:'SDAV NOAV S SDHY=Y,Y=SDINA D DTS^SDUTL W !,*7,?8,"Clinic is inactive ",$S(SDRE:"from ",1:"as of "),Y S Y=SDRE D:Y DTS^SDUTL W $S(SDRE:" to "_Y,1:"") S Y=SDHY K SDHY Q:'SDRE
@@ -106,9 +109,7 @@ MNTH W !," *** No availability found for one full calendar month",!,"  Search st
 DIFF S X1=SDRE,X2=X D ^%DTC S D=D+X,X=SDRE,X1=X\100_28 Q
  ;
 SRTY(SDSRTY) ;Prompt for scheduling request type
- ;
  S SDSRTY="N" Q 1  ;IHS/ANMC/LJF 6/29/2000
- ;
  ;Input: SDSRTY=variable to return user response (pass by reference)
  ;Output: '1' if successful, '0' otherwise
  ;
@@ -122,9 +123,7 @@ SRTY(SDSRTY) ;Prompt for scheduling request type
  S SDSRTY=Y,SDSRTY(0)=$$TXRT^SDM1A(.SDSRTY) Q 1
  ;
 PTFU(DFN,SC)    ;Determine if this is a follow-up (return to clinic within 24 months)
- ;
  Q 0  ;IHS/ANMC/LJF 6/15/2001
- ;
  ;Input: DFN=patient ifn
  ;Input: SC=clinic ifn
  ;Output: '1' if seen within 24 months, '0' otherwise
@@ -156,28 +155,29 @@ DDATE(SDDATE,SDSRTY,SDMAX) ;Desired date selection
  ;Output: '1' for success, otherwise '0'
  ;
  Q:SDSRTY 1
- ;
- ;IHS/OIT/LJF 12/30/2005 PATCH 1005 making question clearer - removing some text
- ;W !!?2,"Select one of the following:",!
- ;W !?5,"'F'",?20,"for First available following a specified date"
- ;W !?5,"Date",?20,"(or date computation such as 'T+2M') for a desired date"
- ;I DFN>0 W !?5,"Date/time",?20,"to schedule a specific appointment"
- ;W !?5,"'?'",?20,"for detailed help"
- ;
+ W !!?2,"Select one of the following:",!
+ W !?5,"'F'",?20,"for First available following a specified date"
+ W !?5,"Date",?20,"(or date computation such as 'T+2M') for a desired date"
+ I DFN>0 W !?5,"Date/time",?20,"to schedule a specific appointment - Note: PAST dates",!?20,"must include the Year in the input."  ;added note SD*5.3*547
+ W !?5,"'?'",?20,"for detailed help"
 DASK N DIR,X,Y,SDX,DTOUT,DUOUT
- S DIR(0)="F:1:30"
+ ;
+ ;BP OIFO/TEH PATCH SD*5.3*384 ; SD*5.3*547 added note to help text
+ ;
+ S DIR(0)="F^1:30"
  S DIR("A")="ENTER THE DATE DESIRED FOR THIS APPOINTMENT"
  S DIR("?",1)="  Enter the date that is desired for this appointment."
- S DIR("?",2)=""
- S DIR("?",3)="  You may enter 'F' to find the first available slot after a specifed date."
- S DIR("?",4)="  You will be prompted for begin and end dates for this search."
- S DIR("?",5)=""
- S DIR("?",6)="  A date may be entered to begin the display of clinic availability at the"
+ S DIR("?",2)="  NOTE: PAST dates must include the Year in the input."
+ S DIR("?",3)=""
+ S DIR("?",4)="  You may enter 'F' to find the first available slot after a specified date."
+ S DIR("?",5)="  You will be prompted for begin and end dates for this search."
+ S DIR("?",6)=""
+ S DIR("?",7)="  A date may be entered to begin the display of clinic availability at the"
  I DFN<1 S DIR("?")="  requested date."
  I DFN>0 D
- .S DIR("?",7)="  requested date."
- .S DIR("?",8)=""
- .S DIR("?",9)="  The entry of a date/time will result in the scheduling of an appointment at"
+ .S DIR("?",8)="  requested date."
+ .S DIR("?",9)=""
+ .S DIR("?",10)="  The entry of a date/time will result in the scheduling of an appointment at"
  .S DIR("?")="  that time, if possible."
  .Q
  ;
@@ -200,6 +200,29 @@ DASK N DIR,X,Y,SDX,DTOUT,DUOUT
  .W "Scheduling cannot be more than ",SDMAX(1)," days in the future"
  .Q
  Q 1
+ ;
+DOWCHK ;SD*5.3*547 check if date is prior to date DOW was added to pattern
+ S (DY,DYW)="" S:'$D(DWFLG) DWFLG=0
+ I '$D(^SC(+SC,"ST",$P(XDT,"."),1)) D  Q:DWFLG  I POP D DWWRT Q
+ .S DY=$$DOW^XLFDT($P(XDT,"."))
+ .S DYW=$E(DY,1,2),DYW=$TR(DYW,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ .S PCDT=$P(XDT,"."),CT=0,POP=1
+ .F  S PCDT=$O(^SC(+SC,"ST",PCDT),-1) Q:'PCDT!('POP)!(CT>30)  D
+ ..S CT=CT+1
+ ..Q:'$D(^SC(+SC,"ST",PCDT,0))
+ ..Q:'$D(^SC(+SC,"ST",PCDT,1))
+ ..Q:$E($G(^SC(+SC,"ST",PCDT,1)),1,2)'=DYW
+ ..I $E($G(^SC(+SC,"ST",PCDT,1)),1,2)=DYW S POP=0 Q
+ .Q
+ K PCDT,CT,DY,DYW
+ Q
+ ;
+DWWRT ;added SD*5.3*547
+ S DY=$TR(DY,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ W *7,!!,"That date is prior to the date ",DY," was added to the"
+ W !,"availability pattern for this clinic.",!!
+ K DY,DYW,PCDT,CT
+ Q
  ;
 1 S SDNEXT="",SDCT=0 G RD^SDMULT
 DT1 S FND=0,%DT(0)=-SDMAX,%DT="AEF",%DT("A")="  START SEARCH FOR NEXT AVAILABLE FROM WHAT DATE: " D ^%DT K %DT G:"^"[X 1:$S('$D(SDNEXT):1,'SDNEXT:1,1:0),END^SDMULT0 G:Y<0 DT S (SDDATE,SDSTRTDT)=+Y

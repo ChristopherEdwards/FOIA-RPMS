@@ -1,5 +1,5 @@
 SCRPW50 ;RENO/KEITH - ACRP Data Validation Reports ; 15 Jul 98  4:31 PM
- ;;5.3;Scheduling;**144**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,466,1015**;AUG 13, 1993;Build 21
 RQUE(SDROU,SDES,SD132) ;Queue data validation reports
  ;Required input: SDROU=routine entry point to que
  ;Required input: SDES=report name
@@ -10,6 +10,7 @@ DATE N %DT S %DT="AEPX",%DT(0)="-NOW",%DT("A")="Produce report for Fiscal Year w
  I Y<2961001 W !!,$C(7),"This date cannot be prior to OCT 1, 1996!" K Y G DATE
  S SD("MOD")=$E(Y,1,5)_"00",SD("EDT")=Y_.99,SD("FYD")=$E(Y,1,3)_1001 S:SD("FYD")>SD("EDT") SD("FYD")=SD("FYD")-10000 X ^DD("DD") S SD("PEDT")=Y
  F X="SD(","SDDIV","SDDIV(","SDMD" S ZTSAVE(X)=""
+ I $D(SDSTA) S ZTSAVE("SDSTA")="" ;encounter status
  I $G(SD132) W !!,"This report requires 132 column output."
  W ! D EN^XUTMDEVQ(SDROU,SDES,.ZTSAVE)
 EXIT D END K SDMD,SD132,SDROU,SDES,SD,SDDIV,X,Y,%DT,SDX Q

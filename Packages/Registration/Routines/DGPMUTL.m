@@ -1,5 +1,5 @@
 DGPMUTL ;ALB/MJK - SELECT PATIENT MOVEMENT FOR PATIENT ; 3/24/90 1PM ;
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- sets DIC and DIC(0) before calling DFN (*** FOR MAS USE ONLY ***)
  ;    input: DFN

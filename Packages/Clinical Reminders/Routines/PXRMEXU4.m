@@ -1,5 +1,5 @@
-PXRMEXU4 ; SLC/PJH,PKR - Reminder Exchange #4, dialog changes. ;01/22/2003
- ;;1.5;CLINICAL REMINDERS;**5,7,15**;Jun 19, 2000
+PXRMEXU4 ; SLC/PJH,PKR - Reminder Exchange #4, dialog changes. ;14-Mar-2012 08:29;DU
+ ;;1.5;CLINICAL REMINDERS;**5,7,15,1008**;Jun 19, 2000;Build 25
  ;======================================================================
 DLG(FDA,NAMECHG) ;Check the dialog for renamed entries
  N ABBR,ACTION,ALIST,DNAM,IEN,IENS,FILENUM,FINDING,NEWNAM,OFINDING
@@ -101,7 +101,7 @@ DLG(FDA,NAMECHG) ;Check the dialog for renamed entries
  .I FINDING'=OFINDING D
  .. S ^TMP("PXRMEXIA",$J,"DIAF",$P(IENS,",",1),OFINDING)=FINDING
  .;Convert ICD9 codes to `ien format
- .I $P(FINDING,".")="ICD9" S FDA(801.41,IENS,15)=$$ICD9(FINDING)
+ .I $P(FINDING,".")="ICD9" S FDA(801.41,IENS,15)="ICD9."_$$ICD9(FINDING)
  ;
  ;Look for replacements of TIU templates.
  I $D(NAMECHG(8927.1)) D

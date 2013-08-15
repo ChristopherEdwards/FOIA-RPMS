@@ -1,5 +1,5 @@
 DGPMRB ;ALB/MRL,MIR - ROOM-BED DETERMINATION (SINGLE WARD); 9 JAN 89
- ;;5.3;Registration;**54**;Aug 13, 1993
+ ;;5.3;Registration;**54,1015**;Aug 13, 1993;Build 21
  N I,I1,J,L,M,W,Y
  D Q S DGHOW=$S(('$D(X)#2):1,X["??":0,1:1),DGPMDD=$S('$D(DGSWITCH):+^DGPM(DA,0),1:DT),W=+$P(^DGPM(DA,0),"^",6),(DGL,DGA,DGFL)=0 G Q:'$D(^DIC(42,+W,0))
  W !!,"CHOOSE FROM",!

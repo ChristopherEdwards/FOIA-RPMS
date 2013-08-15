@@ -1,5 +1,5 @@
-PSODIR2 ;IHS/DSD/JCM - rx order entry contd ;13-Feb-2012 14:35;PLS
- ;;7.0;OUTPATIENT PHARMACY;**3,9,26,46,124,146,139,152,166,1005,1008,1013**;DEC 1997;Build 33
+PSODIR2 ;IHS/DSD/JCM - rx order entry contd ;22-May-2012 14:52;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**3,9,26,46,124,146,139,152,166,1005,1008,1013,1014**;DEC 1997;Build 5
  ;External reference to ^DD(52 supported by DBIA 999
  ;External reference to ^VA(200 supported by DBIA 10060
  ;External reference to ^%DTC supported by DBIA 10000
@@ -11,6 +11,7 @@ PSODIR2 ;IHS/DSD/JCM - rx order entry contd ;13-Feb-2012 14:35;PLS
  ;            IHS/MSC/PLS - 12/30/2008 - Line FILLDT+11
  ;                          10/31/2011 - Line CLERK+1
  ;                          02/13/2012 - Line FILLDT+7
+ ;                          05/22/2012 - Line CLERK+1
 EXP(PSODIR) ;
  K DIR,DIC
  I $G(PSODRUG("EXPIRATION DATE"))]"" S Y=PSODRUG("EXPIRATION DATE") X ^DD("DD") S PSORX("EXPIRATION DATE")=Y
@@ -98,8 +99,9 @@ FILLDTX K X,Y,PSOFDMX
 CLERK(PSODIR) ;
  ;IHS/MSC/PLS - 10/31/2011
  ;I $G(DUZ("AG"))'="I" D  G CLERKX
- D  G CLERKX
- .S PSODIR("CLERK CODE")=$S($G(PSOFDR):$P(OR0,"^",4),1:DUZ),PSORX("CLERK CODE")=$P($G(^VA(200,PSODIR("CLERK CODE"),0)),"^")
+ ;IHS/MSC/PLS - 05/22/2012 REMOVED THE DOTTED DO
+ ;D  G CLERKX
+ S PSODIR("CLERK CODE")=$S($G(PSOFDR):$P(OR0,"^",4),1:DUZ),PSORX("CLERK CODE")=$P($G(^VA(200,PSODIR("CLERK CODE"),0)),"^")
  K DIR,DIC
  S DIR("A")="CLERK",DIR("B")=$S($G(PSORX("CLERK CODE"))]"":PSORX("CLERK CODE"),1:$P($G(^VA(200,DUZ,0)),"^",2)),DIR(0)="52,16"
  D DIR G:PSODIR("DFLG")!PSODIR("FIELD") CLERKX

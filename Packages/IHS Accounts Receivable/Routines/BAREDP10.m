@@ -1,5 +1,5 @@
 BAREDP10 ; IHS/SD/LSL - NEW REPORT ERA CLAIMS ; 
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,20**;OCT 26,2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,20,22**;OCT 26,2005;Build 38
  ;
  ; IHS/SD/LSL - 10/1/03 - V1.7 Patch 4 - HIPAA
  ;      Routine Created
@@ -153,7 +153,8 @@ SETHDR ;
  S BAR("HD",0)="ELECTRONIC CLAIM REPORT - "_$P(BARTYP("NAME")," ")
  S BARTMP="FOR FILE NAME: "_IMP(.05)
  D PAD
- S BAR("HD",1)=BARTMP_"CHECK/EFT TRACE: "_$E(BARCHK,1,12)
+ ;S BAR("HD",1)=BARTMP_"CHECK/EFT TRACE: "_$E(BARCHK,1,12)  ;bar*1.8*22 SDR
+ S BAR("HD",1)=BARTMP_"CHECK/EFT TRACE: "_$E(BARCHK,1,20)  ;bar*1.8*22 SDR
   ;BAR*1.8*1 SRS ADDENDUM FOR BAR*1.8*1
  S BARTMP=" "
  D PAD
@@ -216,7 +217,8 @@ PAD ;
  ;K L
  N L,I             ;IM17021
  S L=$L(BARTMP)
- F I=L:1:50 S BARTMP=BARTMP_" "
+ ;F I=L:1:50 S BARTMP=BARTMP_" "  ;bar*1.8*22 SDR
+ F I=L:1:43 S BARTMP=BARTMP_" "  ;bar*1.8*22 SDR
  ;K L,I            ;IM17021
  Q
  ; ********************************************************************

@@ -1,10 +1,10 @@
-DGMTHL ;ALB/CJM,SCG - Hardship Determinations - List Manager Screen; 1/02/2002
- ;;5.3;Registration;**182,344,435,467**;08/13/93
+DGMTHL ;ALB/CJM,SCG,TMK - Hardship Determinations - List Manager Screen; 1/02/2002
+ ;;5.3;PIMS;**182,344,435,467,1015,1016**;JUN 30, 2012;Build 20
  ;
 HARDSHIP ;Entry point for hardships
  ; Input  -- None
  ; Output -- None
- N DFN,DGSITE,MTIEN,SGHRD
+ N DFN,DGSITE,MTIEN,SGHRD,DGOK,DGDUZ
  ;
  ;Get Patient file (#2) IEN - DFN
  D GETPAT^DGRPTU(,,.DFN,) G ENQ:DFN<0
@@ -12,19 +12,22 @@ HARDSHIP ;Entry point for hardships
  I $P($G(^DPT(DFN,.35)),U)'="" S DGMDOD=$P(^DPT(DFN,.35),U)
  I $G(DGMDOD) W !,"Patient died on: ",$$FMTE^XLFDT(DGMDOD,"1D") Q
  ;
- S (MTIEN,SGHRD)=""
+ S (MTIEN,SGHRD,DGSITE)="",DGOK=0
  S MTIEN=$$FIND^DGMTH(DFN,DT)
  S:MTIEN SGHRD=$P($G(^DGMT(408.31,MTIEN,2)),U,4)
- S DGSITE=$$INST^DGENU()
- I SGHRD,DGSITE'=SGHRD D  Q
+ I SGHRD'="" D
+ . S DGDUZ=$G(DUZ),DGDUZ(2)=$$CONVERT^DGENUPL1(SGHRD,"INSTITUTION")
+ . S DGOK="",DGSITE=$$INST^DGENU(.DGDUZ,.DGOK)
+ ;
+ I SGHRD,$S(DGSITE=+$G(DUZ(2)):0,1:'DGOK) D  Q
  .W !!?10,"A Hardship has been granted for ",$P(^DPT(DFN,0),U),"."
  .W !?10,"Only the site granting the Hardship may edit it."
- .W !?10,"Please, contact ",$P($G(^DIC(4,SGHRD,0)),U)," to edit the record.",!
+ .W !?10,"Please, contact ",$P($G(^DIC(4,+$$CONVERT^DGENUPL1(SGHRD,"INSTITUTION"),0)),U)," to edit the record.",!
  .N DIR S DIR(0)="FAO",DIR("A")="Enter <RETURN> to continue." D ^DIR
  ;
  ;Load patient enrollment screen
  D EN(DFN)
-ENQ     Q
+ENQ Q
  ;
 EN(DFN) ;Entry point for the DGMT HARDSHIP List Template
  ; Input  -- DFN      Patient IEN

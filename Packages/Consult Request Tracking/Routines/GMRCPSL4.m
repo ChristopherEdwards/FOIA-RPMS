@@ -1,18 +1,21 @@
-GMRCPSL4 ;SLC/MA - Special Consult Reports;1/10/02  14:27 ;1/17/02  18:20
- ;;3.0;CONSULT/REQUEST TRACKING;**23,22**;DEC 27, 1997
+GMRCPSL4 ;SLC/MA - Special Consult Reports;19-Dec-2005 10:09;MGH
+ ;;3.0;CONSULT/REQUEST TRACKING;**23,22,1001**;DEC 27, 1997
  ; This routine is called by GMRCPSL2 to generate reports or
  ; date output.
+ ;IHS/CIA/MGH Code changed to use HRCN instead of SSN
  ; DBIA 10035 call DIQ=2     ;PATIENT FILE
  ; DBIA 10040 call DIQ=44    ;LOCATION FILE
  ; DBIA 10060 call DIQ=200   ;NEW PERSON FILE
-        ; DISPLINE = ^GMR(123,,0) + FORMATED 12 NODE
+ ; DISPLINE = ^GMR(123,,0) + FORMATED 12 NODE
 DATAONLY ;  Write data only for user to capture
  N SRT1,SRT2,SRT3,IEN,DISPLINE
  ; DATA LINE = IEN^REQ DATE^PROVIDER^LOCATION^TO SERVICE^
  ;             PATIENT^SSN^STATUS^PROCEDURE
  S SRT1="",SRTCOMP=""
  W !,"Consult#^Req Date^Ordering Provider^Location^"
- W "To Service^Patient^SSN^Status^Procedure"
+ ;IHS/CIA/MGH Code change to use HRCN
+ ;W "To Service^Patient^SSN^Status^Procedure"
+ W "To Service^Patient^HRCN^Status^Procedure"
  W !
  F  S SRT1=$O(^TMP("GMRCRPT",$J,SRT1)) Q:'$L(SRT1)  D
  .  S SRT2=0
@@ -48,7 +51,9 @@ DATAMOVE ; Create the DATA ONLY OUTPUT
  ;
  S $P(DATALINE,"^",5)=$$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01) ;TO SERVICE
  S $P(DATALINE,"^",6)=$$GET1^DIQ(2,$P(DISPLINE,"^",2),.01)     ;PATIENT
- S $P(DATALINE,"^",7)=$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.09),6,10) ;SSN
+ ;IHS/CIA/MGH code change to use HRCN
+ ;S $P(DATALINE,"^",7)=$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.09),6,10) ;SSN
+ S $P(DATALINE,"^",7)=$$HRCN^GMRCMP($P(DISPLINE,"^",2),+$G(DUZ(2)))  ;HRCN
  S $P(DATALINE,"^",8)=$$GET1^DIQ(100.01,$P(DISPLINE,"^",12),.1)   ;STATUS
  I $P(DISPLINE,"^",8)>"" D
  . S $P(DATALINE,"^",9)=$$GET1^DIQ(123.3,$P($P(DISPLINE,"^",8),";",1),.01)  ;PROCEDURE

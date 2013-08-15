@@ -1,6 +1,7 @@
 LRAPPF1 ;AVAMC/REG/WTY - ANAT PATH FILE PRINT BY PT ;10/16/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,173,201,259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1002,1003,1006,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 72,173,201,259,362,392
  ;
  ;Reference to ^DIC supported by IA #916
  ;
@@ -18,11 +19,13 @@ NM S X=^LR(LRDFN,0),LRDPF=$P(X,U,2),N=$P(X,"^",3),N=@(F(2)_N_",0)")
  S LRP=$P(N,"^"),SSN=$P(N,"^",9),Y=$P(N,"^",3)
  D D^LRU,SSN^LRU S DOB=$S(Y'[1700:Y,1:"")
  D:$Y>(IOSL-4) H Q:LR("Q")
- W !!,LRP,?31,SSN W:$L(DOB) ?51,"BORN: ",DOB
+ ; W !!,LRP,?31,SSN W:$L(DOB) ?51,"BORN: ",DOB
+ W !!,LRP,?31,HRCN W:$L(DOB) ?51,"BORN: ",DOB    ; IHS/MSC/MKK - LR*5.2*1031
  S LRI=0 F  S LRI=$O(^TMP($J,F,W,LRDFN,LRI)) Q:'LRI!(LR("Q"))  D
  .D @($S("CYEMSP"[LRSS:"EN",1:"AUT"))
  Q
-AUT D:$Y>(IOSL-12) H1 Q:LR("Q")
+AUT S LRSF515=+$G(LRSF515)
+ D:$Y>(IOSL-12) H1 Q:LR("Q")
  S X=^LR(LRDFN,"AU"),N=$P(X,"^",6),Y=+X D D^LRU S LRH(3)=Y,DA=LRDFN
  D D^LRAUAW S Y=LR(63,12) D D^LRU S E=Y,H(2)=$E(H(1),1,3)
  W !,"AUTOPSY #: ",N," AUTOPSY DATE: ",LRH(3),?51,"DIED: ",E
@@ -39,7 +42,7 @@ AM S M=0 F  S M=$O(^LR(LRDFN,"AY",X,2,M)) Q:'M!(LR("Q"))  D
  ;
 EN ;from LRAPT1,LRAPQACN
  S LRSF515=+$G(LRSF515)  ;Indicates that this is generating an SF515
- S X=^LR(LRDFN,S,LRI,0),LR("PATH")=$P(X,U,2),N=$P(X,U,6)
+ S X=$G(^LR(LRDFN,S,LRI,0)) Q:X=""  S LR("PATH")=$P(X,U,2),N=$P(X,U,6)
  S N(11)=$P(X,U,11),X=$P(X,U,10),X=$P(X,"."),LRH(3)=$$Y2K^LRX(X)
  S H(2)=$E(X,1,3)
  I LR("PATH")]"" D
@@ -104,7 +107,8 @@ H I $D(LR("F")),IOST?1"C".E D M^LRU Q:LR("Q")
  W !,LR("%")
  Q
 H1 Q:$A(IOST)'=80
- D H W:'$D(LRQ(9)) !,LRP,?30,SSN,?42,DOB
+ ; D H W:'$D(LRQ(9)) !,LRP,?30,SSN,?42,DOB
+ D H W:'$D(LRQ(9)) !,LRP,?30,HRCN,?42,DOB        ; IHS/MSC/MKK - LR*5.2*1031
  Q
 H2 Q:$A(IOST)'=80  D H1
  W !?5,"Organ/tissue:",?25,"Date received: ",LRH(3),?51,"Acc #:",N

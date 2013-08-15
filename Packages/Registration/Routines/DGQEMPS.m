@@ -1,5 +1,5 @@
 DGQEMPS ;RWA/SLC-DHW/OKC - EMBOSSER SPECIAL SUBROUTINES;04/08/85  4:36 PM ; 04 Oct 85  2:13 PM
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 END Q
  ;
  ;FileMan data reference

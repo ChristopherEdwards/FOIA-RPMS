@@ -1,5 +1,5 @@
 DGPTOTRL ;ALB/MLI - PTF TRANSMITTED RECORD LIST ; 28 JAN 88 11:00
- ;;5.3;Registration;**58,164**;Aug 13, 1993
+ ;;5.3;Registration;**58,164,1015**;Aug 13, 1993;Build 21
  W !!!,*7,*7,"THIS REPORT REQUIRES 132 COLUMN OUTPUT"
  I '$D(DGRTY) S Y=1 D RTY^DGPTUTL
 DATE W !!,"**** Date Range Selection ****"

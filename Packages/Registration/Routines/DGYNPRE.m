@@ -1,5 +1,5 @@
 DGYNPRE ;ALB/ABR - pre-init for DG*5.3*36;10-04-94
- ;;5.3;Registration;**36**;Aug 13, 1993
+ ;;5.3;Registration;**36,1015**;Aug 13, 1993;Build 21
  ;
  ; delete field TSR ORDER to remove NO-DELETION message prior to init.
 EN ;entry point for pre-init

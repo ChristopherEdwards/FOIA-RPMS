@@ -1,5 +1,5 @@
-DGENEGT ;ALB/KCL - Enrollment Group Threshold API's ; 03-MAY-1999
- ;;5.3;Registration;**232**;Aug 13, 1993
+DGENEGT ;ALB/KCL/RGL - Enrollment Group Threshold API's ; 11/20/03 3:39pm
+ ;;5.3;Registration;**232,451,1015**;Aug 13, 1993;Build 21
  ;
  ;
 LOCK(IEN) ;
@@ -29,17 +29,25 @@ UNLOCK(IEN) ;
  Q
  ;
  ;
-FINDCUR() ;
- ; Description: Used to find current record in the ENROLLMENT GROUP THRESHOLD file. Currently, an EGT history is not required/maintained. 
+FINDCUR(ENRDT) ;
+ ; Description: Used to find a record in the ENROLLMENT GROUP THRESHOLD file.
  ;
- ;  Input: None
+ ;  Input: Enrollment Date (optional - if not specified, today is assumed)
  ;
  ; Output:
  ;   Function Value: If successful, returns internal entry number of
  ;                   record in the ENROLLMENT GROUP THRESHOLD file,
  ;                   otherwise returns 0 on failure
  ;
- Q +$O(^DGEN(27.16,0))
+ N DGEGTDT,STOP,DGEGTIEN,DGEGTF
+ S DGEGTDT=$G(ENRDT)+.000001,STOP=0,DGEGTIEN=""
+ S:'$G(ENRDT) DGEGTDT=$$DT^XLFDT+DGEGTDT
+ F  S DGEGTDT=$O(^DGEN(27.16,"B",DGEGTDT),-1) Q:STOP!(DGEGTDT="")  D
+ .F  S DGEGTIEN=$O(^(DGEGTDT,DGEGTIEN),-1) Q:DGEGTIEN=""!STOP  D
+ ..S:'$P($G(^DGEN(27.16,+DGEGTIEN,0)),"^",8) STOP=DGEGTIEN
+ S DGEGTF=1
+ I $G(ENRDT),ENRDT'>DT,$$INACT(STOP)  ;inactivate old EGT settings
+ Q +STOP
  ;
  ;
 GET(EGTIEN,DGEGT) ;
@@ -100,7 +108,8 @@ STORE(DGEGT,ERROR,CHKFLG) ;
  S ERROR=""
  I $G(CHKFLG)'=1 Q:'$$VALID(.DGEGT,.ERROR) 0
  ;
- N ADD,DATA
+ N ADD,DATA,OLDEGT,INACT
+ S OLDEGT=$$FINDCUR()
  S DATA(.01)=DGEGT("EFFDATE")
  S DATA(.02)=DGEGT("PRIORITY")
  S DATA(.03)=DGEGT("SUBGRP")
@@ -110,6 +119,9 @@ STORE(DGEGT,ERROR,CHKFLG) ;
  S DATA(.07)=DGEGT("SOURCE")
  S DATA(25)=DGEGT("REMARKS")
  S ADD=$$ADD^DGENDBS(27.16,,.DATA,.ERROR)
+ ;
+ ; inactivate "old" EGT settings
+ S INACT=$$INACT(ADD,.OLDEGT,.DGEGT)
  ;
  Q +ADD
  ;
@@ -256,3 +268,27 @@ FIELD(SUB) ; Description: Used to determine the field number for a given subscri
  .I SUB="REMARKS" S FLD=25 Q
  ;
  Q FLD
+ ;
+INACT(EGTIEN,OLDIEN,DGEGT) ;inactivate EGT settings that are currently not in effect
+ ;
+ ; input: EGTIEN -Current EGT ien from 27.16
+ ;        DGEGT (optional array) - Current EGT setting information
+ ;        DGEGTF (optional) - do not inactivate future EGT
+ ;
+ Q:'$G(EGTIEN) 0
+ N EGTFDA,EGTDT,EGTREC,ERR
+ S:'$G(OLDIEN) OLDIEN=""
+ I '$D(DGEGT),'$$GET(EGTIEN,.DGEGT) Q 0
+ S:DGEGT("EFFDATE")>$$DT^XLFDT EGTF=1  ;future EGT setting
+ S EGTDT=""
+ F  S EGTDT=$O(^DGEN(27.16,"B",EGTDT),-1) Q:'EGTDT  D
+ .S EGTREC=""
+ .F  S EGTREC=$O(^DGEN(27.16,"B",EGTDT,EGTREC),-1) Q:'EGTREC  D
+ ..Q:EGTREC=EGTIEN  ;new EGT setting
+ ..Q:$G(EGTF)&(EGTREC=OLDIEN)
+ ..I $P($G(^DGEN(27.16,EGTREC,0)),"^")>DT D  Q
+ ...Q:$G(DGEGTF)
+ ...Q:$$DELETE(EGTREC)
+ ..S EGTFDA(27.16,EGTREC_",",.08)=1
+ D:$D(EGTFDA) UPDATE^DIE("","EGTFDA","","ERR")
+ Q 1

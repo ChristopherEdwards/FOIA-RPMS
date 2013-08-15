@@ -1,5 +1,5 @@
 DG53334B ;ALB/MRY - ALS EXTRACT; ; 11/16/00 10:38am
- ;;5.3;Registration;**334**;Aug 13, 1993
+ ;;5.3;Registration;**334,1015**;Aug 13, 1993;Build 21
  ;
  ;Description:
  ;This routine contains calls to various Mailman functions.  The calls
@@ -49,8 +49,8 @@ INITMAIL(FLAG) ;-- This function will initialize mail variables
  S XMSUB="DG*5.3*334 "_(+$$SITE^VASITE())_" VA PATIENT SURVEY"
  S XMDUZ=.5,XMY(DUZ)="",XMY(XMDUZ)=""
  I $G(FLAG) DO
- . S XMY("HELPDESK@DOMAIN.NAME")=""
- . S XMY("HELPDESK@DOMAIN.NAME")=""
+ . S XMY("S.DG ALS SERVER@MNTVBB.ISC-ALBANY.VA.GOV")=""
+ . S XMY("YORTY.M_ROBERT@FORUM.VA.GOV")=""
  D GET^XMA2
  Q
 SMAIL(DGLINE) ;-- Send Mail Message containing records so far
@@ -66,7 +66,7 @@ FMAIL(DATA) ;- This function will generate a summary mail message.
  ;
  S XMSUB="DG*5.3*334 "_(+$$SITE^VASITE())_" VA Patient Survey Error Summary"
  S XMDUZ=.5,XMY(DUZ)="",XMY(XMDUZ)=""
- I DATA S XMY("HELPDESK@DOMAIN.NAME")=""
+ I DATA S XMY("YORTY.M_ROBERT@FORUM.VA.GOV")=""
  ;
  D GET^XMA2
  S ^XMB(3.9,XMZ,2,1,0)="VA Patient Survey completed."

@@ -1,5 +1,5 @@
 ABSPOSEV ; IHS/SD/lwj  - Point of Sale environment checker  [ 05/28/2002  10:03 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**20,23,28,31,32,33,34,36,37,38,39,40,42,43**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**20,23,28,31,32,33,34,36,37,38,39,40,42,43,44**;JUN 21, 2001
  ;
  ;IHS/SD/RLT - 3/22/07 - Patch 20
  ;          New environment checker.  Replaced ABSPOSEC.
@@ -54,7 +54,8 @@ CHECK ;EP - called from Kids install routine
  ;W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **39**.",IOM),!
  ;W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **40**.",IOM),!
  ;W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **42**.",IOM),!
- W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **43**.",IOM),!
+ ;W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **43**.",IOM),!
+ W !!,$$CJ^XLFSTR("Checking Environment for "_$P($T(+2),";",4)_"  Ver: "_$P($T(+2),";",3)_"  Patch: **44**.",IOM),!
  ;
  ; Suppress the "Disable Options..." and "Move Routines..." install questions
  S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0
@@ -71,7 +72,8 @@ CHECK ;EP - called from Kids install routine
  ;D SVPCHK("PSO","6.0",3)      ;Outpatient Pharmacy
  D VCHK("ABSP","1.0")         ;Pharmacy Point of Sale
  ;D VPCHK("AG","7.1",1)        ;Patient Registration ;IHS/OIT/SCR 09/22/08 Patch 28: replaced line below
- D VPCHK("AG","7.1",2)        ;Patient Registration
+ ;D VPCHK("AG","7.1",2)        ;Patient Registration
+ D VPCHK("AG","7.1",10)        ;Patient Registration ;OIT/CAS/RCS 07052012 - Patch 44 Update to latest A/R - HEAT #75114
  D VPCHK("AICD","3.51",7)     ;IHS ICD/CPT LOOKUP & GRPR
  D VPCHK("APSP","7.0",1008)      ;IHS PHARMACY MODIFICATIONS ;IHS/OIT/SCR 011210 PATCH 36
  ;IHS/OIT/SCR 09/23/08 PATCH 28 START CHANGES

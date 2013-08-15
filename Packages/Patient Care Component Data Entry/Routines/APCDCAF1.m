@@ -1,5 +1,5 @@
 APCDCAF1 ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;2.0;IHS PCC SUITE;**2,5,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,7,8**;MAY 14, 2009;Build 2
  ;; ;
  ;
 DISP ;EP
@@ -110,7 +110,8 @@ UPDATE ;EP
  D MOD^AUPNVSIT
 UPD0 ;
  K DIC,DD,D0,DO
- S X=$$NOW^XLFDT,DIC="^AUPNVCA(",DIC(0)="L",DIADD=1,DLAYGO=9000010.45,DIC("DR")=".02////"_$P(^AUPNVSIT(APCDVSIT,0),U,5)_";.03////"_APCDVSIT_";.05////"_DUZ D FILE^DICN
+ S X=$$NOW^XLFDT,DIC="^AUPNVCA(",DIC(0)="L",DIADD=1,DLAYGO=9000010.45
+ S DIC("DR")=".02////"_$P(^AUPNVSIT(APCDVSIT,0),U,5)_";.03////"_APCDVSIT_";.05////"_DUZ_";1216////"_$$NOW^XLFDT D FILE^DICN
  I Y=-1 W !!,"updating status failed" D EOP G UPDATEX
  K DIC,DD,D0,DIADD,DLAYGO
  S (APCDVCA,DA)=+Y
@@ -250,7 +251,7 @@ MERGEDD ;EP
  W !!,"Select 'To' visit.",!
  S APCDVV="APCDVMT" D GETVISIT
  I 'APCDVMT G MERGEX
- I APCDVMF=APCDVMT W !!,"'From' and 'To' the same.  Bye!" D EOP G MERGEX Q
+ I APCDVMF=APCDVMT W !!,"'From' and 'To' the same.  Bye!" D EOP G MERGEX
  I $D(^ABSBITMS(9002302,"AD",APCDVMF)) W !!,"Cannot merge from a visit that has a Claim associate with it." G MERGEX  ;IHS/CMI/LAB - patch 3 per FSI
  W !!!,"You will be merging the following 2 visits:"
  W !,"FROM VISIT:" S APCDAX=APCDVMF D WRITE

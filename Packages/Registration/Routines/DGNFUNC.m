@@ -1,5 +1,5 @@
 DGNFUNC ;BPCIOFO/CMC-NAME FORMAT FUNCTIONS ; 22 Jan 2002 10:39 AM
- ;;5.3;Registration;**149,244**;Aug 13, 1993
+ ;;5.3;Registration;**149,244,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will contains functions for returning the name field
  ;in a variety of formats.  It will NOT update the Patient file,

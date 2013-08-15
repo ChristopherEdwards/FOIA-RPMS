@@ -1,6 +1,7 @@
 LRRP1 ;DALOI/RWF/BA-PRINT THE DATA FOR INTERIM REPORTS ;December 16, 2010 1:45 PM
- ;;5.2;LAB SERVICE;**1004,1013,1016,1018,1025,1026,1027,1028,1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**153,221,283,286,356,372**;NOV 01, 1997
+ ;;5.2;LAB SERVICE;**1004,1013,1016,1018,1025,1026,1027,1028,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 153,221,283,286,356,372
  ;from LRRP, LRRP2, LRRP3
  ;
 PRINT S:'$L($G(SEX)) SEX="M" S:'$L($G(DOB)) DOB="UNKNOWN"
@@ -78,7 +79,8 @@ TEST ; EP -- IHS/OIT/MKK - LR*5.2*1027 - IHS Modified TEST Code
  ;
  W !,?5,"Provider: ",LRDOC
  D:'$G(BLRGUI) ESIGINFO^BLRUTIL3
- W !,?5,"Specimen:",$E($P(^LAB(61,LRSPEC,0),U),1,23)
+ ; W !,?5,"Specimen:",$E($P(^LAB(61,LRSPEC,0),U),1,23)
+ W !,?5,"Specimen:",$E($P($G(^LAB(61,LRSPEC,0)),U),1,23)       ; Naked Ref fix - IHS/OIT/MKK - LR*5.2*1031
  W ?42,"Spec Collect Date/Time:",$$FMTE^XLFDT(LRCDT,"2MZ")
  ;
  D COLHEADS
@@ -173,7 +175,7 @@ DATA ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified DATA code
  W ?55,$S(LRTHER:"(TR)",1:"")
  ;
  I LRPLS'="" W ?59,$J("["_LRPLS_"]",6)
- W ?66,$$GETCOMPD
+ W ?66,$$GETCOMPD^BLRUTIL4                       ; IHS/MSC/MKK - LR*5.2*1031
  ;
  D CONT Q:LRSTOP
  ;
@@ -186,17 +188,28 @@ DATA ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified DATA code
 MUMPRNGE(RANGE) ; EP -- MUMPS Code in Reference Range -- Evaluate and store
  NEW LOW,HIGH,RV1,RV2
  ;
+ ; IHS/OIT/MKK - LR*5.2*1031 Note: 
+ ;     If there is only one (1) Reference Range for a test, the LRLRRVF routine returns the Single Ref Range
+ ;     with "Ref: " prefixed to it.  (See DATA+6 above.)  However, that Ref Range could have a $SELECT statement,
+ ;     which means it gets passed to this subroutine.  At this point, the RANGE variable must be a valid Mumps
+ ;     string, with no prefix.  The 1032 changes below will try to ensure that.
+ ;
  S LOW=$$TRIM^XLFSTR($P(RANGE,"-"),"LR"," ")
+ S:$E(LOW,1,4)="Ref:" LOW=$P(LOW," ",2,999)           ; IHS/OIT/MKK - LR*5.2*1031 - Strip off "Ref: " string
+ ;
  S HIGH=$$TRIM^XLFSTR($P(RANGE,"-",2),"LR"," ")
+ S:$E(HIGH,1,4)="Ref:" HIGH=$P(HIGH," ",2,999)        ; IHS/OIT/MKK - LR*5.2*1031 - Strip off "Ref: " string
  ;
  I $G(LOW)=""&($G(HIGH)="") S RANGE=" "  Q
  ;
  S RV1=$$MUMPEVAL(LOW)
  S RV2=$$MUMPEVAL(HIGH)
  ;
- I $G(RV1)=""&($G(RV2)="")  S RANGE=" "  Q
+ S RANGE=$$EN^LRLRRVF(RV1,RV2)
  ;
- S RANGE=RV1_" - "_RV2
+ ; I $G(RV1)=""&($G(RV2)="")  S RANGE=" "  Q
+ ;
+ ; S RANGE=RV1_" - "_RV2
  Q
  ;
 MUMPEVAL(EVAL) ; EP
@@ -218,64 +231,6 @@ MUMPEVAL(EVAL) ; EP
  I WOT["("!(WOT["?")!(WOT["<")!(WOT[")")!(WOT["&") S WOT=""
  ;
  Q WOT
- ;
-GETCOMPD() ; EP -- Get Completion Date for test
- NEW LRAS,LRSS,STR
- NEW LRAA,LRAD,LRAN
- NEW COMPD,D3,LRAT,STR,TMPDT
- NEW LOG,VLABIEN
- ;
- S LRAS=$P(LR0,"^",6)
- I '$L(LRAS) Q " "
- ;
- ; If test still PENDING, there is no complete date -- return null
- S DATALN=+$P($P($G(^LAB(60,+$G(LRTSTS),0)),"^",5),";",2)
- I $$UP^XLFSTR($P($G(^LR(LRDFN,"CH",LRIDT,DATALN)),"^",1))["PEND" Q " "
- ;
- S (LRAA,LRAD,LRAN)=""
- I $$GETACCCP^BLRUTIL3(LRAS,.LRAA,.LRAD,.LRAN)<1 Q " "
- ;
- NEW TESTIEN
- S TESTIEN=+$P($G(LRDATA),"^",1)
- I TESTIEN<1 Q " "
- ;
- S COMPD=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,4,TESTIEN,0)),"^",5)
- ;
- I +$G(COMPD)>2000000 Q $$FMTE^XLFDT(COMPD,"2MZ")
- ;
- ; Completed date is null in Accession file; will try to get date
- ; from V-LAB file via the BLRTXLOG file
- S (VLABIEN,LOG)=0
- F  S LOG=$O(^BLRTXLOG("D",LRAS,LOG))  Q:LOG=""!(LOG'?.N)!(VLABIEN>0)  D
- . I $P($G(^BLRTXLOG(LOG,1)),"^",2)'="R" Q   ; STATUS is not RESULTED
- . I $P($G(^BLRTXLOG(LOG,0)),"^",6)'=TESTIEN Q    ; Wrong test
- . ;
- . S VLABIEN=$P($G(^BLRTXLOG(LOG,1)),"^",5)
- ;
- S COMPD=$P($G(^AUPNVLAB(+$G(VLABIEN),12)),"^",12)
- I +$G(COMPD)>2000000 Q $$FMTE^XLFDT(COMPD,"2MZ")
- ;
- ; Still null. Try to find the test in the V LAB file and use test's
- ; Accession #, IEN, and Collection Date to match
- S VLABIEN=""
- F  S VLABIEN=$O(^AUPNVLAB("ALR0",LRAS,VLABIEN))  Q:+$G(VLABIEN)<1!($G(COMPD)'="")  D
- . I $P($G(^AUPNVLAB(VLABIEN,0)),"^")'=TESTIEN Q      ; If TEST doesn't match, skip
- . ; Collection Date/Time match only down to minutes, not seconds
- . I $E($P($G(^AUPNVLAB(VLABIEN,12)),"^",1),1,12)'=$E($P(LR0,"^"),1,12) Q
- . ;
- . S COMPD=$P($G(^AUPNVLAB(+$G(VLABIEN),12)),"^",12)
- ;
- I +$G(COMPD)>2000000 Q $$FMTE^XLFDT(COMPD,"2MZ")
- ;
- ; If still null, use the Lab Data File's DATE REPORT COMPLETED Date
- ; that's stored in the LR0 variable
- S COMPD=$P(LR0,"^",3)
- I +$G(COMPD)>2000000 Q $$FMTE^XLFDT(COMPD,"2MZ")
- ;
- ; All results dates checked and nothing found, so quit with null
- Q " "
- ;
- ; End - IHS/OIT/MKK - LR*5.2*1027 - IHS Modified DATA Code
  ;
 CHECK I LRTC+11>(IOSL-$Y) D FOOT Q:LRSTOP  D HDR
  Q
@@ -392,9 +347,13 @@ HDR ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified HDR Code
  NEW LOCIEN,LOCDESC
  S LOCIEN=+$P($P(LR0,"^",13),";")
  S LOCDESC=$P($G(^SC(LOCIEN,0)),"^")
- W:$L(LOCDESC)<1!($L(LOCDESC)>14) ?62,"LOC:",LROC
- W:$L(LOCDESC)>0&($L(LOCDESC)<15) ?62,"LOC:",LOCDESC
+ ; W:$L(LOCDESC)<1!($L(LOCDESC)>14) ?62,"LOC:",LROC
+ ; W:$L(LOCDESC)>0&($L(LOCDESC)<15) ?62,"LOC:",LOCDESC
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ W:$L(LOCDESC)<1!($L(LOCDESC)>12) ?64,"LOC:",$E(LROC,1,12)
+ W:$L(LOCDESC)>0&($L(LOCDESC)<12) ?64,"LOC:",LOCDESC
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
  Q
  ; End - IHS/OIT/MKK - LR*5.2*1027 - IHS Modified HDR Code
  ;

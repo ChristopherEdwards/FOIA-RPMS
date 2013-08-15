@@ -1,5 +1,5 @@
-SDVSIT2 ;ALB/RMO/MJK - Encounter Utilities;28 DEC 1992 10:00 am [ 01/02/2002  3:06 PM ]
- ;;5.3;Scheduling;**27,44,132**;08/13/93
+SDVSIT2 ;ALB/RMO/MJK - Encounter Utilities;28 DEC 1992 10:00 am
+ ;;5.3;Scheduling;**27,44,132,1015**;08/13/93;Build 21
  ;IHS/ANMC/LJF  1/02/2002 if visit already on entry, just quit
  ;
 GETAPT(DFN,SDT,SDCL,SDVIEN) ;Look-up Outpatient Encounter IEN for Appt
@@ -11,7 +11,8 @@ GETAPT(DFN,SDT,SDCL,SDVIEN) ;Look-up Outpatient Encounter IEN for Appt
  N Y
  S Y=+$P($G(^DPT(DFN,"S",SDT,0)),"^",20)
  I 'Y D APPT^SDVSIT(DFN,SDT,SDCL,$G(SDVIEN)) S Y=+$P($G(^DPT(DFN,"S",SDT,0)),"^",20)
- I Y,$P($G(^SCE(Y,0)),U,5)]"" Q Y  ;IHS/ANMC/LJF 1/02/2002
+ ;ihs/cmi/maw 02/23/2012 1015 gonna leave this commented out for now to see if fixes EHR
+ ;I Y,$P($G(^SCE(Y,0)),U,5)]"" Q Y  ;IHS/ANMC/LJF 1/02/2002
  IF Y D VIEN(Y,$G(SDVIEN))
  Q +$G(Y)
  ;

@@ -1,5 +1,5 @@
 DGPMVDL1 ;ALB/MIR - DELETE PATIENT MOVEMENTS, CONTINUED ; 11 JAN 88 @9 [ 03/09/2001  9:45 AM ]
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1010,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  3/09/2001 added IHS ^utility nodes
  ;
 D3 ;can this discharge be deleted?
@@ -16,6 +16,7 @@ D3 ;can this discharge be deleted?
  Q:'$D(DA)  D FINDLAST^DGPMV32 Q:'DGPMAB  S X1=+DGPMAB,X2=30 D C^%DTC S DGPMPD=X,DIE="^DGPM(",DR=".01///"_X_";.22////0"
  K DQ,DG Q:'$D(^DGPM(+DA,0))  S ^UTILITY("DGPM",$J,3,DA,"P")=^(0) D ^DIE S ^UTILITY("DGPM",$J,3,DA,"A")=^DGPM(DA,0) ;delete ASIH sequence and restore 30 days if deleting hospital discharge
  S DA=DGPMPTF,DIE="^DGPT(",DR="70////"_DGPMPD D ^DIE ;update PTF d/c d/t
+ ;D ICUP^BDGPMVDL  ;cmi/maw added patch 1010 RQMT 63
  Q
 47 ;if DISCHARGE FROM NHCU/DOM WHILE ASIH
  S DGPMNI=+$P(DGPMP,"^",14),DGPMTN=DGPM0 D FINDLAST^DGPMV32

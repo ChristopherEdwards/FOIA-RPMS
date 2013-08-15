@@ -1,5 +1,5 @@
-SCMCPR1 ;ALB/SCK - API FILE FOR STAFF ASSIGNMENTS ; 22 Aug 2002  3:02 PM
- ;;5.3;Scheduling;**41,45,264**;AUG 13, 1993
+SCMCPR1 ;ALB/SCK - API FILE FOR STAFF ASSIGNMENTS ; 9/14/05 12:10pm
+ ;;5.3;Scheduling;**41,45,264,297,1015**;AUG 13, 1993;Build 21
  ;;1.0
  Q
  ;
@@ -33,18 +33,18 @@ URSLKUP(SCDAT,SCUSR,SCVAL,SCREEN,SCINST,SCPC) ;
  ;
  S N=0
  IF SCINST=1 D
- . D LIST^DIC(200,"",".01;8;28","","","",SCVAL,"","IF $$ISA^USRLM(Y,SCUSR,.SCUERR)","")
+ . D LIST^DIC(200,"",".01;8;28","","","",SCVAL,"","IF $$ISA^USRLM(Y,SCUSR,.SCUERR)","","")
  ;
  IF SCINST=0 D
- .D LIST^DIC(200,"",".01;8;28","","","",SCVAL,"",SCREEN,"")
+ .D LIST^DIC(200,"",".01;8;28","","","",SCVAL,"",SCREEN,"","")
  ;
  S N=0
  D SETF("[Data]")
  S I="" F  S I=$O(^TMP("DILIST",$J,1,I)) Q:'I  D
  . S SCTMP=^TMP("DILIST",$J,2,I)_U
- . I 0 I $G(SCPC) I $O(^SD(403.46,+SCPC,2,0)) N PC S PC=0 D  Q:'PC  ;Put back for provider by role
- .. N J F J=0:0 S J=$O(^VA(200,+SCTMP,"USC1",J)) Q:'J  S A=^(J,0) D  Q:PC
- ... I '$P(A,U,3) I $D(^SD(403.46,+SCPC,2,+A)) S PC=1
+ . I $G(SCPC) I $O(^SD(403.46,+SCPC,2,0)) N PC S PC=0 D  Q:'PC  ;Put back for provider by role
+ .. N CODE S CODE=$$GET^XUA4A72(+SCTMP) D  Q:PC
+ ... I $D(^SD(403.46,+SCPC,2,+CODE)) S PC=1
  . S:SCINST SCTMP=SCTMP_$$CLNAME^USRLM(+SCUSR)
  . S SCTMP=SCTMP_U_U_U_U_^TMP("DILIST",$J,1,I)
  . S SCTMP=SCTMP_U_^TMP("DILIST",$J,"ID",I,8)

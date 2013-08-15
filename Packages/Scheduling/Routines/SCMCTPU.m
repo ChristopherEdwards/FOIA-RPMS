@@ -1,5 +1,5 @@
 SCMCTPU ;ALB/REW - Team Position Utilities ; 9 Jun 1995
- ;;5.3;Scheduling;**41,130**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,130,1015**;AUG 13, 1993;Build 21
  ;1
 ACTPTTM(SCPTTM,SCDT) ;is the patient- team assignment currently active?
  ; Used by computed field #300 (CURRENTLY ACTIVE?) OF file #404.57

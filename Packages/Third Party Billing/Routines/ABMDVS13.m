@@ -1,11 +1,12 @@
 ABMDVS13 ; IHS/ASDST/DMJ - PCC VISIT STUFF, V CPT code ; 
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM**9**;NOV 12, 2009
  ;Original;DMJ;
  ;
  ; IHS/SD/SDR - 11/04/02 - V2.5 P2 - ZZZ-0301-210046
  ;     Modified to capture modifiers from PCC
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ; IHS/SD/SDR - 2.6*9 - HEAT36314 - Correction for modifiers; was coming back NO SUCH MODIFIER
  ;
  Q:ABMIDONE
 START ;START
@@ -31,9 +32,11 @@ START ;START
  .S DA(1)=ABMP("CDFN")
  .S ABMCPT=$P(AUPNCPT(N),U)
  .S ABMMOD1=$P(AUPNCPT(N),"^",6)
- .I $G(ABMMOD1)'="" S ABMMOD1=$P($$MOD^ABMCVAPI(ABMMOD1,"E",ABMP("VDT")),U,2)  ;CSV-c
+ .;I $G(ABMMOD1)'="" S ABMMOD1=$P($$MOD^ABMCVAPI(ABMMOD1,"E",ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*9 HEAT36314
+ .I $G(ABMMOD1)'="" S ABMMOD1=$P($$MOD^ABMCVAPI(ABMMOD1,"I",ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*9 HEAT36314
  .S ABMMOD2=$P(AUPNCPT(N),"^",7)
- .I $G(ABMMOD2)'="" S ABMMOD2=$P($$MOD^ABMCVAPI(ABMMOD2,"E",ABMP("VDT")),U,2)  ;CSV-c
+ .;I $G(ABMMOD2)'="" S ABMMOD2=$P($$MOD^ABMCVAPI(ABMMOD2,"E",ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*9 HEAT36314
+ .I $G(ABMMOD2)'="" S ABMMOD2=$P($$MOD^ABMCVAPI(ABMMOD2,"I",ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*9 HEAT36314
  .;The next line is intended to prevent dupes being stuffed into the
  .;claim file.  It requires that other stuffing rtns put in ABMSRC
  .I $D(^ABMDCLM(DUZ(2),DA(1),"ASRC",ABMSRC)),(ABMCPT<ABMCPTTB("SURGERY","L"))!(ABMCPT>ABMCPTTB("SURGERY","H")) Q

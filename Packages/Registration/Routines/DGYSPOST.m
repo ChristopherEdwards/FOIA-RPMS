@@ -1,5 +1,5 @@
 DGYSPOST ;ALB/MLI - POST-INIT FOR PATCH DG*5.3*54 ; 10 APRIL 95
- ;;5.3;Registration;**54**;Aug 13, 1993
+ ;;5.3;Registration;**54,1015**;Aug 13, 1993;Build 21
  ;
  ; This is the post-init routine for patch DG*5.3*54.
  ;

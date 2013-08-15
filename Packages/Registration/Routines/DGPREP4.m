@@ -1,5 +1,5 @@
 DGPREP4 ;ALB/SCK - Delete/Purge Utilities for Pre-registration ; 1/1/97
- ;;5.3;Registration;**109**;Aug 13, 1993
+ ;;5.3;Registration;**109,1015**;Aug 13, 1993;Build 21
  Q
  ;
 PURGE42 ;  Interactive call for purging call list

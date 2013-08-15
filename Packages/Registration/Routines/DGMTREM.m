@@ -1,5 +1,5 @@
 DGMTREM ;ALB/CAW - Comments for Means Test ; 04/28/2003 2:00 pm
- ;;5.3;Registration;**45,182,513**;Aug 13, 1993
+ ;;5.3;Registration;**45,182,513,1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point to place comments concerning a means test
  I DGMTYPT=1 S DIC("S")="I $P(^(0),U,14)"

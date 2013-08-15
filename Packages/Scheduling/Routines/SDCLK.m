@@ -1,7 +1,5 @@
-SDCLK ;ALB/MJB/MLI - LOOK UP CLERK WHO MADE APPOINTMENT ; [ 09/13/2001  2:20 PM ]
- ;;5.3;Scheduling;**63**;Aug 13, 1993
- ;IHS/ANMC/LJF 11/30/2000 contains $N but option not used by IHS
- ;
+SDCLK ;ALB/MJB/MLI - LOOK UP CLERK WHO MADE APPOINTMENT ; 22 FEB 88
+ ;;5.3;Scheduling;**63,1015**;Aug 13, 1993;Build 21
 EN D Q W !! S DIC="^DPT(",DIC(0)="AEQMZ" D ^DIC G Q:Y'>0 S DFN=+Y I '$D(^DPT(DFN,"S")) W !,"No appointments scheduled for this patient." G EN
 C K ^UTILITY($J)
  S DIC("A")="Enter CLINIC: ",DIC="^SC(",DIC(0)="AEQMZ",DIC("S")="I $P(^(0),U,3)=""C"",'$G(^(""OOS""))" D ^DIC G:Y'>0!(X="") EN

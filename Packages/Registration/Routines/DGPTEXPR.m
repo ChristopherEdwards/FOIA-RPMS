@@ -1,5 +1,5 @@
 DGPTEXPR ;ALB/MTC - PTF Expanded Code List ; 14 MAY 91
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;MAS 5.1;
  ;
 EN ;-- entry point for Expanded Code List

@@ -1,5 +1,5 @@
 SCRPV1B1 ; bp/djb - PCMM Inconsistency Rpt - Print ; 8/25/99 10:04am
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;
 LIST ;List inconsistency descriptions
  NEW I,NUM,OPT,PAGE,QUIT,TXT,X,Y

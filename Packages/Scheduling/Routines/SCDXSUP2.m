@@ -1,5 +1,5 @@
 SCDXSUP2 ;ALB/JRP - PURGE ERROR FILE;22-APR-97 ; 12/20/01 4:49pm
- ;;5.3;Scheduling;**121,247**;AUG 13, 1993
+ ;;5.3;Scheduling;**121,247,1015**;AUG 13, 1993;Build 21
  ;
 PRGCO ;Purge TRANSMITTED OUTPATIENT ENCOUNTER ERROR file (#409.75) of
  ; rejections for encounters that can not be transmitted due to

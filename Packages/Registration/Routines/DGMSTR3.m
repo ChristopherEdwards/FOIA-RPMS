@@ -1,5 +1,5 @@
 DGMSTR3 ;ALB/GRR - GENERATE AND PRINT MST STATISTICAL REPORT ; 1/30/01 10:45am
- ;;5.3;Registration;**195,319**; Aug 13, 1993
+ ;;5.3;Registration;**195,319,1015**; Aug 13, 1993;Build 21
  ;^TMP("DGMSTR3,JOB... - Array to hold ICD codes
  ;DGPCDT - Current date in print format
  ;DGSDAT - Start Date of selection range

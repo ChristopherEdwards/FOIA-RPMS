@@ -1,5 +1,5 @@
 SDGAF ;ALB/EDS-ROY,G - GAF Scoring Capture ; 7-10-1998
- ;;5.3;Scheduling;**149**;Aug 13, 1993
+ ;;5.3;Scheduling;**149,1015**;Aug 13, 1993;Build 21
 EN(DFN) ;Entry point for getting prior GAF data and updating
  K DTOUT,DUOUT,DIRUT,DIROUT
  N SDGAF,SDGAFDT,SDNGAFDT,SDGAFSC,SDNGAFSC,SDGAFPR,SDNGAFPR,DIR

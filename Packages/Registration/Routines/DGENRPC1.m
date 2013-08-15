@@ -1,5 +1,5 @@
 DGENRPC1 ;ALB/CJM - Enrollees by Status, Priority, Preferred Facility Report; May 12, 1999
- ;;5.3;Registration;**147,232**;Aug 13,1993
+ ;;5.3;Registration;**147,232,1015**;Aug 13,1993;Build 21
  ;
 REPORT ;
  N DGENRP,DGENFLG

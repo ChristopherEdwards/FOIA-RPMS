@@ -1,5 +1,5 @@
 DGPTFMO1 ;ALB/AS - DGPTF PRINT TEMPLATE (cont) ; 5 FEB 90 14:00
- ;;5.3;Registration;**54**;Aug 13, 1993
+ ;;5.3;Registration;**54,1015**;Aug 13, 1993;Build 21
  ;
 PTF ; -- PTF inquiry
  S FLDS="[DGPTF]"

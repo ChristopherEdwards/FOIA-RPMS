@@ -1,5 +1,5 @@
 SCDDI1 ;ALB/SCK/JLU - DD Calls used by Incomplete Encounter Management ; 6/6/97
- ;;5.3;Scheduling;**66**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,1015**;AUG 13, 1993;Build 21
  Q
 SETAEDT(DA,X) ;
  Q:'$G(DA)!('$G(X))

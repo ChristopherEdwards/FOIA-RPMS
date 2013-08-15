@@ -1,5 +1,5 @@
 SCMCHLR8 ;ALB/KCL - PCMM HL7 Reject Transmission Report; 22-FEB-2000
- ;;5.3;Scheduling;**210**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,1015**;AUG 13, 1993;Build 21
  ;
 TERPRT ; Description: Main entry point for the PCMM HL7 Reject Transmission Report.
  ;

@@ -1,8 +1,11 @@
-TIURD ; SLC/JER - Reassign actions ;13-MAY-2002 11:41:59
- ;;1.0;TEXT INTEGRATION UTILITIES;**4,58,61,100,109,173**;Jun 20, 1997
+TIURD ; SLC/JER - Reassign actions ;4/25/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**4,58,61,100,109,173,184**;Jun 20, 1997
  ;
+ ; Call to $$TIUREAS^MDAPI covered by IA# 3378
+ ; $$TIUREAS^MDAPI went out with MD 1.0, which was not mandated, so
+ ;checks are made for its existence before it is called.
 REASSIGN ; Reassign selected Documents
- N TIUCHNG,TIULST,TIUI,TIUY,RSTRCTD,TIUDAARY
+ N TIUCHNG,TIULST,TIUI,RSTRCTD,TIUDAARY
  I '$D(VALMY) D EN^VALM2(XQORNOD(0))
  S TIUI=0
  F  S TIUI=$O(VALMY(TIUI)) Q:+TIUI'>0  D  Q:$D(DIROUT)
@@ -10,7 +13,7 @@ REASSIGN ; Reassign selected Documents
  . S TIUDATA=$G(^TMP("TIURIDX",$J,TIUI))
  . S TIUDA=+$P(TIUDATA,U,2) S RSTRCTD=$$DOCRES^TIULRR(TIUDA)
  . W !!,"Processing Item #",TIUI,"..."
- . D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY W !,"This action is no longer permitted for SURGICAL REPORTS" H 1 Q
+ . I $$CANTSURG(TIUDA) H 1 Q  ;not permitted for surgery reports
  . I RSTRCTD D  Q
  . . W !!,$C(7),"Ok, no harm done...",! ; Echo denial message
  . . I $$READ^TIUU("EA","RETURN to continue...") ; pause
@@ -35,7 +38,7 @@ REASSIG1 ; Single record reassign
  N TIUAUTH,TIURSSG,TIUNAME,DA,DR,DIE,TIUTYPE,TIUEDIT,TIUADD,TIUPROMO,TIUY
  N TIUD0,TIUD12,TIUD13,TIUD14,TIUODA,TIUOUT K ^TMP("TIURTRCT",$J)
  D FULL^VALM1
- D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY W !,"This action is no longer permitted for SURGICAL REPORTS" H 3 Q
+ I $$CANTSURG(TIUDA) H 3 Q  ;not permitted for surgery reports
  L +^TIU(8925,+TIUDA):1
  E  W !?5,$C(7),$C(7),$C(7),"Another user is editing this entry." S TIUY=$$READ^TIUU("EA","Press RETURN to continue...") Q
  ; Authorized? NO: echo why not & quit
@@ -111,36 +114,49 @@ CLAPPLNK ; Re-link selected Documents to different Client Records
  . S TIUDATA=$G(^TMP("TIURIDX",$J,TIUI))
  . S TIUDA=+$P(TIUDATA,U,2),TIUDAARY(TIUI)=TIUDA
  . S TIUCHNG=0
+ . W !!,"Processing Item #",TIUI,"..."
  . D CLAPPLN1(TIUDA)
  . I +$G(TIUCHNG)=1 D
  . . S TIULST=$G(TIULST)_$S($G(TIULST)]"":", ",1:"")_TIUI
  S TIUCHNG("REFRESH")=1
  D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY
  S VALMBCK="R"
- D VMSG^TIURS1($G(TIULST),.TIUDAARY,"reassigned")
+ D VMSG^TIURS1($G(TIULST),.TIUDAARY,"re-linked")
  Q
  ;
 CLAPPLN1(TIUDA) ; Re-link a single record to the client application
- N TIUREASX,TIUCVP,CANLNK,TIUY
+ N TIUREASX,CANLNK,ACTION,ISPRF,OLDLINK
  I '$D(^TIU(8925,TIUDA,0)) D  Q
  . W !!,$C(7),"Document no longer exists.",!
  . I $$READ^TIUU("EA","Press RETURN to continue...") W ""
- D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY W !,"This action is no longer permitted for SURGICAL REPORTS" H 3 Q
- S TIUCVP=$P($G(^TIU(8925,TIUDA,14)),U,5)
+ I $$CANTSURG(TIUDA) H 3 Q  ;not permitted for surgery reports
+ S ISPRF=$$ISPRFDOC^TIUPRF(TIUDA) ;Patient Record Flag
+ I ISPRF S ACTION="LINK TO FLAG",OLDLINK=$$GETLINK^DGPFAPI1(TIUDA)
+ I 'ISPRF S ACTION="LINK WITH REQUEST",OLDLINK=$P($G(^TIU(8925,TIUDA,14)),U,5)
  I +$$ISADDNDM^TIULC1(TIUDA) D  Q
  . W !!,$C(7),"Links for ADDENDA can't be independently changed.",!
  . I $$READ^TIUU("EA","Press RETURN to continue...") W ""
  S TIUREASX=$$REASSIGN^TIULC1(+$G(^TIU(8925,TIUDA,0)))
- I TIUREASX']"" D  I 1
+ I TIUREASX']"" D  Q
  . W !!,$C(7),"No PACKAGE REASSIGNMENT ACTION Defined.",!
  . I $$READ^TIUU("EA","Press RETURN to continue...") W ""
- E  D
- . N CANLNK
- . I $$DADORKID^TIUGBR(TIUDA) D  ;**100**
- . . S CANLNK="0^You must first detach interdisciplinary entries"
- . E  S CANLNK=$$CANDO^TIULP(+TIUDA,"LINK WITH REQUEST")
- . I +CANLNK'>0 D  Q
- . . W !!,$C(7),$C(7),$P(CANLNK,U,2),!
- . . I $$READ^TIUU("EA","Press RETURN to continue...") W ""
- . X TIUREASX S:$P($G(^TIU(8925,TIUDA,14)),U,5)'=TIUCVP TIUCHNG=1
+ I $$DADORKID^TIUGBR(TIUDA) D  Q  ;**100**
+ . S CANLNK="0^You must first detach interdisciplinary entries"
+ . W !!,$C(7),$C(7),"You must first detach interdisciplinary entries",!
+ . I $$READ^TIUU("EA","Press RETURN to continue...") W ""
+ S CANLNK=$$CANDO^TIULP(+TIUDA,ACTION)
+ I +CANLNK'>0 D  Q
+ . W !!,$C(7),$C(7),$P(CANLNK,U,2),!
+ . I $$READ^TIUU("EA","Press RETURN to continue...") W ""
+ X TIUREASX
+ I ISPRF,OLDLINK'=$$GETLINK^DGPFAPI1(TIUDA) S TIUCHNG=1
+ I 'ISPRF,$P($G(^TIU(8925,TIUDA,14)),U,5)'=OLDLINK S TIUCHNG=1
  Q
+ ;
+CANTSURG(TIUDA) ; If TIUDA is surg docmt, write can't do this action and
+ ;return 1 for can't do it P184
+ N TIUY,CANT S CANT=0
+ D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0)))
+ I '+TIUY Q CANT
+ S CANT=1 W !,"This action is no longer permitted for SURGICAL REPORTS"
+ Q CANT

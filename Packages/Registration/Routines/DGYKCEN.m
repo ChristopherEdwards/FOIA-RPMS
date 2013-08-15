@@ -1,5 +1,5 @@
 DGYKCEN ;ALB/ABR - Census Post-Init Driver for 10/1 Maintenance Patch ; 6/14/94
- ;;5.3;Registration;**31**;Aug 13, 1993
+ ;;5.3;Registration;**31,1015**;Aug 13, 1993;Build 21
  ;
  ;
 CENSUS ;--- add new census date

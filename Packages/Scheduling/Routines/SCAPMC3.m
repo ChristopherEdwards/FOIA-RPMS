@@ -1,5 +1,5 @@
 SCAPMC3 ;ALB/REW - Team API's:TMPT ; 6/3/99 3:18pm
- ;;5.3;Scheduling;**41,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,177,297,1015**;AUG 13, 1993;Build 21
  ;;1.0
 TMPT(DFN,SCDATES,SCPURPA,SCLIST,SCERR) ; -- list of teams for a patient
  ; input:
@@ -72,7 +72,7 @@ BLD(SCLIST,SCPTA,SCPTA0) ; -- build list of patient's teams
  ; SCPTA0  - 0 node of pt team assignment file
  ; 
  ; this builds the array:
- ;                 1      2      3     4     5        6        7      8
+ ;                 1      2      3     4     5        6        7      8 
  ;   sclist(1->n)=sctm^tmname^scpta^effdt^inactdt^p403.47^purpname^pctm?
  ;  
  ;    for each scpta zero node passed to it

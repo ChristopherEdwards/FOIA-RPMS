@@ -1,5 +1,5 @@
-SCRPRAC ;ALB/CMM - Practitioner Demographics ; 29 Jun 99  04:11PM [ 11/02/2000  10:08 AM ]
- ;;5.3;Scheduling;**41,52,177**;AUG 13, 1993
+SCRPRAC ;ALB/CMM - Practitioner Demographics ; 29 Jun 99  04:11PM
+ ;;5.3;Scheduling;**41,52,177,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/02/2000 added call to list template
  ;                        removed title line for list template
  ;                        added blank lines between providers

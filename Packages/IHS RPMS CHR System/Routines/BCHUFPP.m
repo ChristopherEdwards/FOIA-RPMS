@@ -1,5 +1,5 @@
-BCHUFPP ; IHS/TUCSON/LAB - PRINT CHR FORMS ;  [ 05/06/04  12:13 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**2,8,10,16**;OCT 28, 1996
+BCHUFPP ; IHS/CMI/LAB - PRINT CHR FORMS ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - patch 8 Y2K
  ;
  ;IHS/TUCSON/LAB  - patch 1 06/03/97 - modified so subj/obj data
@@ -52,8 +52,8 @@ OBJ ;
 POV ;
  I $Y>(IOSL-6) D FF Q:BCHQUIT
  W !?3,"ASSESSMENT - PCC Purpose of Visit"
- W !?3,"Hlth Prob",?13,"Svc",?18,"Svc",?30,"Narrative",?60,"Sub"
- W !?5,"Code",?13,"Code",?18,"Mins",?60,"Rel",?65,"Tests"
+ W !?3,"Hlth Prob",?13,"Svc",?18,"Svc",?30,"Narrative" ;,?60,"Sub"
+ W !?5,"Code",?13,"Code",?18,"Mins",?65,"Tests"
  W !,$TR($J("",80)," ","_")
  S (BCHX,BCHC)=0 F  S BCHX=$O(^BCHRPROB("AD",BCHR,BCHX)) Q:BCHX'=+BCHX!(BCHQUIT)  S BCHC=BCHC+1 D
  .I $Y>(IOSL-5) D FF Q:BCHQUIT
@@ -62,13 +62,14 @@ POV ;
  .W ?14,$S($P(BCHRNODE,U,4)]"":$P(^BCHTSERV($P(BCHRNODE,U,4),0),U,3),1:"??")
  .W ?19,$P(^BCHRPROB(BCHX,0),U,5)
  .S BCHTNRQ=$P(^BCHRPROB(BCHX,0),U,6) S BCHTNRQ=$S(BCHTNRQ]"":$P(^AUTNPOV(BCHTNRQ,0),U),1:"<<none>>") S BCHW=35 D WRT ;IHS/TUCSON/LAB - patch 2
- .W ?23,BCHRPRNM(1),?61,$P(BCHRNODE,U,7) W:BCHC=1 ?65,"PPD  ",$P(BCHR12,U,10)
+ .W ?23,BCHRPRNM(1) W:BCHC=1 ?65,"PPD  ",$P(BCHR12,U,10)
  .;begin Y2K
  .;W ! W:$D(BCHRPRNM(2)) ?23,BCHRPRNM(2) W:BCHC=1 ?65,"BS   ",$S($P(BCHR13,U,2)]"":$P(BCHR13,U,2),$P(BCHR13,U)]"":$E($P(BCHR13,U),4,5)_"/"_$E($P(BCHR13,U),6,7)_"/"_$E($P(BCHR13,U),2,3),1:"") ;Y2000
- .W ! W:$D(BCHRPRNM(2)) ?23,BCHRPRNM(2) W:BCHC=1 ?65,"BS   ",$S($P(BCHR13,U,2)]"":$P(BCHR13,U,2),$P(BCHR13,U)]"":$E($P(BCHR13,U),4,5)_"/"_$E($P(BCHR13,U),6,7)_"/"_(1700+($E($P(BCHR13,U),1,3))),1:"") ;Y2000
+ .W ! W:$D(BCHRPRNM(2)) ?23,BCHRPRNM(2) W:BCHC=1 ?65,"BG   ",$S($P(BCHR13,U,2)]"":$P(BCHR13,U,2),$P(BCHR13,U)]"":$E($P(BCHR0,U),4,5)_"/"_$E($P(BCHR0,U),6,7)_"/"_(1700+($E($P(BCHR0,U),1,3))),1:"") ;Y2000
  .;W ! W:$D(BCHRPRNM(3)) ?23,BCHRPRNM(3) W:BCHC=1 ?65,"T/C   ",$S($P(BCHR13,U,4)]"":$P(BCHR13,U,4),$P(BCHR13,U,3)]"":$E($P(BCHR13,U,3),4,5)_"/"_$E($P(BCHR13,U,3),6,7)_"/"_$E($P(BCHR13,U,3),2,3),1:"") ;Y2000
- .W ! W:$D(BCHRPRNM(3)) ?23,BCHRPRNM(3) W:BCHC=1 ?65,"T/C  ",$S($P(BCHR13,U,4)]"":$P(BCHR13,U,4),$P(BCHR13,U,3)]"":$E($P(BCHR13,U,3),4,5)_"/"_$E($P(BCHR13,U,3),6,7)_"/"_(1700+($E($P(BCHR13,U,3),1,3))),1:"") ;Y2000
+ .;W ! W:$D(BCHRPRNM(3)) ?23,BCHRPRNM(3) W:BCHC=1 ?65,"T/C  ",$S($P(BCHR13,U,4)]"":$P(BCHR13,U,4),$P(BCHR13,U,3)]"":$E($P(BCHR13,U,3),4,5)_"/"_$E($P(BCHR13,U,3),6,7)_"/"_(1700+($E($P(BCHR13,U,3),1,3))),1:"") ;Y2000
  .W ! W:$D(BCHRPRNM(4)) ?23,BCHRPRNM(4) W:BCHC=1 ?58,"Hemoglobin A1c  ",$S($P(BCHR13,U,9)]"":$P(BCHR13,U,9),1:"")
+ .;W ! W:$D(BCHRPRNM(5)) ?23,BCHRPRNM(5) W:BCHC=1 ?58,"Total Cholesterol ",$S($P(BCHR13,U,10)]"":$P(BCHR13,U,10),1:"")
  .;end Y2K
  .Q
  S BCHX1=3 F  S BCHX1=$O(BCHRPRNM(BCHX1)) Q:BCHX1'=+BCHX1!(BCHQUIT)  D:$Y>(IOSL-4) FF Q:BCHQUIT  W !?23,BCHRPRNM(BCHX1)
@@ -78,7 +79,7 @@ PLANS ;
  ;IHS/TUCSON/LAB - modified to display plan info patch 1 06/03/97
  I $Y>(IOSL-7) D FF Q:BCHQUIT
  W !,$TR($J("",80)," ","_")
- W !?3,"Plans/Treatments/Education/Medications"
+ W !?3,"Plans/Treatments"
  ;begin Y2K
  ;W ?65,"HCT  ",$S($P(BCHR13,U,8)]"":$P(BCHR13,U,8),$P(BCHR13,U,7)]"":$E($P(BCHR13,U,7),4,5)_"/"_$E($P(BCHR13,U,7),6,7)_"/"_$E($P(BCHR13,U,7),2,3),1:"") ;Y2000
  W ?65,"HCT  ",$S($P(BCHR13,U,8)]"":$P(BCHR13,U,8),$P(BCHR13,U,7)]"":$E($P(BCHR13,U,7),4,5)_"/"_$E($P(BCHR13,U,7),6,7)_"/"_(1700+($E($P(BCHR13,U,7),1,3))),1:"") ;Y2000
@@ -87,7 +88,7 @@ PLANS ;
  ;W !?65,"UA   ",$S($P(BCHR13,U,8)]"":$P(BCHR13,U,8),$P(BCHR13,U,7)]"":$E($P(BCHR13,U,7),4,5)_"/"_$E($P(BCHR13,U,7),6,7)_"/"_$E($P(BCHR13,U,7),2,3),1:"")
  ;begin Y2K
  ;S BCHWP(1)=$G(BCHWP(1)),$E(BCHWP(1),62)="UA   "_$S($P(BCHR13,U,6)]"":$P(BCHR13,U,6),$P(BCHR13,U,5)]"":$E($P(BCHR13,U,5),4,5)_"/"_$E($P(BCHR13,U,5),6,7)_"/"_$E($P(BCHR13,U,5),2,3),1:"") ;Y2000
- S BCHWP(1)=$G(BCHWP(1)),$E(BCHWP(1),62)="UA   "_$S($P(BCHR13,U,6)]"":$P(BCHR13,U,6),$P(BCHR13,U,5)]"":$E($P(BCHR13,U,5),4,5)_"/"_$E($P(BCHR13,U,5),6,7)_"/"_(1700+($E($P(BCHR13,U,5),1,3))),1:"")
+ ;S BCHWP(1)=$G(BCHWP(1)),$E(BCHWP(1),62)="UA   "_$S($P(BCHR13,U,6)]"":$P(BCHR13,U,6),$P(BCHR13,U,5)]"":$E($P(BCHR13,U,5),4,5)_"/"_$E($P(BCHR13,U,5),6,7)_"/"_(1700+($E($P(BCHR13,U,5),1,3))),1:"")
  ;end Y2K
  S BCHWP(2)=$G(BCHWP(2)),$E(BCHWP(2),55)="Reproductive Factors"
  ;begin Y2K
@@ -100,17 +101,22 @@ PLANS ;
  .W !?4,BCHWP(BCHX1)
  .Q
  I $Y>(IOSL-3) D FF Q:BCHQUIT
- W !?3,"Education Topics recorded"
- S BCHX=0 F  S BCHX=$O(^BCHRPED("AD",BCHR,BCHX)) Q:BCHX'=+BCHX  D
- .W !?3,$E($$VAL^XBDIQ1(90002.02,BCHX,.01),1,38),?40,$E($$VAL^XBDIQ1(90002.02,BCHX,.06),1,10),?51,$E($$VAL^XBDIQ1(90002.02,BCHX,.07),1,10),?62,$$VAL^XBDIQ1(90002.02,BCHX,.08)_" MIN",?69,"OBJ: ",$$VAL^XBDIQ1(90002.02,BCHX,.14)
+ ;W !?3,"Education Topics recorded"
+ ;S BCHX=0 F  S BCHX=$O(^BCHRPED("AD",BCHR,BCHX)) Q:BCHX'=+BCHX  D
+ ;.W !?3,$E($$VAL^XBDIQ1(90002.02,BCHX,.01),1,38),?40,$E($$VAL^XBDIQ1(90002.02,BCHX,.06),1,10),?51,$E($$VAL^XBDIQ1(90002.02,BCHX,.07),1,10),?62,$$VAL^XBDIQ1(90002.02,BCHX,.08)_" MIN",?69,"OBJ: ",$$VAL^XBDIQ1(90002.02,BCHX,.14)
  W !,$TR($J("",80)," ","_")
 ACT ;
  I $Y>(IOSL-5) D FF Q:BCHQUIT
  W !?3,"Activity Location:  ",$S($P(BCHR0,U,6)]"":$P(^BCHTACTL($P(BCHR0,U,6),0),U),1:"") I $P(BCHR0,U,5)]"" W ?40,"Hospital/Clinic: ",$E($P(^DIC(4,$P(BCHR0,U,5),0),U),1,22)
- W !?3,"Referred to CHR by:  ",$S($P(BCHR0,U,7)]"":$E($P(^BCHTREF($P(BCHR0,U,7),0),U),1,15),1:""),?45,"Referred by CHR to: ",$S($P(BCHR0,U,8)]"":$E($P(^BCHTREF($P(BCHR0,U,8),0),U),1,15),1:"")
- W !?3,"Evaluation:  ",$S($P(BCHR0,U,9)]"":$$EXTSET^XBFUNC(90002,.09,$P(BCHR0,U,9)),1:"")
+ ;table both and print 1,2,3,etc
+ NEW BCHREFB,BCHREFT,C
+ S X=0,C=0 F  S X=$O(^BCHR(BCHR,41,X)) Q:X'=+X  S C=C+1,BCHREFB(C)=$P(^BCHTREF($P(^BCHR(BCHR,41,X,0),U),0),U,1)
+ S X=0,C=0 F  S X=$O(^BCHR(BCHR,42,X)) Q:X'=+X  S C=C+1,BCHREFT(C)=$P(^BCHTREF($P(^BCHR(BCHR,42,X,0),U),0),U,1)
+ W !?3,"Referred to CHR by: ",?45,"Referred by CHR to: "
+ F X=1:1:20 I $D(BCHREFB(X))!($D(BCHREFT(X))) D
+ .W !?5,$G(BCHREFB(X)),?48,$G(BCHREFT(X))
  W !?3,"Travel Time:  ",$P(BCHR0,U,11),?45,"Number Served:  ",$P(BCHR0,U,12)
- W !,$TR($J("",80)," ","_")
+ W !,$TR($J("",80)," ","_"),!
 DEMO ;demographics
  D DEMO^BCHUFP
  Q

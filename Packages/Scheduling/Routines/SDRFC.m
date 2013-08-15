@@ -1,7 +1,5 @@
-SDRFC ;SF/GFT-XAK,BSN/GRR - RADIOLOGY PULL LIST ; [ 09/13/2001  2:40 PM ]
- ;;5.3;Scheduling;;Aug 13, 1993
- ;IHS/ANMC/LJF 11/30/2000 contains $N but not used by IHS
- ;
+SDRFC ;SF/GFT-XAK,BSN/GRR - RADIOLOGY PULL LIST ; 12/4/90  09:36 ;
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  S DIV="" D DIV^SDUTL I $T D RALST^SDDIV Q:Y<0
  S U="^",%DT="AXE",%DT("A")="RADIOLOGY PULL LIST IN TERMINAL-DIGIT ORDER FOR WHAT DATE: " D ^%DT K %DT("A") Q:Y<0  S SDY=Y
  S PGM="START^SDRFC",VAR="DIV^SDY",VAL=DIV_"^"_SDY D ZIS^DGUTQ G:POP Q
@@ -9,7 +7,6 @@ START S Y=SDY U IO K ^UTILITY($J)
  F C=0:0 S C=$N(^SC("ARAD",C)) Q:C'>0  D CHECK I $T F SC="S","C" F D=Y-.01:0 S D=$N(^SC("ARAD",C,D)) Q:D\1-Y  F P=0:0 S P=$N(^SC("ARAD",C,D,P)) Q:P'>0  I $P(^(P),"^",1)'="N" S X=P D C:$D(^DPT(+X,0))
  S DA=0 W @IOF,!?31,"RADIOLOGY PULL LIST",!?31,"Printed on: " D NOW^%DTC S Y=$E(%,1,12) D DT^DIQ
  F I=0:0 S DA=$N(^UTILITY($J,DA)) G Q:DA<0 S X=0,DA1=DA,J=0 D P G Q:DA<0
- ;
 P S X=$N(^UTILITY($J,DA,X)) Q:X'>0  S DA1=DA,DFN=X,X=$N(^(X)),PAT1=^DPT(DFN,0) I X<0 S DA=$N(^UTILITY($J,DA)) I DA'<0 S X=$N(^(DA,0))
  S PAT2=$S(X>0:^DPT(X,0),1:"") W !!,$E($P(PAT1,"^",9),6,9),"  ",$P(PAT1,"^",1),?40,$E($P(PAT2,"^",9),6,9),"  ",$P(PAT2,"^",1),!!?6,$P(PAT1,"^",9),?46,$P(PAT2,"^",9)
  S AP1=$N(^UTILITY($J,DA1,DFN,0)),DAT1=^(AP1),AP2=$N(^UTILITY($J,DA,X,0)),DAT2=$S(AP2>0:^(AP2),1:"") W !!?6,$P(^SC(+DAT1,0),"^",1),?46,$S(AP2>0:$P(^SC(+DAT2,0),"^",1),1:"") W ! D O

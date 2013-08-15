@@ -1,5 +1,5 @@
 DGRUGA13 ;ALB/GRR - HL7 ADT A13 MESSAGE BUILDER ;8/5/99  15:34
- ;;5.3;Registration;**190,312,373**;Aug 13, 1993
+ ;;5.3;Registration;**190,312,373,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will build a ADT A13 (Cancel Discharge) HL7 message for an inpatient.
  ;

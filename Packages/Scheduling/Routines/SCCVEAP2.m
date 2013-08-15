@@ -1,5 +1,5 @@
 SCCVEAP2 ;ALB/RMO,TMP - Appointment Conversion cont.; [ 04/05/95  10:19 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 VISIT(SCDTM,SCCV) ;Create visit when encounter already exists
  ; Input  -- SCDTM    Appointment date/time

@@ -1,5 +1,5 @@
 DG53489P ;ALB/EW;BPFO/MM -PRE/POST INIT FOR DG*5.3*489 ;3/10/2003
- ;;5.3;Registration;**489**;Aug 13, 1993
+ ;;5.3;Registration;**489,1015**;Aug 13, 1993;Build 21
  ;
  ;The post initialization routine for DG*5.3*489  adds a new 
  ;inconsistent data element to the Inconsistent Data Element 

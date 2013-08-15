@@ -1,8 +1,10 @@
-GMRCPSL2 ;SLC/MA - Special Consult Reports;9/21/01  05:25 ;1/17/02  18:19
- ;;3.0;CONSULT/REQUEST TRACKING;**23,22**;DEC 27, 1997
+GMRCPSL2 ;SLC/MA - Special Consult Reports;07-Dec-2011 14:47;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**23,22,1002**;DEC 27, 1997;Build 1
+ ;
+ ; Modified - IHS/MSC/MGH - 09/20/2011 - New TEST API
  ; This routine is used by GMRCPSL1 to build ^TMP("GMRCRPT",$J)
  ; which will be passed to GMRCPSL3.
-PRINT(GMRCSRCH,GMRCARRY,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCRPT,GMRCBRK) ; Untasked Print
+PRINT(GMRCSRCH,GMRCARRY,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCRPT,GMRCBRK,GMRTST) ; Untasked Print
 PRTTSK ; Print report
  ; GMRCARRY = Array contains search values.
  ; GMRCSRCH = Indicates which field to search on
@@ -12,6 +14,7 @@ PRTTSK ; Print report
  ; SUBTOT   = Counter for different groups
  ; GMRCRPT  = 80 - 132 character report & data only output
  ; GMRCBRK  = Print page break between sub-totals <Y-N>
+ ; GMRTST   = Includ or not include test pts Patch 1002
  ; TOTCNTR  = Count for total records
  I GMRCSRCH=1 D BLDPROV(.GMRCARRY)   ;BLD PROVIDER  ^TMP(GLOBAL)
  I GMRCSRCH=2 D BLDLOC(.GMRCARRY)    ;BLD LOCATION  ^TMP(GLOBAL)
@@ -34,18 +37,20 @@ PRTTSK ; Print report
 BLDLOC(GMRCARRY) ; Build ^TMP were search was on location.
  K ^TMP("GMRCRPT",$J)
  N GMRCCNTR,LOCATION,GMRCSRT1,GMRCSRT2,GMRCLOC1,GMRCLOC2,IEN
- N GMRCREM,LOCPN
+ N GMRCREM,LOCPN,CHK
  S GMRCCNTR=0
  ;
  ; get all Locations by date range
  I GMRCARRY(1)="ALL" D
- .  S GMRCLOC1=GMRCDT1,GMRCLOC2=GMRCDT2
+ .  S GMRCLOC1=GMRCDT1,GMRCLOC2=GMRCDT2,CHK=0
  .  F  S GMRCLOC1=$O(^GMR(123,"E",GMRCLOC1)) Q:GMRCLOC1>GMRCLOC2  Q:GMRCLOC1=""  D
  . .  S IEN=0
  . .  F  S IEN=$O(^GMR(123,"E",GMRCLOC1,IEN)) Q:IEN'>0  D
  . . .  ;
  . . .  ; Check for Patient Location
  . . .  I "LB"[GMRCARRY,$$CKSTAT(IEN,GMRCSTAT),+$P(^GMR(123,IEN,0),"^",4) D  Q
+ . . . .  S CHK=$$TEST(IEN,GMRTST)
+ . . . .  Q:+CHK
  . . . .  S LOCATION=$P(^GMR(123,IEN,0),"^",4)   ; PATIENT LOCATION
  . . . .  S GMRCSRT1=$$GET1^DIQ(44,LOCATION,.01)  ; PATIENT LOCATION
  . . . .  S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)   ; DATE OF REQUEST
@@ -53,6 +58,8 @@ BLDLOC(GMRCARRY) ; Build ^TMP were search was on location.
  . . .  ;
  . . .  ; If no patient location, check for Ordering Facility
  . . .  I $$CKSTAT(IEN,GMRCSTAT),'+$P(^GMR(123,IEN,0),"^",4),+$P(^GMR(123,IEN,0),"^",21),("L"[GMRCARRY&'+$P(^GMR(123,IEN,0),"^",23)!("RB"[GMRCARRY&+$P(^GMR(123,IEN,0),"^",23))) D  Q
+ . . . .  S CHK=$$TEST(IEN,GMRTST)
+ . . . .  Q:+CHK
  . . . .  S LOCATION=$P(^GMR(123,IEN,0),"^",21)  ;ORDERING FACILITY
  . . . .  S GMRCSRT1=$$GET1^DIQ(4,LOCATION,.01)  ;ORDERING FACILITY
  . . . .  S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)   ;DATE OF REQUEST
@@ -62,6 +69,8 @@ BLDLOC(GMRCARRY) ; Build ^TMP were search was on location.
  . . .  ; If no patient location & NO Ordering Facility, then
  . . .  ; check for Routing Facility
  . . .  I "RB"[GMRCARRY,$$CKSTAT(IEN,GMRCSTAT),'+$P(^GMR(123,IEN,0),"^",4),'+$P(^GMR(123,IEN,0),"^",21),+$P(^GMR(123,IEN,0),"^",23) D  Q
+ . . . .  S CHK=$$TEST(IEN,GMRTST)
+ . . . .  Q:+CHK
  . . . .  S LOCATION=$P(^GMR(123,IEN,0),"^",23)  ;ROUTING FACILITY
  . . . .  S GMRCSRT1=$$GET1^DIQ(4,LOCATION,.01)  ;ROUTING FACILITY
  . . . .  S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)   ;DATE OF REQUEST
@@ -75,6 +84,8 @@ BLDLOC(GMRCARRY) ; Build ^TMP were search was on location.
  . .  N IEN S IEN=0
  . .  F  S IEN=$O(^GMR(123,"AL",LOCATION,IEN)) Q:IEN'>0  D
  . . .  I $P(^GMR(123,IEN,0),"^",7)>GMRCDT1,$P(^GMR(123,IEN,0),"^",7)<GMRCDT2,$$CKSTAT(IEN,GMRCSTAT) D
+ . . . . S CHK=$$TEST(IEN,GMRTST)
+ . . . . Q:+CHK
  . . . . S GMRCSRT1=$P(GMRCARRY(GMRCCNTR),"^",2)   ; Patient Location
  . . . . S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)      ; DATE OF REQUEST
  . . . . S ^TMP("GMRCRPT",$J,GMRCSRT1,GMRCSRT2,IEN)=IEN_"|"_^GMR(123,IEN,0)
@@ -84,10 +95,14 @@ BLDLOC(GMRCARRY) ; Build ^TMP were search was on location.
  . . .  N IEN S IEN=0
  . . .  F  S IEN=$O(^GMR(123,"E",GMRCLOC1,IEN)) Q:IEN'>0  D
  . . . . I $$CKSTAT(IEN,GMRCSTAT),$P($G(^GMR(123,IEN,12)),"^",5)="F",+$P($G(^GMR(123,IEN,0)),"^",21)=LOCATION D  Q
+ . . . . . S CHK=$$TEST(IEN,GMRTST)
+ . . . . . Q:+CHK
  . . . . . S GMRCSRT1=$P(GMRCARRY(GMRCCNTR),"^",2)
  . . . . . S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)
  . . . . . S ^TMP("GMRCRPT",$J,GMRCSRT1,GMRCSRT2,IEN)=IEN_"|"_^GMR(123,IEN,0)
  . . . . I $$CKSTAT(IEN,GMRCSTAT),$P($G(^GMR(123,IEN,12)),"^",5)="F",'+$P(^GMR(123,IEN,0),"^",21),+$P($G(^GMR(123,IEN,0)),"^",23)=LOCATION D  Q
+ . . . . . S CHK=$$TEST(IEN,GMRTST)
+ . . . . . Q:+CHK
  . . . . . S GMRCSRT1=$P(GMRCARRY(GMRCCNTR),"^",2)
  . . . . . S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)
  . . . . . S ^TMP("GMRCRPT",$J,GMRCSRT1,GMRCSRT2,IEN)=IEN_"|"_^GMR(123,IEN,0)
@@ -104,6 +119,8 @@ BLDPROC(GMRCARRY) ; Build ^TMP were search was on procedure.
  . .  F  S IEN=$O(^GMR(123,"E",GMRCPRC1,IEN)) Q:IEN'>0  D
  . . .  I $$CKSTAT(IEN,GMRCSTAT) D        ; Ck Status
  . . . .  I $P(^GMR(123,IEN,0),"^",8)>"" D              ; Ck for Proc
+ . . . . .  S CHK=$$TEST(IEN,GMRTST)
+ . . . . .  Q:+CHK
  . . . . .  S PROCEDUR=$P($P(^GMR(123,IEN,0),"^",8),";",1)
  . . . . .  S GMRCSRT1=$$GET1^DIQ(123.3,PROCEDUR,.01)   ;Procedure
  . . . . .  S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)        ;Req Date
@@ -116,6 +133,8 @@ BLDPROC(GMRCARRY) ; Build ^TMP were search was on procedure.
  .  N IEN S IEN=0
  .  F  S IEN=$O(^GMR(123,"AP",PROCEDUR_";GMR(123.3,",IEN)) Q:IEN'>0  D
  . .  I $P(^GMR(123,IEN,0),"^",7)>GMRCDT1,$P(^GMR(123,IEN,0),"^",7)<GMRCDT2,$$CKSTAT(IEN,GMRCSTAT) D
+ . . . S CHK=$$TEST(IEN,GMRTST)
+ . . . Q:+CHK
  . . . S GMRCSRT1=$P(GMRCARRY(GMRCCNTR),"^",2)   ; PROCEDURE TYPE
  . . . S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)      ; DATE OF REQUEST
  . . . S GMRCREM=$P($G(^GMR(123,IEN,12)),"^",6)
@@ -135,6 +154,8 @@ BLDPROV(GMRCARRY) ; Build ^TMP were search was on provider.
  . . .  ; Provider not null
  . . .  I "LB"[GMRCARRY,$$CKSTAT(IEN,GMRCSTAT) D
  . . . .  I +$P(^GMR(123,IEN,0),"^",14) D
+ . . . . .  S CHK=$$TEST(IEN,GMRTST)
+ . . . . .  Q:+CHK
  . . . . .  S GMRCPROV=$P(^GMR(123,IEN,0),"^",14)      ; SENDING PROVIDER
  . . . . .  S GMRCSRT1=$$GET1^DIQ(200,GMRCPROV,.01)    ; SENDING PROVIDER
  . . . . .  S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)       ; DATE OF REQUEST
@@ -142,6 +163,8 @@ BLDPROV(GMRCARRY) ; Build ^TMP were search was on provider.
  . . .  ; Provider null and REMOTE ORDERING PROVIDER not
  . . .  I "RB"[GMRCARRY,$$CKSTAT(IEN,GMRCSTAT) D
  . . . .  I '+$P(^GMR(123,IEN,0),"^",14),$P($G(^GMR(123,IEN,12)),"^",6)'="" D
+ . . . . .   S CHK=$$TEST(IEN,GMRTST)
+ . . . . .   Q:+CHK
  . . . . .   S GMRCPROV=$P($G(^GMR(123,IEN,12)),"^",6)
  . . . . .   S GMRCSRT1=GMRCPROV
  . . . . .   S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)       ; DATE OF REQUEST
@@ -154,6 +177,8 @@ BLDPROV(GMRCARRY) ; Build ^TMP were search was on provider.
  . .  S IEN=0
  . .  F  S IEN=$O(^GMR(123,"G",PROVIDER,IEN)) Q:IEN'>0  D
  . . .  I $P(^GMR(123,IEN,0),"^",7)>GMRCDT1,$P(^GMR(123,IEN,0),"^",7)<GMRCDT2,$$CKSTAT(IEN,GMRCSTAT) D
+ . . . . S CHK=$$TEST(IEN,GMRTST)
+ . . . . Q:+CHK
  . . . . S GMRCSRT1=$P(GMRCARRY(GMRCCNTR),"^",2)   ; SENDING PROVIDER
  . . . . S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)      ; DATE OF REQUEST
  . . . . S ^TMP("GMRCRPT",$J,GMRCSRT1,GMRCSRT2,IEN)=IEN_"|"_^GMR(123,IEN,0)
@@ -161,6 +186,8 @@ BLDPROV(GMRCARRY) ; Build ^TMP were search was on provider.
  . . S IEN=0
  . . F  S IEN=$O(^GMR(123,"AIP",PROVIDER,IEN)) Q:IEN'>0  D
  . . .  I $P(^GMR(123,IEN,0),"^",7)>GMRCDT1,$P(^GMR(123,IEN,0),"^",7)<GMRCDT2,$$CKSTAT(IEN,GMRCSTAT) D
+ . . . . S CHK=$$TEST(IEN,GMRTST)
+ . . . . Q:+CHK
  . . . . S GMRCSRT1=$P(GMRCARRY(GMRCCNTR),"^",1)
  . . . . S GMRCSRT2=$P(^GMR(123,IEN,0),"^",7)
  . . . . S ^TMP("GMRCRPT",$J,GMRCSRT1,GMRCSRT2,IEN)=IEN_"|"_^GMR(123,IEN,0)_"^"_PROVIDER
@@ -177,3 +204,11 @@ CKSTAT(IEN,GMRCSTAT) ; Does entry have selected status
  F LOOP=1:1:$L(GMRCSTAT,",") S STATUS=$P(GMRCSTAT,",",LOOP) Q:GMRCKS  D
  . I STATUS=GMRCS S GMRCKS=1
  Q GMRCKS
+TEST(IEN,TST) ;Check to see if this consult shold be included
+ N RESULT,NODE,SSN
+ S RESULT=0
+ S NODE=^GMR(123,IEN,0)
+ S SSN=$E($P(^DPT($P(NODE,"^",2),0),"^",9),1,5)
+ I SSN="00000"&(GMRTST="E") S RESULT=1
+ I SSN'="00000"&(GMRTST="D") S RESULT=1
+ Q RESULT

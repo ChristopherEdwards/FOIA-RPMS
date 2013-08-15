@@ -1,7 +1,8 @@
 BIAPCHS ;IHS/CMI/MWR - PRODUCE IMMUNIZATION PATIENT RECORD FOR HEALTH SUMMARY.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  BUILD TEMP ARRAY TO PASS BACK TO APCHS2.
+ ;;  PATCH 3: Use Date of Event if it exists for Imm Hx.  HISTORY+33,+81
  ;
  ;---> Call from IMMBI8^APCHS2: D IMMBI^BIAPCHS(APCHSPAT,.APCHSARR)
  ;
@@ -160,10 +161,14 @@ HISTORY(BIDFN,BILINE,BIPDSS) ;EP
  ;---> 65 10 = Dose Override.
  ;---> 66 11 = Date of Visit (MM/DD/YY).
  ;---> 69 12 = Vaccine Component CVX Code.
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Add Date of Event to Hx string.
+ ;---> 86 13 = Date of Event (1201 field of V File) in YYYMMDD
  ;
  ;
- ;
- N BIDE,I F I=4,8,24,26,27,33,44,57,65,66,69 S BIDE(I)=""
+ ;N BIDE,I F I=4,8,24,26,27,33,44,57,65,66,69 S BIDE(I)=""
+ N BIDE,I F I=4,8,24,26,27,33,44,57,65,66,69,86 S BIDE(I)=""
+ ;**********
  ;
  ;call to get imm hx
  N BIERR,BIFORCST,BIRETVAL S BIRETVAL=""
@@ -203,8 +208,17 @@ HISTORY(BIDFN,BILINE,BIPDSS) ;EP
  .;
  .N Y S Y=""
  .S Y="     "_$S($G(BIAST):"*",1:" ")_$P(BIX,V,2)
- .S Y=$$PAD(Y,27)_$P(BIX,V,11)
- .S Y=$$PAD(Y,37)_$P(BIX,V,9)
+ .;
+ .;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ .;---> Display Date of Event if different from Date of Visit.
+ .;---> Also display Age at time of Event if different.
+ .;S Y=$$PAD(Y,27)_$P(BIX,V,11)
+ .;S Y=$$PAD(Y,37)_$P(BIX,V,9)
+ .N BIDT S BIDT=$P(BIX,V,13)
+ .S Y=$$PAD(Y,27)_$$SLDT2^BIUTL5(BIDT,1)
+ .S Y=$$PAD(Y,37)_$$AGEF^BIUTL1(BIDFN,BIDT)
+ .;**********
+ .;
  .S Y=$$PAD(Y,45)_$E($P(BIX,V,5),1,20)
  .S Y=$$PAD(Y,66)_$P(BIX,V,7)
  .D WRITE(.BILINE,Y)

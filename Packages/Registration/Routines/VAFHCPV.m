@@ -1,5 +1,5 @@
 VAFHCPV ;ALB/CM OUTPATIENT PV1 SEGMENT ; 22 Jan 2002 10:28 AM
- ;;5.3;Registration;**91,151,298,494**;Aug 13, 1993
+ ;;5.3;Registration;**91,151,298,494,573,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine generates the Outpatient PV1 segment
  ;for the Philly project
@@ -76,7 +76,7 @@ EN ;
  . . . S PATDATA=$G(^DPT(DFN,"DIS",PATNODE,0))
  . . . ; Spin through multiple events and get division pointer
  . . . I EVDT=$P(PATDATA,"^",1) D  Q:VAFILE="MATCH"
- . . . . S VAMEDCTR=$P(PATDATA,"^",4) Q:VAMEDCTR=""
+ . . . . S VAMEDCTR=$P(PATDATA,"^",4) I VAMEDCTR="" S VAFILE="" Q
  . . . . ; get facility/suffix from medical center div file
  . . . . S VAFACSUF=$P($G(^DG(40.8,VAMEDCTR,0)),"^",2)
  . . . . ; move data into the PV1 segment

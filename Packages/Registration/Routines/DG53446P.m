@@ -1,5 +1,5 @@
 DG53446P ;ALB/MM - Add HOSPICE TREATING SPECIALTY ; 5/21/02 2:28pm
- ;;5.3;Registration;**446**;May 20, 2002
+ ;;5.3;Registration;**446,1015**;May 20, 2002;Build 21
  ;base program: DG53176P
  ;
 EN ;Add Observation Treating Specialties to the SPECIALITY file (#42.4)

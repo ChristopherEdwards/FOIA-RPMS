@@ -1,5 +1,5 @@
 DGPTLMU3 ;ALB/MTC - PTF ARCHIVE/PURGE LIST MAN UTILITIES CONT ; 9-23-92
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 SEL ; -- select routine for range of numbers not in continuous sequence
  K VALMY N DGX

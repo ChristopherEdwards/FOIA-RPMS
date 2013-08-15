@@ -1,5 +1,5 @@
 SCDXUTL ;ALB/JLU;Utility routine for ambcare project;4/26/96
- ;;5.3;Scheduling;**44,78,132**;5/1/96
+ ;;5.3;Scheduling;**44,78,132,1015**;5/1/96;Build 21
  ;
 DATE(DATE) ;this entry point will accept a date and return whether the new or old Scheduling Visits file limitations are to be used.
  ;INPUTS  -  a date in FM format to be compared to the ambcare start

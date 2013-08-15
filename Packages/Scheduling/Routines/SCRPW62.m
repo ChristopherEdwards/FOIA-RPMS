@@ -1,5 +1,5 @@
-SCRPW62 ;BP-CIOFO/KEITH - SC veterans awaiting appointments ; 23 August 2002@20:23
- ;;5.3;Scheduling;**267,269**;AUG 13, 1993
+SCRPW62 ;BP-CIOFO/KEITH - SC veterans awaiting appointments ; 23 August 2002@20:23  ; Compiled August 20, 2007 14:21:08
+ ;;5.3;Scheduling;**267,269,358,491,1015**;AUG 13, 1993;Build 21
  ;
  ;Prompt for report parameters
  ;
@@ -7,6 +7,8 @@ SCRPW62 ;BP-CIOFO/KEITH - SC veterans awaiting appointments ; 23 August 2002@20:
  N SDELIM,SDX,ZTSAVE,X,Y
  S SDOUT=0
  D TITL^SCRPW50("SC Veterans Awaiting Appointments")
+ W !,"Note: Once the scheduling replacement application has been implemented at your"
+ W !,"site, this report will no longer be accurate."
 RPT D SUBT^SCRPW50("**** Report Type Selection ****")
  S DIR(0)="S^E:ENTERED WITH NO APPOINTMENT PROVIDED;A:APPOINTMENTS BEYOND DATE DESIRED",DIR("A")="Select report type"
  S DIR("?",1)="Specify 'E' to return SC veterans entered but not yet provided an appointment,"
@@ -36,7 +38,11 @@ FMT D SUBT^SCRPW50("**** Report Format Selection ****")
  S SDELIM=Y
  ;
 QUE ;Queue output
- W !!,"This report requires ",$S(SDELIM:"greater than ",1:""),"132 columns for output!"
+ ;W !!,"This report requires ",$S(SDELIM:"greater than ",1:""),"132 columns for output!"
+ W !!,"This report requires the following steps to be converted to 'EXCEL':"
+ W !,"1 - Copy it into WORD and replace '!^p' with null"
+ W !,"2 - Save this file as *.txt format"
+ W !,"3 - Open this file in 'EXCEL' with the All Files(*.*) type of file, listing it with one delimiter: '^'."
  F SDX="SDELIM","SDRPT","SDSCVT","SDATES","SDDIV","SDDIV(","SDFMT" S ZTSAVE(SDX)=""
  W ! D EN^XUTMDEVQ("START^SCRPW62","SC Veterans Awaiting Appointments",.ZTSAVE) D DISP0^SCRPW23
  Q
@@ -114,6 +120,16 @@ HDRD ;Header for delimited report
  Q:SDPAGE>1
  W !,SDLINE S X=0 F  S X=$O(SDT(X)) Q:'X  W !,SDT(X)
  W !,"Date printed: ",SDPNOW,!,SDLINE
- W !,"NAME^SSN^PRIM. ELIG.^DATE ENTERED INTO FILE^STREET ADDRESS^CITY^STATE^ZIP^PHONE NUMBER"
- W:SDRPT="A" "^APPOINTMENT DATE^CLINIC^CREDIT PAIR^DIVISION^DATE APPT. ENTERED^DESIRED DATE^DIFFERENCE (DESIRED DATE - APPT. DATE)^DIFFERENCE (DATE APPT. ENTERED - DESIRED DATE)"
+ N ARR S ARR(1)="NAME^SSN^PRIM. ELIG.^DATE ENTERED^STREET ADDRESS^CITY^STATE^ZIP^PHONE NUMBER"
+ S:SDRPT="A" ARR(1)=ARR(1)_"^APPOINTMENT DATE^CLINIC^CREDIT PAIR^DIVISION^DATE APPT. ENTERED^DESIRED DATE^DIFFERENCE (DESIRED DATE - APPT. DATE)^DIFFERENCE (DATE APPT. ENTERED - DESIRED DATE)"
+ D DELIM(.ARR)
  S SDPAGE=SDPAGE+1 Q
+ Q
+ ;W !,"NAME^SSN^PRIM. ELIG.^DATE ENTERED^STREET ADDRESS^CITY^STATE^ZIP^PHONE NUMBER"
+ ;W:SDRPT="A" "^APPOINTMENT DATE^CLINIC^CREDIT PAIR^DIVISION^DATE APPT. ENTERED^DESIRED DATE^DIFFERENCE (DESIRED DATE - APPT. DATE)^DIFFERENCE (DATE APPT. ENTERED - DESIRED DATE)"
+ ;S SDPAGE=SDPAGE+1 Q
+DELIM(ARR) ;enter delimiter in the end of wrapped line
+ ;ARR - array of lines
+ N DELIM,II,LN,LL,JJ
+ S DELIM="!"
+ F II=1:1 S LN=$G(ARR(II)),LL=$L(LN) Q:'LL  S LN=$P(LN," ")_DELIM_$P(LN," ",2,$L(LN," ")) F JJ=1:79:LL W !,$E(LN,JJ,JJ+78) W:JJ+79<LL DELIM I JJ+79=LL W $E(LN,LL) Q

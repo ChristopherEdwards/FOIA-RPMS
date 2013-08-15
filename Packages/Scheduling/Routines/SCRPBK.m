@@ -1,5 +1,5 @@
 SCRPBK ;MJK/ALB - RPC Broker Utilities ; 27 FEB 96
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;
 GETREC(SCDATA,SCRPT) ; -- get REPORT record
  ; input  :     SCRPT := ien of report definition

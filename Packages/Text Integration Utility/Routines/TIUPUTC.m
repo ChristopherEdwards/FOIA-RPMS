@@ -1,5 +1,5 @@
-TIUPUTC ; SLC/JER - Document filer - captioned header ;11/01/03
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,81,100,113,112,173**;Jun 20, 1997
+TIUPUTC ; SLC/JER - Document filer - captioned header ;5/20/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,81,100,113,112,173,184**;Jun 20, 1997
  ;
 MAIN ; ---- Controls branching.
  ;      Attempts to file upload documents in the target file.
@@ -119,7 +119,7 @@ FINISH ; ---- Finish document: feedback, postfile code, merge boil,
  S TIUDONE=1
  S TIUTYPE=$S(+$$ISADDNDM^TIULC1(TIUREC("#")):+$$DADTYPE(TIUREC("#")),1:TIUREC("TYPE"))
  S TIUPOST=$$POSTFILE^TIULC1(TIUTYPE)
- I TIUPOST]"" X TIUPOST
+ I TIUPOST]"" X TIUPOST K ^TMP("TIUPRFUP",$J)
  I TIUREC("FILE")=8925,+$G(TIUREC("BOILON")) D
  . N TIU D GETTIU^TIULD(.TIU,TIUREC("#"))
  . D MERGTEXT^TIUEDI1(TIUREC("#"),.TIU)

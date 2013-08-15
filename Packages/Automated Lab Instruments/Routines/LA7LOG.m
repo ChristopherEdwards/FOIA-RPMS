@@ -1,38 +1,56 @@
-LA7LOG ;DALISC/JRR - Log events and errors from Lab Messenger ; 12/3/1997
- ;;5.2;LAB MESSAGING;**17,27**;Sep 27, 1994
+LA7LOG ;VA/DALOI/JRR - Log events and errors from Lab Messaging ; Jan 12, 2004
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**1002,1031**;NOV 01, 1997
+ ;
+ ;;VA LA Patche(s): 17,27,67
+ ;
  QUIT
  ;
-CREATE(LA762485) ;
- ;Creates an entry in the log file to record events or errors
- ;while processing messages.  The calling routine passes the 
- ;ien for a bulletin in file 62.485.
- ;Requires the variables:
- ;LA762485='ien of bulletin in 62.485'
- ;LA76248='ien of config in 62.48 or null if none is defined'
+CREATE(LA762485,LA7FLAG) ;
+ ; Creates an entry in the log file to record events or errors
+ ; while processing messages.  The calling routine passes the 
+ ; ien for a bulletin in file 62.485.
+ ; Requires the variables:
+ ; LA762485 = 'ien of bulletin in 62.485'
+ ; LA76248  = 'ien of config in 62.48 or null if none is defined'
+ ; LA7FLAG  = 1 (return error msg text)
  ;
- Q:'$P($G(^LAHM(62.48,+LA76248,0)),"^",4)  ;logging turned off
-LOG ;
- N DA,DIE,DR
+ ; logging turned off
+ I $G(LA7FLAG),'$P($G(^LAHM(62.48,+LA76248,0)),"^",4) Q ""
+ I '$P($G(^LAHM(62.48,+LA76248,0)),"^",4) Q
+ ;
+ N DA,DIE,DR,X,Y
  N LA7,LA7DT,LA7NOW,LA7TIM,LA7TXT
+ ;
  S LA7TXT=$P($G(^LAHM(62.485,LA762485,0)),"^",1,2)
- S:LA7TXT="" LA7TXT="Log routine was called with a non-existant code number ("_LA762485_")."
+ S:LA7TXT="" LA7TXT="Log routine was called with a non-existent code number ("_LA762485_")."
  I $G(^LAHM(62.485,LA762485,1))'="" X ^(1)
  I $O(LA7TXT("")) D
  . S LA7=""
  . F  S LA7=$O(LA7TXT(LA7)) Q:LA7=""  D
  . . S LA7TXT=$P(LA7TXT,"|"_LA7_"|")_LA7TXT(LA7)_$P(LA7TXT,"|"_LA7_"|",2)
- S LA7NOW=$$HTFM^XLFDT($H),LA7DT=LA7NOW\1,LA7TM=LA7NOW#1 ; Set current date/time.
- L +^XTMP("LA7ERR^"_LA7DT,0) ; Set lock on XTMP global.
+ ; Set current date/time.
+ S LA7NOW=$$HTFM^XLFDT($H),LA7DT=LA7NOW\1,LA7TM=LA7NOW#1
+ ;
+ ; Set lock on XTMP global.
+ L +^XTMP("LA7ERR^"_LA7DT,0):99
  I '$D(^XTMP("LA7ERR^"_LA7DT,0)) S ^XTMP("LA7ERR^"_LA7DT,0)=$$HTFM^XLFDT($H+7,1)_"^"_LA7DT_"^"_"Lab Messaging Error Log"
-TIM I $D(^XTMP("LA7ERR^"_LA7DT,LA7TM)) S LA7TM=LA7TM+.0000001 G TIM
+ F  Q:'$D(^XTMP("LA7ERR^"_LA7DT,LA7TM))  S LA7TM=LA7TM+.0000001
  S ^XTMP("LA7ERR^"_LA7DT,LA7TM)=$G(LA76248)_"^"_$G(LA76249)_"^"_LA7TXT
- L -^XTMP("LA7ERR^"_LA7DT,0) ; Release lock on XTMP global.
+ ; Release lock on XTMP global.
+ L -^XTMP("LA7ERR^"_LA7DT,0)
+ ;
+ ; change status to error.
  I $G(LA76249) D
- . S DIE="^LAHM(62.49,",DA=LA76249,DR="2////E"
- . D ^DIE ;change status to error.
- I $P($G(^LAHM(62.485,LA762485,0)),"^",3),$D(^LAHM(62.48,+$G(LA76248),20,"B",2)) D XQA^LA7UXQA(2,$G(LA76248),$G(LA762485),$G(LA76249),$G(LA7AMSG)) ; Send alert
-EXIT K DA,DIE,DR,LA7,LA7DT,LA7TM,LA7TXT,X,Y
- QUIT
+ . N FDA,LA7DIE
+ . S FDA(1,62.49,LA76249_",",2)="E"
+ . D FILE^DIE("","FDA(1)","LA7DIE(1)")
+ ;
+ ; Send alert
+ I $P($G(^LAHM(62.485,LA762485,0)),"^",3),$D(^LAHM(62.48,+$G(LA76248),20,"B",2)) D XQA^LA7UXQA(2,$G(LA76248),$G(LA762485),$G(LA76249),$G(LA7AMSG))
+ ;
+ I $G(LA7FLAG) Q LA7TXT
+ Q
+ ;
  ;
 PRINT ;Print the error log which is stored in ^XTMP.  Errors are
  ;logged only if the Debug Log field is turned on in 62.48
@@ -88,7 +106,7 @@ START ;
  . S LA7=0
  . F  S LA7=$O(^LAHM(62.49,LA76249,150,LA7)) Q:'LA7  D  Q:LA7QUIT
  . . S LA7SEG=$G(^LAHM(62.49,LA76249,150,LA7,0))
- . . Q:LA7SEG="" 
+ . . Q:LA7SEG=""
  . . S LA7QUIT=0
  . . I $Y>(IOSL-5) D  W @IOF Q:LA7QUIT
  . . . I '$D(ZTQUEUED),"Pp"'[$E(IOST) K DIR S DIR(0)="E" D ^DIR I 'Y S LA7QUIT=1 Q

@@ -1,5 +1,5 @@
 DGYDL ; List Template Exporter ; 07-JAN-1994
- ;;5.3;Registration;**9**;Aug 13, 1993
+ ;;5.3;Registration;**9,1015**;Aug 13, 1993;Build 21
  W !,"'DGJ IRT VIEW' List Template..."
  S DA=$O(^SD(409.61,"B","DGJ IRT VIEW",0)),DIK="^SD(409.61," D ^DIK:DA
  K DO,DD S DIC(0)="L",DIC="^SD(409.61,",X="DGJ IRT VIEW" D FILE^DICN S VALM=+Y

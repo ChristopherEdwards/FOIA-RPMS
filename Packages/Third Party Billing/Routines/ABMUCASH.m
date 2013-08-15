@@ -1,17 +1,21 @@
 ABMUCASH ; IHS/SD/SDR - 3PB/UFMS Cashiering Options   
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
- ;
+ ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009
  ; New routine - v2.5 p12 SDD item 4.9.1
- ; Cashiering Sign In/Sign Out option
+ ; Cashiering Sign In/Out option
 EP ;EP
+ ;start new abm*2.6*9 NOHEAT - ensure UFMS setup
+ I $P($G(^ABMDPARM(DUZ(2),1,4)),U,15)="" D  Q
+ .W !!,"* * UFMS SETUP MUST BE DONE BEFORE ANY BILLING FUNCTIONS CAN BE USED! * *",!
+ .S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
+ ;end new
  S ABMFD=$$FINDOPEN^ABMUCUTL(DUZ)
  S ABMTRIBL=$P($G(^ABMDPARM(ABMLOC,1,4)),U,14)  ;export flag
  S $P(ABMLINE,"-",80)=""
- ;NO open session found
+ ;NO open sess found
  I ABMFD=0 D
- .D SIG^XUSESIG  ;ask electronic signature
- .Q:X1=""  ;elec signature test
- .S ABMSNUM=$$CR8SESS^ABMUCUTL()  ;create session
+ .D SIG^XUSESIG  ;ask esig
+ .Q:X1=""  ;esig test
+ .S ABMSNUM=$$CR8SESS^ABMUCUTL()  ;create sess
  .I ABMSNUM=0 W !,"NEW SESSION COULD NOT BE CREATED" Q
  .W !!,"YOU ARE SIGNING *IN* FOR BILLING",!
  .W !?10,$$EN^ABMVDF("ULN"),"Billing Activity",$$EN^ABMVDF("ULF")
@@ -22,7 +26,7 @@ EP ;EP
  .W !?15,"- Cancelled Bills",?44,"0",?58,"$",?64,"0"
  .W !!,"Assigned Session number: ",$P(ABMSNUM,U),!
  ;
- ;open session found
+ ;open sess found
  I ABMFD'=0 D
  .W !!,"YOU ARE SIGNING *OUT* FOR BILLING",!
  .D UFMSCK^ABMUMISS
@@ -74,7 +78,7 @@ EP ;EP
  ...W !?8,"the session ",ABMFD," will be sent to your manager for processing.",!
  ...W !?5,"Signing out of session ",ABMFD,!
  ...D CLOSESES^ABMUCUTL(ABMLOC,DUZ,ABMFD)
- .;view detail of session?
+ .;view detail?
  .W !
  .K DIR,X,Y
  .S DIR("A")="View detail"
@@ -89,11 +93,10 @@ EP ;EP
  ..S DIR(0)="Y"
  ..D ^DIR K DIR
  ..I Y=1 D ^ABMDRPR  ;do productivity report (PRRP)
- ;
  S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
  Q
-CASHTOT(ABMDUZ) ;EP - count claims/bills and amounts for session
- ;cancelled claims
+CASHTOT(ABMDUZ) ;EP - cnt claims/bills & amts for sess
+ ;cancelled clms
  K ABMCCLMS
  S ABMLOC=$$FINDLOC^ABMUCUTL
  S ABMTRIBL=$P($G(^ABMDPARM(ABMLOC,1,4)),U,14)
@@ -103,10 +106,10 @@ CASHTOT(ABMDUZ) ;EP - count claims/bills and amounts for session
  .S ABMCDFN=0
  .F  S ABMCDFN=$O(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,1,ABMCDFN)) Q:+ABMCDFN=0  D
  ..S ABMBAL(ABMBDAC,"CCLMS")=+$G(ABMBAL(ABMBDAC,"CCLMS"))+1
- ..S ABMCCLMS=+$G(ABMCCLMS)+1  ;session counter
- ..S ABMTCCLM=+$G(ABMTCCLM)+1  ;total cancelled claims (multiple sessions)
+ ..S ABMCCLMS=+$G(ABMCCLMS)+1  ;sess cntr
+ ..S ABMTCCLM=+$G(ABMTCCLM)+1  ;tot cancelled clms (mult. sess)
  ;
- ;approved bills
+ ;appr bills
  K ABMABILL,ABMABAMT
  K ABMEBILL,ABMEBAMT
  S ABMBA=0
@@ -114,22 +117,22 @@ CASHTOT(ABMDUZ) ;EP - count claims/bills and amounts for session
  .S ABMBDAC=$P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,0)),U)
  .S ABMCDFN=0
  .F  S ABMCDFN=$O(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,2,ABMCDFN)) Q:+ABMCDFN=0  D
- ..S ABMBAL(ABMBDAC,"ABILLS")=+$G(ABMBAL(ABMBDAC,"ABILLS"))+1  ;total approved bills by budget activity
- ..S ABMABILL=+$G(ABMABILL)+1  ;total approved bills
+ ..S ABMBAL(ABMBDAC,"ABILLS")=+$G(ABMBAL(ABMBDAC,"ABILLS"))+1  ;tot appr bills by B.A.
+ ..S ABMABILL=+$G(ABMABILL)+1  ;tot appr bills
  ..S ABMSBTOT=+$G(ABMSBTOT)+1
  ..S ABMDUZ2=$P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,2,ABMCDFN,0)),U,2)
  ..S ABMBDFN=$P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,2,ABMCDFN,0)),U,3)
  ..S ABMBAL(ABMBDAC,"ABAMT")=+$G(ABMBAL(ABMBDAC,"ABAMT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))
  ..S ABMSATOT=(+$G(ABMSATOT))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))
- ..S ABMABAMT=$G(ABMABAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;total approved bill amount
+ ..S ABMABAMT=$G(ABMABAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;tot appr bill amt
  ..;now check if bill is part of 3P UFMS Exclusion Table
  ..Q:$$BILL^ABMUEAPI(ABMDUZ2,$P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,2,ABMCDFN,0)),U,3))=1
  ..S ABMBAL(ABMBDAC,"EBILLS")=+$G(ABMBAL(ABMBDAC,"EBILLS"))+1
- ..S ABMEBILL=+$G(ABMEBILL)+1  ;session total
- ..S ABMTEBIL=+$G(ABMTEBIL)+1  ;total bills (multiple sessions)
+ ..S ABMEBILL=+$G(ABMEBILL)+1  ;session tot
+ ..S ABMTEBIL=+$G(ABMTEBIL)+1  ;tot bills (multiple sessions)
  ..S ABMBAL(ABMBDAC,"EBAMT")=+$G(ABMBAL(ABMBDAC,"EBAMT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))
- ..S ABMEBAMT=+$G(ABMEBAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;session total
- ..S ABMTEBAM=+$G(ABMTEBAM)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;total amount (multiple sessions)
+ ..S ABMEBAMT=+$G(ABMEBAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;sess tot
+ ..S ABMTEBAM=+$G(ABMTEBAM)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;tot amt (mult. sess)
  ;
  ;cancelled bills
  K ABMCBILL,ABMCBAMT
@@ -139,15 +142,15 @@ CASHTOT(ABMDUZ) ;EP - count claims/bills and amounts for session
  .S ABMCDFN=0
  .F  S ABMCDFN=$O(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,3,ABMCDFN)) Q:+ABMCDFN=0  D
  ..S ABMBAL(ABMBDAC,"CBILLS")=+$G(ABMBAL(ABMBDAC,"CBILLS"))+1
- ..S ABMCBILL=$G(ABMCBILL)+1  ;session total
- ..S ABMTCBIL=+$G(ABMTCBIL)+1  ;total bills (multiple sessions)
+ ..S ABMCBILL=$G(ABMCBILL)+1  ;session tot
+ ..S ABMTCBIL=+$G(ABMTCBIL)+1  ;tot bills (multiple sessions)
  ..S ABMDUZ2=$P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,3,ABMCDFN,0)),U,2)
  ..S ABMBDFN=$P($G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,3,ABMCDFN,0)),U,3)
  ..S ABMBAL(ABMBDAC,"CBAMT")=+$G(ABMBAL(ABMBDAC,"CBAMT"))+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))
- ..S ABMCBAMT=+$G(ABMCBAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;session total
- ..S ABMTCBAM=+$G(ABMTCBAM)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;total amount (multiple sessions)
+ ..S ABMCBAMT=+$G(ABMCBAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;session tot
+ ..S ABMTCBAM=+$G(ABMTCBAM)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))  ;tot amt (multiple sessions)
  ;
- ;count any requeued bills or batches (no detail)
+ ;cnt any requeued bills or batches (no detail)
  K ABMBLCNT,ABMBTCNT
  F ABMI=12,13 D
  .S ABMIEN=0
@@ -155,11 +158,11 @@ CASHTOT(ABMDUZ) ;EP - count claims/bills and amounts for session
  ..I ABMI=12 S ABMBLCNT=+$G(ABMBLCNT)+1
  ..I ABMI=13 S ABMBTCNT=+$G(ABMBTCNT)+1
  Q
-CASHTOTP ;EP - count POS claims
+CASHTOTP ;EP - cnt POS claims
  D CASHTOTP^ABMUUTL
  Q
 SEL ;EP
- ; Select device
+ ;Select device
  S %ZIS="NQ"
  S %ZIS("A")="Enter DEVICE: "
  D ^%ZIS Q:POP
@@ -167,7 +170,7 @@ SEL ;EP
  I $D(IO("S")) S IOP=ION D ^%ZIS
  ;
 PRINT ;EP
- ; Callable point for queuing
+ ;Callable point for queuing
  S ABME("PG")=0
  D HD
  D DETAIL
@@ -177,7 +180,7 @@ PRINT ;EP
  I $D(IO("S")) D ^%ZISC
  K ABME
  Q
-DETAIL ;EP - view detail of session
+DETAIL ;EP - view session detail
  ;
  I $G(ABMDUZ)="" S ABMDUZ=DUZ
  K ABMCCLMS,ABMBAOUT
@@ -193,7 +196,7 @@ DETAIL ;EP - view detail of session
  ....S ABMCREC=$G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,11,ABMBA,ABMLOOP,ABMCDFN,0))
  ....S ABMB(ABMBAOUT,ABMLOOP,ABMCDFN)=$P(ABMCREC,U)_"^"_$P(ABMCREC,U,2)_"^"_$P(ABMCREC,U,3)
  .;
- .;count any requeued bills or batches (no detail)
+ .;cnt any requeued bills or batches (no detail)
  .K ABMBLCNT,ABMBTCNT
  .F ABMI=12,13 D
  ..S ABMIEN=0
@@ -201,7 +204,7 @@ DETAIL ;EP - view detail of session
  ...S ABMCREC=$G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMFD,ABMI,ABMIEN,0))
  ...S:ABMI=12 ABMB(ABMI,ABMIEN)=$P(ABMCREC,U)_"^"_$P(ABMCREC,U,2)_"^"_$P(ABMCREC,U,3)
  ...S:ABMI=13 ABMB(ABMI,ABMIEN)=$P(ABMCREC,U)
- ;pos claims
+ ;pos clms
  I $G(ABMDUZ)="POS" S ABMDUZ=1 D
  .S ABMBA=0
  .F  S ABMBA=$O(^ABMUCASH(ABMLOC,20,ABMDUZ,20,ABMFD,11,ABMBA)) Q:+ABMBA=0  D
@@ -247,9 +250,9 @@ DTAILPRT ;
  ...S ABMBDFN=$P(ABMB(ABMBAOUT,ABMI,ABMBIEN),U,3)
  ...I ABMI'=1 D
  ....S ABME(21)=$P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U)
- ....S ABME(ABMBAOUT,"AMT")=$G(ABME(ABMBAOUT,"AMT"))+(ABME(21))  ;count bill amt
- ....S ABME("CNT")=+$G(ABME("CNT"))+1  ;count total bills
- ....S ABME("TOT")=+$G(ABME("TOT"))+(ABME(21))  ;count total bill amt
+ ....S ABME(ABMBAOUT,"AMT")=$G(ABME(ABMBAOUT,"AMT"))+(ABME(21))  ;cnt bill amt
+ ....S ABME("CNT")=+$G(ABME("CNT"))+1  ;cnt total bills
+ ....S ABME("TOT")=+$G(ABME("TOT"))+(ABME(21))  ;cnt tot bill amt
  ....S ABME(71)=$$SDT^ABMDUTL($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,7)),U))
  ....S ABME(1)=$P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,0)),U)
  ....S ABME(3)=$P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,0)),U,3)
@@ -264,12 +267,12 @@ DTAILPRT ;
  .....I +ABMP("XMIT")'=0 D
  ......S ABMXMIT=$O(^ABMDBILL(ABMDUZ2,ABMBDFN,69,"B",ABMP("XMIT"),0))
  ......I $P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,69,ABMXMIT,0)),U,3)=1 W "*"  ;excluded/tribal data
- .....I +ABMP("XMIT")=0 D  ;bill hasn't been transmitted yet
+ .....I +ABMP("XMIT")=0 D  ;bill not transmitted yet
  ......I $$BILL^ABMUEAPI(ABMDUZ2,ABMBDFN)=0 W "*"  ;excluded/tribal data
  ...I ABMI=1 D
- ....;S ABME(ABMBAOUT,"AMT")=$G(ABME(ABMBAOUT,"AMT"))+(ABME(21))  ;count bill amt
- ....S ABME("CNT")=+$G(ABME("CNT"))+1  ;count total bills
- ....;S ABME("TOT")=+$G(ABME("TOT"))+(ABME(21))  ;count total bill amt
+ ....;S ABME(ABMBAOUT,"AMT")=$G(ABME(ABMBAOUT,"AMT"))+(ABME(21))  ;cnt bill amt
+ ....S ABME("CNT")=+$G(ABME("CNT"))+1  ;cnt tot bills
+ ....;S ABME("TOT")=+$G(ABME("TOT"))+(ABME(21))  ;cnt tot bill amt
  ....S ABME(21)=$$SDT^ABMDUTL($P($G(^ABMCCLMS(ABMDUZ2,ABMBDFN,0)),U,2))
  ....S ABME(1)=ABMBDFN
  ....S ABME(3)=$P($G(^ABMCCLMS(ABMDUZ2,ABMBDFN,0)),U,3)
@@ -319,7 +322,6 @@ QUE ;QUE TO TASKMAN
  D ^%ZTLOAD
  W:$G(ZTSK) !,"Task # ",ZTSK," queued.",!
  Q
- ;
  ;
 H ;;HMO
 M ;;MEDICARE SUPPL.

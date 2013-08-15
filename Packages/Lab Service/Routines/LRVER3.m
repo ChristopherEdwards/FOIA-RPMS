@@ -1,6 +1,11 @@
-LRVER3 ;DALOI/CJS/FHS-DATA VERIFICATION ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**42,100,121,140,171,153,221,286,1027**;NOV 01, 1997
+LRVER3 ;DALOI/CJS/JAH - DATA VERIFICATION ;8/10/04
+ ;;5.2;LAB SERVICE;**1027,1031**;NOV 1, 1997
  ;
+ ;;VA LR Patch(s): 42,100,121,140,171,153,221,286,291
+ ;
+ ; NOTE: LR*5.2*1031 restores LR*5.2*1027 modifications
+ ;
+EP ; EP - LR*5.2*1031
  D V1
  I $D(LRLOCKER)#2 L -@(LRLOCKER) K LRLOCKER
  Q
@@ -80,13 +85,17 @@ NOVER I $O(LRNOVER(0)) D  G EXIT
 AGAIN ;
  R !,"Approve for release by entering your initials: ",LRINI:DTIME
  ; I $E(LRINI)="^" W !!?5,$C(7),"Nothing verified!" D READ G EXIT
+ ; 
  ;----- BEGIN IHS/OIT/MKK LR*5.2*1027
- I $E(LRINI)="^" W !!?5,$C(7),"*** Nothing verified! ***" H 2 W *7,! D READ G EXIT
+ I $E(LRINI)="^" W !!?5,$C(7),"*** Nothing verified! ***" W *7,!  H 2  D READ G EXIT
  ;----- END IHS/OIT/MKK LR*5.2*1027
+ ;
  I LRINI'=LRUSI,$$UP^XLFSTR(LRINI)=$$UP^XLFSTR(LRUSI) S LRINI=LRUSI
  I $S($E(LRINI)="?":1,LRINI'=LRUSI&(CNT<2):1,1:0) W !,$C(7),"Please enter your correct initials" S:$E(LRINI)="?" CNT=0 S CNT=CNT+1 G AGAIN
  I LRINI'=LRUSI W !!?5,$C(7),"Nothing verified!" D READ G EXIT
 V11 I $D(XRTL) D T0^%ZOSV ; START RESPONSE TIME LOGGING
+ I +LRDPF=2&($G(LRSS)'="BB")&('$$CHKINP^LRBEBA4(LRDFN,LRODT)) D
+ .D BAWRK^LRBEBA(LRODT,LRSN,1,.LRBEY,.LRTEST)
  D VER^LRVER3A
  I $P(LRPARAM,U,14),$P($G(^LRO(68,LRAA,0)),U,16) D LOOK^LRCAPV1
  N LRX

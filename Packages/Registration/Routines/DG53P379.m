@@ -1,5 +1,5 @@
 DG53P379 ;ALB/RPM,RBS - Patch DG*5.3*379 Install Utility Routine ; 2/4/02 12:38pm
- ;;5.3;Registration;**379**;Aug 13, 1993
+ ;;5.3;Registration;**379,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will provide the following:
  ; 1. The MST HISTORY file (#29.11) will have a new field added.

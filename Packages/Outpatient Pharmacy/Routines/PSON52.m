@@ -1,5 +1,5 @@
-PSON52 ;IHS/DSD/JCM-files new entries in prescription file ;13-Feb-2012 13:45;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013**;DEC 1997;Build 33
+PSON52 ;IHS/DSD/JCM-files new entries in prescription file ;22-May-2012 14:54;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013,1014**;DEC 1997;Build 5
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
  ; Modified - IHS/CIA/PLS - 12/30/03 - Starting at line DD+37
@@ -8,6 +8,7 @@ PSON52 ;IHS/DSD/JCM-files new entries in prescription file ;13-Feb-2012 13:45;PL
  ;                          04/15/11 - Added PRV* and DEA* fields
  ;                          09/27/11 - Added APSPPRIO references
  ;                          10/13/11 - Line INIT+5,INIT+9
+ ;                          05/22/12 - Line DT+2
 EN(PSOX) ;Entry Point
 START ;
  D:$D(XRTL) T0^%ZOSV ; Start RT Monitor
@@ -33,7 +34,9 @@ INIT ;
  ;. N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
  ;. S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
 DT ;IHS/MSC/PLS - 02/13/2012
- S X2=$S(+$G(PSODIR("CS")):184,1:366)
+ ;S X2=$S(+$G(PSODIR("CS")):184,1:366)
+ ;IHS/MSC/PLS - 05/22/2012
+ S X2=$S(+PSOX("CS"):184,1:366)
  ;IHS/MSC/PLS - 04/21/2011 - Added next three lines
  N EXTEXP
  S EXTEXP=$$GET1^DIQ(50,PSODRUG("IEN"),9999999.08)

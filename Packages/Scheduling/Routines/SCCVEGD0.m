@@ -1,5 +1,5 @@
 SCCVEGD0 ;ALB/JRP,TMP - DSPLY RSLTS 4 ENCNTR CNVRSN GLBL ESTMTR;18-JAN-96
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
 MAILSUM(PTRLOG,RESULT) ;MAIL SUMMARY OF GLOBAL ESTIMATES
  ;INPUT  : PTRLOG - Pointer to entry in SCHEDULING CONVERSION LOG
  ;                  file (#404.98) that display is built for

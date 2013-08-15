@@ -1,5 +1,5 @@
 DGPTAPP1 ;MTC/ALB - PTF Purge/Archive - Purge Continued ; 21 DEC 1992
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;
 PURGE(TMP) ;-- Purge entry point. This function will loop thru the

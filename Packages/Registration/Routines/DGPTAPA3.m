@@ -1,5 +1,5 @@
 DGPTAPA3 ;ALB/MTC - PTF A/P ARCHIVE UTILITY CONT. ; 10-19-92
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 AR501 ;-- this function will load the 501 information
  N X,Y,I,J,K,OSEQ,SEQ

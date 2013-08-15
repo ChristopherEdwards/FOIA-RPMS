@@ -1,6 +1,6 @@
-TIURE ; SLC/JER - Error handler actions ;01-Aug-2011 12:06;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,81,131,113,1009**;Jun 20, 1997;Build 22
- ;IHS/ITSC/LJF 02/27/2003 added ability to delete garbage upload entries
+TIURE ; SLC/JER - Error handler actions ;04-Jun-2012 16:27;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,81,131,113,1009,184,1010**;Jun 20, 1997;Build 24
+ ;ITSC/LJF 02/27/2003 added ability to delete garbage upload entries
 PRINT ; Print Buffer record associated w/unresolved filing error
  N TIUDA,TIUDATA,TIUI,DIROUT
  I '$D(VALMY) D EN^VALM2(XQORNOD(0))
@@ -52,7 +52,7 @@ EDIT1 ; Single record edit
  Q
 FILERR(ERRDA) ; Resolve filing errors
  N TIUI,INQUIRE,BUFDA,TIUTYPE,RESCODE,TIUDONE
- N TIUEVNT,TIUSKIP,ERR0,STATUS
+ N TIUEVNT,TIUSKIP,ERR0,STATUS,PRFILERR
  ; Set TIUEVNT for PN resolve code:
  S TIUEVNT=+ERRDA
  S TIUI=0,ERR0=$G(^TIU(8925.4,TIUEVNT,0)),STATUS=$P(ERR0,U,6)
@@ -74,6 +74,7 @@ FILERR(ERRDA) ; Resolve filing errors
  S DIC="^TIU(8925.2,"_+BUFDA_",""TEXT"",",DWPK=1 D EN^DIWE
  S RETRY=$$READ^TIUU("YO","Now would you like to retry the filer","YES","^D FIL^TIUDIRH")
  I +RETRY D
+ . S PRFILERR=1 ; Tell Patient Record Flag lookup to get flag link
  . D ALERTDEL^TIUPEVNT(+BUFDA),RESOLVE^TIUPEVNT(TIUEVNT)
  . K TIUDONE
  . D FILE^TIUUPLD(+BUFDA)
@@ -103,7 +104,7 @@ FLDERR(EVNTDA) ; Resolve field errors
  . D ^DIE
  . ; P81 If missing field was just corrected, delete alert for that field:
  . S TIUFIX=$$FIXED^TIUPEVN1(DIE,+DA,+DR) ; TIU*1*81 moved from TIUPEVNT
- . I +TIUFIX=1 S XQAKILL=0,XQAID="TIUERR,"_+EVNTDA_","_+EVNTDA1 D DELETEA^XQALERT
+ . I +TIUFIX=1 N XQAKILL,XQAID S XQAKILL=0,XQAID="TIUERR,"_+EVNTDA_","_+EVNTDA1 D DELETEA^XQALERT
  . ; If entry is a TIU Document, do Post-filing action and SEND^TIUALRT
  . I DIE="^TIU(8925," D
  . . N TIUPOST,TIUREC,DR,DIE

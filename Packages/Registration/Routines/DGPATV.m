@@ -1,5 +1,5 @@
 DGPATV ;ALB/MRL-PATIENT VARIABLES ;22 MAY 87
- ;;5.3;Registration;**149**;Aug 13, 1993
+ ;;5.3;Registration;**149,1015**;Aug 13, 1993;Build 21
  Q:'$D(DFN)  S DGNODE=$S($D(^DPT(DFN,0)):^(0),1:""),DGNAME=$S($P(DGNODE,"^",1)]"":$P(DGNODE,"^",1),1:"UNSPECIFIED #"_DFN),DOB=$S($P(DGNODE,"^",3)?7N:$P(DGNODE,"^",3),1:"DOB UNSPECIFIED")
  I DOB]"" S Y=DOB X ^DD("DD") S DOB=DOB_"^"_Y
  S SSN=$S($P(DGNODE,"^",9)]"":$P(DGNODE,"^",9),1:"UNSPECIFIED") I $E(SSN,1,9)?9N S SSN=SSN_"^"_$E(SSN,1,3)_"-"_$E(SSN,4,5)_"-"_$E(SSN,6,10)

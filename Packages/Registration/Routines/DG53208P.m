@@ -1,5 +1,5 @@
 DG53208P ;ALB/JDS - PATCH 208 POST INIT ; 11 NOV 1998
- ;;5.3;Registration;**208**;Aug 13, 1993
+ ;;5.3;Registration;**208,1015**;Aug 13, 1993;Build 21
  ;
  N DGI S DGI=$$NEWCP^XPDUTL("DGASIH","POST^DG53208P","")
  Q

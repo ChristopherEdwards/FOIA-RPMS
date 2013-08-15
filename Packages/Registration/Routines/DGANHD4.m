@@ -1,5 +1,5 @@
 DGANHD4 ;ALB/RMO - Print NHCU and DOM AMIS's 345-346 ; 01 SEP 90 10:47 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;==============================================================
  ;Print NHCU and DOM AMIS segment fields for each division.
  ;

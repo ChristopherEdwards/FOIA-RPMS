@@ -1,5 +1,5 @@
 DGVPT2 ;ALB/MRL - DG POST-INIT (CHECK FOR UNPROTECTED PIMS FILES); 01 OCT 88
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  W !!,">>> Checking to see if any PIMS files are unprotected...",!
  S (F,F1)=0 F I=0:0 S F=$O(^DIC(9.4,"C","DG",F)) Q:F=""  I $D(^DIC(9.4,F,0)),$P(^(0),"^",1)="REGISTRATION" S F1=F Q
  I F1 S F=0 F I=0:0 S F=$O(^DIC(9.4,F1,4,F)) Q:F=""  I $D(^(F,0)) S X=+^(0) D CHK

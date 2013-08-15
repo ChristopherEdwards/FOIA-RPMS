@@ -1,14 +1,20 @@
-LRAPRES ;DALOI/WTY/KLL- AP ESIG RELEASE REPORT;10/30/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259,295,317**;Sep 27, 1994
+LRAPRES ;VA/DALOI/CKA - AP ESIG RELEASE REPORT;10/30/01
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 259,295,317,315
  ;
  ;Reference to NEW^TIUPNAPI supported by IA #1911
+ ;Reference to SETPARM^TIULE supported by IA #2863
+ ;Reference to 8925.1 supported by IA #5033
+ ;Reference to TGET^TIUSRVR1 supported by IA #2944
+ ;Reference to $$DDEFIEN^TIUFLF7 supported by IA #5352
+ ;Reference to EXTRACT^TIULQ supported by IA #2693
 MAIN ;
  N LRMSG,LRDEM,LREND,LRQUIT,LRNTIME,LRPRCLSS,LRVCDE,LRMTCH
  N LRPCEXP,LRESCPT,LRPCSTR
  S LRESCPT=0
  D TITLE
- I LRQUIT D END Q
+ I LRQUIT D END^LRAPRES2 Q
  D CPTCHK
  F  D  Q:LRQUIT
  .S LRQUIT=0
@@ -22,7 +28,7 @@ MAIN ;
  .D ACCYR
  .Q:LRQUIT
  .D ACCPN
- D END
+ D END^LRAPRES2
  Q
 ACCPN ;Prompt for accesion number or patient name
  F  D  Q:LREND
@@ -47,7 +53,8 @@ ACCPN ;Prompt for accesion number or patient name
  ..D:'LRZ(2) MAIN^LRAPRES1(LRDFN,LRSS,LRI,LRSF,LRP,LRAC)
  ..D OERR^LR7OB63D
  .I LRSEL="C" D
- ..Q:$T(CPT^LRCAPES)=""
+ ..; Q:$T(CPT^LRCAPES)=""
+ .. Q:'$$PATCH^BLRUTIL4("PX*1.0*119")                 ; IHS/MSC/MKK - LR*5.2*1031
  ..S LRPRO=DUZ
  ..D PROVIDR^LRAPUTL
  ..Q:LRQUIT
@@ -69,7 +76,7 @@ TITLE ;Title
  Q
 CPTCHK ;Determine if CPT is activated
  Q:$T(ES^LRCAPES)=""
- S LRESCPT=$$ES^LRCAPES()
+ I $$PATCH^BLRUTIL4("PX*1.0*119") S LRESCPT=$$ES^LRCAPES()       ; IHS/MSC/MKK - LR*5.2*1031
  Q
 DEMARR ;
  I LRAU D
@@ -219,11 +226,13 @@ RELEASE ;
  I 'LRAU D
  .S LRRC=$$GET1^DIQ(LRSF,LRIENS,.1,"I")
  .I LRCAPA,'LRAU D C^LRAPSWK
+ .;Store REPORT RELEASE DATE/TIME and RELEASED BY
  .S DR=".11////^S X=LRNTIME;.13////^S X=DUZ"
  .S DIE="^LR(LRDFN,LRSS,",DA=LRI,DA(1)=LRDFN
  .;KLL-Set LRA for xref call to LRWOMEN
  .S LRA=^LR(LRDFN,LRSS,LRI,0)
  I LRAU D
+ .;Store AUTOPSY RELEASE DATE/TIME and AUTOPSY RELEASED BY
  .S DR="14.7////^S X=$S(LRZ(2):""@"",1:LRNTIME);"
  .S DR=DR_"14.8////^S X=$S(LRZ(2):""@"",1:DUZ);"
  .S DIE="^LR(",DA=LRDFN
@@ -231,26 +240,53 @@ RELEASE ;
  Q:$D(LR("CK"))
  D ^DIE
  ; D UPDATE^LRPXRM(LRDFN,$G(LRSS,"AU"),$G(LRI))  ; IHS/OIT/MKK - LR*5.2*1030 - RPMS Does NOT use Clinical Reminders
+ I $$PATCH^BLRUTIL4("PXRM*1.5*12") D UPDATE^LRPXRM(LRDFN,$G(LRSS,"AU"),$G(LRI))  ; IHS/MSC/MKK - LR*5.2*1031
  D FRE^LRU
  S LRMSG="*** Report "
  I LRZ(2),LRAU S LRMSG=LRMSG_"un"
  S LRMSG=LRMSG_"released. ***"
  D EN^DDIOL($$CJ^XLFSTR(LRMSG,IOM),"","!!") K MSG
- I "CYSP"[LRSS,LRCAPA D WKLD Q
+ I "CYSP"[LRSS,LRCAPA D WKLD^LRAPRES2 Q
  ;I LRCAPA,"SPCYEM"[LRSS,LRD(1)'="","MBA"[LRD(1) D C1^LRAPSWK
  Q
 STORE ;Store report in TIU
- N LRTITLE,LRIENS,LRFILE,LRFDA,LRTIUPTR
- ;Display informational message if referral patient
+ N LRTITLE,LRIENS,LRFILE,LRFDA,LRTIUPTR,LRMSG
  I LRDPF=62.3!(LRDPF[67) D REFRRL^LRAPUTL  Q
- ;KLL-EDIT ADDED FOR MULTIDIVISIONAL LABS,TRANSLATE LRSS TO CORRECT
- ;    NAME TO ENSURE SUCCESSFUL MATCH IN TIU(8925.1)
  S:LRSS="SP" LRO68="SURGICAL PATHOLOGY"
  S:LRSS="CY" LRO68="CYTOPATHOLOGY"
  S:LRSS="EM" LRO68="ELECTRON MICROSCOPY"
  S:LRSS="AU" LRO68="AUTOPSY"
- S LRTITLE=$$FIND1^DIC(8925.1,,"O","LR "_LRO68_" REPORT")
- D NEW^TIUPNAPI(.LRTIUPTR,DFN,DUZ,LRNTIME,LRTITLE,,,,DUZ)
+ D SETPARM^TIULE
+ S LRTITLE=$$DDEFIEN^TIUFLF7("LR "_LRO68_" REPORT","TL")
+ I 'LRTITLE D
+ .W $C(7)
+ .S LRMSG="No TIU title for this lab report.  Cannot release."
+ .D EN^DDIOL(LRMSG,"","!!") K LRMSG
+ .S LRQUIT=1
+ Q:LRQUIT
+ ; Set parameter to 1 for e-sig verification in TIU; if e-sig fails,
+ ;      TIU will abort creation of doc in ^TIU(8925, and return
+ ;      an error, tiufn=-1,-1.
+ D NEW^TIUPNAPI(.LRTIUPTR,DFN,DUZ,LRNTIME,LRTITLE,,,,DUZ,,1)
+ I LRTIUPTR="-1^-1" D  Q
+ .S LRMSG(1)="     *** Signature in TIU failed. ***"
+ .S LRMSG(2,"F")="!!!"
+ .S LRMSG(2)="Possible causes:"
+ .S LRMSG(3,"F")="!!"
+ .S LRMSG(3)="1. Report contains 3 sequential characters matching those defined"
+ .S LRMSG(4)="in the BLANK CHARACTER STRING field (#1.06), TIU PARAMETERS file (#8925.99)"
+ .S LRMSG(5)="which are "_$P(TIUPRM1,U,6)_"."
+ .S LRMSG(6,"F")="!!"
+ .S LRMSG(6)="To correct this situation use a data entry option to remove"
+ .S LRMSG(7)="these characters from this report."
+ .S LRMSG(8,"F")="!!"
+ .S LRMSG(8)="2.  There is some other TIU document setup problem."
+ .S LRMSG(9,"F")="!!"
+ .S LRMSG(9)="Report this situation to the Laboratory ADP Coordinator."
+ .S LRMSG(10)="     *** Report storage in TIU failed. ***"
+ .S LRMSG(10,"F")="!!!"
+ .D EN^DDIOL(.LRMSG,"","!!")
+ .S LRQUIT=1
  I +LRTIUPTR=-1 D  Q
  .S LRMSG="*** Report storage in TIU failed. ***"
  .S LRMSG=$$CJ^XLFSTR(LRMSG,IOM)
@@ -259,9 +295,11 @@ STORE ;Store report in TIU
  S LRMSG="*** Report storage in TIU is complete. ***"
  S LRMSG=$$CJ^XLFSTR(LRMSG,IOM)
  D EN^DDIOL(LRMSG,"","!!")
- ;KLL-Calculate checksum of TIU report text 
- S LRVAL="^TIU(8925,"_+LRTIUPTR_",""TEXT"")"
- S LRCHKSUM=$$CHKSUM^XUSESIG1(LRVAL)
+ ;CKA-Calculate checksum of TIU report text
+ D EXTRACT^TIULQ(+LRTIUPTR,"LRTIU",,,,1,,1)
+ S $P(LRTIU(+LRTIUPTR,"TEXT",0),U,5)=$P(LRTIU(+LRTIUPTR,1201,"I"),".")
+ S LRCHKSUM=$$CHKSUM^XUSESIG1("LRTIU("_+LRTIUPTR_",""TEXT"")")
+ K LRTIU
  ;Store pointer & checksum information in the LAB DATA (#63) file
  S LRIENS="+1,"_$S('LRAU:LRI_",",1:"")_LRDFN_","
  S LRFILE=$S(LRSS="SP":63.19,LRSS="CY":63.47,LRSS="EM":63.49,1:"")
@@ -271,39 +309,4 @@ STORE ;Store report in TIU
  S LRFDA(1,LRFILE,LRIENS,2)=LRCHKSUM
  D UPDATE^DIE("","LRFDA(1)")
  D RETRACT^LRAPRES1(LRDFN,LRSS,LRI,+LRTIUPTR)
- Q
-WKLD ;Capture workload
- K LRFDA,ERR,IENS,OROUT,ORIEN
- S LRK=$P(^LR(LRDFN,LRSS,LRI,0),"^",11) Q:'LRK
- Q:$D(^LRO(68,LRAA,1,LRAD,1,LRAN,4,LRT,0))
- S RNUM=1
- S IENS="+"_RNUM_","_LRAN_","_LRAD_","_LRAA_","
- S FILE=68.04,ORIEN(1)=LRT
- S LRFDA(1,FILE,IENS,.01)=LRT
- S LRFDA(1,FILE,IENS,1)=50
- S LRFDA(1,FILE,IENS,3)=DUZ
- S LRFDA(1,FILE,IENS,4)=LRK
- S FILE1=68.14
- S C=0 F  S C=$O(LRT(C)) Q:'C  D
- .S RNUM=RNUM+1
- .S ORIEN(RNUM)=C
- .S IENS1="+"_RNUM_","_IENS
- .S LRFDA(1,FILE1,IENS1,.01)=C
- .S LRFDA(1,FILE1,IENS1,.02)=1
- .S LRFDA(1,FILE1,IENS1,.03)=0
- .S LRFDA(1,FILE1,IENS1,.04)=0
- .S LRFDA(1,FILE1,IENS1,1)=LRK
- .S LRFDA(1,FILE1,IENS1,2)=DUZ
- .S LRFDA(1,FILE1,IENS1,3)=DUZ(2)
- .S LRFDA(1,FILE1,IENS1,4)=LRAA
- .S LRFDA(1,FILE1,IENS1,5)=LRAA
- .S LRFDA(1,FILE1,IENS1,6)=LRAA
- D UPDATE^DIE("","LRFDA(1)","ORIEN","OROUT")
- Q
-END ;Clean-up variables and quit
- K LRAD1,LRDATA,LRAU,LRRDTE,LRTEXT,LRSEL,LRFILE,LRIENS,LRIENS1
- K LRFDA,ERR,IENS,OROUT,ORIEN,LRTMP
- K ^TMP("LRAPBR",$J),^TMP("TIUP",$J)
- D:$T(CLEAN^LRCAPES)'="" CLEAN^LRCAPES
- D V^LRU
  Q

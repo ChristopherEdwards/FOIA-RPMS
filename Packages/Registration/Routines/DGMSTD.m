@@ -1,5 +1,5 @@
 DGMSTD ; ALB/SCK - MST Status Display LM Interface ; 17-DEC-1998
- ;;5.3;Registration;**195,379**;Aug 13, 1993
+ ;;5.3;Registration;**195,379,1015**;Aug 13, 1993;Build 21
  Q
  ;
 EN ; -- main entry point for DGMST STATUS DISPLAY

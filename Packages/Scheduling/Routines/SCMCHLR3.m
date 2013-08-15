@@ -1,5 +1,5 @@
 SCMCHLR3 ;ALB/KCL - PCMM HL7 Reject Processing - Build List Area con't; 10-JAN-2000
- ;;5.3;Scheduling;**210,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,272,505,1015**;AUG 13, 1993;Build 21
  ;
 BLDLIST(SCSORTBY,SCEPS,SCCNT) ; Description: Build list area for for PCMM Transmission errors.
  ;
@@ -8,13 +8,13 @@ BLDLIST(SCSORTBY,SCEPS,SCCNT) ; Description: Build list area for for PCMM Transm
  ;               N -> Patient Name
  ;               D -> Date/Time Ack Received
  ;               P -> Provider
+ ;               I -> Institution
  ;      SCEPS -  Error processing status
  ;
  ; Output:
  ;  SCCNT - Number of lines in the list
  ;
  N DFN,SCSUB,SCTEXT,SCTLIEN,SCERIEN,SCTLOG,SCHL
- N SCPROV,SCTYPE,SCLINE,SCNUM,SCCOL,SCWID
  ;
  ;Init line counter and selection number
  S (SCLINE,SCNUM)=0
@@ -22,8 +22,8 @@ BLDLIST(SCSORTBY,SCEPS,SCCNT) ; Description: Build list area for for PCMM Transm
  ;Quit if unable to determine col/width for caption flds in List Template
  Q:'$$CAPFLD(.SCCOL,.SCWID)
  ;
- ;Loop thru sort array by pat name, OR date ack rec'd, OR provider
- S SCSUB=$S(SCSORTBY="N":"",SCSORTBY="P":"",1:0)
+ ;Loop thru sort array by pat name, OR date ack rec'd, OR provider, OR Institution
+ S SCSUB=$S(SCSORTBY="N":"",SCSORTBY="P":"",SCSORTBY="I":"",1:0)
  F  S SCSUB=$O(^TMP("SCERRSRT",$J,SCSORTBY,SCSUB)) Q:SCSUB=""  D
  .;loop through PCMM HL7 Transmission Log ien(s)
  .S SCTLIEN=0
@@ -85,6 +85,11 @@ BLDLIST(SCSORTBY,SCEPS,SCCNT) ; Description: Build list area for for PCMM Transm
  ....S SCTEXT=$$LOWER^VALM1($S($G(SCTLOG("ERR","EPS")):$$EXTERNAL^DILFD(404.47142,.06,,SCTLOG("ERR","EPS")),1:"UNKNOWN"))
  ....D SET(SCARY,SCLINE,SCTEXT,SCCOL("STA"),SCWID("STA"),SCNUM,,,,.SCCNT)
  ....;
+ ....;set INSTITUTION in display array
+ ....I SCSORTBY="I" D
+ .....;numeric version of institution SD*5.3*505
+ .....S SCTEXT=$G(SCSUB)
+ .....D SET(SCARY,SCLINE,SCTEXT,SCCOL("INST"),SCWID("INST"),SCNUM,,,,.SCCNT)
  ....;increment line counter
  ....S SCLINE=SCLINE+1
  ....;
@@ -152,4 +157,5 @@ CAPFLD(SCCOL,SCWID) ; Description: Used to determine column/width of caption fie
  S X=VALMDDF("PROV"),SCCOL("PROV")=$P(X,"^",2),SCWID("PROV")=$P(X,"^",3)
  S X=VALMDDF("TYPE"),SCCOL("TYPE")=$P(X,"^",2),SCWID("TYPE")=$P(X,"^",3)
  S X=VALMDDF("STATUS"),SCCOL("STA")=$P(X,"^",2),SCWID("STA")=$P(X,"^",3)
+ S X=VALMDDF("INST"),SCCOL("INST")=$P(X,"^",2),SCWID("INST")=$P(X,"^",3)
  Q 1

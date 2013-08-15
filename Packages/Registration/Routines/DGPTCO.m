@@ -1,5 +1,5 @@
 DGPTCO ;ALB/MJK - Census Output Options; 15 APR 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  D DT^DICRW S X="DGPTCO",DIK="^DOPT("""_X_""","
  G A:$D(^DOPT(X,7))

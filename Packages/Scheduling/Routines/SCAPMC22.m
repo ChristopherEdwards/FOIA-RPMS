@@ -1,5 +1,5 @@
 SCAPMC22 ;ALB/REW - Team API's ; December 1, 1995
- ;;5.3;Scheduling;**41,148**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,148,1015**;AUG 13, 1993;Build 21
  ;;1.0
 INPTTP(DFN,SCPTTPA,SCINACT,SCERR) ;inactivate patient from a position (pt tm pos assgn - #404.43
  ; input:

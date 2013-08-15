@@ -1,5 +1,5 @@
 DGPTTS0 ;ALB/MTC - UPDATE FACILITY TREATING SPECIALTY/501 MOVEMENTS IN PTF ; 1/30/90 @12
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EV ;entry point from event driver
  I '$D(^UTILITY("DGPM",$J,6)),'$D(^(3)) Q

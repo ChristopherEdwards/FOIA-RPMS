@@ -1,5 +1,5 @@
 TIULO ; SLC/JER - Embedded Objects ;11/29/02
- ;;1.0;TEXT INTEGRATION UTILITIES;**34,70,101,148**;Jun 20, 1997
+ ;;1.0;TEXT INTEGRATION UTILITIES;**34,70,101,148,204**;Jun 20, 1997
 DEM(DFN,VADM) ; Calls DEM^VADPT
  D DEM^VADPT
  Q
@@ -70,12 +70,15 @@ DOVITALS(DFN,TIUVITC) ; INTERNAL ROUTINE TO GET SPECIFIED VITALS (**34**)
  . . . S VDT=$$DATE^TIULS($P(TIUVTEMP,U,1),"MM/DD/CCYY HR:MIN")
  . . . S TIUY=$P(TIUVTEMP,U,8)
  . . . I TIUVITC="WT" D
+ . . . . Q:+TIUY'>0
  . . . . S CONV=$J((+TIUY/2.2),3,1)
  . . . . S TIUY=TIUY_" lb ["_CONV_" kg]"
  . . . I TIUVITC="HT" D
+ . . . . Q:+TIUY'>0
  . . . . S CONV=$J((+TIUY*2.54),3,1)
  . . . . S TIUY=TIUY_" in ["_CONV_" cm]"
  . . . I TIUVITC="T" D
+ . . . . Q:+TIUY'>0
  . . . . S CONV=+TIUY-32
  . . . . S CONV=$J((CONV*(5/9)),3,1)
  . . . . S TIUY=TIUY_" F ["_CONV_" C]"

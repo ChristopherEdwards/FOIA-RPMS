@@ -1,5 +1,5 @@
 VAFHPIVT ;ALB/CM PIVOT FILE UTILITY FUNCTIONS ;5/5/95
- ;;5.3;Registration;**91,179**;Jun 06, 1996
+ ;;5.3;Registration;**91,179,575,1015**;Jun 06, 1996;Build 21
  ;
 PIVNW(DFN,EVDT,EVTY,PTR) ;
  ;function will return 0 node of pivot file and pivot file entry number
@@ -41,7 +41,8 @@ PIVNW(DFN,EVDT,EVTY,PTR) ;
  I '$D(ERR) D
  .L +^VAT(391.71,DA,0):5 I '$T S ERR="-1^Unable to lock Pivot file entry" Q
  .S TNODE=$G(^VAT(391.71,DA,0))
- .S ^VAT(391.71,DA,0)=EVDT_"^"_PIVOT_"^"_DFN_"^"_EVTY_"^"_PTR_"^^^^"_$G(DUZ)
+ .I '$D(DGUSER) S DGUSER=DUZ
+ .S ^VAT(391.71,DA,0)=EVDT_"^"_PIVOT_"^"_DFN_"^"_EVTY_"^"_PTR_"^^^^"_$G(DGUSER)
  .S NNODE=$G(^VAT(391.71,DA,0))
  .;set cross references for all fields .01,.02,.03,.04,.05
  .S FIELDS=".01,.02,.03,.04,.05",FCNT=0

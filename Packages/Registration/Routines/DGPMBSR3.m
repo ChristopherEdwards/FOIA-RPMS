@@ -1,5 +1,5 @@
 DGPMBSR3 ;ALB/LM - STORE NEW CENSUS NODES; 16 JAN 91
- ;;5.3;Registration;**34**;Aug 13, 1993
+ ;;5.3;Registration;**34,1015**;Aug 13, 1993;Build 21
  ;
  ;  Storing in the Census File and accumulating data in ^Utility
 A D Q

@@ -1,5 +1,5 @@
 SD53P234 ;ALB/RBS - Patch SD*5.3*234 Install Utility Routine ; 3/12/01 1:03pm
- ;;5.3;Scheduling;**234**;AUG 13, 1993
+ ;;5.3;Scheduling;**234,1015**;AUG 13, 1993;Build 21
  ;
  ; * Note:  Patch SD*5.3*212 - Baseline Seeding must have been Run *
  ;
@@ -163,7 +163,7 @@ MSG(SCTOT,SCTOTAL,SCXERR) ; send e-mail to user's
  S SCX=$G(^XTMP("SD53P234",0)),SCSTIME=$P(SCX,U,3)   ;start date/time
  S SCETIME=$$NOW^XLFDT(),$P(SCX,U,4)=SCETIME      ;end date/time
  S XMDUZ=.5,XMY(XMDUZ)="",XMY(DUZ)="",XMTEXT="SCTEXT("
- S XMY("G.PCMM TESTING@DOMAIN.NAME")=""  ;e-mail all sites totals to
+ S XMY("G.PCMM TESTING@FORUM.VA.GOV")=""  ;e-mail all sites totals to
  S XMSUB="Patch SD*5.3*234 PCMM DATA NOT LOADED TO NPCD ("_$P(SCXSITE,U,3)_")"
  ;
  S SCTEXT(1)=""

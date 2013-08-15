@@ -1,5 +1,5 @@
 SCRPV1B ; bp/djb - PCMM Inconsistency Rpt - Print ; 9/13/99 3:23pm
- ;;5.3;Scheduling;**177,231**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,231,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/02/2000 changed SSN to HRCN
  ;
 EN ;
@@ -139,7 +139,6 @@ PATIENT2 ;Patient printout sorted by inconsistency number and then team name.
  .... S POS=0
  .... F  S POS=$O(^TMP("PCMM PATIENT1",$J,NUM,TM,DFNNAM,DFN,POS)) Q:'POS!QUIT  D  ;
  ..... S SSN=$P($G(^DPT(DFN,0)),U,9)
- ..... S SSN=$$HRCN^BDGF2(DFN,+$G(DUZ(2)))  ;IHS/ANMC/LJF 11/2/2000
  ..... I $Y>(IOSL-6) D PAUSE Q:QUIT
  ..... W !?6,DFNNAM,?38,SSN,?50,POS
  ;

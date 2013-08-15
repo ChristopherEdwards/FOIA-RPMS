@@ -1,5 +1,5 @@
 USRLA ; SLC/JER,MA - Authorization Library functions ;6/29/01  11:19
- ;;1.0;AUTHORIZATION/SUBSCRIPTION;**15,20**;Jun 20, 1997
+ ;;1.0;AUTHORIZATION/SUBSCRIPTION;**15,20,29**;Jun 20, 1997;Build 7
 CANDO(DOCTYPE,STATUS,EVENT,USER,USRROLE) ; Evaluate Authorization
  ; 18 JUNE 2001 MA added a change to check for "OR" logic
  ; when checking roles.
@@ -49,10 +49,14 @@ CANDO(DOCTYPE,STATUS,EVENT,USER,USRROLE) ; Evaluate Authorization
  . . ; Check for only a role needed
  . . I '+USRY,'+$P($G(^USR(8930.1,+USRR,0)),U,4) S USRY=1
  . . ; Check for an "OR" condition
- . . I '+USRY,$P($G(^USR(8930.1,+USRR,0)),U,5)="!" D
+ . . ;I '+USRY,$P($G(^USR(8930.1,+USRR,0)),U,5)="!" D
+ . . I '+USRY,$P($G(^USR(8930.1,+USRR,0)),U,5)'="&" D
  . . . N USRCLS
  . . . S USRCLS=+$P($G(^USR(8930.1,+USRR,0)),U,4)
  . . . I +$$ISA^USRLM(+$G(USER),+USRCLS)!USRROLE=+$P($G(^USR(8930.1,+USRR,0)),U,6) S USRY=1
+ ;
+ I +USRY'>0,+$G(USRROLE)'>0,$D(^USR(8930.1,"AR",DOCTYPE,STATUS,EVENT)) S USRFALSE=1
+ ;
  ; To allow heritability of authorization, if the user is not
  ; authorized to perform the specified action on the specific
  ; document in its current state, AND if no explicit rule for

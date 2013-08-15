@@ -1,5 +1,5 @@
 SCRPI01A ;ALB/SCK - IEMM REPORT OF INCOMPLETE ENCOUNTERS PRINT ; 6/24/97
- ;;5.3;Scheduling;**66**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,1015**;AUG 13, 1993;Build 21
  Q
 PRINT ; Begin printing report
  ;   Variables

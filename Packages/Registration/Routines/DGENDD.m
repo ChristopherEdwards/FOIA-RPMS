@@ -1,5 +1,5 @@
-DGENDD ;ALB/CJM,JAN,LBD - Enrollment Data Dictionary Functions; 13 JUN 1997;6-28-01
- ;;5.3;Registration;**121,351,503**;Aug 13,1993
+DGENDD ;ALB/CJM,JAN,LBD,AMA,ERC - Enrollment Data Dictionary Functions; 13 JUN 1997;6-28-01 ; 5/8/07 11:28am
+ ;;5.3;PIMS;**121,351,503,733,1015,1016**;JUN 30, 2012;Build 20
  ;
 SET1(DFN,DGENRIEN) ;
  ;Description: sets the "AENRC" X-ref on the patient file
@@ -41,7 +41,7 @@ SET2(DGENRIEN,STATUS) ;
  S DFN=$P($G(^DGEN(27.11,DGENRIEN,0)),"^",2)
  Q:'DFN
  I $$FINDCUR^DGENA(DFN)=DGENRIEN D
- .S ^DPT("AENRC",STATUS,DFN)=""
+ . S ^DPT("AENRC",STATUS,DFN)=""
  ;
  Q
  ;
@@ -58,7 +58,7 @@ KILL2(DGENRIEN,STATUS) ;
  S DFN=$P($G(^DGEN(27.11,DGENRIEN,0)),"^",2)
  Q:'DFN
  I $$FINDCUR^DGENA(DFN)=DGENRIEN D
- .K ^DPT("AENRC",STATUS,DFN)
+ . K ^DPT("AENRC",STATUS,DFN)
  Q
  ;
 SETREM(DGENRIEN,STATUS) ;
@@ -90,4 +90,33 @@ SETREM(DGENRIEN,STATUS) ;
  S REM=$P(REM,"**REJECTED**",1)_$P(REM,"**REJECTED**",2,99)
  S $P(^DPT(DFN,0),U,10)=REM
 SETREMQ L -^DPT(DFN,0)
+ Q
+ ;
+CSI1010(DA) ;
+ ;If COMBAT SERVICE INDICATED? (2/.5291) is "NO,"
+ ;set COMBAT INDICATED ON 1010EZ (2/1010.157) to "NO."
+ I $P($G(^DPT(DA,.52)),U,11)="N" D
+ . N DGFDA
+ . S DGFDA(2,DA_",",1010.157)=0
+ . D FILE^DIE(,"DGFDA")
+ Q
+ ;
+CTD1010(DA) ;
+ ;If COMBAT SERVICE INDICATED? (2/.5291) is "YES" and
+ ;COMBAT TO DATE (2/.5294) is greater than 11/11/1998,
+ ;set COMBAT INDICATED ON 1010EZ (2/1010.157) to "YES."
+ N NODE,ANS,DGFDA
+ S NODE=$G(^DPT(DA,.52)),ANS=0
+ I ($P(NODE,U,11)="Y"),($P(NODE,U,14)>2981111) S ANS=1
+ S DGFDA(2,DA_",",1010.157)=ANS
+ D FILE^DIE(,"DGFDA")
+ Q
+ENRAPP ;check to see if the Enrollment Application Date (.01 of file 27.11)
+ ;is before 10/1/1996 or before DOB or after DOD
+ N DGFLD
+ S DGFLD=$P(^DD(27.11,.01,0),U)
+ I $G(X)<2961001 D EN^DDIOL(DGFLD_" must not be before 10/1/1996.",,"!!!") K X Q
+ I $G(X)<$P(^DPT(DFN,0),U,3) D EN^DDIOL(DGFLD_" cannot be before Date of Birth.") K X Q
+ I $P($G(^DPT(DFN,.35)),U)>0,($G(X)>$P(^DPT(DFN,.35),U)) D
+ . D EN^DDIOL(DGFLD_" cannot be after Date of Death.") K X
  Q

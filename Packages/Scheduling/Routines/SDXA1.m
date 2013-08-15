@@ -1,8 +1,8 @@
-SDXA1 ; ;10/29/04
- D DE G BEGIN
+SDXA1 ; ;02/09/12
+ D DE G BEGIN;;;;;;Build 21
 DE S DIE="^SDV(D0,""CS"",",DIC=DIE,DP=409.51,DL=2,DIEL=1,DU="" K DG,DE,DB Q:$O(^SDV(D0,"CS",DA,""))=""
- I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(1)=% S %=$P(%Z,U,3) S:%]"" DE(2)=% S %=$P(%Z,U,4) S:%]"" DE(3)=% S %=$P(%Z,U,5) S:%]"" DE(4)=%
- I $D(^("PR")) S %Z=^("PR") S %=$P(%Z,U,1) S:%]"" DE(5)=% S %=$P(%Z,U,2) S:%]"" DE(6)=% S %=$P(%Z,U,3) S:%]"" DE(7)=% S %=$P(%Z,U,4) S:%]"" DE(8)=% S %=$P(%Z,U,5) S:%]"" DE(9)=%
+ I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(1)=% S %=$P(%Z,U,3) S:%]"" DE(2)=% S %=$P(%Z,U,4) S:%]"" DE(3)=% S %=$P(%Z,U,5) S:%]"" DE(4)=% S %=$P(%Z,U,7) S:%]"" DE(5)=%
+ I $D(^("PR")) S %Z=^("PR") S %=$P(%Z,U,1) S:%]"" DE(6)=% S %=$P(%Z,U,2) S:%]"" DE(7)=% S %=$P(%Z,U,3) S:%]"" DE(8)=% S %=$P(%Z,U,4) S:%]"" DE(9)=% S %=$P(%Z,U,5) S:%]"" DE(10)=%
  K %Z Q
  ;
 W W !?DL+DL-2,DLB_": "
@@ -65,13 +65,21 @@ X1 Q
  G RD:X="@",Z
 X2 Q
 3 S DW="0;4",DV="*P8'",DU="",DLB="ELIGIBILITY FOR VISIT",DIFLD=4
+ S DE(DW)="C3^SDXA1"
  S DU="DIC(8,"
- S X=$S(+SDEMP:+SDEMP,1:+VAEL(1))
+ S X=$S(+SDEMP:+SDEMP,'+VAEL(1):"",1:+VAEL(1))
  S Y=X
  S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
  G RD:X="@",Z
+C3 G C3S:$D(DE(3))[0 K DB
+ S X=DE(3),DIC=DIE
+ ;
+C3S S X="" G:DG(DQ)=X C3F1 K DB
+ S X=DG(DQ),DIC=DIE
+ K DIV S DIV=X,D0=DA(1),DIV(0)=D0,D1=DA X ^DD(409.51,4,1,1,89.2) S Y(101)=$S($D(^SCE(D0,0)):^(0),1:"") S X=$S('$D(^DIC(8,+$P(Y(101),U,13),0)):"",1:$P(^(0),U,1)) S D0=I(0,0) S D1=I(1,0) S DIU=X K Y S X=DIV S X=X X ^DD(409.51,4,1,1,1.4)
+C3F1 Q
 X3 Q
-4 S DW="0;5",DV="R*P409.1'",DU="",DLB="APPOINTMENT TYPE",DIFLD=5
+4 D:$D(DG)>9 F^DIE17,DE S DQ=4,DW="0;5",DV="R*P409.1'",DU="",DLB="APPOINTMENT TYPE",DIFLD=5
  S DE(DW)="C4^SDXA1"
  S DU="SD(409.1,"
  S X=SDAPTYP
@@ -82,9 +90,11 @@ C4 G C4S:$D(DE(4))[0 K DB
  S X=DE(4),DIC=DIE
  K DIV S DIV=X,D0=DA(1),DIV(0)=D0,D1=DA,DIV(1)=D1 S Y(0)=X S X="369"'[X I X S X=DIV S Y(1)=$S($D(^SDV(D0,"CS",D1,0)):^(0),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y S X="" X ^DD(409.51,5,1,1,2.4)
  S X=DE(4),DIC=DIE
- K DIV S DIV=X,D0=DA(1),DIV(0)=D0,D1=DA,DIV(1)=D1 S Y(0)=X S X=$S("369"'[X:0,1:'$O(^DPT(+$P(^SDV(DA(1),0),U,2),"E",0))) I X S X=DIV S Y(1)=$S($D(^SDV(D0,"CS",D1,0)):^(0),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y S X="" X ^DD(409.51,5,1,2,2.4)
+ X ^DD(409.51,5,1,2,2.3) I X S X=DIV S Y(1)=$S($D(^SDV(D0,"CS",D1,0)):^(0),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y S X="" X ^DD(409.51,5,1,2,2.4)
  S X=DE(4),DIC=DIE
  K:X=10 ^SDV("ACG",DA(1),DA)
+ S X=DE(4),DIC=DIE
+ ;
 C4S S X="" G:DG(DQ)=X C4F1 K DB
  S X=DG(DQ),DIC=DIE
  K DIV S DIV=X,D0=DA(1),DIV(0)=D0,D1=DA,DIV(1)=D1 S Y(0)=X S X="369"'[X I X S X=DIV S Y(1)=$S($D(^SDV(D0,"CS",D1,0)):^(0),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y X ^DD(409.51,5,1,1,1.1) X ^DD(409.51,5,1,1,1.4)
@@ -92,41 +102,49 @@ C4S S X="" G:DG(DQ)=X C4F1 K DB
  X ^DD(409.51,5,1,2,1.3) I X S X=DIV S Y(1)=$S($D(^SDV(D0,"CS",D1,0)):^(0),1:"") S X=$P(Y(1),U,4),X=X S DIU=X K Y X ^DD(409.51,5,1,2,1.1) X ^DD(409.51,5,1,2,1.4)
  S X=DG(DQ),DIC=DIE
  S:X=10 ^SDV("ACG",DA(1),DA)=""
+ S X=DG(DQ),DIC=DIE
+ K DIV S DIV=X,D0=DA(1),DIV(0)=D0,D1=DA X ^DD(409.51,5,1,4,89.2) S Y(101)=$S($D(^SCE(D0,0)):^(0),1:"") S X=$S('$D(^SD(409.1,+$P(Y(101),U,10),0)):"",1:$P(^(0),U,1)) S D0=I(0,0) S D1=I(1,0) S DIU=X K Y S X=DIV S X=X X ^DD(409.51,5,1,4,1.4)
 C4F1 Q
 X4 Q
-5 D:$D(DG)>9 F^DIE17,DE S DQ=5,DW="PR;1",DV="*P409.71'X",DU="",DLB="PROCEDURE 1",DIFLD=21
- S DU="SD(409.71,"
- S X=$S($D(SDNEW(1)):SDNEW(1),1:"")
+5 D:$D(DG)>9 F^DIE17,DE S DQ=5,DW="0;7",DV="D",DU="",DLB="DATE ENTRY MADE",DIFLD=7
+ S X=DT
  S Y=X
  S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
  G RD:X="@",Z
 X5 Q
-6 S DW="PR;2",DV="*P409.71'X",DU="",DLB="PROCEDURE 2",DIFLD=22
- S DU="SD(409.71,"
- S X=$S($D(SDNEW(2)):SDNEW(2),1:"")
+6 S DW="PR;1",DV="*P81'X",DU="",DLB="PROCEDURE 1",DIFLD=21
+ S DU="ICPT("
+ S X=$S($D(SDNEW(1)):SDNEW(1),1:"")
  S Y=X
  S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
  G RD:X="@",Z
 X6 Q
-7 S DW="PR;3",DV="*P409.71'X",DU="",DLB="PROCEDURE 3",DIFLD=23
- S DU="SD(409.71,"
- S X=$S($D(SDNEW(3)):SDNEW(3),1:"")
+7 S DW="PR;2",DV="*P81'X",DU="",DLB="PROCEDURE 2",DIFLD=22
+ S DU="ICPT("
+ S X=$S($D(SDNEW(2)):SDNEW(2),1:"")
  S Y=X
  S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
  G RD:X="@",Z
 X7 Q
-8 S DW="PR;4",DV="*P409.71'X",DU="",DLB="PROCEDURE 4",DIFLD=24
- S DU="SD(409.71,"
- S X=$S($D(SDNEW(4)):SDNEW(4),1:"")
+8 S DW="PR;3",DV="*P81'X",DU="",DLB="PROCEDURE 3",DIFLD=23
+ S DU="ICPT("
+ S X=$S($D(SDNEW(3)):SDNEW(3),1:"")
  S Y=X
  S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
  G RD:X="@",Z
 X8 Q
-9 S DW="PR;5",DV="*P409.71'X",DU="",DLB="PROCEDURE 5",DIFLD=25
- S DU="SD(409.71,"
- S X=$S($D(SDNEW(5)):SDNEW(5),1:"")
+9 S DW="PR;4",DV="*P81'X",DU="",DLB="PROCEDURE 4",DIFLD=24
+ S DU="ICPT("
+ S X=$S($D(SDNEW(4)):SDNEW(4),1:"")
  S Y=X
  S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
  G RD:X="@",Z
 X9 Q
-10 G 1^DIE17
+10 S DW="PR;5",DV="*P81'X",DU="",DLB="PROCEDURE 5",DIFLD=25
+ S DU="ICPT("
+ S X=$S($D(SDNEW(5)):SDNEW(5),1:"")
+ S Y=X
+ S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
+ G RD:X="@",Z
+X10 Q
+11 G 1^DIE17

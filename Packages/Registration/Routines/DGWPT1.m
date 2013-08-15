@@ -1,5 +1,5 @@
 DGWPT1 ; SLC/KCM - Patient Lookup Functions (cont) ;3/1/01
- ;;5.3;Registration;**447**;Aug 13, 1993
+ ;;5.3;Registration;**447,1015**;Aug 13, 1993;Build 21
  ;
 SAVDFLT ; continued from DGWPT, save new default patient list
  N DAY,HOLDX S OK=1

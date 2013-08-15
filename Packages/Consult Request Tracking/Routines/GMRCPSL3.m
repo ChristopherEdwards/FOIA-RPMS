@@ -1,7 +1,8 @@
-GMRCPSL3 ;SLC/MA - Special Consult Reports;9/21/01  05:25 ;1/17/02  18:19
- ;;3.0;CONSULT/REQUEST TRACKING;**23,22**;DEC 27, 1997
+GMRCPSL3 ;SLC/MA - Special Consult Reports;29-Nov-2005 12:05;MGH
+ ;;3.0;CONSULT/REQUEST TRACKING;**23,22,1001**;DEC 27, 1997
  ; This routine is called by GMRCPSL2 to generate reports or
  ; date output.
+ ;IHS/CIA/MGH Changed code to use HRCN instead of SSN
  ; DBIA 10035 call DIQ=2     ;PATIENT FILE
  ; DBIA 10040 call DIQ=44    ;LOCATION FILE
  ; DBIA 10060 call DIQ=200   ;NEW PERSON FILE
@@ -19,7 +20,7 @@ REPORT32(SUBTOT,TOTCNTR,GMRCSRCH,GMRCBRK) ; Read ^TMP("GMRCRPT",$J) and format r
  ; SUBTOT  = Used to count subtotals
  N RPTTITL,SRTCOMP,GMRCQUIT
  U IO
- N IEN,SRT1,SRT2,SRT3,DISPLINE,LINECNT,PAGE,RPTTITL,SUBCOMP,GMRCFRST
+ N IEN,SRT1,SRT2,SRT3,DISPLINE,LINECNT,PAGE,RPTTITL,SUBCOMP,GMRCFRST,X
  S RPTTITL=$$RPTT(GMRCSRCH)
  S (LINECNT,PAGE,SUBTOT,GMRCQUIT)=0,GMRCFRST=1
  S SRT1="",SRTCOMP=""
@@ -36,44 +37,47 @@ REPORT32(SUBTOT,TOTCNTR,GMRCSRCH,GMRCBRK) ; Read ^TMP("GMRCRPT",$J) and format r
  .  F  S SRT2=$O(^TMP("GMRCRPT",$J,SRT1,SRT2)) Q:'SRT2  Q:GMRCQUIT  D
  . . S SRT3=0
  . . F  S SRT3=$O(^TMP("GMRCRPT",$J,SRT1,SRT2,SRT3)) Q:'SRT3  Q:GMRCQUIT  D
- . . .   S DISPLINE=^TMP("GMRCRPT",$J,SRT1,SRT2,SRT3)
- . . .   I GMRCFRST D PAGEBK32           ;  Kick out first page header
- . . .   I LINECNT>IOSL D PAGEBK32
- . . .   I GMRCQUIT Q
- . . .  ;
- . . .  ; Start writing the print line
- . . .   W !,$P(DISPLINE,"|",1)                    ;IEN
- . . .   W ?11,$$FMTE^XLFDT($P(DISPLINE,"^",7),"D")   ;REQ DAT
- . . .   ; If Provider not NULL, If IFC record Provider will be NULL
- . . .   I GMRCSRCH=1 D
- . . . .   I +$P(DISPLINE,"^",14) D
- . . . . .   W ?25,$E($$GET1^DIQ(200,$P(DISPLINE,"^",14),.01),1,20) ;PROVIDER
- . . . .   ; Provider Null and REMOTE ORDERING PROVIDER not, must be an IFC record 
- . . . .   I '+$P(DISPLINE,"^",14),$P(DISPLINE,"^",24)'="" D
- . . . . .   W ?25,$E($P(DISPLINE,"^",24),1,40)
- . . . .   W ?48,$E($$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01),1,40)  ;TO SERVICE
- . . .     I GMRCSRCH=2 D
- . . . .     ; Location not null, if null then it is a IFC record
- . . . .     I +$P(DISPLINE,"^",4) D
- . . . . .     W ?25,$E($$GET1^DIQ(44,$P(DISPLINE,"^",4),.01),1,22)
- . . . .     ; Location null and Ordering Facility not, IFC record
- . . . .     I '+$P(DISPLINE,"^",4),+$P(DISPLINE,"^",21) D
- . . . . .     W ?25,$E($$GET1^DIQ(4,$P(DISPLINE,"^",21),.01),1,22)
- . . . .     ; Location null, Ordering Facility null, Routing Facility not
- . . . .     ; meaning this is an IFC record
- . . . .     I '+$P(DISPLINE,"^",4),'+$P(DISPLINE,"^",21),+$P(DISPLINE,"^",23) D
- . . . . .     W ?25,$E($$GET1^DIQ(4,$P(DISPLINE,"^",23),.01),1,22)
- . . . .     W ?48,$E($$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01),1,40)  ;TO SERVICE
- . . .     I GMRCSRCH=3 D
- . . . .     W ?25,$E($$GET1^DIQ(123.3,$P($P(DISPLINE,"^",8),";",1),.01),1,20) ;PROCEDURE
- . . . .     W ?48,$E($$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01),1,40)  ;TO SERVICE
- . . .     W ?89,$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.01),1,20)       ;PATIENT
- . . .     W ?121,$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.09),6,9) ;SSN
- . . .     W ?129,$$GET1^DIQ(100.01,$P(DISPLINE,"^",12),.1) ;STATUS
- . . .     S LINECNT=LINECNT+1,TOTCNTR=TOTCNTR+1,SUBTOT=SUBTOT+1
+ . . . S DISPLINE=^TMP("GMRCRPT",$J,SRT1,SRT2,SRT3)
+ . . . I GMRCFRST D PAGEBK32           ;  Kick out first page header
+ . . . I LINECNT>IOSL D PAGEBK32
+ . . . I GMRCQUIT Q
+ . . . ;
+ . . . ; Start writing the print line
+ . . . W !,$P(DISPLINE,"|",1)                    ;IEN
+ . . . W ?11,$$FMTE^XLFDT($P(DISPLINE,"^",7),"D")   ;REQ DAT
+ . . . ; If Provider not NULL, If IFC record Provider will be NULL
+ . . . I GMRCSRCH=1 D
+ . . . . I +$P(DISPLINE,"^",14) D
+ . . . . . W ?25,$E($$GET1^DIQ(200,$P(DISPLINE,"^",14),.01),1,20) ;PROVIDER
+ . . . . ; Provider Null and REMOTE ORDERING PROVIDER not, must be an IFC record
+ . . . . I '+$P(DISPLINE,"^",14),$P(DISPLINE,"^",24)'="" D
+ . . . . . W ?25,$E($P(DISPLINE,"^",24),1,40)
+ . . . . W ?48,$E($$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01),1,40)  ;TO SERVICE
+ . . . I GMRCSRCH=2 D
+ . . . . ; Location not null, if null then it is a IFC record
+ . . . . I +$P(DISPLINE,"^",4) D
+ . . . . . W ?25,$E($$GET1^DIQ(44,$P(DISPLINE,"^",4),.01),1,22)
+ . . . . ; Location null and Ordering Facility not, IFC record
+ . . . . I '+$P(DISPLINE,"^",4),+$P(DISPLINE,"^",21) D
+ . . . . . W ?25,$E($$GET1^DIQ(4,$P(DISPLINE,"^",21),.01),1,22)
+ . . . . ; Location null, Ordering Facility null, Routing Facility not
+ . . . . ; meaning this is an IFC record
+ . . . . I '+$P(DISPLINE,"^",4),'+$P(DISPLINE,"^",21),+$P(DISPLINE,"^",23) D
+ . . . . . W ?25,$E($$GET1^DIQ(4,$P(DISPLINE,"^",23),.01),1,22)
+ . . . . W ?48,$E($$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01),1,40)  ;TO SERVICE
+ . . . I GMRCSRCH=3 D
+ . . . . W ?25,$E($$GET1^DIQ(123.3,$P($P(DISPLINE,"^",8),";",1),.01),1,20) ;PROCEDURE
+ . . . . W ?48,$E($$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01),1,40)  ;TO SERVICE
+ . . . W ?89,$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.01),1,20)       ;PATIENT
+ . . . ;IHS/CIA/MGH Changed code to the HRCN
+ . . . ;W ?121,$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.09),6,9) ;SSN
+ . . . S X=$$HRCN^GMRCMP($P(DISPLINE,"^",2),+$G(DUZ(2)))
+ . . . W ?121,X  ;HRCN
+ . . . W ?129,$$GET1^DIQ(100.01,$P(DISPLINE,"^",12),.1) ;STATUS
+ . . . S LINECNT=LINECNT+1,TOTCNTR=TOTCNTR+1,SUBTOT=SUBTOT+1
  Q
  ;
-REPORT80(SUBTOT,TOTCNTR,GMRCSRCH,GMRCBRK)   ; Read ^TMP("GMRCRPT",$J) and format report
+REPORT80(SUBTOT,TOTCNTR,GMRCSRCH,GMRCBRK) ; Read ^TMP("GMRCRPT",$J) and format report
  ; The ^TMP global can be in any order but it will always have 3
  ; sorting parameters (PROVIDER,DATE,IEN) or (PT LOCATION,DATE,IEN)
  ; or (PROCEDURE TYPE,DATE,IEN)
@@ -101,40 +105,43 @@ REPORT80(SUBTOT,TOTCNTR,GMRCSRCH,GMRCBRK)   ; Read ^TMP("GMRCRPT",$J) and format
  .  F  S SRT2=$O(^TMP("GMRCRPT",$J,SRT1,SRT2)) Q:'SRT2  Q:GMRCQUIT  D
  . . S SRT3=0
  . . F  S SRT3=$O(^TMP("GMRCRPT",$J,SRT1,SRT2,SRT3)) Q:'SRT3  Q:GMRCQUIT  D
- . . .    S DISPLINE=^TMP("GMRCRPT",$J,SRT1,SRT2,SRT3)
- . . .    I GMRCFRST=1 D PAGEBK80          ; Kick out first page header
- . . .    I LINECNT>IOSL D PAGEBK80
- . . .    I GMRCQUIT Q
- . . .    ;
- . . .    ; STARTING WRITING THE PRINT LINE
- . . .    ;
- . . .    W !,$P(DISPLINE,"|",1)                    ;IEN
- . . .    W ?9,$P($$FMTE^XLFDT($P(DISPLINE,"^",7),2),"@",1)   ;REQ DATE
- . . .    I GMRCSRCH=1 D
- . . . .    ; Provider not null, If null then it is an IFC record
- . . . .    I +$P(DISPLINE,"^",14) D
- . . . . .    W ?18,$E($$GET1^DIQ(200,$P(DISPLINE,"^",14),.01),1,16) ;PROVIDER
- . . . .    ; Provider null and REMOTE ORDERING PROVIDER  not, this is an IFC record
- . . . .    I '+$P(DISPLINE,"^",14),$P(DISPLINE,"^",24)'="" D
- . . . . .    W ?18,$E($P(DISPLINE,"^",24),1,16)
- . . .    ; Location not null,  If null then it is an IFC record
- . . .    I GMRCSRCH=2,+$P(DISPLINE,"^",4) D
- . . . .    W ?18,$E($$GET1^DIQ(44,$P(DISPLINE,"^",4),.01),1,16)  ;LOCATION
- . . . .  ; Location null meaning IFC record.  Use Ordering Facility
- . . .    I GMRCSRCH=2,$P(DISPLINE,"^",4)="",+$P(DISPLINE,"^",21) D
- . . . .    W ?18,$E($$GET1^DIQ(4,$P(DISPLINE,"^",21),.01),1,16) ;ORD FACILITY
- . . .    ; Location null, Ordering Facility null, use Routing Facilty
- . . .    ; Still an IFC record
- . . .    I GMRCSRCH=2,$P(DISPLINE,"^",4)="",'$P(DISPLINE,"^",21) D
- . . . .    I +$P(DISPLINE,"^",23) D
- . . . . .    W ?18,$E($$GET1^DIQ(4,$P(DISPLINE,"^",23),.01),1,16) ;ROUTIN FACILITY
- . . .    I GMRCSRCH=3 D
- . . . .    W ?18,$E($$GET1^DIQ(123.3,$P($P(DISPLINE,"^",8),";",1),.01),1,16)   ; PROCEDURE
- . . .    W ?35,$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.01),1,20)  ;PATIENT
- . . .    W ?56,$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.09),6,9) ;SSN
- . . .    W ?61,$E($$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01),1,15)  ;TO SERVICE
- . . .    W ?77,$$GET1^DIQ(100.01,$P(DISPLINE,"^",12),.1) ;STATUS
- . . .    S LINECNT=LINECNT+1,TOTCNTR=TOTCNTR+1,SUBTOT=SUBTOT+1
+ . . . S DISPLINE=^TMP("GMRCRPT",$J,SRT1,SRT2,SRT3)
+ . . . I GMRCFRST=1 D PAGEBK80          ; Kick out first page header
+ . . . I LINECNT>IOSL D PAGEBK80
+ . . . I GMRCQUIT Q
+ . . . ;
+ . . . ; STARTING WRITING THE PRINT LINE
+ . . . ;
+ . . . W !,$P(DISPLINE,"|",1)                    ;IEN
+ . . . W ?9,$P($$FMTE^XLFDT($P(DISPLINE,"^",7),2),"@",1)   ;REQ DATE
+ . . . I GMRCSRCH=1 D
+ . . . . ; Provider not null, If null then it is an IFC record
+ . . . . I +$P(DISPLINE,"^",14) D
+ . . . . . W ?18,$E($$GET1^DIQ(200,$P(DISPLINE,"^",14),.01),1,16) ;PROVIDER
+ . . . . ; Provider null and REMOTE ORDERING PROVIDER  not, this is an IFC record
+ . . . . I '+$P(DISPLINE,"^",14),$P(DISPLINE,"^",24)'="" D
+ . . . . . W ?18,$E($P(DISPLINE,"^",24),1,16)
+ . . . ; Location not null,  If null then it is an IFC record
+ . . . I GMRCSRCH=2,+$P(DISPLINE,"^",4) D
+ . . . . W ?18,$E($$GET1^DIQ(44,$P(DISPLINE,"^",4),.01),1,16)  ;LOCATION
+ . . . . ; Location null meaning IFC record.  Use Ordering Facility
+ . . . I GMRCSRCH=2,$P(DISPLINE,"^",4)="",+$P(DISPLINE,"^",21) D
+ . . . . W ?18,$E($$GET1^DIQ(4,$P(DISPLINE,"^",21),.01),1,16) ;ORD FACILITY
+ . . . ; Location null, Ordering Facility null, use Routing Facilty
+ . . . ; Still an IFC record
+ . . . I GMRCSRCH=2,$P(DISPLINE,"^",4)="",'$P(DISPLINE,"^",21) D
+ . . . . I +$P(DISPLINE,"^",23) D
+ . . . . . W ?18,$E($$GET1^DIQ(4,$P(DISPLINE,"^",23),.01),1,16) ;ROUTIN FACILITY
+ . . . I GMRCSRCH=3 D
+ . . . . W ?18,$E($$GET1^DIQ(123.3,$P($P(DISPLINE,"^",8),";",1),.01),1,16)   ; PROCEDURE
+ . . . W ?35,$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.01),1,15)  ;PATIENT
+ . . . ;W ?56,$E($$GET1^DIQ(2,$P(DISPLINE,"^",2),.09),6,9) ;SSN
+ . . . ;IHS/CIA/MGH Changed code to use HRCN
+ . . . S X=$$HRCN^GMRCMP($P(DISPLINE,"^",2),+$G(DUZ(2)))
+ . . . W ?52,X  ;HRCN
+ . . . W ?61,$E($$GET1^DIQ(123.5,$P(DISPLINE,"^",5),.01),1,15)  ;TO SERVICE
+ . . . W ?77,$$GET1^DIQ(100.01,$P(DISPLINE,"^",12),.1) ;STATUS
+ . . . S LINECNT=LINECNT+1,TOTCNTR=TOTCNTR+1,SUBTOT=SUBTOT+1
  Q
 PAGEBK32 ;
  S GMRCFRST=0
@@ -167,7 +174,9 @@ PAGEBK32 ;
  I GMRCSRCH=1 W ?26,"ORDERING PROVIDER",?48,"TO SERVICE"
  I GMRCSRCH=2 W ?26,"FROM LOCATION",?48,"TO SERVICE"
  I GMRCSRCH=3 W ?26,"PROCEDURE",?48,"ASSOCIATED CONSULT SERVICE"
- W ?89,"PATIENT NAME",?121,"SSN",?128,"STAT"
+ ;IHS/CIA/MGH Changed code to use HRCN
+ ;W ?89,"PATIENT NAME",?121,"SSN",?128,"STAT"
+ W ?89,"PATIENT NAME",?121,"HRCN",?128,"STAT"
  S LINE="",$P(LINE,"-",132)=""
  W !,LINE
  S LINECNT=$S(GMRCBRK=1:8,1:7)
@@ -203,7 +212,9 @@ PAGEBK80 ;
  I GMRCSRCH=1 W ?18,"ORDERING PROVIDER"
  I GMRCSRCH=2 W ?18,"LOCATION"
  I GMRCSRCH=3 W ?18,"PROCEDURE"
- W ?37,"PATIENT NAME",?56,"SSN",?61,"TO SERVICE",?77,"ST"
+ ;IHS/CIA/MGH Changed code to use HRCN
+ ;W ?37,"PATIENT NAME",?56,"SSN",?61,"TO SERVICE",?77,"ST"
+ W ?37,"PATIENT NAME",?52,"HRCN",?61,"TO SERVICE",?77,"ST"
  S LINE="",$P(LINE,"-",80)=""
  W !,LINE
  S LINECNT=9

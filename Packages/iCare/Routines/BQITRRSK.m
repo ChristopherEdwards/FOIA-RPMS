@@ -1,5 +1,5 @@
 BQITRRSK ;PRXM/HC/ALA-Treatment Prompts Risk Factors ; 23 May 2007  3:20 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 RSK(BQDFN,BQRM) ;EP - CVD.TP-32 Missing Risk factors
  ; Input
@@ -19,7 +19,7 @@ RSK(BQDFN,BQRM) ;EP - CVD.TP-32 Missing Risk factors
  . I $P(X,U,1)=1 Q
  . S X=$$FED^BQITRUTL("T-12M",BQDFN,"TO-")
  . I $P(X,U,1)=1 Q
- . S X=$$CLN^BQITRUTL("T-12M",BQDFN,94)
+ . S X=$$CLN^BQITRUT1("T-12M",BQDFN,94)
  . I $P(X,U,1)=1 Q
  . S ACT=ACT+1,COND(ACT)="Tobacco Use Screen last year"
  ;

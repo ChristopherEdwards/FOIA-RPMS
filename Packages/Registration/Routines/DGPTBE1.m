@@ -1,5 +1,5 @@
 DGPTBE1 ;ALB/BOK - ENTER BREAKEVEN VALUES FOR DRG ;  27 APR 88 @ 0900
- ;;5.3;Registration;**158,252**;Aug 13, 1993
+ ;;5.3;Registration;**158,252,1015**;Aug 13, 1993;Build 21
  ;
 FY W !!,"Enter Values for (F)ISCAL YEAR or (Q)UARTER: QUARTER// " S Z="^QUARTER^FISCAL YEAR" S X="" R X:DTIME G Q:X["^"!('$T) I X="" S X="Q" W X
  D IN^DGHELP I %=-1 W !!?12,"CHOOSE FROM: ",!?12,"Q - values are entered on a quarterly basis",!?12,"F - values are entered once a year and are ",!?16,"therefore the same for each quarter." S %="" G FY

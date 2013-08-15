@@ -1,18 +1,15 @@
-DGPFAPI ;ALB/RBS - PRF EXTERNAL USER INTERFACE API'S ; 9/2/03 10:30am
- ;;5.3;Registration;**425**;Aug 13, 1993
- ;
- ; This routine contains API entry points that are used by packages
- ; and modules that are external to the Patient Record Flags module.
+DGPFAPI ;ALB/RBS - PRF EXTERNAL API'S ; 7/26/06 9:22am
+ ;;5.3;Registration;**425,554,699,650,1015**;Aug 13, 1993;Build 21
  ;
  Q  ;no direct entry
  ;
 GETACT(DGDFN,DGPRF) ;Retrieve all ACTIVE Patient record flag assignments
- ; The purpose of this API is to facilitate the retrieval of specific
- ; data that can be used for the displaying of or the reporting of
- ; only ACTIVE Patient Record Flag (PRF) Assignment information for
- ; a patient.
+ ;The purpose of this API is to facilitate the retrieval of specific
+ ;data that can be used for the displaying of or the reporting of
+ ;only ACTIVE Patient Record Flag (PRF) Assignment information for
+ ;a patient.
  ;
- ; Usage of this API, DBIA #3860, is by Controlled Subscription.
+ ; Associated DBIA:  #3860 - DGPF PATIENT RECORD FLAG
  ;
  ;  Input:
  ;   DGDFN - IEN of patient in the PATIENT (#2) file
@@ -30,73 +27,28 @@ GETACT(DGDFN,DGPRF) ;Retrieve all ACTIVE Patient record flag assignments
  ;               2 piece string caret(^) delimited
  ;   DGPFAPI() - Default array name if no name passed
  ;
- ; Subscript   Field Name                Field #/File #
- ; ---------   ----------                --------------
- ; "APPRVBY"   Approved By               (.05)/(#26.14)
- ;    The field value contains the pointer to the NEW PERSON
- ;    FILE (#200) of the person approving the assignment of a
- ;    patient record flag to a patient.
- ;    The field values will be one of the following two explanations:
- ;     1. If calling site IS the Originating Site...
- ;        PIECE 1 = IEN pointer to NEW PERSON FILE (#200)
- ;        PIECE 2 = Name of Person
- ;     2. If calling site is NOT the Originating Site...
- ;        PIECE 1 = .5
- ;        PIECE 2 = "CHIEF OF STAFF"
- ;        (Note: The .5 (POSTMASTER) internal field value triggers an
- ;               output transform that converts the external value
- ;               of "POSTMASTER" to "CHIEF OF STAFF".
- ; "ASSIGNDT"  Assign Date/Time          (.02)/(#26.14)
- ;    The field value contains a FileMan internal^external Date and
- ;    Time of the initial assignment of the Patient Record Flag.
- ;
- ; "REVIEWDT"  Review Date               (.06)/(#26.13)
- ;    The field value contains a FileMan internal^external date that
- ;    the flag assignment is due for review to determine continuing
- ;    appropriateness.
- ;
- ; "FLAG"      Flag Name                 (.02)/(#26.13)
- ;    The field value contains the Patient Record Flag name that is
- ;    assigned to the patient as a variable pointer.
- ;     PIECE 1 = IEN variable pointer to (#26.11) or (#26.15) file
- ;     PIECE 2 = Name of Flag
- ;
- ; "FLAGTYPE"   Type of Flag             (.03)/(#26.11 or #26.15)
- ;    The field value contains the Record Flag Type usage
- ;    classification. (i.e. BEHAVIORAL,RESEARCH,CLINICAL,OTHER)
- ;     PIECE 1 = IEN of the flag Type (pointer to (#26.16) file)
- ;     PIECE 2 = Name of flag Type
- ;
- ; "CATEGORY"  National or Local Flag    (#26.15) or (#26.11)
- ;    The field value contains the type of category the flag
- ;    represents.
- ;    I (NATIONAL) = (#26.15) PRF NATIONAL
- ;    II (LOCAL)   = (#26.11) PRF LOCAL
- ;     PIECE 1 = I (NATIONAL) or II (LOCAL)
- ;     PIECE 2 = (same value as PIECE 1)
- ;
- ; "OWNER"     Owner Site                (.04)/(#26.13)
- ;    The field value contains the Site that owns the patient's
- ;    Record Flag Assignment.  Only the Owner Site may edit a patients
- ;    flag assignment.
- ;     PIECE 1 = IEN of the site (pointer to INSTITUTION FILE (#4))
- ;     PIECE 2 = Name of Institution
- ;
- ; "ORIGSITE"  Originating Site          (.05)/(#26.13)
- ;    The field value contains the Site that first entered the Patient
- ;    Record Flag on this patient.
- ;     PIECE 1 = IEN of the site (pointer to INSTITUTION FILE (#4))
- ;     PIECE 2 = Name of Institution
- ;
- ; "NARR"      Assignment Narrative      (1)/(#26.13)
- ;             (word-processing, multiple nodes)
- ;    The field value contains the reason narrative for this patients
- ;    assignment of a Patient Record Flag.
- ;    The format is in a word-processing value that may contain
- ;    multiple nodes of text.  Each node of text will be less
- ;    than 80 characters in length.
- ;    The format is as follows:
- ;     TARGET_ROOT(nn,"NARR",line#,0)=text
+ ;  Subscript   Field Name                Field #/File #
+ ;  ---------   ----------                --------------
+ ;  "APPRVBY"   APPROVED BY               (.05)/(#26.14)
+ ;              (Note: The .5 (POSTMASTER) internal field value
+ ;               triggers an output transform that converts the
+ ;               external value of "POSTMASTER" to "CHIEF OF STAFF".
+ ;  "ASSIGNDT"  DATE/TIME                 (.02)/(#26.14)
+ ;  "REVIEWDT"  REVIEW DATE               (.06)/(#26.13)
+ ;  "FLAG"      FLAG NAME                 (.02)/(#26.13)
+ ;  "FLAGTYPE"  TYPE                      (.03)/(#26.11 or #26.15)
+ ;  "CATEGORY"  National or Local Flag    (#26.15) or (#26.11)
+ ;  "OWNER"     OWNER SITE                (.04)/(#26.13)
+ ;  "ORIGSITE"  ORIGINATING SITE          (.05)/(#26.13)
+ ;  "TIUTITLE"  TIU PN TITLE              (.07)/(#26.11) or (#26.15)
+ ;  "TIULINK"   TIU PN LINK               (.06)/(#26.14)
+ ;  "NARR"      ASSIGNMENT NARRATIVE      (1)/(#26.13)
+ ;              (word-processing, multiple nodes)
+ ;              The format is in a word-processing value that may
+ ;              contain multiple nodes of text.  Each node of text
+ ;              will be less than 80 characters in length.
+ ;              The format is as follows:
+ ;   TARGET_ROOT(nn,"NARR",line#,0)=text
  ;      where:
  ;          nn = a unique number for each Flag
  ;       line# = a unique number starting at 1 for each wp line
@@ -110,6 +62,7 @@ GETACT(DGDFN,DGPRF) ;Retrieve all ACTIVE Patient record flag assignments
  N DGPFA     ;flag assignment array
  N DGPFAH    ;flag assignment history array
  N DGPFLAG   ;flag record array
+ N DGPFLAH   ;last flag assignment history array
  N DGCAT     ;flag category
  ;
  Q:'$G(DGDFN) 0                            ;Quit, null parameter
@@ -117,11 +70,14 @@ GETACT(DGDFN,DGPRF) ;Retrieve all ACTIVE Patient record flag assignments
  ;
  S DGPRF=$G(DGPRF)
  I DGPRF']"" S DGPRF="DGPFAPI"             ;setup default array name
+ ;
+ K @DGPRF                                  ;Kill/initialize work array
+ ;
  S (DGPFIEN,DGCAT)="",DGPFTCNT=0
  ;
  ; loop all returned Active Record Flag Assignment ien's
  F  S DGPFIEN=$O(DGPFIENS(DGPFIEN)) Q:DGPFIEN=""  D
- . K DGPFA,DGPFAH,DGPFLAG
+ . K DGPFA,DGPFAH,DGPFLAG,DGPFLAH
  . ;
  . ; retrieve single assignment record fields
  . Q:'$$GETASGN^DGPFAA(DGPFIEN,.DGPFA)
@@ -132,13 +88,16 @@ GETACT(DGDFN,DGPRF) ;Retrieve all ACTIVE Patient record flag assignments
  . ; get initial assignment history
  . Q:'$$GETHIST^DGPFAAH($$GETFIRST^DGPFAAH(DGPFIEN),.DGPFAH)
  . ;
+ . ; get last assignment history
+ . Q:'$$GETHIST^DGPFAAH($$GETLAST^DGPFAAH(DGPFIEN),.DGPFLAH)
+ . ;
  . ; get record flag record
  . Q:'$$GETFLAG^DGPFUT1($P($G(DGPFA("FLAG")),U),.DGPFLAG)
  . ;
  . S DGPFTCNT=DGPFTCNT+1
  . ;
  . ; approved by user
- . S @DGPRF@(DGPFTCNT,"APPRVBY")=$G(DGPFAH("APPRVBY"))
+ . S @DGPRF@(DGPFTCNT,"APPRVBY")=$G(DGPFLAH("APPRVBY"))
  . ;
  . ; initial assignment date/time
  . S @DGPRF@(DGPFTCNT,"ASSIGNDT")=$G(DGPFAH("ASSIGNDT"))
@@ -157,10 +116,19 @@ GETACT(DGDFN,DGPRF) ;Retrieve all ACTIVE Patient record flag assignments
  . S @DGPRF@(DGPFTCNT,"CATEGORY")=DGCAT_U_DGCAT
  . ;
  . ; owner site
- . S @DGPRF@(DGPFTCNT,"OWNER")=$G(DGPFA("OWNER"))
+ . S @DGPRF@(DGPFTCNT,"OWNER")=$G(DGPFA("OWNER"))_"  "_$$FMTPRNT^DGPFUT1($P($G(DGPFA("OWNER")),U))
  . ;
  . ; originating site
- . S @DGPRF@(DGPFTCNT,"ORIGSITE")=$G(DGPFA("ORIGSITE"))
+ . S @DGPRF@(DGPFTCNT,"ORIGSITE")=$G(DGPFA("ORIGSITE"))_"  "_$$FMTPRNT^DGPFUT1($P($G(DGPFA("ORIGSITE")),U))
+ . ;
+ . ; add TIU info when Owner Site is a local division
+ . I $$ISDIV^DGPFUT($P(DGPFA("OWNER"),U)) D
+ . . ;
+ . . ; flag associated TIU PN Title
+ . . S @DGPRF@(DGPFTCNT,"TIUTITLE")=$G(DGPFLAG("TIUTITLE"))
+ . . ;
+ . . ; assignment history TIU PN Link
+ . . S @DGPRF@(DGPFTCNT,"TIULINK")=$G(DGPFLAH("TIULINK"))
  . ;
  . ; narrative
  . I '$D(DGPFA("NARR",1,0)) D  Q  ;should never happen - but -
@@ -169,17 +137,14 @@ GETACT(DGDFN,DGPRF) ;Retrieve all ACTIVE Patient record flag assignments
  . M @DGPRF@(DGPFTCNT,"NARR")=DGPFA("NARR")
  ;
  ; Re-Sort Active flags by category & alpha flag name
- I +$G(DGPFTCNT)>1 D SORT^DGPFUT2(.@DGPRF)
+ I +$G(DGPFTCNT)>1 D
+ . I $$SORT^DGPFUT2(DGPRF)  ;naked IF to just do resort
  ;
  Q DGPFTCNT
  ;
-PRFQRY(DGDFN) ;query the CMOR for all patient record flag assignments
- ; This function queries a given patient's Coordinated Master of Record
- ; (CMOR) site to retrieve all patient record flag assignments for the
- ; patient.  The function will only succeed when the QRY HL7 interface
- ; is enabled, the patient has a national Integrated Control Number
- ; (ICN), the patient's CMOR is not the local site and the HL7 query
- ; receives an ACK from the CMOR site.
+PRFQRY(DGDFN) ;query a treating facility for patient record flag assignments
+ ;This function queries a given patient's treating facility to retrieve
+ ;all patient record flag assignments for the patient.
  ;
  ;  Input:
  ;    DGDFN - pointer to patient in PATIENT (#2) file
@@ -187,21 +152,26 @@ PRFQRY(DGDFN) ;query the CMOR for all patient record flag assignments
  ;  Output:
  ;   Function value - 1 on success, 0 on failure
  ;
+ N DGEVNT
  N DGRSLT
- N DGQRY
  ;
  S DGRSLT=0
- ;
- S DGQRY=+$$QRYON^DGPFPARM()
- I DGQRY D
- . S DGRSLT=$$SNDQRY^DGPFHLS(DGDFN,DGQRY)
+ S DGEVNT=$$FNDEVNT^DGPFHLL1(DGDFN)
+ I DGEVNT D
+ . ;
+ . ;must have INCOMPLETE status
+ . Q:'$$ISINCOMP^DGPFHLL1(DGEVNT)
+ . ;
+ . ;run query using mode defined in PRF HL7 QUERY STATUS (#3) field of
+ . ;PRF PARAMETERS (#26.18) file.
+ . S DGRSLT=$$SNDQRY^DGPFHLS(DGDFN,$$QRYON^DGPFPARM())
  ;
  Q DGRSLT
  ;
 DISPPRF(DGDFN) ;display active patient record flag assignments
- ; This procedure performs a lookup for active patient record flag
- ; assignments for a given patient and formats the assignment data for
- ; roll-and-scroll display.
+ ;This procedure performs a lookup for active patient record flag
+ ;assignments for a given patient and formats the assignment data for
+ ;roll-and-scroll display.
  ;
  ;  Input:
  ;    DGDFN - pointer to patient in PATIENT (#2) file
@@ -213,7 +183,7 @@ DISPPRF(DGDFN) ;display active patient record flag assignments
  Q:$P(XQY0,U)="DGPF RECORD FLAG ASSIGNMENT"
  ;
  ;protect Kernel IO variables
- N IOBM,IOBOFF,IOBON,IOEDEOP,IOINHI,IOINORM,IORC,IORVOFF,IORVON
+ N IOBM,IOBOFF,IOBON,IOEDEOP,IOINHI,IOINORM,IORC,IORVOFF,IORVON,IOIL
  N IOSC,IOSGRO,IOSTBM,IOTM,IOUOFF,IOUON
  ;
  ;protect ListMan variables
@@ -223,7 +193,7 @@ DISPPRF(DGDFN) ;display active patient record flag assignments
  ;
  ;protect Unwinder variables
  N ORU,ORUDA,ORUER,ORUFD,ORUFG,ORUSB,ORUSQ,ORUSV,ORUT,ORUW,ORUX
- N XQORM
+ N XQORM,DQ
  ;
  ; protect original Listman VALM DATA global
  K ^TMP($J,"DGPFVALM DATA")

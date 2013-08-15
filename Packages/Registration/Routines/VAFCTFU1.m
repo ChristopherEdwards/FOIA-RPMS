@@ -1,5 +1,5 @@
-VAFCTFU1 ;BHM/RGY-Utilities for the Treating Facility file 391.91, CONTINUED ;10/31/99
- ;;5.3;Registration;**261,392,448,449**;Aug 13, 1993
+VAFCTFU1 ;BHM/RGY-Utilities for the Treating Facility file 391.91, CONTINUED ; 7/27/09 6:16pm
+ ;;5.3;PIMS;**261,392,448,449,1016**;JUN 30, 2012;Build 20
 TFL(LIST,DFN) ;for dfn get list of treating facilities
  NEW X,ICN,DA,DR,VAFCTFU1,DIC,DIQ,VAFC
  S X="MPIF001" X ^%ZOSF("TEST") I '$T S LIST(1)="-1^MPI Not Installed" Q
@@ -28,8 +28,11 @@ IFLOCAL(RESULT,DFN) ;
 SET(TFIEN,ARY,CTR) ;This sets the array with the treating facility list.
  ; Returns: treating facility ^ treatment date ^ event reason (if any)
  ; *261 gjc@120899 (formerly part of VAFCTFU prior to DG*5.3*261)
- N DGCN S CTR=CTR+1,DGCN(0)=$G(^DGCN(391.91,TFIEN,0))
- S @ARY@(CTR)=$P(DGCN(0),U,2,3)_U_$P(DGCN(0),U,7)
+ N DGCN,INSTIEN,LSTA S DGCN(0)=$G(^DGCN(391.91,TFIEN,0))
+ ;** DG*5.3*800 - (ckn) - Quit if IPP field is not set for 200MH record
+ S INSTIEN=$P($G(DGCN(0)),"^",2),LSTA=$$STA^XUAF4(INSTIEN)
+ I $E(LSTA,1,5)="200MH",$P($G(DGCN(0)),"^",8)'=1 Q
+ S CTR=CTR+1,@ARY@(CTR)=$P(DGCN(0),U,2,3)_U_$P(DGCN(0),U,7)
  Q
  ;
 QUERYTF(PAT,ARY,INDX) ;a query for Treating Facility.

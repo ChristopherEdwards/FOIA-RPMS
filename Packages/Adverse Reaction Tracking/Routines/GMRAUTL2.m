@@ -1,5 +1,5 @@
-GMRAUTL2 ;SLC/DAN New style index utilities, update utility for 120.8 ;1/3/07  08:02
- ;;4.0;Adverse Reaction Tracking;**23,36**;Mar 29, 1996;Build 9
+GMRAUTL2 ;SLC/DAN New style index utilities, update utility for 120.8 ;21-Jun-2012 08:34;DU
+ ;;4.0;Adverse Reaction Tracking;**23,36,1005**;Mar 29, 1996;Build 30
  ;
  N GMRAI,GMRAC,ENTRY,UPDATED
  Q:$G(X1(1))=$G(X2(1))  ;Entry unchanged
@@ -35,7 +35,7 @@ UPDATE(ENTRY,ING,CLASS) ;Update existing entries in 120.8 with new information.
  ...I ACTION="A" D ADD("C",SUB,SUBC,.GMRAS) I $G(GMRAS) S CLASS(ACTION,SUBC)=1,UPDATED(DFN)="",GMRACOM=1
  ...I ACTION="D" D DEL("C",SUB,SUBC,.GMRAS) I $G(GMRAS) S GMRACOM=1,CLASS(ACTION,SUBC)=1
  .I $G(GMRACOM) D ADDCOM
- I $D(UPDATED) D CHKORD ;New order checks now?
+ I $D(UPDATED) D CHKORD     ;New order checks now?
  Q
  ;
 ADD(TYPE,ALENT,SUBENT,GMRAS) ;Adds entry to appropriate multiple
@@ -89,7 +89,7 @@ ADDCOM ;Add comment to updated allergy indicating changes
  .S COM="The following "_$S(TYPE=1!(TYPE=2):"ingredients",1:"drug classes")_" were "_$S(TYPE=2!(TYPE=4):"deleted",1:"added")_": "
  .S ROOT=$S(TYPE=1:"ING(""A"")",TYPE=2:"ING(""D"")",TYPE=3:"CLASS(""A"")",1:"CLASS(""D"")")
  .S SUB2=0 F  S SUB2=$O(@ROOT@(SUB2)) Q:'+SUB2  I @ROOT@(SUB2) S COM=COM_$S($P(COM,": ",2)'="":", ",1:"")_$S(TYPE=1!(TYPE=2):$$GET1^DIQ(50.416,SUB2_",",.01),1:$$GET1^DIQ(50.605,SUB2_",",.01))
- .I $P(COM,": ",2)'="" L +^GMR(120.8,SUB) D ADCOM^GMRAFX(SUB,"O",COM) L -^GMR(120.8,SUB)
+ .I $P(COM,": ",2)'=""  L +^GMR(120.8,SUB) D ADCOM^GMRAFX(SUB,"O",COM) L -^GMR(120.8,SUB)
  Q
  ;
 MAIL ;Send message containing potential order checks to user.
@@ -119,12 +119,13 @@ MAIL ;Send message containing potential order checks to user.
  Q
  ;
 TOP10 ;Check top 10 reactions after push of file 120.83
+ ;IHS/MSC/MGH added check for inactive in the screen patch 1005
  N SUB,REAC,REACNO,ARRAY,SUBNM,REACNM,GMRATXT,XMSUB,XMTEXT,XMDUZ,XMY,DIFROM,CNT
  I '$L($T(SCREEN^XTID)) Q  ;No screening code so quit
  S SUB=0 F  S SUB=$O(^GMRD(120.84,SUB)) Q:'+SUB  I $D(^GMRD(120.84,SUB,1)) D
  .S REAC=0 F  S REAC=$O(^GMRD(120.84,SUB,1,REAC)) Q:'+REAC  D
  ..S REACNO=$P(^GMRD(120.84,SUB,1,REAC,0),U) Q:'+REACNO
- ..I $$SCREEN^XTID(120.83,.01,REACNO_",") D
+ ..I $$SCREEN^XTID(120.83,.01,REACNO_",")!($$CHECKS^GMRAPER0(REACNO)) D
  ...S SUBNM=$P(^GMRD(120.84,SUB,0),U),REACNM=$P(^GMRD(120.83,REACNO,0),U)
  ...S ARRAY(SUBNM,REACNM)=""
  I $D(ARRAY) D

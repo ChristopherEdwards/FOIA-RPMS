@@ -1,5 +1,5 @@
-PXRMEVFI ; SLC/PKR - Driver for findings evaluation. ;24-Mar-2006 13:24;MGH
- ;;1.5;CLINICAL REMINDERS;**1001,1004**;Jun 19, 2000
+PXRMEVFI ; SLC/PKR - Driver for findings evaluation. ;25-Jan-2012 16:28;DU
+ ;;1.5;CLINICAL REMINDERS;**1001,1004,1008**;Jun 19, 2000;Build 25
  ; Modified IHS/CIA/MGH - 5/10/2004 - Added lines to call routines for reminder findings in IHS
  ; PATCH 1004 added call for refusals
  ;=======================================================================
@@ -27,8 +27,9 @@ EVAL(DFN,FIEVAL) ;Evaluate the findings by group using the "E"
  . ;-----------------------------------------------------------------
  . ; IHS/CIA/MGH - 5/10/2004 PATCH 1001 Calls below are to resolve findings using
  . ; files from IHS that are not used by VA.  They are Patient refusals
- . ; V-measurement files, family history and personal history
+ . ; V-measurement files, V asthma file
  . I FTYPE="AUTTREFT(" D EVALFI^BPXRMREF(DFN,.FIEVAL) Q
  . I FTYPE="AUTTMSR(" D EVALFI^BPXRMEA(DFN,.FIEVAL) Q   ;V Measurement file PATCH 1001
+ . I FTYPE="APCDACV(" D EVALFI^BPXRMAS1(DFN,.FIEVAL) Q  ;V Asthma file
  Q
  ;

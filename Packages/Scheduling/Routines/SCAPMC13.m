@@ -1,5 +1,5 @@
 SCAPMC13 ;ALB/REW - Team API's: TMPR ; JUN 30, 1995 [10/22/98 2:10pm]
- ;;5.3;Scheduling;**41,157**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,157,1015**;AUG 13, 1993;Build 21
  ;
 TMPR(SC200,SCDATES,SCPURPA,SCLIST,SCERR) ; -- list of teams for a pract
  ; input:

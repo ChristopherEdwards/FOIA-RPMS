@@ -1,5 +1,5 @@
 SCRPW78 ;BP-CIOFO/ESW - Clinic appointment availability extract ; 5/29/03 11:40am
- ;;5.3;Scheduling;**291**;AUG 13, 1993
+ ;;5.3;Scheduling;**291,1015**;AUG 13, 1993;Build 21
  ;
  Q  ; Must not call this routine directly
  ;

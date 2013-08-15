@@ -1,5 +1,5 @@
 SCAPMC1 ;ALB/REW - Team API's: PRTM ; JUN 26, 1995
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;;1.0
 PRTM(SCTEAM,SCDATES,SCUSRA,SCROLEA,SCLIST,SCERR) ; -- practitioners for team
  ; input:

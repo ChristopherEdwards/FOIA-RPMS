@@ -1,5 +1,5 @@
 VAFCPTED ;ISA/RJS,Zoltan-EDIT EXISTING PATIENT ;04/06/99
- ;;5.3;Registration;**149,333**;Aug 13, 1993
+ ;;5.3;Registration;**149,333,756,1015**;Aug 13, 1993;Build 21
 EDIT(DGDFN,ARRAY,STRNGDR) ;-- Edits existing patient
  ;Input:
  ;  DGDFN - IEN in the PATIENT (#2) file
@@ -37,6 +37,8 @@ EDIT(DGDFN,ARRAY,STRNGDR) ;-- Edits existing patient
  ;
 LOAD ; -- Loads fields to patient file
  N DR,DIE
+ ;**756 check if updating ALIAS
+ I FLD=1 D ALIAS Q
  S DA=DGDFN,DIE="^DPT("
  I $G(@ARRAY@(FLD))="" Q
  I $G(@ARRAY@(FLD))["@" S @ARRAY@(FLD)="@"
@@ -44,4 +46,27 @@ LOAD ; -- Loads fields to patient file
  I $G(@ARRAY@(FLD))[U Q
  S DR=FLD_"///^S X=$G(@ARRAY@(FLD))"
  D ^DIE
+ Q
+ ;
+ALIAS ; update Alias multiple **756
+ ;allow the synchronizing of the Alias multiple with the data passed in the array
+ ;array(1,x)=name (last, first middle suffix format)^ssn
+ N HAVE,I,MIEN,ADD,DONE,FDA,MPIFERR,DEL,ALIAS,CNT
+ M HAVE=^DPT(DGDFN,.01)
+ S CNT=0
+ ;see if any need to be added
+ S I=0 F  S I=$O(@ARRAY@(1,I)) Q:'I  D  ;loop through incoming data
+ . S ADD=1,(DONE,MIEN)=0 F  S MIEN=$O(HAVE(MIEN)) Q:'MIEN  D  I DONE Q  ;loop through existing data
+ ..I $P(@ARRAY@(1,I),"^",1,2)=$P($G(HAVE(MIEN,0)),"^",1,2) S ADD=0,DONE=1 Q  ;compare to existing data to see if already in subfile, if not then
+ .I ADD S ALIAS=@ARRAY@(1,I) D  ;add new entry to subfile
+ ..S FDA(2.01,"+"_I_","_DGDFN_",",.01)=$P(@ARRAY@(1,I),"^")
+ ..S FDA(2.01,"+"_I_","_DGDFN_",",1)=$P(@ARRAY@(1,I),"^",2)
+ I $D(FDA) D UPDATE^DIE("E","FDA",,"MPIFERR") I $G(MPIFERR("DIERR",1,"TEXT",1))'="" S RGER="-1^"_MPIFERR("DIERR",1,"TEXT",1)
+ ;delete entries
+ K FDA,MPIFERR
+ S MIEN=0 F  S MIEN=$O(HAVE(MIEN)) Q:'MIEN  D  ;loop through existing data
+ . S DEL=1,(DONE,I)=0 F  S I=$O(@ARRAY@(1,I)) Q:'I  D  I DONE Q  ;loop through incoming data
+ . . I $P($G(HAVE(MIEN,0)),"^",1,2)=$P(@ARRAY@(1,I),"^",1,2) S DEL=0,DONE=1 Q  ;compare to existing data to see if data should be deleted
+ . I DEL S FDA(2.01,MIEN_","_DGDFN_",",.01)="@" ;existing entry to delete
+ I $D(FDA) D FILE^DIE("E","FDA","MPIERR") I $G(MPIFERR("DIERR",1,"TEXT",1))'=""  S RGER="-1^"_MPIFERR("DIERR",1,"TEXT",1) ;delete entry
  Q

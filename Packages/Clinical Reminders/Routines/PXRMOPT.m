@@ -1,5 +1,5 @@
-PXRMOPT ; SLC/PKR - Prepare the final reminder output. ;14-Apr-2008 15:12;MGH
- ;;1.5;CLINICAL REMINDERS;**2,13,1005**;Jun 19, 2000
+PXRMOPT ; SLC/PKR - Prepare the final reminder output. ;19-Jul-2011 14:34;DU
+ ;;1.5;CLINICAL REMINDERS;**2,13,1005,1008**;Jun 19, 2000;Build 25
  ;
  ;=======================================================================
 ACTFT() ;Add the standard "condition false" text to the output string.
@@ -159,6 +159,7 @@ OUTPUT(PCLOGIC,RESLOGIC,RESDATE,FIEVAL) ;Prepare the clinical maintenance
  .. ;IHS/MSC/MGH Added the following lines for additional findings globals
  .. I FTYPE="AUTTREFT(" D OUTPUT^BPXRMREF(.NLINES,.TEXT,FINDING,.FIEVAL) G FNF
  .. I FTYPE="AUTTMSR(" D OUTPUT^BPXRMEA(.NLINES,.TEXT,FINDING,.FIEVAL) G FNF
+ .. I FTYPE="APCDACV(" D OUTPUT^BPXRMAS1(.NLINES,.TEXT,FINDING,.FIEVAL) G FNF
  ..;
 FNF .. D FNFTXT(.NLINES,.TEXT,DFN,FINDING,.FIEVAL)
  ..;Make sure each finding is processed only once.

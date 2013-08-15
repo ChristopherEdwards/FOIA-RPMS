@@ -1,5 +1,5 @@
 DG53312T ;ALB/GRR - RAI/MDS REMOVE DUPLICATES FROM ROOM-BED TRANSLATION FILE
- ;;5.3;Registration;**312**;Aug 13, 1993
+ ;;5.3;Registration;**312,1015**;Aug 13, 1993;Build 21
 EN ;
  N DGRBP,DGTIEN
  W !,"Starting Post Init to remove duplicate entries in Room-Bed"

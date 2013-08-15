@@ -1,5 +1,5 @@
-SCMCHLB2 ;BP/DJB - PCMM HL7 Bld Segment Array Deletes ; 3/6/00 8:41am
- ;;5.3;Scheduling;**177,204,210,224**;AUG 13, 1993
+SCMCHLB2 ;BPOI/DJB - PCMM HL7 Bld Segment Array Deletes;3/6/00
+ ;;5.3;Scheduling;**177,204,210,224,524,1015**;08/13/93;Build 21
  ;
 PTP ;Entry has been deleted from file 404.43. Send deletes to NPCD.
  ;
@@ -19,7 +19,8 @@ PTPD(PTPI) ;From PCMM HL7 ID file, get all ID's whose 1st piece equals PTPI,
  ;
  S ID=PTPI_"-"
  F  S ID=$O(^SCPT(404.49,"B",ID)) Q:ID=""!($P(ID,"-",1)'=PTPI)  D  ;
- . S DATA="^^^" ;........A Delete type ZPC segment
+ . N SUB  ; og/sd/524
+ . S SUB=PTPI,DATA="^^^" ;........A Delete type ZPC segment
  . ;djb/bp Patch 210. Eliminate indirection[rel 204]
  . D BLDZPC^SCMCHLS ;..Build segment (needs ID & DATA)
  . D CPYZPC^SCMCHLS ;..Copy segment into array (needs ID & VAFZPC)
@@ -63,7 +64,8 @@ POS ;Entry has been deleted from file 404.52. Send deletes to NPCD.
  .. D SEGMENTS^SCMCHLB1(DFN,PTPI) ;Bld array of EVN,PID segments
  .. S ID=""
  .. F  S ID=$O(@POS@(DFN,PTPI,ID)) Q:ID=""  D  ;djb/bp BIG-1199-71271
- ... S DATA="^^^" ;........A Delete type ZPC segment
+ ... N SUB  ; og/sd/524
+ ... S SUB=PTPI,DATA="^^^" ;........A Delete type ZPC segment
  ... ;djb/bp Patch 210. Eliminate indirection[rel 204]
  ... D BLDZPC^SCMCHLS ;..Build segment (needs ID & DATA)
  ... D CPYZPC^SCMCHLS ;..Copy segment into array (needs ID & VAFZPC)

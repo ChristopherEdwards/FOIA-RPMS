@@ -1,8 +1,8 @@
 BIENVCHK ;IHS/CMI/MWR - ENVIRONMENTAL CHECK FOR KIDS; DEC 15, 2010
- ;;8.5;IMMUNIZATION;**1**;JAN 03,2012
+ ;;8.5;IMMUNIZATION;**4**;DEC 01,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ENVIRONMENTAL CHECK ROUTINE FOR KIDS INSTALLATION.
- ;;  PATCH 2: Check environment for Imm v8.5 Patch 1.  START+53
+ ;;  PATCH 4, v8.5: Check environment for Imm v8.5 Patch 3.  START+53
  ;
  ;
  ;----------
@@ -67,13 +67,25 @@ START ;EP
  I '$$VCHK("BI","8.5",2) S XPDQUIT=2
  ;
  ;---> Check Patch Level of Imm.
- S X=$$LAST("IMMUNIZATION","8.5")
- ;---> Patch 1.
- ;I $P(X,U)'=1&($P(X,U)'>1) D  S XPDQUIT=2
- ;.W !,$$CJ^XLFSTR("BI v8.4 Patch 1 NOT INSTALLED",IOM)
- ;---> Patch 2.
- ;I $P(X,U)'=2&($P(X,U)'>2) D  S XPDQUIT=2
- .W !,$$CJ^XLFSTR("BI v8.5 Patch 1 NOT INSTALLED",IOM)
+ ;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
+ ;---> Check for Imm v8.5, required patch.
+ D
+ .S X=$$LAST("IMMUNIZATION","8.5")
+ .;---> Patch 1.
+ .;I $P(X,U)'=1&($P(X,U)'>1) D  S XPDQUIT=2
+ .;.W !,$$CJ^XLFSTR("BI v8.5 Patch 1 NOT INSTALLED",IOM)
+ .;---> Patch 2.
+ .;I $P(X,U)'=2&($P(X,U)'>2) D  S XPDQUIT=2
+ .;.W !,$$CJ^XLFSTR("BI v8.5 Patch 2 NOT INSTALLED",IOM)
+ .;---> Patch 3.
+ .I $P(X,U)'=3&($P(X,U)'>3) D  S XPDQUIT=2
+ ..W !,$$CJ^XLFSTR("BI v8.5 Patch 3 NOT INSTALLED",IOM)
+ .;
+ .I XPDQUIT'=2 D
+ ..;W !,$$CJ^XLFSTR("Checking for Patch 1 of BI v8.5.....Patch 1 Present",IOM)
+ ..;W !,$$CJ^XLFSTR("Checking for Patch 2 of BI v8.5.....Patch 2 Present",IOM)
+ ..W !,$$CJ^XLFSTR("Checking for Patch 3 of BI v8.5...Patch 3 Present",IOM)
+ ;**********
  ;
  ;---> Check for multiple BI entries in the Package File.
  N DA,DIC
@@ -110,7 +122,7 @@ VCHK(ABMPRE,ABMVER,ABMQUIT) ; Check versions needed.
  ;
  NEW ABMV
  S ABMV=$$VERSION^XPDUTL(ABMPRE)
- W !,$$CJ^XLFSTR("Need at least "_ABMPRE_" v"_ABMVER_"....."_ABMPRE_" v"_ABMV_" Present",IOM)
+ W !,$$CJ^XLFSTR("Need at least "_ABMPRE_" v"_ABMVER_"..."_ABMPRE_" v"_ABMV_" Present",IOM)
  I ABMV<ABMVER W !,$$CJ^XLFSTR("^^^^**NEEDS TO BE INSTALLED**^^^^",IOM) Q 0
  Q 1
  ;

@@ -1,5 +1,5 @@
 VAFCEHU1 ;ALB/JLU,PTD-FILE UTILITIES FOR 391.98 ;11/21/02  12:24
- ;;5.3;Registration;**149,255,307,477**;Aug 13, 1993
+ ;;5.3;Registration;**149,255,307,477,685,1015**;Aug 13, 1993;Build 21
  ;
 ADD(VAFCA,VAFCB) ;Main entry point to add an entry to 391.98
  ;INPUTS    VAFCA - This parameter contains a piece string of 4 elements
@@ -116,7 +116,7 @@ EXCPTN(REC,EVT,WHO,PAT,VAFCA) ;
  S DGSENFLG="" ;**255
  S DLAYGO=391.98
  S DIC="^DGCN(391.98,"
- S DIC(0)="L"
+ S DIC(0)="LI"
  S X=PAT
  S DIC("DR")=".02///"_REC_";.03///"_EVT_";.04///"_VAFCA_";50///"_WHO
  D FILE^DICN

@@ -1,5 +1,5 @@
 DG474PST ;BIR/PTD-PATCH DG*5.3*474 POST INSTALLATION ROUTINE ;10/10/02
- ;;5.3;Registration;**474**;Aug 13, 1993
+ ;;5.3;Registration;**474,1015**;Aug 13, 1993;Build 21
  ;
  ;Reference to TRIG^DICR supported by IA #3405
  ;

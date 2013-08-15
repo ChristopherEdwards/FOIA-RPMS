@@ -1,12 +1,12 @@
-SDNOS2 ;ALB/LDB - DIVISION TOTAL FOR NO-SHOW REPORT ; [ 09/13/2001  2:36 PM ]
- ;;5.3;Scheduling;**194**;Aug 13, 1993
+SDNOS2 ;ALB/LDB - DIVISION TOTAL FOR NO-SHOW REPORT ; 07 May 99 10:25 AM
+ ;;5.3;Scheduling;**194,410,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/03/2000 added total # appts to % statement
  ;                        removed page # from list template
  ;
 SDTOT Q:SDEND  D HDR W !,?30,"TOTALS FOR   ",SDDIV2 D HDR2
  N SDRT S SDRT="^UTILITY($J,""SDNO"",SDDIV)"
- W !!,?27,$G(@SDRT@("***N***","***TOT***"))+$G(@SDRT@("***NT***","***TOT***")),?47,@SDRT@("***NA***","***TOT***"),?75,@SDRT@("***TOT***"),!!!
- S SDPR1(SDDIV)=$S(@SDRT@("***TOT***"):$J(((^("***TOT***")/(@SDRT@("***SDNMS***")+@SDRT@("***TOT***")))*100),2,0),1:0)_"%" ; NAKED REFERENCE - ^UTILITY($J,"SDNO",DIV,"***TOT***")
+ W !!,?27,$G(@SDRT@("***N***","***TOT***"))+$G(@SDRT@("***NT***","***TOT***"))+$G(@SDRT@("******","***TOT***")),?47,@SDRT@("***NA***","***TOT***"),?75,@SDRT@("***TOT***"),!!!
+ S SDPR1(SDDIV)=$S(@SDRT@("***TOT***"):$J((^("***TOT***")/@SDRT@("***SDNMS***")*100),2,0),1:0)_"%" ; NAKED REFERENCE - ^UTILITY($J,"SDNO",DIV,"***TOT***")
  D:(SDIO=IO(0))&($E(IOST,1,2)="C-") OUT^SDUTL Q:SDEND  D:$Y+6>IOSL HDR
  ;W !!,SDPR1(SDDIV)," of appointments in the clinic(s) selected for this report",!,"for this period were NO-SHOWS ",! Q  ;IHS/ANMC/LJF 11/03/2000
  NEW X S X=$G(^UTILITY($J,"SDNO",SDDIV,"***SDNMS***"))+$G(^UTILITY($J,"SDNO",SDDIV,"***TOT***"))  ;IHS/ANMC/LJF 11/03/2000 total appts

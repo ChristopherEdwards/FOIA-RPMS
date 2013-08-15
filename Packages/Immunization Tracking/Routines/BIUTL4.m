@@ -1,9 +1,10 @@
 BIUTL4 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; OCT 15, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: SCREENMAN CODE: VAC SELECT ACTIONS, SERIES VALID,
  ;;           LOC BRANCHING LOGIC, VISIT LOC DEF, SKIN TEST READ MM.
- ;;  PATCH 2: Filter for BADREAD+9
+ ;;  PATCH 2: Comment out code that would disable VFC Elig field for
+ ;            patients >19yrs.  OLDDATE+15
  ;
  ;----------
 VACSCR ;EP
@@ -275,6 +276,11 @@ OLDDATE(X) ;EP
  ;
  ;---> If the patient is/was 19 yrs or older on the Imm date, DISABLE
  ;---> Field 10.5 VFC Eligibility and set VFC="".
+ ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> Comment out code that would disable VFC Elig field for patients >19yrs.
+ Q
+ ;
  N BIDATE S BIDATE=X
  N BIDOB S BIDOB=$$DOB^BIUTL1($G(BIDFN))
  Q:'BIDATE  Q:'BIDOB
@@ -282,6 +288,7 @@ OLDDATE(X) ;EP
  .D UNED^DDSUTL(10.5,,,1) S BI("P")="" D PUT^DDSVALF(10.5) Q
  D UNED^DDSUTL(10.5,,,0)
  Q
+ ;**********
  ;
  ;
  ;----------

@@ -1,5 +1,5 @@
 ABMDEMLA ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES PART 2 ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**4**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,9**;NOV 12, 2009
  ;
  ; IHS/ASDS/LSL - 04/26/01 - V2.4 Patch 9 - NOIS BXX-0401-150085
  ;     Allow resequencing of DX when list contains more than
@@ -28,7 +28,8 @@ S2 K ABMX F ABMX=1:1 S ABMX("Y")=$P(Y,",",ABMX) Q:ABMX("Y")=""  Q:+ABMX("Y")'>0!
  I (ABMZ("NUM")+1)'=ABMX W *7,!!,"ERROR: Invalid input, to re-sequence all sequence numbers must be specified",!,"       and separated with commas.",! Q
  S DA(1)=ABMP("CDFN"),DIC="^ABMDCLM(DUZ(2),"_DA(1)_","_ABMZ("SUB")_",",DIC(0)="LE"
  K ^ABMDCLM(DUZ(2),DA(1),ABMZ("SUB")) S ^ABMDCLM(DUZ(2),DA(1),ABMZ("SUB"),0)="^9002274.30"_ABMZ("SUB")_"P^^"
- F ABMX=1:1:ABMZ("NUM") S X=$P(ABMZ(ABMX),U,3),DIC("DR")=".02////"_ABMX(ABMX)_";.05////"_$P($G(ABMZ(ABMX)),U,5) S:ABMZ("X")="DINUM" DINUM=X D DR
+ ;F ABMX=1:1:ABMZ("NUM") S X=$P(ABMZ(ABMX),U,3),DIC("DR")=".02////"_ABMX(ABMX)_";.05////"_$P($G(ABMZ(ABMX)),U,5) S:ABMZ("X")="DINUM" DINUM=X D DR  ;abm*2.6*9 HEAT63840
+ F ABMX=1:1:ABMZ("NUM") S X=$P(ABMZ(ABMX),U,3),DIC("DR")=".02////"_ABMX(ABMX)_";.03////"_$P($G(ABMZ(ABMX)),U,3)_";.04////"_$P($G(ABMZ(ABMX)),U,5)_";.05////"_$P($G(ABMZ(ABMX)),U,6) S:ABMZ("X")="DINUM" DINUM=X D DR  ;abm*2.6*9 HEAT63840
  Q
  ;
 RES(ABMULT) ;EP - RESET PRIORITIES - X=MULTIPLE

@@ -1,5 +1,5 @@
 DGENCDRP ;ISA/Zoltan - Catastrophic Disability Eligibily Code Report;6/24/99
- ;;5.3;Registration;**232**;Aug 13,1993
+ ;;5.3;Registration;**232,1015**;Aug 13,1993;Build 21
 REPORT ; Print a report of all patients having the CATASTROPHICALLY DISABLED
  ; Eligibility code.
  W:$X !!

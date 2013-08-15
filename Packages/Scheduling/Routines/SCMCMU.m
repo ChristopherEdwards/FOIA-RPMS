@@ -1,5 +1,5 @@
 SCMCMU ;ALB/MJK - PCMM Mass Team/Position Unassignment Utility ; 10 Jul 98
- ;;5.3;Scheduling;**148**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,1015**;AUG 13, 1993;Build 21
  ;
 EN ; -- entry point for mass unassignment (mu)
  ;

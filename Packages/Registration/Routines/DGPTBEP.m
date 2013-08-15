@@ -1,5 +1,5 @@
 DGPTBEP ;ALB/BOK - PURGE DRG BREAKEVEN DATA ; 26 MAR 87
- ;;5.3;Registration;**158**;Aug 13, 1993
+ ;;5.3;Registration;**158,1015**;Aug 13, 1993;Build 21
  D LO^DGUTL
 START R !,"Purge BREAKEVEN data for Fiscal Year: ",DGFY:DTIME Q:DGFY["^"!('$T)!(DGFY']"")
  I DGFY'?2N W !?2,"Enter Fiscal Year as 86 for FY 86." G START

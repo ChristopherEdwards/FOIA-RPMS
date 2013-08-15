@@ -1,5 +1,5 @@
-BCHRP2 ; IHS/TUCSON/LAB - All visit report driver ;  [ 04/02/01  9:35 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**12**;OCT 28, 1996
+BCHRP2 ; IHS/CMI/LAB - All visit report driver 26 Apr 2007 10:34 AM ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
 START ; 
  I '$G(DUZ(2)) W $C(7),$C(7),!!,"SITE NOT SET IN DUZ(2) - NOTIFY SITE MANAGER!!",!! K BCHSITE Q
@@ -18,12 +18,17 @@ ED ;get ending date
  ;
 PROG ;IHS/CMI/LAB - added program screen
  S BCHPRG=""
- S DIR(0)="Y",DIR("A")="Include data from ALL CHR Programs",DIR("?")="If you wish to include visits from ALL programs answer Yes.  If you wish to tabulate for only one program enter NO." D ^DIR K DIR
+ S DIR(0)="Y",DIR("A")="Include data from ALL CHR Programs",DIR("B")="N",DIR("?")="If you wish to include visits from ALL programs answer Yes.  If you wish to tabulate for only one program enter NO." D ^DIR K DIR
  G:$D(DIRUT) BD
- I Y=1 S BCHPRG="" G ZIS
+ I Y=1 S BCHPRG="" G REG
 PROG1 ;enter program
  K X,DIC,DA,DD,DR,Y S DIC("A")="Which CHR Program: ",DIC="^BCHTPROG(",DIC(0)="AEMQ" D ^DIC K DIC,DA G:Y<0 PROG
  S BCHPRG=+Y
+REG ;
+ S BCHREG="",BCHREGN=""
+ S DIR(0)="S^R:Registered Patients;N:Non-Registered Patients;B:Both Registered and Non-Registered Patients",DIR("A")="Include which Patients",DIR("B")="B" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G PROG
+ S BCHREG=Y,BCHREGN=Y(0)
 ZIS ;CALL TO XBDBQUE
  S XBRP="^BCHRP2P",XBRC="^BCHRP21",XBRX="XIT^BCHRP2",XBNS="BCH"
  D ^XBDBQUE
@@ -39,7 +44,7 @@ XIT ;
 INFORM ;
  W:$D(IOF) @IOF
  W !,"****** ACTIVITY REPORT ******",!
- W !,"This report will tally activities by Program, Setting, and CHR.",!
+ W !,"This report will tally activities by Program, CHR and Activity Location.",!
  Q
  ;
  ;

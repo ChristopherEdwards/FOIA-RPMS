@@ -1,5 +1,5 @@
-APSPCO ; IHS/MSC/PLS - List Manager Complete Orders ;23-Mar-2012 14:45;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1013**;Sep 23, 2004;Build 33
+APSPCO ; IHS/MSC/PLS - List Manager Complete Orders ;25-May-2012 17:20;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1013,1014**;Sep 23, 2004;Build 5
  ;=================================================================
 EN ; -- main entry point for APSP COMPLETE ORDERS
  D:'$D(PSOPAR) ^PSOLSET I '$D(PSOPAR) D MSG^PSODPT G EX^PSOORFIN
@@ -126,7 +126,8 @@ SORTLST ;EP-
  F  S LP=$O(@VALMAR@(LP)) Q:'LP  D
  .S POFIEN=$P(@VALMAR@(LP,"POFIEN"),U,2)
  .Q:'POFIEN
- .S NOD0=^PS(52.41,POFIEN,0)
+ .S NOD0=$G(^PS(52.41,POFIEN,0))
+ .Q:'NOD0
  .S IDX=$S(CL=1:$$HRN^AUPNPAT($P(NOD0,U,2),$S(APSPINS:APSPINS,1:DUZ(2))),CL=2:$$GET1^DIQ(2,$P(NOD0,U,2),.01),CL=3:$$DOB^AUPNPAT($P(NOD0,U,2)),CL=5:$$GET1^DIQ(44,$P(NOD0,U,13),.01),1:$$SRTDT())  ;1:$P(NOD0,U,6))
  .S CNT=CNT+1
  .S NARY("IDX",IDX,POFIEN)=""

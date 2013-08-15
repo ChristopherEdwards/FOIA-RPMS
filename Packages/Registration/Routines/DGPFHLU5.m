@@ -1,5 +1,5 @@
-DGPFHLU5 ;ALB/RPM - PRF HL7 ACK PROCESSING ; 6/20/03 11:30am
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFHLU5 ;ALB/RPM - PRF HL7 ACK PROCESSING ; 6/21/06 10:18am
+ ;;5.3;Registration;**425,718,650,1015**;Aug 13, 1993;Build 21
  ;
  Q
  ;
@@ -8,14 +8,13 @@ PROCERR(DGLIEN,DGACK,DGERR) ;process errors returned from ACK
  ;  Input:
  ;    DGLIEN - IEN of PRF HL7 TRANSMISSION LOG (#26.17) file
  ;     DGACK - array of ACK parse data
- ;     DGERR - array of parsed errors (ex: DGERR(1)="UU")
+ ;     DGERR - array of parsed errors (ex: DGERR(1)=error_code)
  ;
  ; Output: none
  ;
  N DGPFA   ;assignment array
  N DGPFAH  ;assignment history array
  N DGPFL   ;HL7 transmission log array
- N DGTBL   ;error code array
  N DGXMTXT ;mailman msg text array 
  ;
  I +$G(DGLIEN),$D(DGACK),$D(DGERR) D
@@ -26,17 +25,21 @@ PROCERR(DGLIEN,DGACK,DGERR) ;process errors returned from ACK
  . ;retrieve assignment history values
  . Q:'$$GETHIST^DGPFAAH(+$G(DGPFL("ASGNHIST")),.DGPFAH)
  . ;
+ . ;retransmit and quit if dialog error code "Assignment not found"
+ . I $$FNDDIA(261102,.DGERR) D  Q
+ . . ;transmit all assignment records to rejecting site
+ . . Q:'$$XMIT^DGPFLMT5(+$G(DGPFAH("ASSIGN")),$P($G(DGPFL("SITE")),U))
+ . . ;update HL7 transmission log status (RE-TRANSMITTED)
+ . . D STOSTAT^DGPFHLL(26.17,DGLIEN,"RT")
+ . ;
  . ;retrieve assignment values
  . Q:'$$GETASGN^DGPFAA(+$G(DGPFAH("ASSIGN")),.DGPFA)
  . ;
  . S DGXMTXT=$NA(^TMP("DGPFERR",$J))
  . K @DGXMTXT
  . ;
- . ;load error code table
- . D BLDVA086^DGPFHLU3(.DGTBL)
- . ;
  . ;create message text array
- . D BLDMSG(.DGPFA,.DGACK,.DGERR,.DGTBL,DGXMTXT)
+ . D BLDMSG(.DGPFA,.DGACK,.DGERR,DGXMTXT)
  . ;
  . ;send the notification message
  . D SEND(DGXMTXT)
@@ -45,7 +48,7 @@ PROCERR(DGLIEN,DGACK,DGERR) ;process errors returned from ACK
  . K @DGXMTXT
  Q
  ;
-BLDMSG(DGPFA,DGACK,DGERR,DGTBL,DGXMTXT) ;buld MailMan message array
+BLDMSG(DGPFA,DGACK,DGERR,DGXMTXT) ;build MailMan message array
  ;
  ;  Supported DBIA #2171:  The supported DBIA is uses to access Kernel
  ;                         APIs for retrieving Station numbers and names
@@ -56,8 +59,7 @@ BLDMSG(DGPFA,DGACK,DGERR,DGTBL,DGXMTXT) ;buld MailMan message array
  ;  Input:
  ;    DGPFA - assignment data array
  ;    DGACK - array of ACK data
- ;    DGERR - array of parsed errors (ex: DGERR(1)="UU")
- ;    DGTBL - VA086 error code table array
+ ;    DGERR - array of parsed errors (ex: DGERR(1)=error_code)
  ;
  ;  Output:
  ;    DGXMTXT - array of MailMan text lines
@@ -66,13 +68,16 @@ BLDMSG(DGPFA,DGACK,DGERR,DGTBL,DGXMTXT) ;buld MailMan message array
  N DGCOD   ;error code
  N DGDEM   ;patient demographics array
  N DGDFN   ;pointer to PATIENT (#2) file
+ N DGDLG   ;DIALOG array
  N DGFAC   ;facility data array from XUAF4 call
+ N DGI     ;generic counter
  N DGICN   ;integrated control number
  N DGLIN   ;line counter
  N DGMAX   ;maximum line length
  N DGSITE  ;results of VASITE call
  N DGSNDSTA  ;sending station number
  N DGSNDNAM  ;sending station name
+ N DGTBL   ;error code table array
  ;
  S DGDFN=+$G(DGPFA("DFN"))
  Q:(DGDFN'>0)
@@ -81,6 +86,9 @@ BLDMSG(DGPFA,DGACK,DGERR,DGTBL,DGXMTXT) ;buld MailMan message array
  Q:'$$GETPAT^DGPFUT2(DGDFN,.DGDEM)
  S DGICN=$$GETICN^MPIF001(DGDFN)
  S DGICN=$S(+DGICN>0:DGICN,1:$P(DGICN,U,2))
+ ;
+ ;load error code table
+ D BLDVA086^DGPFHLU3(.DGTBL)
  ;
  S DGLIN=0
  S DGMAX=65
@@ -94,6 +102,7 @@ BLDMSG(DGPFA,DGACK,DGERR,DGTBL,DGXMTXT) ;buld MailMan message array
  D ADDLINE("",0,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("A facility could not process the following Patient Record Flag assignment on "_$$FMTE^XLFDT($G(DGACK("MSGDTM")))_".",0,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("",0,DGMAX,.DGLIN,DGXMTXT)
+ D ADDLINE("Message Control ID#: "_$G(DGACK("MSGID")),4,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("Receiving Facility name: "_DGSNDNAM_" ("_DGSNDSTA_")",0,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("",0,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("Flag Name: "_$P($G(DGPFA("FLAG")),U,2),14,DGMAX,.DGLIN,DGXMTXT)
@@ -102,14 +111,36 @@ BLDMSG(DGPFA,DGACK,DGERR,DGTBL,DGXMTXT) ;buld MailMan message array
  D ADDLINE("Social Security #: "_DGDEM("SSN"),6,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("Date of Birth: "_$$FMTE^XLFDT(DGDEM("DOB"),"2D"),10,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("Integrated Control #: "_DGICN,3,DGMAX,.DGLIN,DGXMTXT)
+ D ADDLINE("Owning Site: "_$P($G(DGPFA("OWNER")),U,2)_" ("_$$STA^XUAF4($P($G(DGPFA("OWNER")),U))_")",12,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("",0,DGMAX,.DGLIN,DGXMTXT)
+ ;
+ ;loop through each error
  S DGCNT=0
  F  S DGCNT=$O(DGERR(DGCNT)) Q:'DGCNT  D
+ . K DGDLG
  . S DGCOD=DGERR(DGCNT)
- . I DGCOD]"",$D(DGTBL(DGCOD,"DESC")) D
- . . D ADDLINE("Reason#: "_DGCNT,0,DGMAX,.DGLIN,DGXMTXT)
- . . D ADDLINE(DGTBL(DGCOD,"DESC"),12,DGMAX,.DGLIN,DGXMTXT)
- . . D ADDLINE("",0,DGMAX,.DGLIN,DGXMTXT)
+ . ;
+ . ;assume numeric error code is a DIALOG
+ . I DGCOD?1N.N D BLD^DIALOG(DGCOD,"","","DGDLG","S")
+ . I $D(DGDLG) D FORMAT^DGPFLMT4(.DGDLG,DGMAX-12)
+ . ;
+ . ;if not a DIALOG, then is it a table entry?
+ . I '$D(DGDLG),DGCOD]"",$D(DGTBL(DGCOD,"DESC")) S DGDLG(1)=DGTBL(DGCOD,"DESC")
+ . ;
+ . ;not a DIALOG or table entry - then error is unknown
+ . I '$D(DGDLG) S DGDLG(1)="Unknown Error code: '"_DGCOD_"'"
+ . ;
+ . ;error header
+ . D ADDLINE("Reason#: "_DGCNT,0,DGMAX,.DGLIN,DGXMTXT)
+ . ;
+ . ;loop through error text array
+ . S DGI=0
+ . F  S DGI=$O(DGDLG(DGI)) Q:'DGI  D
+ . . D ADDLINE(DGDLG(DGI),12,DGMAX,.DGLIN,DGXMTXT)
+ . ;
+ . ;error separator
+ . D ADDLINE("",0,DGMAX,.DGLIN,DGXMTXT)
+ ;
  Q
  ;
 ADDLINE(DGTEXT,DGINDENT,DGMAXLEN,DGCNT,DGXMTXT) ;add text line to message array
@@ -137,7 +168,7 @@ ADDLINE(DGTEXT,DGINDENT,DGMAXLEN,DGCNT,DGXMTXT) ;add text line to message array
  ;
  S DGPAD=$$REPEAT^XLFSTR(" ",DGINDENT)
  ;
- ;determine availaible space for text
+ ;determine available space for text
  S DGAVAIL=(DGMAXLEN-DGINDENT)
  F  D  Q:('$L(DGTEXT))
  . ;
@@ -176,3 +207,23 @@ SEND(DGXMTXT) ;send the MailMan message
  S XMY("G.DGPF HL7 TRANSMISSION ERRORS")=""
  D ^XMD
  Q
+ ;
+FNDDIA(DGDIA,DGERR) ;find dialog code
+ ;This function searches an array for a specific DIALOG (#.84) code.
+ ;
+ ;  Input: (required)
+ ;     DGDIA - dialog error code
+ ;     DGERR - array of parsed errors (ex: DGERR(1)=error_code)
+ ;
+ ; Output:
+ ;   Function value - 1 on success; 0 on failure
+ ;
+ N DGI      ;generic counter
+ N DGRSLT   ;function value
+ S (DGI,DGRSLT)=0
+ ;
+ I +$G(DGDIA),$D(DGERR) D
+ . F  S DGI=$O(DGERR(DGI)) Q:'DGI  D  Q:DGRSLT
+ . . I $G(DGERR(DGI))=DGDIA S DGRSLT=1
+ ;
+ Q DGRSLT

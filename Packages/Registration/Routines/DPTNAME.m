@@ -1,5 +1,32 @@
 DPTNAME ;BPOIFO/KEITH - NAME STANDARDIZATION ; 27 Jan 2002 11:05 PM
- ;;5.3;Registration;**244**;Aug 13, 1993
+ ;;5.3;Registration;**244,620,1015**;Aug 13, 1993;Build 21
+ ;
+NARY(DG20NAME) ;Set up name array  ihs/cmi/maw 04/07/2012 PATCH 1015 put back in
+ ;Input: DG20NAME=full name value
+ ;       DG20NAME(component_names)=corresponding value--if undefined,
+ ;                these will get set up
+ ;
+ N DGX M DGX=DG20NAME
+ D STDNAME^XLFNAME(.DG20NAME,"FC")
+ M DG20NAME=DGX
+ S DG20NAME("NOTES")=$$NOTES^DPTNAME1()
+ Q
+ ;
+POSTC(DGX) ;Post-clean components
+ ;Remove parenthesis if not removed by Kernel
+ N DGI,DGXOLD
+ S DGXOLD=DGX,DGX=$TR(DGX,"()[]{}")
+ ;Check for numbers left behind by Kernel
+ F DGI=0:1:9 S DGX=$TR(DGX,DGI)
+ I DGX'=DGXOLD S DGAUDIT(4)=""
+ Q DGX
+ ;
+NOP(DGX) ;Produce 'NOP' x-ref value
+ ;Input: DGX=name value to evaluate
+ ;Output : Standardized name or null if the same as input value
+ N DGNEWX
+ S DGNEWX=$$FORMAT(DGX,3,30,1)
+ Q $S(DGX=DGNEWX:"",1:DGNEWX)
  ;
 FORMAT(DGNAME,DGMINL,DGMAXL,DGNOP,DGCOMA,DGAUDIT,DGFAM,DGDNC) ;Format name value
  ;Input: DGNAME=text value representing person name to transform
@@ -79,33 +106,6 @@ FORMAT(DGNAME,DGMINL,DGMAXL,DGNOP,DGCOMA,DGAUDIT,DGFAM,DGDNC) ;Format name value
  S DGNEWN=DGNAME M DGNAME=DGX S DGNAME=DGNEWN
  Q DGNAME
  ;
-POSTC(DGX) ;Post-clean components
- ;Remove parenthesis if not removed by Kernel
- N DGI,DGXOLD
- S DGXOLD=DGX,DGX=$TR(DGX,"()[]{}")
- ;Check for numbers left behind by Kernel
- F DGI=0:1:9 S DGX=$TR(DGX,DGI)
- I DGX'=DGXOLD S DGAUDIT(4)=""
- Q DGX
- ;
-NOP(DGX) ;Produce 'NOP' x-ref value
- ;Input: DGX=name value to evaluate
- ;Output : Standardized name or null if the same as input value
- N DGNEWX
- S DGNEWX=$$FORMAT(DGX,3,30,1)
- Q $S(DGX=DGNEWX:"",1:DGNEWX)
- ;
-NARY(DG20NAME) ;Set up name array
- ;Input: DG20NAME=full name value
- ;       DG20NAME(component_names)=corresponding value--if undefined,
- ;                these will get set up
- ;
- N DGX M DGX=DG20NAME
- D STDNAME^XLFNAME(.DG20NAME,"FC")
- M DG20NAME=DGX
- S DG20NAME("NOTES")=$$NOTES^DPTNAME1()
- Q
- ;
 NCEDIT(DFN,DGHDR,DG20NAME) ;Edit name components
  ;Input: DFN=patient ifn
  ;     DGHDR=1 to write components header (optional)
@@ -156,7 +156,7 @@ ASK .D ^DIR I $D(DTOUT)!(X=U) S:(X=U) DGCOUT=1 S DGOUT=1 Q
  .Q:'$L(X)
  .S DG20NAME=X
  .I DGCOMP="SUFFIX" S DG20NAME=$$CLEANC^XLFNAME(DG20NAME)
- .S DG20NAME=$$FORMAT(DG20NAME,1,35,,3,,1,1)
+ .S DG20NAME=$$FORMAT^XLFNAME7(DG20NAME,1,35,,3,,1,1)
  .I '$L(DG20NAME) W "  ??",$C(7) G ASK
  .W:DG20NAME'=X "   (",DG20NAME,")" S DG20NAME(DGCOMP)=DG20NAME
  .S:DG20NAME(DGCOMP)'=$G(DGX(DGCOMP)) DGEDIT=1
@@ -167,7 +167,7 @@ ASK .D ^DIR I $D(DTOUT)!(X=U) S:(X=U) DGCOUT=1 S DGOUT=1 Q
  S DG20NAME=$$NAMEFMT^XLFNAME(.DG20NAME,"F","CFL30")
  ;Format the .01 value
  M DGY=DG20NAME
- S DG20NAME=$$FORMAT(.DGY,3,30,,2)
+ S DG20NAME=$$FORMAT^XLFNAME7(.DGY,3,30,,2)
  ;Check the length
  I $L(DG20NAME)<3 D  G START
  .W !,"Invalid values to file, full name must be at least 3 characters!",$C(7)

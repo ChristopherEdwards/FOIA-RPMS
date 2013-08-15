@@ -1,5 +1,5 @@
 SCDXSUP1 ;RENO/KEITH ALB/SCK - Supervisory Options for Ambulatory Care Reporting; 2/26/97
- ;;5.3;Scheduling;**104,127,132**;Aug 13,1993
+ ;;5.3;Scheduling;**104,127,132,1015**;Aug 13,1993;Build 21
  Q
  ;
 APPTY ; Edit Appointment type for Add/Edit

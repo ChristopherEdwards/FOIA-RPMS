@@ -1,5 +1,5 @@
 DGPTMSG1 ;ALB/AS - Format PTF Messages ; 7 NOV 89 @ 0800
- ;;5.3;Registration;**61**;Aug 13, 1993
+ ;;5.3;Registration;**61,1015**;Aug 13, 1993;Build 21
  ;
 DICN ; -- add message entry
  I $P(^DG(43,1,0),"^",40)=0 S Y=-1 G DICNQ

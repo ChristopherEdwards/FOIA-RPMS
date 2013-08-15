@@ -1,5 +1,5 @@
 DGVREL3 ;ALB/MRL - FORMAT RELEASE MESSAGE/LETTER ; 2 JUN 87
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  K ^UTILITY($J) D:'$D(DT) DT^DICRW S Y=DT X ^DD("DD") S DGD=Y,DGFAC=$S($D(^DD("SITE"))#2:^("SITE"),1:"FACILITY UNKNOWN")_$S($D(^DD("SITE",1)):" ("_^(1)_")",1:""),DGS="MAS V."_DGVREL_" INSTALLATION"
  S DGC=0 I DGHOW="L" S DGT="DATE:  "_DGD D S S DGT="" D S S DGT="FROM:  "_DGFAC D S S DGT="" D S S DGT="SUBJ:  "_DGS D S F I=1:1 S DGT=$P($T(TO+I),";;",2) Q:DGT="QUIT"  D S
  S DGT="1.  DPT Installation: STARTED            COMPLETED          HOURS  MINUTES" D S,L

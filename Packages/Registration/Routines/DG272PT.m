@@ -1,5 +1,5 @@
 DG272PT ;alb/maw-DG*5.3*272 POST-INSTALL TO PURGE IVM DATA ;2/1/2000 [ 01/24/2002  2:28 PM ]
- ;;5.3;Registration;**272**;Aug 13, 1993
+ ;;5.3;Registration;**272,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 4/12/2000 quit added to bypass purge for IHS sites
  ;
  ; This routine is the post-installation for patch DG*5.3*272.

@@ -1,5 +1,5 @@
 SCMSVZSP ;ALB/ESD HL7 ZSP Segment Validation ;05/08/95
- ;;5.3;Scheduling;**44,66**;Aug 13, 1993
+ ;;5.3;Scheduling;**44,66,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN(ZSPSEG,HLQ,HLFS,VALERR,DFN) ;

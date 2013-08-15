@@ -1,6 +1,7 @@
 LRSPT ;AVAMC/REG/WTY - AP PRELIMINARY REPORTS ;10/16/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**1,72,248,259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 1,72,248,259,373
  ;
  ;Reference to ^%DT supported by IA #10003
  ;Reference to ^DPT supported by IA #918
@@ -67,7 +68,7 @@ D K ^UTILITY($J) I '$D(^LR(LRDFN,0)) K ^LRO(69.2,LRAA,1,LRAN) Q
 AU I $D(^LR(LRDFN,"AU")),$L($P(^LR(LRDFN,"AU"),"^")) D ^LRAPT2 Q:LR("Q")
  K ^UTILITY($J) S DIWR=IOM-5,DIWF="W",LR("A")=0
  W ! F LRZ=0:1 S LR("A")=$O(^LRO(69.2,LRAA,10,LR("A"))) Q:'LR("A")  D
- .D:$Y>(IOSL-6) H S X=^LRO(69.2,LRAA,10,LR("A"),0) D ^DIWP
+ .D:$Y>(IOSL-13) F^LRAPF,H S X=^LRO(69.2,LRAA,10,LR("A"),0) D ^DIWP
  D:LRZ ^DIWW
  S LRO=1 D F^LRAPF
  Q

@@ -1,5 +1,5 @@
-SDSTAT ;MJK/ALB - Appt Status Update Protocol for ADT ; 7/14/92 [ 12/05/2001  11:15 AM ]
- ;;5.3;Scheduling;**31,132**;Aug 13, 1993
+SDSTAT ;MJK/ALB - Appt Status Update Protocol for ADT ; 7/14/92
+ ;;5.3;Scheduling;**31,132,396,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 12/05/2001 if in ADT quiet mode, set SD quiet mode
  ;
 EN ; -- main entry point called by ADT event driver
@@ -63,13 +63,16 @@ UPDATE(DFN,SDT) ; -- update appt status
  I SDSTB=""!(SDSTB="NT")!(SDSTB="I") S SDSTA=$$STAT() I SDSTB'=SDSTA D
  .I $$REQ^SDM1A(SDT)="CI"!(SDT'<(DT+.2359)) S $P(^DPT(DFN,"S",SDT,0),U,2)=SDSTA Q
  .I SDT<(DT+.2359) D
- ..N SDATA,SDADTHDL
+ ..N SDATA,SDADTHDL,SDOEC
  ..S SDOE=$S(SDOE:SDOE,1:+$$GETAPT^SDVSIT2(DFN,SDT,SDCL)) Q:'SDOE
  ..S SDADTHDL=$$HANDLE^SDAMEVT(+$P($G(^SCE(SDOE,0)),U,8))
  ..D OEVT^SDAMEVT(SDOE,"BEFORE",SDADTHDL,.SDATA)
  ..S $P(^DPT(DFN,"S",SDT,0),U,2)=SDSTA
  ..D OE(SDOE,SDSTB,SDSTA,SDADTHDL)
  ..D OEVT^SDAMEVT(SDOE,"AFTER",SDADTHDL,.SDATA)
+ ..I SDSTA="I",$G(SDOE),$P($G(^SCE(SDOE,0)),U,12)=14 D
+ ...S $P(^SCE(SDOE,0),U,12)=8
+ ...S SDOEC=$O(^SCE("APAR",SDOE,SDOE)) I SDOEC S $P(^SCE(SDOEC,0),U,12)=8
 UPDATEQ Q
  ;
 STAT() ; -- determine status of appt

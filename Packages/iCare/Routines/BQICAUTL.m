@@ -1,5 +1,5 @@
 BQICAUTL ;VNGT/HS/ALA-Utility for CA ; 29 Mar 2011  4:49 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 TAX(TMFRAME,TAX,NIT,PTDFN,FREF,PRB,SAME,TREF) ;EP
  ; Find value for a taxonomy (TAX) or list of taxonomies (TREF)
@@ -95,7 +95,123 @@ MEAS(BQDFN,MEAS,VISIT,RESVAL,OPER) ;EP - Get measurement
  . I @(RESULT_OPER_RESVAL) S VALUE="1^"_VDATE_U_RESULT_U_VISIT_U_IEN_U_"9000010.01"
  Q VALUE
  ;
+LAB(TMFRAME,RECENT,BQDFN,TAX,SEARCH,TREF) ;EP
+ ; Check for a lab test result
+ ;
+ ; Input
+ ;   TMFRAME - Time frame to search data for
+ ;   RECENT  - 1=Only check most recent lab,0=Check all within timeframe
+ ;   BQDFN   - Patient internal entry number
+ ;   TAX     - Lab taxonomy to search
+ ;   RESULT  - Lab result to check for
+ ;   OPER    - Operand to use for result check
+ ;   RES2    - If range, the other result value
+ ;   OPER2   - If range, the other result operand
+ ;   TREF    - Multiple same resulting taxonomies built
+ ;             into reference (usually global)
+ ;
+ NEW TEMP,EDATE,BDATE,LIEN,QFL,RES,CT,VALUE,VIEN,VSDTM
+ S BDATE=$$DATE^BQIUL1(TMFRAME),EDATE=DT
+ S TEMP=$NA(^TMP("BQITEMP",UID)) K @TEMP
+ S TAX=$G(TAX,""),RECENT=$G(RECENT,0)
+ I TAX'="" D
+ . S TREF=$NA(^TMP("BQITAX",UID))
+ . K @TREF
+ . D BLD^BQITUTL(TAX,TREF)
+ ;
+ S LIEN="",QFL=0,RES=0_U_"No Test",CT=0
+ I $G(TMFRAME)'="" D
+ . S TIEN=""
+ . F  S TIEN=$O(@TREF@(TIEN)) Q:TIEN=""  D
+ .. S EDT=9999999-BDATE,BDT=(9999999-DT)-.001
+ .. I $P($G(^LAB(60,TIEN,0)),U,4)="MI" D  Q
+ ... D MIC(BQDFN,TIEN,EDT,BDT,.MICRO)
+ ... M @TEMP=MICRO
+ ... K MICRO
+ .. F  S BDT=$O(^AUPNVLAB("AA",BQDFN,TIEN,BDT)) Q:BDT=""!(BDT>EDT)  D
+ ... S LIEN=""
+ ... F  S LIEN=$O(^AUPNVLAB("AA",BQDFN,TIEN,BDT,LIEN)) Q:LIEN=""  D
+ .... S VALUE=$P(^AUPNVLAB(LIEN,0),U,4) I VALUE="" Q
+ .... S VIEN=$P(^AUPNVLAB(LIEN,0),U,3) I VIEN="" Q
+ .... S FLAG=$P($G(^AUPNVLAB(LIEN,11)),U,9) I FLAG="" Q
+ .... I FLAG'="R"&(FLAG'="M") Q
+ .... S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ .... ;I $G(TMFRAME)'="",VSDTM<BDATE Q
+ .... ; quit if deleted flag
+ .... I $P($G(^AUPNVSIT(VIEN,0)),U,11)=1 Q
+ .... I $P($G(^AUPNVLAB(LIEN,11)),U,9)="D" Q
+ .... S @TEMP@(VSDTM,VIEN,LIEN)=VALUE_U_"9000010.09"_U_TIEN
+ ;
+ I $G(TMFRAME)="" D
+ . S LIEN=""
+ . F  S LIEN=$O(^AUPNVLAB("AC",BQDFN,LIEN),-1) Q:LIEN=""  D
+ .. S TIEN=$P($G(^AUPNVLAB(LIEN,0)),U,1) I TIEN="" Q
+ .. I '$D(@TREF@(TIEN)) Q
+ .. S VALUE=$P(^AUPNVLAB(LIEN,0),U,4) I VALUE="" Q
+ .. S VIEN=$P(^AUPNVLAB(LIEN,0),U,3) I VIEN="" Q
+ .. S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ .. ;I $G(TMFRAME)'="",VSDTM<BDATE Q
+ .. ; quit if deleted flag
+ .. I $P($G(^AUPNVSIT(VIEN,0)),U,11)=1 Q
+ .. I $P($G(^AUPNVLAB(LIEN,11)),U,9)="D" Q
+ .. S @TEMP@(VSDTM,VIEN,LIEN)=VALUE_U_"9000010.09"_U_TIEN
+ . F  S LIEN=$O(^AUPNVMIC("AC",BQDFN,LIEN),-1) Q:LIEN=""  D
+ .. S TIEN=$P($G(^AUPNVMIC(LIEN,0)),U,1) I TIEN="" Q
+ .. I '$D(@TREF@(TIEN)) Q
+ .. S VALUE=$P(^AUPNVMIC(LIEN,0),U,7) I VALUE="" Q
+ .. S VIEN=$P(^AUPNVMIC(LIEN,0),U,3) I VIEN="" Q
+ .. S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ .. ; quit if deleted flag
+ .. I $P($G(^AUPNVSIT(VIEN,0)),U,11)=1 Q
+ .. S FLAG=$P($G(^AUPNVMIC(LIEN,11)),U,9)
+ .. I FLAG'="R"&(FLAG'="M") Q
+ .. S @TEMP@(VSDTM,VIEN,LIEN)=VALUE_U_"9000010.25"_U_TIEN
+ ;
+ S VSDTM=""
+ F  S VSDTM=$O(@TEMP@(VSDTM),-1) Q:VSDTM=""  D  Q:QFL
+ . S VIEN=$O(@TEMP@(VSDTM,""),-1)
+ . S LIEN=$O(@TEMP@(VSDTM,VIEN,""),-1)
+ . S VALUE=$P(@TEMP@(VSDTM,VIEN,LIEN),U,1),OVALUE=VALUE
+ . S FILE=$P(@TEMP@(VSDTM,VIEN,LIEN),U,2)
+ . S TIEN=$P(@TEMP@(VSDTM,VIEN,LIEN),U,3)
+ . K ROPER
+ . S RN=""
+ . F  S RN=$O(SEARCH(RN)) Q:RN=""  D  Q:QFL
+ .. S OPER=$P(SEARCH(RN),U,2),RESULT=$P(SEARCH(RN),U,1),OPER2=$P(SEARCH(RN),U,4),RES2=$P(SEARCH(RN),U,3)
+ .. D RCHK
+ K @TEMP
+ Q RES
+ ;
+RCHK ;
+ I OPER="'=",RESULT="",VALUE'="" S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_TIEN_U_FILE,QFL=1 Q
+ ;
+ I RESULT'?.N,VALUE?.N Q
+ ;
+ I RESULT="POS",$E(VALUE,1)'?.N,'$$POSITIVE^BQITRUTL(VALUE) Q
+ I RESULT="POS",$E(VALUE,1)'?.N,$$POSITIVE^BQITRUTL(VALUE) D  Q
+ . S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_TIEN_U_FILE,QFL=1
+ I RESULT="NEG",$E(VALUE,1)'?.N,'$$NEGATIVE^BQITRUTL(VALUE) Q
+ I RESULT="NEG",$E(VALUE,1)'?.N,$$NEGATIVE^BQITRUTL(VALUE) D
+ . S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_TIEN_U_FILE,QFL=1
+ I VALUE'?.PN,VALUE'?.N Q
+ ;I $E(VALUE,$L(VALUE))?.P S VALUE=VALUE_"0"
+ I $E(VALUE,$L(VALUE),$L(VALUE))?.P S VALUE=$E(VALUE,1,$L(VALUE)-1)
+ ; if value starts with a punctuation e.g. < or >
+ I $E(VALUE,1,1)?.P S ROPER=$E(VALUE,1,1),VALUE=$E(VALUE,2,$L(VALUE))
+ I RES2="" D
+ . I $G(ROPER)="",@("VALUE"_OPER_"RESULT") D  Q
+ .. S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_OVALUE_U_VIEN_U_LIEN_U_TIEN_U_FILE,QFL=1
+ . I $G(ROPER)'="",OPER=ROPER,@("VALUE"_OPER_"RESULT") D  Q
+ .. S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_OVALUE_U_VIEN_U_LIEN_U_TIEN_U_FILE,QFL=1
+ . I $G(ROPER)'="",OPER'=ROPER Q
+ I RES2'="" D
+ . I @("VALUE"_OPER_"RESULT"),@("VALUE"_OPER2_"RES2") D
+ .. S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_OVALUE_U_VIEN_U_LIEN_U_TIEN_U_FILE,QFL=1
+ Q
+ ;
 MIC(BQDFN,TIEN,EDT,BDT,MICRO) ;EP - Look through Microbiology file
+ NEW FLAG,LIEN,VALUE,VIEN,VSDTM
+ K MICRO
  F  S BDT=$O(^AUPNVMIC("AA",BQDFN,TIEN,BDT)) Q:BDT=""!(BDT>EDT)  D
  . S LIEN=""
  . F  S LIEN=$O(^AUPNVMIC("AA",BQDFN,TIEN,BDT,LIEN)) Q:LIEN=""  D
@@ -104,6 +220,7 @@ MIC(BQDFN,TIEN,EDT,BDT,MICRO) ;EP - Look through Microbiology file
  .. S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
  .. ; quit if deleted flag
  .. I $P($G(^AUPNVSIT(VIEN,0)),U,11)=1 Q
- .. I $P($G(^AUPNVMIC(LIEN,11)),U,9)="D" Q
- .. S MICRO(VSDTM,VIEN,LIEN)=VALUE
+ .. S FLAG=$P($G(^AUPNVMIC(LIEN,11)),U,9)
+ .. I FLAG'="R"&(FLAG'="M") Q
+ .. S MICRO(VSDTM,VIEN,LIEN)=VALUE_U_"9000010.25"
  Q

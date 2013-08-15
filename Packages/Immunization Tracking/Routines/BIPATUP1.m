@@ -1,8 +1,10 @@
 BIPATUP1 ;IHS/CMI/MWR - UPDATE PATIENT DATA; DEC 15, 2011
- ;;8.5;IMMUNIZATION;**1**;JAN 03,2012
+ ;;8.5;IMMUNIZATION;**4**;DEC 01,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UPDATE PATIENT DATA, IMM FORECAST IN ^BIPDUE(.
- ;   PATCH 1: Include FLU-DERMAL CVX=144.  IHSPREL+55
+ ;:  PATCH 1: Include FLU-DERMAL CVX=144.  IHSPREL+55
+ ;;  PATCH 4, v8.5: Use newer Related Contraindications call to determine
+ ;;                 contraindicaton.  IHSPNEU+16
  ;
  ;----------
 LDFORC(BIDFN,BIFORC,BIHX,BIFDT,BIDUZ2,BINF,BIPDSS) ;EP
@@ -242,14 +244,14 @@ IHSPREL(BIDFN,BIHX,BIFDT,BIFLU,BIFFLU,BIRISKI,BIRISKP,BILIVE,BIDUZ2) ;EP
  .;---> store it in local array BIFLU(CVX,Inverse Fileman date).
  .S:((A=100)!(A=109)) A=33
  .;
- .;********** PATCH 1, v8.5, JAN 03,2012, IHS/CMI/MWR
- .;---> Include FLU-DERMAL CVX=144.
- .;S:((A=15)!(A=16)!(A=111)!(A=135)) A=88
- .S:((A=15)!(A=16)!(A=111)!(A=135)!(A=144)) A=88
+ .;********** PATCH 3, v8.5, SEP 15,2012, IHS/CMI/MWR
+ .;---> Include FLU-TIV's CVX=140 & 141.
+ .;S:((A=15)!(A=16)!(A=111)!(A=135)!(A=144)) A=88
+ .S:((A=15)!(A=16)!(A=111)!(A=135)!(A=140)!(A=141)!(A=144)) A=88
  .;**********
  .S:((A=126)!(A=127)!(A=128)) A=125
- .S:(A=33!(A=88)!(A=125)) BIFLU(A,9999999-$$IMMSDT^BIPATUP2(D))=""
  .;---> Add Zoster.  Imm v8.5
+ .;S:(A=33!(A=88)!(A=125)) BIFLU(A,9999999-$$IMMSDT^BIPATUP2(D))=""
  .S:(A=33!(A=88)!(A=125)!(A=121)) BIFLU(A,9999999-$$IMMSDT^BIPATUP2(D))=""
  .S X=X+7
  ;
@@ -287,7 +289,12 @@ IHSPNEU(BIDFN,BIFLU,BIFFLU,BIRISKP,BINF,BIFDT,BIAGE,BIDUZ2) ;EP
  Q:$D(BINF(11))
  ;
  ;---> Quit if this patient has a contraindication to Pneumo.
- Q:$$CONTR^BIUTL11(BIDFN,119)
+ ;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
+ ;---> Use newer Related Contraindications call to determine contraindicaton.
+ ;Q:$$CONTR^BIUTL11(BIDFN,119)
+ N BICT D CONTRA^BIUTL11(BIDFN,.BICT)
+ Q:$D(BICT(33))
+ ;**********
  ;
  ;---> Quit if this Pt Age <60 months (5yrs), regardless of risk.
  Q:BIAGE<60

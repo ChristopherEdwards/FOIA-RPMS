@@ -1,5 +1,5 @@
 DGPFHLU4 ;ALB/RPM - PRF HL7 ACK PROCESSING ; 3/04/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,1015**;Aug 13, 1993;Build 21
  ;
 BLDACK(DGACK,DGROOT,DGHL,DGSEGERR,DGSTOERR) ;Build ACK Message/Segments
  ;

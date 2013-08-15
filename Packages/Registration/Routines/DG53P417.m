@@ -1,5 +1,5 @@
 DG53P417 ;ALB/GPM - Patch DG*5.3*417 Install Utility Routine ; 10/25/01 10:09am
- ;;5.3;Registration;**417**;AUG 13, 1993
+ ;;5.3;Registration;**417,1015**;AUG 13, 1993;Build 21
  ;
  ;
  ;

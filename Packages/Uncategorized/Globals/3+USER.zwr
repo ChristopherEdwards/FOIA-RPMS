@@ -1,6 +1,6 @@
 USER
 ZWR
-^DIC(3,0)="USER^3I^5^3"
+^DIC(3,0)="USER^3I^7^5"
 ^DIC(3,0,.1)="54473,40230"
 ^DIC(3,0,"DD")="#"
 ^DIC(3,0,"DEL")="#"
@@ -18,6 +18,10 @@ ZWR
 ^DIC(3,4,1)="^^^^^^3090715^1"
 ^DIC(3,5,0)="TASKMAN,PROXY USER^^^#^^^^^^^^^^^PROXY USER.TASKMAN^4"
 ^DIC(3,5,1)="^^^^^^3111101^1"
+^DIC(3,6,0)="LRLAB,POC^^^^^^^^^^^^^^POC.LRLAB^5"
+^DIC(3,6,1)="^^^^^^3130606^1"
+^DIC(3,7,0)="LRLAB,HL^^^^^^^^^^^^^^HL.LRLAB^6"
+^DIC(3,7,1)="^^^^^^3130606^1"
 ^DIC(3,"%",0)="^1.005^1^1"
 ^DIC(3,"%",1,0)="XU"
 ^DIC(3,"%","B","XU",1)=""
@@ -33,6 +37,8 @@ ZWR
 ^DIC(3,"%D",9,0)="and verify codes, primary and secondary menu options and synonyms,"
 ^DIC(3,"%D",10,0)="accessible files, and Hinq employee number."
 ^DIC(3,"B","ADAM,ADAM",1)=""
+^DIC(3,"B","LRLAB,HL",7)=""
+^DIC(3,"B","LRLAB,POC",6)=""
 ^DIC(3,"B","MANAGER,SYSTEM",4)=""
 ^DIC(3,"B","POSTMASTER",.5)=""
 ^DIC(3,"B","TASKMAN,PROXY USER",5)=""

@@ -1,6 +1,7 @@
-LRAPLG1 ;AVAMC/REG/WTY - LOG-IN CONT. ;9/22/00 [ 04/11/2003  10:16 AM ]
- ;;5.2T9;LR;**1002,1003,1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**72,121,248**;Sep 27, 1994
+LRAPLG1 ;AVAMC/REG/WTY/KLL - LOG-IN CONT. ;07/30/04
+ ;;5.2;LAB SERVICE;**1002,1003,1018,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 72,121,248,308
  ;
  ;Reference to ^%ZOSF("TEST" supported by IA #10096
  ;Reference to ^VA(200 supported by IA #10060
@@ -26,11 +27,11 @@ LRAPLG1 ;AVAMC/REG/WTY - LOG-IN CONT. ;9/22/00 [ 04/11/2003  10:16 AM ]
 AU S LRAN=X,LRAC=LRABV_" "_$E(LRAD,2,3)_" "_LRAN I LRSS="AU" D ^LRAUAW Q
  S DA(1)=LRDFN S:'$D(^LR(LRDFN,LRSS,0)) ^(0)="^"_LRSF_"DA^0^0"
 DT W !,"Date/time Specimen taken: "
- W $S($E(LRAD,1,3)=$E(DT,1,3):"TODAY// ",1:"")
+ W $S($E(LRAD,1,3)=$E(DT,1,3):"NOW// ",1:"")
  R X:DTIME G:X[U!('$T) END
- ;S:X=""&($E(LRAD,1,3)=$E(DT,1,3)) X="T"
- ;S %DT="ETX",%DT(0)="-N" D ^%DT K %DT
- ;G:X["?" DT G:Y=-1 END
+ ; S:X=""&($E(LRAD,1,3)=$E(DT,1,3)) X="N"
+ ; S %DT="ETX",%DT(0)="-N" D ^%DT K %DT
+ ; G:X["?" DT G:Y=-1 END
  ;----- BEGIN IHS MODIFICATIONS LR*5.2*1018
  S:X=""&($E(LRAD,1,3)=$E(DT,1,3)) X="T" S %DT="ETX",%DT(0)="-NOW" D ^%DT K %DT G:X["?" DT G:Y=-1 END  ;IHS/ANMC/CLS
  ;----- END IHS MODIFICATIONS

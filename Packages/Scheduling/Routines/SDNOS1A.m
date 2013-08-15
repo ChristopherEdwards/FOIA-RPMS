@@ -1,5 +1,5 @@
 SDNOS1A ;ALB/LDB - NO SHOW REPORT CONT. ; 15 OCT 87@13:00
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
 DIV I $D(^DG(40.8,SDDIV,0)) S SDDIV2=$P(^(0),U,1)
  I $D(^DG(43,1,"GL")),$P(^("GL"),U,2),$D(^DG(40.8,SDDIV,0)) W !,?9,"FOR DIVISION: ",?30,SDDIV2
  I '$D(^UTILITY($J,"DGTC",SDC))&('SDTOT)&('SDTOT1) S ^UTILITY($J,"DGTC",SDC,P1)=""

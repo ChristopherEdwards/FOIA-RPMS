@@ -1,5 +1,5 @@
-DGPTUTL ;ALB/AS - PTF UTILITY ROUTINE ; 12/13/89@8
- ;;5.3;Registration;**26,114,234,466**;Aug 13, 1993
+DGPTUTL ;ALB/AS - PTF UTILITY ROUTINE ; 8/14/03 11:35am
+ ;;5.3;Registration;**26,114,234,466,544,1015**;Aug 13, 1993;Build 21
 D I $L(Y)'<7 S %=$E(Y,4,5)*3,Y=$E("JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC",%-2,%)_" "_$S($E(Y,6,7):$J(+$E(Y,6,7),2)_",",1:"")_($E(Y,1,3)+1700)_$S(Y[".":" "_$E(Y_0,9,10)_":"_$E(Y_"000",11,12),1:"") Q
  S Y="" Q
 PM ;sets variables from ^DGPM global
@@ -17,7 +17,9 @@ MT ;Determine and store Means Test Indicator
  ;-- sc < 50 %, %O non comp, movements are sc
  I $P(DGZEC,U,4)=3,$$SC^DGMTR(DFN),$$ANYSC^DGPTSCAN(PTF) S DGX="AS" G DIE
  ;-- sc <50 %, %0 non-comp, no movement sc, mt =a
- I $P(DGZEC,U,4)=3,$$SC^DGMTR(DFN),'$$ANYSC^DGPTSCAN(PTF),DGZ1="A" S DGX="AN" G DIE
+ I $P(DGZEC,U,4)=3,$$SC^DGMTR(DFN),'$$ANYSC^DGPTSCAN(PTF),$P(DGZ1,U,4)="A" S DGX="AN" G DIE
+ ;-- sc, >0%  - DG*5.3*544
+ I "^1^3^"[("^"_$P(DGZEC,U,4)_"^"),$P($G(^DPT(DFN,.3)),U,2)>0,$P(DGZ1,U,4)="A" S DGX="AS" G DIE
  ;
  S DGX=$S('$D(DGZ1):"U",1:$P(DGZ1,U,4))
  ; Determine if the Pending Adjudication is for MT(C) GMT(G)

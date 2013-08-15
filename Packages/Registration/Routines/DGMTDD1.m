@@ -1,5 +1,5 @@
-DGMTDD1 ;ALB/MIR,JAN,AEG - DD calls from income screening files ; Jan 8, 2001
- ;;5.3;Registration;**180,313,345,401**;Aug 13, 1993
+DGMTDD1 ;ALB/MIR,JAN,AEG,ERC,BAJ - DD calls from income screening files ; 12/8/06 3:35pm
+ ;;5.3;PIMS;**180,313,345,401,653,688,1015,1016**;JUN 30, 2012;Build 20
  ;
  ; This routine contains miscellaneous input transform and other DD
  ; calls from income screening files.
@@ -7,7 +7,11 @@ DGMTDD1 ;ALB/MIR,JAN,AEG - DD calls from income screening files ; Jan 8, 2001
  ;
 SSN ; called from the input transform of the SSN field in file 408.13
  N %,L,DGN,DGPAT,PATNAME,PREVX,KANS
- I X'?9N&(X'?3N1"-"2N1"-"4N) W !,"Response must be either nine numbers or in the format nnn-nn-nnnn!",!,"No pseudo SSNs allowed for relations."
+ ;with DG*5.3*653 Pseudo SSNs will be allowed for spouse/dependents
+ I X'?9N&(X'?3N1"-"2N1"-"4N)&(X'?9N1"P")&(X'?3N1"-"2N1"-"4N1"P"),(X'?1"P")&(X'?1"p") W !,"Response must be either nine numbers, be in the format nnn-nn-nnnn",!,"or include a ""P"" for a Pseudo SSN." K X Q
+ I X="P"!(X="p") D PSEU S X=L K L G SSNQ
+ I X["P" D PSEU I X'=L K X,L W !!,$C(7),"Invalid Pseudo SSN, type ""P"" for valid one." Q
+ I X["P" G SSNQ
  I X'?.AN F %=1:1:$L(X) I $E(X,%)?1P S X=$E(X,0,%-1)_$E(X,%+1,999),%=%-1
  I X'?9N K X Q
  I $D(X) S L=$E(X,1) I L=9 W !,*7,"The SSN must not begin with 9." K X Q
@@ -43,6 +47,23 @@ SSDEP ; warning if spouse's/dependent's SSN is found in file 408.13 and
 SSNQ K:KANS ANS Q
  ;
  ;
+PSEU ;create a Pseudo SSN using same algorithm as file 2 in PSEU^DGRPDD1
+ S KANS=""
+ I $G(ANS(.01))']""!($G(ANS(.03))'?7N) D
+ . S DGNODE0=^DGPR(408.13,DA,0)
+ . S ANS(.01)=$P(DGNODE0,U),ANS(.03)=$P(DGNODE0,U,3)
+ I $D(ANS(.01)) S NAM=ANS(.01)
+ I $D(ANS(.03)) S DOB=ANS(.03)
+ I $G(DOB)="" S DOB=2000000
+ S L1=$E($P(NAM," ",2)),L3=$E(NAM),NAM=$P(NAM,",",2),L2=$E(NAM)
+ S Z=L1 D CON S L1=Z
+ S Z=L2 D CON S L2=Z
+ S Z=L3 D CON S L3=Z
+ S L=L2_L1_L3_$E(DOB,4,7)_$E(DOB,2,3)_"P"
+ Q
+CON ;
+ S Z=$A(Z)-65\3+1 S:Z<0 Z=0
+ Q
  ;
 WARN ; printed WARNING message to alert user that spouse/dependent SSN be
  ; that of a veteran in Patient/Income Person File.
@@ -57,5 +78,6 @@ REL ; called from the input transform of the RELATIONSHIP field of file 408.12..
  I DGX,(DGX<3) S DIC("S")="I Y="_DGX Q
  S DGX=$P(DGNODE,"^",3),SEX=$P($G(@("^"_$P(DGX,";",2)_+DGX_",0)")),"^",2)
  S DIC("S")="I Y>2,(""E"_SEX_"""[$P(^(0),""^"",3))"
+ I $P(DGNODE,U,2)>6 I $$CNTDEPS^DGMTU11(+DGNODE)>18 S DIC("S")=DIC("S")_",(Y>6)"
  I $D(DGTYPE),DGTYPE="C" S DIC("S")=DIC("S")_",(Y<7)"
  Q

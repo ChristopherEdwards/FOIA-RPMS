@@ -1,5 +1,5 @@
 DG53E526 ;BAY/JAT - ENVIRONMENT CHECK ; 9/17/02 3:32pm ; 6/18/03 9:06am
- ;;5.3;Registration;**526**;AUG 13,1993
+ ;;5.3;Registration;**526,1015**;AUG 13,1993;Build 21
  ;;
 EN ;
  S XPDABORT=""

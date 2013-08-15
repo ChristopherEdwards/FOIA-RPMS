@@ -1,5 +1,5 @@
-BCHRTEN ; IHS/TUCSON/LAB - TOP TEN POVS ;  [ 12/28/01  3:48 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,13**;OCT 28, 1996
+BCHRTEN ; IHS/CMI/LAB - TOP TEN POVS ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
 PREPROC ;
  S %="^XTMP(""BCHTEN"",BCHJOB,BCHBT,",BCHA=%_"""POV"",BCHPOV)",BCHC=%_"1)",E=%_"2)",F=%_"3)",G=%_"4)",BCHTOT=0,BCHVTOT=0
@@ -45,7 +45,7 @@ PRINT ;EP;PRINT TOP TEN RECORDS
  .S BCHPOV="" F  S BCHPOV=$O(^XTMP("BCHTEN",BCHJOB,BCHBT,1,I,BCHPOV)) Q:BCHPOV=""!($D(BCHQUIT))  S J=J+1  D
  ..I J=1,BCHCHRT="B" D SETDASH
  ..I $Y>(IOSL-4) D HEAD Q:$D(BCHQUIT)
- ..I BCHCHRT="L" W !,J,".",?6,$E(BCHPOV,1,30),?39,$E($P(@BCHA,U,2),1,15),?56,+(@BCHA),?66,$J(($P(@BCHA,U,3)/60),7,1) Q
+ ..I BCHCHRT="L" W !,J,".",?6,$E(BCHPOV,1,30),?36,$E($P(@BCHA,U,2),1,15),?56,+(@BCHA),?66,$J(($P(@BCHA,U,3)/60),7,1) Q
  ..W !,$E(BCHPOV,1,17),?18," (",$E($P(@BCHA,U,2),1,6),")",?27,"|" S L=+(@BCHA),D=L\BCHDASH F %=1:1:D W "*"
  ..W " ",+(@BCHA)
  I BCHCHRT="B",$G(BCHDASH) D
@@ -71,7 +71,7 @@ HEAD1 ;
  W !,"TOP ",BCHLNO," ",BCHINF,"'s."
  I $E(BCHRRPT)="P" W !,$S(BCHPRIM="P":"PRIMARY POV Only",1:"Both PRIMARY and SECONDARY POV's are included.")
  W !,"DATES:  ",BCHBDD,"  TO  ",BCHEDD,!
- I BCHCHRT="L" W !,"No.",?6,BCHHD1,?39,BCHHD2,?56,"# RECS",?65,"ACT TIME (hrs)"
+ I BCHCHRT="L" W !,"No.",?6,BCHHD1,?36,BCHHD2,?52,"# Activities",?65,"ACT TIME (hrs)"
  I BCHCHRT="B" W !,BCHHD1
  I BCHCHRT="L" W !,$TR($J(" ",80)," ","-")
  I BCHCHRT="B" W !,$TR($J(" ",132)," ","-")

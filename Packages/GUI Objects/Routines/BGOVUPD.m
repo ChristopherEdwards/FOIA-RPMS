@@ -1,5 +1,5 @@
-BGOVUPD ; IHS/MSC/MGH - Manage V UPDATE/REVIEWED file ;08-Mar-2011 17:30;DU
- ;;1.1;BGO COMPONENTS;**8**;Mar 20, 2007;Build 1
+BGOVUPD ; IHS/MSC/MGH - Manage V UPDATE/REVIEWED file ;24-Feb-2012 14:40;DU
+ ;;1.1;BGO COMPONENTS;**8,10**;Mar 20, 2007;Build 1
  ; Get entries for a patient and either a VIEN Or a date
  ;  INP = Patient IEN [1]^ VIEN [2] ^Start DT [3] ^End dt [4]
  ; .RET returned as a list of records in the format:
@@ -89,8 +89,9 @@ FILEDATA(TYPE) ;Store the data
  S @FDA@(1.02)="`"_DUZ
  I EVDT="" S EVDT="N"
  S @FDA@(1201)=EVDT
- I PRV="" S PRV=DUZ
- S @FDA@(1204)="`"_PRV
+ ;patch 10 set duz to encounter provider
+ ;I PRV="" S PRV=DUZ
+ S @FDA@(1204)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  Q RET

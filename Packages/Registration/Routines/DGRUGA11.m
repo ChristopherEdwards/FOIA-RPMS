@@ -1,5 +1,5 @@
 DGRUGA11 ;ALB/GRR - HL7 ADT A11 MESSAGE BUILDER ;8/5/99  15:33
- ;;5.3;Registration;**190**;Aug 13, 1993
+ ;;5.3;Registration;**190,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will build a ADT A11 (Cancel Admit) HL7 message for an inpatient.
  ;

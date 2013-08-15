@@ -1,5 +1,5 @@
-SCRPEC ;ALB/CMM - Detail List of Pts & Enroll Clinics ; 29 Jun 99  04:11PM [ 11/02/2000  7:14 AM ]
- ;;5.3;Scheduling;**41,140,174,177**;AUG 13, 1993
+SCRPEC ;ALB/CMM - Detail List of Pts & Enroll Clinics ; 29 Jun 99  04:11PM
+ ;;5.3;Scheduling;**41,140,174,177,431,526,520,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 10/26/2000 changed 132 column message
  ;                        added call to list template
  ;                        changed patient ID to HRCN
@@ -88,29 +88,25 @@ EXIT2 ;
  K STORE,VAUTTN,PAGE,TITL,IOP,TITL,NODATA,CLINIC,ASSUN,INST,TEAM,STOP
  Q
  ;
-PDATA(DFN,CLNEN,FLAG) ;
+PDATA(DFN,CLNEN,CNAME,FLAG) ;
  ;Collect and format data for report
  ;
- N NODE,NAME,PID,PELIG,MT,PSTAT,STATD,DATA,LAST,NEXT,CEN,CNAME
+ N NODE,NAME,PID,PELIG,MT,PSTAT,STATD,DATA,LAST,NEXT
  S DATA=""
  S NODE=$G(^DPT(DFN,0))
  S NAME=$P(NODE,"^") ;patient name
  S PID=$P($G(^DPT(DFN,.36)),"^",3),PID=$TR(PID,"-","") ;PID without '-'s
  S PID=$$HRCN^BDGF2(DFN,+$G(DUZ(2)))  ;IHS/ANMC/LJF 10/26/2000
- D MNTEST^SCUTBK10(.MT,DFN) S MT=$P(MT,"^",4) ;means test category
+ S MT=$$LST^DGMTU(DFN),MT=$P(MT,"^",4)  ;means test status SD*5.3*431
  S PELIG=$$ELIG^SCRPU3(DFN) ;primary eligibility
- ;
- S CNAME=$P($G(^SC(CLNEN,0)),"^")
- S CEN=+$O(^DPT(DFN,"DE","B",CLNEN,""))
- S NODE=$G(^DPT(DFN,"DE",CEN,1,1,0))
- S PSTAT=$P(NODE,"^",2) S PSTAT=PSTAT_$S(PSTAT="A":"C",PSTAT="O":"PT",1:"") ;opt or ac status
- I $P(NODE,"^")="" S STATD=""
- I $P(NODE,"^")'="" S STATD=$TR($$FMTE^XLFDT($P(NODE,"^"),"5DF")," ","0") ;enrollment date
+ S PSTAT="N/A"
+ S STATD=""
  ;S LAST=$$GETLAST^SCRPU3(DFN,CLNEN) ;last clinic appointment
  ;S NEXT=$$GETNEXT^SCRPU3(DFN,CLNEN) ;next clinic appointment
  S LAST=$$GETAPPT^BSDSCEC(DFN,TIEN,"LAST")  ;IHS/ANMC/LJF 11/1/2000
  S NEXT=$$GETAPPT^BSDSCEC(DFN,TIEN,"NEXT")  ;IHS/ANMC/LJF 11/1/2000
- I '$D(FLAG) S DATA=$$FORMAT^SCRPEC2(NAME,PID,MT,PELIG,PSTAT,STATD,LAST,NEXT,CNAME),DATA=$E(NAME,1,20)_"^"_DATA
- I $D(FLAG) S DATA=$E(NAME,1,20)_"^"_PID_"^"_MT_"^"_PELIG_"^"_PSTAT_"^"_STATD_"^"_LAST_"^"_NEXT
+ ;I '$D(FLAG) S DATA=$$FORMAT^SCRPEC2(PTIEN,INS,TIEN,PDATA,CNAME,CIEN)
+ I '$D(FLAG) S DATA=$$FORMAT^SCRPEC2(NAME,PID,MT,PELIG,PSTAT,STATD,LAST,NEXT,CNAME),DATA=$E(NAME,1,12)_"^"_DATA
+ I $D(FLAG) S DATA=$E(NAME,1,12)_"^"_PID_"^"_MT_"^"_PELIG_"^"_PSTAT_"^"_STATD_"^"_LAST_"^"_NEXT
  Q DATA
  ;

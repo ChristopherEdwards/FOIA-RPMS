@@ -1,5 +1,5 @@
 DGRUG ;ALB/BOK/MLI - RUG-II GROUPER ; 21 OCT 86  11:00
- ;;5.3;Registration;**89,173**;Aug 13, 1993
+ ;;5.3;Registration;**89,173,1015**;Aug 13, 1993;Build 21
 INPUT W ! S DIC="^DG(45.9,",DIC(0)="AEQMN",DIC("S")="D CLOSEOUT^DGRUG I $S($P(^(0),U,2)<DGLCO:0,'$D(^DG(45.9,+Y,""C"")):1,$D(^DG(45.9,+Y,""C""))&(+^DG(45.9,+Y,""C"")=1!(+^(""C"")=5)):1,1:0)" D ^DIC K DIC G QUIT^DGRUG1:Y'>0
  S DIE="^DG(45.9,",DR="[DGRUG]",(DGPT,DA)=+Y,DGD=$P(^DG(45.9,DA,0),U,7) D ^DIE
  G:'$D(DA) QUIT^DGRUG1

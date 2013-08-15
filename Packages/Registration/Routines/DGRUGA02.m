@@ -1,5 +1,5 @@
 DGRUGA02 ;ALB/GRR - HL7 ADT A02 MESSAGE BUILDER ;8/5/99  15:26
- ;;5.3;Registration;**190,312**;Aug 13, 1993
+ ;;5.3;Registration;**190,312,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will build a ADT A02 (Transfer) HL7 message for an inpatient.
  ;

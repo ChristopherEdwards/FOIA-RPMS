@@ -1,5 +1,5 @@
-SDPURG ;ALB/TMP - Purge Routine Parameter Selection ; [ 09/13/2001  2:39 PM ]
- ;;5.3;Scheduling;**140,132**;Aug 13, 1993
+SDPURG ;ALB/TMP - Purge Routine Parameter Selection ; 12/24/85
+ ;;5.3;Scheduling;**140,132,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 12/13/2000 changed all default answers to NO
  ;
  S:'$D(DTIME) DTIME=300 I '$D(DT) D DT^SDUTL

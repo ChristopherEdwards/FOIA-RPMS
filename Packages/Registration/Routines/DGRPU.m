@@ -1,12 +1,13 @@
-DGRPU ;ALB/MRL - REGISTRATION UTILITY ROUTINE ;06 JUN 88@2300
- ;;5.3;Registration;**33,114,489**;Aug 13, 1993
+DGRPU ;ALB/MRL,TMK - REGISTRATION UTILITY ROUTINE ;19 OCT 2005
+ ;;5.3;Registration;**33,114,489,624,672,689,1015**;Aug 13, 1993;Build 20
 H ;Screen Header
  I DGRPS'=1.1 W @IOF S Z=$P($T(H1+DGRPS),";;",2)_", SCREEN <"_DGRPS_">"_$S($D(DGRPH):" HELP",1:""),X=79-$L(Z)\2 D W
- I DGRPS=1.1 W @IOF S Z="CONFIDENTIAL ADDRESS DATA, SCREEN <"_DGRPS_">"_$S($D(DGRPH):" HELP",1:""),X=79-$L(Z)\2 D W
- S X=$S($D(^DPT(+DFN,0)):^(0),1:""),SSN=$P(X,"^",9),SSN=$E(SSN,1,3)_"-"_$E(SSN,4,5)_"-"_$E(SSN,6,10)
- I '$D(DGRPH) W !,$P(X,"^",1),"; ",SSN S X=$S($D(DGRPTYPE):$P(DGRPTYPE,"^",1),1:"PATIENT TYPE UNKNOWN"),X1=79-$L(X) W ?X1,X
+ I DGRPS=1.1 W @IOF S Z="ADDITIONAL PATIENT DEMOGRAPHIC DATA, SCREEN <"_DGRPS_">"_$S($D(DGRPH):" HELP",1:""),X=79-$L(Z)\2 D W
+ S X=$$SSNNM(DFN)
+ I '$D(DGRPH) W !,X S X=$S($D(DGRPTYPE):$P(DGRPTYPE,"^",1),1:"PATIENT TYPE UNKNOWN"),X1=79-$L(X) W ?X1,X
  S X="",$P(X,"=",80)="" W !,X Q
  Q
+ ;
 AL(DGLEN) ;DGLEN= Available length of line
 A ;Format address(es)
  I '$D(DGLEN) N DGLEN S DGLEN=29
@@ -84,3 +85,87 @@ MTCOMP(DFN,DGDT) ; is current means test OR COPAY complete?
  .I $P(MT,"^",4)']""!("^I^L^"[("^"_$P(MT,"^",4)_"^")) S COMP=0
  S X=+$P(MT,"^",2) I ($E(X,1,3)-1)*10000<YR S COMP=0
  Q COMP
+ ;
+HLP1010 ;* This is called by the Executable Help for Patient field #1010.159
+ ;   (APPOINTMENT REQUEST ON 1010EZ)
+ W !!,"    Enter a 'Y' if the veteran applicant has requested an"
+ W !,"    appointment with a VA doctor or provider and wants to be"
+ W !,"    seen as soon as one becomes available  Enter a 'N'"
+ W !,"    if the veteran applicant has not requested an appointment."
+ W !!,"    This question may ONLY be entered ONCE for the veteran."
+ W !,"    The answer to this question CANNOT be changed after the"
+ W !,"    initial entry.",!
+ Q
+ ;
+HLPCS ; * This is called by the Executable Help for Income Relation field #.1
+ Q:X="?"
+ N DIR,DGRDVAR
+ W !?8,"Enter in this field a Yes or No to indicate whether the veteran"
+ W !?8,"contributed any dollar amount to the child's support last calendar"
+ W !?8,"year.  The contributions do not have to be in regular set amounts."
+ W !?8,"For example, a veteran who paid a child's school tuition or"
+ W !?8,"medical bills would be contributing to the child's support.",!
+ W !,"Enter RETURN to continue:" R DGRDVAR:DTIME W !
+ Q
+ ;
+HLP1823 ;*This is called by the Executable Help for Patient Relation field #.18
+ N DIR,DGRDVAR
+ W !?7,"Enter 'Y' if the child is currently 18 to 23 years old and the child"
+ W !?7,"attended school last calendar year.  Enter 'N' if the child is currently"
+ W !?7,"18 to 23 years old but the child did not attend school last calendar"
+ W !?7,"year.  Enter 'N' if the child is not currently 18 to 23 years old.",!
+ I $G(DA) W !,"Enter RETURN to continue:" R DGRDVAR:DTIME W !
+ Q
+ ;
+HLPMLDS ;* This is called by the Executable Help for Patient field #.362
+ ;   (DISABILITY RET. FROM MILITARY?)
+ N X,Y,DIR
+ W !!,"  Enter '0' or 'NO' if the veteran:"
+ W !,"    -- Is NOT retired from the military OR"
+ W !,"    -- Is retired from the military due to length of service AND"
+ W !,"       does NOT have a disability confirmed by the Military Branch"
+ W !,"       to have been incurred in or aggravated while on active duty."
+ W !!,"  Enter '1' or 'YES, RECEIVING MILITARY RETIREMENT' if the veteran:"
+ W !,"    -- Is confirmed by the Military Branch to have been discharged"
+ W !,"       or released due to a disability incurred in or aggravated"
+ W !,"       while on active duty AND"
+ W !,"       -- Has NOT filed a claim for VA compensation benefits OR"
+ W !,"       -- Has been rated by the VA to be NSC OR"
+ W !,"       -- Has been rated by the VA to have noncompensable 0%"
+ W !,"          SC conditions."
+ S DIR(0)="E" D ^DIR Q:+Y<1
+ W !!,"  Enter '2' or 'YES, RECEIVING MILITARY RETIREMENT IN LIEU OF VA"
+ W !,"                COMPENSATION' if the veteran:"
+ W !,"       -- Is confirmed by the Military Branch to have been discharged"
+ W !,"          or released due to a disability incurred in or aggravated"
+ W !,"          while on active duty AND"
+ W !,"       -- Is receiving military disability retirement pay AND"
+ W !,"       -- Has been rated by VA to have compensable SC conditions"
+ W !,"          but is NOT receiving compensation from the VA"
+ W !!,"          Once eligibility has been verified, this field will no longer"
+ W !,"          be editable to any user who does not hold the designated security"
+ W !,"          key."
+ Q
+HLP3602 ;help text for field .3602, Rec'ing Disability in Lieu of VA Comp
+ W !,"     Enter 'Y' if this veteran applicant is receiving disability"
+ W !,"     retirement pay from the Military instead of VA compensation."
+ W !,"     Enter 'N' if this veteran applicant is not receiving disability"
+ W !,"     retirement pay from the Military instead of VA compensation."
+ W !,"     Once eligibility has been verified by HEC this field will no longer "
+ W !,"     be editable by VistA users. Send updates and/or requests to HEC."
+ Q
+HLP3603 ;help text for field .3603, Discharge Due to LOD Disability
+ W !,"     Enter 'Y' if this veteran applicant was discharged from the"
+ W !,"     military for a disability incurred or aggravated in the line "
+ W !,"     of duty.  Enter 'N' if this veteran applicant was not discharged"
+ W !,"     from the military for a disability incurred or aggravated in the"
+ W !,"     line of duty. Once eligibility has been verified by HEC this field"
+ W !,"     will no longer be editable by VistA users. Send updates and/or requests"
+ W !,"     to HEC."
+ Q
+SSNNM(DFN) ; SSN and name on first line of screen
+ N X,SSN
+ S X=$S($D(^DPT(+DFN,0)):^(0),1:""),SSN=$P(X,"^",9),SSN=$E(SSN,1,3)_"-"_$E(SSN,4,5)_"-"_$E(SSN,6,10)
+ S X=$P(X,U)_"; "_SSN
+ Q X
+ ;

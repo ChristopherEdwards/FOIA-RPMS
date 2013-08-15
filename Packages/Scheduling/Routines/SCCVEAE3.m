@@ -1,5 +1,5 @@
 SCCVEAE3 ;ALB/RMO,TMP - Add/Edit Conversion cont.; [ 04/05/95  8:46 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 SET(SCCVEVT,SCLOG,SCDTM,SCVALDT,SCDA,SCOEP,SCOE,SCCV) ; Set variables, add encounter/visit
  ; Input  -- SCCVEVT  Conversion event

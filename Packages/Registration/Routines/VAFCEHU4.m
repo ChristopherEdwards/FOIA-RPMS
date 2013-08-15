@@ -1,5 +1,5 @@
 VAFCEHU4 ;BIR/LTL,PTD-File utilities for 391.98 ;08/26/97
- ;;5.3;Registration;**149,307**;Aug 13, 1993
+ ;;5.3;Registration;**149,307,479,1015**;Aug 13, 1993;Build 21
  ;
  ;Check for null incoming data elements to fire outgoing update
 EN ;SEX - .02 - VADM(5)
@@ -7,19 +7,19 @@ EN ;SEX - .02 - VADM(5)
  ;MARITAL STATUS - .05 - VADM(10)
  I (@VAFCB@(2,.05)="""@"""),($P(VADM(10),U,2)]"") S VAFCQ(1)=1 G CHQ
  ;STREET ADDRESS [1] - .111 - VAPA(1)
- I (@VAFCB@(2,.111)="""@"""),(VAPA(1)]""),(VAFCF'[".111;") S VAFCQ(1)=1 G CHQ
+ ;I (@VAFCB@(2,.111)="""@"""),(VAPA(1)]""),(VAFCF'[".111;") S VAFCQ(1)=1 G CHQ ;**479
  ;STREET ADDRESS [2] - .112 - VAPA(2)
- I (@VAFCB@(2,.112)="""@"""),(VAFCF'[".112;"),(VAPA(2)]"") S VAFCQ(1)=1 G CHQ
+ ;I (@VAFCB@(2,.112)="""@"""),(VAFCF'[".112;"),(VAPA(2)]"") S VAFCQ(1)=1 G CHQ ;**479
  ;STREET ADDRESS [3] - .113 - VAPA(3)
- I (@VAFCB@(2,.113)="""@"""),(VAFCF'[".113;"),(VAPA(3)]"") S VAFCQ(1)=1 G CHQ
+ ;I (@VAFCB@(2,.113)="""@"""),(VAFCF'[".113;"),(VAPA(3)]"") S VAFCQ(1)=1 G CHQ ;**479
  ;CITY - .114 - VAPA(4)
- I (@VAFCB@(2,.114)="""@"""),(VAFCF'[".114;"),(VAPA(4)]"") S VAFCQ(1)=1 G CHQ
+ ;I (@VAFCB@(2,.114)="""@"""),(VAFCF'[".114;"),(VAPA(4)]"") S VAFCQ(1)=1 G CHQ ;**479
  ;STATE - .115 - VAPA(5)
- I (@VAFCB@(2,.115)="""@"""),(VAFCF'[".115;"),($P(VAPA(5),U,2)]"") S VAFCQ(1)=1 G CHQ
+ ;I (@VAFCB@(2,.115)="""@"""),(VAFCF'[".115;"),($P(VAPA(5),U,2)]"") S VAFCQ(1)=1 G CHQ ;**479
  ;ZIP+4 - .1112 - VAPA(11)
- I (@VAFCB@(2,.1112)="""@"""),(VAFCF'[".1112;"),($P(VAPA(11),U)]"") S VAFCQ(1)=1 G CHQ
+ ;I (@VAFCB@(2,.1112)="""@"""),(VAFCF'[".1112;"),($P(VAPA(11),U)]"") S VAFCQ(1)=1 G CHQ ;**479
  ;COUNTY CODE - .117 - VAPA(7)
- I '@VAFCB@(2,.117)!(@VAFCB@(2,.117)="""@"""),(VAFCF'[".117;"),$P(VAPA(7),U) S VAFCQ(1)=1 G CHQ
+ ;I '@VAFCB@(2,.117)!(@VAFCB@(2,.117)="""@"""),(VAFCF'[".117;"),$P(VAPA(7),U) S VAFCQ(1)=1 G CHQ ;**479
  ;PHONE HOME - .131 - VAPA(8)
  I (@VAFCB@(2,.131)="""@"""),(VAFCF'[".131;"),(VAPA(8)]"") S VAFCQ(1)=1 G CHQ
  ;PHONE WORK - .132 - VAPA(2,DFN,.132)

@@ -1,5 +1,8 @@
-TIULX ; SLC/JER - Cross-reference library functions ;18-JUN-2002 10:18:05
- ;;1.0;TEXT INTEGRATION UTILITIES;**1,28,79,100,136**;Jun 20, 1997
+TIULX ; SLC/JER - Cross-reference library functions ;6/21/06
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1,28,79,100,136,219**;Jun 20, 1997;Build 11
+ ; File 200 - IA 10060
+ ; ^ORD(101 - IA 872
+ ; ^DISV    - IA 510
 ALOCP(DA) ; Should record be included in daily print queue by location?
  ; Receives DA = record # in 8925
  Q +$$ISPN(+$G(^TIU(8925,+DA,0)))
@@ -133,7 +136,8 @@ GETSIGNR(TIUY,TIUDA) ; RPC to Get list of extra signers for a document
  S TIUD12=$G(^TIU(8925,TIUDA,12))
  S TIUAU=$P(TIUD12,U,4),TIUEC=$P(TIUD12,U,8)
  S TIUI=+$G(TIUI)+1,TIUY(TIUI)=TIUAU_U_$$PERSNAME^TIULC1(TIUAU)_U_"AUTHOR"
- I $S(+TIUEC'>0:1,'$L($G(^VA(200,+TIUEC,0))):1,1:0) Q
+ I +TIUEC'>0 Q
+ I '$$FIND1^DIC(200,"","","`"_+TIUEC) D CLEAN^DILF Q
  S TIUI=+$G(TIUI)+1,TIUY(TIUI)=TIUEC_U_$$PERSNAME^TIULC1(TIUEC)_U_"EXPECTED COSIGNER"
  Q
 HASDS(DFN,VSTR) ; Does an admission have a Discharge Summary?
@@ -157,3 +161,16 @@ NEEDSIG(TIUY,USER,CLASS)        ; Get list of documents for which USER is an add
  . . Q:'+$$ISA(+$G(^TIU(8925,TIUDA,0)),CLASS)
  . . S TIUJ=+$G(TIUJ)+1,@TIUY@(TIUJ)=TIUDA
  Q
+TITLIENS ; Get IENs of DDEF entries that have type Title
+ ; in Document Definition file 8925.1
+ ;Creates array ^TMP("TIUTLS,$J,TLIEN)=  
+ ;Caller must kill ^TMP("TIUTLS",$J) when finished with the global.
+ N TIUIDX S TIUIDX=0 K ^TMP("TIUTLS",$J)
+ F  S TIUIDX=$O(^TIU(8925.1,"AT","DOC",TIUIDX)) Q:TIUIDX'>0  D
+ . S ^TMP("TIUTLS",$J,TIUIDX)=""
+ Q
+HASDOCMT(DFN) ;Does patient have ANY entries in TIU DOCUMENT file 8925?
+ ;Any entries includes original documents, addenda, components
+ ;(like S in SOAP notes), "deleted"  documents, retracted documents, etc!
+ Q $O(^TIU(8925,"C",+$G(DFN),0))>0
+         

@@ -1,5 +1,5 @@
 SDPPAT2 ;ALB/CAW-Patient Profile (Generic Patient Info)-Screen 2;5/4/92
- ;;5.3;Scheduling;**6,113,244**;Aug 13, 1993
+ ;;5.3;Scheduling;**6,113,244,441,1015**;Aug 13, 1993;Build 21
  ;
  ;
 ADDR ; Address and Phone Headers
@@ -27,12 +27,21 @@ LINE3 ; Line 3 of address
  .S X="",X=$$SETSTR^VALM1($P(SD(.11),U,3),X,10,29)
  .D SET^SDPPAT1(X)
 LINE4 ; Line 4 of address (City, State, Zip)
- ;
- N SDZIP
- S X="" I SD(.11)'="" S SDZIP=$P(SD(.11),U,12) S:$E(SDZIP,6,9)'="" SDZIP=$E(SDZIP,1,5)_"-"_$E(SDZIP,6,9) D
- .S X=$$SETSTR^VALM1(($P(SD(.11),U,4)_", "_$P($G(^DIC(5,+$P(SD(.11),U,5),0)),U,2)_" "_SDZIP),X,10,40)
- .S X=$$SETSTR^VALM1("County:",X,51,7)
- .S X=$$SETSTR^VALM1($P($G(^DIC(5,+$P(SD(.11),U,5),1,+$P(SD(.11),U,7),0)),U),X,SDSECCOL,20)
+ ;If foreign (postal code, city, province)
+ ; retrieve country info -- PERM country is piece 10 of .11
+ N FILE,CNTRY,FORIEN,FOREIGN
+ S FILE=779.004,FORIEN=$P(SD(.11),U,10),CNTRY=$$GET1^DIQ(FILE,FORIEN_",",2),CNTRY=$$UPPER^VALM1(CNTRY),FOREIGN=$$FORIEN^DGADDUTL(FORIEN)
+ I 'FOREIGN D
+ .N SDZIP
+ .S X="" I SD(.11)'="" S SDZIP=$P(SD(.11),U,12) S:$E(SDZIP,6,9)'="" SDZIP=$E(SDZIP,1,5)_"-"_$E(SDZIP,6,9) D
+ ..S X=$$SETSTR^VALM1(($P(SD(.11),U,4)_", "_$P($G(^DIC(5,+$P(SD(.11),U,5),0)),U,2)_" "_SDZIP),X,10,40)
+ ..S X=$$SETSTR^VALM1("County:",X,51,7)
+ ..S X=$$SETSTR^VALM1($P($G(^DIC(5,+$P(SD(.11),U,5),1,+$P(SD(.11),U,7),0)),U),X,SDSECCOL,20)
+ E  D
+ . S X="",X=($$SETSTR^VALM1($P(SD(.11),U,9)_" "_$P(SD(.11),U,4)_" "_$P(SD(.11),U,8),X,10,45))
+ D SET^SDPPAT1(X)
+LINE5 ;Display Country
+ S X="",X=$$SETSTR^VALM1(CNTRY,X,10,45)
  D SET^SDPPAT1(X)
 TADDR ; Address and Phone Headers
  ;
@@ -55,11 +64,21 @@ TLINE3 .; Line 3 of address
  ..S X="",X=$$SETSTR^VALM1($P(SD(.121),U,3),X,10,29)
  ..D SET^SDPPAT1(X)
 TLINE4 .; Line 4 of address (City, State, Zip)
- .N SDZIP
- .S X="" I SD(.121)'="" S SDZIP=$P(SD(.121),U,12) S:$E(SDZIP,6,9)'="" SDZIP=$E(SDZIP,1,5)_"-"_$E(SDZIP,6,9) D
- ..S X=$$SETSTR^VALM1(($P(SD(.121),U,4)_", "_$P($G(^DIC(5,+$P(SD(.121),U,5),0)),U,2)_" "_SDZIP),X,10,40)
- ..S X=$$SETSTR^VALM1("County:",X,51,7)
- ..S X=$$SETSTR^VALM1($P($G(^DIC(5,+$P(SD(.121),U,5),1,+$P(SD(.121),U,11),0)),U),X,SDSECCOL,20)
+ .;If foreign (postal code, city, province)
+ .; retrieve country info -- TEMP country is piece 3 of .122
+ .N FILE,CNTRY,FORIEN,FOREIGN
+ .S FILE=779.004,FORIEN=$P(SD(.122),U,3),CNTRY=$$GET1^DIQ(FILE,FORIEN_",",2),CNTRY=$$UPPER^VALM1(CNTRY),FOREIGN=$$FORIEN^DGADDUTL(FORIEN)
+ .I 'FOREIGN D
+ ..N SDZIP
+ ..S X="" I SD(.121)'="" S SDZIP=$P(SD(.121),U,12) S:$E(SDZIP,6,9)'="" SDZIP=$E(SDZIP,1,5)_"-"_$E(SDZIP,6,9) D
+ ...S X=$$SETSTR^VALM1(($P(SD(.121),U,4)_", "_$P($G(^DIC(5,+$P(SD(.121),U,5),0)),U,2)_" "_SDZIP),X,10,40)
+ ...S X=$$SETSTR^VALM1("County:",X,51,7)
+ ...S X=$$SETSTR^VALM1($P($G(^DIC(5,+$P(SD(.121),U,5),1,+$P(SD(.121),U,11),0)),U),X,SDSECCOL,20)
+ .E  D
+ ..S X="",X=($$SETSTR^VALM1($P(SD(.122),U,2)_" "_$P(SD(.121),U,4)_" "_$P(SD(.122),U),X,10,45))
+ .D SET^SDPPAT1(X)
+TLINE5 .;Display Country
+ .S X="",X=$$SETSTR^VALM1(CNTRY,X,10,45)
  .D SET^SDPPAT1(X)
  D SET^SDPPAT1("")
 RAD ; Radiation Exposure and Prisoner of War

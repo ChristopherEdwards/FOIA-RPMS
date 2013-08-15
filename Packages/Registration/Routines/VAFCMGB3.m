@@ -1,5 +1,5 @@
 VAFCMGB3 ;ALB/JRP,LTL,PTD-DEMOGRAPHIC MERGE SCREENS ;07/10/98
- ;;5.3;Registration;**149,477**;Aug 13, 1993
+ ;;5.3;Registration;**149,477,479,1015**;Aug 13, 1993;Build 21
  ;
  ;NOTE: This routine contains line tags used to build the display
  ;      screen for a List Manager interface.  Refer to routine
@@ -63,7 +63,7 @@ GROUP4 ;Line tag to build logical group number four
  ;.K @VALMAR@("E2F",20)
  ;.K @VALMAR@("E2G",20)
  W:(+$G(VAFCDOTS)) "."
- S VALMCNT=VALMCNT+2
+ S VALMCNT=VALMCNT+1 ;**479 changed +2 to +1
  ;Service connected and percentage
  S LOCAL=$$LOCAL^VAFCMGB0(2,.301,IENS,TARGET)
  S LOCAL("SC")=$E(LOCAL,1,29)

@@ -1,5 +1,5 @@
-BCHRC6 ; IHS/TUCSON/LAB - CHRIS II Report 2 ;  [ 06/05/99  8:44 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7**;OCT 28, 1996
+BCHRC6 ; IHS/CMI/LAB - CHR Report 2 ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
  ;
  I '$G(DUZ(2)) W $C(7),$C(7),!!,"SITE NOT SET IN DUZ(2) - NOTIFY SITE MANAGER!!",!! Q
@@ -18,12 +18,17 @@ ED ;get ending date
  ;
 PROG ;
  S BCHPRG=""
- S DIR(0)="Y",DIR("A")="Include data from ALL CHR Programs",DIR("?")="If you wish to include visits from ALL programs answer Yes.  If you wish to tabulate for only one program enter NO." D ^DIR K DIR
+ S DIR(0)="Y",DIR("A")="Include data from ALL CHR Programs",DIR("B")="N",DIR("?")="If you wish to include visits from ALL programs answer Yes.  If you wish to tabulate for only one program enter NO." D ^DIR K DIR
  G:$D(DIRUT) BD
- I Y=1 S BCHPRG="" G ZIS
+ I Y=1 S BCHPRG="" G REG
 PROG1 ;enter program
  K X,DIC,DA,DD,DR,Y S DIC("A")="Which CHR Program: ",DIC="^BCHTPROG(",DIC(0)="AEMQ" D ^DIC K DIC,DA G:Y<0 PROG
  S BCHPRG=+Y
+REG ;
+ S BCHREG="",BCHREGN=""
+ S DIR(0)="S^R:Registered Patients;N:Non-Registered Patients;B:Both Registered and Non-Registered Patients",DIR("A")="Include which Patients",DIR("B")="B" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G PROG
+ S BCHREG=Y,BCHREGN=Y(0)
 ZIS ;CALL TO XBDBQUE
  S XBRP="^BCHRC6P",XBRC="PROC^BCHRC6",XBRX="XIT^BCHRC6",XBNS="BCH"
  D ^XBDBQUE
@@ -40,12 +45,12 @@ INFORM ;
  W:$D(IOF) @IOF
  W !?20,"**********  CHR REPORT NO. 6  **********"
  W !!?33,"PROVIDER DATA",!!,"You must enter the time frame and the program for which the report",!,"will be run.",!!
- W "THIS REPORT REQUIRES A PRINTER THAT IS CAPABLE OF PRINTING 132 COLUMN OUTPUT.",!,"SEE YOUR SITE MANAGER IF YOU NEED ASSISTANCE FINDING SUCH A PRINTER.",!!
+ ;W "THIS REPORT REQUIRES A PRINTER THAT IS CAPABLE OF PRINTING 132 COLUMN OUTPUT.",!,"SEE YOUR SITE MANAGER IF YOU NEED ASSISTANCE FINDING SUCH A PRINTER.",!!
  Q
  ;
  ;
 PROC ;EP - PROCESS REFERRAL REPORT
- D XTMP^BCHUTIL("BCHRC6","CHR CHRIS II REPORT")
+ D XTMP^BCHUTIL("BCHRC6","CHR CHR REPORT")
  S (BCHBT,BCHBTH)=$H,BCHJOB=$J
  S ^XTMP("BCHRC6",BCHJOB,BCHBT,"TOTAL")=0
  D D,EOJ
@@ -63,6 +68,13 @@ D1 ;
  S (BCHR,BCHRCNT)=0 F  S BCHR=$O(^BCHR("B",BCHODAT,BCHR)) Q:BCHR'=+BCHR  I $D(^BCHR(BCHR,0)),$P(^(0),U,2)]"",$P(^(0),U,3)]"" S BCHR0=^(0) D PROCESS
  Q
 PROCESS ;
+ S BCHPAT=$P(BCHR0,U,4)
+ S BCHNRPAT=$P($G(^BCHR(BCHR,11)),U,12)
+ ;I 'BCHPAT,'BCHNRPAT Q   ;no patient
+ I BCHREG="R",BCHPAT="" Q
+ I BCHREG="N",BCHNRPAT="" Q
+ I BCHPAT,BCHNRPAT S BCHNRPAT=""
+ I BCHPAT Q:'$D(^DPT(BCHPAT,0))
  S BCHPROG=$P(BCHR0,U,2)
  I BCHPRG,BCHPRG'=BCHPROG Q
  S C=$P(BCHR0,U,3),BCHNAME=$P(^VA(200,C,0),U)

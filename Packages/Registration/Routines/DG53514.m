@@ -1,5 +1,5 @@
 DG53514 ;ALB/PHH - DG*5.3*514 DOD Cleanup ; 4/25/03
- ;;5.3;Registration;**514**;Aug 13, 1993
+ ;;5.3;Registration;**514,1015**;Aug 13, 1993;Build 21
  Q
 RESET ; Reset the data for the cleanup process
  K ^XTMP($$NAMESPC)

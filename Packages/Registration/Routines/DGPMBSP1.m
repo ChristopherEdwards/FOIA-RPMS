@@ -1,5 +1,5 @@
 DGPMBSP1 ;ALB/LM - BSR PRINT, CONT.; 17 OCT 90
- ;;5.3;Registration;**96,170**;Aug 13, 1993
+ ;;5.3;Registration;**96,170,1015**;Aug 13, 1993;Build 21
  ;
 A D DATE
  S (AT,PL,W)=0

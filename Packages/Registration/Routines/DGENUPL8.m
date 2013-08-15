@@ -1,5 +1,5 @@
-DGENUPL8 ;ISA/KWP,RTK,PHH - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 4/25/03 9:21am
- ;;5.3;REGISTRATION;**232,266,327,314,365,417,514**;Aug 13,1993
+DGENUPL8 ;ISA/KWP,RTK,PHH,ERC - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 8/15/08 12:41pm
+ ;;5.3;PIMS;**232,266,327,314,365,417,514,1015,1016**;JUN 30, 2012;Build 20
  ;Moved ENRUPLD from DGENUPL3
  ;
 ENRUPLD(DGENR,DGPAT) ;
@@ -28,18 +28,18 @@ ENRUPLD(DGENR,DGPAT) ;
  ;if there is no current enrollment, store HEC enrollment and quit
  I 'CURIEN D  G EXIT
  .;Phase II (SRS 6.5.1.2 f)
- .I "^1^2^6^7^11^12^13^14^15^16^17^18^19^20^21^22^"[("^"_DGENR("STATUS")_"^") I $$STORECUR^DGENA1(.DGENR,1)
+ .I "^1^2^6^7^11^12^13^14^15^16^17^18^19^20^21^22^23^"[("^"_DGENR("STATUS")_"^") I $$STORECUR^DGENA1(.DGENR,1)
  I '$$GET^DGENA(CURIEN,.CURENR) D  G EXIT
  .;Phase II (SRS 6.5.1.2 f)
- .I "^1^2^6^7^11^12^13^14^15^16^17^18^19^20^21^22^"[("^"_DGENR("STATUS")_"^") I $$STORECUR^DGENA1(.DGENR,1)
+ .I "^1^2^6^7^11^12^13^14^15^16^17^18^19^20^21^22^23^"[("^"_DGENR("STATUS")_"^") I $$STORECUR^DGENA1(.DGENR,1)
  ;
  ;check for duplicate
  Q:$$DUP(.DGENR,.CURENR)
- ; 
+ ;
  ;if there is no local enrollment, HEC enrollment becomes current
  I CURENR("SOURCE")'=1 D  G EXIT
  .;Phase II (SRS 6.5.1.2 f)
- .I "^1^2^6^7^11^12^13^14^15^16^17^18^19^20^21^22^"[("^"_DGENR("STATUS")_"^") I $$STORECUR^DGENA1(.DGENR,1)
+ .I "^1^2^6^7^11^12^13^14^15^16^17^18^19^20^21^22^23^"[("^"_DGENR("STATUS")_"^") I $$STORECUR^DGENA1(.DGENR,1)
  ;********************************************************************
  ;check for exceptions to making HEC enrollment the patient's current enrollment,i.e.,cases in which local enrollment remains the current enrollment
  ;********************************************************************
@@ -55,7 +55,7 @@ ENRUPLD(DGENR,DGPAT) ;
  ;and HEC sends status of REJECTED-FISCAL YEAR(11),REJECTED-MID-CYCLE(12),REJECTED-STOP ENROLLING APPLICATIONS(13),PENDING-NO ELIGIBILITY CODE in VIVA(15),REJECTED BELOW EGT THRESHOLD
  ;PENDING-ELIGIBILITY UNVERIFIED(17),PENDING-MEANS TEST REQUIRED(16),PENDING-OTHER(18)
  ;CANCELED/DECLINED(7) accept upload (SRS 6.5.1.2 h)
- I "^1^9^14^"[("^"_CURENR("STATUS")_"^"),"^7^11^12^13^15^16^17^18^19^20^21^22^"[("^"_DGENR("STATUS")_"^") D  G EXIT
+ I "^1^9^14^"[("^"_CURENR("STATUS")_"^"),"^7^11^12^13^15^16^17^18^19^20^21^22^23^"[("^"_DGENR("STATUS")_"^") D  G EXIT
  .I $$STORECUR^DGENA1(.DGENR,1)
  ;
  ;if local enrollment has status of Canceled/Declined, HEC enrollment has status of Verified or Unverified, HEC enrollment has an earlier or same effective date accept upload

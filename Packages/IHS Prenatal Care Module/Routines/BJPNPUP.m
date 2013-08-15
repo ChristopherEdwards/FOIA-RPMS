@@ -1,0 +1,481 @@
+BJPNPUP ;GDIT/HS/BEE-Prenatal Care Module Problem Handling Code ; 08 May 2012  12:00 PM
+ ;;1.0;PRENATAL CARE MODULE;;Dec 06, 2012;Build 61
+ ;
+ Q
+ ;
+ADD(DATA,VIEN,PRIEN,PARMS) ;EP - BJPN SET PRB FROM PIP
+ ;
+ ;Input:
+ ; VIEN - Visit IEN
+ ; PRIEN - Pointer to SNOMED TERMS (#90680.02)
+ ; PARMS - Format var1=value_$c(28)_var2=value...
+ ;         STS - Status (A/I)
+ ;         SCO - Scope (A/C)
+ ;         PRI - Priority (L/M/H)
+ ;         PTX - Provider Text
+ ;         EDD - Definitive EDD (Date)
+ ;         NOTE - Free Text Note
+ ;
+ NEW %,UID,II,DFN,VFL,FND,IEN,NOW,CONC,SNO,SNOTRM,OEDT,OEBY,RSLT,ERROR
+ NEW STS,SCO,PRI,PTX,EDD,NOTE,BQ,LMDT,LMBY,DIC,DLAYGO,X,Y,BJPNADD
+ ;
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BJPNPUP",UID))
+ K @DATA
+ I $G(DT)=""!($G(U)="") D DT^DICRW
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BJPNPUP D UNWIND^%ZTER" ; SAC 2009 2.2.3.17
+ ;
+ ;Re-assemble possible array
+ S PARMS=$G(PARMS,"")
+ I PARMS="" D
+ . NEW LIST,BN
+ . S LIST="",BN=""
+ . F  S BN=$O(PARMS(BN)) Q:BN=""  S LIST=LIST_PARMS(BN)
+ . K PARMS
+ . S PARMS=LIST
+ . K LIST
+ ;
+ ;Define variables
+ F BQ=1:1:$L(PARMS,$C(28)) D
+ . NEW PDATA,NAME,VALUE
+ . S PDATA=$P(PARMS,$C(28),BQ) Q:PDATA=""
+ . S NAME=$P(PDATA,"=",1),VALUE=$P(PDATA,"=",2,99)
+ . I VALUE="" S VALUE="@"
+ . S @NAME=VALUE
+ ;
+ ;Define Header
+ S @DATA@(II)="T00005RESULT^I00010PIPIEN^T00150ERROR_MESSAGE"_$C(30)
+ ;
+ ;Input validation
+ I $G(VIEN)="" S II=II+1,@DATA@(II)="-1^^MISSING VISIT NUMBER"_$C(30) G XADD
+ I $G(PRIEN)="" S II=II+1,@DATA@(II)="-1^^MISSING PROBLEM IEN"_$C(30) G XADD
+ ;
+ ;Get DFN
+ S DFN=$$GET1^DIQ(9000010,VIEN_",",".05","I")
+ S VFL("DFN")=DFN
+ S VFL("VIEN")=VIEN
+ ;
+ ;Check for Duplicate Entry
+ S FND=0,IEN="" F  S IEN=$O(^BJPNPL("AC",DFN,PRIEN,IEN)) Q:IEN=""  D
+ . ;
+ . ;Skip Deletes
+ . Q:($$GET1^DIQ(90680.01,IEN_",","2.01","I")]"")
+ . S FND=1
+ I FND=1 S II=II+1,@DATA@(II)="-1^^PATIENT ALREADY HAS PROBLEM IN THEIR PIP"_$C(30) G XADD
+ ;
+ ;Get current date/time
+ D NOW^%DTC S NOW=%
+ ;
+ ;Technical Note
+ S VFL("TNOTE")="Added Problem To PIP"
+ ;
+ ;Pointer to 90680.02
+ S CONC=$$GET1^DIQ(90680.02,PRIEN_",",".01","E")
+ S VFL("CONC")=CONC
+ ;
+ ;Add new entry
+ S DIC="^BJPNPL("
+ S DLAYGO=90680.01,DIC("P")=DLAYGO,DIC(0)="LOX"
+ S X=CONC
+ K DO,DD D FILE^DICN
+ I Y=-1 S II=II+1,@DATA@(II)="-1^^ADD PROBLEM PROCESS FAILED"_$C(30) G XADD
+ S PIPIEN=+Y
+ ;
+ ;Save remaining fields
+ S BJPNADD(90680.01,PIPIEN_",",.02)=DFN
+ ;
+ ;Snomed Term
+ S SNO=PRIEN
+ S VFL("TNOTE",".12")=""
+ S VFL("SNO")=SNO
+ S SNOTRM=$$GET1^DIQ(90680.02,PRIEN_",",".02","E")
+ S BJPNADD(90680.01,PIPIEN_",",.03)=SNO
+ ;
+ ;Priority
+ I '$D(PRI) S PRI=""
+ S VFL("PRIORITY")=PRI
+ I PRI]"" S VFL("TNOTE",.06)=""
+ S BJPNADD(90680.01,PIPIEN_",",.06)=PRI
+ ;
+ ;Scope
+ I '$D(SCO) S SCO="C"
+ S VFL("SCOPE")=SCO
+ S VFL("TNOTE",.08)=""
+ S BJPNADD(90680.01,PIPIEN_",",.07)=SCO
+ ;
+ ;Status
+ I '$D(STS) S STS="A"
+ S VFL("STATUS")=STS
+ S VFL("TNOTE",.09)=""
+ S BJPNADD(90680.01,PIPIEN_",",.08)=STS
+ ;
+ ;Definitive EDD
+ I '$D(EDD) S EDD=$$GET1^DIQ(9000017,DFN_",",1311,"I") I 1
+ E  I EDD]"" S EDD=$$DATE^BJPNPRUT(EDD)
+ S VFL("DEDD")=EDD
+ S VFL("TNOTE",.1)=""
+ S BJPNADD(90680.01,PIPIEN_",",.09)=EDD
+ ;
+ ;Original Entered Date/Time
+ S OEDT=NOW
+ S VFL("OEDT")=OEDT
+ S VFL("TNOTE",1216)=""
+ S BJPNADD(90680.01,PIPIEN_",",1.01)=OEDT
+ ;
+ ;Original Entered By
+ S OEBY=DUZ
+ S VFL("OEBY")=OEBY
+ S VFL("TNOTE",1217)=""
+ S BJPNADD(90680.01,PIPIEN_",",1.02)=OEBY
+ ;
+ ;Last Modified Date
+ S LMDT=NOW
+ S VFL("LMDT")=LMDT
+ S BJPNADD(90680.01,PIPIEN_",",1.03)=LMDT
+ ;
+ ;Last Modified By
+ S LMBY=DUZ
+ S VFL("LMBY")=LMBY
+ S BJPNADD(90680.01,PIPIEN_",",1.04)=LMBY
+ ;
+ ;Provider text
+ I $G(PTX)]"" D
+ . NEW DIC,DLAYGO,X,Y
+ . S VFL("TNOTE",.07)=""
+ . S VFL("TNOTE",.11)=""
+ . S DIC(0)="LX",DIC="^AUTNPOV(",DLAYGO=9999999.27,X=PTX
+ . D ^DIC
+ . S PTX=+Y S:PTX=-1 PTX=""
+ . S BJPNADD(90680.01,PIPIEN_",",.05)=PTX
+ . S VFL("PTEXT")=PTX
+ ;
+ ;Current Note
+ I $G(NOTE)]"" D
+ . S BJPNADD(90680.01,PIPIEN_",",3)=NOTE
+ . S VFL("NOTE")=NOTE
+ . S VFL("TNOTE",2100)=""
+ ;
+ ;Add fields
+ I $D(BJPNADD) D FILE^DIE("","BJPNADD","ERROR")
+ I $D(ERROR) S II=II+1,@DATA@(II)="-1^^ADD PROBLEM PROCESS FAILED"_$C(30) G XADD
+ ;
+ ;Log V OB entry
+ S RSLT=$$VFILE^BJPNVFIL(PIPIEN,.VFL) I +RSLT="-1" S II=II+1,@DATA@(II)="-1^^V OB SAVE FAILED"
+ ;
+ ;Update frequency - Master_List
+ D UFREQ^BJPNPRUT(PRIEN,"")
+ ;
+ S II=II+1,@DATA@(II)="1^"_PIPIEN_"^"_$C(30)
+XADD S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+SNOTE(DATA,PIPIEN,VFIEN,NOTE) ;EP - BJPN SET PROBLEM NOTE
+ ;
+ ;This RPC sets a note into the current note field and updates the V OB entry
+ ;
+ ;Input:
+ ; PIPIEN - Pointer to Prenatal Problem File
+ ; VFIEN - Pointer to V OB entry
+ ; NOTE - New note
+ ;
+ NEW UID,II,VNIEN,NUPD,ERROR
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BJPNPRL",UID))
+ K @DATA
+ I $G(DT)=""!($G(U)="") D DT^DICRW
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BJPNPUP D UNWIND^%ZTER" ; SAC 2009 2.2.3.17
+ ;
+ ;Define Header
+ S @DATA@(II)="T00005RESULT^I00010NTIEN^T00150ERROR_MESSAGE"_$C(30)
+ ;
+ ;Input verification
+ I $G(PIPIEN)="" S II=II+1,@DATA@(II)="-1^^PIPIEN is blank"_$C(30) G XSNOTE
+ I $G(VFIEN)="" S II=II+1,@DATA@(II)="-1^^VFIEN is blank"_$C(30) G XSNOTE
+ I $G(NOTE)="" S II=II+1,@DATA@(II)="-1^^NOTE is blank"_$C(30) G XSNOTE
+ ;
+ ;File note
+ S VNIEN=$$ANOTE^BJPNPRUT(VFIEN,NOTE) I VNIEN=-1 Q "-1^^V OB NOTE SAVE FAILED"
+ ;
+ ;Auditing
+ I $G(VNIEN)]"" D
+ . NEW VFL
+ . S VFL("TNOTE",2100)=VNIEN
+ . D TNOTE^BJPNVFIL(VFIEN,.VFL)
+ ;
+ ;File current note
+ S NUPD(90680.01,PIPIEN_",",3)=NOTE
+ D FILE^DIE("","NUPD","ERROR")
+ I $D(ERROR) Q "-1^^CURRENT NOTE FILE FAILED"
+ ;
+ S II=II+1,@DATA@(II)="1^"_VNIEN_"^"_$C(30)
+ ;
+XSNOTE S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+DEL(DATA,VIEN,VFIEN,VNIEN,DCODE,DRSN) ;BJPN DELETE PRB NOTE
+ ;
+ ;Delete note from V OB file
+ ;
+ ;Input:
+ ; VIEN - Visit IEN
+ ; VFIEN - V OB IEN
+ ; VNIEN - V OB Note IEN
+ ; DCODE - Delete Code
+ ; DRSN - Delete Reason
+ ;
+ NEW UID,II,%,NOW,NDEL,ERROR,RSLT,ENT,DFN,VFL
+ ;
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BJPNPUP",UID))
+ K @DATA
+ I $G(DT)=""!($G(U)="") D DT^DICRW
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BJPNPUP D UNWIND^%ZTER" ; SAC 2009 2.2.3.17
+ ;
+ S @DATA@(II)="T00010RESULT^T00150ERROR_MESSAGE"_$C(30)
+ ;
+ ;Input validation
+ I $G(VIEN)="" S II=II+1,@DATA@(II)="-1^MISSING VISIT IEN"_$C(30) G XDEL
+ I $G(VFIEN)="" S II=II+1,@DATA@(II)="-1^MISSING VFIEN"_$C(30) G XDEL
+ I $G(VNIEN)="" S II=II+1,@DATA@(II)="-1^MISSING VNIEN"_$C(30) G XDEL
+ I $$GET1^DIQ(9000010.43,VFIEN_",",".01","I")="" S II=II+1,@DATA@(II)="-1^INVALID VFIEN"_$C(30) G XDEL
+ S DCODE=$G(DCODE,""),DRSN=$G(DRSN,"")
+ ;
+ D NOW^%DTC
+ S NOW=%
+ ;
+ ;Technical Note
+ S VFL("TNOTE")="Problem Note Deleted"
+ ;
+ ;Mark the note as deleted
+ S DA(1)=VFIEN,DA=VNIEN,IENS=$$IENS^DILF(.DA)
+ S NDEL(9000010.431,IENS,2.01)=DUZ
+ S NDEL(9000010.431,IENS,2.02)=NOW
+ S NDEL(9000010.431,IENS,2.03)=DCODE
+ S NDEL(9000010.431,IENS,2.04)=DRSN
+ D FILE^DIE("","NDEL","ERROR")
+ I $D(ERROR) S II=II+1,@DATA@(II)="-1^NOTE DELETION FAILED"_$C(30) G XDEL
+ ;
+ ;Update Current Note (in case latest was deleted)
+ ;
+ S PIPIEN=$$GET1^DIQ(9000010.43,VFIEN_",",.01,"I")
+ S DFN=$$GET1^DIQ(90680.01,PIPIEN_",",.02,"I")
+ ;
+ ;Get latest note
+ D NOTES^BJPNPRL("",DFN,PIPIEN,1)
+ S RSLT=1,ENT=$G(^TMP("BJPNPRL",$J,1))
+ D  I RSLT=-1 G XDEL
+ . NEW NOTE,PIPUPD,ERROR
+ . I $TR(ENT,$C(31))]"" S NOTE=$P($P(ENT,U,9),$C(30))
+ . E  S NOTE="@"
+ . S PIPUPD(90680.01,PIPIEN_",",3)=NOTE
+ . D FILE^DIE("","PIPUPD","ERROR")
+ . I $D(ERROR) S RSLT=-1,II=II+1,@DATA@(II)="-1^CURRENT NOTE UPDATE FAILED"_$C(30)
+ ;
+ ;Create V OB visit entry to record the note deletion
+ S VFL("DFN")=DFN
+ S VFL("VIEN")=VIEN
+ S VFL("PRIORITY")=$$GET1^DIQ(90680.01,PIPIEN_",",.06,"I") ;Priority
+ S VFL("SCOPE")=$$GET1^DIQ(90680.01,PIPIEN_",",.07,"I") ;Scope
+ S VFL("PTEXT")=$$GET1^DIQ(90680.01,PIPIEN_",",.05,"I") ;Provider Text
+ S VFL("STATUS")=$$GET1^DIQ(90680.01,PIPIEN_",",.08,"I") ;Status
+ S VFL("DEDD")=$$GET1^DIQ(90680.01,PIPIEN_",",.09,"I") ;Definitive EDD
+ S VFL("OEDT")=$$GET1^DIQ(90680.01,PIPIEN_",",1.01,"I") ;OEDT
+ S VFL("OEBY")=$$GET1^DIQ(90680.01,PIPIEN_",",1.02,"I") ;OEBY
+ S VFL("LMDT")=NOW
+ S VFL("LMBY")=DUZ
+ S VFL("TNOTE",1218)=""
+ S VFL("TNOTE",1219)=""
+ S VFL("TNOTE",2100)=VFIEN_":"_VNIEN_":D"
+ ;
+ ;Log V OB entry
+ S RSLT=$$VFILE^BJPNVFIL(PIPIEN,.VFL) I +RSLT="-1" S II=II+1,@DATA@(II)="-1^V OB SAVE FAILED"
+ ;
+ S II=II+1,@DATA@(II)="1^"_$C(30)
+ ;
+XDEL S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+POV(DATA,VIEN,PIPIEN) ;BJPN SET AS POV
+ ;
+ ;Set problem as POV for visit
+ ;
+ ;Input:
+ ; VIEN - Visit IEN
+ ; PIPIEN - Pointer to Prenatal Problem
+ ;
+ NEW UID,II,RET,PNARR,PTEXT,IN,PKIEN,DFN,PPRV,ICD,ICDINT,ICIEN,VFL,BJPNUPD,ERROR
+ NEW NOW,%,CONC,SNO,LMDT,LMBY,PTEXT,RSLT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BJPNPUP",UID))
+ K @DATA
+ I $G(DT)=""!($G(U)="") D DT^DICRW
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BJPNPUP D UNWIND^%ZTER" ; SAC 2009 2.2.3.17
+ ;
+ S @DATA@(II)="T00010RESULT^T00150ERROR_MESSAGE"_$C(30)
+ ;
+ ;Input validation
+ I $G(VIEN)="" S II=II+1,@DATA@(II)="-1^MISSING VIEN"_$C(30) G XPOV
+ I $G(PIPIEN)="" S II=II+1,@DATA@(II)="-1^MISSING PIPIEN"_$C(30) G XPOV
+ ;
+ ;Get current date/time
+ D NOW^%DTC S NOW=%
+ ;
+ ;Get DFN
+ S DFN=$$GET1^DIQ(9000010,VIEN_",",".05","I")
+ S VFL("DFN")=DFN
+ S VFL("VIEN")=VIEN
+ ;
+ ;Get pointer to SNOMED file
+ S PKIEN=$$GET1^DIQ(90680.01,PIPIEN_",",.03,"I")
+ ;
+ ;Pointer to 90680.02
+ S CONC=$$GET1^DIQ(90680.02,PKIEN_",",".01","E")
+ S VFL("CONC")=CONC
+ ;
+ ;Snomed Term
+ S SNO=PKIEN
+ S VFL("SNO")=SNO
+ ;
+ ;Priority
+ S VFL("PRIORITY")=$$GET1^DIQ(90680.01,PIPIEN_",",.06,"I")
+ ;
+ ;Scope
+ S VFL("SCOPE")=$$GET1^DIQ(90680.01,PIPIEN_",",.07,"I")
+ ;
+ ;Status
+ S VFL("STATUS")=$$GET1^DIQ(90680.01,PIPIEN_",",.08,"I")
+ ;
+ ;Definitive EDD
+ S VFL("DEDD")=$$GET1^DIQ(90680.01,PIPIEN_",",.09,"I")
+ ;
+ ;Original Entered Date/Time
+ ;S VFL("OEDT")=$$GET1^DIQ(90680.01,PIPIEN_",",1.01,"I")
+ ;
+ ;Original Entered By
+ ;S VFL("OEBY")=$$GET1^DIQ(90680.01,PIPIEN_",",1.02,"I")
+ ;
+ ;Last Modified Date
+ S LMDT=NOW
+ S VFL("LMDT")=LMDT
+ S VFL("TNOTE",1218)=""
+ S BJPNUPD(90680.01,PIPIEN_",",1.03)=LMDT
+ ;
+ ;Last Modified By
+ S LMBY=DUZ
+ S VFL("LMBY")=LMBY
+ S VFL("TNOTE",1219)=""
+ S BJPNUPD(90680.01,PIPIEN_",",1.04)=LMBY
+ ;
+ ;Get Primary Provider
+ S PPRV=$$PPRV^BJPNPKL(VIEN)
+ ;
+ ;Set as POV
+ S VFL("POV")=1
+ S VFL("TNOTE",.05)=""
+ ;
+ ;Technical Note
+ S VFL("TNOTE")="Set Problem As POV For Visit"
+ ;
+ ;Assemble ICD9 List
+ S (ICD,ICDINT)=""
+ S ICIEN=0 F  S ICIEN=$O(^BJPN(90680.02,PKIEN,1,ICIEN)) Q:'ICIEN  D
+ . ;
+ . NEW ICD9,ICDTP,DA,IENS
+ . S DA(1)=PKIEN,DA=ICIEN,IENS=$$IENS^DILF(.DA)
+ . S ICD9=$$GET1^DIQ(90680.21,IENS,.01,"I") Q:ICD9=""
+ . S ICDTP=$$GET1^DIQ(90680.21,IENS,.02,"I") I ICDTP'=1 Q
+ . S ICD=ICD_$S(ICD]"":";",1:"")_ICD9
+ ;
+ ;Check for .9999
+ I $TR(ICD,";")="" D
+ . NEW DIC,X,Y
+ . S DIC="^ICD9(",DIC(0)="XMO",X=".9999" D ^DIC I +Y<0 Q
+ . S ICD=+Y
+ ;
+ ;Assemble Provider Narrative
+ S PTEXT=$$GET1^DIQ(90680.01,PIPIEN_",",.05,"E")
+ S PNARR=$$GET1^DIQ(90680.01,PIPIEN_",",.03,"I")
+ S PNARR=$$GET1^DIQ(90680.02,PNARR_",",.02,"E")
+ S PNARR=PNARR_"| "_PTEXT
+ ;
+ ;Loop through by ICD9 code
+ I $TR(ICD,";")]"" D
+ . NEW ICD9,IX
+ . F IX=1:1:$L(ICD,";") S ICD9=$P(ICD,";",IX) I ICD9]"" D
+ .. NEW IN
+ .. ;
+ .. ;
+ .. S IN=U_VIEN_U_"`"_ICD9_U_DFN_U_PNARR
+ .. S $P(IN,U,15)=PPRV
+ .. ;
+ .. ;File each POV
+ .. D SET^BGOVPOV(.RET,IN)
+ .. I +RET<0 S II=II+1,@DATA@(II)="-1^"_$P(RET,U,2)_$C(30) Q
+ .. S II=II+1,@DATA@(II)="1^"_$C(30)
+ ;
+ ;Provider Text
+ S PTEXT=$$GET1^DIQ(90680.01,PIPIEN_",",.05,"I")
+ S VFL("PTEXT")=PTEXT
+ ;
+ ;Update fields
+ I $D(BJPNUPD) D FILE^DIE("","BJPNUPD","ERROR")
+ I $D(ERROR) S II=II+1,@DATA@(II)="-1^SET AS POV PROCESS FAILED"_$C(30) G XPOV
+ ;
+ ;Log V OB entry
+ S RSLT=$$VFILE^BJPNVFIL(PIPIEN,.VFL) I +RSLT="-1" S II=II+1,@DATA@(II)="-1^V OB SAVE FAILED"
+ ;
+XPOV S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+VPOV(VIEN,PIPIEN) ;EP - Return whether problem is POV for visit
+ ;
+ I $G(VIEN)="" Q ""
+ I $G(PIPIEN)="" Q ""
+ ;
+ NEW POV,PKIEN,ICIEN,ICD
+ ;
+ ;Pull Pick List entry
+ S PKIEN=$$GET1^DIQ(90680.01,PIPIEN_",",.03,"I") I PKIEN="" Q ""
+ ;
+ ;Pull the ICD-9(s)
+ S ICIEN=0 F  S ICIEN=$O(^BJPN(90680.02,PKIEN,1,ICIEN)) Q:'ICIEN  D
+ . ;
+ . NEW ICD9,ICDTP,DA,IENS
+ . S DA(1)=PKIEN,DA=ICIEN,IENS=$$IENS^DILF(.DA)
+ . S ICD9=$$GET1^DIQ(90680.21,IENS,.01,"I") Q:ICD9=""
+ . S ICDTP=$$GET1^DIQ(90680.21,IENS,.02,"I") I ICDTP'=1 Q
+ . S ICD(ICD9)=$$GET1^DIQ(90680.21,IENS,.01,"E")
+ ;
+ ;Check for .9999
+ I '$D(ICD) D
+ . NEW DIC,X,Y
+ . S DIC="^ICD9(",DIC(0)="XMO",X=".9999" D ^DIC I +Y<0 Q
+ . S ICD(+Y)=".9999"
+ ;
+ S POV=""
+ S ICIEN="" F  S ICIEN=$O(^AUPNVPOV("AD",VIEN,ICIEN)) Q:ICIEN=""  D  Q:POV="Y"
+ . NEW ICDCD,VPNARR,SNOMED
+ . S VPNARR=$P($$GET1^DIQ(9000010.07,ICIEN_",",.04,"E"),"|")
+ . S SNOMED=$$GET1^DIQ(90680.01,PIPIEN_",",.03,"I") Q:SNOMED=""
+ . S SNOMED=$$GET1^DIQ(90680.02,SNOMED_",",.02,"E") Q:SNOMED=""
+ . ;
+ . S ICDCD=$$GET1^DIQ(9000010.07,ICIEN_",",.01,"I") Q:ICDCD=""
+ . I $D(ICD(ICDCD)),SNOMED=VPNARR S POV="Y" Q
+ . Q
+ ;
+ Q POV
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S II=$G(II)+1,@DATA@(II)=$C(31)
+ Q

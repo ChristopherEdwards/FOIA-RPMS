@@ -1,5 +1,5 @@
 ABSPOS57 ; IHS/FCS/DRS - 9002313.57 utils ;        [ 04/17/2002  11:36 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,12,35,36**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,12,35,36,44**;JUN 21, 2001
  Q
  ; Numerous little $$'s are here ; each assumes IEN57 is defined
  ; Originally copied from ABSPOSQ where it was for IEN57
@@ -183,9 +183,12 @@ FIELD(F,REV) ; EP - retrieve field F from claim or response ; given D0
  ; strip trailing spaces
  F  Q:$E(X,$L(X))'=" "  S X=$E(X,1,$L(X)-1)
  ;IHS/SD/lwj 6/16/05 patch 12 if version 5.1 clm rmv all fld ids
+ ;OIT/CAR/RCS 07052012 - Patch 44, fix so D.0 version works
  S ABSPVER=$$GETVER
- D:ABSPVER'[5 STRIPID
- D:ABSPVER[5 STRIP51
+ ;D:ABSPVER'[5 STRIPID
+ ;D:ABSPVER[5 STRIP51
+ D:ABSPVER[3 STRIPID
+ D:ABSPVER'[3 STRIP51
  ;D STRIPID ; strip field ID, if any
  ;IHS/SD/lwj 6/16/05 patch 12 end changes for this section
  D MONEY ; money fields, where appropriate
@@ -226,7 +229,7 @@ OTHER ; other special conversions
 GETVER() ; check for 5.1 clm - need to rmv field ids
  Q $$GET1^DIQ(9002313.02,IEN02_",",102,"E")
  ;
-STRIP51 ;remove field ids for NCPDP 5.1 flds
+STRIP51 ;remove field ids for NCPDP 5.1,D.0 flds
  N FLDLST
  S FLDLST="101,102,103,104,109,110,201,202,401,"
  Q:FLDLST[F_","

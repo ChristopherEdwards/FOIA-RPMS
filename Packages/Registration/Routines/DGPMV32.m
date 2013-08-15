@@ -1,5 +1,5 @@
 DGPMV32 ;ALB/MIR - CONTINUE TRANSFER A PATIENT OPTION ;5/7/91  09:08
- ;;5.3;Registration;**418**;Aug 13, 1993
+ ;;5.3;Registration;**418,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  7/26/2001 added checks for DGQUIET
  ;
  ;IHS/ANMC/LJF 7/26/2001 added check for DGQUIET to write statement

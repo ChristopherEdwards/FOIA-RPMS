@@ -1,6 +1,7 @@
-SCAPMC26 ;ALB/REW - API: Patients in a Clinic ; December 1, 1995 [ 12/06/2000  9:24 AM ]
- ;;5.3;Scheduling;**41,157**;AUG 13, 1993
+SCAPMC26 ;ALB/REW - API: Patients in a Clinic ; December 1, 1995 [12/21/98 4:30pm]
+ ;;5.3;Scheduling;**41,157,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 12/06/2000 changed SSN to HRCN in Long Patient ID
+ ;
  ;
 PTCL(SC44,SCDATES,SCLIST,SCERR) ; patients in a clinic
  ; Input:

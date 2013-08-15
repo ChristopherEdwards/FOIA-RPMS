@@ -1,5 +1,5 @@
 DGQPT ; SLC/MKB - Patient Selection ;8/8/97  13:07
- ;;5.3;Registration;**447**;Aug 13, 1993
+ ;;5.3;PIMS;**447,1015,1016**;JUN 30, 2012;Build 20
  ;
  ; SLC/PKS - 3/2000: Modified to deal with "Combinations."
  ;
@@ -188,8 +188,9 @@ SLCT1 ; -- may enter here with DFN from FIND
  . W !!,"Press <return> to continue ..."
  . R X:DTIME
 SLCT2 ; -- convert patient's orders, if not already done
- S DGCNV=$$OTF^OR3CONV(+DGVP) Q:'DGCNV  I DGCNV>0 W !,"DONE" H 1 Q
- I DGCNV<0 W $C(7),!!,$P(DGCNV,U,2) H 2 S VALMBCK="R" Q
+ ;ORDERS NO LONGER BEING CONVERTED 
+ ;S DGCNV=$$OTF^OR3CONV(+DGVP) Q:'DGCNV  I DGCNV>0 W !,"DONE" H 1 Q
+ ;I DGCNV<0 W $C(7),!!,$P(DGCNV,U,2) H 2 S VALMBCK="R" Q
  Q
  ;
 OK(DATE) ; -- Patient is deceased; ok to continue?

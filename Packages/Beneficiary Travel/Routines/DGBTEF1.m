@@ -1,5 +1,5 @@
 DGBTEF1 ;ALB/SCK - BENEFICIARY TRAVEL UPDATE PARAMETERS INTO FILES ;12/14/92 3/12/93
- ;;5.3;Registration;**13,35**;Aug 13, 1993
+ ;;5.3;Registration;**13,35,1015**;Aug 13, 1993;Build 21
 RATES ;enter/edit bene travel parameters;option DGBT BENE TRAVEL RATES
  S DA=1,DR="720;721",DIE="^DG(43," D ^DIE G QUIT:X="^"!($D(DTOUT))!($D(Y)) K DA,DE,DQ,DR,DIE
  W !!,"New travel rates are determined each fiscal year.  The rates should be",!,"entered each year with the effective date of Oct 1.",!

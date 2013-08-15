@@ -1,5 +1,5 @@
-BLRCINDX ; IHS/OIT/MKK - Lab Accession File "C" Index "Orphan" Pointers Kill ;MAY 06, 2009 9:58 AM
- ;;5.2;IHS LABORATORY;**1026,1028**;NOV 01, 1997;Build 46
+BLRCINDX ; IHS/OIT/MKK - Lab Accession File "C" Index "Orphan" Pointers Kill ;  MAY 06, 2009 9:58 AM
+ ;;5.2;IHS LABORATORY;**1026,1028,1031**;NOV 01, 1997
  ;;
  ;; Some code cloned from VA's LROC routine
  ;;
@@ -410,10 +410,13 @@ SILENTD ; EP - Silent Delete
  ;
 SILENTR ; EP - Report on the Silent Deletes
  NEW DATETIME,CNT1,CNT2,STR,STRLINE
+ NEW CNT                ; IHS/MSC/MKK - LR*5.2*1031
  ;
  D SILENTRI
  ;
  D SILENTRC
+ ;
+ Q:CNT<1           ; IHS/MSC/MKK - LR*5.2*1031 -- If latest # of Orphans = 0, don't send message
  ;
  D SENDMAIL("Accession File ""C"" Index ""Orphans"" Report")
  ;
@@ -432,6 +435,7 @@ SILENTRI ; EP - Initialization
  S (DATETIME)=0
  S (CNT1,CNT2)=""
  S STRLINE=6
+ S CNT=0                                    ; IHS/MSC/MKK - LR*5.2*1031
  Q
  ;
 SILENTRC ; EP - Compilation
@@ -442,6 +446,7 @@ SILENTRC ; EP - Compilation
  ... S $E(STR(STRLINE),5)=$$UP^XLFSTR($$FMTE^XLFDT(DATETIME,"5MPZ"))
  ... S $E(STR(STRLINE),35)=CNT1
  ... S $E(STR(STRLINE),45)=CNT2
+ ... S CNT=CNT2         ; IHS/MSC/MKK - LR*5.2*1031 - Latest # of Orphans
  Q
  ;
 SENDMAIL(MAILMSG) ; EP -- Send MailMan E-mail to all users with LRSUPER key
@@ -458,8 +463,12 @@ SENDMAIL(MAILMSG) ; EP -- Send MailMan E-mail to all users with LRSUPER key
  S (WHO,WHOCNT)=0
  F  S WHO=$O(^VA(200,"AB",LRSUPER,WHO))  Q:WHO<1  D
  . K ERRORS,X
- . S X=+$P($$FMTE^XLFDT($$GET1^DIQ(3.7,WHO,"LATEST MAILMAN ACCESS DATE","I",,"ERRORS"),"5DZ"),"/",3)
- . Q:X<YEARAGO  ; Only send e-mail to those who have accessed MailMan within the past year
+ . ; S X=+$P($$FMTE^XLFDT($$GET1^DIQ(3.7,WHO,"LATEST MAILMAN ACCESS DATE","I",,"ERRORS"),"5DZ"),"/",3)
+ . ; Q:X<YEARAGO  ; Only send e-mail to those who have accessed MailMan within the past year
+ . ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ . S X=$$FMDIFF^XLFDT($$DT^XLFDT,+$$GET1^DIQ(3.7,WHO,"LATEST MAILMAN ACCESS DATE","I",,"ERRORS"),1)
+ . Q:X>365         ; Only send e-mail to those who have accessed MailMan within the past year
+ . ; ----- END IHS/MSC/MKK - LR*5.2*1031
  . ;
  . S XMY(WHO)=""
  . D:WHOCNT<1 MAILHEAD

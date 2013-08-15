@@ -1,5 +1,5 @@
 DGENQRY ;ALB/CJM - API for ENROLLMENT QUERIES; 11/17/00 12:07pm ; 12/6/00 5:32pm
- ;;5.3;REGISTRATION;**147,222,232,314**;Aug 13,1993
+ ;;5.3;REGISTRATION;**147,222,232,314,1015**;Aug 13,1993;Build 21
  ;
 QRY(DFN) ;
  ;Description: Used to implment the automatic querying of HEC for

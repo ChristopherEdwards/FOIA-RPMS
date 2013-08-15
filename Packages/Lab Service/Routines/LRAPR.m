@@ -1,6 +1,7 @@
 LRAPR ;DALOI/REG/WTY/KLL/CKA - ANAT RELEASE REPORTS ;10/30/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,248,259,317,365**;Sep 27, 1994;Build 11
+ ;;5.2;LAB SERVICE;**1002,1018,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 72,248,259,317,365
  ;
  N LRESSW
  D SWITCH
@@ -90,7 +91,8 @@ REST W "  for ",LRH(0)
  .W " not in ACCESSION file",!!
  S X=^LRO(68,LRAA,1,LRAD,1,LRAN,0),LRLLOC=$P(X,"^",7),LRDFN=+X
  Q:'$D(^LR(LRDFN,0))  S X=^(0) D ^LRUP
- W !,LRP,"  ID: ",SSN
+ ; W !,LRP,"  ID: ",SSN
+ W !,LRP,"  ID: ",HRCN       ; IHS/MSC/MKK - LR*5.2*1031
  I LRSS'="AU" D
  .S LRI=$P(^LRO(68,LRAA,1,LRAD,1,LRAN,3),"^",5)
  .W !,"Specimen(s):"

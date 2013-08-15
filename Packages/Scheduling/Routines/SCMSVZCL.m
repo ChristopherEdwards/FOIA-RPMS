@@ -1,5 +1,5 @@
 SCMSVZCL ;ALB/ESD HL7 ZCL Segment Validation ; 11/9/99 2:28pm
- ;;5.3;Scheduling;**44,66,180,239**;Aug 13, 1993
+ ;;5.3;Scheduling;**44,66,180,239,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN(ZCLARRY,HLQ,HLFS,VALERR,DFN) ;

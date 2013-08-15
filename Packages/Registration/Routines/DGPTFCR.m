@@ -1,5 +1,5 @@
 DGPTFCR ;ALB/JDS - CREATE IN PATIENT PTF RECORD ; 11 JAN 85
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN D LO^DGUTL F DGDUMB=0:0 K DFN D SEL Q:'$D(DFN)
 Q K %,D0,DQ,T,Y,X,DGDUMB Q

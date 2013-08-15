@@ -1,9 +1,10 @@
 BISITE2 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT SITE PARAMETERS.
  ;;  PATCH 1: Update text to relect DTap change in Option 1,
  ;;           and allow for Option 11.  RULES+9 and TEXT-4.
+ ;;  PATCH 2: Update prompts and help text for HPV.  RULES+41, TEXT9+15
  ;
  ;
  ;----------
@@ -307,9 +308,14 @@ RULES ;EP
  ;---> HPV Age question.
  D TITLE^BIUTL5("SELECT FORECASTING RULES"),TEXT10
  N BIDFLT,BIHELP,BIPRMPT,X,Y
- S BIPRMPT="     Select 1 (18 yrs) or 2 for (26 yrs): "
- S BIHELP="        Enter 1 to stop HPV at 18 yrs old; enter 2 to stop"
- S BIHELP=BIHELP_"at 26 yrs old."
+ ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> Update prompts and help text for HPV.
+ S BIPRMPT="     Select 1 (18 yrs) or 2 for (26f/21m yrs): "
+ S BIHELP="        Enter 1 to stop HPV at 18 yrs old; or 2 to stop"
+ S BIHELP=BIHELP_" at 26f/21m yrs."
+ ;**********
+ ;
  S BIDFLT=+$P($G(^BISITE(BISITE,0)),U,24)  S:'BIDFLT BIDFLT=1
  D DIR^BIFMAN("SAB^1:18;2:26",.Y,,BIPRMPT,BIDFLT,BIHELP)
  I $G(Y)="^" D RESET^BISITE Q
@@ -354,7 +360,7 @@ TEXT9 ;EP
  ;;
  ;;Below, choose "Yes" if you would like to screen using the 4-Day Grace
  ;;Period.  Choose "No" to adhere strictly to the recommended intervals.
- ;;B
+ ;;
  ;;Note: The 4-Day Grace Period will not affect vaccine forecasting, only
  ;;screening for the validity of the dose administered.
  ;;
@@ -362,15 +368,19 @@ TEXT9 ;EP
  Q
  ;
  ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> Update prompts and help text for HPV.
+ ;
  ;----------
 TEXT10 ;EP
  ;;The ACIP recommends HPV for females 11-12 years with catch up for
- ;;13-26 year olds.  But HPV is provided by the Vaccine for Children's
- ;;Program only for 9-18 year olds.
+ ;;13-26 years for females and 13-21 years for males.  But HPV is provided
+ ;;by the Vaccine for Children's Program only for 9-18 year olds.
  ;;
- ;;Please select whether HPV should forecast from age 11 through 18 years
- ;;or age 11 through 26 years.
+ ;;Please select whether HPV should forecast for all patients from age 11
+ ;;through 18 years, or only through age 26 for females and age 21 for males.
  ;;
+ ;**********
  D PRINTX("TEXT10")
  Q
  ;

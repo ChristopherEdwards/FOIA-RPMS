@@ -1,6 +1,6 @@
-DGPMVDD ;ALB/MIR - MISCELLANEOUS DD CALLS FROM FILE 405 AND 405.1 ;5/9/91  17:47
- ;;5.3;Registration;**418**;Aug 13, 1993
-W ;called form input transform for ward location
+DGPMVDD ;ALB/MIR - MISCELLANEOUS DD CALLS FROM FILE 405 AND 405.1 ; 4/14/04 6:26pm
+ ;;5.3;Registration;**418,593,1015**;Aug 13, 1993;Build 21
+W ;called from input transform for ward location
  I '$D(DGPMT) K X,DIC Q
  S DGPMTYP=$P(^DGPM(DA,0),"^",18),DGPMWD=$P(DGPMP,"^",6) D W1:DGPMT=1,W2:DGPMT=2!($P(^DGPM(DA,0),"^",2)=2) Q
 W1 ;consistency edits for ward location from admit option
@@ -9,7 +9,8 @@ W1 ;consistency edits for ward location from admit option
  ;S DGX="" I DGPMTYP=18 S DIC("S")=DIC("S")_",""^NH^D^""[(""^""_$P(^(0),""^"",3)_""^"")" Q
  S DGX="" I DGPMTYP=18 S DIC("S")=DIC("S")_",""^NH^D^""[(""^""_$P(^(0),""^"",3)_""^"")!($P(^(0),""^"",17)=1)" ;p-418
  ;I (DGPMWD&$S($P(DGPM2,"^",2)=2:1,1:0))!(DGPMTYP=40) S DGX=$S($D(^DIC(42,+DGPMWD,0)):$P(^(0),"^",3),1:""),DGX=$S("^NH^D^"'[("^"_DGX_"^"):"H",1:DGX)
- I (DGPMWD&$S($P(DGPM2,"^",2)=2:1,1:0))!(DGPMTYP=40) S DGX=$S($D(^DIC(42,+DGPMWD,0)):$P(^(0),"^",3),1:""),DGX=$S("^NH^D^"'[("^"_DGX_"^")&($P(^(0),"^",17)'=1):"H",1:DGX) ;p-418
+ ;S DGPMWD="",DGPMTYP=40  ; simulate NOIS REN-0304-60611
+ I (DGPMWD&$S($P(DGPM2,"^",2)=2:1,1:0))!(DGPMTYP=40) S DGX=$S($D(^DIC(42,+DGPMWD,0)):$P($G(^DIC(42,+DGPMWD,0)),U,3),1:""),DGX=$S("^NH^D^"'[("^"_DGX_"^")&($P($G(^DIC(42,+DGPMWD,0)),U,17)'=1):"H",1:DGX) ;p-418/593
  ;I DGX]"" S DIC("S")=DIC("S")_",("_$S(DGX="NH":"""^NH^:""[",DGX="D":"""^D^""[",1:"""^NH^D^""'[")_"(""^""_$P(^(0),""^"",3)_""^""))"
 ZZ I DGX]"" S DIC("S")=DIC("S")_",("_$S(DGX="NH":"""^NH^:""[",DGX="D":"""^D^""[",1:"""^NH^D^""'[")_"(""^""_$P(^(0),""^"",3)_""^"")&($P(^(0),""^"",17)'=1))" ;p-418
  I $P(DGPM2,"^",2)=2&$P(DGPM2,"^",6),'DGPMABL S DIC("S")=DIC("S")_",+Y'=$P(DGPM2,""^"",6)"

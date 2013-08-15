@@ -1,5 +1,5 @@
-DGMTDEL1 ;ALB/CAW,LBD - Delete MT for a Patient (con't) ;12/6/94
- ;;5.3;Registration;**45,166,182,433,518**;Aug 13, 1993
+DGMTDEL1 ;ALB/CAW,LBD,PHH - Delete MT for a Patient (con't) ;12/6/94
+ ;;5.3;Registration;**45,166,182,433,518,531,1015**;Aug 13, 1993;Build 21
  ;
 ID ;write identifiers
  S DGI=Y,DGN=$G(^DGMT(408.31,DGI,0))
@@ -23,6 +23,16 @@ DEL ;delete
  .S DA=DGMTX
  .I DA S DR="31///@",DIE="^DGMT(408.22," D ^DIE
  .K DE,DQ,DR,DIK
+ .;
+ .; Delete the $0.00 values out of the net worth fields if total income
+ .; is not greater than zero dollars.
+ .N DA,NODE0,AMTFLG,CNT,DIE,DR
+ .S DA=$P($G(^DGMT(408.22,DGMTX,0)),"^",2)
+ .I DA D
+ ..Q:'$D(^DGMT(408.21,DA,2))
+ ..S NODE0=$G(^DGMT(408.21,DA,0)) Q:NODE0=""
+ ..S AMTFLG=0 F CNT=0:1:9 S:$P(NODE0,"^",CNT+8)'="" AMTFLG=1
+ ..I 'AMTFLG S DIE="^DGMT(408.21,",DR="31///@;2.01///@;2.02///@;2.03///@;2.04///@" D ^DIE
  D AFTER^DGMTEVT S DGMTINF=0
  I DGMTYPT=1!(DGMTYPT=2) D EN^DGMTEVT
  I DGMTYPT=4 D

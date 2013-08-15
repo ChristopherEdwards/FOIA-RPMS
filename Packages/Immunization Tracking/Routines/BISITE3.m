@@ -1,7 +1,8 @@
 BISITE3 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT SITE PARAMETERS.
+ ;   PATCH 2: Fix SET of default Low Supply Alert.  LOTREQ+21
  ;
  ;
  ;----------
@@ -310,7 +311,13 @@ LOTREQ ;EP
  N BIDFLT,DIR,DIRUT,Y
  S DIR(0)="NOA^0:9999"
  S DIR("A")="     Please enter a Low Supply Alert number: "
- S DIR("B")=$$LOTLOW^BIUTL2(BISITE)
+ ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> Fix SET of default Low Supply Alert.
+ ;S DIR("B")=$$LOTLOW^BIUTL2(BISITE)
+ S DIR("B")=$$LOTSDEF^BISITE1(BISITE)
+ ;**********
+ ;
  D ^DIR
  D:'$D(DIRUT)
  .N BIFLD,BIERR S BIFLD(.25)=Y

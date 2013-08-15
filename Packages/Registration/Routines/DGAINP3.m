@@ -1,5 +1,5 @@
 DGAINP3 ;ALB/RMO - Set-up Utility and Print Inpatient AMIS's 334-341 ; 27 DEC 89 1:37 pm
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;==============================================================
  ;Set-up Utility Global to print inpatient AMIS segments for
  ;a selected Month/Year.

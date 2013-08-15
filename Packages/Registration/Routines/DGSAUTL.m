@@ -1,5 +1,5 @@
 DGSAUTL ;ALB/MTC - SHARING AGREEMENTS UTILITY FUNCTIONS ; 16 JAN 97
- ;;5.3;Registration;**114,194,216*****;Aug 13, 1993
+ ;;5.3;Registration;**114,194,216***,1015**;Aug 13, 1993;Build 21
  ;
  Q
  ;

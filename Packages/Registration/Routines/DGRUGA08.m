@@ -1,5 +1,5 @@
-DGRUGA08 ;ALB/GRR - HL7 ADT A08 MESSAGE BUILDER ;8/5/99  15:32
- ;;5.3;Registration;**190,312,328**;Aug 13, 1993
+DGRUGA08 ;ALB/GRR - HL7 ADT A08 MESSAGE BUILDER ; 10/11/07 9:24am
+ ;;5.3;PIMS;**190,312,328,721,1015,1016**;JUN 30, 2012;Build 20
  ;
  ;This routine will build a ADT A08 (Patient Update) HL7 message for an inpatient.
  ;
@@ -15,7 +15,7 @@ EN(DFN,DGMIEN,DGARRAY,DGDC,DGSSNC) ;Entry point of routine
  ;
  N DGPV1,DGHOLD,DGCNT,DGMDT,DGCDT,DGOADT,DGIN1,DGLMT,DGZEL,DGICD,DGICDCNT,DGIN,DGINCNT S DGCNT=0
  Q:DGARRAY=""  ;Required output variable name was not passed
- K @DGARRAY ;Kill output array to insure erronuous data does not exist
+ K @DGARRAY ;Kill output array to insure erroneous data does not exist
  I DGMIEN="" N VAIP D NOW^%DTC S VAIP("D")=% D IN5^VADPT S DGMIEN=$G(VAIP(1)) K VAIP Q:DGMIEN=""  ;changed p-328
  D NOW^%DTC S DGCDT=$$HLDATE^HLFNC(%) ;Get current date/time and convert to HL7 format
  S DGMDT=$$GET1^DIQ(405,DGMIEN,".01","I")
@@ -31,6 +31,8 @@ EN(DFN,DGMIEN,DGARRAY,DGDC,DGSSNC) ;Entry point of routine
  I DGOADT]"" S $P(DGPV1,HL("FS"),45)=$$HLDATE^HLFNC(DGOADT)
  S DGPV1=$$DOCID^DGRUUTL(DGPV1)
  I $G(DGLMT)=1,$E($G(DGDC))="D" S $P(DGPV1,HL("FS"),4)=$P(DGPV1,HL("FS"),7) ;This is a change to a prior HL7, move prior location to current
+ N VAIP D IN5^VADPT S $P(DGPV1,HL("FS"),11)=$$GET1^DIQ(45.7,+VAIP(8),1,"I") K VAIP ; p-721
+ K ATTDOC S ATTDOC=$$ATTDOC^DGRUUTL(.ATTDOC) S $P(DGPV1,HL("FS"),18)=ATTDOC K ATTDOC ; P-762
  S @DGARRAY@(DGCNT)=$$LOCTRAN^DGRUUTL1(DGPV1)
  S DGCNT=DGCNT+1 ;Increment node counter to store next segment
  S @DGARRAY@(DGCNT)=$$EN^VAFHLPV2(DFN,DGMIEN,",3,") ;Create PV2 segment

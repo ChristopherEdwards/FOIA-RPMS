@@ -1,5 +1,5 @@
 DGMTSC3 ;ALB/RMO/CAW - Means Test Screen Deductible Expense ;23 JAN 1992 11:00 am [ 10/02/92  11:31 AM ]
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**624,1015**;Aug 13, 1993;Build 21
  ;
  ; Input  -- DGVINI  Veteran Individual Annual Income IEN
  ;           DGVIRI  Veteran Income Relation IEN
@@ -22,8 +22,9 @@ DIS ;Display deductible expenses
  N DGCNT,DGDCS,DGDEP,DGIN1,DGINC,DGINR,DGREL,DGVIR0
  S DGVIR0=$G(^DGMT(408.22,DGVIRI,0)),DGIN1("V")=$G(^DGMT(408.21,DGVINI,1))
  S DGDC=$P(DGVIR0,"^",8) I DGDC D SET^DGMTSC31 S:'$D(DGDCS) DGDC=0
- D HIGH^DGMTSCU1(1,DGMTACT) W $J("Medical Expenses: ",33),$$AMT^DGMTSCU1($P(DGIN1("V"),"^"))
- W !?7,"Funeral and Burial Expenses: ",$S('$P(DGVIR0,"^",5)&('$P(DGVIR0,"^",8)):"N/A",1:$$AMT^DGMTSCU1($P(DGIN1("V"),"^",2)))
- W !?4,"Veteran's Educational Expenses: ",$$AMT^DGMTSCU1($P(DGIN1("V"),"^",3))
+ D HIGH^DGMTSCU1(1,DGMTACT) W $J("Gross Medical Expenses: ",33),$S(+$P(DGIN1("V"),"^",12)'<0:$$AMT^DGMTSCU1(+$P(DGIN1("V"),"^",12)),1:"N/A")
+ W !,$J("Adjusted Medical Expenses: ",36),$S(+$P(DGIN1("V"),"^")'<0:$$AMT^DGMTSCU1(+$P(DGIN1("V"),"^")),1:"N/A")
+ W !,$J("Funeral and Burial Expenses: ",36),$S('$P(DGVIR0,"^",5)&('$P(DGVIR0,"^",8)):"N/A",1:$$AMT^DGMTSCU1($P(DGIN1("V"),"^",2)))
+ W !,$J("Veteran's Educational Expenses: ",36),$$AMT^DGMTSCU1($P(DGIN1("V"),"^",3))
  W ! D HIGH^DGMTSCU1(2,DGMTACT) W ?7," Child's Education Expenses: ",$S('DGDC:"N/A",1:"") D DIS^DGMTSC31:DGDC
  Q

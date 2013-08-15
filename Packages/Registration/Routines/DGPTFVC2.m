@@ -1,5 +1,5 @@
 DGPTFVC2 ;ALB/MJK - Expanded PTF Close-Out Edits ; Jul 20 88
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;called from Q+2^DGPTFTR
  ; input : PTF
  ; output: DGERR   DGERR := 1  if record fails to pass a check

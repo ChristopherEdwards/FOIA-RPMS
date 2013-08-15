@@ -1,5 +1,5 @@
-APSPAUTO ;IHS/CIA/PLS - Auto Release Prescription ;13-Feb-2012 14:37;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1006,1008,1013**;Sep 23, 2004;Build 33
+APSPAUTO ;IHS/CIA/PLS - Auto Release Prescription ;31-May-2012 10:17;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1006,1008,1013,1014**;Sep 23, 2004;Build 5
  ; This routine contains code from PSODISP and PSODISPS.
 AUTOREL ; EP
  N APSPZRP,APSP1,PSRH,PSIN,APSPRXP,POERR,APSPREL
@@ -67,7 +67,7 @@ UPDATE I $G(ISUF) W:'$G(APSPNOP) $C(7),!!?7,"Prescription "_$P(^PSRX(RXP,0),"^")
  ;IHS/MSC/PLS - 10/13/2011
  I 1 D
  .N APSPEXPD,DIE,DA,DR
- .S APSPEXPD=$$EXPDT(RXP)
+ .S APSPEXPD=$$EXPDT(RXP,1)
  .I APSPEXPD D
  ..S DIE="^PSRX(",DA=RXP,DR="26///"_APSPEXPD D ^DIE
  W:'$G(APSPNOP) !?7,"Prescription Number "_$P(^PSRX(RXP,0),"^")_" Released"
@@ -99,11 +99,16 @@ QTY S PSOCPN=$P(^PSRX(RXP,0),"^",2),QDRUG=$P(^PSRX(RXP,0),"^",6) K LBLP
  K IFN
  Q
  ; Return updated expiration date
-EXPDT(RX) ;EP-
+EXPDT(RX,AUTO,RDT) ;EP-
  ;CHECK FOR CALCULATED EXPIRATION DATE < CURRENT EXPIRATION DATE.
  N RES,NREF,RX0,DS,RFCNT,EXTEXP,DE,CS,OEXPDT,ISSDT
  S CS=0
+ S AUTO=$G(AUTO,0)
+ S RDT=+$G(RDT)  ;Release date
+ S:'RDT RDT=DT   ;Default to today
  S RX0=^PSRX(RX,0)
+ ; Quit if not autorelease, prescription has been released and no remaining dispenses
+ I 'AUTO,$P($G(^PSRX(RX,2)),U,13),'$$RMNRFL^APSPFUNC(RX) Q 0
  S ISSDT=$P(RX0,U,13)
  S DE=+$$GET1^DIQ(50,$P(RX0,U,6),3)
  I DE>1,DE<6 S CS=1 S:DE=2 $P(CS,U,2)=1
@@ -114,9 +119,9 @@ EXPDT(RX) ;EP-
  S X2=$S(EXTEXP:EXTEXP,$P(CS,U,2):184,CS:184,1:366)
  S OEXPDT=$$FMADD^XLFDT(ISSDT,X2)
  S DS=$S(EXTEXP:EXTEXP,1:DS)
- I $$FMADD^XLFDT(DT,DS)'<OEXPDT S RES=0
+ I $$FMADD^XLFDT(RDT,DS)'<OEXPDT S RES=0
  E  I 'NREF S RES=1
  E  D
  .S RFCNT=$O(^PSRX(RX,1,$C(1)),-1)
  .S RES=$S(RFCNT=NREF:1,1:0)  ; not eligible for change in expiration date
- Q $S(RES:$$FMADD^XLFDT(DT,DS),1:0)
+ Q $S(RES:$$FMADD^XLFDT(RDT,DS),1:0)

@@ -1,8 +1,21 @@
-BTIUVSIT ; IHS/ITSC/LJF - Visit File look-up ;
- ;;1.0;TEXT INTEGRATION UTILITIES;**1001**;NOV 04, 2004
+BTIUVSIT ; IHS/ITSC/LJF - Visit File look-up ;18-Jul-2012 13:36;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1010**;NOV 04, 2004;Build 24
  ; IHS version of TIUVSIT calls
+ ; IHS/MSC/MGH Patch 10 added GUI visit creation call
  ;
 FINDVST ;EP; -- IHS setup code to find visit for note
+ ;IHS/MSC/MGH new code for patch 10
+ N VIEN
+ I '+TIUMODE D  S BTIUQ=1
+ .S TIUY("LOC")=VLOC_U_$P($G(^SC(VLOC,0)),U,1)
+ .I $G(TIUY("LOC"))="",+DUZ D
+ ..N TIUPREF,IDX
+ ..S TIUPREF=$$PERSPRF^TIULE(DUZ)
+ ..S IDX=+$P(TIUPREF,U,2)
+ ..I IDX S TIUY("LOC")=IDX_U_$P($G(^SC(IDX,0)),U,1) ; DBIA/ICR 10040
+ .S VIEN=$$FNDVIS^BEHOENCX(DFN,TIUVDT,TIUCAT,TIULOC,-1,,"")
+ .I +VIEN S TIU("VISIT")=VIEN
+ ;End IHS mods
  K ^TMP("TIUIHSV",$J)
  ; -- find possible visits for patient and date
  I '$D(^TMP("TIUVN",$J)) D GETAPPT(DFN,$G(TIULOC),$G(TIUOCC),$G(TIULDT),"",.TIULAST,$G(TIUVDT))
@@ -35,7 +48,7 @@ GETAPPT(DFN,CLINIC,OCCLIM,INDEX,COUNT,LAST,EARLY) ;EP; Get list of visits
  .. ; try to match service category, clinic and author
  .. S X=TIUZ(.07,"I")  ;service category
  .. ;
- .. ;IHS/ITSC/LJF 01/05/2005 PATCH 1001 check hosp loc or clinic code 
+ .. ;IHS/ITSC/LJF 01/05/2005 PATCH 1001 check hosp loc or clinic code
  .. ;I '$G(CLINIC),X'="H",$G(TIUAUTH)]"" S CLINIC=$$GETCLN
  .. ;I '$G(CLINIC),'TIUMODE,X'="H" Q
  .. ;I +$G(CLINIC),(+TIUZ(.08,"I")'=+CLINIC),X'="H" Q

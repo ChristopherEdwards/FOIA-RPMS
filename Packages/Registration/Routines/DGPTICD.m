@@ -1,5 +1,5 @@
 DGPTICD ;ALB/MTC - PTF DRG Grouper Utility ; 2/19/02 3:08pm
- ;;5.3;Registration;**375,441**;Aug 13, 1993
+ ;;5.3;PIMS;**375,441,510,559,599,606,775,785,1015,1016**;JUN 30, 2012;Build 20
  ;variables to pass in:
  ;  DGDX <- format: DX CODE1^DX CODE2^DX CODE3^...                      (REQUIRED)
  ;  DGSURG <- format: SURGERY CODE1^SURGERY CODE2^SURGERY CODE3^...       (OPTIONAL)
@@ -11,6 +11,7 @@ DGPTICD ;ALB/MTC - PTF DRG Grouper Utility ; 2/19/02 3:08pm
  ;values of variables listed above are left unchanged by this routine
  ;variable passed back: DRG(0) <- zero node of DRG in DRG file
  ;                    : DRG <- IFN of DRG in DRG file
+ ;  DGDAT  <- Effective date to be used in calculating DRG
  ;
  ;-- check for required variables
  Q:'$D(DGDX)!'$D(DGTRS)!'$D(DGEXP)!'$D(DGDMS)
@@ -18,11 +19,12 @@ DGPTICD ;ALB/MTC - PTF DRG Grouper Utility ; 2/19/02 3:08pm
  ;-- build ICDDX array
  K ICDDX
  S DGI=0 F  S DGI=DGI+1 Q:$P(DGDX,U,DGI)=""  D
- . I $D(^ICD9(+$P(DGDX,U,DGI),0)) S ICDDX(DGI)=$P(DGDX,U,DGI)
+ . S DGPTTMP=$$ICDDX^ICDCODE(+$P(DGDX,U,DGI),+$G(DGDAT))
+ . I +DGPTTMP>0,($P(DGPTTMP,U,10)) S ICDDX(DGI)=$P(DGDX,U,DGI)
  G Q:'$D(ICDDX)
  ;
  ;-- build ICDPRC array
- ;K ICDPRC
+ K ICDPRC
  ;I $D(DGPROC) S DGSURG=$S('$D(DGSURG):DGPROC,1:DGSURG_DGPROC)
  ;I $D(DGSURG) S DGI=0 F  S DGI=DGI+1 Q:$P(DGSURG,U,DGI)=""  D
  ;. I $D(^ICD0($P(DGSURG,U,DGI),0)) S ICDPRC(DGI)=$P(DGSURG,U,DGI)
@@ -30,24 +32,33 @@ DGPTICD ;ALB/MTC - PTF DRG Grouper Utility ; 2/19/02 3:08pm
  K ICDPRC
  N I,J,X,Y,FLG,SUB S SUB=0
  I $D(DGPROC) F I=2:1 S X=$P(DGPROC,U,I) Q:X=""  D
- .I $D(^ICD0(X,0)) S SUB=SUB+1,ICDPRC(SUB)=X
+ . S DGPTTMP=$$ICDOP^ICDCODE(X,+$G(DGDAT))
+ . I +DGPTTMP>0,($P(DGPTTMP,U,10)) S SUB=SUB+1,ICDPRC(SUB)=X
  I $D(DGSURG) F I=2:1 S X=$P(DGSURG,U,I) Q:X=""  D
- .S FLG=0,J=0 F  S J=$O(ICDPRC(J)) Q:'J  I X=$G(ICDPRC(J)) S FLG=1 Q
- .I FLG Q
- .I $D(^ICD0(X,0)) S SUB=SUB+1,ICDPRC(SUB)=X
+ .S J=0 F  S J=$O(ICDPRC(J)) Q:'J
+ .;I X=$G(ICDPRC(J)) S FLG=1 Q
+ .;I FLG Q
+ . S DGPTTMP=$$ICDOP^ICDCODE(X,+$G(DGDAT))
+ . I +DGPTTMP>0,($P(DGPTTMP,U,10)) S SUB=SUB+1,ICDPRC(SUB)=X
+ . S ICDSURG(SUB)=$P(DGPTTMP,U,2)
  ;
  ;-- set other required variables
  S ICDTRS=DGTRS,ICDEXP=DGEXP,ICDDMS=DGDMS
+ S ICDDATE=$S($D(DGDAT):DGDAT,1:DT),DGDAT=ICDDATE  ;Ensure that DGDAT is defined prior to executing PRT
  ;
  ;-- calculate DRG
  D ^ICDDRG S DRG=ICDDRG I '$D(DGDRGPRT) G Q
  ;
 PRT ;print DRG and national HCFA values
- I '$D(^ICD(+DRG,0)) W !,"Invalid DRG Error" G Q
- I DRG=468!(DRG=469)!(DRG=470) W *7
- S DRG(0)=^ICD(DRG,0) W !!,"Diagnosis Related Group: ",$J(DRG,6),?36,"Average Length of Stay(ALOS): ",$J($P(DRG(0),"^",8),6)
+ I (ICDDATE<3071001)&(DRG=468!(DRG=469)!(DRG=470)) W *7
+ I DRG=998!(DRG=999) W *7
+ S Y=ICDDATE D DD^%DT ; Y=external representation of effective date
+ W !!?9,"Effective Date:","  ",Y
+ S DRG(0)=$$DRG^ICDGTDRG(DRG,DGDAT) W !!,"Diagnosis Related Group: ",$J(DRG,6),?36,"Average Length of Stay(ALOS): ",$J($P(DRG(0),"^",8),6)
  W !?17,"Weight: ",$J($P(DRG(0),"^",2),6)  ;,?40,"Local Breakeven: ",$J($P(DRG(0),"^",12),6)
  W !?12," Low Day(s): ",$J($P(DRG(0),"^",3),6)  ;,?39,"Local Low Day(s): ",$J($P(DRG(0),"^",9),6)
  W !?13," High Days: ",$J($P(DRG(0),"^",4),6)  ;,?40,"Local High Days: ",$J($P(DRG(0),"^",10),6)
- W !!,"DRG: ",DRG,"-" F DGI=0:0 S DGI=$O(^ICD(DRG,1,DGI)) Q:DGI'>0  W ?10,$P(^(DGI,0),U,1),!
-Q K ICDDMS,ICDDRG,ICDDX,ICDEXP,ICDMDC,ICDPRC,ICDRTC,ICDTRS Q
+ N DXD,DGDX
+ S DXD=$$DRGD^ICDGTDRG(DRG,"DGDX",,DGDAT),DGI=0
+ W !!,"DRG: ",DRG,"-" F  S DGI=$O(DGDX(DGI)) Q:'+DGI  Q:DGDX(DGI)=" "  W ?10,DGDX(DGI),!
+Q K ICDDMS,ICDDRG,ICDDX,ICDEXP,ICDMDC,ICDPRC,ICDRTC,ICDTRS,ICDDATE Q

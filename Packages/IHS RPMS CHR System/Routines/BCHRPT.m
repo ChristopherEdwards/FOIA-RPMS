@@ -1,5 +1,5 @@
-BCHRPT ; IHS/TUCSON/LAB - APC visit counts by selected vars ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHRPT ; IHS/CMI/LAB - APC visit counts by selected vars ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
 START ; 
  D HOME^%ZIS
@@ -69,6 +69,11 @@ PAGE ;
  I $D(DIRUT) G SORT
  S BCHSPAG=Y
 ZIS ;call to XBDBQUE
+REG ;
+ S BCHREG="",BCHREGN=""
+ S DIR(0)="S^R:Registered Patients;N:Non-Registered Patients;B:Both Registered and Non-Registered Patients",DIR("A")="Include which Patients",DIR("B")="B" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ S BCHREG=Y,BCHREGN=Y(0)
  D KILLVARS
  S XBRP=BCHRPTP,XBRC=$S($G(BCHRPRCR)]"":BCHRPRCR,1:"^BCHRPT4"),XBRX="XIT^BCHRPT",XBNS="BCH"
  D ^XBDBQUE

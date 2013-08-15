@@ -1,5 +1,5 @@
 DGANHD1 ;ALB/RMO - Calculate NHCU and DOM AMIS's 345-346 ; 29 AUG 90 10:40 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;==============================================================
  ;NHCU and DOM AMIS segments are calculated by looping through the
  ;Ward Location file.

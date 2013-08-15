@@ -1,5 +1,5 @@
 DG53418P ;ALB/GRR(EDS) - Add new Intermediae Medicine - LTC Treating Specialty;1/21/02
- ;;5.3;Registration;**418**;Aug 13, 1993
+ ;;5.3;Registration;**418,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN ;Add Intermediate Medicine - LTC Treating Specialties to the SPECIALITY file (#42.4)

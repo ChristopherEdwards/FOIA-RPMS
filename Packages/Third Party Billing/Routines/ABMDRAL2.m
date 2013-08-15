@@ -1,13 +1,14 @@
 ABMDRAL2 ; IHS/ASDST/DMJ - Bills Listing-132 width ; 
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009
  ;Original;TMD;
  ;
- ; IHS/SD/SDR - 10/16/02 - V2.5 P2 - UXX-0801-170114
- ;        Modified to fix <SBSCR> error on report
+ ; IHS/SD/SDR - 10/16/02 - V2.5 P2 - UXX-0801-170114 - Modified to fix <SBSCR> error on report
+ ; IHS/SD/SDR - 2.6*9 - HEAT35406 - Correction to itemized report
  ;
 PRINT ;EP for printing data
  S ABM("PRIVACY")=1
- W:$D(ABM("PRINT",16)) @ABM("PRINT",16) S ABM("PG")=0 D HDB
+ ;W:$D(ABM("PRINT",16)) @ABM("PRINT",16) S ABM("PG")=0 D HDB  ;ABM*2.6*9 HEAT35406
+ W:$D(ABM("PRINT",16)) @ABM("PRINT",16) S ABM("PG")=0 D ^ABMDRHD,HDB  ;ABM*2.6*9 HEAT35406
  S (ABM("CNT1"),ABM("CNT2"),ABM("CNT"),ABM("TOT1"),ABM("TOT2"),ABM("TOT"),ABM("PD"),ABM("PDT1"),ABM("PDT2"),ABM("PDT"))=0,(ABM("A"),ABM("L"),ABM("V"))=""
  S ABM("Z")="TMP(""ABM-AL"","_$J,ABM="^"_ABM("Z")_")" I '$D(@ABM) Q
  F  S ABM=$Q(@ABM) Q:ABM'[ABM("Z")  D  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)

@@ -1,5 +1,5 @@
 ABME8L4 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,9**;NOV 12, 2009
  ;Header Segments
  ;
  ; IHS/SD/SDR v2.5 p8 - IM12246/IM17548 Added code to put CLIA number REF segment
@@ -13,6 +13,7 @@ ABME8L4 ; IHS/ASDST/DMJ - Header
  ; IHS/SD/SDR - v2.5 p12 - NO IM Added DTP*454 for Init. treatment date
  ; IHS/SD/SDR - abm*2.6*1 - HEAT4158 - do REF*EW if mammography
  ; IHS/SD/SDR - abm*2.6*1 - HEAT6439 - Added PWK for claim attachments
+ ; IHS/SD/SDR - 2.6*9 - HEAT39583 - added assumed care and relinquished care dates
  ;
 START ;START HERE
  K ABMOUTLB
@@ -46,6 +47,14 @@ START ;START HERE
  I $P(ABMB6,"^",3) D
  .D EP^ABME8DTP("096","D8",$P(ABMB6,"^",3))
  .D WR^ABMUTL8("DTP")
+ ;start new code abm*2.6*9 HEAT39583
+ I $P(ABMB7,U,19) D
+ .D EP^ABME5DTP("090","D8",$P(ABMB7,U,19))
+ .D WR^ABMUTL8("DTP")
+ I $P(ABMB7,U,21) D
+ .D EP^ABME5DTP("091","D8",$P(ABMB7,U,21))
+ .D WR^ABMUTL8("DTP")
+ ;end new code HEAT39583
  ;start new code abm*2.6*1 HEAT6439
  I $D(^ABMDBILL(DUZ(2),ABMP("BDFN"),71)) D
  .K ABM71CNT

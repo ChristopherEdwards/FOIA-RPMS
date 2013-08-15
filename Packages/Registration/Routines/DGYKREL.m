@@ -1,5 +1,5 @@
 DGYKREL ;ALB/REW - Religion Update Post-Init for 10/1 Maintenance Patch ; 6/9/94
- ;;5.3;Registration;**31**;Aug 13, 1993
+ ;;5.3;Registration;**31,1015**;Aug 13, 1993;Build 21
  ;
 EN ;
  ; This will update the Religion File (#13).  The EN tag may be re-run

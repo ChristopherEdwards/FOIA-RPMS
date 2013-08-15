@@ -1,5 +1,5 @@
 SCAPMC27 ;ALB/REW - PTST Patients with a Stop Code ; JUN 30, 1995
- ;;5.3;Scheduling;**41,140**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,140,1015**;AUG 13, 1993;Build 21
  ;;1.0
 PTST(SCST,SCDATES,SCMAXCNT,SCLIST,SCERR,MORE) ; -- list of patients with a IEN of 40.7
  ; USE $$PTSTEXT(below) if you have stop code (e.g. 301)

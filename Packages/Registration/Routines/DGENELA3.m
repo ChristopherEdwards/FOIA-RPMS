@@ -1,5 +1,5 @@
 DGENELA3 ;ALB/CJM - Patient Eligibility API ; 13 JUN 1997
- ;;5.3;Registration;**147**;08/13/93
+ ;;5.3;Registration;**147,1015**;08/13/93;Build 21
  ;
 FILE(SUB) ;
  ;Description: Given a subscript from the ELIGIBILITY object array, 

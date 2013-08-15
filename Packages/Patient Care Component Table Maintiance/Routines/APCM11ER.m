@@ -1,5 +1,5 @@
-APCM11ER ;IHS/CMI/LAB - IHS MU;
- ;;2.0;IHS PCC SUITE;**6,7**;MAY 14, 2009;Build 11
+APCM11ER ;IHS/CMI/LAB - IHS MU REPORT; 
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2**;MAR 26, 2012;Build 11
  ;
  ;
 CALC(N,O) ;ENTRY POINT
@@ -64,12 +64,12 @@ SUM ;EP - summary sheet for each provider
  S X=0 F  S X=$O(APCMPRV(X)) Q:X'=+X  S APCMPROV($P(^VA(200,X,0),U),X)=""
  S APCMPNAM="" F  S APCMPNAM=$O(APCMPROV(APCMPNAM)) Q:APCMPNAM=""!(APCMQUIT)  D
  .S APCMPROV=0 F  S APCMPROV=$O(APCMPROV(APCMPNAM,APCMPROV)) Q:APCMPROV=""!(APCMQUIT)  D SUM1,W^APCM11EH(" ",0,0,APCMPTYP) D
- ..D W^APCM11EH("* Indicates Public Health Perfomance Measure.  At least one must be",0,1,APCMPTYP),W^APCM11EH("selected in the Menu Set options.",0,1,APCMPTYP),W^APCM11EH(" ",0,1,APCMPTYP),W^APCM11EH(" ",0,1,APCMPTYP)
+ ..D W^APCM11EH("* Indicates Public Health Performance Measure.",0,1,APCMPTYP) ;  At least one must be",0,1,APCMPTYP),W^APCM11EH("selected in the Menu Set options.",0,1,APCMPTYP),W^APCM11EH(" ",0,1,APCMPTYP),W^APCM11EH(" ",0,1,APCMPTYP)
  Q
 SUMHOS ;
  S APCMPNAM=$P(^DIC(4,APCMFAC,0),U,1)
  S APCMPROV=APCMFAC
- D SUM1 D W^APCM11EH("* Indicates Public Health Perfomance Measure.  At least one must be",0,1,APCMPTYP),W^APCM11EH("selected in the Menu Set options.",0,1,APCMPTYP),W^APCM11EH(" ",0,1,APCMPTYP)
+ D SUM1 D W^APCM11EH("* Indicates Public Health Performance Measure.",0,1,APCMPTYP) ;,W^APCM11EH("selected in the Menu Set options.",0,1,APCMPTYP),W^APCM11EH(" ",0,1,APCMPTYP)
  Q
  ;
 SUM1 ;
@@ -85,9 +85,16 @@ SUM1 ;
  .S X="Summary Report for "_APCMPNAM D W^APCM11EH(X,0,2,APCMPTYP)
  .S X="^Excl^#^#^Current^Prev^Stage 1^Attest" D W^APCM11EH(X,0,2,APCMPTYP)
  .S X="Performance Measure^?^Den^Num^Period^Period^Target^?" D W^APCM11EH(X,0,1,APCMPTYP)
- .S X=$S(APCMCM="M":"MENU SET MEASURES",1:"CORE MEASURES") D W^APCM11EH(X,0,2,APCMPTYP)
+ .I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public health",1:"CORE SET MEASURES (EPs must meet all 15 simultaneously)") D W^APCM11EH(X,0,2,APCMPTYP)
+ .I APCMRPTT=1 S X=$S(APCMCM="M":"measure (*))",1:"") D W^APCM11EH(X,0,1,APCMPTYP)
+ .I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public health",1:"CORE SET MEASURES (EHs/CAHs must meet all 14 simultaneously)") D W^APCM11EH(X,0,2,APCMPTYP)
+ .I APCMRPTT=2 S X=$S(APCMCM="M":"measure (*))",1:"") D W^APCM11EH(X,0,1,APCMPTYP)
  S APCMCM="" F  S APCMCM=$O(APCMINDO(APCMCM)) Q:APCMCM=""!(APCMQUIT)  D
- .I APCMCM="M" D W^APCM11EH("MENU SET MEASURES",0,2,APCMPTYP)
+ .I APCMCM="M" D  ; W^APCM11EH("MENU SET MEASURES",0,2,APCMPTYP)
+ ..I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EPs must meet all 15 simultaneously)") D W^APCM11EH(X,0,2,APCMPTYP)
+ ..I APCMRPTT=1 S X=$S(APCMCM="M":"health measure (*))",1:"") D W^APCM11EH(X,0,1,APCMPTYP)
+ ..I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EHs/CAHs must meet all 14 simultaneously)") D W^APCM11EH(X,0,2,APCMPTYP)
+ ..I APCMRPTT=2 S X=$S(APCMCM="M":"health measure (*))",1:"") D W^APCM11EH(X,0,1,APCMPTYP)
  .S APCMMO=0 F  S APCMMO=$O(APCMINDO(APCMCM,APCMMO)) Q:APCMMO=""!(APCMQUIT)  D
  ..S APCMIC=0 F  S APCMIC=$O(APCMINDO(APCMCM,APCMMO,APCMIC)) Q:APCMIC=""!(APCMQUIT)  D SUM2
  D W^APCM11EH(" ",0,1,APCMPTYP)
@@ -131,8 +138,8 @@ TARGET .D W^APCM11EH($G(^APCMMUM(APCMIC,13,1,0)),0,0,APCMPTYP,,68)
  ..;S $P(APCMX,U,2)=$S(APCMRPTT=1:"Yes",1:"No")
  ..S $P(APCMX,U,2)=$S(APCMEV]"":"Yes",1:"No")   ;IHS/CMI/LAB - fix display
  .I APCMEF="" S $P(APCMX,U,2)="N/A"
- .S $P(APCMX,U,3)=$S($P(^APCMMUM(APCMIC,0),U,6)="A":"N/A",1:APCMCYD)
- .S $P(APCMX,U,4)=$S($P(^APCMMUM(APCMIC,0),U,6)="A":"N/A",1:APCMCYN)  ;$S($P(^APCMMUM(APCMIC,0),U,6)="A":APCMCYD,1:$$SB($J(APCMCYP,5,1))_"%")
+ .S $P(APCMX,U,3)=$S($P(^APCMMUM(APCMIC,0),U,6)="A":"N/A",1:+APCMCYD)
+ .S $P(APCMX,U,4)=$S($P(^APCMMUM(APCMIC,0),U,6)="A":"N/A",1:+APCMCYN)  ;$S($P(^APCMMUM(APCMIC,0),U,6)="A":APCMCYD,1:$$SB($J(APCMCYP,5,1))_"%")
  .S $P(APCMX,U,5)=$S($P(^APCMMUM(APCMIC,0),U,6)="A":"N/A",1:$$SB($J(APCMCYP,5,1))_"%")
  .S $P(APCMX,U,6)=$S($P(^APCMMUM(APCMIC,0),U,6)="A":"N/A",1:$$SB($J(APCMPRP,5,1))_"%")
 TARG .S $P(APCMX,U,7)=$G(^APCMMUM(APCMIC,13,1,0))
@@ -147,9 +154,9 @@ SUMH ;
 SUMH1 ;
  I APCMPTYP="P" W:$D(IOF) @IOF S APCMGPG=APCMGPG+1
  I APCMPTYP="P" S X=$P(^VA(200,DUZ,0),U,2),$E(X,35)=$$FMTE^XLFDT(DT),$E(X,70)="Page "_APCMGPG D W^APCM11EH(X,0,1,APCMPTYP)
- I APCMRPTT=1 D W^APCM11EH("*** IHS 2011 Stage 1 Meaningful Use Performance Report for EPs ***",1,2,APCMPTYP)
+ I APCMRPTT=1 D W^APCM11EH("*** IHS 2011 Stage 1 Meaningful Use Performance Measure Report for EPs ***",1,2,APCMPTYP)
  I APCMRPTT=2 D W^APCM11EH("** IHS 2011 Stage 1 MU Performance Report for Eligible Hospitals/CAHs **",1,2,APCMPTYP)
- I $G(APCMPROV),APCMRPTT=1 S X="Provider Name: "_$P(^VA(200,APCMPROV,0),U,1) D W^APCM11EH(X,1,1,APCMPTYP)
+ I $G(APCMPROV),APCMRPTT=1 S X="Provider Name: "_$$SN^APCM11EH($P(^VA(200,APCMPROV,0),U,1)) D W^APCM11EH(X,1,1,APCMPTYP)
  I $G(APCMPROV),APCMRPTT=2 S X="Facility: "_$P(^DIC(4,APCMPROV,0),U,1) D W^APCM11EH(X,1,1,APCMPTYP)
  S X="Report Period:  "_$$FMTE^XLFDT(APCMBD)_" to "_$$FMTE^XLFDT(APCMED) D W^APCM11EH(X,1,1,APCMPTYP)
  I $G(APCMWPP) S X="Previous Period:  "_$$FMTE^XLFDT(APCMPBD)_" to "_$$FMTE^XLFDT(APCMPED) D W^APCM11EH(X,1,1,APCMPTYP)
@@ -168,5 +175,8 @@ SUMH1 ;
  S X="",$E(X,28)="Excl",$E(X,37)="#",$E(X,46)="#",$E(X,51)="Current",$E(X,61)="Prev",$E(X,67)="Stage 1",$E(X,75)="Attest" D W^APCM11EH(X,0,1,APCMPTYP)
  S X="",X="Performance Measures",$E(X,30)="?",$E(X,36)="Den",$E(X,45)="Num",$E(X,51)="Period",$E(X,60)="Period",$E(X,67)="Target",$E(X,77)="?" D W^APCM11EH(X,0,1,APCMPTYP)
  D W^APCM11EH($$REPEAT^XLFSTR("-",80),0,1,APCMPTYP)
- S X=$S(APCMCM="M":"MENU SET MEASURES",1:"CORE MEASURES") D W^APCM11EH(X,0,1,APCMPTYP)
+ I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EPs must meet all 15 simultaneously)") D W^APCM11EH(X,0,1,APCMPTYP)
+ I APCMRPTT=1 S X=$S(APCMCM="M":"health measure (*))",1:"") D W^APCM11EH(X,0,1,APCMPTYP)
+ I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EHs/CAHs must meet all 14 simultaneously)") D W^APCM11EH(X,0,1,APCMPTYP)
+ I APCMRPTT=2 S X=$S(APCMCM="M":"health measure (*))",1:"") D W^APCM11EH(X,0,1,APCMPTYP)
  Q

@@ -1,5 +1,5 @@
-BCHHS ; IHS/TUCSON/LAB - CHR HEALTH SUMMARY CALL ;  [ 06/03/97  12:34 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**2**;OCT 28, 1996
+BCHHS ; IHS/CMI/LAB - CHR HEALTH SUMMARY CALL ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;IHS/TUCSON/LAB - patch 2 - added line EN+2 to go to full screen
  ;from list man - 06/03/97
@@ -13,7 +13,9 @@ EN ;EP
  I 'APCHSPAT D EXIT Q
  D GETTYPE
  I 'APCHSTYP D EXIT Q
- D EN^APCHS
+ S %="PCC Health Summary for "_$P(^DPT(APCHSPAT,0),U)
+ D VIEWR^XBLM("EN^APCHS",%)
+ K APCHSPAT,APCHSTYP,APCHSTAT,APCHSMTY,AMCHDAYS,AMCHDOB,%
  W ! S DIR(0)="E",DIR("A")="End of Health Summary Display.  Hit return." K DA D ^DIR K DIR
  D EXIT
  Q

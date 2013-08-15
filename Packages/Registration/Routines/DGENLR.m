@@ -1,5 +1,5 @@
 DGENLR ;ALB/RMO - Patient Enrollment - Reader Utilities;26 JUN 1997 10:00 am
- ;;5.3;Registration;**121**;Aug 13, 1993
+ ;;5.3;Registration;**121,1015**;Aug 13, 1993;Build 21
  ;
 EN(DGNOD0,DGSUB,DGSELY) ;select entities from secondary list
  ; Input  -- DGNOD0   Selection in XQORNOD0 format

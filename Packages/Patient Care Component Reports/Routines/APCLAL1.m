@@ -1,5 +1,5 @@
 APCLAL1 ; IHS/CMI/LAB - list ALCOHOL ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
  ;
  ;
 INFORM ;
@@ -269,7 +269,7 @@ PCCV(S,PAT) ;EP
  Q T
 SCRNPCC(T) ;get screening provider based on v file
  NEW S,F
- S F=1202
+ S F=1204
  I $P(T,U,5)=9000010.16!($P(T,U,5)=9000010.23) S F=".05"
  S S=$$VAL^XBDIQ1($P(T,U,5),$P(T,U,6),F)
  I S]"" Q S

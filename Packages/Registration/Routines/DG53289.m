@@ -1,5 +1,5 @@
 DG53289 ;ALB/RMM - Means Test Workload Cleanup Utility ; 23 Aug 2000  7:00 AM
- ;;5.3;Registration;**289**;Aug 23, 2000
+ ;;5.3;Registration;**289,1015**;Aug 23, 2000;Build 21
  ;
  ; This is a cleanup program for the MT Workload Cleanup
  ; corected with Patch #DG*5.3*267.

@@ -1,5 +1,5 @@
 AMERD ; IHS/ANMC/GIS - PRIMARY ROUTINE FOR ER DISCHARGE ; 
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**4**;MAR 03, 2009;Build 24
  ;
 CHECK ;
  I '$D(^AMERADM("B")) W !!!,*7,"Sorry...I have no record of any current admissions to the ER.",!,"Session cancelled!",!!! H 2 Q
@@ -29,6 +29,20 @@ ELOOP I $D(AMEREFLG) G FIX
  I '$D(AMERBCH),$P($G(^AMER(3,+$G(^TMP("AMER",$J,2,14)),0)),U)="HOME" D PRINT I $D(AMERQUIT) G EXIT
  I $D(AMERTRG) D TRGSET  G EXIT
  D ^AMERSAV I $D(AMERQUIT) G EXIT
+ ;
+ ;AMER*3.0*4
+ ;Supply information to BEDD application if loaded
+ ;
+ ;First see if RPMS patch has been loaded
+ I $$VERSION^XPDUTL("BEDD") D
+ . ;
+ . ;Check if XML portion has been loaded
+ . N X
+ . S X="BEDDUTW" X ^%ZOSF("TEST") Q:'$T
+ . ;
+ . ;Call routine to pass info to BEDD
+ . I $G(AMERDA)]"" D DISCH^BEDDUTW(AMERDA)
+ ;
  I $D(AMERBCH) Q
 EXIT D EXIT^AMER
  Q

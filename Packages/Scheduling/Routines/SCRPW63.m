@@ -1,5 +1,5 @@
 SCRPW63 ;BP-CIOFO/KEITH - SC veterans awaiting appointments (cont.) ; 23 August 2002@20:23
- ;;5.3;Scheduling;**267,269**;AUG 13, 1993
+ ;;5.3;Scheduling;**267,269,357,491,1015**;AUG 13, 1993;Build 21
  ;
 E ;Gather data for patients entered report
  N DFN,SDX,SDATE,SD0,SDSCEL,SDEL,SDYR,SDREL,SDTOT,SDSDT,SDLVDT,SDEDT
@@ -7,9 +7,10 @@ E ;Gather data for patients entered report
  D SCEL^SCRPW62(.SDSCEL,SDSCVT)  ;Get eligibility code pointers
  S (SDSDT,SDATE)=DT-(10000*SDATES),SDSTOP=0
  ;Find the patients entered after date specified
- S DFN=0,SDLVDT="" F  Q:SDSTOP  S DFN=$O(^DPT(DFN)) Q:'DFN  D
+ S DFN=0 F  Q:SDSTOP  S DFN=$O(^DPT(DFN)) Q:'DFN  D
  .Q:$D(^DPT(DFN,-9))  ;Skip merged records
  .I DFN#1000=0 D STOP Q:SDSTOP  ;Check for stop task request
+ .S SDLVDT=""
  .S SD0=$G(^DPT(DFN,0)) Q:'$L(SD0)
  .S SDEDT=$P(SD0,U,16) S:SDEDT SDLVDT=SDEDT
  .I SDEDT,SDEDT<SDATE Q  ;Date entered < start date
@@ -205,7 +206,7 @@ PLINE(DFN,SD0,SDEL) ;Print patient detail line
  ..Q
  .Q
  I SDRPT="E" D  Q
- .I SDELIM W !,SDZ Q
+ .I SDELIM S SDZ(1)=SDZ D DELIM^SCRPW62(.SDZ) Q  ;W !,SDZ Q
  .W !
  .Q
  ;Print appointment details for future appointment report
@@ -230,7 +231,8 @@ PLINE(DFN,SD0,SDEL) ;Print patient detail line
  ...S SDZA=SDZA_U_$$FMTE^XLFDT(SDI)_U_$P(SDC0,U)_U_SDCZ
  ...S SDZA=SDZA_U_$$FMTE^XLFDT(+SDA0)_U_$$FMDIFF^XLFDT(SDI,+SDA0)
  ...S SDZA=SDZA_U_$S(SDADM:$$FMDIFF^XLFDT(+SDA0,SDADM),1:"")
- ...W !,SDZ,SDZA
+ ...S SDZ(1)=SDZ_SDZA
+ ...D DELIM^SCRPW62(.SDZ)  ;W !,SDZ,SDZA
  ...Q
  ..Q
  .Q

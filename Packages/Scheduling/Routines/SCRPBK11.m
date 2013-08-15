@@ -1,5 +1,5 @@
 SCRPBK11 ;MJK/ALB - RPC Broker Utilities ; 27 FEB 96
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,520,1015**;AUG 13, 1993;Build 21
  ;
 GETSEL(SCDATA,SCTYPE,SCIEN) ; 
  ; -- get SELECTION entity data for details form
@@ -82,9 +82,9 @@ CLIN ; -- get clinic details
  D SET("Abbreviation: "_$S($G(SC(SCFLE,SCIEN,1))]"":SC(SCFLE,SCIEN,1),1:SCDEF),.SCINC,.SCDATA)
  D SET("    Division: "_$S($G(SC(SCFLE,SCIEN,3.5))]"":SC(SCFLE,SCIEN,3.5),1:SCDEF),.SCINC,.SCDATA)
  D SET(" ",.SCINC,.SCDATA)
- D SET("Assoicated Teams and Positions:",.SCINC,.SCDATA)
+ D SET("Associated Teams and Positions:",.SCINC,.SCDATA)
  D SET("-------------------------------",.SCINC,.SCDATA)
- S SCI=0 F  S SCI=$O(^SCTM(404.57,"D",SCID,SCI)) Q:'SCI  D
+ S SCI=0 F  S SCI=$O(^SCTM(404.57,"E",SCID,SCI)) Q:'SCI  D
  . S X=$G(^SCTM(404.57,SCI,0))
  . D SET("      Team: "_$P($G(^SCTM(404.51,+$P(X,U,2),0)),U),.SCINC,.SCDATA)
  . D SET("  Position: "_$P(X,U),.SCINC,.SCDATA)

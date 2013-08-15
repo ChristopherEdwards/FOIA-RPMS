@@ -1,5 +1,5 @@
-DGPFLMU1 ;ALB/KCL - PRF DISPLAY FLAG DETAIL LM UTILITIES CONT ; 02/04/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFLMU1 ;ALB/KCL - PRF DISPLAY FLAG DETAIL LM UTILITIES CONT ; 10/12/05 10:26am
+ ;;5.3;Registration;**425,554,650,1015**;Aug 13, 1993;Build 21
  ;
  ;no direct entry
  QUIT
@@ -66,7 +66,7 @@ EN(DGARY,DGIEN,DGDFN,DGCNT) ;Entry point to build flag assignment detail list ar
  . . S DGHISCNT=DGHISCNT+1
  . . ;
  . . ;-build assignment history area
- . . D HIST(DGARY,.DGPFAH,.DGLINE,DGHISCNT,.DGCNT)
+ . . D HIST(DGARY,.DGPFAH,.DGPFA,.DGLINE,DGHISCNT,.DGCNT)
  Q
  ;
  ;
@@ -121,11 +121,11 @@ ASGN(DGARY,DGPFA,DGPFAH,DGPFF,DGLINE,DGCNT) ;This procedure will build the lines
  ;
  ;set owner site
  S DGLINE=DGLINE+1
- D SET(DGARY,DGLINE,"Owner Site: "_$P($G(DGPFA("OWNER")),U,2),11,,,.DGCNT)
+ D SET(DGARY,DGLINE,"Owner Site: "_$P($G(DGPFA("OWNER")),U,2)_"  "_$$FMTPRNT^DGPFUT1($P($G(DGPFA("OWNER")),U)),11,,,.DGCNT)
  ;
  ;set originating site
  S DGLINE=DGLINE+1
- D SET(DGARY,DGLINE,"Originating Site: "_$P($G(DGPFA("ORIGSITE")),U,2),5,,,.DGCNT)
+ D SET(DGARY,DGLINE,"Originating Site: "_$P($G(DGPFA("ORIGSITE")),U,2)_"  "_$$FMTPRNT^DGPFUT1($P($G(DGPFA("ORIGSITE")),U)),5,,,.DGCNT)
  ;
  ;set assignment narrative
  S DGLINE=DGLINE+1
@@ -148,12 +148,14 @@ ASGN(DGARY,DGPFA,DGPFAH,DGPFF,DGLINE,DGCNT) ;This procedure will build the lines
  Q
  ;
  ;
-HIST(DGARY,DGPFAH,DGLINE,DGHISCNT,DGCNT) ;This procedure will build the lines of FLAG ASSIGNMENT HISTORY details.
+HIST(DGARY,DGPFAH,DGPFA,DGLINE,DGHISCNT,DGCNT) ;This procedure will build the lines of FLAG ASSIGNMENT HISTORY details.
  ;
  ;  Input:
  ;    DGARY - global array subscript
  ;   DGPFAH - assignment history array, pass by reference
+ ;    DGPFA - assignment array, pass by reference
  ;   DGLINE - line counter
+ ; DGHISCNT - counter of history record
  ;
  ; Output:
  ;    DGCNT - number of lines in the list, pass by reference
@@ -188,6 +190,12 @@ HIST(DGARY,DGPFAH,DGLINE,DGHISCNT,DGCNT) ;This procedure will build the lines of
  ;set approved by
  S DGLINE=DGLINE+1
  D SET(DGARY,DGLINE,"Approved By: "_$P($G(DGPFAH("APPRVBY")),U,2),5,,,.DGCNT)
+ ;
+ ;set progress note linked
+ I $D(^DG(40.8,"AD",+$P($G(DGPFA("OWNER")),U))) D
+ . Q:+$G(DGPFAH("ACTION"))=5  ;don't display ENTERED IN ERROR action
+ . S DGLINE=DGLINE+1
+ . D SET(DGARY,DGLINE,"Progress Note: "_$P($G(DGPFAH("TIULINK")),U,2),3,,,.DGCNT)
  ;
  ;set history comments
  S DGLINE=DGLINE+1

@@ -1,5 +1,5 @@
-DGMTR ;ALB/RMO,CAW,SCG,AEG,SCG,AEG,LBD - Check Means Test Requirements ; 03/03/03
- ;;5.3;Registration;**45,93,114,137,141,147,177,182,146,305,326,314,344,402,426,456,495**;Aug 13, 1993
+DGMTR ;ALB/RMO,CAW,SCG,AEG,SCG,AEG,LBD - Check Means Test Requirements;7/8/05 2:30pm
+ ;;5.3;PIMS;**45,93,114,137,141,147,177,182,146,305,326,314,344,402,426,456,495,672,688,1015,1016**;JUN 30, 2012;Build 20
  ;A patient requires a means test under the following conditions:
  ;  - Primary Eligibility is NSC OR patient is SC 0% non-compensable
  ;  - who is NOT receiving disability retirement from the military
@@ -7,11 +7,15 @@ DGMTR ;ALB/RMO,CAW,SCG,AEG,SCG,AEG,LBD - Check Means Test Requirements ; 03/03/0
  ;  - who is NOT on a DOM ward
  ;  - who has NOT been means tested in the past year
  ;  - who is NOT a Purple Heart recipient
+ ;  - who is NOT Catastrophically Disabled
+ ;  - who is NOT a Medal of Honor recipient 
  ; Input  -- DFN     Patient IEN
  ;           DGADDF  Means Test Add Flag  (Optional- default none)
  ;                   (1 if using the 'Add a New Means Test' option)
  ;           DGMSGF  Means Test Msg Flag  (Optional- default none)
  ;                   (1 to suppress messages)
+ ;           DGNOIVMUPD No IVM Update Flag (Optional - default allow)
+ ;                   (1 if updating of an IVM test is not allowed)
  ; Output -- DGREQF  Means Test Require Flag
  ;                   (1 if required and 0 if not required)
  ;           DGDOM1  DOM Patient Flag (defined and set to 1 if
@@ -24,10 +28,13 @@ DGMTR ;ALB/RMO,CAW,SCG,AEG,SCG,AEG,LBD - Check Means Test Requirements ; 03/03/0
  ;           If a means test is required and the current
  ;           status is NO LONGER REQUIRED, the last date of
  ;           test and current means test status will be
- ;           updated to REQUIRED.
+ ;           updated to REQUIRED unless the DGNOIVMUPD flag is set to 1
+ ;           and the current primary means test is an IVM test. 
  ;           If a means test is no longer required the
  ;           last date of test and the current means test
- ;           status will also be updated to NO LONGER REQUIRED.
+ ;           status will also be updated to NO LONGER REQUIRED unless
+ ;           the DGNOIVMUPD flag is set to 1 and the current primary
+ ;           means test is an IVM test.
 EN N DGCS,DGDOM,DGMT0,DGMTI,DGMTYPT,OLD,DGRGAUTO,DGQSENT,DGMTLTD,DGMDOD,DGMTDT
  ;DG*5.3*146 change to exit if during patient merge process
  Q:$G(VAFCA08)=1
@@ -36,7 +43,8 @@ EN N DGCS,DGDOM,DGMT0,DGMTI,DGMTYPT,OLD,DGRGAUTO,DGQSENT,DGMTLTD,DGMDOD,DGMTDT
  S (DGQSENT,DGREQF)=0,(OLD,DGMTYPT)=1
  I $D(^DPT(DFN,.36)) S X=^(.36) D
  . I $P($G(^DIC(8,+X,0)),"^",9)=5!($$SC(DFN)) S DGREQF=1
- . I $P(X,"^",2),$P(X,"^",2)<3 S DGREQF=0
+ . I $P(X,"^",12)=1 S DGREQF=0 ;new field, DG 672
+ . I $P(X,"^",13)=1 S DGREQF=0 ;new field, DG 672 
  S (DGMTI,DGMT0)="",DGMTI=+$$LST^DGMTU(DFN)
  S:DGMTI DGMT0=$G(^DGMT(408.31,DGMTI,0))
  ;Added with DG*5.3*344
@@ -51,6 +59,10 @@ EN N DGCS,DGDOM,DGMT0,DGMTI,DGMTYPT,OLD,DGRGAUTO,DGQSENT,DGMTLTD,DGMDOD,DGMTDT
  I DGCS S OLD=$$OLD^DGMTU4(+DGMT0)
  ;Purple Heart Recipient ;brm 10/02/00 added 1 line below
  I $P($G(^DPT(DFN,.53)),U)="Y" S DGREQF=0
+ ;Catastrophically disabled
+ I $P($G(^DPT(DFN,.39)),U,6)="Y" S DGREQF=0 ;DG*5.3*840
+ ;Medal of Honor DG*5.3*840
+ I $P($G(^DPT(DFN,.54)),U)="Y" S DGREQF=0
  D
  .I DGREQF,DGCS=3,'OLD D REQ Q
  .I DGREQF,'$G(DGADDF),((DGCS=6)!(DGCS=2)),$P(DGMT0,U,11)=1,DGMTLTD>2991005 S DGREQF=0,DGNOCOPF=1 Q
@@ -153,12 +165,20 @@ AUTOCOMP(DGMTI) ;
  ..;determine status if there is a hardship
  ..I $P(NODE0,"^",20) D
  ...S DATA(.03)=$$GETSTAT^DGMTH($S(CODE="P":"P",CODE="C"&($P(NODE0,U,27)>$P(NODE0,U,12)):"G",1:"A"),1)
+ .I (CODE="")!(CODE'=""&"ACGP"'[CODE) D
+ ..; Check for another test in the current year and convert IAI records, if needed
+ ..S CONVRT=$$VRCHKUP^DGMTU2(1,,TDATE)
+ ..S DATA(2.11)=1
  ;RX copay test
  I TYPE=2 D
  .S DATA(.03)=$$GETSTAT^DGMTH("I",2),DATA(.17)=""
  .I (CODE'=""),"EM"[CODE D
  ..S RET=1
  ..S DATA(.03)=$P(NODE2,"^",3)
+ .I (CODE="")!(CODE'=""&"EM"'[CODE) D
+ ..; Check for another test in the current year and convert IAI records, if needed
+ ..S CONVRT=$$VRCHKUP^DGMTU2(2,,TDATE)
+ ..S DATA(2.11)=1
  I '$$UPD^DGENDBS(408.31,DGMTI,.DATA,.ERROR) W:'$G(DGMSGF) ERROR
  ;restore the pointers from the Income Relation file (408.22) to this
  ;test, using the linked test
@@ -172,6 +192,9 @@ AUTOCOMP(DGMTI) ;
  Q RET
 NOL ;Update means test status to NO LONGER REQUIRED
  N DGMTA,DGINI,DGINR,DGMTDT,DATA
+ I $G(DGNOIVMUPD),$$IVMCVT^DGMTCOR(DGMTI) D  G NOLQ ; Check for converted IVM MT
+ . ;I '$G(DGMSGF),$G(DGNOIVMUPD)<2 W !,"IVM MEANS TEST EXISTS, BUT VISTA CALCULATES 'NO LONGER REQUIRED'",!,"CONTACT IVM TO CLEAR UP THE DISCREPANCY - YOU CANNOT UPDATE AN IVM TEST"
+ . S DGNOIVMUPD=2 ; Prevent double printing of the message
  W:'$G(DGMSGF) !,"MEANS TEST NO LONGER REQUIRED"
  ;may have set prior MT for means test upload
  I $G(MTPRIME)'="DGMTU4" N DGMTP,DGMTACT S DGMTACT="STA" D PRIOR^DGMTEVT

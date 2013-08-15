@@ -1,5 +1,5 @@
 SCMCMM ;ALB/REW - MailMessages Utilities ; 11/4/99 9:29am
- ;;5.3;Scheduling;**41,177,205**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,177,205,1015**;AUG 13, 1993;Build 21
  ;1
 PCMAIL(DFN,SCARRAY,SCDATE) ;load standard patient pc info into mail message
  ;  DFN     - ptr to Patient File

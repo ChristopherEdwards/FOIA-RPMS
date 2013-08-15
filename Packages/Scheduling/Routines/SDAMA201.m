@@ -1,5 +1,5 @@
-SDAMA201 ;BPOIFO/ACS-Scheduling Replacement APIs ;03 July 2003
- ;;5.3;Scheduling;**253,275,283**;13 Aug 1993
+SDAMA201 ;BPOIFO/ACS-Scheduling Replacement APIs ; 12/13/04 3:14pm
+ ;;5.3;Scheduling;**253,275,283,316,347,1015**;13 Aug 1993;Build 21
  ;
  ;GETAPPT  - Returns appointment information for a patient
  ;NEXTAPPT - Returns next appointment information for a patient
@@ -15,6 +15,13 @@ SDAMA201 ;BPOIFO/ACS-Scheduling Replacement APIs ;03 July 2003
  ;09/20/02  SD*5.3*253    ROUTINE COMPLETED
  ;12/10/02  SD*5.3*275    ADDED PATIENT STATUS FILTER
  ;07/03/03  SD*5.3*283    REMOVED 'NO ACTION TAKEN' EDIT
+ ;09/16/03  SD*5.3*316    CHANGED 'NEXTAPPT' TO START LOOKING 'NOW'
+ ;07/26/04  SD*5.3*347    NEW VARIABLES USED IN ^%DTC CALL.
+ ;                        NEXTAPPT TO GET DATA FROM SDAPI NOT VISTA.
+ ;                        GETAPPT WILL RETRIEVE APPT DATA THROUGH
+ ;                        SDAPI API.  PATIENT STATUS TO OVERWRITE 
+ ;                        APPOINTMENT STATUS OF "R" OR "R;I".
+ ;                        GETAPPT CALLS GETAPPT^SDAMA205.
  ;
  ;*****************************************************************
 GETAPPT(SDPATIEN,SDFIELDS,SDAPSTAT,SDSTART,SDEND,SDRESULT,SDIOSTAT) ;
@@ -37,58 +44,8 @@ GETAPPT(SDPATIEN,SDFIELDS,SDAPSTAT,SDSTART,SDEND,SDRESULT,SDIOSTAT) ;
  ;  "Y" is the field number requested
  ;  
  ;*****************************************************************
- N SDAPINAM,SDRTNNAM
- S SDAPINAM="GETAPPT",SDRTNNAM="SDAMA201",SDRESULT=0
- K ^TMP($J,SDRTNNAM,SDAPINAM)
- S SDRESULT=$$VALIDATE^SDAMA200(.SDPATIEN,.SDFIELDS,.SDAPSTAT,.SDSTART,.SDEND,SDAPINAM,SDRTNNAM,.SDIOSTAT)
- I SDRESULT=-1 Q
- ;
- ;if the patient has no appointments on ^DPT, quit and pass back 0
- I '$$PATAPPT^SDAMA200(SDPATIEN) S SDRESULT=0
- Q:SDRESULT=0
- ;
- ;Set up start and end date/times
- S SDSTART=$S($G(SDSTART):(SDSTART-.0001),1:0)
- S SDEND=$S($G(SDEND):SDEND,1:"9999999.9999")
- I SDEND'["." S SDEND=SDEND_".9999"
- ;
- ;IF RSA DATABASE AVAILABLE, GET APPOINTMENT DATA FROM RSA DATABASE
- ;I $$GOTS^SDAMA100(SDRTNNAM,SDAPINAM) D  Q SDRESULT
- ;. ;Insert GOTS code here...
- ;. Q
- ;
- ;GET PATIENT APPOINTMENT DATA ON VISTA
- N SDAPPTDT,SDPIECE,SDRECNUM,SDFIELD,SDDATA,SDMCODE,SDMATCH,SDCLIEN,SDPATCNT,SDNEXT,SDI,SDASTAT,SDPSTAT
- S (SDPIECE,SDRECNUM,SDAPPTDT,SDFIELD,SDI)=0,SDAPPTDT=SDSTART,SDDATA="",SDMCODE=""
- ;Spin through each appointment on the PATIENT file
- F SDI=1:1 S SDAPPTDT=$O(^DPT(SDPATIEN,"S",SDAPPTDT)) Q:$S(+$G(SDAPPTDT)=0:1,SDAPPTDT>SDEND:1,1:0)  D
- . S SDNEXT=0
- . ;Get appt status and patient status
- . S SDASTAT=$$GETASTAT^SDAMA200(SDPATIEN,SDAPPTDT)
- . S SDPSTAT=$$GETPSTAT^SDAMA200(SDPATIEN,SDAPPTDT)
- . ;apply patient status filter
- . I SDIOSTAT'[SDPSTAT S SDNEXT=1
- . Q:SDNEXT=1
- . ;apply appointment status filter
- . I SDAPSTAT'[(";"_SDASTAT_";") S SDNEXT=1
- . Q:SDNEXT=1
- . ;set patient status to null if appointment status is No-Show, Cancelled, or NT
- . I ";N;C;NT;"[(";"_SDASTAT_";") S SDPSTAT=""
- . ;-- valid appointment has been found --
- . ;get clinic IEN, SDDA node, and increment the appointment count
- . S SDCLIEN=$$GETCLIEN^SDAMA200(SDPATIEN,SDAPPTDT)
- . S SDPATCNT=$$GETSDDA^SDAMA200(SDCLIEN,SDAPPTDT,SDPATIEN)
- . S SDRECNUM=SDRECNUM+1
- . ;spin through the requested field numbers
- . F SDPIECE=1:1 S SDFIELD=$P($G(SDFIELDS),";",SDPIECE) Q:SDFIELD=""  D
- .. ;get MUMPS code for the requested field number. Execute. Put result in ^TMP
- .. S SDMCODE=$G(^SDAM(44.3,SDFIELD,1)) X SDMCODE
- .. ;put resulting data in ^TMP global
- .. S ^TMP($J,SDRTNNAM,SDAPINAM,SDRECNUM,SDFIELD)=$G(SDDATA)
- ;clean up data map variable
- K SDDATA
- ; set output record count and quit
- S SDRESULT=SDRECNUM
+ ; Call API to Get Appointment(s) for Patient.
+ D GETAPPT^SDAMA205(.SDPATIEN,.SDFIELDS,.SDAPSTAT,.SDSTART,.SDEND,.SDRESULT,.SDIOSTAT)
  Q
  ;
 NEXTAPPT(SDPATIEN,SDFIELDS,SDAPSTAT,SDIOSTAT) ;
@@ -121,57 +78,80 @@ NEXTAPPT(SDPATIEN,SDFIELDS,SDAPSTAT,SDIOSTAT) ;
  ;  where "Y" is the field number requested
  ;  
  ;*****************************************************************
- N SDAPINAM,SDRTNNAM,SDERRFLG,SDSTART,SDRESULT
- S SDAPINAM="NEXTAPPT",SDRTNNAM="SDAMA201",SDRESULT=0,SDERRFLG=0
+ N SDAPINAM,SDRTNNAM,SDSTART,SDRESULT,%,%H,%I,X
+ S SDAPINAM="NEXTAPPT",SDRTNNAM="SDAMA201",SDRESULT=0
  K ^TMP($J,SDRTNNAM,SDAPINAM)
  ;
  ;Validate input parameters
  S SDRESULT=$$VALIDATE^SDAMA200(.SDPATIEN,.SDFIELDS,.SDAPSTAT,,,SDAPINAM,SDRTNNAM,.SDIOSTAT)
  I SDRESULT=-1 Q -1
  ;
- ;if the patient has no appointments on ^DPT, quit and pass back 0
- I '$$PATAPPT^SDAMA200(SDPATIEN) S SDRESULT=0 Q SDRESULT
- ;
- ;Get current date
- S SDSTART=+DT_".9999"
- ;
- ;IF RSA DATABASE AVAILABLE, GET APPOINTMENT DATA FROM RSA DATABASE
- ;I $$GOTS^SDAMA100(SDRTNNAM,SDAPINAM) D  Q SDRESULT
- ;. ;Insert GOTS code here...
- ;. Q
- ;
- ;GET NEXT APPOINTMENT DATA ON VISTA
- N SDAPPTDT,SDPIECE,SDFIELD,SDDATA,SDMCODE,SDFOUND,SDMATCH,SDASTAT,SDNEXT,SDPSTAT
- S (SDPIECE,SDAPPTDT,SDFIELD,SDFOUND,SDNEXT)=0,SDAPPTDT=SDSTART,SDDATA="",SDMCODE=""
- ;get next appointment
- F  S SDAPPTDT=$O(^DPT(SDPATIEN,"S",SDAPPTDT)) D  Q:((+$G(SDAPPTDT)=0)!SDFOUND)
- . Q:$G(SDAPPTDT)=""
- . S SDNEXT=0
- . ;Get appointment status and patient status
- . S SDASTAT=$$GETASTAT^SDAMA200(SDPATIEN,SDAPPTDT)
- . S SDPSTAT=$$GETPSTAT^SDAMA200(SDPATIEN,SDAPPTDT)
- . ;apply patient status filter
- . I SDIOSTAT'[SDPSTAT S SDNEXT=1
- . Q:SDNEXT=1
- . ;apply appointment status filter
- . I SDAPSTAT'[(";"_SDASTAT_";") S SDFOUND=0,SDNEXT=1
- . Q:SDNEXT=1
- . S SDFOUND=1
- ;
+ ;Get current date/time
+ D NOW^%DTC
+ S SDSTART=$E(%,1,12)
+ ;GET NEXT APPOINTMENT DATA
  ;If an appt was found and the user wants data returned, get fields requested
- I SDFOUND,$G(SDFIELDS) D
- . ;set patient status to null if appointment status is No-Show, Cancelled, or NT
- . I ";N;C;NT;"[(";"_SDASTAT_";") S SDPSTAT=""
- . ;get clinic IEN and SDDA node; used when retrieving appt fields located on ^SC
- . S SDCLIEN=$$GETCLIEN^SDAMA200(SDPATIEN,SDAPPTDT)
- . S SDPATCNT=$$GETSDDA^SDAMA200($G(SDCLIEN),SDAPPTDT,SDPATIEN)
- . ;spin through the requested field numbers
- . F SDPIECE=1:1 S SDFIELD=$P($G(SDFIELDS),";",SDPIECE) Q:SDFIELD=""  D
- .. ;get MUMPS code for the requested field number. Execute. Put result in ^TMP
- .. S SDMCODE=$G(^SDAM(44.3,SDFIELD,1)) X SDMCODE
- .. S ^TMP($J,SDRTNNAM,SDAPINAM,SDFIELD)=$G(SDDATA)
- .. Q
- . Q
- ;clean up data map variable
- K SDDATA
- Q SDFOUND
+ N SDICN,SDARRAY,SDCOUNT,SDAPLST,SDI,SDTMP,SDNUM,SDERR,SDFLDCNT,SDR,SDFLD,SD310
+ N SDAPT,SDCLN,SDFFLD,SDFS
+ S SDAPLST=""
+ ;
+ S SDARRAY(1)=SDSTART ; set searchpoint to current date/time
+ ; Translate and set up Appointment Status List
+ I $L($G(SDAPSTAT))>0 D
+ . ;Remove a leading and a trailing semicolon
+ . I $E(SDAPSTAT,$L(SDAPSTAT))=";" S SDAPSTAT=$E(SDAPSTAT,1,($L(SDAPSTAT)-1))
+ . I $E(SDAPSTAT)=";" S SDAPSTAT=$E(SDAPSTAT,2,$L(SDAPSTAT))
+ . ;IO/Appt Statuses have been validated by SDAMA200 to be I or O/R NT
+ . I $L($G(SDIOSTAT))=1 S SDAPLST=$S(SDIOSTAT="I":"I;",SDIOSTAT="O":SDAPSTAT_";")
+ . I $L($G(SDIOSTAT))'=1 D
+ .. ;Reset appointment status R=R;I C=CC;CP;CCR;CPR N=NS,NSR
+ .. S SDNUM=$L(SDAPSTAT,";") F SDI=1:1:SDNUM D
+ ... S SDTMP=$P(SDAPSTAT,";",SDI)
+ ... S SDTMP=$S(SDTMP="R":"R;I",SDTMP="C":"CC;CP;CCR;CPR",SDTMP="N":"NS;NSR",1:SDTMP)
+ ... S SDAPLST=SDAPLST_SDTMP_";"
+ . S SDARRAY(3)=$E(SDAPLST,1,($L(SDAPLST)-1)) ; Axe trailing semicolon
+ S SDARRAY(4)=SDPATIEN
+ S SDARRAY("MAX")=1
+ ; Must request at least 1 field, will ask for date/time which is field 1
+ S SDFIELDS=$G(SDFIELDS),(SDFFLD,SDFIELDS)=$S(SDFIELDS'="":SDFIELDS,1:1)
+ ; Strip out field 12 if it exists, replace with 3 if 3 is not already there
+ ; If we have both 3 and 12 in the field list, remove the 12 and a semicolon
+ I (";"_SDFIELDS_";")[";12;",((";"_SDFIELDS_";")[";3;") D
+ . S SDNUM=$L(SDFFLD,";"),SDI=$F(SDFFLD,12)
+ . I SDI=3 S SDFFLD=$E(SDFFLD,4,$L(SDFFLD)) Q
+ . S SDFFLD=$E(SDFFLD,1,(SDI-4))_$E(SDFFLD,SDI,$L(SDFFLD))
+ I ((";"_SDFIELDS_";")[";12;")&((";"_SDFIELDS_";")'[";3;") S SDNUM=$L(SDFFLD,";") D
+ . F SDI=1:1:SDNUM S SDR=$P(SDFFLD,";",SDI) I SDR=12 S $P(SDFFLD,";",SDI)=3 Q
+ ;
+ S SDARRAY("FLDS")=$S(SDFFLD'="":SDFFLD,1:1)
+ F SDI=1:1 S SDTMP=$P(SDFIELDS,";",SDI) Q:SDTMP=""  S SDFS(SDTMP)=SDI
+ ; Setup done, call SDAPI, quit if no appointment (SDCOUNT=0) and return 0
+ S SDCOUNT=$$SDAPI^SDAMA301(.SDARRAY) Q:SDCOUNT=0 0
+ ;If we have an appointment, process it
+ I SDCOUNT=1,SDFIELDS'="" S SDFLDCNT=$L(SDFIELDS,";") D:SDPATIEN'=""
+ . ;If malformed appointment data, set SDCOUNT to 0, quit
+ . S SDCLN=$O(^TMP($J,"SDAMA301",SDPATIEN,"")) I SDCLN="" S SDCOUNT=0 Q
+ . S SDAPT=$O(^TMP($J,"SDAMA301",SDPATIEN,SDCLN,"")) I SDAPT="" S SDCOUNT=0 Q
+ . S SD310=$G(^TMP($J,"SDAMA301",SDPATIEN,SDCLN,SDAPT)) I SD310="" S SDCOUNT=0 Q
+ . S SDTMP="" F SDI=1:1:SDFLDCNT S SDTMP=$O(SDFS(SDTMP)) Q:SDTMP=""  D
+ .. I "^1^5^9^11^"[(U_SDTMP_U) S ^TMP($J,"SDAMA201","NEXTAPPT",SDTMP)=$P(SD310,U,SDTMP) Q
+ .. I "^2^4^8^10^"[(U_SDTMP_U) S ^TMP($J,"SDAMA201","NEXTAPPT",SDTMP)=$TR($P(SD310,U,SDTMP),";","^") Q
+ .. I SDTMP=7 S ^TMP($J,"SDAMA201","NEXTAPPT",SDTMP)=$S($P(SD310,"^",SDTMP)="":"N",1:$P(SD310,"^",SDTMP)) Q
+ .. S SDFLD="FLD"_SDTMP
+ .. I "^3^6^12^"[(U_SDTMP_U) D @(SDFLD)
+ ;If err, set up err node
+ I SDCOUNT=-1 D
+ . S SDERR=$O(^TMP($J,"SDAMA301",""))
+ . S SDERR=$S(SDERR=101:101,SDERR=115:114,SDERR=116:114,1:117)
+ . D ERROR^SDAMA200(SDERR,"NEXTAPPT",0,"SDAMA201")
+ K ^TMP($J,"SDAMA301")
+ Q SDCOUNT
+ ;Xlate output from SDAPI as required
+FLD3 S SDR=$P($P(SD310,U,SDTMP),";",1)
+ S SDR=$S(SDR="I":"R",SDR?1(1"CC",1"CP",1"CPR"):"C",SDR?1(1"NS",1"NSR"):"N",1:SDR)
+ S ^TMP($J,"SDAMA201","NEXTAPPT",SDTMP)=SDR Q
+FLD6 S SDR=$G(^TMP($J,"SDAMA301",SDPATIEN,SDCLN,SDAPT,"C"))
+ S ^TMP($J,"SDAMA201","NEXTAPPT",SDTMP)=SDR Q
+FLD12 S SDR=$P($P(SD310,U,3),";",1)
+ S SDR=$S(SDR="I":"I",SDR="R":"O",SDR="NT":"O",1:"")
+ S ^TMP($J,"SDAMA201","NEXTAPPT",SDTMP)=SDR Q

@@ -1,5 +1,5 @@
 DG53426D ;ALB/AEG - DG*5.3*426 POST-INSTALLATION ;2-19-02
- ;;5.3;Registration;**426**;2-19-02
+ ;;5.3;Registration;**426,1015**;2-19-02;Build 21
  ;
  ; This routine is a modified version of IVMCMD in that it calls a
  ; modified version of IVMCMD1 called DG53426E which only deletes the

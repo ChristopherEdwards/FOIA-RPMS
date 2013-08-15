@@ -1,5 +1,5 @@
 ABMDEML ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;   
- ;;2.6;IHS Third Party Billing;**1,2,3,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,2,3,6,8,9**;NOV 12, 2009
  ;
  ; IHS/ASDS/DMJ - 09/07/01 - V2.4 Patch 7 - NOIS HQW-0701-100066
  ;     Modifications made related to Medicare Part B.
@@ -134,6 +134,12 @@ MOD ;
  ..S ABMZ("DR")=ABMZ("DR")_ABMZ("MODFEE")
  .;S ABMZ("DR")=ABMZ("DR")_$P(^ABMDFEE(ABMP("FEE"),ABMX("DIC"),ABMX("NEWY"),0),"^",2)  ;abm*2.6*2 3PMS10003A
  .S ABMZ("DR")=ABMZ("DR")_$P($$ONE^ABMFEAPI(ABMP("FEE"),ABMX("DIC"),ABMX("NEWY"),ABMP("VDT")),U)  ;abm*2.6*2 3PMS10003A
+ ;start new code abm*2.6*9 NARR
+ I $D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMX("Y"))) D
+ .Q:$P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010"  ;only 5010 formats
+ .S ABMCNCK=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMX("Y"),0))
+ .I ABMCNCK,$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMCNCK,0)),U,2)="Y" S ABMZ("DR")=ABMZ("DR")_";22Narrative"
+ ;end new code NARR
  D POSA^ABMDEMLC
  ;I ABMP("EXP")'=21,(ABMP("EXP")'=22),(ABMP("EXP")'=23) D TOSA^ABMDEMLC  ;don't do for 837 formats  ;abm*2.6*6 5010
  ;I ABMP("EXP")'=21,(ABMP("EXP")'=22),(ABMP("EXP")'=23),(ABMP("EXP")'=32) D TOSA^ABMDEMLC  ;don't do for 837 formats  ;abm*2.6*6 5010  ;abm*2.6*8 5010

@@ -1,6 +1,8 @@
 LRLABELF ;SLC/CJS/DALISC/DRH - PRINT COLLECTION LIST (CONT.) ; 3/28/89  19:39
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**121,161**;Sep 27, 1994
+ ;;5.2;LR;**1003,1018,1031**;Nov 01, 1997
+ ;
+ ;;VA LR Patch(s): 121,161
+ ;
  ; Called by LRLABLDS,LRLABLD0
 INIT ;
  U IO
@@ -8,7 +10,7 @@ INIT ;
  I LRPICK=1,$E(IOST,1,2)="C-" W @IOF
 EN ;
  S LRODT=""
- F  S LRODT=$O(^TMP($J,"LR",LRODT)) Q:LRODT=""!($G(LREND))  D 
+ F  S LRODT=$O(^TMP($J,"LR",LRODT)) Q:LRODT=""!($G(LREND))  D
  . S LRCT=""
  . F  S LRCT=$O(^TMP($J,"LR",LRODT,LRCT)) Q:LRCT=""!($G(LREND))  D
  . . S LRCLOC=""
@@ -39,7 +41,8 @@ HDR ;
 PHDR W:$G(CHDR) !?20,"< CONTINUATION >"
  S LRNEW=PNM
  W !,PNM I $L($G(LRRB))>1 W ?32,LRRB
- W ?42,SSN,?57,"Order #: ",LRCE
+ ; W ?42,SSN,?57,"Order #: ",LRCE
+ W ?42,HRCN,?57,"Order #: ",LRCE                 ; IHS/MSC/MKK - LR*5.2*1031
  W:$L($G(^LR(+LRNODE0,.091))) !?4,"Pat Info: ",^(.091)
  S LRPCT=$$FMTE^XLFDT(LRCT,1) S:$P(LRPCT,"@",2) LRPCT=$P(LRPCT,"@",2)_"  "_$P(LRPCT,"@")
  W !?5,LRPCT,?25,"[ "_LRTYPE_" ]"
@@ -119,4 +122,5 @@ END ;
  K LRDTC,LRTXT,LRVOL,LRXL,N,NODE,S1,S2,T,Y,Y1,Y2
  K ZTSAVE,ZTIO,ZTRTN,ZTDESC
  K AGE,DOB,PNM,SEX,SSN,POP,E,VA,LRY1,VAERR,X
+ K HRCN                                     ; IHS/MSC/MKK - LR*5.2*1031
  Q

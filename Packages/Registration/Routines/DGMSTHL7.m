@@ -1,5 +1,5 @@
 DGMSTHL7 ;ALB/SCK - Military Sexual Trauma HL7 Message builder ;8 Jan 99
- ;;5.3;Registration;**195**;Aug 13, 1993
+ ;;5.3;Registration;**195,1015**;Aug 13, 1993;Build 21
  Q
  ;
 EVENT(DFN,DGEVNT,DGRSLT) ; Entry point to initiate HL7 ADT message for a MST status event

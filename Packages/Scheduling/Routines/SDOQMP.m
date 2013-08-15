@@ -1,5 +1,5 @@
-SDOQMP ;ALB/SCK - Appointment Monitoring / Performance Measure report ; [ 10/05/2000  9:55 AM ]
- ;;5.3;SCHEDULING;**47**;AUG 13,1993
+SDOQMP ;ALB/SCK - Appointment Monitoring / Performance Measure report ; [07/17/96]
+ ;;5.3;SCHEDULING;**47,1015**;AUG 13,1993;Build 21
  Q
  ;
 EN ;  Entry point for Access PM extract to be sent to data collection server
@@ -167,9 +167,9 @@ MAIL(PMDATA,LINCNT,CNT) ;  Send data message to server.
  S XMLOC=0
  S XMDUZ=.5
  S XMY(".5")=""
- S XMY("S.A1BO PM NEXT APPT EXTRACT@DOMAIN.NAME")=""
+ S XMY("S.A1BO PM NEXT APPT EXTRACT@DEVFEX.ISC-ALBANY.VA.GOV")=""
  S XMY("G.SD PM NOTIFICATION")=""
- S XMY("G.SD PM EXTRACT@DOMAIN.NAME")=""
+ S XMY("G.SD PM EXTRACT@ISC-ALBANY.VA.GOV")=""
  ;
  S PMFAC=$$SITE^VASITE
  D NOW^%DTC

@@ -1,5 +1,5 @@
 DG3PR ;ALB/JDS - THIRD PARTY REIMBURSMENT ;01 JAN 1987
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 EN W ! R "Sort by Discharge or Admission: D// ",X:DTIME S Z="^DISCHARGE^ADMISSION" Q:X["^"!'$T  I X="" S X="D" W X
  D IN^DGHELP I %<0 W !!,"CHOOSE FROM",!?4,"A - ADMISSION",!?4,"D - DISCHARGE",!?4,"^ - To QUIT",! G EN
  S DGBY=$S(X="D":"ATT3",1:"ATT1")

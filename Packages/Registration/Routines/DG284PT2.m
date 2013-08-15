@@ -1,5 +1,5 @@
 DG284PT2 ;ALB/SEK DG*5.3*284 POST-INSTALL TO MAILMAN MSG ; 04/20/00
- ;;5.3;Registration;**284**;Aug 13, 1993
+ ;;5.3;Registration;**284,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will be run as part of the post-install for patch
  ;DG*5.3*284

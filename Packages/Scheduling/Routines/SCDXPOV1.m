@@ -1,5 +1,5 @@
 SCDXPOV1 ;ALB/SCK - VISIT REPORT BY NPCDB TRANSMISSION STATUS ;11/29/99  19:23
- ;;5.3;Scheduling;**73,173**;AUG 13, 1993
+ ;;5.3;Scheduling;**73,173,1015**;AUG 13, 1993;Build 21
  Q
 WRT ; Entry point for printing visit reprot
  ;

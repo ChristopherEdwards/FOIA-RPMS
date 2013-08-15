@@ -1,6 +1,5 @@
 SDCOU ;ALB/RMO - Utilities - Check Out;28 DEC 1992 10:00 am
- ;;5.3;Scheduling;**1012**;Aug 13, 1993
- ;
+ ;;5.3;Scheduling;**1012,1015**;Aug 13, 1993;Build 21
  ;cmi/flag/maw - 06/02/2010 PATCH 1012 RQMT149 added check of list view
  ;
 CODT(DFN,SDT,SDCL) ; -- does appt have co date

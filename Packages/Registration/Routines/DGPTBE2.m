@@ -1,5 +1,5 @@
 DGPTBE2 ;ALB/AS - ENTER BREAKEVEN VALUES FOR DRG (cont.);  28 APR 88 @ 0900
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  S DIE="^ICD(",DA=DRG,DR="13///"_DGBE D ^DIE
  I 'DGY F DGQRTR=1:1:4 S (DA,DGFY1)=DGFY_DGQRTR,DGBE=$P(DGVALUES,"^",6) D DIE

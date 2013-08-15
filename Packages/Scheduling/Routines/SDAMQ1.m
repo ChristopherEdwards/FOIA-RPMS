@@ -1,5 +1,5 @@
 SDAMQ1 ;ALB/MJK - AM Background Job (cont.) ; 12/1/91
- ;;5.3;Scheduling;**24,132**;Aug 13, 1993
+ ;;5.3;Scheduling;**24,132,1015**;Aug 13, 1993;Build 21
  ;
 BULL ; -- send bulletin
  ; use site specified mg

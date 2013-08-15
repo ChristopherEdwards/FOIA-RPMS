@@ -1,5 +1,5 @@
 DGV53PP1 ;MAF/ALB - PARAMETER CHECK AND UPDATE FOR IRT. - APR 2 1993@1100
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN W !,">>> Checking IRT parameters needed for IRT conversion in the post-init!",!!

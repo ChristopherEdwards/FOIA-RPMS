@@ -1,5 +1,5 @@
 DGPTSC01 ;ALB/MTC - Additional routines to check for valid jumping ; JUN 14,1991
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;MAS 5.1;
 501 ;-- check if jump to expanded question was valid.
  S DGTX=X,DGER=1

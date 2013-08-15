@@ -1,5 +1,5 @@
-BTIULO13 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;05-Jan-2012 13:53;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009**;NOV 04, 2004;Build 22
+BTIULO13 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;20-Jun-2012 10:48;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009,1010**;NOV 04, 2004;Build 24
 TMORDER(DFN,TARGET) ;EP Med Orders for today
  NEW X,I,CNT,RESULT
  S CNT=0
@@ -116,3 +116,50 @@ TOTTIME(DFN,VISIT) ;EP; returns total # of minutes (activity & travel)
  S A=$$ACTIVITY($G(DFN),$G(VISIT)),T=$$TRAVEL($G(DFN),$G(VISIT))
  Q (A+T)_" minutes"
  ;
+ ;IHS/MSC/MGH Added patch 1010
+EDD(DFN) ;EP returns EDD
+ N REP,EDD,PREG
+ S PREG=$P($G(^AUPNREP(DFN,11)),U,1)
+ Q:PREG'="Y" "Patient is not currently pregnant"
+ S REP=$G(^AUPNREP(DFN,13))
+ S EDD=$P(REP,U,11)
+ S EDD=$$FMTDATE^BGOUTL(EDD)
+ Q "Estimated Due Date: "_EDD
+EDDALL(DFN,TARGET) ;Get pregnancy data
+ N REP,LMP,LMPPR,LMPDT,ULTRA,ULTPR,ULTDT,CLIN,CLINPR,CLINDT,UN,UNPR,UNDT,EDD,EDDPR,EDDDT
+ N PREG,PREGDT,PREGPR,LMPCO,ULTCO,DEFCO,UNCO,CLINCO,EDDCO
+ S CNT=0
+ S REP=$G(^AUPNREP(DFN,13))
+ S PREG=$P($G(^AUPNREP(DFN,11)),U,1)
+ ;EDD by LMP
+ S LMP=$P(REP,U,2)
+ I LMP'="" S LMP=$$FMTDATE^BGOUTL(LMP)
+ ;EDD by ultrasound
+ S ULTRA=$P(REP,U,5)
+ I ULTRA'="" S ULTRA=$$FMTDATE^BGOUTL(ULTRA)
+ ;EDD by clinical parameters
+ S CLIN=$P(REP,U,8)
+ I CLIN'="" S CLIN=$$FMTDATE^BGOUTL(CLIN)
+ S EDD=$P(REP,U,11)
+ I EDD'="" S EDD=$$FMTDATE^BGOUTL(EDD)
+ ;EDD by unknown methods
+ S UN=$P(REP,U,14)
+ I UN'="" S UN=$$FMTDATE^BGOUTL(UN)
+ I PREG="Y" D
+ .I LMP'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Due date by LMP: "_LMP
+ .I ULTRA'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Due date by Ultrasound: "_ULTRA
+ .I CLIN'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Due date by Clinical Measures: "_CLIN
+ .I UN'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Due date by Unknown Methods: "_UN
+ .I EDD'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Definitive EDD: "_EDD
+ E  S CNT=CNT+1 S @TARGET@(CNT,0)="Patient is not currently pregnant"
+ Q "~@"_$NA(@TARGET)

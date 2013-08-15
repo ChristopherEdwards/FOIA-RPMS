@@ -1,5 +1,5 @@
 BQINIGH1 ;VNGT/HS/ALA - iCare Nightly Job continued ; 11 Jun 2008  11:22 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 MEAS ;EP - Check for new Measurement Types in File #9999999.07
  NEW VFIEN,DSIEN,MSIEN,NAME,CODE,CHIEN,TEXT,BTAG,BQIXTYP,BIL,XCLLFH
@@ -34,6 +34,13 @@ MEAS ;EP - Check for new Measurement Types in File #9999999.07
  ;
 DSPM ; EP - Find the official IHS provider categories
  NEW DSN,ABBRV,CODE,NSOURCE,NCAT,NCLIN,HDR,TEXT
+ S CODE="BDP"
+ F  S CODE=$O(^BQI(90506.1,"B",CODE)) Q:CODE=""!($E(CODE,1,3)'="BDP")  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"B",CODE,IEN)) Q:IEN=""  D
+ .. S BQIUPD(90506.1,IEN_",",.1)=1
+ .. I $P(^BQI(90506.1,IEN,0),U,11)="" S BQIUPD(90506.1,IEN_",",.11)=DT
+ D FILE^DIE("","BQIUPD","ERROR")
  S DSN=0
  F  S DSN=$O(^BDPTCAT(DSN)) Q:'DSN  D
  . ;I $P(^BDPTCAT(DSN,0),U,7)'=1 Q
@@ -56,6 +63,8 @@ DSPM ; EP - Find the official IHS provider categories
  . S BQIUPD(90506.1,DA_",",.03)=TEXT
  . S BQIUPD(90506.1,DA_",",.08)=HDR
  . S BQIUPD(90506.1,DA_",",.15)=120
+ . S BQIUPD(90506.1,DA_",",.1)="@"
+ . S BQIUPD(90506.1,DA_",",.11)="@"
  . D FILE^DIE("","BQIUPD","ERROR")
  . ;
  . S BQIUPD(90506.1,DA_",",3.01)=NSOURCE

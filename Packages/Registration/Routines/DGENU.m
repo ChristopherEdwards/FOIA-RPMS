@@ -1,5 +1,5 @@
-DGENU ;ALB/CJM,ISA/KWP,Zoltan - Enrollment Utilities; 12/11/00 4:33pm ; 12/11/00 9:21pm
- ;;5.3;Registration;**121,122,147,232,314**;Aug 13,1993
+DGENU ;ALB/CJM,ISA/KWP,Zoltan,LBD,EG,CKN,ERC,TMK,PWC - Enrollment Utilities; 04/24/2006 9:20 AM ; 2/16/11 9:35am
+ ;;5.3;PIMS;**121,122,147,232,314,564,624,672,659,653,688,1015,1016**;JUN 30, 2012;Build 20
  ;
 DISPLAY(DFN) ;
  ;Description: Display status message, current enrollment and
@@ -22,9 +22,10 @@ DISPLAY(DFN) ;
  Q
  ;
 CUR(DFN) ;
- ;Description - displays current enrollment, category, enrollment group threshold, and preferred facility
+ ;Description - displays current enrollment, category, enrollment
+ ;  group threshold, preferred facility and source designation
  ;
- N FACNAME,PREFAC,DGEGT,DGEGTIEN,DGENCAT,DGENR,IORVON,IORVOFF
+ N FACNAME,PREFAC,PFSRC,DGEGT,DGEGTIEN,DGENCAT,DGENR,IORVON,IORVOFF
  I $$GET^DGENA($$FINDCUR^DGENA(DFN),.DGENR)
  ;Get enrollment category
  S DGENCAT=$$CATEGORY^DGENA4(DFN)
@@ -35,12 +36,15 @@ CUR(DFN) ;
  S DGEGT=$$GET^DGENEGT(DGEGTIEN,.DGEGT)
  ;Preferred facility
  S PREFAC=$$PREF^DGENPTA(DFN,.FACNAME)
+ ;Source Designation
+ S PFSRC=$$GET1^DIQ(2,DFN_",",27.03)
  W !?3,"Enrollment Date",?35,": ",$S('$G(DGENR("DATE")):"-none-",1:$$EXT^DGENU("DATE",DGENR("DATE")))
  W !?3,"Enrollment Application Date",?35,": ",$S('$G(DGENR("APP")):"-none-",1:$$EXT^DGENU("DATE",DGENR("APP")))
  W !?3,IORVON,"Enrollment Category             : ",$S($G(DGENCAT)="":"-none-",1:$$EXTERNAL^DILFD(27.15,.02,"",DGENCAT)),IORVOFF
  W !?3,"Enrollment Status",?35,": ",$S($G(DGENR("STATUS"))="":"-none-",1:$$EXT^DGENU("STATUS",DGENR("STATUS")))
  W !?3,"Enrollment Priority",?35,": ",$S($G(DGENR("PRIORITY"))="":"-none-",1:DGENR("PRIORITY")),$S($G(DGENR("SUBGRP"))="":"",1:$$EXT("SUBGRP",DGENR("SUBGRP")))
  W !?3,"Preferred Facility",?35,": ",$S($G(FACNAME)'="":FACNAME,1:"-none-")
+ W !?3,"Preferred Facility Source",?35,": ",$S($G(PFSRC)'="":PFSRC,1:"-none-")
  W !?3,"Enrollment Group Threshold",?35,": ",$S($G(DGEGT("PRIORITY"))="":"-none-",1:$$EXTERNAL^DILFD(27.16,.02,"",$G(DGEGT("PRIORITY")))),$S($G(DGEGT("SUBGRP"))="":"",1:$$EXTERNAL^DILFD(27.16,.03,"",$G(DGEGT("SUBGRP"))))
  W !
  Q
@@ -116,18 +120,24 @@ FIELD(SUB) ;
  .I SUB="VAPEN" S FLD=50.07 Q
  .I SUB="VACKAMT" S FLD=50.08 Q
  .I SUB="DISRET" S FLD=50.09 Q
+ .I SUB="DISLOD" S FLD=50.2 Q  ;field added with DG*5.3*672
  .I SUB="MEDICAID" S FLD=50.1 Q
  .I SUB="AO" S FLD=50.11 Q
+ .I SUB="AOEXPLOC" S FLD=50.22 Q  ;field added with DG*5.3*688
  .I SUB="IR" S FLD=50.12 Q
- .I SUB="EC" S FLD=50.13 Q
+ .I SUB="EC" S FLD=50.13 Q    ;name now SW Asia Con, was Env Con DG*5.3*688
  .I SUB="MTSTA" S FLD=50.14 Q
  .I SUB="VCD" S FLD=50.15 Q
  .I SUB="PH" S FLD=50.16 Q
+ .I SUB="UNEMPLOY" S FLD=50.17 Q
+ .I SUB="CVELEDT" S FLD=50.18 Q
+ .I SUB="SHAD" S FLD=50.19 Q  ;field added with DG*5.3*653
  .I SUB="DATETIME" S FLD=75.01 Q
  .I SUB="USER" S FLD=75.02 Q
+ .I SUB="RADEXPM" S FLD=76 Q
  Q FLD
  ;
-PROMPT(FILE,FIELD,DEFAULT,RESPONSE,REQUIRE) ;
+PROMPT(FILE,FIELD,DEFAULT,RESPONSE,REQUIRE,PRMPTNM) ;
  ;Description: requests user to enter a single field value.
  ;Input:
  ;  FILE - the file #
@@ -135,16 +145,22 @@ PROMPT(FILE,FIELD,DEFAULT,RESPONSE,REQUIRE) ;
  ;  DEFAULT - default value, internal form
  ;  REQUIRE - a flag, (+value)'=0 means to require a value to be
  ;            entered and to return failure otherwise (optional)
+ ;  PRMPTNM - Optional
+ ;             0 - display field LABEL
+ ;             1 - Prompt field TITLE
  ;Output:
  ;  Function Value - 0 on failure, 1 on success
  ;  RESPONSE - value entered by user, pass by reference
  ;
  Q:(('$G(FILE))!('$G(FIELD))) 0
  S REQUIRE=$G(REQUIRE)
+ S PRMPTNM=$G(PRMPTNM)
  N DIR,DA,QUIT,AGAIN
  ;
  S DIR(0)=FILE_","_FIELD_$S($G(REQUIRE):"",1:"O")_"AO"
- S:$G(DEFAULT)'="" DIR("A")=$$GET1^DID(FILE,FIELD,"","LABEL")_": "_$$EXTERNAL^DILFD(FILE,FIELD,"F",DEFAULT)_"// "
+ I $G(DEFAULT)'="" DO
+ . S:+$G(PRMPTNM)=0 DIR("A")=$$GET1^DID(FILE,FIELD,"","LABEL")_": "_$$EXTERNAL^DILFD(FILE,FIELD,"F",DEFAULT)_"// "
+ . S:+$G(PRMPTNM)>0 DIR("A")=$$GET1^DID(FILE,FIELD,"","TITLE")_": "_$$EXTERNAL^DILFD(FILE,FIELD,"F",DEFAULT)_"// "
  S QUIT=0
  F  D  Q:QUIT
  . D ^DIR
@@ -163,23 +179,42 @@ PROMPT(FILE,FIELD,DEFAULT,RESPONSE,REQUIRE) ;
  I $D(DTOUT)!$D(DUOUT) Q 0
  Q 1
  ;
-INST() ;
- ; Description: Determine the institution affiliation associated with a user.
+INST(VADUZ,VACHK) ;
+ ; Description: Determine the institution affiliation associated with a
+ ;              user.
  ;
  ;  Input:
- ;     DUZ(2) - Pointer to the INSTITUTION (#4) file (institution
- ;              affiliated with user, propmted at Kernel sign-on)
- ;
+ ;     VADUZ =  array if passed by reference:
+ ;           VADUZ = DUZ
+ ;           VADUZ(2) =  
+ ;              o  if this value is null: DUZ(2) (institution affiliated
+ ;                    with user, prompted at Kernel sign-on)
+ ;              o  if value is not null: site to check as valid for the
+ ;                    user (Pointer to INSTITUTION (#4) file)
  ; Output:
  ;   Function Value - Returns pointer to the INSTITUTION (#4) file
  ;    entry that is associated with the user, otherwise the pointer
  ;    to the INSTITUTION (#4) file entry of the primary VA Medical
  ;    Center division is returned.
  ;
- Q $S($G(DUZ(2)):DUZ(2),1:$P($$SITE^VASITE(),"^"))
+ ;    VACHK = passed by reference, returned as:
+ ;         null if the value in VADUZ(2) is null
+ ;            0 if the value in VADUZ(2) is not null and is not a valid
+ ;              site for the user
+ ;            1 if the value in VADUZ(2) is not null and is a valid site
+ ;              for the user
+ ;
+ S VACHK=$S($G(VADUZ(2))="":"",1:0)
+ I $G(VADUZ(2)) D
+ . N X,ZZ
+ . Q:'$G(VADUZ)
+ . S X=$$DIV4^XUSER(.ZZ,VADUZ)
+ . I X,$D(ZZ(VADUZ(2))) S VACHK=1
+ I '$G(VADUZ(2)) S VADUZ(2)=$G(DUZ(2))
+ Q $S($G(VADUZ(2)):VADUZ(2),1:$P($$SITE^VASITE(),"^"))
  ;
 GETINST(DGPREFAC,DGINST) ;Get Institution file data
- ; Input  -- DGPREFAC Instution file IEN
+ ; Input  -- DGPREFAC Institution file IEN
  ; Output -- 1=Successful and 0=Failure
  ;           DGINST - Institution file Array
  N DGINST0,DGINST99,DGOKF

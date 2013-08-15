@@ -1,5 +1,5 @@
 AUPNVMSR ; IHS/CMI/LAB - EDITS FOR AUPNVMSR (MEASUREMENTS:9000010.04) 24-MAY-1993 ; 30 Sep 2010  2:16 PM
- ;;2.0;IHS PCC SUITE;**2,5,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,7,8**;MAY 14, 2009;Build 2
  ;;
  ;;BJPC patch 1
  ;; - PF changed to 50-1000
@@ -243,6 +243,11 @@ PHQ2 ; EP - PHQ2
  Q
  ;
 PHQ9 ; EP - PHQ9
+ I X'?1.2N K X Q
+ I X'=+X K X Q
+ K:(X<0)!(X>27) X
+ Q
+PHQT ; EP - PHQT
  I X'?1.2N K X Q
  I X'=+X K X Q
  K:(X<0)!(X>27) X

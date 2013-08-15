@@ -1,5 +1,5 @@
 SDAMEX1 ;ALB/MJK,RMO - Appointment Check In/Check Out Cont. ; 5/6/93
- ;;5.3;Scheduling;**27**;08/13/93
+ ;;5.3;Scheduling;**27,1015**;08/13/93;Build 21
  ;
 CK(DFN,SDCL,SDT,SDDA,SDACT) ; -- ask 'ok' and call check-in or check-out
  ;    input: DFN

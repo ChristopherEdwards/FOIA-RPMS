@@ -1,5 +1,5 @@
 DG272PT1 ;alb/maw-DG*5.3*272 post-install utilities ;2/1/2000
- ;;5.3;Registration;**272**;Aug 13, 1993
+ ;;5.3;Registration;**272,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine contains utilities called from ^DG272PT and ^DG272PT2.
  ;

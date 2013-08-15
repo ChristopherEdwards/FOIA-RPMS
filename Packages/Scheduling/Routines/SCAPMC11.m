@@ -1,5 +1,5 @@
-SCAPMC11 ;ALB/REW - Team API's: PTTP ; JUN 30, 1995 [ 12/06/2000  9:22 AM ]
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+SCAPMC11 ;ALB/REW - Team API's: PTTP ; JUN 30, 1995
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 12/06/2000 changed SSN with HRCN in long pat ID
  ;
  ;;1.0

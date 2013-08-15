@@ -1,5 +1,5 @@
-SDCWL3 ;ALB/MLI - CLINIC WORKLOAD REPORT CONTINUATION ; 25 MAY 88 [ 12/23/2004  11:11 AM ]
- ;;5.3;Scheduling;**1001**;Aug 13, 1993
+SDCWL3 ;ALB/MLI - CLINIC WORKLOAD REPORT CONTINUATION ; 25 MAY 88
+ ;;5.3;Scheduling;**540,1001,1015,1016**;Aug 13, 1993;Build 20
 SET Q:'$D(^SC(I,"S"))!'$D(^(0))!($O(^("S",SDBD))="")!($O(^(SDBD))>SDED)  S SDST=^SC(I,0),SDN=$P(SDST,U),SDSC=$P(SDST,U,7),SDDIV=$S(+$P(SDST,U,15):$P(SDST,U,15),1:$O(^DG(40.8,0))) I SDSC']"" S ^TMP($J,"ERR",1,SDN)="" Q
  I 'VAUTD,'$D(VAUTD(SDDIV)) Q
  ;IHS/ITSC/WAR 4/20/04 Correction to handle free text stop code field
@@ -15,7 +15,8 @@ SET Q:'$D(^SC(I,"S"))!'$D(^(0))!($O(^("S",SDBD))="")!($O(^(SDBD))>SDED)  S SDST=
  ;I SDS="S" S (SDF1,SDF2)=0 S:SDALL!$D(SDCL(SDSC)) ^TMP($J,"SC",SDSC,SDN,0)="",SDF1=1 I SDCR,SDCR'=SDSC I (SDALL!$D(SDCL(SDCR))) S SDF2=1,^TMP($J,"SC",SDCR,SDN,1)=""
  I SDS="S" S (SDF1,SDF2)=0 S:SDALL!$D(SDCL($P(^DIC(40.7,$P(SDST,U,7),0),U,2))) ^TMP($J,"SC",SDSC,SDN,0)="",SDF1=1 I SDCR,SDCR'=SDSC I (SDALL!$D(SDCL(SDCR))) S SDF2=1,^TMP($J,"SC",SDCR,SDN,1)=""
  S:SDS="C" SDF1=1 I SDS="S",'SDF1,'SDF2 Q
- F J=SDBD:0 S J=$O(^SC(I,"S",J)) Q:'J!(J>SDED)  F K=0:0 S K=$O(^SC(I,"S",J,1,K)) Q:'K  I $D(^(K,0)) S DFN=$P(^(0),U),SDOB=$S('$D(^("OB")):0,^("OB")]"":1,1:0) I $D(^DPT(DFN,0)),$D(^("S",J,0)) D PRO^SDCWL2
+ ;SD*5.3*540 - added Q:'DFN in 2nd FOR loop
+ F J=SDBD:0 S J=$O(^SC(I,"S",J)) Q:'J!(J>SDED)  F K=0:0 S K=$O(^SC(I,"S",J,1,K)) Q:'K  I $D(^(K,0)) S DFN=$P(^(0),U) Q:'DFN  S SDOB=$S('$D(^("OB")):0,^("OB")]"":1,1:0) I $D(^DPT(DFN,0)),$D(^("S",J,0)) D PRO^SDCWL2
  S SDOB=0 F J=SDBD:0 S J=$O(^DPT("ASDCN",I,J)) Q:'J!(J>SDED)  F K=0:0 S K=$O(^DPT("ASDCN",I,J,K)) Q:'K  I $D(^DPT(K,"S",J,0)),$S($P(^(0),U,2)["C":1,+^(0)'=I:1,1:0) S DFN=K,SDAS="C" D
  .S Y=0 F  S Y=$O(^SC(I,"S",J,1,Y)) Q:'Y  I $D(^(Y,0)),DFN=+^(0) Q
  .D:'Y PRO1^SDCWL2

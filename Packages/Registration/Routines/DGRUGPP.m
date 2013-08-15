@@ -1,5 +1,5 @@
 DGRUGPP ;ALB/BOK/MLI - PRINT PAIS FOR A DATE RANGE ; 25 FEB 87  12:00
- ;;5.3;Registration;**89**;Aug 13, 1993
+ ;;5.3;Registration;**89,1015**;Aug 13, 1993;Build 21
 DATE K DGW S X="",U="^" R !!,"SORT BY",!,"     (A)SSESSMENT OR (T)RANSFER/ADMISSION DATE: ASSESSMENT//",X:DTIME S Z="^ASSESSMENT DATE^TRANSFER/ADMISSION" Q:X["^"!('$T)  I X="" S X="A" W X
  D IN^DGHELP I %=-1 W !!?12,"CHOOSE FROM:",!?12,"A - Sort by Assessment date range",!?12,"T - Sort by Transfer in/Admission date range" G DATE
  S DGA=$S(X="A":"AA",1:"AC")

@@ -1,5 +1,5 @@
 DGUTL4 ;BPFO/JRP - RACE & ETHNIC UTILITIES;9/5/2002
- ;;5.3;Registration;**415**;Aug 13, 1993
+ ;;5.3;Registration;**415,1015**;Aug 13, 1993;Build 21
  ;
 PTR2TEXT(VALUE,TYPE)    ;Convert pointer to text (.01 field)
  ;Input:  VALUE - Pointer to RACE file (#10), ETHNICITY file (#10.2),

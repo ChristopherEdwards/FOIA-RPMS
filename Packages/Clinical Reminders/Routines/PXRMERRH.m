@@ -1,5 +1,5 @@
-PXRMERRH ; SLC/PKR - Error handling routines. ;06/07/2001
- ;;1.5;CLINICAL REMINDERS;**2,5**;Jun 19, 2000
+PXRMERRH ; SLC/PKR - Error handling routines. ;22-Aug-2011 17:21;DU
+ ;;1.5;CLINICAL REMINDERS;**2,5,1008**;Jun 19, 2000;Build 25
  ;
  ;======================================================================
 ERRHDLR ;PXRM error handler. Send a MailMan message to the mail group defined
@@ -19,6 +19,7 @@ ERRHDLR ;PXRM error handler. Send a MailMan message to the mail group defined
  S XMSUB="ERROR EVALUATING CLINICAL REMINDER"
  ;
 RETRY ;Get the message number.
+ I +$G(PXRMITEM)=999999 Q     ;IHS/MSC/MGH Patch 1008
  D XMZ^XMA2
  I XMZ<1 G RETRY
  ;

@@ -1,5 +1,5 @@
-BGP3DPH ; IHS/CMI/LAB - AREA REPORT HEADER ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP3DPH ; IHS/CMI/LAB - AREA REPORT HEADER 01 Jul 2010 7:54 PM ;
+ ;;13.0;IHS CLINICAL REPORTING;;NOV 20, 2012;Build 81
  ;
  ;HEADERS FOR REPORTS
 CALC(N,O) ;ENTRY POINT
@@ -16,58 +16,88 @@ C(X,X2,X3) ;
  D COMMA^%DTC
  Q X
 H2 ;EP
+ Q:$G(BGPSUMON)
  S BGPX="",BGPX=$$C(BGPCYN,0,8),$E(BGPX,9)=$J(BGPCYP,5,1),$E(BGPX,16)=$$C(BGPPRN,0,8),$E(BGPX,24)=$J(BGPPRP,5,1),$E(BGPX,32)=$J($$CALC(BGPCYP,BGPPRP),6),$E(BGPX,39)=$$C(BGPBLN,0,8),$E(BGPX,47)=$J(BGPBLP,5,1)
  S $E(BGPX,55)=$J($$CALC(BGPCYP,BGPBLP),6)
  W ?20,BGPX
  Q
 H6 ;EP
+ Q:$G(BGPSUMON)
  W !,"Age specific Exercise Education Provided",!!,$$CTR(BGPHD1,80),!
  W !?40,"Age Distribution"
  W !?25,"0-9",?30,"10-19",?37,"20-24",?44,"25-34",?51,"35-44",?58,"45-54",?65,"55-64",?72,">64 yrs",!
  Q
 H3 ;EP
+ Q:$G(BGPSUMON)
  W !!,$$CTR(BGPHD1,80)
  W !?40,"Age Distribution"
  W !?25,"<15",?30,"15-19",?37,"20-24",?44,"25-34",?51,"35-44",?58,"45-54",?65,"55-64",?72,">64 yrs",!
  Q
+H4 ;EP
+ Q:$G(BGPSUMON)
+ W !!,$$CTR(BGPHD1,80)
+ W !?40,"Age Distribution"
+ W !?35,"<12",?46,"12-17",?58,"=>18",!
+ Q
+H10 ;EP
+ Q:$G(BGPSUMON)
+ W !!,$$CTR(BGPHD1,80)
+ W !?40,"Age Distribution"
+ W !?35,"65-74",?46,"75-84",?58,"85+",!
+ Q
 H5 ;
+ Q:$G(BGPSUMON)
  W !,"Age specific Tobacco Use Prevalence",!,$$CTR(BGPHD1,80)
  W !?40,"Age Distribution"
  W !?25,"0-9",?30,"10-19",?37,"20-24",?44,"25-34",?51,"35-44",?58,"45-54",?65,"55-64",?72,">64 yrs"
  Q
 H1 ;EP
+ Q:$G(BGPSUMON)
+ ;I BGPFONE W !!,$P(^BGPINDH(BGPIC,0),U,3),!
  W !!?21,"REPORT",?31,"%",?35,"PREV YR",?46,"%",?49,"CHG from",?59,"BASE",?69,"%",?72,"CHG from"
  W !?21,"PERIOD",?35,"PERIOD",?49,"PREV YR %",?59,"PERIOD",?72,"BASE %"
+ S BGPFONE=0
+ Q
+H9 ;EP
+ Q:$G(BGPSUMON)
+ W !!,$$CTR(BGPHD1,80)
+ W !?40,"Age Distribution"
+ W !?25,"0-5",?30,"6-21",?37,"22-34",?44,"35-44",?51,"45-54",?58,"55-74",?65,">74 yrs",!  ;?72,">74 yrs",!
+ Q
+HPA ;EP
+ Q:$G(BGPSUMON)
+ W !!,$$CTR(BGPHD1,80)
+ W !?40,"Age Distribution"
+ W !?25,"5-11",?30,"12-19",?37,"20-24",?44,"25-34",?51,"35-44",?58,"45-54",?65,"55-74",?72,">74 yrs",!
  Q
 HEADER ;EP
+ I BGPPTYPE="D",'$G(BGPDASH) Q
  G:'BGPGPG HEADER1
  K DIR I $E(IOST)="C",IO=IO(0),'$D(ZTQUEUED) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BGPQUIT=1 Q
 HEADER1 ;
- W:$D(IOF) @IOF S BGPGPG=BGPGPG+1
- W $P(^VA(200,DUZ,0),U,2),?35,$$FMTE^XLFDT(DT),?70,"Page ",BGPGPG,!
- W:BGPRTYPE=4 $$CTR("*** IHS FY03 Local Clinical Performance Indicator Report ***",80),!
- W:BGPRTYPE=1 $$CTR("*** IHS FY03 GPRA Clinical Performance Indicators ***",80),!
- W:BGPRTYPE=2 $$CTR("*** IHS FY03 Annual Area Clinical Performance Indicators ***",80),!
- I $G(BGPAREAA) W $S(BGPSUCNT=1:$$CTR(BGPSUNM,80),1:$$CTR("AREA AGGREGATE",80)),!
- I '$G(BGPAREAA) W $$CTR($P(^DIC(4,DUZ(2),0),U),80),!
- S X="Report Period: "_$$FMTE^XLFDT(BGPBD)_" to "_$$FMTE^XLFDT(BGPED) W $$CTR(X,80),!
- S X="Previous Year Period:  "_$$FMTE^XLFDT(BGPPBD)_" to "_$$FMTE^XLFDT(BGPPED) W $$CTR(X,80),!
- S X="Baseline Period:  "_$$FMTE^XLFDT(BGPBBD)_" to "_$$FMTE^XLFDT(BGPBED) W $$CTR(X,80),!
- W $TR($J("",80)," ","-")
- Q
-AREACP ;EP - area cover page
- ;
- S BGPGPG=0 D HEADER^BGPDPH
- W !!?1,"Report includes the following facility data:"
- NEW BGPX
- S BGPX="" F  S BGPX=$O(BGPSUL(BGPX)) Q:BGPX=""  D
- .I $Y>(IOSL-5) D EOP W:$D(IOF) @IOF
- .S X=$P(^BGPGPDC(BGPX,0),U,5),X=$O(^AUTTLOC("C",X,0)) S X=$S(X:$P(^DIC(4,X,0),U),1:"?????")
- .W !?3,X
- .W !?5,"Communities: " S X=0,N=0,Y="" F  S X=$O(^BGPGPDC(BGPX,28,X)) Q:X'=+X  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P(^BGPGPDC(BGPX,28,X,0),U)
- .S X=0,C=0 F X=1:3:N W !?10,$E($P(Y,";",X),1,20),?30,$E($P(Y,";",(X+1)),1,20),?60,$E($P(Y,";",(X+2)),1,20)
- .Q
- K BGPX,BGPQUIT
+ I BGPPTYPE="P" W:$D(IOF) @IOF S BGPGPG=BGPGPG+1
+ I $G(BGPGUI),BGPPTYPE="P" D W^BGP3DP("ZZZZZZZ",0,0,BGPPTYPE),W^BGP3DP("",0,1,BGPPTYPE)  ;GUI
+ I BGPPTYPE="P" S X=$P(^VA(200,DUZ,0),U,2),$E(X,35)=$$FMTE^XLFDT(DT),$E(X,70)="Page "_BGPGPG D W^BGP3DP(X,1,1,BGPPTYPE)
+ I BGPPTYPE'="P" S X=$P(^VA(200,DUZ,0),U,2),$P(X,U,2)=$$FMTE^XLFDT(DT) D W^BGP3DP(X,0,1,BGPPTYPE)
+ I $G(BGPDASH) D W^BGP3DP("*** IHS 2013 National GPRA Dashboard ***",1,1,BGPPTYPE) G N
+ I BGPRTYPE=4,$G(BGPYRPTH)="C" D W^BGP3DP("*** IHS 2013 Selected Measures with Community Specified Report ***",1,1,BGPPTYPE)
+ I BGPRTYPE=4,$G(BGPYRPTH)="A" D W^BGP3DP("*** IHS 2013 Selected Measures with All Communities Report ***",1,1,BGPPTYPE)
+ I BGPRTYPE=4,$G(BGPYRPTH)="P" D W^BGP3DP("*** IHS 2013 Selected Measures with Patient Panel Population Report ***",1,1,BGPPTYPE)
+ I BGPRTYPE=1!(BGPRTYPE=9),$G(BGPNGR09) D W^BGP3DP("*** IHS 2014 National GPRA/GPRAMA Report, Run Using 2013 Logic ***",1,1,BGPPTYPE) G N
+ I BGPRTYPE=1!(BGPRTYPE=9),$G(BGPDESGP) D W^BGP3DP("*** IHS 2013 National GPRA/GPRAMA Report by Designated Provider ***",1,1,BGPPTYPE)
+ I BGPRTYPE=1!(BGPRTYPE=9),'$G(BGPYGPU) D W^BGP3DP("*** IHS 2013 National GPRA/GPRAMA Report ***",1,1,BGPPTYPE)
+ I BGPRTYPE=1!(BGPRTYPE=9),$G(BGPYGPU) D W^BGP3DP("*** IHS 2013 GPRA/GPRAMA Performance Report ***",1,1,BGPPTYPE)
+ I BGPRTYPE=9 D W^BGP3DP("*** Developmental Measures ***",1,1,BGPPTYPE)
+ D:BGPRTYPE=3 W^BGP3DP("*** IHS 2013 HEDIS Clinical Performance ***",1,1,BGPPTYPE)
+ D:BGPRTYPE=5 W^BGP3DP("*** IHS 2013 ELDER CARE Clinical Performance ***",1,1,BGPPTYPE)
+ I BGPRTYPE=7 D W^BGP3DP("IHS 2013 Other National Measures Report ***",1,1,BGPPTYPE)
+N I $G(BGPAREAA) D W^BGP3DP("AREA AGGREGATE",1,1,BGPPTYPE)
+ I '$G(BGPAREAA) D W^BGP3DP($P(^DIC(4,DUZ(2),0),U),1,1,BGPPTYPE)
+ I $G(BGPDESGP) D W^BGP3DP("Designated Provider: "_$P(^VA(200,BGPDESGP,0),U),1,1,BGPPTYPE)
+ S X="Report Period: "_$$FMTE^XLFDT(BGPBD)_" to "_$$FMTE^XLFDT(BGPED) D W^BGP3DP(X,1,1,BGPPTYPE)
+ S X="Previous Year Period:  "_$$FMTE^XLFDT(BGPPBD)_" to "_$$FMTE^XLFDT(BGPPED) D W^BGP3DP(X,1,1,BGPPTYPE)
+ I '$G(BGPDASH) S X="Baseline Period:  "_$$FMTE^XLFDT(BGPBBD)_" to "_$$FMTE^XLFDT(BGPBED) D W^BGP3DP(X,1,1,BGPPTYPE)
+ D W^BGP3DP($TR($J("",80)," ","-"),0,1,BGPPTYPE)
  Q
 CTR(X,Y) ;EP - Center X in a field Y wide.
  Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X

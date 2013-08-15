@@ -1,5 +1,5 @@
 DGNTUT ;ALB/RPM - Utility functions for N/T Radium Treatments ; 7/16/01 3:04pm
- ;;5.3;Registration;**397**;Aug 13, 1993
+ ;;5.3;Registration;**397,1015**;Aug 13, 1993;Build 21
  Q
  ;
 CHANGE(DGDFN,DGNTN,DGENR) ;Did the answers change?

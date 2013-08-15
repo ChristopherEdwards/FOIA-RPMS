@@ -1,5 +1,5 @@
 DGMTUTL ;ALB/CAW/BRM/LBD - Means Test generic utilities ; 8/12/02 4:33pm
- ;;5.3;Registration;**3,31,166,182,454**;Aug 13, 1993
+ ;;5.3;PIMS;**3,31,166,182,454,1015,1016**;JUN 30, 2012;Build 20
  ;
 FDATE(Y) ; -- return formatted date
  ;   input:          Y := field name
@@ -141,3 +141,53 @@ PA(DGMTI) ;Determine if the Pending Adjudication is for MT or GMT
  ; otherwise return MT
  S PA=$S(GMTTHR>MTTHR:"GMT",1:"MT")
  Q PA
+ ;
+ISCNVRT(DGINC) ;* Convert Node 0 for records in 408.21 (IAI)
+ ; Input:  DGINC - Individual Annual Income IEN Array
+ ;
+ N RESULT,IAIREC,NULLVAL,PCE,IAIIEN,TOT08,TOT201,TOT204,NWNODE
+ S NULLVAL=""
+ ;
+ ; Convert 408.21 nodes to version 1 form
+ F RECTYP="V","S","D"  DO
+ . I RECTYP'="D" DO
+ . . I $D(DGINC(RECTYP)) DO
+ . . . S IAIIEN=DGINC(RECTYP)
+ . . . S IAIREC=$G(^DGMT(408.21,IAIIEN,0))
+ . . . S NWNODE=$G(^DGMT(408.21,IAIIEN,2))
+ . . . S (TOT08,TOT201,TOT204)=0
+ . . . S TOT201=$P(NWNODE,"^",1)+$P(NWNODE,"^",2)
+ . . . S TOT204=$P(NWNODE,"^",4)-$P(NWNODE,"^",5)
+ . . . S PCE=""
+ . . . F PCE=8:1:13,15,16 I $P(IAIREC,"^",PCE)'=NULLVAL S TOT08=TOT08+$P(IAIREC,"^",PCE)
+ . . . N DGERR,DGMTRT,FLDNM
+ . . . S FLDNM=""
+ . . . S DGERR=""
+ . . . F FLDNM=.09:.01:.13,.15,.16,2.02,2.05 S DGMTRT(408.21,IAIIEN_",",FLDNM)="@"
+ . . . S DGMTRT(408.21,IAIIEN_",",".08")=$S(TOT08>0:TOT08,1:"")
+ . . . S DGMTRT(408.21,IAIIEN_",","2.01")=$S(TOT201>0:TOT201,1:"")
+ . . . S DGMTRT(408.21,IAIIEN_",","2.04")=$S(TOT204>0:TOT204,1:"")
+ . . . D FILE^DIE("E","DGMTRT",DGERR)
+ . ;
+ . I RECTYP="D" DO
+ . . N DEPNUM,DGMTVR
+ . . S DGMTVR=1
+ . . S DEPNUM=""
+ . . F  S DEPNUM=$O(DGINC("D",DEPNUM))  Q:DEPNUM=""  DO
+ . . . S IAIIEN=DGINC("D",DEPNUM)
+ . . . S IAIREC=$G(^DGMT(408.21,IAIIEN,0))
+ . . . S NWNODE=$G(^DGMT(408.21,IAIIEN,2))
+ . . . S (TOT08,TOT201,TOT204)=0
+ . . . S TOT201=$P(NWNODE,"^",1)+$P(NWNODE,"^",2)
+ . . . S TOT204=$P(NWNODE,"^",4)-$P(NWNODE,"^",5)
+ . . . S PCE=""
+ . . . F PCE=8:1:13,15,16 I $P(IAIREC,"^",PCE)'=NULLVAL S TOT08=TOT08+$P(IAIREC,"^",PCE)
+ . . . N DGERR,DGMTRT,FLDNM
+ . . . S FLDNM=""
+ . . . S DGERR=""
+ . . . F FLDNM=.09:.01:.13,.15,.16,2.02,2.05 S DGMTRT(408.21,IAIIEN_",",FLDNM)="@"
+ . . . S DGMTRT(408.21,IAIIEN_",",".08")=$S(TOT08>0:TOT08,1:"")
+ . . . S DGMTRT(408.21,IAIIEN_",","2.01")=$S(TOT201>0:TOT201,1:"")
+ . . . S DGMTRT(408.21,IAIIEN_",","2.04")=$S(TOT204>0:TOT204,1:"")
+ . . . D FILE^DIE("E","DGMTRT",DGERR)
+ Q

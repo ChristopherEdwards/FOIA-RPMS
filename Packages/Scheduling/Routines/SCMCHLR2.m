@@ -1,5 +1,5 @@
 SCMCHLR2 ;ALB/KCL - PCMM HL7 Reject Processing - Build List Area; 10-JAN-2000
- ;;5.3;Scheduling;**210,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,272,297,458,505,1015**;AUG 13, 1993;Build 21
  ;
 EN(SCARY,SCBEG,SCEND,SCEPS,SCSORTBY,SCCNT) ;
  ; Description: This entry point is used to build list area for
@@ -19,6 +19,7 @@ EN(SCARY,SCBEG,SCEND,SCEPS,SCSORTBY,SCCNT) ;
  ;                N -> Patient Name
  ;                D -> Date/Time Ack Received
  ;                P -> Provider
+ ;                I -> Institution
  ;
  ; Output:
  ;  SCCNT - Contains number of lines in the list, pass by reference
@@ -57,8 +58,12 @@ GET(SCARY,SCBEG,SCEND,SCEPS,SCSORTBY) ;
  ;   Date/Time Ack Rec'd: ^TMP("SCERRSRT",$J,<sort by>,<date/time ack rec'd>,<trans log IEN>,<err code ien>)
  ; OR,
  ;   Provider: ^TMP("SCERRSRT",$J,<sort by>,<provider>,<trans log IEN>,<err code ien>)
+ ; OR,
+ ;   INSTITUTION: ^TMP("SCERRSRT",$J,<sort by>,<institution>,<trans log IEN>,<err code ien>)
+ ;   (INSTITUTION SORT INTRO. IN SD*5.3*505)
  ;
- N SCDFN,SCDTR,SCERIEN,SCTLIEN,SCSTAT
+ N SCDFN,SCDTR,SCERIEN,SCTLIEN,SCSTAT,SCHLIEN,SCHLIEN1,SCHLIEN2
+ N SCHLIEN3,SCHLIEN4,SCHLIEN5,SCTP,SCTPOS,SCTPSS
  ;
  ;Loop thru PCMM HL7 Trans Log for selected date range
  F SCDTR=SCBEG:0 S SCDTR=$O(^SCPT(404.471,"AST",SCDTR)) Q:'SCDTR!($P(SCDTR,".")>SCEND)  D
@@ -111,13 +116,13 @@ SORT(SCSORTBY,SCDTR,SCDFN,SCEPS,SCTLIEN,SCERIEN) ;
  ..;if Error Proc Status matches selected Error Proc Status
  ..I (SCEPS=$G(SCTLOG("ERR","EPS"))!(SCEPS>2)) D
  ...;get data from PCMM HL7 ID file
- ...I $$GETHL7ID^SCMCHLA2($G(SCTLOG("ERR","ZPCID")),.SCHL)
- ...;get provider from POSITION ASSIGNMENT HISTORY file
- ...S SCPTR=$P($G(SCHL("HL7ID")),"-",2)  ; pointer to PCMM HL7 ID file
- ...I $G(SCTLOG("WORK")) S SCPROV=$$PROV^SCMCHLP(SCTLOG("WORK"))
- ...I '$G(SCTLOG("WORK")) S SCPROV=$P($G(^SCTM(404.52,+SCPTR,0)),"^",3)
- ...;setup ^tmp array sorted by provider
- ...S ^TMP("SCERRSRT",$J,SCSORTBY,$S($G(SCPROV)'="":$$EXTERNAL^DILFD(404.52,.03,,SCPROV),1:"ZZZUNKNOWN"),SCTLIEN,SCERIEN)=""
+ ...I $$GETHL7ID^SCMCHLA2($G(SCTLOG("ERR","ZPCID")),.SCHL) D
+ ....;get provider from POSITION ASSIGNMENT HISTORY file
+ ....S SCPTR=$P($G(SCHL("HL7ID")),"-",2)  ; pointer to PCMM HL7 ID file
+ ....I $G(SCTLOG("WORK")) S SCPROV=$$PROV^SCMCHLP(SCTLOG("WORK"))
+ ....I '$G(SCTLOG("WORK")) S SCPROV=$P($G(^SCTM(404.52,+SCPTR,0)),"^",3)
+ ....;setup ^tmp array sorted by provider
+ ....S ^TMP("SCERRSRT",$J,SCSORTBY,$S($G(SCPROV)'="":$$EXTERNAL^DILFD(404.52,.03,,SCPROV),1:"ZZZUNKNOWN"),SCTLIEN,SCERIEN)=""
  ;
  ;If sort by criteria is 'Patient' (default)
  I SCSORTBY="N" D
@@ -126,6 +131,24 @@ SORT(SCSORTBY,SCDTR,SCDFN,SCEPS,SCTLIEN,SCERIEN) ;
  ..;if Error Proc Status matches selected Error Proc Status
  ..I (SCEPS=$G(SCTLOG("ERR","EPS"))!(SCEPS>2)) D
  ...;setup ^tmp array sorted by patient
+ ...I SCDFN="W" I $G(SCTLOG("WORK"))="" S SCDFN=""
  ...S ^TMP("SCERRSRT",$J,SCSORTBY,$S($P($G(^DPT(+SCDFN,0)),U)'="":$P(^(0),U),SCDFN="W":"Workload Message",1:"UNKNOWN"),SCTLIEN,SCERIEN)=""
  ;
+ ;If sort by criteria is 'Institution" SD*5.3*505
+ I SCSORTBY="I" D
+ .;get data from PCMM HL7 Trans Log
+ .I $$GETLOG^SCMCHLA(SCTLIEN,SCERIEN,.SCTLOG) D
+ ..I (SCEPS=$G(SCTLOG("ERR","EPS"))!(SCEPS>2)) D
+ ...;setup ^tmp array sorted by institution
+ ...S SCHLIEN=0
+ ...F  S SCHLIEN=$O(^SCPT(404.471,SCTLIEN,"ZPC",SCHLIEN)) Q:SCHLIEN=""  D
+ ....S SCHLIEN1=$G(^SCPT(404.471,SCTLIEN,"ZPC",SCHLIEN,0)) Q:SCHLIEN<1  D
+ .....S SCHLIEN2=$P(SCHLIEN1,U,2),SCHLIEN3=+$G(^SCPT(404.49,SCHLIEN2,0))
+ .....S SCHLIEN4=$G(^SCPT(404.43,SCHLIEN3,0)) Q:SCHLIEN4=""  D
+ ......S SCHLIEN5=$G(^SCPT(404.42,+SCHLIEN4,0)) Q:SCHLIEN5=""  D
+ .......S SCTPOS=$P(SCHLIEN4,U,2),SCTPSS=$G(^SCTM(404.57,+SCTPOS,0))
+ .......S SCTP=$P(SCTPSS,U,2),SCY=$G(^SCTM(404.51,+SCTP,0)),SCINT=$P(SCY,U,7)
+ .......S SCINNAM=$$GET1^DIQ(4,+SCINT_",",99)
+ .......S ^TMP("SCERRSRT",$J,SCSORTBY,$S($G(SCINNAM)'="":SCINNAM,1:"UNK"),SCTLIEN,SCERIEN)=""
+ .......K SCTP,SCTPOS,SCTPSS,SCTP,SCY,SCINNAM,SCINT
  Q

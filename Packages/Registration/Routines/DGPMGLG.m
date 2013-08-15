@@ -1,5 +1,5 @@
 DGPMGLG ;ALB/LM - G&L GENERATION, COLLECT DATA, CLEAN UP; 16 JAN 91
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;  Date of G&L and/or Bed Status Report
 A S X1=RD,X2=-1 D C^%DTC S (FR,MV)=X_".999999",TO=$P(RD,".",1)_".999999"

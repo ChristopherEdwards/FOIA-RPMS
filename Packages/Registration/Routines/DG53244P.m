@@ -1,5 +1,5 @@
 DG53244P ;BPFO/JRP - Post init for DG*5.3*244 ; 26 Jan 2002 10:51 PM
- ;;5.3;Registration;**244**;Aug 13, 1993
+ ;;5.3;Registration;**244,1015**;Aug 13, 1993;Build 21
  ;
 POST ;Entry point for post init
  D POST^DG53244S

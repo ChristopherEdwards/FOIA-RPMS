@@ -1,5 +1,5 @@
 SCRPW75 ;BP-CIOFO/KEITH,ESW - Clinic Appointment Availability Extract (cont.) ; 5/15/03 3:15pm
- ;;5.3;Scheduling;**206,223,241,249,291**;AUG 13, 1993
+ ;;5.3;Scheduling;**206,223,241,249,291,1015**;AUG 13, 1993;Build 21
  ;
 NAVA(SDBDT,SDEDT,SDEX) ;Gather next available appointment wait time information
  ;Input: SDBDT=beginning date

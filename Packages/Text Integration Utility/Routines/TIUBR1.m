@@ -1,8 +1,8 @@
-TIUBR1 ;SLC/JER - Enter TIU Browse with DFN and TIUDA ;26-Feb-2010 11:56;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**31,100,123,176,1007**;Jul 20, 1997;Build 5
+TIUBR1 ;SLC/JER - Enter TIU Browse with DFN and TIUDA ;04-Jun-2012 16:19;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**31,100,123,176,1007,157,1010**;Jun 20, 1997;Build 24
  ; Move LOADSIG, XTRASIG, LOADFOR, LOADREC from TIUBR. **100**
  ;IHS/ITSC/LJF 05/01/2003 convert blanks to reverse video
- ;IHS/MSC/MGH  2/25/2010 added back in after patch 176
+ ;IHS/MSC/MGH  2/25/2010 added back in after patches
  ;
 LOADREC(TIUDA,TIUL,TIUGDATA,TIUGWHOL) ; Load ^TMP
  ;Requires TIUDA, array TIUL, TIUGDATA
@@ -22,7 +22,7 @@ LOADREC(TIUDA,TIUL,TIUGDATA,TIUGWHOL) ; Load ^TMP
  ; ---- Load text of TIUDA: ----
  F  S TIUI=$O(^TIU(8925,+TIUDA,"TEXT",TIUI)) Q:+TIUI'>0  D
  . S TIUL=+$G(TIUL)+1
- . ;
+ .;
  . ; convert @@@ (blanks designation) to reverse video
  . ;S @VALMAR@(TIUL,0)=$G(^TIU(8925,+TIUDA,"TEXT",+TIUI,0))                  ;IHS/ITSC/LJF 05/01/2003
  . S @VALMAR@(TIUL,0)=$$BLANKS^BTIUBR($G(^TIU(8925,+TIUDA,"TEXT",+TIUI,0)))  ;IHS/ITSC/LJF 05/01/2003
@@ -179,6 +179,12 @@ XTRASIG(TIUDA,TIUL) ; Load additional signature blocks
  . S TIUL=+$G(TIUL)+1,@VALMAR@(TIUL,0)=TIUX,TIUX=""
  . S TIUX=$$SETSTR^VALM1($G(TIUXTRA(8925.7,DA,.07,"E")),$G(TIUX),30,50)
  . S TIUL=+$G(TIUL)+1,@VALMAR@(TIUL,0)=TIUX
+ . I $G(TIUXTRA(8925.7,DA,.05,"I")),$G(TIUXTRA(8925.7,DA,.05,"I"))'=$G(TIUXTRA(8925.7,DA,.03,"I")) D
+ . . N TIUFOR
+ . . S TIUX=""
+ . . S TIUFOR="for "_$P($G(TIUXTRA(8925.7,DA,.03,"E")),",",2)_" "_$P($G(TIUXTRA(8925.7,DA,.03,"E")),",")
+ . . S TIUX=$$SETSTR^VALM1(TIUFOR,$G(TIUX),26,55)
+ . . S TIUL=TIUL+1,@VALMAR@(TIUL,0)=TIUX
  Q
 LOADFOR(TIUS1,TIUES1,TIUL) ; Apply "for" block
  N TIUESN1,TIUEST1,TIUFORN,TIUFORT

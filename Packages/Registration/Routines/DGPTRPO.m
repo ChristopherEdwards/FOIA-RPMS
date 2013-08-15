@@ -1,5 +1,5 @@
 DGPTRPO ;ALB/MTC - RECORD PRINT OUT (RPO); 11 FEB 91
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 EN ;-- generic N15x call
  D INIT G ENQ:DGOUT
  D FMT G ENQ:DGOUT

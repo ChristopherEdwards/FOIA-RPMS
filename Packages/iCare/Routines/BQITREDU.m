@@ -1,5 +1,5 @@
 BQITREDU ;PRXM/HC/ALA-Find Education ; 21 May 2007  3:15 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 FED(DATE,BQDFN,CODE) ;EP - Find education
  ; Input
@@ -91,14 +91,16 @@ SMOK(BQDFN) ; EP - Find smoking for a patient
  ;
  ;Dental Code
  S DNC=$$FIND1^DIC(9999999.31,"","X",1320,"B","","ERROR")
- S IEN="",QFL=0
- F  S IEN=$O(^AUPNVDEN("B",DNC,IEN)) Q:IEN=""  D  Q:QFL
- . I $$GET1^DIQ(9000010.05,IEN,.02,"I")'=BQDFN Q
- . S VISIT=$$GET1^DIQ(9000010.05,IEN,.03,"I") Q:VISIT=""
- . I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
- . S VDATE=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:'VDATE
- . I VDATE<BQTDATE Q
- . S QFL=1
+ S QFL=0
+ I DNC'="" D
+ . S IEN=""
+ . F  S IEN=$O(^AUPNVDEN("B",DNC,IEN)) Q:IEN=""  D  Q:QFL
+ .. I $$GET1^DIQ(9000010.05,IEN,.02,"I")'=BQDFN Q
+ .. S VISIT=$$GET1^DIQ(9000010.05,IEN,.03,"I") Q:VISIT=""
+ .. I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
+ .. S VDATE=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:'VDATE
+ .. I VDATE<BQTDATE Q
+ .. S QFL=1
  I QFL Q 0_"^Patient met Dental Code 1320"
  ;
  ;Clinic Code 94

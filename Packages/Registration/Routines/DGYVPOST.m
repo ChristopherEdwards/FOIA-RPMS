@@ -1,5 +1,5 @@
 DGYVPOST ;ALB/LD - Patch DG*5.3*64 Post-Init ; 8/8/95
- ;;5.3;Registration;**64**;Aug 13, 1993
+ ;;5.3;Registration;**64,1015**;Aug 13, 1993;Build 21
  ;
  ;
  ;-- Populate FACILITY TREATING SPECIALTY file (#45.7) with effective

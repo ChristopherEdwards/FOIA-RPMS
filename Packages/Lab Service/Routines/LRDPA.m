@@ -1,8 +1,7 @@
 LRDPA ;SLC/RWF/WTY/KLL - FILE OF FILES LOOKUP ON ENTITIES ; 2/28/03 4:10pm
- ;;5.2;LR;**137,121,153,202,211,248,305,1022**;September 20, 2007
- ;;
- ; VA PATCH 305 included in IHS LAB PATCH 1022
- ;;
+ ;;5.2;LAB SERVICE;**1002,1003,1004,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 137,121,153,202,211,248,305,360
  ;
  ;Reference to ^DIC( supported by IA #916
  ;Reference to ^DIC("AC" supported by IA #511
@@ -52,7 +51,7 @@ EN ;
  ;is extracted if these guard codes exist. DIC("S") was added in several
  ;places and in all instances it is being killed immediately after use.
  ;----- BEGIN IHS MODIFICATIONS LR*5.2*1018
- ;IHS DOES NOT WANT SSN O BE AN IDENTIFIER
+ ;IHS DOES NOT WANT SSN TO BE AN IDENTIFIER
  S DIC("W")=""
  ;----- END IHS MODIFICATIONS
  D ^DIC K DIC("S"),DLAYGO K:Y>0 DUOUT
@@ -60,7 +59,7 @@ EN ;
  ;the VIC card is used.  If the user ^'s out, Y will be equal to -1.
  ;If Y is greater than 0 the data is valid and DUOUT should be ignored.
  I Y<1 K DIC D LAYG G DPA
- S DFN=+Y,PNM=$P(Y(0),"^") D PT^LRX G END
+ S DFN=+Y,PNM=$P(Y(0),"^") D PT^LRX D:DOD'="" WARN G END
  ;
 LAYG ;Don't allow DLAYGO on second pass.
  K DLAYGO S DIC(0)="EQMZ" Q
@@ -138,8 +137,14 @@ EN2(DFN,LOCK,TALK) ;Patient Lock
  S X=DFN_";DPT("
  I LOCK D LK^ORX2
  I 'LOCK D ULK^ORX2
- ;-----BEGIN IHS MODIFICATIONS LR*5.2*1018
- ;--- TOOK OUT CALLS TO BLRORX
- ;I LOCK D LK^BLRORX2  ;IHS/DIR TUC/AAB 06/15/98
- ;I 'LOCK D ULK^BLRORX2  ;IHS/DIR TUC/AAB 06/15/98
+ Q
+WARN ;Warn the user the patient has died and display date of death (LR*5.2*360)
+ S Y=DOD D DD^LRX
+ W !?10,@LRVIDO,"Patient ",PNM," died on: ",Y,@LRVIDOF,!
+ S DIR(0)="Y"
+ S DIR("A")="Do you wish to continue with this patient [Yes/No]"
+ S DIR("T")=120
+ D ^DIR K DIR
+ I Y=0!($D(DIRUT)) S DFN=-1
+ K DIRUT
  Q

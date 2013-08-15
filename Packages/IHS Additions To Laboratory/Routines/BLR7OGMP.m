@@ -1,5 +1,5 @@
-BLR7OGMP ; IHS/OIT/MKK - Lab Interim Report for EHR ; [ 05/31/2011  8:15 AM ]
- ;;5.2;IHS LABORATORY;**1028,1030**;NOV 01, 1997
+BLR7OGMP ; IHS/OIT/MKK - Lab Interim Report for EHR ;   [ 05/31/2011  8:15 AM ]
+ ;;5.2;IHS LABORATORY;**1028,1030,1031**;NOV 01, 1997
  ;
  ; Cloned from LR7OGMP. This is a 127 column "report"
  ;
@@ -14,7 +14,7 @@ PRINT(OUTCNT) ; from LR7OGMC
  F  S CDT=$O(^TMP("LR7OG",$J,"TP",CDT)) Q:CDT=""  D
  . S IDT=9999999-CDT
  . S ZERO=$S($D(^TMP("LR7OG",$J,"TP",CDT))#2:^(CDT),1:"")
- . I '$P(ZERO,U,3) Q
+ . ; I '$P(ZERO,U,3) Q       ; IHS/MSC/MKK - LR*5.2*1031
  . S SPEC=+$P(ZERO,U,5)
  . S DOC=$$NAME(+$P(ZERO,U,10))
  . D SETLINE("",.OUTCNT)
@@ -22,7 +22,8 @@ PRINT(OUTCNT) ; from LR7OGMC
  . S ACC=$P(ZERO,U,6)
  . S LINE=$$SETSTR^VALM1(" Accession: "_ACC,LINE,54,12+$L(ACC))
  . D SETLINE(LINE,.OUTCNT)
- . S LINE="     Specimen: "_$E($P(^LAB(61,SPEC,0),U),1,25)_"."
+ . ; S LINE="     Specimen: "_$E($P(^LAB(61,SPEC,0),U),1,25)_"."
+ . S LINE="     Specimen: "_$E($P($G(^LAB(61,SPEC,0),"<no specimen on file>"),U),1,25)_"."
  . S $E(LINE,42)="Spec Collect Date/Time: "_$$UP^XLFSTR($$FMTE^XLFDT(CDT,"5MPZ"))     ; IHS/OIT/MKK - LR*5.2*1030
  . D SETLINE(LINE,.OUTCNT)
  . D SETLINE(" ",.OUTCNT)
@@ -46,6 +47,7 @@ PRINT(OUTCNT) ; from LR7OGMC
  .. S STR=$G(^LAB(60,TESTNUM,1,SPEC,0))
  .. S REFLOW=$P(STR,"^",2)
  .. S REFHIGH=$P(STR,"^",3)
+ .. ;
  .. S:$TR(REFLOW," ")'=""!($TR(REFHIGH," ")'="") RANGE=REFLOW_" - "_REFHIGH
  .. S THERLOW=$P(STR,"^",11)
  .. S THERHIGH=$P(STR,"^",12)
@@ -53,11 +55,25 @@ PRINT(OUTCNT) ; from LR7OGMC
  .. I IDT S SITE=$P($G(^LR(LRDFN,"CH",IDT,+$P(SUB,";",2))),"^",9)
  .. S:+$G(SITE) SITECNT=SITECNT+1
  .. ;
+ .. D ZEROFIX(TESTNUM,.X)                   ; IHS/OIT/MKK - LR*5.2*1031
+ .. ;
  .. I PRNTCODE="" S VALUE=X
  .. I PRNTCODE'="" S @("VALUE="_PRNTCODE)
  .. ;
  .. I $G(RANGE)["$S(" D MUMPRNGE(.RANGE)
+ .. ;
+ .. ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ .. S LOW=$$TRIM^XLFSTR($P($G(RANGE),"-"),"LR"," ")
+ .. S HIGH=$$TRIM^XLFSTR($P($G(RANGE),"-",2),"LR"," ")
+ .. D:$L(LOW) ZEROFIX(TESTNUM,.LOW)
+ .. D:$L(HIGH) ZEROFIX(TESTNUM,.HIGH)
+ .. I $L(LOW)!($L(HIGH)) S RANGE=$$EN^LRLRRVF(LOW,HIGH)
+ .. ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ .. ;
  .. S LRX=$G(RANGE)
+ .. ;
+ .. ; Have to determine if Ref Ranges came from THERAPEUTIC fields
+ .. ; I $L(REFLOW)<1,$L(REFHIGH)<1,$L(THERLOW),$L(THERHIGH),$L(LRX) S LRX=LRX_"(TR)"
  .. ;
  .. I IDT S SITE=$P($G(^LR(LRDFN,"CH",IDT,+$P($G(SUB),";",2))),"^",9)
  .. S:+$G(SITE) SITECNT=SITECNT+1
@@ -189,3 +205,38 @@ USEDIWP(X,LM,CW) ; EP -- Use FileMan DIWP to wrap text
  . D SETLINE(STR,.OUTCNT)
  Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ZEROFIX(F60PTR,RESULT) ; EP - Leading & Trailing Zero Fix for Results
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,F60PTR,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,RESULT,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$UP^XLFSTR($G(RESULT))["SPECIMEN IN LAB"          ; Skip if not resulted
+ ;
+ Q:$L($G(RESULT))<1                      ; Skip if no Result
+ Q:$L($G(F60PTR))<1                      ; Skip if no File 60 Pointer
+ ;
+ S DN=+$G(^LAB(60,F60PTR,.2))
+ Q:DN<1                                  ; Skip if no DataName
+ ;
+ Q:$G(^DD(63.04,DN,0))'["^LRNUM"         ; Skip if no numeric defintiion
+ ;
+ S STR=$P($P($G(^DD(63.04,DN,0)),"Q9=",2),$C(34),2)     ; Get numeric formatting
+ ;
+ S DP=+$P(STR,",",3)                     ; Decimal Places
+ Q:DP<1                                  ; Skip if no Decimal Defintion
+ ;
+ S SYMBOL="",ORIGRSLT=RESULT
+ F  Q:$E(RESULT)="."!($E(RESULT)?1N)!(RESULT="")  D   ; Adjust if ANY Non-Numeric is at the beginning of RESULT
+ . S SYMBOL=SYMBOL_$E(RESULT)
+ . S RESULT=$E(RESULT,2,$L(RESULT))
+ ;
+ S:$E(RESULT)="." RESULT="0"_RESULT      ; Leading Zero Fix
+ ;
+ I $E(RESULT)'?1N  S RESULT=ORIGRSLT  Q  ; Skip if RESULT has no numeric part
+ ;
+ S RESULT=$TR($FN(RESULT,"P",DP)," ")
+ ;
+ S:$L($G(SYMBOL)) RESULT=SYMBOL_RESULT   ; Restore "symbol", if necessary
+ ;
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031

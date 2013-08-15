@@ -1,5 +1,5 @@
-BTIUPCC1 ; IHS/ITSC/LJF - IHS PCC OBJECTS ;01-Jun-2010 11:18;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1004,1005,1006**;NOV 04, 2004
+BTIUPCC1 ; IHS/ITSC/LJF - IHS PCC OBJECTS ;03-Oct-2012 14:35;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1004,1005,1006,1010**;NOV 04, 2004;Build 24
  ;IHS/ITSC/LJF 02/24/2005 PATCH 1002 - enhanced measurement display
  ;             04/14/2005 PATCH 1002 - fixed logic for last measurement on same day
  ;             01/26/2006 PATCH 1004 - Added fix for problem list w/o dates
@@ -7,6 +7,7 @@ BTIUPCC1 ; IHS/ITSC/LJF - IHS PCC OBJECTS ;01-Jun-2010 11:18;MGH
  ;                                     Fixed logic for vitals for inpts
  ;            Patch 1005 fixed formatting error on date for correct sorting
  ;            Patch 1006 added classification for problems, skip entered in error vitals
+ ;            Patch 1010 added qualifiers
 LASTPRC(DFN,TIUICD,TIUPRC) ;EP -- returns date of last X procedure
  ;TIUICD=array of ICD procedure codes
  ;TIUPRC=phrase explaining type of procedures; used in output
@@ -57,13 +58,14 @@ LASTMSR(DFN,TIUMSR,TIUCAP,TIUDATE) ;EP; -- returns last measurement for patient
  S X=$S($G(TIUCAP):"Last "_TIUMSR_": ",1:"")
  ;
  ;IHS/ITSC/LJF 02/24/2005 PATCH 1002 lines added to display more details
- NEW Y
+ NEW Y,RET
  I $P(LINE,U,2)="" Q X_$P(LINE,U)
  I TIUMSR="TMP" S Y=$P(LINE,U),Y=Y_" F ["_$J((Y-32)*(5/9),3,1)_" C]",$P(LINE,U)=Y
  I ((TIUMSR="HT")!(TIUMSR="HC")!(TIUMSR="WC")!(TIUMSR="AG")) S Y=$P(LINE,U),Y=$J(Y,5,2)_" in ["_$J((Y*2.54),5,2)_" cm]",$P(LINE,U)=Y
  I TIUMSR="WT" S Y=$P(LINE,U),Y=$J(Y,5,2)_" lb ["_$J((Y*.454),5,2)_" kg]",$P(LINE,U)=Y
- ;
- Q X_$P(LINE,U)_$$LSTDATE($P(LINE,U,2),$P(LINE,U,3),$G(TIUDATE))
+ I $P(LINE,U,4)="" S RET=X_$P(LINE,U)_$$LSTDATE($P(LINE,U,2),$P(LINE,U,3),$G(TIUDATE))
+ I $P(LINE,U,4)'="" S RET=X_$P(LINE,U)_$$LSTDATE($P(LINE,U,2),$P(LINE,U,3),$G(TIUDATE))_" Qualifiers: "_$P(LINE,U,4)
+ Q RET
  ;
 BMI(DFN,TIUCAP) ;EP -- returns BMI based on last ht and wt
  ; TIUCAP=1 if caption with measurement name is to be returned
@@ -80,7 +82,7 @@ BMI(DFN,TIUCAP) ;EP -- returns BMI based on last ht and wt
  ;
 LSTMEAS(DFN,TIUMSR) ; -- returns most current measurement (internal values)
  ;IHS/ITSC/LJF 04/`4/2005 PATCH 1002 rewrote logic to deal with >1 measurement per day
- NEW MSR,VDT,IEN,X,TIU,LINE,ARR,DATE,STOP
+ NEW MSR,VDT,IEN,X,TIU,LINE,ARR,DATE,STOP,QUALIF
  S MSR=$O(^AUTTMSR("B",TIUMSR,0)) I MSR="" Q ""
  ;
  ;S STOP=$O(^AUPNVMSR("AA",DFN,MSR,0))\1   ;stop at most recent date
@@ -95,7 +97,8 @@ LSTMEAS(DFN,TIUMSR) ; -- returns most current measurement (internal values)
  .. Q:TIU(2,"I")=1                ;Quit if entered in error
  .. S LINE=$G(TIU(.04))_U_$G(TIU(.03,"I"))_U_$G(TIU(1201,"I"))
  .. S DATE=$S($G(TIU(1201,"I"))]"":TIU(1201,"I"),1:(9999999-$P(VDT,"."))_"."_$P(VDT,".",2))
- .. S ARR(DATE,IEN)=LINE
+ .. S QUALIF=$$QUAL^BTIULO7(IEN)
+ .. S ARR(DATE,IEN)=LINE_U_QUALIF
  ;
  I '$D(ARR) Q "None found"
  S DATE=$O(ARR(""),-1),IEN=$O(ARR(DATE,""),-1),LINE=ARR(DATE,IEN)

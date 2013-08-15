@@ -1,5 +1,5 @@
-DGMTU1 ;ALB/RMO/MIR - Patient Relation Utilities ;2 JAN 1992 9:00 am
- ;;5.3;Registration;**166**;Aug 13, 1993
+DGMTU1 ;ALB/RMO/MIR/CKN - Patient Relation Utilities ; 11/8/05 2:21pm
+ ;;5.3;Registration;**166,653,1015**;Aug 13, 1993;Build 21
  ;
  ;
  ;=======================================================================
@@ -15,6 +15,14 @@ DEM(DGPRI) ;Demographics of Patient Relation
  S DGVPI=$P($G(^DGPR(408.12,DGPRI,0)),"^",3)
  I DGVPI]"" S DGVP0=$G(@("^"_$P(DGVPI,";",2)_+DGVPI_",0)"))
  Q $S($G(DGVP0)]"":DGVP0,1:"")
+ ;
+DEM1(DGPRI) ;Demographics of Patient Relation node 1
+ ;         Input  -- DGPRI Patient Relation IEN
+ ;         Output -- Patient or Income Person node 1
+ N DGVPI,DGVP1
+ S DGVPI=$P($G(^DGPR(408.12,DGPRI,0)),"^",3)
+ I DGVPI]"" S DGVP1=$G(@("^"_$P(DGVPI,";",2)_+DGVPI_",1)"))
+ Q $S($G(DGVP1)]"":DGVP1,1:"")
  ;
 NODE(DGPRI) ;Send back the name, sex, dob, and SSN in external format
  ;         Input  -- DGPRI  Patient Relation IEN

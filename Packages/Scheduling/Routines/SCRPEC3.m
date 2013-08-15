@@ -1,5 +1,5 @@
 SCRPEC3 ;ALB/CMM - Detail List of Pts & Enroll Clinics ; 29 Jun 99  04:11PM
- ;;5.3;Scheduling;**41,48,52,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,48,52,177,1015**;AUG 13, 1993;Build 21
  ;
  ;Detailed Listing of Patients and Their Enrolled Clinics Report
  ;

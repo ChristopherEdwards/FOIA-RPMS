@@ -1,5 +1,5 @@
 DGODMT ;ALB/MRL - DETERMINE & STORE PTF MEANS TEST INDICATOR ; 10 FEB 87
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;V 4.5 ;; ALB/EG - MODIFIED TO DETERMINE MT, NO UPDATE ; 11 APR 89
 EN ;
  S DGZEC=$S($D(^DPT(DFN,.36)):$P(^(.36),U,1),1:""),DGZEC=$S($D(^DIC(8,+DGZEC,0)):^(0),1:"") I $P(DGZEC,U,5)="N" S DGX="N" Q

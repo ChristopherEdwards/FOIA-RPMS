@@ -1,5 +1,5 @@
-BCHVD ; IHS/CMI/LAB - BROWSE VISITS ; [ 10/24/03  8:34 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**15**;OCT 28, 1996
+BCHVD ; IHS/CMI/LAB - BROWSE VISITS ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;
 START ;
@@ -62,7 +62,7 @@ A ;all visits
  S D=0,V=0
  F  S D=$O(^BCHR("AE",DFN,D)) Q:D'=+D  S V=0 F  S V=$O(^BCHR("AE",DFN,D,V)) Q:V'=+V  S BCHV(D,V)=""
  Q
-D ;date rante
+D ;date range
  K BCHED,BCHBD
  K DIR W ! S DIR(0)="DO^::EXP",DIR("A")="Enter Beginning Date of Visit"
  D ^DIR S:Y<1 BCHQUIT=1 Q:Y<1  S BCHBD=Y
@@ -102,7 +102,14 @@ GATHER ;
  .S X="Visit Date: "_$$FMTE^XLFDT($P(BCHR0,U)),$E(X,45)="Provider: "_$$PPNAME^BCHUTIL(BCHV) D S(X,1)
  .S X="Program: "_$$VAL^XBDIQ1(90002,BCHV,.02) D S(X)
  .S X="Activity Location: "_$$VAL^XBDIQ1(90002,BCHV,.06),$E(X,45)="Travel Time: "_$$VAL^XBDIQ1(90002,BCHV,.11) D S(X)
- .I $P(BCHR0,U,7)]""!($P(BCHR0,U,8)]"") S X="Referred BY: "_$$VAL^XBDIQ1(90002,BCHV,.07),$E(X,45)="Referred TO: "_$$VAL^XBDIQ1(90002,BCHV,.08) D S(X)
+ .;I $P(BCHR0,U,7)]""!($P(BCHR0,U,8)]"") S X="Referred BY: "_$$VAL^XBDIQ1(90002,BCHV,.07),$E(X,45)="Referred TO: "_$$VAL^XBDIQ1(90002,BCHV,.08) D S(X)
+ .;table both and print 1,2,3,etc
+ .NEW BCHREFB,BCHREFT,C
+ .S X=0,C=0 F  S X=$O(^BCHR(BCHV,41,X)) Q:X'=+X  S C=C+1,BCHREFB(C)=$P(^BCHTREF($P(^BCHR(BCHV,41,X,0),U),0),U,1)
+ .S X=0,C=0 F  S X=$O(^BCHR(BCHV,42,X)) Q:X'=+X  S C=C+1,BCHREFT(C)=$P(^BCHTREF($P(^BCHR(BCHV,42,X,0),U),0),U,1)
+ .S X="",$E(X)="Referred to CHR by: ",$E(X,45)="Referred by CHR to: " D S(X)
+ .F X=1:1:20 I $D(BCHREFB(X))!($D(BCHREFT(X))) D
+ ..S Y="",$E(Y,5)=$G(BCHREFB(X)),$E(Y,48)=$G(BCHREFT(X)) D S(Y)
  .I $P(BCHR0,U,13)]""!($P(BCHR0,U,14)]"") S X="LMP: "_$$VAL^XBDIQ1(90002,BCHV,.13),$E(X,45)="Fam Plan Method: "_$$VAL^XBDIQ1(90002,BCHV,.14) D S(X)
  .F BCHF=1201:1:1210 S BCH1=+$E(BCHF,3,4) I $P($G(^BCHR(BCHV,12)),U,BCH1)]"" S X=$P(^DD(90002,BCHF,0),U,1)_": "_$$VAL^XBDIQ1(90002,BCHV,BCHF) D S(X)
  .F BCHF=1301:1:1308 S BCH1=+$E(BCHF,3,4) I $P($G(^BCHR(BCHV,13)),U,BCH1)]"" S X=$P(^DD(90002,BCHF,0),U,1)_": "_$$VAL^XBDIQ1(90002,BCHV,BCHF) D S(X)
@@ -133,7 +140,7 @@ FF ;EP
  I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BCHQUIT=1 Q
  I $E(IOST)'="C" Q:'$P(BCHR0,U,8)  W !!,$TR($J(" ",79)," ","*"),!,$P(^DPT($P(BCHR0,U,8),0),U),?32,"HRN: " D
  .S H=$P($G(^AUPNPAT($P(BCHR0,U,8),41,DUZ(2),0)),U,2)
- .W H,?46,"DOB: ",$$FMTE^XLFDT($P(^DPT($P(BCHR0,U,8),0),U,3),"2D"),?59,"SSN: ",$P(^DPT($P(BCHR0,U,8),0),U,9),!
+ .W H,?46,"DOB: ",$$FMTE^XLFDT($P(^DPT($P(BCHR0,U,8),0),U,3),"2D"),?59,"SSN: ","XXX-XX-"_$E($P(^DPT($P(BCHR0,U,8),0),U,9),6,9),!
  W:$D(IOF) @IOF
  Q
 HDR ; -- header code
@@ -142,6 +149,7 @@ HDR ; -- header code
 S(Y,F,C,T) ;EP - set up array
  I '$G(F) S F=0
  I '$G(T) S T=0
+ NEW X
  ;blank lines
  F F=1:1:F S X="" D S1
  S X=Y

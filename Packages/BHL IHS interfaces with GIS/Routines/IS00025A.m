@@ -1,6 +1,6 @@
-IS00025A ;Compiled from script 'Generated: HL IHS IZV04 V01VXQ IN-I' on SEP 05, 2011
+IS00025A ;Compiled from script 'Generated: HL IHS IZV04 V01VXQ IN-I' on FEB 28, 2013
  ;Part 2
- ;Copyright 2011 SAIC
+ ;Copyright 2013 SAIC
 EN I $P($G(INTHL7F2),U,4) S X=$$SUBESC^INHUT7(X,INDELIMS,"I")
  S @INV@("QRF1")=$G(X)
  I '$D(X) D ERROR^INHS("Variable 'QRF1' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)

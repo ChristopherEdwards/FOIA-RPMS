@@ -1,5 +1,5 @@
 ABMDELOO ; IHS/ASDST/DMJ - Claim Looping Utility ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009
  ;
  ; IHS/DSD/LSL 03/20/98 Set ABMPERM("EDITOR") when looping
  ;             through flagged as billable cross-reference to 
@@ -20,6 +20,11 @@ ABMDELOO ; IHS/ASDST/DMJ - Claim Looping Utility ;
  ;                     1 - looping is completed
  ;                     2 - looping is terminated
  ;
+ ;start new code abm*2.6*9 NOHEAT - ensure UFMS is setup
+ I $P($G(^ABMDPARM(DUZ(2),1,4)),U,15)="" D  Q
+ .W !!,"* * UFMS SETUP MUST BE DONE BEFORE ANY BILLING FUNCTIONS CAN BE USED! * *",!
+ .S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
+ ;end new code
  I $P($G(^ABMDPARM(DUZ(2),1,4)),U,15)=1 D  Q:+$G(ABMUOPNS)=0
  .S ABMUOPNS=$$FINDOPEN^ABMUCUTL(DUZ)
  .I +$G(ABMUOPNS)=0 D  Q

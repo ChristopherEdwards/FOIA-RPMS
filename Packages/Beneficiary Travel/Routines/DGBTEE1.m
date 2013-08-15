@@ -1,5 +1,5 @@
 DGBTEE1 ;ALB/SCK - BENEFICIARY TRAVEL ENTER/EDIT CHECK; 12/7/92 3/19/93
- ;;5.3;Registration;**5,60**;Aug 13, 1993
+ ;;5.3;Registration;**5,60,1015**;Aug 13, 1993;Build 21
  Q
 SCREEN ;  called by dgbtee,dgbtce
  Q:'$D(^DGBT(392,DGBTDT,0))

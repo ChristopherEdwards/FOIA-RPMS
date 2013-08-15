@@ -1,11 +1,13 @@
 LRAPBR4 ;DALOI/WTY/KLL - Autopsy Browser Display;7/27/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259,317**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 259,317
  ;
  ;Reference to ^DPT supported by IA #918
  ;
  Q
-ENTER ;Entry point
+ ;
+ENTER ; EP - Entry point
  N LRTEXT,LRFILE,LRFIELD,LRTMP,LRFLG
  D INIT
  Q:'$D(^LR(LRDFN,LRSS))
@@ -15,6 +17,7 @@ ENTER ;Entry point
  D:LRTIU ESIGLN^LRAPBR1
  D FOOTER
  Q
+ ;
 INIT ;Initialize variables
  S X=^LR(LRDFN,0) D ^LRUP
  Q:'$D(^LR(LRDFN,LRSS))
@@ -33,6 +36,7 @@ INIT ;Initialize variables
  S:LRTIU GROOT="^TMP(""TIUP"",$J,"
  K ^TMP("LRAPBR",$J)
  Q
+ ;
 BODY ;Report body
  D:LRTIU GLENTRY("$TEXT",,1)
  S LR("F")=1
@@ -72,6 +76,7 @@ BODY ;Report body
  .I LRV'=84 D DASH,GLENTRY(,,1)
  D ^LRAPBR5
  Q
+ ;
 WP ;Display word procesing fields
  K LRTMP,^UTILITY($J,"W")
  N LRX,DIWR,DIWL,LRA1
@@ -84,6 +89,7 @@ WP ;Display word procesing fields
  .D GLENTRY(^UTILITY($J,"W",DIWL,LRA1,0),DIWL,1)
  K ^UTILITY($J,"W")
  Q
+ ;
 SUPA ;Print supplementary report audit information
  N LRFILE,LRIENS1,LRWP
  S LRTEXT="*+* SUPPLEMENTARY REPORT HAS BEEN ADDED/MODIFIED *+*"
@@ -104,6 +110,7 @@ SUPA ;Print supplementary report audit information
  D D^LRU
  S LRTEXT=LRDSC_Y_LRSGN_A2_")" D GLENTRY(LRTEXT,BTAB)
  Q
+ ;
 HEADER ;
  S LRQ=LRQ+1
  D:LRTIU GLENTRY("$APHDR",,1)
@@ -120,6 +127,7 @@ HEADER ;
  D GLENTRY(LRTEXT,56)
  D DASH
  Q
+ ;
 MODAUCK ;Display modified banner if required
  S LRAPMR=$$GET1^DIQ(63,LRDFN,102,"I")
  Q:'LRAPMR
@@ -135,6 +143,7 @@ MODAUCK ;Display modified banner if required
  D GLENTRY(LRTEXT,"",1)
  D GLENTRY("","",1)
  Q
+ ;
 POW ;Determine POW or Persian Gulf status
  I $P($G(^LR(LRDFN,0)),"^",2)=2 D
  .S LRPOW=0
@@ -143,6 +152,7 @@ POW ;Determine POW or Persian Gulf status
  .D ^LRAPBRPW
  .K LRPOW
  Q
+ ;
 FOOTER ;Report footer
  D:LRTIU GLENTRY("$FTR",,1)
  D DASH
@@ -158,14 +168,17 @@ FOOTER ;Report footer
  S LRTEXT=LRQ(1) D GLENTRY(LRTEXT,0,1)
  S LRTEXT="AUTOPSY PROTOCOL" D GLENTRY(LRTEXT,IOM-17)
  S LRTEXT="Patient: "_$E(LRP,1,30) D GLENTRY(LRTEXT,0,1)
- D GLENTRY(SSN,43),GLENTRY("SEX:"_SEX,56),GLENTRY("DOB:"_DOB,63)
+ ; D GLENTRY(SSN,43),GLENTRY("SEX:"_SEX,56),GLENTRY("DOB:"_DOB,63)
+ D GLENTRY(HRCN,43),GLENTRY("SEX:"_SEX,56),GLENTRY("DOB:"_DOB,63)    ; IHS/MSC/MKK - LR*5.2*1031
  D GLENTRY($E(LRLLOC,1,22),0,1)
  S LRTEXT="Physician: "_$E(LRM(1),1,28) D GLENTRY(LRTEXT,23)
  S LRTEXT="AGE AT DEATH:"_$J(AGE,3) D GLENTRY(LRTEXT,63)
  Q
+ ;
 DASH ;
  D GLENTRY(LR("%"),0,1)
  Q
+ ;
 GLENTRY(LRPR1,LRPR2,LRPR3) ;Write to global
  ;LRPR1 = Text to be written to global
  ;LRPR2 = Tab position
@@ -174,6 +187,7 @@ GLENTRY(LRPR1,LRPR2,LRPR3) ;Write to global
  D:LRPR3 NEWLN^LRAPUTL(LRPR1,LRPR2)
  D:'LRPR3 GLBWRT^LRAPUTL(LRPR1,LRPR2)
  Q
+ ;
 VART1 ;Setup variables
  ;14;LRAC;I;AUTOPSY ACCESSION #
  ;13.5;LRM(2);I;RESIDENT PATHOLOGIST

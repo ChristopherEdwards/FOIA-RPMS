@@ -1,9 +1,9 @@
-DGPTF41 ;ALB/JDS - PTF ENTRY/EDIT-4 ; 19 SEP 84 
- ;;5.3;Registration;**64**;Aug 13, 1993
+DGPTF41 ;ALB/JDS - PTF ENTRY/EDIT-4 ; 11/15/06 8:37am
+ ;;5.3;Registration;**64,635,729,1015**;Aug 13, 1993;Build 21
  ;
 ACT ; -- 701 actions
  G ACT1:DGST
- S DGCFL=0 I $D(DGCST),DGCST<2,'DGCST!(DGREL) S DGCFL=1
+ S DGCFL=0 I $D(DGCST),DGCST<2,'DGCST!$G(DGREL) S DGCFL=1
  W !,"   PTF ",$J("#"_PTF,7),?15,"actions: 1=Edit   C=Close       ^N=Another Screen",!
  I DGCFL W "CENSUS ",$S(DGCI:$J("#"_DGCI,7),1:" record"),?15,"actions: ",$S(DGCST=1:"P=Open   E=Release",1:"         L=Close")
  S Z="^CLOSE^1 Edit"
@@ -29,7 +29,7 @@ READ ; -- read X
  Q
  ;
 HELP ;
- W !,"Enter  '1'  to edit DXLS & Admit Diagnosis"
+ W !,"Enter  '1'  to edit Principal & Admit Diagnosis"
  W !,"       'C'  to close out PTF record"
  I DGCFL W:DGCST=1 !,"       'P'  to re-open a Census record",!,"       'E'  to release a Census record" W:'DGCST !,"       'L'  to close for Census"
  W !,"       '^'  to stop the display"

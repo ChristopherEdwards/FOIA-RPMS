@@ -1,5 +1,5 @@
 BUD7RPTD ; IHS/CMI/LAB - UDS REPORT PROCESSOR ;
- ;;6.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2012;Build 25
+ ;;7.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2013;Build 31
  ;
  ;
 GETV ;EP - get all visits for this patient and tally in BUDTV

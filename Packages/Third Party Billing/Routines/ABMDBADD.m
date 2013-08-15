@@ -1,5 +1,5 @@
 ABMDBADD ; IHS/ASDST/DMJ - Add Bill Manually Submitted ;   
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,9**;NOV 12, 2009
  ;
 DOC ;
  ; LSL - 12/30/97 - Modified for readability.  Changed ABM array to ABMD
@@ -49,6 +49,11 @@ START ;EP
  D ^DIR
  K DIR
  Q:Y'=1
+ ;start new code abm*2.6*9 NOHEAT - ensure UFMS is setup
+ I $P($G(^ABMDPARM(DUZ(2),1,4)),U,15)="" D  Q
+ .W !!,"* * UFMS SETUP MUST BE DONE BEFORE ANY BILLING FUNCTIONS CAN BE USED! * *",!
+ .S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
+ ;end new code
  I $P($G(^ABMDPARM(DUZ(2),1,4)),U,15)=1 D  Q:+$G(ABMUOPNS)=0
  .S ABMUOPNS=$$FINDOPEN^ABMUCUTL(DUZ)
  .I +$G(ABMUOPNS)=0 D  Q

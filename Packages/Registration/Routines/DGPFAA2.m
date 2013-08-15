@@ -1,126 +1,182 @@
-DGPFAA2 ;ALB/KCL - PRF ASSIGNMENT API'S CONTINUED ; 4/24/03 3:55pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFAA2 ;ALB/KCL - PRF ASSIGNMENT API'S CONTINUED ; 3/22/05
+ ;;5.3;Registration;**425,554,650,1015,1016**;Aug 13, 1993;Build 20
  ;
- ;- no direct entry
+ ;ihs/cmi/maw 07/26/2012 PATCH 1015 not using TIU check for PRF in IHS yet
+ ;no direct entry
  QUIT
  ;
-ADDOK(DGDFN,DGFLG,DGREASON) ;This function will be used to determine if a flag may be added/assigned to a patient.
+ADDOK(DGDFN,DGFLG,DGEROOT) ;This function will be used to determine if a flag may be assigned to a patient.
  ;
  ;  Input:
  ;   DGDFN - (required) IEN of patient in PATIENT (#2) file
  ;   DGFLG - (required) IEN of patient record flag in PRF NATIONAL
- ;           FLAG (#26.15) file or PRF LOCAL FLAG (#26.11) file.
+ ;           FLAG (#26.15) file or PRF LOCAL FLAG (#26.11) file
  ;           [ex: "1;DGPF(26.15,"]
+ ; DGEROOT - (optional) closed root array name (i.e. "DGERROR") for error
+ ;           dialog returned from BLD^DIALOG.  If not passed, error
+ ;           dialog is returned in ^TMP("DIERR",$J) global.
  ;
  ; Output:
- ;  Function Value - returns 1 on success (YES), 0 on failure (NO)
- ;        DGREASON - undefined on success, reason why flag can not
- ;                   be assigned to patient on failure
+ ;  Function Value - returns 1 on success, 0 on failure
+ ;       DGEROOT() - error output array from BLD^DIALOG
  ;
- N RESULT   ;function result
+ N DGRSLT   ;function result
  N DGFARRY  ;contains flag array
  K DGFARRY
+ N DIERR    ;var returned from BLD^DIALOG
  ;
- S RESULT=0
+ ;init error output array if passed
+ S DGEROOT=$G(DGEROOT)
+ I DGEROOT]"" K @DGEROOT
  ;
- D  ;-drops out of block on failure
- . ;
- . ;-- quit if DFN invalid
- . I '(+$G(DGDFN)>0),'$D(^DPT(DGDFN)) S DGREASON="Patient is not valid" Q
- . ;
- . ;-- quit if flag ien invalid
- . I '$$TESTVAL^DGPFUT(26.13,.02,DGFLG) S DGREASON="Record flag is not valid" Q
- . ;
- . ;-- quit if flag already assigned to patient
- . I $$FNDASGN^DGPFAA(DGDFN,DGFLG) S DGREASON="Record flag is already assigned to patient" Q
- . ;
- . ;-- quit if flag STATUS is INACTIVE
- . I $$GETFLAG^DGPFUT1(DGFLG,.DGFARRY)
- . I '+$G(DGFARRY("STAT")) S DGREASON="Status of record flag assignment is 'Inactive'" Q
- . ;
- . ;-- success
- . S RESULT=1
- ;
- Q RESULT
- ;
- ;
-EDTOK(DGPFA,DGORIG,DGREASON) ;This function will be used to determine if an flag assignment may be edited.
- ;
- ;  Input:
- ;    DGPFA - (required) array containing the flag assignment values
- ;   DGORIG - (optional) originating site [default = +$$SITE^VASITE()] 
- ;
- ; Output:
- ;  Function Value - returns 1 on success (YES), 0 on failure (NO)
- ;        DGREASON - undefined on success, reason why assignment
- ;                   can not be edited on failure
- ;
- N RESULT   ;function result
- N DGFARRY  ;contains flag array
- K DGFARRY
- ;
- S RESULT=0
- ;
- D  ;-drops out of block on failure
- . ;
- . ;-- quit if current site is not the owner site
- . I +$G(DGORIG)'>0 S DGORIG=+$$SITE^VASITE()
- . I +$G(DGPFA("OWNER"))'=DGORIG S DGREASON="Not the owner site" Q
- . ;
- . ;-- quit if flag STATUS is INACTIVE
- . I $$GETFLAG^DGPFUT1($P($G(DGPFA("FLAG")),U),.DGFARRY)
- . I '+$G(DGFARRY("STAT")) S DGREASON="Record flag status is 'Inactive'" Q
- . ;
- . ;-- success
- . S RESULT=1
- ;
- Q RESULT
- ;
-ACTIONOK(DGPFA,DGACT) ;verify ACTION is appropriate for current STATUS
- ;
- ;  Input:
- ;    DGPFA - (required) assignment array data from current record
- ;    DGACT - Assignment edit action in internal format
- ;            [1:NEW ASSIGNMENT,2:CONTINUE,3:INACTIVATE,4:REACTIVATE]
- ;
- ;  Output:
- ;   Function value - 1 on success, 0 on failure
- ;
- N DGRSLT
- N DGSTAT
- ;
- S DGACT=+$G(DGACT)
- S DGSTAT=$P($G(DGPFA("STATUS")),U,1)
  S DGRSLT=0
  ;
- I $$TESTVAL^DGPFUT(26.14,.03,DGACT),DGSTAT?1N D
+ D  ;drops out of block on failure
  . ;
- . ;Must not CONTINUE inactive assignments
- . I DGACT=2,DGSTAT=0 Q
+ . ;quit if DFN invalid
+ . I '$G(DGDFN)!'$D(^DPT(+$G(DGDFN),0)) D  Q
+ . . D BLD^DIALOG(261110,,,DGEROOT,"F")
  . ;
- . ;Must not INACTIVATE inactive assignments
- . I DGACT=3,DGSTAT=0 Q
+ . ;quit if flag ien invalid
+ . I '$$TESTVAL^DGPFUT(26.13,.02,DGFLG) D  Q
+ . . D BLD^DIALOG(261111,,,DGEROOT,"F")
  . ;
- . ;Must not REACTIVATE active assignments
- . I DGACT=4,DGSTAT=1 Q
+ . ;quit if flag already assigned to patient
+ . I $$FNDASGN^DGPFAA(DGDFN,DGFLG) D  Q
+ . . D BLD^DIALOG(261112,,,DGEROOT,"F")
+ . ;
+ . ;quit if flag STATUS is INACTIVE
+ . I $$GETFLAG^DGPFUT1(DGFLG,.DGFARRY),('+$G(DGFARRY("STAT"))) D  Q
+ . . D BLD^DIALOG(261113,,,DGEROOT,"F")
+ . ;
+ . ;ihs/cmi/maw 08/07/2012 PATCH 1016 put back in must have TIU 1.0 1010
+ . ;quit if no TIU PN TITLE IEN is found for the record flag
+ . I '+$P($G(DGFARRY("TIUTITLE")),U) D  Q
+ . . D BLD^DIALOG(261114,,,DGEROOT,"F")
  . ;
  . ;success
  . S DGRSLT=1
  ;
  Q DGRSLT
  ;
-CHGOWN(DGPFA,DGORIG,DGREASON) ;Is site allowed to change ownership of a record flag assignment?
+EDTOK(DGPFA,DGORIG,DGEROOT) ;This function will be used to determine if a flag assignment may be edited.
  ;
  ;  Input:
  ;    DGPFA - (required) array containing the flag assignment values
  ;   DGORIG - (optional) originating site [default = +$$SITE^VASITE()] 
+ ;  DGEROOT - (optional) closed root array name (i.e. "DGERROR") for
+ ;            error dialog returned from BLD^DIALOG.  If not passed,
+ ;            error dialog is returned in ^TMP("DIERR",$J) global.
  ;
  ; Output:
- ;  Function Value - returns 1 on success (YES), 0 on failure (NO)
- ;        DGREASON - undefined on success, reason why assignment
- ;                   ownership can not be edited on failure
+ ;  Function Value - returns 1 on success, 0 on failure
+ ;       DGEROOT() - error output array from BLD^DIALOG
  ;
  N DGRSLT   ;function result
+ N DGFARRY  ;contains flag array
+ K DGFARRY
+ N DIERR    ;var returned from BLD^DIALOG
+ ;
+ ;init error output array if passed
+ S DGEROOT=$G(DGEROOT)
+ I DGEROOT]"" K @DGEROOT
+ ;
+ S DGRSLT=0
+ ;
+ D  ;drops out of block on failure
+ . ;
+ . ;quit if current site is not the owner site
+ . I +$G(DGORIG)'>0 S DGORIG=+$$SITE^VASITE()
+ . I +$G(DGPFA("OWNER"))'=DGORIG D  Q
+ . . D BLD^DIALOG(261115,,,DGEROOT,"F")
+ . ;
+ . ;quit if flag STATUS is INACTIVE
+ . I $$GETFLAG^DGPFUT1($P($G(DGPFA("FLAG")),U),.DGFARRY)
+ . I '+$G(DGFARRY("STAT")) D  Q
+ . . D BLD^DIALOG(261113,,,DGEROOT,"F")
+ . ;
+ . ;ihs/cmi/maw 08/07/2012 PATCH 1016 put back in must have TIU 1.0 1010
+ . ;quit if no TIU PN TITLE is found for the record flag
+ . I '+$P($G(DGFARRY("TIUTITLE")),U) D  Q
+ . . D BLD^DIALOG(261114,,,DGEROOT,"F")
+ . ;
+ . ;success
+ . S DGRSLT=1
+ ;
+ Q DGRSLT
+ ;
+ACTIONOK(DGPFA,DGACT,DGEROOT) ;This function will be used to verify that an assignment edit ACTION is appropriate for the current assignment STATUS.
+ ;
+ ;  Input:
+ ;    DGPFA - (required) assignment array data from current record
+ ;    DGACT - Assignment edit action in internal format
+ ;            [1:NEW ASSIGNMENT,2:CONTINUE,3:INACTIVATE,4:REACTIVATE,5:ENTERED IN ERROR]
+ ; DGEROOT - (optional) closed root array name (i.e. "DGERROR") for
+ ;           error dialog returned from BLD^DIALOG. If not passed, error
+ ;           dialog is returned in ^TMP("DIERR",$J) global.
+ ;
+ ; Output:
+ ;  Function Value - returns 1 on success, 0 on failure
+ ;         DGEROOT() - error output array from BLD^DIALOG
+ ;
+ N DGRSLT   ;function result
+ N DGSTAT   ;current assignment status
+ N DIERR    ;var returned from BLD^DIALOG
+ ;
+ ;init error output array if passed
+ S DGEROOT=$G(DGEROOT)
+ I DGEROOT]"" K @DGEROOT
+ ;
+ S DGACT=+$G(DGACT)
+ S DGSTAT=$P($G(DGPFA("STATUS")),U,1)
+ S DGRSLT=0
+ ;
+ D  ;drops out of block on failure
+ . ;
+ . ;is ACTION valid?
+ . I '$$TESTVAL^DGPFUT(26.14,.03,DGACT),'DGSTAT?1N D  Q
+ . . D BLD^DIALOG(261118,,,DGEROOT,"F")
+ . ;
+ . ;must not CONTINUE inactive assignments
+ . I DGACT=2,DGSTAT=0 D  Q
+ . . D BLD^DIALOG(261121,,,DGEROOT,"F")
+ . ;
+ . ;must not INACTIVATE inactive assignments
+ . I DGACT=3,DGSTAT=0 D  Q
+ . . D BLD^DIALOG(261122,,,DGEROOT,"F")
+ . ;
+ . ;must not ENTERED IN ERROR inactive assignments
+ . I DGACT=5,DGSTAT=0 D  Q
+ . . D BLD^DIALOG(261123,,,DGEROOT,"F")
+ . ;
+ . ;must not REACTIVATE active assignments
+ . I DGACT=4,DGSTAT=1 D  Q
+ . . D BLD^DIALOG(261124,,,DGEROOT,"F")
+ . ;
+ . ;success
+ . S DGRSLT=1
+ ;
+ Q DGRSLT
+ ;
+CHGOWN(DGPFA,DGORIG,DGEROOT) ;This function is used to determine if a site is allowed to change ownership of a record flag assignment?
+ ;
+ ;  Input:
+ ;    DGPFA - (required) array containing the flag assignment values
+ ;   DGORIG - (optional) originating site [default = +$$SITE^VASITE()] 
+ ;  DGEROOT - (optional) closed root array name (i.e. "DGERROR") for
+ ;            error dialog returned from BLD^DIALOG.  If not passed,
+ ;            error dialog is returned in ^TMP("DIERR",$J) global.
+ ;
+ ; Output:
+ ;  Function Value - returns 1 on success, 0 on failure
+ ;       DGEROOT() - error output array from BLD^DIALOG
+ ;
+ N DGRSLT   ;function result
+ N DIERR    ;var returned from BLD^DIALOG
+ ;
+ ;init error output array if passed
+ S DGEROOT=$G(DGEROOT)
+ I DGEROOT]"" K @DGEROOT
  ;
  S:(+$G(DGORIG)'>0) DGORIG=(+$$SITE^VASITE())
  S DGRSLT=0
@@ -128,108 +184,15 @@ CHGOWN(DGPFA,DGORIG,DGREASON) ;Is site allowed to change ownership of a record f
  D  ;drops out of block on failure
  . ;
  . ;ORIGINATING SITE must be OWNER and flag must be ACTIVE
- . Q:('$$EDTOK(.DGPFA,DGORIG,.DGREASON))
- . ;
- . ;can't CHANGE OWNERSHIP for an assignment to a LOCAL flag
- . I $P(DGPFA("FLAG"),U)["26.11" D  Q
- . .S DGREASON="Can't change ownership of assignments to Category II (Local) flags"
- . . Q
+ . Q:('$$EDTOK(.DGPFA,DGORIG,.DGEROOT))
  . ;
  . ;can't CHANGE OWNERSHIP for an INACTIVE assignment
  . I '+$G(DGPFA("STATUS")) D  Q
- . . S DGREASON="Record flag assignment status is 'Inactive'"
- . . Q
+ . . D BLD^DIALOG(261117,,,DGEROOT,"F")
  . ;
  . ;success
  . S DGRSLT=1
  ;
- Q DGRSLT
- ;
-HL7EDTOK(DGDFN,DGFLG,DGORIG,DGACT) ;Is site allowed to edit assignment?
- ; This function acts as wrapper for $$EDTOK and $$ACTIONOK for edits
- ; that originate from PRF HL7 message processing.
- ;
- ;  Input:
- ;    DGDFN - IEN of patient in PATIENT (#2) file
- ;    DGFLG - IEN of patient record flag in PRF NATIONAL FLAG (#26.15)
- ;            file or PRF LOCAL FLAG (#26.11) file. [ex: "1;DGPF(26.15,"]
- ;   DGORIG - IEN of originating site in INSTITUTION (#4) file
- ;    DGACT - Assignment edit action in internal format
- ;            [1:NEW ASSIGNMENT,2:CONTINUE,3:INACTIVATE,4:REACTIVATE]
- ;
- ;  Output:
- ;   Function value - 1 if authorized, 0 if not authorized
- ;
- N DGIEN   ;pointer to PRF ASSIGNMENT (#26.13) file
- N DGPFA   ;assignment data array
- N DGRSLT  ;function value
- ;
- S DGACT=+$G(DGACT)
- S DGDFN=+$G(DGDFN)
- S DGFLG=$G(DGFLG)
- S DGORIG=+$G(DGORIG)
- S DGRSLT=0
- ;
- I DGACT>0,DGDFN>0,DGFLG]"",DGORIG>0 D
- . ;
- . ;retrieve existing assignment data
- . S DGIEN=$$FNDASGN^DGPFAA(DGDFN,DGFLG)
- . Q:('DGIEN)
- . Q:('$$GETASGN^DGPFAA(DGIEN,.DGPFA))
- . ;
- . ;ORIGINATING SITE must be OWNER and flag must be ACTIVE
- . Q:('$$EDTOK(.DGPFA,DGORIG))
- . ;
- . ;ACTION must be valid for current assignment STATUS
- . Q:('$$ACTIONOK(.DGPFA,DGACT))
- . ;
- . ;success
- . S DGRSLT=1
- ;
- Q DGRSLT
- ;
-STOHL7(DGPFA,DGPFAH,DGERR) ;store a valid assignment from HL7 message
- ; This function files an assignment if the originating site is 
- ; authorized to update an existing record and if the action is valid for
- ; the status of an existing record. 
- ;
- ;  Input:
- ;    DGPFA - (required) array of assignment values to be filed (see
- ;            $$GETASGN^DGPFAA for valid array structure)
- ;   DGPFAH - (required) array of assignment history values to be filed
- ;            (see $$STOHIST^DGPFAAH for valid array structure)
- ;
- ;  Output:
- ;   Function Value - Returns 1 on sucess, 0 on failure
- ;          DGERR - Undefined on success, error code on failure
- ;
- N DGDFN
- N DGFLG
- N DGORIG
- N DGACT
- N DGSTOERR
- N DGRSLT
- ;
- S DGDFN=+$G(DGPFA("DFN"))
- S DGFLG=$G(DGPFA("FLAG"))
- S DGORIG=+$G(DGPFA("ORIGSITE"))
- S DGACT=+$G(DGPFAH("ACTION"))
- ;
- S DGRSLT=0
- I DGDFN,DGFLG,DGORIG]"",DGACT D
- . ;
- . ;new assignment action
- . I DGACT=1,'$$ADDOK(DGDFN,DGFLG) D  Q
- . . S DGERR="UU"      ;unauthorized update
- . ;
- . ;all other actions
- . I DGACT'=1,'$$HL7EDTOK(DGDFN,DGFLG,DGORIG,DGACT) D  Q
- . . S DGERR="UU"      ;unauthorized update
- . ;
- . ;file the assignment and history
- . I '$$STOALL^DGPFAA(.DGPFA,.DGPFAH,.DGSTOERR)!($D(DGSTOERR)) D  Q
- . . S DGERR="FE"      ;filer error
- . S DGRSLT=1
  Q DGRSLT
  ;
 ROLLBACK(DGAIEN,DGPFOA) ;Roll back an assignment record
@@ -244,7 +207,7 @@ ROLLBACK(DGAIEN,DGPFOA) ;Roll back an assignment record
  ;
  N DGIENS
  N DGFDA
- N DGERR
+ N DGEROOT
  N DGRSLT   ;function result
  ;
  S DGRSLT=0
@@ -252,8 +215,8 @@ ROLLBACK(DGAIEN,DGPFOA) ;Roll back an assignment record
  . S DGIENS=DGAIEN_","
  . I $G(DGPFOA("DFN"))="@" D
  . . S DGFDA(26.13,DGIENS,.01)=DGPFOA("DFN")
- . . D FILE^DIE("","DGFDA","DGERR")
- . . I '$D(DGERR) S DGRSLT=1
+ . . D FILE^DIE("","DGFDA","DGEROOT")
+ . . I '$D(DGEROOT) S DGRSLT=1
  . E  D
- . . I $$STOASGN^DGPFAA(.DGPFOA,.DGERR),'$D(DGERR) S DGRSLT=1
+ . . I $$STOASGN^DGPFAA(.DGPFOA,.DGEROOT),'$D(DGEROOT) S DGRSLT=1
  Q DGRSLT

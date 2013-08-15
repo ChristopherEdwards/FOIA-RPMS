@@ -1,10 +1,11 @@
 BIREPL3 ;IHS/CMI/MWR - REPORT, ADULT IMM; OCT 15, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  GATHER DATA FOR ADULT IMMUNIZATION REPORT.
  ;;  PATCH 1:  Commented out for ref to ICPT for Code Set versioning. LASTFLU+25
  ;;  PATCH 2: Filter for Active Clinical, using new standard $$ACTCLIN^BIUTL6 call.
  ;;           GETSTATS+60
+ ;;  PATCH 3: Set HPV upper limit for males to 21 years of age. GETSTATS+119
  ;
  ;
  ;----------
@@ -28,9 +29,9 @@ GETSTATS(BIQDT,BICC,BIHCF,BIBEN,BICPTI,BIUP,BITOTS) ;EP
  ;                       6 - BIHPVF2 = Number Females 19-26 w/HPV-2
  ;                       7 - BIHPVF3 = Number Females 19-26 w/HPV-3
  ;                       8 - BIHPVF  = Total number of Males age 19-26
- ;                       9 - BIHPVM1 = Number Males 19-26 w/HPV-1
- ;                      10 - BIHPVM2 = Number Males 19-26 w/HPV-2
- ;                      11 - BIHPVM3 = Number Males 19-26 w/HPV-3
+ ;                       9 - BIHPVM1 = Number Males 19-21 w/HPV-1
+ ;                      10 - BIHPVM2 = Number Males 19-21 w/HPV-2
+ ;                      11 - BIHPVM3 = Number Males 19-21 w/HPV-3
  ;
  ;                      12 - BI60=Total over 60
  ;                      13 - BIZ60 = Number over 60 w/Zoster ever.
@@ -127,11 +128,17 @@ GETSTATS(BIQDT,BICC,BIHCF,BIBEN,BICPTI,BIUP,BITOTS) ;EP
  ...;---> widespread use.
  ...;S:BIAGE>59 BIVAL=1
  ..;
- ..;
- ..;---> HPV Stats (ages 19-26).
- ..I (BIAGE>18)&(BIAGE<27) D
- ...N BIHPVD,BISEX S BISEX=$$SEX^BIUTL1(BIDFN)
- ...S BIHPVD=$$HPV(BIDFN,BICPTI,BIQDT)
+ ..;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ..;---> Change HPV limit to 21 yrs for males.
+ ..;---> HPV Stats (ages 19-26 for females, 19-21 for males).
+ ..N BISECS S BISEX=$$SEX^BIUTL1(BIDFN)
+ ..;I (BIAGE>18)&(BIAGE<27) D
+ ..I (BIAGE>18)&(BIAGE<$S(BISEX="F":27,1:22)) D
+ ...;N BIHPVD,BISEX S BISEX=$$SEX^BIUTL1(BIDFN)
+ ...;S BIHPVD=$$HPV(BIDFN,BICPTI,BIQDT)
+ ...;**********
+ ...;
+ ...N BIHPVD S BIHPVD=$$HPV(BIDFN,BICPTI,BIQDT)
  ...I BISEX="F" D  Q
  ....S BIHPVF=$G(BIHPVF)+1
  ....S:BIHPVD>0 BIHPVF1=$G(BIHPVF1)+1

@@ -1,7 +1,9 @@
 VAFCPDAT ;BIR/CML/ALS-DISPLAY MPI/PD INFORMATION FOR SELECTED PATIENT ;10/24/02  13:13
- ;;5.3;Registration;**333,414,474,505**;Aug 13, 1993
+ ;;5.3;PIMS;**333,414,474,505,707,1015,1016**;JUN 30, 2012;Build 20
  ;Registration has IA #3299 for MPI/PD to call START^VAFCPDAT
- ;Reference to CALC^RGVCCMR2 supported by IA #2710
+ ;
+ ;variable DFN is not NEWed or KILLed in this routine as that variable is passed in
+ ;
 MAIN ; Entry point with device call
  S NOTRPC=1
  K ZTSAVE S ZTSAVE("DFN")=""
@@ -17,26 +19,24 @@ START ;Entry point without device call, used for RPC calls
  .I $D(NOTRPC) W @IOF,!," "
  .W !,"ICN ",$G(ICN)," does not exist at ",SITENAM,"."
  .W !,"Search date: ",HDT,!,LN
- S DIC=2,DR=".01;.02;.03;.09;.111;.112;.113;.114;.115;.1112;.131;.313;.351;994",DA=DFN,DIQ(0)="EI",DIQ="DNODE"
- N NAME,SSN,DOB,SEX,CLAIM,DOD,ICN,STR1,STR2,STR3,CTY,ST,ZIP,PHN,MBI
+ S DIC=2,DR=".01;.02;.03;.09;.111;.112;.113;.114;.115;.1112;.131;.313;.351;994;.0907;.0906;.121",DA=DFN,DIQ(0)="EI",DIQ="DNODE"  ;**707,712
+ N NAME,SSN,DOB,SEX,CLAIM,DOD,ICN,STR1,STR2,STR3,CTY,ST,ZIP,PHN,MBI,SSNVER,PREAS,BAI  ;**707,712
  D EN^DIQ1 K DIC,DR,DA,DIQ
  S NAME=$G(DNODE(2,DFN,.01,"E")),SSN=$G(DNODE(2,DFN,.09,"E"))
  S DOB=$$FMTE^XLFDT($G(DNODE(2,DFN,.03,"I")))
- S MBI=$G(DNODE(2,DFN,994,"I")) I MBI="Y" S MBI="YES"
+ S MBI=$G(DNODE(2,DFN,994,"I")),MBI=$S(MBI="Y":"YES",MBI="N":"NO",1:"NULL")  ;**707
  S SEX=$G(DNODE(2,DFN,.02,"E")),DOD=$G(DNODE(2,DFN,.351,"E"))
  S CLAIM=$G(DNODE(2,DFN,.313,"E")) S:CLAIM="" CLAIM="None"
+ S BAI=$G(DNODE(2,DFN,.121,"E"))  ;**712
  S STR1=$G(DNODE(2,DFN,.111,"E")),STR2=$G(DNODE(2,DFN,.112,"E")),STR3=$G(DNODE(2,DFN,.113,"E"))
  S CTY=$G(DNODE(2,DFN,.114,"E")),ST=$G(DNODE(2,DFN,.115,"E")),ZIP=$G(DNODE(2,DFN,.1112,"E"))
  S PHN=$G(DNODE(2,DFN,.131,"E"))
+ S SSNVER=$G(DNODE(2,DFN,.0907,"E"))  ;**707
+ S PREAS=$G(DNODE(2,DFN,.0906,"E"))  ;**707
  S MNODE=$$MPINODE^MPIFAPI(DFN) I +MNODE=-1 S MNODE="^^^^^"
  S (ICN,CMOR,SCN,SCORE,SCRDT,DIFF)=""
  S ICN=$P($G(MNODE),"^") S:ICN="" ICN="None"
  S CMOR=$$GET1^DIQ(4,+$P($G(MNODE),"^",3)_",",.01) S:CMOR="" CMOR="None"
- S SCN=$P($G(MNODE),"^",5) S:SCN="" SCN="None"
- S SCORE=$P($G(MNODE),"^",6)
- S SCRDT=$P($G(MNODE),"^",7) S:SCRDT'="" DIFF=$$FMDIFF^XLFDT(DT,SCRDT,1)
- I DIFF>30 S RGDFN=DFN D CALC^RGVCCMR2 S SCORE=$$GET1^DIQ(2,DFN,991.06)
- S:SCORE="" SCORE="None"
  I $E(ICN,1,3)=SITENUM S GOT=0 D
  . I $P($G(MNODE),"^",4)=""!('$D(^DPT("AICNL",1,DFN))) S ICN=ICN_"**"
  ;
@@ -54,14 +54,19 @@ START ;Entry point without device call, used for RPC calls
  . I RESULT(1)=2 D NOTICE^DGSEC4(.VAFCSEN,DFN,"RPC - VAFC REMOTE PDAT FROM THE MPI^MPI/PD Patient Inquiry (Remote)",3) ;IA #3027
  W !,"Printed ",HDT," at ",SITENAM,!,LN
  S $Y=$Y+1
- ;
- W !,"SSN    : ",SSN,?40,"ICN : ",ICN
- W !,"Sex    : ",SEX,?40,"CMOR: ",CMOR
- W !,"Claim #: ",CLAIM,?40,"CMOR Activity Score   : ",SCORE
- W !,"Date of Birth: ",DOB,?40,"Subscription Control #: ",SCN
+ ;next 7 lines modified for **707
+ W !,"ICN    : ",ICN,?40,"CMOR: ",CMOR
+ W !,"SSN    : ",SSN
+ I SSNVER]"" W !?9,"SSN Verification Status: ",SSNVER
+ I SSNVER="",PREAS]"" W !?9,"Pseudo SSN Reason: ",PREAS
+ I SSNVER]"",PREAS]"" W !?9,"Pseudo SSN Reason      : ",PREAS
+ W !,"Sex    : ",SEX
+ W !,"Claim #: ",CLAIM
+ W !,"Date of Birth: ",DOB
  I DOD]"" W !,"Date of Death: ",DOD
- I MBI="YES" W !,"Multiple Birth Indicator: ",MBI
- W !,"Address: ",STR1
+ I MBI]"" W !,"Multiple Birth Indicator: ",MBI  ;**707
+ W !,"Address:" I BAI'="" W " (Bad Address Indicator: ",BAI,")"
+ I STR1'="" W !?9,STR1
  I STR2'="" W !?9,STR2
  I STR3'="" W !?9,STR3
  I CTY'="" W !?9,$E(CTY,1,20)_", "_$G(ST)_" "_$G(ZIP)

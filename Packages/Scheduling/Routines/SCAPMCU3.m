@@ -1,5 +1,5 @@
 SCAPMCU3 ;MJK/ALB - AUTOLINK API ; 8/10/99 4:09pm
- ;;5.3;Scheduling;**41,45,177,204**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,45,177,204,1015**;AUG 13, 1993;Build 21
  ;
 GETREC(SCDATA,SCTEAM) ; -- get team record with autolink data
  ; input  :    SCTEAM := ien of team

@@ -1,5 +1,5 @@
 DG53342P ;BPFO/JRP;POST INIT FOR PATCH 342;1-FEB-2001
- ;;5.3;Registration;**342**;Aug 13, 1993
+ ;;5.3;Registration;**342,1015**;Aug 13, 1993;Build 21
  ;
 POST ;Main entry point of post init routine
  N X,FDAROOT,MSGROOT,FDAWP,IENROOT,IENS

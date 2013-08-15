@@ -1,5 +1,5 @@
 SCMCBK8 ;bp/cmf - multiple patient assignments mail queue - RPCVersion = 1;;Aug 7, 1998
- ;;5.3;Scheduling;**148,177,210**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,177,210,1015**;AUG 13, 1993;Build 21
  Q
  ;
 ACPTTP(DFN,SCTP,SCFIELDA,SCACT,SCERR,SCYESTM,SCMAINA) ;add/edit a patient to a position (pt TP assgn - #404.43

@@ -1,5 +1,5 @@
 DG1010P0 ;ALB/REW - VA FORM 10-10 UTILITIES ;29 MAY 92
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 UNK(X,NA,BL) ;Returns a value depending on the FIRST true condition:
  ; NA = 1    : 'NOT APPLICABLE' 
  ; X NOT NULL: X

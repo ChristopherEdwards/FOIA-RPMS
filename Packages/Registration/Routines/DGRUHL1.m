@@ -1,5 +1,5 @@
 DGRUHL1 ;ALB/SCK - RAI/MDS HL7 MESSAGING ACKNOWLEDGEMENT ROUTINES ; 7-9-1999
- ;;5.3;Registration;**190,354,419**;Aug 13, 1993
+ ;;5.3;Registration;**190,354,419,1015**;Aug 13, 1993;Build 21
  ;
 ACK ; Receives the ACK messages
  ; Input  : All variables set by the HL7 package

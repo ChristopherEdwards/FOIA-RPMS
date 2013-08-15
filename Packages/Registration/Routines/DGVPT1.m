@@ -1,5 +1,5 @@
 DGVPT1 ;ALB/MRL - DG POST-INIT (OPTION AND ROUTINE CLEAN-UP) ;12 AUG 88@1032
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 OPT ;Delete and Repoint Options
  I $S(('$D(DGPACK)#2):1,DGPACK']"":1,1:0) Q
  W !!,">>> Deleting/repointing '",DGPACK,"' options in OPTION file as necessary.",!

@@ -1,5 +1,5 @@
 DG17201 ;BHM/RGY,ALS-Find and save all files pointing to religion and marital status files ;FEB 20,1998
- ;;5.3;Registration;**172**;Aug 13, 1993
+ ;;5.3;Registration;**172,1015**;Aug 13, 1993;Build 21
 CF ;
  NEW FILE,FIELD,CONV
  K ^TMP("DG11N13",$J)

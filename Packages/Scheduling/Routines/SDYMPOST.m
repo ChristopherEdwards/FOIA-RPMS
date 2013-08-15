@@ -1,5 +1,5 @@
 SDYMPOST ;ALB/CAW - Scheduling Maintenance Update 5/26/94
- ;;5.3;Scheduling;**20**;Aug 13, 1993
+ ;;5.3;Scheduling;**20,1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- add/inactivate stop codes
  D ADD

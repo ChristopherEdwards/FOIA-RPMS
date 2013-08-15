@@ -1,5 +1,5 @@
-SDAM2 ;MJK/ALB - Appt Mgt (cont); 12/1/91
- ;;5.3;Scheduling;**250,296,1005,1009,1012**;Aug 13, 1993
+SDAM2 ;ALB/MJK - Appt Mgt (cont); 8/18/05 12:10pm  ; Compiled April 16, 2007 09:43:32
+ ;;5.3;Scheduling;**250,296,327,478,446,1005,1012,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 6/29/2000 added display of PCP as reminder
  ;             7/05/2000 added display of CMS register memberships
  ;                       added pending appt display before clinic quest
@@ -10,17 +10,16 @@ SDAM2 ;MJK/ALB - Appt Mgt (cont); 12/1/91
  ;IHS/OIT/LJF  12/29/2005 PATCH 1005 - removed 9/25/2003 code to update status
  ;             12/30/2005 PATCH 1005 - moved pend appt display code to BSDAM
  ;
- ;cmi/anch/maw 05/09/2008 PATCH 1009 requirement 65 #2 changed to call EVT^SDAMEVT in ONE for every checkin whether new or existing
  ;cmi/flag/maw 06/02/2010 PATCH 1012 RQMT 149 add check of valid appointment
+ ;
 CI ; -- protocol SDAM APPT CHECK IN entry pt
  ; input:  VALMY := array entries
  ;
- N SDI,SDAT,VALMY,SDAMCIDT,SDCIACT
+ N %,SDI,SDAT,VALMY,SDAMCIDT,SDCIACT
  D SEL^VALM2 S SDI=0,SDCIACT=""
  D NOW^%DTC S SDAMCIDT=$P(%,".")_"."_$E($P(%,".",2)_"0000",1,4)
  F  S SDI=$O(VALMY(SDI)) Q:'SDI  I $D(^TMP("SDAMIDX",$J,SDI)) K SDAT D
  .S SDAT=^TMP("SDAMIDX",$J,SDI)
- .I $P(SDAT,U,6)]"" W !!,*7,">>> This is not a valid appointment." D PAUSE^VALM1 Q  ;cmi/maw 6/2/2010 PATCH 1012 for list view
  .W !,^TMP("SDAM",$J,+SDAT,0)
  .;
  .;IHS/ANMC/LJF 12/07/2000 no temp #, show last reg update
@@ -67,24 +66,13 @@ ONE(DFN,SDCL,SDT,SDDA,SDASK,SDAMCIDT) ; -- check in one appt
  S DA(2)=SDCL,DA(1)=SDT,DA=SDDA,DIE="^SC("_DA(2)_",""S"","_DA(1)_",1," D ^DIE
  D AFTER^SDAMEVT(.SDATA,DFN,SDT,SDCL,SDDA,SDCIHDL)
  I '$P(SDATA("AFTER","STATUS"),U,4),'$P(SDATA("BEFORE","STATUS"),U,4) W !?8,*7,"...appointment has not been checked in" D PAUSE^VALM1
- ;cmi/anch/maw 5/9/2008 original lines commented out below
- ;I SDATA("BEFORE","STATUS")'=SDATA("AFTER","STATUS") D
- ;.I $P(SDATA("AFTER","STATUS"),U,4),'$P(SDATA("BEFORE","STATUS"),U,4) W !?8,"...checked in ",$$FTIME^VALM1($P(SDATA("AFTER","STATUS"),U,4))
- ;.I $D(SDCIACT) D
- ;..S Y=SDATA("AFTER","STATUS"),Y1=$P(Y,U,4),Y=$P(Y,U,3)
- ;..I $P(SDATA("BEFORE","STATUS"),U,3)'=Y D UPD($$LOWER^VALM1(Y),"STAT",+SDAT,1),UPD("","TIME",+SDAT,1)
- ;..I $P(SDATA("AFTER","STATUS"),U,3)["CHECKED IN" D UPD($S($P(Y1,".")=DT:$$TIME^SDAM1($P(Y1,".",2)),1:"     "),"TIME",+SDAT,1)
- ;.D EVT^SDAMEVT(.SDATA,4,0,SDCIHDL) ; 4 := ci evt , 0 := interactive mode
- ;cmi/anch/maw 5/9/2008 new code below
- ;I SDATA("BEFORE","STATUS")'=SDATA("AFTER","STATUS") D
- I $P(SDATA("AFTER","STATUS"),U,4),'$P(SDATA("BEFORE","STATUS"),U,4) W !?8,"...checked in ",$$FTIME^VALM1($P(SDATA("AFTER","STATUS"),U,4))
- I $D(SDCIACT) D
- . S Y=SDATA("AFTER","STATUS"),Y1=$P(Y,U,4),Y=$P(Y,U,3)
- .I $P(SDATA("BEFORE","STATUS"),U,3)'=Y D UPD($$LOWER^VALM1(Y),"STAT",+SDAT,1),UPD("","TIME",+SDAT,1)
- .I $P(SDATA("AFTER","STATUS"),U,3)["CHECKED IN" D UPD($S($P(Y1,".")=DT:$$TIME^SDAM1($P(Y1,".",2)),1:"     "),"TIME",+SDAT,1)
- D EVT^SDAMEVT(.SDATA,4,0,SDCIHDL) ; 4 := ci evt , 0 := interactive mode
- ;cmi/anch/maw 5/9/2008 end of new code
- ;
+ I SDATA("BEFORE","STATUS")'=SDATA("AFTER","STATUS") D
+ .I $P(SDATA("AFTER","STATUS"),U,4),'$P(SDATA("BEFORE","STATUS"),U,4) W !?8,"...checked in ",$$FTIME^VALM1($P(SDATA("AFTER","STATUS"),U,4))
+ .I $D(SDCIACT) D
+ ..S Y=SDATA("AFTER","STATUS"),Y1=$P(Y,U,4),Y=$P(Y,U,3)
+ ..I $P(SDATA("BEFORE","STATUS"),U,3)'=Y D UPD($$LOWER^VALM1(Y),"STAT",+SDAT,1),UPD("","TIME",+SDAT,1)
+ ..I $P(SDATA("AFTER","STATUS"),U,3)["CHECKED IN" D UPD($S($P(Y1,".")=DT:$$TIME^SDAM1($P(Y1,".",2)),1:"     "),"TIME",+SDAT,1)
+ .D EVT^SDAMEVT(.SDATA,4,0,SDCIHDL) ; 4 := ci evt , 0 := interactive mode
  I $D(XRT0) S XRTN="SDAM2" D T1^%ZOSV
 ONEQ K DA,DIE,DR,DQ,DE,Y,Y1 Q
  ;
@@ -96,7 +84,7 @@ FIND(DFN,SDT,SDCL) ; -- return appt ifn for pat
  ;  output: [returned] := ifn if pat has appt on date/time
  ;
  N Y
- S Y=0 F  S Y=$O(^SC(SDCL,"S",SDT,1,Y)) Q:'Y  I $D(^(Y,0)),DFN=+^(0),$D(^DPT(+DFN,"S",SDT,0)),$$VALID(DFN,SDCL,SDT,Y) Q
+ S Y=0 F  S Y=$O(^SC(SDCL,"S",SDT,1,Y)) Q:'Y  I $D(^(Y,0)),DFN=+^(0),$D(^DPT(+DFN,"S",SDT,0)),$$VALID(DFN,SDCL,SDT,Y) S CNSTLNK=$P($G(^SC(SDCL,"S",SDT,1,Y,"CONS")),U) K:CNSTLNK="" CNSTLNK Q  ;SD/478
  Q Y
  ;
 UPD(TEXT,FLD,LINE,SAVE) ; -- update data for screen
@@ -125,6 +113,28 @@ WI ; -- walk-in visit action
  D FULL^VALM1
  I SDAMTYP="P" I $$CL^SDAMWI(SDFN) D BLD^SDAM1
  I SDAMTYP="C" I $$PT^SDAMWI(SDCLN) D BLD^SDAM3
+ ;evaluate wait list ;SD/327
+EWLCHK ;check if patient has any open EWL entries (SD/372)
+ ;CLN expected as clinic IEN
+ I '$D(DFN) Q
+ Q:'$D(SDT)
+ K ^TMP($J,"SDAMA301"),^TMP($J,"APPT")
+ N SD S SD=SDT
+ I '$D(SC) S SC=+$G(CLN)
+ ;
+ K ^TMP($J,"SDAMA301"),^TMP($J,"APPT")
+ W:$D(IOF) @IOF D APPT^SDWLEVAL(DFN,SD,SC)
+ Q:'$D(^TMP($J,"APPT"))
+ N SDEV D EN^SDWLEVAL(DFN,.SDEV) I SDEV,$L(SDEV(1))>0 D
+ .K ^TMP("SDWLPL",$J),^TMP($J,"SDWLPL")
+ .D INIT^SDWLPL(DFN,"M")
+ .Q:'$D(^TMP($J,"SDWLPL"))
+ .D LIST^SDWLPL("M",DFN)
+ .F  Q:'$D(^TMP($J,"SDWLPL"))  N SDR D ANSW^SDWLEVAL(1,.SDR) I 'SDR D LIST^SDWLPL("M",DFN) D
+ ..F  N SDR  D ANSW^SDWLEVAL(0,.SDR) Q:'$D(^TMP($J,"SDWLPL"))  I 'SDR W !,"MUST ENTER A REASON NOT TO DISPOSITION MATCHED EWL ENTRY",!
+ I $D(^TMP($J,"APPT")) N SDEV D EN^SDWLEVAL(DFN,.SDEV) I SDEV,$L(SDEV(1))>0 D
+ .Q:'$D(^TMP($J,"SDWLPL"))  D ASKREM^SDWLEVAL S SDCTN=1 ;display and process selected open EWL entries
+ .Q
  Q
  ;
 DATE ; -- change date range

@@ -1,5 +1,5 @@
-VAFHLPV2 ;ALB/GRR - HL7 PV2 SEGMENT BUILDER ;06/08/99
- ;;5.3;Registration;**190**;Aug 13, 1993
+VAFHLPV2 ;ALB/GRR - HL7 PV2 SEGMENT BUILDER ; 3/6/06 8:25am
+ ;;5.3;Registration;**190,692,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will build an HL7 PV2 segment for an inpatient.
  ;
@@ -22,4 +22,9 @@ EN(DFN,VAFHMIEN,VAFSTR) ;Entry point of routine
  ..S $P(VAFHSUB,$E(HL("ECH")),5)="NOT ADMITTED FOR SC CONDITION"
  ..S $P(VAFHSUB,$E(HL("ECH")),6)="VA0039"
  .S $P(VAFHLREC,HL("FS"),4)=VAFHSUB
+ ;If call center param is on add privacy indicator
+ I VAFSTR[",22," D
+ .S VAIP("D")=$G(VAFHDT) D IN5^VADPT
+ .S $P(VAFHLREC,HL("FS"),23)=$S(+VAIP(19,1)=1:"Y",+VAIP(19,1)=0:"N",1:"")
+ .D KVAR^VADPT
 QUITPV2 Q VAFHLREC

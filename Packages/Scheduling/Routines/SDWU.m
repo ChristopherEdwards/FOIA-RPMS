@@ -1,5 +1,5 @@
 SDWU ; SLC/KCM - General Utilites for Windows Calls; 2/28/01
- ;;5.3;Scheduling;**262**;Aug 13, 1993
+ ;;5.3;Scheduling;**262,1015**;Aug 13, 1993;Build 21
  ;
  Q
 ACTLOC(LOC) ; Function: returns TRUE if active hospital location

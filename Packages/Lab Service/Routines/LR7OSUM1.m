@@ -1,5 +1,7 @@
-LR7OSUM1 ;VA/DALOI/dcm - Silent Patient cum cont. ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**121,187,256,286,1027**;NOV 01, 1997
+LR7OSUM1 ;VA/DALOI/dcm - Silent Patient cum cont. ; Mar 11, 2003
+ ;;5.2;LAB SERVICE;**1003,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 121,187,256,286,384
  ;
 LRIDT ; from LR7OSUM
  F  S LRIDT=$O(^LR(LRDFN,"CH",LRIDT)) Q:LRIDT<1!(LRIDT>LROUT)!(CT1>COUNT)  I $D(^(LRIDT,0)) S X=^(0),CT1=CT1+1 D LRIIDT
@@ -85,6 +87,8 @@ MISC ;
  Q:"IN"[$P(^LAB(60,LRTST,0),U,3)
  S LRTOP=LRSPM
  ;
+ D ZEROFIX                             ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  S:'$D(^TMP($J,LRDFN,"MISC",LRIDT,0)) ^(0)=LRIDT_U_LRVIDT_U_LRVDT_U_LRAN_U_LRSPM
  ;S ^TMP($J,LRDFN,"MISC",LRIDT,LRTNN)=LRTSTVAL_U_LRSPM_U_LRTST_U_X1_U_LRSUB
  ; S ^TMP($J,LRDFN,"MISC",LRIDT,LRTNN)=$P(LRTRES,"^")_U_LRSPM_U_LRTST_U_$P(LRTRES,"^",2)_U_LRSUB_U_$P(LRTRES,"^",3,6)
@@ -112,7 +116,7 @@ MISC ;
  ; Grab specimen comments
  I $D(^LR(LRDFN,"CH",LRIDT,1,0)),'$D(^TMP($J,LRDFN,"MISC",LRIDT,"TX",0)) D
  . S ^TMP($J,LRDFN,"MISC",LRIDT,"TX",0)="",L=0
- . ; F  S L=$O(^LR(LRDFN,"CH",LRIDT,1,L)) Q:L<1  S ^TMP($J,LRDFN,"MISC",LRIDT,"TX",L,0)=^LR(LRDFN,"CH",LRIDT,1,L,0)  I $G(^LR(LRDFN,"CH",LRIDT,1,L,0))["Test Performed at" S ADDRFLAG="YES"
+ . ; F  S L=$O(^LR(LRDFN,"CH",LRIDT,1,L)) Q:L<1  S ^TMP($J,LRDFN,"MISC",LRIDT,"TX",L,0)=^LR(LRDFN,"CH",LRIDT,1,L,0)
  . ; BEGIN -- IHS/OIT/MKK - LR*5.2*1027
  . NEW ADDRFLAG
  . S ADDRFLAG="NO"
@@ -176,6 +180,8 @@ CHKUN ; Check units and normals with cumulative report values
  ;
  S @("LRHI="_$S($P(LRX,"^",3)'="":$P(LRX,"^",3),$P(LRX,"^",12)'="":$P(LRX,"^",12),1:""""""))
  I LRLO'=$P(LRTRES,"^",3)!(LRHI'=$P(LRTRES,"^",4)) D
+ . ; check to see if these values are numeric and are different because of leading or trailing zeroes
+ . I '$$REALDIFF Q
  . I LRFLAG S LRY=LRY_" and"
  . S LRY=LRY_" Normals: "_$P(LRTRES,"^",3)_"-"_$P(LRTRES,"^",4),LRFLAG=1
  ;
@@ -184,3 +190,61 @@ CHKUN ; Check units and normals with cumulative report values
  S L=+$O(^TMP($J,LRDFN,LRMH,LRSH,LRIDT,"TX",9999999),-1),L=L+1
  S LRY=LRY_" ***",^TMP($J,LRDFN,LRMH,LRSH,LRIDT,"TX",L,0)=LRY
  Q
+ ;
+ ;
+REALDIFF() ;
+ ; function to determine if values are numeric and are different
+ ; solely because of leading or trailing zeroes
+ ;     returns 0 if difference is because of leading/trailing zeroes
+ ;     returns 1 if differences are meaningful
+ N LRTRESLO,LRTRESHI,DIFF
+ S LRTRESLO=$P(LRTRES,"^",3),LRTRESHI=$P(LRTRES,"^",4)
+ S DIFF=0
+ I LRLO'=LRTRESLO S DIFF=1 D
+ . I LRLO?.N!(LRLO?.N1".".N) D
+ . . I LRTRESLO?.N!(LRTRESLO?.N1".".N) D
+ . . . I +LRLO=+LRTRESLO S DIFF=0
+ I DIFF Q 1
+ I LRHI'=LRTRESHI S DIFF=1 D
+ . I LRHI?.N!(LRHI?.N1".".N) D
+ . . I LRTRESHI?.N!(LRTRESHI?.N1".".N) D
+ . . . I +LRHI=+LRTRESHI S DIFF=0
+ I DIFF Q 1
+ Q 0
+ ;
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ZEROFIX ; EP - Leading & Trailing Zero Fix for Results
+ Q:$L($P(LRTRES,"^"))<1                  ; Skip if no Result
+ ;
+ NEW DN,DP,ORIGRLST,RESULT,STR,SYMBOL
+ S DN=+$G(LRSUB)                         ; Data Name number
+ Q:DN<1                                  ; Skip if no Data Name number
+ ;
+ Q:$G(^DD(63.04,DN,0))'["^LRNUM"         ; Skip if no numeric defintiion
+ ;	
+ S STR=$P($P($G(^DD(63.04,DN,0)),"Q9=",2),$C(34),2)     ; Get numeric formatting
+ ;
+ S DP=+$P(STR,",",3)                     ; Decimal Places
+ Q:DP<1                                  ; Skip if no Decimal Defintion
+ ;
+ S RESULT=$P(LRTRES,"^")
+ ;
+ Q:$$UP^XLFSTR($G(RESULT))["SPECIMEN IN LAB"          ; Skip if not resulted
+ ;
+ S SYMBOL="",ORIGRSLT=RESULT
+ F  Q:$E(RESULT)="."!($E(RESULT)?1N)!(RESULT="")  D       ; Adjust if ANY Non-Numeric is at the beginning of RESULT
+ . S SYMBOL=SYMBOL_$E(RESULT)
+ . S RESULT=$E(RESULT,2,$L(RESULT))
+ ;
+ S:$E(RESULT)="." RESULT="0"_RESULT      ; Leading Zero Fix
+ ;
+ I $E(RESULT)'?1N  S RESULT=ORIGRSLT  Q  ; Skip if RESULT has no numeric part
+ ;
+ S RESULT=$TR($FN(RESULT,"P",DP)," ")
+ ;
+ S:$L($G(SYMBOL)) RESULT=SYMBOL_RESULT   ; Restore "symbol", if necessary
+ ;
+ S $P(LRTRES,"^",1)=RESULT
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031

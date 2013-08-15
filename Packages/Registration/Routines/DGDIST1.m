@@ -1,5 +1,5 @@
 DGDIST1 ;ALB/MRL - DISPOSITION TIME STUDY, CONTINUED ; 13 MAY 1987
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  S DGPG=0,(DGL,DGL1)="",$P(DGL,"=",131)="",$P(DGL1,"-",131)="",DGF=""
  F I=0:0 S DGF=$O(^UTILITY($J,"DGT","D",DGF)),DGH="" Q:DGF=""  I +^(DGF)>0 D H F I1=0:0 S DGH=$O(^UTILITY($J,"DGT","D",DGF,"H",DGH)) D:DGH="" D Q:DGH=""  S DGW=0,DGD=^(DGH) D W
  G NC:DGDIV S DGW=2,DGF="" D H F I=0:0 S DGF=$O(^UTILITY($J,"DGT","D",DGF)) Q:DGF=""  S DGD=^(DGF) D W

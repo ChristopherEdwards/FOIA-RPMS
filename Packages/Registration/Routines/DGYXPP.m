@@ -1,5 +1,5 @@
 DGYXPP ;ALB/REW - Environment Check for ADT/R 10/1 Maintenance Patch ; 6/14/94
- ;;5.3;Registration;**66**;Aug 13, 1993
+ ;;5.3;Registration;**66,1015**;Aug 13, 1993;Build 21
  ;
  ; NOTE: DGBDT = begin time (don't use in post-init modules)
  ;

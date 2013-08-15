@@ -1,5 +1,5 @@
-SCMCMU2 ;ALB/MJK - PCMM Mass Team/Position Unassignment Processing ; 10-JUL-1998
- ;;5.3;Scheduling;**148,177**;AUG 13, 1993
+SCMCMU2 ;ALBOI/MJK - PCMM Mass Team/Position Unassignment Processing;07/10/98
+ ;;5.3;Scheduling;**148,177,524,1015**;AUG 13, 1993;Build 21
  ;
 QUE() ; -- queue mass unassignment
  ;D START Q 99999 ; -- for interactive testing
@@ -168,8 +168,8 @@ TPDIS(SCDATE,SCPOS,SCNT,SCPTX) ; -- position unassignment for patient
  IF SCOK D
  . ; -- if assignment date is in future then delete
  . IF SCASDT>DT,SCASDT>SCDATE D  Q
- . . N DA,DIK
- . . S DA=SCIEN,DIK="^SCPT(404.43,"
+ . . N DA,DIE,DIK,DR
+ . . S DA=SCIEN,(DIE,DIK)="^SCPT(404.43,",DR=".04///"_DT D ^DIE  ; og/sd/524
  . . D LOCK(SCNODE)
  . . D ^DIK
  . . D UNLOCK(SCNODE)

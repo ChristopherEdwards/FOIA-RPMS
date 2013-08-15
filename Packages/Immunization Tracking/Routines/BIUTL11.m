@@ -1,9 +1,10 @@
 BIUTL11 ;IHS/CMI/MWR - UTIL: PATIENT INFO; AUG 10,2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: PATIENT FUNCTIONS: CONTRAS, INPATIENT, HIDOSE.
  ;;  PATCH 1: Correct typo "Q", so that unmatched CVX returns 0 (zero),
  ;;           not "Q".  LASTIMM+17
+ ;;  PATCH 3: Append date to Hx of Chickenpox Reason.  CONTRA+45
  ;
  ;
  ;----------
@@ -50,7 +51,13 @@ CONTRA(BIDFN,A,BIREF,BIDATE) ;EP
  ..;---> 12 is the IEN of BI TABLE CONTRA REASONS that is Hx of Chicken Pox.
  ..I X=12 D  Q
  ...;---> Set array node A(CVX)=IEN of Hx of Chicken Pox Reason.
- ...N Z S Z=$P(BIPC,U,2) I Z S Z=$G(^AUTTIMM(Z,0)),Z=$P(Z,U,3) S:Z A(Z)=X
+ ...;
+ ...;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ...;---> Append date to Hx of Chickenpox Reason.
+ ...;N Z S Z=$P(BIPC,U,2) I Z S Z=$G(^AUTTIMM(Z,0)),Z=$P(Z,U,3) S:Z A(Z)=X
+ ...N Z S Z=$P(BIPC,U,2) I Z S Z=$G(^AUTTIMM(Z,0)),Z=$P(Z,U,3)
+ ...I Z S A(Z)=X S:$G(BIDATE) A(Z)=A(Z)_U_Y
+ ...;**********
  .;
  .;---> Continue in order to return an array of contra'd vaccines by CVX Code.
  .;
@@ -140,7 +147,6 @@ INPT(BIDFN,BIDATE) ;EP
  ;
  ;---> Now check to see if patient has been admitted since
  ;---> that discharge date.
- ;---> Next line, v8.1 correction "DFN" to "BIDFN".
  S X=$O(^AUPNVSIT("AAH",BIDFN,X),-1)
  ;
  ;---> If patient not admitted since last discharge, quit 0.
@@ -200,7 +206,6 @@ BENTYP(BIDFN,TEXT) ;EP
  ;---> of Registration).
  ;---> Parameters:
  ;     1 - BIDFN (req) Patient's IEN (DFN).
- ;---> CodeChange for v7.1 - IHS/CMI/MWR 12/01/2000:
  ;---> Text parameter added.
  ;     2 - TEXT  (opt) If TEXT=1, return text of Beneficiary Type.
  ;                     If text=2, return Code of Beneficiary Type.  vvv83
@@ -317,11 +322,6 @@ NEXTAPPT(BIDFN) ;EP
  .;
  .S X=0 F  S X=$O(^SC(+BIDATA,"S",BIDT,1,X)) Q:'X  D
  ..Q:+$G(^SC(+BIDATA,"S",BIDT,1,X,0))'=BIDFN
- ..;
- ..;---> Retrieve Other Information.
- ..;S BIOI="  "_$P($G(^SC(+BIDATA,"S",BIDT,1,X,0)),U,4)  ;other info
- ..;
- ..;S BIYES=BIDT_U_+BIDATA_U_BIOI
  ..S BIYES=BIDT_U_+BIDATA
  ;
  Q:'BIYES "None"

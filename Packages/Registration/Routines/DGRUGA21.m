@@ -1,5 +1,5 @@
 DGRUGA21 ;ALB/GRR - HL7 ADT A21 MESSAGE BUILDER ;8/5/99  15:35
- ;;5.3;Registration;**190**;Aug 13, 1993
+ ;;5.3;Registration;**190,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will build a ADT A21 (To Leave of Absence) HL7 message for an inpatient.
  ;

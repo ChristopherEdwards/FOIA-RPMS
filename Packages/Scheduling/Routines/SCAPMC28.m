@@ -1,5 +1,5 @@
-SCAPMC28 ;ALB/REW - Patients with an Appointment ; Apr 3,1996 [ 12/06/2000  9:26 AM ]
- ;;5.3;Scheduling;**41,140**;AUG 13, 1993
+SCAPMC28 ;ALB/REW - Patients with an Appointment ; 1/10/05 2:49pm
+ ;;5.3;Scheduling;**41,140,346,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 12/06/2000 changed SSN to HRCN as Long Patient ID
  ;
  ;;1.0
@@ -66,21 +66,65 @@ PTAPX(SCCL,SCBEGIN,SCEND,MAXCNT,SCLIST,SCERR,SCSTART) ;return appointments in dt
  ;    SCSTART - Continue with list at this point
  ; output: SCN - COUNT OF PTS
  ; returns:      dfn^ptname^clinic^apptdt^long id
- N SCDT,SCD2,DFN
- S SCDT=SCBEGIN
- F  S SCDT=$O(^SC(SCCL,"S",SCDT)) Q:'SCDT!(SCDT>SCEND)!(SCN'<SCMAXCNT)  D
- .S SCD2=+$G(SCSTART)
+ ; 
+ ;initialize variables
+ N SCDT,SCARRAY,DFN,SDAPTCNT,SDARRAY,SDERR,SDX,SDY
+ K ^TMP($J,"SDAMA301")
+ ;setup call to SDAPI
+ S SDARRAY(1)=$G(SCBEGIN)_";"_$G(SCEND),SDARRAY(2)=$G(SCCL),SDARRAY("FLDS")=4
+ S SDARRAY("SORT")="P"
+ ;call SDAPI to retrieve appointments
+ S SDAPTCNT=$$SDAPI^SDAMA301(.SDARRAY)
+ ;handle errors if any returned from SDAPI and QUIT
+ I SDAPTCNT<0 D  Q ($G(@SCERR@(0))<1)_U_(SCN'<SCMAXCNT)
+ .;call existing error handler
+ .D ERR^SCAPMCU1(.SCESEQ,,,"",.SCERR)
+ .K ^TMP($J,"SDAMA301")
+ ;if appointments returned 
+ I SDAPTCNT>0 D
+ .;retrieve patient ID to start at if continuing list (was appt ifn)
+ .; * no code could be found to utilize continuation of a list
+ .; * if this changes this code should be revisited to ensure only 1
+ .;   call to SDAPI is made.
+ .S DFN=+$G(SCSTART)
  .S SCSTART=0
- .F  S SCD2=$O(^SC(SCCL,"S",SCDT,1,SCD2)) Q:'SCD2!(SCN'<SCMAXCNT)  D
- ..S DFN=+$G(^SC(SCCL,"S",SCDT,1,SCD2,0))
- ..Q:$D(@SCLIST@("SCPTAP",+DFN))
- ..Q:$D(^TMP("SCMC",$J,"EXCLUDE PT","SCPTA",+DFN))
- ..S SCN=$G(@SCLIST@(0))+1
- ..S @SCLIST@(0)=SCN
- ..;S @SCLIST@(SCN)=DFN_U_$P($G(^DPT(+DFN,0)),U,1)_U_SCCL_U_SCDT_U_$P($G(^DPT(+DFN,.36)),U,3)  ;IHS/ANMC/LJF 12/06/2000
- ..S @SCLIST@(SCN)=DFN_U_$P($G(^DPT(+DFN,0)),U,1)_U_SCCL_U_SCDT_U_$$HRCN^BDGF2(DFN,+$G(DUZ(2)))  ;IHS/ANMC/LJF 12/06/2000
- ..S @SCLIST@("SCPTAP",+DFN,+SCN)=""
- S:(SCN'<SCMAXCNT) @SCLIST@(0)=SCN_U_+$G(SCD2)_U_+$G(SCDT)_U_+$G(SCCL)
+ .S SCDT=0
+ .;resort appts to ensure same data is returned to user
+ .;only 1st appt date/time is needed for each patient
+ .;as patient can only be added to the list once.
+ .K ^TMP($J,"RE-SORT","SDAMA301")
+ .S (SDY,SDX)=0
+ .F  S SDX=$O(^TMP($J,"SDAMA301",SDX)) Q:'SDX  D
+ ..S SDY=$O(^TMP($J,"SDAMA301",SDX,""))
+ ..S ^TMP($J,"RE-SORT","SDAMA301",SDY,SDX)=""
+ .K ^TMP($J,"SDAMA301")
+ .;loop through re-sorted appts returned from SDAPI until
+ .; 1. no more patients with appointments exist
+ .; 2. number of patients found that match criteria is not less than max
+ .F  S SCDT=$O(^TMP($J,"RE-SORT","SDAMA301",SCDT)) Q:'SCDT!(SCN'<SCMAXCNT)  D
+ ..;get patient for the kept appointment in the re-sorted list
+ ..F  S DFN=$O(^TMP($J,"RE-SORT","SDAMA301",SCDT,DFN)) Q:'DFN!(SCN'<SCMAXCNT)  D
+ ...;quit if patient is found in either of the following lists
+ ...;this list may be used elsewhere, left in for compatibility
+ ...Q:$D(@SCLIST@("SCPTAP",+DFN))
+ ...Q:$D(^TMP("SCMC",$J,"EXCLUDE PT","SCPTA",+DFN))
+ ...;increment the patient counter and store in SCLIST
+ ...S SCN=$G(@SCLIST@(0))+1
+ ...S @SCLIST@(0)=SCN
+ ...;get the patient's long ID (SSN) and Name
+ ...D GETS^DIQ(2,+DFN,".01;.363","","SCARRAY")
+ ...;add the following appt info to SCLIST at the current Patient Counter
+ ...;1. Patient DFN 2. Patient Name 3. Clinic IEN 4. Appt DTM 5. Patients Long ID
+ ...;S @SCLIST@(SCN)=DFN_U_$P($G(^DPT(+DFN,0)),U,1)_U_SCCL_U_SCDT_U_$P($G(^DPT(+DFN,.36)),U,3)  ;IHS/ANMC/LJF 12/06/2000
+ ...S @SCLIST@(SCN)=DFN_U_$P($G(^DPT(+DFN,0)),U,1)_U_SCCL_U_SCDT_U_$$HRCN^BDGF2(DFN,+$G(DUZ(2)))  ;IHS/ANMC/LJF 12/06/2000
+ ...;add the patient's DFN to the exclusion list
+ ...S @SCLIST@("SCPTAP",+DFN,+SCN)=""
+ ;kill the re-sorted appt global reference generated
+ K ^TMP($J,"RE-SORT","SDAMA301")
+ ;if # of patients found that match criteria is NOT LESS than the requested Max then
+ ;set SCLIST at the 0 Node to:
+ ;1.Current Patient Count 2. Current Patient Processing 3. Appt DTM 4. Clinic IEN
+ S:(SCN'<SCMAXCNT) @SCLIST@(0)=SCN_U_+$G(DFN)_U_+$G(SCDT)_U_+$G(SCCL)
  Q ($G(@SCERR@(0))<1)_U_(SCN'<SCMAXCNT)
  ;
 OKDATA() ;check/setup variables

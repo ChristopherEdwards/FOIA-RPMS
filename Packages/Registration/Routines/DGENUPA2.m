@@ -1,5 +1,5 @@
 DGENUPA2 ;ALB/CJM - Protocol Viewing Eligibility Upload Audit;16 JUN 1997 01:30 pm
- ;;5.3;Registration;**147**;08/13/93
+ ;;5.3;Registration;**147,1015**;08/13/93;Build 21
  ;
 EN(DFN) ;Entry point for DGENUP ELIGIBILITY UPLOAD AUDIT protocol
  N DGAUDIT

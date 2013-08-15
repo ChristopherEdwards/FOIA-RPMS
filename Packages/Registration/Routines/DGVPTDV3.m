@@ -1,5 +1,5 @@
 DGVPTDV3 ;alb/mjk - DVBHS2 for export with PIMS v5.3; 4/21/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 DVBHS2 ;ALB/JLU;This is the display for screen 2;10/7/91
  ;;V4.0;HINQ;**11**;03/25/92 

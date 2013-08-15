@@ -1,5 +1,5 @@
-DGENRPD2 ;ALB/CJM -Veteran with Future Appts and no Enrollment App Report - Continued; May 18,1999
- ;;5.3;Registration;**147,232**;Aug 13,1993
+DGENRPD2 ;ALB/CJM/EG -Veteran with Future Appts and no Enrollment App Report - Continue 01/19/2005 ; 1/20/05 1:27pm
+ ;;5.3;PIMS;**147,232,568,585,725,767,1015,1016**;JUN 30, 2012;Build 20
  ;
 PRINT ;
  N CRT,QUIT,PAGE,SUBSCRPT
@@ -40,82 +40,86 @@ LINE(LINE) ;
  Q
  ;
 GETPAT ;
- ;Description: Gets patients to include in the report
- N DIVISION,CLINIC,APPT,DFN,TIME,STATUS,CATEGORY
+ ; Description: Gets patients to include in the report
+ N BEGIN,END,DGARRAY,SDCNT,CATEGORY,DIVISION,NAM
+ S BEGIN=DGENRP("BEGIN")_".0000",END=DGENRP("END")_".2359",DGARRAY(1)=BEGIN_";"_END
+ S DGARRAY("FLDS")="3;10",SDCNT=$$SDAPI^SDAMA301(.DGARRAY)
  ;
- ;STEP 1 - make list in format ^TMP($J,"STEP1",<DFN>,<APPT IEN>,<DIVISIONIEN>,<CLINIC IEN>)
+ ;there must be subscripts underneath the 101 level to be a
+ ;valid appointment, else it is an error eg 01/20/2005
+ ; Appointment Database is Unavailable
+ I SDCNT<0 N X S X=$$FAPCHK I X'="" S NAM=X G ERR
+ ;
+ ; Get All records for report
  I DGENRP("ALL") D
- .S CLINIC=0
- .F  S CLINIC=$O(^SC(CLINIC)) Q:'CLINIC  D
- ..I $P($G(^SC(CLINIC,0)),"^",3)="C" D APPT(CLINIC,DGENRP("BEGIN"),DGENRP("END"))
+ .S CLINIC=0 F  S CLINIC=$O(^TMP($J,"SDAMA301",CLINIC)) Q:'CLINIC  D
+ ..Q:$P($G(^SC(CLINIC,0)),"^",3)'="C"
+ ..S DFN=0 F  S DFN=$O(^TMP($J,"SDAMA301",CLINIC,DFN)) Q:'DFN  D
+ ...S DIVISION=$P($G(^SC(CLINIC,0)),U,15)
+ ...S:'DIVISION DIVISION=$O(^DG(40.8,0))
+ ...D VALREC(CLINIC,DFN)
+ ;
+ ; Get records for specified Divisions only
  I $O(DGENRP("DIVISION",0)) D
- .S CLINIC=0
- .F  S CLINIC=$O(^SC(CLINIC)) Q:'CLINIC  D
- ..S NODE=$G(^SC(CLINIC,0))
- ..S DIVISION=$P(NODE,"^",15)
- ..Q:'DIVISION
- ..I $P(NODE,"^",3)="C",$D(DGENRP("DIVISION",DIVISION)) D APPT(CLINIC,DGENRP("BEGIN"),DGENRP("END"))
+ .S CLINIC=0 F  S CLINIC=$O(^TMP($J,"SDAMA301",CLINIC)) Q:'CLINIC  D
+ ..Q:$P($G(^SC(CLINIC,0)),"^",3)'="C"
+ ..S DIVISION=$P($G(^SC(CLINIC,0)),U,15)
+ ..S:'DIVISION DIVISION=$O(^DG(40.8,0))
+ ..Q:'DIVISION!('$D(DGENRP("DIVISION",DIVISION)))
+ ..S DFN=0 F  S DFN=$O(^TMP($J,"SDAMA301",CLINIC,DFN)) Q:'DFN  D VALREC(CLINIC,DFN)
+ ;
+ ; Get records for specified Clinics only
  I $O(DGENRP("CLINIC",0)) D
- .S CLINIC=0
- .F  S CLINIC=$O(DGENRP("CLINIC",CLINIC)) Q:'CLINIC  D
- ..D APPT(CLINIC,DGENRP("BEGIN"),DGENRP("END"))
+ .S CLINIC=0 F  S CLINIC=$O(^TMP($J,"SDAMA301",CLINIC)) Q:'CLINIC  D
+ ..Q:'CLINIC!('$D(DGENRP("CLINIC",CLINIC)))
+ ..Q:($P($G(^SC(CLINIC,0)),U,3)'="C")
+ ..S DIVISION=$P($G(^SC(CLINIC,0)),U,15)
+ ..S:'DIVISION DIVISION=$O(^DG(40.8,0))
+ ..S DFN=0 F  S DFN=$O(^TMP($J,"SDAMA301",CLINIC,DFN)) Q:'DFN  D VALREC(CLINIC,DFN)
  ;
- ;
- ;STEP 2 - make list in following formats
- ;^TMP($J,"STEP2",DIVISION NAME,CLINIC NAME,CATEGORY,APPT DT/TM,DFN)
- ;
- ;for patients without enrollment records
- ;^TMP($J,"NOENREC",DIVISION NAME,CLINIC NAME,CATEGORY,APPT DT/TM,DFN)
- ;
- S DFN=0
- F  S DFN=$O(^TMP($J,"STEP1",DFN)) Q:'DFN  D
- .S STATUS=$$STATUS^DGENA(DFN)
- .S CATEGORY=$$CATEGORY^DGENA4(DFN)
- .;
- .;don't include enrolled veterans or ones that have pending apps!
- .I (CATEGORY="E")!(CATEGORY="P") Q
- .;
- .;exclude if not an eligible veteran (can not enroll)
- .Q:'$$VET^DGENPTA(DFN)
- .;
- .S TIME=0
- .F  S TIME=$O(^TMP($J,"STEP1",DFN,TIME)) Q:'TIME  D  Q:DGENRP("JUSTONCE")
- ..S DIVISION=""
- ..F  S DIVISION=$O(^TMP($J,"STEP1",DFN,TIME,DIVISION)) Q:(DIVISION="")  D
- ...S CLINIC=0
- ...F  S CLINIC=$O(^TMP($J,"STEP1",DFN,TIME,DIVISION,CLINIC)) Q:'CLINIC  D
- ....N DIVNAME,CLNAME
- ....S DIVNAME=$S(DIVISION:$P($$SITE^VASITE(TIME\1,DIVISION),"^",2),1:" ")
- ....S CLNAME=$P($G(^SC(CLINIC,0)),"^")
- ....S:CLNAME="" CLNAME=" "
- ....I $$FINDCUR^DGENA(DFN)="" D  Q
- ..... S ^TMP($J,"NOENREC",DIVNAME,CLNAME,CATEGORY,TIME,DFN)=""
- ....S ^TMP($J,"STEP2",DIVNAME,CLNAME,CATEGORY,TIME,DFN)=STATUS_"^"_$P($G(^TMP($J,"STEP1",DFN,TIME,DIVISION,CLINIC)),"^",16)
+ K DGARRAY,^TMP($J,"SDAMA301"),SDCNT
  Q
  ;
-APPT(CLINIC,BEGIN,END) ;
- ;Description: Lists all the appointments for given clinic with date range
+ERR ;
+ ;^TMP($J,TYPE,DIVISION NAME,CLINIC NAME,CATEGORY,APPT DT/TM,DFN)
+ I NAM["Appointment Database is unavailable. Please try again later." S NAM="**Appointment Database is Unavailable**"
+ I NAM["Appointment request contains invalid values." S NAM="**Invalid appointment, call Help Desk**"
+ I NAM["An error has occurred. Check the RSA Error Log." S NAM="**Error,  check RSA Error Log **"
+ S ^TMP($J,"NOENREC"," ",NAM," ",DT," ")=""
+ K DGARRAY,^TMP($J,"SDAMA301"),SDCNT,NAM
+ Q
  ;
- N TIME,APPT,DFN,LOCNODE,PATNODE,DIVISION
- S END=END+.1
- S TIME=BEGIN-.1
- S DIVISION=$P($G(^SC(CLINIC,0)),"^",15)
- F  S TIME=$O(^SC(CLINIC,"S",TIME)) Q:(('TIME)!(TIME>END))  D
- .S APPT=0
- .F  S APPT=$O(^SC(CLINIC,"S",TIME,1,APPT)) Q:'APPT  D
- ..S LOCNODE=$G(^SC(CLINIC,"S",TIME,1,APPT,0))
- ..S DFN=$P(LOCNODE,"^")
- ..Q:'DFN
- ..S PATNODE=$G(^DPT(DFN,"S",TIME,0))
- ..;
- ..;clinic from the Patient file appointment multiple should match
- ..Q:((+PATNODE)'=CLINIC)
- ..;
- ..;exclude certain appointment statuses
- ..Q:"^N^NA^C^CA^PC^PCA^"[("^"_$P(PATNODE,"^",2)_"^")
- ..;
- ..S:'DIVISION DIVISION=$O(^DG(40.8,0))
- ..S ^TMP($J,"STEP1",+DFN,+TIME,+DIVISION,+CLINIC)=PATNODE
+VALREC(CLINIC,DFN) ;
+ ;
+ N APPT,STATUS,JUSTONCE S JUSTONCE=0
+ S APPT=0 F  S APPT=$O(^TMP($J,"SDAMA301",CLINIC,DFN,APPT)) Q:'APPT!(JUSTONCE)  D
+ .S JUSTONCE=+$G(DGENRP("JUSTONCE"))
+ .; Exclude certain appointment statuses
+ .S STATUS=$P($P(^TMP($J,"SDAMA301",CLINIC,DFN,APPT),U,3),";")
+ .Q:"^NS^NSR^CC^CCR^CP^CPR^"[(U_STATUS_U)
+ .;
+ .; Don't include enrolled veterans or ones that have pending apps
+ .S CATEGORY=$$CATEGORY^DGENA4(DFN)
+ .I (CATEGORY="E")!(CATEGORY="P") Q
+ .;
+ .; Exclude if not an eligible veteran (can not enroll)
+ .Q:'$$VET^DGENPTA(DFN)
+ .;
+ .D SETTMP(CLINIC,DFN,APPT)
+ Q
+ ;
+SETTMP(CLINIC,DFN,APPT) ;
+ ; NOENREC is for patients without enrollment records
+ ; SITE2 is for other excluded enrollment records
+ ;^TMP($J,TYPE,DIVISION NAME,CLINIC NAME,CATEGORY,APPT DT/TM,DFN)
+ ;
+ N DIVNAME,CLNAME
+ S DIVNAME=$S(DIVISION:$P($$SITE^VASITE(APPT\1,DIVISION),U,2),1:" ")
+ S CLNAME=$P($G(^SC(CLINIC,0)),"^")
+ S:CLNAME="" CLNAME=" "
+ ;
+ I $$FINDCUR^DGENA(DFN)="" S ^TMP($J,"NOENREC",DIVNAME,CLNAME,CATEGORY,APPT,DFN)="" Q
+ S ^TMP($J,"STEP2",DIVNAME,CLNAME,CATEGORY,APPT,DFN)=$$STATUS^DGENA(DFN)_U_$P($P(^TMP($J,"SDAMA301",CLINIC,DFN,APPT),U,10),";",2)
  Q
  ;
 HEADER ;
@@ -187,3 +191,9 @@ DATE(DATE) ;
  ;
 LJ(STRING,LENGTH) ;
  Q $$LJ^XLFSTR($E(STRING,1,LENGTH),LENGTH)
+ ;
+FAPCHK() ;
+ N ERR
+ S ERR=$O(^TMP($J,"SDAMA301",""))
+ I $D(^TMP($J,"SDAMA301",ERR))=1 Q ^TMP($J,"SDAMA301",ERR)
+ Q ""

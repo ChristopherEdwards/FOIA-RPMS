@@ -1,5 +1,5 @@
 SCCVCST3 ;ALB/TMP - Scheduling Conversion Template Utilities - CST; APR 20, 1998
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 ONE ; -- Select/Convert one pt's encounter episode - no CST needed
  D FULL^VALM1

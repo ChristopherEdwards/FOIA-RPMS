@@ -1,5 +1,5 @@
-VAFHLZE1 ;BPFO/JRP,TDM - Data extractor for ZEL segment ; 3/3/03 4:47pm
- ;;5.3;Registration;**342,497**;Aug 13, 1993
+VAFHLZE1 ;BPFO/JRP,TDM - Data extractor for ZEL segment ; 5/24/06 3:43pm
+ ;;5.3;Registration;**342,497,602,672,653,1015**;Aug 13, 1993;Build 21
  ;
 GETDATA ;Get information needed to build ZEL  segment
  ;Input: Existance of the following variables is assumed
@@ -42,8 +42,8 @@ GETDATA ;Get information needed to build ZEL  segment
  ;Get needed nodes in Patient file (#2)
  N VAF
  F X=.3,.31,.321,.322,.362,.361 S VAF(X)=$G(^DPT(DFN,X))
- ;Disability ret. from military code
- I VAFSTR[",5," S X=$P(VAFPELIG,"^",2),VAFHLZEL(5)=$S(X]"":X,1:HLQ)
+ ;Military Disability Retirement
+ I VAFSTR[",5," S X=$P(VAFPELIG,"^",12),VAFHLZEL(5)=$S(X=0:"N",X=1:"Y",1:HLQ)
  ;Claim Number
  I VAFSTR[",6," S X=$P(VAF(.31),"^",3),VAFHLZEL(6)=$S(X]"":X,1:HLQ)
  ;Claim Folder Loc
@@ -100,7 +100,8 @@ GETDATA ;Get information needed to build ZEL  segment
  ;Agent Orange Registration #
  I VAFSTR[28 S X=$P(VAF(.321),"^",10),VAFHLZEL(28)=$S(X]"":X,1:HLQ)
  ;Agent Orange Exposure Location
- I VAFSTR[29 S X=$P(VAF(.321),"^",13),VAFHLZEL(29)=$S(X]"":X,$P(VAF(.321),U,2)="Y":"U",1:HLQ)
+ ;I VAFSTR[29 S X=$P(VAF(.321),"^",13),VAFHLZEL(29)=$S(X]"":X,$P(VAF(.321),U,2)="Y":"U",1:HLQ)
+ I VAFSTR[29 S X=$P(VAF(.321),"^",13),VAFHLZEL(29)=$S(",K,V,O,"[(","_X_","):X,1:HLQ)
  ;Radiation Registration Date
  I VAFSTR[30 S X=$P(VAF(.321),"^",11),VAFHLZEL(30)=$S(X]"":$$HLDATE^HLFNC(X),1:HLQ)
  ;Envir. Cont. Exam Date
@@ -113,5 +114,22 @@ GETDATA ;Get information needed to build ZEL  segment
  I VAFSTR[34 S X=$P(VAF(.361),"^",7),VAFHLZEL(34)=$S(X]"":$$HLDATE^HLFNC(X),1:HLQ)
  ;User Enrollee Site
  I VAFSTR[35 S X=$P(VAF(.361),"^",8),X=$$GET1^DIQ(4,+X,99),VAFHLZEL(35)=$S(X]"":X,1:HLQ)
+ ;Combat Vet
+ I (VAFSTR[37)!(VAFSTR[38) D
+ .N CVET
+ .S CVET=$$CVEDT^DGCV(DFN)
+ .;Eligible
+ .I VAFSTR[37 D
+ ..S X=+CVET
+ ..S:X<0 X=""
+ ..S VAFHLZEL(37)=$S(X]"":$$YN^VAFHLFNC(X),1:HLQ)
+ .;End Date
+ .I VAFSTR[38 D
+ ..S X=+$P(CVET,"^",2)
+ ..S VAFHLZEL(38)=$S(X:$$HLDATE^HLFNC(X),1:HLQ)
+ ;Discharge Due To Disability
+ I VAFSTR[39 S X=$P(VAFPELIG,"^",13),VAFHLZEL(39)=$S(X=0:"N",X=1:"Y",1:HLQ)
+ ;SHAD Indicator
+ I VAFSTR[40 S X=$P(VAF(.321),"^",15),VAFHLZEL(40)=$S(X=0:"N",X=1:"Y",1:HLQ)
  ;Done
  Q

@@ -1,5 +1,5 @@
 DGRPTU ;ALB/RMO - 10-10T Registration - Utilities; 04/25/2003
- ;;5.3;Registration;**108,513**;08/13/93
+ ;;5.3;Registration;**108,513,1015**;08/13/93;Build 21
  ;
 GETPAT(DGHOWPT,DGADDF,DFN,DGNEWPF) ;Look-up patient
  ; Input  -- DGHOWPT  How was patient entered

@@ -1,5 +1,5 @@
 DGPMV331 ;ALB/MIR - ASIH DISCHARGE PROCESSING ; 11 JAN 89 @9
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 ASIH ;if admission type was TO ASIH...
  Q:'$D(^DGPM(+$P(DGPMAN,"^",21),0))  S DGPMAI=$P(^(0),"^",14),DGPMAA=$S($D(^DGPM(+DGPMAI,0)):^(0),1:"")
  D DEL:($P(DGPMA,"^",18)=41),CRXFR:($P(DGPMA,"^",18)=46) G Q:("^41^46^"[("^"_$P(DGPMA,"^",18)_"^"))

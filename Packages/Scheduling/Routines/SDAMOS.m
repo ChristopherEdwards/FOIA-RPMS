@@ -1,12 +1,12 @@
-SDAMOS ;ALB/CAW - Statistical Report for Appointments; [ 09/13/2001  2:13 PM ]
- ;;5.3;Scheduling;**11,46,1007**;Aug 13, 1993
+SDAMOS ;ALB/CAW - Statistical Report for Appointments;4/15/92
+ ;;5.3;Scheduling;**11,46,1007,1015**;Aug 13, 1993;Build 21
  ;SCK - 5/18/93 MODS FOR APP CLININCS AND STOP CODES
  ;IHS/ANMC/LJF  9/29/2000 added call to list manager
  ;                        fixed code to display dashes correctly
  ;             10/25/2000 changed 132 column message
  ;cmi/anch/maw  8/14/2007 PATCH 1007 removed clinic stop as selectable report if division only
  ;
-STATS ;EP
+STATS ;
  N OPT,SDFIN
  K ^TMP("SDAMS",$J)
  S SDFIN=0,SDSORT=SDSEL

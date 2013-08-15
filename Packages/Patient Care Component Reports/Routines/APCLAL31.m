@@ -1,5 +1,5 @@
 APCLAL31 ; IHS/CMI/LAB - list ALCOHOL screenings ; 
- ;;2.0;IHS PCC SUITE;**2,4**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,4,8**;MAY 14, 2009;Build 2
  ;
  ;
 PROC ;
@@ -46,7 +46,7 @@ BHALCS(P,BDATE,EDATE) ;
  ..;PRIMARY PROVIDER CHECK
  ..S X=$$BHPPIN(V)
  ..I $D(APCRPROV),X="" Q  ;want only certain primary providers on visit
- ..I $D(APCRPROV),'$D(APCRPROV(X)) Q  ;want one provider and it's not this one
+ ..I $D(APCRPROV),APCRPROV'=X Q  ;want one provider and it's not this one
  ..I APCRPPUN,X'="" Q  ;want only unknown and this one has a primary provider
  ..;get measurements AUDC, AUDT, CRFTT
  ..S X=0 F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X!(R]"")  D
@@ -163,7 +163,7 @@ PCCALCS(P,BDATE,EDATE) ;EP - get alcohol screening from pcc
  ..;PRIMARY PROVIDER CHECK
  ..S X=$$PRIMPROV^APCLV(V)
  ..I $D(APCRPROV),X="" Q  ;want only certain primary providers on visit
- ..I $D(APCRPROV),'$D(APCRPROV(X)) Q  ;want one provider and it's not this one
+ ..I $D(APCRPROV),APCRPROV'=X Q  ;want one provider and it's not this one
  ..I APCRPPUN,X'="" Q  ;want only unknown and this one has a primary provider
  ..S R=$$PCCSCR(V)
  Q R
@@ -179,7 +179,7 @@ PCCSCR(V) ;is there a screening?  return in R
  .I M="AUDC"!(M="AUDT")!(M="CRFT") D
  ..S E=$P($G(^AUPNVMSR(X,12)),U,4)
  ..I $D(APCRSPRV),E="" Q  ;want only certain SCR providers on visit
- ..I $D(APCRSPRV),'$D(APCRSPRV(E)) Q  ;want one provider and it's not this one
+ ..I $D(APCRSPRV),APCRSPRV'=E Q  ;want one provider and it's not this one
  ..I APCRSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ..;check result
  ..S E=$P(^AUPNVMSR(X,0),U,4)
@@ -203,7 +203,7 @@ PCCSCR(V) ;is there a screening?  return in R
  .I M="ALCOHOL SCREENING" D
  ..S E=$P($G(^AUPNVXAM(X,12)),U,4)
  ..I $D(APCRSPRV),E="" Q  ;want only certain SCR providers on visit
- ..I $D(APCRSPRV),'$D(APCRSPRV(E)) Q  ;want one provider and it's not this one
+ ..I $D(APCRSPRV),APCRSPRV'=E Q  ;want one provider and it's not this one
  ..I APCRSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ..;check result
  ..S E=$P(^AUPNVXAM(X,0),U,4)
@@ -219,7 +219,7 @@ PCCSCR(V) ;is there a screening?  return in R
  .I $P(^AUTTHF($P(^AUTTHF(M,0),U,3),0),U)="ALCOHOL/DRUG" D
  ..S E=$P($G(^AUPNVHF(X,12)),U,4)
  ..I $D(APCRSPRV),E="" Q  ;want only certain SCR providers on visit
- ..I $D(APCRSPRV),'$D(APCRSPRV(E)) Q  ;want one provider and it's not this one
+ ..I $D(APCRSPRV),APCRSPRV'=E Q  ;want one provider and it's not this one
  ..I APCRSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ..;check result
  ..I $$VAL^XBDIQ1(9000010.23,X,.01)="CAGE 0/1",'$D(APCRREST(1)) Q
@@ -291,7 +291,7 @@ PCCV(S,PAT) ;
  Q T
 SCRNPCC(T) ;get screening provider based on v file
  NEW S,F
- S F=1202
+ S F=1204
  I $P(T,U,5)=9000010.16!($P(T,U,5)=9000010.23) S F=".05"
  S S=$$VAL^XBDIQ1($P(T,U,5),$P(T,U,6),F)
  I S]"" Q S

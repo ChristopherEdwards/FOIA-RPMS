@@ -1,5 +1,5 @@
 SCUTBK1 ;ALB/MJK - Scheduling Broker Utilities ;[ 03/08/95  3:41 PM ]
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,297,498,1015**;AUG 13, 1993;Build 21
  ;
  Q
  ;
@@ -26,6 +26,7 @@ LOCKC(SCOK,SC) ; -- broker callback to lock/unlock a node
  ;
  ; -- array parsing
  S SCNODE=$G(SC("NODE"))
+ I SCNODE[",)" S SCOK=1 Q
  ;
  IF SCNODE]"" D
  . IF $G(SC("LOCKMODE")) D
@@ -89,7 +90,7 @@ PRTP(SCACTV,SC) ;
  D CHK^SCUTBK
  ;
  I $G(SC("IEN"))=0 D  G PRTPQ
- . S SCATV=0
+ . S SCACTV=0
  S SCIEN=SC("IEN")
  ;
  S SCKDT=""

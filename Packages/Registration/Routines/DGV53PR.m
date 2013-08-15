@@ -1,5 +1,5 @@
 DGV53PR ;alb/mjk - DG Application Specific Init Driver for v5.3 ; 3/26/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- main entry point
  D LINE^DGVPP,DD     ; bene travel

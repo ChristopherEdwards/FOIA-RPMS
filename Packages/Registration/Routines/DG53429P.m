@@ -1,5 +1,5 @@
 DG53429P ;ALB/AEG -2002 MEANS TEST THRESHOLDS ;12/3/01
- ;;5.3;Registration;**429**;Aug 13, 1993
+ ;;5.3;Registration;**429,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will upload the 2002 means test thresholds onto your
  ; system.

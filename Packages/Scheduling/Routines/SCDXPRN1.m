@@ -1,5 +1,5 @@
 SCDXPRN1 ;ALB/JRP - HISTORY FILE REPORTS;21-JUL-1997
- ;;5.3;Scheduling;**128,140**;AUG 13, 1993
+ ;;5.3;Scheduling;**128,140,1015**;AUG 13, 1993;Build 21
  ;
 PATHIST ;Print transmission history report for patient
  ; - Report based within the ACRP Transmission History file (#409.77)

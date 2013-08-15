@@ -1,5 +1,5 @@
-TIUFLF7 ; SLC/MAM - Library; File 8925.1: POSSTYPE(PFILEDA),TYPELIST(NAME,FILEDA,PFILEDA,TYPEMSG,TYPELIST),EDTYPE(FILEDA,NODE0,PFILEDA,XFLG,USED),DUPNAME(NAME,FILEDA),DUPITEM(NAME,PFILEDA,FILEDA) ;15-NOV-1999 10:31:38
- ;;1.0;TEXT INTEGRATION UTILITIES;**2,17,90**;Jun 20, 1997
+TIUFLF7 ; SLC/MAM - Library; File 8925.1: POSSTYPE(PFILEDA),TYPELIST(NAME,FILEDA,PFILEDA,TYPEMSG,TYPELIST),EDTYPE(FILEDA,NODE0,PFILEDA,XFLG,USED),DUPNAME(NAME,FILEDA),DUPITEM(NAME,PFILEDA,FILEDA),DDEFIEN(TIUDEFNM,etc) ;5/2/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**2,17,90,184**;Jun 20, 1997
  ;
 POSSTYPE(PFILEDA) ; Function returns possible Types an Entry may have to
  ;be consistent with its parent, e.g. ^CL^DC^
@@ -36,7 +36,7 @@ TYPELIST(NAME,FILEDA,PFILEDA,TYPEMSG,TYPELIST) ; Module sets list of possible ty
  . I DUPNAME[(U_TYPE_U) S:TYPE'="DOC" REST=$S(REST'="":REST_" or "_TYPE,1:TYPE) S:TYPE="DOC" REST=$S(REST'="":REST_" or TL",1:"TL") Q
  . I TYPE="O" D  Q
  . . I FDATYPE'="" Q
- . . I '$$BADNAP^TIUFLF1(NAME,FILEDA,1) S TYPELIST=TYPELIST_U_TYPE Q
+ . . I '$$BADNAP^TIUFLF1(NAME,FILEDA,1) S TYPELIST=TYPELIST_U_TYPE Q 
  . . S TYPEMSG("O")=" Type cannot be Object; Object would be ambiguous"
  . S TYPELIST=TYPELIST_U_TYPE
  I TYPELIST'="" S TYPELIST=TYPELIST_U
@@ -104,4 +104,39 @@ READTYP K DUOUT S TYPE=$S(DEFLT'="":$$SELTYPE^TIUFLF8(FILEDA,DEFLT),1:$$SELTYPE^
  S NODE0=^TIU(8925.1,FILEDA,0)
 EDTYX S:$D(DUOUT)!$D(DTOUT) XFLG=1
  Q
+ ;
+DDEFIEN(TIUDEFNM,TIUTYPE) ; Function gets IEN (and more) of Doc Def
+ ;Requires TIUDEFNM - .01 name of Title, Docmt Class or Class in
+ ;                    the Document Definition file #8925.1
+ ;Requires TIUTYPE - Expected type of DDEF: TL or DC or CL
+ ;Returns IEN^STATUS^NATL if exactly one DDEF of type TIUTYPE
+ ;        is found
+ ;     or 0^ErrMsg
+ ; NOTE: Only ONE DDEF of a given type is allowed in 8925.1.
+ ;       If DDEFs are created using TIU DDEF options, that is enforced.
+ ;       If DDEFs are created in a patch, the patch MUST
+ ;         enforce it.
+ ;As a precaution,  this module returns 0^ErrMsg if duplicates are found.
+ ;However, TIU code ASSUMES there are no duplicates within a type.
+ N TIUDEFDA,GOTIT,ERRMSG,TIUNODE0
+ S TIUTYPE=$G(TIUTYPE)
+ I TIUTYPE'="TL",TIUTYPE'="DC",TIUTYPE'="CL" Q "0^Type Required"
+ I TIUTYPE="TL" S TIUTYPE="DOC"
+ S TIUDEFDA=0
+ ; -- Not in B xref:
+ I '$O(^TIU(8925.1,"B",TIUDEFNM,0)) S ERRMSG="0^Entry not found" Q ERRMSG
+ F  S TIUDEFDA=+$O(^TIU(8925.1,"B",TIUDEFNM,TIUDEFDA)) Q:TIUDEFDA'>0  D  Q:$D(ERRMSG)
+ . S TIUNODE0=$G(^TIU(8925.1,TIUDEFDA,0))
+ . ; -- Not in file or not right type:
+ . I $P(TIUNODE0,U,4)'=TIUTYPE Q
+ . ; -- Second good one:
+ . I $D(GOTIT) S ERRMSG="0^Duplicates found" Q
+ . ; -- First good one; set GOTIT=IEN^STATUS^NATL:
+ . S GOTIT=TIUDEFDA_U_$P(TIUNODE0,U,7)_U_$P(TIUNODE0,U,13)
+ ; -- Not in B xref, or dups:
+ I $D(ERRMSG) Q ERRMSG
+ ; Good one w/o dups:
+ I $D(GOTIT) Q GOTIT
+ ; In B xref but not in file, or bad type:
+ Q "0^Entry not found"
  ;

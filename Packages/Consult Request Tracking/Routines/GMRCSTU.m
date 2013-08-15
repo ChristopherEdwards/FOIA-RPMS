@@ -1,5 +1,6 @@
-GMRCSTU ;SLC/DCM,dee - Statistic Utilities for C/RT ;09/26/02 10:16
- ;;3.0;CONSULT/REQUEST TRACKING;**1,7,29,30**;DEC 27, 1997
+GMRCSTU ;SLC/DCM,dee - Statistic Utilities for C/RT ;07-Dec-2011 14:48;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,7,29,30,1002**;DEC 27, 1997;Build 1
+ ; Modified - IHS/MSC/PLS - 09/20/2011 - Line EN+9
  Q
  ;
 GETDT(GMRCO) ;get the date that the consult/request was accepted by service
@@ -21,9 +22,11 @@ EN ;
  ;Get the date range
  D ^GMRCSPD
  G:$D(GMRCQUT) KILL
+ ;patch 1002 Check for test patients
+ S GMRTST=$$TESTPT^GMRCPC1()
  Q
  ;
-ENOR(RETURN,GMRCSRVC,GMRCDT1,GMRCDT2) ;Entry point for GUI interface.
+ENOR(RETURN,GMRCSRVC,GMRCDT1,GMRCDT2,GMRTST) ;Entry point for GUI interface.
  ;.RETURN:   This is the root to the returned temp array.
  ;GMRCSRVC:  Service for which consults are to be displayed.
  ;GMRCDT1:  Starting date or "ALL"
@@ -58,7 +61,7 @@ ODT ;List Manager entry point
  ;
 ODTSTR ;Find the mean, standard deviation of how long to complete a consult from when it is accepted in the service to when it is complete
  N RCVDT,COMPLDT,INDEX,TEMPTMP,GROUPER,TAB
- N GMRCDG,GMRCDGT,GMRCDT
+ N GMRCDG,GMRCDGT,GMRCDT,GMRCZERO
  N GMRCGRP,GMRCND,GMRCO,ND,X,X1,X2
  I '$O(^TMP("GMRCSLIST",$J,0)) S GMRCQUT=1 G KILL
  S INDEX=0
@@ -83,7 +86,11 @@ ODTSTR ;Find the mean, standard deviation of how long to complete a consult from
  ..S GMRCDT=""
  ..F  S GMRCDT=$O(^GMR(123,"AE",ND,2,GMRCDT)) Q:GMRCDT=""  D
  ...S GMRCO=0
+ ...;patch 1002 screen out test pts if desired
  ...F  S GMRCO=$O(^GMR(123,"AE",ND,2,GMRCDT,GMRCO)) Q:GMRCO=""  D  W:GMRCWRIT&'(GMRCND#25) "."
+ ....S GMRCZERO=^GMR(123,GMRCO,0)
+ ....Q:($E($P(^DPT($P(GMRCZERO,"^",2),0),"^",9),1,5)="00000")&(GMRTST="E")
+ ....Q:($E($P(^DPT($P(GMRCZERO,"^",2),0),"^",9),1,5)'="00000")&(GMRTST="D")
  ....D GETDT(GMRCO)
  ....I COMPLDT<9999999,$S(GMRCDT1="ALL":1,RCVDT'<GMRCDT1&(RCVDT'>GMRCDT2):1,1:0) D
  .....S X1=COMPLDT

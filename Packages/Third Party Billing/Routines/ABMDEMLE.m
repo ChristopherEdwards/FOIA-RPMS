@@ -1,5 +1,5 @@
 ABMDEMLE ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;
- ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
  ; IHS/SD/SDR - v2.5 p6 - 7/9/04 - IM14079 and IM14121 - Edited code for TOS
@@ -37,6 +37,12 @@ E2 W !!!,"[",+Y,"]  ",$P(ABMZ(+Y),U) S ABMX("Y")=+Y
  ;only execute MOD2^ABMDEMLC if it is not a tran code entry (Chargemaster)
  I $P(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),$P(ABMZ(ABMX("Y")),U,2),0),U,17)'["|TC" D
  .I $D(ABMZ("MOD")),$P($G(^ABMDPARM(DUZ(2),1,2)),"^",5) D MOD2^ABMDEMLC S ABMZ("DR")=ABMZ("DR")_ABMZ("CHRG")_"////"_ABMZ("MODFEE")
+ ;start new code abm*2.6*9 NARR
+ I ABMZ("SUB")>21,ABMZ("SUB")<47,ABMZ("SUB")'=41,$D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMZIEN)) D
+ .Q:$P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010"  ;only 5010 formats
+ .S ABMCNCK=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMZIEN,0))
+ .I ABMCNCK,$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMCNCK,0)),U,2)="Y" S ABMZ("DR")=ABMZ("DR")_";22"
+ ;end new code NARR
  G XIT:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
  I $D(ABMZ("DIAG")) D DX^ABMDEMLC G XIT:$D(DTOUT)!$D(DUOUT)!$D(DIROUT) S ABMZ("DR")=ABMZ("DR")_ABMZ("DIAG")_"////"_$G(Y(0))
  I $D(ABMZ("NARR")),$P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3)) D
@@ -45,7 +51,7 @@ E2 W !!!,"[",+Y,"]  ",$P(ABMZ(+Y),U) S ABMX("Y")=+Y
  .I $G(ABMZ("SUB"))=17&($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,13)="Y")&(($E(ABMP("BTYP"),1,2)=11)!($E(ABMP("BTYP"),1,2)="12")) S ABMZ("DR")=ABMZ("DR")_";.05//"
  ; don't do POS if page 5 (Dxs)
  I $G(ABMZ("SUB"))'=17 D
- .D POSA^ABMDEMLC
+ .;D POSA^ABMDEMLC  ;abm*2.6*9 NOHEAT
  .I ABMP("EXP")'=21,(ABMP("EXP")'=22),(ABMP("EXP")'=23) D TOSA^ABMDEMLC  ;don't do for 837 formats
  ;I $G(ABMZIEN)'="",((ABMZIEN>79999)&(ABMZIEN<90000))!($P($$CPT^ABMCVAPI(ABMZIEN,ABMP("VDT")),U,2)="G0107") D  ;G0107 or Lab charges only  ;CSV-c  ;abm*2.6*3 HEAT11696
  ;I $G(ABMZIEN)'="",((ABMZIEN>79999)&(ABMZIEN<90000))!($P($$CPT^ABMCVAPI(ABMZIEN,ABMP("VDT")),U,2)="G0107")!(ABMZIEN=36415) D  ;G0107 or Lab charges only  ;CSV-c  ;abm*2.6*3 HEAT11696  ;abm*2.6*8 HEAT40295

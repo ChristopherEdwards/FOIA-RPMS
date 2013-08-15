@@ -1,6 +1,8 @@
 LRAPT1 ;AVAMC/REG/WTY - ANATOMIC PATH PRINT ;10/16/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,173,259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1002,1003,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 72,173,259
+ ;
  S LRSF515=+$G(LRSF515)  ;Indicates an SF515 is being generated
  I LRSF515 D:$Y>(IOSL-13) F^LRAPF,^LRAPF
  I 'LRSF515 D H S LR("F")=1
@@ -28,5 +30,6 @@ H I $D(LR("F")),$E(IOST,1,2)["C-" D M^LRU Q:LR("Q")
  .W !,$S($D(LRO(68)):LRO(68),1:LRAA(1))," QA from ",LRSTR
  .W " to ",LRLST
  W !,LR("%")
- W !,LRP,?32,"SSN:",SSN,?48,"DOB:",DOB
+ ; W !,LRP,?32,"SSN:",SSN,?48,"DOB:",DOB
+ W !,LRP,?32,"HRCN:",$G(HRCN),?48,"DOB:",DOB     ; IHS/MSC/MKK - LR*5.2*1031
  Q

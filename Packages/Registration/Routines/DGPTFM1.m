@@ -1,5 +1,5 @@
-DGPTFM1 ;ALB/MTC - MASTER DIAG/OP/PRO CODE ENTER/EDIT ; 11 MAR 91
- ;;5.3;Registration;**114**;Aug 13, 1993
+DGPTFM1 ;ALB/MTC - MASTER DIAG/OP/PRO CODE ENTER/EDIT ;4/4/05 3:08pm
+ ;;5.3;Registration;**114,517,635,1015**;Aug 13, 1993;Build 21
  ;
 D G D^DGPTFM0
  ;
@@ -39,8 +39,10 @@ C1 R !!,"Enter the item #'s of the ICD operation codes to delete: ",A1:DTIME
  S:'$T A1=U I A1'?1N.NP G ^DGPTFM:"^"[A1 W:A1'["?" "  ???",*7 D C^DGPTFM0 G C1
  S A=A_A1
 CEL D EXPL^DGPTUTL
- K X,A1 S DIE="^DGPT("_PTF_",""S"",",DA(1)=PTF W !!
- F J=1:1 S DP=45.01,L=+$P(DGA,",",J) Q:'L  S L1=$S($D(S2(L)):S2(L),1:"Undefined, ") W:'L1 " ",L,"-",L1 I L1 S (DA,DGSUR)=+S(+L1,1),(DA(1),DGPTF)=PTF,DR=7+$P(S2(+L),U,2)_"///@" D ^DIE,CEL1
+ K X,A1 S DA(1)=PTF,DP=45.01 W !!
+ F J=1:1 S L=+$P(DGA,",",J),DIE="^DGPT("_PTF_",""S""," Q:'L  D
+ .S L1=$S($D(S2(L)):S2(L),1:"Undefined, ") W:'L1 " ",L,"-",L1
+ .I L1 S (DA,DGSUR)=+S(+L1,1),(DA(1),DGPTF)=PTF,DR=7+$P(S2(+L),U,2)_"///@" D ^DIE,CEL1
  H 3 S ST=1 G ^DGPTFM
  ;
 CEL1 ;
@@ -79,3 +81,8 @@ MVT ;
  N PTF,DGPMAN
  S DGPMT=6 D CA^DGPMV S DGPMDA=+Y
  K DGPMT Q
+I G ADD^DGPTFM2
+Y G DEL^DGPTFM2
+N G N^DGPTFM2
+G G DC^DGPTFM2
+F G F^DGPTFM2

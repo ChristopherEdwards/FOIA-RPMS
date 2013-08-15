@@ -1,12 +1,14 @@
-GMRCSTL2 ;SLC/DCM,dee;MA - List Manager Format Routine - Get Active Consults by service - pending,active,scheduled,incomplete,etc. ;4/18/01  10:31
- ;;3.0;CONSULT/REQUEST TRACKING;**7,21,22**;DEC 27, 1997
+GMRCSTL2 ;SLC/DCM,dee;03-Jan-2012 11:02;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**7,21,22,1001,1002**;DEC 27, 1997
  ; Patch #21 changed array GMRCTOT to ^TMP("GMRCTOT",$J)
  ; Patch #21 also added a plus sign to the $P when setting
+ ; Modified - IHS/MSC/MGH - 09/20/2011 - Line ONE+21
  ; GMRCDLA to check for a NULL value.
  ; This routine invokes IA #10035,#44, #10040
+ ; IHS/CIA/MGH Code change to use HRCN instead of SSN
  Q
  ;
-ONESTAT(GMRCARRN) ;Process one status
+ONESTAT(GMRCARRN,GMRTST) ;Process one status
  ; Input -- GMRCARRN  List Template Array Name (Subscript)
  ;          Values:
  ;          "CP": pending consults; "IFC": inter-facility consults
@@ -37,7 +39,13 @@ ONE .;Loop for one consult at a time
  ....I $D(GMRCRF),$P($G(GMRCD(0)),"^",23)'=GMRCRF S GMRCCK=0
  ..S GMRCPTN=$P(^DPT($P(GMRCD(0),"^",2),0),"^",1)
  ..S GMRCPTN=$P(GMRCPTN,",",1)_","_$E($P(GMRCPTN,",",2),1)_"."
- ..S GMRCPTSN="("_$E($P(^DPT($P(GMRCD(0),"^",2),0),"^",9),6,9)_")"
+ ..;IHS/CIA/MGH Code changed to use HRCN instead of SSN
+ ..;S GMRCPTSN="("_$E($P(^DPT($P(GMRCD(0),"^",2),0),"^",9),6,9)_")"
+ ..;Patch 1002 IHS/MSC/MGH Code changed to not use test pts if chosen
+ ..Q:($E($P(^DPT($P(GMRCD(0),"^",2),0),"^",9),1,5)="00000")&(GMRTST="E")
+ ..Q:($E($P(^DPT($P(GMRCD(0),"^",2),0),"^",9),1,5)'="00000")&(GMRTST="D")
+ ..S X=$$HRCN^GMRCMP($P(GMRCD(0),"^",2),+$G(DUZ(2)))
+ ..S GMRCPTSN="("_X_")"
  ..; IF Consults
  ..I GMRCARRN="IFC" D
  ...N GMRCIRF,RCVDT,COMPLDT,ND

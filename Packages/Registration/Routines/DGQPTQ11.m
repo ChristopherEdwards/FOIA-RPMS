@@ -1,5 +1,5 @@
 DGQPTQ11 ; SLC/CLA - Functs which return patient lists and sources pt 1B ;12/15/97
- ;;5.3;Registration;**447**;Aug 13, 1993
+ ;;5.3;Registration;**447,1015**;Aug 13, 1993;Build 21
  ;
  ; SLC/PKS - Modified to deal with "Combination" lists - 3/2000.
  ;

@@ -1,5 +1,5 @@
 DGPMV1 ;ALB/MRL/MIR/JAN - PATIENT MOVEMENT, CONT.; 11 APR 89 ; 6/14/01 11:51am
- ;;5.3;Registration;**59,358**;Aug 13, 1993
+ ;;5.3;Registration;**59,358,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  2/21/2001 Removed means test and enrollment messages
  ;
  K VAIP S VAIP("D")="L",VAIP("L")="" D INP^DGPMV10,Q^VADPT3

@@ -1,11 +1,12 @@
-PSGMAR3 ;BIR/CML3-24 HOUR MAR(HEADER,BOT) ;02-Nov-2011 15:21;DU
- ;;5.0; INPATIENT MEDICATIONS ;**8,20,85,1008,1013**;16 DEC 97;Build 33
+PSGMAR3 ;BIR/CML3-24 HOUR MAR(HEADER,BOT) ;25-May-2012 10:47;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**8,20,85,1008,1013,1014**;16 DEC 97;Build 5
  ;
  ;Modified - IHS/MSC/PLS - 12/09/08 - Line HEADER+3
  ;Modified - IHS/MSC/MGH - 11/01/11 - Line HEADER+12
+ ;           IHS/MSC/PLS - 05/24/12 - Line ATS+25
 HEADER ; pat info
  S:'$G(PSGXDT) PSGXDT=PSGDT
- S PSGFORM="VA FORM 10-"_$S(PST["C":"2970",1:"5568d")
+ S PSGFORM="FORM"  ;"VA FORM 10-"_$S(PST["C":"2970",1:"5568d")
  ;S PSGMAROC=0,(MSG1,MSG2)="",PSGL=$E("|",PST["C")_" " W:$G(PSGPG)&($Y) @IOF S PSGPG=1 W !,$S(PST["C":"CONTINUOUS",1:"ONE-TIME/PRN")_" SHEET",?60,"24 HOUR MAR",?86,PSGMARSP_"  through  "_PSGMARFP
  S PSGMAROC=0,(MSG1,MSG2)="",PSGL=$E("|",PST["C")_" " W:$G(PSGPG)&($Y) @IOF S PSGPG=1 W !,$S(PST["C":"CONTINUOUS",1:"ONE-TIME/PRN")_" SHEET",?30,"24 HOUR MAR",?60,PSGMARSP_"  through  "_PSGMARFP,?110,"Page ___ of ___"
  W !?5,$P($$SITE^PSGMMAR2(80),U,2),?101,"Printed on   "_$$ENDTC2^PSGMI(PSGXDT)
@@ -24,6 +25,7 @@ HEADER ; pat info
  Q
  ;
 ATS(PSGX) ;*** Print allergies and reactions.
+ N I,SAVE,SAVE1
  I '$D(PSGALG),'$D(PSGVALG),'$D(PSGADR),'$D(PSGVADR) Q
  I (PSGALG+PSGADR+PSGVALG+PSGVADR)<116 D  Q
  . I PSGALG(1)["NKA",(PSGVALG(1)["NKA") S PSGALG(1)=""
@@ -32,16 +34,23 @@ ATS(PSGX) ;*** Print allergies and reactions.
  . I PSGADR=20,(PSGADR(1)["_______") S PSGADR(1)=""
  . S:PSGVALG(1)="" PSGVALG(1)="No Allergy Assessment"
  . W !,"Allergies:  ",PSGVALG(1)," ",PSGALG(1),"   ADR: ",PSGVADR(1)," ",PSGADR(1)
+ .S PSGMAROC=PSGMAROC+1
  S PSGX=1
+ S SAVE=$Y
  W !!,"Verified Allergies:",!
- F X=0:0 S X=$O(PSGVALG(X)) Q:'X  W ?12,PSGVALG(X),!
- W !,"Non-Verified Allergies:",!
- F X=0:0 S X=$O(PSGALG(X)) Q:'X  W ?12,PSGALG(X),!
- W !,"Verified Adverse Reactions:",!
- F X=0:0 S X=$O(PSGVADR(X)) Q:'X  W ?12,PSGVADR(X),!
- W !,"Non-Verified Adverse Reactions:",!
- F X=0:0 S X=$O(PSGADR(X)) Q:'X  W ?12,PSGADR(X),!
+ F X=0:0 S X=$O(PSGVALG(X)) Q:'X  W ?2,PSGVALG(X),!
+ W "Non-Verified Allergies:",!
+ F X=0:0 S X=$O(PSGALG(X)) Q:'X  W ?2,PSGALG(X),!
+ W "Verified Adverse Reactions:",!
+ F X=0:0 S X=$O(PSGVADR(X)) Q:'X  W ?2,PSGVADR(X),!
+ W "Non-Verified Adverse Reactions:",!
+ F X=0:0 S X=$O(PSGADR(X)) Q:'X  W ?2,PSGADR(X),!
+ ;IHS/MSC/MGH Patch 1014
  ;K PSGALG,PSGADR,PSGVALG,PSGVADR
+ S SAVE=$Y-(SAVE-3)
+ S SAVE1=SAVE\6
+ S PSGMAROC=SAVE1
+ S APSPATS=1
  Q
 TMSTR ;*** Set up the Admin times to print across on the the 24 hour MAR.
  W ?59 S MPH=PSGPLS\1,(HRS,TIM)="" F MPH=1:1:$L(TMSTR,"-") S HRS=HRS_$E($P(TMSTR,"-",MPH),1,2)_"-"

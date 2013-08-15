@@ -1,5 +1,5 @@
 DGPMBSG2 ;ALB/LM - BED STATUS ABSENCE REMAINING; 6 JUNE 90
- ;;5.3;Registration;**34**;Aug 13, 1993
+ ;;5.3;Registration;**34,1015**;Aug 13, 1993;Build 21
  ;
 A Q:$S('$D(REM):1,REM:1,1:0)  ;  +/- from previous day
  Q:$S('$D(M):1,'M:1,1:0)  ;  Movement type unknown

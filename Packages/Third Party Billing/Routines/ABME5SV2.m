@@ -1,5 +1,5 @@
 ABME5SV2 ; IHS/ASDST/DMJ - 837 SV2 Segment 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,9**;NOV 12, 2009
  ;Transaction Set Header
  ;
 EP ;EP
@@ -38,6 +38,7 @@ LOOP ;LOOP HERE
  ..S J=J+1
  ..S $P(ABMR("SV2",30),":",J)=$P(ABMRV(ABMI,ABMJ,ABMK),U,I)
  .;SV202-7 Description (Not used)
+ I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,39)'="" S $P(ABMR("SV2",30),":",7)=$P($G(ABMRV(ABMI,ABMJ,ABMK)),U,39)  ;abm*2.6*9 NARR
  Q
 40 ;SV203 - Monetary Amount (Charges)
  S ABMR("SV2",40)=$P(ABMRV(ABMI,ABMJ,ABMK),U,6)

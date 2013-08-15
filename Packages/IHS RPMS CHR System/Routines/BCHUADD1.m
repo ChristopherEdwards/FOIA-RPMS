@@ -1,11 +1,12 @@
-BCHUADD1 ; IHS/TUCSON/LAB - NO DESCRIPTION PROVIDED ;  [ 05/06/04  10:55 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**9,14,16**;OCT 28, 1996
+BCHUADD1 ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - fixed dir call to allow 1-30 characters
  ;
  ;
 GETPAT ;EP
  W:$D(IOF) @IOF W !!!!!?15,"******   P A T I E N T   I N F O R M A T I O N   ******",!!
- W !,"If this encounter involved a particular patient, please enter the patient's",!,"chart # or name now.  If this is not a single patient encounter,",!,"but a group encounter, simply HIT the RETURN key to continue.",!
+ W !,"If this encounter involved a particular patient, please enter the patient's",!,"chart # or name now.  If this is not a single patient encounter,",!,"but a group encounter or an Non-Patient encounter, simply HIT the"
+ W !,"ENTER key to exit back and Enter N for All Other Activities.",!
  W !,"Please enter the patient information now.",!
  S DFN=""
  S DIR(0)="FO^1:30",DIR("A")="Enter PATIENT NAME or CHART #"
@@ -19,31 +20,18 @@ GETPAT ;EP
  S DIR("?",8)="     given the opportunity to capture the patient's demographic"
  S DIR("?",9)="     data on the following screen."
  S DIR("?",10)=""
- S DIR("?",11)="     Registered patient demographic data can only be edit via the"
+ S DIR("?",11)="     Registered patient demographic data can only be edited via the"
  S DIR("?")="     Patient Registration system."
  D ^DIR K DIR S:$D(DUOUT) DIRUT=1
- I Y="" W !!,"No patient entered.",! Q
+ I X="" W !!,"No Patient entered.  Required " G ASK
  I $D(DIRUT) W !,"No patient entered!! - Required." G ASK
  S (X,BCHNAME)=Y,DIC="^AUPNPAT(",DIC(0)="MQE" D ^DIC K DIC
+ ;I X="" W !!,"No Patient entered.  If this is not a patient related encounter use the ",!,"'All Other Activities option'.",! D PAUSE^BCHUTIL1 Q
  I Y=-1 D NOREG Q
  W !?25,"Ok" S %=1 D YN^DICN I %'=1 W !!,"Try again.",! G GETPAT
  S DFN=+Y D DIRX^BCHUADD S BCHF=".04",BCHV=""
  S DIE="^BCHR(",DA=BCHR,DR=".04///`"_DFN D ^DIE K DA,DIE,DR
  I $D(Y) W !!,"PATIENT NOT VALID!  TRY AGAIN" K Y G GETPAT
- ;backfill pt ptr in CHR POV
- S BCHX=0 F  S BCHX=$O(^BCHRPROB("AD",BCHR,BCHX)) Q:BCHX'=+BCHX  D
- .S DIE="^BCHRPROB(",DA=BCHX,DR=".02////"_DFN,DITC=""
- .D ^DIE
- .K DIE,DA,DR,DIU,DIV,DIW,DIY,DITC
- .I $D(Y) W !,"error updating pov's with patient, NOTIFY PROGRAMMER" H 5
- .Q
- K BCHX
- S BCHX=0 F  S BCHX=$O(^BCHRPED("AD",BCHR,BCHX)) Q:BCHX'=+BCHX  D
- .S DIE="^BCHRPED(",DA=BCHX,DR=".02////"_DFN,DITC=""
- .D ^DIE
- .K DIE,DA,DR,DIU,DIV,DIW,DIY,DITC
- .I $D(Y) W !,"error updating education's with patient, NOTIFY PROGRAMMER" H 5
- .Q
  Q
  ;
 NOREG ;
@@ -51,29 +39,69 @@ NOREG ;
  W ! S DIR(0)="Y",DIR("A")="Do you want to try to lookup the patient in registration again",DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  I $D(DIRUT) W !,"Exiting..." S BCHQUIT=1 Q
  I Y G GETPAT
+ W !!,"Please select a patient from the Non-Registered Patient Database",!,"or enter a new Non-Registered Patient.",!
+ S DIC("B")=BCHNAME S DIC="^BCHRPAT(",DIC(0)="AEMQL" D ^DIC K DIC
  ;SCREENMAN CALL
- S DIE="^BCHR(",DA=BCHR,DR="1101///"_BCHNAME D ^DIE K DIE,DR,DA,DIU,DIV,DIW
- S DA=BCHR,DDSFILE=90002,DR="[BCH ENTER PATIENT DATA]" D ^DDS
- K DR,DA,DDSFILE,DIC,DIE
- I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S BCHQUIT=1 K DIMSG Q
- Q:$G(^BCHR(BCHR,11))]""
- W !!,"No patient name entered!! This is required!! "
+ ;S DIE="^BCHR(",DA=BCHR,DR="1101///"_BCHNAME D ^DIE K DIE,DR,DA,DIU,DIV,DIW
+ ;S DA=BCHR,DDSFILE=90002,DR="[BCH ENTER PATIENT DATA]" D ^DDS
+ ;K DR,DA,DDSFILE,DIC,DIE
+ ;I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S BCHQUIT=1 K DIMSG Q
+ ;Q:$G(^BCHR(BCHR,11))]""
+ I Y=-1 W !!,"A patient is Required" G ASK
+ S BCHNRPAT=+Y
+ I $P(Y,U,3) D  I 1
+ .W !!,"Please review and update if necessary this non-registered patient's data:"
+ .S DIE="^BCHRPAT(",DR="[BCH EDIT NON REG PT]",DA=BCHNRPAT D ^DIE K DA,DIE,DR
+ E  D
+ .W !!,"You now have the opportunity to update this patient's demographic data,"
+ .W !,"(DOB, Gender, Community of Residene, Tribe)",!
+ .S DIR(0)="Y",DIR("A")="Do you want to update this patient's demographic information?",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ .I 'Y Q
+ .I $D(DIRUT) Q
+ .S DIE="^BCHRPAT(",DR="[BCH EDIT NON REG PT]",DA=BCHNRPAT D ^DIE K DA,DIE,DR
+ ;UPDATE CHR RECORD FILE
+ S DA=BCHR,DIE="^BCHR(",DR="1112////"_BCHNRPAT D ^DIE K DA,DIE,DR
+ Q
 ASK ;
  S DIR(0)="Y",DIR("A")="Do you wish to EXIT and DELETE this record",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  I $D(DIRUT) S BCHQUIT=1 Q
  I Y S BCHQUIT=1 Q
  G GETPAT
- Q
  ;
 RECCHECK ;EP 
  K BCHOKAY,BCHERROR
  S BCHR0=^BCHR(BCHR,0)
  I $P(BCHR0,U,2)="" W !,"PROGRAM Missing!  " S BCHERROR=1
- I $P(BCHR0,U,3)="" W !,"PROVIDER Missing!  " S BCHERROR=1
- I $P(BCHR0,U,6)="" W !,"Activity Location Missing!  " S BCHERROR=1
- I '$D(^BCHRPROB("AD",BCHR)) W !!,"POV MISSING!  " S BCHERROR=1
- Q
+ I $P(BCHR0,U,3)="" W !,"PROVIDER/CHR Missing!  " S BCHERROR=1
+ I $P(BCHR0,U,6)="" W !,"ACTIVITY LOCATION Missing!  " S BCHERROR=1
+ I $P(BCHR0,U,11)="" W !,"TRAVEL TIME Missing!" S BCHERROR=1
+ I $P(BCHR0,U,12)="" W !,"# SERVED Missing!" S BCHERROR=1
+ I '$D(^BCHRPROB("AD",BCHR)) W !,"At least one ASSESSMENT/POV is Required and is Missing!  " S BCHERROR=1
+ NEW X,Y
+ S X=0 F  S X=$O(^BCHRPROB("AD",BCHR,X)) Q:X'=+X  D
+ .I $P(^BCHRPROB(X,0),U,1)="" W !,"Assessment Problem code Missing!" S BCHERROR=1
+ .I $P(^BCHRPROB(X,0),U,4)="" W !,"Service Code for Assessment ",$$VAL^XBDIQ1(90002.01,X,.01)," is Missing!" S BCHERROR=1
+ .I $P(^BCHRPROB(X,0),U,5)="" W !,"Service Minutes for Assessment ",$$VAL^XBDIQ1(90002.01,X,.01)," is Missing!" S BCHERROR=1
+ .I $P(^BCHRPROB(X,0),U,6)="" W !,"Narrative for Assessment ",$$VAL^XBDIQ1(90002.01,X,.01)," is Missing!" S BCHERROR=1
+ I $P(^BCHR(BCHR,0),U,4)="",$P($G(^BCHR(BCHR,11)),U,12)="" G E
+ I '$P(^BCHR(BCHR,0),U,12) G E  ;non patient
+ I $P(^BCHR(BCHR,0),U,29) G E
+ I '$O(^BCHR(BCHR,41,0)) W !,"REFERRED TO CHR BY is Missing and is Required!  " S BCHERROR=1
+ I '$O(^BCHR(BCHR,42,0)) W !,"REFERRED BY CHR TO is Missing and is Required!  " S BCHERROR=1
+E ;do you wish to edit?  if not, delete, if yes, go back to edit
+ Q:'$G(BCHERROR)
+ S DIR(0)="S^E:Edit the Record and Correct the Error;D:Delete the Record",DIR("A")="Do you wish to",DIR("B")="E" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ I $G(BCHUEDT) D EDIT Q
+ I Y="D" Q
+ D GETRECD^BCHUADD
+ G RECCHECK
+EDIT ;
+ I Y="D" D EXITMSG^BCHUADD S BCHRWDEL=1 Q
+ D 2^BCHUEDT
+ G RECCHECK
 PROTOCOL ;PEP - announce chr record has been added
+ Q  ;NO PCC LINK PER V2.0 SPECS
  D SETARRAY
  S X=+$O(^ORD(101,"B","BCH CHR RECORD EVENT",0))_";ORD(101,"
  D EN^XQOR
@@ -98,4 +126,18 @@ SETARRAY ;set up array for pcc protocol call
  .Q:$P(^BCHRPED(X,0),U)=""
  .S C=C+1,BCHEV("EDUC",C)=^BCHRPED(X,0)
  K C,X
+ Q
+UPNONREG ;EP
+ W !!,"Please select a patient from the Non-Registered Patient Database",!,"or enter a new Non-Registered Patient.",!
+ S DIC="^BCHRPAT(",DIC(0)="AEMQL" D ^DIC K DIC
+ ;SCREENMAN CALL
+ ;S DIE="^BCHR(",DA=BCHR,DR="1101///"_BCHNAME D ^DIE K DIE,DR,DA,DIU,DIV,DIW
+ ;S DA=BCHR,DDSFILE=90002,DR="[BCH ENTER PATIENT DATA]" D ^DDS
+ ;K DR,DA,DDSFILE,DIC,DIE
+ ;I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S BCHQUIT=1 K DIMSG Q
+ ;Q:$G(^BCHR(BCHR,11))]""
+ I Y=-1 K DIC,Y Q
+ S BCHNRPAT=+Y
+ W !!,"Please review and update if necessary this non-registered patient's data:"
+ S DIE="^BCHRPAT(",DR="[BCH EDIT NON REG PT]",DA=BCHNRPAT D ^DIE K DA,DIE,DR
  Q

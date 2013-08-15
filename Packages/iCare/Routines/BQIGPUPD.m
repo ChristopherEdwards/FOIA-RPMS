@@ -1,13 +1,15 @@
 BQIGPUPD ;PRXM/HC/ALA-Update iCare with new GPRA ; 08 Oct 2007  2:24 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 GCHK(UPDATE) ;EP - Check CRS year
  NEW BGPYR,BQIYR,BGPIN,BQIN1,BQIN2,BQIN3,VER,BQIH,BQIMEASF,CODE,EXCEPT,DEF
  NEW GCLIN,GOAL,HDR,HELP,IEN,MDATA,MIEN,PDIR,RCAT,RCLIN,RCODE,SOURCE,TEXT,TPI
- NEW NSOURCE,LY
+ NEW NSOURCE,LY,BQGYRN,PRVID,IPC
  S BGPYR=$O(^BGPCTRL("B",""),-1),BGPIN=$O(^BGPCTRL("B",BGPYR,0))
  S BQIH=$$SPM^BQIGPUTL()
  S BQIYR=$$GET1^DIQ(90508,BQIH_",",2,"E")
+ S BQGYRN=$O(^BQI(90508,BQIH,20,"B",BQIYR,""))
+ K ^XTMP("BQICRSUPD")
  ; If the CRS Year is the same as the current iCare year, then a new
  ; version has NOT been installed, so quit
  I BGPYR=BQIYR D UCHK(BQIYR,BQIH) Q
@@ -17,6 +19,7 @@ GCHK(UPDATE) ;EP - Check CRS year
  S BQIN3=$$GET1^DIQ(90241.01,BGPIN_",",.05,"E")
  I BGPYR'=BQIYR S UPDATE=1
  D EN(BGPYR,BQIN1,BQIN2,BQIN3,$G(UPDATE))
+ ;K ^XTMP("BQICRSUPD")
  Q
  ;
 EN(BGPYR,BQIN1,BQIN2,BQIN3,INSTALL) ;EP
@@ -52,6 +55,7 @@ EN(BGPYR,BQIN1,BQIN2,BQIN3,INSTALL) ;EP
  F  S IEN=$O(^BQI(90506.1,"AC","G",IEN)) Q:IEN=""  D
  . S BQIUPD(90506.1,IEN_",",.1)=1
  . I $P(^BQI(90506.1,IEN,0),U,11)="" S BQIUPD(90506.1,IEN_",",.11)=DT
+ . S CODE=$P(^BQI(90506.1,IEN,0),U,1) I $P(CODE,"_",1)=BQIYR S ^XTMP("BQICRSUPD",CODE)=""
  D FILE^DIE("","BQIUPD","ERROR")
  K BQIUPD
  ;
@@ -73,6 +77,7 @@ EN(BGPYR,BQIN1,BQIN2,BQIN3,INSTALL) ;EP
  .. I GCATN["National Gpra" S GCATN="National GPRA"
  .. S GCAT=$P(MDATA,U,6),TEXT=$P(MDATA,U,3)
  .. S EXCEPT=$P(MDATA,U,4),PDIR=$P(MDATA,U,5)
+ .. S PRVID=$P(MDATA,U,8),IPC=$P(MDATA,U,7) D PREV(IDIN)
  .. ;
  .. S CODE=BGPYR_"_"_IDIN
  .. S HDR="T00003"_CODE
@@ -107,7 +112,7 @@ EN(BGPYR,BQIN1,BQIN2,BQIN3,INSTALL) ;EP
  ... S MEAS=$P(^BQICARE(USR,15,LY,1,MSN,0),U,1)
  ... I MEAS'["_" Q
  ... I $P(MEAS,"_",1)'=BQIYR Q
- ... S NMEAS=$$CONV(MEAS)
+ ... S NMEAS=$$CONV(MEAS) I NMEAS="" Q
  ... NEW DA,IENS
  ... S DA(2)=USR,DA(1)=LY,DA=MSN,IENS=$$IENS^DILF(.DA)
  ... S BQIUPD(90505.151,IENS,.01)=NMEAS
@@ -124,7 +129,7 @@ EN(BGPYR,BQIN1,BQIN2,BQIN3,INSTALL) ;EP
  .. F  S GVW=$O(^BQICARE(USR,1,PNL,25,GVW)) Q:'GVW  D
  ... S MEAS=$P(^BQICARE(USR,1,PNL,25,GVW,0),U,1)
  ... I $P(MEAS,"_",1)'=BQIYR Q
- ... S NMEAS=$$CONV(MEAS)
+ ... S NMEAS=$$CONV(MEAS) I NMEAS="" Q
  ... NEW DA,IENS
  ... S DA(2)=USR,DA(1)=PNL,DA=GVW,IENS=$$IENS^DILF(.DA)
  ... S BQIUPD(90505.125,IENS,.01)=NMEAS
@@ -137,7 +142,7 @@ EN(BGPYR,BQIN1,BQIN2,BQIN3,INSTALL) ;EP
  ... F  S GVW=$O(^BQICARE(USR,1,PNL,30,SHR,25,GVW)) Q:'GVW  D
  .... S MEAS=$P(^BQICARE(USR,1,PNL,30,SHR,25,GVW,0),U,1)
  .... I $P(MEAS,"_",1)'=BQIYR Q
- .... S NMEAS=$$CONV(MEAS)
+ .... S NMEAS=$$CONV(MEAS) I NMEAS="" Q
  .... NEW DA,IENS
  .... S DA(3)=USR,DA(2)=PNL,DA(1)=SHR,DA=GVW,IENS=$$IENS^DILF(.DA)
  .... S BQIUPD(90505.325,IENS,.01)=NMEAS
@@ -150,7 +155,7 @@ EN(BGPYR,BQIN1,BQIN2,BQIN3,INSTALL) ;EP
  . F  S MSN=$O(^BQI(90508.1,TMPN,10,MSN)) Q:'MSN  D
  .. S MEAS=$P(^BQI(90508.1,TMPN,10,MSN,0),U,1)
  .. I $P(MEAS,"_",1)'=BQIYR Q
- .. S NMEAS=$$CONV(MEAS)
+ .. S NMEAS=$$CONV(MEAS) I NMEAS="" Q
  .. NEW DA,IENS
  .. S DA(1)=TMPN,DA=MSN,IENS=$$IENS^DILF(.DA)
  .. S BQIUPD(90508.11,IENS,.01)=NMEAS
@@ -162,27 +167,44 @@ EN(BGPYR,BQIN1,BQIN2,BQIN3,INSTALL) ;EP
  ; Get current IPC
  S CRIPC=$P($G(^BQI(90508,1,11)),U,1)
  S CRN=$O(^BQI(90508,1,22,"B",CRIPC,"")) I CRN="" Q
+ ;
+ ;Update current IPC version
  S IDN=0
  F  S IDN=$O(^BQI(90508,1,22,CRN,1,IDN)) Q:'IDN  D
  . S MEAS=$P(^BQI(90508,1,22,CRN,1,IDN,0),U,1)
  . I $P(MEAS,"_",1)'=BQIYR D BUN Q
- . S NMEAS=$$CONV(MEAS)
+ . S NMEAS=$$CONV(MEAS) I NMEAS="" Q
  . NEW DA,IENS
  . S DA(2)=1,DA(1)=CRN,DA=IDN,IENS=$$IENS^DILF(.DA)
  . S BQIUPD(90508.221,IENS,.01)=NMEAS
- . S PRV=0
- . F  S PRV=$O(^BQIPROV(PRV)) Q:'PRV  D
- .. S PRN=$O(^BQIPROV(PRV,30,"B",MEAS,"")) Q:PRN=""  D
- ... NEW DA,IENS
- ... S DA(1)=PRV,DA=PRN,IENS=$$IENS^DILF(.DA)
- ... S BQIUPD(90505.43,IENS,.01)=NMEAS
- . S FAC=0
- . F  S FAC=$O(^BQIFAC(FAC)) Q:'FAC  D
- .. S FCN=$O(^BQIFAC(FAC,30,"B",MEAS,"")) Q:FCN=""  D
- ... NEW DA,IENS
- ... S DA(1)=FAC,DA=FCN,IENS=$$IENS^DILF(.DA)
- ... S BQIUPD(90505.63,IENS,.01)=NMEAS
  . D BUN
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ ; Update Provider data
+ S PRV=0
+ F  S PRV=$O(^BQIPROV(PRV)) Q:'PRV  D
+ . S PRN=0
+ . F  S PRN=$O(^BQIPROV(PRV,30,PRN)) Q:'PRN  D
+ .. S MEAS=$P(^BQIPROV(PRV,30,PRN,0),U,1)
+ .. I $P(MEAS,"_",1)=BGPYR Q
+ .. I $P(MEAS,"_",1)'?.N Q
+ .. S NMEAS=$$CONV(MEAS) I NMEAS="" Q
+ .. NEW DA,IENS
+ .. S DA(1)=PRV,DA=PRN,IENS=$$IENS^DILF(.DA)
+ .. S BQIUPD(90505.43,IENS,.01)=NMEAS
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ S FAC=0
+ F  S FAC=$O(^BQIFAC(FAC)) Q:'FAC  D
+ . S FCN=0
+ . F  S FCN=$O(^BQIFAC(FAC,30,FCN)) Q:'FCN  D
+ .. S MEAS=$P(^BQIFAC(FAC,30,FCN,0),U,1)
+ .. I $P(MEAS,"_",1)=BGPYR Q
+ .. I $P(MEAS,"_",1)'?.N Q
+ .. S NMEAS=$$CONV(MEAS) I NMEAS="" Q
+ .. NEW DA,IENS
+ .. S DA(1)=FAC,DA=FCN,IENS=$$IENS^DILF(.DA)
+ .. S BQIUPD(90505.63,IENS,.01)=NMEAS
  D FILE^DIE("","BQIUPD","ERROR")
  ;
  S BQIDFN=0
@@ -225,7 +247,7 @@ FILE ;File record
  I DA="" D  Q:$G(ERROR)=1
  . K DO,DD D FILE^DICN
  . S DA=+Y I DA=-1 S ERROR=1
- . S INSTALL=1
+ . I 'INSTALL S INSTALL=1,MLIST=MLIST_CODE_$C(29)
  S BQIUPD(90506.1,DA_",",.03)=TEXT
  ;S BQIUPD(90506.1,DA_",",2.01)=SOURCE
  ;S BQIUPD(90506.1,DA_",",2.02)=GCAT
@@ -264,7 +286,7 @@ UCHK(BQIGYR,BQIDA) ; EP - Check for any updates
  K BQIUPD
  ;
  ;  Set the indicators
- S IDIN=0,SOURCE="G",RCAT="",RCLIN="",NSOURCE="Performance"
+ S IDIN=0,SOURCE="G",RCAT="",RCLIN="",NSOURCE="Performance",MLIST=""
  ;
  F  S IDIN=$O(@BQIINDG@(IDIN)) Q:'IDIN  D
  . ; Get new values from the new file in BQIINDG
@@ -289,15 +311,15 @@ UCHK(BQIGYR,BQIDA) ; EP - Check for any updates
  ;
  ; If new measures identified, job off GPRA update job and send notification
  ; about new measures
- I INSTALL D
- . D JB
+ I INSTALL,$G(MLIST)'="" D
+ . D JB1
  . NEW USERS,DZ,BTEXT
  . S USERS="",DZ=0
  . F  S DZ=$O(^BQICARE(DZ)) Q:'DZ  S USERS=USERS_DZ_$C(28)
  . S BTEXT(1,0)="The RPMS Clinical Reporting System (CRS) has been updated on your"
  . S BTEXT(2,0)="facility's server.  This update may affect your iCare Natl Measures"
  . S BTEXT(3,0)="view, because of new or inactivated performance measures. Please"
- . S BTEXT(4,0)="review your Natl Measures layout and update as needed."
+ . S BTEXT(4,0)="review your Natl Measures layout and templates and update as needed."
  . D ADD^BQINOTF("",USERS,"CRS Updated",.BTEXT,1)
  ;
  ;  Set all national gpra values to 'Default'
@@ -320,7 +342,8 @@ UCHK(BQIGYR,BQIDA) ; EP - Check for any updates
  ;
 CONV(MSR) ;EP - Convert the Measure
  NEW NM
- S NM=BGPYR_"_"_$P(MSR,"_",2)
+ S NM=$G(^XTMP("BQICRSUPD",MSR))
+ ;S NM=BGPYR_"_"_$P(MSR,"_",2)
  Q NM
  ;
 BUN ; Bundles
@@ -328,8 +351,27 @@ BUN ; Bundles
  F  S BDN=$O(^BQI(90508,1,22,CRN,1,IDN,2,BDN)) Q:'BDN  D
  . S MEAS=$P(^BQI(90508,1,22,CRN,1,IDN,2,BDN,0),U,1)
  . I $P(MEAS,"_",1)'=BQIYR Q
- . S NMEAS=$$CONV(MEAS)
+ . S NMEAS=$$CONV(MEAS) I NMEAS="" Q
  . NEW DA,IENS
  . S DA(3)=1,DA(2)=CRN,DA(1)=IDN,DA=BDN,IENS=$$IENS^DILF(.DA)
  . S BQIUPD(90508.2212,IENS,.01)=NMEAS
+ Q
+ ;
+PREV(CDIN) ;EP - Map previous year's IEN to new one
+ ; Input CDIN = IDIN
+ NEW PYRDATA,PYRDD,PYRDG,PRYN
+ I PRVID="" Q
+ S PYRDATA=^BQI(90508,BQIH,20,BQGYRN,0),PYRDD=$P(PYRDATA,U,3)
+ S PYRDG=$$ROOT^DILFD(PYRDD,"",1)
+ S PRVIEN=$O(@PYRDG@("C",PRVID,""))
+ S PRVMEAS=$P(PYRDATA,U,1)_"_"_PRVIEN
+ S ^XTMP("BQICRSUPD",PRVMEAS)=BGPYR_"_"_CDIN
+ Q
+ ;
+JB1 ;EP
+ NEW ZTSK,IJOB,ZTDTH,ZTDESC,BQIUPD
+ S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,5)
+ S ZTDESC="CRS Measure Update",ZTRTN="EN^BQIGPRA6",ZTIO="",ZTSAVE("MLIST")=MLIST
+ D ^%ZTLOAD
+ K MLIST
  Q

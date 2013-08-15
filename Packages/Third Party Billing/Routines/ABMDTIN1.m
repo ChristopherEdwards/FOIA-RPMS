@@ -1,5 +1,5 @@
 ABMDTIN1 ; IHS/ASDST/DMJ - Maintenance of INSURER FILE part 2 ;   
- ;;2.6;IHS Third Party Billing;**1,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,6,8,9**;NOV 12, 2009
  ; IHS/SD/SDR - v2.5 p8 IM13693/IM17856 - Ask for new EMC REFERENCE ID
  ; IHS/SD/SDR - v2.5 p8 - task 8 - Added code for replacement insurer prompts
  ; IHS/SD/SDR - v2.5 p9 - IM19305 - Added itemized question to 837I format
@@ -16,6 +16,7 @@ ABMDTIN1 ; IHS/ASDST/DMJ - Maintenance of INSURER FILE part 2 ;
  ; IHS/SD/SDR - v2.5 p12 - IM25207 - Edited display of prompt RX# in fl44
  ; IHS/SD/SDR - abm*2.6*1 - FIXPMS10028 - prompt for UB04 FL38
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added code for BHT06
+ ; IHS/SD/SDR - 2.6*9 - HEAT46087 - Added parameter chk for 4 vs 8 DXs
  ; ********************************************************************
  ;
  W ! K DIC
@@ -146,6 +147,7 @@ DIC2 S DA=ABM("VTYP")
  I ("^3^14^22^27^32^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) S DR=".15Block 24K..........:;.17Block 29...........:;.2Block 33 PIN#......:"  ;abm*2.6*8 HEAT32544
  D:($G(DR)) ^DIE G XIT:$D(Y)
  ;end new code FIXPMS10028
+ I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR="116//"_$S($P(^AUTNINS(ABM("DFN"),2),U)="R":8,1:4)  D ^DIE G XIT:$D(Y)  ;abm*2.6*9 HEAT46087
  I ($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=3!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=14)),$P($G(^AUTNINS(ABM("DFN"),2)),U)="D" D
  .S DR="107Dash in block 1A?" D ^DIE
  I ("^11^21^31^51^28^"[(U_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_U)),$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,0)),U,12)=1!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,0)),U,4)=11)!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,0)),U,4)=28) D
@@ -183,6 +185,7 @@ DIC2 S DA=ABM("VTYP")
  .S DA(1)=ABM("DFN")
  .S DIE="^ABMNINS(DUZ(2),DA(1),1,"
  .S DA=ABM("VTYP")
+ D SERVLOC^ABMDTIN2  ;abm*2.6*9 HEAT57746
  ;
  I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),0)),U,9)="N"!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),0)),U,9)="B") S DR="18SUBPART NPI:" D ^DIE
  S DR="104DME Contractor?.....:" D ^DIE

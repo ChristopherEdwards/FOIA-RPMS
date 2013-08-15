@@ -1,5 +1,5 @@
 DGENRPT1 ;ALB/DW,LBD - EGT Preliminary Summary Impact Report ; 04/24/03 2:32pm ; 07/22/02 9:40am
- ;;5.3;Registration;**232,306,417,456,491,513**;Aug 13,1993
+ ;;5.3;Registration;**232,306,417,456,491,513,1015**;Aug 13,1993;Build 21
  ;
  ;
 ENPT ;Preliminary Summary Report selected.

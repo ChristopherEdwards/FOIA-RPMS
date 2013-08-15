@@ -1,5 +1,5 @@
 DG53244R ;BPOIFO/KEITH - Post-init continuation for DG*5.3*244 ; 27 Jan 2002  6:45 PM
- ;;5.3;Registration;**244**;Aug 13, 1993
+ ;;5.3;Registration;**244,1015**;Aug 13, 1993;Build 21
  ;
 ITXDES ;Set input transforms and field descriptions
  D BMES^XPDUTL("Setting field descriptions and input transforms")

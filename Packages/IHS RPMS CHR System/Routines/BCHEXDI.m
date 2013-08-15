@@ -1,5 +1,5 @@
-BCHEXDI ; IHS/TUCSON/LAB - INIT FOR CHR EXPORT ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHEXDI ; IHS/CMI/LAB - INIT FOR CHR EXPORT ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;Initialization for export process.
  ;Set up all necessary variables, check site file, etc.
@@ -25,8 +25,8 @@ BASICS ; BASIC INITS
 CHKSITE ; CHECK SITE FILE
  I '$D(^BCHSITE(DUZ(2),0)) W:'$D(ZTQUEUED) !!,"*** Site file has not been setup! ***" S BCH("QFLG")=1 Q
  I '$D(^BCHSITE(DUZ(2))) W:'$D(ZTQUEUED) !!,"*** RUN LOCATION not in SITE file!" S BCH("QFLG")=2 Q
- I $P(^BCHSITE(DUZ(2),0),U,8)="" W:'$D(ZTQUEUED) !!,"*** Site file does not specify EXPORT METHOD" S BCH("QFLG")=3 Q
- I $P(^BCHSITE(DUZ(2),0),U,7)="",$P(^BCHSITE(DUZ(2),0),U,8)="A" W:'$D(ZTQUEUED) !!,"***No DEFAULT DEVICE value in Site file! ***" S BCH("QFLG")=4
+ ;I $P(^BCHSITE(DUZ(2),0),U,8)="" W:'$D(ZTQUEUED) !!,"*** Site file does not specify EXPORT METHOD" S BCH("QFLG")=3 Q
+ ;I $P(^BCHSITE(DUZ(2),0),U,7)="",$P(^BCHSITE(DUZ(2),0),U,8)="A" W:'$D(ZTQUEUED) !!,"***No DEFAULT DEVICE value in Site file! ***" S BCH("QFLG")=4
  Q
  ;
  ;
@@ -40,7 +40,7 @@ QUEUE ;EP - QUEUE TX GENERATOR
  Q
 QUEUE1 ;
  S ZTRTN=$S(BCHO("RUN")="NEW":"DRIVER^BCHEXD",1:"EN^BCHEXRE")
- S ZTIO="",ZTDTH="",ZTDESC="CHR CHRIS II EXPORT" S ZTSAVE("BCH*")="",ZTSAVE("APCD*")=""
+ S ZTIO="",ZTDTH="",ZTDESC="CHR CHR EXPORT" S ZTSAVE("BCH*")="",ZTSAVE("APCD*")=""
  D ^%ZTLOAD
  W !!,$S($D(ZTSK):"Request Queued!!",1:"Request cancelled")
  I '$D(ZTSK),BCHO("RUN")="NEW" S BCH("QFLG")=99 S DA=BCH("RUN LOG"),DIK="^BCHXLOG(" W !,"Okay, you '^'ed out or timed out so I'm deleting the Log entry and quitting.",! D ^DIK K DIK,DA Q  ;LAB/OHPRD BCH*1.51*2 ADDED BCHO("RUN")="NEW"

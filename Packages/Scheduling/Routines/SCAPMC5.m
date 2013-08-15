@@ -1,5 +1,5 @@
 SCAPMC5 ;ALB/REW - Team API's:TMAU ; JUL 3, 1995
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;;1.0
 TMAU(SCAU,SCDATES,SCPURPA,SCLIST,SCERR) ; -- list of teams for autolink
  ; input:

@@ -1,5 +1,5 @@
 SDAMEX ;ALB/MJK,RMO - Appointment Check In/Check Out ; 12/1/91
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- main entry point
  N SDATA,SDTOT,DFN,SDACT,SDATE,SDT,SDCL,SDDA,SDASH,SDAMDD,SDMAX

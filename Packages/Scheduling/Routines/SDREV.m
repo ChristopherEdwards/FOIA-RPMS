@@ -1,7 +1,5 @@
-SDREV ;ALB/TMP - Enter Review Date for Clinic Enrollment Re-evaluation ; [ 09/13/2001  2:40 PM ]
- ;;5.3;Scheduling;**79**;Aug 13, 1993
- ;IHS/ANMC/LJF 11/30/2000 contains $N but not used by IHS
- ;
+SDREV ;ALB/TMP - Enter Review Date for Clinic Enrollment Re-evaluation ; 23-DEC-85
+ ;;5.3;Scheduling;**79,1015**;Aug 13, 1993;Build 21
  S U="^" D:'$D(DT) DT^SDUTL
 CL W ! K DIC S DIC="^SC(",DIC(0)="AEMQ",DIC("A")="Select CLINIC NAME: ",DIC("S")="I $P(^(0),""^"",3)=""C"",'$G(^(""OOS"")),$S('$D(^(""I"")):1,+^(""I"")=0:1,+^(""I"")>DT:1,+$P(^(""I""),U,2)'>DT&(+$P(^(""I""),U,2)'=0):1,1:0)"
  D ^DIC K DIC("A"),DIC("S") G:X["^"!(X="") END S SC=+Y

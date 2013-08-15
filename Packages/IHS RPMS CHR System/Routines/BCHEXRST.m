@@ -1,5 +1,5 @@
-BCHEXRST ; IHS/TUCSON/LAB - RESET TX LOG AUGUST 14, 1992 ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHEXRST ; IHS/CMI/LAB - RESET TX LOG AUGUST 14, 1992 ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  W !!,"This routine will reset the CHR Data Transmission Log.  You must be",!,"absolutely sure that you have corrected the underlying problem that caused ","the Transmission process to fail in the first place!",!!
  W "The CHR Data Transmission log entry you choose will be REMOVED from the log",!,"file and all Utility and Data globals associated with that run will be killed!!",!!
  W "You must now select the Log Entry to be RESET.  <<< SELECT CAREFULLY >>>",!

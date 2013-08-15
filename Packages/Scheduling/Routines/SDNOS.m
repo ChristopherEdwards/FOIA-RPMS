@@ -1,12 +1,11 @@
-SDNOS ;ALB/LDB - NO SHOW REPORT ; [ 07/25/2003  3:29 PM ]
- ;;5.3;Scheduling;**22,28,32,79,194**;Aug 13, 1993
+SDNOS ;ALB/LDB - NO SHOW REPORT ; 18 May 99  8:43 AM
+ ;;5.3;Scheduling;**22,28,32,79,194,410,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/03/2000 put in standard clinic lookup
  ;
  D END,LO^DGUTL
  S (SDCL,X)="" S SDDIV=$$PRIM^VASITE() S SDIO=IO(0),(SDA,SDB1,SDC,SDV1,SDEND,SDSL,SDT,SDTIM)=0
-DIV ;I $D(^DG(43,1,"GL")),$P(^("GL"),"^",2) S DIC("A")="NO SHOW REPORT FOR WHICH DIVISION: " D ASK^SDDIV S SDV1=1,SDDIV=$S($D(DIV):DIV,1:SDDIV) D MDIV Q:'$D(Y)  ;IHS/ANMC/LJF 11/03/2000
-SEL ;
- K BSDQ D CLINIC^BSDU(2) I $D(BSDQ) D END Q  ;IHS/ANMC/LJF 11/03/2000
+DIV I $D(^DG(43,1,"GL")),$P(^("GL"),"^",2) S DIC("A")="NO SHOW REPORT FOR WHICH DIVISION: " D ASK^SDDIV S SDV1=1,SDDIV=$S($D(DIV):DIV,1:SDDIV) D MDIV Q:'$D(Y)
+SEL  K BSDQ D CLINIC^BSDU(2) I $D(BSDQ) D END Q  ;IHS/ANMC/LJF 11/03/2000
  I VAUTD=1 S SDDIV="A"
  ;IHS/ITSC/WAR 7/25/03 Allow for a Div which is not the users primary Dv
  ;  Does not handle more than 1 selected Div currently
@@ -23,13 +22,19 @@ SEL ;
  Q:'$D(X)  S:X=""&(SDSL=1) SDCL="A"
  I SDTIM=1 D END Q
  I 'SDA,(X="^")!(SDCL(1)']"")&(Y=-1) D END Q
+FMT ;Select Format
+ S DIR(0)="S^1:No Shows ONLY;2:Both No Shows & No Action Taken"
+ S DIR("?")="Select format for printed report"
+ S DIR("B")="No Shows ONLY"
+ D ^DIR K DIR S SDFMT=Y
 DATE W !!,"You may enter only a beginning date if you would like",!,"to see a report of No-Shows for only one date."
  S SDT00="AEP",%DT(0)="-NOW" D DATE^SDUTL I ('$D(SDBD))&((X="^")!(X="")) D END Q
  I '$D(SDED)&(X="^") D END Q
  N DIR,SDABB S DIR(0)="Y",DIR("A")="Print report totals only",DIR("B")="YES"
  S DIR("?")="Answer 'no' to obtain a detailed report, 'yes' to print just clinic totals"
  W ! D ^DIR G:$D(DTOUT)!$D(DUOUT) END S SDABB=Y
-ZIS W !! S DGPGM="^SDNOS0",DGVAR="SDCL#^SDDIV"_$S($D(SDBD):"^SDBD",1:"")_$S($D(SDED):"^SDED",1:"")_"^SDIO^SDABB" D ZIS^DGUTQ G:POP END U IO D ^SDNOS0
+ZIS W !! S DGPGM="^SDNOS0",DGVAR="SDCL#^SDDIV"_$S($D(SDBD):"^SDBD",1:"")_$S($D(SDED):"^SDED",1:"")_"^SDIO^SDABB^SDFMT"
+ D ZIS^DGUTQ G:POP END U IO D ^SDNOS0
  D END,CLOSE^DGUTQ Q
  ;
 READ ;Select clinics
@@ -69,7 +74,7 @@ END K %DT,ALL,BEGDATE,C,C1,C2,C3,C4,C5,C6,DGPGM,DGTCH,DGVAR,DIC,DIV
  K %I,%Y,%T,SDIO,SDIX,SDLAB,SDM,SDNM,SDNM1,SDNMS,SDNO,SDOK,SDOW
  K SDPAT,SDPR,SDPR1,SDPT,SDR,SDR1,SDRB,SDREST,SDSL,SDSUB,SDSB
  K SDT1,SDT2,SDT3,SDT4,SDT5,SDT6,SDT,SDTIM,SDTOT,SDTOT1,SDX,SDXX
- K SDY,SDZ,SDZ1,SDZZ3,X,X1,Y,Y1,Y2,Y3,%,^UTILITY($J,"DGTC")
+ K SDY,SDZ,SDZ1,SDZZ3,X,X1,Y,Y1,Y2,Y3,%,^UTILITY($J,"DGTC"),SDFMT
 END1 K DTOUT,DUOUT,^UTILITY($J,"SDNO") Q
  ;
 MDIV I Y'>0 D END,CLOSE^DGUTQ Q

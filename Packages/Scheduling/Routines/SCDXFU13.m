@@ -1,5 +1,5 @@
 SCDXFU13 ;ALB/JRP - ACRP TRANSMISSION MANAGEMENT FILE UTILS;14-JUL-97
- ;;5.3;Scheduling;**128**;AUG 13, 1993
+ ;;5.3;Scheduling;**128,1015**;AUG 13, 1993;Build 21
  ;
 HST4XMIT(XMITPTR,ARRAY,FORMAT) ;Return transmission/acknowledgement history
  ; for entry in Transmitted Outpatient Encounter file (#409.73)

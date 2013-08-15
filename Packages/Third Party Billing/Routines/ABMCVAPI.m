@@ -1,5 +1,5 @@
 ABMCVAPI ; IHS/SD/SDR - 3PB CPT/ICD/MODIFIER API   
- ;;2.6;IHS 3P BILLING SYSTEM;**4**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,9**;NOV 12, 2009
  ;
  ; New routine - v2.6
  ;
@@ -9,14 +9,24 @@ CPT(CODE,CDT,SRC,DFN) ;PEP - returns info about requested CPT entry
  ;****************************************************************
 PRCSVCPT(CODE,CDT) ;EP - build Pre-CSV IHS CPT string
  N ABMZCPT,ABMCPT
- D GETS^DIQ(81,CODE,"*","IE","ABMZCPT")
+ ;D GETS^DIQ(81,CODE,"*","IE","ABMZCPT")  ;abm*2.6*9 NOHEAT
+ D GETS^DIQ(81,+CODE,"*","IE","ABMZCPT")  ;abm*2.6*9 NOHEAT
  S ABMCPT=CODE
- S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,CODE_",",.01,"E"))  ;IEN and code
- S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,CODE_",",2,"E"))  ;Short desc.
- S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,CODE_",",3,"I"))  ;CPT category IEN
- S ABMCPT=ABMCPT_"^^"_$G(ABMZCPT(81,CODE_",",7,"I"))  ;Source (null) and Eff. date
- S ABMCPT=ABMCPT_"^^"_$G(ABMZCPT(81,CODE_",",8,"I"))  ;Status (null) and inact. date
- S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,CODE_",",7,"I"))  ;Activation date
+ ;start old code abm*2.6*9
+ ;S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,CODE_",",.01,"E"))  ;IEN and code
+ ;S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,CODE_",",2,"E"))  ;Short desc.
+ ;S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,CODE_",",3,"I"))  ;CPT category IEN
+ ;S ABMCPT=ABMCPT_"^^"_$G(ABMZCPT(81,CODE_",",7,"I"))  ;Source (null) and Eff. date
+ ;S ABMCPT=ABMCPT_"^^"_$G(ABMZCPT(81,CODE_",",8,"I"))  ;Status (null) and inact. date
+ ;S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,CODE_",",7,"I"))  ;Activation date
+ ;end old code start new code
+ S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,+CODE_",",.01,"E"))  ;IEN and code
+ S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,+CODE_",",2,"E"))  ;Short desc.
+ S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,+CODE_",",3,"I"))  ;CPT category IEN
+ S ABMCPT=ABMCPT_"^^"_$G(ABMZCPT(81,+CODE_",",7,"I"))  ;Source (null) and Eff. date
+ S ABMCPT=ABMCPT_"^1^"_$G(ABMZCPT(81,+CODE_",",8,"I"))  ;Status (null) and inact. date
+ S ABMCPT=ABMCPT_"^"_$G(ABMZCPT(81,+CODE_",",7,"I"))  ;Activation date
+ ;end new code
  Q ABMCPT
 IHSCPT(CODE,CDT) ;EP - return IHS-numberspaced fields in string
  N ABMCPT

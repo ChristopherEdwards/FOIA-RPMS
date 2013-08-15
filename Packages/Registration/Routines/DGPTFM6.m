@@ -1,5 +1,6 @@
-DGPTFM6 ;ALB/BOK - 601 SCREEN: PROCEDURE ENTER/EDIT ; 21 JUL 88 @ 0900
- ;;5.3;Registration;**164**;Aug 13, 1993
+DGPTFM6 ;ALB/BOK/ADL - 601 SCREEN: PROCEDURE ENTER/EDIT ; 21 JUL 88 @ 0900
+ ;;5.3;Registration;**164,510,729,1015**;Aug 13, 1993;Build 21
+ ;;ADL;Update for CSV Project;;Mar 26, 2003
 EN I $D(^DGPTF(PTF,70)),+^(70)<2871000 W !!,"Data cannot be entered into these fields until after 10/1/1987" H 5 G ^DGPTFM
  I DT<2871000 W !!,"Data can not be entered into these fields until after 10/1/1987" H 5 G ^DGPTFM
  G @($S(X=6:"E",1:X))
@@ -7,12 +8,14 @@ T ;ADD PROCEDURE RECORD
  S DGZP=0 S:'$D(^DGPT(PTF,"P",0)) ^(0)="^45.05DA^^"
  S DIC="^DGPT("_PTF_",""P"",",DIC(0)="AEQLMZ",DA(1)=PTF D ^DIC G ^DGPTFM:Y'>0!('$D(^DGPT(PTF,"P",+Y))) S DGPROCM=+Y,DGPROCD=$P(Y,U,2) D MOB I DGPC F I=1:1:DGPC S:P(I,1)=DGPROCM DGZP=I
  G:'DGZP ^DGPTFM S DGPROC(DGZP)=DGPROCM,X="1,2"
-EDIT G HELP:X<1!(X>2) K DA S DA=PTF,DR="[DG601]",DIE="^DGPT(",DGJUMP=X D ^DIE K DR,DIE,DIC,DA D MOB
+EDIT G HELP:X<1!(X>2) S DIE="^DGPT(",(DA,DGPTF)=PTF,DR="[DG601]",DGJUMP=X
+ S DIE="^DGPT(",DGJUMP=X D ^DIE,CHK601^DGPTSCAN K DR,DIE,DIC,DA,DGADD,DGJUMP D MOB
 SET D MOB:'$D(P) S:'$D(DGZP) DGZP=1 S P(DGZP,1)=$S($D(P(DGZP,1)):P(DGZP,1),1:"") I P(DGZP,1)="" K P(DGZP) G NEXP
  S (P1,P(DGZP))=$S($D(^DGPT(PTF,"P",P(DGZP,1),0)):^(0),1:"")
 WRT G:'$D(^DGPT(PTF,"P",P(DGZP,1),0)) ^DGPTFM S DGPROCI=^(0) W @IOF,HEAD,?68 S Z="<601-"_DGZP_">" W @DGVI,Z,@DGVO,!! S (Y,L)=+P(DGZP),Z=1 D D^DGPTUTL,Z^DGPTFM5 W $J("Date of Proc:  ",32),Y,!,$J("Specialty:  ",35)
- W $S($D(^DIC(42.4,+$P(P(DGZP),U,2),0)):$P(^(0),U),1:""),! I $P(P(DGZP),U,3) W $J("Dialysis Type:  ",35),$S($D(^DG(45.4,+$P(P(DGZP),U,3),0)):$P(^(0),U),1:""),!,"   Number of Dialysis Treatments:  ",$P(P(DGZP),U,4),!
- W !! S Z=2 D Z^DGPTFM5 W "  Procedures:   " F I=1:1:5 S L=$P(P(DGZP),U,4+I) I L W $S($D(^ICD0(+L,0)):$P(^(0),U,4)_" ("_$P(^(0),U)_")",1:"**************"_L),!?19
+ W $S($D(^DIC(42.4,+$P(P(DGZP),U,2),0)):$P(^(0),U),1:""),! I $P(P(DGZP),U,4) W "   Number of Dialysis Treatments:  ",$P(P(DGZP),U,4),!
+ W !! S Z=2 D Z^DGPTFM5 W "  Procedures:   " F I=1:1:5 S L=$P(P(DGZP),U,4+I) I L S DGPTTMP=$$ICDOP^ICDCODE(+L,$$GETDATE^ICDGTDRG(PTF)) D
+ . W $S(+DGPTTMP>0&($P(DGPTTMP,U,10)):$P(DGPTTMP,U,5)_" ("_$P(DGPTTMP,U,2)_")",1:"**************"_L),!?19
  F I=1:1:(IOSL-$Y-5) W !
  S DGNUM=$S($D(P(DGZP+1)):601_"-"_(DGZP+1),1:"MAS") G 601^DGPTFJC:DGST
  W "Enter <RET> to continue, 1-2 to edit,",!,"'T' to add a Procedure Segment, '^N' for screen N, or '^' to abort: <",DGNUM,">//"

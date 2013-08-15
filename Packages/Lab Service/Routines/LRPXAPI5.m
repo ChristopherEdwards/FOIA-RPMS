@@ -1,8 +1,11 @@
 LRPXAPI5 ;VA/SLC/STAFF - Lab Extract API code: Match ;9/30/03  09:59
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 295
  ;
 MATCH(DFN,DATE,CONDS,TYPE) ; $$(dfn,date,conds,type) -> 1 if ok, else 0
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0               ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; from LRPXAPI3,LRPXAPI6
  ; check if conditions are met for date/time
  I CONDS="|" Q $$EXACT^LRPXAPI4(DFN,DATE,.CONDS)

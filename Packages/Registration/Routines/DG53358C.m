@@ -1,11 +1,13 @@
-DG53358C ;ALB/AEG DG*5.3*296 DELETE INC TEST CON'T;01 JUNE 2000
- ;;5.3;REGISTRATION;**358**;JUNE 1 2000
+DG53358C ;ALB/AEG,GN DG*5.3*296 DELETE INC TEST CON'T;01 JUNE 2000 ; 10/29/03 2:41pm
+ ;;5.3;REGISTRATION;**358,558,1015**;JUNE 1 2000;Build 21
  ;
  ;This is a modified version for IVMCMD1. It deletes records
  ;from the Annual Means Test(#408.31) file.  It does not open
  ;a case record in the IVM Patient (#301.5)file, does not send 'delete'
  ;bulletin/notification to local mail group, does not call the means
  ;test event driver and does not call DGMTR.
+ ;
+ ;DG*53*558 - re-deploy with this patch
  ;
 EN ;This entry point is called from the routine (DG53358D) and
  ;contains calls that are responsible for completing the

@@ -1,10 +1,12 @@
 LRPXAPI1 ;VA/SLC/STAFF - Lab Extract API code ;10/28/03  11:29
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
  ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
  ;
 TESTS(TESTS,DFN,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  ; returns lab tests on a patient
  ; returned in array TESTS
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")    ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  N CNT,CONDOK,DATA,DATE,ERR,NMSP K DATA
  S NMSP=$G(TESTS) K TESTS S TESTS=""
  ; return all tests in ^TMP(NMSP,$J
@@ -71,6 +73,8 @@ RESULTS(VALUES,DFN,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  Q
  ;
 TRESULTS(VALUES,DFN,TEST,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")    ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  ; returns a lab test's results on a patient
  ; returned in array VALUES
  ; format: date^test^comment^results
@@ -113,6 +117,8 @@ TRESULTS(VALUES,DFN,TEST,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  Q
  ;
 PATIENTS(PATS,TEST,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")    ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  ; uses PATS within this scope
  ; returns patients who have a test result
  ; returned in array PATS
@@ -137,6 +143,8 @@ PATIENTS(PATS,TEST,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  S NEXT=+DFN_U_1
  Q
 PATS ; within scope of PATIENTS
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")    ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  S DONE=0
  S OK=0
  S DATE=DATE1
@@ -160,6 +168,8 @@ PATS ; within scope of PATIENTS
  Q
  ;
 PTS(PATS,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")    ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  ; uses APATS within this scope
  ; returns all patients that have lab data
  N CONDOK,CNT,DATE,DFN,ERR,ITEM,NMSP,OK,TYPE
@@ -183,6 +193,8 @@ PTS(PATS,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  S NEXT=+DFN_U_1
  Q
 PT ; within scope of ALLPATS
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")    ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  S OK=0
  S ITEM=0
  F  S ITEM=$O(^PXRMINDX(63,"PI",DFN,ITEM)) Q:ITEM<1  D  Q:OK
@@ -198,6 +210,8 @@ PT ; within scope of ALLPATS
  Q
  ;
 DATES(DATES,DFN,TYPE,MAX,NEXT,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")    ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  ; returns dates of data occurrence
  ; returned in array DATES
  N CNT,DATE,ITEM,LRDFN,LRIDT,LRIDT1,NMSP,OK,STOP

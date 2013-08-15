@@ -1,5 +1,5 @@
 SCRPW27 ;RENO/KEITH - ACRP Ad Hoc Report (cont.) ; 03 Aug 98  9:06 PM
- ;;5.3;Scheduling;**144**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,1015**;AUG 13, 1993;Build 21
 PRT ;Print ACRP Ad Hoc Report
  D:$E(IOST)="C" DISP0^SCRPW23 S SDOUT=0 G:$P(SDPAR("F",6),U)="F" PFT G PDF^SCRPW28
  ;

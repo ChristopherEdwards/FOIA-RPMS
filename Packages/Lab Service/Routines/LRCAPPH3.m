@@ -1,15 +1,18 @@
 LRCAPPH3  ;DALOI/FHS/PC - CHECK CPT CODE AND FILE POINTERS ; 5/1/99
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**263**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 263,291
+ ;
  ;Called from LRCAPPH,LRCAPPH4
 EN ;
  K ^TMP("LRCAPPH",$J),LRSEP S LRSEP(1)="==================="
  S LRSEP(2)="****************"
  K %DT S %DT="",X="T+5" D ^%DT S LRPGDT=Y
  S ^TMP("LRCAPPH",$J,0)=Y_U_$$NOW^XLFDT_U_"LAB CPT DATA CHECKER"
+ S ^TMP("LRCAPPH60",$J,0)=Y_U_$$NOW^XLFDT_U_"LAB 60 CPT DATA CHECKER"
  K %DT S %DT="" S X="T-1" D ^%DT S LRINADT=$$FMTE^XLFDT(Y,1)
  S LRINADTX=Y K %DT
-AA ;Look for CPT processing errors
+AA  ;Look for CPT processing errors
  D
  . N LRAAN,LRCE,LRTXT,LRX
  . S LRAAN="^LRO(69,""AA"")"
@@ -41,17 +44,53 @@ LAM ;Look for inactive Codes and broken pointers.
  . .  . N DR,DA,DIE,DIK
  . .  . S DA=LRII,DA(1)=LRI,DIK="^LAM("_LRI_",4," D ^DIK
  . . K LRX S LRX=^LAM(LRI,4,LRII,0) D CK
+LAB ;Look for inactive Codes in ^LAB
+ N LRJ,LRN,LRSPEC,LRBECPT,MSGTYPE,MSGFLAG,DEFAULT,HCPCS,Y
+ S LRJ=0 F  S LRJ=$O(^LAB(60,LRJ)) Q:'LRJ  D
+ . S MSGFLAG=0
+ . S X=^LAB(60,LRJ,0),LRN=$P(X,U,1)
+ . I ($P(X,U,4)'="CH")&($P(X,U,4)'="MI") Q
+ . S LRSPEC=0 F  S LRSPEC=$O(^LAB(60,LRJ,1,LRSPEC)) Q:'LRSPEC  D
+ . . K LRBECPT
+ . . D IACPT(LRJ,DT,LRSPEC)
+ . . Q:('$D(LRBECPT(LRJ)))
+ . . S X=$O(LRBECPT(LRJ,1,0)) Q:'X
+ . . S MSGTYPE="SPECIMEN ("_LRSPEC_") CPT"
+ . . D MSG2(MSGTYPE)
+ . S X=$G(^LAB(60,LRJ,1.1)) S DEFAULT=$P(X,U,1),HCPCS=$P(X,U,2)
+ . I HCPCS D
+ . . S MSGTYPE="HCPCS CPT"
+ . . S X=HCPCS,Y=$$CPT^ICPTCOD(X,,,) I '$P(Y,U,7) S X=$P(Y,U,2) D MSG2(MSGTYPE)
+ . I DEFAULT D
+ . . S MSGTYPE="DEFAULT CPT"
+ . . S X=DEFAULT,Y=$$CPT^ICPTCOD(X,,,) I '$P(Y,U,7) S X=$P(Y,U,2) D MSG2(MSGTYPE)
+ . I MSGFLAG D MSGSET("LRCAPPH60",.LRMSG)
  Q
-EN0 ;Entry point for scan 64 and mail report to G.LMI
+ ;
+IACPT(LRBETST,LRBECDT,LRSPEC) ; Get inactive specimen CPT
+ N A,ARR,LRBEAX,LRBEIEN,LRBEAR60,X
+ S LRBEIEN=LRSPEC_","_LRBETST_",",(LRI,LRBECPT)=""
+ D GETS^DIQ(60.01,LRBEIEN,"96*","I","LRBEAR60")
+ S A="" F  S A=$O(LRBEAR60(60.196,A)) Q:A=""  D
+ . Q:$G(LRBEAR60(60.196,A,1,"I"))=""
+ . S ARR($G(LRBEAR60(60.196,A,1,"I")))=$G(LRBEAR60(60.196,A,.01,"I"))
+ S X=$O(ARR(LRBECDT),-1) I X D
+ .S LRBEAX=ARR(X)
+ .S LRBEAX=$$CPT^ICPTCOD(LRBEAX,LRBECDT)
+ .I '$P(LRBEAX,U,7) S LRBECPT(LRBETST,1,$P(LRBEAX,U,2))="SPECIMEN CPT"
+ Q
+ ;
+EN0 ;Entry point for scan 64, scan 60, and mail reports to G.LMI
  ;Called from LRCAPPH
  D EN
  D MAIL
+ D MAIL2
 END ;Called from LRCAPPH4
  I $E($G(IOST),1,2)="P-" W @IOF
  K DA,DIC,DIE,DIK,DR,I
  K LRACT,LRCMT,LRINADT,LRINADTX,LRI,LRII,LRMSG,LRN,LRPGDT,LRTST,LRSEP,LRX
  K LRTXT,X,XMTEXT,XMSUB,Y
- K ^TMP("LRCAPPH",$J)
+ K ^TMP("LRCAPPH",$J),^TMP("LRCAPPH60",$J)
  D ^%ZISC
  Q
 ACTIVE ;Print only WKLD CODES that have associated test assigned
@@ -125,4 +164,21 @@ MSGSET(SUB,TXT) ;SUB=subscript - TXT = array containing the message
  . S LRCMT=LRCMT+1,^TMP(SUB,$J,LRCMT,0)=TXT(I)
  S $P(^TMP(SUB,$J,0),U,4)=LRCMT
  Q
-  
+ ;
+MSG2(MSGTYPE) ;
+ I 'MSGFLAG D
+ . K LRMSG
+ . S LRCMT=$P($G(^TMP("LRCAPPH",$J,0)),U,4)+1,LRMSG(LRCMT)="  "
+ . S LRCMT=LRCMT+1,LRMSG(LRCMT)=$P(LRN,U,1)_" ["_LRJ_"]"
+ S LRCMT=LRCMT+1
+ S LRMSG(LRCMT)="*** Has an inactive "_MSGTYPE_" Code of "_X_".",MSGFLAG=1
+ Q
+ ;
+MAIL2 ;Send message to G.LMI local mail group
+ N DUZ,XMDUZ,XMSUB,XMTEXT
+ Q:'$O(^TMP("LRCAPPH60",$J,0))
+ S LRCMT=$G(LRCMT)+1,^TMP("LRCAPPH60",$J,LRCMT,0)="  "
+ S XMSUB="NIGHTLY FILE #60 CPT CODE CHECK REPORT "_$$FMTE^XLFDT($$NOW^XLFDT,"1S")
+ S XMY("G.LMI")="",XMTEXT="^TMP(""LRCAPPH60"","_$J_","
+ D ^XMD
+ Q

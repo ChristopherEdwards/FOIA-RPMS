@@ -1,5 +1,5 @@
 DGVREL1 ;ALB/MRL - RELEASE QUESTIONAIRE ; 2 JUN 87
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 120 W !!,"I have stored the initialization times for the initialization process and would",!,"like to view the sizes of your files against these times to better serve your",!,"needs in the future.",! Q
 121 W !!,"Please rate the quality of the documentation received.  If none was received",!,"enter a '0'." S DGR="" G R
 122 W !!,"Please rate the quality of the Installation Guide.  Was it easy to follow,",!,"accurate, etc.?" G R

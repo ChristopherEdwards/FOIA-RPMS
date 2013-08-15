@@ -1,5 +1,5 @@
 DGPMXAS3 ; ;04/26/02
- D DE G BEGIN
+ D DE G BEGIN;;;;;;Build 21
 DE S DIE="^DGPM(",DIC=DIE,DP=405,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^DGPM(DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,10) S:%]"" DE(3)=% S %=$P(%Z,U,11) S:%]"" DE(1)=%
  I $D(^("ODS")) S %Z=^("ODS") S %=$P(%Z,U,1) S:%]"" DE(6)=%

@@ -1,5 +1,5 @@
 DG53P423 ;ALB/RPM - Pre/Post-Install;Nov 13, 2001 ; 1/16/02 3:33pm
- ;;5.3;Registration;**423**;Aug 13, 1993
+ ;;5.3;Registration;**423,1015**;Aug 13, 1993;Build 21
  ;
  ;
 ENV ;Main entry point for Environment check point.

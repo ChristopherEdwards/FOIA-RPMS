@@ -1,5 +1,5 @@
 ABMDE ; IHS/ASDST/DMJ - Claim Editor Selection ;      
- ;;2.6;IHS Third Party Billing;**1,3,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,6,8,9**;NOV 12, 2009
  ;
  ; IHS/ASDS/LSL - 08/13/2001 - V2.4 Patch 9 - NOIS HQW-0798-100082
  ;     Only check eligibility once.
@@ -41,6 +41,11 @@ CLM2 ;EP - CLM2 ENTRY POINT
  G XIT:$D(DIROUT)!$D(DIRUT)!$D(DUOUT)!$D(DTOUT)!'+$G(ABMP("CDFN"))
  K ABMP("MULT")
  K ABMLOC
+ ;start new code abm*2.6*9 NOHEAT - ensure UFMS is setup
+ I $P($G(^ABMDPARM(DUZ(2),1,4)),U,15)="" D  Q
+ .W !!,"* * UFMS SETUP MUST BE DONE BEFORE ANY BILLING FUNCTIONS CAN BE USED! * *",!
+ .S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
+ ;end new code
  I $P($G(^ABMDPARM(DUZ(2),1,4)),U,15)=1 D  Q:+$G(ABMUOPNS)=0
  .S ABMUOPNS=$$FINDOPEN^ABMUCUTL(DUZ)
  .I +$G(ABMUOPNS)=0 D  Q

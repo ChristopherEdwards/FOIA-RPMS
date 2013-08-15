@@ -1,5 +1,5 @@
 SDCLAS0 ;ALB/TMP - Clinic Assignment List Select and Extract ;  22 MAR 1985
- ;;5.3;Scheduling;**32,115**;Aug 13, 1993
+ ;;5.3;Scheduling;**32,115,1015**;Aug 13, 1993;Build 21
 SELECT W !!,"Do you want the report for active patients only" S %=1 D YN^DICN I %<0 G OUT
  I '% W !,"Respond (Y)es for a report of only patients with future appointments",!,"Respond (N)o for a report which also includes patients who are enrolled,",!,"  but have no future appointments" G SELECT
  S SDFAST='(%-1)

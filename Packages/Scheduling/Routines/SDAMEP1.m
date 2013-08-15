@@ -1,5 +1,5 @@
-SDAMEP1 ;ALB/CAW - Expanded Display (Appt. Data) ; 16 May 2001  4:49 PM
- ;;5.3;Scheduling;**20,241,1005**;Aug 13, 1993
+SDAMEP1 ;ALB/CAW - Expanded Display (Appt. Data) ; 16 May 2001  4:49 PM  ; Compiled August 22, 2008 12:24:32
+ ;;5.3;Scheduling;**20,241,534,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 07/06/2000 removed data not needed by IHS from display
  ;                        moved overbook data to first column
  ;IHS/OIT/LJF  12/30/2005 PATCH 1005 displayed OTHER INFO in multiple lines
@@ -34,13 +34,6 @@ APDATA ; Appointment Data
  S X=$$SETSTR^VALM1(SDPOV,X,SDFSTCOL,24)
  D SET(X)
  ;
- ;IHS/ANMC/LJF 7/06/2000 moved line up in display and columns changed
- S X=""
- S X=$$SETSTR^VALM1("       Overbook:",X,1,16)
- S X=$$SETSTR^VALM1($G(SDSC(44.003,SDDA,9)),X,SDFSTCOL,24)
- D SET(X)
- ;IHS/ANMC/LJF 7/06/2000 end of code moved up in display
- ;
  S X=""
  S X=$$SETSTR^VALM1(" Length of Appt:",X,1,SDWIDTH)
  S X=$$SETSTR^VALM1($G(SDSC(44.003,SDDA,1)),X,SDFSTCOL,4)
@@ -58,15 +51,15 @@ APDATA ; Appointment Data
  S X=""
  S X=$$SETSTR^VALM1("          X-ray:",X,1,SDWIDTH)
  S X=$$SETSTR^VALM1($P(SDPT(2.98,SDT,6),"@",2),X,SDFSTCOL,5)
- ;S X=$$SETSTR^VALM1("       Overbook:",X,40,SDWIDTH)        ;IHS/ANMC/LJF 7/06/2000 code moved up
- ;S X=$$SETSTR^VALM1($G(SDSC(44.003,SDDA,9)),X,SDSECCOL,24)  ;IHS/ANMC/LJF 7/06/2000 code moved up
+ S X=$$SETSTR^VALM1("       Overbook:",X,40,SDWIDTH)
+ S X=$$SETSTR^VALM1($G(SDSC(44.003,SDDA,9)),X,SDSECCOL,24)
  D SET(X)
  ;
  S X=""
  S X=$$SETSTR^VALM1("            EKG:",X,1,SDWIDTH)
  S X=$$SETSTR^VALM1($P(SDPT(2.98,SDT,7),"@",2),X,SDFSTCOL,5)
- ;S X=$$SETSTR^VALM1("Collateral Appt:",X,40,SDWIDTH)      ;IHS/ANMC/LJF 7/06/2000
- ;S X=$$SETSTR^VALM1($G(SDPT(2.98,SDT,13)),X,SDSECCOL,17)  ;IHS/ANMC/LJF 7/06/2000
+ ;S X=$$SETSTR^VALM1("Collateral Appt:",X,40,SDWIDTH)
+ ;S X=$$SETSTR^VALM1($G(SDPT(2.98,SDT,13)),X,SDSECCOL,17)
  D SET(X)
  ;
  S X=""
@@ -81,6 +74,25 @@ APDATA ; Appointment Data
  ;PATCH 1005 end of changes
  ;
  D SET(""),SET("") Q  ;IHS/ANMC/LJF 7/06/2000 enrollment data not needed
+ ;
+ S X=""
+ N SDINFL S SDINFL=$L($G(SDSC(44.003,SDDA,3))) ; lenght of INFO STRING
+ I SDINFL<64 D
+ .S X=$$SETSTR^VALM1("          Other:",X,1,SDWIDTH)
+ .S X=$$SETSTR^VALM1($G(SDSC(44.003,SDDA,3)),X,SDFSTCOL,63)
+ I SDINFL>63&(SDINFL<143) D
+ .S X=$$SETSTR^VALM1("          Other:",X,1,SDWIDTH)
+ .S X=$$SETSTR^VALM1($E($G(SDSC(44.003,SDDA,3)),1,64),X,17,80)
+ .D SET(X)
+ .S X=$$SETSTR^VALM1("",X,1,0)
+ .S X=$$SETSTR^VALM1($E($G(SDSC(44.003,SDDA,3)),65,150),X,1,80)
+ I SDINFL>142 D
+ .S X=$$SETSTR^VALM1("   Other:",X,1,10)
+ .S X=$$SETSTR^VALM1($E($G(SDSC(44.003,SDDA,3)),1,70),X,11,80)
+ .D SET(X)
+ .S X=$$SETSTR^VALM1("",X,1,0)
+ .S X=$$SETSTR^VALM1($E($G(SDSC(44.003,SDDA,3)),71,150),X,1,80)
+ D SET(X)
  ;
  S (X,SDEIC)="" F SDI=0:0 S SDI=$O(^DPT(DFN,"DE",SDI)) Q:'SDI  I $P(^(SDI,0),U)=SDCL F SDX=0:0 S SDX=$O(^DPT(DFN,"DE",SDI,1,SDX)) Q:'SDX  S SDEN=$G(^DPT(DFN,"DE",SDI,1,SDX,0))
  D ENROLL

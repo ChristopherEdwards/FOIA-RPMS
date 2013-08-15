@@ -1,5 +1,5 @@
 DGMTUB ;ALB/RMO/CAW,CPM,LBD - Means Test Billing Utilities ; 7/22/02 9:32am
- ;;5.3;Registration;**33,456,481**;Aug 13, 1993
+ ;;5.3;Registration;**33,456,481,1015**;Aug 13, 1993;Build 21
  ;
 BIL(DFN,DGDT) ;Determine if patient is pending adjudication
  ;        or category C and has agreed to pay the deductible

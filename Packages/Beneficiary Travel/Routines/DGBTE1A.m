@@ -1,5 +1,5 @@
 DGBTE1A ;ALB/SCK - BENEFICIARY TRAVEL FIND OLD CLAIMS PART 2; 1/22/93@1530
- ;;5.3;Registration;**35,69**;Aug 13, 1993
+ ;;5.3;Registration;**35,69,1015**;Aug 13, 1993;Build 21
  ;
  ;
  Q

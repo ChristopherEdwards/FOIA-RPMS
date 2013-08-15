@@ -1,5 +1,5 @@
-BLRLINKU ;IHS/OIT/MKK - IHS LAB LINK TO PCC Utilities ; [ 05/31/2011  10:35 AM ]
- ;;5.2;LR;**1030**;NOV 01, 1997
+BLRLINKU ;IHS/OIT/MKK - IHS LABORATORY VISIT CREATION Utilities ; [ 05/31/2011  10:35 AM ]
+ ;;5.2;LR;**1030,1031**;NOV 01, 1997
  ;
  ;       Need to get Reference Ranges & Units from Incoming HL7 message
  ;       IF and ONLY IF the transaction is tied to a Reference Lab Accession
@@ -127,6 +127,15 @@ REFLAB68 ; EP -- Setup ^XTMP global with Ref Lab Accessions' IENs
  F  S BLRDIVS=$O(^BLRSITE(BLRDIVS))  Q:BLRDIVS<1  D
  . S LOCIEN=+$G(^BLRSITE(BLRDIVS,0))
  . S INSTIEN=+$G(^AUTTLOC(LOCIEN,0))          ; Institution IEN
+ . ;
+ . ; ----- BEGIN IHS/MSC/MKK LR*5.2*1031
+ . ;       Any Reference Lab that has the REF LAB USING LEDI field set to
+ . ;       YES in the BLR MASTER CONTROL file is using LEDI for the
+ . ;       interface.  That means incoming data goes directly into 62.49,
+ . ;       bypassing 4001, so skip this logic.
+ . Q:$$UP^XLFSTR($$GET1^DIQ(9009029,INSTIEN,3022))["Y"
+ . ; ----- END IHS/MSC/MKK LR*5.2*1031
+ . ;
  . S REFLLABS=+$G(^BLRSITE(BLRDIVS,"RL"))
  . S REFLABN=$P($G(^BLRRL(REFLLABS,0)),"^")
  . S DESTNAME="HL IHS LAB R01 "_REFLABN_" IN"
@@ -239,3 +248,51 @@ ICDCHEK(ICDCODE) ; EP - Check to see if passed string is in ICD dictionary.
  ;
  D FIND^DIC(80,,,"M",ICDCODE,,,,,"TARGET","ERRORS")
  Q $S(+$G(TARGET("DILIST",1,1))>0:1,1:0)
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+RESETX ; EP
+ ; Delete the ^XTMP("BLRLINKU" global.  This allows
+ ; REFLAB68 (see above) to rebuild the global with
+ ; the latest information.
+ NEW HEADER
+ S HEADER(1)="IHS LABORATORY"
+ S HEADER(2)="Reset ^XTMP(""BLRLINKU"") Global"
+ D HEADERDT^BLRGMENU
+ W ?9,"This option will reset the ^XTMP(""BLRLINKU"") Global.",!
+ W !
+ W ?9,"The ^XTMP(""BLRLINKU"") Global is ONLY used for Reference Lab",!
+ W ?9,"processes.",!
+ W !
+ Q:$$WARNINGS("Are you SURE you want to reset the ")="Q"
+ ;
+ S HEADER(3)=$$CJ^XLFSTR("SECOND CHANCE",IOM)
+ D HEADERDT^BLRGMENU
+ Q:$$WARNINGS("Are you ABSOLUTELY CERTAIN you want to reset the")="Q"
+ ;
+ K HEADER(3)
+ S HEADER(3)=$$CJ^XLFSTR("LAST CHANCE",IOM)
+ D HEADERDT^BLRGMENU
+ Q:$$WARNINGS("FINAL WARNING.  Do you REALLY want to reset the")="Q"
+ ;
+ K HEADER(3)
+ K ^XTMP("BLRLINKU")      ; Clear
+ D REFLAB68               ; Rebuild
+ ;
+ D HEADERDT^BLRGMENU
+ W !!,?9,"^XTMP(""BLRLINKU"") Global has been reset.",!
+ D PRESSKEY^BLRGMENU(14)
+ Q
+ ;
+WARNINGS(MSG) ; EP
+ W ?9,MSG
+ D ^XBFMK
+ S DIR(0)="YO"
+ S DIR("A")=$J("",9)_"^XTMP(""BLRLINKU"") Global (Y/N)"
+ S DIR("B")="NO"
+ D ^DIR
+ I +$G(Y)<1 D  Q "Q"
+ . W !!,?14,"Invalid/Quit/No response.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(19)
+ Q "OK"
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031

@@ -1,6 +1,8 @@
-ORWDPS32 ; SLC/KCM - Pharmacy Calls for GUI Dialog ;17-Jun-2009 14:11;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,94,190,1004**;Dec 17, 1997
+ORWDPS32 ; SLC/KCM - Pharmacy Calls for GUI Dialog ;22-Nov-2011 13:48;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,94,190,1004,1009**;Dec 17, 1997
  ;
+ ;Modified - IHS/MSC/PLS - 06/17/2009 -
+ ;                       - 10/27/2011 - Line VALQTY+3
 NXT() ; -- returns next available index in return data array
  S ILST=ILST+1
  Q ILST
@@ -217,7 +219,8 @@ VALSCH(OK,X,PSTYPE) ; validate a schedule, return 1 if valid, 0 if not
 VALQTY(OK,X) ; validate a quantity, return 1 if valid, 0 if not
  ; to be compatible with LM, make sure X is integer from 1 to 240
  ; this is based on the input transform from 52,7
- K:(+X'>0)!(+X>99999999)!(X'?.8N.1".".2N)!($L(X)>12) X
+ ;K:(+X'>0)!(+X>99999999)!(X'?.8N.1".".2N)!($L(X)>12) X  ;P10
+ K:(+X'>0)!(+X>99999999)!(X'?.8N.1".".3N)!($L(X)>12) X
  S OK=$S($D(X):1,1:0)
  Q
 DOSES(LST,OI) ; return doses for an orderable item  -  TEST ONLY

@@ -1,5 +1,5 @@
 DGMTM ;ALB/RMO - Means Test Main Menu Driver ;7 JAN 1992 8:00 am
- ;;5.3;Registration;**45**;Aug 13, 1993
+ ;;5.3;Registration;**45,1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point to means test menu driver
  D HOME^%ZIS G:$D(^DOPT("DGMTM",14)) A

@@ -1,5 +1,5 @@
 DGRPCK ;ALB/MRL - CONSISTENCY PURGE ; 11 FEB 1987
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  S U="^" D DT^DICRW F I=1:1 S J=$P($T(T+I),";;",2) Q:J']""  W !,J
  D ^DGRPCS G Q:DGCONRUN S Y=$S($D(^DG(43,1,"CON")):$P(^("CON"),"^",2),1:"") I +Y X ^DD("DD") W !!,"LAST RUN COMPLETED:  ",Y
 OK W !!,"Do You Really want to purge data from this file" S %=2 D YN^DICN G Q:%=2!(%=-1) I '% W !!?4,"Y - If you want to purge data.",!?4,"N - If you don't wish to purge data." G OK

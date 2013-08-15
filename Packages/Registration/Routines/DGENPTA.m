@@ -1,5 +1,5 @@
-DGENPTA ;ALB/CJM - Patient API - Retrieve Data; 13 JUN 1997
- ;;5.3;Registration;**121,122,147**;08/13/93
+DGENPTA ;ALB/CJM,ERC,CKN,TDM,PWC - Patient API - Retrieve Data ; 2/3/11 6:40pm
+ ;;5.3;PIMS;**121,122,147,1015,1016**;JUN 30, 2012;Build 20
  ;
 VET(DFN) ;returns 1 if the patient is an eligible veteran
  ;returns 0 if not a veteran or not eligible
@@ -65,7 +65,7 @@ DEATH(DFN) ;
  Q +DATE
  ;
 GET(DFN,DGPAT) ;
- ;Description: Returns DGPAT() array with identifing infor for patient
+ ;Description: Returns DGPAT() array with identifying info for patient
  ;  Input:
  ;    DFN - ien, PATIENT file
  ;  Output:
@@ -80,10 +80,13 @@ GET(DFN,DGPAT) ;
  ;      "NAME" - patient name
  ;      "PATYPE" - patient type
  ;      "PID" - Primary Long ID
- ;      "PREFAC" - prefered facility
+ ;      "PREFAC" - preferred facility
+ ;      "PFSRC" - preferred facility source designation
  ;      "SSN" - Social Security Number
  ;      "SEX" - M=male, F=female
  ;      "VETERAN" - VETERAN (Y/N)? - "Y"=YES,"N"=NO
+ ;      "AG/ALLY" - Agency/Allied Country
+ ;      "SPININJ" - Spinal Cord Injury
  ;
  N NODE
  Q:'$G(DFN) 0
@@ -100,10 +103,13 @@ GET(DFN,DGPAT) ;
  S DGPAT("PATYPE")=$P($G(^DPT(DFN,"TYPE")),"^")
  S DGPAT("VETERAN")=$P($G(^DPT(DFN,"VET")),"^")
  S DGPAT("PREFAC")=$P($G(^DPT(DFN,"ENR")),"^",2)
+ S DGPAT("PFSRC")=$P($G(^DPT(DFN,"ENR")),"^",3)
  S DGPAT("INELDATE")=$P($G(^DPT(DFN,.15)),"^",2)
  S DGPAT("INELREA")=$P($G(^DPT(DFN,.3)),"^",7)
  S DGPAT("INELDEC")=$P($G(^DPT(DFN,"INE")),"^",6)
  S DGPAT("PID")=$P($G(^DPT(DFN,.36)),"^",3)
+ S DGPAT("AG/ALLY")=$P($G(^DPT(DFN,.3)),"^",9)
+ S DGPAT("SPININJ")=$P($G(^DPT(DFN,57)),"^",4)
  Q 1
  ;
 SSN(DFN) ;
@@ -287,6 +293,7 @@ LOOKUP(SSN,DOB,SEX,ERROR) ;
  ;
  N DFN,NODE
  ;
+ I $G(SSN)="" S ERROR="INVALID SSN" Q 0
  S DFN=$O(^DPT("SSN",SSN,0))
  I 'DFN S ERROR="SSN NOT FOUND" Q 0
  I $O(^DPT("SSN",SSN,DFN)) S ERROR="MULTIPLE PATIENTS MATCHING SSN" Q 0

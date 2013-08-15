@@ -1,7 +1,8 @@
 SCRPW40 ;RENO/KEITH - Diagnosis/Procedure Frequency Report ;06/22/99
- ;;5.3;Scheduling;**144,180**;AUG 13, 1993
+ ;;5.3;PIMS;**144,180,1015,1016**;JUN 30, 2012;Build 20
  ;06/22/99 ACS - Added CPT modifiers to the report
  ;06/22/99 ACS - Added CPT modifier API calls
+ ;04/13/08 - Updating to replace calls to unsupported/deleted ICD9 fields with API calls
  ;
  N SDDIV,SD,%DT,X,Y,DIR,SDX,LINEFLAG
  D TITL^SCRPW50("Outpatient Diagnosis/Procedure Frequncy Report")
@@ -99,7 +100,7 @@ DXPRT ;Print diagnosis list
  W !?(C),"TOTAL:",?(C+46),$J(SDTOT("PRI"),9,0),?(C+58),$J(SDTOT("SEC"),9,0),?(C+70),$J(SDTOT("QTY"),9,0)
  Q
  ;
-DXP1 S SDI=0 F  S SDI=$O(^TMP("SCRPW",$J,SDIV,"DX",2,SDORD,SDI)) Q:'SDI!SDOUT!(SDCT>(SD("FREQ")-1))  S SDDX0=$G(^ICD9(SDI,0)) I $L(SDDX0) S SDDXC=$P(SDDX0,U),SDDXN=$P(SDDX0,U,3) D DXP2
+DXP1 S SDI=0 F  S SDI=$O(^TMP("SCRPW",$J,SDIV,"DX",2,SDORD,SDI)) Q:'SDI!SDOUT!(SDCT>(SD("FREQ")-1))  S SDDX0=$$ICDDX^ICDCODE(SDI) I $L(SDDX0) S SDDXC=$P(SDDX0,U,2),SDDXN=$P(SDDX0,U,4) D DXP2
  Q
  ;
 DXP2 F SDII="PRI","SEC","QTY" S SDDX(SDII)=+$G(^TMP("SCRPW",$J,SDIV,"DX",1,SDI,SDII))
@@ -124,7 +125,7 @@ PRP1 ;S SDI=0 F  S SDI=$O(^TMP("SCRPW",$J,SDIV,"PROC",2,SDORD,SDI)) Q:'SDI!SDOUT
  Q
  ;
 PRP2 F SDII="ENC","QTY" S SDPR(SDII)=+$G(^TMP("SCRPW",$J,SDIV,"PROC",1,SDI,SDII))
- D:$Y>(IOSL-4) HDR,PRHD Q:SDOUT  S SDCT=SDCT+1 
+ D:$Y>(IOSL-4) HDR,PRHD Q:SDOUT  S SDCT=SDCT+1
  ; skip a line in the report if printing next cpt code on same page
  I LINEFLAG W !
  W !?(C),SDPRC,?(C+8),SDPRN,?(C+38),$J(SDPR("ENC"),9,0),?(C+50),$J(SDPR("QTY"),9,0)

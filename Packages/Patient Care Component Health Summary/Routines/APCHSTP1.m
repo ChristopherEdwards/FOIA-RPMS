@@ -1,12 +1,12 @@
 APCHSTP1 ; IHS/CMI/LAB -- CONTINUATION OF ROUTINES ;
- ;;2.0;IHS PCC SUITE;**2,5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,8**;MAY 14, 2009;Build 2
  ;IHS/CMI/LAB - uncommented age limit on pap smear
  ; 
  ; 
  ;
 INRGOAL ;EP called from hmr
  Q:'$$INAC^APCHSMU(APCHSITI)  ;is item turned on or off
- Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-45),DT)  ;not a candidate for this reminder, not active prescription for warfarin
+ Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-120),DT)  ;not a candidate for this reminder, not active prescription for warfarin
  Q:$$MRGOAL^APCHSACG(APCHSPAT)]""  ;has had an INR goal ever
  S APCHLAST="",APCHNEXT="" K APCHSTEX
  I $G(APCHCOLW)="" S APCHCOLW=48
@@ -15,7 +15,7 @@ INRGOAL ;EP called from hmr
  Q
 INRDUR ;EP called from hmr
  Q:'$$INAC^APCHSMU(APCHSITI)  ;is item turned on or off
- Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-45),DT)  ;not a candidate for this reminder, not active prescription for warfarin
+ Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-120),DT)  ;not a candidate for this reminder, not active prescription for warfarin
  Q:$$MRDUR^APCHSACG(APCHSPAT)]""  ;has had an INR goal ever
  S APCHLAST="",APCHNEXT="" K APCHSTEX
  I $G(APCHCOLW)="" S APCHCOLW=48
@@ -25,7 +25,7 @@ INRDUR ;EP called from hmr
  ;
 INREND ;EP called from hmr
  Q:'$$INAC^APCHSMU(APCHSITI)  ;is item turned on or off
- Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-45),DT)  ;not a candidate for this reminder, not active prescription for warfarin
+ Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-120),DT)  ;not a candidate for this reminder, not active prescription for warfarin
  NEW X,G
  S X=$P($$MREND^APCHSACG(APCHSPAT),U,1)  ;END DATE
  I X="" Q  ;no end date less than t+45
@@ -40,7 +40,7 @@ INREND ;EP called from hmr
  Q
 ACURIN ;EP - called from hmr
  Q:'$$INAC^APCHSMU(APCHSITI)  ;is item turned on or off
- Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-45),DT)  ;not a candidate for this reminder, not active prescription for warfarin
+ Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-120),DT)  ;not a candidate for this reminder, not active prescription for warfarin
  NEW X,G
  S X=$$LASTACUR^APCHSACG(APCHSPAT)
  I $P(X,U,1)'<$$FMADD^XLFDT(DT,-365) Q  ;had one in past year
@@ -51,7 +51,7 @@ ACURIN ;EP - called from hmr
  Q
 ACCBC ;EP - called from hmr
  Q:'$$INAC^APCHSMU(APCHSITI)  ;is item turned on or off
- Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-45),DT)  ;not a candidate for this reminder, not active prescription for warfarin
+ Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-120),DT)  ;not a candidate for this reminder, not active prescription for warfarin
  NEW X,G
  S X=$$LASTACCB^APCHSACG(APCHSPAT)
  I $P(X,U,1)'<$$FMADD^XLFDT(DT,-365) Q  ;had one in past year
@@ -62,7 +62,7 @@ ACCBC ;EP - called from hmr
  Q
 ACFOBT ;EP - called from hmr
  Q:'$$INAC^APCHSMU(APCHSITI)  ;is item turned on or off
- Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-45),DT)  ;not a candidate for this reminder, not active prescription for warfarin
+ Q:'$$ACTWARF(APCHSPAT,$$FMADD^XLFDT(DT,-120),DT)  ;not a candidate for this reminder, not active prescription for warfarin
  NEW X,G
  S X=$$LASTACFO^APCHSACG(APCHSPAT)
  I $P(X,U,1)'<$$FMADD^XLFDT(DT,-365) Q  ;had one in past year
@@ -72,20 +72,28 @@ ACFOBT ;EP - called from hmr
  D WRITETP^APCHSTP
  Q
 ACTWARF(P,BD,ED) ;EP - does patient have active presciption for warfarin, status=A in prescription file.
- NEW APCHMEDS,X,Y,Z,S,M,V,J,E
+ NEW APCHMEDS,X,Y,Z,S,M,V,J,APCHMEDD,D
  I $G(BD)="" S BD=$$FMADD^XLFDT(DT,-365)
  I $G(ED)="" S ED=DT
  D GETMEDS^APCHSMU1(P,BD,ED,"BGP CMS WARFARIN MEDS",,,"WARFARIN",.APCHMEDS)
  ;now loop through all the meds and check status, if not A then kill out of array
- S Z=0 F  S Z=$O(APCHMEDS(Z)) Q:Z'=+Z  D
- .S M=$P(APCHMEDS(Z),U,4)
- .S V=$P(^AUPNVMED(M,0),U,3)
- .I $P(^AUPNVSIT(V,0),U,7)="E" Q  ;count all outside meds as we don't know if active or not so error on side of active
- .I $P($G(^AUPNVMED(M,11)),U,8)]"" Q  ;count EHR outside meds for now, may need to change later
- .I $P($G(^AUPNVMED(M,0)),U,8)<BD  Q  ;discontinued before beginning date
- .Q
- I $O(APCHMEDS(0)) Q 1
- Q 0
+ ;S Z=0 F  S Z=$O(APCHMEDS(Z)) Q:Z'=+Z  D
+ ;.S M=$P(APCHMEDS(Z),U,4)
+ ;.S V=$P(^AUPNVMED(M,0),U,3)
+ ;.I $P(^AUPNVSIT(V,0),U,7)="E" Q  ;count all outside meds as we don't know if active or not so error on side of active
+ ;.I $P($G(^AUPNVMED(M,11)),U,8)]"" Q  ;count EHR outside meds for now, may need to change later
+ ;.;I $P($G(^AUPNVMED(M,0)),U,8)="" Q  ;NOT discontinued before beginning date
+ ;.;K APCHMEDS(Z)
+ ;.Q
+ ;REORDER BY DATE OF VISIT (OR 1201 IF IT EXISTS)
+ S X=0 F  S X=$O(APCHMEDS(X)) Q:X'=+X  D
+ .S D=$P($P($G(^AUPNVMED($P(APCHMEDS(X),U,4),12)),U),".")
+ .S APCHMEDD(9999999-$S(D]"":D,1:$P(APCHMEDS(X),U,1)))=APCHMEDS(X)
+ I '$O(APCHMEDD(0)) Q 0
+ S D=$O(APCHMEDD(0))
+ I $P(^AUPNVMED($P(APCHMEDD(D),U,4),0),U,8)]"" Q 0
+ Q 1
+ ;
 HOLDTHIS ;FOR LATER MAYBE
  D
  .S X=$O(^PSRX("APCC",M,0))

@@ -1,5 +1,5 @@
-VAFHLZBT ;ALB/KCL - CREATE HL7 BENEFICIARY TRAVEL (ZBT) SEGMENT ; 12-SEPTEMBER-1997
- ;;5.3;Registration;**122**;Aug 13, 1993
+VAFHLZBT ;ALB/KCL,CKN - CREATE HL7 BENEFICIARY TRAVEL (ZBT) SEGMENT ; 12/6/06 3:25pm
+ ;;5.3;PIMS;**122,1016**;JUN 30, 2012;Build 20
  ;
  ;
  ; This generic extrinsic function is designed to return the HL7
@@ -26,8 +26,11 @@ EN(VAFDATE,VAFSTR,VAFHLQ,VAFHLFS) ; --
  ; if VAFHLQ or VAFHLFS not passed, use default HL7 variables
  S VAFHLQ=$S($D(VAFHLQ):VAFHLQ,1:$G(HLQ)),VAFHLFS=$S($D(VAFHLFS):VAFHLFS,1:$G(HLFS))
  ;
- ; if VAFDATE not passed, exit
- I '$G(VAFDATE) S VAFY=1 G ENQ
+ ;If VAFDATE not passed, populate all valid seq. with ""(dbl quotes)
+ I '$G(VAFDATE) D  G ENQ
+ . S VAFY=1
+ . I $G(VAFSTR) F I=2:1:$L(VAFSTR,",") S $P(VAFY,VAFHLFS,$P(VAFSTR,",",I))=VAFHLQ
+ . E  F I=2:1:7 S $P(VAFY,VAFHLFS,I)=VAFHLQ
  ;
  ; zero node from BENE TRAVEL CLAIM (#392) file
  S VAFCLM=$G(^DGBT(392,VAFDATE,0))
@@ -38,8 +41,11 @@ EN(VAFDATE,VAFSTR,VAFHLQ,VAFHLFS) ; --
  S VAFCERT=$G(^DGBT(392.2,+$O(^DGBT(392.2,"C",+$P(VAFCLM,"^",2),+X)),0)),VAFANOD=$G(^("A"))
  I VAFCERT="" S VAFCERT=$G(^DGBT(392.2,+$O(^DGBT(392.2,"C",+$P(VAFCLM,"^",2),0)),0)),VAFANOD=$G(^("A"))
  ;
- ; if no certificate, exit
- I VAFCERT="" S VAFY=1 G ENQ
+ ;If no certificate, populate all valid seq. with ""(dbl quotes)
+ I VAFCERT="" D  G ENQ
+ . S VAFY=1
+ . I $G(VAFSTR) F I=2:1:$L(VAFSTR,",") S $P(VAFY,VAFHLFS,$P(VAFSTR,",",I))=VAFHLQ
+ . E  F I=2:1:7 S $P(VAFY,VAFHLFS,I)=VAFHLQ
  ;
  ; if VAFSTR not passed, return all data fields
  I $G(VAFSTR)']"" S VAFSTR="2,3,4,5,6,7"

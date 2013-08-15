@@ -1,5 +1,5 @@
-VAFCAUD ;BIR/CML-MPI/PD AUDIT FILE PRINT FOR A SPECIFIED PATIENT ;01/06/99
- ;;1.0;CLINICAL INFO RESOURCE NETWORK;**477**;30 Apr 99
+VAFCAUD ;BIR/CML-MPI/PD AUDIT FILE PRINT FOR A SPECIFIED PATIENT ;2/25/09
+ ;;5.3;PIMS;**477,1016**;JUN 30, 2012;Build 20
  ;Reference to ^DIA(2 and data derived from the AUDIT file (#1.1)
  ;is supported by IA #2097 and #2602.
  ;Reference to ^ORD(101 supported by IA #2596
@@ -20,7 +20,7 @@ BEGIN ;
 ASK1 ;Ask for PATIENT
  W !
  S DIC="^DPT(",DIC(0)="QEAM",DIC("A")="Select PATIENT: " D ^DIC K DIC Q:Y<0  S VAFCDFN=+Y
- I '$O(^DIA(2,"B",VAFCDFN,0)) W !!,"This patient has no audit data available for any date." G ASK1
+ I '$O(^DIA(2,"B",VAFCDFN,0)),'$O(^DIA(2,"B",VAFCDFN_",1",0)) W !!,"This patient has no audit data available for any date." G ASK1   ;**712
  Q
  ;
 ASK2 ;Ask for Date Range
@@ -47,6 +47,10 @@ LOOP ;Loop on "B" xref of the AUDIT file
  .I $D(^DIA(2,IEN,0)) S EDITDT=$P(^(0),U,2) I EDITDT>VAFCBDT,EDITDT<STOP D
  ..S ^TMP("VAFCAUD",$J,EDITDT,IEN)=""
  ;
+ ;find any audit data for audited fields that are multiples  - **712
+ F QQ=1:1 S SUB=VAFCDFN_","_QQ Q:'$D(^DIA(2,"B",SUB))  S IEN=0 F  S IEN=$O(^DIA(2,"B",SUB,IEN)) Q:'IEN  D
+ .I $D(^DIA(2,IEN,0)) S EDITDT=$P(^(0),U,2) I EDITDT>VAFCBDT,EDITDT<STOP S ^TMP("VAFCAUD",$J,EDITDT,IEN)=""
+ ;
 PRT ;Print report
  S (PG,QFLG)=0,U="^",$P(LN,"-",81)="",SITE=$P($$SITE^VASITE(),U,2)
  S PVAFCBDT=$$FMTE^XLFDT(VAFCBDT),PVAFCEDT=$$FMTE^XLFDT(VAFCEDT)
@@ -57,7 +61,8 @@ PRT ;Print report
  .S IEN=0 F  S IEN=$O(^TMP("VAFCAUD",$J,EDITDT,IEN)) Q:QFLG  Q:'IEN  D
  ..S PRTDT=$$FMTE^XLFDT($E(EDITDT,1,12))
  ..S IEN0=^DIA(2,IEN,0)
- ..K VAFCARR1 D FIELD^DID(2,$P(IEN0,U,3),"","LABEL","VAFCARR1")
+ ..S FILE=2,FIELD=$P(IEN0,"^",3) I FIELD["," S FILE=+$P(^DD(2,$P(FIELD,","),0),"^",2),FIELD=$P(FIELD,",",2)   ;**712
+ ..K VAFCARR1 D FIELD^DID(FILE,FIELD,"","LABEL","VAFCARR1")   ;**712
  ..S FLD=$G(VAFCARR1("LABEL")) Q:FLD=""
  ..S USER=$P(IEN0,U,4)
  ..I 'USER S USER="UNKNOWN"
@@ -84,6 +89,7 @@ QUIT ;
  K ^TMP("VAFCAUD",$J)
  K %,%I,C,VAFCDFN,EDITDT,FLD,HDT,IEN,IEN0,JJ,LN,NEW,OLD,OPTDA1,OPTDA2,VAFCOPTN,OPTNM,PG,PVAFCBDT,PVAFCEDT,PRTDT,POP
  K QFLG,VAFCARR1,VAFCBDT,VAFCEDT,RPCFLG,SITE,SS,STOP,USER,X,Y,ZTSK
+ K SUB,FILE,FIELD,QQ   ;**712
  Q
  ;
 HDR ;HEADER

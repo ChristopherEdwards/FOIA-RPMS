@@ -1,5 +1,5 @@
-BCHMSRE ; IHS/TUCSON/LAB - Edits for measurement values ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**16**;OCT 28, 1996
+BCHMSRE ; IHS/CMI/LAB - Edits for measurement values ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;called from input transform on measurement fields in chr record
  ;edits data value.

@@ -1,9 +1,7 @@
-TIURB ; SLC/JER - More Review Screen Actions ;FEB 26, 2003
- ;;1.0;TEXT INTEGRATION UTILITIES;**4,32,52,78,58,100,109,155**;Jun 20, 1997
+TIURB ; SLC/JER - More Review Screen Actions ;4/11/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**4,32,52,78,58,100,109,155,184**;Jun 20, 1997
  ; **100** Moved DELETE, DEL, DELTEXT, DIK to new rtn TIURB2
  ; DBIA 3576 TIU use of GMRCTIU
- ;IHS/ITSC/LJF 02/27/2003 added code in AMEND1 to insure unlock is performed
- ;
 AMEND ; Amendment action
  N TIUDA,DFN,DIE,DR,TIU,TIUDATA,TIUI,TIUSIG,TIUY,X,X1,Y
  N DIROUT,TIUCHNG,TIUDAARY,TIULST
@@ -28,12 +26,16 @@ AMEND ; Amendment action
  Q
 AMEND1 ; Single record amend
  N TIUCMT,TIUT0,TIUTYP,TIUAMND,TIUSNM,TIUSBLK,TIUCSNM,TIUCSBLK,DIE,DR
- N DA,DFN,DIWESUB,TIU,TIUODA,TIUTITL,TIUCLSS,TIUCON,TIUCNSLT
+ N DA,DFN,DIWESUB,TIU,TIUODA,TIUTITL,TIUCLSS,TIUCON,TIUCNSLT,TIUPRF,TIUFLAG
+ K ^TMP("TIURTRCT",$J)
  ; TIU*155 Gets consult data if exists
  S TIUTITL=$P($G(^TIU(8925,TIUDA,0)),U)
  S TIUCLSS=$$CLASS^TIUCNSLT()
  S TIUCON=+$$ISA^TIULX(TIUTITL,TIUCLSS)
  S TIUCNSLT=+$P($G(^TIU(8925,TIUDA,14)),U,5)
+ S TIUPRF=0,TIUFLAG=0
+ D ISPRFTTL^TIUPRF2(.TIUPRF,TIUTITL)
+ I TIUPRF S TIUFLAG=$$FNDACTIF^TIUPRFL(TIUDA)
  L +^TIU(8925,+TIUDA):1
  E  D  Q
  . W !?5,$C(7),"Another user is editing this entry." H 3
@@ -42,22 +44,18 @@ AMEND1 ; Single record amend
  . W !?5,$C(7),"Only SIGNED Documents may be amended."
  . I $$READ^TIUU("EA","Press RETURN to continue...") ; pause
  . S TIUCHNG("REFRESH")=1
- . L -^TIU(8925,TIUDA)   ;IHS/ITSC/LJF 08/20/2003 need to unlock if quitting
- ;I +$$HASIMG^TIURB2(TIUDA) D IMGNOTE^TIURB2 Q                     ;IHS/ITSC/LJF 08/20/2003
- I +$$HASIMG^TIURB2(TIUDA) D IMGNOTE^TIURB2 L -^TIU(8925,TIUDA) Q  ;IHS/ITSC/LJF 08/20/2003
+ I +$$HASIMG^TIURB2(TIUDA) D IMGNOTE^TIURB2 Q
  S TIUAMND=$$CANDO^TIULP(TIUDA,"AMENDMENT")
  I +TIUAMND'>0 D  Q
  . W !!,$C(7),$C(7),$C(7),$P(TIUAMND,U,2),!
  . S TIUCHNG("REFRESH")=1
  . I $$READ^TIUU("EA","Press RETURN to continue...") ; pause
- . L -^TIU(8925,TIUDA)   ;IHS/ITSC/LJF 08/20/2003 need to unlock if quitting
  W !!,"Before proceeding, please enter your Electronic Signature Code..."
  S TIUAMND=$$GETSIG^TIURD2
  I +TIUAMND'>0 D  Q
  . W !!,"  Ok, no harm done...",!
  . S TIUCHNG("REFRESH")=1
  . I $$READ^TIUU("EA","Press RETURN to continue...") ; pause
- . L -^TIU(8925,TIUDA)   ;IHS/ITSC/LJF 08/20/2003 need to unlock if quitting
  W !!,"The ORIGINAL document will be RETRACTED, and a copy will be amended...",!
  S TIUODA=TIUDA
  S TIUDA=+$$RETRACT^TIURD2(TIUDA,"",7)
@@ -65,14 +63,12 @@ AMEND1 ; Single record amend
  . W !!,$C(7),$C(7),$C(7),"Retraction of Original Document Failed.",!
  . I $$READ^TIUU("EA","Press RETURN to continue...") ; pause
  . S TIUDA=TIUODA,TIUCHNG("REFRESH")=1
- . L -^TIU(8925,TIUDA)   ;IHS/ITSC/LJF 08/20/2003 need to unlock if quitting
- ;
  L +^TIU(8925,TIUDA):1
  E  D  Q
  . W !?5,$C(7),"Another user is editing this entry."
  . D RECOVER^TIURD4(TIUODA,TIUDA) H 3
+ . S TIUPRF=$$LINK^TIUPRF1(TIUODA,+TIUFLAG,$P(TIUFLAG,U,2),$P($G(^TIU(8925,TIUODA,0)),U,2))
  . S TIUDA=TIUODA,TIUCHNG("REFRESH")=1
- ;
  S TIUSNM=$$DECRYPT^TIULC1($P(^TIU(8925,TIUDA,15),U,3),1,$$CHKSUM^TIULC("^TIU(8925,"_TIUDA_",""TEXT"")"))
  S TIUSBLK=$$DECRYPT^TIULC1($P($G(^TIU(8925,TIUDA,15)),U,4),1,$$CHKSUM^TIULC("^TIU(8925,"_TIUDA_",""TEXT"")"))
  S TIUCSNM=$$DECRYPT^TIULC1($P(^TIU(8925,TIUDA,15),U,9),1,$$CHKSUM^TIULC("^TIU(8925,"_TIUDA_",""TEXT"")"))
@@ -86,6 +82,7 @@ AMEND1 ; Single record amend
  I '+$G(TIUCHNG) D  Q
  . L -^TIU(8925,TIUDA)
  . D RECOVER^TIURD4(TIUODA,TIUDA)
+ . S TIUPRF=$$LINK^TIUPRF1(TIUODA,+TIUFLAG,$P(TIUFLAG,U,2),$P($G(^TIU(8925,TIUODA,0)),U,2))
  . L -^TIU(8925,TIUODA) H 3
  . S TIUDA=TIUODA,TIUCHNG("REFRESH")=1
  I +$G(TIUCHNG) D
@@ -100,6 +97,8 @@ AMEND1 ; Single record amend
  L -^TIU(8925,+TIUODA)
  S TIUDAARY(TIUI)=TIUDA
  S TIUCHNG("RBLD")=1
+ ; if note is associated with a patient record flag - clean up
+ I +TIUFLAG S TIUPRF=$$LINK^TIUPRF1(TIUDA,+TIUFLAG,$P(TIUFLAG,U,2),$P($G(^TIU(8925,TIUDA,0)),U,2))
  ; TIU*155 If note is associated with a consult update ^GMR global
  ; to include the amended note
  ; Rollback retracted note from ^GMR(123 node 50

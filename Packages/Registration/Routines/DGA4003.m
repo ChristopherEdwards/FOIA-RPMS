@@ -1,5 +1,5 @@
 DGA4003 ;ALB/MRL - AMIS 420 MESSAGES FROM MAILMAN ;01 JAN 1988@2300
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  S XMSUB=DGH,XMDUZ=.5,XMY(DUZ)="" F I=1:1 S J=$P($T(OPEN+I),";;",2) Q:J="QUIT"  S DGL=I,DGTEXT(I,0)=J
  D MORE Q
 PMES ;Pending Message

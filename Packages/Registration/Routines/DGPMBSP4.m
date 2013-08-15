@@ -1,5 +1,5 @@
-DGPMBSP4 ;ALB/LM - BSR PRINT, CONT.; 13 JUNE 90
- ;;5.3;Registration;;Aug 13, 1993
+DGPMBSP4 ;ALB/LM - BSR PRINT, CONT.; 13 JUNE 90 ; 1/13/05 3:48pm
+ ;;5.3;Registration;**592,641,1015**;Aug 13, 1993;Build 21
  ;
 A Q:'PL
  ;

@@ -1,5 +1,5 @@
 DG17202 ;BHM/RGY,ALS-Create new request for patient demographic change ;FEB 20, 1998
- ;;5.3;Registration;**172**;Aug 13, 1993
+ ;;5.3;Registration;**172,1015**;Aug 13, 1993;Build 21
 ADD(FILE) ;
  NEW DIC,D0,DIE,DA,X,DLAYGO,DR,RGOK,EVN,DINUM
  F EVN=+$P(^XTMP("DGTMP",FILE,0),"^",3)+1:1 L +^XTMP("DGTMP",FILE,EVN):0 I $T S RGOK=0 D  L -^XTMP("DGTMP",FILE,EVN) Q:RGOK

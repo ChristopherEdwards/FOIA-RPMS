@@ -1,5 +1,5 @@
 SCRPW77 ;BP-CIOFO/KEITH,ESW - Clinic Appointment Availability Extract (cont.) ; 5/28/03 4:49pm
- ;;5.3;Scheduling;**223,241,291**;AUG 13, 1993
+ ;;5.3;Scheduling;**223,241,291,1015**;AUG 13, 1993;Build 21
  ;
 ACCRUE ;Accrue counts and averages to division and division/credit pair totals
  F  S SDCL=$O(^TMP("SDXNAVA",$J,SDCL)) Q:'SDCL  D

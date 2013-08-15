@@ -1,5 +1,5 @@
 SDPHARM ;ALBANY OIFO/KEITH - Determine patients for Rx benefit ; 6/30/03
- ;;5.3;Scheduling;**300**;AUG 13,1993
+ ;;5.3;Scheduling;**300,1015**;AUG 13,1993;Build 21
 LOOK ;Search PATIENT file for eligible patients
  ;
  N DFN,SDPT,SDSS,SDATE,SDATE2

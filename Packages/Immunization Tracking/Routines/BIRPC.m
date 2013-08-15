@@ -1,8 +1,10 @@
 BIRPC ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETURNS IMMUNIZATION HISTORY, FORECAST, IMM/SERV PROFILE.
  ;;  PATCH 1: Add API: FORCALL, to allow queued update of all BI Patients.
+ ;;  PATCH 3: Add NDC and Elig Codes, plus Date of Event to default Hx string.
+ ;;                                                                IMMHX+60
  ;
  ;
  ;----------
@@ -59,10 +61,19 @@ IMMHX(BIHX,BIDFN,BIDE,BISKIN,BIFMT) ;PEP - Return Immunization History.
  ;---> 66 17 = Date of Visit (MM/DD/YY).
  ;---> 69 18 = Vaccine Component CVX Code.
  ;---> 74 19 = CPT-Coded Visit.
- ;---> 78 20 - Imported from Outside Registry (if = 1).
+ ;---> 78 20 = Imported from Outside Registry (if = 1).
+ ;---> 80 21 = NDC Code pointer IEN.
+ ;---> 82 22 = Elilgibility Code Text.
+ ;---> 84 23 = NDC Code text.
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Add NDC and Eligibility Codes, plus Date of Event to default Hx string.
+ ;---> 85 24 = Date of Event (1201 field of V File) in MM/DD/YY
+ ;
  ;
  D:'$D(BIDE)
- .N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78 S BIDE(I)=""
+ .;N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78 S BIDE(I)=""
+ .N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78,80,82,84,85 S BIDE(I)=""
+ ;**********
  N BIMM S BIMM("ALL")=""
  ;
  ;---> Next, gather Immunization History for this patient.
@@ -86,6 +97,8 @@ IMMHX(BIHX,BIDFN,BIDE,BISKIN,BIFMT) ;PEP - Return Immunization History.
  ;     5 - BIHX     (ret) Immunization History in "^"-delimited string
  ;
  D WRITE^BIEXPRT4(2,1,,,.BIHX)
+ ;
+ ;W !,BIHX,!,"IMMHX^BIRPC" R ZZZ
  S BIHX=BIHX_BI31
  Q
  ;

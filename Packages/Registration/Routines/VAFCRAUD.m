@@ -1,5 +1,5 @@
 VAFCRAUD ;BHAM/DRI-ROUTINE TO CALL VAFC REMOTE AUDIT (PATIENT) ;2/22/02
- ;;5.3;Registration;**477**;Aug 13, 1993
+ ;;5.3;Registration;**477,479,1015**;Aug 13, 1993;Build 21
  ;Reference to ^DGCN(391.91 supported by IA #2911
  ;Reference to EN1^XWB2HL7 supported by IA #3144
  ;Reference to RPCCHK^XWB2HL7 supported by IA #3144
@@ -115,13 +115,14 @@ DISP2 ;
  K ICN,DFN
  Q
 DISPLAY(ICN,LOC) ;display a remote audit report
- N STATUS,RETURN,RESULT,RET
+ N STATUS,RETURN,RESULT,RET,R
  I '$D(^XTMP("VAFCRAUD"_ICN,0)) W !?15," - No audit query exists for this record."
  I $D(^XTMP("VAFCRAUD"_ICN,LOC,0)) S RETURN(0)=$P(^XTMP("VAFCRAUD"_ICN,LOC,0),"^") D
  . D RPCCHK^XWB2HL7(.RESULT,RETURN(0)) I +RESULT(0)=1 D
- .. D RTNDATA^XWBDRPC(.RET,RETURN(0)) S R=0 F  S R=$O(RET(R)) Q:'R  W !,RET(R) I $Y>22 S DIR(0)="E" D ^DIR K DIR W @IOF S $Y=1
- . I $D(RET(0)) I RET(0)<0 W !!,"No data returned due to: "_$P(RET(0),"^",2)
- . K R
+ .. D RTNDATA^XWBDRPC(.RET,RETURN(0))
+ .. I $D(RET(0)) I RET(0)<0 W !!,"No data returned due to: "_$P(RET(0),"^",2) Q
+ .. I $G(RET)'="",$D(@RET) S GLO=RET F  S GLO=$Q(@GLO) Q:$QS(GLO,1)'=$J  S TXT=@GLO W !,TXT I $Y>22 S DIR(0)="E" D ^DIR K DIR W @IOF S $Y=1 ;**479
+ .. S R="" F  S R=$O(RET(R)) Q:R=""  W !,RET(R) I $Y>22 S DIR(0)="E" D ^DIR K DIR W @IOF S $Y=1 ;**479
  Q
 GETTFL(ICN,TFL) ;Check for existing Treating Facilities
  N LOC,HOME

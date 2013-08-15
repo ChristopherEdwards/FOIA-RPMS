@@ -1,7 +1,5 @@
 SDCODEL ;ALB/RMO,ESW - Delete - Check Out; 27 APR 1993 3:00 pm ; 10/10/02 5:38pm
- ;;5.3;Scheduling;**20,27,44,97,105,110,132,257,1005**;Aug 13, 1993
- ;IHS/ANMC/LJF 9/10/2001 removed calls to PCE
- ;IHS/OIT/LJF  01/26/2006 PATCH 1005 removed deleting of OE entry when check-out is deleted
+ ;;5.3;Scheduling;**20,27,44,97,105,110,132,257,1015**;Aug 13, 1993;Build 21
  ;
 EN(SDOE,SDMOD,SDELHDL,SDELSRC) ;Delete Check Out
  ; Input  -- SDOE     Outpatient Encounter file IEN
@@ -16,7 +14,7 @@ EN(SDOE,SDMOD,SDELHDL,SDELSRC) ;Delete Check Out
  ; -- ok to delete?
  IF '$$EDITOK^SDCO3(SDOE,SDMOD) G ENQ
  ;
- ;IF $G(SDELSRC)'="PCE" S X=$$DELVFILE^PXAPI("ALL",$P($G(^SCE(SDOE,0)),U,5),"","","",1)  ;IHS/ANMC/LJF 9/10/2001
+ IF $G(SDELSRC)'="PCE" S X=$$DELVFILE^PXAPI("ALL",$P($G(^SCE(SDOE,0)),U,5),"","","",1)
  S SDVFLG=1
  ;
  ; -- get handle if not passed and do 'before'
@@ -29,9 +27,7 @@ EN(SDOE,SDMOD,SDELHDL,SDELSRC) ;Delete Check Out
  ;
  ; -- delete SDOE pointers and co d/t
  I SDORG=1 D
- .;
- .;IHS/OIT/LJF 01/26/2006 PATCH 1005 IHS does not remove OE data when deleting check-out
- .;S DA(1)=DFN,DA=SDT,DIE="^DPT("_DFN_",""S"",",DR="21///@" D ^DIE
+ .S DA(1)=DFN,DA=SDT,DIE="^DPT("_DFN_",""S"",",DR="21///@" D ^DIE
  .I $G(SDMOD) W !?3,"...deleting check out date/time"
  .S DR="303///@" D DIE^SDCO1(SDCL,SDT,+SDDA,DR)
  I SDORG=3 D
@@ -39,11 +35,7 @@ EN(SDOE,SDMOD,SDELHDL,SDELSRC) ;Delete Check Out
  ;
  ; -- do final deletes for sdoe
  D CO(SDOE,SDMOD)
- ;
- ;IHS/OIT/LJF 01/26/2006 PATCH 1005 IHS does not remove OE data when deleting check-out
- ; but we do need to change status to Action Required
- S DIE="^SCE(",DA=SDOE,DR=".12///14" D ^DIE   ;added line
- ;D OE(SDOE,SDMOD)
+ D OE(SDOE,SDMOD)
  ;
  I $G(SDMOD) W !,">>> done."
  ;
@@ -51,7 +43,7 @@ EN(SDOE,SDMOD,SDELHDL,SDELSRC) ;Delete Check Out
  I $G(SDEVTF) D EVT^SDCOU1(SDOE,"AFTER",SDELHDL,.SDATA,SDOE0)
  ;
  ; -- call pce to make sure its data is gone
- ;I $G(SDVFLG) D DEAD^PXUTLSTP(SDVSAV)  ;IHS/ANMC/LJF 9/10/2001
+ I $G(SDVFLG) D DEAD^PXUTLSTP(SDVSAV)
 ENQ Q
  ;
 CHLD(SDOEP,SDMOD) ;Delete Children
@@ -86,7 +78,7 @@ OE(SDOE,SDMOD) ;Delete Outpatient Encounter
  S SDAT=$P($G(^SCE(+SDOE,0)),U,1)
  S SDVSIT=$P($G(^SCE(SDOE,0)),U,5),SDORG=$P($G(^SCE(SDOE,0)),U,8)
  S DA=SDOE,DIK="^SCE(" D ^DIK
- ;S X=$$KILL^VSITKIL(SDVSIT)    ;IHS/ANMC/LJF 9/10/2001
+ S X=$$KILL^VSITKIL(SDVSIT)
 OEQ Q
  ;
 COMDT(SDOE,SDMOD) ;Delete Check Out Process Completion Date

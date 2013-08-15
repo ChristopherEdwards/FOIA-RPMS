@@ -1,8 +1,9 @@
-DGDEPU ;ALB/CAW - Dependent Utilities - Generic ;11/3/94
- ;;5.3;Registration;**45**;Aug 13, 1993
+DGDEPU ;ALB/CAW/AMA - Dependent Utilities - Generic ;11/3/94
+ ;;5.3;Registration;**45,733,1015**;Aug 13, 1993;Build 21
  ;
 SEL ; -- select processing
- N BG,LST,Y
+ ;DG*5.3*733 -- added DIR to the list a vars to be NEW'ed
+ N BG,LST,Y,DIR
  S BG=+$O(@VALMAR@("IDX",$S($G(BEG):BEG,1:1),0))
  S LST=+$O(@VALMAR@("IDX",$S($G(END):END,1:DGCNT),0))
  I 'BG W !!,*7,"There are no '",VALM("ENTITY"),"s' to select.",! S DIR(0)="E" D ^DIR K DIR D OUT G SELQ
@@ -12,12 +13,12 @@ SEL ; -- select processing
  ; -- check was valid entries
  S DGERR=0,DGW=Y
  I DGW<BG!(DGW>LST) D
- .W !,*7,"Selection '",DGW,"' is not a valid choice."
- .D OUT,PAUSE^VALM1
+ . W !,*7,"Selection '",DGW,"' is not a valid choice."
+ . D OUT,PAUSE^VALM1
  ;
 SELQ K DIRUT,DTOUT,DUOUT,DIROUT Q
  ;
-OUT ; 
+OUT ;
  S DGERR=1
  Q
  ;

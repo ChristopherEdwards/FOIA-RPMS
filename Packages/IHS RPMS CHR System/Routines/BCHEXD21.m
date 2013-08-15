@@ -1,5 +1,5 @@
-BCHEXD21 ; IHS/TUCSON/LAB - new export format [ 08/14/02  12:49 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**10,12,14**;OCT 28, 1996
+BCHEXD21 ; IHS/CMI/LAB - new export format ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - added $J to ^TMP
  ;
  ;
@@ -11,7 +11,7 @@ BCHEXD21 ; IHS/TUCSON/LAB - new export format [ 08/14/02  12:49 PM ]
  ;
 REC1 ;
  S BCHREC=^BCHR(BCHR,0),BCHREC11=$G(^BCHR(BCHR,11)),BCHREC12=$G(^BCHR(BCHR,12)),BCHREC13=$G(^BCHR(BCHR,13)),BCHREC21=$G(^BCHR(BCHR,21))
- F BCHY=1:1:50 S X="" D @BCHY S $P(BCHTX,U,BCHY)=X
+ F BCHY=1:1:62 S X="" D @BCHY S $P(BCHTX,U,BCHY)=X   ;I BCHY=59!(BCHY=51)!(BCHY=52) W !,BCHY," ",X
  Q
 REC2 ;pov records
  S BCHP=0,C=0 F  S BCHP=$O(^BCHRPROB("AD",BCHR,BCHP)) Q:BCHP'=+BCHP  S BCHPOV=^BCHRPROB(BCHP,0),C=C+1 D
@@ -50,10 +50,12 @@ REC2 ;pov records
  I $P(BCHREC,U,5)]"" S X=$P(^AUTTLOC($P(BCHREC,U,5),0),U,10) Q
  Q
 9 ;referred to CHR by
- I $P(BCHREC,U,7)]"" S X=$P(^BCHTREF($P(BCHREC,U,7),0),U,3) Q
+ ;I $P(BCHREC,U,7)]"" S X=$P(^BCHTREF($P(BCHREC,U,7),0),U,3) Q
+ S X=$O(^BCHR(BCHR,41,0)) Q:X=""  S X=$P(^BCHR(BCHR,41,X,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3) Q
  Q
 10 ;referred by CHR to
- I $P(BCHREC,U,8)]"" S X=$P(^BCHTREF($P(BCHREC,U,8),0),U,3) Q
+ ;I $P(BCHREC,U,8)]"" S X=$P(^BCHTREF($P(BCHREC,U,8),0),U,3) Q
+ S X=$O(^BCHR(BCHR,42,0)) Q:X=""  S X=$P(^BCHR(BCHR,42,X,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3) Q
  Q
 11 ;travel time
  S X=$P(BCHREC,U,11) Q
@@ -141,6 +143,45 @@ REC2 ;pov records
 50 ;unique id2
  S X=$P($G(^BCHR(BCHR,14)),U,2)
  Q
+51 ;
+ S X="",(C,Y)=0 F  S Y=$O(^BCHR(BCHR,41,Y)) Q:Y'=+Y  S C=C+1 I C=2 S X=$P(^BCHR(BCHR,41,Y,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3)
+ Q
+52 ;
+ S X="",(C,Y)=0 F  S Y=$O(^BCHR(BCHR,41,Y)) Q:Y'=+Y  S C=C+1 I C=3 S X=$P(^BCHR(BCHR,41,Y,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3)
+ Q
+53 ;
+ S X="",(C,Y)=0 F  S Y=$O(^BCHR(BCHR,41,Y)) Q:Y'=+Y  S C=C+1 I C=4 S X=$P(^BCHR(BCHR,41,Y,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3)
+ Q
+54 ;
+ S X="",(C,Y)=0 F  S Y=$O(^BCHR(BCHR,41,Y)) Q:Y'=+Y  S C=C+1 I C=5 S X=$P(^BCHR(BCHR,41,Y,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3)
+ Q
+55 ;
+ S X="",(C,Y)=0 F  S Y=$O(^BCHR(BCHR,42,Y)) Q:Y'=+Y  S C=C+1 I C=2 S X=$P(^BCHR(BCHR,42,Y,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3)
+ Q
+56 ;
+ S X="",(C,Y)=0 F  S Y=$O(^BCHR(BCHR,42,Y)) Q:Y'=+Y  S C=C+1 I C=3 S X=$P(^BCHR(BCHR,42,Y,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3)
+ Q
+57 ;
+ S X="",(C,Y)=0 F  S Y=$O(^BCHR(BCHR,42,Y)) Q:Y'=+Y  S C=C+1 I C=4 S X=$P(^BCHR(BCHR,42,Y,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3)
+ Q
+58 ;
+ S X="",(C,Y)=0 F  S Y=$O(^BCHR(BCHR,42,Y)) Q:Y'=+Y  S C=C+1 I C=5 S X=$P(^BCHR(BCHR,42,Y,0),U,1) I X]"" S X=$P(^BCHTREF(X,0),U,3)
+ Q
+59 ;
+ S X=$P(BCHREC,U,29)
+ Q
+60 ;
+ S X=$$VAL^XBDIQ1(90002,BCHR,1501)
+ Q
+61 ;
+ S X=$$VAL^XBDIQ1(90002,BCHR,1502)
+ Q
+62 ;
+ S X=$$VALI^XBDIQ1(90002,BCHR,1503)
+ I X="" Q
+ S X=$P($G(^DIC(5,X,0)),U,2)
+ Q
+ ;
 DATE(X) ;EP
  I X="" Q ""
  Q $E(X,4,5)_$E(X,6,7)_(1700+($E(X,1,3)))

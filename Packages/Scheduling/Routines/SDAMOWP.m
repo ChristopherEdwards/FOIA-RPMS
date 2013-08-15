@@ -1,5 +1,5 @@
 SDAMOWP ;ALB/CAW - Appointment Waiting Time Print Routine ; 12/1/91
- ;;5.3;Scheduling;**12**;Aug 13, 1993
+ ;;5.3;Scheduling;**12,1015**;Aug 13, 1993;Build 21
  ;
 PRINT ; -- print arrays
  ; var defined:

@@ -1,5 +1,5 @@
 SDPPHLP ;ALB/CAW - Patient Profile - Help ; 7/16/92
- ;;5.3;Scheduling;**6**;Aug 13, 1993
+ ;;5.3;Scheduling;**6,1015**;Aug 13, 1993;Build 21
  ;
 HLP ; -- help for list
  I $D(X),X'["??" D HLPS G HLPQ

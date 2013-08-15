@@ -1,5 +1,5 @@
 DG53318P ;RTK - Means Test Utilities ;09/22/00
- ;;5.3;Registration;**318**;Aug 13, 1993
+ ;;5.3;Registration;**318,1015**;Aug 13, 1993;Build 21
  ;This routine will edit the SOURCE OF INCOME TEST (.23) field
  ;of the ANNUAL MEANS TEST (#408.31) file to synchronize it
  ;with new logic that has been implemented at HEC.  The source

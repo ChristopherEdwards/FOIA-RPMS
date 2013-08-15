@@ -1,5 +1,5 @@
-DGPFAAH ;ALB/RPM - PRF ASSIGNMENT HISTORY API'S ; 4/23/03 1:27pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFAAH ;ALB/RPM - PRF ASSIGNMENT HISTORY API'S ; 4/8/04 4:13pm
+ ;;5.3;Registration;**425,554,1015**;Aug 13, 1993;Build 21
  Q  ;no direct entry
  ;
 GETALL(DGPFIEN,DGPFIENS) ;retrieve list of history IENs for an assignment
@@ -64,6 +64,7 @@ GETHIST(DGPFIEN,DGPFAH) ;retrieve a single assignment history record
  ;                    "ACTION"             .03
  ;                    "ENTERBY"            .04
  ;                    "APPRVBY"            .05
+ ;                    "TIULINK"            .06
  ;                    "COMMENT",line#,0    1
  ;
  N DGIENS  ;IEN string for DIQ
@@ -81,6 +82,7 @@ GETHIST(DGPFIEN,DGPFAH) ;retrieve a single assignment history record
  . S DGPFAH("ACTION")=$G(DGFLDS(26.14,DGIENS,.03,"I"))_U_$G(DGFLDS(26.14,DGIENS,.03,"E"))
  . S DGPFAH("ENTERBY")=$G(DGFLDS(26.14,DGIENS,.04,"I"))_U_$G(DGFLDS(26.14,DGIENS,.04,"E"))
  . S DGPFAH("APPRVBY")=$G(DGFLDS(26.14,DGIENS,.05,"I"))_U_$G(DGFLDS(26.14,DGIENS,.05,"E"))
+ . S DGPFAH("TIULINK")=$G(DGFLDS(26.14,DGIENS,.06,"I"))_U_$G(DGFLDS(26.14,DGIENS,.06,"E"))
  . ;build review comments word processing array
  . M DGPFAH("COMMENT")=DGFLDS(26.14,DGIENS,1)
  . K DGPFAH("COMMENT","E"),DGPFAH("COMMENT","I")
@@ -190,7 +192,7 @@ STOHIST(DGPFAH,DGPFERR) ;file a PRF ASSIGNMENT HISTORY (#26.14) file record
  N DGFDA
  N DGFDAIEN
  N DGERR
- F DGSUB="ASSIGN","ASSIGNDT","ACTION","ENTERBY","APPRVBY" D
+ F DGSUB="ASSIGN","ASSIGNDT","ACTION","ENTERBY","APPRVBY","TIULINK" D
  . S DGFLD(DGSUB)=$P($G(DGPFAH(DGSUB)),U)
  I $D(DGPFAH("COMMENT")) M DGFLD("COMMENT")=DGPFAH("COMMENT")
  I $$VALID^DGPFUT("DGPFAAH1",26.14,.DGFLD,.DGPFERR) D
@@ -202,6 +204,7 @@ STOHIST(DGPFAH,DGPFERR) ;file a PRF ASSIGNMENT HISTORY (#26.14) file record
  . S DGFDA(26.14,DGIENS,.03)=DGFLD("ACTION")
  . S DGFDA(26.14,DGIENS,.04)=DGFLD("ENTERBY")
  . S DGFDA(26.14,DGIENS,.05)=DGFLD("APPRVBY")
+ . S DGFDA(26.14,DGIENS,.06)=DGFLD("TIULINK")
  . S DGFDA(26.14,DGIENS,1)="DGFLD(""COMMENT"")"
  . I DGIEN D
  . . D FILE^DIE("","DGFDA","DGERR")

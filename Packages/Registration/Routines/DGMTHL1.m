@@ -1,5 +1,5 @@
 DGMTHL1 ;ALB/CJM/TDM - Hardship Determinations - Build List Area;13 JUN 1997 08:00 am ; 8/29/02 4:50pm
- ;;5.3;Registration;**182,456**;08/13/93
+ ;;5.3;PIMS;**182,456,1015,1016**;JUN 30, 2012;Build 20
  ;
 EN(DGARY,HARDSHIP,DGCNT) ;Entry point to build list area
  ; Input;
@@ -93,7 +93,6 @@ ADD(HARDSHIP) ;
  S HARDSHIP("CTGRY CHNGD BY")=DUZ
  S HARDSHIP("DT/TM CTGRY CHNGD")=$$NOW^XLFDT
  S HARDSHIP("HARDSHIP?")=1
- S HARDSHIP("AGREE")=""
  D
  .I '$$GETSTAT(.HARDSHIP) Q
  .I '$$GETEFF(.HARDSHIP) Q
@@ -175,6 +174,8 @@ GETSTAT(HARDSHIP,EDITFLG) ;
  I $D(DIRUT) Q 0
  I Y<1 Q 0
  S HARDSHIP("CURRENT STATUS")=+Y
+ ; Don't reset agreed to pay if mt copay req/GMT copay req/pend adj
+ S:"^C^G^P^"'[(U_$P($G(^DG(408.32,+Y,0)),U,2)_U) HARDSHIP("AGREE")=""
  S VALMBCK="R"
  Q 1
  ;

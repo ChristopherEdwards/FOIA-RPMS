@@ -1,5 +1,5 @@
 SCCVCDSP ; ALB/TMP - SCHEDULING VISITS CST LIST SCREEN ; 25-NOV-97
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Main entry point
  K XQORS,VALMEVL,SCFASTXT

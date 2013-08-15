@@ -1,5 +1,5 @@
 SD53138B ;ALB/SEK - BULLETIN FOR PATCH 138;12-JAN-1998
- ;;5.3;Scheduling;**138**;Aug 13, 1993
+ ;;5.3;Scheduling;**138,1015**;Aug 13, 1993;Build 21
  ;
 BULL1 ;Generate/send completion bulletin for clean-up (see EN^SD53138A)
  ;

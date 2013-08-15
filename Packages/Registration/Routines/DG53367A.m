@@ -1,5 +1,5 @@
 DG53367A ;ALB/RTK DG*5.3*367 Add new POS entry ; 3/09/01
- ;;5.3;Registration;**367**;Aug 13, 1993
+ ;;5.3;Registration;**367,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will add HUMANITARIAN EMERGENCY Eligibility
  ;code to the ELIGIBILITY multiple of those PERIOD OF

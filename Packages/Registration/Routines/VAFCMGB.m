@@ -1,5 +1,5 @@
 VAFCMGB ;ALB/JRP,PTD-DEMOGRAPHIC MERGE SCREEN BUILDER ;18-OCT-1996
- ;;5.3;Registration;**149**;Aug 13, 1993
+ ;;5.3;Registration;**149,479,1015**;Aug 13, 1993;Build 21
  ;
  ;NOTE: The VAFCMGB* routines contain line tags used to build the
  ;      display screen of a List Manager interface.  All line tags
@@ -69,14 +69,14 @@ BLDALL ;Main entry point to build entire List Manager display
  ;S VALMCNT=VALMCNT+1
  ;Build logical group 3
  D GROUP3^VAFCMGB2
- ;White space
- S LASTNTRY=+$O(@VALMAR@("IDX",VALMCNT-1,0))
- S @VALMAR@(VALMCNT,0)=" "
- S @VALMAR@("IDX",VALMCNT,LASTNTRY)=""
- S VALMCNT=VALMCNT+1
- S @VALMAR@(VALMCNT,0)=" "
- S @VALMAR@("IDX",VALMCNT,LASTNTRY)=""
- S VALMCNT=VALMCNT+1
+ ;White space - eliminated with **479
+ ;S LASTNTRY=+$O(@VALMAR@("IDX",VALMCNT-1,0))
+ ;S @VALMAR@(VALMCNT,0)=" "
+ ;S @VALMAR@("IDX",VALMCNT,LASTNTRY)=""
+ ;S VALMCNT=VALMCNT+1
+ ;S @VALMAR@(VALMCNT,0)=" "
+ ;S @VALMAR@("IDX",VALMCNT,LASTNTRY)=""
+ ;S VALMCNT=VALMCNT+1
  ;Build logical group 4
  D GROUP4^VAFCMGB3
  ;Done

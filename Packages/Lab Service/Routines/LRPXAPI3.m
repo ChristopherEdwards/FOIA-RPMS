@@ -1,9 +1,12 @@
 LRPXAPI3 ;VA/SLC/STAFF - Lab Extract API code: Micro and AP ;10/28/03  11:29
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 295
  ;
 TESTS(INFO,DFN,TYPE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  ; returns AP or Micro items on a patient in array INFO
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0               ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N CNT,CONDOK,CONDS,DATE,NMSP,OK,STOP K CONDS
  S NMSP=$G(INFO) K INFO S INFO=""
  ; return all info in ^TMP(NMSP,$J
@@ -37,6 +40,8 @@ TESTS(INFO,DFN,TYPE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  Q
  ;
 RESULTS(VALUES,DFN,PITEM,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns all AP or Micro results on a patient in array VALUES
  ; format: date^item^node^data
  ; where data is item file ien^item name^values on node
@@ -83,6 +88,8 @@ RESULTS(VALUES,DFN,PITEM,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  Q
  ;
 TRESULTS(VALUES,DFN,TYPE,ITEM,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; returns AP or Micro single item results on a patient in array VALUES
  N CNT,CONDOK,CONDS,DATA,DATE,NMSP,NODE,OK K CONDS
  S NMSP=$G(VALUES) K VALUES S VALUES=""
@@ -113,6 +120,8 @@ TRESULTS(VALUES,DFN,TYPE,ITEM,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  Q
  ;
 PATIENTS(PATS,TYPE,ITEM,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; uses PCHK within this scope
  ; returns patients who have AP or Micro item results in array PATS
  N CNT,CONDOK,CONDS,DATE,DFN,DONE,NMSP,OK K CONDS
@@ -133,6 +142,8 @@ PATIENTS(PATS,TYPE,ITEM,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  S NEXT=+DFN_U_1
  Q
 PCHK ; within scope of PATIENTS
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  S DONE=0
  S OK=0
  S DATE=DATE1
@@ -150,6 +161,8 @@ PCHK ; within scope of PATIENTS
  Q
  ;
 ALLPATS(PATS,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; uses APATS within this scope
  ; returns all patients that have lab data
  N CNT,DATE,DFN,ERR,ITEM,NMSP,OK,TYPE
@@ -175,6 +188,8 @@ ALLPATS(PATS,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  S NEXT=+DFN
  Q
 APATS ; within scope of ALLPATS
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0               ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  S OK=0
  S ITEM=""
  F  S ITEM=$O(^PXRMINDX(63,"PI",DFN,ITEM)) Q:ITEM=""  D  Q:OK
@@ -190,6 +205,8 @@ APATS ; within scope of ALLPATS
  Q
  ;
 PTS(PATS,TYPE,PITEM,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; uses PCHK within this scope
  ; returns patients who have AP or Micro (all or partial type) results in array PATS
  N CAT,CATONLY,CATSUB,CNT,CONDOK,CONDS,DATE,DFN,DONE,ERR,ITEM
@@ -226,6 +243,8 @@ PTS(PATS,TYPE,PITEM,SOURCE,MAX,NEXT,COND,DATE1,DATE2) ; from LRPXAPI
  S NEXT=+DFN_U_1
  Q
 PT ; within scope of PATIENTS
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  S OK=0
  S DATE=DATE1
  F  S DATE=$O(^PXRMINDX(63,"IP",ITEM,DFN,DATE)) Q:DATE<1  D  Q:OK
@@ -248,6 +267,8 @@ CATONLY(COND) ; $$(condition) -> 1 if condition is only a category, else 0
  Q 0
  ;
 CATOK(DFN,ITEM,DATE,CATSUB) ; $$(dfn,item,date,cat) -> 1 if any nodes match category, else 0
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12") 0               ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N NODE,SUB
  S NODE=$O(^PXRMINDX(63,"PI",DFN,ITEM,DATE,""))
  I NODE="" Q 0

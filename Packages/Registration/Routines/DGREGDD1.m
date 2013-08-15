@@ -1,6 +1,6 @@
-DGREGDD1 ;ALB/REW/BRM - REGISTRATION PATIENT FILE MUMPS X-REF ; 10/22/02 2:17pm [ 01/22/2004  2:24 PM ]
- ;;5.3;Registration;**454**;Aug 13, 1993
- ;IHS/ITSC/LJF 10/03/2003 check for Kernel routine XIPUTIL
+DGREGDD1 ;ALB/REW/BRM - REGISTRATION PATIENT FILE MUMPS X-REF ; 10/22/02 2:17pm
+ ;;5.3;Registration;**454,522,1015**;Aug 13, 1993;Build 20
+ ;ihs/cmi/maw 08/08/2012 PATCH 1015 check for XIP routines
  ;
  ; VARIABLES FOR TAGS SZIP,KFIELD:
  ;  INPUT:
@@ -47,7 +47,7 @@ KILLMULT(DFN,DFN1,MULTNUM,MULTNODE,DGFLD,DGNODE,DGPIECE,X) ; KILL
  F DGIX=0:0 S DGIX=$O(^DD(MULTNUM,DGFLD,1,DGIX)) Q:'DGIX  S X=DGRGX X ^(DGIX,2)
  Q
  ;
-ZIP(DA,ZIP) ; update city, state, and county based on zip code change
+ZIP(DA,ZIP,CITY) ; update city, state and county based on zip code change
  ;
  ;   This tag will be used to link the patient's zip code
  ;   with the associated city, state, and county code as
@@ -70,11 +70,13 @@ ZIP(DA,ZIP) ; update city, state, and county based on zip code change
  ;
  I '$T(POSTAL^XIPUTIL) Q 0   ;IHS/ITSC/LJF 01/22/2004
  I 'DA!$G(ZIP)="" K EASZIPLK Q 0
- N EASDATA,FDA,MSG
+ I '$D(EASZIPLK) Q 0
+ N EASDATA,FDA,MSG,DGN,CNTYIEN
  S EASDO2=1
+ I '$$MLT(ZIP) K EASZIPLK Q 0
+ I $$FOREIGN^DGREGAZL() K EASZIPLK Q 0
  D POSTAL^XIPUTIL(ZIP,.EASDATA)
  ; accomodate 15 character limit on the city in the patient file
- S:$L($G(EASDATA("CITY")))>15 EASDATA("CITY")=$E(EASDATA("CITY"),1,15)
  ; set FDA array to be filed in the Patient (#2) file
  S CNTYIEN=""
  S:$G(EASDATA("STATE POINTER"))'="" CNTYIEN=$$FIND1^DIC(5.01,","_$G(EASDATA("STATE POINTER"))_",","MOXQ",$E($G(EASDATA("FIPS CODE")),3,5),"C")
@@ -82,7 +84,6 @@ ZIP(DA,ZIP) ; update city, state, and county based on zip code change
  .Q:'$D(^DIC(5,+$G(EASDATA("STATE POINTER")),1))
  .Q:$E($G(EASDATA("FIPS CODE")),3,5)=""
  .S CNTYIEN=$O(^DIC(5,$G(EASDATA("STATE POINTER")),1,"C",$E($G(EASDATA("FIPS CODE")),3,5),""))
- S FDA(2,DA_",",.114)=$G(EASDATA("CITY"))
  S FDA(2,DA_",",.115)=$S(CNTYIEN:$G(EASDATA("STATE POINTER")),1:$G(EASDATA("STATE")))
  S FDA(2,DA_",",.117)=$S(CNTYIEN:CNTYIEN,1:$G(EASDATA("COUNTY")))
  ; file data
@@ -99,9 +100,20 @@ KEY(DUZ,DFN) ; determine if a security key is necessary for editing
  ;
  K EASDO2  ;kill zip code linking flag (AZIPLINK and AZIPLNK x-refs)
  Q:'$D(DUZ)!('$D(DFN)) 0
- N ZIP,EASDATA
+ N ZIP,DGR
  S ZIP=$E($$GET1^DIQ(2,DFN_",",.1112),1,5)
- I 'ZIP Q 0
+ S DGR=$$ALWEDT(DUZ,ZIP)
+ Q DGR
+ALWEDT(DUZ,ZIP) ; determine if a security key is necessary for editing
+ ; Input: zip code
+ ; Output: 1: allow edit state and county
+ ;         0: don't allow edit state and county
+ N EASDATA
+ I $G(ZIP)="" Q 0
+ I '$D(DUZ) Q 0
+ I '$$MLT(ZIP) Q 1 ; > 1 state or county for the zip - allow edit
+ I $$FOREIGN^DGREGAZL() Q 1 ; Foreign location - allow edit
+ I '$T(POSTAL^XIPUTIL) Q 0  ;ihs/cmi/maw 08/02/2012 PATCH 1015 no XIP routines in IHS
  D POSTAL^XIPUTIL(ZIP,.EASDATA)
  Q:$D(EASDATA("ERROR")) 1  ;zip code does not exist - allow editing
  Q:'$D(EASDATA("FIPS CODE")) 1  ;cnty code does not exist - allow edit
@@ -111,3 +123,18 @@ KEY(DUZ,DFN) ; determine if a security key is necessary for editing
  W !,"COUNTY: ",$G(EASDATA("COUNTY"))
  Q 0
  ;
+MLT(ZIP) ;Determine if a zip correspond to multiple state and\or county
+ ;Output: 0: >1 state and\or county for this zip
+ ;        1: 1 state and 1 county for this zip
+ N DGN,DGFIPS,DGDATA,POP,DGCNTY,DGST
+ S (DGN,DGST,DGCNTY,DGFIPS)=""
+ S POP=0
+ I '$T(POSTALB^XIPUTIL) Q 1  ;ihs/cmi/maw 08/02/2012 PATCH 1015 no XIP routines in IHS
+ D POSTALB^XIPUTIL(ZIP,.DGDATA)
+ I $D(DGDATA("ERROR")) Q 0
+ S DGN=$O(DGDATA(DGN))
+ S DGFIPS=$G(DGDATA(DGN,"FIPS CODE"))
+ F  S DGN=$O(DGDATA(DGN)) Q:(DGN="")!POP  D
+ . I $G(DGDATA(DGN,"FIPS CODE"))'=DGFIPS S POP=1 Q
+ I POP=1 Q 0
+ Q 1

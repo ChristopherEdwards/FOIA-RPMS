@@ -1,5 +1,5 @@
 DGPAR2 ;ALB/LDB - MAS PARAMETERS ENTRY/EDIT CONT. ; 15 MAY 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN ;called from DGPAR1 to continue display of parameters
  S X=$P(DGZE,"^",5) W !?4,"'",$P(DGDV1,"^",2),"' on G&L",?25,": ",$S($P(DGZE,"^",5):"YES",1:"NO")

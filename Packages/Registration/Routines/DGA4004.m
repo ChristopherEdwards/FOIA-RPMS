@@ -1,5 +1,5 @@
 DGA4004 ;ALB/MRL - AMIS 420 ACTUAL GENERATION OF REPORTS ;01 JAN 1988@2300
- ;;5.3;Registration;**41**;Aug 13, 1993
+ ;;5.3;Registration;**41,1015**;Aug 13, 1993;Build 21
  ;S IOP=$S($D(ION):ION,1:IO)_";132" D ^%ZIS K IOP I IO=DGDEV W !!,"===> Collecting AMIS 401-420 Statistics..."
  I IO=DGDEV W !!,"===> Collecting AMIS 401-420 Statistics..."
  D DEL^DGA4003 K ^UTILITY($J,"DGSEG"),^("DGSEGP") D DIV^DGUTL

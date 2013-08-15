@@ -1,30 +1,24 @@
 ABMDE8G ; IHS/ASDST/DMJ - Page 8 - ANESTHESIA ;   
- ;;2.6;IHS Third Party Billing;**1,3,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,6,8,9**;NOV 12, 2009
  ;
  ; IHS/ASDS/DMJ - v2.4 p7 - 9/7/01 NOIS HQW-0701-100066
  ;     Modifications made related to Medicare Part B.
  ;
- ; IHS/SD/SDR - 11/4/02 - V2.5 P2 - ZZZ-0301-210046
- ;     Modified to capture modifiers from PCC
- ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164
- ;    Prompt/display provider
- ; IHS/SD/SDR - v2.5 p9 - IM16660
- ;    4-digit revenue codes
- ; IHS/SD/SDR - v2.5 p9 - task 1
- ;   Use new service line provider multiple
- ; IHS/SD/SDR - v2.5 p10 - IM21539
- ;   Made changes to correct display and calculations to be
- ;   correct amounts (was doing stuff that the payer does
- ;   and we shouldn't be)
+ ; IHS/SD/SDR - 11/4/02 - V2.5 P2 - ZZZ-0301-210046 - Modified to capture modifiers from PCC
+ ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164 - Prompt/display provider
+ ; IHS/SD/SDR - v2.5 p9 - IM16660 - 4-digit revenue codes
+ ; IHS/SD/SDR - v2.5 p9 - task 1 - Use new service line provider multiple
+ ; IHS/SD/SDR - v2.5 p10 - IM21539 - Made changes to correct display and calculations to be
+ ;   correct amounts (was doing stuff that the payer does and we shouldn't be)
  ; IHS/SD/SDR - v2.5 p11 - NPI
- ; IHS/SD/SDR - v2.5 p12 - IM24277
- ;   Added code for 2nd and 3rd modifier
+ ; IHS/SD/SDR - v2.5 p12 - IM24277 - Added code for 2nd and 3rd modifier
  ;
  ; IHS/SD/SDR - v2.6 CSV
- ; IHS/SD/SDR - abm*2.6*1 - HEAT6566 - Added code to do anes.
- ;   one way for Medicare and another for everyone else.
+ ; IHS/SD/SDR - abm*2.6*1 - HEAT6566 - Added code to do anes. one way for Medicare and another for everyone else.
  ; IHS/SD/SDR - abm*2.6*3 - HEAT12742 - corrections to MCR/non-MCR; Adrian spoke with Medicare; they said
  ;   it should be like it was; removed all changes for 6566 so it was back to original code
+ ; IHS/SD/SDR - 2.6*9 - Updates to code from heat 6566; it is commented out because it is only needed for MT Mcd.
+ ;   Site that needs the changes should comment out nat'l code and uncomment the other 6566 lines.
  ;
 DISP K ABMZ S ABMZ("TITL")="ANESTHESIA SERVICES",ABMZ("PG")="8G",ABMZ("ADD1")=""
  I $D(ABMP("DDL")),$Y>(IOSL-9) D PAUSE^ABMDE1 G:$D(DUOUT)!$D(DTOUT)!$D(DIROUT) XIT I 1
@@ -34,9 +28,8 @@ DISP K ABMZ S ABMZ("TITL")="ANESTHESIA SERVICES",ABMZ("PG")="8G",ABMZ("ADD1")=""
 FEE S ABMZ("CAT")=23
  ;S ABMP("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)  ;abm*2.6*1 HEAT6566  ;abm*2.6*8
  S:ABMP("INS") ABMP("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)  ;abm*2.6*1 HEAT6566  ;abm*2.6*8
- ;abm*2.6*8 switched below line back; user couldn't manually enter codes
- S ABMZ("DICS")="I ($P(^ICPT(Y,0),""^"")<70000)&($P($$CPT^ABMCVAPI(Y,ABMP(""VDT"")),""^"",7)'=1)"  ;CSV-c  ;abm*2.6*6
- ;S ABMZ("DICS")="I ($P(^ICPT(Y,0),""^"")<70000)&($P($$CPT^ABMCVAPI(Y,ABMP(""VDT"")),""^"",7)=1)"  ;CSV-c  ;abm*2.6*6
+ ;S ABMZ("DICS")="I ($P(^ICPT(Y,0),""^"")<70000)&($P($$CPT^ABMCVAPI(Y,ABMP(""VDT"")),""^"",7)'=1)"  ;CSV-c  ;abm*2.6*6
+ S ABMZ("DICS")="I ($P(^ICPT(Y,0),""^"")<70000)&($P($$CPT^ABMCVAPI(Y,ABMP(""VDT"")),""^"",7)=1)"  ;CSV-c  ;abm*2.6*6
  S ABMZ("SUB")=39
  D MODE^ABMDE8X
  S:((^ABMDEXP(ABMMODE(7),0)["HCFA")!(^ABMDEXP(ABMMODE(7),0)["CMS")) ABMZ("DIAG")=";.1"

@@ -1,5 +1,5 @@
 DGPTCO2 ;ALB/MJK - Census Status Report ; 15 APR 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 DIV ; -- ask for div to print
  K DGCHOICE("DIV")

@@ -1,5 +1,5 @@
 DGVPTIB4 ;alb/mjk - IBCNSC for export with PIMS v5.3; 4/21/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 IBCNSC ;ALB/MRL/AAS - INSURANCE MANAGEMENT - EDIT INSURNACE CO; 13 SEP 88@2200
  ;;Version 1.5 ; INTEGRATED BILLING ;**14**; 29-JUL-92

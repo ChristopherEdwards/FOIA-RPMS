@@ -1,6 +1,7 @@
 LRRPU ;VA/DALOI/JMC - Interim Report Results Utility ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**286,1027**;NOV 01, 1997
+ ;;5.2;LAB SERVICE;**1027,1028,1031**;NOV 01, 1997
  ;
+ ;;VA LR Patche(s): 286
  ;
 TSTRES(LRDFN,LRSS,LRIDT,LRDN,LR60,LRCODE) ; Test results and parameters
  ; Call with LRDFN = ien of entry in file #63
@@ -15,6 +16,16 @@ TSTRES(LRDFN,LRSS,LRIDT,LRDN,LR60,LRCODE) ; Test results and parameters
  ;
  N LRFLAG,LRNR,LRX,LRY,X,Y
  S LRX=$G(^LR(LRDFN,LRSS,LRIDT,LRDN))
+ ;
+ ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1031
+ ;       Ensure that all Results have leading zeros, if necessary
+ NEW ZFRES
+ S ZFRES=$P(LRX,"^",1)
+ D ZEROFIX^BLR7OGMP(LR60,.ZFRES)
+ S $P(LRX,"^")=ZFRES
+ K ZFRES
+ ; ----- END IHS/OIT/MKK - LR*5.2*1031
+ ;
  S LRY=$P(LRX,"^",1,2),$P(LRY,"^",7)=0
  I LRSS="CH",$$GET1^DID(63.04,LRDN,"","TYPE")="SET" D
  . S X=$$EXTERNAL^DILFD(63.04,LRDN,"",$P(LRY,"^"))
@@ -45,8 +56,17 @@ TSTRES(LRDFN,LRSS,LRIDT,LRDN,LR60,LRCODE) ; Test results and parameters
  . S AGE=$$CALCAGE(DOB,LRCDT)
  . I '$G(LR60) S LR60=+$O(^LAB(60,"C","CH;"_LRDN_";1",0))
  . S X=$G(^LAB(60,LR60,1,LR61,0)) Q:X=""
+ . ;[LR*5.2*1028;04/20/11;IHS.OIT/MPW]Added next 1 line.
+ . I $P(X,"^",7)?1N.N S $P(X,"^",7)=$P(^BLRUCUM($P(X,"^",7),0),U,1)
  . S $P(LRY,"^",5)=$P(X,"^",7)
  . S LRLO=$P(X,U,2),LRHI=$P(X,U,3),LRTLO=$P(X,U,11),LRTHI=$P(X,U,12)
+ . ;
+ . ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ . ;       Ensure Ref Ranges have leading zeros, if necessary
+ . I +LRLO D ZEROFIX(LR60,.LRLO)
+ . I +LRHI D ZEROFIX(LR60,.LRHI)
+ . ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ . ;
  . I LRTLO="",LRTHI="" D  Q
  . . I LRLO'="" S @("LRLO="_LRLO)
  . . I LRHI'="" S @("LRHI="_LRHI)
@@ -97,3 +117,39 @@ CALCAGE(DOB,LRCDT) ; Calculate age based on difference between DOB and collectio
  S AGE=99
  I DOB>2000000,LRCDT>2000000,DOB'>LRCDT S X=$$FMDIFF^XLFDT(LRCDT,DOB,1),AGE=X\365.25
  Q AGE
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ZEROFIX(F60PTR,RESULT) ; EP - Leading & Trailing Zero Fix for Results
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,F60PTR,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,RESULT,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$UP^XLFSTR($G(RESULT))["SPECIMEN IN LAB"          ; Skip if not resulted
+ ;
+ Q:$L($G(RESULT))<1                      ; Skip if no Result
+ ;
+ Q:$L($G(F60PTR))<1                      ; Skip if no File 60 Pointer
+ ;
+ S DN=+$G(^LAB(60,F60PTR,.2))
+ Q:DN<1                                  ; Skip if no DataName
+ ;
+ Q:$G(^DD(63.04,DN,0))'["^LRNUM"         ; Skip if no numeric defintiion
+ ;
+ S STR=$P($P($G(^DD(63.04,DN,0)),"Q9=",2),$C(34),2)     ; Get numeric formatting
+ ;
+ S DP=+$P(STR,",",3)                     ; Decimal Places
+ Q:DP<1                                  ; Skip if no Decimal Defintion
+ ;
+ S SYMBOL="",ORIGRSLT=RESULT
+ F  Q:$E(RESULT)="."!($E(RESULT)?1N)!(RESULT="")  D       ; Adjust if ANY Non-Numeric is at the beginning of RESULT
+ . S SYMBOL=SYMBOL_$E(RESULT)
+ . S RESULT=$E(RESULT,2,$L(RESULT))
+ ;
+ S:$E(RESULT)="." RESULT="0"_RESULT      ; Leading Zero Fix
+ ;
+ I $E(RESULT)'?1N  S RESULT=ORIGRSLT  Q  ; Skip if RESULT has no numeric part
+ ;
+ S RESULT=$TR($FN(RESULT,"P",DP)," ")
+ ;
+ S:$L($G(SYMBOL)) RESULT=SYMBOL_RESULT   ; Restore "symbol", if necessary
+ ;
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031

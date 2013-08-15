@@ -1,5 +1,5 @@
 VAFCTF ;BIR/DLR-Utility for capturing patient's Date Last Treated and Event Reason ;9/9/2002
- ;;5.3;Registration;**428**;Aug 13, 1993
+ ;;5.3;PIMS;**428,713,1015,1016**;JUN 30, 2012;Build 20
  Q  ; quit if called from the top
  ;
  ;Reference to ^SCE("ADFN" supported by IA# 2953
@@ -70,5 +70,10 @@ ENCDT(DFN,INPDT) ; find the last patient check out date/time.  'ADFN'
  .. Q
  . Q
  K VAFCDATA,VAFCPURG,VAFCX,VAFCX1,VAFCX2
+ ;DG*5.3*766
+ I $E(VAFCX3,9,10)>23 S VAFCX3=$E(VAFCX3,1,8)_"23"_$E(VAFCX3,11,14)
+ I $E(VAFCX3,11)>5 S VAFCX3=$E(VAFCX3,1,10)_"59"_$E(VAFCX3,13,14)
+ ;DG*5.3*713
+ I $E(VAFCX3,13)>5 S VAFCX3=$E(VAFCX3,1,12)_"59"
  Q VAFCX3_"^5" ; X is either null or the date/time of the check out
  ;

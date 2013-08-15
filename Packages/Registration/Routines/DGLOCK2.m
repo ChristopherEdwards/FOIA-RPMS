@@ -1,5 +1,5 @@
 DGLOCK2 ;ALB/MRL - PATIENT FILE DATA EDIT CHECKS ; 28 Jan 2002  2:37 PM
- ;;5.3;Registration;**18,244**;Aug 13, 1993
+ ;;5.3;Registration;**18,244,624,1015**;Aug 13, 1993;Build 21
 K1 ;NOK Add
  I '$G(DFN) N DFN S DFN=$G(DA) Q:'DFN
  I $S('$D(^DPT(DFN,.21)):1,$P(^(.21),U,1)']"":1,1:0) W !?4,*7,"'NEXT OF KIN' name must be specified to enter/edit this field" K X
@@ -39,6 +39,10 @@ D ;Desig Add
 DD ;Desig Delete
  I '$G(DFN) N DFN S DFN=$G(DA) Q:'DFN
  I $D(^DPT(DFN,.34)),$P(^(.34),U,1)]"" W !?4,*7,"Can't be deleted as long as 'DESIGNEE' is specified" K X
+ Q
+SDD ;Spouse/Dependent Delete
+ Q:'DA
+ I $D(^DGPR(408.13,DA,0)),$P(^(0),U,1)]"" D EN^DDIOL("    Can't be deleted as long as Spouse/Dependent Income Person is specified.") K X
  Q
 EM ;Emp Add
  I $S('$D(^DPT(DA,.311)):1,"^3^9^"[$P(^(.311),U,15):1,1:0) G EMW

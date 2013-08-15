@@ -1,5 +1,5 @@
 DGQPTQ6 ; SLC/PKS - Combination pt. list cont. ;6/5/01 12:38pm
- ;;5.3;Registration;**447**;Aug 13, 1993
+ ;;5.3;Registration;**447,1015**;Aug 13, 1993;Build 21
  ;
  ; Called by BUILD^DGQPT
  ;

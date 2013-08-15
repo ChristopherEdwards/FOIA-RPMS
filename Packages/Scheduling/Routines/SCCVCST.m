@@ -1,5 +1,5 @@
 SCCVCST ;ALB/TMP - Scheduling Conversion Template Utilities - CST; NOV 25, 1997
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 NEW ; -- Add a new 'CST' Template entry
  D FULL^VALM1

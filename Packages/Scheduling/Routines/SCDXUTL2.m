@@ -1,5 +1,5 @@
 SCDXUTL2 ;ALB/MTC/JLU - PRINT UTILITY ROUTINES;23-MAY-1996 ; 20 Nov 98 12:25 AM
- ;;5.3;Scheduling;**44,66,154**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,66,154,1015**;AUG 13, 1993;Build 21
  ;
 PAT(D0) ;-- This function is used for the computed field 20.01 in file
  ;   Transmission OutPatient Encounter file 409.73. For the given

@@ -1,5 +1,5 @@
-SCRPW2 ;RENO/KEITH - Clinic Utilization Statistical Summary ; 16 May 99  6:19 PM [ 01/24/2002  4:00 PM ]
- ;;5.3;Scheduling;**139,144,163,184,194**;AUG 13, 1993
+SCRPW2 ;RENO/KEITH - Clinic Utilization Statistical Summary ; 16 May 99  6:19 PM
+ ;;5.3;Scheduling;**139,144,163,184,194,1015**;AUG 13, 1993;Build 21
  ;
  D TITL^SCRPW50("Clinic Utilization Statistical Summary")
  N SDDIV G:'$$DIVA^SCRPW17(.SDDIV) EXIT

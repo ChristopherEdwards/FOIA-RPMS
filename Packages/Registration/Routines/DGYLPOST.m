@@ -1,5 +1,5 @@
 DGYLPOST ;ALB/CAW;Update VA Admitting Regulation/HL7 file;8/10/94<<= NOT VERIFIED >
- ;;5.3;Registration;**38,42**;Aug 13, 1993
+ ;;5.3;Registration;**38,42,1015**;Aug 13, 1993;Build 21
 EN ;
  ;
  D INIT

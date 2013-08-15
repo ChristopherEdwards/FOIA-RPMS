@@ -1,5 +1,5 @@
 DGJOPRT ;ALB/MAF - SORT/PRINT IRT ; JAN 28,1991@900
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 EN S DGJTDIR=1,DGJTSTAT="^"_$O(^DG(393.2,"B","INCOMPLETE",0))_"^" G OUT
 EN1 S (DGJTDIR,DGJTCK)=2
 OUT S (DGJFL,DGJTMESS)=0 W !!,"Sort output by: PATIENT// " D ZSET1 S X="" R X:DTIME G QUIT:X="^"!('$T) I X=""!("Pp"[X) S X="2"

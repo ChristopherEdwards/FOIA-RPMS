@@ -1,5 +1,5 @@
-DGENSEC ;ALB/KCL - Patient Security API's ; 22 FEB 1999
- ;;5.3;Registration;**222**;08/13/93
+DGENSEC ;ALB/KCL/CKN - Patient Security API's ; 5/11/05 12:02pm
+ ;;5.3;Registration;**222,653,1015**;Aug 13,1993;Build 21
  ;
  ;
 LOCK(DFN) ;
@@ -162,7 +162,8 @@ CHECK(DGSEC,ERROR) ;
  .;
  .; apply consistency rules
  .I DGSEC("LEVEL")'=1 S VALID=0,ERROR="'SECURITY LEVEL' OTHER THAN SENSITIVE NOT ALLOWED" Q
- .I DGSEC("SOURCE")'="AAC" S VALID=0,ERROR="'SECURITY SOURCE' OTHER THAN AAC NOT ALLOWED" Q
+ .;Remove consistency check for SOURCE - DG*5.3*653
+ .;I DGSEC("SOURCE")'="AAC" S VALID=0,ERROR="'SECURITY SOURCE' OTHER THAN AAC NOT ALLOWED" Q
  .;
  .; check if field values are valid
  .S EXTERNAL=$$EXTERNAL^DILFD(38.1,2,"",DGSEC("LEVEL"))

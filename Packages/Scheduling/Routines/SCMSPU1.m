@@ -1,5 +1,5 @@
 SCMSPU1 ;ALB/JRP - AMB CARE POST INIT UTILITIES;03-JUN-1996
- ;;5.3;Scheduling;**44**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,1015**;AUG 13, 1993;Build 21
 CRTAPP(HL7APP,HL7FAC,HL7MG) ;Create/find entry in HL APPLICATION file (#771)
  ;
  ;Input  : HL7APP - Name of application to create (field #.01)

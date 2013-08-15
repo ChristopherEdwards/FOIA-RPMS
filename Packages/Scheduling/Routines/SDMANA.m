@@ -1,5 +1,5 @@
 SDMANA ;BP-CIOFO/KEITH - Make Appointment 'Next Available' functionality ; 30 Nov 99  2:38 PM
- ;;5.3;Scheduling;**206**;AUG 13, 1993
+ ;;5.3;Scheduling;**206,1015**;AUG 13, 1993;Build 21
  ;
 NAVA(SC,SDT,SDUR) ;Compute 'next available' indicator
  ;Input: SC=clinic ifn

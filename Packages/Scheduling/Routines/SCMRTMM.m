@@ -1,5 +1,5 @@
 SCMRTMM ;ALB/REW/PDR - Patient Team Multiple Reasssignment MailMessages ; 17 JUL 98
- ;;5.3;Scheduling;**148,157**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,157,1015**;AUG 13, 1993;Build 21
  ;
 SETLN(TEXT) ;
  Q:$G(TEXT)=""

@@ -1,6 +1,7 @@
 LRPXAPP ;VA/SLC/STAFF - Test Lab APIs ;11/12/03  15:44
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 295
  ;
  ; - This routine shows examples of calling APIs in LRPXAPI.
  ; - This routine is provided for documentation and testing.
@@ -92,6 +93,8 @@ TESTLOOK ; test a lookup that screens for only tests done on patient
  Q
  ;
 TESTVAL ; test conditions and values for a patient's test
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N COL,COND,DFN,ERR,LRDFN,LRDN,LRIDT,RESULT,TEST
  D GETPT^LRPXAPPU(.DFN,.ERR) I ERR Q
  S LRDFN=$$LRDFN^LRPXAPIU(DFN)
@@ -109,6 +112,8 @@ TESTVAL ; test conditions and values for a patient's test
  Q
  ;
 VALUES ; test to get patient's values from PXRMINDX index
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N COL,DFN,ERR,ITEM,NODE,RESULT,STOP,TYPE
  D GETTYPE^LRPXAPPU(.TYPE,.ERR) I ERR Q
  D GETPT^LRPXAPPU(.DFN,.ERR) I ERR Q
@@ -125,6 +130,8 @@ VALUES ; test to get patient's values from PXRMINDX index
  Q
  ;
 SPEC ; test of specimen APIs
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; displays specimen node, comments, results
  ; restricted to MAX number of collections
  N COL,COLCNT,CNT,DATA,DFN,ERR,ITEM,MAX,RESULTS K COLCNT,RESULTS

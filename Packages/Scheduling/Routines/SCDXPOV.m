@@ -1,5 +1,5 @@
 SCDXPOV ;ALB/SCK - VISIT REPORT BY NPCDB TRANSMISSION STATUS ; 05 Oct 98  8:37 PM
- ;;5.3;Scheduling;**73,118,123,159,173**;AUG 13, 1993
+ ;;5.3;Scheduling;**73,118,123,159,173,1015**;AUG 13, 1993;Build 21
  ;
  Q
 EN ;  Main entry point for the visit report.

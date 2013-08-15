@@ -1,5 +1,5 @@
 SCMCCV6 ;BP/CMF - PCMM HL7 Baseline Xmit to AAC ; March 26, 2000
- ;;5.3;Scheduling;**212**;AUG 13, 1993
+ ;;5.3;Scheduling;**212,1015**;AUG 13, 1993;Build 21
  ;
  ;Traverse PATIENT TEAM POSITION ASSIGNMENT file (#404.43)
  ;and create events in file (#404.48) for all entries that meet

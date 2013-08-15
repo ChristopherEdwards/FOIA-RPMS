@@ -1,5 +1,5 @@
 SCRPW46 ;RENO/KEITH/MLR - Outpatient Diagnosis/Procedure Search (cont.) ; 9/27/00 10:29am
- ;;5.3;Scheduling;**144,180,199**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,180,199,295,324,351,1015**;AUG 13, 1993;Build 21
  ;  *199* 
  ;  - Creation of Division subscript in ^TMP after DFN to capture,
  ;    display, & count multi-divisional patients in Summary Section.
@@ -53,7 +53,7 @@ DHDR(SDIV,SDI,SDTIT) ;Set up division subheaders
  ;Required input: SDTIT=array to store subheaders in (pass by reference)
  D  ;
  . I 'SDIV S SDTIT(SDI)="Summary for "_$P(SDDIV,U,2) Q
- . I SDDIV!($P(SDDIV,U,2)="ALL DIVISIONS") S SDTIT(SDI)="For division: "_SDIVN_" "_SDIVL(SDIVN) Q
+ . I SDDIV,($P(SDDIV,U,2)="ALL DIVISIONS") S SDTIT(SDI)="For division: "_SDIVN_" "_SDIVL(SDIVN) Q  ; SD*5.3*324
  . S SDTIT(SDI)="For facility: "_SDIVN Q
  ;S SDTIT(SDI)=$S('SDIV:"Summary for "_$P(SDDIV,U,2),SDDIV!($P(SDDIV,U,2)="ALL DIVISIONS"):"For division: "_SDIVN_" "_SDIVL(SDIVN),1:"For facility: "_SDIVN)
  ;
@@ -102,14 +102,14 @@ START ;Print report
  .I $D(SD("LIST","D","R")) D
  .. N SDIV S SDIV="" F  S SDIV=$O(SDPDIV(SDIV)) Q:'SDIV  D
  ... S SDI=0 F  S SDI=$O(^TMP("SCRPW",$J,0,0,DFN,SDIV,"DX",SDI)) Q:'SDI  D
- .... S SDX=$G(^ICD9(SDI,0)),SDX=$P(SDX,"^")_" "_$P(SDX,"^",3)
+ ....S SDX=$$ICDDX^ICDCODE(SDI,+SDOE0),SDX=$P(SDX,"^",2)_" "_$P(SDX,"^",4)
  .... S:$L(SDX)>1 ^TMP("SCRPW",$J,0,0,DFN,SDIV,"DXR",SDX)=SDI
  .;Building text list for Procedure ranges
  .I $D(SD("LIST","P","R")) S SDI=0 F  S SDI=$O(^TMP("SCRPW",$J,0,0,DFN,SDIV,"CPT",SDI)) Q:'SDI  D
  ..; SDI=CPT pointer, SDI2=mod ptr, SDX=CPT+desc, SDX2=mod+desc
  ..; get CPT and description and build array entry
  .. N CPTINFO,CPTCODE,CPTTEXT
- .. S CPTINFO=$$CPT^ICPTCOD(SDI,,1)
+ .. S CPTINFO=$$CPT^ICPTCOD(SDI,+SDOE0,1)
  .. Q:CPTINFO'>0
  .. S CPTCODE=$P(CPTINFO,"^",2)
  .. S CPTTEXT=$P(CPTINFO,"^",3)
@@ -119,7 +119,7 @@ START ;Print report
  ..; loop through mods in CPT array and call API to get mod code/desc
  .. S SDI2="" F  S SDI2=$O(^TMP("SCRPW",$J,0,0,DFN,SDIV,"CPT",SDI,SDI2)) Q:'SDI2  D
  ... N MODINFO,MODCODE,MODTEXT
- ... S MODINFO=$$MOD^ICPTMOD(SDI2,"I",,1)
+ ... S MODINFO=$$MOD^ICPTMOD(SDI2,"I",+SDOE0,1)
  ... Q:MODINFO'>0
  ... S MODCODE=$P(MODINFO,"^",2)
  ... S MODTEXT=$P(MODINFO,"^",3)
@@ -166,12 +166,12 @@ START ;Print report
  .;Move item ifn lists to text lists
  .N SDIV S SDIV="" F  S SDIV=$O(SDPDIV(SDIV)) Q:SDIV=""  D
  .. S SDI=0 F  S SDI=$O(^TMP("SCRPW",$J,0,1,DFN,SDIV,"DL",SDI)) Q:'SDI  D
- ... S SDX=$G(^ICD9(SDI,0)),SDX=$P(SDX,"^")_" "_$P(SDX,"^",3) S:$L(SDX)>1 ^TMP("SCRPW",$J,0,1,DFN,SDIV,"DR",SDX)=$G(SDT)
- ... Q
+ ... S SDX=$$ICDDX^ICDCODE(SDI,+SDOE0),SDX=$P(SDX,"^",2)_" "_$P(SDX,"^",4) S:$L(SDX)>1 ^TMP("SCRPW",$J,0,1,DFN,SDIV,"DR",SDX)=$G(SDT)
+        ... Q
  .N SDIV S SDIV="" F  S SDIV=$O(SDPDIV(SDIV)) Q:SDIV=""  D
  .. S SDI=0 F  S SDI=$O(^TMP("SCRPW",$J,0,1,DFN,SDIV,"PL",SDI)) Q:'SDI  D
  ... N CPTINFO,CPTCODE,CPTTEXT
- ... S CPTINFO=$$CPT^ICPTCOD(SDI,,1)
+ ... S CPTINFO=$$CPT^ICPTCOD(SDI,+SDOE0,1)
  ... Q:CPTINFO'>0
  ... S CPTCODE=$P(CPTINFO,"^",2)
  ... S CPTTEXT=$P(CPTINFO,"^",3)
@@ -182,7 +182,7 @@ START ;Print report
  ... S SDI2=""
  ... F  S SDI2=$O(^TMP("SCRPW",$J,0,1,DFN,SDIV,"PL",SDI,SDI2)) Q:'SDI2  D
  .... N MODINFO,MODCODE,MODTEXT
- .... S MODINFO=$$MOD^ICPTMOD(SDI2,"I",,1)
+ .... S MODINFO=$$MOD^ICPTMOD(SDI2,"I",+SDOE0,1)
  .... Q:MODINFO'>0
  .... S MODCODE=$P(MODINFO,"^",2)
  .... S MODTEXT=$P(MODINFO,"^",3)

@@ -1,10 +1,5 @@
 BYIMIMM4 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**2**;MAY 01, 2011
- ;
- ;;PATCH 2
- ;;
- ;;HFSA     - NEW EP TO EXPORT TO HOST FILE
- ;;
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3**;JAN 15, 2013;Build 79
  ;
  ;-----
 MULT ;EP;PROCESS MULTIPLE INBOUND MESSAGES
@@ -29,11 +24,12 @@ MULT ;EP;PROCESS MULTIPLE INBOUND MESSAGES
  .D I1^BYIMIMM1
  Q
  ;-----
-ASITE ;EP;ADDITIONAL EXPORT SITES
+ASITE(BYIMDA) ;EP;ADDITIONAL EXPORT SITES
+ Q:'$G(BYIMDA)
  I $O(^BYIMPARA(BYIMDA,3,0)) D AS Q
  K DIR
  S DIR(0)="YO"
- S DIR("A")="Add export/import path for additional states"
+ S DIR("A")="Add export/import information for additional states"
  S DIR("B")="NO"
  W !!
  D ^DIR
@@ -77,70 +73,81 @@ ASD ;DISPLAY OTHER EXPORT/IMPORT SITES
  W !!?10,"Additional EXPORT/IMPORT Site Directories"
  W !!?5,"NUM",?10,"SITE/STATE"
  W !?5,"---",?10,"--------------------------------------------------"
+ N X0,X1
  S J=0
  S BYIMAS=0
  F  S BYIMAS=$O(^BYIMPARA(BYIMDA,3,BYIMAS)) Q:'BYIMAS  D
- .S X=^BYIMPARA(BYIMDA,3,BYIMAS,0)
+ .S X0=$G(^BYIMPARA(BYIMDA,3,BYIMAS,0))
+ .S X1=$G(^BYIMPARA(BYIMDA,3,BYIMAS,1))
  .S J=J+1
  .S BYIMAS(J)=BYIMAS
- .W !?5,J,?10,$P(X,U)
- .W !?15,"OUTBOUND: ",$P(X,U,2)
- .W !?15," INBOUND: ",$P(X,U,3)
+ .W !?5,J,?10,$P(X0,U)
+ .W !?15,"OUTBOUND: ",$P(X0,U,2)
+ .W !?15," INBOUND: ",$P(X0,U,3)
+ .W !?15,"   QUERY: ",$P(X1,U)
+ .W !?15,"RESPONSE: ",$P(X1,U,2)
  Q
  ;-----
 ASADD ;ADD SITES
  N BYIMQUIT
  S BYIMQUIT=0
  S J=0
- F  D AS1 Q:BYIMQUIT
- Q
- ;-----
-AS1 ;INPUT FOR ADDITIONAL EXPORT SITES
  N BYIMAS
  S J=J+1
  K DIR
- S DIR(0)="FO^1:50"
- S DIR("A")="Export site (state) name"
- W !
+ S DIR(0)="FO^1:10"
+ S DIR("A")="NEW interface state name"
+ S DIR("?")="Enter a name to identify the additional interface state, 3-10 characters"
+ W !!
  D ^DIR
  K DIR
+ K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
  I X=""!(X[U) S BYIMQUIT=1 Q
- S BYIMAS(J)=X
-AS1O K DIR,X
- S DIR(0)="FO^1:50"
- S DIR("A")=" PATH FOR OUTBOUND MESSAGES to "_BYIMAS(J)
- D ^DIR
- K DIR
- I X[U S BYIMQUIT=1 Q
- I X="" D  G AS1O
- .W !!,"The drive/directory path for outbound messages for ",BYIMAS(J)
- .W !,"must be entered.  Enter '^' to exit."
- S BYIMAS(J,"OUT")=X
-AS1I K DIR,X
- S DIR(0)="FO^1:50"
- S DIR("A")="PATH FOR INBOUND MESSAGES from "_BYIMAS(J)
- D ^DIR
- K DIR
- I X[U S BYIMQUIT=1 Q
- I X="" D  G AS1I
- .W !!,"The drive/directory path for inbound messages for ",BYIMAS(J)
- .W !,"must be entered.  Enter '^' to exit."
- S BYIMAS(J,"IN")=X
+ S (NSITE,BYIMAS(J))=X
  S DA(1)=BYIMDA
- S X=BYIMAS(J)
  S DIC="^BYIMPARA("_BYIMDA_",3,"
  S DIC(0)="L"
- S DIC("DR")=".02////"_BYIMAS(J,"OUT")_";.03////"_BYIMAS(J,"IN")
- S:'$D(^BYIMPARA(1,3,0)) ^BYIMPARA(BYIMDA,3,0)="^90480.03"
+ S:'$D(^BYIMPARA(BYIMDA,3,0)) ^BYIMPARA(BYIMDA,3,0)="^90480.03"
  D FILE^DICN
+ I Y<0 S BYIMQUIT=1 Q
+ K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ N NSDA
+ S (NSDA,DA)=+Y
+ N X,Y,Z,ZZ
+ S X=$P(^BYIMPARA(BYIMDA,0),U,2)
+ S V=$S(X["\":"\",1:"/")
+ S NSITE=$$LC(NSITE)
+ S X=$$LC(X)
+ I X["hlrbridge" D  I 1
+ .S X=$P(X,"hl7bridge")
+ .S:$E(X,$L(X))'=V X=X_V
+ .S Y=X_"hl7bridge"_V_NSITE_V_"responses"
+ .S Z=X_"hl7bridge"_V_NSITE_V_"queries"
+ .S ZZ=X_"hl7bridge"_V_NSITE_V_"qresponses"
+ .S X=X_"hl7bridge"_V_NSITE_V_"requests"
+ E  D
+ .S X=$P(X,"requests")
+ .S:$E(X,$L(X))'=V X=X_V
+ .S Y=X_NSITE_V_"responses"
+ .S Z=X_NSITE_V_"queries"
+ .S ZZ=X_NSITE_V_"qresponses"
+ .S X=X_NSITE_V_"requests"
+ S $P(^BYIMPARA(BYIMDA,3,NSDA,0),U,2)=X
+ S $P(^BYIMPARA(BYIMDA,3,NSDA,0),U,3)=Y
+ S $P(^BYIMPARA(BYIMDA,3,NSDA,1),U)=Z
+ S $P(^BYIMPARA(BYIMDA,3,NSDA,1),U,2)=ZZ
+ S $P(^BYIMPARA(BYIMDA,3,NSDA,0),U,4,13)=$P(^BYIMPARA(BYIMDA,0),U,4,13)
+ S DA=NSDA
+ D ASE1
  Q
  ;-----
 ASEDIT ;EDIT SITE
  D ASSEL
- Q:'DA
- S DA(1)=BYIMDA
- S DR=".01;.02;.03"
+ Q:'$G(DA)
+ASE1 S DA(1)=BYIMDA
+ S DR=".01T;.02T;.03T;1.01T;1.02T;.07T;.1T;.11T;.12T;.13T;.14T;.15T"
  S DIE="^BYIMPARA("_BYIMDA_",3,"
+ W !!
  D ^DIE
  K DA,DR,DIE
  Q
@@ -212,13 +219,21 @@ IMMDUP ;EP;TO DEDUP IMMUNIZATIONS
  Q
  ;-----
 HFSA(DEST,BYIMHDIR,BYIMHFNM) ;EP - export from this destination
- ;PATCH 2
- F BYIMJOB="FORMAT CONTROLLER","OUTPUT CONTROLLER" D
- .S SH=0,BYIMY=$$CHK^BHLBCK(BYIMJOB,SH)
- Q:$G(DEST)=""
- Q:'$D(^INLHDEST(DEST))
+ N BYIMBP,BYIMY
+ F BYIMBP="FORMAT CONTROLLER","OUTPUT CONTROLLER" D
+ .S SH=0,BYIMY=$$CHK^BHLBCK(BYIMBP,SH)
+ I '$G(DEST) D  Q
+ .S ^BYIMTMP("EXP FAIL",$H,"NO DEST")=BYIMHDIR_U_BYIMHFNM
+ .S BYIMFAIL=1
+ I '$D(^INLHDEST(DEST)) D  Q
+ .S ^BYIMTMP("EXP FAIL",$H,DEST)=BYIMHDIR_U_BYIMHFNM
+ .S BYIMFAIL=1
  S Y=$$OPEN^%ZISH(BYIMHDIR,BYIMHFNM,"W")
- Q:Y
+ I Y D  Q
+ .D EXPBULL(BYIMHFNM,DEST,BYIMHDIR)
+ .S ^BYIMTMP("EXP FAIL",$H,+$G(DEST))=BYIMHDIR_U_BYIMHFNM
+ .S BYIMFAIL=1
+ N BYIMH,BYIMU
  S BYIMH=0
  F  S BYIMH=$O(^INLHDEST(DEST,0,BYIMH)) Q:'BYIMH  D
  .S BYIMU=0
@@ -226,22 +241,29 @@ HFSA(DEST,BYIMHDIR,BYIMHFNM) ;EP - export from this destination
  ..D LPINTHU(BYIMU)
  ..K ^INLHDEST(DEST,0,BYIMH,BYIMU)
  D ^%ZISC
+ D LOGDFN
  Q
  ;-----
 LPINTHU(BYIMUIEN)       ;EP - loop through UIF and set to file
+ N BYIMUDA
  S BYIMUDA=0
  F  S BYIMUDA=$O(^INTHU(BYIMUIEN,3,BYIMUDA)) Q:'BYIMUDA  D
  .N XX
  .S XX=$G(^INTHU(BYIMUIEN,3,BYIMUDA,0))
  .Q:XX=""
  .I XX'["|CR|" D
- ..S XX=XX_$G(^INTHU(BYIMUIEN,3,BYIMUDA+1,0))
- ..S:XX["|CR|" BYIMUDA=BYIMUDA+1
+ ..S BYIMUDA=BYIMUDA+1
+ ..S XX=XX_$G(^INTHU(BYIMUIEN,3,BYIMUDA,0))
+ ..Q:XX["|CR|"
+ ..S BYIMUDA=BYIMUDA+1
+ ..S XX=XX_$G(^INTHU(BYIMUIEN,3,BYIMUDA,0))
  .Q:XX'["|CR|"
+ .S:XX'["MSH|" XX=$TR(XX,"\")
+ .I XX["FHS|" S $P(XX,"|",9)=BYIMHFNM,$P(XX,"|",11)=$E($TR($H,","),1,7)
+ .I XX["BHS|" S $P(XX,"|",11)=$E($TR($H,","),1,7)
  .U IO W $P(XX,"|CR|"),!
  Q
  ;-----
- ;PATCH 2
 DEXIT ;EP;CLEAN UP AFTER IZAD
  K ^BYIMTMP($J,"BYIM DISP")
  Q
@@ -260,7 +282,7 @@ ALOT(LDA,IVDA) ;EP;ACTIVATE LOT NUMBER
 ILOT(LDA) ;EP;INACTIVATE LOT NUMBER
  Q:'LDA
  Q:'$D(^AUTTIML(LDA,0))
- S ^AUTTIML(LDA,0)=$G(NEWLOT(LDA))
+ S:$G(NEWLOT(LDA))]"" ^AUTTIML(LDA,0)=$G(NEWLOT(LDA))
  K NEWLOT
  Q
  ;-----
@@ -276,7 +298,6 @@ LV(DFN,IVDA,LOTDA) ;EP;CALCULATE LAST V IMM FOR PATIENT
  Q
  ;-----
 MAN(MAN) ;EP;CHECK IMMUNIZATION MANUFACTURER
- ;PATCH 2
  Q:MAN=""
  S MAN=$P(MAN,"\T\")_$P(MAN,"\T\",2)
  N X,Y,Z
@@ -296,7 +317,6 @@ MAN(MAN) ;EP;CHECK IMMUNIZATION MANUFACTURER
  Q
  ;-----
 LOT(LOT,MAN,IVDA) ;EP;EVALUATE LOT AND MANUFACTURER DATA
- ;PATCH 2
  S LOTDA=""
  S MANDA=""
  Q:$G(LOT)=""
@@ -305,14 +325,247 @@ LOT(LOT,MAN,IVDA) ;EP;EVALUATE LOT AND MANUFACTURER DATA
  X ^%ZOSF("UPPERCASE")
  S LOT=Y
  S LOTDA=$O(^AUTTIML("B",LOT,0))
- I LOTDA D ALOT^BYIMIMM4(LOTDA,IVDA) Q
+ I LOTDA D ALOT(LOTDA,IVDA) Q
  S X=LOT
  S DIC="^AUTTIML("
  S DIC(0)="L"
- S DIC("DR")=".02////"_$G(MANDA)_";.03////0;.04////"_IVDA
+ S DIC("DR")=".02////"_$G(MANDA)_";.03////1;.04////"_IVDA
  D FILE^DICN
  Q:Y<0
  S LOTDA=+Y
- D ALOT^BYIMIMM4(LOTDA,IVDA)
+ D ALOT(LOTDA,IVDA)
+ Q
+ ;-----
+LOG(FILE,ACT,DFNCNT,IMMCNT,NODFNCNT,NEWIMCNT,ADDIMCNT,PATH,DFN) ;EP;LOG AUTO IMPORT FILES THAT HAVE BEEN PROCESSED
+ ;FILE     = NAME OF FILE IMPORTED OR EXPORTED
+ ;ACT      = ACTION - 'I'MPORT OR 'E'XPORT
+ ;DFNCNT   = NUMBER OF PATIENTS
+ ;IMMCNT   = NUMBER OF IMMUNIZATIONS
+ ;NODFNCNT = NUMBER OF PATIENTS FOR WHOM THERE IS NO PATIENT MATCH
+ ;NEWIMCNT = NUMBER OF NEW IMMUNIZATIONS
+ ;ADDIMCNT = NUMBER OF NEW IMMUNIZATIONS ADDED TO V IMMUNIZATIONS
+ ;PATH     = DRIVE/DIRECTORY FILE SENT TO
+ Q:$G(FILE)=""!($G(ACT)="")
+ S X=FILE
+ K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ S DA(1)=DUZ(2)
+ S DIC="^BYIMPARA("_DA(1)_",2,"
+ S DIC(0)="L"
+ S DIC("DR")=".02////"_DT_";.03////"_ACT_";.04////"_$G(DFNCNT)_";.05////"_$G(IMMCNT)
+ S:$G(NODFNCNT) DIC("DR")=DIC("DR")_";.06////"_NODFNCNT
+ S:$G(NEWIMCNT) DIC("DR")=DIC("DR")_";.07////"_NEWIMCNT
+ S:$G(ADDIMCNT) DIC("DR")=DIC("DR")_";.08////"_ADDIMCNT
+ S:$G(PATH)]"" DIC("DR")=DIC("DR")_";.09////"_PATH
+ D FILE^DICN
+ K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ N BYIMACT
+ S BYIMACT=$S(ACT="I":"imported from",1:"exported to")
+ ;-----
+BULLETIN ;EP;CREATE EXPORT/IMPORT BULLETIN
+ N %X,%Y,X,XMB,XMDT,XMDUZ,Y1
+ S XMB="BYIM EXPORT/IMPORT MESSAGE"
+ S XMB(1)="The file '"_FILE_"' was "_BYIMACT_" the State Immunization Registry on "_$$HTE^XLFDT($H)
+ S XMDUZ=.5
+ D ^XMB
+ Q
+ ;-----
+EXPBULL(BYIMHFNM,DEST,BYIMHDIR) ;EP;EXPORT FILE CREATION FAILED
+ N %X,%Y,X,XMB,XMDT,XMDUZ,Y1
+ S XMB="BYIM EXPORT FILE FAILED"
+ S XMB(1)=BYIMHFNM
+ S XMB(2)=$P($G(^INRHD(+DEST,0)),U)
+ S XMB(3)=BYIMHDIR
+ S XMDUZ=.5
+ D ^XMB
+ Q
+ ;-----
+LC(X) ;LOWERCASE
+ S X=$TR(X,"ABCDEFGHIJKLMNOPQRSTUVWXYZ ","abcdefghijklmnopqrstuvwxyz_")
+ Q X
+ ;-----
+QPATH(BYIMDA) ;EP;SET QUERY DIRECTORIES
+ Q:'$G(BYIMDA)
+ N V,X,Y,Z
+ S X=$P($G(^BYIMPARA(BYIMDA,0)),U,2)
+ S X=$$LC(X)
+ S V=$S(X["\":"\",1:"/")
+ I X["hl7bridge" D  I 1
+ .S X=$P(X,"hl7bridge")
+ .S:$E(X,$L(X))'=V X=X_V
+ .S Y=X_"hl7bridge"_V_"queries"
+ .S Z=X_"hl7bridge"_V_"qresponses"
+ E  D
+ .S X=$P(X,"requests")
+ .S:$E(X,$L(X))'=V X=X_V
+ .S Y=X_"queries"
+ .S Z=X_"qresponses"
+ S $P(^BYIMPARA(BYIMDA,1),U)=Y
+ S $P(^BYIMPARA(BYIMDA,1),U,2)=Z
+ Q
+ ;-----
+RXA(BYIMDA) ;EP;TO SET THE IIS CODE FOR RXA-11.4
+ Q:'$G(BYIMDA)
+ N BYIMRXA,DISP,BYIMQUIT
+ I $O(^BYIMPARA(BYIMDA,5,0)) D RXA1 Q
+ W !!,"Some state Immunization Information Systems (IIS) require facilities to send"
+ W !,"a code to identify the facility at which the immunization was administered or"
+ W !,"identify the vaccine inventory location instead of the facility name."
+ W !!,"If you need to add state IIS assigned code(s) please enter 'Y' below."
+ W !,"You will be prompted to select the name of your facility and then"
+ W !,"enter the state assigned code."
+ K DIR
+ S DIR(0)="YO"
+ S DIR("A")="Add State IIS Assigned Facility Codes"
+ S DIR("B")="NO"
+ W !!
+ D ^DIR
+ K DIR
+ Q:'Y
+RXA1 N BYIMX
+ S BYIMQUIT=0
+ F  D RXAACT Q:BYIMQUIT
+ Q
+ ;-----
+RXAACT ;ADDITIONAL SITE ACTION
+ I '$O(^BYIMPARA(BYIMDA,5,0)) D RXAADD
+ I '$O(^BYIMPARA(BYIMDA,5,0)) S BYIMQUIT=1 Q
+ D RXADISP
+ K DIR
+ S DIR(0)="SO^1:Edit Codes;2:Add codes;3:Delete codes"
+ W !!
+ D ^DIR
+ K DIR
+ I 'Y S BYIMQUIT=1 Q
+ I Y=1 D RXAEDIT Q
+ I Y=2 D RXAADD Q
+ I Y=3 D RXADEL
+ Q
+ ;-----
+RXAADD ;SELECT FACILITIES FOR STATE RXA CODE
+ N BYIMX,BYIMY
+ S DIC="^DIC(4,"
+ S DIC(0)="AEMQZ"
+ ;S DIC("S")="I $D(^AUTTSITE(""B"",Y))!$D(^AUTTSITE(1,19251,""B"",Y))"
+ S DIC("A")="Select Facility for the IIS assigned Code: "
+ W !
+ D ^DIC
+ I Y<1 S BYIMQUIT=1 Q
+ S BYIMX=+Y
+ S BYIMY=$P(^DIC(4,+Y,0),U)
+ K DIR
+ S DIR(0)="FO^1:50"
+ S DIR("A")="Enter State IIS Code assigned for **"_BYIMY_"**"
+ W !
+ D ^DIR
+ K DIR
+ I X="" S BYIMQUIT=1 Q
+ S BYIMY=X
+ S X=BYIMX
+ S DA(1)=DUZ(2)
+ S DIC="^BYIMPARA("_DUZ(2)_",5,"
+ S DIC(0)="L"
+ S DIC("DR")=".02////"_BYIMY
+ S DINUM=X
+ D FILE^DICN
+ I Y<1 S BYIMQUIT=1 Q
+ Q
+ ;------
+RXADISP ;DISPLAY EXISTING IIS RXA CODES
+ N DISP,J,X,Y,Z
+ S J=0
+ S X=0
+ F  S X=$O(^BYIMPARA(DUZ(2),5,X)) Q:'X  S Y=$G(^(X,0)) D:Y
+ .S Z=$P($G(^DIC(4,X,0)),U)
+ .Q:Z=""
+ .S J=J+1
+ .S X(Z)=$P(Y,U,2)
+ .S BYIMRXA(J)=X
+ S J=0
+ S X=""
+ F  S X=$O(X(X)) Q:X=""  D
+ .S J=J+1
+ .S $E(DISP(J),11)=J
+ .S $E(DISP(J),16)=X
+ .S $E(DISP(J),48)=X(X)
+ S BYIMJ=J
+ W @IOF
+ W !?5,"State IIS Assigned Administered-at or Vaccine Inventory Location Code"
+ W !!?10,"NO."
+ W ?15,"Facility"
+ W ?47,"IIS Code"
+ W !?10,"---",?15,"------------------------------",?47,"--------------------"
+ S J=0
+ F  S J=$O(DISP(J)) Q:'J  D
+ .W !,DISP(J)
+ Q
+ ;------
+RXAEDIT ;EDIT SITE
+ D RXASEL
+ Q:'$G(DA)
+RXAE1 S DA(1)=BYIMDA
+ S DR=".02T"
+ S DIE="^BYIMPARA("_BYIMDA_",5,"
+ W !!
+ D ^DIE
+ K DA,DR,DIE
+ Q
+ ;-----
+RXADEL ;DELETE SITE
+ D RXASEL
+ Q:'$G(DA)
+ S X=+^BYIMPARA(BYIMDA,5,DA,0)
+ S X=$P($G(^DIC(4,X,0)),U)
+ W !?10,X
+ K DIR
+ S DIR(0)="YO"
+ S DIR("A")="Delete export/import site: "_X
+ S DIR("B")="NO"
+ W !
+ D ^DIR
+ K DIR
+ Q:Y'=1
+ S DA(1)=BYIMDA
+ S DIK="^BYIMPARA("_BYIMDA_",5,"
+ D ^DIK
+ K DA,DIK
+ Q
+ ;-----
+RXASEL ;SELECT ADDITION SITE
+ I BYIMJ=1 S Y=1 D RXASEL1 Q
+ K DIR
+ S DIR(0)="NO^1:"_BYIMJ
+ S DIR("A")="Select Facility number"
+ W !!
+ D ^DIR
+ K DIR
+RXASEL1 Q:'Y
+ Q:'$G(BYIMRXA(Y))
+ S DA=BYIMRXA(Y)
+ Q
+ ;-----
+LOGDFN ;EP;LOG ALL PATIENTS INCLUDED IN EXPORT
+ N DFN,TYPE
+ S TYPE="E"
+ S DFN=0
+ F  S DFN=$O(^BYIMTMP("LOG",DFN)) Q:'DFN  D
+ .D LOGD(DFN,TYPE)
+ .K ^BYIMTMP("LOG",DFN)
+ Q
+ ;-----
+LOGD(DFN,TYPE) ;EP;LOG EACH IMMUNIZATION EXPORTED OR IMPORTED
+ N IMM,X,Y,Z
+ S:$G(TYPE)="" TYPE="E"
+ S DFNCNT=$G(DFNCNT)+1
+ S IMM=0
+ F  S IMM=$O(^AUPNVIMM("AC",DFN,IMM)) Q:'IMM  D
+ .I $G(BYIMALL)'=2,$D(^BYIMEXP("D",IMM)) Q
+ .K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ .S DIC="^BYIMEXP("
+ .S DIC(0)="L"
+ .S DIC("DR")=".02////"_DT_";.03////"_IMM_";.04////"_TYPE
+ .S X=DFN
+ .D FILE^DICN
+ .K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ .S IMMCNT=$G(IMMCNT)+1
  Q
  ;-----

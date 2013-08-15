@@ -1,5 +1,5 @@
 DGPMBSG ;ALB/LM - BED STATUS GENERATION; 6 JUNE 90
- ;;5.3;Registration;**34**;Aug 13, 1993
+ ;;5.3;Registration;**34,1015**;Aug 13, 1993;Build 21
  ;
 1 D ^DGPMBSG1
  S M=MV("MT") ;  Movement type

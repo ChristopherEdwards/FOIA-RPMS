@@ -1,5 +1,5 @@
 SCMCTMU ;ALB/REW - Team-Patient Utilities ; 1 May 95
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;1
 ACTTM(SCTM,SCDT) ;is the team  currently active?
  ; Used by computed field #300 (CURRENTLY ACTIVE?) OF file #404.51

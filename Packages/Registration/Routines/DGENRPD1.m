@@ -1,5 +1,5 @@
-DGENRPD1 ;ALB/CJM - Veterans with no Application and with a Future Appointment Report; June 10,1998
- ;;5.3;Registration;**147**;08/13/93
+DGENRPD1 ;ALB/CJM - Veterans with no Application and with a Future Appointment Report; 04/28/2004
+ ;;5.3;Registration;**147,568,1015**;Aug 13,1993;Build 21
  ;
 REPORT ;
  N DGENRP
@@ -95,7 +95,7 @@ ASKBEGIN(DGENRP) ;
  S DIR("?")="Enter the first day to list appointments."
 REPEAT D ^DIR
  Q:$D(DIRUT) 0
- I Y<DT W !,"Date must be latter than today!" G REPEAT
+ I Y'>DT W !,"Date must be later than today!" G REPEAT
  S DGENRP("BEGIN")=Y
  Q 1
  ;

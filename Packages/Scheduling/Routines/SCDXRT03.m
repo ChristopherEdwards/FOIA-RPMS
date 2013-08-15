@@ -1,5 +1,5 @@
 SCDXRT03 ;BP OIFO/KEITH - AMB CARE RETRANSMISSION BY SELECTED ERROR CODE ; 12/26/01 2:08pm
- ;;5.3;Scheduling;**215,247**;AUG 13, 1993
+ ;;5.3;Scheduling;**215,247,1015**;AUG 13, 1993;Build 21
  ;
 CODE ;Retransmit by selected error code
  ;

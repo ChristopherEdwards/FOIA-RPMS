@@ -1,5 +1,5 @@
 VAFHLPID ;ALB/MLI/ESD - Create generic PID segment ; 21 Nov 2002  3:13 PM
- ;;5.3;Registration;**68,94,415**;Aug 13, 1993
+ ;;5.3;PIMS;**68,94,415,508,749,1015,1016**;JUN 30, 2012;Build 20
  ;
  ; This routine returns the HL7 defined PID segment with its
  ; mappings to DHCP PATIENT file fields.
@@ -25,11 +25,12 @@ EN(DFN,VAFSTR,VAFNUM,PTID) ; returns PID segment
  ; WARNING: This routine makes external calls to VADPT.  Non-namespaced
  ;          variables may be altered.
  ;
- N I,VAFY,VA,VADM,X,X1,Y,OUTPUT,DGNAME ; calls VADPT...have to NEW
+ N I,VAFY,VA,VADM,X,X1,Y,OUTPUT,DGNAME,DGMMN,VAPA ; calls VADPT...have to NEW
  S VAFSTR=$G(VAFSTR) ; if not defined, just return required fields
  S DFN=$G(DFN)
  I DFN']"" G QUIT
- D DEM^VADPT
+ ;Get demographics and permanent address
+ S VAPA("P")="" D 4^VADPT
  S VAFSTR=","_VAFSTR_","
  K VAFY
  ;Set ID (#1)
@@ -48,7 +49,9 @@ EN(DFN,VAFSTR,VAFNUM,PTID) ; returns PID segment
  S DGNAME("FILE")=2,DGNAME("IENS")=DFN,DGNAME("FIELD")=.01
  S X=$$HLNAME^XLFNAME(.DGNAME,"",$E(HLECH)),VAFY(5)=$S(X]"":X,1:HLQ)
  ;Mother's maiden name (#6)
- I VAFSTR[",6," S X=$P($G(^DPT(DFN,.24)),"^",3),VAFY(6)=$S(X]"":X,1:HLQ)
+ I VAFSTR[",6," D
+ .S DGMMN("FILE")=2,DGMMN("IENS")=DFN,DGMMN("FIELD")=.2403
+ .S X=$$HLNAME^XLFNAME(.DGMMN,"",$E(HLECH)),VAFY(6)=$S(X]"":X,1:HLQ)
  ;Date of birth (#7)
  I VAFSTR[",7," S VAFY(7)=$$HLDATE^HLFNC(+VADM(3))
  ;Sex (#8)
@@ -59,12 +62,14 @@ EN(DFN,VAFSTR,VAFNUM,PTID) ; returns PID segment
  .S Y=$F(VAFSTR,"10")
  .S HOW=$P($E(VAFSTR,Y,$F(VAFSTR,",",Y)),",",1)
  .D SEQ10^VAFHLPI1(HOW,HLQ)
- ;Address (#11) and County (#12)
- I VAFSTR[11!(VAFSTR[12) D
- . S X=$G(^DPT(DFN,.11))
- . S X=$$ADDR^VAFHLFNC($P(X,"^",1,5)_"^"_$P(X,"^",12),$P(X,"^",7))
- . I VAFSTR[11 S Y=$P(X,HLFS,1),VAFY(11)=$S(Y]"":Y,1:HLQ)
- . I VAFSTR[12 S Y=$P(X,HLFS,2),VAFY(12)=$S(Y]"":Y,1:HLQ)
+ ;Address (#11)
+ I VAFSTR[11 D
+ .N HOW
+ .S Y=$F(VAFSTR,"11")
+ .S HOW=$P($E(VAFSTR,Y,$F(VAFSTR,",",Y)),",",1)
+ .D SEQ11^VAFHLPI2(HOW,HLQ)
+ ;County (#12)
+ I VAFSTR[12 S X1=$P($G(^DIC(5,+$G(VAPA(5)),1,+$G(VAPA(7)),0)),"^",3),VAFY(12)=$S(X1]"":X1,1:HLQ)
  S X=$G(^DPT(DFN,.13))
  ;Home phone (#13)
  I VAFSTR[13 S X1=$$HLPHONE^HLFNC($P(X,"^",1)),VAFY(13)=$S(X1]"":X1,1:HLQ)

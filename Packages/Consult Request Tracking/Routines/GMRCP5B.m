@@ -1,6 +1,6 @@
-GMRCP5B ;SLC/DCM,RJS - Print Consult form 513 (Gather Data - Footers, Provisional Diagnosis and Reason For Request) ;11/5/02 07:35
- ;;3.0;CONSULT/REQUEST TRACKING;**4,13,12,15,24,23,22,29**;Dec 27, 1997
- ;
+GMRCP5B ;SLC/DCM,RJS - Print Consult form 513 (Gather Data - Footers, Provisional Diagnosis and Reason For Request) ;28-Dec-2005 16:06;MGH
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,13,12,15,24,23,22,29,1001**;Dec 27, 1997
+ ;IHS/CIA/MGH Added code to use HRCN instead of SSN
  ; Patch #23 add "SERVICE RENDERED AS:" to SF513
  ; This routine invokes IA #1252,#10112
  ; DBIA 10035      ;PATIENT FILE
@@ -148,7 +148,9 @@ FTR(GMRCSG) ;Footer of form 513
  . S GMRCFLN=$P($G(^DPT(GMRCDFN,0)),U,1)_"   "_GMRCPEL_"   "
  . S GMRCFLN=GMRCFLN_$E($G(GMRCELIG),1,(79-$L(GMRCFLN)))
  . D BLD("FTR",SUB,1,0,GMRCFLN)
- . D BLD("FTR",SUB,1,0,GMRCSN)
+ . ;IHS/CIA/MGH Changed code from SSN to HRCN
+ . ;D BLD("FTR",SUB,1,0,GMRCSN)
+ . D BLD("FTR",SUB,1,0,GMRCHRCN)
  . D BLD("FTR",SUB,0,16,$$EXDT(GMRCDOB))
  . D BLD("FTR",SUB,0,51,"CONSULTATION SHEET")
  ;

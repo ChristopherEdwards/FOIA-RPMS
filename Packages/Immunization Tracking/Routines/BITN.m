@@ -1,7 +1,8 @@
 BITN ;IHS/CMI/MWR - BUILD ^BITN GLOBAL.
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: BUILD STANDARD ^BITN GLOBAL.
+ ;;  PATCH 3: Add new vaccines, CVX 148 & 149.  TABLE
  ;
  ;
  ;----------
@@ -27,35 +28,35 @@ START ;EP
 TABLE ; EP
  ;;101;;SMALLPOX^SMALLPOX^75^^^^1^^12^^^^3070831^V04.1^99.42^0^1^.5^^^^
  ;;101a;;^^^^^^^^^^^^^Smallpox vaccine
- ;;102;;TD (ADULT)^Td-ADULT^9^^^^0^^8^TD-ADULT^90718^9,28,35,112,113,115,138,139,142^3081118^V06.5^99.38^0^1^.5^^^
+ ;;102;;TD (ADULT)^Td-ADULT^9^^^^0^^8^TD-ADULT^90718^9,28,35,112,113,115,138,139,142^3120124^V06.5^99.38^0^1^.5^^^
  ;;102a;;Tetanus and Diphtheria Toxoids^54^^^^^^^^^^^^Tetanus and Diphtheria Toxoids, adsorbed for adult use
  ;;103;;DTP^DTP^1^^8^^1^^1^^90701^^^V06.1^99.39^0^1^.5^^^^
  ;;103a;;Diphtheria and Tetanus Toxoids^54^Tri-Immunol^63^^^^^^^^^^Diphtheria, tetanus toxoids and pertussis vaccine
- ;;104;;TETANUS TOXOID^TET TOX^35^^^^0^^1^^90703^9,28,35,112,113,115,138,139,142^3081118^V03.7^99.38^0^1^.5^^^
+ ;;104;;TETANUS TOXOID^TET TOX^35^^^^0^^1^^90703^9,28,35,112,113,115,138,139,142^3120124^V03.7^99.38^0^1^.5^^^
  ;;104a;;Tetanus Toxoids USP For Booste^54^Tetanus Toxoid USP^63^^^^^^^^^^Tetanus Toxoid
  ;;105;;TYPHOID, NOS^TYPH,NOS^91^^^^1^^12^^90714^^^V03.1^99.32^0^1^.5^^^
  ;;105a;;^^^^^^^^^^^^^Typhoid vaccine, NOS
- ;;106;;OPV^OPV^2^^8^^1^^2^SABIN^90712^^3000101^V04.0^99.41^1^1^.5^^^^
+ ;;106;;OPV^OPV^2^^8^^1^^2^SABIN^90712^^^V04.0^99.41^1^1^.5^^^^
  ;;106a;;Orimune^63^^^^^^^^^^^^Poliovirus vaccine, live, oral
- ;;107;;IPV^IPV^10^^7^^0^^2^SALK^90713^110^3000101^V04.0^99.41^0^1^.5^^^^
+ ;;107;;IPV^IPV^10^^7^^0^^2^SALK^90713^110^3111108^V04.0^99.41^0^1^.5^^^^
  ;;107a;;IPOL^54^^^^^^^^^^^^Poliovirus vaccine, inactivated
- ;;108;;INFLUENZA, NOS^FLU,NOS^88^^^^1^^10^^90724^15,16,88,111,123,125,126,127,128,135,140,141,144^3110726^V04.8^99.52^0^1^.5^^^^
+ ;;108;;INFLUENZA, NOS^FLU,NOS^88^^^^1^^10^^90724^15,16,88,111,123,125,126,127,128,135,140,141,144^3120702^V04.8^99.52^0^1^.5^^^^
  ;;108a;;^^^^^^^^^^^^^Influenza virus vaccine, NOS
- ;;110;;HEP B, NOS^HEP B,NOS^45^^6^^1^^4^RECOMBIVAX^90731^8,43,44,51,110,104^3070718^V05.3^99.59^0^1^.5^^^^
+ ;;110;;HEP B, NOS^HEP B,NOS^45^^6^^1^^4^RECOMBIVAX^90731^8,43,44,51,110,104^3120202^V05.3^99.59^0^1^.5^^^^
  ;;110a;;Hepagene^56^^^^^^^^^^^^Hepatitis B vaccine, NOS
- ;;111;;MEASLES^MEASLES^5^^3^^1^^6^^90705^3,4,94^3080313^V04.2^99.45^0^1^.5^^^^
+ ;;111;;MEASLES^MEASLES^5^^3^^1^^6^^90705^3,4,94^^V04.2^99.45^0^1^.5^^^^
  ;;111a;;ATTENUVAX^45^^^^^^^^^^^^Measles virus vaccine
  ;;113;;CHOLERA^CHOLERA^26^^^^1^^12^^90725^^^V03.0^99.31^0^0^.5^^^^
  ;;113a;;Generic-Intramuscular^63^^^^^^^^^^^^Cholera vaccine, intramuscular
- ;;114;;RUBELLA^RUBELLA^6^^3^^1^^6^^90706^3,4,94,38^3080313^V04.3^99.47^0^1^.5^^^^
+ ;;114;;RUBELLA^RUBELLA^6^^3^^1^^6^^90706^3,4,94,38^^V04.3^99.47^0^1^.5^^^^
  ;;114a;;MERUVAX II^45^^^^^^^^^^^^Rubella Virus vaccine
- ;;115;;MUMPS^MUMPS^7^^3^^1^^6^^90704^7,94,38^3080313^V04.6^99.46^0^0^.5^^^^
+ ;;115;;MUMPS^MUMPS^7^^3^^1^^6^^90704^7,94,38^^V04.6^99.46^0^0^.5^^^^
  ;;115a;;MUMPSVAX^45^^^^^^^^^^^^Mumps Virus vaccine
  ;;116;;BCG^BCG^19^^^^1^^12^^90728^^^V03.2^99.33^1^1^.5^^^^
  ;;116a;;Tice BCG^51^Mycobax^54^^^^^^^^^^Bacillus Calmette-Guerin vaccine^90585
- ;;117;;MMR^MMR^3^^3^^0^^6^^90707^4,5,6,7,94,38^3080313^V06.4^99.48^0^1^.5^^^^
+ ;;117;;MMR^MMR^3^^3^^0^^6^^90707^4,5,6,7,94,38^3120420^V06.4^99.48^0^1^.5^^^^
  ;;117a;;M-M-R II^45^^^^^^^^^^^^Measles, Mumps, and Rubella virus vaccine
- ;;118;;M/R^MR^4^^3^^1^^6^^90708^3,5,6,94,38^3080313^V04.2^99.59^0^1^.5^^^^
+ ;;118;;M/R^MR^4^^3^^1^^6^^90708^3,5,6,94,38^^V04.2^99.59^0^1^.5^^^^
  ;;118a;;M-R-VAX II^45^^^^^^^^^^^^Measles and Rubella virus vaccine
  ;;119;;PNEUMOCOCCAL^PNEUMO-PS^33^^^^0^^11^^90732^100,109^3091006^V03.82^99.55^0^1^.5^^^^
  ;;119a;;PNEUMOVAX 23^45^PNU-IMUNE 23^63^^^^^^^^^^Pneumococcal polysaccharide vaccine
@@ -81,9 +82,9 @@ TABLE ; EP
  ;;131a;;^^^^^^^^^^^^^Hepatitis A vaccine, NOS
  ;;132;;VARICELLA^VARICELLA^21^^3^^0^^7^^90716^94,121^3080313^V05.4^99.59^0^1^.5^^^
  ;;132a;;VARIVAX^45^^^^^^^^^^^^Varicella virus vaccine
- ;;133;;DTAP^DTaP^20^^6^^0^^1^DTAP^90700^106,107,110,50^3080918^V06.1^99.39^0^1^.5^^^^
+ ;;133;;DTAP^DTaP^20^^6^^0^^1^DTAP^90700^106,107,110,50^3070517^V06.1^99.39^0^1^.5^^^^
  ;;133a;;Tripedia^54^Infanrix^59^Acel-Imune^63^Certiva^24^^^^^^Diphtheria, tetanus toxoids and acellular pertussis vaccine
- ;;134;;MENINGOCOCCAL^MENING-PS^32^^^^0^^16^^90733^103,108,114^3111014^V03.89^99.59^0^1^.5^^^^
+ ;;134;;MENINGOCOCCAL^MENING-PS^32^^^^0^^16^^90733^32,103,108,114,136,147,148^3111014^V03.89^99.59^0^1^.5^^^^
  ;;134a;;Menomume A/C/Y/W-135^54^^^^^^^^^^^^Meningococcal polysaccharide vaccine
  ;;135;;ROTAVIRUS TETRAVALENT^ROTA-4^74^^4^^1^^15^^^116,119,122^^V04.89^99.59^1^1^.5^^^^
  ;;135a;;ROTASHIELD^63^^^^^^^^^^^^Rotavirus vaccine, tetravalent, live, oral
@@ -91,7 +92,7 @@ TABLE ; EP
  ;;136a;;ActHIB^54^OmniHIB^59^Hiberix^^^^^^^^^Haemophilus influenza type b vaccine, PRP-T conjugate
  ;;137;;UNKNOWN^OTHER^999^^^^1^^12^TEST^90749^^^^99.59^0^0^.5^^^
  ;;137a;;^^^^^^^^^^^^^Unknown vaccine or immune globulin
- ;;138;;HEP B, ADOLESCENT OR PEDIATRIC^HEP B PED^8^^6^^0^^4^^90744^43,44,45,51,110,42,104^3070718^V05.3^99.59^0^1^.5^^^
+ ;;138;;HEP B, ADOLESCENT OR PEDIATRIC^HEP B PED^8^^6^^0^^4^^90744^43,44,45,51,110,42,104^3120202^V05.3^99.59^0^1^.5^^^
  ;;138a;;Recombivax HB pediatric formul^45^Engerix-B pediatric/adolescent^59^^^^^^^^^^Hepatitis B vaccine, pediatric or pediatric/adolescent dosage
  ;;139;;POLIO, NOS^POLIO,NOS^89^^^^1^^2^^^^^V04.0^99.41^0^1^.5^^^
  ;;139a;;^^^^^^^^^^^^^Polio, NOS
@@ -99,11 +100,11 @@ TABLE ; EP
  ;;140a;;LYMErix^59^^^^^^^^^^^^Lyme Disease Vaccine
  ;;141;;RSV-MAB^RSV-MAb^93^^^^0^^12^SYNAGIS^90378^71,93,145^^V07.2^99.14^0^1^^^^
  ;;141a;;Synagis^42^^^^^^^^^^^^Respiratory Syncytial virus monoclanal antibody (palivizumab), intramuscular
- ;;142;;Pneumococcal, PCV-7^PCV-7^100^^6^^1^^11^PCV7^90669^109,133^3080918^V03.82^99.55^0^1^.5^^^
+ ;;142;;Pneumococcal, PCV-7^PCV-7^100^^6^^1^^11^PCV7^90669^109,133^^V03.82^99.55^0^1^.5^^^
  ;;142a;;Prevnar 7^63^PREVNAR 7^^^^^^^^^^^pneumococcal conjugate vaccine, 7 valent
- ;;143;;MENINGOCOCCAL C CONJUGATE^MEN-C CONJ^103^^^^1^^16^^^32,108,114^^V03.89^99.59^0^1^.5^^^
+ ;;143;;MENINGOCOCCAL C CONJUGATE^MEN-C CONJ^103^^^^1^^16^^^32,103,108,114,136,147,148^^V03.89^99.59^0^1^.5^^^
  ;;143a;;^^^^^^^^^^^^^Meningococcal C conjugate vaccine
- ;;144;;HEP B,ADULT^HEP B ADLT^43^^6^^0^^4^^90746^8,42,44,45,104^3070718^V05.3^99.59^0^1^1^^^
+ ;;144;;HEP B,ADULT^HEP B ADLT^43^^6^^0^^4^^90746^8,42,44,45,104^3120202^V05.3^99.59^0^1^1^^^
  ;;144a;;Recombivax HB adult formulatio^45^Heptavax-B^45^Engerix-B adult dose^59^^^^^^^^Hepatitis B vaccine, adult dosage^90743
  ;;145;;PERTUSSIS^PERTUSSIS^11^^^^1^^^^^^^^^0^0^.5
  ;;145a;;^^^^^^^^^^^^^Pertussis
@@ -112,7 +113,7 @@ TABLE ; EP
  ;;147;;TIG^TIG^13^^^^0^^^^90389^^^^^0^1^
  ;;147a;;^^^^^^^^^^^^^Tetanus immune globulin
  ;;148;;INFLUENZA, SPLIT [TIVhx] (INCL PURIFIED)^FLU-TIVhx^15^^^^1^^10^^90657^15,16,88,111,123,125,126,127,128,135,140,141,144^3110726^^^0^1^.5
- ;;148a;;FLUVIRIN split-virus 1998-1999^32^Fluogen 1998-1999 formula^53^FluShield 1998-1999 formula^63^Fluzone-split^^FLU-SPLIT^^^^^Influenza virus vaccine, split virus (incl. Purified surface antigen)^90658
+ ;;148a;;^^^^^^^^^^^^^Influenza virus vaccine, split virus (incl. Purified surface antigen)^90658
  ;;149;;INFLUENZA, WHOLE^FLU-WHOLE^16^^^^1^^10^^90659^15,16,88,111,123,125,126,127,128,135,140,141,144^^^^0^1^.5
  ;;149a;;^54^^^^^^^^^^^^Influenza virus vaccine, whole virus
  ;;150;;RABIES, INTRAMUSCULAR INJECTION^RABIES,IM^18^^^^0^^^^90675^^3091006^^^0^1^.5
@@ -135,23 +136,23 @@ TABLE ; EP
  ;;158a;;BayRab^25^IMOGRAM RABIES - HT^54^^^^^^^^^^Rabies immune globulin^90375
  ;;159;;VZIG^VZIG^36^^^^1^^^^90396^117^^^^0^0^
  ;;159a;;^^^^^^^^^^^^^Varicella zoster immune globulin
- ;;160;;RUBELLA/MUMPS^RUBELLA/MU^38^^^^1^^^^^6,3,4,94^3080313^^^0^0^.5
+ ;;160;;RUBELLA/MUMPS^RUBELLA/MU^38^^^^1^^^^^6,3,4,94^^^^0^0^.5
  ;;160a;;BIAVAX II^45^^^^^^^^^^^^Rubella and Mumps virus vaccine
- ;;161;;JAPANESE ENCEPHALITIS^JAPANESE E^39^^^^1^^^^90735^^3100301^^^0^1^.5
+ ;;161;;JAPANESE ENCEPHALITIS^JAPANESE E^39^^^^1^^^^90735^^3111207^^^0^1^.5
  ;;161a;;JE-VAX^54^^^^^^^^^^^^Japanese Encephalitis virus vaccine
  ;;162;;RABIES, INTRADERMAL INJECTION^RABIES,ID^40^^^^0^^^^90676^^3091006^^^0^1^.5
  ;;162a;;Imovax Rabies I.D.^54^^^^^^^^^^^^Rabies vaccine, for intradermal injection
  ;;163;;TYPHOID, PARENTERAL^TYPHOID,PA^41^^^^0^^^^90692^^3040519^^^0^1^.5
  ;;163a;;Typhim Vi^54^^^^^^^^^^^^Typhoid vaccine, Parenteral; other than acetone killed, dried
- ;;164;;HEP B, ADOLESCENT/HIGH RISK INFA^HEP B ADOL^42^^^^1^^4^^90745^43,44,45,8,104^3070718^^^0^1^.5
+ ;;164;;HEP B, ADOLESCENT/HIGH RISK INFA^HEP B ADOL^42^^^^1^^4^^90745^43,44,45,8,104^3120202^^^0^1^.5
  ;;164a;;Recombivax HB adolescent/high-^45^^^^^^^^^^^^Hepatitis B vaccine, adolescent/high risk infant dosage
- ;;165;;HEP B, DIALYSIS^HEP B DIAL^44^^^^1^^4^^90740^8,43,45,42,104^3070718^^^0^1^1
+ ;;165;;HEP B, DIALYSIS^HEP B DIAL^44^^^^1^^4^^90740^8,43,45,42,104^3120202^^^0^1^1
  ;;165a;;^^^^^^^^^^^^^Hepatitis B vaccine, dialysis patient dosage^90747
  ;;166;;DTAP-HIB^DTAP-HIB^50^^^^1^^14^^90721^20,106,107,110,46,47,48,49,17,51,120^3080918^^^0^1^.5^^^133^136
  ;;166a;;TriHIBit^54^^^^^^^^^^^^DTaP-Haemophilus influenza type b conjugate vaccine
  ;;167;;HIB-HEP B^COMVAX^51^^^^0^^14^^90748^46,47,48,8,42,43,44,45,49,17^3080918^^^0^1^.5^^^138^127
  ;;167a;;Comvax^45^^^^^^^^^^^^Haemophilus influenza type b vaccine conjugate and Hepatitis B vaccine
- ;;168;;HEP A, ADULT^HEP A ADLT^52^^^^0^^9^^90632^83,84,31,104,85^3060321^^^0^1^1
+ ;;168;;HEP A, ADULT^HEP A ADLT^52^^^^0^^9^^90632^83,84,31,104,85^3111025^^^0^1^1
  ;;168a;;VAQTA adult formulation^45^Havrix 1440 ELU/1 mL^59^^^^^^^^^^Hepatitis A vaccine, adult dosage
  ;;169;;TYPHOID, PARENTERAL, AKD (U.S. M^TYPHOID,PM^53^^^^0^^^^90693^^3040519^^^0^1^.5
  ;;169a;;^^^^^^^^^^^^^Typhoid vaccine, Parenteral; acetone killed, dried (U.S. military)
@@ -171,7 +172,7 @@ TABLE ; EP
  ;;176a;;^^^^^^^^^^^^^Herpes simples virus, type 2 vaccine
  ;;177;;HIV^HIV^61^^^^1^^^^^^^^^0^0^.5
  ;;177a;;^^^^^^^^^^^^^Human immunodeficiency virus vaccine
- ;;178;;HPV QUADRIVALENT^HPV-4^62^^^^0^^17^^90649^62,118,137^3110503^^^0^1^.5
+ ;;178;;HPV QUADRIVALENT^HPV-4^62^^^^0^^17^^90649^62,118,137^3120222^^^0^1^.5
  ;;178a;;Gardasil^^^^^^^^^^^^^Human papilloma virus vaccine
  ;;179;;JUNIN VIRUS^JUNIN VIRU^63^^^^1^^^^^^^^^0^0^.5
  ;;179a;;^^^^^^^^^^^^^Junin virus vaccine
@@ -207,9 +208,9 @@ TABLE ; EP
  ;;194a;;^^^^^^^^^^^^^Venezuelan equine enchapahlitis vaccine, inactivated
  ;;195;;ADENOVIRUS, NOS^ADENOV,NOS^82^^^^1^^^^^54,55,82,143^^^^0^0^.5^^
  ;;195a;;^^^^^^^^^^^^^Adenovirus vaccine, NOS
- ;;196;;HEP A, PED/ADOL, 2 DOSE^HEP A PED^83^^^^0^^9^^90633^52,84,31,85,104^3060321^^^0^1^.5^^
+ ;;196;;HEP A, PED/ADOL, 2 DOSE^HEP A PED^83^^^^0^^9^^90633^52,84,31,85,104^3111025^^^0^1^.5^^
  ;;196a;;VAQTA pediatric/adolescent for^45^Havrix 720 ELU/0.5 mL^59^^^^^^^^^^Hepatitis A vaccine, pediatric/adolescent dosage, 2 dose schedule
- ;;197;;HEP A, PED/ADOL, 3 DOSE^HEP A 3PED^84^^^^1^^9^^90634^52,83,31,85,104^3060321^^^0^1^.5^^
+ ;;197;;HEP A, PED/ADOL, 3 DOSE^HEP A 3PED^84^^^^1^^9^^90634^52,83,31,85,104^3111025^^^0^1^.5^^
  ;;197a;;Havrix 360 ELU/0.5 mL^59^^^^^^^^^^^^Hepatitis A vaccine, pediatric/adolescent dosage, 3 dose schedule
  ;;198;;IG^IG^86^^^^^^^^90281^^^^^0^0^
  ;;198a;;^^^^^^^^^^^^^Immune globulin, intramuscular

@@ -1,5 +1,5 @@
 DGPMXAS ; GENERATED FROM 'DGPM ASIH ADMIT' INPUT TEMPLATE(#1556), FILE 405;09/10/03
- D DE G BEGIN
+ D DE G BEGIN;;;;;;Build 21
 DE S DIE="^DGPM(",DIC=DIE,DP=405,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^DGPM(DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,1) S:%]"" DE(2)=% S %=$P(%Z,U,6) S:%]"" DE(3)=% S %=$P(%Z,U,7) S:%]"" DE(4)=% S %=$P(%Z,U,10) S:%]"" DE(9)=% S %=$P(%Z,U,11) S:%]"" DE(7)=% S %=$P(%Z,U,12) S:%]"" DE(5)=%
  I $D(^("ODS")) S %Z=^("ODS") S %=$P(%Z,U,1) S:%]"" DE(12)=%

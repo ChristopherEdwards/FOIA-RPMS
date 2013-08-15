@@ -1,7 +1,8 @@
-SCRPV1 ; bp/djb - PCMM Inconsistency Rpt - Main ; 8/25/99 9:52am [ 11/02/2000  9:33 AM ]
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+SCRPV1 ; bp/djb - PCMM Inconsistency Rpt - Main ; 8/25/99 9:52am
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/02/2000 added call to list template
  ;                        added list template check to wait message
+ ;
  ;
  ;This routine is part of Patch 177 (PCMM Phase II). It prompts for
  ;those Team and Position Assignments to be validated according to

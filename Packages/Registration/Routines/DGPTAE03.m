@@ -1,5 +1,5 @@
 DGPTAE03 ;ALB/MTC - 501 Edit Checks Cont ; 13 NOV 92
- ;;5.3;Registration;**8,52,164**;Aug 13, 1993
+ ;;5.3;Registration;**8,52,164,1015**;Aug 13, 1993;Build 21
  ;
 501 ;--Check elapsed days between movements vs leave and pass days
  ;

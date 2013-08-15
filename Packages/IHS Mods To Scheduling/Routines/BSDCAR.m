@@ -1,5 +1,5 @@
 BSDCAR ; IHS/ANMC/LJF - CLINIC AVAILABILITY REPORTS ;
- ;;5.3;PIMS;**1011,1012**;APR 26, 2002
+ ;;5.3;PIMS;**1011,1012,1015**;APR 26, 2002;Build 21
  ;
 ASK ; -- ask user to choose report
  NEW BSDA,I,NAME,X,Y,RTN,INTRO,POP,DIRUT
@@ -7,7 +7,7 @@ ASK ; -- ask user to choose report
  . S BSDA(I)=$$SP(10)_$J(I,2)_". "_NAME
  S BSDA(I)=""   ;extra line for readability
  S Y=$$READ^BDGF("NO^1:"_(I-1),$$SP(10)_"Select REPORT","","","",.BSDA)
- Q:'Y  I Y=9 S XQH="BSDSM CAR OVERVIEW" D EN^XQH G ASK
+ Q:'Y  I Y=10 S XQH="BSDSM CAR OVERVIEW" D EN^XQH G ASK
  I Y'=2 S BSDTAXYN=1  ;cmi/maw PATCH 1011
  S RTN=$P($T(REPORTS+Y),";;",3),INTRO=$P($T(REPORTS+Y),";;",4)
  D @INTRO,@RTN

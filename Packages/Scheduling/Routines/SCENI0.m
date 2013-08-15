@@ -1,5 +1,5 @@
 SCENI0 ;ALB/SCK - INCOMPLETE ENCOUNTER MGMT MAIN LM DISPLAY ; 07-MAY-1997
- ;;5.3;Scheduling;**66**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,1015**;AUG 13, 1993;Build 21
  ;
 EN ;  Entry point for IEMM LM display
  ; Variables

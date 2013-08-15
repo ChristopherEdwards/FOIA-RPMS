@@ -1,5 +1,5 @@
 DGMTP4 ;ALB/RMO,CAW,LD - Print Means Test 10-10F Cont. ;16 APR 1992 2:35 pm
- ;;5.3;Registration;**33,182,300**;Aug 13, 1993
+ ;;5.3;Registration;**33,182,300,1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point to print signature block and special notes
  ; Set category, status and type of care variables from means test file.

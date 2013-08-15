@@ -1,5 +1,5 @@
 DGPTODF1 ;ALB/MTC - PTF DRG FREQUENCY REPORT ; 9/14/01 9:58am
- ;;5.3;Registration;**375**;Aug 13, 1993
+ ;;5.3;Registration;**375,1015**;Aug 13, 1993;Build 21
  I "DB"[DGS,$D(^UTILITY($J,"DGPTFR","D")) D FD^DGPTODF2
  E  I $D(^UTILITY($J,"DGPTFR","SB")) D FD^DGPTODF2  ;added line DG*5.3*375
  I DGS'="D" S I=0 F I1=0:0 S I=$O(^UTILITY($J,"DGPTFR","FS",I)) Q:I']""  S S=^(I) F D=0:0 S D=$O(^UTILITY($J,"DGPTFR","FS",I,D)) Q:D'>0!(D>600)  S D1=^(D),^UTILITY($J,"DGPTFR","FS",I,(999999-$P(D1,U,2)),D)=D1 K ^UTILITY($J,"DGPTFR","FS",I,D)

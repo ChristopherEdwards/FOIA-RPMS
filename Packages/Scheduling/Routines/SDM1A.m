@@ -1,5 +1,5 @@
-SDM1A ;SF/GFT,ALB/TMP - MAKE APPOINTMENT ; 07 Jun 2001  7:36 PM [ 03/08/2004  10:21 AM ]
- ;;5.3;Scheduling;**26,94,155,206,168,223,241,263,1005,1012,1013,1014**;Aug 13, 1993
+SDM1A ;SF/GFT,ALB/TMP - MAKE APPOINTMENT ; 8/18/05 12:57pm  ; 6/22/09 6:16pm
+ ;;5.3;PIMS;**26,94,155,206,168,223,241,263,327,478,446,1005,1012,1013,1014,1015,1016**;JUN 30, 2012;Build 20
  ;IHS/ANMC/LJF 07/06/2000 hard set of date appt made now includes time
  ;             12/13/2000 added clear display of appt just made
  ;             06/22/2001 added call to create xref on date appt made
@@ -13,7 +13,7 @@ OK I $D(SDMLT) D ^SDM4 Q:X="^"!(SDMADE=2)
  S ^SC(SC,"ST",$P(SD,"."),1)=S
  D SDM^BSDMMU("","",DFN,SD,SC,"","","","","","","","",.BSDER)  ;ihs/cmi/maw 02/12/2012 to call UPDATE^DIE
  S ^SC(SC,"S",SD,0)=SD S:'$D(^DPT(DFN,"S",0)) ^(0)="^2.98P^^" S:'$D(^SC(SC,"S",0)) ^(0)="^44.001DA^^" L
-S1 L ^SC(SC,"S",SD,1):5 G:'$T S1 F SDY=1:1 I '$D(^SC(SC,"S",SD,1,SDY)) S:'$D(^(0)) ^(0)="^44.003PA^^" S ^(SDY,0)=DFN_U_(+SL) L  Q
+S1 L +^SC(SC,"S",SD,1):$G(DILOCKTM,5) W:'$T "Another user is editing this record.  Trying again.",! G:'$T S1 F SDY=1:1 I '$D(^SC(SC,"S",SD,1,SDY)) S:'$D(^(0)) ^(0)="^44.003PA^^" S ^(SDY,0)=DFN_U_(+SL)_"^^^^"_$G(DUZ)_U_DT L -^SC(SC,"S",SD,1) Q
  I SM S ^("OB")="O" ;NAKED REFERENCE - ^SC(IFN,"S",Date,1,SDY,"OB")
  I $D(^SC(SC,"RAD")),^("RAD")="Y"!(^("RAD")=1) S ^SC("ARAD",SC,SD,DFN)=""
  S SDINP=$$INP^SDAM2(DFN,SD)
@@ -28,8 +28,16 @@ S1 L ^SC(SC,"S",SD,1):5 G:'$T S1 F SDY=1:1 I '$D(^SC(SC,"S",SD,1,SDY)) S:'$D(^(0
  ;
  ;S ^DPT(DFN,"S",SD,1)=$G(SDDATE)_U_$G(SDSRFU)
  D SDM^BSDMMU(COV,SDYC,DFN,SD,SC,SDINP,SDAPTYP,$G(SD17),$G(SDXSCAT),$P($G(SDSRTY),U,2),$$NAVA^SDMANA(SC,SD,$P($G(SDSRTY),U,2)),$G(SDDATE),$G(SDSRFU),.BSDER)
- I $G(BSDER)]"" W !,"Error making appointment in file 2.98" Q  ;ihs/cmi/maw 2/2/2012 patch 1014 for GUI Scheduling
+ I $G(BSDER)]"" D  Q
+ . W !,"Error making appointment in file 2.98"  ;ihs/cmi/maw 2/2/2012 patch 1014 for GUI Scheduling
+ . S MAW="S $ZE=""SDM1A FAILED APPT CALL S1+14"" D ^ZTER" X MAW K MAW
  ;ihs/cmi/maw 02/02/2012 following commented lines no longer used patch 1014
+ ;xref DATE APPT. MADE field
+ ;D
+ ;.N DIV,DA,DIK
+ ;.S DA=SD,DA(1)=DFN,DIK="^DPT(DA(1),""S"",",DIK(1)=20 D EN1^DIK
+ ;.Q
+ I $D(SDMULT) S SDCLNCND=^SC(SC,0),STPCOD=$P(SDCLNCND,U,7),TMPYCLNC=SC_U_$P(SDCLNCND,U) D A^SDCNSLT ;SD/478 MULTI CLINIC OPTION SELECTED
  ;xref DATE APPT. MADE field
  ;D
  ;.N DIV,DA,DIK
@@ -44,15 +52,73 @@ S1 L ^SC(SC,"S",SD,1):5 G:'$T S1 F SDY=1:1 I '$D(^SC(SC,"S",SD,1,SDY)) S:'$D(^(0
  ;confirm request type & follow-up indicator
  I $D(SDSRTY(0)) D CONF(.SDSRTY,.SDSRFU,DFN,SD,SC) W !
  I $P(SD,".")'>DT,$D(^DPT(DFN,.321)) D EN1^SDM3
- ;
  ;Wait List SD*5.3*263
- I '$D(SDWLLIST) D ^SDWLR
- ;
+ ;I '$D(SDWLLIST) D ^SDWLR ;replaced with sd/372, see below
+EWLCHK ;check if patient has any open EWL entries (SD/372)
+ ;get appointment
+ K ^TMP($J,"SDAMA301"),^TMP($J,"APPT")
+ D APPT^SDWLEVAL(DFN,SD,SC)
+ Q:'$D(^TMP($J,"APPT"))
+ N SDEV D EN^SDWLEVAL(DFN,.SDEV) I SDEV,$L(SDEV(1))>0 D
+ .K ^TMP("SDWLPL",$J),^TMP($J,"SDWLPL")
+ .D INIT^SDWLPL(DFN,"M")
+ .Q:'$D(^TMP($J,"SDWLPL"))
+ .D LIST^SDWLPL("M",DFN)
+ .F  Q:'$D(^TMP($J,"SDWLPL"))  N SDR D ANSW^SDWLEVAL(1,.SDR) I 'SDR D LIST^SDWLPL("M",DFN) D
+ ..F  N SDR D ANSW^SDWLEVAL(0,.SDR) Q:'$D(^TMP($J,"SDWLPL"))  I 'SDR W !,"MUST ENTER A REASON NOT TO DISPOSITION MATCHED EWL ENTRY",!
+ ;CREATE 120 FLAG IF APPLICABLE; appt created 
+FLG N SDST S SDST=$G(^TMP($J,"APPT",1)) I +SDST>0 D
+ .Q  ; sd/446
+ .N SDT,SDDES,SDPAR,SDDES1,SDT1 S SDPAR=0 S SDT=+SDST,SDDES=$P(SDST,U,17) I SDDES="" S SDDES=DT ; today's date if no desired date
+ .S X=SDT D H^%DTC S SDT1=%H
+ .S X=SDDES D H^%DTC S SDDES1=%H
+ .I SDT1-SDDES1>120 N SD120,SD120A S SD120=1,SD120A=1  D
+ ..; CREATE ewl eN SDPR S SDPR=$S(SDDES=DT:"A",1:"F") entry with 120 flag
+ ..N SDPR S SDPR=$S(SDDES=DT:"A",1:"F") ;10
+ ..N SDWLIN S SDWLIN=+$P(SDST,U,15) ;2
+ ..N SDWLSCPR S SDWLSCPR=0 I +$P(SDST,U,10)=11 S SDWLSCPR=1 ;15
+ ..N SC,SDWLSCL S SC=+$P(SDST,U,2) D
+ ...I $D(^SDWL(409.32,"B",SC)) S SDWLSCL=$O(^SDWL(409.32,"B",SC,"")) Q  ;8
+ ...;create 409.32 entry
+ ...N DA,DIC S DIC(0)="LX",X=SC,DIC="^SDWL(409.32," D FILE^DICN
+ ...S SDWLSCL=DA
+ ...S DIE="^SDWL(409.32,"
+ ...S DR=".02////^S X=SDWLIN" D ^DIE
+ ...S DR="1////^S X=DT"
+ ...S DR=DR_";2////^S X=DUZ"
+ ...D ^DIE S SDPAR=1
+ ..N DA S DIC(0)="LX",(X,SDWLDFN)=+$P(SDST,U,4),X=SDWLDFN,DIC="^SDWL(409.3," D FILE^DICN
+ ..F  L +^SDWL(409.3,DA):5 Q:$T  D
+ ...I '$T W !,"Unable to acquire a lock on the Wait List file" Q
+ ..; Update EWL variables.
+ ..S SDWLDA=DA D EN^SDWLE11 ; get enrollee both SDWLDA and SDWLDFN have to be
+ ..N SDWLCM S SDWLCM=" > 120 days; appt created"
+ ..N SDWLSCPG S SDWLSCPG=$S($P($G(^DPT(SDWLDFN,.3)),U,1)="Y":$P(^(.3),U,2),1:"")
+ ..S DR="1////^S X=DT"
+ ..S DR=DR_";2////^S X=SDWLIN"
+ ..S DR=DR_";4////^S X=4"
+ ..S DR=DR_";8////^S X=SDWLSCL"
+ ..S DR=DR_";9////^S X=DUZ"
+ ..S DR=DR_";10////^S X=SDPR"
+ ..S DR=DR_";11////^S X=2" ; by patient for this entry to avoid asking for provider
+ ..S DR=DR_";14////^S X=SDWLSCPG"
+ ..S DR=DR_";15////^S X=SDWLSCPR"
+ ..S DR=DR_";22////^S X=SDDES"
+ ..S DR=DR_";23////^S X=""O"""
+ ..S DR=DR_";25////^S X=SDWLCM"
+ ..S DR=DR_";36////^S X=SD120"
+ ..S DR=DR_";39////^S X=SD120A"
+ ..S DIE="^SDWL(409.3,"
+ ..D ^DIE
+ ..L -^SDWL(409.3,DA)
+ ..D MESS^SDWL120(SDWLDFN,SC,SDT,SDPAR)
+ ;continue appointment entry process
 ORD S %=2 W !,"WANT PATIENT NOTIFIED OF LAB,X-RAY, OR EKG STOPS" D YN^DICN I '% W !,"  Enter YES to notify patient on appt. letter of LAB, X-RAY, or EKG stops" G ORD
  I '(%-1) D ORDY^SDM3
 OTHER R !,"  OTHER INFO: ",D:DTIME I D["^" W !,*7,"'^' not allowed - hit return if no 'OTHER INFO' is to be entered" G OTHER
+ S TMPD=D I $L(D)>150 D MSG^SDMM G OTHER ;SD/478
  ;I $L(D)>150 D MSG^SDMM G OTHER  ;cmi/maw 05/14/2010 PATCH 1012 RQMT129 inclreased length of OTHER INFO orig line
- I $L(D)>155 D MSG^SDMM G OTHER  ;cmi/maw 05/14/2010 PATCH 1012 RQMT129 inclreased length of OTHER INFO  
+ S TMPD=D I $L(D)>155 D MSG^SDMM G OTHER  ;cmi/maw 05/14/2010 PATCH 1012 RQMT129 inclreased length of OTHER INFO  
  ;
  ;IHS/OIT/LJF 12/30/2005 PATCH 1005 enhanced help text and removed old MSM restriction on global length
  ;I D]"",D?."?"!(D'?.ANP) W "  ENTER LAB, SCAN, ETC." G OTHER
@@ -64,6 +130,9 @@ OTHER R !,"  OTHER INFO: ",D:DTIME I D["^" W !,*7,"'^' not allowed - hit return 
  ;S $P(^(0),"^",4)=D,$P(^(0),U,6,7)=$S($D(DUZ):DUZ,1:"")_U_$$NOW^XLFDT D XREFC^BSDDAM(SC,SD,SDY)               ;IHS/ANMC/LJF 7/06/2000; 6/22/2001
  S $P(^SC(SC,"S",SD,1,SDY,0),"^",4)=D,$P(^(0),U,6,7)=$S($D(DUZ):DUZ,1:"")_U_$$NOW^XLFDT D XREFC^BSDDAM(SC,SD,SDY) ;IHS/OIT/LJF 01/06/2006 PATCH 1005
  ;
+ D:$D(TMP) LINK^SDCNSLT(SC,SDY,SD,CNSLTLNK) ;SD/478
+ D:$D(TMP) EDITCS^SDCNSLT(SD,TMPD,TMPYCLNC,CNSLTLNK) ;SD/478
+ K TMP  ;SD/478
 XR I $S('$D(^SC(SC,"RAD")):1,^("RAD")="Y":0,^("RAD")=1:0,1:1) S %=2 W !,"WANT PREVIOUS X-RAY RESULTS SENT TO CLINIC" D YN^DICN G:'% HXR I '(%-1) S ^SC("ARAD",SC,SD,DFN)=""
 SDMM S SDEMP=0 I COLLAT=7 S:SDEC'=SDCOL SDEMP=SDCOL G OV
  D ELIG^VADPT I $O(VAEL(1,0))>0 D ELIG^SDM4:"369"[SDAPTYP S SDEMP=$S(SDDECOD:SDDECOD,1:SDEMP)
@@ -74,29 +143,22 @@ HXR W !,"  Enter YES to have previous XRAY results sent to the clinic" G XR
 CS S SDCS=+$P(^SC(+SC,0),"^",7) I $S('$D(^DIC(40.7,SDCS,0)):1,'$P(^(0),"^",3):0,1:$P(^(0),"^",3)'>DT) W !!,*7,"** WARNING - CLINIC HAS AN INVALID OR INACTIVE STOP CODE!!!",!!
  S SDCS=+$P(^SC(+SC,0),"^",18) I $S('SDCS:0,'$D(^DIC(40.7,SDCS,0)):1,'$P(^(0),"^",3):0,1:$P(^(0),"^",3)'>DT) W !!,*7,"** WARNING - CLINIC HAS AN INVALID OR INACTIVE CREDIT STOP CODE!!!",!!
  K SDCS Q
- ;
 STATUS(SDCL,SDINP,SDT) ; -- determine status for NEW appts
  Q $S(SDINP]"":SDINP,$$CHK(.SDCL,.SDT):"NT",1:"")
- ;
 CHK(SDCL,SDT) ; -- should appt be NT'ed
  ; -- non-count clinic check := don't NT appt
  ; -- appt update executed   := need to NT appt
  ; -- otherwise              := don't NT appt
  Q $S($P($G(^SC(SDCL,0)),U,17)="Y":0,$D(^SDD(409.65,"AUPD",$P(SDT,"."))):1,1:0)
- ;
 EVT ; -- separate tag if need to NEW vars
  D MAKE^SDAMEVT(DFN,SD,SC,SDY,0)
  Q
- ;
 REQ(SDT) ; -- which is required check in(CI) or out(CO)
  Q $S($$REQDT()>SDT:"CI",1:"CO")
- ;
 REQDT() ; -- co required date
  Q $S($P(^DG(43,1,"SCLR"),U,23):$P(^("SCLR"),U,23),1:2931001)
- ;
 COCMP(DFN,SDT) ; -- date CO completed
  Q $P($G(^SCE(+$P($G(^DPT(DFN,"S",SDT,0)),U,20),0)),U,7)
- ;
 CI(SDCL,SDT,SDDA,SDACT) ; -- ok to update DPT
  N C
  I '$$CHK(.SDCL,.SDT) G CIQ
@@ -104,7 +166,6 @@ CI(SDCL,SDT,SDDA,SDACT) ; -- ok to update DPT
  I SDACT="SET",$D(^DPT(+^SC(SDCL,"S",SDT,1,SDDA,0),"S",SDT,0)),$P(^(0),U,2)="NT" S $P(^(0),U,2)=""
  I SDACT="KILL" S C=$G(^SC(SDCL,"S",SDT,1,SDDA,"C")) I $D(^DPT(+$G(^(0)),"S",SDT,0)),$P(^(0),U,2)="",'$P(C,U,3) S $P(^(0),U,2)="NT"
 CIQ Q
- ;
 CO(SDCL,SDT,SDDA,SDACT) ; -- ok to update DPT
  N DFN,C
  I '$$CHK(.SDCL,.SDT) G COQ
@@ -114,14 +175,12 @@ CO(SDCL,SDT,SDDA,SDACT) ; -- ok to update DPT
  S DFN=+^SC(SDCL,"S",SDT,1,SDDA,0)
  D UPD(.DFN,.SDT,$$COCMP(.DFN,.SDT),$S(SDACT="SET":X,1:""))
 COQ Q
- ;
 UPD(DFN,SDT,SDCOCMP,SDCODT) ; -- update status
  N Y
  I $D(^DPT(DFN,"S",SDT,0)) S Y=$P(^(0),U,2) D
  .I 'SDCOCMP!('SDCODT) S:Y="" $P(^DPT(DFN,"S",SDT,0),U,2)="NT" Q
  .S:Y="NT" $P(^DPT(DFN,"S",SDT,0),U,2)=""
  Q
- ;
 OE(SDOE,SDACT) ; -- called by x-ref on co completed field(#.07) in ^SCE
  N Y S Y=^SCE(SDOE,0)
  I $P(Y,U,8)'=1 G OEQ
@@ -129,14 +188,12 @@ OE(SDOE,SDACT) ; -- called by x-ref on co completed field(#.07) in ^SCE
  I '$$CANT(+$P(Y,U,2),+Y,SDOE),'$$CHK(+$P(Y,U,4),+Y) G OEQ
  D UPD(+$P(Y,U,2),+Y,$S(SDACT="SET":X,1:""),$P($G(^SC(+$P(Y,U,4),"S",+Y,1,+$P(Y,U,9),"C")),U,3))
 OEQ Q
- ;
 CONF(SDSRTY,SDSRFU,DFN,SDT,SC) ;Confirm scheduling request type
  ;Input: SDSRTY=request type
  ;Input: SDSRFU=follow-up indicator
  ;Input: DFN=patient ien
  ;Input: SDT=appointment date/time
  ;Input: SC=clinic ifn
- ;
  N DIR,DIE,DA,DR,SDX,SDY,X,Y
  S DIR(0)="Y",DIR("B")="YES"
  S DIR("A")="THIS APPOINTMENT IS MARKED AS '"_SDSRTY(0)_"', IS THIS CORRECT"
@@ -151,19 +208,16 @@ CONF(SDSRTY,SDSRFU,DFN,SDT,SC) ;Confirm scheduling request type
  S DA=SDT,DA(1)=DFN
  S DIE="^DPT(DA(1),""S""," D ^DIE
  Q
- ;
 TXRT(SDSRTY)    ;Transform request type
  ;Input: SDSRTY=variable to return request type (pass by reference)
  ;Output: external text for SDSRTY(0)
  I SDSRTY S SDSRTY=SDSRTY_U_"N" Q "NEXT AVAILABLE"
  S SDSRTY=SDSRTY_U_"O" Q "NOT NEXT AVAILABLE"
- ;
 CANT(DFN,SDT,SDOE) ;Determine if clinic appt. has been marked "NT"
  ;Output: '1' if appt. points to encounter and is marked "NT", otherwise '0'
  N SDAPP S SDAPP=$G(^DPT(DFN,"S",SDT,0))
  Q:$P(SDAPP,U,20)'=SDOE 0
  Q $P(SDAPP,U,2)="NT"
- ;
  ; -- Variable doc for above tags
  ;     SDCL := file 44 ien
  ;      SDT := appt date/time
@@ -173,4 +227,5 @@ CANT(DFN,SDT,SDOE) ;Determine if clinic appt. has been marked "NT"
  ;  SDCOCMP := check out completed date
  ;   SDCODT := check out date/time
  ;     SDOE := Outpatient Encounter ien
+ ;    SDINP := inpatient status ('I' or null)    
  ;    SDINP := inpatient status ('I' or null)    

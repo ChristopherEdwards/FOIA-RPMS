@@ -1,5 +1,5 @@
 SCCVLOG2 ;ALB/RMO,TMP - Scheduling Conversion Log Utilities - Bulletin; [ 05/12/95  13:59 PM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 SEND(SCLOG,SCACT) ;Send conversion bulletin
  ; Input  -- SCLOG    CST ien

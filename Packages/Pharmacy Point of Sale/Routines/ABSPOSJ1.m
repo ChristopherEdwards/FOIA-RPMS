@@ -1,5 +1,5 @@
 ABSPOSJ1 ;IHS/SD/lwj - NCPDP 5.1 pre and post init for V1.0 patch 3 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**3,6,12,14,16,17,24,28,29,31,32,36,37,38,39,42,43**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**3,6,12,14,16,17,24,28,29,31,32,36,37,38,39,42,43,44**;Jun 21,2001
  ;
  ; Pre and Post init routine use in absp0100.03k
  ;------------------------------------------------------------------
@@ -113,6 +113,10 @@ DELFLD(FLDNUM) ;
  S FDA(9002313.0201,MEDIEN_","_CLMIEN_",",FLDNUM)=""
  D FILE^DIE("","FDA","MSG")
  S FND=1              ;we found at least 1
+ Q
+POST44 ; IHS/OIT/RCS 8/31/2012 Patch 44 fix for DIALOUT field
+ D DIAL^ABSPOSJ2
+ D POST43
  Q
 POST43 ; - IHS/OIT/RCS 3/2/2012 patch 43 run fix for errored reversals
  D CLNREV^ABSPOSJ2

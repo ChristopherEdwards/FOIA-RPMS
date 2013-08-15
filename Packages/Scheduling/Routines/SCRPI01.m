@@ -1,5 +1,5 @@
 SCRPI01 ;ALB/SCK - IEMM REPORT OF INCOMPLETE ENCOUNTERS ; 2/2/97
- ;;5.3;Scheduling;**66**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,338,1015**;AUG 13, 1993;Build 21
  ;
 EN ;  Main entry point for report of incomplete encounters report
  ;  Variables
@@ -150,12 +150,12 @@ BLD1(SDE,SDX) ;  If error passes checks, add to sorted TMP global
  ;
  I SDSEL1="CLN",$S(VAUTC:0,$D(VAUTC(SCEN("CLINIC"))):0,1:1) Q
  I SDSEL1="PAT",$S(VAUTN:0,$D(VAUTN(SCEN("DFN"))):0,1:1) Q
- I SDSEL1="ERR",$S(VAUER:0,$D(VAUER($P(^SD(409.75,SDE,0),U,2))):0,1:1) Q
+ I SDSEL1="ERR" Q:'$D(^SD(409.75,SDE,0))  I $S(VAUER:0,$D(VAUER($P(^SD(409.75,SDE,0),U,2))):0,1:1) Q  ; SD*5.3*338
  I SDSEL1="DSS",$S(VAUDS:0,$D(VAUDS(SDCDE)):0,1:1) Q
  ;
  I SDSEL2="CLN",$S(VAUTC:0,$D(VAUTC(SCEN("CLINIC"))):0,1:1) Q
  I SDSEL2="PAT",$S(VAUTN:0,$D(VAUTN(SCEN("DFN"))):0,1:1) Q
- I SDSEL2="ERR",$S(VAUER:0,$D(VAUER($P(^SD(409.75,SDE,0),U,2))):0,1:1) Q
+ I SDSEL2="ERR" Q:'$D(^SD(409.75,SDE,0))  I $S(VAUER:0,$D(VAUER($P(^SD(409.75,SDE,0),U,2))):0,1:1) Q  ; SD*5.3*338
  I SDSEL2="DSS",$S(VAUDS:0,$D(VAUDS(SDCDE)):0,1:1) Q
  ;
  S ^TMP("SCRPI ERR",$J,$P(^DG(40.8,SDIV,0),U),$P(^SC(SCEN("CLINIC"),0),U),$P(^DPT(SCEN("DFN"),0),U),SCEN("ENCOUNTER"),SDE,0)=SCEN("DFN")_U_SDX_U_$G(SDDEL)

@@ -1,5 +1,5 @@
 DGENRPT ;ALB/DW - Enrollment Group Threshold Impact Reports ; 5 MAY 1999
- ;;5.3;Registration;**232**;Aug 13,1993
+ ;;5.3;Registration;**232,1015**;Aug 13,1993;Build 21
  ;
  ;
  N RPAP,RPDS,DIR,X,Y

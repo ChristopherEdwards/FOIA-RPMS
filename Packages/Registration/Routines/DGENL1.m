@@ -1,5 +1,5 @@
-DGENL1 ;ALB/RMO,ISA/KWP,Zoltan,ALB/BRM - Patient Enrollment - Build List Area; 10/23/00 9:49am ; 2/27/01 1:25pm
- ;;5.3;Registration;**121,147,232,266,343**;Aug 13,1993
+DGENL1 ;ALB/RMO,ISA/KWP,Zoltan,ALB/BRM,LBD,ERC,EG,CKN,BAJ - Patient Enrollment - Build List Area ; 2/2/11 4:08pm
+ ;;5.3;PIMS;**121,147,232,266,343,564,672,659,653,688,1015,1016**;JUN 30, 2012;Build 20
  ;
 EN(DGARY,DFN,DGENRIEN,DGCNT) ;Entry point to build list area
  ; for patient enrollment and patient enrollment history
@@ -63,8 +63,8 @@ ENR(DGARY,DFN,DGENR,DGLINE,DGCNT) ;Enrollment
  D SET(DGARY,DGLINE,"Effective Date: "_$S($G(DGENR("EFFDATE")):$$EXT^DGENU("EFFDATE",DGENR("EFFDATE")),1:""),12,,,,,,.DGCNT)
  ;
  ;Reason canceled/declined
- S DGLINE=DGLINE+1
- D SET(DGARY,DGLINE,"",1,,,,,,.DGCNT)
+ ; Removed blank line to fix format after screen header was increased
+ ; to 3 lines (DG*5.3*838).
  S DGLINE=DGLINE+1
  D SET(DGARY,DGLINE,"Reason Canceled/Declined: "_$S($G(DGENR("REASON")):$$EXT^DGENU("REASON",DGENR("REASON")),1:""),2,,,,,,.DGCNT)
  ;
@@ -112,22 +112,31 @@ PF(DGARY,DFN,DGENR,DGLINE,DGCNT) ;Priority factors
  ;Agent orange
  S DGLINE=DGLINE+1
  D SET(DGARY,DGLINE,"A/O Exp.: "_$S($G(DGENR("ELIG","AO"))'="":$$EXT^DGENU("AO",DGENR("ELIG","AO")),1:""),14,,,,,,.DGCNT)
+ D SET(DGARY,DGLINE,"A/O Exp Loc: "_$S($G(DGENR("ELIG","AOEXPLOC"))'="":$$EXT^DGENU("AOEXPLOC",DGENR("ELIG","AOEXPLOC")),1:""),51,,,,,,.DGCNT)
  ;
  ;Ionizing radiation
  S DGLINE=DGLINE+1
  D SET(DGARY,DGLINE,"ION Rad.: "_$S($G(DGENR("ELIG","IR"))'="":$$EXT^DGENU("IR",DGENR("ELIG","IR")),1:""),14,,,,,,.DGCNT)
  ;
- ;Environmental contaminants
+ ;Radiation Exposure Method
  S DGLINE=DGLINE+1
- D SET(DGARY,DGLINE,"Env Contam: "_$S($G(DGENR("ELIG","EC"))'="":$$EXT^DGENU("EC",DGENR("ELIG","EC")),1:""),12,,,,,,.DGCNT)
+ D SET(DGARY,DGLINE,"Rad Exp Method: "_$S($G(DGENR("ELIG","RADEXPM"))'="":$$EXT^DGENU("RADEXPM",DGENR("ELIG","RADEXPM")),1:""),8,,,,,,.DGCNT)
  ;
- ;Military disability
+ ;SW Asia Conditions - name change from Env con DG*5.3*688
  S DGLINE=DGLINE+1
- D SET(DGARY,DGLINE,"Mil Disab: "_$S($G(DGENR("ELIG","DISRET"))'="":$$EXT^DGENU("DISRET",DGENR("ELIG","DISRET")),1:""),13,,,,,,.DGCNT)
+ D SET(DGARY,DGLINE,"SW Asia Cond."_$S($G(DGENR("ELIG","EC"))'="":$$EXT^DGENU("EC",DGENR("ELIG","EC")),1:""),12,,,,,,.DGCNT)
+ ;
+ ;Military retirement - new fields added with DG*5.3*672
+ S DGLINE=DGLINE+1
+ S DGRET=$G(DGENR("ELIG","DISRET"))
+ D SET(DGARY,DGLINE,"Mil Disab Retirement: "_$S($G(DGRET)=0:"NO",$G(DGRET)=1:"YES",$G(DGRET)=2:"YES",$G(DGRET)=3:"UNK",1:""),2,,,,,,.DGCNT)
+ D SET(DGARY,DGLINE,"Dischrg Due to Disab: "_$S($G(DGENR("ELIG","DISLOD"))'="":$$EXT^DGENU("DISLOD",DGENR("ELIG","DISLOD")),1:""),42,,,,,,.DGCNT)
+ ;
+ ;Combat Vet End Date (added for DG*5.3*564 - HVE Phase III)
+ S DGLINE=DGLINE+1
+ D SET(DGARY,DGLINE,"Combat Vet End Date: "_$S($G(DGENR("ELIG","CVELEDT"))'="":$$EXT^DGENU("CVELEDT",DGENR("ELIG","CVELEDT")),1:""),3,,,,,,.DGCNT)
  ;
  ;Eligible for medicaid
- S DGLINE=DGLINE+1
- D SET(DGARY,DGLINE,"",1,,,,,,.DGCNT)
  S DGLINE=DGLINE+1
  D SET(DGARY,DGLINE,"Eligible for MEDICAID: "_$S($G(DGENR("ELIG","MEDICAID"))'="":$$EXT^DGENU("MEDICAID",DGENR("ELIG","MEDICAID")),1:""),1,,,,,,.DGCNT)
  ;
@@ -144,12 +153,18 @@ PF(DGARY,DFN,DGENR,DGLINE,DGCNT) ;Priority factors
  D SET(DGARY,DGLINE,"Housebound: "_$S($G(DGENR("ELIG","HB"))'="":$$EXT^DGENU("HB",DGENR("ELIG","HB")),1:""),52,,,,,,.DGCNT)
  ;
  ;VA Pension
+ ;Unemployable (added for DG*5.3*564 - HVE Phase III)
  S DGLINE=DGLINE+1
  D SET(DGARY,DGLINE,"VA Pension: "_$S($G(DGENR("ELIG","VAPEN"))'="":$$EXT^DGENU("VAPEN",DGENR("ELIG","VAPEN")),1:""),12,,,,,,.DGCNT)
+ D SET(DGARY,DGLINE,"Unemployable: "_$S($G(DGENR("ELIG","UNEMPLOY"))'="":$$EXT^DGENU("UNEMPLOY",DGENR("ELIG","UNEMPLOY")),1:""),50,,,,,,.DGCNT)
  ;
  ;Total check amount
  S DGLINE=DGLINE+1
  D SET(DGARY,DGLINE,"Total Check Amount: "_$S($G(DGENR("ELIG","VACKAMT"))'="":$$EXT^DGENU("VACKAMT",DGENR("ELIG","VACKAMT")),1:""),4,,,,,,.DGCNT)
+ ;
+ ;PROJ 112/SHAD - DG*5.3*653
+ I $G(DGENR("ELIG","SHAD"))=1 D
+ .D SET(DGARY,DGLINE,"Proj 112/SHAD: "_$$EXT^DGENU("SHAD",DGENR("ELIG","SHAD")),49,,,,,,.DGCNT)
  ;
  ;Eligibility code
  S DGLINE=DGLINE+1
@@ -167,48 +182,19 @@ PF(DGARY,DFN,DGENR,DGLINE,DGCNT) ;Priority factors
  F DGLINE=DGLINE+1:1:DGSTART+VALM("LINES") D SET(DGARY,DGLINE,"",1,,,,,,.DGCNT)
  Q
  ;
-SET(DGARY,DGLINE,DGTEXT,DGCOL,DGON,DGOFF,DGSUB,DGNUM,DGDATA,DGCNT) ; -- set display array
- ; Input  -- DGARY    Global array subscript
- ;           DGLINE   Line number
- ;           DGTEXT   Text
- ;           DGCOL    Column to start at              (optional)
- ;           DGON     Highlighting on                 (optional)
- ;           DGOFF    Highlighting off                (optional)
- ;           DGSUB    Secondary list subscript        (optional)
- ;           DGNUM    Selection number                (optional)
- ;           DGDATA   Data associated with selection  (optional)
- ; Output -- DGCNT    Number of lines in the list
- N X
- S:DGLINE>DGCNT DGCNT=DGLINE
- S X=$S($D(^TMP(DGARY,$J,DGLINE,0)):^(0),1:"")
- S ^TMP(DGARY,$J,DGLINE,0)=$$SETSTR^VALM1(DGTEXT,X,DGCOL,$L(DGTEXT))
- D:$G(DGON)]""!($G(DGOFF)]"") CNTRL^VALM10(DGLINE,DGCOL,$L(DGTEXT),$G(DGON),$G(DGOFF))
- ;Set-up special index for secondary selection list
- S:$G(DGSUB)]"" ^TMP(DGARY_"IDX",$J,DGSUB,DGNUM,DGLINE)=DGDATA,^TMP(DGARY_"IDX",$J,DGSUB,0)=DGNUM
+SET(DGARY,DGLINE,DGTEXT,DGCOL,DGON,DGOFF,DGSUB,DGNUM,DGDATA,DGCNT) ; moved to
+ ;DGENL2 as DGENL1 was getting too big
+ I $G(DGCOL)']"" S DGCOL=""
+ I $G(DGON)']"" S DGON=""
+ I $G(DGOFF)']"" S DGOFF=""
+ I $G(DGSUB)']"" S DGSUB=""
+ I $G(DGNUM)']"" S DGNUM=""
+ I $G(DGDATA)']"" S DGDATA=""
+ D SET^DGENL2(DGARY,DGLINE,DGTEXT,DGCOL,DGON,DGOFF,DGSUB,DGNUM,DGDATA,.DGCNT)
  Q
-PHEART(DFN,DGENRIEN,PHENRDT) ;find Purple Heart information based on enrollment date
- N NXTENR,NXTENDT,PRVENR,PRVENDT,PHARY,PHI,PHST,PHRR,PHDIERR
- N NXTDIF,NXTENTM,NXTPHDT,NXTPHTM,PHENTM,PHREC,PRVDIF,PRVPHDT
- S U="^",(PRVDIF,NXTDIF)=""
- Q:'(PHENRDT&DGENRIEN) ""
- S PRVENDT=0,NXTENDT=9999999
- S PRVENR=$O(^DGEN(27.11,"C",DFN,DGENRIEN),-1)
- S:PRVENR PRVENDT=$P($G(^DGEN(27.11,PRVENR,"U")),U)
- S PRVPHDT=$O(^DPT(DFN,"PH","B",PHENRDT),-1)
- S NXTENR=$O(^DGEN(27.11,"C",DFN,DGENRIEN))
- S:NXTENR NXTENDT=$P($G(^DGEN(27.11,NXTENR,"U")),U)
- S NXTPHDT=$O(^DPT(DFN,"PH","B",PHENRDT-.0000001))
- I NXTPHDT<NXTENDT,$P(PHENRDT,".")=$P(NXTPHDT,".")  D
- .I $P(NXTENDT,".")=$P(NXTPHDT,".")  D
- ..S NXTPHTM=$P(NXTPHDT,".",2),NXTENTM=$P(NXTENDT,".",2),PHENTM=$P(PHENRDT,".",2)
- ..S NXTDIF=NXTENTM-NXTPHTM,PRVDIF=NXTPHTM-PHENTM
- ..S:PRVDIF<NXTDIF PHREC=$O(^DPT(DFN,"PH","B",NXTPHDT,""))
- .E  S PHREC=$O(^DPT(DFN,"PH","B",NXTPHDT,""))
- Q:'$D(PHREC)&('PRVPHDT) ""
- S:'$D(PHREC) PHREC=$O(^DPT(DFN,"PH","B",PRVPHDT,""))
- Q:'$D(PHREC) ""
- S PHARY=$G(^DPT(DFN,"PH",PHREC,0))
- S PHI=$$EXTERNAL^DILFD(2,.531,,$P(PHARY,U,2),.PHDIERR)
- S PHST=$$EXTERNAL^DILFD(2,.532,,$P(PHARY,U,3),.PHDIERR)
- S PHRR=$$EXTERNAL^DILFD(2,.533,,$P(PHARY,U,4),.PHDIERR)
- Q PHI_"^"_PHST_"^"_PHRR
+PHEART(DFN,DGENRIEN,PHENRDT) ;move to DGENL2
+ N PHI,PHST,PHRR,PHDAT
+ S PHDAT=$$PHEART^DGENL2(DFN,$G(DGENRIEN),$G(DGENR("DATETIME")))
+ S PHI=$P(PHDAT,U),PHST=$P(PHDAT,U,2),PHRR=$P(PHDAT,U,3)
+ I ($G(PHI)]""!($G(PHST)]"")!($G(PHRR)]"")) Q $G(PHI)_"^"_$G(PHST)_"^"_$G(PHRR)
+ Q ""

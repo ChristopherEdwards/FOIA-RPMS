@@ -1,5 +1,5 @@
 SCRPW45 ;RENO/KEITH - Outpatient Diagnosis/Procedure Search ; 15 Jul 98  02:38PM
- ;;5.3;Scheduling;**144**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,351,409,1015**;AUG 13, 1993;Build 21
  N SD,SDDIV,SDPAR,SDCRI,DIR,%DT
  D TITL^SCRPW50("Outpatient Diagnosis/Procedure Search ")
  G:'$$DIVA^SCRPW17(.SDDIV) EXIT
@@ -33,15 +33,20 @@ PAR ;Select report search criteria
 LIST W ! F  D  Q:SDNUL!SDOUT
  .D ^DIC I $D(DUOUT)!$D(DTOUT) S SDOUT=1 Q
  .I X="" S SDNUL=1 Q
- .I Y>0 S SDPAR(SDVAR,$P(Y,U))=$P(Y(0),U)_" "_$P(Y(0),U,$S(SDSEL["D":3,1:2))
+ .I Y>0 D
+ ..S Y(0)=$S(SDSEL["D":$P($$ICDDX^ICDCODE(+Y),"^",2,99),1:$P($$CPT^ICPTCOD(+Y,,1),"^",2,99))
+ ..S SDPAR(SDVAR,$P(Y,U))=$P(Y(0),U)_" "_$P(Y(0),U,$S(SDSEL["D":3,1:2))
  Q
  ;
 RANGE W ! S DIC("A")="From "_$S(SDSEL["D":"ICD DIAGNOSIS: ",1:"CPT CODE: ")
  D ^DIC I $D(DUOUT)!$D(DTOUT) S SDOUT=1 Q
  I X="" S SDNUL=1 Q
- Q:Y<1  S S1=$P(Y(0),U)_" "_$P(Y(0),U,$S(SDSEL["D":3,1:2)),SDPAR(SDVAR,S1)=$P(Y,U),DIC("A")="To "_$P(DIC("A")," ",2,99)
+ Q:Y<1
+ S Y(0)=$S(SDSEL["D":$P($$ICDDX^ICDCODE(+Y),"^",2,99),1:$P($$CPT^ICPTCOD(+Y,,1),"^",2,99))
+ S S1=$P(Y(0),U)_" "_$P(Y(0),U,$S(SDSEL["D":3,1:2)),SDPAR(SDVAR,S1)=$P(Y,U),DIC("A")="To "_$P(DIC("A")," ",2,99)
 R2 W ! D ^DIC I $D(DUOUT)!$D(DTOUT) S SDOUT=1 Q
  I X=""!(Y<1) S SDNUL=1 K SDPAR(SDVAR) Q
+ S Y(0)=$S(SDSEL["D":$P($$ICDDX^ICDCODE(+Y),"^",2,99),1:$P($$CPT^ICPTCOD(+Y,,1),"^",2,99))
  S S2=$P(Y(0),U)_" "_$P(Y(0),U,$S(SDSEL["D":3,1:2))
  I S1]S2 W !!,$C(7),"Ending value must collate after beginning value!",! G R2
  S SDPAR(SDVAR,S2)=$P(Y,U) Q
@@ -58,11 +63,13 @@ CRI1 K DIR S DIR(0)="F"_$S(SDII=1:"",1:"O")_"^1:40",DIR("A")=$S(SDII=1:"IF",1:"O
  S DIR("?")="will return data where element 'A' is true and element 'B' is not true."
  W ! D ^DIR I $D(DTOUT)!$D(DUOUT) S SDOUT=1 Q
  I X="" S SDNUL=1 Q
+ I $E(X)="&" W $C(7),"  ?? Invalid!" G CRI1
  F  S SDC=$E(Y,$L(Y)) Q:SDC'="'"  S Y=$E(Y,1,($L(Y)-1))
  I '$L(Y)!$TR($TR(Y,"'",""),"&","")="" W $C(7),"No criteria selected!" G CRI1
  I Y["'&" W $C(7),"  ??  The value ""'&"" is incorrect syntax!" G CRI1
  I Y["''" W $C(7),"  ??  Character ""'"" appears redundantly!" G CRI1
  I Y["&&" W $C(7),"  ??  Character ""&"" appears redundantly!" G CRI1
+ I Y="" W $C(7),"No criteria selected!" G CRI1
  S SDBAD=0,SDSTR="",SDRESP=Y,SDR=$TR(Y,"&","") F SDIII=1:1:$L(SDR) S SDC=$E(SDR,SDIII) D  Q:SDBAD
  .I "&'"'[SDC,$L(SDR,SDC)>2 W $C(7),"  ??  Element '"_SDC_"' appears redundantly!" S SDBAD=1 Q
  .I SDC'="'",'$D(SDPAR(SDC)) W $C(7),"  ??  Character '"_SDC_"' is not recognized!" S SDBAD=1 Q

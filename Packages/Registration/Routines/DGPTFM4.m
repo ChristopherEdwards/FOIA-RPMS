@@ -1,5 +1,6 @@
-DGPTFM4 ;ALB/MTC - PTF ENTRY/EDIT-2 ; 9/13/01 3:00pm
- ;;5.3;Registration;**114,195,397**;Aug 13, 1993
+DGPTFM4 ;ALB/MTC/ADL - PTF ENTRY/EDIT-2 ; 12/18/07 11:37am
+ ;;5.3;PIMS;**114,195,397,510,565,775,664,1015,1016**;JUN 30, 2012;Build 20
+ ;;ADL;Update for CSV Project;;Mar 26, 2003
  ;
  S DGZM0=DGZM0+1
 EN N M3 D MOB:'$D(M) S M(DGZM0)=$S($D(M(DGZM0)):M(DGZM0),1:"") G NEXM:M(DGZM0)="" S (M3,M(DGZM0),M1)=$S($D(^DGPT(PTF,"M",+M(DGZM0),0)):^DGPT(PTF,"M",+M(DGZM0),0),1:"")
@@ -10,19 +11,25 @@ M S L=+$P(M1,U,10),Y=L D D^DGPTUTL W !! S Z=1 D Z W "Date of Move: " S Z=Y,Z1=20
  W !,"     Leave days: ",$P(M1,U,3),?44,"Pass days: ",$P(M1,U,4)
  W !,"Treated for SC Condition: ",$S($P(M3,U,18)=1:"Yes",1:"No")
  N NL S NL=0
- I $P(M3,U,26)'="" W ?37,"Treated for AO Condition: ",$S($P(M3,U,26)="Y":"Yes",1:"No") S NL=NL+1
+ I $P(M3,U,31)'="" W @($S(NL#2:"!",1:"?37")),"Potentially Related to Combat: ",$S($P(M3,U,31)="Y":"Yes",1:"No") S NL=NL+1
+ I $P(M3,U,26)'="" W @($S(NL#2:"!",1:"?37")),"Treated for AO Condition: ",$S($P(M3,U,26)="Y":"Yes",1:"No") S NL=NL+1
  I $P(M3,U,27)'="" W @($S(NL#2:"!",1:"?37")),"Treated for IR Condition: ",$S($P(M3,U,27)="Y":"Yes",1:"No") S NL=NL+1
- I $P(M3,U,28)'="" W @($S(NL#2:"!",1:"?37")),"Treated for EC Condition: ",$S($P(M3,U,28)="Y":"Yes",1:"No") S NL=NL+1
+ I $P(M3,U,28)'="" W @($S(NL#2:"!",1:"?37")),"Treated for service in SW Asia: ",$S($P(M3,U,28)="Y":"Yes",1:"No") S NL=NL+1
  ; added 6/17/98 for MST enhancement
  I $P(M3,U,29)'="" W @($S(NL#2:"!",1:"?37")),"Treated for MST Condition: ",$S($P(M3,U,29)="Y":"Yes",1:"No") S NL=NL+1
  K DGNTARR
  S DGNTARR=$$GETCUR^DGNTAPI(DFN,"DGNTARR")
  I $P(M3,U,30)="",(",3,4,5,"[(","_$P($G(DGNTARR("STAT")),U)_",")) S $P(M3,U,30)="N"
- I $P(M3,U,30)'="" W @($S(NL#2:"!",1:"?37")),"Treated for HEAD/NECK CA Condition: ",$S($P(M3,U,30)="Y":"Yes",1:"No")
+ I $P(M3,U,30)'="" W @($S(NL#2:"!",1:"?37")),"Treated for HEAD/NECK CA Condition: ",$S($P(M3,U,30)="Y":"Yes",1:"No") S NL=NL+1
+ I $P(M3,U,32)'="" W @($S(NL#2:"!",1:"?37")),"Treated for Project 112/SHAD: ",$S($P(M3,U,32)="Y":"Yes",1:"No")
  K NL
- W !! S Z=2 D Z W "          DX: " F I=1:1:11 S L=$P(M1,U,I+4) I L'=""&(I'=6) W $S($D(^ICD9(+L,0)):$P(^(0),U,3)_" ("_$P(^(0),U,1)_")",1:"**********-"_L),!?17
+ W !! S Z=2 D Z W "          DX: " F I=1:1:11 S L=$P(M1,U,I+4) I L'=""&(I'=6) S DGPTTMP=$$ICDDX^ICDCODE(+L,$$GETDATE^ICDGTDRG(PTF)) D
+ . W $S(+DGPTTMP>0:$P(DGPTTMP,U,4)_" ("_$P(DGPTTMP,U,2)_")",1:"**********-"_L),!?17
  D PRN2^DGPTFM8:DG300]""
- I $P(M1,U,20) S DRG=$P(M1,U,20) W:DRG=468!(DRG=469)!(DRG=470) *7 W !!?14,"TRANSFER DRG: ",DRG F DGDRGNM=0:0 S DGDRGNM=$O(^ICD(DRG,1,DGDRGNM)) Q:'DGDRGNM  W !,$P(^(DGDRGNM,0),U,1)
+ I $P(M1,U,20) S DRG=$P(M1,U,20) W:DRG=998!(DRG=999)!((DRG=468!(DRG=469)!(DRG=470))&(+$P($G(M1),U,10)<3071001)) *7 W !!?14,"TRANSFER DRG: ",DRG D
+ . N DXD,DGDX
+ . S DXD=$$DRGD^ICDGTDRG(DRG,"DGDX",,$P(M1,U,10)),DGDS=0
+ . F  S DGDS=$O(DGDX(DGDS)) Q:'+DGDS  Q:DGDX(DGDS)=" "  W !,DGDX(DGDS)
 JUMP K DG300 F I=$Y:1:21 W !
 X S DGNUM=$S($D(M(DGZM0+1)):501_"-"_(DGZM0+1),1:"MAS") G 501^DGPTFJC:DGST
  W "Enter <RET> to continue, 1-2 to edit,",!,"'M' ",$S(DGPTFE:" to add a patient movement",1:"to edit Treat. Specialty"),", '^N' for screen N, or '^' to abort:<",DGNUM,">// " R X:DTIME

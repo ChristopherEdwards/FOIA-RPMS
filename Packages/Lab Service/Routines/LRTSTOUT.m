@@ -1,12 +1,12 @@
-LRTSTOUT ;SLC/CJS-JAM TESTS OFF ACCESSIONS ;8/11/97 [ 04/29/2003  12:27 PM ]
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**100,121,153,202,221**;Sep 27, 1994
+LRTSTOUT ;VA/SLC/CJS - JAM TESTS OFF ACCESSIONS ;8/11/97
+ ;;5.2;LAB SERVICE;**1018,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 100,121,153,202,221,337
+ ;
  ;Cancel tests - Test are no longer deleted, instead the status is changed to Not Performed.
 EN ;
- ;S:$G(BLROPT)=""!($G(BLROPT(0))'=$P(XQY0,U)) BLROPT="DELACC",BLROPT(0)=$P(XQY0,U)  ;IHS/OIRM TUC/AAB  6/25/97
- ;-----BEGIN IHS MODIFICATIONS LR*5.2*1018 IHS TEST CHANGE 
- S BLROPT="DELACC"
- ;----- END IHS MODIFICATIONS
+ S BLROPT="DELACC"                     ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  D ^LRPARAM Q:$G(LREND)
  I '$D(LRLABKY) W !?5,"You are not authorized to change test status.",!,$C(7) S LREND=1 Q
  K LRXX,LRSCNXB W @IOF
@@ -22,10 +22,10 @@ FIX S (LREND,LRNOP)=0,LRNOW=$$NOW^XLFDT
  S LRX=^LRO(68,LRAA,1,LRAD,1,LRAN,0),LRACN=$P(^(.2),U),LRUID=$P(^(.3),U)
  S LRDFN=+LRX,LRSN=+$P(LRX,U,5),LRODT=+$P(LRX,U,4)
  S LRDPF=$P(^LR(LRDFN,0),U,2),DFN=$P(^(0),U,3)
- ;D PT^LRX W !,PNM,?30,SSN
- ;----- BEGIN IHS MODIFICATIONS LR*5.2*1018
- D PT^LRX W !,PNM,?30,HRCN
- ;----- END IHS MODIFICATIONS
+ ;
+ ; D PT^LRX W !,PNM,?30,SSN
+ D PT^LRX W !,PNM,?30,HRCN             ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  S LRIDT=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,3)),U,5) L +^LR(LRDFN,LRSS,LRIDT):1 I '$T W !,"Someone else is working on this data." L -^LRO(68,LRAA,1,LRAD,1,LRAN) S LRNOP=1 Q
  I '$G(^LR(LRDFN,LRSS,LRIDT,0)) W !?5," Can't find Lab Data for this accession",! D UNLOCK S LRNOP=1 Q
  I LRODT,LRSN,$D(^LRO(69,LRODT,1,LRSN,0))#2 D
@@ -36,6 +36,7 @@ FX1 ;
  D SHOWTST
  Q
 CHG K LRCTST,DIC W !
+ N LRIFN
  S:'$D(DIC("A")) DIC("A")="Change which LABORATORY TEST: "
  S DIC="^LRO(68,"_LRAA_",1,"_LRAD_",1,"_LRAN_",4,",DIC("S")="I '$L($P(^(0),U,5))",DIC(0)="AEMOQ"
  F  D ^DIC Q:Y<1  S LRCTST(+Y)=$P(^LAB(60,+Y,0),U),DIC("A")="Select another test: "
@@ -49,12 +50,16 @@ CHG K LRCTST,DIC W !
  D FX2 Q:$G(LREND)
  S LRTSTS=0 F  S LRTSTS=$O(LRCTST(LRTSTS)) Q:LRTSTS<1  D
  . Q:'$D(^LAB(60,LRTSTS,0))#2  S LRTNM=$P(^(0),U)
- . S LRORDTST=$P(^LRO(68,LRAA,1,LRAD,1,LRAN,4,LRTSTS,0),U,9) D SET
+ . S LRORDTST=$P(^LRO(68,LRAA,1,LRAD,1,LRAN,4,LRTSTS,0),U,9) D SET,CLNPENDG
  . W:'$G(LREND) !?5,"[ "_LRTNM_" ] ",$S('$D(LRLABKY):" Marked Canceled by Floor",1:" Marked Not Performed"),!
- .;The following lines added per appendix A of RPMS Lab E-Sig Enhancement chnical manual IHS/HQW/SCR - 8/23/01 
- .;S LRSS=$P($G(^LRO(68,LRAA,0)),U,2)
- .I $$ADDON^BLRUTIL("LR*5.2*1013","BLRALAF",DUZ(2)) D ^BLRALAF
- .D:BLRLOG ^BLREVTQ("M","D",$G(BLROPT),,LRAA_","_LRAD_","_LRAN)
+ . ;
+ . ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031 -- RPMS Code Added back in
+ . ; The following lines added per appendix A of RPMS Lab
+ . ; E-Sig Enhancement clinical manual IHS/HQW/SCR - 8/23/01 
+ . I $$ADDON^BLRUTIL("LR*5.2*1013","BLRALAF",DUZ(2)) D ^BLRALAF
+ . D:BLRLOG ^BLREVTQ("M","D",$G(BLROPT),,LRAA_","_LRAD_","_LRAN)
+ . ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
  S LREND=0 K LRCTST
  Q
 SHOWTST ;
@@ -67,10 +72,8 @@ SHOWTST ;
  . I LRN>18 D ^DIR S:$E(X)=U LRY=1 Q:$G(LRY)  D DEMO S LRN=0
  S X=^LRO(68,LRAA,1,LRAD,1,LRAN,0),LRODT=$P(X,U,4),LRSN=$P(X,U,5)
  Q
-DEMO ;W !,PNM,?50,SSN
- ;----- BEGIN IHS MODIFICATIONS LR*5.2*1018
- W !,PNM,?50,HRCN
- ;----- END IHS MODIFICATIONS
+DEMO ; W !,PNM,?50,SSN
+ W !,PNM,?50,HRCN                      ; IHS/MSC/MKK - LR*5.2*1031
  W !,"TESTS ON ACCESSION: ",LRACN,?40,"UID: ",LRUID
  Q
 SET ;
@@ -116,11 +119,13 @@ END ;
  K LRCCOM0,LRCCOM1,LRCCOMX,LREND,LRI,LRL,LRNATURE,LRNOP,LRSCN,LRMSTATI,LRORDTST,LROWDT,LRPRAC,LRTSTS,LRUID
  K Q9,LRXX,DIR,LRCOM,LRAGE,DI,LRCTST,LRACN,LRACN0,LRDOC,LRLL,LRNOW
  K LROD0,LROD1,LROD3,LROOS,LROS,LROSD,LROT,LRROD,LRTT,X4
- ;BEGIN IHS MODIFICATIONS LR*5.2*1018
- ;D KVA^VADPT,END^LRTSTJAM
- D KVA^BLRDPT,END^LRTSTJAM  ;IHS/ITSC/TPF 04/17/03
+ ; D KVA^VADPT,END^LRTSTJAM
+ ; 
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031 -- RPMS Code Added back in
+ D @$S($$ISPIMS^BLRUTIL:"KVAR^VADPT",1:"KVAR^BLRDPT")
+ D END^LRTSTJAM
  K HRCN
- ;END IHS MODIFICATIONS
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
  Q
 FX2 ;
  S LREND=0
@@ -140,7 +145,7 @@ FX2 ;
  S:'$D(LRSCN) LRSCN="AKL"
  D ^DIR I $E(X)=U S LREND=1 Q
  I $E(X)="@" S LRSCN="AKL",LRSCNXB="" G FX2
- I $L(X) S LRSCNXB=$G(Y(0)),LRSCN=LRSCN_Y
+ I $L(X) S LRSCNXB=Y(0),LRSCN=LRSCN_Y
 FX3 K DIR W !
  S DIR("A")=$S('$D(LRLABKY):"Reason for Cancel",1:"Not Perform Reason ") S:$L($G(LRXX)) DIR("B")=$G(LRXX)
  S DIR(0)="FU^1:"_LRL_"^"
@@ -155,7 +160,6 @@ FX3 K DIR W !
  D ^DIR W ! K DIR
  I Y'=1 G FX2
  S LRCCOM=$E($S('$D(LRLABKY):"*Floor Cancel Reason:",1:"*NP Reason:")_LRCCOM,1,68)
- ;
  Q
  ;
 63(LRDFN,LRSS,LRIDT,LRTNM,LRCCOM) ;
@@ -172,6 +176,13 @@ FX3 K DIR W !
  S DIC(0)="SL"
  S DA=LRIDT,DA(1)=LRDFN,DIE="^LR("_LRDFN_","""_LRSS_""",",DIC=DIE
  S LRCCOM=$TR(LRCCOM,";","-") ; Strip ";" - FileMan uses ";" to parse DR string.
+ S LRCCOM=$TR(LRCCOM,"""","'") ; Change " to ' -- " causes FileMan error.
  S DR=".99///^S X="_""""_LRCCOM_""""
  D ^DIE
+ Q
+CLNPENDG ;Remove pending from Lab test when set to not performed
+ N LRIFN
+ S LRIFN=$P($G(^LAB(60,LRTSTS,.2)),U)
+ Q:LRIFN=""
+ S:$P($G(^LR(LRDFN,LRSS,LRIDT,LRIFN)),U)="pending" $P(^LR(LRDFN,LRSS,LRIDT,LRIFN),U)=""
  Q

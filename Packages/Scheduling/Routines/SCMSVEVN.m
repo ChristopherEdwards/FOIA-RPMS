@@ -1,5 +1,5 @@
 SCMSVEVN ;ALB/ESD HL7 EVN Segment Validation ;05/08/95
- ;;5.3;Scheduling;**44,66**;Aug 13, 1993
+ ;;5.3;Scheduling;**44,66,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN(EVNSEG,HLQ,HLFS,VALERR) ;

@@ -1,5 +1,5 @@
 DG53292 ;ALB/RKS-DG*5.3*292 Post-Install to clean ANNUAL MEANS TEST ;05/22/00
- ;;5.3;Registration;**292**;Aug 13,  1993
+ ;;5.3;Registration;**292,1015**;Aug 13,  1993;Build 21
  ;
  ; This routine is the post installation for patch DG*5.3*292
  ;

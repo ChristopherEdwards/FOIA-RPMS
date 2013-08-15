@@ -1,5 +1,5 @@
 DGQEP0 ;ALB/JFP - VIC PRE INIT UTILITES; 09/01/96
- ;;V5.3;REGISTRATION;**73**;DEC 11,1996
+ ;;5.3;Registration;**73,1015**;DEC 11,1996;Build 21
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
  ;
 TYPE ;-- Create entry in TERMINAL TYPE file (#3.2)

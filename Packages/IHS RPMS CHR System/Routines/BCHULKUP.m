@@ -1,5 +1,5 @@
-BCHULKUP ; IHS/TUCSON/LAB - lookup up record ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHULKUP ; IHS/CMI/LAB - lookup up record ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
 EN ;
  ;

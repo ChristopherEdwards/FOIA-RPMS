@@ -1,5 +1,5 @@
 DGPMV300 ;ALB/MIR - EDITS FOR DATE/TIME ;12 NOV 89 @8
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 EDITS ;date/time edits needed for both new and existing entries
  S DGI=$O(^DGPM("APMV",DFN,DGPMCA,0)),DGJ=$S($D(^DGPM(+$O(^(DGI,0)),0)):^(0),1:""),DGI=$S($D(^DGPM(+DGJ,0)):^(0),1:""),DGK=$P(DGI,"^",18)
  I DGK=1 S X1=+DGI,X2=4 D C^%DTC I DGPMY>X S DGPME="Must be less than 96 hours" Q

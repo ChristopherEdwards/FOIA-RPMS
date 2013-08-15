@@ -1,5 +1,5 @@
 DGMTSCU2 ;ALB/RMO,CAW,LBD,CKN - Means Test Screen Variable Utilities ;6 FEB 1992 7:45 am
- ;;5.3;Registration;**45,130,433,460,456,490**;Aug 13, 1993
+ ;;5.3;Registration;**45,130,433,460,456,490,1015**;Aug 13, 1993;Build 21
  ;
 SET ;Set required means test variables
  ; Input  -- DFN      Patient file IEN

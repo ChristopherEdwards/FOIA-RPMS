@@ -1,6 +1,5 @@
-SDCO5 ;ALB/RMO - Make Clinic Appt - Check Out;08 DEC 1992 4:05 pm [ 08/20/2004  4:07 PM ]
- ;;5.3;Scheduling;**27,1001,1012**;08/13/93
- ;
+SDCO5 ;ALB/RMO - Make Clinic Appt - Check Out;08 DEC 1992 4:05 pm
+ ;;5.3;Scheduling;**27,1001,1012,1015**;08/13/93;Build 21
  ;cmi/flag/maw 06/08/2010 PATCH 1012 RQMT147 added follow up indicator
  ;
 MC(SDOE,SDASKF,SDCOMKF,SDCOQUIT) ;Entry point for SDCO CLINIC APPT protocol

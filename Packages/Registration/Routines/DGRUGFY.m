@@ -1,5 +1,5 @@
 DGRUGFY ;ALB/MLI - ENTER FISCAL YEAR RUG II WWU VALUES ; 20 JAN 88 @1000
- ;;5.3;Registration;**173**;Aug 13, 1993
+ ;;5.3;Registration;**173,1015**;Aug 13, 1993;Build 21
  W !,"You are about to enter national fiscal year RUG values.  All entries must be"
  W !,"completed, otherwise those that you have entered will be deleted."
 ASKFY W !,"Enter fiscal year (4 digits): " R X:DTIME G QUIT:X=""!(X="^")!('$T),FYH:'(X?4N) S %DT="E",%DT(0)=2870000 D ^%DT I Y'>0 G ASKFY

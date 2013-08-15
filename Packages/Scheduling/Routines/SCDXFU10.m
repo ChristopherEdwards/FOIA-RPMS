@@ -1,5 +1,5 @@
 SCDXFU10 ;ALB/JRP - ACRP TRANSMISSION MANAGEMENT FILE UTILS;03-JUL-97
- ;;5.3;Scheduling;**128**;AUG 13, 1993
+ ;;5.3;Scheduling;**128,1015**;AUG 13, 1993;Build 21
  ;
 CRTHIST(XMITPTR,XMITDATE,MID4XMIT,BID4XMIT) ;Create entry in ACRP
  ; Transmission History file (#409.77) for entry in Transmitted

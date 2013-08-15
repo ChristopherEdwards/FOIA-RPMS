@@ -1,11 +1,9 @@
 BLRPOC ;IHS/MSC/PLS - EHR POC Component support ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1025,1026,1027,1030**;NOV 01, 1997
+ ;;5.2;IHS LABORATORY;**1025,1026,1027,1030,1031**;NOV 01, 1997
  ;
- ; Patch 1026: IHS/OIT/MKK 
- ; Patch 1027: IHS/OIT/MKK 
- ; Patch 1030: IHS/OIT/MKK
  Q
-POCTSTS(DATA,DIV,LOC,USR,DFN) ;EP-
+ ;
+POCTSTS(DATA,DIV,LOC,USR,DFN) ; EP
  S DIV=$G(DIV,$G(DUZ(2)))  ; default to user's current division
  N LP,TST,CNT
  S (CNT,LP)=0 F  S LP=$O(^BLRPOC(90479,DIV,1,LP)) Q:'LP  D
@@ -15,7 +13,7 @@ POCTSTS(DATA,DIV,LOC,USR,DFN) ;EP-
  .I $$GET1^DIQ(90479,DIV,.03,"I"),'$$USRMATCH(LP,+$G(DIV),+$G(USR)) Q
  .S CNT=CNT+1
  .;S TST=+^BLRPOC(90479,DIV,1,LP,0)
- .S TST=+$G(^BLRPOC(90479,DIV,1,LP,0)) ; IHS Lab Patch 1026 - Naked Reference fix
+ .S TST=+$G(^BLRPOC(90479,DIV,1,LP,0)) ; IHS/OIT/MKK - LR*5.2*1026 - Naked Reference fix
  .I '$$CHKTST(TST) Q    ; Check test for any issues.
  .S DATA(CNT,"tst")=$$GETTST(TST,DFN)
  Q
@@ -27,6 +25,7 @@ GETTST(TST,DFN) ;EP-
  S COL=$$UNQCOL(TST)
  S COLNM=$$GET1^DIQ(62,COL,.01,"I")
  S SPEC=$$GET1^DIQ(62,COL,2,"I")
+ S LRSPEC=$$GET1^DIQ(62,COL,2,"I")               ; IHS/MSC/MKK - LR*5.2*1031
  S REFL=$$GET1^DIQ(60.01,SPEC_","_TST_",",1,"I")
  S REFL=$$REFRES(REFL)
  S REFH=$$GET1^DIQ(60.01,SPEC_","_TST_",",2,"I")
@@ -38,7 +37,7 @@ UNQCOL(IEN) ;EP - RETURN FIRST COLLECTION SAMPLE
  N SMP
  S SMP=+$O(^LAB(60,IEN,3,0))
  ; Q +^LAB(60,IEN,3,SMP,0)
- Q +$G(^LAB(60,IEN,3,SMP,0)) ; IHS Lab Patch 1026 - Naked Reference
+ Q +$G(^LAB(60,IEN,3,SMP,0)) ; IHS/OIT/MKK - LR*5.2*1026 - Naked Reference fix
  ;
 ISPANEL(IEN) ;EP- Returns boolean flag indicating if test is a panel test
  Q ('+$G(^LAB(60,IEN,.2))&+$O(^LAB(60,IEN,2,0)))
@@ -54,7 +53,7 @@ PNLTSTS(DATA,TST,DFN) ;EP - Return "tst" list of tests within a panel. If anothe
  S (CNT,LP)=0 F  S LP=$O(^LAB(60,TST,2,LP)) Q:'LP  D
  .S CNT=CNT+1
  .;S PTST=+^LAB(60,TST,2,LP,0)
- .S PTST=+$G(^LAB(60,TST,2,LP,0)) ; IHS Lab Patch 1026 - Naked Reference
+ .S PTST=+$G(^LAB(60,TST,2,LP,0)) ; IHS/OIT/MKK - LR*5.2*1026 - Naked Reference fix
  .S DATA(CNT,"tst")=$$GETTST(PTST,DFN)
  Q
  ; Returns validated status
@@ -63,7 +62,10 @@ PNLTSTS(DATA,TST,DFN) ;EP - Return "tst" list of tests within a panel. If anothe
  ;        RESULT - Result value to be validated
  ; Output: DATA - 0=not valid; 1=valid
 VALIDATE(DATA,TSTIEN,COLIEN,RES,DFN) ; EP
- N LRFLOC,LRFIEN,LRDAT,LRNG2,LRNG3,LRNG4,LRNG5,LRFLG,LRERR,LRVER,AGE,SSN,AUPNDAYS,AUPNDOB,AUPNDOD,AUPNPAT,AUPNSEX,SEX,DEFSPEC
+ NEW LRFLOC,LRFIEN,LRDAT,LRNG2,LRNG3,LRNG4,LRNG5,LRFLG,LRERR,LRVER
+ NEW AGE,SSN,AUPNDAYS,AUPNDOB,AUPNDOD,AUPNPAT,AUPNSEX,SEX,DEFSPEC
+ NEW DUPPER
+ M DUPPER=DATA
  S Y=DFN D ^AUPNPAT
  S LRFLG=""
  S LRFLOC=$$GET1^DIQ(60,TSTIEN,5,"E")
@@ -78,17 +80,30 @@ VALIDATE(DATA,TSTIEN,COLIEN,RES,DFN) ; EP
  S DEFSPEC=$$GET1^DIQ(62,COLIEN,2,"I")
  I '$G(DEFSPEC) S DATA(0)=0,DATA(1)="No default specimen for IEN number "_COLIEN_" in the Collection Sample file. A default specimen must be defined for this entry to use Point of Care lab entry." Q
  S LRSPEC0=$G(^LAB(60,TSTIEN,1,$$GET1^DIQ(62,COLIEN,2,"I"),0))
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031 -- Take into account RESULT might not be numeric
+ NEW OLDRES
+ S OLDRES=RES
+ S:$E(RES)=">" RES=$P(RES,">",2)+1
+ S:$E(RES)="<" RES=$P(RES,"<",2)-1
+ ;
+ S LRFLG=""                       ; Initialize flag every time
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
  S LRNG4=$P(LRSPEC0,U,4),LRNG4=$$REFRES(LRNG4)
  S LRNG5=$P(LRSPEC0,U,5),LRNG5=$$REFRES(LRNG5)
  S LRNG2=$P(LRSPEC0,U,2),LRNG2=$$REFRES(LRNG2)
  S LRNG3=$P(LRSPEC0,U,3),LRNG3=$$REFRES(LRNG3)
+ ;
  I $L(LRNG4)&(RES<LRNG4) S LRFLG="L*" G VRET Q
  I $L(LRNG5)&(RES>LRNG5) S LRFLG="H*" G VRET Q
  I $L(LRNG2)&(RES<LRNG2) S LRFLG="L" G VRET Q
  I $L(LRNG3)&(RES>LRNG3) S LRFLG="H"
+ ;
 VRET ; S DATA(0)=1_U_$S(LRFLG="H":"1:H",LRFLG="H*":"2:H",LRFLG="L":"1:L",LRFLG="L*":"2:L",1:0)_U_$G(LRDAT(0))_U_$G(LRDAT) Q
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- S DATA=1,DATA(0)=1_U_$S(LRFLG="H":"1:H",LRFLG="H*":"2:H",LRFLG="L":"1:L",LRFLG="L*":"2:L",1:0)_U_$G(LRDAT(0))_U_$G(LRDAT) Q
+ S RES=OLDRES                ; IHS/MSC/MKK - LR*5.2*1031 - Reset RESULT to original value
+ S DATA=1,DATA(0)=1_U_$S(LRFLG="H":"1:H",LRFLG="H*":"2:H",LRFLG="L":"1:L",LRFLG="L*":"2:L",1:0)_U_$G(LRDAT(0))_U_$G(LRDAT)
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
  Q
 VALERR(DATA,ERRARY) ; EP
@@ -136,6 +151,7 @@ REFRES(VAL) ; EP
  .X X S REFVAL=CHKVAL
  K X
  Q REFVAL
+ ;
 URGLST(DATA) ; EP
  N IEN,TST,CNT
  S (TST,CNT)=0 F  S TST=$O(^LAB(62.05,"B",TST)) Q:TST=""  D
@@ -143,6 +159,7 @@ URGLST(DATA) ; EP
  ..S CNT=CNT+1
  ..S DATA(CNT)=IEN_U_TST
  Q
+ ;
 NOOLST(DATA) ; EP
  N IEN,ORD,CNT,DEF
  ; Get the default nature of order from file 69.9 (field 150.1)
@@ -163,7 +180,7 @@ LABDESC(DATA,DIV) ; EP
  S (CC,CNT)=0 F  S CC=$O(^BLRPOC(90479,DIV,4,CC)) Q:'CC  D
  .S CNT=CNT+1
  .;S COMIEN=+^BLRPOC(90479,DIV,4,CC,0)
- .S COMIEN=+$G(^BLRPOC(90479,DIV,4,CC,0))   ; IHS Lab Patch 1026 - Naked Reference
+ .S COMIEN=+$G(^BLRPOC(90479,DIV,4,CC,0))   ; IHS/OIT/MKK - LR*5.2*1026 - Naked Reference fix
  .S DATA(CNT)=$$GETCOM(COMIEN)
  Q
 GETCOM(COMIEN) ; EP
@@ -184,7 +201,7 @@ BLDARY(LOC,SPEC0,RES,FLG) ; EP
  ;
 CHKTST(TEST) ; EP
  N LRLOOP,LRITMIEN,PNLINPNL,SAMP,COLNM,SPEC,BADPTR
- NEW SUBNOACC,SUBNOCOL  ; IHS Lab Patch 1026
+ NEW SUBNOACC,SUBNOCOL  ; IHS/OIT/MKK - LR*5.2*1026
  ;
  I $P(^LAB(60,TEST,0),U,3)'="B" Q 0         ; If type is not set to "Both", do not allow entry
  I $P(^LAB(60,TEST,0),U,4)'="CH" Q 0        ; If the subscript is not "CH" do not allow entry
@@ -200,21 +217,21 @@ CHKTST(TEST) ; EP
  ..S LRITMIEN=$$GET1^DIQ(60.02,LRLOOP_","_TEST,.01,"I")
  ..I $$ISPANEL(LRITMIEN) S PNLINPNL=1 Q
  ..I $$BADPTR(LRITMIEN) S BADPTR=1 Q
- .. I '$D(^LAB(60,LRITMIEN,8,$G(DUZ(2)))) S SUBNOACC=1  Q  ; IHS Lab Patch 1026 -- Check the subtests as well
+ .. I '$D(^LAB(60,LRITMIEN,8,$G(DUZ(2)))) S SUBNOACC=1  Q  ; IHS/OIT/MKK - LR*5.2*1026 -- Check the subtests as well
  .. I '+$O(^LAB(60,LRITMIEN,3,0)) S SUBNOCOL=1  Q
  ; I PNLINPNL!(BADPTR) Q 0
- I PNLINPNL!(BADPTR)!(SUBNOACC)!(SUBNOCOL) Q 0   ; IHS Lab Patch 1026
+ I PNLINPNL!(BADPTR)!(SUBNOACC)!(SUBNOCOL) Q 0   ; IHS/OIT/MKK - LR*5.2*1026
  ;
  Q 1
  ;
  ;Check to see if this test has a bad pointer to the ^DD executable logic.
 BADPTR(IEN) ; EP
  ; I '$D(^DD(63.04,$P($$GET1^DIQ(60,IEN,5,"E"),";",2))) Q 1  ; IHS/MSC/BF - IHS Lab Patch 1026 -- Make sure $P returns numeric
- ; BEGIN - LR*5.2*1027 - Valid check for existance of invalid IEN
+ ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1027 - Valid check for existance of invalid IEN
  NEW WOT
  S WOT=+$P($$GET1^DIQ(60,IEN,5,"E"),";",2)
  Q:WOT<1 1
- ; END - LR*5.2*1027
+ ; ----- END IHS/OIT/MKK - LR*5.2*1027
  I '$D(^DD(63.04,$P($$GET1^DIQ(60,IEN,5,"E"),";",2))) Q 1  ; IHS/MSC/BF - IHS Lab Patch 1026 -- Make sure $P returns numeric
  ; 
  Q 0     ; IHS/MSC/BF - IHS Lab Patch 1026

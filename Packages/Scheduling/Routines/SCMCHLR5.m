@@ -1,5 +1,5 @@
 SCMCHLR5 ;ALB/KCL - PCMM HL7 Reject Processing - Protocols con't ; 10-JAN-2000
- ;;5.3;Scheduling;**210,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,272,1015**;AUG 13, 1993;Build 21
  ;
  ;This routine contains the PCMM Transmission Error processing protocols.
  ;See EN^SCMCHLR2 for additional documentation on 'system wide' variables

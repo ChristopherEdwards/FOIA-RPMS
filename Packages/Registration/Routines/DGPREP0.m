@@ -1,12 +1,12 @@
-DGPREP0 ;Boise/WRL/ALB/SCK-Program to Display Pre-Registration List ; 27-FEB-1995 [ 12/18/96 ]
- ;;5.3;Registration;**109**;Aug 13, 1993
+DGPREP0 ;Boise/WRL/ALB/SCK-Program to Display Pre-Registration List ; 2/24/04 2:11pm
+ ;;5.3;Registration;**109,546,586,581,1015**;Aug 13, 1993;Build 21
  Q
  ;
 EN ; -- main entry point
  N VAUTD,X1
  ;
  I '$D(^XUSEC("DGPRE EDIT",DUZ))&('$D(^XUSEC("DGPRE SUPV",DUZ))) D  G ENQ
- . W !!,"You do not have the DG PREREGISTRATION EDIT Key allocated, contact your Supervisor."
+ . W !!,"You do not have the requisite key allocated, contact your Supervisor."
  ;  *** Select Divisions
  I $P($G(^DG(43,1,"GL")),U,2) D
  . D DIVISION^VAUTOMA

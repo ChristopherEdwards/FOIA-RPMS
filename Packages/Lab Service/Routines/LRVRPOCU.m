@@ -1,6 +1,7 @@
-LRVRPOCU ;DALOI/JMC - POINT OF CARE UTILITY PROGRAM ;DEC 09, 2008 8:30 AM
- ;;5.2;LAB SERVICE;**1025**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**290**;Sep 27, 1994
+LRVRPOCU ;VA/DALOI/JMC - POINT OF CARE UTILITY PROGRAM ; May 10, 2004 12:06
+ ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 290
  ;
  ; Reference to DUZ^XUP supported by DBIA #4129
  ; Reference to DIVSET^XUSRB2 supported by DBIA #4055
@@ -8,7 +9,7 @@ LRVRPOCU ;DALOI/JMC - POINT OF CARE UTILITY PROGRAM ;DEC 09, 2008 8:30 AM
  Q
  ;
  ;
-INIT ; EP - Initialize user
+INIT ; Initialize user
  ;
  N I,LR60,LR61,LR62,LR64,LR0070,LRNLT,LRX,LRY
  S (LRCNT,LREND,LRSTORE)=0,(DIQUIET,LRNOECHO,LRQUIET)=1,LAMSG=""
@@ -102,7 +103,7 @@ INIT ; EP - Initialize user
  Q
  ;
  ;
-WKLD(LRP) ; EP - Setup LRCDEF* variables for workload
+WKLD(LRP) ; Setup LRCDEF* variables for workload
  ; Call with LRP = ien of WKLD suffix in file #64.2
  S LRCDEF0=$G(^LAB(64.2,LRP,0)),LRCDEF0(1)=$P(LRCDEF0,"^",19)
  S LRCDEF=$P($P(LRCDEF0,"^",2),".",2)
@@ -110,7 +111,7 @@ WKLD(LRP) ; EP - Setup LRCDEF* variables for workload
  Q
  ;
  ;
-SPALERT ; EP - Send Processing Alert Message
+SPALERT ; Send Processing Alert Message
  ;
  N LAMSG,LRTIME,LRX
  S LRX=0,LRTIME=$$HTE^XLFDT($H,"1M")
@@ -121,7 +122,7 @@ SPALERT ; EP - Send Processing Alert Message
  Q
  ;
  ;
-CLEAN ; EP - Clean-up point
+CLEAN ;Clean-up point
  D KVAR^VADPT
  K AGE,COMB,CONTROL,DFN,DOB,DTS,H8,I5
  K LRACC,LRACD,LRAD,LRAN,LRAOD
@@ -137,7 +138,7 @@ CLEAN ; EP - Clean-up point
  Q
  ;
  ;
-VASD ; EP - Check for clinic appointment at same time as specimen
+VASD ; Check for clinic appointment at same time as specimen
  ; else for clinic appointment before specimen date/time on same date.
  ;
  ; If unable to find an appointment before the specimen date/time then
@@ -165,7 +166,7 @@ VASD ; EP - Check for clinic appointment at same time as specimen
  Q
  ;
  ;
-FINDAPPT ; EP - Find an appointment for the collection date/time
+FINDAPPT ; Find an appointment for the collection date/time
  F  S LRDATE=$O(^TMP($J,"SDAMA301",DFN,LRDATE)) Q:LRDATE=""  D  Q:LREXACT
  . S LRX=$G(^TMP($J,"SDAMA301",DFN,LRDATE))
  . S LRCLIEN=$P($P(LRX,"^",2),";")
@@ -177,7 +178,7 @@ FINDAPPT ; EP - Find an appointment for the collection date/time
  Q
  ;
  ;
-CHKAPPT ; EP - Check for an appointment that matches the ordering location
+CHKAPPT ; Check for an appointment that matches the ordering location
  ; to find the provider on the encounter when no provider sent.
  F  S LRDATE=$O(^TMP($J,"SDAMA301",DFN,LRDATE)) Q:LRDATE=""  D  Q:LRENC
  . S LRX=$G(^TMP($J,"SDAMA301",DFN,LRDATE))
@@ -186,7 +187,7 @@ CHKAPPT ; EP - Check for an appointment that matches the ordering location
  Q
  ;
  ;
-OENC(LRENC) ; EP - Lookup provider on encounter
+OENC(LRENC) ; Lookup provider on encounter
  ; Use primary provider if possbile otherwise use first provider listed.
  ;
  N LRI,LRPRVLST,LRERR
@@ -199,7 +200,7 @@ OENC(LRENC) ; EP - Lookup provider on encounter
  Q
  ;
  ;
-SENDACK ; EP - Send HL7 ACKnowledgment message
+SENDACK ; Send HL7 ACKnowledgment message
  ;
  N LA
  S LA(62.48)=LA76248,LA(62.49)=LA76249

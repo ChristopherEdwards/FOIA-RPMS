@@ -1,5 +1,5 @@
 DG53P273 ;BP-CIOFO/KEITH - Pre/post inits ; 21 May 2001  7:11 PM
- ;;5.3;Registration;**273**;AUG 13, 1993
+ ;;5.3;Registration;**273,1015**;AUG 13, 1993;Build 21
  ;
 POST ;Post init
  N DGFLD,DGOUT,DGFILE

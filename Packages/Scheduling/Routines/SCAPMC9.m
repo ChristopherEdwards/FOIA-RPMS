@@ -1,5 +1,5 @@
 SCAPMC9 ;ALB/REW - Team API's:PRCL ; JUN 26, 1995
- ;;5.3;Scheduling;**41,112**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,112,520,1015**;AUG 13, 1993;Build 21
  ;;1.0
 PRCL(SC44,SCDATES,SCPOSA,SCUSRA,SCROLEA,SCLIST,SCERR) ;-- list of practitioners for clinic
  ; input:
@@ -53,7 +53,7 @@ ST N SCPOSNM,SCTP,SCPOS0,SCOK,SCND,SCU,SCR,SCPRCL
  G:'$$OKDATA PRACQ ; check/setup variables
  ; -- loop through team positions
  S SCTP=0
- F  S SCTP=$O(^SCTM(404.57,"D",SC44,SCTP)) Q:SCTP=""  D
+ F  S SCTP=$O(^SCTM(404.57,"E",SC44,SCTP)) Q:SCTP=""  D
  .Q:'$$OKARRAY^SCAPU1(.SCPOSA,SCTP)
  .S SCND=$G(^SCTM(404.57,SCTP,0))
  .S SCU=$P(SCND,U,13)

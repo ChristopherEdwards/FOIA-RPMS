@@ -1,5 +1,5 @@
-SCDXUTL0 ;ALB/ESD - Generic functions for Amb Care HL7 Interface ; 10/5/99 11:23am
- ;;5.3;Scheduling;**44,55,69,77,85,110,122,94,66,132,180,235,256,258**;Aug 13, 1993
+SCDXUTL0 ;ALB/ESD - Generic functions for Amb Care HL7 Interface ; 5/31/05 11:23am
+ ;;5.3;PIMS;**44,55,69,77,85,110,122,94,66,132,180,235,256,258,325,451,441,1015,1016**;JUN 30, 2012;Build 20
  ;
  ; This routine contains functions used with the Ambulatory Care
  ; Reporting Project (ACRP).
@@ -19,6 +19,9 @@ MTI(DFN,DATE,EC,AT,SDOE) ;Calculate Means Test Indicator
  S DFN=$G(DFN),DATE=$G(DATE),EC=$G(EC),AT=$G(AT),SDOE=$G(SDOE)
  I (DFN="")!(DATE="")!(EC="")!(EC=0)!(AT="")!(SDOE="") G MTQ
  ;
+ ;SD*562 check for other possible invalid Eligibility codes
+ I $L(EC)>2!(EC="-1") G MTQ
+ ;
  ;- VA Code (get from MAS Eligibility Code IEN)
  S X=$G(^DIC(8.1,$P($G(^DIC(8,+EC,0)),"^",9),0))
  S EC=$P(X,"^",4),VET=$P(X,"^",5)
@@ -35,7 +38,9 @@ MTI(DFN,DATE,EC,AT,SDOE) ;Calculate Means Test Indicator
  .; 'AS' if seen for SC condition
  .I $P($G(^SDD(409.42,+$O(^SDD(409.42,"AO",+SDOE,3,0)),0)),U,3) S MTI="AS"
  ;-Military Disability Retiree
- S X=$P($G(^DPT(DFN,.36)),"^",2) I X,(X<3) S MTI="AS" G MTQ
+ ;S X=$P($G(^DPT(DFN,.36)),"^",2) I X,(X<3) S MTI="AS" G MTQ
+ ;-Military Disability Retirement OR Discharge Due To Disability
+ I $P($G(^DPT(DFN,.36)),"^",12)!($P($G(^DPT(DFN,.36)),"^",13)) S MTI="AS" G MTQ
  ;
  I EC=2 D  I MTI'="" G MTQ
  .;- Mexican Border Period or World War I
@@ -92,16 +97,16 @@ PATCLASS(DFN,SDOE) ; - Return classification questions from PATIENT (#2) file
  ;  Output:  String containing Y if classification question = YES, N if 
  ;           = NO, null otherwise (classifications separated by "^")
  ;
- N NODE,PATCLASS,SDTEMP
- S $P(PATCLASS,"^",6)="" ;changed 5 to 6 to accommodate HNC
- ;
+ N NODE,PATCLASS,SDTEMP,X
  S SDTEMP(1)=$$AO^SDCO22(DFN,$G(SDOE))
  S SDTEMP(2)=$$IR^SDCO22(DFN,$G(SDOE))
  S SDTEMP(3)=$$SC^SDCO22(DFN,$G(SDOE))
  S SDTEMP(4)=$$EC^SDCO22(DFN,$G(SDOE))
- S SDTEMP(5)=$$MST^SDCO22(DFN,$G(SDOE)) ;added call to MST
- S SDTEMP(6)=$$HNC^SDCO22(DFN,$G(SDOE)) ;added call to HNC
- F X=1:1:6 S $P(PATCLASS,U,X)=$S(SDTEMP(X)=1:"Y",1:"N") ;changed 5 to 6 to accommodate HNC
+ S SDTEMP(5)=$$MST^SDCO22(DFN,$G(SDOE))
+ S SDTEMP(6)=$$HNC^SDCO22(DFN,$G(SDOE))
+ S SDTEMP(7)=$$CV^SDCO22(DFN,$G(SDOE))
+ S SDTEMP(8)=$$SHAD^SDCO22(DFN)
+ F X=1:1:8 S $P(PATCLASS,U,X)=$S(SDTEMP(X)=1:"Y",1:"N")
  Q PATCLASS
  ;
  ;
@@ -132,18 +137,15 @@ CHKCLASS(DFN,SDOE) ; - Get classification data for HL7 VAFHLZCL segment
  ;           0 (patient class = YES and encounter class = NO)
  ;           HLQ ("""""") otherwise
  ;
-EN N I,OECLASS,OUT,PATCLASS,SUB,TYPE,X
+EN N OECLASS,OUT,PATCLASS,TYPE,ENCVAL,CLCNT,PATVAL
  S PATCLASS=$$PATCLASS(DFN,SDOE)
  D CLASS(SDOE,"OECLASS")
- S SUB=0,X=$L(PATCLASS,"^")
- F I=1:1:X S $P(OUT,"^",I)=""""""
- ;
- I '+$G(OECLASS(SUB)) F I=1:1:X I $P(PATCLASS,"^",I)="Y" S $P(OUT,"^",I)=0  G ENQ
- ;
- F  S SUB=$O(OECLASS(SUB)) Q:SUB=""  D
- . S TYPE=$G(OECLASS(SUB))
- . S $P(OUT,"^",+TYPE)=$S($P(PATCLASS,"^",+TYPE)="Y"&(+$P(TYPE,"^",2)=1):1,($P(PATCLASS,"^",+TYPE)="Y")&(+$P(TYPE,"^",2)=0):0,1:"""""")
- ;
+ S CLCNT=$L(PATCLASS,"^")
+ F TYPE=1:1:CLCNT D
+ .S ENCVAL=$P($G(OECLASS(TYPE)),"^",2)
+ .S PATVAL=$P(PATCLASS,"^",TYPE)
+ .S $P(OUT,"^",TYPE)=""""""
+ .I PATVAL="Y" S $P(OUT,"^",TYPE)=ENCVAL
 ENQ Q OUT
  ;
  ;

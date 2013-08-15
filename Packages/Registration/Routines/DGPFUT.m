@@ -1,15 +1,17 @@
-DGPFUT ;ALB/RPM - PRF UTILITIES ; 4/24/03 3:34pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFUT ;ALB/RPM - PRF UTILITIES ; 6/7/05 3:13pm
+ ;;5.3;Registration;**425,554,650,1015**;Aug 13, 1993;Build 21
  ;
+ ;ihs/cmi/maw 08/02/2012 PATCH 1015 check in MPIOK for MPI routines
  Q   ;no direct entry
  ;
-ANSWER(DGDIRA,DGDIRB,DGDIR0,DGDIRH)   ;wrap FileMan Classic Reader call
+ANSWER(DGDIRA,DGDIRB,DGDIR0,DGDIRH,DGDIRS)   ;wrap FileMan Classic Reader call
  ;
  ;  Input
  ;    DGDIR0 - DIR(0) string
  ;    DGDIRA - DIR("A") string
  ;    DGDIRB - DIR("B") string
  ;    DGDIRH - DIR("?") string
+ ;    DGDIRS - DIR("S") string
  ;
  ;  Output
  ;   Function Value - Internal value returned from ^DIR or -1 if user
@@ -28,6 +30,7 @@ ANSWER(DGDIRA,DGDIRB,DGDIR0,DGDIRH)   ;wrap FileMan Classic Reader call
  S DIR("A")=$G(DGDIRA)
  I $G(DGDIRB)]"" S DIR("B")=DGDIRB
  I $D(DGDIRH) S DIR("?")=DGDIRH
+ I $G(DGDIRS)]"" S DIR("S")=DGDIRS
  D ^DIR
  Q $S($D(DUOUT):-1,$D(DTOUT):-1,$D(DIROUT):-1,X="@":"@",1:$P(Y,U))
  ;
@@ -146,7 +149,7 @@ TESTVAL(DGFIL,DGFLD,DGVAL) ;validate individual value against field def
  . . D CHK^DIE(DGFIL,DGFLD,,DGVALEX,.DGRSLT) I DGRSLT="^" S VALID=0 Q
  Q VALID
  ;
-STATUS(DGACT) ;calculate the an assignment STATUS given an ACTION code
+STATUS(DGACT) ;calculate the assignment STATUS given an ACTION code
  ;
  ;  Input:
  ;    DGACT - (required) Action (.03) field value for PRF ASSIGNMENT
@@ -165,36 +168,31 @@ STATUS(DGACT) ;calculate the an assignment STATUS given an ACTION code
  . Q:$D(DGERR)
  . D CHK^DIE(26.14,.03,"E",DGACT,.DGRSLT,"DGERR")
  . Q:$D(DGERR)
- . I DGRSLT(0)="INACTIVATE" S DGSTAT=0
+ . I DGRSLT(0)="INACTIVATE"!(DGRSLT(0)="ENTERED IN ERROR") S DGSTAT=0
  . E  S DGSTAT=1
  Q DGSTAT
  ;
-MPIOK(DGDFN,DGICN,DGCMOR) ;return non-local CMOR and ICN
- ;This function retrieves an ICN given a pointer to the PATIENT (#2) file
- ;for a patient.  When the ICN is not local and the local site is not the
- ;Coordinating Master of Record (CMOR), the CMOR is retrieved as a
- ;pointer to the INSTITUTION (#4) file.
+MPIOK(DGDFN,DGICN) ;return national ICN
+ ;This function verifies that a given patient has a valid national
+ ;Integration Control Number.
  ; 
  ;  Supported DBIA #2701:  The supported DBIA is used to access MPI
- ;                         APIs to retrieve ICN, determine if ICN
- ;                         is local and if site is CMOR.
- ;  Supported DBIA #2702:  The supported DBIA is used to retrieve the
- ;                         MPI node from the PATIENT (#2) file.
+ ;                         APIs to retrieve ICN and determine if ICN
+ ;                         is local.
  ;
  ;  Input:
- ;    DGDFN - IEN of patient in PATIENT (#2) file
- ;    DGICN - passed by reference to contain national ICN
- ;   DGCMOR - passed by reference to contain CMOR
+ ;    DGDFN - (required) IEN of patient in PATIENT (#2) file
+ ;    DGICN - (optional) passed by reference to contain national ICN
  ;
  ;  Output:
- ;   Function Value - 1 on national ICN and non-local CMOR, 0 on failure
+ ;   Function Value - 1 on valid national ICN;
+ ;                    0 on failure
  ;            DGICN - Patient's Integrated Control Number
- ;           DGCMOR - Pointer to INSTITUTION (#4) file for CMOR if CMOR
- ;                    is not local, undefined otherwise.
  ;
+ I '$T(GETICN^MPIF001) Q 1  ;ihs/cmi/maw 08/02/2012 PATCH 1015 not using ICN at all sites yet
  N DGRSLT
  S DGRSLT=0
- I $G(DGDFN)>0,$D(^DPT(DGDFN,"MPI")) D
+ I $G(DGDFN)>0 D
  . S DGICN=$$GETICN^MPIF001(DGDFN)
  . ;
  . ;ICN must be valid
@@ -203,12 +201,58 @@ MPIOK(DGDFN,DGICN,DGCMOR) ;return non-local CMOR and ICN
  . ;ICN must not be local
  . Q:$$IFLOCAL^MPIF001(DGDFN)
  . ;
- . ;local site must not be CMOR site
- . Q:($$IFVCCI^MPIF001(DGDFN)=1)
- . ;
- . ;get CMOR institution number
- . S DGCMOR=$P($$MPINODE^MPIFAPI(DGDFN),U,3)
- . Q:(DGCMOR'>0)
- . ;
  . S DGRSLT=1
  Q DGRSLT
+ ;
+GETNXTF(DGDFN,DGLTF) ;get previous treating facility
+ ;This function will return the treating facility with a DATE LAST
+ ;TREATED value immediately prior to the date for the treating facility
+ ;passed as the second parameter.  The most recent treating facility
+ ;will be returned when the second parameter is missing, null, or zero. 
+ ;
+ ;  Input:
+ ;    DGDFN - pointer to patient in PATIENT (#2) file
+ ;    DGLTF - (optional) last treating facility [default=0]
+ ;
+ ;  Output:
+ ;    Function value - previous facility as a pointer to INSTITUTION (#4)
+ ;                     file on success; 0 on failure
+ ;
+ N DGARR   ;fully subscripted array node
+ N DGDARR  ;date sorted treating facilities
+ N DGINST  ;institution pointer
+ N DGNAM   ;name of sorted treating facilities array
+ N DGTFARR  ;array of non-local treating facilities
+ ;
+ ;
+ I $G(DGDFN)>0,$$BLDTFL^DGPFUT2(DGDFN,.DGTFARR) D
+ . ;
+ . ;validate last treating facility input parameter
+ . S DGLTF=+$G(DGLTF)
+ . S DGLTF=$S(DGLTF&($D(DGTFARR(DGLTF))):DGLTF,1:0)
+ . ;
+ . ;build date sorted list
+ . S DGINST=0
+ . F  S DGINST=$O(DGTFARR(DGINST)) Q:'DGINST  D
+ . . S DGDARR(DGTFARR(DGINST),DGINST)=""
+ . ;
+ . ;find entry for previous treating facility
+ . S DGNAM="DGDARR"
+ . S DGARR=$QUERY(@DGNAM@(""),-1)
+ . I DGLTF,DGARR]"" D
+ . . I $QS(DGARR,2)'=DGLTF D
+ . . . F  S DGARR=$QUERY(@DGARR,-1) Q:+$QS(DGARR,2)=DGLTF
+ . . S DGARR=$QUERY(@DGARR,-1)
+ ;
+ Q $S($G(DGARR)]"":+$QS(DGARR,2),1:0)
+ ;
+ISDIV(DGSITE) ;is site local division
+ ;
+ ;  Input:
+ ;    DGSITE - pointer to INSTITUTION (#4) file
+ ;
+ ;  Output:
+ ;    Function value - 1 on success; 0 on failure
+ ;
+ S DGSITE=+$G(DGSITE)
+ Q $S($D(^DG(40.8,"AD",DGSITE)):1,1:0)

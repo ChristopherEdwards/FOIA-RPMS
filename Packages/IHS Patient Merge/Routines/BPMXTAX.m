@@ -1,5 +1,5 @@
-BPMXTAX ;IHS/PHXAO/AEF - REPOINT PT TAXONOMY FILE POINTERS
- ;;1.0;IHS PATIENT MERGE;;MAR 01, 2010
+BPMXTAX ;IHS/PHXAO/AEF - REPOINT PT TAXONOMY FILE POINTERS - 6/26/12 ;
+ ;;1.0;IHS PATIENT MERGE;**2**;MAR 01, 2010;Build 1
  ;IHS/OIT/LJF 10/26/2006 routine originated from Phoenix Area Office
  ;                       changed namespace from BZXM to BPM
  ;

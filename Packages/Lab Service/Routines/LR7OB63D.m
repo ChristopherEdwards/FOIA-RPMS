@@ -1,6 +1,8 @@
-LR7OB63D ;slc/dcm - Get Autopsy data ;8/11/97
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**121,187**;Sep 27, 1994
+LR7OB63D ;VA/slc/dcm - Get Autopsy data ;8/11/97
+ ;;5.2;LAB SERVICE;**1003,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 121,187,315
+ ;
 AU ;Process AU data
  N IFN,IFN1,IFN2,X0,X1,X2,X3,X4,X5,Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y18,CTR1,PATH,SUB,LRSN
  Q:'$D(^LR(LRDFN,"AU"))  S X0=^("AU"),Y6=$S(+$G(CORRECT):"C",$P(X0,"^",15):"F",$P(X0,"^",3):"R",1:"I"),CTR1=0
@@ -10,8 +12,14 @@ AU ;Process AU data
  S Y18=";AU;"_IVDT
  S CTR1=CTR1+1,^TMP("LRX",$J,69,CTR,68,CTR1)=$S($D(^TMP("LRX",$J,69,1)):$P(^TMP("LRX",$J,69,1),"^"),1:"")_"^^"_PATH_"^"_$P(X0,"^",3)
  D WP(33,"SPECIMEN","","ST")
- S IFN=0
- F  S IFN=$O(^LR(LRDFN,80,IFN)) Q:IFN<1  S X=^(IFN,0),CTR1=CTR1+1,^TMP("LRX",$J,69,CTR,63,CTR1)="AUTOPSY ICD9CM CODE^"_$P($G(^ICD9(+X,0)),"^",3)_"^^^^"_Y6_"^^CE^"_$P($G(^ICD9(+X,0)),"^")_"^ICD9^&IMP^^^^AUTOPSY ICD9CM CODE"_"^^^"_Y18
+ S IFN=0 F  S IFN=$O(^LR(LRDFN,80,IFN)) Q:IFN<1  D
+ . N LRX,LRTMP
+ . S LRX=^(IFN,0),LRX=$$ICDDX^ICDCODE(+LRX,,,1)
+ . S CTR1=CTR1+1,LRTMP="AUTOPSY ICD9CM CODE^"
+ . S LRTMP=LRTMP_$P(LRX,"^",4)_"^^^^"_Y6_"^^CE^"_$P(LRX,"^",2)
+ . S LRTMP=LRTMP_"^ICD9^&IMP^^^^AUTOPSY ICD9CM CODE"_"^^^"_Y18
+ . S ^TMP("LRX",$J,69,CTR,63,CTR1)=LRTMP
+ . Q
  D WP(81,"CLINICAL DIAGNOSIS","","TX")
  D WP(82,"PATHOLOGICAL DIAGNOSIS","","TX")
  S IFN=0 F  S IFN=$O(^LR(LRDFN,84,IFN)) Q:IFN<1  S X=^(IFN,0),IFN1=0 D

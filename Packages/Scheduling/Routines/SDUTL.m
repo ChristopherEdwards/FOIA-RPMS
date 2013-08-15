@@ -1,14 +1,11 @@
 SDUTL ;MAN/GRR - SCHEDULING UTILITY PROGRAM ; 18 JUN 84  11:31 AM
- ;;5.3;Scheduling;**140,1004**;Aug 13, 1993
- ;ihs/oit/ljf 11/04/2005 patch 1004 make variable set for ending date match beginning date
+ ;;5.3;Scheduling;**140,356,1015**;Aug 13, 1993;Build 21
  ;
 DATE S:$D(%DT(0)) SDT0=%DT(0) S:$D(SDT00) %DT=SDT00 S POP=0 K BEGDATE,ENDDATE W !!,"**** Date Range Selection ****"
- W ! S %DT=$S($D(SDT00):SDT00,1:"AE"),%DT("A")="   Beginning DATE : " D ^%DT S:Y<0 POP=1 G:Y<0 EX S (BEGDATE,SDBD)=Y
- ;
- ;IHS/OIT/LJF 11/04/2005 PATCH 1004 if %DT can be changed using SDT00 for beginning date, allow same for ending date
- ;W ! S %DT="AE",%DT("A")="   Ending    DATE : " D ^%DT K %DT S:Y<0 POP=1 G:Y<0 EX G:Y<SDBD HELP W ! S (ENDDATE,SDED)=Y
- W ! S %DT=$S($D(SDT00):SDT00,1:"AE"),%DT("A")="   Ending    DATE : " D ^%DT K %DT S:Y<0 POP=1 G:Y<0 EX G:Y<SDBD HELP W ! S (ENDDATE,SDED)=Y
- ;
+ W ! S %DT=$S($D(SDT00):SDT00,1:"AE"),%DT("A")="   Beginning DATE : "
+ D ^%DT S:Y<0 POP=1 G:Y<0 EX S (BEGDATE,SDBD)=Y
+ W ! S %DT=$S($D(SDT00):SDT00,1:"AE"),%DT("A")="   Ending    DATE : "
+ D ^%DT K %DT S:Y<0 POP=1 G:Y<0 EX G:Y<SDBD HELP W ! S (ENDDATE,SDED)=Y
 EX K SDT0,SDT00 Q
  ;
 Q G QUE^DGUTQ

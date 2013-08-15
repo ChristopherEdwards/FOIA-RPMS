@@ -1,5 +1,5 @@
-DGPFLMU ;ALB/KCL - PRF ASSIGNMENT LISTMAN UTILITIES ; 4/25/03 3:39pm
- ;;5.3;Registration;**425,1007,1008**;Aug 13, 1993
+DGPFLMU ;ALB/KCL - PRF ASSIGNMENT LISTMAN UTILITIES ; 3/06/06 3:39pm
+ ;;5.3;Registration;**425,650,1007,1015**;Aug 13, 1993;Build 21
  ;
  ;no direct entry
  QUIT
@@ -28,9 +28,7 @@ BLDHDR(DGDFN,DGPFHDR) ;This procedure builds the VALMHDR array to display the Li
  S DGPFHDR(1)=$$SETSTR^VALM1("("_$G(DGPFPAT("SSN"))_")",DGPFHDR(1),$L(DGPFHDR(1))+1,80)
  S DGPFHDR(1)=$$SETSTR^VALM1("DOB: "_$$FDATE^VALM1($G(DGPFPAT("DOB"))),DGPFHDR(1),54,80)
  ;
- ;
  Q  ;IHS/OIT/LJF 12/21/2006 PATCH 1007 IHS not yet using MPI
- ;
  ;set 2nd line of header
  S DGICN=$$GETICN^MPIF001(DGDFN)
  S DGICN=$S(DGICN<0:"No ICN for patient",1:DGICN)
@@ -51,6 +49,8 @@ BLDLIST(DGDFN) ;This procedure will build list of flag assignments for a patient
  ;
  N DGIEN  ;ien of assignment
  N DGIENS ;array of assignment ien's
+ N DGPFA  ;assignment data array
+ N DGPFAH ;assignment history data array
  N DGPTR  ;pointer to last assignment history record
  N DGTXT  ;msg text if no assignments for patient
  ;
@@ -109,10 +109,6 @@ BLDLIN(DGLNUM,DGPFA,DGPFAH,DGIEN) ;This procedure will build and setup ListMan l
  S DGTXT=$$FDATE^VALM1(+$G(DGPFAH("INITASSIGN")))
  S DGLINE=$$SETFLD^VALM1(DGTXT,DGLINE,"ASSIGN DATE")
  ;
- ;approved by
- S DGTXT=$P($G(DGPFAH("APPRVBY")),U,2)
- S DGLINE=$$SETFLD^VALM1(DGTXT,DGLINE,"APPROV BY")
- ;
  ;review date
  S DGTXT=+$G(DGPFA("REVIEWDT"))
  S DGTXT=$S(DGTXT:$$FDATE^VALM1(DGTXT),1:"N/A")
@@ -127,6 +123,10 @@ BLDLIN(DGLNUM,DGPFA,DGPFAH,DGIEN) ;This procedure will build and setup ListMan l
  S DGTXT="NO"
  I $P($G(DGPFA("FLAG")),U)["26.11" S DGTXT="YES"
  S DGLINE=$$SETFLD^VALM1(DGTXT,DGLINE,"LOCAL")
+ ;
+ ;owner site
+ S DGTXT=$P($G(DGPFA("OWNER")),U,2)
+ S DGLINE=$$SETFLD^VALM1(DGTXT,DGLINE,"OWNER SITE")
  ;
  ;construct initial list array
  D SET^VALM10(DGLNUM,DGLINE,DGLNUM)

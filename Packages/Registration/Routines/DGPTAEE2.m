@@ -1,5 +1,5 @@
 DGPTAEE2 ;ALB/MTC - Austin Edits EAL Report Continued ; 14 DEC 92
- ;;5.3;Registration;**8,338,415**;Aug 13, 1993
+ ;;5.3;PIMS;**8,338,415,565,729,1015,1016**;JUN 30, 2012;Build 20
  ;
 H601(REC) ;-- 601 error processing
  ; INPUT : REC - Record that contains the errors
@@ -26,15 +26,15 @@ H701(REC) ;-- 701 header
  S VALMCNT=VALMCNT+1,^TMP("AD",$J,VALMCNT,0)=X
  S X="",$P(X," ",80)=" " F X1=1:1 S I=$P(DGER,",",X1) Q:I=""  I $P(I,":")<11 S X2=+$P(I,":",2),X=$E(X,1,X2-1)_"#"_$E(X,X2+1,80)
  S VALMCNT=VALMCNT+1,^TMP("AD",$J,VALMCNT,0)=X
- S X="ASIH XXXX C/P  DXLS   ODX  CDR CODE   PHY LOC  %SC LI SI DRUG A4 A5"
+ S X="ASIH XXXX C/P  DXLS   ODX  MPCR CODE   PHY LOC  %SC LI SI DRUG A4 A5"
  S VALMCNT=VALMCNT+1,^TMP("AD",$J,VALMCNT,0)=X
  S X=$E(REC,53,55)_"    "_$E(REC,56)_"   "_$E(REC,57)_"   "_$E(REC,58,64)_"  "_$E(REC,65)_"  "_$E(REC,66,71)_"       "_$E(REC,72,73)_"     "_$E(REC,74,76)_"  "_$E(REC,77)_"  "_$E(REC,78)_SP_$E(REC,79,82)_"  "_$E(REC,83)_SP_$E(REC,84,87)
  S VALMCNT=VALMCNT+1,^TMP("AD",$J,VALMCNT,0)=X
  S X="",$P(X," ",80)=" " F X1=1:1 S I=$P(DGER,",",X1) Q:I=""  I $P(I,":")>10 S X2=+$P(I,":",2),X=$E(X,1,X2-1)_"#"_$E(X,X2+1,80)
  S VALMCNT=VALMCNT+1,^TMP("AD",$J,VALMCNT,0)=X
- S X="SC AO IR EC MST HNC ETH RACE        "
+ S X="SC AO IR SWAC MST HNC ETH RACE         CV SHAD"
  S VALMCNT=VALMCNT+1,^TMP("AD",$J,VALMCNT,0)=X
- S X=$E(REC,88)_"  "_$E(REC,89)_"  "_$E(REC,90)_"  "_$E(REC,91)_"   "_$E(REC,92)_"   "_$E(REC,93)_"  "_$E(REC,94,95)_"  "_$E(REC,96,107)
+ S X=$E(REC,88)_"  "_$E(REC,89)_"  "_$E(REC,90)_"  "_$E(REC,91)_"     "_$E(REC,92)_"   "_$E(REC,93)_"  "_$E(REC,94,95)_"  "_$E(REC,96,107)_"  "_$E(REC,108)_"  "_$E(REC,109)
  S VALMCNT=VALMCNT+1,^TMP("AD",$J,VALMCNT,0)=X
  D WRER^DGPTAEE
  Q

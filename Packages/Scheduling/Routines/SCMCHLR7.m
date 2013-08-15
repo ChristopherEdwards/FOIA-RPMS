@@ -1,5 +1,5 @@
 SCMCHLR7 ;ALB/KCL - PCMM HL7 Error Code Report ;09-FEB-2000
- ;;5.3;Scheduling;**210**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,1015**;AUG 13, 1993;Build 21
  ;
 ECRPRT ; Description: This entry point is used to print the PCMM HL7 Error
  ; Code Report.  This report is based on entries in the PCMM HL7

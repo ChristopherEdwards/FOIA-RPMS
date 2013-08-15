@@ -1,5 +1,5 @@
-DGPFLMA4 ;ALB/KCL - PRF ASSIGNMENT LM PROTOCOL ACTIONS CONT. ; 4/24/03 4:43pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFLMA4 ;ALB/KCL - PRF ASSIGNMENT LM PROTOCOL ACTIONS CONT. ; 10/18/06 9:41am
+ ;;5.3;Registration;**425,554,650,1015**;Aug 13, 1993;Build 21
  ;
  ;no direct entry
  QUIT
@@ -17,34 +17,31 @@ CO ;Entry point for DGPF CHANGE ASSIGNMENT OWNERSHIP action protocol.
  N DGABORT  ;abort flag for entering assignment narrative
  N DGOK     ;ok flag for entering assignment narrative
  N DGIEN    ;assignment ien
+ N DGINST   ;institution ien
  N DGPFA    ;assignment array
  N DGPFAH   ;assignment history array
  N DGRESULT ;result of STOALL api call
- N DGREASON ;reason if unable to edit assignment
+ N DGERR    ;error if unable to edit assignment
+ N DGETEXT  ;error text
  N DGPFERR  ;if error returned from STOALL api call
+ N DGOWN    ;valid owner list array
  N SEL      ;user selection (list item)
  N VALMY    ;output of EN^VALM2 call, array of user selected entries
  ;
  ;set screen to full scroll region
  D FULL^VALM1
  ;
- ;security key check
- I '$D(^XUSEC("DGPF RECORD FLAG ASSIGNMENT",DUZ)) D  Q
- . W !!?2,">>> '"_$P($G(XQORNOD(0)),U,3)_"' action not allowed at this point.",*7
- . W !?6,"You do not have the appropriate Security Key."
- . D PAUSE^VALM1
- . S VALMBCK="R"
- ;
- ;is action selection allowed?
+ ;quit if selected action is not appropriate
  I '$D(@VALMAR@("IDX")) D  Q
- . W !!?2,">>> '"_$P($G(XQORNOD(0)),U,3)_"' action not allowed at this point.",*7
- . I '$G(DGDFN) W !?6,"A patient has not been selected."
- . E  W !?6,"There are no record flag assignments for this patient."
+ . I '$G(DGDFN) S DGETEXT(1)="Patient has not been selected."
+ . E  S DGETEXT(1)="Patient has no record flag assignments."
+ . D BLD^DIALOG(261129,.DGETEXT,"","DGERR","F")
+ . D MSG^DIALOG("WE","","","","DGERR") W *7
  . D PAUSE^VALM1
  . S VALMBCK="R"
  ;
  ;allow user to select a SINGLE flag assignment for ownership change
- S (DGIEN,DGSELECT,VALMBCK)=""
+ S (DGIEN,VALMBCK)=""
  D EN^VALM2($G(XQORNOD(0)),"S")
  ;
  ;process user selection
@@ -53,35 +50,43 @@ CO ;Entry point for DGPF CHANGE ASSIGNMENT OWNERSHIP action protocol.
  . S DGIEN=$P($G(@VALMAR@("IDX",SEL,SEL)),U)
  . S DGDFN=$P($G(@VALMAR@("IDX",SEL,SEL)),U,2)
  . ;
- . ;-attempt to obtain lock on assignment record
+ . ;attempt to obtain lock on assignment record
  . I '$$LOCK^DGPFAA3(DGIEN) D  Q
  . . W !!,"Record flag assignment currently in use, can not be edited!",*7
  . . D PAUSE^VALM1
  . ;
- . ;-get assignment into DGPFA array
+ . ;get assignment into DGPFA array
  . I '$$GETASGN^DGPFAA(DGIEN,.DGPFA) D  Q
  . . W !!,"Unable to retrieve the record flag assignment selected.",*7
  . . D PAUSE^VALM1
  . ;
- . ;-can site change ownership of the assignment?
- . I '$$CHGOWN^DGPFAA2(.DGPFA,,.DGREASON) D  Q
- . . W !!,"Changing the ownership of this record flag assignment not allowed.",*7
- . . W !,"  >>> "_$G(DGREASON)_"."
+ . ;can site change ownership of the assignment?
+ . I '$$CHGOWN^DGPFAA2(.DGPFA,$G(DUZ(2)),"DGERR") D  Q
+ . . W !!,"Changing the ownership of this record flag assignment not allowed...",*7
+ . . D MSG^DIALOG("WE","","",5,"DGERR")
  . . D PAUSE^VALM1
  . ;
- . ;-prompt for new OWNER SITE of the assignment
- . S DGPFA("OWNER")=$$ANSWER^DGPFUT("Select new owner site for this record flag assignment","","P^4:EMZ")
- . I DGPFA("OWNER")=+$$SITE^VASITE D
- . . W !!,"Ownership of this record flag assignment has not been changed!",*7
- . . S DGPFA("OWNER")=0
- . . D PAUSE^VALM1
+ . ;prompt for new OWNER SITE of the assignment
+ . ;
+ . ;-create selection list of enabled division owners
+ . S DGINST=0
+ . F  S DGINST=$O(^DG(40.8,"APRF",DGINST)) Q:'DGINST  D
+ . . I $$TF^XUAF4(DGINST) S DGOWN(DGINST)=""
+ . ;
+ . ;-add treating facilities to selection list for Cat I assignments
+ . I $G(DGPFA("FLAG"))["26.15",$$BLDTFL^DGPFUT2(DGDFN,.DGOWN)
+ . ;
+ . ;-remove existing owner from selection list
+ . K DGOWN(+$G(DGPFA("OWNER")))
+ . ;
+ . S DGPFA("OWNER")=$$ANSWER^DGPFUT("Select new owner site for this record flag assignment","","P^4:EMZ","","I $D(DGOWN(+Y))")
  . Q:(DGPFA("OWNER")'>0)
  . ;
- . ;-prompt for APPROVED BY person
+ . ;prompt for APPROVED BY person
  . S DGPFAH("APPRVBY")=$$ANSWER^DGPFUT("Approved By","","P^200:EMZ")
  . Q:(DGPFAH("APPRVBY")'>0)
  . ;
- . ;-allow user to enter HISTORY COMMENTS (edit reason)
+ . ;allow user to enter HISTORY COMMENTS (edit reason)
  . S DGCROOT=$NA(^TMP($J,"DGPFCMNT"))  ;init WP array for hist comments
  . K @DGCROOT
  . S (DGABORT,DGOK)=0
@@ -90,7 +95,6 @@ CO ;Entry point for DGPF CHANGE ASSIGNMENT OWNERSHIP action protocol.
  . . S @DGCROOT@(1,0)="Change of flag assignment ownership.  "
  . . S DIC=$$OREF^DILF(DGCROOT)
  . . S DIWETXT="Enter the reason for record flag assignment ownership change:"
- . . ;S DIWETXT="Enter Record Flag Assignment - Edit Reason Text"
  . . S DIWESUB="Change of Ownership Reason"
  . . S DWLW=75   ;max # of chars allowed to be stored on WP global node
  . . S DWPK=1    ;if line editor, don't join lines
@@ -100,38 +104,42 @@ CO ;Entry point for DGPF CHANGE ASSIGNMENT OWNERSHIP action protocol.
  . . W !,"The reason for editing this record flag assignment is required!",*7
  . . I '$$CONTINUE^DGPFUT() S DGABORT=1
  . ;
- . ;-quit if required HISTORY COMMENTS not entered
+ . ;quit if required HISTORY COMMENTS not entered
  . Q:$G(DGABORT)
  . ;
- . ;-place HISTORY COMMENTS into history array
+ . ;place HISTORY COMMENTS into history array
  . M DGPFAH("COMMENT")=@DGCROOT K @DGCROOT
  . ;
- . ;-setup remaining assignment history array nodes for filing
+ . ;setup remaining assignment history array nodes for filing
  . S DGPFAH("ACTION")=2                ;continue
  . S DGPFAH("ASSIGNDT")=$$NOW^XLFDT()  ;current date/time
  . S DGPFAH("ENTERBY")=DUZ             ;current user
  . ;
- . ;-relinquishing ownership should remove existing review date
- . S DGPFA("REVIEWDT")=""
+ . ;relinquishing ownership should remove existing review date when
+ . ;new owner is not a local division
+ . I '$D(^DG(40.8,"APRF",DGPFA("OWNER"))) S DGPFA("REVIEWDT")=""
  . ;
- . ;-ask user if ok to file ownership change 
+ . ;display flag assignment review screen to user
+ . D REVIEW^DGPFUT3(.DGPFA,.DGPFAH,DGIEN,XQY0,XQORNOD(0))
+ . ;
+ . ;ask user if ok to file ownership change 
  . Q:$$ANSWER^DGPFUT("Would you like to file the assignment ownership change","YES","Y")'>0
  . ;
- . ;-file the assignment and history using STOALL api
+ . ;file the assignment and history using STOALL api
  . W !!,"Updating the ownership of this patient's record flag assignment..."
  . S DGRESULT=$$STOALL^DGPFAA(.DGPFA,.DGPFAH,.DGPFERR)
- . W !,"   >>> Update was "_$S(+$G(DGRESULT):"successful",1:"not successful")_"."
+ . W !?5,"Update was "_$S(+$G(DGRESULT):"successful",1:"not successful")_"."
  . ;
- . ;-- send HL7 ORU msg if editing assignment to a Cat I (NATIONAL) flag
- . I +$G(DGRESULT),$$SNDORU^DGPFHLS(+DGRESULT) D
- . . W !,"   >>> HL7 message sent...updating patient's sites of record."
+ . ;send HL7 ORU msg if editing assignment to a Cat I flag
+ . I +$G(DGRESULT),$G(DGPFA("FLAG"))["26.15",$$SNDORU^DGPFHLS(+DGRESULT) D
+ . . W !?5,"Message sent...updating patient's sites of record."
  . ;
  . D PAUSE^VALM1
  . ;
- . ;-rebuild list of flag assignments for patient
+ . ;rebuild list of flag assignments for patient
  . D BLDLIST^DGPFLMU(DGDFN)
  . ;
- . ;-release lock after CO edit
+ . ;release lock after CO edit
  . D UNLOCK^DGPFAA3(DGIEN)
  ;
  ;return to LM (refresh screen)

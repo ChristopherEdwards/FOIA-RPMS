@@ -1,5 +1,5 @@
 SCRPW74 ;BP-CIOFO/KEITH,ESW - Clinic appointment availability extract (cont.) ; 6/10/03 9:13am
- ;;5.3;Scheduling;**192,206,223,241,249,291**;AUG 13, 1993
+ ;;5.3;Scheduling;**192,206,223,241,249,291,1015**;AUG 13, 1993;Build 21
  ;
 MON(SDEX,SDT,SDMON) ;Determine month and date ranges for extracts
  ;Input: SDEX=extract type, '1' for prospective, '2' for retrospective

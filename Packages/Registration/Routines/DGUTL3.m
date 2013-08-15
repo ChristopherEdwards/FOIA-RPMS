@@ -1,5 +1,5 @@
-DGUTL3 ;ALB/MTC - ELIGIBILITY UTILITIES ; 3/10/03 3:41pm
- ;;5.3;Registration;**114,506**;Aug 13, 1993
+DGUTL3 ;ALB/MTC,CKN - ELIGIBILITY UTILITIES ; 10/4/05 12:22pm
+ ;;5.3;Registration;**114,506,653,1015**;Aug 13, 1993;Build 21
  ;
  Q
 ELIG(DFN,SOURCE,DEFAULT) ;-- This function will prompt for the eligibility for a patient. If
@@ -109,3 +109,9 @@ DELBAI(DFN) ;delete bad address indicator
  S IENS=DFN_",",FDA(2,IENS,.121)="@"
  D FILE^DIE("E","FDA")
  Q
+GETSHAD(DFN) ;Get current value of Proj 112/SHAD from Patient file.
+ ;   Input:  DFN - Patient ien
+ ;  Output: Valid values - 1 (Yes), 0 (No), or null
+ ;                    -1 - error
+ Q:$G(DFN)="" -1 ;Quit with error if missing input parameter
+ Q $P($G(^DPT(DFN,.321)),"^",15)

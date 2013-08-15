@@ -1,6 +1,8 @@
-LR7OB69 ;slc/dcm - Get Lab order data from 69 - 68 - 63 ;8/11/97
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**121,187,224**;Sep 27, 1994
+LR7OB69 ;slc/dcm/JAH - Get Lab order data from 69 - 68 - 63 ;8/10/04
+ ;;5.2;LAB SERVICE;**1003,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 121,187,224,291,373**
+ ;
  ;
 69(ODT,SN) ;Get data from file 69
  ;ODT=Order Date subscript in file 69
@@ -22,6 +24,7 @@ LR7OB69 ;slc/dcm - Get Lab order data from 69 - 68 - 63 ;8/11/97
  ;^TMP("LRX",$J,69,"N",i)=Specimen level comments (6 node)
  ;^TMP("LRX",$J,69,i,"N",ifn)=Comments by test
  ;^TMP("LRX",$J,69,i,"NC",ifn)=Free text cancel reason
+ ;^TMP("LRX",$J,69,i,"DGX",ifn)=diagnosis^SC^CV^AO^IR^EC^HNC^MST
  ;^TMP("LRX",$J,69,i,63,ifn)=
  ;Test subscript^Result^Flag^Units^Ref Range^Result status^Observation Sub ID^Value type^Natl Procedure code^Natl Procedure Name^Natl Coding System^Verified by^^Theraputic flag (T or "")^Print name^Accession^Order #^Link to 63
  ;^TMP("LRX",$J,69,i,63,"N",ifn)=Result Comments
@@ -32,8 +35,7 @@ LR7OB69 ;slc/dcm - Get Lab order data from 69 - 68 - 63 ;8/11/97
  Q:'$D(^LRO(69,+ODT,1,+SN,0))  S X0=^(0),XP1=$G(^(.1)),X1=$G(^(1)),X3=$G(^(3)),X4=$O(^(4,0))
  Q:'$D(^LR(+X0,0))  ;No matching entry in ^LR
  S:'$D(DFN) DFN=$P(^LR(+X0,0),"^",3) S:'$D(LRDFN) LRDFN=+X0 S:'$D(LRDPF) LRDPF=$P(^LR(+X0,0),"^",2)_$G(^DIC(+$P(^LR(+X0,0),"^",2),0,"GL"))
- S Y1=+XP1,Y2=$S($P(X1,"^"):$P(X1,"^"),1:$P(X0,"^",8)),Y3=$P(X0,"^",3),Y4=$P(X0,"^",4),Y5=$P(X0,"^",5),Y6=$P(X0,"^",6),Y7=$P(X0,"^",7),Y8=$P(X3,"^"),Y9=$P(X3,"^",2),Y11=$P(X0,"^",11),Y12=$P(X0,"^",2)
- S:$L(Y7) Y7=$O(^SC("C",Y7,0))
+ S Y1=+XP1,Y2=$S($P(X1,"^"):$P(X1,"^"),1:$P(X0,"^",8)),Y3=$P(X0,"^",3),Y4=$P(X0,"^",4),Y5=$P(X0,"^",5),Y6=$P(X0,"^",6),Y7=$P(X0,"^",9),Y8=$P(X3,"^"),Y9=$P(X3,"^",2),Y11=$P(X0,"^",11),Y12=$P(X0,"^",2)
  ;canceled entries are skipped, so calls to this routine from options
  ;that are removing tests need to make the call before setting the pieces
  ;that cancel the test: $P(^LRO(69,ODT,1,SN,2,IFN,0),"^",11)
@@ -41,6 +43,7 @@ LR7OB69 ;slc/dcm - Get Lab order data from 69 - 68 - 63 ;8/11/97
  S IFN=0 F  S IFN=$O(^LRO(69,ODT,1,SN,2,IFN)) Q:IFN<1  S X=$G(^(IFN,0)) I X,'$P(X,"^",11) D
  . I $G(LRNIFN),$D(LRTMPO("LRIFN",LRNIFN)) Q:+X'=+LRTMPO("LRIFN",LRNIFN)
  . S ^TMP("LRX",$J,69,IFN)=X,I=0
+ . D GDG1^LRBEBA2(ODT,SN,IFN)
  . F  S I=$O(^LRO(69,ODT,1,SN,2,IFN,1,I)) Q:I<1  S X=^(I,0) D
  .. S ^TMP("LRX",$J,69,IFN,"N",I)=X
  . S I=0 F  S I=$O(^LRO(69,ODT,1,SN,2,IFN,1.1,I)) Q:I<1  S X=^(I,0) D

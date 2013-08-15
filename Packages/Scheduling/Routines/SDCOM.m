@@ -1,5 +1,5 @@
-SDCOM ;ALB/RMO - Process Completion - Check Out;12 MAR 1993 11:10 am
- ;;5.3;Scheduling;**15,60,105,132**;Aug 13, 1993
+SDCOM ;ALB/RMO - Process Completion - Check Out ;12 MAR 1993 11:10 am ; 1/19/07 1:37pm
+ ;;5.3;Scheduling;**15,60,105,132,466,495,1015**;Aug 13, 1993;Build 21
  ;
 EN(SDOE,SDMOD,SDCPHDL,SDCOMF) ;Complete Check Out Process
  ; Input  -- SDOE     Outpatient Encounter file IEN
@@ -27,10 +27,15 @@ CHK(SDOE) ;Check if Process is Complete for Check Out
  .D DT^SDCO1(DFN,SDT,SDCL,SDDA,0,"",.SDCOQUIT)
  I $$REQ^SDM1A(SDT)'="CO" G CHKQ
  I SDORG=1,'$$CLINIC^SDAMU(SDCL) G CHKQ
- I "^1^2^"[("^"_SDORG_"^"),$$INP^SDAM2(DFN,SDT)="I" G CHKQ
+ ;I "^1^2^"[("^"_SDORG_"^"),$$INP^SDAM2(DFN,SDT)="I" G CHKQ  ;SD*5.3*466 allow checks for inpatients as outpatients
  D CLASK^SDCO2(SDOE,.SDCLOEY)
  I $D(SDCLOEY) D  G CHKQ:'SDCHK
  .S SDCTI=0 F  S SDCTI=$O(SDCLOEY(SDCTI)) Q:'SDCTI  I $G(SDCLOEY(SDCTI))="" S SDCHK=0
+ ;sent encounter to ASCD for review
+ I $D(SDCLOEY(3)) D
+ .N SCDXS,SCAMDX,DXS D GETDX^SDOE(SDOE,"SCDXS")
+ .S DXS=0 F  S DXS=$O(SCDXS(DXS)) Q:'DXS  S SCAMDX(+SCDXS(DXS))=""
+ .I $O(SCAMDX(0)) D ST^SDSCAPI(SDOE,.SCAMDX)
  I $$PRASK^SDCO3(SDOE),'$$PRV^SDOE(SDOE) S SDCHK=0 G CHKQ
  I $$DXASK^SDCO4(SDOE),'$$GETPDX^SDOE(SDOE) S SDCHK=0 G CHKQ
  I '$$CPT^SDOE(SDOE) S SDCHK=0 G CHKQ

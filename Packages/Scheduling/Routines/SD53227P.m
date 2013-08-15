@@ -1,5 +1,5 @@
 SD53227P ;ALB/RBS - Find Encounter/Visit Date/Time 421 error ; 10/11/00 4:59pm
- ;;5.3;Scheduling;**227**;AUG 13, 1993
+ ;;5.3;Scheduling;**227,1015**;AUG 13, 1993;Build 21
  ;
  ;DBIA Integration Reference # 3211 to update #9000010 VISIT file.
  ; *** Calling routine is SD53P227 ***

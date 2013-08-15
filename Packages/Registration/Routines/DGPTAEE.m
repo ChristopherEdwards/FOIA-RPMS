@@ -1,5 +1,5 @@
 DGPTAEE ;ALB/MTC - Austin Edit Checks Error Driver ; 23 NOV 92
- ;;5.3;Registration;**64,338**;Aug 13, 1993
+ ;;5.3;Registration;**64,338,1015**;Aug 13, 1993;Build 21
  ;
 EN ;-- entry point for list manager
  D BUILD

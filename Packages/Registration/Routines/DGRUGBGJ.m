@@ -1,5 +1,5 @@
 DGRUGBGJ ;ALB/BOK/MLI - RUG-II BACK GROUND TRIGGER ; 07 MAR 87
- ;;5.3;Registration;**7,54,89**;Aug 13, 1993
+ ;;5.3;Registration;**7,54,89,1015**;Aug 13, 1993;Build 21
  S U="^",X="N",%DT="R" D ^%DT S DGDT=+Y K X,Y S DGST=$S($D(^DG(43,1,"RUG")):$P(^("RUG"),U),1:0),DGSD=$S(+DGST:DGST-1,1:(DGDT-2)),IOP=$S($D(ION):ION,1:""),DGED=DGDT D ^%ZIS
 EN S DGFLG=0
  F R=DGSD:0 S R=$O(^DGPM("AMV2",R)) Q:R'>0!(R'<DGED)  F DFN=0:0 S DFN=$O(^DGPM("AMV2",R,DFN)) Q:DFN'>0  S DGADM=$O(^(DFN,0)) I $D(^DGPM(+DGADM,0)) S X=^(0) D CK

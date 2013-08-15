@@ -1,5 +1,5 @@
 DGPMGLG5 ;ALB/LM - G&L GENERATION, CONT.; 27 APR 2003
- ;;5.3;Registration;**34,137,515**;Aug 13, 1993
+ ;;5.3;Registration;**34,137,515,570,1015**;Aug 13, 1993;Build 21
  ;
 A ;
  S NLS=0 ; non-loss indicator
@@ -28,7 +28,12 @@ ID ; ID info for patient and legend LEG(X) setup
  . . . S X=$$PA^DGMTUTL(DGX),X=$S('$D(X):"U",X="MT":"C",X="GMT":"G",1:"U")
  . . I "^A^B^C^G^R^"[("^"_X_"^") S X=$C($A(X)+32),ID=ID_X,LEG(X)="" K X,DGX
 INS ;  Reimburse Insurance (+)
- S INS=0 I $O(^DPT(DFN,.312,0)) S INS1=0 F JJ=0:0 S INS1=$O(^DPT(DFN,.312,INS1)) Q:INS1'>0  S I=^DPT(DFN,.312,INS1,0) I +$P(I,"^",8)'>TO I $D(^DIC(36,+I,0)),$P(^DIC(36,+I,0),"^",2)'="N" S INS=INS+1 I $P(I,"^",4)]""&($P(I,"^",4)'>TO) S INS=INS-1
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1014 no IB
+ S INS=0
+ N DGINS,DGX
+ ; API returns ONLY Active and Re-imbursable Insurance entries
+ I $$INSUR^IBBAPI(DFN,"","",.DGINS,9) D
+ . S DGX=0 F  S DGX=$O(DGINS("IBBAPI","INSUR",DGX)) Q:'DGX  S INS=INS+1
  S:INS>0 ID=ID_"+",LEG("+")=""
  K INS,INS1,JJ
  Q:MV("TT")'=3

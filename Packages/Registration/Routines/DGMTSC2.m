@@ -1,5 +1,5 @@
-DGMTSC2 ;ALB/RMO/CAW - Means Test Screen Income ;23 JAN 1992 11:00 am [ 10/02/92  8:46 AM ]
- ;;5.3;Registration;**45**;Aug 13, 1993
+DGMTSC2 ;ALB/RMO/CAW - Means Test Screen Income ; 8/1/08 1:15pm
+ ;;5.3;PIMS;**45,1015,1016**;JUN 30, 2012;Build 20
  ;
  ; Input  -- DFN      Patient IEN
  ;           DGMTDT   Date of Test
@@ -26,7 +26,7 @@ Q K DGCNT,DGDEP,DGDR,DGMTOUT,DGPRI,DGPRTY,DGREL,DGSEL,DGSELTY,DGX,DGY,DTOUT,DUOU
 DIS ;Display income
  N DGDC,DGDET,DGIN0,DGIN1,DGIN2,DGINT,DGINTF,DGNC,DGND,DGNWT,DGNWTF,DGSP,DGVIR0,DGCNT
  D DEP^DGMTSCU2,INC^DGMTSCU3 S DGCNT=1
- W !!?34,"Veteran" W:DGSP ?46,"Spouse" W:DGDC ?56,"Children" W ?73,"Total"
+ W !!?35,"Veteran" W:DGSP ?47,"Spouse" W:DGDC ?57,"Children" W ?73,"Total"
  W !?31,"-----------------------------------------------"
  D HIGH^DGMTSCU1(1,DGMTACT),FLD(.DGIN0,8,"Social Security (Not SSI)")
  D HIGH^DGMTSCU1(2,DGMTACT),FLD(.DGIN0,9,"U.S. Civil Service")
@@ -38,7 +38,7 @@ DIS ;Display income
  D HIGH^DGMTSCU1(8,DGMTACT),FLD(.DGIN0,15,"Interest,Dividend,Annuity")
  D HIGH^DGMTSCU1(9,DGMTACT),FLD(.DGIN0,16,"Workers Comp or Black Lung")
  D HIGH^DGMTSCU1(10,DGMTACT),FLD(.DGIN0,17,"All Other Income")
- W !?51,"Total -->",?66,$J($$AMT^DGMTSCU1(DGINT),12)
+ W !?52,"Total -->",?67,$J($$AMT^DGMTSCU1(DGINT),12)
  Q
  ;
 FLD(DGIN,DGPCE,DGTXT) ;Display income fields
@@ -52,10 +52,11 @@ FLD(DGIN,DGPCE,DGTXT) ;Display income fields
  ;                  total)
  ;
  N DGTOT,I
- I '$D(DGBL) S $P(DGBL," ",26)=""
+ I '$D(DGBL) S $P(DGBL," ",28)=""
  W:DGCNT<10 " "
- W " ",$E(DGTXT_DGBL,1,26)
- W $J($$AMT^DGMTSCU1($P(DGIN("V"),"^",DGPCE)),10)
+ W " ",$E(DGTXT_DGBL,1,28)
+ W:$D(DGFV2) $J($$AMT^DGMTSCU1($P(DGIN("V"),"^",DGPCE)),11)
+ W:'$D(DGFV2) $J($$AMT^DGMTSCU1($P(DGIN("V"),"^",DGPCE)),9)
  W " ",$S($D(DGIN("S")):$J($$AMT^DGMTSCU1($P(DGIN("S"),"^",DGPCE)),10),1:$E(DGBL,1,10))
  W " ",$S($D(DGIN("C")):$J($$AMT^DGMTSCU1($P(DGIN("C"),"^",DGPCE)),11),1:$E(DGBL,1,11))
  S DGTOT="",I="" F  S I=$O(DGIN(I)) Q:I=""  I $P(DGIN(I),"^",DGPCE)]"" S DGTOT=DGTOT+$P(DGIN(I),"^",DGPCE)
@@ -68,6 +69,7 @@ EDT ;Edit income fields
  D GETIENS^DGMTU2(DFN,DGPRI,DGMTDT) G EDTQ:DGERR
  I $G(DGSEL)]"" W !!,"NAME: ",$$NAME^DGMTU1(DGPRI)
  S DGIN0=$G(^DGMT(408.21,DGINI,0))
- S DA=DGINI,DIE="^DGMT(408.21,",DR="[DGMT ENTER/EDIT ANNUAL INCOME]" D ^DIE S:'$D(DGFIN) DGMTOUT=1
+ S DR="[DGMT ENTER/EDIT ANNUAL INCOME]"
+ S DA=DGINI,DIE="^DGMT(408.21," D ^DIE S:'$D(DGFIN) DGMTOUT=1
  I DGIN0'=$G(^DGMT(408.21,DGINI,0)) S DR="103////^S X=DUZ;104///^S X=""NOW""" D ^DIE
 EDTQ Q

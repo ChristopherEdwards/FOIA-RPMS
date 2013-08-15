@@ -1,8 +1,9 @@
 SDAMEP2 ;ALB/CAW - Extended Display (Patient Data) ; 11/13/02
- ;;5.3;Scheduling;**258**;Aug 13, 1993
+ ;;5.3;Scheduling;**258,325,441,1015**;Aug 13, 1993;Build 21
  ;
 PDATA ; Patient Data
- F SD=0,.11,.13,.32,.321,.36,.52 S SD(SD)=$G(^DPT(DFN,SD))
+ F SD=0,.11,.13,.32,.322,.321,.36,.52 S SD(SD)=$G(^DPT(DFN,SD))
+ S SD("CV")=$$CVEDT^DGCV(DFN,SDT)
  S VAIP("D")="L",VAIP("L")="" D INP^DGPMV10
  S SDFSTCOL=16,SDSECCOL=60
  S X="" D SET^SDAMEP1($$SETSTR^VALM1("*** Patient Information ***",X,25,30))
@@ -53,13 +54,32 @@ PTADD ; Patient Address
  S X=$$SETSTR^VALM1($P(SD(.13),U),X,SDSECCOL,20)
  D SET^SDAMEP1(X)
  S X="",X=($$SETSTR^VALM1($P(SD(.11),U),X,10,30))
+ S X=$$SETSTR^VALM1("Cell Phone:",X,48,11)
+ S X=$$SETSTR^VALM1($S(($P(SD(.13),U,4)'=""):$P(SD(.13),U,4),1:"UNANSWERED"),X,SDSECCOL,20)
  D SET^SDAMEP1(X)
- S X=""
+ S X="",SDPAGFLG=0
  I $P(SD(.11),U,2)'="" D
  .S X="",X=($$SETSTR^VALM1($P(SD(.11),U,2),X,10,30))
+ .S X=$$SETSTR^VALM1("Pager #:",X,51,8)
+ .S X=$$SETSTR^VALM1($S(($P(SD(.13),U,5)'=""):$P(SD(.13),U,5),1:"UNANSWERED"),X,SDSECCOL,20),SDPAGFLG=1
  D:X'="" SET^SDAMEP1(X)
- N SDZIP S SDZIP=$P(SD(.11),U,12) S:$E(SDZIP,6,10)'="" SDZIP=$E(SDZIP,1,5)_"-"_$E(SDZIP,6,10)
- S X="" D SET^SDAMEP1($$SETSTR^VALM1($P(SD(.11),U,4)_", "_$P($G(^DIC(5,+$P(SD(.11),U,5),0)),U)_"  "_SDZIP,X,10,45))
+ ; retrieve country info -- PERM country is piece 10 of .11
+ N FILE,CNTRY,FORIEN,FOREIGN
+ S FILE=779.004,FORIEN=$P(SD(.11),U,10),CNTRY=$$GET1^DIQ(FILE,FORIEN_",",2),CNTRY=$$UPPER^VALM1(CNTRY),FOREIGN=$$FORIEN^DGADDUTL(FORIEN)
+ I 'FOREIGN D 
+ . N SDZIP S SDZIP=$P(SD(.11),U,12) S:$E(SDZIP,6,10)'="" SDZIP=$E(SDZIP,1,5)_"-"_$E(SDZIP,6,10)
+ . S X="",X=($$SETSTR^VALM1($P(SD(.11),U,4)_", "_$P($G(^DIC(5,+$P(SD(.11),U,5),0)),U)_"  "_SDZIP,X,10,45))
+ E  D
+ . S X="",X=($$SETSTR^VALM1($P(SD(.11),U,9)_" "_$P(SD(.11),U,4)_" "_$P(SD(.11),U,8),X,10,45))
+ I 'SDPAGFLG D
+ .S X=$$SETSTR^VALM1("Pager #:",X,51,8)
+ .S X=$$SETSTR^VALM1($S(($P(SD(.13),U,5)'=""):$P(SD(.13),U,5),1:"UNANSWERED"),X,SDSECCOL,20)
+ D SET^SDAMEP1(X) K SDPAGFLG
+ S X="",X=$$SETSTR^VALM1(CNTRY,X,10,45)
+ D SET^SDAMEP1(X)
+ S X="",X=$$SETSTR^VALM1("EMAIL ADDRESS:",X,1,14)
+ S X=$$SETSTR^VALM1($S(($P(SD(.13),U,3)'=""):$P(SD(.13),U,3),1:"UNANSWERED"),X,SDFSTCOL,45)
+ D SET^SDAMEP1(X)
 PTEXP ; Radiation and Status
  ;
  S X="",X=$$SETSTR^VALM1("Radiation Exposure:",X,1,19)
@@ -77,11 +97,26 @@ PTPOW ; Prisoner of War Info and Last Admission Date
  I +DGPMVI(13,1) S X=$$SETSTR^VALM1($$FTIME^VALM1(+DGPMVI(13,1)),X,SDSECCOL,18)
  D SET^SDAMEP1(X)
 PTAO ; Agent Orange Exposure and Last Discharge Date
- S X="",X=$$SETSTR^VALM1("AO Exposure:",X,8,12)
- S X=$$SETSTR^VALM1($$FYNUNK^SDUTL2($P(SD(.321),U,2)),X,21,7)
+ S X="",X=$$SETSTR^VALM1("AO Exp/Loc:",X,9,11)
+ S X=$$SETSTR^VALM1($$FYNUNK^SDUTL2($P(SD(.321),U,2))_$S($P(SD(.321),U,13)="V":"/VIET",$P(SD(.321),U,13)="K":"/DMZ",$P(SD(.321),U,13)="O":"/OTH",1:""),X,21,14)
  S X=$$SETSTR^VALM1("Last Disch./Lodger Date:",X,35,24)
  S SDDISCH=+$G(^DGPM(+DGPMVI(17),0))
  I +SDDISCH S X=$$SETSTR^VALM1($$FTIME^VALM1(SDDISCH),X,SDSECCOL,18)
+ D SET^SDAMEP1(X)
+CV ;Combat vet
+ S X="",X=$$SETSTR^VALM1("Combat Veteran:",X,5,15)
+ S X=$$SETSTR^VALM1($$FYNUNK^SDUTL2($S($P(SD("CV"),U,1)>0:"Y",1:"N")),X,21,7)
+ S X=$$SETSTR^VALM1("Combat Veteran End Date:",X,35,24)
+ I $P(SD("CV"),U,1)>0 D
+ .S X=$$SETSTR^VALM1($$FTIME^VALM1($P(SD("CV"),U,2)),X,SDSECCOL,18)
+ E  S X=$$SETSTR^VALM1("N/A",X,SDSECCOL,3)
+ D SET^SDAMEP1(X)
+SHAD ;PROJ 112/SHAD
+ S X="",X=$$SETSTR^VALM1("PROJ 112/SHAD:",X,6,14)
+ S X=$$SETSTR^VALM1($$FYNUNK^SDUTL2($S($P(SD(.321),U,15)>0:"Y",1:"N")),X,21,7)
+SWASIA ;SW Asia
+ S X=$$SETSTR^VALM1("SW Asia Conditions:",X,40,19)
+ S X=$$SETSTR^VALM1($$FYNUNK^SDUTL2($P(SD(.322),U,13)),X,SDSECCOL,20)
  D SET^SDAMEP1(X)
  D SET^SDAMEP1("")
  Q

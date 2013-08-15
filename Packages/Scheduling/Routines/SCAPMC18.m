@@ -1,5 +1,5 @@
 SCAPMC18 ;ALB/REW - Team APIs:ACPTCL ; 5 Jul 1995
- ;;5.3;Scheduling;**41,45,50,130,148**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,45,50,130,148,1015**;AUG 13, 1993;Build 21
  ;;1.0
 ACPTCL(DFN,SCCL,SCFIELDA,SCACT,SCERR) ;add a patient to a clinic (enrollment)
  ; input:

@@ -1,5 +1,5 @@
 DGSWITCH ;SF/GFT/MIR - SWITCH BEDS ; 5/17/88  10:54 AM ;
- ;;5.3;Registration;**128**;Aug 13, 1993
+ ;;5.3;Registration;**128,1015**;Aug 13, 1993;Build 21
  ;
 EN K ^UTILITY("DGPM",$J) S (DGSWITCH,DGOERR)=0,XQORQUIT=1 K ORACTION
  R !!,"SWITCH BED FOR PATIENT: ",X:DTIME G Q:X["^"!'$T!(X="") S DIC(0)="QZEM",DIC("S")="I $D(^(.1))" S DIC="^DPT(" D ^DIC G EN:Y'>0 S DFN=+Y

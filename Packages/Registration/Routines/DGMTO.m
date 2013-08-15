@@ -1,5 +1,5 @@
 DGMTO ;ALB/CAW - AGREE TO PAY DEDUCTABLE PRINT ; 8/12/92
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN I '$$RANGE(.DGYRAGO,.DGTODAY) G ENQ
  S %ZIS="PMQ" D ^%ZIS I POP G ENQ

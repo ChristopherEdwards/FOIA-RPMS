@@ -1,5 +1,5 @@
-BPXRMDRG ; IHS/CIA/MGH - Use V Meds in reminder resolution. ;25-Jan-2006 10:36;MGH
- ;;1.5;CLINICAL REMINDERS;**1003,1004**;Jun 19, 2000
+BPXRMDRG ; IHS/CIA/MGH - Use V Meds in reminder resolution. ;07-Feb-2012 14:48;MGH
+ ;;1.5;CLINICAL REMINDERS;**1003,1004,1008**;Jun 19, 2000;Build 25
  ;===================================================================
 VMEDS(DFN) ;EP  Find a patients meds in the V Med file
  ;Check each med to see if its already in the array
@@ -10,13 +10,15 @@ VMEDS(DFN) ;EP  Find a patients meds in the V Med file
  N ORDER,DRUG,SDATE,VMIEN,RXNUM,DSUP,DATE,RX
  Q:'$D(^AUPNVMED("AC",DFN))
  S (VMIEN,RXNUM)=0 F  S VMIEN=$O(^AUPNVMED("AC",DFN,VMIEN)) Q:VMIEN=""  D
+ .;IHS/MSC/MGH change for non-VA meds
+ .Q:+$P($G(^AUPNVMED(VMIEN,11)),U,8)
  .S RXNUM=$$RX(VMIEN)
  .I RXNUM="" D STORE
  Q
 RX(VIEN) ;Send the V Med ien and check it against the cross reference in
  ;the prescription file. If its not there, this med will need to be
  ;added to the list for the reminder
- S RX=0 S RX=$O(^PSRX("APCC",VIEN,RX))
+ S RX=0 S RX=$O(^PSRX("APCC",VMIEN,RX))
  Q RX
 STORE ;Store the needed data into XTMP for use in reminders
  N TEMP,STATUS,RDATE

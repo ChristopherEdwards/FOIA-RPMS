@@ -1,6 +1,9 @@
-LRAPTIUP ;VA/DALOI/WTY - API Print AP Reports from TIU;09/05/2001
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259**;Sep 27, 1994
+LRAPTIUP ;VA/DALOI/CKA - API Print AP Reports from TIU;09/05/2001
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 259,315
+ ;
+ ;Reference to TGET^TIUSRVR1 supported by IA #2944
  ; This API is used to extract Anatomic Pathology reports that have
  ; been stored in TIU and print them.
  ;
@@ -13,7 +16,7 @@ MAIN(LRTIUDA,LRDEV) ; Control Branching
  ;         0 indicates use device handling of calling application
  ;
  K ^TMP("LRTIU",$J),^TMP("LRTIUTXT",$J)
- N LRCNT,LRCNTT,LROR,LRFLG,LRTXT,LRHFLG,LRCNTF
+ N LRCNT,LRCNTT,LROR,LRFLG,LRTXT,LRHFLG,LRCNTF,LRVAL
  S LRDEV=+$G(LRDEV)
  S LRQUIT=0
  I '$G(LRTIUDA) D  Q
@@ -151,13 +154,16 @@ CHKSUM ;Compare LR and TIU checksums
  S LRIENS=LRTREC_","_LRIENS
  S LRCKSUM=$$GET1^DIQ(LRFILE,LRIENS,2)
  I LRCKSUM="" S LRCKSUM=0
- ;Calculate TIU checksum
- S TIUVAL="^TIU(8925,"_LRPTR_",""TEXT"")"
- S TIUCKSUM=$$CHKSUM^XUSESIG1(TIUVAL)
+ ;CKA-Calculate checksum of TIU report
+ S $P(^TMP("LRTIU",$J,LRTIUDA,"TEXT",0),U,5)=$P(^TMP("LRTIU",$J,LRTIUDA,1201,"I"),".")
+ S LRVAL="^TMP(""LRTIU"","_$J_","_LRTIUDA_",""TEXT"")"
+ S TIUCKSUM=$$CHKSUM^XUSESIG1(LRVAL)
  Q
 END ;
  W:IOST?1"P-".E @IOF
  I LRDEV D ^%ZISC S:$D(ZTQUEUED) ZTREQ="@"
  K ^TMP("LRTIU",$J),^TMP("LRTIUTXT",$J)
  K %,DIR,DTOUT,DUOUT,DIRUT,X,Y
+ K %ZIS,LRCKSUM,LRENCRYP,LRPTR,POP,TIUCKSUM
+ K ZTDESC,ZTQUEUED,ZTREQ,ZTRTN
  Q

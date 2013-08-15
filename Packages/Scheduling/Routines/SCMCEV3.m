@@ -1,5 +1,5 @@
 SCMCEV3 ;ALB/CMM - TEAM EVENT DRIVER UTILITIES ; 03/20/96
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;
 INVOKE(DFN) ;envokes Team Event Driver
  I '$D(^TMP($J,"SC CED",DFN,"BEFORE"))!('$D(^TMP($J,"SC CED",DFN,"AFTER"))) G EXIT

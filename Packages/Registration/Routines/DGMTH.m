@@ -1,5 +1,5 @@
 DGMTH ;ALB/CJM/TDM MEANS TEST HARDSHIP ; 8/29/02 4:54pm
- ;;5.3;Registration;**182,456**;Aug 13, 1993
+ ;;5.3;Registration;**182,456,1015**;Aug 13, 1993;Build 21
  ;
 FIND(DFN,DATE,STATUS) ;
  ;Finds the primary means test for the specified patient and date.

@@ -1,5 +1,5 @@
 DGPTFM8 ;ALB/MTC - PTF ADDITIONAL QUESTION DISPLAY FOR MAS SCREEN ; 25 APR 91
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**729,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine has two entry points WD3 and SD3, called from
  ; DGPTFM. This entry points will display Additional PTF information
@@ -36,7 +36,7 @@ SD3Q K DGSUR,DGL
  Q
 KID ;-- kidney transplant source
  W:('DGL)&($X>0) !
- I $D(^DGPT(PTF,"S",DGSUR,300)),$P(^(300),U)]"" W ?DGL*40+2,"Kidney - "_$S(+^(300)=1:"Live Donor",1:"Cadavar")
+ I $D(^DGPT(PTF,"S",DGSUR,300)),$P(^(300),U)]"" W ?DGL*40+2,"Kidney - "_$S(+^(300)=1:"Live Donor",1:"Cadaver")
  Q
 PRN2 ;-- display additional PTF question infomation
  I $P(DG300,U,2)]"" W !,"Self Injury - "_$S($P(DG300,U,2)=1:"Attempted Suicide",$P(DG300,U,2)=2:"Accomplished Suicide",1:"Self Inflicted Injury")
@@ -49,6 +49,6 @@ PRNQ2 ;
  K DGI,DGPSY
  Q
 PRN3 ;-- print kidney additional question
- I $P(DG300,U)]"" W !,"Kidney - "_$S(+DG300=1:"Live Donor",1:"Cadavar")
+ I $P(DG300,U)]"" W !,"Kidney - "_$S(+DG300=1:"Live Donor",1:"Cadaver")
 PRNQ3 ;
  Q

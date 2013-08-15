@@ -1,5 +1,5 @@
-DGMTU4 ;ALB/CJM,SCG,LBD MEANS TEST UTILITES ; June 1, 1994
- ;;5.3;Registration;**182,267,285,347,454,456,476**;Aug 13, 1993
+DGMTU4 ;ALB/CJM,SCG,LBD,EG,PHH MEANS TEST UTILITES ; 06/07/2005
+ ;;5.3;Registration;**182,267,285,347,454,456,476,610,658,1015**;Aug 13, 1993;Build 21
  ;
 GETSITE(DUZ) ;
  ;Descripition:  Gets the users station number.  If not found, it will
@@ -9,11 +9,19 @@ GETSITE(DUZ) ;
  ;      DUZ array, pass by reference
  ;Output:
  ;      Function Value - station number with suffix
- N FACILITY,STATION
+ N FACILITY,STATION,CURSTN,CHILD,CIEN
  S FACILITY=""
  S:($G(DUZ)'=.5) FACILITY=$G(DUZ(2))
  I 'FACILITY S FACILITY=+$$SITE^VASITE()
- S:FACILITY STATION=$P($G(^DIC(4,FACILITY,99)),"^")
+ S:FACILITY STATION=$$STA^XUAF4(FACILITY)
+ S CURSTN=$P($$SITE^VASITE,"^",3)
+ I $D(STATION) D
+ .I STATION']"" D
+ ..D CHILDREN^XUAF4("CHILD","`"_FACILITY,"PARENT FACILITY")
+ ..S CIEN=0 F  S CIEN=$O(CHILD("C",CIEN)) Q:'CIEN  I CIEN=CURSTN S STATION=$$STA^XUAF4(CIEN) Q
+ ..I STATION']"" D
+ ...D CHILDREN^XUAF4("CHILD","`"_FACILITY,"VISN")
+ ...S CIEN=0 F  S CIEN=$O(CHILD("C",CIEN)) Q:'CIEN  I CIEN=CURSTN S STATION=$$STA^XUAF4(CIEN) Q
  Q $G(STATION)
  ;
 DATETIME(MTIEN) ;
@@ -95,10 +103,17 @@ MTPRIME(MTIEN) ;
  ;mark this test as primary
  K DATA S DATA(2)=1 I $$UPD^DGENDBS(408.31,MTIEN,.DATA)
  ;
- ;get Last Primary Means Test irrespective of income year and
- ;if STATUS is REQUIRED & test is PRIMARY then set to NON primary
+ ; Get Last Primary Means Test irrespective of income year
  S LSTNODE=$$LST^DGMTU(DFN)
- I $P(LSTNODE,U,4)="R",+$G(^DGMT(408.31,+LSTNODE,"PRIM")) D
+ ;if STATUS is REQUIRED & test is PRIMARY, then set it to NOT PRIMARY
+ ;if the uploaded test is MT COPAY REQUIRED
+ ; MT COPAY (CAT C) doesn't expire, which is why you have to 
+ ; flip the test to Not Primary eg 02/01/2005
+ I $P(LSTNODE,U,4)="R",+$G(^DGMT(408.31,+LSTNODE,"PRIM")),$P(^DGMT(408.31,MTIEN,0),U,3)=6 D
+ . N DATA S DATA(2)=0 I $$UPD^DGENDBS(408.31,+LSTNODE,.DATA)
+ ;if means test is required and test is primary and not a CAT C, 
+ ;and it hasn't expired, flip the test to Not Primary eg 02/23/2005
+ I $P(LSTNODE,U,4)="R",+$G(^DGMT(408.31,+LSTNODE,"PRIM")),$P(^DGMT(408.31,MTIEN,0),U,3)'=6,'$$OLD(MTDATE) D
  . N DATA S DATA(2)=0 I $$UPD^DGENDBS(408.31,+LSTNODE,.DATA)
  ;
  ;If this is a Z10 upload, call the means test event driver and quit.
@@ -196,8 +211,10 @@ QRXPRIME ;
  ;
 OLD(TESTDATE) ;
  ;Checks if the date is older than 365 days.  Returns 0 for no, 1 for yes
- ;
- Q ($$FMDIFF^XLFDT(DT,TESTDATE)>365)
+ ;if the test is exactly 365 days, 
+ ;it is considered expired eg 03/09/2005
+ I ($$FMDIFF^XLFDT(DT,TESTDATE)'<365) Q 1
+ Q 0
  ;
 TRANSFER(DFN,FROM,TO) ;
  ;transfers the Income Relations from the test=FROM to test=TO

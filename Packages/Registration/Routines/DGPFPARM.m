@@ -1,5 +1,5 @@
-DGPFPARM ;ALB/RPM - PRF PARAMETER FILE EDIT ; 4/30/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFPARM ;ALB/RPM - PRF PARAMETER FILE EDIT ; 5/5/05 12:27pm
+ ;;5.3;Registration;**425,554,1015**;Aug 13, 1993;Build 21
  ;
  Q  ;no direct entry
  ;
@@ -57,7 +57,7 @@ ORUON() ;Used to determine if ORU~R01 HL7 interface is 'enabled'.
  ;
 QRYON() ;Used to determine if QRY~R02 HL7 interface is 'enabled'.
  ;
- ;This function verifies that the PRF software is active and  then
+ ;This function verifies that the PRF software is active and then
  ;returns the state of the QRY HL7 inteface in the PRF PARAMETERS
  ;(#26.18) file.
  ;
@@ -71,3 +71,29 @@ QRYON() ;Used to determine if QRY~R02 HL7 interface is 'enabled'.
  ;
  Q:'$$ON() 0
  Q +$P($G(^DGPF(26.18,1,0)),U,4)
+ ;
+P2ON() ;Used to determine if the PRF Phase 2 software is 'active'.
+ ;
+ ; Supported References:
+ ;   DBIA #4440 KERNEL SYSTEM PARAMETERS (PROD^XUPROD())
+ ;
+ ;  Input: None
+ ;
+ ;  Output:
+ ;   Function Value - 1 = 'Active', 0 = 'Not Active'
+ ;
+ N DGACT   ;activation date
+ N DGRESULT  ;function value
+ ;
+ S DGRESULT=0
+ ;
+ ;- get software activation date from PRF PARAMETERS (#26.18) file
+ S DGACT=+$P($G(^DGPF(26.18,1,0)),U,7)
+ ;
+ ;- check if activation is past current date in production
+ I $$PROD^XUPROD() D     ;production account
+ . Q:('DGACT)!(DT<DGACT)
+ . S DGRESULT=1
+ E  S DGRESULT=1           ;test account: always 'active'
+ ;
+ Q DGRESULT

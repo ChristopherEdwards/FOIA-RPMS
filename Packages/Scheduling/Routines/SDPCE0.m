@@ -1,5 +1,5 @@
 SDPCE0 ;MJK/ALB - Process PCE Event Data ;01 APR 1993
- ;;5.3;Scheduling;**27**;08/13/93
+ ;;5.3;Scheduling;**27,1015**;08/13/93;Build 21
  ;
  ; -- Variable definitions for SDPCE routines
  ; SDVIST    - visit file ien

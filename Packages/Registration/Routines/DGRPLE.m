@@ -1,5 +1,5 @@
-DGRPLE ;WAS/ERC/RMM - REGISTRATION EDITS OF PURPLE HEART FIELDS ;03/20/2002
- ;;5.3;Registration;**314,343,377,431**;Aug 13, 1993
+DGRPLE ;WAS/ERC/RMM,ALB/CKN - REGISTRATION EDITS OF PURPLE HEART FIELDS ; 11/22/05 4:13pm
+ ;;5.3;PIMS;**314,343,377,431,653,688,1015,1016**;JUN 30, 2012;Build 20
  ;
 DIV() ;Get Institution Name
  ;If site is multi-divisional then ask user for division
@@ -30,6 +30,33 @@ MULTDIV() ;User selects from active divisions
  S DIR("S")="I $$SITE^VASITE(,+Y)>0"
  D ^DIR
  Q +Y
+ ;
+EDITPOW(DG1,DG2,DG3,DG4,DGDFN) ;entry from enrollment for HEC updates
+ ;    DGDFN - Patient File IEN
+ ;    DG1   - POW Indicator
+ ;    DG2   - POW Confinement Location
+ ;    DG3   - POW From Date
+ ;    DG4   - POW To Date
+ ; Update POW data from HEC - DG*5.3*653
+ N DATA,DGENDA,ERROR,CURPOW,POW
+ S DGENDA=DGDFN
+ S CURPOW=$G(^DPT(DGDFN,.52))
+ S POW(.525)=$P(CURPOW,"^",5) ;Current POW indicator
+ S POW(.529)=$P(CURPOW,"^",9) ;Current POW verified status
+ S DATA(.525)=$G(DG1)
+ ;If Current POW Verified Status is null,
+ ;OR Current POW Verified Status is not null and incoming POW indicator is different than current POW indicator,
+ ;set POW Verified Status to current Date/Time.
+ I (POW(.529)="")!((POW(.529)'="")&(DG1'=POW(.525))) S DATA(.529)=$$NOW^XLFDT()
+ ;Remove the values in database if POW Indicator is NO
+ ;otherwise update new values
+ S DATA(.526)=$S(DG1="N":"@",1:DG2)
+ S DATA(.527)=$S(DG1="N":"@",1:DG3)
+ S DATA(.528)=$S(DG1="N":"@",1:DG4)
+ I '$$UPD^DGENDBS(2,.DGENDA,.DATA,.ERROR) D
+ . D ADDMSG^DGENUPL3(.MSGS,"Unable to update POW Data.",1)
+ K DATA,DGENDA,ERROR,DG1,DG2,DG3,DG4
+ Q
  ;
 EDITPH(DG1,DG2,DG3,DGDFN) ;entry from enrollment for HEC updates
  ;    DGDFN - Patient File IEN

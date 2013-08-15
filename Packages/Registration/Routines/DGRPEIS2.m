@@ -1,5 +1,5 @@
-DGRPEIS2 ;ALB/MIR - EDIT INCOME SCREENING DATA (SCREEN 9) ; 13 APRIL 92
- ;;5.3;Registration;**10,45,122**;Aug 13, 1993
+DGRPEIS2 ;ALB/MIR,ERC - EDIT INCOME SCREENING DATA (SCREEN 9) ; 4/20/06 10:37am
+ ;;5.3;PIMS;**10,45,122,653,688,1015,1016**;JUN 30, 2012;Build 20
  ;  -Called from DGRPE to edit Scr #9 (Income Screening)
 EDIT9 ; Allow edit of income screening amounts (called from DGRPE)
  ; In: DFN
@@ -8,9 +8,19 @@ EDIT9 ; Allow edit of income screening amounts (called from DGRPE)
  ;     DGRPSELT (maybe) as type of dependent selected (V=vet,
  ;        S=spouse, and D=dependent).  If not defined, it is set
  ;        to DGRPSEL.
+ N MTVER,DGMTI,DGTY,DGIAIYR,DGTYEXT
  I 'DGRPANN Q  ; if no string passed in (nothing selected)
  S DGRPSELT=$G(DGRPSELT) I DGRPSELT']"" S DGRPSELT=DGRPSEL ; if no V, S, or D preface, edit all
  D ALL^DGMTU21(DFN,"VSD",DT,"IP")
+ S DGIAIYR=$P($G(^DGMT(408.21,+$G(DGINC("V")),0)),"^",1)
+ S DGIAIYR=$E(DGIAIYR,1,3)+1700
+ S DGMTI=+$$LST^DGMTU(DFN,DT)
+ I (+DGMTI>0),(+DGIAIYR>0) DO
+ . S DGTY=$E($P(^DGMT(408.31,+DGMTI,0),"^",1),1,3)
+ . S DGTYEXT=DGTY+1700
+ . S:(DGTYEXT=DGIAIYR+1) MTVER=$P($G(^DGMT(408.31,+DGMTI,2)),"^",11)
+ . S:(DGTYEXT'=(DGIAIYR+1)) MTVER=$$VER^DGMTUTL3(.DGINC)
+ I (+DGMTI'>0)!(+DGIAIYR'>0) S MTVER=$$VER^DGMTUTL3(.DGINC)
  I '$G(DGREL("V")) D HELP^DGRPEIS3 G EDIT9Q
  I DGRPSELT["V" S DGPRI=+DGREL("V"),DGMTED=$D(DGMTED("V")) D EDT
  I '$G(DGRPOUT)&(DGRPSELT["S") S DGPRI=+DGREL("S"),DGMTED=$D(DGMTED("S")) D EDT
@@ -25,7 +35,10 @@ EDT ;Edit inc and nt worth
  D GETIENS^DGMTU2(DFN,+DGPRI,DGTSTDT) G EDTQ:DGERR
  I DGRPSELT]"" W !!,"NAME: ",$$NAME^DGMTU1(DGPRI)
  I DGMTED W "    [Must edit through means test!!]" Q
- S DA=DGINI,DIE="^DGMT(408.21,",DR="[DGRP ENTER/EDIT ANNUAL INCOME]" D ^DIE S:'$D(DGFIN) DGRPOUT=1
+ S DA=DGINI,DIE="^DGMT(408.21,"
+ S:(+MTVER<1) DR="[DGRP ENTER/EDIT ANNUAL INCOME]"
+ S:(+MTVER=1) DR="[DGRP V1 ENTER/EDIT ANNUAL INC]"
+ D ^DIE S:'$D(DGFIN) DGRPOUT=1
  I $D(DTOUT) S DGFL=-2,DGRPOUT=1 Q
  I 'DGRPOUT S DR="103////^S X=DUZ;104///^S X=""NOW""" D ^DIE
  I 'DGRPOUT&'$D(DGINC("V")) D GETIENS^DGMTU2(DFN,+DGREL("V"),DT) S DGINC("V")=DGINI G:DGERR EDTQ
@@ -62,13 +75,41 @@ ACT ; ask date active as of (use dob if KIDS)
 READ ; get active as of date
  ; DIR("B") set before entry
  ; DOB passed in as input
- N DGDT,DGISDT,DGDTSPEC
+ N DGDT,DGISDT,DGDTSPEC,VDOB
  I '$D(DGTSTDT) N DGTSTDT S DGTSTDT=$S($D(DGMTDT):DGMTDT,1:DT)
  S DGDT=$E(DGTSTDT,1,3)-1_"1231",DGISDT=$E(DGDT,1,3)+1700,DGACT=DOB
  S DGDTSPEC=$S($G(DGEDDEP):":EPX",1:":EP")
- S DIR(0)="D^"_DOB_":"_DGDT_DGDTSPEC,DIR("A")="EFFECTIVE DATE"
+ ;S DIR(0)="D^"_DOB_":"_DGDT_DGDTSPEC,DIR("A")="EFFECTIVE DATE"
+ S DIR(0)="D^"_DOB
+ I RELATION=2 S VDOB=$P($G(^DPT(DFN,0)),"^",3) S:(VDOB>DOB) $P(DIR(0),"^",2)=VDOB
+ S DIR(0)=DIR(0)_":"_DGDT_DGDTSPEC,DIR("A")="EFFECTIVE DATE"
  S DIR("?")="^D HELP1^DGRPEIS3(DGISDT)"
  D ^DIR K DIR I Y'>0 S DGFL=$S($D(DTOUT):-2,$D(DUOUT)!$D(DIRUT):-1,1:0) G ACTQ:DGFL,READ
  S DGACT=Y
 ACTQ K DIRUT,DTOUT,DUOUT
  Q
+RELTYPE(RELIEN,TYPE) ;* Return type of relationship
+ ;
+ ;* INPUT
+ ;    RELIEN - IEN from Income Person file (408.13)
+ ;    TYPE   - 0: Pull specific relationship from Relationship file
+ ;           - 1: Just return "spouse", "child", "dependent"
+ ;
+ ;* OUTPUT
+ ;    DGPATREL - Relationship value
+ ;
+ N DGPTRLIN,DGRELIEN,DGPATREL
+ S TYPE=+$G(TYPE)
+ I +$G(RELIEN)>0 DO
+ .S DGPTRLIN=""
+ .S DGPTRLIN=$O(^DGPR(408.12,"C",RELIEN_";DGPR(408.13,",DGPTRLIN))
+ .S DGRELIEN=$P($G(^DGPR(408.12,DGPTRLIN,0)),"^",2)
+ .S DGPATREL=$P($G(^DG(408.11,DGRELIEN,0)),"^",1)
+ .S:DGPATREL']"" DGPATREL="dependent"
+ .I +TYPE=1 S DGPATREL=$S(DGPATREL["SPOUSE":"spouse",($G(DGRPS)=8):"relative",$G(DGSCR8):"relative",1:"child")
+ I +$G(RELIEN)'>0 DO
+ .S:$G(DGANS)="S" DGPATREL="spouse"
+ .S:$G(DGANS)="C" DGPATREL="child"
+ .S:$G(DGANS)="D" DGPATREL="relative"
+ S:DGPATREL="" DGPATREL="relative"
+ Q DGPATREL

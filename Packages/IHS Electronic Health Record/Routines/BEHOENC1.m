@@ -1,5 +1,5 @@
-BEHOENC1 ;MSC/IND/DKM - Visit Creation Support ;02-Sep-2011 08:57;PLS
- ;;1.1;BEH COMPONENTS;**005004;Sep 18, 2007
+BEHOENC1 ;MSC/IND/DKM - Visit Creation Support ;16-Jul-2009 17:58;PLS
+ ;;1.1;BEH COMPONENTS;**005004;20-Aug-2007 08:41
  ;=================================================================
  ; Visit creation API
 GETVISIT(IN,OUT) ;

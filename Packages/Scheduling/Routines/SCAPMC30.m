@@ -1,5 +1,5 @@
 SCAPMC30 ;ALB/REW - TEAM APIs:TPCL  ; 30 Jun 95
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,520,1015**;AUG 13, 1993;Build 21
  ;;1.0
 TPCL(SC44,SCDATES,SCPOSA,SCUSRA,SCPURPA,SCROLEA,SCLIST,SCERR) ;  -- list of positions for a clinic
  ; input:
@@ -57,7 +57,7 @@ ST N SCPTTP,SCPTTP0,SCTP,SCR,SCACTHIS,SCTM,SCND,SCU,SCOK,SCP,SCTPCL
  ; -- initialize control variables
  S SCOK=1
  G:'$$OKDATA CLTPQ
- S SCTP=0 F  S SCTP=$O(^SCTM(404.57,"D",SC44,SCTP)) Q:'SCTP  D  Q:'SCOK
+ S SCTP=0 F  S SCTP=$O(^SCTM(404.57,"E",SC44,SCTP)) Q:'SCTP  D  Q:'SCOK
  .S SCTP0=$G(^SCTM(404.57,SCTP,0))
  .IF '$L(SCTP0) D
  ..S SCPARM("POSITION")=$G(SCTP,"Undefined")

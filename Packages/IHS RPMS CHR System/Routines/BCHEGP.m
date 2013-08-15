@@ -1,5 +1,5 @@
-BCHEGP ; IHS/CMI/TUCSON - group preventive services group form ; [ 07/21/05  7:43 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**16**;OCT 28, 1996
+BCHEGP ; IHS/CMI/LAB - group preventive services group form ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
 START ;
  D INIT
@@ -9,7 +9,7 @@ START ;
  D ^BCHEGP1
  ;print forms?
 PRINT ;
- W !! S DIR(0)="Y",DIR("A")="Do you wish to PRINT a hard copy encounter form for each patient in the group",DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ W !! S DIR(0)="Y",DIR("A")="Do you wish to PRINT a hard copy encounter form for each patient in the group",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  Q:$D(DIRUT)
  Q:'Y
  S XBRP="PRINT1^BCHEGP",XBRC="",XBRX="EOJ^BCHEGP",XBNS="BCH"
@@ -52,18 +52,19 @@ GETDATA ; GET LOCATION OF ENCOUNTER
 EDIT ;
  S DA=BCHFID,DDSFILE=90002.97,DR="[BCH GROUP ENTRY]" D ^DDS
  I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S BCHQUIT=1 K DIMSG Q
- S C=0 I '$O(^BCHGROUP(BCHFID,91,0)) W !!,"At least one POV is required!" S C=1
+ S C=0 I '$O(^BCHRGAS("AD",BCHFID,0)) W !!,"At least one POV is required!" S C=1
  F X=1:1:4,6,11,12 I $P(^BCHGROUP(BCHFID,0),U,X)="" S C=1
- S Y=0 F  S Y=$O(^BCHGROUP(BCHFID,91,Y)) Q:Y'=+Y  F X=1:1:4 I $P(^BCHGROUP(BCHFID,91,Y,0),U,X)="" S C=1
- I C W !!,"Not all required data elements have been entered." D  G:Y="E" EDIT W !,"Deleting group definition..." S DA=BCHFID,DIK="^BCHGROUP" D ^DIK K DIK,DA S BCHQUIT=1 K DIR S DIR(0)="E" D ^DIR K DIR
+ S Y=0 F  S Y=$O(^BCHRGAS("AD",BCHFID,Y)) Q:Y'=+Y  F X=1,4,5,6 I $P(^BCHRGAS(Y,0),U,X)="" S C=1
+ I C W !!,"Not all required data elements have been entered." D  G:Y="E" EDIT W !,"Deleting group definition..." D DELGRP Q
  .S DIR(0)="S^E:Edit and Complete the Group Definition;D:Delete the Incomplete Definition",DIR("A")="What do you want to do",DIR("B")="E" KILL DA D ^DIR KILL DIR
- .I $D(DIRUT) S Y="L"
+ .I $D(DIRUT) S Y="D"
  .Q
  Q:$D(BCHQUIT)
  S BCHNUM=$P(^BCHGROUP(BCHFID,0),U,12)
  ;DISPLAY AND CONFIRM
  W !!,"I am going to ask you to enter ",BCHNUM," patient names.  I will then create a",!,"record in the CHR file for each patient.  The record will contain the",!,"following information: ",!
- S DIC="^BCHGROUP(",DA=BCHFID,DR="0;91" D EN^DIQ K DIC
+ S DIC="^BCHGROUP(",DA=BCHFID,DR="0" D EN^DIQ K DIC
+ S BCHX=0 F  S BCHX=$O(^BCHRGAS("AD",BCHFID,BCHX)) Q:BCHX'=+BCHX  S DA=BCHX,DIC="^BCHRGAS(",DR=0 D EN^DIQ K DIC
  K DIR,DA,DTOUT,DIRUT,DUOUT,DIC,X,Y S DIR(0)="Y",DIR("A")="Do you wish to continue",DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  I $D(DIRUT) S BCHQUIT=1 Q
  I 'Y S BCHQUIT=1 Q
@@ -123,4 +124,9 @@ RXIT ;
  D EN^XBVK("BCH")
  D ^XBFMK
  D KILL^AUPNPAT
+ Q
+DELGRP ;
+ NEW BCHX
+ S BCHX=0 F  S BCHX=$O(^BCHRGAS("AD",BCHFID,BCHX)) Q:BCHX'=+BCHX  S DIK="^BCHRGAS(",DA=BCHX D ^DIK
+ S DA=BCHFID,DIK="^BCHGROUP" D ^DIK K DIK,DA S BCHQUIT=1 K DIR S DIR(0)="E" D ^DIR K DIR
  Q

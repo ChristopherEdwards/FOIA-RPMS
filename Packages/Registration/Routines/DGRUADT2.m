@@ -1,5 +1,5 @@
 DGRUADT2 ;ALB/GRR - Logic for editing admit, discharge, or transfer; 7-8-99
- ;;5.3;Registration;**190,328,373,430**;Aug 13, 1993
+ ;;5.3;Registration;**190,328,373,430,1015**;Aug 13, 1993;Build 21
  ;
 EDITADT ; Entry point for generating HL7 ADT messages to the COTS system
  ; whenever an existing patient movement is edited.  Multiple messages

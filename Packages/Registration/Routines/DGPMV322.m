@@ -1,5 +1,5 @@
 DGPMV322 ;ALB/MIR - DELETE INCOMPLETE ASIH XFR ; JUL 15 90@8
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 UNDO ;if timeout during creation of ASIH admit, back out movements and correct PTF
  W !!,*7,*7,"Time-out during ASIH movement...now deleting transfer and admission"
  S DGPMAI=$P(DGPMA,"^",14),DGPMAA=$S($D(^DGPM(+DGPMAI,0)):^(0),1:"")

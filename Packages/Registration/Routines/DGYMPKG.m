@@ -1,5 +1,5 @@
 DGYMPKG ;ALB/MLI - Clean-up MAS package names ; 3/28/95@1340
- ;;5.3;Registration;**56**;Aug 13, 1993
+ ;;5.3;Registration;**56,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine cleans up old entries in the package file for
  ; all MAS package file entries (DG, DPT, SD).  If there are

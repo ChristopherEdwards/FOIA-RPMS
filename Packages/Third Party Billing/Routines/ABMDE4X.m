@@ -1,5 +1,5 @@
 ABMDE4X ; IHS/ASDST/DMJ - Edit Page 4 - Providers DATA CK ;    
- ;;2.6;IHS Third Party Billing;**1,3,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,8,9**;NOV 12, 2009
  ;
  ; IHS/DSD/LSL - 05/20/98 - NOIS HQW-0598-100109
  ;               Modified to check file 200, payer assigned provider
@@ -39,7 +39,8 @@ ERR S ABME("TITL")="PAGE 4 - PROVIDER INFORMATION"
  .S ABM("NUM")=ABM("I")
  .D SEL
  I '$D(ABM("A")) D
- .Q:ABMP("EXP")=22  ;abm*2.6*3 HEAT12442
+ .;Q:ABMP("EXP")=22  ;abm*2.6*3 HEAT12442  ;abm*2.6*9 HEAT57734
+ .Q:ABMP("EXP")=22!(ABMP("EXP")=32)  ;abm*2.6*3 HEAT12442  ;abm*2.6*9 HEAT57734
  .S ABME(92)=""
 OP I '$D(^ABMDCLM(DUZ(2),ABMP("CDFN"),41,"C","O")),$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),19,0)),ABMP("PAGE")'[8 S ABME(2)=""
  I ABMP("EXP")=2!(ABMP("EXP")=3)!(ABMP("EXP")=14),$P(^ABMDPARM(DUZ(2),1,0),U,17)=2 K ABME
@@ -78,14 +79,23 @@ DR ;PHYSICIAN'S PROVIDER NUMBER
  .S:ABMP("INS")'="" ABMP("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)
  .S:ABMP("EXP")="" ABMP("EXP")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,14)
  .S:ABMP("LDFN")="" ABMP("LDFN")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,3)
- .I ABMP("VTYP")=999 D
- ..I $G(ABMP("ITYP"))="R" D  ;abm*2.6*1 NO HEAT
- ..;I $G(ABMP("ITYP"))="R",(ABMNPIUS'="N") D  ;abm*2.6*1 NO HEAT
- ...I +ABMP("EXP"),(($P($G(^ABMDEXP(+ABMP("EXP"),0)),U)["HCFA")!($P($G(^ABMDEXP(+ABMP("EXP"),0)),U)["CMS")) D
- ....S ABM("PNUM")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),3,+ABM("X0"),0)),U,2)
- ....S:ABM("PNUM")="" ABME(189)=""
- ..I $P(^AUTNINS(ABMP("INS"),0),U)["OKLAHOMA MEDICAID" D
+ .;start old code abm*2.6*9 NOHEAT
+ .;I ABMP("VTYP")=999 D
+ .;.I $G(ABMP("ITYP"))="R" D  ;abm*2.6*1 NOHEAT
+ .;.;I $G(ABMP("ITYP"))="R",(ABMNPIUS'="N") D  ;abm*2.6*1 NOHEAT
+ .;..I +ABMP("EXP"),(($P($G(^ABMDEXP(+ABMP("EXP"),0)),U)["HCFA")!($P($G(^ABMDEXP(+ABMP("EXP"),0)),U)["CMS")) D
+ .;...S ABM("PNUM")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),3,+ABM("X0"),0)),U,2)
+ .;...S:ABM("PNUM")="" ABME(189)=""
+ .;.I $P(^AUTNINS(ABMP("INS"),0),U)["OKLAHOMA MEDICAID" D
+ .;..S ABM("PNUM")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),3,+ABM("X0"),0)),U,2)
+ .;end old start new abm*2.6*9
+ .I $G(ABMP("ITYP"))="R",ABMP("VTYP")=999 D
+ ..I +ABMP("EXP"),(($P($G(^ABMDEXP(+ABMP("EXP"),0)),U)["HCFA")!($P($G(^ABMDEXP(+ABMP("EXP"),0)),U)["CMS")) D
  ...S ABM("PNUM")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),3,+ABM("X0"),0)),U,2)
+ ...S:ABM("PNUM")="" ABME(189)=""
+ .I $P(^AUTNINS(ABMP("INS"),0),U)["OKLAHOMA MEDICAID" D
+ ..S ABM("PNUM")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),3,+ABM("X0"),0)),U,2)
+ ;end new ABM*2.6*9
  I $G(ABM("PNUM"))="" D
  .S ABM("PNUM")=$P($G(^VA(200,+ABM("X0"),9999999.18,+ABMP("INS"),0)),"^",2)
  I ABM("PNUM")="" D

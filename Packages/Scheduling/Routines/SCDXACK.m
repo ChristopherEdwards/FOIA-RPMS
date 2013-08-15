@@ -1,5 +1,5 @@
 SCDXACK ;ALB/JRP - HL7 BATCH ACKNOWLEDGEMENT HANDLER;26-APR-1996 ; 21 Apr 2000  1:01 PM
- ;;5.3;Scheduling;**44,121,128,215**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,121,128,215,1015**;AUG 13, 1993;Build 21
  ;
 ACKZ00 ;Process batch acknowledgements from National Patient Care Database
  ;

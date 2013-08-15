@@ -1,5 +1,5 @@
-SCRPTA ;ALB/CMM - Patient Listing w/Team Assignment Data ; 29 Jun 99  04:11PM [ 11/02/2000  9:48 AM ]
- ;;5.3;Scheduling;**41,48,52,114,174,181,177**;AUG 13, 1993
+SCRPTA ;ALB/CMM - Patient Listing w/Team Assignment Data ; 29 Jun 99  04:11PM
+ ;;5.3;Scheduling;**41,48,52,114,174,181,177,526,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/02/2000 changed 132 column message
  ;                        added call to list template
  ;                        moved PT ID column to fit 6 digits
@@ -154,7 +154,7 @@ HEADER ;
 SHEAD ;
  ;setup column headers
  S @STORE@("H2")="Patient Name"
- ;S $E(@STORE@("H2"),24)="Pt ID" ;IHS/ANMC/LJF 11/2/2000
+ ;S $E(@STORE@("H2"),19)="Pt ID"
  S $E(@STORE@("H2"),23)="Pt ID"  ;IHS/ANMC/LJF 11/2/2000
  S $E(@STORE@("H1"),31)="Date"
  S $E(@STORE@("H2"),31)="Assigned"

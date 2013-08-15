@@ -1,5 +1,5 @@
 BDGAPI ; IHS/ANMC/LJF - PATIENT MOVEMENT API'S ;  [ 09/26/2002  12:59 PM ]
- ;;5.3;PIMS;**1010**;APR 26, 2002
+ ;;5.3;PIMS;**1010,1016**;APR 26, 2002;Build 20
  ;
  ;cmi/flag/maw 08/31/2009 PATCH 1010 changed references of UB92 to UB04
  ;
@@ -242,8 +242,9 @@ ADMT ; -- check admit types/source
  I Y<1 S ERR=2_U_"Invalid Admission Source: "_BDGR("UBAS") Q
  ;
  ; IHS admit type derived from admission source
- S X=$$GET1^DIQ(9999999.53,+Y,.03,"I")   ;crosswalk to IHS admit type
- I $$GET1^DIQ(405.1,+X,.02,"I")=1 S BDGR("ADMT")=$$GET1^DIQ(405.1,+X,9999999.1)
+ I '$G(BDGR("ADMT")) D  ;ihs/cmi/maw 12/6/2012 for BMW GUI ADT
+ . S X=$$GET1^DIQ(9999999.53,+Y,.03,"I")   ;crosswalk to IHS admit type
+ . I $$GET1^DIQ(405.1,+X,.02,"I")=1 S BDGR("ADMT")=$$GET1^DIQ(405.1,+X,9999999.1)
  I '$G(BDGR("ADMT")) S ERR=2_U_"IHS Admit Type INVALID: BDGR(UBAS)="_BDGR("UBAS") Q
  ;
  I (BDGR("ADMT")=2)!(BDGR("ADMT")=3)!(BDGR("UBAS")=7) D  Q:+ERR=2

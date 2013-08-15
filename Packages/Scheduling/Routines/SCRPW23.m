@@ -1,5 +1,5 @@
 SCRPW23 ;RENO/KEITH - ACRP Ad Hoc Report (cont.) ; 15 Jul 98  02:38PM
- ;;5.3;Scheduling;**144**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,474,1015**;AUG 13, 1993;Build 21
 DIRB(SDFL) ;Get default values for range
  ;Required input: SDFL="F" for first, "L" for last
  N SDX S SDX=$O(SDPAR("X",SDS2,$S(SDDV:5,1:4),""),$S(SDFL="F":1,1:-1)) Q $S(SDX=""!'SDDV:SDX,1:SDPAR("X",SDS2,5,SDX))
@@ -56,10 +56,14 @@ D ;Get date values
  I '$L(Y) S SDNUL=1 Q
  S SDX=Y X ^DD("DD") S SDX=SDX_U_Y X:$L($P(SDACT,T,8)) $P(SDACT,T,8) Q
  ;
-P ;Get pointer values
- N DIC M DIC=SDIRQ S DIC=$P(SDACT,T,3),DIC(0)="AEMQ",DIC("S")=$P(SDACT,T,4) K:'$L(DIC("S")) DIC("S") D ^DIC I $D(DTOUT)!$D(DUOUT) S SDOUT=1 Q
+P ;Get pointer values ;SD*5.3*474 added PSCRN to screen certain status types
+ N DIC M DIC=SDIRQ S DIC=$P(SDACT,T,3),DIC(0)="AEMQ",DIC("S")=$P(SDACT,T,4) K:'$L(DIC("S")) DIC("S") D:DIC="^SD(409.63," PSCRN D ^DIC I $D(DTOUT)!$D(DUOUT) S SDOUT=1 Q
  I Y'>0 S SDNUL=1 Q
  S SDX=Y X:$L($P(SDACT,T,8)) $P(SDACT,T,8) Q
+ ;
+PSCRN ;screen out the 4 cancellation type status' SD*5.3*474
+ S DIC("S")="I $P(^(0),U,2)'=""C"",$P(^(0),U,2)'=""CA"",$P(^(0),U,2)'=""PC"",$P(^(0),U,2)'=""PCA"""
+ Q
  ;
 F ;Get field values
  N DIR M DIR=SDIRQ S DIR(0)=$P(SDACT,T,3) S:$L($G(SDIRB)) DIR("B")=SDIRB D ^DIR I $D(DTOUT)!$D(DUOUT) S SDOUT=1 Q

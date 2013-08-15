@@ -1,5 +1,5 @@
-SCMCMU3 ;ALB/MJK - Discharge Patient from Clinic ;7/20/98  11:24 ;
- ;;5.3;Scheduling;**148,157**;AUG 13, 1993
+SCMCMU3 ;ALB/MJK - Discharge Patient from Clinic ; 1/27/05 9:55am
+ ;;5.3;Scheduling;**148,157,346,1015**;AUG 13, 1993;Build 21
  ;
 EN(DFN,SCCLN,SCDATE,SCREA) ; -- main entry point
  N SCENR,SCENR0,SCRET
@@ -22,26 +22,34 @@ EN(DFN,SCCLN,SCDATE,SCREA) ; -- main entry point
 ENQ Q $G(SCRET,$$ERR(3))
  ;
 DISCH(DFN,SCCLN,SCDATE,SCENR,SCREA) ; -- discharge from clinic
- N SCDT,SCDT0,SCDAT,SCDAT0,DIE,DA,DR,Y,SCNODE,SCRET
- ; 
+ ;initialize variables
+ N SCDT,SCDT0,SCDAT,SCDAT0,DIE,DA,DR,Y,SCNODE,SCRET,SCARRAY,SCCOUNT
+ K ^TMP($J,"SDAMA301")
  ; -- check for future apps
- S SCDT=DT+.24
- F  S SCDT=$O(^DPT(DFN,"S",SCDT)) Q:'SCDT  D  IF $G(SCRET) G DISCHQ
- . S SCDT0=$G(^DPT(DFN,"S",SCDT,0))
- . I +SCDT0=SCCLN,$P(SCDT0,"^",2)=""!($P(SCDT0,"^",2)="I") S SCRET=2
- ;
- S SCDAT=0
- F  S SCDAT=$O(^DPT(DFN,"DE",SCENR,1,SCDAT)) Q:'SCDAT  D
- . S SCDAT0=$G(^DPT(DFN,"DE",SCENR,1,SCDAT,0))
- . I $P(SCDAT0,U,3)]"" Q
- . S SCNODE=$NA(^DPT(DFN,"DE",SCENR,1,SCDAT))
- . D LOCK(SCNODE)
- . S DA(2)=DFN,DA(1)=SCENR
- . S DIE="^DPT("_DFN_",""DE"","_SCENR_",1,",DA=SCDAT
- . S DR="3////"_SCDATE_";4////"_SCREA
- . D ^DIE
- . D UNLOCK(SCNODE)
- . S SCRET=1
+ S SCDT=DT+1
+ I $G(SCCLN)'="",$G(DFN)'="" D
+ .;setup call to SDAPI to retrieve a single future appt
+ .S SCARRAY(1)=SCDT,SCARRAY(2)=SCCLN,SCARRAY(3)="R;I"
+ .S SCARRAY(4)=DFN,SCARRAY("FLDS")=4,SCARRAY("MAX")=1
+ .S SCCOUNT=$$SDAPI^SDAMA301(.SCARRAY)
+ .K ^TMP($J,"SDAMA301")
+ ;if a future appointment returned
+ I SCCOUNT>0 D
+ .S SCRET=2
+ ;if no future appointments exist
+ I SCCOUNT'>0 D
+ .S SCDAT=0
+ .F  S SCDAT=$O(^DPT(DFN,"DE",SCENR,1,SCDAT)) Q:'SCDAT  D
+ .. S SCDAT0=$G(^DPT(DFN,"DE",SCENR,1,SCDAT,0))
+ .. I $P(SCDAT0,U,3)]"" Q
+ .. S SCNODE=$NA(^DPT(DFN,"DE",SCENR,1,SCDAT))
+ .. D LOCK(SCNODE)
+ .. S DA(2)=DFN,DA(1)=SCENR
+ .. S DIE="^DPT("_DFN_",""DE"","_SCENR_",1,",DA=SCDAT
+ .. S DR="3////"_SCDATE_";4////"_SCREA
+ .. D ^DIE
+ .. D UNLOCK(SCNODE)
+ .. S SCRET=1
  ;
 DISCHQ Q $$ERR($G(SCRET,3))
  ;

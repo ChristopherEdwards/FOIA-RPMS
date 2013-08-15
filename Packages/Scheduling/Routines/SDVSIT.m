@@ -1,8 +1,9 @@
-SDVSIT ;MJK/ALB - Visit Tracking Processing ; 3/28/01 2:12pm [ 08/20/2004  4:10 PM ]
- ;;5.3;Scheduling;**27,44,75,96,132,161,219,1001,1003**;Aug 13, 1993
+SDVSIT ;MJK/ALB - Visit Tracking Processing ; 3/28/01 2:12pm
+ ;;5.3;Scheduling;**27,44,75,96,132,161,219,1001,1003,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 7/23/2001 bypass VA Vist Tracking
  ;             9/21/2001 used IHS code to determine division
  ;IHS/ITSC/LJF 5/04/2005 PATCH 1003 stuff visit IEN if not correct
+ ;
  ;
 AEUPD(SDVIEN,SDATYPE,SDOEP) ; -- update one entry in multiple
  ; input: SDVIEN := Visit file pointer
@@ -67,14 +68,16 @@ APPT(DFN,SDT,SDCL,SDVIEN) ; -- process appt
  ; -- do checks
  I 'SDPT!('SDSC)!($P(SDCL0,U,3)'="C") G APPTQ
  I SDCL,+SDPT'=SDCL G APPTQ
+ I $P(SDPT,U,20) G APPTQ
  ;
+ ;ihs/cmi/maw 02/23/2012 1015 going to leave this commented out to see if it fixes our EHR problem
  ;IHS/ITSC/LJF 5/04/2005 PATCH 1003 if OE entry already exists, update visit
  ;I $P(SDPT,U,20) G APPTQ
- I $P(SDPT,U,20) D  G APPTQ
- . Q:'$G(SDVIEN)    ;no visit ien, then just quit
- . NEW DIE,DA,DR
- . S DA=$P(SDPT,U,20) I $P(^SCE(DA,0),U,5)=SDVIEN Q  ;correct visit
- . S DIE="^SCE(",DR=".05////"_SDVIEN D ^DIE          ;stuff correct visit
+ ;I $P(SDPT,U,20) D  G APPTQ
+ ;. Q:'$G(SDVIEN)    ;no visit ien, then just quit
+ ;. NEW DIE,DA,DR
+ ;. S DA=$P(SDPT,U,20) I $P(^SCE(DA,0),U,5)=SDVIEN Q  ;correct visit
+ ;. S DIE="^SCE(",DR=".05////"_SDVIEN D ^DIE          ;stuff correct visit
  ;end of PATCH 1003 mods
  ;
  I 'SDVSIT("CLN")!('SDVSIT("DIV")) G APPTQ
@@ -183,9 +186,6 @@ DIVQ Q DIV
  ; -- see bottom of SDVSIT0 for additional doc
  ;
 SDOE(SDT,SDVSIT,SDVIEN,SDOEP) ; -- get visit & encounter
- ;
- ;I '$G(SDVIEN) Q 0    ;IHS/ANMC/LJF 7/23/2001 must have visit
- ;
  S SDVSIT("VST")=$G(SDVIEN)
  ;IF 'SDVSIT("VST") D VISIT^SDVSIT0(SDT,.SDVSIT)   ;IHS/ITSC/LJF 5/20/2004 PATCH #1001
  Q $$NEW^SDVSIT0(SDT,.SDVSIT)

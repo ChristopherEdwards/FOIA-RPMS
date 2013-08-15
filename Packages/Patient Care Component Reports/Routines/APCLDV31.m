@@ -1,5 +1,5 @@
 APCLDV31 ; IHS/CMI/LAB - list IPV/DV screenings ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**8**;MAY 14, 2009;Build 2
  ;
  ;
 PROC ;
@@ -39,7 +39,7 @@ GATHER ;gather up all exams, refusals and bh in time period for patient in DFN
  .;clinic check
  .I $D(APCLCLNT) S X=$P(^AUPNVSIT(APCLVIEN,0),U,8) Q:X=""  Q:'$D(APCLCLNT(X))
  .;bh exclude/include check
- .I 'APCLEXBH S C=$$CLINIC^APCLV(APCLVIEN,"C") I C=14!(C=45)!(C=48) Q
+ .I 'APCLEXBH S C=$$CLINIC^APCLV(APCLVIEN,"C") I C=14!(C=43)!(C=48)!(C="C4")!(C="C9") Q
  .;result check
  .S APCLRES=$$VAL^XBDIQ1(9000010.13,APCLEIEN,.04) S:APCLRES["REFUSED" APCLRES="REFUSED SCREENING" S:APCLRES["NEGATIVE" APCLRES="NEGATIVE"
  .I APCLRES="NEGATIVE",'$D(APCLREST(1)) Q
@@ -49,11 +49,11 @@ GATHER ;gather up all exams, refusals and bh in time period for patient in DFN
  .;PRIMARY PROVIDER CHECK
  .S X=$$PRIMPROV^APCLV(APCLVIEN,"I")
  .I $D(APCLPROV),X="" Q  ;want only certain primary providers on visit
- .I $D(APCLPROV),'$D(APCLPROV(X)) Q  ;want one provider and it's not this one
+ .I $D(APCLPROV),APCLPROV'=X Q  ;want one provider and it's not this one
  .I APCLPPUN,X'="" Q  ;want only unknown and this one has a primary provider
  .S X=$P($G(^AUPNVXAM(APCLEIEN,12)),U,4)
  .I $D(APCLSPRV),X="" Q  ;want only certain SCR providers on visit
- .I $D(APCLSPRV),'$D(APCLSPRV(X)) Q  ;want one provider and it's not this one
+ .I $D(APCLSPRV),APCLSPRV'=X Q  ;want one provider and it's not this one
  .I APCLSPUN,X'="" Q  ;want only unknown and this one has a SCR provider
  .S ^XTMP("APCLDV3",APCLJ,APCLH,"PTS",DFN)=""
 REF ;now go through refusals in pcc
@@ -74,7 +74,7 @@ REF ;now go through refusals in pcc
  .I APCLRES["UNABLE",'$D(APCLREST(5)) Q  ;do not want unables
  .S X=$P($G(^AUPNPREF(APCLRIEN,12)),U,4)
  .I $D(APCLSPRV),X="" Q  ;want only certain SCR providers on visit
- .I $D(APCLSPRV),'$D(APCLSPRV(X)) Q  ;want one provider and it's not this one
+ .I $D(APCLSPRV),APCLSPRV'=X Q  ;want one provider and it's not this one
  .I APCLSPUN,X'="" Q  ;want only unknown and this one has a SCR provider
  .S ^XTMP("APCLDV3",APCLJ,APCLH,"PTS",DFN)=""
  ;Q:$D(^XTMP("APCLDV3",APCLJ,APCLH,"PTS",DFN))   ;already got this patient so no need to go on
@@ -106,11 +106,11 @@ BH ;now go through BH
  ..;PRIMARY PROVIDER CHECK
  ..S X=$$BHPPIN(APCLBIEN)
  ..I $D(APCLPROV),X="" Q  ;want only certain primary providers on visit
- ..I $D(APCLPROV),'$D(APCLPROV(X)) Q  ;want one provider and it's not this one
+ ..I $D(APCLPROV),APCLPROV'=X Q  ;want one provider and it's not this one
  ..I APCLPPUN,X'="" Q  ;want only unknown and this one has a primary provider
  ..S X=$P($G(^AMHREC(APCLBIEN,14)),U,2)
  ..I $D(APCLSPRV),X="" Q  ;want only certain SCR providers on visit
- ..I $D(APCLSPRV),'$D(APCLSPRV(X)) Q  ;want one provider and it's not this one
+ ..I $D(APCLSPRV),APCLSPRV'=X Q  ;want one provider and it's not this one
  ..I APCLSPUN,X'="" Q  ;want only unknown and this one has a SCR provider
  ..S ^XTMP("APCLDV3",APCLJ,APCLH,"PTS",DFN)=""
  Q
@@ -130,7 +130,7 @@ GETSCR1 ;
  .Q:APCLDATE=""
  .Q:APCLDATE>APCLED
  .Q:APCLDATE<APCLBD
- .I 'APCLEXBH S C=$$CLINIC^APCLV(APCLVIEN,"C") I C=14!(C=45)!(C=48) Q
+ .I 'APCLEXBH S C=$$CLINIC^APCLV(APCLVIEN,"C") I C=14!(C=43)!(C=48)!(C="C4")!(C="C9") Q
  .S APCLCNT=APCLCNT+1
  .S APCLRES=$$VAL^XBDIQ1(9000010.13,APCLEIEN,.04) S:APCLRES["REFUSED" APCLRES="REFUSED SCREENING" S:APCLRES["NEGATIVE" APCLRES="NEGATIVE"
  .S ^XTMP("APCLDV3",APCLJ,APCLH,"VSTS",APCLCNT)="EX"_U_$$PPV(APCLVIEN)_U_APCLRES_U_$$VAL^XBDIQ1(9000010.13,APCLEIEN,81101)_U_$$AGE^AUPNPAT(DFN,APCLDATE)_U_$$VAL^XBDIQ1(2,DFN,.02)_U_APCLDATE_U_APCLEIEN_U_DFN
@@ -183,7 +183,9 @@ BHPPNAME(R) ;EP primary provider internal # from 200
  I %1]"" Q %1
  Q "UNKNOWN"
 SPRV(E) ;
+ ;get 1204 if it exists, otherwise take 1202
  I $P($G(^AUPNVXAM(E,12)),U,4) Q $$VAL^XBDIQ1(9000010.13,E,1204)
+ I $P($G(^AUPNVXAM(E,12)),U,2) Q $$VAL^XBDIQ1(9000010.13,E,1202)
  Q "UNKNOWN"
 PRVREF(R) ;
  I $P($G(^AUPNPREF(R,12)),U,4)]"" Q $$VAL^XBDIQ1(9000022,R,1204)

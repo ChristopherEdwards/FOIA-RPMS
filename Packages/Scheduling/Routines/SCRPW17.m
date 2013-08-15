@@ -1,5 +1,5 @@
 SCRPW17 ;RENO/KEITH/MRY - Prompts for clinic related outputs ; 21 JUL 2000  1:45 PM
- ;;5.3;Scheduling;**139,144,155,222**;AUG 13, 1993
+ ;;5.3;Scheduling;**139,144,155,222,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 8/24/2001  return division using IHS call
  ;
 ASK(SDADD,SDRES,SD,SDFMT,SDORD,SDSDT) ;Ask for clinic report parameters
@@ -83,7 +83,6 @@ DIVA(SDDIV) ;Ask for division(s)
  ;Output: '1' if successful, '0' if not
  ;Output: SDDIV='0' if 'all', '1' if specific divisions^text: "all" or institution name^division ifn, for non-multidivisional
  ;Output: SDDIV(division ifn)=division name
- ;
  ;IHS/ANMC/LJF 8/24/2001 return division using IHS call
  NEW X S X=$$DIV^BSDU I 'X Q 0
  S SDDIV(X)=$$DIVNM^BSDU(X),SDDIV="1^"_SDDIV(X)_U_X Q 1

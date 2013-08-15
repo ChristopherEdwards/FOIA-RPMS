@@ -1,5 +1,5 @@
 DGMTSCU3 ;ALB/RMO - Means Test Screen Variable Utilities Cont. ;4 MAY 1992 7:45 am
- ;;5.3;Registration;**45**;Aug 13, 1993
+ ;;5.3;PIMS;**45,1015,1016**;JUN 30, 2012;Build 20
  ;
 INC ;Determine income, expense and net worth
  ; Input  -- DFN      Patient file IEN
@@ -27,7 +27,7 @@ INC ;Determine income, expense and net worth
  S DGNWT=$$TOT^DGMTSCU1(DGIN2("V"),1,4)-$P(DGIN2("V"),"^",5)
  I $G(DGCOMF) D MT(DGINR("V"),DGMTI)
  I DGSP S (DGIN0("S"),DGIN1("S"),DGIN2("S"))="" D SPOUSE:$D(DGINC("S"))
- I DGDC S (DGIN0("C"),DGIN1("C"))="",DGCNT=0 F  S DGCNT=$O(DGINC("C",DGCNT)) Q:'DGCNT  D CHK^DGMTSCU2,CHILD:Y
+ I DGDC S (DGIN0("C"),DGIN1("C"))="",DGIN2("C")="",DGCNT=0 F  S DGCNT=$O(DGINC("C",DGCNT)) Q:'DGCNT  D CHK^DGMTSCU2,CHILD:Y
  S DGINTF=$S(DGINT:1,1:0) I 'DGINTF S J="" F  S J=$O(DGIN0(J)) Q:J=""!(DGINTF)  F I=8:1:17 Q:DGINTF  S:$P(DGIN0(J),"^",I)]"" DGINTF=1
  S DGNWTF=$S(DGNWT:1,1:0) I 'DGNWTF S J="" F  S J=$O(DGIN2(J)) Q:J=""!(DGNWTF)  F I=1:1:5 Q:DGNWTF  S:$P(DGIN2(J),"^",I)]"" DGNWTF=1
  Q
@@ -47,6 +47,9 @@ CHILD ;Determine total dependent children(s) income and expense
  S DGCE=(DGEMP-$P(DGMTPAR,"^",17))-$P(X,"^",3)
  S DGDET=DGDET+DGEMP-$S($G(DGCE)>0:DGCE,1:0)
  I $G(DGCOMF) D MT(DGINR("C",DGCNT),DGMTI)
+ S X=$G(^DGMT(408.21,DGINC("C",DGCNT),2))
+ F I=1:1:9 I $P(X,"^",I)]"" S $P(DGIN2("C"),"^",I)=$P(DGIN2("C"),"^",I)+$P(X,"^",I)
+ S DGNWT=DGNWT+($$TOT^DGMTSCU1(X,1,4)-$P(X,"^",5))
 CHILDQ Q
  ;
 MT(DGINR,DGMTI) ;Update Means Test IEN in Individual Annual Income file

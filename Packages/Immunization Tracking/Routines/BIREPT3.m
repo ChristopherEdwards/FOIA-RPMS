@@ -1,7 +1,8 @@
 BIREPT3 ;IHS/CMI/MWR - REPORT, TWO-YR-OLD RATES; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW TWO-YR-OLD IMMUNIZATION RATES REPORT.
+ ;;  PATCH 3: Add report line for Hx of Chickenpox.  VGRP+19
  ;
  ;
  ;----------
@@ -47,10 +48,22 @@ VGRP(BILINE,BIVGRP,BIAGRPS,BIERR) ;EP
  ;
  ;---> Write two lines for each Dose of this Vaccine Group.
  N BIDOSE,BIMAXD S BIMAXD=$$VGROUP^BIUTL2(BIVGRP,6)
+ ;**********
+ S:'BIMAXD BIMAXD=1
+ ;**********
  F BIDOSE=1:1:BIMAXD D
  .;---> BIX=text of the line to write.
- .;---> Write the Dose#-Vaccine Group in left margin.
- .N BIX S BIX="    "_BIDOSE_"-"_$$VGROUP^BIUTL2(BIVGRP,5)
+ .;
+ .;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ .;---> Add report line for Hx of Chickenpox.
+ .;N BIX S BIX="    "_BIDOSE_"-"_$$VGROUP^BIUTL2(BIVGRP,5)
+ .N BIX D
+ ..;---> Include exception here for Chickenpox.
+ ..I BIVGRP=132 S BIX=" Hx of ChPox" Q
+ ..;---> Write the Dose#-Vaccine Group in left margin.
+ ..S BIX="    "_BIDOSE_"-"_$$VGROUP^BIUTL2(BIVGRP,5)
+ .;**********
+ .;
  .S BIX=$$PAD^BIUTL5(BIX,13)_"|"
  .;
  .;---> Now loop through the 6 age groups, concating subtotals.
@@ -62,7 +75,14 @@ VGRP(BILINE,BIVGRP,BIAGRPS,BIERR) ;EP
  .D MARK^BIW(BILINE,3,"BIREPT1")
  .;
  .;---> Now write percentages line.
+ .;
+ .;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ .;---> Add report line for Hx of Chickenpox.
  .S BIX=$$SP^BIUTL5(13)_"|"
+ .S BIX="" S:BIVGRP=132 BIX="   (Immune)"
+ .S BIX=$$PAD^BIUTL5(BIX,13)_"|"
+ .;**********
+ .;
  .F K=1:1 S BIAGRP=$P(BIAGRPS,",",K) Q:'BIAGRP  D
  ..N Y S Y=$G(BITMP("STATS",BIVGRP,BIDOSE,BIAGRP))
  ..I 'Y S BIX=BIX_$J(Y,7)_"  " Q

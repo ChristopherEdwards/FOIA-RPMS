@@ -1,5 +1,5 @@
 DGPMTSR2 ;ALB/LM - TREATING SPECIALTY REPORT SET ; 3/1/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 A ; This will set ^TMP("TSR")  = TREATING SPECIALTY TOTALS
  ;               ^TMP("TSRS") = SERVICE TOTALS

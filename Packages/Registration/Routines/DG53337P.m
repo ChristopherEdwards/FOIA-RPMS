@@ -1,5 +1,5 @@
 DG53337P ;BP-CIOFO/MM,RTK -2001 MEANS TEST THRESHOLDS ;11/4/99
- ;;5.3;Registration;**337**;Aug 13, 1993
+ ;;5.3;Registration;**337,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will upload the 2001 means test thresholds onto your
  ; system.

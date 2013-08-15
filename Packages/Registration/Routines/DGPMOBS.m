@@ -1,5 +1,5 @@
 DGPMOBS ;ALB/MM - Observation API;11/25/98
- ;;5.3;Registration;**212**;Aug 13 1993
+ ;;5.3;PIMS;**212,1015,1016**;JUN 30, 2012;Build 20
  ;
  ;This routine provides 3 entry points to obtain observation statuses.
  ;Line labels MVT, PT, and SPEC document required input variables and 
@@ -12,7 +12,7 @@ MVT(IFN) ;This entry point returns the observation status based on
  ;   Patient Movement (#405) file IFN (Required)
  ;
  ;Output:
- ;   If an obseration treating specialty return:
+ ;   If an observation treating specialty return:
  ;       1^Facility Treating Specialty (#45.7)file IFN^Facility
  ;       Treating Specialty (#45.7) file name^Specialty (#42.4)
  ;       file IFN^Specialty (#42.4) file name
@@ -81,6 +81,7 @@ SPEC(SPIFN) ;This entry point determines if the Specialty file (#42.4)
  ;     41 - Rehab Medicine Observation
  ;     65 - Surgical Observation
  ;     94 - Psychiatric Observation
+ ;     108 - ED Observation
  ;
  ;Input:
  ;   SPIFN - Specialty (#42.4) IFN
@@ -96,5 +97,5 @@ SPEC(SPIFN) ;This entry point determines if the Specialty file (#42.4)
  I '$D(SPIFN) S TX="-1^Specialty (#42.4) IFN not defined" Q TX
  I '$D(^DIC(42.4,+SPIFN,0)) S TX="-1^No Specialty (#42.4) file entry" Q TX
  ;SPEC=observation treating specialty IFNs
- F SPEC=18,23,24,36,41,65,94 I SPEC=SPIFN S TX=1 Q
+ F SPEC=18,23,24,36,41,65,94,108 I SPEC=SPIFN S TX=1 Q
  Q TX

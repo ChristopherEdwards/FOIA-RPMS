@@ -1,6 +1,8 @@
 LR7OSUM4 ;VA/SLC/DCM - Silent Patient cum cont. ; [ 8/11/97 ]
- ;;5.2;LR;**121,187,228,241,251,1018,1021,1028**;NOV 01, 1997;Build 46
- ;;5.2;LAB SERVICE;**121,187,228,241,251**;Sep 27, 1994
+ ;;5.2;LR;**1002,1018,1021,1028,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patchs: 121,187,228,241,251
+ ;
 BS ; EP -- from LR7OSUM3
  ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1021
  NEW P3,P6
@@ -52,6 +54,8 @@ BS4 F J=0:1:(LRTT+1) S XZ="",$P(XZ," ",LRCL)="" D
  . I J=0 S X=^TMP($J,"TY",J,I),^TMP("LRC",$J,GCNT,0)=^TMP("LRC",$J,GCNT,0)_$$S^LR7OS(J*10,CCNT,X) S:'$P($G(^TMP("LRT",$J,X)),"^",2) $P(^TMP("LRT",$J,X),"^",2)=GCNT
  . I J>0 D
  .. D BS2
+ .. I J=(LRTT+1) D BS2RRCHK                      ; IHS/MSC/MKK - LR*5.2*1031 - Reference Range double-check
+ .. I J<LRTT D BS2DPCHK                          ; IHS/MSC/MKK - LR*5.2*1031 - Leading and/or trailing zero(s) check
  .. I $L(X) S LRCW=10 D C1^LR7OSUM5(.X,.X1) S:$L($P(LRG,U,4))&(J<LRTT) @("X="_$P(LRG,"^",4)),^(0)=^TMP("LRC",$J,GCNT,0)_$$S^LR7OS(J*10-2,CCNT,X_X1) D
  ... ; S:'$L($P(LRG,U,4))!(J'<LRTT) ^(0)=^TMP("LRC",$J,GCNT,0)_$$S^LR7OS(J*10-2,CCNT,$J(X,LRCW))
  ... ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1028
@@ -63,8 +67,108 @@ BS4 F J=0:1:(LRTT+1) S XZ="",$P(XZ," ",LRCL)="" D
 LN ;Increment the counter
  S GCNT=GCNT+1,CCNT=1
  Q
-LINE ;Fill in the global with bank lines
+LINE ;Fill in the global with blank lines
  N X
  D LN
  S X="",$P(X," ",GIOM)="",^TMP("LRC",$J,GCNT,0)=X
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+BS2RRCHK ; EP - Reference Range double-check: make sure they reflect values in File 60 if not in File 63
+ NEW DATANAME,F6O,LRSS,OLDHI,OLDLO,OLDX,REFHI,REFLO,SITESPEC,STR
+ NEW CNT,DN,DP
+ ;
+ ; Get Dataname Decimal definition
+ S DN=+$P($P(LRG,"^",5),";",2)           ; Data Name number
+ S STR=$P($G(^DD(63.04,DN,0)),"^",5)
+ S DP=+$P($P(STR,",",3),$C(34))
+ ;
+ ; Save off old variables
+ S OLDX=X
+ S STR=$TR(X," ")
+ S OLDLO=$P(STR,"-")
+ S OLDHI=$P(STR,"-",2)
+ ;
+ ; First, check to see if Ref values are in file 63
+ S LRSS=$P($P(LRG,"^",5),";")
+ S LRSS=$S($L(LRSS):LRSS,1:"<NO>")       ; Make sure LRSS has a value
+ S DATANAME=+$P($P(LRG,"^",5),";",2)
+ S STR=$P($G(^LR(+LRDFN,LRSS,+LRLFDT,DATANAME)),"^",5)
+ ;
+ I $L(STR) D
+ . S REFLO=$P(STR,"!",2)
+ . S REFHI=$P(STR,"!",3)
+ ;
+ I $L(STR)<1 D
+ . S F60=+$G(LRG)
+ . S SITESPEC=+$G(LRSPM)
+ . Q:F60<1!(SITESPEC<1)                  ; Skip if no test or no Site/Specimen
+ . ;
+ . S STR=$G(^LAB(60,F60,1,SITESPEC,0))
+ . Q:$L(STR)<1                           ; Skip if no Reference Ranges
+ . ;
+ . S REFLO=$P(STR,"^",2)
+ . S REFHI=$P(STR,"^",3)
+ ;
+ Q:$L($G(REFLO))<1&($L($G(REFHI))<1)     ; Skip if no Reference Ranges defined
+ ;
+ I $G(REFLO)["$S" D                      ; If $S in Reference Range, set to value
+ . S REFLO="REFLO="_REFLO
+ . S @REFLO
+ ;
+ I $G(REFHI)["$S" D                      ; If $S in Reference Range, set to value
+ . S REFHI="REFHI="_REFHI
+ . S @REFHI
+ ;
+ Q:$G(REFLO)[$C(34)&($L(REFHI)<1)        ; Skip if REFLO is a string & No REFHI
+ Q:$G(REFHI)[$C(34)&($L(REFLO)<1)        ; Skip if REFHI is a string & No REFLO
+ ;
+ ; Make sure REFLO & REFHI have some sort of value
+ S:$L(REFLO)<1 REFLO=OLDLO
+ S:$L(REFHI)<1 REFHI=OLDHI
+ ;
+ ; Set up the decimals, if possible
+ I DP>0 D
+ . S:+REFLO>0 REFLO=$TR($FN(REFLO,"P",DP)," ")
+ . S:+REFHI>0 REFHI=$TR($FN(REFHI,"P",DP)," ")
+ ;
+ Q:OLDLO=REFLO&(OLDHI=REFHI)        ; Skip if double-check is the same
+ ;
+ S X=REFLO_" - "_REFHI
+ Q
+ ;
+ ;
+BS2DPCHK ; EP - Check Result to determine if it needs leading and/or trailing zero(s)
+ Q:$L(X)<1                          ; Skip if no result
+ ;
+ NEW DN,DP,ORIGRLST,RESULT,STR,SYMBOL
+ S DN=+$P($P(LRG,"^",5),";",2)      ; Data Name number
+ Q:DN<1                             ; Skip if no Data Name number
+ ;
+ Q:$G(^DD(63.04,DN,0))'["^LRNUM"         ; Skip if no numeric defintiion
+ ;
+ S STR=$P($P($G(^DD(63.04,DN,0)),"Q9=",2),$C(34),2)     ; Get numeric formatting
+ ;
+ S DP=+$P(STR,",",3)                ; Decimal Places
+ Q:DP<1                             ; Skip if no Decimal Defintion
+ ;
+ S RESULT=$G(X)
+ ;
+ Q:$$UP^XLFSTR($G(RESULT))["SPECIMEN IN LAB"          ; Skip if not resulted
+ ;
+ S SYMBOL="",ORIGRSLT=RESULT
+ F  Q:$E(RESULT)?1N!(RESULT="")  D       ; Adjust if ANY Non-Numeric is at the beginning of RESULT
+ . S SYMBOL=SYMBOL_$E(RESULT)
+ . S RESULT=$E(RESULT,2,$L(RESULT))
+ ;
+ I $E(RESULT)'?1N  S RESULT=ORIGRSLT  Q  ; Skip if RESULT has no numeric part
+ ;
+ S:$E(RESULT)="." RESULT="0"_RESULT      ; Leading Zero Fix
+ ;
+ S RESULT=$TR($FN(RESULT,"P",DP)," ")
+ ;
+ S:$L($G(SYMBOL)) RESULT=SYMBOL_RESULT   ; Restore "symbol", if necessary
+ ;
+ S X=RESULT                              ; Reset X
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031

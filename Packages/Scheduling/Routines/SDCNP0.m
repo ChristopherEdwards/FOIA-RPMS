@@ -1,15 +1,12 @@
-SDCNP0 ;ALB/LDB - CANCEL APPT. FOR A PATIENT ; [ 09/13/2001  2:21 PM ]
- ;;5.3;Scheduling;**132,167****;Aug 13, 1993
- ;IHS/ANMC/LJF  3/23/2001 changed X ^DD("FUNC",2,1) to $$TIME^BDGF
- ;
+SDCNP0 ;ALB/LDB - CANCEL APPT. FOR A PATIENT ; 3/2/05 3:13pm
+ ;;5.3;Scheduling;**132,167,478,517,1015,1016**;Aug 13, 1993;Build 20
+ ;ihs/cmi/maw 07/26/2012 PATCH 1016 added +$E(%,1,12) for correct date filing
 EN2 D WAIT^DICD S NDT=HDT/1,L=0 F J=1:1 S NDT=$O(^DPT(DFN,"S",NDT)) Q:NDT'>0!(SDPV&(NDT'<SDTM))  S SD0=^(NDT,0) I $P(SD0,"^",2)'["C" S SC=+SD0,L=L\1+1,APL="" D FLEN^SDCNP1A S ^UTILITY($J,"SDCNP",L)=NDT_"^"_SC_"^"_COV_"^"_APL_"^^"_APL D CHKSO
-WH1 G:L'>0 NO S (SDCTRL,SDCTR)=0,APP="" W:'SDERR @IOF
- ;
- ;IHS/ANMC/LJF 3/23/2001 X ^DD(FUNC",2,1) has error, using new code
- ;W ! F Z=0:0 S Z=$O(^UTILITY($J,"SDCNP",Z)) Q:Z'>0  W !,$J($S(Z\1=Z:"("_$J(Z,2)_") ",1:""),5) S AT=$S($P(^(Z),"^",2)'?.N:1,1:0),Y=$P($P(^(Z),"^"),".") D DT^SDM0 S X=$P(^(Z),"^"),^(Z,"CNT")="" X ^DD("FUNC",2,1) W " ",$J(X,8) D MORE Q:SDCTRL
- W ! F Z=0:0 S Z=$O(^UTILITY($J,"SDCNP",Z)) Q:Z'>0  W !,$J($S(Z\1=Z:"("_$J(Z,2)_") ",1:""),5) S AT=$S($P(^(Z),"^",2)'?.N:1,1:0),Y=$P($P(^(Z),"^"),".") D DT^SDM0 S X=$P(^(Z),"^"),^(Z,"CNT")="" S X=$$TIME^BDGF(X) W " ",$J(X,8) D MORE Q:SDCTRL
- ;IHS/ANMC/LJF 3/23/2001 end of code changes
- ;
+WH1 G:L'>0 NO S (SDCTRL,SDCTR)=0,APP="" N SDITEM W:'SDERR @IOF
+ W ! F Z=0:0 S Z=$O(^UTILITY($J,"SDCNP",Z)) Q:Z'>0  S SDITEM=$J($S(Z\1=Z:"("_$J(Z,2)_") ",1:""),5) D  Q:SDCTRL
+ .I SDITEM["(" W !,SDITEM S HLDCSND=""
+ .I SDITEM'["(" W SDITEM
+ .S AT=$S($P(^(Z),"^",2)'?.N:1,1:0),Y=$P($P(^(Z),"^"),".") D DT^SDM0 S X=$P(^(Z),"^"),^(Z,"CNT")="" X ^DD("FUNC",2,1) W " ",$J(X,8) D MORE W:AT ! Q:SDCTRL
  S:SDERR SDCTRL=1 I Z>0 G:SDCTRL&(APP']"") NOPE^SDCNP1 G:SDCTRL DEL
  D WH G NOPE^SDCNP1:APP']"",DEL
 WH W !!,"SELECT APPOINTMENTS TO BE CANCELLED" W:Z>0 " OR HIT RETURN TO CONTINUE DISPLAY" R ": ",APP:DTIME I '$T!(APP="^") S SDCTRL=1,APP="" Q
@@ -27,11 +24,13 @@ CAN Q:$P(^UTILITY($J,"SDCNP",A1),"^",4)["JUST CANCELLED"  S CNT=CNT+1,DIV=$S($P(
  N SDATA,SDCPHDL S SDCPHDL=$$HANDLE^SDAMEVT(1) D BEFORE^SDAMEVT(.SDATA,DFN,S,I,"",SDCPHDL)
  S:'$D(^DPT(DFN,"S",0)) ^(0)="^2.98P^^" I $D(SDREM) S DIE="^DPT("_DFN_",""S"",",(DA,Y)=S,DA(1)=DFN,DR="17///^S X="_"""""_SDREM_""""" D ^DIE K DIE,DR
  S ^DPT("ASDCN",I,DA,DA(1))=$S(SDWH["P":1,1:"") K DA
- S $P(^DPT(DFN,"S",S,0),"^",2)=SDWH S:$D(DUZ) $P(^(0),"^",12)=DUZ D NOW^%DTC S SDT=$J(%,2,4),$P(^(0),"^",14)=SDT,$P(^(0),"^",15)=SDSCR,(DA,Y)=0 F X=0:0 S X=+$O(^SC(I,"S",S,1,X)) Q:'$D(^(X,0))  D C Q:Y&(DA)
+ S $P(^DPT(DFN,"S",S,0),"^",2)=SDWH S:$D(DUZ) $P(^(0),"^",12)=DUZ D NOW^%DTC S SDT=+$E(%,1,12),$P(^(0),"^",14)=SDT,$P(^(0),"^",15)=SDSCR,(DA,Y)=0 F X=0:0 S X=+$O(^SC(I,"S",S,1,X)) Q:'$D(^(X,0))  D C Q:Y&(DA)
  I $D(^DPT("ASDPSD","B",DIV,S\1,DFN)) D CK1
  Q:'Y  S SL=$P(^SC(I,"S",S,1,Y,0),U,2) I DA,'$D(^("OB")) K ^SC(I,"S",S,1,DA,"OB")
- S SDDA=DA,SDTTM=S,SDRT="D",SDPL=Y,SDSC=I D RT^SDUTL S Y=SDPL,S=SDTTM,I=SDSC,DA=SDDA K SDDA
- S SDNODE=^SC(I,"S",S,1,Y,0),^SC("ARAD",I,S,DFN)="N" K ^SC(I,"S",S,1,Y) K:$O(^SC(I,"S",S,0))'>0 ^SC(I,"S",S,0) D CLRK^SDCNP1
+ S SDDA=DA,SDTTM=S,SDRT="D",SDPL=Y,SDSC=I D RT^SDUTL D CANCEL^SDCNSLT S Y=SDPL,S=SDTTM,I=SDSC,DA=SDDA K SDDA ;SD/478
+ S SDNODE=^SC(I,"S",S,1,Y,0),^SC("ARAD",I,S,DFN)="N",TLNK=$P($G(^SC(I,"S",S,1,Y,"CONS")),U) K ^SC(I,"S",S,1,Y) K:$O(^SC(I,"S",S,0))'>0 ^SC(I,"S",S,0) D CLRK^SDCNP1  ;SD/478
+ K:TLNK'="" ^SC("AWAS1",TLNK),TLNK ;SD/478
+ ;S SDNODE=^SC(I,"S",S,1,Y,0),^SC("ARAD",I,S,DFN)="N" S DA(2)=I,DA(1)=S,DA=Y,DIK="^SC("_DA(2)_",""S"","_DA(1)_",1," D ^DIK K:$O(^SC(I,"S",S,0))'>0 ^SC(I,"S",S,0) D CLRK^SDCNP1 ;SD/478
  D EVT
  Q:'$D(^SC(I,"ST",SD\1,1))
 EN01 S S=^SC(I,"ST",SD\1,1),Y=SD#1-SB*100,ST=Y#1*SI\.6+(Y\1*SI),SS=SL*HSI/60
@@ -45,10 +44,28 @@ NO W !,"NO ",$S('SDPV:"PENDING",1:"PREVIOUS")," APPOINTMENTS",*7,*7,*7
 CHKSO S COV=$S($P(^DPT(DFN,"S",NDT,0),"^",11)=1:" (COLLATERAL) ",1:"") F SDJ=3,4,5 I $P(^DPT(DFN,"S",NDT,0),"^",SDJ)]"" S L=L+.1,^UTILITY($J,"SDCNP",L)=$P(^(0),"^",SDJ)_"^"_$S(SDJ=3:"LAB",SDJ=4:"XRAY",1:"EKG")_"^0^0"
  Q
 MORE S SDCTR=SDCTR+2 I AT W ?41,$P(^UTILITY($J,"SDCNP",Z),"^",2) G OVR
- W " ",$S($P(^UTILITY($J,"SDCNP",Z),"^",4)?.N:"("_$P(^(Z),"^",4)_" MINUTES)  ",1:$P(^(Z),"^",4))," ",$S($D(^SC($P(^(Z),"^",2),0)):$P(^(0),"^",1),1:"DELETED CLINIC"),$P(^UTILITY($J,"SDCNP",Z),"^",3)
+ W " ",$S($P(^UTILITY($J,"SDCNP",Z),"^",4)?.N:"("_$P(^(Z),"^",4)_" MIN) ",1:$P(^(Z),"^",4))," ",$S($D(^SC($P(^(Z),"^",2),0)):$P(^(0),"^",1),1:"DELETED CLINIC"),$P(^UTILITY($J,"SDCNP",Z),"^",3) ;SD/478
+ N CSND,CSDT,CSSD,CONSULT,Y
+ S CSND=^UTILITY($J,"SDCNP",Z),CSDT=$P(CSND,U),CSSD=$P(CSND,U,2),HLDCSND=CSND S CONSULT=$$CONSULT(CSSD,CSDT) I +$G(CONSULT) S Y=$P(^GMR(123,CONSULT,0),U) D DD^%DT W !?5,"CONSULT ",Y,"/ ",CONSULT
  D STATUS($X>55)
-OVR I SDCTR>20,$O(^UTILITY($J,"SDCNP",Z)) S (SDCTRL,SDCTR)=0 W *7 D WH W:'SDCTRL @IOF
+OVR ;Following code added SD/517
+ I '$D(CSND) I $G(HLDCSND) I (($P(HLDCSND,U,4)="")!($P(HLDCSND,U,6)="")) D
+ .W !!,"**********************************************************************"
+ .W !,"* WARNING: There is a data inconsistency or data corruption problem  *"
+ .W !,"* with the above appointment.  Corrective action needs to be taken.  *"
+ .W !,"* Please cancel the appointment above.  If it is a valid appointment,*"
+ .W !,"* it will have to be re-entered via Appointment Management.          *"
+ .W !,"**********************************************************************"
+ .S SDCTR=21
+ .K HLDCSND
+ ;
+ I SDCTR>20,$O(^UTILITY($J,"SDCNP",Z)) S (SDCTRL,SDCTR)=0 W *7 D WH W:'SDCTRL @IOF
  Q
+ ;
+CONSULT(CSSD,CSDT) ;
+ N CSI S CONSULT=""
+ S CSI=0 F  S CSI=$O(^SC(CSSD,"S",CSDT,1,CSI)) Q:'+CSI  I $P($G(^SC(CSSD,"S",CSDT,1,CSI,0)),U)=DFN S CONSULT=$P($G(^SC(CSSD,"S",CSDT,1,CSI,"CONS")),U) Q  ;SD/478
+ Q CONSULT
 CK1 S SDX=0 F SD1=S\1:0 S SD1=$O(^DPT(DFN,"S",SD1)) Q:'SD1!((SD1\1)'=(S\1))  I $P(^(SD1,0),"^",2)'["C",$P(^(0),"^",2)'["N" S SDX=1 Q
  Q:SDX  F SD1=2,4 I $D(^SC("AAS",SD1,S\1,DFN)) S SDX=1 Q
  Q:SDX  IF $D(^SCE(+$$EXAE^SDOE(DFN,S\1,S\1),0)) S SDX=1

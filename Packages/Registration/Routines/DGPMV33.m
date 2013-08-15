@@ -1,8 +1,9 @@
-DGPMV33 ;ALB/MIR - DISCHARGE A PATIENT, CONTINUED ; [ 03/15/2002  10:13 AM ]
- ;;5.3;Registration;**204**;Aug 13, 1993
+DGPMV33 ;ALB/MIR - DISCHARGE A PATIENT, CONTINUED ; 8/4/03 1:13pm
+ ;;5.3;Registration;**204,544,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  3/09/2001 bypassed PTF code
  ;              3/28/2001 insured SI/DNR deleted at discharge
  ;              7/27/2001 added check for DGQUIET to writes
+ ;
  ;
  ;I '$P(DGPMA,"^",4)!$S($P(DGPMA,"^",18)'=10:0,'$P(DGPMA,"^",5):1,1:0) W !,"Incomplete Discharge" S DIK="^DGPM(",DA=DGPMDA D ^DIK W "   deleted" S DGPMA="" D  G Q  ;IHS/ANMC/LJF 7/27/2001
  I '$P(DGPMA,"^",4)!$S($P(DGPMA,"^",18)'=10:0,'$P(DGPMA,"^",5):1,1:0) W:'$D(DGQUIET) !,"Incomplete Discharge" S DIK="^DGPM(",DA=DGPMDA D ^DIK W "   deleted" S DGPMA="" D  G Q  ;IHS/ANMC/LJF 7/27/2001
@@ -42,7 +43,10 @@ SI Q:"^25^26^"[("^"_$P(DGPMA,"^",18)_"^")
  I $S('$D(^DPT(DFN,.1)):1,^(.1)="":1,1:0)&($D(^("DAC"))) S DR="401.3///@",DIE="^DPT(",DA=DFN K DQ,DG D ^DIE:$P(^("DAC"),"^",1)]"" K DR,DIC Q   ;IHS/ANMC/LJF 3/28/2001
  Q:$D(DGQUIET)    ;IHS/ANMC/LJF 12/3/2001 to prevent talk
  Q:'$D(^DPT(DFN,.1))  S W=^(.1) Q:W']""  S W=$O(^DIC(42,"B",W,0)),W=$S($D(^DIC(42,+W,0)):^(0),1:""),T="SERIOUSLY ILL" Q:W=""
- I $P(W,"^",14),($P(DGPMA,"^",18)>3) S DR="401.3//"_$S("^22^23^24^"[("^"_$P(DGPMA,"^",18)_"^"):$S('$D(^DPT(DFN,"DAC")):"",$L($P(^("DAC"),"^",1)):T,1:""),DGPMN:T,1:""),DIE="^DPT(",DA=DFN K DQ,DG D ^DIE K DIE,T,W Q
+ I $P(W,"^",14),($P(DGPMA,"^",18)>3) D  Q
+ .S DR="401.3//"_$S("^22^23^24^"[("^"_$P(DGPMA,"^",18)_"^"):$S('$D(^DPT(DFN,"DAC")):"",$L($P(^("DAC"),"^",1)):T,1:""),DGPMN:T,1:"")
+ .I $P(DR,"//",2)=T S DR=$S("^1^2^"[("^"_DGPMT_"^")&+DGPMA:DR_";S:X'=""S"" Y=0;401.4////"_$P(DGPMA,"."),1:DR)
+ .S DIE="^DPT(",DA=DFN K DQ,DG D ^DIE K DIE,T,W
  I $D(^DPT(DFN,"DAC")) I $L($P(^("DAC"),"^",1)) S DA=DFN,DR=401.3,DIE="^DPT(" K DQ,DG D ^DIE
  K DIE,T,W Q
 ADM ;update admission or check-in mvt with discharge/check-out mvt pointer

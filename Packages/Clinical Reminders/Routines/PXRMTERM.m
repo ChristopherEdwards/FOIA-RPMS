@@ -1,9 +1,9 @@
-PXRMTERM ; SLC/PKR - Handle reminder terms. ;18-Apr-2006 17:39;MGH
- ;;1.5;CLINICAL REMINDERS;**1,7,8,1003,1004**;Jun 19, 2000
+PXRMTERM ; SLC/PKR - Handle reminder terms. ;07-Feb-2012 14:43;DU
+ ;;1.5;CLINICAL REMINDERS;**1,7,8,1003,1004,1008**;Jun 19, 2000;Build 25
  ;IHS/CIA/MGH Modified to add lookups for files not used by VA
  ;=======================================================================
 EVALFI(DFN,FIEVAL) ;Evaluate reminder terms.
- N CONVAL,DATE,FIND0,FIND3,FINDING,IND
+ N CONVAL,DATE,FIND0,FIND3,FINDING,IND,MINAGE,MAXAGE,TAGE
  N TFIND0,TFIND3,TERMIEN,TFI,TFIEVAL,VALID,VALUE
  S TERMIEN=""
  F  S TERMIEN=$O(^PXD(811.9,PXRMITEM,20,"E","PXRMD(811.5,",TERMIEN)) Q:+TERMIEN=0  D
@@ -33,6 +33,14 @@ EVALFI(DFN,FIEVAL) ;Evaluate reminder terms.
  .. I 'VALID D  Q
  ... S FIEVAL(FINDING)=0
  ... S FIEVAL(FINDING,"EXPIRED")=""
+ ..;IHS/MSC/MGH Patch 1008 Check age for the finding
+ ..S MINAGE=$P(FIND0,U,2)
+ ..S MAXAGE=$P(FIND0,U,3)
+ ..I +MINAGE&(+MAXAGE) D
+ ...S TAGE=$$AGECHECK^PXRMAGE(PXRMAGE,MINAGE,MAXAGE)
+ ...I 'TAGE D  Q
+ ....K FIEVAL(FINDING)
+ ....S FIEVAL(FINDING)=0
  ..;If there is a condition for this finding evaluate it.
  .. S VALUE=$G(FIEVAL(FINDING,"VALUE"))
  .. S CONVAL=$$COND^PXRMUTIL(FIND3,TFIND3,VALUE)
@@ -73,6 +81,7 @@ EVALTERM(DFN,FINDING,TERMIEN,TFIEVAL) ;Evaluate all the findings in a term.
  . ;Calls to resolve finding files form IHS that are not part of VA
  . I FTYPE="AUTTMSR(" D EVALTERM^BPXRMEA(DFN,FINDING,TERMIEN,.TFIEVAL) Q
  . I FTYPE="AUTTREFT(" D EVALTERM^BPXRMREF(DFN,FINDING,TERMIEN,.TFIEVAL) Q
+ . I FTYPE="APCDACV(" D EVALTERM^BPXRMAS1(DFN,FINDING,TERMIEN,.TFIEVAL) Q
  Q
  ;
  ;=======================================================================

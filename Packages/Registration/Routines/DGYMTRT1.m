@@ -1,5 +1,5 @@
 DGYMTRT1 ;ALB/CAW/LD - Print changed specialty report ; 9/8/94
- ;;5.3;Registration;**39**;Aug 13, 1993
+ ;;5.3;Registration;**39,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will print the changed treating specialty report after
  ; completing the Specialty file (#42.4) and Facility Treating Specialty

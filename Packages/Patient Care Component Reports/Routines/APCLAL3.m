@@ -1,5 +1,5 @@
 APCLAL3 ; IHS/CMI/LAB - list ALCOHOL screenings ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
  ;
  ;
 INFORM ;
@@ -119,7 +119,7 @@ PRV1 ;
 PRVSCR ;
  S (APCRSSRT,APCRSPUN)="" K APCRSPRV
  S DIR(0)="SO^O:One Provider Only;P:Any/All Providers (including unknown);U:Unknown Provider Only"
- S DIR("A")="Select which providers who performed the screening should be included"
+ S DIR("A")="Select which providers WHO PERFORMED THE SCREENING should be included"
  S DIR("?")="If you wish to count only one Provider enter a 'O'.  To include ALL providers enter an 'A'.  To include all providers of one discipline enter a 'D'." D ^DIR K DIR
  G:$D(DIRUT) XIT
  S APCRSSRT=Y

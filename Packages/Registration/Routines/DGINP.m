@@ -1,5 +1,5 @@
 DGINP ;ALB/JDS - INPUT SYNTAX CHECKS ; 25 SEP 84  14:20
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;  *****************************************************************
  ;  *

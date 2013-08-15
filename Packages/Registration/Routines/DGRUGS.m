@@ -1,5 +1,5 @@
-DGRUGS ;ALB/MLI - RUG-II STATUS REPORT ; 13 SEPT 88 @2000
- ;;5.3;Registration;**89,173**;Aug 13, 1993
+DGRUGS ;ALB/MLI,PHH - RUG-II STATUS REPORT ; 13 SEPT 88 @2000
+ ;;5.3;Registration;**89,173,568,1015**;Aug 13, 1993;Build 21
  ;
 EN D Q,ASK2^SDDIV G:Y<0 Q
  N ERR S ERR=$$CHOSE^DGRUGU1()
@@ -10,7 +10,7 @@ ASK W !!,"Sort by (A)ssessment or (T)ransfer/Admission Date: T//" S Z="^TRANSFER
  D IN^DGHELP
  I %=-1 W !!,?12,"CHOOSE FROM:",!?12,"A - Date range for the search is by Assessment Date",!?12,"T - Date range is by Transfer or admission date",! S %="" G ASK
  S DGX=$S(X="T":"AC",1:"AA")
- D DATE^SDUTL G:POP Q K BEGDATE,ENDATE
+ D DATE^DGSDUTL G:POP Q K BEGDATE,ENDATE
  S DGB=SDBD-.1,DGE=SDED+.9
  S DGPGM="1^DGRUGS",DGVAR="VAUTD#^DGW#^DGB^DGE^DGX^DGCL#"
  D ZIS^DGUTQ G:POP Q

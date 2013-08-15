@@ -1,5 +1,5 @@
-SCMCHLR9 ;ALB/KCL - PCMM HL7 Reject Transmission Report Con't; 06/12/2003
- ;;5.3;Scheduling;**210,284**;AUG 13,1993
+SCMCHLR9 ;ALB/KCL - PCMM HL7 Reject Transmission Report Con't; 22-FEB-2000
+ ;;5.3;Scheduling;**210,284,297,1015**;AUG 13,1993;Build 21
  ;
 PRINT ; Description: Used to print report.
  ;
@@ -111,7 +111,7 @@ PRINTERR(SCSORTBY,SCEPS) ; Description: Print list of errors.
  ....S SCLINE=$S($G(SCTLOG("STATUS"))="M":"*",1:" ")
  ....;
  ....;set patient name in line
- ....S SCTXT=$$LOWER^VALM1($S($G(SCTLOG("DFN")):$P($G(^DPT(SCTLOG("DFN"),0)),"^",1),1:"UNKNOWN"))
+ ....S SCTXT=$$LOWER^VALM1($S($G(SCTLOG("WORK")):"WORKLOAD",$G(SCTLOG("DFN")):$P($G(^DPT(SCTLOG("DFN"),0)),"^",1),1:"UNKNOWN"))
  ....S SCLINE=SCLINE_" "_$$LJ(SCTXT,18)
  ....;
  ....;set patient id in line
@@ -127,10 +127,11 @@ PRINTERR(SCSORTBY,SCEPS) ; Description: Print list of errors.
  ....K SCHL
  ....S SCPROV=""
  ....;only get provider if ZPC segment error
+ ....I $G(SCTLOG("WORK")) S SCPROV=$P($G(^SCPT(404.471,SCTLIEN,0)),U,8)
  ....I $G(SCTLOG("ERR","SEG"))="ZPC" D
  .....I $$GETHL7ID^SCMCHLA2($G(SCTLOG("ERR","ZPCID")),.SCHL)
  .....S SCPTR=$P($G(SCHL("HL7ID")),"-",2)
- .....S SCPROV=$P($G(^SCTM(404.52,+$G(SCPTR),0)),"^",3)
+ .....I '$G(SCTLOG("WORK")) S SCPROV=$P($G(^SCTM(404.52,+$G(SCPTR),0)),"^",3)
  ....S SCTXT=$$LOWER^VALM1($S($G(SCPROV)'="":$$EXTERNAL^DILFD(404.52,.03,,SCPROV),1:"N/A"))
  ....S SCLINE=SCLINE_"   "_$$LJ(SCTXT,18)
  ....;

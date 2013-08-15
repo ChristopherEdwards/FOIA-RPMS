@@ -1,10 +1,14 @@
 LRGP2 ;SLC/CJS/RWF/DALOI/FHS-COMMON PARTS TO INSTRUMENT GROUP VERIFY/CHECK ;2/5/91  13:23
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**153,221,263**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1004,1013,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 153,221,263,290
+ ;
  Q
-EXPLODE ;from LRGP1, LRVR
- N DIC,LRI,LRTEST,LRX,I,DIR,%,C,LREND
- K ^TMP("LR",$J)
+ ;
+ ;
+EXPLODE ; from LRGP1, LRVR
+ N %,C,DIC,DIR,DIRUT,DIROUT,DUOUT,LREND,LRI,LRTEST,LRX,I,X,Y
+ I $G(LRORDR)'="P" K ^TMP("LR",$J)
  S LRCFL="",LRI=0 S:'$D(LRNX) LRNX=0
  F  S LRI=$O(^LRO(68.2,LRLL,10,LRPROF,1,LRI)) Q:LRI<1  I $D(^(LRI,0))#2 D
  . S LRI(0)=$G(^LRO(68.2,LRLL,10,LRPROF,1,LRI,0))
@@ -15,17 +19,26 @@ EXPLODE ;from LRGP1, LRVR
  . F  S LRI=+$O(^TMP("LR",$J,"T",LRI)) Q:LRI<1  S X=^(LRI) D
  . . S LRVTS($P(X,";",2))=LRI,LRVTS=LRVTS+1
  . . S ^TMP("LR",$J,"VTO",LRI)=$P(X,";",2)
+ Q:$G(LRORDR)="P"
 EX3 ;
  G:$G(LREND) STOP
- K DUOUT
- K DIR S DIR(0)="YO",DIR("A")=" Would you like to see the list ",DIR("B")="No" D ^DIR K DIR I Y=1 D
- .  W @IOF,!,"The ("_$P(^LRO(68.2,LRLL,0),U)_") [ "_$P(^LRO(68.2,LRLL,10,LRPROF,0),U)_" ] Profile has" D LIST
- I $S($D(DUOUT):1,$G(LREND):1,1:0) K ^TMP("LR",$J),LRVTS,DUOUT Q
- W !!,$$CJ^XLFSTR("Do you wish to modify the test list",IOM)
- W !,$$CJ^XLFSTR("i.e., would you like to add or subtract ATOMIC tests?",IOM),!
- S %=2 D YESNO
- I %=U S LREND=1 G STOP
- I %=1 D EX1 G:'$G(LREND) EX3
+ ;
+ K DIR,DIRUT,DIROUT,DUOUT,X,Y
+ S DIR(0)="YO",DIR("A")="Would you like to see the test list",DIR("B")="No"
+ D ^DIR
+ I $S($G(DIRUT):1,$G(LREND):1,1:0) K ^TMP("LR",$J),LRVTS Q
+ I Y=1 D
+ . W @IOF,!,"The ("_$P(^LRO(68.2,LRLL,0),U)_") ["_$P(^LRO(68.2,LRLL,10,LRPROF,0),U)_"] Profile has"
+ . D LIST
+ ;
+ K DIR
+ S DIR("A",1)=" "
+ S DIR("A")="Do you wish to modify the test list"
+ S DIR("?")="i.e. would you like to add or subtract ATOMIC tests?"
+ S DIR("B")="NO"
+ S DIR(0)="Y" D ^DIR
+ I $D(DIRUT) S LREND=1 G STOP
+ I Y=1 D EX1 G:'$G(LREND) EX3
 STOP I $G(LREND) K ^TMP("LR",$J),LRVTS S LREND=0 Q
 EX2 ;
  K LRVTS,DIC
@@ -45,22 +58,24 @@ EX2 ;
  Q
  ;
 EX1 ;
- D
- . N %
- . W !!,"Do you want to add ATOMIC test(s) to this panel",! S %=2 D YESNO
- . I %=U S LREND=1 Q
- . Q:Y'=1
+ K DIR
+ S DIR("A")="Do you want to add ATOMIC test(s) to this panel",DIR("B")="NO"
+ D ^DIR
+ I $D(DIRUT) S LREND=1 Q
+ I Y=1 D
  . K LRVTS,DIC
  . S DIC("A")="Select ATOMIC test(s) you wish to add: ",DIC="^LAB(60,",DIC(0)="AEMOQZ" ; ,DIC("S")="I $G(^(.2))"
  . F  D ^DIC Q:Y<1  K LRTEST D EX6(+Y)
  . W @IOF,!?5,"The List now has" D LIST
- Q:$G(LREND)
 EX4 ;
- D
+ K DIR
+ S DIR("A",1)=" "
+ S DIR("A")="Do you wish to exclude ATOMIC tests in this panel"
+ S DIR("B")="NO",DIR(0)="YO"
+ D ^DIR
+ I $D(DIRUT) S LREND=1 Q
+ I Y=1 D
  . N LREXCL,%
- . W !!,"Do you wish to exclude ATOMIC tests in this panel",! S %=2 D YESNO
- . I Y=U S LREND=1 Q
- . Q:%'=1
  . W !!,$$CJ^XLFSTR("Tests removed from this panel will not be included for review or editing.",IOM),!!
  . K DIC
  . S LREXCL="",DIC("A")="Select ATOMIC test(s) you wish to exclude: ",DIC="^LAB(60,",DIC(0)="AEMOQ"
@@ -80,17 +95,21 @@ EX4 ;
 LIST ;
  N LRI,DIR,DUOUT,X
  W " the following tests: "
- S LRI=0,DIR(0)="E" K DUOUT
- F  S LRI=$O(^TMP("LR",$J,"VTO",LRI)) Q:LRI<1!($D(DUOUT))  W !,?10,$P($G(^LAB(60,LRI,0)),U) I $Y>(IOSL-4) D
- . W ! D ^DIR W @IOF
- . I X=U S LREND=1
+ S LRI=0,DIR(0)="E"
+ F  S LRI=$O(^TMP("LR",$J,"VTO",LRI)) Q:LRI<1!($D(DUOUT))  D
+ . W !,?10,$P($G(^LAB(60,LRI,0)),U)
+ . I $Y>(IOSL-4) W ! D ^DIR W @IOF I $D(DIRUT) S LREND=1
  Q
+ ;
+ ;
 YESNO ;
  W !
  N DIR
  S DIR("B")=$S($G(%)=1:"Yes",$G(%)=2:"No",1:"")
  S DIR(0)="Y" D ^DIR S %=Y
  Q
+ ;
+ ;
 EX6(LRX) ;Expand test list
  S (T1,LRTEST)=LRX,LRTEST(T1)=LRX_U_$G(^LAB(60,T1,0))
  S LRTEST(T1,"P")=LRTEST

@@ -1,5 +1,5 @@
 DG53296C ;ALB/JAT DG*5.3*296 DELETE INC TEST CON'T;01 JUNE 2000
- ;;5.3;REGISTRATION;**296**;JUNE 1 2000
+ ;;5.3;REGISTRATION;**296,1015**;JUNE 1 2000;Build 21
  ;
  ;This is a modified version for IVMCMD1. It deletes records
  ;from the Annual Means Test(#408.31) file.  It does not open

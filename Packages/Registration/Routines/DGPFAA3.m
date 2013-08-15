@@ -1,5 +1,5 @@
 DGPFAA3 ;ALB/RPM - PRF ASSIGNMENT API'S CONTINUED ; 3/28/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,650,1015**;Aug 13, 1993;Build 21
  ;
  Q  ;no direct entry
  ;
@@ -88,3 +88,133 @@ UNLOCK(DGAIEN) ;Unlock assignment record.
  I $G(DGAIEN) L -^DGPF(26.13,DGAIEN)
  ;
  Q
+ ;
+STOHL7(DGPFA,DGPFAH,DGEROOT) ;store a valid assignment from HL7 message
+ ; This function files an assignment if the originating site is 
+ ; authorized to update an existing record and if the action is valid for
+ ; the status of an existing record. 
+ ;
+ ;  Input:
+ ;    DGPFA - (required) array of assignment values to be filed (see
+ ;            $$GETASGN^DGPFAA for valid array structure)
+ ;   DGPFAH - (required) array of assignment history values to be filed
+ ;            (see $$STOHIST^DGPFAAH for valid array structure)
+ ;  DGEROOT - (optional) closed root array name (i.e. "DGERROR") for
+ ;            error dialog returned from BLD^DIALOG. If not passed, error
+ ;            dialog is returned in ^TMP("DIERR",$J) global.
+ ;
+ ;  Output:
+ ;   Function Value - Returns 1 on sucess, 0 on failure
+ ;        DGEROOT() - error output array from BLD^DIALOG
+ ;
+ N DGDFN
+ N DGFLG
+ N DGORIG
+ N DGACT
+ N DGMSG
+ N DGRSLT
+ N DIERR  ;var returned from BLD^DIALOG
+ ;
+ S DGDFN=+$G(DGPFA("DFN"))
+ S DGFLG=$G(DGPFA("FLAG"))
+ S DGORIG=+$G(DGPFA("SNDFAC"))
+ S DGACT=+$G(DGPFAH("ACTION"))
+ ;
+ S DGRSLT=0
+ ;
+ D  ;drops out of block on failure
+ . ;
+ . ;check input params
+ . I DGDFN'>0 D BLD^DIALOG(261110,,,DGEROOT,"F") Q
+ . I DGFLG']"" D BLD^DIALOG(261111,,,DGEROOT,"F") Q
+ . I DGORIG'>0 D BLD^DIALOG(261125,,,DGEROOT,"F") Q
+ . I DGACT'>0 D BLD^DIALOG(261118,,,DGEROOT,"F") Q
+ . ;
+ . ;new assignment action
+ . I DGACT=1,'$$ADDOK^DGPFAA2(DGDFN,DGFLG,DGEROOT) Q
+ . ;
+ . ;all other actions
+ . I DGACT'=1,'$$HL7EDTOK(DGDFN,DGFLG,DGORIG,DGACT,DGEROOT) Q
+ . ;
+ . ;file the assignment and history
+ . I '$$STOALL^DGPFAA(.DGPFA,.DGPFAH,.DGMSG)!($D(DGMSG)) D  Q
+ . . D BLD^DIALOG(261120,,,DGEROOT,"F")
+ . ;
+ . ;success
+ . S DGRSLT=1
+ ;
+ Q DGRSLT
+ ;
+HL7EDTOK(DGDFN,DGFLG,DGORIG,DGACT,DGEROOT) ;Is site allowed to edit assignment?
+ ; This function acts as wrapper for $$EDTOK and $$ACTIONOK for edits
+ ; that originate from PRF HL7 message processing.
+ ;
+ ;  Supported DBIA #2171:  This DBIA is used to access the KERNEL
+ ;                         INSTITUTION (#4) file API PARENT^XUAF4.
+ ;
+ ;  Input:
+ ;    DGDFN - IEN of patient in PATIENT (#2) file
+ ;    DGFLG - IEN of patient record flag in PRF NATIONAL FLAG (#26.15)
+ ;            file or PRF LOCAL FLAG (#26.11) file. [ex: "1;DGPF(26.15,"]
+ ;   DGORIG - IEN of originating site in INSTITUTION (#4) file
+ ;    DGACT - Assignment edit action in internal format
+ ;            [1:NEW ASSIGNMENT,2:CONTINUE,3:INACTIVATE,4:REACTIVATE,5:ENTERED IN ERROR]
+ ;  DGEROOT - (optional) closed root array name (i.e. "DGERROR") for
+ ;            error dialog returned from BLD^DIALOG. If not passed, error
+ ;            dialog is returned in ^TMP("DIERR",$J) global.
+ ;
+ ;  Output:
+ ;   Function value - 1 if authorized, 0 if not authorized
+ ;          DGEROOT() - error output array from BLD^DIALOG
+ ;
+ N DGIEN    ;pointer to PRF ASSIGNMENT (#26.13) file
+ N DGPFA    ;assignment data array
+ N DGFARRY  ;flag data array
+ N DGOWNER  ;IEN of owner site in INSTITUTION (#4) file
+ N DGRSLT   ;function value
+ N DIERR    ;var returned from BLD^DIALOG
+ ;
+ ;init error output array if passed
+ S DGEROOT=$G(DGEROOT)
+ I DGEROOT]"" K @DGEROOT
+ ;
+ S DGACT=+$G(DGACT)
+ S DGDFN=+$G(DGDFN)
+ S DGFLG=$G(DGFLG)
+ S DGORIG=+$G(DGORIG)
+ S DGRSLT=0
+ ;
+ D  ;drops out of block on failure
+ . ;
+ . ;check input params
+ . I DGDFN'>0 D BLD^DIALOG(261110,,,DGEROOT,"F") Q
+ . I DGACT'>0 D BLD^DIALOG(261118,,,DGEROOT,"F") Q
+ . I DGORIG'>0 D BLD^DIALOG(261125,,,DGEROOT,"F") Q
+ . I DGFLG']"" D BLD^DIALOG(261111,,,DGEROOT,"F") Q
+ . ;
+ . ;retrieve existing assignment data
+ . S DGIEN=$$FNDASGN^DGPFAA(DGDFN,DGFLG)
+ . I '$$GETASGN^DGPFAA(DGIEN,.DGPFA) D  Q
+ . . D BLD^DIALOG(261102,,,DGEROOT,"F")
+ . ;
+ . ;SENDING FACILITY be the OWNER or parent of the OWNER
+ . S DGOWNER=+$G(DGPFA("OWNER"))
+ . I DGORIG'=DGOWNER,DGORIG'=+$$PARENT^DGPFUT1(DGOWNER) D  Q
+ . . D BLD^DIALOG(261116,,,DGEROOT,"F")
+ . ;
+ . ;quit if flag STATUS is INACTIVE
+ . I $$GETFLAG^DGPFUT1($P($G(DGPFA("FLAG")),U),.DGFARRY)
+ . I '+$G(DGFARRY("STAT")) D  Q
+ . . D BLD^DIALOG(261113,,,DGEROOT,"F")
+ . ;
+ . ;quit if no TIU PN TITLE IEN is found for the record flag
+ . I '+$P($G(DGFARRY("TIUTITLE")),U) D  Q
+ . . D BLD^DIALOG(261114,,,DGEROOT,"F")
+ . ;
+ . ;ACTION must be valid for current assignment STATUS
+ . Q:('$$ACTIONOK^DGPFAA2(.DGPFA,DGACT,DGEROOT))
+ . ;
+ . ;success
+ . S DGRSLT=1
+ ;
+ Q DGRSLT

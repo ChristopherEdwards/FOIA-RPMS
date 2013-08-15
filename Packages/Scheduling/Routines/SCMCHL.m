@@ -1,5 +1,5 @@
 SCMCHL ;BP/DJB - PCMM HL7 Main Calling Point ; 16 Dec 2002  11:14 AM
- ;;5.3;Scheduling;**177,204,224,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,204,224,272,367,1015**;AUG 13, 1993;Build 21
  ;
  ;Reference routine: SCDXMSG
 MAIN(MODE,XMITARRY,VARPTR,WORK) ;Main entry point to generate Primary Care HL7
@@ -26,6 +26,13 @@ MAIN(MODE,XMITARRY,VARPTR,WORK) ;Main entry point to generate Primary Care HL7
  ;                "1;SCTM(404.53,"    (Preceptor Assign History)
  ;   Work Optional if present
  ;Output: None
+ ;
+ ;Prevent multiple runs processing at the same time.
+ I $G(VARPTR)'="",$D(^XTMP("SCMCHL")) D  Q
+ .W !,"HL7 Transmission in progress, no testing allowed!",!
+ I $D(^XTMP("SCMCHL")) D  Q
+ .W !,"HL7 Transmission in progress, please try again later.",!
+ S ^XTMP("SCMCHL",0)=DT_"^"_DT
  ;
  NEW ERRCNT,IEN,MSG,MSGCNT,RESULT
  NEW SCEVIEN,SCFAC
@@ -104,6 +111,7 @@ LOOP ;Loop thru EVENT POINTER xref and send message for each unique one.
  . S ERRCNT=$$COUNT^SCMCHLS(XMITERR)
  . D CMPLBULL^SCMCHLM(MSGCNT,ERRCNT,XMITERR)
  . KILL @XMITARRY,@XMITERR
+ . K ^XTMP("SCMCHL")
  ;
  Q:SCLIMIT<1
  ;
@@ -134,6 +142,7 @@ MANUAL ;User passed in a specific variable pointer value. This value will
  ;
  ;Generate message - FOR TESTING PURPOSES ONLY!
  S RESULT=$$GENERATE^SCMCHLG()
+ K ^XTMP("SCMCHL")
  Q
  ;
 FLAG(VARPTR,SCEVIEN) ;Turn off transmission flag. This removes event from "AACXMIT"
@@ -154,3 +163,4 @@ HLEIDW() ;Return workload sending event
 HLEID() ;Return pointer to sending event
  I $G(WORK) Q $$HLEIDW()
  Q +$O(^ORD(101,"B","PCMM SEND SERVER FOR ADT-A08",0))
+ Q

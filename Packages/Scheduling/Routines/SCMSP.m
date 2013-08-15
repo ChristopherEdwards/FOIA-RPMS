@@ -1,5 +1,5 @@
 SCMSP ;ALB/MTC - POST INIT ROUTINE;28-MAY-1996
- ;;5.3;Scheduling;**44**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,1015**;AUG 13, 1993;Build 21
  ;
 HOPUP ;-- This function will update all the clinics in file #44 to
  ;   require Provider and Diagnosis for checkout. Using the "B"

@@ -1,5 +1,5 @@
-BEHOENPC ;MSC/IND/DKM - PCC Data Management ;01-Sep-2011 12:42;DU
- ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007**;Sep 18, 2007
+BEHOENPC ;MSC/IND/DKM - PCC Data Management ;07-Sep-2011 10:14;PLS
+ ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007,005008**;Sep 18, 2007
  ;=================================================================
  ; RPC: Update PCC data
  ; DATA = Returned as 0 if successful
@@ -186,7 +186,7 @@ SK ;; Skin tests
  Q
 PED ;; Patient education
  ; PED[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^level of understanding[7]^
- ;    refused[8]^elapsed[9]^setting[10]^goals[11]^outcome[12]
+ ;    refused[8]^elapsed[9]^setting[10]^goals[11]^outcome[12]^Readiness to learn[13]
  N REF
  S REF=$P(VAL,U,8)
  I "@"[REF,$P(VAL,U,7)=5 S REF="R"
@@ -194,11 +194,16 @@ PED ;; Patient education
  S:'$P(VAL,U,6) $P(VAL,U,6)=DUZ  ;Patch 003
  S $P(VAL,U,3)=$$PEDTOPIC($P(VAL,U,3))  ;Patch 004
  S:"@"'[REF $P(VAL,U,7)=5
- D SET(.12,3),SET(.05,6),SET(.06,7),SET(.08,9),SET(.07,10),SET(.13,11),SET(.14,12),STORE(.16,.11)
+ D SET(.12,3),SET(.05,6),SET(.06,7),SET(.08,9),SET(.07,10),SET(.13,11),SET(.14,12),SET(1102,13),STORE(.16,.11)
  Q
 HF ;; Health factors
  ; HF[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^level/severity[7]
  D SET(.01,2),SET(.04,7),STORE(.23)
+ Q
+ASM ;; Asthma
+ ; ASM[1]^Code[2]^Severity[3]^Asthma Control[4]
+ S CODE=1
+ D SET(.14,4),STORE(.41)
  Q
 XAM ;; Patient exams
  ; XAM[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^result[7]^refused[8]

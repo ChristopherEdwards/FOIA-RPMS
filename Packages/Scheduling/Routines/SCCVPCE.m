@@ -1,5 +1,5 @@
 SCCVPCE ;ALB/TMP - Send data to PCE; [ 01/28/98  10:19 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 DATA2PCE(SDOE,SCCONS,SCCVEVT,SCOEP,SCDTM,SCDA,SCEST) ; -- send data to pce
  ;Input:

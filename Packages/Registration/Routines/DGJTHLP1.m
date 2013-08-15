@@ -1,5 +1,5 @@
 DGJTHLP1 ;ESD/ALB - Help txt for IRT menu options; 30-NOV-1993
- ;;5.3;Registration;**9**;Aug 13, 1993
+ ;;5.3;Registration;**9,1015**;Aug 13, 1993;Build 21
  ; -- IRT ListMan menu help
  ;
 CEHLPTXT ; -- Completed IRT Edit menu help text

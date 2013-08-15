@@ -1,5 +1,5 @@
 DG53351M ;ALB/JAN - DG*5.3*351 POST-INSTALL MAINMAN MSG; 6/26/01
- ;;5.3;Registration;**351**;JUNE 26, 2001
+ ;;5.3;Registration;**351,1015**;JUNE 26, 2001;Build 21
  ;
  ; This routine will be run as part of the post-install for patch DG*5.3*351
  ;

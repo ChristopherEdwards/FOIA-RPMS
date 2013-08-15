@@ -1,5 +1,5 @@
 DG477PST ;BIR/DRI-DG*5.3*477 PATCH POST INSTALL ROUTINE ;9/11/02
- ;;5.3;Registration;**477**;Aug 13, 1993
+ ;;5.3;Registration;**477,1015**;Aug 13, 1993;Build 21
  ;
  ;Reference to TRIG^DICR supported by IA #3405
  ;

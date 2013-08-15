@@ -1,5 +1,5 @@
 SDCP ;BSN/GRR - CLINIC LIST ; 15 MAR 1999  4:10 PM ;
- ;;5.3;Scheduling;**140,171,187**;Aug 13, 1993
+ ;;5.3;Scheduling;**140,171,187,354,1015**;Aug 13, 1993;Build 21
  D ASK2^SDDIV G:Y<0 END S VAUTNI=1 D CLINIC^VAUTOMA G:Y<0 END
 QUE N ZTSAVE F Y="VAUTD","VAUTD(","VAUTC","VAUTC(" S ZTSAVE(Y)=""
  D EN^XUTMDEVQ("START^SDCP","Clinic Profile",.ZTSAVE) Q
@@ -51,41 +51,18 @@ PRT I $Y+12>IOSL D:IOSL<25 SEEND:$E(IOST,1,2)="C-" Q:END  D TOF
  I $D(^SC(SC,"I")) S SDRE=+$P(^("I"),U,2),SDIN=+^("I") I SDRE'=SDIN D:SDIN'>DT&(SDRE=0!(SDRE>DT)) INACT
  I 'SDNO,$D(SDIN),SDIN>DT,SDRE'=SDIN W !!,?4,"**** Clinic will be inactive ",$S(SDRE:"from ",1:"as of ") S Y=SDIN D DTS^SDUTL W Y S Y=SDRE D:Y DTS^SDUTL W $S(SDRE:" to "_Y,1:"")," ****" K SDIN,SDRE
  I 'SDSC W !!,?4,"*** INVALID OR INACTIVE STOP CODE ASSIGNED TO THIS CLINIC ***"
- D CO(SC)
  Q
  ;
 INACT S Y=SDIN D DTS^SDUTL W !!,?4,"**** Clinic is inactive ",$S(SDRE:"from ",1:"as of "),Y S Y=SDRE D:Y DTS^SDUTL W $S(SDRE:" to "_Y,1:"")," ****" K SDIN,SDRE S SDNO=1
  Q
  ;
-SEEND N DIR S DIR(0)="E" D ^DIR S END=Y'=1 Q:END
+SEEND W ! N DIR S DIR(0)="E" D ^DIR S END=Y'=1 Q:END
 TOF W @IOF,?22,"CLINIC PROFILES AS OF: ",PDATE,! Q
  ;
 CHECK() ;Check location for inclusion
  I $D(^SC(SC,0)),($P(^(0),U,3)="C"),$S(VAUTD:1,$D(VAUTD(+$P(^(0),U,15))):1,'$P(^(0),U,15)&($D(VAUTD($O(^DG(40.8,0))))):1,1:0) Q 1
  Q 0
  ;
-CO(SDCL) ; -- print co profile info
- N I,C,X,DA,DR,DIQ,DIC,SDCO,SDLN,SDESC
- S DIC="^SC(",DA=SDCL,DR="24;26;27;28",DIQ="SDCO",DIQ(0)="E"
- D EN^DIQ1
- W !!?25,"**** Check Out Parameters ****"
- W !?5,">> Ask for Check In/Out Time: ",$G(SDCO(44,SDCL,24,"E"))
- W ?40,">> Ask Stop Codes at Check-Out: ",$G(SDCO(44,SDCL,28,"E"))
- W !?5,">> Ask Provider at Check-Out: ",$G(SDCO(44,SDCL,26,"E"))
- S SDLN=12,SDESC=1
- S (C,I)=0 F  S I=$O(^SC(SDCL,"PR",I)) Q:'I  S X=$G(^(I,0)) D  G COQ:'SDESC
- .I 'C S SDESC=$$PAUSE(.SDLN) Q:'SDESC  W !?10
- .W:C ?50 S C='C
- .W $E($P($G(^VA(200,+X,0)),U),1,20),$S($P(X,U,2):" (default)",1:"")
- ;
- W !?5,">> Ask Diagnosis at Check-Out: ",$G(SDCO(44,SC,27,"E"))
- S (C,I)=0 F  S I=$O(^SC(SDCL,"DX",I)) Q:'I  S X=$G(^(I,0)) D  G COQ:'SDESC
- .I 'C S SDESC=$$PAUSE(.SDLN) Q:'SDESC  W !?10
- .I C=1 W ?30
- .I C=2 W ?50
- .S C=C+1 S:C=3 C=0
- .W $E($P($G(^ICD9(+X,0)),U),1,20),$S($P(X,U,2):" (default)",1:"")
-COQ Q
  ;
 PAUSE(LINE) ;
  N Y S Y=1

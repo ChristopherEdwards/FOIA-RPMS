@@ -1,5 +1,5 @@
-DGMTSC ;ALB/RMO,CAW,RTK,PDJ - Means Test Screen Driver ; 7/30/03 2:51pm
- ;;5.3;Registration;**182,327,372,433,463,540**;Aug 13, 1993
+DGMTSC ;ALB/RMO,CAW,RTK,PDJ,LBD,EG - Means Test Screen Driver ;05/02/2006
+ ;;5.3;Registration;**182,327,372,433,463,540,566,611,1015**;Aug 13, 1993;Build 21
  ;
  ;A series of screens used to collect the means test data
  ; Input  -- DFN      Patient IEN
@@ -15,10 +15,15 @@ DGMTSC ;ALB/RMO,CAW,RTK,PDJ - Means Test Screen Driver ; 7/30/03 2:51pm
  ;
 EN ;Entry point for means test screen driver
  D PRIOR^DGMTEVT:DGMTACT'="VEW",HOME^%ZIS,SETUP^DGMTSCU I DGERR D MG G Q1
+ N DGREF,DTOUT,DUOUT,DGCAT,DGREF,ANSPFIN,PROVS
+ S ANSPFIN="N"
+ I DGMTACT="ADD"!(DGMTACT="EDT")!(DGMTACT="COM") D DISCF Q:$D(DTOUT)!$D(DUOUT)  I $D(DGREF) D Q Q
+ ;
 EN1 ;Entry point to edit means test if incomplete
  S DGMTSCI=+$O(DGMTSC(0))
  I DGMTI,$$GET1^DIQ(408.31,DGMTI,.23)["IVM" S DGVINI=0     ;DG*5.3*540
  G @($$ROU^DGMTSCU(DGMTSCI))
+ ;
  ;
 Q I DGMTACT'="VEW" D EN^DGMTSCC I DGERR G EN1:$$EDT
  ; Added for LTC Co-pay Phase II - DG*5.3*433
@@ -54,14 +59,17 @@ K K %,DGBL,DGDC,DGDEP,DGDR,DGFCOL,DGFL,DGMT0,DGMTA,DGMTINF,DGMTOUT,DGMTP,DGMTPAR
  ;
  ; Validate record with consistency checks, when adding, editing, or
  ; completing either a means or copay test.
+ ; For DG*5.3*566 - added a check for Status field to be defined before
+ ; calling the consistency check API (INCON^DGMTUTL1).
  K IVMERR,IVMAR,IVMAR2
- I DGMTACT'="VEW" D INCON^DGMTUTL1(DFN,DGMTDT,DGMTI,DGMTYPT,.IVMERR),PROB^IVMCMFB(DGMTDT,.IVMERR,1)
+ ;don't apply consistency checks if user elects to not provide financial information
+ I DGMTACT'="VEW",$P($G(^DGMT(408.31,DGMTI,0)),U,3),'$D(DGREF) D INCON^DGMTUTL1(DFN,DGMTDT,DGMTI,DGMTYPT,.IVMERR),PROB^IVMCMFB(DGMTDT,.IVMERR,1)
  ;
  ;Update the TEST-DETERMINED STATUS field (#2.03) in the ANNUAL MEANS
  ;TEST file (408.31) when adding a means or copay test, completing a 
  ;means test, or editing a means or copay test.
  I "ADDCOMEDT"[DGMTACT D SAVESTAT^DGMTU4(DGMTI,DGERR)
- K DGERR,IVMERR,ARRAY,ZIC,ZIR,ZMT,ZDP,IVMAR,IVMAR2
+ K DGERR,IVMERR,ARRAY,ZIC,ZIR,ZMT,ZDP,IVMAR,IVMAR2,DGREF
  ;
  G @(DGMTROU)
  ;
@@ -77,3 +85,33 @@ EDT() ;Edit means/copay test if incomplete
  S DIR("A")="Do you wish to edit the "_$S(DGMTYPT=1:"means",1:"copay exemption")_" test"
  S DIR("B")="YES",DIR(0)="Y" D ^DIR
  Q +$G(Y)
+ ;
+DEDUCT() ;
+ N DIR,Y
+ S DIR("A")="Agreed to pay deductible",DIR(0)="Y"
+ D ^DIR
+ Q +$G(Y)
+ ;
+DISCF ;Check if patient declines to provide income information
+ ;similar to module REF in program DGMTSCC, but the questions
+ ;are negatives of each other
+ N DIR,Y,U,MSG
+ S U="^"
+ S MSG(1)=""
+ S MSG(2)="PROVIDE SPECIFIC INCOME AND/OR ASSET INFORMATION"
+ S MSG(3)="TO HAVE ELIGIBILITY FOR CARE DETERMINED. <YES>"
+ S MSG(4)="Continue, and complete the test with last calendar year's information."
+ S MSG(5)=""
+ S MSG(6)="PROVIDE MY DETAILED FINANCIAL INFORMATION. <NO>"
+ S MSG(7)="The appropriate enrollment priority based on nondisclosure of"
+ S MSG(8)="my financial information will be assigned."
+ S MSG(9)=""
+ D BMES^XPDUTL(.MSG)
+ S DIR("A")="Do you wish to provide financial information? "
+ ;piece 14 says declines to give income info yes or no
+ ;if the user declines to give income info, then provide financial information is no
+ I $P($G(^DGMT(408.31,DGMTI,0)),"^",14)]"" S DIR("B")=$S($P(^DGMT(408.31,DGMTI,0),"^",14):"N",1:"Y")
+ I '$D(DIR("B")) S DIR("B")="YES"
+ S DIR(0)="408.31,.14" D ^DIR K DIR I $D(DTOUT)!($D(DUOUT)) Q
+ S:'Y DGREF="" S ANSPFIN="Y" Q:'$D(DGREF)!($D(DGREF1))!(DGMTYPT'=1)  S DGCAT="C" D STA^DGMTSCU2
+ Q

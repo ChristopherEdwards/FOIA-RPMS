@@ -1,12 +1,7 @@
-IS00027B ;Compiled from script 'Generated: HL IHS IZV04 V03VXR IN-I' on SEP 05, 2011
+IS00027B ;Compiled from script 'Generated: HL IHS IZV04 V03VXR IN-I' on FEB 28, 2013
  ;Part 3
- ;Copyright 2011 SAIC
-EN I '$D(X) D ERROR^INHS("Variable 'PID11' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
- K DXS
- S (INX,X)=$G(@INV@("PID13"))
- I $P($G(INTHL7F2),U,4) S X=$$SUBESC^INHUT7(X,INDELIMS,"I")
- S @INV@("PID13")=$G(X)
- I '$D(X) D ERROR^INHS("Variable 'PID13' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
+ ;Copyright 2013 SAIC
+EN I '$D(X) D ERROR^INHS("Variable 'PID13' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
  K DXS
  S (INX,X)=$G(@INV@("PID14"))
  I $P($G(INTHL7F2),U,4) S X=$$SUBESC^INHUT7(X,INDELIMS,"I")
@@ -139,5 +134,11 @@ I1 ;IF $D(@INV@("PD11"))
  .K DXS
  .;IF $D(@INV@("IN21"))
  .I $D(@INV@("IN21"))
-9 .D EN^IS00027C
+ .D:$T
+ ..S INI(1)=0 F  S INI(1)=$O(@INV@("IN23",INI(1))) Q:'INI(1)  S INI=INI(1) D
+ ...S (INX,X)=@INV@("IN23",INI(1))
+ ...I $P($G(INTHL7F2),U,4) S X=$$SUBESC^INHUT7(X,INDELIMS,"I")
+9 ...D EN^IS00027C
+ ..D M3^IS00027C
+ .D M2^IS00027C
  G M1^IS00027C

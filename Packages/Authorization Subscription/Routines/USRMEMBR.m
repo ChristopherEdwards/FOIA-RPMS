@@ -1,5 +1,5 @@
 USRMEMBR ; SLC/JER - User Class Management actions ;05/05/98
- ;;1.0;AUTHORIZATION/SUBSCRIPTION;**2,3,6,7**;Jun 20, 1997
+ ;;1.0;AUTHORIZATION/SUBSCRIPTION;**2,3,6,7,29**;Jun 20, 1997;Build 7
 EDIT ; Edit user's class membership
  N USRDA,USRDATA,USREXPND,USRI,USRSTAT,DIROUT,USRCHNG,USRLST
  I '$D(VALMY) D EN^VALM2(XQORNOD(0))
@@ -28,8 +28,8 @@ ADD ; Add a member to the class
  . W !
  . S DIC=200,DIC(0)="AEMQ"
  . S DIC("A")="Select "_$S(USRCNT'>0:"",1:"Another ")_"MEMBER: "
- . S DIC("S")="I ('$$ISAWM^USRLM(+Y,USRDA))"
  . D ^DIC I +Y'>0 S USRQUIT=1 Q
+ . I $$ISAWM^USRLM(+Y,USRDA) Q 
  . I $$ISTERM^USRLM(+Y) D  Q
  .. S USRQUIT=1
  .. W !,"The user you selected is terminated, cannot add them as a class member!"

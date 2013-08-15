@@ -1,5 +1,5 @@
 DGYMBT ;ALB/REW - DGBT(392,B) X-REF CLEANUP - 12/9/94
- ;;5.3;Registration;**35**;Aug 13, 1993
+ ;;5.3;Registration;**35,1015**;Aug 13, 1993;Build 21
 EN ;  remove corrupt pointers from B x-REF OF DGBT(392,
  ;
  ; Optional input:

@@ -1,5 +1,5 @@
 SCDXMSG ;ALB/JRP - AMB CARE TRANSMISSION BUILDER;06-MAY-1996 ; 12/20/01 4:46pm
- ;;5.3;Scheduling;**44,56,70,77,85,96,121,128,66,247,245**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,56,70,77,85,96,121,128,66,247,245,387,466,1015**;AUG 13, 1993;Build 21
  ;
 SNDZ00 ;Main entry point for the sending of ADT-Z00 batch messages to
  ; the National Patient Care Database
@@ -13,7 +13,7 @@ SD70 ; added w/ patch SD*5.3*70 to reset transmit flags if needed
  ;Declare variables
  N X,X1,X2,%H
  N XMITPTR,NOACKBY,XMITDATE,SCDXEVNT,MAXBATCH,MAXLINE,BATCHCNT,MSGNUM
- N LINECNT,MSHLINE,XMITLIST,XMITERR,HL7XMIT,ERROR
+ N LINECNT,MSHLINE,XMITLIST,XMITERR,HL7XMIT,ERROR,IPCNT
  N HLEID,HL,HLECH,HLFS,HLQ,HLMID,HLMTIEN,HLDT,HLDT1,MSGID,HLRESLT,HLP
  ;Set message count limit for batch message
  S MAXBATCH=100
@@ -54,7 +54,7 @@ SD70 ; added w/ patch SD*5.3*70 to reset transmit flags if needed
  ;Unable to create batch message - send error bulletin - done
  I ('HLMTIEN) D ERRBULL^SCDXMSG2("Unable to create batch HL7 message") Q
  ;Initialize message count
- S BATCHCNT=0
+ S BATCHCNT=0,IPCNT=0
  ;Initialize message number
  S MSGNUM=1
  ;Initialize line count
@@ -81,7 +81,8 @@ SD70 ; added w/ patch SD*5.3*70 to reset transmit flags if needed
  ..; if SD*5.3*70 cleanup not complete, recheck date of encounter for range
  ..I $G(SDEND) Q:$$CHKD(X1,X2)
  ..;If inpatient appointment, delete entry and quit
- ..I ($$INPATENC^SCDXUTL(XMITPTR)) S ERROR=$$DELXMIT^SCDXFU03(XMITPTR) Q
+ ..;Commented to allow transmission of inpatient to NPCD; SD*5.3*387
+ ..;I ($$INPATENC^SCDXUTL(XMITPTR)) S ERROR=$$DELXMIT^SCDXFU03(XMITPTR) Q
  ..;If test patient, delete entry and quit
  ..I $$TESTPAT^VADPT($P($$EZN4XMIT^SCDXFU11(XMITPTR),"^",2)) S ERROR=$$DELXMIT^SCDXFU03(XMITPTR) Q
  ..;If child encounter, delete entry, flag parent for xmit, and quit
@@ -108,6 +109,8 @@ SD70 ; added w/ patch SD*5.3*70 to reset transmit flags if needed
  ..S BATCHCNT=BATCHCNT+1
  ..;Increment message number
  ..S MSGNUM=MSGNUM+1
+ ..;Increment inpatient count
+ ..I $$INPATENC^SCDXUTL(XMITPTR) S IPCNT=IPCNT+1
  ..;Create entry in ACRP Transmission History file (#409.77)
  ..S X=$$CRTHIST^SCDXFU10(XMITPTR,HLDT,MSGID,HLMID)
  ..;Update transmission info for [deleted] encounter
@@ -138,10 +141,11 @@ SD70 ; added w/ patch SD*5.3*70 to reset transmit flags if needed
  .;Send batch message - immediate priority
  .S HLP("PRIORITY")="I"
  .D GENERATE^HLMA(HLEID,"GB",1,.HLRESLT,HLMTIEN,.HLP)
- N ERRCNT
+ N ERRCNT,IPERR
  S ERRCNT=$$COUNT^SCMSVUT2(VALER)
+ S IPERR=$$IPERR^SCMSVUT2(VALER)
  ;Send completion bulletin
- D CMPLBULL^SCDXMSG2(BATCHCNT,ERRCNT)
+ D CMPLBULL^SCDXMSG2(BATCHCNT,ERRCNT,IPCNT,IPERR)
  ;Clean up global arrays used
  K @XMITERR,@HL7XMIT,@VALER
  ;Determine if updating of Hospital Location file hasn't completed AND

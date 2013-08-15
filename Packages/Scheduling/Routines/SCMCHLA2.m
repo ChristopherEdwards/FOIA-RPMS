@@ -1,5 +1,5 @@
 SCMCHLA2 ;ALB/KCL - PCMM HL7 Error Code & ID File API'S ;25-JAN-2000
- ;;5.3;Scheduling;**210**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,1015**;AUG 13, 1993;Build 21
  ;
 GETEC(SCIEN,SCEC) ;
  ; Description: Used to obtain a record from the PCMM HL7 ERROR CODE

@@ -1,5 +1,5 @@
 DG53296D ;JAT DG*5.3*296 DELETE DCD INCOME TESTS ; 01 JUNE 2000
- ;;5.3;REGISTRATION;**296**;JUNE 1 2000
+ ;;5.3;REGISTRATION;**296,1015**;JUNE 1 2000;Build 21
  ;
  ;This is a modified version of IVMCMD in that it calls a modified
  ;version of IVMCMD1 called DG53296C which only deletes the

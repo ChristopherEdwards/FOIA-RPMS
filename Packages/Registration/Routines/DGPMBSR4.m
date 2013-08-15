@@ -1,5 +1,5 @@
 DGPMBSR4 ;ALB/LM - STORE NEW TREATING SPECIALITY NODES; 16 JAN 91
- ;;5.3;Registration;**85**;Aug 13, 1993
+ ;;5.3;Registration;**85,1015**;Aug 13, 1993;Build 21
  ;
  ;  Storing in the Medical Center Division File, Treating Specialty Census Data
  Q:RD<TSRI  ; Quit if report date is less than TSR Initialization date

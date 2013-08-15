@@ -1,5 +1,5 @@
 DGPMGL51 ;ALB/MRL - G&L PARAMETER ENTRY/EDIT; 28 JUN 89
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  F I=1:1 S J=$P($T(@DGPM+I),";;",2) Q:J="QUIT"  W !,J
  K I,J Q
 1 ;

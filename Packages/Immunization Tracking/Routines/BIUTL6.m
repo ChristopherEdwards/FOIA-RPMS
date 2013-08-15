@@ -1,8 +1,9 @@
 BIUTL6 ;IHS/CMI/MWR - UTIL: TEXT FOR POINTERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: TEXT FOR PROVIDER, HOSP LOC, INSTIT, OTHER LOC,
  ;;           TRANSLATIONS, REACTION, CONTRA, SITE HDR, CUR COM TXT.
+ ;;  PATCH 3: Add call to return Imm Date if 1201 Event Date is populated  IMMDT
  ;
  ;
  ;----------
@@ -313,6 +314,27 @@ BENTX(X) ;EP
  Q:'$D(^AUTTBEN(X,0)) "BAD POINTER"
  Q $P(^AUTTBEN(X,0),U)
  ;
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> New line accounting for Event Date and Time.
+ ;----------
+IMMDTT(BIVPTR,BI012,BIFORM) ;EP
+ ;---> Return Immunization Date and Time from V Immunizations file.
+ ;---> If 1201 Event Date and Time field is populated, return that.
+ ;---> Parameters:
+ ;     1 - BIVPTR  (req) IEN in VISIT File.
+ ;     2 - BI012   (opt) 12-node of V IMM File entry.
+ ;     3 - BIFORM  (opt) Date Format: null default=MM/DD/YY, 1=(DD-Mmm-YYYY
+ ;                                    2=YYYMMDD
+ ;
+ N BIY D
+ .I $P($G(BI012),U) S BIY=$P(BI012,U) Q
+ .S BIY=$P($P($G(^AUPNVSIT($G(BIVPTR),0)),U),".")
+ Q:($G(BIFORM)=2) BIY
+ Q:($G(BIFORM)=1) $$TXDT1^BIUTL5(BIY,1)
+ Q $$SLDT2^BIUTL5(BIY,1)
+ ;---> Old line stored in ^BIEXPDD(29,0)=S Y=$P($G(~AUPNVSIT(+BIVPTR,0)),U),Y=$$TXDT1~BIUTL5(Y,1)
+ ;**********
  ;
  ;----------
 BIUPTX(X,Y) ;EP

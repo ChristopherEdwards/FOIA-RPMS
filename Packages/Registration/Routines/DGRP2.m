@@ -1,14 +1,16 @@
-DGRP2 ;ALB/MRL - REGISTRATION SCREEN 2/CONTACT INFORMATION ;06 JUN 88@2300
- ;;5.3;Registration;**415**;Aug 13, 1993
+DGRP2 ;ALB/MRL,BRM - REGISTRATION SCREEN 2/CONTACT INFORMATION ;06 JUN 88@2300
+ ;;5.3;PIMS;**415,545,638,677,760,1015,1016**;JUN 30, 2012;Build 20
  S DGRPS=2 D H^DGRPU F I=0,.24,57,1010.15 S DGRP(I)=$S($D(^DPT(DFN,I)):^(I),1:"")
- S (Z,DGRPW)=1 D WW^DGRPV W "     Sex: " S X=$P(DGRP(0),"^",2),Z=$S(X="M":"MALE",X="F":"FEMALE",1:DGRPU),Z1=31 D WW1^DGRPV
- S DGD=$$DISP^DG1010P0(DGRP(0),11,0,1),DGNOCITY=DGUNK,DGD1=$$POINT^DG1010P0(DGRP(0),12,5,1,0,1)
- W "POB: ",$E($S((DGNOCITY&DGUNK):"UNANSWERED",1:DGD_$S(($L(DGD)):", ",1:"")_DGD1),1,29)
  S DGRPX=DGRP(0)
- W !?4,"Marital: ",$S($D(^DIC(11,+$P(DGRPX,"^",5),0)):$E($P(^(0),"^",1),1,28),1:DGRPU),?41,"Father: ",$S($P(DGRP(.24),"^",1)]"":$E($P(DGRP(.24),"^",1),1,29),1:DGRPU)
- W !?3,"Religion: ",$S($D(^DIC(13,+$P(DGRPX,"^",8),0)):$P(^(0),"^",1),1:DGRPU),?41,"Mother: ",$S($P(DGRP(.24),"^",2)]"":$E($P(DGRP(.24),"^",2),1,29),1:DGRPU)
- S X=$P(DGRP(57),"^",4),X=$S(X']"":DGRPU,X="X":"NOT APPLICABLE",X=1:"PARA,",X=2:"QUAD,",X=3:"PARA,NON",1:"QUAD,NON"),X=$S("QD"[$E(X):X_"TRAUMATIC",1:X) W !?8,"SCI: ",X
- W ?35,"Mom's Maiden: ",$S($P(DGRP(.24),"^",3)]"":$E($P(DGRP(.24),"^",3),1,29),1:DGRPU)
+ S (Z,DGRPW)=1 D WW^DGRPV W "  Marital: " S Z=$S($D(^DIC(11,+$P(DGRPX,"^",5),0)):$E($P(^(0),"^",1),1,28),1:DGRPU),Z1=30 D WW1^DGRPV
+ ;S (Z,DGRPW)=1 D WW^DGRPV W "     Sex: " S X=$P(DGRP(0),"^",2),Z=$S(X="M":"MALE",X="F":"FEMALE",1:DGRPU),Z1=31 D WW1^DGRPV
+ S DGD=$$DISP^DG1010P0(DGRP(0),11,0,1),DGNOCITY=DGUNK,DGD1=$$POINT^DG1010P0(DGRP(0),12,5,1,0,1)
+ W ?41,"POB: ",$E($S((DGNOCITY&DGUNK):"UNANSWERED",1:DGD_$S(($L(DGD)):", ",1:"")_DGD1),1,29)
+ ;S DGRPX=DGRP(0)
+ W !?4,"Religion: ",$S($D(^DIC(13,+$P(DGRPX,"^",8),0)):$P(^(0),"^",1),1:DGRPU),?41,"Father: ",$S($P(DGRP(.24),"^",1)]"":$E($P(DGRP(.24),"^",1),1,29),1:DGRPU)
+ S X=$P(DGRP(57),"^",4),X=$S(X']"":DGRPU,X="X":"NOT APPLICABLE",X=1:"PARA,",X=2:"QUAD,",X=3:"PARA,NON",1:"QUAD,NON"),X=$S("QP"[$E(X):X_"TRAUMATIC",1:X) W !?9,"SCI: ",X
+ W ?41,"Mother: ",$S($P(DGRP(.24),"^",2)]"":$E($P(DGRP(.24),"^",2),1,29),1:DGRPU)
+ W !,?35,"Mom's Maiden: ",$S($P(DGRP(.24),"^",3)]"":$E($P(DGRP(.24),"^",3),1,29),1:DGRPU)
  W ! S Z=2 D WW^DGRPV W " Previous Care Date      Location of Previous Care",!?4,"------------------      -------------------------" S DGRPX=DGRP(1010.15) I $P(DGRPX,"^",5)'="Y" S X="NONE INDICATED" W !?4,X,?28,X
  E  F I=1:1:4 S I1=$P(DGRPX,"^",I) X "I I#2 S Y=I1 X:Y]"""" ^DD(""DD"") W !?4,$S(Y]"""":Y,1:DGRPU)" I '(I#2) W ?28,$S($D(^DIC(4,+I1,0)):$P(^(0),"^",1),1:DGRPU)
  W ! S Z=3 D WW^DGRPV W " Ethnicity: " D
@@ -39,4 +41,16 @@ DGRP2 ;ALB/MRL - REGISTRATION SCREEN 2/CONTACT INFORMATION ;06 JUN 88@2300
  ..I ($X+$L(RACE))>IOM D  W !?15
  ...F  S X=$P(RACE," ",1)_" " Q:($X+$L(X))>IOM  W X S RACE=$P(RACE," ",2,999)
  ..W RACE
+ D GETS^DIQ(2,DFN_",",".351;.353;.354;.355","E","PDTHINFO")
+ W !!
+ W "<4> Date of Death Information"
+ W !,?5,"Date of Death: ",$G(PDTHINFO(2,DFN_",",.351,"E"))
+ W ?41,"Source of Notification: ",$G(PDTHINFO(2,DFN_",",.353,"E"))
+ W !,?5,"Updated Date/Time: ",$G(PDTHINFO(2,DFN_",",.354,"E"))
+ W ?41,"Last Edited By: ",$G(PDTHINFO(2,DFN_",",.355,"E")),!
+ K PDTHINFO
+ ;
+ ;Emergency Response Indicator
+ N DGEMRES S DGEMRES=$P($G(^DPT(DFN,.18)),"^")
+ S Z=5 D WW^DGRPV W " Emergency Response: "_$$EXTERNAL^DILFD(2,.181,,DGEMRES)
  G ^DGRPP

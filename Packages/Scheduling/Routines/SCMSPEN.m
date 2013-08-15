@@ -1,5 +1,5 @@
 SCMSPEN ;ALB/JRP - AMB CARE ENVIRONMENT CHECKER;04-JUN-96
- ;;5.3;Scheduling;**44**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,1015**;AUG 13, 1993;Build 21
 CHKENV ;Main entry point for environment checker
  ;Input  : All variables set by KIDS
  ;Output : Variables required by KIDS to denote success or failure

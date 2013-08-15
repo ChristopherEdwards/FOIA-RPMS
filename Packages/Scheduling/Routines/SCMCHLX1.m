@@ -1,5 +1,5 @@
 SCMCHLX1 ;BP/DJB - PCMM HL7 EVENT File Xref Code ; 13 Dec 2002  1:25 PM
- ;;5.3;Scheduling;**177,264,272**;May 01, 1999
+ ;;5.3;Scheduling;**177,264,272,515,1015**;May 01, 1999;Build 21
  ;
 TXREF(IFN) ;Logic for AEVENT* xrefs on TEAM file (404.51). Create entry in
  ;  PCMM HL7 EVENT file.
@@ -74,7 +74,9 @@ PTPXREF(IFN,OLDROLE) ;Logic for AEVENT* xrefs on PATIENT TEAM POSITION ASSIGN
  ;Get data
  S ND=$G(^SCPT(404.43,IFN,0)) ;............Zero node of 404.43
  Q:ND']""
- I $P(ND,U,5)'=1,$G(OLDROLE)'=1 Q  ;.......Not Primary Care related
+ ;I $P(ND,U,5)'=1,$G(OLDROLE)'=1 Q  ;.......Not Primary Care related
+ S SCTPA=$$TPACHK^SCMCHLB("",IFN)          ; 20070518 PATCH 515
+ I ($P(ND,U,5)'=1)&($G(OLDROLE)'=1)&(SCTPA=0) Q  ;.......Not Primary Care AND NOT TPA
  S DFNPTR=$P(ND,U,1) ;.....................Get pointer to 404.42
  Q:'DFNPTR
  S DFN=$P($G(^SCPT(404.42,DFNPTR,0)),U,1) ;Pointer to PATIENT file

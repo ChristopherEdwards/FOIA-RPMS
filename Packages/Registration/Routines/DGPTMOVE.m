@@ -1,5 +1,5 @@
 DGPTMOVE ;ALB/JDS - MOVE DRG FY DATA TO UPPER LEVEL ; 26 AUG 84  14:15
- ;;5.3;Registration;**78,158,178,256**;Aug 13, 1993
+ ;;5.3;Registration;**78,158,178,256,1015**;Aug 13, 1993;Build 21
  ;
 EN F I=1:1 S X=$P($T(TEXT+I),";;",2) Q:X="END"  W !,X
  S DGFLAG=0

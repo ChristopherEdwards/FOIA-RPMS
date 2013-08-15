@@ -1,6 +1,7 @@
 LRAPSNMD ;VA/DALOI/WTY - Display/print SNOMED codes;08/06/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 259
  ;
  Q
 INIT(LRDFN,LRSS,LRI,LRSF,LRAA,LRAN,LRAD,LRDEM,LRDEV) ;
@@ -148,7 +149,8 @@ HDR ;
  I LRAU D
  .W !,"Autopsy Date: ",$G(LRDEM("AUDT")),?35,$E($G(LRDEM("AUTYP")),1,12)
  .W ?49,"Date Died: ",$G(LRDEM("DTH"))
- W !,"ID: ",$G(LRDEM("SSN"))
+ ; W !,"ID: ",$G(LRDEM("SSN"))
+ W !,"ID: ",$$GETHRCN($G(LRDEM("SSN")))     ; IHS/MSC/MKK - LR*5.2*1031
  I 'LRAU D
  .W ?24,"Sex: ",$G(LRDEM("SEX")),?49,"DOB: ",$G(LRDEM("DOB"))
  .W ?71,"Age:",$J($G(LRDEM("AGE")),3)
@@ -162,3 +164,16 @@ END ;
  I LRDEV D ^%ZISC S:$D(ZTQUEUED) ZTREQ="@"
  K %,DIR,DTOUT,DUOUT,DIRUT,X,Y
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+GETHRCN(SOCN) ; EP - Given SSN, Return HRCN, if possible
+ Q:$L(SOCN) ""
+ ;
+ ; NEW all variables set by call to SSN^LRU
+ NEW DFN,LRDFN,LRDPF,HRCN,SSN,SEX,VA,VAERR
+ S DFN=+$O(^DPT("SSN",SOCN,0))
+ S LRDFN=+$G(^DPT(DFN,"LR"))
+ D SSN^LRU
+ ;
+ Q HRCN
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031

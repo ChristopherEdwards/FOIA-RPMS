@@ -1,9 +1,10 @@
-SCRPW41 ;RENO/KEITH - Veterans Without Activity Since a Specified Date Range ; 03 Aug 98  1:18 PM
- ;;5.3;Scheduling:**144**;AUG 13, 1993
+SCRPW41 ;RENO/KEITH - Veterans Without Activity Since a Specified Date Range ; 5/25/2004
+ ;;5.3;Scheduling;**144,375,358,1015**;AUG 13, 1993;Build 21
  N DIR,%DT K SD
  D TITL^SCRPW50("Veterans Without Activity Since a Specified Date Range")
  W !!,"This report will return a list of veterans that are not deceased who had",!,"activity during a date range specified by the user, and have not been seen"
- W !,"since.  Activity is determined by an examination of Fee Basis, inpatient and",!,"outpatient care (including future appointments)."
+ W !,"since.  Activity is determined by an examination of Fee Basis, inpatient and",!,"outpatient care (including future appointments).  Once the scheduling"
+ W !,"replacement application has been implemented at your site, this report will",!,"no longer be accurate."
  D SUBT^SCRPW50("**** Date Range Selection ****")
  W ! S %DT="AEPX",%DT("A")="Beginning date: " D ^%DT G:Y<1 EXIT^SCRPW42 S SD("BDT")=Y X ^DD("DD") S SD("PBDT")=Y
 EDT S %DT("A")="   Ending date: " W ! D ^%DT G:Y<1 EXIT^SCRPW42
@@ -31,6 +32,7 @@ PF() ;Prompt for page feed
  ;
 START ;Print report
  K ^TMP("SCRPW",$J) D BLD^SCRPW21 S (SDOUT,SDSTOP,DFN)=0 D NOW^%DTC S SDNOW=%,T="~"
+ S SDFEE=""
  F  S DFN=$O(^DPT(DFN)) Q:'DFN  S SDSTOP=SDSTOP+1 D:SDSTOP#3000=0 STOP Q:SDOUT  I $$VET() S SDX=$$EVAL(SD("BDT"),SD("EDT")) D:$P(SDX,U)=2 SET
  G:SDOUT EXIT^SCRPW42 D NOW^%DTC S Y=% X ^DD("DD") S SDPNOW=$P(Y,":",1,2),SDLINE="",$P(SDLINE,"-",133)="",SDPAGE=1,(SDTOT,SDPG)=0 G ^SCRPW42
  ;
@@ -46,12 +48,15 @@ EVAL(SDBD,SDED) ;Evaluate last activity
  ;        1=activity since date range
  ;        2=activity during date range, none since
  ;        3=no activity during or after date range
- N SDDT,SDX,SDY
+ N SDDT,SDX,SDXX,SDY
  S SDX=$O(^SCE("ADFN",DFN,9999999),-1) I SDX S SDY=$O(^SCE("ADFN",DFN,SDX,0)),SDY=$$GETOE^SDOE(SDY),SDY=$P($G(^SC(+$P(SDY,U,4),0)),U),SDDT(SDX)=SDY
  S SDX=$O(^DPT(DFN,"S",9999999),-1) I SDX S SDY=+$G(^DPT(DFN,"S",SDX,0)),SDY=$P($G(^SC(+SDY,0)),U),SDDT(SDX)=SDY
  S SDX=$O(^DPT(DFN,"DIS",0)) I SDX S SDDT(9999999-SDX)="REGISTRATION"
  S SDX=$O(^SDV("ADT",DFN,9999999),-1) I SDX S SDDT(SDX)="ADD/EDIT"
- S SDX=$O(^FBAAA(DFN,1,9999999),-1) I SDX S SDX=$P($G(^FBAAA(DFN,1,SDX,0)),U) I SDX S SDDT(SDX)="FEE BASIS"
+ ;S SDX=$O(^FBAAA(DFN,1,9999999),-1) I SDX S SDX=$P($G(^FBAAA(DFN,1,SDX,0)),U) I SDX S SDDT(SDX)="FEE BASIS"
+ S SDXX=$$AUTHL^FBUTL(DFN,,SDBD,"SDX") D
+ .I +SDXX=-1,$P(SDXX,"^",2)=110 S SDFEE="FEE BASIS SYSTEM NOT AVAILABLE"
+ .I SDXX>0 S SDDT($G(SDX(SDXX,"FDT")))="FEE BASIS"
  S SDX=$O(^DGPM("APRD",DFN,9999999),-1) I SDX S SDY=$O(^DGPM("APRD",DFN,SDX,0)),SDY=$G(^DGPM(+SDY,0)) I $L(SDY) D
  .I $P(SDY,U,2)=1 S SDDT(SDX)=$P($G(^DIC(42,+$P(SDY,U,6),0)),U) Q
  .I $P(SDY,U,2)=3 N D0,X S D0=$O(^DGPM("APRD",DFN,SDX,0)) D WARD^DGPMUTL S SDDT(SDX)=X Q

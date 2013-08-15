@@ -1,5 +1,5 @@
 DGMTCOST ;ALB/CAW - Copay Status change from IB  ; 12/23/92
- ;;5.3;Registration;**100**;Aug 13, 1993
+ ;;5.3;Registration;**100,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Does the prior match the after?
  ;

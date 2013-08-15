@@ -1,5 +1,5 @@
 SDWLRPS1 ;;IOFO BAY PINES/TEH - WAIT LIST REPORT FORMAT 1-SUMMARY;06/12/2002 ; 20 Aug 2002  2:10 PM
- ;;5.3;scheduling;**263**;AUG 13 1993
+ ;;5.3;scheduling;**263,412,1015**;AUG 13 1993;Build 21
  ;
  ;
  ;******************************************************************
@@ -19,6 +19,7 @@ EN ;
  I $$S^%ZTLOAD G END
  D PRT
  I $D(DUOUT) W !!,"*** End of Report ***" G END
+ G:POP END
  I $$S^%ZTLOAD G END
  D PRT1
  W !!,"*** End of Report ***"
@@ -42,6 +43,7 @@ INIT ;Initialize variables
  I SDWLCT2'="ALL" F SDWLI=1:1 S SDWLCT=$P($P(SDWLCT2,";",SDWLI),U,1) Q:SDWLCT=""  S SDWLCT2(SDWLCT)=""
  I SDWLDATE="ALL" S SDWLBD=0,SDWLED=9999999 G INIT1
  S SDWLBD=$P(SDWLDATE,U,1),SDWLED=$P(SDWLDATE,U,2)
+ N POP S POP=0  ;SD*5.3*412
 INIT1 D NOW^%DTC S Y=% D DD^%DT S SDWLDTP=$P(Y,":",1,2)
  Q
 SORT ;Sort Records
@@ -71,7 +73,7 @@ SORT ;Sort Records
  Q
 PRT ;
  I '$D(^TMP("SDWLRPS1",$J,"A")) W !!,"*** No Patients to Report ***" S DUOUT="" Q
- S SDWLIN=0 F  S SDWLIN=$O(^TMP("SDWLRPS1",$J,"A",SDWLIN)) Q:SDWLIN=""  W !,"Institution: ",$P($G(^DIC(4,SDWLIN,0)),U,1),! D
+ S SDWLIN=0 F  S SDWLIN=$O(^TMP("SDWLRPS1",$J,"A",SDWLIN)) Q:SDWLIN=""  W !,"Institution: ",$P($G(^DIC(4,SDWLIN,0)),U,1),! D  Q:POP  ;SD*5.3*412
  .D PRA
  Q
 PRA ;  
@@ -79,24 +81,25 @@ PRA ;
  .S SDWLX=$G(^TMP("SDWLRPS1",$J,"A",SDWLIN,SDWLSC)),SDWLXT=SDWLXT+SDWLX W !,$$EXTERNAL^DILFD(SDWLF,.01,,$P(^SDWL(SDWLF,SDWLSC,0),U,1)),?30,SDWLX
  .S SDWLXTT=0,SDWLDFNX=0 F  S SDWLDFNX=$O(^TMP("SDWLRPS1",$J,"B",SDWLIN,SDWLSC,SDWLDFNX)) Q:SDWLDFNX=""  S SDWLXTT=SDWLXTT+1
  W !,?20,"Total #: ",SDWLXT
- I $D(SDWLSPT),$Y>IOSL S DIR(0)="E" D ^DIR
+ I $D(SDWLSPT),$Y>IOSL S DIR(0)="E" D ^DIR S:X="^" POP=1 Q:POP  ;SD*5.3*412 early exit
  Q
 PRT1 ;
- D HD1 N DFN
- S SDWLSCC=0 F  S SDWLSCC=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC)) Q:SDWLSCC=""  Q:$$S^%ZTLOAD  D
+ N DFN
+ D HD1
+ S SDWLSCC=0 F  S SDWLSCC=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC)) Q:SDWLSCC=""  Q:$$S^%ZTLOAD  D  Q:POP  ;SD*5.3*412 added to allow early exit
  .W !,"******* ",SDWLSCC," *******",!
- .S SDWLINS=0 F  S SDWLINS=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC,SDWLINS)) Q:SDWLINS=""  D  W !
- ..W !,$P($G(^DIC(4,SDWLINS,0)),U,1),!
- ..S SDWLSC=0 F  S SDWLSC=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC,SDWLINS,SDWLSC)) Q:SDWLSC=""  D
+ .S SDWLINS=0 F  S SDWLINS=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC,SDWLINS)) Q:SDWLINS=""  D  Q:POP  W !  ;SD*5.3*412
+ ..W !,$P($G(^DIC(4,SDWLINS,0)),U,1)
+ ..S SDWLSC=0 F  S SDWLSC=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC,SDWLINS,SDWLSC)) Q:SDWLSC=""  D  Q:POP  ;SD*5.3*412
  ...W !,$$EXTERNAL^DILFD(SDWLF,.01,,$P(^SDWL(SDWLF,SDWLSC,0),U,1))
- ...S SDWLWT="" F  S SDWLWT=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC,SDWLINS,SDWLSC,SDWLWT)) Q:SDWLWT=""  D
- ....S SDWLDA=0 F  S SDWLDA=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC,SDWLINS,SDWLSC,SDWLWT,SDWLDA)) Q:SDWLDA=""  D
- .....S X=$G(^SDWL(409.3,SDWLDA,0)),SDWLODT=$P(X,U,2),SDWLDDT=$P(X,U,16) S DFN=+X D
+ ...S SDWLWT="" F  S SDWLWT=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC,SDWLINS,SDWLSC,SDWLWT)) Q:SDWLWT=""  D  Q:POP  ;SD*5.3*412
+ ....S SDWLDA=0 F  S SDWLDA=$O(^TMP("SDWLRPS1",$J,"D",SDWLSCC,SDWLINS,SDWLSC,SDWLWT,SDWLDA)) Q:SDWLDA=""  D  Q:POP  ;SD*5.3*412
+ .....S X=$G(^SDWL(409.3,SDWLDA,0)),SDWLODT=$P(X,U,2),SDWLDDT=$P(X,U,16) S DFN=+X D  Q:POP  ;SD*5.3*412
  ......D DEM^VADPT,1^VADPT K DFN
  ......W !,VA("BID"),?6,$E(VADM(1),1,25) W ?32,$E(SDWLODT,4,5),"/",$E(SDWLODT,6,7),"/",($E(SDWLODT,1,3)+1700)
  ......W ?47,$E(SDWLDDT,4,5),"/",$E(SDWLDDT,6,7),"/",($E(SDWLDDT,1,3)+1700),?60,$J(SDWLWT,5)
- ......I $D(SDWLSPT),$Y>IOSL S DIR(0)="E" D ^DIR
- ......I $Y>IOSL D HD1
+ ......I $D(SDWLSPT),$Y>IOSL S DIR(0)="E" D ^DIR S:X="^" POP=1 Q:POP  D HD1
+ ......I $Y>IOSL D HD
  .W !
 LINE ;Draw Line
  W !,"_______________________________________________________________________________"
@@ -115,8 +118,11 @@ HD ;Header
  .F I=1:1 S X=$P($P(SDWLCT2,";",I),"^",2) Q:X=""  W !,?45,$$EXTERNAL^DILFD(SDWLF,.01,,X)
  S X=$G(SDWLOPEN) W !,?36,"Status: ",$S(SDWLOPEN="O":"Open",1:"All")
  S X=$G(SDWLFORM) W !,?28,"Output Format: ",$S(SDWLFORM="S":"Summary",1:"Detailed")
+ W !
  Q
 HD1 ;
- W !!,"Name",?30,"Date Entered",?45,"Date Desired",?60,"# of Days Waiting",!!
+ W:$D(IOF) @IOF
+ W !!,"Name",?30,"Date Entered",?45,"Date Desired",?60,"# of Days Waiting",!
 END K X1,X2,CT1,CT2,DATE,I,INS,OPEN,FORM
  K ^TMP("SDWLRPT1",$J) Q
+ ;

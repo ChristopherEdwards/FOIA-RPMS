@@ -1,5 +1,5 @@
-SDOQMP0 ;ALB/SCK - Appointment Monitoring / Performance Measure Rpt. ; [ 10/05/2000  9:14 AM ]
- ;;5.3;SCHEDULING;**47**;AUG 13, 1993
+SDOQMP0 ;ALB/SCK - Appointment Monitoring / Performance Measure Rpt. ; [07/23/96]
+ ;;5.3;SCHEDULING;**47,1015**;AUG 13, 1993;Build 21
  ;
  Q
 SELECT() ;  Selection method for clinic selection.

@@ -1,5 +1,5 @@
-SCRPU3 ;ALB/CMM - GENERIC UTILITIES ; 29 Jun 99  04:11PM [ 11/02/2000  3:08 PM ]
- ;;5.3;Scheduling;**41,45,52,140,181,177**;AUG 13, 1993
+SCRPU3 ;ALB/CMM - GENERIC UTILITIES ; 9/26/05 8:50am
+ ;;5.3;Scheduling;**41,45,52,140,181,177,432,433,346,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/01/2000 bypass %ZIS call if using list template
  ;             11/02/2000 added checks for list template
  ;
@@ -25,21 +25,60 @@ GETNEXT(DFN,CLN) ;
  ;Get next appointment for patient (DFN) at Clinic (CLN)
  ;Returning the date in 00/00/0000 format
  N NEXT,APPT,FOUND
- S APPT=DT,FOUND=0,NEXT=""
- F  S APPT=$O(^DPT(DFN,"S",APPT)) Q:APPT=""!(FOUND)  D
- .I CLN=+$G(^DPT(DFN,"S",APPT,0))&($P(^DPT(DFN,"S",APPT,0),"^",2)'["C") S FOUND=1,NEXT=$TR($$FMTE^XLFDT(APPT,"5DF")," ","0")
+ ;
+ N SDARRAY,SDCOUNT,SDDATE,SDAPPT,SDSTATUS,%
+ ; Tell SDAPI that we want only the next appointment based on:
+ ; Date          SDARRAY(1)=Today's Date;
+ ; Clinic        SDARRAY(2)=CLN
+ ; Patient       SDARRAY(4)=DFN
+ ; Status        SDARRAY(3)="R;I;NS;NSR;NT" 
+ ;  KEPT/INPATIENT/NOSHOW/NOSHOWRESCHED/NOACTIONTAKEN
+ ; and that we want to have field 3 (appt status) returned       
+ ; SDARRAY("FLDS")="3"
+ ; DATA will be returned in ^TMP($J,"SDAMA301",DFN,CLN,SDDATE)
+ ;
+ S FOUND=0,NEXT=""
+ I $G(CLN)=""!($G(DFN)="") Q NEXT
+ D NOW^%DTC S SDARRAY(1)=$P(%,".",1)_";"
+ S SDARRAY(2)=CLN,SDARRAY(3)="R;I;NS;NSR;NT",SDARRAY(4)=DFN,SDARRAY("FLDS")="3",SDARRAY("MAX")=1
+ S SDCOUNT=$$SDAPI^SDAMA301(.SDARRAY)
+ I SDCOUNT>0 S SDDATE="" S SDDATE=$O(^TMP($J,"SDAMA301",DFN,CLN,SDDATE)) D
+ .S NEXT=$TR($$FMTE^XLFDT(SDDATE,"5DF")," ","0")
+ I SDCOUNT<0 D  ;do processing for errors
+ .; None to do in this case -- return null
+ .Q
+ ; when finished with all processing, kill SDAPI output array
+ K ^TMP($J,"SDAMA301")
  Q NEXT
  ;
 GETLAST(DFN,CLN) ;
  ;Get last appointment for patient (DFN) at Clinic (CLN)
  ;Returning the date in 00/00/0000 format
  N LAST,APPT,FOUND,STATUS
- S APPT=DT,FOUND=0,LAST=""
- F  S APPT=$O(^DPT(DFN,"S",APPT),-1) Q:APPT=""!(APPT=0)!(FOUND)  D
- .I CLN=+$G(^DPT(DFN,"S",APPT,0)) S STATUS=$P(^DPT(DFN,"S",APPT,0),"^",2) D
- ..I STATUS=""!("NAPCA"'[STATUS) S FOUND=1,LAST=$TR($$FMTE^XLFDT(APPT,"5DF")," ","0")
- ..Q
- .Q
+ N SDARRAY,SDCOUNT,SDDATE,SDAPPT,SDSTATUS,%
+ ; Tell SDAPI that we want only the next appointment based on:
+ ; Date          SDARRAY(1)=;Today's Date
+ ; Clinic        SDARRAY(2)=CLN
+ ; Patient       SDARRAY(4)=DFN
+ ; Status        SDARRAY(3)="R;I;NT"
+ ; MAX           SDARRAY("MAX")=-1
+ ; and that we want to have field 3 (appt status) returned       
+ ; SDARRAY("FLDS")="3"
+ ; DATA will be returned in ^TMP($J,"SDAMA301",DFN,CLN,SDDATE)
+ ;
+ S FOUND=0,LAST=""
+ I $G(CLN)=""!($G(DFN)="") Q LAST
+ D NOW^%DTC S SDARRAY(1)=";"_$P(%,".",1)
+ S SDARRAY(2)=CLN,SDARRAY(3)="R;I;NT",SDARRAY(4)=DFN,SDARRAY("MAX")=-1
+ S SDARRAY("FLDS")="3"
+ S SDCOUNT=$$SDAPI^SDAMA301(.SDARRAY)
+ I SDCOUNT>0 S SDDATE="" D
+ .S SDDATE=$O(^TMP($J,"SDAMA301",DFN,CLN,SDDATE))
+ .S LAST=$TR($$FMTE^XLFDT(SDDATE,"5DF")," ","0")
+ I SDCOUNT<0 D  ;do processing for errors
+ .Q  ; None to do in this case
+ ; when finished with all processing, kill SDAPI output array
+ K ^TMP($J,"SDAMA301")
  Q LAST
  ;
 PDEVICE() ;

@@ -1,5 +1,5 @@
 SDCO9 ;ALB/MTC - Procedure - Check Out;30 APR 1996 1:10 pm
- ;;5.3;Scheduling;**27,132**;08/13/93
+ ;;5.3;Scheduling;**27,132,1015**;08/13/93;Build 21
  ;
 EN ;Entry point for SDCO CPT protocol
  ; Input  -- SDOE

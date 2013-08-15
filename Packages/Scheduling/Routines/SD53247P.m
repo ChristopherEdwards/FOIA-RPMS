@@ -1,5 +1,5 @@
 SD53247P ;BP/ESW  TRANSMITTED OUTPATIENT ENCOUNTER ERROR CODE' File Update - POST INST ; 1/31/02 9:11am
- ;;5.3;Scheduling;**247**;Aug 13, 1993
+ ;;5.3;Scheduling;**247,1015**;Aug 13, 1993;Build 21
  ;
  ; This is the post-install for patch 247 to modify CORRECTIVE ACTION
  ; DESCRIPTION field (#21) of ERROR CODE: 4200 in TRANSMITTED

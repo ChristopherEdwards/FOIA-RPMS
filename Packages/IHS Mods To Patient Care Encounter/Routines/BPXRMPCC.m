@@ -1,5 +1,5 @@
-BPXRMPCC ; IHS/MSC/MGH - Computed Findings for PCC reminders. ;23-Dec-2009 11:15;MGH
- ;;1.5;CLINICAL REMINDERS;**1007**;Jun 19, 2000
+BPXRMPCC ; IHS/MSC/MGH - Computed Findings for PCC reminders. ;06-Feb-2012 12:02;MGH
+ ;;1.5;CLINICAL REMINDERS;**1007,1008**;Jun 19, 2000;Build 25
  ;=================================================================
  ;This routine is designed to use the standard PCC logic for reminders to
  ;evaluate if items are met or not met. Using the standard PCC calls ensures
@@ -107,6 +107,15 @@ DENTAL(DFN,TEST,DATE,VALUE,TEXT) ; EP
  N BPXRESLT,TODAY,X,Y
  S X="TODAY" D ^%DT S TODAY=Y
  S BPXRESLT=$$REMDENT^APCLAPIR(DFN)
+ I $P(BPXRESLT,U,1)=1 S TEST=1,VALUE=$P(BPXRESLT,U,4),TEXT=$P(BPXRESLT,U,3),DATE=$P(BPXRESLT,U,2)
+ I $P(BPXRESLT,U,1)=0 S TEST=0,VALUE=TEST,DATE=TODAY
+ Q
+HC(DFN,TEST,DATE,VALUE,TEXT) ; EP
+ ;This computed finding will check the PCC logic for head circumference
+ N BPXRESLT,TODAY,X,Y,APCLPDFN
+ S X="TODAY" D ^%DT S TODAY=Y
+ S APCLPDFN=DFN
+ S BPXRESLT=$$REMHC^APCLAPIR(APCLPDFN)
  I $P(BPXRESLT,U,1)=1 S TEST=1,VALUE=$P(BPXRESLT,U,4),TEXT=$P(BPXRESLT,U,3),DATE=$P(BPXRESLT,U,2)
  I $P(BPXRESLT,U,1)=0 S TEST=0,VALUE=TEST,DATE=TODAY
  Q

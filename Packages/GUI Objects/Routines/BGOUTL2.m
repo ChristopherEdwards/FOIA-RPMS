@@ -1,5 +1,5 @@
-BGOUTL2 ; IHS/BAO/TMD - Utilities (continued)  ;03-Dec-2009 10:35;MGH
- ;;1.1;BGO COMPONENTS;**1,3,5,6**;Mar 20, 2007
+BGOUTL2 ; IHS/BAO/TMD - Utilities (continued)  ;21-Oct-2011 08:41;DU
+ ;;1.1;BGO COMPONENTS;**1,3,5,6,10**;Mar 20, 2007
  ; Add refusals to output stream
  ;  R ^ Refusal IEN [2] ^ Type IEN [3] ^ Type Name [4] ^ Item IEN [5] ^ Item Name [6] ^ Provider IEN [7] ^
  ;  Provider Name [8] ^ Date [9] ^ Locked [10] ^ Reason [11] ^ Comment [12]
@@ -38,7 +38,8 @@ REFSET(VIEN,ITEM,TYPE,RSN,CMNT,PRV) ;EP
  Q $$REFSET2($P(X,U,5),X\1,ITEM,TYPE,RSN,.CMNT,.PRV)
  ; Store a patient refusal (alternate)
 REFSET2(DFN,DAT,ITEM,TYPE,RSN,CMNT,PRV,IEN) ;EP
- N FDA,ERR,FNUM,RET,IENX,OPR,ZN
+ N FDA,ERR,FNUM,RET,IENX,OPR,ZN,CPT
+ S CPT=$$FIND1^DIC(9999999.73,,"X","CPT")  ;Patch 10 IHS/MSC/MGH
  S TYPE=$$FIND1^DIC(9999999.73,,"X",TYPE)
  Q:'TYPE $$ERR^BGOUTL(1067)
  S FNUM=$P(^AUTTREFT(TYPE,0),U,2),OPR=1
@@ -50,7 +51,10 @@ REFSET2(DFN,DAT,ITEM,TYPE,RSN,CMNT,PRV,IEN) ;EP
  S @FDA@(.01)="`"_TYPE
  S:'OPR @FDA@(.02)="`"_DFN
  S @FDA@(.03)=DAT
- S @FDA@(.04)=$E($$GET1^DIQ(FNUM,ITEM,.01),1,80)
+ S @FDA@(.08)=DAT
+ ;IHS/MSC/MGH Added storing narrative for CPT codes Patch 10
+ I TYPE=CPT S @FDA@(.04)=$E($$GET1^DIQ(FNUM,ITEM,2),1,80)
+ E  S @FDA@(.04)=$E($$GET1^DIQ(FNUM,ITEM,.01),1,80)
  S @FDA@(.05)=FNUM
  S @FDA@(.06)=ITEM
  S @FDA@(.07)=RSN

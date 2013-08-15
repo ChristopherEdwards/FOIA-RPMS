@@ -1,5 +1,5 @@
-APCM11E1 ;IHS/CMI/LAB - IHS MU; ; 24 Feb 2011  10:32 AM
- ;;2.0;IHS PCC SUITE;**6**;MAY 14, 2009;Build 11
+APCM11E1 ; IHS/CMI/LAB - IHS MU 24 Feb 2011 10:32 AM ; 
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2**;MAR 26, 2012;Build 11
  ;
 BQI(BQIGREF,APCMPRV) ;PEP-Call from iCare
  ; input
@@ -93,7 +93,7 @@ N1 D ROI  ;roi exclusions
 PROC1 ;
  S DFN=0 F  S DFN=$O(^AUPNPAT(DFN)) Q:DFN'=+DFN  D
  .Q:'$D(^DPT(DFN,0))
- .Q:$P($G(^DPT(DFN,0)),U)["DEMO,PATIENT"
+ .;I APCLDEMO'="I" Q:$P($G(^DPT(DFN,0)),U)["DEMO,PATIENT"
  .Q:$$DEMO^APCLUTL(DFN,$G(APCMDEMO))
  .D PROCCY,PROCPY
 N ;
@@ -213,6 +213,14 @@ H100(R,BD,ED) ;
  .S X=0 F  S X=$O(^PSRX("AC",ID,X)) Q:X'=+X!(C>100)  D
  ..Q:$P($G(^PSRX(X,0)),U,4)'=R
  ..Q:$P($G(^PSRX(X,"STA")),"^")=13
+ ..;SKIP ER CLINIC OR H VISIT, GET VISIT FROM V MED
+ ..S VMED=$P($G(^PSRX(X,999999911)),U,1)
+ ..Q:'VMED
+ ..S V=$P($G(^AUPNVMED(VMED,0)),U,3)
+ ..Q:'V
+ ..Q:'$D(^AUPNVSIT(V,0))
+ ..Q:$P(^AUPNVSIT(V,0),U,7)="H"
+ ..Q:$$CLINIC^APCLV(V,"C")=30
  ..S C=C+1
  Q $S(C>100:1,1:"")
 VST(R,BD,ED) ;did this provider see anyone over 2
@@ -226,6 +234,7 @@ VST(R,BD,ED) ;did this provider see anyone over 2
  ..S B=0,C=0 F  S B=$O(^AUPNVPRV("AD",V,B)) Q:B'=+B  D
  ...Q:'$D(^AUPNVPRV(B,0))
  ...Q:$P(^AUPNVPRV(B,0),U,1)'=R
+ ...Q:$P(^AUPNVPRV(B,0),U,4)'="P"
  ...S C=1
  ..Q:'C
  ..S $P(G,U,1)=1

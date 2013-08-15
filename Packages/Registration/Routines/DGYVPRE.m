@@ -1,5 +1,5 @@
 DGYVPRE ;ALB/LD - Patch DG*5.3*64 Pre-Init ; 8/24/95
- ;;5.3;Registration;**64**;Aug 13, 1993
+ ;;5.3;Registration;**64,1015**;Aug 13, 1993;Build 21
  ;
  ;
  ;-- Delete existing Treating Specialty file (#42.4) and restore

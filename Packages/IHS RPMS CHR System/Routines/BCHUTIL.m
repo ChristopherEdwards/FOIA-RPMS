@@ -1,12 +1,15 @@
-BCHUTIL ; IHS/TUCSON/LAB - UTILITIES ;  [ 01/27/03  9:58 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,14,16**;OCT 28, 1996
+BCHUTIL ; IHS/CMI/LAB - UTILITIES ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
- ;IHS/CMI/LAB - for xtmp 0 node set
 XTMP(N,T) ;EP
  I $G(N)="" Q
  S ^XTMP(N,0)=$$FMADD^XLFDT(DT,14)_U_DT_U_T
  Q
-PPINI(REC) ;EP Retrieve CHR Primary Provider Initials
+UNREQ ;EP - CALLED FROM SCREENMAN
+ NEW BCHF
+ F BCHF=3,4,5 D REQ^DDSUTL(BCHF,2,"ENTER CHR DATA",0)
+ Q
+PPINI(REC) ;EP
  NEW X,Y,BCHX,BCHY,DIQ,DR,DA,BCHG,BCHINI
  S BCHY=$P(^BCHR(REC,0),U,3)
  I 'BCHY S BCHINI="???" Q BCHINI
@@ -22,7 +25,7 @@ PPNAME(REC) ;EP
  S BCHNAME=$P(^VA(200,BCHY,0),U)
  S:BCHNAME="" BCHNAME="???"
  Q BCHNAME
-PPINT(REC) ;primary provider internal # from 200 (duz)
+PPINT(REC) ;
  NEW X,Y,BCHX,DIQ,DR,DA,BCHG,BCHY
  S BCHY=$P(^BCHR(REC,0),U,3)
  I '$D(BCHY) S BCHY="???" Q BCHY
@@ -37,7 +40,7 @@ PPAFFL(REC,FORM) ;EP - get pp affiliation internal or external
  S BCHAFFL=$S($G(FORM)="I":BCHAFFL(200,BCHY,9999999.01,"I"),1:BCHAFFL(200,BCHY,"9999999.01"))
  S:BCHAFFL="" BCHAFFL="?"
  Q BCHAFFL
-PPCLS(REC,FORM) ;EP GET primary provider discipline (internal or text)
+PPCLS(REC,FORM) ;EP 
  NEW X,Y,BCHX,BCHY,DIQ,DR,DA,BCHG,BCHCLS
  S BCHY=$P(^BCHR(REC,0),U,3)
  I 'BCHY S BCHCLS="???" Q BCHCLS
@@ -62,7 +65,7 @@ CALLDIE ;EP
  D ^DIE
  K DIE,DIC,DR,DA,D0,D,D1,DO,%X,%Y,X,A,Z,DIU,DIV,DIY,DIW,DIADD,DLAYGO,%,%E,%D,%W,DI,DIFLD,DIG,DIH,DK,DL,DISYS
  Q
-PROVCLC(PROV) ;get provider class code, not using fileman DIQ1
+PROVCLC(PROV) ;get provider class code
  NEW CODE,A
  S CODE=""
  I 'PROV Q CODE
@@ -78,8 +81,6 @@ CANNEDN() ;EP - return canned narrative
  I $$GET^DDSVAL(90002.01,.DA,.04,"","I")="" Q $P(^BCHTPROB($$GET^DDSVAL(90002.01,.DA,.01,"","I"),0),U)
  Q $E($P(^BCHTPROB($$GET^DDSVAL(90002.01,.DA,.01,"","I"),0),U)_":"_$P(^BCHTSERV($$GET^DDSVAL(90002.01,.DA,.04,"","I"),0),U),1,80)
 UPDPCC ;EP - called when pcc adds a visit
- ;if it is initiated by chr (i.e. BCHEV exists) chr will store
- ;ien's of visit and v file entries
  Q:'$D(BCHEV)  ;quit if not initiated by chr
  Q:'$G(BCHEV("CHR IEN"))  ;quit if don't know chr record ien
  Q:'$D(BCHV)  ;quit if no pcc data passed back
@@ -95,10 +96,43 @@ UPDPCC ;EP - called when pcc adds a visit
  .Q
  K BCHX,BCHY
  Q
+NARRPOST ;EP
+ NEW BCHX
+ I BCHWTD="Y",X="" S BCHWTD="N"
+ I BCHWTD="Y",X]"" S DDSBR=5 Q
+ I X]"",BCHWTD="N" S DDACT="CL" Q
+ S BCHX=X
+ I BCHX="" S BCHX=$$CANNEDN^BCHUTIL() D:BCHX]"" PUT^DDSVAL(DIE,.DA,.06,BCHX,"","E")
+ I BCHX="" S DDSBR=2
+ ;S DDACT="CL"
+ Q
+SC(Y) ;EP - called from input transform
+ I $G(BCHPNP)=""!($G(BCHPNP)="N") Q 1
+ I BCHPNP="P",$P(^BCHTSERV(Y,0),U,6) Q 1
+ I BCHPNP="P",'$P(^BCHTSERV(Y,0),U,6) Q 0
+ Q 1
+ ;
+PR(Y) ;EP - called from input transform
+ ;I $G(BCHPNP)=""!($G(BCHPNP)="N") Q 1
+ I $G(BCHPNP)="P",$P(^BCHTPROB(Y,0),U,2)="AM" Q 0
+ I $G(BCHPNP)="P",$P(^BCHTPROB(Y,0),U,2)="LT" Q 0
+ Q 1
+CHKCF ;EP - called from screenman screen
+ NEW Z
+ S Z=$$GET^DDSVAL(DIE,DA,.01,,"I")
+ S Z=$P(^BCHTPROB(Z,0),U,2)
+ I Z="HB"!(Z="LP") D
+ .Q:$P(^BCHTSERV(BCHSERV,0),U,3)="CF"
+ .Q:$P(^BCHTSERV(BCHSERV,0),U,3)="IT"
+ .D HLP^DDSUTL("For Problem Codes HB and LP you can only use a Service Code of CF or IT.") S BCHQ=1
+ Q
+ ;
 SETDEFNX(R) ;EP - called from screenman screen
  I '$G(R) Q ""
  NEW X,Y,G,Z
  S G=1
+ I $G(BCHPNP)="P" Q 1
+ I $G(BCHPNP)="N" Q 0
  S X=0 F  S X=$O(^BCHRPROB("AD",R,X)) Q:X'=+X  D
  .S Y=$P(^BCHRPROB(X,0),U,1)
  .I Y S Y=$P(^BCHTPROB(Y,0),U,2)
@@ -111,12 +145,334 @@ SETDEFNX(R) ;EP - called from screenman screen
  .I Y="AM" S G=0 Q
  .I Y="NF" S G=0 Q
  .I Y="OT" S G=0 Q
+ .I Y="CD" S G=0 Q
  .Q
  Q G
+NR ;EP - unrequire .05,spec,city,state
+ D REQ^DDSUTL("SPECIALTY",1,1.2,0)
+ D REQ^DDSUTL("CITY",1,1.2,0)
+ D REQ^DDSUTL("STATE",1,1.2,0)
+ Q
+SERCS ;EP - require spec,city,state
+ I X="" D
+ .D REQ^DDSUTL("SPECIALTY",,,1)
+ .D REQ^DDSUTL("CITY",,,1)
+ .D REQ^DDSUTL("STATE",,,1)
+ I X]"" D
+ .D REQ^DDSUTL("SPECIALTY",,,0)
+ .D REQ^DDSUTL("CITY",,,0)
+ .D REQ^DDSUTL("STATE",,,0)
+ Q
+SETDEFTT(R) ;EP - called from screenman screen
+ I '$G(R) Q ""
+ NEW X,Y,G,Z
+ S G=""
+ I $G(BCHPNP)="P" Q ""
+ S X=0 F  S X=$O(^BCHRPROB("AD",R,X)) Q:X'=+X  D
+ .S Y=$P(^BCHRPROB(X,0),U,1)
+ .I Y S Y=$P(^BCHTPROB(Y,0),U,2)
+ .;I Y="AM" S G=0 Q
+ .I Y="LT" S G=0 Q
+ .;I Y["-" S G=0 Q
+ .S Z=$$GET^DDSVAL(90002.01,X,.04,,"I")
+ .I Z S Y=$P(^BCHTSERV(Z,0),U,3)
+ .I Y="LT" S G=0 Q
+ .;I Y="AM" S G=0 Q
+ .;I Y="NF" S G=0 Q
+ .;I Y="OT" S G=0 Q
+ .;I Y="CD" S G=0 Q
+ .Q
+ Q G
+SETDEFAL(R) ;EP - called from screenman screen
+ I '$G(R) Q ""
+ NEW X,Y,G,Z
+ S G=""
+ S X=0 F  S X=$O(^BCHRPROB("AD",R,X)) Q:X'=+X  D
+ .S Y=$P(^BCHRPROB(X,0),U,1)
+ .I Y S Y=$P(^BCHTPROB(Y,0),U,2)
+ .;I Y="AM" S G=0 Q
+ .I Y="LT" S G="NONE" Q
+ .;I Y["-" S G=0 Q
+ .S Z=$$GET^DDSVAL(90002.01,X,.04,,"I")
+ .I Z S Y=$P(^BCHTSERV(Z,0),U,3)
+ .I Y="LT" S G="NONE" Q
+ .;I Y="AM" S G=0 Q
+ .;I Y="NF" S G=0 Q
+ .I Y="OT" S G="NONE" Q
+ .Q
+ I G]"" Q $O(^BCHTACTL("B",G,0))
+ Q ""
 SETDEFNS ;
  NEW %
- S %=$$GET^DDSVAL(DIE,DA,.12)
- I %]"" Q
- NEW G S G=$$SETDEFNX(DA)
- D PUT^DDSVAL(DIE,DA,.12,G)
+ S %=$$GET^DDSVAL("^BCHR(",BCHR,.12)
+ ;I %]"" Q
+ NEW G S G=$$SETDEFNX(BCHR)
+ I G]"" D PUT^DDSVAL("^BCHR(",BCHR,.12,G,,"I")
+ ;NOW SET DEFAULT ACTIVITY LOCATION
+ NEW G S G=$$SETDEFAL(BCHR)
+ I G]"" D PUT^DDSVAL("^BCHR(",BCHR,.06,G,,"E")
+ ;NOW SET DEFAULT TRAVEL TIME
+ S %=$$GET^DDSVAL("^BCHR(",BCHR,.11)
+ ;I %]"" Q
+ NEW G S G=$$SETDEFTT(BCHR)
+ I G]"" D PUT^DDSVAL("^BCHR(",BCHR,.11,G,,"I")
+ Q
+SETNAR ;EP
+ Q:X=""
+ D PUT^DDSVAL(DIE,.DA,.06,$P(^BCHTCNAR(X,0),U,1),"","E")
+ Q
+SETDICS(PC,SC) ;EP
+ NEW PCSC,SCE
+ S SC=$G(SC)
+ I SC S SCE=$P(^BCHTSERV(SC,0),U,3)
+ S PC=$G(PC)
+ I PC S PC=$P(^BCHTPROB(PC,0),U,2)
+ S PCSC=PC_"-"_SCE
+ I $D(^BCHTCNAR(Y,11,"B",SC))!($D(^BCHTSERV(Y,12,"B",PCSC))) Q 1
+ Q 0
+GETNARRS(PC,SC) ;
+ K BCHCOUNT,BCHCANNN
+ K ^BCHRPROB(DA,81)
+ NEW PCSC,SCE,C,X,PCN,V,N,Z,BCHO
+ S SCE=""
+ S C=0
+ S SC=$G(SC)
+ I 'SC Q
+ I SC S SCE=$P(^BCHTSERV(SC,0),U,3)
+ S PC=$G(PC)
+ I 'PC Q
+ S PCN=""
+ I PC S PCN=$P(^BCHTPROB(PC,0),U,1),PC=$P(^BCHTPROB(PC,0),U,2)
+ S PCSC=PC_"-"_SCE
+ ;
+ S O=0 F  S O=$O(^BCHTCNAR("ACOMB",PCSC,O)) Q:O'=+O  D
+ .S X=0 F  S X=$O(^BCHTCNAR("ACOMB",PCSC,O,X)) Q:X'=+X  D
+ ..I $G(BCHPNP)]"" Q:$P(^BCHTCNAR(X,0),U,2)'=BCHPNP
+ ..I $G(BCHPNP)="" S V=$P(^BCHPROB(DA,0),U,3),N=$P(^BCHR(V,0),U,12) I N'=1,$P(^BCHTCNAR(X,0),U,2)'="N" Q
+ ..I $G(BCHPNP)="" S V=$P(^BCHPROB(DA,0),U,3),N=$P(^BCHR(V,0),U,12) I N=1,$P(^BCHTCNAR(X,0),U,2)'="P" Q
+ ..S Z=$$VAL^XBDIQ1(90002.59,X,.01)
+ ..I Z["DX-" S Z=Z_PC ;$P(Z,"HPC",1)_PCN_$P(Z,"HPC",2)
+ ..S C=C+1,BCHCANNN(O)=O_U_Z_""_U_X
+ I $D(BCHCANNN) G SET
+ ;NOW CHECK SC
+ S O=0 F  S O=$O(^BCHTCNAR("ASCO",SCE,O)) Q:O'=+O  D
+ .S X=0 F  S X=$O(^BCHTCNAR("ASCO",SCE,O,X)) Q:X'=+X  D
+ ..I $G(BCHPNP)]"" Q:$P(^BCHTCNAR(X,0),U,2)'=BCHPNP
+ ..I $G(BCHPNP)="" S V=$P(^BCHPROB(DA,0),U,3),N=$P(^BCHR(V,0),U,12) I N'=1,$P(^BCHTCNAR(X,0),U,2)'="N" Q
+ ..I $G(BCHPNP)="" S V=$P(^BCHPROB(DA,0),U,3),N=$P(^BCHR(V,0),U,12) I N=1,$P(^BCHTCNAR(X,0),U,2)'="P" Q
+ ..S Z=$$VAL^XBDIQ1(90002.59,X,.01)
+ ..I Z["DX-" S Z=Z_PC
+ ..S C=C+1,BCHCANNN(O)=O_U_Z_""_U_X
+ I $D(BCHCANNN) D SET
+ Q
+SET ;
+ NEW X,C,Y
+ S Y=0
+ S C=0 F  S C=$O(BCHCANNN(C)) Q:C'=+C  D
+ .S ^BCHRPROB(DA,81,$P(BCHCANNN(C),U,1),0)=$P(BCHCANNN(C),U,1)_U_$P(BCHCANNN(C),U,2)
+ .S ^BCHRPROB(DA,81,"B",$P(BCHCANNN(C),U,1),$P(BCHCANNN(C),U,1))=""
+ .S ^BCHRPROB(DA,81,0)="^90002.0181A^"_$P(BCHCANNN(C),U,1)_"^"_C
+ .S Y=Y+1
+ .S BCHCOUNT=Y
+ Q
+N1 ;
+ I $G(BCHCANNN(1))="" S Y="" Q
+ S Y=$P($G(BCHCANNN(1)),U,1)_".  "_$P($G(BCHCANNN(1)),U,2)
+ Q
+N2 ;
+ I $G(BCHCANNN(2))="" S Y="" Q
+ S Y=$P($G(BCHCANNN(2)),U,1)_".  "_$P($G(BCHCANNN(2)),U,2)
+ Q
+N3 ;
+ I $G(BCHCANNN(3))="" S Y="" Q
+ S Y=$P($G(BCHCANNN(3)),U,1)_".  "_$P($G(BCHCANNN(3)),U,2)
+ Q
+N4 ;
+ I $G(BCHCANNN(4))="" S Y="" Q
+ S Y=$P($G(BCHCANNN(4)),U,1)_".  "_$P($G(BCHCANNN(4)),U,2)
+ Q
+N5 ;
+ I $G(BCHCANNN(5))="" S Y="" Q
+ S Y=$P($G(BCHCANNN(5)),U,1)_".  "_$P($G(BCHCANNN(5)),U,2)
+ Q
+N6 ;
+ I $G(BCHCANNN(6))="" S Y="" Q
+ S Y=$P($G(BCHCANNN(6)),U,1)_".  "_$P($G(BCHCANNN(6)),U,2)
+ Q
+SETCNAR ;EP - called from canned narrative block
+ NEW BCHX,BCHY,BCHZ
+ S BCHY=""
+ S BCHX=0 F  S BCHX=$O(^BCHRPROB(DA(1),92,BCHX)) Q:BCHX'=+BCHX  D
+ .I BCHY]"" S BCHY=BCHY_". "
+ .S BCHY=BCHY_$P($G(BCHCANNN($P(^BCHRPROB(DA(1),92,BCHX,0),U,1))),U,2)
+ I BCHY]"" S BCHY=BCHY_"" D PUT^DDSVAL(90002.01,DA(1),.06,$E(BCHY,1,158),,"E")
+ Q
+NARRPRE ;EP
+ I BCHWTD="Y",$$GET^DDSVAL(DIE,DA,.06,,"I")]"" S DDSBR=5 Q
+ D HLP^DDSUTL("For services PC, HE, CF, CM, MP, EC and HS you must type a narrative.")
+ Q
+ADDNARR ;EP
+ NEW BCHX,BCHY
+ I X="" Q
+ S BCHX=$$GET^DDSVAL(DIE,DA,.06,,"E")
+ S BCHY=$$GET^DDSVAL(DIE,DA,1101,,"E")
+ S BCHX=BCHX_" "_BCHY
+ D PUT^DDSVAL(DIE,DA,.06,BCHX,,"E")
+ D PUT^DDSVAL(DIE,DA,1101,"",,"I")
+ Q
+GETNARRG(PC,SC) ;
+ K BCHCOUNT,BCHCANNN
+ K ^BCHRGAS(DA,81)
+ NEW PCSC,SCE,C,X,PCN,V,N,Z
+ S C=0
+ S SC=$G(SC)
+ I 'SC Q
+ S SCE=""
+ I SC S SCE=$P(^BCHTSERV(SC,0),U,3)
+ S PC=$G(PC)
+ I 'PC Q
+ S PCN=""
+ I PC S PCN=$P(^BCHTPROB(PC,0),U,1),PC=$P(^BCHTPROB(PC,0),U,2)
+ S PCSC=PC_"-"_SCE
+ ;
+ S O=0 F  S O=$O(^BCHTCNAR("ACOMB",PCSC,O)) Q:O'=+O  D
+ .S X=0 F  S X=$O(^BCHTCNAR("ACOMB",PCSC,O,X)) Q:X'=+X  D
+ ..Q:$P(^BCHTCNAR(X,0),U,2)'="G"
+ ..S Z=$$VAL^XBDIQ1(90002.59,X,.01)
+ ..I Z["DX-" S Z=Z_PC  ;_$P(Z,"HPC",2)
+ ..S C=C+1,BCHCANNN(O)=O_U_Z_""_U_X
+ I $D(BCHCANNN) G SETG
+ ;NOW CHECK SC
+ S O=0 F  S O=$O(^BCHTCNAR("ASCO",SCE,O)) Q:O'=+O  D
+ .S X=0 F  S X=$O(^BCHTCNAR("ASCO",SCE,O,X)) Q:X'=+X  D
+ ..Q:$P(^BCHTCNAR(X,0),U,2)'="G"
+ ..S C=C+1,BCHCANNN(O)=O_U_$$VAL^XBDIQ1(90002.59,X,.01)_""_U_X
+ I $D(BCHCANNN) D SETG
+ Q
+SETG ;
+ NEW X,C,Y
+ S Y=0
+ S C=0 F  S C=$O(BCHCANNN(C)) Q:C'=+C  D
+ .S ^BCHRGAS(DA,81,C,0)=C_U_$P(BCHCANNN(C),U,2)
+ .S ^BCHRGAS(DA,81,"B",C,C)=""
+ .S ^BCHRGAS(DA,81,0)="^90002.9881A^"_C_"^"_C
+ .S Y=Y+1
+ .S BCHCOUNT=Y
+ Q
+ ;
+NARRPREG ;EP
+ I BCHWTD="Y",$$GET^DDSVAL(DIE,DA,.06,,"I")]"" S DDSBR=5 Q
+ D HLP^DDSUTL("For services PC, HE, CF, CM, MP, EC and HS you must type a narrative.")
+ Q
+ ;
+NARRPOSG ;EP
+ NEW BCHX
+ I BCHWTD="Y",X="" S BCHWTD="N"
+ I BCHWTD="Y",X]"" S DDSBR=5 Q
+ I X]"",BCHWTD="N" S DDACT="CL" Q
+ S BCHX=X
+ I BCHX="" S BCHX=$$CANNEDNG^BCHUTIL() D:BCHX]"" PUT^DDSVAL(DIE,.DA,.06,BCHX,"","E")
+ I BCHX="" S DDSBR=2
+ ;S DDACT="CL"
+ Q
+ ;
+CANNEDNG() ;EP - return canned narrative
+ NEW BCHX
+ ;*****CALLED FROM SCREENMAN
+ S BCHX=$$GET^DDSVAL(90002.98,.DA,.04,"","I") I BCHX,$P($G(^BCHTSERV(BCHX,0)),U,4) D HLP^DDSUTL("You must type in a narrative for those services that pass to PCC") Q ""
+ I $$GET^DDSVAL(90002.98,.DA,.01,"","I")="" Q "<???>"
+ I $$GET^DDSVAL(90002.98,.DA,.04,"","I")="" Q $P(^BCHTPROB($$GET^DDSVAL(90002.01,.DA,.01,"","I"),0),U)
+ Q $E($P(^BCHTPROB($$GET^DDSVAL(90002.98,.DA,.01,"","I"),0),U)_":"_$P(^BCHTSERV($$GET^DDSVAL(90002.98,.DA,.04,"","I"),0),U),1,80)
+ ;
+ADDNARRG ;EP
+ NEW BCHX,BCHY
+ I X="" Q
+ S BCHX=$$GET^DDSVAL(DIE,DA,.06,,"E")
+ S BCHY=$$GET^DDSVAL(DIE,DA,1101,,"E")
+ S BCHX=BCHX_" "_BCHY
+ D PUT^DDSVAL(DIE,DA,.06,BCHX,,"E")
+ D PUT^DDSVAL(DIE,DA,1101,"",,"I")
+ Q
+SETGNAR ;EP - called from canned narrative block
+ NEW BCHX,BCHY,BCHZ
+ S BCHY=""
+ S BCHX=0 F  S BCHX=$O(^BCHRGAS(DA(1),92,BCHX)) Q:BCHX'=+BCHX  D
+ .I BCHY]"" S BCHY=BCHY_". "
+ .S BCHY=BCHY_$P($G(BCHCANNN($P(^BCHRGAS(DA(1),92,BCHX,0),U,1))),U,2)
+ I BCHY]"" S BCHY=BCHY_"" D PUT^DDSVAL(90002.98,DA(1),.06,$E(BCHY,1,158),,"E")
+ Q
+HELPREF ;EP - called from dd field 8902
+ NEW BCHX,BCHY,BCHZ
+ D EN^DDIOL("Enter a list of Referral Types separated by commas.  You can")
+ D EN^DDIOL("enter the numbers or the name of the referral type in the list.")
+ D EN^DDIOL("Examples:  1,5 or 3 or MEDICAL,NURSING  or  MD,NR ")
+ S BCHX="" F  S BCHX=$O(^BCHTREF("C",BCHX)) Q:BCHX=""  D
+ .S BCHY=$O(^BCHTREF("C",BCHX,0))
+ .S BCHZ=$$VAL^XBDIQ1(90002.52,BCHY,.01),$E(BCHZ,25)=$$VAL^XBDIQ1(90002.52,BCHY,.02),$E(BCHZ,30)=$$VAL^XBDIQ1(90002.52,BCHY,.03)
+ .D EN^DDIOL(BCHZ)
+ .Q
+ Q
+REFIT ;EP
+ NEW A,B,C,D,E,F,S
+ ;input transform for referral range
+ I X?1N,$D(^BCHTREF("C",X)) Q
+ I X?1A.E D FTR Q
+ ;GET THE COMMA PIECES
+ ;STRIP SPACES
+ S S=X
+ S (S,X)=$$STRIP^XLFSTR(X," ")
+ F A=1:1 S B=$P(S,",",A) Q:B=""!('$D(X))  D
+ .I '$D(^BCHTREF("C",B)) K X Q
+ Q
+FTR ;
+ ;PARSE AND CHECK EACH ELEMENT
+ ;GET THE COMMA PIECES
+ ;STRIP SPACES
+ S S=X
+ S (S,C)=X  ;$$STRIP^XLFSTR(X,", ")
+ F A=1:1 S B=$P(S,",",A) Q:B=""!('$D(C))  D
+ .S B=$$SB(B) S X=B,DIC="^BCHTREF(",DIC(0)="M" D ^DIC I Y=-1 K C Q
+ I '$D(C) K X Q
+ S X=S
+ Q
+SB(X) ;EP - Strip leading and trailing blanks from X.
+ X ^DD("FUNC",$O(^DD("FUNC","B","STRIPBLANKS",0)),1)
+ Q X
+FILEREF ;EP
+ K ^BCHR(BCHR,BCHNODE)
+ NEW BCHX,BCHY,BCHA,BCHB,BCHC,BCHS,BCHFULL
+ S BCHFULL=""
+ ;input transform for referral range
+ S BCHC=0
+ I X?1N,$D(^BCHTREF("C",X)) S BCHX=$O(^BCHTREF("C",X,0)) D SETREF D REFRESH^DDSUTL Q
+ I X?1A.E D FTRREF D REFRESH^DDSUTL Q
+ ;GET THE COMMA PIECES
+ ;STRIP SPACES
+ S BCHS=X
+ S (BCHS)=$$STRIP^XLFSTR(X," ")
+ F BCHA=1:1 S BCHB=$P(BCHS,",",BCHA) Q:BCHB=""  D
+ .S BCHX=$O(^BCHTREF("C",BCHB,0)) D SETREF
+ D REFRESH^DDSUTL
+ Q
+FTRREF ;
+ ;PARSE AND CHECK EACH ELEMENT
+ ;GET THE COMMA PIECES
+ ;STRIP SPACES
+ S BCHY=X
+ NEW X,Y
+ F BCHA=1:1 S BCHB=$P(BCHY,",",BCHA) Q:BCHB=""  D
+ .S BCHB=$$SB(BCHB) S X=BCHB,DIC="^BCHTREF(",DIC(0)="M" D ^DIC I Y=-1 Q
+ .S BCHX=+Y D SETREF
+ Q
+SETREF ;
+SET1 ;
+ S BCHC=BCHC+1
+ S ^BCHR(BCHR,BCHNODE,BCHC,0)=BCHX
+ S ^BCHR(BCHR,BCHNODE,"B",BCHX,BCHC)=""
+ S ^BCHR(BCHR,BCHNODE,0)="^90002.1"_BCHNODE_"PA^"_BCHC_"^"_BCHC
+ I BCHFULL]"" S BCHFULL=BCHFULL_", "
+ S BCHFULL=BCHFULL_$P(^BCHTREF(BCHX,0),U,1)
+ ;S $P(^BCHR(BCHR,86),U,$S(BCHNODE=41:1,1:2))=BCHFULL
+ S F=$S(BCHNODE=41:8601,1:8602)
+ D PUT^DDSVAL("^BCHR(",BCHR,F,BCHFULL,,"E")
  Q

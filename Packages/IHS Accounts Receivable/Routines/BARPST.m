@@ -1,5 +1,5 @@
 BARPST ; IHS/SD/LSL - PAYMENT BATCH POSTING JAN 15,1997 ; 07/14/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,7,13,15,19,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,7,13,15,19,21**;OCT 26, 2005;Build 38
  ;;
  ; IHS/SD/LSL - 07/31/2002 - V1.7 - NOIS HQW-0302-100213
  ;     Modified BATW to also display batch name.
@@ -304,11 +304,18 @@ CKDATE(Z,Q,P) ;EP; NEW; CHECK COLLECTION BATCH DATE ;MRS;BAR*1.8*6 DD 4.2.4
  I P["ERA" D  I $G(Y)>BARCDT Q 1
  .;end new code HEAT5219 BAR*1.8*13
  .;S BAR=$O(^BAREDI("I",DUZ(2),"C",Z,""))   ;MRS;BAR*1.8*7 IM30386
- .S BAR=$O(^BAREDI("I",DUZ(2),"C",$E(Z,1,30),"")) ;LIMIT TO 30 CHAR;MRS;BAR*1.8*7 IM30386
+ .;S BAR=$O(^BAREDI("I",DUZ(2),"C",$E(Z,1,30),"")) ;LIMIT TO 30 CHAR;MRS;BAR*1.8*7 IM30386  ;bar*1.8*22 SDR HEAT56444
+ .;start new code bar*1.8*22 SDR HEAT56444
+ .;some files have 30 characters; some have full name; check for both
+ .S BAR=$O(^BAREDI("I",DUZ(2),"C",Z,""))
+ .S:BAR="" BAR=$O(^BAREDI("I",DUZ(2),"C",$E(Z,1,30),""))
+ .I BAR="" W !!,"Cannot find filename in A/R EDI IMPORT File"
+ .;end new code HEAT56444
  .Q:BAR=""                                  ;MRS:BAR*1.8*7 IM30386
  .S X=$P($P($G(^BAREDI("I",DUZ(2),BAR,0)),U,2),"@",1)
  .S %DT=""
  .D ^%DT
+ I P["ERA",(BAR="") Q  ;bar*1.8*22 SDR HEAT56444
  I Q D
  .;W !!,"CANNOT "_P_" OLDER THAN 10/1/2005"  ;IHS/SD/SDR 6/4/09 HEAT5219 BAR*1.8*13
  .;W !!,"CANNOT "_P_" OLDER THAN "_$S(DT>3090630:"01/01/2009",1:"10/01/2005")  ;IHS/SD/SDR 6/4/09 ;M3*TMM*12/21/09*DEL

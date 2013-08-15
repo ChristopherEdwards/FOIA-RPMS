@@ -1,5 +1,5 @@
 DGSEC1 ;ALB/RMO-MAS Security Options ; [ 01/04/2002  7:06 AM ]
- ;;5.3;Registration;**222,149,214,1010**;Aug 13, 1993
+ ;;5.3;Registration;**222,149,214,1010,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 9/06/2000 added IHS entry point for protocol
  ;             9/07/2000 added check to quit loop if called by protocol
  ;                       changed SSN to chart # in bulletin

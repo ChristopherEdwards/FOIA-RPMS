@@ -1,5 +1,5 @@
 DGPTODI4 ;ALB/AS - DRG INDEX (CONT), HELP MESSAGES ; 26 Aug 99 10:18 PM
- ;;5.3;Registration;**158,238**;Aug 13, 1993
+ ;;5.3;Registration;**158,238,1015**;Aug 13, 1993;Build 21
  ;
 RANGE S DIC("A")="    Start with DRG: " D ^DIC S:Y'>0 DGQ=1 Q:DGQ  S DGC1=+Y
  S DIC("A")="      End with DRG: " D ^DIC S:Y'>0 DGQ=1 Q:DGQ  S DGC2=+Y I DGC2'>DGC1 W !,"Must be after Start DRG " G RANGE

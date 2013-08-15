@@ -1,5 +1,5 @@
 DGPFHLU2 ;ALB/RPM - PRF HL7 BUILD OBX SEGMENT ; 2/20/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,1015**;Aug 13, 1993;Build 21
  ;
  Q
  ;

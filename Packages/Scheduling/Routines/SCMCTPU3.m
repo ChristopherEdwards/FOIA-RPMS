@@ -1,5 +1,5 @@
 SCMCTPU3 ;ALB/MJK - Team Position Utility ; 1 SEP 98
- ;;5.3;Scheduling;**148**;AUG 13,1993
+ ;;5.3;Scheduling;**148,1015**;AUG 13,1993;Build 21
  ;
 EN ; -- main entry point to find pat position assignments w/o team assignment
  N SCMODE,SCTMLST,SCTSK

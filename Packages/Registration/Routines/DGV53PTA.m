@@ -1,5 +1,5 @@
 DGV53PTA ;ALB/REW - ALASKA COUNTY UPDATES ;11 JUN 93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN ;
  ; This will update the ALASKA County codes.  The EN tag may be re-run

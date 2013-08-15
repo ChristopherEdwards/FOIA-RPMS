@@ -1,5 +1,5 @@
 SDWLRQ1 ;;IOFO BAY PINES/TEH - ADHOC WAIT LIST REPORT;06/12/2002 ; 20 Aug 2002  2:10 PM
- ;;5.3;scheduling;**263**;AUG 13 1993
+ ;;5.3;scheduling;**263,399,412,425,448,1015**;AUG 13 1993;Build 21
  ;
  ;
  ;******************************************************************
@@ -24,8 +24,9 @@ EN ;Header
  D QUE
  Q
 INS ;Get Institution
+ N SDWLINST S SDWLINST=""
  S SDWLERR=0,SDWLPROM="Select Institution ALL // "
-IN W ! S DIC(0)="QEMA",DIC("A")=SDWLPROM,DIC=4,DIC("S")="I $D(^SDWL(409.32,""C"",+Y))!($D(^SDWL(409.31,""E"",+Y)))" D ^DIC I Y<0,'SDWLERR Q:$D(DUOUT)  S Y="ALL"
+IN W ! S DIC(0)="QEMA",DIC("A")=SDWLPROM,DIC=4,DIC("S")="I $D(^SDWL(409.32,""C"",+Y))!($D(^SDWL(409.31,""E"",+Y)))!($D(^SCTM(404.51,""AINST"",+Y)))" D ^DIC I Y<0,'SDWLERR Q:$D(DUOUT)  S Y="ALL"
  G IN2:Y<0 Q:$D(DUOUT)
  I Y<0 S SDWLINST=$S(Y="ALL":"ALL",Y="":"ALL",Y="all":"ALL",Y="All":"ALL",Y["A":"ALL",Y["a":"ALL")
  I Y="All"!(Y="")!(Y="all")!(Y="ALL") S SDWLINST="ALL",^TMP("SDWLRQ1",$J,"INS")="ALL" G IN3
@@ -122,8 +123,9 @@ QUE ;Queue Report
  S SDWLTASK="" F  S SDWLTASK=$O(^TMP("SDWLRQ1",$J,SDWLTASK)) Q:SDWLTASK=""  D
  .S SDWLTK=$G(^TMP("SDWLRQ1",$J,SDWLTASK))
  .S ZTSAVE(SDWLTASK)=SDWLTK
+ S ZTSAVE("SDWLF")=""  ; SD*5.3*412
  I $D(IO("Q")) K IO("Q") D ^%ZTLOAD W !,"REQUEST QUEUED" G END
-QUE1 S SDWLSPT="" I $D(ZTRTN) D @ZTRTN
+QUE1 S:$E(IOST,1,2)="C-" SDWLSPT=1 I $D(ZTRTN) U IO D @ZTRTN K SDWLSPT
  ;
 END ;
  K SDWLTASK,SDWLY,SDWLED,WDWLBD,SDWLOPEN,SDWLDATE,SDWLFORM,SDWLPRI,I

@@ -1,5 +1,5 @@
 BDMS9B1 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT 12 Jan 2011 12:27 PM ; [ 12 Jan 2011 12:27 PM ]
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,6**;JUN 14, 2007;Build 6
  ;
  Q:'$G(APCHSPAT)
  S BDMSPAT=APCHSPAT
@@ -63,10 +63,12 @@ SETARRAY ;set up array containing dm care summary
  S X="Last Weight:  "_$S(BDMX("WT")]"":$J(BDMX("WT"),3,0),1:"")_$S(BDMX("WT")]"":" lbs",1:""),$E(X,31)=BDMX("WTD"),$E(X,45)="BMI: "_BDMX("BMI") D S(X)
  I BDMX("WC")]"" S X="Last Waist Circumference: "_BDMX("WC"),$E(X,31)=BDMX("WCD") D S(X)
  I BDMX("WC")="" S X="Last Waist Circumference: <None Recorded>" D S(X)
- D TOBACCO^BDMS9B3
- S X="Tobacco Use:  "_$P($G(BDMTOBS),U,1) D S(X)
+ S BDMTOBS=$$TOBACCO^BDMDA1T(BDMSDFN,$$DOB^AUPNPAT(BDMSDFN),DT)  ;D TOBACCO^BDMS9B3
+ I BDMTOBS]"" S X="Tobacco Use:  "_$P($P($G(BDMTOBS),U,2),"  ",2,99) D S(X)
+ I BDMTOBS="" S X="Tobacco Use:  UNDOCUMENTED" D S(X)
  I $G(BDMTOBC)]"" S X="              "_$P(BDMTOBC,U,1) D S(X)
  S X="HTN Diagnosed:  "_$$HTN(BDMSDFN) D S(X)
+ S X="CVD Diagnosed:  "_$P($$CVD^BDMDA12(BDMSDFN,DT),"  ",2,999) D S(X)
  S BDMSBEG=$$FMADD^XLFDT(DT,-(6*30.5))
  S %=$$ACE^BDMS9B4(BDMSDFN,BDMSBEG) ;get date of last ACE in last 6 months
  S X="",X="ON ACE Inhibitor/ARB in past 6 months: "_% D S(X)
@@ -76,16 +78,16 @@ SETARRAY ;set up array containing dm care summary
  S X="Aspirin Use/Anti-platelet (in past yr):  "_BDMSX D S(X)
  I BDMSX="No" S X="",X=$$ASPREF^BDMS9B4(BDMSDFN) I X]"" S X="     "_X D S(X)
  S BDMDEPP=$$DEPPL(BDMSDFN,$$FMADD^XLFDT(DT,-365),DT)
- S BDMDEPS=$$DEPSCR^BDMD412(BDMSDFN,$$FMADD^XLFDT(DT,-365),DT)
+ S BDMDEPS=$$DEPSCR^BDMDA12(BDMSDFN,$$FMADD^XLFDT(DT,-365),DT)
  S BDMDEPS=$P(BDMDEPS,"  ",2,99)
  S B=$$BP(BDMSDFN)
- S X="Last 3 BP:  "_$P($G(BDMX(1)),U,2)_"   "_$$DATE($P($G(BDMX(1)),U))
+ S X="Last 3 BP:  "_$P($G(BDMX(1)),U,2),$E(X,22)=$$DATE($P($G(BDMX(1)),U))
  S $E(X,40)="Is Depression on the Problem List?"
  D S(X)
- S X="(non ER)" I $D(BDMX(2)) S $E(X,13)=$P(BDMX(2),U,2)_"   "_$$DATE($P(BDMX(2),U))
+ S X="(non ER)" I $D(BDMX(2)) S $E(X,13)=$P(BDMX(2),U,2),$E(X,22)=$$DATE($P(BDMX(2),U))
  S $E(X,42)=BDMDEPP
  D S(X)
- S X="" I $D(BDMX(3)) S X="",$E(X,13)=$P(BDMX(3),U,2)_"   "_$$DATE($P(BDMX(3),U))
+ S X="" I $D(BDMX(3)) S X="",$E(X,13)=$P(BDMX(3),U,2),$E(X,22)=$$DATE($P(BDMX(3),U))
  I $E(BDMDEPP,1)="N" S $E(X,40)="If no, Depression Screening in past year?"
  D S(X)
  S X="" I $E(BDMDEPP,1)="N" S $E(X,42)=BDMDEPS
@@ -94,9 +96,9 @@ M12 ;
  ;determine date range
  S BDMSBEG=$$FMADD^XLFDT(DT,-365)
  S X="In past 12 months:" D S(X)
- S X="Diabetic Foot Exam:",$E(X,23)=$P($$DFE^BDMD417(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
- S X="Diabetic Eye Exam:",$E(X,23)=$P($$EYE^BDMD417(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
- S X="Dental Exam:",$E(X,23)=$P($$DENTAL^BDMD417(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
+ S X="Diabetic Foot Exam:",$E(X,23)=$P($$DFE^BDMDA17(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
+ S X="Diabetic Eye Exam:",$E(X,23)=$P($$EYE^BDMDA17(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
+ S X="Dental Exam:",$E(X,23)=$P($$DENTAL^BDMDA17(BDMSDFN,BDMSBEG,DT,"H"),"  ",2,99) D S(X)
  K BDMSTEX,BDMSDAT,BDMX
  I $P(^DPT(BDMSDFN,0),U,2)="F",$$AGE^AUPNPAT(BDMSDFN)>17 D
  .S BDMMAM=$$LASTMAM^APCLAPI1(BDMSDFN,,,"A"),BDMSDAT=$P(BDMMAM,U,1)

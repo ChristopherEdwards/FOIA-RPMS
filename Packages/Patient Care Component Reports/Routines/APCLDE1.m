@@ -1,5 +1,5 @@
 APCLDE1 ; IHS/CMI/LAB - list DEPRESSION ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
  ;
  ;
 INFORM ;
@@ -10,7 +10,7 @@ INFORM ;
  W !,"DEPRESSION screening or a refusal documented in the time frame specified by "
  W !,"the user.  Depression Screening is defined as any of the following documented:"
  W !?5,"- Depression Screening Exam (Exam code 36)"
- W !?5,"- Measurements: PHQ2, PHQ9"
+ W !?5,"- Measurements: PHQ2, PHQ9, PHQT"
  W !?5,"- Diagnoses V79.0, 14.1 (Behavioral Health Problem Code)"
  W !?5,"- Education Topics: DEP-SCR"
  W !?5,"- refusal of exam code 36"
@@ -159,7 +159,7 @@ BHALCS(P,BDATE,EDATE) ;EP - pass back last BH screening
  ..;get measurements 
  ..S X=0 F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X!(R]"")  D
  ...S M=$$VAL^XBDIQ1(9002011.12,X,.01)
- ...I M="PHQ2"!(M="PHQ9") S R=$$BHRT(V,M,$P(^AMHRMSR(X,0),U,4),P,$$VALI^XBDIQ1(9002011.12,X,1204))
+ ...I M="PHQ2"!(M="PHQ9")!(M="PHQT") S R=$$BHRT(V,M,$P(^AMHRMSR(X,0),U,4),P,$$VALI^XBDIQ1(9002011.12,X,1204))
  ..I R]"" Q
  ..;get exam
  ..S E=$P($G(^AMHREC(V,14)),U,5)
@@ -258,7 +258,7 @@ PCCV(S,PAT) ;EP
  Q T
 SCRNPCC(T) ;get screening provider based on v file
  NEW S,F
- S F=1202
+ S F=1204
  I $P(T,U,5)=9000010.16!($P(T,U,5)=9000010.23) S F=".05"
  S S=$$VAL^XBDIQ1($P(T,U,5),$P(T,U,6),F)
  I S]"" Q S

@@ -1,5 +1,5 @@
 BQIMUMON ;GDIT/HS/ALA-MU Monthly ; 16 Sep 2011  9:47 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
  ;
 EN(BQDATE) ;EP - MU calculations
@@ -22,7 +22,7 @@ EN(BQDATE) ;EP - MU calculations
  . S BQDATE=@($P(BQDTE,U,2))_$P(BQDTE,U,1)_"00"
  ; If no date, then if not the first of the month, quit
  I $G(BQDATE)="" D  Q:QFL
- . I $E(DT,6,7)'="01" S QFL=1 Q
+ . I $E(DT,6,7)'="01" D CHK Q:QFL
  . I $D(^XTMP("BQIMMON")),$O(^XTMP("BQIMMON",""),-1)<DT S ^XTMP("BQIMMON",DT)="",QFL=1 Q
  . I $D(^XTMP("BQIMMON",DT)) S QFL=1 Q
  . S BQMON=$E(DT,4,5),CYR=$E(DT,1,3),PYR=CYR-1
@@ -77,6 +77,20 @@ EN(BQDATE) ;EP - MU calculations
  S BQIUPD(90508,"1,",12.05)=ZTSK
  D FILE^DIE("","BQIUPD","ERROR")
  K ZTDESC,ZTRTN,ZTIO,ZTDTH,ZTSK
+ Q
+ ;
+CHK ; EP - check whether month ran or not
+ NEW BQMON,CYR,PYR,BQDTE,BQMON,BQDATE,BQMMON
+ S QFL=0
+ S BQMON=$E(DT,4,5),CYR=$E(DT,1,3),PYR=CYR-1
+ S BQDTE=$P($T(BQM+BQMON),";;",2)
+ S BQMON=$P(BQDTE,U,1)
+ I $L(BQMON)=1 S BQMON="0"_BQMON
+ S BQDATE=@($P(BQDTE,U,2))_$P(BQDTE,U,1)_"00"
+ S BQMMON=$$FMTE^BQIUL1(BQDATE)
+ I $D(^BQI(90508,1,19,"B",BQMMON)) S QFL=1 Q
+ S BQMMON=$E(DT,1,5)_"01"
+ S ^XTMP("BQIMMON",BQMMON)="",QFL=1
  Q
  ;
 BQM ;

@@ -1,5 +1,5 @@
 DGODNP1 ;ALB/EG - OUTPUT TOT DISCH BY MEANS TEST CAT ; 23 DEC 88@0957
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;V 4.5
  S DGJB=2,U="^",ZRT=0,%DT="T",X="N" D ^%DT S (DGGE,T2)=Y X ^DD("DD") S T2=Y
  I (DG05[",")&(($D(DGBD)=0)!($D(DGND)=0)) Q

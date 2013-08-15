@@ -1,5 +1,6 @@
-DGLOCK3 ;ALB/BOK - PATIENT FILE MUMPS TRIGGER/DATA EDIT CHECKS ; 28 NOV 86
- ;;5.3;Registration;**489,527**;Aug 13, 1993
+DGLOCK3 ;ALB/BOK,BAJ - PATIENT FILE MUMPS TRIGGER/DATA EDIT CHECKS ; 01/23/2006
+ ;;5.3;PIMS;**489,527,1015,1016**;JUN 30, 2012;Build 20
+ ; DG*5.3*688 BAJ 01/23/2006 Changed to support foreign confidential addresses
 KILL S DGX=X I $D(^DPT(DFN,.32)) F DGKZ=0:0 S DGKZ=$O(DGBZ(DGKZ)) Q:'DGKZ  S X=$P(^DPT(DFN,.32),"^",DGKZ),$P(^(.32),"^",DGKZ)="" I X]"" S DGIZ=$S(DGKZ=20:.32945,1:(DGKZ/10000+.3281)) I $D(^DD(2,DGIZ,1)) D KILL1
  S X=DGX
  Q
@@ -29,10 +30,9 @@ CADD ;Confidential Address Delete
 ASK W !,"Do you want to delete all confidential address data" S %=2 D YN^DICN I %Y["?" W !,"Answer 'Y'es to remove confidential address information, 'N'o to leave data in file" G ASK
 ASK1 ;
  Q:%'=1
- ;S DGTEMPH=$P(^DPT(DFN,.141),"^",7,8),^(.141)="^^^^^^"_DGTEMPH_"^N^^" K DGTEMPH
- N DGFDA,DGERR,DGX,DGFLD
- F DGFLD=.1411,.1412,.1413,.1414,.1415,.1416,.14111 S DGFDA(2,DFN_",",DGFLD)=""
+ D EN^DGCLEAR(DFN,"CONF")
  D CADM
+ N DGX
  S DGX=X
  D FILE^DIE("","DGFDA","DGERR")
  S X=DGX

@@ -1,5 +1,5 @@
 DG53154P ;ALB/MM - POST INSTALLATION ROUTINE FOR DG*5.3*154;11/25/97
- ;;5.3;Registration;**154**;Aug 13 1993
+ ;;5.3;Registration;**154,1015**;Aug 13 1993;Build 21
  ;
 EN ;
  ;Check for ^DD(45.52) Edit Clerk multiple

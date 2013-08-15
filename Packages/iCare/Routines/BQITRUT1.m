@@ -1,5 +1,5 @@
 BQITRUT1 ;VNGT/HS/ALA-Treatment Prompt Utility Program ; 03 Sep 2008  8:55 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 NEX(BQDFN,TMFRAME) ;EP - No Exercise API
  NEW X,MEET,DESC
@@ -75,3 +75,128 @@ TOP(DATE,BQDFN,CODE,TEXT) ;Build the topic data
  . S RES=1_U_VSDTM_U_U_VIEN_U_IEN
  K @TREF
  Q RES
+ ;
+ ;
+LBB(START,END,RECENT,BQDFN,TAX,RESULT,OPER,RES2,OPER2,TREF) ;EP
+ ; Check for a lab test result
+ ;
+ ; Input
+ ;   TMFRAME - Time frame to search data for
+ ;   RECENT  - 1=Only check most recent lab,0=Check all within timeframe
+ ;   BQDFN   - Patient internal entry number
+ ;   TAX     - Lab taxonomy to search
+ ;   RESULT  - Lab result to check for
+ ;   OPER    - Operand to use for result check
+ ;   RES2    - If range, the other result value
+ ;   OPER2   - If range, the other result operand
+ ;   TREF    - Multiple same resulting taxonomies built
+ ;             into reference (usually global)
+ ;
+ NEW TEMP,EDATE,BDATE,LIEN,QFL,RES,CT,VALUE,VIEN,VSDTM
+ S BDATE=$G(START),EDATE=$G(END)
+ S TEMP=$NA(^TMP("BQITEMP",UID)) K @TEMP
+ S TAX=$G(TAX,"")
+ I TAX'="" D
+ . S TREF=$NA(^TMP("BQITAX",UID)),RES2=$G(RES2,""),OPER2=$G(OPER2,""),RECENT=$G(RECENT,0)
+ . K @TREF
+ . D BLD^BQITUTL(TAX,TREF)
+ ;
+ S LIEN="",QFL=0,RES=0_U_"No Test",CT=0
+ I $G(BDATE)'="" D
+ . S TIEN=""
+ . F  S TIEN=$O(@TREF@(TIEN)) Q:TIEN=""  D
+ .. S EDT=9999999-BDATE,BDT=(9999999-EDATE)-.001
+ .. I $P($G(^LAB(60,TIEN,0)),U,4)="MI" D MIC^BQICAUTL(BQDFN,TIEN,EDT,BDT,.MICRO) Q
+ .. F  S BDT=$O(^AUPNVLAB("AA",BQDFN,TIEN,BDT)) Q:EDT=""!(BDT>EDT)  D
+ ... S LIEN=""
+ ... F  S LIEN=$O(^AUPNVLAB("AA",BQDFN,TIEN,BDT,LIEN)) Q:LIEN=""  D
+ .... S VALUE=$P(^AUPNVLAB(LIEN,0),U,4) I VALUE="" Q
+ .... S VIEN=$P(^AUPNVLAB(LIEN,0),U,3) I VIEN="" Q
+ .... S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ .... ;I $G(TMFRAME)'="",VSDTM<BDATE Q
+ .... ; quit if deleted flag
+ .... I $P($G(^AUPNVSIT(VIEN,0)),U,11)=1 Q
+ .... I $P($G(^AUPNVLAB(LIEN,11)),U,9)="D" Q
+ .... S @TEMP@(VSDTM,VIEN,LIEN)=VALUE
+ ;
+ I $G(BDATE)="" D
+ . S LIEN=""
+ . F  S LIEN=$O(^AUPNVLAB("AC",BQDFN,LIEN),-1) Q:LIEN=""  D
+ .. S TIEN=$P($G(^AUPNVLAB(LIEN,0)),U,1) I TIEN="" Q
+ .. I '$D(@TREF@(TIEN)) Q
+ .. S VALUE=$P(^AUPNVLAB(LIEN,0),U,4) I VALUE="" Q
+ .. S VIEN=$P(^AUPNVLAB(LIEN,0),U,3) I VIEN="" Q
+ .. S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ .. ; quit if deleted flag
+ .. I $P($G(^AUPNVSIT(VIEN,0)),U,11)=1 Q
+ .. I $P($G(^AUPNVLAB(LIEN,11)),U,9)="D" Q
+ .. S @TEMP@(VSDTM,VIEN,LIEN)=VALUE
+ . F  S LIEN=$O(^AUPNVMIC("AC",BQDFN,LIEN),-1) Q:LIEN=""  D
+ .. S TIEN=$P($G(^AUPNVMIC(LIEN,0)),U,1) I TIEN="" Q
+ .. I '$D(@TREF@(TIEN)) Q
+ .. S VALUE=$P(^AUPNVMIC(LIEN,0),U,7) I VALUE="" Q
+ .. S VIEN=$P(^AUPNVMIC(LIEN,0),U,3) I VIEN="" Q
+ .. S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ .. ; quit if deleted flag
+ .. I $P($G(^AUPNVSIT(VIEN,0)),U,11)=1 Q
+ .. I $P($G(^AUPNVMIC(LIEN,11)),U,9)="D" Q
+ .. S MICRO(VSDTM,VIEN,LIEN)=VALUE
+ ;
+ S VSDTM=""
+ F  S VSDTM=$O(@TEMP@(VSDTM),-1) Q:VSDTM=""  D  Q:QFL
+ . S VIEN=$O(@TEMP@(VSDTM,""),-1)
+ . S LIEN=$O(@TEMP@(VSDTM,VIEN,""),-1)
+ . S VALUE=@TEMP@(VSDTM,VIEN,LIEN)
+ . S CT=CT+1 I RECENT,CT=1 S QFL=1,RES=0_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_$P(^AUPNVLAB(LIEN,0),U,1)
+ . ;
+ . I RESULT'?.N,VALUE?.N Q
+ . ; If the operand is a 'contains', check the comment text
+ . I OPER="[" D  Q
+ .. NEW LN
+ .. S RESULT=$$UP^XLFSTR(RESULT)
+ .. S LN=0 F  S LN=$O(^AUPNVLAB(LIEN,21,LN)) Q:'LN  D  Q:QFL
+ ... I $$UP^XLFSTR(^AUPNVLAB(LIEN,21,LN,0))[RESULT S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_$P(^AUPNVLAB(LIEN,0),U,1),QFL=1
+ . ;
+ . I RESULT="POS",$E(VALUE,1)'?.N,'$$POSITIVE^BQITRUTL(VALUE) Q
+ . I RESULT="POS",$E(VALUE,1)'?.N,$$POSITIVE^BQITRUTL(VALUE) D  Q
+ .. S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_$P(^AUPNVLAB(LIEN,0),U,1),QFL=1
+ . I RESULT="NEG",$E(VALUE,1)'?.N,'$$NEGATIVE^BQITRUTL(VALUE) Q
+ . I RESULT="NEG",$E(VALUE,1)'?.N,$$NEGATIVE^BQITRUTL(VALUE) D
+ .. S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_$P(^AUPNVLAB(LIEN,0),U,1),QFL=1
+ . I $E(VALUE,1)'?.N Q
+ . ;I $E(VALUE,$L(VALUE))?.P S VALUE=VALUE_"0"
+ . I $E(VALUE,$L(VALUE),$L(VALUE))?.P S VALUE=$E(VALUE,1,$L(VALUE)-1)
+ . I RES2="" D
+ .. I @("VALUE"_OPER_"RESULT") D
+ ... S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_$P(^AUPNVLAB(LIEN,0),U,1),QFL=1
+ . I RES2'="" D
+ .. I @("VALUE"_OPER_"RESULT"),@("VALUE"_OPER2_"RES2") D
+ ... S RES=1_U_$$FMTE^BQIUL1(VSDTM)_U_VALUE_U_VIEN_U_LIEN_U_$P(^AUPNVLAB(LIEN,0),U,1),QFL=1
+ K @TEMP
+ Q RES
+ ;
+CLN(TMFRAME,BQDFN,CLINIC) ;EP
+ ; Find visits for a clinic code
+ ; Input
+ ;   TMFRAME - Time frame to search data for
+ ;   BQDFN   - Patient internal entry number
+ ;   CLINIC  - Clinic code
+ NEW ENDT,BCLN,IEN,QFL,RESULT
+ S TMFRAME=$G(TMFRAME,""),ENDT=$$DATE^BQIUL1(TMFRAME)
+ S BCLN=$$FIND1^DIC(40.7,"","Q",CLINIC,"C","","ERROR")
+ S IEN="",QFL=0,RESULT=0
+ I $G(TMFRAME)'="" D
+ . S EDT=9999999-ENDT,BDT=""
+ . F  S BDT=$O(^AUPNVSIT("AA",BQDFN,BDT)) Q:BDT=""!(BDT>EDT)  D
+ .. S IEN=""
+ .. F  S IEN=$O(^AUPNVSIT("AA",BQDFN,BDT,IEN)) Q:IEN=""  D
+ ... I $$GET1^DIQ(9000010,IEN,.11,"I")=1 Q
+ ... S VSDTM=$$GET1^DIQ(9000010,IEN,.01,"I")\1 Q:VSDTM=0
+ ... I $$GET1^DIQ(9000010,IEN,.08,"I")=BCLN S QFL=1,RESULT=1_U_VSDTM_U_U_IEN_U
+ ;
+ I $G(TMFRAME)="" D
+ . F  S IEN=$O(^AUPNVSIT("AC",BQDFN,IEN),-1) Q:IEN=""  D  Q:QFL
+ .. I $$GET1^DIQ(9000010,IEN,.11,"I")=1 Q
+ .. S VSDTM=$$GET1^DIQ(9000010,IEN,.01,"I")\1 Q:VSDTM=0
+ .. I $$GET1^DIQ(9000010,IEN,.08,"I")=BCLN S QFL=1,RESULT=1_U_VSDTM_U_U_IEN_U
+ Q RESULT

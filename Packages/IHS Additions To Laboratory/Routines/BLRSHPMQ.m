@@ -1,5 +1,5 @@
 BLRSHPMQ ;cmi/anch/maw - BLR Reference Lab Shipping Manifest Quest 11:46 ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1027,1028**;NOV 01, 1997;Build 9
+ ;;5.2;IHS LABORATORY;**1027,1028,1030,1031**;NOV 01, 1997
  ;
  ;
  ;
@@ -72,7 +72,12 @@ PHDR ;-- write the common stuff to the device
  W ?60,"MID: "_$$MID(+$G(BHLMSG))
  W !,"PATIENT: "_$P($G(^DPT(^TMP("BLRRL",$J,"COMMON","PAT"),0)),U)
  W ?30,"CHART (Patient ID): "_$$LZERO(BLRCHT,6),?60,"PHONE: "_$S($P($G(^BLRSITE(DUZ(2),"RL")),U,17):$P($G(^DPT(^TMP("BLRRL",$J,"COMMON","PAT"),.13)),U),1:"")  ;cmi/maw 2/4/2008 added home phone
- W !,"SEX: "_$G(SEX),?10,"DOB: "_$G(DOB),?30,"SSN: "_$S($P($G(^DPT(^TMP("BLRRL",$J,"COMMON","PAT"),0)),U,9)]"":"XXX-XX-"_$E($P($G(^DPT(^TMP("BLRRL",$J,"COMMON","PAT"),0)),U,9),6,9),1:"NOT ON FILE")  ;cmi/maw 10/1/08 mask ssn
+ ; W !,"SEX: "_$G(SEX),?10,"DOB: "_$G(DOB),?30,"SSN: "_$S($P($G(^DPT(^TMP("BLRRL",$J,"COMMON","PAT"),0)),U,9)]"":"XXX-XX-"_$E($P($G(^DPT(^TMP("BLRRL",$J,"COMMON","PAT"),0)),U,9),6,9),1:"NOT ON FILE")  ;cmi/maw 10/1/08 mask ssn
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ ;       DOB must be in human-readable format 
+ W !,"SEX: "_$G(SEX),?10,"DOB: "_$S(+$G(DOB)>1950101:$$FMTE^XLFDT(DOB),1:$G(DOB))
+ W ?30,"SSN: "_$S($P($G(^DPT(^TMP("BLRRL",$J,"COMMON","PAT"),0)),U,9)]"":"XXX-XX-"_$E($P($G(^DPT(^TMP("BLRRL",$J,"COMMON","PAT"),0)),U,9),6,9),1:"NOT ON FILE")
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
  ;W !,"LOCATION: "_^TMP("BLRRL",$J,"COMMON","LOC"),?55,"Bill Type: Client" cmi/maw 10/31/07 orig line
  W !,"LOCATION: "_^TMP("BLRRL",$J,"COMMON","LOC")
  W ?30,"BILL TYPE: "_$S($E($G(^TMP("BLRRL",$J,"COMMON","BILL TYPE")),1,1)="T":$G(^TMP("BLRRL",$J,"COMMON","INSTYP")),$E($G(^TMP("BLRRL",$J,"COMMON","BILL TYPE")),1,1)="P":"Patient",1:"Client")  ;cmi/maw 10/31/07 new line
@@ -183,7 +188,8 @@ WRT(SDA) ;-- write the output to the device
  W !,"ORDER (CTRL): "_RL("ORD")
  W ?40,"ACCESSION: "_RL(SDA,"ACC")
  W !,"PATIENT: "_$P($G(^DPT(RL("PAT"),0)),U)
- W ?40,"SEX: "_$G(SEX),?50,"DOB: "_$G(DOB)
+ ; W ?40,"SEX: "_$G(SEX),?50,"DOB: "_$G(DOB)
+ W ?40,"SEX: "_$G(SEX),?50,"DOB: "_$S(+$G(DOB)>1950101:$$FMTE^XLFDT(DOB),1:$G(DOB)) ; IHS/MSC/MKK - LR*5.2*1031: DOB must be in human-readable format
  W !,"CHART (PATIENT ID): "_BLRCHT
  W !,"LOCATION: "_RL("LOC"),?40,"ORDER DATE: "_$$FMTE^XLFDT(RL("ODT"))
  W !,"PRACTITIONER: "_RL("ORDPNM"),?55,"UPIN: "_$G(RL("ORDPUPIN"))

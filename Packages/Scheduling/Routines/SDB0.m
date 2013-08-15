@@ -1,5 +1,5 @@
-SDB0 ;FLA/RF,BSN/GRR,ALB/LDB - PATTERN VALIDATION FOR CLINIC; [ 07/18/2002  3:53 PM ]
- ;;5.3;Scheduling;;Aug 13, 1993
+SDB0 ;FLA/RF,BSN/GRR,ALB/LDB - PATTERN VALIDATION FOR CLINIC; 11 FEB 88@1200
+ ;;5.3;Scheduling;**1015,1016**;Aug 13, 1993;Build 20
  ;IHS/ANMC/LJF 11/30/2000 changed $N to $O
  ;             12/08/2000 allowed schedule to fit on wide screen
  ;                        added code to accept scheduling templates
@@ -32,7 +32,7 @@ G3 ;R "   NO. SLOTS: 1//  ",NSL:DTIME S:NSL="" NSL=1 G:NSL["^" G2 I NSL'?1N.N W 
  S M2=M2-SLT
 G3A I M2<0 S M2=M2+60,H2=H2-1 G G3A
  S:M2?1N M2="0"_M2 S:H2?1N H2="0"_H2
-G4 S CNT=CNT+1,^SC(DA,"T",D0,2,CNT,0)=H1_M1_"^"_NSL
+G4 S CNT=CNT+1,^SC(DA,"T",D0,2,CNT,0)=H1_M1_"^"_+$G(NSL)  ;ihs/cmi/maw try for patch 1016 $S($G(NSL):NSL,1:1)
  S M1=M1+SLT
 G4A I M1>59 S M1=M1-60,H1=H1+1 G G4A
  S:M1?1N M1="0"_M1 S:H1?1N H1="0"_H1

@@ -1,5 +1,5 @@
 DGRUGTG ;ALB/MLI - TEST RUG-II GROUPER ; 29 DEC 87 9:00
- ;;5.3;Registration;**173**;Aug 13, 1993
+ ;;5.3;Registration;**173,1015**;Aug 13, 1993;Build 21
  ;
 ASK W !,$P(^DD(45.9,DGNO,0),U) S %=0 D YN^DICN S %=$S(%=2:1,%=1:2,1:%) Q:%<0  I '% D QR G ASK
  I DGNO=58,'DGED,%=1 S DGNO=62 F DGI=59:1:62 S $P(DGINFO,"^",DGI)=1

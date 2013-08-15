@@ -1,5 +1,5 @@
 VAFCMGA ;ALB/JRP,LTL-DEMOGRAPHIC MERGE SCREEN ACTIONS ;31-OCT-96
- ;;5.3;Registration;**149,477**;Aug 13, 1993
+ ;;5.3;Registration;**149,477,479,1015**;Aug 13, 1993;Build 21
  ;
  ;NOTE: The VAFCMGA* routines contain line tags used to implement
  ;      the actions of a List Manager user interface.  All line
@@ -76,7 +76,8 @@ MRGALL ;Merge all differences
  ..;Convert "@" to @
  ..S:(VALUE=(QUOTE_"@"_QUOTE)) VALUE="@"
  ..;Move data into upload array
- ..I $S(ENTRY=6:0,ENTRY=7:0,ENTRY=9:0,1:1) S @FDAROOT@(FILE,IENS,FIELD)=VALUE ;let zipcode populate city, state and county for merge all ;**477 for GMT
+ ..;I $S(ENTRY=6:0,ENTRY=7:0,ENTRY=9:0,1:1) S @FDAROOT@(FILE,IENS,FIELD)=VALUE ;let zipcode populate city, state and county for merge all ;**477 for GMT ;**479 address removed
+ .. S @FDAROOT@(FILE,IENS,FIELD)=VALUE ;**479 address removed - allow merge
  ..;Prepare for undo
  ..S ^TMP("VAFC-UNDO",$J,"FDA",FILE,IENS,FIELD)=$$GET1^DIQ(FILE,IENS,FIELD)
  ;Merge differences
@@ -108,7 +109,7 @@ MRGSLCT ;Merge user selected differences
  ;Build array of data selected for merging
  N DGNOFDEL S DGNOFDEL=1 ;**477 stop NOK Name x-ref from firing.
  NEW EASZIPLK S EASZIPLK=1 ;**477 zipcode lookup for GMT
- I $D(VALMY(8)) F ENTRY=6,7,9 I '$D(VALMY(ENTRY)) S VALMY(ENTRY)="",UNDO(ENTRY)="" ;prepare to undo city, state and county if zip selected ;**477 for GMT
+ ;I $D(VALMY(8)) F ENTRY=6,7,9 I '$D(VALMY(ENTRY)) S VALMY(ENTRY)="",UNDO(ENTRY)="" ;prepare to undo city, state and county if zip selected ;**477 for GMT ;**479 address removed
  S ENTRY=""
  F  S ENTRY=$O(VALMY(ENTRY)) Q:(ENTRY="")  D
  .;Remember which group(s) to rebuild

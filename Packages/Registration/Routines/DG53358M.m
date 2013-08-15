@@ -1,5 +1,5 @@
 DG53358M ;ALB/AEG - DG*5.3*358 POST INSTALL (CONT) ;3-5-2001
- ;;5.3;Registration;**358**;3-5-2001
+ ;;5.3;Registration;**358,1015**;3-5-2001;Build 21
  ;
 MBDST ; Called after Phase II processing completes to send user a message
  ; as to the details of mt status inconsistencies.

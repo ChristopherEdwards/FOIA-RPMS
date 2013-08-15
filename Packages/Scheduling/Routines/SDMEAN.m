@@ -1,5 +1,5 @@
 SDMEAN ;ALB/TMP,BOK - TALLY OUTPATIENT VISITS FOR MEANS TEST TRACKING ; 28 JUL 86
- ;;5.3;Scheduling;**132**;Aug 13, 1993
+ ;;5.3;Scheduling;**132,1015**;Aug 13, 1993;Build 21
  ;CALLED BY ^DGMT5; DFN,DGSD,DGED passed in; SD passed out
 EN K SDCP S SD="",$P(SD,"0",32)="",SDT=1,SDPCE=16
  F B=DGSD-.1:0 S B=$O(^DPT(DFN,"S",B)) Q:B=""!(B>(DGED_.9))  S SDAY=$P(B,".")#100 I $D(^(B,0)) S SDC=^(0) D T I 'SDIG,$P(SDC,U,2)']"",$D(^SC(+SDC,0)),$P(^(0),U,17)'="Y" D SDCP I 'SDCP,'$E(SD,SDAY),'SDNV D SET S B=$P(B,".")_.9

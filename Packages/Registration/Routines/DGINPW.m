@@ -1,5 +1,5 @@
 DGINPW ;ALB/JDS - DETERMINE INPATIENT STATUS ;01 JAN 1986
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;
  ;  *****************************************************************

@@ -1,23 +1,14 @@
 ABMDFUTL ; IHS/ASDST/DMJ - Export Forms Utility ;     
- ;;2.6;IHS Third Party Billing System;**2,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,6,8,9**;NOV 12, 2009
  ;Original;TMD;
  ;
- ; IHS/ASDS/DMJ - 05/15/00 - V2.4 Patch 1 - NOIS HQW-0500-100032
- ;     Modified to allow population of the PIN number for KIDSCARE
+ ; IHS/ASDS/DMJ - 05/15/00 - V2.4 Patch 1 - NOIS HQW-0500-100032 - Modified to allow population of the PIN number for KIDSCARE
  ;     as well as visit type 999.
+ ; IHS/ASDS/SDH - 08/14/01 - V2.4 Patch 9 - NOIS NDA-1199-180065 - Modified routine to get grouper allowance, non-covered, and penalties.
+ ; IHS/ASDS/SDH - 11/20/01 - V2.4. Patch 10 - NOIS QXX-1101-130059 - Modified to get billed amount even if there are no payments
+ ; IHS/SD/SDR - 10/10/02 V2.5 P2 - NGA-0902-180106 - Modified to put provider number in 24k if Medicare/Railroad insurer
  ;
- ; IHS/ASDS/SDH - 08/14/01 - V2.4 Patch 9 - NOIS NDA-1199-180065
- ;     Modified routine to get grouper allowance, non-covered, and
- ;     penalties.
- ;
- ; IHS/ASDS/SDH - 11/20/01 - V2.4. Patch 10 - NOIS QXX-1101-130059
- ;     Modified to get billed amount even if there are no payments
- ;
- ; IHS/SD/SDR - 10/10/02 V2.5 P2 - NGA-0902-180106
- ;      Modified to put provider number in 24k if Medicare/Railroad insurer
- ;
- ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164
- ;    utility to return provider for line item
+ ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164 - utility to return provider for line item
  ; IHS/SD/SDR - v2.5 p11 - NPI
  ; IHS/SD/SDR - v2.5 p12 - IM24799 - Made change for <UNDEF>K24N+9^ABMDFUTL
  ; IHS/SD/SDR - v2.5 p12 - IM25017 - Made changes for 1st line of block 24J
@@ -25,6 +16,7 @@ ABMDFUTL ; IHS/ASDST/DMJ - Export Forms Utility ;
  ; IHS/SD/SDR - v2.5 p13 - IM26299 - Fix if insurer type is <UNDEF>
  ; IHS/SD/SDR - v2.5 p13 - NO IM - Change to use LDFN instead of DUZ(2)
  ; IHS/SD/SDR - abm*2.6*2 - HEAT10900 - ck if Medicare and primary
+ ; IHS/SD/SDR - 2.6*9 - HEAT46390 - fixed writeoff amount to include all bills
  ;
  ; *********************************************************************
  ;
@@ -86,6 +78,7 @@ PREV ;EP for obtaining previous payment info
  N ABM
  I $D(ABMPM) M ABMP=ABMPM K ABMPM Q
  S (ABMP("PD"),ABMP("WO"))=0
+ S ABM("W")=0  ;abm*2.6*9 HEAT46390
  S ABM("CLM")=$S($G(ABMP("BDFN")):+$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),0),U),1:ABMP("CDFN"))
  S ABM("BIL")=$S($G(ABMP("BDFN")):ABMP("BDFN"),1:0)
  S ABM("A")="" F  S ABM("A")=$O(^ABMDBILL(DUZ(2),"AS",ABM("CLM"),ABM("A"))) Q:ABM("A")=""  D
@@ -95,16 +88,19 @@ PREV ;EP for obtaining previous payment info
  ..Q:$P($G(^ABMDBILL(DUZ(2),ABM,0)),"^",4)="X"
  ..;Q:($P($G(^AUTNINS(ABMP("INS"),2)),U)="R")  ;abm*2.6*2 HEAT10900
  ..Q:(($P($G(^AUTNINS(ABMP("INS"),2)),U)="R")&($G(ABMR("SBR",30))="P"))  ;abm*2.6*2 HEAT10900
- ..S ABM("W")=0,ABM(ABM)=""
+ ..;S ABM("W")=0,ABM(ABM)=""  ;abm*2.6*9 HEAT46390
+ ..S ABM(ABM)=""  ;abm*2.6*9 HEAT46390
  ..F ABM("J")=0:0 S ABM("J")=$O(^ABMDBILL(DUZ(2),ABM,3,ABM("J"))) Q:'ABM("J")  D
  ...S ABMP("PD")=$P(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0),U,2)+ABMP("PD"),ABM("W")=ABM("W")+$P(^(0),U,6)
- ...S ABMP("WO")=ABM("W")
+ ...;S ABMP("WO")=ABM("W")  ;abm*2.6*9 HEAT46390
  ...S ABMP("GRP")=$P($G(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0)),U,12)
- ...S ABMP("NONC")=$P($G(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0)),U,7)
+ ...;S ABMP("NONC")=$P($G(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0)),U,7)  ;abm*2.6*9 HEAT46390
+ ...S ABMP("NONC")=ABMP("NONC")+$P($G(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0)),U,7)  ;abm*2.6*9 HEAT46390
  ...S ABMP("PENS")=$P($G(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0)),U,9)
  ...S ABMP("COI")=$P($G(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0)),U,4)
  ...S ABMP("DED")=$P($G(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0)),U,3)
  ...S ABMP("REF")=$P($G(^ABMDBILL(DUZ(2),ABM,3,ABM("J"),0)),U,13)
+ ...;S ABMP("WO")=ABMP("WO")+ABM("W")+ABMP("GRP")+ABMP("NONC")+ABMP("PENS")  ;abm*2.6*9 HEAT46390
  ..I $D(ABMP("BDFN")) S ABMP("BILL")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),2)),U)
  ..I $P($G(^ABMDBILL(DUZ(2),ABM,2)),U,4)=0 S ABMP("WO")=ABMP("WO")+ABM("W")
  Q

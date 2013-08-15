@@ -1,5 +1,5 @@
 ABME5L8 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9**;NOV 12, 2009
  ;Header Segments
 START ;START HERE
  D PAYED^ABMUTLP
@@ -21,7 +21,8 @@ START ;START HERE
  ..Q:'$D(ABMP(+ABMLINE,ABML))  ;quit if no data for insurer in ABMP adj array
  ..D EP^ABME5CAS
  ..D WR^ABMUTL8("CAS")
- .I $G(ABMP("PAYED",+ABMLINE)) D
+ .;I $G(ABMP("PAYED",+ABMLINE)) D  ;abm*2.6*9 tribal self-insured
+ .I $G(ABMP("PAYED",+ABMLINE))!($P($G(^ABMNINS(ABMP("LDFN"),+ABMLINE,0)),U,11)="Y") D  ;abm*2.6*9 tribal self-insured
  ..D EP^ABME5AMT("D")
  ..D WR^ABMUTL8("AMT")
  .D ^ABME5OI
@@ -38,8 +39,10 @@ START ;START HERE
  .S ABMLOOP="2330B"
  .D EP^ABME5NM1("PR",+ABMLINE)
  .D WR^ABMUTL8("NM1")
- .I $G(ABMP("PAYED",+ABMLINE)) D
- ..S ABMPDT=$G(ABMP("PDT",+ABMLINE))
+ .;I $G(ABMP("PAYED",+ABMLINE)) D  ;abm*2.6*9 tribal self-insured
+ .I $G(ABMP("PAYED",+ABMLINE))'="" D  ;abm*2.6*9 tribal self-insured
+ ..;S ABMPDT=$G(ABMP("PDT",+ABMLINE))  ;abm*2.6*9 tribal self-insured
+ ..S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:"")  ;abm*2.6*9 tribal self-insured
  ..D EP^ABME5DTP(573,"D8",ABMPDT)
  ..D WR^ABMUTL8("DTP")
  ..K ABMPDT

@@ -1,5 +1,5 @@
 SCMCHLR ;BP/DJB - PCMM HL7 Re-transmit Rejects ; 8/25/99 2:29pm
- ;;5.3;Scheduling;**177**;May 01, 1999
+ ;;5.3;Scheduling;**177,1015**;May 01, 1999;Build 21
  ;
 EN ;
  NEW DFN,SCDELETE,SCMSG,VARPTR

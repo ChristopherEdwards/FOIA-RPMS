@@ -1,5 +1,5 @@
 DGPFLMA ;ALB/KCL - PRF ASSIGNMENT LISTMAN SCREEN ; 4/24/03 4:34pm
- ;;5.3;Registration;**425,1008**;Aug 13,1993
+ ;;5.3;Registration;**425,1008,1015**;Aug 13,1993;Build 21
  ;
  ;
 EN ;Main entry point for DGPF RECORD FLAG ASSIGNMENT option.

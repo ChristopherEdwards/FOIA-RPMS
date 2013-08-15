@@ -1,5 +1,5 @@
 DGPASS ;ALB/JDS - ABSENCE LIST ; 01 JAN 86 @0800 [ 03/17/2004  1:55 PM ]
- ;;5.3;Registration;**162**;Aug 13, 1993
+ ;;5.3;Registration;**162,1015**;Aug 13, 1993;Build 21
  ;
 EN D QUIT S %DT="AEPT",%DT("A")="Enter date of Absence: " D ^%DT G:Y'>0 QUIT G EN:+Y>(DT+1) S DGT=+Y,DG2=DGT,DGT=$S(DGT[".":DGT,1:DGT_".2400"),DG2=DGT
  S DGVAR="DGT^DG2",DGPGM="START^DGPASS" D ZIS^DGUTQ I 'POP U IO D START^DGPASS

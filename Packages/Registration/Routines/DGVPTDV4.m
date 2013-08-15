@@ -1,5 +1,5 @@
 DGVPTDV4 ;alb/mjk - DVBHS6 for export with PIMS v5.3; 4/21/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 DVBHS6 ;ALB/JLU;Screen six of the HINQ screens;
  ;;V4.0;HINQ;**11**;03/25/92 

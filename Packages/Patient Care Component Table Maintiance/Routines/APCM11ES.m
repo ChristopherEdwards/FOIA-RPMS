@@ -1,9 +1,9 @@
-APCM11ES ;IHS/CMI/LAB - IHS MU;
- ;;2.0;IHS PCC SUITE;**6**;MAY 14, 2009;Build 11
+APCM11ES ; IHS/CMI/LAB - IHS MU ;
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1**;MAR 26, 2012
  ;
  ;
  W:$D(IOF) @IOF
- W !!,$$CTR("IHS 2011 Stage 1 Meaningful Use Performance Report for EPs",80),!
+ W !!,$$CTR("IHS 2011 Stage 1 Meaningful Use Performance Measure Report for EPs",80),!
  D XIT
 INTRO ;
  S APCMRPTT=1,APCMIWPL=1 ;CONTROL VARIABLE FOR EP REPORT
@@ -42,20 +42,15 @@ TP ;
  S APCMRPTP=Y
  D @APCMRPTP
  I APCMBD="" G TP
- I APCMRPTP="C" D  I $G(APCMQUIT) G TP
- .S APCMQUIT=""
- .W !!,$$CTR("*** IMPORTANT NOTICE ***")
- .W !,"This report may take several hours to run and could potentially slow"
- .W !,"your system performance.  Please queue this report to run after normal"
- .W !,"working hours.",!
- .S DIR(0)="Y",DIR("A")="Do you wish to continue to report",DIR("B")="Y" KILL DA D ^DIR KILL DIR
- .I $D(DIRUT) S APCMQUIT=1 Q
- .I 'Y S APCMQUIT=1 Q
+ S DIR(0)="Y",DIR("A")="Do you wish to include the previous period",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) S APCMQUIT=1 Q
+ I 'Y S APCMQUIT=1 Q
 PP ;
  S APCMWPP=""
- W !!,"Historical data from the previous calendar year can be included in this report."
+ I APCMRPTP="A" W !!,"Historical data from the previous calendar year can be included in this report."
+ I APCMRPTP="B" W !!,"Historical data from the 90-days immediately preceding the currently",!,"selected report period can be included."
  W !,"IMPORTANT NOTICE: Including previous period data may significantly increase ",!,"run time.",!
- S DIR(0)="Y",DIR("A")="Do you wish to include the previous period",DIR("B")="Y"	KILL DA D ^DIR KILL DIR
+ S DIR(0)="Y",DIR("A")="Do you wish to include the previous period",DIR("B")="Y" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G TP
  S APCMWPP=Y
 PRV ;

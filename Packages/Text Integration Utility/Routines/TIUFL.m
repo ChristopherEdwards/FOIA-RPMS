@@ -1,5 +1,5 @@
-TIUFL ; SLC/MAM - Library of Modules and Functions: SETUP, RMSG, CENTER(X,N) ;8/6/97  09:54
- ;;1.0;TEXT INTEGRATION UTILITIES;**14**;Jun 20, 1997
+TIUFL ; SLC/MAM - Library of Modules and Functions: SETUP, RMSG, CENTER(X,N) ;4/5/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**14,184**;Jun 20, 1997
  ;
 CENTER(X,N) ; Center X in space of N Characters. Adapted from TIULS.
  ; Truncates X to N chars if X>N.  NOTE: LM truncates header at scroll lock if header longer than VALMWD-1.
@@ -118,10 +118,11 @@ SORT ; subscripts "SORT", "SORTCM" (CM for CHANGE SORT MENU),
 MSG S ^TMP("TIUF",$J,"SMSG")="?Help   >ScrollRight   PS/PL PrintScrn/List   +/-"
  S ^TMP("TIUF",$J,"MSG")="? Help       +, - Next, Previous Screen     PS/PL"
  S ^TMP("TIUF",$J,"NMSG")="New Users, Please Enter '?NEW' for Help"
-FLDNAM ; Single Subscripts are Field Numbers: e.g. ^TMP("TIUF",$J,4,"LABEL")="Upload Look-Up Method":
+FLDNAM ; Single Subscripts are Field Numbers: e.g. ^TMP("TIUF",$J,4,"LABEL")="Upload Look-Up Method".
+ ;See also FLDTYPE for second piece.
  S ^TMP("TIUF",$J,0,"LABEL")="IFN^BASICS"
  S ^TMP("TIUF",$J,1.03,"LABEL")="TARGET TEXT FIELD"
- F TIUFI=.01:.01:.13,1.01,1.02,2,3,3.02,3.03,4,4.1,4.2,4.3,4.4,4.45,4.5,4.6,4.7,4.8,4.9,5,6,6.1,6.12,6.13,6.14,7,8,9,10 D FIELD^DID(8925.1,TIUFI,"","LABEL","^TMP(""TIUF"",$J,TIUFI)")
+ F TIUFI=.01:.01:.15,1.01,1.02,2,3,3.02,3.03,4,4.1,4.2,4.3,4.4,4.45,4.5,4.6,4.7,4.8,4.9,5,6,6.1,6.12,6.13,6.14,7,8,9,10 D FIELD^DID(8925.1,TIUFI,"","LABEL","^TMP(""TIUF"",$J,TIUFI)")
  ;S ^TMP("TIUF",$J,.05,"LABEL")="OWNER^BASICS"
  ; Double Subscripts are Field Numbers of Multiples,SubField Numbers: e.g
  ;^TMP("TIUF",$J,1,.01,"LABEL")="Header Piece", the .01 subfield of Multiple field 1:
@@ -129,7 +130,7 @@ FLDNAM ; Single Subscripts are Field Numbers: e.g. ^TMP("TIUF",$J,4,"LABEL")="Up
  F TIUFI=2,3,4 D FIELD^DID(8925.14,TIUFI,"","LABEL","^TMP(""TIUF"",$J,10,TIUFI)")
  ;
 FLDTYPE ; Sets ^ piece after FLDNAME = BASICS, TECH, UPLOAD or UPHEAD, i.e. which part of the display the field is in.
- F TIUFI=.01:.01:.13,3.02,3.03 S $P(^TMP("TIUF",$J,TIUFI,"LABEL"),U,2)="BASICS"
+ F TIUFI=.01:.01:.15,3.02,3.03 S $P(^TMP("TIUF",$J,TIUFI,"LABEL"),U,2)="BASICS"
  F TIUFI=4.1,4.2,4.3,4.4,4.45,4.6,4.7,4.9,5,6,6.1,6.12,6.13,6.14,7,8,9 S $P(^TMP("TIUF",$J,TIUFI,"LABEL"),U,2)="TECH"
  F TIUFI=1.01:.01:1.03,4,4.5,4.8 S $P(^TMP("TIUF",$J,TIUFI,"LABEL"),U,2)="UPLOAD"
  F TIUFI=.01:.01:.07,1,2 S $P(^TMP("TIUF",$J,1,TIUFI,"LABEL"),U,2)="UPHEAD",$P(^TMP("TIUF",$J,2,TIUFI,"LABEL"),U,2)="UPHEAD"

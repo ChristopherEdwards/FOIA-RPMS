@@ -1,5 +1,5 @@
 SCCVPOST ;ALB/MJK - Patch SD*5.3*201 Post-Install Routine ; 11/5/97
- ;;5.3;Scheduling;**211**,Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**,Aug 13, 1993;;Build 21
  ;
 EN ; --- main entry point
  S U="^"

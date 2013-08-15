@@ -1,5 +1,5 @@
 DGJBGJ ;ALB/MAF - IRT BACKGROUND JOB/SHORT FORM LIST - MAY 3 1993
- ;;5.3;Registration;**126**;Aug 13, 1993
+ ;;5.3;Registration;**126,1015**;Aug 13, 1993;Build 21
 EN N DGJBG,DGJED
  D DAT
  I Y=-1 G QUIT

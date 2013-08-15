@@ -1,18 +1,15 @@
 ABMDRCHK ; IHS/ASDST/DMJ - Report Utility to Check Parms ;  
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,9**;NOV 12, 2009
  ;Original;TMD;10/17/95 12:45 PM
  ;
- ; IHS/SD/SDR - v2.5 p8
- ;    Added code to check cancelled claim file
+ ; IHS/SD/SDR - v2.5 p8 - Added code to check cancelled claim file
  ; IHS/SD/SDR,TPF - v2.5 p8 - added code for pending status (12)
- ; IHS/SD/SDR - v2.5 p9 - IM17380
- ;    Split out line and added $G
- ; IHS/SD/SDR - v2.5 p10 - IM21520
- ;   Fixed report so it would allow selection of one insurer
+ ; IHS/SD/SDR - v2.5 p9 - IM17380 - Split out line and added $G
+ ; IHS/SD/SDR - v2.5 p10 - IM21520 - Fixed report so it would allow selection of one insurer
  ;
  ; IHS/SD/SDR - v2.6 CSV
- ; IHS/SD/SDR - abm*2.6*1 - HEAT7633 - didn't work when V-codes
- ;    were selected
+ ; IHS/SD/SDR - abm*2.6*1 - HEAT7633 - didn't work when V-codes were selected
+ ; IHS/SD/SDR - 2.6*9 - HEAT43507 - Closed claim report doesn't run by visit date
  ;
 BILL ;EP for checking Bill File data parameters
  Q:'$D(^ABMDBILL(DUZ(2),ABM,0))!('$D(^(1)))
@@ -81,6 +78,7 @@ CLM ;EP for checking Claim file data parameters
  I $D(ABMY("CLIN")),'$D(ABMY("CLIN",+$P(^ABMDCLM(DUZ(2),ABM,0),"^",6))) Q
  I $D(ABMY("VTYP")),'$D(ABMY("VTYP",+$P(^ABMDCLM(DUZ(2),ABM,0),"^",7))) Q
  I ABM("STA")'="X" S ABMP("HIT")=1 Q  ;stop here if not closed claims
+ I ABM("STA")="X",ABMY("DT")="V" S ABMP("HIT")=1  ;abm*2.6*9 HEAT43507
  S ABMXFLG=0,ABMDFLG=0
  I '$D(ABMY("CLOS")) S ABMXFLG=1
  I '$D(ABMY("DT")) S ABMDFLG=1

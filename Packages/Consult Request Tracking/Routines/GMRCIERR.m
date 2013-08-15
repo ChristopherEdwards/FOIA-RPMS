@@ -1,12 +1,13 @@
-GMRCIERR ;SLC/JFR - process IFC message error alert ;10/22/02 14:16
- ;;3.0;CONSULT/REQUEST TRACKING;**22,28,30**;DEC 27, 1997
+GMRCIERR ;SLC/JFR - process IFC message error alert ;29-Nov-2005 11:58;MGH
+ ;;3.0;CONSULT/REQUEST TRACKING;**22,28,30,1001**;DEC 27, 1997
+ ;IHS/CIA/MGH Added code to use HRCN instead of SSN
  Q
 EN(GMRCLOG,GMRCDA,GMRCACT,GMRCRPT) ;start here
  ;Build ^TMP array for processing alert
  ;
  K ^TMP("GMRCIERR",$J)
  N GMRCPNM,GMRCACTV,GMRCERR,GMRCRP,GMRCEP,GMRCACTM,GMRCCOM,GMRCSS
- N GMRCPROC,GMRCSITE,GMRCFCN,GMRCPT,GMRCSSN,VAHOW,VAROOT
+ N GMRCPROC,GMRCSITE,GMRCFCN,GMRCPT,GMRCSSN,GMRCHRCN,VAHOW,VAROOT
  I '$D(^GMR(123.6,GMRCLOG,0)) D  Q
  . S ^TMP("GMRCIERR",$J,1,0)="Message log entry no longer exists"
  I $P(^GMR(123.6,GMRCLOG,0),U,4)'=GMRCDA D  Q
@@ -17,6 +18,8 @@ EN(GMRCLOG,GMRCDA,GMRCACT,GMRCRPT) ;start here
  D DEM^VADPT
  S GMRCPNM=GMRCPT("NM")
  S GMRCSSN=$P(GMRCPT("SS"),U,2)
+ ;IHS/CIA/MGH Added variable for health record number
+ S GMRCHRCN=$$HRCN^GMRCMP(DFN,+$G(DUZ(2)))
  S GMRCACTV=$G(^GMR(123,GMRCDA,40,GMRCACT,0))
  S GMRCRP=$$GET1^DIQ(200,+$P(GMRCACTV,U,4),.01)
  S GMRCEP=$$GET1^DIQ(200,+$P(GMRCACTV,U,5),.01)
@@ -34,7 +37,9 @@ EN(GMRCLOG,GMRCDA,GMRCACT,GMRCRPT) ;start here
  S ^TMP("GMRCIERR",$J,LN,0)="Consult #: "_GMRCDA,LN=LN+1
  S ^TMP("GMRCIERR",$J,LN,0)="Remote Consult #: "_GMRCFCN,LN=LN+1
  S ^TMP("GMRCIERR",$J,LN,0)="Patient Name: "_GMRCPNM,LN=LN+1
- S ^TMP("GMRCIERR",$J,LN,0)="SSN: "_GMRCSSN,LN=LN+1
+ ;IHS/CIA/MGH  Added change to use hrcn instead of ssn
+ ;S ^TMP("GMRCIERR",$J,LN,0)="SSN: "_GMRCSSN,LN=LN+1
+ S ^TMP("GMRCIERR",$J,LN,0)="HRCN: "_GMRCHRCN,LN=LN+1
  S ^TMP("GMRCIERR",$J,LN,0)="To Service: "_GMRCSS,LN=LN+1
  I $L(GMRCPROC) S ^TMP("GMRCIERR",$J,LN,0)="Procedure: "_GMRCPROC,LN=LN+1
  S ^TMP("GMRCIERR",$J,LN,0)="",LN=LN+1
@@ -187,7 +192,9 @@ PTMPIER(GMRCDFN) ;send IFC local MPI error to MAS mail group
  S GMRCMSG(5,0)="to resolve this error so request may be processed."
  S GMRCMSG(6,0)=" "
  S GMRCMSG(7,0)="   Patient name: "_GMRCPT("NM")
- S GMRCMSG(8,0)="            SSN: "_$P(GMRCPT("SS"),U,2)
+ ;IHS/CIA/MGH added variable for HRCN instead of SSN
+ ;S GMRCMSG(8,0)="            SSN: "_$P(GMRCPT("SS"),U,2)
+ S GMRCMSG(8,0)="            HRCN: "_$$HRCN^GMRCMP(DFN,+$G(DUZ(2)))
  S GMRCMSG(9,0)="  Date of birth: "_$P(GMRCPT("DB"),U,2)
  S GMRCMSG(10,0)="            Sex: "_$P(GMRCPT("SX"),U,2)
  S GMRCMSG(11,0)="  "

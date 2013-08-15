@@ -1,5 +1,5 @@
 DGQPT2 ; HIRMFO/DAD-Patient Look-Up Security Check and Notification ;1/31/97  07:57
- ;;5.3;Registration;**447**;Aug 13, 1993
+ ;;5.3;Registration;**447,1015**;Aug 13, 1993;Build 21
  ;
 EN1(DGDFN) ;
  ; Sensitive Patient record check

@@ -1,5 +1,5 @@
-BPXRMASM ; IHS/CIA/MGH - Asthma reminders. ;24-Sep-2009 16:17;MGH
- ;;1.5;CLINICAL REMINDERS;**1003,1004,1005,1007**;Jun 19, 2000
+BPXRMASM ; IHS/CIA/MGH - Asthma reminders. ;15-Dec-2011 12:53;MGH
+ ;;1.5;CLINICAL REMINDERS;**1003,1004,1005,1007,1008**;Jun 19, 2000;Build 25
  ;=================================================================
  ;This routine is designed to evaluate the asthma registry information
  ;to create the reminders for asthma patients that match the

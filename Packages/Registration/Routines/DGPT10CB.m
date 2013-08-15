@@ -1,5 +1,5 @@
 DGPT10CB ;ALB/MTC - Edit checks for Cat of Ben ; 12 NOV 92
- ;;5.3;Registration;**234,466**;Aug 13, 1993
+ ;;5.3;Registration;**234,466,1015**;Aug 13, 1993;Build 21
  ;;
 SET ;
  I ((DGPTPOS2'?1U)&(DGPTPOS2'?1N)) S DGPTERC=114 Q

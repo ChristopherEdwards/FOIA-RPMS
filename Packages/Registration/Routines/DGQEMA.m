@@ -1,5 +1,5 @@
 DGQEMA ;RWA/SLC-DHW/OKC-ALB/MIR - EMBOSSER AUTO QUEUE;03/21/85  2:31 PM ; 04 Oct 85  10:24 AM
- ;;5.3;Registration;**73,191**;Aug 13, 1993
+ ;;5.3;Registration;**73,191,1015**;Aug 13, 1993;Build 21
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
  ;
  ;INPUT:     DFN - patient (NOT killed on exit unless manuel q)

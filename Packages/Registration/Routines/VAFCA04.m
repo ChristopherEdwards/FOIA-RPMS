@@ -1,5 +1,5 @@
 VAFCA04 ;ALB/RJS-Creates the Registration Message ; 26 Mar 2003  3:13 PM
- ;;5.3;Registration;**91,209,149,261,298,415,484**;Aug 13, 1993
+ ;;5.3;Registration;**91,209,149,261,298,415,484,508,1015**;Aug 13, 1993;Build 21
  ;
  ;07/07/00 ACS - Added sequence 21 (physical treating specialty - ward
  ;location) and sequence 39 (facility+suffix) to the inpatient string
@@ -45,7 +45,7 @@ EN(DFN,VAFCDATE,USER,PIVOTPTR) ;
  I USER'=0 S HLA("HLS",1)=HLA("HLS",1)_$$HLNAME^XLFNAME(.DGNAME,"",$E($G(HLECH)))
  ; ^ possible to not have a user defined
  S LIN=1
- K Y S VAFSTR=$$COMMANUM^VAFCADT2(1,9)_",10B,"_$$COMMANUM^VAFCADT2(11,21)_",22B,"_$$COMMANUM^VAFCADT2(23,30)
+ K Y S VAFSTR=$$COMMANUM^VAFCADT2(1,9)_",10B,11PC,"_$$COMMANUM^VAFCADT2(13,21)_",22B,"_$$COMMANUM^VAFCADT2(23,30)
  S HLA("HLS",$$ADD(.LIN,1))=$$EN^VAFCPID(DFN,VAFSTR)
  ;CHECK IF PATIENT HAS AN ICN
  I $P(HLA("HLS",LIN),HLFS,3)=HLQ D

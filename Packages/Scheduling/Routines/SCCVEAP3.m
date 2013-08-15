@@ -1,5 +1,5 @@
 SCCVEAP3 ;ALB/RMO,TMP - Appointment Conversion cont.; [ 04/05/95  10:19 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 SET(SCCVEVT,SCLOG,DFN,SCDTM,SCCLN,SCDA,SCOE,SCCV) ; Set variables
  ; Input  -- SCCVEVT  Conversion event

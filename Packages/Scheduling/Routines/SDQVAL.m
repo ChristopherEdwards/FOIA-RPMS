@@ -1,5 +1,5 @@
 SDQVAL ;ALB/MJK - Query Object Validation Methods ;8/12/96
- ;;5.3;Scheduling;**131**;Aug 13, 1993
+ ;;5.3;Scheduling;**131,1015**;Aug 13, 1993;Build 21
  ;
 QRY(SDQ,SDERR) ; -- validate query input
  ;

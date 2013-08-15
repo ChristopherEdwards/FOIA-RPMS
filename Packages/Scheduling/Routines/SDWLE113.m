@@ -1,5 +1,5 @@
-SDWLE113 ;;IOFO BAY PINES/TEH - WAITING LIST-ENTER/EDIT;06/12/2002 ; 20 Aug 2002  2:10 PM
- ;;5.3;scheduling;**263,273**;AUG 13 1993
+SDWLE113 ;IOFO BAY PINES/TEH - WAITING LIST-ENTER/EDIT ;20 Aug 2002  2:10 PM
+ ;;5.3;scheduling;**263,273,394,1015**;AUG 13 1993;Build 21
  ;
  ;
  ;******************************************************************
@@ -7,22 +7,30 @@ SDWLE113 ;;IOFO BAY PINES/TEH - WAITING LIST-ENTER/EDIT;06/12/2002 ; 20 Aug 2002
  ;                                               
  ;   DATE                        PATCH                   DESCRIPTION
  ;   ----                        -----                   -----------
- ; 11/27/02                                      SD*5.3*273                              Add "/" to line EN1+2  
- ;   
+ ; 11/27/02                      SD*5.3*273              Add "/" to line EN1+2  
+ ; 12/10/04                      SD*5.3*394              Sets SERVICE CONNECTED PRIORITY in WAIT LIST (409.3)
  ;   
  ;
 EN ;Set record status to 'OPEN'
  ;
- S DR="23////^S X=""O""",DIE="^SDWL(409.3," D ^DIE
+ N SDWLERR S DR="23////^S X=""O""",DIE="^SDWL(409.3," D ^DIE
  ;
  ;Ask comments
  ;
  I $D(^SDWL(409.3,SDWLDA,0)) I $P(^(0),U,18)'="" S DIR("B")=$P(^(0),U,18)
  S DIR(0)="FAOU^^",DIR("A")="Comments: " D ^DIR
  I Y["^" S SDWLERR=2 Q
- I X="@" S DR="25///@",DIE="^SDWL(409.3,",DA=SDWLDA D ^DIE G EN1
+ I X="@" S DR="25///@",DIE="^SDWL(409.3,",DA=SDWLDA D ^DIE G EN0
  S SDWLCOM=Y
  S DR="25////^S X=SDWLCOM",DIE="^SDWL(409.3,",DA=SDWLDA D ^DIE
+ ;
+ ;SET SERVICE CONNECTION PRIORITY
+ ;
+EN0 I $D(SDWLNSC),$D(^SDWL(409.3,SDWLDA)) D
+ .S SDWLNSCP=$$GET1^DIQ(2,SDWLDFN_",",.302)
+ .S DIE="^SDWL(409.3,",DA=SDWLDA,DR="14////^S X=SDWLNSCP" D ^DIE
+ .S DR="15////^S X=SDWLNSC" D ^DIE
+ K SDWLNSC,SDWLNSCP
  ;
 EN1 ;Set Editing User
  ;

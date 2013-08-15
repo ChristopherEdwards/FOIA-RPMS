@@ -1,5 +1,5 @@
-PSOORED6 ;BHAM ISC/SAB-edit orders from backdoor ;25-Oct-2011 12:50;PLS
- ;;7.0;OUTPATIENT PHARMACY;**78,104,117,133,1005**;DEC 1997;Build 33
+PSOORED6 ;BHAM ISC/SAB-edit orders from backdoor ;21-Jun-2012 15:57;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**78,104,117,133,1005,1013,1014**;DEC 1997;Build 5
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference ^PS(50.606 supported by DBIA 2174
@@ -7,6 +7,9 @@ PSOORED6 ;BHAM ISC/SAB-edit orders from backdoor ;25-Oct-2011 12:50;PLS
  ;                          09/07/04 - Line UPDATE+25
  ;                          09/15/06 - Line UPDATE+7 added
  ;                          10/14/11 - Line UPDATE+11 and UPDATE+28
+ ;                          05/22/12 - Line UPDATE+19, UPDATE+56
+ ;                          05/31/12 - Line UPDATE+13, UPDATE+38
+ ;                          06/21/12 - Line UPDATE+12, UPDATE+40
 DRG ;select drug
  S PSORX("EDIT")=1,RX0HLD=RX0
  S PSODRUG("IEN")=$S($G(PSODRUG("IEN"))]"":PSODRUG("IEN"),1:$P(RX0,"^",6)),PSODRUG("NAME")=$S($G(PSODRUG("NAME"))]"":PSODRUG("NAME"),1:$P(^PSDRUG($P(RX0,"^",6),0),"^"))
@@ -70,7 +73,7 @@ PSOI ;select orderable item
  S PSORXED("FLD",39.2)=PSOI
  Q
 UPDATE ;add new data to file
- N APSPRCHK S APSPRCHK=0
+ N APSPRCHK,APSPRFLG S APSPRCHK=0,APSPRFLG=0
  Q:'$G(PSORXED("IRXN"))
  I $O(PSORXED("FLD",0))!($G(^TMP($J,"INS1",0))]"")!($G(INSDEL))!($O(PSORXED("ODOSE",0))) D  G:'Y UPDX
  .K DIR,DIRUT,DTOUT,DUOUT
@@ -80,7 +83,15 @@ UPDATE ;add new data to file
  S:$O(PSORXED("FLD",0)) ^TMP("APSPPOS",$J,PSORXED("IRXN"))=1  ;IHS/MSC/PLS - 09/15/06
  K Y S DA=PSORXED("IRXN"),DIE="^PSRX(",FLD=0
  F  S FLD=$O(PSORXED("FLD",FLD)) Q:'FLD  D
- .I FLD=9,PSORXED("FLD",FLD)>$P(PSORXED("RX0"),U,9) S APSPRCHK=1  ;IHS/MSC/PLS - 10/14/2011 - Change for update to expiration date
+ .I FLD=1 S APSPRCHK=1  ;IHS/MSC/PLS - 05/22/2012
+ .I FLD=8 D  ;IHS/MSC/PLS - 06/21/2012
+ ..Q:$$RMNRFL^APSPFUNC(PSORXED("IRXN"))
+ ..S APSPRCHK=4
+ .;I FLD=9,PSORXED("FLD",FLD)>$P(PSORXED("RX0"),U,9) S APSPRCHK=2  ;IHS/MSC/PLS - 10/14/2011 - Change for update to expiration date
+ .I FLD=9 D  ;IHS/MSC/PLS - 05/31/2012 - APSP 1014
+ ..Q:PSORXED("FLD",FLD)=$P(PSORXED("RX0"),U,9)  ;no change in value
+ ..I PSORXED("FLD",FLD)>$P(PSORXED("RX0"),U,9) S APSPRCHK=2 Q
+ ..I PSORXED("FLD",FLD)<$P(PSORXED("RX0"),U,9) S APSPRFLG=1 Q
  .I FLD=12!(FLD=24)!(FLD=35) D  Q
  ..I FLD=12,PSORXED("FLD",12)="@" S $P(^PSRX(DA,3),"^",7)="" Q
  ..I FLD=12,PSORXED("FLD",12)]"" S $P(^PSRX(DA,3),"^",7)=PSORXED("FLD",12) Q
@@ -101,6 +112,23 @@ UPDATE ;add new data to file
  .I FLD=29,PSORXED("FLD",29)="" S $P(^PSRX(DA,2),"^",11)="" Q
  .S DR=FLD_"////"_PSORXED("FLD",FLD) D ^DIE
  .I FLD=4 D UDPROV^PSOOREDT Q
+ .I APSPRCHK=4 D
+ ..I '$P($G(PSORXED("RX2")),U,13) S APSPRCHK=0 Q  ;Original dispense not released
+ ..N LASTRFL
+ ..S LASTRFL=$O(^PSRX(PSORXED("IRXN"),1,$C(1)),-1)
+ ..I 'LASTRFL S APSPRCHK=4_U_$P($G(PSORXED("RX2")),U,13) Q
+ ..I '$P($G(^PSRX(PSORXED("IRXN"),1,LASTRFL,0)),U,18) S APSPRCHK=0 Q  ;Last refill not released
+ ..S APSPRCHK=4_U_$P($G(^PSRX(PSORXED("IRXN"),1,LASTRFL,0)),U,18)
+ .I FLD=9,APSPRFLG D  ;IHS/MSC/PLS - 05/31/2012
+ ..Q:$$RMNRFL^APSPFUNC(PSORXED("IRXN"))  ;remaining fills no action required
+ ..I '$$RMNRFL^APSPFUNC(PSORXED("IRXN")) D
+ ...Q:'$P($G(PSORXED("RX2")),U,13)  ;Original dispense not released
+ ...N LASTRFL
+ ...S LASTRFL=$O(^PSRX(PSORXED("IRXN"),1,$C(1)),-1)
+ ...I 'LASTRFL S APSPRCHK=3_U_$P($G(PSORXED("RX2")),U,13) Q
+ ...Q:'$P($G(^PSRX(PSORXED("IRXN"),1,LASTRFL,0)),U,18)  ;Last refill not released
+ ...S APSPRCHK=3_U_$P($G(^PSRX(PSORXED("IRXN"),1,LASTRFL,0)),U,18)
+ .S APSPRFLG=0
  I $G(INSDEL) K ^PSRX(DA,"INS"),^PSRX(DA,"INS1") D DOLST^PSOORED3 K PSORXED("SIG") D EN^PSOFSIG(.PSORXED),UPDSIG^PSOORED3 G UPDX
  I $O(^TMP($J,"INS1",0)) D
  .K ^PSRX(DA,"INS"),^PSRX(DA,"INS1"),DD,PSORXED("SIG")
@@ -110,15 +138,27 @@ UPDATE ;add new data to file
  .D DOLST^PSOORED3,EN^PSOFSIG(.PSORXED),UPDSIG^PSOORED3
  ;IHS/MSC/PLS - 10/14/2011 - Update expiration date when more fills are added
  I APSPRCHK D
- .N CS,DE,EXTEXP,X2,NEXPDT,DA,DIE
+ .N CS,DE,EXTEXP,X2,NEXPDT,DA,DIE,ISSDT,DRG
  .S CS=0
- .S DE=+$E(PSODRUG("DEA"),1)
- .I DE>1,DE<6 S CS=1 S:DE=2 $P(CS,U,2)=1
- .S EXTEXP=$$GET1^DIQ(50,$P(PSORXED("RX0"),U,6),9999999.08)
+ .;IHS/MSC/PLS - 05/22/2012 - Change made to support Issue Date edit
+ .;S DE=+$E(PSODRUG("DEA"),1)
+ .;I DE>1,DE<6 S CS=1 S:DE=2 $P(CS,U,2)=1
+ .S DRG=$P(PSORXED("RX0"),U,6)
+ .S CS=$$ISSCH^APSPFNC2(DRG,"2345")
+ .S $P(CS,U,2)=$$ISSCH^APSPFNC2(DRG,"2")
+ .S EXTEXP=$$GET1^DIQ(50,DRG,9999999.08)
+ .S ISSDT=$P(^PSRX(PSORXED("IRXN"),0),U,13)
  .S X2=$S(EXTEXP:EXTEXP,$P(CS,U,2):184,CS:184,1:366)
- .S NEXPDT=$$FMADD^XLFDT($P(PSORXED("RX0"),U,13),X2)
+ .;IHS/MSC/PLS - 05/22/2012
+ .;S NEXPDT=$$FMADD^XLFDT($P(PSORXED("RX0",U,13),X2)
+ .S NEXPDT=$$FMADD^XLFDT(ISSDT,X2)
+ .;IHS/MSC/PLS - 05/22/2012 - Quit if Issue Date edited, prescription has been released and no remaining dispenses
+ .I +APSPRCHK=1,$P(PSORXED("RX2"),U,13),'$$RMNRFL^APSPFUNC(PSORXED("IRXN")) Q
+ .I +APSPRCHK=3,$$EXPDT^APSPAUTO(PSORXED("IRXN"),1,+$P($P(APSPRCHK,U,2),".")) S NEXPDT=$$EXPDT^APSPAUTO(PSORXED("IRXN"),1,+$P($P(APSPRCHK,U,2),"."))
+ .I +APSPRCHK=4,$$EXPDT^APSPAUTO(PSORXED("IRXN"),1,+$P($P(APSPRCHK,U,2),".")) S NEXPDT=$$EXPDT^APSPAUTO(PSORXED("IRXN"),1,+$P($P(APSPRCHK,U,2),"."))  ;IHS/MSC/PLS - 06/21/2012
  .S DA=PSORXED("IRXN"),DIE="^PSRX("
  .S DR="26///"_NEXPDT D ^DIE
+ .S APSPRCHK=0
 UPDX K DIE,DA,DR,FLD,X,Y,PSORXED("FLD"),DD,^TMP($J,"INS1")
 KV K DIR,DIRUT,DTOUT,DUOUT
  Q

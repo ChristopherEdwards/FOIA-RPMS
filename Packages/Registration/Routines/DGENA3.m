@@ -1,5 +1,5 @@
-DGENA3 ;ALB/CJM,ISA/KWP,RTK,TDM,LBD,PHH - Enrollment API - Consistency check 05/05/99 ; 4/25/03 10:12am
- ;;5.3;Registration;**232,306,327,367,417,454,456,491,514**;Aug 13,1993
+DGENA3 ;ALB/CJM,ISA/KWP,RTK,TDM,LBD,PHH,PJR,TDM - Enrollment API - Consistency check 05/05/99 ; 4/10/09 1:27pm
+ ;;5.3;PIMS;**232,306,327,367,417,454,456,491,514,451,1015,1016**;JUN 30, 2012;Build 20
  ;CHECKand TESTVAL moved from DGENA1
 CHECK(DGENR,DGPAT,ERRMSG) ;
  ;Phase II consistency checks do not include INACTIVE(3),REJECTED(4),SUSPENDED(5),EXPIRED(8),PENDING(9) enrollment statuses.  References to these statuses have been removed.
@@ -31,20 +31,22 @@ CHECK(DGENR,DGPAT,ERRMSG) ;
  .;if the enrollment priority is present, it must be correct
  .M DGELGSUB=DGENR("ELIG")
  .;Phase II if the enrollment priority is present it must be correct based on the eligibility factors (SRS 6.5.1.2 d)
- .I DGENR("PRIORITY") D  Q:(ERRMSG'="")
- ..S PRIGRP=$$PRI^DGENELA4(DGENR("ELIG","CODE"),.DGELGSUB,DGENR("DATE"),$G(DGENR("APP")))
- ..;check priority
- ..I DGENR("STATUS")=6 Q     ; do not check priority for deceased
- ..I DGENR("PRIORITY")'=$P(PRIGRP,"^") D  Q
- ...I $G(DGCDIS("VCD"))'="" Q
- ...S ERRMSG="ENROLLMENT PRIORITY IS INCONSISTENT WITH ELIGIBILITY DATA - PRIORITY SHOULD BE "_$P(PRIGRP,"^")_$$EXTERNAL^DILFD(27.11,.12,"F",$P(PRIGRP,"^",2))
- ..;check subgroup if priority = 7 or 8
- ..Q:DGENR("PRIORITY")<7
- ..; sub-priority "e" can be overridden with "a" at HEC
- ..I "^1^1^5^5^1^"[("^"_DGENR("SUBGRP")_"^"_$P(PRIGRP,"^",2)_"^") Q
- ..; sub-priority "g" can be overridden with "c" at HEC
- ..I "^3^3^7^7^3^"[("^"_DGENR("SUBGRP")_"^"_$P(PRIGRP,"^",2)_"^") Q
- ..S ERRMSG="ENROLLMENT PRIORITY IS INCONSISTENT WITH ELIGIBILITY DATA - PRIORITY SHOULD BE "_$P(PRIGRP,"^")_$$EXTERNAL^DILFD(27.11,.12,"F",$P(PRIGRP,"^",2))
+ .;  ** temporarily commented out for HVE Phase II and III **
+ .;I DGENR("PRIORITY") D  Q:(ERRMSG'="")
+ .;.S PRIGRP=$$PRI^DGENELA4(DGENR("ELIG","CODE"),.DGELGSUB,DGENR("DATE"),$G(DGENR("APP")))
+ .;.;check priority
+ .;.I DGENR("STATUS")=6 Q     ; do not check priority for deceased
+ .;.I DGENR("PRIORITY")'=$P(PRIGRP,"^") D  Q
+ .;..I $G(DGCDIS("VCD"))'="" Q
+ .;..S ERRMSG="ENROLLMENT PRIORITY IS INCONSISTENT WITH ELIGIBILITY DATA - PRIORITY SHOULD BE "_$P(PRIGRP,"^")_$$EXTERNAL^DILFD(27.11,.12,"F",$P(PRIGRP,"^",2))
+ .;.;check subgroup if priority = 7 or 8
+ .;.Q:DGENR("PRIORITY")<7
+ .;.; sub-priority "e" can be overridden with "a" at HEC
+ .;.I "^1^1^5^5^1^"[("^"_DGENR("SUBGRP")_"^"_$P(PRIGRP,"^",2)_"^") Q
+ .;.; sub-priority "g" can be overridden with "c" at HEC
+ .;.I "^3^3^7^7^3^"[("^"_DGENR("SUBGRP")_"^"_$P(PRIGRP,"^",2)_"^") Q
+ .;.S ERRMSG="ENROLLMENT PRIORITY IS INCONSISTENT WITH ELIGIBILITY DATA - PRIORITY SHOULD BE "_$P(PRIGRP,"^")_$$EXTERNAL^DILFD(27.11,.12,"F",$P(PRIGRP,"^",2))
+ .; end of temporary comments
  .;
  .;Phase II require priority if status is VERIFIED(2),REJECTED-INITIAL APP(14),REJECTED-FISCAL YEAR(11),REJECTED-MIDCYCLE(12),REJECTED-STOP ENROLL(13),REJECTED BELOW EGT THRESHOLD(SRS 6.5.1.2 b)
  .I (DGENR("STATUS")=2)!(DGENR("STATUS")=14)!(DGENR("STATUS")=11)!(DGENR("STATUS")=12)!(DGENR("STATUS")=13)!(DGENR("STATUS")=22),DGENR("PRIORITY")="" D  Q
@@ -60,10 +62,11 @@ CHECK(DGENR,DGPAT,ERRMSG) ;
  .;if not an eligible vet, enrollment must not have status of VERIFIED, or UNVERIFIED
  .;if status is CANCELED/DECLINED, then reason is required
  .I (DGENR("STATUS")=7),'DGENR("REASON") S ERRMSG="STATUS OF CANCELED/DECLINED REQUIRES REASON" Q
- .;if status is DECEASED then Date of Death is required
- .I DGENR("STATUS")=6 D
- ..I $D(DGPAT),'DGPAT("DEATH") S ERRMSG="ENROLLMENT STATUS OF DECEASED REQUIRES DATE OF DEATH" Q
- ..I '$D(DGPAT),'$$DEATH^DGENPTA(DGENR("DFN")) S ERRMSG="ENROLLMENT STATUS OF DECEASED REQUIRES DATE OF DEATH" Q
+ .;if status is DECEASED and Date of Death is missing, send bulletin
+ .; This bulletin has been disabled.  DG*5.3*808
+ .;I DGENR("STATUS")=6 D
+ .;.I $D(DGPAT),'DGPAT("DEATH") D BULLETIN
+ .;.I '$D(DGPAT),'$$DEATH^DGENPTA(DGENR("DFN")) D BULLETIN
  .Q:(ERRMSG'="")
  .;certain statuses not allowed for a dead patient
  .I $D(DGPAT),DGPAT("DEATH"),(DGENR("STATUS")=1)!(DGENR("STATUS")=2) S ERRMSG="ENROLLMENT STATUS OF VERIFIED OR UNVERIFIED NOT ALLOWED FOR A DECEASED PATIENT" Q
@@ -89,3 +92,26 @@ TESTVAL(SUB,VAL) ;
  .I $$GET1^DID(27.11,FIELD,"","TYPE")'="POINTER" D
  ..D CHK^DIE(27.11,FIELD,,VAL,.RESULT) I RESULT="^" S VALID=0 Q
  Q VALID
+BULLETIN ; Status vs. Date of Death Data Discrepancy Bulletin
+ ; This bulletin has been disabled.  DG*5.3*808
+ Q
+ N DGBULL,DGLINE,DGMGRP,DGNAME,DIFROM,VA,VAERR,XMTEXT,XMSUB,XMDUZ
+ S DGMGRP=$O(^XMB(3.8,"B","DGEN ELIGIBILITY ALERT",""))
+ Q:'DGMGRP
+ D XMY^DGMTUTL(DGMGRP,0,1)
+ S DGNAME=$P($G(^DPT(DFN,0)),"^"),DGSSN=$P($G(^DPT(DFN,0)),"^",9)
+ S XMTEXT="DGBULL("
+ S XMSUB="STATUS VS. DATE OF DEATH DATA DISCREPANCY"
+ S DGLINE=0
+ D LINE^DGEN("Patient: "_DGNAME,.DGLINE)
+ D LINE^DGEN("SSN: "_DGSSN,.DGLINE)
+ D LINE^DGEN("",.DGLINE)
+ D LINE^DGEN("This Veteran's Enrollment Status is Deceased,",.DGLINE)
+ D LINE^DGEN("however, there is no Date of Death on file for VistA.",.DGLINE)
+ D LINE^DGEN("Actions you should take:",.DGLINE)
+ D LINE^DGEN("",.DGLINE)
+ D LINE^DGEN("- Add Date of Death Information in VistA, or",.DGLINE)
+ D LINE^DGEN("",.DGLINE)
+ D LINE^DGEN("- Contact the HEC to remove an erroneous Date of Death.",.DGLINE)
+ D ^XMD
+ Q
