@@ -1,5 +1,5 @@
 DGPT701P ;ALB/MTC - Parse 701 Record String ; 13 NOV 92
- ;;5.3;Registration;**164,415**;Aug 13, 1993
+ ;;5.3;Registration;**164,415,1015**;Aug 13, 1993;Build 21
  ;
 EN ;
 PARSE ; Parse record string

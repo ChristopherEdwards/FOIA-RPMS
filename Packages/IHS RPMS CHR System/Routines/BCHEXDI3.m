@@ -1,11 +1,11 @@
-BCHEXDI3 ; IHS/TUCSON/LAB - initialization part III ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHEXDI3 ; IHS/CMI/LAB - initialization part III ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;CHR export initialization for new export.
  ;
 INFORM ;EP - INFORM OPERATOR WHAT IS GOING TO HAPPEN
  Q:$D(ZTQUEUED)
- W !!,"This routine will generate CHRIS II records to be sent to HQ.",!,"The data transmitted will include everything entered since the last time",!,"data was exported up until yesterday."
+ W !!,"This routine will generate CHR records to be sent to HQ.",!,"The data transmitted will include everything entered since the last time",!,"data was exported up until yesterday."
  W !,"You may ""^"" out at any prompt and will be",!,"ask to confirm your entries prior to generating transactions."
  Q
  ;

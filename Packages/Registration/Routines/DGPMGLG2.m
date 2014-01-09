@@ -1,5 +1,5 @@
 DGPMGLG2 ;ALB/LM - G&L GENERATION, CONT.; 24 MAY 90
- ;;5.3;Registration;**12,34,418**;Aug 13, 1993
+ ;;5.3;Registration;**12,34,418,1015**;Aug 13, 1993;Build 21
  ;
  ;Finds 2 most recent locations and treating specialties for the
  ;corresponding admission (note that ASIH creates its own admission,

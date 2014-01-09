@@ -1,5 +1,5 @@
-PSDNTF ;BIR/JPW-Transfer Green Sheet - From this NAOU ; 1 Mar 98
- ;;3.0; CONTROLLED SUBSTANCES ;**8,56**;13 Feb 97;Build 1
+PSDNTF ;BIR/JPW-Transfer Green Sheet - From this NAOU ; 8/29/07 1:25pm
+ ;;3.0; CONTROLLED SUBSTANCES ;**8,56,63,66,64**;13 Feb 97;Build 33
  ;**Y2K compliance**;display 4 digit year on va forms
  I '$D(PSDSITE) D ^PSDSET Q:'$D(PSDSITE)
  S OK=$S($D(^XUSEC("PSJ RNURSE",DUZ)):1,$D(^XUSEC("PSD NURSE",DUZ)):1,$D(^XUSEC("PSJ RPHARM",DUZ)):1,1:0)
@@ -21,15 +21,24 @@ GS ;select green sheet #
  I AOU'=NAOU W !!,"The Green Sheet # ",PSDPN," does not reside on ",AOUN,".",!,"Please select another Green Sheet.",! G ASKN
  I '$D(^PSD(58.8,NAOU,1,PSDR,3,ORD,0)) W $C(7),!!,"There's no data on ",NAOUN," for Green Sheet # ",PSDPN,".",!,"Contact your Pharmacy Coordinator for assistance.",! G END
  I STAT'=4,STAT'=13 W !!,"This Green Sheet has a status of "_$S(STATN]"":STATN,1:"UNKNOWN")_".",!,"Please contact your Pharmacy Coordinator for assistance.",! G END
+ I 'QTY W !!,"Previous transfer quantity was 0.",!,"Use option 'Transfer GS for PCA/Infusion Signed Out to Patient'",! G END
 ASKT ;ask transfer to naou
  W ! K DA,DIC S DIC=58.8,DIC(0)="QEAZ",DIC("A")="Select Transfer To NAOU: "
  S DIC("S")="I $P(^(0),""^"",3)=+PSDSITE,$S('$D(^(""I"")):1,'^(""I""):1,+^(""I"")>DT:1,1:0),$P(^(0),""^"",2)=""N"",'$P(^(0),""^"",7)"
  D ^DIC K DIC G:Y<0 END S NAOUT=+Y,NAOUTN=$P(Y,"^",2)
  I NAOUT=AOU W !!,"You may not transfer a Green Sheet to your NAOU!",!,"Please select another NAOU.",!! G ASKT
+ ;*64
+ N PSDGS,PSDGSPTQ,PSDGSP0,PSDGSP9
+ S PSDGS=0 F  S PSDGS=$O(^PSD(58.81,"D",PSDPN,PSDGS)) Q:'PSDGS  D
+ .S PSDGSP0=$G(^PSD(58.81,PSDGS,0)),PSDGSP9=$G(^PSD(58.81,PSDGS,9))
+ .I $P(PSDGSP0,"^",2)=17,$P(PSDGSP9,"^",1)]"" S PSDGSPTQ=$G(PSDGSPTQ)+$P(PSDGSP9,"^",3)
+ I $G(PSDGSPTQ) W !!,"Green Sheet "_PSDPN_" has dose(s) signed out to patient.",!
  I QTY=1 S RQTY=1 W !,"Quantity to Transfer (",NBKU,"/1)",! G OK
 QTY ;
  W !,"Quantity to Transfer ("_NBKU_"/"_QTY_"): " R X:DTIME I '$T!(X="^")!(X="") S PSDOUT=1 W !!,"**** No action taken. ****",!! G END
- I X'?1.6N!(X=0) W !!,"Enter a whole number between 1 and ",QTY,! G QTY
+ ;I X'?1.6N!(X=0) W !!,"Enter a whole number between 1 and ",QTY,! G QTY
+ I +X'=X!(X>999999)!(X'>0)!(X?.E1"."4N.N) D  G QTY
+ . W !!,"Enter a number between .01 and ",QTY,!
  I X>QTY W $C(7),!!,"The quantity returned must not exceed "_QTY_"!",! G QTY
  S RQTY=X
 OK ;if perpetual NAOU and not ordered for patient
@@ -56,11 +65,11 @@ COM ;complete at order level in 58.8
  ;update order
  K DA,DIE,DR S DA=ORD,DA(1)=PSDR,DA(2)=NAOU,DIE="^PSD(58.8,"_DA(2)_",1,"_DA(1)_",3,",DR="10////10;22////"_BQTY D ^DIE K DA,DIE,DR
  ;update naou bal
- F  L +^PSD(58.8,NAOU,1,PSDR,0):0 I  Q
+ F  L +^PSD(58.8,NAOU,1,PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  ;PSD*3*56;REMOVED CHECK FOR PATIENT ID
  S:'$G(RQTY(1)) $P(^PSD(58.8,NAOU,1,PSDR,0),"^",4)=$P(^PSD(58.8,NAOU,1,PSDR,0),"^",4)-RQTY
  W:$P($G(^PSD(58.8,NAOU,2)),U,5) !,PSDRN," Remaining Balance:  ",$P($G(^PSD(58.8,NAOU,1,PSDR,0)),U,4)," ",NBKU,!
- L -^PSD(58.8,NAOU,PSDR,0)
+ L -^PSD(58.8,NAOU,1,PSDR,0)
  S STAT=$P($G(^PSD(58.81,PSDA,0)),"^",11)
  W ?2,!,"*** The status of your Green Sheet #"_PSDPN_" is now",!,$S($P($G(^PSD(58.82,STAT,0)),"^")]"":$P(^(0),"^"),1:"UNKNOWN")_" ***",!
 PRINT ;print 2321

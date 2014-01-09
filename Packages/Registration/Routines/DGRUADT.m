@@ -1,5 +1,5 @@
-DGRUADT ;ALB/SCK - MAIN DRIVER FOR RAI/MDS ADT MESSAGING; 7-8-99
- ;;5.3;Registration;**190,312,328,373,430,464**;Aug 13, 1993
+DGRUADT ;ALB/SCK - MAIN DRIVER FOR RAI/MDS ADT MESSAGING; 7-8-99 ; 29 Aug 2006  9:07 AM
+ ;;5.3;Registration;**190,312,328,373,430,464,721,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Main entry point for generating an HL7 ADT message to the COTS system
  ; The message builder is tasked off to taskManager to build and transmit
@@ -66,7 +66,7 @@ EVENT ;
  . . N VAIN,VAINDT
  . . S VAINDT=+DGPMA
  . . D INP^VADPT
- . . I (+VAIN(2)=+$G(DGPMVI(7)))&(+VAIN(11)=+$G(DGPMVI(18))) Q
+ . . ; I (+VAIN(2)=+$G(DGPMVI(7)))&(+VAIN(11)=+$G(DGPMVI(18))) Q p-721
  . . Q:'$$CHKWARD^DGRUUTL(+$G(DGPMVI(5)))
  . . W:$D(DGTRACE) !,1.6
  . . D BLDMSG^DGRUADT1(DFN,"A08",DGPMDA,+DGPMA,+DGPMVI(5))

@@ -1,5 +1,5 @@
 SDAMBAE6 ;ALB/MJK - A/E Protocol; 11 FEB 1993 10:00 am
- ;;5.3;Scheduling;**27,132,76**;08/13/93
+ ;;5.3;Scheduling;**27,132,76,1015**;08/13/93;Build 21
  ;; ;
 EN ; -- AE entry point for SDAM ADD EDIT protocol
  ;    - assumes SDAMTYP, SDBEG and SDEND defined from appt mgt

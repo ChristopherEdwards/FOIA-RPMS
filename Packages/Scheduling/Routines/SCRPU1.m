@@ -1,5 +1,5 @@
 SCRPU1 ;ALB/CMM - GENERIC PROMPTS FOR PCMM REPORTS ;1/12/96
- ;;5.3;Scheduling;**41,45,130**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,45,130,520,1015**;AUG 13, 1993;Build 21
  ;
 INST ;Prompt for institution
  S VAUTVB="VAUTD",DIC="^DIC(4,",DIC("S")="I $D(^SCTM(404.51,""AINST"",+Y))"
@@ -108,7 +108,7 @@ CLSC() ;screen on clinic selection, must be related to team prompt
  I $P(^(0),U,3)'="C" Q 0
  N TRUE,EN,TEAM
  S TRUE=0,EN=""
- F  S EN=$O(^SCTM(404.57,"D",+Y,EN)) Q:EN=""!(TRUE)  D
+ F  S EN=$O(^SCTM(404.57,"E",+Y,EN)) Q:EN=""!(TRUE)  D
  .S TEAM=+$P($G(^SCTM(404.57,EN,0)),"^",2)
  .I $D(VAUTT(TEAM))!(VAUTT=1) S TRUE=1
  I VAUTT="" S TRUE=1

@@ -1,5 +1,5 @@
 PSDNRGO ;BIR/JPW-Receive Green Sheet for NAOU ; 6 Jan 94
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
 ORD S STAT=+$P(Y(0),"^",11),PSDPN=$P(Y(0),"^",17),STATN="" I STAT S STATN=$P($G(^PSD(58.82,STAT,0)),"^")
  S ORD=+$P(Y(0),"^",20),NAOU=+$P(Y(0),"^",18),NAOUN=$P($G(^PSD(58.8,NAOU,0)),"^"),PSDR=+$P(Y(0),"^",5),PSDRN=$P($G(^PSDRUG(PSDR,0)),"^"),QTY=+$P(Y(0),"^",6),OK=1,PSDUZ=DUZ
  I $D(^PSD(58.81,PSDA,4)),+$P(^(4),"^",3) S QTY=$P(^(4),"^",3)
@@ -17,7 +17,7 @@ REC ;receive at order level in 58.8
  I ($D(Y))!($D(DTOUT)) W $C(7),!!,"*** THIS ORDER HAS NOT BEEN RECEIVED ***",!,"Receiving nurses name must be entered.",!!,"The status remains "_STATN,! S PSDOUT=1 G END
 UPDATE ;update 58.8 and 58.81
  ;updating drug balance in 58.8
- ;F  L +^PSD(58.8,NAOU,1,PSDR,0):0 I  Q
+ ;F  L +^PSD(58.8,NAOU,1,PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  S:'$P($G(^PSD(58.81,PSDA,9)),U) $P(^PSD(58.8,NAOU,1,PSDR,0),"^",4)=$P(^PSD(58.8,NAOU,1,PSDR,0),"^",4)+QTY
  ;L -^PSD(58.8,NAOU,1,PSDR,0)
  ;update transaction file (58.81)

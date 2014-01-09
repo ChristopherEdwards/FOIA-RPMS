@@ -1,8 +1,9 @@
 BIUTL3 ;IHS/CMI/MWR - UTIL: ZTSAVE, ASKDATE, DIRZ.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: SAVE ANY AND ALL BI VARIABLES FOR QUEUEING TO TASKMAN,
  ;;  ASK DATE RANGE, DIRZ (PROMPT TO CONTINUE).
+ ;;  PATCH 2: Add more variables to save: BIDELIM, BIU19.
  ;
  ;
  ;----------
@@ -29,6 +30,7 @@ ZSAVES ;EP
  ;        BICPTI  (opt) 1=Include CPT Coded Visits, 0=Ignore CPT (default).
  ;        BIDAR   (opt) Adolescent Report Age Range: "11-18^1" (years).
  ;        BIDED   (opt) Include Deceased Patients (0=no, 1=yes).
+ ;        BIDELIM (opt) Delimiter (1="^", 2="2 spaces").
  ;        BIDFN   (opt) Patient's IEN in VA PATIENT File #2.
  ;        BIDLOC  (opt) Date-Location Line of letter.
  ;        BIDLOT  (opt) Display report by Lot Number (VAC).
@@ -48,6 +50,7 @@ ZSAVES ;EP
  ;        BISITE  (opt) IEN of Site.
  ;        BISUBT  (opt) Subtitle String for Lot Order in BILOT.
  ;        BITAR   (opt) Two-Yr-Old Report Age Range.
+ ;        BIU19   (opt) Include Adults (19 yrs & over).
  ;        BIUP    (opt) User Population/Group (Registered, User, Active).
  ;        BIVFC   (opt) VFC Eligibility for Imm Visits.
  ;        BIYEAR  (opt) Report Year.
@@ -70,7 +73,7 @@ ZSAVES ;EP
  ;---> Save local variables for queueing Due List/Letters.
  K ZTSAVE N BISV
  ;
- F BISV="ACT","AG","AGRP","AGRPS","BEGDT","COLL","CPTI","DAR","DED","DFN" D
+ F BISV="ACT","AG","AGRP","AGRPS","BEGDT","COLL","CPTI","DAR","DED","DELIM","DFN" D
  .S BISV="BI"_BISV
  .I $D(@(BISV)) S ZTSAVE(BISV)=""
  ;
@@ -78,7 +81,7 @@ ZSAVES ;EP
  .S BISV="BI"_BISV
  .I $D(@(BISV)) S ZTSAVE(BISV)=""
  ;
- F BISV="PG","QDT","RDT","RPDT","SITE","SUBT","T","TAR","UP","VFC","YEAR" D
+ F BISV="PG","QDT","RDT","RPDT","SITE","SUBT","T","TAR","U19","UP","VFC","YEAR" D
  .S BISV="BI"_BISV
  .I $D(@(BISV)) S ZTSAVE(BISV)=""
  ;

@@ -1,7 +1,8 @@
-TIUPRPN1 ;SLC/JER - Print SF 509-Progress Notes ;26-Feb-2010 11:59;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**45,52,87,100,162,1007**;Jun 20, 1997;Build 5
- ;IHS/ITSC/LJF 02/26/2003 added code to check for clinc not defined for visit
- ;IHS/MSC/MGH 02/25/2010added local mods in 1007 after patch 163
+TIUPRPN1 ;SLC/JER - Print SF 509-Progress Notes ;04-Jun-2012 16:21;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**45,52,87,100,162,1007,182,1010**;Jun 20, 1997;Build 24
+ ;IHS/ITSC/LJF 02/26/2003 added code to check for clinc not defined for visits
+ ;IHS/MSC/MGH 02/25/2010 added local mods in 1007 after patches
+ ; DBIA 908 ^SC(D0,0)
 PRINT(TIUFLAG,TIUSPG) ; Print Document
  ; ^TMP("TIUPR",$J) is array of records to be printed
  ; TIUFLAG=1 --> Chart Copy     TIUSPG=1 --> Contiguous
@@ -16,22 +17,28 @@ PRINT(TIUFLAG,TIUSPG) ; Print Document
  S TIUCONT=1,TIUCONT1=0
  S TIUI=0 F  S TIUI=$O(^TMP("TIUPR",$J,TIUI)) Q:TIUI=""  D  Q:'TIUCONT
  . N DFN,TIU
- . I TIUI["$" S TIUPGRP=$P(TIUI,"$"),TIUPFHDR=$P($P(TIUI,";"),"$",2)
- . E  S TIUPFHDR="Progress Notes"
- . I $G(TIUPGRP)>2 S TIUSPG=0
+ . ; -- P182 TIUI has form PGRP$PFHDR;DFN with PGRP possibly 0, and
+ . ;    PFHDR possibly null (see TIURA):
+ . S TIUPGRP=+$P(TIUI,"$"),TIUPFHDR=$P($P(TIUI,";"),"$",2)
+ . I TIUPFHDR']"" S TIUPFHDR="Progress Notes"
  . S DFN=$P(TIUI,";",2)
+ . I $G(TIUPGRP)>2 S TIUSPG=0
  . D PATPN^TIULV(.TIUFOOT,DFN)
  . I +$G(TIUSPG) D HEADER^TIUPRPN2(.TIUFOOT,TIUFLAG,.TIUPFHDR,TIUCONT1)
  . ; Use TIUJ="" (not TIUJ=0), to print "complete" notes w/o sigdt:
  . S TIUJ="" F  S TIUJ=$O(^TMP("TIUPR",$J,TIUI,TIUJ)) Q:TIUJ=""  D  Q:'TIUCONT
  . . S TIUK=0 F  S TIUK=$O(^TMP("TIUPR",$J,TIUI,TIUJ,TIUK)) Q:'TIUK  D  Q:'TIUCONT
  . . . S TIUCONT1=0 S TIUPFNBR=^TMP("TIUPR",$J,TIUI,TIUJ,TIUK)
- . . . ; If the document has been deleted, QUIT
- . . . I '$D(^TIU(8925,+TIUK,0)) S TIUCONT=1 Q
+ . . . ; Note: TIUPFNBR may be null
+ . . . ;P182 Set TIUMISC BEFORE quitting if deleted
+ . . . S TIUDA=TIUK,TIUMISC=TIUFLAG_U_TIUPFNBR_U_TIUDA
+ . . . ; Quit docmt if deleted:
+ . . . I '$D(^TIU(8925,+TIUDA,0)) D  Q
+ . . . . S TIUCONT=$$SETCONT(.TIUFOOT,TIUMISC,TIUCONT1,0,$G(TIUROOT)) Q:'TIUCONT
+ . . . . W !!,"NOTE DATED:",!,"Document #",TIUDA," for ",$G(TIUFOOT("PNMP")),!,"no longer exists in the TIU DOCUMENT file.",!!!
+ . . . . S TIUCONT=$$SETCONT(.TIUFOOT,TIUMISC,TIUCONT1,0,$G(TIUROOT))
  . . . N TIUROOT
  . . . I '+$G(TIUSPG) D HEADER^TIUPRPN2(.TIUFOOT,TIUFLAG,.TIUPFHDR,TIUCONT1)
- . . . S TIUDA=TIUK
- . . . S TIUMISC=TIUFLAG_U_TIUPFNBR_U_TIUDA
  . . . K ^TMP("TIULQ",$J)
  . . . D EXTRACT^TIULQ(+TIUDA,"^TMP(""TIULQ"",$J)",.TIUERR,"","",1)
  . . . I +$G(TIUERR) W !,$P(TIUERR,U,2) Q
@@ -41,8 +48,8 @@ PRINT(TIUFLAG,TIUSPG) ; Print Document
  . . . D IDKIDS(TIUROOT,.TIUFOOT,TIUMISC,TIUCONT1,.TIUCONT) Q:'TIUCONT
  . . . I '+$G(TIUSPG) S TIUCONT1=0 S TIUCONT=$$SETCONT(.TIUFOOT,TIUMISC,TIUCONT1,1,$G(TIUROOT))
  . Q:'TIUCONT
- . I $E(IOST)="C" S TIUCONT=$$STOP^TIUPRPN2() Q:'TIUCONT
- . I +$G(TIUSPG),$E(IOST)'="C" S TIUCONT1=0 S TIUCONT=$$SETCONT(.TIUFOOT,TIUMISC,TIUCONT1,1,$G(TIUROOT))
+ . I $E(IOST)="C-" S TIUCONT=$$STOP^TIUPRPN2() Q:'TIUCONT
+ . I +$G(TIUSPG),$E(IOST)'="C-" S TIUCONT1=0 S TIUCONT=$$SETCONT(.TIUFOOT,TIUMISC,TIUCONT1,1,$G(TIUROOT))
  Q
  ;
 REPORT(TIUROOT,TIUFOOT,TIUMISC,TIUCONT,TIUIDEND) ; Report Text
@@ -69,8 +76,8 @@ REPORT(TIUROOT,TIUFOOT,TIUMISC,TIUCONT,TIUIDEND) ; Report Text
  W ?30,$$UP^XLFSTR(TITLE),!
  S LOC=$G(@TIUROOT@(1205,"I"))
  I +LOC D
- . ;W $S($P(^SC(LOC,0),U,3)="W":"ADMITTED: ",1:"VISIT: ")     ;IHS/ITSC/LJF 02/26/2003
- . W $S($P($G(^SC(LOC,0)),U,3)="W":"ADMITTED: ",1:"VISIT: ")  ;IHS/ITSC/LJF 02/26/2003 check for null clinic
+ . ;W $S($P(^SC(LOC,0),U,3)="W":"ADMITTED: ",1:"VISIT: ")      ;IHS/ITSC/2003
+ . W $S($P($G(^SC(LOC,0)),U,3)="W":"ADMITTED: ",1:"VISIT: ")   ;IHS/ITSC/2003 check for null clinic
  . S ADT=$G(@TIUROOT@(.07,"I"))
  . W $$DATE^TIULS(ADT,"MM/DD/CCYY HR:MIN")
  . S HLOC=$G(@TIUROOT@(1205,"E"))
@@ -158,6 +165,8 @@ GETSIG(TIUROOT,TIUSIG) ; Get signature info from TIULQ global;
  S TIUSIG("COSGMODE")=$G(@TIUROOT@(1511,"I"))_";"_$G(^("E"))
  S TIUSIG("SIGCHRT")=$G(@TIUROOT@(1512,"I"))_";"_$G(^("E"))
  S TIUSIG("COSCHRT")=$G(@TIUROOT@(1513,"I"))_";"_$G(^("E"))
+ ; -- P182 Set Admin Clos Date:
+ S TIUSIG("ADMINCDT")=$G(@TIUROOT@(1606,"I"))_";"_$G(^("E"))
  Q
  ;
 SETCONT(TIUFOOT,TIUMISC,TIUCONT1,TIUHEAD,TIUROOT) ;Does footer

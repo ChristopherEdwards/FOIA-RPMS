@@ -1,5 +1,5 @@
 DGPMV ;ALB/MRL/MIR - PATIENT MOVEMENT DRIVER; 10 MAR 89 [ 03/16/2004  7:49 AM ]
- ;;5.3;Registration;**60,200,268**;Aug 13, 1993
+ ;;5.3;Registration;**60,200,268,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  2/21/2001 Removed patient laygo; changed DHCP to IHS
  ;              3/08/2001 Added check for temporary chart #
  ;

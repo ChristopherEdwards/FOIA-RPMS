@@ -1,11 +1,13 @@
 DG3PR1 ;ALB/JDS/MIR - 3rd PARTY REIMBURSEMENT SORT/PRINT ; 3 MAY 90@8P
- ;;5.3;Registration;**26**;Aug 13, 1993
+ ;;5.3;Registration;**26,570,1015**;Aug 13, 1993;Build 21
 SORT S (DGFL,DGTIME)=1 F DGI=DGFR:0 S DGI=$O(^DGPM(DGBY,DGI)) Q:'DGI!(DGI>DGTO)!'DGFL  F DGJ=0:0 S DGJ=$O(^DGPM(DGBY,DGI,DGJ)) Q:'DGJ  D PRINT Q:'DGFL
  D Q^DG3PR Q
 PRINT ;OUTPUT
+ Q  ;ihs/cmi/maw no call to IB from IHS patch 1015
  Q:'$D(^DGPM(+DGJ,0))  I DGBY[3 S DGDC=^(0),DGCA=$P(DGDC,"^",14),DGAD=$S($D(^DGPM(+DGCA,0)):^(0),1:"")
  I DGBY[1 S DGAD=^(0),DGCA=DGJ,DGDC=$S($D(^DGPM(+$P(DGAD,"^",17),0)):^(0),1:"")
- S DFN=$P(DGAD,"^",3) I $S('DFN:1,'$D(^DPT(DFN,0)):1,'$O(^DPT(DFN,.312,0)):1,'$D(^DPT(DFN,"VET")):1,$P(^("VET"),"^",1)'="Y":1,1:0) Q
+ S DFN=$P(DGAD,"^",3)
+ I $S('DFN:1,'$D(^DPT(DFN,0)):1,'$$INSUR^IBBAPI(DFN,"","R"):1,'$D(^DPT(DFN,"VET")):1,$P(^("VET"),"^",1)'="Y":1,1:0) Q
  I 'DGTIME,($E(IOST,1)="C") S DIR(0)="E" D ^DIR S DGFL=Y Q:'DGFL
  S DGTIME=0 W @IOF,!,"THIRD PARTY REIMBURSEMENT",?49,"PRINTED:  " D NOW^%DTC S Y=% X ^DD("DD") W Y S DGNOW=Y
  W !!,$P(^DPT(DFN,0),"^",1),?39,"EMPLOYMENT STATUS:  " S DGX=$S($D(^DPT(DFN,.311)):^(.311),1:""),X1=$P(DGX,"^",15)

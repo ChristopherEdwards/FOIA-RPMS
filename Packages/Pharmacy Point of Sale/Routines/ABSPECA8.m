@@ -84,6 +84,9 @@ REVERSE(IEN,RX)  ;EP - from ABSPOS6D, ABSPOSC2
  ;
  D:TMP(CLAIM,IEN,102,"I")[3 CKVERS
  ;
+ ;IHS/CAS/RCS 08292012 - Patch 44, Check if orignal claim 5.1 and current D.0
+ D:TMP(CLAIM,IEN,102,"I")[5 CKVERSD
+ ;
  ;IHS/SD/lwj 10/23/02 end mixed claim check
  ;
  ;ZW TMP
@@ -179,4 +182,31 @@ CKVERS ;check the version of the current format - if it's 5.1 then we've hit a
  . S TMP(9002313.02,IEN,102,"I")=51
  . D REFORM^ABSPOSHR(ABSPFORM)
  ;
+ Q
+ ;
+CKVERSD ;IHS/CAS/RCS 08292012 - Patch 44, new code section - HEAT # 74630
+ ;check the version of current Insurer - if it's D.0 then it's a "mixed claim."
+ ;(Originally created in 5.1 - reverse in D.0)
+ ;Modify field 110 if needed (Certification #)
+ ;
+ N ABSPINS,ABSPVER,ABSPPNT,X,Y,ABSPX,RXPNT,PHARMACY,ABSP
+ S ABSPINS=TMP(9002313.02,IEN,.02,"I")
+ Q:ABSPINS=""
+ ;
+ S RXPNT=$P(D,U)
+ Q:RXPNT=""
+ ;
+ S ABSPVER=$P($G(^ABSPEI(ABSPINS,100)),U,15)  ;current Insurer version
+ I ABSPVER=2 D  ;The current insurer is D.0
+ . S ABSPPNT=$O(^ABSPEI(ABSPINS,210,"B",75,"")) I ABSPPNT="" Q  ;Find Special code for NCPDP field 110
+ . S Y=$G(^ABSPEI(ABSPINS,210,ABSPPNT,210)) I Y="" Q
+ . S PHARMACY=$P(^ABSPT(RXPNT,1),U,7)
+ . I $D(^ABSP(9002313.56,PHARMACY,"INSURER-ASSIGNED #","B",ABSPINS)) D  ;setup special code variable
+ . . S X=$O(^ABSP(9002313.56,PHARMACY,"INSURER-ASSIGNED #","B",ABSPINS,0))
+ . . S ABSP("Site","MED-CAL Subscriber #")=$P(^ABSP(9002313.56,PHARMACY,"INSURER-ASSIGNED #",X,0),U,3)
+ . . S ABSP("Site","CA FAMILY PACT ID")=$P(^ABSP(9002313.56,PHARMACY,"INSURER-ASSIGNED #",X,0),U,4)
+ . S ABSPX=$P(Y,U,2) I ABSPX="" S TMP(9002313.02,IEN,110,"I")="          " Q  ;Cert # currently null
+ . X ABSPX ;Execute special code for field 110
+ . S ABSP("X")=$$ANFF^ABSPECFM($G(ABSP("X")),10)
+ . S TMP(9002313.02,IEN,110,"I")=ABSP("X") ;Set field 110 - Certification #
  Q

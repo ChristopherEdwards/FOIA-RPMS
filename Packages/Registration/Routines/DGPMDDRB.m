@@ -1,5 +1,5 @@
 DGPMDDRB ;ALB/RMO - ROOM-BED FILE 405.4 DD CALLS; 7 JAN 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 CK ;Check that no other Room-bed with this name is associated with
  ;this Ward. If one is found to exist do not allow this Ward to be added.
  S DGX=$S($D(^DG(405.4,DA(1),0)):$P(^(0),"^"),1:"") I DGX]"" F DGI=0:0 S DGI=$O(^DG(405.4,"B",DGX,DGI)) Q:'DGI  I $D(^DG(405.4,DGI,"W","B",X,X)) W !,"Ward is already associated with a Room-bed with this name!" K X Q

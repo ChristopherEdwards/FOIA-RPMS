@@ -1,5 +1,5 @@
 SCAPMC20 ;ALB/REW - Team APIs:APPTTM ; 20 Mar 1996
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;;1.0
 ACOUTPT(DFN,SCFIELDA,SCERR) ;add/edit a record in OUTPATIENT PROFILE #404.41
  ; input:

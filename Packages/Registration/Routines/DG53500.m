@@ -1,5 +1,5 @@
 DG53500 ;BPFO/JRP - POST INIT FOR PATCH 500 ;3/12/2003
- ;;5.3;Registration;**500**;Aug 13, 1993
+ ;;5.3;Registration;**500,1015**;Aug 13, 1993;Build 21
  ;
 POST ;Entry point for patch DG*5.3*500 post init
  N DFN,PTR10,GOODPTR,NODE,TMP,DGFDA,DGMSG,COUNT,DGRUGA08,VAFCA08

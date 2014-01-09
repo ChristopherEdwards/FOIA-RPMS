@@ -1,5 +1,5 @@
-VAFHLZIR ;ALB/SEK - Create generic HL7 ZIR segment ; 9 March 1994
- ;;5.3;Registration;**33,94,151,466**;Aug 13, 1993
+VAFHLZIR ;ALB/SEK,TDM - Create generic HL7 ZIR segment ; 6/3/10 9:43am
+ ;;5.3;PIMS;**33,94,151,466,653,1015,1016**;JUN 30, 2012;Build 20
  ;
  ;
 EN(VAFIEN,VAFSTR,VAFNUM,VAFENC) ; This generic extrinsic function was designed to
@@ -21,17 +21,20 @@ EN(VAFIEN,VAFSTR,VAFNUM,VAFENC) ; This generic extrinsic function was designed t
  ; Output - String of data forming the ZIR segment.
  ;
  ;
- N VAFDFN,VAFERR,VAFENODE,VAFNODE,VAFY,X
+ N VAFDFN,VAFERR,VAFENODE,VAFNODE,VAFY,X,RELTYP,DCHILD
  I $G(VAFSTR)']"" G QUIT
  S VAFENC=+$G(VAFENC)
  I '$G(VAFIEN)&('VAFENC) G QUIT
- S $P(VAFY,HLFS,13)="",VAFSTR=","_VAFSTR_","
+ S $P(VAFY,HLFS,14)="",VAFSTR=","_VAFSTR_","
  S VAFNODE=$G(^DGMT(408.22,+$G(VAFIEN),0))
  I $G(VAFNODE)']""&('VAFENC) G QUIT
  S $P(VAFY,HLFS,1)=$S($G(VAFNUM):VAFNUM,1:1)
+ S RELTYP=+$P($G(^DGPR(408.12,+$P($G(^DGMT(408.21,+$P(VAFNODE,"^",2),0)),"^",2),0)),"^",2)
+ S DCHILD=$S(((RELTYP>2)&(RELTYP<7)):1,1:0)
  I VAFSTR[",2," S $P(VAFY,HLFS,2)=$$YN^VAFHLFNC($P(VAFNODE,"^",5)) ; Married last calendar year
  I VAFSTR[",3," S $P(VAFY,HLFS,3)=$$YN^VAFHLFNC($P(VAFNODE,"^",6)) ; Lived with patient
- I VAFSTR[",4," S X=$P(VAFNODE,"^",7),$P(VAFY,HLFS,4)=$S(X]"":X,1:HLQ) ; Amount contributed to spouse
+ ;I VAFSTR[",4," S X=$P(VAFNODE,"^",7),$P(VAFY,HLFS,4)=$S(X]"":X,1:HLQ) ; Amount contributed to spouse
+ I VAFSTR[",4," S X=$P(VAFNODE,"^",$S(DCHILD:19,1:7)),$P(VAFY,HLFS,4)=$S(X]"":X,1:HLQ) ; Amount contributed to spouse/child
  I VAFSTR[",5," S $P(VAFY,HLFS,5)=$$YN^VAFHLFNC($P(VAFNODE,"^",8)) ; Dependent children (y/n)
  I VAFSTR[",6," S $P(VAFY,HLFS,6)=$$YN^VAFHLFNC($P(VAFNODE,"^",9)) ; Incapable of self-support
  I VAFSTR[",7," S $P(VAFY,HLFS,7)=$$YN^VAFHLFNC($P(VAFNODE,"^",10)) ; Contributed to support
@@ -59,5 +62,7 @@ EN(VAFIEN,VAFSTR,VAFNUM,VAFENC) ; This generic extrinsic function was designed t
  ;  to XX (not applicable)
  I VAFSTR[",11," I '$G(VAFERR) D
  . I $P(VAFY,HLFS,13)'="AN"&($P(VAFY,HLFS,13)'="C")&($P(VAFY,HLFS,13)'="G") S $P(VAFY,HLFS,11)="XX" ;Total Dependents not applicable for MT indicators AS,N,X,U
+ ;
+ I VAFSTR[",14," S X=$P(VAFNODE,"^",18),$P(VAFY,HLFS,14)=$S(X=0:"N",X=1:"Y",1:HLQ) ; Dependent child school indicator
  ;
 QUIT Q "ZIR"_HLFS_$G(VAFY)

@@ -1,10 +1,9 @@
 PSSHL1 ;BIR/RLW/WRT-BUILD HL7 MESSAGE TO POPULATE ORDERABLE ITEM FILE ;09/08/97
- ;;1.0;PHARMACY DATA MANAGEMENT;**38,68**;9/30/97
+ ;;1.0;PHARMACY DATA MANAGEMENT;**38,68,125**;9/30/97;Build 2
  ;External reference to ORD(101 supported by DBIA 872
  ; PSJEC=event code from HL7 table 8.4.2.1
  ; PSJSPIEN=ien to super-primary drug file (#50.7)
  ; SPDNAME=.01 field (name) of super-primary drug
- ; DDIEN=ien to drug file (#50)
  ; LIMIT=number of fields in HL7 segment being built
  ;
  W !!?3,"This routine should not be accessed through programmer mode!",!
@@ -14,9 +13,9 @@ EN1 ; start here for pre-install auto load
  D PRO Q:$G(XPDABORT)
  S PSSMFU=+$O(^PS(59.7,0)) I $P(^PS(59.7,PSSMFU,80),"^",2)=4 K PSSMFU Q
  N APPL,CODE,FIELD,LIMIT,MFE,PSJI,SEGMENT,SPDNAME,SYN,SYNONYM,USAGE,X
- I '$D(^XTMP("PSO_V7 INSTALL",0)) S X1=DT,X2=+7 D C^%DTC S ^XTMP("PSO_V7 INSTALL",0)=DT_"^"_X_"^OUTPATIENT V7 KIDS INSTALL" L +^XTMP("PSO_V7 INSTALL",0):1 G SKIP
- F  Q:'$D(^XTMP("PSO_V7 INSTALL",0))  L +^XTMP("PSO_V7 INSTALL",0):2 Q:$T
- I '$D(^XTMP("PSO_V7 INSTALL",0)) S X1=DT,X2=+7 D C^%DTC S ^XTMP("PSO_V7 INSTALL",0)=DT_"^"_X_"^OUTPATIENT V7 KIDS INSTALL" L +^XTMP("PSO_V7 INSTALL",0):1
+ I '$D(^XTMP("PSO_V7 INSTALL",0)) S X1=DT,X2=+7 D C^%DTC S ^XTMP("PSO_V7 INSTALL",0)=DT_"^"_X_"^OUTPATIENT V7 KIDS INSTALL" L +^XTMP("PSO_V7 INSTALL",0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) G SKIP
+ F  Q:'$D(^XTMP("PSO_V7 INSTALL",0))  L +^XTMP("PSO_V7 INSTALL",0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) Q:$T
+ I '$D(^XTMP("PSO_V7 INSTALL",0)) S X1=DT,X2=+7 D C^%DTC S ^XTMP("PSO_V7 INSTALL",0)=DT_"^"_X_"^OUTPATIENT V7 KIDS INSTALL" L +^XTMP("PSO_V7 INSTALL",0):$S($G(DILOCKTM)>0:DILOCKTM,1:3)
  I $P(^PS(59.7,PSSMFU,80),"^",2)=4 L -^XTMP("PSO_V7 INSTALL",0) K ^XTMP("PSO_V7 INSTALL",0) Q
 SKIP ;
  S PSJEC="MAD",CODE="REP"
@@ -106,7 +105,7 @@ ENIVID ; Edit IV Identifier field to be displayed with IV Orderable Items.
  ;
 GTIVID() ; Return IV Identifier. If being edited, wait until edit is done.
  N X,PX S (X,PX)=$O(^PS(59.7,0)) Q:'X
- F  L +^PS(59.7,X,31):1 Q:$T  H 2
+ F  L +^PS(59.7,X,31):$S($G(DILOCKTM)>0:DILOCKTM,1:3) Q:$T  H 2
  S X=$P($G(^PS(59.7,X,31)),U,2)
  L -^PS(59.7,PX,31)
  Q X

@@ -1,5 +1,5 @@
 DGPMGLP ;ALB/LM/MJK - G&L PRINT ROUTINE; 27 APR 2003
- ;;5.3;Registration;**20,134,515**;Aug 13, 1993
+ ;;5.3;Registration;**20,134,515,713,1015**;Aug 13, 1993;Build 21
  ;
 A S DIE="^DG(43,",DA=1,DR="50///NOW" D ^DIE K DA,DR,DIE
  S (RA,LA)="",$P(RA,"-",66)="",$P(LA,"-",66)="" ;  RA=Right Arrows "-"   LA=Left Arrows "-"
@@ -85,7 +85,7 @@ COR2 Q:'$D(DGCR)
  ;
 CORR D:$Y>62 DIVHD,LINES
  W !,DGX ; Type of change
- W " For ",$S($D(^DPT(+$P(DGCR,"^",5),0)):$P(^(0),"^",1)_"  "_$P(^(0),"^",9),1:" ") ; Patient name and SSN
+ W " For ",$S($D(^DPT(+$P(DGCR,"^",5),0)):$P(^(0),"^",1)_"  "_$E($P(^(0),"^",9),6,9),1:" ") ; Patient name and SSN
  I $P(DGCR,"^",6)]"" S Y=$P(DGCR,"^",6) X ^DD("DD") W " For admission of ",Y
  I $P(DGCR,"^",9)]"" S Y=$P(DGCR,"^",9) X ^DD("DD") W ", transfer of ",Y
  I $P(DGCR,"^",3)]"" W " Old value: ",$P(DGCR,"^",3)

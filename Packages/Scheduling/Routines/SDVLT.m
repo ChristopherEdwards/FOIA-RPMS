@@ -1,5 +1,5 @@
 SDVLT ; List Template Exporter ; 13-AUG-1993
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;; ;
  W !,"'SD PARM PARAMETERS' List Template..."
  S DA=$O(^SD(409.61,"B","SD PARM PARAMETERS",0)),DIK="^SD(409.61," D ^DIK:DA

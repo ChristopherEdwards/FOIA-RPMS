@@ -1,5 +1,5 @@
 DGPTSUF ;ALB/LD - Utilities for Facility Suffix (#45.68) file; 27 May 1995
- ;;5.3;Registration;**58**;Aug 13, 1993
+ ;;5.3;Registration;**58,1015**;Aug 13, 1993;Build 21
  ;
  ;--EDEFF called from option 'Add/Edit Suffix Effective Date' (located
  ;  within the Utility submenu of the PTF main menu) to edit and display

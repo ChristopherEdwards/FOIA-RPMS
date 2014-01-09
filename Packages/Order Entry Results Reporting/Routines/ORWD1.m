@@ -1,5 +1,5 @@
-ORWD1 ; SLC/KCM/REV - GUI Prints; 28-JAN-1999 12:51
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,140**;Dec 17, 1997
+ORWD1 ; SLC/KCM/REV - GUI Prints; 28-JAN-1999 12:51 ;7/31/06  11:34
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,140,215,260**;Dec 17, 1997;Build 26
 PRINTS(PRTLST,HLOC,ORWDEV) ; Do the auto-prints after signing orders
  ; PRTLST(n)=ORIFN;ACT^Chart^Label^Requisition^Service^Work
  Q:$G(A7RNDBI)  ; per NDBI, to suppress prints during integration
@@ -26,13 +26,15 @@ PRINTS(PRTLST,HLOC,ORWDEV) ; Do the auto-prints after signing orders
  Q
 MKLST(APIECE) ; Make a list to pass to GUI^ORPR02, called only from PRINTS
  ; expect PRTLST to be defined, creates new TMPLST
- N I,J,ORIFN,ACT,NOA K TMPLST
+ N I,J,ORIFN,ACT,NOA,PKG,DLG  K TMPLST
  S I="",J=0 F  S I=$O(PRTLST(I)) Q:I'>0  D
  . I ($L(PRTLST(I),U)>1),'$P(PRTLST(I),"^",APIECE) Q
  . S ORIFN=+PRTLST(I),ACT=+$P(PRTLST(I),";",2)
  . S NOA=+$P($G(^OR(100,ORIFN,8,ACT,0)),U,12)
  . I APIECE=2,'$P($G(^ORD(100.02,NOA,1)),U,2) Q  ; no chart copies
  . I APIECE=6,'$P($G(^ORD(100.02,NOA,1)),U,5) Q  ; no work copies
+ . S PKG=+$P($G(^OR(100,+ORIFN,0)),U,14),DLG=+$P($G(^OR(100,+ORIFN,0)),U,5)
+ . I APIECE=4,PKG=$O(^DIC(9.4,"B","DIETETICS",0)),DLG'=$O(^ORD(101.41,"B","FHW SPECIAL MEAL",0)) Q  ;no requisitions
  . S J=J+1,TMPLST(J)=$P(PRTLST(I),U)
  Q
 PARAM(Y,LOC) ;Returns in 'Y' the print parameters
@@ -92,19 +94,28 @@ XPAR(NAME,LOC,FMT) ;Get parameter values
  ;
 PRINTGUI(ORESULT,HLOC,ORWDEV,PRTLST) ; File|Print orders from GUI
  ;ORRACT is set here to identify this as a manual reprint
- N ADEVICE,ORRACT,ORPLST
- S ORPLST=""
- I $D(PRTLST) M ORPLST=PRTLST
+ N ADEVICE,ORRACT,ORPLST,I,PKG,DLG
+ N BBPKG S BBPKG=+$O(^DIC(9.4,"B","VBECS",0))
+ S PRTLST="",I=0
+ K ORPLST M ORPLST=PRTLST
  S ORRACT=1,ADEVICE=$P(ORWDEV,U,1),ORESULT=1
  I +ADEVICE D GUI^ORPR02(.ORPLST,ADEVICE,"C",HLOC)
  S ADEVICE=$P(ORWDEV,U,2)
- I $D(PRTLST) M ORPLST=PRTLST
+ K ORPLST M ORPLST=PRTLST
+ D INSRTBB^ORWD2(.ORPLST) ; insert BB child Lab orders into ORPLST for printing labels
  I +ADEVICE D GUI^ORPR02(.ORPLST,ADEVICE,"L",HLOC)
+ ;
  S ADEVICE=$P(ORWDEV,U,3)
- I $D(PRTLST) M ORPLST=PRTLST
- I +ADEVICE D GUI^ORPR02(.ORPLST,ADEVICE,"R",HLOC)
+ K ORPLST M ORPLST=PRTLST
+ ;no FH order requisitions except special meals
+ F  S I=$O(ORPLST(I)) Q:'I  D
+ . S PKG=+$P($G(^OR(100,+ORPLST(I),0)),U,14),DLG=+$P($G(^OR(100,+ORPLST(I),0)),U,5)
+ . I PKG=$O(^DIC(9.4,"B","DIETETICS",0)),DLG'=$O(^ORD(101.41,"B","FHW SPECIAL MEAL",0)) K ORPLST(I)
+ D INSRTBB^ORWD2(.ORPLST) ; insert BB child Lab orders into ORPLST for printing requisitions
+ I +ADEVICE,$D(ORPLST) D GUI^ORPR02(.ORPLST,ADEVICE,"R",HLOC)
+ ;
  S ADEVICE=$P(ORWDEV,U,4)
- I $D(PRTLST) M ORPLST=PRTLST
+ K ORPLST M ORPLST=PRTLST
  I +ADEVICE D GUI^ORPR02(.ORPLST,ADEVICE,"W",HLOC)
  ; D GUI^ORPR02(.ORPLST,"","S",HLOC) no svc copies from File|Print
  Q

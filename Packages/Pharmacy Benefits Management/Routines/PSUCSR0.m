@@ -1,5 +1,5 @@
 PSUCSR0 ;BIR/DJM,DJE - Extract records for CS ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**1,6,19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ; 3.2.11.34 Functional Requirement 34
  ;-------------------------------------
@@ -95,7 +95,7 @@ VARS(PSUMMS,S,E) ; Setup variables for contents
  . S X=+Y S PSUDIVNM=$$VAL^PSUTL(40.8,X,.01)
  . S PSUMSEQ=$G(^XTMP(PSUCSJB,"DETAIL",PSUM)) ; Get the mail sequence data
  . S PSUMSEQ=$S(PSUMSEQ="":" ",1:" "_PSUMSEQ_" ")
- . S XMSUB="V. 3.0P1 PBMCS "_PSUMON_PSUMSEQ_PSUDIV_" "_PSUDIVNM
+ . S XMSUB="V. 4.0 PBMCS "_PSUMON_PSUMSEQ_PSUDIV_" "_PSUDIVNM
  . S XMTEXT="^XTMP(PSUCSJB,PSUMMS,PSUM,"
  . S XMCHAN=1
  . D ^XMD

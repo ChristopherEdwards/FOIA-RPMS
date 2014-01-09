@@ -1,5 +1,5 @@
-SDBT6 ; ;10/29/04
- D DE G BEGIN
+SDBT6 ; ;05/05/06
+ D DE G BEGIN;;;;;;Build 21
 DE S DIE="^SC(D0,""PR"",",DIC=DIE,DP=44.1,DL=2,DIEL=1,DU="" K DG,DE,DB Q:$O(^SC(D0,"PR",DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,1) S:%]"" DE(1)=% S %=$P(%Z,U,2) S:%]"" DE(2)=%
  K %Z Q
@@ -56,13 +56,9 @@ BEGIN S DNM="SDBT6",DQ=1+D G B
 C1 G C1S:$D(DE(1))[0 K DB
  S X=DE(1),DIC=DIE
  K ^SC(DA(1),"PR","B",$E(X,1,30),DA)
- S X=DE(1),DIC=DIE
- K ^SC("AIHSDPR",X,DA(1),DA)
 C1S S X="" G:DG(DQ)=X C1F1 K DB
  S X=DG(DQ),DIC=DIE
  S ^SC(DA(1),"PR","B",$E(X,1,30),DA)=""
- S X=DG(DQ),DIC=DIE
- S ^SC("AIHSDPR",X,DA(1),DA)=$P(^SC(DA(1),"PR",DA,0),U,2)
 C1F1 Q
 X1 S DIC("S")="I $$SCREEN^SDUTL2(Y,DT)" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
  Q
@@ -74,13 +70,9 @@ X1 S DIC("S")="I $$SCREEN^SDUTL2(Y,DT)" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
 C2 G C2S:$D(DE(2))[0 K DB
  S X=DE(2),DIC=DIE
  K ^SC("ADPR",DA(1),DA)
- S X=DE(2),DIC=DIE
- S ^SC("AIHSDPR",$P(^SC(DA(1),"PR",DA,0),U),DA(1),DA)=""
 C2S S X="" G:DG(DQ)=X C2F1 K DB
  S X=DG(DQ),DIC=DIE
  S:X ^SC("ADPR",DA(1),DA)=""
- S X=DG(DQ),DIC=DIE
- S:X ^SC("AIHSDPR",$P(^SC(DA(1),"PR",DA,0),U),DA(1),DA)=1
 C2F1 Q
 X2 I X,$D(^SC("ADPR",DA(1))),'$D(^(DA(1),DA)) W !?5,"A default provider has already been assigned for this clinic." K X
  Q

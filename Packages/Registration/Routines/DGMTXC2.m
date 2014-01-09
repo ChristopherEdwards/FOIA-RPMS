@@ -1,4 +1,4 @@
-DGMTXC2 ; ;10/29/04
+DGMTXC2 ; ;10/15/12
  D DE G BEGIN
 DE S DIE="^DGMT(408.31,",DIC=DIE,DP=408.31,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^DGMT(408.31,DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,7) S:%]"" DE(10)=% S %=$P(%Z,U,13) S:%]"" DE(1)=% S %=$P(%Z,U,16) S:%]"" DE(7)=% S %=$P(%Z,U,20) S:%]"" DE(12)=% S %=$P(%Z,U,21) S:%]"" DE(13)=% S %=$P(%Z,U,22) S:%]"" DE(14)=% S %=$P(%Z,U,27) S:%]"" DE(4)=%

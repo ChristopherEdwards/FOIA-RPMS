@@ -1,5 +1,5 @@
 DGRUUTL1 ;ALB/GRR - RAI/MDS UTILITY ROUTINE
- ;;5.3;Registration;**190,312,328,373,434,430,464**;Aug 13, 1993
+ ;;5.3;Registration;**190,312,328,373,434,430,464,1015**;Aug 13, 1993;Build 21
 EN ;Process each division for routing
  N DGRDIV,DGDIV ;New all variables used
  K HLL ;Kill HLL which is used for an array

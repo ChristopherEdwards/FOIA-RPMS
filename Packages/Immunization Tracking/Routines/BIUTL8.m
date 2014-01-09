@@ -1,8 +1,10 @@
 BIUTL8 ;IHS/CMI/MWR - UTIL: PATLKUP, PRTLST, ZGBL; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: PATIENT LOOKUP, DUPTEST, PRINT LIST, K/ZGBL, KILLALL.
  ;;           HFSPATH, IMMSVDIR.
+ ;;  PATCH 2: Correct 19yrs and older logic.  VFCSET+7
+ ;;  PATCH 3: Display Elig Code Local Text.  ELIGLAB+0
  ;
  ;
  ;----------
@@ -83,19 +85,44 @@ PATLKUP(BIDFN,BIADD,DUZ2,BIPOP) ;EP
  ;
  ;----------
 VFCSET ;EP
- ;---> Load VFC Eligibility.  Called by LOADVIS^BIUTL7.
+ ;---> Load Vaccine Eligibility.  Called by LOADVIS^BIUTL7.
  ;---> If Patient Ben Type is 01 (Am Indian/AK Native), set VFC default=4.
  Q:$G(BI("P"))]""
  Q:'$G(BIDFN)
  Q:$$BENTYP^BIUTL11(BIDFN,2)'="01"
- N BIDATE S BIDATE=$G(BI("E"))
+ ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;--->Correct 19yrs and older logic.
+ N BIDATE,X,Y S X=$P($G(BI("E"))," ")
+ D ^%DT S BIDATE=Y
  Q:'BIDATE
- N BIDOB S BIDOB=$$DOB^BIUTL1(BIDFN)
- Q:'BIDOB
- Q:((BIDOB+190000)'<BIDATE)
+ ;N BIDOB S BIDOB=$$DOB^BIUTL1(BIDFN)
+ ;Q:'BIDOB
+ ;Q:((BIDOB+190000)'<BIDATE)
+ ;--> Quit if patient was 19yrs or greater on this date.
+ Q:($$AGE^BIUTL1(BIDFN,1,BIDATE)>18)
+ ;**********
+ ;
+ ;********** 9/2012: CHANGE HERE TO MAKE DEFAULT CONDITIONAL UPON ACTIVE STATUS.
  S BI("P")=4
  Q
  ;
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Display Elig Code Label Text.
+ ;----------
+ELIGLAB(X) ;EP
+ ;---> Called by Post Action field of Field 10.5 on BI FORM-IMM VISIT ADD/EDIT.
+ ;---> Display Elibigility Code Local Text besind Elig Code.
+ ;---> Parameters:
+ ;     1 - X (req) IEN of Elig Code in ^BIELIG.
+ ;
+ Q:'$G(X)
+ N Y S Y=$G(^BIELIG(+X,0))
+ Q:(Y="")
+ D PUT^DDSVALF(10.6,,,$P(Y,U)_" - "_$P(Y,U,4))
+ Q
+ ;**********
  ;
  ;----------
 DUPTEST(BIERR,BIDATA,BIOIEN) ;EP

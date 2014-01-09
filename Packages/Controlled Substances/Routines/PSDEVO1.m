@@ -1,5 +1,5 @@
 PSDEVO1 ;BIR/JPW-Edit/Cancel a Verified Order (cont'd) ; 22 Jun 93
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
 EN ;entry for edit verified order
  W !!,?5,"You may edit quantity, manufacturer, lot # and expiration date.",!,?5,"If you wish to edit drug or NAOU, you must cancel this order",!,?5,"and enter a new order.",!!
  I $D(NQTY) W !!,"This verified order has been previously edited.",!,"You must cancel this order and re-enter a new one.",!! D MSG S PSDOUT=1 Q
@@ -19,7 +19,7 @@ NQ K DA,DIR,DTOUT,DUOUT S DIR(0)="58.81,50O",DIR("A")="NEW QUANTITY DISPENSED ("
  S DIR("A")="Are you sure? ",DIR("B")="NO"
  D ^DIR K DIR I 'Y!$D(DIRUT) D MSG Q
  W !!,"Accessing your transaction information..."
- F  L +^PSD(58.8,+PSDS,1,+PSDR,0):0 I  Q
+ F  L +^PSD(58.8,+PSDS,1,+PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S PSDT=+%
  S BAL=+$P(^PSD(58.8,+PSDS,1,+PSDR,0),"^",4),$P(^(0),"^",4)=$P(^(0),"^",4)+AQTY
  L -^PSD(58.8,+PSDS,1,+PSDR,0)

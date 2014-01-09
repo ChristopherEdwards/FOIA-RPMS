@@ -1,5 +1,5 @@
 DGPTR3 ;ALB/JDS/MJK - ALB/BOK  PTF TRANSMISSION ; 01 DEC 87 @0800
- ;;5.3;Registration;**183**;Aug 13, 1993
+ ;;5.3;Registration;**183,729,1015**;Aug 13, 1993;Build 21
  ;
 535 ; -- setup 535 transactions
  F I=0:0 S I=$O(^DGPT(J,535,I)) Q:'I  I $D(^(I,0)) S DGM=^(0),DGTD=+$P(DGM,U,10) I $P(DGM,U,17)'="n",'$P(DGM,U,7),'$D(^DGPT(J,"M","AM",DGTD)),DGTD'<T1,DGTD'>T2 D PHY
@@ -10,12 +10,20 @@ PHY ; -- set up physcial mvt
  ; physical cdr
  S Z=$P(DGM,U,16) D CDR^DGPTR2
  ; physical specialty
+ ;replace specialty pointer (ien) with ptf code (alpha-numeric)
+ N DGARRX,DGARRY ;DG729
+ S DGARRX=$$TSDATA^DGACT(42.4,$P(DGM,U,2),.DGARRY)
+ S $P(DGM,U,2)=$G(DGARRY(7))
  S L=2,X=DGM,Z=2 D ENTER0
  ; find corresponding PTF mvt
  S X="",Z=+$O(^DGPT(J,"M","AM",DGTD-.0000001)),Z=$S(Z:+$O(^(Z,0)),1:1) I $D(^DGPT(J,"M",Z,0)) S X=^(0) ; use d/c mvt if 'Z
  ; specialty cdr
  S Z=$P(X,U,16) D CDR^DGPTR2
  ; specialty
+ ;replace specialty pointer (ien) with ptf code (alpha-numeric)
+ N DGARRX,DGARRY ;DG729
+ S DGARRX=$$TSDATA^DGACT(42.4,$P(X,U,2),.DGARRY)
+ S $P(X,U,2)=$G(DGARRY(7))
  S L=2,Z=2 D ENTER0
  ; 
  ; convert pass, leave days >999 to 999

@@ -1,5 +1,5 @@
 ORWDXQ ; SLC/KCM - Utilities for Quick Orders;06:18 PM  27 Apr 1998
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,245**;Dec 17, 1997;Build 2
  ;
 DLGNAME(VAL,INAME)      ; Return display name for a dialog (DELETE??)
  N IEN S IEN=$O(^ORD(101.41,"B",INAME,0))
@@ -9,7 +9,11 @@ DLGSAVE(VAL,CRC,DNAME,DGRP,RSP)    ; Return IEN of new or existing quick order
  N ROOT,NM,IEN
  S ROOT="ORWDQ "_CRC,VAL=0,IEN=+$O(^ORD(101.41,"B",ROOT,0))
  I IEN=0 D SAVENEW(.VAL,ROOT,DNAME,DGRP,.RSP) I 1
- E  S:$$MATCH(IEN,DGRP,.RSP) VAL=IEN
+ E  I $$MATCH(IEN,DGRP,.RSP) S VAL=IEN I 1
+ E  D
+ . D UPDQNAME^ORCMEDT8(IEN)
+ . S ROOT=$$ENSURNEW^ORCMEDT8(ROOT)
+ . D SAVENEW(.VAL,ROOT,DNAME,DGRP,.RSP)
  Q
 OLDELSE E  D  ; this creates other entries if CRC matches...
  . S NM=ROOT
@@ -32,10 +36,12 @@ MATCH(IEN,DGRP,RSP)     ; Called by DLGSAVE
  . I '$D(TST(DLG,INST)) S RSLT=0 Q
  . I TST(DLG,INST)'=VAL S RSLT=0 Q
  . I $D(^ORD(101.41,IEN,6,I,2))>1 D  Q:'RSLT
- . . N A,B
+ . . N A,B,JMAX
  . . S (J,L)=0 F  S L=$O(^ORD(101.41,IEN,6,I,2,L)) Q:'L  S J=J+1,A(J)=^(L,0)
+ . . S JMAX=J
  . . S (J,L)=0 F  S L=$O(TST("WP",DLG,INST,L)) Q:'L  S J=J+1,B(J)=TST("WP",DLG,INST,L,0)
- . . S J=0 F  S J=$O(A(J)) Q:'J  S:A(J)'=B(J) RSLT=0  Q:'RSLT  K A(J),B(J)
+ . . I JMAX'=J S RSLT=0 Q
+ . . S J=0 F  S J=$O(A(J)) Q:'J  S:A(J)'=$G(B(J)) RSLT=0  Q:'RSLT  K A(J),B(J)
  . . I ($D(A)>1)!($D(B)>1) S RSLT=0
  . . K TST("WP",DLG,INST)
  . K TST(DLG,INST)
@@ -60,7 +66,7 @@ DEFDLG(DG)    ; Return IEN of default dialog for display group
  I 'DLG S DAD=$O(^ORD(100.98,"AD",DG,0)) I DAD S DLG=$$DEFDLG(DAD)
  Q DLG
 GETQLST(LST,DGRP,PRE)        ; Return quick list for a display group
- N LVW,ILST,I
+ N LVW,ILST,I,X0
  S PRE=$G(PRE),ILST=0
  D QV4DG^ORWUL(.LVW,DGRP) S LVW=+LVW Q:'LVW
  S I=0 F  S I=$O(^ORD(101.44,LVW,10,I)) Q:'I  D

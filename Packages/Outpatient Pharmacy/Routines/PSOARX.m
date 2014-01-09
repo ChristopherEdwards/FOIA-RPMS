@@ -1,5 +1,5 @@
-PSOARX ; B'ham ISC/SAB - display archived rxs ; 03/10/94  1:08 pm 
- ;;7.0;OUTPATIENT PHARMACY;**10**;DEC 1997
+PSOARX ;B'ham ISC/SAB - display archived rxs ;03/10/94  1:08 pm 
+ ;;7.0;OUTPATIENT PHARMACY;**10,148**;DEC 1997
 GET S RX=^PSRX(DA,0),J=DA,RX2=$G(^PSRX(DA,2)),R3=$G(^(3)),RTN=$G(^("TN")) S DFN=+$P(RX,"^",2) S ANS="",FFX=0
  S PSDIV=$S($D(^PS(59,+$P(RX2,"^",9),0)):$P(^(0),"^",1)_" ("_$P(^(0),"^",6)_")",1:"Unknown"),PSDIV=$E(PSDIV,1,28)
  S PSEXDT=$P(RX2,"^",6),PSEXDT=$S(PSEXDT]"":$E(PSEXDT,4,5)_"/"_$E(PSEXDT,6,7)_"/"_$E(PSEXDT,2,3),1:"Unknown")
@@ -26,11 +26,11 @@ REM W !?2,$S($P(RX2,"^",15):"Returned to Stock:  "_$E($P(RX2,"^",15),4,5)_"/"_$E
 ACT G Q:'$O(^PSRX(DA,"A",0)) G Q:ANS="^" D H1 F N=0:0 D LP1 Q:PSOZ
  I $O(^PSRX(DA,4,0)) D CMOP^PSOARCTG
  G Q
-A1 D H1:FFX,DAT1 W !,N1,?3,DAT1,?14 S X=$P(P1,U,2),X=$F("HUCELPRWSIVDABX",X)-1
- W:X $P("Hold^Unhold^DC'd^Edit^Renewed^Partial^Reinstate^Reprint^Suspense^Returned Stock^Intervention^Deleted^Drug Interaction^Processed^X-Interface^","^",X) W ?25
+A1 D H1:FFX,DAT1 W !,N1,?3,DAT1,?14 S X=$P(P1,U,2),X=$F("HUCELPRWSIVDABXGKNM",X)-1
+ W:X $P("Hold^Unhold^DC'd^Edit^Renewed^Partial^Reinstate^Reprint^Suspense^Returned Stock^Intervention^Deleted^Drug Interaction^Processed^X-Interface^Patient Inst.^PKI/DEA^Dispense Completed^ECME^","^",X) W ?25
  S X=$P(P1,U,4) W:X]"" $S(X>0&(X<6):"Refill "_X,X=6:"Partial",X>6:"Refill "_(X-1),1:"Original"),?35,$S($D(^VA(200,+$P(P1,"^",3),0)):$P(^(0),"^",1),1:"Unknown")
- G:PSOZ A2 W ?60,N2,?63,DAT2,?74 S X=$P(P2,U,2),X=$F("HUCELPRWSIVDABX",X)-1
- W:X $P("Hold^Unhold^DC'd^Edit^Renewed^Partial^Reinstate^Reprint^Suspense^Returned Stock^Intervention^Deleted^Drug Interaction^Processed^X-Interface^","^",X) W ?85
+ G:PSOZ A2 W ?60,N2,?63,DAT2,?74 S X=$P(P2,U,2),X=$F("HUCELPRWSIVDABXGKNM",X)-1
+ W:X $P("Hold^Unhold^DC'd^Edit^Renewed^Partial^Reinstate^Reprint^Suspense^Returned Stock^Intervention^Deleted^Drug Interaction^Processed^X-Interface^Patient Inst.^PKI/DEA^Dispense Completed^ECME^","^",X) W ?85
  S X=$P(P2,U,4) W:X]"" $S(X>0&(X<6):"Refill "_X,X=6:"Partial",X>6:"Refill "_(X-1),1:"Original"),?95,$S($D(^VA(200,+$P(P1,"^",3),0)):$P(^(0),"^",1),1:"Unknown")
 A2 W:($P(P1,U,5)]"")!(('PSOZ)&($P(P2,U,5)]"")) ! W:$P(P1,U,5)]"" ?5,"Comment: "_$E($P(P1,U,5),1,45) Q:PSOZ  W:$P(P2,U,5)]"" ?65,"Comment: "_$E($P(P2,U,5),1,45)
  I ($L($P(P1,U,5))>45)!($L($P(P2,U,5))>45) W ! W:$L($P(P1,U,5))>45 ?14,$E($P(P1,U,5),46,75) W:('PSOZ)&($L($P(P2,U,5))>45) ?79,$E($P(P2,U,5),46,75)
@@ -50,11 +50,11 @@ LP1 S PSOZ=0,(N,N1)=$O(^PSRX(DA,"A",N)) S:'N PSOZ=1 Q:PSOZ  S P1=^(N1,0),DTT1=P1
 HEAD D:$Y>(PSOACPL-20) HD1^PSOARCSV
  W !,"#",?3,"Log Date",?14,"Refill Date",?27,"QTY",?32,"Routing",?40,"Lot #",?52,"Pharmacist",?70,"Division",! F I=1:1:79 W "="
  S FFX=0 Q
-H1 ;D:$Y>(PSOACPL-20) HD1^PSOARCSV
+H1 ;
  W !!,"Activity Log:",!,"#",?3,"Date",?14,"Reason",?25,"Rx Ref",?35,"Security",?60,"#",?63,"Date",?74,"Reason",?85,"Rx Ref",?95,"Security",! F I=1:1:55 W "="
  W ?60 F I=1:1:60 W "="
  Q
-DAT ;S DAT="",DTT=DTT\1 Q:DTT'?7N  
+DAT ;
  S DAT=$E(DTT,4,5)_"/"_$E(DTT,6,7)_"/"_$E(DTT,2,3)
  Q
 DAT1 S (DAT1,DAT2)="",DTT1=DTT1\1,DTT2=DTT2\1 S:DTT1?7N DAT1=$E(DTT1,4,5)_"/"_$E(DTT1,6,7)_"/"_$E(DTT1,2,3) S:(DTT2?7N)&('PSOZ) DAT2=$E(DTT2,4,5)_"/"_$E(DTT2,6,7)_"/"_$E(DTT2,2,3)

@@ -1,5 +1,5 @@
 SD53P256 ;ALB/RPM - Pre/Post-Install;15-Nov-2001
- ;;5.3;Scheduling;**256**;Aug 13, 1993
+ ;;5.3;Scheduling;**256,1015**;Aug 13, 1993;Build 21
  ;
  ;
 ENV ;Main entry point for Environment check point.

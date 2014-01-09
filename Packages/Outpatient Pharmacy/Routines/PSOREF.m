@@ -1,5 +1,5 @@
 PSOREF ;BIR/SAB-refill data entry ;05-Oct-2011 10:08;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,23,27,36,46,78,130,131,1001,1006,1009,1013**;DEC 1997;Build 33
+ ;;7.0;OUTPATIENT PHARMACY;**1,23,27,36,46,78,130,131,1001,1006,1009,1013,148,206,1014**;DEC 1997;Build 62
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ;
@@ -11,6 +11,7 @@ EOJ ;
  D PSOUL^PSSLOCK($P(PSOLST(ORN),"^",2))
  Q
 OERR ;single refil
+ I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2),,.VALMSG,.VALMBCK) Q
  N APSPDRG
  I $D(RXRP($P(PSOLST(ORN),"^",2))) S VALMBCK="",VALMSG="A Reprint Label has been requested!" Q
  I $D(RXPR($P(PSOLST(ORN),"^",2))) S VALMBCK="",VALMSG="A Partial has already been requested!" Q
@@ -35,7 +36,7 @@ SPEED ;speed refill
  K PSOREF,PSOFDR,DIR,DUOUT,DIRUT S DIR("A")="Select Orders by number",DIR(0)="LO^1:"_PSOCNT D ^DIR I $D(DTOUT)!($D(DUOUT)) K DIR,DIRUT,DTOUT,DUOUT S VALMBCK="" Q
  K DIR,DIRUT,DTOUT,PSOOELSE,DTOUT I +Y S (ASK,SPEED,PSOOELSE)=1 D FULL^VALM1 S LST=Y D  G:$G(PSOREF("DFLG"))!($G(PSOREF("QFLG"))) SPEEDX
  .F ORD=1:1:$L(LST,",") Q:$P(LST,",",ORD)']""!($G(PSOREF("QFLG")))  S ORN=$P(LST,",",ORD) D:+PSOLST(ORN)=52
- ..;F ORD=1:1:$L(LST,",") Q:$P(LST,",",ORD)']""  S ORN=$P(LST,",",ORD) D:+PSOLST(ORN)=52
+ ..I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2)) W $C(7),!!,"Rx "_$$GET1^DIQ(52,$P(PSOLST(ORN),"^",2),.01)_" has OPEN/UNRESOLVED 3rd Party Payer Reject!" K DIR D PAUSE^VALM1 Q
  ..;IHS/MSC/MGH Text for REM medication. Patch 1013
  ..S APSPDRG=$P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^",6)
  ..I +APSPDRG D REMMSG^APSPFUNC(APSPDRG)
@@ -73,6 +74,7 @@ ASK S DIR(0)="FO^5:245^K:X'?3N1""-""1.N X",DIR("A")="WAND BARCODE"
  .K DIR,DIRUT,DTOUT,PSOOELSE,DTOUT
  .S (BCREF,ASK,SPEED,PSOOELSE)=1 D FULL^VALM1 D
  ..F ORD=1:1:$L(LST,",") Q:$P(LST,",",ORD)']""!($G(PSOREF("QFLG")))  S ORN=$P(LST,",",ORD) D:+PSOLST(ORN)=52
+ ...I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2)) W $C(7),!!,"Rx "_$$GET1^DIQ(52,$P(PSOLST(ORN),"^",2),.01)_" has OPEN/UNRESOLVED 3rd Party Payer Reject!" K DIR D PAUSE^VALM1 Q
  ...D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) W $C(7),!!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing Rx "_$P(^PSRX($P(PSOLST(ORN),"^",2),0),"^")),! D PAUSE^VALM1 K PSOMSG Q
  ...K PSOMSG I $D(RXRP($P(PSOLST(ORN),"^",2))) W $C(7),!!,"A Reprint Label has been requested for Rx "_$P(^PSRX($P(PSOLST(ORN),"^",2),0),"^"),! D ULK D PAUSE^VALM1 Q
  ...I $D(RXPR($P(PSOLST(ORN),"^",2))) W $C(7),!!,"A Partial has already been requested for Rx "_$P(^PSRX($P(PSOLST(ORN),"^",2),0),"^"),! D ULK D PAUSE^VALM1 Q
@@ -99,7 +101,7 @@ REFILL(PLACER) ;passes flag to CPRS for front door refill request
  I '$P($G(^PSRX(RXN,"OR1")),"^"),'$P($G(^PSDRUG(PSODRG,2)),"^") Q "0^Cannot Refill. Drug not matched to a Pharmacy Orderable Item."
  I '$P($G(^PSRX(RXN,"OR1")),"^"),$P($G(^PSDRUG(PSODRG,2)),"^") S $P(^PSRX(RXN,"OR1"),"^")=$P(^PSDRUG(PSODRG,2),"^")
  S CLOZPAT=$S($P($G(^PSDRUG(PSODRG,"CLOZ1")),"^")="PSOCLO1":1,1:0)
- I 'CLOZPAT I PSODEA["A"&(PSODEA'["B")!(PSODEA["F") Q "0^"_$S(PSODEA["F":"",1:"Narcotic Drug. ")_"Order Non-Refillable."
+ I 'CLOZPAT I PSODEA["A"&(PSODEA'["B")!(PSODEA["F")!(PSODEA[1)!(PSODEA[2) Q "0^"_$S(PSODEA["A":"Narcotic Drug. ",1:"")_"Order Non-Refillable."
  K CLOZPAT I DT>$P($G(^PSRX(RXN,2)),"^",6) Q "0^Non-Refillable.  Prescription has Expired."
  I $P(^PSRX(RXN,3),"^",2)>$P(^PSRX(RXN,2),"^",6) Q "0^Next Refill Date Past Expiration Date.  New Order Required."
  I '$P($G(^PS(59,DIV,1)),"^",11),$G(^PSDRUG(PSODRG,"I"))]"",DT>$G(^("I")) Q "0^Inactive Drug, Non Refillable."

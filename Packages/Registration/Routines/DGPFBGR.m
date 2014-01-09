@@ -1,14 +1,12 @@
-DGPFBGR ;ALB/RPM - PRF BACKGROUND PROCESSING DRIVER ; 4/28/03 3:24pm
- ;;5.3;Registration;**425,1008,1009**;Aug 13, 1993
+DGPFBGR ;ALB/RPM - PRF BACKGROUND PROCESSING DRIVER ; 6/3/05 12:25pm
+ ;;5.3;Registration;**425,650,1015**;Aug 13, 1993;Build 21
  ;
  Q   ;no direct entry
  ;
 EN ;entry point for PRF background processing
  ;
- Q:'$$ON^DGPFPARM()       ;software must be active
- ;
  D NOTIFY($$NOW^XLFDT())  ;send review notification
- D REXMIT^DGPFHLRT        ;retransmit rejected HL7 update messages
+ D RUNQRY^DGPFHLRT        ;run query for incomplete HL7 event status
  Q
  ;
 NOTIFY(DGDATE) ;Send notification message for pending Patient Record Flag
@@ -89,7 +87,7 @@ NOTIFY(DGDATE) ;Send notification message for pending Patient Record Flag
  ;
  Q
  ;
-BLDMSG(DGMGROUP,DGLIST,DGXMTXT) ;buld MailMan message array
+BLDMSG(DGMGROUP,DGLIST,DGXMTXT) ;build MailMan message array
  ;
  ;  Input:
  ;   DGMGROUP - mail group name
@@ -116,8 +114,7 @@ BLDMSG(DGMGROUP,DGLIST,DGXMTXT) ;buld MailMan message array
  D ADDLINE("",0,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("The following Patient Record Flag Assignments are due for review for continuing appropriateness:",0,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE("",0,DGMAX,.DGLIN,DGXMTXT)
- ;D ADDLINE($$LJ^XLFSTR("Patient Name",22," ")_$$LJ^XLFSTR("SSN",11," ")_$$LJ^XLFSTR("DOB",10," ")_$$LJ^XLFSTR("Flag Name",22," ")_"Review Date",0,DGMAX,.DGLIN,DGXMTXT)  ;cmi/maw 7/28/2008 PATCH 1009 orig
- D ADDLINE($$LJ^XLFSTR("Patient Name",22," ")_$$LJ^XLFSTR("HRCN",11," ")_$$LJ^XLFSTR("DOB",10," ")_$$LJ^XLFSTR("Flag Name",22," ")_"Review Date",0,DGMAX,.DGLIN,DGXMTXT)  ;cmi/maw 7/28/2008 PATCH 1009 changed SSN to HRCN
+ D ADDLINE($$LJ^XLFSTR("Patient Name",22," ")_$$LJ^XLFSTR("SSN",11," ")_$$LJ^XLFSTR("DOB",10," ")_$$LJ^XLFSTR("Flag Name",22," ")_"Review Date",0,DGMAX,.DGLIN,DGXMTXT)
  D ADDLINE($$REPEAT^XLFSTR("-",DGMAX),0,DGMAX,.DGLIN,DGXMTXT)
  ;
  S DGAIEN=0,DGCNT=0

@@ -1,5 +1,5 @@
 DGLOCK1 ;ALB/MRL - PATIENT FILE DATA EDIT CHECK ; 28 JUL 86
- ;;5.3;Registration;**121,314**;Aug 13, 1993
+ ;;5.3;Registration;**121,314,1015**;Aug 13, 1993;Build 21
 AOD ;AO Delete
  I $D(^DPT(DFN,.321)),$P(^(.321),U,2)="Y" W !?4,*7,"Can't delete as long as Agent Orange exposure is indicated." K X
  Q

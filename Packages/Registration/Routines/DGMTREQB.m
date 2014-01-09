@@ -1,5 +1,5 @@
-DGMTREQB ;ALB/CAW Send mail bulletin if means test required ; [ 09/13/2001  3:03 PM ]
- ;;5.3;Registration;**3**;Aug 13, 1993
+DGMTREQB ;ALB/CAW Send mail bulletin if means test required ; 06/16/2004
+ ;;5.3;Registration;**3,608,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 6/15/2000 added quit if site is IHS instead of VA
  ;
  ;
@@ -18,15 +18,15 @@ MAIL ;
  .S SDATA1=$G(^SC($P(SDATA,U,4),"S",$P(SDATA,U,3),1,+SDATA,0)),DFN=$P(SDATA,U,2) D PID^VADPT6
  .I 'SDATA1,SDAMEVT=2 S SDATA2=$G(^TMP("SDAMEVT",$J,"AFTER","DPT")),SDATA1="^^^^^"_$P(SDATA2,U,12)_U_$P(SDATA2,U,14)
  .D XMY^DGMTUTL(+$P(^DG(43,1,"NOT"),U,13),0,1)
- .S XMSUB="Patient: "_$P($G(^DPT($P(SDATA,U,2),0)),U)_"     Means Test Required",XMTEXT="DGBUL(" D
+ .S XMSUB="Means Test Required ("_$E($P($G(^DPT($P(SDATA,U,2),0)),U),1)_VA("BID")_")",XMTEXT="DGBUL(" D
  ..D SET("Action was taken on the following appointment out and the patient 'REQUIRES' a means test.")
  ..D SET("")
- ..D SET(" Patient ID:  "_VA("PID"))
- ..D SET("Appointment:  "_$$FTIME^DGMTUTL($P(SDATA,U,3)))
- ..D SET("     Action:  "_$P(SDATA("AFTER","STATUS"),U,2))
- ..D SET("     Clinic:  "_$P($G(^SC($P(SDATA,U,4),0)),U))
- ..D SET(" Entered By:  "_$P($G(^VA(200,+$P(SDATA1,U,6),0)),U))
- ..D SET(" Entered On:  "_$$FTIME^DGMTUTL($P(SDATA1,U,7)))
+ ..D SET("Date of Birth:  "_$$FTIME^DGMTUTL($P(^DPT(DFN,0),U,3)))
+ ..D SET("  Appointment:  "_$$FTIME^DGMTUTL($P(SDATA,U,3)))
+ ..D SET("       Action:  "_$P(SDATA("AFTER","STATUS"),U,2))
+ ..D SET("       Clinic:  "_$P($G(^SC($P(SDATA,U,4),0)),U))
+ ..D SET("   Entered By:  "_$P($G(^VA(200,+$P(SDATA1,U,6),0)),U))
+ ..D SET("   Entered On:  "_$$FTIME^DGMTUTL($P(SDATA1,U,7)))
  .D ^XMD
  .S ^DGMT(408.31,+DGMT,"BUL")=DT
 MAILQ Q

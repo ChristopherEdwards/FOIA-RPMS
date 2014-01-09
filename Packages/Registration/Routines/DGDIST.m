@@ -1,5 +1,5 @@
 DGDIST ;ALB/MRL - DISPOSITION TIME STUDY ; 13 MAY 1987
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  D:'$D(DT) DT^DICRW S U="^" W !!,*7 S Y=$O(^DPT("ADIS",0)) I Y S (Y,DGEAR)=$P(Y,".",1) X ^DD("DD") W "EARLIEST REGISTRATION ON FILE IS '",Y,"'." G 1
  W "NO REGISTRATIONS ON FILE TO START WITH!!" G Q
 1 W !! S %DT(0)=-DT,%DT="EAX",%DT("A")="Start with REGISTRATION DATE:  " D ^%DT G Q:Y'>0 S DGFR=Y I Y<DGEAR W !?4,"Can't be before earliest registration Date.",*7 G 1

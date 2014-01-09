@@ -1,20 +1,24 @@
-LEXAR7 ; ISL Look-up Response (MAIL)              ; 09-23-96
- ;;2.0;LEXICON UTILITY;**9**;Sep 23, 1996
+LEXAR7 ;ISL/KER - Look-up Response (MAIL) ;01/03/2011
+ ;;2.0;LEXICON UTILITY;**9,25,73**;Sep 23, 1996;Build 15
  ;
  Q
  ;  This routines sends a Mailman message containing the Unresolved
  ;  Narratives and Comments stored in file 757.06 to the Field Office
- ;  at G.LEXICON@DOMAIN.NAME.  Once sent, the Unresolved Narratives
+ ;  at G.LEXUNR@ISC-SLC.VA.GOV.  Once sent, the Unresolved Narratives
  ;  and comments are purged from file 757.06.  Both the Unresolved 
  ;  Narratives and comments are used to update the Lexicon Utility.
  ;
 SEND ; Task MAILMAN to Send Unresolved Narratives to the ISC
  I +($$TOT^LEXAR6)'>49!('$L($G(^LEX(757.06,0))))!(+($P($G(^LEX(757.06,0)),"^",4))<1) G SENDQ
- G:$D(^TMP("LEXSEND")) SENDQ S ^TMP("LEXSEND")=""
+ G:$D(^TMP("LEXSEND")) SENDQ S ^TMP("LEXSEND",$J)=""
  N X,Y,ZTQUEUED,ZTREQ,ZTSK,ZTDESC,ZTDTH,ZTIO,ZTRTN,%,%X,%Y
  S ZTRTN="ISC^LEXAR7",ZTDESC="Sending Narratives to IRMFO",ZTIO="",ZTDTH=$H D ^%ZTLOAD,HOME^%ZIS
 SENDQ ; End of Send
  K ZTSK,ZTDESC,ZTDTH,ZTIO,ZTRTN
+ Q
+DUMP ; Dump Narratives to Developer
+ D HOME^%ZIS S U="^" Q:+($G(DUZ))=0  Q:+($O(^LEX(757.06,0)))'>0
+ S ^TMP("LEXSEND",$J)="" K ^TMP("LEXMSG",$J) D ISC K ^TMP("LEXSEND",$J)
  Q
 ISC ; Create MAILMAN Message for the IRMFO
  G:'$D(^TMP("LEXSEND")) ISCQ G:$D(^TMP("LEXMSG")) ISCQ
@@ -60,11 +64,14 @@ ADD(LEXI,LEXS) ; Add text to message
  S:$G(LEXS)'="" ^TMP("LEXMSG",$J,LEXC)=^TMP("LEXMSG",$J,LEXC)_"^"_LEXS
  Q
 MAIL ; MAILMAN
- N XCNP,XMDUZ,XMSUB,XMTEXT,XMY,XMZ,Y
+ N XCNP,XMDUZ,XMSUB,XMTEXT,XMY,XMZ,Y,LEXADR S LEXADR=$$ADR^LEXU G:'$L(LEXADR) MAILQ
  G:'$D(^TMP("LEXMSG",$J)) MAILQ G:+($G(LEXA))=0 MAILQ G:+($G(^TMP("LEXMSG",$J,0)))=0 MAILQ
- K XMZ N DIFROM S XMSUB="Unresolved Narratives - "_LEXA_" items",XMY("G.LEXICON@DOMAIN.NAME")="",XMTEXT="^TMP(""LEXMSG"",$J,",XMDUZ=.5 D ^XMD
+ K XMZ N DIFROM S XMSUB="Unresolved Narratives - "_LEXA_" items"
+ S XMY(("G.LEXUNR@"_LEXADR))="",XMTEXT="^TMP(""LEXMSG"",$J,",XMDUZ=.5
+ ; Patch 57, discontinue the transmission of Unresolved Narratives
+ ; D ^XMD
 MAILQ ; End of MAILMAN
- K ^TMP("LEXSEND"),^TMP("LEXMSG",$J),DIFROM,LEXA,XCNP,XMDUZ,XMZ,XMSUB,XMY,XMTEXT,XMDUZ,XMSCR,REF,%,%X,%Y,%Z Q
+ K ^TMP("LEXSEND",$J),^TMP("LEXMSG",$J),DIFROM,LEXA,XCNP,XMDUZ,XMZ,XMSUB,XMY,XMTEXT,XMDUZ,XMSCR,REF, Q
 INM ; Initialize Message
  N LEXI S (LEXI,^TMP("LEXMSG",$J,0))=0 F  S LEXI=$O(^TMP("LEXMSG",$J,LEXI)) Q:+LEXI=0  K ^TMP("LEXMSG",$J,LEXI)
  Q

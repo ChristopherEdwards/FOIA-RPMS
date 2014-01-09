@@ -1,5 +1,8 @@
-SROPCEU0 ;BIR/ADM-Untransmitted Outpatient Encounters (cont.) ; [ 09/22/98  11:41 AM ]
- ;;3.0; Surgery ;**69,77,50**;24 Jun 93
+SROPCEU0 ;BIR/ADM - UNTRANSMITTED OUTPATIENT ENCOUNTERS (CONT.) ;06/21/05
+ ;;3.0; Surgery ;**69,77,50,142**;24 Jun 93
+ ;
+ ; Reference to ^ECC(723 supported by DBIA #205
+ ;
  U IO S (SRNEW,SRSOUT,SRSUB)=0,(SRHDR,SRPAGE)=1,Y=SDATE X ^DD("DD") S STARTDT=Y,Y=EDATE X ^DD("DD") S ENDATE=Y
  S SRRPT="Outpatient Surgery Encounters Not Transmitted to NPCD"
  S SRTITLE="For Completed "_$S(SRFLG=1:"O.R. Surgical Procedures",SRFLG=2:"Non-O.R. Procedures",1:"O.R. Surgical and Non-O.R. Procedures")
@@ -58,11 +61,12 @@ HDR ;  print heading
  I SRSORT D:SRSPECN'="" SUBHD S SRNEW=0
  Q
 REFILE ; re-file cases in PCE
- N SRVISIT,SRVSIT S (SRK,SRTN)=0,SRPKG=$O(^DIC(9.4,"B","SURGERY",0)),SRS="SURGERY DATA",SRFILE=1
+ N SRVISIT,SRVSIT K DIC S DIC=9.4,DIC(0)="XM",X="SURGERY" D ^DIC K DIC Q:Y=-1  S SRPKG=+Y
+ S (SRK,SRTN)=0,SRS="SURGERY DATA",SRFILE=1
  F  S SRTN=$O(^TMP("SR69",$J,SRTN)) Q:'SRTN  D
  .S (SRVISIT,SRVSIT)=$P(^SRF(SRTN,0),"^",15),SRV=$$DELVFILE^PXAPI("PRV^POV^CPT",SRVSIT)
- .D UTIL^SROPCE I 'SRK D
- ..D TMP^SROPCE
+ .D UTIL^SROPCEP I 'SRK D
+ ..D TMP^SROPCEP
  ..S SRVSIT=SRVISIT,SRV=$$DATA2PCE^PXAPI("^TMP(""SRPXAPI"",$J)",SRPKG,SRS,SRVSIT)
  ..K ^TMP("SRPXAPI",$J)
  Q

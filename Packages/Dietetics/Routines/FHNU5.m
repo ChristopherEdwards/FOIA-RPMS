@@ -1,5 +1,5 @@
 FHNU5 ; HISC/REL - Abbreviated Analysis ;5/17/93  08:48 
- ;;5.0;Dietetics;**36**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 T0 R !!,"Title of Analysis: ",TIT:DTIME G:'$T!("^"[TIT) KIL I TIT'?.ANP W *7,"  ??" G T0
  I $L(TIT)>60!($L(TIT)<3)!(TIT?1P.E) W *7,!,"Answer must be 3-60 characters in length" G T0
 D0 R !!,"Do you wish to use common units rather than grams? YES// ",YN:DTIME G:'$T!(YN["^") KIL S:YN="" YN="Y" S X=YN D TR^FH S YN=X

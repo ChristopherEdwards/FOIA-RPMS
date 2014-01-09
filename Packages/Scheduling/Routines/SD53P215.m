@@ -1,5 +1,5 @@
 SD53P215 ;BP-OIFO/KEITH - PRE/POST INSTALL SD*5.3*215 ; 27 Apr 2000 12:49 PM
- ;;5.3;Scheduling;**215**;Aug 13 1993
+ ;;5.3;Scheduling;**215,1015**;Aug 13 1993;Build 21
  ;
 ENV I DUZ(0)'="@" D
  .W !!,$C(7),"     To insure that data updates contained in this patch are",!,"     installed correctly, DUZ(0) must be equal the ""@"" symbol!",!

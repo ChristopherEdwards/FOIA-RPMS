@@ -1,5 +1,5 @@
 DGENQRY1 ;ALB/CJM - API for ENROLLMENT QUERIES (continued); 4-SEP-97 ; 5/14/02 9:57am
- ;;5.3;REGISTRATION;**147,232,363,472**;Aug 13,1993
+ ;;5.3;REGISTRATION;**147,232,363,472,1015**;Aug 13,1993;Build 21
  ;
 BATCH ;
  ;Description:  This procedure will re-send all queries still outstanding

@@ -1,5 +1,5 @@
 SD5384NC ;ALB/MLI - Non-count encounter cleanup ; January 13, 1996
- ;;5.3;Scheduling;**84**;AUG 13, 1993
+ ;;5.3;Scheduling;**84,1015**;AUG 13, 1993;Build 21
  ;
  ; This routine will update encounters to be non-count for locations
  ; selected.  It was written to correct problems caused when clinics

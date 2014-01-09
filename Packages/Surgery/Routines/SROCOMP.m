@@ -1,11 +1,12 @@
-SROCOMP ;BIR/MAM - VIEW OCCURRENCES ; [ 10/28/99  7:54 AM ]
- ;;3.0; Surgery ;**37,38,88**;24 Jun 93
+SROCOMP ;BIR/MAM - VIEW OCCURRENCES ; [ 05/11/04  7:54 AM ]
+ ;;3.0; Surgery ;**37,38,88,129**;24 Jun 93
  S SRSOUT=0 K SRNEWOP D ^SROPS I '$D(SRTN) S SRSOUT=1 G END
  S SR(0)=^SRF(SRTN,0),DFN=$P(SR(0),"^") D DEM^VADPT S SRNAME=VADM(1)_" ("_VA("PID")_")"
  S Y=$P(SR(0),"^",9) D D^DIQ S SRSDATE=$P(Y,"@")_" "_$P(Y,"@",2)
  S SR(.1)=$G(^SRF(SRTN,.1)),SRSUR=$P(SR(.1),"^",4),SRATT=$P(SR(.1),"^",13)
  S SRSUR=$S(SRSUR:$P(^VA(200,SRSUR,0),"^"),1:"NOT ENTERED"),SRATT=$S(SRATT:$P(^VA(200,SRATT,0),"^"),1:"NOT ENTERED")
- S X=$P(SR(.1),"^",16),SRATC=$S(X=0:"0. STAFF",X=1:"1. ATTENDING IN O.R.",X=2:"2. ATTENDING IN O.R. SUITE",X=3:"3. ATTENDING NOT PRESENT, BUT AVAILABLE",1:"NOT ENTERED")
+ S SRATC="",Y=$P($G(^SRF(SRTN,.1)),"^",10) I Y S C=$P(^DD(130,.166,0),"^",2) D Y^DIQ S SRATC=Y
+ I SRATC="" S SRATC="ATTENDING CODE NOT ENTERED"
  S SROPER=$P(^SRF(SRTN,"OP"),"^"),X=$P(^("OP"),"^",2) I X S CPT=$P($$CPT^ICPTCOD(X),"^",2),Y=CPT D SSPRIN^SROCPT S CPT=Y,SROPER=SROPER_" ("_CPT_")"
  K SROPS,MM,MMM S:$L(SROPER)<55 SROPS(1)=SROPER I $L(SROPER)>54 S SROPER=SROPER_"  " F M=1:1 D LOOP Q:MMM=""
  S X=$P($G(^SRF(SRTN,.2)),"^",12) S DIAG=$S(X:"POST",1:"PRE")
@@ -15,7 +16,7 @@ SROCOMP ;BIR/MAM - VIEW OCCURRENCES ; [ 10/28/99  7:54 AM ]
  S (CMP,CNT)=0 F  S CMP=$O(^SRF(SRTN,16,CMP)) Q:'CMP  S CNT=CNT+1,POST(CNT)=$P(^SRF(SRTN,16,CMP,0),"^")_"^"_$P(^(0),"^",6)_"^"_$P(^(0),"^",7)
  D HDR
  W !!,"Date of Operation: ",?21,SRSDATE,!,"Principal Operation: ",?21,SROPS(1) I $D(SROPS(2)) W !,?21,SROPS(2) I $D(SROPS(3)) W !,?21,SROPS(3)
- W !!,"Surgeon: ",?19,SRSUR,!,"Attending Surgeon: "_SRATT,!,"Attending Code: ",?19,SRATC
+ W !!,"Surgeon: ",?19,SRSUR,!,"Attending Surgeon: "_SRATT,!,"Attending Code: ",?16,SRATC
  W !!,"Principal "_$S(DIAG="POST":"Postop",1:"Preop")_" Diagnosis: ",?30,SRDIAG
  W !!,"Intraoperative Occurrences: " I '$O(INTRA(0)) W "NONE ENTERED"
  I $O(INTRA(0)) S CMP=0 F  S CMP=$O(INTRA(CMP)) Q:'CMP!(SRSOUT)  D INTRA

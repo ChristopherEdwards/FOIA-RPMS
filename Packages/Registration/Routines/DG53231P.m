@@ -1,5 +1,5 @@
 DG53231P ;ISA/Zoltan - Post-install for DG*5.3*231;April 7, 1999
- ;;5.3;Registration;**231**;Aug 13, 1993
+ ;;5.3;Registration;**231,1015**;Aug 13, 1993;Build 21
  ;
 POST ; Re-compiles print and input templates for those fields
  ; included in the patch.

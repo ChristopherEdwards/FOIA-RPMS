@@ -1,5 +1,5 @@
 PSOTALK2 ;BIR/EJW - SCRIPTALK ENROLLMENT FUNCTIONS ;3-28-02
- ;;7.0;OUTPATIENT PHARMACY;**135**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**135,182,326**;DEC 1997;Build 11
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference ^TMP("TIUP", ^TIUPNAPI, ^TIU(8925.1 supported by DBIA 1911
 ENROLL ;
@@ -7,7 +7,7 @@ ENROLL ;
  S PSOIND=""
  I '$G(PSOFIRST) D INSTR S PSOFIRST=1
  W !
- K DIC W ! S DIC="^DPT(",DIC(0)="QEAM",DIC("A")="Select PATIENT: " D ^DIC K DIC I Y<1!($D(DUOUT))!($D(DTOUT)) D CLEAN Q
+ K DIC W ! S DIC(0)="QEAM",DIC("A")="Select PATIENT: " D EN^PSOPATLK S Y=PSOPTLK K DIC,PSOPTLK I Y<1!($D(DUOUT))!($D(DTOUT)) D CLEAN Q
  S PSOPT=+Y
  S DFN=PSOPT D DEM^VADPT I +$G(VADM(6)) W !,"Patient is deceased",! G ENROLL
  I '$D(^PS(55,PSOPT)) D
@@ -43,13 +43,12 @@ GETIND ; GET INDICATION FOR ENROLLMENT
 INSTR ;
  W @IOF
  I $O(^TIU(8925.1,"B","SCRIPTALK ENROLLMENT",0))="" Q
- F PSOSQ=3:1:7 S PSOTT=$T(INSTR+PSOSQ) D  ;
- .W !?3,$P(PSOTT,";;",2)
- ;;At the conclusion of this enrollment option, you will be given the
- ;;opportunity to sign a progress note recording the enrollment of new
- ;;ScripTalk patients. If you modify the record of a patient that was
- ;;previously enrolled, and they remain enrolled, you may wish to either
- ;;delete or edit the text of the generated note.
+ W !
+ W !?3,"At the conclusion of this enrollment option, you will be given"
+ W !?3,"the opportunity to sign a progress note recording the enrollment"
+ W !?3,"of new ScripTalk patients. If you modify the record of a patient"
+ W !?3,"that was previously enrolled, and they remain enrolled, you may"
+ W !?3,"wish to either delete or edit the text of the generated note."
  W !!
  K PSOSQ,PSOTT,PSOSTP
  Q
@@ -73,7 +72,7 @@ CLEAN K PSOLINE,PSOPTNM,PSOTITL,PSOSTP,PSOPT,PSOFIRST
  Q
  ;
 AUDREP ;
- K DIC W ! S DIC="^DPT(",DIC(0)="QEAM",DIC("A")="Select PATIENT: " D ^DIC K DIC I Y<1!($D(DUOUT))!($D(DTOUT)) Q
+ K DIC W ! S DIC(0)="QEAM",DIC("A")="Select PATIENT: " D EN^PSOPATLK S Y=PSOPTLK K DIC,PSOPTLK I Y<1!($D(DUOUT))!($D(DTOUT)) Q
  S PSOPT=+Y
  S ZTSAVE("*")=""
  W !!,"You may queue the report to print, if you wish.",!

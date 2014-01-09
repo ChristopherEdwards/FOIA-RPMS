@@ -1,5 +1,5 @@
-TIUCNSLT ; SLC/JER - Patient movement look-up ;1/7/03
- ;;1.0;TEXT INTEGRATION UTILITIES;**4,31,109,131,142,144**;Jun 20, 1997
+TIUCNSLT ; SLC/JER - Patient movement look-up ;1/7/03 [6/11/04 8:34am]
+ ;;1.0;TEXT INTEGRATION UTILITIES;**4,31,109,131,142,144,184**;Jun 20, 1997
  ; External References
  ;   DBIA 2324   $$ISA^USRLM
  ;   DBIA 3473   SEND^GMRCTIU
@@ -77,7 +77,7 @@ POST(TIUDA,STATUS) ; Post status updates to Consult Tracking
  I +GMRCDA'>0 Q
  S TIUAUTH=$P($G(^TIU(8925,TIUDA,12)),U,2)
  D GET^GMRCTIU(GMRCDA,TIUDA,STATUS,TIUAUTH)
- Q
+ Q 
 ISCNSLT(TIUY,TITLE) ; Boolean RPC to evaluate whether TITLE is a CONSULT
  N TIUCLASS
  S TIUCLASS=+$$CLASS
@@ -128,3 +128,36 @@ CLASS() ; What is the TIU Class (or Document Class) for CONSULTS
  S GMRCY=+$O(^TIU(8925.1,"B","CONSULTS",0))
  I +GMRCY>0,$S($P($G(^TIU(8925.1,+GMRCY,0)),U,4)="CL":0,$P($G(^(0)),U,4)="DC":0,1:1) S GMRCY=0
  Q GMRCY
+REMCNSLT(TIUDA) ;Remove link to consult if there is one ;*171
+ ;TIUDA is a TIU record number
+ N TIUTYPE,TIUDELX
+ S TIUTYPE=+$G(^TIU(8925,+TIUDA,0))
+ S TIUDELX=$$DELETE^TIULC1(TIUTYPE)
+ I TIUDELX]"" X TIUDELX
+ Q
+CONSCT(TIUDA,TIUOTTL,TIUNTTL) ;
+ ;non cons title to cons title - already handled
+ ;cons title to cons title - already handled
+ ;cons title to non cons title
+ N TIUCLASS
+ S TIUCLASS=$$CLASS^TIUCNSLT()
+ I +$$ISA^TIULX(TIUOTTL,TIUCLASS),'+$$ISA^TIULX(TIUNTTL,TIUCLASS) D
+ . W !,"The Title you selected is not a Consults Title."
+ . W !,"  The note is currently linked to a Consults Request,"
+ . W !,"  but will be disassociated when the title is changed"
+ . W !,"  to a non Consults Title.",!
+ . W !,"Do you want to continue with this Change Title Action?"
+ . I +$$READ^TIUU("YO",,"N")'>0 S TIUQUIT=1
+ . I $G(TIUQUIT)=1 W !,"Title not changed." Q
+ . D REMCNSLT(+TIUDA)
+ Q
+CNSCTGUI(TIUDA,TIUOTTL,TIUNTTL) ;
+ ;non cons title to cons title - already handled
+ ;cons title to cons title - already handled
+ ;cons title to non cons title
+ N TIUCLASS
+ S TIUCLASS=$$CLASS^TIUCNSLT()
+ I +$$ISA^TIULX(TIUOTTL,TIUCLASS),'+$$ISA^TIULX(TIUNTTL,TIUCLASS) D
+ . ;Assume the confirmation has been taken care of already
+ . D REMCNSLT(+TIUDA)
+ Q

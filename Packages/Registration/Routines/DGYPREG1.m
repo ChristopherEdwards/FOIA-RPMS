@@ -1,5 +1,5 @@
 DGYPREG1 ;ALB/REW - POST-INIT PATIENT FILE POST-INIT CONT'D ;1-APR-93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 CFLREP ;End of Patient File Loop: Problem CFL Fields
  N DGDJ
  D SETUP(1) ; 1=CFL 2=TOTVACHK

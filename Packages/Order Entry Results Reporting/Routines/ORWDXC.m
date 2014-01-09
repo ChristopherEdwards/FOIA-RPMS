@@ -1,6 +1,6 @@
-ORWDXC ; SLC/KCM - Utilities for Order Checking;29-Feb-2008 13:03;DKM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,141,1005**;Dec 17, 1997
- ;
+ORWDXC ; SLC/KCM - Utilities for Order Checking;23-Nov-2011 11:50;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,141,1005,221,243,1010**;Dec 17, 1997;Build 47
+ ; Modified - IHS/MSC/DKM - Added RENEW and MANUAL EP
 ON(VAL) ; returns E if order checking enabled, otherwise D
  S VAL=$$GET^XPAR("DIV^SYS^PKG","ORK SYSTEM ENABLE/DISABLE")
  Q
@@ -130,25 +130,27 @@ USID(ORITMX) ; Return universal svc ID for an orderable item
  . . S ORDRUG=+ORDRUG
  . E  S ORDRUG=+$P(ORITMX,U,3)
  . S RSLT=$$ENDCM^PSJORUTL(ORDRUG)
- . S RSLT=$P(RSLT,U,3)_"^^99NDF^"_ORDRUG_U_$P($G(^PSDRUG(ORDRUG,0)),U)_"^99PSD"
+ . S RSLT=$P(RSLT,U,3)_"^^99NDF^"_ORDRUG_U_$$NAME50^ORPEAPI(ORDRUG)_"^99PSD"
  E  S RSLT=$$USID^ORMBLD(+ORITMX)
  I +$P(RSLT,U)=0,+($P(RSLT,U,4)=0) S RSLT="" ; has to be null (why?)
  Q RSLT
  ;
 CHK2LST ; creates list that can be passed to broker from ORCHECK array
  ; expects ORCHECK to be present and populates LST
- N ORIFN,ORID,CDL,I,ILST S ILST=0
+ N ORIFN,ORID,CDL,I,ILST S ILST=1  ;Start array at 1 always leaving room for RDI msg at top
  S ORIFN="" F  S ORIFN=$O(ORCHECK(ORIFN)) Q:ORIFN=""  D
  . S CDL=0 F  S CDL=$O(ORCHECK(ORIFN,CDL)) Q:'CDL  D
  . . S I=0 F  S I=$O(ORCHECK(ORIFN,CDL,I)) Q:'I  D
  . . . S ORID=ORIFN I +ORID,(+ORID=ORID) S ORID=ORID_";1"
  . . . I '$P(ORCHECK(ORIFN,CDL,I),U,2) Q  ; CDL="" means don't show
+ . . . I $P(ORCHECK(ORIFN,CDL,I),U,1)=99 S LST(1)=ORID_U_ORCHECK(ORIFN,CDL,I) Q  ;Put RDI warning at the top
  . . . S ILST=ILST+1,LST(ILST)=ORID_U_ORCHECK(ORIFN,CDL,I)
  Q
 LST2CHK ; create ORCHECK array from list passed by broker
  N ORIFN,CDL,I,ILST S I=0
  S ILST=0 F  S ILST=$O(LST(ILST)) Q:'ILST  D
  . S X=LST(ILST)
- . S ORIFN=$P(X,U),CDL=$P(X,U,3),I=I+1
- . S ORCHECK(+ORIFN,CDL,I)=$P(X,U,2,4)
+ . S ORIFN=$P(X,U),CDL=$P(X,U,3)
+ . I +$G(ORIFN)>0,+$G(CDL)>0 D  ;cla 12/16/03
+ . . S I=I+1,ORCHECK(+ORIFN,CDL,I)=$P(X,U,2,4)
  Q

@@ -1,5 +1,5 @@
 DG53292M ;ALB/RKS DG*5.3*292 POST-INSTALL TO MAILMAN MSG ; 05/22/00
- ;;5.3;Registration;**292**;AUG 13,  1993
+ ;;5.3;Registration;**292,1015**;AUG 13,  1993;Build 21
  ;
  ;This routine will be run as part of the post-install for patch
  ;DG*5.3*292

@@ -1,5 +1,5 @@
 ORQ1 ;slc/dcm-Get orders for a patient. ; 08 May 2002  2:12 PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**27,72,78,141,190**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**27,72,78,141,190,215**;Dec 17, 1997
 EN(PAT,GROUP,FLG,EXPAND,SDATE,EDATE,DETAIL,MULT,XREF,GETKID,EVENT) ;Get orders
  ; Returns orders in ^TMP("ORR",$J,ORLIST,i) for defined context:
  ;
@@ -41,6 +41,7 @@ EN(PAT,GROUP,FLG,EXPAND,SDATE,EDATE,DETAIL,MULT,XREF,GETKID,EVENT) ;Get orders
  ;25. Out of OR         =>           6,      10
  ;26. Manual Release    =>           6,      10
  ;27. Expired           =>             7
+ ;28. Discontinued Entered in Error => code handles this in ORQ12
  ;                         Orders in ^OR(100,"AEVNT",PAT,EVENT,IFN)
 EN0 ; where order status=#:
  ; 1 => Discontinued (dc) 6 => Active (a)           11 => Unreleased (u)
@@ -75,7 +76,7 @@ EN1 ; -- start here
  S LAPSE=+$$GET^XPAR("ALL","OR DELAYED ORDERS LAPSE DAYS")
  S:LAPSE LAPSE=$$FMADD^XLFDT(DT,(0-LAPSE)) ;=0 or cutoff date
  I "^15^16^17^24^25^26^"[(U_FLG_U)!$G(EVENT) D EN^ORQ13 G ENQ
- D @($S(FLG=2:"CUR",FLG=5:"EXG","^6^8^9^10^20^"[(U_FLG_U):"ACT",FLG=11:"SIG",FLG=19:"NEW","^1^3^4^7^12^13^14^18^21^22^23^27^"[(U_FLG_U):"LOOP",1:"QUIT")_"^ORQ11")
+ D @($S(FLG=2:"CUR",FLG=5:"EXG","^6^8^9^10^20^"[(U_FLG_U):"ACT",FLG=11:"SIG",FLG=19:"NEW","^1^3^4^7^12^13^14^18^21^22^23^27^28^"[(U_FLG_U):"LOOP",1:"QUIT")_"^ORQ11")
 ENQ K ^TMP("ORGOTIT",$J)
  Q
  ;

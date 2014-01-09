@@ -1,5 +1,7 @@
-APSPCSM1 ; IHS/MSC/PLS - CONTROLLED SUBSTANCE MANAGEMENT REPORT ;10-Nov-2011 12:48;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1007,1011,1013**;Sep 23, 2004;Build 33
+APSPCSM1 ; IHS/MSC/PLS - CONTROLLED SUBSTANCE MANAGEMENT REPORT ;17-Sep-2012 14:28;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1007,1011,1013,1015**;Sep 23, 2004;Build 62
+ ;=====================================================================
+ ;IHS/MSC/MGH Added column for fills in CMOP
  ;
  Q
 PRINT ;EP
@@ -108,7 +110,7 @@ PRINTSUM(RPTTYP,DRGNM,STATS,FDT) ;EP -
  ..S LSTFDT=FDT
  .;W DRGNM,?44,$J(STATS("RXCNT"),6),?51,$P(DAT,U,2),?63,$J(+$G(STATS("DRUG",+DAT)),8),?73,$J(+$G(STATS("DRUG",+DAT))\STATS("RXCNT"),6,1),!
  .;W DRGNM,?44,$J(STATS("FILLS"),6),?51,$P(DAT,U,2),?63,$J(+$G(STATS("DRUG",+DAT)),8),?73,$J(+$G(STATS("DRUG",+DAT))\STATS("FILLS"),6,1),!
- .;W DRGNM,?44,$E($P(DAT,U,2),1,10),?55,$J(STATS("FILLS"),6),?62,$J(+$G(STATS("DRUG",+DAT)),8),?74,$J(+$G(STATS("DRUG",+DAT))\STATS("FILLS"),6,1),!
+ .;W DRGNM,?44,$E($P(DAT,U,2),1,10),?55,$J(STATS("FILLS"),6),?62,$J(+$G(STATS("DRUG",+DAT)),8),?74,$J(+$G(STATS("DRUG",+DAT))\STATS("FILLS"),6,1),?90,!
  .W $P(DAT,U,3),?44,$E($P(DAT,U,2),1,10),?55,$J(STATS("FILLS"),6),?62,$J(+$G(STATS("DRUG",+DAT)),8),?74,$J(+$G(STATS("DRUG",+DAT))\STATS("FILLS"),6,1),!
  .S NEWPG=0
  .D PRINT3  ; check page length
@@ -190,11 +192,14 @@ PRINT2(DATA) ; EP -
  .W !,$$TAG("ProviderDEA",2,$$GET1^DIQ(200,$P(DATA,U,14),53.2))
  .W !,$$TAG("Pharmacist",2,$$GET1^DIQ(200,$P(DATA,U,15),.01))
  .W !,$$TAG("RefillsRemaining",2,$P(DATA,U,16))
+ .;IHS/MSC/MGH Patch 1015
+ .W !,$$TAG("CMOP",2,$P(DATA,U,17))
  .W !,$$TAG("Dosing",2,$$GETSIG(RX))
  .W !,$$TAG("Dispense",1)
  E  D
+ .;IHS/MSC/MGH Patch 1015 added CMOP field
  .W !,$P($TR($$FMTE^XLFDT($P(DATA,U,2),"5Z"),"@"," "),":",1,2),?14,$P(DATA,U,9),?20,$E($$GET1^DIQ(2,DFN,.01),1,16),?38,HRN,?48,$$GET1^DIQ(52,RX,.01),?60,$P(DATA,U,8),?107,$P(DATA,U,6),?117,$P(DATA,U,13),?127,$P(DATA,U,7)
- .W !,?5,$$GET1^DIQ(200,$P(DATA,U,14),.01),?35,$$GET1^DIQ(200,$P(DATA,U,14),53.2),?50,$E($$GET1^DIQ(200,$P(DATA,U,15),.01),1,22),?74,$P(DATA,U,16)
+ .W !,?5,$$GET1^DIQ(200,$P(DATA,U,14),.01),?35,$$GET1^DIQ(200,$P(DATA,U,14),53.2),?50,$E($$GET1^DIQ(200,$P(DATA,U,15),.01),1,22),?74,$P(DATA,U,16),?90,$P(DATA,U,17)
  .I APSPDOSE D
  ..W !,?5,"Dosing:" D OUTSIG($$GETSIG(RX),IOM,12)
  .D PRINT3 ;check page length
@@ -217,6 +222,7 @@ HDR ;EP
  .W !,?5,"Sorted by: "_$S(APSPSORT=1:"Drug Name, Fill Date",APSPSORT=3:"Drug Schedule, Drug Name then Fill Date",APSPSORT=2:"Fill Date then Drug Name",APSPSORT=4:"Patient then Fill Date",5:"Prescriber then Drug Name, Fill Date",1:"Unknown")
  E  D
  .W !,?5,"Sorted by: "_$S(APSPSORT=1:"Drug Name",1:"Fill Date then Drug Name")
+ W !,?5,"CMOP meds: "_$S(APSPCMOP:"Included",1:"Not Included")
  I APSPDET,APSPSORT=4,APSPPAT W !,?7,"Patient sort restricted to ",$$GET1^DIQ(2,APSPPAT,.01)
  I APSPDET,APSPSORT=5,APSPPRV W !,?7,"Prescriber sort restricted to ",$$GET1^DIQ(200,APSPPRV,.01)
  D HDR1:APSPRTYP=2,HDR2:APSPRTYP=1
@@ -224,8 +230,9 @@ HDR ;EP
  ;
 HDR1 ;EP
  D DASH
+ ;IHS/MSC/MGH added CMOP field
  W "Date Disp.",?14,"Type",?20,"Patient",?40,"HRN",?48,"Rx Number",?60,"Drug Name",?107,"Qty",?113,"Days Supply",?127,"Drug Schedule"
- W !,?5,"Prescriber",?35,"DEA Number",?50,"Pharmacist",?74,"Refills left"
+ W !,?5,"Prescriber",?35,"DEA Number",?50,"Pharmacist",?74,"Refills left",?90,"CMOP/Mail"
  W !,?5,"Dosage Ordered"
  D DASH
  Q
@@ -252,6 +259,7 @@ HDRXML ;EP - XML Header
  W:APSPDET !,$$TAG("SortBy",2,$S(APSPSORT=1:"Drug Name, Fill Date",APSPSORT=3:"Drug Schedule, Drug Name then Fill Date",APSPSORT=2:"Fill Date, Drug Name",APSPSORT=4:"Patient, Fill Date",5:"Prescriber, Drug Name then Fill Date",1:"Unknown"))
  I APSPDET,APSPSORT=4,APSPPAT W !,$$TAG("Patient sort restricted to "_$$GET1^DIQ(2,APSPPAT,.01),2)
  I APSPDET,APSPSORT=5,APSPPRV W !,$$TAG("Prescriber sort restricted to "_$$GET1^DIQ(200,APSPPRV,.01),2)
+ W !,$$TAG("CMOP",2,$S(APSPCMOP=1:"CMOP Included",1:"CMOP Not Included"))
  W !,$$TAG("ReportCriteria",1)
  W !,$$TAG("Dispenses")
  Q

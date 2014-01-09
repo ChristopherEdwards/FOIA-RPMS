@@ -1,5 +1,5 @@
 GMRAEF2 ;HIRMFO/WAA-FDA EXCEPTION REPORT ;11/29/95  15:01
- ;;4.0;Adverse Reaction Tracking;;Mar 29, 1996
+ ;;4.0;Adverse Reaction Tracking;**33**;Mar 29, 1996;Build 5
 EN1 ; Entry to PRINT ALL FDA EXCEPTIONS WITHIN A D/T RANGE option
  S GMRAOUT=0 K DIR
  S DIR(0)="DO^:DT:ETX",DIR("A")="Select Start Date"
@@ -20,6 +20,7 @@ EN2 ;
  .I '$P(GMRA(0),U,12) Q
  .I $$CMPFDA^GMRAEF1(GMRAIEN) Q
  .S GMRDFN=$P(GMRA(0),U)
+ .Q:'$$PRDTST^GMRAUTL1(GMRDFN)  ;GMRA*4*33 Exclude test patient from report if production or legacy environment.
  .S ^TMP($J,"GMRAEF",GMRDFN,GMRABGDT)=GMRAIEN
  .Q
  D EN1^GMRAEF

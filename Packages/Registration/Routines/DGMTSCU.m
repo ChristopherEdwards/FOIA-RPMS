@@ -1,5 +1,5 @@
 DGMTSCU ;ALB/RMO/CAW,LBD - Means Test Screen Driver Utilities ;21 JAN 1992 8:00 pm
- ;;5.3;Registration;**456**;Aug 13, 1993
+ ;;5.3;PIMS;**456,1015,1016**;JUN 30, 2012;Build 20
  ;
 SETUP ;Set-up the screen driver array and required screen variables
  ; Input  -- DFN              Patient IEN
@@ -16,7 +16,14 @@ SETUP ;Set-up the screen driver array and required screen variables
  N DGINI,DGIRI,DGLY,DGPRI,DGPRTY,DGSCR,I,X
  K DGMTSC S DGERR=0,DGLY=$$LYR^DGMTSCU1(DGMTDT)
  S DGSCR=$S(DGMTYPT=1:5,DGMTYPT=2&($$ASKNW^DGMTCOU):5,1:4)
- F I=1:1 S X=$P($T(SCRNS+I),";;",2) Q:X="QUIT"!(+X=DGSCR)  S DGMTSC(+X)=X
+ ;
+ ;* Check version; IF pre 2005 form, call version 0 input
+ I (+$P($G(^DGMT(408.31,DGMTI,2)),"^",11)=0) DO
+ . F I=1:1 S X=$P($T(SCRNS+I),";;",2) Q:X="QUIT"!(+X=DGSCR)  S DGMTSC(+X)=X
+ ;* Check version; IF Feb-2005 form, call version 1 input
+ I (+$P($G(^DGMT(408.31,DGMTI,2)),"^",11)=1) DO
+ . F I=1:1 S X=$P($T(SCRNS1+I),";;",2) Q:X="QUIT"!(+X=DGSCR)  S DGMTSC(+X)=X
+ ;
  D NEW^DGRPEIS1 S:DGPRI'>0 DGERR=1 G Q:DGERR S DGVPRI=DGPRI
  D GETIENS^DGMTU2(DFN,DGPRI,DGMTDT) G Q:DGERR S DGVINI=DGINI,DGVIRI=DGIRI
  D PAR S:DGMTPAR="" DGERR=1
@@ -81,9 +88,18 @@ ROURET(DGMTSCI) ;Screen read processor return routine
  S DGROU=$P($G(DGMTSC(DGMTSCI)),";",4)
  Q $G(DGROU)
  ;
+ ;Version 0 screen processing
 SCRNS ;Screen Number;Screen Name;Screen Entry Routine;Reader Return Routine
  ;;1;MARITAL STATUS/DEPENDENTS;EN^DGMTSC1;EN1^DGMTSC1
  ;;2;PREVIOUS CALENDAR YEAR GROSS INCOME;EN^DGMTSC2;EN1^DGMTSC2
  ;;3;DEDUCTIBLE EXPENSES;EN^DGMTSC3;EN1^DGMTSC3
  ;;4;PREVIOUS CALENDAR YEAR NET WORTH;EN^DGMTSC4;EN1^DGMTSC4
+ ;;QUIT
+ ;
+ ;Version 1 screen processing
+SCRNS1 ;Screen Number;Screen Name;Screen Entry Routine;Reader Return Routine
+ ;;1;MARITAL STATUS/DEPENDENTS;EN^DGMTSC1;EN1^DGMTSC1
+ ;;2;PREVIOUS CALENDAR YEAR GROSS INCOME;EN^DGMTSC2V;EN1^DGMTSC2V
+ ;;3;DEDUCTIBLE EXPENSES;EN^DGMTSC3V;EN1^DGMTSC3V
+ ;;4;PREVIOUS CALENDAR YEAR NET WORTH;EN^DGMTSC4V;EN1^DGMTSC4V
  ;;QUIT

@@ -1,5 +1,5 @@
 LEXDD3 ; ISL Display Defaults - Display List      ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 DSPLY ; Display Defaults contained in LEXD(
  Q:'$D(LEXD(0))

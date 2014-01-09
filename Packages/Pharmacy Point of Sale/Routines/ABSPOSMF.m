@@ -1,5 +1,5 @@
 ABSPOSMF ; IHS/SD/RLT - Medicare Part D Insurer Report ;     [ 01/30/06  09:20 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**16,19,29,37**;JAN 30, 2006
+ ;;1.0;PHARMACY POINT OF SALE;**16,19,29,37,44**;JAN 30, 2006
  Q
  ;
  ;----------------------------------------------------------
@@ -183,10 +183,13 @@ SETTMP ;Build ^TMP global with all Medicare D insurers in the
  F  S INSIEN=$O(^ABSPEI(INSIEN)) Q:'INSIEN  D
  . S INSNAME=$$GET1^DIQ(9002313.4,INSIEN_",",.01)
  . Q:INSNAME=""
- . S FRMIEN=$$GET1^DIQ(9002313.4,INSIEN_",",100.01,"I")
- . Q:FRMIEN=""        ;quit if insurer not tied to a format
- . S FRMNAME=$$GET1^DIQ(9002313.4,INSIEN_",",100.01)
- . S MPDFLG=$$GET1^DIQ(9002313.92,FRMIEN_",",1.2)
+ . ;OIT/CAS/RCS Patch 44 07022012 - Comment next 3 lines, no longer looking for format, HEAT # 71654
+ . ;S FRMIEN=$$GET1^DIQ(9002313.4,INSIEN_",",100.01,"I")
+ . ;Q:FRMIEN=""        ;quit if insurer not tied to a format
+ . ;S FRMNAME=$$GET1^DIQ(9002313.4,INSIEN_",",100.01)
+ . ;OIT/CAS/RCS Patch 44 07022012 - Comment next line and look at new location in Insurer file for Medicare Part D flag
+ . ;S MPDFLG=$$GET1^DIQ(9002313.92,FRMIEN_",",1.2)
+ . S MPDFLG=$$GET1^DIQ(9002313.4,INSIEN_",",100.18)
  . Q:MPDFLG'="Y"      ;quit if not a Medicare D format
  . S ^TMP("ABSPOSMF",$J,INSNAME)="0^0^0^0^0"
  Q

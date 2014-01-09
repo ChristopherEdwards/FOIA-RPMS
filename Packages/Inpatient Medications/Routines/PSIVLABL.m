@@ -1,16 +1,20 @@
-PSIVLABL ;BIR/PR-PRINT OUT LABELS ;02-Apr-2004 11:56;PLS
- ;;5.0; INPATIENT MEDICATIONS ;**58,82,104**;16 DEC 97
+PSIVLABL ;BIR/PR-PRINT OUT LABELS ;03-Apr-2013 14:18;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**58,82,104,127,178,184,1010,1015**;16 DEC 97;Build 62
  ;
  ; Reference to ^%ZIS(2 is supported by DBIA 3435.
  ; Reference to ^PS(52.6 is supported by DBIA 1231.
  ; Reference to ^PS(52.7 is supported by DBIA 2173.
  ; Reference to ^PS(55 is supported by DBIA 2191.
+ ; Reference to ^PS(51.2 is supported by DBIA 2178.
  ; Modified - IHS/CIA/PLS - 12/05/03 - Line DEM+4
+ ;            IHS/MSC/PLS - 07/31/12 - Line INF+8
  ;Needs DFN,ON, and PSIVNOL NOTE: If PSIVCT is defined then we do
  ;not count labels in the STATs file or increment cummulative doses or
  ;the last fill field.
  ;PSIVCT will be defined if reprinting scheduled labels, the suspense
  ;list, or if printing individual labels and they do not count.
+ ;
+ ; Modified - IHS/MSC/PB - 4/25/12 to add expiration date to the iv label. Added line tag OFFSET,
  ;
 DEM ;Get demographics and see if label is example only
  N X0,PSJIO,I
@@ -24,6 +28,11 @@ DEM ;Get demographics and see if label is example only
  I PSJIO,$G(PSJIO("FI"))]"" X PSJIO("FI")
  I $P(PSIVSITE,U,7) D
  . S PSIVFLAG=1,(LINE,PSIV1)=0,PSIV2=PSIVNOL,PSIVNOL=0 D RE
+ . S PSIVRP="",PSIVRT=""
+ . I $D(^PS(55,DFN,"IV",+ON,.2)) S PSIVRP=$P(^PS(55,DFN,"IV",+ON,.2),U,3) D
+ .. I PSIV1'>0!'$P(PSIVSITE,U,3)!($P(PSIVSITE,U,3)=1&(P(4)'="P"))!($P(PSIVSITE,U,3)=2&("AH"'[P(4))) Q   ;DO NOT PRINT ROUTE IF "DOSE DUE AT" IS SET TO NOT PRINT.
+ .. S PSIVRT=$P(^PS(51.2,PSIVRP,0),U,1)
+ .. S X="ROUTE: "_PSIVRT D:X]"" PMR
  . S X="Solution: _______________" D P S X="Additive: _______________" D P
  . S PSIVNOL=PSIV2
  . I 'PSJIO F LINE=LINE+1:1:(PSIVSITE+$P(PSIVSITE,U,16)) W !
@@ -41,7 +50,7 @@ START F PSIV1=1:1:PSIVNOL D
  . I PSJIO,$G(PSJIO("EL"))]"" X PSJIO("EL")
  I PSJIO,$G(PSJIO("FE"))]"" X PSJIO("FE")
  D:'$D(PSIVCT) ^PSIVSTAT
-Q K PSIV,PSIVDOSE,PSIVWD,P16,LINE,MESS,PSIVCT,PSIV2,PSIVFLAG,PSIVRM,PSIV1,PDOSE,PDATE,XX1,XX2,BAG,CX Q
+Q K PSIV,PSIVDOSE,PSIVWD,P16,LINE,MESS,PSIVCT,PSIV2,PSIVFLAG,PSIVRM,PSIV1,PDOSE,PDATE,XX1,XX2,BAG,CX,PSIMESS,TEXT1 Q
 RE ;
  K DO
  I PSIV1,P(4)="A"!(P(5)=0) S P(16)=PSIV1 I $G(PSIVT)]"" D
@@ -52,6 +61,12 @@ RE ;
  I PSIV1,$G(PSIVWMFL) S PSIVID($P(PSJBCID,"V",2))=""
  I PSJIO,$G(PSJIO("SL"))]"" X PSJIO("SL")
  I PSIV1 D BARCODE
+ ;IHS/MSC/PB - 04/25/12 - next line computes the IV label expiration date
+ I $P($G(^PS(59.5,PSIVSN,9999999)),U)=1 D  ;,$P($G(^PS(55,DFN,"IV",+ON,9999999)),U)'="" D
+ .N EXDT,XX1
+ .I $P($G(^PS(55,DFN,"IV",+ON,9999999)),U)'>0 S TEXT1="________" Q
+ .S XX1=$P(^PS(55,DFN,"IV",+ON,9999999),U),EXDT=$$FMADD^XLFDT($$DT^XLFDT(),XX1)
+ .S TEXT1=$$FMTE^XLFDT(EXDT,"5Z")
  S X="["_$P(^PS(55,DFN,"IV",+ON,0),U)_"]"_" "_VADM(2)_"  "_PSIVWD_"  "_$E(DT,4,5)_"/"_$E(DT,6,7)_"/"_$E(DT,2,3) D P
  S X=VADM(1) S:$P(PSIVSITE,U,9) X=X_"  "_$S(VAIN(5)]"":VAIN(5),1:"NF") D P S X=" " D P
  I $D(PSIVFLAG) F PSIV=0:0 S PSIV=$O(^PS(55,DFN,"IV",+ON,"AD",PSIV)) Q:'PSIV  S Y=^(PSIV,0),X=$S($D(^PS(52.6,+Y,0)):$P(^(0),"^"),1:"*********")_" "_$P(Y,U,2)_" " S:$P(Y,U,3)]"" X=X_" ("_$P(Y,U,3)_")" D
@@ -59,24 +74,41 @@ RE ;
  . ;I PSIV1 S YY=Y D UP2^PSIVBCID(DFN,PSJBLN,PSIV,YY) S Y=YY
  . D MESS
  G:$D(PSIVFLAG) SOL
+ ; IV BOTTLE functionality, 3rd piece of PS(55,DFN,"IV",+ON,"AD",PSIV,0) dictates labels per LABEL RUN on which the additive will print
  F PSIV=0:0 S PSIV=$O(^PS(55,DFN,"IV",+ON,"AD",PSIV)) Q:'PSIV  S Y=^(PSIV,0),X=$S($D(^PS(52.6,+Y,0)):$P(^(0),U),1:"********")_" "_$P(Y,U,2) I ","_$P(Y,U,3)_","[(","_P(16)_",")!('$P(Y,U,3)) D
  . D P
  . I PSIV1 S YY=Y D UP2^PSIVBCID(DFN,PSJBLN,PSIV,YY) S Y=YY
  . D MESS
+ ;
 SOL F PSIV=0:0 S PSIV=$O(^PS(55,DFN,"IV",+ON,"SOL",PSIV)) Q:'PSIV  S PSIV=PSIV_"^"_+^(PSIV,0),YY=^(0) D
  . D SOL1,P I PSIV1 D UP3^PSIVBCID(DFN,PSJBLN,PSIV,YY)
  . S X=$P(^PS(52.7,$P(PSIV,U,2),0),U,4) I X]"" S X="   "_X D P
  I P(23)'=""!(P(4)="S") S X="In Syringe: "_$E($P(^PS(55,DFN,"IV",+ON,2),U,4),1,25) D:P(4)="S"!(P(23)="S") P S X="*CAUTION* - CHEMOTHERAPY" D:P(23)'="" P
- S X=" " D P I PSIV1'>0!'$P(PSIVSITE,U,3)!($P(PSIVSITE,U,3)=1&(P(4)'="P"))!($P(PSIVSITE,U,3)=2&("AH"'[P(4))) G INF
+ S X=" " D P I PSIV1'>0!'$P(PSIVSITE,U,3)!($P(PSIVSITE,U,3)=1&(P(4)'="P"))!($P(PSIVSITE,U,3)=2&("AH"'[P(4))) G MEDRT
  S:'$D(PSIVDOSE) PSIVDOSE="" S X=$P(PSIVDOSE," ",PSIV1) D:$E(X)="." CONVER S X="Dose due at: "_$S(X="":"________",1:$E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3)_" "_$E(X#1_"000",2,5)) D P
+ ;
+MEDRT ;Find Medication Route
+ S PSIVRP="",PSIVRT=""
+ I $D(^PS(55,DFN,"IV",+ON,.2)) S PSIVRP=$P(^PS(55,DFN,"IV",+ON,.2),U,3) D
+ .S PSIVRT=$P(^PS(51.2,PSIVRP,0),U,1)
+ .S X="ROUTE: "_PSIVRT D:X]"" PMR
+ ;
 INF S X=$P(P(8),"@") D:X]"" P
  I $D(^PS(55,DFN,"IV",+ON,3)) S X=$P(^(3),"^") D:X]"" P
  S X=P(9) D:X]"" P
  S X=P(11) D:X]"" P
- I $D(MESS) S X=MESS D P
+ ;PSJ*5*184 - Display all messages if more than one additive has a message.
+ I $D(MESS) S PSIMESS="" F  S PSIMESS=$O(MESS(PSIMESS)) Q:PSIMESS=""  S X=PSIMESS D P
  I $D(^PS(59.5,PSIVSN,4)) S Y=^(4) F PSIV=1:1 S X=$P(Y,U,PSIV) Q:X=""  D P
- S X=PSIV1_"["_$S(PSIV1:PSIVNOL,1:PSIV2)_"]"_"  "_$S('PSIV1:PSIVNOW,1:"") D P
+ ;MSC/IHS/PB - 3/1/13 modified to incorporate VA changes for BCMA project
+ ;S X=PSIV1_"["_$S(PSIV1:PSIVNOL,1:PSIV2)_"]"_"  "_$S('PSIV1:PSIVNOW,1:"") D P
+ ;IHS/MSC/PB - 04/25/12 - next line prints the expiration date and text as the last line on the IV label IF there is an offset date for the IV
+ ;I $G(TEXT1)'="" D OFFSET("Do Not Use After:",TEXT1) S X=$G(PRTLINE) D P
+ ;IHS KCF VA0IT 2-2013 prints the expiration date and text as the last line on the IV label IF there is an offset date for the right label count.
+ S X=PSIV1_"["_$S(PSIV1:PSIVNOL,1:PSIV2)_"]"_"  "_$S('PSIV1:PSIVNOW,1:"") I $G(TEXT1)'="" D OFFSET(X,"Do Not Use After: "_TEXT1) I $G(PRTFLG)=0 S X=$G(PRTLINE)
+ D P
  Q
+ ;
 P F LINE=LINE+1:1 D  Q:$L(X)<1
  . I LINE>PSIVSITE D
  .. S LINE=1
@@ -90,8 +122,26 @@ P F LINE=LINE+1:1 D  Q:$L(X)<1
  . I 'PSJIO W !
  . S X=$E(X,PSIVRM+1,999)
  Q
+PMR ; Print Med Route on label
+ ;
+ F LINE=LINE+1:1 D  Q:$L(X)<1
+ . I LINE>PSIVSITE D
+ .. S LINE=1
+ .. I 'PSJIO D  Q
+ ... F ZZ=1:1 Q:ZZ>$P(PSIVSITE,"^",16)  W !
+ .. F I="EL","SL" I $G(PSJIO(I))]"" X PSJIO(I)
+ . K ZZ
+ . ;
+ . F I="ST","STF","SM","SMF" I $G(PSJIO(I))]"" X PSJIO(I)
+ . W $E(X,1,PSIVRM)
+ . F I="ETF","ET","EMF","EM" I $G(PSJIO(I))]"" X PSJIO(I)
+ . I 'PSJIO W !
+ . S X=$E(X,PSIVRM+1,999)
+ Q
+ ;
 SOL1 S X=$S($D(^PS(52.7,$P(PSIV,U,2),0)):$P(^(0),"^")_" "_$P(^PS(55,DFN,"IV",+ON,"SOL",+PSIV,0),U,2),1:"**********") Q
-MESS I '$D(MESS) I $P(^PS(52.6,+Y,0),U,9)]"" S MESS=$P(^(0),U,9)
+MESS ;PSJ*5*184 -make MESS a local array so all messages display for all additives.
+ I $P(^PS(52.6,+Y,0),U,9)]"" S MESS($P(^PS(52.6,+Y,0),U,9))=""
  Q
 CONVER ;Expand dose to date.dose and set in X
  I P(15)>1440 S X=$$CONVER1^PSIVORE2($P(PSIVDOSE," "),P(15),(PSIV1-1)) Q
@@ -109,4 +159,20 @@ BARCODE D PSET^%ZISP
  . F I="SB","SBF" I $G(PSJIO(I))]"" X PSJIO(I)
  . W PSJBCID
  . F I="EBF","EB" I $G(PSJIO(I))]"" X PSJIO(I)
+ Q
+ ;IHS/MSC/PB - 04/25/12 - next line tag added to compute length of lines with the new iv label expiration date data added to the first two lines. Code will check to be sure
+ ;that adding the new words "Do Not Use After:" to the first line of the label will not cause the line to be too long to print on the first line
+ ;if the new words plus the original text don't exceed the label width as specified in the IV Room file, data will print on the first line. if the text is too long
+ ;the flag PRTFLG is set to one and the new data and the expiration date will print as the last line of the label. This same process takes place for the second line
+ ;on the label except the check is to be sure the original text and the expiration date won't exceed the max number of characters.
+ ;
+OFFSET(TEXT,TEXT1) ;IHS/MSC/PB - 4/25/12 - computes length of text on a line, TEXT = the label data from the existing line, TEXT1 = the new text "Do Not Use After:" or the date depending on the line being printed
+ ;PRTFLG used to determine where to print the new data. PRTFLG = 1, print on a separate line PRTFLG=0 print on the same line as the original text printed
+ S LABWID=$P(^PS(59.5,PSIVSN,1),"^",13),PRTFLG=0
+ S SPACES=LABWID-($L(TEXT)+$L(TEXT1))
+ S NEWTEXT="",I=1 F I=1:1:SPACES S NEWTEXT=NEWTEXT_" "
+ S PRTLINE=TEXT_NEWTEXT_TEXT1
+ S:$L(PRTLINE)>LABWID PRTFLG=1 ; too many characters to print on one line.
+ S:SPACES'>4 PRTFLG=1 ; Not enough spaces between the original text and the new text to print on the same line
+ ;K LABWID,TEXTLEN,SPACES,LTEXT,NEWTEXT
  Q

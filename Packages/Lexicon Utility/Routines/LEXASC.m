@@ -1,10 +1,11 @@
-LEXASC ; ISL Look-up by Shortcuts                 ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+LEXASC ; ISL/KER Look-up by Shortcuts ; 05/14/2003
+ ;;2.0;LEXICON UTILITY;**25**;Sep 23, 1996;Build 15
  ;
  ; ^TMP("LEXFND",$J)  Entries found
  ; ^TMP("LEXHIT",$J)  Entries returned
  ;
  ; LEXSCH   User input string to search for
+ ; LEXVDT   Date is used to screen out inactive codes
  ;
  ; LEXC     Pointer to Shortcut Context  in file 757.41
  ; LEXS     Pointer to Shortcut in file 757.4
@@ -16,7 +17,7 @@ LEXASC ; ISL Look-up by Shortcuts                 ; 09-23-96
  ; LEXSHOW  Display string from Application/User defaults
  ; LEXX     Returned variable from functions
  ;
-EN(LEXSCH,LEXC) ; Check Shortcuts file 757.4 for LEXSCH
+EN(LEXSCH,LEXC,LEXVDT) ; Check Shortcuts file 757.4 for LEXSCH
  S LEXC=+($G(LEXC))
  Q:'$L(LEXSCH)!(LEXC=0) 0
  Q:'$D(^LEX(757.41,LEXC)) 0
@@ -32,7 +33,7 @@ EN(LEXSCH,LEXC) ; Check Shortcuts file 757.4 for LEXSCH
  . Q:+($P($G(^LEX(757.01,LEXE,1)),"^",5))=1
  . Q:+($$SUB(LEXE))=0
  . S LEXDES=$$DES(LEXE)
- . S LEXDSP="",LEXSHOW=$G(^TMP("LEXSCH",$J,"DIS",0)) S:$L($G(LEXSHOW)) LEXDSP=$$DSP(LEXE,$G(LEXSHOW))
+ . S LEXDSP="",LEXSHOW=$G(^TMP("LEXSCH",$J,"DIS",0)) S:$L($G(LEXSHOW)) LEXDSP=$$DSP(LEXE,$G(LEXSHOW),$G(LEXVDT))
  . D ADDL^LEXAL(LEXE,LEXDES,LEXDSP)
  I $D(^TMP("LEXFND",$J)) D BEG^LEXAL
  I '$D(^TMP("LEXFND",$J)) D
@@ -48,8 +49,8 @@ DES(LEXX) ; Get description flag
  S LEXX=$G(LEXDES) Q LEXX
 TERM(LEXX) ; Get expression
  Q $G(^LEX(757.01,LEXX,0))
-DSP(LEXX,LEXDSP) ; Return displayable text
- S LEXX=$$SO^LEXASO(LEXX,LEXDSP,1) Q LEXX
+DSP(LEXX,LEXDSP,LEXVDT) ; Return displayable text
+ S LEXX=$$SO^LEXASO(LEXX,LEXDSP,1,$G(LEXVDT)) Q LEXX
 SUB(LEXX) ;
  Q:$G(^TMP("LEXSCH",$J,"GBL",0))'="^LEX(757.21," 1
  Q:'$L($G(^TMP("LEXSCH",$J,"IDX",0))) 1

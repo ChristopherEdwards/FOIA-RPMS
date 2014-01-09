@@ -1,15 +1,19 @@
-PSOR52 ;IHS/DSD/JCM-files refill entries in prescription file ;04-Nov-2011 08:43;PLS
- ;;7.0;OUTPATIENT PHARMACY;**10,22,27,1005,1006,1013**;DEC 1997;Build 33
- ;External reference to ^PSDRUG supported by DBIA 221
- ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
+PSOR52 ;IHS/DSD/JCM-files refill entries in prescription file ;06-Mar-2013 09:52;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**10,22,27,1005,1006,1013,181,148,201,260,281,1015**;DEC 1997;Build 62
+ ;Reference to ^PSDRUG supported by DBIA 221
+ ;Reference to PSOUL^PSSLOCK supported by DBIA 2789
+ ;Reference SWSTAT^IBBAPI supported by DBIA 4663
+ ;Reference SAVNDC^PSSNDCUT supported by DBIA 4707
  ; This routine is responsible for the actual
- ; filing of the refill prescription.
+ ; filling of the refill prescription.
  ;---------------------------------------------------------
  ; Modified - IHS/CIA/PLS - 01/06/04 - DD section
  ;            IHS/MSC/PLS - 05/16/07 - DD section
  ;                          05/27/06 - FINISH+13 section - AudioCare
  ;                          10/24/07 - DD section
+ ;                          06/01/10 - Line FILE+12
  ;                          09/27/11 - APSPPRIO support
+ ;                          03/06/13 - Line DD-1
 EN(PSOX) ;Entry Point
 START ;
  D:$D(XRTL) T0^%ZOSV ; Start RT monitor
@@ -39,6 +43,7 @@ INIT ;
  I $P(PSOX("RX2"),"^",12)]"" S PSOX("GENERIC PROVIDER")=$P(PSOX("RX2"),"^",12)
  S PSOX("PROVIDER")=$P(PSOX("RX0"),"^",4)
  S:'$D(PSOX("CLERK CODE")) PSOX("CLERK CODE")=DUZ
+ S PSOX("DAW")=$$GETDAW^PSODAWUT(+PSOX("IRXN")),PSOX("NDC")=$$GETNDC^PSSNDCUT($P(PSOX("RX0"),"^",6))
  S:$L($G(APSPPRIO)) PSOX("APSPPRIO")=APSPPRIO  ;IHS/MSC/PLS - 09/27/11
 INITX Q
  ;
@@ -54,6 +59,8 @@ FILE ;
  S $P(^PSRX(PSOX("IRXN"),3),"^",1,2)=PSOX("LAST DISPENSED DATE")_"^"_PSOX("NEXT POSSIBLE REFILL")
  S $P(^PSRX(PSOX("IRXN"),3),"^",4)=PSOX("LAST REFILL DATE")
  I $D(PSOX("METHOD OF PICK-UP")),PSOX("FILL DATE")'>DT S $P(^PSRX(PSOX("IRXN"),"MP"),"^")=PSOX("METHOD OF PICK-UP")
+ ;IHS/MSC/PLS - 06/01/2010
+ ;D:$$SWSTAT^IBBAPI() GACT^PSOPFSU0(PSOX("IRXN"),PSOX("NUMBER"))
  ;L -^PSRX(PSOX("IRXN"))
  Q
  ;
@@ -61,20 +68,33 @@ DIK ;
  K DIK,DA
  S DIK="^PSRX(",DA=PSOX("IRXN") D IX1^DIK K DIK
  I +$G(^PSRX(DA,"IB")),$P(^PSRX(DA,1,PSOX("NUMBER"),0),"^",2)="W" S ^PSRX("ACP",$P(^PSRX(DA,0),"^",2),$P(^PSRX(DA,1,PSOX("NUMBER"),0),"^"),PSOX("NUMBER"),DA)="" K DA
+ D:$T(EN^PSOHDR)]"" EN^PSOHDR("PREF",PSOX("IRXN"))
  Q
  ;
 FINISH ;
  I $G(PSOX("QS"))="S" D  G FINISHX
  . S DA=PSOX("IRXN"),RXFL(PSOX("IRXN"))=PSOX("NUMBER")
  . D SUS^PSORXL K DA
- . Q
+ ;
+ ; - Previous ePharmacy Refill was Deleted and a new one is being entered
+ I '$$SUBMIT^PSOBPSUT(PSOX("IRXN"),PSOX("NUMBER")),$$STATUS^PSOBPSUT(PSOX("IRXN"),PSOX("NUMBER"))'="" D
+ . D RETRXF^PSOREJU2(PSOX("IRXN"),PSOX("NUMBER"),1)
  ;
  I PSOX("FILL DATE")>$S($G(PSOX("LOGIN DATE")):$E(PSOX("LOGIN DATE"),1,7),1:DT),$P(PSOPAR,"^",6) D  G FINISHX
  .K PSOXRXFL I $D(RXFL(PSOX("IRXN"))) S PSOXRXFL=$G(RXFL(PSOX("IRXN")))
- . S DA=PSOX("IRXN"),RXFL(PSOX("IRXN"))=PSOX("NUMBER")
- . D SUS^PSORXL K DA
+ .S DA=PSOX("IRXN"),RXFL(PSOX("IRXN"))=PSOX("NUMBER")
+ .D SUS^PSORXL K DA
  .I $G(PSOXRXFL)'="" S RXFL(PSOX("IRXN"))=$G(PSOXRXFL) K PSOXRXFL
- . Q
+ ;
+ ; - Calling ECME for claims generation and transmission / REJECT handling
+ N ACTION,PSOERX,PSOERF
+ S PSOERX=PSOX("IRXN"),PSOERF=PSOX("NUMBER")
+ I $$SUBMIT^PSOBPSUT(PSOERX,PSOERF) D  I ACTION="Q"!(ACTION="^") Q
+ . S ACTION="" D ECMESND^PSOBPSU1(PSOERX,PSOERF,PSOX("FILL DATE"),"RF")
+ . I $$FIND^PSOREJUT(PSOERX,PSOERF) D
+ . . S ACTION=$$HDLG^PSOREJU1(PSOERX,PSOERF,"79,88","OF","IOQ","Q")
+ . I $$STATUS^PSOBPSUT(PSOERX,PSOERF)="E PAYABLE" D
+ . . D SAVNDC^PSSNDCUT(+$$GET1^DIQ(52,PSOERX,6,"I"),$G(PSOSITE),$$GETNDC^PSONDCUT(PSOERX,PSOERF))
  ;
  I $G(PSOX("QS"))="Q" D  G FINISHX
  .; IHS/MSC/PLS - 05/27/06 - Next two lines modified to support AudioCare
@@ -83,15 +103,14 @@ FINISH ;
  . S RXFL(PSOX("IRXN"))=PSOX("NUMBER")
  . I $G(PPL) S PPL=PPL_PSOX("IRXN")_","
  . E  S PPL=PSOX("IRXN")_","
- . Q
  ;
  I $G(PSORX("PSOL",1))']"" S PSORX("PSOL",1)=PSOX("IRXN")_",",RXFL(PSOX("IRXN"))=PSOX("NUMBER") G FINISHX
  F PSOX1=0:0 S PSOX1=$O(PSORX("PSOL",PSOX1)) Q:'PSOX1  S PSOX2=PSOX1
  I $L(PSORX("PSOL",PSOX2))+$L(PSOX("IRXN"))<220 S PSORX("PSOL",PSOX2)=PSORX("PSOL",PSOX2)_PSOX("IRXN")_","
  E  S PSORX("PSOL",PSOX2+1)=PSOX("IRXN")_","
  S RXFL(PSOX("IRXN"))=PSOX("NUMBER")
+ ;
 FINISHX ;
- ;call to build bingo board Rx array
  I $G(PSORX("MAIL/WINDOW"))["W" S BINGCRT=1,BINGRTE="W",BBFLG=1 D BBRX^PSORN52C
  K PSOX1,PSOX2
  Q
@@ -102,6 +121,7 @@ EOJ ;
  K PSOR52,DA,DIK
  Q
  ;
+ ;;PSOX("DAW");;EPH;;1
 DD ;rx data nodes
  ;;PSOX("PROVIDER");;0;;17
  ;;PSOX("QTY");;0;;4

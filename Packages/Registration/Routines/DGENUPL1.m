@@ -1,46 +1,50 @@
-DGENUPL1 ;ALB/CJM,ISA/KWP - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 2/25/02 1:39pm
- ;;5.3;REGISTRATION;**147,222,232,314,397,379,407,363**;Aug 13,1993
+DGENUPL1 ;ALB/CJM,ISA/KWP,CKN,LBD - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 6/17/09 10:07am
+ ;;5.3;PIMS;**147,222,232,314,397,379,407,363,673,653,688,1015,1016**;JUN 30, 2012;Build 20
  ;
+PARSE(MSGIEN,MSGID,CURLINE,ERRCOUNT,DGPAT,DGELG,DGENR,DGCDIS,DGOEIF,DGSEC,DGNTR,DGMST,DGNMSE) ;
  ;
-PARSE(MSGIEN,MSGID,CURLINE,ERRCOUNT,DGPAT,DGELG,DGENR,DGCDIS,DGSEC,DGNTR,DGMST) ;
  ;Description:  This function parses the HL7 segments.  It creates arrays
- ;defined by the PATIENT, ENROLLMENT, ELIGIBILY, CATASTROPHIC DISABILITY
- ;objects. Field values are put in DHCP format and the validity at the
+ ;defined by the PATIENT, ENROLLMENT, ELIGIBILY, CATASTROPHIC DISABILITY,
+ ;OEF/OIF CONFLICT objects.
+ ;Field values are put in DHCP format and the validity at the
  ;field level is tested.  Fields to be deleted are set to "@".
  ;
  ;Input:
  ;  MSGIEN - the ien of the HL7 message in the HL7 MESSAGE TEXT file (772)
  ;  MSGID -message control id of HL7 msg in the MSH segment
  ;  CURLINE - the subscript of the PID segment of the current message (pass by reference)
- ;  ERRCOUNT - is a count of the number of messages in the batch that can not be processed (pass by reference)
+ ;  ERRCOUNT - is a count of the number of messages in the batch that can not be processed (pass by ref)
  ;
  ;Output:
  ;  Function Value: Returns 1 on success, 0 on failure.
  ;  CURLINE - upon leaving the procedure this parameter should be set to the end of the current message.
- ;  ERRCOUNT - set to count of messages that were not processed due to errors encountered. (pass by reference)
- ;  DGPAT - array defined by the PATIENT object. (pass by reference)
- ;  DGENR - array defined by the PATIENT ENROLLMENT object. (pass by reference)
- ;  DGELG - array defined by the PATIENT ELIGIBILITY object. (pass by reference)
- ;  DGCDIS - array defined by the CATASTROPHIC DISABILITY object. (pass by reference)
- ;  DGSEC - array defined by the PATIENT SECURITY object. (pass by reference)
+ ;  ERRCOUNT - set to count of messages that were not processed due to errors encountered. (pass by ref)
+ ;  DGPAT - array defined by the PATIENT object. (pass by ref)
+ ;  DGENR - array defined by the PATIENT ENROLLMENT object. (pass by ref)
+ ;  DGELG - array defined by the PATIENT ELIGIBILITY object. (pass by ref)
+ ;  DGCDIS - array defined by the CATASTROPHIC DISABILITY object. (pass by ref)
+ ;  DGSEC - array defined by the PATIENT SECURITY object. (pass by ref)
+ ;  DGOEIF - array defined by the OEF/OIF CONFLICT object.  (pass by ref)
  ;  DGNTR - array defined for NTR data.
  ;  DGMST - array defined for MST data.
- N SEG,ERROR,COUNT
+ ;  DGNMSE - array define for MILITARY SERVICE EPISODE data (pass by ref)
+ N SEG,ERROR,COUNT,QFLG,NFLG
  ;
  K DGEN,DGPAT,DGELG,DGCDIS,DGNTR,DGMST
  ;
- S ERROR=0
- F SEG="PID","ZPD","ZIE","ZEL" D  Q:ERROR
- .D NXTSEG^DGENUPL(MSGIEN,.CURLINE,.SEG)
- .I SEG("TYPE")=SEG D
+ S ERROR=0,NFLG=1
+ F SEG="PID","ZPD","ZIE","ZIO","ZEL"  D  Q:ERROR
+ .D:NFLG NXTSEG^DGENUPL(MSGIEN,.CURLINE,.SEG)
+ .I SEG="ZIO",SEG("TYPE")'="ZIO" S NFLG=0 Q
+ .I SEG("TYPE")=SEG D  Q
  ..D:(SEG'="ZEL") @SEG^DGENUPL2
  ..D:(SEG="ZEL") ZEL^DGENUPL2(1)
- .E  D
- ..D ADDERROR^DGENUPL(MSGID,$G(DGPAT("SSN")),SEG_" SEGMENT MISSING OR OUT OF ORDER",.ERRCOUNT)
- ..S ERROR=1
- ..;
- ..;possible that in a bad message we are now past the end
- ..S CURLINE=CURLINE-1
+ ..S NFLG=1
+ .D ADDERROR^DGENUPL(MSGID,$G(DGPAT("SSN")),SEG_" SEGMENT MISSING OR OUT OF ORDER",.ERRCOUNT)
+ .S ERROR=1
+ .;
+ .;possible that in a bad message we are now past the end
+ .S CURLINE=CURLINE-1
  ;
  I 'ERROR F COUNT=2:1 D NXTSEG^DGENUPL(MSGIEN,CURLINE,.SEG) Q:(SEG("TYPE")'="ZEL")  D  Q:ERROR
  .S CURLINE=CURLINE+1
@@ -61,7 +65,7 @@ PARSE(MSGIEN,MSGID,CURLINE,ERRCOUNT,DGPAT,DGELG,DGENR,DGCDIS,DGSEC,DGNTR,DGMST) 
  .S CURLINE=CURLINE+1
  .D ZCD^DGENUPL2
  ;
- ; Purple Heart  Addition of optional ZMH segment
+ ; Purple Heart/OEF-OIF  Addition of optional ZMH segment
  ;              Modified handling of ZSP and ZRD to accomodate ZMH
  ;
  I 'ERROR D  Q:ERROR $S(ERROR:0,1:1)
@@ -72,9 +76,13 @@ PARSE(MSGIEN,MSGID,CURLINE,ERRCOUNT,DGPAT,DGELG,DGENR,DGCDIS,DGSEC,DGNTR,DGMST) 
  .;possible that in a bad message we are now past the end
  .S CURLINE=CURLINE-1
  ;
+ ;Modified following code to receive multiple ZMH segment for
+ ;Military service information - DG*5.3*653
  I 'ERROR D  Q:ERROR $S(ERROR:0,1:1)
  .D NXTSEG^DGENUPL(MSGIEN,.CURLINE,.SEG)
- .I SEG("TYPE")="ZMH" D ZMH^DGENUPL2,NXTSEG^DGENUPL(MSGIEN,.CURLINE,.SEG)
+ .S QFLG=0 F  D  Q:QFLG
+ . . I SEG("TYPE")'="ZMH" S QFLG=1 Q
+ . . D ZMH^DGENUPL2,NXTSEG^DGENUPL(MSGIEN,.CURLINE,.SEG)
  .I SEG("TYPE")="ZRD" D ZRD^DGENUPL2 Q 
  .D ADDERROR^DGENUPL(MSGID,$G(DGPAT("SSN")),SEG_" SEGMENT MISSING OR OUT OF ORDER",.ERRCOUNT)
  .S ERROR=1
@@ -112,9 +120,11 @@ CONVERT(VAL,DATATYPE,ERROR) ;
  ;       Phase II convert code to RSN IEN for DGCDIS object
  ;       "CDRSN" data type converts the codes diagnosis,procedure,condition to RSN IEN. (HL7TORSN^DGENA5)
  ;       "EXT" convert from code to abbreviation
+ ;       "POS" convert from Period of Service code to a point to Period of Service file
+ ;       "AGENCY" convert Agency/Allied Country code from file 35
  ;OUTPUT:
  ;  Function Value - the result of the conversion
- ;  ERROR - set to 1 if an error is detected, 0 otherwise (optional,pass by reference)
+ ;  ERROR - set to 1 if an error is detected, 0 otherwise (optional,pass by ref)
  ;
  S ERROR=0
  D
@@ -151,6 +161,16 @@ CONVERT(VAL,DATATYPE,ERROR) ;
  ..S OLDVAL=VAL
  ..S VAL=$O(^DIC(4,"D",OLDVAL,0))
  ..I 'VAL S VAL=$O(^DIC(4,"D",(+OLDVAL),0))
+ ..I 'VAL S ERROR=1
+ .I ($G(DATATYPE)="POS") D  Q
+ ..N OLDVAL
+ ..S OLDVAL=VAL
+ ..S VAL=$O(^DIC(21,"D",OLDVAL,0))
+ ..I 'VAL S ERROR=1
+ .I ($G(DATATYPE)="AGENCY") D  Q
+ ..N OLDVAL
+ ..S OLDVAL=VAL
+ ..S VAL=$O(^DIC(35,"C",OLDVAL,0))
  ..I 'VAL S ERROR=1
  Q VAL
  ;

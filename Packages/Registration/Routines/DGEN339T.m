@@ -1,5 +1,5 @@
 DGEN339T ;ALB/SCK - IVMB HEC VETERAN MERGE EXTRACT POST INSTALL ; 1/13/2001
- ;;5.3;Registration;**339**;Aug 13,1993
+ ;;5.3;Registration;**339,1015**;Aug 13,1993;Build 21
  ;
 EN ; Main entry point to populate the IVMB HEC VSE NOTIFICATION mail group
  ; This routine is run as the post-install routine to patch DG*5.3*339 

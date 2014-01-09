@@ -1,5 +1,5 @@
-TIUPEVNT ; SLC/JER - Event logger for upload/filer ;01-Aug-2011 12:03;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,81,131,113,1009**;Jun 20, 1997;Build 22
+TIUPEVNT ; SLC/JER - Event logger for upload/filer ;04-Jun-2012 16:21;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,21,81,131,113,1009,184,1010**;Jun 20, 1997;Build 24
  ;IHS/ITSC/LJF 02/26/2003 include chart # in filing alerts messages
  ;                        changed PID to HRCN
  ;                        added code to escape from alert processing
@@ -60,8 +60,8 @@ ERRMSG(ETYPE,ECODE,TIUTYPE,FDA,MSG) ; ---- Set error messages
  ; ---- Set filing error message
  I +ETYPE=1,+ECODE D  G ERRMSX
  . S DIC=8925.3,DIC(0)="MXZ",X="`"_ECODE D ^DIC
- . ;S Y="FILING ERROR: "_$G(TIUTYPE)_" "_$P(Y(0),U,2)                    ;IHS/ITSC/LJF 02/26/2003
- . S Y="FILING ERROR: "_$$GETHRCN_" "_$G(TIUTYPE)_" "_$P(Y(0),U,2)       ;IHS/ITSC/LJF 02/26/2003 added chart # to alert
+ . ;S Y="FILING ERROR: "_$G(TIUTYPE)_" "_$P(Y(0),U,2)                ;IHS/ITSC/LJF 02/26/2003
+ . S Y="FILING ERROR: "_$$GETHRCN_" "_$G(TIUTYPE)_" "_$P(Y(0),U,2)   ;IHS/ITSC/LJF 02/26/2003 added HRCN to message
  ; ---- If target file is 8925, get info on entry & set missing fld msg
  I $G(MSG("DIERR",1,"PARAM","FILE"))=8925 D  G ERRMSX
  . N TIU,DA S DA=+$O(FDA(8925,"")) D GETTIU^TIULD(.TIU,DA)
@@ -95,7 +95,7 @@ ALERT(BUFDA,ERRMSG,EVNTDA) ; ---- Send alerts for filing errors
  Q
 DISPLAY ; ---- Alert followup action for filing errors
  N DIC,INQUIRE,RETRY,DWPK,EVNTDA,TIU K XQAKILL,RESCODE,TIUTYPE,TIUDONE
- N TIUEVNT,TIUSKIP,TIUBUF
+ N TIUEVNT,TIUSKIP,TIUBUF,PRFILERR
  I '$D(TIUPRM0)!'$D(TIUPRM1) D SETPARM^TIULE
  ; Set EVNTDA for backward compatibility, TIUEVNT for PN resolve code
  S (EVNTDA,TIUEVNT)=+$P(XQADATA,";",3)
@@ -115,14 +115,18 @@ DISPLAY ; ---- Alert followup action for filing errors
  . . I +$G(TIUDONE),+$G(TIUEVNT) D RESOLVE(+$G(TIUEVNT))
  . W !!,"Filing error resolution code could not be found for this document type.",!,"Please edit the buffered data directly and refile."
  ;
- I $G(INQUIRE)=U K XQX1 Q           ;IHS/ITSC/LJF 02/26/2003 added escape from alert processing
+ I $G(INQUIRE)=U K XQX1 Q     ;IHS/ITSC/LJF 02/26/2003 added escape from alert processing
  ;
  W !!,"You may now edit the buffered upload data in an attempt to resolve error:",!,$P(XQADATA,";",2),!
  I '$$READ^TIUU("EA","Press RETURN to continue and edit the buffer or '^' to exit: ") G DISPX
  S DIC="^TIU(8925.2,"_TIUBUF_",""TEXT"",",DWPK=1 D EN^DIWE
  S RETRY=$$READ^TIUU("YO","Now would you like to retry the filer","YES","^D FIL^TIUDIRH")
- I +RETRY D ALERTDEL(TIUBUF),RESOLVE(TIUEVNT,1),FILE^TIUUPLD(TIUBUF)
- ;
+ ; -- If refiling, tell Patient Record Flag LOOKUP to ask for flag link:
+ I +RETRY S PRFILERR=1
+ ; -- Refile
+ I +RETRY D ALERTDEL(TIUBUF)
+ I +RETRY D RESOLVE(TIUEVNT,1)
+ I +RETRY D FILE^TIUUPLD(TIUBUF)
  ;IHS/ITSC/LJF 02/26/2003 add ability to delete record completely
  I ('RETRY) NEW DELETE D
  . S DELETE=$$READ^TIUU("YO","Would you like to DELETE this record completely","NO","^D DELHELP^BTIUH2")

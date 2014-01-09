@@ -1,10 +1,11 @@
-APSPLBL1 ; IHS/DSD/ENM - PRINTS LABEL ;21-Jan-2011 13:09;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1009,1010**;09/03/97
+APSPLBL1 ; IHS/DSD/ENM - PRINTS LABEL ;26-Feb-2013 13:53;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1009,1010,1015**;09/03/97;Build 62
  ; Modified - IHS/CIA/PLS - 01/16/04; 02/18/04
  ;                        - 05/24/05
  ;                        - 09/23/05
  ;            IHS/MSC/PLS - 12/09/10 - Changed HRN calls to use field 100
  ;                        - 01/21/11 - Fixed typo at SUMMARY14
+ ;            IHS/MSC/MGH - 02/25/13 - Added variable check for reissue
  ;NOTE: VA Patches 31,66,60,59 not installed in this rtn IHS/DSD/ENM 3.9.94
  ;
 EP ;      This IHS routine is a rewrite of and not the same as the
@@ -61,12 +62,14 @@ ZZE ;IHS/DSD/ENM NEXT 6 LINES ADDED FOR LBL NODE 12/1/95
  S RXF=0 F I=0:0 S I=$O(^PSRX(RX,1,I)) Q:'I  S RXF=I
  S IR=0 F FDA=0:0 S FDA=$O(^PSRX(RX,"L",FDA)) Q:'FDA  S IR=FDA
  S IR=IR+1,^PSRX(RX,"L",0)="^52.032A^"_IR_"^"_IR
- S ^PSRX(RX,"L",IR,0)=$$NOW^XLFDT_"^"_$S($G(RXP):99-RXPI,1:RXF)_"^"_$S($G(PCOMX)]"":$G(PCOMX),1:"From RX number "_$P(^PSRX(RX,0),"^"))_$S($G(RXP):" (PARTIAL)",1:"")_$S($D(REPRINT):" (REPRINT)",1:"")_"^"_DUZ
+ ;IHS/MSC/MGH added for variable APSPREIS
+ ;S ^PSRX(RX,"L",IR,0)=$$NOW^XLFDT_"^"_$S($G(RXP):99-RXPI,1:RXF)_"^"_$S($G(PCOMX)]"":$G(PCOMX),1:"From RX number "_$P(^PSRX(RX,0),"^"))_$S($G(RXP):" (PARTIAL)",1:"")_$S($D(REPRINT):" (REPRINT)",1:"")_"^"_DUZ
+ S ^PSRX(RX,"L",IR,0)=$$NOW^XLFDT_"^"_$S($G(RXP):99-RXPI,1:RXF)_"^"_$S($G(PCOMX)]"":$G(PCOMX),1:"From RX number "_$P(^PSRX(RX,0),"^"))_$S($G(RXP):" (PARTIAL)",1:"")_$S($D(REPRINT):$S($G(APSPREIS)=1:" (REISSUE)",1:" (REPRINT)"),1:"")_"^"_DUZ
  S ^PSRX(RX,"TYPE")=0
 END K %DT,ADDR,DEA,DR,DR1,DRX,DRUG,FDT,SGY,RXY,RXZ,RYY,RFLMSG,RFL,COPIES
  K DOB,DRUG,LIM,LMI,LINE,PS,PS1,PS2,PSZZL,PSZLA,II,PSZM,INT,ISD,I1
  K MW,MAIL,STATE,SIDE,SSNP,SS,ST,ST1,PATST,PRTFL,PHYS,PNM,S,SL
- K SGC,APS("DISP UNITS"),SGYY
+ K SGC,APS("DISP UNITS"),SGYY,APSPREIS
  Q
  ;
 SIG1 S X=$S($D(SGY(DR)):SGY(DR),1:"") W !,?PSZTAB,X

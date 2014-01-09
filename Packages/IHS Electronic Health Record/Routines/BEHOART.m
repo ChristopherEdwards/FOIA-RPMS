@@ -1,5 +1,5 @@
-BEHOART ;MSC/IND/DKM - ART Package Interface ;16-Mar-2011 08:34;DU
- ;;1.1;BEH COMPONENTS;**045003,045004**;Sep 18, 2007;Build 1
+BEHOART ;MSC/IND/DKM - ART Package Interface ;01-May-2012 11:15;PLS
+ ;;1.1;BEH COMPONENTS;**045003,045004,045005**;Sep 18, 2007;Build 1
  ;=================================================================
  ; RPC: Lock entry for edit
 LOCK(DATA,IEN) ;
@@ -119,7 +119,7 @@ DEL(DATA,IEN) ;
  Q
  ; RPC: Save ART entry
 SAVE(DATA,IEN,DFN,VAL,ACTION) ;
- N FDA,FDA2,TAG,FLD,ERR,RIEN,NEW,AGNT,NOW,NKA,MIEN
+ N FDA,FDA2,TAG,FLD,ERR,RIEN,NEW,AGNT,NOW,NKA,MIEN,SIG,CANVER
  S NOW=$$NOW^XLFDT
  S ACTION=$G(ACTION)
  S NKA=0
@@ -146,22 +146,27 @@ SAVE(DATA,IEN,DFN,VAL,ACTION) ;
  S DATA=$S(NKA:$G(IEN(2)),NEW:$G(IEN(1)),1:+IEN)
  Q:'DATA
  ;Add the last modified data patch 8
- S MIEN="+1,"_DATA_","
- S FDA(120.899999914,MIEN,.01)=$$NOW^XLFDT
- S FDA(120.899999914,MIEN,.02)=DUZ
- D UPDATE^DIE(,"FDA","IEN","ERR")
- I $D(FDA2) D
- .S FDA2(120.85,RIEN,.02)=DFN
- .S FDA2(120.85,RIEN,.03)=DATA
- E  S:$E(RIEN)'="+" FDA2(120.85,RIEN,.01)="@"
- D:$D(FDA2) UPDATE^DIE(,"FDA2")
+ ;p11 - rearranged calls to prevent UPDSF from being called for NKA
+ I 'NKA D
+ .S MIEN="+1,"_DATA_","
+ .S FDA(120.899999914,MIEN,.01)=$$NOW^XLFDT
+ .S FDA(120.899999914,MIEN,.02)=DUZ
+ .D UPDATE^DIE(,"FDA","IEN","ERR")
+ .I $D(FDA2) D
+ ..S FDA2(120.85,RIEN,.02)=DFN
+ ..S FDA2(120.85,RIEN,.03)=DATA
+ .E  S:$E(RIEN)'="+" FDA2(120.85,RIEN,.01)="@"
+ .D:$D(FDA2) UPDATE^DIE(,"FDA2")
+ .D UPDSF(DATA,.AGNT)
  D CKIN^BEHOARMU(DFN)
- D UPDSF(DATA,.AGNT)
  D FIREEVT(DFN,'NEW,DATA)
- D:$$CANSIGN(DATA) SNDALR(DATA,1)
+ Q:NKA
+ S CANVER=$$HASKEY^BEHOUSCX("GMRA-ALLERGY VERIFY")
+ ;D:$$CANSIGN(DATA) SNDALR(DATA,1)  ;EHR P10
+ D:$$CANSIGN(DATA) SIGN(.SIG,DATA,CANVER)  ;AUTOSIGN
  Q
 GMRAAGNT N X
- S AGNT=$$CODE($P(VAL,U,2))
+ S AGNT=$$CODE(VAL)
  I '$L(AGNT) D
  .S AGNT=$P($P(VAL,U,3),",")
  .S:$L(AGNT) AGNT=+VAL_";"_AGNT_","
@@ -261,8 +266,9 @@ GETCMNT(IEN) ;
  Q +LP
  ; Update ingredient and class subfiles
 UPDSF(GMRAPA,GMRAAR) ;
- F X=120.802,120.803 D DELSF(X,+GMRAPA_",")
- D:$G(GMRAAR) EN1^GMRAOR9
+ I $G(GMRAAR) D
+ .F X=120.802,120.803 D DELSF(X,+GMRAPA_",")
+ .D:$G(GMRAAR) EN1^GMRAOR9
  Q
  ; Send a verification request bulletin
 SENDBULL(GMRAPA) ;
@@ -298,14 +304,12 @@ FIREEVT(DFN,ACTION,DATA) ;
  Q
  ; Returns agent text as variable pointer if found
 CODE(X) N D,DIC,TRD,Y
- S Y=$O(^GMRD(120.82,"B",X,0))
- Q:Y Y_";GMRD(120.82,"
- S Y=$O(^PS(50.605,"C",X,0))
- Q:Y Y_";PS(50.605,"
- S DIC=50.6,DIC(0)="X",D="B"
- D IX^DIC
- Q:Y>0 +Y_$TR($$NDFREF^GMRAOR,U,";")
- S TRD=$$TTOG^PSNAPIS(X,.TRD)
+ N AGNT
+ S AGNT=$P($P(X,U,3),",")
+ I AGNT="GMRD(120.82" Q +X_";"_AGNT_","
+ I AGNT="PSNDF(50.6" Q +X_";"_AGNT_","
+ I AGNT="PS(50.605" Q +X_";"_AGNT_","
+ S TRD=$$TTOG^PSNAPIS($P(X,U,2),.TRD)
  Q:TRD $O(TRD(0))_$TR($$NDFREF^GMRAOR,U,";")
  Q ""
  ; Update alerts for current user
@@ -372,4 +376,13 @@ ING(DATA,GMRAPA) ;Return
  ...S CNT=CNT+1,CNT2=CNT2+1
  ...I CNT2=1 S @DATA@(CNT)=" INGREDIENTS: "_$P(GMRAINGR(Y,X),U,1)
  ...E  S @DATA@(CNT)="              "_$P(GMRAINGR(Y,X),U,1)
+ Q
+ ;Return status of EIE Comment prompt
+AEIECMT(DATA) ;EP-
+ N SITE,IEN
+ S SITE=$O(^GMRD(120.84,"B",""))
+ I SITE="" S DATA=0 Q
+ S IEN=$O(^GMRD(120.84,"B",SITE,0))
+ I 'IEN S DATA=0 Q
+ S DATA=+$P($G(^GMRD(120.84,IEN,0)),U,11)
  Q

@@ -1,5 +1,5 @@
-SDROUT ;BSN/GRR - ROUTING SLIPS ; [ 11/03/2001  9:04 AM ]
- ;;5.3;Scheduling;**3,39,1013**;Aug 13, 1993
+SDROUT ;BSN/GRR - ROUTING SLIPS ; 26 APR 84  11:26 am
+ ;;5.3;Scheduling;**3,39,377,1013,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/15/2000 added IHS call for sorts & reprint questions
  ;                        added kill of ^TMP (used instead of ^UTILITY)
  ;                        changed $N to $O
@@ -8,10 +8,9 @@ SDROUT ;BSN/GRR - ROUTING SLIPS ; [ 11/03/2001  9:04 AM ]
  ;             11/22/2000 added call to find chart requests to print
  ;             12/06/2000 made all vs. add-on question clearer
  ;             11/02/2001 added code to print range for ALL
+ ;ihs/cmi/maw  04/11/2011 PATCH 1013 RQMT151
  ;
- ;ihs/cmi/maw 04/11/2011 PATCH 1013 RQMT151
- ;
- N VAUTC
+ N VAUTC,SDPLSRT,SDMATCH
  S SDSTOP=""   ;IHS/ANMC/LJF 11/02/2001
  S (SDIQ,SDX,DIV,SDREP,SDSTART)="" D DIV^SDUTL I $T D ROUT^SDDIV G:Y<0 END
 R1 S %=2 W !,"DO YOU WANT ROUTING SHEET FOR A SINGLE PATIENT" D YN^DICN I '% D QQ G R1
@@ -31,17 +30,30 @@ R2 ;R !,"WANT (A)LL ROUTING SHEETS OR (O)NLY ADD-ONS: ONLY ADD-ONS// ",X:DTIME G
  ;
  D ASK^BSDROUT Q  ;IHS/ANMC/LJF 11/15/2000
  ;
-R3 S ORDER=0 R !,"PRINT IN (T)ERMINAL DIGIT, (N)AME, OR (C)LINIC ORDER: T// ",X:DTIME G:X="^"!'$T END S Z="^TERMINAL DIGIT^NAME^CLINIC" I X="" S X="T" W X
- D IN^DGHELP I %=-1 W !?12,"CHOOSE FROM:",!?12,"T - To see routing slips sorted in terminal digit order",!?12,"N - To see routing slips sorted in alphabetical order by name",!?9,"or C - To see routing slips printed by clinic" G R3
-R4 S ORDER=$S(X="T":1,X="N":"",1:2)
+R22 S ORDER=0,DIR(0)="S^T:TERMINAL DIGIT;N:NAME;C:CLINIC;P:PHYSICAL LOCATION",DIR("B")="T",DIR("A")="PRINT IN",DIR("?")="^D HELP^SDROUT" D ^DIR
+ G:Y<0!$D(DTOUT)!$D(DIROUT)!$D(DIRUT) R2
+ S X=Y K DIR,DTOUT,DIROUT,DIRUT
+R4 S ORDER=$S(X="T":1,X="N":"",X="P":3,1:2)
+ ;
+RPL I ORDER=3 D
+ .S DIR("?")="Enter Physical Location to sort by. Must be an exact match"
+ .S DIR("??")="Enter Physical Location to sort by. Must be an exact matchas this is a Free Text field."
+ .S DIR(0)="F^1:25",DIR("A")="ENTER PHYSICAL LOCATION TO SORT BY"
+ .S DIR("B")="ALL" D ^DIR
+ I ORDER=3,Y<0!$D(DTOUT)!$D(DIROUT)!$D(DIRUT) Q
+ I ORDER=3 S SDPLSRT=X
+ I ORDER=3,$$PLVAL'=1 W !,"Not an exact match!" G RPL
+ I ORDER=3 K DIR,DTOUT,DIROUT,DIRUT
+ ;
  D:'$D(DT) DT^SDUTL S %DT="AEXF",%DT("A")="PRINT ROUTING SLIPS FOR WHAT DATE: " D ^%DT K %DT("A") G:Y<1 END S SDATE=Y
 A5 S %=2 W !,"IS THIS A REPRINT OF A PREVIOUS RUN" D YN^DICN I '% D QQ G A5
  Q:%<0  I '(%-1) S POP=0 D REP^SDROUT1 Q:POP
  I ORDER=2,SDREP="" G END:'$$CLINIC(DIV,.VAUTC)
- S VAR="DIV^VAUTC^VAUTC(^SDX^ORDER^SDATE^SDIQ^SDREP^SDSTART",DGPGM="START^SDROUT"
+ I ORDER=3,SDREP="" G END:'$$CLINIC(DIV,.VAUTC)
+ S VAR="DIV^VAUTC^VAUTC(^SDX^ORDER^SDATE^SDIQ^SDREP^SDSTART^SDLOC^SDPLSRT"
+ S DGPGM="START^SDROUT"
  D ZIS^DGUTQ G:POP END^SDROUT1
  G START
- ;
 START ;EP; IHS/ANMC/LJF 11/15/2000 called by BSDROUT to return to VA code
  K ^TMP("SDRS",$J)  ;IHS/ANMC/LJF 11/15/2000 IHS code uses ^TMP
  K ^UTILITY($J) U IO
@@ -59,13 +71,10 @@ START ;EP; IHS/ANMC/LJF 11/15/2000 called by BSDROUT to return to VA code
  D PRINT^BSDROUT1(ORDER,SDATE) Q
  ;IHS/ANMC/LJF 11/15/2000 11/02/2001
  ;
- ;
  G GO^SDROUT0
- ;
  ;IHS/ANMC/LJF 11/15/2000 file room list check added
 CHECK ;I $P(^SC(SC,0),"^",3)="C",$S(DIV="":1,$P(^SC(SC,0),"^",15)=DIV:1,1:0),$S('$D(^SC(SC,"I")):1,+^("I")=0:1,+^("I")>SDATE:1,+$P(^("I"),"^",2)'>SDATE&(+$P(^("I"),"^",2)):1,1:0)
  I $P(^SC(SC,0),U,21)'=0,$P(^SC(SC,0),"^",3)="C",$S(DIV="":1,$P(^SC(SC,0),"^",15)=DIV:1,1:0),$S('$D(^SC(SC,"I")):1,+^("I")=0:1,+^("I")>SDATE:1,+$P(^("I"),"^",2)'>SDATE&(+$P(^("I"),"^",2)):1,1:0)
- ;
  I $T,$S(ORDER'=2:1,SDREP:1,VAUTC=1:1,1:$D(VAUTC(SC)))
  Q
 QQ W !,"RESPOND YES OR NO" Q
@@ -102,3 +111,13 @@ CLINIC2(SDCL) ; -- generic screen for hos. loc. entries
  N X S X=$G(^SC(SDCL,0))
  Q $P(X,"^",3)="C"
  ;
+PLVAL() ; Physical Location Validation.
+ N SDCLIN,SDPLOC
+ S SDMATCH=0
+ I SDPLSRT="ALL" S SDMATCH=1 Q SDMATCH
+ S SDCLIN="" F  S SDCLIN=$O(^SC(SDCLIN)) Q:SDCLIN=""!(SDMATCH=1)  D
+ .S SDPLOC=$P($G(^SC(SDCLIN,0)),"^",11)
+ .I SDPLOC=SDPLSRT S SDMATCH=1
+ Q SDMATCH
+HELP W !?12,"CHOOSE FROM:",!?12,"T - To see routing slips sorted in terminal digit order",!?12,"N - To see routing slips sorted in alphabetical order by name",!?12,"C - To see routing slips printed by clinic " D
+ .W !,?12,"or P - To see routing slip printed by physical location"

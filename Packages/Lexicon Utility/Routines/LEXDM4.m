@@ -1,5 +1,5 @@
 LEXDM4 ; ISL Default Misc - Files/User/Svc/Loc    ; 02-02-96
- ;;2.0;LEXICON UTILITY;**4**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**4**;Sep 23, 1996;Build 15
  ;
 DFI(LEXX) ; Select one application
  N D,DIC,DTOUT,DUOUT I $D(LEXX),LEXX'="" S X=LEXX,DIC(0)="QM"

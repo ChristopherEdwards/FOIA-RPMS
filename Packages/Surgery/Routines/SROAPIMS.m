@@ -1,5 +1,5 @@
-SROAPIMS ;BIR/ADM-PIMS Information Retrieval ; [ 01/28/99  8:43 AM ]
- ;;3.0; Surgery ;**38,46,47,57,71,81,86**;24 Jun 93
+SROAPIMS ;BIR/ADM - PIMS Information Retrieval ;01/24/07
+ ;;3.0; Surgery ;**38,46,47,57,71,81,86,100,125,134,160**;24 Jun 93;Build 7
  ; 
  ; Reference to ^MCAR(690,"AC" supported by DBIA #1999
  ; Reference to ^DGPM("APTT1" supported by DBIA #565
@@ -20,10 +20,12 @@ SROAPIMS ;BIR/ADM-PIMS Information Retrieval ; [ 01/28/99  8:43 AM ]
  ; SRVADPT(12) = Admission to Observation
  ; SRVADPT(13) = Discharge from Observation
  ; SRVADPT(14) = Observation Specialty (PTF #)
+ ; SRVADPT(15) = Bad Address Indicator
  ;
- N SR,SRCC,SRDT,SRNON,SRSRV S SR(0)=^SRF(SRTN,0),DFN=$P(SR(0),"^") F I=1:1:14 S SRVADPT(I)=""
+ N SR,SRCC,SRDT,SRNON,SRSRV S SR(0)=^SRF(SRTN,0),DFN=$P(SR(0),"^") F I=1:1:15 S SRVADPT(I)=""
  D DEM^VADPT S SRVADPT(1)=VADM(1),SRVADPT(2)=VA("PID"),SRVADPT(4)=VADM(5),SRVADPT(6)=VADM(6) S Y=$E($P(SR(0),"^",9),1,7),Z=$P(VADM(3),"^") S SRVADPT(3)=$E(Y,1,3)-$E(Z,1,3)-($E(Y,4,7)<$E(Z,4,7))
  S SRX=$P(VADM(8),"^") I SRX K DA,DIC,DIQ,DR,SRY S DIC=10,DR=2,DA=SRX,DIQ="SRY",DIQ(0)="I" D EN^DIQ1 S SRVADPT(5)=SRY(10,SRX,2,"I")_"^"_$P(VADM(8),"^",2)
+ S SRVADPT(15)=$$BADADR^DGUTL3(DFN),$P(^SRF(SRTN,209),"^")=$S(SRVADPT(15):"Y",1:"N")
 ADM ; find date(s) of admission and discharge
  N SRSOUT S SRSOUT=0,(VAIP("D"),SRSDATE)=$P(SR(0),"^",9) D IN5^VADPT
  ; if not admitted before surgery, look for admission within 24 hours of leaving OR
@@ -42,9 +44,11 @@ STAY ; find length of post-operative hospital stay
  S X=$P($G(^SRF(SRTN,.2)),"^",3),X1=$P(SRVADPT(10),"^") I 'X!('X1)!(X>X1) G END
  S Y=$E(X1_"000",9,10)-$E(X_"000",9,10)*60+$E(X1_"00000",11,12)-$E(X_"00000",11,12),X2=X,X=$P(X,".",1)'=$P(X1,".",1) D ^%DTC:X S X=X*1440+Y,SRVADPT(11)=X\1440
 END S $P(^SRF(SRTN,208),"^",10)=$P(SRVADPT(5),"^"),SRINOUT=$P(^SRF(SRTN,0),"^",12) I SRVADPT(7)'="",SRVADPT(9)="" S SRVADPT(9)=$P($G(^SRF(SRTN,.2)),"^",10)
+ F I=7:1:10,12,13 S X=$P(SRVADPT(I),"^") I $L(X)>7 S $P(SRVADPT(I),"^")=+X
  I SRVADPT(7)'="" S $P(^SRF(SRTN,205),"^")=SRVADPT(11),L=6 F J=14:1:17 S L=L+1,$P(^SRF(SRTN,208),"^",J)=$P(SRVADPT(L),"^")
  I SRVADPT(7)="" S $P(^SRF(SRTN,205),"^")=$S(SRINOUT="O":"NA",1:SRVADPT(11)) S L=6 F J=14:1:17 S L=L+1 S $P(^SRF(SRTN,208),"^",J)=$S(SRINOUT="O":"NA",1:$P(SRVADPT(L),"^"))
  I SRVADPT(12)="" F J=1:1:3 S $P(^SRF(SRTN,208.1),"^",J)="NA"
+ S $P(^SRF(SRTN,205),"^",3)=$S($P(SRVADPT(6),"^")'="":$E($P(SRVADPT(6),"^"),1,12),1:"NA")
  D MCAR,EMPLOY
  D KVA^VADPT K DIE,DR,I,SR,SR24,SR48,SRCC,SRD,SRDD,SRDO,SRDT,SRF,SRINOUT,SRNON,SRSP,SRSRV,SRQ,SRX,SRY,X,X1,Y
  Q
@@ -72,7 +76,9 @@ EMPLOY ; employment status preoperatively
  Q
 ADM1 ; get information related to admission
  ; determine if admission was for observation
- S SRX=$P(VAIP(13,6),"^") D SPEC S Y="18,23,24,36,41,65,94" I Y[SRSP D  Q:SRSOUT
+ ; quit if no specialty defined for admission
+ S SRX=$P($G(VAIP(13,6)),"^") I SRX="" S SRSOUT=1 Q
+ D SPEC S Y="18,23,24,36,41,65,94" I Y[SRSP D  Q:SRSOUT
  .S SRVADPT(14)=SRSP,SRVADPT(12)=$E($P(VAIP(13,1),"^"),1,12),SRVADPT(13)=$E($P(VAIP(17,1),"^"),1,12)
  .S I=1 F J=12:1:14 S $P(^SRF(SRTN,208.1),"^",I)=SRVADPT(J),I=I+1
  .; look for admission following discharge from observation

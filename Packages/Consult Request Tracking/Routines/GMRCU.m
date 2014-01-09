@@ -1,5 +1,6 @@
-GMRCU ;SLC/DLT - Consult/Request Utilities ;5/20/98  14:21
- ;;3.0;CONSULT/REQUEST TRACKING;**1**;DEC 27, 1997
+GMRCU ;SLC/DLT - Consult/Request Utilities ;17-May-2010 14:43;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,1001,1002**;DEC 27, 1997;Build 14
+ ;Modified - IHS/CIA/MGH - 12/28/2005 - Line DEM+10  -  Added all to define the health record number
 MTIM ;CONVERT TIME from X=2890313.1304 INTO X=13:04
  S X=$P(X,".",2) Q:'$L(X)
  S X=$S(X:$E(X,1,2)_$E("00",0,2-$L($E(X,1,2)))_":"_$E(X,3,4)_$E("00",0,2-$L($E(X,3,4))),1:"")
@@ -31,7 +32,7 @@ HL7FMDTM ; Recieves X as CCYYMMDDHHMM and returns X as internal date/time
  Q
 DEM ; Gets Demographic Data from VADPT
  ; Receives: DFN
- ; Returns: GMRCPNM,GMRCSN,GMRCDOB,SEX,GMRCWARD,GMRCRB,GMRCAGE
+ ; Returns: GMRCPNM,GMRCSN,GMRCHRCN,GMRCDOB,SEX,GMRCWARD,GMRCRB,GMRCAGE
  ; and GMRCWLI,GMRCHLI
  K VAINDT,VAHOW D OERR^VADPT
  S GMRCPNM=VADM(1)
@@ -39,6 +40,7 @@ DEM ; Gets Demographic Data from VADPT
  S GMRCAGE=VADM(4),SEX=$P(VADM(5),"^")
  S GMRCWARD=$P(VAIN(4),"^",2),GMRCRB=VAIN(5),GMRCWLI=$P(VAIN(4),"^",1)
  S GMRCDOB=$P(VADM(3),"^",2)
+ S GMRCHRCN=$$HRCN^GMRCMP(DFN,+$G(DUZ(2)))  ;IHS/CIA/MGH
  K VA,VAIN,VADM,VAERR
  Q
 MD ; Format physician names ;4/4/89  11:39 ;

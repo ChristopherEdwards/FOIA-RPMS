@@ -1,5 +1,5 @@
-APCM11E6 ;IHS/CMI/LAB - IHS MU;  ; 10 Feb 2011  2:09 PM
- ;;2.0;IHS PCC SUITE;**6**;MAY 14, 2009;Build 11
+APCM11E6 ;IHS/CMI/LAB - IHS MU; 
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1**;MAR 26, 2012
  ;;;;;;Build 3
 ADV ;EP - CALCULATE adv directives
  NEW APCMP,APCMZ
@@ -150,7 +150,7 @@ ECHI ;EP - electronic copy of HI
  S (APCMD1,APCMN1)=0
  I APCMRPTT=2 S APCMP=APCMFAC  D
  .I $D(APCMECHI(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D  Q
- ..D S^APCM11E1(APCMRPT,APCMIC,"Facility is excluded from this measure no patients seen during the reporting period requested a copy of their health information during the report period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ ..D S^APCM11E1(APCMRPT,APCMIC,"Facility is excluded from this measure as no patients requested a copy of their health information during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  .D ALLV^APCLAPIU(DFN,$$FMADD^XLFDT(APCMEDAT,-365),APCMEDAT,"APCMECV")
  .S APCMHV=$$HADVH^APCM11CI(DFN,APCMP,$$FMADD^XLFDT(APCMEDAT,-365),APCMEDAT,.APCMECV)
  .I 'APCMHV Q  ;no visits to this FACILITY THAT ARE H/30/80 for this patient so don't bother, the patient is not in the denominator
@@ -225,7 +225,7 @@ ECDI ;EP - electronic copy of discharge instructions
  I APCMRPTT=2 D
  .S APCMP=APCMFAC
  .I $D(APCMNOEC(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D  Q
- ..D S^APCM11E1(APCMRPT,APCMIC,"Facility is excluded from this measure as it did not have any requests for electronic copy of discharge instructions during the EHR Reporting Period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ ..D S^APCM11E1(APCMRPT,APCMIC,"Facility is excluded from this measure as it did not have any requests from patients for and electronic copy of their discharge instructions during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  .S APCMEP=$$HASECDI(DFN,APCMBDAT,APCMEDAT,APCMP,.APCMVSTS)  ;return # of visits^# w/M-MR
  .;set denominator value into field
  .I APCMEP="" Q

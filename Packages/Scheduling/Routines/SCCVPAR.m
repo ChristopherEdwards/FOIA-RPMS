@@ -1,5 +1,5 @@
 SCCVPAR ;ALB/TMP - SCHED VISITS CONVERSION PARAMETERS; [ 03/02/98  10:47 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 PARAM ; Main entry point - display scheduling conversion parameters
  D EN^VALM("SCCV CONV PARAM MENU")

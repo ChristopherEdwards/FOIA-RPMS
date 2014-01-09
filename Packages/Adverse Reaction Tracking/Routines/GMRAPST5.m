@@ -1,5 +1,5 @@
 GMRAPST5 ;HIRMFO/WAA- PRINT TOTAL NUMBER OF REPORTED REACTION ;3/5/97  15:16
- ;;4.0;Adverse Reaction Tracking;**7**;Mar 29, 1996
+ ;;4.0;Adverse Reaction Tracking;**7,33**;Mar 29, 1996;Build 5
 EN1 ; This routine will loop through the ADT entry point to get all
  ; the entries in that date range.
  S GMRAOUT=0
@@ -27,6 +27,7 @@ PRINT ;Queue point for report
  .S GMRAPA1=0 F  S GMRAPA1=$O(^GMR(120.85,"B",GMRADATE,GMRAPA1)) Q:GMRAPA1<1  D
  ..S GMRAPA1(0)=$G(^GMR(120.85,GMRAPA1,0)) Q:GMRAPA1(0)=""  ;Bad Node
  ..Q:+$G(^GMR(120.8,$P(GMRAPA1(0),U,15),"ER"))  ;Entered in Error Data
+ ..Q:'$$PRDTST^GMRAUTL1($P(GMRAPA1(0),U,2))  ;GMRA*4*33  Exclude test patient from report if production or legacy environment.
  ..S GMRATOT=GMRATOT+1
  ..Q
  .Q
@@ -36,7 +37,7 @@ PRINT ;Queue point for report
  W !,?27,"From: ",$$FMTE^XLFDT(GMAST,"2D"),?42,"To: ",$$FMTE^XLFDT(GMAEN,"2D")
  D CLOSE^GMRAUTL
  Q
- ;has the patient died with inthe dat
+ ;has the patient died within the date
 HEAD ; Print header information
  I GMRAPG'=1  Q:$Y<(IOSL-4)
  I $E(IOST,1)="C" D  Q:GMRAOUT

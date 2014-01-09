@@ -1,5 +1,5 @@
 LEXDFLS ; ISL Default Filter - Select              ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
  ; Special Look-up in file 757.3 Screens
  ; Entry:  S X=$$EN^LEXDFLS

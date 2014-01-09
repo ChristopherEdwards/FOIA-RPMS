@@ -1,75 +1,70 @@
-DGPFHLRT ;ALB/RPM - PRF HL7 MESSAGE RETRANSMIT ; 6/19/03
- ;;5.3;Registration;**425**;Aug 13, 1993
- ;This routine provides procedures for retransmitting rejected PRF
- ;ORU~R01 HL7 messages.
+DGPFHLRT ;ALB/RPM - PRF HL7 MESSAGE RETRANSMIT ; 7/18/06 10:49am
+ ;;5.3;Registration;**425,650,1015**;Aug 13, 1993;Build 21
+ ;This routine generates a QRY~R02 HL7 message for all Incomplete
+ ;status PRF HL7 EVENT (#26.21) file patient query records.
  ;
  Q  ;no direct entry
  ;
-REXMIT ;Retransmit all rejected PRF ORU~R01 messages
+RUNQRY ;Generate new PRF QRY~R02 HL7 Query for a patient
  ;This procedure scans all entries in the ASTAT index of the PRF HL7
- ;TRANSMISSION LOG (#26.17) file, looking for transmissions with a
- ;status of REJECT and that were rejected prior to the start of the
- ;scan
+ ;EVENT (#26.21) file, looking for INCOMPLETE status HL7 query records
  ;
- Q:'$$ORUON^DGPFPARM()  ;ORU interface must be active
+ N DGASGN  ;array of Category I assignment ien's
+ N DGDFN   ;pointer to patient in PATIENT (#2) file
+ N DGLIEN  ;PRF HL7 EVENT (#26.21) file IEN
+ N DGPFL   ;array of event data fields
  ;
- N DGCODAT   ;cutoff date for scan
- N DGDAT     ;original transmission date
- N DGERR     ;error array
- N DGFAC     ;destination station number
- N DGFDA     ;FDA array
- N DGLIEN    ;pointer to PRF HL7 TRANSMISSION LOG (#26.17) file
- N DGPARAM   ;target root for PRF PARAMETERS (#26.18) file date fields
- N DGPERIOD  ;auto retransmit delay period
- N DGPFAH    ;assignment history data array
- N DGPFL     ;HL7 transmission log data array
- N DGSTAT    ;transmission status
- N DGTOT     ;total rexmit'd messages
- ;
- ;retrieve date/time of last scanned entry and retransmit period
- D GETS^DIQ(26.18,"1,","4;5","I","DGPARAM","DGERR")
- Q:$D(DGERR)
- S DGDAT=$G(DGPARAM(26.18,"1,",4,"I"))
- S DGPERIOD=$S(DGDAT>0:+$G(DGPARAM(26.18,"1,",5,"I")),1:0)
- S DGTOT=0
- ;
- ;calculate cutoff date
- S DGCODAT=$$FMADD^XLFDT($$NOW^XLFDT(),-DGPERIOD)
- ;
- ;loop through date/times
- F  S DGDAT=$O(^DGPF(26.17,"ASTAT",DGDAT)) Q:'DGDAT!(DGDAT>DGCODAT)  D
+ S DGLIEN=0
+ F  S DGLIEN=$O(^DGPF(26.21,"ASTAT","I",DGLIEN)) Q:'DGLIEN  D
+ . K DGPFL,DGASGN
+ . Q:'$$GETEVNT^DGPFHLL1(DGLIEN,.DGPFL)
  . ;
- . ;loop through status
- . S DGSTAT=""
- . F  S DGSTAT=$O(^DGPF(26.17,"ASTAT",DGDAT,DGSTAT)) Q:DGSTAT=""  I DGSTAT="RJ" D
- . . ;
- . . ;loop through log file IEN
- . . S DGLIEN=0
- . . F  S DGLIEN=$O(^DGPF(26.17,"ASTAT",DGDAT,DGSTAT,DGLIEN)) Q:'DGLIEN  D
- . . . ;
- . . . ;retrieve assignment history file IEN
- . . . Q:'$$GETLOG^DGPFHLL(DGLIEN,.DGPFL)
- . . . Q:'+DGPFL("ASGNHIST")
- . . . ;
- . . . ;retrieve institution and convert to station#
- . . . S DGFAC(1)=$$STA^XUAF4(+DGPFL("SITE"))
- . . . Q:'DGFAC(1)
- . . . ;
- . . . ;retrieve assignment file IEN
- . . . Q:'$$GETHIST^DGPFAAH(+DGPFL("ASGNHIST"),.DGPFAH)
- . . . Q:'+DGPFAH("ASSIGN")
- . . . ;
- . . . ;build and transmit the new message
- . . . Q:'$$SNDORU^DGPFHLS(+DGPFAH("ASSIGN"),+DGPFL("ASGNHIST"),.DGFAC)
- . . . ;
- . . . ;update HL7 transmission log
- . . . D STOSTAT^DGPFHLL(DGLIEN,"RT")
- . . . ;
- . . . ;update total count
- . . . S DGTOT=DGTOT+1
- ;
- ;update PRF HL7 REXMIT TASK DATE/TIME (#4) field
- S DGFDA(26.18,"1,",4)=$O(^DGPF(26.17,"ASTAT",DGDAT),-1)
- D FILE^DIE("","DGFDA","DGERR")
- ;
+ . Q:($P($G(DGPFL("STAT")),U,1)'="I")
+ . ;
+ . S DGDFN=$P($G(DGPFL("DFN")),U,1)
+ . Q:DGDFN']""
+ . ;
+ . ;If patient already has the total possible number of Cat I flags,
+ . ;then mark the query event file as COMPLETE and quit.
+ . I $$GETALL^DGPFAA(DGDFN,.DGASGN,"",1)=$$CNTRECS^DGPFUT1(26.15) D  Q
+ . . D STOEVNT^DGPFHLL1(DGDFN,"C")
+ . ;
+ . ;mark the event in ERROR when attempt limit is reached and quit
+ . I $$QRYCNT(DGLIEN)+1>$$TRYLIMIT() D  Q
+ . . D STOEVNT^DGPFHLL1(DGDFN,"E")
+ . ;
+ . ;run query in deferred mode
+ . I $$SNDQRY^DGPFHLS(DGDFN,2)
+ . ;
  Q
+ ;
+QRYCNT(DGEVNT) ;get number of logged query attempts
+ ;This function counts the number of entries in the PRF HL7 QUERY LOG
+ ;(#26.19) file for a given PRF HL7 EVENT.
+ ;
+ ;  Input:
+ ;    DGEVNT  - pointer to PRF HL7 EVENT (#26.21) file
+ ;
+ ;  Function value - number of logged query attempts
+ ;
+ N DGCNT
+ N DGLIEN
+ ;
+ S DGEVNT=+$G(DGEVNT)
+ S DGCNT=0
+ S DGLIEN=0
+ F  S DGLIEN=$O(^DGPF(26.19,"C",DGEVNT,DGLIEN))  Q:'DGLIEN  D
+ . S DGCNT=DGCNT+1
+ ;
+ Q DGCNT
+ ;
+TRYLIMIT() ;get PRF Query Try Limit parameter value
+ ;
+ ;  Input:  none
+ ;
+ ;  Output:
+ ;    Function value - DGPF QUERY TRY LIMIT parameter [DEFAULT=5]
+ ;
+ N DGVAL
+ S DGVAL=$$GET^XPAR("PKG","DGPF QUERY TRY LIMIT",1,"Q")
+ Q $S(DGVAL="":5,1:DGVAL)

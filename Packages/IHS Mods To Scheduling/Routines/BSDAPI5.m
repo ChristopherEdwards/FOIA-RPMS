@@ -1,5 +1,5 @@
 BSDAPI5 ; cmi/anch/maw - PCC API FOR RPMS (con't)[ 03/24/2005  1:44 PM ]
- ;;5.3;PIMS;**1009**;MAY 28, 2004
+ ;;5.3;PIMS;**1009,1015**;MAY 28, 2004;Build 21
  ;
  ;cmi/anch/maw 06/10/2008 PATCH 1009 requirement 58 added logic to display visits and let user select
  ;
@@ -13,7 +13,7 @@ SELECT(BSDT,BSDV) ; SELECT EXISTING VISIT
  I $D(DIRUT) K BSDTMP("CALLER") S BSDIN("FORCE ADD")=1 Q  ;kill caller variable so force add happens
  I BSDVC=Y K BSDTMP("CALLER") S BSDIN("FORCE ADD")=1 Q  ;kill caller variable so force add happens
  S BSDR("VIEN")=BSDVX1(Y)
- K BSDT,APCDALVR
+ K BSDT,APCDALVR,BSDVX1,BSDVX11  ;ihs/cmi/maw 06/05/2012 added because hanging around
  Q
  ;
 WRITE ; WRITE VISITS FOR SELECT

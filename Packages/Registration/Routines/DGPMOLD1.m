@@ -1,11 +1,11 @@
 DGPMOLD1 ;ALB/MIR - CONTINUATION OF LODGER OUTPUTS (SORT/PRINT) ;23 MAY 90 @12 [ 03/17/2004  1:52 PM ]
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 STORE D NOW^%DTC S Y=% X ^DD("DD") S DGNOW=Y I DGHOW=2 S Y=DGFR+.1 X ^DD("DD") S DGFROM=Y,Y=$P(DGTO,".") X ^DD("DD") S DGEND=Y
  G:DGHOW=2 DR S W=""
  F I=0:0 S W=$S(VAUTW:$O(^DGPM("LD",W)),1:$O(VAUTW(W))) Q:W=""  S DGX=$O(^DIC(42,"B",W,0)),DGX=$S($D(^DIC(42,+DGX,0)):$P(^(0),"^",11),1:0) D DIV I DGX'<0 F J=0:0 S J=$O(^DGPM("LD",W,J)) Q:'J  D SORT ;current lodgers
  ;IHS/ITSC/WAR 03/17/04 Changed to $$GET1^DIQ
- ;I DGOF F I=0:0 S I=$O(^DGPM("ATID4",I)) Q:'I  S J=$O(^(I,0)),J=$O(^(+J,0)) I $D(^DGPM(+J,0)) S X=^(0) I '$P(X,"^",17),($P(X,"^",18)=6) S W="ZZOF"_$S($D(^DIC(4,+$P(X,"^",5),0)):$P(^(0),"^",1),1:"UNKNOWN") D SORT  ;current lodgers/other facility
- I DGOF F I=0:0 S I=$O(^DGPM("ATID4",I)) Q:'I  S J=$O(^(I,0)),J=$O(^(+J,0)) I $D(^DGPM(+J,0)) S X=^(0) I '$P(X,"^",17),($P(X,"^",18)=6) S W="ZZOF"_$S($$GET1^DIQ(405,+J,.05):$$GET1^DIQ(405,+J,.05),1:"UNKNOWN") D SORT  ;current lodgers/other facility
+ ;I DGOF F I=0:0 S I=$O(^DGPM("ATID4",I)) Q:'I  S J=$O(^(I,0)),J=$O(^(+J,0)) I $D(^DGPM(+J,0)) S X=^(0) I '$P(X,"^",17),($P(X,"^",18)=6) S W="ZZOF"_$S($D(^DIC(4,+$P(X,"^",5),0)):$P(^(0),"^",1),1:"UNKNOWN") D SORT  ;current lodgers facility
+ I DGOF F I=0:0 S I=$O(^DGPM("ATID4",I)) Q:'I  S J=$O(^(I,0)),J=$O(^(+J,0)) I $D(^DGPM(+J,0)) S X=^(0) I '$P(X,"^",17),($P(X,"^",18)=6) S W="ZZOF"_$S($$GET1^DIQ(405,+J,.05):$$GET1^DIQ(405,+J,.05),1:"UNKNOWN") D SORT  ;current lodgers facility
  D PRINT Q
 DR ;lodgers for a date range
  F I=0:0 S I=$O(^DGPM("AMV4",I)) Q:'I!(I>DGTO)  F K=0:0 S K=$O(^DGPM("AMV4",I,K)) Q:'K  S J=$O(^(+K,0)) D SORT

@@ -1,5 +1,5 @@
 ORKCHK4 ; slc/CLA - Support routine called by ORKCHK to do SELECT mode order checks ;3/6/97  9:35
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,74,87,94,123,162,190**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,74,87,94,123,162,190,249**;Dec 17, 1997
  Q
  ;
 EN(ORKS,ORKDFN,ORKA,ORENT,ORKTMODE) ;perform order checking for orderable item selection
@@ -80,8 +80,8 @@ RXOCS ;drug-drug interaction, duplicate drug order, duplicate drug class
  ..S ORPSNUM=$P(XX,U,4)  ;get the associated order number
  ..I $L(ORPSNUM),$G(^OR(100,+ORPSNUM,0)) S ORKT=$$FULLTEXT^ORQOR1(+ORPSNUM),ORKTXT=$P(ORKT,U)_" ["_$P(ORKT,U,2)_"]"
  ..E  S ORKTXT=$P(XX,U,3)
- ..S ORKMSG="Duplicate order: "_ORKTXT
- ..S ORKS("ORK",ORDUPD_","_$G(ORNUM)_","_ORPSNUM_",Duplicate order: "_$P(XX,U,3))=ORNUM_U_ORDUPN_U_ORDUPD_U_ORKMSG_U_$G(ORPSNUM)
+ ..S ORKMSG="Duplicate drug order: "_ORKTXT
+ ..S ORKS("ORK",ORDUPD_","_$G(ORNUM)_","_ORPSNUM_",Duplicate drug order: "_$P(XX,U,3))=ORNUM_U_ORDUPN_U_ORDUPD_U_ORKMSG_U_$G(ORPSNUM)
  .;
  .;duplicate class:
  .I $P(XX,U)="DC" D  ;,(ORKTMODE'="ALL") D

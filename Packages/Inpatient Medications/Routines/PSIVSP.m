@@ -1,21 +1,18 @@
 PSIVSP ;BIR/RGY,PR,CML3-DOSE PROCESSOR ;09 Feb 99 / 12:30 PM
- ;;5.0; INPATIENT MEDICATIONS ;**30,37,41,50,56,74,83**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**30,37,41,50,56,74,83,111,133,138,134,213**;16 DEC 97;Build 8
  ;
  ; Reference to ^PS(51.1 is supported by DBIA #2177
  ;
 EN ;
  Q:'$D(X)
- ;/S (PSIVAT,PSIVWAT,Y)="",XT=-1,X0=X,X=$S(X="ON CALL":X,X["ONE ":X,1:$P(X," "))
  S ATZERO=0 I X["@",$P(X,"@",2)=0 S ATZERO=1,X=$P(X,"@")
- D EN^PSGS0 S (P(9),PSIVSC1)=$G(X),P(11)=Y,(XT,P(15))=$G(PSGS0XT)
+ D EN^PSGS0 S (P(9),PSIVSC1)=$S($G(X)]"":X,1:$G(P(9))),P(11)=$S($G(PSGS0Y):PSGS0Y,1:$G(P(11))),(XT,P(15))=$S(($G(PSGS0XT)!($G(PSGS0XT)="O")!($G(PSGS0XT)="D")):$G(PSGS0XT),1:$G(P(15)))
  I $G(ATZERO) S P(7)=1
  K ATZERO Q
 EN1 ;
  S (PSIVAT,PSIVWAT,Y)="",XT=-1,X0=X,X=$S(X="ON CALL":X,X="ONCALL":X,X="ON-CALL":X,X="ONETIME":X,X="ONE-TIME":X,X="ONE TIME":X,X="1TIME":X,X="1 TIME":X,X="1-TIME":X,$L(X," ")<3:$P(X," "),1:$P(X," ",1,2))
  S:$E(X)="^" X=$E(X,2,999) G:X="" Q S:X["@0" ATZERO=1 S X=$S(X["@0":$P(X,"@"),1:X),P(7)=$S($D(ATZERO):1,1:"") K ATZERO
- ;;I X0["@",$P(X0,"@",2)'=0 K X Q
  I $S($D(^PS(51.1,"AC","PSJ",X)):1,1:$E($O(^(X)),1,$L(X))=X) D DIC I Y'<0 G SH
- ;;I $S(X="NOW":1,X="ONCE":1,X="STAT":1,X="ONE-TIME":1,X="ONE TIME":1,1:0) S XT=0,Y(0)=X G SH
 NS0 S Y=""
  I $E(X,1,2)="AD" S XT=-1 Q
  I $E(X,1,3)="BID"!($E(X,1,3)="TID")!($E(X,1,3)="QID") S XT=1440\$F("BTQ",$E(X))
@@ -25,8 +22,6 @@ SH ;
  I +Y<1,$E(X0)'="^" W:$G(ON)'["P" "  ",$S(XT=0&($S("^NOW^STAT^ONCE^ONE-TIME^ONETIME^1TIME^1-TIME^"[(U_$P(X," ")_U):1,X["1 TIME":1,1:X["ONE TIME")):"(ONCE ONLY)",XT>0:"Nonstandard schedule",XT<0:"",1:"(??)") W:XT>0 " (",XT," MINUTES)"
 Q Q:X="ONE TIME"
  N I S X0=$P(X," ")_$S($L(X0," ")-1:" ",1:"")_$P(X0," ",2,99) K:XT<0!($L(X0)>22) X S:$D(X) X=X0 K X0 S:$G(P(7)) XT="" Q
- ;N I S X0=$P(X," ")_$S($L(X0," ")-1:" ",1:"")_$P(X," ",2,99) K:XT<0!($L(X0)>22) X S:$D(X) X=X0 K X0 S:$G(P(7)) XT="" Q
- ;S X0=X K:XT<0!($L(X0)>22) X S:$D(X) X=X0 K X0 S:$G(P(7)) XT="" Q
 NEWQ ;N I S X0=$P(X," ")_$S($L(X0," ")-1:" ",1:"")_$P(X0," ",2,99) K:XT<0!($L(X0)>22) X S:$D(X) X=X0 S:P(7) X=X0 K X0 K:XT>0&('P(7)) X Q
  Q
  ;
@@ -49,11 +44,13 @@ QDLP K X1,X2 Q
  ;
 ENI ;
  K:$L(X)<1!($L(X)>30)!(X["""")!($A(X)=45) X I '$D(X)!'$D(P(4)) Q
- I P(4)="P"!(P(5))!(P(23)="P") Q:'X  S X="INFUSE OVER "_X_" MIN." W "   ",X Q
- I X'=+X,($P(X,"@",2,999)'=+$P(X,"@",2,999)!(+$P(X,"@",2,999)<0)) K X Q
+ I P(4)="P"!(P(5))!(P(23)="P") Q:'X  S X="INFUSE OVER "_X_" MINUTE"_$S(X>1:"S",1:"") W "   ",X Q
+ I $E(X)="." K X Q  ;Enforce leading zero.
+ I X'=+X!(X'=0_+X),X["@",($P(X,"@",2,999)'=+$P(X,"@",2,999)!(+$P(X,"@",2,999)<0)) K X Q
  S SPSOL=$O(DRG("SOL",0)) I 'SPSOL K SPSOL,X W "  You must define at least one solution !!" Q
- I X=+X S X=X_" ml/hr" W " ml/hr" D SPSOL S P(15)=$S('X:0,1:SPSOL\X*60+(SPSOL#X/X*60+.5)\1) K SPSOL Q
- S SPSOL=$P(X,"@",2) S:$P(X,"@")=+X $P(X,"@")=$P(X,"@")_" ml/hr" W "   ",+SPSOL," Label",$S(SPSOL'=1:"s",1:"")," per day",!?15,"at an infusion rate of: ",$P(X,"@") S P(15)=$S('SPSOL:0,1:1440/SPSOL\1) K SPSOL
+ I X=+X!(X=0_+X),X'["@" S X=X_" ml/hr" W " ml/hr" D SPSOL S P(15)=$S('X:0,1:SPSOL\X*60+(SPSOL#X/X*60+.5)\1) K SPSOL Q
+ S SPSOL=$P(X,"@",2) S:$P(X,"@")=+X!($P(X,"@")=0_+X) $P(X,"@")=$P(X,"@")_" ml/hr" W "   ",+SPSOL," Label",$S(SPSOL'=1:"s",1:"")," per day",!?15,"at an infusion rate of: ",$P(X,"@") S P(15)=$S('SPSOL:0,1:1440/SPSOL\1) K SPSOL
+ I X["@",$P(X,"@",2)=0 S P(7)=1  ; Set ATZERO flag
  Q
 SPSOL S SPSOL=0 F XXX=0:0 S XXX=$O(DRG("SOL",XXX)) Q:'XXX  S SPSOL=SPSOL+$P(DRG("SOL",XXX),U,3)
  K XXX Q
@@ -73,8 +70,8 @@ ORINF ;  OERR input transform for Infusion Rate
  ;  X=data
  N INFUSE
  K:$L(X)<1!($L(X)>30)!(X["""")!($A(X)=45) X I '$D(X) Q
- I X?.E1L.E S INFUSE=$$ENLU^PSGMI(X) Q:(INFUSE="TITRATE")!(INFUSE="BOLUS")
- Q:(X="TITRATE")!(X="BOLUS")
+ I X?.E1L.E S INFUSE=$$ENLU^PSGMI(X) Q:(INFUSE="TITRATE")!(INFUSE="BOLUS")!($P(INFUSE," ")="INFUSE")!($P(INFUSE," ")="Infuse")
+ Q:(X="TITRATE")!(X="BOLUS")!($P(X," ")="INFUSE")!($P(X," ")="Infuse")
  I X["=" D  Q   ; NOIS LOU-0501-42191
  .N X2,X1 S X1=$P(X,"="),X2=$P(X,"=",2)
  .I X1["ML/HR",(+X1=$P(X1,"ML/HR"))!(+X1=$P(X1," ML/HR")) D
@@ -90,7 +87,10 @@ ORINF ;  OERR input transform for Infusion Rate
  .I X2["ml/hr",(+X2=$P(X2,"ml/hr")) D
  ..S X2=$P(X2,"ml/hr")_$P(X2,"ml/hr",2,9999)
  .I X2'=+X2 D
+ ..I X2>0&(X2<1) Q
  ..I ($P(X2,"@",2,999)'=+$P(X2,"@",2,999)!(+$P(X2,"@",2,999)<0)) K X Q
+ .I X1>0&(X1<1) I +X1="."_$P(X1,".",2) S X1=X1_" ml/hr"
+ .I X2>0&(X2<1) I +X2="."_$P(X2,".",2) S X2=X2_" ml/hr"
  .I X1=+X1 S X1=X1_" ml/hr"
  .I X2=+X2 S X2=X2_" ml/hr"
  .S:$P(X2,"@")=+X2 $P(X2,"@")=$P(X2,"@")_" ml/hr"
@@ -98,7 +98,14 @@ ORINF ;  OERR input transform for Infusion Rate
  I X["ML/HR",(+X=$P(X,"ML/HR"))!(+X=$P(X," ML/HR")) S X=$TR(X,"ML/HR","ml/hr")
  I X[" ml/hr",+X=$P(X," ml/hr") S X=$P(X," ml/hr")_$P(X," ml/hr",2,9999)
  I X["ml/hr",+X=$P(X,"ml/hr") S X=$P(X,"ml/hr")_$P(X,"ml/hr",2,9999)
- I X'=+X,($P(X,"@",2,999)'=+$P(X,"@",2,999)!(+$P(X,"@",2,999)<0)) K X Q
+ I X>0,X<1 D  Q
+ .I X["ML/HR",(+X=$P($P(X,"ML/HR"),".",2))!(+X=$P($P(X," ML/HR"),".",2)) S X=$TR(X,"ML/HR","ml/hr")
+ .I X[" ml/hr",(+X=$P($P(X," ml/hr"),".",2)) S X=$P(X," ml/hr")_$P(X," ml/hr",2,9999)
+ .I X["ml/hr",+X=$P(X,"ml/hr") S X=$P(X,"ml/hr")_$P(X,"ml/hr",2,9999)
+ .I +X=X S X=X_" ml/hr"
+ .I $P(X,0,2)=+X S X=X_" ml/hr"
+ .S X=0_+X_$P(X,+X,2)
+ I '(X>0&X<1) I X'=+X,($P(X,"@",2,999)'=+$P(X,"@",2,999)!(+$P(X,"@",2,999)<0)) K X Q
  I X=+X S X=X_" ml/hr" Q
  S:$P(X,"@")=+X $P(X,"@")=$P(X,"@")_" ml/hr"
  Q

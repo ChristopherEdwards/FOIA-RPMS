@@ -1,0 +1,46 @@
+BLRVLABD ; IHS/MSC/MKK - Display V LAB Data ;   [02/15/2012 ]
+ ;;5.2;IHS LABORATORY;**1031**;NOV 01, 1997
+ ;
+EEP ; EP
+ D EEP^BLRGMENU
+ Q
+ ;
+PEP ; EP
+EP ; EP
+ NEW IEN
+ NEW HD1,HEADER,LINES,MAXLINES,QFLG
+ ;
+ S IEN=99
+ F  Q:IEN<1  D
+ . D HEADIENI
+ . D ^XBFMK
+ . S DIR(0)="NO"
+ . S DIR("A")="V LAB IEN"
+ . D ^DIR
+ . S IEN=+$G(Y)
+ . I IEN<1 D  Q
+ .. W !,?4,"Invalid/No Entry.  Routine Ends."
+ .. D PRESSKEY^BLRGMENU(9)
+ . ;
+ . D HEADDISP
+ . D ^XBFMK
+ . S DIC="^AUPNVLAB(",DA=IEN,DIQ(0)="R"
+ . D EN^DIQ
+ . W:+$G(Y)=IEN !!,?4,"No Data exists for V LAB IEN: ",IEN,!
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ Q
+ ;
+HEADIENI ; EP
+ K HEADER
+ S HEADER(1)="V LAB Data Display"
+ S HEADER(2)="IEN Entry"
+ ;
+ D HEADERDT^BLRGMENU
+ Q
+ ;
+HEADDISP ; EP
+ K HEADER(2)
+ ;
+ D HEADERDT^BLRGMENU
+ Q

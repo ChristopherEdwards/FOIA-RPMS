@@ -1,5 +1,5 @@
 DGRUDD01 ;ALB/SCK - Data Dictionary Utilities MDS COTS update ;8-10-99
- ;;5.3;Registration;**190**;Aug 13, 1993
+ ;;5.3;Registration;**190,1015**;Aug 13, 1993;Build 21
  ;
 ADGRU(DFN) ; ADGRU* cross reference for Patient File (#2)
  ;

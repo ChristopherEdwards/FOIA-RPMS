@@ -1,5 +1,5 @@
 DGRURB ; ALB/SCK - LIST MANAGER INTERFACE FOR ROOM-BED TRANSLATION; 16-FEB-2000
- ;;5.3;Registration;**190,312**;Aug 13, 1993
+ ;;5.3;Registration;**190,312,1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- main entry point for DGRU ROOM-BED
  K XQORS,VALMEVL

@@ -1,5 +1,5 @@
 ADGCRB6 ; IHS/ADC/PDW/ENM - A SHEET lines 12-14 ; [ 10/16/2000  1:58 PM ]
- ;;5.3;ADMISSION/DISCHARGE/TRANSFER;**3,1008**;MAR 25, 1999
+ ;;5.3;ADMISSION/DISCHARGE/TRANSFER;**3,1008,1016**;MAR 25, 1999;Build 20
  ;
  ;cmi/anch/maw 12/7/2007 patch 1008 added code set versioning H13,ICD
  ;
@@ -9,10 +9,14 @@ A ; -- driver
  ;
 H12 ; -- sub heading 12
  W !,DGLIN1,!,"40 Injury Date  41 Alleged Injury Cause"
- W ?41,"42 E-Code",?51,"43 Place of Injury  44 Code",! Q
+ ;W ?41,"42 E-Code",?51,"43 Place of Injury  44 Code",! Q
+ ;ihs/cmi/maw 07/02/2012 PATCH 1016 changed E-Code to External Cause
+ W ?41,"42 Cause",?61,"43 Place of Injury  44 Code",! Q
  ;
 L12 ; -- data line 12 (injury data)
  Q:'$D(DGPOVDA)
+ ;W ?3,$$IDT,?17,$P($$ICD,U,2),?44,$P($$ICD,U),?54,$$PLC
+ ;ihs/cmi/maw 07/02/2012 PATCH 1016 moved location of data
  W ?3,$$IDT,?17,$P($$ICD,U,2),?44,$P($$ICD,U),?54,$$PLC
  W ?75,$P(DGPOVN0,U,11) Q
  ;

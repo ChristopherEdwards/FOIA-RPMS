@@ -1,12 +1,12 @@
 ORWSR ;SLC/REV-Surgery RPCs ;08/27/03
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,116,132,148,160,190**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,116,132,148,160,190,274**;Dec 17, 1997;Build 20
  ;
-SHOWSURG(ORY)     ;is Surgery ES patch installed?
+SHOWSURG(ORY) ;is Surgery ES patch installed?
  S ORY=$$PATCH^XPDUTL("SR*3.0*100")
  Q:+ORY=0
  S ORY=$$GET^XPAR("ALL","ORWOR SHOW SURGERY TAB",1)
  Q
-LIST(ORY,ORDFN,ORBDT,OREDT,ORCTXT,ORMAX,ORFHIE)        ;RETURN LIST OF SURGERY CASES FOR A PATIENT
+LIST(ORY,ORDFN,ORBDT,OREDT,ORCTXT,ORMAX,ORFHIE) ;RETURN LIST OF SURGERY CASES FOR A PATIENT
  Q:'$$PATCH^XPDUTL("SR*3.0*100")
  N I,J,X,SHOWADD,SHOWDOCS
  S ORY=$NA(^TMP("ORLIST",$J))
@@ -37,7 +37,7 @@ CASELIST(ORY,ORDFN) ; retrieve list of cases, but no documents
  D LIST^SROESTV(.ORY,ORDFN,ORBDT,OREDT,ORMAX,SHOWDOCS)
  S I=0
  F  S I=$O(@ORY@(I)) Q:+I=0  D
-  . S $P(@ORY@(I),U,4)=$P($P(@ORY@(I),U,4),";",2)
+ . S $P(@ORY@(I),U,4)=$P($P(@ORY@(I),U,4),";",2)
  Q
 GTSURCTX(Y,ORUSER) ; Returns current Notes view context for user
  N OCCLIM,SHOWSUB
@@ -58,7 +58,7 @@ ONECASE(ORY,ORTIUDA) ;Given a TIU document, return the case and related document
  I +ORCASE'>0 S ORY=ORCASE Q
  D GETONE(.ORY,+ORCASE)
  Q
-GETONE(ORY,ORCASE)      ; called by ONECASE and RPTTEXT 
+GETONE(ORY,ORCASE) ; called by ONECASE and RPTTEXT 
  ;Q:'$$PATCH^XPDUTL("SR*3.0*100")
  N ORTMP,J,SHOWADD,ORCTXT
  S SHOWADD=1,ORCTXT=1
@@ -74,11 +74,11 @@ GETONE(ORY,ORCASE)      ; called by ONECASE and RPTTEXT
  . S ORTMP(J)=X
  K ORY M ORY=ORTMP
  Q
-SHOWOPTP(ORY,ORCASE)    ;Should OpTop be displayed on signature?
+SHOWOPTP(ORY,ORCASE) ;Should OpTop be displayed on signature?
  I '$$PATCH^XPDUTL("SR*3.0*100") S ORY=0 Q
  S ORY=$$OPTOP^SROESTV(+ORCASE)
  Q
-ISNONOR(ORY,ORCASE)     ;Is the procedure a non-OR procedure?
+ISNONOR(ORY,ORCASE) ;Is the procedure a non-OR procedure?
  I '$$PATCH^XPDUTL("SR*3.0*100") S ORY=0 Q
  S ORY=$$NON^SROESTV(+ORCASE)
  Q
@@ -95,6 +95,16 @@ RPTLIST(ORY,ORDFN) ;Return list of surgery reports for reports tab
  F  S I=$O(@ORY@(I)) Q:+I=0  D
  . S X=$P(@ORY@(I),U,2),$P(@ORY@(I),U,2)=$P(@ORY@(I),U,3),$P(@ORY@(I),U,3)=X
  . S $P(@ORY@(I),U,4)=$P($P(@ORY@(I),U,4),";",2)
+ . S GMN=$P(@ORY@(I),U)
+ . S $P(@ORY@(I),U,6)="LAB WORK-"_$S($O(^SRF(GMN,9,0)):"Yes",1:"No") ; Lab work
+ . D STATUS^GMTSROB S:'$D(STATUS) STATUS="UNKNOWN"
+ . S $P(@ORY@(I),U,7)="STATUS-"_STATUS ; op status
+ . S Z=$P(^SRF(GMN,0),U,4) I Z>0 S Y=Z,C=$P(^DD(130,.04,0),U,2) D Y^DIQ S SPEC=Y K Y
+ . S $P(@ORY@(I),U,8)="SPEC-"_$G(SPEC) ; Surgical specialty
+ . S Z=$P($G(^SRF(GMN,31)),U,6) S:Z>0 DCTDTM=$$DATE^ORDVU(Z)
+ . S $P(@ORY@(I),U,9)="DICT-"_$G(DCTDTM) ; Dictation Time
+ . S Z=$P($G(^SRF(GMN,31)),U,7) S:Z>0 TRSDTM=$$DATE^ORDVU(Z)
+ . S $P(@ORY@(I),U,10)="TRANS-"_$G(TRSDTM) ; Transcription Time
  . S @ORY@(I)=SITE_U_@ORY@(I)
  Q
 RPTTEXT(ROOT,DFN,ORID,ALPHA,OMEGA,DTRANGE,REMOTE,ORMAX,ORFHIE) ; -- return surgery report

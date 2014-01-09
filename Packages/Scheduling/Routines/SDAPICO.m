@@ -1,5 +1,5 @@
 SDAPICO ;ALB/MJK - API - Common Check-Out Processing;04 MAR 1993 10:00 am
- ;;5.3;Scheduling;**27,44,78,93,132**;Aug 13, 1993
+ ;;5.3;Scheduling;**27,44,78,93,132,1015**;Aug 13, 1993;Build 21
  ;
 FILE(SDOE,SDUZ) ; File Data after checks
  ; Input  -- SDOE      Outpatient Encounter IEN

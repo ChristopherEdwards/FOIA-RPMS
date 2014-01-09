@@ -1,5 +1,5 @@
 ALPBUTL ;OIFO-DALLAS MW,SED,KC-BCMA BCBU REPORT FUNCTIONS AND UTILITIES ;01/01/03
- ;;2.0;BAR CODE MED ADMIN;**17**;May 2002
+ ;;3.0;BAR CODE MED ADMIN;**8**;Mar 2004
  ;
 DEFPRT() ; fetch and return default printer...
  ; returns default printer entry from Device file based on entry in

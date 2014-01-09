@@ -1,5 +1,5 @@
 ABMDF28Z ; IHS/ASDST/DMJ - PRINT UB-04 ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**3,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,8,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM24881 - Form alignment changes
  ; IHS/SD/SDR - v2.5 p12 - IM25363 - Removed line 45 (not needed on this form)
@@ -182,8 +182,10 @@ ABMDF28Z ; IHS/ASDST/DMJ - PRINT UB-04 ;
  ..S ABMDE=$P($P(ABM("PRV",1),U,4),"#",2)_"^59^10"  ;NPI
  ..D WRT^ABMDF28W  ; FL #76
  .S ABMDE=$P($P(ABM("PRV",1),U,3),"#")_"^71^2"  ;ID qualifier
+ .I DUZ("2")=1157 S ABMDE="^71^2"  ;IHS/SD/AML 12/7/2011 HEAT46786 - Remove ID Qualifier
  .D WRT^ABMDF28W  ; FL #76
  .S ABMDE=$P($P(ABM("PRV",1),U,3),"#",2)_"^73^9"  ;ID
+ .I DUZ("2")=1157 S ABMDE="^73^9"  ;IHS/SD/AML 12/7/2011 HEAT46786 - Remove ID
  .D WRT^ABMDF28W  ; FL #76
 57 ;
  W !

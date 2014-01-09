@@ -1,8 +1,10 @@
 ABMDRAL1 ; IHS/ASDST/DMJ - Bills Listing-80 Width ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009
  ;Original;TMD;
+ ; IHS/SD/SDR - 2.6*9 = HEAT35406 - Correction to itemized report
  ;
 PRINT ;EP for printing data
+ D ^ABMDRHD  ;abm*2.6*9 HEAT35406
  S ABM("PG")=0 D HDB
  S (ABM("CNT1"),ABM("CNT2"),ABM("CNT"),ABM("TOT1"),ABM("TOT2"),ABM("TOT"),ABM("PD"),ABM("PDT1"),ABM("PDT2"),ABM("PDT"))=0,(ABM("A"),ABM("L"),ABM("V"))=""
  S ABM("Z")="TMP(""ABM-AL"","_$J,ABM="^"_ABM("Z")_")" I '$D(@ABM) G XIT

@@ -1,16 +1,16 @@
 PSDOPT1 ;BIR/JPW,LTL-Outpatient Rx Entry (cont'd) ; 20 July 94
- ;;3.0; CONTROLLED SUBSTANCES ;**30**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**30,66**;13 Feb 97;Build 3
  ;Reference to PS(52.5 supported by DBIA #786
  ;References to ^PSD(58.8 are covered by DBIA #2711
  ;References to file 58.81 are covered by DBIA #2808
  ;Reference to PSRX( supported by DBIA #986
  ;Reference to routine PSOCSRL supported by DBIA #983
 UPDATE W !!,"Creating an Outpatient Transaction..."
- F  L +^PSD(58.8,+PSDS,1,PSDR,0):0 I  Q
+ F  L +^PSD(58.8,+PSDS,1,PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S PSDT=+% S BAL=+$P(^PSD(58.8,+PSDS,1,PSDR,0),"^",4),$P(^(0),"^",4)=$P(^(0),"^",4)-QTY
  L -^PSD(58.8,+PSDS,1,PSDR,0)
  W "updating..."
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDA=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDA)) S $P(^PSD(58.81,0),"^",3)=PSDA G FIND
  K DA,DIC,DLAYGO S (DIC,DLAYGO)=58.81,DIC(0)="L",(X,DINUM)=PSDA D ^DIC K DIC,DLAYGO
  L -^PSD(58.81,0)
@@ -35,10 +35,10 @@ PSDREL S X="PSOCSRL" X ^%ZOSF("TEST") I $T S XTYPE=$S($G(NEW(2)):"P"_U_NEW(2),$G
  ;
 PSDRTS ;Returned to stock continued
  W !,"Updating balances"
- F  L +^PSD(58.8,+PSDS,1,PSDR,0):0 I  Q
+ F  L +^PSD(58.8,+PSDS,1,PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S PSDT=+%,BAL=+$P(^PSD(58.8,+PSDS,1,PSDR,0),"^",4),$P(^PSD(58.8,+PSDS,1,PSDR,0),"^",4)=$P(^PSD(58.8,+PSDS,1,PSDR,0),"^",4)+PSDQTY
  L -^PSD(58.8,+PSDS,1,PSDR,0) W "."
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND1 S PSDA=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDA)) S $P(^PSD(58.81,0),"^",3)=PSDA G FIND1
  K DA,DIC,DLAYGO S (DIC,DLAYGO)=58.81,DIC(0)="L",(X,DINUM)=PSDA D ^DIC K DIC,DLAYGO
  L -^PSD(58.81,0)
@@ -68,4 +68,10 @@ PSDPRTL ;Chec partial labels
  I $D(^PSRX(PSDRX,"P",PSDFLNO,0)),'$P(^(0),U,16),$P($G(^(0)),U)'<PSDOIN D
  .F PSDLBL=0:0 S PSDLBL=$O(^PSRX(PSDRX,"L",PSDLBL)) Q:'PSDLBL  I $P(^PSRX(PSDRX,"L",0),U,2)=99-PSDFLNO S PSDLBL(1)=1
  .I '$G(PSDLBL(1)) W !!,"Partial #",PSDFLNO," label not printed." S PSDOUT=1,PSDRX(1)="" Q
+ Q
+RTSMUL ; Setup local array of refills in reverse order
+ S PSD1=0 F  S PSD1=$O(^PSD(58.81,"AOP",PSDRX,PSD1)) Q:PSD1'>0  S DATA6=$G(^PSD(58.81,PSD1,6)) D
+ .S PSDXXX=PSD1
+ .S PSD1MUL=PSD1*-1
+ .S PSDMUL(PSD1MUL)=$P(DATA6,"^",2)
  Q

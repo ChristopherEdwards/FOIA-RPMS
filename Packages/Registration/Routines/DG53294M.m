@@ -1,5 +1,5 @@
 DG53294M ;ALB/RTK DG*5.3*318 MT Cleanup Mailman Msg ; 10/23/00
- ;;5.3;Registration;**294**;Aug 13, 1993
+ ;;5.3;Registration;**294,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will be run at sites as part of the Ineligible
  ; project ELIGIBILITY VERIF. SOURCE reset in patch DG*5.3*294.

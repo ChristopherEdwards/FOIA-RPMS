@@ -1,5 +1,5 @@
 DG53289M ;ALB/RMM DG*5.3*289 MT Workload Cleanup to Mailman Msg ; 23 Aug 2000  7:00 AM
- ;;5.3;Registration;**289**;Aug 23, 2000
+ ;;5.3;Registration;**289,1015**;Aug 23, 2000;Build 21
  ;
  ; This routine will be run as part of the MT Workload Cleanup in
  ; patch DG*5.3*289.

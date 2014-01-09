@@ -1,5 +1,5 @@
-RAORD1 ;HISC/CAH - AISC/RMO-Request An Exam ; 06/27/07 07:22am
- ;;5.0;Radiology/Nuclear Medicine;**10,45,41,75,86**;Mar 16, 1998;Build 7
+RAORD1 ;HISC/CAH - AISC/RMO-Request An Exam ; 20 Apr 2011  6:57 PM
+ ;;5.0;Radiology/Nuclear Medicine;**10,45,41,75,86,1003**;Nov 01, 2010;Build 3
  ;
  ;Supported IA #10035 reference to ^DPT(
  ;Supported IA #10040 reference to ^SC(
@@ -27,7 +27,8 @@ PAT .S DIC="^DPT(",DIC(0)="AEMQ" W ! D ^DIC K DIC
  .S RAPTLOCK=$$LK^RAUTL19(+Y_";DPT(") G:'RAPTLOCK PAT
  .S (DFN,RADFN)=+Y,(VA200,RAPTLKUP)=1
  .W ! D IN5^VADPT S:VAIP(1) RAWARD=$P(VAIP(5),"^",2)
- .D ELIG^RABWORD2
+ .;IHS/BJI/DAY - Patch 1003 - Don't display VA Service Connected Conditions
+ .;D ELIG^RABWORD2
  .Q
  ;
 PL ;Ask for the patient location (REQ. LOCATION file: 75.1, field: #22)

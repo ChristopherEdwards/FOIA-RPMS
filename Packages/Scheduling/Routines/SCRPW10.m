@@ -1,5 +1,5 @@
 SCRPW10 ;RENO/KEITH - Clinic Group Maintenance functionality ; 15 Jul 98  02:38PM
- ;;5.3;Scheduling;**139,144**;AUG 13, 1993
+ ;;5.3;Scheduling;**139,144,1015**;AUG 13, 1993;Build 21
  N DIR
 ASK D TITL^SCRPW50("Clinic Group Maintenance for Reports")
  S DIR(0)="SO^EG:EDIT CLINIC GROUPS;PG:PRINT CLINIC GROUPS;DG:DELETE CLINIC GROUP;EA:EDIT CLINIC GROUP ASSIGNMENTS;PA:PRINT CLINIC GROUP ASSIGNMENTS",DIR("A")="Select clinic group maintenance action"

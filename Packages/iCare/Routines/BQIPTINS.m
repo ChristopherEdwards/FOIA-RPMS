@@ -1,5 +1,5 @@
-BQIPTINS ;PRXM/HC/ALA-Patient Insurance ; 05 Jul 2006  3:31 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+BQIPTINS ;GDIT/HS/ALA-Patient Insurance ; 05 Jul 2006  3:31 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
  Q
  ;
@@ -82,9 +82,11 @@ LYO(DFN) ;EP - Layout display
  . S INSCO=$$GET1^DIQ(9000003,DFN_",",.02,"E")
  . S IEN=0
  . F  S IEN=$O(^AUPNMCR(DFN,11,IEN)) Q:'IEN  D
- .. NEW DA,IENS
+ .. NEW DA,IENS,EFF,EXP
  .. S DA(1)=DFN,DA=IEN,IENS=$$IENS^DILF(.DA)
- .. I $$GET1^DIQ(9000003.11,IENS,.02,"I")'="" Q
+ .. S EFF=$$GET1^DIQ(9000003.11,IENS,.01,"I")
+ .. S EXP=$$GET1^DIQ(9000003.11,IENS,.02,"I")
+ .. I '$$ISACTIVE(EFF,EXP) Q
  .. S RESULT=RESULT_INSCO_" "_$$GET1^DIQ(9000003.11,IENS,.03,"E")_"; "_$C(13)_$C(10)
  ;
  ;  Check for Medicaid
@@ -93,9 +95,11 @@ LYO(DFN) ;EP - Layout display
  . S INSCO=$$GET1^DIQ(9000004,IEN_",",.02,"E")
  . S MN=0
  . F  S MN=$O(^AUPNMCD(IEN,11,MN)) Q:'MN  D
- .. NEW DA,IENS
+ .. NEW DA,IENS,EFF,EXP
  .. S DA(1)=IEN,DA=MN,IENS=$$IENS^DILF(.DA)
- .. I $$GET1^DIQ(9000004.11,IENS,.02,"I")'="" Q
+ .. S EFF=$$GET1^DIQ(9000004.11,IENS,.01,"I")
+ .. S EXP=$$GET1^DIQ(9000004.11,IENS,.02,"I")
+ .. I '$$ISACTIVE(EFF,EXP) Q
  .. S RESULT=RESULT_INSCO_"; "_$C(13)_$C(10),QFL=1
  ;
  ;  Check for Railroad
@@ -103,9 +107,11 @@ LYO(DFN) ;EP - Layout display
  . S INSCO=$$GET1^DIQ(9000005,DFN_",",.02,"E")
  . S IEN=0
  . F  S IEN=$O(^AUPNRRE(DFN,11,IEN)) Q:'IEN  D
- .. NEW DA,IENS
+ .. NEW DA,IENS,EFF,EXP
  .. S DA(1)=DFN,DA=IEN,IENS=$$IENS^DILF(.DA)
- .. I $$GET1^DIQ(9000005.11,IENS,.02,"I")'="" Q
+ .. S EFF=$$GET1^DIQ(9000005.11,IENS,.01,"I")
+ .. S EXP=$$GET1^DIQ(9000005.11,IENS,.02,"I")
+ .. I '$$ISACTIVE(EFF,EXP) Q
  .. S RESULT=RESULT_INSCO_" "_$$GET1^DIQ(9000005.11,IENS,.03,"E")_"; "_$C(13)_$C(10)
  ;
  ;  Check for Private Insurance

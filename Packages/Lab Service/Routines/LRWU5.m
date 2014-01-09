@@ -1,5 +1,5 @@
 LRWU5 ;SLC/RWF/BA - ADD A NEW DATA NAME TO FILE 63 ;JUL 06, 2010 3:14 PM;
- ;;5.2;LAB SERVICE;**140,171,177,206,316,1027**;NOV 01, 1997
+ ;;5.2;LAB SERVICE;**140,171,177,206,316,1027,1032**;NOV 01, 1997
  ;
  ; Reference to ^DD supported by DBIA #29
  ; Reference to ^XMB(1 supported by DBIA #10091
@@ -26,11 +26,31 @@ TEST ;
  Q
 CHECK ;
  X $P(^DD(0,.01,0),U,5) I '$D(X) W $C(7)," ??",!,"ANSWER MUST BE 2-30 CHARACTERS AND NOT CONTAIN '='" S LROK=0 Q
+ Q:$$IHSDNBAD(X)   ; IHS/MSC/MKK - LR*5.2*1032
  S LRNAME=X,DIC="^DD(63.04,",DIC(0)="XM" D ^DIC I Y>0 W $C(7),!,"This data name already exists" S LROK=0 Q
  S DA=$S($P($G(^XMB(1,1,"XUS")),U,17):$P(^("XUS"),U,17),1:0)*1000 D:'DA SITE Q:'LROK  F I=0:0 S DA=DA+1 Q:'$D(^DD(63.04,DA))
  F I=0:0 W !,"ARE YOU ADDING ",LRNAME," (SUBFIELD # ",DA,") AS A NEW DATA NAME" S %=2 D YN^DICN Q:%  W " Answer 'Y'es or 'N'o."
  I %'=1 S LROK=0 Q
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1032
+IHSDNBAD(DNSTR) ; EP - Check to make sure new DataName only contains valid characters
+ NEW BADCHAR,CHAR,I,OKAY
+ ;
+ S OKAY=1,BADCHAR=""
+ F I=1:1:$L(DNSTR) D
+ . S CHAR=$E(DNSTR,I)
+ . Q:CHAR?1N!(CHAR?1A)!(CHAR=" ")!(CHAR="_")     ; Only Numeric, Alphabetic, Space, and Underline Characters allowed
+ . S OKAY=0
+ . S BADCHAR=BADCHAR_CHAR
+ ;
+ Q:OKAY 0
+ ;
+ W $C(7)," ??",!,"ANSWER MUST BE 2-30 CHARACTERS AND NOT CONTAIN '",BADCHAR,"'"
+ S LROK=0
+ Q 1
+ ; ----- END IHS/MSC/MKK - LR*5.2*1032
+ ;
 SITE ;
  W !,"Your site number is not defined, indicating that fileman was not ",!,"installed correctly.  Contact your site manager!"
  S LROK=0,LREND=1 Q

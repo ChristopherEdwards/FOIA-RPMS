@@ -1,12 +1,12 @@
-BGOVHF ; IHS/BAO/TMD - Manage V HEALTH FACTORS ;18-Nov-2009 10:44;PLS
- ;;1.1;BGO COMPONENTS;**1,3,4,6**;Mar 20, 2007
+BGOVHF ; IHS/BAO/TMD - Manage V HEALTH FACTORS ;03-Apr-2012 09:30;DU
+ ;;1.1;BGO COMPONENTS;**1,3,4,6,11**;Mar 20, 2007;Build 3
  ; Get health factors by patient
  ;  INP = Patient IEN ^ Learn Only Flag ^ V HF IEN (optional)
  ; .RET returned as a list of records in the format:
  ;   Category [1] ^ HF Name [2] ^ Visit Date [3] ^ Severity [4] ^ Quantity [5] ^ Visit IEN [6] ^
- ;   V File IEN [7] ^ Health Factor Type [8] ^ Comment [9] ^ Visit Locked [10]
+ ;   V File IEN [7] ^ Health Factor Type [8] ^ Comment [9] ^ Visit Locked [10] ^ Event date/time
 GET(RET,INP) ;EP
- N DFN,LRN,VFIEN,TYPE,CNT,VDT,IEN,VIEN,SEV,QTY,CAT,HFNAME,VDATE
+ N DFN,LRN,VFIEN,TYPE,CNT,VDT,IEN,VIEN,SEV,QTY,CAT,HFNAME,VDATE,EVNDT
  S RET=$$TMPGBL^BGOUTL
  S DFN=+INP
  S LRN=$P(INP,U,2)
@@ -24,12 +24,14 @@ GET(RET,INP) ;EP
  ...Q:REC=""
  ...S VIEN=$P(REC,U,3)
  ...S SEV=$$EXTERNAL^DILFD($$FNUM,.04,,$P(REC,U,4))
+ ...;Patch 11
+ ...S EVNDT=$$FMTDATE^BGOUTL($P($G(^AUPNVHF(IEN,12)),U,1))
  ...S QTY=$P(REC,U,6)
  ...S COMMENT=$P($G(^AUPNVHF(IEN,811)),U)
  ...S HFNAME=$P($G(^AUTTHF(TYPE,0)),U),CAT=$P($G(^(0)),U,3)
  ...S:CAT CAT=$P($G(^AUTTHF(CAT,0)),U)
  ...S CNT=CNT+1
- ...S @RET@(CNT)=CAT_U_HFNAME_U_VDATE_U_SEV_U_QTY_U_VIEN_U_IEN_U_TYPE_U_COMMENT_U_$$ISLOCKED^BEHOENCX(VIEN)
+ ...S @RET@(CNT)=CAT_U_HFNAME_U_VDATE_U_SEV_U_QTY_U_VIEN_U_IEN_U_TYPE_U_COMMENT_U_$$ISLOCKED^BEHOENCX(VIEN)_U_EVNDT
  Q
  ; Return IEN for pap smear/mammogram/ekg
 REFLIST(RET,INP) ;EP
@@ -39,9 +41,9 @@ REFLIST(RET,INP) ;EP
  E  S RET=$$ERR^BGOUTL(1026,INP)
  Q
  ; Add/edit health factor
- ;  INP = HF Type IEN [1] ^ V File IEN [2] ^ Visit IEN [3] ^ Severity [4] ^ Provider IEN [5] ^ Quantity [6] ^ Comment [7]
+ ;  INP = HF Type IEN [1] ^ V File IEN [2] ^ Visit IEN [3] ^ Severity [4] ^ Provider IEN [5] ^ Quantity [6] ^ Comment [7] ^ Event dt [8] ^ Enc Provider [9]
 SET(RET,INP) ;EP
- N VIEN,TYPE,PRV,QTY,SEV,VFIEN,VFNEW,COMMENT,FNUM,FDA
+ N VIEN,TYPE,PRV,QTY,SEV,VFIEN,VFNEW,COMMENT,FNUM,FDA,EVNDT,ENCPR
  S FNUM=$$FNUM
  S TYPE=+INP
  I 'TYPE S RET=$$ERR^BGOUTL(1008) Q
@@ -62,9 +64,19 @@ SET(RET,INP) ;EP
  S @FDA@(.04)=SEV
  S @FDA@(.05)=$S(PRV:"`"_PRV,1:"")
  S @FDA@(.06)=QTY
- S @FDA@(1201)="N"
+ ;Set event date
+ S EVNDT=$P(INP,U,8)
+ I EVNDT="" S EVNDT=$$NOW^XLFDT
+ S @FDA@(1201)=EVNDT
  S @FDA@(1204)="`"_DUZ
  S:'VFNEW!$L(COMMENT) @FDA@(81101)=COMMENT
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

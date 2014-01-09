@@ -1,5 +1,5 @@
 ADGVAR ; IHS/ADC/PDW/ENM - VARIABLE SET AND KILL ;  [ 03/25/1999  11:48 AM ]
- ;;5.0;ADMISSION/DISCHARGE/TRANSFER;**1012**;MAR 25, 1999
+ ;;5.3;ADMISSION/DISCHARGE/TRANSFER;**1012,1015**;MAR 25, 1999;Build 21
  ;
 VERSION ;EP; entry point called by main menu
  ;
@@ -25,7 +25,8 @@ VAR ;PEP;***> set package variables from site parameter file
  ;      mas parameters
  I '$D(^DG(43,1,9999999))!('$D(^DG(43,1,9999999.01))) W !!,*7,?20,"ADT Site Parameters are not set up!",!?10,"DO NOT use ADT until System Definition has been completed!",!! G QUIT
  S DGOPT("GEN")=^DG(43,1,9999999),DGOPT("QA")=^DG(43,1,9999999.01)
- ;S DGOPT("QA1")=^DG(43,1,9999999.02)  ;cmi/maw 06/15/2010 PATCH 1012 not in data dictionary
+ ;ihs/cmi/maw 04/07/2012 PATCH 1015 put next line back in
+ S DGOPT("QA1")=$G(^DG(43,1,9999999.02))  ;cmi/maw 06/15/2010 PATCH 1012 not in data dictionary
  Q
  ;
 QUIT ;PEP - kill variables and quit

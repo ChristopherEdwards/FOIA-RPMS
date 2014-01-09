@@ -1,5 +1,5 @@
 AUTP22X ;IHS/VEN/TOAD - AUT patch 22 pre-init ;
- ;;98.1;AUT UPDATE;**22**;SEP 19, 2008
+ ;;98.1;AUT UPDATE;**22**;SEP 19, 2008;Build 6
  ;
  ; This is the pre-init for AUT*98.1*22. It strips all control chars
  ; out of the ^AUTTRLSH global prior to the install of the patch.

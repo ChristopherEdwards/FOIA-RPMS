@@ -1,10 +1,9 @@
 PSBMLEN1 ;BIRMINGHAM/EFC-BCMA MEDICATION LOG FUNCTIONS ;Mar 2004
- ;;3.0;BAR CODE MED ADMIN;**3,4,9,11**;Mar 2004
+ ;;3.0;BAR CODE MED ADMIN;**3,4,9,11,13,28,50**;Mar 2004;Build 78
+ ;Per VHA Directive 2004-038 (or future revisions regarding same), this routine should not be modified.
  ;
  ; Reference/IA
  ; ENE^PSJBCMA4/3416
- ; ^XUSEC/10076
- ; HLP^DDSUTL/10150
  ;
 NEW(Y) ; Create the new entry
  N PSBREC,PSB,PSBADST,PSBFREQ
@@ -99,23 +98,24 @@ FORUM .; Build the form of dosage to CAP or TAB or null
  .S X="" F  S X=$O(PSBADA(X)) Q:X=""  S PSBREC(PSBINDX)=PSBADA(X),PSBINDX=PSBINDX+1
  .S X="" F  S X=$O(PSBSOLA(X)) Q:X=""  S PSBREC(PSBINDX)=PSBSOLA(X),PSBINDX=PSBINDX+1
  .D FILE
+ K ^TMP("PSB",$J)
  Q
  ;
 FILE ; Call the med log RPC to file it and DDS to edit it
  N PSB,PSBSAVE,PSBAUDIT
  D RPC^PSBML(.PSB,"+1^MEDPASS",.PSBREC)
- I '$D(PSB) S PSB(0)=1,PSB(1)="1^RE-COMPLETE ENTRY^"_PSBINCX
+ I '$D(PSB) S PSB(0)=1,PSB(1)="-1^INCOMPLETE ENTRY^"_PSBINCX
  I +PSB(1)<1 D  Q
  .W @IOF,!,"Error(s) Creating Med Log Entry",!
  .S X=$S(PSB(0)=1:0,1:1) F  S X=$O(PSB(X)) Q:X=""  W !,$J($S(X=1:X,1:X-1),2),". ",$S(X=1:$P(PSB(X),"^",2),1:PSB(X))
  .W !!,"No Med Log Entry Created.",!!
  .K DIR S DIR(0)="E" D ^DIR
  S PSBSAVE=0 S:'$G(PSBMMEN) PSBAUDIT=1
- S DA=$P(PSB(1),U,3),DDSFILE=53.79
+ S DA=$P(PSB(1),U,3),DDSFILE=53.79,DDSPARM="C"
  I $P(^PSB(53.79,DA,.1),U,1)?.N1"U" S DR="[PSB NEW UD ENTRY]"
  I $P(^PSB(53.79,DA,.1),U,1)?.N1"V" S DR="[PSB NEW IV ENTRY]"
  D ^DDS
- I PSBSAVE'=1 D
+ L +^PSB(53.79,DA):DILOCKTM I  L -^PSB(53.79,DA) I PSBSAVE'=1 D
  .W !,"Incomplete Med Log Entry, Deleting...#",DA S A=^PSB(53.79,DA,0),DFN=$P(A,U,1),AADT=$P(A,U,6)
  .K ^PSB(53.79,"AADT",DFN,AADT,DA) S DIK="^PSB(53.79," D ^DIK
  I PSBSAVE=1 D
@@ -133,6 +133,7 @@ FILE ; Call the med log RPC to file it and DDS to edit it
  .Q:$G(PSBXUIT)
  .S X=$S($P(PSBIEN,",",2)]"":$P(PSBIEN,",",2),PSBIEN="+1":PSBIEN(1),1:"")
  .I X]"" I ($F("HR",$P(^PSB(53.79,X,0),U,9))>1) F Y=.5,.6,.7 S Z=0 F  S Z=$O(^PSB(53.79,X,Y,Z)) Q:+Z=0  S $P(^PSB(53.79,X,Y,Z,0),U,3)=0
+ .I X]"",$G(PSBMMEN)=1 D SCANFAIL ;If Manual Med Entry was used, document "scanning failure"
  Q
  ;
 FDATE ;Check Admin Time for future date/time.
@@ -141,3 +142,17 @@ FDATE ;Check Admin Time for future date/time.
  I PSBTIMX>% W $C(7) S (DDSERROR,DDSBR)=1 D HLP^DDSUTL("Future date/time is not allowed")
  Q
  ;
+SCANFAIL ;File an MSF record
+ N PSBPRM,PSBRSLT,PSBX,PSBX1,PSBX2
+ S PSBX=^PSB(53.79,DA,0)
+ S PSBX1=^PSB(53.79,DA,.1)
+ S PSBPRM(0)=$P(PSBX,U,1)_U_$P(PSBX1,U,1)_U_"Manual Medication Entry"_U_""_U_"M"_U_1
+ I $P(PSBX1,U,1)["U",$P($G(^PSB(53.79,DA,.5,1,0)),U,1)]"" D
+ .S PSBX2="DD"_U_$P($G(^PSB(53.79,DA,.5,1,0)),U,1)
+ I $P(PSBX1,U,1)["V",$P($G(^PSB(53.79,DA,.6,1,0)),U,1)]"" D
+ .S PSBX2="ADD"_U_$P($G(^PSB(53.79,DA,.6,1,0)),U,1)
+ I $G(PSBX2)="",$P(PSBX1,U,1)["V",$P($G(^PSB(53.79,DA,.7,1,0)),U,1)]"" D
+ .S PSBX2="SOL"_U_$P($G(^PSB(53.79,DA,.7,1,0)),U,1)
+ I $G(PSBX2)]"" S PSBPRM(1)=PSBX2
+ D SCANFAIL^PSBVDLU3(.PSBRSLT,.PSBPRM)
+ Q

@@ -1,5 +1,5 @@
-BCHFORM ; IHS/TUCSON/LAB - ASSIGN UNIQUE FORM # ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHFORM ; IHS/CMI/LAB - ASSIGN UNIQUE FORM # ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;Called from a cross reference in CHR Record.
  ;Generates next form # for a chr on a particular date.

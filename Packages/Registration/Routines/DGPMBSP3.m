@@ -1,5 +1,5 @@
-DGPMBSP3 ;ALB/LM - BSR PRINT, CONT.; 13 JUNE 90
- ;;5.3;Registration;**59,85**;Aug 13, 1993
+DGPMBSP3 ;ALB/LM - BSR PRINT, CONT.; 13 JUNE 90 ; 1/13/05 3:48pm
+ ;;5.3;Registration;**59,85,529,592,641,1015**;Aug 13, 1993;Build 21
  ;
 A S NTOTAL="",(ORDER,CW,CB,CUM,BD,CT)=0
  ;  ^UTILITY("DGWOR",$J,ORDER)=19 PIECE PRINT/STATS LINE
@@ -37,9 +37,13 @@ TL S TC(TL,ORDER)=CUM
  S CUM="",(W,TL(TL,T2))=NTOTAL D TWR
  Q
  ;
-TWR W:$Y<131 ?131,"" W $C(13) W:UL["-" ! F L=1:1:131 W UL
- W !
- I $P(DGWTOR,"^")'["DON'T DISPLAY" D PTOT ; print line on BSR
+TWR N DGDNTD
+ S DGDNTD=$S($P(DGWTOR,"^")["DON'T DISPLAY":1,1:0)
+ I DGDNTD,TL=1 W:UL["-" ! F L=1:1:131 W UL
+ I 'DGDNTD D
+ .W:$Y<131 ?131,"" W $C(13) W:UL["-" ! F L=1:1:131 W UL
+ .W !
+ .D PTOT ; print line on BSR
  ; code below updates cums
  S (CB,BD,CW,NTOTAL)=""
  I $S('$P(DGWTOR,"^",2):1,TL'=1:1,1:0) S CUM="" Q

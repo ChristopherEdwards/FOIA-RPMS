@@ -1,5 +1,5 @@
 FHORTR ; HISC/NCA - Tubefeeding Product Search ;8/8/96  08:12
- ;;5.0;Dietetics;**5**;Jun 07, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 SRCH(FHX) ; Search For Tubefeeding Product
  N DIC,FHY,X,Y
  S X=FHX,FHY=""

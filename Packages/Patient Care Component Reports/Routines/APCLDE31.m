@@ -1,5 +1,5 @@
 APCLDE31 ; IHS/CMI/LAB - list DEPRESSION screenings ; 
- ;;2.0;IHS PCC SUITE;**2,4**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,4,8**;MAY 14, 2009;Build 2
  ;
  ;
 PROC ;
@@ -45,7 +45,7 @@ BHALCS(P,BDATE,EDATE) ;
  ..;PRIMARY PROVIDER CHECK
  ..S X=$$BHPPIN(V)
  ..I $D(APCLPROV),X="" Q  ;want only certain primary providers on visit
- ..I $D(APCLPROV),'$D(APCLPROV(X)) Q  ;want one provider and it's not this one
+ ..I $D(APCLPROV),APCLPROV'=X Q  ;want one provider and it's not this one
  ..I APCLPPUN,X'="" Q  ;want only unknown and this one has a primary provider
  ..;get measurements AUDC, AUDT, CRFTT
  ..S X=0 F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X!(R]"")  D
@@ -53,7 +53,7 @@ BHALCS(P,BDATE,EDATE) ;
  ...I M="PHQ2"!(M="PHQ9") D
  ....S E=$P($G(^AMHRMSR(X,12)),U,4)
  ....I $D(APCLSPRV),E="" Q  ;want only certain SCR providers on visit
- ....I $D(APCLSPRV),'$D(APCLSPRV(E)) Q  ;want one provider and it's not this one
+ ....I $D(APCLSPRV),APCLSPRV'=E Q  ;want one provider and it's not this one
  ....I APCLSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ....;check result
  ....S E=$P(^AMHRMSR(X,0),U,4)
@@ -63,6 +63,9 @@ BHALCS(P,BDATE,EDATE) ;
  ....I M="PHQ9",E="",'$D(APCLREST(5)) Q
  ....I M="PHQ9",E<5,'$D(APCLREST(1)) Q
  ....I M="PHQ9",E>4,'$D(APCLREST(2)) Q
+ ....I M="PHQT",E="",'$D(APCLREST(5)) Q
+ ....I M="PHQT",E<11,'$D(APCLREST(1)) Q
+ ....I M="PHQT",E>10,'$D(APCLREST(2)) Q
  ....S R=$$BHRT(V,M,$P(^AMHRMSR(X,0),U,4),P,$$VALI^XBDIQ1(9002011.12,X,1204))
  ..I R]"" Q
  ..;get exam
@@ -76,7 +79,7 @@ BHALCS(P,BDATE,EDATE) ;
  ..I APCLRES="",'$D(APCLREST(5)) G BHHF
  ..S E=$P($G(^AMHREC(V,14)),U,4)
  ..I $D(APCLSPRV),E="" G BHHF  ;want only certain SCR providers on visit
- ..I $D(APCLSPRV),'$D(APCLSPRV(E)) G BHHF  ;want one provider and it's not this one
+ ..I $D(APCLSPRV),APCLSPRV'=E G BHHF  ;want one provider and it's not this one
  ..I APCLSPUN,E'="" G BHHF  ;want only unknown and this one has a SCR provider
  ..S R=$$BHRT(V,"DEPRESSION SCREENING",$$VAL^XBDIQ1(9002011,V,1403),P,$P($G(^AMHREC(V,14)),U,4),$P($G(^AMHREC(V,16)),U,1))
  ..I R]"" Q
@@ -138,7 +141,7 @@ PCCALCS(P,BDATE,EDATE) ;EP - get alcohol screening from pcc
  ..;PRIMARY PROVIDER CHECK
  ..S X=$$PRIMPROV^APCLV(V)
  ..I $D(APCLPROV),X="" Q  ;want only certain primary providers on visit
- ..I $D(APCLPROV),'$D(APCLPROV(X)) Q  ;want one provider and it's not this one
+ ..I $D(APCLPROV),APCLPROV'=X Q  ;want one provider and it's not this one
  ..I APCLPPUN,X'="" Q  ;want only unknown and this one has a primary provider
  ..S R=$$PCCSCR(V)
  Q R
@@ -151,10 +154,10 @@ PCCSCR(V) ;is there a screening?  return in R
  S X=0 F  S X=$O(^AUPNVMSR("AD",V,X)) Q:X'=+X  D
  .Q:$P($G(^AUPNVMSR(X,2)),U,1)
  .S M=$$VAL^XBDIQ1(9000010.01,X,.01)
- .I M="PHQ2"!(M="PHQ9") D
+ .I M="PHQ2"!(M="PHQ9")!(M="PHQT") D
  ..S E=$P($G(^AUPNVMSR(X,12)),U,4)
  ..I $D(APCLSPRV),E="" Q  ;want only certain SCR providers on visit
- ..I $D(APCLSPRV),'$D(APCLSPRV(E)) Q  ;want one provider and it's not this one
+ ..I $D(APCLSPRV),APCLSPRV'=E Q  ;want one provider and it's not this one
  ..I APCLSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ..;check result
  ..S E=$P(^AUPNVMSR(X,0),U,4)
@@ -164,6 +167,9 @@ PCCSCR(V) ;is there a screening?  return in R
  ..I M="PHQ9",E="",'$D(APCLREST(5)) Q
  ..I M="PHQ9",E<5,'$D(APCLREST(1)) Q
  ..I M="PHQ9",E>4,'$D(APCLREST(2)) Q
+ ..I M="PHQT",E="",'$D(APCLREST(5)) Q
+ ..I M="PHQT",E<11,'$D(APCLREST(1)) Q
+ ..I M="PHQT",E>10,'$D(APCLREST(2)) Q
  ..S T=D_U_M_U_$$VAL^XBDIQ1(9000010.01,X,.04)_U_V_U_9000010.01_U_X
  ..S R=$$PCCV^APCLDE1(T,P)
  I R]"" Q R
@@ -173,7 +179,7 @@ PCCSCR(V) ;is there a screening?  return in R
  .I M="DEPRESSION SCREENING" D
  ..S E=$P($G(^AUPNVXAM(X,12)),U,4)
  ..I $D(APCLSPRV),E="" Q  ;want only certain SCR providers on visit
- ..I $D(APCLSPRV),'$D(APCLSPRV(E)) Q  ;want one provider and it's not this one
+ ..I $D(APCLSPRV),APCLSPRV'=E Q  ;want one provider and it's not this one
  ..I APCLSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ..;check result
  ..S E=$P(^AUPNVXAM(X,0),U,4)
@@ -240,7 +246,7 @@ PCCV(S,PAT) ;
  Q T
 SCRNPCC(T) ;get screening provider based on v file
  NEW S,F
- S F=1202
+ S F=1204
  I $P(T,U,5)=9000010.16!($P(T,U,5)=9000010.23) S F=".05"
  S S=$$VAL^XBDIQ1($P(T,U,5),$P(T,U,6),F)
  I S]"" Q S

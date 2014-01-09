@@ -1,5 +1,5 @@
-BGOTRG ; IHS/BAO/TMD - Triage Summary ;15-Dec-2010 11:50;DU
- ;;1.1;BGO COMPONENTS;**1,3,5,6,7**;Mar 20, 2007
+BGOTRG ; IHS/BAO/TMD - Triage Summary ;28-Jun-2012 17:17;DU
+ ;;1.1;BGO COMPONENTS;**1,3,5,6,7,8,11**;Mar 20, 2007
  ; RPC: Returns triage summary information
  ;  INP = Visit IEN ^ Provider ^ Report List ^ Include CC Author
 GETSUM(RET,INP) ;EP
@@ -41,30 +41,44 @@ GET1 ;;Chief Complaint^
  D:$L(X) APPEND(X)
  Q
 GET2 ;;Vitals^;
- N MSR,TYP,EIE,VAL,VAL2,AGE,X,WT,HT,MR,BEH,DATA,DEFAULT,DEFU,ALTU
- F  S LP=$O(^AUPNVMSR("AD",VIEN,LP)) Q:'LP  D
- .S MSR=$G(^AUPNVMSR(LP,0)),X=+$G(^(12))
+ N MSR,TYP,EIE,VAL,VAL2,AGE,X,WT,HT,MR,BEH,DATA,DEFAULT,DEFU,ALTU,A
+ N QUALS,QUALN,QUALIF
+ S VMSR=$$VMSR^BEHOVM
+ N GLOB S GLOB=$S('VMSR:"^GMR(120.5)",1:"^AUPNVMSR")
+ ;F  S LP=$O(^AUPNVMSR("AD",VIEN,LP)) Q:'LP  D
+ ;.S MSR=$G(^AUPNVMSR(LP,0)),X=+$G(^(12))
+ F  S LP=$O(@GLOB@("AD",VIEN,LP)) Q:'LP  D
+ .S MSR=$G(@GLOB@(LP,0)),X=+$G(^($S('VMSR:0,1:12)))
  .Q:'MSR
  .;IHS/MSC/MGH  Quit if entered in error
  .S EIE=$$GET1^DIQ(9000010.01,LP,2,"I")
  .Q:EIE=1
- .S TYP=$P(^AUTTMSR(+MSR,0),U),VAL=$P(MSR,U,4),MR=""
+ .S QUALIF=""
+ .S QUALS=0 F  S QUALS=$O(@GLOB@(LP,5,QUALS)) Q:QUALS=""  D
+ ..S QUALN=$P($G(@GLOB@(LP,5,QUALS,0)),U,1)
+ ..I +QUALN S QUALN=$P($G(^GMRD(120.52,QUALN,0)),U,1)
+ ..I QUALIF'="" S QUALIF=QUALIF_","_QUALN
+ ..E  I QUALIF="" S QUALIF=QUALN
+ .S TYP=$P($S('VMSR:$G(^GMRD(120.51,+$P(MSR,U,3),0)),1:$G(^AUTTMSR(+MSR,0))),U),VAL=$P(MSR,U,$S('VMSR:8,1:4)),MR=""
+ .I TYP="O2"!(TYP="PO2") S QUALIF=QUALIF_$P($G(@GLOB@(LP,0)),U,10)
+ .;S TYP=$P(^AUTTMSR(+MSR,0),U),VAL=$P(MSR,U,4),MR=""
+ .S BEH="" I 'VMSR N A,I F I=7,2 D  Q:BEH
+ ..S A=$P($G(^GMRD(120.51,+$P(MSR,U,3),0)),U,I) I A'="" S BEH=$O(^BEHOVM(90460.01,"B",A,0))
  .S AGE=$$PTAGE^BGOUTL(DFN,$S(X:X,1:DAT))
- .S BEH="" S BEH=$O(^BEHOVM(90460.01,"B",TYP,BEH))
- .I TYP="" D APPEND(TYP_": "_$$RND(VAL),MR)
+ .I VMSR S BEH="" S BEH=$O(^BEHOVM(90460.01,"B",TYP,BEH))
+ .I TYP="" D APPEND(TYP_": "_$$RND(VAL),MR,QUALIF)
  .E  D
  ..S DATA=$G(^BEHOVM(90460.01,BEH,0))
- ..S DEFAULT=$p(DATA,U,2)
+ ..S DEFAULT=$P(DATA,U,2)
  ..I DEFAULT=1 D
  ...S DEFU=$P(DATA,U,4),ALTU=$P(DATA,U,3)
- ...I ALTU=""!(DEFU=ALTU) D APPEND(TYP_": "_$$RND(VAL)_" "_DEFU)
- ...E  S X=VAL I $D(^BEHOVM(90460.01,BEH,2)) X $G(^BEHOVM(90460.01,BEH,2)) D APPEND(TYP_": "_$$RND(VAL)_" "_DEFU_" ",$$RND(X)_" "_ALTU)
+ ...I ALTU=""!(DEFU=ALTU) D APPEND(TYP_": "_$$RND(VAL)_" "_DEFU,,QUALIF)
+ ...E  S X=VAL I $D(^BEHOVM(90460.01,BEH,2)) X $G(^BEHOVM(90460.01,BEH,2)) D APPEND(TYP_": "_$$RND(VAL)_" "_DEFU_" ",$$RND(X)_" "_ALTU,QUALIF)
  ..I DEFAULT=0 D
  ...S DEFU=$P(DATA,U,3),ALTU=$P(DATA,U,4)
- ...I ALTU=""!(DEFU=ALTU) D APPEND(TYP_": "_$$RND(VAL)_" "_DEFU)
- ...E  S X=VAL I $D(^BEHOVM(90460.01,BEH,1)) X $G(^BEHOVM(90460.01,BEH,1)) D APPEND(TYP_": "_$$RND(VAL)_" "_DEFU_" ",$$RND(X)_" "_ALTU)
- ..I DEFAULT="" D
- ...D APPEND(TYP_": "_$$RND(VAL))
+ ...I ALTU=""!(DEFU=ALTU) D APPEND(TYP_": "_$$RND(VAL)_" "_DEFU,,QUALIF)
+ ...E  S X=VAL I $D(^BEHOVM(90460.01,BEH,1)) X $G(^BEHOVM(90460.01,BEH,1)) D APPEND(TYP_": "_$$RND(VAL)_" "_DEFU_" ",$$RND(X)_" "_ALTU,QUALIF)
+ ..I DEFAULT="" D APPEND(TYP_": "_$$RND(VAL),,QUALIF)
  Q:$G(AGE)'>2!'$D(WT)!'$D(HT)
  S VAL=$$RND((WT*704.5)/(HT*HT))
  S MR=$S(AGE<20:"",VAL<18.5:"Underweight",VAL<25:"Normal Weight",VAL<30:"Overweight",VAL<35:"Obesity - Class 1",VAL<40:"Obesity - Class 2",1:"Extreme Obesity")
@@ -155,6 +169,6 @@ RND(X) Q $S(X=+X:+$J(X,0,2),1:X)
 ADDHDR S:CNT>0 @RET@(SCT,0)=U_CTL,CNT=0,SCT=SCT+1
  Q
  ; Append to result string
-APPEND(X,Y) ;
- S CNT=CNT+1,@RET@(SCT,CNT)=X_$S($L($G(Y)):" ("_Y_")",1:"")
+APPEND(X,Y,Z) ;
+ S CNT=CNT+1,@RET@(SCT,CNT)=X_$S($L($G(Y)):" ("_Y_")",1:"")_$S($L($G(Z)):" ["_Z_"]",1:"")
  Q

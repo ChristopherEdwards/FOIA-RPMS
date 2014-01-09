@@ -1,8 +1,8 @@
-TIULMED1 ; SLC/JM - Active/Recent Med Objects Routine ;06-Apr-2009 11:07;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**38,73,92,94,1006**;Jun 20, 1997
+TIULMED1 ; SLC/JM - Active/Recent Med Objects Routine ;04-Jun-2012 16:20;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**38,73,92,94,1006,202,1010**;Jun 20, 1997;Build 24
+ ;IHS/MSC/MGH added items to display for objects
  ;
  ; All routines here are part of the LIST entry point of TIULMED
- ;1006 to do refills on pending meds
  ;
 ADD(TXT) ; Saves TXT in TARGET
  S NEXTLINE=NEXTLINE+1
@@ -23,7 +23,7 @@ ADDL(TXT) ; Add with ADDLNUM on FIRST
  E  D ADD(TXT)
  Q
 ADDMED(XMODE) ; if XMODE creates XSTR, if not add med to TARGET
- N DATA,FIRST,XSUM,XCOUNT,TOPLINE,WSTATUS,PIEN,REFILL
+ N DATA,FIRST,XSUM,XCOUNT,TOPLINE,WSTATUS
  S FIRST=1
  I XMODE S (XSUM,XCOUNT)=0,XSTR=""
  E  D
@@ -82,12 +82,14 @@ ADDMED(XMODE) ; if XMODE creates XSTR, if not add med to TARGET
  ...E  I $L(@TARGET@(TOPLINE+1,0))<48 S I=TOPLINE+1
  ...E  S I=TOPLINE+2
  ...F  Q:(I'>NEXTLINE)  D ADD(" ")
+ ...;IHS/MSC/MGH Patch 1006
  ...S TSTAT=$P(NODE,U,9)
  ...I TSTAT="PENDING" D
  ....S PIEN=+$P(NODE,U,1) S REFILL=$P($G(^PS(52.41,PIEN,0)),U,11)
  ....S @TARGET@(I,0)=$E(@TARGET@(I,0)_SPACE60,1,47)_"Refills: "_REFILL
  ...I TSTAT'="PENDING" D
  ....S @TARGET@(I,0)=$E(@TARGET@(I,0)_SPACE60,1,47)_"Refills: "_+$P(NODE,U,5)
+ ...;end mods for pending meds
  ...D ADDDATE(TOPLINE+1,"Last",10)
  ...D ADDDATE(TOPLINE+2,"Expr",4)
  ..E  D
@@ -148,7 +150,7 @@ ADDP(PNUM) ; Adds or XSUMs a piece of NODE
  E  D
  .N VALUE
  .S VALUE=$P(NODE,U,PNUM)
- .I PNUM=9,VALUE="SUSPENDED" S VALUE="ACTIVE (S)"
+ .I PNUM=9,VALUE="ACTIVE/SUSP" S VALUE="ACTIVE (S)"
  .S DATA=$$STRIP(DATA_" "_VALUE)
  .D WRAP
  Q

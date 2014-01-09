@@ -1,5 +1,5 @@
 DGQEPST ;ALB/JFP - VIC POST INIT DRIVER; 09/01/96
- ;;V5.3;REGISTRATION;**73**;DEC 11,1996
+ ;;5.3;REGISTRATION;**73,1015**;DEC 11,1996;Build 21
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
 CHKPTS ; -- Create check points for post-init
  ;Input  : All variables set by KIDS

@@ -1,5 +1,5 @@
-SDC4 ;ALB/MJK - Check Range for CO'ed Appts; 28 JUN 1993 [ 02/10/2005  4:06 PM ]
- ;;5.3;Scheduling;**1002**;Aug 13, 1993
+SDC4 ;ALB/MJK - Check Range for CO'ed Appts; 28 JUN 1993
+ ;;5.3;Scheduling;**1002,1015**;Aug 13, 1993;Build 21
  ;
 COED(SDCL,SDBEG,SDEND,SDMSG) ; -- scan appts for those co'ed
  N SDDA,SDATE,SD0,SDC,SDESC

@@ -1,5 +1,5 @@
 DGPMTSO ;ALB/LM - TREATING SPECIALTY INPATIENT LISTING OUTPUT ;2-2-93
- ;;5.3;Registration;**76**;Aug 13, 1993
+ ;;5.3;Registration;**76,1015**;Aug 13, 1993;Build 21
  ;
  Q
  ;

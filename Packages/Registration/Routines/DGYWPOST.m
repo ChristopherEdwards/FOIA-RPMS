@@ -1,5 +1,5 @@
 DGYWPOST ;ALB/MLI - Post-init for EDR clean-up patch DG*5.3*65 ; 14 Aug 95 [10/12/95 4:27pm]
- ;;5.3;Registration;**65**;Aug 13, 1993
+ ;;5.3;Registration;**65,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will re-index the B and ABDC cross-references on the PIMS
  ; EDR EVENT file (#391.51).  It will also kick off the job to run a

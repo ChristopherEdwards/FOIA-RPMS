@@ -1,14 +1,17 @@
-GMVRPCP ;HOIFO/DP-RPC for GMV_PtSelect.pas ;6/24/03  13:04
- ;;5.0;GEN. MED. REC. - VITALS;**1**;Oct 31, 2002
+GMVRPCP ;HOIFO/DP-RPC for GMV_PtSelect.pas ; 7/8/05 8:05am
+ ;;5.0;GEN. MED. REC. - VITALS;**1,3,22**;Oct 31, 2002;Build 22
  ; Integration Agreements:
  ; IA# 510 [Controlled] Calls to set ^DISV
  ; IA# 3027 [Supported] Calls to DGSEC4
  ; IA# 3266 [Controlled] Calls to DOB^DPTLK1
  ; IA# 3267 [Controlled] Calls to SSN^DPTLK1
  ; IA# 3593 [Supported] Calls to DPTLK6
+ ; IA# 4440 [Supported] XUPROD calls
  ; IA# 10035 [Supported] Calls for FILE 2 references.
  ; IA# 10039 [Supported] Reads of ^DIC(42,#,44)
+ ; IA# 10040 [Supported] Reads of ^SC(
  ; IA# 10061 [Supported] Calls to VADPT
+ ; IA# 10112 [Supported] VASITE calls
  ;
 ADD(X) ; [Procedure] Add line to @RESULTS@(...
  ; Input parameters
@@ -17,7 +20,7 @@ ADD(X) ; [Procedure] Add line to @RESULTS@(...
  Q
  ;
 LOGSEC ; [Procedure] Log Security
- D NOTICE^DGSEC4(.GMVRET,DFN,DATA,1)
+ D NOTICE^DGSEC4(.GMVRET,DFN,DATA,3)
  S @RESULTS@(0)=$S(GMVRET:"1^Logged",1:"-1^Unable to log")
  Q
  ;
@@ -40,9 +43,10 @@ HOSPLOC ; [Procedure] Return location as ptr to 44 or ""
  D INP^VADPT S @RESULTS@(0)=+$G(^DIC(42,+VAIN(4),44),"")
  Q
  ;
-PTHDR ; [Procedure] Patient Infoe for Header Displays
+PTHDR ; [Procedure] Patient Info for Header Displays
  I '$D(^DPT(+$G(DFN),0)) D  Q
  .S @RESULTS@(0)="-1^No Such DFN ["_$G(DFN,"<Null>")_"]"
+ N GMVIENS
  S @RESULTS@(0)=+DFN,GMVIENS=(+DFN)_","
  S @RESULTS@(1)=$$GET1^DIQ(2,GMVIENS,.01)_"  "_$$GET1^DIQ(2,GMVIENS,.09)
  S @RESULTS@(2)="DOB: "_$$GET1^DIQ(2,GMVIENS,.03)_" "_$$GET1^DIQ(2,GMVIENS,.02)_", Age: "_$$GET1^DIQ(2,GMVIENS,.033)
@@ -53,7 +57,7 @@ PTLKUP ; [Procedure] Patient lookup handled separately for security
  S GMVIDX=$S(DATA?9N.1"P":"SSN",1:"B^BS^BS5")
  D FIND^DIC(2,"","@;.01;.02;.03;.09","MP",DATA,60,GMVIDX)
  I $P(^TMP("DILIST",$J,0),U,3) D  Q
- .S @RESULTS@(0)="-1^To many patients found matching '"_DATA_"'. Please be more specific."
+ .S @RESULTS@(0)="-1^Too many patients found matching '"_DATA_"'. Please be more specific."
  F GMV=0:0 S GMV=$O(^TMP("DILIST",$J,GMV)) Q:'GMV  D
  .S @RESULTS@(GMV)=$$PTREC(+^TMP("DILIST",$J,GMV,0))
  I '$D(@RESULTS) S @RESULTS@(0)="-1^No patients matching '"_DATA_"'"
@@ -81,7 +85,7 @@ SELECT ; [Procedure] Select patient
  ;  GMVRET: [Private] Scratch
  ;  GMVX: [Private] Scratch
  ; New private variables
- NEW IENS,GMVDFN,GMVFLD,GMVID,GMVRET,GMVX
+ NEW IENS,GMVCNT,GMVDFN,GMVFLD,GMVHLIEN,GMVI,GMVID,GMVIDS,GMVRET,GMVX,GMVIDIEN
  I '$D(^DPT(+$G(DFN),0))#2 S @RESULTS@(0)="-1^No such patient" Q
  S ^DISV(DUZ,"^DPT(")=DFN ;spacebar return
  S @RESULTS@(0)="1^Required Identifiers & messages"
@@ -101,6 +105,8 @@ SELECT ; [Procedure] Select patient
  ; Add ward and Room/Bed
  S GMVID="$$PTID^"_$$GET1^DID(2,.1,"","LABEL")
  S GMVID=GMVID_U_$$GET1^DIQ(2,IENS,.1)
+ S GMVIDIEN=$P(GMVID,U,3)
+ S GMVIDIEN=$$IDIEN(GMVIDIEN)
  S @RESULTS@($O(@RESULTS@(""),-1)+1)=GMVID
  S GMVID="$$PTID^"_$$GET1^DID(2,.101,"","LABEL")
  S GMVID=GMVID_U_$$GET1^DIQ(2,IENS,.101)
@@ -139,5 +145,17 @@ SELECT ; [Procedure] Select patient
  .D ADD("$$MSGHDR^1^NOTICE")
  .F GMVX=1:0 S GMVX=$O(GMVRET(GMVX)) Q:'GMVX  D ADD(GMVRET(GMVX))
  .D ADD("$$MSGEND")
+ Q
+ ;
+IDIEN(GMVIEN) ;
+ S GMVIEN=$G(GMVIEN)
+ I GMVIEN="" Q ""
+ S GMVIEN=$O(^DIC(42,"B",GMVIEN,0))
+ I 'GMVIEN Q ""
+ S GMVIEN=$P($G(^DIC(42,+GMVIEN,44)),"U",1)
+ Q GMVIEN
+ ;
+CCOW ; Return CCOW site and production indicator
+ S @RESULTS@(0)=$P($$SITE^VASITE(),"^",3)_"^"_$$PROD^XUPROD()
  Q
  ;

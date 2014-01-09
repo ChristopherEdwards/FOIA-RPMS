@@ -1,17 +1,22 @@
-SROANEW ;B'HAM ISC/MAM - CREATE NEW RISK ASSESSMENT ; 27 FEB 1992  2:45 pm
- ;;3.0; Surgery ;**34,47,71**;24 Jun 93
+SROANEW ;BIR/MAM - CREATE NEW RISK ASSESSMENT ;01/18/07
+ ;;3.0; Surgery ;**34,47,71,100,135,160**;24 Jun 93;Build 7
  W @IOF,!,?1,VADM(1)_"  "_VA("PID")
  W !! S (SRDT,CNT)=0 F I=0:0 S SRDT=$O(^SRF("ADT",DFN,SRDT)) Q:'SRDT!(SRSOUT)  S SRASS=0 F I=0:0 S SRASS=$O(^SRF("ADT",DFN,SRDT,SRASS)) Q:'SRASS!($D(SRTN))!(SRSOUT)  D LIST I $D(SRTN) G ASK
  I 'CNT W "No operations exist for this patient.  Assessment cannot be entered.",!!,"Press RETURN to continue... " R X:DTIME G END
 OPT W !!,"Select Operation: " R X:DTIME I '$T!("^"[X) S SRSOUT=1 G END
  I '$D(SRCASE(X)) W !!,"Enter the number of the desired operation" W $S('$D(SRNEWOP):".",1:", or '"_CNT_"' to enter a new case.") G OPT
  S SRTN=+SRCASE(X)
-ASK I $P($G(^SRF(SRTN,"RA")),"^",6)="N"!($P($G(^SRF(SRTN,"RA")),"^",7)'="") W !!,"This case is currently flagged as meeting Risk Assessment exclusion criteria.",*7
+ASK I SRATYPE="N" D EXCL^SROASS
+ I $P($G(^SRF(SRTN,"RA")),"^",6)="N"!($P($G(^SRF(SRTN,"RA")),"^",7)'="") W !!,"This case is currently flagged as meeting Risk Assessment exclusion criteria.",$C(7)
  W !!,"Are you sure that you want to create a Risk Assessment for this surgical",!,"case ?  YES// " R SRYN:DTIME I '$T!(SRYN["^") K SRTN S SRSOUT=1 Q
  S SRYN=$E(SRYN) I "YyNn"'[SRYN W !!,"Enter 'YES' to create an assessment for this surgical case, or 'NO' to quit",!,"this option." G ASK
  I "Yy"'[SRYN K SRTN S SRSOUT=1 Q
- I $P($G(^SRF(SRTN,"RA")),"^",6)="N"!($P($G(^SRF(SRTN,"RA")),"^",7)'="") D DRDEL^SRONASS
- K DIE,DR,DA S DA=SRTN,DIE=130,DR="284////"_SRATYPE_";Q;323////Y;235////I" D ^DIE K DR,DIE,DA
+ I $$LOCK^SROUTL(SRTN) D  D UNLOCK^SROUTL(SRTN) Q
+ .I $P($G(^SRF(SRTN,"RA")),"^",6)="N"!($P($G(^SRF(SRTN,"RA")),"^",7)'="") D DRDEL^SRONASS
+ .K DIE,DR,DA S DA=SRTN,DIE=130,DR="284////"_SRATYPE_";Q;323////Y;235////I" D ^DIE K DR,DIE,DA
+ .N X S X=$P($G(^SRF(SRTN,209)),"^",12) I X="" D
+ ..S DA=SRTN,DIE=130,DR="490////N" D ^DIE K DR,DIE,DA
+ E  K SRTN
  Q
 LIST ; list assessments
  I $P($G(^SRF(SRASS,"NON")),"^")="Y" Q

@@ -1,5 +1,5 @@
 PSOTPHL1 ;BPFO/EL-CREATE HL7 BATCH MESSAGE FILE ;09/10/03
- ;;7.0;OUTPATIENT PHARMACY;**146,153**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**146,153,227**;DEC 1997
  ;
  ; Summary:
  ; Use of ^VAFCQRY API is approved under private IA #3630
@@ -19,6 +19,7 @@ PSOTPHL1 ;BPFO/EL-CREATE HL7 BATCH MESSAGE FILE ;09/10/03
  ; At the end of each run, this program will send out mail to the mail
  ;   group "PSO TPB HL7 EXTRACT" except the non-Sunday TaskMan check
  ;
+ Q  ; placed out of order by PSO*7*227
  N A,B,C,CK,EDT,ERR,FRTIME,I,L,R,RDT,SDT,SET,X
  N BCNT,DATA,DFN,EVENT,LN,MCNT,PGM,PS,PSO
  N BBDT,BEDT,DADT,EXC,INS,PADT,PN,REASON,STA,WAITYP
@@ -276,7 +277,7 @@ MAIL ;Send mail message
 FAIL ; Msg for unsuccessful run
  S I="Reason: "_$S(($D(ERR)):ERR,1:"Check Event Server Protocol OR the run date")
  S L=" "
- S R="Please contact the Help Desk"
+ S R="Please contact National Help Desk @888-596-4357"
  S X=" "
  Q
  ;

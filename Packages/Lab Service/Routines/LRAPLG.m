@@ -1,6 +1,8 @@
 LRAPLG ;AVAMC/REG/WTY - AP LOG-IN ;10/23/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,201,259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1002,1006,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 72,201,259
+ ;
  D ^LRAP Q:'$D(Y)  S LR("L")=LRSS_"^LRAP" I LRCAPA,"AUSP"[LRSS S X=$S(LRSS="SP":"H & E STAIN",1:"AUTOPSY H & E") D X^LRUWK G:'$D(X) END S LRW("H&E")=LRT K LRT
  I LRCAPA,LRSS="EM" S X="THICK SECTION EM" D X^LRUWK G:'$D(X) END S X=11 D SET S LRW("SS")=LRT_U_X S X="GRID EM" D X^LRUWK G:'$D(X) END S X=12 D SET S LRW("G")=LRT_U_X K LRT
  I LRCAPA D @(LRSS_"^LRAPSWK") G:'$D(X) END
@@ -22,7 +24,16 @@ GETP W ! S LRSIT="",LRDPAF=1 K DIC
  I LRSS="SP" S X="SROSPLG" X ^%ZOSF("TEST") I $T D ^SROSPLG
  D ADD G GETP
 ADD I LRSS="AU",'$D(LREXP) W $C(7),!!,"NO DATE DIED ENTERED IN ",LRFNAM," FILE",! Q:+LRDPF=2  S DIE=+LRDPF,DA=DFN,DR=.351 D ^DIE Q:$D(Y)  S LREXP=X
- I LRSS="AU",$D(^LR(LRDFN,"AU")),$P(^("AU"),U,6) S Y=^("AU"),X=+$P(Y,U,6),Y(1)=$E(Y,1,3)_"0000" W !,"Yr:",1700+$E(Y,1,3)," Acc#:",X," IN LAB FILE FOR ",$P(@(LRPF_DFN_",0)"),U)," SSN:",$P(^(0),U,9) D CK Q
+ ; I LRSS="AU",$D(^LR(LRDFN,"AU")),$P(^("AU"),U,6) S Y=^("AU"),X=+$P(Y,U,6),Y(1)=$E(Y,1,3)_"0000" W !,"Yr:",1700+$E(Y,1,3)," Acc#:",X," IN LAB FILE FOR ",$P(@(LRPF_DFN_",0)"),U)," SSN:",$P(^(0),U,9) D CK Q
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ I LRSS="AU",$D(^LR(LRDFN,"AU")),$P(^("AU"),U,6) S Y=^("AU"),X=+$P(Y,U,6),Y(1)=$E(Y,1,3)_"0000" D  Q
+ . W !,"Yr:",1700+$E(Y,1,3)
+ . W " Acc#:",X," IN LAB FILE FOR "
+ . W $P(@(LRPF_DFN_",0)"),U)
+ . W " HRCN:",HRCN
+ . D CK
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
  D:LRPF="^DPT(" ^LRAPPOW ; for AFIP studies
  D ^LRAPLG1 K LRMD,DIC,DIE,DR Q
 CK I +$G(^LRO(68,LRAA,1,Y(1),1,X,0))=LRDFN W $C(7),!!?20,"Also in accession file" Q

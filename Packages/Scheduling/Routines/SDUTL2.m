@@ -1,5 +1,5 @@
-SDUTL2 ;ALB/CAW - Misc. utilities ; 7/12/00 1:05pm [ 04/15/2004  1:15 PM ]
- ;;5.3;Scheduling;**20,71,132,149,175,193,220,258**;Aug 13, 1993
+SDUTL2 ;ALB/CAW - Misc. utilities ; 6/28/07 11:48am
+ ;;5.3;Scheduling;**20,71,132,149,175,193,220,258,380,516,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  8/15/2001 bypass checking for HCFA occupation class
  ;
  ;
@@ -62,15 +62,30 @@ SCREEN(Y,SDDT) ; -- screen called when entering a provider in the
  ;         SDDT = today's date
  ; OUTPUT: 1 to select; 0 to not select
  ;
- S:'+$G(SDDT) SDDT=DT I '+$G(Y) Q 0
- N SDINACT,SDT,SDY S SDY=0
+ ; begin patch *516*
+ ; DBIA #2349 - ACTIVE PROVIDER will be used for validation.
+ ; The INACTIVE DATE (#53.4) field will no longer be used.
+ ; New input selection logic...
+ ;   The TERMINATION DATE (#9.2) and the PERSON CLASS (#8932.1) fields
+ ;   will be used to determine if selection is active in the
+ ;   NEW PERSON (#200) file for a given date.
+ ;
+ ;S:'+$G(SDDT) SDDT=DT I '+$G(Y) Q 0
+ ;N SDINACT,SDT,SDY S SDY=0
  ; check if provider active
- S SDINACT=$G(^VA(200,+Y,"PS"))
- Q:'$S(SDINACT']"":1,'+$P(SDINACT,"^",4):1,DT<+$P(SDINACT,"^",4):1,1:0) SDY
- S SDT=+$P($G(^VA(200,+Y,0)),U,11)
- Q $S('SDT:1,(SDT<DT):0,1:1)   ;IHS/ANMC/LJF 8/15/2001 bypass HCFA class
- Q:$S('SDT:0,(SDT<DT):1,1:0) 0
- I $$GET^XUA4A72(Y,SDDT)>0 S SDY=1
+ ;S SDINACT=$G(^VA(200,+Y,"PS"))
+ ;Q:'$S(SDINACT']"":1,'+$P(SDINACT,"^",4):1,DT<+$P(SDINACT,"^",4):1,1:0) SDY
+ ;S SDT=+$P($G(^VA(200,+Y,0)),U,11)
+ ;Q:$S('SDT:0,(SDT<DT):1,1:0) 0
+ ;I $$GET^XUA4A72(Y,SDDT)>0 S SDY=1
+ ;
+ I '+$G(Y) Q 0
+ N SDY
+ S:'+$G(SDDT) SDDT=DT
+ S SDY=0,SDDT=$P(SDDT,".")
+ ;I $$ACTIVPRV^PXAPI(+Y,SDDT) S SDY=1  ;DBIA #2349
+ ; end patch *516*
+ S SDY=1  ;ihs/cmi/maw 06/21/2012 PATCH 1015 not using PCE API's
  Q SDY
  ;
 HELP(SDDT) ; -- executable help called when entering a provider in the
@@ -183,3 +198,43 @@ ELSTAT(DA) ;Retrieve patient eligibility status
  ;
  Q:$G(DA)="" ""
  Q $$GET1^DIQ(2,DA,.361,"I")
+SCREST(SCIEN,TYP,DIS) ;check stop code restriction in file 40.7 for a clinic. 
+ ;  INPUT:   SCIEN = IEN of Stop Code
+ ;           TYP   = Stop Code Type, Primary (P) or Secondary (S)
+ ;           DIS   = Message Display, 1 - Display or 0 No Display
+ ;
+ ;  OUTPUT:  1 if no error, or 0^error message
+ ; 
+ Q 1  ;ihs/cmi/maw 03/30/2012 not used in IHS         
+ N SCN,RTY,CTY,RDT,STR,STYP
+ S DIS=$G(DIS,0),STYP="("_$S(TYP="P":"Prim",1:"Second")_"ary)"
+ I +SCIEN<1 S STR="Invalid Clinic Stop Code "_STYP_"." D MSG Q "0^"_STR
+ S CTY=$S(TYP="P":"^P^E^",1:"^S^E^")
+ S SCN=$G(^DIC(40.7,SCIEN,0)),RTY=$P(SCN,U,6),RDT=$P(SCN,U,7)
+ I RTY="" D  Q "0^"_STR
+ .S STR="Clinic's Stop Code "_$P(SCN,U,2)_" has no restriction type "_STYP_"." D MSG
+ I CTY'[("^"_RTY_"^") D  D MSG Q "0^"_STR
+ .S STR="Clinic's Stop Code "_$P(SCN,U,2)_" cannot be "_$S(TYP="P":"Prim",1:"Second")_"ary."
+ I RDT>DT D  D MSG Q "0^"_STR
+ .S STR="Clinic's Stop Code "_$P(SCN,U,2)_" cannot be used. Restriction date is "_$$FMTE^XLFDT(RDT,"1F")_" "_STYP_"."
+ Q 1
+MSG ;display error message to screen
+ I DIS,$E($G(IOST))="C" W !?5,STR
+ Q
+CLNCK(CLN,DSP) ;Check clinic for valid stop code restriction.
+ ;  INPUT:   CLN   = IEN of Clinic
+ ;           DSP   = Error Message Display, 1 - Display or 0 No Display
+ ;
+ ;  OUTPUT:  1 if no error or 0^error message
+ N PSC,SSC,ND0,VAL
+ S DSP=$G(DSP,0)
+ I CLN="" D  Q "0^"_"Invalid Clinic."
+ .I DSP,$E($G(IOST))="C" W !?5,"Invalid Clinic."
+ I $G(^SC(CLN,0))="" D  Q "0^"_"Clinic not define or has no zero node."
+ .I DSP,$E($G(IOST))="C" W !?5,"Clinic not define or has no zero node."
+ S ND0=^SC(CLN,0),PSC=$P(ND0,U,7),SSC=$P(ND0,U,18),DSP=$G(DSP,0)
+ I $P(ND0,U,3)'="C" Q 1     ;not a Clinic
+ S VAL=$$SCREST(PSC,"P",DSP)
+ Q:'VAL VAL  Q:SSC="" 1
+ S VAL=$$SCREST(SSC,"S",DSP)
+ Q VAL

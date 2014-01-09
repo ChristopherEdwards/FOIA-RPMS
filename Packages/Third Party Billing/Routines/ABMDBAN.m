@@ -1,5 +1,5 @@
 ABMDBAN ; IHS/ASDST/DMJ - 3P Billing Banner ; 
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,9**;NOV 12, 2009
  ;ORIGINAL - TMD, BILLINGS AREA OFFICE
  ;
  ; IHS/SD/SDR - v2.5 p12 - UFMS
@@ -68,6 +68,10 @@ END ;
  .S ABMFLG="CLOSED"
  .D FINDACLS^ABMUCUTL  ;find all closed sessions
  .I $D(ABMO) W !,"WARNING: Cashiering sessions are closed and awaiting export to UFMS"
+ .;start new code abm*2.6*9 NOHEAT
+ .I $P($G(^ABMDPARM(DUZ(2),1,4)),U,15)="" D
+ ..W !!,$$EN^ABMVDF("RVN"),*7,"WARNING:",$$EN^ABMVDF("RVF")," UFMS PARAMETERS have not been completed."
+ .;end new code
  K ABM("F1")
  ;
 XIT ;

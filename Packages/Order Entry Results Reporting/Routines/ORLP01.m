@@ -1,5 +1,7 @@
-ORLP01 ; SLC/MKB,CLA - Edit Patient Lists cont  ;9/27/93  09:54 [3/15/00 2:51pm]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**11,47**;Dec 17, 1997
+ORLP01 ; SLC/MKB,CLA - Edit Patient Lists cont  ; 20 Sep 2005  1:05 PM
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**11,47,215**;Dec 17, 1997
+ ;
+ ; DBIA 3869   GETPLIST^SDAMA202   ^TMP($J,"SDAMA202")
  ;
  ; Modified 3/2000 by PKS/SLC to screen out inactive wards, clinics,
  ;    and terminated/deactivated providers.
@@ -100,7 +102,7 @@ CLIN ;from ASKPT^ORLP, option ORLP ADD CLINIC - Add clinic's patients to list, d
  D SEQ^ORLP0
  Q
  ;
-C1 ;
+C1 ; DBIA 3869
  K DIC
  S DIC("A")="Select CLINIC: ",ORCT=0,ORCSTRT="",ORCEND="",ORCLIN=""
  S DIC("S")="I $P(^(0),""^"",3)=""C"""
@@ -126,7 +128,17 @@ C1 ;
  W !,"Working..."
  D PREF^ORLP0
  S ORJ=ORCSTRT
- F  S ORJ=$O(^SC(+ORCLIN,"S",ORJ)) Q:ORJ<1!(ORJ>ORCEND)  S ORK=0 F ORI=0:0 S ORK=$O(^SC(+ORCLIN,"S",ORJ,1,ORK)) Q:ORK<1  S ORX="",ORVP=+^(ORK,0)_";DPT(" D PR1^ORLA1(ORVP,OROPREF)
+ N ORI,ORERR
+ K ^TMP($J,"SDAMA202","GETPLIST")
+ D GETPLIST^SDAMA202(+ORCLIN,"1;4","",ORCSTRT,ORCEND)  ;DBIA 3869
+ S ORERR=$$CLINERR^ORQRY01
+ I $L(ORERR) W !,ORERR S ORY=-1,ORCNT=0 Q
+ S ORI=0
+ F  S ORI=$O(^TMP($J,"SDAMA202","GETPLIST",ORI)) Q:ORI<1  D  ;DBIA 3869
+ . S ORJ=+$G(^TMP($J,"SDAMA202","GETPLIST",ORI,1))
+ . S ORVP=+$G(^TMP($J,"SDAMA202","GETPLIST",ORI,4))_";DPT("
+ . I ORJ,ORVP S ORX="" D PR1^ORLA1(ORVP,OROPREF)
+ K ^TMP($J,"SDAMA202","GETPLIST")
  I '$L($O(^XUTL("OR",$J,"ORLP",0))) W *7,!,"No patients found!"
  Q
  ;

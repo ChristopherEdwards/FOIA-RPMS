@@ -1,5 +1,5 @@
 VAFCMGB0 ;ALB/JRP-DEMOGRAPHIC MERGE SCREENS ;10/18/96
- ;;5.3;Registration;**149,255,477**;Aug 13, 1993
+ ;;5.3;Registration;**149,255,477,479,1015**;Aug 13, 1993;Build 21
  ;
  ;NOTE: This routine contains line tags used to build the display
  ;      screen for a List Manager interface.  Refer to routine
@@ -81,9 +81,9 @@ REMOTE(FILE,FIELD) ;Get remote data from merge array [VAFCARR()]
  I ((FIELD=.03)!(FIELD=.351)) I (FILE=2) D
  .S VALUE=$$IN2EXDT^VAFCMGU0(VALUE)
  ;Convert ZIP to ZIP+4
- I (FIELD=.1112) I (FILE=2) D  ;**255
- .S VALUE=$TR(VALUE,"-") ;**477 old messaging didn't contain '-'
- .S VALUE=$E(VALUE,1,5)_$S($E(VALUE,6,9)]"":"-"_$E(VALUE,6,9),1:"")
+ ;I (FIELD=.1112) I (FILE=2) D  ;**255 **479
+ ;.S VALUE=$TR(VALUE,"-") ;**477 old messaging didn't contain '-'
+ ;.S VALUE=$E(VALUE,1,5)_$S($E(VALUE,6,9)]"":"-"_$E(VALUE,6,9),1:"")
  I (FIELD=.3612) I (FILE=2) D  ;**477
  .I $L(VALUE)>7 S VALUE=$$HL7TFM^XLFDT(VALUE) ;convert hl7 to fileman date
  ;Done
@@ -142,9 +142,9 @@ DIFFCHK(FILE,FIELD,IENS,ARRAY) ;Compare local and remote data for differences
  .S LOCAL=$$EX2INDT^VAFCMGU0(LOCAL)
  .I $L(REMOTE)>7 S REMOTE=$$HL7TFM^XLFDT(REMOTE) ;convert hl7 to fileman date
  ;Convert zip+4 to fileman format
- I (FIELD=.1112) I (FILE=2) D  ;**255
- .S LOCAL=$TR(LOCAL,"-","")
- .S REMOTE=$TR(REMOTE,"-","")
+ ;I (FIELD=.1112) I (FILE=2) D  ;**255 **479
+ ;.S LOCAL=$TR(LOCAL,"-","")
+ ;.S REMOTE=$TR(REMOTE,"-","")
  ;Done - return comparison of local & remote data
  Q ('(LOCAL=REMOTE))
  ;

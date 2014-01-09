@@ -1,5 +1,5 @@
-DGPTTS3 ;ALB/MJK - Physical Mvt ; MAY 04, 1990
- ;;5.3;Registration;**26,61**;Aug 13, 1993
+DGPTTS3 ;ALB/MJK - Physical Mvt ; 2/10/11 6:19pm
+ ;;5.3;PIMS;**26,61,549,729,1015,1016**;JUN 30, 2012;Build 20
  ;
 EN ; -- entry used to update PTF rec
  ;  input: PTF := PTF#
@@ -9,7 +9,7 @@ EN ; -- entry used to update PTF rec
  ;
  S DGPTIFN=PTF
  D FDT^DGPTUTL G ENQ:$S(DGDT:DGDT,1:DT)<Y
- I '$D(ZTQUEUED),'$G(DGQUIET) W !,"Now updating ward CDR information..."
+ I '$D(ZTQUEUED),'$G(DGQUIET) W !,"Now updating ward MPCR information..."
  S (DGBEG,DGSTART,DGLAST)=Y-.0000001
  S X=Y I $E(X,6,7)="00" S X1=X,X2=-1 D C^%DTC
  S DGPFYDT=$P(X,".")_".2359" ; last date/time in previous FY
@@ -35,16 +35,17 @@ TABLE ; -- setup 535 node data
  S DGWD=+$P(DGXFR0,U,4)
  G TABLEQ:'$D(^DIC(42,DGWD,0)) S DGSP=+$P(^(0),U,12)
  G TABLEQ:'$D(^DIC(42.4,DGSP,0)) S DGCDR=$P(^(0),U,6)
- ; -- create CDR mvt if ward cdr changes
+ ; -- create MPCR mvt if ward mpcr changes
  I DGDATA]"",+DGDATA'=DGCDR S DGEND=DGXDT D DAYS S $P(DGDATA,U,3,4)=LEAVE_U_PASS D CREATE S DGDATA=DGCDR_"^"_DGSP_"^^^^"_DGWD,DGLAST=DGBEG,DGBEG=DGEND
  I DGDATA="",DGCDR]"" S DGDATA=DGCDR_"^"_DGSP_"^^^^"_DGWD
 TABLEQ Q
  ;
-CREATE ; -- create CDR mvt
- L ^DGPT(DGPTIFN,535) S Y=^DGPT(DGPTIFN,535,0),I=$P(Y,U,3)
+CREATE ; -- create MPCR mvt
+ F  L +^DGPT(DGPTIFN,535):$G(DILOCKTM,3) Q:$T  W !,"Another user is editing this record, trying again...",!
+ S Y=^DGPT(DGPTIFN,535,0),I=$P(Y,U,3)
 L S I=I+1 G L:$D(^DGPT(DGPTIFN,535,I))
  S $P(^DGPT(DGPTIFN,535,0),U,3,4)=I_U_($P(Y,U,4)+1)
- S X=DGDATA,^DGPT(DGPTIFN,535,I,0)=I_U_$P(X,U,2)_U_$P(X,U,3)_U_$P(X,U,4)_"^^"_$P(X,U,6)_"^"_$P(X,U,7)_"^^^"_DGXDT L
+ S X=DGDATA,^DGPT(DGPTIFN,535,I,0)=I_U_$P(X,U,2)_U_$P(X,U,3)_U_$P(X,U,4)_"^^"_$P(X,U,6)_"^"_$P(X,U,7)_"^^^"_DGXDT L -^DGPT(DGPTIFN,535)
  K DA S DA=I,DA(1)=DGPTIFN,DIK="^DGPT("_DGPTIFN_",535," D IX1^DIK
 CREATEQ S DGSACNT=I
  K DA,I,DIK Q

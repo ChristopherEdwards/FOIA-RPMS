@@ -1,5 +1,5 @@
-DGMTSCC ;ALB/RMO,CAW,LBD - Means Test Screen Completion ; 7/11/02 3:02pm
- ;;5.3;Registration;**33,45,130,438,332,433,462,456**;Aug 13, 1993
+DGMTSCC ;ALB/RMO,CAW,LBD,EG - Means Test Screen Completion ; 03/24/2006
+ ;;5.3;Registration;**33,45,130,438,332,433,462,456,610,624,611,1015**;Aug 13, 1993;Build 21
  ;
  ; Input  -- DFN      Patient IEN
  ;           DGMTACT  Means Test Action
@@ -16,19 +16,26 @@ EN N DGCAT,DGCOMF,DGDC,DGDET,DGIN0,DGIN1,DGIN2,DGINT,DGINTF,DGMTS,DGNC,DGND,DGNW
  S DGERR=0
  I DGMTACT="ADD" D COM I 'Y!($D(DTOUT))!($D(DUOUT)) G Q
  S DGCOMF=1 D DEP^DGMTSCU2,INC^DGMTSCU3
- I 'DGINTF,'DGNWTF S DGREF1="" D REF G Q:$D(DTOUT)!($D(DUOUT))
+ ;if ANSPFIN="Y" user already answered to provide financial information (module DISC^DGMTSC)
+ I $G(ANSPFIN)="Y",$D(DGREF) D
+ . S (DGINTF,DGNWTF)=""
+ . W !,"DECLINES TO GIVE INCOME INFORMATION: YES"
+ . S DGREF1=""
+ . Q
+ I ($G(DGINTF)=0),($G(DGNWTF)=0) S DGREF1="" D REF G Q:$D(DTOUT)!($D(DUOUT))
  D CAT^DGMTSCU2,STA^DGMTSCU2
- D CHK I DGERR W !?3,*7,$S(DGMTYPT=1:"Means",1:"Copay")_" test cannot be completed." G Q
+ ;don't try to run validation checks if declining to provide financial information
+ I '$D(DGREF) D CHK I DGERR W !?3,*7,$S(DGMTYPT=1:"Means",1:"Copay")_" test cannot be completed." G Q
  I DGMTYPT=1,DGTYC="M",(DGNWT-DGDET)+$S(DGMTNWC:0,1:DGINT)'<$P(DGMTPAR,"^",8) D ADJ G Q:$D(DTOUT)!($D(DUOUT))
  I DGMTYPT=2,DGCAT="P" D ADJ G Q:$D(DTOUT)!($D(DUOUT))
  S DA=DGMTI,DIE="^DGMT(408.31,",DIE("NO^")="",DR="[DGMT ENTER/EDIT COMPLETION]" D ^DIE K DA,DIE,DR I '$D(DGFIN) S DGERR=1 G Q
  I DGMTACT="EDT",DGMTDT>DT D
- .N DATA S (DATA(.01),DATA(.07))=DT,DATA(2)=1 I $$UPD^DGENDBS(408.31,DGMTI,.DATA)
+ . N DATA S (DATA(.01),DATA(.07))=DT,DATA(2)=1 I $$UPD^DGENDBS(408.31,DGMTI,.DATA)
  W:DGMTYPT=1 !?3,"...means test status is ",$P($$MTS^DGMTU(DFN,DGMTS),"^"),"..."
  W:DGMTYPT=2 !?3,"...copay test status is ",$S(DGCAT="E":"EXEMPT",DGCAT="M":"NON-EXEMPT",DGCAT="P":"PENDING ADJUDICATION",1:"INCOMPLETE"),"..."
  D PRT
  ;
-Q K DGFIN,DGREF,DTOUT,DUOUT,Y
+Q K DGFIN,DTOUT,DUOUT,Y
  Q
  ;
 COM ;Check if user wants to complete the means test
@@ -37,17 +44,24 @@ COM ;Check if user wants to complete the means test
  S DIR("B")="YES",DIR(0)="Y" D ^DIR
  ; The following was added for LTC Copay Phase II (DG*5.3*433)
  I DGMTYPT=4,'Y D
- .W !,"NOTE: If you do not complete the LTC copay exemption test, the incomplete test",!?6,"will be deleted."
- .S DIR("A")="Do you wish to complete the copay exemption test"
- .S DIR("B")="YES",DIR(0)="Y" D ^DIR
+ . W !,"NOTE: If you do not complete the LTC copay exemption test, the incomplete test",!?6,"will be deleted."
+ . S DIR("A")="Do you wish to complete the copay exemption test"
+ . S DIR("B")="YES",DIR(0)="Y" D ^DIR
  Q
  ;
 REF ;Check if patient declines to provide income information
- N DIR,Y
+ ;ANSPFIN      Y - user already answer this question (see program DGMTSC)       
+ N DIR,Y,U
+ S U="^"
  S DIR("A")="DECLINES TO GIVE INCOME INFORMATION"
  I $P($G(^DGMT(408.31,DGMTI,0)),"^",14)]"" S DIR("B")=$$YN^DGMTSCU1($P(^(0),"^",14))
+ I '$D(DIR("B")),$G(ANSPFIN)'="Y" S DIR("B")="NO"
+ ;user answered Y to provide income initially, but didn't provide income information
+ I $G(ANSPFIN)="Y" S DIR("B")="YES"
+ I $G(DGINTF)=0,$G(DGNWTF)=0 S DIR("B")="YES"
  S DIR(0)="408.31,.14" D ^DIR K DIR G REFQ:$D(DTOUT)!($D(DUOUT))
  S:Y DGREF="" Q:'$D(DGREF)!($D(DGREF1))!(DGMTYPT'=1)  S DGCAT="C" D STA^DGMTSCU2
+ S ANSPFIN="Y"
 REFQ Q
  ;
 CHK ;Check if means test can be completed
@@ -66,10 +80,10 @@ CHK ;Check if means test can be completed
  Q:$G(DGERR)
  N CNT,ACT,DGDEP,FLAG,DGINCP
  D INIT^DGDEP S CNT=0 D
- .F  S CNT=$O(DGDEP(CNT)) Q:'CNT  I $P(DGDEP(CNT),U,2)="SPOUSE" D  Q:$G(DGERR)
- ..D GETIENS^DGMTU2(DFN,$P(DGDEP(CNT),U,20),DGMTDT)
- ..S DGINCP=$G(^DGMT(408.22,+DGIRI,"MT")) S:DGINCP FLAG=$G(FLAG)+1
- ..I $G(FLAG)>1 W !?3,"Patient has more than one spouse for this means test." S DGERR=1
+ . F  S CNT=$O(DGDEP(CNT)) Q:'CNT  I $P(DGDEP(CNT),U,2)="SPOUSE" D  Q:$G(DGERR)
+ . . D GETIENS^DGMTU2(DFN,$P(DGDEP(CNT),U,20),DGMTDT)
+ . . S DGINCP=$G(^DGMT(408.22,+DGIRI,"MT")) S:DGINCP FLAG=$G(FLAG)+1
+ . . I $G(FLAG)>1 W !?3,"Patient has more than one spouse for this means test." S DGERR=1
  Q
  ;
 ADJ ;Adjudicate the means test
@@ -82,19 +96,23 @@ ADJ ;Adjudicate the means test
  S DGCAT=$S(Y:"P",DGMTYPT=1&(DGTHG>DGTHA):"G",DGMTYPT=1:"C",1:"N") D STA^DGMTSCU2
 ADJQ Q
  ;
-PRT ;Print the means test 10-10F
- N DIR,Y
- S DIR("A")="PRINT 10-10F"
- S DIR("B")="YES",DIR(0)="Y" D ^DIR G PRTQ:'Y!($D(DTOUT))!($D(DUOUT))
+ ;DG*5.3*624 - REMOVE 10-10F AND REPLACE WITH 10-10EZ/EZR
+PRT ;Print the 10-10EZR or 10-10EZ
+ N EZFLAG
+ I $D(DGFINOP) DO
+ .W !!,"Options for printing financial assessment information will follow."
+ .W !,"Generally, you should answer 'YES' to 'PRINT 10-10EZR?' after updating"
+ .W !,"patient demographic or financial information.  Answer 'YES' to 'PRINT"
+ .W !,"10-10EZ?' after entering new patient demographic and financial information."
+ S EZFLAG=$$SEL1010^DG1010P("EZR/EZ")
+ Q:(EZFLAG=-1)
  D QUE
+ ;
 PRTQ Q
  ;
-QUE ;Ask device and queue output
- I '$D(DGIO(10)) W !!,*7,"THIS OUTPUT REQUIRES 132 COLUMN OUTPUT TO THE PRINTER.",! S %ZIS="QM",%ZIS("B")="",IOP="Q" D ^%ZIS G Q:POP I IO=IO(0),$E(IOST,1,2)="C-" W !,*7,"CANNOT QUEUE TO HOME DEVICE!",! G QUE
- K:$D(IO("Q")) IO("Q")
- S ZTRTN="START^DGMTP",ZTDTH=$H,ZTDESC="Print 10-10F"
- F I="DFN","DGMTI","DGMTDT","DGMTYPT" S ZTSAVE(I)=""
- S ZTIO=$S($D(DGIO(10)):DGIO(10),1:ION) D ^%ZTLOAD
- W !,$S($D(ZTSK):"REQUEST QUEUED!",1:"REQUEST CANCELLED!")
- K ZTDTH,ZTIO,ZTRTN,ZTSAVE,ZTSK
+ ;DG*5.3*624 - REMOVE 10-10F AND REPLACE WITH 10-10EZ/EZR
+QUE ;
+ N X
+ I $G(EZFLAG)="EZ" S X=$$ENEZ^EASEZPDG(DFN,DGMTI)
+ I $G(EZFLAG)="EZR" S X=$$ENEZR^EASEZPDG(DFN,DGMTI)
  Q

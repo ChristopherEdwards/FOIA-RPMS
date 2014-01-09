@@ -1,6 +1,8 @@
-TIUFHA1 ; SLC/MAM - LM Templates H and A Action Delete. CANTDEL(FILEDA,USED), ASKOK(OLDLNO,IFLAG,USED) ;7/1/97  23:41
- ;;1.0;TEXT INTEGRATION UTILITIES;**2,13,43**;Jun 20, 1997
+TIUFHA1 ; SLC/MAM - LM Templates H,A Actn Delete. CANTDEL(FILEDA,USED),ASKOK(OLDLNO,IFLAG,USED) ;1/19/06
+ ;;1.0;TEXT INTEGRATION UTILITIES;**2,13,43,184**;Jun 20, 1997
  ;
+ ;$$HASAS^USRLFF - IA 2329
+ ;$$FNDTITLE^DGPFAPI1 - IA 4383
 DELETE ; Templates H and A Action Delete Entries
  ; Requires TIUFTMPL.
  ; Requires TIUFWHO, set in Options TIUF/A/C/H EDIT/SORT/CREATE DDEFS CLIN/MGR/NATL.
@@ -83,11 +85,13 @@ ASKOX S DIR(0)="Y",DIR("B")="NO" D ^DIR S ANS=Y W !
 CANTDEL(FILEDA,USED) ; Function returns 1 if FILEDA can't be deleted, else 0.
  N ANS,MSG
  S ANS=0
+ I USED="YES" S MSG="Entry In Use by documents; Can't delete" W MSG,! S ANS=1 G CANTX
+ I USED S MSG="Object embedded in boilerplate text; Can't delete" W !,MSG,! S ANS=1 G CANTX
+ I $$HASAS^USRLFF(FILEDA) S MSG=" Entry has Authorizations/Subscriptions; Can't delete." W !!,MSG,! S ANS=1 G CANTX ;**43**
+ I $$FNDTITLE^DGPFAPI1(FILEDA)>0 S MSG="Entry Associated with PRF Flag; Can't delete" W MSG,! S ANS=1 G CANTX
  I '$D(^TIU(8925.1,"AS",+^TMP("TIUF",$J,"STATI"),FILEDA)),$P(^TIU(8925.1,FILEDA,0),U,7) D  G CANTX
- . S MSG=" Status not INACTIVE; Can't Delete" W MSG,! D PAUSE^TIUFXHLX
- . S ANS=1
- I USED="YES" S MSG="Entry In Use by documents; Can't delete" W MSG,! D PAUSE^TIUFXHLX S ANS=1 G CANTX
- I USED S MSG="Object embedded in boilerplate text; Can't delete" W !,MSG,! D PAUSE^TIUFXHLX S ANS=1 G CANTX
- I $$HASAS^USRLFF(FILEDA) S MSG=" Entry has Authorizations/Subscriptions; Can't delete." W !!,MSG,! D PAUSE^TIUFXHLX S ANS=1 G CANTX ;**43**
-CANTX Q ANS
+ . S MSG=" Status not INACTIVE; Can't delete" W MSG,! S ANS=1
+CANTX ;
+ I $D(MSG) D PAUSE^TIUFXHLX
+ Q ANS
  ;

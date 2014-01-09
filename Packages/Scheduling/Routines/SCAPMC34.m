@@ -1,5 +1,5 @@
 SCAPMC34  ;BP/DJB - Get PCP/AP Array For a Pt Tm Pos ; 5/24/99 12:39pm
- ;;5.3;Scheduling;**177,212**;May 01, 1999
+ ;;5.3;Scheduling;**177,212,1015**;May 01, 1999;Build 21
  ;
 PRPTTPC(PTTMPOS,SCDATES,SCLIST,SCERR,SCALLHIS,ADJDATE) ;
  ;Get provider array for a Patient Team Position Assignment (#404.43).

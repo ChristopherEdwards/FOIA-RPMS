@@ -1,5 +1,5 @@
 SRSUPRQ ;B'HAM ISC/MAM - UPDATE REQUESTED OPERATIONS; [ 08/29/01  9:04 AM ]
- ;;3.0; Surgery ;**7,47,58,67,107,114**;24 Jun 93
+ ;;3.0; Surgery ;**7,47,58,67,107,114,100,154**;24 Jun 93
  ;
  ; Reference to ^TMP("CSLSUR1" supported by DBIA #3498
  ;
@@ -14,12 +14,13 @@ OPT S SREQ=1 I $D(SRCASE(2)) D MANY
  Q:$D(SRSCHED)  G:'$D(SRTN) END W !!,"1. Delete",!,"2. Update Request Information",!,"3. Change the Request Date"
 SEL W !!,"Select Number: " R Z:DTIME S:'$T!("^"[Z) SRSOUT=1 G:SRSOUT END S:Z["?" Z=4
  I Z<1!(Z>3)!(+Z\1'=Z) W !!,"If you want to delete this request, enter '1'.  Enter '2' if you only want",!,"to update the general information about this case, or '3' to change the date",!,"that this case is requested for." G SEL
+ I $D(^XTMP("SRLOCK-"_SRTN)) D MSG G END
  I Z=1 D DEL G END
  I Z=2 D UPDATE S SRSOUT=1 G END
  I Z=3 D CHANGE^SRSDT
 END I '$D(SRLATE) S SRLATE=0
  I 'SRLATE,'SRSOUT W !!,"Press RETURN to continue  " R X:DTIME
- W @IOF D ^SRSKILL K SRTN
+ W @IOF D ^SRSKILL K SRTN,SRTN1,SRTNX
  Q
 OPS S SROPER=$P(SRCASE(CNT),"^",3) K SROPS,MM,MMM S:$L(SROPER)<60 SROPS(1)=SROPER I $L(SROPER)>59 S SROPER=SROPER_"  " F M=1:1 D LOOP Q:MMM=""
  Q
@@ -35,11 +36,12 @@ SETUP ; set SRCASE array to list requested cases for this patient
  Q
 DEL ; delete request
  S SRBOTH=0 W !!,"Are you sure that you want to delete this request ?  YES// " R X:DTIME S:'$T X="N" S:X="" X="Y" I X["?" W !!,"Enter RETURN if this request is to be deleted, or NO to quit. " G DEL
- S X=$E(X) Q:"Yy"'[X  K DIE,DR,DA S DA=SRTN,DIE=130,DR="36///0;Q;.09///"_SRSDATE D ^DIE K DR,DA,DIE S SRSDOC=$P(^SRF(SRTN,.1),"^",4)
- I $D(^SRF(SRTN,"CON")),$P(^("CON"),"^")'="" D CON I SRBOTH="^" G END
+ S X=$E(X) Q:"Yy"'[X  I '$$LOCK^SROUTL(SRTN) Q
+ K DIE,DR,DA S DA=SRTN,DIE=130,DR="36///0;Q;.09///"_SRSDATE D ^DIE K DR,DA,DIE S SRSDOC=$P(^SRF(SRTN,.1),"^",4)
+ S SRCON=$P($G(^SRF(SRTN,"CON")),"^") I SRCON D CON I SRBOTH="^" G END
 OPALSO ; delete from file 130
  S SROPCOM="Operation ..."
- S DFN=SRDFN,SRCC="" D KILL^SROPDEL S SRTN=SRTN1 I $D(SRCON) S SRC="" G:"^"[SRBOTH END I SRBOTH=1 S SRTN=SRCON,SRCC="Concurrent " D KILL^SROPDEL K SRTN1
+ S DFN=SRDFN,SRCC="",SRTNX=SRTN D KILL^SROPDEL,UNLOCK^SROUTL(SRTNX) S SRTN=SRTN1 I $D(SRCON) S SRC="" G:"^"[SRBOTH END I SRBOTH=1 S SRTN=SRCON,SRCC="Concurrent " D KILL^SROPDEL,UNLOCK^SROUTL(SRCON)
  Q
 CON S SRCON=^SRF(SRTN,"CON"),SRC="the request for" D CC Q:SRBOTH="^"  I SRBOTH=1 K DIE,DR,DA S DA=SRCON,DIE=130,DR="36///0;Q;.09///"_SRSDATE D ^DIE K DR,DIE,DA S SRSDOCC=$P(^SRF(SRCON,.1),"^",4)
  Q
@@ -51,11 +53,14 @@ CC ; check to see if concurrent case should be deleted
  I SRBOTH'=1 K SRCON
  Q
 UPDATE ; update requested operation
+ N SRLCK S SRLCK=$$LOCK^SROUTL(SRTN) Q:'SRLCK
  D AVG^SRSREQ D RT K SRLNTH,SRLNTH1,DR,X
  S ST="UPDATE REQUEST",DA=SRTN,DIE=130,DR="[SRSRES-ENTRY]" D EN2^SROVAR K Q3("VIEW"),Y S SPD=$$CHKS^SRSCOR(SRTN) D ^SRCUSS I SPD'=$$CHKS^SRSCOR(SRTN) S ^TMP("CSLSUR1",$J)=""
  K DR D:$D(SRODR) ^SROCON1 D RISK^SROAUTL3,^SROPCE1
  S SROERR=SRTN K SRTX D ^SROERR0
+ I $G(SRLCK) D UNLOCK^SROUTL(SRTN)
  Q
 RT ; start RT logging
  I $D(XRTL) S XRTN="SRSUPRQ" D T0^%ZOSV
  Q
+MSG W !!,"This case is currently being edited.",!,"Please try again later...",!! Q

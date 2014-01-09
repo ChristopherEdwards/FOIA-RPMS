@@ -1,5 +1,5 @@
 BLRPOC2 ;IHS/MSC/PLS - EHR POC Component support, part 2 ; MAY 06, 2009 9:58 AM;bf
- ;;5.2;IHS LABORATORY;**1030**;NOV 01, 1997
+ ;;5.2;IHS LABORATORY;**1029,1031**;NOV 01, 1997
  ;
  ; IHS/OIT/MKK
  ;      Entries from BLRPOC were moved to this routine due to the BLRPOC routine
@@ -31,8 +31,6 @@ SAVER ; EP -
  NEW LRTST,LRUNKNOW,LRURG,LRURINE,LRUSI,LRVF,LRVF,LRVIDO,LRVIDOF,LRWLC,LRWLO
  NEW PNLINPNL,PNM,RES,RET,XQY,XQY0,ZTQUEUED
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("SAVER^BLRPOC2 1.0","ARY")
- ; 
  S LRNOLABL="" ; SUPPRESS LABEL PRINTING
  I $G(^LAB(69.9,1,"RO"))=""  S RES="0^Rollover has never been run. Please contact National Lab User Support." G END
  I $P($G(^LAB(69.9,1,"RO")),U,2) S RES="0^Accessioning is currently running, please wait a few minutes and try again." G END
@@ -93,6 +91,9 @@ SAVER ; EP -
  .S LRNG5=$P(LRSPEC0,"!",5),LRNG5=$$REFRES^BLRPOC(LRNG5),$P(LRSPEC0,"!",5)=LRNG5
  .S LRNG2=$P(LRSPEC0,"!",2),LRNG2=$$REFRES^BLRPOC(LRNG2),$P(LRSPEC0,"!",2)=LRNG2
  .S LRNG3=$P(LRSPEC0,"!",3),LRNG3=$$REFRES^BLRPOC(LRNG3),$P(LRSPEC0,"!",3)=LRNG3
+ . ;
+ . D REVAL(LRTRES,.LRTFLG)         ; IHS/MSC/MKK - LR*5.2*1031
+ . ;
  .S UCUM=$P(LRSPEC0,"!",7) I UCUM=+UCUM S UCUM=$P(^BLRUCUM(UCUM,0),U,1),$P(LRSPEC0,"!",7)=UCUM
  .D BLDARY^BLRPOC(LRFNODE,LRSPEC0,LRTRES,LRTFLG)
  ;
@@ -112,7 +113,7 @@ SAVER ; EP -
  ; Call the test function as is done in LRVRPOC
  D TEST^LRVR1
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("SAVER^BLRPOC2 5.0","LRSB")
+ D LRHACK31        ; IHS/MSC/MKK - LR*5.2*1031
  ;
  ; File the result data with the reference ranges in ^LR
  F LRSB=1:0 S LRSB=$O(LRSB(LRSB)) Q:LRSB<1  S:LRSB(LRSB)'="" ^LR(LRDFN,LRSS,LRIDT,LRSB)=LRSB(LRSB)
@@ -136,3 +137,39 @@ END ; EP
  D CLEAN^LRVRPOCU
  K ARY
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+LRHACK31 ; EP
+ ; There appears to be a defect brought about by a change to a VA routine that is included
+ ; in IHS Lab Patch 1031.  The defect causes the Lab Data File's SPECIMEN TYPE field to be null
+ ; as well as the Accession File's Collection Specimen.  This subroutine is a fix, not a solution.
+ NEW LRAA,LRAD,LRAN,LRAS
+ ;
+ Q:$L($G(ARY("COL")))<1      ; If ARY("COL") is null, skip
+ ;
+ ; Set the Lab Data File's Speciment Type, if necessary
+ I +$P($G(^LR(LRDFN,"CH",LRIDT,0)),"^",5)<1 D
+ . S $P(^LR(LRDFN,"CH",LRIDT,0),"^",5)=$P($G(^LAB(62,+$G(ARY("COL")),0)),"^",2)
+  ;
+ ; Set Accession file's Collection Specimen, if necessary
+ S LRAS=$P($G(^LR(LRDFN,"CH",LRIDT,0)),"^",6)
+ D GETACCCP^BLRUTIL3(LRAS,.LRAA,.LRAD,.LRAN)
+ I LRAA,LRAD,LRAN  D
+ . I $P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,5,1,0)),"^",2)="" D
+ .. S $P(^LRO(68,LRAA,1,LRAD,1,LRAN,5,1,0),"^",2)=+$G(ARY("COL"))
+ Q
+ ;
+REVAL(LRTRES,LRTFLG) ; EP - Re-validate abnormal flag
+ ;
+ ; Take into account results that begin with ">" or "<"
+ S:$E(LRTRES)=">" LRTRES=$P(LRTRES,">",2)+1
+ S:$E(LRTRES)="<" LRTRES=$P(LRTRES,"<",2)-1
+ ;
+ S LRTFLG=""                                  ; Initialize every time
+ I $L(LRNG4)&(LRTRES<LRNG4) S LRTFLG="L*"  Q
+ I $L(LRNG5)&(LRTRES>LRNG5) S LRTFLG="H*"  Q
+ I $L(LRNG2)&(LRTRES<LRNG2) S LRTFLG="L"  Q
+ I $L(LRNG3)&(LRTRES>LRNG3) S LRTFLG="H"
+ Q
+ ;
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031

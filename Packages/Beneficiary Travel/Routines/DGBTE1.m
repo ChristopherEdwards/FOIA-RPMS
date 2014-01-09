@@ -1,5 +1,5 @@
 DGBTE1 ;ALB/SCK - BENEFICIARY TRAVEL FIND OLD CLAIM DATES  ;11/23/92@0800  03/19/93
- ;;5.3;Registration;**35,60,90**;Aug 13, 1993
+ ;;5.3;Registration;**35,60,90,1015**;Aug 13, 1993;Build 21
 DATE ;  get date for claim, either new or past date
  K ^TMP("DGBT",$J),^TMP("DGBTARA",$J),DIR
  I 'DGBTNEW S DIR("A",2)="Enter a 'P' to display Past CLAIM dates for editing."

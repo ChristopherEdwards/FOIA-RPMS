@@ -1,5 +1,5 @@
-ORCSAVE1 ; SLC/MKB - Save Order Text ;7/13/04  15:41
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**92,132,141,163,187,223**;Dec 17, 1997
+ORCSAVE1 ; SLC/MKB - Save Order Text ;02/22/07
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**92,132,141,163,187,223,243**;Dec 17, 1997;Build 242
  ;
  ; ^ORD(101.41,+ORDIALOG,10,ITM,2)=Seq#^Format^Omit^Lead Text^Trail Text
  ; ^ORD(101.41,+ORDIALOG,10,"ATXT",Seq#,ITM)=""
@@ -18,10 +18,11 @@ ORDTEXT(ORDER) ; -- Build and save order text from ORDIALOG() into ORDER
  Q
  ;
 ORTX(WIDTH) ; -- May enter here to return order text in ORTX()
- N ORP,SEQ,ITEM,ORMAX
+ N ORP,SEQ,ITEM,ORMAX,IVIEN,IVITEM,IVTYPE,RATE
  K ORTX S ORMAX=$S(+$G(WIDTH):WIDTH,1:240)
  D EXT ; get external form of values
- S SEQ=0 F  S SEQ=$O(^ORD(101.41,+ORDIALOG,10,"ATXT",SEQ)) Q:SEQ'>0  S ITEM=$O(^(SEQ,0)) D TEXT(ITEM)
+ S SEQ=0 F  S SEQ=$O(^ORD(101.41,+ORDIALOG,10,"ATXT",SEQ)) Q:SEQ'>0  D
+ . S ITEM=0 F  S ITEM=$O(^ORD(101.41,+ORDIALOG,10,"ATXT",SEQ,ITEM)) Q:ITEM'>0  D TEXT(ITEM)
  Q
  ;
 TEXT(DA) ; -- Includes text of item DA

@@ -1,5 +1,5 @@
-BCHDHS ; IHS/TUCSON/LAB - CHR HEALTH SUMMARY COMPONENT ;  [ 09/25/02  7:08 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**2,11,12,14**;OCT 28, 1996
+BCHDHS ; IHS/CMI/LAB - CHR HEALTH SUMMARY COMPONENT ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;IHS/TUCSON/LAB - patch 2 - 06/03/97 - fixed the display of referral data
  ;Called from health summary component called CHR.
@@ -39,10 +39,14 @@ DSPVIS ;
  .W !?25,$P(^DD(90002,BCHF,0),U),?55,BCHX
  .Q
  I $P(BCHSN,U,9)]"" W !?25,"Evaluation:  ",$$EXTSET^XBFUNC(90002,.09,$P(BCHSN,U,9)),! ;IHS/TUCSON/LAB - patch 2
- ;IHS/TUCSON/LAB - patch 2 - 06/03/97 - fixed referral display
- I $P(BCHSN,U,7)="",$P(BCHSN,U,8)="" W ! Q
- W ?25,"Referred BY:  ",$E($S($P(BCHSN,U,7)]"":$P(^BCHTREF($P(BCHSN,U,7),0),U),1:""),1,11)
- W ?50,"Referred TO:  ",$E($S($P(BCHSN,U,8):$P(^BCHTREF($P(BCHSN,U,8),0),U),1:""),1,12),!
+ NEW BCHREFB,BCHREFT,C
+ S X=0,C=0 F  S X=$O(^BCHR(BCHSVDF,41,X)) Q:X'=+X  S C=C+1,BCHREFB(C)=$P(^BCHTREF($P(^BCHR(BCHSVDF,41,X,0),U),0),U,1)
+ S X=0,C=0 F  S X=$O(^BCHR(BCHSVDF,42,X)) Q:X'=+X  S C=C+1,BCHREFT(C)=$P(^BCHTREF($P(^BCHR(BCHSVDF,42,X,0),U),0),U,1)
+ W !?5,"Referred to CHR by: ",?45,"Referred by CHR to: "
+ F X=1:1:20 I $D(BCHREFB(X))!($D(BCHREFT(X))) Q:$D(APCHSQIT)  D
+ .X APCHSCKP Q:$D(APCHSQIT)
+ .W !?5,$G(BCHREFB(X)),?45,$G(BCHREFT(X))
+ W !!
  Q
  ;
 NOPOV ;

@@ -1,5 +1,5 @@
 BLRUTIL3 ;IHS/OIT/MKK - MISC IHS LAB UTILITIES (Cont) ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1025,1027,1030**;NOV 01, 1997
+ ;;5.2;IHS LABORATORY;**1025,1027,1030,1031**;NOV 01, 1997
  ;
  Q
  ;
@@ -65,7 +65,7 @@ GETACCCP(LRAS,LRAA,LRAD,LRAN) ; EP -- Take Accession # & break apart
  ;
 DATE ; EP
  K DTOUT,DUOUT S LREND=0
- W !,"DATE",!!,$S($D(%DT("A")):%DT("A"),1:"DATE: "),$S($D(%DT("B")):%DT("B"),1:"TODAY"),"//" R X:DTIME S:X="^" DUOUT=1 S:'$T X="^",DTOUT=1 I $D(DUOUT)!($D(DTOUT)) S LREND=1,Y=-1 Q
+ ; W !,"DATE",!!,$S($D(%DT("A")):%DT("A"),1:"DATE: "),$S($D(%DT("B")):%DT("B"),1:"TODAY"),"//" R X:DTIME S:X="^" DUOUT=1 S:'$T X="^",DTOUT=1 I $D(DUOUT)!($D(DTOUT)) S LREND=1,Y=-1 Q
  S:X="" X=$S($D(%DT("B")):%DT("B"),1:"T") S:$D(%DT)[0 %DT="E" S:%DT["A" %DT=$P(%DT,"A",1)_$P(%DT,"A",2) S:%DT'["E" %DT="E"_%DT D ^%DT G DATE:X="?"!(Y<1)
  K %DT
  Q
@@ -326,11 +326,13 @@ MAKE80 ; EP - Force Screen to 80 Characters
  S IOM=80
  Q
  ;
-MAILALMI(MESSAGE,MSGARRAY,FROMWHOM) ; EP - send e-MAIL and an Alert to members of the LMI Mail Group
+ ; MAILALMI(MESSAGE,MSGARRAY,FROMWHOM) ; EP - send e-MAIL and an Alert to members of the LMI Mail Group
+MAILALMI(MESSAGE,MSGARRAY,FROMWHOM,NOUSER) ; EP - IHS/MSC/MKK - LR*5.2*1031 adds the NOUSER parameter
  NEW MAILARRY
  ;
  ; Alert just sends MESSAGE string
- D SNDALERT(MESSAGE)
+ ; D SNDALERT(MESSAGE)
+ D SNDALERT(MESSAGE,$G(NOUSER))                       ; IHS/MSC/MKK - LR*5.2*1031
  ;
  ; Setup variables for sending MailMan e-mail
  I $L($G(MSGARRAY(1))) M MAILARRY=MSGARRAY
@@ -341,15 +343,24 @@ MAILALMI(MESSAGE,MSGARRAY,FROMWHOM) ; EP - send e-MAIL and an Alert to members o
  ;
  I $G(FROMWHOM)="" S FROMWHOM="RPMS Lab Package"
  ;
- D SENDMAIL(MESSAGE,.MAILARRY,FROMWHOM)
+ ; D SENDMAIL(MESSAGE,.MAILARRY,FROMWHOM)
+ D SENDMAIL(MESSAGE,.MAILARRY,FROMWHOM,$G(NOUSER))    ; IHS/MSC/MKK - LR*5.2*1031
+ ;
+ I $D(^XTMP("BLRUTIL3"))<1 D
+ . S ^XTMP("BLRUTIL3",0)=$$HTFM^XLFDT(+$H+30)_"^"_$$HTFM^XLFDT(+$H)_"^MAILALMI Usage"
+ M ^XTMP("BLRUTIL3","MAILALMI",$H,"DUZ")=DUZ
+ ;
  Q
  ;
-SNDALERT(ALERTMSG) ; EP - Send alert to LMI group AND User (if not member of LMI Mail Group)
+ ; SNDALERT(ALERTMSG,NOUSER) ; EP - Send alert to LMI group AND User (if not member of LMI Mail Group)
+SNDALERT(ALERTMSG,NOUSER) ; EP - LR*5.2*1031 addes NOUSER parameter
  S XQAMSG=ALERTMSG
  S XQA("G.LMI")=""
  ;
- ; If user not part of LMI Mail Group, send them alert also
- S:$$NINLMI(DUZ) XQA(DUZ)=""
+ ; If User not part of LMI Mail Group, send them e-mail also, but
+ ; If-And-Only-If the NOUSER variable is null.
+ ; S:$$NINLMI(DUZ) XQA(DUZ)=""
+ S:$G(NOUSER)=""&($$NINLMI(DUZ)) XQA(DUZ)=""          ; IHS/MSC/MKK - LR*5.2*1031
  ;
  S X=$$SETUP1^XQALERT
  K XQA,XQAMSG
@@ -357,12 +368,12 @@ SNDALERT(ALERTMSG) ; EP - Send alert to LMI group AND User (if not member of LMI
  ;
  NEW SUBSCRPT
  S SUBSCRPT="BLRLINKU Alert^"_+$H_"^"_$J
- S ^XTEMP(SUBSCRPT,0)=$$FMADD^XLFDT($$DT^XLFDT,90)_"^"_$$DT^XLFDT_"^"_"Lab Package Alert."
- S ^XTEMP(SUBSCRPT,1)="Alert was not sent."
- S ^XTEMP(SUBSCRPT,2)="  Message that should have been sent follows:"
- S ^XTEMP(SUBSCRPT,3)="     "_ALERTMSG
- S ^XTEMP(SUBSCRPT,4)="  ALERT Error Message Follows:"
- S ^XTEMP(SUBSCRPT,5)="     "_XQALERR
+ S ^XTMP(SUBSCRPT,0)=$$FMADD^XLFDT($$DT^XLFDT,90)_"^"_$$DT^XLFDT_"^"_"Lab Package Alert."
+ S ^XTMP(SUBSCRPT,1)="Alert was not sent."
+ S ^XTMP(SUBSCRPT,2)="  Message that should have been sent follows:"
+ S ^XTMP(SUBSCRPT,3)="     "_ALERTMSG
+ S ^XTMP(SUBSCRPT,4)="  ALERT Error Message Follows:"
+ S ^XTMP(SUBSCRPT,5)="     "_XQALERR
  Q
  ;
 NINLMI(CHKDUZ) ; EP -- Check to see if DUZ is NOT part of LMI Mail Group
@@ -413,3 +424,24 @@ SENDMAIL(MAILMSG,MAILARRY,FROMWHOM,NOUSER) ; EP
  Q
  ;
  ; ----- END IHS/OIT/MKK -- LR*5.2*1030
+ ;
+ ; ----- BEGIN IHS/MSC/MKK -- LR*5.2*1031
+TESTMAIL ; EP
+ NEW DIFROM,STR
+ ;
+ S STR(1)="SINGLE LINE OF TEXT"
+ ;
+ K XMY
+ S XMY("G.LMI")=""
+ S XMSUB="TESTING MAILMAN"
+ S XMTEXT="STR("
+ S XMDUZ=DUZ
+ S XMZ="NOT OKAY"
+ D ^XMD
+ ;
+ W "XMZ:",XMZ,!
+ W "XMMG:",$G(XMMG),!
+ ;
+ K X,XMDUZ,XMSUB,XMTEXT,XMY,XMZ,Y   ; Cleanup
+ Q
+ ; ----- END IHS/MSC/MKK -- LR*5.2*1031

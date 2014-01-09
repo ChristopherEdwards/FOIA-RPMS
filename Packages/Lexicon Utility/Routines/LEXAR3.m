@@ -1,5 +1,5 @@
-LEXAR3 ; ISL Look-up Response (Help, Def, MAX)    ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+LEXAR3 ;ISL Look-up Response (Help, Def, MAX) ;01/03/2011
+ ;;2.0;LEXICON UTILITY;**73**;Sep 23, 1996;Build 15
  ;
 HLP ; Help
  N LEXRP,LEXMAX K LEX("HLP")
@@ -92,3 +92,32 @@ DEF(LEXIEN) ; Definition Help LEX("HLP",
  . S:'$L($G(^LEX(757.01,LEXR,0))) LEX("HLP",1)="No definition found"
  D:$D(LEX("LIST")) LST^LEXAR
  Q
+QMH(X) ; Question Mark Help
+ N LEXX S LEXX=$G(X)
+ I LEXX["?"&(LEXX'["^") D  Q
+ . K LEX S LEX=0
+ . ;S LEX("HLP",0)=14
+ . S LEX("HLP",+($$Q))="      Enter a ""free text"" term.  Best results occur using one"
+ . S:LEXX'["??" LEX("HLP",+($$Q))="      to three full or partial words without a suffix."
+ . S:LEXX["??" LEX("HLP",+($$Q))="      to three full or partial words without a suffix (i.e.,"
+ . S:LEXX["??" LEX("HLP",+($$Q))="      ""DIABETES"",""DIAB MELL"",""DIAB MELL INSUL"")"
+ . S LEX("HLP",+($$Q))="  or  "
+ . S LEX("HLP",+($$Q))="      Enter a classification code (ICD/CPT etc) to find the"
+ . S:LEXX'["??" LEX("HLP",+($$Q))="      term associated with the code."
+ . S:LEXX["??" LEX("HLP",+($$Q))="      term associated with the code.  Example; a lookup of "
+ . S:LEXX["??" LEX("HLP",+($$Q))="      code 239.0 returns one and only one term, that is the "
+ . S:LEXX["??" LEX("HLP",+($$Q))="      preferred term for the code 239.0, ""Neoplasm of "
+ . S:LEXX["??" LEX("HLP",+($$Q))="      unspecified nature of digestive system"""
+ . S LEX("HLP",+($$Q))="  or  "
+ . S LEX("HLP",+($$Q))="      Enter a classification code (ICD/CPT etc) followed by"
+ . S LEX("HLP",+($$Q))="      a plus sign (+) to retrieve all terms associated with"
+ . S:LEXX'["??" LEX("HLP",+($$Q))="      the code."
+ . S:LEXX["??" LEX("HLP",+($$Q))="      the code.  Example; a lookup of 239.0+ returns all"
+ . S:LEXX["??" LEX("HLP",+($$Q))="      terms that are linked to the code 239.0."
+ . S:$O(LEX("HLP"," "),-1)>0 LEX("HLP",0)=$O(LEX("HLP"," "),-1)
+ . S LEX("NAR")=$S(LEXX["??":"??",1:"?")
+ I LEXX["?"&(LEXX'["??")&(LEXX'["^") D  Q
+ . K LEX S LEX=0,LEX("HLP",0)=1,LEX("HLP",1)="      "_$$SQ^LEXHLP,LEX("NAR")="?"
+ Q
+Q(X) ; Help Counter
+ Q ($O(LEX("HLP"," "),-1)+1)

@@ -1,5 +1,5 @@
 DGVLT2 ; List Template Exporter ; 13-AUG-1993
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;; ;
  W !,"'DGJ IRT REC ENTER' List Template..."
  S DA=$O(^SD(409.61,"B","DGJ IRT REC ENTER",0)),DIK="^SD(409.61," D ^DIK:DA

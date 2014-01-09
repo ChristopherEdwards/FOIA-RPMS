@@ -1,5 +1,5 @@
 VAFCTFMF ;ALB/JLU,LTL-Broadcast Master File Update for Treating Facility ;09/03/98 
- ;;5.3;Registration;**149,261,255,307,361,428**;Aug 13, 1993
+ ;;5.3;Registration;**149,261,255,307,361,428,697,1015**;Aug 13, 1993;Build 21
  ;
  ;Reference to ^ORD(101 supported by IA #872
 BCKTFMFU ;
@@ -34,14 +34,8 @@ BCKTFMFU ;
  .S SUBSCN=$$MPINODE^MPIFAPI(PDFN) I +$G(SUBSCN)<1 D XMITFLAG^VAFCDD01(LP,0,1) Q
  .; if no subscribers (piece 5) and no CMOR (piece 3), turn off xmit flag for Pivot file.  
  .I +$P(SUBSCN,"^",3)<1,(+$P(SUBSCN,"^",5)<1) D XMITFLAG^VAFCDD01(LP,0,1)
- .; no subscribers, but CMOR is not the host, update Sub. Cntrl (#774) file & field (file: 2; fld: 991.05)
- .I +$P(SUBSCN,"^",3),(+$P(SUBSCN,"^",3)'=+$$SITE^VASITE()) D
- ..;obtain the existing SCN, or create a new subscription
- ..N VAFCMOR S VAFCMOR=+$P(SUBSCN,"^",3)
- ..;add CMOR as a subscriber iff SUBSCN is valid; update subsc. list
- ..D CHKSUB^VAFCTFU(PDFN,VAFCMOR)
- ..S SUBSCN=$$MPINODE^MPIFAPI(PDFN)
- ..Q
+ .;Removed section to create a new subscription as it is no longer used.
+ .;1/23/06
  .I +$P($G(SUBSCN),"^",5)<1 D XMITFLAG^VAFCDD01(LP,0,1) Q
  .K HLL D GET^HLSUB($P(SUBSCN,"^",5),"","VAFC MFU-TFL CLIENT",.HLL) I '$D(HLL("LINKS")) D XMITFLAG^VAFCDD01(LP,0,1) Q
  .K HLL

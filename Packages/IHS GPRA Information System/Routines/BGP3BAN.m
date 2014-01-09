@@ -1,53 +1,137 @@
-BGP3BAN ; IHS/CMI/LAB - BANNER FOR GPRA 03 ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP3BAN ; IHS/CMI/LAB - BANNER FOR CRS 13 13 Aug 2010 11:31 AM ; 30 Jul 2012  10:06 AM
+ ;;13.0;IHS CLINICAL REPORTING;**1**;NOV 20, 2012;Build 7
  ;
  ;
 BANNER ;EP
 V ; GET VERSION
  NEW BGPV,BGPL,BGPJ,BGPX
- S BGPV="2.1"
- I $G(BGPTEXT)="" S BGPTEXT="TEXT",BGPL=4 G PRINT
+ S BGPV="13.0 patch 1"
+ I $G(BGPTEXT)="" S BGPTEXT="TEXT",BGPL=3 G PRINT
  S BGPTEXT="TEXT"_BGPTEXT
  F BGPJ=1:1 S BGPX=$T(@BGPTEXT+BGPJ),BGPX=$P(BGPX,";;",2) Q:BGPX="QUIT"!(BGPX="")  S BGPL=BGPJ
 PRINT W:$D(IOF) @IOF
  F BGPJ=1:1:BGPL S BGPX=$T(@BGPTEXT+BGPJ),BGPX=$P(BGPX,";;",2) W !,$$CTR(BGPX,80)
- W !,$$CTR("Version "_BGPV)
-SITE W !!,$$CTR($$LOC)
+ W !,$$CTR("Version "_BGPV,80)
+SITE W !!,$$CTR($$LOC,80)
  K BGPTEXT
  Q
+RPTVER() ;EP
+ Q "CRS 2013, Version 13.0 patch 1"
 TEXT ;
- ;;*******************************************************
- ;;**                  IHS/RPMS GPRA+                   **
- ;;**  Clinical Performance Indicator Reporting System  **
- ;;*******************************************************
+ ;;****************************************************
+ ;;**    IHS/RPMS CLINICAL REPORTING SYSTEM (CRS)    **
+ ;;****************************************************
  ;;QUIT
  ;
-TEXT3 ;
- ;;*******************************************************
- ;;**                    GPRA+ FY03                     **
- ;;**  Clinical Performance Indicator Reporting System  **
- ;;*******************************************************
+TEXTN ;
+ ;;*********************************
+ ;;**      IHS/RPMS CRS 2013      **
+ ;;**    National GPRA Reports    **
+ ;;*********************************
  ;;QUIT
+ ;
+TEXTL ;
+ ;;******************************************************
+ ;;**                IHS/RPMS CRS 2013                 **
+ ;;**   Reports for Local Use: IHS Clinical Measures   **
+ ;;******************************************************
+ ;;QUIT
+ ;
+TEXTO ;
+ ;;*********************************
+ ;;**      IHS/RPMS CRS 2013      **
+ ;;**    Other National Reports   **
+ ;;*********************************
+ ;;QUIT
+ ;
+TEXTC ;
+ ;;*********************************
+ ;;**      IHS/RPMS CRS 2013      **
+ ;;**    CMS Performance Report   **
+ ;;*********************************
+ ;;QUIT
+ ;
+TEXT6 ;
+ ;;*********************************
+ ;;**      IHS/RPMS CRS 2013      **
+ ;;**  Clinical Reporting System  **
+ ;;*********************************
+ ;;QUIT
+ ;
+TEXTA ;;
+ ;;***************************
+ ;;**   IHS/RPMS CRS 2013   **
+ ;;**   Report Automation   **
+ ;;***************************
+ ;;QUIT
+ ;
 TEXTR ;
  ;;**************************
- ;;**      GPRA+ FY03      **
+ ;;**   IHS/RPMS CRS 2013  **
  ;;**     Reports Menu     **
  ;;**************************
  ;;QUIT
 TEXTX ;;
- ;;*****************************
- ;;**        GPRA+ FY03       **
- ;;**    Area Options Menu    **
- ;;*****************************
+ ;;***************************
+ ;;**   IHS/RPMS CRS 2013   **
+ ;;**  Area Office Options  **
+ ;;***************************
  ;;QUIT
  ;
 TEXTS ;;
- ;;***********************
- ;;**     GPRA+ FY03    **
- ;;**     Setup Menu    **
- ;;***********************
+ ;;**************************
+ ;;**   IHS/RPMS CRS 2013  **
+ ;;**       Setup Menu     **
+ ;;**************************
  ;;QUIT
  ;
+TEXTT ;;
+ ;;***************************
+ ;;**   IHS/RPMS CRS 2013   **
+ ;;**  Taxonomy Setup Menu  **
+ ;;***************************
+ ;;QUIT
+ ;
+TEXTZ ;;
+ ;;***************************
+ ;;**   IHS/RPMS CRS 2013   **
+ ;;**  Taxonomy Check Menu  **
+ ;;***************************
+ ;;QUIT
+ ;
+TEXTU ;;
+ ;;*****************************
+ ;;**    IHS/RPMS CRS 2013    **
+ ;;**  Taxonomy Reports Menu  **
+ ;;*****************************
+ ;;QUIT
+ ;;
+TEXTG ;;
+ ;;*********************************
+ ;;**      IHS/RPMS CRS 2013      **
+ ;;**  Lab Taxonomy Reports Menu  **
+ ;;*********************************
+ ;;QUIT
+ ;;
+TEXTP ;;
+ ;;**************************************
+ ;;**        IHS/RPMS CRS 2013         **
+ ;;**  Patient Education Reports Menu  **
+ ;;**************************************
+ ;;QUIT
+TEXTM ;;
+ ;;****************************************
+ ;;**          IHS/RPMS CRS 2013         **
+ ;;**  Medication Taxonomy Reports Menu  **
+ ;;****************************************
+ ;;QUIT
+TEXTMU ;
+ ;;***********************************
+ ;;**       IHS/RPMS CRS 2013       **
+ ;;**  Meaningful Use Reports Menu  **
+ ;;***********************************
+ ;;QUIT
+ ;;
 CTR(X,Y) ;EP - Center X in a field Y wide.
  Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
  ;----------

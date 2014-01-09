@@ -1,5 +1,5 @@
-PSORXL ;BHAM ISC/SAB - action to be taken on prescriptions ;04-Nov-2011 10:22;PLS
- ;;7.0;OUTPATIENT PHARMACY;**8,21,24,32,47,135,1008,1013**;DEC 1997;Build 33
+PSORXL ;BHAM ISC/SAB - action to be taken on prescriptions ;28-Mar-2013 16:45;DU
+ ;;7.0;OUTPATIENT PHARMACY;**8,21,24,32,47,135,1008,1013,148,287,1015**;DEC 1997;Build 62
  ;External reference to File #50 supported by DBIA 221
  ;External references CHPUS^IBACUS and TRI^IBACUS supported by DBIA 2030
  ; Modified - IHS/CIA/PLS - 12/23/2003 - Line QLBL+2 and P1
@@ -17,7 +17,9 @@ PSORXL ;BHAM ISC/SAB - action to be taken on prescriptions ;04-Nov-2011 10:22;PL
  D CHKFDT^APSPFUNC(.PPL) S PSORX("PSOL",1)=PPL  ;IHS/MSC/PLS - 04/30/09 - Remove RXs with future fill dates
  I 'PPL,'$D(RXRS) D  Q
  .W !!,"No other labels to print. Exiting..."
-LBL W !! S DIR("A",1)="Label Printer: "_$S($G(SUSPT):PSLION,1:$G(PSOLAP))
+LBL ;
+ I $G(PPL) N PSOCKDC S PSOCKDC=1 D ECME^PSORXL1 I '$G(PPL) S PPL="" Q  ;don't prompt to print labels for DC'ed Rx's
+ W !! S DIR("A",1)="Label Printer: "_$S($G(SUSPT):PSLION,1:$G(PSOLAP))
  S DIR("A")="LABEL: QUEUE/CHANGE PRINTER"_$S($P(PSOPAR,"^",23):"/HOLD",1:"")_$S($P(PSOPAR,"^",24):"/SUSPEND",1:"")_$S($P(PSOPAR,"^",26):"/LABEL",1:"")_" or '^' to bypass "
  S DIR("?",1)="Enter 'Q' to queue labels to print",DIR("?")="Enter '^' to bypass label functions",DIR("?",4)="Enter 'S' to suspend labels to print later"
  S DIR("?",2)="Enter 'H' to hold label until Rx can be filled",DIR("?",3)="Enter 'P' for Rx profile"
@@ -68,16 +70,20 @@ Q1 W ! K POP S %ZIS("B")="",%ZIS="MNQ",%ZIS("A")="Select LABEL DEVICE: " D ^%ZIS
  S PSOBARS=PSOBAR1]""&(PSOBAR0]"")&$P(PSOPAR,"^",10)
  D ^%ZISC S PSL=0
 QLBL I $G(PSXSYS),('$G(RXLTOP)),('$G(PSOEXREP)) D RXL^PSOCMOP G:'$G(PPL) D1
- ;S PDUZ=DUZ D DQ^PSOLBL Q
+ ;
+ ;- Submitting list of Rx to ECME for DUR/79 REJECT check and possible submission to 3rd Pary Payer
+ D ECME^PSORXL1 I '$G(PPL) W !!,"No Label(s) printed.",!! S PSOQFLAG=1 Q
+ ;
  ; IHS/CIA/PLS - 12/23/2003 - Direct to IHS label routine
  ;S ZTRTN="DQ^PSOLBL",ZTIO=$S($G(SUSPT):PSLION,1:PSOLAP),ZTDESC="Outpatient Pharmacy "_$S($G(SUSPT):"SUSPENSE ",$G(DG):"DRUG INTERACTION ",1:"")_"LABELS OUTPUT ROUTINE",ZTDTH=$S($G(PSOTIME):PSOTIME,1:$H),PDUZ=DUZ
  S ZTRTN="DQ^APSPLBL",ZTIO=$S($G(SUSPT):PSLION,1:PSOLAP),ZTDESC="Outpatient Pharmacy "_$S($G(SUSPT):"SUSPENSE ",$G(DG):"DRUG INTERACTION ",1:"")_"LABELS OUTPUT ROUTINE",ZTDTH=$S($G(PSOTIME):PSOTIME,1:$H),PDUZ=DUZ
  F G="PPL1","PSOSYS","DFN","PSOPAR","PDUZ","PCOMX",$S($G(SUSPT):"PFION",1:"PSOLAP"),"PPL","PSOSITE","RXY","COPIES","SIDE","PSOSUSPR","PSOBARS","PSOBAR1","PSOBAR0","PSODELE","PSOPULL","PSTAT","PSODBQ","PSOEXREP","PSOTREP" S:$D(@G) ZTSAVE(G)=""
  ; IHS/CIA/PLS - 12/23/03 - Save additional variables
- F G="%APSITE","APSPMAN","APSPZRP","DUZ","PSOFROM","%APSITE","APSQSGLB" S:$D(@G) ZTSAVE(G)=""
+ F G="%APSITE","APSPMAN","APSPZRP","DUZ","PSOFROM","%APSITE","APSQSGLB","APSPREIS" S:$D(@G) ZTSAVE(G)=""
  S ZTSAVE("P*")=""
  S ZTSAVE("PSORX(")="",ZTSAVE("RXRP(")="",ZTSAVE("RXPR(")="",ZTSAVE("RXRS(")="",ZTSAVE("RXFL(")="",ZTSAVE("PCOMH(")=""
- D ^%ZISC,^%ZTLOAD K:$G(PSOSONE) RXRS W:$D(ZTSK)&('$G(SUSPT))&('$G(PSOEXREP)) !!,"LABEL(S) QUEUED TO PRINT",!! Q:$G(PSPARTXX)  K G,PDUZ K:'$G(SUSPT) ZTSK Q:$G(DG)
+ D ^%ZISC,^%ZTLOAD K:$G(PSOSONE) RXRS W:$D(ZTSK)&('$G(SUSPT))&('$G(PSOEXREP)) !!,"LABEL(S) QUEUED TO PRINT",!!
+ Q:$G(PSPARTXX)  K G,PDUZ K:'$G(SUSPT) ZTSK Q:$G(DG)
  G:'$G(PSNP) QUEUP G:$G(PSOPRFLG) QUEUP S HOLDRPAS=$G(PSOPRPAS),PSOPRPAS=$P(PSOPAR,"^",13)
 PLBL S PSOION=ION
  I '$D(PSOPROP)!($G(PSOPROP)=ION) W $C(7),!,"PROFILES MUST BE SENT TO PRINTER !!",! K IOP,%ZIS,IO("Q"),POP S %ZIS="MNQ",%ZIS("A")="Select PROFILE DEVICE: " D ^%ZIS K %ZIS("A") G:POP QUEUP G:$E(IOST)["C"!(PSOION=ION) PLBL S PSOPROP=ION
@@ -87,6 +93,7 @@ QPRF S ZTRTN="DQ^PSOPRF",ZTIO=PSOPROP,ZTDESC="Outpatient Pharmacy "_$S($G(SUSPT)
 QUEUP D:$G(POP)&($G(PSONOPRT))  Q:$G(PSOQFLAG)  S PSNP=0,PSOPRPAS=$G(HOLDRPAS) K:PSOPRPAS']"" PSOPRPAS K HOLDRPAS G D1
  .S PSOQFLAG=1
  Q
+ ;
 S G S^PSORXL1
 SUS S X="IBACUS" X ^%ZOSF("TEST") K X I '$T G SUSL1
  N TRIDA S TRIDA=DA I '$$TRI^IBACUS() S DA=TRIDA G SUSL1

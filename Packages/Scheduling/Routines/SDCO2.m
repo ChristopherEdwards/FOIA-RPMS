@@ -1,5 +1,5 @@
 SDCO2 ;ALB/RMO - Classification - Check Out;30 DEC 1992 1:10 pm
- ;;5.3;Scheduling;**27,132**;08/13/93
+ ;;5.3;Scheduling;**27,132,1015**;08/13/93;Build 21
  ;
 EN ;Entry point for SDCO CLASSIFICATION protocol
  ; Input  -- SDOE

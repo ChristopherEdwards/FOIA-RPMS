@@ -1,5 +1,5 @@
 SCRPW7 ;RENO/KEITH - Patient Encounter List ; 15 Jul 98  02:38PM
- ;;5.3;Scheduling;**139,144**;AUG 13, 1993
+ ;;5.3;Scheduling;**139,144,466,1015**;AUG 13, 1993;Build 21
 ASK N DIC,%DT D TITL^SCRPW50("Patient Encounter List")
  W ! S DIC="^DPT(",DIC(0)="AZEMQ" D ^DIC G:$D(DTOUT)!$D(DUOUT) EXIT G:Y'>0 EXIT S SDPT=$P(Y,U),SDPTNA=$P(Y,U,2),SDPTSN=$P(Y(0),U,9)
  I '$D(^SCE("ADFN",SDPT)) W !!,$C(7),"This patient has no encounters on file.",! H 3 G ASK
@@ -27,7 +27,7 @@ HDR W:SDP=6!(SDPAGE>1) $$XY^SCRPW50(IOF,1,0) W:$X $$XY^SCRPW50("",0,0)
  Q
  ;
 DISP S SDL=$P($G(^SC(+$P(SDOE0,U,4),0)),U),SDT=$P(SDOE0,U,8),SDT=$S(SDT=1:"Appointment",SDT=2:"Stop Code Addition",SDT=3:"Disposition",SDT=4:"Credit Stop Code",1:""),SDS=$P($G(^SD(409.63,+$P(SDOE0,U,12),0)),U)
- S SDS1=$$COTS(SDOE) D:$Y>(IOSL-SDP) WAIT Q:SDOUT  S Y=SDDT X ^DD("DD") W !,Y,?30,SDL,!?5,"#",SDOE,?15,SDT,?37,SDS W:$L(SDS1) " - ",SDS1 W ! F SDI=1:1:80 W "-"
+ S SDS1=$$COTS(SDOE) D:$Y>(IOSL-SDP) WAIT Q:SDOUT  S Y=SDDT X ^DD("DD") W !,Y,?30,SDL,!?5,"#",SDOE,?15,SDT,?35,SDS W:$L(SDS1) " - ",SDS1 W ! F SDI=1:1:80 W "-"
  Q
  ;
 WAIT I SDP=4 D HDR Q
@@ -35,4 +35,5 @@ WAIT I SDP=4 D HDR Q
  D:Y HDR Q
  ;
 COTS(SDOE) Q:$P(SDOE0,U,6) "Child of enc. #"_$P(SDOE0,U,6)
- Q:SDS'="CHECKED OUT" ""  Q $P($$STX^SCRPW8(SDOE,SDOE0),U,2)
+ I $P(SDOE0,U,4),$P($G(^SC($P(SDOE0,U,4),0)),U,17)="Y" Q ""
+ Q:"^CHECKED OUT^INPATIENT APPOINTMENT^"'["^"_SDS_"^" ""  Q $P($$STX^SCRPW8(SDOE,SDOE0),U,2)

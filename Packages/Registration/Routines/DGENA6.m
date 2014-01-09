@@ -1,5 +1,5 @@
-DGENA6 ;ALB/CJM,ISA,KWP,RTK,LBD - Enrollment API to create enrollment record; 04/24/03 ; 11/1/01 3:26pm
- ;;5.3;Registration;**232,327,417,491,513**;Aug 13, 1993
+DGENA6 ;ALB/CJM,ISA,KWP,RTK,LBD,CKN - Enrollment API to create enrollment record; 04/24/03 ; 8/31/05 2:44pm
+ ;;5.3;Registration;**232,327,417,491,513,672,1015**;Aug 13, 1993;Build 21
  ;
  ;CREATE line tag moved from DGENA in DG*5.3*232.;MM  
  ;
@@ -24,7 +24,7 @@ CREATE(DFN,APP,EFFDATE,REASON,REMARKS,DGENR,ENRDATE,END) ;
  ;
  K DGENR
  S DGENR=""
- N DGELGSUB,PRIORITY,DEATH,PRIGRP
+ N DGELGSUB,PRIORITY,DEATH,PRIGRP,DODUPD
  ;Re-Enrollment - var PRIGRP contains priority and subgroup
  S PRIGRP=$$PRIORITY^DGENELA4(DFN,,.DGELGSUB,$G(ENRDATE),$G(APP))
  S PRIORITY=$P(PRIGRP,"^")  ; Re-Enrollment - Priority is first piece
@@ -41,7 +41,9 @@ CREATE(DFN,APP,EFFDATE,REASON,REMARKS,DGENR,ENRDATE,END) ;
  .I DEATH D  Q
  ..S DGENR("STATUS")=6 ;DECEASED
  ..S DGENR("END")=DEATH
- ..S EFFDATE=DEATH
+ ..S DODUPD=$P($G(^DPT(DFN,.35)),"^",4) ;Get Date of Death last updated date
+ ..;S EFFDATE=DEATH ;Removed - DG*5.3*672
+ ..S EFFDATE=$S($G(DODUPD)'="":DODUPD,1:DT) ;DG*5.3*672
  ..;Find patient's current enrollment record
  ..N DGENRIEN,DGENRC
  ..S DGENRIEN=$$FINDCUR^DGENA(DFN)
@@ -84,7 +86,7 @@ CREATE(DFN,APP,EFFDATE,REASON,REMARKS,DGENR,ENRDATE,END) ;
  S DGENR("SUBGRP")=$P(PRIGRP,"^",2)
  S DGENR("EFFDATE")=$S($G(EFFDATE):EFFDATE,$G(ENRDATE):$G(ENRDATE),1:$G(APP))
  S DGENR("USER")=$G(DUZ)
- S DGENR("DATETIME")=$$NOW^XLFDT
+ S DGENR("DATETIME")=$$NOW^XLFDT ;Moved to top of the routine DG*5.3*672
  S DGENR("PRIORREC")=""
  M DGENR("ELIG")=DGELGSUB
  ;

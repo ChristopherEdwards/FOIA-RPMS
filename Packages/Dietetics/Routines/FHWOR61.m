@@ -1,10 +1,10 @@
 FHWOR61 ; HISC/JH - Dietetics Isolation/Precaution ;2/23/00  09:53
- ;;5.0;Dietetics;**6,25**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 GET ; Get OBR
  N FHIS1
  S OBR=$P(X,"|",13),(FHIS1,IS)=$P(OBR,"^",4)
- I $P(^FHPT(DFN,"A",ADM,0),"^",10)'="" S FHIS=$P(^FHPT(DFN,"A",ADM,0),"^",10) D CAN^FHORD4 S FHHOLD=FHORN,FHORN=$P(^FHPT(DFN,"A",ADM,0),"^",13) D:FHORN>0 CODE^FHWOR61 S FHORN=FHHOLD,IS=FHIS K FHHOLD,FHIS
- S IS=FHIS1 D FIL^FHORD4 S $P(^FHPT(DFN,"A",ADM,0),"^",13)=+FHORN,FILL="I"_";"_ADM_";"_IS D SEND^FHWOR
+ I $P(^FHPT(FHDFN,"A",ADM,0),"^",10)'="" S FHIS=$P(^FHPT(FHDFN,"A",ADM,0),"^",10) D CAN^FHORD4 S FHHOLD=FHORN,FHORN=$P(^FHPT(FHDFN,"A",ADM,0),"^",13) D:FHORN>0 CODE^FHWOR61 S FHORN=FHHOLD,IS=FHIS K FHHOLD,FHIS
+ S IS=FHIS1 D FIL^FHORD4 S $P(^FHPT(FHDFN,"A",ADM,0),"^",13)=+FHORN,FILL="I"_";"_ADM_";"_IS D SEND^FHWOR
  K OBR Q
 ISO ; Isolation/Precaution Order
  K MSG D SETVAR^FHORD4
@@ -27,16 +27,16 @@ CODE ; Cancelation From Dietetic
 CAN ; Cancel Isolation From Order Entry
  S IS=+$P(FILL,";",3) I 'IS D CSEND^FHWOR Q
  D GADM^FHWORR
- I IS'=$P($G(^FHPT(DFN,"A",+ADM,0)),"^",10) D CSEND^FHWOR Q
- I +FHORN'=$P($G(^FHPT(DFN,"A",ADM,0)),"^",13) D CSEND^FHWOR Q
+ I IS'=$P($G(^FHPT(FHDFN,"A",+ADM,0)),"^",10) D CSEND^FHWOR Q
+ I +FHORN'=$P($G(^FHPT(FHDFN,"A",ADM,0)),"^",13) D CSEND^FHWOR Q
  D CAN^FHORD4,CSEND^FHWOR
  K IS
  Q
 NA ; If isolation store in Ditetics and Order/Entry
  G:'$P(FILL,";",3) KILL
  S:ADM'=$P(FILL,";",2) ADM=$P(ADM,";",2) ;Check if same admission
- S OBR=$P($G(^FHPT(DFN,"A",ADM,0)),"^",10) I OBR=+$P(FILL,";",3) D
- .I +FHORN>0 S $P(^FHPT(DFN,"A",ADM,0),"^",13)=+FHORN
+ S OBR=$P($G(^FHPT(FHDFN,"A",ADM,0)),"^",10) I OBR=+$P(FILL,";",3) D
+ .I +FHORN>0 S $P(^FHPT(FHDFN,"A",ADM,0),"^",13)=+FHORN
  .Q
 KILL K FHIDT,IS
  Q

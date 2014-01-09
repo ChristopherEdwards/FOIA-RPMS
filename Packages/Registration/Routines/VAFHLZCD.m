@@ -1,5 +1,5 @@
-VAFHLZCD ;ALB/KCL,Zoltan,JAN - Create HL7 Catastrophic Disability (ZCD) segment ;May 26, 1999;Nov 26, 2001
- ;;5.3;Registration;**122,232,387**;Aug 13, 1993
+VAFHLZCD ;ALB/KCL,Zoltan,JAN,TDM - Create HL7 Catastrophic Disability (ZCD) segment ; 9/19/05 11:31am
+ ;;5.3;Registration;**122,232,387,653,1015**;Aug 13, 1993;Build 21
  ;
  ;
  ; This generic extrinsic function is designed to return the
@@ -62,7 +62,7 @@ EN(DFN,VAFSTR,VAFNUM,VAFHLQ,VAFHLFS) ; --
  I 'VALOK F SUB="REVDTE","BY","FACDET","DATE","METDET","VCD" S VAFCAT(SUB)=""
  ;
  ; if VAFSTR not passed, return all data fields
- I $G(VAFSTR)="" S VAFSTR="1,2,3,4,5,6,7,8,9,10,11,12,13"
+ I $G(VAFSTR)="" S VAFSTR="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16"
  ;
  ; initialize output string and requested data fields
  S $P(VAFY,VAFHLFS,$L(VAFSTR,","))=""
@@ -103,6 +103,12 @@ EN(DFN,VAFSTR,VAFNUM,VAFHLQ,VAFHLFS) ; --
  I VAFSTR[",12," S $P(VAFY,VAFHLFS,12)=$S(VAFCAT("VCD")'="":VAFCAT("VCD"),1:VAFHLQ)
  ; 13 - Permanent Indicator (Condition sub-field)
  I VAFSTR[",13," S $P(VAFY,VAFHLFS,13)=$S($G(VAFCDLST(SETID,"PERM"))'="":$$PERMTOHL^DGENA5(VAFCDLST(SETID,"PERM")),1:VAFHLQ)
+ ; 14 - Date Veteran Requested CD Evaluation
+ I VAFSTR[",14," S $P(VAFY,VAFHLFS,14)=$S(VAFCAT("VETREQDT")'="":$$HLDATE^HLFNC(VAFCAT("VETREQDT")),1:VAFHLQ)
+ ; 15 - Date Facility Initiated Review
+ I VAFSTR[",15," S $P(VAFY,VAFHLFS,15)=$S(VAFCAT("DTFACIRV")'="":$$HLDATE^HLFNC(VAFCAT("DTFACIRV")),1:VAFHLQ)
+ ; 16 - Date Veteran Was Notified
+ I VAFSTR[",16," S $P(VAFY,VAFHLFS,16)=$S(VAFCAT("DTVETNOT")'="":$$HLDATE^HLFNC(VAFCAT("DTVETNOT")),1:VAFHLQ)
  ;
  S:$E(VAFSTR,1)="," VAFSTR=$E(VAFSTR,2,$L(VAFSTR))
  S:$E(VAFSTR,$L(VAFSTR))="," VAFSTR=$E(VAFSTR,1,$L(VAFSTR)-1)

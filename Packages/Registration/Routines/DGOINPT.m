@@ -1,5 +1,5 @@
-DGOINPT ;RWA/SLC,XAK/ALBANY;ALB/MLI;ALB/REW - WARD ROSTER ; 16 SEP 84  1:41 pm
- ;;5.3;Registration;;Aug 13, 1993
+DGOINPT ;RWA/SLC,XAK/ALBANY;ALB/MLI;ALB/REW - WARD ROSTER ; 6/11/03 12:26pm
+ ;;5.3;Registration;**524,1015**;Aug 13, 1993;Build 21
  ;;MAS VERSION 5.1;
  ;
  ; DGHOW = PRIMARY SORT METHOD (W=WARD P=PROVIDER)
@@ -28,7 +28,7 @@ PROV W !,"Which provider? ",!!
  S Z="^PRIMARY CARE^ATTENDING^EITHER" D IN^DGHELP
  I %=-1 W !!?3,"Enter P to sort this report of inpatients by PRIMARY CARE PHYSICIAN",!?9,"A to sort the report by ATTENDING PHYSICIAN, or",!?9,"E to print the report where the provider was EITHER",!?12,"Attending or Primary Care" G PROV
  S DGPVAR=X,VAUTNI=3
- S DIC="^VA(200,",VAUTSTR="provider",VAUTVB="VAUTW",DIC("S")="S DGTM=$G(^(""I"")) I DGTM'>0!(DGTM>DT)" D FIRST^VAUTOMA
+ S DIC="^VA(200,",VAUTSTR="provider",VAUTVB="VAUTW" D FIRST^VAUTOMA
  Q:Y<0
 NMRM ;
  R !!,"Sub-sort by (N)ame of Patient or (R)oom  NAME// ",X:DTIME I '$T!(X["^") Q

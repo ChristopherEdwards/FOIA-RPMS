@@ -1,5 +1,5 @@
 DG53461U ;ALB/AEG - DG*5.3*461 POST INSTALL UTILS ;7-3-02
- ;;5.3;Registration;**461**;Aug 13, 1993
+ ;;5.3;Registration;**461,1015**;Aug 13, 1993;Build 21
  ;
 MESS ; Setup initial message array for users
  S MESS(1)="This post-installation will search the CD STATUS PROCECURES subfile (#.397)"

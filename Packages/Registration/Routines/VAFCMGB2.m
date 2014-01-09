@@ -1,5 +1,5 @@
 VAFCMGB2 ;ALB/JRP-DEMOGRAPHIC MERGE SCREENS ;28-OCT-96
- ;;5.3;Registration;**149,384**;Aug 13, 1993
+ ;;5.3;Registration;**149,384,479,1015**;Aug 13, 1993;Build 21
  ;
  ;NOTE: This routine contains line tags used to build the display
  ;      screen for a List Manager interface.  Refer to routine
@@ -28,18 +28,18 @@ GROUP3 ;Line tag to build logical group number three
  S LOCAL=$$LOCAL^VAFCMGB0(2,.02,IENS,TARGET)
  S REMOTE=$$REMOTE^VAFCMGB0(2,.02)
  S DIFF=$$DIFFCHK^VAFCMGB0(2,.02,IENS,TARGET)
- S LINE=$S(DIFF:"**",1:"  ")_"12"
- S:DIFF&($P($G(@VAFCARR@(2,.02)),U,2)) LINE="->"_"12"
+ S LINE=$S(DIFF:"**",1:"  ")_" 7" ;**479 12 to 7
+ S:DIFF&($P($G(@VAFCARR@(2,.02)),U,2)) LINE="->"_" 7" ;**479 12 to 7
  S DATA="Sex: "_LOCAL
  S LINE=$$INSERT^VAFCMGU0(DATA,LINE,15)
  S @VALMAR@(VALMCNT,0)=$$INSERT^VAFCMGU0(REMOTE,LINE,50)
- S @VALMAR@("IDX",VALMCNT,12)=""
+ S @VALMAR@("IDX",VALMCNT,7)="" ;**479 12 to 7
  I (DIFF) D
- .S @VALMAR@("E2F",12,1)="2^.02"
- .S @VALMAR@("E2G",12)=3
+ .S @VALMAR@("E2F",7,1)="2^.02" ;**479 12 to 7
+ .S @VALMAR@("E2G",7)=3 ;**479 12 to 7
  I ('DIFF) D
- .K @VALMAR@("E2F",12)
- .K @VALMAR@("E2G",12)
+ .K @VALMAR@("E2F",7) ;**479 12 to 7
+ .K @VALMAR@("E2G",7) ;**479 12 to 7
  W:(+$G(VAFCDOTS)) "."
  S VALMCNT=VALMCNT+1
  ;Marital status
@@ -48,18 +48,18 @@ GROUP3 ;Line tag to build logical group number three
  S REMOTE=$$REMOTE^VAFCMGB0(2,.05)
  S REMOTE=$E(REMOTE,1,28)
  S DIFF=$$DIFFCHK^VAFCMGB0(2,.05,IENS,TARGET)
- S LINE=$S(DIFF:"**",1:"  ")_"13"
- S:DIFF&($P($G(@VAFCARR@(2,.05)),U,2)) LINE="->"_"13"
+ S LINE=$S(DIFF:"**",1:"  ")_" 8" ;**479 13 to 8
+ S:DIFF&($P($G(@VAFCARR@(2,.05)),U,2)) LINE="->"_" 8" ;**479 13 to 8
  S DATA="Marital: "_LOCAL
  S LINE=$$INSERT^VAFCMGU0(DATA,LINE,11)
  S @VALMAR@(VALMCNT,0)=$$INSERT^VAFCMGU0(REMOTE,LINE,50)
- S @VALMAR@("IDX",VALMCNT,13)=""
+ S @VALMAR@("IDX",VALMCNT,8)="" ;**479 13 to 8
  I (DIFF) D
- .S @VALMAR@("E2F",13,1)="2^.05"
- .S @VALMAR@("E2G",13)=3
+ .S @VALMAR@("E2F",8,1)="2^.05" ;**479 13 to 8
+ .S @VALMAR@("E2G",8)=3 ;**479 13 to 8
  I ('DIFF) D
- .K @VALMAR@("E2F",13)
- .K @VALMAR@("E2G",13)
+ .K @VALMAR@("E2F",8) ;**479 13 to 8
+ .K @VALMAR@("E2G",8) ;**479 13 to 8
  W:(+$G(VAFCDOTS)) "."
  S VALMCNT=VALMCNT+1
  ;Religion
@@ -68,18 +68,18 @@ GROUP3 ;Line tag to build logical group number three
  S REMOTE=$$REMOTE^VAFCMGB0(2,.08)
  S REMOTE=$E(REMOTE,1,28)
  S DIFF=$$DIFFCHK^VAFCMGB0(2,.08,IENS,TARGET)
- S LINE=$S(DIFF:"**",1:"  ")_"14"
- S:DIFF&($P($G(@VAFCARR@(2,.08)),U,2)) LINE="->"_"14"
+ S LINE=$S(DIFF:"**",1:"  ")_" 9" ;**479 14 to 9
+ S:DIFF&($P($G(@VAFCARR@(2,.08)),U,2)) LINE="->"_" 9" ;**479 14 to 9
  S DATA="Religion: "_LOCAL
  S LINE=$$INSERT^VAFCMGU0(DATA,LINE,10)
  S @VALMAR@(VALMCNT,0)=$$INSERT^VAFCMGU0(REMOTE,LINE,50)
- S @VALMAR@("IDX",VALMCNT,14)=""
+ S @VALMAR@("IDX",VALMCNT,9)="" ;**479 14 to 9
  I (DIFF) D
- .S @VALMAR@("E2F",14,1)="2^.08"
- .S @VALMAR@("E2G",14)=3
+ .S @VALMAR@("E2F",9,1)="2^.08" ;**479 14 to 9
+ .S @VALMAR@("E2G",9)=3 ;**479 14 to 9
  I ('DIFF) D
- .K @VALMAR@("E2F",14)
- .K @VALMAR@("E2G",14)
+ .K @VALMAR@("E2F",9) ;**479 14 to 9
+ .K @VALMAR@("E2G",9) ;**479 14 to 9
  W:(+$G(VAFCDOTS)) "."
  S VALMCNT=VALMCNT+1
  ;Mother's maiden name
@@ -88,18 +88,18 @@ GROUP3 ;Line tag to build logical group number three
  S REMOTE=$$REMOTE^VAFCMGB0(2,.2403)
  S REMOTE=$E(REMOTE,1,28)
  S DIFF=$$DIFFCHK^VAFCMGB0(2,.2403,IENS,TARGET)
- S LINE=$S(DIFF:"**",1:"  ")_"15"
- S:DIFF&($P($G(@VAFCARR@(2,.2403)),U,2)) LINE="->"_"15"
+ S LINE=$S(DIFF:"**",1:"  ")_"10" ;**479 15 to 10
+ S:DIFF&($P($G(@VAFCARR@(2,.2403)),U,2)) LINE="->"_"10" ;**479 15 to 10
  S DATA="Mom's Maiden: "_LOCAL
  S LINE=$$INSERT^VAFCMGU0(DATA,LINE,6)
  S @VALMAR@(VALMCNT,0)=$$INSERT^VAFCMGU0(REMOTE,LINE,50)
- S @VALMAR@("IDX",VALMCNT,15)=""
+ S @VALMAR@("IDX",VALMCNT,10)="" ;**479 15 to 10
  I (DIFF) D
- .S @VALMAR@("E2F",15,1)="2^.2403"
- .S @VALMAR@("E2G",15)=3
+ .S @VALMAR@("E2F",10,1)="2^.2403" ;**479 15 to 10
+ .S @VALMAR@("E2G",10)=3 ;**479 15 to 10
  I ('DIFF) D
- .K @VALMAR@("E2F",15)
- .K @VALMAR@("E2G",15)
+ .K @VALMAR@("E2F",10) ;**479 15 to 10
+ .K @VALMAR@("E2G",10) ;**479 15 to 10
  W:(+$G(VAFCDOTS)) "."
  S VALMCNT=VALMCNT+1
  ;Employment status
@@ -108,18 +108,18 @@ GROUP3 ;Line tag to build logical group number three
  S REMOTE=$$REMOTE^VAFCMGB0(2,.31115)
  S REMOTE=$E(REMOTE,1,28)
  S DIFF=$$DIFFCHK^VAFCMGB0(2,.31115,IENS,TARGET)
- S LINE=$S(DIFF:"**",1:"  ")_"16"
- S:DIFF&($P($G(@VAFCARR@(2,.31115)),U,2)) LINE="->"_"16"
+ S LINE=$S(DIFF:"**",1:"  ")_"11" ;**479 16 to 11
+ S:DIFF&($P($G(@VAFCARR@(2,.31115)),U,2)) LINE="->"_"11" ;**479 16 to 11
  S DATA="Employ Stat: "_LOCAL
  S LINE=$$INSERT^VAFCMGU0(DATA,LINE,7)
  S @VALMAR@(VALMCNT,0)=$$INSERT^VAFCMGU0(REMOTE,LINE,50)
- S @VALMAR@("IDX",VALMCNT,16)=""
+ S @VALMAR@("IDX",VALMCNT,11)="" ;**479 16 to 11
  I (DIFF) D
- .S @VALMAR@("E2F",16,1)="2^.31115"
- .S @VALMAR@("E2G",16)=3
+ .S @VALMAR@("E2F",11,1)="2^.31115" ;**479 16 to 11
+ .S @VALMAR@("E2G",11)=3 ;**479 16 to 11
  I ('DIFF) D
- .K @VALMAR@("E2F",16)
- .K @VALMAR@("E2G",16)
+ .K @VALMAR@("E2F",11) ;**479 16 to 11
+ .K @VALMAR@("E2G",11) ;**479 16 to 11
  W:(+$G(VAFCDOTS)) "."
  S VALMCNT=VALMCNT+1
  ;Next of kin's name
@@ -128,18 +128,18 @@ GROUP3 ;Line tag to build logical group number three
  S REMOTE=$$REMOTE^VAFCMGB0(2,.211)
  S REMOTE=$E(REMOTE,1,28)
  S DIFF=$$DIFFCHK^VAFCMGB0(2,.211,IENS,TARGET)
- S LINE=$S(DIFF:"**",1:"  ")_"17"
- S:DIFF&($P($G(@VAFCARR@(2,.211)),U,2)) LINE="->"_"17" ;**384
+ S LINE=$S(DIFF:"**",1:"  ")_"12" ;**479 17 to 12
+ S:DIFF&($P($G(@VAFCARR@(2,.211)),U,2)) LINE="->"_"12" ;**384 ;**479 17 to 12
  S DATA="NOK Name: "_LOCAL
  S LINE=$$INSERT^VAFCMGU0(DATA,LINE,10)
  S @VALMAR@(VALMCNT,0)=$$INSERT^VAFCMGU0(REMOTE,LINE,50)
- S @VALMAR@("IDX",VALMCNT,17)=""
+ S @VALMAR@("IDX",VALMCNT,12)="" ;**479 17 to 12
  I (DIFF) D
- .S @VALMAR@("E2F",17,1)="2^.211"
- .S @VALMAR@("E2G",17)=3
+ .S @VALMAR@("E2F",12,1)="2^.211" ;**479 17 to 12
+ .S @VALMAR@("E2G",12)=3 ;**479 17 to 12
  I ('DIFF) D
- .K @VALMAR@("E2F",17)
- .K @VALMAR@("E2G",17)
+ .K @VALMAR@("E2F",12) ;**479 17 to 12
+ .K @VALMAR@("E2G",12) ;**479 17 to 12
  W:(+$G(VAFCDOTS)) "."
  S VALMCNT=VALMCNT+1
  ;Next of kin's phone number
@@ -148,18 +148,18 @@ GROUP3 ;Line tag to build logical group number three
  S REMOTE=$$REMOTE^VAFCMGB0(2,.219)
  S REMOTE=$E(REMOTE,1,28)
  S DIFF=$$DIFFCHK^VAFCMGB0(2,.219,IENS,TARGET)
- S LINE=$S(DIFF:"**",1:"  ")_"18"
- S:DIFF&($P($G(@VAFCARR@(2,.219)),U,2)) LINE="->"_"18" ;**384
+ S LINE=$S(DIFF:"**",1:"  ")_"13" ;**479 18 to 13
+ S:DIFF&($P($G(@VAFCARR@(2,.219)),U,2)) LINE="->"_"13" ;**384 ;**479 18 to 13
  S DATA="NOK Phone #: "_LOCAL
  S LINE=$$INSERT^VAFCMGU0(DATA,LINE,7)
  S @VALMAR@(VALMCNT,0)=$$INSERT^VAFCMGU0(REMOTE,LINE,50)
- S @VALMAR@("IDX",VALMCNT,18)=""
+ S @VALMAR@("IDX",VALMCNT,13)="" ;**479 18 to 13
  I (DIFF) D
- .S @VALMAR@("E2F",18,1)="2^.219"
- .S @VALMAR@("E2G",18)=3
+ .S @VALMAR@("E2F",13,1)="2^.219" ;**479 18 to 13
+ .S @VALMAR@("E2G",13)=3 ;**479 18 to 13
  I ('DIFF) D
- .K @VALMAR@("E2F",18)
- .K @VALMAR@("E2G",18)
+ .K @VALMAR@("E2F",13) ;**479 18 to 13
+ .K @VALMAR@("E2G",13) ;**479 18 to 13
  W:(+$G(VAFCDOTS)) "."
  S VALMCNT=VALMCNT+1
  ;Done

@@ -1,4 +1,4 @@
-DGJXE ; GENERATED FROM 'DGJ EDIT IRT RECORD' INPUT TEMPLATE(#2434), FILE 393;10/29/04
+DGJXE ; GENERATED FROM 'DGJ EDIT IRT RECORD' INPUT TEMPLATE(#2434), FILE 393;10/15/12
  D DE G BEGIN
 DE S DIE="^VAS(393,",DIC=DIE,DP=393,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^VAS(393,DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(3)=% S %=$P(%Z,U,3) S:%]"" DE(5)=% S %=$P(%Z,U,4) S:%]"" DE(9)=% S %=$P(%Z,U,5) S:%]"" DE(12)=% S %=$P(%Z,U,6) S:%]"" DE(15)=% S %=$P(%Z,U,8) S:%]"" DE(18)=% S %=$P(%Z,U,12) S:%]"" DE(19)=%

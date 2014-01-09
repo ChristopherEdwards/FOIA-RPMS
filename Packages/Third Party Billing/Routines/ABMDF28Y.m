@@ -1,15 +1,9 @@
 ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;    
- ;;2.6;IHS Third Party Billing;**1,2,4,6**;NOV 12, 2009
- ; IHS/SD/SDR - v2.5 p12 - IM24901
- ;    Correction for page number calculation (wasn't figuring right number of lines per page)
- ; IHS/SD/SDR - v2.5 p12 - IM25033 - Changed FL39 and 40 to one digit if A0 or 80
- ; IHS/SD/SDR - v2.5 p12 - IM24881 - Form alignment changes
- ; IHS/SD/SDR - v2.5 p12 - IM25207 - Alignment for FL44 for RX number
- ; IHS/SD/SDR - v2.5 p12 - IM24862 - Made changes for NPI if satellite (should use ABMP("LDFN") not DUZ(2)).
- ; IHS/SD/SDR - abm*2.6*1 - HEAT5692 - Extra CR/LF if non-covered charges present
- ; IHS/SD/SDR - abm*2.6*1 - HEAT7998 - print patient if ITYP="N"
- ; IHS/SD/SDR - abm*2.6*2 - FIXPMS10006 - check for date to print in creation date
- ;****************
+ ;;2.6;IHS Third Party Billing;**1,2,4,6,9**;NOV 12, 2009
+ ;abm*2.6*1 - HEAT5692 - Extra CR/LF if non-covered charges present
+ ;abm*2.6*1 - HEAT7998 - print patient if ITYP="N"
+ ;abm*2.6*2 - FIXPMS10006 - check for date to print in creation date
+ ;
 13 ; EP
  W !
  K ABMR
@@ -20,9 +14,9 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  N I
  F I=210:10:390 D
  .D @(I_"^ABMER41")
- ; Policy holder street address
+ ; Policy holder street addr
  ;start old abm*2.6*2 FIXPMS10028
- ; Policy holder street address
+ ; Policy holder street addr
  ;S ABMDE=$G(ABM(9000003.1,+$G(ABME("PH")),.09,"E"))_"^^40"
  ;D WRT^ABMDF28W  ; form locator #38
  ;end old start new FIXPMS10028
@@ -51,7 +45,7 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  .D WRT^ABMDF28W
  ;
  I ABMR(41,160)'="" D
- .S ABMDE=ABMR(41,160)_"^43^2"  ; Value code 1
+ .S ABMDE=ABMR(41,160)_"^43^2"  ;Value code 1
  .D WRT^ABMDF28W  ;form locator #39a
  I ($TR(ABMR(41,170)," ",""))'="" D
  .I ABMR(41,160)="A0"!(ABMR(41,160)=80) S ABMDE=+ABMR(41,170)_"^46^7R"
@@ -59,7 +53,7 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  .D WRT^ABMDF28W  ;form locator #39a
  ;
  I ABMR(41,180)'="" D
- .S ABMDE=ABMR(41,180)_"^56^2"  ; Value code 2
+ .S ABMDE=ABMR(41,180)_"^56^2"  ;Value code 2
  .D WRT^ABMDF28W  ;form locator #40a
  I ($TR(ABMR(41,190)," ",""))'="" D
  .I ABMR(41,180)="A0"!(ABMR(41,180)=80) S ABMDE=+ABMR(41,190)_"^59^7R"
@@ -81,7 +75,7 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  .I "^P^H^F^M^"[("^"_ABMP("ITYPE")_"^") D  ;abm*2.6*2 FIXPMS10028
  ..S ABMDE=$G(ABM(9000003.1,+$G(ABME("PH")),.11,"E"))_", "_$G(ABM(9000003.1,+$G(ABME("PH")),.12,"E"))_" "_$G(ABM(9000003.1,+$G(ABME("PH")),.13,"E"))_"^^40"
  ..D WRT^ABMDF28W   ;form locator 38
- .;MCR or MCD - patient address
+ .;MCR or MCD - patient addr
  .I "^R^MD^MH^D^K^"[("^"_ABMP("ITYPE")_"^") D
  ..S ABMDE=$G(ABME("AD4"))_", "_$G(ABME("AD5"))_"  "_$G(ABME("AD6"))_"^^40"
  ..D WRT^ABMDF28W   ;form locator 38
@@ -170,17 +164,30 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  .E  S ABMDE=+ABMR(41,390)_"^72^9R"  ;Value amt 12
  .D WRT^ABMDF28W  ;form locator #41d
 18 ;
- ; Lines 18 - 40 on form (description area)
+ ; Lines 18 - 40 on form (desc area)
  ; ABMVR(IEN,code,counter) = IEN ^ Code ^ Modifier ^ 2nd Modifier ^ 
- ;                   Total units ^ Total charges ^ ^ Unit charge ^
- ;                   NDC name or description ^ date/time
+ ;     Total units ^ Total charges ^ ^ Unit charge ^ NDC name or description ^ date/time
  W !
  K ABMRV
  D ORV^ABMERGRV  ;get other rev codes
  D P1^ABMERGRV   ;Build ABMVR of rev codes
- ; Itemized UB-92 flag (1=yes, 0=no)
+ ;Itemized UB-92 flag (1=yes, 0=no)
  S ABMITMZ=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),0)),"^",12)
  K I,J,L
+ ;start new abm*2.6*9 HEAT18507
+ I $P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),0)),U,26)="Y" D
+ .S I=0
+ .F  S I=$O(ABMRV(I)) Q:'I  D
+ ..S J=-1
+ ..F  S J=$O(ABMRV(I,J)) Q:J=""  D
+ ...S K=0
+ ...F  S K=$O(ABMRV(I,J,K)) Q:'K  D
+ ....Q:$P(ABMRV(I,J,K),U,9)=""
+ ....S L=K+.5
+ ....S $P(ABMRV(I,J,L),U,9)=$P($P(ABMRV(I,J,K),U,9)," ",2,$L(ABMRV(I,J,K)," "))
+ ....S $P(ABMRV(I,J,K),U,9)=$P($P(ABMRV(I,J,K),U,9)," ")
+ ....S K=L
+ ;end new HEAT18507
  S I=0
  ;cnt all lines for page numbering
  S ABMLCNT=0
@@ -225,11 +232,10 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  ...I ABMITMZ,J="ZZTOT" Q    ;If itemized & done, Q
  ...W !
  ...S ABMCTR=ABMCTR+1  ;Cnt items
- ...;If more than 22 items, complete bottom of form,
- ...;then start new page
+ ...;If more than 22 items, complete bottom of form, and start new page
  ...I ABMCTR>22 D
  ....S ABMORE=1
- ....S ABMDE=ABMPGCNT_"    "_ABMPGTOT_"^11^15"  ;page number
+ ....S ABMDE=ABMPGCNT_"    "_ABMPGTOT_"^11^15"  ;page#
  ....D WRT^ABMDF28W  ;form locator #43
  ....;S ABMDE=$$MDY^ABMDUTL($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,5))_"^45^20"  ;creation date  ;abm*2.6*2 FIXPMS10006
  ....;S ABMDE=$$MDY^ABMDUTL($S($G(ABMPDT)="O":$P($G(^ABMDTXST(DUZ(2),$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),1),U,7),0)),U),1:DT))_"^45^20"  ;creation date  ;abm*2.6*2 FIXPMS10006  ;abm*2.6*4 HEAT17615
@@ -253,6 +259,7 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  ....S ABMCTR=1
  ....Q
  ...S ABMDE=$$GETREV^ABMDUTL(I)_"^^4R"  ;Rev code
+ ...I L["." S ABMDE=""  ;abm*2.6*9 HEAT18507
  ...;I $$RCID^ABMERUTL(ABMP("INS"))'=61044 D WRT^ABMDF28W  ;form locator #42  ;abm*2.6*4 HEAT12271
  ...I $$RCID^ABMERUTL(ABMP("INS"))'=61004!((ABMP("VDT")>3100630)&($P($G(^AUTNINS(ABMP("INS"),0)),U)="EAPC")) D WRT^ABMDF28W  ;form locator #42  ;abm*2.6*4 HEAT12271
  ...; If desc is blank, get it from vtyp in INS file
@@ -282,6 +289,7 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  ...S ABMDE=$FN($P(ABMRV(I,J,L),U,6),"T",2)
  ...;S ABMDE=$FN($P(ABMRV(I,J,L),U,8),"T",2)
  ...S ABMDE=$TR(ABMDE,".")_"^61^9R"   ; Tot chg per item
+ ...I L["." S ABMDE=""  ;abm*2.6*9 HEAT18507
  ...D WRT^ABMDF28W  ;form locator #47
  ...S ABMDE=$FN($P(ABMRV(I,J,L),U,7),"T",2)
  ...I +ABMDE D
@@ -315,7 +323,7 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  S ABMDE=ABMDE_"^68^15"
  D WRT^ABMDF28W
 42 ;
- ; Lines 42 - 44
+ ;Lines 42 - 44
  K ABMP("SET")
  D ^ABMER30  ;get ins and pymt data
  N I
@@ -326,7 +334,7 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  F I=1:1:3 D
  .W !
  .Q:'$D(ABMREC(30,I))
- .; Ins name_" "_Payor Sub Identification
+ .;Ins name_" "_Payor Sub ID
  .S ABMDE=$S($E(ABMREC(30,I),54,78)["RAILROAD":"RAILROAD MEDICARE",1:$E(ABMREC(30,I),54,78))_" "_$E(ABMREC(30,I),31,34)_"^^22"
  .I $$RCID^ABMERUTL(+$G(ABMP("INS",I)))=61044 S ABMDE="O/P MEDI-CAL^^22"
  .D WRT^ABMDF28W  ;form locator #50

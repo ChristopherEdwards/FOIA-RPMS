@@ -1,11 +1,11 @@
 PSODEDT ;BHAM ISC/SAB - edit due answer sheet ; 06/03/92 17:26
- ;;7.0;OUTPATIENT PHARMACY;**2**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**2,268**;DEC 1997;Build 9
 SEQNUM K DIC S DIC="^PS(50.0731,",DIC("A")="Select DUE ANSWER SEQUENCE NUMBER ('^S' to Search): ",DIC(0)="QEAM" D ^DIC K DIC
  G:(X="^")!($D(DTOUT))!(X="") EXIT
  S PSA=+Y
  I (PSA<1)&($E(X,1,2)="^S") D SEARCH G:PSA<1 SEQNUM
  I PSA<1 W "  ??",$C(7) G SEQNUM
-EDIT S DIE="^PS(50.0731,",(DA,PSODUEL)=PSA,DR=".01" L +^PS(50.0731,PSODUEL):0 I '$T W !,"Entry is being edited by another user. Try Later!" G EXIT
+EDIT S DIE="^PS(50.0731,",(DA,PSODUEL)=PSA,DR=".01" L +^PS(50.0731,PSODUEL):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) I '$T W !,"Entry is being edited by another user. Try Later!" G EXIT
  D ^DIE L -^PS(50.0731,PSODUEL) K DIE,DA,DR,PSODUEL
  G:$D(Y) EXIT
  D:$D(^PS(50.0731,PSA,0)) DIE^PSODLKP

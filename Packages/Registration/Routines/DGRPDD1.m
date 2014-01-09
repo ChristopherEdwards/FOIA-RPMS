@@ -1,5 +1,6 @@
-DGRPDD1 ;ALB/JDS - INPUT SYNTAX CHECKS - FORMERLY DGINP ; 25 SEP 84  14:20
- ;;5.3;Registration;**72,136,244**;AUG 13, 1993
+DGRPDD1 ;ALB/JDS - INPUT SYNTAX CHECKS - FORMERLY DGINP ; 9/23/04 6:04pm
+ ;;5.3;Registration;**72,136,244,621,1015**;AUG 13, 1993;Build 21
+ ;
  ;IHS/ANMC/LJF  8/14/2001 changed variables in PSEU since may be
  ;                         called on add new patient where DA=0
  ;             11/14/2001 bypass RT label scan check
@@ -30,6 +31,8 @@ C I $D(X) S L=$P(^DPT(DA,0),U,9) I $L(L)=9,X'=L S Y=L_"00" D COL
 PSEU ;I $D(DPTIDS(.03)),$D(DPTX) S NAM=DPTX,DOB=DPTIDS(.03)  ;IHS/ANMC/LJF 8/14/2001
  I $D(AUPIDS(.03)),$D(AUPX) S NAM=AUPX,DOB=AUPIDS(.03)   ;IHS/ANMC/LJF 8/14/2001 added because DA set to 0 on new add when this is called
  E  S L=^DPT(DA,0),DOB=$P(L,"^",3),NAM=$P(L,"^",1)
+ ; DG*5.3*621
+ I DOB="" S DOB=2000000
  S L1=$E($P(NAM," ",2),1),L3=$E(NAM,1),NAM=$P(NAM,",",2),L2=$E(NAM,1)
  S Z=L1 D CON S L1=Z,Z=L2 D CON S L2=Z,Z=L3 D CON S L3=Z S L=L2_L1_L3_$E(DOB,4,7)_$E(DOB,2,3)_"P"
  K L1,L2,L3,Z,DOB,NAM Q

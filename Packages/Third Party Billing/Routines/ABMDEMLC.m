@@ -1,5 +1,5 @@
 ABMDEMLC ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES - PART 4 ;  
- ;;2.6;IHS Third Party Billing System;**2,3**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,3,6,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
  ;     Modified to display 2nd and 3rd modifiers and units
@@ -19,6 +19,7 @@ ABMDEMLC ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES - PART 4 ;
  ; IHS/SD/SDR - abm*2.6*2 - 3PMS10003A - Modified to call ABMFEAPI
  ; IHS/SD/SDR - abm*2.6*3 - NOHEAT - fixed modifiers so they work correctly; it would let
  ;   user but garbage
+ ; IHS/SD/SDR - abm*2.6*6 - 5010 - added export mode 32
  ;
 DX ;EP for selecting Corresponding Diagnosis
  I '+$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C","")) W !!,"There are no Diagnosis entered to select from." Q
@@ -154,7 +155,8 @@ SELMOD ;
  D ^DIC
  Q
 POSA ; EP - place of service
- I "^3^14^15^19^20^22^27"'[ABMP("EXP") Q  ;only for HCFAs and 837P
+ ;I "^3^14^15^19^20^22^27"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*6 5010
+ I "^3^14^15^19^20^22^27^32"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*6 5010
  D POS
  I $D(ABMZ("DR")) S ABMZ("DR")=ABMZ("DR")_";.15T//"_ABMDFLT
  E  S ABMZ("DR")=";W !;.15T//"_ABMDFLT

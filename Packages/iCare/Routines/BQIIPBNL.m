@@ -1,5 +1,5 @@
 BQIIPBNL ;VNGT/HS/ALA-IPC Bundle Logic ; 24 Jun 2011  11:53 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
  ;
 EN(CRSN,BNIEN,BQDATE,CODE) ;EP - do the bundle for monthly update
@@ -19,7 +19,7 @@ EN(CRSN,BNIEN,BQDATE,CODE) ;EP - do the bundle for monthly update
  F  S PRV=$O(^AUPNPAT("AK",PRV)) Q:PRV=""  D
  . S DFN="",PCT=0,TP=0
  . F  S DFN=$O(^AUPNPAT("AK",PRV,DFN)) Q:DFN=""  D
- .. ;I PRV=3094,CODE="IPC_HRISK" B:DFN=2096  B:DFN=1811
+ .. ;B:PRV=877
  .. I '$$HRN^BQIUL1(DFN) Q
  .. S VAL=$$PAT(DFN,.XX)
  .. I VAL="N/A"!(VAL="{D}") Q
@@ -37,7 +37,6 @@ EN(CRSN,BNIEN,BQDATE,CODE) ;EP - do the bundle for monthly update
  ... I NUM="",DEN="" S BCT=BCT+1,NA=NA+1 Q
  ... I DEN'="",NUM="" S NO=NO+1 Q
  ... I DEN'="",NUM'="" S BCT=BCT+1,YES=YES+1
- .. ;B:DFN=14565
  .. I NDA S NO=NO+1
  .. I 'NO S PCT=PCT+1
  .. Q
@@ -63,6 +62,7 @@ PAT(DFN,XX) ;EP - See if patient meets bundle criteria
  I BQIDOD'="" Q "{D}"
  S CD="" F  S CD=$O(XX(CD)) Q:CD=""  S CNT=CNT+1
  F  S CD=$O(XX(CD)) Q:CD=""  D
+ . I $P(CD,"_",1)="MU" S NA=NA+1 Q
  . S IEN=$O(^BQIPAT(DFN,30,"B",CD,"")) I IEN="" S NDA=NDA+1 Q
  . S NUM=$P(^BQIPAT(DFN,30,IEN,0),U,3)
  . S DEN=$P(^BQIPAT(DFN,30,IEN,0),U,4)

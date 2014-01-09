@@ -1,5 +1,5 @@
 SCRPW14 ;RENO/KEITH - Encounter Activity Report ;06/10/99
- ;;5.3;Scheduling;**139,144,180**;AUG 13, 1993
+ ;;5.3;Scheduling;**139,144,180,1015**;AUG 13, 1993;Build 21
  ;06/10/99 ACS Added cpt modifiers to the report
  ;
  N DIC,DIR,DTOUT,DUOUT,X,Y,SD,ZTSAVE,%DT,SDDIV,SDI

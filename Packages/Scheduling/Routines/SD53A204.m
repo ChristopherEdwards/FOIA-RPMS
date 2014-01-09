@@ -1,5 +1,5 @@
 SD53A204 ;ALB/JAM;Part of post-install routine for patch 204;12/1/99@1105
- ;;5.3;Scheduling;**204**;DEC 01, 1999
+ ;;5.3;Scheduling;**204,1015**;DEC 01, 1999;Build 21
  ;This post-install will check file 404.52 for invalid .03 field entries
  ;and save to a mail message.
  ;

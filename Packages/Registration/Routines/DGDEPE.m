@@ -1,5 +1,5 @@
 DGDEPE ;ALB/CAW - Extended Display ; 1/28/92
- ;;5.3;Registration;**45**;Aug 13, 1993
+ ;;5.3;Registration;**45,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Selection of dependent
  G ENQ:'$D(DGW)!$G(DGERR)=1

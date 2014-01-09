@@ -1,5 +1,5 @@
-ORCFLAG ; SLC/MKB - Flag orders ;6/2/97  10:44
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141**;Dec 17, 1997
+ORCFLAG ; SLC/MKB - Flag orders ;12/26/2006
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,243**;Dec 17, 1997;Build 242
  ;
 EN1(ORIFN) ; -- standalone entry point to un/flag order ORIFN
  N ORLK,ORERR,VA,VADM,VAERR,DFN,ORVP,ORPNM,ORSSN,ORAGE,ORACTN,ORPS
@@ -94,7 +94,7 @@ MSG(ORDER)      ; -- Sends HL7 message to Pharmacy when order is un/flagged
  Q:'$G(ORDER)  Q:'$D(^OR(100,+ORDER,0))  Q:'$P(ORDER,";",2)
  N OR0,OR3,ORMSG,ORVP,ORX,ORFLAG
  S OR0=$G(^OR(100,+ORDER,0)),OR3=$G(^(8,+$P(ORDER,";",2),3))
- Q:"^PSJ^PSIV^"'[(U_$$GET1^DIQ(9.4,+$P(OR0,U,14)_",",1)_U)  ;Inpt or IV
+ Q:"^PSJ^PSIV^PSO^"'[(U_$$GET1^DIQ(9.4,+$P(OR0,U,14)_",",1)_U)  ;Inpt or IV
  S ORMSG(1)=$$MSH^ORMBLD("ORU","PS")
  S ORVP=$P(OR0,U,2),ORMSG(2)=$$PID^ORMBLD(ORVP)
  S ORMSG(3)=$$PV1^ORMBLD(ORVP,$P(OR0,U,12),+$P(OR0,U,10))

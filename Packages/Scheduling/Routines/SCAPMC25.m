@@ -1,5 +1,5 @@
 SCAPMC25 ;ALB/REW - Team API's:MSGDTH ; may 1999
- ;;5.3;Scheduling;**41,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,177,297,1015**;AUG 13, 1993;Build 21
  ;;1.0
 MSGPT(MSGTYPE,DFN,SCTEAMA,SCDATES,SCYESCL,SCLIST,SCERR) ; users getting death message
  ; Input:
@@ -8,6 +8,7 @@ MSGPT(MSGTYPE,DFN,SCTEAMA,SCDATES,SCYESCL,SCLIST,SCERR) ; users getting death me
  ;      2 = Inpatient Message
  ;      3 = Team Message
  ;      4 = Consult Message
+ ;      5 = Inactivation Message
  ;
  ;   DFN - Pointer to Patient File #2
  ;  SCTEAMA -array of pointers to team file 404.51
@@ -130,4 +131,4 @@ PCMMXMY(MSGTYPE,DFN,SCTEAMA,SCDATES,SCYESCL) ;create xmy array for the appropria
 QTXMY Q SCOK
  ;
 MSGTEXT(MSGTYPE) ;
- Q $S(MSGTYPE=1:"DEATH",(MSGTYPE=2):"INPATIENT",(MSGTYPE=3):"TEAM",(MSGTYPE=4):"CONSULT",1:"ERROR")
+ Q $S(MSGTYPE=1:"DEATH",(MSGTYPE=2):"INPATIENT",(MSGTYPE=3):"TEAM",(MSGTYPE=4):"CONSULT",(MSGTYPE=5):"INACTIVATION",1:"ERROR")

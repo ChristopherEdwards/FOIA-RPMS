@@ -1,5 +1,5 @@
 APCDVCHK ; IHS/CMI/LAB - CHECK VISIT ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
  ;
  ; APCDVSIT must equal the VISIT DFN to be checked.
  ; U must exist and be equal to "^".
@@ -107,7 +107,7 @@ CHKER ;IHS/CMI/GRL  Check for ER visit w/o V ER record
  ;
 UPDATE ;
  K DIC,DD,D0,DO
- S X=$$NOW^XLFDT,DIC="^AUPNVCA(",DIC(0)="L",DIADD=1,DLAYGO=9000010.45,DIC("DR")=".02////"_$P(^AUPNVSIT(APCDVSIT,0),U,5)_";.03////"_APCDVSIT_";.05////"_DUZ D FILE^DICN
+ S X=$$NOW^XLFDT,DIC="^AUPNVCA(",DIC(0)="L",DIADD=1,DLAYGO=9000010.45,DIC("DR")=".02////"_$P(^AUPNVSIT(APCDVSIT,0),U,5)_";.03////"_APCDVSIT_";.05////"_DUZ_";1216////"_$$NOW^XLFDT D FILE^DICN
  I Y=-1 W !!,"updating status failed" H 2 G UPDATEX
  K DIC,DD,D0,DIADD,DLAYGO
  S (APCDVCA,DA)=+Y

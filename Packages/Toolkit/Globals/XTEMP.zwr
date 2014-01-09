@@ -1,0 +1,10 @@
+^XTEMP
+ZWR
+^XTEMP("MailMan Message Failure^63057^13340",0)="3131121^3130823^Lab Package MailMan Message."
+^XTEMP("MailMan Message Failure^63057^13340",1)="MailMan Message was not sent."
+^XTEMP("MailMan Message Failure^63057^13340",2)="  Message that should have been sent follows:"
+^XTEMP("MailMan Message Failure^63057^13340",4)="      "
+^XTEMP("MailMan Message Failure^63057^13340",5)="               POST INSTALL of BLRPRE32 Routine."
+^XTEMP("MailMan Message Failure^63057^13340",6)="      "
+^XTEMP("MailMan Message Failure^63057^13340",7)="                    Laboratory Patch 1032 INSTALL completed."
+^XTEMP("MailMan Message Failure^63057^13340",8)="      "

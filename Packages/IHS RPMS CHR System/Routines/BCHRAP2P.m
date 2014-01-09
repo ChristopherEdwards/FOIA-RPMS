@@ -1,5 +1,5 @@
-BCHRAP2P ; IHS/TUCSON/LAB - print all visit report ;  [ 12/06/00  9:00 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,11**;OCT 28, 1996
+BCHRAP2P ; IHS/CMI/LAB - print all visit report ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
  ;
  ;Print routine.
@@ -45,6 +45,6 @@ HEAD1 ;
  W ?17,"RECORD DATES:  ",BCHBDD,"  TO  ",BCHEDD,!
  S BCHLENG=30+$L(BCHTITL)
  W ?((80-BCHLENG)/2),"NUMBER OF ACTIVITY RECORDS BY ",BCHTITL,!
- W !,BCHHD1,?28,$E(BCHHD2,1,13),?47,"# RECS",?56,"# CONTS",?64,"ACTIVITY TIME",!
+ W !,BCHHD1,?28,$E(BCHHD2,1,13),?47,"# PCC",?56,"# SERVED",?65,"ACTIVITY TIME",!,?47,"FORMS",?67,"(hrs)",!
  W !,$TR($J(" ",80)," ","-")
  Q

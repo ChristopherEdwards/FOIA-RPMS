@@ -1,5 +1,5 @@
 ABSPOSRX ; IHS/FCS/DRS - callable from RPMS pharm ;     [ 01/21/2003  8:40 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,4,5,31,40**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,4,5,31,40,44**;JUN 21, 2001
  Q
  ;
  ; Also used by other ABSPOSR* routines to find transactions
@@ -220,7 +220,17 @@ RUNNING()          ;
  ;I '$$LOCKNOW("BACKGROUND") Q  ; it is running; don't start another
  ;D UNLOCK("BACKGROUND") ; it's not running; release our probing lock
  ;IHS/OIT/PIERAN/RAN Patch 40...checking locks is not a good way to verify something isn't running
- I $P(+$G(^ABSP(9002313.99,1,"ABSPOSRX")),"^") Q  ; it is running; don't start another
+ ;IHS/OIT/CAS/RCS Patch 44...If the lock has not been reset for 30 minutes, reset - HEAT #78655
+ N QFL,LDT,LTM,CDT,CTM,X
+ S QFL=0
+ ;I $P(+$G(^ABSP(9002313.99,1,"ABSPOSRX")),"^") Q  ; it is running; don't start another
+ I $P(+$G(^ABSP(9002313.99,1,"ABSPOSRX")),"^") D  ; it is possibly running
+ .S X=$P(^ABSP(9002313.99,1,"ABSPOSRX"),"^",2) I 'X S QFL=1 Q  ;No date,time to compare
+ .S LDT=$P(X,","),LTM=$P(X,",",2) ;get last run date,time
+ .S X=$H,CDT=$P(X,","),CTM=$P(X,",",2) ;get current date,time
+ .I CDT=LDT,((CTM-LTM)<1800) S QFL=1 Q  ;Could still be running, ran less than 30 min ago
+ .S $P(^ABSP(9002313.99,1,"ABSPOSRX"),"^",1)=0 ;Reset so task can run
+ I QFL Q  ; don't start another
  D TASK
  H 1 ; wait a second after starting a task - so you don't clog task
  ; manager with too many of these (especially from back billing)

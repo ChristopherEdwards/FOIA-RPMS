@@ -1,17 +1,17 @@
 PSGEUD ;BIR/CML3-EXTRA UNITS DISPENSED ;17 SEP 97 /  1:41 PM
- ;;5.0; INPATIENT MEDICATIONS ;**31,41,50**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**31,41,50,111,150,164**;16 DEC 97
  ;
  ; Reference to ^PSDRUG( is supported by DBIA 2192.
  ; Reference to ^PS(50.7 is supported by DBIA 2180.
  ; Reference to ^PS(51.2 is supported by DBIA 2178.
  ; Reference to ^PS(55 is supported by DBIA 2191.
- ; Reference to ^VADPT is supported by DBIA 10061.
  ;
  N PSJNEW,PSGPTMP,PPAGE,PSGEFN S PSJNEW=1
  D ENCV^PSGSETU Q:$D(XQUIT)  S (PSGONNV,PSGRETF)=1 K PSGPRP
  ;
 GP ;
- D ENDPT^PSGP G:PSGP'>0 DONE I '$O(^PS(55,PSGP,5,"AUS",+PSJPAD)) W $C(7),!,"(Patient has NO active or old orders.)" G GP
+ S PSGP="",DFN=""
+ D ENDPT^PSGP G:(PSGP'>0)&(DFN'>0)!('$D(PSJPAD)) DONE S:PSGP<1 PSGP=DFN I '$O(^PS(55,PSGP,5,"AUS",+PSJPAD)) W $C(7),!,"(Patient has NO active or old orders.)" G GP
  D ENL^PSGOU G:"^N"[PSGOL GP S PSGPTMP=0,PPAGE=1 D ^PSGO G:'PSGON GP S PSGLMT=PSGON,(PSGONC,PSGONR)=0
  F  W !!,"Select ORDER",$E("S",PSGON>1)," 1-",PSGON,": " R X:DTIME W:'$T $C(7) S:'$T X="^" Q:"^"[X  D:X?1."?" H I X'?1."?" D ENCHK^PSGON W:'$D(X) $C(7),"  ??" Q:$D(X)
  G:"^"[X GP F PSGRET=1:1:PSGODDD F PSGRET1=1:1 S PSGRET2=$P(PSGODDD(PSGRET),",",PSGRET1) Q:'PSGRET2  S PSGORD=^TMP("PSJON",$J,PSGRET2) D R G:$D(DTOUT) GP

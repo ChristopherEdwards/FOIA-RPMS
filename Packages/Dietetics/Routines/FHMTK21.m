@@ -1,5 +1,5 @@
 FHMTK21 ; HISC/NCA - List Diet Patterns (cont.) ;5/1/95  11:46
- ;;5.0;Dietetics;**34**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 L1 ; List the Diet Pattern(s)
  K ^TMP($J) D NOW^%DTC S DTP=% D DTP^FH S PG=0,RES="" D HDR
  I ANS'?1"Y".E S MP=+FHDA,X=$G(^FH(111.1,MP,0)) D L2 G PRT

@@ -1,5 +1,5 @@
 DGV53PT3 ;ALB/MTC - MAS v5.3 Post Init Routine ; 07 JAN 93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 CON405 ;-- This routine will perform the conversion to file #200 for the
  ;   Patient Movement File (#405)

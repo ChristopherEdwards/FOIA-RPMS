@@ -1,5 +1,5 @@
 DGYM78EN ;ALB/MLI - Environment check for DG*5.3*78 ; 3/4/96 @ 815
- ;;5.3;Registration;**78**;Aug 13, 1993
+ ;;5.3;Registration;**78,1015**;Aug 13, 1993;Build 21
  ;
  ; This enviroment check routine will ensure that patches RT*2*22
  ; and DG*5.3*72 are installed prior to installation of this patch.

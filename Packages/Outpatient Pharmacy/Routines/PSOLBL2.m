@@ -1,5 +1,5 @@
 PSOLBL2 ;BIR/SAB-LABEL OUTPUT CONT. ;11/18/92 19:15
- ;;7.0;OUTPATIENT PHARMACY;**16,19,30,71,92,117,135**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**16,19,30,71,92,117,135,326**;DEC 1997;Build 11
  ;External reference to ^PS(51 supported by DBIA 2224
  ;External reference to ^PS(54 supported by DBIA 2227
  ;External reference to ^PSDRUG supported by DBIA 221
@@ -21,7 +21,7 @@ SIGOLD I '$P(PSOPAR,"^",28) D  K NHC
  .I NHC(2,DFN,148,"I")="Y"!($P($G(^PS(55,DFN,40)),"^")) S SGC=SGC+1,SGY(SGC)="Expiration:________ Mfg:_________"
  ;
 DPT S X=$S($D(^DPT(DFN,0))#2:^(0),1:""),DOB=$P(X,"^",3),L=$E(X,1)
- S Y=$P(X,"^",9),PNM=$P(X,"^") D PID^VADPT S SS=VA("BID"),SSNP=$E(VA("PID"),5,12)
+ S Y=$P(X,"^",9),PNM=$P(X,"^") D PID^VADPT S SS="",SSNP=""
  I $P(PSOPAR,"^",28) K SIG,E,F,S Q
 GMRA X "N X S X=""GMRADPT"" X ^%ZOSF(""TEST"") Q" I '$T S (INT(1),INT(2),INT(3))="" Q
  S GMRA="0^1^111" D ^GMRADPT S I1=1,INT(1)="ALLERGIES: ",(INT(2),INT(3))="" F I=0:0 S I=$O(GMRAL(I)) Q:I'>0  S AL=$P(GMRAL(I),U,2) S:$L(INT(I1))+$L(AL)>42 I1=I1+1,INT(I1)="" S INT(I1)=INT(I1)_AL_", "
@@ -38,7 +38,7 @@ REP ;LEFT SIDE ONLY REPRINT FOR NEW LABEL STOCK
  S Y=DATE X ^DD("DD") S DATE=Y S TECH="("_$S($P($G(^PSRX(+$G(RX),"OR1")),"^",5):$P($G(^PSRX(+$G(RX),"OR1")),"^",5),1:$P(RXY,"^",16))_"/"_$S($G(VRPH)&($P(PSOPAR,"^",32)):VRPH,1:" ")_")"
  S PSZIP=$P(PS,"^",5) S PSOHZIP=$S(PSZIP["-":PSZIP,1:$E(PSZIP,1,5)_$S($E(PSZIP,6,9)]"":"-"_$E(PSZIP,6,9),1:""))
  W "VAMC ",$P(PS,"^",7),", ",STATE,"  ",$G(PSOHZIP),?102,"(REPRINT)" W:$G(RXP) "(PARTIAL)" W !,$P(PS2,"^",2),"  ",$P(PS,"^",3),"-",$P(PS,"^",4),"   ",TECH
- W !,"Rx# ",RXN,"  ",DATE,"  Fill ",RXF+1," of ",1+$P(RXY,"^",9),!,PNM,"  ",$G(SSNPN)
+ W !,"Rx# ",RXN,"  ",DATE,"  Fill ",RXF+1," of ",1+$P(RXY,"^",9),!,PNM
  F DR=1:1 Q:$G(SGY(DR))=""  D:DR=4!(DR=7)!(DR=10)!(DR=13)  W !,$G(SGY(DR))
  .F GG=1:1:27 W !
  I DR>4 S KK=$S(DR=5!(DR=8)!(DR=11):2,(DR=6)!(DR=9)!(DR=12):1,1:0) I KK F HH=1:1:KK W !

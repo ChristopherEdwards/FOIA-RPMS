@@ -1,5 +1,5 @@
 DGHELP ;ALB/JDS - EXECUTABLE ADT HELP PROMPTS ; 14 JUN 84  11:29
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN ;called from ques node on dispo multiple
  Q

@@ -1,5 +1,8 @@
 GMRCYP31 ;SLC/JFR - POST-INIT FOR PATCH 31; 2/04/03 08:02
- ;;3.0;CONSULT/REQUEST TRACKING;**31**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**31,32**;DEC 27, 1997
+ ; 
+ ; Re-distributed with GMRC*3*32 to address error with no records 
+ ; to print when sent to a printer.
  Q
 POST ;
  N %ZIS,GMRCQT,POP
@@ -56,7 +59,7 @@ PRINT ; loop the ^TMP global and write records
  D HDR(.GMRCPG)
  I '$O(^TMP("GMRCYP31",$J,0)) D  D ^%ZISC,HOME^%ZIS Q
  . W !,"No records to report"
- . N DIR S DIR(0)="E" D ^DIR
+ . I $E(IOST,1,2)="C-" N DIR S DIR(0)="E" D ^DIR
  . Q
  S TAB=$$REPEAT^XLFSTR(" ",29)
  W !,"No cleanup or modification should be made to Inter-facility consults that are "

@@ -1,5 +1,6 @@
-ORMBLD ; SLC/MKB/JDL - Build outgoing ORM msgs ;11/24/00  13:09
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,33,26,45,79,97,133,168,187,190**;Dec 17, 1997
+ORMBLD ; SLC/MKB/JDL - Build outgoing ORM msgs ;4/12/04  12:33
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,33,26,45,79,97,133,168,187,190,195,215**;Dec 17, 1997
+ ;
 NEW(IFN,CODE) ; -- Send NW order message to pkg
  ;I $P($G(^ORD(101.42,+$$VALUE^ORCSAVE2(IFN,"URGENCY"),0)),U)="DONE" D STATUS^ORCSAVE2(IFN,2) Q  ; complete -> don't send to pkg
  N ORPKG,ORMSG,DGQUIET K ^TMP("ORWORD",$J)
@@ -24,12 +25,15 @@ MSG(IFN,CODE,REASON) ; -- Send all other order msgs
  S DGQUIET=1 D  Q:'$O(ORMSG(0))  ; build message
  . N OR0,OR8,DG,PKGID,I,TYPE,DA,PROV,NATR,STS,OI
  . S OR0=$G(^OR(100,+IFN,0)),PKGID=$G(^(4)),STS=$P($G(^(3)),U,3)
- . S ORPKG=$$NMSP^ORCD($P(OR0,U,14)) Q:"^GMRA^GMRC^FH^LR^PS^RA^OR^"'[(U_ORPKG_U)  S:ORPKG="LR" ORPKG="LRCH"
+ . S ORPKG=$$NMSP^ORCD($P(OR0,U,14))
+ . I ORPKG="VBEC" D:$L($T(CA^ORMBLDVB)) CA^ORMBLDVB(IFN,$G(REASON)) Q
+ . Q:"^GMRA^GMRC^FH^LR^PS^RA^OR^"'[(U_ORPKG_U)
+ . I ORPKG="LR" S ORPKG="LRCH" S:CODE="DC" CODE="CA" ;DC if VBEC child
  . S DA=+$P(IFN,";",2),OR8=$G(^OR(100,+IFN,8,DA,0))
  . S PROV=$P(OR8,U,3),NATR=$P(OR8,U,12) S:'PROV PROV=$G(ORNP)
  . S TYPE=$S(CODE="NA"!(CODE="DE"):"ORR",1:"ORM")
  . S ORMSG(1)=$$MSH(TYPE,ORPKG),ORMSG(2)=$$PID($P(OR0,U,2)),I=2
- . I ORPKG="PS" S I=I+1,ORMSG(I)=$$PV1($P(OR0,U,2),$P(OR0,U,12),+$P(OR0,U,10))
+ . I ORPKG="PS"!(ORPKG="FH"&($P(OR0,U,12)="O")) S I=I+1,ORMSG(I)=$$PV1($P(OR0,U,2),$P(OR0,U,12),+$P(OR0,U,10))
  . S I=I+1,ORMSG(I)="ORC|"_CODE_"|"_IFN_"^OR|"_PKGID_U_ORPKG_"||||||"_$S($G(DGPMA):$$HL7DATE($P(DGPMA,U)),1:"")_"|"_DUZ_"||"_PROV_"|||"_$$HL7DATE($$NOW^XLFDT)_"|"_$$REASON(+$G(REASON),NATR)
  . I ORPKG="FH",CODE="SS" S $P(ORMSG(I),"|",6)=$S(STS=8:"SC",STS=6:"IP",1:"")
  . I $E(ORPKG,1,2)="LR" S OI=+$O(^OR(100,+IFN,.1,0)),OI=+$G(^(OI,0)) S:OI I=I+1,ORMSG(I)="OBR||||"_$$USID(OI)
@@ -115,7 +119,8 @@ OR ; -- new Generic order
  Q
  ;
 GMRA ; -- new Allergy order
- D ALG^ORMBLDAL
+ Q:$$PATCH^XPDUTL("OR*3.0*216")  ;195 quit if patch 216 is in
+ D:$L($T(ALG^ORMBLDAL)) ALG^ORMBLDAL
  Q
  ;
 GMRC ; -- new Consult order
@@ -144,11 +149,12 @@ LR ; -- new Lab order
 PS ; -- new Pharmacy order
  ;I ORDG=$O(^ORD(100.98,"B","OUTPATIENT MEDICATIONS",0)) D OUT^ORMBLDPS Q
  ;D UD^ORMBLDPS
+ N IVDLG S IVDLG=+$P(OR0,U,5) ;JD
  N PKG S PKG=$P(OR0,U,14),PKG=$$GET1^DIQ(9.4,+PKG_",",1)
- I +$$VALUE^ORCSAVE2(IFN,"URGENCY")=99,PKG="PSO" D  Q  ;only send DONE orders from BCMA
+ I +$$VALUE^ORCSAVE2(IFN,"URGENCY")=99,$P(OR3,U,11)'="B" D  Q  ;only send DONE orders from BCMA
  . D STATUS^ORCSAVE2(IFN,2) K ORMSG
  . I $P(OR3,U,11)=1,$P($G(^OR(100,+$P(OR3,U,5),3)),U,3)=5 D MSG(+$P(OR3,U,5),"CA") ;cancel original instead
- I ORDG=$O(^ORD(100.98,"B","IV RX",0))!(ORDG=$O(^ORD(100.98,"B","TPN",0))) D IV^ORMBLDPS Q
+ I ORDG=$O(^ORD(100.98,"B","IV RX",0))!(ORDG=$O(^ORD(100.98,"B","TPN",0)))!(IVDLG=$O(^ORD(101.41,"B","PSJI OR PAT FLUID OE",0))) D IV^ORMBLDPS Q
  D @($S(PKG="PSIV":"IV",PKG="PSO":"OUT",PKG="PSH":"NVA",1:"UD")_"^ORMBLDPS")
  Q
  ;

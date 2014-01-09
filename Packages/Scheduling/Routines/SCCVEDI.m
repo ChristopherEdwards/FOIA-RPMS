@@ -1,5 +1,5 @@
 SCCVEDI ;ALB/RMO,TMP - Disposition Conversion; [ 03/28/95  9:18 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 EN(SCCVEVT,SCSTDT,SCENDT,SCLOG,SCREQ,SCSTOP) ;Entry point to loop through all dispositions for a specified date range
  ; Input  -- SCCVEVT  Conversion event

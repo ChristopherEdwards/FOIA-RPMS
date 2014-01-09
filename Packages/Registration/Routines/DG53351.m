@@ -1,5 +1,5 @@
 DG53351 ;ALB/JAN - Post-Install to clean Enrollment Status ; 6-22-2001
- ;;5.3;Registration;**351**;June 22, 2001
+ ;;5.3;Registration;**351,1015**;June 22, 2001;Build 21
  ;
  ; This routine is a post-installation for patch DG*5.3*351
  ;

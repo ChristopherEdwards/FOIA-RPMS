@@ -1,0 +1,142 @@
+BPXRMDX1 ;IHS/MSC/MGH - Build indexes for the V files. ;29-Oct-2012 14:37;DU
+ ;;1.5;CLINICAL REMINDERS;**1009**;Jun 19, 2000;Build 24
+ ;DBIA 4113 supports PXRMSXRM entry points.
+ ;DBIA 4114 supports setting and killing ^PXRMINDX
+ ;===============================================================
+VPRC ;Build the indexes for V PROCEDURES.
+ N ICD,DAS,DATE,DFN,DIFF,DONE,END,ENTRIES,ETEXT,GLOBAL,IND,NE,NERROR,PP
+ N START,TEMP,TENP,TEXT,VISIT
+ ;Don't leave any old stuff around.
+ K ^PXRMINDX(9000010.08)
+ S GLOBAL=$$GET1^DID(9000010.08,"","","GLOBAL NAME")
+ S ENTRIES=$P(^AUPNVPRC(0),U,4)
+ S TENP=ENTRIES/10
+ S TENP=+$P(TENP,".",1)
+ I TENP<1 S TENP=1
+ D BMES^XPDUTL("Building indexes for V PROCEDURE")
+ S TEXT="There are "_ENTRIES_" entries to process."
+ D MES^XPDUTL(TEXT)
+ S START=$H
+ S (DAS,DONE,IND,NE,NERROR)=0
+ F  S DAS=$O(^AUPNVPRC(DAS)) Q:DONE  D
+ . I +DAS=0 S DONE=1 Q
+ . I +DAS'=DAS D  Q
+ .. S DONE=1
+ .. S ETEXT="Bad ien: "_DAS_", cannot continue."
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S IND=IND+1
+ . I IND#TENP=0 D
+ .. S TEXT="Processing entry "_IND
+ .. D MES^XPDUTL(TEXT)
+ . I IND#10000=0 W "."
+ . S TEMP=^AUPNVPRC(DAS,0)
+ . S ICD=$P(TEMP,U,1)
+ . I ICD="" D  Q
+ .. S ETEXT=DAS_" missing ICD"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . I '$D(^ICD0(ICD)) D  Q
+ .. S ETEXT=DAS_" invalid ICD0"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S DFN=$P(TEMP,U,2)
+ . I DFN="" D  Q
+ .. S ETEXT=DAS_" missing DFN"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S VISIT=$P(TEMP,U,3)
+ . I VISIT="" D  Q
+ .. S ETEXT=DAS_" missing visit"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . I '$D(^AUPNVSIT(VISIT)) D  Q
+ .. S ETEXT=DAS_" invalid visit"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S DATE=$P($G(^AUPNVSIT(VISIT,0)),U,1)
+ . I DATE="" D  Q
+ .. S ETEXT=DAS_" missing visit date"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S PP=$P(TEMP,U,7)
+ . I PP="" S PP="U"
+ . S NE=NE+1
+ . S ^PXRMINDX(9000010.08,"IPP",ICD,PP,DFN,DATE,DAS)=""
+ . S ^PXRMINDX(9000010.08,"PPI",DFN,PP,ICD,DATE,DAS)=""
+ S END=$H
+ S TEXT=NE_" V PROCEDURE results indexed."
+ D MES^XPDUTL(TEXT)
+ D DETIME^PXRMSXRM(START,END)
+ ;If there were errors send a message.
+ I NERROR>0 D ERRMSG^PXRMSXRM(NERROR,GLOBAL)
+ ;Send a MailMan message with the results.
+ D COMMSG^PXRMSXRM(GLOBAL,START,END,NE,NERROR)
+ S ^PXRMINDX(9000010.08,"GLOBAL NAME")=GLOBAL
+ S ^PXRMINDX(9000010.08,"BUILT BY")=DUZ
+ S ^PXRMINDX(9000010.08,"DATE BUILT")=$$NOW^XLFDT
+ Q
+ ;
+ ;===============================================================
+VMEA ;Build the indexes for V MEASUREMENTS.
+ N CAT,DAS,DATE,DFN,DIFF,DONE,END,ENTRIES,ETEXT,GLOBAL,MEA,IND,NE,NE2,NERROR
+ N START,TEMP,TENP,TEXT,VISIT
+ ;Don't leave any old stuff around.
+ K ^PXRMINDX(9000010.01)
+ S GLOBAL=$$GET1^DID(9000010.01,"","","GLOBAL NAME")
+ S ENTRIES=$P(^AUPNVMSR(0),U,4)
+ S TENP=ENTRIES/10
+ S TENP=+$P(TENP,".",1)
+ I TENP<1 S TENP=1
+ D BMES^XPDUTL("Building indexes for V MEASUREMENTS")
+ S TEXT="There are "_ENTRIES_" entries to process."
+ D MES^XPDUTL(TEXT)
+ S START=$H
+ S (DAS,DONE,IND,NE,NE2,NERROR)=0
+ F  S DAS=$O(^AUPNVMSR(DAS)) Q:DONE  D
+ . I +DAS=0 S DONE=1 Q
+ . I +DAS'=DAS D  Q
+ .. S DONE=1
+ .. S ETEXT="Bad ien: "_DAS_", cannot continue."
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S IND=IND+1
+ . I IND#TENP=0 D
+ .. S TEXT="Processing entry "_IND
+ .. D MES^XPDUTL(TEXT)
+ . I IND#10000=0 W "."
+ . S TEMP=^AUPNVMSR(DAS,0)
+ . S MEA=$P(TEMP,U,1)
+ . I MEA="" D  Q
+ .. S ETEXT=DAS_" missing MEASUREMENT"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . I '$D(^AUTTMSR(MEA)) D  Q
+ .. S ETEXT=DAS_" invalid MEASUREMENT"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S DFN=$P(TEMP,U,2)
+ . I DFN="" D  Q
+ .. S ETEXT=DAS_" missing DFN"
+ .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S DATE=$P($G(^AUPNVMSR(DAS,12)),U,1)
+ . I DATE="" D
+ . .S VISIT=$P(TEMP,U,3)
+ . .I VISIT="" D  Q
+ ... S ETEXT=DAS_" missing visit"
+ ... D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . .I '$D(^AUPNVSIT(VISIT)) D  Q
+ ... S ETEXT=DAS_" invalid visit"
+ ... D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . .S DATE=$P($G(^AUPNVSIT(VISIT,0)),U,1)
+ . .I DATE="" D  Q
+ ... S ETEXT=DAS_" missing visit date"
+ ... D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ .;if this entry is marked as entered-in-error do not index it
+ . I $P($G(^AUPNVMEA(DAS,2)),U,1) S NE2=NE2+1 Q
+ . S NE=NE+1
+ . S ^PXRMINDX(9000010.01,"IP",MEA,DFN,DATE,DAS)=""
+ . S ^PXRMINDX(9000010.01,"PI",DFN,MEA,DATE,DAS)=""
+ S END=$H
+ S TEXT=NE_" V MEASUREMENTS results indexed."
+ D MES^XPDUTL(TEXT)
+ D DETIME^PXRMSXRM(START,END)
+ ;If there were errors send a message.
+ I NERROR>0 D ERRMSG^PXRMSXRM(NERROR,GLOBAL)
+ ;Send a MailMan message with the results.
+ D COMMSG^PXRMSXRM(GLOBAL,START,END,NE,NERROR)
+ S ^PXRMINDX(9000010.01,"GLOBAL NAME")=GLOBAL
+ S ^PXRMINDX(9000010.01,"BUILT BY")=DUZ
+ S ^PXRMINDX(9000010.01,"DATE BUILT")=$$NOW^XLFDT
+ Q
+ ;

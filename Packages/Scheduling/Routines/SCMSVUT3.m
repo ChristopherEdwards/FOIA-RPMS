@@ -1,5 +1,5 @@
 SCMSVUT3   ;BP/JRP - HL7 segment & field validation utilities ;8/11/99 9:54am
- ;;5.3;Scheduling;**142,180,208,239**;AUG 13, 1993
+ ;;5.3;PIMS;**142,180,208,239,395,441,1015,1016**;JUN 30, 2012;Build 20
  ;
  ;Standard input parameters
  ;   DATA  - Value to validate
@@ -51,7 +51,7 @@ RADMTHD(DATA,DFN) ;Radiation exposure method
  .S NODE=$G(^DPT(DFN,.321))
  .S RAD=$TR($P(NODE,"^",3),"YNU","100")
  ;Invalid method code
- I (DATA'="") Q:((DATA'?1N)!(DATA<2)!(DATA>4)) 0
+ I (DATA'="") Q:((DATA'?1N)!(DATA<2)!(DATA>7)) 0  ;SD*543 changed >4 to >7
  ;Method code not consistant with exposure status
  I (DATA) Q:('RAD) 0
  I (DATA="") Q:((DFN)&(RAD)) 0
@@ -198,7 +198,7 @@ AO(DATA,DFN) ;Validate Agent Orange expos. (error 7120)
  ;         0 - Invalid claim of exposure to Agent Orange
  I '$D(DATA) Q 0
  I '$D(DFN) Q 0
- I DATA=1 Q $$CANBEAO(DFN)
+ I DATA=1 Q 1 ;$$CANBEAO(DFN)  SD*5.3*395 rem check for period of service
  I (DATA=0)!(DATA="") Q 1
  Q 0
 CANBEAO(DFN) ;Check to determine if patient can claim Agent Orange expos.
@@ -232,4 +232,4 @@ AOLOC(DATA,DFN) ;Validate Agent Orange exposure location (error 7130)
  ;No claim - shouldn't have a location
  I 'VASV(2) Q $S(DATA="":1,1:0)
  ;Claims exposure - must have a valid location
- Q $S(DATA="":0,"VK"[DATA:1,1:0)
+ Q $S(DATA="":0,"VKO"[DATA:1,1:0)

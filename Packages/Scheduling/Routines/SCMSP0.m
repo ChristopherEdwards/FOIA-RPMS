@@ -1,5 +1,5 @@
 SCMSP0 ;ALB/JRP - CHECK POINTS TO CREATE ENTRIES IN HL7 FILES;29-MAY-1996
- ;;5.3;Scheduling;**44**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,1015**;AUG 13, 1993;Build 21
  ;
 HL7EVNT ;Create HL7 event Z00 - HL7 EVENT TYPE CODE file (#779.001)
  ;
@@ -122,11 +122,11 @@ MAILGRP ;Create entry in MAIL GROUP file (#3.8) that will be attached to
  S DIC("P")=$P(^DD(3.8,12,0),"^",2)
  S DA(1)=PTR2MG
  S DLAYGO=3.8
- S X="XXX@DOMAIN.NAME"
+ S X="XXX@Q-ACS.MED.VA.GOV"
  D ^DIC
- S MSGTXT(1)="    XXX@DOMAIN.NAME successfully added as REMOTE MEMBER"
+ S MSGTXT(1)="    XXX@Q-ACS.MED.VA.GOV successfully added as REMOTE MEMBER"
  I (Y<0) D
- .S MSGTXT(1)="    ** Unable to add XXX@DOMAIN.NAME as REMOTE MEMBER"
+ .S MSGTXT(1)="    ** Unable to add XXX@Q-ACS.MED.VA.GOV as REMOTE MEMBER"
  .S MSGTXT(2)="    ** Remote member must be added manually"
  D MES^XPDUTL(.MSGTXT)
  ;Done

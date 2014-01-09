@@ -1,5 +1,5 @@
 DGYDPT ;ALB/ESD - DG*5.3*9 Post Init Routine ;10/25/93
- ;;5.3;Registration;**9**;Aug 13, 1993
+ ;;5.3;Registration;**9,1015**;Aug 13, 1993;Build 21
  ; This removes screen.
  S X="DGJ EDIT COMP IRT SUPER",DIC(0)="X",DIC="^ORD(101,"
  D ^DIC

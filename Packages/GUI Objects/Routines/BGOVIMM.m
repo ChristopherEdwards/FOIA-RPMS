@@ -1,5 +1,5 @@
-BGOVIMM ;IHS/BAO/TMD - IMMUNIZATION mgt   ;27-Jun-2011 17:03;PLS
- ;;1.1;BGO COMPONENTS;**1,3,4,5,6,9**;Mar 20, 2007;Build 2
+BGOVIMM ;IHS/BAO/TMD - IMMUNIZATION mgt   ;09-Apr-2012 14:21;DU
+ ;;1.1;BGO COMPONENTS;**1,3,4,5,6,9,10,11**;Mar 20, 2007;Build 3
  ; Returns the version # of the Immunization package
 VERSION(RET,DUMMY) ;
  S RET=$$VER^BILOGO
@@ -48,6 +48,8 @@ LOADIMM(RET,INP) ;EP
  S X=$G(^AUTTIMM(IMM,0))
  S DFLTLOT=$P(X,U,4)
  S DFLTVOL=$P(X,U,18)
+ ;IHS/MSC/MGH Patch 11 Add leading zeros
+ I $E(DFLTVOL,1,1)="." S DFLTVOL="0"_DFLTVOL
  S DFLTVISD=$$FMTDATE^BGOUTL($P(X,U,13))
  S RET(0)=DFLTLOT_U_DFLTVOL_U_DFLTVISD
  S (X,CNT)=0
@@ -73,15 +75,16 @@ LOADIMM(RET,INP) ;EP
  ;    R ^ Refusal IEN [2] ^ Type IEN [3] ^ Type Name [4] ^ Item IEN [5] ^ Item Name [6] ^ Provider IEN [7] ^
  ;     Provider Name [8] ^ Date [9] ^ Locked [10] ^ Reason [11] ^ Comment [12]
 GET(RET,INP) ;EP
- N BIRESULT,DFN,DLM,HX,ELE,CNT,VIEN,DOB,VIMM,TYPE,P,A,I,J,K,X,V,VFC
- N XREF,FNUM,OFF
+ N BIRESULT,DFN,DLM,HX,ELE,CNT,VIEN,DOB,BIPDSS,VIMM,TYPE,P,A,I,J,K,X,V,VFC
+ N XREF,FNUM,OFF,BIPDSSA,OR
  S RET=$$TMPGBL^BGOUTL
  S DFN=+INP,INP=$P(INP,U,2)
  Q:'DFN
  S:INP="" INP="IFCR"
+ S BIPDSS=""
  S DLM=$C(31,31),HX="",V="|",CNT=0
  S XREF=$$VFPTXREF^BGOUTL2,FNUM=$$FNUM,OFF=$S($G(DUZ("AG"))="I":0,1:9999999)
- D:INP["F" IMMFORC^BIRPC(.HX,DFN)
+ D:INP["F" IMMFORC^BIRPC(.HX,DFN,"","","",.BIPDSS)
  S P=$P(HX,DLM,2)
  S:'$L(P) P=$P(HX,DLM)
  I $L(P) F I=1:1:$L(P,U) D:$L($P(P,U,I)) ADD("F^"_$P(P,U,I))
@@ -94,7 +97,8 @@ GET(RET,INP) ;EP
  ;MSC/MGH - 07/08/09 - Branching for compatibility with Vista and RPMS
  I DUZ("AG")="I" D
  .;IHS/MSC/MGH patch 6 added field 77 VFC
- .F I=4,21,24,36,27,30,33,44,51,57,60,61,67,68,76,35,9,34,0,0,65,77 S P=P+1 S:I ELE(I)=P
+ .;IHS/MSC/MGH patch 10 field 69 aded
+ .F I=4,21,24,36,27,30,33,44,51,57,60,61,67,68,76,35,9,34,0,0,65,77,69 S P=P+1 S:I ELE(I)=P
  .D:INP["I" IMMHX^BIRPC(.HX,DFN,.ELE,0)
  .S P=$P(HX,DLM,2)
  .I $L(P) D ADD("I^"_P) Q   ; Error
@@ -103,11 +107,23 @@ GET(RET,INP) ;EP
  ..Q:$P(P,V)'="I"
  ..S A="I",J=0,K=1
  ..F  S J=$O(ELE(J)) Q:'J  S K=K+1,$P(A,V,ELE(J))=$P(P,V,K)
- ..S VIMM=+$P(A,V,4),VIEN=$P(A,V,16),TYPE=$P(A,V,7),VFC=$P(A,V,23)
+ ..S VIMM=+$P(A,V,4),VIEN=$P(A,V,16),TYPE=$P(A,V,7),VFC=$P(A,V,23),OR=$P(A,V,22)
+ ..;IHS/MSC/MGH call added for INVALID DOSE
+ ..S BIPDSSA=0
+ ..I $$PDSS^BIUTL8($P(A,V,4),$P(A,V,24),BIPDSS) D
+ ...S Z=$P(A,V,2),BIPDSSA=1
+ ...S $P(A,V,2)=Z_"--INVALID SEE IMMSERVE--"
+ ..I OR'="" D
+ ...S Z=$P(A,V,2)
+ ...S OR=$S(OR=1:"INVALID--BAD STORAGE",OR=2:"INVALID--DEFECTIVE",OR=3:"INVALID--EXPIRED",OR=4:"INVALID--ADMIN ERROR",OR=5:"FORCED VALID",1:"@")
+ ...S $P(A,V,2)=Z_"-- "_OR
+ ...;End patch 10 changes
  ..S:$P(A,V,10)="NO DATE" $P(A,V,10)=""
  ..S X=$P(A,V,14)
  ..S:$L(X) $P(A,V,14)=X_"~"_$$EXTERNAL^DILFD(9000010.11,.09,,X)
  ..D GI1(13,200),GI1(19,9999999.06)
+ ..;IHS/MSC/MGH Patch 11 Add leading zero
+ ..I $E($P(A,V,15),1,1)="." S $P(A,V,15)="0"_$P(A,V,15)
  ..S $P(A,V,20)=$$ISLOCKED^BEHOENCX(VIEN)
  ..S $P(A,V,21)=$P($G(^AUPNVIMM(VIMM,12)),U)
  ..S $P(A,V,23)=$$FNDPED(VIEN,$$IMMCPT(TYPE,VIEN))
@@ -135,7 +151,6 @@ GET(RET,INP) ;EP
  ..S REC=REC_U_$$GET1^DIQ(9999999.41,+$P(X,U,5),.01)     ; Lot
  ..S REC=REC_U_$$GET1^DIQ(FNUM,LP,.06)                   ; Reaction
  ..S REC=REC_U_$$ENTRY^CIAUDT($P(X,U,12))             ; VIS Date
- ..;S REC=REC_U_$$PTAGE^BGOUTL($P($G(^AUPNVSIT(VIEN,0)),U,5))
  ..S DOB=$$GET1^DIQ(2,DFN,.03,"I")
  ..S REC=REC_U_$$GETAGE^BGOVSK(+Z,DOB)                     ; Age
  ..S REC=REC_U_$$ENTRY^CIAUDT(+Z,0)                     ; Visit Date
@@ -215,7 +230,7 @@ DELICD(ICD,VIEN,DFN,PRV) ;EP
 DELCPT(CPT,ICD,VIEN,DFN,PRV,SITE,DATE,CNSL) ;EP
  N RET
  S RET=""
- ;IHS/MSC/MGH CPT codes no longer added or deleted
+ ;Patch 9 IHS/MSC/MGH CPT codes no longer added or deleted
  Q RET
  Q:"E"[$P($G(^AUPNVSIT(VIEN,0)),U,7) ""
  S:CPT CPT=$$ADJCPT(CPT,DFN,DATE,.CNSL)
@@ -246,20 +261,6 @@ DC1(CPTS,VIEN,PRV,ICD) ;
  ..D SETQTY^BGOVCPT(.RET,VCPT_U_(QTY-1))
  .E  D VFDEL^BGOUTL2(.RET,9000010.18,VCPT)
  Q $G(RET)
- ; Add CPT code(s)
-ADDCPT(CPT,ICD,VIEN,DFN,PRV,SITE,DATE,CNSL) ;EP
- ;IHS/MSC/MGH Patch 9 CPT codes no longer added or deleted
- Q 0
- N RET,CPT2,CPT3
- Q:$$GET^XPAR("ALL","BGO IMM STOP ADDING CPT CODES") 0
- S:'$G(DATE) DATE=+$G(^AUPNVSIT(VIEN,0))
- S CPT2=$$ADMINCPT(VIEN,CPT,SITE),CPT3=$$SYRCPT(SITE),RET=0
- Q:'CPT2 RET ; Already exists
- S CPT=$$ADJCPT(CPT,DFN,DATE,.CNSL),CPT2=$$ADJCPT(CPT2,DFN,DATE,.CNSL)
- S RET=$$ADDCPT^BGOVCPT(CPT,,VIEN,DFN,PRV)
- S:RET'<0 RET=$$ADDCPT^BGOVCPT(CPT2,.ICD,VIEN,DFN,PRV)
- I 'RET,CPT3 S RET=$$ADDCPT^BGOVCPT(CPT3,,VIEN,DFN,PRV)
- Q RET
  ; Get syringe CPT
 SYRCPT(SITE) ;
  Q $S(SITE="O":"",SITE="IN":"",1:$O(^ICPT("B","A4206",0)))
@@ -320,7 +321,9 @@ SET(RET,INP) ;EP
  S VISD=$P(INP,U,12)
  S OVRD=$P(INP,U,13)  ; Dose override
  S INJS=$$TOINTRNL^BGOUTL(FNUM,.09+OFF,$P(INP,U,14))  ; Immunization Site
- S VOL=+$P(INP,U,15)
+ ;IHS/MSC/MGH Patch 11 take the + off to save 0.5 mg
+ ;S VOL=+$P(INP,U,15)
+ S VOL=$P(INP,U,15)
  S CNSL=$P(INP,U,16)  ; Patient/family counselled
  S VFC=$P(INP,U,17)   ;VFC eligibility for children
  I VFC'="" D
@@ -346,10 +349,6 @@ SET(RET,INP) ;EP
  .S:CPT<0 RET=CPT
  D BISET(.RET,ARG,FNUM,TYPE,VIEN,VFIEN,EVNTDT)
  Q:HIST!(RET'>0)
- ;I CPT D
- ;.N RET1
- ;.S RET1=$$ADDCPT(CPT,.ICD,VIEN,DFN,PRV,INJS,EVNTDT,CNSL)
- ;.S:RET1 RET=RET1
  I RET'<0,CNSL D
  .N RET1,TOP
  .S TOP=$$IMMTOP
@@ -371,6 +370,12 @@ BISET(RET,ARG,FNUM,TYPE,VIEN,VFIEN,EVNTDT) ;EP
  D VFFND^BGOUTL2(.VFIEN,FNUM,TYPE,VIEN)
  S FDA=$NA(FDA(FNUM,VFIEN_","))
  S @FDA@(1201)=$S(EVNTDT:EVNTDT,1:"")
+ ;IHS/MSC/MGH new fields added patch 11
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  I FNUM=9000010.11 D
  .;Patch 6 Updated to capture user last update
  .S @FDA@(1214)="`"_DUZ

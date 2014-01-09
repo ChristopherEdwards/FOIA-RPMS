@@ -1,5 +1,5 @@
 SCCVE ;ALB/RMO,TMP - Encounter Conversion Driver; [ 04/05/95  8:19 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 QUE(SCLOG,SCREQ) ;Schedule encounter conversion via task manager
  ; Input  -- SCLOG    CST log IEN

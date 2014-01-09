@@ -1,20 +1,24 @@
 LRAPDA ;DALOI/REG/WTY/KLL/CKA - ANATOMIC PATH DATA ENTRY;11/02/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,73,91,121,248,259,295,317,365**;Sep 27, 1994;Build 11
+ ;;5.2;LAB SERVICE;**1002,1003,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 72,73,91,121,248,259,295,317,365
  ;
  ;Reference to ^%DT supported by IA #10003
  ;Reference to ^DIE supported by IA #10018
  ;Reference to ^VA(200 supported by IA #10060
  ;Reference to EN^DDIOL supported by IA #10142
  ;
+EP ; EP
  W !?20,LRO(68)," (",LRABV,")",!
  S:'$D(LRSOP) LRSOP=1 S:'$D(LRD(1)) LRD(1)="0"
  S:'$D(^LRO(69.2,LRAA,2,0)) ^(0)="^69.23A^0^0"
+ ;
 SEL K LR(1)
  I $D(LR(2)) D  G:%<1 END S:%=1 LR(1)=1
  .W !!,"Enter Etiology, Function, Procedure & Disease "
  .S %=2 D YN^LRU
-AK ;from LRAPD1
+ ;
+AK ; EP - from LRAPD1
  N CORRECT
  S:'$D(LRSFLG) LRSFLG=""
  W !!,"Data entry for ",LRH(0)," "
@@ -23,6 +27,7 @@ AK ;from LRAPD1
  .S %DT="AE",%DT(0)="-N",%DT("A")="Enter YEAR: " D ^%DT K %DT
  I '$O(^LRO(68,LRAA,1,LRAD,1,0)) D  Q
  .W $C(7),!!,"NO ",LRO(68)," ACCESSIONS IN FILE FOR ",LRH(0),!!
+ ;
 W K X,Y,LR("CK")
  R !!,"Select Accession Number/Pt name: ",LRAN:DTIME
  G:LRAN=""!(LRAN[U) END
@@ -32,6 +37,7 @@ W K X,Y,LR("CK")
  .W !,"or locate the accession by entering the patient name."
  I LRAN'?1N.N D PNAME G:LRAN<1 W D OE1^LR7OB63D,REST,OERR^LR7OB63D G W
  D OE1^LR7OB63D,REST S:$D(DR(1))#2 DR=DR(1) D OERR^LR7OB63D G W
+ ;
 REST ;
  N LRXSTOP,LRX,LRX1
  W "  for ",LRH(0)
@@ -39,7 +45,8 @@ REST ;
  .W $C(7),!!,"Accession # ",LRAN," for ",LRH(0)," not in ",LRO(68),!!
  S X=^LRO(68,LRAA,1,LRAD,1,LRAN,0),LRLLOC=$P(X,"^",7),LRDFN=+X
  Q:'$D(^LR(LRDFN,0))  S X=^(0) D ^LRUP
- W !,LRP,"  ID: ",SSN
+ ; W !,LRP,"  ID: ",SSN
+ W !,LRP,"  ID: ",HRCN                 ; IHS/MSC/MKK - LR*5.2*1031
  S LRI=+$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,3)),"^",5)
  I LRSS'="AU",'$D(^LR(LRDFN,LRSS,LRI,0)) D  Q
  .W $C(7),!,"Inverse date missing or incorrect in Accession Area file "
@@ -73,7 +80,7 @@ DIE ;Edit
  S LRRDT2=$$GET1^DIQ(LRSF,LRIENS,.15,"I")
  S:LRRDT1!LRRDT2 LREL=1
  ;Determine if CPT activated
- I $T(ES^LRCAPES)'="" S LRESCPT=$$ES^LRCAPES()
+ I $$PATCH^BLRUTIL4("PX*1.0*119") I $T(ES^LRCAPES)'="" S LRESCPT=$$ES^LRCAPES()      ; IHS/MSC/MKK - LR*5.2*1031
  I LRSOP="G",LREL D  Q
  .W $C(7),!!,"Report verified.  Cannot edit with this option."
  I LRSOP'="","ABM"[LRSOP,LREL D  Q:LRQUIT
@@ -96,6 +103,7 @@ DIE ;Edit
  .S LRCPT=+Y
  .I "AM"[LRSOP,'LRCPT S LRQUIT=1 Q
  .I LRSOP="B",'LRCPT,'LRSNO S LRQUIT=1
+ ;
 RESET ;Reset DR string if altered by prior accession/patient
  ;Reset DR to orig value in LRAPD1
  I LRSOP'="","AMBS"[LRSOP,$G(LRD)'="" D @LRD
@@ -104,6 +112,7 @@ RESET ;Reset DR string if altered by prior accession/patient
  I 'LRSNO,LRCPT S DR=""  ;Set DR string to null in only CPT coding
  ;If adding supp rpt to released rpt, remove date rpt completed from DR
  I LRRDT1,LRSOP="S"!(LRSFLG="S") S DR=".09///^S X=LRWHO;10"
+ ;
 EDIT ;Call to ^DIE
  W ! S LRA=^LR(LRDFN,LRSS,LRI,0),LRRC=$P(LRA,"^",10)
  I LRCAPA,"SPCYEM"[LRSS D C^LRAPSWK
@@ -120,13 +129,16 @@ EDIT ;Call to ^DIE
  S LRAC=$P(LRA,U,6)
  I LRELSD D MAIN^LRAPRES1(LRDFN,LRSS,LRI,LRSF,LRP,LRAC)
  ; D UPDATE^LRPXRM(LRDFN,LRSS,LRI)     ; IHS/OIT/MKK - LR*5.2*1030 - RPMS Does NOT use Clinical Reminders
+ I $$PATCH^BLRUTIL4("PXRM*1.5*12") D UPDATE^LRPXRM(LRDFN,LRSS,LRI)   ; IHS/MSC/MKK - LR*5.2*1031
  D:LRSFLG="S"&('$D(Y)) ^LRAPDSR
  D FRE^LRU
  I LRSOP'="","ABM"[LRSOP D CPTCOD
+ ;
 WKLD ;Capture Workload
  I LRSOP="Z","CYSP"[LRSS,LRCAPA D S^LRAPR Q
  I LRCAPA,"SPCYEM"[LRSS,LRD(1)'="","MBA"[LRD(1) D C1^LRAPSWK
  I LRCAPA,"SPCYEM"[LRSS,LRSOP="G" D C1^LRAPSWK
+ ;
 QUEUES ;Update Queues
  S X=$P(^LR(LRDFN,LRSS,LRI,0),"^",4)
  I X,$D(^VA(200,X,0)) S LR("TR")=$P(^(0),"^")
@@ -150,6 +162,7 @@ QUEUES ;Update Queues
  .L -^LRO(69.2,LRAA,2)
  D:LRSOP="M"!(LRSOP="B") EN^LRSPGD
  Q
+ ;
 NM ;
  I X'["@"!(X["@"&(Y(Z)="")) D  Q
  .W $C(7),!?4,"ENTER WHOLE NUMBERS ONLY",! K X
@@ -162,7 +175,7 @@ AUE ;Autopsy Data Entry
  S (LREL,LRQUIT,LRSNO,LRCPT)=0
  S LREL=+$$GET1^DIQ(63,LRDFN_",",14.7,"I")
  ;Determine if CPT activated
- I $T(ES^LRCAPES)'="" S LRESCPT=$$ES^LRCAPES()
+ I $$PATCH^BLRUTIL4("PX*1.0*119")  I $T(ES^LRCAPES)'="" S LRESCPT=$$ES^LRCAPES()      ; IHS/MSC/MKK - LR*5.2*1031
  ;  Allow supp report to be added on verified AU
  I LRSOP'="","AFIP"[LRSOP,LREL D  Q:LRQUIT
  .Q:LRESCPT&("AP"[LRSOP)
@@ -184,6 +197,7 @@ AUE ;Autopsy Data Entry
  .S LRCPT=+Y
  .I "AP"[LRSOP,'LRCPT S LRQUIT=1 Q
  .I LRSOP="B",'LRCPT,'LRSNO S LRQUIT=1
+ ;
 AURESET ;Reset DR to orig value in LRAUDA
  I LRSOP'="","AP"[LRSOP D @(LRSOP_"DR^LRAUDA")
  I LRSOP="B" D BDR^LRAUDA
@@ -206,11 +220,13 @@ AURESET ;Reset DR to orig value in LRAUDA
  .I LRELSD D MAIN^LRAPRES1(LRDFN,LRSS,LRI,LRSF,LRP,LRAC)
  D:LRSFLG="S" ^LRAPDSR
  ; D UPDATE^LRPXRM(LRDFN,"AU")    ; IHS/OIT/MKK - LR*5.2*1030 - RPMS Does NOT use Clinical Reminders
+ I $$PATCH^BLRUTIL4("PXRM*1.5*12") D UPDATE^LRPXRM(LRDFN,"AU")   ; IHS/MSC/MKK - LR*5.2*1031
  L -^LR(LRDFN)
  D:"BAP"[LRSOP AU
  D:LRSOP="R" R
  I LRSOP'="","ABP"[LRSOP D CPTCOD
  Q
+ ;
 AU I '$D(^LRO(69.2,LRAA,2,LRAN,0)) D
  .L +^LRO(69.2,LRAA,2):5 I '$T D  Q
  ..S MSG(1)="The final reports queue is in use by another person.  "
@@ -222,6 +238,7 @@ AU I '$D(^LRO(69.2,LRAA,2,LRAN,0)) D
  .L -^LRO(69.2,LRAA,2)
  D AU^LRSPGD
  Q
+ ;
 R I '$D(^LRO(69.2,LRAA,3,LRAN,0)) D
  .L +^LRO(69.2,LRAA,3):5 I '$T D  Q
  ..S MSG(1)="The interim reports queue is in use by another person.  "
@@ -232,6 +249,7 @@ R I '$D(^LRO(69.2,LRAA,3,LRAN,0)) D
  .S X=^LRO(69.2,LRAA,3,0),^(0)=$P(X,"^",1,2)_"^"_LRAN_"^"_($P(X,"^",4)+1)
  .L -^LRO(69.2,LRAA,3)
  Q
+ ;
 PNAME ;Patient Name Lookup
  N LRPFLG            ;LRPFLG tells LRUPS to limit accessions to 
  S X=LRAN,LRPFLG=1   ;the chosen year.
@@ -242,9 +260,12 @@ PNAME ;Patient Name Lookup
  I DFN=-1 S LRAN=-1 Q
  D I^LRUPS
  Q
+ ;
 CPTCOD ;CPT Coding
  N LRPRO
- Q:$T(CPT^LRCAPES)=""
+ ; Q:$T(CPT^LRCAPES)=""
+ I '$$PATCH^BLRUTIL4("PX*1.0*119") Q                           ; IHS/MSC/MKK - LR*5.2*1031
+ ;
  Q:LREL&('LRCPT)
  I 'LREL D
  .K DIR S DIR(0)="Y",DIR("A")="Enter CPT coding",DIR("B")="NO"
@@ -257,6 +278,7 @@ CPTCOD ;CPT Coding
  Q:LRQUIT
  D CPT^LRCAPES(LRAA,LRAD,LRAN,LRPRO)
  Q
+ ;
 END K LRSFLG
  D:$T(CLEAN^LRCAPES)'="" CLEAN^LRCAPES
  D V^LRU

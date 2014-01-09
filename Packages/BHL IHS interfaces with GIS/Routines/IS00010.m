@@ -1,6 +1,6 @@
-IS00010(UIF,INOA,INODA) ;Compiled from script 'Generated: HL IHS IZV04 IN-I' on SEP 05, 2011
+IS00010(UIF,INOA,INODA) ;Compiled from script 'Generated: HL IHS IZV04 IN-I' on FEB 28, 2013
  ;Part 1
- ;Copyright 2011 SAIC
+ ;Copyright 2013 SAIC
 EN S X="ERROR^IS00010",@^%ZOSF("TRAP")
  G START
 ERROR ;
@@ -104,11 +104,6 @@ START ;Initialize variables
  .D GET^INHOU(UIF,0) S LINE=$G(LINE),DO=1
  .I LINE?1"R"1"X"1"A".ANPC S DO=1
  .E  S LCT=LCT-CNT,DO=0
- .S:DO @("@INV@(""RXA1"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,2)
- .S:DO @("@INV@(""RXA2"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,3)
- .S:DO @("@INV@(""RXA3"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,4)
- .S:DO @("@INV@(""RXA5"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,6)
- .S:DO @("@INV@(""RXA15"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,16)
  .Q
  D:'INVS MC^INHS
  ;Entering TRANS section.
@@ -153,5 +148,12 @@ START ;Initialize variables
  .S (INX,X)=$G(@INV@("MSH8"))
  .I X]"" S X=$$TIMEIO^INHUT10(X,$P($G(INTHL7F2),U),$P($G(INTHL7F2),U,2),$P($G(INTHL7F2),U,3),1)
  .S @INV@("MSH8")=$G(X)
+ .I '$D(X) D ERROR^INHS("Variable 'MSH8' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
+ .K DXS
+ .S (INX,X)=$G(@INV@("MSH10"))
+ .I $P($G(INTHL7F2),U,4) S X=$$SUBESC^INHUT7(X,INDELIMS,"I")
+ .S @INV@("MSH10")=$G(X)
+ .I '$D(X) D ERROR^INHS("Variable 'MSH10' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
+ .K DXS
 9 .D EN^IS00010A
  G D1^IS00010A

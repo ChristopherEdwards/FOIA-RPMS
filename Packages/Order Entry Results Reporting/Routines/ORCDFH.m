@@ -1,11 +1,15 @@
 ORCDFH ;SLC/MKB-Utility functions for FH dialogs ; 08 May 2002  2:12 PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,73,92,141**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,73,92,141,215**;Dec 17, 1997
+ ;
 EN ; -- entry action
- I '$$INPT^ORCD W $C(7),!!,"This patient is not an inpatient!" S ORQUIT=1 H 2 Q
- D:'$G(OREVENT) EN^FHWOR8(+ORVP,.ORPARAM) I $G(OREVENT) D
- . N X S X=$$LOC^OREVNTX(OREVENT)  Q:X<1
- . S X=+$G(^SC(+X,42)) I X,$T(EN1^FHWOR8) D EN1^FHWOR8(X,.ORPARAM)
- S:'$L($G(ORPARAM(3))) ORPARAM(3)="T" ;for now
+ S ORCAT=$S($G(ORTYPE)="Z":"",$$INPT^ORCD:"I",1:"O")
+ I ORCAT="O" D  Q:$G(ORQUIT)
+ . I $P($G(^ORD(100.98,+$G(ORDG),0)),U,3)="DO" W $C(7),!!,"This patient is not an inpatient!" H 2 S ORQUIT=1 Q
+ . I '$L($T(EN2^FHWOR8)) W $C(7),!!,"Dietetics v5.5 must be installed to place outpatient diet orders!" H 2 S ORQUIT=1 Q
+ . D EN2^FHWOR8(+$G(ORVP),"",.ORDT) I '$O(ORDT(0)) W $C(7),!!,"There are no existing recurring meals with which to associate this type of",!,"order!" H 2 S ORQUIT=1 Q
+ N X S X=$S($G(OREVENT):$$LOC^OREVNTX(OREVENT),1:$G(ORL))  Q:X<1
+ D EN1^FHWOR8(X,.ORPARAM)
+ S:'$L($G(ORPARAM(3))) ORPARAM(3)="TCD" ;for QO editor
  Q
  ;
 CKFUTURE ; -- Ck for future diet orders
@@ -40,7 +44,7 @@ FMTIME(X) ; -- Returns FM format of time
  Q "."_$P(Y,".",2)
  ;
 EX ; -- exit action
- K ORPARAM,ORTIME,ORNPO,ORTRAIL
+ K ORPARAM,ORTIME,ORNPO,ORTRAIL,ORCAT,ORDT
  Q
  ;
 DIET(DFN) ; -- Returns patient DFN's current diet order
@@ -103,7 +107,7 @@ DELIVERY ; -- Set available delivery/service types by location
  I $G(ORNPO) K ORDIALOG(PROMPT,INST) Q
  Q:$D(ORDIALOG(PROMPT,"LIST"))
  N X,Y,Z,I S X=$G(ORPARAM(3))
- S Z="" F I=1:1:$L(X) S Y=$E(X,I) S Z=Z_Y_":"_$S(Y="T":"TRAY",Y="C":"CAFETERIA",Y="D":"DINING ROOM",1:"")_";"
+ S Z="" F I=1:1:$L(X) S Y=$E(X,I) S Z=Z_Y_":"_$S(Y="T":"TRAY",Y="C":"CAFETERIA",Y="D":"DINING ROOM",Y="B":"BAGGED",1:"")_";"
  S:$L(Z) $P(ORDIALOG(PROMPT,0),U,2)=Z
  S ORDIALOG(PROMPT,"LIST")=$L(X)
  Q

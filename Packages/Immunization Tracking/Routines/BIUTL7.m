@@ -1,7 +1,9 @@
 BIUTL7 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**4**;DEC 01,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  SCREENMAN RELATED CODE TO LOAD & SAVE: VISIT, CASE DATA, CONTRAS.
+ ;;  PATCH 3: Display Local Text with Elig Code.  LOADVIS+118
+ ;;  PATCH 4: Add leading zero to Volume if necessary.  LOADVIS+49
  ;
  ;
  ;----------
@@ -13,7 +15,7 @@ LOADVIS(BIVTYPE) ;EP
  ;---> Parameters:
  ;     1 - BIVTYPE (req) "I"=Immunization Visit, "S"=Skin Text Visit.
  ;
- ;---> If BIVTYPE does not="I" (Immunization Visit) and it does
+ ;---> If BIVTYPE does not="I" (Imm Visit) and it does
  ;---> not="S" (Skin Test Visit), then set Error Code and quit.
  I ($G(BIVTYPE)'="I")&($G(BIVTYPE)'="S") D ERRCD^BIUTL2(410,,1) Q
  ;
@@ -21,7 +23,7 @@ LOADVIS(BIVTYPE) ;EP
  ;---> If this is an old Visit, load data for Screenman.
  D:$G(BI("K"))
  .;
- .;---> IMMUNIZATIONS * IMMUNIZATIONS * IMMUNIZATIONS * IMMUNIZATIONS
+ .;---> IMMUNIZATIONS *
  .D:BIVTYPE="I"
  ..;
  ..;---> Load the Vaccine.
@@ -51,16 +53,20 @@ LOADVIS(BIVTYPE) ;EP
  ..;---> Load the Injection Site.
  ..I $G(BI("T"))]"" D PUT^DDSVALF(4,,,BI("T"),"I")
  ..;
- ..;---> Release/Revision Date of VIS (DD-Mmm-YYYY).
+ ..;---> Release/Rev Date of VIS (DD-Mmm-YYYY).
  ..I $G(BI("Q")) D PUT^DDSVALF(10,,,BI("Q"),"E")
  ..;
  ..;---> Load the Volume.
- ..I $G(BI("W"))]"" D PUT^DDSVALF(5,,,BI("W"),"I")
+ ..;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
+ ..;---> Add leading zero to Volume if necessary.
+ ..;I $G(BI("W"))]"" D PUT^DDSVALF(5,,,BI("W"),"I")
+ ..I $G(BI("W")) D PUT^DDSVALF(5,,,$$LEADZ^BIUTL5(BI("W")),"E")
+ ..;**********
  ..;
  ..;---> Load Imported from Outside Source, if=1 (display "edited" if=2).
  ..I $G(BI("Y")) D PUT^DDSVALF(15,,,"*Imported"_$S(BI("Y")=2:" (edited)*",1:"*"))
  ..;
- ..;---> Load VFC Eligibility.
+ ..;---> Load VFC Elig if Native and <19.
  ..D VFCSET^BIUTL8
  ..;
  ..;---> Load NDC Code.
@@ -68,7 +74,7 @@ LOADVIS(BIVTYPE) ;EP
  ..;
  .;
  .;
- .;---> SKIN TESTS * SKIN TESTS * SKIN TESTS * SKIN TESTS * SKIN TESTS
+ .;---> SKIN TESTS *
  .D:BIVTYPE="S"
  ..;
  ..;---> Load the Skin Test.
@@ -123,7 +129,11 @@ LOADVIS(BIVTYPE) ;EP
  S BI("F")=$$GET^DDSVALF(7),BI("I")=$$GET^DDSVALF(11)
  ;
  ;---> If this is an Immunization, load VFC Eligibility.
- I BIVTYPE="I",$G(BI("P"))]"" D PUT^DDSVALF(10.5,,,BI("P"),"I")
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Display Local Text with Elig Code.
+ ;I BIVTYPE="I",$G(BI("P"))]"" D PUT^DDSVALF(10.5,,,BI("P"),"I")
+ I BIVTYPE="I",$G(BI("P"))]"" D PUT^DDSVALF(10.5,,,BI("P"),"I"),ELIGLAB^BIUTL8(BI("P"))
+ ;**********
  ;
  ;---> If Provider already stored previously, load it and quit.
  I $G(BI("R")) D PUT^DDSVALF(9,,,BI("R"),"I") Q
@@ -136,9 +146,7 @@ LOADVIS(BIVTYPE) ;EP
  I '$G(BI("K")),$$DEFPROV^BIUTL6($G(DUZ(2))) D
  .I $D(^XUSEC("PROVIDER",DUZ)) D
  ..;
- ..;---> Same as NOPROV (below); when cycling back through the screen
- ..;---> again, do NOT stuff default provider if this is a NEW Visit
- ..;---> and the Category is Historical Event.
+ ..;---> Same as NOPROV (see below).
  ..Q:('$G(BI("K"))&($G(BI("I"))="E"))
  ..;
  ..;---> To set default provider into local BI array, even if the
@@ -153,8 +161,7 @@ NOPROV(X) ;EP
  ;---> Called by Post Action field of Field 11 on BI FORM-IMM VISIT ADD/EDIT
  ;---> and BI FORM-SKIN VISIT ADD/EDIT.
  ;---> If adding a new immunization and user changes Category to
- ;---> "E" (Historical Event), then remove default user/provider from
- ;---> Field 9.
+ ;---> "E" (Hist Event), then remove default user/provider from Field 9.
  ;---> Parameters:
  ;     1 - X  Value of Field 11, Category (A, E or I).
  I X="E" I '$G(BI("K")) D PUT^DDSVALF(9,,,"") S BI("R")=""
@@ -164,8 +171,7 @@ NOPROV(X) ;EP
  ;----------
 REASCHK ;EP
  ;---> Called by Post Action field of Field 5 on BI FORM-CASE DATA EDIT.
- ;---> If user entered a Date Inactive in Field 4, then a Reason is required
- ;---> in Field 5.
+ ;---> If Date Inactive in Field 4, then a Reason is req'd in Field 5.
  ;
  I (BI("E")]"")&(BI("F")="") D
  .D HLP^DDSUTL("*** NOTE! An Inactive Date REQUIRES an Inactive Reason! ***")
@@ -176,8 +182,7 @@ REASCHK ;EP
  ;----------
 READCHK ;EP
  ;---> Called by Post Action field of Field 4 on BI FORM-SKIN VISIT ADD/EDIT.
- ;---> If user entered a Result in Field 3, then a Reading is required
- ;---> in Field 4.
+ ;---> If user entered a Result in Field 3, then a Reading is req'd in Field 4.
  I $G(BI("L"))]"",$G(BI("M"))="",$G(BI("I"))'="E" D
  .;
  .D HLP^DDSUTL("*** NOTE! If you enter a Result you MUST enter a Reading! ***")
@@ -188,8 +193,6 @@ READCHK ;EP
  ;----------
 READCH6 ;EP
  ;---> Called by Post Action field of Field 4 on BI FORM-SKIN VISIT ADD/EDIT.
- ;---> If user entered a Result in Field 3, then a Reading is required
- ;---> in Field 4.
  ;
  D READCHK
  I $G(DDSBR)=3 D  Q
@@ -201,7 +204,7 @@ READCH6 ;EP
  ;----------
 LOTDAT(X) ;EP
  ;---> Called by Post Action field of Field 3 on BI FORM-IMM VISIT ADD/EDIT.
- ;---> Display Lot Expiration Date and Remaining Balance (if tracked).
+ ;---> Display Lot Exp Date and Remaining Balance (if tracked).
  ;---> Parameters:
  ;     1 - X (req) IEN of Lot Number in ^AUTTIML.
  ;
@@ -214,7 +217,7 @@ LOTDAT(X) ;EP
  ;----------
 LOTWARN(BILIEN,BIVDATE,BILOC) ;EP
  ;---> Called by Branching Logic field of Field 3 on BI FORM-IMM VISIT ADD/EDIT.
- ;---> Display Lot Expiration Date and Remaining Balance (if tracked).
+ ;---> Display Lot Exp Date and Remaining Balance (if tracked).
  ;---> Parameters:
  ;     1 - BILIEN  (req) IEN of Lot Number in ^AUTTIML.
  ;     2 - BIVDATE (req) Date of Imm Visit.
@@ -245,7 +248,7 @@ LOTWARN(BILIEN,BIVDATE,BILOC) ;EP
 VSHORT(X) ;EP
  ;---> Called by LOADVIS above and by Post Action field of Field 2
  ;---> on BI FORM-IMM VISIT ADD/EDIT.
- ;---> Ddisplay Short Name below Vaccine Name if different.
+ ;---> Display Short Name below Vaccine Name if different.
  ;---> Parameters:
  ;     1 - X (req) IEN of Vaccine in ^AUTTIMM.
  ;
@@ -285,9 +288,9 @@ SAVISIT(BIVTYPE,BI) ;EP
  S M=$G(BI("M"))      ;Skin Test Reading (mm).
  S N=$G(BI("N"))      ;Skin Test Date Read.
  S O=$G(BI("O"))      ;Immunization Reaction
- S P=$G(BI("P"))      ;VFC Elilgibility  vvv83
+ S P=$G(BI("P"))      ;VFC Elilgibility
  S Q=$G(BI("Q"))      ;Release/Revision Date of VIS (DD-Mmm-YYYY).
- S R=$G(BI("R"))      ;IEN of Provider of Immunization/Skin Test.
+ S R=$G(BI("R"))      ;IEN of Provider of Imm/Skin Test.
  S S=$G(BI("S"))      ;Dose Override.
  S T=$G(BI("T"))      ;Injection Site.
  S W=$G(BI("W"))      ;Volume.
@@ -319,9 +322,8 @@ SAVISIT(BIVTYPE,BI) ;EP
  ;
  ;----------
 CREASCHK ;EP
- ;---> Called by Post Action field of Field 4 on BI FORM-CONTRAIND ADD/EDIT.
- ;---> If user entered a Contraindication in Field 1, then a Reason is required
- ;---> in Field 4.
+ ;---> Called by Post Action of Field 4 on BI FORM-CONTRAIND ADD/EDIT.
+ ;---> If user entered a Contra in Field 1, then a Reason is req'd in Field 4.
  ;
  I (BI("B")]"")&(BI("C")="") D
  .D HLP^DDSUTL("*** NOTE! A Reason for the contraindication is required! ***")
@@ -334,7 +336,7 @@ SAVCONTR(BI,BIERR) ;EP
  ;---> Called by BIPATCO2 to save data after exiting Screenman Form
  ;---> BI FORM-CONTRAINDICATION ADD/EDIT.
  ;---> Parameters:
- ;     1 - BI    (req) Local array of data elements for this visit.
+ ;     1 - BI    (req) Local array of data elements for this contra.
  ;     1 - BIERR (ret) Text of Error Code if any, otherwise null.
  ;
  N BI31 S BI31=$C(31)_$C(31)
@@ -342,7 +344,7 @@ SAVCONTR(BI,BIERR) ;EP
  ;
  S A=$G(BI("A"))      ;Patient DFN.
  S B=$G(BI("B"))      ;Vaccine IEN (^AUTTIMM).
- S C=$G(BI("C"))      ;Contraindication Reason IEN (^BICONT).
+ S C=$G(BI("C"))      ;Contra Reason IEN (^BICONT).
  S D=$G(BI("D"))      ;Date Noted.
  S N=$G(BI("N"))      ;If this was an Edit, N=1 (otherwise null/0).
  ;
@@ -369,7 +371,7 @@ LDCONTR ;EP
  ;---> Load Vaccine Name.
  I $G(BI("B"))]"" D PUT^DDSVALF(1,,,BI("B"),"I")
  ;
- ;..;---> Make Vaccine Name uneditable.
+ ;---> Make Vaccine Name uneditable.
  D UNED^DDSUTL(1,,,1)
  ;
  ;---> Load Reaspm.
@@ -389,7 +391,7 @@ LOADCAS ;EP
  ;
  Q:'$G(BIDFN)
  ;
- ;---> Load Patient's Case Manager or, if null, default Case Manager.
+ ;---> Load Patient's Case Manager or default Case Manager.
  D
  .I $G(BI("B"))]"" D PUT^DDSVALF(1,,,BI("B"),"E") Q
  .Q:'$G(DUZ(2))
@@ -434,7 +436,7 @@ SAVCAS ;EP
  S B=$G(BI("B"))      ;Case Manager's name, text.
  S C=$G(BI("C"))      ;Parent or Guardian, text.
  S D=$G(BI("D"))      ;Mother's HBsAG Status (P,N,A,U).
- S E=$G(BI("E"))      ;Date Patient became Inactive (external format).
+ S E=$G(BI("E"))      ;Date Pat became Inactive (ext format).
  S F=$G(BI("F"))      ;Reason for Inactive.
  S G=$G(BI("G"))      ;Other Info.
  S H=$G(BI("H"))      ;Forecast Influ/Pneumo.

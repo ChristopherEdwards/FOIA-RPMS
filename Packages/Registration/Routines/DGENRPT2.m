@@ -1,5 +1,5 @@
-DGENRPT2 ;ALB/DW,LBD - EGT Preliminary Detailed Impact Report ; 04/24/03 10:21am ; 07/22/02 9:40am
- ;;5.3;Registration;**232,306,417,456,491,513**;Aug 13,1993
+DGENRPT2 ;ALB/GAH - EGT Preliminary Detailed Impact Report ; 10/10/2005
+ ;;5.3;Registration;**232,306,417,456,491,513,568,725,1015**;Aug 13,1993;Build 21
  ;
  ;
 ENPT ;Preliminary Detailed Report selected.
@@ -59,6 +59,7 @@ PRESORT ;First get the current EGT Setting from file #27.16.
  .. S PSSN=$P($G(VADM(2)),U),^TMP($J,"CNT2",PRT,PSSN)=""
  I EGTSUB>4 S EGTSUB="ER" Q
  S EGTSUB=$$EXTERNAL^DILFD(27.16,.03,"F",EGTSUB)
+ D GETAPPT^DGENRPT5("BY2")
  Q
  ;
 EGTP ;Get patients EGT Priority.
@@ -118,8 +119,8 @@ WRD ;Get the patient WARD.
 FAP1 ;Get the patient FUTURE APPOINTMENTS.
  N J,POP,ADT S (X,ADT)="",POP=0,J=0
  K ^UTILITY("VASD",$J)
- D CALSDA
- I VAERR=1 S X="N/A" Q
+ S X=$$FAPCHK(DFN) Q:X'=""
+ D BLDUTL^DGENRPT5(DFN)
  F  S J=$O(^UTILITY("VASD",$J,J)) Q:J=""!POP  D
  . S X=$P($G(^UTILITY("VASD",$J,J,"E")),U,2),X=$E(X,1,20)
  . S ADT=$P($G(^UTILITY("VASD",$J,J,"I")),U),ADT=$P(ADT,".",1)
@@ -134,20 +135,17 @@ FAP1 ;Get the patient FUTURE APPOINTMENTS.
 FAP0 ;See if the patient has future appointment.
  S X="NO"
  K ^UTILITY("VASD",$J)
- D CALSDA
- I VAERR=1 S X="N/A" Q
+ S X=$$FAPCHK(DFN) Q:X'=""
+ D BLDUTL^DGENRPT5(DFN)
  I $G(^UTILITY("VASD",$J,1,"I"))'="" S X="YES"
  Q
  ;
-CALSDA ;Use API to get appointments.
- N X
- S VASD("F")=DT,VASD("W")=12 D SDA^VADPT
- Q
- ;
+FAPCHK(DFN) ;
+ Q $G(^TMP($J,"SDAMA",DFN,"ERROR"))
 PCPVD ;Get the patient PC PROVIDER.
  ;;Site must use PCMM module.
  S X=""
- S X=$$OUTPTPR^SDUTL3(DFN)
+ S X=$$PCPRACT^DGSDUTL(DFN)
  I X="" S X="N/A" Q
  S X=$P(X,U,2),X=$E(X,1,10)
  Q
@@ -193,5 +191,5 @@ END ;At the end of the display.
  ;
 EXIT ;Clean up upon exit of the routine.
  D KVA^VADPT
- K ^TMP($J,"BY2"),^TMP($J,"CNT2")
+ K ^TMP($J,"BY2"),^TMP($J,"CNT2"),^TMP($J,"SDAMA")
  Q

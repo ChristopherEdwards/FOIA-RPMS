@@ -1,5 +1,5 @@
 DG53288P ;BP-CIOFO/MM - Add PTF Quarterly Census date;5/9/00
- ;;5.3;Scheduling/Registration;**288**;Aug 13, 1993
+ ;;5.3;Scheduling/Registration;**288,1015**;Aug 13, 1993;Build 21
  ;
  ;
 CENSUS ;--- add new census date

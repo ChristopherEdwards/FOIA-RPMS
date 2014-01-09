@@ -1,6 +1,8 @@
 LRUPS ;AVAMC/REG/WTY - PATIENT SPEC LOOK-UP ;3/20/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,248,259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 72,248,259,322,362
+ ;
  ;Removed space between "No  data" at tag EN
  ;
 GETP W ! K LRAN,DIC S X="",DFN=-1,DIC(0)="EQM",(LRX,LRDPF)="" D DPA^LRDPA
@@ -8,13 +10,13 @@ GETP W ! K LRAN,DIC S X="",DFN=-1,DIC(0)="EQM",(LRX,LRDPF)="" D DPA^LRDPA
 I N LRAY
  I '$D(LRPFLG) N LRPFLG S LRPFLG=0
  I LRSS="AU" G AU
-EN I '$D(^LR(LRDFN,LRSS)) W $C(7),!!,"No data for ",PNM G GETP
+EN I '$D(^LR(LRDFN,LRSS))!($P($G(^LR(LRDFN,LRSS,0)),U,3)<1) W $C(7),!!,"No data for ",PNM G GETP
  S (LRI,LRLIDT,E)=0 S:'$D(LRABV) LRABV=0
  I "CYEMSP"'[LRSS W !!,"Count #",?10,"Accession #",?29,"Date",?45,"Site/specimen"
  E  W !!,"Specimen(s)",?30,"Count #",?40,"Accession #",?55,"Date Obtained"
  S C=0
  F  S LRI=$O(^LR(LRDFN,LRSS,LRI)) Q:'LRI!(E)  D
- .S X=^LR(LRDFN,LRSS,LRI,0),LRAC=$P(X,U,6)
+ .S X=$G(^LR(LRDFN,LRSS,LRI,0)) Q:X=""  S LRAC=$P(X,U,6)
  .I $P(LRAC," ")=LRABV!(LRABV=0) D WT:C#5=0 Q:E  D
  ..S LRAY=$P(LRAC," ",2)
  ..I LRPFLG,LRAY'=$E(LRAD,2,3) Q

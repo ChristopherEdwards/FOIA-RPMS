@@ -1,5 +1,5 @@
-TIUPD ; SLC/JER - Background Print Driver ;4/11/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,89,100**;Jun 20, 1997
+TIUPD ; SLC/JER - Background Print Driver ;5/3/04
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,89,100,182**;Jun 20, 1997
 MAIN(DA,TIUACT) ; Control Branching
  ;  TIUACT=R ==> Release from transcription,
  ;         V ==> Verified by MAS,
@@ -48,9 +48,13 @@ RPC(TIUY,TIUDA,TIUIO,TIUFLAG,TIUWIN) ; Remote Procedure to print a record
  S TIUIDDAD=$$HASIDDAD^TIUGBR(TIUDA)
  I TIUIDDAD S TIUDA=TIUIDDAD
  I $G(TIUPMTHD)']"" S TIUY="1^No Print Method Defined" Q
- I $G(TIUPMTHD)]"",+$G(TIUPGRP),($G(TIUPFHDR)]""),($G(TIUPFNBR)]"") D
- . S ^TMP("TIUPR",$J,$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_DFN,1,TIUDA)=$G(TIUPFNBR)
- E  S ^TMP("TIUPR",$J,DFN,1,TIUDA)=""
+ ;I $G(TIUPMTHD)]"",+$G(TIUPGRP),($G(TIUPFHDR)]""),($G(TIUPFNBR)]"") D
+ ;. S ^TMP("TIUPR",$J,$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_DFN,1,TIUDA)=$G(TIUPFNBR)
+ ;E  S ^TMP("TIUPR",$J,DFN,1,TIUDA)=""
+ ; -- P182: Set array same whether or not flds are defined, with
+ ;    TIUPGRP piece possibly 0, TIUPFHDR piece possibly null, and
+ ;    array value TIUPFNBR possibly null.
+ S ^TMP("TIUPR",$J,+$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_DFN,1,TIUDA)=$G(TIUPFNBR)
  I +$G(TIUWIN) D
  . U IO
  . X TIUPMTHD
@@ -59,10 +63,10 @@ RPC(TIUY,TIUDA,TIUIO,TIUFLAG,TIUWIN) ; Remote Procedure to print a record
  . S ZTDESC=$S(+TIUFLAG:"CHART",1:"WORK")_" copy of "_$$UPPER^TIULS(TIUTNM)
  . S ZTRTN=$P(TIUPMTHD," ",2),ZTSAVE("^TMP(""TIUPR"",$J,")=""
  . S ZTSAVE("TIUFLAG")="",ZTSAVE("TIUPRM*")="",ZTSAVE("DUZ(")=""
- . D ^%ZTLOAD K ^TMP("TIUPR",$J,+$P(TIUD0,U,2),1,TIUDA)
+ . D ^%ZTLOAD ;K ^TMP("TIUPR",$J,+$P(TIUD0,U,2),1,TIUDA) P182
  . I $D(ZTSK) S TIUY="0^"_$S(+$G(TIUFLAG):"Chart",1:"Draft")_" copy queued"
  . E  S TIUY="1^Task Rejected"
- K ^TMP("TIUPR",$J,$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_DFN,1,TIUDA)
+ K ^TMP("TIUPR",$J,+$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_DFN,1,TIUDA) ;P182
  Q
 TSKPRINT(DA,TIUFLAG,TIUSTAT,TIUDPARM) ;Set up task and do a queued print
  ;TIUFLAG > 1 Chart Copy, TIUFLAG = 2 Electronically signed Chart Copy
@@ -90,11 +94,13 @@ TSKPRINT(DA,TIUFLAG,TIUSTAT,TIUDPARM) ;Set up task and do a queued print
  S ZTDESC="CHART COPY OF "_$$UPPER^TIULS(TIUTNM)
  S ZTRTN=TIUPMTHD,ZTSAVE("^TMP(""TIUPR"",$J,")="",ZTSAVE("TIUFLAG")=""
  S ZTSAVE("TIUPRM*")="",ZTSAVE("DUZ(")=""
- I $G(TIUPMTHD)]"",+$G(TIUPGRP),($G(TIUPFHDR)]""),($G(TIUPFNBR)]"") D
- . S ^TMP("TIUPR",$J,$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_+$P(TIUD0,U,2),TIUDATE,DA)=$G(TIUPFNBR)
- E  S ^TMP("TIUPR",$J,+$P(TIUD0,U,2),TIUDATE,DA)=""
- D ^%ZTLOAD K ^TMP("TIUPR",$J,+$P(TIUD0,U,2),TIUDATE,DA)
- K ^TMP("TIUPR",$J,$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_DFN,TIUDATE,DA)
+ ;I $G(TIUPMTHD)]"",+$G(TIUPGRP),($G(TIUPFHDR)]""),($G(TIUPFNBR)]"") D
+ ;. S ^TMP("TIUPR",$J,$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_+$P(TIUD0,U,2),TIUDATE,DA)=$G(TIUPFNBR)
+ ;E  S ^TMP("TIUPR",$J,+$P(TIUD0,U,2),TIUDATE,DA)=""
+ ; -- P182: See RPC
+ S ^TMP("TIUPR",$J,+$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_+$P(TIUD0,U,2),TIUDATE,DA)=$G(TIUPFNBR)
+ D ^%ZTLOAD ;K ^TMP("TIUPR",$J,+$P(TIUD0,U,2),TIUDATE,DA) P182
+ K ^TMP("TIUPR",$J,+$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_+$P(TIUD0,U,2),TIUDATE,DA) ;P182
  I $D(ZTSK),'$D(XWBOS) W !,$S(+$G(TIUFLAG):"Chart",1:"Draft")," copy queued."
  Q
 GETDEV(DA,TIUDPARM,TIUSTAT) ; Get Chart copy print device name

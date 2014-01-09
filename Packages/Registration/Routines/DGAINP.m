@@ -1,5 +1,5 @@
 DGAINP ;ALB/RMO - Driver Routine to Generate Inpatient AMIS's 334-341 ; 27 DEC 89 1:37 pm
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  D LO^DGUTL
 MYR ;Prompt User for AMIS Month/Year

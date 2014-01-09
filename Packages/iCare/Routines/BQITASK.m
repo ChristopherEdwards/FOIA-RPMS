@@ -1,5 +1,5 @@
 BQITASK ;PRXM/HC/ALA-Scheduled Task Program ; 20 Dec 2006  4:56 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  Q
  ;
 EN ;EP - Entry point
@@ -240,7 +240,8 @@ FIL(BQGLB,DFN) ;EP - File diagnosis category
  ; If patient is in BQIREG with accepted status, no need to do anything
  I RIEN'="" S QFL=0 D  Q:QFL
  . S CSTAT=$P(^BQIREG(RIEN,0),U,3)
- . I CSTAT="A"!(CSTAT="N") S QFL=1
+ . I CSTAT="A" S QFL=1
+ . I CSTAT="N",BQTN'=3 S QFL=1
  ;  if the patient doesn't already exist in the iCare Patient file, add them
  I $G(^BQIPAT(DFN,0))="" D NPT(DFN)
  ;

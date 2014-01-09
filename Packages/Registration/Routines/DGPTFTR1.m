@@ -1,5 +1,5 @@
 DGPTFTR1 ;ALB/JDS - PTF VERIFICATION ; 01 DEC 87 @0800
- ;;5.3;Registration;**247**;Aug 13, 1993
+ ;;5.3;Registration;**247,1015**;Aug 13, 1993;Build 21
 START S T=$E(Y,2,3),T=$S(T=40&($E(Y,28)="P"):"P40",1:T),ERR=$P($T(@("T"_T)),";;",2),W=$P($T(@(T)),";;",2),H=28 F F=H:1:80 D L
  D @("D"_T) Q
  Q

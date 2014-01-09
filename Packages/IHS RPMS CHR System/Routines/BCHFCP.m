@@ -1,5 +1,5 @@
-BCHFCP ; IHS/TUCSON/LAB - PRINT FORMS COUNT REPORT ;  [ 06/03/99  7:04 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7**;OCT 28, 1996
+BCHFCP ; IHS/CMI/LAB - PRINT FORMS COUNT REPORT ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
 START ;
  S BCH80S="-------------------------------------------------------------------------------",BCHPG=0

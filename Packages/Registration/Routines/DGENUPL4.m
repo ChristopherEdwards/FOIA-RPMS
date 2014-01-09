@@ -1,37 +1,39 @@
-DGENUPL4 ;ALB/CJM,RTK,ISA/KWP,ISD/GSN,PHH - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 4/25/2003
- ;;5.3;REGISTRATION;**147,177,232,253,327,367,377,514**;Aug 13,1993
+DGENUPL4 ;ALB/CJM,RTK,ISA/KWP,ISD/GSN,PHH,RGL,PJR,BRM,TDM,TMK,EG,BAJ - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 01/05/07
+ ;;5.3;PIMS;**1016**;JUN 30, 2012;Build 20
  ;
-UOBJECTS(DFN,DGPAT,DGELG,DGCDIS,MSGID,ERRCOUNT,MSGS,OLDPAT,OLDELG,OLDCDIS) ;
- ;Description: Used to update the PATIENT, ELIGIBILITY, and CATASTROPHIC
- ;DISABILITY objects 'in memory'.
+UOBJECTS(DFN,DGPAT,DGELG,DGCDIS,DGOEIF,MSGID,ERRCOUNT,MSGS,OLDPAT,OLDELG,OLDCDIS,OLDOEIF) ;
+ ;Used to update PATIENT, ELIGIBILITY, CATASTROPHIC
+ ;DISABILITY, and OEF/OIF CONFLICT objects 'in memory'.
  ;
  ;Input:
  ;  DFN - ien of record in the PATIENT file
  ;  DGPAT - PATIENT object array (pass by reference)
- ;  DGELG - ELIGIBILITY object array (pass by reference)
- ;  DGCDIS - CATASTROPHIC DISABILITY object array (pass by reference)
+ ;  DGELG - ELIGIBILITY object array (pass by ref)
+ ;  DGCDIS - CATASTROPHIC DISABILITY object array (pass by ref)
+ ;  DGOEIF - OEF/OIF conflict object array (pass by ref)
  ;  MSGID - message control id of the HL7 message being processed
- ;  ERRCOUNT - count of errors (pass by reference)
- ;  MSGS - array of messages for the site (pass by reference)
+ ;  ERRCOUNT - count of errors (pass by ref)
+ ;  MSGS - array of messages for the site (pass by ref)
  ;
  ;Output:
- ;  Function Value: 1 if the update was successful 'in memory',
+ ;  Function Value: 1 if update was successful 'in memory',
  ;           consistency checks pass and the objects can be stored in
  ;           the local database, 0 otherwise.
  ;  DGPAT - PATIENT object array (pass by reference)
- ;  DGELG - ELIGIBILITY object array (pass by reference)
- ;  DGCDIS - CATASTROPHIC DISABILITY object array (pass by reference)
- ;  ERRCOUNT - count of errors (pass by reference)
- ;  MSGS - array of messages for the site (pass by reference)
- ;  OLDPAT - patient object array as it currently exists in database before the update (pass by reference)
- ;  OLDELG - eligibility object array as it currently exists in database before the update (pass by reference)
- ;  OLDCDIS - catastrophically disability object array as it currently exists in database before the update (pass by reference)
+ ;  DGELG - ELIGIBILITY object array (pass by ref)
+ ;  DGCDIS - CATASTROPHIC DISABILITY object array (pass by ref)
+ ;  ERRCOUNT - count of errors (pass by ref)
+ ;  MSGS - array of messages for the site (pass by ref)
+ ;  OLDPAT - patient object array as it currently exists in database before the update (pass by ref)
+ ;  OLDELG - eligibility object array as it currently exists in database before the update (pass by ref)
+ ;  OLDCDIS - catastrophically disability object array as it currently exists in database before the update (pass by ref)
+ ;  OLDOEIF - OEF/OIF conflict data as it currently exists in database before the update (pass by ref)
  ;
  N DGPAT3,DGELG3,DGCDIS3,SUCCESS
  S SUCCESS=1
  D
- .;first get the local site's current data
- .I ('$$GET^DGENPTA(DFN,.OLDPAT))!('$$GET^DGENELA(DFN,.OLDELG))!('$$GET^DGENCDA(DFN,.OLDCDIS)) D  Q
+ .;first get local site's current data
+ .I ('$$GET^DGENPTA(DFN,.OLDPAT))!('$$GET^DGENELA(DFN,.OLDELG))!('$$GET^DGENCDA(DFN,.OLDCDIS))!('$P($$GET^DGENOEIF(DFN,.OLDOEIF,0),U,2)) D  Q
  ..D ADDERROR^DGENUPL(MSGID,DGPAT("SSN"),"UNABLE TO ACCESS PATIENT RECORD",.ERRCOUNT)
  ..S SUCCESS=0
  .;
@@ -76,6 +78,13 @@ UOBJECTS(DFN,DGPAT,DGELG,DGCDIS,MSGID,ERRCOUNT,MSGS,OLDPAT,OLDELG,OLDCDIS) ;
  .;
  .; Change from Eligible to Ineligible
  .I 'OLDPAT("INELDATE"),DGPAT("INELDATE") D ADDMSG^DGENUPL3(.MSGS,"VETERAN PREVIOUSLY ELIGIBLE FOR VA HEALTH CARE, NOW INELIGIBLE.",1)
+ .;
+ .; Check for erroneous CD deletion
+ .I OLDCDIS("VCD")="","@"[DGCDIS("VCD") Q  ;no notification is needed
+ .;
+ .; CD Determination Changed
+ .I OLDCDIS("VCD")'=DGCDIS("VCD") D ADDMSG^DGENUPL3(.MSGS,"VETERANS CD EVALUATION HAS CHANGED.")
+ D EP^DGENUPLB
  Q SUCCESS
  ;
 ADD ;
@@ -88,19 +97,17 @@ ADD ;
  S SUB=0 F  S SUB=$O(DGELG3("RATEDIS",SUB)) Q:'SUB  S DGELG3("RATEDIS",SUB,"RDSC")=1
  ;
  ; Default Patient Types
- I DGELG3("SC")="N" S DGPAT3("VETERAN")="Y",DGPAT3("PATYPE")=$O(^DG(391,"B","NSC VETERAN",0))
- I DGELG3("SC")="Y" S DGPAT3("VETERAN")="Y",DGPAT3("PATYPE")=$O(^DG(391,"B","SC VETERAN",0))
+ D SCVET^DGENUPL3
  ;
- ; If Ineldate apply the business rules
+ ; If Ineldate apply business rules
  I DGPAT3("INELDATE"),DGELG3("SC")'="Y" D
  .S DGPAT3("VETERAN")="N",DGPAT3("PATYPE")=$O(^DG(391,"B","NON-VETERAN (OTHER)",0))
  .S DGELG3("POS")=$O(^DIC(21,"B","OTHER NON-VETERANS",0))
  ;
  ;update/set ELIGIBILITY VERIF. SOURCE field (Ineligible Project):
- I DGELG3("ELIGVERIF")["VIVA" S DATA(.3613)="H"
- E  S DATA(.3613)="V"
+ S DATA(.3613)=$S(DGELG3("ELIGVERIF")["VBA":"H",DGELG3("ELIGVERIF")["CEV":"H",DGELG3("ELIGVERIF")["VIVA":"H",1:"V")
  ;
- ; File the data fields modified by Ineligible Business Rules
+ ; File data fields modified by Ineligible Business Rules
  I $$UPD^DGENDBS(2,DFN,.DATA,.ERROR)
  Q
  ;
@@ -108,16 +115,14 @@ MERGE ;
  ;Description: merges arrays with current patient data with the updates
  ; Merges DGPAT() + OLDPAT() -> DGPAT3()
  ;        DGELG() + OLDELG() -> DGELG3()
- ;        DGCDIS() + OLDCDIS() -> DGCDIS3()
- ;
- ;Input:
- ;  DGPAT,DGELG,DGCDIS,OLDPAT,OLDELG,OLDCDIS arrays
- ;
- ;Output:
- ;  DGPAT3,DGELG3,DGCDIS3 arrays
+ ; overlays catastrophic disability array with data from HEC
+ ;        DGCDIS() is info from HEC
  ;
  N SUB,SUB2,LOC,HEC,NATCODE
- M DGPAT3=OLDPAT,DGELG3=OLDELG,DGCDIS3=OLDCDIS
+ M DGPAT3=OLDPAT,DGELG3=OLDELG
+ ;Replace POW in VistA with HEC data
+ I '$D(DGPAT3("POWI")) S DGELG3("POW")=""
+ K DGCDIS3 M DGCDIS3=OLDCDIS K DGCDIS3("EXT"),DGCDIS3("PROC"),DGCDIS3("COND"),DGCDIS3("DIAG")
  ;
  ;discard MT status from local database - don't ever want to use it during upload
  S DGELG3("MTSTA")=DGELG("MTSTA")
@@ -134,20 +139,19 @@ MERGE ;
  ;catastrophic disability array
  S SUB=""
  F  S SUB=$O(DGCDIS(SUB)) Q:(SUB="")  D
- .I $D(DGCDIS(SUB))=1 I ($G(DGCDIS(SUB))'="") S DGCDIS3(SUB)=$S((DGCDIS(SUB)="@"):"",1:DGCDIS(SUB))
+ .I $D(DGCDIS(SUB))=1 I ($G(DGCDIS(SUB))'="") S DGCDIS3(SUB)=DGCDIS(SUB)
  .I $D(DGCDIS(SUB))=10 D
  ..S SUB2=""
  ..F  S SUB2=$O(DGCDIS(SUB,SUB2)) Q:SUB2=""  D
- ...I ($G(DGCDIS(SUB,SUB2))'="") S DGCDIS3(SUB,SUB2)=$S((DGCDIS(SUB,SUB2)="@"):"",1:DGCDIS(SUB,SUB2))
+ ...I ($G(DGCDIS(SUB,SUB2))'="") S DGCDIS3(SUB,SUB2)=DGCDIS(SUB,SUB2)
  ...I SUB="PROC" D
  ....N CDPROC,CDEXT,LIEN
- ....S CDPROC=$G(DGCDIS3("PROC",SUB2))
+ ....S CDPROC=$G(DGCDIS("PROC",SUB2))
  ....Q:CDPROC=""
- ....S CDEXT=DGCDIS3("EXT",SUB2)
+ ....S CDEXT=$G(DGCDIS("EXT",SUB2,1))
  ....Q:CDEXT=""
  ....S LIEN=$O(^DGEN(27.17,CDPROC,1,"B",CDEXT,0))
  ....Q:LIEN=""
- ....K DGCDIS3("EXT",SUB2)
  ....S DGCDIS3("EXT",SUB2,LIEN)=CDEXT
  ;
  ;eligibility array
@@ -162,8 +166,8 @@ MERGE ;
  I (DGELG("ELIG","CODE")'="") S DGELG3("ELIG","CODE")=$S((DGELG("ELIG","CODE")="@"):"",($$NATCODE^DGENELA(DGELG("ELIG","CODE"))=$$NATCODE^DGENELA(DGELG3("ELIG","CODE"))):DGELG3("ELIG","CODE"),1:DGELG("ELIG","CODE"))
  ;
  ;patient eligibilities multiple
- ;delete the veteran type codes not mapped to national codes sent by HEC, but leave the non-veteran types and the codes where there is a match
- ;first find all the local codes already in the patient file and the ones sent from HEC, keep in arrays LOC and HEC
+ ;delete veteran type codes not mapped to national codes sent by HEC, but leave non-veteran types and the codes where there is a match
+ ;first find all local codes already in the patient file and the ones sent from HEC, keep in arrays LOC and HEC
  S NATCODE=$$NATCODE^DGENELA(DGELG("ELIG","CODE")) I NATCODE S HEC(NATCODE)=""
  S SUB=0 F  S SUB=$O(DGELG("ELIG","CODE",SUB)) Q:'SUB  S NATCODE=$$NATCODE^DGENELA(SUB) I NATCODE S HEC(NATCODE)=""
  S SUB=0 F  S SUB=$O(DGELG3("ELIG","CODE",SUB)) Q:'SUB  S NATCODE=$$NATCODE^DGENELA(SUB) I NATCODE S LOC(NATCODE)=""
@@ -171,32 +175,24 @@ MERGE ;
  S SUB=0
  F  S SUB=$O(DGELG3("ELIG","CODE",SUB)) Q:'SUB  D
  .I $P($G(^DIC(8,SUB,0)),"^",5)="Y"!($P($G(^DIC(8,SUB,0)),"^")["HUMANITARIAN EMERGENCY"),'$D(HEC($$NATCODE^DGENELA(SUB))) K DGELG3("ELIG","CODE",SUB)
- ;now add the codes included in the update that the local database does not already contain
+ ;now add codes included in the update that the local database does not already contain
  S SUB=0
  F  S SUB=$O(DGELG("ELIG","CODE",SUB)) Q:'SUB  D
  .I '$D(LOC($$NATCODE^DGENELA(SUB))) S DGELG3("ELIG","CODE",SUB)=SUB
+ ;Agent Orange Exp. Location, use local database when upload is NULL
+ D AO^DGENUPL9
  Q
  ;
 CHECK() ;
- ;Description: Does the consistency checks on the PATIENT, ELIGIBILITY, and CATASTROPHIC DISABILITY objects.
- ;
- ;Input:
- ;  OLDPAT,DGPAT3,DGELG3,DGCDIS3,ERRCOUNT,MSGID
- ;  DGENR -Enrollment Array
- ;  DGPAT -Patient Array
- ;  MSGS  -Warning and Error Message array   
- ;
- ;Output:
- ;  Function Value - 1 if consistency checks passed, 0 otherwise
  ;
  N SUCCESS,ALIVE,ERRMSG,DGENR
  S SUCCESS=1
  S ERRMSG=""
  ;
- ;if upload includes date of death, check for indications that the patient is alive
+ ;if upload includes date of death, check for indications that patient is alive
  I DGPAT3("DEATH"),'OLDPAT("DEATH") D  S:ALIVE SUCCESS=0
  .;
- .;determine if the patient is at the moment being registered
+ .;determine if patient is at the moment being registered
  .S ALIVE=$$IFREG^DGREG(DFN)
  .;
  .;check if an inpatient
@@ -209,7 +205,7 @@ CHECK() ;
  .;there is an indication that he patient may not be dead
  .D:ALIVE ADDERROR^DGENUPL(MSGID,DGPAT("SSN"),"LOCAL SITE VERIFY PATIENT DEATH",.ERRCOUNT),ADDMSG^DGENUPL3(.MSGS,"ELIBILITY UPLOAD CONTAINED DATE OF DEATH AND WAS REJECTED, PLEASE VERIFY PATIENT DEATH",1),NOTIFY^DGENUPL3(.DGPAT,.MSGS)
  ;
- ;only do the consistency checks on this data if it is verified
+ ;only do consistency checks on this data if it is verified
  I SUCCESS,(DGELG3("ELIGSTA")="V") D
  .I $$CHECK^DGENPTA1(.DGPAT3,.ERRMSG),$$CHECK^DGENELA1(.DGELG3,.DGPAT3,.DGCDIS3,.ERRMSG),$$CHECK^DGENCDA1(.DGCDIS3,.ERRMSG)
  .E  D

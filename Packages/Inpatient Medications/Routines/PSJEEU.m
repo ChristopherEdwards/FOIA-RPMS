@@ -1,5 +1,5 @@
-PSJEEU ;BIR/CML3-EXTERNAL ENTRIES UTILITY ; 15 May 98 / 9:28 AM
- ;;5.0; INPATIENT MEDICATIONS ;**3**;16 DEC 97
+PSJEEU ;BIR/CML3-EXTERNAL ENTRIES UTILITY ; 8/7/08 12:27pm
+ ;;5.0; INPATIENT MEDICATIONS ;**3,208**;16 DEC 97;Build 10
  ;
 ENSV ; schedule validation
  ;K PSJAT,PSJM I $S('$D(PSJPP):1,PSJPP="":1,PSJPP?.E1C.E:1,1:'$D(^DIC(9.4,"C",PSJPP))) Q
@@ -15,6 +15,20 @@ ENSVI ; standard schedule inquire
  ;
 ENSPU ; schedule processor (count)
  K PSJC S PSJC=-1 I $S('$D(PSJAT):1,'$D(PSJM):1,'$D(PSJSCH):1,'$D(PSJSD):1,1:'$D(PSJFD)) Q
+ ;the following line is for lab order with no start time PSJ*5.0*208
+ I PSJPP="LR",PSJSD'["." D
+ . N HRS,XPSJSD,I
+ . S XPSJSD=PSJSD
+ . F I=1:1 S HRS=(PSJM/60)*I,PSJSD=XPSJSD_"."_$E(0,HRS<10)_HRS Q:PSJSD>$$NOW^XLFDT()
+ . I ORDUR S PSJFD=$$FMADD^XLFDT(PSJSD,+ORDUR,,-1) ; Calculate the new stopdate/time based on the new start date/time
+ . I 'ORDUR S X=+$E(ORDUR,2,9) D
+ .. I PSJM S PSJFD=$$FMADD^XLFDT(PSJSD,,,(PSJM*X)-1) Q  ;X_#times
+ .. ;no freq in minutes --> day of week
+ .. N DAYS,LOCMX,SCHMX
+ .. S LOCMX=$$GET^XPAR("ALL^LOC.`"_+ORL,"LR MAX DAYS CONTINUOUS",1,"Q")
+ .. S SCHMX=$P(^PS(51.1,PSJY,0),U,7)
+ .. S DAYS=$S('SCHMX:LOCMX,LOCMX<SCHMX:LOCMX,1:SCHMX)
+ .. S PSJFD=$$FMADD^XLFDT(PSJSD,DAYS,,-1)
  S:'$D(PSJOSD) PSJOSD=PSJSD S:'$D(PSJOFD) PSJOFD=PSJFD N AM,CD,H,HCD,I,J,M,MID,OD,PDL,PLSD,ST,Q,QQ,WD,WDT,WS,WS1,X,X1,X2,XX D EN^PSJSPU Q
  ;
 ENPSJSE ; schedule edit for Inpatient Meds

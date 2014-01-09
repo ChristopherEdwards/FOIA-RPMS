@@ -1,5 +1,5 @@
 DG53456P ;ALB/CKN - Post Install for DG*5.3*454; 16 AUG 2002
- ;;5.3;Registration;**456**; Aug 13,1993
+ ;;5.3;Registration;**456,1015**; Aug 13,1993;Build 21
  ;
 POST ; Entry point for post init
  ; Update MEANS TEST STATUS file (#408.32)

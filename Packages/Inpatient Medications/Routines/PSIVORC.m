@@ -1,5 +1,5 @@
-PSIVORC ;BIR/MLM-COMPLETE IV ORDERS ENTERED THROUGH OE/RR ;17-Oct-2011 09:46;PLS
- ;;5.0; INPATIENT MEDICATIONS ;**23,53,80,1013**;16 DEC 97;Build 33
+PSIVORC ;BIR/MLM-COMPLETE IV ORDERS ENTERED THROUGH OE/RR ;29-May-2012 14:34;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**23,53,80,1013,110,134,1015**;16 DEC 97;Build 62
  ;
  ; Reference to ^DIC(42 is supported by DBIA 10039
  ; Reference to ^DPT is supported by DBIA 10035
@@ -40,7 +40,6 @@ GTYP ; Get formatted heading for type
  N PSJD5314 D FIELD^DID(53.1,4,"","POINTER","PSJD5314")
  ; removed ^DD ref 3-2-99, pass ^^_set of codes value
  ; because codes^psivutl uses the 3rd piece
- ;S X=$$CODES^PSIVUTL(TYP,"^^"_PSJD5314("POINTER")),PSIV=$S(X]"":X,1:"UNKNOWN"),X="",$P(X,"-",40-($L(PSIV)/2))="" W !,X_PSIV_X
  S X=$$CODES^PSIVUTL(TYP,"^^"_PSJD5314("POINTER"),"")
  S PSIV=$S(X]"":X,1:"UNKNOWN"),X="",$P(X,"-",40-($L(PSIV)/2))="" W !,X_PSIV_X
  Q
@@ -75,15 +74,18 @@ GP ;
  F ON=0:0 S ON=$O(^PS(53.1,"AS","P",DFN,ON)) Q:'ON  S Y=$G(^PS(53.1,ON,0)),TYP=$S($P(Y,U,4)]"":$P(Y,U,4),1:"Z"),^TMP("PSIV",$J,WDN,PNME,TYP,ON)=""
  Q
 DISCONT ; Cancel incomplete order
+ N PSJDCTYP I $G(ON)["P",$P($G(^PS(53.1,+$G(ON),0)),"^",24)="R" S PSJDCTYP=$$PNDRNA^PSGOEC(ON) I $G(PSJDCTYP)'=1 D PNDRN(PSJDCTYP) Q
  N INCOM
- ;D:'$D(PSJIVORF) ORPARM^PSIVOREN I PSJIVORF D NATURE^PSIVOREN I '$D(P("NAT"))!(INCOM="") W !,$C(7),"Order Unchanged." Q
+D2 ; Called from PNDRN for pending order
  D:'$D(PSJIVORF) ORPARM^PSIVOREN I PSJIVORF S INCOM=$$INPTCOM^APSPFUNC() D NATURE^PSIVOREN I '$D(P("NAT"))!(INCOM="") W !,$C(7),"Order Unchanged." Q
  ;Prompt for requesting provider
- W ! I '$$REQPROV^PSGOEC W !,$C(7),"Order Unchanged." Q
+ W ! I '$$REQPROV^PSGOEC W !,$C(7),"Order Unchanged." K PSJDCTYP Q
  W !
  ;
- ;* N PSJORNAT S (PSJORIFN,ORIFN)=$P($G(^PS(53.1,+ON,0)),U,21),PSJORD=ON,PSJORNAT=P("NAT") D DC^PSIVORA ;* I PSJIVORF,PSJORIFN,(ON["V") D EN1^PSJHL2(PSGP,"OD",+ON_"V","ORDER DISCONTINUED")
- N PSJORNAT S PSJORIFN=$P($G(^PS(53.1,+ON,0)),U,21),PSJORD=ON,PSJORNAT=P("NAT") D DC^PSIVORA ;* I PSJIVORF,PSJORIFN,(ON["V") D EN1^PSJHL2(PSGP,"OD",+ON_"V","ORDER DISCONTINUED")
+D3 ; called from PNDRN for original order
+ I 'PSJCOM N PSJORNAT S PSJORIFN=$P($G(^PS(53.1,+ON,0)),U,21),PSJORD=ON,PSJORNAT=P("NAT") D DC^PSIVORA ;* I PSJIVORF,PSJORIFN,(ON["V") D EN1^PSJHL2(PSGP,"OD",+ON_"V","ORDER DISCONTINUED")
+ I PSJCOM,PSJORD["P" N O S O="" F  S O=$O(^PS(53.1,"ACX",PSJCOM,O)) Q:O=""  D
+ .S ON=O_"P",PSJORIFN=$P($G(^PS(53.1,+ON,0)),U,21),PSJORD=ON,PSJORNAT=P("NAT") D DC^PSIVORA
  W !,"Order discontinued.",!
  Q
  ;
@@ -95,4 +97,10 @@ EDIT ; Edit incomplete order
 FINISH ; Finish incomplete order
  S PSIVAC="CF" L +^PS(53.1,+ON):1 E  W !,$C(7),"This order LOCKED by another user." Q
  D FINISH^PSIVORC2 L -^PS(53.1,+ON)
+ Q
+ ;
+PNDRN(PSJDCTYP) ; Discontinue pending renewal only or both pending and original orders
+ I PSJDCTYP=2 S PSJDCTYP=1 D D2 Q:'$G(PSJDCTYP)  D
+ .N ND5310 S ND5310=$G(^PS(53.1,+ON,0))
+ .N ON S ON=$P(ND5310,"^",25) I ON S PSJDCTYP=2 D D3
  Q

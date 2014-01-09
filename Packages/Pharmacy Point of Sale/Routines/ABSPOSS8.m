@@ -1,5 +1,5 @@
 ABSPOSS8 ; IHS/FCS/DRS - 9002313.99 ;  
- ;;1.0;PHARMACY POINT OF SALE;**19,39**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**19,39,45**;JUN 21, 2001
  ;----------------------------------------------------------------------
  ;IHS/SD/RLT 11/7/06 - Patch 19
  ; Force user to run BAS setup option first.  Running other options
@@ -100,6 +100,14 @@ INS ;EP - option ABSP INSURANCE SEL
  W "Medicare and Railroad each 300 points and Self pay 100 points.",!
  W !
  S DR="960.01;960.03;960.02;960.04;960.05"
+ D ^DIE
+ ;
+ ;OIT/CAS/RCS 112712 Patch 45 - Add Default ICD10 Insurer effective date
+ W !!,"Enter the ICD10 default date for POS insurers."
+ W !,"You will have the ability to override this effective date"
+ W !,?5,"for the individual Insurer using the ADV option.",!
+ W !
+ S DR="800Default ICD10 effective date"
  D ^DIE
  ;
  N ALLRULES,MYRULES

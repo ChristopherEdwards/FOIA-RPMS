@@ -1,5 +1,5 @@
 SD53252P ;ALB/JKT - ACRP TEMP FIX FOR RETRANS TO AUSTIN;19-SEP-2001 ; 9/24/01 12:30pm
- ;;5.3;Scheduling;**252**;Aug 13, 1993
+ ;;5.3;Scheduling;**252,1015**;Aug 13, 1993;Build 21
  ;
 MAIN ;Main entry point
  ;Queue marking of encounters and quit

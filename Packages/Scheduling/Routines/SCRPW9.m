@@ -1,5 +1,5 @@
 SCRPW9 ;RENO/KEITH - Outpatient Encounter Workload Statistics (cont.) ; 15 Jul 98  02:38PM
- ;;5.3;Scheduling;**139,144**;AUG 13, 1993
+ ;;5.3;Scheduling;**139,144,339,466,510,1015**;AUG 13, 1993;Build 21
 UNARL(SDS1,SDS2) ;Print list of 'action required'/not accepted uniques
  ;Required input: SDS1,SDS2=subscript values
  S SDPAGE=1 D UHDR Q:SDOUT  I '$D(^TMP(SDS1,$J,SDS2,"VISIT","UNARL")) W !!,"No 'action required'/not accepted unique patients identified." Q
@@ -15,7 +15,7 @@ UNP1 N SDII,SDDT1 S SDII=0,SDDT1=SDDT F  S SDDT1=$O(^SCE("ADFN",DFN,SDDT1)) Q:'S
  .Q
  Q
  ;
-UNP2 N SDCL,SDST Q:'$P(SDOE0,U,4)  S SDCL=$P($G(^SC($P(SDOE0,U,4),0)),U),SDST=$P(SDOE0,U,12) Q:'SDST!(SDST=8)!(SDST=12)  S SDST=$S(SDST'=2:$P(^SD(409.63,SDST,0),U),1:$P($$STX^SCRPW8(SDOE,SDOE0),U,3))
+UNP2 N SDCL,SDST Q:'$P(SDOE0,U,4)  S SDCL=$P($G(^SC($P(SDOE0,U,4),0)),U),SDST=$P(SDOE0,U,12) Q:$P($G(^SC($P(SDOE0,U,4),0)),U,17)="Y"  Q:'SDST!(SDST=12)  S SDST=$S("28"'[SDST:$P(^SD(409.63,SDST,0),U),1:$P($$STX^SCRPW8(SDOE,SDOE0),U,3))
  D:$Y>(IOSL-4) UHDR Q:SDOUT  W:SDII ! W ?44,$E(SDCL,1,17),?63,$E(SDST,1,17) S SDII=SDII+1 Q
  ;
 UHDR I $E(IOST)="C" N DIR S DIR(0)="E" D ^DIR S SDOUT=Y'=1 Q:SDOUT
@@ -30,10 +30,11 @@ DETAIL ;Ask questions for detail of encounters or uniques for a division
  K DIR S DIR(0)="S^U:UNIQUES;V:VISITS;E:ENCOUNTERS",DIR("A")="Select type of list" D ^DIR I $D(DTOUT)!$D(DUOUT) S SDZ(0)=-1 Q
  S SDZ(1)=Y G:Y'="E" ZDIV
 DET1 K DIC S DIC="^SD(409.63,",DIC(0)="AEMQ",DIC("S")="I Y<4!(Y=8!(Y=12!(Y=14)))",DIC("A")="Select encounter status: " W ! D ^DIC I $D(DTOUT)!$D(DUOUT)!($G(Y)<1) S SDZ(0)=-1 Q
- S SDZ(2)=$P(Y,U) G:SDZ(2)'=2 ZDIV K DIR S DIR("A")="Select transmission status for CHECKED OUT encounters"
+ S SDZ(2)=$P(Y,U) G:(SDZ(2)'=2)&(SDZ(2)'=8) ZDIV K DIR S DIR("A")="Select transmission status for "_$S(SDZ(2)=2:"CHECKED OUT",1:"INPATIENT APPOINTMENT")_" encounters"
  S DIR(0)="S^A:All transmission statuses;1:No transmission record;2:Not required, not transmitted;3:Rejected for transmission;4:Awaiting transmission;"
  S DIR(0)=DIR(0)_"5:Transmitted, no acknowledgment;6:Transmitted, rejected;7:Transmitted, error;8:Transmitted, accepted"
- W ! D ^DIR I $D(DTOUT)!$D(DUOUT) S SDZ=-1 Q
+ I SDZ(2)=8 S DIR(0)=DIR(0)_";9:Non-Count (not transmitted)"
+ W ! D ^DIR I $D(DTOUT)!$D(DUOUT) S SDZ(0)=-1 Q  ;SD*5.3*339 add sub-zero
  S SDZ(3)=+Y
 ZDIV ;Get division for detail
  I '$P($G(^DG(43,1,"GL")),U,2) S SDZ(4)=$P(^DG(40.8,$$PRIM^VASITE(),0),U) Q
@@ -45,7 +46,7 @@ DPRT(SDS1,SDS2) ;Detail print
  ;Required input: SDS1,SDS2=subscript values
  K SDH S SDPAGE=1,SDH(1)="<*>  DETAILED LIST OF DIVISION "_$S(SDZ(1)="U":"UNIQUES",SDZ(1)="V":"VISITS",1:"ENCOUNTERS")_"  <*>",SDH(2)="For division: "_SDZ(4)
  I $G(SDZ(2)) S SDH(3)="Encounters with "_$P(^SD(409.63,SDZ(2),0),U)_" status"
- I $G(SDZ(2))=2 S SDH(4)="Transmission status: "_$P($T(TXS+SDZ(3)),";",2)
+ I $G(SDZ(2))'="","28"[SDZ(2) S SDH(4)="Transmission status: "_$P($T(TXS+SDZ(3)),";",2)
  D DHDR Q:SDOUT  I '$D(^TMP(SDS1,$J,SDS2,"DETAIL")) W !,"No records found in this category." Q
  S SDCT=0 D @SDZ(1) Q
  ;
@@ -88,6 +89,7 @@ TXS ;All transmission statuses
  ;Transmitted, rejected
  ;Transmitted, error
  ;Transmitted, accepted
+ ;Non-Count (not transmitted)
  ;
 PARM ;Prompt for report parameters
  D TITL^SCRPW50("Outpatient Encounter Workload Statistics")

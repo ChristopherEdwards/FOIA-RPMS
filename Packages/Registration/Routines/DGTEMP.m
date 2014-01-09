@@ -1,5 +1,5 @@
 DGTEMP ;ALB/MRL - ADT TEMPLATE SELECTION ; 11 MAY 87
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 1 I '$D(^DG(43.7,"AI",+X)) S C=1 G END
  S X1=$O(^DG(43.7,"AI",+X,0)) I '$D(^DG(43.7,+X1,0)) S C=1 G END
  S DGD=^DG(43.7,+X1,0),DGTMP=$P(DGD,"^",4) I "^E^S^P^"'[("^"_DGTMP_"^") S C=2 G END

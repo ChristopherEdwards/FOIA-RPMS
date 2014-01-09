@@ -1,11 +1,12 @@
 DGPMV2 ;ALB/MRL/MIR - PATIENT MOVEMENT PROCESSOR; [ 09/13/2001  3:57 PM ]
- ;;5.3;Registration;**40**;Aug 13, 1993
+ ;;5.3;Registration;**40,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  3/02/2001 added check for lockout parameter
  ;              3/08/2001 removed call to PTF file
  ;
  I '$D(DGPMVI) W !!,*7,"INPATIENT ARRAY NOT DEFINED...MODULE ENTERED INCORRECTLY" Q
  ;K DGPME S DGPMMD="",DEF="NOW",DGPM1X=0 D S I "^1^4^5^"'[("^"_DGPMT_"^") D PTF^DGPMV21 I $D(DGPME) G Q  ;IHS/ANMC/LJF 3/08/2001
- K DGPME S DGPMMD="",DEF="NOW",DGPM1X=0 D S ;I "^1^4^5^"'[("^"_DGPMT_"^") D PTF^DGPMV21 I $D(DGPME) G Q  ;IHS/ANMC/LJF 3/08/2001
+ ;ihs/cmi/maw 02/08/2012 patch 1014 add PTF back in to see what happens next line
+ K DGPME S DGPMMD="",DEF="NOW",DGPM1X=0 D S  ; I "^1^4^5^"'[("^"_DGPMT_"^") D PTF^DGPMV21 I $D(DGPME) G Q  ;IHS/ANMC/LJF 3/08/2001
  I DGPMT=3!(DGPMT=5) K DGPME G OLD:DGPMDCD S DGPML="",DGPM1X=1 G NEW
  D NOW^%DTC,@("S"_DGPMT)
  S DGPML=$S($D(^UTILITY("DGPMVN",$J,1)):$P(^(1),"^",2),1:"") K C,D,I,J,N

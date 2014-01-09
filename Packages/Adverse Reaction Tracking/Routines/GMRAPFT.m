@@ -1,5 +1,5 @@
-GMRAPFT ;HIRMFO/WAA- PRINT FDA REACTION BY DATE ENTERED/TRACKED ;4/10/97  09:30 [ 05/03/2002  10:42 AM ]
- ;;4.0;Adverse Reaction Tracking;**7**;Mar 29, 1996
+GMRAPFT ;HIRMFO/WAA- PRINT FDA REACTION BY DATE ENTERED/TRACKED ;4/10/97  09:30
+ ;;4.0;Adverse Reaction Tracking;**7,33**;Mar 29, 1996;Build 5
 EN1 ; This routine will loop through the ADT entry point to get all
  ; the entries in that date range.
  S GMRAOUT=0
@@ -29,9 +29,8 @@ PRINT ;Queue point for report
  ..Q:+$G(^GMR(120.8,$P(GMRAPA1(0),U,15),"ER"))  ;data entered in error
  ..D HEAD Q:GMRAOUT
  ..S (GMRAPID,GMRANAME,GMRALOC)=""
- ..;IHS/ITSC/ENM 05/03/02 HRN CALL
- ..S GMRADFN=$P(GMRAPA1(0),U,2),DFN=GMRADFN,APSPHRN=$$HRCN^APSGFUNC,GMRADDT=$P(GMRAPA1(0),U)
- ..;S GMRADFN=$P(GMRAPA1(0),U,2),GMRADDT=$P(GMRAPA1(0),U)
+ ..S GMRADFN=$P(GMRAPA1(0),U,2),GMRADDT=$P(GMRAPA1(0),U)
+ ..Q:'$$PRDTST^GMRAUTL1(GMRADFN)  ;GMRA*4*33 Exclude test patient from report if production or legacy system.
  ..D VAD^GMRAUTL1(GMRADFN,GMRADDT,.GMRALOC,.GMRANAME,"",.GMRAPID)
  ..I GMRALOC="" S GMRALOC="OUT PATIENT"
  ..E  S GMRALOC=$P($G(^DIC(42,GMRALOC,0)),U)
@@ -43,12 +42,11 @@ PRINT ;Queue point for report
  ...Q
  ..W ?32,"Obs DT: ",$$FMTE^XLFDT($P(GMRAPA1(0),U),"2D") ; Observed Date
  ..W ?49,$E($G(GMRARAC(1)),1,30) ; The 1st reaction that is listed first
- ..W !,"(",APSPHRN,")" ;IHS/ITSC/ENM 05/03/02
- ..;W !,"(",GMRAPID,")"
+ ..W !,"(",GMRAPID,")"
  ..W ?32,"Trk DT: ",$$FMTE^XLFDT($P(GMRAPA1(0),U,18),"2D") ; Tracking Date
  ..W ?49,$E($G(GMRARAC(2)),1,30) ; The 2nd reaction that is listed
  ..W !,"Loc: ",GMRALOC
- ..W ?32,"-------------" ; Seperator
+ ..W ?32,"-------------" ; Separator
  ..W ?49,$E($G(GMRARAC(3)),1,30) ; The 3rd reaction that is listed
  ..W !,"Obs: ",$P($G(^VA(200,$P(GMRAPA1(0),U,19),0)),U) ; User entered
  ..D
@@ -63,7 +61,6 @@ PRINT ;Queue point for report
  ..Q
  .Q
  D CLOSE^GMRAUTL
- K APSPHRN ;IHS/ITSC/ENM 05/03/02
  Q
 HEAD ; Print header information
  I GMRAPG'=1  Q:$Y<(IOSL-4)

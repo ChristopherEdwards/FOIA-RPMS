@@ -1,5 +1,5 @@
 SCRPW73 ;BP-CIOFO/KEITH,ESW - Clinic appointment availability extract (cont.) ; 5/28/03 2:27pm
- ;;5.3;Scheduling;**192,206,223,249,291**;AUG 13, 1993
+ ;;5.3;Scheduling;**192,206,223,249,291,1015**;AUG 13, 1993;Build 21
  ;
 PRT(SDXM,SDREPORT) ;Print report
  ;Input: SDXM='1' for output to mail message text, '0' otherwise

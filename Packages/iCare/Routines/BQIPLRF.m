@@ -1,5 +1,5 @@
 BQIPLRF ;PRXM/HC/ALA-Panel Refresh ; 11 Jul 2006  10:05 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
  Q
  ;
@@ -33,10 +33,10 @@ ALOG(DATA,FAKE) ;EP -- BQI AUTOPOP LOGIN
  . I 'PLSUCC D  Q
  .. D STA(USR,PNL)
  .. D ULK(USR,PNL)
- .. S SUBJECT="Unable to lock panel(s) that are filters for panel: "_$P(^BQICARE(OWNR,1,PLIEN,0),U,1)
+ .. S SUBJECT="Unable to lock panel(s) that are filters for panel: "_$P(^BQICARE(USR,1,PNL,0),U,1)
  .. S LOCK="0^"_$P(PLSUCC,U,2),POWNR=$P(PLSUCC,U,4),PPLIEN=$P(PLSUCC,U,5)
  .. I $P(PLSUCC,U,3)'="" S BMXSEC=$P(PLSUCC,U,3),SUBJECT=""
- .. D NNOTF(OWNR,PLIEN,SUBJECT)
+ .. D NNOTF(USR,PNL,SUBJECT)
  . ;
  . ; Check if panel is a panel filter
  . S PLIDEN=USR_$C(26)_$P(^BQICARE(USR,1,PNL,0),"^",1)

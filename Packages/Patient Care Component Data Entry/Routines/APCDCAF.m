@@ -1,6 +1,6 @@
 APCDCAF ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009
- ;; ;
+ ;;2.0;IHS PCC SUITE;**2,7,8**;MAY 14, 2009;Build 2
+ ;
  ;
 EN ; EP -- main entry point for CHART AUDIT LISTMANAGER DISPLAY
  S VALMCC=1
@@ -18,10 +18,10 @@ HDR ;EP -- header code
  S VALMHDR(2)="* an asterisk beside the visit number indicates the visit has an error"
  Q
  ;
-INIT ;EP -- init variables and list array
+INIT ;EP -- init variables/list array
  S VALMSG="Q - Quit/?? for more actions/+ next/- previous"
- D GATHER ;GATHER UP ALL VISITS FOR DISPLAY
- D RECDISP ;sort list by desired sort variable and set up listman display
+ D GATHER  ;GATHER UP ALL VISITS FOR DISPLAY
+ D RECDISP  ;sort list by desired sort variable and set up listman display
  S VALMCNT=APCDRCNT
  Q
  ;
@@ -168,6 +168,8 @@ ERRORCHK(V) ;EP
  ;check for no pov, .9999 or multiple primary providers
  NEW E,X,C
  S E=""
+ I $P(^AUPNVSIT(V,0),U,7)="I" Q ""
+ I $P(^AUPNVSIT(V,0),U,7)="E" Q ""
  I '$D(^AUPNVPOV("AD",V)) S E="NO POV"
  S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
  .I $$VAL^XBDIQ1(9000010.07,X,.01)=".9999" S E=".9999 POV "

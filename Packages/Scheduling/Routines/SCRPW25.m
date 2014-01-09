@@ -1,5 +1,5 @@
 SCRPW25 ;RENO/KEITH - ACRP Ad Hoc Report (cont.) ; 12/5/00 4:15pm
- ;;5.3;Scheduling;**144,177,232**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,177,232,1015**;AUG 13, 1993;Build 21
 PEAO(SDX) ;Get agent orange indicator
  K SDX S DFN=$P(SDOE0,U,2) I DFN D SVC^VADPT I $L(VASV(2)) S SDX(1)=VASV(2)_U_$S(VASV(2):"YES",1:"NO")
  D NX Q

@@ -1,5 +1,5 @@
 DGOERNOT ;ALB/LDB - OERR NOTIFICATIONS ;24 JUN 91 [ 06/29/2001  3:00 PM ]
- ;;5.3;Registration;**118,192**;Aug 13, 1993
+ ;;5.3;Registration;**118,192,1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point from event driver
 ADM D CHK G ADMQ:'DGCHK

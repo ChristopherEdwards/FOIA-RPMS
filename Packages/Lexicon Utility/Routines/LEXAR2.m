@@ -1,5 +1,5 @@
 LEXAR2 ; ISL Look-up Response (up arrow/jump/null); 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 UPA(LEXUR) ; Up-Arrow Detected
  I LEXUR="^^" S X=LEXUR D EDA^LEXAR Q

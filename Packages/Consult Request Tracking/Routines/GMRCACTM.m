@@ -1,5 +1,5 @@
 GMRCACTM ; SLC/DLT,DCM,JFR - Set action menus  ;10/17/01 22:41
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,11,18,15,17,22**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,11,18,15,17,22,55**;DEC 27, 1997;Build 4
  ;
  ; This routine invokes IA #2425
  ;
@@ -16,6 +16,7 @@ CPRS(GMRCPM,GUI) ;Entry point for setting menu actions for CPRS user
  ;       2 - user has full update capabilities
  ;       3 - user has administrative update capabilities
  ;       4 - user has full update and admin user capabilities
+ ;       5 - user has full update capabilities via unrestricted access
  ;    B = field in file 123.5 (REQUEST SERVICES) that gave the user 
  ;        update authority (ex.  Update user w/o Notification)
  ;    C = Service in file 123.5 (REQUEST SERVICES) that gave the user
@@ -71,6 +72,7 @@ EN ;Set GMRCACTM with appropriate menu of actions based on user
  ;Get the users service update level
  N GMRCFLG
  S GMRCFLG=$$VALID^GMRCAU(+GMRCSS,"",,$G(GUI))
+ S:+GMRCFLG=1 GMRCFLG=$S(($D(ORFLG)&($$PATCH^XPDUTL("OR*3.0*243"))):"5^"_$P(GMRCFLG,U,2,9999),1:"2^"_$P(GMRCFLG,U,2,9999))
  ;
  ;If ORFLG is all that should be returned, than set and exit
  I $D(ORFLG) D  Q

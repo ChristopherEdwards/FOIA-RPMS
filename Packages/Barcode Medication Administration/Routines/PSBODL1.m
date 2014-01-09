@@ -1,8 +1,7 @@
 PSBODL1 ;BIRMINGHAM/VRN-DUE LIST ;Mar 2004
- ;;3.0;BAR CODE MED ADMIN;**5,9**;Mar 2004 
+ ;;3.0;BAR CODE MED ADMIN;**5,9,32,28**;Mar 2004;Build 9
+ ;Per VHA Directive 2004-038 (or future revisions regarding same), this routine should not be modified. 
  ;
- ; Reference/IA
- ; ^XLFDT/10103
 EN ;
  S PSBFOHDR=0
  S PSBORD=0 F  S PSBORD=$O(^TMP("PSBO",$J,DFN,PSBORD)) Q:PSBORD=""  S PSBTYPE=$O(^TMP("PSBO",$J,DFN,PSBORD,"")) D
@@ -46,7 +45,7 @@ EN ;
  ..S PSBIEN=""
  ..F  S PSBIEN=$O(^PSB(53.79,"AOIP",DFN,+PSBOIT,X,PSBIEN),-1) Q:PSBIEN=""  D  Q:PSBLGDT
  ...S:"MHNR"'[$P($G(^PSB(53.79,PSBIEN,0)),U,9) PSBLGDT=X
- .I $Y>(IOSL-12) W !?(IOM-36\2),"(Medications Continued on Next Page)",$$FTR(),$$HDR()
+ .I $Y>(IOSL-12) I $Y<(IOSL-4) W !?(IOM-36\2),"(Medications Continued on Next Page)",$$FTR(),$$HDR()
  .I PSBSM S PSBSM=$S(PSBSMX:"H",1:"")_"SM"
  .E  S PSBSM=""
  .I 'PSBFOHDR S PSBFOHDR=1 W $$HDR()
@@ -55,7 +54,7 @@ EN ;
  .W $$WRAP(14,34,PSBOITX)
  .S PSBADM="Give: "_PSBDOSE_"  "_PSBSCH
  .W $$WRAP(50,27,PSBADM)
- .W ?78,PSBMRAB
+ .W $$WRAP(78,6,PSBMR)
  .W ?85 I PSBLGDT W $E(PSBLGDT,4,5),"/",$E(PSBLGDT,6,7),"/",$E(PSBLGDT,2,3) W "@",$E($P(PSBLGDT,".",2)_"0000",1,4)
  .W ?100,$P($TR($$FMTE^XLFDT(PSBOST,2),"@"," ")," ")
  .W ?110,$P($TR($$FMTE^XLFDT(PSBOSP,2),"@"," ")," ")
@@ -75,6 +74,30 @@ EN ;
  .W $$WRAP(14,34,"Spec Inst: "_X),!,$TR($J("",IOM)," ","-")
  I '$G(PSBWFLAG) W !!,?10,"** NO SPECIFIED MEDICATIONS TO PRINT **"
  W:PSBFOHDR $$BLANKS(),$$FTR()
+ K ^TMP("PSB",$J,"GETADMIN")
+ Q
+ ;
+WRAPPUP ;Do wrapping per PSBODL (Due List Report)
+ ;
+ W $$WRAP(14,34,PSBMED)
+ S PSBADM="Give: "_PSBDOSE_"  "_PSBSCH
+ W $$WRAP(50,27,PSBADM),?78,$$WRAP(78,6,PSBMR)
+ W ?85 D:PSBLGDT
+ .W $E(PSBLGDT,4,5),"/",$E(PSBLGDT,6,7),"/",$E(PSBLGDT,2,3),"@",$E($P(PSBLGDT,".",2)_"0000",1,4)
+ W ?100,$P($TR($$FMTE^XLFDT(PSBOST,2),"@"," ")," "),?110,$P($TR($$FMTE^XLFDT(PSBOSP,2),"@"," ")," "),?120,$S(PSBVPHI]"":PSBVPHI,1:"***"),"/"
+ W $S(PSBVNI]"":PSBVNI,1:"***"),!,?100,"@"_$P(PSBOSTX,"  ",2),?110,"@"_$P(PSBOSPX,"  ",2)
+ W IOINHI
+ I $D(PSBDDA) S Y=0 F  S Y=$O(PSBDDA(Y)) Q:'Y  D
+ .Q:$P(PSBDDA(Y),U,5)&($P(PSBDDA(Y),U,5)<PSBNOW)
+ .W !?14,"*",$$WRAP(15,33,$P(PSBDDA(Y),U,3)) ;_" ("_+$P(PSBDDA(Y),U,2)_")")
+ I $D(PSBADA) S Y=0 F  S Y=$O(PSBADA(Y)) Q:'Y  W !?14,"*",$$WRAP(15,33,$P(PSBADA(Y),U,3)) ;_" ("_$P(PSBADA(Y),U,4)_")")
+ I $D(PSBSOLA) S Y=0 F  S Y=$O(PSBSOLA(Y)) Q:'Y  W !?14,"*",$$WRAP(15,33,$P(PSBSOLA(Y),U,3)) ;_" ("_$P(PSBSOLA(Y),U,4)_")")
+ W IOINORM ; Hlight Off
+ S PSBADM=$S(PSBADMIN]"":"Admin Times: "_PSBADMIN,1:"")
+ W:PSBADM]"" $$WRAP(50,27,PSBADM)
+ S X=$S(PSBOTXT]"":PSBOTXT,1:"<None Entered>")
+ I $E(X,1)="!"  S $E(X,1)=""
+ W $$WRAP(14,34,"Spec Inst: "_X),!,$TR($J("",IOM)," ","-")
  Q
  ;
 WRAP(X,Y,Z) ; Quick text wrap
@@ -85,7 +108,7 @@ WRAP(X,Y,Z) ; Quick text wrap
  .F PSB=Y:-1:0 Q:$E(Z,PSB)=" "
  .S:PSB<1 PSB=Y
  .W $E(Z,1,PSB)
- .S Z=$E(Z,PSB+1,250)
+ .S Z=$E(Z,PSB+1,255)
  Q ""
  ;
 FTR() ; [Extrinsic] Page footer

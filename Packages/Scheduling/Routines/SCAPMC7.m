@@ -1,5 +1,5 @@
 SCAPMC7 ;ALB/REW - Team APIs:INPTTM ; 5 Jul 1995
- ;;5.3;Scheduling;**41,148**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,148,1015**;AUG 13, 1993;Build 21
  ;;1.0
 INPTTM(DFN,SCPTTM,SCINACT,SCERR) ;inactivate patient from a team (pt tm assgn - #404.42
  ; input:

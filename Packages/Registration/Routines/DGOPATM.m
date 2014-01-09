@@ -1,5 +1,5 @@
 DGOPATM ;GLRISC/REL - Patient Movements ; [ 09/13/2001  3:55 PM ]
- ;;5.3;Registration;**93,162**;Aug 13, 1993
+ ;;5.3;Registration;**93,162,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  5/24/2001 changed date limit to 14 days into past
  ;                        added choice of type of movement
  ;

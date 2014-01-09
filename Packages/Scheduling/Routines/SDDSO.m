@@ -1,7 +1,5 @@
-SDDSO ;BSN/GRR - DELETE ANCILLARY TESTS ; [ 09/13/2001  2:25 PM ]
- ;;5.3;Scheduling;;Aug 13, 1993
- ;IHS/ANMC/LJF 11/30/2000 contains $N but option not used by IHS
- ;
+SDDSO ;BSN/GRR - DELETE ANCILLARY TESTS ;5/8/91  16:23
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  D:'$D(DT) DT^SDUTL S HDT=DT,APL=""
 RD W ! S DIC="^DPT(",DIC(0)="AEQM" D ^DIC G:X=""!(X="^") END I Y<0 W !,*7,*7,"PATIENT NOT FOUND",*7,*7 G RD
  S DA=+Y,DFN=DA,NAME=$P(Y,"^",2) W ! I $N(^DPT(DA,"S",HDT))'>0 G NO

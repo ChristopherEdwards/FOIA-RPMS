@@ -1,0 +1,162 @@
+BPMXFIX ;IHS/OIT/NKD - CLEANUP UTILITY DRIVER - 6/26/12 ;
+ ;;1.0;IHS PATIENT MERGE;**2**;MAR 01, 2010;Build 1
+ ;IHS/OIT/NKD  6/13/2012 Correct bad 3P claim data
+ ;                       Correct invalid HRN data
+ ;                       Batch issue cleanup
+ ;
+EN1 ;EP
+ ; IF CALLED FROM MENU [BPM AUDIT] SET VARIABLE TO PRINT TO SCREEN
+ S BPMMENU=1
+ D RSLT($TR($J(" ",80)," ","*"))
+ D RSLT($TR($J(" ",10)," ","*")_"   This utility should only be run during off-peak hours.   "_$TR($J(" ",10)," ","*"))
+ D RSLT($TR($J(" ",10)," ","*")_"   Users must ensure the following before continuing:       "_$TR($J(" ",10)," ","*"))
+ D RSLT($TR($J(" ",10)," ","*")_"   1) No patient merge process are running or scheduled.    "_$TR($J(" ",10)," ","*"))
+ D RSLT($TR($J(" ",10)," ","*")_"   2) Data entry on merged patients has been halted.        "_$TR($J(" ",10)," ","*"))
+ D RSLT($TR($J(" ",10)," ","*")_"   3) Screen output is being logged for review.             "_$TR($J(" ",10)," ","*"))
+ D RSLT($TR($J(" ",80)," ","*"))
+ S DIR("A")="Proceed"
+ S DIR("B")="NO"
+ S DIR(0)="Y"
+ D ^DIR
+ Q:'Y
+ K DIR,X,Y
+EN ;EP
+ ; MAIN EP FROM KIDS, PRINTS TO INSTALL LOG FILE
+ N I,BPMT
+ D TIME("Cleanup Utility",1)
+ D BUILD
+ F I=1:1 S BPMT=$P($T(RTNS+I),";;",2) Q:BPMT["$$END"  D
+ . D TIME($P(BPMT,";",1),1)
+ . D @$P(BPMT,";",2)
+ . D TIME($P(BPMT,";",1),2)
+ D TIME("Cleanup Utility",2)
+ Q
+ ;
+FIXAUPN ;
+ ;----- IHS/OIT/NKD BPM*1.0*2 Remove blank HRNs from all Patients
+ N BPMP,BPMPL,BPMCNT,BPMDOT
+ S (BPMCNT,BPMDOT,BPMP)=0
+ F  S BPMP=$O(^AUPNPAT(BPMP)) Q:BPMP'=+BPMP  D
+ . S BPMDOT=BPMDOT+1 I '(BPMDOT#10000) W "."
+ . Q:'$D(^AUPNPAT(BPMP,41))
+ . S BPMPL=0 F  S BPMPL=$O(^AUPNPAT(BPMP,41,BPMPL)) Q:BPMPL'=+BPMPL  D
+ . . Q:$L($P($G(^AUPNPAT(BPMP,41,BPMPL,0)),"^",2))>0
+ . . D HDR(BPMP,BPMPL)
+ . . K ^AUPNPAT(BPMP,41,BPMPL,0)
+ . . S BPMCNT=BPMCNT+1
+ D RSLT^BPMXFIX("  *** Total Found: "_BPMCNT_" ***")
+ Q
+ ;
+BUILD ;
+ ;----- IHS/OIT/NKD BPM*1.0*2 Build TMP global for utility processing
+ ;
+ N XIEN,OIEN,BPMFR,BPMTO
+ K ^TMP("BPM")
+ S XIEN=0
+ F  S XIEN=$O(^XDRM(XIEN)) Q:+XIEN'=XIEN  D
+ . S BPMFR=$P($P(^XDRM(XIEN,0),"^",1),";"),BPMTO=$P($P(^XDRM(XIEN,0),"^",2),";")
+ . I '$D(^DPT(BPMFR,-9)) D RSLT("PT NOT MERGED "_BPMFR) Q
+ . I $G(^DPT(BPMFR,-9))'=BPMTO D RSLT("POINTING TO WRONG PATIENT "_BPMFR) Q
+ . I $P($G(^DPT(BPMFR,0)),"^",1)["*" D RSLT("PREVIOUS VERSION OF MERGE SKIPPED "_BPMFR) Q
+ . I '$D(^TMP("BPM",$J,"FROM",BPMFR)) S ^TMP("BPM",$J,"FROM",BPMFR)=XIEN,^TMP("BPM",$J,XIEN,BPMFR,BPMTO)=XIEN
+ . E  D
+ . . S OIEN=^TMP("BPM",$J,"FROM",BPMFR)
+ . . S ^TMP("BPM",$J,OIEN,BPMFR,BPMTO)=^TMP("BPM",$J,OIEN,BPMFR,BPMTO)_"^"_XIEN
+ . I '$D(^TMP("BPM",$J,"TO",BPMTO)) S ^TMP("BPM",$J,"TO",BPMTO)=BPMFR_$S($D(^TMP("BPM",$J,"TO",BPMFR)):"^"_^TMP("BPM",$J,"TO",BPMFR),1:"")
+ . E  S:'(^TMP("BPM",$J,"TO",BPMTO)[BPMFR) ^TMP("BPM",$J,"TO",BPMTO)=^TMP("BPM",$J,"TO",BPMTO)_"^"_BPMFR_$S($D(^TMP("BPM",$J,"TO",BPMFR)):"^"_^TMP("BPM",$J,"TO",BPMFR),1:"")
+ Q
+RSLT(%,BPMLINE) ;--- ISSUE MESSAGES DURING INSTALL/MENU
+ I $D(BPMMENU) D
+ .I $D(BPMLINE) W !!,%
+ .E  W !,%
+ I '$D(BPMMENU) D
+ .I $D(BPMLINE) D BMES^XPDUTL(%)
+ .I '$D(BPMLINE) D MES^XPDUTL(%)
+ Q
+ ;
+TIME(BPMSTEP,TYPE) ;
+ ; TIME MESSAGE DISPLAY
+ N STR
+ S STR="***** "_BPMSTEP_" "_$S(TYPE=1:"Start time: ",1:"End time: ")_$$HTE^XLFDT($H)_" *****"
+ I TYPE=1 D RSLT(STR,TYPE) Q
+ E  D RSLT(STR)
+ Q
+HDR(DFN,FAC,EIEN,HDR,ETXT,DTXT) ;EP
+ ; HEADER MESSAGE DISPLAY
+ N MSG,MSG2,MSG3,MSG4
+ S MSG=$J("",3)_$S($D(DTXT):DTXT_" ",1:"")_"Patient IEN: "_DFN_$J("",9-$L(DFN))
+ S MSG2="HRN: "_$P($G(^AUTTLOC(FAC,0)),"^",7)_" "_$$HRN(FAC,DFN)_$J("",12-$L($$HRN(FAC,DFN)))
+ S MSG3=$S($D(EIEN):"Entry: "_EIEN,1:"")
+ S MSG4=$S($D(ETXT):ETXT_"(s): ",1:"")
+ I $L(MSG3)>0&$L(MSG4)>0 S MSG4=MSG4_EIEN,MSG3=""
+ S:'$D(HDR) HDR=1
+ D RSLT($S(HDR:MSG_MSG2,1:$J("",$L(MSG_MSG2)))_MSG3_MSG4)
+ Q
+ENTRY(IEN,FROM,TXT) ;EP
+ ; MERGED ENTRY MESSAGE DISPLAY
+ N BPMT
+ S BPMT=$J("",4)_"Merging "_$S($D(TXT):TXT,1:"Entry")_" #"_IEN
+ D RSLT(BPMT_$J("",42-$L(BPMT))_"From PT IEN: "_FROM)
+ Q
+ENTRIES(BPMTMP) ;EP
+ ; MERGED ENTRIES MESSAGE DISPLAY
+ N BPMT,I
+ S BPMT=$J("",4),I=0
+ F  S I=$O(BPMTMP(I)) Q:$L(I)<1  D
+ . S BPMT=BPMT_I_$J("",12-$L(I))
+ . I $L(BPMT)>70 D RSLT(BPMT) S BPMT=$J("",4)
+ I $L(BPMT)>4 D RSLT(BPMT)
+ Q
+HIST(DFN) ;EP
+ ; FORWARD HISTORY OF MERGES FOR A PATIENT
+ Q:$L(DFN)<1 DFN
+ Q:'$D(^DPT(DFN,-9)) DFN
+ Q DFN_"^"_$$HIST(^DPT(DFN,-9))
+LAST(DFN) ;EP
+ ; LAST PATIENT IN A CHAIN OF MERGES
+ Q:$L(DFN)<1 DFN
+ Q:'$D(^DPT(DFN,-9)) DFN
+ Q $$LAST(^DPT(DFN,-9))
+BILL(BPMDUZ2,BPMCI) ;EP
+ ; RETURNS THE BILL # AND BILL PATIENT ASSOCIATED WITH A CLAIM
+ N BPMCB,BPMB
+ S BPMB=""
+ Q:'$D(^ABMDCLM(BPMDUZ2,BPMCI,65)) BPMB
+ S BPMCB=0 F  S BPMCB=$O(^ABMDCLM(BPMDUZ2,BPMCI,65,BPMCB)) Q:(BPMCB'=+BPMCB)!($L(BPMB)>0)  D
+ . Q:'$D(^ABMDBILL(BPMDUZ2,BPMCB,0))
+ . Q:BPMCI'=+$P(^ABMDBILL(BPMDUZ2,BPMCB,0),"^",1)
+ . S BPMB=$P(^ABMDBILL(BPMDUZ2,BPMCB,0),"^",5)_"^"_$P(^ABMDBILL(BPMDUZ2,BPMCB,0),"^",1)
+ Q BPMB
+VSIT(BPMDUZ2,BPMCI) ;EP
+ ; RETURNS THE VISIT # AND VISIT PATIENT ASSOCIATED WITH A CLAIM
+ N BPMCV,BPMV
+ S BPMV=""
+ Q:'$D(^ABMDCLM(BPMDUZ2,BPMCI,11)) BPMV
+ S BPMCV=0 F  S BPMCV=$O(^ABMDCLM(BPMDUZ2,BPMCI,11,BPMCV)) Q:(BPMCV'=+BPMCV)!($L(BPMV)>0)  D
+ . Q:'$D(^AUPNVSIT(BPMCV,0))
+ . S BPMV=$P(^AUPNVSIT(BPMCV,0),"^",5)_"^"_BPMCV
+ Q BPMV
+HRN(BPMDUZ2,BPMP) ;EP
+ ; RETURNS THE HRN FOR A PATIENT
+ Q $P($G(^AUPNPAT(BPMP,41,BPMDUZ2,0)),"^",2)
+MRG(BPMPAT,BPMDIR) ;EP
+ ; RETURNS 1 IF THE PATIENT WAS PART OF A MERGE
+ Q:$L(BPMPAT)<1 1
+ Q $S($D(^TMP("BPM",$J,BPMDIR,BPMPAT)):1,1:0)
+RTNS ;----- LIST OF CLEANUP ROUTINES - DISPLAY;LABEL^ROUTINE
+ ;;Blank HRNs;FIXAUPN^BPMXFIX
+ ;;iCare;BQI^BPMXFX1
+ ;;Problem List;PRB^BPMXFX1
+ ;;Word Processing;WP^BPMXFX2
+ ;;Lab;LAB^BPMXFX1
+ ;;3PB;TPB^BPMXFX1
+ ;;PT Taxonomy;ATX^BPMXFX1
+ ;;FILE #90050.02;I1^BPMXFX2
+ ;;FILE #9000043;I2^BPMXFX2
+ ;;FILE #9002274.3;I3^BPMXFX2
+ ;;FILE #9002274.4;I4^BPMXFX2
+ ;;FILE #100;V3^BPMXFX2
+ ;;Deleted Visits;VST^BPMXFX1
+ ;;EDR;EDR^BPMXFX1
+ ;;MPI;MPI^BPMXFX1
+ ;;$$END

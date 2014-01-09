@@ -1,5 +1,5 @@
-ORKCHK6 ; slc/CLA - Support routine called by ORKCHK to do SESSION mode order checks ;07-Dec-2009 23:22;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,74,87,94,123,162,190,1005**;Dec 17, 1997
+ORKCHK6 ; slc/CLA - Support routine called by ORKCHK to do SESSION mode order checks ;15-Jun-2010 21:19;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,74,87,94,123,162,190,1005,249,1010**;Dec 17, 1997;Build 47
  ; Modified - IHS/MSC/PLS - 12/07/09 - Added Allergy-Drug Interaction order check during SESSION type
  Q
  ;
@@ -87,8 +87,8 @@ RXOCS ;drug-drug interaction, duplicate drug order, duplicate drug class
  ...S ORPSNUM=$P(XX,U,4)  ;get the associated order number
  ...I $L(ORPSNUM),$G(^OR(100,+ORPSNUM,0)) S ORKT=$$FULLTEXT^ORQOR1(+ORPSNUM),ORKTXT=$P(ORKT,U)_" ["_$P(ORKT,U,2)_"]"
  ...E  S ORKTXT=$P(XX,U,3)
- ...S ORKMSG="Duplicate order: "_ORKTXT
- ...S ORKS("ORK",ORDUPD_","_$G(ORNUM)_","_ORPSNUM_",Duplicate order: "_$P(XX,U,3))=ORNUM_U_ORDUPN_U_ORDUPD_U_ORKMSG_U_$G(ORPSNUM)
+ ...S ORKMSG="Duplicate drug order: "_ORKTXT
+ ...S ORKS("ORK",ORDUPD_","_$G(ORNUM)_","_ORPSNUM_",Duplicate drug order: "_$P(XX,U,3))=ORNUM_U_ORDUPN_U_ORDUPD_U_ORKMSG_U_$G(ORPSNUM)
  ..;
  ..;duplicate class:
  ..I $P(XX,U)="DC" D
@@ -106,7 +106,7 @@ RXOCS ;drug-drug interaction, duplicate drug order, duplicate drug class
  ..S ORKS("ORK",ORALLRD_","_$G(ORNUM)_","_$E(ORKMSG,1,225))=ORNUM_U_ORALLRN_U_ORALLRD_U_ORKMSG
  Q
  ;
-OI2DD(ORPSA,OROI,ORPSPKG) ;rtn dispense drugs for a PS OI
+OI2DD(ORPSA,OROI,ORPSPKG)       ;rtn dispense drugs for a PS OI
  N PSOI
  Q:'$D(^ORD(101.43,OROI,0))
  S PSOI=$P($P(^ORD(101.43,OROI,0),U,2),";")

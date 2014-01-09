@@ -1,5 +1,5 @@
-DGPMBSP2 ;ALB/LM - BSR PRINT, CONT.; 17 OCT 90
- ;;5.3;Registration;**59**;Aug 13, 1993
+DGPMBSP2 ;ALB/LM - BSR PRINT, CONT.; 17 OCT 90 ; 1/13/05 3:48pm
+ ;;5.3;Registration;**59,592,641,1015**;Aug 13, 1993;Build 21
  ;
 A S BD=1 S BD("DY")=BD("OSD") ;(BD*BD("M")) ;  Total Elapsed Fiscal Days * Bed Days Multipler
  S ^UTILITY("DGWBD",$J,+ORDER)=BD("DY")_"^"_BD("S")_"^"_BD("D")_"^"_BD("CB") ;  Total Elapsed Fiscal Days * Bed Days Multipler_^_Include Stat's_^_Display on BSR_^_Cum Beds

@@ -1,5 +1,5 @@
 DGPREP2 ;ALB/SCK - Pre-Registration Cont. ; 12/31/96
- ;;5.3;Registration;**109**;Aug 13, 1993
+ ;;5.3;Registration;**109,1015**;Aug 13, 1993;Build 21
  Q
  ;
 EN ; -- main entry point for the DGPRE HIST protocol

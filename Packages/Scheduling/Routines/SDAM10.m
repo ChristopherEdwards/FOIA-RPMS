@@ -1,5 +1,5 @@
-SDAM10 ;MJK/ALB - Appt Mgt (Patient cont.); 12/1/91
- ;;5.3;Scheduling;**189,258,1004**;Aug 13, 1993
+SDAM10 ;MJK/ALB - Appt Mgt (Patient cont.); 3/18/05 3:51pm  ; Compiled March 31, 2008 16:38:47
+ ;;5.3;Scheduling;**189,258,403,478,491,1004,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 10/10/2001 moved mods to BSDAM10
  ;IHS/OIT/LJF  07/28/2005 PATCH 1004 added code to display waiting list info
  ;
@@ -18,15 +18,20 @@ HDR ; -- list screen header
  Q
  ;
 PAT ; -- change pat
+ K TMP ;SD/478
  D FULL^VALM1 S VALMBCK="R"
  K X I $D(XQORNOD(0)) S X=$P($P(XQORNOD(0),U,4),"=",2)
- I X="" R !!,"Select Patient: ",X:DTIME
+ I $D(X),X="" R !!,"Select Patient: ",X:DTIME
  D RT^SDAMEX S DIC="^DPT(",DIC(0)="EMQ" D ^DIC K DIC G PAT:X["?"
+PAT1 S %=1 I Y>0 W !,"   ...OK" D YN^DICN I %=0 W "   Answer with 'Yes' or 'No'" G PAT1
+ I %'=1 S Y=-1
  I Y<0 D  G PATQ
- .I SDAMTYP="P" S VALMSG=$C(7)_"Patient has not been changed."
+ .I $G(DFN)>0,SDAMTYP="P" S VALMSG=$C(7)_"Patient has not been changed."
+ .I $G(DFN)'>0,SDAMTYP="P" S VALMSG=$C(7)_"Patient has not been selected."
  .I SDAMTYP="C" S VALMSG=$C(7)_"View of clinic remains in affect."
+ .W !!,$G(VALMSG) H 1
  I SDAMTYP'="P" D CHGCAP^VALM("NAME","Clinic") S SDAMTYP="P"
- S SDFN=+Y K SDCLN D BLD^SDAM1
+ S (DFN,SDFN)=+Y K SDCLN,VADM D DEM^VADPT D BLD^SDAM1 ;SD/491
 PATQ Q
  ;
 INIT ; -- init bld vars
@@ -40,6 +45,7 @@ INIT ; -- init bld vars
  S X=VALMDDF("NAME"),NC=$P(X,U,2),NW=$P(X,U,3) ;  N for name
  S X=VALMDDF("STAT"),SC=$P(X,U,2),SW=$P(X,U,3) ;  S for status
  S X=VALMDDF("TIME"),TC=$P(X,U,2),TW=$P(X,U,3) ;  T for time
+ S (CC,CW)="",X=$G(VALMDDF("CONSULT")) I X'="" S CC=$P(X,U,2),CW=$P(X,U,3) ;  C for Consult ;SD/478
  Q
  ;
 LARGE ; -- too large note

@@ -1,5 +1,5 @@
 SROACC ;B'HAM ISC/MAM - CPT ACCURACY ; [ 09/22/98  11:19 AM ]
- ;;3.0; Surgery ;**77,50**;24 Jun 93
+ ;;3.0; Surgery ;**77,50,127**;24 Jun 93
 BEG S (SRFLG,SRSOUT)=0
  W @IOF,!,"Report to Check CPT Coding Accuracy"
 START D DATE^SROUTL(.SDATE,.EDATE,.SRSOUT) G:SRSOUT END
@@ -11,7 +11,8 @@ ASK W @IOF,!,"Print the Report of CPT Coding Accuracy for which cases ?",!!,"1. 
 ALL W !!,"Do you want to print the Report of CPT Coding Accuracy for all",!,"CPT Codes ?  YES//  " R SRYN:DTIME I '$T!(SRYN["^") S SRSOUT=1 G END
  S SRYN=$E(SRYN) S:SRYN="" SRYN="Y"
  I "YyNn"'[SRYN W !!,"Enter RETURN if you want to print the report for all codes, or 'NO'",!,"to select a specific CPT Code.",!!,"Press RETURN to continue  " R X:DTIME G ALL
- S SRCPT="ALL" I "Nn"[SRYN W !! K DIC S DIC=81,DIC(0)="QEAMZ",DIC("A")="Print the Coding Accuracy Report for which CPT Code ?  " D ^DIC S:Y<0 SRSOUT=1 G:Y<0 END S SRCPT=+Y
+ S SRCPT="ALL"
+ I "Nn"[SRYN W !! K DIC S DIC=81,DIC(0)="QEAMZ",DIC("A")="Print the Coding Accuracy Report for which CPT Code ?  ",DIC("S")="I $$CTD^SROACC()" D ^DIC S:Y<0 SRSOUT=1 G:Y<0 END S SRCPT=+Y
  I SRFLG=1 G SPEC
  I SRFLG=2!(SRFLG=3) G MSP
 DEV W !!,"This report is designed to use a 132 column format.",!!
@@ -49,3 +50,8 @@ MSP W @IOF,!,"Do you want to sort the Report of CPT Coding Accuracy by",!,$S(SRF
  I "Yy"[SRYN G MSP^SROACC0
  G DEV
  Q
+CTD() K ICPTVDT
+ N SRSDATE S SROK=1,SRSDATE=DT
+ I (EDATE) S SRSDATE=EDATE
+ S SROK=$P($$CPT^ICPTCOD(Y,SRSDATE),"^",7),ICPTVDT=SRSDATE
+ Q SROK

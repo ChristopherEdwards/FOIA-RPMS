@@ -1,5 +1,5 @@
 DGAINP2 ;ALB/RMO - Balance and Save Inpatient AMIS's 334-341 ; 08 MAY 90 2:20 pm
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;==============================================================
  ;When balancing inpatient AMIS segments the division statistics
  ;are combined.

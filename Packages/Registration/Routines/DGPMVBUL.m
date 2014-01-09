@@ -1,5 +1,5 @@
 DGPMVBUL ;ALB/MIR/MAC - SEND MOVEMENT BULLITENS; 12 Sep 1989
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;send UR admission bulletin
  D ^DGPMVBUR

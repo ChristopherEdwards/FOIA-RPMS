@@ -1,5 +1,5 @@
-DGPTC2 ;ALN/MJK - Census Record Processing; 15 APR 90
- ;;5.3;Registration;**58,189**;Aug 13, 1993
+DGPTC2 ;ALN/MJK - Census Record Processing; jAN 27,2005
+ ;;5.3;Registration;**58,189,643,1015**;Aug 13, 1993;Build 21
  ;
 SETP ; -- P node processing
  ;I DGCSUF="9AA"!(DGCSUF="BU") S I=999 G SETPQ
@@ -51,7 +51,8 @@ CONE ;-- find last 535 before last census date
 ONE ; -- find last mvt before census date
  S M=$O(^DGPT(PTF,"M","AM",DGEND)),M=$S('M:M,1:$O(^(M,0))),M=$S(M:M,1:1)
  I M>1,$D(^DGPT(PTF,"M",M,0)) S X="1^"_$P(^(0),U,2,99)
- D BSEC:M=1 S $P(X,U,10)=DGEND,^DGPT(DGCI,"M",1,0)=X
+ I M=1,DGFEE=0 D BSEC
+ S $P(X,U,10)=DGEND,^DGPT(DGCI,"M",1,0)=X
  S:'$D(^DGPT(DGCI,"M",0)) ^(0)="^45.02AI^^" S X=^(0),^(0)=$P(X,U,1,2)_"^1^"_($P(X,U,4)+1)
  ;;Following code added to transmit GAF scores in Census Record
  ;;Code added by EDS-GRR 6/4/1998

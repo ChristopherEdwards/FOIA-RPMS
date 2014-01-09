@@ -1,5 +1,5 @@
-ORWTPUA ; SLC/STAFF Personal Preference - Utility Alerts ;5/22/00  09:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85**;Oct 24, 2000
+ORWTPUA ; SLC/STAFF Personal Preference - Utility Alerts ; 4/20/07 10:01am
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,243,296**;Oct 24, 2000;Build 19
  ;
 START(USER) ; $$(user) -> user's surrogate start date/time
  Q $P($G(^XTV(8992,+$G(USER),0)),U,3)
@@ -22,6 +22,7 @@ GETSURR(USER) ; $$(user ien) -> surrogate ien
  Q $$CURRSURO^XQALSURO(+$G(USER))
  ;
 SAVESURR(USER,SURR,START,STOP) ; save user's surrogate info
- D REMVSURO^XQALSURO(USER)
- D SETSURO^XQALSURO(USER,SURR,START,STOP)
- Q
+ N RET
+ D REMVSURO^XQALSURO(USER) Q:SURR=-1 1
+ S RET=$$SETSURO1^XQALSURO(USER,SURR,START,STOP)
+ Q RET

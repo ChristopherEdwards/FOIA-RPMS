@@ -1,5 +1,5 @@
-SCMCHLB1 ;BP/DJB - PCMM HL7 Bld Segment Array Cont. ; 8/17/99 9:29am
- ;;5.3;Scheduling;**177**;May 01, 1999
+SCMCHLB1 ;BPOI/DJB - PCMM HL7 Bld Segment Array Cont.;8/17/99
+ ;;5.3;Scheduling;**177,515,524,1015**;08/17/99;Build 21
  ;
 SEGMENTS(DFN,SUB) ;Build EVN & PID segments
  ;Input:
@@ -45,15 +45,15 @@ ZPC(ARRAY,DELETE) ;Loop thru array and build array of ZPC segments.
  ;Output:
  ;   Array of ZPC segments
  ;
- NEW DATA,DATE,ID,ID1,LINETAG,NUM,TYPE,VAFZPC
+ NEW DATA,DATE,ID,ID1,LINETAG,SUB,TYPE,VAFZPC
  ;
- S NUM=0
- F  S NUM=$O(ARRAY(NUM)) Q:'NUM  D  ;
+ S SUB=0
+ F  S SUB=$O(ARRAY(SUB)) Q:'SUB  D  ;
  . S TYPE=""
- . F  S TYPE=$O(ARRAY(NUM,TYPE)) Q:TYPE=""  D  ;
+ . F  S TYPE=$O(ARRAY(SUB,TYPE)) Q:TYPE=""  D  ;
  .. S ID=""
- .. F  S ID=$O(ARRAY(NUM,TYPE,ID)) Q:ID=""  D  ;
- ... S DATA=$G(ARRAY(NUM,TYPE,ID))
+ .. F  S ID=$O(ARRAY(SUB,TYPE,ID)) Q:ID=""  D  ;
+ ... S DATA=$G(ARRAY(SUB,TYPE,ID))
  ... I $G(DELETE) S DATA="^^^" ;A Delete type ZPC segment
  ... E  D  ;....................A ZPC segment with data
  .... ;Get dates
@@ -68,12 +68,13 @@ ZPC(ARRAY,DELETE) ;Loop thru array and build array of ZPC segments.
  .... ;
  .... ;Provider^AssignDate^UnassignDate^ProviderType
  .... S DATA=$P(DATA,U,1)_"^"_DATE(9)_"^"_DATE(10)
- .... S DATA=DATA_"^"_$S(ID["AP":"AP",1:"PCP")
+ ....; PATCH 515 DLL ADD NEW ROLES (TPA,CCM,PM)
+ ....; OLD CODE = S DATA=DATA_"^"_$S(ID["AP":"AP",1:"PCP")
+ ....S ROLE=$P(ID,"-",4) I $G(ROLE)="" S ROLE="PCP"
+ ....S DATA=DATA_"^"_ROLE
  ... ;
- ... S LINETAG="BLDZPC"
- ... D @LINETAG^SCMCHLS ;..Build segment
- ... S LINETAG="CPYZPC"
- ... D @LINETAG^SCMCHLS ;..Copy segment into array
+ ... D BLDZPC^SCMCHLS ;..Build segment ; og/sd/524
+ ... D CPYZPC^SCMCHLS ;..Copy segment into array ; og/sd/524
  Q
  ;
 DFN(ND) ;Find DFN from zero node of Patient Team Position Assign (404.43).

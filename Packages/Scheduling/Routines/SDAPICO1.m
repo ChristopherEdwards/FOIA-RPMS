@@ -1,5 +1,5 @@
 SDAPICO1 ;ALB/MJK - API - Common Check-Out Processing;04 MAR 1993 10:00 am
- ;;5.3;Scheduling;**27**;08/13/93
+ ;;5.3;Scheduling;**27,1015**;08/13/93;Build 21
  ;
 CLASS(SDOE) ; -- file classification data
  IF '$D(@SDROOT@("CLASSIFICATION")) G CLASSQ

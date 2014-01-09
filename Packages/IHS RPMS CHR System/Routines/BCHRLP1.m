@@ -1,5 +1,5 @@
-BCHRLP1 ; IHS/TUCSON/LAB - CONT OF BCHRLP ;  [ 10/31/01  10:21 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,11,12**;OCT 28, 1996
+BCHRLP1 ; IHS/CMI/LAB - CONT OF BCHRLP ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
  ;
  ;
@@ -12,6 +12,7 @@ COVPAGE ;EP
  W !!,"The following report contains a ",$S(BCHPTVS="V":"CHR Record",1:"Patient")," report based on the",!,"following criteria:",!
 SHOW ;
  W !,$S(BCHPTVS="P":"PATIENT",1:"VISIT")," Selection Criteria"
+ I $G(BCHREGN)]"" W !!,"PATIENTS: ",BCHREGN
  I $D(BCHRDTR),$D(BCHBDD) W !!?6,"Date of Service range:  ",BCHBDD," to ",BCHEDD,!
  W:BCHTYPE="D" !!?6,"Date of Service range:  ",BCHBDD," to ",BCHEDD,!
  W:BCHTYPE="S" !!?6,"Search Template: ",$P(^DIBT(BCHSEAT,0),U),!

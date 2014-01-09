@@ -1,5 +1,5 @@
 DGRP ;ALB/MRL - REGISTRATION ENTRY POINT ;06 JUN 88@2300
- ;;5.3;Registration;**108,114,250**;Aug 13, 1993
+ ;;5.3;Registration;**108,114,250,1015**;Aug 13, 1993;Build 21
  ;
 EN W ! S DIC="^DPT(",DIC(0)="AEQMZ" S:$S(('$D(DGRPV)#2):0,DGRPV:0,1:1) DIC(0)=DIC(0)_"L" D ^DIC
  I +Y'>0 D QQ^DGRPP Q

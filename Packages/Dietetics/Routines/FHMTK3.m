@@ -1,14 +1,14 @@
 FHMTK3 ; HISC/NCA - Enter/Edit Patient Diet Pattern ;2/21/96  07:59
- ;;5.0;Dietetics;**1,5,34**;Jun 07, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN1 ; Enter/Edit patient Diet Pattern
- S ALL=0 D ^FHDPA G:'DFN KIL D NOW^%DTC S TIM=%
- D CUR^FHORD7 G:FHLD'="" KIL G:'FHORD KIL S PD=$P($G(^FHPT(DFN,"A",ADM,"DI",FHORD,0)),"^",13)
+ S ALL=0 D ^FHDPA G:'DFN KIL G:'FHDFN KIL D NOW^%DTC S TIM=%
+ D CUR^FHORD7 G:FHLD'="" KIL G:'FHORD KIL S PD=$P($G(^FHPT(FHDFN,"A",ADM,"DI",FHORD,0)),"^",13)
  W !!,"Current Diet: ",$S(Y'="":Y,1:"No current order") G:Y="" KIL
  S MP=$O(^FH(111.1,"AB",FHOR,0))
- I 'MP,$G(^FHPT(DFN,"A",ADM,"DI",FHORD,2))="" W !!,"No Diet Pattern for this Diet Order.",! D RET G:'MP KIL
+ I 'MP,$G(^FHPT(FHDFN,"A",ADM,"DI",FHORD,2))="" W !!,"No Diet Pattern for this Diet Order.",! D RET G:'MP KIL
  S:'MP MP=0
  I MP S PD=$P($G(^FH(111.1,+MP,0)),"^",7)
- S:PD $P(^FHPT(DFN,"A",ADM,"DI",FHORD,0),"^",13)=PD
+ S:PD $P(^FHPT(FHDFN,"A",ADM,"DI",FHORD,0),"^",13)=PD
  G:PD="" KIL W !,"Production Diet: ",$P($G(^FH(116.2,+PD,0)),"^",1)
  W ! K ^TMP($J) D LIS^FHMTK4
 R1 R !!,"Select MEAL (B,N,E): ",MEAL:DTIME G KIL:'$T!(MEAL="^"),R5:MEAL="" S X=MEAL D TR^FH S MEAL=X
@@ -42,8 +42,8 @@ R5 R !!,"Is this Correct to store? Y// ",Y:DTIME G:'$T!(Y="^") KIL S:Y="" Y="Y" 
  .Q
  S:$E(STR,$L(STR))=";" STR=$E(STR,1,$L(STR)-1)
  I $L(STR)>240 S LN=$L($E(STR,1,240)," "),STR=$P(STR," ",1,LN-1)
- S ^FHPT(DFN,"A",ADM,"DI",FHORD,2)=STR
- S ^FHPT(DFN,"A",ADM,"DI",FHORD,3)=DUZ_"^"_TIM
+ S ^FHPT(FHDFN,"A",ADM,"DI",FHORD,2)=STR
+ S ^FHPT(FHDFN,"A",ADM,"DI",FHORD,3)=DUZ_"^"_TIM
 KIL K ^TMP($J,"FHMP") G KILL^XUSCLEAN
 RET ; Returns a selected Pattern
  W ! K DIC S DIC="^FH(111.1,",DIC(0)="AEMQ" D ^DIC K DIC

@@ -1,5 +1,5 @@
 ABMPPADJ ; IHS/SD/SDR - Prior Payments/Adjustments page (CE); 
- ;;2.6;IHS 3P BILLING SYSTEM;**4,6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,6,8,9**;NOV 12, 2009
  ; split routine to ABMPPAD1 because of size
  ;
  ; IHS/SD/SDR - v2.5 p13 - NO IM
@@ -25,8 +25,10 @@ DISPCK ; chk if no complete insurer OR if 2 export modes on claim
  F  S ABMA=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMA)) Q:+ABMA=0  D
  .S ABMAI=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMA,0)),U)
  .I $P($G(^ABMNINS(ABMP("LDFN"),ABMAI,0)),U,11)="Y",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMA,0)),U,3)="C") S ABMAFLG=1
- .I $P($G(^AUTNINS(ABMAI,2)),U)="R",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,8)=ABMAI) S ABMMFLG=1
- I $G(ABMAFLG)=1,($G(ABMMFLG)=1) Q  ;don't do COB page cuz there is a tribal insurer
+ .;I $P($G(^AUTNINS(ABMAI,2)),U)="R",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,8)=ABMAI) S ABMMFLG=1  ;abm*2.6*9 tribal self-insured
+ .I $P($G(^AUTNINS(ABMAI,2)),U)'="R",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,8)=ABMAI) S ABMMFLG=1  ;abm*2.6*9 tribal self-insured
+ I $G(ABMAFLG)=1,($G(ABMMFLG)=1) Q  ;don't do COB page cuz there is a tribal insurer and not Medicare
+ K ABMAFLG,ABMMFLG  ;abm*2.6*9
  D DISPCK^ABMPPAD1
 GATHER Q:$G(ABMCHK)=1  ;quit if no complete insurer or 2 export modes on claim
  K ABMPM,ABMPP

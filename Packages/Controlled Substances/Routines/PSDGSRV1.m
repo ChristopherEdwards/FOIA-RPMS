@@ -1,12 +1,12 @@
-PSDGSRV1  ;BIR/BJW-Complete GS for Ret Stk/Destroy ; 7 Apr 98
- ;;3.0; CONTROLLED SUBSTANCES ;**4,8,9,56**;13 Feb 97;Build 1
+PSDGSRV1  ;BIR/BJW/PWC-Complete GS for Ret Stk/Destroy ; 7 Apr 98
+ ;;3.0; CONTROLLED SUBSTANCES ;**4,8,9,56,62,67**;13 Feb 97;Build 8
  ;**Y2K compliance** display 4 digit year on va forms
  ;modified for NOIS:NCH-1296-41051;amended to update dest. bal
  ;modified for NOIS: FAV-0498-70549
 QTY ;
- W ! K DIR,DIRUT S DIR(0)="NA^"_$S(COMP=3:1,1:.01)_":"_QTY_":"_$S(COMP=3:0,1:2)
+ W ! K DIR,DIRUT S DIR(0)="NA^.01:"_QTY_":2"    ;pwc PSD*3*67 - for return to stock
  S DIR("A")="Quantity of "_NBKU_" "_$S(COMP=3:"Returned to Stock",1:"Turned in for Destruction")_": "
- S DIR("?")="Enter a quantity from "_$S(COMP=3:1,1:.01)_" to "_QTY
+ S DIR("?")="Enter a quantity from .01 to "_QTY
  D ^DIR K DIR I 'Y!$D(DIRUT) D MSG G END
  S RQTY=+Y K DIRUT
 ASKN K DA,DIR,DTOUT,DUOUT S DIR("A")="RETURNED BY NURSE",DIR(0)="58.81,29O" D ^DIR K DIR I $D(DUOUT)!($D(DTOUT)) D MSG G END
@@ -21,8 +21,8 @@ UPDATE ;update 58.81
  W !!,"Accessing Green Sheet information...",!
  D NOW^%DTC S RECDT=+% D:COMP=3 SUB
  K DA,DIE,DR S DA=PSDA,DIE=58.81
- S:COMP=3 DR="34////"_RECDT_";35////"_RQTY_";41////"_BAL_";33////"_PSDUZ_";10////"_CSTAT_";11////"_COMP_";22////"_+$E(RECDT,1,12)_";29////"_NURS_";36///"_REAS
- S:COMP=2 DR="37////"_RECDT_";38////"_RQTY_";33////"_PSDUZ_";10////"_CSTAT_";11////"_COMP_";22////"_+$E(RECDT,1,12)_";29////"_NURS_";39///"_REAS
+ S:COMP=3 DR="34////"_RECDT_";35////"_RQTY_";41////"_BAL_";33////"_PSDUZ_";10////"_CSTAT_";11////"_COMP_";22////"_+$E(RECDT,1,12)_";29////"_NURS_";36///^S X=REAS"  ; <*62 RJS>
+ S:COMP=2 DR="37////"_RECDT_";38////"_RQTY_";33////"_PSDUZ_";10////"_CSTAT_";11////"_COMP_";22////"_+$E(RECDT,1,12)_";29////"_NURS_";39///^S X=REAS"  ; <*62 RJS>
  D ^DIE K DA,DIE,DR
  W !!,"Updating your records..."
 ORDER ;update order info in 58.8

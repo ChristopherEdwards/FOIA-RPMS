@@ -1,5 +1,5 @@
-PSBOHDR ;BIRMINGHAM/EFC-REPORT HEADERS ;22-May-2006 09:08;A,A
- ;;3.0;BAR CODE MED ADMIN;**5,1005**;Mar 2004
+PSBOHDR ;BIRMINGHAM/EFC - REPORT HEADERS ;5/28/10 2:51pm
+ ;;3.0;BAR CODE MED ADMIN;**5,13,42**;Mar 2004;Build 62
  ;
  ; Reference/IA
  ; EN6^GMRVUTL/1120
@@ -7,7 +7,6 @@ PSBOHDR ;BIRMINGHAM/EFC-REPORT HEADERS ;22-May-2006 09:08;A,A
  ; IN5^VADPT/10061
  ; DEM^VADPT/10061
  ;
- ; Modified - IHS/MSC/PLS - 03/27/06 - Reapplied modification to line PT+22
 PT(DFN,PSBHDR,PSBCONT,PSBDT) ;
  ; DFN:     Patient File IEN
  ; PSBCONT: True if this is a continuation page
@@ -20,8 +19,7 @@ PT(DFN,PSBHDR,PSBCONT,PSBDT) ;
  .S VAIP("D")="LAST"
  .D DEM^VADPT,IN5^VADPT
  .S PSBHDR("NAME")=VADM(1)
- .;S PSBHDR("SSN")=$P(VADM(2),U,2)
- .S PSBHDR("SSN")=VA("PID")  ;PLS
+ .S PSBHDR("SSN")=VA("PID")
  .S PSBHDR("DOB")=$P(VADM(3),U,2)
  .S PSBHDR("AGE")=VADM(4)
  .S PSBHDR("SEX")=$P(VADM(5),U,2)
@@ -30,16 +28,21 @@ PT(DFN,PSBHDR,PSBCONT,PSBDT) ;
  .S PSBHDR("WARD")=$P(VAIP(5),U,2)
  .S PSBHDR("ROOM")=$P(VAIP(6),U,2)
  .S PSBHDR("DX")=VAIP(9)
- .K VAIP,VADM
- .;IHS/MSC/PLS - 03/27/06 - Call Vitals lookup based on agency code
- .I $G(DUZ("AG"))="I" D
- ..S X=+$P($$VITAL^APSPFUNC(DFN,"HT"),U,2),X=$$VITCHT^APSPFUNC(X)\1,PSBHDR("HEIGHT")=$S(X:X_"cm",1:"*")
- ..S X=+$P($$VITAL^APSPFUNC(DFN,"WT"),U,2),X=$$VITCWT^APSPFUNC(X)\1,PSBHDR("WEIGHT")=$S(X:X_"kg",1:"*")
+ .K VAIP,VADM,VA
+ .;
+ .;IHS/MSC/PLS - Call Vitals lookup based on agency code
+ .;  and PCC Vitals package usage flag "BEHOVM USE VMSR"=1
+ .I $G(DUZ("AG"))="I",$$GET^XPAR("ALL","BEHOVM USE VMSR") D
+ ..S X=+$P($$VITAL^APSPFUNC(DFN,"HT"),U,2)
+ ..S X=$$VITCHT^APSPFUNC(X)\1,PSBHDR("HEIGHT")=$S(X:X_"cm",1:"*")
+ ..S X=+$P($$VITAL^APSPFUNC(DFN,"WT"),U,2)
+ ..S X=$$VITCWT^APSPFUNC(X)\1,PSBHDR("WEIGHT")=$S(X:X_"kg",1:"*")
  .E  D
  ..S GMRVSTR="HT" D EN6^GMRVUTL
  ..S X=+$P(X,U,8) S:X X=X*2.54\1 S PSBHDR("HEIGHT")=$S(X:X_"cm",1:"*")
  ..S GMRVSTR="WT" D EN6^GMRVUTL
  ..S X=+$P(X,U,8) S:X X=X*.45\1 S PSBHDR("WEIGHT")=$S(X:X_"kg",1:"*")
+ .;
  .N PSBADRX D ALLR^PSBALL(.PSBADRX,DFN) S X=0,Y=""
  .F  S X=$O(PSBADRX(X)) Q:'X  D
  ..Q:$P(PSBADRX(X),U,1)'="ADR"  S Z=$P(PSBADRX(X),U,2) Q:Z=""
@@ -59,9 +62,7 @@ PT(DFN,PSBHDR,PSBCONT,PSBDT) ;
  F X=3:1 Q:'$D(PSBHDR(X))  W !,PSBHDR(X)  ; More Lines If Needed
  I $G(PSBCONT) W !?(IOM-35\2),"*** CONTINUED FROM PREVIOUS PAGE ***"
  W !!,"Patient:",?10,PSBHDR("NAME")
- ;IHS/MSC/PLS - 5/22/2006
- W ?40,$$GET^XPAR("ALL","PSB PATIENT ID LABEL")_"       ",PSBHDR("SSN")
- ;W ?40,"SSN:       ",PSBHDR("SSN")
+ W ?40,$$GET^XPAR("ALL","PSB PATIENT ID LABEL")_":",?51,PSBHDR("SSN")
  W ?75,"DOB:",?82,PSBHDR("DOB")," (",PSBHDR("AGE"),")"
  D:'$G(PSBCONT)
  .W !,"Sex: ",?10,PSBHDR("SEX"),?40,"Ht/Wt:     ",PSBHDR("HEIGHT"),"/",PSBHDR("WEIGHT"),?75,"Ward: ",?82,PSBHDR("WARD")," Rm ",PSBHDR("ROOM")
@@ -77,7 +78,7 @@ PT(DFN,PSBHDR,PSBCONT,PSBDT) ;
  W !,$TR($J("",IOM)," ","=")
  Q
  ;
-WARD(PSBWP,PSBHDR,PSBCONT,PSBDT) ;
+WARD(PSBWP,PSBHDR,PSBCONT,PSBDT) ; 
  ; WARD:    Nurse Location File IEN
  ; PSBCONT: True if this is a continuation page
  ; PSBDT:   Date of Pt Information (Default to DT)
@@ -120,5 +121,6 @@ PTFTR() ; [Extrinsic] Patient Page footer
  W !,$TR($J("",IOM)," ","=")
  S X="Ward: "_PSBHDR("WARD")_"  Room-Bed: "_PSBHDR("ROOM")
  W !,PSBHDR("NAME"),?(IOM-11\2),PSBHDR("SSN"),?(IOM-$L(X)),X
+ I $G(PSBUNK) S X="Note:  ??  Indicates an administration with an *UNKNOWN* Action Status" W !!,X
  Q ""
  ;

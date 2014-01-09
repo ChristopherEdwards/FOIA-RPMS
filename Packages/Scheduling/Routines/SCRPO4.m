@@ -1,5 +1,5 @@
 SCRPO4 ;BP-CIOFO/KEITH - Historical Provider Position Assignment Listing (cont.) ; 9/3/99 12:52pm
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;
 BPRPA(SCPASS,SCDIV,SCTEAM,SCPOS,SCLINIC,SCFMT) ;Evaluate provider position assignment information
  ;Input: SCPASS=provider position assignment information

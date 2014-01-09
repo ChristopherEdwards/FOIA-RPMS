@@ -1,5 +1,5 @@
 ABME5CLM ; IHS/ASDST/DMJ - 837 CLM Segment 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,9**;NOV 12, 2009
  ;Health Claim
  ;
 START ;EP - START HERE
@@ -24,6 +24,7 @@ LOOP ;LOOP HERE
 30 ;CLM02 - Monetary Amount
  S ABMR("CLM",30)=$P(ABMB2,U)  ;bill amount
  I ABMPSQ'=1,(+$P(ABMB2,U,7)'=0) S ABMR("CLM",30)=$P(ABMB2,U,7)
+ I ABMPSQ=2,(+$P(ABMB2,U,7)'=0),($P(^ABMNINS(ABMP("LDFN"),$P(ABMP("INS",1),U),0),U,11)="Y") S ABMR("CLM",30)=$P(ABMB2,U)  ;abm*2.6*9 NOHEAT if secondary and primary is tribal self-insured
  S ABMR("CLM",30)=$J(ABMR("CLM",30),0,2)
  Q
 40 ;CLM03 - Claim Filing Indicator Code-not used
@@ -72,7 +73,9 @@ LOOP ;LOOP HERE
  .S ABMR("CLM",120)="AA:::"_X
  Q
 130 ;CLM12 - Special Programs Code
+ S ABMR("CLM",130)=""  ;abm*2.6*9 NOHEAT
  I ABMP("EXP")=31 S ABMR("CLM",130)="" Q
+ Q:$P($G(^AUTNINS(ABMP("INS"),2)),U)'="D"  ;abm*2.6*9 NOHEAT
  S ABMR("CLM",130)=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),59,0))
  Q:ABMR("CLM",130)=""
  S ABMR("CLM",130)=$P($G(^ABMDCODE(ABMR("CLM",130),0)),U)

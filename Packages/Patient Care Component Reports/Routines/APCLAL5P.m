@@ -1,5 +1,5 @@
 APCLAL5P ; IHS/CMI/LAB - list refusals ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
  ;
  ;
 PRINT ;EP - called from xbdbque
@@ -286,21 +286,21 @@ N ;
  S APCRSORV=$P(^DPT(DFN,0),U)
  Q
 P ;
- S APCRSORV=$P(APCLY,U,5)
+ S APCRSORV=$P(APCRY,U,5)
  Q
 R ;
- S APCRSORV=$P($P(APCLY,U,2),";")_"  "_$P($P(APCLY,U,2),";",2)
+ S APCRSORV=$P($P(APCRY,U,2),";")_"  "_$P($P(APCRY,U,2),";",2)
  Q
 D ;
- S APCRSORV=$P(APCLY,U,1)
+ S APCRSORV=$P(APCRY,U,1)
  Q
-A S APCRSORV=$P(APCLY,U,4)
+A S APCRSORV=$P(APCRY,U,4)
  Q
 G ;
- S APCRSORV=$P(APCLY,U,3)
+ S APCRSORV=$P(APCRY,U,3)
  Q
 C ;
- S APCRSORV=$P(APCLY,U,6)
+ S APCRSORV=$P(APCRY,U,6)
  Q
 T ;
  S %=$$HRN^AUPNPAT(DFN,DUZ(2))

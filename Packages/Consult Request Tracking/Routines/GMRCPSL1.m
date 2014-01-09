@@ -1,5 +1,7 @@
-GMRCPSL1 ;SLC/MA - Special Consult Reports;9/21/01  05:25 ;1/10/02  14:26
- ;;3.0;CONSULT/REQUEST TRACKING;**23,22**;DEC 27, 1997
+GMRCPSL1 ;SLC/MA - Special Consult Reports;25-Jul-2012 11:14;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**23,22,1002,1003**;DEC 27, 1997;Build 14
+ ;
+ ; Modified - IHS/MSC/MGH - 09/20/2011 -
  ; This is the main entry routine for the Consult Reports that
  ; allow a user to search for consults by:  Provider, Location,
  ; or Procedure.  Also the user may select a date range and
@@ -16,7 +18,8 @@ EN ;
  ; GMRCSTAT = Indicates which CPRS status to include
  ; GMRCRPT  = 80 - 132 character report & data only output
  ; GMRCBRK  = Print page break between sub-totals <Y-N>
- N GMRCDT1,GMRCDT2,GMRCARRY,GMRCSRCH,GMRCEND,GMRCSTAT,GMRCRPT,GMRCBRK
+ ; GMRTST   = Include test pts or not Patch 1002
+ N GMRCDT1,GMRTST,GMRCDT2,GMRCARRY,GMRCSRCH,GMRCEND,GMRCSTAT,GMRCRPT,GMRCBRK
  N GMRCQUIT
  S (GMRCBRK,GMRCQUIT,GMRCEND)=0
  S GMRCSRCH=$$GETSRCH                  ; Get search sequence
@@ -32,6 +35,7 @@ EN ;
  . D GETPROC(.GMRCARRY) D
  . . I '$D(GMRCARRY) D WARNING
  I GMRCEND=1 K GMRCEND Q
+ S GMRTST=$$TESTPT^GMRCPC1() Q:GMRTST=1   ;Include test pts? Patch 1002
  S GMRCRPT=$$TYPERPT Q:GMRCRPT=0       ; Get type or print
  I GMRCRPT'=3 S GMRCBRK=$$PAGEBRK      ; Break between sub-totals
  I GMRCBRK>1 Q
@@ -52,11 +56,11 @@ EN ;
  ;
  ; Go build ^TMP("GMRCRPT",$J) using user input variables &
  ; write report
- D PRINT^GMRCPSL2(GMRCSRCH,.GMRCARRY,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCRPT,GMRCBRK)  ;Report writer
+ D PRINT^GMRCPSL2(GMRCSRCH,.GMRCARRY,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCRPT,GMRCBRK,GMRTST)  ;Report writer
  KILL DIR,DIC,^TMP("GMRCRPT",$J)
  Q
  ;
-CHECK(GMRCDAT)  ;CHECK FREE TEXT INPUT 
+CHECK(GMRCDAT) ;CHECK FREE TEXT INPUT
  N %DT,X,Y
  I $E("ALL DATES",1,$L(GMRCDAT))=$$UP^XLFSTR(GMRCDAT) Q "ALL"
  S %DT="E",X=GMRCDAT D ^%DT I Y<1 Q 0
@@ -64,7 +68,7 @@ CHECK(GMRCDAT)  ;CHECK FREE TEXT INPUT
  I '$D(GMRCDT1) Q
  I GMRCDT1="ALL" S GMRCDT1=0000000,GMRCDT2=9999999
  Q
-DEVICE  ; device for printout of entries to group update
+DEVICE ; device for printout of entries to group update
  N %ZIS,POP
  I GMRCRPT=2 D
  . W !!,"You must configure your terminal so that it"
@@ -246,7 +250,7 @@ TYPERPT() ; Get type of report to print
  D ^DIR I $D(DIRUT)!(Y>3) Q 0
  Q +Y
  ;
-QUEUE   ; send task for print and update
+QUEUE ; send task for print and update
  N ZTRTN,ZTDESC,ZTIO,ZTDTH,ZTSAVE,ZTSK
  S ZTRTN="PRTTSK^GMRCPSL2",ZTDESC="PRINT OF RECORDS FILE 123"
  S ZTIO=ION

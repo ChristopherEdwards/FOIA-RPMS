@@ -1,5 +1,5 @@
 ABME5N4 ; IHS/ASDST/DMJ - 837 N4 Segment 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,9**;NOV 12, 2009
  ;City/State/Zip
  ;
 EP(X,Y) ;EP - START HERE
@@ -76,7 +76,8 @@ LOOP ;LOOP HERE
  I X=9999999.18 S ABMR("N4",40)=$P($G(^AUTNINS(Y,1)),"^",5)
  I X=9002274.35 S ABMR("N4",40)=$P($G(^AUTTVNDR($P($G(^ABMRLABS(Y,0)),U),13)),U,4)
  I X=200 S ABMR("N4",40)=$P($G(^VA(200,Y,.11)),U,6)
- I X="AMB",(Y="PU") S ABMR("N4",40)=$P($G(^ABMDBILL(DUZ(2),Y,12)),U,6)
+ ;I X="AMB",(Y="PU") S ABMR("N4",40)=$P($G(^ABMDBILL(DUZ(2),Y,12)),U,6)  ;abm*2.6*9 NOHEAT IHS/SD/AML 1/17/2012 - Fix delimiter
+ I X="AMB",(Y="PU") S ABMR("N4",40)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),12)),U,6)  ;ABM*2.6*9 NOHEAT IHS/SD/AML 1/17/2012 - Fix delimiter
  I X="AMB",(Y="DO") D
  .S ABMR("F")=$P($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),12)),U,7),";",2)
  .S ABMR("IEN")=$P($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),12)),U,7),";")
@@ -88,8 +89,10 @@ LOOP ;LOOP HERE
  .I ABMR("F")["AUTNINS" S ABMR("N4",40)=$P($G(^AUTNINS(ABMR("IEN"),0)),U,5)
  .I ABMR("F")["AUPNPAT" S ABMR("N4",40)=$P($G(^DPT(ABMR("IEN"),.11)),U,6)
  .I ABMR("F")["AUTTLOC" S ABMR("N4",40)=$P($G(^DIC(4,ABMR("IEN"),1)),U,4)
+ .I ABMR("F")["AUTTVNDR" S ABMR("N4",40)=$P($G(^AUTTVNDR(ABMR("IEN"),13)),U,4)  ;abm*2.6*9 NOHEAT IHS/SD/AML 1/17/2012
  .;end new code HEAT45242
- S:(+ABMR("N4",40)'=0) ABMR("N4",40)=$$FMT^ABMERUTL($TR(ABMR("N4",40)," -"),"9N")
+ ;S:(+ABMR("N4",40)'=0) ABMR("N4",40)=$$FMT^ABMERUTL($TR(ABMR("N4",40)," -"),"9N")  ;abm*2.6*9 NOHEAT IHS/SD/AML 12/23/2011
+ S ABMR("N4",40)=$TR(ABMR("N4",40)," -")  ;abm*2.6*9 NOHEAT - IHS/SD/AML 12/23/2011 - Pt address only needs to be 5 characters
  Q
 50 ;N404 - Country Code
  S ABMR("N4",50)=""

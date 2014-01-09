@@ -1,6 +1,7 @@
 LRSPRPT1 ;AVAMC/REG/WTY - SURG PATH RPT PRINT CONT. ;10/16/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**1,259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 1,259,315
  ;
  ;25-Jul-01;WTY;In line tag L, if being called by LRAPT2, don't do
  ;              line tag F.  Do H1^LRAPT2 instead.
@@ -18,8 +19,10 @@ LRSPRPT1 ;AVAMC/REG/WTY - SURG PATH RPT PRINT CONT. ;10/16/01
  .S A=0 F  S A=$O(^LR(LRDFN,LRSS,LRI,3,A)) Q:'A!(LR("Q"))  D
  ..D:$Y>(IOSL-12) F Q:LR("Q")
  ..S X=+^LR(LRDFN,LRSS,LRI,3,A,0)
- ..S X=^ICD9(X,0),X(9)=$P(X,"^"),X=$P(X,"^",3)
- ..W !,"ICD code: ",X(9),?20 D:LR(69.2,.05) C^LRUA W X
+ ..N LRX
+ ..S LRX=X,LRX=$$ICDDX^ICDCODE(LRX,,,1)
+ ..S X=$P(LRX,U,4)
+ ..W !,"ICD code: ",$P(LRX,U,2),?20 D:LR(69.2,.05) C^LRUA W X
  Q
 SP ;
  S C=0 F  S C=$O(^LR(LRDFN,LRSS,LRI,2,A,5,C)) Q:'C!(LR("Q"))  D

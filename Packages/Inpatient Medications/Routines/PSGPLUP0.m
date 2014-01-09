@@ -1,8 +1,10 @@
 PSGPLUP0 ;BIR/CML3-UPDATING FOR PSGPLUP OCCURS HERE ;06 AUG 96 / 10:53 PM
- ;;5.0; INPATIENT MEDICATIONS ;**50**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**50,129**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA #2191.
- ; Reference to ^PS(59.7 is supported by DBIA #2181.     
+ ; Reference to ^PS(59.7 is supported by DBIA #2181
+ ; Reference to ^DIC(42 is supported by DBIA #1377.
+ ; Reference to ^DPT( is supported by DBIA #10035.     
  ;
 ENQ ; check for a previous update, if there is one "unflag" updated orders.
  ;
@@ -23,7 +25,8 @@ ENQ ; check for a previous update, if there is one "unflag" updated orders.
  D NOW^%DTC S $P(^PS(53.5,PSGPLG,0),"^",10)=%
  ;
 DONE ;
- D UNLOCK^PSGPLUTL(PSGPLG,"PSGPL") K %,%X,%Y,DA,DIK,DRG,EST,NST,PSJJORD,PN,PSGPLO,PSGAU,PSGNDATE,PSGPLS,PSGPLUPO,PSGPLWD,PSGPLWDN,PST,PSGUP,PSGORD,PSJACNWP,RB,SD,TM,X,X1,X2 Q
+ D UNLOCK^PSGPLUTL(PSGPLG,"PSGPL") K %,%X,%Y,DA,DIK,DRG,EST,NST,PSJJORD,PN,PSGPLO,PSGAU,PSGNDATE,PSGPLS,PSGPLUPO,PSGPLWD
+ K PSGPLWDN,PSGX,PSGXP,PST,PSGUP,PSGORD,PSJACNWP,RB,SD,TM,X,X1,X2 Q
  ;
 UP ; if patient has an update (AUE xref on UD subfile), add order and drug multiples to Pick List and flag as updated.
  ; if patient not on last pick list (i.e., transferred or admitted
@@ -57,7 +60,12 @@ UP1 ;
 ENASET ; 
  ; if you're adding an order that is already on the PL, delete the old one first
  I $D(^PS(53.5,PSGPLG,1,PSGP,1,"B",PSJJORD)) D  D ^DIK K DIK
- .K DA,DIK S DA=$O(^(PSJJORD,0)),DA(2)=PSGPLG,DA(1)=PSGP,DIK="^PS(53.5,"_PSGPLG_",1,"_PSGP_",1,"
+ .N PSGOST S PSGOST=$P($$LASTREN^PSJLMPRI(PSGP,PSJJORD_"U"),"^",4) I PSGOST D
+ ..N PSGPLS,PSGPLF S PSGPLS=$P(PSGPLTND,"^",3),PSGPLF=$P(PSGPLTND,"^",4) I PSGOST>PSGPLS&(PSGOST<PSGPLF) D
+ ...N PSGPLO S PSGPLO=$O(^PS(53.5,PSGPLG,1,PSGP,1,"B",PSJJORD,999),-1)
+ ...M PSGPLREN(53.5,PSGPLG,1,PSGP,1,PSGPLO)=^PS(53.5,PSGPLG,1,PSGP,1,PSGPLO) S PSGPLREN("B",PSGP,PSJJORD,PSGPLO)=PSGOST
+ ...N PSGPLX F PSGPLX="AC","AU" M PSGPLREN(53.5,PSGPLX,PSGPLG)=^PS(53.5,PSGPLX,PSGPLG)
+ .K DA,DIK S DA=$O(^PS(53.5,PSGPLG,1,PSGP,1,"B",PSJJORD,0)),DA(2)=PSGPLG,DA(1)=PSGP,DIK="^PS(53.5,"_PSGPLG_",1,"_PSGP_",1,"
  .S:$D(^PS(53.5,DA(2),1,DA(1),0)) $P(^(0),U,5)=""
  .S:$D(^PS(53.5,DA(2),1,DA(1),1,DA,0)) $P(^(0),U,5)=""
  ; go to ^PSGPL1 to add new orders to the PL. (unless the patient has no ward, in which case he's probably discharged)

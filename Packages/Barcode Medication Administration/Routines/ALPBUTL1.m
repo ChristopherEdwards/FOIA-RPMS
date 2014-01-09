@@ -1,5 +1,6 @@
 ALPBUTL1 ;OIFO-DALLAS MW,SED,KC-BCBU BACKUP REPORT FUNCTIONS AND UTILITIES  ;01/01/03
- ;;2.0;BAR CODE MED ADMIN;**17**;May 2002
+ ;;3.0;BAR CODE MED ADMIN;**8,37**;Mar 2004;Build 10
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
  ; Reference/IA
  ; INP^VADPT/10061
@@ -170,12 +171,16 @@ STAT2(CODE) ; convert order status code for output...
  I CODE="DC"!(CODE="RP")!(CODE="ZE") Q "Expired"
  Q "Unknown"
  ;
-DIV(DFN) ;get the Division for a patient
+DIV(DFN,ALPBMDT) ;get the Division for a patient
  I +$G(DFN)'>0 Q ""
- N ALPBDIV,ALPWRD,VAIN
+ N ALPBDIV,ALPWRD,VAIN,VAINDT
+ S:+$G(ALPBMDT)>0 VAINDT=$P(ALPBMDT,".",1)
+ K ALPBMDT
  D INP^VADPT
  S ALPWRD=$P($G(VAIN(4)),U,1)
  Q:+ALPWRD'>0 ""
+ ;Check to see if ward is a DOMICILIARY 
+ I $P($G(^DIC(42,ALPWRD,0)),U,3)="D",+$$GET^XPAR("PKG.BAR CODE MED ADMIN","PSB BKUP DOM FILTER",1,"Q")>0 Q "DOM"
  S ALPBDIV=$P($G(^DIC(42,ALPWRD,0)),U,11)
  Q:+ALPBDIV'>0 ""
  Q ALPBDIV

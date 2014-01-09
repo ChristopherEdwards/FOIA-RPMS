@@ -1,5 +1,5 @@
 ABMDE30 ; IHS/ASDST/DMJ - Page 3 - QUESTIONS - Display ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p3 - nda-0402-180192 - Added new block 19 stuff
  ; IHS/SD/SDR - V2.5 p5 - Added code to change PATIENT to DISCHARGE STATUS
@@ -15,6 +15,7 @@ ABMDE30 ; IHS/ASDST/DMJ - Page 3 - QUESTIONS - Display ;
  ;
  ; IHS/SD/SDR - v2.6 CSV
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - modified AoB to accept "W"
+ ; IHS/SD/SDR - 2.6*9 - NOHEAT - added accident state to display if populated
  ; *********************************************************************
 W1 ;EP - release of information
  W "Release of Information..: "
@@ -86,8 +87,10 @@ DD ;
  .W " ",$$SDT^ABMDUTL($P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,2))," "
  .W:$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,4)]"" $P(^(8),U,4),"00HRS"
  K ABM8
- I ABMP("EXP")=25,($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,16)'="") D
- .W " ",$P($G(^DIC(5,$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,16),0)),U,2)
+ ;I ABMP("EXP")=25,($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,16)'="") D  ;abm*2.6*9 NOHEAT
+ I ($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,16)'="") D  ;abm*2.6*9 NOHEAT
+ .;W " ",$P($G(^DIC(5,$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,16),0)),U,2)  ;abm*2.6*9 NOHEAT
+ .W "   ST: ",$P($G(^DIC(5,$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,16),0)),U,2)  ;abm*2.6*9 NOHEAT
  Q
  ;**********************************************************************
 W4 ;EP - for Employment Info

@@ -1,5 +1,5 @@
 SCRPW3 ;RENO/KEITH - Clinic Utilization Statistical Summary (cont.) ; 14 May 99 10:45 PM
- ;;5.3;Scheduling;**139,144,184,194**;AUG 13, 1993
+ ;;5.3;PIMS;**139,144,184,194,540,1015,1016**;JUN 30, 2012;Build 20
 START ;Print statistics
  F  S SDCLN=$O(^TMP("SCRPW",$J,SDIV,1,SDCLN)) Q:SDCLN=""!SDOUT  S SDCL=0 F  S SDCL=$O(^TMP("SCRPW",$J,SDIV,1,SDCLN,SDCL)) Q:'SDCL!SDOUT  D CLINE
  Q:SDOUT  D:$Y>(IOSL-12) FOOT^SCRPW2,HDR^SCRPW2 Q:SDOUT  W ! F SDI=1:1:8 W ?(22+(SDI*10)),"--------"
@@ -57,13 +57,14 @@ CCPAT ;Count clinic patterns and patients
  ;
 CTPAT(SDDAY) ;Count slots in availability pattern and master pattern
  ;Input: SDDAY=date to evaluate
- N SDPATT,SDPCT
+ N SDPATT,SDPCT,SDFLAG,SDHLDPAT  ;SD*562 added last 2 variables
  S SDPATT=$E($G(^TMP(SDSUB,$J,SDCL,"ST",SDDAY,1)),6,999) Q:SDPATT'["["
+ S SDFLAG=0 I SDPATT["X" S SDFLAG=1,SDHLDPAT=SDPATT  ;SD*562 check for partial canx
  S SDF1=1,SDOS=SDOS+$$PCT(SDPATT)
- S SDPATT=$E($G(^SC(SDCL,"OST",SDDAY,1)),6,999) I $L(SDPATT) S SDSL=SDSL+$$PCT(SDPATT) Q
+ S SDPATT=$E($G(^SC(SDCL,"OST",SDDAY,1)),6,999) I $L(SDPATT) S:SDPATT["X" SDFLAG=1,SDHLDPAT=SDPATT D:SDFLAG ADJUST S SDSL=SDSL+$$PCT(SDPATT) Q   ;SD*562 check for partially cancelled day
  N X,%H,%T,%Y,SDDW,SDMPDT
  S X=SDDAY D H^%DTC S SDDW="T"_%Y,SDMPDT=$O(^SC(SDCL,SDDW,SDDAY))
- I SDMPDT S SDPATT=$G(^SC(SDCL,SDDW,SDMPDT,1)),SDPCT=$$PCT(SDPATT) I SDPCT S SDSL=SDSL+SDPCT
+ I SDMPDT S SDPATT=$G(^SC(SDCL,SDDW,SDMPDT,1)) D:SDFLAG ADJUST S SDPCT=$$PCT(SDPATT) I SDPCT S SDSL=SDSL+SDPCT  ;SD*562 added API ADJUST to calculate clinic capacity for partially cancelled day
  Q
  ;
 PCT(SDPATT) ;Pattern count
@@ -72,6 +73,17 @@ PCT(SDPATT) ;Pattern count
  S SDPATT=$TR(SDPATT," |[]","")
  F I=1:1:$L(SDPATT) S X=X+$G(SD($E(SDPATT,I)))
  Q X
+ ;
+ADJUST ;SD*562 calculate clinic capacity for partially cancelled day
+ ;SDHLDPAT equals updated pattern from "ST" node
+ ;SDPATT equals Master Pattern for day
+ S SDUP="",SDUP=SDHLDPAT,CT=0
+ S SDUP=$TR(SDUP," |[]","")
+ F I=1:1:$L(SDUP) I $E(SDUP,I)'="X" S CT=CT+1
+ S SDPATT=$TR(SDPATT," |[]","")
+ S SDPATT=$E(SDPATT,1,CT)
+ K CT,SDUP,I
+ Q
  ;
 SET ;Set stats into ^TMP global
  S SDPR=0 I SDF1 S SDPR=$O(^SC("ADPR",SDCL,SDPR)),SDPR=$P($G(^SC(SDCL,"PR",+SDPR,0)),U) I SDPR S SDPRN=$P($G(^VA(200,SDPR,0)),U) S:'$L(SDPRN) SDPR=0
@@ -101,6 +113,7 @@ PLINE ;Print a provider statistics line
 ACT ;Count appointments, addl. variable appt. slots and no-shows
  Q:$P(SDCP0,U,9)="C"  ;Quit if cancelled
  S SDPLAP=$P(SDCP0,U,2),SDPESL=0 I SDLAP,SDPLAP>SDLAP S SDPESL=SDPLAP\SDLAP-1,SDVSL=SDVSL+SDPESL
+ Q:'SDCP0  ;SD*5.3*540
  S SDAP=SDAP+1,SDF1=1
  S SDPAS=^DPT($P(SDCP0,U),"S",SDDAY,0),SDPAS=$P(SDPAS,U,2) Q:SDPAS=""  S:"NA"[SDPAS SDNS=SDNS+1,SDNSVS=SDNSVS+SDPESL
  Q

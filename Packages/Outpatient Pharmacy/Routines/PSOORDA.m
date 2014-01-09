@@ -1,9 +1,12 @@
-PSOORDA ;ISC-BHAM/LC - build detailed allergy list ;26 Aug 97 2:14 PM
- ;;7.0;OUTPATIENT PHARMACY;**44,139,152**;DEC 1997
+PSOORDA ;ISC-BHAM/LC - build detailed allergy list ;12/10/04 8:29am
+ ;;7.0;OUTPATIENT PHARMACY;**44,139,152,186**;DEC 1997
  ;External reference to EN1^GMRADPT supported by DBIA 10099
  ;External reference to EN1^GMRAOR2 supported by DBIA 2422
  ;
  ;Inpatient Pharmacy's DBIA 2211 allows reference to ^TMP("PSJAL" and ^TMP("PSJDA"
+ ;
+ ;PSO*7*186 Newing of variables to protect their global values
+ ;
 BEG(DFN) N VALMCNT,DR,IEN S GMRA="0^0^111",IEN=0 D EN1^GMRADPT
  NEW PSONSP S PSONSP=$S($G(PSJINPT):"PSJDA",1:"PSODA")
  K ^TMP(PSONSP,$J) I 'GMRAL S IEN=IEN+1,^TMP(PSONSP,$J,IEN,0)=$S($G(GMRAL)=0:"No Known Allergies",'GMRAL:"Patient has not been asked about allergies",1:"")
@@ -64,7 +67,8 @@ BEG(DFN) N VALMCNT,DR,IEN S GMRA="0^0^111",IEN=0 D EN1^GMRADPT
 SEL ;select allergy for detail display
  N ORD,ORN,IEN,VALMCNT I '$G(PSOALL) S VALMSG="This patient has no Allergies!" S VALMBCK="" Q
  K DIR,DUOUT,DIRUT S DIR("A")="Select Allergies by number",DIR(0)="LO^1:"_PSOALL D ^DIR I $D(DTOUT)!($D(DUOUT)) K DIR,DIRUT,DTOUT,DUOUT S VALMBCK="" Q
-SELAL K DIR,DIRUT,DTOUT,DTOUT S PSOELSE=+Y I +Y S ALST=Y D FULL^VALM1 D
+SELAL N ORD,ORN,IEN,VALMCNT                                      ;PSO*7*186
+ K DIR,DIRUT,DTOUT,DTOUT S PSOELSE=+Y I +Y S ALST=Y D FULL^VALM1 D
  .F ORD=1:1:$L(ALST,",") Q:$P(ALST,",",ORD)']""  S ORN=+$P(ALST,",",ORD) D DSPLY(DFN)
  ;S PSONSP=$S($G(PSJINPT):"PSJAL",1:"PSODA")
  I 'PSOELSE S VALMBCK=""

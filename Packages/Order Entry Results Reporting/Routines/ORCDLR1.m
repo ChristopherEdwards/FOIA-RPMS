@@ -1,5 +1,5 @@
 ORCDLR1 ;SLC/MKB,JFR - Utility fcns for LR dialogs cont ;8/29/02  14:45
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,29,49,61,79,141**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,29,49,61,79,141,243,296**;Dec 17, 1997;Build 19
  ;
 EN ; -- Entry Action for LR OTHER LAB TESTS order dialog
  D GETIMES S ORMAX=0
@@ -28,6 +28,7 @@ GETIMES ; -- Set list of routine collections into ORTIME($H)=FMtime
  ;
 DEFTIME() ; -- Returns default collection time
  I $L($G(LRFDATE)) S EDITONLY=1 Q LRFDATE
+ I '$D(ORCOLLCT) Q ""
  N Y S Y="" I $D(^TMP("ORECALL",$J,ORDIALOG,PROMPT)) D  Q:$L(Y) Y
  . S Y=$$RECALL^ORCD(PROMPT)
  . I '$S(ORCOLLCT="LC":$$LABCOLL(Y),ORCOLLCT="I":$$IMMCOLL(Y),1:$$CKDATE(Y)) S Y="" Q

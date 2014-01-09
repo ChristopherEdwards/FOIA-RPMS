@@ -1,5 +1,5 @@
 SCCVDSP ; ALB/TMP - SCHED VSTS CONVERT/ARCHIVE - TEMPLATE LISTS ; 25-NOV-97
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 BLD(SCCVTYP) ; -- build list of template entries
  ; SCCVTYP = 'AST or 'CST' for type of template

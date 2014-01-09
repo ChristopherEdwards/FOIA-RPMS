@@ -1,5 +1,5 @@
 PSSADDIT ;BIR/RTR/WRT-Manual match Additives to Orderable Items; 09/01/98 7:06
- ;;1.0;PHARMACY DATA MANAGEMENT;**15,32,41**;9/30/97
+ ;;1.0;PHARMACY DATA MANAGEMENT;**15,32,41,125**;9/30/97;Build 2
  ;
  ;Reference to $$PSJDF^PSNAPIS(P1,P3) supported by DBIA #2531
  ;
@@ -10,7 +10,7 @@ SEL K DIR S PSSSSS=0 S DIR(0)="S^A:ADDITIVES;S:SOLUTIONS",DIR("A")="Match Additi
 EN I $D(PSAIEN) L -^PS(52.6,PSAIEN)
  D:$G(PSDELFLG) REMAT^PSSSOLIT D:$G(PSMASTER) END Q:$G(PSSSSS)!($G(PSMASTER))  D END W ! K DIC,PSJOUT S DIC="^PS(52.6,",DIC(0)="QEAMZ",DIC("A")="Select IV ADDITIVE: " D ^DIC K DIC G:Y<0!($D(DTOUT))!($D(DUOUT)) END
 MAS ;Entry point for Master Enter/Edit
- S PSAIEN=+Y,PSANAME=$P(Y,"^",2),PSDISP=+$P($G(^PS(52.6,PSAIEN,0)),"^",2),PSPOI=$P($G(^(0)),"^",11) L +^PS(52.6,PSAIEN):0 I '$T W !,$C(7),"Another person is editing this additive." Q
+ S PSAIEN=+Y,PSANAME=$P(Y,"^",2),PSDISP=+$P($G(^PS(52.6,PSAIEN,0)),"^",2),PSPOI=$P($G(^(0)),"^",11) L +^PS(52.6,PSAIEN):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I '$T W !,$C(7),"Another person is editing this additive." Q
  I 'PSDISP W $C(7),!!?5,"This IV Additive does not point to the Dispense Drug File (#50)",!?5,"it cannot be matched to an Orderable Item!",! G EN
 ENTER I 'PSPOI G ADD
  S PSOINAME=$P($G(^PS(50.7,PSPOI,0)),"^"),PSOIDOSE=+$P($G(^(0)),"^",2) W !!,"IV ADDITIVE ->  ",PSANAME,!,"  is already matched to:",!,PSOINAME,"    ",$P($G(^PS(50.606,PSOIDOSE,0)),"^")

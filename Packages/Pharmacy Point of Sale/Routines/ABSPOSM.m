@@ -1,5 +1,5 @@
 ABSPOSM ; IHS/FCS/DRS - Report Master (.61) ;     [ 09/12/2002  10:12 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,44**;JUN 21, 2001
  ;
  ; ABSPOSM1 - takes care of updating of file .61
  ; ABSPOSM2 - some report headers called from Print options
@@ -27,8 +27,10 @@ INSHELP(D0) ;EP - (#10002) INSURER HELP #
  S X=$P($G(^ABSPTL(X,1)),U,6) I 'X Q "" ; INSURER
  S X=$G(^ABSPEI(X,100)) I X="" Q "" ; insurer pharm e-claims info
  N Y S Y=$P(X,U,5) I Y]"" Q Y ; specific phone # for insurer
- S X=$P(X,U) I 'X Q "" ; format
- Q $P($G(^ABSPF(9002313.92,X,1)),U,5) ; phone # as stored with format
+ ;OIT/CAS/RCS 062912 - Patch 44 Formats no longer used so quit if no phone #
+ Q ""
+ ;S X=$P(X,U) I 'X Q "" ; format
+ ;Q $P($G(^ABSPF(9002313.92,X,1)),U,5) ; phone # as stored with format
 RELTIME(D0) ;EP - (#10003) RX RELEASED DATE/TIME
  N RXI,RXR D D0RXIRXR
  I RXI=""!(RXR="") Q "" ; should never happen

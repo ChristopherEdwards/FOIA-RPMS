@@ -1,5 +1,5 @@
 DGNTR1 ;ALB/RPM - N/T RADIUM PENDING VERIFICATION REPORT ; 10/4/01 11:05am
- ;;5.3;Registration;**397**;Aug 13, 1993
+ ;;5.3;Registration;**397,1015**;Aug 13, 1993;Build 21
  ;
  ;This report lists all patients with an entry in the NTR HISTORY
  ;file (#28.11) that are pending verification.

@@ -1,5 +1,5 @@
-ORLP ; SLC/CLA - Manager for Team List options ; [1/12/01 1:54pm]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**47,90,98**;Dec 17, 1997
+ORLP ; SLC/CLA - Manager for Team List options ; 5/30/08 6:28am
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**47,90,98,243**;Dec 17, 1997;Build 242
  ;
 CLEAR ; From TM, MERG^ORLP1, END^ORLP0.
  K ^XUTL("OR",$J,"ORLP"),^("ORV"),^("ORU"),^("ORW") S ORCNT=0
@@ -26,6 +26,7 @@ AL N DLAYGO,DIC,DIE,DIK,DR,ORFLAG,ORLTNAM,OROWNER,ORROOT,ORDA,ORYY
  K DIR
  N DIC S X=$G(X),(ORROOT,DIC)="^OR(100.21,",DLAYGO=100.21,DIC(0)="LEFQZ" D ^DIC
  I '$D(X)!(+Y<0)!$D(DIRUT) K DIRUT Q   ; User aborted or problem.
+ I +Y,'+$G(^OR(100.21,+Y,11)) S ^OR(100.21,+Y,11)="0^"
  ; Check for "Personal" lists (and not a new entry):
  I ORLTNAM>0,(+Y>0),$P($G(^OR(100.21,+Y,0)),U,2)="P" W !!,"     Personal lists cannot be edited here.",! G AL
  S (ORYY,TEAM)=Y,ORDA=+Y,TEAM(0)=Y(0),^TMP("ORLP",$J,"TLIST")=+Y K DIC

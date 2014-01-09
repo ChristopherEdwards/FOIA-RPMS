@@ -1,9 +1,11 @@
 ABSPOSI2 ; IHS/FCS/DRS - support for the NDC/HCPCS/CPT field ;    [ 09/12/2002  10:10 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,40**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,40,44**;JUN 21, 2001
  Q
 VALID ; this is what's called from the field's Data Validation field 
  I ^TMP("DDS",$J,$P(DDS,U),"F9002313.512",DDSDA,.02,"D")="" S DDSERROR=299 Q   ;IHS/OIT/CNI/RAN patch 40 avoid undefined in user screen when RX is blank
  N Z S Z=$$VALIDATE(X)
+ ;OIT/CAS/RCS 09252012 - Patch 44, Quit if error reason is set
+ I Z<0,$D(DDSERROR) Q
  ;S ^TMP($J,$T(+0),"VALIDATED")=Z
  I Z<0 D  Q
  . D IMPOSS^ABSPOSUE("P","TI","VALIDATE should have set DDSERROR","or Z is incorrectly <0","VALID",$T(+0))

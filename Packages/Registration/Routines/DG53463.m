@@ -1,5 +1,5 @@
 DG53463 ;ALB/RMM - Mail Group Utility ; 2/03/03
- ;;5.3;Registration;**463**;Aug 13, 1993
+ ;;5.3;Registration;**463,1015**;Aug 13, 1993;Build 21
  ;
  ; This post-install routine will add the user who is performing the
  ; install of Patch DG*5.3*463 to the MT INCONSISTENCIES Mail Group

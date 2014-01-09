@@ -1,5 +1,5 @@
 BUD1RP6U ; IHS/CMI/LAB - UDS REPORT PROCESSOR 01 Dec 2011 5:11 PM ;
- ;;6.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2012;Build 25
+ ;;7.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2013;Build 31
  ;
  ;
 G2 ;EP
@@ -132,6 +132,7 @@ H ;EP ; ASTHMA
  ;eliminate those with an allergy to a drug in the BUD PQA CONTROLLERS or NDC
  S BUDAST=$$ASTHMA(DFN,BUDBD,BUDED)  ;no diagnosis of asthma during time period
  I BUDAST="" S X="",X=$$ASTHTHER(DFN,BUDBD,BUDED) I X]"" S ^XTMP("BUD1RP6B",BUDJ,BUDH,"APT2",BUDAGE,$P(^DPT(DFN,0),U),BUDCOM,DFN)=$P(BUDAST,U)_U_$P(X,U,2) Q
+ Q:BUDAST=""  ;no asthma diagnosis
  Q:$$AST1039(DFN,$P(BUDAST,U,2),BUDED)]""  ;had a 1039f after the asthma dx/1038f
  S BUDASTT=$$ASTHTHER(DFN,BUDBD,BUDED)
  I BUDASTT]"" S BUDSECTH("APT")=$G(BUDSECTH("APT"))+1

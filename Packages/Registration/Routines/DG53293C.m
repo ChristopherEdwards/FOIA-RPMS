@@ -1,5 +1,5 @@
 DG53293C ;AR/BP - ALS Extract; 3/12/96 [ 10/21/96   8:19 AM ] ; 7/26/00 9:16am
- ;;5.3;Registration;**293**;Aug 13, 1993
+ ;;5.3;Registration;**293,1015**;Aug 13, 1993;Build 21
  ;
  ; 
 ENVIR N DGSITE,DGARY

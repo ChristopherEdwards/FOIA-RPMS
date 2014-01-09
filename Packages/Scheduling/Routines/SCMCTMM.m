@@ -1,5 +1,5 @@
 SCMCTMM ;ALB/REW - Patient Team Changes MailMessages ; 26 Mar 1996
- ;;5.3;Scheduling;**41,45,87,100,130,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,45,87,100,130,177,1015**;AUG 13, 1993;Build 21
  ;1
 MAIL ;Do Patient Team Changes MailMan Message
  ; - called by SCMC PT TEAM CHANGES MAIL MESSAGE protocol

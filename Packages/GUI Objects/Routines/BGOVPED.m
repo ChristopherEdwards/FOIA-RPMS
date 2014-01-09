@@ -1,5 +1,5 @@
-BGOVPED ; IHS/BAO/TMD - Patient Education ;27-Apr-2011 18:49;DU
- ;;1.1;BGO COMPONENTS;**1,2,3,5,6,8**;Mar 20, 2007
+BGOVPED ; IHS/BAO/TMD - Patient Education ;09-Apr-2012 14:22;DU
+ ;;1.1;BGO COMPONENTS;**1,2,3,5,6,8,11**;Mar 20, 2007;Build 3
  ;---------------------------------------------
  ;  Get patient ed records for a patient
  ;  INP = Patient IEN ^ Visit IEN (optional)
@@ -7,9 +7,9 @@ BGOVPED ; IHS/BAO/TMD - Patient Education ;27-Apr-2011 18:49;DU
  ;   Topic Name [1] ^ Visit Date [2] ^ Level [3] ^ Provider Name [4] ^ Group/Individual [5] ^ Length [6] ^
  ;   CPT [7] ^ Comment [8] ^ Topic Category [9] ^ Behavior [10] ^ Objective Met [11] ^ Visit Locked [12] ^
  ;   Location Name [13] ^ VFile IEN [14] ^ Visit IEN [15] ^ Topic IEN [16] ^ Location IEN [17] ^ Provider IEN [18] ^
- ;   Visit Category [19] ^ ICD9 text [20] ^ Comments [21] ^ ICD9 IEN [22] ^ CPT IEN [23] ^ Readiness to learn [24] ^ ICD code [25]
+ ;   Visit Category [19] ^ ICD9 text [20] ^ Comments [21] ^ ICD9 IEN [22] ^ CPT IEN [23] ^ Readiness to learn [24] ^ ICD code [25] ^ Entry date [26]
 GET(RET,INP) ;EP
- N BGO,CNT,REC,TOPIC,VIEN,PRV,GRP,LNGTH,ICD,ICDIEN,CPTIEN,ICDCD
+ N BGO,CNT,REC,TOPIC,VIEN,PRV,GRP,LNGTH,ICD,ICDIEN,CPTIEN,ICDCD,EVNDT
  N CPT,COMMENT,CAT,BEHAV,OBJMET,NARR,EDTIEN,LVL,VPED,DFN,VIENX
  N LOCNAME,LOCIEN,VDT,VDATE,VCAT,PRVIEN,COMMENTS,MAJTOPIC,NAMEP,READY
  N XREF,ICDFIELD
@@ -33,6 +33,8 @@ GET(RET,INP) ;EP
  .S VIEN=$P(REC,U,3)
  .I VIENX,VIEN'=VIENX Q
  .S PRVIEN=$P(REC,U,5)
+ .;Patch 11 add event date
+ .S EVNDT=$$FMTDATE^BGOUTL($P($G(^AUPNVPED(VPED,12)),U,1))
  .S PRV=$P($G(^VA(200,+PRVIEN,0)),U)
  .S LVL=$$EXTERNAL^DILFD($$FNUM,.06,,$P(REC,U,6))
  .S GRP=$P(REC,U,7)
@@ -60,6 +62,8 @@ GET(RET,INP) ;EP
  .S READY=$P($G(^AUPNVPED(VPED,11)),U,2)
  .S:READY READY=$P($G(^AUTTRTL(READY,0)),U)
  .S COMMENTS=$P($G(^AUPNVPED(VPED,811)),U)
+ .;IHS/MSC/MGH added for patch 11
+ .I $L(OBJMET) S COMMENTS=OBJMET
  .I $L(COMMENTS) D
  ..N P,X
  ..S P=$S(BEHAV="GM":2,BEHAV="GNM":3,1:1)
@@ -72,7 +76,7 @@ GET(RET,INP) ;EP
  .S VCAT=$P($G(^AUPNVSIT(VIEN,0)),U,7),VDT=+$G(^(0))
  .S VDATE=$$FMTDATE^BGOUTL(VDT)
  .S CNT=CNT+1
- .S @RET@(CNT)=TOPIC_U_VDATE_U_LVL_U_PRV_U_GRP_U_LNGTH_U_CPT_U_COMMENT_U_CAT_U_BEHAV_U_OBJMET_U_$$ISLOCKED^BEHOENCX(VIEN)_U_LOCNAME_U_VPED_U_VIEN_U_EDTIEN_U_LOCIEN_U_PRVIEN_U_VCAT_U_ICD_U_COMMENTS_U_ICDIEN_U_CPTIEN_U_READY_U_ICDCD
+ .S @RET@(CNT)=TOPIC_U_VDATE_U_LVL_U_PRV_U_GRP_U_LNGTH_U_CPT_U_COMMENT_U_CAT_U_BEHAV_U_OBJMET_U_$$ISLOCKED^BEHOENCX(VIEN)_U_LOCNAME_U_VPED_U_VIEN_U_EDTIEN_U_LOCIEN_U_PRVIEN_U_VCAT_U_ICD_U_COMMENTS_U_ICDIEN_U_CPTIEN_U_READY_U_ICDCD_U_EVNDT
  Q
  ; Delete a patient ed entry
 DEL(RET,VPED) ;EP
@@ -205,7 +209,10 @@ SETTOP(CODEIEN,EDCVIEN,ICDFLG) ;
  .S FDA=$NA(FDA(9999999.09,"+1,"))
  .S @FDA@(.01)=F01
  .S @FDA@(1)=$S($$NEWVPED:NAME,1:MNEM)
- .S @FDA@(ICDFLD)=CODEIEN           ;Patch 8 change
+ .;Patch 11
+ .I ICDFLG D
+ ..S @FDA@(ICDFLD)=CODEIEN           ;Patch 8 change
+ .E  S @FDA@(.11)=CODEIEN
  .S RET=$$UPDATE^BGOUTL(.FDA,,.IEN)
  .S:'RET RET=IEN(1)_U_F01
  Q RET
@@ -268,6 +275,13 @@ SET(RET,INP) ;EP
  S @FDA@(.13)=BEHAV
  S @FDA@(1204)="`"_DUZ
  S @FDA@(1201)="N"
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S @FDA@(1102)=READY  ;IHS/MSC/MGH patch 6
  I $L(OBJMET) D
  .N P,COMMENTS
@@ -275,7 +289,9 @@ SET(RET,INP) ;EP
  .S P=$S(BEHAV="GM":2,BEHAV="GNM":3,1:1)
  .S:P>1 $P(COMMENTS,"|",5-P)=""
  .S $P(COMMENTS,"|",P)=$TR(OBJMET,"|")
- .S @FDA@(81101)=COMMENTS
+ .I $L(OBJMET) S COMMENTS=OBJMET
+ .;S @FDA@(81101)=COMMENTS
+ .S @FDA@(.14)=COMMENTS
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  I 'RET,LVL=5,OLDLVL'=LVL S RET=$$REFSET^BGOUTL2(VIEN,TYPE,"EDUCATION TOPICS","R",COMMENT)

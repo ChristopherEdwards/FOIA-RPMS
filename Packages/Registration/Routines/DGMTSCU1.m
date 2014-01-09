@@ -1,5 +1,5 @@
 DGMTSCU1 ;ALB/RMO/CAW - Means Test Screen Display Utilities ;21 JAN 1992 8:00 pm
- ;;5.3;Registration;**166**;Aug 13, 1993
+ ;;5.3;Registration;**166,1015**;Aug 13, 1993;Build 21
  ;
 YN(X) ;Output Yes/No
  ; Input  -- X  1, 0 or ""

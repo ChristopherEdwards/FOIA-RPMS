@@ -1,5 +1,5 @@
 DG53249P ;ALB/JAP - Patch 249 postinstall ; 1/11/00 12:56pm
- ;;5.3;Registration;**249**;Aug 13, 1993
+ ;;5.3;Registration;**249,1015**;Aug 13, 1993;Build 21
  ;
 EN ;entry point from install
  ;update identifier code in patient file

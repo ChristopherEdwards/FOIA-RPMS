@@ -1,6 +1,7 @@
 LRAPRES1 ;DALOI/WTY/KLL/CKA - AP ESIG RELEASE REPORT/ALERT;11/13/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259,336,369,365**;Sep 27, 1994;Build 11
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 259,336,369,365
  ;
  ;Reference to FILE^TIUSRVP supported by IA #3540
  ;Reference to ^TIULQ supported by IA #2693 
@@ -79,16 +80,23 @@ LOOKUP ;Add additional names or mail groups to alert list.
  .S:LRADL="" XQA($P(Y,"^"))=""
  .S:LRADL="G" XQA("G."_$P(Y,"^",2))=""
  Q
-SEND ;Send the alert
+SEND ; Send the alert
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ ;       Cannot send alert if OR*3.0*210 not installed on this UCI
+ ;       since that patch installs the ORB3LAB routine.
+ Q:'$$PATCH^XPDUTL("OR*3.0*210")
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
  ;S XQAMSG=$E(LRP,1,9)_" ("_$E(LRP,1)_VA("BID")_"): Pathology report signed for "_LRAC_"."
  ;D SETUP^XQALERT
  M XQA=LRXQA
  D LAB^ORB3LAB(DFN,LRDFN,LRI,$G(LRA),LRSS,.XQA)
  I $D(LRADL) D
- .S LRMSG="Alerts have been sent to the specified additional users."
- .D EN^DDIOL(LRMSG,"","!!")
- .K LRMSG
+ . S LRMSG="Alerts have been sent to the specified additional users."
+ . D EN^DDIOL(LRMSG,"","!!")
+ . K LRMSG
  Q
+ ;
 AHELP ;Help Frame
  K LRMSG
  S LRMSG(1)="If answered 'Yes', the alert will notify the primary care"

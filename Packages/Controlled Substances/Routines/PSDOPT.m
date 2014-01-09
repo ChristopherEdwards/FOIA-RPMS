@@ -1,5 +1,5 @@
 PSDOPT ;BIR/JPW,LTL,BJW-Outpatient Rx Entry ; 2/5/04 12:15pm
- ;;3.0; CONTROLLED SUBSTANCES ;**10,11,15,21,30,39,48**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**10,11,15,21,30,39,48,62**;13 Feb 97;Build 3
  ;Reference to ^PSDRUG( supported by DBIA #221
  ;References to ^PSD(58.8 are covered by DBIA #2711
  ;References to file 58.81 are covered by DBIA #2808
@@ -50,7 +50,8 @@ ASKP ;ask rx #
  I X'["-" L +^PSRX(PSDRX):5 I '$T W !!,"Sorry, someone else is editting this prescription. Please try again later." K PSDRX G ASKP
  ;
  ;DAVE B (PSD*3*15) Show previous postings
- I X'["-" I $G(PSOVR)=1,$G(PSDSTA)=12!($G(PSDSTA)=13)!($G(PSDSTA)=14)!($G(PSDSTA)=15) S PSDXXX=X D CHKRF I $G(PSDNEXT)=1 G ASKP
+ I X'["-" I $G(PSOVR)=1,$G(PSDSTA)=12!($G(PSDSTA)=13)!($G(PSDSTA)=14)!($G(PSDSTA)=15)!($G(PSDSTA)=11) S PSDXXX=X D CHKRF I $G(PSDNEXT)=1 G ASKP
+ ;<JD *62
  ;
  S PSD(1)=X,DIC="^DIC(4,",DR=99,DA=+$P($G(^XMB(1,1,"XUS")),U,17)
  K DIQ S DIQ="PSD" D EN^DIQ1 S X=PSD(1) K DIC,DR,DIQ
@@ -144,7 +145,8 @@ VER ;Current Outpatient Version, and Rx status added 6/17/98
  I $G(PSDRXIN) S PSDSTA=$S(PSOVR:$P($G(^PSRX(PSDRXIN,"STA")),"^"),1:$P($G(^PSRX(PSDRXIN,0)),"^",15))
  Q
 CHKRF ;Dave B (PSD*3*30) if its deleted, show status.
- W !,"This RX has a status of '"_$S(PSDSTA=12:"DISCONTINUED",PSDSTA=13:"DELETED",PSDSTA=14:"DISCONTINUED BY PROVIDER",PSDSTA=15:"DISCONTINUED (EDIT)",1:"Unknown  Procedure")_$S(PSDSTA=12:"'.",1:"', no action can be taken.")
+ W !,"This RX has a status of '"_$S(PSDSTA=11:"EXPIRED",PSDSTA=12:"DISCONTINUED",PSDSTA=13:"DELETED",PSDSTA=14:"DISCONTINUED BY PROVIDER",PSDSTA=15:"DISCONTINUED (EDIT)",1:"Unknown  Procedure")_$S(PSDSTA=12:"'.",1:"', no action can be taken.")
+ ;< JD*62
  I $O(^PSRX(PSDRX,"A",0))>0 W !!,"Below is a list of actions taken on the prescription.",!!,"DATE/TIME",?22,"PERSON",?45,"ACTIVITY",! F X=1:1:53 W "=" F X=1:1:(IOM-1) W "="
  S X3=0 F  S X3=$O(^PSRX(PSDRX,"A",X3)) Q:X3=""  S DATA=$G(^PSRX(PSDRX,"A",X3,0)),Y=$P(DATA,"^",1) X ^DD("DD") S DATE=Y,X=$P(DATA,"^",2) D
  .I $G(X)'="" S ACTIVITY=$$EXTERNAL^DILFD(52.3,.02,,X)

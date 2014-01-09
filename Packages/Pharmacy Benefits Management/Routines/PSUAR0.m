@@ -1,5 +1,5 @@
-PSUAR0 ; BIR/PDW - Master Routine for AW/WS PBMS Extraction ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+PSUAR0 ; BIR/PDW - Master Routine for AR/WS PBMS Extraction ;25 AUG 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
 EN ; EP ENTRY FROM PSUCP
 PULL ; pull variables from ^XTMP
  ;PSUJOB must exist and must be the job number used to store the data desired for this session.
@@ -29,6 +29,8 @@ COMPUTE ;EP for Compute Cycle of AR/WS Extract
  I $D(^XTMP(PSUSUB)),PSUMASF M ^XTMP(PSUSUB,"CONFIRM")=PSUARM
  I $D(^XTMP(PSUSUB)),PSUPBMG M ^XTMP(PSUSUB,"CONFIRM")=PSUARM
  D EN^PSUAR4          ; Summary Messages
+ D EN^PSUAR6          ; AMIST Summary report
+ K PSUAR,PSUAMIS,AMISAR
  Q
  ;
 PRINT ;EP for Print Cycle

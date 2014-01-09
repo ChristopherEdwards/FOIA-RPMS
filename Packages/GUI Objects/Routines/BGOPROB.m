@@ -1,5 +1,5 @@
-BGOPROB ; IHS/BAO/TMD - pull patient PROBLEMS ;22-Apr-2011 09:10;MGH
- ;;1.1;BGO COMPONENTS;**1,3,6,7,8**;Mar 20, 2007
+BGOPROB ; IHS/BAO/TMD - pull patient PROBLEMS ;23-Aug-2012 09:39;DU
+ ;;1.1;BGO COMPONENTS;**1,3,6,7,8,10,11**;Mar 20, 2007
  ;---------------------------------------------
  ; Check for existence of problem id
  ;  INP = Patient IEN ^ Problem ID ^ Site IEN ^ Problem IEN (optional)
@@ -93,7 +93,7 @@ GET(RET,DFN) ;EP
  ;Find the personal history items from the personal history file
  S FNUM=9000013
  S GBL=$$ROOT^DILFD(FNUM,,1)
- Q:'$L(GBL) RET  ;P8
+ Q:'$L(GBL)    ;P11
  S IEN=0,PHXCNT=9000
  F  S IEN=$O(@GBL@("AC",DFN,IEN)) Q:'IEN  D  Q:RET
  .S X=$G(@GBL@(IEN,0)),POVIEN=$P(X,U,1)
@@ -105,7 +105,7 @@ GET(RET,DFN) ;EP
  .S PNAR=$TR($P($G(^AUTNPOV(PNAR,0)),U),$C(13,10))
  .S CNT=CNT+1,PHXCNT=PHXCNT+1
  .S @RET@(CNT)=PHXCNT_U_DFN_U_ICD_U_DMOD_U_"P"_U_PNAR_U_DMOD_U_""_U_ONSET_U_IEN
- Q RET
+ Q     ;P11
  ; Delete a problem entry
  ;  PRIEN = Problem IEN ^ TYPE ^ DELETE REASON ^ OTHER^PROB ID
 DEL(RET,PRIEN) ;EP
@@ -157,7 +157,8 @@ SET(RET,INP) ;EP
  S:DIEN="" DIEN=".9999"
  S:DIEN["." DIEN=+$O(^ICD9("AB",DIEN_$S($$CSVACT^BGOUTL2():" ",1:""),0))
  I 'DIEN S RET=$$ERR^BGOUTL(1048) Q
- S DMOD=DT,DENT=$S(PRIEN:"",1:DT)
+ ;IHS/MSC/MGH update date modified to include time
+ S DMOD=$$NOW^XLFDT,DENT=$S(PRIEN:"",1:DT)
  I 'LIEN S RET=$$ERR^BGOUTL(1049) Q
  S NARR=$TR(NARR,$C(13,10)_U)
  I $L(NARR) D  Q:RET

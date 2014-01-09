@@ -1,7 +1,8 @@
 PSOTPCLP ;BIRM/PDW-PRINT PATIENT LETTERS ;AUG 5,2003
- ;;7.0;OUTPATIENT PHARMACY;**145**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**145,227,233**;DEC 1997;Build 8
  Q
 PRINT ; select options
+ Q  ;placed out of order by patch PSO*7*227
  K ^TMP($J,"TPBLET"),TMP($J,"TPCLW")
  D EXIT ;INITIALIZE
  ;build INST to show incompleted Institutions
@@ -157,6 +158,9 @@ GETPAT(DFN) ;GET PATIENT DATA
  S SRNM=$P(VADM(1),",",2)_" "_$P(VADM(1),",")
  S PADD1=$G(VAPA(1)),PADD2=$G(VAPA(2)),PADD3=$G(VAPA(3))
  S PCITY=$G(VAPA(4)),PTSTATE=$P($G(VAPA(5)),U,2),PZIP=$G(VAPA(6))
+ N PSOBADR,PSOTEMP
+ S PSOBADR=$$BADADR^DGUTL3(DFN) I PSOBADR S PSOTEMP=$$CHKTEMP^PSOBAI(DFN) D
+ .I 'PSOTEMP S PADD1="** BAD ADDRESS INDICATED **",PADD2="",PADD3="",PCITY="",PSTATE="",PZIP=""
 CCADD ; Get Confidential Correspondence Address if one is active
  ; and has the category "all other".
  ;

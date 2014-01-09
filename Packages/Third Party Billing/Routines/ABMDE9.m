@@ -1,5 +1,5 @@
 ABMDE9 ; IHS/ASDST/DMJ - Edit Page 9 - UB-82 CODES ;
- ;;2.6;IHS Third Party Billing;**1,6**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,6,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p10 - IM20337 - Added code for BACK if ADA
  ; IHS/SD/SDR - abm*2.6*1 - HEAT6439 - Added page9G for clm attchments
@@ -61,7 +61,10 @@ OPT6 K ABM,ABME
  ;I "EB"'[$E(Y) S:$D(ABMP("DDL")) ABMP("QUIT")="" G OPT7  ;abm*2.6*1 HEAT6439  ;abm*2.6*6 NOHEAT
  I "ANDB"'[$E(Y) G XIT  ;abm*2.6*6 NOHEAT
  I $D(DTOUT)!$D(DUOUT)!$D(DIROUT) G XIT
- G OPT5:$E(Y)="B",OPT7:$E(Y)="N"  ;abm*2.6*6 NOHEAT
+ ;G OPT5:$E(Y)="B",OPT7:$E(Y)="N"  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT
+ G OPT5:$E(Y)="B"
+ I $E(Y)="N",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["837") G XIT  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT
+ I $E(Y)="N",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)["837") G OPT7  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT
  ;I $E(Y)="B",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)["ADA") S ABMP("SCRN")=9 G XIT  ;abm*2.6*1 HEAT6439
  I $E(Y)="B",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)["ADA") S ABMP("SCRN")=9 G OPT7  ;abm*2.6*1 HEAT6439
  I $E(Y)="B" G OPT5

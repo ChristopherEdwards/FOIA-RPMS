@@ -1,5 +1,5 @@
 DGENLCD ;ALB/CJM - Enrollment Catastophic Disability - List Manager Screen;12 JUN 1997 10:00 am
- ;;5.3;Registration;**121**;08/13/93
+ ;;5.3;Registration;**121,1015**;08/13/93;Build 21
  ;
 EN(DFN) ;Entry point for the DGENCD CATASTROPHIC DISABILTY List Template
  ; Input  -- DFN      Patient IEN

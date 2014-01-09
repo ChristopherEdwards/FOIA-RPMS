@@ -1,5 +1,5 @@
 DGJPDEF ;ALB/MAF - PHYSICIAN DEFICIENCY PRINT ROUTINE ; NOV 10 1992@300
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 OUT S (DGJFL,DGJTMESS)=0 W !!,"Sort output by: PATIENT// " D ZSET1 S X="" R X:DTIME G QUIT:X="^"!('$T) I X=""!("Pp"[X) S X="3"
  S X=$S("Dd"[X:1,"Ss"[X:2,1:X)
  I X="?" D ZSET1,HELP1 G OUT

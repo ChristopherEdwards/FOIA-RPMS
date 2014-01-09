@@ -1,5 +1,5 @@
-AUTTVLK ; IHS/DIRM/JDM/DFM - VENDOR FILE INTERFACE ; [ 11/25/97  12:34 PM ]
- ;;98.1;IHS DICTIONARIES (POINTERS);;NOV 25, 1997
+AUTTVLK ; IHS/DIRM/JDM/DFM - VENDOR FILE INTERFACE ; [ 03/04/98   8:10 AM ]
+ ;;98.1;IHS DICTIONARIES (POINTERS);;MAR 04, 1998;Build 6
  ;
  ; Screen for association between the Vendor and the PACKAGE when a
  ; non-LAYGOed Vendor lookup being performed and trigger to create

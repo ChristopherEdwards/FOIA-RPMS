@@ -1,6 +1,6 @@
 ORDV01 ; slc/dcm - OE/RR Report Extracts ;10/8/03  11:18
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,160,180,208**;Dec 17, 1997
-HSQUERY(ROOT,ORDFN,ID,ORALPHA,OROMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE)     ; -- Query to Health Summary Reports
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,160,180,208,215,274**;Dec 17, 1997;Build 20
+HSQUERY(ROOT,ORDFN,ID,ORALPHA,OROMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE) ; -- Query to Health Summary Reports
  N OUT,ORDBEG,ORDEND,OREXT
  Q:'$L($G(ID))
  I '$L($P(ID,";",2)),$P(ID,";",3),$L($T(HSTYPE^ORWRP1))&($L($T(GCPR^OMGCOAS1))),$L($G(ORFHIE)) D  Q  ;Call if FHIE station 200
@@ -8,7 +8,7 @@ HSQUERY(ROOT,ORDFN,ID,ORALPHA,OROMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE)     ; -- Quer
  . S ROOT=$NA(^TMP("ORDATA",$J))
  I '$L($P(ID,";",2)),$P(ID,";",3),$L($T(HSTYPE^ORWRP1)) D HSTYPE^ORWRP1(ROOT,ORDFN,$P(ID,";",3),.ORALPHA,.OROMEGA,.ORDTRNG,.REMOTE) Q
  Q:'$L($P(ID,";",2))
- S OUT=$P(ID,";")_"^"_$P(ID,";",2),OREXT=$S($L($P(ID,";",8)):$P(ID,";",7,8),1:"")
+ S OUT=$P(ID,";")_"^"_$P(ID,";",2),OREXT=$S($L($P(ID,";",8)):$P(ID,";",7,9),1:"")
  Q:'$L($T(@OUT))
  S:'$G(ORALPHA) ORALPHA=$$FMADD^XLFDT(DT,-2000) S:'$G(OROMEGA) OROMEGA=$$FMADD^XLFDT(DT,1)
  I $E(OROMEGA,8)'="." S OROMEGA=OROMEGA_".235959"
@@ -19,12 +19,14 @@ HSQUERY(ROOT,ORDFN,ID,ORALPHA,OROMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE)     ; -- Quer
  S OUT=OUT_"(.ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT)"
  D @OUT
  Q
-ADR(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT)     ;adverse/reaction allergies
+ADR(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;adverse/reaction allergies
  ;External calls to ^GMRADPT, file 120.8
  ;Date ranges and Max Occurances are not supported by ^GMTADPT, but Max Occ is enforced in following FOR loop
  ;
  I $L($T(GCPR^OMGCOAS1)) D  Q  ; Call if FHIE station 200
- . D GCPR^OMGCOAS1(DFN,"ALRG",ORDBEG,ORDEND,ORMAX)
+ . ;D GCPR^OMGCOAS1(DFN,"ALRG",ORDBEG,ORDEND,ORMAX) ;Next 2 lines for HDRHX CHANGE
+ . I $E($P(OREXT,";",3),1,8)="OR_HDRX_",$L($T(HX^OMGCOAS1)) D HX^OMGCOAS1(DFN,$P(OREXT,";",3),ORDBEG,ORDEND,ORMAX)
+ . I $E($P(OREXT,";",3),1,8)'="OR_HDRX_"  D GCPR^OMGCOAS1(DFN,"ALRG",ORDBEG,ORDEND,ORMAX)
  . S ROOT=$NA(^TMP("ORDATA",$J))
  ;
  N I,ORI,D0,ARR,GMRA,GMRAL,ALLRG,ORSITE,SITE,GO,DIC,DIQ,DR,DA,C1,C2,LINE,LINE1,CDT,CTR,X
@@ -46,6 +48,7 @@ ADR(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT)     ;adverse/reaction allerg
  . S ^TMP("ORDATA",$J,ORI,"WP",3)="3^"_@DIQ@(120.8,DA,3.1) ;Allergy Type
  . S ^TMP("ORDATA",$J,ORI,"WP",4)="4^"_$$DATEMMM^ORDVU(@DIQ@(120.8,DA,20)) ;Verification Date/Time
  . S ^TMP("ORDATA",$J,ORI,"WP",5)="5^"_@DIQ@(120.8,DA,6) ;Observed/Historical
+ . S ^TMP("ORDATA",$J,ORI,"WP",7)="7^"_DA ;Allergy IEN
  . S C1="",CTR=0
  . F I=1:1:10 K ARAY,ERR S CDT=$$GET1^DIQ(120.826,I_","_DA_",",".01","I") I $L(CDT) D
  .. S LINE(CDT)=$$GET1^DIQ(120.826,I_","_DA_",","1")_"^"_$$GET1^DIQ(120.826,I_","_DA_",","1.5")
@@ -57,7 +60,7 @@ ADR(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT)     ;adverse/reaction allerg
  . D SPMRG^ORDVU("LINE1(""C"")","^TMP(""ORDATA"","_$J_","_ORI_",""WP"",6)",6) ;Comment
  S ROOT=$NA(^TMP("ORDATA",$J))
  Q
-ADRZ(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT)     ;adverse/reaction allergies (Old extract - not used)
+ADRZ(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;adverse/reaction allergies (Old extract - not used)
  ;External calls to ^GMTADPT, file 120.8
  ;Date ranges and Max Occurances are not supported by ^GMTADPT, but Max Occ is enforced in following FOR loop
  N ORI,D0,ARR,GMRA,GMRAL,ALLRG,ORSITE,SITE,GO

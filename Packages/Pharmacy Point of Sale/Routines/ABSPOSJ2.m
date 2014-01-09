@@ -1,5 +1,5 @@
 ABSPOSJ2 ;IHS/OIT/SCR - pre and post init for V1.0 patch 28 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**29,39,43**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**29,39,43,44,45**;Jun 21,2001
  ;
  ; Pre and Post init routine use in absp0100.29k
  ;------------------------------------------------------------------
@@ -144,13 +144,48 @@ CLNREV ;IHS/OIT/RCS 3/2/2012 patch 43 run fix for errored reversals
  . S CLM=0
  . F  S CLM=$O(^ABSPC(CLM)) Q:CLM=""!(CLM'?1N.N)  D
  . . S X=$G(^ABSPC(CLM,100)) I X="" Q
- . . S CLMN=$P($G(^ABSPC(CLM,0)),"^") I CLMN="" Q
+ . . S CLMN=$P($G(^ABSPC(CLM,0)),U) I CLMN="" Q
  . . I CLMN'["R" Q
- . . I $P(X,"^",2)="D0",$P(X,"^",3)=11 S $P(X,"^",3)="B2",^ABSPC(CLM,100)=X ;Reset Transaction type to 'B2'
- . . I $P(X,"^",9)<2 Q  ;Reversal Transaction count not greated than 1
- . . S $P(X,"^",9)=1,^ABSPC(CLM,100)=X ;Reset Transaction count to '1'
+ . . I $P(X,U,2)="D0",$P(X,U,3)=11 S $P(X,U,3)="B2",^ABSPC(CLM,100)=X ;Reset Transaction type to 'B2'
+ . . I $P(X,U,9)<2 Q  ;Reversal Transaction count not greated than 1
+ . . S $P(X,U,9)=1,^ABSPC(CLM,100)=X ;Reset Transaction count to '1'
  . . S X=$G(^ABSPC(CLM,"M",1,0)) I X="" Q
  . . S X=$E(X,1,20)_1_$E(X,22,999),^ABSPC(CLM,"M",1,0)=X ;Reset Transaction count to '1' in raw data record
  . S ^ABSP(9002313.99,1,"ABSPREVF")=1
  Q
  ;
+DIAL ;IHS/OIT/RCS 8/31/2012 patch 44 fix for DIALOUT field - HEAT # 82109
+ ;Field should not be left blank and should have ENVOY DIRECT VIA T1 LINE
+ N INSIEN,X,DIAL
+ S INSIEN="" F  S INSIEN=$O(^ABSPEI(INSIEN)) Q:INSIEN=""  D
+ . S X=$G(^ABSPEI(INSIEN,100)) I X="" Q  ;PARTIAL SETUP
+ . S DIAL=$P(X,U,7) I DIAL'="" Q  ;ALREADY DATA IS FIELD
+ . S $P(X,U,7)=9,^ABSPEI(INSIEN,100)=X ;SET DIALOUT VALUE TO '9'-ENVOY DIRECT VIA T1 LINE
+ Q
+ ;
+DEF ;IHS/OIT/RCS 11/28/2012 patch 45 Add ICD10 General POS Default date
+ N DEF
+ S DEF=$G(^ABSP(9002313.99,1,"ICD10")) I DEF'="" Q  ;ALREADY DATA IS FIELD
+ S ^ABSP(9002313.99,1,"ICD10")=3141001 ;SET ICD10 DEFAULT DATE TO '10/1/2014'
+ Q
+ ;
+RESTORE ;EP - Post init routine for absp0100.03k.
+ ; This subroutine will take the values stored in the save global
+ ; created in the above "SAVE" subroutine and restore the values
+ ; in their new locations in the ^ABSPC file.
+ N CLMIEN,MEDIEN,RTN,REC,LAST,I
+ S (LAST,MEDIEN,CLMIEN)=""
+ S RTN="ABSPOSJ1"
+ ; if we have to restart - this is where we need to start
+ S LAST=$G(^ABSPOSXX(RTN,"LAST PROCESSED"))
+ I LAST'="" D
+ . S CLMIEN=$P(LAST,U)
+ . S MEDIEN=$P(LAST,U,2)
+ F  S CLMIEN=$O(^ABSPOSXX(RTN,CLMIEN)) Q:CLMIEN=""  D
+ . D RST320
+ . F  S MEDIEN=$O(^ABSPOSXX(RTN,CLMIEN,400,MEDIEN)) Q:MEDIEN=""  D
+ .. S REC=$G(^ABSPOSXX(RTN,CLMIEN,400,MEDIEN,400))
+ .. Q:REC=""
+ .. F I=31:1:43  D MOVFLD(I+400,$P(REC,U,I))
+ .. S ^ABSPOSXX(RTN,"LAST PROCESSED")=CLMIEN_"^"_MEDIEN
+ Q

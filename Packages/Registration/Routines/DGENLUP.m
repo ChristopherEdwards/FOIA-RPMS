@@ -1,5 +1,5 @@
 DGENLUP ;ALB/CJM - Eligibilty Upload Audit - List Manager Screen;12 JUN 1997 10:00 am
- ;;5.3;Registration;**147**;08/13/93
+ ;;5.3;Registration;**147,1015**;08/13/93;Build 21
  ;
 EN(DFN,DGAUDIT) ;Entry point for the DGENCD CATASTROPHIC DISABILTY List Template
  ; Input:

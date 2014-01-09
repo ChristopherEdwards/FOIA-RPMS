@@ -1,10 +1,10 @@
-PSSMARK ;BIR/WRT-Review single NDF matches for CMOP ;06-Apr-2010 15:18;SM
- ;;1.0;PHARMACY DATA MANAGEMENT;**15,17,20,28,57,1009**;9/30/97
+PSSMARK ;BIR/WRT-Review single NDF matches for CMOP ;29-May-2012 15:17;PLS
+ ;;1.0;PHARMACY DATA MANAGEMENT;**15,17,20,28,57,1009,82,124,1015**;9/30/97;Build 62
  ;
- ;Reference to ^PS(50.605 is supported by DBIA #2138
- ;Reference to ^PSNTRAN("END" is supported by DBIA #2527
+ ;Reference to ^PS(59 supported by DBIA #1976
+ ;Reference to ^PS(50.605 supported by DBIA #2138
+ ;Reference to ^PSNTRAN("END" supported by DBIA #2527
  ;Reference to $$PROD2^PSNAPIS(P1,P3) supported by DBIA #2531
- ;
  ; Modified - IHS/MSC/PLS - 03/30/2010 - Line MARK+1
  ;
 PICK S U="^" S PSXFL=0 D TEXT F PSXMM=1:1 D PICK1 S:'$D(PSXFL) PSXFL=0 Q:PSXFL
@@ -40,7 +40,10 @@ DUP I PSXVAP'=PSXLOC,$D(^PSDRUG("B",PSXVAP)) W !,"You cannot write over the GENE
 XREF K:PSXLOC'=PSXVAP ^PSDRUG("B",PSXLOC,PSXUM) S:PSXLOC'=PSXVAP ^PSDRUG("B",PSXVAP,PSXUM)="" I $D(^PSNTRAN(PSXUM,"END")) S $P(^PSNTRAN(PSXUM,"END"),"^",3)=PSXVAP,$P(^PSNTRAN("END"),"^",3)=PSXVAP
  Q
 BLD ;
- I $D(^PSDRUG(PSXUM,"I")) S PSSEXP(1)="It has been inactivated."
+ I $D(^PSDRUG(PSXUM,"I")) D  ;; <*124 RJS
+ .N X,X1,X2
+ .S X1=$G(^PSDRUG(PSXUM,"I")),X2=DT D ^%DTC
+ .S:X<1 PSSEXP(1)="It has been inactivated."  ;; *124 RJS >
  I $D(^PSDRUG(PSXUM,2)),$P(^PSDRUG(PSXUM,2),"^",3)'["O" S PSSEXP(2)="It is not marked for outpatient pharmacy use."
 BLD5 I $P(^PSDRUG(PSXUM,0),"^",3)[1!($P(^(0),"^",3)[2) S PSSEXP(3)="It is a schedule I or schedule II controlled substance."
  I '$D(^PSDRUG(PSXUM,"ND")) S PSSEXP(4)="It is not matched to NDF."
@@ -55,7 +58,12 @@ PICK1 S DIC="^PSDRUG(",DIC(0)="QEAM" D ^DIC K DIC I Y<0 S PSXFL=1 Q
  S PSXUM=+Y,PSXLOC=$P(Y,"^",2) S PSSEXP(0)="",PSXF=0,PSXBT=0 D BLD
 PICK2 I $O(PSSEXP(0)) W !!,"This drug cannot be marked for the following reason(s).",! F PSSXX=0:0 S PSSXX=$O(PSSEXP(PSSXX)) Q:'PSSXX  W !,PSSEXP(PSSXX)
  I $O(PSSEXP(0)) K PSSEXP W ! Q
-GOTIT S PSXID=$P(PSSXX,"^",2),PSXZERO=^PSDRUG(PSXUM,0) D DISPLAY D:'$G(PSSHUIDG) DRG^PSSHUIDG(PSXUM) Q:PSXF  Q:PSXBT
+GOTIT S PSXID=$P(PSSXX,"^",2),PSXZERO=^PSDRUG(PSXUM,0) D DISPLAY
+ N XX,DNSNAM,DNSPORT,DVER,DMFU S XX=""
+ I '$G(PSSHUIDG) D DRG^PSSHUIDG(PSXUM) D  Q:PSXF  Q:PSXBT
+ . F XX=0:0 S XX=$O(^PS(59,XX)) Q:'XX  D
+ ..S DVER=$$GET1^DIQ(59,XX_",",105,"I"),DMFU=$$GET1^DIQ(59,XX_",",105.2)
+ ..I DVER="2.4" S DNSNAM=$$GET1^DIQ(59,XX_",",2006),DNSPORT=$$GET1^DIQ(59,XX_",",2007) D:$G(DNSNAM)&(DMFU="YES") DRG^PSSDGUPD(PSXUM,"",DNSNAM,DNSPORT)
  Q
 OUT I $D(DTOUT),DTOUT=1 S PSXFL=1
  Q

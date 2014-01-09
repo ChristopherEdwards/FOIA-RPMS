@@ -1,8 +1,12 @@
-DGPMV321 ;ALB/MIR - ASIH TRANSFER ; 10 DEC 89 @9
- ;;5.3;Registration;**40,208**;Aug 13, 1993
+DGPMV321 ;ALB/MIR - ASIH TRANSFER ; 8/6/08 11:45am
+ ;;5.3;PIMS;**40,208,713,1015,1016**;JUN 30, 2012;Build 20
 ECA ;Edit corresponding admission for ASIH transfers
  S DGPMTN=DGPMA,DGPMNI=DGPMCA D FINDLAST^DGPMV32
- S DGPMNA=0,DGPMAA=$P(DGPMA,"^",15) I '$D(^DGPM(+DGPMAA,0)) D NEW S DGPMNA=1,DIE("NO^")=""
+ S DGPMNA=0,DGPMAA=$P(DGPMA,"^",15) I '$D(^DGPM(+DGPMAA,0)) D  S DGPMNA=1,DIE("NO^")=""
+ .;get admit eligibility for PTF record 784
+ .N DGPMELG
+ .S DGPMELG=$$GET1^DIQ(45,$$IENS^DILF($$GET1^DIQ(405,DGPMCA,.16)),20.1)
+ .D NEW
  W !,"Editing Corresponding Hospital Admission",!
  I 'DGPMNA,$D(^DGPM(+DGPMAA,0)) S DA=$P(^(0),"^",16) I $D(^DGPT(+DA,0)) S DIE="^DGPT(",DR="2////"_+DGPMA_";20;" K DQ,DG D ^DIE W ! ;update admission d/t in PTF
  ;update pseudo discharge
@@ -12,6 +16,8 @@ ECA ;Edit corresponding admission for ASIH transfers
  I '$P(^DGPM(DGPMDA,0),"^",6) D UNDO^DGPMV322 Q
  S:$D(Y) DGPMOUT=1 S Y=DGPMAA_"^1" D:'DGPMOUT SPEC^DGPMV36
  I '$D(^DGPM("APHY",DGPMAA)) D UNDO^DGPMV322 Q
+ ; DG*713 - send admission bulletin
+ D ^DGPMVBUR
  K DGPMAA,DGPMAB,DGPMNA,DGPMPTF Q
 UHD ;Update hospital discharge and PTF record
  S X=("^"_$P(DGPM0,"^",18)_"^") G:"^43^45^"[X DEL Q:"^13^44^"'[X
@@ -44,6 +50,13 @@ NEW ;Add new corresponding admission to file
  W !,"Creating PTF record for new hospital admission",!
  S Y=+DGPMA D CREATE^DGPTFCR S DGPMPTF=+Y
  ;
+ ;update new PTF entry with admit eligibility 784
+ I $D(DGPMELG) D
+ .N DA,DIE,DR
+ .S DA=DGPMPTF,DIE="^DGPT("
+ .S DR="20.1////^S X=+$$ELIG^DGUTL3($$GET1^DIQ(45,$$IENS^DILF(DGPMPTF),.01,""I""),3,DGPMELG)"
+ .D ^DIE
+ .K DA,DIE,DIR
  ;update hospital admission with PTF NUMBER 
  S DIE="^DGPM(",DA=DGPMAA,DR=".16////"_DGPMPTF K DQ,DG I $D(^DGPM(+DA,0)) S ^UTILITY("DGPM",$J,1,DA,"P")=$S($D(^UTILITY("DGPM",$J,1,DA,"P")):^("P"),1:^DGPM(DA,0)) D ^DIE S ^UTILITY("DGPM",$J,1,DA,"A")=^DGPM(DA,0)
  Q:DGPMTYP="^44^"  ;if RESUME ASIH, already have 30 day discharge

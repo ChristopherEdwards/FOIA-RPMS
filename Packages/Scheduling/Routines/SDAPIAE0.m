@@ -1,5 +1,5 @@
 SDAPIAE0 ;ALB/MJK - Outpatient API/Standalone Add/Edits ; 22 FEB 1994 11:30 am
- ;;5.3;Scheduling;**27,78,97,132**;08/13/93
+ ;;5.3;Scheduling;**27,78,97,132,1015**;08/13/93;Build 21
  ;
 EN(DFN,SDT,SDCL,SDUZ,SDMODE,SDVIEN) ; -- check api for appts
  N SDOE

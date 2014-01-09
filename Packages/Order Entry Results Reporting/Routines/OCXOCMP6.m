@@ -1,13 +1,11 @@
-OCXOCMP6 ;SLC/RJS,CLA - ORDER CHECK CODE COMPILER (Assemble Order Check Routines) ;3/25/99  15:18
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOCMP6 ;SLC/RJS,CLA - ORDER CHECK CODE COMPILER (Assemble Order Check Routines) ;1/05/04  14:33
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
 EN() ;
  ;
  Q:$G(OCXWARN) 1
  N OCXD0,OCXD1,OCXRN,OCXSCNT,OCXOFF
- ;
- S OCXLCNT=0
  ;
  W:'$G(OCXAUTO) !,?5,"Generate Extrinsic Function and Variables documentation..."
  S OCXD0=0 F  S OCXD0=$O(^TMP("OCXCMP",$J,"C CODE",OCXD0)) Q:'OCXD0  D DOC^OCXOCMPT(OCXD0)
@@ -122,16 +120,17 @@ GETHDR(RNUM) ;
  S OCXREC(9,0)=" ; ***************************************************************"
  S OCXREC(10,0)=" ;"
  I (RNUM=1) D
- .S OCXREC(11,0)=" ; compiled code line length: "_OCXCLL
- .S OCXREC(12,0)=" ;     compiled routine size: "_OCXCRS
- .S OCXREC(13,0)=" ;"
- .S OCXREC(14,0)=" ;   Program Execution Trace Mode: "_$S($G(OCXTRACE):" ON",1:"OFF")
- .S OCXREC(15,0)=" ;" ; " ;    Elapsed time logging: "_$S($G(OCXTLOG):" ON",1:"OFF")
- .S OCXREC(16,0)=" ;               Raw Data Logging: "_$S($G(OCXDLOG):(" ON  Keep data for "_OCXDLOG_" day"_$S(OCXDLOG=1:"",1:"s")_" then purge."),1:"OFF")
- .S OCXREC(17,0)=" ; Compiler mode: "_$S(($G(OCXAUTO)>1):"Queued",$G(OCXAUTO):" ON",1:"OFF")
- .S OCXREC(18,0)=" ;   Compiled by: "_$P($G(^VA(200,+$G(DUZ),0)),U,1)_"  (DUZ="_(+$G(DUZ))_")"
- .S OCXREC(19,0)=" Q"
- .S OCXREC(20,0)=" ;"
+ .S OCXREC(11,0)=" ;    compiled code line length: "_OCXCLL
+ .S OCXREC(12,0)=" ;        compiled routine size: "_OCXCRS
+ .S OCXREC(13,0)=" ; triggered rule ignore period: "_OCXTSPI
+ .S OCXREC(14,0)=" ;"
+ .S OCXREC(15,0)=" ;   Program Execution Trace Mode: "_$S($G(OCXTRACE):" ON",1:"OFF")
+ .S OCXREC(16,0)=" ;" ; " ;    Elapsed time logging: "_$S($G(OCXTLOG):" ON",1:"OFF")
+ .S OCXREC(17,0)=" ;               Raw Data Logging: "_$S($G(OCXDLOG):(" ON  Keep data for "_OCXDLOG_" day"_$S(OCXDLOG=1:"",1:"s")_" then purge."),1:"OFF")
+ .S OCXREC(18,0)=" ; Compiler mode: "_$S(($G(OCXAUTO)>1):"Queued",$G(OCXAUTO):" ON",1:"OFF")
+ .S OCXREC(19,0)=" ;   Compiled by: "_$P($G(^VA(200,+$G(DUZ),0)),U,1)_"  (DUZ="_(+$G(DUZ))_")"
+ .S OCXREC(20,0)=" Q"
+ .S OCXREC(21,0)=" ;"
  ;
  E  D
  .S OCXREC(11,0)=" Q"

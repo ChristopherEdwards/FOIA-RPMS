@@ -1,17 +1,24 @@
-PSOCSTM ;BHAM ISC/SAB - monthly rx cost compilation ; 01/11/93 10:58
- ;;7.0;OUTPATIENT PHARMACY;**4,17,19,28,89**;DEC 1997
+PSOCSTM ;BHAM ISC/SAB - monthly rx cost compilation ;7/10/06 4:36pm
+ ;;7.0;OUTPATIENT PHARMACY;**4,17,19,28,89,212,246**;DEC 1997;Build 12
  ;External Ref. to ^PS(55 DBIA# 2228
  ;External Ref. to ^DPT DBIA# 10035
  ;External Ref. to ^PSDRUG DBIA# 221
+ ;
+ ;*212 don't allow this request, if monthly compile is running
+ ;*246 alter SRCH1 For loop to not init to numeric values
+ ;
+ Q:$$MTHLCK(1)            ;get lock, quit if already locked    PSO*212
  K BDT,EDT W !!,"**** Date Range Selection ****" S LATE=$E(DT,1,5)_"00"
 BEG W ! S %DT="APE",%DT("A")="   Beginning MONTH/YEAR : " D ^%DT G:Y<0 Q W:Y'<LATE !!,$C(7),"Run 'DAILY' compilation routine for selected month!",! G:Y'<LATE BEG I (+$E(Y,6,7)'=0)!(+$E(Y,4,5)=0) D QUES G BEG
  S BDT=Y
 END S %DT(0)=BDT W ! S %DT="APE",%DT("A")="   Ending    MONTH/YEAR : " D ^%DT K %DT G:Y<0 Q W:Y'<LATE !!,$C(7),"Run 'DAILY' compilation routine for selected month!",! G:Y'<LATE END I (+$E(Y,6,7)'=0)!(+$E(Y,4,5)=0) D QUES G END
  W ! S EDT=Y
  S ZTIO="",ZTRTN="START^PSOCSTM",ZTDESC="Rx Monthly Cost Compile" F G="EDT","BDT" S:$D(@G) ZTSAVE(G)=""
- D ^%ZTLOAD W:$D(ZTSK) !,"Task Queued!" K G,BDT,EDT,ZTSAVE,ZTIO,ZTRTN,ZTDESC Q
+ D ^%ZTLOAD W:$D(ZTSK) !,"Task #"_ZTSK_" Queued!" K G,BDT,EDT,ZTSAVE,ZTIO,ZTRTN,ZTDESC Q
+ L -^PSOCSTM                                    ;unlock month end flag
  ;
-START K ^TMP($J) S PSG=0 F I=1:1 S X=$T(G+I) Q:$P(X,";",3)=""  S A(I)=$P(X,";",3),B(I)=$P(X,";",4),PSG=PSG+1,A1(I)=$P(X,";",5),B1(I)=$P(X,";",6)
+START Q:$$MTHLCK^PSOCSTM(1)      ;get lock, quit if already locked  PSO*212
+ K ^TMP($J) S PSG=0 F I=1:1 S X=$T(G+I) Q:$P(X,";",3)=""  S A(I)=$P(X,";",3),B(I)=$P(X,";",4),PSG=PSG+1,A1(I)=$P(X,";",5),B1(I)=$P(X,";",6)
  S PSD=0 F I=1:1 S X=$T(D+I) Q:X=""  S C(I)=$P(X,";",3),D(I)=$P(X,";",4),PSD=PSD+1,C1(I)=$P(X,";",5),D1(I)=$P(X,";",6)
  F PSDT=BDT:100:EDT K ^PSCST(PSDT),^PSCST("B",PSDT)
  S STOP=$E(EDT,1,5)_"31.2359",PSDT=BDT F  S PSDT=$O(^PSCST(PSDT)) Q:'PSDT!(PSDT>STOP)  K ^PSCST(PSDT),^PSCST("B",PSDT)
@@ -21,12 +28,19 @@ SRCH F PSDT=BDT:100:EDT S PSDTX=PSDT+100 D:$E(PSDT,4,5)<13 SRCH1,SET1 S:$E(PSDT,
  S PSOCNT=0 F PSDT=0:0 S PSDT=$O(^PSCST("B",PSDT)) Q:'PSDT  S PSD=PSDT,PSOCNT=PSOCNT+1
  S ^PSCST(0)="DRUG COST^50.9D^"_PSD_"^"_PSOCNT D ZNODE
 Q K ^TMP($J),%DT,A,B,BDT,COST,DATA,DATA1,DATA2,DRG,DFN,EDT,I,II,LATE,ML,OR,PAST,PHYS,PSOCNT,PSD,PSDT,PSDT1,PSDTX,RXF,PSG,QTY,RF,RX0
- K RX2,DIV,D,C,CLINIC,A1,B1,C1,D1,RX1,RXN,VAL,VAR,PGM,VALUE,CDT,NDT,VISITS,DV,VIS,WD,X,X1,X2,Y S:$D(ZTQUEUED) ZTREQ="@" Q
+ K RX2,DIV,D,C,CLINIC,A1,B1,C1,D1,RX1,RXN,VAL,VAR,PGM,VALUE,CDT,NDT,VISITS,DV,VIS,WD,X,X1,X2,Y S:$D(ZTQUEUED) ZTREQ="@"
+ L -^PSOCSTM                                    ;unlock month end flag
+ Q
  ;
-SRCH1 D INI F PSDT1=PSDT:0:PSDTX S PSDT1=$O(^PSRX("AL",PSDT1)) Q:'PSDT1!($E(PSDT1,1,7)>PSDTX)  D
+SRCH1 D INI
+ ;refill
+ S PSDT1=PSDT                                ;*246
+ F  S PSDT1=$O(^PSRX("AL",PSDT1)) Q:($E(PSDT1,1,7)<PSDT)!($E(PSDT1,1,7)>PSDTX)  D
  .S CDT=$P(PSDT1,".") F RXN=0:0 S RXN=$O(^PSRX("AL",PSDT1,RXN)) Q:'RXN  S RXF="" F  S RXF=$O(^PSRX("AL",PSDT1,RXN,RXF)) Q:RXF=""  D CHK
  .S NDT=$O(^PSRX("AL",PSDT1)) D:$P(NDT,".")'=CDT VST
- F PSDT1=PSDT:0:PSDTX S PSDT1=$O(^PSRX("AM",PSDT1)) Q:'PSDT1!($E(PSDT1,1,7)>PSDTX)  D
+ ;partial fill
+ S PSDT1=PSDT                                ;*246
+ F  S PSDT1=$O(^PSRX("AM",PSDT1)) Q:($E(PSDT1,1,7)<PSDT)!($E(PSDT1,1,7)>PSDTX)  D
  .S CDT=$P(PSDT1,"."),RXN=0 F  S RXN=$O(^PSRX("AM",PSDT1,RXN)) Q:'RXN  S RXF=0 F  S RXF=$O(^PSRX("AM",PSDT1,RXN,RXF)) Q:RXF=""  S PAR=1 D CHK
  .S NDT=$O(^PSRX("AM",PSDT1)) D:$P(NDT,".")'=CDT VST K PAR
  Q
@@ -81,6 +95,25 @@ ZNODE ;update zero nodes
  ..S $P(^PSCST(PSDT,ND,NDZ2,"P",0),"^",4)=NODE(ND,"P"),NDZ1=0
  .S:$G(^PSCST(PSDT,ND,0))]"" $P(^PSCST(PSDT,ND,0),"^",4)=NODE(ND),NDZ=0
  K NDZ,ND,NODE,NDZ2,NDZ1 Q
+ ;
+MTHLCK(GET) ;lock for month end run or query if month end is running
+ ; INPUT:  GET = 1  try to get lock and keep locked
+ ;               0  query if locked only, leave as unlocked
+ ; RETURNS: 1 - already locked
+ ;          0 - was not already locked
+ ;
+ I '$D(ZTQUEUED) W !,"checking for duplicate job..."
+ N GOTLOCK
+ L +^PSOCSTM:10 S GOTLOCK=$T   ;delay 10 secs to handle slower systems
+ I GOTLOCK,'GET L -^PSOCSTM Q 0
+ I GOTLOCK,GET Q 0
+ N AST S AST="",$P(AST,"*",79)=""
+ D:'($D(ZTQUEUED))
+ .W !!,*7,AST,!
+ .W "Monthly Rx Cost Compilation is currently running, "
+ .W "Try your request later",!
+ .W AST,!!
+ Q 1
  ;
  ;
 G ;;

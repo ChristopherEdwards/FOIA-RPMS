@@ -1,5 +1,5 @@
 DG53318M ;ALB/RTK DG*5.3*318 MT Cleanup Mailman Msg ; 09/07/00
- ;;5.3;Registration;**318**;Aug 13, 1993
+ ;;5.3;Registration;**318,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will be run at sites as part of the MT Source Reset
  ; in patch DG*5.3*318.

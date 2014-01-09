@@ -1,12 +1,10 @@
-LRWLST1 ;DALOI/CJS/RWF/FHS - ACCESSION SETUP ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**1027,1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**48,65,121,128,153,202,261,286**;Sep 27, 1994
+LRWLST1 ;DALOI/CJS/RWF/FHS - ACCESSION SETUP ; July 19, 2006
+ ;;5.2;LAB SERVICE;**48,65,1010,121,128,1013,153,202,261,1018,286,1027,1030,331,379,331,379,1031,1032**;NOV 1, 1997
  ;
  ; Reference to ^DIC(42 supported by IA #10039
  ; Reference to ^SC( supported by IA #10040
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("^LRWLST1 0.0")     ; IHS/OIT/MKK - LR*5.2*1027
- ;
+EP ; EP
  S LRWLC=0
  F  S LRWLC=$O(LRTSTS(LRWLC)) Q:LRWLC<1  S LRAD=DT D SPLIT
  ;
@@ -15,8 +13,6 @@ LRWLST1 ;DALOI/CJS/RWF/FHS - ACCESSION SETUP ;JUL 06, 2010 3:14 PM
  . N LRDIE
  . D WP^DIE(69.01,LRSN_","_LRODT_",",16,"A","^LRO(69.6,LR696,99)","LRDIE(16)")
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("^LRWLST1 7.0")     ; IHS/OIT/MKK - LR*5.2*1027
- ;
  K DIC,DLAYGO,DR,DA,DIE,LRIXX
  Q:$G(LRORDR)="P"
  K LRNM,LRTSTS
@@ -24,9 +20,8 @@ LRWLST1 ;DALOI/CJS/RWF/FHS - ACCESSION SETUP ;JUL 06, 2010 3:14 PM
  Q
  ;
 SPLIT ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("SPLIT^LRWLST1 0.0")     ; IHS/OIT/MKK - LR*5.2*1027
- ;
- N LRAA
+ N LRAA,LRX
+ ; Setup regular accessions (LRUNQ=0)
  S LRUNQ=0,LREND=0
  I $D(LRTSTS(LRWLC,0)) D
  . D GTWLN
@@ -35,36 +30,36 @@ SPLIT ;
  . F  S LRAA=$O(LRTSTS(LRWLC,0,LRAA)) Q:LRAA<1  D
  . . S LRSS=LRTSTS(LRWLC,0,LRAA)
  . . ; D STWLN,ST2,^LRWLST11,EN^LA7ADL(LRUID)
- . . D STWLN,ST2,^LRWLST11,IHSLOG,EN^LA7ADL(LRUID)    ; IHS/OIT/MKK - LR*5.2*1027
+ . . D STWLN,ST2,^LRWLST11,IHSLOG,EN^LA7ADL(LRUID)    ; IHS/MSC/MKK - LR*5.2*1031
+ . D SICA^LRWLST11
  ;
+ ; Setup accessions requiring 'unique' accession numbers (LRUNQ=1)
  S LRUNQ=1,LRAA=0
  F  S LRAA=$O(LRTSTS(LRWLC,1,LRAA)) Q:LRAA<1  D
  . S LRSS=LRTSTS(LRWLC,1,LRAA)
- . ; F  D GTWLN Q:LREND  D STWLN,ST2,^LRWLST11,EN^LA7ADL(LRUID) Q:$O(LRTSTS(LRWLC,1,LRAA,0))<1
- . F  D GTWLN Q:LREND  D STWLN,ST2,^LRWLST11,IHSLOG,EN^LA7ADL(LRUID)  Q:$O(LRTSTS(LRWLC,1,LRAA,0))<1    ; IHS/OIT/MKK - LR*5.2*1027
+ . F  D GTWLN Q:LREND  D   Q:$O(LRTSTS(LRWLC,1,LRAA,0))<1
+ . . ; D STWLN,ST2,^LRWLST11,EN^LA7ADL(LRUID),SICA^LRWLST11
+ . . D STWLN,ST2,^LRWLST11,IHSLOG,EN^LA7ADL(LRUID),SICA^LRWLST11    ; IHS/MSC/MKK - LR*5.2*1031
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("SPLIT^LRWLST1 9.0")     ; IHS/OIT/MKK - LR*5.2*1027
  Q
  ;
  ; ---- BEGIN IHS/OIT/MKK -- LR*5.2*1027
 IHSLOG ; EP -- Create entry for PCC transfer
- Q:'BLRLOG
+ ; Q:'BLRLOG
+ Q:'+$G(BLRLOG)         ; IHS/MSC/MKK - LR*5.2*1031
  ;
  D ^BLREVTQ("C","A",$G(BLROPT),,LRODT_","_LRSN_","_LRAA_","_LRAD_","_LRAN_","_LRACC)  ;IHS/OIRM TUC/AAB 12/12/96
- ;
- ;
  Q
  ; ---- END IHS/OIT/MKK -- LR*5.2*1027
  ;
  ;
 STWLN ; Set accession number
- ;
  D GETLOCK(LRAA,LRAD)
  D CHECK68(LRAA,LRAD)
  ;
  S LRDPF=$P(^LR(LRDFN,0),U,2),DFN=$P(^(0),U,3)
  ;
- ; Handle "in common area" that was not setup in GTWLN call.
+ ; Handle 'in common' area that was not setup in GTWLN call.
  I '$D(^LRO(68,LRAA,1,LRAD,1,LRAN)) D SETAN(LRAA,LRAD,LRAN)
  ;
  S LREND=0,LRLBLBP=1-$P(LRSS,U,2),LRSS=$P(LRSS,U)
@@ -86,6 +81,7 @@ STWLN ; Set accession number
  S FDA(1,68.02,LR6802,3)=LRODT
  S FDA(1,68.02,LR6802,4)=LRSN
  S FDA(1,68.02,LR6802,6)=LRLLOC
+ S X=$G(^LRO(69,LRODT,1,LRSN,.1)) I X'="" S FDA(1,68.02,LR6802,14)=X
  ;
  ; No ordering provider/location on controls
  I LRDPF'=62.3 D
@@ -106,44 +102,101 @@ STWLN ; Set accession number
  ;
  D FILE^DIE("","FDA(1)","LRDIE(1)")
  ; I $D(LRDIE(1)) D MAILALRT
- I $D(LRDIE(1)) D MAILALRT(1)     ; IHS/OIT/MKK - LR*5.2*1027
+ I $D(LRDIE(1)) D MAILALRT(1)     ; IHS/MSC/MKK - LR*5.2*1031
  ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1032
+ ;       ONLY use data from the 69 for the Specimen & data from 60 for the Collection sample
+ ; 
  ; If specimen defined then set nodes, force to ien=1 since many lab
  ; routines expect the specimen to be record number 1.
- I $G(LRSPEC) D
- . N FDAIEN
- . S FDAIEN(1)=1
- . S FDA(2,68.05,"+1,"_LR6802,.01)=LRSPEC
- . S FDA(2,68.05,"+1,"_LR6802,1)=$P(LRSAMP,";",1)
- . D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
- . ; I $D(LRDIE(2)) D MAILALRT
- . I $D(LRDIE(2)) D MAILALRT(2)   ; IHS/OIT/MKK - LR*5.2*1027
+ ; I $G(LRSPEC) D
+ ; I +$G(LRSPEC) D                                      ; IHS/MSC/MKK - LR*5.2*1031
+ ; . N FDAIEN
+ ; . S FDAIEN(1)=1
+ ; . S FDA(2,68.05,"+1,"_LR6802,.01)=LRSPEC
+ ; . S FDA(2,68.05,"+1,"_LR6802,1)=$P(LRSAMP,";",1)
+ ; . ;
+ ; . ; Modification to prevent lock failures - loop 10 times to give system a chance to get lock
+ ; . N LRLOCKOK,LRLOOPCT
+ ; . S LRLOCKOK=0
+ ; . F LRLOOPCT=1:1:10 Q:LRLOCKOK  D  I 'LRLOCKOK H 5
+ ; . . K LRDIE(2)
+ ; . . D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
+ ; . . S:$D(LRDIE(2))=0 LRLOCKOK=1
+ ; . K LRLOCKOK,LRLOOPCT
+ ; . ;
+ ; . D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
+ ; . I $D(LRDIE(2)) D MAILALRT
+ ; . I $D(LRDIE(2)) D MAILALRT(2)   ; IHS/MSC/MKK - LR*5.2*1031
  ;
  ; If no specimen defined then use specimen values from file #69.
- I $G(LRSPEC)="",$D(^LRO(69,LRODT,1,LRSN,4,0)) D
+ ; I $G(LRSPEC)="",$D(^LRO(69,LRODT,1,LRSN,4,0)) D
+ ; I +$G(LRSPEC)<1,$D(^LRO(69,LRODT,1,LRSN,4,0)) D      ; IHS/MSC/MKK - LR*5.2*1031
+ I $D(^LRO(69,LRODT,1,LRSN,4,0)) D
+ . ; ----- END IHS/MSC/MKK - LR*5.2*1032
  . N FDA,FDAIEN,LRI,LRX
  . S LRI=0
  . F  S LRI=$O(^LRO(69,LRODT,1,LRSN,4,LRI)) Q:'LRI  D
  . . S FDAIEN(1)=LRI,LRX=$G(^LRO(69,LRODT,1,LRSN,4,LRI,0))
  . . S FDA(LRI,68.05,"+1,"_LR6802,.01)=$P(LRX,"^")
+ . . ; S FDA(LRI,68.05,"+1,"_LR6802,1)=$P($G(^LRO(69,LRODT,1,LRSN,0)),"^",3)     ; IHS/MSC/MKK - LR*5.2*1031 - Collection Sample
+ . . D IHSCOLS     ; IHS/MSC/MKK - LR*5.2*1032
  . . D UPDATE^DIE("","FDA(LRI)","FDAIEN","LRDIE(LRI)")
  . . ; I $D(LRDIE(LRI)) D MAILALRT
- . . ; I $D(LRDIE(LRI)) D MAILALRT(LRI)  ; IHS/OIT/MKK - LR*5.2*1027
- . . I $D(LRDIE(LRI)) D MAILALRT("3 ("_LRI_")")  ; IHS/OIT/MKK - LR*5.2*1030
+ . . I $D(LRDIE(LRI)) D MAILALRT("3 ("_LRI_")")  ; IHS/MSC/MKK - LR*5.2*1031
  ;
  ; Create UID.
  S LRUID=$$LRUID^LRX(LRAA,LRAD,LRAN)
  ;
  ; I '$D(LRPHSET),('$G(LRQUIET)) W !!,"ACCESSION:  ",LRACC,"  <",LRUID,">"
- ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
+ ;----- BEGIN IHS/MSC/MKK MODIFICATIONS LR*5.2*1031
  I '$D(LRPHSET),('$G(LRQUIET)) W:'$G(BLRGUI)&('$D(^TMP("LRWLST1",$J,LRACC,LRUID))) !!,"ACCESSION:  ",LRACC,"  <",LRUID,">"  S ^TMP("LRWLST1",$J,LRACC,LRUID)=""  S:$G(BLRGUI) BPCACC=BPCACC_"   "_LRACC
- ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
+ ;----- END IHS/MSC/MKK MODIFICATIONS LR*5.2*1031
  ;
  D UPD696
  ;
  L -^LRO(68,LRAA,1,LRAD,1,0)
- ;
  Q
+ ;
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1032
+ ;       See the LRORDST routine regarding the ^TMP("LRORDST") setup.
+IHSCOLS ; EP - Set Collection Sample - IHS Specific
+ NEW DN,F60IEN,COLLSAMP,COLLSIEN,CSAMP1,CSAMP2,CSAMP3,STR,TMPCNT,TMPSPEC,TMPSAMP,TMPTEST
+ ;
+ S TMPSAMP=0  F  S TMPSAMP=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP))  Q:TMPSAMP<1  D
+ . S TMPSPEC=0  F  S TMPSPEC=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC))  Q:TMPSPEC<1  D
+ .. S TMPCNT=0  F  S TMPCNT=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC,TMPCNT))  Q:TMPCNT<1  D
+ ... S TMPTEST(+$G(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC,TMPCNT)))=TMPSAMP_"^"_TMPSPEC
+ ;
+ S F60IEN=+LRTSTS
+ Q:F60IEN<1
+ ;
+ I $D(TMPTEST) D  Q:$L(LRSAMP)
+ . S STR=$G(TMPTEST(F60IEN))
+ . S LRSAMP=$P(STR,"^"),LRSPEC=$P(STR,"^",2)
+ . S FDA(LRI,68.05,"+1,"_LR6802,1)=LRSAMP
+ ;
+ ; Reset LRSPEC variable
+ S LRSPEC=+LRX
+ S:LRSPEC<1 LRSPEC=-1
+ ;
+ S COLLSIEN=+$O(^LAB(60,F60IEN,3,0))
+ S CSAMP1=+$$GET1^DIQ(60.03,COLLSIEN_","_F60IEN,.01,"I")   ; Collection Sample from File 60
+ S CSAMP2=+$$GET1^DIQ(61,LRSPEC,4.1,"I")                   ; Collection Sample from File 61
+ ;
+ S COLLSAMP=$S(CSAMP2:CSAMP2,1:CSAMP1)
+ Q:COLLSAMP<1
+ ;
+ S FDA(LRI,68.05,"+1,"_LR6802,1)=COLLSAMP
+ ;
+ ; Force the Order file to have the value, if null
+ S:$P(^LRO(69,LRODT,1,LRSN,0),"^",3)="" $P(^LRO(69,LRODT,1,LRSN,0),"^",3)=COLLSAMP
+ ;
+ ; Reset LRSAMP variable
+ S LRSAMP=COLLSAMP
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1032
  ;
  ;
 UPD696 ; Update file #69.6 if LEDI referral patient and no existing entry
@@ -182,10 +235,8 @@ ST2 ; Find next available node in LR global
  I LRSS="CH" S FDA(63,LRX,"+1,"_LRDFN_",",.12)=3
  I LRSS="MI" S FDA(63,LRX,"+1,"_LRDFN_",",38)=3
  I LRX D UPDATE^DIE("","FDA(63)","FDAIEN","LRDIE(63)")
- ;
  ; I $D(LRDIE(63)) D MAILALRT
- ; I $D(LRDIE(63)) D MAILALRT(63)   ; IHS/OIT/MKK - LR*5.2*1027
- I $D(LRDIE(63)) D MAILALRT(4)   ; IHS/OIT/MKK - LR*5.2*102
+ I $D(LRDIE(63)) D MAILALRT(4)   ; IHS/MSC/MKK - LR*5.2*1031
  ;
  ; Uncomment following code when new field .9 in"MI" subscript is released
  ;I LRSS="MI" D
@@ -205,7 +256,7 @@ GTWLN ;
  ;
  ; Execute accession transform for this area.
  S LRAN=0
- S X=$G(^LRO(68,LRWLC,.1)) X:$L(X) X
+ S X=$G(^LRO(68,LRWLC,.1)) X:X'="" X
  ;
  D GETLOCK(LRWLC,LRAD)
  D CHECK68(LRWLC,LRAD)
@@ -229,27 +280,37 @@ ASK ;
  ; Don't ask if tasked or a "silent" call
  I $D(ZTQUEUED)!($G(LRQUIET)) Q
  ;
- K LRDFNX
- S LRSAN=LRAN
- W !,"force to: ",LRAN,"//" R X:DTIME
- S:X="" X=LRAN G:X="^"!'$T END
- S:+X'=X!(X>99999)!(X<1)!(X>LRAN&'$P(LRLABKY,U,2)&(LRDFN'<1)) X=""
- S:X'="" LRAN=X
- I X="" W !,"Must be a number between 1 and ",$S($P(LRLABKY,U,2):99999,1:LRAN),", inclusive.  ""^"" EXITS" G ASK
+ N DIR,DIROUT,DIRUT,DTOUT,DUOUT,LROK,LRANX,X,Y
+ S LROK=0
+ F  D  Q:LREND!(LROK)
+ . K DIR
+ . S DIR(0)="NO^1:"_$S($P(LRLABKY,U,2):999999,1:LRAN)_":0"
+ . S DIR("A")="Force to",DIR("B")=LRAN
+ . D ^DIR
+ . I $D(DIRUT) S LREND=1 Q
+ . S LRANX=Y
+ . I LRANX<+$P($G(^LRO(68,LRWLC,1,LRAD,1,0)),U,3) D
+ . . W !,"This accession number may be already assigned either in this "
+ . . W !,"area or a common accession area."
+ . I $D(^LRO(68,LRWLC,1,LRAD,1,LRANX,0)) D  Q:'LROK
+ . . N LRDFNX S LRDFNX=LRDFN
+ . . N DFN,LRDFN,LRDPF,PNM,SSN
+ . . NEW HRCN
+ . . S LRDFN=+^LRO(68,LRWLC,1,LRAD,1,LRANX,0),LRDPF=$P(^LR(LRDFN,0),U,2),DFN=$P(^LR(LRDFN,0),U,3)
+ . . D PT^LRX
+ . . ; W !,"THIS NUMBER BELONGS TO ",!,PNM,"     SSN: ",SSN
+ . . W !,"THIS NUMBER BELONGS TO ",!,PNM,"     HRCN: ",HRCN     ; IHS/MSC/MKK - LR*5.2*1031
+ . . D INF^LRX
+ . . I LRDFN=LRDFNX S LROK=1
+ . K DIR
+ . S DIR(0)="YO",DIR("A")="Are you sure",DIR("B")="NO"
+ . D ^DIR
+ . I $D(DIRUT) S LREND=1 Q
+ . I Y=1 S LRAN=LRANX,LROK=1
  ;
- ; N PNM,SSN
- ; I $D(^LRO(68,LRWLC,1,LRAD,1,LRAN,0)) S LRDFNX=LRDFN,LRDFN=+^(0),LRDPF=$P(^LR(LRDFN,0),U,2),DFN=$P(^LR(LRDFN,0),U,3) D PT^LRX W !,"THIS NUMBER BELONGS TO ",!,PNM,"     SSN: ",SSN D INF^LRX G:LRDFN=LRDFNX SURE S LRDFN=LRDFNX,LRAN=LRSAN G ASK
- ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
- N PNM,HRCN
- I $D(^LRO(68,LRWLC,1,LRAD,1,LRAN,0)) S LRDFNX=LRDFN,LRDFN=+^(0),LRDPF=$P(^LR(LRDFN,0),U,2),DFN=$P(^LR(LRDFN,0),U,3) D PT^LRX W !,"THIS NUMBER BELONGS TO ",!,PNM,"     HRCN: ",HRCN D INF^LRX G:LRDFN=LRDFNX SURE S LRDFN=LRDFNX,LRAN=LRSAN G ASK
- ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
+ ; Unlock if aborting.
+ I LREND L -^LRO(68,LRWLC,1,LRAD,1,0)
  ;
-WN1A I LRAN<+$P(^LRO(68,LRWLC,1,LRAD,1,0),U,3) D
- . W !,"This accession number may be already assigned either in this "
- . W !,"area or a common accession area."
- ;
-SURE W !,"Are you sure" S %=2 D YN^DICN G:%=-1 END I %'=1 S LRAN=LRSAN G ASK
- K LRSAN
  Q
  ;
  ;
@@ -260,17 +321,17 @@ CHECK68(LRAA,LRAD) ; Check for/set header node of ^LRO(68) 68.01 subfile.
  ;
  ; Set accession date in file #68 for this acession.
  ; Check for existence of accession number multiple but not accession date multiple,
- ; FileMan DBS call fail when accession numbers multiple exist but accession date multiple does not.
+ ; FileMan DBS call fails when accession number multiple exists but accession date multiple does not.
  ; If this condition found then set missing node directly and quit.
  ;
  I '$D(^LRO(68,LRAA,1,LRAD,0)) D
- . N FDA,FDAIEN,LRDIE
- . I $D(^LRO(68,LRAA,1,LRAD,1)) S $P(^LRO(68,LRAA,1,LRAD,0),"^")=LRAD Q
+ . N FDA,FDAIEN,LRDIE,X
+ . S X=$Q(^LRO(68,LRAA,1,LRAD,0))
+ . I X'="",$QS(X,4)=LRAD S $P(^LRO(68,LRAA,1,LRAD,0),"^")=LRAD Q
  . S (FDAIEN(1),FDA(1,68.01,"+1,"_LRAA_",",.01))=LRAD
  . D UPDATE^DIE("","FDA(1)","FDAIEN","LRDIE(1)")
  . ; I $D(LRDIE(1)) D MAILALRT
- . ; I $D(LRDIE(1)) D MAILALRT(1)   ; IHS/OIT/MKK - LR*5.2*1027
- . I $D(LRDIE(1)) D MAILALRT(5)   ; IHS/OIT/MKK - LR*5.2*1030
+ . I $D(LRDIE(1)) D MAILALRT(5)   ; IHS/MSC/MKK - LR*5.2*1031
  ;
  Q
  ;
@@ -296,19 +357,29 @@ SETAN(LRAA,LRAD,LRAN) ; Create stub entry in file #68 for this acession.
  S LR6802=LRAD_","_LRAA_","
  S FDAIEN(1)=LRAN
  S FDA(2,68.02,"+1,"_LR6802,.01)=LRDFN
- D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
+ ;
+ ; Modification to prevent lock failures - loop 10 times to give system a chance to get lock
+ N LRLOCKOK,LRLOOPCT
+ S LRLOCKOK=0
+ F LRLOOPCT=1:1:10 Q:LRLOCKOK  D  I 'LRLOCKOK H 5
+ . K LRDIE(2)
+ . D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
+ . S:$D(LRDIE(2))=0 LRLOCKOK=1
+ K LRLOCKOK,LRLOOPCT
+ ;
+ ;D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
  ; I $D(LRDIE(2)) D MAILALRT
- ; I $D(LRDIE(2)) D MAILALRT(2)     ; IHS/OIT/MKK - LR*5.2*1027
- I $D(LRDIE(2)) D MAILALRT(6)     ; IHS/OIT/MKK - LR*5.2*1030
+ I $D(LRDIE(2)) D MAILALRT(6)     ; IHS/MSC/MKK - LR*5.2*1031
  Q
  ;
  ;
  ; MAILALRT ; Send mail message alert when FileMan DBS errors returned
-MAILALRT(MSGN) ; Send mail message alert when FileMan DBS errors returned - IHS/OIT/MKK - LR*5.2*1027
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1027
+MAILALRT(MSGN) ; Send mail message alert when FileMan DBS errors returned - IHS/MSC/MKK - LR*5.2*1031
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
  ;       Known VA Bug.  Ignore for now.  See LR*5.2*331.
  Q:$$UP^XLFSTR($G(LRDIE(MSGN,"DIERR",1,"TEXT",1)))["ALREADY EXISTS"
- ; ----- END IHS/OIT/MKK - LR*5.2*1027
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
  ;
  N J,LR68,LRCNT,LRMTXT,X,XMINSTR,XMSUB,XMTO
  ;
@@ -317,28 +388,30 @@ MAILALRT(MSGN) ; Send mail message alert when FileMan DBS errors returned - IHS/
  S LRMTXT(1)="The following debugging information is provided to assist"
  S LRMTXT(2)="support staff in resolving error during accessioning."
  ; S LRMTXT(3)=" "
+ ; S LRCNT=3
+ ;
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030 -- Better identification of where error occurred
- S LRMTXT(3)="     LRWLST1 Message #:"_$G(MSGN)
+ S:+$G(MSGN)<7 LRMTXT(3)="     LRWLST1 Message #:"_$G(MSGN)
+ S:+$G(MSGN)=7 LRMTXT(3)="     LRWLST11 Message #:"_$G(MSGN)
  S LRMTXT(4)=" "
  S LRCNT=4
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ;
- F J="FDA","FDAIEN","LR68","LRAA","LRAD","LRAN","LRDFN","LRDIE","LRSS","LRTSTS","LRUNQ","LRWLC" D
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ S LRCNT=LRCNT+1,LRMTXT(LRCNT)="     DUZ="_$G(DUZ)
+ S LRCNT=LRCNT+1,LRMTXT(LRCNT)="     DUZ(2)="_$G(DUZ(2))
+ S LRCNT=LRCNT+1,LRMTXT(LRCNT)=" "
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
+ F J="FDA","FDAIEN","LR68","LRAA","LRAD","LRAN","LRDFN","LRDIE","LRSS","LRTSTS","LRUNQ","LRWLC","XQY","XQY0" D
  . S X=$G(@J)
- . I $L(X) S LRCNT=LRCNT+1,LRMTXT(LRCNT)=J_"="_X
+ . I X'="" S LRCNT=LRCNT+1,LRMTXT(LRCNT)=J_"="_X
  . F  S J=$Q(@J) Q:J=""  S LRCNT=LRCNT+1,LRMTXT(LRCNT)=J_"="_@J
  ;
- S XMSUB="FileMan DBS call failed during accessioning in routine LRWLST1"
+ ; S XMSUB="FileMan DBS call failed during accessioning in routine LRWLST1"
+ S XMSUB="FileMan DBS call failed during accessioning in routine "_$S(+$G(MSGN)<7:"LRWLST1",1:"LRWLST11")    ; IHS/MSC/MKK - LR*5.2*1031
  S XMTO("G.LMI")=""
  S XMINSTR("FROM")=.5
  S XMINSTR("ADDR FLAGS")="R"
  D SENDMSG^XMXAPI(DUZ,XMSUB,"LRMTXT",.XMTO,.XMINSTR)
- Q
- ;
- ;
-END ;
- K LRSAN
- S LREND=1
- ; unlock
- L -^LRO(68,LRWLC,1,LRAD,1,0)
  Q

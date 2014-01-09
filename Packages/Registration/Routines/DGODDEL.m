@@ -1,5 +1,5 @@
 DGODDEL ;ALB/EG - PURGE DISCRETIONARY WORKLOAD ; APR 24, 1989
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  W !!,*7,"DISCRETIONARY WORKLOAD OPTIONS ARE NO LONGER AVAILABLE!",!! Q
  ;;V 4.5
 EN S DGDB=0,U="^" R !,"Purge single (M)onth or (A)ll or (^ to quit): MONTH// ",DGQQ:DTIME G:'$T END S DGQQ=$S(DGQQ'="":$E(DGQQ,1,1),1:"M") I DGQQ="?" D HLP G EN

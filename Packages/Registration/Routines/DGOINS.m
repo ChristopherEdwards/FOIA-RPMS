@@ -1,5 +1,5 @@
 DGOINS ;ALB/MAC - OUTPUT FOR PATIENTS ADMITTED WITH UNKNOWN INSURANCE ; SEP 12 1988@12:00
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  D QUIT,DT^DICRW,ASK2^SDDIV G QUIT:Y<0 S VAUTNI=1,(DGY,DGBEG,DGBEG1,DGEND,DGEND1,DGD,DGL)=0
 DISP W !!,"Display report for (D)ATE RANGE or (C)URRENT DATE:  CURRENT// " S Z="^CURRENT^DATE RANGE",X="" R X:DTIME G QUIT:X["^"!('$T) S:X["d"!(X["c") X=$C($A(X)-32) I X="" S X="C" W X
  S DGL=$E(X) D IN^DGHELP I %=-1 W !!?3,"You may display report for :" D HELP2 S %="" G DISP

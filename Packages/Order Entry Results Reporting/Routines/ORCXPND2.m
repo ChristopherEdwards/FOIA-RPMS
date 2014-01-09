@@ -1,8 +1,9 @@
-ORCXPND2 ; SLC/MKB - Expanded display cont ; 08 May 2002  2:12 PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**34,53,75,94,141**;Dec 17, 1997
+ORCXPND2 ; SLC/MKB - Expanded display cont ;11/16/04  09:29
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**34,53,75,94,141,216**;Dec 17, 1997
 ALLERGY ; -- allergies
  N I,J,X,Y,DATE,SEV,SOURCE D EN1^GMRAOR2(ID,"Y")
  D ITEM^ORCXPND($P(Y,U)),BLANK^ORCXPND
+ S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)=" Nature of Reaction: "_$S($P(Y,U,6)="ALLERGY":"Allergy",$P(Y,U,6)="PHARMACOLOGIC":"Adverse Reaction",1:"Unknown") ;216
  S I=$O(Y("S",0)),LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="     Signs/Symptoms: "_$G(Y("S",+I))
  I $O(Y("S",I)) F  S I=$O(Y("S",I)) Q:I'>0  D
  . S LCNT=LCNT+1
@@ -11,7 +12,7 @@ ALLERGY ; -- allergies
  I $O(Y("V",0)) S I=0 F  S I=$O(Y("V",I)) Q:I'>0  D
  . S LCNT=LCNT+1
  . S ^TMP("ORXPND",$J,LCNT,0)=$$REPEAT^XLFSTR(" ",23)_$P(Y("V",I),U,2)
- S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="             Status: "_$P(Y,U,4)
+ S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="           Verified: "_$S($P(Y,U,4)="VERIFIED":$P(Y,U,8),1:$P(Y,U,4)) ;216
 A1 S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Observed/Historical: "_$P(Y,U,5)
  I $O(Y("O",0)) S I=0 F  S I=$O(Y("O",I)) Q:I'>0  D  ; obs dates
  . S DATE=$P(Y("O",I),U),SEV=$P(Y("O",I),U,2)
@@ -51,7 +52,7 @@ XRPT ; -- body of report for CASE, PROC
  . E  S I="" F  S I=$O(CASENMBR(I)) Q:I=""  S X=X_$S($L(X):", ",1:"")_I
  . S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Case No.      : "_X
  S NODE=$G(^TMP($J,"RAE2",+ORVP,CASE,PROC)),ORIFN=$P(NODE,U,3)
- I ORIFN S REQPROV=+$P($G(^OR(100,+ORIFN,0)),U,4) S:REQPROV LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Req Provider  : "_$P($G(^VA(200,REQPROV,0)),U)
+ I ORIFN S REQPROV=+$P($G(^OR(100,+ORIFN,0)),U,4) S:REQPROV LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Req Provider  : "_$$GET1^DIQ(200,REQPROV_",",.01) ;216
  S ST=$P(NODE,U),LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Report Status : "_ST
  I $P(NODE,U,2)="Y" S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="             ** ABNORMAL RESULTS **" D:$D(IOINHI) CNTRL^VALM10(LCNT,13,22,IOINHI,IOINORM)
  D BLANK^ORCXPND S X="Exam Modifiers: "
@@ -85,8 +86,7 @@ ORDERS ; -- orders
  ;
 DATE(X) ; -- Return formatted date
  N Y S Y=""
- S:X Y=$E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3)
- S:$P(X,".",2) Y=Y_" "_$E(X,9,10)_":"_$E(X,11,12)
+ S:X Y=$$FMTE^XLFDT(X,"2M") ;21
  Q Y
  ;
 DRUG ; -- UD or Outpt med
@@ -156,7 +156,7 @@ WP(SUB,CAPTION) ; -- add wp item
  Q
 SDATES ; -- add start & stop dates, status
  N RXN S RXN=$G(^TMP("PS",$J,"RXN",0))
- I $P(RXN,U,5) S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Pharmacist:         "_$P($G(^VA(200,+$P(RXN,U,5),0)),U)
+ I $P(RXN,U,5) S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Pharmacist:         "_$$GET1^DIQ(200,+$P(RXN,U,5)_",",.01) ;216
  S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Start Date:         "_$$FMTE^XLFDT($P(NODE,U,5),"2P")
  S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Stop Date:          "_$$FMTE^XLFDT($P(NODE,U,3),"2P")
  S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Status:             "_$P(NODE,U,6)

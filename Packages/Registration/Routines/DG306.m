@@ -1,5 +1,5 @@
 DG306 ;ALB/LBD - Post-Install Routine for DG*5.3*306 ; 10-AUGUST-2000
- ;;5.3;Registration;**306**;Aug 13, 1993
+ ;;5.3;Registration;**306,1015**;Aug 13, 1993;Build 21
  ;
  ;
  Q

@@ -1,5 +1,5 @@
-BARMAWO6 ; IHS/SD/LSL - Automatic Write Off ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,2,21**;OCT 26, 2005
+BARMAWO6 ; IHS/SD/LSL - Automatic Write Off for Manilac ;
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**22**;OCT 26, 2005;Build 38
  ;
  ; IHS/ASDS/LSL - 12/11/00 - Routine created
  ;     This routine is intended to be used to clean up accounts
@@ -27,11 +27,11 @@ BARMAWO6 ; IHS/SD/LSL - Automatic Write Off ;
  ;     Option expires by parameter or default to 10/15/01
  ;     One time only?????
  ;     
- ; IHS/SD/PKD - 03/28/11 - 1.8*21 
- ;    Manilaq, Alaska write-offs through 1/1/09 has been approved
- ;    Heat 19931.  Modify to allow Date Range to be entered regardless
- ; 	  of Parameter file
- ; 	  From: Glen Fowler [mailto:glen.fowler@maniilaq.org] 
+ ; IHS/SD/PKD - 03/28/11 - 1.8
+ ; 		Manilaq, Alaska write-offs through 1/1/09 has been approved
+ ; 		Heat 19931.  Modify to allow Date Range to be entered regardless
+ ; 		of Parameter file
+ ; 		From: Glen Fowler [mailto:glen.fowler@maniilaq.org] 
  ;Sent: Thursday, December 16, 2010 1:41 PM
  ; ;Subject: RE: A/R request [19931]
  ; Currently, we are working aged Medicare claims, as the 12/31/10 deadline to submit claims 
@@ -44,6 +44,11 @@ BARMAWO6 ; IHS/SD/LSL - Automatic Write Off ;
  Q
  ;
 EN ;EP
+ ;
+ W !!,"This option was updated in bar*1.8*22 to remove the date check."
+ W !,"It will now run for ANY date and should be used with EXTREME"
+ W !,"caution and only by OIT."
+ W !!
  ;
  S BARHOLD=DUZ(2)
  S (BARCONT,BARCNT)=0
@@ -64,7 +69,7 @@ EN ;EP
  W !,"with a DOS up to and including the end date keyed, will be written off to"
  W !,"the Adjustment Code entered, if the following conditions are met:"
  ;
- W !!?5,"1.  The DOS on the bill is within date range entered"  ;BAR*1.8*21
+ W !!?5,"1.  The DOS on the bill is within date range entered"  ;BAR*1.8*Manilac
  ;W !?5,"2.  The amount billed is less than 20,000.00"
  W !?5,"2.  The A/R Account tied to the bill is in the list specified, "
  W !?5,"3.  The account is NON-BENEFICIARY or BENEFICARY, as selected."
@@ -92,9 +97,9 @@ EN ;EP
  I '+BARACCT D XIT Q
  D CONTINUE                               ; Display choices ask continue
  I '+BARCONT D XIT Q                      ; Don't continue
- D LOOPDUZ^BARMAWO7  ; 1.8*21 PKD 3/28/11
- ;BAR*1.8*21
- .W !!!,BARCNT," Bills written off to Auto Write-off ",BAREXPDT
+ D LOOPDUZ^BARMAWO7  ; 1.8*Manilac PKD 3/28/11
+ ;BAR*1.8*Manilac
+ W !!!,$G(BARCNT)," Bills written off to Auto Write-off ",$G(BAREXPDT)
  D XIT
  Q
  ; *********************************************************************
@@ -121,7 +126,7 @@ ASKLOC ;
  ;
 ASKDOS ;
 DATE ;  don't force dates 3 years into past  
- ; IHS/SD/PKD 3/28/11 1.8*21
+ ; IHS/SD/PKD 3/28/11 1.8*Manilac
  ; Select date range
  S BARDOS=$$DATE^BARDUTL(1)
  I BARDOS<1 Q
@@ -131,7 +136,8 @@ DATE ;  don't force dates 3 years into past
  . W *7
  . W !!,"The END date must not be before the START date.",!
  S Y=BARDOS2
- I Y>3100100 W *7," Date later than 12/31/2009 is not acceptable at this time" G DATE
+ ;IHS/SD/TPF 7/29/2011 TOOK OPUT RESTRICTION PER MALINAC REQUEST.
+ ;I Y>3100100 W *7," Date later than 12/31/2009 is not acceptable at this time" G DATE  ;bar*1.8*22 HEAT53513
  D DD^%DT
  S BARDOS("E")=Y  ;External End Date
  Q

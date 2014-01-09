@@ -1,5 +1,5 @@
-SDAMEVT ;ALB/MJK - Appt Event Driver Utilities ;  [ 09/26/2002  11:30 AM ]
- ;;5.3;Scheduling;**15,132,1005**;Aug 13, 1993
+SDAMEVT ;ALB/MJK - Appt Event Driver Utilities ; 12/1/91 [ 09/19/96  1:39 PM ]
+ ;;5.3;Scheduling;**15,132,443,1005,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 7/06/2000 assume Check-in if appt is TODAY
  ;             7/31/2001 bypass checkin if in silent mode
  ;             1/04/2002 kill visit variables after event driver
@@ -40,7 +40,7 @@ CAPTURE(SDCAP,SDATA,DFN,SDT,SDCL,SDDA,SDHDL) ;
 EVT(SDATA,SDAMEVT,SDMODE,SDHDL) ; -- calls the sdam event protocol
  N OROLD
  K DTOUT,DIROUT
- I SDATA("BEFORE","STATUS")=SDATA("AFTER","STATUS"),'$$COMP^SDAMEVT4(SDHDL,SDAMEVT) G EVTQ
+ I $G(SDATA("BEFORE","STATUS"))=$G(SDATA("AFTER","STATUS")),'$$COMP^SDAMEVT4(SDHDL,SDAMEVT) G EVTQ  ; SD*5.3*443
  S:$P(SDATA,U,3) $P(SDATA,U,5)=$$REQ^SDM1A(+$P(SDATA,U,3))
  ;S X=+$O(^ORD(101,"B","SDAM APPOINTMENT EVENTS",0))_";ORD(101,"  ;IHS/ANMC/LJF 6/22/2000
  S X=+$O(^ORD(101,"B","BSDAM APPOINTMENT EVENTS",0))_";ORD(101,"  ;IHS/ANMC/LJF 6/22/2000

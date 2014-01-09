@@ -1,0 +1,130 @@
+BLRAGUT1 ; IHS/MSC/SAT - Fix for Downed PCC Linker (Utilities) ; [ 07/16/2012  4:00 PM ]
+ ;;5.2;IHS LABORATORY;**1031**;NOV 01, 1997;Build 185
+ ;
+ ;
+SETUP()   ;
+ S NOTSENT=0
+ S AUTOLOAD=0
+ S YEARAGO=$$FMADD^XLFDT($$NOW^XLFDT(),-365)
+ Q $$SETVARS()
+ ;
+SETVARS() ; EP - Set the necessary variables for BLREVTQ to work
+ S LRAS=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))    ; Get Accession
+ I $L(LRAS)<1 Q $$WHYNOT("<NULL>","Accession string does not exist")
+ ;
+ I +$O(^BLRTXLOG("D",LRAS,0)) Q $$WHYNOT(LRAS,"Accession already in ^BLRTXLOG")
+ ;
+ S LRSS=$P($G(^LRO(68,LRAA,0)),"^",2)
+ I LRSS'="CH"&(LRSS'="MI") Q $$WHYNOT(LRAS,"Accession not 'CH' nor 'MI' Subscript")
+ ;
+ S ORIGACCD=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),"^",3)  ; Original Accession Date
+ I ORIGACCD<YEARAGO Q $$WHYNOT(LRAS,"Original Accession Date More than a Year Ago")
+ ;
+ S ORDNUM=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.1))  ; Order Number
+ I ORDNUM<1 Q $$WHYNOT(LRAS,"Order Number does not exist")
+ ;
+ S:+$G(LRODT)<1 LRODT=+$O(^LRO(69,"C",ORDNUM,0))
+ I LRODT<1 Q $$WHYNOT(LRAS,"Order Number "_ORDNUM_"'s Order Date does not exist for "_LRAD_" Accession Date")
+ ;
+ S:+$G(LRSN)<1 LRSN=+$O(^LRO(69,"C",ORDNUM,LRODT,0))
+ I LRSN<1 Q $$WHYNOT(LRAS,"Order Date's LRSN:"_LRSN_" does not exist")
+ ;
+ ;S DTTRAVIL=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,3)),"^",4)     ; Date/Time Results Available
+ ;I +DTTRAVIL<1 Q $$WHYNOT(LRAS,"No 'Results Available' Date")
+ ;
+ S LRCDT=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,3))                  ; Collection Date/Time
+ ;
+ I $$PCCVFILE(LRAA,LRAS,LRCDT,LRSS,.PCCVISIT) Q $$WHYNOT(LRAS,"PCC Visit "_PCCVISIT_" Matched "_$P(LRCDT,".")_" Collection Date.")
+ S (D0,DA,LRIDT)=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,3)),"^",5) ; Inverse Date
+ ;
+ S LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0))
+ S DFN=+$P($G(^LR(LRDFN,0)),"^",3)
+ I DFN<1 Q $$WHYNOT(LRAS,"LRDFN "_LRDFN_" has no DFN.")
+ ;
+ D DFN^LRDAGE(DFN,2,LRCDT)
+ S (BID,HRCN,PID)=$P($G(^AUPNPAT(DFN,41,DUZ(2),0)),"^",2)
+ S PNM=$P($G(^DPT(DFN,0)),"^"),STR=$RE($P($G(^(0)),"^",9))
+ S SSN=$RE($E(STR,7,9))_"-"_$RE($E(STR,5,6))_"-"_$RE($E(STR,1,4))
+ ;
+ S BLRCMF="M",BLRDH=+$H,BLRLOG=1,BLRPCC=1
+ ;S BLROPT="BYPASS"                            ; Set to BYPASS because its already resulted
+ ;S BLRPHASE="R"                               ; Set phase to RESULTing
+ S BLRQSITE=DUZ(2),BLRQUIET=1,BLRSTOP=0
+ S (BLRIDS,LRACC)=LRAS
+ ;
+ S STR=$$FMTE^XLFDT(LRCDT,"2M")
+ S LRDAT=$P(STR,"/",1,2)_" "_$TR($P(STR,"@",2),":")_"d"
+ ;
+ S (LRACD,LRAOD)=LRAD
+ S LRDT0=$$HTE^XLFDT($H,"2D")
+ S LRLABKY="1^1^1^1"
+ S LRLOCKER="^LR("_LRDFN_","_$C(34)_LRSS_$C(34)_","_LRIDT_")"
+ S LROUTINE=9,LRPANEL=0,LRPCEVSO=1
+ ;
+ S PTR=+$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),"^",8),LRLLOC=$P($G(^(0)),"^",7)
+ ;S LRPRAC=$P($G(^VA(200,PTR,0)),"^")
+ S LRPRAC=""
+ I $D(^LRO(69,LRODT,1,LRSN,0)) S LRPRAC=$P(^LRO(69,LRODT,1,LRSN,0),U,6)
+ ;
+ S PTR=+$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),"^",10)
+ ;
+ S LRUID=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3))
+ ;
+ S STR=$G(^VA(200,DUZ,0))
+ S LRUSI=$P(STR,"^",2)
+ S LRUSNM=$P(STR,"^")
+ ;
+ S BLRPARAM=""
+ Q "OK"
+ ;
+PCCVFILE(LRAA,LRAS,LRCDT,LRSS,PCCVISIT) ; EP - Try to determine if Accession already in PCC File
+ NEW BLRVERN,CDTPCC,FOUNDIT,PCCIEN
+ ;
+ S BLRVERN=$P($P($T(+1),";")," ")
+ ;
+ S:LRSS="CH" PCCFILE="^AUPNVLAB(""ALR0"","_$C(34)_LRAS_$C(34)_","
+ S:LRSS="MI" PCCFILE="^AUPNVMIC(""ALR0"","_$C(34)_LRAS_$C(34)_","
+ ;
+ S LRCDT=$P(LRCDT,".")
+ S PCCIEN=.9999999,FOUNDIT=0
+ F  S PCCIEN=$O(@(PCCFILE_PCCIEN_")"))  Q:PCCIEN<1!(FOUNDIT)  D
+ . S CDTPCC=$P($P($G(^AUPNVLAB(PCCIEN,12)),"^"),".")
+ . S:CDTPCC=LRCDT FOUNDIT=PCCIEN
+ ;
+ I FOUNDIT S PCCVISIT=FOUNDIT  Q 1
+ ;
+ Q 0
+ ;
+WHYNOT(LRAS,MESSAGE) ; EP - Store Reason why ^BLREVTQ not called
+ S ^TMP("BLRPCCRR",$J,"NOSEND",LRAS,$H)=MESSAGE
+ S NOTSENT=NOTSENT+1
+ ;
+ D WHYNCNTM(MESSAGE)
+ ;
+ Q:AUTOLOAD "Q"
+ ;
+ ;W !,?4,"Could not set a variable"
+ ;W $S($L(LRAS):" for Accession "_LRAS_".",1:"."),!
+ ;W ?9,"Error Message:",$E(MESSAGE,1,55),!
+ ;D PRESSKEY^BLRGMENU(14)
+ Q "Q"
+ ;
+WHYNCNTM(MESSAGE) ; EP - Just count messages
+ S MESSAGE=$$UP^XLFSTR(MESSAGE)
+ ;
+ I MESSAGE["PCC VISIT",MESSAGE["MATCHED",MESSAGE["COLLECTION DATE" D CNTERRS("PCC VISIT FOUND")  Q
+ I MESSAGE["ACCESSION STRING DOES NOT EXIST" D CNTERRS("ACCESSION STRING DOES NOT EXIST")  Q
+ I MESSAGE["ACCESSION ALREADY IN ^BLRTXLOG" D CNTERRS("ACCESSION ALREADY IN ^BLRTXLOG")  Q
+ I MESSAGE["ACCESSION NOT 'CH' NOR 'MI' SUBSCRIPT" D CNTERRS("ACCESSION NOT 'CH' NOR 'MI' SUBSCRIPT")  Q
+ I MESSAGE["ORDER NUMBER DOES NOT EXIST" D CNTERRS("ORDER NUMBER DOES NOT EXIST")  Q
+ I MESSAGE["NO 'RESULTS AVAILABLE' DATE" D CNTERRS("NO 'RESULTS AVAILABLE' DATE")  Q
+ I MESSAGE["ORDER NUMBER",MESSAGE["ORDER DATE DOES NOT EXIST" D CNTERRS("ORDER DATE DOES NOT EXIST")  Q
+ I MESSAGE["ORDER DATE'S",MESSAGE["DOES NOT EXIST" D CNTERRS("LRSN DOES NOT EXIST")  Q
+ ;
+ D CNTERRS(MESSAGE)
+ Q
+ ;
+CNTERRS(ERRMSG) ; EP
+ S ^TMP("BLRPCCRR",$J,"ERRCNTS",ERRMSG)=1+$G(^TMP("BLRPCCRR",$J,"ERRCNTS",ERRMSG))
+ Q
+ ;

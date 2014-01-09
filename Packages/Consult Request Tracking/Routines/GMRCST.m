@@ -1,7 +1,8 @@
-GMRCST ;SLC/DCM,dee - Statistics on how long to complete consult/requests for a service ;11/15/02 07:39
- ;;3.0;CONSULT/REQUEST TRACKING;**1,7,29**;DEC 27, 1997
+GMRCST ;SLC/DCM,dee - Statistics on how long to complete consult/requests for a service ;23-Sep-2011 09:23;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,7,29,1002**;DEC 27, 1997;Build 1
+ ; Modified - IHS/MSC/MGH - 09/20/2011 -
 EN ; -- main entry point for GMRC REQUEST COMPLETE STAT
- K GMRCSVC,GMRCSVCP
+ K GMRCSVC,GMRCSVCP,GMRTST
  I $D(GMRCEACT),$L(GMRCEACT) D  I '$D(^GMR(123.5,$G(GMRCSVC),0)) D EXIT Q
  .S GMRCSVCP=GMRCEACT
  .S GMRCSVC=$O(^GMR(123.5,"B",GMRCSVCP,0))
@@ -37,7 +38,7 @@ HELP ; -- help code
  ;
 EXIT ; -- exit code
  K ^TMP("GMRCR",$J,"PRL"),^TMP("GMRCSVC",$J)
- K GMRCCT,GMRCSVC,GMRCEDT1,GMRCEDT2
+ K GMRCCT,GMRCSVC,GMRCEDT1,GMRCEDT2,GMRTST
  Q
  ;
 EXPND ; -- expand code
@@ -46,7 +47,7 @@ EXPND ; -- expand code
 PRNTONLY ;Option to just send the report to a device.
  ;Get the service and date range.
  N GMRCQUT,RETURN,GMRCDG,VALMBCK
- N GMRCDT1,GMRCDT2,GMRCEDT1,GMRCEDT2
+ N GMRCDT1,GMRCDT2,GMRCEDT1,GMRCEDT2,GMRTST
  D EN^GMRCSTU
  I $D(GMRCQUT) D EXIT Q
  ;Quit if no array of services
@@ -55,7 +56,7 @@ PRNTONLY ;Option to just send the report to a device.
  D PRNTASK^GMRCSTU
  I $D(GMRCQUT) D EXIT Q
  ;Create the report if not queued
- I '$D(IO("Q")) D ENOR^GMRCSTU(.RETURN,GMRCDG,GMRCDT1,GMRCDT2)
+ I '$D(IO("Q")) D ENOR^GMRCSTU(.RETURN,GMRCDG,GMRCDT1,GMRCDT2,GMRTST)
  ;Print the report
  D PRNTIT^GMRCSTU("PRL","PRNTQ^GMRCST","CONSULT/REQUEST PACKAGE PRINT COMPLETION TIME STATISTICS FROM OPTION")
  D EXIT
@@ -64,7 +65,7 @@ PRNTONLY ;Option to just send the report to a device.
 PRNTQ ;Print Queued report from ^TMP global then kill off ^TMP & ^XTMP
  ;Create the report
  N RETURN,INDEX
- D ENOR^GMRCSTU(.RETURN,GMRCDG,GMRCDT1,GMRCDT2)
+ D ENOR^GMRCSTU(.RETURN,GMRCDG,GMRCDT1,GMRCDT2,GMRTST)
  U IO
  S INDEX=""
  F  S INDEX=$O(^TMP("GMRCR",$J,TMPNAME,INDEX)) Q:INDEX=""  W ^TMP("GMRCR",$J,TMPNAME,INDEX,0),!

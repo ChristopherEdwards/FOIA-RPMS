@@ -1,5 +1,5 @@
 DG53251P        ;BPCIOFO/ACS-UPDATE PLACE OF DISP FILE ;10/06/1999
- ;;5.3;REGISTRATION;**251**;AUG 13, 1993
+ ;;5.3;REGISTRATION;**251,1015**;AUG 13, 1993;Build 21
  ;-----------------------------------------------------------------
  ; P L A C E   O F   D I S P O S I T I O N   (P.O.D)  U P D A T E
  ;

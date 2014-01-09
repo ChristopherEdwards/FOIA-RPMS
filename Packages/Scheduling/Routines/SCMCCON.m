@@ -1,5 +1,5 @@
 SCMCCON ;ALB/REW - Patient Consult MailMessages ; 26 Mar 1996
- ;;5.3;Scheduling;**41,87,100,130**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,87,100,130,1015**;AUG 13, 1993;Build 21
  ;1
 MAIL(DFN,SCCLNM,ENORAP,DATE,SCTMCNA) ;Do Patient Team Changes MailMan Message
  ;   DFN    - ien to PATIENT File

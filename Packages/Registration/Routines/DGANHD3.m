@@ -1,5 +1,5 @@
 DGANHD3 ;ALB/RMO - Set-up Utility and Print NHCU and DOM AMIS's 345-346 ; 01 SEP 90 9:20 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;==============================================================
  ;Set-up Utility Global to print NHCU and DOM AMIS segments for
  ;a selected Month/Year.

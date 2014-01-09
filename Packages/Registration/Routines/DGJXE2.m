@@ -1,4 +1,4 @@
-DGJXE2 ; ;10/29/04
+DGJXE2 ; ;10/15/12
  D DE G BEGIN
 DE S DIE="^VAS(393,",DIC=DIE,DP=393,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^VAS(393,DA,""))=""
  I $D(^("DT")) S %Z=^("DT") S %=$P(%Z,U,4) S:%]"" DE(1)=% S %=$P(%Z,U,5) S:%]"" DE(5)=% S %=$P(%Z,U,6) S:%]"" DE(9)=% S %=$P(%Z,U,7) S:%]"" DE(14)=% S %=$P(%Z,U,8) S:%]"" DE(18)=%

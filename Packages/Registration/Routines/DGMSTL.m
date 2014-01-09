@@ -1,5 +1,5 @@
 DGMSTL ; ALB/SCK - MST Status entry ; 15-DEC-1998
- ;;5.3;Registration;**195**;Aug 13, 1993
+ ;;5.3;Registration;**195,1015**;Aug 13, 1993;Build 21
  ;
  Q
 EN ; -- main entry point for DGMST STATUS ENTRY

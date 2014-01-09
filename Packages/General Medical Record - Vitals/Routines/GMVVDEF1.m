@@ -1,5 +1,6 @@
-GMVVDEF1 ;BPOIFO/JG,HIOFO/FT - BUILD HL7 ORU^R01 MESSAGE FOR VITALS ;4/19/05  15:43
- ;;5.0;GEN. MED. REC. - VITALS;**5,8**;Oct 31, 2002
+GMVVDEF1 ;BPOIFO/JG,HIOFO/FT - BUILD HL7 ORU^R01 MESSAGE FOR VITALS ; 20 Sep 2005  4:36 PM
+ ;;5.0;GEN. MED. REC. - VITALS;**5,8,12,17,11**;Oct 31, 2002
+ ;11/30/2005 KAM/BAY Remedy Calls 121661 and 122742 changes for HL7 message
 VALID ;;VDEF HL7 MESSAGE BUILDER
  ; Creates HL7 V2.4 ORU^R01 message for vitals
  ;
@@ -10,6 +11,7 @@ VALID ;;VDEF HL7 MESSAGE BUILDER
  ;  #3630 - VAFCQRY calls        (controlled)
  ;  #4248 - VDEFEL calls         (controlled)
  ;  #4571 - VDEFREQ calls        (controlled)
+ ; #10035 - DPT( references      (supported)
  ; #10040 - FILE 44 references   (supported)
  ; #10112 - VASITE calls         (supported)
  ;
@@ -31,7 +33,7 @@ EN(EVIEN,KEY,VFLAG,OUT,MSHP) ; Entry point
  ;         Part 2: No longer used
  ;
  N DFN,HLFS,HLCM,HLSC,HLRP,HLES,HLQ,VTLDAT,UM,VTLTYP,DTE,DTP
- N VTLERR,VAL,I,S,X,Y,QUALS,HL7RC,PIDSEG,IEN1,SEQ,STOPCD,EIEVUID
+ N VTLERR,VAL,I,S,X,XX,Y,QUALS,HL7RC,PIDSEG,IEN1,SEQ,STOPCD,EIEVUID
  N SEPF,SEPC,SEPR,SEPE,SEPS,VTLNAM,ARRAY,O2SUP,OUTX,ADD,VTLVUID
  ;
  ; Initialize stuff
@@ -53,7 +55,7 @@ EN(EVIEN,KEY,VFLAG,OUT,MSHP) ; Entry point
  I $P(VTLDAT,U,5)'="" D
  . S STOPCD=$P($G(^SC($P(VTLDAT,U,5),0)),U,7) Q:STOPCD=""
  . S STOPCD=$G(^DIC(40.7,STOPCD,0))
- . S STOPCD=$P(STOPCD,U,2)_";"_$P(STOPCD,U)
+ . S STOPCD=$$HL7RC($P(STOPCD,U,2))_";"_$$HL7RC($P(STOPCD,U))
  ;
  ; Build segments for message in OUTX, $P # = HL7 field #
  ;
@@ -68,48 +70,63 @@ PID K PIDSEG S OUTX="",S=1,SEQ=""
 ORC S S=S+1,OUTX="RE"
  ;
  ; Filler ID
- S X=KEY_HLCM_$P(SITEPARM,U,4)_"_120.5",$P(OUTX,HLFS,3)=X
+ S X=KEY_HLCM_$$HL7RC($P(SITEPARM,U,6))_"_120.5",$P(OUTX,HLFS,3)=X
  ;
  ; Enterer's location
  I $P(VTLDAT,U,5)'="" D
- . S X=$G(^SC($P(VTLDAT,U,5),0)),VAL=$P(X,U,2)
- . S $P(VAL,HLCM,9)=$P(X,U),$P(OUTX,HLFS,13)=VAL
- . S X=$$SITE^VASITE($P(VTLDAT,U),$P(X,U,15))
- . S VAL=$P(X,U,3)_HLCM_$P(X,U,2)_HLCM_"L",$P(OUTX,HLFS,17)=VAL
+ . S X=$G(^SC($P(VTLDAT,U,5),0)),VAL=$$HL7RC($P(X,U,2))_HLCM_$P(VTLDAT,U,5)
+ . S $P(VAL,HLCM,9)=$$HL7RC($P(X,U)),$P(OUTX,HLFS,13)=VAL
+ . I +$P(X,U,15) S X=$$SITE^VASITE($P(VTLDAT,U),$P(X,U,15)) S:X=-1 X=""
+ . E  S X=""
+ . S VAL=$$HL7RC($P(X,U,3))_HLCM_$$HL7RC($P(X,U,2))_HLCM_"L",$P(OUTX,HLFS,17)=VAL
+ ; Parent Facility (Added 04/17/2006)
+ S $P(OUTX,HLFS,21)=$P($$SITE^VASITE(),"^",2)
+ ;
  S VAL=$P(OUTX,HLFS,3),OUTX="ORC"_HLFS_OUTX D SAVE
  ;
  ; OBR
 OBR S S=S+1,OUTX="",VTLNAM=$$HL7RC($P(^GMRD(120.51,VTLTYP,0),U))
- S X=VTLVUID_HLCM_VTLNAM_HLCM_"99VA120.51"
+ S X=VTLVUID_HLCM_VTLNAM_HLCM_$$HL7RC("99VA120.51")
  ;
  ; Add filler ID from ORC-3 & Procedure name
  S $P(OUTX,HLFS,3)=VAL,$P(OUTX,HLFS,4)=X
  ;
  ; Dates/times vital taken & entered
- S DTP=$$TS^VDEFEL($P(VTLDAT,U)),$P(OUTX,HLFS,7)=DTP
- S DTE=$$TS^VDEFEL($P(VTLDAT,U,4)),$P(OUTX,HLFS,8)=DTE
+ S DTP=$$HL7RC($$TS^VDEFEL($P(VTLDAT,U))),$P(OUTX,HLFS,7)=DTP
+ S DTE=$$HL7RC($$TS^VDEFEL($P(VTLDAT,U,4))),$P(OUTX,HLFS,8)=DTE
  ;
  ; Use date/time vital entered for results reported
- S $P(OUTX,HLFS,22)=DTE,OUTX="OBR"_HLFS_OUTX D SAVE
+ S $P(OUTX,HLFS,22)=DTE
+ ;
+ ; Set result status to Final or Error if entered in error
+ S $P(OUTX,HLFS,25)=$E("FE",VTLERR'=""+1)
+ ;
+ ; Technician name
+ S XX=$$XCN200^VDEFEL($P(VTLDAT,U,6))
+ F II=2:1:7 S $P(XX,SEPC,II)=$$HL7RC($P(XX,SEPC,II))
+ S $P(OUTX,HLFS,34)=XX
+ S OUTX="OBR"_HLFS_OUTX D SAVE
  ;
  ; OBX 1 - Vital name
 OBX1 S S=S+1,OUTX=HLFS_"ST"
  ;
  ; Observation ID - Vital name
- S X=VTLVUID_HLCM_VTLNAM_HLCM_"99VA120.51",$P(OUTX,HLFS,3)=X
+ S X=VTLVUID_HLCM_VTLNAM_HLCM_$$HL7RC("99VA120.51"),$P(OUTX,HLFS,3)=X
  ;
  ; Unit of measure
  ; If vital not performed, set units to null
- S UM=$P(VTLDAT,U,9) S:$F("Pass Refused Unavailable",$P(VTLDAT,U,8))>0 UM=""
+ S UM=$$HL7RC($P(VTLDAT,U,9)) S:$F("Pass Refused Unavailable",$P(VTLDAT,U,8))>0 UM=""
  S UM=UM_HLCM_UM_HLCM_"L"
  ;
  ; Set sub-id if O2 supplements to follow
  S:O2SUP'="" $P(OUTX,HLFS,4)=1
- S $P(OUTX,HLFS,5)=$P(VTLDAT,U,8),$P(OUTX,HLFS,6)=UM
+ S $P(OUTX,HLFS,5)=$$HL7RC($P(VTLDAT,U,8)),$P(OUTX,HLFS,6)=UM
  ;
  ; Set result status to Final or Wrong if errors entered
  S $P(OUTX,HLFS,11)=$E("FW",VTLERR'=""+1)
- S $P(OUTX,HLFS,16)=$$XCN200^VDEFEL($P(VTLDAT,U,6))
+ S XX=$$XCN200^VDEFEL($P(VTLDAT,U,6))
+ F II=2:1:7 S $P(XX,SEPC,II)=$$HL7RC($P(XX,SEPC,II))
+ S $P(OUTX,HLFS,16)=XX
  S OUTX="OBX"_HLFS_OUTX D SAVE
  ;
  ; OBX2 - O2 Supplement
@@ -121,7 +138,9 @@ OBX2 G QUALS:O2SUP="" S (VAL,UM)=""
  S X=$P(UM,U),X=X_HLCM_X_HLCM_"L",$P(UM,U)=X
  I $P(UM,U,2)'="" S X=$P(UM,U,2),X=X_HLCM_X_HLCM_"L",$P(UM,U,2)=X
  S $P(OUTX,HLFS,4)=2,$P(OUTX,HLFS,5)=$P(VAL,U,1),$P(OUTX,HLFS,6)=$P(UM,U)
- S $P(OUTX,HLFS,11)="F"
+ ;
+ ; Set result status to Final or Wrong if errors entered
+ S $P(OUTX,HLFS,11)=$E("FW",VTLERR'=""+1)
  S OUTX="OBX"_HLFS_OUTX,X=OUTX D SAVE
  ; If more than one O2 supplement, add another OBX
  ; Field offset in OUT is now +1 because OBX has been added
@@ -137,10 +156,13 @@ QUALS S QUALS="",X=$O(^GMR(120.5,KEY,5,0)) G ERRS:X=""
  S IEN1=0 F  S IEN1=$O(^GMR(120.5,KEY,5,IEN1)) Q:'+IEN1  D
  . S X=^GMR(120.5,KEY,5,IEN1,0),VAL=$$HL7RC($P(^GMRD(120.52,X,0),U))
  . S X=$$GET^GMVUID(120.52,.01,+X_",") ;qualifier vuid
- . S VAL=X_HLCM_VAL_HLCM_"99VA120.52",QUALS=QUALS_VAL_HLRP
+ . S VAL=X_HLCM_VAL_HLCM_$$HL7RC("99VA120.52"),QUALS=QUALS_VAL_HLRP
  ;
- ; Set result and result status
- S $P(OUTX,HLFS,5)=$E(QUALS,1,$L(QUALS)-1),$P(OUTX,HLFS,11)="F"
+ ; Set result
+ S $P(OUTX,HLFS,5)=$E(QUALS,1,$L(QUALS)-1)
+ ;
+ ; Set result status to Final or Wrong if errors entered
+ S $P(OUTX,HLFS,11)=$E("FW",VTLERR'=""+1)
  S OUTX="OBX"_HLFS_OUTX D SAVE
  ;
  ; Entered in Error
@@ -151,8 +173,16 @@ ERRS G ZSC:VTLERR="" S S=S+1,OUTX=HLFS_"CE"_HLFS_"Error Reasons"_HLFS_HLFS
  F I=1:1:$L(X,"~") D
  .S Y=$P(X,"~",I)
  .S EIEVUID=$$GET^GMVUID(120.506,.01,$P(Y,"-",1)) ;error vuid
- .S VAL=VAL_EIEVUID_HLCM_$$HL7RC($P(Y,"-",2))_HLCM_"99VA8985.1"_HLRP
- S VAL=$E(VAL,1,$L(VAL)-1),$P(OUTX,HLFS,5)=VAL,$P(OUTX,HLFS,11)="F"
+ .S VAL=VAL_$$HL7RC(EIEVUID)_HLCM_$$HL7RC($P(Y,"-",2))_HLCM_$$HL7RC("99VA8985.1")_HLRP
+ S VAL=$E(VAL,1,$L(VAL)-1),$P(OUTX,HLFS,5)=VAL
+ ;
+ ; Set result status to Final or Wrong if errors entered
+ S $P(OUTX,HLFS,11)=$E("FW",VTLERR'=""+1)
+ ;
+ ; Entered in error by technician
+ S XX=$$XCN200^VDEFEL($P(VTLDAT,U,12))
+ F II=2:1:7 S $P(XX,SEPC,II)=$$HL7RC($P(XX,SEPC,II))
+ S $P(OUTX,HLFS,16)=XX
  S OUTX="OBX"_HLFS_OUTX D SAVE
  ;
  ; Stop Code & Name

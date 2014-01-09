@@ -1,11 +1,11 @@
-BGOVUPD ; IHS/MSC/MGH - Manage V UPDATE/REVIEWED file ;08-Mar-2011 17:30;DU
- ;;1.1;BGO COMPONENTS;**8**;Mar 20, 2007;Build 1
+BGOVUPD ; IHS/MSC/MGH - Manage V UPDATE/REVIEWED file ;09-Apr-2012 14:25;DU
+ ;;1.1;BGO COMPONENTS;**8,10,11**;Mar 20, 2007;Build 3
  ; Get entries for a patient and either a VIEN Or a date
  ;  INP = Patient IEN [1]^ VIEN [2] ^Start DT [3] ^End dt [4]
  ; .RET returned as a list of records in the format:
  ;   IEN[1] ^ ACTION [2] ^ Action Type [3] ^Visit Date [4] ^Date/time entered [5] ^ entered by [6] ^Event dt/time [7] ^ encounter provider [8]
 GET(RET,INP) ;EP
- N DFN,LRN,VFIEN,TYPE,CNT,VDT,VIEN,IEN,VDATE,UDATE,START
+ N DFN,END,LRN,VFIEN,TYPE,CNT,VDT,VIEN,IEN,VDATE,UDATE,START
  S RET=$$TMPGBL^BGOUTL
  S DFN=+INP
  S VIEN=$P(INP,U,2)
@@ -89,8 +89,14 @@ FILEDATA(TYPE) ;Store the data
  S @FDA@(1.02)="`"_DUZ
  I EVDT="" S EVDT="N"
  S @FDA@(1201)=EVDT
- I PRV="" S PRV=DUZ
- S @FDA@(1204)="`"_PRV
+ ;patch 10 set duz to encounter provider
+ ;I PRV="" S PRV=DUZ
+ S @FDA@(1204)="`"_DUZ
+ ;IHS/MSC/MGH patch 11 added new fields
+ S @FDA@(1216)="N"
+ S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  Q RET

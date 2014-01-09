@@ -1,7 +1,8 @@
 PSOTPCEE ;BIR/MHA-transitional pharmacy benefit enter/edit ;07/01/03
- ;;7.0;OUTPATIENT PHARMACY;**145,153**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**145,153,227,268**;DEC 1997;Build 9
  ;;External reference to SDPHARM1 supported by DBIA 4196
  ;;External reference ^DIC(4 supported by DBIA 2251
+ Q  ;placed out of order by PSO87*227
 ST N PSODFN,FLG,PSODF,FI,INST,SNO,CDT,UL S FI=52.91,$P(UL,"=",79)="="
 PT K DIC,DIE,PSODFN,FLG,PSODF,REC,INST,SNO,CDT
  W ! S (DIC,DIE)=52.91,DIC(0)="QEALM",DLAYGO=FI
@@ -11,7 +12,7 @@ PT K DIC,DIE,PSODFN,FLG,PSODF,REC,INST,SNO,CDT
  I $G(PSODF(2,DA,.351))]"",FLG D  G PT
  .W !!?10,$C(7),"Patient died on "_PSODF(2,PSODFN,.351)_" - Cannot be added to file!!",!
  .S DIK="^PS(52.91," D ^DIK K DIK
- L +^PS(FI,DA):0 I '$T W $C(7),!!,"Patient Data is Being Edited by Another User!",! G PT
+ L +^PS(FI,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) I '$T W $C(7),!!,"Patient Data is Being Edited by Another User!",! G PT
  S (INST,SNO)="" D:FLG
  .S X=$$DEF^SDPHARM1(DA) S:X INST=$P(X,"^"),SNO=$P(X,"^",2)
  .S DR="1////"_DT_";5////M;6////"_SNO_";7////"_INST D ^DIE

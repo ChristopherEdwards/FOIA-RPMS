@@ -1,5 +1,6 @@
-DGPTTS ;ALB/AS - UPDATE FACILITY TREATING SPECIALTY/501 MOVEMENTS IN PTF ; 1/30/90 @12 [ 02/23/2001  2:36 PM ]
- ;;5.3;Registration;**26,61,164**;Aug 13, 1993
+DGPTTS ;ALB/AS/ADL - UPDATE FACILITY TREATING SPECIALTY/501 MOVEMENTS IN PTF ; 1/30/90 @12
+ ;;5.3;Registration;**26,61,164,510,1015**;Aug 13, 1993;Build 21
+ ;;ADL;Update for CSV Project;;Mar 28, 2003
  ;needs to be done - OERR link
  ;
 EV ;entry point from event driver
@@ -10,7 +11,7 @@ DEL ;facility treating specialty has been deleted from ^DGPM
  S DGPTFP=^UTILITY("DGPM",$J,6,DGMV,"PTFP")
  G DEL1:'$D(^DGPT(PTF,"M",+$P(DGPTFP,"^",2),0))
  K DA S DGREC=^(0),DGEX=$S($D(^(300)):^(300),1:""),DA=$P(DGPTFP,"^",2),DA(1)=PTF,DIK="^DGPT("_DA(1)_",""M""," D ^DIK K DA
- S DGMSG="" F X=5:1:15 S:X'=10 DGMSG=DGMSG_$S($D(^ICD9(+$P(DGREC,U,X),0)):$P(^(0),U,1)_", ",1:"")
+ S DGMSG="" F X=5:1:15 I X'=10 S DGPTTMP=$$ICDDX^ICDCODE(+$P(DGREC,U,X),$$GETDATE^ICDGTDRG(PTF)),DGMSG=DGMSG_$S(+DGPTTMP>0:$P(DGPTTMP,U,2)_", ",1:"")
  G DEL1:DGMSG']"" S ^UTILITY($J,"DEL",$P(DGPTFP,"^",2))=DGMSG
  ;-- save expanded codes 
  S DG1=""
@@ -31,6 +32,7 @@ DEL1 S X=^DPT(DFN,0),DGMSG="A transfer between treating specialties for "_$P(X,U
  K DGPTFP,DGREC,DA,DR,DIE,Y,X,DGEX Q
  ;
 LE ;entry point for PTF record update
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1015 still no PTF in IHS
  I '$D(ZTQUEUED),'$G(DGQUIET) W !,"Updating PTF Record #",PTF,"..."
  K ^UTILITY($J,"T")
  S DGPREV=$O(^DGPM("ATS",DFN,DGPMCA,0)),DGDT=$S($D(^DGPM(+$P(DGPMAN,"^",17),0)):+^(0),1:"")

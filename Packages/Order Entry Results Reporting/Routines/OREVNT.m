@@ -1,7 +1,7 @@
-OREVNT ; SLC/MKB - Event delayed orders ;2/24/03  10:34
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,177**;Dec 17, 1997
+OREVNT ; SLC/MKB - Event delayed orders ;3/31/04  13:42 [4/9/04 10:20am]
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,177,195**;Dec 17, 1997
  ;
-EN ; -- view/add delayed orders
+EN ; -- view/add EVOs
  N X,ORP,ORQUIT S VALMBCK=""
  I $G(OREVENT) D  Q:$G(ORQUIT)
  . S X=$$ACTIVE I X D EX S ORQUIT=1 Q  ;return to Active Orders
@@ -14,7 +14,7 @@ EN ; -- view/add delayed orders
  D TAB^ORCHART(ORTAB,1) ;redisplay new order sheet/view
  Q
  ;
-EX ; -- Return to Active Orders view
+EX ; -- Back to Active Orders
  I +$G(OREVENT),'$G(^ORE(100.2,OREVENT,1)),$$EMPTY^OREVNTX(OREVENT) D CANCEL^OREVNTX(OREVENT) ;cancel empty events
  K OREVENT S $P(^TMP("OR",$J,"ORDERS",0),U,3,4)="^1" ;default view
  D TAB^ORCHART(ORTAB,1)
@@ -63,13 +63,13 @@ ACTIVE() ; -- Return to Active orders?
  D ^DIR S:$D(DTOUT)!$D(DUOUT) Y="^"
  Q Y
  ;
-DELAYED() ; -- Return 1 or 0, if current view=delayed orders
+DELAYED() ; -- Return 1 or 0, if current view=EDOs
  I $G(OREVENT) Q 1
  N X,Y S X=$P($G(^TMP("OR",$J,ORTAB,0)),U,3),X=$P(X,";",3)
  S Y=$S("^15^16^17^24^25^"[(U_X_U):1,1:0)
  Q Y
  ;
-NODELAY() ; -- Return 1 or 0, if delay event should be removed
+NODELAY() ; -- Return 1 or 0, if event should be removed
  N X,Y,DIR S DIR(0)="YA"
  S DIR("A")="Remove the release event from these orders? ",DIR("B")="NO"
  S DIR("?")="Enter YES to allow these orders to be released immediately upon signature, or NO to continue and keep this event or select another."
@@ -126,7 +126,7 @@ PT2 S ORPTLK=$$LOCK^ORX2(DFN) I 'ORPTLK W !!,$C(7),$P(ORPTLK,U,2) H 2 Q "^"
  D:'$D(^TMP("ORNEW",$J)) UNLOCK^ORX2(DFN) ;unlock if no new orders
 PTQ Q ORPTEVT
  ;
-HELP(RSP) ; -- ?help for DIR Event lookup to list Events
+HELP(RSP) ; -- ?help for DIR Event lookup
  N X,Y,Z,CNT,DONE
  W !,"Select the release event for which you wish to delay orders."
  W !,"Choose from:" S CNT=1
@@ -147,7 +147,7 @@ NEW(DFN,EVT,IFN) ; -- Create new Patient Event in #100.2
  S HDR=$G(^ORE(100.2,0)),TOTAL=+$P(HDR,U,4),LAST=$O(^ORE(100.2,"?"),-1)
  S I=LAST F I=(I+1):1 Q:'$D(^ORE(100.2,I,0))
  S DA=I,$P(HDR,U,3,4)=DA_U_(TOTAL+1),DFN=+DFN
- S ^ORE(100.2,0)=HDR L -^ORE(100.2,0)
+ S ^ORE(100.2,0)=HDR ;195 Moved unlock to later in code
  S X0=$G(^ORD(100.5,+$G(EVT),0)) I $P(X0,U,12) D  ;link to parent event
  . S DAD=+$P(X0,U,12),$P(X0,U,2)=$P($G(^ORD(100.5,DAD,0)),U,2)
  . S DAD=+$O(^ORE(100.2,"AE",DFN,DAD,0)) Q:DAD<1
@@ -157,6 +157,7 @@ NEW(DFN,EVT,IFN) ; -- Create new Patient Event in #100.2
  S ^ORE(100.2,DA,0)=DFN_U_$G(EVT)_U_ADM_U_$G(IFN)_U_+$E($$NOW^XLFDT,1,12)_U_$G(DUZ)
  S:$G(EVT) ^ORE(100.2,"E",EVT,DA)="",^ORE(100.2,"AE",DFN,EVT,DA)=""
  I $G(IFN) S ^ORE(100.2,"AO",IFN,DA)="",$P(^OR(100,IFN,0),U,17)=DA,^OR(100,"AEVNT",DFN_";DPT(",DA,IFN)=""
+ L -^ORE(100.2,0) ;195 Unlock after global is set
  Q DA
  ;
 NHCU(OREVT) ; -- Returns 1 or 0, if EVT is to NHCU

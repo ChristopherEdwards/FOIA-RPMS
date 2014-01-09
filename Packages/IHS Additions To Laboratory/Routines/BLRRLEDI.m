@@ -1,5 +1,5 @@
-BLRRLEDI ;cmi/flag/maw - BLR REFERENCE LAB LEDI UTILITIES ;6/22/2010 7:51:37 AM
- ;;5.2T;IHS LABORATORY;**1027**;NOV 01, 1997;Build 9
+BLRRLEDI ;cmi/flag/maw - BLR REFERENCE LAB LEDI UTILITIES ;11/14/2012 7:51:37 AM
+ ;;5.2;IHS LABORATORY;**1027,1031**;NOV 01, 1997;Build 185
  ;
  ;
  ;
@@ -40,6 +40,7 @@ DX(OR) ;-- lets add/edit diagnosis here
  Q
  ;
 CLIENT(OR,AC) ;client account number
+ I +$G(BLRAGUI) Q $$CLIENTG(OR,AC)
  N BLRCLCNT
  S BLRCLCNT=$$CLCNT(DUZ(2))
  I $G(BLRCLCNT)=1 D
@@ -66,6 +67,20 @@ CLIENT(OR,AC) ;client account number
  I $D(FERR(1)) W !,"Error adding client account number "_$G(BLRRL("CLIENT"))_" to Order "_OR_" in the Reference Lab Order file" Q ""
  Q $G(FI)
  ;
+CLIENTG(OR,AC) ;store client account number (GUI)
+ N BLRCLCNT
+ S BLRCLCNT=$$CLCNT(DUZ(2))
+ S BLRRL("CLIENT")=BLRRLCLA
+ S BLRRLCLT=BLRRL("CLIENT")
+ S BLRRLCLA=1
+ N FDA,FIENS,FERR,FI
+ S FI=$O(^BLRRLO("B",OR,0))
+ S FIENS=FI_","
+ S FDA(9009026.3,FIENS,.03)=$G(BLRRL("CLIENT"))
+ D FILE^DIE("K","FDA","FERR(1)")
+ ;I $D(FERR(1)) W !,"Error adding client account number "_$G(BLRRL("CLIENT"))_" to Order "_OR_" in the Reference Lab Order file" Q ""
+ Q $G(FI)
+ ;
 CLCNT(DZ2) ;-- get the number of client account numbers to see if we need to prompt
  N BLRRLDA,BLRCLC
  S BLRCLC=0
@@ -85,6 +100,11 @@ BTP(OR,BT) ;-- file the bill type
  Q $G(FI)
  ;
 BILL(BTP,OR,AC,CDT) ;-- this is where we ask billing type
+ I $G(BLRGUI) D  Q
+ .I $G(BLRRL("BILL TYPE"))="" I "CTP"[$G(BLRBT) S BLRRL("BILL TYPE")=BLRBT,BLRINS=1 S BT=$$BTP(OR,BTP) Q
+ .I $G(BLRRL("BILL TYPE"))="" S BLRRL("BILL TYPE")=$P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)
+ .S:$G(BLRRL("BILL TYPE"))'="" BLRINS=1
+ Q:$G(BLRGUI)
  N BT,ORI
  I '$G(CDT) S CDT=$P($G(^BLRRLO($O(^BLRRLO("B",OR,0)),0)),U,6)
  I '$G(CDT) S CDT=DT

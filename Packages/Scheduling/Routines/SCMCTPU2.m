@@ -1,5 +1,5 @@
 SCMCTPU2 ;ALB/REW - Team Position Utilities ; 9 Jun 1995
- ;;5.3;Scheduling;**41,148,204**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,148,204,1015**;AUG 13, 1993;Build 21
  ;1
 YSPTTPPC(DFN,SCACT,SCROLE) ;is it ok to give patient a new pc position
  ;  

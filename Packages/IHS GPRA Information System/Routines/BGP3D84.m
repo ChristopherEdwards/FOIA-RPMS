@@ -1,0 +1,250 @@
+BGP3D84 ; IHS/CMI/LAB - measure C ;
+ ;;13.0;IHS CLINICAL REPORTING;;NOV 20, 2012;Build 81
+ ;
+HEDURI ;EP
+ S (BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPD1,BGPD2,BGPD3,BGPD4,BGPD5,BGPD6,BGPD7,BGPD8,BGPD9,BGPD10,BGPD11,BGPD12)=0
+ I 'BGPACTUP S BGPSTOP=1 Q
+ S A=$$FMDIFF^XLFDT($$FMADD^XLFDT(BGPBDATE,-182),$P(^DPT(DFN,0),U,3))
+ I A<91 S BGPSTOP=1 Q  ;less than 3 months old
+ ;S A=$$AGE^AUPNPAT(DFN,$$FMADD^XLFDT(BGPBDATE,-180))
+ ;I A<2 S BGPSTOP=1  ;must be at least 2
+ S A=$$AGE^AUPNPAT(DFN,$$FMADD^XLFDT(BGPBDATE,182))
+ I A>18 S BGPSTOP=1 Q   ;must not be older than 18 on this date
+ S BGPDN=$$URI(DFN,$$FMADD^XLFDT(BGPBDATE,-182),$$FMADD^XLFDT(BGPBDATE,182)) I 'BGPDN S BGPSTOP=1 Q  ;no URI DX
+ I BGPACTCL S BGPD1=1
+ I BGPACTUP S BGPD2=1
+ S BGPN=$$CANTI(DFN,BGPDN,$$FMADD^XLFDT(BGPDN,3))
+ S BGPN1=$S('$P(BGPN,U):1,1:0)
+ S BGPVALUE=$S(BGPRTYPE'=3:"UP",1:"")_$S(BGPD1:",AC",1:"")_"|||"_$P(BGPN,U,2)_" "_$P(BGPN,U,3)_$S(BGPN1:" MEETS MEASURE",1:"DOES NOT MEET MEASURE")
+ K A,B,C,D,E,F,G,H,I,J,K,M,N,O,P,Q,R,S,T,V,W,X,Y,Z,BDATE,EDATE,BGPDN,BGPN,BGPG,BGPC
+ K ^TMP($J,"A")
+ Q
+ ;
+URI(P,BDATE,EDATE) ;
+ NEW BGPG,Y,X,G,V,E,C,H
+ S Y="BGPG("
+ S X=P_"^ALL DX [BGP URI DXS;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,Y)
+ I '$D(BGPG(1)) Q 0
+ S X=0,G=0 F  S X=$O(BGPG(X)) Q:X'=+X!(G)  D
+ .S V=$P(BGPG(X),U,5)
+ .Q:'$D(^AUPNVSIT(V,0))
+ .I "ASO"'[$P(^AUPNVSIT(V,0),U,7) Q  ;not outpatient
+ .S (C,E)=0 F  S E=$O(^AUPNVPOV("AD",V,E)) Q:E'=+E  S C=C+1
+ .Q:C>1  ;can't have any other diagnoses
+ .I $$CLINIC^APCLV(V,"C")=30 D  Q:H  ;if H is 1 then there was a hosp stay so don't use this visit
+ ..S H=0
+ ..S E=$O(^AUPNVER("AD",V,0)) I E,"ATLM"[$P($G(^AUPNVER(E,0)),U,11) S H=1 Q  ;er visit with admission
+ ..S H=$$HOSPURI(P,$P($P(^AUPNVSIT(V,0),U),"."))
+ .;NOW CHECK FOR ITEM #4 - NO NEW OR REFILL OF ANTIBIOTICS 30 DAYS PRIOR
+ .S BGPD=$P($P(^AUPNVSIT(V,0),U),".")
+ .Q:$$NEWRFA(P,$$FMADD^XLFDT(BGPD,-30),$$FMADD^XLFDT(BGPD,-1))
+ .Q:$$ACTA(P,$$FMADD^XLFDT(BGPD,-30),$$FMADD^XLFDT(BGPD,-1))
+ .;Q:'$$CANTI(P,BGPD,$$FMADD^XLFDT(BGPD,3))
+ .S G=BGPD
+ .Q
+ Q G
+NDC(A,B) ;
+ ;a is drug ien
+ ;b is taxonomy ien
+ NEW BGPNDC
+ S BGPNDC=$P($G(^PSDRUG(A,2)),U,4)
+ I BGPNDC]"",B,$D(^ATXAX(B,21,"B",BGPNDC)) Q 1
+ Q 0
+NEWRFA(P,BDATE,EDATE) ;
+ K ^TMP($J,"A")
+ NEW A,B,E,Z,X,D,V,Y,G,M,T,T1
+ K BGPMEDS1
+ D GETMEDS^BGP3UTL2(P,BDATE,EDATE,,,,,.BGPMEDS1)
+ I '$D(BGPMEDS1) G NEWFRAP
+ S T1=$O(^ATXAX("B","BGP HEDIS ANTIBIOTICS MEDS",0))
+ S T4=$O(^ATXAX("B","BGP HEDIS ANTIBIOTICS NDC",0))
+ S (X,G,M,E)=0,D="" F  S X=$O(BGPMEDS1(X)) Q:X'=+X!(D)  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
+ .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)),$P(^AUPNVMED(Y,0),U,8)="" S D=1
+ K ^TMP($J,"A")
+ I D Q D
+NEWFRAP ;check V PROCEDURE
+ S D=$$LASTPRC^BGP3UTL1(P,"BGP INJECTION ANTIBIOTIC PROCS",BDATE,EDATE)
+ Q $P(D,U)
+CANTI(P,BDATE,EDATE) ;
+ K ^TMP($J,"A")
+ NEW A,B,E,Z,X,D,V,Y,G,M,T,T1
+ K BGPMEDS1
+ D GETMEDS^BGP3UTL2(P,BDATE,EDATE,,,,,.BGPMEDS1)
+ I '$D(BGPMEDS1) G CANTIP
+ S T1=$O(^ATXAX("B","BGP HEDIS ANTIBIOTICS MEDS",0))
+ S T4=$O(^ATXAX("B","BGP HEDIS ANTIBIOTICS NDC",0))
+ S (X,G,M,E)=0,D="" F  S X=$O(BGPMEDS1(X)) Q:X'=+X!(D)  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
+ .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S D=1_U_"antibiotic: "_$$DATE^BGP3UTL($P($P(^AUPNVSIT(V,0),U),"."))
+ K ^TMP($J,"A")
+ I D Q D
+CANTIP ;check V PROCEDURE
+ S D=$$LASTPRC^BGP3UTL1(P,"BGP INJECTION ANTIBIOTIC PROCS",BDATE,EDATE)
+ Q $P(D,U)_$S(D:"^antibiotic injection: "_$$DATE^BGP3UTL($P(D,U,3)),1:"")
+ACTA(P,BDATE,EDATE) ;
+ K ^TMP($J,"A")
+ NEW A,B,E,Z,X,D,V,Y,G,M,T,T1
+ K BGPMEDS1
+ D GETMEDS^BGP3UTL2(P,BDATE,EDATE,,,,,.BGPMEDS1)
+ I '$D(BGPMEDS1) G ACTAP
+ S T1=$O(^ATXAX("B","BGP HEDIS ANTIBIOTICS MEDS",0))
+ S T4=$O(^ATXAX("B","BGP HEDIS ANTIBIOTICS NDC",0))
+ S (X,G,M,E)=0,D="" F  S X=$O(BGPMEDS1(X)) Q:X'=+X!(D)  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
+ .S B=$$FMDIFF^XLFDT(EDATE,$P($P(^AUPNVSIT(V,0),U),"."))
+ .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)),$P(^AUPNVMED(Y,0),U,8)="" I $P(^AUPNVMED(Y,0),U,6)'<B S D=1
+ K ^TMP($J,"A")
+ I D Q D
+ACTAP ;check V PROCEDURE
+ S D=$$LASTPRC^BGP3UTL1(P,"BGP INJECTION ANTIBIOTIC PROCS",$$FMADD^XLFDT(EDATE,-30),$$FMADD^XLFDT(EDATE,-1))
+ Q $P(D,U)_$S(D:"^antibiotic injection: "_$$DATE^BGP3UTL($P(D,U,3)),1:"")
+HOSPURI(P,D) ;is there a hosp with pharyngitis on date D or 1 day later
+ S (I,J,K,Q)=0
+ F  S I=$O(^AUPNVSIT("AAH",P,I)) Q:I'=+I  D
+ .S J=0 F  S J=$O(^AUPNVSIT("AAH",P,I,J)) Q:J'=+J  D
+ ..Q:'$D(^AUPNVSIT(J,0))
+ ..S K=$P($P(^AUPNVSIT(J,0),U),".")
+ ..I K<D Q  ;before outpatient visit
+ ..I K>$$FMADD^XLFDT(D,1) Q  ;more than 1 day after outpatient visit date
+ ..;now must have a pharyngitis dx
+ ..S (R,S,T)=0
+ ..F  S R=$O(^AUPNVPOV("AD",J,R)) Q:R'=+R  D
+ ...S T=$P($G(^AUPNVPOV(R,0)),U)
+ ...Q:T=""
+ ...S T=$P($$ICDDX^ICDCODE(T),U,2)
+ ...Q:T=""
+ ...Q:'$$ICD^ATXCHK(T,$O(^ATXAX("B","BGP URI DXS",0)),9)
+ ...S S=1
+ ..Q:'S
+ ..S Q=1
+ .Q
+ Q Q
+STREP(P,BDATE,EDATE) ;EP
+ K BGPC
+ S BGPC=0
+ S %=$$CPT^BGP3DU(P,BDATE,EDATE,$O(^ATXAX("B","BGP GROUP A STREP CPT",0)))
+ I %]"" Q 1_U_%
+ S %=$$TRAN^BGP3DU(P,BDATE,EDATE,$O(^ATXAX("B","BGP GROUP A STREP CPT",0)))
+ I %]"" Q 1_U_%
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP GROUP A STREP LOINC",0))
+ S BGPLT=$O(^ATXLAB("B","BGP GROUP A STREP TESTS",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D)_U_"LAB" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP3D21(J,T)
+ ...S BGPC=1_U_(9999999-D)_U_"LOINC"
+ ...Q
+ I BGPC Q BGPC
+ ;now check v microbiology
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVMIC("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
+ .S L=0 F  S L=$O(^AUPNVMIC("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
+ ..S X=0 F  S X=$O(^AUPNVMIC("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
+ ...Q:'$D(^AUPNVMIC(X,0))
+ ...I BGPLT,$P(^AUPNVMIC(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVMIC(X,0),U))) S BGPC=1_U_(9999999-D)_U_"MICRO" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVMIC(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP3D21(J,T)
+ ...S BGPC=1_U_(9999999-D)_U_"MICRO LOINC"
+ ...Q
+ Q BGPC
+HEPC ;
+ S (BGPN1,BGPD1)=0
+ NEW BGPHSCR
+ I 'BGPACTUP S BGPSTOP=1 Q
+ Q:$$DOB^AUPNPAT(DFN)<2450101
+ Q:$$DOB^AUPNPAT(DFN)>2651231
+ Q:$$HEPCDX(DFN,BGPEDATE)
+ S BGPD1=1
+ S BGPHSCR=$$HEPCSCR(DFN,BGPEDATE)
+ I $P(BGPHSCR,U,1) S BGPN1=1
+ S BGPVALUE=""
+ S BGPVALUE="UP|||"_$P(BGPHSCR,U,2)
+ Q
+HEPCDX(P,EDATE) ;
+ NEW T,X,G
+ ;now check problem list
+ S T=$O(^ATXAX("B","BGP HEPATITIS C DXS",0))
+ S (X,G)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(G)  D
+ .Q:$P(^AUPNPROB(X,0),U,8)>EDATE  ;if added to pl after end of time period, no go
+ .S Y=$P(^AUPNPROB(X,0),U)
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .Q:'$$ICD^ATXCHK(Y,T,9)
+ .S G=1
+ .Q
+ I G Q G
+ S X=$$LASTDX^BGP3UTL1(P,"BGP HEPATITIS C DXS")
+ I X Q 1
+ Q ""
+HEPCSCR(P,EDATE) ;
+ NEW X,G,T,%,BGPC,BGPLT,L,D,J
+ S %="",E=+$$CODEN^ICPTCOD(86803),%=$$CPTI^BGP3DU(P,$$DOB^AUPNPAT(P),EDATE,E)
+ I % Q 1_U_$$DATE^BGP3UTL($P(%,U,2))_" CPT 86803"
+ ;now get all loinc/taxonomy tests
+ S BGPC=""
+ S T=$O(^ATXAX("B","BGP HEP C TEST LOINC CODES",0))
+ S BGPLT=$O(^ATXLAB("B","BGP HEP C TESTS TAX",0))
+ S E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(BGPC)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!(BGPC)  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!(BGPC)  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_$$DATE^BGP3UTL((9999999-D))_" Lab Test" Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP3D2(J,T)
+ ...S BGPC=1_U_$$DATE^BGP3UTL((9999999-D))_" Lab Test (Loinc "_$$VAL^XBDIQ1(9000010.09,X,1113)_")"
+ ...Q
+ Q BGPC
+CD4RES(P,BDATE,EDATE,NORES) ;EP
+ NEW BGPG,BGPT,BGPC,BGPLT,T,B,E,D,L,X,R,G,C,%
+ K BGPG,BGPT,BGPC
+ S BGPC=0
+ S NORES=$G(NORES)
+ ;now get all loinc/taxonomy tests
+ S T=$O(^ATXAX("B","BGP CD4 LOINC CODES",0))
+ S BGPLT=$O(^ATXLAB("B","BGP CD4 TAX",0))
+ S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=BGPC+1,BGPT(D,BGPC)=$P(^AUPNVLAB(X,0),U,4) Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BGP3D2(J,T)
+ ...S R=$P(^AUPNVLAB(X,0),U,4)
+ ...I 'R S R=""
+ ...S BGPC=BGPC+1,BGPT(D,BGPC)=R
+ ...Q
+ ; now got though and set return value of done 1 or 0^VALUE^date
+ S D=0,G="" F  S D=$O(BGPT(D)) Q:D'=+D!(G]"")  D
+ .S C=0 F  S C=$O(BGPT(D,C)) Q:C'=+C!(G]"")  D
+ ..S X=BGPT(D,C)
+ ..I X="" Q
+ ..S G=(9999999-D)_U_X
+ ..Q
+ I G="" D  ;now get one with no result
+ .S D=0,G="" F  S D=$O(BGPT(D)) Q:D'=+D!(G]"")  D
+ ..S C=0 F  S C=$O(BGPT(D,C)) Q:C'=+C!(G]"")  D
+ ...S X=BGPT(D,C)
+ ...I X="" Q
+ ...S G=(9999999-D)_U_X
+ ..Q
+ ;
+ I 'NORES,G]"" Q 1_U_G  ;IF WANT A RESULT AND THERE IS ONE QUIT
+ S %=$$CPT^BGP3DU(P,BDATE,EDATE,$O(^ATXAX("B","BGP CD4 CPTS",0)),5)
+ I %]"" S BGPC=BGPC+1,BGPT(9999999-$P(%,U,1),BGPC)="CPT "_$P(%,U,2)
+ S %=$$TRAN^BGP3DU(P,BDATE,EDATE,$O(^ATXAX("B","BGP CD4 CPTS",0)),5)
+ I %]"" S BGPC=BGPC+1,BGPT(9999999-$P(%,U,1),BGPC)="CPT "_$P(%,U,2)
+ I '$O(BGPT(0)) Q ""
+ S %=$O(BGPT(0)) S C=$O(BGPT(%,0)) Q 1_"^"_(9999999-%)_"^"_BGPT(%,C)
+ Q ""
+ ;

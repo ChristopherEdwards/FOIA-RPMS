@@ -1,5 +1,6 @@
 SCRPTP3 ;ALB/CMM - List of Team's Patients ; 29 Jun 99  04:11PM
- ;;5.3;Scheduling;**41,48,98,177,231**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,48,98,177,231,433,526,520,1015**;AUG 13, 1993;Build 21
+ ;;DMR BP-OIFO Patch SD*5.3*526
  ;IHS/ANMC/LJF 11/03/2000 used IHS code for last/next appts
  ;
  ;List of Team's Patients Report
@@ -24,56 +25,17 @@ HITS(ARRY,TIEN) ;
  .Q:PNODE=""
  .S DFN=PTIEN
  .D PID^VADPT6
- .S PID=VA("BID")
+ .;S PID=VA("BID")
+ .S PID=$E(VA("PID"),1,3)_$E(VA("PID"),5,6)_$E(VA("PID"),8,12)
  .;
- .S TPA=$$TPAR(PTAI,"")
- .I TPA'=-1 D
- ..S PIEN=$P(TPA,"^")
- ..S PNAME=$P(TPA,"^",2)
- ..S CNAME=$P(TPA,"^",3)
- ..S LAST=$P(TPA,"^",4)
- ..S NEXT=$P(TPA,"^",5)
- ..;
- ..S FLAG="Y"
- ..S TINFO=$$TINF^SCRPTP(TIEN) ;team information
- ..S INST=+$P(TINFO,"^") ;institution ien
- ..S INAME=$P($G(^DIC(4,INST,0)),"^") ;institution name
- ..S PHONE=$P(TINFO,"^",4) ;team phone
- ..S PC=$P(TINFO,"^",3) ;primary care?
- ..S TNAME=$P(TINFO,"^",2) ;team name
- ..;
- ..D TFORMAT^SCRPTP2(INST,INAME,TIEN,TNAME,PHONE,PC)
- ..D FORMAT^SCRPTP(INST,TIEN,PTIEN,PTNAME,PID,PIEN,PNAME,CNAME,LAST,NEXT)
- .;
- .;check for other assignments
- .N TPIN
+ .N CNAME,PINF,CLIEN
  .S CNT=""
  .F  S CNT=$O(^SCPT(404.43,"B",PTAI,CNT)) Q:CNT=""!(CNT'?.N)  D
- ..S TPIN=$$TPAR(PTAI,CNT)
- ..Q:TPIN=-1
- ..S PIEN=$P(TPIN,"^")
- ..S PNAME=$P(TPIN,"^",2)
- ..S CNAME=$P(TPIN,"^",3)
- ..S LAST=$P(TPIN,"^",4)
- ..S NEXT=$P(TPIN,"^",5)
- ..S ROLN=$P(TPIN,U,6)
- ..S PCAP=$P(TPIN,U,7)
- ..I '$D(FLAG) D
- ...S TINFO=$$TINF^SCRPTP(TIEN) ;team information
- ...S INST=+$P(TINFO,"^") ;institution ien
- ...S INAME=$P($G(^DIC(4,INST,0)),"^") ;institution name
- ...S PHONE=$P(TINFO,"^",4) ;team phone
- ...S PC=$P(TINFO,"^",3) ;primary care?
- ...S TNAME=$P(TINFO,"^",2) ;team name
- ...;
- ...D TFORMAT^SCRPTP2(INST,INAME,TIEN,TNAME,PHONE,PC)
- ..D FORMAT^SCRPTP(INST,TIEN,PTIEN,PTNAME,PID,PIEN,PNAME,CNAME,LAST,NEXT,ROLN,PCAP)
- I INACTIVE S @STORE@(INST,TIEN,"INACT")=""
+ ..D TPAR(PTAI,CNT,.PINF,.CNAME,.CLIEN,.PNAME,.ROLN,.PCAP)
  Q
  ;
-TPAR(PTAI,START) ;
- N PTPA,TPIEN,TPNODE,ROL,CNAME,CIEN,ENROLL,OKAY,PNAME,NEXT,LAST,PAIEN
- N ROLN,PCAP
+TPAR(PTAI,START,PINF,CNAME,CLIEN,PNAME,ROLN,PCAP) ;
+ N PTPA,TPIEN,TPNODE,ROL,CIEN,ENROLL,OKAY,NEXT,LAST,PAIEN
  I '$D(^SCPT(404.43,"B",PTAI)) Q "0^[Not Assigned]"
  ; ^ no patient team position assignment
  IF START="" D
@@ -81,7 +43,7 @@ TPAR(PTAI,START) ;
  ELSE  D
  .S PTPA=START
  I PTPA="" Q "0^[Not Assigned]"
- S PTPAN=$G(^SCPT(404.43,PTPA,0)) ;patient team position assignment node
+ S PTPAN=$G(^SCPT(404.43,PTPA,0))  ;patient team assignment
  I PTPAN=""!(PTPAN=0) Q "0^[Not Assigned]"
  I $P(PTPAN,"^",4)'="",$P(PTPAN,"^",4)<DT Q -1
  S TPIEN=+$P(PTPAN,"^",2) ;team position ien (#404.57)
@@ -95,21 +57,29 @@ TPAR(PTAI,START) ;
  ;
  S PCAP=$S($P(PTPAN,U,5)<1:"NPC",+$$OKPREC3^SCMCLK(TPIEN,DT)>0:" AP",1:"PCP") ;PC?
  ;
- S CIEN=+$P(TPNODE,"^",9) ;associated clinic ien
- S CNAME=$P($G(^SC(CIEN,0)),"^") ;clinic name
- ;check patient status
- S OKAY=""
- I CIEN>0&(PSTAT'=1) S OKAY=$$PST^SCRPTP(PTIEN,CIEN)
- Q:(CIEN>0)&('OKAY)&(PSTAT'=1) -1
- ; ^ not selected patient status
- ;
- S ENROLL=$$ENRL(PTIEN,CIEN) ;enrolled in associated clinic
- I 'ENROLL S CNAME="",CIEN=0
+ D SETASCL^SCRPRAC2(TPIEN,.CNAME,.CLIEN)
+ ;next two lines commented off - SD*5.3*433
+ ;S ENROLL=$$ENRL(PTIEN,CIEN) ;enrolled in associated clinic
+ ;I 'ENROLL S CNAME="",CIEN=0
  ;
  S PAIEN=$$CHK(TPIEN)
  I +PAIEN'=0 S PIEN=+PAIEN,PNAME=$P(PAIEN,"^",2) ; practitioner's name
  ;SD*5.3*231
  I +PAIEN=0 S PIEN=0,PNAME="[Inactive Position]"
+ ;
+ D GETPINF^SCRPPAT2(PTIEN,.CLIEN,.PINF)  ;get patient info
+ S CNAME=$G(CNAME(0))
+ S PINF=$G(PINF(0))
+ I PINF="" D
+ .S PINF=PIEN_"^"_$$PDATA^SCRPEC(PIEN,CNAME,CNAME,1)
+ I INACTIVE S @STORE@(INS,TIEN,"INACT")=""
+ S FLAG="Y"
+ S TINFO=$$TINF^SCRPTP(TIEN) ;team information
+ S INST=+$P(TINFO,"^") ;institution ien
+ S INAME=$P($G(^DIC(4,INST,0)),"^") ;institution name
+ S PHONE=$P(TINFO,"^",4) ;team phone
+ S PC=$P(TINFO,"^",3) ;primary care?
+ S TNAME=$P(TINFO,"^",2) ;team name
  ;
  S (NEXT,LAST)=""
  ;I +CIEN>0 S NEXT=$$GETNEXT^SCRPU3(PTIEN,CIEN) ;next appointment;IHS/ANMC/LJF 11/03/2000
@@ -117,22 +87,26 @@ TPAR(PTAI,START) ;
  S NEXT=$$GETAPPT^BSDSCEC(PTIEN,TIEN,"NEXT")  ;IHS/ANMC/LJF 11/03/2000
  S LAST=$$GETAPPT^BSDSCEC(PTIEN,TIEN,"LAST")  ;IHS/ANMC/LJF 11/03/2000
  ;
- Q PIEN_U_PNAME_U_CNAME_U_LAST_U_NEXT_U_ROLN_U_PCAP
+ D TFORMAT^SCRPTP2(INST,INAME,TIEN,TNAME,PHONE,PC)
+ D FORMAT^SCRPTP(INS,TIEN,PTIEN,PTNAME,PID,PIEN,PNAME,CNAME,PINF,ROLN,PCAP)
+ N SCCNT
+ S SCCNT=0 F  S SCCNT=$O(CNAME(SCCNT)) Q:SCCNT=""  D FORMATAC^SCRPTP(SCCNT,CNAME(SCCNT),PINF(SCCNT),INS,TIEN,PTIEN,PTNAME,PID,PIEN,PNAME,ROLN,PCAP)
+ Q
  ;
-ENRL(PTIEN,CLIEN) ;
+ENRL(PTIEN,CLIEN) ;FUNCTIONALITY DISABLED
  ;
- N FOUND,ENODE,EN,NXT
+ ;N FOUND,ENODE,EN,NXT
+ ;S FOUND=0
+ ;Q:'$D(^DPT(PTIEN,"DE","B",CLIEN)) FOUND
+ ;S EN=$O(^DPT(PTIEN,"DE","B",CLIEN,""))
+ ;Q:EN=""!'$D(^DPT(PTIEN,"DE",EN,1)) FOUND
+ ;S NXT=""
+ ;F  S NXT=$O(^DPT(PTIEN,"DE",EN,1,NXT)) Q:(FOUND)!(NXT="")!(NXT'?.N)  D
+ ;check if active enrollment
+ ;S ENODE=$G(^DPT(PTIEN,"DE",EN,1,NXT,0))
+ ;I $P(ENODE,"^",3)'="",$P(ENODE,"^",3)<DT+1!$P(ENODE,"^")>DT Q  ;not active enrollment
+ ;;                      ^ discharge date     ^ enrollment date
  S FOUND=0
- Q:'$D(^DPT(PTIEN,"DE","B",CLIEN)) FOUND
- S EN=$O(^DPT(PTIEN,"DE","B",CLIEN,""))
- Q:EN=""!'$D(^DPT(PTIEN,"DE",EN,1)) FOUND
- S NXT=""
- F  S NXT=$O(^DPT(PTIEN,"DE",EN,1,NXT)) Q:(FOUND)!(NXT="")!(NXT'?.N)  D
- .;check if active enrollment
- .S ENODE=$G(^DPT(PTIEN,"DE",EN,1,NXT,0))
- .I $P(ENODE,"^",3)'="",$P(ENODE,"^",3)<DT+1!$P(ENODE,"^")>DT Q  ;not active enrollment
- .;                      ^ discharge date     ^ enrollment date
- .S FOUND=1
  Q FOUND
  ;
 CHK(TPIEN) ;assigned to a position

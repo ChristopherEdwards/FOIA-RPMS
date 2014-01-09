@@ -1,6 +1,5 @@
-SROQIDP ;BIR/ADM - List of Invasive Diagnostic Procedures ; [ 12/16/98  12:11 PM ]
- ;;3.0; Surgery ;**62,77,50,88**;24 Jun 93
- ;
+SROQIDP ;BIR/ADM - LIST OF INVASIVE DIAGNOSTIC PROCEDURES ;12/16/98  12:11 PM
+ ;;3.0; Surgery ;**62,77,50,88,142**;24 Jun 93
  ;** NOTICE: This routine is part of an implementation of a nationally
  ;**         controlled procedure.  Local modifications to this routine
  ;**         are prohibited.
@@ -30,8 +29,8 @@ QTR ; entry from quarterly report
  N SROP,SROPER S SRIDP=0 D IDP I SRIDP D ADD
  Q
 IDP ; get CPT codes for procedures performed
- N SRCODES,SRCPT,SRMATCH S SRIDP=0 S SROP=$P(^SRF(SRTN,"OP"),"^",2) I SROP S SROP=$P($$CPT^ICPTCOD(SROP),"^",2) D CHECK I SRMATCH S SRIDP=1
- I SRIDP S SROPER=0 F  S SROPER=$O(^SRF(SRTN,13,SROPER)) Q:'SROPER  S SROP=$P($G(^SRF(SRTN,13,SROPER,2)),"^") I SROP D CHECK I 'SRMATCH S SRIDP=0 Q
+ N SRCODES,SRCPT,SRMATCH S SRIDP=0 S SROP=$P($G(^SRO(136,SRTN,0)),"^",2) I SROP S SROP=$P($$CPT^ICPTCOD(SROP),"^",2) D CHECK I SRMATCH S SRIDP=1
+ I SRIDP S SROPER=0 F  S SROPER=$O(^SRO(136,SRTN,3,SROPER)) Q:'SROPER  S SROP=$P($G(^SRO(136,SRTN,3,SROPER,0)),"^") I SROP D CHECK I 'SRMATCH S SRIDP=0 Q
  Q
 CHECK ; compare procedure performed with HQ list
  S SRMATCH=0 F J=1:1:6 Q:SRMATCH  S SRCODES=$P($T(PROC+J),";;",3) F K=1:1 S SRCPT=$P(SRCODES,",",K) Q:'SRCPT  I SRCPT=SROP S SRMATCH=1 Q

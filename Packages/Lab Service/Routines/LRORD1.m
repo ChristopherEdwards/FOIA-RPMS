@@ -1,15 +1,21 @@
-LRORD1 ;VA/DALOI/RWF - LAZY ACCESSION LOGGING ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**1027,1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**1,8,121,153,201,286**;Sep 27, 1994
-L2 Q:$G(LREND)
+LRORD1 ;DALOI/CJS/JAH - LAZY ACCESSION LOGGING ;8/10/04
+ ;;5.2;LAB SERVICE;**1003,1004,1006,1009,1010,1011,1013,1014,1015,1021,1027,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 1,8,121,153,201,286,291
+ ;
+L2 ; EP
+ Q:$G(LREND)
+ N LRBEQT,LRBEVT,LRBETS,LRBEX,LRBEY,LRBEZ,LRBETYP    ; CIDC
  K LROT,LRSAME,LRKIL,LRGCOM,LRCCOM,LR696IEN,LRNATURE
  S LRWPC=LRWP G:$D(LROR) LRFIRST
  I '$D(LRADDTST) K DFN,DIC S PNM="",DIC(0)="EMQ"_$S($P(LRPARAM,U,6)&$D(LRLABKY):"L",1:"") W ! D ^LRDPA I (LRDFN=-1)!$D(DUOUT)!$D(DTOUT) Q
  I $D(LRADDTST),LRADDTST="" Q
  S:'$D(LREND) LREND=0 I LRORDR="" D COLTY^LRWU G DROP:LREND
  S LRDPF=$P(^LR(LRDFN,0),U,2),DFN=$P(^(0),U,3)
-Q12 D LOC^LRWU G DROP:LREND
-Q11 D PRAC^LRWU1 G DROP:LREND
+Q12 ; EP
+ D LOC^LRWU G DROP:LREND
+Q11 ; EP
+ D PRAC^LRWU1 G DROP:LREND
  K T,TT,LRDMAX,LRDTST,LRTMAX
  S DA=0
  F  S DA=$O(^LRO(69,LRODT,1,"AA",LRDFN,DA)) Q:DA<1  I $S($D(^LRO(69,LRODT,1,DA,1)):$P(^(1),U,4)'="U",1:1) S S=$S($D(^LRO(69,LRODT,1,DA,4,1,0)):+^(0),1:0) D
@@ -19,7 +25,8 @@ Q11 D PRAC^LRWU1 G DROP:LREND
  D ORDER^LROW2
  I $D(LRFLOG),$P(LRFLOG,U,3)="MI",$G(LRORDRR)'="R" K DUOUT D MICRO G L2:$D(DUOUT)!$D(DTOUT)
  ;
-LRFIRST S LRSX=1 G Q13:'LRFIRST!(LRWP<2)
+LRFIRST ; EP
+ S LRSX=1 G Q13:'LRFIRST!(LRWP<2)
  W !,"Choose one (or more, separated by commas)  ('*' AFTER NUMBER TO CHANGE URGENCY) "
  F I=1:1:LRWPD D
  . N X
@@ -28,7 +35,7 @@ LRFIRST S LRSX=1 G Q13:'LRFIRST!(LRWP<2)
  . S X=$G(^TMP("LRSTIK",$J,"B",I+LRWPD))
  . I X W ?39," ",X,?44,$P(^TMP("LRSTIK",$J,X),U,2)
 Q13 S LREDO=0
-LEDI ;
+LEDI ; EP
  ;
  ; If LEDI accessioning then check for pending orders in file #69.6
  I $G(LRRSTAT)="I",$G(LRRSITE("SMID"))'="",$G(LRSD("RUID"))'="" D  I $O(LROT(0)) G BAR
@@ -43,32 +50,41 @@ LEDI ;
  . S LRSSX=$P(LRSSX,"*")
  . I '$D(^TMP("LRSTIK",$J,LRSSX)) S LREDO=1
 Q13A I LREDO W !,"Something was mistyped, try again." G Q13
+ ;
  F LRK=1:1 S LRSSX=$P(LRSX,",",LRK) Q:LRSSX=""  D
  . N X
  . S LRST=$S(LRSSX["*":1,1:0),LRSSX=+LRSSX
  . S X=^TMP("LRSTIK",$J,LRSSX)
  . S LRSAMP=$P(X,U,3),LRSPEC=$P(X,U,5),LRTSTS=+X
  . D Q20^LRORDD
+ ;
 BAR S LRM=LRWPC+1,K=0 W !,"Other tests? N//" D % G Q14:'(%["Y")
+ ;
 LRM D MORE^LRORD2
+ ;
 Q14 ; D:$P(LRPARAM,U,17) ^LRORDD D ^LRORD2A D ENSTIK^LROW3 G LRM:'$D(%)&($D(LROT)'=11),DROP:$O(LROT(-1))="",LRM:'$D(%),DROP:%[U K DIC G DROP:'$D(LROT)!(%["N")
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  D Q14A
+ D ENSTIK^LROW3                   ; IHS/MSC/MKK - LR*5.2*1031
  G LRM:'$D(%)&($D(LROT)'=11),DROP:$O(LROT(-1))="",LRM:'$D(%),DROP:%[U
  K DIC
  G DROP:'$D(LROT)!(%["N")
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ;
- W !!,"LAB Order number: ",LRORD,!!
  ;
+ S LRBEY=1 I +LRDPF=2&($G(LRSS)'="BB")&('$$CHKINP^LRBEBA4(LRDFN,LRODT)) D  G DROP:'LRBEY
+ .D BALROR^LRBEBA3(.LRORD)  ; CIDC
+ I ($D(LRBEY)<1)!$D(DUOUT)!$D(DTOUT) Q
+ ;
+ W !!,"LAB Order number: ",LRORD,!!
  I LRECT D  G DROP:LRCDT<1
  . I $G(LRORDRR)="R",$G(LRSD("CDT")) D  Q
  . . S LRCDT=LRSD("CDT")_"^"
  . . S LRORDTIM=$P(LRSD("CDT"),".",2)
  . . I 'LRORDTIM S $P(LRCDT,"^",2)=1
  . D TIME^LROE
- . I LRCDT<1 Q
- . S LRORDTIM=$P(Y,".",2)
+ . I $G(LRCDT)<1 Q
+ . S LRORDTIM=$P($P(LRCDT,U),".",2)
  D NOW^%DTC S LRNT=% S:'LRECT LRCDT=LRNT_"^1"
  S LRIDT=9999999-LRCDT
  D ^LRORDST Q:$D(LROR)
@@ -76,10 +92,13 @@ Q14 ; D:$P(LRPARAM,U,17) ^LRORDD D ^LRORD2A D ENSTIK^LROW3 G LRM:'$D(%)&($D(LROT
  D ASKATORD^BLRAAORU(LRORD)           ; IHS/OIT/MKK - LR*5.2*1030
  ;
  I $D(LRFASTS) D LRWU4^LRFASTS
+ ;
  ; --- BEGIN IHS MODIFICATION cmi/anch/maw REF LAB -- LR*5.2*1021
  I '$G(BLRGUI),$G(^BLRSITE(DUZ(2),"RL")),'$P($G(^BLRSITE(DUZ(2),"RL")),U,22) D BLRRL^LROE  ;cmi/flag/maw 7/28/03 for reference lab shipping manifest 6/22/10 added check of LEDI
  ;--- END IHS MODIFICATION cmi/anch/maw end REF LAB -- LR*5.2*1021
+ ;
  Q:$G(LRKIK)  G L2
+ ;
 % R %:DTIME Q:%=""!(%["N")!(%["Y")  W !,"Answer 'Y' or 'N': " G %
  ;
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
@@ -92,9 +111,8 @@ Q14A ; EP
  S %=$G(%ORIGQ14)    ; Done in case the other routines need the % variable to be set
  D:$P(LRPARAM,U,17) ^LRORDD
  D ^LRORD2A
- D ENSTIK^LROW3
+ ; D ENSTIK^LROW3                 ; IHS/MSC/MKK - LR*5.2*1031 -- Don't call ENSTIK^LROW3 here
  ;
- I +$P($G(^BLRSITE($G(DUZ(2)),0)),U,10),$G(%ORIGQ14)'=$G(%) D ENTRYAUD^BLRUTIL("Q14A^LRORD1 9.0")
  Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
  ;
@@ -106,7 +124,7 @@ MAX ; CHECK FOR MAXIUM ORDER FREQUENCY
  I I7 W !,"You already have that test, do you really want another? N//" D %
  Q
  ;
-URGG ; EP ; W !,"For ",$P(^TMP("LRSTIK",$J,LRSSX),U,2)
+URGG ; W !,"For ",$P(^TMP("LRSTIK",$J,LRSSX),U,2)
  W:'$G(BLRGUI) !,"For ",$P(^TMP("LRSTIK",$J,LRSSX),U,2)    ; IHS/OIT/MKK - LR*5.2*1027
  D URG^LRORD2
  Q
@@ -115,7 +133,8 @@ URGG ; EP ; W !,"For ",$P(^TMP("LRSTIK",$J,LRSSX),U,2)
 DROP W !!,"ORDER CANCELED",$C(7),!! Q:$D(LROR)  G L2 ; !($G(LREND))  G L2
  ;
  ;
-MICRO W !,"Is there one sample for this patient's order"
+MICRO ; EP
+ W !,"Is there one sample for this patient's order"
  S %=1 D YN^DICN
  I %=2!(%=-1) S:%=-1 DUOUT=1 Q
  I %=0 W !,"The collection sample and site/specimen will be used for all tests ordered",!,"at this time for this patient." G MICRO

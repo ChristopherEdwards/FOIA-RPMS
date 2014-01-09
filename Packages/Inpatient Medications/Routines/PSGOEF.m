@@ -1,20 +1,16 @@
 PSGOEF ;BIR/CML3-FINISH ORDERS ENTERED THROUGH OE/RR ;14 May 98 / 2:17 PM
- ;;5.0; INPATIENT MEDICATIONS ;**7,30,29,35,39,47,50,56,80,116**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**7,30,29,35,39,47,50,56,80,116,110,111,133,153,134,222**;16 DEC 97;Build 5
  ;
  ; Reference to ^PS(55 is supported by DBIA 2191
  ; Reference to ^PSDRUG( is supported by DBIA 2192
- ; Reference to ^%DTC is supported by DBIA 10000
- ; Reference to ^DIR is supported by DBIA 10026
- ; Reference to ^VALM is supported by DBIA 10118
- ; Reference to ^VALM1 is supported by DBIA 10116
  ; Reference to DOSE^PSSORPH is supported by DBIA 3234.
- ; Reference to RE^VALM4 is supported by DBIA 10120.
  ;
 START ;
  I '$D(^PS(53.1,+PSGORD)) W $C(7),!?3,"Cannot find this pending order (#",+PSGORD,")." Q
  D NOW^%DTC S PSGDT=+$E(%,1,12) K PSGFDX,PSGEFN,PSGOEEF,PSGOES,PSGONF,PSGRDTX S PSGOES=1,(PSGOEF,PSGOEEF)=0,PSGOEEG=3
  I $D(PSJTUD) S PSGDO=$P($G(^PS(53.1,+PSGORD,.3)),U),(PSGPDRG,PSGPD)=PSJCOI,(PSGPDRGN,PSGPDN)=$$OINAME^PSJLMUTL(PSGPD)
- I $P($G(^PS(53.1,+PSGORD,0)),U,24)'="R" S X=PSGSCH D EN^PSGORS0 S:$D(X) PSGAT=PSGS0Y D
+ I $P($G(^PS(53.1,+PSGORD,0)),U,24)'="R" S X=PSGSCH D EN^PSGORS0 D
+ . S:($D(X)&($P($G(^PS(53.1,+PSGORD,2)),"^",5)="")&($P($G(^PS(53.1,+PSGORD,0)),"^",24)="N")) PSGAT=PSGS0Y
  . NEW PSJDOX,PSJDOSE,PSJPIECE,PSJUNIT,PSJX,X
  . S X=$G(^PS(53.1,+PSGORD,1,1,0)) Q:'+X
  . D DOSE^PSSORPH(.PSJDOX,+X,"U")
@@ -25,28 +21,31 @@ START ;
  . S:PSJPIECE=1 PSJDOSE=$P(X,U,5),PSJUNIT=$P(X,U,6)
  . F X=0:0 S X=$O(PSJDOX(X)) Q:+$G(PSJX)!'X  D
  .. I PSJPIECE=3,($P(PSJDOX(X),U,3)'=PSJDOSE) Q
- .. ;;I PSJPIECE=1,($P(PSJDOX(X),U,1)_$P(PSJDOX(X),U,2)'=(PSJDOSE_PSJUNIT)) Q
- .. I PSJPIECE=1,($P(PSJDOX(X),U,11)'=(PSJDOSE_PSJUNIT)) Q
+ .. I PSJPIECE=1,($P(PSJDOX(X),U,1)_$P(PSJDOX(X),U,2)'=(PSJDOSE_PSJUNIT)) Q
  .. S:+$P(PSJDOX(X),U,12) $P(^PS(53.45,PSJSYSP,2,1,0),U,2)=+$P(PSJDOX(X),U,12),PSJX=1
  I PSGEB'=PSGOPR F X=7,11 S Y=$T(@(3_X)),@("PSGEFN("_X_")="_$P(Y,";",7)),PSGOEEF(+$P(Y,";",3))="",PSGOEEF=PSGOEEF+1
  D GTST^PSGOE6(+PSGORD)
  I $P($G(^PS(53.1,+PSGORD,0)),U,24)'="R" S PSGSD="" D:PSGS0Y]""
- .; NAKED REFERENCE below refers to ^PS(53.1,+PSGORD,0) above
- .N PSJX S PSJX=$P($G(^(0)),U,25) I PSJX="" Q
+ .N PSJX S PSJX=$P($G(^PS(53.1,+PSGORD,0)),U,25) I PSJX="" Q
  .I PSJX["U" S PSGSD=$P($G(^PS(55,DFN,5,+PSJX,2)),U,2) Q
  .I PSJX["V" S PSGSD=$P($G(^PS(55,DFN,"IV",+PSJX,0)),U,2) Q
  .I PSJX["P" S PSGSD=$P($G(^PS(53.1,+PSJX,2)),U,2)
  S:PSGSD="" PSGSD=PSGLI
  S PSGNEDFD=$$GTNEDFD^PSGOE7("U",+PSGPD)
- S:$P($G(PSGNEDFD),U,3)="" $P(PSGNEDFD,U,3)=PSGST N PSGOEA S PSGOEA="R"
+ S:$P($G(PSGNEDFD),U,3)="" $P(PSGNEDFD,U,3)=PSGST  ; N PSGOEA S PSGOEA="R"
  S (PSGNESD,PSGSD)=$$ENSD^PSGNE3(PSGSCH,PSGS0Y,PSGLI,PSGSD)
  ;if this is a renewal order, ignore any 'requested start date' received.  Use the system calculated start date.
  I $P($G(^PS(53.1,+PSGORD,0)),U,24)'="R" D
  . D REQDT^PSJLIVMD(PSGORD)
  E  D
  . S X=$$DSTART^PSJDCU(DFN,$P(^PS(53.1,+PSGORD,0),U,25)) I X]"" S (PSGNESD,PSGSD)=X K PSGRSD
- ;I $P($G(^PS(53.1,+PSGORD,0)),U,24)="R" S X=$$DSTART^PSJDCU(DFN,$P(^PS(53.1,+PSGORD,0),U,25)) I X]"" S (PSGNESD,PSGSD)=X K PSGRSDF,PSGRSD
- D ENFD^PSGNE3(PSGLI) S PSGFD=$S($G(PSGRDTX(+PSGORD,"PSGFD")):PSGRDTX(+PSGORD,"PSGFD"),1:PSGNEFD)
+ D   ; Extend the Default Stop Date if needed for the first renewed order.
+ .N PSGOEAO,PSGWALLO
+ .I $P($G(^PS(53.1,+PSGORD,0)),U,24)="R" S PSGOEAO=PSGOEA,PSGOEA="R",PSGWALLO=$P(^PS(55,DFN,5.1),U)
+ .D ENFD^PSGNE3(PSGLI) S PSGFD=$S($G(PSGRDTX(+PSGORD,"PSGFD")):PSGRDTX(+PSGORD,"PSGFD"),1:PSGNEFD)
+ .I $P($G(^PS(53.1,+PSGORD,0)),U,24)="R" S PSGOEA=PSGOEAO,$P(^PS(55,DFN,5.1),U)=PSGWALLO
+ N DUR,PSGRNSD S PSGRNSD=+$$LASTREN^PSJLMPRI(DFN,PSGORD) I PSGRNSD S DUR=$$GETDUR^PSJLIVMD(DFN,PSGORD,"P",1) I DUR]"" D
+ . N DURMIN S DURMIN=$$DURMIN^PSJLIVMD(DUR) I DURMIN S PSGFD=$$FMADD^XLFDT(PSGRNSD,,,DURMIN)
  S PSGOFD="",PSGSDN=$$ENDD^PSGMI(PSGSD)_U_$$ENDTC^PSGMI(PSGSD),PSGFDN=$$ENDD^PSGMI(PSGFD)_U_$$ENDTC^PSGMI(PSGFD)
  S PSGLIN=$$ENDD^PSGMI(PSGLI)_U_$$ENDTC^PSGMI(PSGLI)
  I '$O(^PS(53.45,PSJSYSP,2,0)) N DRG,DRGCNT S DRGCNT=0 D
@@ -55,26 +54,73 @@ START ;
  Q
 FINISH ;
  ; force display of second screen if CPRS order checks exist
- N NSFF S NSFF=1 K PSJNSS
+ N NSFF,PSGOEF39 S NSFF=1 K PSJNSS
  I $G(PSGORD),$D(PSGRDTX(+PSGORD)) D  K PSGRDTX
  . S:$G(PSGRDTX(+PSGORD,"PSGRSD")) PSGSD=PSGRDTX(+PSGORD,"PSGRSD")
  . S:$G(PSGRDTX(+PSGORD,"PSGRFD")) PSGFD=$S($G(PSGRDTX(+PSGORD,"PSGRFD")):PSGRDTX(+PSGORD,"PSGRFD"),1:$G(PSGNEFD))
+ N PSJCOM S PSJCOM=+$P($G(^PS(53.1,+PSGORD,.2)),"^",8)
+ ; 
+ ; PSJ*5*222
+ ; PSJCT1 is a counter variable.  Every piece of a complex order calls PSGOEF.
+ ; The only time this code is to look for overlapping admin times is when the
+ ; first part of a complex order is being finished.  This variable will keep track
+ ; of how many "parts" of the complex order have been checked.
+ ; 
+ ; Also, since the user can select multiple complex orders to finish, like selecting
+ ; orders 1-2 or 1-3 from the profile, PSJCT1A will keep track of whether the parent
+ ; order number is the same as the first parent order number selected for finishing.
+ ; Since the PSJCT1 counter variable will still be set if multiple complex orders
+ ; are selected, PSJCT1 will be re-set to 1 if the parent complex order number (PSJCT1A) is
+ ; not equal to the original parent order number (PSJCOM).
+ ; 
+ S PSJCT1=$G(PSJCT1)+1
+ I PSJCT1=1 S PSJCT1A=PSJCOM
+ I $G(PSJCT1A)'=PSJCOM S PSJCT1=1,PSJCT1A=PSJCOM
+ ; End of flag setting for PSJ*5*222
  I $O(^PS(53.1,+PSGORD,12,0))!$O(^PS(53.1,+PSGORD,10,0)) D
  .Q:$G(PSJLMX)=1  ; there's no second screen to display
  .S VALMBG=16 D RE^VALM4,PAUSE^VALM1
  D FULL^VALM1
+ I '$D(IOINORM)!('$D(IOINHI)) S X="IORVOFF;IORVON;IOINHI;IOINORM" D ENDR^%ZISS
+ I $G(PSJCOM)'="",$G(PSJCT1)=1 D
+ . D OVERLAP^PSGOEF2 I $G(PSJOVRLP)=1 D
+ . . N X,X1,DIR
+ . . W !!,"**WARNING**"
+ . . W !,"The highlighted admin times for these portions of this complex order overlap.",!!
+ . . S (X,X1)="" F  S X=$O(^TMP("PSJATOVR",$J,X)) Q:X=""  D
+ . . . S X1=$G(^TMP("PSJATOVR",$J,X))
+ . . . W $S($P(X1,"^",4)=1:IORVON,1:""),"Part "_X,IORVOFF," has a schedule of "_$P(X1,"^",2)_" and admin time(s) of "
+ . . . W $S($P(X1,"^",4)=1:IORVON,1:""),$P(X1,"^",3),IORVOFF
+ . . . W !
+ . . . W $S($G(PSJOVR("CONJ",X))="A":"AND",$G(PSJOVR("CONJ",X))="T":"THEN",1:""),!
+ . . W !,"Please ensure the schedules and administration times are appropriate.",!
+ . . S DIR(0)="EA",DIR("A")="Press Return to continue..." D ^DIR W !
+ K ^TMP("PSJATOVR",$J)
  I $G(PSJPROT)=3,'$D(PSJTUD),'$$ENIVUD^PSGOEF1(PSGORD) Q
- I $G(PSGOSCH)]"" D  S:$G(PSGS0XT)>0 $P(^PS(53.1,+PSGORD,2),"^",6)=PSGS0XT
- .N PSGOES,PSGS0Y,PSGSCH S X=PSGOSCH,PSGOES=1 K:$G(PSJTUD) NSFF D ENOS^PSGS0
- I '$G(PSJTUD),$G(PSJNSS),$G(PSGS0XT),($G(PSGOSCH)]"") D NSSCONT^PSGS0(PSGOSCH,PSGS0XT) K PSJNSS
- S CHK=0 S:$P($G(^PS(53.1,+PSGORD,0)),U,24)'="R" PSGSI=$$ENPC^PSJUTL("U",+PSJSYSP,180,PSGSI)     S PSGOEFF=PSGOSCH=""+('$O(^PS(53.45,PSJSYSP,2,0))*10) I PSGOEFF D
- . S X=$S(PSGOEFF#2:" a SCHEDULE",1:"")_$S(PSGOEFF=11:" and",1:"")_$S(PSGOEFF>9:" at least one DISPENSE DRUG",1:"")_" before it can be finished."
+ I $G(PSGOSCH)]"" D  S:$G(PSGS0XT)'="" $P(^PS(53.1,+PSGORD,2),"^",6)=PSGS0XT
+ .N PSGOES,PSGS0Y,PSGSCH S X=PSGOSCH K:$G(PSJTUD) NSFF D ENOS^PSGS0
+ .I '($G(PSGORD)["P"&($P($G(^PS(53.1,+PSGORD,0)),"^",24)="R")) I $G(X)]""&$G(PSGS0Y) S:$G(PSGAT)="" PSGAT=PSGS0Y
+ .I $G(PSJNSS) S PSGOSCH="" K PSJNSS
+ .I $G(PSGORD)["P",$G(PSGAT),$G(PSGS0Y),($G(PSGOSCH)]"") I PSGAT'=PSGS0Y D
+ ..S PSGNSTAT=1 W $C(7),!!,"PLEASE NOTE:  This order's admin times (",PSGAT,")"
+ ..W !?13," do not match the ward times (",PSGS0Y,")"
+ ..W !?13," for this administration schedule (",PSGOSCH,")",!
+ ..S DIR(0)="EA",DIR("A")="Press Return to continue..." D ^DIR K DIR  W !
+ I $G(PSGS0XT)="" S $P(^PS(53.1,+PSGORD,2),"^",6)=$S($P($G(ZZND),"^",3)'="":$P(ZZND,"^",3),1:"")
+ S CHK=0 S:$P($G(^PS(53.1,+PSGORD,0)),U,24)'="R" PSGSI=$$ENPC^PSJUTL("U",+PSJSYSP,180,PSGSI)
+ I '$G(PSJTUD),$G(PSJNSS),($G(PSGOSCH)]"") D NSSCONT^PSGS0(PSGOSCH,PSGS0XT) K PSJNSS S PSGOSCH=""
+ S PSGOEFF=PSGOSCH=""+('$O(^PS(53.45,PSJSYSP,2,0))*10)
+ I PSGOEFF S X=$S(PSGOEFF#2:" a SCHEDULE",1:"")_$S(PSGOEFF=11:" and",1:"")_$S(PSGOEFF>9:" at least one DISPENSE DRUG",1:"")
+ I 'PSGOEFF I (($G(PSGS0XT)="D")&($G(PSGAT)="")) S X=" Admin Times",PSGOEFF=1,PSGOEF39=1
+ I PSGOEFF,X]"" S X=X_" before it can be finished."
  I PSGOEFF S CHK=1 W $C(7),!!,"PLEASE NOTE: This order must have" F Q=1:1:$L(X," ") S Y=$P(X," ",Q) W:$L(Y)+$X>78 ! W Y," "
- I PSGOEFF#2 S F1=53.1,MSG=0,Y=$T(35),@("PSGFN(35)="_$P(Y,";",7)),PSGOEEF(+$P(Y,";",3))=1,(PSGOEE,PSGOEEF)=1 W ! D @$P($T(35),";",3) G:'PSGOEE DONE
+ I $G(PSGOEF39) S PSGOEE=0,PSGOEFF=0 D  I 'PSGOEE D REFRESH^VALM G DONE
+ .S F1=53.1,MSG=0,Y=$T(39),@("PSGFN(39)="_$P(Y,";",7)),PSGOEEF(+$P(Y,";",3))=1,(PSGOEEF,PSGOEE)=1 W ! D @$P($T(39),";",3) S CHK=0
+ I PSGOEFF=1 S F1=53.1,MSG=0,Y=$T(38),@("PSGFN(38)="_$P(Y,";",7)),PSGOEEF(+$P(Y,";",3))=1,(PSGOEE,PSGOEEF)=1 W ! D @$P($T(38),";",3) S CHK=0 G:'PSGOEE DONE
+ I PSGOEFF=11 S F1=53.1,MSG=0,Y=$T(32),@("PSGFN(32)="_$P(Y,";",7)),PSGOEEF(+$P(Y,";",3))=1,(PSGOEE,PSGOEEF)=1 W ! D @$P($T(32),";",3) D  G:'PSGOEE DONE
+ .S F1=53.1,MSG=0,Y=$T(38),@("PSGFN(38)="_$P(Y,";",7)),PSGOEEF(+$P(Y,";",3))=1,(PSGOEE,PSGOEEF)=1 W ! D @$P($T(38),";",3) S CHK=0
  I PSGOEFF>9 S CHK=7 D ENDRG^PSGOEF1(+PSGPD,0) I CHK D ABORTACC Q
  I 'PSGOEFF D OC531^PSGOESF ; check every dispense drug from CPRS
- ;* I 'PSGOEFF D  ; check every dispense drug from CPRS
- ;* .K PSGORQF D ENDDC^PSGSICHK(PSGP,+$G(^PS(53.1,+PSGORD,1,1,0)))
  S VALMBG=1
  I 'PSGOEFF&($D(PSGORQF)) D RE^VALM4 Q
  I $G(MSG) K DIR S DIR(0)="E" W !! D ^DIR
@@ -82,13 +128,16 @@ FINISH ;
  S PSJLMFIN=1
  K PSJACEPT I $O(^PS(53.1,+PSGORD,12,0)) S PSJLMP2=1
  S PSGOEENO=0,PSGSTAT=$S($P(PSJSYSP0,U,9):"ACTIVE",1:"NON-VERIFIED")
- ;/* I $G(PSJTUD) S PSGPDRG=PSGPD,PSGOEEF(108)=1,PSGOEENO=1,VALMSG="This change will cause a new order to be created."
  NEW PSJDOSE,PSJDOX,PSJDSFLG
  D DOSECHK^PSJDOSE
  S:+$G(PSJDSFLG) VALMSG="Dosage Ordered & Dispense Drug are not compatible"
  I PSGODO=PSGDO S PSGOEEF(109)=""
- I PSGODO'=PSGDO S PSGOEENO=1,VALMSG="This change will cause a new order to be created."
+ I PSGODO'=PSGDO S PSGOEENO=1,VALMSG="This change will cause a new order to be created  "
  D EN^VALM("PSJU LM ACCEPT")
+ I $G(PSJNSS) D  S PSGOEEF(26)="" K PSJACEPT,PSJNSS
+ .K DIR S DIR(0)="FOA",DIR("A")="Invalid Schedule" D ^DIR K DIR
+ I $G(PSGS0XT)="D",'$G(PSGS0Y),'$G(PSGAT),((",P,R,")'[(","_$G(PSGST)_",")) D  S PSGOEEF(39)="" K PSJACEPT
+ .K DIR S DIR(0)="FOA",DIR("A")="   WARNING - Admin times are required for DAY OF WEEK schedules  " D ^DIR K DIR
  I '$G(PSJACEPT) D ABORTACC Q
  I $G(PSJRNF),$G(^PS(53.1,+PSGORD,4)) D
  . W $C(7),!!,"ACCEPTING THIS ORDER WILL CHANGE THE STATUS TO ACTIVE."
@@ -101,8 +150,6 @@ ACCEPT ;
  S VALMBCK=$S($G(PSJACEPT):"Q",1:"R")
  I '$G(PSJACEPT) D ABORTACC Q
  K PSGOES,PSGRSD,PSGRSDN D:PSGOEENO NEW3^PSGOEE D:'PSGOEENO UPD^PSGOEF1 I $D(PSGOEF)!PSGOEENO S PSGCANFL=-1
- ;I 'PSGOEAV,PSJSYSL,PSJSYSL<3 S $P(^PS(53.1,+PSGORD,7),"^",1,2)=PSGDT_"^"_$E("D",PSGOEENO)_"E",PSGTOL=2,PSGUOW=DUZ,PSGTOO=2,DA=+PSGORD D ENL^PSGVDS
- ;I PSGOEAV,PSJSYSL>1 S $P(@($S(PSGORD["U":"^PS(55,"_PSGP_",5,",1:"^PS(53.1,")_+PSGORD_",7)"),"^",1,2)=PSGDT_"^"_$E("D",PSGOEENO)_"E",PSGTOL=2,PSGUOW=2,PSGTOO=PSGORD'["U"+1,DA=+PSGORD D ENL^PSGVDS
  D DONE1^PSGOEE
  D DONE
  Q
@@ -110,9 +157,11 @@ BYPASS ;
  S PSGCANFL=1
  ;
 DONE ;
- K CHK,DA,DIE,DR,DRG,MSG,Q1,Q2 ;PSGND,PSGOEE,PSGOEEF,PSGOEEND,PSGOEEG,PSGOEF,PSGOEFF,PSGOES,PSGOPD,PSGOPDN,PSGOPR,PSGOSCH,PSGPDRG,PSGDRGN,PSG0XT,PSGS0Y,OSGSD,Q1,Q2
+ K CHK,DA,DIE,DR,DRG,MSG,Q1,Q2,PSGNSTAT
+ K PSJOVR
  Q
 ABORTACC ; Abort Accept process.
+ K PSJCT1,PSJOVR,PSJOVRLP,PSJCT1A
  D ABORT^PSGOEE K PSGOEEF D GETUD^PSJLMGUD(PSGP,PSGORD),^PSGOEF,ENSFE^PSGOEE0(PSGP,PSGORD),INIT^PSJLMUDE(PSGP,PSGORD) S VALMBCK="R",PSGSD=PSGNESD,PSGFD=PSGNEFD Q
  ;
  ;

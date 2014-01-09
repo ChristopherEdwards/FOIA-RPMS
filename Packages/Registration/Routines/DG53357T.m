@@ -1,5 +1,5 @@
 DG53357T ; ALB/GRR - POST INIT TO REMOVE INSTITUTION NAME FOR PROTOCOLS ; 10-14-99
- ;;5.3;Registration;**357**;Aug 13, 1993
+ ;;5.3;Registration;**357,1015**;Aug 13, 1993;Build 21
  ;
 EN ;
  W @IOF,"Post Init routine started"

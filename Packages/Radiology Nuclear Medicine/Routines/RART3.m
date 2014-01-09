@@ -1,5 +1,5 @@
-RART3 ;HISC/GJC,SWM-Reporting Menu (Part 2) ;05/22/09  09:20
- ;;5.0;Radiology/Nuclear Medicine;**8,10,18,27,35,45,75,99**;Mar 16, 1998;Build 5
+RART3 ;HISC/GJC,SWM-Reporting Menu (Part 2) ; 20 Apr 2011  7:01 PM
+ ;;5.0;Radiology/Nuclear Medicine;**8,10,18,27,35,45,75,99,1003**;Nov 01, 2010;Build 3
  ; continue from RART1
  ; last modif by SS for P18
  ; p99 changed the Staff Phys title to Staff Imaging Phys
@@ -35,7 +35,12 @@ PHYS11 S R1=$O(RA2ND("SSR",R1)) G:R1="" PHYS19
  I $L(RASTR)+$L(RA2ND("SSR",R1))>79 W !,RASTR,";" S RASTR="   "
  S:RASTR]"   " RASTR=RASTR_"; " S RASTR=RASTR_RA2ND("SSR",R1) G PHYS11
 PHYS19 W:RASTR]"" !,RASTR
-PHYS2 S R1=$E($P($G(^VA(200,+$P(R3,"^",12),0)),"^"),1,15)
+PHYS2 ;
+ ;IHS/BJI/DAY - Patch 1003 - Continue Chris Saddler 2004 patch
+ ;No Residents
+ Q
+ ;End Patch
+ S R1=$E($P($G(^VA(200,+$P(R3,"^",12),0)),"^"),1,15)
  S RASTR="Residents : "_R1 S:R1]"" RASTR=RASTR_" (P)"
  I '$O(RA2ND("SRR",0)) W !,RASTR Q
  S R1=0

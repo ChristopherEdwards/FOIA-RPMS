@@ -1,5 +1,5 @@
 DGYUPOST ;ALB/LD - Post Init for Patch DG*5.3*58 ; 7/11/95
- ;;5.3;Registration;**58**;Aug 13, 1993
+ ;;5.3;Registration;**58,1015**;Aug 13, 1993;Build 21
  ;
  ;
  ;-- correct misspelled station type names from STATION TYPE file #45.81

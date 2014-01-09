@@ -1,5 +1,5 @@
 SCRPW81 ; ALB/SCK - SCDX AMB CARE CLOSEOUT RPT FOR MT INDICATOR = U ; 9 JULY 2003
- ;;5.3;Scheduling;**302**;AUG 13, 1993
+ ;;5.3;Scheduling;**302,440,474,1015**;AUG 13, 1993;Build 21
  ;
 EN ; Main entry point for report
  N DIR,DIRUT,SDBEG,SDEND,RSLT,Y,X
@@ -128,7 +128,7 @@ BLD(SDBEG,SDEND) ;  Build list of patient OE's for date range
  Q
  ;
 CHKMT ; Clean out all except those meeting the MT=U conditions
- N DFN,SDOEI,SDOEDT,SDMT,SDO,SDR,SDN,SDAT,SDEC,SDMTI
+ N DFN,SDOEI,SDOEDT,SDMT,SDO,SDR,SDN,SDAT,SDEC,SDMTI,SDMTT
  ;
  S DFN=0
  F  S DFN=$O(^TMP("SCDX MTU",$J,DFN)) Q:'DFN  D
@@ -143,8 +143,10 @@ CHKMT ; Clean out all except those meeting the MT=U conditions
  . . S SDMTI=$$MTI^SCDXUTL0(DFN,SDOEDT,SDEC,SDAT,SDOEI)
  . . I SDMTI'="U" D  Q
  . . . K ^TMP("SCDX MTU",$J,DFN)
+ . . S SDMTT=$$LST^DGMTU(DFN,SDOEDT,1) I $P(SDMTT,U,4)="N" D  Q
+ . . . K ^TMP("SCDX MTU",$J,DFN)
  . . S $P(^TMP("SCDX MTU",$J,DFN,SDOEI),U,4)=SDMTI
- S ^TMP("SCDX MTU",$J,0,"END")=$H
+ S ^TMP("SCDX MTU",$J,0,"END")=$H K SDMTT
  Q
  ;
 SRTNAME ; Sort remaining encounters by patient name and OE date
@@ -184,14 +186,15 @@ MAIL ; send message with report statistics
  Q
  ;
 PRINT ; Print Report
- N SDNAME,SDNODE,SDXNODE,SDOEI,SDOEX,SDOEDT,DFN,PRNTL4,VA,PAGE
+ ;SD*5.3*474 added SDFLAG and corresponding logic
+ N SDNAME,SDNODE,SDXNODE,SDOEI,SDOEX,SDOEDT,DFN,PRNTL4,VA,PAGE,SDFLAG
  ;
  S PAGE=0
  D HDR
  S SDNAME=""
  F  S SDNAME=$O(^TMP("SCDX ASORT",$J,SDNAME)) Q:SDNAME']""  D
  . W !,$E(SDNAME,1,30)
- . S PRNTL4=0
+ . S PRNTL4=0,SDFLAG=1
  . S SDOEDT=0
  . F  S SDOEDT=$O(^TMP("SCDX ASORT",$J,SDNAME,SDOEDT)) Q:'SDOEDT  D
  . . S DFN=$P($G(^TMP("SCDX ASORT",$J,SDNAME,SDOEDT)),U,3)
@@ -200,14 +203,18 @@ PRINT ; Print Report
  . . I 'PRNTL4 D  S PRNTL4=1
  . . . D PID^VADPT6
  . . . W ?($L(SDNAME)+1),"(",VA("BID"),")"
+ . . I 'SDFLAG D  S SDFLAG=1
+ . . . W !,$E(SDNAME,1,30)
+ . . . D PID^VADPT6
+ . . . W ?($L(SDNAME)+1),"(",VA("BID"),")"
  . . W ?35,$$FMTE^XLFDT(SDOEDT,"D"),$S(SDOEX>0:" *",1:"  ")
  . . W ?56,$P($G(^TMP("SCDX ASORT",$J,SDNAME,SDOEDT)),U,4)
  . . S SDNODE=$G(^SCE(SDOEI,0))
  . . W ?68,$E($$GET1^DIQ(40.8,$P(SDNODE,U,11),.01),1,30)
  . . W ?100,$E($$GET1^DIQ(44,$P(SDNODE,U,4),.01),1,30)
- . . I ($Y+5)>IOSL D HDR  Q
+ . . I ($Y+5)>IOSL D HDR S SDFLAG=0 Q
  . . W !
- D FTR
+ D FTR1
  Q
  ;
 HDR ; Report Header
@@ -242,3 +249,8 @@ FTR ; Report Footer
  F SDX=$Y:1:IOSL-2 W !
  W ?5,"* - Transmitted Outpatient Encounter"
  Q
+ ;
+FTR1 ;
+ W !?5,"* - Transmitted Outpatient Encounter"
+ Q
+ ;

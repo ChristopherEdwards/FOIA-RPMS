@@ -1,5 +1,5 @@
 DG53484P ; ALB/MRY - ENVIRONMENT CHECK & POST INSTALL; 4/10/03 12:49pm
- ;;5.3;Registration;**484**;AUG 13, 1993
+ ;;5.3;Registration;**484,1015**;AUG 13, 1993;Build 21
  ;;
 EN ;
  S XPDABORT=""

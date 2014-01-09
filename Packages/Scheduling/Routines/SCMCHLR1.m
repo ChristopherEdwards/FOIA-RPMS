@@ -1,5 +1,5 @@
 SCMCHLR1 ;ALB/KCL - PCMM HL7 Reject Processing - List Manager Screen ; 10-JAN-2000
- ;;5.3;Scheduling;**210**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,505,1015**;AUG 13, 1993;Build 21
  ;
 EN ; Description: Main entry point for SCMC PCMM TRANSMISSION ERRORS. Used
  ; to invoke LM and load list template.
@@ -15,7 +15,7 @@ EN ; Description: Main entry point for SCMC PCMM TRANSMISSION ERRORS. Used
 HDR ; Description: Header code to display text in header area.
  ;
  ;Sort by
- S VALMHDR(1)="Sort By: "_$S(SCSORTBY="N":"Patient Name",SCSORTBY="D":"Date Error Received",SCSORTBY="P":"Provider",1:"Unknown")
+ S VALMHDR(1)="Sort By: "_$S(SCSORTBY="N":"Patient Name",SCSORTBY="D":"Date Error Received",SCSORTBY="P":"Provider",SCSORTBY="I":"Institution",1:"Unknown")
  ;
  ;Date range
  I $G(SCBEG),($G(SCEND)) D
@@ -32,7 +32,7 @@ HDR ; Description: Header code to display text in header area.
  Q
  ;
  ;
-INIT ; Description: Initilize variables and list array for building list.
+INIT ; Description: Initialize variables and list array for building list.
  ;
  K SCBEG,SCEND,SCEPS,SCSORTBY
  K VALMBEG,VALMEND,VALMSG
@@ -96,7 +96,7 @@ EXIT ; Description: This is used to cleanup variables and do other exit processi
  D CLEAR^VALM1
  D CLEAN^VALM10
  K SCBEG,SCEND,SCEPS,SCSORTBY,VALMSG
- K ^TMP(SCARY_"SRT",$J),^TMP(SCARY_"IDX",$J)
+ K ^TMP(SCARY_"SRT",$J),^TMP(SCARY_"IDX",$J),X
  Q
  ;
  ;

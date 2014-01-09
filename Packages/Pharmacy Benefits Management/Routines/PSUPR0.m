@@ -1,5 +1,5 @@
 PSUPR0 ;BIR/PDW -  PROCUREMENT EXTRACT ENTRY ROUTINE ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ;DBIA's
  ; Reference to file 4.3 supported by DBIA 10091
@@ -27,17 +27,28 @@ PULLQ ;Q
  M ^XTMP(PSUPRSUB,"SAVE")=X
  K X
  ;    Process the Procurement Files
+ ; Code for CoreFLS  *  NOTE: This will be commented out as of 7/1/04
+ ;until such time as CoreFLS code is released.
+ ;S X="PSAFLS" X ^%ZOSF("TEST")
+ ;I $T D
+ ;.S PSUPRSUB="PSUPR_"_$J
+ ;.S PSUFLSFG=""    ;FLAG TO SIGNAL COREFLS IN EFFECT
+ ;.D EN^PSUPR2
+ ;.D EN^PSUPR3
+ ;.K PSUFLSFG
+ ;I '$T D          ;CoreFLS code. Commented out. When CoreFLS code is
+ ;released put the next 3 lines inside a dot structure.
  D EN^PSUPR1 ; file 442
- D EN^PSUPR2 ; file 58.81
- D EN^PSUPR3 ; file 58.811
+ D EN^PSUPR2 ; file 58.811
+ D EN^PSUPR3 ; file 58.81
  K PSUMSG
  D EN^PSUPR4(.PSUMSG) ; detailed mail message to Hines
+ D EN^PSUPR5    ;Summary Mail Routines
  ;
  ;   return counters to master routine
  S PSUSUB="PSU_"_PSUJOB
- I $D(^XTMP(PSUSUB)),PSUMASF,PSUDUZ,PSUPBMG M ^XTMP(PSUSUB,"CONFIRM")=PSUMSG
- ;
- D EN^PSUPR5 ;  Summary Mail Routines
+ I $D(^XTMP(PSUSUB)),PSUDUZ,PSUPBMG M ^XTMP(PSUSUB,"CONFIRM")=PSUMSG
+ ;D EN^PSUPR5 ;  Summary Mail Routines
  Q
 PRINT ;EP Tasking Entry Point for PRINT REPORT
  D EN^PSUPR6

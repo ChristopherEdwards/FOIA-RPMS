@@ -1,31 +1,29 @@
-PSOCPDUP ;BIR/SAB - Dup drug and class checker for copy orders ;2/13/96
- ;;7.0;OUTPATIENT PHARMACY;**11,27,32,130,132**;DEC 1997
+PSOCPDUP ;BIR/SAB - Dup drug and class checker for copy orders ;20-Feb-2013 13:50;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,32,130,132,192,207,222,243,305,1015**;DEC 1997;Build 62
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
+ ;External references to ^ORRDI1 supported by DBIA 4659
+ ;External references to ^XTMP("ORRDI" supported by DBIA 4660
+ ;
+ ;Modified - IHS/MSC/MGH - 02/20/2013 - Lines +11,+15
  S $P(PSONULN,"-",79)="-",(STA,DNM)=""
  F  S STA=$O(PSOSD(STA)) Q:STA=""  F  S DNM=$O(PSOSD(STA,DNM)) Q:DNM=""  D  Q:$G(PSORX("DFLG"))
  .I STA="PENDING" D ^PSODRDU1 Q
  .I STA="ZNONVA" D NVA^PSODRDU1 Q
- .D:PSODRUG("NAME")=$P(DNM,"^")&('$D(^XUSEC("PSORPH",DUZ)))  Q:$G(PSORX("DFLG"))
+ .D:$$UP^XLFSTR(PSODRUG("NAME"))=$P(DNM,"^")&('$D(^XUSEC("PSORPH",DUZ)))  Q:$G(PSORX("DFLG"))
  ..I $P($G(PSOPAR),"^",16) D DUP Q:$G(PSORX("DFLG"))
  ..I $P(PSOPAR,"^",2),'$P($G(PSOPAR),"^",16) D DUP Q:$G(PSORX("DFLG"))
- ..I '$P(PSOPAR,"^",2),'$P($G(PSOPAR),"^",16) D DUP
- .D:PSODRUG("NAME")=$P(DNM,"^")&($D(^XUSEC("PSORPH",DUZ))) DUP Q:$G(PSORX("DFLG"))
+ ..I '$P(PSOPAR,"^",2),'$P($G(PSOPAR),"^",16) D DUP Q:$G(PSORX("DFLG"))
+ .D:$$UP^XLFSTR(PSODRUG("NAME"))=$P(DNM,"^")&($D(^XUSEC("PSORPH",DUZ))) DUP Q:$G(PSORX("DFLG"))
  .I PSODRUG("VA CLASS")]"",$E(PSODRUG("VA CLASS"),1,4)=$E($P(PSOSD(STA,DNM),"^",5),1,4),PSODRUG("NAME")'=$P(DNM,"^") S PSOCPCLS=1 D CLS K PSOCPCLS
- G EXIT
-DOSE ;I '$D(PSOCLOZ) G EXIT
- S DIR(0)="N^12.5:3000:1",DIR("A")="CLOZAPINE dosage (mg/day) ? " D ^DIR K DIR I $D(DTOUT)!($D(DUOUT)) G EXIT
- S PSOCD=X
- I PSOCD#25=0,PSOCD'<12.5,PSOCD<900 S PSONEW("SAND")=PSOCD_"^"_$G(PSOLR)_"^"_$G(PSOLDT) G EXIT
- I PSOCD#12.5 S DIR(0)="Y",DIR("B")="NO",DIR("A")=PSOCD_" is an unusual dose.  Are you sure " D ^DIR K DIR G EXIT:$D(DTOUT),EXIT:$D(DUOUT) I X'="Y" G DOSE
- S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)=" "
- I PSOCD>900 S DIR(0)="Y",DIR("A")="Recommended maximum daily dose is 900. Are you sure " D ^DIR K DIR G EXIT:$D(DTOUT),EXIT:$D(DUOUT) I X'="Y" G DOSE
- S PSONEW("SAND")=PSOCD_"^"_$G(PSOLR)_"^"_$G(PSOLDT)
+ K ^TMP($J,"DD"),^TMP($J,"DC"),^TMP($J,"DI")
+ D REMOTE
 EXIT D ^PSOBUILD K CAN,DA,DIR,DNM,DUPRX0,ISSD,J,LSTFL,MSG,PHYS,PSOCLC,PSONULN,REA,RFLS,RX0,RX2,RXREC,ST,Y,ZZ,ACT,PSOCLOZ,PSOLR,PSOLDT,PSOCD,SIG
  Q
 DUP S:$P(PSOSD(STA,DNM),"^",2)<10!($P(PSOSD(STA,DNM),"^",2)=16) DUP=1 W !,PSONULN,!,$C(7),"DUPLICATE DRUG "_$P(DNM,"^")_" in Prescription: ",$P(^PSRX(+PSOSD(STA,DNM),0),"^")
  S RXREC=+PSOSD(STA,DNM),MSG="Discontinued During Prescription Entry COPY - Duplicate Drug"
 DATA S DUPRX0=^PSRX(RXREC,0),RFLS=$P(DUPRX0,"^",9),ISSD=$P(^PSRX(RXREC,0),"^",13),RX0=DUPRX0,RX2=^PSRX(RXREC,2),SIG=$P($G(^PSRX(RXREC,"SIG")),"^"),$P(RX0,"^",15)=+$G(^PSRX(RXREC,"STA"))
  W !!,$J("Status: ",24) S J=RXREC D STAT^PSOFUNC W ST K RX0,RX2 W ?40,$J("Issued: ",24),$E(ISSD,4,5)_"/"_$E(ISSD,6,7)_"/"_$E(ISSD,2,3)
+ D PRSTAT^PSODRDUP(RXREC)
  K FSIG,BSIG I $P($G(^PSRX(RXREC,"SIG")),"^",2) D FSIG^PSOUTLA("R",RXREC,54) F PSREV=1:1 Q:'$D(FSIG(PSREV))  S BSIG(PSREV)=FSIG(PSREV)
  K FSIG,PSREV I '$P($G(^PSRX(RXREC,"SIG")),"^",2) D EN2^PSOUTLA1(RXREC,54)
  W !,$J("SIG: ",24) W $G(BSIG(1))
@@ -34,7 +32,7 @@ DATA S DUPRX0=^PSRX(RXREC,0),RFLS=$P(DUPRX0,"^",9),ISSD=$P(^PSRX(RXREC,0),"^",13
  W !,$J("QTY: ",24)_$P(DUPRX0,"^",7),?40,$J("# of refills: ",24)_RFLS S PHYS=$S($D(^VA(200,+$P(DUPRX0,"^",4),0)):$P(^(0),"^"),1:"UNKNOWN")
  W !,$J("Provider: ",24)_PHYS,?40,$J("Refills remaining: ",24),RFLS-$S($D(^PSRX(RXREC,1,0)):$P(^(0),"^",4),1:0)
  S LSTFL=+^PSRX(RXREC,3) W !?40,$J("Last filled on: ",24)_$E(LSTFL,4,5)_"/"_$E(LSTFL,6,7)_"/"_$E(LSTFL,2,3),!?40,$J("Days Supply: ",24)_$P(DUPRX0,"^",8)
- W !,PSONULN,! I $P($G(^PS(53,+$P($G(PSORX("PATIENT STATUS")),"^"),0)),"^")["AUTH ABS",'$P(PSOPAR,"^",5) W !,"PATIENT ON AUTHORIZED ABSENSE!" Q
+ W !,PSONULN,! I $P($G(^PS(53,+$P($G(PSORX("PATIENT STATUS")),"^"),0)),"^")["AUTH ABS"!($G(PSORX("PATIENT STATUS"))["AUTH ABS")&'$P(PSOPAR,"^",5) W !,"PATIENT ON AUTHORIZED ABSENCE!" Q
 ASKCAN I $P(PSOSD(STA,DNM),"^",2)>10,$P(PSOSD(STA,DNM),"^",2)'=16 Q
  I '$P(PSOPAR,"^",2),'$P(PSOPAR,"^",16),'$D(^XUSEC("PSORPH",DUZ)),'$G(CLS) S PSORX("DFLG")=1 K DIR S DIR(0)="E",DIR("A")="Press Return to Continue" D ^DIR K DIR Q
  I $P(PSOPAR,"^",2),'$P(PSOPAR,"^",16),'$D(^XUSEC("PSORPH",DUZ)),'$G(CLS) S PSORX("DFLG")=1 K DIR S DIR(0)="E",DIR("A")="Press Return to Continue" D ^DIR K DIR Q
@@ -62,3 +60,17 @@ ULRX ;
  I '$G(RXRECCOP) Q
  D PSOUL^PSSLOCK(RXRECCOP)
  Q
+ ;
+REMOTE ;
+ Q:$G(PSORX("DFLG"))
+ I $T(HAVEHDR^ORRDI1)']"" Q
+ I '$$HAVEHDR^ORRDI1 Q
+ I $D(^XTMP("ORRDI","OUTAGE INFO","DOWN")) G REMOTE2
+ W:$D(IOF) @IOF W !,"Now doing remote order checks. Please wait..."
+ D REMOTE^PSOORRDI(PSODFN,PSODRUG("IEN"))
+ I $D(^TMP($J,"DD")) D DUP^PSOORRD2
+ I $D(^TMP($J,"DC")) D CLS^PSOORRD2
+REMOTE2 ;
+ K ^TMP($J,"DD"),^TMP($J,"DC"),^TMP($J,"DI")
+ Q
+ ;

@@ -1,5 +1,5 @@
 LEXXST2 ; ISL Lexicon Status (Routine Count)       ; 12-08-97
- ;;2.0;LEXICON UTILITY;**4,5,8**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**4,5,8**;Sep 23, 1996;Build 15
  Q
 RTT ; Total Routines
  D BL,TT("ROUTINES"),BL

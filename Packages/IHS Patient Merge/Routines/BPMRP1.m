@@ -1,8 +1,9 @@
-BPMRP1 ;IHS/PHXAO/AEF - PRINT LIST OF PATIENTS MERGED
- ;;1.0;IHS PATIENT MERGE;;MAR 01, 2010
+BPMRP1 ;IHS/PHXAO/AEF - BPM 1.0 P2 PRINT LIST OF PATIENTS MERGED - 6/26/12 ;
+ ;;1.0;IHS PATIENT MERGE;**2**;MAR 01, 2010;Build 1
  ;IHS/OIT/LJF 11/15/2006 routine originated from Phoenix Area Office
  ;                       changed namespace from BZXM to BPM
  ;            11/16/2006 added DOB & SSN display for TO patient
+ ;IHS/OIT/NKD  6/13/2012 Corrected logic used to find the DPT node in ^XDRM
  ;
 DESC ;----- ROUTINE DESCRIPTION
  ;;
@@ -51,7 +52,9 @@ LOOP ;----- MAIN LOOP THROUGH MERGE IMAGES FILE
  . F  S BPMD1=$O(^XDRM(BPMD0,1,BPMD1)) Q:'BPMD1  D  Q:BPMOUT
  . . S BPMD2=0
  . . F  S BPMD2=$O(^XDRM(BPMD0,1,BPMD1,1,BPMD2)) Q:'BPMD2  D  Q:BPMOUT
- . . . I ^XDRM(BPMD0,1,BPMD1,1,BPMD2,0)="DPT("_BPMFR_",0)" D  Q:BPMOUT
+ . . . ;IHS/OIT/NKD BPM*1.0*2 Corrected logic due to Cache resolving the expression as a number (instead of a string)
+ . . . ;I ^XDRM(BPMD0,1,BPMD1,1,BPMD2,0)="DPT("_BPMFR_",0)" D  Q:BPMOUT
+ . . . I ^XDRM(BPMD0,1,BPMD1,1,BPMD2,0)=("DPT("_BPMFR_",0)") D  Q:BPMOUT
  . . . . S BPMOUT=1
  . . . . ; get DOB and SSN for FROM patient
  . . . . S BPMDATA=$G(^XDRM(BPMD0,1,BPMD1,1,BPMD2,1))

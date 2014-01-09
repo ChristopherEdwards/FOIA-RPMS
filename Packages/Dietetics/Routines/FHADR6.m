@@ -1,5 +1,5 @@
 FHADR6 ; HISC/NCA - Modified Diet Percentage ;1/23/98  16:06
- ;;5.0;Dietetics;**13**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN1 ; Enter Snapshot Date
  S (MD,N)=0 D QR^FHADR1 G:'PRE KIL
  S (ANS,XX)="",TIM=$P($G(^FH(117.3,PRE,1)),"^",12) I TIM'="" S Y=TIM X ^DD("DD") S XX=Y

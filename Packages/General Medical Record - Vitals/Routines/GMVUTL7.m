@@ -1,9 +1,13 @@
-GMVUTL7 ;HIOFO/DS-RPC API TO RETURN ALL VITALS/CATOGORIES/QUALIFIERS ;7/17/02  14:52
- ;;5.0;GEN. MED. REC. - VITALS;;Oct 31, 2002
+GMVUTL7 ;HIOFO/DS,FT-RPC API TO RETURN ALL VITALS/CATEGORIES/QUALIFIERS ;7/17/02  14:52
+ ;;5.0;GEN. MED. REC. - VITALS;**3**;Oct 31, 2002
  ;
  ; This routine uses the following IAs:
  ; #10035 - FILE 2 references      (supported)
  ; #10103 - ^XLFDT calls           (supported)
+ ;
+ ; This routine supports the following IAs:
+ ; #4355 - GMV GET CURRENT TIME RPC is called at TIME  (private)
+ ; #4359 - GMV VITALS/CAT/QUAL RPC is called at GETVITAL (private)
  ;
 GETVITAL(RESULT,GMVLIST)        ; GMV VITALS/CAT/QUAL [RPC entry point]
  ; Returns all vital qual info in RESULT

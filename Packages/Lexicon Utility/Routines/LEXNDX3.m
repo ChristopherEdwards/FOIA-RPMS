@@ -1,5 +1,5 @@
 LEXNDX3 ; ISL Set/kill indexes (Part 3) Link       ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 S ; Set indexes for file 757.05
  Q:('$D(DA))!('$D(X))

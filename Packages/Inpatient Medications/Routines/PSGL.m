@@ -1,8 +1,7 @@
-PSGL ;BIR/CML3-LABEL PRINT/REPRINT ;13-Aug-2007 10:55;SM
- ;;5.0; INPATIENT MEDICATIONS ;**31,1006**;16 DEC 97
+PSGL ;BIR/CML3-LABEL PRINT/REPRINT ;29-May-2012 14:28;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**31,1006,111,1015**;16 DEC 97;Build 62
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191
- ; Reference to ^DIC(42 is supported by DBIA# 10039
  ;
  ; Modified - IHS/MSC/PLS - 08/13/07 - LBLQTY API
  ;
@@ -45,7 +44,9 @@ LBLQTY() N DIR,Y,X
  Q +Y
  ;
 G ;
- K DIC S DIC="^PS(57.5,",DIC(0)="QEAMIZ",DIC("A")="Select WARD GROUP: " W ! D ^DIC K DIC S:Y>0 PSGLWG=+Y,PSGLWGN=Y(0,0) Q
+ K DIC S DIC="^PS(57.5,",DIC(0)="QEAMIZ",DIC("A")="Select WARD GROUP: " W ! D ^DIC K DIC D  Q
+ . I X="^OTHER" S (PSGLWG,PSGLWGN)="^OTHER",Y=1 Q
+ . I Y>0 S PSGLWG=+Y,PSGLWGN=Y(0,0)
  ;
 W ;
  K DIC S DIC="^DIC(42,",DIC(0)="QEAMIZ",DIC("A")="Select WARD: " W ! D ^DIC K DIC S:Y>0 PSGLWD=+Y,PSGLWDN=Y(0,0) Q
@@ -53,6 +54,20 @@ W ;
 P ;
  K PSJPR D ^PSJP S Y=PSGP Q
  ;
+C ;
+ K DIR S DIR(0)="FAO",DIR("A")="Select CLINIC: "
+ S DIR("?")="^D CDIC^PSGVBW" W ! D ^DIR
+CDIC ;
+ K DIC S DIC="^SC(",DIC(0)="QEMIZ" D ^DIC K DIC S:+Y>0 CL=+Y
+ W:X["?" !!,"Enter the clinic you want to use to select patients for processing.",!
+ Q
+L ;
+ K DIR S DIR(0)="FAO",DIR("A")="Select CLINIC GROUP: "
+ S DIR("?")="^D LDIC^PSGVBW" W ! D ^DIR
+LDIC ;
+ K DIC S DIC="^PS(57.8,",DIC(0)="QEMI" D ^DIC K DIC S:+Y>0 CG=+Y
+ W:X["?" !!,"Enter the name of the clinic group you want to use to select patients for processing."
+ Q
 ENG ;
  F PSGLWD=0:0 S PSGLWD=$O(^PS(57.5,"AC",PSGLWG,PSGLWD)) Q:'PSGLWD  S PSGLWDN=$P($G(^DIC(42,PSGLWD,0)),"^") D ENW1
  Q
@@ -73,6 +88,14 @@ IWP ;
  .I $D(^PS(53.1,ON,7)),+^(7)'<PSGLBLD S PSGORD=ON_"N" D ^PSGLOI,KL
  Q
  ;
+ENL S CL="" F  S CL=$O(^PS(57.8,"AD",CG,CL)) Q:CL=""  D ENC
+ Q
+ENC ;
+ K ^TMP("PSJCI",$J)
+ S STDTE=0 F  S STDTE=$O(^PS(55,"AUDC",STDTE)) Q:'STDTE  S CLINIC=0 F  S CLINIC=$O(^PS(55,"AUDC",STDTE,CLINIC)) Q:'CLINIC  D
+ . S JDFN=0 F  S JDFN=$O(^PS(55,"AUDC",STDTE,CLINIC,JDFN)) Q:'JDFN  S ^TMP("PSJCI",$J,JDFN)=""
+ S DFN="" F  S DFN=$O(^TMP("PSJCI",$J,DFN)) Q:'DFN  S (PSGOP,PSGP)=DFN D IWP
+ Q
 ENP ;
  ;D ENL^PSJO3 Q:"^N"[PSJOL  S PSJOS=$P(PSJSYSP0,"^",11),PSGLPF=1 D ^PSJO K PSGLPF Q:'PSJON  S PSGLMT=PSJON
  D ENL^PSJO3 Q:"^N"[PSJOL  S PSJOS=$P(PSJSYSP0,"^",11) D ^PSJO K PSGLPF Q:'PSJON  S PSGLMT=PSJON

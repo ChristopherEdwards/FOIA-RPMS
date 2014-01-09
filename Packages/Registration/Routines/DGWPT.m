@@ -1,5 +1,5 @@
 DGWPT ; SLC/KCM/REV - Patient Lookup Functions ;3/20/02
- ;;5.3;Registration;**447**;Aug 13, 1993
+ ;;5.3;PIMS;**447,1015,1016**;JUN 30, 2012;Build 20
  ;
 SELCHK(REC,DFN) ; Check for sensitive pt
  ; SENSITIVE
@@ -62,7 +62,7 @@ SELECT(REC,DFN) ; Selects patient & returns key information
  ; I $P(REC,U,9) D EN2^DGQPT2(DFN)  ;update DG security log ; DG249
  S X=$G(^DPT(DFN,.105)) I X S $P(REC,U,10)=$P($G(^DGPM(X,0)),U)
  S:'$D(IOST) IOST="P-OTHER"
- S $P(REC,U,11)=$$OTF^OR3CONV(DFN,1)
+ S $P(REC,U,11)=0
  D ELIG^VADPT S $P(REC,U,12)=$G(VAEL(3)) ;two pieces: SC^SC%
  I $L($T(GETICN^MPIF001)) S X=+$$GETICN^MPIF001(DFN) S:X>0 $P(REC,U,14)=X
  S $P(REC,U,15)=$$AGE(DFN,$P(REC,U,3))

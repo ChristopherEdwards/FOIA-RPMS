@@ -1,7 +1,6 @@
-SDCOAM ;ALB/RMO - Appt Mgmt Actions - Check Out; 11 FEB 1993 10:00 am [ 08/20/2004  4:07 PM ]
- ;;5.3;Scheduling;**1,20,27,66,132,1001,1012**;08/13/93
+SDCOAM ;ALB/RMO - Appt Mgmt Actions - Check Out; 11 FEB 1993 10:00 am
+ ;;5.3;Scheduling;**1,20,27,66,132,1001,1012,1015**;08/13/93;Build 21
  ;IHS/ITSC/LJF 10/10/2003 removed requirement for SD SUPERVISOR key on Delete Check-out
- ;
  ;cmi/flag/maw 06/02/2010 PATCH 1012 RQMT149 added for check of appt in list view DEL
  ;
 CO(SDCOACT,SDCOACTD) ;Check Out Classification, Provider and Diagnosis
@@ -96,7 +95,7 @@ DEL ;Entry point for SDAM DELETE CHECK OUT protocol
  F  S SDCOAP=$O(VALMY(SDCOAP)) Q:'SDCOAP  D
  .I $D(^TMP("SDAMIDX",$J,SDCOAP)) K SDAT S SDAT=^(SDCOAP) D
  ..W !!,^TMP("SDAM",$J,+SDAT,0)
- .. I $P(SDAT,U,6)]"" W !!,*7,">>> This is not a valid appointment." D PAUSE^VALM1 Q  ;cmi/maw 6/2/2010 PATCH 1012 for list view
+ ..I $P(SDAT,U,6)]"" W !!,*7,">>> This is not a valid appointment." D PAUSE^VALM1 Q  ;cmi/maw 6/2/2010 PATCH 1012 for list view
  ..S DFN=+$P(SDAT,"^",2),SDT=+$P(SDAT,"^",3),SDCL=+$P(SDAT,"^",4),SDDA=$$FIND^SDAM2(DFN,SDT,SDCL)
  ..S SDOE=+$P($G(^DPT(DFN,"S",SDT,0)),"^",20)
  ..I 'SDOE!('$$CODT^SDCOU(DFN,SDT,SDCL)) W !!,*7,">>> The appointment must have a check out date/time to delete." D PAUSE^VALM1 Q

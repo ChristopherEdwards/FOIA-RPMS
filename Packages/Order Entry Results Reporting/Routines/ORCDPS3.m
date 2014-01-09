@@ -1,5 +1,9 @@
-ORCDPS3 ;SLC/MKB-Pharmacy dialog utilities ;11/25/02  09:47
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**94,116,134,158,149,190**;Dec 17, 1997
+ORCDPS3 ;SLC/MKB-Pharmacy dialog utilities ;09/11/07
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**94,116,134,158,149,190,277,243,289**;Dec 17, 1997;Build 3
+ ;
+ ;Reference to SCNEW^PSOCP supported by IA #2534
+ ;Reference to DIS^DGRPDB supported by IA #700
+ ;Reference to ^PSJORPOE supported by IA #3167
  ;
 START ; -- Start Date entry action
  S $P(ORDIALOG(PROMPT,0),":",3)=$S($G(ORCAT)="I":"ETRX",1:"EX")
@@ -14,37 +18,52 @@ ADMIN ; -- Return default admin time for order in ORSD
  S PSIFN=$S($G(ORENEW):$G(^OR(100,+$G(ORIFN),4)),1:"")
  S SCH=$$PTR^ORCD("OR GTX SCHEDULE"),CNJ=$$PTR^ORCD("OR GTX AND/THEN"),ORX=""
  S ORI=0 F  S ORI=$O(ORDIALOG(PROMPT,ORI)) Q:ORI<1  S ORX=ORX_$S($L(ORX):U,1:"")_$G(ORDIALOG(CNJ,ORI))_";"_$G(ORDIALOG(SCH,ORI))
- S ORSD=$$FIRST(+ORVP,+$G(ORWARD),PSOI,ORX,PSIFN)
+ S ORSD=$$FIRST(+ORVP,+$G(ORWARD),PSOI,ORX,PSIFN,"")
  S:$P(ORSD,U)="NEXT" ORSD="NEXTA^"_$P(ORSD,U,2,99)
  Q
  ;
-FIRST(DFN,WARD,OI,DATA,ORDER)   ; -- Return expected first admin time of order
- N ORCNT,ORI,J,ORZ,Y,SCH,ORX I '$G(DFN)!'$G(OI) Q ""
+FIRST(DFN,WARD,OI,DATA,ORDER,ADMIN)   ; -- Return expected first admin time of order
+ N CNT,ORCNT,ORI,J,ORZ,Y,SCH,ORX,TNUM
+ I '$G(DFN)!'$G(OI) Q ""
  S ORCNT=0 F ORI=1:1:$L(DATA,"^") S ORZ=$P(DATA,U,ORI) D  Q:$E(ORZ)="T"
- . S SCH=$P(ORZ,";",2) Q:'$L(SCH)  S ORCNT=ORCNT+1
- . S ORX(ORCNT)=$$STARTSTP^PSJORPOE(DFN,SCH,OI,WARD,$G(ORDER))
+ .S TNUM=$$NUMCHAR(ORZ,";") Q:TNUM=0
+ .F CNT=1:1:TNUM D
+ .. S SCH=$P(ORZ,";",CNT+1) Q:'$L(SCH)  S ORCNT=ORCNT+1
+ .. I ORCNT>1 S ADMIN=""
+ .. S ORX(ORCNT)=$$STARTSTP^PSJORPOE(DFN,SCH,OI,WARD,$G(ORDER),$G(ADMIN))
  S Y=9999999,J=0
  F ORI=1:1:ORCNT S ORZ=$P(ORX(ORI),U,4) I ORZ<Y S Y=ORZ,J=ORI ;earliest
  S Y=$S(J:ORX(J),1:"")
  Q Y
  ;
+NUMCHAR(STRING,SUB) ;
+ N CNT,RESULT
+ S RESULT=0
+ F CNT=1:1:$L(STRING) I $E(STRING,CNT)=SUB S RESULT=RESULT+1
+ Q RESULT
+ ;
 NOW ; -- First dose now?
  N X,Y,DIR,SCH
- I $G(ORCAT)="O"!'$D(ORSD)!$L($G(OREVENT))!$G(ORENEW) K ORDIALOG(PROMPT,INST) Q
+ K ^TMP($J,"ORCDPS3 NOW")
+ I $G(ORCAT)="O"!'$D(ORSD)!$L($G(OREVENT))!$G(ORENEW) K ORDIALOG(PROMPT,INST),^TMP($J,"ORCDPS3 NOW") Q
+ D AP^PSS51P1("PSJ",,,,"ORCDPS3 NOW")
  ; ask on Copy? Change?
  S X=$$PTR^ORCD("OR GTX SCHEDULE"),Y=+$O(ORDIALOG(X,0))
- S SCH=$G(ORDIALOG(X,Y)),Y=+$O(^PS(51.1,"APPSJ",SCH,0)) ;1st one
- I $P($G(^PS(51.1,Y,0)),U,5)="O"!(Y<1) K ORDIALOG(PROMPT,INST) Q
+ S SCH=$G(ORDIALOG(X,Y)),Y=+$O(^TMP($J,"ORCDPS3 NOW","APPSJ",SCH,0)) ;1st one
+ ;S SCH=$G(ORDIALOG(X,Y)),Y=+$O(^PS(51.1,"APPSJ",SCH,0)) ;1st one
+ I $P($G(^TMP($J,"ORCDPS3 NOW",Y,5)),"^")="O"!(Y<1) K ORDIALOG(PROMPT,INST),^TMP($J,"ORCDPS3 NOW") Q
+ ;I $P($G(^PS(51.1,Y,0)),U,5)="O"!(Y<1) K ORDIALOG(PROMPT,INST),^TMP($J,"ORCDPS3 NOW") Q
  ; other conditions?
  S DIR(0)="YA",DIR("A")="Give additional dose NOW? "
  S DIR("B")=$S($G(ORDIALOG(PROMPT,INST)):"YES",1:"NO")
  I ORINPT,$P(ORSD,U,4) S DIR("A",1)="Next scheduled administration time: "_$$FMTE^XLFDT($P(ORSD,U,4))
  S DIR("?")="Enter YES if you want a dose given now in addition to the regular administration times for this schedule and ward."
  D ^DIR S:$D(DTOUT)!$D(DUOUT) ORQUIT=1
- I $G(ORQUIT)!(Y'>0) K ORDIALOG(PROMPT,INST) Q
+ I $G(ORQUIT)!(Y'>0) K ORDIALOG(PROMPT,INST),^TMP($J,"ORCDPS3 NOW") Q
  S ORDIALOG(PROMPT,INST)=1 I $G(ORCOMPLX) D
  . W $C(7),!,"  >> First Dose NOW is in addition to those already entered.    <<"
  . W !,"  >> Please adjust the duration of the first one, if necessary. <<"
+ K ^TMP($J,"ORCDPS3 NOW")
  Q
  ;
 DEFSTRT ; -- Returns default start date/time in Y
@@ -96,11 +115,17 @@ CONV ;;unit;unit;factor
  ;;ZZZZ
  ;
 ASKDUR()        ; -- Returns 1 or 0, if Duration prompt should be asked
+ K ^TMP($J,"ORCDPS3 ASKDUR")
  N X,Y I '$G(ORCOMPLX) K ORDIALOG(PROMPT,INST) Q 0
  S Y=1 G:'$L($G(ORSCH)) ADQ ;no schedule
- S X=+$O(^PS(51.1,"APPSJ",ORSCH,0)) G:X'>0 ADQ
- S:$P($G(^PS(51.1,X,0)),U,5)="O" Y=0
-ADQ Q Y
+ D AP^PSS51P1("PSJ",,,,"ORCDPS3 ASKDUR")
+ S X=+$O(^TMP($J,"ORCDPS3 ASKDUR","APPSJ",ORSCH,"")) G:X'>0 ADQ
+ ;S X=+$O(^PS(51.1,"APPSJ",ORSCH,0)) G:X'>0 ADQ
+ S:^TMP($J,"ORCDPS3 ASKDUR",X,5)="O" Y=0
+ ;S:$P($G(^PS(51.1,X,0)),U,5)="O" Y=0
+ADQ ;
+ K ^TMP($J,"ORCDPS3 ASKDUR")
+ Q Y
  ;
 CKDUR(X) ; -- Returns validated form of duration X, or null if invalid
  N X1,X2,Y,Z S Y=""
@@ -135,7 +160,7 @@ SC ; -- Dialog validation, to ask SC questions
  S ORDRUG=$$VALUE^ORCSAVE2(ORIFN,"DRUG")
  D SCNEW^PSOCP(.ORX,+ORVP,ORDRUG,$G(PSIFN)) Q:'$D(ORX)
  S DIE="^OR(100,",DA=ORIFN,DR="",J=0
- F I="SC","MST","AO","IR","EC","HNC","CV" S J=J+1 S:$D(ORX(I)) X=ORX(I),DR=DR_";5"_J_"R"_$S($L(X):"//"_$S(X:"YES",1:"NO"),1:"")
+ F I="SC","MST","AO","IR","EC","HNC","CV" S J=J+1 I $D(ORX(I)) S X=ORX(I) S:I="CV"&(X="") X=1 S DR=DR_";5"_J_"R"_$S($L(X):"//"_$S(X:"YES",1:"NO"),1:"")
  S:$E(DR)=";" DR=$E(DR,2,999) Q:'$L(DR)  S ORIGVIEW=1
  I $D(ORX("SC")) S DFN=+ORVP D DIS^DGRPDB ;show current SC data
  W !!,"Is "_$$ORDITEM^ORCACT(ORDER)_" for treatment related to:"

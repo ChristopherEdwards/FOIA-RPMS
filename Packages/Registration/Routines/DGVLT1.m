@@ -1,5 +1,5 @@
 DGVLT1 ; List Template Exporter ; 13-AUG-1993
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;; ;
  K DO,DD S DIC(0)="L",DIC="^SD(409.61,",X="DGJ DELETE RECORD" D FILE^DICN S VALM=+Y
  I VALM>0 D

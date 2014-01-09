@@ -1,5 +1,5 @@
 DGMTINP ; IHS/ADC/PDW/ENM - DETERMINE INPATIENT STATUS ;  [ 03/25/1999  11:48 AM ]
- ;;5.0;ADMISSION/DISCHARGE/TRANSFER;;MAR 25, 1999
+ ;;5.3;Registration;**1015**;MAR 25, 1999;Build 21
  ;;MAS VERSION 5.0;
  ;
 EN ; -- call to return coresp adm and mvt data of pt as of a date

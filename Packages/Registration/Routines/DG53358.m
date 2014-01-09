@@ -1,5 +1,5 @@
 DG53358 ;ALB/AEG - DG*5.3*358 POST INSTALL TO MAIL MSG ;3-5-2001
- ;;5.3;Registration;**358**;3-5-2001
+ ;;5.3;Registration;**358,1015**;3-5-2001;Build 21
  ;
  ; This routine is a post-installation for patch DG*5.3*358
  ;

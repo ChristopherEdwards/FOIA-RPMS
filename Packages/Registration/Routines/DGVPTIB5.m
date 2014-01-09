@@ -1,9 +1,10 @@
 DGVPTIB5 ;alb/mjk - IBOVOP1 for export with PIMS v5.3; 4/21/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 IBOVOP1 ;ALB/RLW - Report of Visits for NSC Outpatients ; 12-JUN-92
  ;;Version 1.5 ; INTEGRATED BILLING ;**14**; 29-JUL-92
 MAIN ; perform report for day(s)
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1014 no IB in IHS so entire routine not needed
  D HDR,APPT,STOPCD,REGS,PRINT
  K DFN,^TMP("IBOVOP",$J),J,IBAPPT,IBJ
  Q

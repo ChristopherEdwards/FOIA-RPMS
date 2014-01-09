@@ -1,6 +1,8 @@
 PSGMUTL ;BIR/MV-UTLILITY USE FOR THE MAR AND MEDWS. ;15 SEP 97 / 2:10 PM 
- ;;5.0; INPATIENT MEDICATIONS ;**50,104**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**50,104,110,111,131**;16 DEC 97
  ;
+ ; Reference to ^PS(55 is supported by DBIA 2191.
+ ; 
 MARFORM ;Prompt for the MAR form (Blank and Non-blank)
  S DIR(0)="SA^1:Print Blank MARs only;2:Print Non-Blank MARs only;3:Print both Blank and Non-Blank MARs"
  S DIR("A")="Select the MAR forms: ",DIR("B")="3"
@@ -22,7 +24,6 @@ TXT(TXT,LEN)   ;
  ;* Output: MARX array.
  ;*
  NEW OLD,X1,Y D SPLIT K MARX
- ;N OLD D SPLIT K MARX
  S X=0,X1=1,Y="" F  S X=$O(OLD(X)) Q:'X  D
  . I $L(Y_OLD(X))>LEN S MARX(X1)=Y,X1=X1+1,Y="" D
  .. I $E(MARX(X1-1),$L(MARX(X1-1)))'=" " Q
@@ -41,7 +42,7 @@ SPLIT ;* Split a word string into individual words.
  I '$O(OLD(1)),($L(TXT)>LEN) D LEN(1,TXT) K OLD D
  . F X=0:0 S X=$O(NEW(X)) Q:'X  S OLD(X)=NEW(X)
  Q
-LEN(X1,OLD) ;* Wrap word around if it doesn't fit the display lenght.
+LEN(X1,OLD) ;* Wrap word around if it doesn't fit the display length
  NEW X
  Q:$L(OLD)'>LEN
  S X=$E(OLD,1,($L(OLD)-1)) I X["/"!((X["-")&(X'["ON-CALL")) Q
@@ -61,12 +62,13 @@ DELIM(BSD) ;* BSD=" ","/","-"
  Q
  ;
 MARLB(LEN)         ;
- ;;;LEN=LENGHT
- NEW L,X,TXT K MARLB,DRUGNAME
+ ;;;LEN=LENGTH
+ NEW L,X,TXT K MARLB,DRUGNAME,ON S ON=PSGORD D ONHOLD^PSGMMAR2
  S L=1
  S MARLB(L)=$$BLANK(6)_"|"_$$BLANK(12)_"|",L=L+1
  I $G(PST)["CZ"!($G(PST)["OZ") S MARLB(L)=PSGLOD_" | P E N D I N G"
  E  S MARLB(L)=PSGLOD_" |"_PSGLSD_" |"_PSGLFD
+ I $G(ONHOLD) S MARLB(L)=PSGLOD_" | O N  H O L D "
  S MARLB(L)=$$SETSTR^VALM1("("_$E(PPN)_$E(PSSN,8,12)_")",MARLB(L),40,7)
  S L=L+1
  D DRGDISP^PSJLMUT1(PSGP,+PSGORD_$S(PSGORD["P":"P",1:"U"),45,39,.DRUGNAME,0)
@@ -74,6 +76,9 @@ MARLB(LEN)         ;
  D TXT^PSGMUTL(PSGLSI,LEN)
  S X=0 F  S X=$O(MARX(X)) Q:'X  S MARLB(L)=MARX(X),L=L+1
  K MARX
+ I $G(PSGP),$G(PSGORD),(PSGLRN]""),(PSGLRN'="O") D
+ .N ND4 S ND4=$S(PSGORD["U":$G(^PS(55,PSGP,5,+PSGORD,4)),PSGORD["P":$G(^PS(53.1,+PSGORD,4)),1:"")
+ .N PSGLREN,PSGLRNDT S PSGLREN=+$$LASTREN^PSJLMPRI(PSGP,PSGORD),PSGLRNDT=$P(ND4,"^",2) I PSGLREN,PSGLRNDT I PSGLREN>PSGLRNDT S PSGLRN=""
  S X=$E("WS",1,PSGLWS*2)_$S(PSGLSM:$E("HSM",PSGLSM,3),1:"")_$E("NF",1,PSGLNF*2)
  I X="",($L(MARLB(L-1))<30),(L=7) S L=L-1 D
  . S X=MARLB(L)_$$BLANK(29-$L(MARLB(L)))_"RPH: "_$S(PSGLRPH]""&(PSGLRPH'="0"):PSGLRPH,1:"_____")
@@ -91,7 +96,7 @@ MARLB(LEN)         ;
  I MARLB>6!($G(TS)>6) D MARLB2
  Q
  ;
-MARLB2 ;Slit array into 2 labels.
+MARLB2 ;Split array into 2 labels.
  ;TS array must be defined. (TS^PSGMAR3(ADMIN TIMES))
  NEW INIT,X,Y
  S INIT=MARLB(MARLB),Y=6

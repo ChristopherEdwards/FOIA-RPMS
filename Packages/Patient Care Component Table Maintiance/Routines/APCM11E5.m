@@ -1,5 +1,5 @@
-APCM11E5 ;IHS/CMI/LAB - IHS MU;  ; 11 Feb 2011  11:13 PM
- ;;2.0;IHS PCC SUITE;**6**;MAY 14, 2009;Build 11
+APCM11E5 ;IHS/CMI/LAB - IHS MU; 
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2**;MAR 26, 2012;Build 11
  ;;;;;;Build 3
 PATEDUC ;EP - CALCULATE PAT ED
  ;for each provider or for the facility find out if this
@@ -23,7 +23,8 @@ PATEDUC1 ;
  S F=$P(^APCMMUM(APCMIC,0),U,8)  ;denom field for this measure
  D S^APCM11E1(APCMRPT,APCMIC,1,APCMP,APCMRPTT,APCMTIME,F)
  ;numerator?
- S APCMVALU="VISIT: "_$$DATE^APCM1UTL(APCMHVTP(APCMP)) S APCMEP=$$HASED(DFN,APCMBDAT,APCMEDAT)
+ S APCMVALU="VISIT: "_$$DATE^APCM1UTL(APCMHVTP(APCMP))
+ S APCMEP=$$HASED(DFN,APCMBDAT,APCMEDAT)
  ;I APCMRPTT=2 S APCMEP=$$HASEDH(DFN,APCMBDAT,APCMEDAT,APCMFAC,.APCMVSTS)
  S APCMVALU=APCMVALU_"|||"_$P(APCMEP,U,2)_"|||"_$P(APCMEP,U,1)
  S F=$P(^APCMMUM(APCMIC,0),U,9)
@@ -120,9 +121,11 @@ HASMMR(P,BD,ED,R,VSTS) ;does patient have a m-mr on visits
  .I "AOSM"'[$P(^AUPNVSIT(V,0),U,7) Q  ;not correct service category/OFFICE VISIT
  .S Y=0 F  S Y=$O(^AUPNVPRV("AD",V,Y)) Q:Y'=+Y!(G)  D
  ..I $P($G(^AUPNVPRV(Y,0)),U)'=R Q
+ ..Q:$P(^AUPNVPRV(Y,0),U,4)'="P"
  ..S G=1
  .Q:'G  ;not a visit to this provider
  .S C=$$CLINIC^APCLV(V,"C")
+ .Q:C=30
  .I C]"",T,$D(^APCMMUCN(T,14,"B",C)) Q  ;don't count these clinics
  .S $P(PWH,U,1)=$P(PWH,U,1)+1
  .;was there a PAT ED M-MR on the date of the visit
@@ -155,6 +158,7 @@ HASPWH(P,BD,ED,R,VSTS) ;
  .I "AOSM"'[$P(^AUPNVSIT(V,0),U,7) Q  ;not correct service category/OFFICE VISIT
  .S Y=0 F  S Y=$O(^AUPNVPRV("AD",V,Y)) Q:Y'=+Y!(G)  D
  ..I $P($G(^AUPNVPRV(Y,0)),U)'=R Q
+ ..I $P($G(^AUPNVPRV(Y,0)),U,4)'="P" Q
  ..S G=1
  .Q:'G  ;not a visit to this provider
  .S C=$$CLINIC^APCLV(V,"C")
@@ -195,6 +199,7 @@ PR ;EP - patient reminders
 PR1 .;IS CHART ACTIVE OR DECEASED
  .S X=$$DOD^AUPNPAT(DFN)
  .I X,X'>APCMEDAT Q
+ .Q:'$O(^AUPNPAT(DFN,41,0))  ;no charts
  .S X=$P($G(^AUPNPAT(DFN,41,DUZ(2),0)),U,3)
  .I X,X'>APCMEDAT Q
  .S F=$P(^APCMMUM(APCMIC,0),U,8)  ;denom field for this measure
@@ -233,24 +238,24 @@ SC ;EP - REFERRAL, SUMMARY OF CARE
  S (APCMD1,APCMN1)=0
  I APCMRPTT=1 S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  D
  .I $D(APCMRCIS(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D  Q
- ..D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not make any referrals for patients they saw during the report period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ ..D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not make any referrals for patients they saw during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  .;Q:'$D(APCMHVTP(APCMP))  ;no visits to this provider for this patient so don't bother, the patient is not in the denominator
  .;set denominator value into field
  .S APCMEP=$$HASC32(DFN,APCMBDAT,$$FMADD^XLFDT(APCMEDAT,-14),APCMP)  ;# referrals^# w/c32 documentation
- .Q:$P(APCMEP,U,1)=""
+ .Q:$P(APCMEP,U,1)=0
  .S F=$P(^APCMMUM(APCMIC,0),U,8)  ;denom field for this measure
  .D S^APCM11E1(APCMRPT,APCMIC,$P(APCMEP,U,1),APCMP,APCMRPTT,APCMTIME,F)
  .;S APCMVALU="VISIT: "_$$DATE^APCM1UTL(APCMHVTP(APCMP))
  .;numerator?
- .S APCMVALU="# of referrals: "_$P(APCMEP,U,1)_" # w/C32 w/in 14 days: "_+$P(APCMEP,U,2)_"|||"_$P(APCMEP,U,3)_"|||"_$S('+$P(APCMEP,U,1):0,+$P(APCMEP,U,1)=+$P(APCMEP,U,2):1,1:0)
+ .S APCMVALU="# of refs: "_$P(APCMEP,U,1)_" # w/C32 w/in 14 days: "_+$P(APCMEP,U,2)_"|||"_$P(APCMEP,U,3)_"|||"_$S('+$P(APCMEP,U,1):0,+$P(APCMEP,U,1)=+$P(APCMEP,U,2):1,1:0)
  .S F=$P(^APCMMUM(APCMIC,0),U,9)
  .D S^APCM11E1(APCMRPT,APCMIC,$P(APCMEP,U,2),APCMP,APCMRPTT,APCMTIME,F)
  .D SETLIST^APCM11E1
  Q
 HASC32(P,BD,ED,R) ;does patient have a referral with c32
  ;
- NEW A,B,C,D,E,ROI,X,ROII,S
- S ROI=""  ;set to 1 if had a good request
+ NEW A,B,C,D,E,ROI,X,ROII,S,G
+ S ROI="0^0"  ;set to 1 if had a good request
  S ROII="" ;set to date of reques
  S D=$$FMADD^XLFDT(BD,-1)
  F  S D=$O(^BMCREF("AA",P,D)) Q:D'=+D!(D>ED)  D
@@ -265,20 +270,22 @@ HASC32(P,BD,ED,R) ;does patient have a referral with c32
  ..;OR was it on the date of an 30/80 visit or the day after
  ..S $P(ROI,U,1)=$P(ROI,U,1)+1
  ..;now check to see if a c32 was printed
- ..S Y=0 F  S Y=$O(^BMCREF(X,6,"B",Y)) Q:Y'=+Y  D
- ...I $P(Y,".")'<D,$P(Y,".")'>$$FMADD^XLFDT(D,14) S $P(ROI,U,2)=$P(ROI,U,2)+1,ROII=ROII_$$DATE^APCM1UTL(D)_"/"_$$DATE^APCM1UTL(Y)_";" Q
- ...S ROII=ROII_$$DATE^APCM1UTL(D)_"/None;"
+ ..I '$O(^BMCREF(X,6,"B",0)) S $P(ROI,U,2)=0,ROII=" Ref: "_$$DATE^APCM1UTL(D)_":C32 None;" Q
+ ..S Y=0,G=0 F  S Y=$O(^BMCREF(X,6,"B",Y)) Q:Y'=+Y!(G)  D
+ ...I $P(Y,".")'<D,$P(Y,".")'>$$FMADD^XLFDT(D,14) S G=1,$P(ROI,U,2)=$P(ROI,U,2)+1,ROII=ROII_"Ref: "_$$DATE^APCM1UTL(D)_":C32 "_$$DATE^APCM1UTL(Y)_";" Q
+ ...S ROII=ROII_" Ref: "_$$DATE^APCM1UTL(D)_":C32 "_$$DATE^APCM1UTL(Y)_";"
  Q ROI_U_ROII
  ;
 LAB ;EP - CALCULATE LAB
- ;for each provider or for the facility count all prescriptions that meet criteria and if it is not written it meets numerator
+ ;for each provider count each lab in the time period, loop through patients for visits in time period
  K ^TMP($J,"PATSRX")
  K APCMLABS
  D TOTLAB
  NEW APCMP,N,F
  S (APCMD1,APCMN1)=0
  I APCMRPTT=1 S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  D
- .I '$P($G(APCMLABS(APCMP)),U,1) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not order any lab tests with results during the time period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ .I '$P($G(APCMLABS(APCMP)),U,1) D  Q
+ ..S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she did not order any lab tests with results during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  .;set denominator value into field
  .S F=$P(^APCMMUM(APCMIC,0),U,8)  ;denom field for this measure
  .S N=$P($G(APCMLABS(APCMP)),U,1)  ;returns # of LABS^# not Structured data
@@ -299,39 +306,6 @@ LAB ;EP - CALCULATE LAB
  .D S^APCM11E1(APCMRPT,APCMIC,N,APCMP,APCMRPTT,APCMTIME,F)
  K ^TMP($J,"PATSRX")
  Q
-TOTLAB ;EP - 
- ;SET ARRAY APCMLABS to APCMLABS(prov ien)=denom^numer
- ;IF DENOM =0 THEN PROVIDER EXCLUSION
- NEW ID,C,Y,X,D,S,N,A,B,R,PAT
- S C=0,N=0
- S LABSNO=""
- S T=$O(^ATXLAB("B","BGP PAP SMEAR TAX",0))
- S (ID,SD)=$$FMADD^XLFDT(APCMBDAT,-365),ID=ID_".99999"
- F  S ID=$O(^AUPNVSIT("B",ID)) Q:ID'=+ID  D
- .S X=0 F  S X=$O(^AUPNVSIT("B",ID,X)) Q:X'=+X  D
- ..Q:'$D(^AUPNVLAB("AD",X))  ;no labs
- ..S Y=0 F  S Y=$O(^AUPNVLAB("AD",X,Y)) Q:Y'=+Y  D
- ...S R=$P($G(^AUPNVLAB(Y,12)),U,2)
- ...Q:'R  ;no ordering provider
- ...I '$D(APCMPRV(R)) Q  ;not a provider of interest
- ...Q:$P($P($G(^AUPNVLAB(Y,12)),U,1),".")>APCMEDAT
- ...Q:$P($P($G(^AUPNVLAB(Y,12)),U,1),".")<APCMBDAT
- ...S A=$P(^AUPNVLAB(Y,0),U,1)
- ...I T,$D(^ATXLAB(T,21,"B",A)) Q   ;it's a pap smear
- ...I $P(^AUPNVLAB(Y,0),U,4)="canc" Q
- ...S PAT=$P(^AUPNVLAB(Y,0),U,2)
- ...I '$D(APCMLABS(R)) S APCMLABS(R)=""
- ...S $P(APCMLABS(R),U,1)=$P(APCMLABS(R),U,1)+1,$P(^TMP($J,"PATSRX",R,PAT),U,1)=$P($G(^TMP($J,"PATSRX",R,PAT)),U,1)+1,^TMP($J,"PATSRX",R,PAT,"SCRIPTS",$$VAL^XBDIQ1(9000010.09,Y,1201)_" "_$$VAL^XBDIQ1(9000010.09,Y,.01))=""
- ...;now check numerator
- ...Q:$P($G(^AUPNVLAB(Y,11)),U,9)'="R"  ;if status not resulted it doesn't make the numerator
- ...I $$UP^XLFSTR($P(^AUPNVLAB(Y,0),U,4))="COMMENT",'$$HASCOM(Y) Q
- ...S $P(APCMLABS(R),U,2)=$P(APCMLABS(R),U,2)+1,$P(^TMP($J,"PATSRX",R,PAT),U,2)=$P($G(^TMP($J,"PATSRX",R,PAT)),U,2)+1 S ^TMP($J,"PATSRX",R,PAT,"ELEC",$$VAL^XBDIQ1(9000010.09,Y,1201)_" "_$$VAL^XBDIQ1(9000010.09,Y,.01))=""  ;S N=N+G Q  ;S N=N+G
- ...;S $P(APCMLABS(R),U,3)=$P(APCMLABS(R),U,3)_$$VAL^XBDIQ1(9000010.09,Y,.01)_":"_$$VAL^XBDIQ1(9000010.09,Y,.04)_";"
+TOTLAB ;EP -
+ D TOTLAB^APCM11E8
  Q
- ;
-HASCOM(L) ;ARE THERE ANY COMMENTS
- I '$D(^AUPNVLAB(L,21)) Q 0
- NEW B,G
- S G=0
- S B=0 F  S B=$O(^AUPNVLAB(L,21,B)) Q:B'=+B  I ^AUPNVLAB(L,21,B,0)]"" S G=1  ;has comment
- Q G

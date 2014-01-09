@@ -1,5 +1,5 @@
-OCXOZ0U ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0U ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -8,6 +8,65 @@ OCXOZ0U ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ; ** will be lost the next time the rule compiler executes.    **
  ; ***************************************************************
  ;
+ Q
+ ;
+R50R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHE...'  Relation #1 'CONTRAST MEDIA ORDER AND ABNORMAL RENAL RESULTS'
+ ;  Called from R50R1A+12^OCXOZ0T.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R50R1B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^9^^Procedure uses intravenous contrast media - abnormal biochem result:  "_$$GETDATA(DFN,"129^130",58) I 1
+ E  S OCXCMSG="Procedure uses intravenous contrast media - abnormal biochem result:  "_$$GETDATA(DFN,"129^130",58)
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
+ ;
+R50R2A ; Verify all Event/Elements of  Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHE...'  Relation #2 'CONTRAST MEDIA ORDER AND NO CREAT RESULTS W/IN X D...'
+ ;  Called from EL130+6^OCXOZ0H, and EL133+5^OCXOZ0H.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE130( ---------->  Verify Event/Element: 'CONTRAST MEDIA ORDER'
+ ; MCE133( ---------->  Verify Event/Element: 'NO CREAT RESULTS W/IN X DAYS'
+ ;
+ Q:$G(^OCXS(860.2,50,"INACT"))
+ ;
+ I $$MCE130 D 
+ .I $$MCE133 D R50R2B
+ Q
+ ;
+R50R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHE...'  Relation #2 'CONTRAST MEDIA ORDER AND NO CREAT RESULTS W/IN X D...'
+ ;  Called from R50R2A+12.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R50R2B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^9^^Procedure uses intravenous contrast media - no creatinine results within "_$$GETDATA(DFN,"130^133",154)_" days" I 1
+ E  S OCXCMSG="Procedure uses intravenous contrast media - no creatinine results within "_$$GETDATA(DFN,"130^133",154)_" days"
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
 R51R1A ; Verify all Event/Elements of  Rule #51 'RECENT CHOLECYSTOGRAM ORDER'  Relation #1 'RECENT CHOLECGRM'
@@ -139,8 +198,8 @@ R55R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #55
  Q:$D(OCXRULE("R55R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^4^^Patient allergic to contrast medias: "_$$GETDATA(DFN,"66^",66) I 1
- E  S OCXCMSG="Patient allergic to contrast medias: "_$$GETDATA(DFN,"66^",66)
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^4^^Patient allergic to contrast media. ("_$$GETDATA(DFN,"66^",160)_") This procedure uses: "_$$GETDATA(DFN,"66^",66) I 1
+ E  S OCXCMSG="Patient allergic to contrast media. ("_$$GETDATA(DFN,"66^",160)_") This procedure uses: "_$$GETDATA(DFN,"66^",66)
  S OCXNMSG=""
  ;
  Q:$G(OCXOERR)
@@ -148,58 +207,6 @@ R55R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #55
  ; Send Order Check Message
  ;
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
- ;
-R56R1A ; Verify all Event/Elements of  Rule #56 'RECENT BARIUM STUDY'  Relation #1 'BARIUM'
- ;  Called from EL67+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE67( ----------->  Verify Event/Element: 'RECENT BARIUM STUDY ORDERED'
- ;
- Q:$G(^OCXS(860.2,56,"INACT"))
- ;
- I $$MCE67 D R56R1B
- Q
- ;
-R56R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #56 'RECENT BARIUM STUDY'  Relation #1 'BARIUM'
- ;  Called from R56R1A+10.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ;
- Q:$D(OCXRULE("R56R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^14^^Recent Barium study: "_$$GETDATA(DFN,"67^",70)_" ["_$$GETDATA(DFN,"67^",121)_"]" I 1
- E  S OCXCMSG="Recent Barium study: "_$$GETDATA(DFN,"67^",70)_" ["_$$GETDATA(DFN,"67^",121)_"]"
- S OCXNMSG=""
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Order Check Message
- ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
- ;
-R57R1A ; Verify all Event/Elements of  Rule #57 'CLOZAPINE'  Relation #1 'CLOZAPINE AND (WBC < 3.0 OR ANC < 1.5)'
- ;  Called from EL114+5^OCXOZ0H, and EL116+5^OCXOZ0H, and EL119+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE114( ---------->  Verify Event/Element: 'CLOZAPINE ANC < 1.5'
- ; MCE116( ---------->  Verify Event/Element: 'CLOZAPINE DRUG SELECTED'
- ; MCE119( ---------->  Verify Event/Element: 'CLOZAPINE WBC < 3.0'
- ;
- Q:$G(^OCXS(860.2,57,"INACT"))
- ;
- I $$MCE116 D 
- .I $$MCE119 D R57R1B^OCXOZ0V
- .I $$MCE114 D R57R1B^OCXOZ0V
  Q
  ;
 GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime data
@@ -208,31 +215,22 @@ GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime dat
  F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
  Q VAL
  ;
-MCE114() ; Verify Event/Element: CLOZAPINE ANC < 1.5
+MCE130() ; Verify Event/Element: CONTRAST MEDIA ORDER
  ;
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(114,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),114)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),114))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(130,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),130)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),130))
  Q 0
  ;
-MCE116() ; Verify Event/Element: CLOZAPINE DRUG SELECTED
+MCE133() ; Verify Event/Element: NO CREAT RESULTS W/IN X DAYS
  ;
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(116,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),116)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),116))
- Q 0
- ;
-MCE119() ; Verify Event/Element: CLOZAPINE WBC < 3.0
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(119,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),119)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),119))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(133,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),133)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),133))
  Q 0
  ;
 MCE63() ; Verify Event/Element: PATIENT HAS RECENT CHOLECYSTOGRAM
@@ -269,14 +267,5 @@ MCE66() ; Verify Event/Element: CONTRAST MEDIA ALLERGY
  N OCXRES
  S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(66,37)=OCXDF(37)
  Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),66)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),66))
- Q 0
- ;
-MCE67() ; Verify Event/Element: RECENT BARIUM STUDY ORDERED
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(67,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),67)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),67))
  Q 0
  ;

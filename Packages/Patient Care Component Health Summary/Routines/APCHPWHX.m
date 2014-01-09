@@ -1,5 +1,5 @@
 APCHPWHX ; IHS/CMI/LAB - PCC HEALTH SUMMARY - MAIN DRIVER PART 2 ;  
- ;;2.0;IHS PCC SUITE;**2,5,7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**2,5,7,8**;MAY 14, 2009;Build 2
  ;
 MEDSACT ;EP - medications (active) component
  S APCHACTO=1
@@ -64,7 +64,7 @@ MEDS ;EP - medications component
  .S M=$P(APCHMEDS(X),U,4)
  .S V=$P(^AUPNVMED(M,0),U,3)
  .I $P(^AUPNVSIT(V,0),U,7)'="E" Q
- .;Q:$P($G(^AUPNVMED(M,11)),U,8)]""
+ .Q:$P($G(^AUPNVMED(M,11)),U,8)]""  ;will get this one from NVA
  .Q:$P(^AUPNVMED(M,0),U,8)  ;discontinued
  .S D=$P(^AUPNVMED(M,0),U,1)
  .S N=$S($P(^AUPNVMED(M,0),U,4)]"":$P(^AUPNVMED(M,0),U,4),1:$P(^PSDRUG(D,0),U,1))
@@ -78,19 +78,19 @@ MEDS ;EP - medications component
  ..S M=$P(APCHM(N,D,X),U,4)
  ..S APCHMED(1,N,D,X)=M_U_"M"
  ..S $P(APCHMED(1,N,D,X),U,8)=$P(^AUPNVMED(M,0),U,5)
- ;now get all NVA meds that did not move to PCC V MED
+ ;now get all NVA meds 
  S X=0 F  S X=$O(^PS(55,APCHSDFN,"NVA",X)) Q:X'=+X  D
- .I $P($G(^PS(55,APCHSDFN,"NVA",X,999999911)),U,1),$D(^AUPNVMED($P(^PS(55,APCHSDFN,"NVA",X,999999911),U,1),0)) Q  ;got this with V MED
+ .;I $P($G(^PS(55,APCHSDFN,"NVA",X,999999911)),U,1),$D(^AUPNVMED($P(^PS(55,APCHSDFN,"NVA",X,999999911),U,1),0)) Q  ;got this with V MED
  .S L=$P($P($G(^PS(55,APCHSDFN,"NVA",X,0)),U,10),".")
- .S L=9999999-L
- .I L<$$FMADD^XLFDT(DT,-365) Q
+ .;S L=9999999-L
+ .;I L<$$FMADD^XLFDT(DT,-365) Q
  .Q:$P(^PS(55,APCHSDFN,"NVA",X,0),U,6)=1  ;discontinued
- .I $P(^PS(55,APCHSDFN,"NVA",X,0),U,7)]""  ;discontinued date
+ .I $P(^PS(55,APCHSDFN,"NVA",X,0),U,7)]"" Q  ;discontinued date
  .S D=$P(^PS(55,APCHSDFN,"NVA",X,0),U,2)
  .I D="" S D="NO DRUG IEN"
  .S N=$S(D:$P(^PSDRUG(D,0),U,1),1:$P(^PS(50.7,$P(^PS(55,APCHSDFN,"NVA",X,0),U,1),0),U,1))
  .S APCHSTAT("NVA",N,D,(9999999-L))=U_"N",$P(APCHSTAT("NVA",N,D,(9999999-L)),U,8)=$P(^PS(55,APCHSDFN,"NVA",X,0),U,4)_" "_$P(^PS(55,APCHSDFN,"NVA",X,0),U,5)_U_$P(^PS(55,APCHSDFN,"NVA",X,0),U,7)
- .S APCHMED(1,N,D,L)=U_"N",$P(APCHMED(1,N,D,L),U,8)=$P(^PS(55,APCHSDFN,"NVA",X,0),U,4)_" "_$P(^PS(55,APCHSDFN,"NVA",X,0),U,5)_U_$P(^PS(55,APCHSDFN,"NVA",X,0),U,7)
+ .S APCHMED(1,N,D,(9999999-L))=U_"N",$P(APCHMED(1,N,D,(9999999-L)),U,8)=$P(^PS(55,APCHSDFN,"NVA",X,0),U,4)_" "_$P(^PS(55,APCHSDFN,"NVA",X,0),U,5)_U_$P(^PS(55,APCHSDFN,"NVA",X,0),U,7)
  D DISP
  Q
  ;

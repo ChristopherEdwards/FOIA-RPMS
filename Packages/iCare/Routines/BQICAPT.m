@@ -1,5 +1,5 @@
 BQICAPT ;GDIT/HS/ALA-Community Alerts Patients ; 16 Oct 2011  11:49 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 EN(DATA,PARMS) ; EP - BQI GET COMM ALERTS PATIENTS
  ; Gets a list of patients that go along with community alerts
@@ -140,6 +140,7 @@ SOR ; Sort out the alerts
  ...... S LBREC=$P(@TEMP@(PATNAM,PAT,COMM,TYPE,DCAT,OCDT),U,3)
  ...... S LBFIL=$P(@TEMP@(PATNAM,PAT,COMM,TYPE,DCAT,OCDT),U,4)
  ...... S LOCDT=$P(@TEMP@(PATNAM,PAT,COMM,TYPE,DCAT,OCDT),U,5)
+ ...... S LOCDT=$S(+$P(^BQI(90508,1,0),U,25)=0:"",1:LOCDT)
  ...... S DOCDT=$S(OCDT="~":"",1:OCDT)
  ...... D STAND(PAT)
  ...... S TCAT=$S(DCAT="Ideation":"Ideation with Plan and Intent",DCAT="Completion":"Completed Suicide",1:DCAT)

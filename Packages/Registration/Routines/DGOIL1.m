@@ -1,5 +1,5 @@
 DGOIL1 ;ALB/AAS - INPATIENT LIST (CONT.) ; 28-SEPT-90
- ;;5.3;Registration;**162,498**;Aug 13, 1993
+ ;;5.3;Registration;**162,498,1015**;Aug 13, 1993;Build 21
  ;
 PRINT ;  -- print line for one entry
  I IOSL<($Y+6) D HDR^DGOIL Q:$D(DUOUT)

@@ -1,7 +1,12 @@
-LRVER1 ;VA/DALOI/FHS-LAB ROUTINE DATA VERIFICATION ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**42,153,201,215,239,240,263,232,286,1027**;NOV 01, 1997
+LRVER1 ;DALOI/FHS/JAH - LAB ROUTINE DATA VERIFICATION ;8/10/04
+ ;;5.2;LAB SERVICE;**1027,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 42,153,201,215,239,240,263,232,286,291
+ ;
+ ; NOTE: LR*5.2*1031 restores LR*5.2*1027 modifications
  ;
 VER ; from LRGVP
+ N LRBEY
  S LRLLOC=0,LRCW=8,LROUTINE=$P(^LAB(69.9,1,3),U,2) I $D(^LRO(69,LRODT,1,LRSN,0)) S LRLLOC=$P(^(0),U,7) S:'$L(LRLLOC) LRLLOC=0 W !,$P(^LRO(69,LRODT,1,LRSN,1),U,6)
  S LRCDT=$S($D(^LRO(68,LRAA,1,LRAD,1,LRAN,3)):$P(^(3),U,1,2),1:$P(^(0),U,3)_U),LREAL=$P(LRCDT,U,2)
  S LRCDT=+LRCDT,LRSAMP=$S($D(^LRO(69,LRODT,1,LRSN,0)):$P(^(0),U,3),1:"")
@@ -56,8 +61,9 @@ EX2 ;
  S:'$D(LRCFL) LRCFL=""
  S LRSUB=$P(X,U,6)
  ; I $D(^LAB(60,+X,4)),$P(^(4),"^",2) S LRCFL=LRCFL_$P(^(4),"^",2)_U
+ ;
  ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
- I $D(^LAB(60,+X,4)),$P(^(4),"^",2) S:'($D(LRCFL)#2) LRCFL="" S LRCFL=LRCFL_$P(^(4),"^",2)_U
+ I $D(^LAB(60,+X,4)),$P($G(^(4)),"^",2) S:'($D(LRCFL)#2) LRCFL="" S LRCFL=LRCFL_$P($G(^(4)),"^",2)_U
  ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
  ;
  ; If atomic test then setup and quit
@@ -80,6 +86,7 @@ EX2 ;
 ORD ;
  ; LRNX is set by caller
  S LRNX=+$G(LRNX)+1,LRORD(LRNX)=S2
+ S LRBEY($P(LRTEST(T1),U,1),S2)=""   ; CIDC
  S ^TMP("LR",$J,"TMP",S2)=+X
  ; If panel being exploded then set parent("P" node)
  ;  to file #60 test being exploded

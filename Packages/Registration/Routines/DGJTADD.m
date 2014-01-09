@@ -1,5 +1,5 @@
 DGJTADD ;MAC/ALB - ENTER/EDIT DEFICIENCIES FOR IRT ; MAY 13,1992@11:00
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 EN N DA,DIC,DIE,DIR,DLAYGO,DGJTABR,DGJTCTG,DGJTTRK,DGJTSTD D FULL^VALM1
  R !!,"Enter New Deficiency: ",X:DTIME G Q1:X="^"!('$T) S DGJTX=X I DGJTX["?"!($L(DGJTX)>30)!($L(DGJTX)<3)!'(DGJTX'?1P.E) W !!,"Enter a new Deficiency Name ... 3-30 characters OR '^' to EXIT" G EN
  S DIR(0)="393.3,.02" D ^DIR G Q1:X["^"!$D(DTOUT) S DGJTABR=$P(Y,"^",1)

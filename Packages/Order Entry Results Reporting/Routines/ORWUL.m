@@ -1,7 +1,7 @@
-ORWUL ; SLC/KCM/JLI - Listview Selection ;15-Dec-2010 14:29;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,117,131,132,164,1006**;Dec 17, 1997
- ;
- ;Modified - IHS/MSC/JDS - 05/14/10 - New IHSCR API and Line FVSUB+2
+ORWUL ; SLC/KCM/JLI - Listview Selection ;04-Oct-2012 15:40;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,117,131,132,164,1006,215,245,1010**;Dec 17, 1997;Build 47
+ ;Modified - IHS/MSC/JDS - 5/14/2010 - New IHSCR API and Line FVSUB+6
+ ;Modified - IHS/MSC/JDS - 03/12/12 - exclude home med from screening
 QV4DG(VAL,DGRP) ; return the quick order list, given a display group name
  N NM
  S VAL="0^0"
@@ -55,14 +55,17 @@ FV4DG(VAL,DGNM) ; return the current full list & item count
  . I ZTSK L -^XTMP("ORWDSET "_DGNM) Q
  . ; -- create a task to rebuild the list
  . D FVBLDQ(DGNM)
- . L -^TMP("ORWDSET "_DGNM)
+ . L -^XTMP("ORWDSET "_DGNM)
  S $P(VAL,U,2)=$P($G(^ORD(101.44,+VAL,20,0)),U,4)
  Q
 FVSUB(LST,IEN,FIRST,LAST) ; return subset of orders in view
  N I
- ;IHS/MSC/JDS - Change for MDF
- F I=FIRST:1:LAST D  ;S LST(I)=^ORD(101.44,IEN,20,I,0)
- .S LST(I)=$$IHSCR(IEN,I)
+ F I=FIRST:1:LAST D
+ .;AGP change returned valued to returned data or @ if record does not
+ .;exist. The @ sign is used by the delphi code to identified a
+ .;non-existence record
+ .;S LST(I)=$S($D(^ORD(101.44,IEN,20,$G(I)))>0:^ORD(101.44,IEN,20,I,0),1:"@")
+ .S LST(I)=$$IHSCR(IEN,I)  ;IHS/MSC/JDS
  Q
 FVIDX(VAL,IEN,FROM) ; return index of item beginning with FROM
  N I,X
@@ -82,7 +85,7 @@ FVBLDQ(DGNM,ATTEMPT) ; queue rebuild of set
  S ZTSAVE("ATTEMPT")="",ZTSAVE("UPDTIME")="",ZTSAVE("DGNM")=""
  S ZTDESC="Rebuild quick view for "_DGNM
  D ^%ZTLOAD
- S ^XTMP("ORWDSET "_DGNM,0)=$$FMADD^XLFDT($$NOW^XLFDT,2)
+ S ^XTMP("ORWDSET "_DGNM,0)=$$FMADD^XLFDT($$NOW^XLFDT,2)_U_$$NOW^XLFDT
  S ^XTMP("ORWDSET "_DGNM,"TASK")=ZTSK
  Q
 FVBLD ; rebuild an ORWSET entry
@@ -142,11 +145,17 @@ QVSAVE(LVW,X,QLST) ; Save a quick order list
  S DIC="^ORD(101.44,",DIC(0)="L",DLAYGO=101.44,LVW=0
  D ^DIC Q:'Y
  S LVW=+Y,SEQ=0
+ I $D(^ORD(101.44,LVW,10)) D  ; KILL "C" XREF
+ . N IDX,QOIEN S IDX=0
+ . F  S IDX=$O(^ORD(101.44,LVW,10,IDX)) Q:'IDX  D
+ . . S QOIEN=$P(^ORD(101.44,LVW,10,IDX,0),U)
+ . . K ^ORD(101.44,"C",QOIEN,LVW,IDX)
  K ^ORD(101.44,LVW,10)
  S ^ORD(101.44,LVW,10,0)="^101.441PA"
  S I=0  F  S I=$O(QLST(I)) Q:'I  D
  . S SEQ=SEQ+1,^ORD(101.44,LVW,10,SEQ,0)=QLST(I)
  . S ^ORD(101.44,LVW,10,"C",$$UP^XLFSTR($P(QLST(I),U,2)),SEQ)=""
+ . S ^ORD(101.44,"C",+QLST(I),LVW,SEQ)=""
  S ^ORD(101.44,LVW,10,0)="^101.441PA^"_SEQ_U_SEQ
  Q
 MVRX ; move pharmacy quick orders into 101.44
@@ -162,12 +171,12 @@ MVALL ; move all quick order lists into 101.44
  . D MVQO(SNM)
  Q
 MVQO(DGNM) ; move quick orders
- N ENT,PAR,TLST,QLST,DLG,X,X0,I,NOP,DNM
+ N ENT,PAR,ORTLST,QLST,DLG,X,X0,I,NOP,DNM
  S PAR=$O(^XTV(8989.51,"B","ORWDQ "_DGNM,0))
  S ENT="" F  S ENT=$O(^XTV(8989.5,"AC",PAR,ENT)) Q:'ENT  D
- . K TLST,QLST D GETLST^XPAR(.TLST,ENT,PAR,"I")
- . S I=0 F  S I=$O(TLST(I)) Q:'I  D
- . . S DLG=+TLST(I) Q:'DLG
+ . K ORTLST,QLST D GETLST^XPAR(.ORTLST,ENT,PAR,"I")
+ . S I=0 F  S I=$O(ORTLST(I)) Q:'I  D
+ . . S DLG=+ORTLST(I) Q:'DLG
  . . S X0=$G(^ORD(101.41,DLG,0)) Q:'$L(X0)
  . . S DNM=$$GET^XPAR(ENT,"ORWDQ DISPLAY NAME",DLG,"I")
  . . I '$L(DNM) S DNM=$P(^ORD(101.41,DLG,0),U,2)
@@ -190,10 +199,12 @@ ZCLEAN ; cleanup ORWDQ entries in Quick View file
  W !,"rebuilding entries"
  D MVALL
  Q
-IHSCR(IEN,I) ;EP - screen drugs JDS/MSC
+IHSCR(IEN,I) ;EP - Screen drugs IHS/MSC/JDS
  N OI,POI,DRUG,OK
  S OI=$G(^ORD(101.44,IEN,20,I,0)) I OI="" Q "@"
+ I '$G(DFN) Q OI
  S POI=$P($G(^ORD(101.43,+OI,0)),U,2)
  I POI'[";99PSP" Q OI
+ I $P($G(^ORD(101.44,IEN,0)),U)["NV RX" Q OI
  S OK=OI F DRUG=0:0 S DRUG=+$O(^PSDRUG("ASP",+POI,DRUG)) Q:'DRUG  S OK="@" I $$SCREEN^APSPMULT(DRUG,,1) S OK=OI Q
  Q OK

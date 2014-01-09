@@ -1,10 +1,10 @@
-GMRCAFRD ;SLC/DLT,DCM,JFR - LM FORWARD ACTION ;1/8/02 14:36
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,10,12,15,22**;DEC 27, 1997
+GMRCAFRD ;SLC/DLT,DCM,JFR - LM FORWARD ACTION ;7/11/03 14:02
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,10,12,15,22,35,39**;DEC 27, 1997
  ;
  ; This routine invokes IA #2395
  ;
 FR(GMRCO) ;Forward Request to a new service
- N ORVP,GMRCLCK,DFN
+ N ORVP,GMRCLCK,DFN,GMRCACT
  W !!,"Forward Request To Another Service For Action."
  W !,"Select the service to send the consult to.",!
  S:$D(GMRCSS) GMRCSSS=GMRCSS
@@ -12,6 +12,13 @@ FR(GMRCO) ;Forward Request to a new service
  K GMRCQUT,GMRCSEL,GMRCSSS
  I '$L($G(GMRCO)) D SELECT^GMRCA2(.GMRCO) I $D(GMRCQUT) D END Q
  I '+$G(GMRCO) D END S GMRCQUT=1 Q
+ I $P($G(^GMR(123,GMRCO,12)),U,5)="P" D  Q
+ . N DIR
+ . W !,"The requesting facility may not take this action on an "
+ . W "inter-facility consult."
+ . S DIR(0)="E" D ^DIR
+ . D END
+ . S GMRCQUT=1
  I '$$LOCK^GMRCA1(GMRCO) D END S GMRCQUT=1 Q
  S GMRCLCK=1
  ;
@@ -30,7 +37,9 @@ FR(GMRCO) ;Forward Request to a new service
  I 'GMRCDG S GMRCMSG="No Service Was Selected. Consult Was Not Forwarded To Any Service!" D EXAC^GMRCADC(GMRCMSG),END S GMRCQUT=1 Q
  S GMRCFF=$P(^GMR(123,GMRCO,0),"^",5) I GMRCFF=+GMRCDG S GMRCMSG="The Forwarding Service Cannot Forward A Consult To Itself!" D EXAC^GMRCADC(GMRCMSG),END S GMRCQUT=1 Q
  S GETPROV="Who is responsible for Forwarding the Consult?"
- D GETPROV^GMRCAU I '$D(GMRCORNP) D END S GMRCQUT=1 Q
+FRGTPRV D GETPROV^GMRCAU I '$D(GMRCORNP) D END S GMRCQUT=1 Q
+ S GMRCACT=$$PROVIDER^XUSER(GMRCORNP) I $P(GMRCACT,U)'=1 D  G FRGTPRV
+ .W !!,"***User account is TERMINATED please choose another responsible user.***"
  S GMRCAD=$$GETDT^GMRCUTL1 I GMRCAD="^" D END S GMRCQUT=1 Q
  I '$G(GMRCAD) S GMRCAD=$$NOW^XLFDT
  N GMRCSS,GMRCSSNM,GMRCA,GMRCMSG,GMRCIROL,GMRCINM,GMRCIROU,ORSTS

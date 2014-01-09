@@ -1,0 +1,151 @@
+BGOVPHN ; IHS/MSC/MGH - V PHN data ;03-Apr-2013 14:22;DU
+ ;;1.1;BGO COMPONENTS;**11**;Mar 20, 2007;Build 2
+ ;-----------------------------------------------------------------
+ ; Return V PHN records for a patient
+ ;  INP = Patient IEN ^ Number to return
+ ; .RET = Returned as a list of records:
+ ;   RET(1)= "D" ^ IEN [2] ^ Visit Date [3] ^ Date Done [4] ^ level of intervention [5] ^Type Decision [6]^Facility Name [7] ^
+ ;    Provider IEN [8] ^ Location IEN [9] ^ Visit IEN [10] ^ Visit Category [11] ^ Visit Locked [12]
+ ;   RET(2)= "P"^ IEN [2] ^ PSYCH [3]
+ ;   RET(3)= "N" ^ IEN[2] ^ NSG DX [3]
+ ;   RET(4)= "S" ^ IEN[2] ^ SHORT TERM GOAL [3]
+ ;   RET(5)= "L" ^ IEN[2] ^ LONG TERM GOAL [3]
+GET(RET,INP) ;EP
+ N X,CNT,REC,VCAT,VDT,VPHN,LVL,LOC,FAC,FACNAM,EXNAME,PRVIEN,PRVNAME
+ N FNUM,VDATE,VIEN,EDATE,PHN,NUM,CNT,TYPE,PSYCH,NSG,SHORT,LONG
+ S RET=$$TMPGBL^BGOUTL
+ S NUM=$P(INP,U,2)
+ S DFN=$P(INP,U,1)
+ I NUM="" S NUM=50
+ S CNT=0,PHN=""
+ F  S PHN=$O(^AUPNVPHN("AA",DFN,PHN)) Q:PHN=""  D
+ .S VDT=0
+ .F  S VDT=$O(^AUPNVPHN("AA",DFN,PHN,VDT)) Q:'VDT  D
+ ..S VPHN=""
+ ..F  S VPHN=$O(^AUPNVPHN("AA",DFN,PHN,VDT,VPHN)) Q:'VPHN!(CNT>NUM)  D
+ ...S REC=$G(^AUPNVPHN(VPHN,0))
+ ...Q:REC=""
+ ...S FNUM=$$FNUM
+ ...S LVL=$$GET1^DIQ(FNUM,VPHN,.05)
+ ...S TYPE=$$GET1^DIQ(FNUM,VPHN,.06)
+ ...S PRVIEN=$P($G(^AUPNVPHN(VPHN,12)),U,4)
+ ...;S PRVNAME=$S('PRVIEN:"",1:$P($G(^VA(200,+PRVIEN,0)),U))
+ ...S VIEN=$P(REC,U,3)
+ ...Q:'VIEN
+ ...S LOC=$P($G(^AUPNVSIT(VIEN,0)),U,6)
+ ...S FAC=$S(LOC:$P($G(^AUTTLOC(LOC,0)),U,10),1:"")
+ ...S FACNAM=$S(LOC:$P($G(^AUTTLOC(LOC,0)),U),1:"")
+ ...S:FACNAM FACNAM=$P($G(^DIC(4,FACNAM,0)),U)
+ ...S:$P($G(^AUPNVSIT(VIEN,21)),U)'="" FACNAM=$P(^(21),U)
+ ...S VCAT=$P($G(^AUPNVSIT(VIEN,0)),U,7)
+ ...S VDATE=9999999-VDT
+ ...S EDATE=$P($G(^AUPNVPHN(VPHN,12)),U,1)
+ ...I EDATE="" S EDATE=VDATE
+ ...S PSYCH=$G(^AUPNVPHN(VPHN,21))
+ ...S NSG=$G(^AUPNVPHN(VPHN,22))
+ ...S SHORT=$G(^AUPNVPHN(VPHN,23))
+ ...S LONG=$G(^AUPNVPHN(VPHN,24))
+ ...S CNT=CNT+1
+ ...S @RET@(CNT)="D"_U_VPHN_U_VDATE_U_EDATE_U_LVL_U_TYPE_U_FACNAM_U_PRVIEN_U_LOC_U_VIEN_U_VCAT_U_$$ISLOCKED^BEHOENCX(VIEN)
+ ...S CNT=CNT+1
+ ...S @RET@(CNT)="P"_U_VPHN_U_PSYCH
+ ...S CNT=CNT+1
+ ...S @RET@(CNT)="N"_U_VPHN_U_NSG
+ ...S CNT=CNT+1
+ ...S @RET@(CNT)="S"_U_VPHN_U_SHORT
+ ...S CNT=CNT+1
+ ...S @RET@(CNT)="L"_U_VPHN_U_LONG
+ Q
+ ; Set/edit V PHN record
+ ;  INP(1) = "D" ^ V IEN (if edit) [2] ^Level [3] ^ Type [4] ^ Patient IEN [5] ^ Visit IEN [6] ^ Provider IEN [7]
+ ;        Event Date [8] ^ Location IEN [9] ^ Other Location [10] ^ Historical Flag [11]
+ ;  INP(2)= "P" ^ PSYCH
+ ;  INP(3)= "N" ^ NSG DX
+ ;  INP(4)= "S" ^ SHORT TERM GOAL
+ ;  INP(5)= "L" ^ LONG TERM GOAL
+ ; .RET = Returned as -1^error text if error
+SET(RET,INP) ;EP
+ N VFIEN,VCAT,TYP,VIEN,DFN,PROV,RESULT,EVNTDT,LOCIEN,OUTLOC,HIST,FDA,FNUM,VFNEW
+ N LVL,PSYCH,NSG,SHORT,LONG,CNT
+ S CNT="",RET=""
+ S (PSYCH,NSG,SHORT,LONG)=""
+ F  S CNT=$O(INP(CNT)) Q:CNT=""!(RET>0)  D
+ .S RET="",FNUM=$$FNUM
+ .I $P(INP(CNT),U,1)="D" D
+ ..S VFIEN=$P(INP(CNT),U,2)
+ ..S VIEN=+$P(INP(CNT),U,6)
+ ..I 'VIEN S RET=$$ERR^BGOUTL(1077) Q
+ ..I $D(^AUPNVPHN("AD",VIEN))&(VFIEN="") S RET="-1^Only 1 entry allowed per visit" Q
+ ..S VFNEW='VFIEN
+ ..S HIST=$P(INP(CNT),U,11)
+ ..S DFN=$P(INP(CNT),U,5)
+ ..I 'VIEN,'HIST S RET=$$ERR^BGOUTL(1002) Q
+ ..S VCAT=$P($G(^AUPNVSIT(VIEN,0)),U,8)
+ ..S:VCAT="E" HIST=1
+ ..S PROV=$P(INP(CNT),U,7)
+ ..I PROV="" S PROV=DUZ
+ ..I 'PROV,VFIEN S RET=$$ERR^BGOUTL(1027) Q
+ ..S LVL=$P(INP(CNT),U,3)
+ ..S LVL=$S(LVL="PRIMARY":"P",LVL="P":"P",LVL="SECONDARY":"S",LVL="S":"S",LVL="TERTIARY":"T",LVL="T":"T",1:"")
+ ..S TYP=$P(INP(CNT),U,4)
+ ..S TYP=$S(TYP="STRAIGHTFORWARD":"S",TYP="S":"S",TYP="LOW COMPLEXITY":"L",TYP="L":"L",TYP="MODERATE COMPLEXITY":"M",TYP="M":"M",TYP="HIGH COMPLEXITY":"H",TYP="H":"H",1:"")
+ ..S EVNTDT=$P(INP(CNT),U,8)
+ ..S LOCIEN=$P(INP(CNT),U,9)
+ ..S OUTLOC=$P(INP(CNT),U,10)
+ ..I HIST D  Q:RET
+ ...S RET=$$MAKEHIST^BGOUTL(DFN,EVNTDT,$S($L(OUTLOC):OUTLOC,1:LOCIEN),VIEN)
+ ...S:RET>0 VIEN=RET,RET="",VCAT="E"
+ ..S RET=$$CHKVISIT^BGOUTL(VIEN,DFN)
+ ..Q:RET
+ ..I 'VFIEN D  Q:'VFIEN
+ ...D VFNEW^BGOUTL2(.RET,FNUM,"IHS-T 802",VIEN,"V PHN")
+ ...S:RET>0 VFIEN=RET,RET=""
+ .I $P(INP(CNT),U,1)="P" S PSYCH=$P($G(INP(CNT)),U,2)
+ .I $P(INP(CNT),U,1)="N" S NSG=$P($G(INP(CNT)),U,2)
+ .I $P(INP(CNT),U,1)="S" S SHORT=$P($G(INP(CNT)),U,2)
+ .I $P(INP(CNT),U,1)="L" S LONG=$P($G(INP(CNT)),U,2)
+ ;Now put it all together
+ Q:RET
+ I 'VFIEN S RET="-1^PHN entry not identified" Q
+ S FDA=$NA(FDA(FNUM,VFIEN_","))
+ S @FDA@(.01)="IHS-T 802"
+ S @FDA@(.05)=LVL
+ S @FDA@(.06)=TYP
+ I PROV="" S PROV=DUZ
+ S:PROV @FDA@(1204)="`"_PROV
+ I EVNTDT="" S EVNTDT="N"
+ S @FDA@(1201)="N"
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
+ S @FDA@(2101)=PSYCH
+ S @FDA@(2201)=NSG
+ S @FDA@(2301)=SHORT
+ S @FDA@(2401)=LONG
+ S RET=$$UPDATE^BGOUTL(.FDA,"E")
+ I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
+ D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)
+ S:'RET RET=VFIEN
+ Q
+ ; Delete a V PHN
+ ;  INP = IEN
+DEL(RET,INP) ;EP
+ N IEN,REFUSAL
+ S IEN=+INP
+ I 'IEN S RET=$$ERR^BGOUTL(1008)
+ E  D VFDEL^BGOUTL2(.RET,$$FNUM,IEN)
+ Q
+CHKPRV(RET,IEN,USER) ;EP  Can this user edit/delete
+ N PRV,ENTRYDT,ERR
+ S RET=0
+ I $G(USER)="" S USER=DUZ
+ S PRV=$$GET1^DIQ(9000010.32,IEN,1204,"I")
+ I PRV=USER S RET=1 Q
+ S ENTRYDT=$$NOW^XLFDT
+ S ERR=""
+ S RET=$$ISA^TIUPS139(USER,"CHIEF, MIS",ERR)
+ Q
+ ; Return V File #
+FNUM() Q 9000010.32

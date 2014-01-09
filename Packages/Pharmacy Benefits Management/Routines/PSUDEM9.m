@@ -1,5 +1,5 @@
 PSUDEM9 ;BIR/DAM - CPT Codes for Inpatient PTF Record Extract ; 20 DEC 2001
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ;DBIA's
  ; Reference to file 45 supported by DBIA 3511

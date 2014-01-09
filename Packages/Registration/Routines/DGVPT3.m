@@ -1,5 +1,5 @@
 DGVPT3 ;ALB/MTC - DG POST-INIT DRIVER CONTINUED ; 27 MAR 91
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 COMP ;Reminder to recompile templates and cross-references on all CPU's
  W !!,">>> Remember to recompile the following templates on all CPU's..."

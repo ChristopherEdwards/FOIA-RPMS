@@ -1,6 +1,6 @@
-CIANBINI ;MSC/IND/DKM - MSC RPC Broker Installation ;11-May-2010 07:03;DKM
- ;;1.1;CIA NETWORK COMPONENTS;**001007**;Sep 18, 2007
- ;;Copyright 2000-2008, Medsphere Systems Corporation
+CIANBINI ;MSC/IND/DKM - MSC RPC Broker Installation ;25-Jun-2012 15:27;PLS
+ ;;1.1;CIA NETWORK COMPONENTS;**001007,001009**;Sep 18, 2007
+ ;;Copyright 2000-2012, Medsphere Systems Corporation
  ;=================================================================
  ; Environment check
 EC D PATCH("XPAREDT2","26,35,52","KERNEL TOOLKIT")

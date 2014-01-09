@@ -1,5 +1,5 @@
 DGPMDEF ;ALB/MRL/MIR - STORE STANDARD MOVEMENT DEFAULT VALUES; 13 OCT 88
- ;;5.3;Registration;**107**;Aug 13, 1993
+ ;;5.3;Registration;**107,1015**;Aug 13, 1993;Build 21
  ;
  W !! F I=1:1 S J=$P($T(T+I),";;",2) Q:J="QUIT"  W !,J
  S DLAYGO=405.1,(DIC,DIE)="^DG(405.1," F DGI=0:0 S DIC(0)="AELMQZ",DR=".01:.04;S:$P(^DG(405.1,DA,0),""^"",2)'=2 Y=.07;.05;.07;10" W !! D ^DIC Q:Y<0  S DA=+Y D ^DIE S ^UTILITY("DGPMDEF",$J,DA)=""

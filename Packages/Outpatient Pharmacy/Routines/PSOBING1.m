@@ -1,8 +1,10 @@
-PSOBING1 ;BHAM ISC/LC - bingo board utility routine ;18-Aug-2004 15:55;PLS
- ;;7.0;OUTPATIENT PHARMACY;**5,28,56,135**;DEC 1997
+PSOBING1 ;BHAM ISC/LC - bingo board utility routine ;15-Feb-2013 09:38;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**5,28,56,135,244,268,1015**;DEC 1997;Build 62
  ;External reference to ^PS(55 supported by DBIA 2228
  ;External reference to DD(52.11 and DD(59.2 supported by DBIA 999
  ; Modified - IHS/CIA/PLS - 03/10/04 - Lines NEW1, REL and NOTE
+ ;*244 don't store to file 52.11 if Rx Status > 11
+ ;
 BEG D:'$D(PSOPAR) ^PSOLSET G:'$D(PSOPAR) END
 NEW K DD,DO S (DIC,DIE)="^PS(52.11,",(NDA,X,DA)=PSODFN,DIC(0)="LMNQZ" D FILE^DICN K DIC G:Y'>0 NEW S (ODA,DA)=+Y,BNGSUS=0 S:$D(SUSROUTE) BNGSUS=1
 NEW1 ; IHS/CIA/PLS - 07/08/04 - Change SSN references to HRN
@@ -19,7 +21,7 @@ NEW1 ; IHS/CIA/PLS - 07/08/04 - Change SSN references to HRN
  ; IHS/CIA/PLS - 08/18/04 - Added TIME READY field
  ;S DR="2////"_DISGROUP_";3////"_PSOSITE_";4////"_TM_";5////"_$E(TM1_"0000",1,4)_";8////"_NAM_";9////"_SSN_";13////"_BNGSUS_""
  S DR="2////"_DISGROUP_";3////"_PSOSITE_";4////"_TM_";5////"_$E(TM1_"0000",1,4)_";8////"_NAM_";9////"_SSN_";13////"_BNGSUS_";6////"_$E(TM1_"0000",1,4)_""
-STO S NFLAG=1 L +^PS(52.11,DA):2 E  W !!,$C(7),Y(0,0)," is being edited!",! S DA=NDA D WARN Q:$G(GRTP)="T"  G END
+STO S NFLAG=1 L +^PS(52.11,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),Y(0,0)," is being edited!",! S DA=NDA D WARN Q:$G(GRTP)="T"  G END
  S XDA=DA D ^DIE I $G(DUOUT)!($G(DTOUT))!(X="") S DA=ODA D WARN G END
  S DA=XDA D STORX S DA=XDA L -^PS(52.11,DA)
  S TFLAG=1 D:$G(GRTP)="N" CHKUP^PSOBINGO,NOTE G:$G(GRTP)="N" END
@@ -60,6 +62,7 @@ STORX ;Sto Rx # for each entry in 52.11
  Q:'$D(BBRX(1))  N DIC,DIE,NUM,BB,BBN,DR,FL,FLN,I
  S DA(1)=DA,(DIC,DIE)="^PS(52.11,"_DA(1)_",2,",DIC(0)="L",DIC("P")=$P(^DD(52.11,12,0),"^",2),DLAYGO=52.11
  F BBN=0:0 S BBN=$O(BBRX(BBN)) Q:'BBN  F NUM=1:1 S BB=$P(BBRX(BBN),",",NUM) Q:'BB  D
+ .Q:$G(^PSRX(BB,"STA"))>11                            ;*244
  .I $D(RXPR(BB)) S FL="P",FLN=$G(RXPR(BB))
  .I '$D(RXPR(BB)) F I=0:0 S I=$O(^PSRX(BB,1,I)) Q:'I  S FL="F",FLN=I
  .I '$D(FL) S FL="F",FLN=0
@@ -108,7 +111,7 @@ REL Q:$$GET1^DIQ(9009033,+PSOSITE,314,"I")  ; IHS/CIA/PLS - 03/10/04 - Exit if a
  I $D(BINGRPR),$D(BNGRDV) S BDIV=BNGRDV G REL1
 REL1 N TM,TM1 D NOW^%DTC S TM=$E(%,1,12),TM1=$P(TM,".",2)
  S NM=$P(^DPT($P(^PS(52.11,DA,0),"^"),0),"^"),DR="6////"_$E(TM1_"0000",1,4)_";8////"_NM_"",DIE="^PS(52.11,"
- L +^PS(52.11,DA):2 E  W !!,$C(7),NM," is being edited!",! D WARN G END
+ L +^PS(52.11,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),NM," is being edited!",! D WARN G END
  D ^DIE L -^PS(52.11,DA) I $G(DUOUT)!($G(DTOUT))!(X="") D WARN G END
  S RX0=^PS(52.11,DA,0),JOES=$P(RX0,"^",4),TICK=+$P($G(RX0),"^",2),GRP=$P($G(^PS(59.3,$P($G(^PS(52.11,DA,0)),"^",3),0)),"^",2) D:GRP="T"&('$G(TICK)) WARN G:'$D(DA) END
  W !!,NAM," added to the "_$P($G(^PS(59.3,$P(RX0,"^",3),0)),"^")_" display."

@@ -1,5 +1,5 @@
-TIUPRD ; SLC/JER - Single patient print ;7/16/01
- ;;1.0;TEXT INTEGRATION UTILITIES;**1,100,121**;Jun 20, 1997
+TIUPRD ; SLC/JER - Single patient print ;5/19/04
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1,100,121,182**;Jun 20, 1997
  ;
 REPLACE(TIUDA) ; Populate TMP array w records received,
  ;replacing ID kids w ID parents; replacing addenda with their parents
@@ -52,7 +52,7 @@ REPX Q
  ;
 MAIN(TIUTYP) ; Control Branching
  N DFN,TIU,TIUOUT,TIUREL,TIUCHK,TIUA,TIUSEE,ACT,TIUY,TIUFLAG
- N TIUDAT,TIUOUT,TIUSEE,TIUI,TIUQUIT
+ N TIUDAT,TIUOUT,TIUSEE,TIUI,TIUQUIT,TIUDEV
  I '$D(TIUPRM0) D SETPARM^TIULE
  S:$D(ORVP) DFN=+ORVP S TIUTYP=$G(TIUTYP,38)
  D SELPAT^TIULA2(.TIUDAT,TIUTYP,+$G(DFN))
@@ -66,7 +66,7 @@ PRINTX D ^%ZISC
  K ^TMP("TIUPR",$J)
  Q
 PRINTN ; Loop through selected doc's & invoke print code as appropriate
- N TIUI,TIUTYP,TIUDARR,DFN,TIULNO
+ N TIUI,TIUTYP,TIUDARR,DFN,TIULNO,DIROUT
  K ^TMP("TIUREPLACE",$J)
  U IO
  S TIUI=0
@@ -90,8 +90,12 @@ PRINTN ; Loop through selected doc's & invoke print code as appropriate
  . S TIUI=$G(TIULNO(TIUDA))
  . I '$G(TIUI) D
  . . S ORIGCHLD=$P(^TMP("TIUREPLACE",$J,TIUDA),U,2),TIUI=$G(TIULNO(ORIGCHLD))
- . I +$G(TIUPGRP),($G(TIUPFHDR)]""),($G(TIUPFNBR)]"") S TIUDARR(TIUPMTHD,$G(TIUPGRP)_"$"_TIUPFHDR_";"_DFN,TIUI,TIUDA)=TIUPFNBR
- . E  S TIUDARR(TIUPMTHD,DFN,TIUI,TIUDA)=""
+ . ;I +$G(TIUPGRP),($G(TIUPFHDR)]""),($G(TIUPFNBR)]"") S TIUDARR(TIUPMTHD,$G(TIUPGRP)_"$"_TIUPFHDR_";"_DFN,TIUI,TIUDA)=TIUPFNBR
+ . ;E  S TIUDARR(TIUPMTHD,DFN,TIUI,TIUDA)=""
+ . ; -- P182: Set array same whether or not flds are defined, with
+ . ;    TIUPGRP piece possibly 0, TIUPFHDR piece possibly null, and
+ . ;    array value TIUPFNBR possibly null.
+ . S TIUDARR(TIUPMTHD,+$G(TIUPGRP)_"$"_$G(TIUPFHDR)_";"_DFN,TIUI,TIUDA)=$G(TIUPFNBR)
  K ^TMP("TIUREPLACE",$J)
  ; -- Sort printout by printmethod (prints similar docmts together):
  S TIUPMTHD="" F  S TIUPMTHD=$O(TIUDARR(TIUPMTHD)) Q:TIUPMTHD=""  D

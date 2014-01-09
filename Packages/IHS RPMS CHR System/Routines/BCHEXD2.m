@@ -1,5 +1,5 @@
-BCHEXD2 ; IHS/TUCSON/LAB -PROCESS RECORD ;  [ 06/27/00  2:16 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,10**;OCT 28, 1996
+BCHEXD2 ; IHS/CMI/LAB -PROCESS RECORD ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - added $J to ^TMP
  ;
  ;Create export record.  68 characters in length.

@@ -1,5 +1,5 @@
-DG53358D ;ALB/AEG DG*5.3*358 DELETE INCOME TESTS ; 5-1-2001
- ;;5.3;REGISTRATION;**358**;5-1-2001
+DG53358D ;ALB/AEG,GN DG*5.3*358 DELETE INCOME TESTS ; 12/17/03 3:06pm
+ ;;5.3;REGISTRATION;**358,558,1015**;5-1-2001;Build 21
  ;
  ;This is a modified version of IVMCMD in that it calls a modified
  ;version of IVMCMD1 called DG53358C which only deletes the
@@ -7,6 +7,8 @@ DG53358D ;ALB/AEG DG*5.3*358 DELETE INCOME TESTS ; 5-1-2001
  ;a case record in the IVM Patient (#301.5)file, does not send 'delete'
  ;bulletin/notification to local mail group, does not call the means
  ;test event driver and does not call DGMTR.
+ ;
+ ;DG*53*558 - re-deploy with this patch
  ;
 EN(IVMMTIEN) ; --
  ; This routine will process income test deletion requests received
@@ -31,7 +33,8 @@ EN1 ; Get zero node of (#408.31)
  S DFN=$P(IVMNODE0,"^",2)
  S IVMTOT=$P(IVMNODE0,"^",19) ; type of test
  S IVMLINK=$P($G(^DGMT(408.31,IVMMTIEN,2)),"^",6)
- I IVMTOT=2,IVMLINK Q 0  ; don't delete copay test linked to means test
+ ;don't delete copay test linked to valid means test
+ I IVMTOT=2,IVMLINK,$D(^DGMT(408.31,IVMLINK,0)) Q 0
  I IVMTOT=1,IVMLINK D  I $D(IVMERR) Q 0  ;I MT linkd to copay delete both
  .D DELETE(IVMLINK,DFN,IVMDOT) ; delete copay
  D DELETE(IVMMTIEN,DFN,IVMDOT) ; delete copay or MT

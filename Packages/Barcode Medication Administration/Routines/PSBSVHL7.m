@@ -1,5 +1,5 @@
-PSBSVHL7 ;BIRMINGHAM/TEJ-BCMA HL7 SERVER ;02-Mar-2007 13:26;SM
- ;;3.0;BAR CODE MED ADMIN;**3,1005**;Mar 2004
+PSBSVHL7 ;BIRMINGHAM/TEJ - BCMA HL7 SERVER ;5/28/10 1:48pm
+ ;;3.0;BAR CODE MED ADMIN;**3,42**;Mar 2004;Build 23
  ; Reference/IA
  ; $$HLDATE^HLFNC/10106
  ; $$HLNAME^HLFNC/10106
@@ -11,22 +11,20 @@ PSBSVHL7 ;BIRMINGHAM/TEJ-BCMA HL7 SERVER ;02-Mar-2007 13:26;SM
  ; File 200/10060
  ; DEM^VADPT/10061
  ;
- ; Modified - IHS/MSC/PLS - 08/08/2006
- ;
  ; Description:
  ; This routine is to service BCMA HL7 messaging to other COTS and
  ; VISTA application.
  ; The entry point ("EN") is accessed via BCMA.  This routine
  ; basically consists of subroutines to generate HL7 messages
- ; per trigger events coresponding to BCMA transactions.
+ ; per trigger events corresponding to BCMA transactions.  
  ; These trigger events are captured within the routine PSBML.
- ; PSBML passes the affected BCMA MEDICATION LOG File IEN and
+ ; PSBML passes the affected BCMA MEDICATION LOG File IEN and 
  ; a variable capturing the BCMA activity as the input.
  ;       Input  -        PSBIEN  Affected BCMA record(s)
  ;                       PSBHL7X  BCMA trigger event/transaction
- ;       Output -        HL7 broadcast to subscribing Applications
+ ;       Output -        HL7 broadcast to subscribing Applications 
  ;
-EN(PSBIEN,PSBHL7X) ; This is the entry point for for all HL7 processing
+EN(PSBIEN,PSBHL7X) ; This is the entry point for all HL7 processing
 1 ; set up environment for message
  N PSBHLFS,PSBHLCS
  D INIT^HLFNC2("PSB BCMA RASO17 SRV",.HL)
@@ -42,7 +40,7 @@ EN(PSBIEN,PSBHL7X) ; This is the entry point for for all HL7 processing
  I (PSBHL7X["ADD COMMENT") D COMMENT Q
  I (PSBHL7X["PRN EFFECTI") D PRNEFFE Q
  Q
-MEDSTAT ;MEDPASS and UPDATE trigger events
+MEDSTAT ;MEDPASS and UPDATE trigger events 
  D PID,PV1,ORC,RXO
  D:$D(^PSB(53.79,PSBIEN,.3,0)) NTE
  D RXR,RXC,RXA,TRANS  Q
@@ -56,9 +54,7 @@ PID ; PID segment -- use segment generator
  S $P(VADM(4),PSBHLCS)=VADM(4),$P(VADM(4),PSBHLCS,5)="AGE",$P(PSBHL7MS,PSBHLFS,4)=VADM(4)
  S $P(PSBHL7MS,PSBHLFS,5)=$$HLNAME^HLFNC(VADM(1),HL("ECH"))
  S $P(PSBHL7MS,PSBHLFS,7)=$$HLDATE^HLFNC(+VADM(3),"DT")
- N TMP
- S TMP=$TR(VA("PID"),"-") S:$G(DUZ("AG"))="I" $P(TMP,PSBHLCS,5)="HRN"
- S $P(PSBHL7MS,PSBHLFS,19)=TMP
+ S $P(PSBHL7MS,PSBHLFS,19)=$TR(VA("PID"),"-")  ;IHS/VA - use VA("PID")
  S $P(PSBHL7MS,PSBHLFS,8)=$P(VADM(5),"^")
  S HLA("HLS",PSBCNT)="PID"_PSBHLFS_PSBHL7MS
  Q

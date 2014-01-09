@@ -1,5 +1,5 @@
 DGYRCOV ;ALB/CAW - Convert MT pointer from 408.21 to 408.22;10/27/94
- ;;5.3;Registration;**45**;Aug 13, 1993
+ ;;5.3;Registration;**45,1015**;Aug 13, 1993;Build 21
  ;
 GETREL ; Get all active relations for that year
  N CNT,DEP,DGDATE,DGERR,DGMT,DGINC,DGINI,DGIRI,DGMTI,DGREL,DFN,DATE,INC,INR,FLAG,FLAG1

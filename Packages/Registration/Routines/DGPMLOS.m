@@ -1,5 +1,5 @@
 DGPMLOS ;ALB/MIR - DETERMINE LOS FOR ADMISSION EPISODE; 8 FEB 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;INPUT:  DGPMIFN = IFN of admission movement for which you want LOS to
  ;                  be calculated.

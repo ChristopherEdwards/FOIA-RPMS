@@ -1,6 +1,6 @@
 HOSPITAL LOCATION
 ZWR
-^SC(0)="HOSPITAL LOCATION^44I^3^1"
+^SC(0)="HOSPITAL LOCATION^44I^4^2"
 ^SC(3,0)="DEMO IHS CLINIC^DIC^C^7819^3^^28^M^^^^^^^3^N^N^^Y^17^^1"
 ^SC(3,42)="5"
 ^SC(3,"PR",0)="^44.1P^^"
@@ -413,7 +413,15 @@ ZWR
 ^SC(3,"T6",0)="^44.0001A^^"
 ^SC(3,"T6",9999999,0)="9999999"
 ^SC(3,"T6",9999999,1)="[t t t|t t t|t t t|t t t|t t t|t t t|t t t|t t t|t t t] "
+^SC(4,0)="LAB DIV 8904 OOS ID 76^^C^7819^^^83^0^^^^^^^3^^N^^Y^^0^1"
+^SC(4,"OOS")="1^249"
+^SC(4,"SDPROT")="Y"
 ^SC("AC","C",3)=""
+^SC("AC","C",4)=""
+^SC("AOOS",1,4)=""
+^SC("AST",83,4)=""
 ^SC("ASTOP",28,3)=""
+^SC("ASTOP",83,4)=""
 ^SC("B","DEMO IHS CLINIC",3)=""
+^SC("B","LAB DIV 8904 OOS ID 76",4)=""
 ^SC("C","DIC",3)=""

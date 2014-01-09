@@ -1,5 +1,5 @@
 SDCOUR ;ALB/RMO - Reader Utilities - Check Out;18 FEB 1993 11:30 am
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 EN(SDNOD0,SDSUB,SDPAR,SDSELDF,SDSELY) ;Select Entities from Secondary List
  ; Input  -- SDNOD0   Selection in XQORNOD0 format

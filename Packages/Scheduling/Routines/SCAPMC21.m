@@ -1,5 +1,5 @@
 SCAPMC21 ;ALB/REW - Team APIs:ACPTTP ; 5 Jul 1995
- ;;5.3;Scheduling;**41,148,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,148,177,1015**;AUG 13, 1993;Build 21
  ;;1.0
 ACPTTP(DFN,SCTP,SCFIELDA,SCACT,SCERR,SCYESTM,SCMAINA) ;add/edit a patient to a position (pt TP assgn - #404.43
  ; input:

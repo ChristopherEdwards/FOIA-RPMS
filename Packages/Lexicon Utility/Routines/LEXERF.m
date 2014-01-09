@@ -1,5 +1,5 @@
 LEXERF ; ISL Functions for Exc/Rep Words          ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 EXIST(X) ; Boolean function returns:
  ;    0    If X will result in a unsuccessful search (not found)

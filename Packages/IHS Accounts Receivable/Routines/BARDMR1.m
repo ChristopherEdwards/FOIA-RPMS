@@ -1,0 +1,97 @@
+BARDMR1 ;IHS/OIT/FCJ - DEBT MANAGEMENT-LETTERS READY TO PRINT REPORT
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**22**;OCT 26, 2005;Build 38
+ ;New routine 5-12-2011 for Debt Letter Management
+ ;
+ ;This report will provide letters ready to be printed by cycle
+ ;
+ ;
+ST ;
+ ;
+ W !!,"Report for Insurer Letter's to be printed"
+ S BARRPT="C"
+ D PAR^BARDMU
+ D RRDT^BARDMU
+ D ZIS
+ Q
+ ;
+ZIS ;
+ D ZIS^BARDMU
+ G:$G(BARQUIT) XIT
+ S XBRC="CALC^BARDMRU",XBRX="XIT^BARDMR1",XBNS="BAR"
+ I $G(BAROPT)="B" S XBRP="VIEWR^XBLM(""PRINT^BARDMR1"")",XBIOP=0
+ E  S XBRP="PRINT^BARDMR1"
+ D ^XBDBQUE
+ D XIT
+ Q
+XIT ;
+ ;
+ K ^TMP("BARDM",$J)
+ I $D(IO("S")) S IOP="`"_IOS D ^%ZIS Q
+ D ^%ZISC
+ Q
+ ;
+PRINT ;
+ ;
+ S:'$D(BARPSDX) BARPSDX=""  ;bar*1.8*22 SDR
+ U IO
+ D HDR,HDR2,TOT
+ D DET  ;bar*1.8*22 SDR
+ Q
+ ;
+HDR ;
+ ;S PG=PG+1  ;bar*1.8*22 SDR
+ S BARPG=BARPG+1  ;bar*1.8*22 SDR
+ W @IOF,!,BARRDT,?29,"DEBT MANAGEMENT REPORT"
+ ;W:$G(BAROPT)'="B" ?70,"PAGE: ",PG  ;bar*1.8*22 SDR
+ W:$G(BAROPT)'="B" ?70,"PAGE: ",BARPG  ;bar*1.8*22 SDR
+ W !,"A/R PARENT LOCATION: ",BARPNM,!
+ F I=1:1:80 W "="
+ Q
+HDR2 ;
+ W !,"ENTITY",?BARPSDX,?53,"AMOUNT"
+ W !?2,"A/R ACCOUNT",?42,"COUNT",?53,"BILLED",?65,"OUTSTANDING"
+ W ! F I=1:1:80 W "-"
+ Q
+ ;
+TOT ;PRINT TOTALS
+ ;
+ F BARL="CYCLE 1","CYCLE 2","CYCLE 3","CYCLE 4" D  Q:$G(BARDLQ)
+ .W !,BARL
+ .S BARDIT=0  F  S BARDIT=$O(^TMP("BARDM",$J,BARL,BARDIT)) Q:BARDIT=""  D  Q:$G(BARDLQ)
+ ..W !!?2,BARDIT
+ ..S BARDI=0 F  S BARDI=$O(^TMP("BARDM",$J,BARL,BARDIT,BARDI)) Q:BARDI=""  D  Q:$G(BARDLQ)
+ ...W !,?4,BARDI,?40,$J($P(^TMP("BARDM",$J,BARL,BARDIT,BARDI),U),7)
+ ...S X=$P(^TMP("BARDM",$J,BARL,BARDIT,BARDI),U,2) D COMMA^%DTC W ?50,$J(X,13)
+ ...S X=$P(^TMP("BARDM",$J,BARL,BARDIT,BARDI),U,3) D COMMA^%DTC W ?65,$J(X,12)
+ ...I $Y>(IOSL-5) D:$G(BAROPT)'="B" RTRN^BARDMU Q:$G(BARDLQ)  D HDR,HDR2
+ ..Q:$G(BARDLQ)
+ ..W !,?40,"-------",?50,"-------------",?65,"------------"
+ ..W !,?2,BARDIT," TOTAL",?40,$J($P(^TMP("BARDM",$J,BARL,BARDIT),U),7)
+ ..S X=$P(^TMP("BARDM",$J,BARL,BARDIT),U,2) D COMMA^%DTC W ?50,$J(X,13)
+ ..S X=$P(^TMP("BARDM",$J,BARL,BARDIT),U,3) D COMMA^%DTC W ?65,$J(X,12)
+ ..I $Y>(IOSL-5) D:$G(BAROPT)'="B" RTRN^BARDMU Q:$G(BARDLQ)  D HDR,HDR2
+ .Q:$G(BARDLQ)
+ .W !,?40,"-------",?50,"-------------",?65,"------------"
+ .;W !,?20,L," TOTAL",?40,$J($P(^TMP("BARDM",$J,L),U),7)  ;bar*1.8*22 SDR
+ .W !,?20,BARL," TOTAL",?40,$J(+$P($G(^TMP("BARDM",$J,BARL)),U),7)  ;bar*1.8*22 SDR
+ .;S X=$P(^TMP("BARDM",$J,L),U,2) D COMMA^%DTC W ?50,$J(X,13)  ;bar*1.8*22 SDR
+ .S X=+$P($G(^TMP("BARDM",$J,BARL)),U,2) D COMMA^%DTC W ?50,$J(X,13)  ;bar*1.8*22 SDR
+ .;S X=$P(^TMP("BARDM",$J,L),U,3) D COMMA^%DTC W ?65,$J(X,12)  ;bar*1.8*22 SDR
+ .S X=+$P($G(^TMP("BARDM",$J,BARL)),U,3) D COMMA^%DTC W ?65,$J(X,12)  ;bar*1.8*22 SDR
+ Q:$G(BARDLQ)
+ I $G(BAROPT)'="B" D RTRN^BARDMU
+ Q
+ ;start new code bar*1.8*22 SDR
+DET ;
+ W !!
+ F BARL="CYCLE 1","CYCLE 2","CYCLE 3","CYCLE 4" D
+ .S BARDIT=""
+ .F  S BARDIT=$O(^TMP("BARDM",$J,"DMIR-DET",BARL,BARDIT)) Q:BARDIT=""  D
+ ..S BARDI=""
+ ..F  S BARDI=$O(^TMP("BARDM",$J,"DMIR-DET",BARL,BARDIT,BARDI)) Q:BARDI=""  D
+ ...S BARDM=0
+ ...F  S BARDM=$O(^TMP("BARDM",$J,"DMIR-DET",BARL,BARDIT,BARDI,BARDM)) Q:'BARDM  D
+ ....W !,BARL_" "_BARDIT,?25,BARDI,?60,$$GET1^DIQ(90053.05,BARDM,".01","E")
+ Q
+ ;end new code bar*1.8*22 SDR
+ ; 

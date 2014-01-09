@@ -1,7 +1,7 @@
 TIURH ; SLC/JER - Review Screen Header ;5/7/03
- ;;1.0;TEXT INTEGRATION UTILITIES;**113**;Jun 20, 1997
+ ;;1.0;TEXT INTEGRATION UTILITIES;**113,207**;Jun 20, 1997
 HDR ; Initialize header for clinician's review screen
- N BY,TIUI,TIUX,SCREEN,STATUS,RANGE,TIUBY,TIUDOCS,XREF
+ N BY,TIUI,TIUX,SCREEN,STATUS,RANGE,TIUBY,TIUDOCS,XREF,TIUNAME
  S TIUX=$G(^TMP("TIUR",$J,0)),STATUS=$P(TIUX,U,2),SCREEN=$P(TIUX,U,3,99)
  S VALM("TITLE")=$S($L(STATUS,",")>1:$S(VALM("ENTITY")="Document":"Clinical",1:""),1:STATUS)
  I $G(XQY0)["MY UNSIGNED" S VALM("TITLE")="MY UNSIGNED"
@@ -14,7 +14,9 @@ HDR ; Initialize header for clinician's review screen
  . . S TIUBY=$G(TIUBY)_$S($G(TIUBY)]"":" or ",1:"")
  . E  D
  . . S TIUBY=$G(TIUBY)_$S($G(TIUBY)]"":" and ",1:"")
- . S TIUBY=$G(TIUBY)_$P($G(^TIU(8925.8,+XREF,0)),U)
+ . S TIUNAME=$P($G(^TIU(8925.8,+XREF,0)),U)
+ . I TIUNAME="ALL CATEGORIES",$G(^TMP("TIUR",$J,"TITLE OVERRIDE"))["TITLE" S TIUNAME="TITLE"
+ . S TIUBY=$G(TIUBY)_TIUNAME
  . S:$P($P(SCREEN,";",TIUI),U,3)]"" TIUBY=$G(TIUBY)_" ("_$P($P(SCREEN,";",TIUI),U,3)_")"
  S BY="by "_TIUBY
  ; I BY'["ALL",(BY'["SUBJECT") S BY=BY_" for "_$P($P(SCREEN,U,3),";")

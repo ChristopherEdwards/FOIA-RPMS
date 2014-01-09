@@ -1,5 +1,5 @@
 DGPTDD ;ALB/LD - DD calls for Suffix fields of PTF file; 27 May 1995
- ;;5.3;Registration;**58**;Aug 13, 1993
+ ;;5.3;Registration;**58,1015**;Aug 13, 1993;Build 21
  ;
  ; DD calls for the Suffix and Transferring Suffix fields of PTF
  ; file (#45).

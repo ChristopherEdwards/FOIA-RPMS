@@ -1,5 +1,8 @@
-LA7VIN4 ;VA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VIN4 ;VA/DALOI/JMC - Process Incoming UI Msgs, continued ; Jan 12, 2004
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**1031**;NOV 01, 1997
+ ;
+ ;;VA LA Patche(s): 46,64,67
+ ;
  ;This routine is a continuation of LA7VIN1 and is only called from there.
  Q
  ;
@@ -153,7 +156,7 @@ OBR ; Process OBR segments
  . . S LA7I=$O(^TMP("LA7 ORDER STATUS",$J,""),-1),LA7I=LA7I+1,LA7SAC(0)=LA7I
  . . I LA7ONLT="" S X=$$P^LA7VHLU(.LA7SEG,5,LA7FS),LA7X=$P(X,LA7CS),LA7X(0)=$P(X,LA7CS,2)
  . . E  S LA7X=LA7ONLT,LA7X(0)=LA7ONLT(0)
- . . S X=LA7LWL_"^"_LA7ISQN_"^"_LA7X_"^"_LA7X(0)_"^"_LA76248_"^"_LA76249_"^"_LA7OTYPE_"^"_LA7SAC_"^"_$P($G(LA7SM),"^",2)
+ . . S X=LA7LWL_"^"_LA7ISQN_"^"_LA7X_"^"_LA7X(0)_"^"_LA76248_"^"_LA76249_"^"_$G(LA7OTYPE)_"^"_LA7SAC_"^"_$P($G(LA7SM),"^",2)
  . . S ^TMP("LA7 ORDER STATUS",$J,LA7I)=X
  ;
  I LA7INTYP=10,$G(LA7SM)'="",$G(LA7UID)'="" D SMUPDT

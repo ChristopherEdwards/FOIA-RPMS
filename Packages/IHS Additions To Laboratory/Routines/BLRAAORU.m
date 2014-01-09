@@ -1,12 +1,10 @@
 BLRAAORU ;IHS/OIT/MKK - IHS LAB ASK-AT-ORDER UTILITIES ; JUL 06, 2011 3:15 PM
- ;;5.2;IHS LABORATORY;**1030**;NOV 01, 1997
+ ;;5.2;IHS LABORATORY;**1030,1031**;NOV 01, 1997
  ;
  Q
  ;
 UPDTCOML(LRDFN,LRIDT,LRODT,LRSP) ; EP - Update the Comment line(s)
  NEW ANSWER,ASKORDQ,DIE,ERRCNT,ERRS,FDA,IENS,ORD,P60,P60DESC,P60BORDR,QUESCNT
- ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("UPDTCOML^BLRAAORU 0.0")
  ;
  ; Skip if nothing stored
  Q:$D(^BLRAAOQD(LRODT,LRSP))<1
@@ -24,8 +22,6 @@ UPDTCOML(LRDFN,LRIDT,LRODT,LRSP) ; EP - Update the Comment line(s)
  ;
 ADDCOMNT(WOT,ERRCNT) ; EP - Add the comment
  NEW RJAMT
- ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("ADDCOMNT^BLRAAORU 0.0")
  ;
  ; Right Justify Date/Time amount
  ; Note: The +5 is the size difference between $H & MM/DD/YYYY@HH:MM
@@ -46,8 +42,6 @@ ADDCOMNT(WOT,ERRCNT) ; EP - Add the comment
 ADDERRS(WOT,ERRS,ERRCNT) ; EP -- Add Errors.  Send Alert & Email
  NEW LRAA,LRAD,LRAN,LRAS,STR,TAB,TST
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("ADDERRS^BLRAAORU 0.0")
- ;
  S ERRCNT=ERRCNT+1
  ;
  ; Store data for report
@@ -66,8 +60,8 @@ ADDERRS(WOT,ERRS,ERRCNT) ; EP -- Add Errors.  Send Alert & Email
  . S STR(7)=TAB_"P60:"_P60
  . S STR(8)=TAB_"ORD:"_ORD
  . S STR(9)=TAB_"WOT:"_WOT
- . D SENDMAIL^BLRUTIL3("Invalid Ask-at-Order TST",.STR,"BLRAAORU")
- . D SNDALERT^BLRUTIL3("ADDCOMNT^BLRAAOQD: Invalid Ask-at-Order TST. Email Sent.")
+ . D SENDMAIL^BLRUTIL3("Invalid Ask-at-Order TEST",.STR,"BLRAAORU")
+ . D SNDALERT^BLRUTIL3("ADDCOMNT^BLRAAOQD: Invalid Ask-at-Order TEST. Email Sent.")
  ;
  S STR=$G(^LRO(LRODT,1,LRSP,2,TST,0))
  S LRAA=$P(STR,"^",5),LRAD=$P(STR,"^",4),LRAN=$P(STR,"^",6)
@@ -111,7 +105,8 @@ QUESASK(ANSWERS,DZERO,QUESORD,CNT,P60)   ; EP - Single Question
  S UNITS=$$GET1^DIQ(90475.3,UCUM_",",3)     ; UCUM Print String
  ;
  S READWHAT=$S($L(TYPE):TYPE,1:"F")_"AO"    ; Type of Answer -- null implies free text
- S:PTR>0 READWHAT=READWHAT_"^"_PTR          ; If & only if PTR exists
+ ; S:PTR>0 READWHAT=READWHAT_"^"_PTR        ; If & only if PTR exists
+ S:PTR>0 READWHAT=READWHAT_"^"_PTR_":E"     ; If & only if PTR exists; Allow lowercase & abbreviation selections -- LR*5.2*1031
  S:TYPE="N" READWHAT=READWHAT_"^::2"        ; If numeric, allow up to 2 decimals
  ;
  ; Reset Question string

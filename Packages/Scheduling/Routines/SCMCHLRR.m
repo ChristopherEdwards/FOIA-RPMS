@@ -1,5 +1,5 @@
 SCMCHLRR ;BP/DJB - PCMM HL7 Rejects - Resubmit ; 3/6/00 12:14pm
- ;;5.3;Scheduling;**210,224,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,224,272,1015**;AUG 13, 1993;Build 21
  ;
 EN(SCLIM) ;Entry point for retransmitting "M"arked messages
  ;

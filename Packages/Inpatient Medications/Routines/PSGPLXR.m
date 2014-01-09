@@ -1,5 +1,5 @@
 PSGPLXR ;BIR/MLM-EXECUTE PICK LIST XREFS ;28 FEB 96 / 2:45 PM
- ;;5.0; INPATIENT MEDICATIONS ;**5**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**5,126**;16 DEC 97
  ;
 EN535(S1,ACT,XREF,FIELD,OLDV) ; Update "AC","AU" x-ref for 53.5 (PICK LIST FILE)
  S S2=0 D SETVAR F  S S2=$O(^PS(53.5,S1,1,S2)) Q:'S2  D EN5351(S1,S2,ACT,XREF,FIELD,OLDV)
@@ -62,6 +62,7 @@ ENABO(S1,XREF,ACT) ;Set AB/AO xref for Pick List, Ward Group, & Start date.
  Q
 ENA(S1,ACT) ; Set A xref for Pick List # and Ward Group.
  N X S X=$G(^PS(53.5,S1,0))
+ Q:X=""
  I ACT="S" S ^PS(53.5,"A",$P(X,U,2),S1)="" Q
  K ^PS(53.5,"A",$P(X,U,2),S1)
  Q

@@ -1,5 +1,5 @@
 SCMSP66 ;ALB/JLU;Post kids routine driver;8/13/97
- ;;5.3;Scheduling;**66**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,1015**;AUG 13, 1993;Build 21
  ;
 EN N TMP,ZTRTN,ZTDESC,ZTDTH,ZTIO,ZTSK,SCQUEUE,X,Y,%,%H,PROTOCOL
  ;Queue task to populate validator parameter in clinic setup

@@ -1,5 +1,5 @@
-PSUDEM4 ;BIR/DAM - Provider Extract ; 20 DEC 2001
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+PSUDEM4 ;BIR/DAM - Provider Extract ; 4/26/07 4:38pm
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;**8,12**;MARCH, 2005;Build 19
  ;
  ;DBIA'S
  ; Reference to file 200    supported by DBIA 10060
@@ -18,7 +18,7 @@ EN ;Entry point for gathering all provider information from IV, UD, Rx,
  F I=1:1:$L(PSUOPTS,",") S PSUMOD($P(PSUOPTS,",",I))=""
  ;
  I '$D(PSUMOD(7)) D EN^PSUDEM1
- I '$D(PSUMOD(1)) D EN^PSUIV0
+ I '$D(PSUMOD(1)) D EN^PSUV0
  I '$D(PSUMOD(2)) D EN^PSUUD0
  I '$D(PSUMOD(4)) D
  .S ^XTMP("PSU_"_PSUJOB,"PSUOPFLG")=""   ;Set flag
@@ -101,10 +101,14 @@ PNAM ;Find the provider's name.
  ;
 CLASS ;Find provider class
  ;
- I '$D(PSUCLP) S $P(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIEN),U,5)=""
+ I '$D(PSUCLP) S $P(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIEN),U,5)="" Q
  I PSUCLP="" S $P(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIEN),U,5)=""
  I PSUCLP'="" D
- .S $P(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIEN),U,5)=$P($G(^DIC(7,PSUCLP,0)),U,2)  ;Prov class
+ .N PSUA
+ .S PSUA=$P($G(^DIC(7,PSUCLP,0)),U,2)
+ .I PSUA']"" S PSUA=$P($G(^DIC(7,PSUCLP,0)),U,1)
+ .S $P(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIEN),U,5)=PSUA  ;Prov class
+ .K PSUA
  Q
  ;
 SS ;Find Provider Service/Section
@@ -112,7 +116,7 @@ SS ;Find Provider Service/Section
  N PSUTMP
  ;
  I PSUSS="" S $P(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIEN),U,6)=""
- I PSUSS'="" D
+ I PSUSS'="" S PSUTMP=1 D
  .S:$P($G(^DIC(49,PSUSS,0)),U)["AMBU" PSUTMP="AMB"
  .S:$P($G(^DIC(49,PSUSS,0)),U)["ANESTH" PSUTMP="ANES"
  .S:$P($G(^DIC(49,PSUSS,0)),U)["CARDIO" PSUTMP="CV"

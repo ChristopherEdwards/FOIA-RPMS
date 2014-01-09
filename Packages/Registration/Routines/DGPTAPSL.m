@@ -1,5 +1,5 @@
 DGPTAPSL ;MTC/ALB - PTF Archive and Purge Selection Routines; 9/11/92
- ;;5.3;Registration;**31**;Aug 13, 1993
+ ;;5.3;Registration;**31,1015**;Aug 13, 1993;Build 21
  ;
 SEL() ;-- the routine will get the date range for the a/p process
  N SDATE,EDATE,Y

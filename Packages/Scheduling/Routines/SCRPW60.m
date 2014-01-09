@@ -1,5 +1,5 @@
 SCRPW60 ;BP-CIOFO/KEITH - Patient Appointment Statistics ; 19 Nov 98 10:34 AM
- ;;5.3;Scheduling;**163**;AUG 13, 1993
+ ;;5.3;Scheduling;**163,1015**;AUG 13, 1993;Build 21
  ;Prompt for report parameters
  D TITL^SCRPW50("Patient Appointment Statistics")
  N SDDIV G:'$$DIVA^SCRPW17(.SDDIV) EXIT

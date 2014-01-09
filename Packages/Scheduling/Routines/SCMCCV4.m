@@ -1,5 +1,5 @@
 SCMCCV4 ; bp-ciofo/vad - PCMM PC Attending Assignments Report ; 05 May 99  9:05 AM
- ;;5.3;Scheduling;**195**;AUG 13, 1993
+ ;;5.3;Scheduling;**195,1015**;AUG 13, 1993;Build 21
  ;
  ; List those assignments that are for PC Attending.  This is to easily
  ; inform the user of these assignments since they are no longer valid

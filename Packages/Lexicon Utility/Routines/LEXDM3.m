@@ -1,5 +1,5 @@
 LEXDM3 ; ISL Default Misc - Name Default          ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
  ; LEXFIL    Flag for Filter v.s. Display
  ; LEXX      Value returned

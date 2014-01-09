@@ -1,5 +1,5 @@
 DG53361P ;SF/CMC POST INSTALL FOR DG*5.3*361 ; 2/12/01
-        ;;5.3;Registration;**361**;Aug 13, 1993
+        ;;5.3;Registration;**361,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN ; entry point for Post Init

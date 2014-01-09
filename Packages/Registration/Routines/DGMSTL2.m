@@ -1,5 +1,5 @@
 DGMSTL2 ;ALB/SCK - MST LISTMANAGER UTILITIES CONT. ; 12/17/98
- ;;5.3;Registration;**195**;Aug 13, 1993
+ ;;5.3;Registration;**195,1015**;Aug 13, 1993;Build 21
  Q
  ;
 ASKDATE(MSTDT,MSTOLDDT) ;  Return status change date

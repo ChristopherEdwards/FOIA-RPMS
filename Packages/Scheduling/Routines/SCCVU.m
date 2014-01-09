@@ -1,5 +1,5 @@
 SCCVU ;ALB/RMO,TMP - Encounter Conversion Utilities; [ 08/02/95  10:15 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 INACT(SCDT) ; -- Check if encounter is "inactive"
  ;An inactive encounter is "an encounter which occurred prior

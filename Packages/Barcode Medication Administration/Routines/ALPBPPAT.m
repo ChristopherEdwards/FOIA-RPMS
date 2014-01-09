@@ -1,8 +1,8 @@
 ALPBPPAT ;OIFO-DALLAS MW,SED,KC-PRINT 3-DAY MAR BCBU BACKUP REPORT FOR A SELECTED PATIENT ;01/01/03
- ;;2.0;BAR CODE MED ADMIN;**17**;May 2002
+ ;;3.0;BAR CODE MED ADMIN;**8**;Mar 2004
  ; 
- ; NOTE: this routine is designed for hard-copy output.  Output is formatted
- ;       for 132-column printing.
+ ; NOTE: this routine is designed for hard-copy output. 
+ ;  Output is formatted for 132-column printing.
  ;
  F  D  Q:$D(DIRUT)
  .W !!,"Inpatient Pharmacy Orders for a selected patient"
@@ -30,31 +30,17 @@ ALPBPPAT ;OIFO-DALLAS MW,SED,KC-PRINT 3-DAY MAR BCBU BACKUP REPORT FOR A SELECTE
  .I $D(DIRUT) K ALPBOTYP,DIRUT,DTOUT,X,Y Q
  .S ALPBDAYS=+Y
  .;
- .; BCMA Med Log info for how many days?...
- .W !,"BCMA Medication Log history:"
- .S ALPBMLOG=$$MLRANGE^ALPBUTL(ALPBIEN)
- .I $P(ALPBMLOG,U)="" D
- ..W " this patient has no history on file."
- ..S ALPBMLOG=""
- .I $P(ALPBMLOG,U)'="" D  I $D(DIRUT) K ALPBMLOG,ALPBOTYP,DIRUT,DTOUT,X,Y Q
- ..I $P(ALPBMLOG,U,2)="" D
- ...W !,"This patient has Log history only for ",$$FMTE^XLFDT($P(ALPBMLOG,U))
- ...S DIR("B")=$$FMTE^XLFDT($P(ALPBMLOG,U))
- ..; if there is a range of Med Log dates...
- ..I $P(ALPBMLOG,U,2)'="" D
- ...W !," First Log history date is ",$$FMTE^XLFDT($P(ALPBMLOG,U))
- ...W !,"  Last Log history date is ",$$FMTE^XLFDT($P(ALPBMLOG,U,2))
- ...; set default retrieval date to last date in the range-1...
- ...S X1=$P(ALPBMLOG,U,2)
- ...S X2=-1
- ...D C^%DTC
- ...S DIR("B")=$$FMTE^XLFDT(X)
- ..S DIR(0)="DA^"_$P(ALPBMLOG,U)_":"_$S($P(ALPBMLOG,U,2)'="":$P(ALPBMLOG,U,2),1:"")_":EP"
- ..S DIR("A")="Select start date for reporting Log history: "
- ..S DIR("A",1)=" "
- ..D ^DIR K DIR
- ..I $D(DIRUT) Q
- ..S ALPBMLOG=Y
+ .; BCMA Med Log info for how many ?...
+ .S DIR(0)="NA^1:99"
+ .S DIR("B")=$$DEFML^ALPBUTL3()
+ .S DIR("A")="Select how many BCMA Medication Log history: "
+ .S DIR("A",1)=" "
+ .S DIR("?",1)="Select a number of BCMA Medication log entries"
+ .S DIR("?",2)="for each of the patient's orders"
+ .S DIR("?")="They are listed by the most current entry first"
+ .D ^DIR K DIR
+ .I $D(DIRUT) K ALPBOTYP,ALPBWARD,DIRUT,DTOUT,X,Y Q
+ .S ALPBMLOG=Y
  .;
  .S %ZIS="Q"
  .S %ZIS("B")=$$DEFPRT^ALPBUTL()
@@ -91,7 +77,7 @@ DQ ; output entry point...
  K ^TMP($J)
  ;
  ; set report date...
- S ALPBRDAT=$$DT^XLFDT()
+ S ALPBRDAT=$$NOW^XLFDT()
  S ALPBPT(0)=$G(^ALPB(53.7,ALPBIEN,0))
  M ALPBPT(1)=^ALPB(53.7,ALPBIEN,1)
  S ALPBPG=1
@@ -109,29 +95,36 @@ DQ ; output entry point...
  ..I $G(ALPBDATA(1))="" K ALPBDATA Q
  ..I $P(ALPBDATA(1),U,2)<ALPBRDAT K ALPBDATA
  .S ALPBORDN=$P(ALPBDATA(0),U)
+ .S ALPBOCT=$P($G(ALPBDATA(3)),U,1)
+ .S:$P($G(ALPBDATA(4)),U,3)["PRN" ALPBOCT=ALPBOCT_"P"
  .S ALPBOST=$$STAT2^ALPBUTL1($P($G(ALPBDATA(1),"XX"),U,3))
- .S ^TMP($J,ALPBOST,ALPBORDN)=ALPBOIEN
- .K ALPBDATA,ALPBOST
+ .S ^TMP($J,ALPBOCT,ALPBOST,ALPBORDN)=ALPBOIEN
+ .K ALPBDATA,ALPBOST,ALPBOCT
  ;
  ; loop through the sorted orders...
- S ALPBOST=""
- F  S ALPBOST=$O(^TMP($J,ALPBOST)) Q:ALPBOST=""  D
- .S ALPBORDN=""
- .F  S ALPBORDN=$O(^TMP($J,ALPBOST,ALPBORDN)) Q:ALPBORDN=""  D
- ..S ALPBOIEN=^TMP($J,ALPBOST,ALPBORDN)
- ..M ALPBDATA=^ALPB(53.7,ALPBIEN,2,ALPBOIEN)
- ..W !
- ..D F132^ALPBFRM1(.ALPBDATA,ALPBDAYS,ALPBMLOG,.ALPBFORM)
- ..; paginate?...
- ..I $Y+ALPBFORM(0)=IOSL!($Y+ALPBFORM(0)>IOSL) D
- ...W @IOF
- ...S ALPBPG=ALPBPG+1
- ...D HDR^ALPBFRMU(.ALPBPT,ALPBPG,.ALPBHDR)
- ...F I=1:1:ALPBHDR(0) W !,ALPBHDR(I)
+ S ALPBOCT=""
+ F  S ALPBOCT=$O(^TMP($J,ALPBOCT)) Q:ALPBOCT=""  D
+ .S ALPBOST=""
+ .F  S ALPBOST=$O(^TMP($J,ALPBOCT,ALPBOST)) Q:ALPBOST=""  D
+ ..S ALPBORDN=""
+ ..F  S ALPBORDN=$O(^TMP($J,ALPBOCT,ALPBOST,ALPBORDN)) Q:ALPBORDN=""  D
+ ...S ALPBOIEN=^TMP($J,ALPBOCT,ALPBOST,ALPBORDN)
+ ...M ALPBDATA=^ALPB(53.7,ALPBIEN,2,ALPBOIEN)
  ...W !
- ...K ALPBHDR
- ..F I=1:1:ALPBFORM(0) W !,ALPBFORM(I)
- ..K ALPBDATA,ALPBFORM
+ ...D F132^ALPBFRM1(.ALPBDATA,ALPBDAYS,ALPBMLOG,.ALPBFORM,ALPBIEN)
+ ...; paginate?...
+ ...I $Y+ALPBFORM(0)=IOSL!($Y+ALPBFORM(0)>IOSL) D
+ ....W @IOF
+ ....S ALPBPG=ALPBPG+1
+ ....D HDR^ALPBFRMU(.ALPBPT,ALPBPG,.ALPBHDR)
+ ....F I=1:1:ALPBHDR(0) W !,ALPBHDR(I)
+ ....W !
+ ....K ALPBHDR
+ ...F I=1:1:ALPBFORM(0) W !,ALPBFORM(I)
+ ...K ALPBDATA,ALPBFORM
+ ..K ALPBORDN
+ .K ALPBOST
+ K ALPBOCT
  ;
  ; print footer at end of this patient's record...
  D FOOT^ALPBFRMU

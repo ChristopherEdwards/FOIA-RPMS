@@ -1,5 +1,6 @@
-ORX2 ; slc/dcm - OE/RR Patient lock entry points ;03-May-2006 15:44;DKM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**16,48,158,168,183,190,1004**;Dec 17, 1997
+ORX2 ; slc/dcm - OE/RR Patient lock entry points ;17-May-2010 08:35;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**16,48,158,168,183,190,1004,195,292,1010**;Dec 17, 1997;Build 47
+ ;Modified - IHS/MSC/DKM - 5/3/2006 - Line LOCK1+6
 PT1 ;;Entry point to unlock patient when done adding orders - NO LONGER USED
  ;;Required variable ORVP.
  Q:'$D(ORVP)  Q:'$L(ORVP)  Q:ORVP'["DPT("
@@ -23,7 +24,7 @@ LOCK(DFN) ; -- Lock patient chart (silent)
  ;
  Q:'$G(DFN) "0^Invalid patient" N Y,ORLK,NOW,NOW1
  S ORLK=$G(^XTMP("ORPTLK-"_DFN,1)) Q:ORLK=(DUZ_U_$J) 1 ;locked
- L +^XTMP("ORPTLK-"_DFN):1 I '$T S Y="0^"_$S(+ORLK:$P($G(^VA(200,+ORLK,0)),U),1:"Another person")_" is editing orders for this patient." Q Y
+ L +^XTMP("ORPTLK-"_DFN):$S($G(DILOCKTM)>0:DILOCKTM,1:5) I '$T S Y="0^"_$S(+ORLK:$P($G(^VA(200,+ORLK,0)),U),1:"Another person")_" is editing orders for this patient." Q Y
  S NOW=$$NOW^XLFDT,NOW1=$$FMADD^XLFDT(NOW,1)
  S ^XTMP("ORPTLK-"_DFN,0)=NOW1_U_NOW_"^CPRS Chart Lock",^(1)=DUZ_U_$J
  Q 1
@@ -50,7 +51,7 @@ LOCK1(ORDER) ; -- Lock ORDER in file #100
  ;DBIA #4001 Private DBIA w CMOP
  I $D(^XTMP("ORLK-"_ORDER,0)),(^(0)["CPRS/CMOP") Q "0^CMOP Transmission"
  I $P($G(^XTMP("ORLK-"_+ORDER,1)),U,2)=$J Q 1  ;IHS/CIA/DKM - Added to address phantom locks
- L +^OR(100,+ORDER):1 I '$T S X=+$G(^XTMP("ORLK-"_+ORDER,1)),Y="0^"_$S(X:$P($G(^VA(200,X,0)),U),1:"Another person")_" is working on this order." Q Y
+ L +^OR(100,+ORDER):$S($G(DILOCKTM)>0:DILOCKTM,1:5) I '$T S X=+$G(^XTMP("ORLK-"_+ORDER,1)),Y="0^"_$S(X:$P($G(^VA(200,X,0)),U),1:"Another person")_" is working on this order." Q Y
  I $P($G(^OR(100,+ORDER,0)),U,12)="I" S Y=+$P($G(^(3)),U,6) I Y,$P($G(^OR(100,Y,3)),U,3)=11 D  Q Y
  . S X=$S($P(^OR(100,Y,3),U,11)=2:"renewal",1:"edit")
  . S Y="0^An unreleased "_X_" exists for this order." L -^OR(100,+ORDER)
@@ -64,7 +65,7 @@ UNLK1(ORDER) ; -- Unlock ORDER in file #100
  I $D(^XTMP("ORLK-"_ORDER,0)),(^(0)["CPRS/CMOP") D  Q
  . I $J'=$P($G(^XTMP("ORLK-"_ORDER,1)),U,2) Q
  . L -^OR(100,ORDER) K ^XTMP("ORLK-"_ORDER)
- L +^OR(100,ORDER):1
+ L +^OR(100,ORDER):$S($G(DILOCKTM)>0:DILOCKTM,1:5)
  I '$T Q
  E  L -^OR(100,ORDER)
  L -^OR(100,ORDER) K ^XTMP("ORLK-"_ORDER)
@@ -74,4 +75,13 @@ READ ; -- instead of READ^ORUTL
  N X,Y,DIR
  S DIR(0)="EA",DIR("A")="     Press return to continue  "
  D ^DIR
+ Q
+ ;
+LCKEVT(EVT) ;Function atttempts to lock event, added w/patch 194
+ N J
+ F J=1:1:5 L +^ORE(100.2,EVT,0):1 Q:$T  H 1
+ Q $T
+ ;
+UNLEVT(EVT) ;Unlocks global, added w/patch 195
+ L -^ORE(100.2,EVT,0)
  Q

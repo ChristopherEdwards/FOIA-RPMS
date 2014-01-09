@@ -1,5 +1,5 @@
 GMRCASV ;SLC/KCM,DLT - Build ^TMP("GMRCS" of Svc(s)/Specialties ; 11/25/2000
- ;;3.0;CONSULT/REQUEST TRACKING;**1,12,18,22**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,12,18,22,53**;DEC 27, 1997;Build 3
  ; This routine invokes IA #2426
  ;
 ASRV ;Ask for service/specialty group {output} GMRCDG,GMRCBUF,GMRCACT,^TMP("GMRCS",$J,^TMP("GMRCSLIST",$J
@@ -37,6 +37,8 @@ LKUP ;Ask the user for the service; use the value of x for lookup; branch to lis
  ; Remove commented line in next patch.
  ;S DIC="^GMR(123.5,",DIC(0)="MNEQZ"
  ;D ^DIC K DIC
+ ; Patch 53 added screen to prevent Forwarding to a Tracking Service
+ I $G(GMRCTO)=1 S DIC("S")="I ($$VALIDU^GMRCAU(Y,DUZ)&($P($G(^(0)),U,2)=2))!($P($G(^(0)),U,2)="""")!($P($G(^(0)),U,2)=1)"
  S DIC="^GMR(123.5,",DIC(0)="MNEQZ",D="B^D"
  D MIX^DIC1 K DIC
  I '$D(Y(0)) D LISTALL Q

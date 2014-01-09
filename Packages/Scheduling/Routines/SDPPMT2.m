@@ -1,5 +1,5 @@
 SDPPMT2 ;ALB/CAW - Patient Profile - Means Test (con't) ; 6/3/92
- ;;5.3;Scheduling;**6**;Aug 13, 1993
+ ;;5.3;Scheduling;**6,1015**;Aug 13, 1993;Build 21
  ;
 IAI ; Individual Annual Income and Adjudicate Date
  S X=""

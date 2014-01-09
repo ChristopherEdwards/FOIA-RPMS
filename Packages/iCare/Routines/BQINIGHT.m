@@ -1,5 +1,5 @@
 BQINIGHT ;PRXM/HC/ALA-Nightly Background Job ; 05 Jan 2006  1:31 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
  ;
 EN ;EP - Entry point
@@ -10,6 +10,7 @@ EN ;EP - Entry point
  S BQIUPD(90508,"1,",24.01)=$G(ZTSK)
  D FILE^DIE("","BQIUPD","ERROR")
  ;
+ D ARM^BQINIGH2
  D EN^BQIMUMON("")
  D JBC
  D MEAS^BQINIGH1
@@ -17,14 +18,14 @@ EN ;EP - Entry point
  D CMA^BQINIGH2
  D DXC
  D CRS
+ ;Run IPC
+ D IPC("")
  D NUM^BQIMUSIT
  D REM
  K DLAYGO
  D TRT
  D REG
  D AST^BQINIGH1
- ;Run IPC
- D EN^BQIIPMON("")
  ; Run CMET
  D EN^BTPWPFND("Nightly")
  ; Run Autopopulate
@@ -89,14 +90,14 @@ FLG ;EP - Flag updates
  . S ^XTMP("BQINIGHT",DFN)=""
  ;
  ; Use new Date Last Modified cross-reference
- S LMDT=$$FMADD^XLFDT(DT,-1)-.005
- F  S LMDT=$O(^AUPNVSIT("ADLM",LMDT)) Q:LMDT=""  D
- . S VLIEN=""
- . F  S VLIEN=$O(^AUPNVSIT("ADLM",LMDT,VLIEN)) Q:VLIEN=""  D
- .. I $P(^AUPNVSIT(VLIEN,0),U,11)=1 Q
- .. Q:"DXCTI"[$P(^AUPNVSIT(VLIEN,0),U,7)
- .. S DFN=$P(^AUPNVSIT(VLIEN,0),U,5) Q:DFN=""
- .. S ^XTMP("BQINIGHT",DFN)=""
+ ;S LMDT=$$FMADD^XLFDT(DT,-1)-.005
+ ;F  S LMDT=$O(^AUPNVSIT("ADLM",LMDT)) Q:LMDT=""  D
+ ;. S VLIEN=""
+ ;. F  S VLIEN=$O(^AUPNVSIT("ADLM",LMDT,VLIEN)) Q:VLIEN=""  D
+ ;.. I $P(^AUPNVSIT(VLIEN,0),U,11)=1 Q
+ ;.. Q:"DXCTI"[$P(^AUPNVSIT(VLIEN,0),U,7)
+ ;.. S DFN=$P(^AUPNVSIT(VLIEN,0),U,5) Q:DFN=""
+ ;.. S ^XTMP("BQINIGHT",DFN)=""
  Q
  ;
 DXC ;EP - Update Diagnosis Categories
@@ -402,42 +403,39 @@ JBC ;EP - Check on MU jobs
  . I $G(ZTSK(2))'="Active: Pending" D
  .. I $G(ZTSK(2))="Active: Running" Q
  .. I $G(ZTSK(2))="Inactive: Finished" S $P(^BQI(90508,1,12),U,5)="" D  Q
- ... NEW BMDT
- ... S BMDT=$P(^BQI(90508,1,12),U,9),BMDT=$$FMADD^XLFDT(BMDT,1)
- ... I $D(^XTMP("BQIMMON",BMDT)) K ^XTMP("BQIMMON",BMDT)
- ... I $O(^XTMP("BQIMMON",""),-1)="" K ^XTMP("BQIMMON") Q
+ ... D JBD
  ... D NJB
  .. I $G(ZTSK(2))="Inactive: Interrupted"!($G(ZTSK(2))="Undefined") D
+ ... I $P($G(^BQI(90508,1,12)),U,3)=0 D JBD,NJB Q
  ... S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,3)
  ... S ZTDESC="MU CQ Continue Compile",ZTRTN="NIN^BQITASK6",ZTIO=""
  ... D ^%ZTLOAD
  ... S BQIUPD(90508,"1,",12.05)=ZTSK
  ... D FILE^DIE("","BQIUPD","ERROR")
  ;
- ; If both job do not have a task number, quit
+ ; If job does not have a task number, quit
  I NJOB="" D NJB Q
  Q
  ;
- ; check on year job
- ;I YJOB'="" D
- ;. S ZTSK=YJOB D STAT^%ZTLOAD
- ;. I $G(ZTSK(2))'="Active: Pending" D
- ;.. I $G(ZTSK(2))="Active: Running" Q
- ;.. I $G(ZTSK(2))="Inactive: Finished" S $P(^BQI(90508,1,12),U,6)="" Q
- ;.. I $G(ZTSK(2))="Inactive: Interrupted"!($G(ZTSK(2))="Undefined") D
- ;... S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,3)
- ;... S ZTDESC="MU CQM Continue Compile",ZTRTN="CQM^BQITASK5",ZTIO=""
- ;... D ^%ZTLOAD
- ;... S BQIUPD(90508,"1,",12.06)=ZTSK
- ;... D FILE^DIE("","BQIUPD","ERROR")
- ;
+JBD ;EP - Job date
+ NEW BMDT
+ S BMDT=$P(^BQI(90508,1,12),U,9),BMDT=$$FMADD^XLFDT(BMDT,1)
+ I $D(^XTMP("BQIMMON",BMDT)) K ^XTMP("BQIMMON",BMDT)
+ I $O(^XTMP("BQIMMON",""),-1)="" K ^XTMP("BQIMMON") Q
  Q
  ;
 NJB ;EP - Next job
  I $P($G(^BQI(90508,1,12)),U,3)=0 D
- . ; Check if aggregation needed
- . ;D EN^BQIMUAGG
  . ; Get next date to process
  . S NXDT=$O(^XTMP("BQIMMON",""),-1) I 'NXDT Q
  . D EN^BQIMUMON(NXDT)
+ Q
+ ;
+IPC(IPDATE) ;EP - Job off IPC
+ NEW ZTSK,IJOB,ZTDTH,ZTDESC,BQIUPD
+ S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,3)
+ S ZTDESC="IPC Monthly Compile",ZTRTN="EN^BQIIPMON",ZTIO="",ZTSAVE("BQDATE")=$G(IPDATE)
+ D ^%ZTLOAD
+ S BQIUPD(90508,"1,",.1)=ZTSK
+ D FILE^DIE("","BQIUPD","ERROR")
  Q

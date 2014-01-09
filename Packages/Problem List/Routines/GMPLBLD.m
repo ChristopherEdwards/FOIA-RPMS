@@ -1,5 +1,8 @@
-GMPLBLD ; SLC/MKB -- Build Problem Selection Lists ;;9-5-95 11:51am
- ;;2.0;Problem List;**3**;Aug 25, 1994
+GMPLBLD ; SLC/MKB -- Build Problem Selection Lists ; 3/12/03  9:31
+ ;;2.0;Problem List;**3,28,33**;Aug 25, 1994
+ ;
+ ;This routine invokes IA #3991
+ ;
 EN ; -- main entry point
  D EN^VALM("GMPL SELECTION LIST BUILD")
  Q
@@ -18,6 +21,7 @@ INIT ; -- init variables and list array
  . W $C(7),!!,"This list is currently being edited by another user!",!
  S GMPLMODE="E",VALMSG=$$MSG^GMPLX
  D GETLIST,BUILD("^TMP(""GMPLIST"",$J)",GMPLMODE)
+ D LENGTH
  Q
  ;
 GETLIST ; Build ^TMP("GMPLIST",$J,#)
@@ -47,7 +51,10 @@ BUILD(LIST,MODE) ; Build ^TMP("GMPLST",$J,)
  . F PSEQ=0:0 S PSEQ=$O(^GMPL(125.12,"C",+GROUP,PSEQ)) Q:PSEQ'>0  D
  . . S IFN=$O(^GMPL(125.12,"C",+GROUP,PSEQ,0)),LCNT=LCNT+1
  . . S ITEM=$G(^GMPL(125.12,IFN,0)),^TMP("GMPLST",$J,LCNT,0)="             "_$P(ITEM,U,4)
- . . S:$L($P(ITEM,U,5)) ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_" ("_$P(ITEM,U,5)_")"
+ . . I $L($P(ITEM,U,5)) D
+ ... S ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_" ("_$P(ITEM,U,5)_")"
+ ... I $$STATCHK^ICDAPIU($P(ITEM,U,5),DT) Q  ; code is active
+ ... S ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_"    <INACTIVE CODE>"
  . S LCNT=LCNT+1,^TMP("GMPLST",$J,LCNT,0)="   "
  S ^TMP("GMPLST",$J,0)=NUM_U_LCNT,VALMCNT=LCNT
  Q
@@ -79,6 +86,13 @@ ADD ; Add group(s)
  F  D  Q:$D(GMPQUIT)  W !
  . S GROUP=$$GROUP^GMPLBLD2("") I GROUP="^" S GMPQUIT=1 Q
  . I $D(^TMP("GMPLIST",$J,"GRP",+GROUP)) W !?4,">>>  This category is already part of this list!" Q
+ . I '$$VALGRP^GMPLBLD2(+GROUP) D  Q
+ .. D FULL^VALM1
+ .. W !!,$C(7),"This category contains one or more problems with inactive ICD-9 codes. "
+ .. W !,"These codes must be updated before adding the category to a selection list."
+ .. N DIR,DTOUT,DIRUT,DUOUT,X,Y
+ .. S DIR(0)="E" D ^DIR
+ .. S VALMBCK="R"
  . S HDR=$$HDR^GMPLBLD1($P(GROUP,U,2)) I HDR="^" S GMPQUIT=1 Q
  . S RT="^TMP(""GMPLIST"",$J,""SEQ"",",SEQ=+$$LAST^GMPLBLD2(RT)+1
  . S SEQ=$$SEQ^GMPLBLD1(SEQ) I SEQ="^" S GMPQUIT=1 Q
@@ -110,3 +124,12 @@ REMOVE ; Remove group
 RMQ S:'VALMCC VALMBCK="R" S VALMSG=$$MSG^GMPLX
  Q
  ;
+LENGTH ;SHORTEN THE ICD9'S DESCRIPTION TO FIT SCREEN
+ S LLCNT=0
+ F  S LLCNT=$O(^TMP("GMPLST",$J,LLCNT)) Q:LLCNT=""  Q:LLCNT'?1N.N  D
+ .; I '$D(^TMP("GMPLST",$J,LLCNT,O)) Q
+ . S ICD9VAR=^TMP("GMPLST",$J,LLCNT,0) I $L(ICD9VAR)>50 D
+ .. S ICD9VAR=$P(ICD9VAR,"(",1)
+ .. S ICD9VAR=$E(ICD9VAR,1,50)_" ("_$P(^TMP("GMPLST",$J,LLCNT,0),"(",2)
+ .. S ^TMP("GMPLST",$J,LLCNT,0)=ICD9VAR
+ Q

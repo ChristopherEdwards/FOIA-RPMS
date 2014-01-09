@@ -1,8 +1,8 @@
 PSOARCSV ;BIR/SAB/LGH-archiving save option ;07/07/92
- ;;7.0;OUTPATIENT PHARMACY;**27,130**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**27,130,268**;DEC 1997;Build 9
  ;External reference to ^DPT("SSN" supported by DBIA 10035
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
-AC L +^PSOARC:1 I '$T W !!!,$C(7),"Archiving is currently in progress on another terminal!...",!!! Q
+AC L +^PSOARC:$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) I '$T W !!!,$C(7),"Archiving is currently in progress on another terminal!...",!!! Q
  G:'+$P($G(^PSOARC(0)),"^",4) EX S PSOACRS="",PG=1,PSOAPG=1,PSOION=ION
  W !!! S DIR("A")=$P(^PSOARC(0),"^",4)_" Rx's will be archived. Ok to continue Y/N",DIR(0)="YO",DIR("B")="NO" D ^DIR K DIR G EX1:$G(DIRUT),EX1:'Y
 EN01 S DIR("A",1)="",DIR("A")="Do you want a hardcopy of your archived prescriptions",DIR("B")="NO",DIR(0)="YO" D ^DIR K DIR G:$D(DIRUT) EX1 G:'Y TDV

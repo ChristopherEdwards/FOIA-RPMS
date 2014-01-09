@@ -1,5 +1,5 @@
 DG284PT ;ALB/SEK-DG*5.3*284 POST-INSTALL TO PURGE IVM DATA ;4/20/2000
- ;;5.3;Registration;**284**;Aug 13, 1993
+ ;;5.3;Registration;**284,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine is the post-installation for patch DG*5.3*284.
  ;

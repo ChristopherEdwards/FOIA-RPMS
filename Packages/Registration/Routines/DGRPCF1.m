@@ -1,5 +1,5 @@
 DGRPCF1 ;ALB/MRL - REMOVE INCONSISTENCIES FROM FILE; 21 SEP 88@2231
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  I '$D(^DGIN(38.5,DFN,0)) Q
 1 W:DGEDCN !!,"===> Removing patient from Inconsistency file..." D START^DGRPC S DGF=38.51 D XRS D INC:DGXRC K DGXRC S DGF=38.5,DGD=^DGIN(38.5,DFN,0) D XRS D:DGXRC RXR
  K ^DGIN(38.5,DFN) L +^DGIN(38.5,0) S $P(^DGIN(38.5,0),"^",4)=$P(^(0),"^",4)-1 S X=$P(^(0),"^",3) G Q:DFN'=X S (P,N)=$P(^DPT(0),"^",3),A=$S($O(^DGIN(38.5,DFN))>0:1,1:0),X=DFN,G=$S(A:P,1:DFN),E1=0

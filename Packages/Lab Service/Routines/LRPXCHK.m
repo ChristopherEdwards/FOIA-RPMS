@@ -1,6 +1,7 @@
 LRPXCHK ;VA/SLC/STAFF - Lab PXRMINDX Index Validation ;3/30/04  12:01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+  ;;VA LR Patch(s): 295
  ;
 PATS ; select patients for index check
  N DFN,ERR,REPAIR
@@ -73,6 +74,8 @@ ALL ; check all patient indexes
  Q
  ;
 CHKPAT(DFN) ; from LRLOG
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; find bad nodes, 
  ; store as ^TMP("LRLOG",$J,DFN,DATE,ITEM,INDEX)=NODE
  ; only when ^TMP("LRLOG PATS",$J) is present
@@ -140,6 +143,8 @@ CHKLR(DFN) ; go thru "PI" to make sure ^LR is consistent
  Q
  ;
 CHKPI(DFN,LRDFN) ; go thru ^LR to make sure "PI" is consistent
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N DATE,ITEM,LRIDT,LRDN,NODE,ZERO
  S LRIDT=0
  F  S LRIDT=$O(^TMP("LRPXCHK",$J,"LR",LRDFN,"CH",LRIDT)) Q:LRIDT<1  D
@@ -157,6 +162,8 @@ CHKPI(DFN,LRDFN) ; go thru ^LR to make sure "PI" is consistent
  Q
  ;
 TMPCHK(DFN,DATE,ITEM,NODE) ;
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  I '$D(^PXRMINDX(63,"PI",DFN,ITEM,DATE,NODE)) D BAD(NODE,DFN,ITEM,DATE,NODE)
  Q
  ;
@@ -225,6 +232,8 @@ CH(DFN,LRDFN,DATE,LRIDT) ;
  Q
  ;
 MICRO(DFN,LRDFN,DATE,LRIDT) ;
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  K ^TMP("LRPX",$J)
  M ^TMP("LRPX",$J,"AR")=^LR(LRDFN,"MI",LRIDT)
  M ^TMP("LRPX",$J,"B")=^PXRMINDX(63,"PDI",DFN,DATE)
@@ -233,6 +242,8 @@ MICRO(DFN,LRDFN,DATE,LRIDT) ;
  Q
  ;
 AP(DFN,LRDFN,DATE,LRIDT,SUB) ;
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  K ^TMP("LRPX",$J)
  M ^TMP("LRPX",$J,"AR")=^LR(LRDFN,SUB,LRIDT)
  M ^TMP("LRPX",$J,"B")=^PXRMINDX(63,"PDI",DFN,DATE)
@@ -241,6 +252,8 @@ AP(DFN,LRDFN,DATE,LRIDT,SUB) ;
  Q
  ;
 AU(DFN,LRDFN,DATE) ;
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")                ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  I '+$G(^LR(LRDFN,"AU")) Q
  I '($P(^LR(LRDFN,"AU"),U,3)&($P(^("AU"),U,15))) Q
  K ^TMP("LRPX",$J)

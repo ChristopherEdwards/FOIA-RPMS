@@ -1,5 +1,5 @@
 SC53272P ;JDS/ALB -PREINIT ; 16 Dec 2002  11:14 AM  ; Compiled January 6, 2003 15:50:04
- ;;5.3;Scheduling;**272**;AUG 13, 1993
+ ;;5.3;Scheduling;**272,1015**;AUG 13, 1993;Build 21
 HL7EVNT ;Create HL7 event B02 - HL7 EVENT TYPE CODE file (#779.001)
  ;
  ;Input  : None

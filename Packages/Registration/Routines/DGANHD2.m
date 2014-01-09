@@ -1,5 +1,5 @@
 DGANHD2 ;ALB/RMO - Balance and Save NHCU and DOM AMIS's 345-346 ; 31 AUG 90 3:34 pm
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;==============================================================
  ;When balancing NHCU and DOM AMIS segments the division statistics
  ;are combined.

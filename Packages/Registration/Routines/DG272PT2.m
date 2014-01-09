@@ -1,5 +1,5 @@
 DG272PT2 ;ALB/SEK DG*5.3*272 POST-INSTALL TO CLOSE IVM CASES ; 02/03/00
- ;;5.3;Registration;**272**;Aug 13, 1993
+ ;;5.3;Registration;**272,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will be run as part of the post-install for patch
  ;DG*5.3*272

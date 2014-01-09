@@ -1,5 +1,5 @@
 SCMSVUT2 ;ALB/JLU;Utility routine for AMBCARE;06/28/99
- ;;5.3;Scheduling;**66,180,254**;AUG 13,1993
+ ;;5.3;Scheduling;**66,180,254,293,325,466,521,1015**;AUG 13,1993;Build 21
  ;06/28/99 ACS Added CPT modifier validation
  ;
 COUNT(VALER) ;counts the number of errored encounters found.
@@ -9,6 +9,16 @@ COUNT(VALER) ;counts the number of errored encounters found.
  N VAR,CNT
  S VAR="",CNT=0
  F  S VAR=$O(@VALER@(VAR)) Q:VAR']""  S CNT=CNT+1
+ Q CNT
+ ;
+IPERR(VALER) ;counts the number of inpatient errored encounters found.
+ ;INPUT VALER - The array containing the errors.
+ ;OUTPUT the number of errors
+ ;
+ N VAR,CNT
+ S VAR="",CNT=0
+ F  S VAR=$O(@VALER@(VAR)) Q:VAR']""  D
+ .I $$INPATENC^SCDXUTL(VAR) S CNT=CNT+1
  Q CNT
  ;
 FILEVERR(PTR,VALERR) ;files the errors found for an encounter
@@ -26,7 +36,7 @@ FILE(VALERR,SEG,PTR,FILE) ;
  N NBR
  S NBR=0
  F  S NBR=$O(@VALERR@(SEG,NBR)) Q:'NBR  DO
- .N CODPTR
+ .N CODPTR,CODE
  .S CODE=$G(@VALERR@(SEG,NBR))
  .I CODE']"" Q
  .S CODPTR=$O(^SD(409.76,"B",CODE,""))
@@ -177,5 +187,54 @@ ETHNIC(DATA)    ;
  I VAL'?4N1"-"1N Q 0
  I ",SLF,UNK,PRX,OBS,"'[MTHD Q 0
  Q 1
+CONFDT(DATA,SUB)    ;CONFIDENTIAL ADDRESS START/STOP DATE
+ N X,Y,%DT,DTOUT,STDT,ENDT
+ I '$D(DATA) Q 0
+ S STDT=$P(DATA,SUB,1)
+ S ENDT=$P(DATA,SUB,2)
+ I STDT="" Q 0
+ S STDT=$$FMDATE^HLFNC(STDT)
+ S X=STDT,%DT="X" D ^%DT I Y=-1 Q 0  ;SD/521 added %DT
+ I ENDT="" Q 1
+ S ENDT=$$FMDATE^HLFNC(ENDT)
+ S X=ENDT,%DT="X" D ^%DT I Y=-1 Q 0  ;SD/521 added %DT
+ I $$FMDIFF^XLFDT(ENDT,STDT,1)<0 Q 0
+ Q 1
+ ;
+CONFCAT(DATA)             ;CONFIDENTIAL ADDRESS CATEGORY TYPE
+ I '$D(DATA) Q 0
+ I DATA="" Q 0
+ N VAL,GOOD
+ S GOOD=0
+ F VAL="VACAA","VACAC","VACAE","VACAM","VACAO" I DATA=VAL S GOOD=1 Q
+ Q GOOD
+ ;
+CVEDT(DATA) ;Combat vet end date (ZEL.38)
+ ;Input  : DATA - CombatVetIndicator ^ CombatVetEndDate
+ ;Output : 1 = Good / 0 = Bad
+ ;
+ N CVI,CVEDT
+ S DATA=$G(DATA)
+ S CVI=$P(DATA,"^",1)
+ S CVEDT=$P(DATA,"^",2)
+ I 'CVI Q $S(CVEDT="":1,1:0)
+ Q CVEDT?8N
+ ;
+CLCV(DATA,SDOE) ;Cross check for combat vet classification question
+ ;Input  : DATA - Answer to classification question
+ ;         SDOE - Pointer to encounter (file # 409.68)
+ ;Output : 1 = Good / 0 = Bad
+ ;
+ S DATA=$G(DATA)
+ Q:(DATA'=1) 1
+ N VET,SDDT,SDOE0
+ S SDOE=$G(SDOE) Q:'SDOE 0
+ S SDOE0=$G(^SCE(SDOE,0))
+ S SDDT=+SDOE0 Q:'SDDT 0
+ S DFN=+$P(SDOE0,"^",2) Q:'DFN 0
+ S VET=$P($$EL^SDCO22(DFN,SDOE),"^",5)
+ I VET'="Y" Q 0
+ S VET=+$$CVEDT^DGCV(DFN,SDDT)
+ Q $S(VET=1:1,1:0)
  ;
 DEMO ;;2000^2030^2050^2100^2150^2200^2210^2220^2230^2240^2250^2300^2330^2360

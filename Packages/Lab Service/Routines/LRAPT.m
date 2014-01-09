@@ -1,5 +1,7 @@
 LRAPT ;AVAMC/REG/WTY - AP PATIENT RPT ;9/22/00
- ;;5.2T9;LR;**72,173,248,1018**;Nov 17, 2004
+ ;;5.2;LR;**1002,1003,1018,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 72,173,248
  ;
  ;Reference to ^%DT supported by IA #10003
  ;Reference to ^%ZIS supported by IA #10086
@@ -47,6 +49,7 @@ AU Q:LR("Q")  I $D(^LR(LRDFN,"AU")),+^("AU") S LRV(1)=1 D ^LRAPT2
 H ;from LRAPT2, LRAPT3
  I $D(LR("F")),$E(IOST,1,2)["C-" D M^LRU Q:LR("Q")
  D F^LRU W !,"ANATOMIC PATHOLOGY" W:$D(LR("W")) !,LRAA(1)," QA from ",LRSTR," to ",LRLST W !,LR("%") Q
-H1 D H Q:LR("Q")  W !,LRP,?32,SSN,?52,"DOB:",DOB Q
+H1 ; D H Q:LR("Q")  W !,LRP,?32,SSN,?52,"DOB:",DOB Q
+ D H Q:LR("Q")  W !,LRP,?32,$G(HRCN),?52,"DOB:",DOB Q   ; IHS/MSC/MKK - LR*5.2*1031
  ;
 END D V^LRU Q

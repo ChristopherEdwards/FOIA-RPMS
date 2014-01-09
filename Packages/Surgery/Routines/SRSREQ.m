@@ -1,5 +1,5 @@
 SRSREQ ;BIR/MAM - MAKE REQUESTS ; [ 01/20/00  9:42 AM ]
- ;;3.0; Surgery ;**8,12,23,30,37,92**;24 Jun 93
+ ;;3.0; Surgery ;**8,12,23,30,37,92,131,154**;24 Jun 93
 LOOP ; break procedure if greater than 70 characters
  S SROPS(M)="" F LOOP=1:1 S MM=$P(SROPER," "),MMM=$P(SROPER," ",2,200) Q:MMM=""  Q:$L(SROPS(M))+$L(MM)'<70  S SROPS(M)=SROPS(M)_MM_" ",SROPER=MMM
  Q
@@ -10,6 +10,8 @@ CC K SROPS,MM,MMM S SRCTN=SRSCC,SROPER=$P(^SRF(SRCTN,"OP"),"^") S:$L(SROPER)<70 
  S DFN=SRSDPT D DEM^VADPT W !!,VADM(1)_" has the following procedure already entered for this",!,"date: ",!!,"CASE #"_SRCTN_"  "_SROPS(1) I $D(SROPS(2)) W !,?9,SROPS(2) I $D(SROPS(3)) W !,?9,SROPS(3)
 ASKCC K DIR W ! S DIR("A")="Will this be a concurrent procedure ",DIR("B")="NO",DIR(0)="Y",DIR("?",1)="If these procedures will be scheduled at the same time, in the same operating",DIR("?")="room, answer 'YES'."
  D ^DIR S SRSC=Y K DIR Q:$D(DUOUT)!$D(DTOUT)  I 'Y K SRCTN Q
+ ;if concurrent and the case is locked
+ I Y,$D(^XTMP("SRLOCK-"_SRCTN)) D MSG^SRSUPRQ S SRSC=0 K SRCTN Q
  S SRSCON(SRSCON,"OP")=$P(^SRF(SRCTN,"OP"),"^"),SRSCON(SRSCON,"DOC")=$P(^VA(200,$P(^SRF(SRCTN,.1),"^",4),0),"^"),SRSCON(SRSCON,"SS")=$P(^SRO(137.45,$P(^SRF(SRCTN,0),"^",4),0),"^"),SRSCON(SRSCON)=SRCTN
  Q
 AVG ; update estimated case length
@@ -23,7 +25,7 @@ LATE ; check too see if it is too late to request
  N SRHOL,SRXDT S SRHOL="",(SRXDT,X)=SRSDATE D H^%DTC S SRDAY=%Y+1 S SRDL=$P($G(^SRO(133,SRSITE,2)),"^",SRDAY) S:SRDL="" SRDL=1
  I 'SRDL W !!,"Surgery requests not allowed for "_$S(SRDAY=1:"SUN",SRDAY=2:"MON",SRDAY=3:"TUES",SRDAY=4:"WEDNES",SRDAY=5:"THURS",SRDAY=6:"FRI",1:"SATUR")_"DAY !!",! D PRESS S SRLATE=1 Q
  K DIC S DIC=40.5,DIC(0)="XM",X=SRSDATE D ^DIC K DIC S SRHOL=$P(Y,"^") I SRHOL>0,'$D(^SRO(133,SRSITE,3,SRSDATE,0)) D  S SRLATE=1 D PRESS Q
- .S DIC=40.5,DR="2",DA=SRHOL,DIQ="SRY",DIQ(0)="E" D EN^DIQ1
+ .S DIC=40.5,DR="2",DA=SRHOL,DIQ="SRY",DIQ(0)="E" D EN^DIQ1 K DA,DIC,DIQ,DR
  .W !!,"Surgery requests not allowed for "_SRY(40.5,SRHOL,2,"E")_" !!"
  I '$D(SRSITE("REQ")) Q
  F  S X1=SRXDT,X2=-SRDL D C^%DTC S SRDTL=X D  Q:SRHOL'>0!$D(^SRO(133,SRSITE,3,X,0))  D NEXT

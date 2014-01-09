@@ -1,5 +1,5 @@
-DGMTSC4 ;ALB/RMO/CAW,LBD - Means Test Screen Net Worth ; 7/31/03 9:17am
- ;;5.3;Registration;**45,130,456,540**;Aug 13, 1993
+DGMTSC4 ;ALB/RMO/CAW,LBD - Means Test Screen Net Worth ; 11/7/03 1:44pm
+ ;;5.3;Registration;**45,130,456,540,567,1015**;Aug 13, 1993;Build 21
  ;
  ; Input  -- DFN      Patient IEN
  ;           DGMTDT   Date of Test
@@ -13,6 +13,8 @@ DGMTSC4 ;ALB/RMO/CAW,LBD - Means Test Screen Net Worth ; 7/31/03 9:17am
  ;
  ;DG*5.3*540 - Skip displaying of calculated Means Test Status at the
  ;             bottom of screen 4 when in VIEW mode.
+ ;DG*5.3*567 - Allow bottom to show for all except SOURCE OF TEST[IVM
+ ;             for IVM display Source is IVM instead.
  ;
 EN ;Entry point for previous calendar year net worth screen
  S DGMTSCI=4 D HD^DGMTSCU
@@ -40,7 +42,11 @@ DIS ;Display net worth
  D HIGH^DGMTSCU1(5,DGMTACT),FLD(.DGIN2,5,"Debts")
  W !?51,"Total -->",?66,$J($$AMT^DGMTSCU1(DGNWT),12)
  I DGMTYPT=1,DGMTACT="VEW",$P($G(DGMT0),"^",14) W !!!!!!!!,"Declines to give income information makes a MT COPAY REQUIRED status." G DISQ
- G DISQ:DGMTACT="VEW"                                      ;DG*5.3*540
+ ;
+ ;DG*5.3*540
+ ;DG*5.3*567
+ I DGMTACT="VEW",DGMTI,$$GET1^DIQ(408.31,DGMTI,.23)["IVM" D  G DISQ
+ . W !!!!!!!!,"Source of Test is IVM"
  W !!!!!!!! I DGMTYPT=1 W "Income of ",$J($$AMT^DGMTSCU1(DGINT-DGDET),12) W "  ",$$GETNAME^DGMTH(DGMTS)
  I DGMTYPT=1,DGTYC="M",(DGNWT-DGDET)+$S($G(DGMTNWC):0,1:DGINT)'<$P(DGMTPAR,"^",8) W !,?3,"with property of ",$J($$AMT^DGMTSCU1(DGNWT),12)," makes a ",$S(DGTHG>DGTHA:"G",1:""),"MT COPAY REQUIRED status."
  I DGTYC="M",'DGNWTF W " requires property information."

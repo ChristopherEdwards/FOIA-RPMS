@@ -1,5 +1,5 @@
-PSOLMPO2 ;ISC-BHAM/SAB - list template to complete backdoor orders ; 13-MAR-1995
- ;;7.0;OUTPATIENT PHARMACY;**46,71**;DEC 1997
+PSOLMPO2 ;ISC-BHAM/SAB - list template to complete backdoor orders ;03/13/1995
+ ;;7.0;OUTPATIENT PHARMACY;**46,71,225**;DEC 1997;Build 29
 EN ; -- main entry point for PSO LM BACKDOOR ORDER
  D EN^VALM("PSO LM BACKDOOR ORDER")
  Q
@@ -19,7 +19,9 @@ HELP ; -- help code
  ;
 EXIT ; -- exit code
  K PSOANSQD
- S PSOQFLG=1 Q
+ S PSOQFLG=1
+ K FLAGLINE D CLEAN^VALM10
+ Q
  ;
 EXPND ; -- expand code
  Q

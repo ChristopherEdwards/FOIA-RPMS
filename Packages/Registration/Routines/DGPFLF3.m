@@ -1,5 +1,5 @@
-DGPFLF3 ;ALB/RBS - PRF FLAG MANAGEMENT LM PROTOCOL ACTIONS CONT. ; 7/31/03 3:03pm
- ;;5.3;Registration;**425**;Aug 13, 1993 
+DGPFLF3 ;ALB/RBS - PRF FLAG MANAGEMENT LM PROTOCOL ACTIONS CONT. ; 6/9/04 2:05pm
+ ;;5.3;Registration;**425,554,650,1015**;Aug 13, 1993 ;Build 21
  ;
  ;no direct entry
  QUIT
@@ -22,30 +22,24 @@ AF ;Entry point for DGPF ADD FLAG action protocol.
  N DGRESULT ;result of $$STOALL^DGPFALF1 api call
  N DGRDAY   ;review frequency var
  N DGNDAY   ;notification days var
- N DGERR    ;if error returned from $$STOALL^DGPFALF1 api call
+ N DGERR    ;if error returned
  N DGOK     ;ok flag to enter record flag entry & flag description
  N DGMSG    ;user message
- N DGCNT,DGLINE,DGQ  ;counters and quit flag
+ N DGQ      ;quit flag
  ;
- S DGOK=1,(DGCNT,DGLINE,DGQ,DGABORT)=0
- S DGMSG="W !?2,"">>> '""_$P($G(XQORNOD(0)),U,3)_""' action not allowed for Category II (Local) Flags."",*7"
+ ;init vars
+ S DGOK=1,(DGQ,DGABORT)=0
  ;
  ;set screen to full scrolling region
  D FULL^VALM1
  W !
- ;check of Category var - Only Local Flags can be created
- I DGCAT=1 D
- . W !?2,">>> '",$P($G(XQORNOD(0)),U,3),"' action not allowed for Category I (National) Flags.",*7
- . W !?7,"Only Category II (Local) Flags may be created at the local site.",*7
- . S DGOK=0
- . D PAUSE^VALM1
  ;
- ;check of security key
- I DGOK,'$D(^XUSEC("DGPF LOCAL FLAG EDIT",DUZ)) D
- . X DGMSG
- . W !?7,"You do not have the appropriate Security Key.",*7
- . S DGOK=0
+ ;check flag category (only Category II flags can be created)
+ I DGCAT=1 D
+ . D BLD^DIALOG(261129,"Can not add 'Category I' flags.","","DGERR","F")
+ . D MSG^DIALOG("WE","","","","DGERR") W *7
  . D PAUSE^VALM1
+ . S DGOK=0
  ;
  ;user prompts
  D:DGOK
@@ -104,6 +98,15 @@ AF ;Entry point for DGPF ADD FLAG action protocol.
  . . . S DGPFLF("REVGRP")=DGASK_U_$$EXTERNAL^DILFD(26.11,.06,"F",DGASK)
  . . . S DGQ=1  ;set entry, quit
  . ;
+ . ;-- prompt for associated TIU PN Title, quit if one not entered
+ . ; There is a DD screen on the (#.07) field - using IA #4380
+ . ; to only display Category II PN Titles not already associated
+ . ; with a Category II (Local) Record Flag name.
+ . ;
+ . S DGASK=$$ANSWER^DGPFUT("Enter the Progress Note Title","","26.11,.07")
+ . I DGASK<0 S DGABORT=1 Q
+ . S DGPFLF("TIUTITLE")=DGASK_U_$$EXTERNAL^DILFD(26.11,.07,"F",DGASK)
+ . ;
  . ;-- have user enter flag description text (required)
  . S DGCKWP=0
  . S DGWPROOT=$NA(^TMP($J,"DGPFDESC"))
@@ -126,32 +129,19 @@ AF ;Entry point for DGPF ADD FLAG action protocol.
  . ;-- place flag description text into assignment array
  . M DGPFLF("DESC")=@DGWPROOT K @DGWPROOT
  . ;
- . ;-- re-display user's answers on full screen
- . S (DGLINE,DGCNT)=0
- . S DGPFLF("PTR")="26.11"
- . K ^TMP("DGPFDISP",$J)
- . ;
- . D FLAGDET^DGPFLFD1("DGPFDISP",.DGPFLF,.DGLINE,.DGCNT)
- . ;
- . W:$E(IOST,1,2)="C-" @IOF
- . S (DGCNT,DGQ)=0
- . F  S DGCNT=$O(^TMP("DGPFDISP",$J,DGCNT)) Q:DGCNT=""  D  Q:DGQ
- . . I $Y+3>IOSL W *7,!,"<...There is more Description to display but we need to file this now...>" S DGQ=1 Q
- . . W:^TMP("DGPFDISP",$J,DGCNT,0)]"" !,^TMP("DGPFDISP",$J,DGCNT,0)
- . ;
- . K DGPFLF("PTR")        ;clean up
- . K ^TMP("DGPFDISP",$J)  ;clean up
- . ;
- . W !,*7
- . I $$ANSWER^DGPFUT("Would you like to file this new local record flag","YES","Y")'>0 S DGABORT=1 Q
- . ;
- . W !,"Filing the new local record flag..."
- . ;
  . ;-- setup remaining flag history array nodes for filing
  . ;   note, the DGPFLH("FLAG") will be setup in $$STOALL^DGPFALF1
  . S DGPFLH("ENTERDT")=$$NOW^XLFDT()   ;current date/time
  . S DGPFLH("ENTERBY")=DUZ             ;current user
  . S DGPFLH("REASON",1,0)="New Local Patient Record Flag entered."
+ . ;
+ . ;-- re-display user's answers on full screen
+ . D REVIEW^DGPFUT3(.DGPFLF,.DGPFLH,"",XQY0,XQORNOD(0))
+ . ;
+ . W !,*7
+ . I $$ANSWER^DGPFUT("Would you like to file this new local record flag","YES","Y")'>0 S DGABORT=1 Q
+ . ;
+ . W !,"Filing the new local record flag..."
  . ;
  . ;-- file both the (#26.11) & (#26.12) entries
  . S DGRESULT=$$STOALL^DGPFALF1(.DGPFLF,.DGPFLH,.DGERR)
@@ -170,4 +160,3 @@ AF ;Entry point for DGPF ADD FLAG action protocol.
  ;return to LM (refresh screen)
  S VALMBCK="R"
  Q
- ;

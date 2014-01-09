@@ -1,9 +1,9 @@
-DGMTUTL2 ;ALB/RMM - Means Test Consistency Checker ; 1/31/03
- ;;5.3;Registration;**463**;Aug 13, 1993
+DGMTUTL2 ;ALB/RMM - Means Test Consistency Checker ; 04/28/2005
+ ;;5.3;Registration;**463,655,1015**;Aug 13, 1993;Build 21
  ;
- ;
- ;
- ;
+ ; This routine sets the data strings used in the Income Test
+ ; Inconsistency Checks.
+ Q
  ;
 ZIC(VAFIEN,DEPIEN) ; Build ZIC the data string for the veteran
  ;
@@ -37,18 +37,12 @@ ZIC(VAFIEN,DEPIEN) ; Build ZIC the data string for the veteran
  Q ZIC
  ;
 ZIR(VAFIEN,DEPIEN) ; Build ZIR the data string for the veteran
- ;
  N NODE0,ZIR
  S NODE0=$G(^DGMT(408.22,VAFIEN,0)),ZIR="ZIR"
- S $P(ZIR,U,2)=$P(NODE0,U,5)         ;Married Last Calendar Year
  S $P(ZIR,U,3)=$P(NODE0,U,6)         ;Lived With Patient
  S $P(ZIR,U,4)=$P(NODE0,U,7)         ;Amount Contributed to Spouse
- S $P(ZIR,U,5)=$P(NODE0,U,8)         ;Dependent Children
- S $P(ZIR,U,6)=$P(NODE0,U,9)         ;Incapable of Self Suppoort
- S $P(ZIR,U,7)=$P(NODE0,U,10)        ;Contributed to Support
  S $P(ZIR,U,8)=$P(NODE0,U,11)        ;Child Had Income
  S $P(ZIR,U,9)=$P(NODE0,U,12)        ;Income Available to You
- S $P(ZIR,U,10)=$P(NODE0,U,13)       ;Number of Dependent Children
  Q ZIR
  ;
 ZMT(DGMTI) ; Build ZMT the data string for the veteran
@@ -115,3 +109,4 @@ ZDP(VAFIEN,DEPIEN) ; Build ZDP the data string for the veteran
  S $P(ZDP,U,9)=$E($P(ZDP,U,9),1,3)+1700_$E($P(ZDP,U,9),4,7)
  ;
  Q ZDP
+                                                                                

@@ -1,5 +1,5 @@
 ABMDRAL4 ; IHS/ASDST/DMJ - Bills Cost Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**3,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,8,9**;NOV 12, 2009
  ;Original;TMD;
  ; IHS/SD/SDR - abm*2.6*3 - HEAT12210 - fix output so $amounts display
  ;

@@ -1,8 +1,8 @@
-ORWDRA32 ; SLC/KCM/REV/JDL - Radiology calls to support windows [6/28/02]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,116,141**;Dec 17, 1997
+ORWDRA32 ; SLC/KCM/REV/JDL - Radiology calls to support windows [6/28/02] ;1/25/06  12:18
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,116,141,215**;Dec 17, 1997
  ;
 DEF(LST,PATID,EVTDIV,IMGTYP) ; Get dialog data for radiology
- N ILST,I,X S ILST=0
+ N ILST,I,ORX S ILST=0
  S LST($$NXT)="~ShortList"  D SHORT
  S IMGTYP=$$IMTYPE(IMGTYP)
  S LST($$NXT)="~Common Procedures" D COMMPRO
@@ -15,7 +15,7 @@ DEF(LST,PATID,EVTDIV,IMGTYP) ; Get dialog data for radiology
  Q
 MODIFYR ; Get the modifiers (should be by imaging type)
  S I=$O(^RA(79.2,"C",IMGTYP,0)) Q:'I
- S X=0 F  S X=$O(^RAMIS(71.2,"AB",I,X)) Q:'X  S LST($$NXT)="i"_X_U_$P(^RAMIS(71.2,X,0),U)
+ S ORX=0 F  S ORX=$O(^RAMIS(71.2,"AB",I,ORX)) Q:'ORX  S LST($$NXT)="i"_ORX_U_$P(^RAMIS(71.2,ORX,0),U)
  Q
 SHORT ; from DEF, get short list of imaging quick orders
  N I,TMP
@@ -24,40 +24,41 @@ SHORT ; from DEF, get short list of imaging quick orders
  . S LST($$NXT)="i"_TMP(I)
  Q
 COMMPRO ; Get the common procedures
- S X=""
- F  S X=$O(^ORD(101.43,"COMMON",IMGTYP,X)) Q:X=""  D
- . S I=$O(^ORD(101.43,"COMMON",IMGTYP,X,0))
+ N ORX
+ S ORX=""
+ F  S ORX=$O(^ORD(101.43,"COMMON",IMGTYP,ORX)) Q:ORX=""  D
+ . S I=$O(^ORD(101.43,"COMMON",IMGTYP,ORX,0))
  . I $$REQDET,$P($G(^ORD(101.43,I,"RA")),U,2)="B" Q
- . S LST($$NXT)="i"_I_U_X_U_U_$$REQAPPR(I)
+ . S LST($$NXT)="i"_I_U_ORX_U_U_$$REQAPPR(I)
  Q
 URGENCY ; Get the allowable urgencies and default
- S X="",I=0
- F  S X=$O(^ORD(101.42,"S.RA",X)) Q:X=""  D
- . S I=$O(^ORD(101.42,"S.RA",X,0))
- . S LST($$NXT)="i"_I_U_X
+ S ORX="",I=0
+ F  S ORX=$O(^ORD(101.42,"S.RA",ORX)) Q:ORX=""  D
+ . S I=$O(^ORD(101.42,"S.RA",ORX,0))
+ . S LST($$NXT)="i"_I_U_ORX
  S I=$O(^ORD(101.42,"B","ROUTINE",0))
  S LST($$NXT)="d"_I_U_"ROUTINE"
  Q
 TRNSPRT ; Get the modes of transport
- F X="A^AMBULATORY","P^PORTABLE","S^STRETCHER","W^WHEELCHAIR" D
- . S LST($$NXT)="i"_X
+ F ORX="A^AMBULATORY","P^PORTABLE","S^STRETCHER","W^WHEELCHAIR" D
+ . S LST($$NXT)="i"_ORX
  ; figure default on windows side
  Q
 CATEGRY ; Get the categories of exam  
- F X="I^INPATIENT","O^OUTPATIENT","E^EMPLOYEE","C^CONTRACT","S^SHARING","R^RESEARCH" D
- . S LST($$NXT)="i"_X
+ F ORX="I^INPATIENT","O^OUTPATIENT","E^EMPLOYEE","C^CONTRACT","S^SHARING","R^RESEARCH" D
+ . S LST($$NXT)="i"_ORX
  ; figure default on windows side
  Q
 SUBMIT ; Get the locations to which the request may be submitted
- N TMPLST,ASK,X
+ N TMPLST,ASK,ORX
  D EN4^RAO7PC1(IMGTYP,"TMPLST")
  S I=0 F  S I=$O(TMPLST(I)) Q:'I  S LST($$NXT)="i"_TMPLST(I)
- I $D(TMPLST) S I=$O(TMPLST(0)),X=$P(TMPLST(I),U,1,2),LST($$NXT)="d"_X
+ I $D(TMPLST) S I=$O(TMPLST(0)),ORX=$P(TMPLST(I),U,1,2),LST($$NXT)="d"_ORX
  S LST($$NXT)="~Ask Submit"
- I $G(EVTDIV) S X=$$GET^XPAR(+$G(EVTDIV)_";DIC(4,^SYS^PKG","RA SUBMIT PROMPT",1,"Q")
- E  S X=$$GET^XPAR("ALL","RA SUBMIT PROMPT",1,"Q")
+ I $G(EVTDIV) S ORX=$$GET^XPAR(+$G(EVTDIV)_";DIC(4,^SYS^PKG","RA SUBMIT PROMPT",1,"Q")
+ E  S ORX=$$GET^XPAR("ALL","RA SUBMIT PROMPT",1,"Q")
  ;S DUZ(2)=TMPDIV
- S ASK=$S($L(X):X,1:1)
+ S ASK=$S($L(ORX):ORX,1:1)
  S LST($$NXT)="d"_ASK_U_$S(ASK=1:"YES",ASK=0:"NO",1:"YES")
  Q
 LAST7 ; Get exams for the last 7 days
@@ -66,32 +67,30 @@ LAST7 ; Get exams for the last 7 days
  . S LST($$NXT)="i"_I_U_^TMP($J,"RAE7",PATID,I)
  K ^TMP($J,"RAE7")
  Q
-PROCMSG(Y,IEN) ; return order message for a procedure
+PROCMSG(ORY,IEN) ; return order message for a procedure
  N I
- S I=0 F  S I=$O(^ORD(101.43,IEN,8,I)) Q:I'>0  S Y(I)=^(I,0)
+ S I=0 F  S I=$O(^ORD(101.43,IEN,8,I)) Q:I'>0  S ORY(I)=^(I,0)
  Q
 NXT() ; Increment index of LST
  S ILST=ILST+1
  Q ILST
 RAORDITM(Y,FROM,DIR,IMGTYP) ; Return a subset of orderable items
  ; .Return Array, Starting Text, Direction, Cross Reference (S.xxx)
- N I,IEN,CNT,X,DTXT,REQDET,REQAPPR,XREF S I=0,CNT=44
+ N I,IEN,CNT,ORX,DTXT,REQDET,REQAPPR,XREF S I=0,CNT=44
  S XREF="S."_$$IMTYPE(IMGTYP)
  F  Q:I'<CNT  S FROM=$O(^ORD(101.43,XREF,FROM),DIR) Q:FROM=""  D
  . S IEN=0 F  S IEN=$O(^ORD(101.43,XREF,FROM,IEN)) Q:'IEN  D
  . . I $$REQDET,$P($G(^ORD(101.43,IEN,"RA")),U,2)="B" Q
- . . S X=^ORD(101.43,XREF,FROM,IEN)
- . . I +$P(X,U,3),$P(X,U,3)<DT Q
+ . . S ORX=^ORD(101.43,XREF,FROM,IEN)
+ . . I +$P(ORX,U,3),$P(ORX,U,3)<DT Q
  . . S I=I+1
- . . I 'X S Y(I)=IEN_U_$P(X,U,2)_U_$P(X,U,2)_U_$$REQAPPR(IEN)
- . . E  S Y(I)=IEN_U_$P(X,U,2)_" <"_$P(X,U,4)_">"_U_$P(X,U,4)_U_$$REQAPPR(IEN)
+ . . I 'ORX S Y(I)=IEN_U_$P(ORX,U,2)_U_$P(ORX,U,2)_U_$$REQAPPR(IEN)
+ . . E  S Y(I)=IEN_U_$P(ORX,U,2)_" <"_$P(ORX,U,4)_">"_U_$P(ORX,U,4)_U_$$REQAPPR(IEN)
  Q
 REQDET() ; Are "broad" procedures allowed for this division?
- N TMPDIV,RESULT
- S TMPDIV=DUZ(2)
- I $D(EVTDIV),$G(EVTDIV) S DUZ(2)=EVTDIV
- S RESULT=$$GET^XPAR("ALL","RA REQUIRE DETAILED",1,"Q")
- S DUZ(2)=TMPDIV
+ N RESULT
+ I $G(EVTDIV) S RESULT=$$GET^XPAR(+$G(EVTDIV)_";DIC(4,^SYS^PKG","RA REQUIRE DETAILED",1,"Q")
+ E  S RESULT=$$GET^XPAR("ALL","RA REQUIRE DETAILED",1,"Q")
  Q RESULT
  ;
 REQAPPR(IEN) ;  does procedure require radiologist approval?
@@ -107,30 +106,33 @@ ISOLATN(Y,DFN) ;Is patient on isolation procedures?
  Q
 APPROVAL(Y,DUMMY) ; RETURNS LIST OF RADIOLOGISTS WHO MAY APPROVE A
  ;                       PROCEDURE WHEN REQUIRED
- N X,I
+ N ORX,I
  S I="" F  S I=$O(^VA(200,"ARC","S",I)) Q:I=""  D
- . S X=$P($G(^VA(200,I,0)),U)
- . S Y(I)=I_U_X
+ . ;I $P($G(^VA(200,I,"PS")),U,4),$P(^VA(200,I,"PS"),U,4)'>DT Q
+ . I '$$ACTIVE^XUSER(I) Q
+ . I $P($G(^VA(200,I,"RA")),U,3),$P(^VA(200,I,"RA"),U,3)'>DT Q
+ . S ORX=$P($G(^VA(200,I,0)),U)
+ . S Y(I)=I_U_ORX
  Q
 IMTYPE(DGRP) ; return the mnemonic for the imaging type
  Q $P(^ORD(100.98,DGRP,0),U,3)
 IMTYPSEL(Y,DUMMY) ;return list of active imaging types
- N X,I,IEN,DGRP,MNEM,NAME
- S X=""
- F I=1:1  S X=$O(^RA(79.2,"C",X)) Q:X=""  D
- . I '$D(^ORD(101.43,"S."_X)) Q
- . S IEN=$O(^RA(79.2,"C",X,0))
+ N ORX,I,IEN,DGRP,MNEM,NAME
+ S ORX=""
+ F I=1:1  S ORX=$O(^RA(79.2,"C",ORX)) Q:ORX=""  D
+ . I '$D(^ORD(101.43,"S."_ORX)) Q
+ . S IEN=$O(^RA(79.2,"C",ORX,0))
  . S NAME=$P(^RA(79.2,IEN,0),U,1)
  . S MNEM=$P(^RA(79.2,IEN,0),U,3)
  . S DGRP=$O(^ORD(100.98,"B",MNEM,0))
  . S Y(I)=IEN_U_NAME_U_MNEM_U_DGRP
  Q
 RADSRC(Y,SRCTYPE) ; return list of available contract/sharing/research sources
- S X=0
- F I=1:1 S X=$O(^DIC(34,X)) Q:+X=0  D
- . Q:($P(^DIC(34,X,0),U,2)'=SRCTYPE)
- . I $D(^DIC(34,X,"I")),(^DIC(34,X,"I")<$$NOW^XLFDT) Q
- . S Y(I)=I_U_$P(^DIC(34,X,0),U,1)
+ S ORX=0
+ F I=1:1 S ORX=$O(^DIC(34,ORX)) Q:+ORX=0  D
+ . Q:($P(^DIC(34,ORX,0),U,2)'=SRCTYPE)
+ . I $D(^DIC(34,ORX,"I")),(^DIC(34,ORX,"I")<$$NOW^XLFDT) Q
+ . S Y(I)=I_U_$P(^DIC(34,ORX,0),U,1)
  Q
 LOCTYPE(Y,ORLOC) ; Returns type of location (C,W)
  S Y=-1

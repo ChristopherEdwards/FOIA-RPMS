@@ -1,5 +1,5 @@
 GMPLHS ; SLC/MKB/KER - Extract Prob List Health Summary ; 04/15/2002
- ;;2.0;Problem List;**22,26**;Aug 25, 1994
+ ;;2.0;Problem List;**22,26,35**;Aug 25, 1994;Build 26
  ;
  ; External References
  ;   DBIA  3106  ^DIC(49
@@ -38,7 +38,7 @@ GETPROB(IFN) ; Get problem data and set it to ^TMP array
  ;        11:  Clinic Name
  ;        12:  Internal Date Recorded
  ;        13:  Problem Term (from Lexicon)
- ;        14:  Exposure String (AO/IR/EC/HNC/MST)
+ ;        14:  Exposure String (AO/IR/EC/HNC/MST/CV/SHD)
  ;                        
  ;   ^TMP("GMPLHS",$J,CNT,"N")
  ;   Piece 1:  Provider Narrative
@@ -47,9 +47,9 @@ GETPROB(IFN) ; Get problem data and set it to ^TMP array
  ;   Piece 1:  Pointer to Problem file 9000011
  ;                   
  N DIC,DIQ,DR,DA,REC,DIAG,LASTMDT,NARR,SITE,ENTDT,STAT,ONSETDT,RPROV
- N SERV,SERVABB,RESDT,CLIN,RECDT,LEXI,LEX,PG,AO,EXP,HNC,MST,IR,SCS
+ N SERV,SERVABB,RESDT,CLIN,RECDT,LEXI,LEX,PG,AO,EXP,HNC,MST,CV,SHD,IR,SCS
  S DIC=9000011,DA=IFN,DIQ="REC(",DIQ(0)="IE"
- S DR=".01;.03;.05;.06;.08;.12;.13;1.01;1.05;1.06;1.07;1.08;1.09;1.11;1.12;1.13;1.15;1.16"
+ S DR=".01;.03;.05;.06;.08;.12;.13;1.01;1.05;1.06;1.07;1.08;1.09;1.11;1.12;1.13;1.15;1.16;1.17;1.18"
  D EN^DIQ1
  S DIAG=REC(9000011,DA,.01,"I"),LASTMDT=REC(9000011,DA,.03,"I")
  S NARR=REC(9000011,DA,.05,"E"),SITE=REC(9000011,DA,.06,"E")
@@ -68,6 +68,8 @@ GETPROB(IFN) ; Get problem data and set it to ^TMP array
  S PG=+REC(9000011,DA,1.13,"I")
  S HNC=+REC(9000011,DA,1.15,"I")
  S MST=+REC(9000011,DA,1.16,"I")
+ S CV=+REC(9000011,DA,1.17,"I")
+ S SHD=+REC(9000011,DA,1.18,"I")
  K SCS D SCS^GMPLX1(DA,.SCS) S EXP=$G(SCS(1))
  S GMPCNT=GMPCNT+1,^TMP("GMPLHS",$J,GMPCNT,0)=DIAG_U_LASTMDT_U_SITE_U_ENTDT_U_STAT_U_ONSETDT_U_RPROV_U_SERV_U_SERVABB_U_RESDT_U_CLIN_U_RECDT_U_LEX_U_EXP
  S ^TMP("GMPLHS",$J,GMPCNT,"N")=NARR,^TMP("GMPLHS",$J,GMPCNT,"IEN")=IFN

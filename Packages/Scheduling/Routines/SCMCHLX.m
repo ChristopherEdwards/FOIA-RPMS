@@ -1,5 +1,5 @@
 SCMCHLX ;BP/DJB - PCMM HL7 EVENT File Xref APIs ; 10 Dec 2002  8:44 PM
- ;;5.3;Scheduling;**177,264,272**;May 01, 1999
+ ;;5.3;Scheduling;**177,264,272,1015**;May 01, 1999;Build 21
  ;
  ;Reference routine: SCDXFX01
 AACXMIT(IFN,SET,OLDEVPTR) ;Logic for AACXMIT* xrefs on PCMM HL7 EVENT

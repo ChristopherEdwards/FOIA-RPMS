@@ -1,5 +1,5 @@
 ALPBHL1 ;OIFO-DALLAS MW,SED,KC - BCBU main HL7 message processor ;01/01/03
- ;;3.0;BAR CODE MED ADMIN;**7**;May 2002
+ ;;3.0;BAR CODE MED ADMIN;**7,8**;Mar 2004
  ;
  S ALPBECH=HL("ECH")
  S ALPBCS=$E(ALPBECH)
@@ -102,9 +102,12 @@ ALPBHL1 ;OIFO-DALLAS MW,SED,KC - BCBU main HL7 message processor ;01/01/03
  ; using CPRS order number, check to see if the order is already on
  ; file.  if so, and status is PENDING delete the order record...
  I ALPBORDC>0 D
- .S ALPBOIEN=+$O(^ALPB(53.7,ALPBIEN,2,"ACPRS",ALPBORDC,0))
- .I $E($P($G(^ALPB(53.7,ALPBIEN,2,ALPBOIEN,0)),"^",3),1,2)'="IP" Q
- .D DELORD^ALPBUTL(ALPBIEN,ALPBOIEN)
+ .;LOOP Through. May have replaced orders so need to check all
+ .S ALPBI=0
+ .F  S ALPBI=$O(^ALPB(53.7,ALPBIEN,2,"ACPRS",ALPBORDC,ALPBI)) Q:+ALPBI'>0  D
+ ..I $E($P($G(^ALPB(53.7,ALPBIEN,2,ALPBI,0)),"^",3),1,2)'="IP" Q
+ ..D DELORD^ALPBUTL(ALPBIEN,ALPBI)
+ K ALPBI
  ;
  ; existing order's record number?...
  K ALPBOIEN

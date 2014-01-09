@@ -1,5 +1,5 @@
 DGMSTL1 ;ALB/SCK - MST Status entry cont. ; 11/15/01 2:27pm
- ;;5.3;Registration;**195,379**;Aug 13, 1993
+ ;;5.3;Registration;**195,379,1015**;Aug 13, 1993;Build 21
  Q
 PAT ;
  N MSTDFN,DGMST,MSTST,MSTPV,MSTDT,DGDTFLG,MSTX,Y

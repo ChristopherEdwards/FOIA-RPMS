@@ -1,5 +1,5 @@
 SCUTBK3 ;MJK/ALB - RPC Broker Utilities ; SEP 99
- ;;5.3;Scheduling;**41,51,177,204**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,51,177,204,1015**;AUG 13, 1993;Build 21
  ;
 GETUSER(SCDATA,SCDUZ) ; -- get user data
  ;

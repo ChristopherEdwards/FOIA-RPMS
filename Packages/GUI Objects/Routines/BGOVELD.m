@@ -1,5 +1,5 @@
-BGOVELD ; IHS/BAO/TMD - Manage V Elder Care ;20-Mar-2007 13:52;DKM
- ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+BGOVELD ; IHS/BAO/TMD - Manage V Elder Care ;09-Apr-2012 14:18;DU
+ ;;1.1;BGO COMPONENTS;**1,3,11**;Mar 20, 2007;Build 3
  ; Get elder care entries by individual entry, visit, or patient
  ;  INP = Patient IEN [1] ^ V File IEN [2] ^ Visit IEN [3]
 GET(RET,INP) ;EP
@@ -39,6 +39,13 @@ SET(RET,INP) ;EP
  S @FDA@(.18)=$P(INP,U,16)
  S @FDA@(1201)="N"
  S @FDA@(1204)="`"_DUZ
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

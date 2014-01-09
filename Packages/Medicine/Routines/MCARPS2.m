@@ -1,9 +1,14 @@
 MCARPS2 ;SLC/dcm,WAA Summary of patient procedures for CPRS ;12/15/97  14:49
- ;;2.3;Medicine;**15,33**;09/13/1996
+ ;;2.3;Medicine;**15,33,39**;09/13/1996
  ;Modified from MCARPS1 for CPRS
  ; Please Reference DBIA # 3397
 EN(DFN) ;Get procedures for a patient
- S WH=""
+ I '$$PATCH^XPDUTL("MD*1.0*2") G MED
+ N MCGLB,MCBLK,MCRT K ^TMP("OR",$J,"MCAR") S MCGLB=$NA(^TMP("OR",$J,"MCAR","OT"))
+ S MCBLK="",MCRT="D EN1^MDPS1(.MCGLB,DFN,MCBLK,MCBLK,99999,MCBLK,MCBLK)"
+ X MCRT
+ Q
+MED S WH=""
  K ^TMP("OR",$J,"MCAR") S S4="" F M=1:1 S S4=$O(^MCAR(690,"AC",DFN,S4)) Q:S4=""  D LOCFIL
  D PR0
  Q
@@ -14,7 +19,7 @@ LOCFIL1 S S6="" F L=1:1 S S6=$O(^MCAR(690,"AC",DFN,S4,S5,S6)) Q:S6=""  D CONT
 CONT ;CONT+1 modified on 2-7-94,S MCFILE..2) added to conform w/alpha site
  I $D(^MCAR(+$P(S5,"(",2),S6,2005)) S MCFILE=+$P(S5,"(",2) D SUM^MCMAG
  I S5="MCAR(702.7" Q
- I S5="MCAR(699" S (LL,LL1)=$P($G(^MCAR(699,S6,0)),U,12) Q:'LL  S LL=$P($G(^MCAR(697.2,LL,0)),U) G CONT1:'$D(PE) Q:PE'=LL  G CONT1
+ I S5="MCAR(699" S (LL,LL1)=$P($G(^MCAR(699,S6,0)),U,12) Q:LL'>0  S LL=$P($G(^MCAR(697.2,LL,0)),U) G:'$D(PE) CONT1 Q:PE'=LL  G CONT1
  ;I S5="MCAR(699.5" S (LL,LL1)=$P($G(^MCAR(699.5,S6,0)),U,6) Q:'LL  S LL=$P($G(^MCAR(697.2,LL,0)),U) G CONT1:'$D(PE) Q:PE'=LL  G CONT1  ;MC*2.3*8
  I S5="MCAR(699.5",'$D(PE) D  Q  ;MC*2.3*8
  .S LL6=$P($G(^MCAR(699.5,S6,0)),U,6),LL8=$P($G(^MCAR(699.5,S6,0)),U,8)

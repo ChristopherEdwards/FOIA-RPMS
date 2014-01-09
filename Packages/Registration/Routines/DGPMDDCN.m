@@ -1,5 +1,5 @@
 DGPMDDCN ;ALB/MRL - DETERMINE INPATIENT X-REF'S; 9 FEB 89 [ 01/14/2004  11:21 AM ]
- ;;5.3;Registration;**54,498**;Aug 13, 1993
+ ;;5.3;Registration;**54,498,1015**;Aug 13, 1993;Build 21
  ;
 1 ; 
  I $S($D(DGPMT):1,('$D(DA)#2):1,'$D(DGPMDDF):1,'$D(DGPMDDT):1,1:0) G KX

@@ -1,5 +1,5 @@
-BCHEGP1 ; IHS/CMI/LAB - GROUP FORM DATA ENTRY CREATE RECORD ; [ 01/30/2007  1:41 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**16**;OCT 28, 1996
+BCHEGP1 ; IHS/CMI/LAB - GROUP FORM DATA ENTRY CREATE RECORD ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;PATCH #16 Populates all Travel Time to one patient
  ;rather than deviding among all pts in group
@@ -13,6 +13,7 @@ START1 ;
  D EXIT
  Q
 PROCESS ;
+ S DFN="",BCHNRPAT=""
  D GETPAT
  Q
 GETPAT ;
@@ -42,7 +43,7 @@ GETPAT ;
  I Y="" W !!,"No patient entered!! - Required",! G GETPAT
  I $D(DIRUT) W !,"No patient entered!! - Required." S BCHQUIT=1 Q
  S (X,BCHNAME)=Y,DIC="^AUPNPAT(",DIC(0)="MQE" D ^DIC K DIC
- I Y=-1 D NOREG G:$G(BCHAGAIN) GETPAT Q
+ I Y=-1 D NOREG Q
  W !?25,"Ok" S %=1 D YN^DICN I %'=1 W !!,"Try again.",! G GETPAT
  S DFN=+Y
  D GENREC
@@ -53,8 +54,28 @@ NOREG ;
  K BCHAGAIN
  W !,"That patient cannot be found in the Registration database."
  W ! S DIR(0)="Y",DIR("A")="Do you want to try to lookup the patient in registration again",DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
- I $D(DIRUT) W !,"Exiting..." S BCHAGAIN=1 Q
- I Y S BCHAGAIN=1 Q
+ I $D(DIRUT) W !,"Exiting..." S BCHQUIT=1 Q
+ I Y G GETPAT
+ W !!,"Please select a patient from the Non-Registered Patient Database",!,"or enter a new Non-Registered Patient.",!
+ S DIC="^BCHRPAT(",DIC(0)="AEMQL" D ^DIC K DIC
+ ;SCREENMAN CALL
+ ;S DIE="^BCHR(",DA=BCHR,DR="1101///"_BCHNAME D ^DIE K DIE,DR,DA,DIU,DIV,DIW
+ ;S DA=BCHR,DDSFILE=90002,DR="[BCH ENTER PATIENT DATA]" D ^DDS
+ ;K DR,DA,DDSFILE,DIC,DIE
+ ;I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S BCHQUIT=1 K DIMSG Q
+ ;Q:$G(^BCHR(BCHR,11))]""
+ I Y=-1 W !!,"A patient is Required" G GETPAT
+ S BCHNRPAT=+Y
+ I $P(Y,U,3) D  I 1
+ .W !!,"Please review and update if necessary this non-registered patient's data:"
+ .S DIE="^BCHRPAT(",DR="[BCH EDIT NON REG PT]",DA=BCHNRPAT D ^DIE K DA,DIE,DR
+ E  D
+ .W !!,"You now have the opportunity to update this patient's demographic data,"
+ .W !,"(DOB, Gender, Community of Residene, Tribe)",!
+ .S DIR(0)="Y",DIR("A")="Do you want to update this patient's demographic information?",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ .I 'Y Q
+ .I $D(DIRUT) Q
+ .S DIE="^BCHRPAT(",DR="[BCH EDIT NON REG PT]",DA=BCHNRPAT D ^DIE K DA,DIE,DR
  D GENREC
  Q
 GENREC ;create CHR record
@@ -62,27 +83,25 @@ GENREC ;create CHR record
  D ^XBFMK
  S APCDOVRR=1
  S BCHOVRR=1
- I DFN W !!,"Creating new record for ",$P(^DPT(DFN,0),U),"."
- I 'DFN W !!,"Creating CHR record."
+ W !!,"Creating new record for ",$S(DFN:$P(^DPT(DFN,0),U),1:$P(^BCHRPAT(BCHNRPAT,0),U,1)),"."
+ ;I 'DFN W !!,"Creating CHR record."
  K DD,D0,DO,DIC,DA,DR S DIC(0)="EL",DIC="^BCHR(",DLAYGO=90002,DIADD=1,X=$P(^BCHGROUP(BCHFID,0),U,4)
  S BCHG0=^BCHGROUP(BCHFID,0)
- S DIC("DR")=".02////"_$P(BCHG0,U,2)_";.03////"_$P(BCHG0,U,3)_";.04////"_DFN_";.05////"_$P(BCHG0,U,5)_";.06////"_$P(BCHG0,U,6)_";.07////"_$P(BCHG0,U,7)_";.08////"_$P(BCHG0,U,8)_";.12///1"
- S DIC("DR")=DIC("DR")_";.16////"_DUZ_";.17////"_DT_";.22////"_DT_";.26////H"
+ S DIC("DR")=".02////"_$P(BCHG0,U,2)_";.03////"_$P(BCHG0,U,3)_";.04////"_$G(DFN)_";.05////"_$P(BCHG0,U,5)_";.06////"_$P(BCHG0,U,6)_";.12///1"
+ S DIC("DR")=DIC("DR")_";.16////"_DUZ_";.17////"_DT_";.22////"_DT_";.26////H;.29///1"
  S DIC("DR")=DIC("DR")_";.11////"_$S(BCHHIT=1:$P(BCHG0,U,11),1:0) ;IHS/CMI/TMJ PATCH #16 Travel time to one patient
  D FILE^DICN K DIC,DR,DIE,DIADD,DLAYGO,X,D0
  I Y=-1 W !!,$C(7),$C(7),"ERROR generating CHR record!!  Deleting Record.",! D ^XBFMK Q
  S BCHR=+Y
- I 'DFN S DA=BCHR,DDSFILE=90002,DR="[BCH ENTER PATIENT DATA]" D ^DDS
- K DR,DA,DDSFILE,DIC,DIE
- I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" K DIMSG Q
+ I BCHNRPAT S DA=BCHR,DIE=90002,DR="1112////"_BCHNRPAT D ^DIE K DIE,DA,DR
 POV ;create pov records
  S BCHOVRR=1
- S BCHX=0 F  S BCHX=$O(^BCHGROUP(BCHFID,91,BCHX)) Q:BCHX'=+BCHX  D
- .S BCHG0=^BCHGROUP(BCHFID,91,BCHX,0)
+ S BCHX=0 F  S BCHX=$O(^BCHRGAS("AD",BCHFID,BCHX)) Q:BCHX'=+BCHX  D
+ .S BCHG0=^BCHRGAS(BCHX,0)
  .D ^XBFMK
- .S BCHPOVM=$P(BCHG0,U,3)/BCHNUM S BCHPOVM=(BCHPOVM+.5)\1
+ .S BCHPOVM=$P(BCHG0,U,5)/BCHNUM S BCHPOVM=(BCHPOVM+.5)\1
  .K DD,D0,DO,DIC,DA,DR S DIC="^BCHRPROB(",DIC(0)="EL",DLAYGO=90002.01,DIADD=1,X=$P(BCHG0,U)
- .S DIC("DR")=".02////"_DFN_";.03////"_BCHR_";.04////"_$P(BCHG0,U,2)_";.05///"_BCHPOVM_";.06///"_$TR($P(BCHG0,U,4),";",":")
+ .S DIC("DR")=".02////"_$G(DFN)_";.03////"_BCHR_";.04////"_$P(BCHG0,U,4)_";.05///"_BCHPOVM_";.06////"_$P(BCHG0,U,6)
  .D FILE^DICN K DIC,DR,DIE,DIADD,DLAYGO,X,DO
  .I Y<0 W !!,"Creating pov record failed.!!  Notify PROGRAMMER!",!!
  D ^XBFMK
@@ -110,7 +129,7 @@ GETMEAS ;
  S DIR(0)="Y",DIR("A")=$S('$G(BCHUABFO):"Any MEASUREMENTS, TESTS or REPRODUCTIVE FACTORS",1:"Any MEASUREMENTS/TESTS"),DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  Q:$D(DIRUT)
  Q:'Y
- S DA=BCHR,DDSFILE=90002,DR=$S('$G(BCHUABFO):"[BCH ENTER MEASUREMENTS/TESTS]",1:"[BCHB ENTER MEASUREMENTS/TESTS") D ^DDS
+ S DA=BCHR,DDSFILE=90002,DR="[BCH ENTER MEASUREMENTS/TESTS" D ^DDS
  I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S BCHQUIT=1 K DIMSG D ^XBFMK Q
  D ^XBFMK
  Q

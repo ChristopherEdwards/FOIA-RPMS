@@ -1,5 +1,5 @@
 SDAPIER ;ALB/MJK - Outpatient API/Error Processing ; 22 FEB 1994 11:30 am
- ;;5.3;Scheduling;**27**;08/13/93
+ ;;5.3;Scheduling;**27,1015**;08/13/93;Build 21
  ;
 ERRFILE(SDERROR,SDATA) ; -- file error
  N SDTEXT,SDTYPE,I,SDERDAT

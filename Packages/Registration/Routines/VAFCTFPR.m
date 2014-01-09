@@ -1,5 +1,5 @@
 VAFCTFPR ;ALB/JLU,CML-MFU PROCESSING ROUTINE ;06/25/98
- ;;5.3;Registration;**149,261,255,307,414,474**;Aug 13, 1993
+ ;;5.3;PIMS;**149,261,255,307,414,474,520,1015,1016**;JUN 30, 2012;Build 20
  ;Reference to EXC^RGHLLOG and START^RGHLLOG supported by IA #2796
  ;
 EN ;This entry point is used to process the Master File Update Message.
@@ -60,7 +60,7 @@ MFI ;;MFI
  ;if from CMOR delete all TF's and replace with CMOR's list (need to log exception if problems deleting TF's)
  I TYPE="REP" D
  . ;if CMOR mismatch quit the exception will be logged in MFE subroutine
- . I $P($G(VAFCMPI),"^",3)'=$G(VAFCARR("CMOR")) Q
+ .;**712 NO NEED TO CHECK CMOR ANYMORE I $P($G(VAFCMPI),"^",3)'=$G(VAFCARR("CMOR")) Q
  . S VAFCER=$$DELALLTF^VAFCTFU(ICN) I VAFCER S MFNQUIT=1 D EXC^RGHLLOG(212,"Msg#"_$G(HL("MID"))_" failed to Delete ALL TF's for ICN#"_$G(ICN),$G(PDFN)) Q
  Q
 MFE ;;MFE
@@ -68,8 +68,8 @@ MFE ;;MFE
  N HLCOMP,NXTSGMT
  S HLCOMP=$E(HL("ECH"),1)
  S PDLT=$$FMDATE^HLFNC($P(MSG,HL("FS"),4))
- S INST=+$P(MSG,HL("FS"),5)
- S INST=$$LKUP^XUAF4(+INST)
+ S INST=$P($P(MSG,HL("FS"),5),HLCOMP) ; **520 REMOVE + AND GET PIECE
+ S INST=$$LKUP^XUAF4(INST) ; **520 REMOVE +
  I INST="" S MFNQUIT=1 Q  ; log exception, set MFNQUIT flag and quit
  S PDFN=$$GETDFN^MPIF001(ICN)
  D  Q:$G(MFNQUIT)=1
@@ -82,8 +82,9 @@ MFE ;;MFE
  .S LOCICN=+$$GETICN^MPIF001(PDFN)
  .S LOCCMOR=$$GETVCCI^MPIF001(PDFN)
  .;CMOR MISMATCH or CMOR = null log exception, set MFNQUIT flag and quit
- .I LOCCMOR'=VAFCARR("CMOR")!(VAFCARR("CMOR")="") D  Q
- ..D EXC^RGHLLOG(211,"Msg#"_$G(HL("MID"))_" failed to update from "_$G(VAFCARR("SENDING SITE"))_" for "_$G(LOCNAME)_" ICN#"_$G(ICN)_" due to mismatch CMOR "_$G(VAFCARR("CMOR"))_"/"_$G(LOCCMOR)_" (local)",$G(PDFN)) S MFNQUIT=1
+ .;**712 NO NEED TO CHECK CMOR ANYMORE
+ .;I LOCCMOR'=VAFCARR("CMOR")!(VAFCARR("CMOR")="") D  Q
+ .;.D EXC^RGHLLOG(211,"Msg#"_$G(HL("MID"))_" failed to update from "_$G(VAFCARR("SENDING SITE"))_" for "_$G(LOCNAME)_" ICN#"_$G(ICN)_" due to mismatch CMOR "_$G(VAFCARR("CMOR"))_"/"_$G(LOCCMOR)_" (local)",$G(PDFN)) S MFNQUIT=1
  ;check next segment, if it exist and it is a ZET segment quit and let the ZET module add the TF
  S NXTSGMT=$G(VAFC(+$O(VAFC(VAFCI)))) I $P($G(NXTSGMT),HL("FS"))="ZET" Q
  D FILE^VAFCTFU(PDFN,INST_"^"_$G(PDLT),$G(VAFCTFT))

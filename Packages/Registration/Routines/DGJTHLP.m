@@ -1,5 +1,5 @@
 DGJTHLP ;MJK/MAF/ESD/ALB - Help for IRT module using list processor ; 20-OCT-92
- ;;5.3;Registration;**9**;Aug 13, 1993
+ ;;5.3;Registration;**9,1015**;Aug 13, 1993;Build 21
  ;
  ;
 HLP ; -- IRT ListMan menu help

@@ -1,5 +1,5 @@
 ABMDE2X ; IHS/ASDST/DMJ - PAGE 2 - INSURER data chk ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - V2.5 P3 - 1/24/03 - NOIS NEA-0301-180044
  ;     Modified routine to display patient info when workers comp

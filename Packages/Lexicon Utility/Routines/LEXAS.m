@@ -1,5 +1,5 @@
 LEXAS ; ISL Look-up Check Input                  ; 09-23-96
- ;;2.0;LEXICON UTILITY;**4**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**4**;Sep 23, 1996;Build 15
  ;
 SPL(LEXX) ; Check word
  S LEXX=$G(LEXX) Q:LEXX="" LEXX

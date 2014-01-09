@@ -1,5 +1,5 @@
 SCCVU1 ;ALB/RMO,TMP - SCHED VISITS CONVERT/ARCHIVE UTILITIES; [ 10/10/95  2:39 PM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 CHKDT(SCRESULT,SC,SCCVTYP) ; -- Check date range
  ; Input  -- SC       Array:

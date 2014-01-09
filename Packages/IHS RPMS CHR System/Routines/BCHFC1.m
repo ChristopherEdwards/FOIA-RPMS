@@ -1,5 +1,5 @@
-BCHFC1 ; IHS/TUCSON/LAB - FORMS COUNT (FILE) report process ;  [ 06/03/99  6:54 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7**;OCT 28, 1996
+BCHFC1 ; IHS/CMI/LAB - FORMS COUNT (FILE) report process ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
 P ; Run by posting date
  S BCHH=$H,BCHJOB=$J

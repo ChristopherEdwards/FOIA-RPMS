@@ -1,5 +1,5 @@
 SCRPV1A ; bp/djb - PCMM Inconsistency Rpt - Get Data ; 8/25/99 9:57am
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,528,1015**;AUG 13, 1993;Build 21
  ;
  ;Return:
  ;  Inconsistency array in format:
@@ -89,7 +89,8 @@ CHECK28 ;Check patients for inconsistencies 2 & 8.
  .. Q:$P(DATA,U,8)'=1  ;..Team Assign not PC
  .. Q:$P(DATA,U,9)]""  ;..Team Assign inactive
  .. ;
- .. Q:$D(^SCPT(404.43,"APCPOS",DFN,1))
+ .. ;Q:$D(^SCPT(404.43,"APCPOS",DFN,1))
+ .. I $$GETPRTP^SCAPMCU2(POSI,DT)>0 Q  ;sd/528
  .. S ^TMP("PCMM PATIENT",$J,DFNNAM,DFN,2,TMN,POSN)=PTPI ;..........#2
  Q
  ;

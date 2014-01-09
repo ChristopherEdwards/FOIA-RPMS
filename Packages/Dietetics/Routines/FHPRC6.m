@@ -1,5 +1,5 @@
 FHPRC6 ; HISC/REL/NCA - Edit Meal Production Diets ;2/26/96  10:04
- ;;5.0;Dietetics;**2**;Mar 25, 1996
+ ;;5.5;DIETETICS;;Jan 28, 2005
 R0 S DIC="^FH(116.1,",DIC(0)="AEQM" W ! D ^DIC K DIC G KIL:U[X!$D(DTOUT),R0:Y<1 S D0=+Y
 R1 S DIC="^FH(116.1,D0,""RE"",",DIC(0)="AEQM" W ! D ^DIC K DIC G KIL:X[U!$D(DTOUT),R0:X="",R1:Y<1 S D1=+Y
  Q:$O(^FH(116.1,D0,"RE",D1,"R",0))<1

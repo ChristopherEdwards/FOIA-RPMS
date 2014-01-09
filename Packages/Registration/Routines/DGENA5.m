@@ -1,5 +1,5 @@
-DGENA5 ;ISA/Zoltan - Enrollment API - CD Processing; 05/11/99
- ;;5.3;Registration;**232**;Aug 13, 1993
+DGENA5 ;ISA/Zoltan,ALB/CKN - Enrollment API - CD Processing ; 8/15/08 11:10am
+ ;;5.3;PIMS;**232,1015,1016**;JUN 30, 2012;Build 20
  ;Phase II API's Related to Catastrophic Disability.
  ;
  ; The following variable names are used consistently in this routine:
@@ -133,8 +133,8 @@ LIMBCODE(REASON,LIMBIEN) ; Return limb code for an affected limb.
 HL7TORSN(HL7VAL,D2) ; Return REASON IEN for a HL7 Transmission Value.
  ; This function returns the IEN or 0 if there is none.
  S D2=$S(11[$D(D2):D2,11[$D(HLECH):$E(HLECH),1:"~")
- I $P("KATZ^FOLS^FIM^GAF","^",$P(HL7VAL,D2,1))=$P(HL7VAL,D2,2) D
- . S HL7VAL=$P("KATZ^FOLS^FIM^GAF","^",+HL7VAL)
+ I $P("KATZ^FOLS^RUG3^FIM^GAF","^",$P(HL7VAL,D2,1))=$P(HL7VAL,D2,2) D
+ . S HL7VAL=$P("KATZ^FOLS^RUG3^FIM^GAF","^",+HL7VAL)
  E  S HL7VAL=$P(HL7VAL,D2)
  Q:HL7VAL="" 0
  Q +$O(^DGEN(27.17,"C",HL7VAL,""))
@@ -145,8 +145,8 @@ RSNTOHL7(REASON,D2) ; Return HL7 Segment Value for this Reason.
  I $$TYPE(REASON)="C" D
  . S CODE=$$CODE(REASON)
  . Q:CODE=""
- . S NUMBER=$L($P("KATZ^FOLS^FIM^GAF^",CODE),"^")
- . Q:NUMBER>4
+ . S NUMBER=$L($P("KATZ^FOLS^RUG3^FIM^GAF^",CODE),"^")
+ . Q:NUMBER>5
  . S TABLE="VA0043"
  . S HL7VAL=NUMBER_D2_CODE_D2_TABLE
  E  D

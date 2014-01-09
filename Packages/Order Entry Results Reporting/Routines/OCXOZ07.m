@@ -1,5 +1,5 @@
-OCXOZ07 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ07 ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -109,7 +109,7 @@ CHK151 ; Look through the current environment for valid Event/Elements for this 
  ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
  ;
  I $L(OCXDF(1)),$$LIST(OCXDF(1),"NW,SN"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,60,"96") Q:OCXOERR 
- I $L(OCXDF(15)),(OCXDF(15)="F"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)) D CHK265^OCXOZ0A
+ I $L(OCXDF(15)),(OCXDF(15)="F"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)) D CHK264^OCXOZ0B
  Q
  ;
 CHK157 ; Look through the current environment for valid Event/Elements for this patient.
@@ -130,7 +130,7 @@ CHK157 ; Look through the current environment for valid Event/Elements for this 
  ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
  ;
  I $L(OCXDF(1)),$$LIST(OCXDF(1),"NW,SN"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,61,"96") Q:OCXOERR 
- I $L(OCXDF(23)),(OCXDF(23)="F"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)) D CHK254^OCXOZ0A
+ I $L(OCXDF(23)),(OCXDF(23)="F"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)) D CHK253^OCXOZ0B
  Q
  ;
 CHK163 ; Look through the current environment for valid Event/Elements for this patient.
@@ -147,7 +147,7 @@ CHK163 ; Look through the current environment for valid Event/Elements for this 
  I (OCXDF(40)="ACCEPT") D CHK164^OCXOZ08
  I (OCXDF(40)="DISPLAY") S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)),($E(OCXDF(2),1,2)="PS") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK182^OCXOZ08
  I (OCXDF(40)="SELECT") D CHK196^OCXOZ09
- I (OCXDF(40)="SESSION") S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)),($E(OCXDF(2),1,2)="PS") S OCXDF(43)=$P($P($G(OCXPSD),"|",3),"^",1) I $L(OCXDF(43)) D CHK230^OCXOZ0A
+ I (OCXDF(40)="SESSION") S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)),($E(OCXDF(2),1,2)="PS") S OCXDF(43)=$P($P($G(OCXPSD),"|",3),"^",1) I $L(OCXDF(43)) D CHK227^OCXOZ0A
  Q
  ;
 FILE(DFN,OCXELE,OCXDFL) ;     This Local Extrinsic Function logs a validated event/element.

@@ -1,0 +1,3 @@
+TIUEDS9 ; ;02/28/13
+ S X=DG(DQ),DIC=DIE
+ S ^TIU(8925,"F",$E(X,1,30),DA)=""

@@ -1,5 +1,5 @@
 SCAPMC19 ;ALB/REW - Team API's ; 12 Jan 99  9:10 AM
- ;;5.3;Scheduling;**41,174**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,174,1015**;AUG 13, 1993;Build 21
  ;;1.0
 ACPRTP(SC200,SCTP,SCFIELDA,SCEFF,SCERR) ; assign practitioner to position
  ; input:

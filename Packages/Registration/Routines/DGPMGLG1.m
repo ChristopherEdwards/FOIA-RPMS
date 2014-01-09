@@ -1,5 +1,5 @@
 DGPMGLG1 ;ALB/LM - G&L GENERATION, CONT.; 23 MAY 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 A S DFN=+$P(MD,"^",3),ID="",DPT=$S($D(^DPT(DFN,0)):^(0),1:"")
  D GL,BS,ONEDAY,ASIH

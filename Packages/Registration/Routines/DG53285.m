@@ -1,5 +1,5 @@
 DG53285 ;ALB/PAK-DG*5.3*285 POST-INSTALL TO CLEAN MEANS TEST ;4/24/2000
- ;;5.3;Registration;**285**;Aug 13, 1993
+ ;;5.3;Registration;**285,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine is the post installation for patch DG*5.3*285
  ;

@@ -1,5 +1,5 @@
 SDAMBMR ;ALB/MLI - AMBULATORY PROCEDURE MANAGEMENT REPORTS ; 4/24/00 9:20am
- ;;5.3;Scheduling;**140,132,159,180**;Aug 13, 1993
+ ;;5.3;Scheduling;**140,132,159,180,1015**;Aug 13, 1993;Build 21
 EN D Q,ASK2^SDDIV G:Y<0 Q S U="^",SDAS=0
 1 S SDFL=0 K DIC W !!,"****Date Range Selection****",!!,"Enter fiscal year or date range within fiscal year",!
  S %DT="AE",%DT("A")="   Beginning DATE : " D ^%DT G Q:Y<0,FY:'$E(Y,4,7) S SDB=Y-.1,%DT(0)=Y W ! S %DT("A")="   Ending DATE : " D ^%DT K %DT G:Y<0 Q W ! D CK G:SDFL 1 S SDE=Y+.9

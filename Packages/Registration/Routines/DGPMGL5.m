@@ -1,5 +1,5 @@
 DGPMGL5 ;ALB/MRL - G&L PARAMETER ENTRY/EDIT; 29 APR 2003
- ;;5.3;Registration;**515**;Aug 13, 1993
+ ;;5.3;Registration;**515,1015**;Aug 13, 1993;Build 21
 EN ;
  D DIS,ASK
  I Y D EDIT G EN

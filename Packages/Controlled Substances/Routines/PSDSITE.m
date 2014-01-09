@@ -1,7 +1,7 @@
 PSDSITE ;BIR/JPW,LTL-Site Parameters for CS ; 3 May 95
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**65**;13 Feb 97;Build 5
 SITE ;entry for selecting inpatient sites in file 59.4
- K DIC,DLAYGO S (DIC,DLAYGO)="^PS(59.4,",DIC(0)="QEAL",D="B",DZ="??"
+ K DIC,DLAYGO S DIC="^PS(59.4,",DLAYGO=59.4,DIC(0)="QEAL",D="B",DZ="??"
  D DQ^DICQ K D,DZ W ! D ^DIC K DIC G:Y<0 END
  K DA,DIE,DR S DIE=59.4,DA=+Y,DR="31"_"Is "_$P(Y,U,2)_" selectable for Controlled Subs" W ! D ^DIE K DIE
 END K DA,DIC,DIE,DLAYGO,DR,DTOUT,DUOUT,X,Y

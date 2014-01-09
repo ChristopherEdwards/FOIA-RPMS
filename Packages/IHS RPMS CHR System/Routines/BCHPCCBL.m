@@ -1,5 +1,5 @@
-BCHPCCBL ;IHS/CMI/LAB - back load chr visits to PCC [ 06/17/02  9:14 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**14**;OCT 28, 1996
+BCHPCCBL ; IHS/CMI/LAB - back load chr visits to PCC ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;
  W:$D(IOF) @IOF

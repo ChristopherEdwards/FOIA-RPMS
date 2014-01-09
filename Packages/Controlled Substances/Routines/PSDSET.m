@@ -1,5 +1,5 @@
-PSDSET ;BIR/JPW-Check Inpatient Site for CS Use ; 6 July 94
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+PSDSET ;BIR/JPW-Check Inpatient Site for CS Use ;6 July 94
+ ;;3.0; CONTROLLED SUBSTANCES ;**59**;13 Feb 97;Build 1
 SITE ;checks for valid cs inpatient site
  K XQUIT,X,PSDA,LOC I '$D(^PS(59.4,"B")) D  G:$G(XQUIT)="" END1 G END
  .W ! K DA,DIC,DIE,DLAYGO,DR S (DIC,DIE,DLAYGO)=59.4,DIC("A")="Enter Controlled Substances Inpatient Site Name: ",DIC(0)="QEAL" D ^DIC K DIC,DLAYGO I Y<0 S XQUIT="" Q
@@ -10,7 +10,7 @@ CHK I LOC=1 S PSDSITE=+$O(LOC(0)) W !!,"Controlled Substances Inpatient Site Nam
  I CNT>1,LOC'=1 D  G:'$G(PSDSITE) END1
  .K DIC,DLAYGO S (DIC,DLAYGO)=59.4,DIC("A")="Enter Controlled Substances Inpatient Site Name: ",DIC(0)="QEA" S:LOC>1 DIC("S")="I $P(^(0),""^"",31)" S:LOC=0 DIC(0)="QEAL" D ^DIC K DIC,DLAYGO
  .S:Y<0 XQUIT="" Q:Y<0  S $P(^PS(59.4,+Y,0),"^",31)=1,PSDSITE=+Y_"^M"
-END K LOC D EN^PSDSP
+END K LOC,PSDS,PSDSN,PSDCHO D EN^PSDSP
  I $G(PSDS) S $P(PSDSITE,U,3)=PSDS,$P(PSDSITE,U,4)=$P($G(^PSD(58.8,+PSDS,0)),U),$P(PSDSITE,U,5)=1 Q
  ;Set up Default Dispensing Site
  D:'$P(PSDSITE,U,3)&($P($G(XQY0),U)'["NUR")&($P($G(XQY0),U)'["INS")

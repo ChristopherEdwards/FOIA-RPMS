@@ -1,5 +1,5 @@
 DGOIL ;ALB/AAS - INPATIENT LIST ; 28-SEPT-90
- ;;5.3;Registration;**162,279,498**;Aug 13, 1993
+ ;;5.3;Registration;**162,279,498,1015**;Aug 13, 1993;Build 21
  ;
 % ; -- start here
  D HOME^%ZIS W @IOF

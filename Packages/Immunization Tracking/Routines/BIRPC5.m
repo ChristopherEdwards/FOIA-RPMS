@@ -1,7 +1,8 @@
 BIRPC5 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETURN IMMUNIZATION CONTRAINDICATIONS, CASE DATA, AND LAST LETTER.
+ ;   PATCH 2: New Public Entry Point to automatically add Lot Number.  ADDLOT+0
  ;
  ;
  ;----------
@@ -106,4 +107,92 @@ LASTLET(BILASTL,BIDFN) ;EP
  ;--->   1 = Date of last letter (DD-Mmm-YYYY) or "None".
  ;
  S BILASTL=$$LASTLET^BIUTL1(BIDFN,1)_BI31
+ Q
+ ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> New Public Entry Point to automatically add Lot Number.
+ ;
+ ;
+ ;----------
+ADDLOT(BIERR,BIDATA,BIIEN) ;PEP - Add a new Lot Number for imported data.
+ ;---> Add new (imported) Lot Number to the IMMUNIZATION LOT File #9999999.41.
+ ;---> Called by RPC: BI LOT NUMBER ADD.
+ ;---> Parameters:
+ ;     1 - BIERR   (ret) Text of Error Code if any, otherwise null.
+ ;     2 - BIDATA  (req) String of data for the Lot Number to be added.
+ ;     3 - BIIEN   (ret) IEN of newly added Lot Number in ^AUTTIML(.
+ ;                       NOTE: If Lot Number already exists, BIERR will return
+ ;                             error #444, but BIIEN will be returned with IEN
+ ;                             pre-existing Lot Number.
+ ;
+ ;---> Pieces of BIDATA delimited by "|":
+ ;     ----------------------------------
+ ;     1 - (req) Text of the Lot Number.
+ ;     2 - (req) CVX Code of the Vaccine associated with this Lot Number.
+ ;     3 - (req) MVX Code of the Manufacturer associated with this Lot Number.
+ ;
+ ;---> Define delimiter to pass error and error variable.
+ N BI31
+ S BI31=$C(31)_$C(31),BIERR=""
+ ;
+ ;---> If DATA not supplied, set Error Code and quit.
+ I $G(BIDATA)']"" D  Q
+ .D ERRCD^BIUTL2(442,.BIERR) S BIERR=BI31_BIERR
+ ;
+ ;---> Set data values in BI local array.
+ N BI
+ S BI("AS")=$P(BIDATA,"|",1)   ;Full Lot Number Text.
+ S BI("B")=$P(BIDATA,"|",2)    ;CVX Code of Vaccine.
+ S BI("M")=$P(BIDATA,"|",3)    ;MVX Code of Manufacturer.
+ ;
+ ;---> If Lot Number="", quit with error.
+ I 'BI("AS")']"" D  Q
+ .D ERRCD^BIUTL2(442,.BIERR) S BIERR=BI31_BIERR
+ ;
+ ;---> If Lot Number is too long, quit with error.
+ I $L(BI("AS"))>19 D  Q
+ .D ERRCD^BIUTL2(443,.BIERR) S BIERR=BI31_BIERR
+ ;
+ ;---> If Lot Number already exists, set BIIEN=IEN, BUT quit with error.
+ I $D(^AUTTIML("B",BI("AS"))) D  Q
+ .N Y S Y=$O(^AUTTIML("B",BI("AS"),0))
+ .I $P($G(^AUTTIML(Y,0)),U)=BI("AS") S BIIEN=Y
+ .D ERRCD^BIUTL2(444,.BIERR) S BIERR=BI31_BIERR
+ ;
+ ;
+ ;---> S BI("B")=IEN of Vaccine.
+ S BI("B")=$O(^AUTTIMM("C",+$G(BI("B")),0))
+ ;---> If CVX Code is invalid, quit with error.
+ I 'BI("B") D  Q
+ .D ERRCD^BIUTL2(445,.BIERR) S BIERR=BI31_BIERR
+ ;
+ ;
+ ;---> S BI("M")=IEN of Manufacturer.
+ ;---> If MVX Code is invalid, quit with error.
+ I BI("M")="" D  Q
+ .D ERRCD^BIUTL2(446,.BIERR) S BIERR=BI31_BIERR
+ S BI("M")=$O(^AUTTIMAN("C",BI("M"),0))
+ I BI("M")="" D  Q
+ .D ERRCD^BIUTL2(446,.BIERR) S BIERR=BI31_BIERR
+ ;
+ ;
+ ;---> Build local array for this Lot Number.
+ S BIFLD(.01)=$G(BI("AS")),BIFLD(.02)=$G(BI("M"))
+ ;---> Imported Lot Number will have a Status of Inactive.
+ S BIFLD(.03)=1,BIFLD(.04)=$G(BI("B"))
+ ;
+ ;---> Add the Lot Number.  BIIEN1(1) will equal IEN of newly added Lot Number.
+ N BIIEN1
+ D UPDATE^BIFMAN(9999999.41,.BIIEN1,.BIFLD,.BIERR)
+ ;
+ ;---> If there was an error, return it.
+ S BIERR=BI31_BIERR
+ ;
+ ;---> Return BIIEN.
+ S BIIEN=$G(BIIEN1(1))
+ ;
+ ;---> Check IEN.
+ I $P($G(^AUTTIML(+BIIEN,0)),U)'=BI("AS") D  Q
+ .D ERRCD^BIUTL2(447,.BIERR) S BIERR=BI31_BIERR
+ ;
  Q

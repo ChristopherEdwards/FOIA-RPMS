@@ -1,5 +1,5 @@
-SDAMQ2 ;ALB/MJK - AM Background Utilities (cont.) ; 12/1/91 [ 05/03/2004  3:51 PM ]
- ;;5.3;Scheduling;**132**;Aug 13, 1993
+SDAMQ2 ;ALB/MJK - AM Background Utilities (cont.) ; 12/1/91
+ ;;5.3;Scheduling;**132,1015**;Aug 13, 1993;Build 21
  ;
 CHK(SDBEG,SDEND,SDPCE) ; -- check if all dates are processed
  N SDDT,X1,X2,X K ^TMP("SDAM NOT UPDATED",$J)

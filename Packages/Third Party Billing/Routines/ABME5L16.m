@@ -1,5 +1,5 @@
 ABME5L16 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing System;**6**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,9**;NOV 12, 2009
  ;Header Segments
  ;
 START ;START HERE
@@ -16,9 +16,12 @@ START ;START HERE
  ..Q:'$D(ABMP(+ABMLINE,ABML))  ;quit if no data for insurer in ABMP adj array
  ..D EP^ABME5CAS
  ..D WR^ABMUTL8("CAS")
- .I $G(ABMP("PAYED",+ABMLINE)) D
- ..D EP^ABME5AMT("D")
- ..D WR^ABMUTL8("AMT")
+ .;start old code abm*2.6*9 NOHEAT
+ .;printing AMT twice
+ .;I $G(ABMP("PAYED",+ABMLINE)) D
+ .;.D EP^ABME5AMT("D")
+ .;.D WR^ABMUTL8("AMT")
+ .;end old code
  .I ($G(ABMP("PAYED",+ABMLINE))!($P($G(^ABMNINS(ABMP("LDFN"),+ABMLINE,0)),U,11)="Y")) D
  ..D EP^ABME5AMT("D")
  ..D WR^ABMUTL8("AMT")
@@ -43,12 +46,12 @@ START ;START HERE
  .D WR^ABMUTL8("N3")
  .D EP^ABME5N4(9999999.18,+ABMLINE)
  .D WR^ABMUTL8("N4")
- .;I $G(ABMP("PAYED",+ABMLINE))'="" D
- .;.S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:"")
- .;.D EP^ABME5DTP(573,"D8",ABMPDT)
- .;.D WR^ABMUTL8("DTP")
- .;.K ABMPDT
- .D OTHR
+ .I $G(ABMP("PAYED",+ABMLINE))'="" D
+ ..S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:"")
+ ..D EP^ABME5DTP(573,"D8",ABMPDT)
+ ..D WR^ABMUTL8("DTP")
+ ..K ABMPDT
+ .;D OTHR  ;abm*2.6*9 HEAT58542
  Q
 OTHR ;other payer info
  ;loops 2330C through 2330G

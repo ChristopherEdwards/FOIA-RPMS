@@ -1,5 +1,5 @@
-PSUSUM1 ;BIR/DAM - Summary Report for Provider Extract ; 20 DEC 2001
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19,22**;Oct 15, 1998
+PSUSUM1 ;BIR/DAM - Summary Report for Provider Extract ; 2/23/07 2:18pm
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;**12**;MARCH, 2005;Build 19
  ;
  ; No DBIA's required.
  ;
@@ -54,6 +54,7 @@ PROV ;Gather missing provider data for summary report
  S PSULN=11
  S PSUIP=0
  F  S PSUIP=$O(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIP)) Q:PSUIP=""  Q:PSUIP["U"  D
+ .I $P($G(^VA(200,PSUIP,"PS")),"^",6)=4 Q  ; Exclude if the provider type is "FEE BASIS" (PSU*4*12)
  .S PSUSSN3=$E($P($G(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIP)),U,3),6,9)
  .I PSUSSN3="" S PSUSSN3="????",PSUMIS="SSN" D NAM             ;No SSN
  .S PSUCL=$P($G(^XTMP("PSU_"_PSUJOB,"PSUPROV",PSUIP)),U,5)

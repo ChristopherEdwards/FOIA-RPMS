@@ -1,7 +1,8 @@
 BIREPD3 ;IHS/CMI/MWR - REPORT, ADOLESCENT RATES; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW ADOLESCENT IMMUNIZATION RATES REPORT.
+ ;;  PATCH 3: Include new "1-Td 1-Men 3-HPV" lines. VCOMB+14
  ;
  ;
  ;----------
@@ -123,16 +124,21 @@ VCOMB(BILINE,BICOMB,BIAGRPS,BITMP,BISEX,BIERR) ;EP
  ;     2 - BICOMB  (req) Numeric code of Vaccine Combination.
  ;     3 - BIAGRPS (req) String of Age Groups ("1112,1313,1317").
  ;     4 - BITMP   (ret) Stores Patient Totals by Age Group and Sex.
- ;     5 - BISEX   (opt) F or M for HPV.
+ ;     5 - BISEX   (opt) F or M for HPV, or B (for "both").
  ;     6 - BIERR   (ret) Error.
  ;
  I '$G(BIAGRPS) D ERRCD^BIUTL2(677,.BIERR) Q
  ;
  ;---> Build the left-most cell that lists the vaccines for this combo.
- N BIX,I,Q,X S Q=0
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Include new "1-Td 1-Men 3-HPV" lines for both sexes combined.
+ N BIX,I,Q,X S Q=0 S:$G(BISEX)="" BISEX=""
  F I=1:1:4 S BIX(I)=""
  F I=1:1 S X=$P(BICOMB,U,I) Q:Q  D
- .I ((X="")&(BICOMB'[17)) S Q=1 Q
+ .;I ((X="")&(BICOMB'[17)) S Q=1 Q
+ .I ((X="")&((BICOMB'[17)!(BISEX="B"))) S Q=1 Q
+ .;**********
  .S:(X="") X=$S(BISEX="F":"(females)",BISEX="M":"(males)",1:"???"),Q=1
  .S:'Q X=$P(X,"|",2)_"-"_$$VGROUP^BIUTL2($P(X,"|"),5)
  .I I<3 S BIX(1)=BIX(1)_" "_X Q
@@ -167,7 +173,17 @@ VCOMB(BILINE,BICOMB,BIAGRPS,BITMP,BISEX,BIERR) ;EP
  .;
  .I 'Y S BIX=BIX_$J("",12)_" " Q
  .I '$G(BITMP("STATS","TOTLPTS")) S BIX=BIX_$J(Y,7)_"  " Q
- .N Z S Z=$G(BITMP("STATS",$S(BICOMB[17:"TOTLFPTS",1:"TOTLPTS"),BIAGRP))
+ .;
+ .;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ .;---> Use denominators for Both, Female, and Male.
+ .;N Z S Z=$G(BITMP("STATS",$S(BICOMB[17:"TOTLFPTS",1:"TOTLPTS"),BIAGRP))
+ .N Z D
+ ..;---> If HPV (17), append sex to age group to retrieve denominator.
+ ..I $G(BISEX)="F" S Z=$G(BITMP("STATS","TOTLFPTS",BIAGRP)) Q
+ ..I $G(BISEX)="M" S Z=$G(BITMP("STATS","TOTLMPTS",BIAGRP)) Q
+ ..S Z=$G(BITMP("STATS","TOTLPTS",BIAGRP))
+ .;**********
+ .;
  .;---> To avoid bomb if Z=0/null.
  .S:'Z Y=0,Z=1 S Y=(Y*100)/Z
  .S BIX=BIX_$J(Y,12,0)_"%"

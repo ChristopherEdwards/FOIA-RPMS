@@ -1,5 +1,5 @@
 SDAMLD ;ALB/CAW - Ambulartory Status Update Log Utilities ; 3/6/92
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 EN D DT^DICRW S X=$T(+1),DIK="^DOPT("""_$P(X," ;",1)_""","
  G:$D(^DOPT($P(X," ;"),4)) A S ^DOPT($P(X," ;"),0)=$P(X,";",3)_"^1N^" F I=1:1 S Y=$T(@I) Q:Y=""  S ^DOPT($P(X," ;"),I,0)=$P(Y,";",3,99)

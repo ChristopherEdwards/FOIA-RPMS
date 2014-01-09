@@ -1,7 +1,8 @@
 BIRPC1 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETURNS PATIENT DATA, DATA FOR AN IMMUNIZATION OR SKIN TEST VISIT.
+ ;;  PATCH 3: Add Eligibility Code to default Hx string.  GET+35
  ;
  ;
  ;----------
@@ -80,7 +81,12 @@ GET(BIDATA,BIDA,BIVTYPE,BIDE) ;PEP - Return data for one Immunization or Skin Te
  ;---> If this is an Immunization Visit, collect these Data Elements.
  N I
  ;---> Next line: 6 (Dose#) defunct, but serves as a place holder. v8.0
- I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80  S BIDE(I)=""
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Add Eligibility Code Text and NDC Code Text to default Hx string.
+ ;I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80  S BIDE(I)=""
+ I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80,82,84  S BIDE(I)=""
+ ;**********
  ;
  ;---> IEN PC  DATA
  ;---> --- --  ----
@@ -106,9 +112,11 @@ GET(BIDATA,BIDA,BIVTYPE,BIDE) ;PEP - Return data for one Immunization or Skin Te
  ;---> 67 20 = Injection Site.
  ;---> 68 21 = Volume.
  ;---> 76 22 = Visit IEN.
- ;---> 77 23 = VFC Eligibility.
+ ;---> 77 23 = Eligibility Code IEN.
  ;---> 78 24 - Imported from Outside Registry (1=imported, 2=imported & edited).
  ;---> 80 25 = NDC Code pointer IEN.
+ ;---> 82 22 = Eligibility Code Text.
+ ;---> 84 23 = NDC Code Text.
  ;
  ;
  ;---> SKIN TEST:

@@ -1,5 +1,5 @@
-APCM11SL ;IHS/CMI/LAB - IHS MU;
- ;;2.0;IHS PCC SUITE;**6**;MAY 14, 2009;Build 11
+APCM11SL ; IHS/CMI/LAB - IHS MU ;
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1**;MAR 26, 2012
  ;; ;
 RT ;EP
  ;for each measure list, choose report type
@@ -108,7 +108,7 @@ REPORT ;EP
  ;CREATE REPORT ENTRY IN FILEMAN FILE
  ;3 files must have the same ien
  L +^APCMMUDC:30 I '$T W !!,"Unable to lock global, try later." G REPORTX
- L +^APCDMUDP:30 I '$T W !!,"Unable to lock global, try later." G REPORTX
+ L +^APCMMUDP:30 I '$T W !!,"Unable to lock global, try later." G REPORTX
  D GETIEN
  I 'APCMIEN W !!,"Something wrong with control files, notify programmer!" S APCMRPT="" G REPORTX
  S DINUM=APCMIEN
@@ -139,13 +139,13 @@ REPORTX ;
  D ^XBFMK
  K DIC,DIADD,DLAYGO,DR,DA,DD,X,Y,DINUM
  L -^APCMMUDC
- L -^APCDMUDP
+ L -^APCMMUDP
  Q
 GETIEN ;EP -Get next ien available in all 3 files
  S APCMF=9001300.03 D ENT
  S APCMF=9001300.04 D ENT
  S APCMIEN=$P(^APCMMUDC(0),U,3)+1
-S I $D(^APCDMUDP(APCMIEN)) S APCMIEN=APCMIEN+1 G S
+S I $D(^APCMMUDP(APCMIEN)) S APCMIEN=APCMIEN+1 G S
  Q
  ;
 ENT ;

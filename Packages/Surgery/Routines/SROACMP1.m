@@ -1,10 +1,14 @@
-SROACMP1 ;BIR/ADM-M&M Verification Report (cont'd) ; [ 09/22/98  11:22 AM ]
- ;;3.0; Surgery ;**47,68,77,50**;24 Jun 93
+SROACMP1 ;BIR/ADM - M&M VERIFICATION REPORT (CONT'D) ;11/26/07
+ ;;3.0; Surgery ;**47,68,77,50,166**;24 Jun 93;Build 6
 EN ; entry point
- S (SRSOUT,SRSP)=0,SRINST=$P($$SITE^SROVAR,"^",2) W @IOF,!,?28,"M&M Verification Report",!!,"The M&M Verification Report is a tool to assist in the review of occurrences"
- W !,"and their assignments to operations and in the review of death unrelated or",!,"related assignments to operations.  Two varieties of this report are available."
- W !,"The first variety provides a report of all patients who had operations within",!,"the selected date range who experienced introperative occurrences,",!,"postoperative occurrences, or death within 90 days of surgery.  The second"
- W !,"variety provides a similar report for all risk assessed operations that are in",!,"a completed state but have not yet transmitted to the national database.",!
+ S (SRSOUT,SRSP)=0,SRINST=$P($$SITE^SROVAR,"^",2) W @IOF,!,?28,"M&M Verification Report"
+ W !!,"The M&M Verification Report is a tool to assist in the review of occurrences"
+ W !,"and their assignment to operations and in the review of death unrelated or",!,"related assignments to operations."
+ W !!,"The full report includes all patients who had operations within the selected"
+ W !,"date range who experienced intraoperative occurrences, postoperative"
+ W !,"occurrences or death within 90 days of surgery. The pre-transmission report"
+ W !,"is similar but includes only operations with completed risk assessments that"
+ W !,"have not yet transmitted to the national database.",!
  D SEL G:SRSOUT END I SRFORM=2 G SPEC
  D DATE^SROUTL(.SRSD,.SRED,.SRSOUT) G:SRSOUT END
 SPEC I $D(^XUSEC("SROCHIEF",+DUZ)) N SRINSTP S SRINST=$$INST^SROUTL0() G:SRINST="^" END S SRINSTP=$P(SRINST,U),SRINST=$S(SRINST["ALL DIVISIONS":SRINST,1:$P(SRINST,U,2))
@@ -33,7 +37,7 @@ END Q:'$D(SRSOUT)  W @IOF K ^TMP("SRPAT",$J),^TMP("SRSP",$J) I $D(ZTQUEUED) K ^T
  D ^%ZISC,^SRSKILL K SRTN W @IOF
  Q
 SEL ; select report version
- K DIR S DIR("A",1)="Print which variety of the report ?",DIR("A",2)=" ",DIR("A",3)="1. Print full report for selected date range.",DIR("A",4)="2. Print pre-transmission report for completed risk assessments."
+ K DIR S DIR("A",1)="Print which report ?",DIR("A",2)=" ",DIR("A",3)="1. Full report for selected date range.",DIR("A",4)="2. Pre-transmission report for completed risk assessments."
  S DIR("A",5)=" ",DIR("A")="Enter selection (1 or 2): ",DIR("B")=1,DIR("?")="Please enter the number (1 or 2) matching your choice of report",DIR(0)="NA^1:2" D ^DIR K DIR I $D(DTOUT)!$D(DUOUT) S SRSOUT=1 Q
  S SRFORM=Y
  Q
@@ -47,16 +51,16 @@ HDR ; print heading
  I SRHDR D HDR2 Q:SRSOUT  S SRHDR=0
  W:$Y @IOF W !,?(132-$L(SRINST)\2),SRINST,?124,"Page ",PAGE,!,?54,"M&M Verification Report"
  W:SRFORM=1 !,?(132-$L(SRFRTO)\2),SRFRTO
- W:SRFORM=2 !,?41,"Pre-Transmission Report for Completed Assessments"
- W ?100,"Reviewed By:",!,?(132-$L(SRPRINT)\2),SRPRINT,?100,"Date Reviewed:",!
- W !,?68,"Death",?120,"Assessment",!,"Op Date",?11,"Specialty",?25,"Procedure(s)",?67,"Related  Occurrence(s) - (Date)",?120,"Type/Status",! F LINE=1:1:132 W "="
+ W:SRFORM=2 !,?41,"PRE-TRANSMISSION REPORT FOR COMPLETED ASSESSMENTS"
+ W ?100,"REVIEWED BY:",!,?(132-$L(SRPRINT)\2),SRPRINT,?100,"DATE REVIEWED:",!
+ W !,"OP DATE",?11,"CASE #",?25,"SURGICAL SPECIALTY",?80,"ASSESSMENT TYPE   STATUS",?116,"DEATH RELATED",!,?11,"PRINCIPAL PROCEDURE",! F LINE=1:1:132 W "="
  I SRNM W !,SRNAME_"   * * Continued from previous page * *"
  S PAGE=PAGE+1,SRHDR=1 I '$D(^TMP("SR",$J))
  Q
 HDR2 ; more heading
- I $Y+5<IOSL F I=$Y:1:IOSL-5 W !
+ ;I $Y+6<IOSL F I=$Y:1:IOSL-5 W !
 FOOT ; print footer
- W ! F LINE=1:1:IOM W "-"
- W !,"Occurrences(s): '*' Denotes Postop Occurrence",?69,"Assessment Status - I:Incomplete, C:Complete, T:Transmitted",! F LINE=1:1:IOM W "-"
+ ;W ! F LINE=1:1:IOM W "-"
+ ;W !,"Occurrences(s): '*' Denotes Postop Occurrence",! F LINE=1:1:IOM W "-"
  S SRHDR=0 I $E(IOST)'="P" W ! K DIR S DIR(0)="E" D ^DIR K DIR I 'Y S SRSOUT=1
  Q

@@ -1,5 +1,5 @@
 DGENLCD1 ;ALB/CJM,Zoltan,JAN - Enrollment Catastrophic Disability- Build List Area;13 JUN 1997 08:00 am,NOV 14 2001
- ;;5.3;Registration;**121,232,387**;Aug 13,1993
+ ;;5.3;Registration;**121,232,387,1015**;Aug 13,1993;Build 21
  ;
 EN(DGARY,DFN,DGCNT) ;Entry point to build list area
  ; Input  -- DGARY    Global array subscript

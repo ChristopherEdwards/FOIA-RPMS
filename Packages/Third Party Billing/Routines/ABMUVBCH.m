@@ -1,13 +1,12 @@
 ABMUVBCH ; IHS/SD/SDR - 3PB/UFMS View Batch option   
- ;;2.6;IHS Third Party Billing;**1,3**;NOV 12, 2009
- ; New routine - v2.5 p12 SDD item 4.9.2.1
+ ;;2.6;IHS Third Party Billing;**1,3,9**;NOV 12, 2009
  ; View Batch
- ; IHS/SD/MRS - v2.5 p13 - NO IM - Modified to include export page options
  ; IHS/SD/SDR - v2.6 p1 - NO HEAT - Added totals for cash. sessions
+ ; v2.6 p9 - HEAT28995 - added screen so only exports from current DUZ(2) are displayed
 START ;START HERE
- ; Find the requested UFMS export batch in the UFMS export file.
+ ; Find requested UFMS export batch in UFMS export file
 BEG ;
- ; Find beginning export batch
+ ; Find beg. export batch
  S ABMTRIBL=$P($G(^ABMDPARM(DUZ(2),1,4)),U,14)
  W !
  K DIC,DIE,X,Y,DA
@@ -15,11 +14,12 @@ BEG ;
  S DIC(0)="AEMQ"
  S DIC("A")="Select beginning export: "
  S ABMSCRND=$P($G(^ABMDPARM(DUZ(2),1,4)),U,16)  ;only show limited entries
- S DIC("S")="S X1=DT,X2=$P(^ABMUTXMT(Y,0),U) D ^%DTC I X<ABMSCRND"
+ ;S DIC("S")="S X1=DT,X2=$P(^ABMUTXMT(Y,0),U) D ^%DTC I X<ABMSCRND"  ;abm*2.6*9 HEAT28995
+ S DIC("S")="I $P(^(0),U,4)=DUZ(2) S X1=DT,X2=$P(^ABMUTXMT(Y,0),U) D ^%DTC I X<ABMSCRND"  ;abm*2.6*9 HEAT28995
  D ^DIC
  Q:Y<0
  S ABME("XMITB")=+Y
-END ;Find ending export batch
+END ;Find end. export batch
  W !
  S DIC("A")="Select ending export: "
  D ^DIC
@@ -42,7 +42,7 @@ SEL ;Select device
  I IO'=IO(0) D QUE,HOME^%ZIS S DIR(0)="E" D ^DIR K DIR Q
  I $D(IO("S")) S IOP=ION D ^%ZIS
 PRINT ;EP
- ; Callable point for queuing
+ ;Callable point for queuing
  S ABME("PG")=0
  S ABMP("XMIT")=ABME("XMITB")-1
  D SET  Q:(IOST["C")&(($G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
@@ -53,9 +53,8 @@ PRINT ;EP
  K ABME
  Q
 SET ;SET UP SOME THINGS
- ;
- ; ABME("BDATE")  = Batch export date
- ; ABME("FNAME")  = File Name
+ ; ABME("BDATE") = Batch export date
+ ; ABME("FNAME") = File Name
  S ABMSAV=ABMSUMDT  ;save original option
  K Y,DIRUT,DIROUT,DTOUT,DUOUT
  S ABMSUMDT=$S(ABMSUMDT="X"!(ABMSUMDT="D"):"D",1:"S")  ;change option back for summary
@@ -82,15 +81,14 @@ SET ;SET UP SOME THINGS
  ...F  S ABMSDT=$O(^ABMUTXMT(ABMP("XMIT"),ABMI,ABMUSR,2,ABMSDT)) Q:+ABMSDT=0  D
  ....S ABMLOOP=$S(ABMI=1:10,1:20)
  ....S ABM0=$G(^ABMUCASH(ABME("LOC"),ABMLOOP,ABMUSR,20,ABMSDT,0))
- ....S ABMSTR=$P(ABM0,U,4)_U_$P(ABM0,U,3)     ;SESSION STATUS^SIGN OUT DATE
+ ....S ABMSTR=$P(ABM0,U,4)_U_$P(ABM0,U,3)  ;SESSION STATUS^SIGN OUT DATE
  ....S ABMUSER=$S(ABMLOOP=20:"POS",1:ABMUSR)  ;SUB "POS" FOR USER IEN 
- ....S ABMC(ABMSDT,ABMUSER,ABMSDT)=ABMSTR               ;Create local ABMC array
+ ....S ABMC(ABMSDT,ABMUSER,ABMSDT)=ABMSTR  ;Create local ABMC array
  .D HD
  .D:ABMSAV'="G" LOOP Q:(IOST["C")&(($G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
  .D:ABMSAV="G" GLOOP,GRANDTOT Q:(IOST["C")&(($G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
  Q
-LOOP ; Loop through the bills of specified batch to gather data and
- ; print the report.
+LOOP ; Loop through bills of specified batch to gather data and print report
  S ABMSDT=0
  F  S ABMSDT=$O(ABMC(ABMSDT)) Q:+ABMSDT=0  D
  .S ABMUSER=""
@@ -99,17 +97,17 @@ LOOP ; Loop through the bills of specified batch to gather data and
  ..S ABMUS=ABMUSER
  ..I ABMUS="POS" S ABMUS=1
  ..W !!,"SESSION ID: ",ABMSDT
- ..;start old code abm*2.6*1
+ ..;start old abm*2.6*1
  ..;W:ABMUS'=1 ?30,"BILLER: ",$P($P($G(^VA(200,ABMUS,0)),U),",")_","_$E($P($P($G(^VA(200,ABMUS,0)),U),",",2),1),!
  ..;W:ABMUS=1 ?30,"BILLER: POS CLAIMS",!
- ..;end old code start new code
+ ..;end old start new
  ..W:ABMUS'=1 ?30,"BILLER: ",$P($P($G(^VA(200,ABMUS,0)),U),",")_","_$E($P($P($G(^VA(200,ABMUS,0)),U),",",2),1)
  ..W:ABMUS=1 ?30,"BILLER: POS CLAIMS"
- ..;end new code
- ..;start new code abm*2.6*1 NO HEAT
+ ..;end new
+ ..;start new code abm*2.6*1 NOHEAT
  ..D TOTAL^ABMUVBC1
  ..W ?55,"TOTAL: ",$J($FN(ABME("TAMT"),",",2),10)
- ..;end new code NO HEAT
+ ..;end new NOHEAT
  ..S ABMBA=0,ABMEXCNT=0,ABMEXAMT=0
  ..F  S ABMBA=$O(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA)) Q:+ABMBA=0  D   Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
  ...S ABMBAOUT=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,0)),U)
@@ -123,11 +121,11 @@ LOOP ; Loop through the bills of specified batch to gather data and
  ...I ABMSUMDT="S" D
  ....W ?35,+$G(ABME(ABMBAOUT)),$S(+$G(ABME(ABMBAOUT))=1:" bill",1:" bills")
  ....W ?50,$J($FN(ABME(ABMBAOUT,"AMT"),",",2),10)
- ...;start new code abm*2.6*1 NO HEAT
+ ...;start new abm*2.6*1 NOHEAT
  ...I ABMSUMDT="D" D
  ....W !?68,"----------"
  ....W !?68,$J($FN(ABME(ABMBAOUT,"AMT"),",",2),10)
- ...;end new code NO HEAT
+ ...;end new NOHEAT
  ..I +$G(ABMEXCNT)'=0 D
  ...W !?26,+$G(ABMEXCNT)," excluded "_$S(+$G(ABMEXCNT)=1:"bill",1:"bills"),?45,$J($FN(ABMEXAMT,",",2),10),!
  W !!,$$EN^ABMVDF("HIN"),"TOTAL BILLS FOR THIS EXPORT: ",$$EN^ABMVDF("HIF"),?35,ABME("CNT")_$S(ABME("CNT")=1:" bill",1:" bills"),?$S(ABMSUMDT="S":50,1:69),$J($FN(ABME("TOT"),",",2),10)
@@ -146,7 +144,6 @@ SUMMARY ;
  .S ABMEXAMT=+$G(ABMEXAMT)+($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,2)),U))
  Q
 DTAIL ;DISPLAY DETAIL
- ;
  S ABME(ABMBAOUT)=+$G(ABME(ABMBAOUT))+1  ;cnt budget activity bills
  S ABMDUZ2=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,2,ABMBIEN,0)),U,2)
  S ABMBDFN=$P($G(^ABMUTXMT(ABMP("XMIT"),ABMLOOP,ABMUS,2,ABMSDT,11,ABMBA,2,ABMBIEN,0)),U,3)
@@ -171,7 +168,7 @@ DTAIL ;DISPLAY DETAIL
  I (ABMTRIBL=1),(+$G(ABMXMIT)'=0),($P($G(^ABMDBILL(ABMDUZ2,ABMBDFN,69,ABMXMIT,0)),U,3)=1) W "*"
  I $Y+5>IOSL D HD Q:(IOST["C")&((+$G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
  Q
-GLOOP ; Loop thru bills of specified batch to gather data and print the report.
+GLOOP ; Loop thru bills of specified batch to gather data and print report
  K ABMT
  S ABMEXCNT=0,ABMEXAMT=0
  K ABMBAT  ;abm*2.6*3
@@ -234,7 +231,7 @@ GRANDTOT ;EP
  ;
  W !?5,$$EN^ABMVDF("HIN"),"TOTAL BILLS: ",$$EN^ABMVDF("HIF"),?26,$J(+$G(ABM("CNT")),6)_$S(+$G(ABM("CNT"))=1:" bill",1:" bills"),?$S($G(ABMSUMDT)="S":40,1:69),$J($FN(+$G(ABM("TOT")),",",2),10)
  W ?55,$J(+$G(ABMEXCNT),6),$S(+$G(ABMEXCNT)=1:" bill",1:" bills"),?65,$J($FN(+$G(ABMEXAMT),",",2),10),!
- ;start new code abm*2.6*3 NOHEAT
+ ;start new abm*2.6*3 NOHEAT
  W !,$E(ABMLINE,1,3)_" EXPORT SUMMARY "_$E(ABMLINE,1,60)
  S ABMBAOUT=""
  F  S ABMBAOUT=$O(ABMBAT(ABMBAOUT)) Q:($G(ABMBAOUT)="")  D
@@ -243,7 +240,7 @@ GRANDTOT ;EP
  .W ?55,$J(+$G(ABMBAT(ABMBAOUT,"ECNT")),6),$S(+$G(ABMBAT(ABMBAOUT,"ECNT"))=1:" bill ",1:" bills")
  .W ?65,$J($FN(+$G(ABMBAT(ABMBAOUT,"EAMT")),",",2),10)
  W !,ABMLINE
- ;end new code abm*2.6*3 NOHEAT
+ ;end new abm*2.6*3 NOHEAT
  W !!?5,"TOTAL EXPORTED: ",?26,$J((+$G(ABM("CNT"))-(+$G(ABMEXCNT))),6)_$S(+$G(ABM("CNT"))=1:" bill",1:" bills"),?40,$J($FN((+$G(ABM("TOT"))-(+$G(ABMEXAMT))),",",2),10)
  ;
  S ABM("TOT")=0

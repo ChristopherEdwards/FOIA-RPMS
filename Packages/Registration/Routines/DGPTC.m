@@ -1,5 +1,5 @@
 DGPTC ;ALB/MJK - Census Main Options; 15 APR 90 ; 5/11/01 1:15pm
- ;;5.3;Registration;**383**;Aug 13, 1993
+ ;;5.3;Registration;**383,643,702,1015**;Aug 13, 1993;Build 21
  ;
  D DT^DICRW S X="DGPTC",DIK="^DOPT("""_X_""","
  G A:$D(^DOPT(X,10))
@@ -38,8 +38,8 @@ Q4 K DGCN,DGCN0 Q
  K DGDASH W ! D DATE^DGPTCO1 S:Y]"" DIC("B")=Y
  S DIC="^DG(45.86,",DIC(0)="AELMQ" D ^DIC K DIC G Q7:Y<0
  S (D0,DGCN)=+Y D PAR
- S DA=DGCN,DIE="^DG(45.86,",DR="[DGPT CENSUS DATE]" D ^DIE K DIE,DR,DQ,DE
- I '$D(Y) S D0=DGCN D PAR W !!
+ ;S DA=DGCN,DIE="^DG(45.86,",DR="[DGPT CENSUS DATE]" D ^DIE K DIE,DR,DQ,DE
+ ;I '$D(Y) S D0=DGCN D PAR W !!
 Q7 K DGCN,D0,DA Q
  ;
 8 ;;Regenerate Census WorkFile
@@ -54,7 +54,7 @@ Q9 K DGCN,DGCN0 Q
 10 ;;Close Census Reord
  W ! S DIC="^DGPT(",DIC(0)="AEMZQ",DIC("S")="I '$P(^(0),U,6),$P(^(0),U,11)=1"
  D ^DIC K DIC G Q10:Y<0
- S PTF=+Y,DFN=+Y(0) D PM^DGPTUTL,CEN^DGPTC1
+ S (DGPTF,PTF)=+Y,DFN=+Y(0) D PM^DGPTUTL,CEN^DGPTC1
  I '$D(DGCST) W !!,*7," >>>> Census transactions are not required for this PTF record." G 10
  I DGCST W !!,*7," >>>> This PTF record is already closed for census. (Census #",$S($D(DGCI):DGCI,1:""),")" G 10
  D UPDT^DGPTUTL:'$P(Y(0),U,4) S DGPTFE=$P(^DGPT(PTF,0),U,4)
@@ -63,7 +63,7 @@ Q9 K DGCN,DGCN0 Q
  D CLS^DGPTC1
  I 'DGCST W !!," >>>> Not able to close for census.  Please use 'Load/Edit' option to edit PTF."
  D Q1^DGPTF G 10
-Q10 K DG1,DGL,DGADM,DGPTFMT,DFN,PTF,DGPTFE,DGRTY,DGRTY0 D KVAR^DGPTC1 Q
+Q10 K DG1,DGL,DGADM,DGPTFMT,DFN,PTF,DGPTFE,DGRTY,DGRTY0,DGPTF D KVAR^DGPTC1 Q
  ; 
 CLOSE ; -- can we xmit?
  D CEN^DGPTUTL S Y=1

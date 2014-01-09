@@ -1,5 +1,5 @@
 PSDESTP ;BIR/BJW-Destroyed CS Drugs Report ; 28 Feb 98
- ;;3.0; CONTROLLED SUBSTANCES ;**8**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**8,62**;13 Feb 97;Build 3
  ;**Y2K compliance**,"P" added to date input string 2/9/98
  ;*Y2K* chg to print four digit year in body of report
  I '$D(PSDSITE) D ^PSDSET Q:'$D(PSDSITE)
@@ -88,6 +88,7 @@ SAVE ;saves variables for queueing
  Q
 SET ;sets data;10/20/95 added bal.adj comms. PBACOM
  S CNT=CNT+1
+ I '$D(PSDR) S PSDR=""  ;<- JD *62
  S (PSDGS,PBACOM)=""
  S NODE=^PSD(58.86,PSDA,0),PSDRN=$S($G(^PSD(58.86,PSDA,1))]"":$G(^PSD(58.86,PSDA,1))_"*",$P($G(^PSDRUG(+PSDR,0)),"^")]"":$P($G(^PSDRUG(+PSDR,0)),"^"),1:"#"_PSDA_" DRUG NAME MISSING")
  S PSDTR=$P(NODE,"^",9) I +PSDTR S PSDGS=$P($G(^PSD(58.81,PSDTR,0)),U,17),PBACOM=$P($G(^PSD(58.81,PSDTR,0)),U,16)

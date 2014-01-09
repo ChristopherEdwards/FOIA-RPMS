@@ -1,5 +1,5 @@
 DG53296M ;ALB/JAT DG*5.3*296 POST-INSTALL TO MAILMAN MSG;01 JUNE 2000
- ;;5.3;Registration;**296**;JUNE 1 2000
+ ;;5.3;Registration;**296,1015**;JUNE 1 2000;Build 21
  ;
  ;This was copied from DG53285M
  ;

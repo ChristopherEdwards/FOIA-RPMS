@@ -1,5 +1,5 @@
 DG53270P ;ALB/ACS - Add new Domiciliary Treating Speciality;1/5/2000
- ;;5.3;Registration;**270**;Aug 13, 1993
+ ;;5.3;Registration;**270,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN ;Add Domiciliary Treating Specialty to the SPECIALITY file (#42.4)

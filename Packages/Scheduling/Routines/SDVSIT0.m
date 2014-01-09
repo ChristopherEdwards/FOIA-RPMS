@@ -1,5 +1,5 @@
-SDVSIT0 ;MJK/ALB,ESW - OE Processing ; 11/21/02 11:00am
- ;;5.3;Scheduling;**27,99,132,257**;AUG 13, 1993
+SDVSIT0 ;MJK/ALB,ESW,SCK - OE Processing ; 11/21/02 11:00am
+ ;;5.3;Scheduling;**27,99,132,257,430,1015**;AUG 13, 1993;Build 21
  ;
 ADD(SDT,SDVSIT) ; -- add/find outpatient encounter
  ; input        SDT = visit date internal format
@@ -45,6 +45,7 @@ VISIT(SDT,SDVSIT) ; -- add visit file entry
  S VSIT("ELG")=$S($G(SDVSIT("ELG")):SDVSIT("ELG"),1:+$G(^DPT(DFN,.36)))
  I $G(SDVSIT("LOC")) S VSIT("LOC")=SDVSIT("LOC")
  I $G(SDVSIT("PAR")) S X=$G(^SCE(SDVSIT("PAR"),0)) I X]"" S VSIT=+X I $P(X,U,5) S VSIT("LNK")=$P(X,U,5)
+ S VSIT("ACT")=$$GETARN^SDPFSS2(SDT,DFN,$G(SDVSIT("LOC")))
  I $G(VSIT("LNK")) D  ;PX/96 - accept passed INSTITUTION
  .N DR,DIC,DA,DIQ,INST,DIC1
  .S DR=".06",DIC=9000010,DIC1=DIC,DA=VSIT("LNK"),DIQ="INST",DIQ(0)="I" D EN^DIQ1

@@ -1,5 +1,5 @@
 SCAPMSG ;ALB/SCK - PCMM MESSAGE GENERATOR ; 22 SEP 95
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;;1
  Q
  ; mailman message generator for the primary care management

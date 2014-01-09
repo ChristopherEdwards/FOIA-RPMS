@@ -1,5 +1,6 @@
 PSBVDLIV ;BIRMINGHAM/EFC-BCMA IV VIRTUAL DUE LIST ;Mar 2004
- ;;3.0;BAR CODE MED ADMIN;**6**;Mar 2004
+ ;;3.0;BAR CODE MED ADMIN;**6,38,32**;Mar 2004;Build 32
+ ;Per VHA Directive 2004-038 (or future revisions regarding same), this routine should not be modified.
  ;
  ; Reference/IA
  ; EN^PSJBCMA/2828
@@ -95,7 +96,7 @@ OK .S PSBSTRT=PSBOST ; Order Start Date/Time
  .S $P(PSBREC,U,7)=Y ; self med
  .S $P(PSBREC,U,8)=PSBOITX ; drugname
  .S $P(PSBREC,U,9)=PSBDOSE_" "_PSBIFR ; dosage
- .S $P(PSBREC,U,10)=PSBMR ; route
+ .S $P(PSBREC,U,10)=PSBMR ; med route
  .; IV Information Column *new*  -  status date/time
  .; (only stopped or infusing)
  .;
@@ -104,16 +105,15 @@ OK .S PSBSTRT=PSBOST ; Order Start Date/Time
  ..S PSBSTUS=PSBINFST,$P(PSBREC,U,20)=PSBSTUS K PSBINFST
  .S $P(PSBREC,U,14)="" ; admin date inserted below
  .S $P(PSBREC,U,15)=PSBOIT ; OI Pointer
- .S $P(PSBREC,U,16)=0  ; Default to not injectable
- .;Scan for injectable routes
- .F X="ID","IV","IM","SC","SQ" D  Q:$P(PSBREC,U,16)
- ..I PSBMR?@(".E1"""_X_""".E") S $P(PSBREC,U,16)=1
+ .S $P(PSBREC,U,16)=PSBNJECT  ;Set injectable med route flag
  .; Variable dosage entered as ####-####?
  .I $P(PSBREC,U,9)?1.4N1"-"1.4N.E S $P(PSBREC,U,17)=1
  .E  S $P(PSBREC,U,17)=0
  .S $P(PSBREC,U,18)=PSBIVT  ;IV TYPE
  .S $P(PSBREC,U,21)=PSBOST
  .S $P(PSBREC,U,22)=PSBOSTS
+ .S $P(PSBREC,U,26)=PSBSTOP
+ .S $P(PSBREC,U,27)=$$LASTG^PSBCSUTL(DFN,PSBOIT)
  .;
  .; Gather Dispense Drugs
  .D NOW^%DTC

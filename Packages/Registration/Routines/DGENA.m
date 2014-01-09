@@ -1,5 +1,5 @@
-DGENA ;ALB/CJM,ISA/KWP,Zoltan - Enrollment API - Retrieve Data; 12/11/00 4:19pm ; 12/11/00 9:36pm
- ;;5.3;Registration;**121,122,147,232,314**;Aug 13, 1993
+DGENA ;ALB/CJM,ISA/KWP,Zoltan,LBD,CKN,EG,ERC - Enrollment API - Retrieve Data ; 8/15/08 11:08am
+ ;;5.3;PIMS;**121,122,147,232,314,564,672,659,653,688,1015,1016**;JUN 30, 2012;Build 20
  ;
 FINDCUR(DFN) ;
  ;Description: Used to find a patients current enrollment.
@@ -118,14 +118,20 @@ GET(DGENRIEN,DGENR) ;
  ;     "ELIG","HB"              Receiving Housebound Benefits
  ;     "ELIG","VAPEN"           Receiving a VA Pension
  ;     "ELIG","VACKAMT"         Total Annual VA Check Amount
- ;     "ELIG","DISRET"          Disability Ret. From Military
+ ;     "ELIG","DISRET"          Military Disability Retirement
+ ;     "ELIG","DISLOD"          Discharged Due to Disability
  ;     "ELIG","MEDICAID"        Medicaid
  ;     "ELIG","AO"              Exposed to Agent Orange
+ ;     "ELIG","AOEXPLOC"        Agent Orange Exposure Location
  ;     "ELIG","IR"              Radiation Exposure Indicated
- ;     "ELIG","EC"              Environmental Contaminants
+ ;     "ELIG","RADEXPM"         Radiation Exposure Method
+ ;     "ELIG","EC"              SW Asia Cond - was Env Con, DG*5.3*688
  ;     "ELIG","MTSTA"           Means Test Status
  ;     "ELIG","VCD"             Veteran Catastrophically Disabled?
  ;     "ELIG","PH"              Purple Heart Indicated?
+ ;     "ELIG","UNEMPLOY"        Unemployable
+ ;     "ELIG","CVELEDT"         Combat Veteran End Date
+ ;     "ELIG","SHAD"            SHAD Indicated
  ;     "DATETIME"      Date/Time Entered
  ;     "USER"          Entered By
  ;    
@@ -160,13 +166,19 @@ GET(DGENRIEN,DGENR) ;
  S DGENR("ELIG","VAPEN")=$P(NODE,"^",7)
  S DGENR("ELIG","VACKAMT")=$P(NODE,"^",8)
  S DGENR("ELIG","DISRET")=$P(NODE,"^",9)
+ S DGENR("ELIG","DISLOD")=$P(NODE,"^",20)  ;added with DG*5.3*672
  S DGENR("ELIG","MEDICAID")=$P(NODE,"^",10)
  S DGENR("ELIG","AO")=$P(NODE,"^",11)
+ S DGENR("ELIG","AOEXPLOC")=$P(NODE,"^",22)  ;added with DG*5.3*688
  S DGENR("ELIG","IR")=$P(NODE,"^",12)
  S DGENR("ELIG","EC")=$P(NODE,"^",13)
  S DGENR("ELIG","MTSTA")=$P(NODE,"^",14)
  S DGENR("ELIG","VCD")=$P(NODE,"^",15)
  S DGENR("ELIG","PH")=$P(NODE,"^",16)
+ S DGENR("ELIG","UNEMPLOY")=$P(NODE,"^",17)
+ S DGENR("ELIG","CVELEDT")=$P(NODE,"^",18)
+ S DGENR("ELIG","SHAD")=$P(NODE,"^",19)
+ S DGENR("ELIG","RADEXPM")=$P(NODE,"^",21)
  ;S DGENCDZZ=1 ; for CD Testing (disabled).
  S NODE=$G(^DGEN(27.11,DGENRIEN,"U"))
  S DGENR("DATETIME")=$P(NODE,"^")

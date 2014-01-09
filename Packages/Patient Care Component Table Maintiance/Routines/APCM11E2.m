@@ -1,11 +1,11 @@
-APCM11E2 ;IHS/CMI/LAB - IHS MU; 
- ;;2.0;IHS PCC SUITE;**6**;MAY 14, 2009;Build 11
+APCM11E2 ; IHS/CMI/LAB - IHS MU ;
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2**;MAR 26, 2012;Build 11
  ;;;;;;Build 3
 CPOE ;EP - CALCULATE CPOE MEDICATIONS MEASURE
  ;for each provider or for the facility find out if this
  ;patient had a visit of A, O, R, S to this provider or facility
  ;if so, then check to see if they had any prescription in file 52
- ;with an issue date in the time period, if so they are in the
+ ;with an issue date in the EHR reporting period, if so they are in the
  ;denominator for that provider/facility and then update counter
  ;
  ;if they had any prescription that had a nature of order of electronic
@@ -14,7 +14,7 @@ CPOE ;EP - CALCULATE CPOE MEDICATIONS MEASURE
  S (APCMD1,APCMN1)=0
  I APCMRPTT=1 D  Q
  .S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  D
- ..I $D(APCM100R(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she had < 100 prescriptions issued during the time period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
+ ..I $D(APCM100R(APCMP,APCMTIME)) S F=$P(^APCMMUM(APCMIC,0),U,11) D S^APCM11E1(APCMRPT,APCMIC,"Provider is excluded from this measure as he/she had < 100 prescriptions issued during the EHR reporting period.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  ..Q:'$D(APCMHVTP(APCMP))  ;no visits to this provider for this patient so don't bother, the patient is not in the denominator
  ..D CPOE1
  .Q
@@ -61,8 +61,8 @@ ORES(R,D) ;EP - DID PROVIDER HAVE ORES OR ORESLE ON DATE D
  NEW K,J
  S K=$O(^DIC(19.1,"B","ORES",0))
  S J=$O(^DIC(19.1,"B","ORELSE",0))
- I $D(^VA(200,R,51,K,0)),$P(^VA(200,R,51,K,0),U,2)'>D Q 1
- I $D(^VA(200,R,51,J,0)),$P(^VA(200,R,51,J,0),U,2)'>D Q 1
+ I $D(^VA(200,R,51,K,0)),$P(^VA(200,R,51,K,0),U,3)'>D Q 1
+ I $D(^VA(200,R,51,J,0)),$P(^VA(200,R,51,J,0),U,3)'>D Q 1
  Q ""
 HADNOEP(P,BD,ED) ;EP - did patient have a RX in file 52 with an issue date
  ;between BD and ED

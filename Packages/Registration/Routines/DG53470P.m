@@ -1,5 +1,5 @@
 DG53470P ;ALB/EW;PRE/POST INIT FOR PATCH 470;8/19/2002
- ;;5.3;Registration;**470**;Aug 13, 1993
+ ;;5.3;Registration;**470,1015**;Aug 13, 1993;Build 21
  ;
 PRE ;Pre-Install
  ;

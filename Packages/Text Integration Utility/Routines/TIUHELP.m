@@ -1,11 +1,13 @@
-TIUHELP ; SLC/JER - On-line help library ;6/12/00
- ;;1.0;TEXT INTEGRATION UTILITIES;**100**;Jun 20, 1997
- ;IHS/ITSC/LJF called IHS version of routine
+TIUHELP ; SLC/JER - On-line help library ;2/28/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**100,184**;Jun 20, 1997
+ ;
+LINKHELP ; Help for link protocol menus
+ W !,"      Problems - links to problems in patient's active Problem List;"
+ W !," Patient/Visit - reassigns to a different patient and/or visit;"
+ W !,"  Other Applic - links, for example, a Consult Result to a Request, or",!,"                   a PRF Note to a Patient Record Flag."
+ Q
  ;
 PROTOCOL ; Help for protocols
- ;
- D PROTOCOL^BTIUHELP Q  ;IHS/ITSC/LJF 05/07/2003 redirected to IHS code
- ;
  N DIRUT,DTOUT,DUOUT,TIUX,ORU,ORUPRMT,VALMDDF,VALMPGE S TIUX=X
  D FULL^VALM1
  I TIUX="?"!(TIUX="??") D  G PROTX

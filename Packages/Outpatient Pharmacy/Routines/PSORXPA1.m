@@ -1,5 +1,5 @@
 PSORXPA1 ;BIR/SAB - listman partial prescriptions ;07/14/93
- ;;7.0;OUTPATIENT PHARMACY;**11,27,56,77,130,152**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,56,77,130,152,181,174,287**;DEC 1997;Build 77
  ;External references L,UL, PSOL, and PSOUL^PSSLOCK supported by DBIA 2789
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^DD(52 supported by DBIA 999
@@ -13,6 +13,8 @@ PSORXPA1 ;BIR/SAB - listman partial prescriptions ;07/14/93
  I '$G(RXPR($P(PSOLST(ORN),"^",2))) S RX=$P(PSOLST(ORN),"^",2) D VALID^PSORXRP1 I $G(QFLG) S VALMBCK="",VALMSG="A New Label has been requested already!" K QFLG,RX D ULK Q
  D FULL^VALM1 I '$D(PSOPAR) D ^PSOLSET D:'$D(PSOPAR) ULK G:'$D(PSOPAR) KL
  S DA=$P(PSOLST(ORN),"^",2),RX0=^PSRX(DA,0),J=DA,RX2=$G(^(2)),R3=$G(^(3)) S:'$G(BBFLG) BBRX(1)=""
+ N PSORF,PSOTRIC D TRIC^PSORXL1(DA) I PSOTRIC&($$STATUS^PSOBPSUT(DA,PSORF)'["PAYABLE") D  Q
+ . S VALMBCK="",VALMSG="Partial cannot be filled on Tricare non-payable Rx."
  I +$P($G(^PSRX(DA,2)),"^",6)<DT D
  .S:$P($G(^PSRX(DA,"STA")),"^")<12 $P(^PSRX(DA,"STA"),"^")=11
  .S COMM="Medication Expired on "_$E($P(^PSRX(DA,2),"^",6),4,5)_"/"_$E($P(^(2),"^",6),6,7)_"/"_$E($P(^(2),"^",6),2,3)
@@ -36,9 +38,10 @@ CLC S PSOCLC=DUZ,PHYS=$P(^PSRX(DA,0),"^",4),DRG=$P(^(0),"^",6)
  S DR="K PM,PQ;60;Q;S:$O(Y(1))]""""!($G(PM)) Y=""@1"";35;@1;K PM;"
  S DR(2,52.2)=".01;S Z1=D1;.02;S:X=""M""!('$P($G(PSOPAR),U,12)) PM=1;.04;S:X=U PQ=1;.041R;S:X=U PQ=1;.05;.07////^S X=DUZ;6////^S X=PHYS;Q;.08///^S X=""NOW"";S PDT=X;.09////^S X=PSOSITE;.03;S:X=U PQ=1;S PRMK=X"
  D ^DIE
+ I $D(RXPR(DA)),'$D(^PSRX(DA,"P",$G(RXPR(DA)))) D RMP^PSOCAN3
  G:'$G(Z1) CLCX
  I $G(PRMK)']"",Z1>PSOPRZ D ULK G KILL
- I Z1,$G(PRMK)]"" D  K DIE,RXN,RXF
+ I Z1,$G(PRMK)]"" D  D:$T(EN^PSOHDR)]"" EN^PSOHDR("PPAR",RXN) K DIE,RXN,RXF
  .D ACT S:$P($G(^PSRX(RXN,"P",Z1,0)),"^",2)["W" PSODFN=$P(^PSRX(RXN,0),"^",2),BINGRTE="W",BBFLG=1,BBRX(1)=$G(BBRX(1))_RXN_","
  .S ZD(RXN)=+^PSRX(RXN,"P",Z1,0),^PSRX(RXN,"TYPE")=Z1,$P(^PSRX(RXN,"P",Z1,0),"^",11)=$P($G(^PSDRUG(DRG,660)),"^",6),RXF=6,RXP=Z1,RXPR(RXN)=RXP
  .;I $G(PSOZZ)=1,($G(Z1)) D Q1^PSORXL K Z1,PSOZZ Q

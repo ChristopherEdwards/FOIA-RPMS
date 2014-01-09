@@ -1,5 +1,5 @@
 SCMCHLR4 ;ALB/KCL - PCMM HL7 Reject Processing - Protocols; 10-JAN-2000
- ;;5.3;Scheduling;**210,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,272,505,1015**;AUG 13, 1993;Build 21
  ;
  ;This routine contains the PCMM Transmission Error processing protocols.
  ;See EN^SCMCHLR2 for additional documentation on 'system wide' variables
@@ -24,6 +24,7 @@ CS ; Description: Entry point for SCMC LE CHANGE STATUS protocol.
  ;
  ;Set screen to full scrolling region
  D FULL^VALM1
+ N DIRUT,SCBEG,SCEND,SCEPS,SCSORTBY
  ;
  ;Ask user to select error processing status
  S DIR(0)="SMO^1:New;2:Checked;3:Both"
@@ -96,12 +97,12 @@ SL ; Description: Entry point for SCMC LE SORT LIST protocol.
  D FULL^VALM1
  ;
  ;Ask user to select sort by criteria
- S DIR(0)="SMO^N:Patient Name;D:Date Error Received;P:Provider"
+ S DIR(0)="SMO^N:Patient Name;D:Date Error Received;P:Provider;I:Institution"
  S DIR("A")="Select Sort By"
  D ^DIR
  ;
  ;Process user response
- I "^N^D^P^"[("^"_Y_"^"),SCSORTBY'=Y D
+ I "^N^D^P^I^"[("^"_Y_"^"),SCSORTBY'=Y D
  .S SCSORTBY=Y
  .;rebuild error list for selected sort criteria
  .D BUILD^SCMCHLR1
@@ -240,7 +241,7 @@ CHKERR(SCARY,SCLINE,SCTLIEN,SCERIEN) ;
  ;     SCARY - Global array subscript
  ;    SCLINE - Line number
  ;   SCTLIEN - PCMM HL7 Transmission Log IEN
- ;   SCERIEN - IEN of recrord in Error Code (#404.47142) multiple
+ ;   SCERIEN - IEN of record in Error Code (#404.47142) multiple
  ;
  ; Output: None
  ;
@@ -279,7 +280,7 @@ SETPAT(SCARY,SCLINE,SCTLOG) ; Description: Used to set patient to marked for re-
  Q
  ;
  ;
-UPDPAT(SCARY,SCDFN,LINE) ; Description: Update all PCMM HL7 Transmssion Log
+UPDPAT(SCARY,SCDFN,LINE) ; Description: Update all PCMM HL7 Transmission Log
  ; entries in the list for the patient as 'marked for re-transmit'.
  ;
  ;  Input:
@@ -303,7 +304,7 @@ UPDPAT(SCARY,SCDFN,LINE) ; Description: Update all PCMM HL7 Transmssion Log
  Q
  ;
  ;
-UPDALL ; Description: Update all PCMM HL7 Transmssion Log
+UPDALL ; Description: Update all PCMM HL7 Transmission Log
  ; entries in the list as 'marked for re-transmit'.
  ;
  ;  Input: None

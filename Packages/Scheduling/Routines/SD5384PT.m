@@ -1,5 +1,5 @@
 SD5384PT ;ALB/MLI - clean-up routine to remove credit stop code encounters ; 12 Dec 96 @ 10:02
- ;;5.3;Scheduling;**84**;AUG 13, 1993
+ ;;5.3;Scheduling;**84,1015**;AUG 13, 1993;Build 21
  ;
  ; This routine will loop through the Outpatient Encounter file for a date range and
  ; look for credit stop codes which are:

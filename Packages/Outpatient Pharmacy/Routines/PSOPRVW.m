@@ -1,7 +1,9 @@
-PSOPRVW ;BIR/SAB,MHA-enter/edit/view provider ;18-Apr-2011 11:14;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,146,153,1011**;DEC 1997;Build 17
+PSOPRVW ;BIR/SAB,MHA-enter/edit/view provider ;29-May-2012 15:05;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,146,153,1011,263,268,264,1015**;DEC 1997;Build 62
+ ;
  ;Ref. to ^VA(200 supp. by IA 224
  ;Ref. to ^DIC(7 supp. by IA 491
+ ;Ref.  to $$NPI^XUSNPI supp. by IA 4532
  ;Modified - IHS/MSC/PLS - 04/18/2011 - Line ED1 and ADD+2
 START W ! S DIC("A")="Select Provider: ",DIC("S")="I $D(^VA(200,+Y,""PS""))",DIC="^VA(200,",DIC(0)="AEQMZ" D ^DIC G:"^"[X EX G:Y<0 START K DIC S PRNO=+Y
  W @IOF,"Name: "_$P(^VA(200,PRNO,0),"^")
@@ -17,17 +19,21 @@ START W ! S DIC("A")="Select Provider: ",DIC("S")="I $D(^VA(200,+Y,""PS""))",DIC
  W !,"On Exclusionary List: " I $P($G(^VA(200,PRNO,"TPB")),"^",5)]"" W $S($P(^("TPB"),"^",5):"Yes",1:"No")
  W !,"Exclusionary Checked By: "
  I $P($G(^VA(200,PRNO,"TPB")),"^",6) W $P($G(^VA(200,$P(^("TPB"),"^",6),0)),"^")
- W !,"Authorized to Write Orders: "_$S($P(^VA(200,PRNO,"PS"),"^"):"Yes",1:"No"),!,"Requires Cosigner: "_$S($P(^("PS"),"^",7):"Yes",1:"No") I $P(^("PS"),"^",7),$D(^VA(200,+$P(^("PS"),"^",8),0)) W !,"Usual Cosigner: "_$P(^(0),"^")
- W !,"Class: " S PRCLS=+$P(^VA(200,PRNO,"PS"),"^",5),PRCLS=$S(PRCLS>0&$D(^DIC(7,PRCLS,0)):$P(^(0),"^"),1:"") W PRCLS
- W ?40,"DEA# "_$P(^VA(200,PRNO,"PS"),"^",2),!," Type: " S T=+$P(^("PS"),"^",6),L=$P(^DD(200,53.6,0),"^",3)_";"_T_":Unknown" F I=1:1 I $P($P(L,";",I),":",1)=T W $P($P(L,";",I),":",2) Q
- W ?40,"VA#  "_$P(^VA(200,PRNO,"PS"),"^",3),!,"Remarks: "_$P(^("PS"),"^",9),!,"Synonym(s):  "_$S($P($G(^VA(200,PRNO,.1)),"^",4)]"":$P(^(.1),"^",4)_",",1:"")_$S($P(^(0),"^",2)]"":" "_$P(^(0),"^",2),1:"")
+ W !,"Authorized to Write Orders: "_$S($P(^VA(200,PRNO,"PS"),"^"):"Yes",1:"No")
+ W !,"Requires Cosigner: "_$S($P(^("PS"),"^",7):"Yes",1:"No"),?40,"DEA# "_$P(^VA(200,PRNO,"PS"),"^",2) I $P(^("PS"),"^",7),$D(^VA(200,+$P(^("PS"),"^",8),0)) W !,"Usual Cosigner: "_$P(^(0),"^")
+ W !,"Class: " S PRCLS=+$P(^VA(200,PRNO,"PS"),"^",5),PRCLS=$S(PRCLS>0&$D(^DIC(7,PRCLS,0)):$P(^(0),"^"),1:"") W PRCLS,?40,"VA#  "_$P(^VA(200,PRNO,"PS"),"^",3)
+ W !," Type: " S T=+$P(^("PS"),"^",6),L=$P(^DD(200,53.6,0),"^",3)_";"_T_":Unknown" F I=1:1 I $P($P(L,";",I),":",1)=T W $P($P(L,";",I),":",2) Q
+ N NPI S NPI=$P($$NPI^XUSNPI("Individual_ID",PRNO),"^") W ?40,"NPI# "_$S(NPI>0:+NPI,1:"")
+ W !,"Remarks: "_$P(^VA(200,PRNO,"PS"),"^",9),!,"Synonym(s):  "_$S($P($G(^VA(200,PRNO,.1)),"^",4)]"":$P(^(.1),"^",4)_",",1:"")_$S($P(^(0),"^",2)]"":" "_$P(^(0),"^",2),1:"")
  W !,"Service/Section: " S PSOSSDA=$G(DA) I $P($G(^VA(200,PRNO,5)),"^") K DIQ S DIC="^DIC(49,",DA=$P(^VA(200,PRNO,5),"^"),DR=.01,DIQ="PSOSECT",DIQ(0)="E" D EN^DIQ1 W $G(PSOSECT(49,DA,.01,"E")) S DA=$G(PSOSSDA) K DR,DIC,DIQ,PSOSSDA,PSOSECT
- I '$D(^VA(200,PRNO,.11)) G NUM
+ I $TR($G(^VA(200,PRNO,.11)),"^","")="" G NUM
  W !!,"Address: ",?10,$P(^VA(200,PRNO,.11),"^") W:$P(^(.11),"^",2)'="" !?10,$P(^(.11),"^",2) W:$P(^(.11),"^",3)'="" !?10,$P(^(.11),"^",3)
- W !?10,$P(^VA(200,PRNO,.11),"^",4),", " S STAT=+$P($G(^(.11)),"^",5) W $S($D(^DIC(5,STAT,0)):$P(^(0),"^"),1:"")_"  "_$P(^VA(200,PRNO,.11),"^",6)
+ W !?10,$P(^VA(200,PRNO,.11),"^",4) W:$P(^(.11),"^",4)]"" ", " S STAT=+$P($G(^(.11)),"^",5) W $S($D(^DIC(5,STAT,0)):$P(^(0),"^"),1:"")_"  "_$P(^VA(200,PRNO,.11),"^",6)
 NUM G:'$D(^VA(200,PRNO,.13)) START
- W !,"Phone:    "_$P(^VA(200,PRNO,.13),"^"),!,$S($P(^(.13),"^",2)]"":"Office:   "_$P(^(.13),"^",2),1:""),!
- W:$P(^VA(200,PRNO,.13),"^",3)]"" !,"Phone #3: "_$P(^(.13),"^",3) W:$P(^(.13),"^",4)]"" !,"Phone #4: "_$P(^(.13),"^",4) W:$P(^(.13),"^",6)]"" !,"Fax #:    "_$P(^(.13),"^",6)
+ W !,"Phone:    "_$P(^VA(200,PRNO,.13),"^"),! W:$P(^(.13),"^",2)]"" "Office:   ",$P(^(.13),"^",2),!
+ W:$P(^VA(200,PRNO,.13),"^",3)]"" "Phone #3: "_$P(^(.13),"^",3),?40 W:$P(^(.13),"^",7)]"" "Voice Pager  #: "_$P(^(.13),"^",7) W !
+ W:$P(^VA(200,PRNO,.13),"^",4)]"" "Phone #4: "_$P(^(.13),"^",4),?40 W:$P(^(.13),"^",8)]"" "Digital Pager#: "_$P(^(.13),"^",8)
+ W:$P(^VA(200,PRNO,.13),"^",6)]"" !,"Fax #:    "_$P(^(.13),"^",6)
  W:$P($G(^VA(200,PRNO,.14)),"^")]"" !,"Room Loc: "_$P(^(.14),"^")
  G START
 EX K DIC,DIE,DA,DR,D0,PRNO,PRCLS,STAT,T,Y,X,L,LF,I,DIR,DIROUT,DUOUT,DTOUT,DIRUT,%,%Y,%W,%Z,C,DDH,DI,DIH,DLAYGO,DQ,X1,XMDT,XMN
@@ -38,7 +44,7 @@ ASK ;edit providers
  I '$D(^VA(200,DA,"PS")) G NPRV
 ASK1 W @IOF,?25,"Provider: "_$P(^VA(200,DA,0),"^"),! F DR="TPB","PS",".11",".13",".14" D EN^DIQ
  K DIC,Y
-EDT W ! L +^VA(200,DA):0
+EDT W ! L +^VA(200,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3)
  I '$T W $C(7),!!,"Provider Data is Being Edited by Another User!",! G QX
  N RTPB S RTPB=$G(^VA(200,DA,"TPB"))
  S DR="53.91" D ^DIE I $D(Y)!$D(DTOUT) G QX
@@ -52,9 +58,8 @@ EDT W ! L +^VA(200,DA):0
  I $P($G(^VA(200,DA,"TPB")),"^",3) D
  .I RTPB=""!('$P(RTPB,"^",3)) S DR="53.96////"_DUZ D ^DIE
  G:$G(PSOTPBFG) QX
-ED1 ;IHS/MSC/PLS - 04/18/2011
- ;S DR="53.1:53.7;I 'X S Y=""@1"";53.8;@1;53.9;.111:.116;.131:.134;.136;.141"
- S DR="53.1:53.2;747.44;53.3:53.7;I 'X S Y=""@1"";53.8;@1;53.9;.111:.116;.131:.134;.136;.141;.151;"
+ED1 ;S DR="53.1:53.6;I X'=4 S Y=""@1"";29;8932.1;@1;53.7;I 'X S Y=""@2"";53.8;@2;53.9;.111:.116;.131:.134;.136;.137;.138;.141",DR(2,200.05)=".01;2;3"
+ S DR="53.1:53.2;747.44;53.3:53.7;I 'X S Y=""@1"";53.8;@1;53.9;.111:.116;.131:.134;.136;.141;.151;"  ;IHS/MSC/PLS - 04/18/2011
  D ^DIE S FADA=DA D:'$D(Y) KEY
 QX K FADA,RTPB L -^VA(200,DA) Q:$G(PSOTPBFG)  G:+$G(VADA) ADD G ASK
  Q
@@ -79,7 +84,7 @@ KEY I $D(^VA(200,DA,"PS")) D
  .I '$P(^VA(200,DA,"PS"),"^",4)!($P(^("PS"),"^",4)>DT) S PSOPDA=DA K DIC S DIC="^DIC(19.1,",DIC(0)="MZ",X="PROVIDER" D ^DIC K DIC S DA=PSOPDA K PSOPDA I +Y>0 S X=+Y D
  ..S:'$D(^VA(200,FADA,51,0)) ^VA(200,FADA,51,0)="^"_$P(^DD(200,51,0),"^",2)_"^^"
  ..S DIC="^VA(200,"_FADA_",51,",DIC(0)="LM",DIC("DR")="1////"_$S($G(DUZ):DUZ,1:"")_";2///"_DT,DLAYGO=200.051,DINUM=X,DA(1)=FADA
- ..L +^VA(200,FADA):0 K DD,DO D FILE^DICN L -^VA(200,FADA) K DIC,DR,X,Y
+ ..L +^VA(200,FADA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) K DD,DO D FILE^DICN L -^VA(200,FADA) K DIC,DR,X,Y
  Q
 MS ;
  W !!,$C(7),"This provider will not be selectable during TPB medication order entry!!",!

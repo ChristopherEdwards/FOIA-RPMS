@@ -1,5 +1,5 @@
-BCHRP2P ; IHS/TUCSON/LAB - print all visit report ;  [ 12/28/01  3:39 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,11,12,13**;OCT 28, 1996
+BCHRP2P ; IHS/CMI/LAB - print all visit report ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
 START ;
  D NOW^%DTC S Y=X D DD^%DT S BCHDT=Y
@@ -65,7 +65,9 @@ HEAD2 ; if printer
  W $$CTR^BCHRLU($$LOC^BCHRLU),!
  S BCHPROGN=$S(BCHPRG:$P(^BCHTPROG(BCHPRG,0),U)_" ("_$P(^(0),U,5)_")",1:"ALL"),X=$L(BCHPROGN)+10
  W ?((80-X)/2),"PROGRAM:  ",BCHPROGN,!
- W ?17,"REPORT DATES:  ",BCHBDD,"  TO  ",BCHEDD,!
- W !?50,"# RECS",?60,"ACT TIME (hrs)"
+ S X=$L("PATIENTS:  "_BCHREGN)
+ W ?((80-X)/2),"PATIENTS:  ",BCHREGN
+ W !?17,"REPORT DATES:  ",BCHBDD,"  TO  ",BCHEDD,!
+ W !?45,"# Activities",?60,"ACT TIME (hrs)"
  W !,$TR($J(" ",80)," ","-")
  Q

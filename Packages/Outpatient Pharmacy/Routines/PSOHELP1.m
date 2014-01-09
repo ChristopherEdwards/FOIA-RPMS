@@ -1,10 +1,11 @@
-PSOHELP1 ;BIR/SAB-OUTPATIENT HELP TEXT/UTILITY ROUTINE 2 ;23-Sep-2011 15:54;PLS
- ;;7.0;OUTPATIENT PHARMACY;**23,36,88,146,1013**;DEC 1997;Build 33
+PSOHELP1 ;BIR/SAB-OUTPATIENT HELP TEXT/UTILITY ROUTINE 2 ;06-Dec-2012 20:31;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**23,36,88,146,1013,227,222,1015**;DEC 1997;Build 62
  ;External reference ^DIC(19.2 supported by DBIA 1472
  ;External reference ^PSDRUG( supported by DBIA 221
  ;External reference ^PS(55 supported by DBIA 2228
  ; Modified - IHS/CIA/PLS - 12/15/03 - Line AUTOQ+7
  ;            IHS/MSC/PLS - 09/16/2011 - Line AUTOQ+9
+ ;                          12/06/2012 - Line NARC+7
 2001 N PSOHLP S PSOHLP(1,"F")="!!"
  S PSOHLP(1)="Enter the lowest prescription number for this site."
  S PSOHLP(2,"F")="!"
@@ -48,7 +49,7 @@ WRITE ;EN^DDIOL call
  D EN^DDIOL(.PSOHLP) K PSOHLP
  Q
 AUTOQ ;entry point to queue all background jobs
- D RESET1^PSOTPHL1
+ D:0 RESET1^PSOTPHL1  ;placed out of order by PSO*7*227
  D AUTO^PSOAUTOC ;ques auto cancel job
  D SETUP^PSOAUTOC ;ques nightly cost compile
  D SETUP1^PSOAUTOC ;ques nightly mgmt compile
@@ -91,6 +92,10 @@ DAYS K PSMAX I $P($G(^PSDRUG(+$P(^PSRX(DA,0),"^",6),0)),"^",4),$P(^PSRX(DA,0),"^
  D NARC I $G(CLOZPAT)=1,'PSRF,X>14 K X D EN^DDIOL("     14 Day Supply Max for Clozapine Prescriptions.","","$C(7),!!") Q
  I $G(CLOZPAT)=0,'PSRF,X>7 K X D EN^DDIOL("     7 Day Supply Max for Clozapine Prescriptions.","","$C(7),!!") Q
  I $G(CLOZPAT)=1,X'=7,PSRF K X D EN^DDIOL("     Day Supply Must Equal 7 with 1 refill for Clozapine Prescriptions.","","$C(7),!!") Q
+ I $G(CLOZPAT)=1,'PSRF,X>14 K X D EN^DDIOL("     14 Day Supply Max for Clozapine Prescriptions.","","$C(7),!!") Q
+ I $G(CLOZPAT)=2,'PSRF,X>28 K X D EN^DDIOL("     28 Day Supply Max for Clozapine Prescriptions.","","$C(7),!!") Q
+ I $G(CLOZPAT)=2,PSRF=1,X>14 K X D EN^DDIOL("     Day Supply Must Equal 14 with 1 refill for Clozapine Prescriptions.","","$C(7),!!") Q
+ I $G(CLOZPAT)=2,PSRF=3,X>7 K X D EN^DDIOL("     Day Supply Must Equal 7 with 3 refill for Clozapine Prescriptions.","","$C(7),!!") Q
  I PSRF>MAX S DS=X D
  .D FULL^VALM1,EN^DDIOL(PSRF_" refills are not correct for a "_DS_" day supply.","","$C(7),!!") D EN^DDIOL("Please enter correct # of refills for a "_DS_" day supply. Max refills allowed is "_MAX_".","","!") D EN^DDIOL(" ","","!")
  .K DIR S DIR(0)="E",DIR("A")="Press Return to Continue" D ^DIR K DIR,X,Y,DIRUT S VALMBCK="R"
@@ -106,11 +111,13 @@ DAYS1 K PSRMAX S PSRF=$P(^PSRX(DA(1),0),"^",9),PTST=$G(^PS(53,$P(^(0),"^",3),0))
  K MAX,DAYS,PSDAYS,PSODEA,PSOX,PSOX1,PSDY,PSDY1,DEA,CS,PTST,PSRF,PTDY,PTRF
  Q
 NARC F DEA=1:1 Q:$E(PSODEA,DEA)=""  I $E(+PSODEA,DEA)>1,$E(+PSODEA,DEA)<6 S CS=1
- I $D(CLOZPAT) S MAX=$S(CLOZPAT=1&($P(^PSRX(DA,0),"^",8)=7):1,1:0),MIN=0 Q
+ I $D(CLOZPAT) S MAX=$S(CLOZPAT=2&($P(^PSRX(DA,0),"^",8)=14):1,CLOZPAT=2&($P(^PSRX(DA,0),"^",8)=7):3,CLOZPAT=1&($P(^PSRX(DA,0),"^",8)=7):1,1:0),MIN=0 Q
  I CS D
  .S PSOX1=$S(PTRF>5:5,1:PTRF),PSOX=$S(PSOX1=5:5,1:PSOX1)
  .S PSOX=$S('PSOX:0,X=90:1,1:PSOX),PSDY1=$S(X<60:5,X'<60&(X'>89):2,X=90:1,1:0) S MAX=$S(PSOX'>PSDY1:PSOX,1:PSDY1)
  E  D
  .S PSOX1=PTRF,PSOX=$S(PSOX1=11:11,1:PSOX1),PSOX=$S('PSOX:0,X=90:3,1:PSOX)
- .S PSDY1=$S(X<60:11,X'<60&(X'>89):5,X=90:3,1:0) S MAX=$S(PSOX'>PSDY1:PSOX,1:PSDY1)
+ .;IHS/MSC/PLS - 12/06/2012
+ .;S PSDY1=$S(X<60:11,X'<60&(X'>89):5,X=90:3,1:0) S MAX=$S(PSOX'>PSDY1:PSOX,1:PSDY1)
+ .S PSDY1=$S(X<60:15,X<90:5,X=90:3,X<168:2,X<365:1,1:0) S MAX=$S(PSOX'>PSDY1:PSOX,1:PSDY1)
  Q

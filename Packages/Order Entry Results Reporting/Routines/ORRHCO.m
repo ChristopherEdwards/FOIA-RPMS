@@ -1,5 +1,5 @@
 ORRHCO ; SLC/KCM - CPRS Query Tools - Orders ; [4/4/02 2:07pm]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**153**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**153,242**;Dec 17, 1997;Build 6
  ;
 NXT() ; Increment ILST
  S ILST=ILST+1
@@ -40,6 +40,7 @@ ORDSTS(LST)     ; List order statuses
  N ILST,X,IEN S ILST=0
  S X="" F  S X=$O(^ORD(100.01,"B",X)) Q:X=""  D
  . S IEN=0 F  S IEN=$O(^ORD(100.01,"B",X,IEN)) Q:'IEN  D
+ . . Q:$$SCREEN^XTID(100.01,,IEN_",")  ;inactive VUID
  . . S LST($$NXT)=IEN_U_X
  Q
 SIGNSTS(LST)    ; List order signature statuses

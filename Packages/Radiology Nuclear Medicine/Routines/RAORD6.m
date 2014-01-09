@@ -1,5 +1,5 @@
-RAORD6 ;HISC/CAH - AISC/RMO-Print A Request Cont. ;05/20/09  07:28
- ;;5.0;Radiology/Nuclear Medicine;**5,10,15,18,27,45,41,75,85,99**;Mar 16, 1998;Build 5
+RAORD6 ;HISC/CAH - AISC/RMO-Print A Request Cont. ; 20 Apr 2011  6:57 PM
+ ;;5.0;Radiology/Nuclear Medicine;**5,10,15,18,27,45,41,75,85,99,1003**;Nov 01, 2010;Build 3
  ; 3-p75 10/12/2006 GJC RA*5*75 print Reason for Study
  ; 4-p75 10/12/2006 KAM RA*5*75 display the request print date in the header
  ; 5-p75 10/12/2006 KAM RA*5*75 update header "Age" to "Age at req"
@@ -118,7 +118,10 @@ CONT D HD:($Y+6)>IOSL Q:RAX["^"  D ODX^RABWUTL(RAOIFN) ; * Billing Aware *
  Q:RAX["^"  D HD:($Y+6)>IOSL Q:RAX["^"  D ^DIWW:$D(RAXX),HD:($Y+6)>IOSL Q:RAX["^"  D WORK ;always print bottom section of form 012601
  W ! S BOT=IOSL-($Y+4) S:($E(IOST,1,6)="P-BROW"&($D(DDBRZIS))) BOT=5 F BT=1:1:BOT W !
  K BOT,BT
- W !,"VA Form 519a-ADP"
+ ;IHS/BJI/DAY - Patch 1003 - Continue Chris Saddler patch from 2004
+ ;Comment out VA form name
+ ;W !,"VA Form 519a-ADP"
+ ;End Patch
  Q
  ;
 WORK W !,RALNE,!,"Date Performed: ________________________",?46
@@ -134,6 +137,10 @@ WORK W !,RALNE,!,"Date Performed: ________________________",?46
 TC D EN30^RAO7PC1(RAOIFN),TC^RAORD61 Q:RAX["^"
  ;
 DASHLN W ! F I=1:1:5 D HD:($Y+6)>IOSL Q:RAX["^"  W !,RALNE ;P18
+ ;IHS/BJI/DAY - Patch 1003 - Continue Chris Saddler patch from 2004
+ ;Add display of last 5 exams/orders
+ W:($Y+6)'>IOSL !!,RALNE1 S RACONT="" D HD:($Y+8)>IOSL Q:RAX["^"  D EXAM^RADEM1 K RACONT W !,RALNE1
+ ;End Patch
  Q
  ;
 HD S:'$D(RAPGE) RAPGE=0 D CRCHK Q:$G(RAX)["^"  S RATAB=$S($D(RA("ILC")):1,1:16)

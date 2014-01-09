@@ -1,8 +1,8 @@
-APCM11CI ; IHS/CMI/LAB - IHS area GPRA 10 Dec 2006 9:12 AM ;
- ;;2.0;IHS PCC SUITE;**6**;MAY 14, 2009;Build 11
+APCM11CI ;IHS/CMI/LAB - MU REPORT;
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1**;MAR 26, 2012
  ;
 CALCIND ;EP - CALCULATE ALL MEASURES
- ;for this patient get all of their visits in the time period and save in APCMVSTS for use in all measures
+ ;for this patient get all of their visits in the EHR reporting period and save in APCMVSTS for use in all measures
  K APCMVSTS,APCMHVTP
  D ALLV^APCLAPIU(DFN,APCMBDAT,APCMEDAT,"APCMVSTS")
  I APCMRPTT=1 S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  D
@@ -89,6 +89,10 @@ S1(BQITYP,BQIVAL) ; Return data by patient for iCare into global reference BQIGR
  I BQICURR'="" S $P(@BQIGREF@(DFN,APCMIC),U,4)=BQICURR
  Q
 HADV(P,R,BD,ED,VSTS) ;EP - had visit of A, O, R, S with provider R in time frame BD-ED
+ ;PATCH 1 excludes ER and case management clinics
+ ;patch 1 provider must be primary only
+ ; so, in summary, the patient must have at least 1 A,O,R,M, non-ER, non-case man visit
+ ; where this provider is the primary provider
  I '$G(P) Q ""
  I '$G(R) Q ""
  I '$G(BD) Q ""
@@ -102,12 +106,18 @@ HADV(P,R,BD,ED,VSTS) ;EP - had visit of A, O, R, S with provider R in time frame
  .I '$D(^AUPNVSIT(V,0)) Q
  .I $P(^AUPNVSIT(V,0),U,11) Q  ;deleted
  .I "AOSM"'[$P(^AUPNVSIT(V,0),U,7) Q  ;not correct service category
- .;S Y=$$PRIMPROV^APCLV(V,"I")
- .;I 'Y Q
- .;I Y'=R Q  ;not this provider
- .S Y=0 F  S Y=$O(^AUPNVPRV("AD",V,Y)) Q:Y'=+Y!(G)  D
- ..I $P($G(^AUPNVPRV(Y,0)),U)'=R Q
- ..S G=$$VD^APCLV(V)
+ .S C=$$CLINIC^APCLV(V,"C")
+ .I C=30 Q  ;no ER per Carmen patch 1
+ .I C=77 Q  ;no case management clinic 77 per Chris
+ .I C=76 Q  ;no lab
+ .I C=63 Q  ;no radiology
+ .I C=39 Q  ;no pharmacy
+ .S Y=$$PRIMPROV^APCLV(V,"I")
+ .I 'Y Q
+ .I Y'=R Q  ;not this provider
+ .;S Y=0 F  S Y=$O(^AUPNVPRV("AD",V,Y)) Q:Y'=+Y!(G)  D
+ .;.I $P($G(^AUPNVPRV(Y,0)),U)'=R Q
+ .S G=$$VD^APCLV(V)
  Q G  ;quit on the date of the visit
  ;
 HADVH(P,R,BD,ED,VSTS) ;EP - had visit H or ER A,O,S,M

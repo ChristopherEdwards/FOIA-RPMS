@@ -1,5 +1,5 @@
 DGPTODF2 ;ALB/MTC - PTF DRG FREQUENCY REPORT,CONT. ; 9/14/01 4:34pm
- ;;5.3;Registration;**375**;Aug 13, 1993
+ ;;5.3;Registration;**375,1015**;Aug 13, 1993;Build 21
 HEAD I P S %=IOSL-14 F E=$Y:1:% W !    ;I E=(%-1) D DIS^DGPTOD1
  I P D DIS^DGPTOD1 W !!
  W:P ?62,"-",P,"-" W @IOF,!!?10,"Discharge Frequency Rank for ",$S(DGFLAG'["M":G2_" SERVICE",1:"MEDICAL CENTER"),$S(DGFLAG["Spec":" by Specialty",1:"") I 'DGD W " for Active Admissions"

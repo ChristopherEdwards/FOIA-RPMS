@@ -1,5 +1,5 @@
-RARTR1 ;HISC/FPT,GJC-Queue/print Radiology Reports (cont.) ;1/8/97  08:08
- ;;5.0;Radiology/Nuclear Medicine;**8,18,56,97**;Mar 16, 1998;Build 6
+RARTR1 ;HISC/FPT,GJC-Queue/print Radiology Reports (cont.) ; 20 Apr 2011  7:03 PM
+ ;;5.0;Radiology/Nuclear Medicine;**8,18,56,97,1003**;Nov 01, 2010;Build 3
  ;Supported IA #1571 ^LEX(757.01
  ;Supported IA #10104 REPEAT^XLFSTR
  ;Supported IA #10060 and #2056 $$GET1^DIQ for file 200
@@ -97,11 +97,19 @@ SECRES ; Print from the secondary resident multiple
  .. S RAVERFND=""
  .. I $G(RARPT(10))']"",('$D(RAUTOE)) D  Q
  ... W:RAWHOVER=+RASR(0) !?10,"(Verifier, no e-sig)"
- ... W:RAWHOVER'=+RASR(0) !?10,"Verified by transcriptionist for "_RASRSBN  ;Removed RA*5*8 _", M.D."
+ ... ;IHS/BJI/DAY - Patch 1003 - display verifier if not Radiologist
+ ... ;Other verifier may not be a transcriptionist
+ ... ;W:RAWHOVER'=+RASR(0) !?10,"Verified by transcriptionist for "_RASRSBN  ;Removed RA*5*8 _", M.D."
+ ... W:RAWHOVER'=+RASR(0) !?10,"Verified by ",$$GET1^DIQ(200,+RAWHOVER,.01)_" for "_RASRSBN  ;Removed RA*5*8 _", M.D."
+ ... ;End Patch
  ... Q
  .. I $G(RARPT(10))']"",($D(RAUTOE)) D  Q
  ... S:RAWHOVER=+RASR(0) ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          (Verifier, no e-sig)"
- ... S:RAWHOVER'=+RASR(0) ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          Verified by transcriptionist for "_RASRSBN  ;Removed RA*5*8 _", M.D."
+ ... ;IHS/BJI/DAY - Patch 1003 - display verifier if not Radiologist
+ ... ;Other verifier may not be a transcriptionist
+ ... ;S:RAWHOVER'=+RASR(0) ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          Verified by transcriptionist for "_RASRSBN  ;Removed RA*5*8 _", M.D."
+ ... S:RAWHOVER'=+RASR(0) ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="     Verified by "_$$GET1^DIQ(200,+RAWHOVER,.01)_" for "_RASRSBN  ;Removed RA*5*8 _", M.D."
+ ... ;End Patch
  ... Q
  .. W:'$D(RAUTOE) " (Verifier)"
  .. S:$D(RAUTOE) ^TMP($J,"RA AUTOE",RAACNT)=^TMP($J,"RA AUTOE",RAACNT)_" (Verifier)"
@@ -136,11 +144,19 @@ SECSTF ; Print from the secondary staff multiple
  .. S RAVERFND=""
  .. I $G(RARPT(10))']"",('$D(RAUTOE)) D  Q
  ... W:RAWHOVER=+RASS(0) !?10,"(Verifier, no e-sig)"
- ... W:RAWHOVER'=+RASS(0) !?10,"Verified by transcriptionist for "_RASSSBN  ;Removed RA*5*8 _", M.D."
+ ... ;IHS/BJI/DAY - Patch 1003 - display verifier if not Radiologist
+ ... ;Other verifier may not be a transcriptionist
+ ... ;W:RAWHOVER'=+RASS(0) !?10,"Verified by transcriptionist for "_RASSSBN  ;Removed RA*5*8 _", M.D."
+ ... W:RAWHOVER'=+RASS(0) !?10,"Verified by ",$$GET1^DIQ(200,+RAWHOVER,.01)," for "_RASSSBN  ;Removed RA*5*8 _", M.D."
+ ... ;End Patch
  ... Q
  .. I $G(RARPT(10))']"",($D(RAUTOE)) D  Q
  ... S:RAWHOVER=+RASS(0) ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          (Verifier, no e-sig)"
- ... S:RAWHOVER'=+RASS(0) ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          Verified by transcriptionist for "_RASSSBN  ;Removed RA*5*8 _", M.D."
+ ... ;IHS/BJI/DAY - Patch 1003 - display verifier if not Radiologist
+ ... ;Other verifier may not be a transcriptionist
+ ... ;S:RAWHOVER'=+RASS(0) ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          Verified by transcriptionist for "_RASSSBN  ;Removed RA*5*8 _", M.D."
+ ... S:RAWHOVER'=+RASS(0) ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="     Verified by "_$$GET1^DIQ(200,+RAWHOVER,.01)_" for "_RASSSBN  ;Removed RA*5*8 _", M.D."
+ ... ;End Patch
  ... Q
  .. W:'$D(RAUTOE) " (Verifier)"
  .. S:$D(RAUTOE) ^TMP($J,"RA AUTOE",RAACNT)=^TMP($J,"RA AUTOE",RAACNT)_" (Verifier)"

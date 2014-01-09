@@ -1,5 +1,5 @@
-BEHOPTP3 ;MSC/IND/MGH - Patient List Management ;11-Feb-2010 12:45;PLS
- ;;1.1;BEH COMPONENTS;**004004**;Mar 20, 2007
+BEHOPTP3 ;MSC/IND/MGH - Patient List Management ;30-Mar-2012 19:10;DU
+ ;;1.1;BEH COMPONENTS;**004004,004008**;Mar 20, 2007
  ;=================================================================
  ; Call logic to manage team lists
 MANAGE(DATA,LIST,ACTION,NAME,VAL) ;
@@ -14,15 +14,15 @@ EXEC(NODE) ;
  ; List management API
 MAN2(DATA,LIST,ACTION,NAME,VAL) ;EP
  S DATA=""
- I ACTION="S"!(ACTION="P")!(ACTION="D") S DATA=$$VALIDATE(NAME)
+ I ACTION="S"!(ACTION="P")!(ACTION="D") S DATA(1)=$$VALIDATE(NAME)
  I ACTION="C" S DATA=$$VALIDATE(NAME,1)
- Q:DATA
+ Q:DATA(1)
  I ACTION="T" D GETTEAM(.DATA) Q
  I ACTION="P" D GETLST(.DATA,NAME) Q
  I ACTION="C" D CRLST(.DATA,NAME) Q
  I ACTION="S" D SETLST(.DATA,NAME,.VAL) Q
  I ACTION="D" D DELETE(.DATA,NAME) Q
- S DATA="-1^Unknown action"
+ S DATA(1)="-1^Unknown action"
  Q
  ;Return the list of providers for this list
 GETLST(DATA,NAME) ;EP
@@ -49,7 +49,7 @@ VALIDATE(NAME,DUP) ;
  I 'DUP,'$$GETIEN(NAME) Q "-1^List name not found."
  Q ""
 CRLST(DATA,NAME) ;EP Create a new team list
- N DATE,FNUM,FDA
+ N DATE,FNUM,FDA,IEN
  K DATA
  S DATE="TODAY",DATE=$$DT^CIAU(DATE)
  S FNUM=100.21
@@ -60,8 +60,8 @@ CRLST(DATA,NAME) ;EP Create a new team list
  S @FDA@(1.6)=DUZ
  S @FDA@(1.65)=DATE
  S @FDA@(1.7)="Y"
- S DATA=$$UPDATE^BGOUTL(.FDA,"",.IEN)
- S:'DATA DATA=IEN(1)
+ S DATA(1)=$$UPDATE^BGOUTL(.FDA,"",.IEN)
+ S:'DATA(1) DATA(1)=IEN(1)
  I $D(IEN(1)) D
  .S FDA=$NA(FDA(100.212,"+1,"_IEN(1)_","))
  .S @FDA@(.01)=DUZ

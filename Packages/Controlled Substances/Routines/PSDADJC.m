@@ -1,5 +1,5 @@
 PSDADJC ;B'ham ISC/LTL,JPW - Balance Shift Checker for NAOU ; 16 Feb 94
- ;;3.0; CONTROLLED SUBSTANCES ;**53**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**53,66**;13 Feb 97;Build 3
  I '$D(PSDSITE) D ^PSDSET G:'$D(PSDSITE) QUIT
  N D1,D2,DIC,DIE,DINUM,D0,D1,DLAYGO,DR,DIR,DIRUT,DTOUT,DUOUT,NODE,PSAC,PSDAT,PSDLOC,PSDOUT,PSDLOCN,DA,PSDRUG,PSDRUGN,PSDS,PSDPKG,PSDBKU,PSAQ,PSDR,PSDREC,PSDT,X,Y,%,%H,%I
 LOOK S DIC="^PSD(58.8,",DIC(0)="AEMQZ",DIC("A")="Select NAOU: ",DIC("S")="I $P($G(^(0)),U,3)=+PSDSITE,$P($G(^(0)),U,2)[""N"",'$P(^(0),""^"",7),$S('$D(^(""I"")):1,+^(""I"")>DT:1,'^(""I""):1,1:0)"
@@ -28,7 +28,7 @@ BAL .W !!,PSDRUGN,!!,"Balance:  "
  .S DIR(0)="Y",DIR("A")="Count Correct",DIR("B")="Yes"
  .W ! D ^DIR K DIR Q:$D(DIRUT)
  .G:Y=1 INV
- .F  L +^PSD(58.8,+PSDLOC,1,+PSDRUG,0):0 I  Q
+ .F  L +^PSD(58.8,+PSDLOC,1,+PSDRUG,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  .S PSDREC(1)=$P($G(^PSD(58.8,PSDLOC,1,PSDRUG,0)),U,4)
  .D NOW^%DTC S PSDAT=+%
  .W !!,"Package Size: ",$P($G(NODE),"^"),"  Breakdown Unit: ",$P($G(NODE),"^",2),!
@@ -47,7 +47,7 @@ MON .S:'$D(^PSD(58.8,+PSDLOC,1,+PSDRUG,5,0)) ^(0)="^58.801A^^"
  .I '$D(^PSD(58.8,+PSDLOC,1,+PSDRUG,5,$E(DT,1,5)*100,0)) S DIC="^PSD(58.8,+PSDLOC,1,+PSDRUG,5,",DIC(0)="LM",DLAYGO=58.8,(X,DINUM)=$E(DT,1,5)*100,DA(2)=PSDLOC,DA(1)=PSDRUG D ^DIC K DIC,DLAYGO
  .S DIE="^PSD(58.8,+PSDLOC,1,+PSDRUG,5,",DA(2)=PSDLOC,DA(1)=PSDRUG,DA=$E(DT,1,5)*100,DR="1////0;7////^S X=PSDREC" D ^DIE
 TRA .W !!,"Recording ",$S(PSDREC:"adjustment",1:"inventory")," in transaction history.",!
-TR .F  L +^PSD(58.81,0):0 I  Q
+TR .F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND .S PSDT=$P(^PSD(58.81,0),U,3)+1 I $D(^PSD(58.81,PSDT)) S $P(^PSD(58.81,0),U,3)=$P(^PSD(58.81,0),U,3)+1 G FIND
  .S DIC="^PSD(58.81,",DIC(0)="L",DLAYGO=58.81,(DINUM,X)=PSDT D ^DIC K DIC,DLAYGO L -^PSD(58.81,0)
  .S DIE="^PSD(58.81,",DA=PSDT,DR="1////"_$S(PSDREC:9,1:23)_";2////"_PSDLOC_";3////"_PSDAT_";4////"_PSDRUG_";5////"_PSDREC_";6////"_DUZ_";9////"_PSDREC(2)_";15////"_$G(PSDRE)_";74////"_DUZ_";78////"_NUR2_";100////1" D ^DIE K DIE

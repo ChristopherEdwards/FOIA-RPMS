@@ -1,15 +1,18 @@
-FHMTK1C ; HISC/NCA - Print Tray Tickets ;4/13/95  13:45
- ;;5.0;Dietetics;**34,35**;Oct 11, 1995
+FHMTK1C ; HISC/NCA/RVD - Print Tray Tickets ;4/13/95  13:45
+ ;;5.5;DIETETICS;;Jan 28, 2005
 PRT ; Print 3 person per page
- I $G(TABREC)="YES" QUIT
+START I $G(TABREC)="YES" QUIT
  S TL=0 D CHKH
  W !! S TL=TL+2 F N1=1:1:3 D
  .I 'MFLG S MEALDT=$S(MEAL="B":"Breakfast",MEAL="N":"Noon",1:"Evening")_" "_MDT
  .E  S MEALDT=$S(N1=1:"Breakfast",N1=2:"Noon",1:"Evening")_" "_MDT
+ .I '$D(MM(0,N1)) Q
+ .S MMMDT=$P(MM(0,N1),U,7) I MMMDT'="" S MEALDT=$S(MMMDT="B":"Breakfast",MMMDT="N":"Noon",1:"Evening")_" "_MDT
  .S MEALDT=$J("",40-$L(MEALDT)\2)_MEALDT
  .I $D(MM(0,N1)) W ?$S(N1=1:2,N1=2:45,1:88),MEALDT
  .Q
  W ! S TL=TL+1 F N1=1:1 Q:'$D(PP(N1))  W ! S TL=TL+1 F NBR=1:1:3 I $D(PP(N1,NBR)) W ?$S(NBR=1:2,NBR=2:45,1:88),PP(N1,NBR)
+ ;W ! S TL=TL+1 F N1=1:1 Q:'$D(PP(N1))  W ! S TL=TL+1
  W ! S TL=TL+1
  F N1=1:1 Q:'$D(MM(N1))  D:(TL+2)'<($S(FHBOT="Y":LN-5,1:LN-3)) NXT W !! S TL=TL+2 F NBR=1:1:3 I $D(MM(N1,NBR)) W ?$S(NBR=1:2,NBR=2:45,1:88),MM(N1,NBR)
  I TL<LN F L1=TL:1:$S(FHBOT="Y":LN-2,1:LN) W !
@@ -25,6 +28,8 @@ N1 W @IOF S TL=0 D CHKH
  W !! S TL=TL+2 F XX=1:1:3 D
  .I 'MFLG S MEALDT=$S(MEAL="B":"Breakfast",MEAL="N":"Noon",1:"Evening")_" "_MDT
  .E  S MEALDT=$S(XX=1:"Breakfast",XX=2:"Noon",1:"Evening")_" "_MDT
+ .I '$D(MM(0,XX)) Q
+ .S MMMDT=$P(MM(0,XX),U,7) I MMMDT'="" S MEALDT=$S(MMMDT="B":"Breakfast",MMMDT="N":"Noon",1:"Evening")_" "_MDT
  .S MEALDT=$J("",40-$L(MEALDT)\2)_MEALDT
  .I $D(MM(0,XX)) W ?$S(XX=1:2,XX=2:45,1:88),MEALDT,"  (Cont.)"
  .W ! S TL=TL+1 Q

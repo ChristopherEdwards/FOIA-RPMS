@@ -1,5 +1,5 @@
 DGPTMSG ;ALB/JDS/AS - PTF MESSAGE ENTRY/EDIT/PRINT ; 7 NOV 89  14:46
- ;;5.3;Registration;**164**;Aug 13, 1993
+ ;;5.3;Registration;**164,1015**;Aug 13, 1993;Build 21
  ;
  D LO^DGUTL
 PAT K DIC("S") S DIC="^DPT(",DIC(0)="AEQMZ" D ^DIC G Q:Y'>0 S DFN=+Y,(DGMISD,DGADMTY)=""

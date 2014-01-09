@@ -1,5 +1,5 @@
-OCXOSCR3 ;SLC/RJS,CLA -  message xref for the Order Check Patient Rule Event File;10/29/98  12:37
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOSCR3 ;SLC/RJS,CLA -  message xref for the Order Check Patient Rule Event File;1/05/04  14:56
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221**;Dec 17,1997
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  Q
@@ -16,7 +16,7 @@ SET(OCXX,OCXD0,OCXD1) ;
  .S OCXA=$A(OCXM,OCXP)-30 Q:(OCXA<1)
  .S OCXC=OCXC+OCXA,OCXC=OCXC+(OCXP-1*100)
  ;
- S ^OCXD(860.7,"AT",OCXX,OCXD0,OCXD1,OCXO,OCXC)=""
+ S ^OCXD(860.7,"AT",OCXX,OCXD0,OCXD1,OCXO,OCXC)=($H*86400)+$P($H,",",2)
  ;
  Q
  ;

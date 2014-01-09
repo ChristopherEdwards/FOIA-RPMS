@@ -1,5 +1,5 @@
 DGPTLMU6 ;ALB/MTC - PTF A/P LIST MANAGER UTILITY CONT. ; 9-24-92
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**606,1015**;Aug 13, 1993;Build 21
  ;
 DI501 ;-- this function will load the 501 information into the display array
  N X,Y,I,J
@@ -31,7 +31,7 @@ DI501 ;-- this function will load the 501 information into the display array
  .;-- check for ICD codes
  . S ^TMP("ARCPTFDI",$J,$$NUM^DGPTLMU4(.NUMREC),0)="ICD CODES :"
  . F J=5:1:9,11:1:15 I $P(X,U,J) D
- .. S Y=$P(^ICD9($P(X,U,J),0),U)_" - "_$P(^ICD9($P(X,U,J),0),U,3)
+ .. S Y=$$ICDDX^ICDCODE($P(X,U,J),$P(X,U,10)),Y=$P(Y,U,2)_" - "_$P(Y,U,4)
  .. S ^TMP("ARCPTFDI",$J,$$NUM^DGPTLMU4(.NUMREC),0)=" "_Y
  .;
  .;-- check for 300 node information

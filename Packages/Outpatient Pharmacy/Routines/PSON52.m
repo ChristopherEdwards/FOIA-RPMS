@@ -1,24 +1,28 @@
-PSON52 ;IHS/DSD/JCM-files new entries in prescription file ;13-Feb-2012 13:45;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013**;DEC 1997;Build 33
+PSON52 ;BIR/DSD - files new entries in prescription file ;06-Mar-2013 09:46;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013,1014,143,219,148,239,201,268,260,225,303,1015**;DEC 1997;Build 62
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
+ ;External reference to ^XUSEC supported by DBIA 10076
+ ;External reference SWSTAT^IBBAPI supported by DBIA 4663
+ ;External reference SAVNDC^PSSNDCUT supported by DBIA 4707
  ; Modified - IHS/CIA/PLS - 12/30/03 - Starting at line DD+37
  ;            IHS/MSC/PLS - 09/17/07 - Added CLININD and CLININD2 to $T region
  ;            IHS/MSC/PLS - 12/08/08 - Added CASH DUE set
+ ;                          07/30/10 - Line IBQ+1
  ;                          04/15/11 - Added PRV* and DEA* fields
  ;                          09/27/11 - Added APSPPRIO references
  ;                          10/13/11 - Line INIT+5,INIT+9
+ ;                          05/22/12 - Line DT+2
+ ;                          03/06/13 - Line DD-2
 EN(PSOX) ;Entry Point
 START ;
  D:$D(XRTL) T0^%ZOSV ; Start RT Monitor
  D INIT G:PSON52("QFLG") END D NFILE Q:$G(PSONEW("DFLG"))  D PS55,DIK
  S:$D(XRT0) XRTN=$T(+0) D:$D(XRT0) T1^%ZOSV ; Stop RT Monitor
  D FINISH
- ;I $P($G(^PS(53,+$P(^PSRX(PSOX("IRXN"),0),"^",3),0)),"^",7)'=1,$G(DUZ("AG"))="V" S PSOFLAG=1,DA=PSOX("IRXN") D COPAY^PSOCPB
  I $P(^PSRX(PSOX("IRXN"),0),"^",11)="W",$G(^("IB")) S ^PSRX("ACP",$P(^PSRX(PSOX("IRXN"),0),"^",2),$P(^(2),"^",2),0,PSOX("IRXN"))=""
 END D EOJ
  Q
- ;
 INIT ;
  K X,%DT S:$G(PSOID) PSOX("ISSUE DATE")=PSOID
  S PSOX("CS")=0
@@ -27,13 +31,17 @@ INIT ;
  ;IHS/MSC/PLS - 10/13/2011
  ;I $D(CLOZPAT) S X2=$S(X2=14:14,X2=7:7,1:X2) G DT
  I $D(CLOZPAT) S X2=$S(X2=28:28,X2=21:21,X2=14:14,X2=7:7,1:X2) G DT
+ ;S X2=$S(PSOX("DAYS SUPPLY")=X2:X2,+$G(PSOX("CS")):184,+$G(DEA("CS")):184,1:366)
  S X2=$S(PSOX("DAYS SUPPLY")=X2:X2,+$P($G(PSOX("CS")),U,2):184,+$G(PSOX("CS")):184,+$G(DEA("CS")):184,1:366)
+ ;
  ;IHS/MSC/PLS - 10/13/2011 - Next three lines commented out
  ;I X2<30 D
  ;. N % S %=$P($G(PSORX("PATIENT STATUS")),"^"),X2=30
  ;. S:%?.N %=$P($G(^PS(53,+%,0)),"^") I %["AUTH ABS" S X2=5
 DT ;IHS/MSC/PLS - 02/13/2012
- S X2=$S(+$G(PSODIR("CS")):184,1:366)
+ ;S X2=$S(+$G(PSODIR("CS")):184,1:366)
+ ;IHS/MSC/PLS - 05/22/2012
+ S X2=$S(+PSOX("CS"):184,1:366)
  ;IHS/MSC/PLS - 04/21/2011 - Added next three lines
  N EXTEXP
  S EXTEXP=$$GET1^DIQ(50,PSODRUG("IEN"),9999999.08)
@@ -92,16 +100,19 @@ NFILE I $G(OR0) D  Q:$G(PSONEW("DFLG"))
  I $G(PSOX("EXTERNAL SYSTEM"))'="" S $P(^PSRX(PSOX("IRXN"),"EXT"),"^",2)=$G(PSOX("EXTERNAL SYSTEM"))
  I $G(PSOX("NEWCOPAY")) S ^PSRX(PSOX("IRXN"),"IB")=$G(PSOX("NEWCOPAY"))
  ;Next line, set SC question based on Copay status?
- ;I $G(PSOBILL)=2 S ^PSRX(PSOX("IRXN"),"IBQ")=$S($G(PSOX("NEWCOPAY")):0,1:1)
- I $G(PSOANSQ("SC"))'="" S ^PSRX(PSOX("IRXN"),"IBQ")=$G(PSOANSQ("SC"))
- I $D(PSOANSQ) D
- . S ^PSRX(PSOX("IRXN"),"IBQ")=$S($D(^PSRX(PSOX("IRXN"),"IBQ")):$G(^PSRX(PSOX("IRXN"),"IBQ")),1:"")_"^"_$G(PSOANSQ("MST"))_"^"_$G(PSOANSQ("VEH"))_"^"_$G(PSOANSQ("RAD"))_"^"_$G(PSOANSQ("PGW"))_"^"_$G(PSOANSQ("HNC"))_"^"_$G(PSOANSQ("CV"))
+IBQ ;I $G(PSOBILL)=2 S ^PSRX(PSOX("IRXN"),"IBQ")=$S($G(PSOX("NEWCOPAY")):0,1:1)
+ S PSOSCP=""  ;IHS/MSC/PLS - 07/30/10 - Prevent undefined during autofinish
+ N PSOSCFLD S PSOSCFLD=$S(PSOSCP'="":$G(PSOANSQ("SC")),1:"")_"^"_$G(PSOANSQ("MST"))_"^"_$G(PSOANSQ("VEH"))_"^"_$G(PSOANSQ("RAD"))_"^"_$G(PSOANSQ("PGW"))_"^"_$G(PSOANSQ("HNC"))_"^"_$G(PSOANSQ("CV"))_"^"_$G(PSOANSQ("SHAD"))
+ I PSOSCP<50&($TR(PSOSCFLD,"^")'="")&($P($G(^PS(53,+$G(PSONEW("PATIENT STATUS")),0)),"^",7)'=1) D
+ . S ^PSRX(PSOX("IRXN"),"IBQ")=PSOSCFLD K PSOSCFLD  ;don't set if SC % is null or 0, just set it in ICD node
+ D ICD^PSODIAG
+ ;D:$$SWSTAT^IBBAPI() GACT^PSOPFSU0(PSOX("IRXN"),0)  ;IHS/MSC/PLS - 03/15/10
  K PSOANSQ,PSOANSQD,PSOX("NEWCOPAY")
  L -^PSRX("B",PSOX("IRXN"))
  Q
  ;
 PS55 ;
- L +^PS(55,PSODFN,"P"):0
+ L +^PS(55,PSODFN,"P"):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3)
  S:'$D(^PS(55,PSODFN,"P",0)) ^(0)="^55.03PA^^"
  F PSOX1=$P(^PS(55,PSODFN,"P",0),"^",3):1 Q:'$D(^PS(55,PSODFN,"P",PSOX1))
  S PSOX("55 IEN")=PSOX1
@@ -127,13 +138,23 @@ ANQ I $G(ANQDATA)]"" D NOW^%DTC G:$D(^PS(52.52,"B",%)) ANQ D
  ;
  I PSOX("FILL DATE")>DT,$P(PSOPAR,"^",6) S DA=PSOX("IRXN"),RXFL(PSOX("IRXN"))=0 D SUS^PSORXL K DA G FINISHX
  ;
-FINISHP I $G(PSORX("PSOL",1))']"" S PSORX("PSOL",1)=PSOX("IRXN")_",",RXFL(PSOX("IRXN"))=0 G FINISHX
+ ; - Calling ECME for claims generation and transmission / REJECT handling
+ N ACTION,PSOERX
+ S PSOERX=PSOX("IRXN")
+ I $$SUBMIT^PSOBPSUT(PSOERX,0) D  I ACTION="Q"!(ACTION="^") Q
+ . S ACTION="" D ECMESND^PSOBPSU1(PSOERX,0,PSOX("FILL DATE"),"OF")
+ . I $$FIND^PSOREJUT(PSOERX,0) D
+ . . S ACTION=$$HDLG^PSOREJU1(PSOERX,0,"79,88","OF","IOQ","Q")
+ . I $$STATUS^PSOBPSUT(PSOERX,0)="E PAYABLE" D
+ . . D SAVNDC^PSSNDCUT(+$$GET1^DIQ(52,PSOERX,6,"I"),$G(PSOSITE),$$GETNDC^PSONDCUT(PSOERX,0))
+ ;
+FINISHP ;
+ I $G(PSORX("PSOL",1))']"" S PSORX("PSOL",1)=PSOX("IRXN")_",",RXFL(PSOX("IRXN"))=0 G FINISHX
  F PSOX1=0:0 S PSOX1=$O(PSORX("PSOL",PSOX1)) Q:'PSOX1  S PSOX2=PSOX1
  I $L(PSORX("PSOL",PSOX2))+$L(PSOX("IRXN"))<220 S PSORX("PSOL",PSOX2)=PSORX("PSOL",PSOX2)_PSOX("IRXN")_","
  E  S PSORX("PSOL",PSOX2+1)=PSOX("IRXN")_","
  S RXFL(PSOX("IRXN"))=0
-FINISHX ;
- ;call to build Rx array for bingo board
+FINISHX ;call to build Rx array for bingo board
  I $G(PSORX("MAIL/WINDOW"))["W" S BINGCRT=1,BINGRTE="W",BBFLG=1 D BBRX^PSORN52C
  K PSOX1,PSOX2
  Q
@@ -143,6 +164,7 @@ EOJ ;
  D PSOUL^PSSLOCK(PSOX("IRXN"))
  Q
  ;
+ ;;PSODRUG("DAW");;EPH;;1  ;REMOVED IN PATCH 1015
  ;;PSOX("SIG");;SIG;;1
 DD ;;PSOX("RX #");;0;;1
  ;;PSOX("ISSUE DATE");;0;;13

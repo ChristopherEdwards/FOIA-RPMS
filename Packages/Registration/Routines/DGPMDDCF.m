@@ -1,5 +1,5 @@
 DGPMDDCF ;ALB/MIR - COMPUTED FIELDS IN FILES 42,405.4 ; 29 MAY 90 @1400
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;called from computed fields in ward location and room-bed files
 WIN ;is this ward location currently inactive?  (1=inactive, 0=active)
  ;input:      D0 = IFN of WARD LOCATION file

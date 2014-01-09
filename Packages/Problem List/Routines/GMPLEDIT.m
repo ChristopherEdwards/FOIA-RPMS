@@ -1,5 +1,5 @@
 GMPLEDIT ; SLC/MKB/KER -- VALM Utilities for Edit sub-list ; 04/15/2002
- ;;2.0;Problem List;**26**;Aug 25, 1994
+ ;;2.0;Problem List;**26,35**;Aug 25, 1994;Build 26
  ;
  ; External References
  ;   DBIA 10060  ^VA(200
@@ -22,7 +22,7 @@ EN ; Init Variables, list array
 INIT ;   Build list from GMPFLD()
  N LCNT,TEXT,I,SP,LINE,STR,NUM,NOTE,ICD
  S LCNT=1,ICD=$S($D(^XUSEC("GMPL ICD CODE",DUZ)):1,1:0)
- S SP="" F I=1.11,1.12,1.13,1.15,1.16 S:GMPFLD(I) SP=SP_$P(GMPFLD(I),U,2)_U
+ S SP="" F I=1.11,1.12,1.13,1.15,1.16,1.17,1.18 S:GMPFLD(I) SP=SP_$P(GMPFLD(I),U,2)_U
  S:$L(SP) SP=$E(SP,1,$L(SP)-1)
  K GMPSAVED,GMPREBLD D CLEAN^VALM10
  D WRAP^GMPLX($P(GMPFLD(.05),U,2),65,.TEXT)

@@ -1,5 +1,5 @@
-GMPLX ; SLC/MKB -- Problem List Problem Utilities ; 04/15/2002
- ;;2.0;Problem List;**7,23,26**;Aug 25, 1994
+GMPLX ; SLC/MKB/AJB -- Problem List Problem Utilities ; 02/27/2004
+ ;;2.0;Problem List;**7,23,26,28,27**;Aug 25, 1994
  ;
  ; External References
  ;   DBIA   446  ^AUTNPOV(
@@ -13,9 +13,11 @@ GMPLX ; SLC/MKB -- Problem List Problem Utilities ; 04/15/2002
  ;   DBIA  1609  CONFIG^LEXSET
  ;   DBIA 10103  $$FMTE^XLFDT
  ;   DBIA 10104  $$UP^XLFSTR
- ;                   
+ ;   DBIA  2742  GMPLX
+ ;   DBIA  3991  $$STATCHK^ICDAPIU
+ ;
 SEARCH(X,Y,PROMPT,UNRES,VIEW) ; Search Lexicon for Problem X
- N DIC S:'$L($G(VIEW)) VIEW="PL1" D CONFIG^LEXSET("GMPL",VIEW)
+ N DIC S:'$L($G(VIEW)) VIEW="PL1" D CONFIG^LEXSET("GMPL",VIEW,DT)
  S DIC("A")=$S($L($G(PROMPT)):PROMPT,1:"Select PROBLEM: ")
  S DIC="^LEX(757.01,",DIC(0)=$S('$L($G(X)):"A",1:"")_"EQM"
  S:'$G(UNRES) LEXUN=0 D ^DIC S:+Y>1 X=$P(Y,U,2)
@@ -145,7 +147,9 @@ AUDIT(DATA,OLD) ; Makes Entry in Audit File
  Q
  ;
 DTMOD(DA) ; Update Date Last Modified
- S $P(^AUPNPROB(DA,0),U,3)=DT S DIK="^AUPNPROB(",DIK(1)=.03 D EN^DIK K DIK
+ N DIE,DR
+ S DR=".03///TODAY",DIE="^AUPNPROB("
+ D ^DIE
  Q
  ;
 MSG() ; List Manager Message Bar
@@ -154,3 +158,17 @@ MSG() ; List Manager Message Bar
 KILL ; Clean-Up Variables
  K X,Y,DIC,DIE,DR,DA,DUOUT,DTOUT,GMPQUIT,GMPRT,GMPSAVED,GMPIFN,GMPLNO,GMPLNUM,GMPLSEL,GMPREBLD,GMPI,GMPLSLST,GMPLJUMP
  Q
+ ;
+CODESTS(PROB,ADATE) ;check status of code associated with a problem
+ ; Input:
+ ;    PROB  = pointer to the PROBLEM (#9000011) file
+ ;    ADATE = FM date on which to check the status of ICD9 code  (opt.) 
+ ;
+ ; Output:
+ ;   1  = ACTIVE on the date passed or current date if not passed
+ ;   0  = INACTIVE on the date passed or current date if not passed
+ ;
+ I '$G(ADATE) S ADATE=DT
+ I '$D(^AUPNPROB(PROB,0)) Q 0
+ S PROB=$P(^AUPNPROB(PROB,0),U)
+ Q +($$STATCHK^ICDAPIU($$CODEC^ICDCODE(+(PROB)),ADATE))

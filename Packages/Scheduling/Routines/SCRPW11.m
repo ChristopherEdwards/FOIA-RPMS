@@ -1,5 +1,5 @@
 SCRPW11 ;RENO/KEITH - Patient Activity by Appointment Frequency ; 15 Jul 98  02:38PM
- ;;5.3;Scheduling;**139,144**;AUG 13, 1993
+ ;;5.3;PIMS;**139,144,1015,1016**;JUN 30, 2012;Build 20
  D TITL^SCRPW50("Patient Activity by Appointment Frequency") N SDDIV Q:'$$DIVA^SCRPW17(.SDDIV)
 DTR D SUBT^SCRPW50("*** Date Range Selection ***")
 FDT W ! S %DT="AEPX",%DT("A")="Beginning date: ",%DT(0)="-TODAY" D ^%DT G:X=U!($D(DTOUT)) EXIT G:X="" EXIT
@@ -73,6 +73,11 @@ L1 S SDDAY=SDBDAY F  S SDDAY=$O(^SC(SDCL,"S",SDDAY)) Q:(SDDAY'>0!(SDDAY>SDEDAY))
  Q
  ;
 EVAL S SDSTOP=SDSTOP+1 I SDSTOP#1000=0 D STOP Q:SDOUT
+ ;SD*562 if DFN missing in appt sub-file of file #44 delete record
+ I '$D(DFN)!(DFN="")!(DFN=0) D  Q
+ .S DA(2)=SDCL,DA(1)=SDDAY,DA=SDCLPT
+ .S DIK="^SC("_DA(2)_",""S"","_DA(1)_",1," D ^DIK
+ .K DA,DIK
  S SDPTAP0=^DPT(DFN,"S",SDDAY,0) Q:$P(SDPTAP0,U,2)["C"!($P(SDPTAP0,U,2)["N")  D EV1(SDIV) D:SDMD EV1(0)
  Q
  ;

@@ -1,5 +1,5 @@
 DG53454P ;ALB/CKN - Post Install for DG*5.3*454; 16 AUG 2002
- ;;5.3;Registration;**454**; Aug 13,1993
+ ;;5.3;Registration;**454,1015**; Aug 13,1993;Build 21
  ;
 POST ; Entry point for post init
  ;

@@ -10,7 +10,7 @@ ZWR
 ^BICONT(7,0)="Immune Deficient Household^^0"
 ^BICONT(8,0)="Egg Allergy^^1"
 ^BICONT(9,0)="Neomycin Allergy^^1"
-^BICONT(10,0)="Other Allergy^^1"
+^BICONT(10,0)="Other Allergy^^1^1"
 ^BICONT(11,0)="Patient Refusal^1^1"
 ^BICONT(12,0)="Hx of Chicken Pox^^1"
 ^BICONT(13,0)="Reason not recorded^^0"

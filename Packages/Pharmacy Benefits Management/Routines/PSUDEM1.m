@@ -1,5 +1,5 @@
 PSUDEM1 ;BIR/DAM - Patient Demographics Extract ; 20 DEC 2001
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19,21**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;**12**;MARCH, 2005;Build 19
  ;
  ;DBIA's
  ; Reference to file #27.11  supported by DBIA 2462
@@ -12,13 +12,15 @@ PSUDEM1 ;BIR/DAM - Patient Demographics Extract ; 20 DEC 2001
 EN ;EN   Routine control module
  ;
  D DAT
- D DEM
+ I $D(^XTMP("PSUMANL")) D DEM     ;Manual entry point  DAM
+ I $G(^XTMP("PSU_"_PSUJOB,"PSUPSUMFLAG")) D HL7    ;Auto entry point DAM
  I '$D(^XTMP("PSU_"_PSUJOB,"PSUFLAG")) D XMD
  K ^XTMP("PSU_"_PSUJOB,"PSUXMD")
  ;
  I $G(^XTMP("PSU_"_PSUJOB,"PSUPSUMFLAG"))=1 D
  .S PSUOPTS="1,2,3,4,5,6,7,8,9,10,11"
  .S PSUAUTO=1
+ ;
  ;
  D PULL^PSUCP
  F I=1:1:$L(PSUOPTS,",") S PSUMOD($P(PSUOPTS,",",I))=""
@@ -27,6 +29,25 @@ EN ;EN   Routine control module
  ;
  K ^XTMP("PSU_"_PSUJOB,"PSUPDFLAG")
  K ^XTMP("PSU_"_PSUJOB,"PSUDM")
+ K ^XTMP("PSU_"_PSUJOB,"PSUDMX")
+ K PSUDMDFN,PSURAC,PSURDT
+ Q
+ ;
+HL7 ;This is the Patient Demographics extract that runs only when
+ ;the PSU PBM [AUTO] option is executed.  It captures demographic
+ ;information ONLY on new or updated patient.
+ ;
+ ; *** PSU*4.0*12 - BAJ -- added QUIT if NULL
+ F  S PSUSDT=$O(^PSUDEM("B",PSUSDT)) Q:PSUSDT=""  Q:PSUSDT>PSUEDT  D
+ . S I=""
+ . S I=$O(^PSUDEM("B",PSUSDT,I)) Q:I=""
+ . S DFN=$P(^PSUDEM(I,0),U,2)
+ . S ^XTMP("PSU"_PSUJOB,"REXMT",DFN)=""
+ K DFN
+ ;
+ S DFN=""
+ F  S (DFN,PSUDMDFN)=$O(^XTMP("PSU"_PSUJOB,"REXMT",DFN)) Q:DFN=""  D DEM1
+ ;
  Q
  ;
 DAT ;Date Module
@@ -34,7 +55,8 @@ DAT ;Date Module
  ;Date extract was run
  S %H=$H
  D YMD^%DTC                   ;Converts $H to FileMan format
- S $P(^TMP("PSUDM",$J),U,3)=X    ;Set extract date in temp global
+ ; ** S $P(^TMP("PSUDM",$J),U,3)=X    ;Set extract date in temp global
+ S PSURDT=X
  ;
  Q
  ;
@@ -50,102 +72,71 @@ INST ;EN  Place institution code sending report into temp global.
  S $P(^XTMP("PSU_"_PSUJOB,"PSUSITE"),U,2)=PSUDIVNM
  Q
  ;
-DEM ;PULL PATIENT DEMOGRAPHICS 
+DEM ;PULL PATIENT DEMOGRAPHICS. This is run only when user selects
+ ;PSU PBM [MANUAL] option.  It gather patient demographic information
+ ;for all patients in the PATIENT file #2.
  ;
+ ;N PSUREC    ;DAM TEST NEW CODE
  N PSUREC
+ K PSUREC1,PSUREC2,PSUREC3,PSUREC4,PSUREC5,PSUREC6,PSUREC7
+ K PSUREC8,PSUREC9,PSUREC10,PSUREC11,PSUREC12,PSUREC13,PSUREC14
+ K PSUREC15,PSUDOD,VAEL,VADM
  ;
  S PSUNAM=0
  F  S PSUNAM=$O(^DPT("B",PSUNAM)) Q:PSUNAM=""  D
- .S I=0
- .F  S I=$O(^DPT("B",PSUNAM,I)) Q:I=""  D
- ..Q:'$D(^DPT(I,0))
- ..I $P($G(^DPT(I,0)),U,21)'=1 D
- ...M ^XTMP("PSU_"_PSUJOB,"PSUDM",I)=^TMP("PSUDM",$J)       ;Merge ^TMP info into ^XTMP
- ...S PSUREC=$P($G(^DPT(I,0)),U,2) D REC D
- ....S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,8)=PSUREC             ;Gender in ^XTMP(
- ...S PSUREC=$P($G(^DPT(I,0)),U,9) D REC D
- ....S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,12)=PSUREC            ;SSN in ^XTMP(
- ...S PSUREC=$P($G(^DPT(I,0)),U,3) D REC D
- ....S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,5)=PSUREC             ;DOB in ^XTMP(
- ...S PSUREC=$P($G(^DPT(I,0)),U,16) D REC D
- ....S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,16)=PSUREC          ;Dt pt entered in file
- ...S PSUREC=$P($G(^PS(55,I,0)),U,7) D REC D
- ....S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,17)=PSUREC     ;Dt of first pharmacy service
- ...S PSUREC=$P($G(^PS(55,I,0)),U,8) D REC D
- ....S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,18)=PSUREC     ;Service Actual/Historical
- ...S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,30)=""                ;places "^" at end
- ...S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,2)=PSUSNDR   ;Site sending data
- ...D RACE
- ...D ELIG
- ...D PRIO
- ...D MTS
- ...D MISC
- ...D AGE
- ...D ETH
- ...D ELIM
+ .S PSUDMDFN=0
+ .F  S (DFN,PSUDMDFN)=$O(^DPT("B",PSUNAM,PSUDMDFN)) Q:PSUDMDFN=""  D DEM1
  Q
  ;
-ELIM ;Eliminate records with DOD before 7/1/98
- ;Eliminate test patients with SSN containing 5 leading '0's
- ;
- I $D(^XTMP("PSU_"_PSUJOB,"PSUDM",I)) D
- .I $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,4)'="" D     ;eliminate if DOD<02980701
- ..I $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,4)<02980701 K ^XTMP("PSU_"_PSUJOB,"PSUDM",I)
- ;
- I $D(^XTMP("PSU_"_PSUJOB,"PSUDM",I)) D
- .I $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,12)'="" D    ;eliminate test patients
- ..I $E($P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,12),1,5)="00000" K ^XTMP("PSU_"_PSUJOB,"PSUDM",I)
- Q
- ;
-AGE ;patient current age
- ;
- S PSUDOD=$P($G(^XTMP("PSU_"_PSUJOB,"PSUDM",I)),U,4)  ;Date of death
- S DFN=I
+DEM1 ;
+ K PSUREC,PSUREC1,PSUREC2,PSUREC3,PSUREC4,PSUREC5,PSUREC6,PSUREC7
+ K PSUREC8,PSUREC9,PSUREC10,PSUREC11,PSUREC12,PSUREC13,PSUREC14
+ K PSUREC15,PSUDOD,VAEL,VADM
+ S PSUDOD=$P($G(^DPT(PSUDMDFN,.35)),U,1) I PSUDOD,PSUDOD<2980701 Q
+ Q:'$D(^DPT(PSUDMDFN,0))  S PSUREC1=$G(^DPT(PSUDMDFN,0))
+ I $P(PSUREC1,U,21)=1 Q
+ I $E($P(PSUREC1,U,9),1,5)="00000" Q
  D DEM^VADPT
- S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",DFN),U,6)=VADM(4)  ;Age or age at time of death
- S I=DFN
- ;
- I '$D(^DPT(I,0)) K ^XTMP("PSU_"_PSUJOB,"PSUDM",I)   ;Kill ^XTMP if IEN doesn't exist
- ;
- Q
- ;
-RACE ;Pull external format of patient race
- ;
- S DFN=I
- D DEM^VADPT
- S PSUREC=$P($G(VADM(8)),U,2)
- D REC
- S I=DFN
- S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,7)=PSUREC               ;Race in ^XTMP(
- Q
- ;
-ELIG ;Pull external format of Primary Eligibility Code
- ;
- S DFN=I
  D ELIG^VADPT
- S PSUREC=$P($G(VAEL(1)),U,2)
- D REC
- S I=DFN
- S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,9)=PSUREC         ;Primary elig code
+ ;RUN DATE
+ S $P(PSUREC,U,3)=PSURDT
+ ;Gender
+ S PSUREC3=$TR($P(PSUREC1,U,2),"^","'"),$P(PSUREC,U,8)=PSUREC3
+ ;SSN
+ S PSUREC4=$TR($P(PSUREC1,U,9),"^","'"),$P(PSUREC,U,12)=PSUREC4
+ ;DOB
+ S PSUREC5=$TR($P(PSUREC1,U,3),"^","'"),$P(PSUREC,U,5)=PSUREC5
+ ;DT PT ENTERED IN FILE
+ S PSUREC6=$TR($P(PSUREC1,U,16),"^","'"),$P(PSUREC,U,16)=PSUREC6
+ S PSUREC7=$G(^PS(55,PSUDMDFN,0)),$P(PSUREC,U,17)=$TR($P(PSUREC7,U,7),"^","'")
+ ;Service Actual/Historical
+ S $P(PSUREC,U,18)=$TR($P(PSUREC7,U,8),"^","'")
+ ;PLACE "^" AT END OF RECORD
+ S $P(PSUREC,U,30)=""
+ ;SITE SENDING DATA
+ S $P(PSUREC,U,2)=PSUSNDR
+ ;RACE
+ S PSUREC8=$P($G(VADM(8)),U,2),$P(PSUREC,U,7)=PSUREC8
+ ;PRIMARY ELIG CODE
+ S PSUREC9=$P($G(VAEL(1)),U,2),$P(PSUREC,U,9)=PSUREC9
+ D PRIO
+ ;MEANS TEST STATUS
+ S PSUREC11=$P($G(VAEL(9)),U,2),$P(PSUREC,U,10)=PSUREC11
+ D MISC
+ ;FIND PATIENT ICN-VMP
+ D ICN
+ ;PATIENT CURRENT AGE
+ S PSUREC12=$G(VADM(4)),$P(PSUREC,U,6)=PSUREC12
+ D ETH
+ S ^XTMP("PSU_"_PSUJOB,"PSUDMX",PSUDMDFN)=$G(PSUREC)
  Q
  ;
 PRIO ;Pull Enrollment Priority
  ;
- S PSUE=0,PSUEC=0
- F  S PSUEC=$O(^DGEN(27.11,"C",I,PSUEC)) Q:PSUEC=""  D
- .S PSUREC=$P($G(^DGEN(27.11,PSUEC,0)),U,7)
- .I PSUREC'="" D
- ..D REC
- ..S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,11)=PSUREC           ;Enrollment
- Q
- ;
-MTS ;Pull external format of Means Test Status
- ;
- S DFN=I
- D ELIG^VADPT
- S PSUREC=$P($G(VAEL(9)),U,2) D REC D
- .S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",DFN),U,10)=PSUREC             ;Means Test Status
- S I=DFN
+ S PSUEC=0
+ F  S PSUEC=$O(^DGEN(27.11,"C",PSUDMDFN,PSUEC)) Q:PSUEC=""  D
+ .S PSUREC10=$TR($P($G(^DGEN(27.11,PSUEC,0)),U,7),"^","'")
+ .I PSUREC10'="" S $P(PSUREC,U,11)=PSUREC10
  Q
  ;
 MISC ;Pulls miscellaneous additional info via EN^DIQ1 call
@@ -154,51 +145,37 @@ MISC ;Pulls miscellaneous additional info via EN^DIQ1 call
  ;
  N PSUDATMP,PSUDDTMP,PSUDTMPA
  ;
- S PSUDTMPA=$$OUTPTPR^SDUTL3(I)   ;Prov IEN^EXTERNAL VALUE in temp variable
+ S PSUDTMPA=$$OUTPTPR^SDUTL3(PSUDMDFN)   ;Prov IEN^EXTERNAL VALUE in temp variable
  S PSUDATMP=$P($G(PSUDTMPA),U)       ;Prov IEN
- S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,15)=PSUDATMP
+ S $P(PSUREC,U,15)=PSUDATMP
  I '$D(PSUDATMP)!PSUDATMP=0 S PSUDATMP=99999999999
- S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,14)=$$GET1^DIQ(200,PSUDATMP,9,"I")   ;Prov SSN
- S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,4)=$E($P($G(^DPT(I,.35)),U),1,7)    ;DOD
- D ICN
+ S $P(PSUREC,U,14)=$$GET1^DIQ(200,PSUDATMP,9,"I")   ;Prov SSN
+ S $P(PSUREC,U,4)=$S(PSUDOD:PSUDOD\1,1:"")
  Q
  ;
 ICN ;Find patient ICN
+ ;VMP - OIFO BAY PINES;ELR;PSU*3.0*24
  ;
  N PSUICN,PSUICN1
- S PSUICN=$$GETICN^MPIF001(I) D
- .I PSUICN'[-1 S PSUICN1=$TR(PSUICN,"V","^") D
- ..S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",I),U,13)=$P(PSUICN1,U,1)    ;ICN
+ S PSUICN=$$GETICN^MPIF001(PSUDMDFN) D
+ .I PSUICN'[-1 D
+ ..S $P(PSUREC,U,13)=PSUICN    ;ICN
  Q
  ;
 ETH ;Ethnicity and multiple race entries
  ;
- S DFN=I
- N PSUETH,PSURAC
- D DEM^VADPT
- S PSUETH=$P($G(VADM(11,1)),U,2) D                    ;Ethnicity
- .S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",DFN),U,19)=PSUETH
- I '$G(VADM(11,1)) S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",DFN),U,19)=""
+ S PSUREC14=$P($G(VADM(11,1)),U,2),$P(PSUREC,U,19)=PSUREC14
  ;
- S PSURCE=0,C=20
+ S PSURCE=0,C=20,$P(PSUREC,U,C)=""
  F  S PSURCE=$O(VADM(12,PSURCE)) Q:PSURCE=""  D       ;Race multiple
- .S PSURAC=$P($G(VADM(12,PSURCE)),U,2) D
- ..S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",DFN),U,C)=PSURAC
- .I '$G(VADM(12,PSURCE)) S $P(^XTMP("PSU_"_PSUJOB,"PSUDM",DFN),U,C)=""
- .S C=C+1
- S I=DFN
- Q
- ;
-REC ;EN    If "^" is contained in any record, replace it with "'"
- ;
- I PSUREC["^" S PSUREC=$TR(PSUREC,"^","'")
+ .S PSURAC=$P($G(VADM(12,PSURCE)),U,2),$P(PSUREC,U,C)=PSURAC,C=C+1
  Q
  ;
 XMD ;Format mailman message and send.
  ;
  S PSUAB=0,PSUPL=1
- F  S PSUAB=$O(^XTMP("PSU_"_PSUJOB,"PSUDM",PSUAB)) Q:PSUAB=""  D
- .M ^XTMP("PSU_"_PSUJOB,"PSUDM",PSUPL)=^XTMP("PSU_"_PSUJOB,"PSUDM",PSUAB)  ;Global numerical order
+ F  S PSUAB=$O(^XTMP("PSU_"_PSUJOB,"PSUDMX",PSUAB)) Q:PSUAB=""  D
+ .M ^XTMP("PSU_"_PSUJOB,"PSUDM",PSUPL)=^XTMP("PSU_"_PSUJOB,"PSUDMX",PSUAB)  ;Global numerical order
  .S PSUPL=PSUPL+1
  ;
  NEW PSUMAX,PSULC,PSUTMC,PSUTLC,PSUMC
@@ -229,4 +206,8 @@ CONF ;Construct globals for confirmation message
  S PSUSUB="PSU_"_PSUJOB
  S ^XTMP(PSUSUB,"CONFIRM",PSUDIVIS,7,"M")=PSUMC
  S ^XTMP(PSUSUB,"CONFIRM",PSUDIVIS,7,"L")=PSUTLC
+ Q
+REC ;EN If "^" is contained in any record, replace it with "'"
+ ;
+ I PSUREC["^" S PSUREC=$TR(PSUREC,"^","'")
  Q

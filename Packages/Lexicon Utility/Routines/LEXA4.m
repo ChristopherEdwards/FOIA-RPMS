@@ -1,5 +1,5 @@
 LEXA4 ;ISA/CJE-Look-up (Loud) Unresolved Narrative ;01-13-00
- ;;2.0;LEXICON UTILITY;**3,6,15**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**3,6,15**;Sep 23, 1996;Build 15
  ; JPK;Added more explanatory help text for display
  ;
 EN ; User input was not found

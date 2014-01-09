@@ -1,5 +1,5 @@
 SDPPAPP1 ;ALB/CAW - Display Appointments; 5/4/92
- ;;5.3;Scheduling;**6,22,140,80**;Aug 13, 1993
+ ;;5.3;Scheduling;**6,22,140,80,517,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN1 ; Loop through appt. date/time
@@ -10,11 +10,18 @@ EN1 ; Loop through appt. date/time
  .I $D(SDY),SDY'=+SDPDATA Q
  .S ^TMP("SDAPT",$J,-SDDT,0)=SDPDATA
  .I $D(^DPT(DFN,"S",SDDT,"R")) S ^TMP("SDAPT",$J,-SDDT,"R")=^DPT(DFN,"S",SDDT,"R")
- .F SDAP=0:0 S SDAP=$O(^SC(+SDPDATA,"S",SDDT,1,SDAP)) Q:'SDAP  S SDCDATA=^(SDAP,0),SDCI=$G(^("C")),SDOB=$G(^("OB")) I +SDCDATA=DFN S ^TMP("SDAPT",$J,-SDDT,1)=SDCDATA,^("C")=SDCI
+ .S POP=0 F SDAP=0:0 S SDAP=$O(^SC(+SDPDATA,"S",SDDT,1,SDAP)) Q:'SDAP  D CHK Q:POP  S SDCDATA=$G(^SC(+SDPDATA,"S",SDDT,1,SDAP,0)),SDCI=$G(^("C")),SDOB=$G(^("OB")) I +SDCDATA=DFN S ^TMP("SDAPT",$J,-SDDT,1)=SDCDATA,^("C")=SDCI  ;SD/517 added CHK
  .I '$D(SDCDATA) S (SDCDATA,SDCI,SDOB)=0 S ^TMP("SDAPT",$J,-SDDT,1)=SDCDATA,^("C")=SDCI
  .K SDCDATA
  F I=-9999999.99:0 S I=$O(^TMP("SDAPT",$J,I)) Q:'I  S SDWHEN=$E(I,2,999),SDPDATA=^(I,0),SDCDATA=$G(^(1)),SDCI=$G(^("C")),SDREMARK=$G(^("R")) D INFO
- K ^TMP("SDAPT",$J)
+ K ^TMP("SDAPT",$J),POP
+ Q
+ ;
+CHK ;SD/517
+ Q:$D(^SC(+SDPDATA,"S",SDDT,1,SDAP,0))
+ S SDCDATA=DFN_U_0
+ S ^TMP("SDAPT",$J,-SDDT,1)=SDCDATA
+ S POP=1
  Q
  ;
 INFO ; Set information
@@ -53,6 +60,17 @@ CI ; Checked-In and Checked-Out Times
  I $P(SDCI,U,3)'="" D
  .S X=$$SETSTR^VALM1("Checked-Out:",X,42,12)
  .S X=$$SETSTR^VALM1($TR($$FMTE^XLFDT($P(SDCI,U,3),"5F")," ","0"),X,SDSEC,SDLEN)
+ ;following logic for Warning added per SD/517
+ I $D(SDCDATA) I $P(SDCDATA,U,2)=0 D
+ .S X="" D SET(X)
+ .D SET("**************************** WARNING *******************************************")
+ .D SET("There is a data inconsistency or data corruption problem with the above")
+ .D SET("appointment.  Corrective action needs to be taken.  Please cancel")
+ .D SET("the appointment above.  If it is a valid appointment, it will have to")
+ .D SET("be re-entered via Appointment Management.")
+ .D SET("********************************************************************************")
+ .S X="" D SET(X)
+ ;
  D:X'="" SET(X)
  D ^SDPPAPP2
  Q

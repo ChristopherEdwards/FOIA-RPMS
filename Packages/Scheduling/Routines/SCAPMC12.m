@@ -1,5 +1,5 @@
 SCAPMC12 ;ALB/REW - Team API's: TPPR ; 2/10/00 8:14am
- ;;5.3;Scheduling;**41,204**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,204,1015**;AUG 13, 1993;Build 21
  ;;1.0
 TPPR(SC200,SCDATES,SCPURPA,SCROLEA,SCLIST,SCERR) ; -- positions for a pract
  ; input:

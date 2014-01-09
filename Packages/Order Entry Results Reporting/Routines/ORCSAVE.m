@@ -1,6 +1,8 @@
-ORCSAVE ;SLC/MKB/JDL-Save ;06-Oct-2010 11:17;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,56,70,73,92,94,116,141,163,187,190,1006**;Dec 17, 1997
+ORCSAVE ;SLC/MKB/JDL-Save ;18-Jul-2013 14:23;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,56,70,73,92,94,116,141,163,187,190,1006,195,243,303,1010,1011**;Dec 17, 1997;Build 3
+ ;Per VHA Directive 2004-038, this routine should not be modified.
  ;Modified - IHS/MSC/PLS - 08/06/10 - Line EN2+21
+ ;                       - 07/18/13 - Line EN+14
 NEW(ORDIALOG,ORDG,ORPKG,ORCAT,OREVENT,ORDUZ,ORLOG) ; -- New order
  ; Returns ORIFN = [new] order number, if created/saved
  D EN
@@ -10,12 +12,28 @@ XX ; -- save new/unreleased edited order into Orders file
  ;    Requires: ORDIALOG() = array of dialog values
  ;              ORIFN      = IFN of original order that was edited
  ;
- N OLDIFN S ORIFN=+ORIFN
+ N OLDIFN S ORIFN=+ORIFN,OLDIFN=0
  I $S($P(^OR(100,ORIFN,3),U,3)=11:0,$P(^(3),U,3)'=10:1,$P(^(8,1,0),U,4)=2:0,1:1) S OLDIFN=ORIFN K ORIFN ; create new order if released or delayed&signed
  D EN Q:'ORIFN  S:'$G(ORDA) ORDA=1
  I $G(OLDIFN) D  ;save links between orders
  . S $P(^OR(100,ORIFN,3),U,5)=OLDIFN,$P(^(3),U,11)=1
  . S $P(^OR(100,OLDIFN,3),U,6)=ORIFN S:$D(^(5)) ^OR(100,ORIFN,5)=^OR(100,OLDIFN,5)
+ I $D(^OR(100,+OLDIFN,0)) D
+ . Q:'$G(OREVTDF)
+ . N OLDEVT,OLDSTS,LSTACT,PATID,NOW,WHEN
+ . S (OLDEVT,OLDSTS,LSTACT)=0
+ . S NOW=$$NOW^XLFDT
+ . S OLDEVT=$P(^(0),U,17),OLDSTS=$P(^(3),U,3)
+ . ; Active status = 6 from #100.01
+ . I (OLDEVT>0),OLDSTS=6 D
+ . . S $P(^OR(100,+ORIFN,0),U,17)=OLDEVT
+ . . S $P(^OR(100,+ORIFN,3),U,3)=11
+ . . S LSTACT=$P($G(^OR(100,+ORIFN,3)),U,7)
+ . . I $D(^OR(100,+ORIFN,8,LSTACT,0)) D
+ . . . S $P(^OR(100,+ORIFN,8,LSTACT,0),U,15)=11
+ . . . S PATID=$P(^OR(100,+ORIFN,0),U,2)
+ . . . S WHEN=$P(^OR(100,+ORIFN,8,LSTACT,0),U)
+ . . . S ^OR(100,"AC",PATID,9999999-WHEN,+ORIFN,LSTACT)=""
  Q
  ;
 RN ; -- save new/unreleased renewal order into Orders file
@@ -40,8 +58,9 @@ EN ; -- save new/unreleased order in ORDIALOG() into Orders file
  S PKG=$S($G(ORPKG):ORPKG,1:$P(^ORD(101.41,+ORDIALOG,0),U,7))
  I $G(ORIFN),$D(^OR(100,ORIFN,0)) S STS=$P(^(3),U,3) G EN2 ; unrel order
  S DG=$S($G(ORDG):+ORDG,1:$P(^ORD(101.41,+ORDIALOG,0),U,5))
- I $G(OREVENT),$$GET1^DIQ(9.4,+PKG_",",1)'="PSO" S LOC="",TRSPEC=""
+ I $G(OREVENT),$$GET1^DIQ(9.4,+PKG_",",1)'="PSO",'$G(DGPMT) S LOC="",TRSPEC="" ;195
  E  S LOC=$G(ORL),TRSPEC=$G(ORTS)
+ S:LOC=0 LOC=""  ;IHS/MSC/PLS - 07/18/13
  S TYPE=$S("^B^C^X^P^0^"[(U_$G(ORSRC)_U):ORSRC,$G(ORDCNTRL)="SN":"P",1:0)
  S LOG=$S($G(ORLOG):ORLOG,1:+$E(NOW,1,12)),USR=$S($G(ORDUZ):ORDUZ,1:DUZ)
  S NATR=+$O(^ORD(100.02,"C","E",0)) ;assume Elec Entered until changed
@@ -54,6 +73,14 @@ EN1 S ^OR(100,ORIFN,0)=ORIFN_U_ORVP_U_U_$G(ORNP)_U_+ORDIALOG_";ORD(101.41,^"_USR
  S:STS'=10 ^OR(100,"AC",ORVP,9999999-LOG,ORIFN,1)=""
  S:SIGNREQD ^OR(100,"AS",ORVP,9999999-LOG,ORIFN,1)=""
  S:$G(OREVENT) ^OR(100,"AEVNT",ORVP,OREVENT,ORIFN)=""
+ ;check if OR GTX STUDY REASON is in ORDIALOG and strip out control characters
+ N ORRFSID
+ S ORRFSID=$O(^ORD(101.41,"B","OR GTX STUDY REASON",""))
+ I ORRFSID,$D(ORDIALOG(ORRFSID,1)) D
+ .N X,I
+ .S X=ORDIALOG(ORRFSID,1)
+ .F I=1:1:31 S X=$TR(X,$C(I))
+ .S ORDIALOG(ORRFSID,1)=X
 EN2 S ORIFN=+ORIFN D RESPONSE ; save responses
  I $P(^OR(100,ORIFN,0),"^",5) D  ;Copy orders PKI fix
  . N OI
@@ -114,6 +141,7 @@ RESPONSE ; -- Save responses in ORDIALOG() into ^OR(100,ORIFN,4.5)
  . . S VALUE=$G(ORDIALOG(PROMPT,INST)) Q:VALUE=""  S CNT=CNT+1
  . . S ^OR(100,ORIFN,4.5,CNT,0)=+ITM_U_PROMPT_U_INST_U_$P(ITM,U,2)
  . . S:$L($P(ITM,U,2)) ^OR(100,ORIFN,4.5,"ID",$P(ITM,U,2),CNT)=""
+ . . I VALUE<1,TYPE="N" S VALUE=0_+VALUE I VALUE="00" S VALUE=0
  . . S:TYPE'="W" ^OR(100,ORIFN,4.5,CNT,1)=VALUE
  . . M:TYPE="W" ^OR(100,ORIFN,4.5,CNT,2)=@VALUE ; array root
  S ^OR(100,ORIFN,4.5,0)="^100.045A^"_CNT_U_CNT

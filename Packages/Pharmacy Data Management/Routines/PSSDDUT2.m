@@ -1,5 +1,5 @@
-PSSDDUT2 ;BIR/LDT-Pharmacy Data Management DD Utility ; 10/30/97 9:41
- ;;1.0;PHARMACY DATA MANAGEMENT;**3,21,61**;9/30/97
+PSSDDUT2 ;BIR/LDT - Pharmacy Data Management DD Utility ; 8/21/07 8:43am
+ ;;1.0;PHARMACY DATA MANAGEMENT;**3,21,61,81,95,127,126,139,131**;9/30/97;Build 16
  ;
  ;Reference to ^DIC(42 supported by DBIA #10039
  ;Reference to ^DD(59.723 supported by DBIA #2159
@@ -32,10 +32,37 @@ D K II Q
  ;;C          CONTROLLED SUBSTANCES - NON NARCOTIC
  ;;R          RESTRICTED ITEMS
  ;;S          SUPPLY ITEMS
- ;;B          ALLOW REFILL (SCH. 3, 4, 5 NARCOTICS ONLY)
+ ;;B          ALLOW REFILL (SCH. 3, 4, 5 ONLY)
  ;;W          NOT RENEWABLE
  ;;F          NON REFILLABLE
+ ;;E          ELECTRONICALLY BILLABLE
+ ;;N          NUTRITIONAL SUPPLEMENT
+ ;;U          SENSITIVE DRUG
  ;;
+DEATBL ; More Help regarding DEA Codes
+ K PSSHLP
+ F II=1:1 Q:$P($T(TBL+II),";",3)=""  S PSSHLP(II)=$P($T(TBL+II),";",3,99)
+ S PSSHLP(1,"F")="!!" D WRITE
+ ;
+TBL K II Q
+ ;;          DEA CODE TABLE
+ ;; CODE   ALLOW RENEWS ALLOW REFILLS
+ ;; 1            NO           NO
+ ;; 2            NO           NO
+ ;; 2A           NO           NO 
+ ;; 3            YES          YES
+ ;; 3A           YES          NO
+ ;; 3AB          YES          YES
+ ;; 4            YES          YES
+ ;; 4A           YES          NO
+ ;; 4AB          YES          YES
+ ;; 5            YES          YES
+ ;; 5A           YES          NO
+ ;; 5AB          YES          YES
+ ;; ADDING W TO A SCHED. 3,4,OR 5 CODE DISALLOWS RENEWS.
+ ;; ADDING F TO A SCHED. 3,4,OR 5 CODE DISALLOWS REFILLS
+ ;; IF A CODE IS NOT LISTED IN THE ABOVE TABLE
+ ;; IT HAS NO EFFECT ON RENEW OR REFILL
 SIG ;checks SIG for RXs (Replaces SIG^PSOHELP)
  I $E(X)=" " D EN^DDIOL("Leading spaces are not allowed in the SIG! ","","$C(7),!") K X Q
 SIGONE S SIG="" Q:$L(X)<1  F Z0=1:1:$L(X," ") G:Z0="" EN S Z1=$P(X," ",Z0) D  G:'$D(X) EN
@@ -51,7 +78,6 @@ DRUGW ;(Replaces DRUGW^PSOUTLA)
  ;
 P ;(Replaces ^PSODSRC)
  S PSSHLP(1)="A TWO OR THREE POSITION CODE IDENTIFIES THE SOURCE OF SUPPLY AND WHETHER"
- ;S PSSHLP(1,"F")="@IOF"
  S PSSHLP(2)="THE DRUG IS STOCKED BY THE STATION SUPPLY DIVISION.  THE FIRST"
  S PSSHLP(3)="POSITION OF THE CODE IDENTIFIES SOURCE OF SUPPLY.  THE CODES ARE:"
  D WRITE
@@ -83,13 +109,15 @@ S ;;DESCRIPTION MEANINGS
  ;;10         VA SUPPLY DEPOT, BELL
 EDIT ;INPUT XFORM FOR DEA FIELD IN DRUG FILE (Replaces EDIT^PSODEA)
  I X["F",X["B" D EN^DDIOL("Inappropriate F designation!","","$C(7),!") K X Q
- I X["B",(+X<3!(X'["A")) D EN^DDIOL("The B designation is only valid for schedule 3, 4, 5 narcotics !","","$C(7),!") K X Q
+ ;;DEA CHANGE PSS*1*126
+ I X["B",(+X<3) D EN^DDIOL("The B designation is only valid for schedule 3, 4, 5 !","","$C(7),!") K X Q
  I X["A"&(X["C"),+X=2!(+X=3) D EN^DDIOL("The A & C designation is not valid for schedule 2 or 3 narcotics !","","$C(7),!") K X Q
  I $E(X)=1,X[2!(X[3)!(X[4)!(X[5) D EN^DDIOL("It contains other inappropriate schedule 2-5 narcotics!","","$C(7),!") K X Q
  I $E(X)=2,X[1!(X[3)!(X[4)!(X[5) D EN^DDIOL("It contains other inappropriate schedule 1,3-5 narcotics!","","$C(7),!") K X Q
  I $E(X)=3,X[1!(X[2)!(X[4)!(X[5) D EN^DDIOL("It contains other inappropriate schedule 1-2,4-5 narcotics!","","$C(7),!") K X Q
  I $E(X)=4,X[1!(X[2)!(X[3)!(X[5) D EN^DDIOL("It contains other inappropriate schedule 1-3,5 narcotics!","","$C(7),!") K X Q
  I $E(X)=5,X[1!(X[2)!(X[3)!(X[4) D EN^DDIOL("It contains other inappropriate schedule 1-4 narcotics!","","$C(7),!") K X Q
+ I $E(X)="E" D EN^DDIOL("Inappropriate E designation! Can only modify other codes.","","$C(7),!") K X Q
  Q
  ;
 WRITE ;Calls EN^DDIOL to write text
@@ -146,5 +174,45 @@ STRTH S STR=" "_$P(X," ",2),PSSHLP(1)=STR,PSSHLP(1,"F")="" D WRITE K STR
  Q
 PSYS1 D EN^DDIOL("(""From"" ward is "_$S('$D(^PS(59.7,D0,22,D1,0)):"UNKNOWN",'$D(^DIC(42,+^(0),0)):"UNKNOWN",$P(^(0),"^")]"":$P(^(0),"^"),1:"UNKNOWN")_")","","!?3")
  Q
-PSYS2 D EN^DDIOL("(""From"" service is "_$S('$D(PS(59.7,D0,23,D1,0)):"UNKNOWN",$P(^(0),"^")]"":$P(^PS(";"_$P(^DD(59.723,.01,0),"^",3),";"_$P(^PS(59.7,D0,23,D1,0),"^")_":",2),";"),1:"UNKNOWN")_")")
+PSYS2 ;PSS*1.0*95
+ D EN^DDIOL("(""From"" service is "_$S('$D(^PS(59.7,D0,23,D1,0)):"UNKNOWN",$P(^(0),"^")]"":$P($P(";"_$P(^DD(59.723,.01,0),"^",3),";"_$P(^PS(59.7,D0,23,D1,0),"^")_":",2),";"),1:"UNKNOWN")_")")
  Q
+ ;
+NCINIT ;
+ K PSSNQM,PSSNQM2,PSSNQM3,PSSONDU,PSSONQM
+NCINIT1 ;
+ I $P($G(^PSDRUG(DA,"EPH")),"^",2)="" S $P(^PSDRUG(DA,"EPH"),"^",2)="EA",$P(^PSDRUG(DA,"EPH"),"^",3)=1 D
+ . S PSSHLP(1)="  Note:     Defaulting the NCPDP DISPENSE UNIT to EACH and the"
+ . S PSSHLP(2)="            NCPDP QUANTITY MULTIPLIER to 1 (one)." S PSSHLP(1,"F")="!!"
+ . D WRITE S PSSHLP(2,"F")="!" D WRITE
+ S PSSONDU=$P(^PSDRUG(DA,"EPH"),"^",2),PSSONQM=$P(^PSDRUG(DA,"EPH"),"^",3)
+ Q
+ ;
+NCPDPDU ;Drug file 50, field 82
+ S:X="" X="EA"
+ D NCINIT1:'$D(PSSONDU)
+ I $G(PSSONDU)'=X&($G(PSSONQM)'=1) D
+ . S PSSHLP(1)="Defaulting the NCPDP QUANTITY MULTIPLIER to 1 (one)." S PSSHLP(1,"F")="!!" D WRITE
+ . S $P(^PSDRUG(DA,"EPH"),"^",3)=1,PSSONDU=$P(^PSDRUG(DA,"EPH"),"^",2),PSSONQM=$P(^PSDRUG(DA,"EPH"),"^",3)
+ Q
+ ;
+NCPDPQM ;Drug file 50, field 83
+ N ZXX S PSSNQM=0,(PSSNQM2,PSSNQM3)=""
+ I $G(X)<.001 K X S PSSNQM3=1 Q
+ S:$G(X)="" X=1
+ I +$G(X)'=1 D NCPDPWRN D
+NCPDPQM1 . ;
+ . R !,"Ok to continue? (Y/N) ",ZXX:30 S ZXX=$TR(ZXX,"yn","YN")
+ . I ZXX="^" S X=1 W !!?5,"Warning:  Defaulting NCPDP QUANTITY MULTIPLIER to 1 (one).",!! Q
+ . I ZXX'="Y"&(ZXX'="N") W !,"Y or N must be entered." G NCPDPQM1
+ . I ZXX'="Y"&(ZXX'="y") S PSSNQM=1,PSSNQM2=X K X
+ Q
+ ;
+NCPDPWRN ;
+ S PSSHLP(2)="WARNING:    For most drug products, the value for this field should be 1 (one)."
+ S PSSHLP(3)="            Answering NO for the following prompt will display more information"
+ S PSSHLP(4)="            on how this field is used."
+ S PSSHLP(2,"F")="!!" D WRITE
+ S PSSHLP(5,"F")="!" D WRITE
+ Q
+ ;

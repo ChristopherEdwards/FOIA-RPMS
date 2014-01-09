@@ -1,5 +1,5 @@
 BQICASPL ;GDIT/HS/ALA-Community Alerts Splash ; 17 Oct 2011  4:21 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 EN(DATA,FAKE) ;EP -- BQI GET COMM ALERTS SPLASH
  NEW UID,II,DATE,IEN,COMM,CMN,DCAT,DIAG,DXC,DXN,NUM,OCDT,TYP,TYPE,TEMP,TCAT
@@ -42,6 +42,8 @@ SOR ; Sort out the alerts
  ..... S TTWN=TTWN+TWEN
  ..... S LABNUM=+$P(@TEMP@(COMM,CMN,TYPE,DCAT,PT),U,3)
  ..... S LABNM=LABNM+LABNUM
+ ..... ; Check for lab display flag
+ ..... S LABNM=$S(+$P(^BQI(90508,1,0),U,25)=0:"",1:LABNM)
  ..... S OCDT=$O(@TEMP@(COMM,CMN,TYPE,DCAT,PT,""),-1)
  ..... I OCDT'="" S DATE(OCDT)=""
  ..... S TCAT=$S(DCAT="Ideation":"Ideation with Plan and Intent",DCAT="Completion":"Completed Suicide",1:DCAT)

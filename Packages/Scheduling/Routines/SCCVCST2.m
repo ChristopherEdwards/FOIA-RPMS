@@ -1,5 +1,5 @@
 SCCVCST2 ; ALB/TMP - SCHED VSTS RE-CONVERSION - DELETE ENCOUNTER; 25-NOV-97
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 DELE(SDOE) ;Delete Encounter on re-convert
  ; Input  -- SDOE     Outpatient Encounter file IEN

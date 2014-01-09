@@ -1,5 +1,5 @@
 FHNU2 ; HISC/REL/NCA - Analyze Menu ;3/6/95  15:53
- ;;5.0;Dietetics;**36**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 GET K DIC S MENU=0,DIC="^FHUM(",DIC(0)="AEQMZ",DIC("S")="I '$P(^(0),U,5)" W ! D ^DIC G KIL:U[X!$D(DTOUT),GET:Y<1 S MENU=+Y,MNAM="Menu: "_$P(Y,U,2),TYP=$P(Y(0),U,2)
 F0 K DIC S DIC="^FH(112.2,",DIC(0)="AEQM",DIC("A")="Select DRI Category: " W ! D ^DIC G KIL:X["^"!$D(DTOUT),F0:Y<1 S RDA=+Y K DIC
 S0 R !!,"Do you wish a detailed analysis? Y// ",SUM:DTIME G:'$T!(SUM["^") KIL S:SUM="" SUM="Y" S X=SUM D TR^FH S SUM=X I $P("YES",SUM,1)'="",$P("NO",SUM,1)'="" W *7,!,"  Answer YES or NO" G S0

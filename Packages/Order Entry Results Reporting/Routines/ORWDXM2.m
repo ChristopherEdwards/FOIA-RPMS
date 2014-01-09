@@ -1,18 +1,39 @@
-ORWDXM2 ; SLC/KCM - Quick Orders ;11/25/02  09:49
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,109,116,132,158,187**;Dec 17, 1997
+ORWDXM2 ; SLC/KCM - Quick Orders ;23-Nov-2011 11:54;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,109,116,132,158,187,195,215,243,1010**;Dec 17, 1997;Build 47
  ;
-CLRRCL(OK)      ; clear ORECALL
+ ;Modified - IHS/MSC/PLS - 06/04/2010 - Line VERTXT+7
+ADMTIME(ORDLOC,PATLOC,ENCLOC,DELAY,ISIMO) ;
+ N ADMLOC,INST,SCHLOC,SCHTYPE
+ S ADMLOC=+$P($G(ORDIALOG("B","ADMINISTRATION TIMES")),U,2)
+ I ADMLOC>0,ORDLOC>0,PATLOC'=ORDLOC D  Q
+ .S INST=0 F  S INST=$O(ORDIALOG(ADMLOC,INST)) Q:+INST'>0  D
+ ..S ORDIALOG(ADMLOC,INST)=""
+ I ADMLOC>0,$S(ENCLOC'=PATLOC:1,ISIMO:1,DELAY:1,1:0) D  Q
+ .S INST=0 F  S INST=$O(ORDIALOG(ADMLOC,INST)) Q:+INST'>0  D
+ ..S ORDIALOG(ADMLOC,INST)=""
+ S SCHLOC=+$P($G(ORDIALOG("B","SCHEDULE TYPE")),U,2) Q:SCHLOC'>0
+ S INST=0 F  S INST=$O(ORDIALOG(SCHLOC,INST)) Q:+INST'>0  D
+ .S SCHTYP=$G(ORDIALOG(SCHLOC,INST)) Q:SCHTYP=""
+ .I $S(SCHTYP="P":1,SCHTYP="O":1,SCHTYP="OC":1,1:0),ADMLOC>0 S ORDIALOG(ADMLOC,INST)=""
+ Q
+ ;
+CLRRCL(OK) ; clear ORECALL
  S OK=1
  K ^TMP("ORECALL",$J),^TMP("ORWDXMQ",$J)
  Q
 VERTXT ; set verify text for order
- N SEQ,DA,X,PROMPT,MULT,CHILD,INST,TITLE,ILST,SPACES
+ N SEQ,DA,X,PROMPT,MULT,CHILD,INST,TITLE,TEMP,ILST,SPACES
+ N ISADMIN
  S ILST=0,$P(SPACES," ",31)=""
  S SEQ=0 F  S SEQ=$O(^ORD(101.41,+ORDIALOG,10,"B",SEQ)) Q:SEQ'>0  D
  . S DA=0 F  S DA=$O(^ORD(101.41,+ORDIALOG,10,"B",SEQ,DA)) Q:'DA  D
  . . S X0=$G(^ORD(101.41,+ORDIALOG,10,DA,0))
- . . Q:$P(X0,U,9)["*"  ; hidden prompt
- . . S PROMPT=$P(X0,U,2),MULT=$P(X0,U,7),CHILD=$P(X0,U,11) Q:CHILD
+ . . ;IHS/MSC/PLS - 06/04/2010 - ORIMO is set in ORWDXM1
+ . . ;S ISADMIN=$S(+OREVENT>0:0,ISIMO=1:0,$P($G(^ORD(101.41,$P(X0,U,2),0)),U)="OR GTX ADMIN TIMES":1,1:0)
+ . . S ISADMIN=$S(+OREVENT>0:0,ORIMO=1:0,$P($G(^ORD(101.41,$P(X0,U,2),0)),U)="OR GTX ADMIN TIMES":1,1:0)
+ . . I ISADMIN=1,ORDLOC>0,ORDLOC'=PATLOC Q
+ . . I $P(X0,U,9)["*",ISADMIN=0 Q
+ . . S PROMPT=$P(X0,U,2),MULT=$P(X0,U,7),CHILD=$P(X0,U,11) I CHILD,ISADMIN=0 Q
  . . Q:'PROMPT  S INST=$O(ORDIALOG(PROMPT,0)) Q:'INST  ; no values
  . . S TITLE=$S($L($G(ORDIALOG(PROMPT,"TTL"))):ORDIALOG(PROMPT,"TTL"),1:ORDIALOG(PROMPT,"A"))
  . . I $E(ORDIALOG(PROMPT,0))="W" D
@@ -21,14 +42,17 @@ VERTXT ; set verify text for order
  . . . F  S IWP=$O(^TMP("ORWORD",$J,PROMPT,INST,IWP)) Q:'IWP  D
  . . . . S CNT=CNT+1,WP(CNT)=^TMP("ORWORD",$J,PROMPT,INST,IWP,0)
  . . . I CNT=1 S ILST=ILST+1,LST(ILST)=$J(TITLE,30)_WP(1)
- . . . I CNT>1 D 
+ . . . I CNT>1 D
  . . . . S ILST=ILST+1,LST(ILST)=TITLE,IWP=0
  . . . . F  S IWP=$O(WP(IWP)) Q:'IWP  S ILST=ILST+1,LST(ILST)=WP(IWP)
  . . E  D
+ . . . S TEMP=$$ITEM^ORCDLG(PROMPT,INST) I TEMP="" Q
  . . . S ILST=ILST+1,LST(ILST)=$J(TITLE,30)
- . . . S LST(ILST)=LST(ILST)_$$ITEM^ORCDLG(PROMPT,INST)
+ . . . ;S LST(ILST)=LST(ILST)_$$ITEM^ORCDLG(PROMPT,INST)
+ . . . S LST(ILST)=LST(ILST)_TEMP
  . . Q:'MULT  Q:'$O(ORDIALOG(PROMPT,INST))  ; done
  . . F  S INST=$O(ORDIALOG(PROMPT,INST)) Q:INST'>0  S ILST=ILST+1,LST(ILST)=SPACES_$$ITEM^ORCDLG(PROMPT,INST)
+ D DISPLAY^ORWDBA3  ;for display of Billing Aware data from orig order
  Q
 RA ; setup environment for radiology
  ; -- get imaging types based on display group of quick order and
@@ -41,7 +65,7 @@ RA ; setup environment for radiology
  . S CNT=CNT+1,ORIMLOC(CNT)=ORY(IFN),ORIMLOC("B",$P(ORY(IFN),U,2))=IFN
  I '$$GET^XPAR("ALL","RA SUBMIT PROMPT",1,"Q"),CNT>1 K ORIMLOC
  E  S ORIMLOC=CNT_"^1"
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX IMAGING LOCATION",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX IMAGING LOCATION",0))
  I $G(ORIMLOC) M ORDIALOG(PROMPT,"LIST")=ORIMLOC
  Q
 LR ; setup environment for lab
@@ -50,15 +74,15 @@ LR ; setup environment for lab
  N PROMPT,INST,EDITONLY
  D GETIMES^ORCDLR1  ; sets up ORTIME and ORIMTIME arrays
  S ORMAX=$$GET^XPAR("ALL^LOC.`"_+ORL,"LR MAX DAYS CONTINUOUS",1,"Q")
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX ORDERABLE ITEM",0)),INST=1
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX ORDERABLE ITEM",0)),INST=1
  D LRTEST           ; sets up ORTEST array and ORDG
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX COLLECTION TYPE",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX COLLECTION TYPE",0))
  I $D(ORDIALOG(PROMPT,1)) S ORCOLLCT=ORDIALOG(PROMPT,1) I 1
  E  S EDITONLY=0,ORCOLLCT=$$COLLTYPE^ORCDLR1
  I ORCOLLCT="I" D
- . S PROMPT=$O(^ORD(101.41,"AB","OR GTX START DATE/TIME",0))
+ . S PROMPT=$O(^ORD(101.41,"B","OR GTX START DATE/TIME",0))
  . D LRICTMOK
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX ADMIN SCHEDULE",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX ADMIN SCHEDULE",0))
  I $D(ORDIALOG(PROMPT,1)) S ORSCH=ORDIALOG(PROMPT,1)
  Q
 LRTEST ; -- Setup ORTEST() array of ordering parameters (copied from ORCDLR)
@@ -68,7 +92,7 @@ LRTEST ; -- Setup ORTEST() array of ordering parameters (copied from ORCDLR)
  S DG=$P($G(^ORD(101.43,+OI,"LR")),U,6) S:'$L(DG) DG="LAB"
  S DG=$O(^ORD(100.98,"B",DG,0)) S:DG ORDG=DG
  Q
-LRRQCM()        ; return true if lab test has required comments
+LRRQCM() ; return true if lab test has required comments
  I $O(^TMP("ORWORD",$J,PROMPT,INST,0)) Q 1 ; edit via WP
  N LRTEST,LRSAMP,LRSPEC,LRTSTN,LRTCOM,LRCCOM,DA,CNT,I,REQDCOMM,OI,TST
  S LRSAMP=$$VAL^ORCD("COLLECTION SAMPLE"),LRSPEC=$$VAL^ORCD("SPECIMEN")
@@ -78,7 +102,7 @@ LRRQCM()        ; return true if lab test has required comments
  S REQDCOMM=$P($G(^LAB(60,LRTEST(1),3,+DA,0)),U,6)
  S:'REQDCOMM REQDCOMM=+$P($G(^LAB(60,LRTEST(1),0)),U,19)
  Q REQDCOMM
-LRASMP()       ; return true to ask collection sample (from ASKSAMP^ORCDLR)
+LRASMP() ; return true to ask collection sample (from ASKSAMP^ORCDLR)
  N DEFSAMP,SAMP0
  S DEFSAMP=$G(ORDIALOG(PROMPT,INST)),SAMP0=$G(^LAB(62,+DEFSAMP,0))
  I (ORCOLLCT="LC")!(ORCOLLCT="I"),$G(ORTEST("Lab CollSamp")) Q 0
@@ -86,7 +110,7 @@ LRASMP()       ; return true to ask collection sample (from ASKSAMP^ORCDLR)
  I 'DEFSAMP!('FIRST) Q 1 ; no default or edit -> ask
  I $G(ORDIALOG(PROMPT,"LIST"))="1^1" Q 0 ; only one choice
  Q 1
-LRICTMOK        ;
+LRICTMOK ;
  Q:'$D(ORDIALOG(PROMPT,1))
  N ORY
  D VALDT^ORWU(.ORY,ORDIALOG(PROMPT,1))
@@ -97,22 +121,24 @@ DO ; setup environment for diet order
  I ORCAT'="I" D  Q
  . S ORQUIT=1
  . S LST(0)="8^0"
- . S LST(.5)="Diet orders allowed for inpatients only."
+ . S LST(.5)="This type of diet may be entered for inpatients only."
  D EN^FHWOR8(+ORVP,.ORPARAM)          ; set FH ordering parameters
  S:'$L($G(ORPARAM(3))) ORPARAM(3)="T" ; for now
  N PROMPT,OI                          ; set NPO flag if NPO diet
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX ORDERABLE ITEM",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX ORDERABLE ITEM",0))
  S OI=+$G(ORDIALOG(PROMPT,1))
  S ORNPO=($P($G(^ORD(101.43,OI,0)),U)="NPO")
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX START DATE/TIME",0))
+ S X=$G(ORDIALOG(PROMPT,1)) I $L(X) D CNV^ORCDFH1 S ORDIALOG(PROMPT,1)=$G(X)
  Q
 EL ; setup environment for early/late tray
  D EN^FHWOR8(+ORVP,.ORPARAM)          ; set FH ordering parameters
  S:'$L($G(ORPARAM(3))) ORPARAM(3)="T" ; for now
  D EN2^ORCDFH                         ; setup ORTIME array
  N PROMPT                             ; set ORMEAL,ORTRAY
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX MEAL",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX MEAL",0))
  I $D(ORDIALOG(PROMPT,1)) S ORMEAL=ORDIALOG(PROMPT,1)
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX ORDERABLE ITEM",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX ORDERABLE ITEM",0))
  I $D(ORDIALOG(PROMPT,1)) S ORTRAY=ORDIALOG(PROMPT,1)
  Q
 UD ; setup environment for unit dose med
@@ -120,23 +146,23 @@ UD ; setup environment for unit dose med
  ;
  D AUTHMED Q:$G(ORQUIT)  ; checks authorized to write meds
  N PROMPT,OI
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX ORDERABLE ITEM",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX ORDERABLE ITEM",0))
  I $D(ORDIALOG(PROMPT,1)) S OI=ORDIALOG(PROMPT,1) D MEDACTV(1) Q:$G(ORQUIT)
  D INSTR^ORCDPS(OI)      ; sets up instructions, routes, etc.
- D CHOICES^ORCDPS("U")   ; gets list of dispense drugs       
+ D CHOICES^ORCDPS("U")   ; gets list of dispense drugs
  Q
 IV ; setup environment for IV fluid
  D AUTHMED Q:$G(ORQUIT)  ; checks authorized to write meds
  ; sets up list of volumes if only one solution
  ; otherwise, let the dialog go interactive
  N PROMPT,INST,CNT,OI
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX ORDERABLE ITEM",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX ORDERABLE ITEM",0))
  S (CNT,INST)=0
  F  S INST=$O(ORDIALOG(PROMPT,INST)) Q:'INST  D  Q:$G(ORQUIT)
  . S CNT=CNT+1
  . S OI=ORDIALOG(PROMPT,INST) D MEDACTV(3) ; check active solutions
  I CNT=1 S INST=1 D VOLUME^ORCDPSIV
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX ADDITIVE",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX ADDITIVE",0))
  S INST=0
  F  S INST=$O(ORDIALOG(PROMPT,INST)) Q:'INST  D  Q:$G(ORQUIT)
  . S OI=ORDIALOG(PROMPT,INST) D MEDACTV(4) ; check active additives
@@ -146,12 +172,12 @@ OP ; setup environment for outpatient pharmacy
  ;
  D AUTHMED Q:$G(ORQUIT)       ; checks authorized to write meds
  N PROMPT,INST,CNT,OI
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX ORDERABLE ITEM",0)),OI=0
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX ORDERABLE ITEM",0)),OI=0
  I $D(ORDIALOG(PROMPT,1)) S OI=$G(ORDIALOG(PROMPT,1)) D MEDACTV(2) Q:$G(ORQUIT)
  D:+OI INSTR^ORCDPS(OI)           ; sets up instructions, routes, etc.
- D CHOICES^ORCDPS("O")        ; gets list of dispense drugs      
+ D CHOICES^ORCDPS("O")        ; gets list of dispense drugs
  ; get defaults for drug, refills if only one dispense drug
- S PROMPT=$O(^ORD(101.41,"AB","OR GTX DISPENSE DRUG",0))
+ S PROMPT=$O(^ORD(101.41,"B","OR GTX DISPENSE DRUG",0))
  S (CNT,INST)=0
  F  S INST=$O(ORDIALOG(PROMPT,INST)) Q:'INST  S CNT=CNT+1
  I CNT=1 D

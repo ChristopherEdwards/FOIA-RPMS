@@ -1,21 +1,24 @@
-ORWDPS32 ; SLC/KCM - Pharmacy Calls for GUI Dialog ;17-Jun-2009 14:11;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,94,190,1004**;Dec 17, 1997
- ;
-NXT() ; -- returns next available index in return data array
+ORWDPS32 ; SLC/KCM - Pharmacy Calls for GUI Dialog ;14-May-2010 11:43;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,94,190,1004,195,243,1010**;Dec 17, 1997;Build 47
+ ;Per VHA Directive 2004-038, this routine should not be modified.
+ ;Modified - IHS/MSC/PLS - 5/14/2010 - Line AUTHNVA+4
+NXT() ; -- ret next available index in data array
  S ILST=ILST+1
  Q ILST
  ;
-DLGSLCT(LST,PSTYPE) ; return default lists for dialog
- ; PSTYPE: pharmacy type (U=unit dose, F=IV fluids, O=outpatient)
+DLGSLCT(LST,PSTYPE,DFN,LOCIEN) ; return def lists for dialog
+ ; PSTYPE: pharmacy type (U=unit dose, F=IV fluids, O=outpt)
  N ILST S ILST=0
  I PSTYPE="F" D  Q                       ; IV Fluids
  . S LST($$NXT)="~ShortList"  D SHORT
  . S LST($$NXT)="~Priorities" D PRIOR
+ . ;S LST($$NXT)="~Schedules"  D SCHED(LOCIEN)
+ . S LST($$NXT)="~Route" D IVROUTE
  ;
- S LST($$NXT)="~ShortList"  D SHORT      ; Unit Dose & Outpatient
- S LST($$NXT)="~Schedules"  D SCHED
+ S LST($$NXT)="~ShortList"  D SHORT      ; Unit Dose & Outpt
+ ;S LST($$NXT)="~Schedules"  D SCHED(LOCIEN)
  S LST($$NXT)="~Priorities" D PRIOR
- I PSTYPE="O" D                          ; Outpatient
+ I PSTYPE="O" D                          ; Outpt
  . S LST($$NXT)="~Pickup"   D PICKUP
  . S LST($$NXT)="~SCStatus" D SCLIST
  Q
@@ -28,17 +31,72 @@ SHORT ; from DLGSLCT, get short list of med quick orders
  D GETQLST^ORWDXQ(.TMP,X,"iQ")
  S I=0 F  S I=$O(TMP(I)) Q:'I  S LST($$NXT)=TMP(I)
  Q
-SCHED ; from DLGSLCT, get all pharm admin scheds
- N X
- S X="" F  S X=$O(^PS(51.1,"APPSJ",X)) Q:X=""  S LST($$NXT)="i"_X
- Q
 SCHEDA ; (similar to SCHED, but also rtns admin times)
- N X,IEN,SCH
- S SCH="" F  S SCH=$O(^PS(51.1,"APPSJ",SCH)) Q:SCH=""  D
- . S IEN=0 F  S IEN=$O(^PS(51.1,"APPSJ",SCH,IEN)) Q:IEN'>0  D
- . . S X=^PS(51.1,IEN,0) S X=$S($L($P(X,U,2)):"  ("_$P(X,U,2)_")",1:"")
- . . S LST($$NXT)="i"_IEN_U_SCH_X
+ N X,IEN,SCH,TIME
+ K ^TMP($J,"ORWDPS32 SCHEDA")
+ D AP^PSS51P1("PSJ",,,,"ORWDPS32 SCHEDA")
+ S SCH="" F  S SCH=$O(^TMP($J,"ORWDPS32 SCHEDA","APPSJ",SCH)) Q:SCH=""  D
+ .S IEN="" F  S IEN=$O(^TMP($J,"ORWDPS32 SCHEDA","APPSJ",SCH,IEN)) Q:IEN'>0  D
+ ..S TIME=$G(^TMP($J,"ORWDPS32 SCHEDA",IEN,1))
+ ..S X=$S($L(TIME):"  ("_TIME_")",1:"")
+ ..S LST($$NXT)="i"_IEN_U_SCH_U_X
+ K ^TMP($J,"ORWDPS32 SCHEDA")
  Q
+ ;
+IVROUTE ;
+ N ABB,EXP,IEN,RTE
+ K ^TMP($J,"ORWDPS32 IVROUTE")
+ D ALL^PSS51P2(,"??",,1,"ORWDPS32 IVROUTE")
+ S RTE="" F  S RTE=$O(^TMP($J,"ORWDPS32 IVROUTE","B",RTE)) Q:RTE=""  D
+ .S IEN=$O(^TMP($J,"ORWDPS32 IVROUTE","IV",RTE,"")) Q:IEN'>0
+ .S ABB=$G(^TMP($J,"ORWDPS32 IVROUTE",IEN,1))
+ .S EXP=$G(^TMP($J,"ORWDPS32 IVROUTE",IEN,4))
+ .S LST($$NXT)="i"_IEN_U_RTE_U_ABB_U_EXP
+ K ^TMP($J,"ORWDPS32 IVROUTE")
+ Q
+ ;
+ALLIVRTE(LST) ;
+ N ABB,CNT,EXP,IEN,RTE
+ K ^TMP($J,"ORWDPS32 ALLIVRTE")
+ S CNT=0
+ D ALL^PSS51P2(,"??",,1,"ORWDPS32 ALLIVRTE")
+ S RTE="" F  S RTE=$O(^TMP($J,"ORWDPS32 ALLIVRTE","B",RTE)) Q:RTE=""  D
+ .S IEN=$O(^TMP($J,"ORWDPS32 ALLIVRTE","IV",RTE,"")) Q:IEN'>0
+ .S ABB=$G(^TMP($J,"ORWDPS32 ALLIVRTE",IEN,1))
+ .S EXP=$G(^TMP($J,"ORWDPS32 ALLIVRTE",IEN,4))
+ .S CNT=CNT+1,LST(CNT)=IEN_U_RTE_U_ABB_U_U_U_U
+ K ^TMP($J,"ORWDPS32 IVROUTE")
+ Q
+ ;
+ROUTE ; from OISLCT^ORWDPS32, get list of routes for the drug form
+ ; ** NEED BOTH ABBREVIATION & NAME IN LIST BOX
+ N I,CNT,ABBR,IEN,ROUT,X
+ S I="" F  S I=$O(^TMP("PSJMR",$J,I)) Q:I=""  D
+ . S ROUT=$P(^TMP("PSJMR",$J,I),U),ABBR=$P(^(I),U,2),IEN=$P(^(I),U,3)
+ . S LST($$NXT)="i"_IEN_U_ROUT_U_ABBR
+ . I I=1,IEN S LST($$NXT)="d"_IEN_U_ROUT ;_U_ABBR ; assume first always default
+ S I="" F  S I=$O(^TMP("PSJMR",$J,I)) Q:I=""  D
+ . S ROUT=$P(^TMP("PSJMR",$J,I),U),ABBR=$P(^(I),U,2),IEN=$P(^(I),U,3)
+ . I $L(ABBR),(ABBR'=ROUT) S LST($$NXT)="i"_IEN_U_ABBR_" ("_ROUT_")"_U_ABBR
+ Q
+ ;similar to SCHED^ORWDPS32, also returns Admin Time for Patient ward location
+ ;AGP CPRS 27.72 THIS CODE IS NOT NEEDED ANYMORE
+SCHED(LOCIEN) ;
+ N CNT,ORARRAY,SCH,IEN,EXP,TIME,TYP,X0,WIEN
+ ;K ^TMP($J,"ORWDPS32 SCHED1")
+ S WIEN=$$WARDIEN(+LOCIEN)
+ D SCHED^PSS51P1(WIEN,.ORARRAY)
+ S CNT=0 F  S CNT=$O(ORARRAY(CNT)) Q:CNT'>0  D
+ .S LST($$NXT)="i"_$P(ORARRAY(CNT),U,2,5)
+ Q
+ ;
+WARDIEN(LOCIEN) ;
+ N RESULT
+ S RESULT=0
+ I LOCIEN=0 Q RESULT
+ I $P($G(^SC(LOCIEN,42)),U)="" Q RESULT
+ S RESULT=+$P($G(^SC(LOCIEN,42)),U)
+ Q RESULT
 PRIOR ; from DLGSLCT, get list of allowed priorities
  N X,XREF
  S XREF=$S(PSTYPE="O":"S.PSO",1:"S.PSJ")
@@ -51,12 +109,12 @@ PICKUP ; from DLGSLCT, get prescription routing
  F X="W^at Window","M^by Mail","C^in Clinic" S LST($$NXT)="i"_X
  S X=$$DEFPICK I $L(X) S LST($$NXT)="d"_X
  Q
-DEFPICK() ; return default routing
+DEFPICK()       ; ret def routing
  N X,DLG,PRMT
  S DLG=$O(^ORD(101.41,"AB","PSO OERR",0)),X=""
  S PRMT=$O(^ORD(101.41,"AB","OR GTX ROUTING",0))
  I $D(^TMP("ORECALL",$J,+DLG,+PRMT,1)) S X=^(1)
- I X'="" S EDITONLY=1 Q X  ; EDITONLY used by default action
+ I X'="" S EDITONLY=1 Q X  ; EDITONLY used by def action
  ;
  S X=$$GET^XPAR("ALL","ORWDPS ROUTING DEFAULT",1,"I")
  I X="C" S X="C^in Clinic" G XPICK
@@ -81,7 +139,7 @@ OISLCT(LST,OI,PSTYPE,ORVP) ; rtn for defaults for pharm OI
  K ^TMP("PSJINS",$J),^TMP("PSJMR",$J),^TMP("PSJNOUN",$J),^TMP("PSJSCH",$J)
  Q
  ;
-DISPDRUG(LST,OI) ; list dispense drugs for an orderable item
+DISPDRUG(LST,OI) ; list dispense drugs for an OI
  N ILST,PSTYPE S ILST=0,PSTYPE="U" D DISPDRG
  Q
  ;
@@ -109,36 +167,36 @@ INSTRCT ; from OISLCT, get list of potential instructs (based on drug form)
  I $D(VERB) S LST($$NXT)="~Verb",LST($$NXT)="d"_VERB
  ;
  Q
-MIXED(X) ; Return mixed case
- Q X  ;$E(X)_$TR($E(X,2,$L(X)),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")
+MIXED(X)   ; Return mixed case
+ Q X
  ;
-ROUTE ; from OISLCT, get list of routes for the drug form
- ; ** NEED BOTH ABBREVIATION & NAME IN LIST BOX
- N I,CNT,ABBR,IEN,ROUT,X
- S I="" F  S I=$O(^TMP("PSJMR",$J,I)) Q:I=""  D
- . S ROUT=$P(^TMP("PSJMR",$J,I),U),ABBR=$P(^(I),U,2),IEN=$P(^(I),U,3)
- . S LST($$NXT)="i"_IEN_U_ROUT_U_ABBR
- . I I=1,IEN S LST($$NXT)="d"_IEN_U_ROUT ;_U_ABBR ; assume first always default
- S I="" F  S I=$O(^TMP("PSJMR",$J,I)) Q:I=""  D
- . S ROUT=$P(^TMP("PSJMR",$J,I),U),ABBR=$P(^(I),U,2),IEN=$P(^(I),U,3)
- . I $L(ABBR),(ABBR'=ROUT) S LST($$NXT)="i"_IEN_U_ABBR_" ("_ROUT_")"_U_ABBR
- Q
 MESSAGE ; message
  S I=0 F  S I=$O(^ORD(101.43,OI,8,I)) Q:I'>0  S LST($$NXT)="t"_^(I,0)
  Q
 ALLROUTE(LST) ; returns a list of all available med routes
- N I,X,ILST S ILST=0
- S I=0 F  S I=$O(^PS(51.2,I)) Q:'I  S X=^(I,0) D
- . I $P(X,U,4) S LST($$NXT)=I_U_$P(X,U)_U_$P(X,U,3)
+ N I,X,ILST
+ S ILST=0
+ K ^TMP($J,"ORWDPS32 ALLROUTE")
+ D ALL^PSS51P2(,"??",,,"ORWDPS32 ALLROUTE")
+ S I=0 F  S I=$O(^TMP($J,"ORWDPS32 ALLROUTE",I)) Q:'I  D
+ . I +$P(^TMP($J,"ORWDPS32 ALLROUTE",I,3),U)>0 S LST($$NXT)=I_U_^TMP($J,"ORWDPS32 ALLROUTE",I,.01)_U_^TMP($J,"ORWDPS32 ALLROUTE",I,1)
+ K ^TMP($J,"ORWDPS32 ALLROUTE")
  Q
-VALROUTE(REC,X) ; validates route name & returns IEN + abbreviation
- N ORLST,ABBR
- D FIND^DIC(51.2,"",1,"MO",X,1,,"I $P(^(0),U,4)=1",,"ORLST")
- I 'ORLST("DILIST",0) S REC=0 Q
- S X=$$UPPER(X),ABBR=ORLST("DILIST","ID",1,1)
- I '$L(ABBR) S ABBR=ORLST("DILIST",1,1)
- I ($$UPPER(ORLST("DILIST",1,1))'=X),($$UPPER(ABBR)'=X) S REC=0 Q
- S REC=ORLST("DILIST",2,1)_U_ABBR
+VALROUTE(REC,X)        ; validates route name & returns IEN + abbreviation
+ N ABBR,NAME,IEN
+ K ^TMP($J,"ORWDPS32 VALROUTE")
+ S X=$$UPPER(X)
+ D ALL^PSS51P2(,X,,1,"ORWDPS32 VALROUTE")
+ I $P(^TMP($J,"ORWDPS32 VALROUTE",0),U)=-1 K ^TMP($J,"ORWDPS32 VALROUTE") S REC=0 Q
+ S IEN=$O(^TMP($J,"ORWDPS32 VALROUTE","B",X,""))
+ I IEN'>0 S IEN=$O(^TMP($J,"ORWDPS32 VALROUTE","C",X,""))
+ I IEN'>0 S REC=0 Q
+ S NAME=$G(^TMP($J,"ORWDPS32 VALROUTE",IEN,.01))
+ S ABBR=$G(^TMP($J,"ORWDPS32 VALROUTE",IEN,1))
+ I '$L(ABBR) S ABBR=NAME
+ I ($$UPPER(NAME)'=X),($$UPPER(ABBR)'=X) S REC=0 K ^TMP($J,"ORWDPS32 VALROUTE") Q
+ S REC=IEN_U_ABBR
+ K ^TMP($J,"ORWDPS32 VALROUTE")
  Q
 AUTH(VAL,PRV) ; For inpatient meds, check restrictions
  N NAME,AUTH,INACT,X S VAL=0
@@ -151,84 +209,20 @@ AUTH(VAL,PRV) ; For inpatient meds, check restrictions
  Q
 AUTHNVA(VAL,PRV) ; For outside meds, check restrictions
  N NAME,AUTH,INACT,X S VAL=0
+ I $D(^XUSEC("OREMAS",DUZ)),$$GET^XPAR("ALL","OR OREMAS NON-VA MED ORDERS")=2 Q
+ I $D(^XUSEC("OREMAS",DUZ)),'$$GET^XPAR("ALL","OR OREMAS NON-VA MED ORDERS") D  Q
+ . S VAL="1^OREMAS key holders may not enter outside medication orders."
  S NAME=$P($G(^VA(200,PRV,20)),U,2) S:'$L(NAME) NAME=$P(^(0),U)
  S X=$G(^VA(200,PRV,"PS")),AUTH=$P(X,U),INACT=$P(X,U,4)
  I 'AUTH!(INACT&(DT>INACT)) D  Q
  . S VAL="1^"_NAME_" is not authorized to write medication orders."
- I $D(^XUSEC("OREMAS",DUZ)),'$$GET^XPAR("ALL","OR OREMAS NON-VA MED ORDERS") D  Q
- . S VAL="1^OREMAS key holders may not enter outside medication orders."
  Q
-DRUGMSG(VAL,IEN) ; return any message associated with a dispense drug
- N X S X=$$ENDCM^PSJORUTL(IEN)
- S VAL=$P(X,U,2)_U_$P(X,U,4)
- Q
-MEDISIV(VAL,IEN) ; return true if orderable item is IV medication
- S VAL=0
- I $P($G(^ORD(101.43,IEN,"PS")),U)=2 S VAL=1
- Q
-ISSPLY(VAL,IEN) ; return true if orderable item is a supply
- S VAL=0
- I $P($G(^ORD(101.43,IEN,"PS")),U,5)=1 S VAL=1
- Q
-IVAMT(VAL,OI,ORWTYP) ; return UNITS^AMOUNT |^AMOUNT^AMOUNT...| for IV soln
- N I,PSOI,ORWY,AMT
- S PSOI=+$P($G(^ORD(101.43,OI,0)),U,2)_ORWTYP,VAL=""
- D ENVOL^PSJORUT2(PSOI,.ORWY)
- I ORWTYP="B" D
- . S I=0 F  S I=$O(ORWY(I)) Q:I'>0  S AMT(+ORWY(I))=""
- . S AMT=0,VAL="ML" F  S AMT=$O(AMT(AMT)) Q:AMT'>0  S VAL=VAL_U_AMT
- I ORWTYP="A" D
- . S I=+$O(ORWY(0)) S VAL=$P($G(ORWY(I)),U,2)
- . I '$L(VAL) S VAL="ML^LITER^MCG^MG^GM^UNITS^IU^MEQ^MM^MU^THOUU"
- Q
-VALRATE(VAL,X) ; return "1" (true) if IV rate text is valid
- I $E($RE($$UPPER(X)),1,5)="RH/LM"  S X=$E(X,1,$L(X)-5)
- S X=$$TRIM(X)
- D ORINF^PSIVSP S VAL=$G(X) ;S OK=$S($D(X):1,1:0)
- Q
-UPPER(X) ; return uppercase
+ ;
+UPPER(X)        ; return uppercase
  Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
  ;
 TRIM(X) ; trim leading and trailing spaces
  S X=$RE(X) F  S:$E(X)=" " X=$E(X,2,999) Q:$E(X)'=" "  Q:'$L(X)  ;trail
  S X=$RE(X) F  S:$E(X)=" " X=$E(X,2,999) Q:$E(X)'=" "  Q:'$L(X)  ;lead
  Q X
-SCSTS(VAL,ORVP,ORDRUG) ; return service connected eligibility for patient
- N ORWP94 S ORWP94=$O(^ORD(101.41,"AB","PS MEDS",0))>0
- I $L($T(SC^PSOCP)),$$SC^PSOCP(+ORVP,+$G(ORDRUG)) S VAL=0 G XSCSTS
- I 'ORWP94,(+$$RXST^IBARXEU(+ORVP)>0) S VAL=0 G XSCSTS
- S VAL=1
-XSCSTS Q
-FORMALT(ORLST,IEN,PSTYPE) ; return a list of formulary alternatives
- D ENRFA^PSJORUTL(IEN,PSTYPE,.ORLST)
- S I=0 F  S I=$O(ORLST(I)) Q:'I  D
- . S OI=+$O(^ORD(101.43,"ID",+$P(ORLST(I),U,4)_";99PSP",0))
- . S $P(ORLST(I),U,4)=OI I OI S $P(ORLST(I),U,5)=$P(^ORD(101.43,OI,0),U)
- Q
-VALSCH(OK,X,PSTYPE) ; validate a schedule, return 1 if valid, 0 if not
- I '$L($T(EN^PSSGSGUI)) S OK=-1 Q
- I $E($T(EN^PSSGSGUI),1,4)="EN(X" D
- . N ORX S ORX=$G(X) D EN^PSSGSGUI(.ORX,$G(PSTYPE,"I"))
- . K X S:$D(ORX) X=ORX
- E  D
- . D EN^PSSGSGUI
- S OK=$S($D(X):1,1:0)
- Q
-VALQTY(OK,X) ; validate a quantity, return 1 if valid, 0 if not
- ; to be compatible with LM, make sure X is integer from 1 to 240
- ; this is based on the input transform from 52,7
- K:(+X'>0)!(+X>99999999)!(X'?.8N.1".".2N)!($L(X)>12) X
- S OK=$S($D(X):1,1:0)
- Q
-DOSES(LST,OI) ; return doses for an orderable item  -  TEST ONLY
- N ORTMP,ORI,ORJ,ILST,NDF,VAPN,X,PSTYPE S PSTYPE="O"
- D ENDD^PSJORUTL("^^^"_+$P($G(^ORD(101.43,OI,0)),"^",2),PSTYPE,.ORTMP)
- S ORI=0 F  S ORI=$O(ORTMP(ORI)) Q:'ORI  S ORWDRG=+ORTMP(ORI) D
- . S NDF=$G(^PSDRUG(+ORWDRG,"ND")),VAPN=$P(NDF,U,3),NDF=+NDF
- . S X=$$DFSU^PSNAPIS(NDF,VAPN)
- . S LSTA($P(X,U,4),$P(X,U,6))=""
- . I +$P(X,U,4)=$P(X,U,4) S LSTA($P(X,U,4)*2,$P(X,U,6))=""
- S ORI="",ILST=0 F  S ORI=$O(LSTA(ORI)) Q:ORI=""  D
- . S ORJ="" F  S ORJ=$O(LSTA(ORI,ORJ)) Q:ORJ=""  D
- . . S ILST=ILST+1,LST(ILST)=ORI_" "_ORJ
- Q
+ ;

@@ -1,5 +1,5 @@
 ORCHANG2 ;SLC/MKB-Change View status ; 08 May 2002  2:12 PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**27,72,68,141**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**27,72,68,141,215,243**;Dec 17, 1997;Build 242
 ORDERS ; -- Select new order status
  N X,Y,HDR,I,DOMAIN,DEFAULT,PROMPT,HELP,STS
  S HDR=$P($G(^TMP("OR",$J,ORTAB,0)),U,3),DEFAULT=""
@@ -13,7 +13,16 @@ ORDERS ; -- Select new order status
  . S STOP=$$STOP^ORCHANGE("NOW") I STOP="^" S Y="^" Q
  . I STOP<STRT S Z=STRT,STRT=STOP,STOP=Z
  . S $P(HDR,";",1,2)=$P(STRT,U,2)_";"_$P(STOP,U,2)
- S $P(HDR,";",3)=STS,$P(HDR,";",8)="" S:STS=2 $P(HDR,";",1,2)=";"
+ S $P(HDR,";",3)=STS,$P(HDR,";",8)=""
+ I (STS=2)!(STS=5) D
+ . I $P(HDR,";")'="" D
+ . . N THISTS,DIR,DIROUT,DIRUT,DTOUT,DUOUT,X,Y
+ . . S THISTS=" only active "
+ . . S:STS=5 THISTS=" expiring "
+ . . W !,"Date range can not be selected when viewing"_THISTS_"orders"
+ . . W !,"and will be cleared."
+ . . S DIR(0)="E" D ^DIR
+ . S $P(HDR,";",1,2)=";"
  I STS=6,$P(HDR,";")="" S $P(HDR,";",1,2)="T;T@23:59"
  S $P(^TMP("OR",$J,ORTAB,0),U,3,4)=HDR_U
  Q
@@ -30,6 +39,7 @@ ORDSTS ;;#;Name of Order Context
  ;;2;Active (includes pending, recent activity);1
  ;;23;Current (Active & Pending status only);1
  ;;3;Discontinued;1
+ ;;28;Discontinued/Entered in Error;1
  ;;4;Completed/Expired;1
  ;;5;Expiring;1
  ;;7;Pending;1

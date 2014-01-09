@@ -1,5 +1,5 @@
 FHWORI ; HISC/NCA - Initial Master File Population ;10/1/96  13:12
- ;;5.0;Dietetics;**12**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 DO ; Code Diet Order
  S PKG=$O(^DIC(9.4,"C","FH",0)) Q:'PKG
  S VER=$P($G(^DIC(9.4,PKG,22,0)),"^",3) Q:'VER

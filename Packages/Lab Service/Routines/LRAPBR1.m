@@ -1,9 +1,10 @@
-LRAPBR1 ;VA/DALOI/WTY/KLL - AP Browser Print Cont.;11/08/01
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259,317**;Sep 27, 1994
+LRAPBR1 ;DALOI/WTY/KLL - AP Browser Print Cont.;11/08/01
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 259,317,363
  ;
  ;
-ENTER ;from LRAPBR
+ENTER ; EP - from LRAPBR
  N LRCNT,LRTMP,LRA1,LRADESC,LRLENG1,LRLENG2,LRFILE,LRAPMD
  N LRFLD,LRV,LRV1,LRV2,LRB1,LRTEXT,LRSPCE,LRIENS,LRAPMR
  Q:'$D(^LR(LRDFN,LRSS,LRI,0))
@@ -19,6 +20,7 @@ ENTER ;from LRAPBR
  D GLENTRY("Submitted by: "_LRW(5),"",1)
  D GLENTRY("Date obtained: "_LRTK,44)
  D:LRA DASH
+ ;
 MAIN ;
  D SPEC
  D MODCHK
@@ -29,6 +31,7 @@ MAIN ;
  D SUPRPT
  D SSJR
  Q
+ ;
 SPEC ;List specimens
  D GLENTRY("Specimen (Received "_LRTK(1)_"):","",1)
  S LRCNT=$P(^LR(LRDFN,LRSS,LRI,.1,0),U,4)
@@ -43,6 +46,7 @@ SPEC ;List specimens
  .S LRTEXT=LRTMP(LRA1,LRFILE,LRA1_","_LRIENS,.01)
  .D GLENTRY(LRTEXT,"",1)
  Q
+ ;
 MODCHK ;Display modified banner if required
  S LRAPMR=$$GET1^DIQ(LRSF,LRIENS,.17,"I")
  Q:'LRAPMR
@@ -58,6 +62,7 @@ MODCHK ;Display modified banner if required
  D GLENTRY(LRTEXT,"",1)
  D GLENTRY("","",1)
  Q
+ ;
 SUPBNNR ;Display supplementary report header if one or more has been added
  I $P($G(^LR(LRDFN,LRSS,LRI,1.2,0)),U,4) D
  .S LRTEXT="*+* SUPPLEMENTARY REPORT HAS BEEN ADDED *+*"
@@ -66,6 +71,7 @@ SUPBNNR ;Display supplementary report header if one or more has been added
  .D GLENTRY($$CJ^XLFSTR(LRTEXT,IOM),"",1)
  .D GLENTRY("","",1)
  Q
+ ;
 DIAG ;
  ;Display the Brief Clinical History, Preoperative Diagnosis,
  ;Operative Findings, and Postoperative Diagnosis
@@ -76,6 +82,7 @@ DIAG ;
  .D GLENTRY($P($T(TEXT1+LRCNT),";",2),"",1)
  .D WP
  Q
+ ;
 DOC ;
  ;Pathologist information
  D GLENTRY("","",1)
@@ -95,12 +102,14 @@ DOC ;
  .S LRTMP=LRTMP(LRSS)
  .D GLENTRY(LRTMP_" "_LRRMD,31)
  Q
+ ;
 WPFLD ;
  ;Display Frozen Section, Gross Description, Microscopic Description
  ;and Surgical Path Diagnosis
  F LRCNT=1:1:4 D
  .S X=$T(FIELDS+LRCNT)
  .S LRV=$P(X,";",2),LRV1=$P(X,";",3),LRV2=$P(X,";",4)
+ .D TEXTCHK
  .I $P($G(^LR(LRDFN,LRSS,LRI,LRV,0)),U,4) D
  ..D GLENTRY("","",1),GLENTRY(LR(69.2,LRV1),"",1)
  ..S LRFILE=LRSF,LRIENS=LRI_","_LRDFN_",",LRFLD=LRV
@@ -117,6 +126,7 @@ WPFLD ;
  ...D GLENTRY(LRTEXT,BTAB)
  ..D WP
  Q
+ ;
 SUPRPT ;Supplementary Report
  I $P($G(^LR(LRDFN,LRSS,LRI,1.2,0)),U,4) D
  .S LRFILE=+$$GET1^DID(LRSF,1.2,"","SPECIFIER")
@@ -144,10 +154,12 @@ SUPRPT ;Supplementary Report
  ..S LRFLD=1 D WP
  ..D GLENTRY("","",1)
  Q
+ ;
 SSJR ;Print special studies/journal references
  D ^LRAPBR3
  S LREFLG=1
  Q
+ ;
 WP ;Display word procesing fields
  K LRTMP,^UTILITY($J,"W")
  N X,DIWR,DIWL,LRINC
@@ -162,6 +174,7 @@ WP ;Display word procesing fields
  .D GLENTRY(^UTILITY($J,"W",DIWL,LRINC,0),DIWL,1)
  K ^UTILITY($J,"W")
  Q
+ ;
 HEADER ;
  D:LRTIU GLENTRY("$APHDR",,1)
  D GLENTRY("","",1)
@@ -169,6 +182,7 @@ HEADER ;
  D GLENTRY("MEDICAL RECORD |",5,1)
  D GLENTRY(LRAA1,40)
  D DASH
+ ;
 HEADER2 ;
  S LRADESC="Accession No. "_$S(LRQ(8)]"":LRQ(8)_LRW(1)_" "_LRAC,1:LRAC)
  S LRLENG1=$L(LRQ(1)),LRLENG2=$L(LRADESC),LRSPCE=IOM-LRLENG2-14
@@ -177,6 +191,7 @@ HEADER2 ;
  D GLENTRY("Laboratory: "_LRQ(1),"",1)
  D GLENTRY(LRADESC,IOM-LRLENG2-1)
  Q
+ ;
 FOOTER ;Footer-called from ^LRAPBR
  D:LRTIU GLENTRY("$FTR",,1)
  D DASH
@@ -190,7 +205,7 @@ FOOTER ;Footer-called from ^LRAPBR
  S LRTEXT=$S('$D(LR("W")):"STANDARD FORM 515",1:"WORK COPY ONLY !!")
  D GLENTRY(LRTEXT,50)
  ; D GLENTRY("ID:"_SSN,"",1)
- D GLENTRY("ID:"_HRCN,"",1)
+ D GLENTRY("ID:"_HRCN,"",1)            ; IHS/MSC/MKK - LR*5.2*1031
  D GLENTRY("SEX:"_SEX,16),GLENTRY(" DOB:"_DOB,BTAB)
  I AGE D
  .S LRTEXT=$S($G(VADM(6))]"":" AGE AT DEATH: ",1:" AGE: ")_AGE
@@ -202,6 +217,7 @@ FOOTER ;Footer-called from ^LRAPBR
  D GLENTRY("PCP:",46)
  D:$L(LRPRAC) GLENTRY($E(LRPRAC(1),1,28),51)
  Q
+ ;
 ESIGLN ;Write signature block name, title, and date of signature
  D GLENTRY(,,1)
  I $D(^VA(200,DUZ,0)) D
@@ -225,9 +241,11 @@ ESIGLN ;Write signature block name, title, and date of signature
  S LRTEXT="Signed "_Y
  D GLENTRY(LRTEXT,,1)
  Q
+ ;
 DASH ;Display a line of dashes
  D GLENTRY(LR("%"),"",1)
  Q
+ ;
 GLENTRY(LRPR1,LRPR2,LRPR3) ;Write to global
  ;LRPR1 = Text to be written to global
  ;LRPR2 = Tab position
@@ -238,6 +256,7 @@ GLENTRY(LRPR1,LRPR2,LRPR3) ;Write to global
  D:LRPR3 NEWLN^LRAPUTL(LRPR1,LRPR2)
  D:'LRPR3 GLBWRT^LRAPUTL(LRPR1,LRPR2)
  Q
+ ;
 TEXT1 ;Text for top of report
  ;BRIEF CLINICAL HISTORY:
  ;PREOPERATIVE DIAGNOSIS:
@@ -252,3 +271,16 @@ FIELDS ;Field numbers for word processing fields
  ;1;.03;7
  ;1.1;.04;4
  ;1.4;.14;5
+TEXTCHK ; update text line counter if it is missing (Remedy 116253)
+ N I,X,DATA
+ S I=0
+ K ^TMP("WP",$J)
+ S X=$G(^LR(LRDFN,LRSS,LRI,LRV,0))
+ I X'="",$L(X,"^")=1 D
+ . F  S I=$O(^LR(LRDFN,LRSS,LRI,LRV,I)) Q:I=""  D
+ . . S DATA=$G(^LR(LRDFN,LRSS,LRI,LRV,I,0))
+ . . S ^TMP("WP",$J,I,0)=DATA
+ I $D(^TMP("WP",$J)) D
+ . D WP^DIE(63.08,LRI_","_LRDFN_",",LRV,"","^TMP(""WP"",$J)")
+ . K ^TMP("WP",$J)
+ Q

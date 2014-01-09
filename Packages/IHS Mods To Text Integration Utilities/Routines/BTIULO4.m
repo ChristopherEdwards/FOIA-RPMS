@@ -1,8 +1,9 @@
-BTIULO4 ; IHS/ITSC/LJF - MORE VISIT OBJECTS FOR EHR ;07-Jun-2010 16:14;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1004,1005,1006**;NOV 04, 2004
+BTIULO4 ; IHS/ITSC/LJF - MORE VISIT OBJECTS FOR EHR ;03-Oct-2012 14:38;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1004,1005,1006,1010**;NOV 04, 2004;Build 24
  ;IHS/ITSC/LJF 02/25/2005 PATCH 1002 added code for VITALS FOR VISIT CONTEXT object
  ;Added EHR 1.1 calls for visit selection
  ;Patch 6 added text for visit not selected
+ ;Patch 1010 added vitals qualifiers
  ;
 VCC(TARGET) ; returns chief complaint for current vuecentric visit context
  I $T(GETVAR^CIAVMEVT)="" S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
@@ -103,16 +104,18 @@ VMSRD(TARGET) ;EP; returns msr for current vuecentric visit context in a single 
  Q "~@"_$NA(@TARGET)
  ;
 GETMSRD(RETURN,VISIT) ; loop through visit measurements and get results
- NEW MIEN,CNT
+ NEW MIEN,CNT,QUALIF
  K RETURN
  S MIEN=0 F  S MIEN=$O(^AUPNVMSR("AD",VISIT,MIEN)) Q:'MIEN  D
  . K TIU D ENP^XBDIQ1(9000010.01,MIEN,".01;.04;2;1201","TIU(","I")
  . Q:TIU(2,"I")=1     ;SKIP ENTERED IN ERROR VITALS
+ . S QUALIF=$$QUAL^BTIULO7(MIEN)
  . S CNT=$G(CNT)+1
  . I TIU(.01)="WT" S TIU(.04)=$J(TIU(.04),5,2)_" ("_$J((TIU(.04)*.454),5,2)_" kg)"
  . I ((TIU(.01)="HT")!(TIU(.01)="HC")!(TIU(.01)="WC")!(TIU(.01)="AG")) S TIU(.04)=$J(TIU(.04),5,2)_" ("_$J((TIU(.04)*2.54),5,2)_" cm)"
  . I TIU(.01)="TMP" S TIU(.04)=TIU(.04)_" ("_($J((10*((TIU(.04)-32)/1.8)),5,2)/10)_" C)"
- . S RETURN(TIU(1201),TIU(.01))=$$NAME(TIU(.01,"I"))_": "_TIU(.04)_$$LSTDATE^BTIUPCC1(VISIT,TIU(1201,"I"),1)
+ . I QUALIF="" S RETURN(TIU(1201),TIU(.01))=$$NAME(TIU(.01,"I"))_": "_TIU(.04)_$$LSTDATE^BTIUPCC1(VISIT,TIU(1201,"I"),1)
+ . I QUALIF'="" S RETURN(TIU(1201),TIU(.01))=$$NAME(TIU(.01,"I"))_": "_TIU(.04)_$$LSTDATE^BTIUPCC1(VISIT,TIU(1201,"I"),1)_" Qualifiers: "_QUALIF
  Q
 NAME(X) ; return full name for measurement
  Q $$GET1^DIQ(9999999.07,X,.02)
@@ -132,7 +135,7 @@ VMSR() ;EP; returns msr for current vuecentric visit context in a single string
 GETMSR(BTRRET,BTRIN) ; Returns common measurements for visit context
  ; input = Vien|format(0-multi-line array,1-tiu string)
  ; Return value is TYPE^VALUE^D/T^VMIEN^VIEN
- NEW DAT,TYP,C,X,TYPNM,VMIEN,VIEN,FORMAT,MSRSTR
+ NEW DAT,TYP,C,X,X2,TYPNM,VMIEN,VIEN,FORMAT,MSRSTR,QUALIF
  S C=0
  K BTRRET
  S VIEN=$P(BTRIN,"|",1) I 'VIEN S BTRRET(1)="-1^No Visit"
@@ -144,13 +147,15 @@ GETMSR(BTRRET,BTRIN) ; Returns common measurements for visit context
  . S TYP=$P(X,U)
  . S TYPNM=$P($G(^AUTTMSR(TYP,0)),U) Q:TYPNM=""
  . S:'DAT DAT=+$G(^AUPNVSIT(VIEN,0))
+ . S QUALIF=$$QUAL^BTIULO7(VMIEN)
  . S C=C+1
  . I FORMAT=1 D  Q
  .. S MSRSTR=TYPNM_":"_$P(X,U,4)
  .. I TYPNM="WT" S MSRSTR=TYPNM_":"_$J($P(MSRSTR,":",2),5,2)_" ("_$J(($P(X,U,4)*.454),5,2)_" kg)"
  .. I ((TYPNM="HT")!(TYPNM="WC")!(TYPNM="HC")!(TYPNM="AG")) S MSRSTR=TYPNM_":"_$J($P(MSRSTR,":",2),5,2)_" ("_$J(($P(X,U,4)*2.54),5,2)_" cm)"
  .. I TYPNM="TMP" S MSRSTR=TYPNM_":"_$J($P(MSRSTR,":",2),5,2)_" ("_(((10*(($P(X,U,4)-32)/1.8))\1)/10)_" C)"
- .. S BTRRET=$S($G(BTRRET)="":"",1:BTRRET_", ")_MSRSTR
+ .. I QUALIF="" S BTRRET=$S($G(BTRRET)="":"",1:BTRRET_", ")_MSRSTR
+ .. I QUALIF'="" S BTRRET=$S($G(BTRRET)="":"",1:BTRRET_", ")_MSRSTR_"["_QUALIF_"]"
  . S BTRRET(C)=TYPNM_U_$P(X,U,4)_U_$$CDT(DAT)_U_VMIEN_U_$P(X,U,3)
  I C=0 S BTRRET(1)="-2^No Data"
  Q

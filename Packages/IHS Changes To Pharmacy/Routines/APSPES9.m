@@ -1,5 +1,5 @@
-APSPES9 ;IHS/MSC/PLS - Master File SPI Request;23-Sep-2011 15:54;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1010,1013**;Sep 23, 2004;Build 33
+APSPES9 ;IHS/MSC/PLS - Master File SPI Request;24-May-2012 23:34;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1010,1013,1014**;Sep 23, 2004;Build 5
  ; Modified - IHS/MSC/PLS - 03/24/2011 - EN+20 (removed checks for DEA)
  ;                          09/14/2011 - Added support for service level
  Q
@@ -186,10 +186,13 @@ EN ; EP -
  .W !,"The selected facility, "_$$GET1^DIQ(4,DUZ(2),.01)_" lacks a phone number."
  .W !,"This will need to be corrected before you can continue with the request."
  .D DIRZ
- I $$DIRYN^APSPUTIL("Will provider be writing New prescriptions electronically","YES",,.APSPPOP) D
- .S NEWRX=1
- I $$DIRYN^APSPUTIL("Will provider be taking Refill Requests electronically","YES",,.APSPPOP) D
- .S REFRX=1
+ ;IHS/MSC/PLS - 05/24/2012
+ ;I $$DIRYN^APSPUTIL("Will provider be writing New prescriptions electronically","YES",,.APSPPOP) D
+ ;.S NEWRX=1
+ S NEWRX=1
+ ;I $$DIRYN^APSPUTIL("Will provider be taking Refill Requests electronically","YES",,.APSPPOP) D
+ ;.S REFRX=1
+ S REFRX=1
  I $$DIRYN^APSPUTIL("Request SPI","YES",,.APSPPOP) D
  .D ADDPRV(USR,"MAD")
  .W !!,"An SPI number has been requested. A Kernel Alert will be sent to"

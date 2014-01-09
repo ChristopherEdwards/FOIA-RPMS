@@ -1,5 +1,5 @@
-BEHORXRT ;IHS/MSC/MGH - E-Prescribing receipt ;14-Jul-2011 17:12;PLS
- ;;1.1;BEH COMPONENTS;**009004,009006,009007**;Mar 20, 2007
+BEHORXRT ;IHS/MSC/MGH - E-Prescribing receipt ;14-Mar-2013 14:01;PLS
+ ;;1.1;BEH COMPONENTS;**009004,009006,009007,009009**;Mar 20, 2007
  ;=================================================================
  ; RPC: Retrieve reports for date range
 GETRPTS(DATA,DFN,BEHFLG,STRT,END) ;EP
@@ -13,7 +13,7 @@ OERRRPTS(ROOT,ORDFN,ID,ALPHA,OMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE) ;EP
  D GETRPTS(.ROOT,ORDFN,,ALPHA,OMEGA)
  Q
 REPORTS(DFN,BEHFLG,STRT,END) ;
- N TRANSDT,IEN,DATA,RX,PAT
+ N TRANSDT,IEN,DATA,RX,PAT,STATUS
  K ^TMP("BEHRX",$J) K ^TMP("BEHRX2",$J)
  S TRANSDT=STRT,END=END\1+.2359
  F  S TRANSDT=$O(^PS(52.51,"AC1",TRANSDT)) Q:TRANSDT=""  D
@@ -26,7 +26,7 @@ REPORTS(DFN,BEHFLG,STRT,END) ;
  Q
 SAVE(IEN,DATA) ;EP
  ; Generate specified report segments for a visit abstract
- N RX,PHARM,RXDRUG,DRUG,RXPHARM,PHARM,PROV
+ N RX,PHARM,RXDRUG,DRUG,RXPHARM,PHARM,PROV,TDATE
  S RX=$P(DATA,U,1)
  Q:RX=""
  S RXDRUG=$P($G(^PSRX(RX,0)),U,6)
@@ -37,8 +37,8 @@ SAVE(IEN,DATA) ;EP
  S PROV=$P($G(^PSRX(RX,0)),U,4)
  Q:PROV=""
  S PHARM=$P($G(^APSPOPHM(RXPHARM,0)),U,1)
- S DATE=$P(TRANSDT,".",1)
- S ^TMP("BEHRX",$J,PROV,RXPHARM,DATE,RX)=TRANSDT
+ S TDATE=$P(TRANSDT,".",1)
+ S ^TMP("BEHRX",$J,PROV,RXPHARM,TDATE,RX)=TRANSDT
  Q
 RESORT ;
  N PROV,RXPHARM,TRANSDT,RX,CNT
@@ -51,8 +51,8 @@ RESORT ;
  ....S ^TMP("BEHRX2",$J,PROV,RXPHARM,TRANSDT)=CNT
  Q
 REPORT ;
- N SNAME,ADDRESS,CITY,INAME,IADDRESS,ICITY,IPHONE,IFAX
- N PROV,RXPHARM,TRANSDT,RX,RX0,INST,HLOC,PAGE,NNAME
+ N PROV,RXPHARM,TRANSDT,RX,RX0,INST,HLOC,PAGE,NNAME,DNAME,LNAME,FNAME,NAME,TDATE
+ N ADDRESS,CITY,DTE,FIRST,IADDRESS,ICITY,IFAX,INAME,IPHONE,SNAME
  S PAGE=0,FIRST=1
  D HDR
  S PROV="" F  S PROV=$O(^TMP("BEHRX",$J,PROV)) Q:PROV=""  D
@@ -107,6 +107,7 @@ HDR S CNT=$G(CNT,1),PAGE=PAGE+1
  W !,$$CJ^XLFSTR(NAME,IOM),!
  Q
 FOOTER ;
+ N I
  W !!!,"Important Note: This is the summary of your medications"
  W !,"you will be receiving from your pharmacy.  You do not have"
  W !,"to present this slip at your pharmacy in order to pick up your"
@@ -139,10 +140,27 @@ RECXML(DATA,RXARY,DFN) ;EP-
  D ADD("<?xml version=""1.0"" ?>")
  D ADD($$TAG("Transactions",0))
  D ADD($$TAG("PatientName",2,PNM))
+ D BLDPT^BEHORXF1(DFN,"")
+ D BLDPTADD^BEHORXF1(DFN)
+ D DATA^BEHORXF1(DFN)
  S LP=0 F  S LP=$O(RXARY(LP)) Q:'LP  D
  .S RX=$$GETPSIFN^BEHORXFN(RXARY(LP))
- .D:RX ADDXML(RX)
+ .S ID=+RXARY(LP)
+ .D:RX RECEIPT(RX,ID)
+ .;D:RX ADDXML(RX)
  D ADD($$TAG("Transactions",1))
+ Q
+RECEIPT(RX,ORDID) ;EP
+ N RXINFO,PRVIEN,QTY,QTYW
+ K ^TMP("PS",$J)
+ D OEL^PSOORRL(DFN,RX)
+ S RXINFO=$G(^TMP("PS",$J,0)),$P(RXINFO,U,2)=$P($G(^("RXN",0)),U)
+ S $P(RXINFO,U,9)=$TR($G(^TMP("PS",$J,"P",0)),U,"~")
+ S PRVIEN=+$P(RXINFO,U,9)
+ S $P(RXINFO,U,10)=RX_"R;O"
+ S $P(RXINFO,U,13)=$$GET1^DIQ(59,+$$LOC^APSPFNC2(+ORDID),.01)
+ S $P(RXINFO,U,14)=$$NDCVAL^APSPFUNC(RX)
+ D ADDXML(RX)
  Q
 ADDXML(RX) ;EP-
  N PHMI,INI,PFN
@@ -150,25 +168,56 @@ ADDXML(RX) ;EP-
  S PHMI=$$GET1^DIQ(52,RX,9999999.24,"I")
  S INI=$$GET1^DIQ(44,$$GET1^DIQ(52,RX,5,"I"),3,"I")
  D ADD($$TAG("Transaction",0))
- I PHMI D
- .D ADD($$TAG("PharmacyName",2,$$GET1^DIQ(PFN,PHMI,.1)))
- .D ADD($$TAG("PharmacyAddr1",2,$$GET1^DIQ(PFN,PHMI,1.1)))
- .D ADD($$TAG("PharmacyAddr2",2,$$GET1^DIQ(PFN,PHMI,1.2)))
- .D ADD($$TAG("PharmacyCity",2,$$GET1^DIQ(PFN,PHMI,1.3)))
- .D ADD($$TAG("PharmacyState",2,$$GET1^DIQ(PFN,PHMI,1.4)))
- .D ADD($$TAG("PharmacyZip",2,$$GET1^DIQ(PFN,PHMI,1.5)))
- I INI D
- .D ADD($$TAG("InstitutionName",2,$$GET1^DIQ(4,INI,.01)))
- .D ADD($$TAG("InstitutionAddr1",2,$$GET1^DIQ(4,INI,1.01)))
- .D ADD($$TAG("InstitutionCity",2,$$GET1^DIQ(4,INI,1.03)))
- .D ADD($$TAG("InstitutionState",2,$$GET1^DIQ(4,INI,.02)))
- .D ADD($$TAG("InstitutionZip",2,$$GET1^DIQ(4,INI,1.04)))
- .D ADD($$TAG("InstitutionFax",2,$$GET^XPAR("ALL","APSP AUTO RX FAXED FROM NUMBER")))
- D ADD($$TAG("DrugName",2,$$GET1^DIQ(52,RX,6)))
+ D ADD($$TAG("Chronic",2,$$GET1^DIQ(52,RX,9999999.02)))
+ D ADD($$TAG("DAW",2,$S($$GETDAW^BEHORXFN(ORDID):"Yes",1:"No")))
+ D ADD($$TAG("DaysSupply",2,$P(RXINFO,U,7)))
+ D ADD($$TAG("DrugName",2,$P(RXINFO,U)))
+ D ADD($$TAG("IndCode",2,$P($$GETIND^BEHORXFN(ORDID),"~")))
+ D ADD($$TAG("IndText",2,$P($$GETIND^BEHORXFN(ORDID),"~",2)))
+ D ADD($$TAG("Instruct",2,$$RXINSTR^BEHORXF1()))
+ D ADD($$TAG("Comment",2,$$ORDCOM^BEHORXF1(ORDID)))
+ D ADD($$TAG("EnteredBy",2,$$GET1^DIQ(100,ORDID,3)))
+ D ADD($$TAG("OrderLocation",2,$$GET1^DIQ(100,ORDID,6)))
+ D ADD($$TAG("OrderableItem",2,$$GET1^DIQ(101.43,$$VALUE^ORCSAVE2(ORDID,"ORDERABLE"),.01)))
+ D ADD($$TAG("IssueDate",2,$$FMTE^XLFDT($P(RXINFO,U,5),9)))
+ D ADD($$TAG("PharmSite",2,$P(RXINFO,U,13)))  ;name
+ D ADD($$TAG("Provider",2,$P($P(RXINFO,U,9),"~",2)))
+ D PROV^BEHORXF1(PRVIEN)
+ S QTY=$P(RXINFO,U,8),QTYW=$$WRDFMT^APSPFNC7(QTY)
+ ;D ADD($$TAG("Quantity",2,QTY_"("_QTYW_")"))
+ ; DKA 2013-02-25 artf13536 Don't add parentheses if Quantity-In-Words is blank for decimal value.
+ D ADD($$TAG("Quantity",2,QTY_$S(QTYW="":"",1:"("_QTYW_")")))
+ D ADD($$TAG("Refills",2,$P(RXINFO,U,4)))
+ D ADD($$TAG("RxNorm",2,$$GETRXNRM^BEHORXFN(ORDID,RX)))
+ D ADD($$TAG("ProcessState",2,$$PSTATE^BEHORXFN(RX)))
+ D ADD($$TAG("NeedsReason",2,$$GETNDRSN^BEHORXF1($$PSTATE^BEHORXFN(RX))))
+ I PHMI D PHARM2(PHMI)
+ I INI D INST2(INI)
+ ;D ADD($$TAG("DrugName",2,$$GET1^DIQ(52,RX,6)))
  D ADD($$TAG("DEA",2,$$GET1^DIQ(50,$$GET1^DIQ(52,RX,6,"I"),3)))
  D ADD($$TAG("Provider",2,$$GET1^DIQ(52,RX,4)))
  D ADD($$TAG("Date_Time",2,$$XMTDATE(RX)))
  D ADD($$TAG("Transaction",1))
+ Q
+INST2(INI) ;Enter Institution data
+ D ADD($$TAG("InstitutionName",2,$$GET1^DIQ(4,INI,.01)))
+ D ADD($$TAG("InstitutionAddr1",2,$$GET1^DIQ(4,INI,1.01)))
+ D ADD($$TAG("InstitutionCity",2,$$GET1^DIQ(4,INI,1.03)))
+ D ADD($$TAG("InstitutionState",2,$$GET1^DIQ(4,INI,.02)))
+ D ADD($$TAG("InstitutionZip",2,$$GET1^DIQ(4,INI,1.04)))
+ D ADD($$TAG("InstitutionFax",2,$$GET^XPAR("ALL","APSP AUTO RX FAXED FROM NUMBER")))
+ D ADD($$TAG("InstitutionPhone",2,$$GET1^DIQ(9999999.06,INI,.13)))
+ Q
+PHARM2(PHMI) ;Add pharmacy data
+ N PFN
+ S PFN=9009033.9
+ D ADD($$TAG("PharmacyName",2,$$GET1^DIQ(PFN,PHMI,.1)))
+ D ADD($$TAG("PharmacyAddr1",2,$$GET1^DIQ(PFN,PHMI,1.1)))
+ D ADD($$TAG("PharmacyAddr2",2,$$GET1^DIQ(PFN,PHMI,1.2)))
+ D ADD($$TAG("PharmacyCity",2,$$GET1^DIQ(PFN,PHMI,1.3)))
+ D ADD($$TAG("PharmacyState",2,$$GET1^DIQ(PFN,PHMI,1.4)))
+ D ADD($$TAG("PharmacyZip",2,$$GET1^DIQ(PFN,PHMI,1.5)))
+ D ADD($$TAG("PharmacyPhone",2,$$GET1^DIQ(PFN,PHMI,2.1)))
  Q
  ; Return formatted transmission date/time
 XMTDATE(RX) ;EP-

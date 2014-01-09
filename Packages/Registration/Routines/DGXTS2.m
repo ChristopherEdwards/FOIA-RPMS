@@ -1,4 +1,4 @@
-DGXTS2 ; ;10/29/04
+DGXTS2 ; ;10/15/12
  D DE G BEGIN
 DE S DIE="^DG(40.8,D0,""TS"",D1,""C"",",DIC=DIE,DP=40.807,DL=3,DIEL=2,DU="" K DG,DE,DB Q:$O(^DG(40.8,D0,"TS",D1,"C",DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(1)=%

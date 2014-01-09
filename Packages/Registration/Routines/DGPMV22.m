@@ -1,5 +1,5 @@
 DGPMV22 ;ALB/MIR - SCHEDULED ADMISSION? ; 23 NOV 90
- ;;5.3;Registration;**40**;Aug 13, 1993
+ ;;5.3;Registration;**40,1015**;Aug 13, 1993;Build 21
 SCHDADM ;is this a scheduled admission...DGPMSA=1 for yes, 0 for no
  ;must be within 7 days of actual scheduled admission entry
  S X1=DGPMY,X2=-7 D C^%DTC S DGPMSD=$P(X,".")-.1

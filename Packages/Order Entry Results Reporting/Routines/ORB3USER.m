@@ -1,6 +1,6 @@
-ORB3USER ; slc/CLA - Alert recipient algorithms for OE/RR 3 notifications; 1/19/00 14:45
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**74,91,105,139**;Dec 17, 1997
-USER(XQA,ORBDUZ,ORN,ORBU,ORBUI,ORBDFN) ;called from ORB3
+ORB3USER ; slc/CLA - Alert recipient algorithms for OE/RR 3 notifications; 1/19/00 14:45 [8/16/05 9:53am]
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**74,91,105,139,200,220**;Dec 17, 1997
+USER(XQA,ORBDUZ,ORN,ORBU,ORBUI,ORBDFN,ORNUM) ;called from ORB3
  ;check to see if potential recip (ORBDUZ) should be an alert recip
  ;XQA     array of alert recips passed to Kernel Alert Utility
  ;ORBDUZ  duz of current potential alert recipient
@@ -8,8 +8,9 @@ USER(XQA,ORBDUZ,ORN,ORBU,ORBUI,ORBDFN) ;called from ORB3
  ;ORBU    array of info for utility displaying recip who and why
  ;ORBUI   counter for utility array
  ;ORBDFN  patient ien from Patient file [#2]
+ ;ORNUM   order number to base division params on[optional]
  ;
- N ORBNODE,ORBSUR,ORBACT,ORBTM,ORBTMF,ORBTEAM,ORBON,ORBDUP
+ N ORBNODE,ORBSUR,ORBTM,ORBTMF,ORBTEAM,ORBON,ORBDUP
  I $G(ORBDUZ)["G." S XQA(ORBDUZ)="" Q
  Q:+$G(ORBDUZ)<.5
  ;
@@ -27,30 +28,20 @@ USER(XQA,ORBDUZ,ORN,ORBU,ORBUI,ORBDFN) ;called from ORB3
  ;
  S ORBDUZ=$P(ORBDUZ,U)
  ;
- ; determine if user is active (not terminated from system):
- S ORBACT=+$$ACTIVE^XUSER(ORBDUZ)
- I $D(ORBU),(ORBACT=0) D  ;if user is terminated on system:
- .S ORBNODE=$G(^VA(200,ORBDUZ,0)) I $L($G(ORBNODE)) D
- ..S ORBU(ORBUI)="   "_$P(ORBNODE,U)_": OFF because",ORBUI=ORBUI+1
- ..S ORBU(ORBUI)="     User's system access is terminated.",ORBUI=ORBUI+1
- ;
  S:$G(ORBTEAM)="" ORBTEAM="^"
- S ORBON=$$ONOFF(ORN,ORBDUZ,ORBDFN,ORBTEAM)
- I $D(ORBU),(ORBACT=1) D  ;if user is active on system:
+ S ORBON=$$ONOFF(ORN,ORBDUZ,ORBDFN,ORBTEAM,$G(ORNUM))
+ I $D(ORBU) D
  .S ORBNODE=$G(^VA(200,ORBDUZ,0)) I $L($G(ORBNODE)) D
  ..S ORBU(ORBUI)="   "_$P(ORBNODE,U)_": "_$P(ORBON,U)_" because ",ORBUI=ORBUI+1
  ..S ORBU(ORBUI)="     "_$P(ORBON,U,2),ORBUI=ORBUI+1
  I $D(ORBU),($P(ORBON,U)="ON"),($G(ORBDUZ)'["G.") D
- .S ORBSUR=$$CURRSURO^XQALSURO(ORBDUZ)  ;DBIA 2790 Alert surrogate
- .I +$G(ORBSUR)>0,(+$$ACTIVE^XUSER(ORBSUR)=1) D
+ .S ORBSUR=$$ACTVSURO^XQALSURO(ORBDUZ)  ;DBIA 2790 Alert surrogate
+ .I +$G(ORBSUR)>0 D
  ..S ORBU(ORBUI)="     [Surrogate "_$$GET1^DIQ(200,ORBSUR_",",.01)_" will receive alert for user]",ORBUI=ORBUI+1
- .I +$G(ORBSUR)>0,(+$$ACTIVE^XUSER(ORBSUR)=0) D
- ..S ORBU(ORBUI)="     [Surrogate "_$$GET1^DIQ(200,ORBSUR_",",.01)_" is INACTIVE - neither will receive alert]",ORBUI=ORBUI+1
  Q:$P(ORBON,U)="OFF"  ;quit if user is disabled for this notif
  Q:$D(ORBU)           ;quit if entered rtn via UTL (do not sent alert)
- I ORBACT=1 D  ;if user is active
- .D PREALERT(ORBDUZ,ORN,ORBDFN)  ;if user has undel prev alert, delete it
- .S XQA(ORBDUZ)=""  ;if user is active, send them the alert
+ D PREALERT(ORBDUZ,ORN,ORBDFN)  ;if user has undel prev alert, delete it
+ S XQA(ORBDUZ)=""  ;send alert to the user
  Q
  ;
 PREALERT(ORBDUZ,ORN,ORBDFN) ;if user (ORBDUZ) has an undeleted previous
@@ -67,13 +58,14 @@ PREALERT(ORBDUZ,ORN,ORBDFN) ;if user (ORBDUZ) has an undeleted previous
  ..D DELETEA^XQALERT
  Q
  ;
-ONOFF(ORN,ORBUSR,ORBPT,ORBTEAM) ;Extrinsic function to check param file
+ONOFF(ORN,ORBUSR,ORBPT,ORBTEAM,ORNUM) ;Extrinsic function to check param file
  ;determines if user ORBUSR should receive notification ORN for patient
  ;patient ORBPT. If ORBUSR was derived via teams, ORBTEAM may be used.
  ;ORN      notification ien from file 100.9 (req'd)
  ;ORBUSR   user ien from file 200 (req'd)
  ;ORBPT    patient ien from file 2 (not req'd)
  ;ORBTEAM  processing flag^name for team assoc. w/ORBUSR (not req'd)
+ ;ORNUM    order number to base division params on (not req'd)
  N NODE,ORBPTN,ORBNOTN,ORBUSRF,ORBUSRN,ORBLOC,ORBLOCF,ORBLOCN
  S (ORBPTN,ORBNOTN,ORBUSRF,ORBUSRN,ORBLOC,ORBLOCF,ORBLOCN)=""
  N ORBSRV,ORBSRVF,ORBSRVN,ORBTEA,ORBTEAF,ORBTEAN,ORBTEAD,ORBTEAE
@@ -93,7 +85,7 @@ ONOFF(ORN,ORBUSR,ORBPT,ORBTEAM) ;Extrinsic function to check param file
  S:$L($G(ORBPT)) NODE=$G(^DPT(ORBPT,0)) S:$L($G(NODE)) ORBPTN=$P(NODE,U)
  ;
  ;get division flag and name:
- S ORBDIV=$$DIVF(ORBUSR,ORN)
+ S ORBDIV=$$DIVF(ORBUSR,ORN,$G(ORNUM))
  I $L(ORBDIV) D
  .S ORBDIVF=$P(ORBDIV,U,2),ORBDIV=$P(ORBDIV,U),NODE=$G(^DIC(4,ORBDIV,0))
  .S:$L($G(NODE)) ORBDIVN=$P(NODE,U)
@@ -171,8 +163,14 @@ RECENT(USER) ;ext funct rtns a user's most recent, active user class
  E  S RESULT="^No user classes found."
  K %
  Q RESULT
-DIVF(USER,ORN) ;ext funct rtns user's division value for ORB PROCESSING FLAG
+DIVF(USER,ORN,ORNUM) ;ext funct rtns user's division value for ORB PROCESSING FLAG
  N DIV,DIVF,MDIVF,EDIVF,DDIVF
+ I +$G(ORNUM) D  Q DIVF
+ .S DIVF=""
+ .S DIV=$$ORDIV^ORB31(ORNUM)
+ .I +$G(DIV)'>0 Q
+ .S DIVF=$$GET^XPAR(DIV_";DIC(4,","ORB PROCESSING FLAG",ORN,"I")
+ .I $L(DIVF) S DIVF=DIV_U_DIVF
  S DIV=0,(DIVF,MDIVF,EDIVF,DDIVF)=""
  F  S DIV=$O(^VA(200,USER,2,"B",DIV)) Q:+$G(DIV)<1!(DIVF="M")  D
  .S DIVF=$$GET^XPAR(DIV_";DIC(4,","ORB PROCESSING FLAG",ORN,"I")

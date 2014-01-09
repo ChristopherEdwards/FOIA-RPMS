@@ -1,12 +1,13 @@
 LRAPBR5 ;VA/DALOI/WTY - AUTOPSY BROWSER DISPLAY/TIU STORAGE;6/5/2001
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 259
  ;
  ;This routine was copied from ^LRAPT2.  It was updated with FileMan
  ;DBS calls and modified to be used for browser display and storage
  ;of the SF515 in TIU.
  ;
-MAIN ;
+MAIN ; EP
  N LRLLOC,LRDTDIED,LRTMP,LRNUM,LRINC,LRINC1
  S LRQUIT=0
  S:'$D(LRIENS) LRIENS=LRDFN_","
@@ -17,10 +18,12 @@ MAIN ;
  D JRNLREF
  D:'LRAU DIAGS
  Q
+ ;
 HEADER ;
  D GLENTRY("","",1)
  D GLENTRY(LRP,"",1)
- D GLENTRY(SSN,32)
+ ; D GLENTRY(SSN,32)
+ D GLENTRY(HRCN,32)          ; IHS/MSC/MKK - LR*5.2*1031
  D GLENTRY("DOB: "_DOB,52)
  S LR("F")=1
  I 'LRTIU,'+$$GET1^DIQ(63,LRIENS,14.7,"I") D  Q
@@ -40,6 +43,7 @@ HEADER ;
  D GLENTRY("Resident: "_$$GET1^DIQ(63,LRIENS,13.5,"E"),"",1)
  D GLENTRY("Senior: "_$E($$GET1^DIQ(63,LRIENS,13.6,"E"),1,19),52)
  Q
+ ;
 WEIGHTS ;Display/Store Weights & Measures
  D GLENTRY("","",1)
  I $D(^LR(LRDFN,"AW")) D
@@ -87,6 +91,7 @@ WEIGHTS ;Display/Store Weights & Measures
  ..Q:LRTMP=""
  ..D GLENTRY($$GET1^DID(63,LRNUM,"","LABEL")_": "_LRTMP,"",1)
  Q
+ ;
 SPCSTD ;Display/store special studies
  N LRARR,LRSPC,LRORGTS,LRIENS1,LRFLG,LRTEXT,LRCNT
  D GLENTRY("","",1)
@@ -117,6 +122,7 @@ SPCSTD ;Display/store special studies
  ..K ^UTILITY($J,"W")
  ..D GLENTRY("","",1)
  Q
+ ;
 JRNLREF ;Print journal references
  N LRFL,LRM,LRN,LRTP,LRIENS1,LRIENS2,LRIENS3,LRFILE1,LRFILE3,LRFILE4
  D GLENTRY(,,1)
@@ -157,6 +163,7 @@ JRNLREF ;Print journal references
  ..S LRFL=$$GET1^DIQ(LRFILE3,LRIENS2,.01,"I")
  ..D JREFPRT
  Q
+ ;
 JREFPRT ;
  ; Print journal reference on the patient report if the 
  ; reference is flagged for printing.
@@ -176,6 +183,7 @@ JREFPRT ;
  ..D GLENTRY(" pg."_LRJR(4),BTAB)
  .D GLENTRY("  Date: "_LRJR(5),BTAB)
  Q
+ ;
 DIAGS ;
  N LRV
  D GLENTRY("","",1)
@@ -188,6 +196,7 @@ DIAGS ;
  .D WP^LRAPBR4
  .D GLENTRY("","",1)
  Q
+ ;
 GLENTRY(LRPR1,LRPR2,LRPR3) ;Write to global
  ;LRPR1 = Text to be written to global
  ;LRPR2 = Tab position

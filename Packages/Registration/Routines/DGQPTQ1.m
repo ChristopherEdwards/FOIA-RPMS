@@ -1,5 +1,5 @@
 DGQPTQ1 ; SLC/CLA - Functs which return DG patient lists and sources pt 1 ;12/15/97
- ;;5.3;Registration;**447**;Aug 13, 1993
+ ;;5.3;Registration;**447,1015**;Aug 13, 1993;Build 21
 VAMCPTS(Y) ; RETURN LIST OF PATIENTS IN VAMC: DFN^NAME
  N I,J,V
  S I=1

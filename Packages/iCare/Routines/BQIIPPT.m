@@ -1,5 +1,5 @@
 BQIIPPT ;VNGT/HS/ALA-IPC Patient Detail ; 30 Jun 2011  12:32 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
  ;
 EN(DATA,OWNR,PLIEN,PLIST) ;EP - BQI GET IPC PATIENT DETAIL
@@ -71,15 +71,6 @@ PAT(DATA,OWNR,PLIEN,DFN) ;EP - Build record by patient
  .. S VAL=$G(@TDATA@(PAT,ORD,"VAL"))
  .. S HDR=$G(@TDATA@(PAT,ORD,"HDR"))
  .. D UP
- ;. S CAT=""
- ;. F  S CAT=$O(@TDATA@(PAT,CAT)) Q:CAT=""  D
- ;.. S TITLE=""
- ;.. F  S TITLE=$O(@TDATA@(PAT,CAT,TITLE)) Q:TITLE=""  D
- ;... S MSN=""
- ;... F  S MSN=$O(@TDATA@(PAT,CAT,TITLE,MSN)) Q:MSN=""  D
- ;.... S VAL=$G(@TDATA@(PAT,CAT,TITLE,MSN,"VAL"))
- ;.... S HDR=$G(@TDATA@(PAT,CAT,TITLE,MSN,"HDR"))
- ;.... D UP
  ;
  ; remove trailing up-arrows
  S HEADR=$$TKO^BQIUL1(HEADR,"^")
@@ -133,7 +124,8 @@ REC(DFN) ;EP - Record
  . S MSN=""
  . F  S MSN=$O(^BQI(90508,1,22,CRN,1,"C",ORD,MSN)) Q:'MSN  D
  .. S IDATA=^BQI(90508,1,22,CRN,1,MSN,0)
- .. S CODE=$P(IDATA,U,1),TYP=$P(IDATA,U,2),TITLE=$P(IDATA,U,4)
+ .. S CODE=$P(IDATA,U,1),TYP=$P(IDATA,U,2),TITLE=$P(IDATA,U,4),TAB=$P(IDATA,U,13)
+ .. I TAB="A" Q
  .. ; If inactive, quit
  .. I $P(IDATA,U,7)=1 Q
  .. S HDR="T00003"_CODE I DFN="" S HEADR=HEADR_HDR_"^" Q

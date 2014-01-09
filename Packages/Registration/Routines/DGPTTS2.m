@@ -1,16 +1,22 @@
-DGPTTS2 ;ALB/JDS - FACILITY TREATING SPECIALTY AND 501 MOVEMENTS, cont. ; 12/13/89@8
- ;;5.3;Registration;;Aug 13, 1993
+DGPTTS2 ;ALB/JDS - FACILITY TREATING SPECIALTY AND 501 MOVEMENTS, cont. ; 9/19/03 4:22pm
+ ;;5.3;Registration;**549,478,1015**;Aug 13, 1993;Build 21
  ;
  S NX=$O(^UTILITY($J,"T",0)),DGDR=0 Q:NX'>0  S T(NX)=^(NX),I2=$P(T(NX),U,4),B(501)=U
- F I=0:0 S I=$O(^DGPT(PTF,"M",I)) Q:I'>0  K ^(I,"P")
+ F I=0:0 S I=$O(^DGPT(PTF,"M",I)) Q:I'>0  D
+ .N FLD,DGFDA,DGMSG
+ .F FLD=20:1:25 S DGFDA(45.02,I_","_PTF_",",FLD)="@"
+ .D FILE^DIE("","DGFDA","DGMSG")
 LOOP1 K:$D(PR) T(PR) S PR=NX,NX=$O(^UTILITY($J,"T",NX)) G Q:NX'>0 S T(NX)=^(NX),T(PR)=^(PR)
  S I1=+$P(T(NX),U,3),I2=$S($O(^(NX)):$P(^(NX),U,3),1:0),DGDOC=$P(T(NX),U,5) F I=PR,NX S DG1(I)=$P(T(I),U,2)
  D ADT1:I1'>0,ONE:$P(T(PR),U,4)'=I1,LOL
  S A=$S($D(^DGPT(PTF,"M",I1,0)):^(0),1:"") I $P(A,U,1,4)'=(I1_U_DG1(PR)_U_LOL_U_LOP)!($P(A,U,10)'=NX) S DR=$S('A:".01///"_I1_";",1:"")_"2////"_DG1(PR)_";3///"_LOL_";4///"_LOP_";10////"_NX D TD5
  I $P(T(PR),U,4)'=I1 S DR="53///"_I1,DA=+T(PR),DIE="^DGPM(" D ^DIE
  G LOOP1
-ADT1 S:'$D(^DGPT(PTF,"M",0)) ^DGPT(PTF,"M",0)="^45.02AI^1^1" L ^DGPT(PTF,"M",0) F I=0:0 S I=$O(^DGPT(PTF,"M",I)) Q:I'>0  S I1=I
- L ^DGPT(PTF,"M",0) S I1=I1+1,J=^DGPT(PTF,"M",0),^(0)=$P(J,U,1,2)_U_I1_U_($P(J,U,4)+1) L  S ^(I1,0)=I1
+ADT1 S:'$D(^DGPT(PTF,"M",0)) ^DGPT(PTF,"M",0)="^45.02AI^1^1" L +^DGPT(PTF,"M",0) F I=0:0 S I=$O(^DGPT(PTF,"M",I)) Q:I'>0  S I1=I
+ S I1=I1+1,J=^DGPT(PTF,"M",0),^(0)=$P(J,U,1,2)_U_I1_U_($P(J,U,4)+1) L -^DGPT(PTF,"M",0)
+ N DGFDA,DGMSG
+ S DGFDA(45.02,I1_","_PTF_",",.01)=I1
+ D FILE^DIE("","DGFDA","DGMSG")
  S T(NX)=$P(T(NX)_"^^",U,1,2)_U_I1
  S DA=+T(NX),DR="52///"_I1,DIE="^DGPM(" D ^DIE
  Q

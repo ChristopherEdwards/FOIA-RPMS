@@ -1,5 +1,5 @@
 SCRPO ;BP-CIOFO/KEITH - Report prompting utilities ; 20 Aug 99  7:46 AM
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,297,1015**;AUG 13, 1993;Build 21
  ;
 DTR(SC,SCDTB,SCDTE) ;Date range prompts
  ;Input: SC=name of array to return values
@@ -79,24 +79,26 @@ LIST(SC,WHAT,SUBH,LIMIT) ;Get list of entries from a file
  .Q
  D XR(.SC,WHAT,SCA) Q 'SCQUIT
  ;
-DIV S DIC="^DIC(4,",SCA="Division",SCS="I $D(^SCTM(404.51,""AINST"",+Y))" Q
+DIV S DIC="^DIC(4,",SCA="Institution",SCS="I $D(^SCTM(404.51,""AINST"",+Y))" Q
 TEAM S DIC="^SCTM(404.51,",SCA="Team" Q
 ROLE S DIC="^SD(403.46,",SCA="Role" Q
 POS S DIC="^SCTM(404.57,",SCA="Team Position" Q
 PCP S DIC="^VA(200,",SCA="PC Provider" Q
 ASPR S DIC="^VA(200,",SCA="Assigned Provider" Q
 APR S DIC="^VA(200,",SCA="Associate Provider" Q
-CLINIC S DIC="^SC(",SCA="Enrolled Clinic",DIC("S")="I $P(^(0),U,3)=""C""" Q
+CLINIC S DIC="^SC(",SCA="Associated Clinic",DIC("S")="I $P(^(0),U,3)=""C""" Q
  ;
 SORT(SC,SCEL,SCSP) ;Prompt for optional sort elements
  ;Input: SC=array to return sort order (pass by reference)
  ;Input: SCX=comma delimited string of element acronyms where
- ;           'DV' = DIVISION
+ ;           'IN' = INSTITUTION
  ;           'TM' = TEAM
  ;           'RO' = ROLE
  ;           'TP' = TEAM POSITION
  ;           'PR' = PROVIDER
+ ;           'AC' = ASSOCIATED CLINIC
  ;           'EC' = ENROLLED CLINIC
+ ;           'PT' = PATIENT
  ;           'PA' = PATIENT
  ;Input: SCSP=acronym of last sort to add if not selected (optional)
  ;Output: '0' for abnormal exit, '1' otherwise
@@ -107,7 +109,7 @@ SORT(SC,SCEL,SCSP) ;Prompt for optional sort elements
  Q:'$L(SCEL)
  S SCQUIT=0
  F SCI=1:1:$L(SCEL,",") D
- .S SCX=$P(SCEL,",",SCI),SCY(SCX)=SCI,SCZ=$P($T(@SCX),";;",2)
+ .S SCX=$P(SCEL,",",SCI),SCX=$S(SCX="PA":"PT",SCX="DV":"IN",1:SCX),SCY(SCX)=SCI,SCZ=$P($T(@SCX),";;",2)
  .S SCZ(SCX)=$P(SCZ,U,2),SCX=$P(SCZ,U)
  .I $L(SCX) S SCX(SCI)=";"_SCX
  .Q
@@ -124,7 +126,7 @@ QSORT(DIRA) ;Prompt for sort
  S DIR(0)=$$DIR0() Q:DIR(0)=""
  D ^DIR I $D(DTOUT)!$D(DUOUT) S SCQUIT=1 Q
  Q:X=""
- S SCI=SCI+1,@SC@("SORT",SCI)=Y_U_Y(0)_U_SCZ(Y)
+ S SCI=SCI+1,@SC@("SORT",SCI)=$S(Y="IN":"DV",Y="PT":"PA",1:Y)_U_Y(0)_U_SCZ(Y)
  K SCX(SCY(Y)),SCY(Y) D QSORT("Within "_Y(0)_", sort by")
  Q
  ;
@@ -135,13 +137,16 @@ DIR0() ;Return value for DIR(0)
  S SCX=$E(SCX,2,999) S:$L(SCX) SCX="SO^"_SCX
  Q SCX
  ;
-DV ;;DV:DIVISION^SCDIV
+DV ;;IN:INSTITUTION^SCDIV
+IN ;;IN:INSTITUTION^SCDIV
 TM ;;TM:TEAM^SCTEAM
 RO ;;RO:ROLE^SCROLE
 TP ;;TP:TEAM POSITION^SCPOS
 PR ;;PR:PROVIDER^SCPROV
 EC ;;EC:ENROLLED CLINIC^SCLINIC
+AC ;;AC:ASSOCIATED CLINIC^SCLINIC
 PA ;;PA:PATIENT^SCPAT
+PT ;;PT:PATIENT^SCPAT
  ;
 XR(SC,SUB,VAL) ;Create x-ref for printing parameters
  ;Input: SC=array to return parameters

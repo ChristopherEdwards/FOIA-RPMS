@@ -1,5 +1,5 @@
 DGPTRAM ;ALB/BOK - ENTER RAM COSTS ; 11 MAR 87
- ;;5.3;Registration;**164**;Aug 13, 1993
+ ;;5.3;Registration;**164,1015**;Aug 13, 1993;Build 21
 ASK N X,Y,DIR
  S DIR("A")="Enter RAM costs for fiscal year: ",DIR(0)="DAO^2800101::E^K:'(X?2N!(X?4N)) X"
  S DIR("?")="^D HELP^DGPTRAM"

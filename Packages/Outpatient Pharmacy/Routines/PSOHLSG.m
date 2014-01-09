@@ -1,22 +1,25 @@
-PSOHLSG ;BIR/LC-HL7 EXTERNAL INTERFACE ;03/01/96 09:45
- ;;7.0;OUTPATIENT PHARMACY;**26,70,139**;DEC 1997
+PSOHLSG ;BIR/LC,PWC-HL7 EXTERNAL INTERFACE ;03/01/96 09:45
+ ;;7.0;OUTPATIENT PHARMACY;**26,70,139,156**;DEC 1997
  ;External reference to GETAPP^HLCS2 supported by DBIA 2887
  ;External reference to INIT^HLFNC2 supported by DBIA 2161
  ;External reference to GENERATE^HLMA supported by DBIA 2164
  ;External reference to SETUP^XQALERT supported by DBIA 10081
  ;External reference to ^XUSEC("PSOINTERFACE" supported by DBIA 10076
  ;External reference to ^ORD(101 supported by DBIA 872
+ ;
 INIT ;initialize variables and build outgoing message
  Q:'$D(^UTILITY($J,"PSOHL"))
- N HLRESLT,HLP,PSLINK,PSOHLINX
- I $T(GETAPP^HLCS2)]"" S PSOHLINX=$$GETAPP^HLCS2("PSO HLSERVER1") I $P($G(PSOHLINX),"^",2)="i" Q
+ S PSODISP=$$GET1^DIQ(59,PSOSITE_",",105,"I")  ;flag to determine if site is running HL7 V.2.4 dispensing systems
+ I PSODISP="2.4" G ^PSOHLDS    ;branch off for V.2.4 dispensing machines
+ N DFLAG,HLRESLT,HLP,PSLINK,PSOHLINX
+ S PSOHLINX=$$GETAPP^HLCS2("PSO HLSERVER1") Q:$P($G(PSOHLINX),"^",2)="i"
  K ^TMP("PSO",$J)
- S PIEN=$O(^ORD(101,"B","PSO HLSERVER1",0)) G:'$D(PIEN) EXIT
+ S PIEN=$O(^ORD(101,"B","PSO HLSERVER1",0)) G:'PIEN EXIT
  S PSI=1,HLPDT=DT D INIT^HLFNC2(PIEN,.HL1) I $G(HL1) G EXIT
  S FS=HL1("FS"),HL1("ECH")="^~\&",CS=$E(HL1("ECH")),RS=$E(HL1("ECH"),2),EC=$E(HL1("ECH"),3),SCS=$E(HL1("ECH"),4)
  I '$G(PSODTM) D NOW^%DTC S DTME=%
  I $G(PSODTM) S DTME=PSODTM
- S II="" F II=0:0 S II=$O(^UTILITY($J,"PSOHL",II)) Q:II=""  S ODR=^UTILITY($J,"PSOHL",II) D
+ F II=0:0 S II=$O(^UTILITY($J,"PSOHL",II)) Q:'II  S ODR=^UTILITY($J,"PSOHL",II) D
  .S IRXN=$P(ODR,"^"),IDGN=$P(ODR,"^",2),FP=$P(ODR,"^",3),FPN=$P(ODR,"^",4),DAW=$P(ODR,"^",5),DIN=$P(ODR,"^",6)
  .S ^TMP("PSOMID",$J,II)=IRXN_"^"_FP_"^"_FPN I DIN=1 D
  ..F JJ=0:0 S JJ=$O(^UTILITY($J,"PSOHL",II,JJ)) Q:'JJ  S ING(JJ)=^UTILITY($J,"PSOHL",II,JJ)
@@ -42,7 +45,7 @@ INIT ;initialize variables and build outgoing message
  I '$G(HLMID) S XQAMSG="Error transmitting "_$P(^DPT(DFN,0),"^")_" order to external interface" D ALERT G EXIT
  I $G(HLMID),$P($G(HLERR),"^")'="" S XQAMSG="Error transmitting batch "_HLMID_" to the external interface",MESS="TRANSMISSION FAILED",STA=3 D UFILE,ALERT G EXIT
  I $G(HLMID),$P($G(HLERR),"^")="" S MESS="MESSAGE TRANSMITTED",STA=1 D UFILE G EXIT
-UFILE F  S II=$O(^TMP("PSOMID",$J,II)) Q:II=""  S III=$G(^(II)) D
+UFILE S II="" F  S II=$O(^TMP("PSOMID",$J,II)) Q:II=""  S III=$G(^(II)) D
  .S PRX=$P(III,"^"),PFP=$P(III,"^",2),PFPN=$P(III,"^",3)
  .Q:'$D(^PS(52.51,"B",PRX))
  .S JJ="" F  S JJ=$O(^PS(52.51,"B",PRX,JJ)) Q:JJ=""  D
@@ -65,7 +68,7 @@ ACK ;process MSA received from the dispense machine (client)
  S AACK=HL("APAT"),DTM=HL("DTM"),ETN=HL("ETN"),CMID=HL("MID")
  S MTN=HL("MTN"),RAN=HL("RAN"),SAN=HL("SAN"),VER=HL("VER")
  S EID=HL("EID"),EIDS=HL("EIDS"),FS=HL("FS")
- G:$G(VER)'="2.2" EXT
+ I $G(VER)'="2.2" G EXT
  S MSA=""
  F AA=1:1 X HLNEXT Q:HLQUIT'>0  S MSA=MSA_"&&"_HLNODE
  ;
@@ -98,7 +101,7 @@ ACK2 S XQAMSG="Error processing batch "_SMID_". Interface has been shutdown.",FL
 ALERT ;turn off transmission and send alert to key holders
  S:$G(PSOSITE) $P(^PS(59,PSOSITE,0),"^",30)=0
  K XQA,XQAOPT,XQAROU,XQAID,XQADATA,XQAFLAG
- F UID=1:1 S UID=$O(^XUSEC("PSOINTERFACE",UID)) Q:'UID  S XQA(UID)=""
+ F UID=0:0 S UID=$O(^XUSEC("PSOINTERFACE",UID)) Q:'UID  S XQA(UID)=""
  D SETUP^XQALERT
  Q
 FACK1 ;

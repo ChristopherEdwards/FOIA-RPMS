@@ -1,5 +1,5 @@
 DGYPPOST ;ALB/MLI - Clean-up cross-reference on Annual Means Test file ; 20 JUNE 95
- ;;5.3;Registration;**68**;Aug 13, 1993
+ ;;5.3;Registration;**68,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will run through entries in the AD cross-reference on
  ; the ANNUAL MEANS TEST file (#408.31) to ensure they are accurate.

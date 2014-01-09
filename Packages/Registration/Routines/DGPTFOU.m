@@ -1,5 +1,5 @@
 DGPTFOU ;ALB/JDS - PTF REPORTS ;31 MAR 87  13:00
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 1 ;CODING REPORT
  I '$D(DGRTY) S Y=1 D RTY^DGPTUTL

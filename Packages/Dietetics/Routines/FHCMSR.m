@@ -1,5 +1,5 @@
 FHCMSR ; HISC/NCA - Cost of Meals Served ;3/20/95  09:22
- ;;5.0;Dietetics;**23**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN1 ; Read in Month/Year
  R !!,"Enter Month/Year of Cost of Meals Served: ",X:DTIME G:'$T!("^"[X) KIL I X["?" D HELP G EN1
  K %DT S Z=0,%DT="EP"

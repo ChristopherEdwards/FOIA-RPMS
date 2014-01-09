@@ -1,5 +1,5 @@
 PSXRSUS ;BIR/WPB,BAB,HTW-CMOP Transmission Handler ;15 Dec 2001
- ;;2.0;CMOP;**2,3,24,23,26,28,41,57**;11 Apr 97
+ ;;2.0;CMOP;**2,3,24,23,26,28,41,57,48**;11 Apr 97
  ;Reference to ^PS(52.5 supported by DBIA #1978
  ;Reference to ^PS(59   supported by DBIA #1976
  ;Reference to routine DEV1^PSOSULB1 supported by DBIA #2478
@@ -125,7 +125,7 @@ PRT ; print from CMOP suspense
  I I'=100 D CANMSG G EXIT ; could not get a lock in 3 minutes of waiting
  ; set auto error trapping
  D
- . I '$D(^XTMP("PSXAUTOERR")) N $ETRAP,$ESTACK S $ETRAP="D PRTERR^PSXRPPL"
+ . I '$D(^XTMP("PSXAUTOERR")) N $ETRAP,$ESTACK S $ETRAP="D PRTERR^PSXRPPL1"
  . D PRT1
  D OERRCLR
  G EX1

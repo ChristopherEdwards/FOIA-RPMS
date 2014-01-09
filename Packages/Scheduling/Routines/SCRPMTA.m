@@ -1,5 +1,5 @@
 SCRPMTA ;ALB/REW/PDR - Team Reassignment APIs:APPTTM ; AUG 1998
- ;;5.3;scheduling;**148,157**;aug 13, 1993
+ ;;5.3;scheduling;**148,157,1015**;aug 13, 1993;Build 21
  ; Reassign patient Team, called from RPC ='SC FILE PAT TM REASGN' (PTFILE^SCMRBK - PTFILE^SCMRBK)
  ;
  ;;1.0

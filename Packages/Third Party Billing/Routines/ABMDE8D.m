@@ -1,5 +1,5 @@
 ABMDE8D ; IHS/SD/SDR - Page 8 - MEDICATIONS ; APR 05, 2002
- ;;2.6;IHS Third Party Billing System;**2**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,7,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - V2.5 P8 - Rewrote routine - Request to completely change display
  ; IHS/SD/SDR - v2.5 p9 - IM16660 - 4-digit revenue codes
@@ -40,10 +40,12 @@ EOP I $Y>(IOSL-8) D PAUSE^ABMDE1,HD
  I $P(ABM("X0"),U,26)'="" W " (+)"  ;date disc
  I $P(ABM("X0"),U,27)'="" W " (*)"  ;RTS
  W ?30,$S($P(ABM("X0"),U,22)]"":"  Rx:"_$P($G(^PSRX($P(ABM("X0"),U,22),0)),U)_" ",$P($G(ABM("X0")),U,6)'="":" Rx: "_$P(ABM("X0"),U,6)_" ",1:"<No Rx>")  ;Rx number
+ I $P(ABM("X0"),U,29)'="" W ?40,"CPT: ",$P($$CPT^ABMCVAPI(+$P(ABM("X0"),U,29),ABMP("VDT")),U,2)  ;abm*2.6*7 HEAT30524
  S ABMRPRV=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABM("X"),"P","C","D",0))
  S:ABMRPRV="" ABMRPRV=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABM("X"),"P","C","R",0))
  I ABMRPRV'="" D  ;rendering provider on line item
- .W " ("_$P($G(^VA(200,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABM("X"),"P",ABMRPRV,0),U),0)),U)_"-"_$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABM("X"),"P",ABMRPRV,0),U,2)_")"
+ .;W " ("_$P($G(^VA(200,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABM("X"),"P",ABMRPRV,0),U),0)),U)_"-"_$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABM("X"),"P",ABMRPRV,0),U,2)_")"  ;abm*2.6*7 HEAT30524
+ .W ?51," ("_$E($P($G(^VA(200,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABM("X"),"P",ABMRPRV,0),U),0)),U),1,23)_"-"_$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABM("X"),"P",ABMRPRV,0),U,2)_")"  ;abm*2.6*7 HEAT30524
  W !
  W ?4,$S($P($G(ABM("X0")),U,24)]"":$P(ABM("X0"),U,24)_" ",1:"<NO NDC>        ")  ;NDC number
  S ABMU("TXT")=$P(ABMZ(ABM("I")),U)  ;Medication
@@ -112,6 +114,7 @@ E ;EDIT EXISTING ENTRY
  .S DR=".25////"_$P($G(^PSRX(ABMIEN,0)),U,13)  ;date written
  .S DR=DR_";.2////"_$P($G(^PSRX(ABMIEN,0)),U,8)  ;days supply
  .S DR=DR_";.24////"_$P($G(^PSRX(ABMIEN,2)),U,7)  ;NDC
+ .S DR=DR_";.29//"  ;CPT code  ;abm*2.6*7 HEAT30524
  .D ^DIE
  .D PROV
  ;
@@ -129,6 +132,7 @@ E ;EDIT EXISTING ENTRY
  .S DR=".2;.06;.22////@;.19Refill"
  .S DR=DR_";.24//"_$S($P($G(^PSDRUG(+ABM("X0"),2)),U,4)]"":$P(^(2),U,4),1:"")
  .S DR=DR_";.25"
+ .S DR=DR_";.29//"  ;CPT code  ;abm*2.6*7 HEAT30524
  .D ^DIE
  .D PROV
  .;

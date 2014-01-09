@@ -1,9 +1,9 @@
 PSUCS4 ;BIR/DJE - PBM CS GENERATE RECORDS ;13 OCT 1999
- ;;3.0;PHARMACY BENEFITS MANAGMENT;**1,6,14**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ; 
- ; **************************************************
+ ; **
  ; General Calls from type 2 & 17
- ; **************************************************
+ ; **
  ;DBIAs
  ; Reference to file #50    supported by DBIA 221
  ; Reference to file #58.8  supported by DBIA 2519
@@ -14,7 +14,7 @@ GNAME ;3.2.5.11. Functional Requirement 11
  S PSUDRG(4)=$$VALI^PSUTL(58.81,PSUIENDA,"4")
  ;
  ;Generic Drug Name 
- ;Field   # 50,.01 [GENERIC NAME]**********Field to be extracted
+ ;Field   # 50,.01 [GENERIC NAME]**Field to be extracted
  S PSUGDN(.01)=$$VALI^PSUTL(50,PSUDRG(4),".01")
  I $G(PSUGDN(.01))="" S PSUGDN(.01)="Unknown Generic Name"
  Q 
@@ -50,7 +50,7 @@ LOCTYP ;3.2.5.7.   Functional Requirement 7
  ;additional data elements for the  drug extracted.
  ;
 NDC ;NDC
- ;Field # 50,31 [NDC]**********Field to be extracted
+ ;Field # 50,31 [NDC]**Field to be extracted
  ;If no data found, send "No NDC".
  S PSUNDC(31)=$$VALI^PSUTL(50,PSUDRG(4),"31")
  I $G(PSUNDC(31))="" S PSUNDC(31)="No NDC"
@@ -58,7 +58,7 @@ NDC ;NDC
  ; 
  ;
 FORMIND ;Formulary/Non-Formulary Indicator
- ;Field # 50,51 [NON-FORMULARY]**********Field to be extracted
+ ;Field # 50,51 [NON-FORMULARY]**Field to be extracted
  S PSUFID(51)=$$VALI^PSUTL(50,PSUDRG(4),"51")
  Q
  ;
@@ -96,7 +96,7 @@ NFIND ;National Formulary Indicator
  Q
  ;   
 VPNAME ;VA Product Name
- ;Field # 50,21[VA PRODUCT NAME]**********Field to be extracted
+ ;Field # 50,21[VA PRODUCT NAME]**Field to be extracted
  S PSUVPN(21)=$$VALI^PSUTL(50,PSUDRG(4),"21")
  S PSUDRG4=PSUDRG(4) ;if no value found, send "Unknown VA Product Name"
  I $G(PSUVPN(21))="" S PSUVPN(21)="Unknown VA Product Name"
@@ -109,14 +109,14 @@ VDC ; VA Drug Class
  ;used DRUG pointer from previous quantity check.
  S PSUNAC(2)=$$VALI^PSUTL(50,PSUDRG(4),"2")
  ;
- ;Field   # 50.605,.01 [CODE]**********Field to be extracted
+ ;Field   # 50.605,.01 [CODE]**Field to be extracted
  S PSUFID(.01)=PSUNAC(2)
  Q
  ;Field   # 58.8001,.01 [DRUG] Pointer to File # 50
  ;
 PDT ;Package details
- ;Field   # 58.8001,7 [BREAKDOWN UNIT]**********Field to be extracted
- ;Field   # 58.8001,8 [PACKAGE SIZE]**********Field to be extracted
+ ;Field   # 58.8001,7 [BREAKDOWN UNIT]**Field to be extracted
+ ;Field   # 58.8001,8 [PACKAGE SIZE]**Field to be extracted
  S PSUSITE=0
  S PSUSITE=$$VALI^PSUTL(58.8,PSUIENDA,20)
  S:'PSUSITE PSUSITE=$$VALI^PSUTL(58.81,PSUIENDA,2)

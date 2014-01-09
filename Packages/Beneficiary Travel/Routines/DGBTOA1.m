@@ -1,5 +1,5 @@
 DGBTOA1 ;ALB/TT,ALB/MAC - BENEFICIARY TRAVEL OUTPUTS ;4/22/91  12:50
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  D QUIT D DT^DICRW,ASK2^SDDIV G QUIT:Y<0 S VAUTNI=1,(DGBTBEG,DGBTEND)=0
 BEG W ! S %DT="AEX",%DT("A")="Enter beginning date: " D ^%DT S DGBTBG=Y,DGBTBEG=Y-.0001 G:X="^"!(X="") QUIT
 END W ! S %DT("A")="Enter ending date: " D ^%DT G:X="^" QUIT I Y<1 D HELP^%DTC G END

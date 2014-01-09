@@ -1,5 +1,5 @@
-PSORN52C ;BIR/SAB-files renewal entries con't ;18-Apr-2011 11:03;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,7,11,27,46,75,87,100,111,124,117,131,146,1003,1011**;DEC 1997;Build 17
+PSORN52C ;BIR/SAB-files renewal entries con't ;29-May-2012 15:11;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**1,7,11,27,46,75,87,100,111,124,117,131,146,1003,1011,148,200,225,1015**;DEC 1997;Build 62
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ; Modified - IHS/CIA/PLS - 01/07/04 - Line PSORN52C+14
  ;                          08/09/04 - Line ORC+20
@@ -14,6 +14,7 @@ PSORN52C ;BIR/SAB-files renewal entries con't ;18-Apr-2011 11:03;PLS
  ..S $P(^PSRX(PSOX("IRXN"),"DAI",0),"^",3)=+$P(^PSRX(PSOX("IRXN"),"DAI",0),"^",3)+1,$P(^(0),"^",4)=+$P(^(0),"^",4)+1
  .K ^TMP("PSODAI",$J),DAI
  S PSORN52(PSOX("IRXN"),0)=PSOX("NRX0"),PSORN52(PSOX("IRXN"),2)=PSOX("NRX2"),PSORN52(PSOX("IRXN"),3)=PSOX("NRX3")
+ S PSORN52(PSOX("IRXN"),"EPH")=PSOX("EPH")
  S PSORN52(PSOX("IRXN"),9999999)=PSOX("NRX9999999")   ; IHS/CIA/PLS - 01/07/04
  D PRVDATA
  S:'$G(PSOX("ENT")) PSORN52(PSOX("IRXN"),"SIG")=PSOX("SIG")
@@ -54,13 +55,15 @@ ORC ;
  ..S $P(^PSRX(PSOX("IRXN"),"OR1"),"^")=$G(PSODRUG("OI"))
  .E  S $P(^PSRX(PSOX("IRXN"),"OR1"),"^")=$P(OR0,"^",8)
  .D PSOUL^PSSLOCK(ORD_"S") S DIK="^PS(52.41,",DA=ORD D ^DIK K DIK,DA
- S:$G(PSOX("OIRXN"))&('$G(COPY)) $P(^PSRX(PSOX("IRXN"),"OR1"),"^",3)=PSOX("OIRXN"),$P(^PSRX(PSOX("OIRXN"),"OR1"),"^",4)=PSOX("IRXN"),^PSRX("AQ",PSOX("IRXN"),PSOX("OIRXN"))=""
+ I $G(PSOX("OIRXN")),'$G(COPY) S $P(^PSRX(PSOX("IRXN"),"OR1"),"^",3)=PSOX("OIRXN"),$P(^PSRX(PSOX("OIRXN"),"OR1"),"^",4)=PSOX("IRXN"),^PSRX("AQ",PSOX("IRXN"),PSOX("OIRXN"))="" K PRC
  I $O(PRC(0)) S T=0 F  S T=$O(PRC(T)) Q:'T  S ^PSRX(PSOX("IRXN"),"PRC",T,0)=PRC(T),^PSRX(PSOX("IRXN"),"PRC",0)="^^"_T_"^"_T_"^"_DT_"^"
  I $O(PHI(0)) S T=0 F  S T=$O(PHI(T)) Q:'T  S ^PSRX(PSOX("IRXN"),"PI",T,0)=PHI(T),^PSRX(PSOX("IRXN"),"PI",0)="^^"_T_"^"_T_"^"_DT_"^"
  ;IHS/CIA/PLS - 08/09/05 - Added support for the Automated Dispensing Interface.
  ;                         Change will set Finishing Person to Clerk and not the person tasking the Automated Interface.
  ;S $P(^PSRX(PSOX("IRXN"),"OR1"),"^",5)=DUZ
  S $P(^PSRX(PSOX("IRXN"),"OR1"),"^",5)=$S($G(BOPDFN):$G(PSOX("CLERK CODE")),1:DUZ)
+ S $P(^PSRX(PSOX("IRXN"),"OR1"),"^",8)=$$NOW^XLFDT D
+ . N DA,DIK S DA=PSOX("IRXN"),DIK="^PSRX(",DIK(1)=38.3 D EN1^DIK K DIK,DA
  S PHARMST="",$P(^PSRX(PSOX("IRXN"),"OR1"),"^")=$G(PSODRUG("OI"))
  S RXN=PSOX("IRXN") D SAVE
  S STAT=$S($G(OR0)]""&('$G(PSOI)):"SC",$G(PSOI):"RO",1:"SN") S PHARMST=$S('$G(PSORX("VERIFY")):"CM",1:"IP") ;D EN^PSOHLSN1(RXN,STAT,PHARMST,"",PSONOOR)

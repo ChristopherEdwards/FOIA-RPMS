@@ -1,5 +1,5 @@
 SDNEXT ;ALB/TMP - FIND NEXT AVAILABLE APPOINTMENT FOR A CLINIC ; 18 APR 86
- ;;5.3;Scheduling;**41,45,165**;AUG 13, 1993
+ ;;5.3;PIMS;**41,45,165,1015,1016**;JUN 30, 2012;Build 20
  ;
  S IOP=$S($D(ION):ION,1:"HOME") D ^%ZIS K IOP
 1 S SDNEXT="",SDCT=0 G RD^SDMULT
@@ -73,10 +73,15 @@ ADDCL(CLINIC,PTLIST) ;add team's associated clinics to clinic list
  .S TPIEN=+$P(NODE,"^") ;team position ien
  .S TPNODE=$G(^SCTM(404.57,TPIEN,0))
  .Q:TPNODE=""
- .S CIEN=+$P(TPNODE,"^",9) ;clinic ien
- .Q:CIEN=0  ;no associated clinic
- .S CNAME=$P($G(^SC(CIEN,0)),"^") ;clinic name
- .S CLINIC(CIEN)=CNAME
+ .Q:'$D(^SCTM(404.57,TPIEN,5,0))  ;no associated clinics
+ .S SDA=0  ;SD/549 change logic to pull from new multiple field
+ .F  S SDA=$O(^SCTM(404.57,TPIEN,5,SDA)) Q:'SDA  D
+ ..Q:'$D(^SCTM(404.57,TPIEN,5,SDA,0))
+ ..S CIEN=+$G(^SCTM(404.57,TPIEN,5,SDA,0))
+ ..Q:CIEN=0  ;no associated clinic
+ ..S CNAME=$P($G(^SC(CIEN,0)),"^")  ;clinic name
+ ..S CLINIC(CIEN)=CNAME
+ K SDA
  Q
  ;
 DRIVE(CLINICA,LEN,BEGEND) ;driver

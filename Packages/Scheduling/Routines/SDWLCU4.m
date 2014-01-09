@@ -1,5 +1,5 @@
 SDWLCU4 ;IOFO BAY PINES/JS - EWL FILE 409.3 CLEANUP ;2/4/03
- ;;5.3;scheduling;**280**;AUG 13 1993
+ ;;5.3;scheduling;**280,1015**;AUG 13 1993;Build 21
  I '$D(^SCTM(404.46,"B","1.2.3.2")) D
          .K DO S DIC(0)="LM",DIC("DR")=".02////1;.03////"_DT,DIC="^SCTM(404.46,",X="1.2.3.2" D FILE^DICN
          I '$D(^SCTM(404.45,"B","SD*5.3*280")) D

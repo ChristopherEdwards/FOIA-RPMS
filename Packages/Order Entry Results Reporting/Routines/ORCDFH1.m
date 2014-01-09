@@ -1,5 +1,5 @@
 ORCDFH1 ;SLC/MKB,DKM - Utility functions for FH dialogs cont ;8/24/01  10:22
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**73,95**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**73,95,243**;Dec 17, 1997;Build 242
  ;
 RECENT ; -- get 5 most recent diet orders
  N ORDT,ORIFN,ORIT,ORTXT,ORCURR,I,X,CNT,INDT S ORDT=$$NOW^XLFDT,CNT=0
@@ -18,7 +18,7 @@ RECENT ; -- get 5 most recent diet orders
  Q
  ;
 PTR(X) ; -- Return ptr to Order Dialog file #101.41 for prompt X
- Q +$O(^ORD(101.41,"AB","OR GTX "_X,0))
+ Q +$O(^ORD(101.41,"B","OR GTX "_X,0))
  ;
 EXP ; -- Expand old order into instances
  N X,I,P,D S X=$G(ORDIALOG(PROMPT,ORI)) Q:'$L(X)  Q:X'[";"
@@ -54,10 +54,14 @@ PREV ; -- Ck if previous diet being reordered
  S:IFN ORDIALOG("PREV")=IFN K:'IFN ORDIALOG("PREV")
  Q
  ;
-CNV ; -- Convert meal abbreviation to time [Input Xform]
- N A1 S A1=$E($P(X,"@",2)) Q:'$L(A1)  ;not in form T@meal
- S A1=$S(A1="M":"11:59P",'$D(ORPARAM(2)):A1,A1="B":$P(ORPARAM(2),U,7),A1="N":$P(ORPARAM(2),U,8),A1="E":$P(ORPARAM(2),U,9),1:A1),$P(X,"@",2)=A1
- I $G(ORTYPE)="Z",A1?1U,"BNE"[A1 S DATATYPE="",Y=X ;editor
+CNV ; -- Convert meal abbreviation to time in X [Input Xform]
+ ; Expects X,PROMPT [also called from Entry Action, DO^ORWDXM2]
+ N A1 S X=$$UP^XLFSTR(X),A1=$P(X,"@",2)
+ I A1?1U,"BNE"[A1 D
+ . I $G(ORTYPE)="Z" S DATATYPE="",Y=X Q  ;editor - ok
+ . N TIMES S TIMES=$S($D(ORPARAM(2)):$P(ORPARAM(2),U,7,9),1:"6:00A^12:00P^6:00P")
+ . S A1=$S(A1="B":$P(TIMES,U),A1="N":$P(TIMES,U,2),A1="E":$P(TIMES,U,3),1:A1)
+ . S $P(X,"@",2)=A1
  Q
  ;
 LKUP ; -- special lookup routine for diet modifications

@@ -1,7 +1,11 @@
-PSOBINGO ;BHAM ISC/LC - BINGO BOARD OPTION DRIVER ;29-Mar-2006 07:42;A,A
- ;;7.0;OUTPATIENT PHARMACY;**12,28,56,125,152,1005**;DEC 1997
+PSOBINGO ;BHAM ISC/LC - BINGO BOARD OPTION DRIVER ;29-May-2012 14:39;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**12,28,56,125,152,1005,232,268,275,326,1015**;DEC 1997;Build 62
  ;External Ref. to ^PS(55 is supp. by DBIA# 2228
  ;External Ref. to ^PSDRUG(, is supp. by DBIA# 221
+ ;
+ ;*232 add ATIC xref set/kill code here
+ ;*275 BA xref sometimes gets corrupted, kill bad BA xref and quit
+ ;
  ; Modified - IHS/CIA/PLS - 07/08/04 - Line NEW+6 and NOTE+1
  S (FLAG,FLAG1)=0,(TRIPS,JOES,ADV,DGP)="" G:'$G(PSOAP) END D:'$D(PSOPAR) ^PSOLSET G:'$D(PSOPAR) END
 BEG ;PSOAP=1 NEW ENTRY; 2=DISPLAY; 3=REMOVE
@@ -17,7 +21,7 @@ BEG ;PSOAP=1 NEW ENTRY; 2=DISPLAY; 3=REMOVE
  .S NM=$P(^DPT($P(^PS(52.11,ODA,0),"^"),0),"^"),DR="6////"_$E(TM1_"0000",1,4)_";8////"_NM_""
  .D PASS,SETUP S DA=ODA D STATS1^PSOBRPRT,WTIME^PSOBING1
 NEW ;Init lookup
- W !! K DIC S DIC=2,DIC(0)="AEMQZ",DIC("A")="Enter Patient Name : " D ^DIC K DIC G:Y<0!($G(DUOUT))!($G(DTOUT)) END S (DA,ADA,DFN)=+Y D DEM^VADPT Q:VAERR  S NAM=VADM(1),SSN=$P(VADM(2),"^")
+ W !! K DIC S DIC=2,DIC(0)="QEAM",DIC("A")="Enter Patient Name : " D EN^PSOPATLK S Y=PSOPTLK K DIC,PSOPTLK G:Y<0!($G(DUOUT))!($G(DTOUT)) END S (DA,ADA,DFN)=+Y D DEM^VADPT Q:VAERR  S NAM=VADM(1),SSN=$P(VADM(2),"^")
  K DD,DO S:$D(DISGROUP) DGP=$P($G(^PS(59.3,DISGROUP,0)),"^") S (DIC,DIE)="^PS(52.11,",X=ADA,DIC("DR")=$S($G(GROUPCNT)=1&($G(DISGROUP)):"2////"_DISGROUP_"",1:"2//^S X=DGP")
  S DIC(0)="LMNQZ",DLAYGO=59.3 D FILE^DICN K DD,DO,DIC G:Y'>0 NEW
  S JOES=$P(Y(0),"^",3),ADV=$P($G(^PS(59.3,JOES,0)),"^",2),DA=+Y
@@ -31,7 +35,7 @@ TIC K TFLAG I ADV="T" S DIR(0)="NA^1:999999:0",DIR("A")="TICKET #:",DIR("?")="Ti
  .K TDFN,TIEN,TSSN Q:'TFLAG
  G:'TFLAG TIC I ADV="T" S DR="1////"_TIC_";3////"_PSOSITE_";4////"_TM_";5////"_$E(TM1_"0000",1,4)_";8////"_NAM_";9////"_SSN_";13////0",FLAG1=1 G PASS
  S DR="3////"_PSOSITE_";4////"_TM_";5////"_$E(TM1_"0000",1,4)_";8////"_NAM_";9////"_SSN_";13////0"
-PASS S NFLAG=1 L +^PS(52.11,DA):2 E  W !!,$C(7),Y(0,0)," is being edited!",! Q
+PASS S NFLAG=1 L +^PS(52.11,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),Y(0,0)," is being edited!",! Q
  D ^DIE L -^PS(52.11,DA) I $G(DUOUT)!($G(DTOUT))!(X="") D WARN G BEG
  S:$G(PSOAP)=1 FLGG=0 G:$G(PSOAP)'=1 STRX1
 STRX ;sto Rx #'s IN 52.11
@@ -83,7 +87,12 @@ CHKUP ;Multi & dupe names
  K TRIPS
 FIRST ;Set 1st dup
  S DR="11////A" D ^DIE K DR,CNT
-BROW S DA=SDA,NOPE=0,CNT=0 F NIEN=0:0 S NIEN=$O(^PS(52.11,"BA",NAM,NIEN)) Q:'NIEN!(NIEN=$G(DA))  D:$D(^PS(52.11,"BI")) BICK Q:CNT>0  D SETNEW Q:NOPE
+BROW S DA=SDA,NOPE=0,CNT=0
+ F NIEN=0:0 S NIEN=$O(^PS(52.11,"BA",NAM,NIEN)) Q:'NIEN!(NIEN=$G(DA))  D  Q:NOPE
+ . ;add check for bad xref and kill        *275
+ . I '$D(^PS(52.11,NIEN,0)) K ^PS(52.11,"BA",NAM,NIEN) Q
+ . D:$D(^PS(52.11,"BI")) BICK Q:CNT>0
+ . D SETNEW
  Q
 SETNEW S SSN1=$O(^PS(52.11,"BA",NAM,NIEN,0)),ADFN=$P(^PS(52.11,NIEN,0),"^"),CNT=1 I SSN1=SSN S NOPE=1 Q
  S DR="10////1" D ^DIE S F1=1 Q
@@ -109,6 +118,19 @@ HELP2 S (PA,PD)="",PL=0 F  S PA=$O(^PS(55,ADA,"P","A",PA)) Q:'PA  D:DT-1<PA
  Q
 HELP W !,"Enter the patient's Rx number.",!
  Q
+ATICSET ;Set ATIC xref                                                PSO*232
+ Q:'+$P(^PS(52.11,DA,0),"^",3)
+ Q:'+$P(^PS(52.11,DA,0),"^",2)
+ I $P(^PS(59.3,$P(^PS(52.11,DA,0),"^",3),0),"^",2)["T" D
+ .S ^PS(52.11,"ATIC",+$P(^PS(52.11,DA,0),"^",3),+$P(^(0),"^",2),DA)=""
+ Q
+ATICKIL ;Kill ATIC xref                                               PSO*232
+ Q:'+$P(^PS(52.11,DA,0),"^",3)
+ Q:'+$P(^PS(52.11,DA,0),"^",2)
+ I $P(^PS(59.3,$P(^PS(52.11,DA,0),"^",3),0),"^",2)["T" D
+ .K ^PS(52.11,"ATIC",+$P(^PS(52.11,DA,0),"^",3),+$P(^(0),"^",2),DA)
+ Q
+ ;
 END K %,ADA,ADFN,ADV,CNT,DA,DATE,DFN,DINUM,DLAYGO,DR,DTOUT,DUOUT,F1,FLAG,FLAG1,FLGG,JOES,LAST,NAM,NDFN,NIEN,NFLAG,NODE,NOPE,NM
  K PSODRF,ODA,P,PSOAP,RX0,TM,TM1,SDA,SSN,SSN1,RX0,TIC,TICK,TFLAG,VADM,X,Y,Z,Z1,Z2,Z3,Z4,ZDA,ZZZ,PL,PD,PA
  Q

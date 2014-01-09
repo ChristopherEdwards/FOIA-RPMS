@@ -1,5 +1,5 @@
 SCMSVDG1 ;ALB/ESD HL7 DG1 Segment Validation ;05/08/95
- ;;5.3;Scheduling;**44,57,68,77,85,95,66**;Aug 13, 1993
+ ;;5.3;Scheduling;**44,57,68,77,85,95,66,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN(DG1ARRY,HLQ,HLFS,ENCPTR,VALERR,ENCDT) ;

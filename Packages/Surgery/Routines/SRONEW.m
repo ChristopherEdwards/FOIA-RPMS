@@ -1,5 +1,5 @@
-SRONEW ;B'HAM ISC/MAM - ENTER A NEW CASE   ; [ 01/29/01  1:09 PM ]
- ;;3.0; Surgery ;**3,23,26,30,47,58,48,67,107**;24 Jun 93
+SRONEW ;B'HAM ISC/MAM - ENTER A NEW CASE ;01/29/01  1:09 PM
+ ;;3.0; Surgery ;**3,23,26,30,47,58,48,67,107,100,144**;24 Jun 93
  ;
  ; Reference to ^TMP("CSLSUR1" supported by DBIA #3498
  ;
@@ -15,14 +15,31 @@ DATE K %DT W ! S %DT("A")="Select the Date of Operation: ",%DT="AEX" D ^%DT I Y<
  S SRSC1=1 K SRCTN S SRSDPT=DFN,SRSCC="" D CON G:SRSCC="^" END
 OP D ^SROPROC I SRSOUT G END
  S SRPRIN=SRSOP
-DOC W ! S DIC("A")="Select Surgeon: ",DIC=200,DIC(0)="QEAM",SRSDOC="" D ^DIC K DIC("A") G:Y<0 END S (DA,SRSDOC)=+Y
+OPD ; Principal Preoperative Diagnosis
+ K DIR S DIR(0)="130,32",DIR("A")="Principal Preoperative Diagnosis" D ^DIR K DIR I $D(DTOUT)!(X="^") S SRSOUT=1 G END
+ I Y=""!(X["^") W !!,"A Principal Preoperative Diagnosis must be entered",!,"when creating a new case. Enter '^' to exit.",! G OPD
+ I X[";" W !,"The Principal Preoperative Diagnosis cannot contain a semicolon (;).",!,"Please re-enter the Diagnosis, using commas in place of the semicolons." G OPD
+ S SRSOPD=Y
+ W !!,"The information entered into the Principal Preoperative Diagnosis field",!,"has been transferred into the Indications for Operation field.",!,"The Indications for Operation field can be updated later if necessary.",!
+DOC W ! S DIC("A")="Select Surgeon: ",DIC=200,DIC(0)="QEAM",SRSDOC="" D ^DIC K DIC("A") I $D(DTOUT)!(X="^") S SRSOUT=1 G END
+ I Y<0!(X["^") W !!,"A Surgeon must be entered when creating a case.  Enter '^' to exit.",! G DOC
+ S (DA,SRSDOC)=+Y
  S RESTRICT="130,.14",Y=SRSDOC K SROK D KEY^SROXPR I '$D(SROK) W !!,"The person you selected does not have the appropriate keys necessary to be",!,"entered as a surgeon.  Please make another selection.",! K SRSDOC,DA,DIC G DOC
- W ! K DIC S DIC=137.45,DIC(0)="QEAMZ",DIC("A")="Select Surgical Specialty: ",DIC("S")="I '$P(^(0),""^"",3)" D ^DIC I Y<0 S SRSOUT=1 G END
+CASE ; create case in SURGERY file
+ K DA,DIC,DD,DO,DINUM,SRTN S X=DFN,DIC="^SRF(",DIC(0)="L" D FILE^DICN K DIC S SRTN=+Y G:'$$LOCK^SROUTL(SRTN) DEL
+ S ^SRF(SRTN,8)=SRSITE("DIV"),^SRF(SRTN,"OP")=""
+ K DIE,DR S DA=SRTN,DIE=130,DR=".09////"_SRSDATE_";26////"_SRPRIN_";68////"_SRPRIN_";.14////"_SRSDOC D ^DIE K DR
+ASURG ; attending surgeon
+ K DIR S DIR(0)="130,.164",DIR("A")="Attending Surgeon" D ^DIR K DIR I $D(DTOUT)!(X="^") S SRSOUT=1 G DEL
+ I Y=""!(X["^") W !!,"An Attending Surgeon must be entered when creating a case. Enter '^' to exit.",! G ASURG
+ S SRATTND=+Y
+SPEC W ! K DIC S DIC=137.45,DIC(0)="QEAMZ",DIC("A")="Select Surgical Specialty: ",DIC("S")="I '$P(^(0),""^"",3)" D ^DIC I $D(DTOUT)!(X="^") S SRSOUT=1 G DEL
+ I Y<0!(X["^") W !!,"To create a surgical case, a Surgical Specialty MUST be selected.  Enter '^'",!,"to exit.",! G SPEC
  S SRSS=+Y
- K DA,DIC,DD,DO,DINUM,SRTN S X=DFN,DIC="^SRF(",DIC(0)="L",DLAYGO=130 D FILE^DICN K DIC,DLAYGO S SRTN=+Y
- K DIE,DR S DA=SRTN,DIE=130,DR=".09////"_SRSDATE_";26////"_SRPRIN_";68////"_SRPRIN_";.04////"_SRSS_";.14////"_SRSDOC D ^DIE K DR
-IND W ! S DIE=130,DA=SRTN,DR="55" D ^DIE
- I '$O(^SRF(SRTN,40,0)) D ^SRSIND G:'$D(SRTN) END G IND
+UPDATE ; update case in SURGERY file
+ S DA=SRTN,DIE=130,DR=".04////"_SRSS_";.164////"_SRATTND_";32////"_SRSOPD D ^DIE K DR
+ S SRSOPD(1)=SRSOPD D WP^DIE(130,SRTN_",",55,"A","SRSOPD")
+ ; Brief Clinical History
  K DR S DR="60T",DA=SRTN,DIE=130 W ! D ^DIE
  K DR,DA S DR="[SRO-NOCOMP]",DA=SRTN,DIE=130 D ^DIE K DR
  S ^SRF(SRTN,8)=SRSITE("DIV") D ^SROXRET
@@ -35,8 +52,9 @@ DIE D ^SROBLOD K DR,DIE,DA S DR="38////"_BLOOD_";40////"_CROSSM,DA=SRTN,DIE=130 
  .S SRCTN(.02)=$P(^SRF(SRCTN,0),"^",2),SRCTN(10)=$P($G(^SRF(SRCTN,31)),"^",4),SRCTN(11)=$P($G(^SRF(SRCTN,31)),"^",5)
  .S DIE=130,DR=".02////"_SRCTN(.02)_";10////"_SRCTN(10)_";11////"_SRCTN(11)_";35////"_SRCTN,DA=SRTN D ^DIE
  .S DR="35////"_SRTN,DA=SRCTN,DIE=130 D ^DIE
- D ^SROERR
+ D UNLOCK^SROUTL(SRTN),^SROERR
  Q
+DEL S DA=SRTN,DIK="^SRF(" D ^DIK
 END K SRTN D ^SRSKILL
  Q
 CONT ; continue new entry ?

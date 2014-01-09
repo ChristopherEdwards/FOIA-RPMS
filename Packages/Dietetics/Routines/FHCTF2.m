@@ -1,5 +1,5 @@
 FHCTF2 ; HISC/REL - Tickler File Utilities ;4/26/91  12:12
- ;;5.0;Dietetics;**37**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 FILE ; File Entry
  S %=$P(FHTF,"^",1) I $D(^FH(119,FHDUZ,"I")) G F1
  I '$D(^FH(119,FHDUZ)) S ^FH(119,FHDUZ,0)=FHDUZ,^FH(119,"B",FHDUZ,FHDUZ)=""

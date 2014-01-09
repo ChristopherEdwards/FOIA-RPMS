@@ -1,5 +1,5 @@
 DGWAIT ;ALB/JDS - ENTER PATIENTS INTO WAIT LIST; 21 APR 84  13:57
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 DIV K DIE("NO^"),DIC W !! S DGWAIT=1,DIC="^DGWAIT(",DIC(0)="AEQMZL" D ^DIC K DIC G Q:Y'>0 S DIV=+Y
  ;

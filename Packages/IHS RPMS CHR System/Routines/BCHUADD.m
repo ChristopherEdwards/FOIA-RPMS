@@ -1,5 +1,5 @@
-BCHUADD ; IHS/TUCSON/LAB - ADD NEW CHR ACTIVITY RECORDS ;  [ 01/24/05  7:13 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**15,16**;OCT 28, 1996
+BCHUADD ; IHS/CMI/LAB - ADD NEW CHR ACTIVITY RECORDS ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;add new records
  ;get all items for a record, check record, file record
@@ -12,27 +12,27 @@ ADDR ;EP
  S BCHQUIT=0
  ;create record with DICN
  ;use abbreviated form or regular form
+ ;patient or not
+PNP ;
+ S BCHPNP="",DFN=""
+ S DIR(0)="S^P:Individual Patient Encounter Record;N:All Other Activities;Q:QUIT, GO BACK",DIR("A")="Which Type of Record",DIR("B")="P" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EXIT Q
+ I Y="Q" D EXIT Q
+ S BCHPNP=Y
  D CREATE
  I BCHQUIT D EXIT Q
+ I BCHPNP="P" D GETPAT I BCHQUIT D EXITMSG,EXIT Q
 RECD ;
  D GETRECD
  I BCHQUIT D EXITMSG,EXIT Q
  D RECCHECK^BCHUADD1
  I $D(BCHERROR) D EXITMSG,EXIT Q
-PAT ;
- ;if number served '=1 don't ask patient
- I $P(^BCHR(BCHR,0),U,12)'=1,'$$NF(BCHR) G CHECK
- ;if a service code is 1-6 lookup patient
- S (X,Y,BCHPTSV)=0 F  S X=$O(^BCHRPROB("AD",BCHR,X)) Q:X'=+X!(Y)  I $P(^BCHRPROB(X,0),U,4)]"",$P(^BCHTSERV($P(^BCHRPROB(X,0),U,4),0),U,6) S Y=Y+1,BCHPTSV=1
- I 'Y G CHECK
- D GETPAT
- I BCHQUIT D EXITMSG,EXIT Q
 MEAS ;
- I DFN!($P($G(^BCHR(BCHR,11)),U)]"") D GETMEAS
+ ;I BCHPNP D GETMEAS
 CHECK ;check record
  ;DO PCC LINK
- S BCHEV("TYPE")="A" ;add,edit or delete
- D PROTOCOL^BCHUADD1 ;protocol to announce chr record event
+ ;S BCHEV("TYPE")="A" ;add,edit or delete
+ ;D PROTOCOL^BCHUADD1 ;protocol to announce chr record event
  D EXIT
  Q
 CREATE ;create new record
@@ -44,10 +44,32 @@ CREATE ;create new record
 GETPAT ; GET PATIENT
  D GETPAT^BCHUADD1
  Q
-GETRECD ;
+GETRECD ;EP
  S APCDOVRR=""
  W !
- S DA=BCHR,DDSFILE=90002,DR=$S('$G(BCHUABFO):"[BCH ENTER CHRIS II DATA]",1:"[BCHB ENTER CHRIS II DATA]") D ^DDS
+ I BCHPNP="P" S DDSPARM="S",DA=BCHR,DDSFILE=90002,DR=$S('$G(BCHUABFO):"[BCHQ1 ENTER CHR DATA (535)]",1:"[BCHAQ1 ENTER CHR DATA (535)]") D ^DDS
+ I BCHPNP="N" S DDSPARM="S",DA=BCHR,DDSFILE=90002,DR=$S('$G(BCHUABFO):"[BCHNP1 ENTER CHR DATA (535)]",1:"[BCHNP1 ENTER CHR DATA (535)]") D ^DDS
+ ;I '$G(DDSSAVE) W !,"Record Not Saved (F1 Q), deleting record." S BCHERROR=1 Q
+ ;backfill pt ptr in CHR POV
+ D
+ .S BCHX=0 F  S BCHX=$O(^BCHRPROB("AD",BCHR,BCHX)) Q:BCHX'=+BCHX  D
+ ..K ^BCHRPROB(BCHX,81)  ;kill off temp node
+ ..K ^BCHRPROB(BCHX,92)
+ ..Q:BCHPNP'="P"
+ ..Q:'$G(DFN)
+ ..S DIE="^BCHRPROB(",DA=BCHX,DR=".02////"_DFN_";.09///@",DITC=""
+ ..D ^DIE
+ ..K DIE,DA,DR,DIU,DIV,DIW,DIY,DITC
+ ..I $D(Y) W !,"error updating pov's with patient, NOTIFY PROGRAMMER" H 5
+ ..Q
+ .Q:'DFN
+ .K BCHX
+ .S BCHX=0 F  S BCHX=$O(^BCHRPED("AD",BCHR,BCHX)) Q:BCHX'=+BCHX  D
+ ..S DIE="^BCHRPED(",DA=BCHX,DR=".02////"_DFN,DITC=""
+ ..D ^DIE
+ ..K DIE,DA,DR,DIU,DIV,DIW,DIY,DITC
+ ..I $D(Y) W !,"error updating education's with patient, NOTIFY PROGRAMMER" H 5
+ ..Q
  D FMKILL
  I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S BCHQUIT=1 K DIMSG Q
  Q
@@ -60,8 +82,9 @@ GETSUBJ ;
  I $D(DIMSG) W !!,"ERROR IN SCREENMAN FORM!!  ***NOTIFY PROGRAMMER***" S BCHQUIT=1 K DIMSG Q
  Q
 GETMEAS ;
+ I BCHPNP'="P" Q  ;not patient
  I '$D(DFN),'$G(^BCHR(BCHR,11))="" Q  ;no patient so no measurements
- I 'BCHPTSV Q  ;no patient related services so no measurements
+ ;I 'BCHPTSV Q  ;no patient related services so no measurements
  W !
  S DIR(0)="Y",DIR("A")=$S('$G(BCHUABFO):"Any MEASUREMENTS, TESTS or REPRODUCTIVE FACTORS",1:"Any MEASUREMENTS/TESTS"),DIR("B")="Y" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  Q:$D(DIRUT)
@@ -88,7 +111,7 @@ DIRX ;EP
  K DIR,X,Y,DIC,DA,DIRUT,DUOUT,DTOUT,DIG
  K BCHF,BCHV
  Q
-EXITMSG ;display message, delete record, q
+EXITMSG ;EP - display message, delete record, q
  W !,"Incomplete record.  Deleting record.  " D DEL
  Q
 EXIT ;CLEAN UP AND EXIT
@@ -97,7 +120,7 @@ EXIT ;CLEAN UP AND EXIT
  D GATHER^BCHUARL
  S VALMCNT=BCHRCNT
  D HDR^BCHUAR
- K BCHV,BCHF,BCHDR,DFN,BCHR,BCHQUIT,BCHRDEL,BCHV,BCHVDLT,BCHNAME,BCHPTSV,BCHX,DFN,BCHERROR,BCHR0
+ K BCHV,BCHF,BCHDR,DFN,BCHR,BCHQUIT,BCHRDEL,BCHV,BCHVDLT,BCHNAME,BCHPTSV,BCHX,DFN,BCHERROR,BCHR0,BCHPNP
  D DIRX^BCHUADD,FMKILL^BCHUADD
  Q
  ;

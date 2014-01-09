@@ -1,5 +1,5 @@
 DGMTAUD ;ALB/TT,RMO,CAW,LD,BRM - AUDIT CHANGES TO MEANS TEST ; 1/2/02 11:39am
- ;;5.3;Registration;**33,45,182,433**;Aug 13, 1993
+ ;;5.3;Registration;**33,45,182,433,1015**;Aug 13, 1993;Build 21
  ;
 EN ;INPUT:  DFN     - Patient IEN
  ;        DGMTACT - Type of Action from Means Test

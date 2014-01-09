@@ -1,5 +1,5 @@
 AUT98P13 ;IHS/SET/AEF - AUT 98.1 PATCH 13 ; [ 10/16/2003  1:57 PM ]
- ;;98.1;IHS DICTIONARIES (POINTERS);**13**;OCT 16, 2003
+ ;;98.1;IHS DICTIONARIES (POINTERS);**13**;OCT 16, 2003;Build 6
  ;
  ; IHS/SET/AEF AUT*98.1*13 10/16/2003
  ;
@@ -130,8 +130,8 @@ GREET ;;To add to mail message.
  ;;  
  ;;Questions about this patch, which is a product of the RPMS DBA
  ;;can be directed to the DIR/RPMS            
- ;;Help Desk.
- ;;Please refer to patch "AUT*98.1*13".
+ ;;Support Center, at 505-248-4371, or via e-mail to
+ ;;"hqwhd@mail.ihs.gov".  Please refer to patch "AUT*98.1*13".
  ;;  
  ;;Requests for modifications or additions to RPMS standard data
  ;;dictionaries must be directed to the RPMS DBA.

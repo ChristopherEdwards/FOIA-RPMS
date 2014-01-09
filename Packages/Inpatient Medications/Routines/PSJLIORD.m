@@ -1,8 +1,9 @@
 PSJLIORD ;BIR/MV-INPATIENT ORDER ENTRY FOR IV ;10 Mar 98 / 4:19 PM
- ;;5.0; INPATIENT MEDICATIONS ;**1,16,29,58,85**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**1,16,29,58,85,110,149**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA #2191.
  ; Reference to EN1^ORCFLAG is supported by DBIA #3620.
+ ; Reference to AND^ORX8 is supported by DBIA #3632.
  ;
 EN(DFN,PSJORD) ; Display order with numbers.
  ;N ON,ON55,P,PSIVAC,PSGEBN,PSGLI,PSJSTAR
@@ -27,16 +28,23 @@ EN(DFN,PSJORD) ; Display order with numbers.
  Q
  ;
 PSGACT ;Setup selectable actions based on order's status
- S X=$$CHKKEYS()
- S PSGACT=""
- I P(17)="A" S PSGACT="EL" S:+X PSGACT=$S(P(10):"DEROL",1:"DEHROL")
+ S (X,XKEYS)=$$CHKKEYS()
+ N PSGR S PSGACT=""
+ S PSJCOM=$P($G(^PS(55,DFN,"IV",+ON55,.2)),U,8)
+ I PSJCOM S PSGR=0
+ I PSJCOM S PSGR=$$AND^ORX8(PSJCOM) S:PSGR=1 PSGR=$$RNEWOK^PSJUTL2(PSJCOM,DFN)
+ I 'PSJCOM S PSGR='$$EXPIRED^PSGOER(DFN,ON55)
+ S X=XKEYS
+ ;I P(17)="A" S PSGACT=$S(PSJCOM:"L",1:"EL") S:+X PSGACT=PSGACT_"DO"_$S(P(10):"",1:"H")_$S(PSGR:"R",1:"")
+ ;I P(17)="A" S PSGACT="L" S:+X PSGACT=$S(P(10):"DROL",1:"DHROL")
+ I P(17)="A" S PSGACT="EL" S:+X PSGACT=PSGACT_"DO"_$S(P(10):"",1:"H")_$S(PSGR:"R",1:"")
  I P(17)="H" S PSGACT="L" S:+X PSGACT=$S(P(10):"DL",1:"DHL")
- I P(17)="R" S PSGACT="L" S:+X PSGACT="DL"
+ I P(17)="R" S PSGACT="L" ;S:+X PSGACT="DL"  PSJ*5*149
  I P(17)="D" S PSGACT="L"
- I P(17)="D"&P(12) S PSGACT="L" S:+X PSGACT="RL"
+ I P(17)="D"&P(12) S PSGACT="L" S:+X PSGACT="L"_$S(PSGR:"R",1:"")
  I P(17)="E" S PSGACT="L" D:+X
  . I $P($G(^PS(55,DFN,"IV",+ON55,.2)),U,4)="D" Q
- . S PSGACT="L"_$S($P($G(^PS(55,DFN,"IV",+ON55,2)),U,6):"",1:"R")
+ . S PSGACT="L"_$S($P($G(^PS(55,DFN,"IV",+ON55,2)),U,6):"",PSGR:"R",1:"")
  I P(17)="O" S PSGACT="L" S:+X PSGACT="DOL"
  I P(17)="N" S PSGACT="EL" S:+X PSGACT="DELV"
  S PSGACT=PSGACT_$P(X,U,2)

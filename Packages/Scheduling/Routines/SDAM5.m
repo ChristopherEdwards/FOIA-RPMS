@@ -1,5 +1,5 @@
-SDAM5 ;MJK/ALB - Appt Mgt (HELP) ; 12/1/91 [ 10/10/2001  2:33 PM ]
- ;;5.3;Scheduling;;Aug 13, 1993
+SDAM5 ;MJK/ALB - Appt Mgt (HELP) ; 12/1/91
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 10/10/2001 removed list of regular actions
  ;
 HLP ; -- help for list

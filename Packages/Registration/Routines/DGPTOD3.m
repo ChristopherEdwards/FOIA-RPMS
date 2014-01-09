@@ -1,5 +1,5 @@
 DGPTOD3 ;ALB/AS - PTF DRG REPORTS CONTINUATION FROM DGSUDO ; 9/5/01 9:43am
- ;;5.3;Registration;**375**;Aug 13, 1993
+ ;;5.3;Registration;**375,1015**;Aug 13, 1993;Build 21
 EN K DG1,DG2,DG3,DG4 S (Z,DGPTFR)="" F I=1:1:4 S (Z,Z1)=Z_U_I_"   "_$P($T(@I),";;",2)
 BATCH W ! F I=1:1:4 W !,I,". ",$P($T(@I),";;",2)
 B1 F I=1:1 R !!,"  CHOOSE REPORTS TO BE BATCHED (BY NUMBER) : ",X:DTIME Q:X=""  G NO:X["^"!'($T),HELP:X'?1N,HELP:"1234"'[X D IN^DGHELP,A S Z=Z1

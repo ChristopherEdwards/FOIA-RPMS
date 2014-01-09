@@ -1,5 +1,5 @@
 SCRPITP2 ;ALB/CMM - Individual Team Profile Continued ;7/25/99  18:24
- ;;5.3;Scheduling;**41,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,177,520,1015**;AUG 13, 1993;Build 21
  ;
  ;Individual Team Profile
  ;
@@ -15,7 +15,7 @@ KEEP(TNODE,TPOS,TM,SCEN) ;
  ;
  S POS=$P(TNODE,"^") ;position name
  S ROL=$P($G(^SD(403.46,+$P(TNODE,"^",3),0)),"^") ;standard position
- S PPC=$S($P(TNODE,"^",4)'=1:"NPC",+$$OKPREC3^SCMCLK(TPOS,DT)>1:" AP",1:"PCP") ;primary care position
+ S PPC=$S($P(TNODE,"^",4)'=1:"NPC",+$$OKPREC3^SCMCLK(TPOS,DT)>0:" AP",1:"PCP") ;primary care position
  S MAX=$P(TNODE,"^",8)
  ;
  S SCRDATE="SCRDATE",(SCRDATE("BEGIN"),SCRDATE("END"))=DT,SCRDATE("INCL")=0
@@ -23,12 +23,19 @@ KEEP(TNODE,TPOS,TM,SCEN) ;
  S SCPROV=$P($G(PROVLIST(1)),U,2)
  S SCPTASS=$$PCPOSCNT^SCAPMCU1(TPOS,DT,0)
  ;
- S CIEN=+$P(TNODE,"^",9) ;clinic ien
- S PCLIN=""
- I CIEN>0 S PCLIN=$P($G(^SC(CIEN,0)),"^") ;associated clinic
+ ;D FORMAT(POS,PPC,MAX,DIV,TM,TPOS,ROL,SCPROV,SCPTASS)
  ;
- D FORMAT(POS,PPC,MAX,DIV,TM,TPOS,ROL,PCLIN,SCPROV,SCPTASS)
+ D SETASCL^SCRPRAC2(TPOS,.CNAME,.CLIEN)
+ S CNAME=$G(CNAME(0))
+ ;S CIEN=+$P(TNODE,"^",9) ;clinic ien ;USING MULTIPLE WITH SD*5.3*520
+ ;S PCLIN=""
+ ;I CIEN>0 S PCLIN=$P($G(^SC(CIEN,0)),"^") ;associated clinic
  ;
+ D FORMAT(POS,PPC,MAX,DIV,TM,TPOS,ROL,CNAME,SCPROV,SCPTASS)
+ N AC
+ S AC=0
+ F  S AC=$O(CNAME(AC)) Q:AC=""  D FORMATAC(POS,DIV,TM,TPOS,CNAME(AC))
+ K CNAME
  Q
  ;
 TEAM(TM,DIV) ;
@@ -93,7 +100,11 @@ FORMAT(POS,PPC,MAX,DIV,TM,TPOS,ROL,CNAME,SCPROV,SCPTASS) ;
  S $E(@STORE@(DIV,TM,"P",POS),77)=PPC ;primary care yes/no
  S $E(@STORE@(DIV,TM,"P",POS),82)=$J(MAX,6,0) ;number of patients allowed
  S $E(@STORE@(DIV,TM,"P",POS),92)=$J(SCPTASS,6,0) ;patients assigned
- S $E(@STORE@(DIV,TM,"P",POS),103)=$E(CNAME,1,30) ;clinic name
+ S $E(@STORE@(DIV,TM,"P",POS),103)=$E(CNAME,1,30)
+ Q
+ ;
+FORMATAC(POS,DIV,TM,TPOS,CNAME) ;clinic name
+ S $E(@STORE@(DIV,TM,"P",POS,AC),103)=$E(CNAME,1,30)
  Q
  ;
 FORHEAD ;

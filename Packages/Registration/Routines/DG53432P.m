@@ -1,5 +1,5 @@
 DG53432P ;BP-CIOFO/MM -Post-init routine for DG*5.3*432 ;12/20/2001
- ;;5.3;Registration;**432**;Aug 13, 1993
+ ;;5.3;Registration;**432,1015**;Aug 13, 1993;Build 21
  ;
 EN ;This patch will update the closeout date for the 12/31/2001 census
  ;if an entry exists in the PTF Census Date (#45.86) file for that

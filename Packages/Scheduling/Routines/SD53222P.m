@@ -1,5 +1,5 @@
 SD53222P ;ALB/MRY - Correct Validation Logic for codes 704/7040;10/30/00
- ;;5.3;Scheduling;**222**;Oct 30,  2000
+ ;;5.3;Scheduling;**222,1015**;Oct 30,  2000;Build 21
  ;
  ;
 ADJUST ;--- Patch will include routine (SD53222P) to edit Data

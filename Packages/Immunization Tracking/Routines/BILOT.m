@@ -1,7 +1,8 @@
 BILOT ;IHS/CMI/MWR - EDIT LOT NUMBERS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT LOT NUMBER FIELDS.
+ ;   PATCH 2: Redisplay Message area (with # of Lots) in List Template. HELP+5
  ;
  ;
  ;
@@ -132,6 +133,11 @@ HELP1 ;EP
  ;----> Explanation of this report.
  N BITEXT D TEXT1(.BITEXT)
  D START^BIHELP("EDIT LOT NUMBERS - HELP",.BITEXT)
+ ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> Redisplay Message area (with number of Lots) in List Template.
+ D RESET^BILOT1
+ ;**********
  Q
  ;
  ;   vvv83

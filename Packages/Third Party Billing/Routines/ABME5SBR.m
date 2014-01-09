@@ -1,5 +1,5 @@
 ABME5SBR ; IHS/ASDST/DMJ - 837 SBR Segment 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,9**;NOV 12, 2009
  ;Transaction Set Header
  ;
 EP(X) ;EP
@@ -25,7 +25,8 @@ LOOP ;LOOP HERE
  Q
 30 ;SBR02 - Individual Relationship Code
  S ABMR("SBR",30)=$G(ABMP("REL",ABMPST))
- I $G(ABMHL)=32 D
+ ;I $G(ABMHL)=32 D  ;abm*2.6*9 NOHEAT
+ I $G(ABMHL)=22 D  ;abm*2.6*9 NOHEAT
  .I $G(ABMCHILD)=0 S ABMR("SBR",30)=18
  .I $G(ABMCHILD)=1 S ABMR("SBR",30)=""
  Q
@@ -52,10 +53,14 @@ LOOP ;LOOP HERE
  Q
 70 ;SBR06 - Coordination of Benefits Code
  S ABMR("SBR",70)=""
- I ABMI=1,ABMP("EXP")=33 D
- .I $G(ABMP("INS",2)) S ABMR("SBR",70)=1
- .I '$G(ABMP("INS",2)) S ABMR("SBR",70)=6
- .I ABMPST=1 S ABMR("SBR",70)=""  ;abm*2.6*8 HEAT28632 - Removes "1" from SBR06 for primary payer when 2ndry payer billed
+ ;start old code abm*2.6*9 NOHEAT
+ ;removed the below loop because it failed Edifecs validator
+ ;I ABMI=1,ABMP("EXP")=33 D
+ ;.I $G(ABMP("INS",2)) S ABMR("SBR",70)=1
+ ;.I '$G(ABMP("INS",2)) S ABMR("SBR",70)=6
+ ;.;I ABMPST=1 S ABMR("SBR",70)=""  ;abm*2.6*8 HEAT28632 - Removes "1" from SBR06 for primary payer when 2ndry payer billed  ;abm*2.6*9 NOHEAT
+ ;.I $G(ABMLOOP)=2320,ABMPST=1 S ABMR("SBR",70)=""  ;Removes "1" from SBR06 for primary payer when 2ndry payer billed  ;abm*2.6*9 NO HEAT
+ ;end old code
  Q
 80 ;SBR07 - Yes/No Condition or Response Code
  S ABMR("SBR",80)=""

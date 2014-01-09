@@ -1,5 +1,5 @@
 SCCVDBU ;ALB/RMO,TMP - Database Update Utilities; [ 03/23/95  11:08 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 UPD(SCFILE,SCIENS,SCDATA,SCERR) ;File data into an existing entry
  ; Input  -- SCFILE   File or sub-file number

@@ -1,5 +1,5 @@
-VADPT ;ALB/MRL/MJK - RETURN PATIENT VARIABLE ARRAYS [DRIVER];07 DEC 1988
- ;;5.3;Registration;**193,343,389,415,489,498,1004**;Aug 13, 1993
+VADPT ;ALB/MRL/MJK,ERC,TDM - RETURN PATIENT VARIABLE ARRAYS 
+ ;;5.3;PIMS;**193,343,389,415,489,498,1004,1015,1016**;JUN 30, 2012;Build 20
  ;DFN = Patient IFN [if not passed entire array returned as null]
  ;IHS/ANMC/LJF  8/18/2000 added HRCN to kill of variables
  ;IHS/OIT/LJF  11/10/2005 PATCH 1004 included for sites where it has been overwritten
@@ -8,10 +8,10 @@ DEM ;Demographic Variables
  S VAN=1,VAN(1)=12,VAV="VADM" D ^VADPT0 Q
  ;
 OPD ;Other Patient Data
- S VAN=2,VAN(1)=7,VAV="VAPD" D ^VADPT0 Q
+ S VAN=2,VAN(1)=8,VAV="VAPD" D ^VADPT0 Q
  ;
 ADD ;Current Address
- S VAN=3,VAN(1)=22,VAV="VAPA" D ^VADPT0 Q
+ S VAN=3,VAN(1)=29,VAV="VAPA" D ^VADPT0 Q
  ;
 OAD ;Other Patient Variables
  S VAN=4,VAN(1)=11,VAV="VAOA" D ^VADPT0 Q
@@ -29,7 +29,7 @@ MB ;Monetary Benefits
  S VAN=8,VAN(1)=9,VAV="VAMB" D ^VADPT0 Q
  ;
 SVC ;Service Information
- S VAN=9,VAN(1)=9,VAV="VASV" D ^VADPT0 Q
+ S VAN=9,VAN(1)=14,VAV="VASV" D ^VADPT0 Q
  ;
 REG ;Registration data
  S VAN=10,VAV="VARP" D ^VADPT0 Q

@@ -1,7 +1,9 @@
 BIREPL2 ;IHS/CMI/MWR - REPORT, ADULT IMM; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW ADULT IMMUNIZATION REPORT, GATHER DATA.
+ ;;  PATCH 3: Remove Date Range line (no longer relevant).  HEAD+33
+ ;;  PATCH 3: Set HPV upper limit display for males to 21 years. DISPLAY+69
  ;
  ;
  ;----------
@@ -38,10 +40,14 @@ HEAD(BIQDT,BICC,BIHCF,BIBEN,BICPTI,BIUP) ;EP
  D WH^BIW(.BILINE,X)
  ;
  S X=$$SP^BIUTL5(27)_"Report Date: "_$$SLDT1^BIUTL5(DT)
- D WH^BIW(.BILINE,X)
- ;
- S X=$$SP^BIUTL5(28)_"Date Range: "_$$SLDT1^BIUTL5(BIQDT-10000)_" - "_$$SLDT1^BIUTL5(BIQDT)
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Remove Date Range line (no longer relevant).
+ ;D WH^BIW(.BILINE,X)
  D WH^BIW(.BILINE,X,1)
+ ;
+ ;S X=$$SP^BIUTL5(28)_"Date Range: "_$$SLDT1^BIUTL5(BIQDT-10000)_" - "_$$SLDT1^BIUTL5(BIQDT)
+ ;D WH^BIW(.BILINE,X,1)
+ ;**********
  ;
  S X=" "_$$BIUPTX^BIUTL6(BIUP)
  I BICPTI S X=$$PAD^BIUTL5(X,52)_"* CPT Coded Visits Included"
@@ -173,22 +179,27 @@ DISPLAY(BITOTS,BILINE) ;EP
  D WRITE(.BILINE,X,1)
  ;
  ;---> Males (pcs 8-11).
- S X=$$PAD("    HPV: Total # Male patients age 19-26",56)
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Change male age to display "19-21".
+ S X=$$PAD("    HPV: Total # Male patients age 19-21",56)
  S X=X_": "_$$C(BIV(8),0,8)
  I BIV(1) S X=X_$J((BIV(8)/BIV(1))*100,7,1)
  D WRITE(.BILINE,X)
  ;
- S X=$$PAD("    HPV: # Male patients age 19-26 w/HPV1",56)
+ S X=$$PAD("    HPV: # Male patients age 19-21 w/HPV1",56)
  S X=X_": "_$$C(BIV(9),0,8)
  I BIV(8) S X=X_$J((BIV(9)/BIV(8))*100,7,1)
  D WRITE(.BILINE,X)
  ;
- S X=$$PAD("    HPV: # Male patients age 19-26 w/HPV2",56)
+ S X=$$PAD("    HPV: # Male patients age 19-21 w/HPV2",56)
  S X=X_": "_$$C(BIV(10),0,8)
  I BIV(8) S X=X_$J((BIV(10)/BIV(8))*100,7,1)
  D WRITE(.BILINE,X)
  ;
- S X=$$PAD("    HPV: # Male patients age 19-26 w/HPV3",56)
+ S X=$$PAD("    HPV: # Male patients age 19-21 w/HPV3",56)
+ ;**********
+ ;
  S X=X_": "_$$C(BIV(11),0,8)
  I BIV(8) S X=X_$J((BIV(11)/BIV(8))*100,7,1)
  D WRITE(.BILINE,X,1)

@@ -1,5 +1,5 @@
 SCRPBK5 ;MJK/ALB - RPC Broker Utilities ; 27 FEB 96
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;
 PARSE(SCQDEF,SCQREC) ; -- parse incoming raw broker array
  ; -- return formatted query record

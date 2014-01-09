@@ -1,12 +1,9 @@
 ABMDE1 ; IHS/ASDST/DMJ - CLAIM IDENTIFIERS-SCRN 1 ;   
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM**9**;;NOV 12, 2009
  ;
- ; IHS/SD/SDR - v2.5 p8 - task 8
- ;    Added code to check when VT changes to check for
- ;    replacement insurer
- ;
- ; IHS/SD/SDR - v2.5 p11 - IM22787
- ;    Fix for replacement insurer
+ ; IHS/SD/SDR - v2.5 p8 - task 8 - Added code to check when VT changes to check for replacement insurer
+ ; IHS/SD/SDR - v2.5 p11 - IM22787 - Fix for replacement insurer
+ ; IHS/SD/SDR - 2.6*9 - HEAT28364 - changed replacement insurer to use LDFN not DUZ(2)
  ;
 OPT K ABM,ABMV,ABME
  S ABMP("OPT")="EVNJBQ"

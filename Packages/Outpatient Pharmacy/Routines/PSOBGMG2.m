@@ -1,5 +1,5 @@
 PSOBGMG2 ;BHAM ISC/LC - bingo board manager (cont'd) ; 06/19/96
- ;;7.0;OUTPATIENT PHARMACY;**10**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**10,268**;DEC 1997;Build 9
  ;
 ASTART ;
  S DGP=0 F  S DGP=$O(^PS(59.3,DGP)) Q:'DGP  I $P($G(^PS(59.3,DGP,3)),"^")=1,$P($G(^(3)),"^",3)'="" D
@@ -21,7 +21,7 @@ ASTART1 ;start via Taskman
  S (ZTSAVE("VON"),ZTSAVE("COLM"),ZTSAVE("DWT"),ZTSAVE("NWT"),ZTSAVE("ADA"),ZTSAVE("FTX"),ZTSAVE("STOP"),ZTSAVE("TCK"))=""
  S ZTIO=DEV1,ZTRTN=$S($G(TCK)'="T":"ANAME^PSOBGMGR",1:"TICKET^PSOBGMGR"),ZTDESC="Run Bingo Board Display"
  D ^%ZTLOAD I $D(ZTSK) S TASK=ZTSK D
- .S DA=ADA,DR="15////"_TASK_"",DIE="^PS(59.3," L +^PS(59.3,DA):2 E  W !!,$C(7),"File is being edited!",! Q
+ .S DA=ADA,DR="15////"_TASK_"",DIE="^PS(59.3," L +^PS(59.3,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),"File is being edited!",! Q
  .D ^DIE K DIE,DR L -^PS(59.3,DA)
  S:$D(ZTQUEUED) ZTREQ="@"
  Q
@@ -60,7 +60,7 @@ STRTM S BSTRT=$P(^PS(59.3,DA,3),"^",3) I $G(BSTRT) D
  I $G(Y)["AM" S YY=$E(Y,1,5),STRTM1=DT_"."_$P(YY,":")_$E($P(YY,":",2),1,2)
  I $G(Y)["PM" S YY=$E(Y,1,5),STRTM=$P(YY,":")_$E($P(YY,":",2),1,2) S:STRTM'<1200 STRTM1=DT_"."_STRTM S:STRTM<1200 STRTM=STRTM+1200,STRTM1=DT_"."_STRTM
  I $G(Y)'["AM"&($G(Y)'["PM") S YY=$E(Y,1,5),STRTM1=DT_"."_$P(YY,":")_$E($P(YY,":",2),1,2)
- I $G(EDT) S DIE="^PS(59.3,",DR="9////"_STRTM1_"" L +^PS(59.3,DA):2 E  W !!,$C(7),Y(0,0)," is being edited!",! K EDT Q
+ I $G(EDT) S DIE="^PS(59.3,",DR="9////"_STRTM1_"" L +^PS(59.3,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),Y(0,0)," is being edited!",! K EDT Q
  I $G(EDT) D ^DIE L -^PS(59.3,DA) I $G(DIRUT)!($G(X)="") K EDT G EDTEX
 STPTM K DIR("B"),Y,YY S BSTOP=$P(^PS(59.3,DA,3),"^",4) I $G(BSTOP) D
  .S BSTOP=$P(BSTOP,".",2),APM=$S($G(BSTOP)>1200:"PM",1:"AM")
@@ -77,11 +77,11 @@ STPTM K DIR("B"),Y,YY S BSTOP=$P(^PS(59.3,DA,3),"^",4) I $G(BSTOP) D
  I $G(Y)["AM" S YY=$E(Y,1,5),STPTM1=DT_"."_$P(YY,":")_$E($P(YY,":",2),1,2)
  I $G(Y)["PM" S YY=$E(Y,1,5),STPTM=$P(YY,":")_$E($P(YY,":",2),1,2) S:STPTM'<1200 STPTM1=DT_"."_STPTM S:STPTM<1200 STPTM=STPTM+1200,STPTM1=DT_"."_STPTM
  I $G(Y)'["AM"&($G(Y)'["PM") S YY=$E(Y,1,5),STPTM=$P(YY,":")_$E($P(YY,":",2),1,2) S:STPTM'<1200 STPTM1=DT_"."_STPTM S:STPTM<1200 STPTM=STPTM+1200,STPTM1=DT_"."_STPTM
- I $G(EDT) S DIE="^PS(59.3,",DR="10////"_STPTM1_"" L +^PS(59.3,DA):2 E  W !!,$C(7),Y(0,0)," is being edited!",! K EDT Q
+ I $G(EDT) S DIE="^PS(59.3,",DR="10////"_STPTM1_"" L +^PS(59.3,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),Y(0,0)," is being edited!",! K EDT Q
  I $G(EDT) D ^DIE L -^PS(59.3,DA) I $G(DIRUT)!($G(X)="") K EDT G EDTEX
 EDTEX I $G(EDT) K BSTRT,BSTRT1,BSTOP,BSTOP1,STRTM,STRTM1,STPTM,STPTM1,Y,YY Q
  S DIE="^PS(59.3,",DR="8///1;14////"_PSOSITE_";9////"_STRTM1_";10////"_STPTM1_""
- L +^PS(59.3,DA):2 E  W !!,$C(7),Y(0,0)," is being edited!",! Q
+ L +^PS(59.3,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),Y(0,0)," is being edited!",! Q
  D ^DIE L -^PS(59.3,DA) I $G(DIRUT)!($G(X)="") G INIX
  W ! S LL=LL+1 K BSTRT,BSTRT1,BSTOP,BSTOP1,STRTM,STRTM1,STPTM,STPTM1 G INIT1
 INIJ S BTDV=$P(^PS(59.3,DA,0),"^",4),BTST=$P(^PS(59.3,DA,3),"^",3),BTSP=$P(^(3),"^",4) I $G(BTDV)&$G(BTST) D INIJB1

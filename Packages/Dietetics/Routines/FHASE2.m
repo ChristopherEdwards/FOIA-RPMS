@@ -1,5 +1,5 @@
 FHASE2 ; HISC/REL - Patient Encounter Inquiry ;4/27/93  10:08
- ;;5.0;Dietetics;**5**;Jun 07, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  S ALL=1 D ^FHDPA G:'DFN KIL
  I $P($G(^DPT(DFN,.35)),"^",1) W *7,!!?5,"  [ Patient has expired. ]"
  I '$D(^FHEN("AP",DFN)) W !!,"No Encounters on file for this patient." G FHASE2

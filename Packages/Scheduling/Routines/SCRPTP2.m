@@ -1,5 +1,5 @@
 SCRPTP2 ;ALB/CMM - List of Team's Patients ; 29 Jun 99  04:11PM
- ;;5.3;Scheduling;**41,53,52,174,177,231**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,53,52,174,177,231,526,520,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/03/2000 modified column headings
  ;
  ;List of Team's Patients Report
@@ -73,6 +73,9 @@ PRACT(INST,TIEN,NEW) ;Print by practitioner/patient
  . . . . I (IOST?1"C-".E)&($Y>(IOSL-4)) D HOLD^SCRPU3(.PAGE,TITL,132) D:'STOP HEADER
  . . . . Q:STOP
  . . . . I $D(@STORE@(INST,TIEN,PIEN,TRDI)) W !,$G(@STORE@(INST,TIEN,PIEN,TRDI)) ;write column data
+ . . . . N SCACL
+ . . . . S SCACL="" F  S SCACL=$O(@STORE@(INST,TIEN,PIEN,TRDI,SCACL)) Q:SCACL=""  D
+ . . . . . W !,$G(@STORE@(INST,TIEN,PIEN,TRDI,SCACL))
  . S NEW=0
  Q
  ;
@@ -99,6 +102,9 @@ PTP(INST,TIEN,NEW) ;Print by patient/practitioner
  . . . . I (IOST?1"C-".E)&($Y>(IOSL-4)) D HOLD^SCRPU3(.PAGE,TITL,132) D:'STOP HEADER
  . . . . Q:STOP
  . . . . I $D(@STORE@(INST,TIEN,TRDI,PIEN)) W !,$G(@STORE@(INST,TIEN,TRDI,PIEN)) ;write column data
+ . . . . N SCACL
+ . . . . S SCACL="" F  S SCACL=$O(@STORE@(INST,TIEN,TRDI,PIEN,SCACL)) Q:SCACL=""  D
+ . . . . . W !,$G(@STORE@(INST,TIEN,TRDI,PIEN,SCACL))
  . S NEW=0
  Q
  ;
@@ -131,7 +137,7 @@ HEADER ;prints column headings
  ;
 SETH ;sets column headings
  S @STORE@("H2")="Patient Name"
- S $E(@STORE@("H2"),25)="Pt ID"
+ S $E(@STORE@("H2"),18)="Pt ID"
  ;S $E(@STORE@("H2"),32)="Practitioner"  ;IHS/ANMC/LJF 11/03/2000
  S $E(@STORE@("H2"),34)="Practitioner"   ;IHS/ANMC/LJF 11/03/2000
  S $E(@STORE@("H2"),56)="Role"

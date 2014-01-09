@@ -1,5 +1,5 @@
-VAFHLPD1 ;ALB/RKS-HL7 PD1 SEGMENT; 26 July 01 ; 5/2/02 2:09pm
- ;;5.3;Registration;**91,160,229,149,409,389**;Jun 06, 1996
+VAFHLPD1 ;ALB/RKS,PHH-HL7 PD1 SEGMENT; 26 July 01 ; 3/9/2004 2:09PM
+ ;;5.3;Registration;**91,160,229,149,409,389,568,1015**;Jun 06, 1996;Build 21
  ;
  ;
 EN(DFN,VAFSTR) ;Main enty point for building of PD1 Segment
@@ -38,7 +38,7 @@ EN(DFN,VAFSTR) ;Main enty point for building of PD1 Segment
  I VAFSTR[",4," D
  . N PTR200,VAFHLTMP,PCPRV,X
  . ;Get provider (pointer to NEW PERSON file)
- . S PTR200=+$$OUTPTPR^SDUTL3(DFN)
+ . S PTR200=+$$PCPRACT^DGSDUTL(DFN)
  . I PTR200<1 S $P(VAFPD1,FS,5)=HL("Q") Q
  . ;Get External Provider ID
  . D PERSON^VAFHLRO3(PTR200,"VAFHLTMP",HL("Q"))

@@ -1,5 +1,5 @@
 SCDXSUP ;RENO/KEITH ALB/SCK - Consistency checker for Ambulatory Care Reporting Project (ACRP); 02/26/97
- ;;5.3;Scheduling;**99**;Aug 13, 1993
+ ;;5.3;Scheduling;**99,1015**;Aug 13, 1993;Build 21
  ;
 CQ ;Queue re-calculation of OUTPATIENT ENCOUNTER checkout status
  ;

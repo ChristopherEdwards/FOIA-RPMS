@@ -1,5 +1,5 @@
 FHADR9 ; HISC/NCA - Dietetic Survey ;11/25/94  14:27
- ;;5.0;Dietetics;**34**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN1 ; Enter/Edit Dietetic Survey
  D QR^FHADR1 G:'PRE KIL
 F1 ; Select Survey Category

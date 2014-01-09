@@ -1,5 +1,5 @@
-OCXOZ06 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ06 ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -11,7 +11,7 @@ OCXOZ06 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  Q
  ;
 CHK95 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from UPDATE+12^OCXOZ01.
+ ;  Called from UPDATE+13^OCXOZ01.
  ;
  Q:$G(OCXOERR)
  ;
@@ -75,7 +75,7 @@ CHK113 ; Look through the current environment for valid Event/Elements for this 
  ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
  ;
  S OCXDF(32)=$$RSLTFLG^ORQOR2(OCXDF(34)) I $L(OCXDF(32)),(OCXDF(32)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,49,"96") Q:OCXOERR 
- S OCXDF(112)=$$ORDERER(OCXDF(34)),OCXDF(149)=$$CANCELER(OCXDF(34)) I '(OCXDF(112)=OCXDF(149)) S OCXDF(105)=$P($$TEXT^ORKOR(OCXDF(34),51),"^",2) D CHK294^OCXOZ0B
+ S OCXDF(112)=$$ORDERER(OCXDF(34)),OCXDF(149)=$$CANCELER(OCXDF(34)) I '(OCXDF(112)=OCXDF(149)) S OCXDF(105)=$P($$TEXT^ORKOR(OCXDF(34),51),"^",2) D CHK293^OCXOZ0B
  Q
  ;
 CANCELER(ORNUM) ;  Compiler Function: ORDER CANCELING PROVIDER

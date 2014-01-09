@@ -1,5 +1,5 @@
 SCDXPOV2 ;ALB/SCK - VISIT REPORT BY NPCDB TRANSMISSION STATUS ; 10/31/96
- ;;5.S;Scheduling;**73**;Aug 13, 1993
+ ;;5.3;Scheduling;**73,1015**;Aug 13, 1993;Build 21
  Q
 GETDATE(CAPTION) ;  Get and return a date value
  ;  Input:

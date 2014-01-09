@@ -1,5 +1,5 @@
 LEXILGD ; ISL Delete Lexicon v 1.0                 ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  Q
 DD ; Remove Lexicon Version 1.0 Files (DD only)
  N CNT,FI,GL,DIC,DIK,DIU S CNT=0

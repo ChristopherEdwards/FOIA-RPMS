@@ -1,10 +1,13 @@
-GMVUTL3 ;HOIFO/YH,FT-RPCBROKER UTILITY ROUTINE TO EXTRACT NURSING UNIT/ROOM-BED - 3 ;9/6/02  09:16
- ;;5.0;GEN. MED. REC. - VITALS;;Oct 31, 2002
+GMVUTL3 ;HOIFO/YH,FT-RPCBROKER UTILITY ROUTINE TO EXTRACT NURSING UNIT/ROOM-BED - 3 ;10/24/03  14:20
+ ;;5.0;GEN. MED. REC. - VITALS;**3**;Oct 31, 2002
  ;
  ; This routine uses the following IAs:
- ;  #2692 - FILE 100.21 references (controlled)
+ ;  #2692 - ^ORQPTQ1 calls         (controlled)
  ; #10061 - ^VADPT calls           (supported)
  ; #10099 - ^GMRADPT calls         (supported)
+ ; 
+ ; This routine supports the following IAs:
+ ; #4350  - GMV ALLERGY RPC called at ALLERGY  (private)
  ;
 PTINFO(RESULT,DFN,GMVDT) ; gets patient demographic and eligibility info
  ;RESULT=SSN^DOB^SEX AND AGE^ATTENDING^VETERAN^INTERNAL DATE/TIME

@@ -1,19 +1,24 @@
-PSORESK ;BIR/SAB-return to stock ;21-Aug-2008 14:56;SM
- ;;7.0;OUTPATIENT PHARMACY;**15,9,27,40,47,55,85,130,1002,1006,1007**;DEC 1997
+PSORESK ;BIR/SAB-return to stock ;26-Mar-2013 11:50;PB
+ ;;7.0;OUTPATIENT PHARMACY;**15,9,27,40,47,55,85,130,1002,1006,1007,185,184,196,148,201,259,261,1014,1015**;DEC 1997;Build 62
  ;
  ; Modified - IHS/CIA/PLS - 03/31/04 - Lines BC1+35 and PAR+30
  ;                          12/07/04 - New RXLKUP  entry point
  ;                                     Line RXP
  ;            IHS/MSC/PLS - 10/18/07 - BC1+1 -Outside Pharmacy
  ;                          08/21/08 - Added additional parameter to CALLPOS calls.
+ ;                          04/06/12 - Line RXLKUP+2
+ ;            IHS/MSC/PB    03/26/13 - Added lines BC1+43 and BC1+44 to update expiration date to the issue date
  ;REF/IA
  ;^PSDRUG/221
  ;^PS(59.7/694
  ;L, UL, PSOL, and PSOUL^PSSLOCK/2789
  ;^PS(55/2228
  ;PSDRTS^PSDOPT0/3064
+ ;
+ ;*259 - if refill was Not deleted, then stop RTS from continuing
+ ;
 AC I '$D(PSOPAR) D ^PSOLSET I '$D(PSOPAR) W !!,"Outpatient Pharmacy Site Parameters are required!" Q
- S RESK=1,PSIN=+$P(^PS(59.7,1,49.99),"^",2) K PSODEF,^UTILITY($J,"PSOPCE") S PSOPCECT=1
+ S RESK=1 K PSODEF,^UTILITY($J,"PSOPCE") S PSOPCECT=1
 BC K PSOWHERE,PSODEFLG,PSOINVTX,XTYPE W !! S DIR("A")="Enter/Wand PRESCRIPTION number",DIR("?")="^D HP^PSORESK1",DIR(0)="FO" D ^DIR K DIR I $D(DIRUT) K PSODEF G EX
  I X'["-" D BCI W:'$G(RXP) !,"INVALID Rx" G:'$G(RXP) BC G BC1
  I X["-" D  I $P(X,"-")'=$G(PSORESST) W !,$C(7),$C(7),"   INVALID STATION NUMBER !!",$C(7),$C(7),! K PSORESST G BC
@@ -25,6 +30,7 @@ BC1 ;
  I $P($G(^PSRX(RXP,999999921)),U,3) D  G BC
  .W !,"Outside Pharmacy prescriptions can't be returned to stock!"
  S PSORRDFN=+$P($G(^PSRX(RXP,0)),"^",2)
+ D ICN^PSODPT(PSORRDFN)
  S PSOPLCK=$$L^PSSLOCK(PSORRDFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY K PSOPLCK G BC
  K PSOPLCK D PSOL^PSSLOCK(RXP) I '$G(PSOMSG) W !!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing this order."),! K PSOMSG D UL^PSSLOCK(+$G(PSORRDFN)) G BC
  S PSOLOUD=1 D:$P($G(^PS(55,+$P(^PSRX(RXP,0),"^",2),0)),"^",6)'=2 EN^PSOHLUP($P(^PSRX(RXP,0),"^",2)) K PSOLOUD
@@ -34,32 +40,43 @@ BC1 ;
  .S DIR(0)="SA^O:ORIGINAL;P:PARTIAL",DIR("B")="ORIGINAL",DIR("A",1)="",DIR("A",2)="There are Partials for this Rx.",DIR("A")="Which are you Returning To Stock? "
  .S DIR("?")=" Press return for Original. Enter 'P' for Partial" D ^DIR K DIR
  S XTYPE=$S(Y="O":"O",1:"P") G:Y="P" PAR
- I $P($G(^PSRX(RXP,2)),"^",15) W !,$C(7),$C(7),"Original fill for Rx # "_$P(^PSRX(RXP,0),"^")_" was Returned to Stock." D UL G BC
- I '$P($G(^PSRX(RXP,2)),"^",13),$P($G(^(2)),"^",2)'<PSIN W !,$C(7),$C(7),"Rx # "_$P(^PSRX(RXP,0),"^")_" was NOT released !" D UL G BC
- I $P($G(^PSRX(RXP,2)),"^",2)<PSIN D  D UL G BC
- .W !!,$C(7),$C(7),"Original Fill CANNOT be Returned!",!,"This fill entered before installation of version 6.  There are no refills.",!
- ;D CMOP^PSORESK1 I $G(PSXREL) K PSXREL G BC
+ I $P($G(^PSRX(RXP,2)),"^",15) D  G BC
+ .W !,$C(7),$C(7),"Original fill for Rx # "_$P(^PSRX(RXP,0),"^")_" was Returned to Stock." D UL
+ I '$P($G(^PSRX(RXP,2)),"^",13) W !,$C(7),$C(7),"Rx # "_$P(^PSRX(RXP,0),"^")_" was NOT released !" D UL G BC
  S PSOLOCRL=$P($G(^PSRX(RXP,2)),"^",13),PSOWHERE=$S($D(^PSRX("AR",+$G(PSOLOCRL),RXP,0)):1,1:0)
  W ! S DIR("B")="YES",DIR("A",1)="Are you sure you want to RETURN TO STOCK Rx # "_$P(^PSRX(RXP,0),"^")
  S DIR("A",2)="for "_$P(^DPT($P(^PSRX(RXP,0),"^",2),0),"^")_" ("_$E($P(^(0),"^",9),6,9)_")",DIR("A")="Drug: "_$P(^PSDRUG($P(^PSRX(RXP,0),"^",6),0),"^")
  I $G(PSOWHERE) S DIR("A",3)=" ",DIR("A",4)="   *** This prescription was filled at the CMOP *** ",DIR("A",5)=" "
  S DIR(0)="YO" D ^DIR K DIR I Y=0!($D(DIRUT)) D UL G BC
  ;ORI
- I $P($G(^PSRX(RXP,2)),"^",2)'<PSIN D  D UL,EX S (RESK,PSOPCECT)=1 G BC
- .I $T(PSDRTS^PSDOPT0)]"" D PSDRTS^PSDOPT0(RXP,"O^"_0,$P(^PSRX(RXP,2),"^",9),$P(^PSRX(RXP,0),"^",7)) D MSG
+ D  D UL,EX S (RESK,PSOPCECT)=1 G BC
+ .;VMP OIFO BAY PINES;PSO*7.0*196;KILL PSDS
+ .I $T(PSDRTS^PSDOPT0)]"" D PSDRTS^PSDOPT0(RXP,"O^"_0,$P(^PSRX(RXP,2),"^",9),$P(^PSRX(RXP,0),"^",7)) D MSG K PSDS
  .Q:$G(RETSK)
  .K PSOINVTX,PSODEFLG I $G(PSOWHERE),$G(^PSDRUG(QDRUG,660.1)) D INVT^PSORXDL I $G(PSODEFLG) W !!?5,"Prescription Not Returned to Stock!",! Q
- .I +$G(^PSRX(RXP,"IB")) D CP^PSORESK1 Q:'$G(COPAYFLG)
- .K DIR,DUOUT,DTOUT,DIRUT S DIR(0)="F^10:75",DIR("A")="Comments",DIR("?")="Comments are required, 10-75 characters.",DIR("B")=$S($D(PSODEF):PSODEF,1:"Per Pharmacy Request") D ^DIR D:$D(DIRUT)  Q:$D(DIRUT)  S (PSODEF,COM)=$G(Y) K DIR,X,Y
- ..W !!?5,"Prescription Not Returned to Stock!",!
+ .I +$G(^PSRX(RXP,"IB"))!($P($G(^PSRX(RXP,"PFS")),"^",2)) N PSOPFS S:$P($G(^PSRX(RXP,"PFS")),"^",2) PSOPFS="1^"_$P(^PSRX(RXP,"PFS"),"^",1,2) D CP^PSORESK1 Q:'$G(COPAYFLG)
+ .;Ask comments until answered, do not allow exiting.
+ .F  D  I '$D(DIRUT) Q
+ ..K DIR,DUOUT,DTOUT,DIRUT,X,Y
+ ..S DIR(0)="F0^10:75",DIR("A")="Comments",DIR("?")="Comments are required, 10-75 characters."
+ ..S DIR("B")=$S($D(PSODEF):PSODEF,1:"Per Pharmacy Request")
+ ..D ^DIR I $D(DIRUT) W !?5,"Comments are required, 10-75 characters.",! Q
+ ..S (PSODEF,COM)=$G(Y) K DIR,X,Y
+ ..Q
  .I $G(^PSDRUG(QDRUG,660.1)) D
  ..I $G(PSOWHERE),'$G(PSOINVTX) Q
  ..S ^PSDRUG(QDRUG,660.1)=^PSDRUG(QDRUG,660.1)+QTY
  .I $G(PSOWHERE) K ^PSRX("AR",+$G(PSOLOCRL),RXP,0)
+ .;MSC/IHS/PB - 3/1/13 Added the next two lines to update the expiration date to the issue date if the rts is an original
+ .S ISDT=$P(^PSRX(RXP,0),"^",13)
+ .I $G(ISDAT)'="" D NOW^%DTC S DA=RXP,DA=RXP,DIE="^PSRX(",DR="26////"_$G(ISDT)_";31///@;32.1///"_% D ^DIE K DIE,DR,DA Q:$D(Y)
  .D NOW^%DTC S DA=RXP,DA=RXP,DIE="^PSRX(",DR="31///@;32.1///"_% D ^DIE K DIE,DR,DA Q:$D(Y)
  .D ACT^PSORESK1 S DA=$O(^PS(52.5,"B",RXP,0)) I DA S DIK="^PS(52.5," D ^DIK
  .D CALLPOS^APSPFUNC(RXP,"","D","Returned to stock.")  ; IHS/CIA/PLS - 03/31/04
+ .D REVERSE^PSOBPSU1(RXP,0,"RS",4,,1)
  .D EN^PSOHLSN1(RXP,"ZD") W !,"Rx # "_$P(^PSRX(RXP,0),"^")_" Returned to Stock.",!
+ .Q
+ ;
 REF I $O(^PSRX(RXP,1,0)),$O(^PSRX(RXP,"P",0)) D  I $D(DTOUT)!($D(DUOUT)) D UL G BC
  .S DIR(0)="SA^R:REFILL;P:PARTIAL",DIR("B")="REFILL",DIR("A",1)="",DIR("A",2)="There are Refills and Partials for this Rx.",DIR("A")="Which are you Returning To Stock? "
  .S DIR("?")=" Press return for Refill. Enter 'P' for Partial" D ^DIR K DIR
@@ -67,39 +84,58 @@ REF I $O(^PSRX(RXP,1,0)),$O(^PSRX(RXP,"P",0)) D  I $D(DTOUT)!($D(DUOUT)) D UL G 
 PAR S:$G(XTYPE)']"" XTYPE=1 S TYPE=0 F YY=0:0 S YY=$O(^PSRX(RXP,XTYPE,YY)) Q:'YY  S TYPE=YY
  I 'TYPE D UL,EX S (RESK,PSOPCECT)=1 G BC
  I $P($G(^PSRX(RXP,XTYPE,TYPE,0)),"^",16) W $C(7),!!,"Last Fill Already Returned to Stock !",! D UL,EX S (RESK,PSOPCECT)=1 G BC
- I '$P(^PSRX(RXP,XTYPE,TYPE,0),"^",$S(XTYPE:18,1:19)),$P(^(0),"^")'<PSIN W !!,$C(7),$C(7),$S(XTYPE:"Refill",1:"PARTIAL")_" #"_TYPE_" was NOT released !",! D UL G BC
- I '$P(^PSRX(RXP,XTYPE,TYPE,0),"^",$S(XTYPE:18,1:19)),$P(^(0),"^")<PSIN D  D UL G BC
- .W !!,$C(7),$C(7),$S(XTYPE:"Refill",1:"PARTIAL")_" #"_TYPE_" CANNOT be Returned!",!,"This fill entered before installation of version 6.",!
+ I '$P(^PSRX(RXP,XTYPE,TYPE,0),"^",$S(XTYPE:18,1:19)) W !!,$C(7),$C(7),$S(XTYPE:"Refill",1:"PARTIAL")_" #"_TYPE_" was NOT released !",! D UL G BC
  W ! K DIR,DUOUT,DTOUT
- ;D CMOP1^PSORESK1 I $G(PSXREL) K PSXREL G BC
  K PSOLOCRL,PSOWHERE I $G(XTYPE) S PSOLOCRL=$P($G(^PSRX(RXP,XTYPE,+$G(TYPE),0)),"^",18),PSOWHERE=$S($D(^PSRX("AR",+$G(PSOLOCRL),RXP,+$G(TYPE))):1,1:0)
  W ! S DIR("B")="YES",DIR("A",1)="Are you sure you want to RETURN TO STOCK Rx # "_$P(^PSRX(RXP,0),"^")_$S(XTYPE:" Refill ",1:" Partial ")_"# "_TYPE,DIR(0)="Y"
  S DIR("A",2)="for "_$P(^DPT($P(^PSRX(RXP,0),"^",2),0),"^")_" ("_$E($P(^(0),"^",9),6,9)_")",DIR("A")="Drug: "_$P(^PSDRUG($P(^PSRX(RXP,0),"^",6),0),"^")
  I $G(PSOWHERE) S DIR("A",3)=" ",DIR("A",4)="   *** This prescription was filled at the CMOP *** ",DIR("A",5)=" "
  D ^DIR K DIR I 'Y!($D(DUOUT))!($D(DTOUT)) D UL G BC
  I $T(PSDRTS^PSDOPT0)]"" D
- .I XTYPE D PSDRTS^PSDOPT0(RXP,"R^"_TYPE,$P(^PSRX(RXP,1,TYPE,0),"^",9),$P(^(0),"^",4)) D MSG Q
- .D PSDRTS^PSDOPT0(RXP,"P^"_TYPE,$P(^PSRX(RXP,"P",TYPE,0),"^",9),$P(^(0),"^",4)) D MSG
+ .;VMP OIFO BAY PINES;PSO*7.0*196;KILL PSDS
+ .I XTYPE D PSDRTS^PSDOPT0(RXP,"R^"_TYPE,$P(^PSRX(RXP,1,TYPE,0),"^",9),$P(^(0),"^",4)) D MSG K PSDS Q
+ .D PSDRTS^PSDOPT0(RXP,"P^"_TYPE,$P(^PSRX(RXP,"P",TYPE,0),"^",9),$P(^(0),"^",4)) D MSG K PSDS
  I $G(RETSK) D UL,EX G BC
  K PSOINVTX,PSODEFLG I $G(PSOWHERE),$G(^PSDRUG(QDRUG,660.1)) D INVT^PSORXDL I $G(PSODEFLG) W !!?5,"Prescription Not Returned to Stock!",! D UL G BC
- I +$G(^PSRX(RXP,"IB")),XTYPE D CP^PSORESK1 I '$G(COPAYFLG) D UL G BC
- K DIR,DIRUT,DTOUT,DUOUT S DIR(0)="F^10:75",DIR("A")="Comments",DIR("?")="Comments are required, 10-75 characters.",DIR("B")=$S($D(PSODEF):PSODEF,1:"Per Pharmacy Request") D ^DIR K DIR I $D(DIRUT) D  D UL G BC
- .W !!?5,"Prescription Not Returned to Stock!",!
+ I XTYPE I +$G(^PSRX(RXP,"IB"))!($P($G(^PSRX(RXP,1,TYPE,"PFS")),"^",2)) N PSOPFS S:$P($G(^PSRX(RXP,1,TYPE,"PFS")),"^",2) PSOPFS="1^"_$P(^PSRX(RXP,1,TYPE,"PFS"),"^",1,2) D CP^PSORESK1 I '$G(COPAYFLG) D UL G BC
+ ;Ask comments until answered, do not allow exiting.
+ F  D  I '$D(DIRUT) Q
+ .K DIR,DIRUT,DTOUT,DUOUT,X,Y
+ .S DIR(0)="F0^10:75",DIR("A")="Comments",DIR("?")="Comments are required, 10-75 characters."
+ .S DIR("B")=$S($D(PSODEF):PSODEF,1:"Per Pharmacy Request")
+ .D ^DIR K DIR I $D(DIRUT) W !?5,"Comments are required, 10-75 characters.",! Q
+ .Q
  S (PSODEF,COM)=$G(Y) K X,Y
  D NOW^%DTC S QTY=$P(^PSRX(RXP,XTYPE,TYPE,0),"^",4) I $G(^PSDRUG(QDRUG,660.1)) D
  .I $G(PSOWHERE),'$G(PSOINVTX) Q
  .S ^PSDRUG(QDRUG,660.1)=^PSDRUG(QDRUG,660.1)+$G(QTY)
  I $G(PSOWHERE) K ^PSRX("AR",+$G(PSOLOCRL),RXP,$G(TYPE))
+ I XTYPE D REVERSE^PSOBPSU1(RXP,TYPE,"RS",4,,1)
+ ;
+ ;save release dates in case can't perform the delete of .01     *259
+ S:XTYPE SVRELDT=$P(^PSRX(RXP,XTYPE,TYPE,0),"^",18)
+ S:'XTYPE SVRELDT=$P(^PSRX(RXP,XTYPE,TYPE,0),"^",19)
+ ;
+ ;del rel date 1st and then attempt to del .01 field
  S DA(1)=RXP,DA=TYPE,DIE="^PSRX("_DA(1)_","_$S(XTYPE:1,1:"""P""")_",",DR=$S(XTYPE:"17////@",1:"8////@")_";.01///@"
- W ! D ^DIE I $D(Y) D UL G BC
- D:XTYPE'="P" NPF
- D ACT^PSORESK1
+ W ! D ^DIE
+ ;
+ ;if node still exists then fileman could not delete .01         *259
+ I $D(^PSRX(RXP,XTYPE,TYPE,0)) D  G BC
+ . W " - Not Returned!"
+ . S DA(1)=RXP,DA=TYPE,DIE="^PSRX("_DA(1)_","_$S(XTYPE:1,1:"""P""")_","
+ . S DR=$S(XTYPE:"17////",1:"8////")_SVRELDT   ;put back saved rel dte
+ . D ^DIE,UL
+ ;
+ ;fall thru and perform RTS for refills/partials
+ D:XTYPE'="P" NPF D ACT^PSORESK1
  D CALLPOS^APSPFUNC(RXP,$S(TYPE:TYPE,1:""),"D","Returned to stock.")  ; IHS/CIA/PLS - 03/31/04 - Call POS Hook
  W !!,"Rx # "_$P(^PSRX(RXP,0),"^")_$S(XTYPE:" REFILL",1:" PARTIAL")_" #"_TYPE_" Returned to Stock" S DA=$O(^PS(52.5,"B",RXP,0)) I DA S DIK="^PS(52.5," D ^DIK
- K PSODISPP S:'$G(XTYPE) PSODISPP=1 D EN^PSOHLSN1(RXP,"ZD") K PSODISPP
+ K PSODISPP S:'XTYPE PSODISPP=1 D:XTYPE EN^PSOHDR("PRES",RXP) D EN^PSOHLSN1(RXP,"ZD") K PSODISPP
  D UL G BC
 EX ;
  K DA,DR,DIE,X,X1,X2,Y,RXP,REC,DIR,XDT,REC,RDUZ,DIRUT,PSOCPN,PSOCPRX,YY,QDRUG,QTY,TYPE,XTYPE,I,%,DIRUT,COPAYFLG,PSOINVTX,RESK,PSOPCECT,COM,PSOWHERE,PSOLOCRL,PSODEFLG,PSORRDFN,PSOMSG,PSOPLCK,PSDCS,PSDRS,RETSK
+ K DIC,DIK,PSOPFS
  Q
 MSG I $G(PSDCS),'$G(PSDRS) W !!,"The PSDMGR key is required to return a CONTROLLED SUBSTANCE Rx to stock and",!,"update corresponding vault balances." S RETSK=1
  Q
@@ -122,10 +158,13 @@ NPF N PSOY I $G(TYPE)-1>0,+$P(^PSRX(RXP,1,TYPE-1,0),"^") D
  I $G(X) S DA=RXP,DIE=52,DR="102///"_X D ^DIE K DIE
  Q
  ; IHS/CIA/PLS - 12/07/04
+ ; IHS/MSC/PLS - 04/06/12 - Added parameter and condition
  ; Perform lookup given partial or full prescription number.
  ; Screen allows non-deleted scripts and scripts for user selected division.
 RXLKUP(X) ; EP
  N DIC,Y
- S DIC("S")="I $P($G(^(2)),U,9)=PSOSITE&($P($G(^(""STA"")),""^"")'=13)"
+ I $$GET^XPAR("ALL","APSP ALLOW RTS FROM ANY RX DIV") D
+ .S DIC("S")="I $P($G(^(""STA"")),U)'=13"
+ E  S DIC("S")="I $P($G(^(2)),U,9)=PSOSITE&($P($G(^(""STA"")),""^"")'=13)"
  S DIC(0)="EMQZ",DIC="^PSRX(" D ^DIC
  Q $S(+Y>0:+Y,1:0)

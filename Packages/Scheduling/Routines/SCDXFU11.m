@@ -1,5 +1,5 @@
 SCDXFU11 ;ALB/JRP - ACRP TRANSMISSION MANAGEMENT FILE UTILS;02-JUL-97 ; 1/10/02 4:33pm
- ;;5.3;Scheduling;**128,247**;AUG 13, 1993
+ ;;5.3;Scheduling;**128,247,1015**;AUG 13, 1993;Build 21
  ;
 EZN4XMIT(XMITPTR) ;Return zero node of encounter associated to entry
  ; in Transmitted Outpatient Encounter file (#409.73)

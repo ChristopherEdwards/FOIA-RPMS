@@ -1,5 +1,5 @@
 ABMDF29X ; IHS/ASDST/DMJ - ADA-2006 FORM ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**3,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,8,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25568 - Corrected alignment issues
  ; IHS/SD/PMT - abm*2.6*3 - HEAT8604 - Corrected report to start at line 1, not line 2
@@ -21,7 +21,8 @@ LOOP ;
  ;I ABM("LN")>27,ABM("LN")<37 S ABM("FL")=27 ;Lines 27 thru 36 are same  HEAT8604
  I ABM("LN")>25,ABM("LN")<37 S ABM("FL")=26 ;Lines 27 thru 36 are same
  ;I ABM("LN")>39,ABM("LN")<44 S ABM("FL")=40 ;Lines 40 thru 42 are same  HEAT8604
- I ABM("LN")>38,ABM("LN")<43 S ABM("FL")=40 ;Lines 39 thru 42 are same
+ ;I ABM("LN")>38,ABM("LN")<43 S ABM("FL")=40 ;Lines 39 thru 42 are same  ;abm*2.6*9 IHS/SD/AML 2/9/2012 HEAT55261
+ I ABM("LN")>38,ABM("LN")<43 S ABM("FL")=39 ;Lines 39 thru 42 are same  ;abm*2.6*9 IHS/SD/AML 2/9/2012 HEAT55261
   ;
  ;Set tab & format variables
  S ABM("TABS")=$P($T(@ABM("FL")),";;",2)

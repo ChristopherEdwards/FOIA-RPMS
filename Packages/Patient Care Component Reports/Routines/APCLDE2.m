@@ -1,5 +1,5 @@
 APCLDE2 ; IHS/CMI/LAB - list refusals ; 
- ;;2.0;IHS PCC SUITE;**2,4**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,4,8**;MAY 14, 2009;Build 2
  ;
  ;
 INFORM ;
@@ -10,7 +10,7 @@ INFORM ;
  W !,"screening or a refusal was documented in the time frame specified by the"
  W !,"user.  Depression Screening is defined as any of the following documented:"
  W !?5,"- Depression Screening Exam (Exam code 36)"
- W !?5,"- Measurements: PHQ2, PHQ9"
+ W !?5,"- Measurements: PHQ2, PHQ9, PHQT"
  W !?5,"- Diagnoses V79.0, 14.1 (Behavioral Health Problem Code)"
  W !?5,"- Education Topics: DEP-SCR"
  W !?5,"- refusal of exam code 36"
@@ -158,7 +158,7 @@ BHSCR(V) ;EP - is there a screening?  return in R
  S P=$P(^AMHREC(V,0),U,8)
  S X=0 F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X  D
  .S M=$$VAL^XBDIQ1(9002011.12,X,.01)
- .I M="PHQ2"!(M="PHQ9") S R=$$BHRT^APCLDE1(V,M,$P(^AMHRMSR(X,0),U,4),P,$$VALI^XBDIQ1(9002011.12,X,1204))
+ .I M="PHQ2"!(M="PHQ9")!(M="PHQT") S R=$$BHRT^APCLDE1(V,M,$P(^AMHRMSR(X,0),U,4),P,$$VALI^XBDIQ1(9002011.12,X,1204))
  I R]"" Q R
  ;get exam
  S E=$P($G(^AMHREC(V,14)),U,3)
@@ -184,7 +184,7 @@ PCCSCR(V) ;EP - is there a screening?  return in R
  S X=0 F  S X=$O(^AUPNVMSR("AD",V,X)) Q:X'=+X  D
  .Q:$P($G(^AUPNVMSR(X,2)),U,1)
  .S M=$$VAL^XBDIQ1(9000010.01,X,.01)
- .I M="PHQ2"!(M="PHQ9") D
+ .I M="PHQ2"!(M="PHQ9")!(M="PHQT") D
  ..S T=D_U_M_U_$$VAL^XBDIQ1(9000010.01,X,.04)_U_V_U_9000010.01_U_X
  ..S R=$$PCCV^APCLDE1(T,P)
  I R]"" Q R

@@ -1,5 +1,5 @@
-SCRPTM ;ALB/CMM - List of Team's Members Report ; 29 Jun 99  04:11PM [ 11/03/2000  6:40 AM ]
- ;;5.3;Scheduling;**41,48,52,181,177**;AUG 13, 1993
+SCRPTM ;ALB/CMM - List of Team's Members Report ; 29 Jun 99  04:11PM
+ ;;5.3;Scheduling;**41,48,52,181,177,520,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/03/2000 added call to list template
  ;
  ;List of Team's Members Report
@@ -156,11 +156,14 @@ PRINTIT(STORE,TITL) ;
  ;
 PRNTD(INST,TEM,PRACT,POS,TITL,PAGE,HEAD) ;
  ;
- N CNT
+ N CNT,SCAC
  S CNT=""
  I IOST'?1"C-".E,$Y>(IOSL-11) D NEWP^SCRPTM2(INST,TEM,TITL,.PAGE,.HEAD)
  I IOST?1"C-".E,$Y>(IOSL-11) D HOLD1^SCRPTM2(.PAGE,TITL,INST,TEM,.HEAD)
  I STOP Q
  F  S CNT=$O(@STORE@(INST,TEM,PRACT,POS,CNT)) Q:CNT=""!(STOP)  D
  .W !,$G(@STORE@(INST,TEM,PRACT,POS,CNT))
+ .S SCAC="" I CNT=4  D
+ ..F  S SCAC=$O(@STORE@(INST,TEM,PRACT,POS,4,SCAC)) Q:SCAC=""!(STOP)  D
+ ...W !,$G(@STORE@(INST,TEM,PRACT,POS,4,SCAC))
  Q

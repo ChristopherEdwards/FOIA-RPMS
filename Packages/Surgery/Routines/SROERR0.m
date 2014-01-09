@@ -1,8 +1,9 @@
-SROERR0 ;B'HAM ISC/ADM - ORDER ENTRY ROUTINE ; [ 01/07/99  2:23 PM ]
- ;;3.0; Surgery ;**4,67,73,41,86,107**;24 Jun 93
+SROERR0 ;B'HAM ISC/ADM - ORDER ENTRY ROUTINE ;02/03/05
+ ;;3.0; Surgery ;**4,67,73,41,86,107,147,144**;24 Jun 93
  ;
  ; Reference to RETURN^ORX supported by DBIA #866
  ; Reference to ^TMP("CSLSUR1" supported by DBIA #3498
+ ; Reference to UPD^VPRSR supported by DBIA #4750
  ;
  N SROP,SROPER,SRDYNOTE,SRTYPE S SRTYPE=0
  I $P($G(^SRO(133,SRSITE,0)),"^",22)="Y",$D(^TMP("CSLSUR1",$J)) D
@@ -14,11 +15,12 @@ SROERR0 ;B'HAM ISC/ADM - ORDER ENTRY ROUTINE ; [ 01/07/99  2:23 PM ]
  .I '$P($G(^SRF(SROERR,.2)),"^",10),'$P($G(^SRF(SROERR,"OP")),"^",2) D
  ..W !!,"  This Surgery case does not have a Principal CPT Code entered. The ",!,"  information sent to SPD for creation of a case cart may not contain ",!,"  enough information for processing."
  .D ST^SRSCOR(SROERR)
- ;
+ D SERR^SROPFSS(SROERR,"SROERR0")
  D STATUS
  I '$D(SREVENT) N SREVENT S SREVENT=$S(SRSTATUS="(CANCELLED)":"S15",1:"S14")
  D MSG^SRHLZIU(SROERR,SRSTATUS,SREVENT)
  I SRSTATUS="(COMPLETED)"!(SRSTATUS="(NOT COMPLETE)")!(SRSTATUS="(ABORTED)") D MSG^SRHLOORU(SROERR,SRSTATUS,SREVENT)
+ I $L($T(UPD^VPRSR)) D UPD^VPRSR(SROERR,$G(DFN),SRSTATUS) Q  ;CPRS-R
  I +$$VERSION^XPDUTL("ORDER ENTRY/RESULTS REPORTING")>2.5 D END Q
  S:'$G(ORIFN) ORIFN=$P(^SRF(SROERR,0),"^",14) I 'ORIFN K ORIFN D END Q
  S ORNP=$S($P($G(^SRF(SROERR,"NON")),"^")="Y":$P(^("NON"),"^",6),1:$P(^(.1),"^",4)),SRSOP=$P(^("OP"),"^")

@@ -1,5 +1,5 @@
 SDYQOECL ;ALB/MLI - Routine to put entries in file 409.41 ; 10/6/95 [10/6/95 2:28pm]
- ;;5.3;Scheduling;**35**,Aug 13, 1993
+ ;;5.3;Scheduling;**35**,Aug 13, 19,1015**;;Build 21
  ;
  ; This routine will set the following entries into the OUTPATIENT
  ; CLASSIFICATION TYPE file (#409.41) so that classification

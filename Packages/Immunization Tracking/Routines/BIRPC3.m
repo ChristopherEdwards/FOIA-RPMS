@@ -1,8 +1,10 @@
 BIRPC3 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ADD/EDIT A VISIT (IMMUNIZATION OR SKIN TEST), DELETE A VISIT.
  ;;  Check validity of data in several fields.
+ ;;  PATCH 3: If Category=Historical Event, Lot need not be Active.
+ ;;                                                    ADDEDIT+117, LOTCHK+34
  ;
  ;----------
 ADDEDIT(BIERR,BIDATA) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
@@ -122,7 +124,12 @@ ADDEDIT(BIERR,BIDATA) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
  .;
  .;---> If Lot Number was passed, check it.
  .D:BILOT  Q:$G(BIERR)]""
- ..D LOTCHK(BILOT,BIVAC,.BIERR)
+ ..;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ..;---> If Category=Historical Event, Lot need not be Active.
+ ..;D LOTCHK(BILOT,BIVAC,.BIERR)
+ ..D LOTCHK(BILOT,BIVAC,BICAT,.BIERR)
+ ..;**********
+ ..;
  ..I $G(BIERR)]"" S BIERR=BI31_BIERR
  ;
  ;---> If this is a Skin Test, Category is NOT Historical, and it has a Result,
@@ -193,12 +200,13 @@ LOTEXP(BILIEN,BIYY) ;PEP - Return Lot Expiration Date in format: MM/DD/YYYY.
  ;********** PATCH 1, v8.2.1, FEB 01,2008, IHS/CMI/MWR
  ;---> New LOTCHK subroutine to combine all checks for valid Lot Number.
  ;----------
-LOTCHK(BILOT,BIVAC,BIERR) ;EP
+LOTCHK(BILOT,BIVAC,BICAT,BIERR) ;EP
  ;---> Check for valid Lot Number given the Vaccine passed.
  ;---> Parameters:
  ;     1 - BILOT (req) IEN of Lot Number.
  ;     2 - BIVAC (req) IEN of Vaccine IMMUNIZATION File (9999999.14).
- ;     3 - BIERR (ret) Text of Error Code if any, otherwise null.
+ ;     3 - BICAT (opt) Category of Visit.
+ ;     4 - BIERR (ret) Text of Error Code if any, otherwise null.
  ;
  ;---> Check a) Valid Vaccine and Lot Number
  ;--->       b) Lot Number has been assigned to the Vaccine passed;
@@ -220,12 +228,17 @@ LOTCHK(BILOT,BIVAC,BIERR) ;EP
  I Y="" D  Q
  .D ERRCD^BIUTL2(512,.BIERR)
  ;
- ;---> if this Lot# does NOT point back to this Vaccine, set Error and quit.
+ ;---> If this Lot# does NOT point back to this Vaccine, set Error and quit.
  I $P(Y,U,4)'=BIVAC D ERRCD^BIUTL2(513,.BIERR) Q
  ;
  ;---> If the Lot# is INACTIVE (attempted save of earlier visit
  ;---> with Lot# previously chosen), set Error Code and quit.
- I $P(Y,U,3) D ERRCD^BIUTL2(426,.BIERR) Q
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> If Category=Historical Event, Lot need not be Active.
+ ;I $P(Y,U,3) D ERRCD^BIUTL2(426,.BIERR) Q
+ I ($P(Y,U,3)&($G(BICAT)'="E")) D ERRCD^BIUTL2(426,.BIERR) Q
+ ;**********
  ;
  ;---> If Lot# is duplicated in the IMM LOT File, set Error and quit.
  I $$LOTDUP^BIUTL4(BILOT) D ERRCD^BIUTL2(427,.BIERR)

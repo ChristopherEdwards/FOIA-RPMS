@@ -1,10 +1,10 @@
 BIPRE ;IHS/CMI/MWR - PRE-INIT ROUTINE; OCT 15, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  PRE-INIT TO REMOVE PREVIOUS ^DD's, RPC's, Forms, List Templates,
  ;;  and Protocols in the 9002084-9002084.9999 and BI* Spaces.
  ;;  PATCH 1: Change DIU(0)="T" to DIU(0)="S" to preserve local templates: DD+7
- ;;
+ ;;  PATCH 3: Clear BIMAN global for updates.
  ;
  ;----------
 MAIN ;EP
@@ -16,7 +16,12 @@ MAIN ;EP
  ;S DUZ(0)="@"
  ;
  ;---> Delete all old Error Codes.  Added. vvv83
- D ZGBL^BIUTL8("^BIERR")
+ ;D ZGBL^BIUTL8("^BIERR")
+ ;
+ ;---> Delete all previous BI Manufacturers.
+ D ZGBL^BIUTL8("^BIMAN")
+ ;---> Delete all previous BI Eligibility Codes (for preloaded Beta Sites).
+ D ZGBL^BIUTL8("^BIELIG")
  ;W !!,"DO SOMETHING HERE?" R ZZZ
  Q
  ;

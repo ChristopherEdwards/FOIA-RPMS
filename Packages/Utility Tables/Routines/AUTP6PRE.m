@@ -1,5 +1,5 @@
 AUTP6PRE ; IHS/ASDST/GTH - AUT 98.1 PATCH 6 ENVIRON CHECK ; [ 09/21/2000  2:18 PM ]
- ;;98.1;IHS DICTIONARIES (POINTERS);**6**;MAR 04, 1998
+ ;;98.1;IHS DICTIONARIES (POINTERS);**6**;MAR 04, 1998;Build 6
  ;
  I '$G(DUZ) W !,"DUZ UNDEFINED OR 0." D SORRY(1) Q
  ;
@@ -67,8 +67,8 @@ AUTP6MSG ;
  ;;This is for your information, only.  You need not do anything
  ;;in response to this message.
  ;;  
- ;;Questions can be directed to the Help Desk
- ;;
+ ;;Questions can be directed to George T. Huggins, RPMS/DBA, at
+ ;;520-670-4871, or via IHS Mailman or Exchange.
  ;;  
  ;; --- AUT v 98.1, Patch 6, has been installed into this uci ---
 HELLO ;;  

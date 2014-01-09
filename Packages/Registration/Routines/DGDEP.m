@@ -1,5 +1,5 @@
-DGDEP ;ALB/CAW Dependent Driver ;10/31/94
- ;;5.3;Registration;**45**;Aug 13, 1993
+DGDEP ;ALB/CAW,BAJ - Dependent Driver ; 8/1/08 12:55pm
+ ;;5.3;Registration;**45,688,1015,1016**;Aug 13, 1993;Build 20
  ;
 EN ;
  S VALMBCK=""
@@ -16,16 +16,18 @@ PAT ; Patient Lookup
 PATQ Q
  ;
 HDR ; Header
- N VA,VAERR
+ N VA,VAERR,SSNV
  D PID^VADPT
+ ; Capture and display SSN Verification Status with SSN  BAJ DG*5.3*688 11/22/2005
+ D GETSTAT^DGRP1(.SSNV)
  I $G(DGSCR8) D  G HDRQ
  .S X="",VALMHDR(1)="                      FAMILY DEMOGRAPHIC DATA, SCREEN <8>"
  .S VALMHDR(1)=$$SETSTR^VALM1(X,VALMHDR(1),80-$L(X),$L(X))
- .S VALMHDR(2)=$E($P("Patient: "_$G(^DPT(DFN,0)),"^",1),1,30)_" ("_VA("PID")_")"
+ .S VALMHDR(2)=$E($P("Patient: "_$G(^DPT(DFN,0)),"^",1),1,30)_" ("_VA("PID")_")"_" "_SSNV
  .S X=$S($D(^DPT(DFN,.1)):"Ward: "_^(.1),1:"Outpatient")
  .S VALMHDR(2)=$$SETSTR^VALM1(X,VALMHDR(2),80-$L(X),$L(X))
  S X="",VALMHDR(1)="                     MARITAL STATUS/DEPENDENTS, SCREEN <1>"
- S VALMHDR(2)=$E($P("Patient: "_$G(^DPT(DFN,0)),"^",1),1,30)_" ("_VA("PID")_")"
+ S VALMHDR(2)=$E($P("Patient: "_$G(^DPT(DFN,0)),"^",1),1,30)_" ("_VA("PID")_")"_" "_SSNV
  S X=$S($D(^DPT(DFN,.1)):"Ward: "_^(.1),1:"Outpatient")
  S VALMHDR(2)=$$SETSTR^VALM1(X,VALMHDR(2),80-$L(X),$L(X))
 HDRQ Q

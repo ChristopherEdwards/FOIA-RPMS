@@ -1,16 +1,19 @@
-PSOORNW2 ;ISC-BHAM/SAB - edit orders from oerr ;23-Mar-2009 11:09;SM
- ;;7.0;OUTPATIENT PHARMACY;**10,23,37,46,117,131,133,1005,1008**;DEC 1997
- ;External reference ^YSCL(603.01 supported by DBIA 2697
- ;External reference ^PS(55 supported by DBIA 2228
- ;External reference ^PSDRUG( supported by DBIA 221
- ;External reference ^PS(50.606 supported by DBIA 2174
- ;External reference ^PS(50.7 supported by DBIA 2223
+PSOORNW2 ;ISC-BHAM/SAB - edit orders from oerr ;29-May-2012 15:00;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**10,23,37,46,117,131,133,1005,1008,148,222,269,206,1015**;DEC 1997;Build 62
+ ;Reference to ^YSCL(603.01 supported by DBIA 2697
+ ;Reference to ^PS(55 supported by DBIA 2228
+ ;Reference to ^PSDRUG( supported by DBIA 221
+ ;Reference to ^PS(50.606 supported by DBIA 2174
+ ;Reference to ^PS(50.7 supported by DBIA 2223
+ ;Reference to $$GETNDC^PSSNDCUT supported by IA 4707
  ; Modified - IHS/CIA/PLS - 01/26/04 - Lines DREN+12
  ;            IHS/MSC/PLS - 03/23/09 - Line 3+3
 1 I $G(PSODRUG("OI")) M:$G(PSOBDRG) PSOBDR=PSODRUG W !!,"Current Orderable Item: "_$P(^PS(50.7,PSODRUG("OI"),0),"^")_" "_$P(^PS(50.606,$P(^(0),"^",2),0),"^")
  S DIC("B")=$S($G(PSODRUG("OIN"))]"":PSODRUG("OIN"),1:""),DIC="^PS(50.7,",DIC(0)="AEMQZ"
  S DIC("S")="I '$P(^PS(50.7,+Y,0),""^"",4)!($P(^(0),""^"",4)'<DT) N PSOF,PSOL S (PSOF,PSOL)=0 F  S PSOL=$O(^PSDRUG(""ASP"",+Y,PSOL)) Q:PSOF!'PSOL  "
- S DIC("S")=DIC("S")_"I $P($G(^PSDRUG(PSOL,2)),U,3)[""O"",'$G(^(""I""))!($G(^(""I""))'<DT) S PSOF=1" D ^DIC K DIC I X["^"!($D(DTOUT)) S OUT=1 Q
+ S DIC("S")=DIC("S")_"I $P($G(^PSDRUG(PSOL,2)),U,3)[""O"",'$G(^(""I""))!($G(^(""I""))'<DT) S PSOF=1"
+ ;BHW;PSO*7*269;Modify ^DIC call to call MIX^DIC to use only the B and C Cross-References.
+ S D="B^C" D MIX^DIC1 K DIC,D I X["^"!($D(DTOUT)) S OUT=1 Q
  S PSOY=Y
  I +Y'=OI D  I 'Y!($D(DIRUT)) D KV,MP1^PSOOREDX K DIC,Y,PSOY S OUT=1 Q
  .D KV S DIR(0)="Y",DIR("B")="NO",DIR("A",1)="",DIR("A")="This edit will create a new order.  Do you want to continue" D ^DIR
@@ -36,8 +39,8 @@ INS S PSONEW("FLD")=114 D INS^PSODIR(.PSONEW) ; Pat Inst
  .S PSOMAX=$S($G(PSOCS):5,1:15),PSOMAX=$S(PSOMAX>+$P(^PS(53,RXPT,0),"^",4):+$P(^PS(53,RXPT,0),"^",4),1:PSOMAX)
  .S PSONEW("# OF REFILLS")=$S(PSONEW("# OF REFILLS")>PSOMAX:PSOMAX,1:PSONEW("# OF REFILLS"))
  I $G(PSOMAX) S PSONEW("# OF REFILLS")=$S(+$P(OR0,"^",11)>PSOMAX:PSOMAX,1:+$P(OR0,"^",11))
- I $G(PSODRUG("DEA"))["A"&($G(PSODRUG("DEA"))'["B")!($G(PSODRUG("DEA"))["F") D
- .S PSONEW("# OF REFILLS")=0,VALMSG="No refills allowed on "_$S(PSODRUG("DEA")["F":"this drug.",1:"Narcotics ...")
+ I $G(PSODRUG("DEA"))["A"&($G(PSODRUG("DEA"))'["B")!($G(PSODRUG("DEA"))["F")!($G(PSODRUG("DEA"))[1)!($G(PSODRUG("DEA"))[2) D
+ .S PSONEW("# OF REFILLS")=0,VALMSG="No refills allowed on "_$S(PSODRUG("DEA")["A":"this narcotic drug.",1:"this drug.")
  Q
  ;
 12 S PSONEW("FLD")=4 D PROV^PSODIR(.PSONEW) ; Get Provider
@@ -58,14 +61,14 @@ INS S PSONEW("FLD")=114 D INS^PSODIR(.PSONEW) ; Pat Inst
 9 ;
  I '$G(PSONEW("PATIENT STATUS")) W !!,"Rx Patient Status required!",! D 3 I '$G(PSONEW("PATIENT STATUS")) S VALMSG="Rx Patient Status required!",VALMBCK="R" Q
  I +$G(^PS(55,PSODFN,"PS")) S RXPT=+^("PS") I $G(^PS(53,RXPT,0))]"" D  G ASK
- .S PSOMAX=$S($G(CLOZPAT)=1:1,$G(CLOZPAT)=0:0,1:+$P(^PS(53,RXPT,0),"^",4)) K RXPT
+ .S PSOMAX=$S($G(CLOZPAT)=2:3,$G(CLOZPAT)=1:1,$G(CLOZPAT)=0:0,1:+$P(^PS(53,RXPT,0),"^",4)) K RXPT
  .S:'$G(PSONEW("# OF REFILLS")) PSONEW("# OF REFILLS")=$S(+$P(OR0,"^",11)>PSOMAX:PSOMAX,1:+$P(OR0,"^",11))
  .S (PSONEW("N# REF"),PSONEW("# OF REFILLS"))=$S(PSONEW("# OF REFILLS")>PSOMAX:PSOMAX,1:PSONEW("# OF REFILLS"))
- .I '$D(CLOZPAT) I $G(PSODRUG("DEA"))["A"&($G(PSODRUG("DEA"))'["B")!($G(PSODRUG("DEA"))["F") D  Q
- ..S (PSOMAX,PSONEW("N# REF"),PSONEW("# OF REFILLS"))=0,VALMSG="No refills allowed on "_$S(PSODRUG("DEA")["F":"this drug.",1:"Narcotics ...")
+ .I '$D(CLOZPAT) I $G(PSODRUG("DEA"))["A"&($G(PSODRUG("DEA"))'["B")!($G(PSODRUG("DEA"))["F")!($G(PSODRUG("DEA"))[1)!($G(PSODRUG("DEA"))[2) D  Q
+ ..S (PSOMAX,PSONEW("N# REF"),PSONEW("# OF REFILLS"))=0,VALMSG="No refills allowed on "_$S(PSODRUG("DEA")["A":"this narcotic drug.",1:"this drug.")
  .I $D(PSODRUG("DEA")) F DEA=1:1 Q:$E(PSODRUG("DEA"),DEA)=""  I $E(+PSODRUG("DEA"),DEA)>1,$E(+PSODRUG("DEA"),DEA)<6 S PSOMAX=5
- I '$D(CLOZPAT) I $G(PSODRUG("DEA"))["A"&($G(PSODRUG("DEA"))'["B")!($G(PSODRUG("DEA"))["F") D  Q
- .S (PSONEW("N# REF"),PSONEW("# OF REFILLS"))=0,VALMSG="No refills allowed on "_$S(PSODRUG("DEA")["F":"this drug.",1:"Narcotics ...")
+ I '$D(CLOZPAT) I $G(PSODRUG("DEA"))["A"&($G(PSODRUG("DEA"))'["B")!($G(PSODRUG("DEA"))["F")!($G(PSODRUG("DEA"))[1)!($G(PSODRUG("DEA"))[2) D  Q
+ .S (PSONEW("N# REF"),PSONEW("# OF REFILLS"))=0,VALMSG="No refills allowed on "_$S(PSODRUG("DEA")["A":"this narcotic drug.",1:"this drug.")
  S (PSONEW("N# REF"),PSOMAX,PSONEW("# OF REFILLS"))=+$P(OR0,"^",11)
 ASK S PSONEW("FLD")=9 D REFILL^PSODIR1(.PSONEW) ; Get # of refills
  K PSOMAX,PSMAX,PSTMAX S PSDAYS=PSONEW("DAYS SUPPLY"),PSRF=PSONEW("# OF REFILLS"),PTST=$P(^PS(53,PSONEW("PATIENT STATUS"),0),"^"),PTDY=$P(^(0),"^",3),PTRF=$P(^(0),"^",4),PSODEA=$G(PSODRUG("DEA")),CS=0 D EDNEW^PSOORNW1
@@ -98,8 +101,9 @@ DREN ;
  S PSODRUG("IEN")=+PSI,PSODRUG("VA CLASS")=$P(PSOY,"^",2),PSODRUG("NAME")=$P(PSOY,"^")
  S PSODRUG("NDF")=$S($G(^PSDRUG(PSI,"ND"))]"":+^("ND")_"A"_$P(^("ND"),"^",3),1:0)
  S PSODRUG("MAXDOSE")=$P(PSOY,"^",4),PSODRUG("DEA")=$P(PSOY,"^",3),PSODRUG("CLN")=$S($D(^PSDRUG(+PSI,"ND")):+$P(^("ND"),"^",6),1:0)
- S PSODRUG("SIG")=$P(PSOY,"^",5),PSODRUG("NDC")=$P($G(^PSDRUG(+PSI,2)),"^",4),PSODRUG("STKLVL")=$G(^PSDRUG(+PSI,660.1))
+ S PSODRUG("SIG")=$P(PSOY,"^",5),PSODRUG("NDC")=$$GETNDC^PSSNDCUT(+PSI,$G(PSOSITE)),PSODRUG("STKLVL")=$G(^PSDRUG(+PSI,660.1))
  ; IHS/CIA/PLS - 01/25/04 - Calculate NDC, AWP and COST
+ S PSODRUG("DAW")=+$$GET1^DIQ(50,+PSI,81)
  S PSONEW("NDC")=$G(PSODRUG("NDC"))
  S:('$D(PSONEW("AWP")))&('$G(PSONEW("DFLG")))&('$G(PSONEW("QFLG"))) PSONEW("AWP")=$$AWP^APSQDAWP($S($D(PSONEW("NDC")):PSONEW("NDC"),1:PSODRUG("NDC")),PSODRUG("IEN"),.TALK)
  S:('$D(PSONEW("COST")))&('$G(PSONEW("DFLG")))&('$G(PSONEW("QFLG"))) PSONEW("COST")=$$COST^APSQDAWP($S($D(PSONEW("NDC")):PSONEW("NDC"),1:PSODRUG("NDC")),PSODRUG("IEN"),.TALK)

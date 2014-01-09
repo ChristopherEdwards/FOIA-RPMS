@@ -1,5 +1,5 @@
 BQITASK4 ;VNGT/HS/ALA-MU Task ; 23 Feb 2011  8:28 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
  ;
 MU ; EP -- BQI UPDATE MEAN USE 1 YEAR
@@ -107,8 +107,10 @@ STORP(NODE) ; EP - Store Provider data
  . F  S ID=$O(@GLOBAL@(PROV,ID)) Q:ID=""  D
  .. S IIEN=$O(^APCMMUM("B",ID,"")) I IIEN="" Q
  .. I $P(^APCMMUM(IIEN,0),"^",6)'="R" Q
- .. S CDEN=$P(@GLOBAL@(PROV,ID,"CURR"),"^",1),CNUM=$P(@GLOBAL@(PROV,ID,"CURR"),"^",2),CEXC=$P(@GLOBAL@(PROV,ID,"CURR"),"^",3),CADH=$P(@GLOBAL@(PROV,ID,"CURR"),"^",4)
- .. S PDEN=$P(@GLOBAL@(PROV,ID,"PREV"),"^",1),PNUM=$P(@GLOBAL@(PROV,ID,"PREV"),"^",2),PEXC=$P(@GLOBAL@(PROV,ID,"PREV"),"^",3)
+ .. S CDEN=$P($G(@GLOBAL@(PROV,ID,"CURR")),"^",1),CNUM=$P($G(@GLOBAL@(PROV,ID,"CURR")),"^",2)
+ .. S CEXC=$P($G(@GLOBAL@(PROV,ID,"CURR")),"^",3),CADH=$P($G(@GLOBAL@(PROV,ID,"CURR")),"^",4)
+ .. S PDEN=$P($G(@GLOBAL@(PROV,ID,"PREV")),"^",1),PNUM=$P($G(@GLOBAL@(PROV,ID,"PREV")),"^",2)
+ .. S PEXC=$P($G(@GLOBAL@(PROV,ID,"PREV")),"^",3)
  .. ;
  .. S ^BQIPROV(PROV,NODE,IIEN,0)=ID_"^"_CDEN_"^"_CNUM_"^"_PDEN_"^"_PNUM
  .. I CEXC'="" S ^BQIPROV(PROV,NODE,IIEN,1)=CEXC
@@ -128,8 +130,10 @@ STORF(NODE) ;Store data for facility/hospital
  . F  S ID=$O(@GLOBAL@(FAC,ID)) Q:ID=""  D
  .. S IIEN=$O(^APCMMUM("B",ID,"")) I IIEN="" Q
  .. I $P(^APCMMUM(IIEN,0),"^",6)'="R" Q
- .. S CDEN=$P(@GLOBAL@(FAC,ID,"CURR"),"^",1),CNUM=$P(@GLOBAL@(FAC,ID,"CURR"),"^",2),CEXC=$P(@GLOBAL@(FAC,ID,"CURR"),"^",3),CADH=$P(@GLOBAL@(FAC,ID,"CURR"),"^",4)
- .. S PDEN=$P(@GLOBAL@(FAC,ID,"PREV"),"^",1),PNUM=$P(@GLOBAL@(FAC,ID,"PREV"),"^",2),PEXC=$P(@GLOBAL@(FAC,ID,"PREV"),"^",3)
+ .. S CDEN=$P($G(@GLOBAL@(FAC,ID,"CURR")),"^",1),CNUM=$P($G(@GLOBAL@(FAC,ID,"CURR")),"^",2)
+ .. S CEXC=$P($G(@GLOBAL@(FAC,ID,"CURR")),"^",3),CADH=$P($G(@GLOBAL@(FAC,ID,"CURR")),"^",4)
+ .. S PDEN=$P($G(@GLOBAL@(FAC,ID,"PREV")),"^",1),PNUM=$P($G(@GLOBAL@(FAC,ID,"PREV")),"^",2)
+ .. S PEXC=$P($G(@GLOBAL@(FAC,ID,"PREV")),"^",3)
  .. S ^BQIFAC(FAC,NODE,IIEN,0)=ID_"^"_CDEN_"^"_CNUM_"^"_PDEN_"^"_PNUM
  .. I CEXC'="" S ^BQIFAC(FAC,NODE,IIEN,1)=CEXC
  .. I PEXC'="" S ^BQIFAC(FAC,NODE,IIEN,2)=PEXC

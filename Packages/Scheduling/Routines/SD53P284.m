@@ -1,5 +1,5 @@
 SD53P284 ; ALB/MRY - ENVIRONMENT CHECK & POST INSTALL; 2/11/03 12:49pm
- ;;5.3;Scheduling;**284**;AUG 13, 1993
+ ;;5.3;Scheduling;**284,1015**;AUG 13, 1993;Build 21
  ;;
 EN ;
  S XPDABORT=""

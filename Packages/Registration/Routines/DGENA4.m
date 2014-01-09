@@ -1,5 +1,5 @@
 DGENA4 ;ISA/KWP - Enrollment API - Retrieve data; 05/11/99
- ;;5.3;Registration;**232**;Aug 13, 1993
+ ;;5.3;Registration;**232,1015**;Aug 13, 1993;Build 21
  ;Phase II API's
 CATEGORY(DFN,STATUS)   ;
  ;Description: Returns ENROLLMENT CATEGORY from the patient's current

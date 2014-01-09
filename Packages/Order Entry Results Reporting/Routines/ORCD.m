@@ -1,15 +1,23 @@
-ORCD ; SLC/MKB - Order Dialog utilities ;05-Nov-2007 12:40;DKM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,38,68,94,161,141,1003**;Dec 17, 1997
+ORCD ; SLC/MKB - Order Dialog utilities ;23-Nov-2011 11:44;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,38,68,94,161,141,1003,195,215,243,1010**;Dec 17,1997;Build 47
+ ;Per VHA Directive 2004-038, this routine should not be modified.
+ ;Modified - IHS/MSC/PLS - 5/14/2010 - Lines EXT+5
 INPT() ; -- Return 1 or 0, if patient/order sheet = inpatient
- N Y S Y=+$G(ORWARD) I $G(OREVENT) D
- . N X,X0 S X=$$EVT^OREVNTX(+OREVENT),X0=$G(^ORD(100.5,+X,0)),Y=1
- . I $P(X0,U,2)="D",$P(X0,U,7)'=41 S Y=0 Q  ;From ASIH=Inpt
- . I $P(X0,U,2)="T",$P(X0,U,7),$P(X0,U,7)<4 S Y=0 ;pass
+ N Y S Y=$S($G(ORWARD):1,$G(^DPT(+ORVP,.105)):1,1:0)
+ I $G(OREVENT) D  ;override if delayed order
+ . N X,X0 S X=$$EVT^OREVNTX(+OREVENT),X0=$G(^ORD(100.5,+X,0))
+ . I $P(X0,U,12) S X0=$G(^ORD(100.5,$P(X0,U,12),0)) ;use parent
+ . S X=$P(X0,U,2) Q:X="M"  Q:X="O"  ;M/O keep current inpt status
+ . S Y=$S(X="A":1,X="T":1,1:0)
+ . I X="D",$P(X0,U,7)=41 S Y=1 ;From ASIH = Inpt
+ . I X="T",$P(X0,U,7),$P(X0,U,7)<4 S Y=0 ;pass = Outpt
  Q Y
  ;
 EXT(P,I,F) ; -- Returns external value of ORDIALOG(Prompt,Instance)
  N TYPE,PARAM,FNUM,IENS,X,Y,J,Z
- S TYPE=$E(ORDIALOG(P,0)),PARAM=$P(ORDIALOG(P,0),U,2),X=ORDIALOG(P,I)
+ S TYPE=$E($G(ORDIALOG(P,0))),PARAM=$P($G(ORDIALOG(P,0)),U,2)
+ S X=$G(ORDIALOG(P,I)) I X="" Q ""
+ I TYPE="N",X<1 S X=0_+X I X="00" S X=0
  N MAXLEN S MAXLEN=$S($E($G(F))="%":+$E(F,2,99),1:0)  ;IHS/MSC/DKM
  I "FNW"[TYPE Q $S('MAXLEN:X,$L(X)>MAXLEN:$E(X,1,MAXLEN)_"...",1:X) ;IHS/MSC/DKM
  ;I "FNW"[TYPE Q X
@@ -39,7 +47,7 @@ FTDATE(X,F) ; -- Returns free text form of date (i.e. TODAY)
 FTD1 E  D
  . N OFFSET,NUM,UNIT
  . S OFFSET=$P(D,P,2),NUM=+OFFSET,UNIT=$E($P(OFFSET,NUM,2)) ; +/-#D
- . I $E(D)="T",NUM=1 S Y=$S(P="+":"TOMORROW",1:"YESTERDAY") Q
+ . I $E(D)="T",NUM=1,UNIT=""!(UNIT="D") S Y=$S(P="+":"TOMORROW",1:"YESTERDAY") Q
  . S Y=NUM_" "_$S(UNIT="'":"MINUTE",UNIT="H":"HOUR",UNIT="W":"WEEK",UNIT="M":"MONTH",1:"DAY")
  . S:NUM>1 Y=Y_"S" ; plural
  . S:$E(D)="N" Y=Y_" "_$S(P="+":"FROM NOW",1:"AGO")
@@ -62,9 +70,9 @@ FTDCOMP(X1,X2,OPER) ; -- Compares free text dates from prompts X1 & X2
  ;
 TIME(X) ; -- Returns 00:00 PM formatted time
  N Y,Z,%DT
+ I X?1U,"BNE"[X Q $S(X="B":"BREAKFAST",X="N":"NOON",X="E":"EVENING",1:"")
  I "NOON"[X Q X
  I "MIDNIGHT"[X Q "MIDNIGHT"
- I X?1U,"BNE"[X Q $S(X="B":"BREAKFAST",X="N":"NOON",X="E":"EVENING",1:"")
  S X="T@"_X,%DT="TX" D ^%DT I Y'>0 Q ""
  S Z=$$FMTE^XLFDT(Y,"2P"),Z=$P(Z," ",2)_$$UP^XLFSTR($P(Z," ",3))
  Q Z
@@ -146,7 +154,7 @@ GETORDER(ROOT,ARRAY) ; -- retrieve order values from RESPONSES in ARRAY()
  Q
  ;
 RESTXT ; -- resolve objects in text [from GETORDER+8]
- I $G(ORTYPE)="Z" M ^TMP("ORX",$J)=@ROOT@(ORI,2) S ORTXT=$NA(^TMP("ORX",$J)) Q  ;return text unresolved
+ I $$BROKER^XWBLIB!($G(ORTYPE)="Z") M ^TMP("ORX",$J)=@ROOT@(ORI,2) S ORTXT=$NA(^TMP("ORX",$J)) Q  ;return text unresolved
  N ARRAY,PTR,INST
  D BLRPLT^TIUSRVD(.ORTXT,,+$G(ORVP),,$NA(@ROOT@(ORI,2)))
  Q

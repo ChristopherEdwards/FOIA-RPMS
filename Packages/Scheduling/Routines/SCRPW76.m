@@ -1,5 +1,5 @@
 SCRPW76 ;BP-OIFO/KEITH,ESW - Clinic appointment availability extract (cont.) ; 5/28/03 4:02pm
- ;;5.3;Scheduling;**223,291**;AUG 13, 1993
+ ;;5.3;Scheduling;**223,291,1015**;AUG 13, 1993;Build 21
  ;
 HINI ;Initialize header variables
  N %,%H,%I,X,X1,X2

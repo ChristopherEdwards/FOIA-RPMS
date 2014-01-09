@@ -1,5 +1,5 @@
-SDWLRP1 ;;IOFO BAY PINES/TEH - WAITING LIST - RPC;06/28/2002 ; 26 Aug 2002  1:25 PM
- ;;5.3;scheduling;**263,273**;AUG 13 1993
+SDWLRP1 ;;IOFO BAY PINES/TEH - WAITING LIST - RPC;06/28/2002 ; 26 Aug 2002  1:25 PM  ; Compiled April 16, 2007 10:15:05
+ ;;5.3;scheduling;**263,273,485,497,446,1015**;AUG 13 1993;Build 21
  ;
  ;
  ;******************************************************************
@@ -7,7 +7,8 @@ SDWLRP1 ;;IOFO BAY PINES/TEH - WAITING LIST - RPC;06/28/2002 ; 26 Aug 2002  1:25
  ;                                               
  ;   DATE                        PATCH                   DESCRIPTION
  ;   ----                        -----                   -----------
- ;       2/21/03                                   SD*5.3*273                    Line new+12 added "/"
+ ;   2/21/03                     SD*5.3*273              Line new+12 added "/"
+ ;   5/10/06                     SD*5.3*446              New field: INTRA-transfer
 OUTPUT(SDWLOUT,SDWLDFN) ;-FULL
  ; input:
  ;   DFN = Patient
@@ -18,7 +19,6 @@ OUTPUT(SDWLOUT,SDWLDFN) ;-FULL
  ;   for i=1:number of records returned: 
  ;
  ;         Field  Location               Description
- ;
  ;               1               2                       ORIGINATION DATE
  ;               2               3                       INSTITUTION
  ;               3               4                       CLINIC
@@ -38,8 +38,7 @@ OUTPUT(SDWLOUT,SDWLDFN) ;-FULL
  ;               25              18                      COMMENTS
  ;               27              20                      NEW ENROLLE
  ;
- ;
- N DIERR
+ N DIERR,SDWLDAX
  I '$D(^SDWL(409.3,"B",SDWLDFN)) S SDWLRES=-1 Q  ;- No Entry in Wait List file.
  S SDWLDA="" F  S SDWLDA=$O(^SDWL(409.3,"B",SDWLDFN,SDWLDA)) Q:SDWLDA<1  D
  .S SDWLDAX="`"_SDWLDA
@@ -52,11 +51,10 @@ OUTPUT1(SDWLOUT,SDWLDFN) ;
  ; input:
  ;   DFN = Patient
  ;     Lookup uses Wait List data file (409.3) and returns the following data.
- ;     
+ ;
  ; output:
  ;   SWDLRES = On/Not on Wait list^Number of IENs^IEN;IEN;IEN;IEN.....
  ;            1     0            ^      2       ^1;2
- ;     
  ;
  S SDWLCNT=0,SDWLIEN=""
  I '$D(^SDWL(409.3,"B",SDWLDFN)) S SDWLRES=$NA(^TMP("SDWLRP1",$J)),^TMP("SDWLRP1",$J,1)=-1
@@ -68,7 +66,6 @@ OUTPUT1(SDWLOUT,SDWLDFN) ;
  K SDWLDFN,SDWLDA,SDWLCNT,SDWLIEN
  Q
 OUTPUT3(SDWLOUT,SDWLDFN) ;Disposition Data
- ; 
  ;  input:
  ;    DFN = Patient Internal ID
  ;    
@@ -84,23 +81,20 @@ OUTPUT3(SDWLOUT,SDWLDFN) ;Disposition Data
  K SDWLOUT S SDWLOUT="^TMP(""DILIST"","_$J_")",SDWLRES=1
  Q
 INPUT(SDWLRES,SDWLSTR) ;
- ;
- ;     
  ; Input:
  ;   SDWLSTR = location of data = ^TMP("SDWLG",$J,i,0)
  ;   (R) = Required Field
  ;   (O) = Optional
  ;   
  ;    .01    2           3                     5                  6                    
- ;  DFN (R)^TYPE (R)^SPECIFIC TEAM (O)^SPECIFIC POSITION (O)^ORGINATING USER (R)
- ;     1     2           3                     4                  5
+ ;  DFN (R)^TYPE (R)^SPECIFIC TEAM (O)^SPECIFIC POSITION (O)^ORGINATING USER (R)^COMMENT (O)^CLINIC (O)^INTRA FLAG (O)^REJ FLAG (O)^MULTI TEAM FLAG (O)
+ ;     1     2           3                     4                  5                6            7           8               9             10
  ;
  ;  Output:
  ;               SDWLRES  =  0      Failed
  ;               SDWLRES  =  1^IEN  Saved to ^SDWL(409.3,IEN,0)            
  ;
- ;
- N DIERR,%H
+ N DIERR,%H,SDWLF,SDWLFLD,SDWLFLG,SDWLI,SDWLIN,SDWLMSG,SDWLRNED,SDWLTP,SDWLVAL,SDWLX,SDWLY,X,Y
  K ^TMP("SDWLIN",$J),^TMP("SDWLOUT",$J),^TMP("DIERR",$J)
  I '$G(SDWLSTR) S SDWLRES="-1^Data String Missing" Q
  D NEW
@@ -108,20 +102,24 @@ INPUT(SDWLRES,SDWLSTR) ;
  ;D VAL I SDWLRES<0 D DEL Q
  D SET I SDWLRES<0 D DEL Q
  D CLEAN^DILF K ^TMP("SDWLIN",$J),^TMP("SDWLOUT",$J)
+ K SDWLDUZ,SDWLDFN,SDWLDA,Y
  Q
 NEW ;Get IEN from ^SDWL(409.3,IEN,0).
- ;
+ N DA,DIC,DIE,DIK,DR,SDREJ,SDINTRA,SDMULTI
  I $P(SDWLSTR,U,4) D
  .S SDWLTP=+$P(SDWLSTR,U,4)
  .S SDWLIN=$P($G(^SCTM(404.51,+$P(^SCTM(404.57,SDWLTP,0),U,2),0)),U,7)
  I $P(SDWLSTR,U,3) D
  .S SDWLIN=$P($G(^SCTM(404.51,+$P(SDWLSTR,U,3),0)),U,7)
  S SDWLDFN=+$P(SDWLSTR,U,1)
+ S SDREJ=$P(SDWLSTR,U,9),SDINTRA=$P(SDWLSTR,U,8),SDMULTI=$P(SDWLSTR,U,10)
+ ;identify INTRA-transfer
+ ;- last team assignment
  S DIC(0)="LX",X=$P(SDWLSTR,U,1),DIC="^SDWL(409.3," D FILE^DICN I Y<0 S SDWLRES="-1^IEN failed" Q
  S SDWLDFN=$P(Y,U,2),SDWLDA=+Y,SDWLDUZ=$P(SDWLSTR,U,9)
  S DIE="^SDWL(409.3,",DA=SDWLDA
  S DR="1///^S X=DT" D ^DIE
- S DR="2////^S X=SDWLIN" D ^DIE
+ S DR="2////^S X=SDWLIN;32////^S X=SDREJ;34////^S X=SDINTRA;38////^S X=SDMULTI" D ^DIE
  S DR="23///^S X=""O""",DIE="^SDWL(409.3," D ^DIE
  ;
  ;DETERMINE ENROLLEE STATUS
@@ -131,21 +129,34 @@ NEW ;Get IEN from ^SDWL(409.3,IEN,0).
  ;SDWLE=3 = PRIOR ENROLLEE
  ;SDWLE=4 = UNDETERMINED
  ;
- S SDWLDE=+$H,SDWLE=1,SDWLEE=0 D SB1
+ S SDWLDE=+$H,SDWLE=0,(SDWLEE,SDWLRNED,SDWLDB)=0 D SB1
  G SB0:SDWLE=2
- S SDWLRNE=$$ENROLL^EASWTAPI(SDWLDFN) S SDWLRNED=$P(SDWLRNE,U,3)
- I SDWLRNED S X=SDWLRNED D H^%DTC S SDWLDS=%H S SDWLDE=+$H,SDWLDET=SDWLDE-SDWLDS I SDWLDET<366 S SDWLE=1
+ S SDWLRNE=$$ENROLL^EASWTAPI(SDWLDFN) G SB0:$P(SDWLRNE,U,4)="A" S SDWLRNED=$P(SDWLRNE,U,3)
+ I SDWLRNED S X=SDWLRNED D H^%DTC S SDWLDS=%H S SDWLDE=+$H,SDWLDET=SDWLDE-SDWLDS,SDWLDB=2 I SDWLDET<366 S SDWLE=1
  I $D(SDWLDET),SDWLDET>365 S SDWLE=3
  I 'SDWLRNE S SDWLE=4
-SB0 S SDWLRNE=$S(SDWLE=1:"N",SDWLE=2:"E",SDWLE=3:"P",SDWLE=4:"U")
+SB0 I $D(SDWLRNE),$P(SDWLRNE,U,4)="A" D
+ .I 'SDWLRNE,SDWLEE>730!(SDWLEE=730) S SDWLE=4 Q
+ .I 'SDWLEE S SDWLE=4 Q
+ S SDWLRNE=$S(SDWLE=1:"N",SDWLE=2:"E",SDWLE=3:"P",SDWLE=4:"U",1:"U")
  ;-Code here for filling in 409.3
  S DR="27////^S X=SDWLRNE",DIE="^SDWL(409.3,",DA=SDWLDA D ^DIE
  S DR="9////^S X=DUZ" D ^DIE
+ S DR="27.1////^S X=$S($G(SDWLRNED):SDWLRNED,$G(SDWLD):SDWLD,1:"""")" D ^DIE
+ S DR="27.2////^S X=SDWLDB" D ^DIE
+ K SDWLRNE,SDWLD,SDWLDE,SDWLEE,SDWLDET,DIC,DIR,DR,DIE,SDWLDS,SDWLE
  Q
-SB1 I '$D(^DGCN(391.91,"B",SDWLDFN)) S SDWLE=3 Q
+SB1 I '$D(^DGCN(391.91,"B",SDWLDFN)) N SDWLDB S SDWLE=3 Q
  S SDWLX="" F  S SDWLX=$O(^DGCN(391.91,"B",SDWLDFN,SDWLX)) Q:SDWLX=""  D
- .S SDWLY=$G(^DGCN(391.91,SDWLX,0)),SDWLD=$P(^(0),U,3) I SDWLD S X=SDWLD D H^%DTC S SDWLEE=SDWLDE-%H I SDWLEE<730 S SDWLE=2
- .I $D(SDWLEE),SDWLEE>730 S SDWLE=3
+ .S SDWLY=$G(^DGCN(391.91,SDWLX,0)) D
+ ..;CHECK FOR TREATING FACILITY
+ ..I $$TF^XUAF4(+$P(SDWLY,U,2)) D
+ ...;SORT FOR LAST TREATMENT DATE
+ ...S SDWLD=$P(SDWLY,U,3) I SDWLD S SDWLDTF(9999999-SDWLD)=SDWLX
+ I '$D(SDWLDTF) Q
+ S SDWLDTF=$O(SDWLDTF(0)) I SDWLDTF S (SDWLD,X)=9999999-SDWLDTF D H^%DTC S SDWLEE=SDWLDE-%H,SDWLDB=1 I SDWLEE<730 S SDWLE=2
+ I $D(SDWLEE),SDWLEE>730!(SDWLEE=730) S SDWLE=3
+ K SDWLDTF
  Q
 FDA ;Get data from SDWLSTR string and set FDA.
  S SDWLF=409.3
@@ -158,13 +169,11 @@ FDA ;Get data from SDWLSTR string and set FDA.
  .S SDWLRES=1 M SDWLRES("SDWLIN")=^TMP("SDWLIN",$J)
  Q
 VAL ;Validate fields
- ;
  N DIERR
  D VALS^DIE(,"^TMP(""SDWLIN"",$J)","^TMP(""SDWLOUT"",$J)","SDWLMSG")
  I $G(SDWLMSG("DIERR")) S SDWLRES=-1 Q
  M SDWLRES("SDWLOUT")=^TMP("SDWLOUT",$J)
  Q
- ;
 SET ;Input data to file ^SDWL(409.3,IEN,0).
  D UPDATE^DIE(,"^TMP(""SDWLIN"",$J)","SDWLMSG")
  I $G(SDWLMSG("DIERR")) S SDWLRES=-1 Q
@@ -174,8 +183,6 @@ DEL S DA=SDWLDA,DIK="^SDWL(409.3," D ^DIK
  S SDWLRES="-1^Entry "_SDWLDA_" Deleted"
  Q
 INPUTDP(SDWLRES,SDWLSTR) ;Set disposition in Wait List Patient file
- ;
- ;
  ;
  ;       Input:
  ;       

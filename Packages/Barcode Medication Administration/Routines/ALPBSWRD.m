@@ -1,5 +1,5 @@
 ALPBSWRD ;OIFO-DALLAS MW,SED,KC - display BCBU records for patients on a selected ward ;01/01/03
- ;;2.0;BAR CODE MED ADMIN;**17**;May 2002
+ ;;3.0;BAR CODE MED ADMIN;**8**;Mar 2004
  ; 
  F  D  Q:$D(DIRUT)
  .W !!,"Inpatient Pharmacy Orders for a selected ward"

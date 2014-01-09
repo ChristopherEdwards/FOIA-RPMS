@@ -1,5 +1,6 @@
-ORCHECK ;SLC/MKB-Order checking calls ;29-Nov-2007 17:31;DKM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,56,70,94,141,1005**;Dec 17, 1997
+ORCHECK ;SLC/MKB-Order checking calls ;23-Nov-2011 11:55;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,56,70,94,141,1005,215,243,1010**;Dec 17, 1997;Build 47
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
 DISPLAY ; -- DISPLAY event [called from ORCDLG,ORCACT4,ORCMED]
  ;    Expects ORVP, ORNMSP, ORTAB, [ORWARD]
  Q:$$GET^XPAR("DIV^SYS^PKG","ORK SYSTEM ENABLE/DISABLE")'="E"
@@ -8,7 +9,7 @@ DISPLAY ; -- DISPLAY event [called from ORCDLG,ORCACT4,ORCMED]
  . I $G(ORDG) S I=$P($G(^ORD(100.98,+ORDG,0)),U,3),I=$P(I," ") Q:'$L(I)  S ORNMSP="PS"_$S(I="UD":"I",1:I) Q
  . I $G(ORXFER) S I=$P($P(^TMP("OR",$J,ORTAB,0),U,3),";",3) S:I="" I=$G(ORWARD) S ORNMSP="PS"_$S(I:"O",1:"I") ;opposite of list
  S ORX(1)="|"_ORNMSP,ORX=1
- D EN^ORKCHK(.ORY,+ORVP,.ORX,"SELECT") Q:'$D(ORY)
+ D EN^ORKCHK(.ORY,+ORVP,.ORX,"DISPLAY") Q:'$D(ORY)
  S I=0 F  S I=$O(ORY(I)) Q:I'>0  W !,$P(ORY(I),U,4) ; display only
  Q
  ;
@@ -52,11 +53,11 @@ SESSION ; -- SESSION event [called from ORCSIGN]
  Q:$$GET^XPAR("DIV^SYS^PKG","ORK SYSTEM ENABLE/DISABLE")'="E"
  N ORX,ORY,ORIFN,I,X,Y
  S ORIFN=0 F  S ORIFN=$O(ORES(ORIFN)) Q:ORIFN'>0  I +$P(ORIFN,";",2)'>1 D
- . I "^10^11^"'[(U_$P($G(^OR(100,+ORIFN,3)),U,3)_U) Q  ;unreleased
+ . I "^5^6^10^11^"'[(U_$P($G(^OR(100,+ORIFN,3)),U,3)_U) Q  ;unreleased
  . D BLD(+ORIFN) Q:'$D(^OR(100,+ORIFN,9))
  . S ORCHECK("IFN")=+$G(ORCHECK("IFN"))+1
  . S I=0 F  S I=$O(^OR(100,+ORIFN,9,I)) Q:I'>0  S X=$G(^(I,0)),Y=$G(^(1)),ORCHECK=+$G(ORCHECK)+1,ORCHECK(+ORIFN,$S($P(X,U,2):$P(X,U,2),1:99),ORCHECK)=$P(X,U,1,2)_U_Y
- I $D(ORX) D EN^ORKCHK(.ORY,+ORVP,.ORX,"SESSION"),RETURN:$D(ORY)
+ I $D(ORX) D EN^ORKCHK(.ORY,+ORVP,.ORX,"SESSION"),RETURN:$D(ORY),REMDUPS
  Q
  ; IHS/MSC/DKM - Added following subroutine
 MANUAL ; -- MANUAL event
@@ -90,6 +91,13 @@ RETURN ; -- Return checks in ORCHECK(ORIFN,CDL,#)
  . S ORCHECK=+$G(ORCHECK)+1,ORCHECK(IFN,CDL,ORCHECK)=$P(ORY(I),U,2,4)
  Q
  ;
+REMDUPS ;
+ N IFN,CDL,I
+ S IFN=0 F  S IFN=$O(ORCHECK(IFN)) Q:'IFN  D
+ . S CDL=0 F  S CDL=$O(ORCHECK(IFN,CDL)) Q:'CDL  D
+ . . S I=0 F  S I=$O(ORCHECK(IFN,CDL,I)) Q:'I  D
+ . . . S J=I F  S J=$O(ORCHECK(IFN,CDL,J)) Q:'J  I $G(ORCHECK(IFN,CDL,I))=$G(ORCHECK(IFN,CDL,J)) K ORCHECK(IFN,CDL,J) S ORCHECK=$G(ORCHECK)-1
+ Q
 START(DA) ; -- Returns start date/time
  N I,X,Y,%DT S Y=""
  I $G(DA) S X=$O(^OR(100,DA,4.5,"ID","START",0)),X=$G(^OR(100,DA,4.5,+X,1))
@@ -107,7 +115,7 @@ DRUG(OI,PTR,IFN) ; -- Returns 6 ^-piece identifier for Dispense Drug
  I $G(IFN) S ORDD=$O(^OR(100,IFN,4.5,"ID","DRUG",0)),ORDD=+$G(^OR(100,IFN,4.5,+ORDD,1))
  E  S ORDD=+$G(ORDIALOG($$PTR^ORCD("OR GTX DISPENSE DRUG"),1))
 D1 Q:'ORDD "" S ORNDF=$$ENDCM^PSJORUTL(ORDD)
- S Y=$P(ORNDF,U,3)_"^^99NDF^"_ORDD_U_$P($G(^PSDRUG(ORDD,0)),U)_"^99PSD"
+ S Y=$P(ORNDF,U,3)_"^^99NDF^"_ORDD_U_$$NAME50^ORPEAPI(ORDD)_"^99PSD"
  Q Y
  ;
 IV() ; -- Get Dispense Drug for IV orderable
@@ -145,3 +153,21 @@ REASON() ; -- Reason for overriding order checks
  S DIR("?")="Enter a justification for overriding these order checks, up to 80 characters"
  D ^DIR I $D(DTOUT)!$D(DUOUT) S Y="^"
  Q Y
+OCAPI(IFN,ORPLACE) ;IA #4859
+ ;API to get the order checking info for a specific order (IFN)
+ ;info is stored in ^TMP($J,ORPLACE)
+ ;               ^TMP($J,ORPLACE,D0,"OC LEVEL")="order check level"
+ ;                                                 ,"OC TEXT")="order check text"
+ ;                                                 ,"OR REASON")="over ride reason text"
+ ;                                                 ,"OR PROVIDER")="provider DUZ who entered over ride reason"
+ ;                                                 ,"OR DT")="date/time over ride reason was entered"
+ ; NOTE on OC LEVEL: 1 is HIGH, 2 is MODERATE, 3 is LOW
+ I '$D(^OR(100,IFN,9)) Q
+ N I
+ S I=0 F  S I=$O(^OR(100,IFN,9,I)) Q:'I  D
+ .S ^TMP($J,ORPLACE,I,"OC LEVEL")=$P($G(^OR(100,IFN,9,I,0)),U,2)
+ .S ^TMP($J,ORPLACE,I,"OC TEXT")=$G(^OR(100,IFN,9,I,1))
+ .S ^TMP($J,ORPLACE,I,"OR REASON")=$P($G(^OR(100,IFN,9,I,0)),U,4)
+ .S ^TMP($J,ORPLACE,I,"OR PROVIDER")=$P($G(^OR(100,IFN,9,I,0)),U,5)
+ .S ^TMP($J,ORPLACE,I,"OR DT")=$P($G(^OR(100,IFN,9,I,0)),U,6)
+ Q

@@ -1,4 +1,4 @@
-DGPMX53 ; ;10/29/04
+DGPMX53 ; ;10/15/12
  D DE G BEGIN
 DE S DIE="^DGPM(",DIC=DIE,DP=405,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^DGPM(DA,""))=""
  I $D(^("USR")) S %Z=^("USR") S %=$P(%Z,U,4) S:%]"" DE(1)=%

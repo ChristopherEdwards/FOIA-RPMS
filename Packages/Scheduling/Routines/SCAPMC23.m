@@ -1,5 +1,5 @@
 SCAPMC23 ;ALB/REW - Team API's:TPPT ; JUN 30, 1995
- ;;5.3;Scheduling;**41,148**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,148,1015**;AUG 13, 1993;Build 21
  ;;1.0
 TPPT(DFN,SCDATES,SCPOSA,SCUSRA,SCPURPA,SCROLEA,SCYESCL,SCLIST,SCERR) ; -- positions for a patient 
  ; input:

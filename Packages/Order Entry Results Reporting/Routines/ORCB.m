@@ -1,5 +1,5 @@
 ORCB ;SLC/MKB-Notifications followup for LMgr chart ;4/5/01  21:32
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,36,48,70,108,116**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,36,48,70,108,116,243**;Dec 17, 1997;Build 242
 EN(DFN,ORFLG,DGRP,DEL) ; -- main entry point
  Q:'$G(DFN)  Q:'$G(ORFLG)
  N BEG,END D SLCT1^ORQPT
@@ -57,13 +57,14 @@ SQ D DESELECT^ORCHART(ORNMBR)
  Q
  ;
 UNFLAG ; -- Unflag orders
- N X,ORI,NUM,ORIFN,ORA
- S X=$P(ORY(1),U,3) Q:(X="Unflag")!(X="Detailed Display")
+ N ORX,ORI,NUM,ORIFN,ORA,X
+ S ORX=$P(ORY(1),U,3) Q:(ORX="Unflag")!(ORX="Detailed Display")
  F ORI=1:1:$L(ORNMBR,",") S NUM=$P(ORNMBR,",",ORI) I NUM D
  . S ORIFN=$P(^TMP("OR",$J,"CURRENT","IDX",NUM),U) Q:'ORIFN
  . S ORA=+$P(ORIFN,";",2),ORIFN=+ORIFN Q:'ORA
- . Q:'$D(^OR(100,ORIFN))  Q:(X="Edit")&($P(^(ORIFN,3),U,3)'=12)
- . S $P(^OR(100,ORIFN,8,ORA,3),U)=0 ; Unflag
+ . Q:'$D(^OR(100,ORIFN))  Q:(ORX="Edit")&($P(^(ORIFN,3),U,3)'=12)
+ . S X=+$G(^OR(100,ORIFN,8,ORA,0)),$P(^(3),U)=0,$P(^(3),U,6,8)=X_U_DUZ_"^Unflagged by action" ; Unflag
+ . S X=ORIFN_";"_ORA D MSG^ORCFLAG(X)
  Q
  ;
 EN1(ORIFN,ACTION) ; -- entry point to display single order
@@ -120,7 +121,7 @@ EXIT ; -- exit action
  . Q:'$$GET^XPAR("ALL","ORPF AUTO UNFLAG")
  . N ORI,ORIFN,ORA,XQAKILL,ORN,ORUNF
  . S ORUNF=+$E($$NOW^XLFDT,1,12)_U_DUZ_"^Auto-Unflagged"
- . S ORI=0 F  S ORI=$O(^TMP("OR",$J,"CURRENT","IDX",ORI)) Q:ORI'>0  S ORIFN=$P(^(ORI),U),ORA=+$P(ORIFN,";",2) I ORIFN,$D(^OR(100,+ORIFN,0)) S $P(^(8,ORA,3),U)=0,$P(^(3),U,6,8)=ORUNF ; unflag
+ . S ORI=0 F  S ORI=$O(^TMP("OR",$J,"CURRENT","IDX",ORI)) Q:ORI'>0  S ORIFN=$P(^(ORI),U),ORA=+$P(ORIFN,";",2) I ORIFN,$D(^OR(100,+ORIFN,0)) S $P(^(8,ORA,3),U)=0,$P(^(3),U,6,8)=ORUNF D MSG^ORCFLAG(ORIFN) ; unflag
  . S ORN=+$O(^ORD(100.9,"B","FLAGGED ORDERS",0))
  . S XQAKILL=$$XQAKILL^ORB3F1(ORN) D:$D(XQAID) DELETE^XQALERT
  D EXIT^ORCHART

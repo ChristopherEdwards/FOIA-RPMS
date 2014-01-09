@@ -1,7 +1,9 @@
 BISITE1 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  INIT FOR EDIT SITE PARAMETERS.
+ ;   PATCH 2: Fix display of default Low Supply Alert.  INIT+72
+ ;            Provide call to retrieve Site's Low Alert default.  LOTSDEF
  ;
  ;
  ;----------
@@ -77,7 +79,13 @@ INIT ;EP
  ;
  ;---> Lot Numbers required.
  S X=$S($$LOTREQ^BIUTL2(BISITE):"Required",1:"NOT Required")
- S X=X_", Default Low Supply Alert="_$$LOTLOW^BIUTL2(BISITE)
+ ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> Fix display of default Low Supply Alert.
+ ;S X=X_", Default Low Supply Alert="_$$LOTLOW^BIUTL2(BISITE)
+ S X=X_", Default Low Supply Alert="_$$LOTSDEF(BISITE)
+ ;**********
+ ;
  S X="  10) Lot Number Options...........: "_X
  D WRITE(.BILINE,X)
  K X
@@ -182,3 +190,16 @@ WRITE(BILINE,BIVAL,BIBLNK) ;EP
  Q:'$D(BILINE)
  D WL^BIW(.BILINE,"BISITE",$G(BIVAL),$G(BIBLNK))
  Q
+ ;
+ ;
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;----------
+LOTSDEF(BIDUZ2) ;EP
+ ;---> Return Site's Default Low Alert for Lot Numbers.
+ ;---> Parameters:
+ ;     1 - BIDUZ2 (req) User's DUZ(2)
+ ;
+ Q:'$D(^BISITE(+$G(BIDUZ2),0)) 50
+ Q:($P($G(^BISITE(+$G(BIDUZ2),0)),U,25)="") 50
+ Q $P($G(^BISITE(+$G(BIDUZ2),0)),U,25)
+ ;**********

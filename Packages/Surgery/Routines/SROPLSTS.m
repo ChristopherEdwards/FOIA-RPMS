@@ -1,5 +1,5 @@
-SROPLSTS ;B'HAM ISC/MAM - LIST OF OPERATIONS BY SERVICE ; [ 09/22/98  11:42 AM ]
- ;;3.0; Surgery ;**38,53,50**;24 Jun 93
+SROPLSTS ;B'HAM ISC/MAM - LIST OF OPERATIONS BY SERVICE ;09/30/04
+ ;;3.0; Surgery ;**38,53,50,134**;24 Jun 93
 S1 Q:SRQ  S C=0,SRTS=$P(^SRO(137.45,K,0),"^") I SRUL W ! F LINE=1:1:IOM W "-"
  W !,?1,"*",SRTS,"*" S SRUL=1 Q
 SET ; set variables
@@ -25,7 +25,7 @@ HDR ; print heading
  S PAGE=PAGE+1
  Q
 ASK I $E(IOST,1)'="P" W !!,"Press RETURN to continue or '^' to quit.  " R X:DTIME I '$T!(X="^") S SRQ=1 Q
- D HDR Q:SRQ  W !!,?1,"*",SRTS,"*" Q
+ D HDR Q:SRQ  W:$D(SRTS) !!,?1,"*",SRTS,"*" Q
 END W:$E(IOST)="P" @IOF I $D(ZTQUEUED) Q:$G(ZTSTOP)  S ZTREQ="@" Q
  I 'SRQ,($E(IOST)'="P") W !!,"Press RETURN to continue  " R X:DTIME
  D ^SRSKILL K SRTN D ^%ZISC W @IOF

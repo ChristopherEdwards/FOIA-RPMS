@@ -1,5 +1,5 @@
 SCAPMC8 ;;bp/cmf - List of Practitioners for a Position ; 7/12/99 10:03am
- ;;5.3;Scheduling;**41,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,177,1015**;AUG 13, 1993;Build 21
  ;;1.0
  ;
 PRTP(SCTP,SCDATES,SCLIST,SCERR,SCPRCPTR,SCALLHIS) ;-- list of practitioners for position  (bp/cmf 177-->SCPRCPTR,SCALLHIS param added)

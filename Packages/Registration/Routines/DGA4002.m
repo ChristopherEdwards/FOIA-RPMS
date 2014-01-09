@@ -1,5 +1,5 @@
 DGA4002 ;ALB/MRL - CHECK PROGRESS OF JOB ;01 JAN 1988@2300
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;S DGE=0,IOP=$S($D(ION):ION,1:IO) D ^%ZIS K IOP S DGRUN=$S($D(^DG(43,1,"AMIS")):^("AMIS"),1:0) I DGRUN=0 W:DGWR !,"AMIS 401-420 options have never been used!",*7 G PARQ
  S DGE=0 S DGRUN=$S($D(^DG(43,1,"AMIS")):^("AMIS"),1:0) I DGRUN=0 W:DGWR !,"AMIS 401-420 options have never been used!",*7 G PARQ
  S DGRUN=$S($D(^DG(43,1,"AMIS")):^("AMIS"),1:0) I DGRUN=0 W:DGWR !,"AMIS 401-420 options have never been used!",*7 G PARQ

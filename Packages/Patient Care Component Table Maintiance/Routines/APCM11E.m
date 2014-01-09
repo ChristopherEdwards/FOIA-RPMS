@@ -1,9 +1,9 @@
-APCM11E ;IHS/CMI/LAB - IHS MU;
- ;;2.0;IHS PCC SUITE;**6**;MAY 14, 2009;Build 11
+APCM11E ; IHS/CMI/LAB - IHS MU ;
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1**;MAR 26, 2012
  ;
  ;
  W:$D(IOF) @IOF
- ;W !!,$$CTR("IHS 2011 Stage 1 Meaningful Use Performance Report for EPs",80),!
+ ;W !!,$$CTR("IHS 2011 Stage 1 Meaningful Use Performance Measure Report for EPs",80),!
  D XIT
 INTRO ;
  S APCMRPTT=1  ;CONTROL VARIABLE FOR EP REPORT
@@ -32,32 +32,30 @@ RT ;
  S APCMSUM=Y
 TP ;
  S APCMRPTP=""
- W !!,"Report may be run for a 90-day or a one year period.  " ;The 90-day period"
- ;W !,"may be automatically defined or user may select a specific start date."
- ;W !!,"The automated reprt will return the first 90-day peiod in the calendar"
- ;W !,"year in which all meaningful use objectives have been met.  If all"
- ;W !,"objectives have not been met, the report will return results on the highest"
- ;W !,"average 90-day performance period within the calendar year.",!
- S DIR(0)="S^A:January 1 - December 31;B:User Defined 90-Day Report",DIR("A")="Select Report Period" KILL DA D ^DIR KILL DIR
+ W !!,"Report may be run for a 90-day, a one year period or a user defined period." ;The 90-day period"
+ S DIR(0)="S^A:January 1 - December 31;B:User Defined 90-Day Report;C:User Defined Date Range",DIR("A")="Select Report Period" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G RT
  S APCMRPTP=Y
  D @APCMRPTP
  I APCMBD="" G TP
- I APCMRPTP="C" D  I $G(APCMQUIT) G TP
- .S APCMQUIT=""
- .W !!,$$CTR("*** IMPORTANT NOTICE ***")
- .W !,"This report may take several hours to run and could potentially slow"
- .W !,"your system performance.  Please queue this report to run after normal"
- .W !,"working hours.",!
- .S DIR(0)="Y",DIR("A")="Do you wish to continue to report",DIR("B")="Y" KILL DA D ^DIR KILL DIR
- .I $D(DIRUT) S APCMQUIT=1 Q
- .I 'Y S APCMQUIT=1 Q
+ I APCMED="" G TP
+ S X=$O(^APCMMUM("B","S1.002.EP",0))
+ S APCMQ=""
+ I $D(APCMIND(X)),($P($G(^APCCCTRL(DUZ(2),"MU")),U,1)=""!($P($G(^APCCCTRL(DUZ(2),"MU")),U,1)'<APCMBD)) D  G:APCMQ XIT
+ .S APCMQ=""
+ .W !!,"You have chosen to run the Drug Interaction Checks Measure."
+ .W !,"Warning: Your MU Clean Date for this measure is either blank"
+ .W !,"or set to a date that is after the beginning date of the report"
+ .W !,"period.  Therefore, you will not meet this measure."
+ .S DIR(0)="Y",DIR("A")="Do you wish to continue to run this report",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .I 'Y S APCMQ=1 Q
 PP ;
  S APCMWPP=""
  I APCMRPTP="A" W !!,"Historical data from the previous calendar year can be included in this report."
  I APCMRPTP="B" W !!,"Historical data from the 90-days immediately preceding the currently",!,"selected report period can be included."
  W !,"IMPORTANT NOTICE: Including previous period data may significantly increase ",!,"run time.",!
- S DIR(0)="Y",DIR("A")="Do you wish to include the previous period",DIR("B")="Y"	KILL DA D ^DIR KILL DIR
+ S DIR(0)="Y",DIR("A")="Do you wish to include the previous period",DIR("B")="Y" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G TP
  S APCMWPP=Y
 PRV ;
@@ -228,18 +226,20 @@ B ;
  S APCMBD=Y,APCMED=$$FMADD^XLFDT(APCMBD,89)
  S APCMPED=$$FMADD^XLFDT(APCMBD,-1),APCMPBD=$$FMADD^XLFDT(APCMPED,-89)
  Q
-C ;
+C ;EP
  S (APCMPER,APCMVDT,APCMBD,APCMED)=""
- W !!,"Enter the Calendar Year for which report is to be run.  Use a 4 digit",!,"year, e.g. 2011.  This is the year that will be used to find an ",!,"automated 90-Day time period.",!!
- S DIR(0)="D^::EP"
- S DIR("A")="Enter Year"
- S DIR("?")="This report is compiled for a period.  Enter a valid year."
- D ^DIR KILL DIR
- I $D(DIRUT) Q
- I $D(DUOUT) S DIRUT=1 Q
- S APCMVDT=Y
- I $E(Y,4,7)'="0000" W !!,"Please enter a year only!",! G C
- S APCMPER=APCMVDT
- S APCMBD=$E(APCMPER,1,3)_"0101",APCMED=$$FMADD^XLFDT(APCMBD,89)
- S APCMPBD=($E(APCMPER,1,3)-1)_"0101",APCMPED=$$FMADD^XLFDT(APCMPBD,89)
+ K DIR W ! S DIR(0)="DO^::EXP",DIR("A")="Enter Beginning Date"
+ D ^DIR G:Y<1 CXIT
+ I Y>DT W !!,"Future dates not allowed." G C
+ S APCMBD=Y
+ K DIR S DIR(0)="DO^:DT:EXP",DIR("A")="Enter Ending Date"
+ D ^DIR G:Y<1 C  S APCMED=Y
+ ;
+ I APCMED<APCMBD D  G C
+ . W !!,$C(7),"Sorry, Ending Date MUST not be earlier than Beginning Date."
+ S APCMSD=$$FMADD^XLFDT(APCMBD,-1)_".9999"
+ S APCMPBD=($E(APCMBD,1,3)-1)_$E(APCMBD,4,7),APCMPED=($E(APCMED,1,3)-1)_$E(APCMED,4,7)
+ Q
+CXIT ;
+ K DIR
  Q

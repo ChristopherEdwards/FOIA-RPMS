@@ -1,5 +1,5 @@
-VAFHAPV1 ;ALB/RJS - INPATIENT PV1 SEGMENT ; 22 Jan 2002 10:29 AM
- ;;5.3;Registration;**91,209,190,298,494**;Aug 13, 1993
+VAFHAPV1 ;ALB/RJS - INPATIENT PV1 SEGMENT ; 1/11/10 1:43pm
+ ;;5.3;PIMS;**91,209,190,298,494,621,1015,1016**;JUN 30, 2012;Build 20
  ;
  ;The DGBUILD entry point is call used internally by MAS software
  ;to build a PV1 Segment for deleted Admissions. The DGPMP
@@ -39,6 +39,10 @@ EN(DFN,VAFHDT,VAFSTR,IEN,ALTVISID,SETID,VAFDIAG) ;
  ;
  N VAFCOMP,RESULT,VAROOT,VA200
  N CURRENT
+ ;Make sure the VAFSTR string is correctly formatted (",#,#,...,#,") DG*823
+ I $E(VAFSTR,1)'="," S VAFSTR=","_VAFSTR
+ I $E(VAFSTR,$L(VAFSTR))'="," S VAFSTR=VAFSTR_","
+ ;
  D KVAR^VADPT
  S VAFCOMP=$E(HLECH,1)
  S VAROOT="CURRENT",VAIP("D")=VAFHDT,VA200=1
@@ -70,6 +74,7 @@ BUILD() ;Build the PV1 Segment
  . ;
  . ;--Ward, Room, Bed
  . ;
+ . ;Format all If statements to be the same (I VAFSTR[",#,") DG*823
  . I VAFSTR[",3," D
  . . N WARD,ROOM,BED
  . . S WARD=$$HLQ^VAFHUTL($P(CURRENT(5),"^",2))
@@ -82,7 +87,10 @@ BUILD() ;Build the PV1 Segment
  . I VAFSTR[",7," D
  . . N ATTNDPTR,ATTNDING
  . . S ATTNDPTR=$P(CURRENT(18),"^",1)
- . . S:ATTNDPTR'="" ATTNDING=$$HLNAME^HLFNC($P(CURRENT(18),"^",2))
+ . . ;S:ATTNDPTR'="" ATTNDING=$$HLNAME^HLFNC($P(CURRENT(18),"^",2))
+ . . I $G(ATTNDPTR)'="" D
+ . . . N DGNAME S DGNAME("FILE")=200,DGNAME("IENS")=ATTNDPTR,DGNAME("FIELD")=.01
+ . . . S ATTNDING=$$HLNAME^XLFNAME(.DGNAME,"S",$E($G(HLECH)))
  . . S $P(RESULT,HLFS,8)=$$HLQ^VAFHUTL($G(ATTNDPTR))_VAFCOMP_$$HLQ^VAFHUTL($G(ATTNDING))
  . ;
  . ;--Treating Specialty
@@ -94,7 +102,7 @@ BUILD() ;Build the PV1 Segment
  . . S $P(RESULT,HLFS,11)=$$HLQ^VAFHUTL($G(SPECALTY))
  . ;
  . ;--Previous Patient Location
- . I VAFSTR["6" D
+ . I VAFSTR[",6," D
  . . N WARD,ROOM,BED,ROOMPTR,ROOMBED,MOVEMENT
  . . S WARD=$$HLQ^VAFHUTL($P(CURRENT(15,4),"^",2))
  . . S MOVEMENT=$G(CURRENT(15))
@@ -108,7 +116,7 @@ BUILD() ;Build the PV1 Segment
  . . S $P(RESULT,HLFS,7)=$$HLQ^VAFHUTL($G(WARD))_VAFCOMP_$$HLQ^VAFHUTL($G(ROOM))_VAFCOMP_$$HLQ^VAFHUTL($G(BED))
  . ;
  . ;-- Patient Type
- . I VAFSTR["18" D
+ . I VAFSTR[",18," D
  . .I +$G(^DPT(DFN,"TYPE")) DO
  . . .S $P(RESULT,HLFS,19)=$P($G(^DG(391,+^("TYPE"),0)),"^",1)
  . .E  S $P(RESULT,HLFS,19)=HLQ
@@ -144,14 +152,14 @@ BUILD() ;Build the PV1 Segment
  . ;
  . ;--Admission Date
  . ;
- . I (VAFSTR["44") D
+ . I (VAFSTR[",44,") D
  . . I ($P(CURRENT(13,1),"^",1)'="") S $P(RESULT,HLFS,45)=$$HLDATE^HLFNC($P(CURRENT(13,1),"^",1),"TS")
  . . E  S $P(RESULT,HLFS,45)=HLQ
  . ;
  . ;
  . ;--Discharge Date
  . ;
- . I (VAFSTR["45") D
+ . I (VAFSTR[",45,") D
  . . I ($P(CURRENT(17,1),"^",1)'="") S $P(RESULT,HLFS,46)=$$HLDATE^HLFNC($P(CURRENT(17,1),"^",1),"TS")
  . . E  S $P(RESULT,HLFS,46)=HLQ
  ;
@@ -173,6 +181,9 @@ DGBUILD(DGPMP,VAFSTR) ;
  ;
  N WARD,BED,ROOM,ATTNDPTR,ATTNDING,SPECPTR,SPECALTY,TRANSACT
  N ADMPTR,ADMSSN,VAFCOMP,RESULT
+ ;Check to have string follow correct format (",#,#,...,#,") DG*823
+ I $E(VAFSTR,1)'="," S VAFSTR=","_VAFSTR
+ I $E(VAFSTR,$L(VAFSTR))'="," S VAFSTR=VAFSTR_","
  S RESULT="PV1"_HLFS_1_HLFS_"I" ;Inpatient
  I $G(DGPMP)="" Q RESULT
  S TRANSACT=$P(DGPMP,"^",2),VAFCOMP=$E(HLECH,1)
@@ -181,6 +192,7 @@ DGBUILD(DGPMP,VAFSTR) ;
  ;
  ;--Ward, Room, Bed
  ;
+ ;Make sure all IF statements carry same logic (I VAFSTR[",#,") DG*823
  I VAFSTR[",3," D
  . N WARD,ROOM,BED
  . ;
@@ -222,7 +234,7 @@ DGBUILD(DGPMP,VAFSTR) ;
  . S $P(RESULT,HLFS,11)=$$HLQ^VAFHUTL($G(SPECALTY))
  ;
  ;-- Patient Type
- I VAFSTR["18" D
+ I VAFSTR[",18," D
  . I +$G(^DPT(DFN,"TYPE")) DO
  . .  S $P(RESULT,HLFS,19)=$P($G(^DG(391,+^("TYPE"),0)),"^",1)
  . E  S $P(RESULT,HLFS,19)=HLQ
@@ -261,7 +273,7 @@ DGBUILD(DGPMP,VAFSTR) ;
  ;
  ;--Admission Date
  ;
- I (VAFSTR["44") D
+ I (VAFSTR[",44,") D
  . I $P(DGPMP,"^",1)="" S $P(RESULT,HLFS,45)=HLQ
  . E  S $P(RESULT,HLFS,45)=$$HLDATE^HLFNC($P(DGPMP,"^",1),"TS")
  ;

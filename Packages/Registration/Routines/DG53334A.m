@@ -1,5 +1,5 @@
 DG53334A ;ALB/MRY - ALS EXTRACT; ; 11/16/00 1:15pm
- ;;5.3;Registration;**334**;Aug 13, 1993
+ ;;5.3;Registration;**334,1015**;Aug 13, 1993;Build 21
  ;
  ;Description:
  ;Patient data will be extracted from the Patient file (#2) for all 

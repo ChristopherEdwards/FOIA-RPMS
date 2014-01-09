@@ -1,5 +1,5 @@
 DG505P ;BIR/PTD-PATCH DG*5.3*505 PRE/POST INSTALLATION ROUTINE ;4/7/03
- ;;5.3;Registration;**505**;Aug 13, 1993
+ ;;5.3;Registration;**505,1015**;Aug 13, 1993;Build 21
  ;
  ;Reference to ^DD supported by IA #4078
  ;

@@ -1,5 +1,5 @@
 ORB3FUP2 ; slc/CLA - Routine to support notification follow-up actions ;6/28/00  12:00
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**31,64,88,112**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**31,64,88,112,243**;Dec 17, 1997;Build 242
 RESULT ;STAT, orderer-flagged and site-flagged result follow-up
  ;determine what pkg to get report/results from then do RPTLAB or RPTRAD
  N ORBFILL S ORBFILL=$P($P(XQADATA,"|",2),"@",2)
@@ -143,6 +143,16 @@ RPTCON ;consult result follow-up
  .;I XQADATA["GMRC" S NXQADATA=$P($P(XQADATA,"|",2),"@") D EN^GMRCALRT(NXQADATA,XQAID)
  .;I +$G(NXQADATA)<1 D EN^GMRCALRT(XQADATA,XQAID)
  .;D DEL^ORB3FUP1(.ORY,ORBXQAID) ;Dwight does the delete in GMRC
+ Q
+RPTAP ; AP lab result follow-up
+ K XQAKILL
+ N ORPT,ORBXQAID,ORY S ORBXQAID=XQAID
+ S ORPT=$P($P(ORBXQAID,";"),",",2)  ;get pt dfn from xqaid
+ N ORACCNUM,ORDTSTKN S ORACCNUM=$P(XQADATA,U,2),ORDTSTKN=$P(XQADATA,U,3)
+ I $G(ORENVIR)'="GUI" D
+ .D MSG^ORB3FUP1
+ .D EN1^ORCXPND(ORPT,ORACCNUM_"-"_ORDTSTKN,"LABS")
+ .D DEL^ORB3FUP1(.ORY,ORBXQAID)
  Q
 RPTLAB ;lab result follow-up
  K XQAKILL

@@ -1,5 +1,5 @@
 SCMCHLA ;ALB/KCL - PCMM HL7 Transmission Log File API'S ;25-JAN-2000
- ;;5.3;Scheduling;**210,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,272,1015**;AUG 13, 1993;Build 21
  ;
 LOCK(SCTLIEN) ; Description: Used to lock a record in the PCMM HL7
  ; TANSMISSION LOG file.

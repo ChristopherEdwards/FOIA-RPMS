@@ -1,14 +1,15 @@
-PSOORFI4 ;BIR/SAB-CPRS order checks and display con't ;28-Sep-2011 16:54;PLS
- ;;7.0;OUTPATIENT PHARMACY;**46,74,78,99,117,131,1013**;DEC 1997;Build 33
+PSOORFI4 ;BIR/SAB-CPRS order checks and display con't ;07-Dec-2012 08:59;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**46,74,78,99,117,131,1013,207,258,274,300,308,1015**;DEC 1997;Build 62
  ;External reference to ^PS(51.2 supported by DBIA 2226
  ;External reference to ^PS(50.607 supported by DBIA 2221
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to ^PS(50.7 is supported by DBIA 2223
- ;External reference to $$PDA^PPPPDA1 is supported by DBIA 1374
  ;
  ; Modified - IHS/CIA/PLS - 02/13/04 - Line PROVCOM+6 and new EXPPRC API
+ ;            IHS/MSC/PLS - 05/10/10 - Moved PROVCOM+6 change to PROVCOM+19
  ;            IHS/MSC/PLS - 09/21/11 - Line OBX+2
  ;                        - 09/28/11 - Line PROVCOM+2
+ ;                        - 12/07/12 - Line REF+8
 ORCHK D ORCHK^PSOORNE6
  Q
 INST ;displays patient instructions
@@ -33,18 +34,44 @@ PROVCOM ;
  ;I $O(PRC(0)),'$G(PSOPRC) D  D KV^PSOVER1
  N APSPSARY M APSPSARY=PSONEW("SIG")
  I $O(PRC(0)),'$G(PSOPRC),'$$SRCHARY^APSPFUNC(.APSPSARY,.PRC) D  D KV^PSOVER1
+ .D EN^DDIOL("Provider Comments: ","","!")
+ .F I=0:0 S I=$O(PRC(I)) Q:'I  D EN^DDIOL(PRC(I),"","!")
  .D KV^PSOVER1 S DIR(0)="Y",DIR("A")="Copy Provider Comments into the Patient Instructions",DIR("B")="No"
  .D ^DIR Q:'Y!($D(DIRUT))
+ .;Check Provider Comments.  If any line contains more than 32
+ .;characters with no spaces, display error message and quit.
+ .;*308
+ .I $$CHKCOM(.PRC) D  Q
+ ..N X,Y,DIR,DIRUT,DUOUT,MSG
+ ..S MSG(1)="*** Provider Comments CANNOT be copied ***"
+ ..S MSG(1,"F")="!,$C(7)"
+ ..S MSG(2)="They contain a word longer than 32 characters, which is not allowed in"
+ ..S MSG(3)="the Patient Instructions.  You need to enter this manually."
+ ..D EN^DDIOL(.MSG)
+ ..S DIR(0)="E",DIR("A")="Press Return to continue" D ^DIR
  .S PSOPRC=1,NI=0 F I=0:0 S I=$O(PSONEW("SIG",I)) Q:'I  S NI=I
  .D EXPPRC(.PRC)  ; IHS/CIA/PLS - 02/13/04 - Fix to expand provider comments
  .S NC=0 F I=0:0 S I=$O(PRC(I)) Q:'I  S NC=NC+1
  .I NI'>1,NC=1,($L($G(PSONEW("SIG",NI)))+$L(PRC(1)))'>250 D  Q
- ..S PSONEW("SIG",1)=$G(PSONEW("SIG",NI))_" "_PRC(1)
+ ..S X=PRC(1) D SIGONE^PSOHELP
+ ..S PSONEW("SIG",1)=$G(PSONEW("SIG",NI))_INS1 K INS1,X
  ..S:$E(PSONEW("SIG",1))=" " PSONEW("SIG",1)=$E(PSONEW("SIG",1),2,250) S PSONEW("INS")=PSONEW("SIG",1) D EN^PSOFSIG(.PSONEW,1) K NI,NC
- .F I=0:0 S I=$O(PRC(I)) Q:'I  S NI=NI+1,(PSONEW("SIG",NI),PSONEW("INS",NI))=PRC(I)
+ .F I=0:0 S I=$O(PRC(I)) Q:'I  S NI=NI+1,(PSONEW("INS",NI),X)=PRC(I) D SIGONE^PSOHELP S PSONEW("SIG",NI)=INS1 K INS1
  .I $E(PSONEW("SIG",1))=" " S PSONEW("SIG",1)=$E(PSONEW("SIG",1),2,250)
- .D EN^PSOFSIG(.PSONEW,1) K NI,NC
+ .D EN^PSOFSIG(.PSONEW,1) K NI,NC,X
  Q
+CHKCOM(PRC) ;Check provider comments array PRC. If any comment line is longer than 32 characters with no spaces, return 1
+ ;*308
+ ;INPUT:  PRC( = Provider Comments array
+ ;OUTPUT: PSOERR  = O - OK
+ ;                = 1 - Error (Comments > 32 chars. w/ no spaces)
+ N PSOX,PSOY,PSOZ,PSOERR
+ S PSOERR=0
+ I '$D(PRC) Q PSOERR
+ S PSOX=0
+ F  S PSOX=$O(PRC(PSOX)) Q:PSOX=""!PSOERR  I $L(PRC(PSOX))>32 D
+ .S PSOZ=$L(PRC(PSOX)," ") F PSOY=1:1:PSOZ I $L($P(PRC(PSOX)," ",PSOY))>32 S PSOERR=1 Q
+ Q PSOERR
 DOSE ;displays dosing info for pending orders.  called from psoorfi1
  K II,UNITS S DS=1
  I '$O(^PS(52.41,ORD,1,0)) S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)=" (3)        *Dosage:" G DOSEX
@@ -100,22 +127,43 @@ DO I '$G(PSONEW("DOSE ORDERED",I)),$P($G(^PS(55,PSODFN,"LAN")),"^") S IEN=IEN+1,
  I $G(PSONEW("CONJUNCTION",I))]"" S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="       *Conjunction: "_$S(PSONEW("CONJUNCTION",I)="T":"THEN",PSONEW("CONJUNCTION",I)="X":"EXCEPT",1:"AND")
  Q
 OBX ;formats obx section
+ N COM,II
  D:$G(PKI1) L1^PSOPKIV1
- N ORDID  ;IHS/MSC/PLS - 09/21/2011
- S ORDID=$P(^PS(52.41,ORD,0),U) ;IHS/MSC/PLS - 09/21/2011
  I $O(^PS(52.41,ORD,"OBX",0)) S (T,IEN)=0,IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="Order Checks:" F  S T=$O(^PS(52.41,ORD,"OBX",T)) Q:'T  D  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)=" "
- .;S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     "_$G(^PS(52.41,ORD,"OBX",T,0))  ;IHS/MSC/PLS - 09/21/2011
- .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     "_$S($$ISADCHK^APSPFUNC(ORDID,T):IOBON,1:"")_$G(^PS(52.41,ORD,"OBX",T,0))_IOBOFF  ;IHS/MSC/PLS - 09/21/2011
+ .S COM=$G(^PS(52.41,ORD,"OBX",T,0))
+ .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     " F II=1:1:$L(COM," ") D
+ ..I $L(^TMP("PSOPO",$J,IEN,0)_" "_$P(COM," ",II))>80 S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     "
+ ..S ^TMP("PSOPO",$J,IEN,0)=^TMP("PSOPO",$J,IEN,0)_" "_$P(COM," ",II)
  .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     Overriding Provider: "_$G(^PS(52.41,ORD,"OBX",T,1))
  .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="     Overriding Reason:"
  .F T1=0:0 S T1=$O(^PS(52.41,ORD,"OBX",T,2,T1)) Q:'T1  D
  ..S MIG=^PS(52.41,ORD,"OBX",T,2,T1,0)
  ..F SG=1:1:$L(MIG," ") S:$L(^TMP("PSOPO",$J,IEN,0)_" "_$P(MIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOPO",$J,IEN,0)," ",23)=" " S ^TMP("PSOPO",$J,IEN,0)=$G(^TMP("PSOPO",$J,IEN,0))_" "_$P(MIG," ",SG)
  Q
-PP S PSODFN=PAT D NOW^%DTC S TM=$E(%,1,12),TM1=$P(TM,".",2),X="PPPPDA1"
- X ^%ZOSF("TEST") S:$T X=$$PDA^PPPPDA1(PSODFN)
+PP S PSODFN=PAT D NOW^%DTC S TM=$E(%,1,12),TM1=$P(TM,".",2)
  Q
 SPL K PSOFIN S POERR("QFLG")=0 S PSONOLCK=1,PSOPTLOK=PAT
+ Q
+CLQTY ;
+ K PSONEW("QTY")
+ D QTY^PSOSIG(.PSONEW)
+ S:'$G(PSONEW("QTY")) PSONEW("QTY")=0
+ Q
+PQTY ;
+ S ^TMP("PSOPO",$J,IEN,0)=^TMP("PSOPO",$J,IEN,0)_", days supply of "_+$P(OR0,"^",22)_" and a qty of "_+$P(OR0,"^",10)
+ Q
+REF Q:$G(PSODRUG("DEA"))']""
+ S CS=0 F DEA=1:1 Q:$E(PSODRUG("DEA"),DEA)=""  I $E(+PSODRUG("DEA"),DEA)>1,$E(+PSODRUG("DEA"),DEA)<6 S CS=1
+ S PTRF=PSONEW("# OF REFILLS"),PSDAYS=PSONEW("DAYS SUPPLY")
+ I CS D
+ .S PSOX1=$S(PTRF>5:5,1:PTRF),PSOX=$S(PSOX1=5:5,1:PSOX1)
+ .S PSOX=$S('PSOX:0,PSDAYS=90:1,1:PSOX),PSDY1=$S(PSDAYS<60:5,PSDAYS'<60&(PSDAYS'>89):2,PSDAYS=90:1,1:0)
+ E  D
+ .S PSOX1=PTRF,PSOX=$S(PSOX1=11:11,1:PSOX1),PSOX=$S('PSOX:0,PSDAYS=90:3,1:PSOX)
+ .;IHS/MSC/PLS - 12/07/2012
+ .;S PSDY1=$S(PSDAYS<60:11,PSDAYS'<60&(PSDAYS'>89):5,PSDAYS=90:3,1:0)
+ .S PSDY1=$S(PSDAYS<60:15,PSDAYS<90:5,PSDAYS=90:3,PSDAYS<168:2,PSDAYS<365:1,1:0)
+ S PSONEW("# OF REFILLS")=$S(PSONEW("# OF REFILLS")>PSDY1:PSDY1,1:PSONEW("# OF REFILLS"))
  Q
  ; IHS/CIA/PLS - 02/13/04
  ; Passes text in array through SIG expander

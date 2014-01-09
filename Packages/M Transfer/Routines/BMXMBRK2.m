@@ -1,5 +1,5 @@
 BMXMBRK2 ;IHS/OIT/HMW - BMXNet MONITOR ;
- ;;4.0;BMX;;JUN 28, 2010
+ ;;4.0;BMX;**3**;JUN 28, 2010;Build 2
  ;
  ;
 CAPI(BMXY,TAG,NAM,PAR) ;EP - make API call
@@ -9,6 +9,9 @@ CAPI(BMXY,TAG,NAM,PAR) ;EP - make API call
  S R=$S(PAR'=+PAR&(PAR=""):TAG_"^"_NAM_"(.BMXY)",1:TAG_"^"_NAM_"(.BMXY,"_PAR_")")
  U IO
  D @R
+ ;
+ ;Log Security Audit Entry
+ N X,STS S X="BUSARPC",STS="" X ^%ZOSF("TEST") S:$T STS=$$BMX^BUSARPC(.BMXZ) K X,STS
  U $P
  Q
  ;

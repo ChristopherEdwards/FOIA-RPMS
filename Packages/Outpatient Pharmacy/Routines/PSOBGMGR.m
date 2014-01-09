@@ -1,5 +1,8 @@
-PSOBGMGR ;BHAM ISC/LC - BINGO BOARD MANAGER ; 4/3/93
- ;;7.0;OUTPATIENT PHARMACY;**12**;DEC 1997
+PSOBGMGR ;BHAM ISC/LC - BINGO BOARD MANAGER ;2/15/06 1:03pm
+ ;;7.0;OUTPATIENT PHARMACY;**12,232,268**;DEC 1997;Build 9
+ ;
+ ;PSO*232 add check for bad ATIC xref and cleanup
+ ;
 CODE D:'$D(PSOPAR) ^PSOLSET G:'$D(PSOPAR) END
  S:$P($G(^PS(59,PSOSITE,1)),"^",20)'="" DGP=$P($G(^PS(59,PSOSITE,1)),"^",20)
  G ERASE:$G(FLAG)=3,STOPIT:$G(FLAG)=2,DISP:$G(FLAG)=1
@@ -44,6 +47,8 @@ TICKET G:$G(^PS(59.3,ADA,"STOP")) END H:ZV 20
  S DX=1,DY=1 S:$G(DWT) DY=3 X IOXY W TOP,FTX S DY=DY+1 X IOXY W BOT,FTX,!
  S ZH=$S($G(COLM):1,1:15),ZV=4 S:$G(DWT) ZV=6
  S TICK="" F  S TICK=$O(^PS(52.11,"ATIC",ADA,TICK)) Q:'TICK!($G(^PS(59.3,ADA,"STOP")))  D
+ .;check for Bad records and kill orphaned xrefs             PSO*232
+ .I $$ATICCHK(ADA,TICK) Q
  .I ZV>20 D
  ..H 20 W @IOF I $G(DWT) S DX=1,DY=1 X IOXY W TOP,TTX,!?1,BOT,TTX,!
  ..S DX=1,DY=1 S:$G(DWT) DY=3 X IOXY W TOP,FTX S DY=DY+1 X IOXY W BOT,FTX,! S ZV=4,ZH=$S($G(COLM):1,1:15) S:$G(DWT) ZV=6
@@ -66,12 +71,33 @@ PRG K DIR S DIR(0)="YO",DIR("A")="Purge this display's data now",DIR("B")="N" D 
 STOPEX K ADA,AS,CNT,CNT1,DA,DIK,DIRUT,FLAG,STOP,Y Q
 DISP W !! K DIC,DA,DR
  S (DIC,DIE,DLAYGO)=59.3,DIC(0)="AELQMZ" D ^DIC K DIC G:+Y'>0 DISPEX S (ADA,DA)=+Y I $G(^PS(59.3,ADA,"STOP"))=0 W !!,$C(7),"This display group has been started.",!,"It must be stopped before you can edit it." G DISPEX
- W !! S DR="[PSO DISPLAY EDIT]",DIE("NO^")="BACKOUTOK" L +^PS(59.3,DA):0 G:'$T DISPEX1
+ W !! S DR="[PSO DISPLAY EDIT]",DIE("NO^")="BACKOUTOK" L +^PS(59.3,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) G:'$T DISPEX1
  D ^DIE G:'$D(DA) DISP L -^PS(59.3,DA) G:'$D(^PS(59.3,DA,2,0)) DISP G:$G(DIRUT) DISPEX1
  ;
  I '$D(Y),$P($G(^PS(59.3,DA,0)),"^",4),$P($G(^PS(59.3,DA,3)),"^") K DIR S DIR(0)="Y",DIR("A")="Do you want to initialize auto-start now",DIR("B")="NO" D ^DIR K DIR G:$D(DIRUT) DISPEX1 S EDT=Y
  I $G(EDT) D STRTM^PSOBGMG2 G:'$G(EDT) DISPEX1 D INIJ^PSOBGMG2
 DISPEX1 K EDT,DIE,DIR,DR Q
+ ;
+ATICCHK(DV,TK) ;check ATIC xref if points to non-existent recs, then cleanup
+ ; Return 0 - if no cleanup
+ ;        1 - if had to cleanup
+ ;       
+ Q:($G(DV)="")!($G(TK)="") 0
+ N QT,P52 S P52=$O(^PS(52.11,"ATIC",DV,TK,"")),QT=0
+ ;if record pointed to is no longer on file (probably deleted),
+ ;then insure no orphanned xrefs
+ I '$D(^PS(52.11,P52)) D  S QT=1
+ . K ^PS(52.11,"ATIC",DV,TK,P52)
+ . K ^PS(52.11,"ANAMK",P52)
+ . K ^PS(52.11,"ANAM",DV,TK,P52)
+ . K ^PS(52.11,"C",TK,P52)
+ . K ^PS(52.11,"AD",DV,P52)
+ . N PA,PAI
+ . S PA="" F  S PA=$O(^PS(52.11,"ANAM",DV,PA)) Q:PA=""  D
+ . . S PAI="" F  S PAI=$O(^PS(52.11,"ANAM",DV,PA,PAI)) Q:PAI=""  D
+ . . . I PAI=P52 K ^PS(52.11,"ANAM",DV,PA,PAI)
+ Q QT
+ ;
 TEXT ;display text about setting up dedicated device
  W !!,"In order to automatically start and stop the bingo board monitor,"
  W !,"a dedicated device must be setup by your IRM Service.",!!

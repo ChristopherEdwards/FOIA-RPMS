@@ -1,4 +1,4 @@
-DGXTS1 ; ;10/29/04
+DGXTS1 ; ;10/15/12
  D DE G BEGIN
 DE S DIE="^DG(40.8,D0,""TS"",",DIC=DIE,DP=40.806,DL=2,DIEL=1,DU="" K DG,DE,DB Q:$O(^DG(40.8,D0,"TS",DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,3) S:%]"" DE(2)=% S %=$P(%Z,U,4) S:%]"" DE(3)=%
@@ -50,7 +50,7 @@ NKEY W:'$D(ZTQUEUED) "??  Required key field" S X="?BAD" G QS
 KEYCHK() Q:$G(DE(DW,"KEY"))="" 1 Q @DE(DW,"KEY")
 BEGIN S DNM="DGXTS1",DQ=1
 1 S D=0 K DE(1) ;10
- S DIFLD=10,DGO="^DGXTS2",DC="37^40.807D^C^",DV="40.807MRDX",DW="0;1",DOW="CENSUS DATE",DLB="Select "_DOW S:D DC=DC_D
+ S DIFLD=10,DGO="^DGXTS2",DC="37^40.807D^C^",DV="40.807MRDX",DW="0;1",DOW="CENSUS DATE",DLB=$P($$EZBLD^DIALOG(8042,DOW),":") S:D DC=DC_D
  G RE:D I $D(DSC(40.807))#2,$P(DSC(40.807),"I $D(^UTILITY(",1)="" X DSC(40.807) S D=$O(^(0)) S:D="" D=-1 G M1
  S D=$S($D(^DG(40.8,D0,"TS",DA,"C",0)):$P(^(0),U,3,4),$O(^(0))'="":$O(^(0)),1:-1)
 M1 I D>0 S DC=DC_D I $D(^DG(40.8,D0,"TS",DA,"C",+D,0)) S DE(1)=$P(^(0),U,1)

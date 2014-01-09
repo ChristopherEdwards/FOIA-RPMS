@@ -1,5 +1,5 @@
 SCRPW43 ;RENO/KEITH - Means Test/Eligibility/Enrollment Report ; 24 Aug 99  9:25 PM
- ;;5.3;Scheduling;**144,176,199,258,243**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,176,199,258,243,1015**;AUG 13, 1993;Build 21
  D ASK1^SCRPW41 Q
  ;
 START ;Print report

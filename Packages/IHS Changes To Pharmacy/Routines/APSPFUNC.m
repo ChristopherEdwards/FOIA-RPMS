@@ -1,5 +1,5 @@
-APSPFUNC ;IHS/CIA/PLS - MISC FUNCTIONS ;23-Mar-2012 13:29;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1004,1005,1006,1007,1008,1009,1010,1011,1013**;Sep 23, 2004;Build 33
+APSPFUNC ;IHS/CIA/PLS - MISC FUNCTIONS ;17-Jun-2013 16:24;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1004,1005,1006,1007,1008,1009,1010,1011,1013,1015**;Sep 23, 2004;Build 62
  ;
 HRC(DFN,D) ;EP; -- IHS health record number
  ; Input: IEN to File 200
@@ -95,7 +95,7 @@ CALLPOS(RIEN,RFIEN,ACT,REASON) ; EP - IHS/CIA/PLS - 03/31/04
  S RFIEN=$G(RFIEN)
  S X=$$EN^APSQBRES(RIEN,$G(RFIEN),ACT,$G(REASON))
  I $$GET^XPAR("ALL","APSP LOG ABSP MESSAGES") D
- .S ARY(1)=$G(RIEN)_U_$G(RFIEN)_U_$G(ACT)_U_$G(X)_U_$G(REASON)
+ .S ARY(1)=$G(RIEN)_U_$G(RFIEN)_U_$G(ACT)_U_$G(X)_U_$G(REASON)_U_$H
  .D LOG^APSPPOSH(.ARY)
  Q
  ; Display Future Fill Date Warning if needed.
@@ -367,8 +367,9 @@ REMMSG(DRG) ;EP-
  S DNAME=$$GET1^DIQ(50,DRG,.01)
  S VAIEN=$$GET1^DIQ(50,DRG,22,"I")
  I $L($$GET1^DIQ(50.68,VAIEN,100)) D
- .W !,DNAME_" is an FDA REM medication. Please take appropriate"
- .W !,"action and print a patient medication guide if necessary."
+ .W !,DNAME_" requires an FDA medication guide."
+ .W !,"Please take appropriate action and print a patient medication guide if necessary."
+ .;Q:''$$DIR^APSPUTIL("Y","Continue Processing",,.HLP)
  .D DIRZ^APSPUTIL()
  Q
  ; Prompt for comment on Inpatient orders.
@@ -384,11 +385,12 @@ INPTCOM(COM) ;EP-
  Q COM
  ; Ask for Fill Priority
 APRTY ;EP-
- D CLEAR^VALM1
  N DA,DIR
  S DIR("A")="Fill Priority"
  S DIR("B")=$$GET1^DIQ(9009033,PSOSITE,406)
  S DIR(0)="52,9999999.38" D ^DIR
  S APSPPRIO=$S($L($G(Y(0))):Y,1:"")
- W !
  Q
+ ; Return status of Beyond Use field in 59.5
+BYU(SITE) ;EP-
+ Q +$S('$G(SITE):0,1:$G(^PS(59.5,SITE,9999999)))

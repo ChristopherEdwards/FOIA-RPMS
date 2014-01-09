@@ -1,5 +1,5 @@
 SCMCRPT ;BP/DMR - PCMM Intitution file check
- ;;5.3;Scheduling;**286**;AUG 13,1993
+ ;;5.3;Scheduling;**286,1015**;AUG 13,1993;Build 21
  ;
  S (INST,IEN,TEAM,TEST)=""
  F  S TEAM=$O(^SCTM(404.51,"B",TEAM)) Q:TEAM=""  D

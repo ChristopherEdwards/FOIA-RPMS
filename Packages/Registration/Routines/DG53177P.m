@@ -1,5 +1,5 @@
 DG53177P ;ALB/SEK - VALIDATE ELIGIBILITY CODE FILES ROUTINE; 20 JULY 1998
- ;;5.3;Registration;**177**;Aug 13, 1993
+ ;;5.3;Registration;**177,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will validate entries in the MAS ELIGIBILITY CODE
  ; file (#8.1) and the ELIGIBILITY CODE file (#8).

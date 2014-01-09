@@ -1,5 +1,5 @@
-SDCWL1 ;ALB/MLI - CLINIC WORKLOAD REPORT PRINTOUT ; 27 APRIL 88 [ 01/07/2005  11:15 AM ]
- ;;5.3;Scheduling;**140,1001,1013**;Aug 13, 1993
+SDCWL1 ;ALB/MLI - CLINIC WORKLOAD REPORT PRINTOUT ; 27 APRIL 88
+ ;;5.3;Scheduling;**140,1001,1013,1015**;Aug 13, 1993;Build 21
  G:SDS="C" CLIN
  ;IHS/ITSC/WAR 5/5/2004 PATCH #1001 Alpha/Num SC causing endless loop
  ;F I=2:0 D SCT S I=$O(^TMP($J,"SC",I)) Q:'I!(I=" ")  D ISC S J=0 F J1=0:0 D T:J'="{",AT:J="{" S J=$O(^TMP($J,"SC",I,J)) Q:J=""  D:J="{" ADD I J'="{" F K=-1:0 S K=$O(^TMP($J,"SC",I,J,K)) Q:K=""  I $D(^TMP($J,"SC",1,I)),^(I) D HD1,I,SORT

@@ -1,5 +1,5 @@
 SDACSCG ;ALB/TET - Print/Edit Computer Generated Appt Types ;3/18/92  14:18
- ;;5.3;Scheduling;**16,22,132,202**;Aug 13, 1993
+ ;;5.3;Scheduling;**16,22,132,202,1015**;Aug 13, 1993;Build 21
  ;
  Q
 CK ; -- check the number of computer generated visits

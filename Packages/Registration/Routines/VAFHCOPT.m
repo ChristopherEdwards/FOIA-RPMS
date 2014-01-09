@@ -1,5 +1,5 @@
-VAFHCOPT ;ALB/CM,PKE OUTPATIENT APPT (HL7 MESS) NIGHT JOB ;3/24/95
- ;;5.3;Registration;**91**;Aug 13, 1993
+VAFHCOPT ;ALB/CM/PKE/PHH/EG/GAH OUTPATIENT APPT (HL7 MESS) NIGHT JOB ; 10/18/06
+ ;;5.3;Registration;**91,568,585,725,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will loop through the Hospital Location file "S" node
  ;and generate an A08 message for all appointments for today
@@ -22,19 +22,19 @@ EN ;
  ;
  S ENT=0,GBL="^TMP(""HLS"",$J)" K ^TMP("HLS",$J)
  ;
- ;
+ N DGARRAY,DGCNT
  F  S ENT=$O(^SC(ENT)) Q:(ENT="")!(ENT'?.N)  D
  .S ENT1=START
- .F  S ENT1=$O(^SC(ENT,"S",ENT1)) Q:ENT1=""!(ENT1'?.N1".".N)!(ENT1>STOP)  D
- ..S ENT2=0
- ..F  S ENT2=$O(^SC(ENT,"S",ENT1,1,ENT2)) Q:ENT2=""!(ENT2'?.N)  D
- ...S DFN=$P(^SC(ENT,"S",ENT1,1,ENT2,0),"^")
- ...I (DFN="")!('$D(^DPT(DFN,0)))!('$D(^DPT(DFN,"S",ENT1))) Q
- ...;CHECK STATUS OF APPOINTMENT
- ...S STAT=$$STATUS^SDAM1(DFN,ENT1,ENT,$G(^DPT(DFN,"S",ENT1,0)),"")
- ...I $P(STAT,";",2)="FUTURE"!($P(STAT,";",2)="NO ACTION TAKEN") DO
- ... .S ERR=$$CREATE() I +ERR>0 S VPTR=$P(ERR,"^",6) D GEN
+ .S DGARRAY(1)=START_";"_STOP,DGARRAY("FLDS")="1;3",DGARRAY(2)=ENT
+ .S DGCNT=$$SDAPI^SDAMA301(.DGARRAY)
+ .;
+ .I DGCNT>0 S DFN=0 F  S DFN=$O(^TMP($J,"SDAMA301",ENT,DFN)) Q:DFN=""  D
+ ..Q:'$D(^DPT(DFN,0))
+ ..S ENT1=0 F  S ENT1=$O(^TMP($J,"SDAMA301",ENT,DFN,ENT1)) Q:ENT1=""!(ENT1'?.N1".".N)  D
+ ...S STAT=$P($P(^TMP($J,"SDAMA301",ENT,DFN,ENT1),"^",3),";")
+ ...I STAT="NT" S ERR=$$CREATE() I +ERR>0 S VPTR=$P(ERR,"^",6) D GEN
  ...I +$G(ERR)<0 S @ERRB@(1)=ERR D EBULL^VAFHUTL2("","","",ERRB)
+ .I DGCNT'=0 K ^TMP($J,"SDAMA301")
  D EXIT
  Q
  ;

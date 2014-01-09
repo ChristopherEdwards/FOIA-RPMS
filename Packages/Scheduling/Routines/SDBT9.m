@@ -1,5 +1,5 @@
-SDBT9 ; ;10/29/04
- D DE G BEGIN
+SDBT9 ; ;05/05/06
+ D DE G BEGIN;;;;;;Build 21
 DE S DIE="^SC(D0,""SI"",",DIC=DIE,DP=44.03,DL=2,DIEL=1,DU="" K DG,DE,DB Q:$O(^SC(D0,"SI",DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,1) S:%]"" DE(1)=%
  K %Z Q

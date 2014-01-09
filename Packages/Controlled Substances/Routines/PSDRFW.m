@@ -1,5 +1,5 @@
 PSDRFW ;BIR/JPW,LTL-Nurse RF Dispensing ; 8 Aug 94
- ;;3.0; CONTROLLED SUBSTANCES ;**25,53**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**25,53,60**;13 Feb 97
  ;Reference to $$WITNESS^XUVERIFY are covered by DBIA #1513
  ;Reference to ^PSD(58.8 are covered by DBIA #2711
  ;Reference to ^PSD(58.81 are covered by DBIA #2808
@@ -30,18 +30,27 @@ PATIENT W !!,"Wastage can only be recorded within "
  S DIC("A")="Scan/Enter Patient: "
  W ! D ^DIC K DIC G:Y<1 END S PAT=+Y
 DRUG ;select drug
- N DIR,PSD,PSDA,PSDR,PSDQ
+ N DIR,PSD,PSDA,PSDR,PSDQ,PSDDT
  S DIR(0)="FAO^1:40",DIR("A")="Scan Drug Label or Enter Label # or Drug: "
  W ! D ^DIR K DIR G:$D(DIRUT) END
  I $L(Y)=1,Y'=" " W $C(7),!!,"Please enter more than one character.",! G DRUG
- I $O(^PSD(58.81,"D",Y,0)) D  I '$G(PSDR) W $C(7),!!,"This is not a valid Pharmacy Dispensing number for this ward.",!! G END
+ I $O(^PSD(58.81,"D",Y,0)) D
  .S PSD=0
- .F  S PSD=$O(^PSD(58.81,"D",Y,PSD)) Q:'PSD  S PSD(1)=$G(^PSD(58.81,PSD,0)) I $P(PSD(1),U,11)>3,$P(PSD(1),U,18)=NAOU S PSDR=$P(PSD(1),U,5),PSDPN=$P(PSD(1),U,17),PSDTYP=17 Q
- W:$G(PSDR) !!,$P($G(^PSDRUG(PSDR,0)),U)
+ .F  S PSD=$O(^PSD(58.81,"D",Y,PSD)) Q:'PSD  S PSD(1)=$G(^PSD(58.81,PSD,0)) I $P(PSD(1),U,11)>3,$P(PSD(1),U,18)=NAOU S PSDR=$P(PSD(1),U,5),PSDPN=$P(PSD(1),U,17),PSDTYP=17
+ I $D(PSDR),PSDR'=Y D
+ .I $D(^PSDRUG(Y)),$D(^PSD(58.8,NAOU,1,Y)) D
+ ..S PSDDT=$$FMDIFF^DILIBF(DT,$P(PSD(1),U,4),"")
+ ..I PSDDT>365 S PSDR=Y
+ .I '$D(^PSDRUG(Y)),$D(PSD(1)) D
+ ..S PSDDT=$$FMDIFF^DILIBF(DT,$P(PSD(1),U,4),"")
+ ..I PSDDT>365 K PSDR
+ .I '$D(^PSDRUG(Y)),'$D(^PSD(58.8,NAOU,1,Y)),'$D(PSDR) W $C(7),!!,"This is not a valid Pharmacy Dispensing number for this ward.",!! G END
  D:'$G(PSDR)  G:$D(DTOUT)!($D(DUOUT)) END G:Y<1 PATIENT
  .S DIC="^PSD(58.8,NAOU,1,",DIC(0)="EMQSZ",DA(1)=NAOU
- .W ! D ^DIC K DIC Q:$D(DTOUT)!($D(DUOUT))!(Y<1)
+ .W ! D ^DIC K DIC I $D(DTOUT)!($D(DUOUT))!(Y<1) W $C(7),!!,"This is not a valid Pharmacy Dispensing number for this ward.",!! Q
  .S PSDR=+Y,PSDTYP=17
+ I '$G(PSDR) W $C(7),!!,"This is not a valid Pharmacy Dispensing number for this ward.",!! G END
+ W:$G(PSDR) !!,$P($G(^PSDRUG(PSDR,0)),U)
 BAL S PSDR(1)=$G(^PSD(58.8,NAOU,1,PSDR,0)),OQTY=$P(PSDR(1),U,4)
  ;PSD*3*25 (DAVE B)
  K PSDDAVE D ^PSDRFV I $G(PSDDAVE)=1 K PSDDAVE S PSDOUT=1 G END
@@ -74,8 +83,8 @@ WIT .W ! S NUR2=$$WITNESS^XUVERIFY("WITNESS")
  ;VMP OIFO BAY PINES;VGF;PSD*3.0*53;REMOVED CALL TO WASTE^PSDRFR
  D EDIT^PSDRFX
 END I $G(PSDQ(1)),$G(PSDOUT) S $P(^PSD(58.81,PSDA(1),0),U,6)=PSDQ
- W:$G(PSDOUT) !!,"No wastage recorded.",$C(7),!! K %,%DT,%H,%I,CNT,CNT1,DA,DIC,DIE,DINUM,DIR,DIROUT,DIRUT,DIWF,DIWL,DIWR,DR,DTOUT,DUOUT,LN,MSG,MSG1
- K NAOU,NAOUN,NBKU,NPKG,OK,OKTYP,ORD,PAT,PSDA,PSDEM,PSDOUT,PSDQTY,PSDRD,PSDR,PSDRE,PSDRN,PSDS,PSDT,PSDUZ,PSDUZN,REQD,TEXT,TYPE,WQTY,OQTY,PSDQ,WORD,X,Y
+ W:$G(PSDOUT) !!,"No wastage recorded.",$C(7),!! K %,%DT,%H,%I,CNT,CNT1,DA,DIC,DIE,DINUM,DIR,DIROUT,DIRUT,DIWF,DIWL,DIWR,DR,DTOUT,DUOUT,LN,MSG,MSG1,PSDTYP,NUR2
+ K NAOU,NAOUN,NBKU,NPKG,OK,OKTYP,ORD,PAT,PSDA,PSDEM,PSDOUT,PSDQTY,PSDRD,PSDR,PSDRE,PSDRN,PSDS,PSDT,PSDUZ,PSDUZN,PSDPN,REQD,TEXT,TYPE,WQTY,OQTY,PSDQ,WORD,NUR1,X,Y
  Q
 MSG ;display error message
  W $C(7),!!,?10,"Contact your Pharmacy Coordinator.",!,?10,"This "_$S(MSG=2:"Dispensing Site",MSG=1:"NAOU",1:"Drug")_" is missing "

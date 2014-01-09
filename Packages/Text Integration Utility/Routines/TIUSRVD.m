@@ -1,5 +1,5 @@
-TIUSRVD ; SLC/JER - RPC's for document definition ;01-Aug-2011 12:08;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,22,47,103,100,115,164,112,1009**;Jun 20, 1997;Build 22
+TIUSRVD ; SLC/JER - RPC's for document definition ;04-Jun-2012 16:28;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,22,47,103,100,115,164,112,1009,186,201,1010**;Jun 20, 1997;Build 24
  ;IHS/ITSC/LJF 12/16/2003 CIA/DKM - TIU ignores alternate setting of TIUY
 NOTES(TIUY) ; Get list of PN Titles
  D LIST(.TIUY,3)
@@ -33,7 +33,7 @@ TRAVERSE(TIUY,CLASS,TYPE,TIUK) ; Get all selectable titles for the CLASS
  . D TRAVERSE(.TIUY,+J,TYPE,.TIUK)
  Q
 PERSLIST(TIUY,DUZ,CLASS,TIUC,TIUFLG) ; Get personal list for a user
- N TIUI,TIUDA,TIUDFLT,NOTINLST S NOTINLST=0
+ N TIUI,TIUDA,TIUDFLT,INLST
  S TIUDA=+$O(^TIU(8925.98,"AC",DUZ,CLASS,0))
  Q:+TIUDA'>0
  I +$G(TIUFLG) S TIUC=1,TIUY(TIUC)="~SHORT LIST"
@@ -52,11 +52,10 @@ PERSLIST(TIUY,DUZ,CLASS,TIUC,TIUFLG) ; Get personal list for a user
  S (TIUI,TIUC)=0
  F  S TIUI=$O(TIUY(TIUI)) Q:+TIUI'>0  D
  . S TIUC=TIUI
- . I +TIUDFLT,($P($G(TIUY(TIUI)),U)=("i"_+TIUDFLT)) S $P(TIUDFLT,U,2)=$P(TIUY(TIUI),U,2),NOTINLST=0
- . E  S NOTINLST=1
+ . I +TIUDFLT,($P($G(TIUY(TIUI)),U)=("i"_+TIUDFLT)) S $P(TIUDFLT,U,2)=$P(TIUY(TIUI),U,2),INLST=TIUI
  I +TIUDFLT D
  . ;if default isn't in list, append it as an item
- . I NOTINLST S TIUC=+$G(TIUC)+1,TIUY(TIUC)="i"_TIUDFLT
+ . I '$G(INLST) S TIUC=+$G(TIUC)+1,TIUY(TIUC)="i"_TIUDFLT
  . ;otherwise, just append as default
  . S TIUC=+$G(TIUC)+1,TIUY(TIUC)="d"_TIUDFLT
  Q
@@ -93,6 +92,7 @@ BLRPLT(TIUY,TITLE,DFN,VSTR,ROOT) ; Load/Execute the Boilerplate for TITLE
  . . S TIUL=+$G(TIUFITEM(+TIUI)) D BLRPLT(.TIUY,TIUL,DFN,$G(VSTR))
  Q
 BOIL(LINE,COUNT) ; Execute Boilerplates
+ N TIUNEWG,TIUNEWR,TIUOLDG,TIUOLDR
  N TIUI,DIC,X,Y,TIUFPRIV S TIUFPRIV=1
  S DIC=8925.1,DIC(0)="FMXZ"
  S DIC("S")="I $P($G(^TIU(8925.1,+Y,0)),U,4)=""O"""
@@ -100,21 +100,34 @@ BOIL(LINE,COUNT) ; Execute Boilerplates
  . D ^DIC
  . I +Y'>0 S X="The OBJECT "_X_" was NOT found...Contact IRM."
  . I +Y>0 D
- . . I $D(^TIU(8925.1,+Y,9)),+$$CANXEC(+Y) X ^(9) S:$E(X,1,2)="~@" X=X_"~@" I 1
+ . . I $D(^TIU(8925.1,+Y,9)),+$$CANXEC(+Y) X ^(9) S:X["~@" X=$$APPEND(X) I 1
  . . E  S X="The OBJECT "_X_" is INACTIVE...Contact IRM."
+ . . I X["~@" D
+ . . . I X'["^" D
+ . . . . S TIUOLDR=$P(X,"~@",2),TIUNEWR=TIUOLDR_TIUI
+ . . . . M @TIUNEWR=@TIUOLDR K @TIUOLDR
+ . . . . S $P(X,"~@",2)=TIUNEWR
+ . . . I X["^" D
+ . . . . S TIUOLDG=$P(X,"~@",2),TIUNEWG="^TMP("_"""TIU201"""_","_$J_","_TIUI_")"
+ . . . . M @TIUNEWG=@TIUOLDG K @TIUOLDG
+ . . . . S $P(X,"~@",2)=TIUNEWG
  . S LINE=$$REPLACE(LINE,X,TIUI)
  Q $TR(LINE,"|","")
 CANXEC(TIUODA) ; Evaluate Object Status
  N TIUOST,TIUY S TIUOST=+$P($G(^TIU(8925.1,+TIUODA,0)),U,7)
  S TIUY=$S(TIUOST=11:1,+$G(NOSAVE):1,1:0)
  Q +$G(TIUY)
+APPEND(X) ;
+ N TIUXL S TIUXL=$L(X)
+ I $E(X,TIUXL-1,TIUXL)'="~@" S X=X_"~@"
+ Q X
 REPLACE(LINE,X,TIUI) ; Replace the TIUIth object in LINE w/X
  S $P(LINE,"|",TIUI)=X
  Q LINE
 INSMULT(LINE,TARGET,TIULCNT) ; Mult-valued results
  N TIUPC,TIULGTH
  ; TIU*1*164 ;
- S TIULGTH=80 ; 2 replacements of 73 below for TIULGTH
+ S TIULGTH=73 ; 2 replacements of 73 below for TIULGTH
  S:$$BROKER^XWBLIB TIULGTH=80
  F TIUPC=2:2:$L(LINE,"~@") D
  . N TIUI,TIULINE,TIUX,TIUSRC,TIUSCNT,TIUTAIL

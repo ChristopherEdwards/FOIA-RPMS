@@ -1,5 +1,5 @@
 SD53P224 ;ALB/RPM - Patch SD*5.3*224 Install Utility Routine ; 8/16/00 11:04am
- ;;5.3;Scheduling;**224**;AUG 13, 1993
+ ;;5.3;Scheduling;**224,1015**;AUG 13, 1993;Build 21
  ;
  ;
 ENV ;Main entry point for Environment check point.

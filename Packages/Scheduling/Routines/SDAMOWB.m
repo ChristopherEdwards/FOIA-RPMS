@@ -1,5 +1,5 @@
 SDAMOWB ;ALB/CAW - Waiting Times Build Arrays; 8-NOV-93
- ;;5.3;Scheduling;**12**;Aug 13, 1993
+ ;;5.3;Scheduling;**12,1015**;Aug 13, 1993;Build 21
  ;
 STORE(HOW,DIV,CLIN,STOP,DATE,PAT) ;save data in tmp variable
  ;SDCLIN^SDSTOP^SDDAY^SDDIV^DFN^SDCHKIN^SDCHKOUT^SDWTTIME^SDOTIME^SDTTTIME

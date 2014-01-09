@@ -1,5 +1,5 @@
 ORQOR1 ; slc/CLA - Functions which return order information ;12/15/97 [ 04/02/97  3:01 PM ]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**78,127**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**78,127,242**;Dec 17, 1997;Build 6
 LIST(ORY,PATIENT,GROUP,FLAG,ORSDT,OREDT,ORXREF,GETKID) ;return list of patient orders
  ; return PATIENT's orders for a display GROUP of type FLAG
  ; between start (ORSDT) and end dates (OREDT)
@@ -23,8 +23,9 @@ LIST(ORY,PATIENT,GROUP,FLAG,ORSDT,OREDT,ORXREF,GETKID) ;return list of patient o
 STATI(ORY) ; return stati from ORDER STATUS file [#100.01]
  N STATUS,IEN,I S STATUS="",IEN=0,I=1
  F  S STATUS=$O(^ORD(100.01,"B",STATUS)) Q:STATUS=""  D
- .S IEN=$O(^ORD(100.01,"B",STATUS,IEN)),ORY(I)=IEN_"^"_STATUS
- .S IEN=0,I=I+1
+ .S IEN=$O(^ORD(100.01,"B",STATUS,IEN))
+ .Q:$$SCREEN^XTID(100.01,,IEN_",")  ;inactive VUID
+ .S ORY(I)=IEN_"^"_STATUS,IEN=0,I=I+1
  Q
 DG(DGNAME) ; extrinsic function returns display group ien
  Q:'$L($G(DGNAME)) ""

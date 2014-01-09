@@ -1,11 +1,16 @@
-DGMTDD ;ALB/RMO,CAW,CJM,LBD - Annual Means Test file (#408.31) Data Dictionary Calls ; 8/2/02 3:42pm
- ;;5.3;Registration;**33,182,411,456**;Aug 13, 1993
+DGMTDD ;ALB/RMO,CAW,CJM,LBD,PHH - Annual Means Test file (#408.31) Data Dictionary Calls ; 2/10/2005 9:12am
+ ;;5.3;PIMS;**33,182,411,456,618,1015,1016**;JUN 30, 2012;Build 20
  ;
 CUR ;Cross-reference on the Status field (#.03) 
  ;to update the Current Means Test Status field (#.14)
  ;in the Patient file (#2)
- N DFN,DGCS,DGDT,DGIX,DGMTI,DGMTS
+ N DFN,DGCS,DGDT,DGIX,DGMTI,DGMTS,DGNAM
  S DFN=$P($G(^DGMT(408.31,DA,0)),U,2),DGCS=$P($G(^DPT(DFN,0)),U,14),(DGDT,DGMTS)=""
+ ;
+ S DGNAM=$P($G(^DPT(DFN,0)),"^",1)
+ Q:DGNAM=""
+ Q:'$D(^DPT("B",DGNAM))
+ ;
  S DGMTI=+$$MTIENLT^DGMTU3(1,DFN,"")
  I $D(^DGMT(408.31,DGMTI,0)) S DGMTS=$P(^(0),U,3) G CURQ:DGCS=DGMTS
  I DGCS]"" D

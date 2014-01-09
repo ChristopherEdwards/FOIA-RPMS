@@ -1,5 +1,5 @@
-GMRCGUIB ;SLC/DCM,JFR,MA - GUI actions for consults ;11/15/02 07:31
- ;;3.0;CONSULT/REQUEST TRACKING;**4,12,18,20,17,22,29,30**;DEC 27, 1997
+GMRCGUIB ;SLC/DCM,JFR,MA - GUI actions for consults ;8/19/03 07:31
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,12,18,20,17,22,29,30,35,45,53,55**;DEC 27, 1997;Build 4
  ; This routine invokes IA #2980
  ;
 SETDA() ;set DA of where audit actions are to be filed
@@ -46,14 +46,16 @@ CMT(GMRCO,GMRCOM,GMRCADUZ,GMRCWHN,GMRCWHO) ;add comment to consult
  . D STATUS^GMRCP
  S GMRCDFN=$P(^GMR(123,+GMRCO,0),"^",2)
  S GMRCORTX="Comment Added to Consult "
- S GMRCORTX=GMRCORTX_$$GET1^DIQ(123.5,$P(^GMR(123,+GMRCO,0),U,5),.01)
+ I $P($G(^GMR(123,GMRCO,12)),U,5)="P" D
+ . S GMRCORTX="Comment Added to remote consult "
+ S GMRCORTX=GMRCORTX_$$ORTX^GMRCAU(+GMRCO)
  S GMRCRP=+$P(^GMR(123,GMRCO,0),U,14)
  S GMRCUPD=$$VALID^GMRCAU($P(^GMR(123,+GMRCO,0),U,5),GMRCO,DUZ)
  I GMRCRP=DUZ D  ;alert team if ord. prov. takes the action
  . S GMRCTM=1
- I GMRCUPD D  ; alert ord. prov if update users takes action
+ I GMRCUPD>1,GMRCRP'=DUZ D  ; alert ord. prov if update users takes action
  . S GMRCADUZ(GMRCRP)=""
- I '$G(GMRCTM),'GMRCUPD D  ;alert both if not ord. prov or update user
+ I '$G(GMRCTM),GMRCUPD<2 D  ;alert both if not ord. prov or update user
  . S GMRCTM=1,GMRCADUZ(GMRCRP)=""
  D MSG^GMRCP(GMRCDFN,GMRCORTX,+GMRCO,63,.GMRCADUZ,$G(GMRCTM))
  Q
@@ -84,10 +86,17 @@ SFILE(GMRCO,GMRCA,GMRCSF,GMRCORNP,GMRCDUZ,GMRCOM,GMRCALF,GMRCATO,GMRCAD) ;Proces
  S GMRCNOW=$$NOW^XLFDT,GMRCSTS=$P(^GMR(123,+GMRCO,0),"^",12),GMRCDFN=$P(^(0),"^",2)
  I '$G(GMRCDUZ) S GMRCDUZ=DUZ
  I '$G(GMRCAD) S GMRCAD=GMRCNOW
+ ;Insure comment array contains text for Complete action.
+ I GMRCA=10 D  I GMRCERR=1 S GMRCERMS="Comment field must contain a text value!" Q GMRCERR_"^"_GMRCERMS
+ . S GMRCERR=1
+ . I '$D(GMRCOM) Q
+ . N GMRCOM1 S GMRCOM1=""
+ . F  S GMRCOM1=$O(GMRCOM(GMRCOM1)) Q:(GMRCOM1=""!(GMRCERR=0))  D
+ .. I $TR($G(GMRCOM(GMRCOM1))," ","")'="" S GMRCERR=0 Q
  I +$G(GMRCA),GMRCA=10 D
  .S GMRCSF=$G(GMRCSF,"")
  .S GMRCSTS=2
- .S DR="8////^S X=GMRCSTS;9////^S X=GMRCA"
+ .S DR="8////^S X=GMRCSTS;9////^S X=GMRCA;15////^S X=GMRCSF"
  .S GMRCORTX="Completed Consult "_$$ORTX^GMRCAU(+GMRCO)_$S(GMRCSF="Y":" with Sig Findings",GMRCSF="N":" with no Sig Findings",1:"")
  .I $P($G(^GMR(123,+GMRCO,0)),U,14) S GMRCADUZ($P($G(^(0)),U,14))=""
  .Q

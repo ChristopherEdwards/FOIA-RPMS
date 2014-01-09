@@ -1,5 +1,5 @@
 DGRP4 ;ALB/MRL - REGISTRATION SCREEN 4/EMPLOYMENT INFORMATION;06 JUN 88@2300
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**624,1015**;Aug 13, 1993;Build 21
  N DGMRD
  S DGRPS=4 D H^DGRPU S DGRPW=1 F I=0,.311,.25 S DGRP(I)=$S($D(^DPT(DFN,I)):^(I),1:"")
  S X=$P($G(^DIC(11,+$P(DGRP(0),"^",5),0)),"^",3) S DGMRD=$S("^M^S^"[("^"_X_"^"):1,1:0),DGRPVV(4)=$E(DGRPVV(4))_'DGMRD ; spouse's employer only editable if married or separated
@@ -13,4 +13,26 @@ DGRP4 ;ALB/MRL - REGISTRATION SCREEN 4/EMPLOYMENT INFORMATION;06 JUN 88@2300
  W ! S X1="EMPLOYED FULL TIME^EMPLOYED PART TIME^NOT EMPLOYED^SELF EMPLOYED^RETIRED^ACTIVE MILITARY DUTY^^^UNKNOWN"
  S X=$P(DGRP(.311),"^",15) W ?6,"Status: ",$S($P(X1,"^",X)]"":$P(X1,"^",X),1:DGRPU)
  I DGMRD S X=$P(DGRP(.25),"^",15) W ?46,"Status: ",$S($P(X1,"^",X)]"":$P(X1,"^",X),1:DGRPU)
+ W !
+ W ?1,"Retired Dt.: "
+ I +$P(DGRP(.311),"^",15)=5 DO
+ . I +$P($G(DGRP(.311)),"^",16)>0 DO
+ . . N Y
+ . . S Y=$P(DGRP(.311),"^",16)
+ . . D DD^%DT
+ . . W Y
+ . . K Y
+ I +$P(DGRP(.311),"^",15)'=5 DO
+ . W "NOT APPLICABLE"
+ I DGMRD DO
+ . W ?41,"Retired Dt.: "
+ . I +$P(DGRP(.25),"^",15)=5 DO
+ . . I +$P($G(DGRP(.25)),"^",16)>0 DO
+ . . . N Y
+ . . . S Y=$P(DGRP(.25),"^",16)
+ . . . D DD^%DT
+ . . . W Y
+ . . . K Y
+ . I +$P(DGRP(.25),"^",15)'=5 DO
+ . . W "NOT APPLICABLE"
  G ^DGRPP

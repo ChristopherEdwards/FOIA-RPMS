@@ -1,5 +1,5 @@
-APSPFNC2 ;IHS/MSC/PLS - Prescription Creation Support ;14-Feb-2012 14:26;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1006,1007,1008,1009,1011,1013**;Sep 23, 2004;Build 33
+APSPFNC2 ;IHS/MSC/PLS - Prescription Creation Support ;04-Apr-2013 09:24;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1006,1007,1008,1009,1011,1013,1015**;Sep 23, 2004;Build 62
  ;=================================================================
  ; Create a verified prescription
 MAKEVRX(DATA,RXORD) ;
@@ -234,7 +234,8 @@ DOSE(ORD) ;pending orders
  .S:$P(DOSE,"^",8) ROUTE=$P(^PS(51.2,$P(DOSE,"^",8),0),"^")
  .S PSONEW("SCHEDULE",I)=$P(DOSE,"^"),PSONEW("DURATION",I)=$P(DOSE,"^",2)
  .S PSONEW("DURATION",I)=$S($E(PSONEW("DURATION",I),1)'?.N:$E(PSONEW("DURATION",I),2,99)_$E(PSONEW("DURATION",I),1),1:PSONEW("DURATION",I))  ;IHS/MSC/MGH - P1013
- .S DOENT=$G(DOENT)+1 S PSONEW("CONJUNCTION",I)=$S($P(DOSE,"^",6)="A":"AND",$P(DOSE,"^",6)="S":"THEN",$P(DOSE,"^",6)="X":"EXCEPT",1:"")
+ .;S DOENT=$G(DOENT)+1 S PSONEW("CONJUNCTION",I)=$S($P(DOSE,"^",6)="A":"AND",$P(DOSE,"^",6)="S":"THEN",$P(DOSE,"^",6)="X":"EXCEPT",1:"")  ;IHS/MSC/PLS - P1015
+ .S DOENT=$G(DOENT)+1 S PSONEW("CONJUNCTION",I)=$P(DOSE,"^",6)
  S PSONEW("ENT")=DOENT
  Q
  ; This screen is used by the APSP AUTO RX DIV parameter.
@@ -270,7 +271,7 @@ ADDPHM(IEN,DIST) ;
  I $P(N7,U,2),DT>$P(N7,U,2) Q
  S CNT=CNT+1,DIST=$G(DIST)
  ; IEN^StoreName^Address1 Address2^City^State^Zip^PPhone^PFax^Distance
- S @DATA@(+DIST,CNT)=IEN_U_$P(N0,U,10)_U_$P(N1,U)_" "_$P(N1,U,2)_U_$P(N1,U,3)_U_$P(N1,U,4)_U_$P(N1,U,5)_U_$P(N2,U)_U_$P(N2,U,2)_U_DIST
+ S @DATA@(+DIST,CNT)=IEN_U_$P(N0,U,10)_U_$P(N1,U)_" "_$P(N1,U,2)_U_$P(N1,U,3)_U_$P(N1,U,4)_U_$P(N1,U,5)_U_$P(N2,U,2)_U_$P(N2,U)_U_DIST
  Q
  ; Return array of zipcodes for given zipcode
  ; Input: ARY - return array - pass by reference

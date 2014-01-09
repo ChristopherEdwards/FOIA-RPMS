@@ -1,8 +1,10 @@
-LR7OSAP3 ;VA/DALOI/WTY - Silent AP Rpt from TIU;3/27/02
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**259**;Sep 27, 1994
+LR7OSAP3 ;VA/DALOI/CKA - Silent AP Rpt from TIU;3/27/02
+ ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 259,315
  ;
  ;Reference  to EXTRACT^TIULQ supported by IA #2693
+ ;Reference to TGET^TIUSRVR1 supported by IA #2944
  ;
 MAIN(LRPTR) ;Main subrouting
  K ^TMP("LRTIU",$J),^TMP("LRTIUTXT",$J)
@@ -97,6 +99,7 @@ CHKSUM ;Compare LR and TIU checksums
  S LRCKSUM=$$GET1^DIQ(LRFILE,LRIENS,2)
  I LRCKSUM="" S LRCKSUM=0
  ;Calculate TIU checksum
- S TIUVAL="^TIU(8925,"_LRPTR_",""TEXT"")"
- S TIUCKSUM=$$CHKSUM^XUSESIG1(TIUVAL)
+ S $P(^TMP("LRTIU",$J,LRPTR,"TEXT",0),U,5)=$P(^TMP("LRTIU",$J,LRPTR,1201,"I"),".")
+ S LRVAL="^TMP(""LRTIU"","_$J_","_LRPTR_",""TEXT"")"
+ S TIUCKSUM=$$CHKSUM^XUSESIG1(LRVAL)
  Q

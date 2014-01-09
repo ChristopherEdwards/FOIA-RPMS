@@ -1,5 +1,5 @@
 DG53507T ;ALB/SCK - POST INSTALL ROUTINE FOR DG*5.3*507 ; 3/21/2003
- ;;5.3;Registration;**507**;Aug 13, 1993
+ ;;5.3;Registration;**507,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Entry point for the DG*5.3*507 post-install
  ; This routine will update the description field of the INCOME DATA MISSING

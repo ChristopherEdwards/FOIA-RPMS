@@ -1,5 +1,5 @@
 DGMTV ;ALB/RMO/CAW/LD/JAN - View a Past Means Test ;12/13/2000
- ;;5.3;Registration;**33,45,346**;Aug 13, 1993
+ ;;5.3;Registration;**33,45,346,1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point to view a past means test
  I DGMTYPT=1 S DIC("S")="I $P(^(0),U,14)"

@@ -1,5 +1,5 @@
 DG53355A ;ALB/TM - NON TREATING PREFERRED FACILITY CLEAN UP ; 1/29/01 2:55pm
- ;;5.3;REGISTRATION;**355**;01/19/01
+ ;;5.3;REGISTRATION;**355,1015**;01/19/01;Build 21
  ;
  ; This process will find all entries in the PATIENT file (#2) that
  ; have a PREFERRED FACILITY (#27.02) on file that is NOT a valid

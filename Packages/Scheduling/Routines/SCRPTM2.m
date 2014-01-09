@@ -1,5 +1,5 @@
 SCRPTM2 ;ALB/CMM - List of Team's Members Report Continued;01/29/96 ; 29 Jun 99  04:11PM
- ;;5.3;Scheduling;**41,140,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,140,177,520,1015**;AUG 13, 1993;Build 21
  ;
  ;List of Team's Members Report
  ;
@@ -30,8 +30,10 @@ PULL(TIEN,PLIST) ;
  .F SCI=1,2,3 S PCLASS(SCI)=$P(PCLASS,U,(SCI+1))
  .;
  .S TPNODE=$G(^SCTM(404.57,+TPIEN,0))
- .S PCLIN=+$P(TPNODE,"^",9) ;associated clinic ien
- .S PCLIN=$P($G(^SC(PCLIN,0)),"^") ;associated clinic name
+ .D SETASCL^SCRPRAC2(TPIEN,.PCLIN)
+ .S PCLIN=$G(PCLIN(0))
+ .;S PCLIN=+$P(TPNODE,"^",9) ;associated clinic ien
+ .;S PCLIN=$P($G(^SC(PCLIN,0)),"^") ;associated clinic name
  .;
  .;Get preceptor
  .S PRCP=$P($$OKPREC2^SCMCLK(TPIEN,DT),U,2)
@@ -50,6 +52,9 @@ PULL(TIEN,PLIST) ;
  .S SERV=$P($G(^DIC(49,SERV,0)),"^") ;service/section name
  .;
  .D FORMAT(PNAME,TPIEN,PCLIN,RNAME,UNAME,ACT,INACT,PRIEN,PRNAME,OPH,ROOM,SERV,INS,TIEN,PRCP,.PCLASS)
+ .N SCAC
+ .S SCAC=0
+ .F  S SCAC=$O(PCLIN(SCAC)) Q:SCAC=""  D FORMATAC(INS,TIEN,PRIEN,TPIEN,PCLIN(SCAC))
  Q
  ;
 KTEAM(TNAME,TPHONE,TPC,TDIV,TIEN,IEND) ;
@@ -102,6 +107,10 @@ FORMAT(POS,TPIEN,PCLIN,SPOS,UCLASS,BEG,END,PIEN,PRACT,OPH,ROOM,SERV,DIV,TEM,PRCP
  I $L(PCLASS(1)) S @STORE@(DIV,TEM,PIEN,TPIEN,SCI)="Person Class: "_PCLASS(1),SCI=SCI+1
  I $L(PCLASS(2)) S @STORE@(DIV,TEM,PIEN,TPIEN,SCI)="                 "_PCLASS(2),SCI=SCI+1
  I $L(PCLASS(3)) S @STORE@(DIV,TEM,PIEN,TPIEN,SCI)="                    "_PCLASS(3)
+ Q
+ ;
+FORMATAC(DIV,TEM,PIEN,TPIEN,PCLIN) ;
+ S $E(@STORE@(DIV,TEM,PIEN,TPIEN,4,SCAC),49)=$E(PCLIN,1,30)
  Q
  ;
 NEWP(INST,TEM,TITL,PAGE,HEAD) ;

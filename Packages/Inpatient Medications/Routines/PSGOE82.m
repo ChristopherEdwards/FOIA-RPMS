@@ -1,5 +1,5 @@
 PSGOE82 ;BIR/CML3-NON-VERIFIED ORDER EDIT (CONT.) ;27 Jan 98 / 9:32 AM
- ;;5.0; INPATIENT MEDICATIONS ;**2,35,50,67,58,81**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**2,35,50,67,58,81,127,168**;16 DEC 97
  ;
  ; Reference to ^DD(53.1 is supported by DBIA #2256.
  ; Reference to ^VA(200 is supported by DBIA #10060.
@@ -9,7 +9,9 @@ PSGOE82 ;BIR/CML3-NON-VERIFIED ORDER EDIT (CONT.) ;27 Jan 98 / 9:32 AM
  ;
 1 ; provider
  S MSG=0,PSGF2=1 S:PSGOEEF(PSGF2) BACK="1^PSGOE82"
-A1 W !,"PROVIDER: ",$S(PSGPR:PSGPRN_"// ",1:"") R X:DTIME I X="^"!'$T W:'$T $C(7) S PSGOEE=0 G DONE
+A1 I $G(PSGORD)["P",$G(PSGP) I $$LASTREN^PSJLMPRI(PSGP,PSGORD) D  Q
+ . W !?5,"This order has been renewed. Provider may not be edited at this point. " D PAUSE^VALM1
+ W !,"PROVIDER: ",$S(PSGPR:PSGPRN_"// ",1:"") R X:DTIME I X="^"!'$T W:'$T $C(7) S PSGOEE=0 G DONE
  I $S(X="":'PSGPR,1:X="@") W $C(7),"  (Required)" S X="?" D ENHLP^PSGOEM(53.1,1) G A1
  I X="",PSGPR S X=PSGPRN I PSGPR'=PSGPRN,$D(^VA(200,PSGPR,"PS")) W:0 "    "_$P(^("PS"),"^",2)_"    "_$P(^("PS"),"^",3) G DONE
  I X?1."?" D ENHLP^PSGOEM(53.1,1)
@@ -41,7 +43,9 @@ A6 W !,"HOSPITAL SUPPLIED SELF MED: " W:PSGHSM]"" $P("NO^YES","^",PSGHSM+1),"// 
 2 ; dispense drug multiple
  S MSG=0,PSGF2=2,BACK="2^PSGOE82" K PSGOEEND
  N PSGX,PSGXX F PSGXX=0:0 S PSGX=PSGXX,PSGXX=$O(^PS(53.45,PSJSYSP,2,PSGXX)) Q:'PSGXX
- N DA,DIC,DIE,DR,DIR S DIE="^PS(53.45,",DA=PSJSYSP,DR=2,DR(2,53.4502)=".01;.02" D ^DIE
+ N PSJPNDRN I $G(PSGORD) I $E(PSGORD,$L(PSGORD))="P",$P($G(^PS(53.1,+PSGORD,0)),"^",24)="R" S PSJPNDRN=1 D
+ .S $P(PSJPNDRN,"^",2)="Dispense drugs for renewal orders cannot be deleted, but can be given an INACTIVE DATE.  "
+ N DA,DIC,DIE,DR,DIR S DIE="^PS(53.45,",DA=PSJSYSP,DR=2,DR(2,53.4502)=".01;.02"_$S($G(PSJPNDRN):";.03",1:"") D ^DIE
  I '$O(^PS(53.45,PSJSYSP,2,0)) W $C(7),!!,"WARNING: This order must have at least one dispense drug before pharmacy can",!?9,"verify it!",! S MSG=1
  D DDOC(PSGX)
  NEW PSJDOSE

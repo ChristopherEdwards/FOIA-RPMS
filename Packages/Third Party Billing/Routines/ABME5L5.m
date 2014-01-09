@@ -1,5 +1,5 @@
 ABME5L5 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**6,8,9**;NOV 12, 2009
  ;Header Segments
  ;
 START ;START HERE
@@ -49,9 +49,11 @@ START ;START HERE
  .D WR^ABMUTL8("REF")
  D EP^ABME5REF("EA")
  D WR^ABMUTL8("REF")
- I $P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,13)="Y"&(($E(ABMP("BTYP"),1,2)=11)!($E(ABMP("BTYP"),1,2)="12")) D
- .D EP^ABME5K3
- .D WR^ABMUTL8("K3")
+ ;start old code abm*2.6*9 HEAT57041
+ ;I $P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,13)="Y"&(($E(ABMP("BTYP"),1,2)=11)!($E(ABMP("BTYP"),1,2)="12")) D
+ ;.D EP^ABME5K3
+ ;.D WR^ABMUTL8("K3")
+ ;end old code abm*2.6*9
  I $D(^ABMDBILL(DUZ(2),ABMP("BDFN"),61)) D
  .D EP^ABME5NTE("ADD")
  .Q:$TR($G(ABMR("NTE",30))," ")=""

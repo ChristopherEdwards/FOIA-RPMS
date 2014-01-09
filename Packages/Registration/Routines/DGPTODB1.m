@@ -1,5 +1,5 @@
 DGPTODB1 ;ALB/AS - PTF DRG BREAKEVEN REPORTS (DRIVER ROUTINE) ; 26 JUN 87  10:00
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  S $P(DGLN,"=",132)="",$P(DGLN2,"-",132)="",DGCPG(2)="For "_$S(DGD:"Discharge dates from ",1:"Active Admissions")
  I DGD S Y=(DGSD+.1) X ^DD("DD") S DGCPG(2)=DGCPG(2)_$P(Y,"@")_" to ",Y=$P(DGED,".") X ^DD("DD") S DGCPG(2)=DGCPG(2)_Y,DGCPG(3)=$S('DGB:"not ",1:"")_"including TRANSFER DRGs"
  I DGS'="S"&($D(^UTILITY($J,"DGPTFR","D"))) D IN S DGRNO=1,DGFLAG="Medical Center by DRG",DGCPG(1)="BREAKEVEN Report for "_DGFLAG,DGTCH="Breakeven by DRG^DRG^PAGE #" D C^DGUTL,HD,^DGPTODB2 G:DGS="D" Q

@@ -1,4 +1,4 @@
-DGPTX14 ; ;10/29/04
+DGPTX14 ; ;10/15/12
  D DE G BEGIN
 DE S DIE="^DPT(D0,.02,",DIC=DIE,DP=2.02,DL=3,DIEL=1,DU="" K DG,DE,DB Q:$O(^DPT(D0,.02,DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,1) S:%]"" DE(1)=% S %=$P(%Z,U,2) S:%]"" DE(3)=%
@@ -58,11 +58,15 @@ C1 G C1S:$D(DE(1))[0 K DB
  K ^DPT(DA(1),.02,"B",$E(X,1,30),DA)
  S X=DE(1),DIC=DIE
  ;
+ S X=DE(1),DIC=DIE
+ S:$P(^DPT(DA(1),0),"^",6)=X $P(^DPT(DA(1),0),"^",6)=""
 C1S S X="" G:DG(DQ)=X C1F1 K DB
  S X=DG(DQ),DIC=DIE
  S ^DPT(DA(1),.02,"B",$E(X,1,30),DA)=""
  S X=DG(DQ),DIC=DIE
  X ^DD(2.02,.01,1,2,1.3) I X S X=DIV S Y(1)=$S($D(^DPT(D0,.02,D1,0)):^(0),1:"") S X=$P(Y(1),U,2),X=X S DIU=X K Y S X=DIV S X=+$O(^DIC(10.3,"C","S",0)) S:X=0 X="" X ^DD(2.02,.01,1,2,1.4)
+ S X=DG(DQ),DIC=DIE
+ S:'$P(^DPT(DA(1),0),"^",6) $P(^(0),"^",6)=X
 C1F1 Q
 X1 S DIC("S")="I '$G(^(.02))" D ^DIC K DIC S DIC=$G(DIE),X=+Y K:Y<0 X S:$D(X) DINUM=X
  Q

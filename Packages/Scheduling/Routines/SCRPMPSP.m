@@ -1,5 +1,5 @@
 SCRPMPSP        ;ALB/PDR - Team APIs:ACPTTP ; AUG 1998
- ;;5.3;Scheduling;**148,157,169,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**148,157,169,177,1015**;AUG 13, 1993;Build 21
  ;
 ACPTTP(DFN,SCTP,SCFIELDA,SCACT,FASIEN,SCERR,SCYESTM,SCMAINA) ;add/edit a patient to a position (pt TP assgn - #404.43
  ; input:

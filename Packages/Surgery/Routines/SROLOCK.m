@@ -1,5 +1,5 @@
-SROLOCK ;B'HAM ISC/MAM - USED TO LOCK A CASE ; [ 09/29/98  9:40 AM ]
- ;;3.0; Surgery ;**7,50**;24 Jun 93
+SROLOCK ;B'HAM ISC/MAM - USED TO LOCK A CASE ;11/10/04
+ ;;3.0; Surgery ;**7,50,134**;24 Jun 93
 CHECK ; check to determine if a case is locked
  K SROLOCK I $D(^SRF(SRTN,"LOCK")),$P(^("LOCK"),"^")=1 S SROLOCK=1
  I $D(SROLOCK) W !!,"This case has been verified and locked.  It cannot be updated unless",!,"unlocked by your chief, or someone appointed by your chief.",!!,"Press RETURN to continue  " R X:DTIME
@@ -18,6 +18,8 @@ LOCK ; queued to run nightly, locks cases that are passed the specified
  .S X1=DT,MOE=25+DAYS,X2="-"_MOE D C^%DTC S START=X,X1=DT,X2="-"_DAYS D C^%DTC S END=X
  .S DATE=START-.0001 F  S DATE=$O(^SRF("AC",DATE)) Q:DATE>END!(DATE="")  D SRTN
  S L=0 F  S L=$O(^SRF("AL",L)) Q:L=""  S:$D(^SRF(L,0)) ^SRF(L,"LOCK")=1 K ^SRF("AL",L)
+ ; clean up case edit/lock flags in ^XTMP
+ S SRNOW=$$NOW^XLFDT,SRCASE="SRLOCK-0" F  S SRCASE=$O(^XTMP(SRCASE)) Q:SRCASE=""  S SRNOW1=$P($G(^XTMP(SRCASE,0)),"^") I SRNOW>SRNOW1 K ^XTMP(SRCASE)
  Q
 SRTN S SRTN=0 F  S SRTN=$O(^SRF("AC",DATE,SRTN)) Q:SRTN=""  I $D(^SRF(SRTN,0)),$$DIV^SROUTL0(SRTN),$P($G(^SRF(SRTN,.2)),"^",12)!$P($G(^SRF(SRTN,"NON")),"^",5) S ^SRF(SRTN,"LOCK")=1
  Q

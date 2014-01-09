@@ -1,5 +1,5 @@
 AMHUTIL3 ; IHS/CMI/LAB - provider functions ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2,3**;JUN 18, 2010;Build 10
  ;IHS/CMI/LAB - added stage as output parameter
  ;
  ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
@@ -10,9 +10,23 @@ DLM(V) ;EP date last modified
  S R=""
  S R=$S($P($G(^AMHREC(V,11)),U,14)]"":$$DATE^AMHUTIL($P(^AMHREC(V,11),U,14)),1:$$DATE^AMHUTIL($P(^AMHREC(V,0),U,21)))
  Q R
-TLM(V) ;
+TLM(V) ;EP
  NEW R
  S R=$P($G(^AMHREC(V,11)),U,14)
+ I R="" Q ""
+ S R=$$FMTE^XLFDT(R,"2P")
+ Q $$UP^XLFSTR($P($P(R," ",2),":",1,2))_$$UP^XLFSTR($P(R," ",3))
+ ;
+UID(P) ;EP
+ I '$D(^AUPNPAT(P,0)) Q ""
+ I '$L($T(UID^BDWAID)) G UIDO
+ S X=$$UID^BDWAID(P) Q X
+UIDO ;
+ Q $$GET1^DIQ(9999999.06,$P(^AUTTSITE(1,0),U),.32)_$E("0000000000",1,10-$L(P))_P
+ ;
+VTIME(V) ;
+ NEW R
+ S R=$P($G(^AMHREC(V,0)),U,1)
  I R="" Q ""
  S R=$$FMTE^XLFDT(R,"2P")
  Q $$UP^XLFSTR($P($P(R," ",2),":",1,2))_$$UP^XLFSTR($P(R," ",3))

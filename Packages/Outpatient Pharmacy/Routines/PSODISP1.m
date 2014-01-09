@@ -1,5 +1,5 @@
-PSODISP1 ;BHAM ISC/SAB,PDW - Rx released/unrelease report ;07-Oct-2011 08:46;DU
- ;;7.0;OUTPATIENT PHARMACY;**15,9,33,1013**;DEC 1997;Build 33
+PSODISP1 ;BHAM ISC/SAB,PDW - Rx released/unrelease report ;29-May-2012 14:45;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**15,9,33,1013,1015**;DEC 1997;Build 62
  ;External reference to ^PS(59.7 supported by DBIA 694
  ;External reference to ^PSDRUG( supported by DBIA 221
  ;Modified - IHS/MSC/MGH - 10/07/2011  - Added fields for patch 1013

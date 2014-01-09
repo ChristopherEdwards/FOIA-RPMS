@@ -1,5 +1,5 @@
 DGVPTIB3 ;alb/mjk - IBCNSP2 for export with PIMS v5.3; 4/21/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 IBCNSP2 ;ALB/AAS - PATIENT INSURANCE INTERFACE FOR REGISTRATION ; 12-APR-93
  ;;Version 1.5 ; INTEGRATED BILLING ;**14**; 29-JUL-92
@@ -7,6 +7,7 @@ IBCNSP2 ;ALB/AAS - PATIENT INSURANCE INTERFACE FOR REGISTRATION ; 12-APR-93
 REG ; -- Edit Insurance Type subfield of patient file by registration
  ; -- Input DFN
  ;
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1014 no IB in IHS so entire routine not needed
  N VALMQUIT,DIC,DIE,DA,DR,IBCNP
  S IBCNP=1
  I '$D(DFN) D  G:$D(VALMQUIT) REGQ

@@ -1,5 +1,5 @@
-DGPFALF1 ;ALB/KCL,RBS - PRF LOCAL FLAG API'S CONTINUED ; 4/21/03 12:53pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFALF1 ;ALB/KCL,RBS - PRF LOCAL FLAG API'S CONTINUED ; 4/20/04 12:02pm
+ ;;5.3;Registration;**425,554,1015**;Aug 13, 1993;Build 21
  ;
  ;- no direct entry
  QUIT
@@ -99,5 +99,6 @@ XREF ;;array node name;field#;required param;word processing?;description
  ;;TYPE;.03;1;0;pointer to PRF TYPE FILE (#26.16)
  ;;REVFREQ;.04;1;0;review frequency
  ;;NOTIDAYS;.05;1;0;notification days
- ;;REVGRP;.06;0;pointer to MAIL GROUP FILE (#3.8)
+ ;;REVGRP;.06;0;0;pointer to MAIL GROUP FILE (#3.8)
+ ;;TIUTITLE;.07;1;0;pointer to TIU DOCUMENT (#8925.1) file
  ;;DESC;1;1;1;description of flag

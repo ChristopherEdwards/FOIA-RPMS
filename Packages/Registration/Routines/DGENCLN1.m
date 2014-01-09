@@ -1,5 +1,5 @@
 DGENCLN1 ;ALB/CJM - National Enrollment Seeding, Patient File Cleanup; 2/22/1999
- ;;5.3;Registration;**222**;08/13/93
+ ;;5.3;Registration;**222,1015**;08/13/93;Build 21
  ;
 CLEANUP ;This entry point will do the cleanup.
  ;

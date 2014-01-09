@@ -1,5 +1,5 @@
-BTIUMED6 ; IHS/MSC/MGH - Active/Recent Med Objects Routine ;04-Oct-2011 11:11;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1009**;Jun 20, 1997;Build 22
+BTIUMED6 ; SLC/JM - Active/Recent Med Objects Routine ;04-Dec-2012 14:17;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1009,1010**;Jun 20, 1997;Build 24
  Q
 LIST(DFN,TARGET,CLININC) ; EP
  ;
@@ -119,6 +119,7 @@ LIST(DFN,TARGET,CLININC) ; EP
  .....S TMPIDX=$O(^PS(53.1,IDX,1,0)) I +TMPIDX D
  ......S DRUGIDX=$P($G(^PS(53.1,IDX,1,TMPIDX,0)),U)
  ....S ORDIDX=+$P($G(^PS(53.1,IDX,.2)),U)
+ ....W !,ORDIDX
  ...I ID="U;I" D
  ....I $P($G(^PS(55,DFN,5,IDX,1,0)),U,4)=1 D
  .....S TMPIDX=$O(^PS(55,DFN,5,IDX,1,0)) I +TMPIDX D

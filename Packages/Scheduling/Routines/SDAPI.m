@@ -1,5 +1,5 @@
 SDAPI ;ALB/MJK - Outpatient API ; 22 FEB 1994 11:30 am
- ;;5.3;Scheduling;**27,44,97,132**;08/13/93
+ ;;5.3;Scheduling;**27,44,97,132,1015**;08/13/93;Build 21
  ;
 EN(DFN,SDT,SDCL,SDEVENT,SDERR,SDVIEN) ; -- main entry point for api
  N SDROOT,SDMODE,SDRET,SDUZ,SDERROOT

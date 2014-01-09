@@ -1,5 +1,5 @@
 PSDACT1 ;BIR/JPW,BJW-Print Daily Activity Log (cont'd) ; 17 Jun 98
- ;;3.0; CONTROLLED SUBSTANCES ;**10,14,30**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**10,14,30,65**;13 Feb 97;Build 5
  ;Reference to ^PRC(442 supported by IA #682
  ;Reference to ^PRCS(410 supported by IA #198
  ;Reference to ^PSDRUG( supported by IA #221
@@ -95,6 +95,7 @@ T13 S NUM="GS # ",TEXT="CANCEL VERIFIED ORDER"
  Q
 T14 S NUM="GS # ",TEXT="EDIT VERIFIED ORDER"
  I +$P(NODE,"^",17) S NUM=NUM_$P(NODE,"^",17)
+ S:$D(^PSD(58.81,PSDA,8)) TEXT="EDIT VERIFIED INVOICE",NUM=$P(^PSD(58.81,PSDA,8),"^",1) ; <*65-RJS>
  S QTY=$P(^PSD(58.81,PSDA,4),"^",4),BFWD=$P(^(4),"^",7)
  Q
 T16 S NUM="TRV",TEXT="TRANSFER TO VAULT"

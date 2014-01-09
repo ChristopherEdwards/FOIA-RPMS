@@ -1,8 +1,8 @@
 SCMSVPV1 ;ALB/ESD HL7 PV1 Segment Validation ; 23 Oct 98  3:45 PM
- ;;5.3;Scheduling;**44,55,91,66,162**;Aug 13, 1993
+ ;;5.3;Scheduling;**44,55,91,66,162,387,1015**;Aug 13, 1993;Build 21
  ;
  ;
-EN(PV1SEG,HLQ,HLFS,VALERR,NODE,EVNTHL7) ;
+EN(PV1SEG,HLQ,HLFS,VALERR,NODE,EVNTHL7,ENCNDT) ;
  ; Entry point to return the HL7 PV1 (Patient Visit) validation segment
  ;
  ;  Input:  PV1SEG - PV1 Segment
@@ -10,6 +10,7 @@ EN(PV1SEG,HLQ,HLFS,VALERR,NODE,EVNTHL7) ;
  ;            HLFS - HL7 field separator
  ;          VALERR - The array to put errors in
  ;         EVNTHL7 - Event type ("A08" for add/edit, "A23" for delete)
+ ;          ENCNDT - Encounter date
  ;
  ; Output:  1 if PV1 passed validity check
  ;          Error message if PV1 failed validity check in form of:
@@ -20,7 +21,7 @@ EN(PV1SEG,HLQ,HLFS,VALERR,NODE,EVNTHL7) ;
  ;of the encounter.  It is looking for the division in the 11th piece.
  ;this is for the check on the facility.
  ;
- N I,MSG,X,CNT,DATA,SEG,SD
+ N I,MSG,X,CNT,DATA,SEG,SD,XMTFLG
  ;
  ;-Create array of elements to validate
  F I=1,3,5,510,15,40,401,45,51 S SD(I)=""  ;Elements for 'add' or 'edit' transactions
@@ -38,8 +39,13 @@ EN(PV1SEG,HLQ,HLFS,VALERR,NODE,EVNTHL7) ;
  F I=1,3,5,510,15,40,401,45,51 D
  . S DATA=$S(I=45:$$FMDATE^HLFNC($P(PV1SEG,HLFS,+I)),I=510:$P(PV1SEG,HLFS,+$E(I,1,1)),I=401:$P(PV1SEG,HLFS,+$E(I,1,2)),1:$P(PV1SEG,HLFS,+I))
  . I I=40!(I=401) N DIV S DIV=$S($D(NODE):$P(NODE,U,11),1:"")
+ . I I=45 S XMTFLG=$S($P(PV1SEG,HLFS,3)="I":1,1:0)
  . D:$D(SD(I)) VALIDATE^SCMSVUT0(SEG,DATA,$P($T(@(I)),";",3),VALERR,.CNT)
  . Q
+ ;if inpatient perform validation for NPCD closeout on encounter date
+ I $P(PV1SEG,HLFS,3)="I" D
+ .S XMTFLG=0
+ .D VALIDATE^SCMSVUT0(SEG,ENCNDT,"4200",VALERR,.CNT)
  ;
 ENQ Q $S($D(@VALERR@(SEG)):MSG,1:1)
  ;

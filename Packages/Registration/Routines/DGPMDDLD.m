@@ -1,5 +1,5 @@
 DGPMDDLD ;ALB/MRL - DETERMINE LODGER X-REF'S; 9 FEB 89
- ;;5.3;Registration;**54**;Aug 13, 1993
+ ;;5.3;Registration;**54,1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- lodger x-ref on ward field in
  I $S(('$D(DA)#2):1,'$D(DGPMDDF):1,'$D(DGPMDDT):1,1:0) G KX

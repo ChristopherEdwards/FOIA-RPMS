@@ -1,5 +1,5 @@
-PSIV ;BIR/PR,MLM-MISC UTILITIES ;28-Mar-2011 19:23;DU
- ;;5.0; INPATIENT MEDICATIONS ;**7,16,29,38,53,56,72,58,1011**;16 DEC 97;Build 17
+PSIV ;BIR/PR,MLM-MISC UTILITIES ;29-May-2012 14:32;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**7,16,29,38,53,56,72,58,1011,110,1015**;16 DEC 97;Build 62
  ;
  ; Reference to ^PS(55 is supported by DBIA 2191
  ; Reference to ^PSSLOCK is supported by DBIA 2789
@@ -91,7 +91,7 @@ OV ;
  F PSIVOV1=1:1:PSGODDD F PSIVOV2=1:1:$L(PSGODDD(PSIVOV1),",")-1 D
  .;;S ON=+$P(PSGODDD(PSIVOV1),",",PSIVOV2),ON=$S($D(^TMP("PSIV",$J,"AB",ON)):^(ON),$D(^TMP("PSIV",$J,"PB",ON)):^(ON),$D(^TMP("PSIV",$J,"XB",ON)):^(ON),1:"") Q:'ON!$G(DONE)  D OV1
  .S ON=+$P(PSGODDD(PSIVOV1),",",PSIVOV2)
- .S ON=$S($D(^TMP("PSIV",$J,"AB",ON)):^(ON),$D(^TMP("PSIV",$J,"NB",ON)):^(ON),$D(^TMP("PSIV",$J,"PB",ON)):^(ON),$D(^TMP("PSIV",$J,"XB",ON)):^(ON),1:"")
+ .S ON=$S($D(^TMP("PSIV",$J,"AB",ON)):^(ON),$D(^TMP("PSIV",$J,"NB",ON)):^(ON),$D(^TMP("PSIV",$J,"PB",ON)):^(ON),$D(^TMP("PSIV",$J,"XB",ON)):^(ON),$D(^TMP("PSIV",$J,"NDB",ON)):^(ON),$D(^TMP("PSIV",$J,"PDB",ON)):^(ON),1:"")
  .Q:'ON!$G(DONE)
  .D OV1
  S VALMBCK="Q"

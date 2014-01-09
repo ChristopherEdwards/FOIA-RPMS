@@ -1,9 +1,9 @@
-SROVAR ;BIR/MAM,ADM - SITE PARAMETERS; [ 06/22/99  10:46 AM ]
- ;;3.0; Surgery ;**17,38,48,67,77,50,87,88,102,107**;24 Jun 93
+SROVAR ;BIR/MAM,ADM - SITE PARAMETERS ;10/04/05
+ ;;3.0; Surgery ;**17,38,48,67,77,50,87,88,102,107,100,134,144,157**;24 Jun 93;Build 3
  ;
  ; Reference to ^TMP("CSLSUR1" supported by DBIA #3498
  ;
- K ^TMP("CSLSUR1",$J)
+ K ^TMP("CSLSUR1",$J),^TMP("SRPFSS",$J) D CLEAR
  I $D(SRSITE) Q
  D CPT
  K SRL S (SRCNT,X)=0 F  S X=$O(^SRO(133,X)) Q:'X  I '$P($G(^SRO(133,X,0)),"^",21) S SRCNT=SRCNT+1,SRL(SRCNT)=X
@@ -16,8 +16,6 @@ SET ; set site parameters
  S SRSITE("IV")=$P(S(0),"^",7) K:SRSITE("IV")="" SRSITE("IV")
  S SRSITE("DIV")=$P(S(0),"^"),SRSITE("SITE")=$$GET1^DIQ(4,SRSITE("DIV"),.01)
  S SRSITE("NRPT")=$P(S(0),"^",6) I SRSITE("NRPT")="" S SRSITE("NRPT")=1
- S SRSITE("ORPT")=$P(S(0),"^",8) I SRSITE("ORPT")="" S SRSITE("ORPT")=1
- ;S SRSITE("RISK")=$P(S(0),"^",5) I SRSITE("RISK")="" S SRSITE("RISK")="N"
  I '$D(SRSITE("OPTION")),$D(XQY) S SRSITE("OPTION")=XQY
  K S
  Q
@@ -52,8 +50,8 @@ PARAM ; enter/edit site parameters
  K DIE,DR,DA,Y S DA=SRDIV,DR="[SRPARAM]",DIE=133 D ^SRCUSS K DR,DIE,DA,ST W @IOF I $D(SRSITE) D SET
  Q
 EXIT ; exit action for all Surgery options
- I $G(SRTN),'$P($G(^SRF(SRTN,0)),"^",15),'$D(^SRF("APCE",SRTN)) D APCE^SROPCEX
- I $G(SRSITE("OPTION"))=XQY K SRSITE,SRTN,^TMP("SRCUSS",$J)
+ I $D(XQY),$G(SRSITE("OPTION"))=XQY K SRSITE,SRTN,^TMP("SRCUSS",$J)
+ D CLEAR
  Q
 SITE() ; extrinsic call to output Institution file pointer (from Default Institution field in file 4.3)^Institution name^Station number
  N SITE,SRI,SRX,SRY
@@ -72,7 +70,10 @@ OUT K %DT,SR130,SRN,SRP,SRSTART,SRSUB
  Q
 TERM ; compare stop time with start time
  N SRINOR,SRSTART,SRV,SRY,T,Z
- I $D(DA) S SRINOR=$P(^SRF(DA,0),"^",9),Z=$E(SRINOR,1,7),X=$S(X?1.4N.A!(X?1.2N1":"2N.A):Z_"@"_X,1:X)
+ I $D(DA) S SRINOR=$S($P($G(^SRF(DA,"NON")),"^")="Y":$P($G(^SRF(DA,"NON")),"^",4),1:$P($G(^SRF(DA,.2)),"^",10)) I 'SRINOR D  K X D OUT Q
+ .D EN^DDIOL(">>> Please enter 'TIME "_$S($P($G(^SRF(DA,"NON")),"^")="Y":"PROCEDURE BEGAN",1:"PAT IN OR")_"' first !! <<<","","!!?5")
+ .D EN^DDIOL("","","!")
+ S Z=$E(SRINOR,1,7),X=$S(X?1.4N.A!(X?1.2N1":"2N.A):Z_"@"_X,1:X)
  K %DT,Z S %DT="PTXR" D ^%DT S X=Y I Y<1 D OUT Q
  I $D(DA) S Z=$P($G(^SRF(DA,SRN)),"^",SRP),SRSTART=$S(Z:Z,1:SRINOR),SRNULL=$S(Z:0,1:1) I X<SRSTART S Z=$P(SRINOR,"."),T=$P(X,".",2),X1=Z_"."_T,X2=1 D C^%DTC D PLUS24 I '$D(X) D OUT Q
  K %DT S %DT="EPTXR" D ^%DT S X=Y D OUT
@@ -80,4 +81,17 @@ TERM ; compare stop time with start time
 PLUS24 S:SRNULL SR130="TIME PAT IN OR" S (SRV,Y)=X X ^DD("DD") S SRY=Y
  K DIR S DIR("A",1)="",DIR("A",2)="The time you have entered is earlier than "_SR130_".",DIR("A")="Do you mean "_SRY_" (Y/N) ? ",DIR(0)="YA" D ^DIR K DIR I 'Y!$D(DTOUT)!$D(DUOUT) K X Q
  S X=SRV
+ Q
+CLEAR ; clean-up case edit/lock flags in ^XTMP
+ N SRC,SRJ,SRL,SRNOW,SRNOW1,SRZ S SRNOW=$$NOW^XLFDT
+ S SRC="SRLOCK-0" F  S SRC=$O(^XTMP(SRC)) Q:SRC'["SRLOCK-"  D
+ .S SRJ=0 F  S SRJ=$O(^XTMP(SRC,DUZ,SRJ)) Q:'SRJ  D
+ ..I SRJ=$J L -^XTMP(SRC,DUZ,SRJ) K ^XTMP(SRC,DUZ,SRJ) I '$O(^XTMP(SRC,0)) L -^XTMP(SRC) K ^XTMP(SRC) Q
+ ..S SRNOW1=$P($G(^XTMP(SRC,0)),"^") I SRNOW>SRNOW1 L -^XTMP(SRC) K ^XTMP(SRC)
+ Q
+EN3 ; the Sterility Expiration Date should be after the Date of Operation
+ S:$D(SRTN) SRTDA=DA,DA=SRTN S X=$S(X?1.4N.A!(X?1.2N1":"2N.A):Z_"@"_X,1:X)
+ S %DT="E" D ^%DT S X=Y I X>0 S SRSTART=$E($P(^SRF($S($D(SRTN):SRTN,1:D0),0),U,9),1,7) I SRSTART'="" D BEF
+ S:$D(SRTDA) DA=SRTDA Q
+BEF I X<SRSTART W !!,"The date entered is before the 'DATE OF OPERATION'.  Please check the",!,"DATE entered for this field." K X H 2
  Q

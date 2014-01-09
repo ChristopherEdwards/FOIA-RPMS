@@ -1,5 +1,5 @@
 PSDREC2 ;BIR/LTL-CS Receiving (cont'd) ; 8 Aug 94
- ;;3.0; CONTROLLED SUBSTANCES ;**30**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**30,66**;13 Feb 97;Build 3
  ;Reference to ^DIC(51.5 supported by IA # 1931
  ;Reference to ^PRCS(410 supported by IA #214
  ;Reference to ^PSD(58.8 are covered by DBIA #2711
@@ -24,7 +24,7 @@ DISP .W ?50,"Converted quantity: ",PSDREC*$P($G(^PSDRUG(+PSDRUG,660)),U,5) S PSD
  .I '$D(^PSD(58.8,+PSDLOC,1,+PSDRUG,0)) W !,"Sorry, but this drug is not stocked in this pharmacy location.",! Q
 PQ .S DIR(0)="Y",DIR("A")="OK to post",DIR("B")="Yes",DIR("?")="If yes, the balance will be updated and a transaction stored." D ^DIR K DIR D:Y=1  I $D(DIRUT) S PSDOUT=1 Q
  ..W !!,"There were ",$S($P($G(^PSD(58.8,+PSDLOC,1,+PSDRUG,0)),U,4):$P($G(^(0)),U,4),1:0)," on hand.",?40,"There are now ",$P($G(^(0)),U,4)+PSDREC," on hand.",!
- ..F  L +^PSD(58.8,+PSDLOC,1,+PSDRUG,0):0 I  Q
+ ..F  L +^PSD(58.8,+PSDLOC,1,+PSDRUG,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  ..D NOW^%DTC S PSDAT=+%
  ..S PSDB=$P($G(^PSD(58.8,+PSDLOC,1,+PSDRUG,0)),U,4)
  ..S $P(^PSD(58.8,+PSDLOC,1,+PSDRUG,0),U,4)=PSDREC+PSDB
@@ -33,7 +33,7 @@ PQ .S DIR(0)="Y",DIR("A")="OK to post",DIR("B")="Yes",DIR("?")="If yes, the bala
  ..I '$D(^PSD(58.8,+PSDLOC,1,+PSDRUG,5,$E(DT,1,5)*100,0)) S DIC="^PSD(58.8,+PSDLOC,1,+PSDRUG,5,",DIC(0)="L",DLAYGO=58.8,X=$E(DT,1,5)*100,DINUM=X,DA(2)=PSDLOC,DA(1)=PSDRUG D ^DIC K DIC,DLAYGO
  ..S DIE="^PSD(58.8,+PSDLOC,1,+PSDRUG,5,",DA(2)=PSDLOC,DA(1)=PSDRUG,DA=$E(DT,1,5)*100,DR="5////^S X=$P($G(^(0)),U,3)+PSDREC" D ^DIE
  ..W !,"Updating monthly receipts and transaction history.",!
-TR ..F  L +^PSD(58.81,0):0 I  Q
+TR ..F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND ..S PSDT=$P(^PSD(58.81,0),U,3)+1 I $D(^PSD(58.81,PSDT)) S $P(^PSD(58.81,0),U,3)=$P(^PSD(58.81,0),U,3)+1 G FIND
  ..S DIC="^PSD(58.81,",DIC(0)="L",DLAYGO=58.81,(DINUM,X)=PSDT D ^DIC K DIC,DLAYGO L -^PSD(58.81,0)
  ..S DIE="^PSD(58.81,",DA=PSDT,DR="1////1;2////^S X=PSDLOC;3////^S X=PSDAT;4////^S X=PSDRUG;5////^S X=PSDREC;6////^S X=DUZ;7////^S X=PSDCON;8////^S X=PSDPO;9////^S X=PSDB;100////1;71////^S X=$G(PSAPV)" D ^DIE

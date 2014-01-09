@@ -1,10 +1,11 @@
 PSIVUTL1 ;BIR/MLM-IV UTILITIES ;21 MAY 96 / 10:37 AM
- ;;5.0; INPATIENT MEDICATIONS ;**58,81**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**58,81,111,134**;16 DEC 97;Build 124
  ;
- ; Reference to ^PS(52.6 is supported by DBIA 1231
- ; Reference to ^PS(55 is supported by DBIA 2191
- ; Reference to ^PS(51.2 is supported by DBIA 2178
  ; Reference to ^PS(50.7 is supported by DBIA 2180
+ ; Reference to ^PS(51.2 is supported by DBIA 2178
+ ; Reference to ^PS(52.6 is supported by DBIA 1231
+ ; Reference to ^PS(52.7 is supported by DBIA 2173.
+ ; Reference to ^PS(55 is supported by DBIA 2191
  ;
 DRGSC(Y,PSJSCT) ; Called to set DIC("S") when selecting orderable item.
  N OK,ND,NDU,NDI S OK=0 ;* I '$D(^PSDRUG("AP",+Y)) K PSJSCT Q 0
@@ -13,6 +14,7 @@ DRGSC(Y,PSJSCT) ; Called to set DIC("S") when selecting orderable item.
  Q OK
  ;
 IVDRGSC(Y) ; Set DIC("S") for IV additive/solution selection.
+ ; Naked reference below refers to full reference in Y, which is either ^PS(52.6, or ^PS(52.7
  N Y S Y="S X(1)=$G(^(0)),X(2)=$G(^(""I"")) I $S('X(2):1,X(2)>DT:1,1:0),$D(^PSDRUG(+$P(X(1),U,2),0)) S X(2)=$G(^(""I"")) I $S('X(2):1,X(2)>DT:1,1:0)"
  Q Y
  ;
@@ -77,7 +79,6 @@ PIV1 ; Print Sched type, start/stop dates, and status.
 WRTDRG(X,L)       ; Format and print drug name, strength and bottle no.
  N Y S Y=" "_$P(X,U,3) S:$P(X,U,4) Y=Y_" ("_$P(X,U,4)_")"
  Q $E($P(X,U,2),1,(L-$L(Y)))_Y
- ;Q $E($$ENPDN^PSGMI($P(X,U,6)),1,(L-$L(Y)))_Y
 NAME(X,L,NAME,AD)        ; Format Additive display.
  ;INPUT : X=DRG("AD",DRG)  L=Display length   AD=for Addtive(1/0)
  ;OUTPUT: AD(X)  if X=2 that means there is a second line to display
@@ -87,3 +88,40 @@ NAME(X,L,NAME,AD)        ; Format Additive display.
  I ($L($P(X,U,2))+$L(Y)+1)>L S NAME(1)=$P(X,U,2),NAME(2)="   "_Y Q
  S NAME(1)=$P(X,U,2)_" "_Y
  Q
+ ;
+CNVTOM(RATE,TVOL) ; Convert volume to minutes
+ ; Input:
+ ;   RATE - Infusion Rate
+ ;   TVOL - Volume being infused, EX: m100 (100 Milliliters) or l5 (5 Liters)
+ ; Output:
+ ;   MINS - Minutes required to infuse volume
+ N DAYS,ML,MLSHR
+ ; Get rate in terms of mils per hour
+ I 'RATE Q 0
+ I RATE<1 S RATE=1
+ S TVOL=$S($E(TVOL)="m":$E(TVOL,2,9),$E(TVOL)="l":$E(TVOL,2,9)*1000,1:0) Q:'TVOL 0
+ ; Find IV duration in minutes
+ S MINS=(TVOL/RATE)*60
+ Q MINS
+ ;
+GETMIN(LIM,DFN,PSJORD,DAYS) ;
+ N F,DDLX
+ I LIM!(LIM=0) Q LIM
+ S F=$S(PSJORD["P":"^PS(53.1,+PSJORD,",PSJORD["V":"^PS(55,DFN,""IV"",+PSJORD,",1:"")
+ N RATE S RATE=$S(PSJORD["P":+$P($G(@(F_"8)")),"^",5),PSJORD["V":+$P($G(@(F_"0)")),"^",8),1:0)
+ I (",l,m,")[(","_$E(LIM)_",") D
+ .I RATE D
+ ..I RATE<1 S RATE=1
+ ..S MIN=$$CNVTOM(RATE,LIM) I MIN S LIM=MIN
+ .I 'RATE N SOL,SOLVOL,DOSVOL,DUR,STOP,OIX,X S (SOLVOL,DOSVOL)="" D
+ ..S SOL=0 F  S SOL=$O(@(F_"""SOL"",SOL)")) Q:'SOL  D
+ ...S SOLVOL=$P(@(F_"""SOL"",SOL,0)"),"^",2) I SOLVOL S DOSVOL=DOSVOL+SOLVOL
+ ..S DDLX=$S($E(LIM)["l":(($E(LIM,2,99)*1000)/DOSVOL),1:($E(LIM,2,99)/DOSVOL))_"L"
+ I (",a,")[(","_$E(LIM)_",") S DDLX=$E(LIM,2,99)_"L"
+ I $G(DDLX)>0 D
+ .N STOP,LASTD S DAYS="",STOP=""
+ .S OIX=$P($G(@(F_".2)")),"^") S:(DDLX<1) DDLX="1L" S LASTD=$$DOSES^PSIVCAL(DDLX,.P)
+ .I LASTD,$G(P(2)) S DAYS=$$FMDIFF^XLFDT(LASTD,P(2),2) I DAYS>0 S DAYS=DAYS/86400
+ .I DAYS>0 S LIM=DAYS*1440
+ I (",h,d,")[(","_$E(LIM)_",") S LIM=$S($E(LIM)="d":(1440*$E(LIM,2,99)),1:(60*$E(LIM,2,99))) Q
+ Q LIM

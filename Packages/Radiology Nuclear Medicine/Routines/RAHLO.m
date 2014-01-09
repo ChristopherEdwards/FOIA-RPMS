@@ -1,5 +1,5 @@
-RAHLO ;HIRMFO/GJC-Process data set from the bridge program ;11/18/97  12:13
- ;;5.0;Radiology/Nuclear Medicine;**4,8,27,55,66,84,94**;Mar 16, 1998;Build 9
+RAHLO ;HIRMFO/GJC-Process data set from the bridge program ; 20 Apr 2011  7:01 PM
+ ;;5.0;Radiology/Nuclear Medicine;**4,8,27,55,66,84,94,1003**;Nov 01, 2010;Build 3
  ; 09/07/2005 Remedy call 108405 - KAM Allow Radiology to accept dx codes from Talk Technology
  ;
  ;Integration Agreements
@@ -47,7 +47,13 @@ CHECK ; Check if our data is valid.
  S RADTI=$G(^TMP("RARPT-REC",$J,RASUB,"RADTI"))
  S RALONGCN=$G(^TMP("RARPT-REC",$J,RASUB,"RALONGCN"))
  S RASSN=$G(^TMP("RARPT-REC",$J,RASUB,"RASSN"))
- S (RAVERF,RADUZ)=$G(^TMP("RARPT-REC",$J,RASUB,"RAVERF"))
+ ;
+ ;IHS/BJI/DAY - Patch 1003 - Limit incoming provider field to IEN
+ ;S (RAVERF,RADUZ)=$G(^TMP("RARPT-REC",$J,RASUB,"RAVERF"))
+ S (RAVERF,RADUZ)=+$G(^TMP("RARPT-REC",$J,RASUB,"RAVERF"))
+ I RAVERF=0 S (RAVERF,RADUZ)=""
+ ;End patch
+ ;
  S RATRANSC=$G(^TMP("RARPT-REC",$J,RASUB,"RATRANSCRIPT"))
  S RASTAT=$G(^TMP("RARPT-REC",$J,RASUB,"RASTAT")) I RASTAT="A" S RADENDUM=""
  I $D(^TMP("RARPT-REC",$J,RASUB,"RAESIG")) S RAESIG=$G(^("RAESIG"))
@@ -60,7 +66,12 @@ CHECK ; Check if our data is valid.
  S:RAVLDT=-1 RAERR="Invalid report date" Q:$D(RAERR)
  K VA,VADM,VAERR S DFN=RADFN D DEM^VADPT
  I VADM(1)']"" S RAERR="Unknown Internal patient identifier" K VA,VADM,VAERR Q
- I RASSN'=$P(VADM(2),"^") S RAERR="Internal patient identifier and SSN don't match" K VA,VADM,VAERR Q
+ ;
+ ;IHS/BJI/DAY - Patch 1003 - Don't abort if no incoming SSN (infants)
+ ;I RASSN'=$P(VADM(2),"^") S RAERR="Internal patient identifier and SSN don't match" K VA,VADM,VAERR Q
+ I RASSN]"",RASSN'=$P(VADM(2),"^") S RAERR="Internal patient identifier and SSN don't match" K VA,VADM,VAERR Q
+ ;End patch
+ ;
  I '$D(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0))!(RALONGCN']"") D  Q
  . S RAERR="Invalid Exam Date and/or Case Number"
  . Q
@@ -93,7 +104,12 @@ CHECK ; Check if our data is valid.
  .. I X3]"" S RAERR=X3
  . S X2=0,X3="" S X1=+$G(^TMP("RARPT-REC",$J,RASUB,"RASTAFF"))
  . I X1 D
- .. I '$D(^VA(200,"ARC","S",X1)) S X2=1
+ .. ;
+ .. ;IHS/BJI/DAY - Patch 1003 - Allow residents as verifiers
+ .. ;I '$D(^VA(200,"ARC","S",X1)) S X2=1
+ .. I '$D(^VA(200,"ARC","S",X1)),'$D(^VA(200,"ARC","R",X1)) S X2=1
+ .. ;End patch
+ .. ;
  .. I $P($G(^VA(200,X1,"RA")),"^",3),$P(^("RA"),"^",3)'>$$DT^XLFDT S X2=X2+2
  .. I X2=1 S X3=$E($P($G(^VA(200,X1,0)),"^"),1,20)_" is not class'd as staff"
  .. I X2=2 S X3=$P($G(^VA(200,X1,0)),"^")_"'s INACTIVE DATE is past"

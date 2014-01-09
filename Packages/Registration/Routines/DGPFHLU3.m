@@ -1,5 +1,5 @@
 DGPFHLU3 ;ALB/RPM - PRF HL7 BUILD MSA/ERR SEGMENTS ; 3/03/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,650,1015**;Aug 13, 1993;Build 21
  ;
  Q
  ;
@@ -50,8 +50,6 @@ MSAVAL(DGFLD,DGACK,DGID,DGTEXT,DGESN,DGDAT,DGERR,DGVAL) ;build MSA value array
  N DGRSLT    ;function value
  N DGACKS    ;array of valid ACK codes
  N DGCOD     ;ACK code string
- N DGERRSTR  ;Error condition string
- N DGTBL     ;VA086 Error code array
  ;
  S DGRSLT=0
  I $G(DGFLD)]"",$G(DGACK)]"",+$G(DGID) D
@@ -82,11 +80,9 @@ MSAVAL(DGFLD,DGACK,DGID,DGTEXT,DGESN,DGDAT,DGERR,DGVAL) ;build MSA value array
  . ;
  . ; seq 6 Error Condition
  . I DGFLD[",6," D
- . . D BLDVA086^DGPFHLU3(.DGTBL)
- . . I $G(DGERR)]"",$D(DGTBL(DGERR))#2 D
- . . . S DGVAL(6,1,1)=DGERR
- . . . S DGVAL(6,1,2)=DGTBL(DGERR)
- . . . S DGVAL(6,1,3)="VA086"
+ . . S DGVAL(6,1,1)=DGERR
+ . . S DGVAL(6,1,2)=$$EZBLD^DIALOG(DGERR)
+ . . S DGVAL(6,1,3)="L"
  . S DGRSLT=1
  I 'DGRSLT K DGVAL
  Q DGRSLT
@@ -97,7 +93,7 @@ ERR(DGSEG,DGSEQ,DGPOS,DGCOD,DGFLD,DGHL) ;ERR segment API
  ;    DGSEG - (required) Segment ID
  ;    DGSEQ - (required) Sequence
  ;    DGPOS - (required) Field position
- ;    DGCOD - (required) Error code from table VA086
+ ;    DGCOD - (required) Error code
  ;    DGFLD - (optional) List of comma-separated fields (sequence #'s)
  ;             to include.  Defaults to all required fields (1).
  ;     DGHL - (required) HL7 Environment array
@@ -123,26 +119,23 @@ ERRVAL(DGFLD,DGSEG,DGSEQ,DGPOS,DGCOD,DGVAL) ;build ERR value array
  ;    DGSEG - (required) Segment ID
  ;    DGSEQ - (required) Sequence
  ;    DGPOS - (required) Field position
- ;    DGCOD - (required) Error code from table VA086
+ ;    DGCOD - (required) Error code
  ;    
  ;  Output:
  ;   Function value - 1 on success, 0 on failure
  ;            DGVAL - ERR field array [SUB1:field, SUB2:repetition,
  ;                                    SUB3:component, SUB4:sub-component]
  N DGRSLT
- N DGTBL
  ;
  S DGRSLT=0
  I $G(DGFLD)]"",$G(DGSEG)]"",+$G(DGSEQ),+$G(DGPOS),$G(DGCOD)]"" D
  . I DGFLD[",1," D
- . . D BLDVA086^DGPFHLU3(.DGTBL)
- . . I $D(DGTBL(DGCOD))#2 D
- . . . S DGVAL(1,1,1)=DGSEG
- . . . S DGVAL(1,1,2)=DGSEQ
- . . . S DGVAL(1,1,3)=DGPOS
- . . . S DGVAL(1,1,4,1)=DGCOD
- . . . S DGVAL(1,1,4,2)=DGTBL(DGCOD)
- . . . S DGVAL(1,1,4,3)="VA086"
+ . . S DGVAL(1,1,1)=DGSEG
+ . . S DGVAL(1,1,2)=DGSEQ
+ . . S DGVAL(1,1,3)=DGPOS
+ . . S DGVAL(1,1,4,1)=DGCOD
+ . . S DGVAL(1,1,4,2)=$$EZBLD^DIALOG(DGCOD)
+ . . S DGVAL(1,1,4,3)="L"
  . S DGRSLT=1
  Q DGRSLT
  ;

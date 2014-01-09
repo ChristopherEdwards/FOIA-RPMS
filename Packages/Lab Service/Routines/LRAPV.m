@@ -1,6 +1,7 @@
 LRAPV ;AVAMC/REG/WTY - ANAT PATH REPORTS NOT VERIFIED ;1/17/02
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,201,259,317**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1002,1006,1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patche(s): 72,201,259,317
  ;
  ;Reference to ^DIC supported by IA #916
  ;
@@ -89,7 +90,8 @@ SNO ;Missing SNOMED
  Q
 W ;Write the report
  W !,$$FMTE^XLFDT(LRDATE,"D"),?19,$J($P(LRDATE,"^",6),5),?32,LRP
- W ?63,SSN
+ ; W ?63,SSN
+ W ?63,$G(HRCN)              ; IHS/MSC/MKK - LR*5.2*1031
  I 'LR("AU1") D
  .S LRA=0 F  S LRA=$O(^LR(LRPD,LRSS,LRI,97,LRA)) Q:'LRA!(LR("Q"))  D
  ..S B=^LR(LRPD,LRSS,LRI,97,LRA,0)
@@ -107,10 +109,12 @@ H ;Header
  I LRB<3 W "UNVERIFIED" W:LRB=2 " SUPPLEMENTARY" W " REPORTS"
  W:LRB=3 "REPORTS MISSING SNOMED CODING"
  W !,"BY DATE SPECIMEN TAKEN FROM ",LRSTR," TO ",LRLST
- W !,"DATE",?15,"Accession number",?32,"Patient",?66,"SSN",!,LR("%")
+ ; W !,"DATE",?15,"Accession number",?32,"Patient",?66,"SSN",!,LR("%")
+ W !,"DATE",?15,"Accession number",?32,"Patient",?66,"HRCN",!,LR("%")     ; IHS/MSC/MKK - LR*5.2*1031
  Q
 H1 ;
- D H Q:LR("Q")  W !?19,$J($P(LRDATE,"^",6),5),?32,LRP,?63,SSN
+ ; D H Q:LR("Q")  W !?19,$J($P(LRDATE,"^",6),5),?32,LRP,?63,SSN
+ D H Q:LR("Q")  W !?19,$J($P(LRDATE,"^",6),5),?32,LRP,?63,$G(HRCN)        ; IHS/MSC/MKK - LR*5.2*1031
  Q
 END ;
  W:IOST?1"P-".E @IOF D ^%ZISC S:$D(ZTQUEUED) ZTREQ="@"

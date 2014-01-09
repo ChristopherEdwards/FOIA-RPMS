@@ -1,5 +1,5 @@
-BCHEXRE1 ; IHS/TUCSON/LAB - CONT. OF REDO CHR EXPORT ;  [ 06/03/99  6:47 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7**;OCT 28, 1996
+BCHEXRE1 ; IHS/CMI/LAB - CONT. OF REDO CHR EXPORT ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - added $J to ^TMP
  ;
 INIT ;EP
@@ -15,7 +15,7 @@ INIT ;EP
  S BCH("RECS")=$P(^BCHXLOG(BCH("RUN LOG"),21,0),U,4)
  W !!,"Log entry ",BCH("RUN LOG"),"  was for date range ",BCH("PRINT BEGIN")," through ",BCH("PRINT END"),!,"and generated ",BCH("COUNT")," transactions from ",BCH("RECS")," records."
  ;
- W !!!,$C(7),$C(7),"This routine will generate CHRIS II transactions.",!
+ W !!!,$C(7),$C(7),"This routine will generate CHR transactions.",!
 RDD ;
  S DIR(0)="Y",DIR("A")="Do you want to regenerate the transactions for this run",DIR("B")="N" K DA D ^DIR K DIR
  I $D(DIRUT) S BCH("QFLG")=99 Q

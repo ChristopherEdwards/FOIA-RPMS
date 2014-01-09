@@ -1,5 +1,5 @@
 LEXNDX6 ; ISL Set/kill indexes (Misc)              ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 SRA ; Set Shortcut index
  Q:'$D(X)!('$D(DA))!('$D(DA(1)))  N LEXKW S LEXKW=$P($G(^LEX(757.4,DA(1),1,DA,0)),U,1) S:$L(LEXKW) ^LEX(757.4,"ARA",$E($$UP^XLFSTR(LEXKW),1,63),X,DA(1),DA)="" Q

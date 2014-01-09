@@ -1,5 +1,5 @@
 LEXDDSD ; ISL Display Defaults - Single User Disp  ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 LEXSHOW ; Translate LEXSHOW
  D:$G(^LEXT(757.2,LEXAP,200,DUZ,2))'=""

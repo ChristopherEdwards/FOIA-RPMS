@@ -1,5 +1,5 @@
 ABME5REF ; IHS/ASDST/DMJ - 837 REF Segment 
- ;;2.6;IHS Third Party Billing;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**6,8,9**;NOV 12, 2009
  ;other payer provider info
  ;
 EP(X,Y,Z) ;EP
@@ -35,12 +35,16 @@ LOOP ;LOOP HERE
  I +$G(Z)'=0,$D(ABMP("PRV","S",Z)) S ABMR("REF",20)="1D"  ;supervising
  Q
 30 ;REF02 - Reference Secondary Identification
- I ABMEIC="EI" S ABMR("REF",30)=$P($G(^AUTTLOC(DUZ(2),0)),U,18)
+ ;I ABMEIC="EI" S ABMR("REF",30)=$P($G(^AUTTLOC(DUZ(2),0)),U,18)  ;abm*2.6*9
+ I ABMEIC="EI" D  ;abm*2.6*9
+ .I $P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,12)'="" S ABMR("REF",30)=$P($G(^AUTTLOC($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,12),0)),U,18)  ;abm*2.6*9
+ .I $G(ABMR("REF",30))="" S ABMR("REF",30)=$P($G(^AUTTLOC(DUZ(2),0)),U,18)  ;abm*2.6*9
  I ABMEIC="G4" S ABMR("REF",30)=$P(ABMB5,"^",8)
  I ABMEIC="9F" S ABMR("REF",30)=$P(ABMB5,"^",11)
  I ABMEIC="G1" S ABMR("REF",30)=$P(ABMB5,"^",12)
  I ABMEIC="Y4" S ABMR("REF",30)=$P(ABMB7,U,13)
- I ABMEIC="XZ" S ABMR("REF",30)=$P(ABMRV(ABMI,ABMJ,ABMK),U,2)
+ ;I ABMEIC="XZ" S ABMR("REF",30)=$P(ABMRV(ABMI,ABMJ,ABMK),U,2)  ;abm*2.6*9 HEAT63888
+ I ABMEIC="XZ" S ABMR("REF",30)=$P(ABMRV(ABMI,ABMJ,ABMK),U,13)  ;abm*2.6*9 HEAT63888
  I ABMEIC="SY"!(ABMEIC="1W") S ABMR("REF",30)=$P(ABMB7,U,26)
  I ABMEIC="BT" S ABMR("REF",30)=$P(ABMRV(ABMI,ABMJ,ABMK),U,37)  ;immun. batch#
  I ABMEIC="6R" S ABMR("REF",30)=$P($G(ABMRV(ABMI,ABMJ,ABMK)),U,38)  ;line item control number

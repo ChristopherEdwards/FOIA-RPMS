@@ -1,8 +1,9 @@
 SDPPDIS2 ;ALB/CAW - Patient Profile - Disposition (con't) ; 5/12/92
- ;;5.3;Scheduling;**6**;Aug 13, 1993
+ ;;5.3;Scheduling;**6,386,1015**;Aug 13, 1993;Build 21
  ;
  ;
 NEED ; Need Related to Occupation and Need Related to Accident
+ ;D ^sdppdis2 Q
  S X="",X=$$SETSTR^VALM1("Need Rel. to Occ.:",X,1,18)
  S SDYN=$S($P(SDDIS(2),U)="N":"NO",$P(SDDIS(2),U)="Y":"YES",1:"UNKNOWN")
  S X=$$SETSTR^VALM1(SDYN,X,SDFST,SDLEN)
@@ -36,7 +37,7 @@ WORKN ; Workmans Comp. Number and Injury Parties Insurance
  .S X=$$SETSTR^VALM1($P(SDDIS(2),U,3),X,SDFST,SDLEN)
  I $P(SDDIS(2),U,4)="Y",$P(SDDIS(2),U,6)'="" D
  .S X=$$SETSTR^VALM1("Inj. Parties Ins.:",X,41,18)
- .S X=$$SETSTR^VALM1($P($G(^DIC(36,+$P(SDDIS(2),U,6),0)),U),X,SDSEC,SDLEN)
+ .S X=$$SETSTR^VALM1("UNSUPPORTED",X,SDSEC,SDLEN)
  D:X'="" SET^SDPPDIS1(X)
 ATTN ; Attorney Info and Filed Against Party
  S X=""

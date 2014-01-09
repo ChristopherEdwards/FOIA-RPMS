@@ -1,5 +1,5 @@
 SCMCBK ;ALB/SCK - Broker Utilities for multiple patient assignments; 4/8/96 [1/8/99 7:53am]
- ;;5.3;Scheduling;**41,51,148,157,177,205**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,51,148,157,177,205,1015**;AUG 13, 1993;Build 21
  ;
  Q
  ;

@@ -1,9 +1,10 @@
 BIREPD4 ;IHS/CMI/MWR - REPORT, ADOLESCENT RATES; AUG 10,2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW ADOLESCENT IMMUNIZATION RATES REPORT, WRITE HEADERS, ETC.
  ;;  PATCH 1: Fix to count only one Flu dose per season; do not affect
  ;;           other Vaccine Groups.  CHECKSET+158
+ ;;  PATCH 3: Include new "1-Td 1-Men 3-HPV" lines. CHKSET+215
  ;
  ;
  ;----------
@@ -251,7 +252,24 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP,BITMP) ;EP
  .Q:'$D(BIHX(16,1,A))
  .D COMBO("8|1^16|1",A,.BITMP,BIAGE)
  .;---> Store for Patient Report Roster (complete 11).
+ .;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ .;---> 11 no longer complete.  Now 113, see immediately below.
+ .;S BIVAL=2
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Include new "1-Td 1-Men 3-HPV" lines, combined as well as sex specific.
+ ;---> 1-Td_B, 1-MEN, 3-HPV (because HPV include BISEX).
+ F K=1:1 S A=$P(BIAGRPS,",",K) Q:'A  D
+ .Q:'$D(BIHX(8,1,A))
+ .Q:'$D(BIHX(16,1,A))
+ .Q:'$D(BIHX(17,3,A))
+ .;---> Store both combined and sex specific lines.
+ .D COMBO("8|1^16|1^17|3",A,.BITMP,BIAGE)
+ .D COMBO("8|1^16|1^17|3",A_BISEX,.BITMP,BIAGE,BISEX)
+ .;---> Store for Patient Report Roster (complete 113).
  .S BIVAL=2
+ ;**********
+ ;
  ;
  ;---> 1-Td_B, 3-HEPB, 2-MMR, 1-MEN, 2-VAR, 3-HPV (because HPV include BISEX).
  F K=1:1 S A=$P(BIAGRPS,",",K) Q:'A  D

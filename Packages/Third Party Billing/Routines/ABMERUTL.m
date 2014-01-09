@@ -1,5 +1,5 @@
 ABMERUTL ; IHS/ASDST/DMJ - EMC UTILITIES ;      
- ;;2.6;IHS 3P BILLING SYSTEM;**3,6**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,6,9**;NOV 12, 2009
  ;Original;DMJ;09/21/95 12:47 PM
  ;
  ; IHS/SD/SDR - v2.5 p8 - IM14799
@@ -153,7 +153,8 @@ RCID(X) ;EP - Receiver ID (X=Insurer IEN)
  .I $G(ABMP("EXP"))>20 S Y="C"_Y
  I Y=4001 D  Q Y
  .S Y="04001"
- .I $G(ABMP("VTYP"))=999!($G(ABMP("BTYP"))=831&($G(ABMP("EXP"))=22)) S Y="04402"  ;ASC
+ .;I $G(ABMP("VTYP"))=999!($G(ABMP("BTYP"))=831&($G(ABMP("EXP"))=22)) S Y="04402" ;ASC  ;abm*2.6*9 IHS/SD/AML 3/9/2012
+ .I $G(ABMP("VTYP"))=999!($G(ABMP("BTYP"))=831&($G(ABMP("EXP"))=22))!($G(ABMP("BTYP"))=831&($G(ABMP("EXP"))=32)) S Y="04402"  ;abm*2.6*9 IHS/SD/AML 3/9/2012 Mods for DSU
  Q Y
 ENVY(X,Y)          ;EP - Envoy Payer ID (X=Insurer EIN,Y=Visit Type)
  N ABM,I,Z

@@ -1,5 +1,5 @@
-PSORXPR1 ;BHAM ISC/SAB -  CONTINUATION OF VIEW PRESCRIPTION ;08-Jan-2004 08:56;PLS
- ;;7.0;OUTPATIENT PHARMACY;;DEC 1997
+PSORXPR1 ;BHAM ISC/SAB -  CONTINUATION OF VIEW PRESCRIPTION ;29-May-2012 15:13;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**258,1015**;DEC 1997;Build 62
  ; Modified - IHS/CIA/PLS - 01/08/04 - Lines RF+1 and RF+9
 RF D HEAD F N=0:0 S N=$O(^PSRX(DA,1,N)) Q:'N  S P1=^(N,0) D  Q:$D(DIRUT)
  .; IHS/CIA/PLS - 01/08/04 - Setup IHS variables
@@ -23,7 +23,7 @@ PAR I $O(^PSRX(DA,"P",0)) D CON:$Y>20 Q:$D(DIRUT)  D PARL S N=0 F  S N=$O(^PSRX(
  .W:$P(P1,"^",3)'="" !?5,"REMARKS: ",$P(P1,"^",3)
  Q
 HLD ;prints hold info
- S DTT=$P(^PSRX(DA,"H"),"^",3) D DAT S HLDR=$P(^DD(52,99,0),"^",3),HLDR=$S($P(^PSRX(DA,"H"),"^")'>6:$P(HLDR,";",$P(^PSRX(DA,"H"),"^")),1:$P(HLDR,";",7)),HLDR=$P(HLDR,":",2)
+ S DTT=$P(^PSRX(DA,"H"),"^",3) D DAT S HLDR=$P(^DD(52,99,0),"^",3),HLDR=$S($P(^PSRX(DA,"H"),"^")'>8:$P(HLDR,";",$P(^PSRX(DA,"H"),"^")),1:$P(HLDR,";",9)),HLDR=$P(HLDR,":",2)
  W !!,"HOLD REASON: "_HLDR,?60,"HOLD DATE: "_DAT W:$P(^PSRX(DA,"H"),"^",2)]"" !,"HOLD COMMENTS: "_$P(^PSRX(DA,"H"),"^",2)
  K DAT,DTT,HLDR
  Q

@@ -1,5 +1,5 @@
 DG311RPT ;ALB/JJG-Patch DG*5.3*311 Means Test Update Report ; 07 AUG 2000
- ;;5.3;Registration;**311**;Aug 13, 1993
+ ;;5.3;Registration;**311,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will produce a report that displays those Veterans who
  ; had their records in the ANNUAL MEANS TEST file (#408.31) corrected

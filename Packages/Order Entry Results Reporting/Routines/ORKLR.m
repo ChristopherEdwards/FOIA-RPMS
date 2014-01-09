@@ -1,5 +1,5 @@
 ORKLR ; slc/CLA - Order checking support procedure for lab orders ;7/23/96  14:31
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,51,92,105**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,51,92,105,243**;Dec 17, 1997;Build 242
  Q
 DUP(ORKLR,OI,ORDFN,NEWORDT,SPECIMEN) ; return duplicate lab order info
  N ORL,DDT,ODT,ORN,ORNC,LRID,DGIEN,ORPANEL
@@ -113,28 +113,24 @@ CLOZLABS(ORDFN,ORDAYS,ORCLOZ) ;extrinsic function rtns "1" if clozapine ordered 
  K LAB
  D EN^PSODRG(ORCLOZ)  ;pharmacy api rtns Lab file ptrs for WBC, ANC
  Q:$G(LAB("NOT"))=0 "0^"  ;medication is not clozapine
- Q:$G(LAB("BAD TEST"))=0 "0^"  ;one or both lab tests aren't mapped
- S WBC=$G(LAB("WBC")),WBCSPEC=$P(WBC,U,2),WBC=$P(WBC,U)
- S ANC=$G(LAB("ANC")),ANCSPEC=$P(ANC,U,2),ANC=$P(ANC,U)
+ ;Q:$G(LAB("BAD TEST"))=0 "0^"  ;one or both lab tests aren't mapped
+ ;S WBC=$G(LAB("WBC")),WBCSPEC=$P(WBC,U,2),WBC=$P(WBC,U)
+ ;S ANC=$G(LAB("ANC")),ANCSPEC=$P(ANC,U,2),ANC=$P(ANC,U)
  ;
- S WBCRSLT=$$LOCL^ORQQLR1(ORDFN,WBC,WBCSPEC)
- S WBCCDT=$P(WBCRSLT,U,7)
- S WBC=$P(WBCRSLT,U,3)
- I $L(WBC) D
- .S WBCRSLT="WBC: "_WBC_" ["_$$FMTE^XLFDT(WBCCDT,"""2P""")_"]"
- E  S WBCRSLT="WBC: no results found"
- I $L(WBC),(WBCCDT>BDT) S WBCF=1
- S:$G(WBCF)'=1 WBCF=0
- ;
- S ANCRSLT=$$LOCL^ORQQLR1(ORDFN,ANC,ANCSPEC)
- S ANCCDT=$P(ANCRSLT,U,7)
- S ANC=$P(ANCRSLT,U,3)
- I $L(ANC),(ANCCDT=WBCCDT) D  ;ANC from same collection d/t as WBC
- .S ANC=(WBC*ANC)/100
- .S ANCRSLT="ANC: "_ANC_" ["_$$FMTE^XLFDT(ANCCDT,"""2P""")_"]"
- E  S ANCRSLT="ANC: no results found"
- I $L(ANC),(ANCCDT>BDT) S ANCF=1
- S:$G(ANCF)'=1 ANCF=0
+ K ^TMP($J,"PSO")
+ D CL1^YSCLTST2(ORDFN,ORDAYS)
+ I $D(^TMP($J,"PSO")) D
+ .N INVDT
+ .S INVDT=$O(^TMP($J,"PSO",0))
+ .Q:'INVDT
+ .S WBC=$P($G(^TMP($J,"PSO",INVDT)),U)/1000
+ .S ANC=$P($G(^TMP($J,"PSO",INVDT)),U,2)/1000
+ .I WBC S WBCF=1
+ .I ANC S ANCF=1
+ .I $L(WBC)=1 S WBC=WBC_".0"
+ .I $L(ANC)=1 S ANC=ANC_".0"
+ .S WBCRSLT="WBC "_WBC_" ["_$$FMTE^XLFDT(9999999-INVDT,"""2P""")_"]"
+ .S ANCRSLT="ANC "_ANC_" ["_$$FMTE^XLFDT(9999999-INVDT,"""2P""")_"]"
  ;
  K LAB
- Q "1^"_WBCF_";"_WBC_"^"_ANCF_";"_ANC_"^"_WBCRSLT_"  "_ANCRSLT
+ Q "1^"_$G(WBCF,0)_";"_$G(WBC)_"^"_$G(ANCF,0)_";"_$G(ANC)_"^"_$G(WBCRSLT)_"  "_$G(ANCRSLT)

@@ -1,5 +1,5 @@
 SDUL4 ;ALB/MJK - Screen Malipulation Utilities ; 12/1/91
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 NEXT ; -- display next screen (NX)
  N SDULSTO,I,LN

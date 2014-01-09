@@ -1,5 +1,5 @@
 DGMTSC1 ;ALB/RMO/CAW - Means Test Screen Marital Status/Dependents ;24 JAN 1992 7:40 am
- ;;5.3;Registration;**45**;Aug 13, 1993
+ ;;5.3;Registration;**45,624,1015**;Aug 13, 1993;Build 21
  ;
  ; Input  -- DFN      Patient IEN
  ;           DGMTACT  Means Test Action
@@ -15,6 +15,7 @@ EN ;Entry point for marital status/dependent screen
 DIS ;Display marital status/dependent information
  N DGDEP,DGINR,DGREL,DGVIR0,X
  D ALL^DGMTU21(DFN,"CS",DGMTDT,"PR",$S($G(DGMTI):DGMTI,1:""))
+ D GROSS^DGMTSCU4(DGVINI,DFN,DGMTDT,DGVIRI)
  D EN^DGDEP,DEP
 DISQ Q
  ;
@@ -31,4 +32,7 @@ DEP ;Update number of dependent children
  N DA,DGDEP,DGREL,DIE,DR
  D GETREL^DGMTU11(DFN,"C",$$LYR^DGMTSCU1(DGMTDT),$S($G(DGMTI):DGMTI,1:""))
  S DA=DGVIRI,DIE="^DGMT(408.22,",DR=".08////^S X="_$S(DGDEP:1,1:0)_";.13///"_$S(DGDEP:DGDEP,1:"@") D ^DIE
+ D:+$G(DGMTDPCH)  S DGMTDPCH=0
+ .S DGMTDPCH=$$ADJUST^DGMTSCU4(DGVINI,DFN,DGMTDT,DGVIRI)
+ .Q
  Q

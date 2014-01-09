@@ -1,5 +1,5 @@
-OREVNTX ; SLC/MKB - Event delayed orders RPC's ; 08 May 2002  2:12 PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141**;Dec 17, 1997
+OREVNTX ; SLC/MKB - Event delayed orders RPC's ; 5/4/07 11:34am
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,243**;Dec 17, 1997;Build 242
  ;
 PAT(ORY,DFN)    ; -- Returns currently delayed events for patient DFN
  N EVT,CNT,X,Y S DFN=+$G(DFN),(EVT,CNT)=0
@@ -196,6 +196,7 @@ LAPSED(PTEVT)   ; -- Ck if PTEVT has lapsed, if so lapse all orders
  S DAYS=+$P($G(^ORD(100.5,EVT,0)),U,6) I DAYS<1 G LPQ ;doesn't lapse
  I ENTERED>$$FMADD^XLFDT(DT,(0-DAYS)) G LPQ ;not lapsed yet
  D LP1(PTEVT) S Y=1 ;lapse orders, event
+ N J S J=0 F  S J=$O(^ORE(100.2,"DAD",PTEVT,J)) Q:'J  D LP1(J)
 LPQ Q Y
  ;
 LP1(PTEVT) ; -- Lapse orders, event PTEVT
@@ -204,6 +205,7 @@ LP1(PTEVT) ; -- Lapse orders, event PTEVT
  S IFN=0 F  S IFN=$O(^OR(100,"AEVNT",PAT,PTEVT,IFN)) Q:IFN<1  D
  . S STS=$P($G(^OR(100,IFN,3)),U,3) I (STS=10)!(STS=11)!(IFN=+$P(X0,U,4)) D
  .. D STATUS^ORCSAVE2(IFN,14)
+ .. D ALPS^ORCSAVE2(IFN,1,"DELAYED ORDER")
  .. S $P(^OR(100,IFN,8,1,0),U,15)="" D:$P(^(0),U,4)=2 SIGN^ORCSAVE2(IFN,"","",5,1)
  D DONE(PTEVT),ACTLOG(PTEVT,"LP")
  Q

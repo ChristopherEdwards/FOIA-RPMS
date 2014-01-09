@@ -1,5 +1,5 @@
 DGPWB ;ALB/CAW/MLR - Patient Wristband Print ; 9/27/00 3:40pm
- ;;5.3;Registration;**62,82,287,1004,1009**;Aug 13, 1993
+ ;;5.3;Registration;**62,82,287,1004,1009,1015**;Aug 13, 1993;Build 21
  ;  -**287** Substituting SS# when Primary long ID missing in .36
  ;IHS/OIT/LJF 08/31/2005 PATCH 1004 use chart # instead of SSN for patient ID
  ;cmi/anch/maw 02/18/2008 PATCH 1009 requirement 3 in SET

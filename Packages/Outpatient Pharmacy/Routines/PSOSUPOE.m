@@ -1,5 +1,5 @@
-PSOSUPOE ;BIR/RTR-Suspense pull via Listman ;3/1/96
- ;;7.0;OUTPATIENT PHARMACY;**8,21,27,34,130**;DEC 1997
+PSOSUPOE ;BIR/RTR - Suspense pull via Listman ;3/1/96
+ ;;7.0;OUTPATIENT PHARMACY;**8,21,27,34,130,148,281,287,289**;DEC 1997;Build 107
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
 SEL I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
  N PSOGETF,PSOGET,PSOGETFN,ORD,ORN,MW,PDUZ,PSLST,PSOSQ,PSOSQRTE,PSOSQMTH,PSPOP,PSOX1,PSOX2,RXLTOP,RXREC,SFN,SORD,SORN,VALMCNT
@@ -23,17 +23,26 @@ BEGQ Q:'$D(^PSRX(+$G(RXREC),0))
  K PSOMSG I $P($G(^PSRX(RXREC,"STA")),"^")'=5 W !!,"Rx# ",$P(^PSRX(RXREC,0),"^")," is not on Suspense!" D DIR,ULRX Q
  S SFN=$O(^PS(52.5,"B",RXREC,0)) I 'SFN D DIR,ULRX Q
  S PDUZ=DUZ I +$G(^PS(52.5,SFN,"P")) W !,">>> Rx #",$P(^PSRX(+$P(^(0),"^"),0),"^")," ALREADY PRINTED FROM SUSPENSE.",!,?5,"USE THE REPRINT OPTION TO REPRINT LABEL." D DIR,ULRX Q
- I +$P($G(^PSRX(RXREC,2)),"^",6)<DT,+$P($G(^("STA")),"^")<11 D  S DIE=52,DA=RXREC,DR="100///"_11 D ^DIE S DA=SFN,DIK="^PS(52.5," D ^DIK K DIE,DA,DIK W !,"Rx # "_$P(^PSRX(RXREC,0),"^")_" has expired!" D DIR,ULRX Q
+ I +$P($G(^PSRX(RXREC,2)),"^",6)<DT,+$P($G(^("STA")),"^")<11 D  S DIE=52,DA=RXREC,DR="100///11" D ^DIE S DA=SFN,DIK="^PS(52.5," D ^DIK K DIE,DA,DIK W !,"Rx # "_$P(^PSRX(RXREC,0),"^")_" has expired!" D DIR,ULRX Q
  .N PSCOU,AAA,VVV,QQQ,PSOPRT,PSOEXPI D EX^PSOSUTL
  I $D(RXRP(RXREC)) W !!,"A reprint has already been requested for Rx # ",$P($G(^PSRX(RXREC,0)),"^") D DIR,ULRX Q
  I $D(RXPR(RXREC)) W !!,"A partial has already been requested for Rx # ",$P($G(^PSRX(RXREC,0)),"^") D DIR,ULRX Q
  S PSPOP=0 I $G(PSODIV),$P($G(^PS(52.5,SFN,0)),"^",6)'=$G(PSOSITE) D CKDIV I $G(PSPOP) D DIR,ULRX Q
- S:$P(^PS(52.5,SFN,0),"^",5) RXPR(RXREC)=$P(^(0),"^",5) S:$P(^PS(52.5,SFN,0),"^",12) RXRP(RXREC)=1 S RXFL(RXREC)=$P($G(^PS(52.5,SFN,0)),"^",13) S RXRS(RXREC)=$G(PSODFN),RXLTOP=1
+ S:$P(^PS(52.5,SFN,0),"^",5) RXPR(RXREC)=$P(^(0),"^",5) S:$P(^PS(52.5,SFN,0),"^",12) RXRP(RXREC)=1
+ S RXFL(RXREC)=$P($G(^PS(52.5,SFN,0)),"^",13),RXRS(RXREC)=$G(PSODFN),RXLTOP=1
  S RXRS(RXREC)=$G(RXRS(RXREC))_"^"_$S($P($G(^PS(52.5,SFN,0)),"^",4)="W":"W",1:"M")_"^"_$P($G(^PSRX(RXREC,"MP")),"^") S PSOGET="M" D GETMW
- S RXRS(RXREC)=$G(RXRS(RXREC))_"^"_$G(PSOGETF)_"^"_$G(PSOGETFN)_"^"_$S($G(PSOGET)="W":"W",1:"M") K PSOGET,PSOGETF
+ S RXRS(RXREC)=$G(RXRS(RXREC))_"^"_$G(PSOGETF)_"^"_$G(PSOGETFN)_"^"_$S($G(PSOGET)="W":"W",1:"M")
  S $P(^PS(52.5,SFN,0),"^",4)=$G(PSOSQRTE) S MW=$G(PSOSQRTE) N RR,RFCNT D MAILS^PSOSUPAT I $D(PSOSQMTH) S $P(^PSRX(RXREC,"MP"),"^")=$G(PSOSQMTH)
  S PSOSQ=1
- D ULRX
+ ;
+ ; - Submitting Rx to ECME for 3rd Party Billing
+ I '$D(RXPR(RXREC)) D
+ . N ACTION,RFL S RFL=$G(RXFL(RXREC)) I RFL="" S RFL=$$LSTRFL^PSOBPSU1(RXREC)
+ . D ECMESND^PSOBPSU1(RXREC,RFL,,"PP")
+ . I $$FIND^PSOREJUT(RXREC,RFL) D
+ . . S ACTION=$$HDLG^PSOREJU1(RXREC,RFL,"79,88","PP","IOQ","Q")
+ ;
+ D ULRX K PSOGET,PSOGETF
  Q
 WIND ;
  N RRT,RRTT,XXXX,JJJJ,PSINTRX,RTETEST,PSOPSO,SSSS
@@ -59,13 +68,21 @@ BBADD ;
  I $L(BBRX(PSOX2))+$L(RXREC)<220 S BBRX(PSOX2)=BBRX(PSOX2)_RXREC_"," Q
  S BBRX(PSOX2+1)=RXREC_","
  Q
+TRIC(PSOTRX) ;
+ S PSOTRF=$$LSTRFL^PSOBPSU1(PSOTRX)
+ S PSOTRIC="",PSOTRIC=$$TRIC^PSOREJP1(PSOTRX,PSOTRF,.PSOTRIC)
+ S ESTAT=$P($$STATUS^PSOBPSUT(PSOTRX,PSOTRF),"^")
+ I PSOTRIC S EACTION=$S(ESTAT["PAYABLE":1,ESTAT["Inactive ECME Tricare":1,ESTAT="":1,1:0)
+ Q
 PPLADD ;
- N SZZ,SPSOX1,SPSOX2,LSFN
+ N SZZ,SPSOX1,SPSOX2,LSFN,PSOTRF,PSOTRIC,PSOTRX,EACTION,ESTAT
  I $G(PPL)'="",$E(PPL,$L(PPL))'="," S PPL=PPL_","
  F SZZ=0:0 S SZZ=$O(RXRS(SZZ)) Q:'SZZ  D
  .S LSFN=$O(^PS(52.5,"B",SZZ,0))
  .Q:'$G(LSFN)
  .Q:$G(^PS(52.5,LSFN,"P"))
+ .D TRIC(SZZ)
+ .I $G(PSOTRIC) Q:'$G(EACTION)  ;no labels for "In Progress" Tricare Rx's.
  .I $G(PPL)="" S PPL=SZZ_"," Q
  .I $L(PPL)+$L(SZZ)<220 S PPL=PPL_SZZ_"," Q
  .I $G(PSORX("PSOL",2))']"" S PSORX("PSOL",2)=SZZ_"," Q
@@ -84,8 +101,12 @@ SELONE ;Pull one Rx through Listman
  I +PSOLST(ORN)'=52 S VALMBCK="" Q
  I +PSOLST(ORN)=52,$P($G(^PSRX($P(PSOLST(ORN),"^",2),"STA")),"^")'=5 S VALMSG="Rx is not on Suspense!",VALMBCK="" Q
  I +PSOLST(ORN)=52,$D(RXRS($P(PSOLST(ORN),"^",2))) S VALMSG="Pull early has already been requested!",VALMBCK="" Q
+ N EHOLDQ,ESIEN,ERXIEN S ERXIEN=$P(PSOLST(ORN),"^",2),ESIEN="",ESIEN=$O(^PS(52.5,"B",ERXIEN,ESIEN))
+ I $G(ESIEN),$$GET1^DIQ(52.5,ESIEN,10)'="" D EHOLD Q:$G(EHOLDQ)
+ K EHOLDQ,ESIEN,ERXIEN
  D SELQ I $G(PULLONE)=2 S VALMSG="Rx# "_$P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^")_" not pulled from suspense!" Q
- I +PSOLST(ORN)=52 S RXREC=$P(PSOLST(ORN),"^",2) D BEGQ S VALMSG="Rx# "_$P($G(^PSRX(+$G(RXREC),0)),"^")_$S($G(PSOSQ):" pulled",1:" not pulled")_" from Suspense!"
+ I +PSOLST(ORN)=52 S RXREC=$P(PSOLST(ORN),"^",2)
+ D BEGQ S VALMSG="Rx# "_$P($G(^PSRX(+$G(RXREC),0)),"^")_$S($G(PSOSQ):" pulled",1:" not pulled")_" from Suspense!"
  S VALMBCK="R"
  Q
 RESET ;
@@ -114,3 +135,14 @@ ULRX ;
  I '$G(RXREC) Q
  D PSOUL^PSSLOCK(RXREC)
  Q
+EHOLD ;
+ Q:'$G(ERXIEN)
+ Q:$$GET1^DIQ(52,ERXIEN,86)=""
+ D FULL^VALM1
+ W !,"This is an ePharmacy billable fill which is Suspended until "_$$GET1^DIQ(52.5,ESIEN,10)_", based"
+ W !,"on the 3/4 Days rule.",!
+ K DIR S EHOLDQ=0,DIR(0)="YA",DIR("A")="Do you wish to continue? "
+ D ^DIR I $D(DIRUT)!('Y) S EHOLDQ=1 K DIR
+ S VALMSG="No action taken.",VALMBCK="R"
+ Q
+ ;

@@ -1,5 +1,5 @@
 DGMTCOM ;ALB/CAW - Copay Exemption Test Main Menu Driver ;7 JAN 1992 8:00 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point to copay exemption test menu driver
  D HOME^%ZIS G:$D(^DOPT("DGMTCOP",6)) A

@@ -1,5 +1,5 @@
-BEHOARMU ;MSC/IND/MGH - ART Enhancements for meaningful use ;14-Mar-2011 18:23;DU
- ;;1.1;BEH COMPONENTS;**045004**;Sep 18, 2007;Build 1
+BEHOARMU ;MSC/IND/MGH - ART Enhancements for meaningful use ;06-Jul-2012 08:29;DU
+ ;;1.1;BEH COMPONENTS;**045004,045006**;Sep 18, 2007;Build 1
  ;=================================================================
  ;Return the values that can be selected for the chosen field
  ;Inp=file^field
@@ -107,7 +107,10 @@ REACT(DATA,IEN,DFN,VAL) ;reactivate allergy
  D FILE^DIE("","FDA","ERR")
  S DATA=IEN
  D FIREEVT^BEHOART(DFN,1,IEN)
- D SNDALR^BEHOART(DATA,1)
+ ;Patch 11 changed to autosign
+ S CANVER=$$HASKEY^BEHOUSCX("GMRA-ALLERGY VERIFY")
+ D:$$CANSIGN^BEHOART(DATA) SIGN^BEHOART(.SIG,DATA,CANVER)  ;AUTOSIGN
+ ;D SNDALR^BEHOART(DATA,1)
  K FDA,ERR
  Q
  ;

@@ -1,7 +1,7 @@
-GMRCGUIC ;SLC/DCM,JFR - GUI actions for editing consults; 1/17/02 14:14
- ;;3.0;CONSULT/REQUEST TRACKING;**4,12,20,15,22**;DEC 27, 1997
+GMRCGUIC ;SLC/DCM,JFR - GUI actions for editing consults; 3/13/03 12:21
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,12,20,15,22,33**;DEC 27, 1997
  ;
- ; This routine invokes IA #2398,#2698,#2713,#2960
+ ; This routine invokes IA #2398,#2698,#2713,#2960,#3991
  ;
 RFQ(GMRCO,MSG,ND,NOW) ;File Reason For Request field 20
  N GMRCND,GMRCNT
@@ -96,6 +96,7 @@ SEND(GMRCO,GLOBAL) ;Get data fields to send to GUI for editing consult
  S GMRCREQ=$P(GMRC(0),"^",17)
  S GMRCDIAG=$G(^GMR(123,+GMRCO,30)) I $L($G(^(30.1))) D
  . S GMRCDIAG=GMRCDIAG_U_$G(^GMR(123,+GMRCO,30.1))
+ . I '$$STATCHK^ICDAPIU($P(GMRCDIAG,U,2),DT) S GMRCDIAG=GMRCDIAG_U_1
  S GMRCPROV=$S($P(^GMR(123,+GMRCO,0),U,14):$$GET1^DIQ(200,+$P(^(0),U,14),.01),1:"")
  S @GLOBAL@(ND,0)="~SERVICE",ND=ND+1
  I +GMRCSS S GMRCSX=$P(^GMR(123.5,GMRCSS,0),"^",1),@GLOBAL@(ND,0)="d"_GMRCSX_"^"_GMRCSS_"^",ND=ND+1,GMRCSX=""

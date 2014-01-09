@@ -1,5 +1,5 @@
 DGPMVPU ;ALB/CAW - Update Provider(s) from OE/RR ;4/19/95
- ;;5.3;Registration;**57**;Aug 13, 1993
+ ;;5.3;Registration;**57,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Queue provider update to avoid problems with recursive calls
  S ZTSAVE("XQORMSG(")="",ZTIO="",ZTDTH=$$NOW^XLFDT(),ZTRTN="DQ^DGPMVPU"

@@ -1,5 +1,5 @@
 ABME5LIN ; IHS/SD/SDR - 837 LIN Segment 
- ;;2.6;IHS Third Party Billing System;**6**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,9**;NOV 12, 2009
  ;Transaction Set Header
  ;
 EP ;EP - START HERE
@@ -25,7 +25,8 @@ LOOP ;LOOP HERE
  S ABMR("LIN",30)="N4"
  Q
 40 ;LIN03 - Product/Service ID
- S ABMR("LIN",40)=$P(ABMRV(ABMI,ABMJ,ABMK),U,15)
+ S ABMR("LIN",40)=$P(ABMRV(ABMI,ABMJ,ABMK),U,9)  ;abm*2.6*9 HEAT63888
+ S ABMR("LIN",40)=$TR($P($P(ABMRV(ABMI,ABMJ,ABMK),U,9)," "),"-")  ;abm*2.6*9 HEAT63888
  Q
 50 ;LIN04 - Product Service ID Qualifier - NOT USED
  S ABMR("LIN",50)=""

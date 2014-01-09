@@ -1,7 +1,8 @@
 PSSJSV ;BIR/CML3/WRT-SCHEDULE VALIDATION ;06/24/96
- ;;1.0;PHARMACY DATA MANAGEMENT;**20,38,56**;9/30/97
+ ;;1.0;PHARMACY DATA MANAGEMENT;**20,38,56,59,110,121**;9/30/97;Build 1
  ;
  ; Reference to ^PS(51.15 is supported by DBIA #2132
+ ; Reference to $$UP^XLFSTR(P1) is supported by DBIA #10104
  ;
 EN ;
  S X=PSJX,(PSJAT,PSJM,PSJTS,PSJY,PSJAX)="" I $S(X["""":1,$A(X)=45:1,X'?.ANP:1,$L(X," ")>2:1,$L(X)>70:1,$L(X)<1:1,X["P RN":1,1:X["PR N") K PSJX,X Q
@@ -62,8 +63,9 @@ ENVSST ;  shift start/stop times
  K X(1) Q
  ;
 ENFQD ; frequency default
- N X1,X2,Z S Z=$S($D(^PS(51.1,DA,0)):$P(^(0),"^"),1:""),X="" Q:Z=""
- I $E(Z,1,2)="AD" Q
+ N X1,X2,Z S Z=$S($D(^PS(51.1,DA,0)):$P(^(0),"^"),1:""),X=""
+ S X=$P(Z,"^",3) I Z]"" Q
+ S Z=DA I $E(Z,1,2)="AD" Q
  I $E(Z,1,3)="BID"!($E(Z,1,3)="TID")!($E(Z,1,3)="QID") S X=1440/$F("BTQ",$E(Z)) Q
  E  S:$E(Z)="Q" Z=$E(Z,2,99) S:'Z Z="1"_Z S X1=+Z,Z=$P(Z,+Z,2),X2=0 S:$E(Z)="X" X2=X1,Z=$E(Z,2,99) I 'X2,$E(Z)="O" S X2=.5,Z=$E(Z,2,99)
  S X=$S(Z["'":1,(Z["D"&(Z'["AD"))!(Z["AM")!(Z["PM")!(Z["HS"&(Z'["THS")):1440,Z["H"&(Z'["TH"):60,Z["AC"!(Z["PC"):480,Z["W":10080,Z["M":40320,1:"") Q:'X  S:X2 X=X\X2 S:'X2 X=X*X1 Q
@@ -74,3 +76,23 @@ ENDNV ; day of the week name
 DNVX S Z2=1,Z4="-" I X'["-",X?.E1P.E F Z1=1:1:$L(X) I $E(X,Z1)?1P S Z4=$E(X,Z1) Q
  F Z1=1:1:$L(X,Z4) Q:'Z2  S Z2=0 I $L($P(X,Z4,Z1))>1 F Z3="MONDAYS","TUESDAYS","WEDNESDAYS","THURSDAYS","FRIDAYS","SATURDAYS","SUNDAYS" I $P(Z3,$P(X,Z4,Z1))="" S Z2=1 Q
  K:'Z2 X S:Z2 X="D" Q
+ENPSJ ;validate schedule names for PSJ package
+ N A,B,I
+ S X=$$UP^XLFSTR(X)
+ I $G(PSJPP)'="PSJ" Q
+ S A=$TR(X,".","") I A="OTHER" K X Q
+ F I=1:1:$L(A," ") S B=$P(A," ",I) I B="QD"!(B="QOD")!(B="HS")!(B="TIW") K X
+ Q
+ENPSJT ; Validate one-time PRN conflict
+ N A,B
+ S A=$$GET1^DIQ(51.1,DA,.01),B=""
+ I A["PRN",X'="P" D
+ . S B="Conflict: Schedule Name contains PRN but selected Schedule "
+ . S B=B_"Type is not PRN."
+ . K X
+ I A'["PRN",X="P" D
+ . S B="Conflict: Schedule Name does not contain PRN but selected "
+ . S B=B_"Schedule Type is PRN."
+ . K X
+ I $L(B)>0 W !,B
+ Q

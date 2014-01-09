@@ -1,5 +1,5 @@
-ORMEVNT2 ;SLC/DAN Additional event delayed order utilities ;7/22/03  11:14
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**177,186**;Dec 17, 1997
+ORMEVNT2 ;SLC/DAN Additional event delayed order utilities ;3/31/04  09:12
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**177,186,195**;Dec 17, 1997
  ;
  ;DBIA SECTION
  ;10063 - %ZTLOAD
@@ -42,4 +42,22 @@ TIMERDQ ;Check if patient readmitted, if not, auto-dc orders that should have au
 DEL K ^XTMP("ORDCOBS-"_$G(DFN)) ;Inpatient meds waiting for reinstatement are no longer needed so XTMP can be deleted
  D AUTODC^ORMEVNT1(TORY,$P($G(DGPMA),U)) ;Auto-dc orders from observation
  I '$D(^ORE(100.2,$G(OREVENT),10)),$G(OREVENT) D ACTLOG^OREVNTX(OREVENT,"NW","D",1),DONE^OREVNTX(OREVENT,,DGPMDA) ;186 Log event in 100.2 if not previously done
+ Q
+ ;
+DISCH ; -- Lapse/cancel outstanding events on discharge ;Section moved with 195
+ N X,ADM,EVT,ORP,X0,IFN,STS,X8,ORNOW,J,ORX,ORCH,DAD S ORNOW=+$E($$NOW^XLFDT,1,12) ;195
+ S X=$P(DGPMA,U,18),ADM=$S(X=12!(X=38):"",1:+$G(VAIP(13))),EVT=0
+ F  S EVT=+$O(^ORE(100.2,"AE",+ORVP,EVT)) Q:EVT<1  S ORP=+$O(^(EVT,0)) D
+ . I $G(^ORE(100.2,ORP,1)) K ^ORE(100.2,"AE",+ORVP,EVT,ORP) Q
+ . Q:$$LAPSED^OREVNTX(ORP)  I $$EMPTY^OREVNTX(ORP) D CANCEL^OREVNTX(ORP) Q
+ . I ADM,$P($G(^ORE(100.2,ORP,0)),U,3)'=ADM Q  ;ck adm if not death
+ . S X0=$G(^ORE(100.2,ORP,0)),ORX=ORP ;195
+ . S DAD=0 I $D(^ORE(100.2,"DAD",ORP)) S ORCH=0,DAD=ORP F  S ORCH=$O(^ORE(100.2,"DAD",ORP,ORCH)) Q:'+ORCH  S ORX=ORX_","_ORCH ;195
+ . F J=1:1:$L(ORX,",") S ORP=$P(ORX,",",J) S IFN=0 F  S IFN=$O(^OR(100,"AEVNT",ORVP,ORP,IFN)) Q:IFN<1  D  ;195
+ .. S STS=$P($G(^OR(100,IFN,3)),U,3) I (STS=10)!(IFN=+$P(X0,U,4)) D
+ ... D STATUS^ORCSAVE2(IFN,13) S X8=$G(^OR(100,IFN,8,1,0))
+ ... S:$P(X8,U,15) $P(^OR(100,IFN,8,1,0),U,15)=13
+ ... D:$P(X8,U,4)=2 SIGN^ORCSAVE2(IFN,"","",5,1)
+ ... S ^OR(100,IFN,6)=+$O(^ORD(100.02,"C","A",0))_U_U_ORNOW_U_+$O(^ORD(100.03,"C","ORDIS",0))_U_U_U_U_$G(OREVENT)
+ . S:$G(DAD) ORP=DAD D DONE^OREVNTX(ORP),ACTLOG^OREVNTX(ORP,"CA") ;195
  Q

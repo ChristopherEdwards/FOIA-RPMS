@@ -1,5 +1,5 @@
 SCAPMC15 ;ALB/REW - Team API's ; December 1, 1995
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;;1.0
 ACTMNM(SCTMNM,SCFIELDA,SCMAINA,SCEFF,SCERR) ; -- activate a team (add if need be)
  ; input:

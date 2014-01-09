@@ -1,7 +1,8 @@
 PSOTPCL ;BIRM/PDW-EDIT TPC INSTITUTION LETTERS
- ;;7.0;OUTPATIENT PHARMACY;**145**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**145,227**;DEC 1997
  Q
 EDIT ; Manual edit of institution letter information in 52.92
+ Q  ;placed out of order by patch PSO*7*227
  W @IOF
  W !,"                             Transitional Pharmacy Care"
  W !,"                       Edit Institution  Letter  Information"

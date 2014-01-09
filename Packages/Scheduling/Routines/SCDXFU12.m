@@ -1,5 +1,5 @@
 SCDXFU12 ;ALB/JRP - ACRP TRANSMISSION MANAGEMENT FILE UTILS;08-JUL-97
- ;;5.3;Scheduling;**128**;AUG 13, 1993
+ ;;5.3;Scheduling;**128,1013,1015**;AUG 13, 1993;Build 21
  ;
 PTR4MID(MID) ;Find entry in ACRP Transmission History file (#409.77) for
  ; a given HL7 Message Control ID

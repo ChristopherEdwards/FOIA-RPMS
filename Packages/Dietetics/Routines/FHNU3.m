@@ -1,5 +1,5 @@
 FHNU3 ; HISC/REL/NCA - Weekly Summary ;2/15/95  16:08 
- ;;5.0;Dietetics;**36**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  W:'($E(IOST,1,2)'="C-"&'PG) @IOF S PG=PG+1 I PG=1 D SITE^FH
  W !,"Station #: ",SITE(1),?43,"E N E R G Y / N U T R I E N T   S U M M A R Y",?124,"Page ",PG
  W !,"Station Name: ",SITE,?61,DTP,?110,"DRI: ",$P(^FH(112.2,RDA,0),U,1)

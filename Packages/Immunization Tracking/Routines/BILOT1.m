@@ -1,7 +1,8 @@
 BILOT1 ;IHS/CMI/MWR - EDIT LOT NUMBERS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT LOT NUMBER FIELDS.
+ ;   PATCH 2: Display number of Lots in list.  INIT+50
  ;
  ;
  ;----------
@@ -54,7 +55,13 @@ INIT ;EP
  ;---> Finish up Listmanager List Count.
  S VALMCNT=BILINE
  I VALMCNT>12 D
- .S VALMSG="Scroll down to view more. Type ?? for more actions."
+ .;
+ .;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ .;---> Display number of Lots in list.
+ .;S VALMSG="Scroll down to view more. Type ?? for more actions"
+ .N Y S Y=VALMCNT S:$G(BIINACT) Y=Y-1
+ .S VALMSG=Y_" Lots: Scroll down to view more, or type ??."
+ .;**********
  Q
  ;
  ;
@@ -82,10 +89,6 @@ LINE(BIIEN,BILINE,BIENT) ;EP
  ;---> Vaccine.
  S X=X_$$VNAME^BIUTL2($P(BI0,U,4))
  S X=$$PAD^BIUTL5(X,39,".")
- ;
- ;---> Manufacturer MVX.
- ;I $P(BI0,U,2) S X=X_$$MNAME^BIUTL2($P(BI0,U,2),1)
- ;S X=$$PAD^BIUTL5(X,36,".")
  ;
  ;---> Active/Inactive.
  S X=X_$S($P(BI0,U,3)=1:"Inactive",1:"Active")

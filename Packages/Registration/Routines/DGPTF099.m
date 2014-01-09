@@ -1,5 +1,5 @@
 DGPTF099 ;ALB/MTC - TRANSMIT DELETE PTF MASTER RECORD ; 22 FEB 91
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 EN D INIT G QUIT:DGOUT W !!
  S DIR(0)="Y",DIR("B")="NO",DIR("A")="Do you wish to send a free-form 099"
  D ^DIR K DIR G QUIT:$D(DTOUT)!($D(DUOUT))

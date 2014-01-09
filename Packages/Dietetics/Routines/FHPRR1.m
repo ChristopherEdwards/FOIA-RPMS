@@ -1,5 +1,5 @@
-FHPRR1 ; HISC/REL - Projected Usage ;3/6/95  16:07
- ;;5.0;Dietetics;**37**;Oct 11, 1995
+FHPRR1 ; HISC/REL/RVD - Projected Usage ;3/6/95  16:07
+ ;;5.5;DIETETICS;;Jan 28, 2005
  S FHP=$O(^FH(119.71,0)) I FHP'<1,$O(^FH(119.71,FHP))<1 G P1
 P0 R !!,"Select PRODUCTION FACILITY: ",X:DTIME G:'$T!("^"[X) KIL
  K DIC S DIC="^FH(119.71,",DIC(0)="EMQ" D ^DIC G:Y<1 P0 S FHP=+Y
@@ -30,7 +30,7 @@ F2 S Y=$J(S0*S1/100,0,0) Q:Y<1
 F3 S:'$D(^TMP($J,"P",DOW_K3,P0,C0,N0)) ^TMP($J,"P",DOW_K3,P0,C0,N0)=0 S ^(N0)=^(N0)+Y
  S:'$D(^TMP($J,"M",DOW_K3,C0,N0)) ^TMP($J,"M",DOW_K3,C0,N0)=0 S ^(N0)=^(N0)+Y Q
 DT ; Get From/To Dates
-D1 S %DT="AEFX",%DT("A")="Starting Date: " W ! D ^%DT Q:U[X!$D(DTOUT)  G:Y<1 D1 S SDT=+Y
+D1 S %DT="AEX",%DT("A")="Starting Date: " W ! D ^%DT Q:U[X!$D(DTOUT)  G:Y<1 D1 S SDT=+Y
 D2 S %DT="AEFX",%DT("A")=" Ending Date: " D ^%DT Q:U[X!$D(DTOUT)  G:Y<1 D2 S EDT=+Y
  I EDT<SDT W *7,"  [End before Start?] " G D1
  Q

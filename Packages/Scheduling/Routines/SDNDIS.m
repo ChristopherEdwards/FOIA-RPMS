@@ -1,9 +1,8 @@
-SDNDIS ;ALB/TMP - CHECK FOR AND DISCHARGE PATIENTS EXCEEDING MAX # OF NO SHOWS ; [ 09/13/2001  2:36 PM ]
- ;;5.3;Scheduling;;Aug 13, 1993
+SDNDIS ;ALB/TMP - CHECK FOR AND DISCHARGE PATIENTS EXCEEDING MAX # OF NO SHOWS ; 8-14-86
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/09/2000 added quit to DIS subrtn
- ;                        contains $N but not used by IHS
-DIS ;
- Q  ;IHS/ANMC/LJF 11/09/2000
+ ;
+DIS Q  ;IHS/ANMC/LJF 11/09/2000
  W !!,".. Searching for patients who have exceeded the maximum # of no-shows allowed ..",! K SDCTR
  K FSW F A=0:0 S A=$N(^UTILITY($J,"CL",A)) Q:A'>0  F B=0:0 S B=$N(^UTILITY($J,"CL",A,B)) Q:B'>0  I $D(^DPT(A,0)) F A0=0:0 S A0=$N(^UTILITY($J,"CL",A,B,A0)),GDATE=A0,SC=B Q:A0<0  K A1 D NUM
  Q:'$D(SDCTR)  F I=0:0 S I=$N(SDCTR(I)) Q:I'>0  W !!,$S($D(^SC(I,0)):$P(^(0),"^",1),1:" "),?35,": ",SDCTR(I)," patient",$S(SDCTR(I)>1:"s ",1:" "),"exceeded max # of NO SHOWS"

@@ -1,5 +1,5 @@
 SCRPW47 ;RENO/KEITH/MLR - Outpatient Diagnosis/Procedure Code Search (cont.) ; 9/29/00 12:34pm
- ;;5.3;Scheduling;**144,180,199**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,180,199,1015**;AUG 13, 1993;Build 21
  ;;07/22/99 ACS - Added CPT modifiers to the report
  ;  *199*
  ;   - Summary section correction (multiple divisions)

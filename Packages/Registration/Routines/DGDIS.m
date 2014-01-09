@@ -1,5 +1,5 @@
-DGDIS ;ALB/JDS - DISPOSITION A REGISTRATION ; 26 AUG 84  14:09
- ;;5.3;Registration;**108,121,161,151**;Aug 13, 1993
+DGDIS ;ALB/JDS - DISPOSITION A REGISTRATION ; 8/6/04 3:17pm
+ ;;5.3;Registration;**108,121,161,151,459,604,1015**;Aug 13, 1993;Build 21
  ;
  D LO^DGUTL
 GETL S L=^DG(43,1,0),DISL=+$P(L,"^",7) S:DISL=0 DISL=24 N SDISHDL
@@ -10,8 +10,6 @@ DP W !!,"LOG DATE",?20,"TYPE OF BENEFIT APPLIED FOR",! F I=1:1:47 W "-"
  W !,$$FMTE^XLFDT($E($P(L,U),1,12),"5Z"),?20,$P($P(L2,L3,2),";",1)
  S DGODSND=L
 ANS ;
- S SDISHDL=$$HANDLE^SDAMEVT(3) D BEFORE(DFN,9999999-DFN1,8,SDISHDL)
- ;
  ;** DG*5.3*108; Eligibility Code and Period of Service Checks follow
  W !! S DR="1;2;2.1;13;5//NOW;D CHT^DGDIS;8"_$S(DUZ'="":";9////"_DUZ,1:""),DIE="^DPT("_DFN_",""DIS"",",DA(1)=DFN,DP=2.101 D ^DIE I $S('$D(^DPT(DFN,"DIS",DA,0)):1,'$P(^(0),"^",6):1,1:0) G DEL
  N DGPOSX,DGELIGX,DGSTRX
@@ -22,7 +20,6 @@ ANS ;
  I ('DGELIGX)&(DGPOSX) W !!,"Period of Service is unspecified." K DGPOSX,DGELIGX,DGSTRX G DEL
  ;S DGXXXD=0 D EL^DGREGE
 DISP W ! S DIC="^DIC(37,",DIC(0)="AEQMZ",DIC("A")="Select the type of disposition: ",DIC("S")="I '$P(^(0),""^"",10)" D ^DIC K DIC("A"),DIC("B") I Y'>0 G DEL:X?1"^".E W !!,"A disposition must be entered to continue.",!!,*7,*7 G DISP
- I "^0^1^"[("^"_$P($G(^DPT(DFN,"DIS",DFN1,0)),"^",2)_"^") D CO^DGDIS1(DFN,9999999-DFN1,SDISHDL,.SDISDEL) G DEL:$G(SDISDEL)
  D ODS
  S DR="" I $P(Y(0),"^",1)["INELIG" S DIE("NO^")="",DR="2.1;"
  S DR=DR_"S:'DGODS Y=6;11500.01////1;11500.02////^S X=$S(DGODSE>0:DGODSE,1:"""");"
@@ -32,7 +29,7 @@ DISP W ! S DIC="^DIC(37,",DIC(0)="AEQMZ",DIC("A")="Select the type of dispositio
  S DFN=DGDFN,DFN1=DGDFN1,DGXXXD=0,DIE="^DPT("_DFN_",""DIS""," D EL^DGREGE
  D MT
  D EN1^DGEN(DFN) ;enrollment
- D EVT(DFN,9999999-DFN1,8,SDISHDL) W !!,"***** Registration dispositioned *****",!!,*7
+ W !!,"***** Registration dispositioned *****",!!,*7
  D VALIDATE(DFN,DFN1) ; -- call c/o validator
  D ACT
  K DGDFN1,DGDOM,DGHEM,DGKAAS,DGL,DGNHCU,DGW,MASD,MASDEV,PARA,POP
@@ -46,8 +43,7 @@ CHT S L=^DPT(DA(1),"DIS",DA,0),DGL=0,L2=+$P(L,"^",6),(L1,X)=+L D H^%DTC S LL1=%H
  S Y=$S(DUZ'="":9,1:0) S:X3'<DISL Y=8,DGL=1 Q
  ;
 DEL S L=$S($D(^DPT(DFN,"DIS",DFN1,0)):^(0),1:0),X=$P(L,U,6) I X S $P(^(0),U,6)="" F I=0:0 S I=$O(^DD(2.101,5,1,I)) Q:'I  X ^(I,2)
- I $P($G(^DPT(DFN,"DIS",DFN1,0)),"^",18) D EN^SDCODEL(+$P(^(0),"^",18),1,SDISHDL)
- D CLEAN^SDAMEVT(SDISHDL) ; clean up oe evt handle
+ I $P($G(^DPT(DFN,"DIS",DFN1,0)),"^",18) D EN^SDCODEL(+$P(^(0),"^",18),1,$G(SDISHDL))
  D Q W !!,"* Disposition deleted *",!!,*7,*7 G FIND
  ;
 ODS ;if operation desert shield admission, create an entry in the ODS ADMISSIONS file
@@ -94,7 +90,7 @@ VALIDATE(DFN,DFN1) ; -- c/o validator
  . ; -- get encounter
  . S DGOE=+$P(DGDIS0,U,18)
  . IF 'DGOE Q
- .
+ . ;
  . ; -- get encounter and visit
  . S DGOE0=$$GETOE^SDOE(DGOE)
  . S DGVST=+$P(DGOE0,U,5)

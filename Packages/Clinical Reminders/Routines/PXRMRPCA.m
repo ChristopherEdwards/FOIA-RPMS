@@ -1,4 +1,4 @@
-PXRMRPCA ; SLC/PJH - Functions returning REMINDER data ;06/06/2001
+PXRMRPCA ; SLC/PJH - Functions returning REMINDER data ;16-Jul-2013 09:48;DU
  ;;1.5;CLINICAL REMINDERS;**2,5**;Jun 19, 2000
  Q
  ;
@@ -61,7 +61,7 @@ AVAL(ARRAY,POS) ;Evaluate array of reminders
  ..I (ORSTA=" ")!(ORSTA["NEVER")!(ORSTA="N/A")!(ORSTA="ERROR") Q
  ..;Differentiate due and applicable
  ..S ORDUE=0 I ORSTA["DUE" S ORDUE=1
- ..;Get next due and last done dates 
+ ..;Get next due and last done dates
  ..S ORDUEDT=$P(ORX,U,2),ORLASTDT=$P(ORX,U,3)
  ..S ORLASTDT=$S(+$G(ORLASTDT)>0:ORLASTDT,1:"")  ;null if not a date
  ..;Reminder priority
@@ -80,7 +80,7 @@ AVAL(ARRAY,POS) ;Evaluate array of reminders
 CATEGORY(ORY,ORPT,ORLOC) ;Reminder Categories
  ;type^name^ien^parent^child^etc
  N ERR,IC,ORSRV,PASS,TEMPLST
- ;Get user's service 
+ ;Get user's service
  S ORSRV=$G(^VA(200,DUZ,5)) I +ORSRV>0 S ORSRV=$P(ORSRV,U)
  ;Build list of locations and services required
  I ORLOC S PASS="USR^LOC.`"_$G(ORLOC)_"^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG"
@@ -109,6 +109,9 @@ DLG(REM) ;Dialog check
  S DIEN=$P($G(^PXD(811.9,REM,51)),U) Q:'DIEN 0
  S DATA=$G(^PXRMD(801.41,DIEN,0))
  I $P(DATA,U,4)="R",$P(DATA,U,3)="" Q 1
+ Q 0
+ ;
+DLGWIPE(REM) ;Dialog check
  Q 0
  ;
 GETLST(D0,D1,LEVEL,PARENT) ;Add to output array

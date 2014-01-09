@@ -1,5 +1,5 @@
-SDC2 ;ALB/GRR - CHECK PARTIAL CANCELLATIONS ; [ 09/13/2001  2:19 PM ]
- ;;5.3;Scheduling;**182**;Aug 13, 1993
+SDC2 ;ALB/GRR - CHECK PARTIAL CANCELLATIONS ; 19 FEB 85
+ ;;5.3;Scheduling;**182,452,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 12/13/2000 added code to allow 10 hour days
  ;
  K SDZ I $D(^SC(SC,"SDCAN")),$O(^SC(SC,"SDCAN",SD))\1=SD G OVR
@@ -19,7 +19,7 @@ TC S X=$$FMTE^XLFDT(SD)_"@"_X,%DT="TE" D ^%DT I Y<0!(X["?") W !,"Enter a time af
  ;I %>72 W *7,"?" S Y=-1   ;IHS/ANMC/LJF 12/13/2000
  I %>125 W *7,"?" S Y=-1   ;IHS/ANMC/LJF 12/13/2000
  Q
-TZ K SDERR F Z=0:0 S Z=$O(SDZ(Z)) Q:Z=""  S SDERR=$S(FR'<Z&(FR<SDZ(Z)):1,TO>Z&(TO<SDZ(Z)):1,1:0) Q:SDERR
+TZ K SDERR F Z=0:0 S Z=$O(SDZ(Z)) Q:Z=""  S SDERR=$S(FR'<Z&(FR<SDZ(Z)):1,TO>Z&(TO<SDZ(Z)):1,1:0) Q:SDERR  I Z'<FR&(Z<TO) S SDERR=1 Q
  G:SDERR ERR
  Q
 MORE Q:$D(^SC(SC,"SDCAN",SDZL,0))  S A=^SC(SC,"SDCAN",0),SDCNT=$P(A,"^",4),^SC(SC,"SDCAN",0)=$P(A,"^",1,2)_"^"_SDZL_"^"_(SDCNT+1),^SC(SC,"SDCAN",SDZL,0)=SDZL_"^"_SDCTO

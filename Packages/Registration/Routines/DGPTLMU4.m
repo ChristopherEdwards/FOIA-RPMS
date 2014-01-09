@@ -1,5 +1,6 @@
-DGPTLMU4 ;ALB/MTC - PTF A/P LIST MANAGER UTILITY CONT. ; 9-24-92
- ;;5.3;Registration;;Aug 13, 1993
+DGPTLMU4 ;ALB/MTC/ADL - PTF A/P LIST MANAGER UTILITY CONT. ; 9-24-92
+ ;;5.3;Registration;**510,1015**;Aug 13, 1993;Build 21
+ ;;ADL;;Update for CSV Project;;Mar 27, 2003
  ;
 EN ;-- single PTF record entry point
  ; INPUT - DGPTF record to display
@@ -68,7 +69,8 @@ DIINT ;-- This function will load the array containing the
  ;-- check for ICD codes
  S ^TMP("ARCPTFDI",$J,$$NUM(.NUMREC),0)="ICD CODES :"
  F J=10,15:1:24 I $P(DG70,U,J) D
- . S Y=$P(^ICD9($P(DG70,U,J),0),U)_" - "_$P(^ICD9($P(DG70,U,J),0),U,3)
+ . S DGPTTMP=$$ICDDX^ICDCODE(+$P(DG70,U,J),$$GETDATE^ICDGTDRG(DGPTF))
+ . S Y=$P(DGPTTMP,U,2)_" - "_$P(DGPTTMP,U,4)
  . S ^TMP("ARCPTFDI",$J,$$NUM(.NUMREC),0)=" "_Y
  ;
  ;-- check for 300 node information

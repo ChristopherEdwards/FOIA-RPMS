@@ -1,5 +1,5 @@
 PSJEEU0 ;BIR/CML3,PR-MORE EXTERNAL ENTRIES ;22 OCT 97 / 10:22 AM
- ;;5.0; INPATIENT MEDICATIONS ;;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**184**;16 DEC 97;Build 12
  ;
 ENHS ;
  S PSGP=DFN,PSJACNWP=1 D ENIV^PSJAC,NOW^%DTC K ^UTILITY("PSG",$J),^UTILITY("PSIV",$J) S X=$S('$G(PSJEDT):%,$P(PSJEDT,".",2):PSJEDT-.0001,1:PSJEDT)
@@ -27,7 +27,8 @@ UDSET ;
  K PSJUD,PSJFNM
  ;S X(2)=$G(^(2)),X(1)=$G(^(.2)),V=$P(X(2),"^",2)_"^"_$P(X(2),"^",4)_"^"_$P(X(1),"^")_":PS(50.3,;"_$$ENPDN^PSGMI($P(X(1),"^"))_"^"_+$P(X(0),"^",2)_":VA(200,;"_$$ENNPN^PSGMI(+$P(X(0),"^",2))_"^"
  S X(2)=$G(^(2)),X(1)=$G(^(.2)),V=$P(X(2),"^",2)_"^"_$P(X(2),"^",4)_"^"_$$GETDRUG_"^"_+$P(X(0),"^",2)_":VA(200,;"_$$ENNPN^PSGMI(+$P(X(0),"^",2))_"^"
- S V=V_$P(X(0),"^",9)_";"_$P("ACTIVE^NON-VERIFIED^DISCONTINUED^INCOMPLETE^EXPIRED^HOLD^RENEWAL","^",$F("ANDIEHR",$P(X(0),"^",9))-1)
+ ; PSJ*5*184 Add Discontinued/Edit
+ S V=V_$P(X(0),"^",9)_";"_$S($P(X(0),"^",9)="DE":"DISCONTINUED/EDIT",1:$P("ACTIVE^NON-VERIFIED^DISCONTINUED^INCOMPLETE^EXPIRED^HOLD^RENEWAL","^",$F("ANDIEHR",$P(X(0),"^",9))-1))
  ;S Z=$G(^PS(51.2,+$P(X(0),"^",3),0)),V=V_"^"_$P(X(1),"^",2)_"^"_$P(X(0),"^",3)_":PS(51.2,;"_$P(Z,"^",3)_";"_$P(Z,"^")
  S Z=$G(^PS(51.2,+$P(X(0),"^",3),0)),V=V_"^"_$$GETAMT_"^"_$P(X(0),"^",3)_":PS(51.2,;"_$P(Z,"^",3)_";"_$P(Z,"^")
  S Z=$P(X(0),"^",7),V=V_"^"_$P(X(2),"^")_"^"_Z_";"_$S(Z="C":"CONTINUOUS",Z="O":"ONE TIME",Z="OC":"ON CALL",Z="P":"PRN",Z="R":"FILL ON REQUEST",1:"") F Z=-$P(X(2),"^",2):-.00001 I '$D(^UTILITY("PSG",$J,Z)) S ^(Z)=V Q

@@ -1,8 +1,10 @@
-ORPRPM ;DAN/SLC Performance Measure; ;4/8/04  09:53
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**107,114,119,196,190**;Dec 17, 1997
+ORPRPM ;DAN/SLC Performance Measure; ;9/4/08  08:17
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**107,114,119,196,190,225,243,296**;Dec 17, 1997;Build 19
  ;
  ;DBIA SECTION
  ;4195 - EN^PSOTPCUL
+ ;3744 - $$TESTPAT^VADPT
+ ;10060- Reference to file 200
  ;
  ;This routine will print a report indicating the percent of
  ;orders entered for a provider by a provider holding the ORES key.
@@ -54,8 +56,9 @@ DQ ;Come here to do build and print from QUE^ORUTL either direct or tasked
  ;
 CHECK ;If order matches requirements then save
  S ORPFILE=$P($G(^OR(100,ORIEN,0)),"^",2) Q:ORPFILE=""  ;Quit if no object of order
- I $P(ORPFILE,";",2)["DPT" Q:$P($G(^DPT(+$P($G(^OR(100,ORIEN,0)),"^",2),0)),"^",21)  ;Quit if test patient
+ I $P(ORPFILE,";",2)["DPT" Q:$$TESTPAT^VADPT(+$P($G(^OR(100,ORIEN,0)),"^",2))  ;225 Quit if test patient
  Q:+$P($G(^OR(100,ORIEN,3)),"^",11)'=0  ;190 quit if order type not standard
+ Q:$P(^ORD(100.98,$P(^OR(100,ORIEN,0),U,11),0),U)="NON-VA MEDICATIONS"  ;225 Quit if Non-VA med entry
  S ORPTST=$P($G(^OR(100,ORIEN,0)),"^",12) ;patient status (in/out)
  I ORPT'="B" Q:ORPTST'=ORPT  ;Quit if patient status is not 'both' and status doesn't match selected status
  S ORNS=$$NMSP^ORCD($P($G(^OR(100,ORIEN,0)),"^",14))
@@ -63,7 +66,7 @@ CHECK ;If order matches requirements then save
  I ORPTST="O",ORNS="PS",$G(^OR(100,ORIEN,4))=+$G(^OR(100,ORIEN,4)),$L($T(EN^PSOTPCUL)) Q:$$EN^PSOTPCUL($G(^OR(100,ORIEN,4)))  ;196 Don't count if outpatient pharm order is a transitional pharmacy benefit order
  S ORACT0=$G(^OR(100,ORIEN,8,1,0)),ORORD=$P(ORACT0,"^",12) ;ORORD holds nature of order ien
  S ORPVID=$P(ORACT0,"^",3) I ORPROV'="ALL" Q:'$D(ORPROV(ORPVID))  ;quit if ordering provider doesn't match user selected provider
- S ORPVNM=$P($G(^VA(200,ORPVID,0)),"^") ;get provider name
+ S ORPVNM=$$GET1^DIQ(200,ORPVID_",",.01) ;225 get provider name
  Q:'$D(^XUSEC("ORES",ORPVID))  ;quit if ordering provider doesn't have ORES key DBIA # 10076 allows direct read of XUSEC
  Q:"^1^2^3^5^8^"'[("^"_ORORD_"^")  ;quit if NATURE OF ORDER is not verbal, written, telephoned, policy, or electronically entered
  D COUNT ;Count order
@@ -93,15 +96,19 @@ OIDEA() ;Check to see if pharmacy order requires wet signature
  I $L($T(OIDEA^PSSUTLA1)) S SIGREQ=$$OIDEA^PSSUTLA1(PSOI,"O") Q:SIGREQ=1 1 Q 0 ;If SIGREQ = 1 then wet signature required
  S (PSSXOLPD,PSSXNODD)=0
  S PSSPKLX=0
- F PSSXOLP=0:0 S PSSXOLP=$O(^PSDRUG("ASP",PSOI,PSSXOLP)) Q:'PSSXOLP!(PSSXOLPD=1)  D
- .I $P($G(^PSDRUG(PSSXOLP,"I")),"^"),$P($G(^("I")),"^")<DT Q
- .I 'PSSPKLX,$P($G(^PSDRUG(PSSXOLP,2)),"^",3)'["O" Q
- .I PSSPKLX I $P($G(^PSDRUG(PSSXOLP,2)),"^",3)'["U",$P($G(^(2)),"^",3)'["I" Q
+ K ^TMP($J,"ORPRPM ASP")
+ D ASP^PSS50(PSOI,,,"ORPRPM ASP")
+ F PSSXOLP=0:0 S PSSXOLP=$O(^TMP($J,"ORPRPM ASP","")) Q:'PSSXOLP!(PSSXOLPD=1)  D
+ .K ^TMP($J,"ORPRPM DATA") D DATA^PSS50(PSSXOLP,,(DT-1),,,"ORPRPM DATA") I +^TMP($J,"ORPRPM DATA",0)<0 Q
+ .I 'PSSPKLX,$G(^TMP($J,"ORPRPM DATA",63))'["O" K ^TMP($J,"ORPRPM DATA") Q
+ .I PSSPKLX I $G(^TMP($J,"ORPRPM DATA",63))'["U",$G(^TMP($J,"ORPRPM DATA",63))'["I" Q
  .S PSSXNODD=1
- .S PSSXOLPX=$P($G(^PSDRUG(PSSXOLP,0)),"^",3)
+ .S PSSXOLPX=$G(^TMP($J,"ORPRPM DATA",3))
  .I PSSXOLPX[1!(PSSXOLPX[2)!((PSSXOLPX[3)&(PSSXOLPX["A")) S PSSXOLPD=1 Q
  .I PSSXOLPX[3!(PSSXOLPX[4)!(PSSXOLPX[5) S PSSXOLPD=2
  I PSSXOLPD=0,'PSSXNODD S PSSXOLPD=""
+ K ^TMP($J,"ORPRPM ASP")
+ K ^TMP($J,"ORPRPM DATA")
  Q PSSXOLPD
  ;
 STUDENT() ;Check to see if entered by is a student

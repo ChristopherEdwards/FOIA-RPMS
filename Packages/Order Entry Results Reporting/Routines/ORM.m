@@ -1,7 +1,9 @@
-ORM ; SLC/MKB/JDL - ORM msg router ;16-Jan-2008 10:02;DKM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,97,141,187,1005**;Dec 17, 1997
+ORM ; SLC/MKB/JDL - ORM msg router ;15-Jun-2010 21:22;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,97,141,187,1005,195,1010**;Dec 17, 1997;Build 47
+ ; Modified - IHS/MSC/DKM - 01/16/08 - SAVEVAL EP
 EN(MSG) ; -- main entry point for OR RECEIVE where MSG contains HL7 msg
  N ORMSG,ORNMSP,ORTYPE,MSH,PID,PV1,ORC,ORVP,ORTS,ORL,ORCAT,ORAPPT
+ S ORAPPT="",ORL=0
  S ORMSG=$S($L($G(MSG)):MSG,1:"MSG") ; MSG="NAME" or MSG(#)=message
  I '$O(@ORMSG@(0)) D EN^ORERR("Missing HL7 message",.ORMSG) Q
  S MSH=0 F  S MSH=$O(@ORMSG@(MSH)) Q:MSH'>0  Q:$E(@ORMSG@(MSH),1,3)="MSH"
@@ -51,8 +53,8 @@ PV1 ; -- Returns patient location in PV1 segment in current msg
  F  S I=$O(@ORMSG@(I)) Q:I'>0  S SEG=$E(@ORMSG@(I),1,3) Q:SEG="ORC"  I SEG="PV1" D  Q
  . S X=+$P(@ORMSG@(I),"|",4),ORCAT=$P(@ORMSG@(I),"|",3),PV1=I
  . S:$D(^SC(X,0)) ORL=X_";SC("
- . S:$D(ORL) ORAPPT=$P(@ORMSG@(I),"|",45)
- . S:$G(ORAPPT) ORAPPT=$$FMDATE($G(ORAPPT))
+ . S ORAPPT=$P(@ORMSG@(I),"|",45)
+ . S:+$G(ORAPPT) ORAPPT=$$FMDATE($G(ORAPPT))
  Q
  ;
 ORDITEM(USID) ; -- Returns pointer to Orderable Item file for USID

@@ -1,5 +1,5 @@
 SDOEQ ;ALB/MJK - Encounter Query Object Methods ;8/12/96
- ;;5.3;Scheduling;**131,132**;Aug 13, 1993
+ ;;5.3;Scheduling;**131,132,1015**;Aug 13, 1993;Build 21
  ;
  ;
 OE0(SDOE) ; -- get only supported 0th node fields

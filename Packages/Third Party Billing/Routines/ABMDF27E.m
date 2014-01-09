@@ -1,5 +1,5 @@
 ABMDF27E ; IHS/ASDST/DMJ - Set HCFA1500 Print Array - Part 5 ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**3,4,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,4,8,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25331 - Put taxonomy code if NPI ONLY
  ; IHS/SD/SDR - v2.5 p12 - IM25352 - Included fix supplied by Walt Reich (PIMC)

@@ -1,5 +1,5 @@
 SCAPMC10 ;ALB/REW - Team API's: PRPT ; JUN 26, 1995
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;;1.0
 PRPT(DFN,SCDATES,SCPOSA,SCUSRA,SCROLEA,SCPURPA,SCLIST,SCERR,SCYESCL) ; -- practs for patient (No support for scyescl)
  ; input:

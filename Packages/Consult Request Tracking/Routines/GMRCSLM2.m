@@ -1,12 +1,11 @@
-GMRCSLM2 ;SLC/DCM - LM Detailed  display and printing ;12/17/01 23:19
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,18,15,17,23,22**;DEC 27,1997
+GMRCSLM2 ;SLC/DCM,WAT - LM Detailed  display and printing ;31-Jan-2012 09:20;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,18,15,17,23,22,65,1003**;DEC 27,1997;Build 14
  ;
- ; This routine invokes IA #616,#872,#875,#2467,#2638,#2693,#2925,#3138
- ;                         #2849,#10040,#10060
- ; DBIA 2638     ;ORDER STATUS
- ; DBIA 2849     ;PROTOCOL
- ; DBIA 10040    ;SCHEDULING
- ; DBIA 10060    ;NEW PERSON
+ ; This routine invokes IA #872 ^ORD(101   #875 ORDER STATUS file point   #2467 $$OI^ORX8   #2638 ORDER STATUS file access
+ ;#2056 $$GET1^DIQ   #10104 XLFSTR   #4156 $$CVEDT^DGCV   #10117  ^VALM10   #2849 ORDERS file
+ ;#10040 HOSPITAL LOCATION file   #10060 NEW PERSON file
+ ;
+ ;Modified - IHS/MSC/PLS - 01/31/2012 - Line DT+21
  ;
 DT(GMRCO,GMRCIERR) ;;Entry point to set-up detailed display.
  ;;Pass in GMRCO as +GMRCO - a number only. GMRCO=IEN from of consult from file 123
@@ -24,17 +23,18 @@ DT(GMRCO,GMRCIERR) ;;Entry point to set-up detailed display.
  .N PR S PR=$$OUTPTPR^SDUTL3(DFN) I $L(PR) S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Current PC Provider:   "_$P(PR,"^",2),GMRCCT=GMRCCT+1
  .S PR=$$OUTPTTM^SDUTL3(DFN) I $L(PR) S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Current PC Team:       "_$P(PR,"^",2),GMRCCT=GMRCCT+1
  .Q
- N VAIN,VAEL
+ N VAIN,VAEL,CVELIG
  D INP^VADPT S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Current Pat. Status:   "_$S(+VAIN(8):"Inpatient",1:"Outpatient"),GMRCCT=GMRCCT+1
  I $D(VAIN(4)),$L($P(VAIN(4),"^",2)) S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Ward:"_$E(TAB,1,18)_$P(VAIN(4),"^",2),GMRCCT=GMRCCT+1
  D ELIG^VADPT
  I $L($P(VAEL(1),"^",2)) S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Primary Eligibility:"_$E(TAB,1,11)_$P(VAEL(1),"^",2),GMRCCT=GMRCCT+1
+ ;IHS/MSC/PLS - S CVELIG=$$CVEDT^DGCV(DFN) S:$P($G(CVELIG),U,3) ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Combat Vet Eligible:"_$E(TAB,1,11)_"YES",GMRCCT=GMRCCT+1 ;WAT gmrc,65
  S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="",GMRCCT=GMRCCT+1
  S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Order Information",GMRCCT=GMRCCT+1
  S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="To Service:"_$E(TAB,1,12)_$P($G(^GMR(123.5,+$P(GMRCO(0),"^",5),0)),"^"),GMRCCT=GMRCCT+1
- I $P(GMRCO(0),"^",11) S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Attention:"_$E(TAB,1,13)_$P($G(^VA(200,$P(GMRCO(0),"^",11),0)),"^"),GMRCCT=GMRCCT+1
+ I $P(GMRCO(0),"^",11) S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Attention:"_$E(TAB,1,13)_$$GET1^DIQ(200,$P($G(GMRCO(0)),"^",11),.01),GMRCCT=GMRCCT+1
  S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="From Service:"_$E(TAB,1,10)_$P($G(^SC(+$P(GMRCO(0),"^",6),0)),"^"),GMRCCT=GMRCCT+1
- S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Requesting Provider: "_$E(TAB,1,2)_$S($P(GMRCO(0),"^",14)]"":$P($G(^VA(200,$P(GMRCO(0),"^",14),0)),"^",1),1:""),GMRCCT=GMRCCT+1
+ S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Requesting Provider: "_$E(TAB,1,2)_$S($P(GMRCO(0),"^",14)]"":$$GET1^DIQ(200,$P($G(GMRCO(0)),"^",14),.01),1:""),GMRCCT=GMRCCT+1
  I $L($P(GMRCO(0),"^",18)) D
  .S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Service is to be rendered on an "_$S($P(GMRCO(0),"^",18)="I":"INPATIENT",1:"OUTPATIENT")_" basis",GMRCCT=GMRCCT+1
  .Q
@@ -100,7 +100,7 @@ DT(GMRCO,GMRCIERR) ;;Entry point to set-up detailed display.
  . S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Ordering Provider:"_$E(TAB,1,5)_GMRCOP,GMRCCT=GMRCCT+1
  . S GMRCO(13)=$G(^GMR(123,+GMRCO,13)) I $L($P(GMRCO(13),U,2,3))>1 D
  .. N LINE
- .. S LINE=$P(GMRCO(13),U,2) I $L(LINE) S LINE=LINE_$E(TAB,1,5) D 
+ .. S LINE=$P(GMRCO(13),U,2) I $L(LINE) S LINE=LINE_$E(TAB,1,5) D
  ... S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Ordering Provider phone: "_LINE
  ... S GMRCCT=GMRCCT+1
  .. S LINE=$P(GMRCO(13),U,3) I $L(LINE) S LINE=LINE_$E(TAB,1,5) D

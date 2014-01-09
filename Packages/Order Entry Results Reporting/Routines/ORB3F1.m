@@ -1,5 +1,5 @@
-ORB3F1 ; slc/CLA - Extrinsic functions to support OE/RR 3 notifications ;5/8/95  15:16
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,74,139,190**;Dec 17, 1997
+ORB3F1 ; slc/CLA - Extrinsic functions to support OE/RR 3 notifications ;5/8/95  15:16 [2/24/05 1:23pm]
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,74,139,190,220**;Dec 17, 1997
  ;
 XQAKILL(ORN) ;extrinsic function to return the delete mechanism for the notification based on definition in PARAM DEF file
  N ORBKILL S ORBKILL=1
@@ -16,8 +16,14 @@ SITEORD(ORNUM,IOPT) ;Extrinsic function returns 1 (Yes) if the site has flagged 
  Q:+$G(ORNUM)<1 ORBFLAG
  S OI=$$OI^ORQOR2(ORNUM)
  Q:+$G(OI)<1 ORBFLAG
- I IOPT="I" D ENVAL^XPAR(.ORBLST,"ORB OI ORDERED - INPT","`"_OI,.ORBERR)
- I IOPT="O" D ENVAL^XPAR(.ORBLST,"ORB OI ORDERED - OUTPT","`"_OI,.ORBERR)
+ I IOPT="I" D
+ .D ENVAL^XPAR(.ORBLST,"ORB OI ORDERED - INPT","`"_OI,.ORBERR)
+ .Q:$G(ORBLST)>0
+ .D ENVAL^XPAR(.ORBLST,"ORB OI ORDERED - INPT PR","`"_OI,.ORBERR)
+ I IOPT="O" D
+ .D ENVAL^XPAR(.ORBLST,"ORB OI ORDERED - OUTPT","`"_OI,.ORBERR)
+ .Q:$G(ORBLST)>0
+ .D ENVAL^XPAR(.ORBLST,"ORB OI ORDERED - OUTPT PR","`"_OI,.ORBERR)
  I 'ORBERR,$G(ORBLST)>0 D
  .F ORBI=1:1:ORBLST Q:ORBFLAG=1  D
  ..S ORBE=$O(ORBLST(ORBE))
@@ -59,8 +65,9 @@ EXP(ORDT,ORNUM) ;set up ^XTMP("ORAE" to store expired orders
  S ^XTMP("ORAE",$P(X0,U,2),$P(X0,U,11),ORDT,ORNUM)=""
  Q
  ;
-DELEXP ; delete ^XTMP("ORAE" entries older than param value + 48 hours:
- N ORNOW,OREXDT,OREXPAR,ORDELDT,ORPT,ORDG
+DELEXP ; delete ^XTMP("ORAE" entries older than param value + 48 hours 
+ ; or have been replaced by another order
+ N ORNOW,OREXDT,OREXPAR,ORDELDT,ORPT,ORDG,ORN,ORREP
  S ORNOW=$$NOW^XLFDT
  S OREXPAR=$$GET^XPAR("ALL","ORWOR EXPIRED ORDERS",1,"I")
  S OREXPAR=$S($G(OREXPAR):OREXPAR,1:72)
@@ -68,5 +75,9 @@ DELEXP ; delete ^XTMP("ORAE" entries older than param value + 48 hours:
  S ORPT=0 F  S ORPT=$O(^XTMP("ORAE",ORPT)) Q:'ORPT  D
  .S ORDG=0 F  S ORDG=$O(^XTMP("ORAE",ORPT,ORDG)) Q:'ORDG  D
  ..S OREXDT=0 F  S OREXDT=$O(^XTMP("ORAE",ORPT,ORDG,OREXDT)) Q:'OREXDT  D
- ...I OREXDT<ORDELDT K ^XTMP("ORAE",ORPT,ORDG,OREXDT)
+ ...I OREXDT<ORDELDT K ^XTMP("ORAE",ORPT,ORDG,OREXDT) Q
+ ...S ORN=0 F  S ORN=$O(^XTMP("ORAE",ORPT,ORDG,OREXDT,ORN)) Q:'ORN  D
+ ....Q:'$D(^OR(100,ORN,3))
+ ....S ORREP=$P(^OR(100,ORN,3),U,6)
+ ....I +$G(ORREP)>0 K ^XTMP("ORAE",ORPT,ORDG,OREXDT,ORN)
  Q

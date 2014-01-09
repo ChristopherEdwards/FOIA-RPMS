@@ -1,7 +1,8 @@
-FHNO41 ; HISC/REL - List Bulk Nourishments ;7/14/93  10:13
- ;;5.0;Dietetics;**38,39**;Oct 11, 1995
+FHNO41 ; HISC/REL/RVD - List Bulk Nourishments ;7/14/93  10:13
+ ;;5.5;DIETETICS;**5**;Jan 28, 2005;Build 53
+ ;patch #5 - modify report; print total for every location.
  S D1=$O(^FH(119.74,0)) I D1'<1,$O(^FH(119.74,D1))<1 G N3
-N2 R !!,"Select SUPPLEMENTAL FEEDING SITE (or ALL): ",X:DTIME G:'$T!("^"[X) KIL I X="ALL" S D1=0 G N3
+N2 R !!,"Select SUPPLEMENTAL FEEDING SITE (or ALL): ",X:DTIME G:'$T!("^"[X) KIL I (X="ALL")!(X="all") S D1=0 G N3
  K DIC S DIC="^FH(119.74,",DIC(0)="EMQ" D ^DIC G:Y<1 N2 S D1=+Y
 N3 R !!,"Do you want Labels? N// ",X:DTIME G:'$T!(X["^") KIL S:X="" X="N" D TR^FH I $P("YES",X,1)'="",$P("NO",X,1)'="" W *7,"  Enter YES or NO" G N3
  S X=$E(X,1),LAB=X="Y"
@@ -22,10 +23,17 @@ Q1 ; Process Printing Bulk Nourishments
  D:$Y>(IOSL-8) HDR W !!?(45-$L(D3)\2),"***** ",D3," TOTAL *****"
  W !!,"   Qty  Item",?33,"Cost   Vehicle   Other   Total",!
  S (C(0),C(1))=0 F K=0:0 S K=$O(D(K)) Q:K<1  D:$Y>(IOSL-8) HDR S Y=^FH(118,K,0) D C3 S CT=$P(Y,"^",4)="Y",C(CT)=D(K)*C3+C(CT) W !,$J(D(K),6),"  ",$P(Y,"^",1),?31,$J(C3,6,2) W ?($S(CT:40,1:49)),$J(D(K)*C3,6,2),?57,$J(D(K)*C3,6,2)
- W !!?8,"Total",?39,$J(C(1),7,2),?48,$J(C(0),7,2),?56,$J(C(0)+C(1),7,2)
+ W !!?8,"Grand Total",?39,$J(C(1),7,2),?48,$J(C(0),7,2),?56,$J(C(0)+C(1),7,2)
 Q3 W ! Q
-Q4 D:$Y>(IOSL-8) HDR W !!,"--- ",$P(^FH(119.6,K,0),"^",1)," ---",! S C1=C1+1
- F L=0:0 S L=$O(^FH(119.6,K,"BN",L)) Q:L<1  S X=^(L,0),X1=$P(X,"^",1),X2=$P(X,"^",2) I X1,$D(^FH(118,X1,0)) D:$Y>(IOSL-8) HDR W !,$J(X2,6),"  ",$P(^(0),"^",1) S:'$D(D(X1)) D(X1)=0 S D(X1)=D(X1)+X2
+Q4 D:$Y>(IOSL-8) HDR W !!,"--- ",$P(^FH(119.6,K,0),"^",1)," ---",?33,"Cost   Vehicle   Other   Total",!
+ S C1=C1+1
+ K FHDX1 S FHCX1(0)=0,FHCX1(1)=0,FHC3X1(1)=0
+ F L=0:0 S L=$O(^FH(119.6,K,"BN",L)) Q:L<1  S X=^(L,0),X1=$P(X,"^",1),X2=$P(X,"^",2) I X1,$D(^FH(118,X1,0)) D:$Y>(IOSL-8) HDR D
+ .W !,$J(X2,6),"  ",$P($G(^FH(118,X1,0)),"^",1) S:'$D(D(X1)) D(X1)=0 S:'$D(FHDX1(X1)) FHDX1(X1)=0 S D(X1)=D(X1)+X2,FHDX1(X1)=FHDX1(X1)+X2
+ .D:$Y>(IOSL-8) HDR S Y=^FH(118,X1,0) D C3 S CT1=$P(Y,"^",4)="Y",FHCX1(CT1)=FHDX1(X1)*C3+FHCX1(CT1),FHC3X1(1)=FHC3X1(1)+C3
+ .W ?31,$J(C3,6,2) W ?($S(CT1:40,1:49)),$J(FHDX1(X1)*C3,6,2),?57,$J(FHDX1(X1)*C3,6,2)
+ D:$Y>(IOSL-8) HDR
+ W !!,?8,"Total for ",$P($G(^FH(119.6,K,0)),"^",1),?39,$J(FHCX1(1),7,2),?48,$J(FHCX1(0),7,2),?56,$J(FHCX1(0)+FHCX1(1),7,2)
  Q
 HDR ; Print Header
  W:'($E(IOST,1,2)'="C-"&'PG) @IOF S PG=PG+1

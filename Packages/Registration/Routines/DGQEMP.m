@@ -1,5 +1,5 @@
 DGQEMP ;RWA/SLC-DHW/OKC-ALB/MIR - EMBOSSER PRINT;04/02/85  5:48 PM ; 11 Feb 86  10:04 AM
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;DGEMBTYP = device type (1 for embosser, 2 for addressograph, and 0 for plain printer
  ;

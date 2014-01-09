@@ -1,5 +1,5 @@
 ABMMUPH1 ;IHS/SD/SDR - MU Patient Volume Hospital Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**7,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**7,8,9**;NOV 12, 2009
  ;
 MET ;EP
  W !!,"Patient Volume: ",+$P($G(^XTMP("ABM-PVH",$J,"LOC TOP",ABMVLOC)),U)_"%"
@@ -46,19 +46,20 @@ NOTMET ;EP
  D NMHDR
  S ABMSDT=0,ABMCNT=0
  F  S ABMSDT=$O(^XTMP("ABM-PVH",$J,"LOC-DENOM",ABMSDT)) Q:'ABMSDT  D
- .;
  .;start old code abm*2.6*8 NOHEAT
  .;S X1=ABMSDT
  .;S X2=89
  .;D C^%DTC
  .;S ABMEDT=X
  .;end old code start new code
- .I +$G(ABMY("EDT"))=0 D
+ .;I +$G(ABMY("EDT"))=0 D  ;abm*2.6*9 NOHEAT
+ .I +$G(ABMP("EDT"))=0 D  ;abm*2.6*9 NOHEAT
  ..S X1=ABMSDT
  ..S X2=89
  ..D C^%DTC
  ..S ABMEDT=X
- .I +$G(ABMY("EDT"))'=0 S ABMEDT=ABMY("EDT")
+ .;I +$G(ABMY("EDT"))'=0 S ABMEDT=ABMY("EDT")  ;abm*2.6*9 NOHEAT
+ .I +$G(ABMP("EDT"))'=0 S ABMEDT=ABMP("EDT")  ;abm*2.6*9 NOHEAT
  .;end new code
  .S ABMCNT=ABMCNT+1
  .S ABMLN(ABMCNT)=$TR($P($$MDT^ABMDUTL(ABMSDT),"-",1,2),"-"," ")_" - "_$TR($P($$MDT^ABMDUTL(ABMEDT),"-",1,2),"-"," ")  ;report period

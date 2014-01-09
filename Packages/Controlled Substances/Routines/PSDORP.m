@@ -1,12 +1,11 @@
 PSDORP ;BIR/JPW-Pharm CS Order Request Entry ; 8 Aug 94
- ;;3.0; CONTROLLED SUBSTANCES ;**58**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**58,62,67**;13 Feb 97;Build 8
  W !!,"Controlled Substances Order Entry",!! S PSDUZ=DUZ,PSDUZN=$P($G(^VA(200,PSDUZ,0)),"^"),(MSG,MSG1)=0,Y=DT X ^DD("DD") S REQD=Y
 NAOU ;select NAOU to order supplies for
  K ^UTILITY($J,"W")
  N X,DIWL,DIWR,DIWF,PSD S PSD=0,DIWL=1,DIWR=80,DIWF="W"
  F  S PSD=$O(^PSD(58.8,+$P(PSDSITE,U,3),5,PSD)) Q:'PSD  S X=$G(^PSD(58.8,+$P(PSDSITE,U,3),5,PSD,0)) D ^DIWP
  D ^DIWW
- ;; RJS - PSD*3.0*58
  K DA,DIC S DIC=58.8,DIC(0)="QEA",DIC("A")="Select Ordering NAOU: "
  S DIC("S")="I $P(^(0),""^"",3)=+PSDSITE,$S('$D(^(""I"")):1,'^(""I""):1,+^(""I"")>DT:1,1:0),$P(^(0),""^"",2)=""N"",'$P(^(0),""^"",7)"
  D ^DIC K DIC G:Y<0 END S NAOU=+Y,NAOUN=$P(Y,"^",2)
@@ -18,8 +17,8 @@ NAOU ;select NAOU to order supplies for
  S TYPE=$P(^PSD(58.8,+PSDS,0),"^",2),OKTYP=$S(TYPE="M":1,TYPE="S":1,1:0) I 'OKTYP W !!,"Contact your Pharmacy Coordinator.",!,"The Pharmacy Dispensing Site is invalid for this NAOU." G END
 DRUG ;select drug
  K DA,DIC S DIC("W")="W:$P(^PSDRUG(Y,0),""^"",9) ""   N/F"" I $P(^PSD(58.8,NAOU,1,Y,0),""^"",14)]"""",$P(^(0),""^"",14)'>DT W $C(7),""  *** INACTIVE ***"""
- S DIC("S")="I '$P($G(^(7)),U,2),$S('$P(^(0),""^"",14):1,+$P(^(0),""^"",14)>DT:1,1:0)"
- S DA(1)=+NAOU,DIC(0)="QEAM",DIC="^PSD(58.8,"_NAOU_",1," D ^DIC K DIC G:Y<0 NAOU S PSDR=+Y,PSDRN=$S($P(^PSDRUG(PSDR,0),"^")]"":$P(^(0),"^"),1:"DRUG NAME MISSING")
+ S DA(1)=+NAOU,DIC(0)="QEAM",DIC="^PSD(58.8,"_NAOU_",1,"
+ D ^DIC K DIC G:Y<0 NAOU S PSDR=+Y,PSDRN=$S($P(^PSDRUG(PSDR,0),"^")]"":$P(^(0),"^"),1:"DRUG NAME MISSING")
  I '$D(^PSD(58.8,NAOU,1,PSDR,0)) D MSG G END
  I '$D(^PSD(58.8,+PSDS,1,PSDR,0)) S MSG=2 D MSG G END
  S NBKU=$P(^PSD(58.8,+PSDS,1,PSDR,0),"^",8),NPKG=+$P(^(0),"^",9)

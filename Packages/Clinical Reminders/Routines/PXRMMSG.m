@@ -1,5 +1,5 @@
-PXRMMSG ; SLC/PKR - Routine for sending MailMan messages. ;08/03/2001
- ;;1.5;CLINICAL REMINDERS;**2,7**;Jun 19, 2000
+PXRMMSG ; SLC/PKR - Routine for sending MailMan messages. ;08-Jun-2012 10:32;DU
+ ;;1.5;CLINICAL REMINDERS;**2,7,1009**;Jun 19, 2000;Build 24
  ;
  ;======================================================================
 SEND(XMSUB) ;Send a MailMan message to the mail group defined
@@ -20,6 +20,7 @@ SEND(XMSUB) ;Send a MailMan message to the mail group defined
  S XMDUZ=0.5
  ;
 RETRY ;Get the message number.
+ I +$G(PXRMITEM)=999999 Q   ;IHS/MSC/MGH Patch 1009
  D XMZ^XMA2
  I XMZ<1 G RETRY
  ;

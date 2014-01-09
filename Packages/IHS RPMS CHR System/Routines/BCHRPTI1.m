@@ -1,5 +1,5 @@
-BCHRPTI1 ; IHS/TUCSON/LAB - cont. of amhrpti ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHRPTI1 ; IHS/CMI/LAB - cont. of amhrpti ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;
 BDRL ;EP - CALLED FROM BCHRPTI

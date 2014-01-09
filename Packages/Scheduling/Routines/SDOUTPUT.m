@@ -1,5 +1,5 @@
 SDOUTPUT ;ALB/TMP - SCHEDULING OUTPUTS DRIVER ROUTINE ; 10 APR 86
- ;;5.3;Scheduling;**132**;Aug 13, 1993
+ ;;5.3;Scheduling;**132,1015**;Aug 13, 1993;Build 21
  D DT^DICRW S DIK="^DOPT(""SDOUTPUT"","
  G O:$D(^DOPT("SDOUTPUT",15)) S ^(0)="Scheduling Output Option^1N" F I=1:1 S X=$T(@I) Q:X']""  S ^DOPT("SDOUTPUT",I,0)=$P(X,";",3)
  D IXALL^DIK

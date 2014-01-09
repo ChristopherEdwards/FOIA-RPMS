@@ -1,7 +1,7 @@
-RACTRG6 ; ;01/20/12
+RACTRG6 ; ;07/06/13
  D DE G BEGIN
-DE S DIE="^RADPT(D0,""DT"",D1,""P"",D2,""F"",",DIC=DIE,DP=70.04,DL=4,DIEL=3,DU="" K DG,DE,DB Q:$O(^RADPT(D0,"DT",D1,"P",D2,"F",DA,""))=""
- I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(1)=%
+DE S DIE="^RADPT(D0,""DT"",D1,""P"",D2,""M"",",DIC=DIE,DP=70.1,DL=4,DIEL=3,DU="" K DG,DE,DB Q:$O(^RADPT(D0,"DT",D1,"P",D2,"M",DA,""))=""
+ I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,1) S:%]"" DE(1)=%
  K %Z Q
  ;
 W W !?DL+DL-2,DLB_": "
@@ -48,13 +48,19 @@ SAVEVALS S @DIEZTMP@("V",DP,DIIENS,DIFLD,"O")=$G(DE(DQ)) S:$D(^("F"))[0 ^("F")=$
  Q
 NKEY W:'$D(ZTQUEUED) "??  Required key field" S X="?BAD" G QS
 KEYCHK() Q:$G(DE(DW,"KEY"))="" 1 Q @DE(DW,"KEY")
-BEGIN S DNM="RACTRG6",DQ=1
-1 S DW="0;2",DV="NJ3,0",DU="",DLB="AMOUNT(#films or cine ft)",DIFLD=2
- S X=RAFM1
- S Y=X
- S X=Y,DB(DQ)=1 G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
- G RD
-X1 K:+X'=X!(X>999)!(X<0)!(X?.E1"."1N.N) X
+BEGIN S DNM="RACTRG6",DQ=1+D G B
+1 S DW="0;1",DV="M*P71.2'X",DU="",DLB="PROCEDURE MODIFIERS",DIFLD=.01
+ S DE(DW)="C1^RACTRG6"
+ S DU="RAMIS(71.2,"
+ G RE:'D S DQ=2 G 2
+C1 G C1S:$D(DE(1))[0 K DB
+ S X=DE(1),DIC=DIE
+ K ^RADPT(DA(3),"DT",DA(2),"P",DA(1),"M","B",$E(X,1,30),DA)
+C1S S X="" G:DG(DQ)=X C1F1 K DB
+ S X=DG(DQ),DIC=DIE
+ S ^RADPT(DA(3),"DT",DA(2),"P",DA(1),"M","B",$E(X,1,30),DA)=""
+C1F1 Q
+X1 S DIC("S")="X ^DD(70.1,.01,9.2)" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
  Q
  ;
 2 G 1^DIE17

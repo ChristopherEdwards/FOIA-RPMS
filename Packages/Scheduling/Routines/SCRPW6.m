@@ -1,8 +1,12 @@
 SCRPW6 ;RENO/KEITH - Trend of Facility Uniques by 12 Month Date Ranges ; 15 Jul 98  02:38PM
- ;;5.3;Scheduling;**139,144**;AUG 13, 1993
- N SDDIV,SDI D TITL^SCRPW50("Trend of Facility Uniques by 12 Month Date Ranges") G:'$$DIVA^SCRPW17(.SDDIV) EXIT
+ ;;5.3;Scheduling;**139,144,466,510,1015**;AUG 13, 1993;Build 21
+ N SDDIV,SDI,SDSTA,DIR D TITL^SCRPW50("Trend of Facility Uniques by 12 Month Date Ranges") G:'$$DIVA^SCRPW17(.SDDIV) EXIT
+ D SUBT^SCRPW50("**** Status Selection ****")
+ S DIR(0)="S^1:Checked Out (Outpatients);2:Checked Out (Inpatients);3:Checked Out (Out/Inpatients)",DIR("A")="Select Status",DIR("B")="1"
+ D ^DIR I $D(DTOUT)!$D(DUOUT)!(+Y<0) G EXIT
+ S SDSTA=$S(Y=1:2,Y=2:8,1:"2^8")
 QUE W !!,"This report requires 132 column output.",!
- N ZTSAVE F X="SDDIV","SDDIV(","SDDNU(" S ZTSAVE(X)=""
+ N ZTSAVE F X="SDDIV","SDDIV(","SDDNU(","SDSTA" S ZTSAVE(X)=""
  D EN^XUTMDEVQ("UNIQ^SCRPW6","Trend Facility Uniques",.ZTSAVE),DISP0^SCRPW23 Q
 UNIQ ;Calculate/print uniques
  S (SDOUT,SDSTOP)=0,SDLINE="",SDPAGE=1,$P(SDLINE,"-",133)="" D NOW^%DTC S Y=% X ^DD("DD") S SDPNOW=$P(Y,":",1,2),SDMD=$O(SDDIV(0)),SDMD=$O(SDDIV(SDMD)) S:$P(SDDIV,U,2)="ALL DIVISIONS" SDMD=1
@@ -29,7 +33,7 @@ DPRT(SDIV) ;Print division
  S SDDT=SDBDT D FIG,HDR,HD1 Q:SDOUT  D LINE(SDDT) F  S SDDT=$O(^TMP("SCRPW",$J,SDIV,"YR",SDDT)) Q:'SDDT!SDOUT  D LINE(SDDT)
  D:$Y>($S(IOSL<80:IOSL,1:80)-5) HDR Q:SDOUT  F  W ! Q:$Y>($S(IOSL<80:IOSL,1:80)-6)
  W !?25,"Uniques in this report are based on OUTPATIENT ENCOUNTER file records with a"
- W !?25,"status of 'checked out'.  This excludes any 'action required' activity."
+ W !?25,"status of '"_$S(SDSTA=2:"",SDSTA=8:"inpatient appointment ",1:"Out/Inpatient ")_"checked out'.  This excludes any 'action required' activity."
  Q
  ;
 DIV(SDD) ;Check division
@@ -47,13 +51,16 @@ OENC S SDXDT=SDBDT,SDDFN=0
  F  S SDDFN=$O(^SCE("ADFN",SDDFN)) Q:'SDDFN  S SDDT=SDXDT F  S SDDT=$O(^SCE("ADFN",SDDFN,SDDT)) Q:'SDDT!(SDDT>SDEDT)  D OENC1
  Q
  ;
-OENC1 S SDOE=0 F  S SDOE=$O(^SCE("ADFN",SDDFN,SDDT,SDOE)) Q:'SDOE  S SDOE0=$$GETOE^SDOE(SDOE) I $$OE(SDOE0) S SDIV=$P(SDOE0,U,11) I SDIV,$$DIV(SDIV) D SET(SDIV)
+OENC1 S SDOE=0 F  S SDOE=$O(^SCE("ADFN",SDDFN,SDDT,SDOE)) Q:'SDOE  S SDOE0=$$GETOE^SDOE(SDOE) I $$OE(SDOE0,SDSTA) S SDIV=$P(SDOE0,U,11) I SDIV,$$DIV(SDIV) D SET(SDIV)
  Q
  ;
-OE(SDOE0) ;Evaluate outpatient encounter
+OE(SDOE0,SDSTA) ;Evaluate (in)outpatient encounter
  ;Required input: SDOE0=OUTPATIENT ENCOUNTER zeroeth node
+ ;                SDSTA=2 -outpatient,8 -inpatient, 2^8 -both
  ;Output: '1' if checked out "parent" encounter, '0' otherwise
- Q:'$P(SDOE0,U,6)&($P(SDOE0,U,12)=2) 1
+ I $P(SDOE0,U,4),$P($G(^SC($P(SDOE0,U,4),0)),U,17)="Y" Q 0
+ S SDSTA=$G(SDSTA,2),SDSTA="^"_SDSTA_"^"
+ Q:'$P(SDOE0,U,6)&(SDSTA[$P(SDOE0,U,12))&($P(SDOE0,U,7)'="") 1
  Q 0
  ;
 STOP ;Check for stop task request
@@ -61,7 +68,8 @@ STOP ;Check for stop task request
  ;
 HDR D STOP Q:SDOUT  I $E(IOST)="C" N DIR S DIR(0)="E" D ^DIR S SDOUT=Y'=1 Q:SDOUT
  W:SDPAGE>1!($E(IOST)="C") $$XY^SCRPW50(IOF,1,0) W:$X $$XY^SCRPW50("",0,0) W SDLINE,!?36,"<*>  TREND OF FACILITY UNIQUES BY 12 MONTH DATE RANGES  <*>"
- N SDI S SDI=0 F  S SDI=$O(SDTIT(SDI)) Q:'SDI  W !?(132-$L(SDTIT(SDI))\2),SDTIT(SDI)
+ N SDI S SDI=$S(SDSTA=2:"Checked Out - Outpatients",SDSTA=8:"Checked Out - Inpatients",1:"Checked Out - Out/Inpatients") W !,?53,SDI ;?(132-SDI\2),SDI
+ S SDI=0 F  S SDI=$O(SDTIT(SDI)) Q:'SDI  W !?(132-$L(SDTIT(SDI))\2),SDTIT(SDI)
  W !,SDLINE,!,"Date printed: ",SDPNOW,?125,"Page: ",SDPAGE,!,SDLINE S SDPAGE=SDPAGE+1 Q
  ;
 HD1 Q:SDOUT  W !!,"12 mo. date range",?23,"Uniques",?32,"| Histogram (each ""*"" equals ",SDFIG," unique",$S(SDFIG=1:"",1:"s"),")",!,$E(SDLINE,1,SDFIG1) Q

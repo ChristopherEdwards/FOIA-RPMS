@@ -1,5 +1,5 @@
 SCDXUTL4 ;ALB/JRP - ACRP ERROR CODE UTILITIES;08-OCT-1996
- ;;5.3;Scheduling;**68**;AUG 13, 1993
+ ;;5.3;Scheduling;**68,1015**;AUG 13, 1993;Build 21
 PAT4XMIT(XMITPTR) ;Return patient associated to entry in TRANSMITTED
  ; OUTPATIENT ENCOUNTER file (#409.73)
  ;

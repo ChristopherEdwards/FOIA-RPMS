@@ -1,5 +1,5 @@
 DGODNSM1 ;ALB/EG - INPATIENT WORKLOAD SUMMARY, TOTALS ; 3/1/89 1500
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;V 4.5
 TOT1 F I=30:10:110 W ?I,"------"
  W !,?1,"SUBTOTAL",?30,^UTILITY("DGOD",$J,"T",K,"C",1),?40,^(2),?50,^(3),?60,^(4),?70,^(5),?80,^(6),?90,^(7)

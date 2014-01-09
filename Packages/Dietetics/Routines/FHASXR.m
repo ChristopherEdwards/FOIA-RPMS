@@ -1,5 +1,5 @@
 FHASXR ; HISC/REL - Print Screening ;5/10/93  15:10
- ;;5.0;Dietetics;**37**;Oct 11, 1995
+ ;;5.5;DIETETICS;**5,8**;Jan 28, 2005;Build 28
 F0 R !!,"Print by PATIENT or COMMUNICATION OFFICE or ALL or WARD? WARD// ",X:DTIME G:'$T!(X["^") KIL S:X="" X="W" D TR^FH
  I $P("PATIENT",X,1)'="",$P("WARD",X,1)'="",$P("COMMUNICATION OFFICE",X,1)'="",$P("ALL",X,1)'="" W *7,"  Answer with P or C or A or W" G F0
  G P0:X?1"P".E,W0:X?1"W".E I X?1"A".E S (DFN,ADM,WARD)="" G W1
@@ -14,22 +14,18 @@ P1 S NP=$P($G(^FH(119.9,1,3)),"^",3) I NP'="A" G P3
 P2 R !!,"Include Nutrition Profiles? (Y/N): ",NP:DTIME G:'$T!(NP["^") KIL S:NP="" NP="^" S X=NP D TR^FH S NP=X I $P("YES",NP,1)'="",$P("NO",NP,1)'="" W *7,!,"  Answer YES or NO" G P2
 P3 S NP=$S(NP?1"Y".E:1,1:0)
  I NP=0 S FHNUM=9999 G L0
- W ! S DIR(0)="Y",DIR("A")="Would you like to display ALL monitors"
- S DIR("B")="YES" D ^DIR
- I Y="^" Q
- I Y=1 S FHNUM=9999 G L0
- S DIR(0)="N^1:9999"
- S DIR("A")="How many monitors would you like to display?"
- S DIR("B")=20 D ^DIR
- I Y=""!(Y="^") Q
- S FHNUM=Y
+P4 ;ask user for how far to print encounter, 1 yr back as default.
+ W ! S %DT="AEP",%DT("A")="Print Dietetics Encounter since Date: "
+ S %DT("B")="T-365",%DT(0)="-T" D ^%DT K %DT Q:X["^"!$D(DTOUT)
+ S FHET=Y
+ D MONUM^FHOMUTL I FHNUM="" Q
 L0 K IOP S %ZIS="MQ",%ZIS("B")="HOME" W ! D ^%ZIS K %ZIS,IOP G:POP KIL
  I $D(IO("Q")) S FHPGM="Q0^FHASXR",FHLST="DFN^ADM^WARD^TIM^NP^FHNUM" D EN2^FH G KIL
  U IO D Q0 D ^%ZISC K %ZIS,IOP G KIL
 Q0 ; Process Screening
- I DFN D ^FHASXR1 Q
+ I DFN S FHZ115="P"_DFN D CHECK^FHOMDPA Q:FHDFN=""  D ^FHASXR1 Q
  G Q2:WARD<0,Q3:WARD=""
-Q1 F DFN=0:0 S DFN=$O(^FHPT("AW",WARD,DFN)) Q:DFN=""  S ADM=^(DFN),X=$P($G(^DGPM(+ADM,0)),"^",1) I X'<TIM D ^FHASXR1 W:$E(IOST,1,2)'="C-" @IOF Q:ANS="^"
+Q1 F FHDFN=0:0 S FHDFN=$O(^FHPT("AW",WARD,FHDFN)) Q:FHDFN=""  S ADM=$G(^FHPT("AW",WARD,FHDFN)),X=$P($G(^DGPM(+ADM,0)),"^",1) I X'<TIM D PATNAME^FHOMUTL,^FHASXR1 W:$E(IOST,1,2)'="C-" @IOF Q:ANS="^"
  Q
 Q2 S CF=-WARD,WRD=""
  F NN=0:0 S WRD=$O(^FH(119.6,"B",WRD)) Q:WRD=""  S WARD=$O(^FH(119.6,"B",WRD,0)) I $P($G(^FH(119.6,+WARD,0)),"^",8)=CF D Q1

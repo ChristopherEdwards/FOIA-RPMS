@@ -1,5 +1,5 @@
 SCCVLOG1 ;ALB/RMO,TMP - Scheduling Conversion Log Utilities - Error; [ 04/05/95  8:39 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 GETERR(SCERRNB,SCE,SCERRIP,SCLOG,SAVERR,SCERRMSG) ;Get error msg
  ;Also log the error in the Scheduling conversion log file

@@ -1,5 +1,5 @@
 DGFI ;ALB/JDS-MRL - FEMALE INPATIENT OUTPUTS ; 19 JUN 87
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  S DIC="^DPT(",L=0,BY="'.1,"
  S FR=",",TO="," I $D(^DG(43,1,"GL")) S:$P(^("GL"),U,2) BY=BY_".19,",FR=FR_",",TO=TO_","

@@ -1,5 +1,5 @@
-BLRIPLZI ; IHS/OIT/MKK - INTERMEC IPL ACCESSION NUMBER Barcode 39 Lab Label Intialization ; [ 04/04/2009  8:30 AM ]
- ;;5.2;IHS LABORATORY;**1030**;NOV 01, 1997
+BLRIPLZI ; IHS/OIT/MKK - INTERMEC IPL ACCESSION NUMBER Barcode 39 Lab Label Intialization ;   26 Sep 2011  6:47 AM
+ ;;5.2;IHS LABORATORY;**1030,1031**;NOV 01, 1997
  ;
  ; For IPL capable printers only.  NO BINARY CODE VERSION.
  ; 
@@ -86,10 +86,10 @@ BARCODEI(SHIFT) ; EP - Bar code format, By ROWs,
  W "<STX>F3;H3;o148,"_(325-SHIFT)_";f1;c2;h1;w1;d0,11<ETX>"    ; Top/Specimen         (03)
  W "<STX>F3;H4;o130,"_(575-SHIFT)_";f1;c2;h1;w1;d0,14<ETX>"    ; Accession String     (04)
  W "<STX>F3;H5;o130,"_(360-SHIFT)_";f1;c2;h1;w1;d0,16<ETX>"    ; Date/Time            (05)
- S SYMBOLGY=+$G(^BLRSITE(+$G(DUZ(2)),6))                       ; Intermec Symbology
- S SYMBOLGY=17
- ; W "<STX>F3;B6;o67,"_(570-SHIFT)_";f1;c0;h60;w3;d0,10<ETX>"    ; Acc # Barcode 39     (06)
- W "<STX>F3;B6;o67,"_(570-SHIFT)_";f1;c"_SYMBOLGY_";h60;w3;d0,10<ETX>"    ; Acc # Barcode 39     (06)
+ ; S SYMBOLGY=+$G(^BLRSITE(+$G(DUZ(2)),6))                       ; Intermec Symbology
+ ; S SYMBOLGY=17
+ ; W "<STX>F3;B6;o67,"_(570-SHIFT)_";f1;c"_SYMBOLGY_";h60;w3;d0,10<ETX>"    ; Acc # Barcode 39     (06)
+ W "<STX>F3;B6;o67,"_(570-SHIFT)_";f1;c0;h60;w3;d0,10<ETX>"    ; Acc # Barcode 39     (06)    ; IHS/MSC/MKK - LR*5.2*1031
  W "<STX>F3;H7;o47,"_(575-SHIFT)_";f1;c2;h1;w1;d0,13<ETX>"     ; Order #              (07)
  W "<STX>F3;H8;o47,"_(330-SHIFT)_";f1;c2;h1;w1;d0,12<ETX>"     ; Location             (08)
  W "<STX>F3;H9;o30,"_(575-SHIFT)_";f1;c2;h1;w1;d0,7<ETX>"      ; Health Record Number (09)

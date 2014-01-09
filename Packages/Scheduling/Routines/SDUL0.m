@@ -1,5 +1,5 @@
 SDUL0 ;MJK/ALB - List Manager (cont.); 12/1/91
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 INIT(NAME,PARMS) ;
  D STACK

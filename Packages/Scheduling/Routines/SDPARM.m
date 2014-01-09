@@ -1,5 +1,5 @@
 SDPARM ;ALB/CAW - Build Display for MAS Parameters ; 3/10/92
- ;;5.3;Scheduling;**27,132**;08/13/93
+ ;;5.3;Scheduling;**27,132,1015**;08/13/93;Build 21
  ;
 START ;
  K XQORS,VALMLEVL D EN^VALM("SD PARM PARAMETERS")

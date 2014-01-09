@@ -1,5 +1,5 @@
-ORQPTQ1 ; SLC/CLA - Functs which return OR patient lists and sources pt 1 ;12/15/97 [ 04/02/97  3:32 PM ] [6/6/01 11:34am]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,74,63,91,85,139**;Dec 17, 1997
+ORQPTQ1 ; SLC/CLA - Functs which return OR patient lists and sources pt 1 ; 8/20/07 5:43am
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,74,63,91,85,139,243**;Dec 17, 1997;Build 242
 VAMCPTS(Y) ; RETURN LIST OF PATIENTS IN VAMC: DFN^NAME
  N I,J,V
  S I=1
@@ -26,7 +26,7 @@ TEAMS(ORY) ; return list of teams for a system
  S ORTMN="",I=1
  F  S ORTMN=$O(^OR(100.21,"B",ORTMN)) Q:ORTMN=""  D
  .S ORTM="",ORTM=$O(^OR(100.21,"B",ORTMN,ORTM)) Q:ORTM=""
- .S ORY(I)=ORTM_U_ORTMN,I=I+1
+ .I $P($G(^OR(100.21,ORTM,11)),U)'=0!($D(^OR(100.21,ORTM,1,$G(DUZ,0)))) S ORY(I)=ORTM_U_ORTMN,I=I+1
  S:+$G(ORY(1))<1 ORY(1)="^No teams found."
  Q
 TEAMPTS(ORY,TEAM,TMPFLAG) ; RETURN LIST OF PATIENTS IN A TEAM

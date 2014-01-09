@@ -1,5 +1,5 @@
-PXRMRPCD ;SLC/PJH - PXRM REMINDER DIALOG ;06/08/2001
- ;;1.5;CLINICAL REMINDERS;**4,5**;Jun 19, 2000
+PXRMRPCD ;SLC/PJH - PXRM REMINDER DIALOG ;16-Feb-2012 14:08;DU
+ ;;1.5;CLINICAL REMINDERS;**4,5,1009**;Jun 19, 2000;Build 24
  ;
  ; Used by CPRS - see DBIA 3295/3296/3332
  ;
@@ -50,7 +50,7 @@ CATEGORY(ORY,CIEN) ;Get category information
  .S IC=IC+1,ORY(IC)="C"_U_SUB_U_NAME
  Q
  ;
-DIALOG(ORY,ORDLG) ;Load dialog
+DIALOG(ORY,ORDLG,DFN) ;Load dialog
  ;
  ; Input parameter ORDLG - dialog ien [#801.41]
  ;

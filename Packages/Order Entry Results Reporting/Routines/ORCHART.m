@@ -1,5 +1,5 @@
-ORCHART ;SLC/MKB-OE/RR ; 08 May 2002  2:12 PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,27,48,70,72,92,141**;Dec 17, 1997
+ORCHART ;SLC/MKB/REV-OE/RR ; 11 March 2003 14:02
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,27,48,70,72,92,141,181**;Dec 17, 1997
 EN ; -- main entry point
  K ^TMP("OR",$J) ;ensure fresh start
  D EN^ORQPT Q:+$G(ORVP)'>0
@@ -52,7 +52,7 @@ HELP ; -- help code
  W !!,"Enter the display numbers of the items you wish to change or act on; a menu of",!,"available actions will then be presented for selection."
  W !!,"To see a different 'page' of the chart, enter CC; if you'd like another view of",!,"the current page, by date range for example, enter CV.  You may add new orders"
  W !,"for this patient from any page in the chart by entering AD and review them",!,"using RV.  Enter ?? to see a list of actions available for navigating the list."
- W:ORTAB="PROBLEMS" !!,"* = Acute problem",!,"$ = Unverified problem"
+ W:ORTAB="PROBLEMS" !!,"* = Acute problem",!,"$ = Unverified problem",!,"# = Problem references inactive code"
  W:(ORTAB="SUMMRIES")!(ORTAB="NOTES") !!,"+ = Addenda attached"
  W:(ORTAB="ORDERS")!(ORTAB="MEDS") !!,"* = Order has been updated by service"
  W:ORTAB="ORDERS" !,"+ = Sub-orders exist"

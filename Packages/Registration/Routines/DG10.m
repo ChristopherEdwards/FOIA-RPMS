@@ -1,9 +1,12 @@
-DG10 ;ALB/MRL,DAK,AEG-LOAD/EDIT PATIENT DATA ; 5/28/03 1:08pm
- ;;5.3;Registration;**32,109,139,149,182,326,513,425**;Aug 13, 1993
+DG10 ;ALB/MRL,DAK,AEG,PHH,TMK-LOAD/EDIT PATIENT DATA ; 08/26/08
+ ;;5.3;Registration;**32,109,139,149,182,326,513,425,574,642,658,1015,1016**;Aug 13, 1993;Build 20
 START ;
  D LO^DGUTL
- I $G(DGPRFLG)=1,$G(DGPLOC)=1 D  G A1
- . D EN^DGRPD,REG^IVMCQ($G(DFN))
+ I $G(DGPRFLG)=1,$G(DGPLOC)=1 D  G Q:$G(DGRPOUT),A1
+ .; D EN^DGRPD,REG^IVMCQ($G(DFN))
+ . D EN^DGRPD
+ . Q:$G(DGRPOUT)
+ . D REG^IVMCQ($G(DFN))
  . D HINQ
  ;
 A W !! K VET,DIE,DIC,CARD S DIC=2,DLAYGO=2,DIC(0)="ALEQM" K DIC("S") D ^DIC G Q:Y<0 S (DFN,DA)=+Y,DGNEW=$P(Y,"^",3) K DLAYGO
@@ -16,6 +19,8 @@ A W !! K VET,DIE,DIC,CARD S DIC=2,DLAYGO=2,DIC(0)="ALEQM" K DIC("S") D ^DIC G Q:
  D MPIQ^MPIFAPI(DFN)
  K MPIFRTN
  ;
+ N DGNOIVMUPD
+ S DGNOIVMUPD=1 ; Set flag to prevent MT Event Driver from updating converted IVM test
  I +$G(DGNEW) D
  . ; query CMOR for Patient Record Flag Assignments if NEW patient and
  . ; display results
@@ -40,7 +45,11 @@ HINQ ;
  ;   SDIEMM is used as a flag by AMBCARE Incomplete Encounter Management 
  ;   to bypass the embossing routines when calling load/edit from IEMM
  ;
-A1 W !,"Do you want to ",$S(DGNEW:"enter",1:"edit")," Patient Data" S %=1 D YN^DICN G H:'%,CK:%'=1 S DGRPV=0 D EN1^DGRP,MT(DFN),CP G Q:$G(DGPRFLG)=1 G Q:$G(SDIEMM) G Q:'$D(DA),EMBOS
+A1 D  G H:'%,CK:%'=1 S DGRPV=0 D EN1^DGRP,MT(DFN),CP G Q:$G(DGPRFLG)=1 G Q:$G(SDIEMM) G Q:'$D(DA),EMBOS
+ .W !,"Do you want to ",$S(DGNEW:"enter",1:"edit")," Patient Data"
+ .S %=1 D YN^DICN
+ .I +$G(DGNEW) Q
+ .I $$ADD^DGADDUTL($G(DFN)) ;
  ;
 H W !?5,"Enter 'YES' to enter/edit registration data or 'NO' to continue without",!?5,"editing."
  G A1
@@ -50,7 +59,8 @@ CK S DGEDCN=1 D ^DGRPC,MT(DFN),CP
  I $G(DGER)[55 K DIR S DIR(0)="Y",DIR("A")="Do you wish to return to Screen #9 to enter missing Income Data? " D ^DIR K DIR
  ;G:Y ^DGRP9
  ;
-EMBOS W ! D EMBOS^DGQEMA G A
+EMBOS ;W ! D EMBOS^DGQEMA G A
+ G A
  ;
  ;
 Q K X,Y,Z,DIC,DGELVER,DGNEW,DGRPV,VET Q
@@ -105,8 +115,8 @@ OKTOCONT(Y) ;
  D ^DIR
 OKQ Q $S(Y=1:1,1:0)
  ;
-CP ; If not (autoexempt or MTested) & no CP test this year then
- ; prompt for add/edit cp test
+CP ;If not (autoexempt or MTested) & no CP test this year then
+ ;prompt for add/edit cp test
  N DIV,DGIB,DGIBDT,DGX,X,DIRUT,DTOUT
  G:'$P($G(^DG(43,1,0)),U,41) QTCP ;USE CP FLAG
  S DGIBDT=$S($D(DFN1):9999999-DFN1,1:DT)

@@ -1,5 +1,5 @@
-GMVSC0 ;HOIFO/MD,YH,FT-CUMULATIVE VITALS/MEASUREMENTS FOR PATIENT OVER GIVEN DATE RANGE ;10/25/02  10:29
- ;;5.0;GEN. MED. REC. - VITALS;;Oct 31, 2002
+GMVSC0 ;HOIFO/MD,YH,FT-CUMULATIVE VITALS/MEASUREMENTS FOR PATIENT OVER GIVEN DATE RANGE ;6/6/07
+ ;;5.0;GEN. MED. REC. - VITALS;**23**;Oct 31, 2002;Build 25
  ;
  ; This routine uses the following IAs:
  ; #10039 - FILE 42 references     (supported)
@@ -66,7 +66,7 @@ Q ; kill variables and quit
  D ^%ZISC
  Q
 FOOTER ;REPORT FOOTER {called from GMVSC1, GMVSC2} 
- W !!,"*** (E) - Error entry",!! W:VADM(1)'="" ?$X-3,$E(VADM(1),1,15) W:VADM(2)'="" ?17,$P(VADM(2),"^",2) W:VADM(3)'="" ?30,$P(VADM(3),"^",2) W:VADM(4)'="" ?43,$P(VADM(4),"^")_" YRS"
+ W !!,"*** (E) - Error entry",!! W:VADM(1)'="" ?$X-3,$E(VADM(1),1,15) W:VADM(2)'="" ?17,$E($P(VADM(2),"^",2),8,11) W:VADM(3)'="" ?30,$P(VADM(3),"^",2) W:VADM(4)'="" ?43,$P(VADM(4),"^")_" YRS"
  W:VADM(5)'="" ?51,$P(VADM(5),"^",2)
  W ?65,"VAF 10-7987j" W !,"Unit: "_$S($P(VAIN(4),"^",2)'="":$P(VAIN(4),"^",2),1:"     "),?32,"Room: "_$S($P(VAIN(5),"^")'="":$P(VAIN(5),"^"),1:"   "),!
  I '$D(GMRVHLOC) S GMRVHLOC=$$HOSPLOC^GMVUTL1(+$G(VAIN(4)))

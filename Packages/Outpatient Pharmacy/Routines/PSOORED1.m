@@ -1,11 +1,15 @@
-PSOORED1 ;ISC-BHAM/SAB - edit orders from backdoor ;23-Mar-2009 10:34;SM
- ;;7.0;OUTPATIENT PHARMACY;**5,23,46,78,114,117,131,146,1002,1003,1005,1008**;DEC 1997
+PSOORED1 ;ISC-BHAM/SAB - edit orders from backdoor ;06-Dec-2012 20:28;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**5,23,46,78,114,117,131,146,1002,1003,1005,1008,223,148,244,249,268,206,1015**;DEC 1997;Build 62
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference ^PS(50.7 supported by DBIA 2223
+ ;
+ ;*244 call to remove DC'd Rx's from Rx ien strings
+ ;
  ; Modified - IHS/CIA/PLS - 12/01/04 - Line RFN+22
  ;                          08/29/06 - Line TRY+4 added
  ;                          09/15/06 - Line TRY+3 added
  ;                          03/23/09 - Line RF+1
+ ;                          12/06/12 - Line RF+10
 EN(PSORENW) ;
  N LST,ORD,ORN K VALMBCK,PSORX("FN") S PSOAC=1,(PSORX("QFLG"),PSORX("DFLG"))=0 ;D DREN^PSOORNW2,INIT
  D INIT
@@ -17,18 +21,22 @@ EN(PSORENW) ;
  I $G(PSONEW("DFLG"))!$G(PSONEW("QFLG")) D DEL^PSONEW,PAUSE^VALM1 S VALMBCK="Q" K PSORENW Q
  D EN^PSOORNE1(.PSORENW) I '$G(PSORX("FN")) D:$P($G(PSOPAR),"^",7)=1  S VALMBCK="Q" Q
  .S DIE="^PS(59,",DA=PSOSITE,PSOY=$O(PSONEW("OLD LAST RX#","")),PSOX=PSONEW("OLD LAST RX#",PSOY)
- .L +^PS(59,+PSOSITE,PSOY):0
+ .L +^PS(59,+PSOSITE,PSOY):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3)
  .S DR=$S(PSOY=8:"2003////"_PSOX,PSOY=3:"1002.1////"_PSOX,1:"2003////"_PSOX)
  .D:PSOX<$P(^PS(59,+PSOSITE,PSOY),"^",3) ^DIE K DIE,X,Y L -^PS(59,+PSOSITE,PSOY)
  .I $D(PSONEW("RX #")) L -^PSRX("B",PSONEW("RX #"))
  .K PSOX,PSOY Q
  Q:$G(COPY)
-TRY S $P(^PSRX(PSORENW("OIRXN"),"STA"),"^")=15,DA=PSORENW("OIRXN") D CAN^PSOTPCAN(DA) D
- .;cancel/discontinue action
- .S PHARM="",STAT="RP",COMM="Prescription discontinued due to editing." D EN^PSOHLSN1(DA,STAT,PHARM,COMM,PSONOOR) K STAT,PHARM,COMM
+TRY S $P(^PSRX(PSORENW("OIRXN"),"STA"),"^")=15,DA=PSORENW("OIRXN")
+ S $P(^PSRX(DA,3),"^",5)=DT,$P(^PSRX(DA,3),"^",10)=$P(^PSRX(DA,3),"^")
+ D REVERSE^PSOBPSU1(DA,,"DC",7),CAN^PSOTPCAN(DA)
+ D RMP^PSOCAN3                ;*244
+ ;cancel/discontinue action
+ S PHARM="",STAT="RP",COMM="Prescription discontinued due to editing." D EN^PSOHLSN1(DA,STAT,PHARM,COMM,PSONOOR) K STAT,PHARM,COMM
  S ^TMP("APSPPOS",$J,PSORENW("OIRXN"))=1 ; IHS/MSC/PLS - 09/15/06 - Configuration for $$POS call
  I $$POS^APSPFUNC(DA)  ;IHS/MSC/PLS - 08/29/06 - Prompt for POS action
- S ACOM="Discontinued due to editing. New Rx created "_$P(^PSRX(PSORENW("IRXN"),0),"^")_"." I $G(^PSRX(DA,"H"))]"" D
+ S ACOM="Discontinued due to editing. New Rx created "_$P(^PSRX(PSORENW("IRXN"),0),"^")_"."
+ I $G(^PSRX(DA,"H"))]"" D
  .I $P(^PSRX(DA,"STA"),"^")=3!($P(^("STA"),"^")=16) D
  ..S DIE=52,DR="22///"_$P(^PSRX(DA,3),"^") D ^DIE S ACOM="Discontinued due to editing while on hold. " K:$P(^PSRX(DA,"H"),"^") ^PSRX("AH",$P(^PSRX(DA,"H"),"^"),DA)
  ..S ^PSRX(DA,"H")=""
@@ -136,8 +144,10 @@ RF ;# of refills
  .S PSOX=$S('PSOX:0,PSDAYS=90:1,1:PSOX),PSDY1=$S(PSDAYS<60:5,PSDAYS'<60&(PSDAYS'>89):2,PSDAYS=90:1,1:0) S PSORENW("# OF REFILLS")=$S(PSOX'>PSDY1:PSOX,1:PSDY1)
  E  D
  .S PSOX1=PTRF,PSOX=$S(PSOX1=11:11,1:PSOX1),PSOX=$S('PSOX:0,PSDAYS=90:3,1:PSOX)
- .S PSDY1=$S(PSDAYS<60:11,PSDAYS'<60&(PSDAYS'>89):5,PSDAYS=90:3,1:0) S PSORENW("# OF REFILLS")=$S(PSOX'>PSDY1:PSOX,1:PSDY1)
- I PSODRUG("DEA")["A"&(PSODRUG("DEA")'["B")!(PSODRUG("DEA")["F") S PSORENW("# OF REFILLS")=0
+ .;IHS/MSC/PLS - 12/06/2012
+ .;S PSDY1=$S(PSDAYS<60:11,PSDAYS'<60&(PSDAYS'>89):5,PSDAYS=90:3,1:0) S PSORENW("# OF REFILLS")=$S(PSOX'>PSDY1:PSOX,1:PSDY1)
+ .S PSDY1=$S(PSDAYS<60:15,PSDAYS<90:5,PSDAYS=90:3,PSDAYS<168:2,PSDAYS<365:1,1:0) S PSORENW("# OF REFILLS")=$S(PSOX'>PSDY1:PSOX,1:PSDY1)
+ I PSODRUG("DEA")["A"&(PSODRUG("DEA")'["B")!(PSODRUG("DEA")["F")!(PSODRUG("DEA")[1)!(PSODRUG("DEA")[2) S PSORENW("# OF REFILLS")=0
  K PSDY,PSDY1,PTRF,PSOX,PSOX1,PSDAYS,CS
  Q
 UPMI ;add dosing data for pre-poe rxs

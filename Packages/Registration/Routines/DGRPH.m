@@ -1,5 +1,5 @@
-DGRPH ;ALB/MRL - REGISTRATION HELP ROUTINE ;06 JUN 88@2300
- ;;5.3;Registration;**114,343,397,415,489**;Aug 13, 1993
+DGRPH ;ALB/MRL,TMK - REGISTRATION HELP ROUTINE ;19 OCT 05
+ ;;5.3;Registration;**114,343,397,415,489,545,638,624,689,1015**;Aug 13, 1993;Build 21
  S DGRPH="" D H^DGRPU K DGRPH W !,"Enter '^' to stop the display ",$S(DGRPV:"",1:"and edit "),"of data, '^N' to jump to screen #N (see",!,"listing below), <RET> to continue on to the next available screen" I DGRPV W "." G M
  W " or enter",!,"the field group number(s) you wish to edit using commas and dashes as",!,"delimiters.  Those groups enclosed in brackets ""[]"" are editable while those",!,"enclosed in arrows ""<>"" are not."
  W "  Enter 'ALL' to edit all editable data",!,"elements on the screen."
@@ -8,16 +8,13 @@ M I DGRPS=9,DGRPSEL="V" W !!,"You may precede your selection with 'V' to denote 
  S Z="DATA GROUPS ON SCREEN "_DGRPS,DGRPCM=1 W ! D WW^DGRPV S DGRPCM=0 D:DGRPS=1.1 A1 D:DGRPS'=1.1 @DGRPS D:$S(DGRPS<11:1,DGRPS=14:1,1:0) W D S W ! F I=$Y:1:20 W !
  ;S Z="Press RETURN key",DGRPCM=1 D WW^DGRPV S DGRPCM=0 W " to EXIT Screen ",DGRPS," HELP " R X:DTIME S X="" Q
  S DGRPW=0 W "Press " S Z="<RETURN>",DGRPCM=1 D WW^DGRPV W " KEY " S Z="TO EXIT" D WW^DGRPV W " SCREEN ",DGRPS," " S Z="HELP" D WW^DGRPV W " " R X:DTIME S (DGRPCM,DGRPW)=0 Q
-1 S X="Name, SSN, DOB^Alias Name & SSN (if applicable)^Remarks concerning this patient^Home Address, Phone & Work Phone^Temporary Address, Dates, Phone" Q
-A1 S X="Confidential Address,Dates and Types" Q
-2 S X="Sex, POB, Parents, etc.^Dates/Locations of Previous Care^Race and Ethnicity" Q
+1 S X="Name, SSN, DOB, Sex^Alias Name & SSN (if applicable)^Remarks concerning this patient^Home Address, Phone & Work Phone^Temporary Address, Dates, Phone" Q
+A1 S X="Conf. Address,Dates and Types^E-Mail, Cell Phone & Pager #s" Q
+2 S X="POB, Parents, etc.^Dates/Locations of Previous Care^Race and Ethnicity^Date of Death Information" Q
 3 S X="Primary Next-of-Kin^Secondary Next-of-Kin^Primary Emergency Contact^Secondary Emergency Contact^Designee to receive personal effects" Q
 4 S X="Applicant Employer, Address^Spouses Employer, Address" Q
 5 S X="Unexpired Insurance Policies^Eligibile for Medicaid" Q
-6 S X="Service History^Prisoner of War^Combat^Vietnam Service^Agent Orange Exposure^IONizing Radiation Exposure^"
- S X=X_"Lebanon Service^Grenada Service^Panama Service^Persian Gulf Service^Somalia Service^Environmental Contaminants Exposure^Military Retirement/Disability^Dental History^Yugoslavia Service^Purple Heart Recipient^"
- S X=X_"Nose/Throat Radium Treatment"
- Q
+6 S X="Service History^Conflict Locations^Exposure Factors^Prisoner of War^Combat^Military Retirement/Disability^Dental History^Purple Heart Recipient" Q
 7 S X="Patient Type, SC Data, Claim Info^VA Monetary Benefits^POS, Eligibility Code(s)^SC Conditions relayed by applicant" Q
 8 S X="Spouse's Demographic Info^Dependents' Demographic Info" Q
 9 S X="Social Security^U.S. Civil Service^U.S. Railroad Retirement^Military Retirement^Unemployment^Other Retirement^Total Employment Income^Interest,Dividend,Annuity^Workers Comp or Black Lung^Other Income" Q

@@ -1,10 +1,11 @@
 DGVPTIB1 ;alb/mjk - IBACKIN for export with PIMS v5.3; 4/21/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 IBACKIN ;ALB/RLW - Check-in Link for OP Co-payment ; 12-JUN-92
  ;;Version 1.5 ; INTEGRATED BILLING ;**3,14**; 29-JUL-92
  ;
 EN ; main entry point
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1014 no IB so entire routine is not needed
  ;***
  ;S XRTL=$ZU(0),XRTN="IBACKIN-1" D T0^%ZOSV ;start rt clock
  ;I $D(XRT0),(('$D(SDATA))!(+$G(SDAMEVT)<2)) S:'$D(XRTN) XRTN="IBACKIN" D T1^%ZOSV ;stop rt clock

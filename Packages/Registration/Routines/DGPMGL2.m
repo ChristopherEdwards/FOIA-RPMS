@@ -1,5 +1,5 @@
 DGPMGL2 ;ALB/LM - ADC INFO; 5 NOV 90
- ;;5.3;Registration;**59**;Aug 13, 1993
+ ;;5.3;Registration;**59,1015**;Aug 13, 1993;Build 21
  ;
 A S DGHX=""
  F DGN=0:0 S DGN=$O(^DG(40.8,DGN)) Q:'DGN  K DR I $D(^(DGN,0)) I '$P(^(0),"^",3) W !!,"SITE: ",$P(^(0),"^") D DGN G Q:'$D(^DG(40.8,DGN,"CEN",RD,0)) F I=2:1:12 S $P(DGHX,"^",I)=$P(DGHX,"^",I)+$P(^DG(40.8,DGN,"CEN",RD,0),"^",I)

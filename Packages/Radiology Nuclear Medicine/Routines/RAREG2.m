@@ -1,5 +1,5 @@
-RAREG2 ;HISC/CAH,FPT,DAD,SS AISC/MJK,RMO-Register Patient ;06/04/09  09:55
- ;;5.0;Radiology/Nuclear Medicine;**13,18,93,99**;Mar 16, 1998;Build 5
+RAREG2 ;HISC/CAH,FPT,DAD,SS AISC/MJK,RMO-Register Patient ; 17 Aug 2011  9:39 AM
+ ;;5.0;Radiology/Nuclear Medicine;**13,18,93,99,1003**;Nov 01, 2010;Build 3
  ;last modif. JULY 5,00 by SS 
  ; 07/15/2008 BAY/KAM rem call 249750 RA*5*93 Correct DIK Calls
  ; 06/04/09 rvd - display pregnancy screen and pregnancy screen comment only in Add Exams to Last visit option.
@@ -23,6 +23,18 @@ EXAMLOOP ; register the exam
  ;P99; keep previous pregnancy screen data before adding new exam
  I $D(RAOPT("ADDEXAM")),$$PTSEX^RAUTL8(RADFN)="F" S RA703DAT=$$PRCEXA^RAUTL8(RADFN)  ;ra703dat holds the previous entry
  S DA=RADFN,RACN="N",DIE("NO^")="OUTOK",DR="[RA REGISTER]",DIE="^RADPT(" D ^DIE K DIE("NO^"),DE,DQ
+ ;
+ ;IHS/BJI/DAY - Patch 1003 - Default Pregnancy Status to Unknown
+ ;Controlled by site parameter
+ I +$G(RAMDIV),$P($G(^RA(79,+RAMDIV,9999999)),"^",2)=1 D
+ .I $G(RADFN)="" Q
+ .I $G(RADTI)="" Q
+ .I $G(RACNI)="" Q
+ .I '$D(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0)) Q
+ .I $P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),U,32)]"" Q
+ .S $P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),U,32)="u"
+ ;End Patch
+ ;
  K RAPOP,RAFM,RAFM1,RAI,RAMOD,RASTI,RACMTHOD,RANMFLG,RAIEN702 ;moved from edit template
  S RACNICNT=RACNICNT+1
  S ^TMP($J,"RAREG1",RACNICNT)=RADFN_U_RADTI_U_RACNI_U_RAOIFN
@@ -57,6 +69,10 @@ EXAMLOOP ; register the exam
  ;end of p99
  S RAPARENT=$S($G(RAPARENT):RAPARENT,$P($G(^RAMIS(71,RAPROC,0)),U,6)="P":1,1:+$G(RAPARENT))
  I $D(^RAO(75.1,+RAOIFN,"H")) S:$D(^("H",0)) ^RADPT(RADFN,"DT",RADTI,"P",RACNI,"H",0)=^(0) F I=1:1 Q:'$D(^RAO(75.1,+RAOIFN,"H",I,0))  S ^RADPT(RADFN,"DT",RADTI,"P",RACNI,"H",I,0)=^(0)
+ ;IHS/BJI/DAY - Patch 1003 - Continue Chris Saddler 2005 Patch
+ ;Add set of Exam Date for PCC
+ S ^RADPT(RADFN,"DT",RADTI,"P",RACNI,"PCC")=$P(RADTE,".")
+ ;End Patch
  S ^DISV($S($D(DUZ)#2:DUZ,1:0),"RA","CASE #")=RADFN_"^"_RADTI_"^"_RACNI,RAREC=""
  S:$D(RADPARFL) ^TMP($J,"PRO-REG",RAPROCI,RAOIFN)=""
  K RAFIN,DR,RA703DAT

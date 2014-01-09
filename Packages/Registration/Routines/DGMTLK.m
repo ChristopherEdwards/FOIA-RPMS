@@ -1,5 +1,5 @@
 DGMTLK ;ALB/RMO - Look-up a Means Test for a Patient ;28 MAY 1992 10:41 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ; Input  -- DFN      Patient IEN
  ;           DIC      DIC variables as defined by FM ^DIC call

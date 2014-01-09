@@ -1,5 +1,5 @@
 DGYPREG4 ;ALB/REW - POST-INIT CONVERSION/REPORTING ;5-APR-93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  ;  Note: By removing the ;(comment) before D NUMLIM the user is
  ;        prompted for the maximum number of patients to print.

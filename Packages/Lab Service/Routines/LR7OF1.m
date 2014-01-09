@@ -1,5 +1,8 @@
-LR7OF1 ;slc/dcm - Setup new order from OE/RR ;8/11/97
- ;;5.2;LR;**121,187,223,256,299,1022**;September 20, 2007
+LR7OF1 ;slc/dcm/JAH - Setup new order from OE/RR ;8/10/04
+ ;;5.2;LAB SERVICE;**1003,1021,1022,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 121,187,223,256,299,291
+ ;
  ;
 EN ;Setup NEW orders from OE/RR messages
  ;[^TMP("OR",$J,"LRES") DOCUMENTATION]
@@ -46,14 +49,14 @@ ADD ;
  N I,J,LRJ,LRSXN,LRORIFN,NODE,STATUS
  S ^TMP("OR",$J,"LRES","CTR")=^TMP("OR",$J,"LRES","CTR")+1,^TMP("OR",$J,"LRES",LRDFN,LRSDT,LRXZ,^TMP("OR",$J,"LRES","CTR"))=LRORD_"^"_LRODT_"^"_LRSN
  ; S LRORIFN=+$G(^TMP("OR",$J,"LROT",LRSDT,LRXZ,LRSAMP,LRSPEC,0))
- ; ----- IHS/OIT/MKK - BEGIN Lab Patch 1022 Modification
+ ; ----- IHS/MSC/MKK - BEGIN Lab Patch 1022 Modification
  S LRORIFN=+$G(^TMP("OR",$J,"LROT",LRSDT,LRXZ,LRSAMP,LRSPEC,0)),INDIC=$G(^(-1))  ;IHS/CIA/DKM - Added INDIC
- ; ----- IHS/OIT/MKK - End Lab Patch 1022 Modification
+ ; ----- IHS/MSC/MKK - End Lab Patch 1022 Modification
  S J=0
  ; F LRJ=1:1 S J=$O(^TMP("OR",$J,"LROT",LRSDT,LRXZ,LRSAMP,LRSPEC,J)) Q:J<1  S NODE=^(J),STATUS=$G(^(J,1)) D ZSN1(NODE,STATUS)
- ; ----- IHS/OIT/MKK - BEGIN Lab Patch 1022 Modification
+ ; ----- IHS/MSC/MKK - BEGIN Lab Patch 1022 Modification
  F LRJ=1:1 S J=$O(^TMP("OR",$J,"LROT",LRSDT,LRXZ,LRSAMP,LRSPEC,J)) Q:J<1  S NODE=^(J),STATUS=$G(^(J,1)) D ZSN1(NODE,STATUS,INDIC)
- ; ----- IHS/OIT/MKK - End Lab Patch 1022 Modification
+ ; ----- IHS/MSC/MKK - End Lab Patch 1022 Modification
  S (LRSXN,I)=0
  F  S I=$O(^LRO(69,LRODT,1,LRSN,2,I)) Q:I<1  S LRSXN=LRSXN+1
  S:LRSXN ^LRO(69,LRODT,1,LRSN,2,0)="^69.03PA^"_LRSXN_"^"_LRSXN
@@ -62,17 +65,18 @@ ADD ;
  . S:LRSXN ^LRO(69,LRODT,1,+$P(COMBINE,".",2),2,0)="^69.03PA^"_LRSXN_"^"_LRSXN
  Q
  ; ZSN1(NODE,STATUS)    ;Add tests
- ; ----- IHS/OIT/MKK - BEGIN Lab Patch 1022 Modification
+ ; ----- IHS/MSC/MKK - BEGIN Lab Patch 1022 Modification
 ZSN1(NODE,STATUS,INDIC) ; EP Add tests  ;IHS/CIA/DKM - Added INDIC
- ; ----- IHS/OIT/MKK - END Lab Patch 1022 Modification
+ ; ----- IHS/MSC/MKK - END Lab Patch 1022 Modification
  N CNT,XI,X,I,C,TCNT
  S CNT=+$O(^LRO(69,LRODT,1,LRSN,2,99999),-1)
  S LRTSTS=+NODE,LRQUANT=$P(NODE,"^",2)
  I $D(^LRO(69,LRODT,1,LRSN,2,"B",LRTSTS)) S REJECT(LRTSTS)="" Q
  S ^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,0)=LRTSTS_"^"_$S($L(STATUS):STATUS,1:LROUTINE)_"^^^^^"_LRORIFN
- ; ----- IHS/OIT/MKK - BEGIN Lab Patch 1022 Modification
+ ; ----- IHS/MSC/MKK - BEGIN Lab Patch 1022 Modification
  S:$L($G(INDIC)) ^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,9999999)=INDIC  ; IHS/CIA/DKM - Set clnical indication, if present
- ; ----- IHS/OIT/MKK - End Lab Patch 1022 Modification
+ ; ----- IHS/MSC/MKK - End Lab Patch 1022 Modification
+ D SDGX69^LRBEBA2(J,(CNT+LRJ)_","_LRSN_","_LRODT_",")
  I $O(^TMP("OR",$J,"COM",LRSDT,LRXZ,LRSAMP,LRSPEC,J,0)) D
  . S X=^TMP("OR",$J,"COM",LRSDT,LRXZ,LRSAMP,LRSPEC,J)+$S($P($G(^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,1,0)),"^",4):$P(^(0),"^",4),1:0),^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,1,0)="^^"_X_"^"_X_"^"_DT
  . S TCNT=+$O(^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,1,99999),-1),(C,I)=0

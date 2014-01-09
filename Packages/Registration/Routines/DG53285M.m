@@ -1,5 +1,5 @@
 DG53285M ;ALB/PAK DG*5.3*285 POST-INSTALL TO MAILMAN MSG ; 04/24/00
- ;;5.3;Registration;**285**;Aug 13, 1993
+ ;;5.3;Registration;**285,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will be run as part of the post-install for patch
  ;DG*5.3*285

@@ -1,5 +1,5 @@
 SCMCHLE ;BP/DJB - PCMM HL7 EVENT File Utils ; 11 Dec 2002  1:14 PM
- ;;5.3;Scheduling;**177,204,272**;May 01, 1999
+ ;;5.3;Scheduling;**177,204,272,1015**;May 01, 1999;Build 21
  ;
  ;Reference routine: ^SCDXFU01
 ADD(EVDATE,EVPTR,DFN,TP,FTEE) ;Add a new event to PCMM HL7 EVENT file (#404.48).

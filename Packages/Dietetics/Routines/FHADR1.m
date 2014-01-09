@@ -1,5 +1,5 @@
 FHADR1 ; HISC/NCA - Dietetic Facility Profile ;1/23/98  15:03
- ;;5.0;Dietetics;**13,34**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN1 ; Enter/Edit Facility Data and Specialized Medical Programs
  S (FLG1,FLG2)=0 D YR G:'PRE KIL
  D GET G:Y<1 KIL S FHX1=+Y

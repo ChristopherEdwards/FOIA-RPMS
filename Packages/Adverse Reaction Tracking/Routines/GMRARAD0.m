@@ -1,5 +1,5 @@
 GMRARAD0 ;HIRMFO/RM-Radiology\ART Interface Routine (cont.);12/30/93
- ;;4.0;Adverse Reaction Tracking;;Mar 29, 1996
+ ;;4.0;Adverse Reaction Tracking;**41**;Mar 29, 1996;Build 8
 NKADD ; This entry point will add the NKA entry in file 120.8 if needed.
  N GMRATMP,GMRAPA,GMRA,GMRAY,GMRAX,DA,DFN,DIK
  S GMRA(0)=GMRAL
@@ -50,7 +50,11 @@ DRCLRACK(DA) ; This function will determine if entry DA in 120.8 represents
  S FXN=0,ZERO=$G(^GMR(120.8,DA(1),0))
  I '+$G(^GMR(120.8,DA(1),"ER")) D
  .   F DRCL="DX100","DX101","DX102" D  Q:FXN
- .   .   S DRCL1=$O(^PS(50.605,"B",DRCL,0))_";PS(50.605,"
+ .   .   ;41-VS
+ .   .   D IEN^PSN50P65("",DRCL,"ENCAP")
+ .   .   S DRCL1=$O(^TMP($J,"ENCAP","B",DRCL,0))_";PS(50.605,"
+ .   .   K ^TMP($J,"ENCAP")
+ .   .   ;41-VS
  .   .   I $P(ZERO,U,3)=DRCL1 S FXN=1 Q
  .   .   S DRCL2=0 F  S DRCL2=$O(^GMR(120.8,DA(1),3,DRCL2)) Q:DRCL2<1  I DRCL2'=DA,+$G(^GMR(120.8,DA(1),3,DRCL2,0))=+DRCL1 S FXN=1 Q
  .   .   Q

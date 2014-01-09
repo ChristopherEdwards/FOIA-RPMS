@@ -1,5 +1,5 @@
 BARCLU01 ; IHS/SD/LSL - Split out of BARCLU0 ;; 07/09/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,19**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,19,22**;OCT 26, 2005;Build 38
  ;;
  ; IHS/SD/TMM 06/18/2010 1.8*Patch 19 (M819), Add Prepayment functionality.
  ;      See work order 3PMS10001
@@ -74,6 +74,7 @@ CACC ; EP
  S DR=DR_"201;" ;payor
  S:+BARCLID(13,"I") DR=DR_"10;" ;i/o pat
  ;S DR=DR_"16//^S X=BARCLID(3);301;" ;receipt,comment    ;16=AUTO PRINT RECEIPT ;M819*DEL*TMM*20100710 (M819_2)
+ S DR=DR_"301;" ;comment  bar*1.8*22 HEAT46421
  ;IHS/SD/TPF BAR*1.8*3 UFMS
  I +BARCLID(22,"I") D
  .Q:BARX'=81&(BARX'=53)&(BARX'=52)&(BARX'=99)

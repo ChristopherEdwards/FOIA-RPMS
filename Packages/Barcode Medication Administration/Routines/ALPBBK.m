@@ -1,5 +1,5 @@
 ALPBBK ;OIFO-DALLAS MW,SED,KC,KCF PRINT BLANK MAR BCMA FOR SELECTED PATIENT ;04/25/03
- ;;2.0;BAR CODE MED ADMIN;**17**;May 2002
+ ;;3.0;BAR CODE MED ADMIN;**8**;Mar 2004
  ; 
  ; NOTE: this routine is designed for hard-copy output.
  ;       Output is formatted for 132-column printing.
@@ -71,7 +71,7 @@ DQ ; output entry point...
  W !,?2,"Order",?13,"Start",?35,"Stop",?61,"Times" D START^ALPBUTL3(DAY) W ?NST,"Notes"
  W ! F J=1:1:142 W "-"
  S ADM(7)=""
- F JY=1:0:5 DO  Q:JY=6
+ F JY=1:0:4 DO  Q:JY=5
  .W !,"____________|______________________|___________________",?59," |",ADM(7),?72,"|" F J=72:5:MST W ?J,"_____|"
  .W !?60,"|",ADM(7),?72,"|" F J=72:5:MST W ?J,"_____|"
  .W !?60,"|",ADM(7),?72,"|" F J=72:5:MST W ?J,"_____|"

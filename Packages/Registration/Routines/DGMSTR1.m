@@ -1,5 +1,5 @@
 DGMSTR1 ;ALB/GRR - GENERATE AND PRINT SUMMARY REPORT ; Jan 6, 1999
- ;;5.3;Registration;**195**; Aug 13, 1993
+ ;;5.3;Registration;**195,1015**; Aug 13, 1993;Build 21
  ;DGMST("M") - Total Males
  ;DGMST("F") - Total Females
  ;DGMST("T") - Total Males and Females

@@ -1,5 +1,5 @@
-DGPFLF4 ;ALB/RBS - PRF FLAG MANAGEMENT LM PROTOCOL ACTIONS CONT. ; 5/15/03 11:48am
- ;;5.3;Registration;**425**;Aug 13, 1993 
+DGPFLF4 ;ALB/RBS - PRF FLAG MANAGEMENT LM PROTOCOL ACTIONS CONT. ; 4/15/04 12:15pm
+ ;;5.3;Registration;**425,554,650,1015**;Aug 13, 1993 ;Build 21
  ;
  ;no direct entry
  QUIT
@@ -19,43 +19,35 @@ EF ;Entry point for DGPF EDIT FLAG action protocol.
  N DGPFORIG ;save original array containing flag record field values
  N DGABORT  ;abort flag
  N DGRESULT ;result of $$STOALL^DGPFALF1 api call
- N DGERR    ;if error returned from $$STOALL^DGPFALF1 api call
+ N DGERR    ;if error returned
  N DGOK     ;ok flag to enter record flag entry & flag description
  N DGLOCK   ;lock var for flag file edit
  N DGSEL    ;user selection (list item)
  N VALMY    ;output of EN^VALM2 call, array of user selected entries
  N DGMSG    ;user message
- N DGCNT,DGLINE,DGQ,DGSUB  ;counters and quit flag
+ N DGQ,DGSUB ;counters and quit flag
  ;
- S (DGCNT,DGLINE,DGQ,DGSUB)=0
- ;
+ ;init vars
+ S (DGABORT,DGLOCK,DGRESULT,DGQ,DGSUB)=0
  S DGOK=1,(DGSEL,DGIDXIEN)=""
- S (DGABORT,DGLOCK,DGRESULT)=0
- S DGMSG="W !?2,"">>> '""_$P($G(XQORNOD(0)),U,3)_""' action not allowed for Category II (Local) Flags."",*7"
  ;
- ;- set screen to full scrolling region
+ ;set screen to full scrolling region
  D FULL^VALM1
  W !
- ;- check of Category var - Only Local Flags can be created
+ ;
+ ;check flag category (only Category II flags can be edited)
  I DGCAT=1 D
- . W !?2,">>> '",$P($G(XQORNOD(0)),U,3),"' action not allowed for Category I (National) Flags.",*7
- . W !?7,"Only Category II (Local) Flags may be edited.",*7
- . S DGOK=0
+ . D BLD^DIALOG(261129,"Can not edit 'Category I' flags.","","DGERR","F")
+ . D MSG^DIALOG("WE","","","","DGERR") W *7
  . D PAUSE^VALM1
- ;
- ;- check of security key
- I DGOK,'$D(^XUSEC("DGPF LOCAL FLAG EDIT",DUZ)) D
- . X DGMSG
- . W !?7,"You do not have the appropriate Security Key.",*7
  . S DGOK=0
- . D PAUSE^VALM1
  ;
- ;-- init flag record and history arrays
- ;   The DGPFLF array will contain 2 "^" pieces (internal^external)
- ;   for a final full screen display before filing.
+ ;init flag record and history arrays
+ ; The DGPFLF array will contain 2 "^" pieces (internal^external)
+ ; for a final full screen display before filing.
  K DGPFLF,DGPFLH,DGPFORIG
  ;
- ;- allow user to select a single flag for editing
+ ;allow user to select a single flag for editing
  D:DGOK
  . S DGOK=0,VALMBCK=""
  . D EN^VALM2($G(XQORNOD(0)),"S")
@@ -80,39 +72,17 @@ EF ;Entry point for DGPF EDIT FLAG action protocol.
  . M DGPFORIG=DGPFLF  ;save original array to compare for edits later
  . S DGOK=1
  ;
- ;-- Call DGPFLF5 for user prompts to edit fields
+ ;Call DGPFLF5 for user prompts to edit fields
  ;   - split from this one due to size
  I DGOK D
  . D EFCONT^DGPFLF5(.DGPFLF,.DGPFLH,.DGPFORIG,.DGABORT,DGIDXIEN)
  . Q:DGABORT
  . ;
- . ;-- re-display user's answers on full screen
- . S (DGLINE,DGCNT)=0
- . S DGPFLF("PTR")="26.11"
- . K ^TMP("DGPFDISP",$J)
- . ;
- . D FLAGDET^DGPFLFD1("DGPFDISP",.DGPFLF,.DGLINE,.DGCNT)
- . ;
- . W:$E(IOST,1,2)="C-" @IOF
- . S (DGCNT,DGQ)=0
- . F  S DGCNT=$O(^TMP("DGPFDISP",$J,DGCNT)) Q:DGCNT=""  D  Q:DGQ
- . . I $Y+3>IOSL S DIR("A")="Enter RETURN to continue",DIR(0)="E" D ^DIR K DIR W:$E(IOST,1,2)="C-" @IOF
- . . W !,^TMP("DGPFDISP",$J,DGCNT,0)
- . ;
- . K DGPFLF("PTR")        ;clean up
- . K ^TMP("DGPFDISP",$J)  ;clean up
- . ;
- . W !!,"Enter/Edit Reason:",!,"------------------"
- . S DGSUB=0
- . F  S DGSUB=$O(DGPFLH("REASON",DGSUB)) Q:'DGSUB  D
- . . I $Y+3>IOSL S DIR("A")="Enter RETURN to continue",DIR(0)="E" D ^DIR K DIR W:$E(IOST,1,2)="C-" @IOF
- . . W !,$G(DGPFLH("REASON",DGSUB,0))
- . ;
- . ;-- check to see if user changed anything
+ . ;check to see if user changed anything
  . S DGSUB="",DGQ=0
  . I $G(DGPFLF("OLDFLAG"))]""  S DGQ=1  ;flag name has changed
  . I 'DGQ D
- . . F DGSUB="STAT","TYPE","REVFREQ","NOTIDAYS","REVGRP" D  Q:DGQ
+ . . F DGSUB="STAT","TYPE","REVFREQ","NOTIDAYS","REVGRP","TIUTITLE" D  Q:DGQ
  . . . I DGPFLF(DGSUB)'=DGPFORIG(DGSUB) S DGQ=1
  . . Q:DGQ
  . . ;
@@ -135,18 +105,21 @@ EF ;Entry point for DGPF EDIT FLAG action protocol.
  . ;
  . K DGPFORIG  ;kill array - no longer needed
  . ;
- . ; -- file the edits
+ . ;re-display user's answers on full screen
+ . D REVIEW^DGPFUT3(.DGPFLF,.DGPFLH,"",XQY0,XQORNOD(0))
+ . ;
+ . ;file the edits
  . W !,*7
  . I $$ANSWER^DGPFUT("Would you like to file the local record flag changes","YES","Y")'>0 S DGABORT=1 Q
  . ;
  . W !,"Updating the local record flag..."
  . ;
- . ;-- setup remaining flag history array nodes for filing
- . ;   note, the DGPFLH("FLAG") will be setup in $$STOALL^DGPFALF1
+ . ;setup remaining flag history array nodes for filing
+ . ;note, the DGPFLH("FLAG") will be setup in $$STOALL^DGPFALF1
  . S DGPFLH("ENTERDT")=$$NOW^XLFDT()   ;current date/time
  . S DGPFLH("ENTERBY")=DUZ             ;current user
  . ;
- . ;-- file both the (#26.11) & (#26.12) entries
+ . ;file both the (#26.11) & (#26.12) entries
  . S DGRESULT=$$STOALL^DGPFALF1(.DGPFLF,.DGPFLH,.DGERR)
  . ;
  . W !!,"   >>> Local record flag was "_$S(+DGRESULT:"filed successfully.",1:"not filed successfully."),*7
@@ -159,10 +132,10 @@ EF ;Entry point for DGPF EDIT FLAG action protocol.
  . W !!,"   >>> The '"_$P($G(XQORNOD(0)),U,3)_"' action is aborting, nothing has been filed.",*7
  . I $$ANSWER^DGPFUT("Enter RETURN to continue","","E")  ;pause
  ;
- ;-- re-build list of local record flags
+ ;re-build list of local record flags
  D BLD^DGPFLF
  ;
- ;- return to LM (refresh screen)
+ ;return to LM (refresh screen)
  S VALMBCK="R"
  Q
  ;

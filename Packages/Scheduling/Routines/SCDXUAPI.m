@@ -1,5 +1,5 @@
 SCDXUAPI ;ALB/MLI - Utility API to add OOS clinic locations ; 10/8/96
- ;;5.3;Scheduling;**63**;AUG 13, 1993
+ ;;5.3;Scheduling;**63,1015**;AUG 13, 1993;Build 21
  ;
  ; This utility should be called only by the lab or radiology packages
  ; or other applications designated as needing clinics which are

@@ -1,5 +1,5 @@
-GMRCEDT2 ;SLC/JFR,DCM - RESUBMIT A CANCELLED CONSULT ;1/4/99 00:27
- ;;3.0;CONSULT/REQUEST TRACKING;**1,5,12,15,22**;DEC 27, 1997
+GMRCEDT2 ;SLC/JFR,DCM - RESUBMIT A CANCELLED CONSULT ;3/14/03 07:27
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,5,12,15,22,33**;DEC 27, 1997
 EN(GMRCO,COMNO) ;entry point into the routine
  ;COMNO=CMDA from ^GMRCEDT2=comments array IEN from ^GMR(123,IEN,40,
  ;GMRCO=IEN of the consult from file 123
@@ -11,6 +11,10 @@ EN(GMRCO,COMNO) ;entry point into the routine
  .Q
  N MSG S MSG=$$EDRESOK(GMRCO)
  I '+MSG D EXAC^GMRCADC($P(MSG,U,2)) Q
+ I '$$PDOK^GMRCEDT4(GMRCO) D  Q
+ . D EXAC^GMRCADC("Can't resubmit!")
+ . S GMRCRSUB=1
+ . Q
  I '$D(GMRCGUIF) W !,"Resubmitting Consult ... One moment please ..."
  K ^TMP("GMRCSUB",$J) S ^TMP("GMRCSUB",$J)=0
  I $D(GMRCEDT(1)) S ^TMP("GMRCSUB",$J,1)="GMRCSS^"_+GMRCEDT(1)

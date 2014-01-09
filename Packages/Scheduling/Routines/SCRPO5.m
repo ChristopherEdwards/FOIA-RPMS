@@ -1,5 +1,5 @@
-SCRPO5 ;BP-CIOFO/KEITH - Historical Patient Assignment Detail ; 01 Jul 99  9:30 PM [ 11/01/2000  4:19 PM ]
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+SCRPO5 ;BP-CIOFO/KEITH - Historical Patient Assignment Detail ; 01 Jul 99  9:30 PM
+ ;;5.3;Scheduling;**177,505,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/01/2000 changed SSN to HRCN
  ;                        added call to list template
  ;
@@ -17,6 +17,7 @@ RUN ;Print report
 IHS ;EP; entry point for list template ;IHS/ANMC/LJF 11/1/2000
  N SCI,SCPNOW,SCLINE,SCPAGE,SCSUB,SCFF,SCFOUND,SCLN,SCAGE,SCDATA
  N SCDOB,SCGEND,SCIFN,SCOUT,SCPNAME,SCREC,SCSH,SCSSN,SCTITL,SCDT
+ N SCEU,SCEUNM,SCLEBNM,SCLEDT,SCSTAT,SCSTNM,SCX,SCY
  K ^TMP("SCRPT",$J) M SCDT=SC("DTR") S SCDT="SCDT"
  S SCI=$$GETALL^SCAPMCA(DFN,.SCDT),SCSUB="",(SCFF,SCLN,SCFOUND,SCOUT)=0
  F  S SCSUB=$O(^TMP("SC",$J,DFN,SCSUB)) Q:SCSUB=""!(SCSUB]"PCTM")  D
@@ -33,7 +34,10 @@ IHS ;EP; entry point for list template ;IHS/ANMC/LJF 11/1/2000
  ..Q:'$L(SCREC)
  ..S SCUSER=$P(SCREC,U,SCX(7))  ;user duz
  ..S SCDENT=$P(SCREC,U,SCX(9))  ;date entered
- ..D SLINE(SCX(1),SCNAME,SCACT,SCINAC,SCUSER,SCDENT,.SCLN)
+ ..S SCEU=$P(SCREC,U,6),SCEUNM=$$GET1^DIQ(200,SCEU_",",.01)  ;editing user
+ ..S SCSTAT=$P(SCREC,U,12),SCSTNM=$$GET1^DIQ(404.43,SCIFN_",",.12)  ;status
+ ..S SCLEDT=$P(SCREC,U,8),SCLEBNM=$$GET1^DIQ(200,SCLEDT_",",.01)  ;last edited by
+ ..D SLINE(SCX(1),SCNAME,SCACT,SCINAC,SCUSER,SCDENT,SCEUNM,SCSTNM,SCLEBNM,.SCLN)
  ..Q
  .Q
  S SCTITL(1)="<*>  HISTORICAL PATIENT ASSIGNMENT DETAIL  <*>"
@@ -57,6 +61,10 @@ IHS ;EP; entry point for list template ;IHS/ANMC/LJF 11/1/2000
  ...D:$Y>(IOSL-3) HDR^SCRPO(.SCTITL,80),SHDR,SSHDR(SCSH,1) Q:SCOUT
  ...S SCX=^TMP("SCRPT",$J,SCSUB,SCACT,SCI)
  ...W !,$P(SCX,U),?28,$P(SCX,U,2),?40,$P(SCX,U,3),?52,$P(SCX,U,4)
+ ...I SCSUB=3 D
+ ....W !,"User Entering: ",$P(SCX,U,6)
+ ....W !,"Last Edited By: ",$P(SCX,U,7)
+ ....W !,"Status: ",$P(SCX,U,5)
  ...Q
  ..Q
  .Q
@@ -79,19 +87,22 @@ SSHDR(X,CONT) ;Subheader
  W !,X,$S($G(CONT):" (cont.)",1:""),":"
  Q
  ;
-SLINE(SCORD,SCNAME,SCACT,SCINAC,SCUSER,SCDENT,SCLN) ;Set report global
+SLINE(SCORD,SCNAME,SCACT,SCINAC,SCUSER,SCDENT,SUNM,SCTNM,SCBNM,SCLN) ;Set report global
  ;Input: SCORD=output order
  ;Input: SCNAME=provider/position/team name
  ;Input: SCACT=active date
  ;Input: SCINAC=inactive date
  ;Input: SCUSER=user duz
  ;Input: SCDENT=date entered
+ ;Input: SUNM=entered by
+ ;Input: SCTNM=status
+ ;Input: SCBNM=last edited by
  ;
- N SCX,SCY
+ ;N SCX,SCY
  S SCFOUND=1,SCLN=SCLN+1
  S SCX=$E(SCNAME,1,25)_U_$$SDT(SCACT)_U_$$SDT(SCINAC),SCY=$$SDT(SCDENT)
  S:$L(SCY) SCY=" ("_SCY_")"
- S SCX=SCX_U_$E($P($G(^VA(200,+SCUSER,0)),U),1,(28-$L(SCY)))_SCY
+ S SCX=SCX_U_$E($P($G(^VA(200,+SCUSER,0)),U),1,(28-$L(SCY)))_SCY_U_SCTNM_U_SUNM_U_SCBNM
  S ^TMP("SCRPT",$J,SCORD,-SCACT,SCLN)=SCX
  Q
  ;

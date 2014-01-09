@@ -1,5 +1,5 @@
-BCHRPTCP ; IHS/TUCSON/LAB - generic report cover page ;  [ 12/06/00  8:58 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,11**;OCT 28, 1996
+BCHRPTCP ; IHS/CMI/LAB - generic report cover page ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
  ;
 COVPAGE ;EP
@@ -11,6 +11,7 @@ COVPAGE ;EP
  W !!,"The following visit listing contains CHR records selected based on the",!,"following criteria:",!
 SHOW ;
  W !?28,"RECORD SELECTION CRITERIA"
+ W !!,"PATIENTS: ",BCHREGN
  W !!,"Date of Service range:  ",BCHBDD," to ",BCHEDD,!
  I '$D(^BCHTRPT(BCHRPT,11)) G SHOWP
  S BCHI=0 F  S BCHI=$O(^BCHTRPT(BCHRPT,11,BCHI)) Q:BCHI'=+BCHI  D

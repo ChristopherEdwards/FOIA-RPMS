@@ -1,9 +1,14 @@
-PSOUTLA1 ;BHAM ISC/RTR-Pharmacy utility program cont. ; 10/10/96
- ;;7.0;OUTPATIENT PHARMACY;**35**;DEC 1997
+PSOUTLA1 ;BHAM ISC/RTR-Pharmacy utility program cont. ;06-Dec-2012 19:50;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**35,186,218,259,206,1015**;DEC 1997;Build 62
  ;External reference to File ^PS(55 supported by DBIA 2228
  ;External reference to File ^PSDRUG supported by DBIA 221
  ;External reference to File ^PS(59.7 supported by DBIA 694
  ;External reference to File ^PS(51 supported by DBIA 2224
+ ;
+ ;*186 - add DEACHK function
+ ;*218 - add REFIP function
+ ;*259 - reverse *218 delete restriction only warn of deleting
+ ;       also add del of last refill only
  ;
 EN1 ;Formats condensed, back door sig in BSIG array
  ;pass in  1) Internal Rx from 52
@@ -77,3 +82,107 @@ PATCHR ;Begin task
  .D EN^PSOHLSN1(PSOLPRX,PSOLPSTX,PSOLPSTZ,"")
  S:$D(ZTQUEUED) ZTREQ="@"
 PATCHQ Q
+ ;
+ ;PSO*186
+DEACHK(PSIRXN,PSDEA,PSDAYS,PCLOZ,PSOCS,PSMAXRF) ;Apply DEA restrictions
+ ;
+ ; If no refills allowed indicate that and set Max refills to number
+ ; of fills thus far, or if new order, then num of refills will not be
+ ; found and Max refills will be 0.
+ ;
+ ;  Function returns: 1 = no refills allowed
+ ;                    0 = ok to refill
+ ;  Input Variables: PSIRXN = internal RX number or "*"=(new order)
+ ;                   PSDEA  = DEA special handling for drug ordered
+ ;                   PSDAYS = Days supply ordered
+ ;                   PCLOZ  = Clozapine patient? (Optional)
+ ; Output Variables: PSOCS  = Controlled sub flag  (Optional)
+ ;                   PSMAXRF= Max Refill allowed by DEA restriction
+ ;                                                 (Optional)
+ ;
+ S PSIRXN=+$G(PSIRXN),PSDEA=$G(PSDEA),PSDAYS=+$G(PSDAYS)
+ S PSOCS=+$G(PSOCS),PSMAXRF=+$G(PSMAXRF),PCLOZ=$G(PCLOZ)
+ ;
+ ;if clozapine patient (passed in 0 or 1),  set max refills and quit
+ I PCLOZ=0 S PSMAXRF=0 Q 1
+ I PCLOZ=1 S PSMAXRF=1 Q 0
+ ;
+ ;no refills if PSDEA = 'A' & not 'B' or 'F',
+ I (PSDEA["A")&(PSDEA'["B")!(PSDEA["F")!(PSDEA[1)!(PSDEA[2) D  Q 1
+ . S PSMAXRF=$$NUMFILLS(PSIRXN)
+ ;
+ N QQ
+ F QQ=1:1 Q:$E(PSDEA,QQ)=""  I $E(+PSDEA,QQ)>1,$E(+PSDEA,QQ)<6 D
+ . S PSOCS=1
+ . S:$E(+PSDEA,QQ)=2 $P(PSOCS,"^",2)=1
+ ;
+ ;no refills allowed on sched 2
+ I $P(PSOCS,"^",2)=1 S PSMAXRF=$$NUMFILLS(PSIRXN) Q 1
+ ;
+ ;set max refill for controlled substance & other based on days supply
+ S PSDAYS=+$G(PSDAYS)
+ I PSOCS D
+ . S PSMAXRF=$S(PSDAYS<60:5,PSDAYS'<60&(PSDAYS'>89):2,PSDAYS=90:1,1:0)
+ E  D
+ .;IHS/MSC/PLS - 12/06/2012
+ .; S PSMAXRF=$S(PSDAYS<60:11,PSDAYS'<60&(PSDAYS'>89):5,PSDAYS=90:3,1:0)
+ . S PSMAXRF=$S(PSDAYS<60:15,PSDAYS<90:5,PSDAYS=90:3,PSDAYS<168:2,PSDAYS<365:1,1:0)
+ ;
+ ;get number of fills if applies & compare to Max refills
+ N PNFILLS S PNFILLS=$$NUMFILLS(PSIRXN)
+ I PNFILLS'<PSMAXRF S PSMAXRF=PNFILLS Q 1
+ ;
+ Q 0
+ ;
+NUMFILLS(PSIRXN) ;Return number of fills thus far, or 0 if doesn't apply
+ ; function returns: if   Active drug, then number of refills thus far
+ ;                   else return 0 for does not apply
+ ;  Input Variables: PSIRXN = internal RX number (Optional)
+ Q:'$G(PSIRXN) 0
+ N RFN,RFNC
+ S (RFN,RFNC)=0
+ F  S RFN=$O(^PSRX(PSIRXN,1,RFN)) Q:'RFN  S RFNC=RFNC+1
+ Q RFNC
+ ;
+REFIP(RXI,RFIL,TYP) ;Check if refill is Not Released and In Process and
+ ;           pending Auto Release by an external dispense machine.
+ ; Input: RXI = internal Prescription no.
+ ;        RFIL= refill number
+ ;        TYP ="R"-refill or "P"-partial
+ ; Returns 1 = In Process      (Not OK to delete)
+ ;         0 = Not In Process  (OK to delete)
+ ;
+ ;assumes a refill is Not In Process by the external dispense machine
+ ;unless it finds a record in this file and is marked to the contrary
+ ;
+ N PSIEN,IP,FOUND,EXDATA,EXDIV
+ S (IP,FOUND)=0,PSIEN=""
+ ;find first specified refill processing backwards, in case dupes
+ F  S PSIEN=$O(^PS(52.51,"B",RXI,PSIEN),-1) Q:PSIEN=""  D  Q:FOUND
+ . S EXDATA=^PS(52.51,PSIEN,0)
+ . I $P(EXDATA,"^",9)=RFIL D
+ . . S EXDIV=$P(EXDATA,"^",11)
+ . . Q:'$P($G(^PS(59,EXDIV,"DISP")),"^",2)     ;quit, not auto release
+ . . S FOUND=1
+ . I FOUND,$P(^PS(52.51,PSIEN,0),"^",10)'=2 S IP=1
+ Q IP
+ ;
+WARN1 ;partial del checks    *259
+ N PSR,PSOL
+ S PSR=0 F  S PSR=$O(^PSRX(DA(1),"P",PSR)) Q:'PSR  S PSOL=PSR
+ I DA=PSOL,$P(^PSRX(DA(1),"P",DA,0),"^",19) D  Q
+ .D EN^DDIOL("Partial Released! Use the 'Return to Stock' option!","","$C(7),!!"),EN^DDIOL(" ","","!")
+ ;
+ ;Warn of In Process, Only delete if answered Yes         ;*259
+ I $$REFIP^PSOUTLA1(DA(1),DA,"P") D  I 'Y Q               ;reset $T
+ . D EN^DDIOL("** Partial refill has previously been sent to the External Dispense Machine","","!!,?2")
+ . D EN^DDIOL("** for filling and is still Pending Processing","","$C(7),!,?2")
+ . D EN^DDIOL("","","!")
+ . K DIR
+ . S DIR("A")="Do you want to continue? "
+ . S DIR("B")="Y"
+ . S DIR(0)="YA^^"
+ . S DIR("?")="Enter Y for Yes or N for No."
+ . D ^DIR
+ . K DIR
+ Q

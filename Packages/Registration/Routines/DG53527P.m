@@ -1,5 +1,5 @@
 DG53527P ;BP-CIOFO/KEITH - Pre/post inits ; 21 May 2001  7:11 PM
- ;;5.3;Registration;**527**;Aug 13, 1993
+ ;;5.3;Registration;**527,1015**;Aug 13, 1993;Build 21
  ;
 POST ;Post init
  N DGFLD,DGMFLD,DGOUT,DGFILE

@@ -1,5 +1,5 @@
 DGA4001 ;ALB/MRL - LIST PENDING OR OPEN DISPOSITIONS ;01 JAN 1988@2300
- ;;5.3;Registration;**162**;Aug 13, 1993
+ ;;5.3;Registration;**162,1015**;Aug 13, 1993;Build 21
  D UP^DGA400 I IO=DGDEV W !!,"===> Checking for Pending/Open Dispositions..."
  D VAR,H^DGUTL S $P(^DG(43,1,"AMIS"),"^",1)=DGTIME,Y=DGA1 X ^DD("DD") S DGH="PENDING/OPEN DISPOSITIONS, ",X="MONTH OF '"_Y_"'.",DGH=DGH_X,$P(^DG(43,1,"AMIS"),"^",6)=X
 EN2 K ^UTILITY($J) F I=DGA1:0 S I=$O(^DPT("ADIS",I)) Q:'I!(I>DGAE1)  F DFN=0:0 S DFN=$O(^DPT("ADIS",I,DFN)) Q:'DFN  F I1=0:0 S I1=$O(^DPT("ADIS",I,DFN,I1)) Q:'I1  I $D(^DPT(DFN,"DIS",I1,0)) S DGAD=^(0) D SET

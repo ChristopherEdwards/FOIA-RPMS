@@ -1,5 +1,5 @@
-VADPT30 ;ALB/MJK - Current Inpatient Variables; 12 DEC 1988
- ;;5.3;Registration;**111,498,509,1004**;Aug 13, 1993
+VADPT30 ;ALB/MJK - Current Inpatient Variables; 12 DEC 1988 ; 5/5/05 11:41am
+ ;;5.3;Registration;**111,498,509,662,,1004,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  2/22/2001 Added setting of admitting provider
  ;IHS/OIT/LJF  11/10/2005 PATCH 1004 included for sites where it has been overwritten
  ;
@@ -33,6 +33,7 @@ VARQ K VAMV0,VAMT,VAID
  ;
 GET ; -- get variables and quit when all set(Y=1)
  S VACA=+$P(VAMV0,"^",14)
+ N VAT
  D TS,SET G GETQ:Y
  F VAID=VATD:0 S VAID=$O(^DGPM("APMV",DFN,VACA,VAID)) Q:'VAID  F VAIFN=0:0 S VAIFN=$O(^DGPM("APMV",DFN,VACA,VAID,VAIFN)) Q:'VAIFN  I $D(^DGPM(VAIFN,0)) S VAMV0=^(0) D SET G GETQ:Y
 GETQ K VACA,VAIFN,VAID Q

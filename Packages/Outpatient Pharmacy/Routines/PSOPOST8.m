@@ -1,11 +1,11 @@
 PSOPOST8 ;BIR/EJW-Post install routine - patch PSO*7*129 ;11/14/02
- ;;7.0;OUTPATIENT PHARMACY;**129**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**129,268**;DEC 1997;Build 9
  ;External reference to ^DPT supported by DBIA 10035
  ;External reference to ^XUSEC supported by DBIA 10076
  ; POST-INSTALL ROUTINE FOR PATCH PSO*7*129 - TO LIST ENTRIES THAT WERE RESET INTO THE PHARMACY PATIENT FILE (#55) BY PATCH PSO*7*115
  S ZTDTH=""
  I $D(ZTQUEUED) S ZTDTH=$H
- L +^XTMP("PSOPOST7"):0 I '$T D  Q
+ L +^XTMP("PSOPOST7"):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) I '$T D  Q
  .I ZTDTH="" D BMES^XPDUTL("** The clean up job from patch PSO*7*115 is still running. **")
  .D BMES^XPDUTL("A MailMan message is now being generated with instructions on running this")
  .D BMES^XPDUTL("post-install at a later date/time.  Halting...")

@@ -1,5 +1,7 @@
 DGMTDD3 ;ALB/RMO - Individual Annual Income file (#408.21) Data Dictionary Calls ;17 MAR 1992 10:46 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;PIMS;**1015,1016**;JUN 30, 2012;Build 20
+ ;
+ ;DG*688 changed NET tag to only screen entry of Child Net Worth data when the means test is version 0
  ;
 ID ;Identifier for Individual Annual Income file
  N DGPRI
@@ -12,7 +14,7 @@ EMP ;"Trigger" Cross-reference on the Total Income From Employment
  N DGFLD,DGIN0,DGLY,DGMTPAR,DGVAL
  S DGIN0=$G(^DGMT(408.21,DA,0)),DGLY=+DGIN0 D PAR^DGMTSCU
  I "^3^4^5^6^"[(U_$P($G(^DGPR(408.12,+$P(DGIN0,U,2),0)),U,2)_U),$P(DGIN0,U,14)-$P(DGMTPAR,U,17)'>0 D
- .I $P($G(^DGMT(408.21,DA,1)),U,3)]"" S DGVAL=$P(^(1),U,3),DGFLD=1.03 D KILL S $P(^DGMT(408.21,DA,1),U,3)=""
+ . I $P($G(^DGMT(408.21,DA,1)),U,3)]"" S DGVAL=$P(^(1),U,3),DGFLD=1.03 D KILL S $P(^DGMT(408.21,DA,1),U,3)=""
  Q
  ;
 OTH ;"Trigger" Cross-reference on the Other Property or Assets
@@ -36,7 +38,16 @@ FUN ;Input Transform check for Funeral and Burial Expenses field (#1.02)
 NET ;Input Transform check for Net Worth fields (#2.01-#2.05)
  N DGPRI
  S DGPRI=+$P($G(^DGMT(408.21,DA,0)),U,2)
- I "^3^4^5^6^"[(U_$P($G(^DGPR(408.12,DGPRI,0)),U,2)_U) W !?5,"This field does not need to be filled in for a child." K X
+ ;DG*5.3*688 -- DGMTVR is the Means Test version indicator
+ I '$D(DGMTVR) D
+ . N DGMT22I,DGMTVR1,DGMTVR2
+ . S (DGMT22I,DGMTVR2)=0 F  Q:DGMTVR2  S DGMT22I=$O(^DGMT(408.22,"AIND",DA,DGMT22I)) Q:'DGMT22I  D
+ . . S DGMTVR2=+$G(^DGMT(408.22,DGMT22I,"MT"))
+ . I DGMTVR2 S DGMTVR=+$P($G(^DGMT(408.31,DGMTVR2,2)),U,11) Q
+ . S DGMTVR1=+$G(^DGMT(408.21,DA,"MT"))
+ . I DGMTVR1 S DGMTVR=+$P($G(^DGMT(408.31,DGMTVR1,2)),U,11) Q
+ I +$G(DGMTVR)=0 DO
+ . I "^3^4^5^6^"[(U_$P($G(^DGPR(408.12,DGPRI,0)),U,2)_U) W !?5,"This field does not need to be filled in for a child." K X
  Q
  ;
 DEB ;Input Transform check for Net Worth Debts field (#2.05)

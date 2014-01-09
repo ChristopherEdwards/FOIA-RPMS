@@ -1,5 +1,5 @@
 DGYMF31A ;ALB/CMM FIND DANGLING PT IN ^DPT TO ^DIC(31 ;12/30/94
- ;;5.3;Registration;**53**;Aug 13, 1993
+ ;;5.3;Registration;**53,1015**;Aug 13, 1993;Build 21
  ;
  ;This is a one shot routine that will loop through the patient
  ;file entries looking at the disabilities to see if the pointer

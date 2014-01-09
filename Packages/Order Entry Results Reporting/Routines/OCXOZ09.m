@@ -1,5 +1,5 @@
-OCXOZ09 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ09 ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,8 +10,26 @@ OCXOZ09 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
+CHK188 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK58+19^OCXOZ05.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK188 Variables
+ ; OCXDF(2) ----> Data Field: FILLER (FREE TEXT)
+ ; OCXDF(40) ---> Data Field: ORDER MODE (FREE TEXT)
+ ; OCXDF(47) ---> Data Field: OI LOCAL TEXT (FREE TEXT)
+ ;
+ ;      Local Extrinsic Functions
+ ; CLIST( -----------> STRING CONTAINS ONE OF A LIST OF VALUES
+ ; EQTERM( ----------> EQUALS TERM OPERATOR
+ ;
+ I $$EQTERM(OCXDF(47),"ANGIOGRAM (PERIPHERAL)") S OCXDF(40)=$G(OCXPSM) I $L(OCXDF(40)),(OCXDF(40)="SESSION") D CHK192
+ I $$CLIST(OCXDF(47),"GLUCOPHAGE,METFORMIN") S OCXDF(40)=$G(OCXPSM) I $L(OCXDF(40)),(OCXDF(40)="SELECT") S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)) D CHK280^OCXOZ0B
+ Q
+ ;
 CHK192 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK188+14^OCXOZ08.
+ ;  Called from CHK188+14.
  ;
  Q:$G(OCXOERR)
  ;
@@ -37,14 +55,15 @@ CHK196 ; Look through the current environment for valid Event/Elements for this 
  ; OCXDF(73) ---> Data Field: ORDERABLE ITEM IEN (NUMERIC)
  ;
  ;      Local Extrinsic Functions
+ ; CLIST( -----------> STRING CONTAINS ONE OF A LIST OF VALUES
  ;
  S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)) D CHK198
- S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) S OCXDF(67)=$$CM^ORQQRA(OCXDF(73)) I $L(OCXDF(67)),(OCXDF(67)["M") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK467^OCXOZ0E
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK498^OCXOZ0F
+ S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) S OCXDF(67)=$$CM^ORQQRA(OCXDF(73)) I $L(OCXDF(67)),$$CLIST(OCXDF(67),"M,I,N") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK458^OCXOZ0E
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK489^OCXOZ0F
  Q
  ;
 CHK198 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK196+13.
+ ;  Called from CHK196+14.
  ;
  Q:$G(OCXOERR)
  ;
@@ -52,7 +71,7 @@ CHK198 ; Look through the current environment for valid Event/Elements for this 
  ; OCXDF(2) ----> Data Field: FILLER (FREE TEXT)
  ;
  I (OCXDF(2)="RA") D CHK199
- I ($E(OCXDF(2),1,2)="PS") D CHK363^OCXOZ0C
+ I ($E(OCXDF(2),1,2)="PS") D CHK360^OCXOZ0C
  Q
  ;
 CHK199 ; Look through the current environment for valid Event/Elements for this patient.
@@ -62,112 +81,104 @@ CHK199 ; Look through the current environment for valid Event/Elements for this 
  ;
  ;    Local CHK199 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(73) ---> Data Field: ORDERABLE ITEM IEN (NUMERIC)
+ ;
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK201
+ S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) D CHK236^OCXOZ0A
+ Q
+ ;
+CHK201 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK199+9.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK201 Variables
+ ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(65) ---> Data Field: CONTRAST MEDIA ALLERGY FLAG (BOOLEAN)
+ ; OCXDF(67) ---> Data Field: CONTRAST MEDIA CODE (FREE TEXT)
  ; OCXDF(69) ---> Data Field: RECENT BARIUM STUDY FLAG (BOOLEAN)
  ; OCXDF(73) ---> Data Field: ORDERABLE ITEM IEN (NUMERIC)
  ;
  ;      Local Extrinsic Functions
  ; RECBAR( ----------> RECENT BARIUM STUDY
  ;
- S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) D CHK201
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXDF(69)=$P($$RECBAR(OCXDF(37),48),"^",1) I $L(OCXDF(69)),(OCXDF(69)) S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) D CHK219
+ S OCXDF(65)=$$ORCHK^GMRAOR(OCXDF(37),"CM","") I $L(OCXDF(65)),(OCXDF(65)) S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) S OCXDF(67)=$$CM^ORQQRA(OCXDF(73)) D CHK207
+ S OCXDF(69)=$P($$RECBAR(OCXDF(37),48),"^",1) I $L(OCXDF(69)),(OCXDF(69)) S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) S OCXDF(67)=$$CM^ORQQRA(OCXDF(73)) D CHK217
  Q
  ;
-CHK201 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK199+13.
+CHK207 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK201+15.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK201 Variables
+ ;    Local CHK207 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
- ; OCXDF(56) ---> Data Field: CONTRAST MEDIA FLAG (BOOLEAN)
- ; OCXDF(65) ---> Data Field: CONTRAST MEDIA ALLERGY FLAG (BOOLEAN)
- ; OCXDF(67) ---> Data Field: CONTRAST MEDIA CODE (FREE TEXT)
- ; OCXDF(73) ---> Data Field: ORDERABLE ITEM IEN (NUMERIC)
- ; OCXDF(78) ---> Data Field: PATIENT TOO BIG FOR SCANNER FLAG (BOOLEAN)
- ;
- ;      Local Extrinsic Functions
- ; CM( --------------> DOES THIS RADIOLOGY PROCEDURE USE A CONTRAST MEDIA
- ; CTMRI( -----------> CT MRI PHYSICAL LIMITS
- ; FILE(DFN,106, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: RADIOLOGY PROCEDURE CONTAINS NON-BARIUM CONTRAST MEDIA)
- ;
- S OCXDF(56)=$P($$CM(OCXDF(73)),"^",1) I $L(OCXDF(56)),(OCXDF(56)) S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXDF(65)=$$ORCHK^GMRAOR(OCXDF(37),"CM","") I $L(OCXDF(65)) D CHK208
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXDF(78)=$P($$CTMRI(OCXDF(37),OCXDF(73)),"^",1) I $L(OCXDF(78)),(OCXDF(78)) D CHK242^OCXOZ0A
- S OCXDF(67)=$$CM^ORQQRA(OCXDF(73)) I $L(OCXDF(67)),(OCXDF(67)["M") S OCXOERR=$$FILE(DFN,106,"") Q:OCXOERR 
- Q
- ;
-CHK208 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK201+18.
- ;
- Q:$G(OCXOERR)
- ;
- ;    Local CHK208 Variables
- ; OCXDF(65) ---> Data Field: CONTRAST MEDIA ALLERGY FLAG (BOOLEAN)
  ; OCXDF(66) ---> Data Field: CONTRAST MEDIA CODE TRANSLATION (FREE TEXT)
  ; OCXDF(67) ---> Data Field: CONTRAST MEDIA CODE (FREE TEXT)
- ; OCXDF(73) ---> Data Field: ORDERABLE ITEM IEN (NUMERIC)
+ ; OCXDF(160) --> Data Field: ALLERGY CONTRAST MEDIA LOCATION (FREE TEXT)
  ;
  ;      Local Extrinsic Functions
+ ; CLIST( -----------> STRING CONTAINS ONE OF A LIST OF VALUES
  ; CONTRANS( --------> CONTRAST MEDIA CODE TRANSLATION
- ; FILE(DFN,66, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CONTRAST MEDIA ALLERGY)
  ;
- I (OCXDF(65)) S OCXDF(67)=$$CM^ORQQRA(OCXDF(73)) I $L(OCXDF(67)) S OCXDF(66)=$$CONTRANS(OCXDF(67)),OCXOERR=$$FILE(DFN,66,"66") Q:OCXOERR 
+ I $L(OCXDF(67)),$$CLIST(OCXDF(67),"M,I,N,L,C,G,B") S OCXDF(66)=$$CONTRANS(OCXDF(67)),OCXDF(160)=$P($$ORCHK^GMRAOR(OCXDF(37),"CM","",1),"^",2) D CHK211
  Q
  ;
-CHK219 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK199+14.
+CHK211 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK207+15.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK219 Variables
+ ;      Local Extrinsic Functions
+ ; FILE(DFN,66, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CONTRAST MEDIA ALLERGY)
+ ;
+ S OCXOERR=$$FILE(DFN,66,"66,160") Q:OCXOERR 
+ Q
+ ;
+CHK217 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK201+16.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK217 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(67) ---> Data Field: CONTRAST MEDIA CODE (FREE TEXT)
  ; OCXDF(70) ---> Data Field: RECENT BARIUM STUDY TEXT (FREE TEXT)
- ; OCXDF(73) ---> Data Field: ORDERABLE ITEM IEN (NUMERIC)
  ; OCXDF(121) --> Data Field: RECENT BARIUM STUDY ORDER STATUS (FREE TEXT)
  ;
  ;      Local Extrinsic Functions
+ ; FILE(DFN,67, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: RECENT BARIUM STUDY ORDERED)
  ; RECBAR( ----------> RECENT BARIUM STUDY
  ; RECBARST( --------> RECENT BARIUM ORDER STATUS
  ;
- S OCXDF(67)=$$CM^ORQQRA(OCXDF(73)) I $L(OCXDF(67)),(OCXDF(67)["B") S OCXDF(70)=$P($$RECBAR(OCXDF(37),48),"^",3),OCXDF(121)=$P($$RECBARST(OCXDF(37),48),"^",2) D CHK224
+ I $L(OCXDF(67)),(OCXDF(67)["B") S OCXDF(70)=$P($$RECBAR(OCXDF(37),48),"^",3),OCXDF(121)=$P($$RECBARST(OCXDF(37),48),"^",2),OCXOERR=$$FILE(DFN,67,"70,121") Q:OCXOERR 
  Q
  ;
-CHK224 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK219+16.
+CLIST(DATA,LIST) ;   DOES THE DATA FIELD CONTAIN AN ELEMENT IN THE LIST
  ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; FILE(DFN,67, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: RECENT BARIUM STUDY ORDERED)
- ;
- S OCXOERR=$$FILE(DFN,67,"70,121") Q:OCXOERR 
- Q
- ;
-CM(OCXOI) ;  Compiler Function: DOES THIS RADIOLOGY PROCEDURE USE A CONTRAST MEDIA
- ;
- N OCXVAL S OCXVAL=$$CM^ORQQRA(OCXOI) Q:((OCXVAL["B")!(OCXVAL["M")) 1_U_OCXVAL Q 0
- ;  
+ N PC F PC=1:1:$L(LIST,","),0 I PC,$L($P(LIST,",",PC)),(DATA[$P(LIST,",",PC)) Q
+ Q ''PC
  ;
 CONTRANS(OCXC) ;  Compiler Function: CONTRAST MEDIA CODE TRANSLATION
  ;
  N OCXX
  Q:'$L($G(OCXC)) "" S OCXX=$S((OCXC["B"):"Barium",1:"")
+ I (OCXC["G") S:$L(OCXX) OCXX=OCXX_" and/or " S OCXX=OCXX_"Gastrografin"
+ I (OCXC["I") S:$L(OCXX) OCXX=OCXX_" and/or " S OCXX=OCXX_"Ionic Iodinated"
+ I (OCXC["N") S:$L(OCXX) OCXX=OCXX_" and/or " S OCXX=OCXX_"Non-ionic Iodinated"
+ I (OCXC["L") S:$L(OCXX) OCXX=OCXX_" and/or " S OCXX=OCXX_"Gadolinium"
+ I (OCXC["C") S:$L(OCXX) OCXX=OCXX_" and/or " S OCXX=OCXX_"Cholecystographic"
  I (OCXC["M") S:$L(OCXX) OCXX=OCXX_" and/or " S OCXX=OCXX_"Unspecified contrast media"
  Q OCXX
  ;
-CTMRI(DFN,OCXOI) ;  Compiler Function: CT MRI PHYSICAL LIMITS
+EQTERM(DATA,TERM) ;  Compiler Function: EQUALS TERM OPERATOR
  ;
- N OCXDEV,OCXWTP,OCXHTP,OCXWTL,OCXHTL
- S OCXDEV=$$TYPE^ORKRA(OCXOI)
- Q:'((OCXDEV="MRI")!(OCXDEV="CT")) 0_U
- S OCXWTP=$P($$WT^ORQPTQ4(DFN),U,2),OCXHTP=$P($$HT^ORQPTQ4(DFN),U,2)
- I (OCXDEV="CT") S OCXWTL=$$GET^XPAR("ALL","ORK CT LIMIT WT",1,"Q"),OCXHTL=$$GET^XPAR("ALL","ORK CT LIMIT HT",1,"Q")
- I (OCXDEV="CT"),(OCXWTL),(OCXWTP>OCXWTL) Q 1_U_"too heavy"_U_"CT scanner"
- I (OCXDEV="CT"),(OCXHTL),(OCXHTP>OCXHTL) Q 1_U_"too tall"_U_"CT scanner"
- I (OCXDEV="MRI") S OCXWTL=$$GET^XPAR("ALL","ORK MRI LIMIT WT",1,"Q"),OCXHTL=$$GET^XPAR("ALL","ORK MRI LIMIT HT",1,"Q")
- I (OCXDEV="MRI"),(OCXWTL),(OCXWTP>OCXWTL) Q 1_U_"too heavy"_U_"MRI scanner"
- I (OCXDEV="MRI"),(OCXHTL),(OCXHTP>OCXHTL) Q 1_U_"too tall"_U_"MRI scanner"
- Q 0_U
+ N OCXF,OCXL
+ ;
+ S OCXL="",OCXF=$$TERMLKUP(TERM,.OCXL)
+ Q:'OCXF 0
+ I ($D(OCXL(DATA))!$D(OCXL("B",DATA))) Q 1
+ Q 0
  ;
 FILE(DFN,OCXELE,OCXDFL) ;     This Local Extrinsic Function logs a validated event/element.
  ;

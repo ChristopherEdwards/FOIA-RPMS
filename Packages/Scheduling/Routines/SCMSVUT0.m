@@ -1,5 +1,5 @@
-SCMSVUT0 ;ALB/ESD HL7 Segment Validation Utilities ;05/09/96
- ;;5.3;Scheduling;**44,55,66,132,245,254**;Aug 13, 1993
+SCMSVUT0 ;ALB/ESD HL7 Segment Validation Utilities ; 7/8/04 5:06pm
+ ;;5.3;PIMS;**44,55,66,132,245,254,293,345,472,441,551,1015,1016**;JUN 30, 2012;Build 20
  ;
  ;
 CONVERT(SEG,HLFS,HLQ) ; Convert HLQ ("") to null in segment
@@ -65,39 +65,48 @@ SETPRTY(SDOE) ;Set outpatient provider type in field #.06 of V PROVIDER
  . I +$G(SDPRTYP)>0 D PCLASS^PXAPIOE(SDVPRV)
  Q
  ;
-SETMAR(PIDSEG,PID1SEG,HLQ,HLFS) ; Set marital status prior to PID segment validation
- ;     Input:   PIDSEG = PID segment (< or = 245 chars)
- ;             PID1SEG = Remainder of PID segment (> 245 chars)
- ;                 HLQ = HL7 null variable
- ;                HLFS = HL7 field separator
+SETMAR(PIDSEG,HLQ,HLFS,HLECH) ; Set marital status prior to PID segment validation
+ ;Input:   PIDSEG = Array containing PID segment (pass by reference)
+ ;                  PIDSEG = First 245 characters
+ ;                  PIDSEG(1..n) = Continuation nodes
+ ;            HLQ = HL7 null variable
+ ;           HLFS = HL7 field separator
+ ;          HLECH = HL7 encoding characters (VAFCQRY1 call)
+ ;Output:  Marital status changed from null to "U" (UNKNOWN) prior to
+ ;         validation of PID segment and transmittal to AAC
+ ;Note: Assumes all input exists and is valid
  ;
- ;    Output:  Marital status changed from null to "U" (UNKNOWN) prior to validation of PID segment and transmittal to AAC
- ;
- ;
- N LSTP
- S PIDSEG=$G(PIDSEG)
- S:PIDSEG="" PIDSEG="VAFPID"
- S PID1SEG=$G(PID1SEG)
- S:PID1SEG="" PID1SEG="VAFPID"
- G SETMARQ:(($G(@PIDSEG)="")&($G(@PID1SEG@(1))=""))
- ;
- ;- Piece 17 of PID segment is marital status (piece 1 = segment name)
- I $G(@PID1SEG@(1))="" S:($P(@PIDSEG,HLFS,17)=""!($P(@PIDSEG,HLFS,17)=HLQ)) $P(@PIDSEG,HLFS,17)="U" G SETMARQ
- I $G(@PID1SEG@(1))]"" D
- . S LSTP=+($L(@PIDSEG,HLFS))
- .;
- .;- If PID segment = or > 17th piece, check marital status in PIDSEG
- . I ((LSTP=17)!(LSTP>17)) S:($P(@PIDSEG,HLFS,17)=""!($P(@PIDSEG,HLFS,17)=HLQ)) $P(@PIDSEG,HLFS,17)="U" Q
- .;
- .;- If PID segment < 17th piece, check marital status in PID1SEG
- . I (LSTP<17) S:($P(@PID1SEG@(1),HLFS,(17-(LSTP-1)))=""!($P(@PID1SEG@(1),HLFS,(17-(LSTP-1)))=HLQ)) $P(@PID1SEG@(1),HLFS,(17-(LSTP-1)))="U"
- ;
-SETMARQ Q
+ ;Declare variables
+ N REBLD,TMPARR,X,TMPARR3,TMPARR5,TMPARR11
+ ;Parse segment
+ D SEGPRSE^SCMSVUT5($NA(PIDSEG),"TMPARR",HLFS)
+ ;Change marital status (if needed)
+ S REBLD=0
+ S X=$G(TMPARR(16))
+ I ((X="")!(X=HLQ)) S TMPARR(16)="U",REBLD=1
+ I $D(HLECH) D  Q  ;from SCDXMSG1 (VAFCQRY call)
+ . ;Change religion (if needed)
+ . S X=$G(TMPARR(17))
+ . I ((X="")!(X=HLQ)) S TMPARR(17)=29
+ . ;Rebuild segment (due to VAFCQRY call building seg. array)
+ . ;VAFCQRY Seqs 3,5,11 needs to be broken down - too long for rebuild
+ . K TMPARR(0),PIDSEG
+ . D SEQPRSE^SCMSVUT5($NA(TMPARR(3)),"TMPARR3",HLECH)
+ . D SEQPRSE^SCMSVUT5($NA(TMPARR(5)),"TMPARR5",HLECH)
+ . D SEQPRSE^SCMSVUT5($NA(TMPARR(11)),"TMPARR11",HLECH)
+ . K TMPARR(3) M TMPARR(3)=TMPARR3
+ . K TMPARR(5) M TMPARR(5)=TMPARR5
+ . K TMPARR(11) M TMPARR(11)=TMPARR11
+ . D MAKEIT^VAFHLU("PID",.TMPARR,.PIDSEG,.PIDSEG)
+ I REBLD K TMPARR(0),PIDSEG D MAKEIT^VAFHLU("PID",.TMPARR,.PIDSEG,.PIDSEG)
+ Q
  ;
 SETPOW(DFN,ZPDSEG,HLQ,HLFS)     ; Set POW Status Indicated field prior to ZPD segment validation
  ;
  ;     Input:      DFN = IEN of Patient (#2) file
- ;              ZPDSEG = HL7 ZPD segment
+ ;              ZPDSEG = Array containing ZPD segment (pass by reference)
+ ;                       ZPDSEG = First 245 characters
+ ;                       ZPDSEG(1..n) = Continuation nodes
  ;                 HLQ = HL7 null variable
  ;                HLFS = HL7 field separator
  ;
@@ -105,12 +114,21 @@ SETPOW(DFN,ZPDSEG,HLQ,HLFS)     ; Set POW Status Indicated field prior to ZPD se
  ;              U (Unknown)
  ;             If Non-Veteran, set to null
  ;
- S DFN=$G(DFN),ZPDSEG=$G(ZPDSEG)
- G SETPOWQ:(DFN="")!(ZPDSEG="")
- I $P($G(^DPT(DFN,"VET")),"^")="Y",($P(ZPDSEG,HLFS,18)=""!($P(ZPDSEG,HLFS,18)=HLQ)) S $P(ZPDSEG,HLFS,18)="U"
- I $P($G(^DPT(DFN,"VET")),"^")="N" S $P(ZPDSEG,HLFS,18)=HLQ
+ S DFN=$G(DFN)
+ G SETPOWQ:(DFN="")!($G(ZPDSEG)="")
+ ;Declare variables
+ N REBLD,TMPARR,X
+ ;Parse segment
+ D SEGPRSE^SCMSVUT5($NA(ZPDSEG),"TMPARR",HLFS)
+ ;Change POW status (if needed)
+ S REBLD=0
+ S X=$G(TMPARR(17))
+ I $P($G(^DPT(DFN,"VET")),"^")="Y",(X=""!(X=HLQ)) S TMPARR(17)="U",REBLD=1
+ I $P($G(^DPT(DFN,"VET")),"^")="N" S TMPARR(17)=HLQ,REBLD=1
+ ;Rebuild segment (if needed)
+ I REBLD K TMPARR(0),ZPDSEG D MAKEIT^VAFHLU("ZPD",.TMPARR,.ZPDSEG,.ZPDSEG)
  ;
-SETPOWQ Q ZPDSEG
+SETPOWQ Q
  ;
  ;
 SETVSI(DFN,ZSPSEG,HLQ,HLFS) ;Set Vietnam Service Indicated field prior to ZSP segment validation
@@ -294,11 +312,14 @@ REL(DATA) ;
  I '$D(^DIC(13,"C",+DATA)) Q 0
  Q 1
  ;
-SSN(DATA,NOPCHK) ;
+SSN(DATA,NOPCHK,NULLOK) ; SD*5.3*345 added optional parameter NULLOK
  ;INPUT   DATA - The SSN to be validated
  ;        NOPCHK - O = Check pseudo indicator (default)
  ;                 1 = Don't check pseudo indicator
+ ;        NULLOK (optional) - 1 = Allow SSN to be null
+ ;                            2 = Don't allow null SSNs (default)
  ;
+ I $G(DATA)="" Q +$G(NULLOK)  ; SD*5.3*345
  I '$D(DATA) Q 0
  N SSN,PSD
  S SSN=$E(DATA,1,9),PSD=$E(DATA,10)

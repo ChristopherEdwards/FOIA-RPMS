@@ -1,5 +1,5 @@
 SDOERPC ;ALB/MJK - ACRP RPCs For An Encounter ;8/12/96
- ;;5.3;Scheduling;**131,196**;Aug 13, 1993
+ ;;5.3;Scheduling;**131,196,1015**;Aug 13, 1993;Build 21
  ;06/22/99 ACS - Added CPT modifier logic for the AMB CARE toolkit
  ;
  ; ------------------------- cpt rpcs --------------------------

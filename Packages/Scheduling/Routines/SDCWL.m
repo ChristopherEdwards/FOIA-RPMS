@@ -1,16 +1,22 @@
-SDCWL ;ALB/MLI - CLINIC WORKLOAD REPORT ; 18 APRIL 88 [ 08/20/2004  4:07 PM ]
- ;;5.3;Scheduling;**140,132,1001**;Aug 13, 1993
+SDCWL ;ALB/MLI - CLINIC WORKLOAD REPORT ; 18 APRIL 88
+ ;;5.3;Scheduling;**140,132,1001,1011,1015,1016**;Aug 13, 1993;Build 20
+ ;cmi/flag/maw 11/9/2009 PATCH 1011 added call to CLINIC^BSDU for taxonomy
  ;IHS/ITSC/WAR 5/3/2004 P #1001 Removed call to WKL^SDAMQ2 (appt status
  ; update log) - not used by IHS. See [SDAM APPT UPDATE] menu option
  ;D Q S U="^" D ASK2^SDDIV G Q:Y<0 S (VAUTC,SDADD,SDALL,SDNAM,SDPRE)=0 D DATE^SDUTL G Q:POP D WKL^SDAMQ2(SDBD,SDED) G DT:($E(SDBD,6,7)&$E(SDED,6,7))
- D Q S U="^" D ASK2^SDDIV G Q:Y<0 S (VAUTC,SDADD,SDALL,SDNAM,SDPRE)=0 D DATE^SDUTL G Q:POP,DT:($E(SDBD,6,7)&$E(SDED,6,7))
+ ;D Q S U="^" D ASK2^SDDIV G Q:Y<0 S (VAUTC,SDADD,SDALL,SDNAM,SDPRE)=0 D DATE^SDUTL G Q:POP,DT:($E(SDBD,6,7)&$E(SDED,6,7))  ;cmi/maw 11/9/2009 orig line
+ D Q S U="^"  ;cmi/maw PATCH 1011
+ S (VAUTC,SDADD,SDALL,SDNAM,SDPRE)=0 D DATE^SDUTL G Q:POP,DT:($E(SDBD,6,7)&$E(SDED,6,7))  ;cmi/maw PATCH 1011
  S:'$E(SDBD,4,5) SDBD=$E(SDBD,1,3)_"0101" S:'$E(SDED,4,5) SDED=$E(SDED,1,3)_"1231" S:'$E(SDBD,6,7) SDBD=$E(SDBD,1,5)_"01" S:'$E(SDED,6,7) SDED=$E(SDED,1,5)_"31"
 DT S SDB1=$TR($$FMTE^XLFDT(SDBD,"5DF")," ","0"),SDE1=$TR($$FMTE^XLFDT(SDED,"5DF")," ","0")
  S SDB=$TR($$FMTE^XLFDT(SDBD,"2FD")," ","0"),SDE=$TR($$FMTE^XLFDT(SDED,"2FD")," ","0")
  S SDBD=SDBD-.1,SDED=SDED+.9
- I SDED<2871001 S SDS="C" S VAUTNI=2 D CLINIC^VAUTOMA G Q:Y<0,RT
+ ;I SDED<2871001 S SDS="C" S VAUTNI=2 D CLINIC^VAUTOMA G Q:Y<0,RT  ;cmi/maw PATCH 1011 orig line
+ I SDED<2871001 S SDS="C" D CLINIC^BSDU(2,1) G Q:$O(VAUTC(""))="",RT  ;cmi/maw PATCH 1011 mod for taxonomy
 1 R !,"Totals by (C)LINIC or (S)TOP CODE?:  C//",X:DTIME G Q:(X="^")!'$T S Z="^CLINIC^STOP CODE" W:X["?" !,"Type:",!?10,"'C' for CLINIC totals only, or",!?10,"'S' for STOP CODE and CLINIC totals",! I X="" S X="C" W X
- D IN^DGHELP G:%=-1 1 S SDS=X I SDS="C" S VAUTNI=2 D CLINIC^VAUTOMA G Q:Y<0,RT
+ ;D IN^DGHELP G:%=-1 1 S SDS=X I SDS="C" S VAUTNI=2 D CLINIC^VAUTOMA G Q:Y<0,RT  ;cmi/maw PATCH 1011 orig line
+ D IN^DGHELP G:%=-1 1 S SDS=X I SDS="C" D CLINIC^BSDU(2,1) G Q:$O(VAUTC(""))="",RT  ;cmi/maw PATCH 1011 mod for taxonomy
+ I SDS="S" D ASK2^SDDIV G Q:Y<0  ;cmi/maw PATCH 1011
 2 F SDI=1:0 Q:SDI>20  W !,"Enter Stop Code: " W:'$D(SDCL) "ALL//" R X:DTIME Q:(X="^")!'$T!(X="")  W:X["?" !,"Enter a stop code or return when all stop codes have been entered" D CL^SDSCP
  G:X="^"!('$T&(SDI<20)) Q I X="",'$D(SDCL) S SDCL="",SDALL=1
 ADD I SDS="S" W !,"Do you want to include add/edits" S %=2 D YN^DICN W:%Y["?" !,"Answer 'Y'es to see add/edits entered through the ADD/EDIT STOP CODES option or",!,"'N'o to leave them out" G Q:%<0,ADD:%'>0 S SDADD='(%-1)

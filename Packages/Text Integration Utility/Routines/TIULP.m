@@ -1,6 +1,5 @@
-TIULP ; SLC/JER - Functions determining privilege ;01-Aug-2011 12:03;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**98,100,116,109,138,152,175,1009**;Jun 20, 1997;Build 22
- ;IHS/ITSC/LJF 08/20/2003 check if running Consults before checking for interpreter
+TIULP ; SLC/JER - Functions determining privilege ;7/29/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**98,100,116,109,138,152,175,157,182,184**;Jun 20, 1997
 CANDO(TIUDA,TIUACT,PERSON) ; Can PERSON perform action now
  ; Receives: TIUDA=Record number in file 8925
  ;           TIUACT=Name of user action in 8930.8 (USR ACTION)
@@ -8,12 +7,17 @@ CANDO(TIUDA,TIUACT,PERSON) ; Can PERSON perform action now
  ;                  Assumed to be DUZ if not received.
  ;                  New **100** ID param, backward compatible.
  ;  Returns:   TIUY=1:yes,0:no_"^"_why not message
- N TIUI,TIUTYP,TIUROLE,STATUS,TIUY,TIUATYP,MSG,WHO,MODIFIER
+ N TIUI,TIUTYP,TIUROLE,STATUS,TIUY,TIUATYP,MSG,WHO,MODIFIER,TIUD0
  S TIUY=0 I '$G(PERSON) S PERSON=DUZ
+ S TIUD0=$G(^TIU(8925,+TIUDA,0)) I 'TIUD0 G CANDOX
+ I $$ISPRFDOC^TIUPRF(TIUDA),((TIUACT="ATTACH ID ENTRY")!(TIUACT="ATTACH TO ID NOTE")) S TIUY="0^Patient Record Flag notes may not be used as Interdisciplinary notes." G CANDOX
  ;**100** was I +TIUACT'>0 S TIUACT etc.
- S TIUACT=$$USREVNT(TIUACT) I +TIUACT'>0 S TIUY=0 G CANDOX
+ S TIUACT=$$USREVNT(TIUACT) I +TIUACT'>0 G CANDOX
+ ; -- Historical Procedures - Prohibit actions detailed in
+ ;    HPCAN^TIUCP: P182
+ N HPCAN I $$ISHISTCP^TIUCP(+TIUD0) S HPCAN=$$HPCAN^TIUCP(+TIUACT) I 'HPCAN S TIUY=HPCAN G CANDOX
  ; **152 Get status to evaluate for completed document.
- S STATUS=+$P($G(^TIU(8925,+TIUDA,0)),U,5)
+ S STATUS=+$P(TIUD0,U,5)
  ; **152 prevents editing or sending back a completed document.
  I STATUS>6,(+TIUACT=9)!(+TIUACT=17) D  G CANDOX
  .; **152 Displays message to user
@@ -27,8 +31,8 @@ CANDO(TIUDA,TIUACT,PERSON) ; Can PERSON perform action now
  I +TIUACT=4!(+TIUACT=5),+$$BLANK^TIULC(TIUDA) D  G CANDOX
  . S TIUY="0^ Contains blanks ("_$P(TIUPRM1,U,6)_") which must be filled before "_$P(TIUACT,U,2)_"ATURE."
  S TIUROLE=$$USRROLE(TIUDA,PERSON)
- S TIUTYP=+$G(^TIU(8925,+TIUDA,0))
- I $$ISADDNDM^TIULC1(+TIUDA) S TIUATYP=TIUTYP,TIUTYP=+$G(^TIU(8925,+$P($G(^TIU(8925,+TIUDA,0)),U,6),0))
+ S TIUTYP=+TIUD0
+ I $$ISADDNDM^TIULC1(+TIUDA) S TIUATYP=TIUTYP,TIUTYP=+$G(^TIU(8925,+$P(TIUD0,U,6),0))
  I TIUROLE']"" S TIUY=$$CANDO^USRLA(TIUTYP,STATUS,+TIUACT,PERSON)
  F TIUI=1:1:($L(TIUROLE,U)-1) D  Q:+$G(TIUY)>0
  . S TIUY=$$CANDO^USRLA(TIUTYP,STATUS,+TIUACT,PERSON,$P(TIUROLE,U,TIUI))
@@ -36,7 +40,8 @@ CANDO(TIUDA,TIUACT,PERSON) ; Can PERSON perform action now
  ;**100** update for PERSON param; update for verb modifier:
  I +TIUY'>0 D  G CANDOX
  . S WHO=" You"
- . I PERSON'=DUZ S WHO=$P(^VA(200,PERSON,0),U),WHO=$$NAME^TIULS(WHO,"FIRST LAST")
+ . ;I PERSON'=DUZ S WHO=$P(^VA(200,PERSON,0),U),WHO=$$NAME^TIULS(WHO,"FIRST LAST")
+ . I PERSON'=DUZ S WHO=$$NAME^TIULS($$GET1^DIQ(200,PERSON,.01),"FIRST LAST") ;P182
  . S MODIFIER=$P(TIUACT,U,3) I $L(MODIFIER) S MODIFIER=" "_MODIFIER
  . ;e.g. "You may not ATTACH this UNSIGNED TELEPHONE NOTE TO AN ID NOTE."
  . S MSG=WHO_" may not "_$P(TIUACT,U,2)_" this "_$P($G(^TIU(8925.6,+STATUS,0)),U)_" "_$$PNAME^TIULC1(TIUTYP)_MODIFIER_"."
@@ -64,6 +69,8 @@ CANLINK(TIUTYP) ; Can user (DUZ) link (attach) a document of a particular type
  I $$POSSPRNT^TIULP(TIUTYP) S TIUY="0^ This interdisciplinary PARENT title cannot be used for CHILD entries."
  ; -- If selected type is a CWAD, don't let user attach it: --
  I $$ISCWAD^TIULX(TIUTYP) S TIUY="0^ CWAD titles cannot be used for interdisciplinary entries."
+ ; -- If selected type is a PRF, don't let user attach it: --
+ I $$ISPFTTL^TIUPRFL(TIUTYP) S TIUY="0^ Patient Record Flag titles cannot be used for interdisciplinary entries."
  ; -- If selected type is a consult, don't let user attach it: --
  I $$ISA^TIULX(TIUTYP,+$$CLASS^TIUCNSLT) S TIUY="0^ Consult titles cannot be used for interdisciplinary entries."
  Q TIUY
@@ -102,9 +109,9 @@ USRROLE(TIUDA,PERSON) ; Identify the user's role with respect to the document
  I PERSON=+$P(TIU12,U,9) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","ATTENDING PHYSICIAN",0))_U
  I PERSON=+$P(TIU12,U,4) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","EXPECTED SIGNER",0))_U
  I PERSON=+$P(TIU12,U,8) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","EXPECTED COSIGNER",0))_U
+ I $$ASURG^TIUADSIG(TIUDA) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","SURROGATE",0))_U ;P157
  ;Check if the person can be an Interpreter for this document via a Consult API
- ;I $$CPINTERP^GMRCCP(+TIUDA,PERSON) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","INTERPRETER",0))_U                            ;IHS/ITSC/LJF 08/20/2003
- I $L($T(CPINTERP^GMRCCP)) I $$CPINTERP^GMRCCP(+TIUDA,PERSON) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","INTERPRETER",0))_U   ;IHS/ITSC/LJF 08/20/2003
+ I $$CPINTERP^GMRCCP(+TIUDA,PERSON) S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","INTERPRETER",0))_U
  I STATUS>6 D  I COMPLTR S TIUY=$G(TIUY)_+$O(^USR(8930.2,"B","COMPLETER",0))_U
  . S COMPLTR=0
  . I PERSON=+$P(TIU15,U,8) S COMPLTR=1 Q

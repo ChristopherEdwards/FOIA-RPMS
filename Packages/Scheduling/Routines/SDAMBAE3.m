@@ -1,5 +1,5 @@
 SDAMBAE3 ;ALB/BOK/MJK - ADD/EDIT CON'T ;7/8/91  12:18 ;
- ;;5.3;Scheduling;**18,29,40,111,132**;Aug 13, 1993
+ ;;5.3;PIMS;**18,29,40,111,132,1015,1016**;JUN 30, 2012;Build 20
  ;
 DUP ; -- inp transform to check for duplicate CPTs in ^DD(409.51,21:25,0)
  ;    variable '%' is passed and defined as the piece beinging edited
@@ -8,7 +8,9 @@ DUP ; -- inp transform to check for duplicate CPTs in ^DD(409.51,21:25,0)
 DUPQ K C Q
  ;
 DUPMES ;
- W !?2,*7,"WARNING: '",$P(^ICPT(X,0),U,2),"' has already been entered for this",!?11,"patient on this VISIT DATE(Entry #",C,").",!!?11,"Procedure will be added again."
+ N SDX S SDX=$$CPT^ICPTCOD(X)
+ W !?2,*7,"WARNING: '",$P(SDX,U,3),"' has already been entered for this",!?11,"patient on this VISIT DATE(Entry #",C,").",!!?11,"Procedure will be added again."
+ K SDX
  Q
  ;
 SCREEN ; -- screen logic for 409.51 proc fields
@@ -26,6 +28,5 @@ ID ; -- DIC("W") logic for amb proc look-ups
  ;  print code description
  S SDICPT=$$CPTD^ICPTCOD(Y,"SDICPT") F SDIX=1:1:SDICPT W !?10,SDICPT(SDIX)
  ;  set $TEST
- W !?9 I $D(^ICPT(Y,0))
+ W !?9 I +$$CPT^ICPTCOD(Y)>0
  Q
- ;

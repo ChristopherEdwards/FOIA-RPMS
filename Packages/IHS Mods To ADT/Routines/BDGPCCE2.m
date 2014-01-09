@@ -1,5 +1,5 @@
 BDGPCCE2 ; IHS/ANMC/LJF - PULL UP ALL I VISITS ; 
- ;;5.3;PIMS;**1005**;MAY 28, 2004
+ ;;5.3;PIMS;**1005,1016**;MAY 28, 2004;Build 20
  ;IHS/OIT/LJF 04/14/2006 PATCH 1005 added ;EP to EN - called by BDGPCCEL
  ;
 EN ;EP -- main entry point for BDG IC I VISITS ;IHS/OIT/LJF 04/14/2006 PATCH 1005
@@ -38,7 +38,9 @@ INIT ; -- init variables and list array
  .. I $$GET1^DIQ(9000010,VST,.06,"I")'=DUZ(2) Q  ;wrong facility
  .. ;
  .. S COUNT=$G(COUNT)+1   ;number used to select visit for editing
- .. S LINE=$J(COUNT,3)_". "_$$GET1^DIQ(9000010,VST,.01)    ;vist date
+ .. ;S LINE=$J(COUNT,3)_". "_$$GET1^DIQ(9000010,VST,.01)    ;vist date
+ .. ;ihs/cmi/maw 07/02/2012 PATCH 1016 added a space to visit date
+ .. S LINE=$J(COUNT,4)_". "_$$GET1^DIQ(9000010,VST,.01)    ;vist date
  .. S LINE=$$PAD(LINE,30)_$$GET1^DIQ(9000010,VST,.07,"I")  ;ser categ
  .. ;
  .. ; find all llinks v files to this visit

@@ -1,5 +1,5 @@
 DG53293D ;AR/BP - ALS Extract; 9/27/00  14:54PM
- ;;5.3;Registration;**293**;Aug 13,  1993
+ ;;5.3;Registration;**293,1015**;Aug 13,  1993;Build 21
  ;
  ;Description:
  ;Patient data will be extracted from the Patient file (#2) for all 

@@ -1,5 +1,5 @@
 PSOSIGDS ;BIR/RTR-Utility to calculate Days Supply ;6/04/00
- ;;7.0;OUTPATIENT PHARMACY;**46**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**46,222**;DEC 1997;Build 12
  ;External reference to PS(51 supported by DBIA 2224
  ;External reference to PS(51.1 supported by DBIA 2225
  ;External reference to PS(55 supported by DBIA 2228
@@ -139,7 +139,8 @@ CLOZ ;check for clozapine
  Q:'$G(PSOQX("DRUG"))
  I $P($G(^PSDRUG(PSOQX("DRUG"),"CLOZ1")),"^")="PSOCLO1" D
  .S PSOCLPAT=$O(^YSCL(603.01,"C",PSOQX("PATIENT"),0)) Q:'PSOCLPAT
- .S PSOCLMAX=$S($P($G(^YSCL(603.01,PSOCLPAT,0)),"^",3)="B":14,$P($G(^(0)),"^",3)="W":7,1:0)
+ .S PSOCLPAT=$P($G(^YSCL(603.01,PSOCLPAT,0)),"^",3)
+ .S PSOCLMAX=$S(PSOCLPAT="M":28,PSOCLPAT="B":14,PSOCLPAT="W":7,1:0)
  .I PSOCLMAX,PSOCLMAX<$G(PSOQX("DAYS SUPPLY")) S PSOQX("DAYS SUPPLY")=PSOCLMAX
  Q
 DAY(DATE) ;First 5 digits of FileMan date
@@ -173,7 +174,8 @@ DSUPDG ;
  Q:'$G(PSOQX("DRUG"))
  I $P($G(^PSDRUG(PSOQX("DRUG"),"CLOZ1")),"^")="PSOCLO1" D
  .S PSOCLPAT=$O(^YSCL(603.01,"C",PSOQX("PATIENT"),0)) Q:'PSOCLPAT
- .S PSOCLMAX=$S($P($G(^YSCL(603.01,PSOCLPAT,0)),"^",3)="B":14,$P($G(^(0)),"^",3)="W":7,1:0)
+ .S PSOCLPAT=$P($G(^YSCL(603.01,PSOCLPAT,0)),"^",3)
+ .S PSOCLMAX=$S(PSOCLPAT="M":28,PSOCLPAT="B":14,$P($G(^(0)),"^",3)="W":7,1:0)
  .I PSOCLMAX,PSOCLMAX<$G(PSOQX("DAYS SUPPLY")) S PSOQX("DAYS SUPPLY")=PSOCLMAX
  Q
 MAX(PSOQX) ;

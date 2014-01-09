@@ -1,5 +1,5 @@
-DGPTF1 ;ALB/JDS - PTF ENTRY/EDIT ; 10/4/01 10:12am
- ;;5.3;Registration;**69,114,195,397,342,415**;Aug 13, 1993
+DGPTF1 ;ALB/JDS - PTF ENTRY/EDIT ; 5/17/05 3:29pm
+ ;;5.3;PIMS;**69,114,195,397,342,415,1015,1016**;JUN 30, 2012;Build 20
  ;
  I '$D(IOF) S IOP="HOME" D ^%ZIS K IOP
  S:'$D(IOST) IOST="C" S DGVI="""""",DGVO=DGVI I $D(IOST(0)) S:$D(^%ZIS(2,IOST(0),5)) I=^(5) S:$L($P(I,U,4)) DGVI=$P(I,U,4) S:$L($P(I,U,5)) DGVO=$P(I,U,5) I $L(DGVI_DGVO)>4 S X=132 X ^%ZOSF("RM")
@@ -39,18 +39,22 @@ DOB S DOB=$P(A(0),U,3),Y=DOB D D^DGPTUTL W ?39," Date of Birth: ",Y
 CAT I DGPTFMT<2 W !,"    Cat of Ben: ",$S($D(^DIC(45.82,+$P(B(101),U,4),0)):$E($P(^(0),U,2),1,26),1:"")
  W:$X>50 !
  W "    Admit Elig: "_$S(+$P(B(101),U,8):$P($G(^DIC(8,+$P(B(101),U,8),0)),U),1:"UNKNOWN") W ?50,"SCI: " S L=";"_$P(^DD(2,57.4,0),U,3),L1=";"_$P(A(57),U,4)_":" W $P($P(L,L1,2),";",1)
-VIET W ! S Z=3 D Z W "Vietnam SRV: " S L=$P(A(.321),U,1),Z=$S(L="Y":"YES",L="N":"NO",1:"UNKNOWN"),Z1=28 D Z1
-ST S Z=4 D Z W " State: ",$S($D(^DIC(5,+$P(A(.11),U,5),0)):$P(^(0),U,1),1:"")
+VIET W ! S Z=3 D Z W "Vietnam SRV: " S L=$P(A(.321),U,1),Z=$S(L="Y":"YES",L="N":"NO",1:"UNKNOWN"),Z1=27 D Z1
+ST S Z=4 D Z W $S('$$FORIEN^DGADDUTL($P(A(.11),U,10))!('$P(A(.11),U,10)):"  State: "_$S($D(^DIC(5,+$P(A(.11),U,5),0)):$P(^(0),U,1),1:""),1:"Country: "_$$CNTRYI^DGADDUTL($P(A(.11),U,10)))
 POW W !?11,"POW: " S L=$P(A(.52),U,5) W $S(L="Y":"YES",L="N":"NO",1:"UNKNOWN")
-ZIP W ?45,"Zip Code: ",$P(A(.11),U,6)
+ZIP W ?42,$S('$$FORIEN^DGADDUTL($P(A(.11),U,10))!('$P(A(.11),U,10)):"   Zip Code: "_$P(A(.11),U,6),1:"Postal Code: "_$P(A(.11),U,9))
 POS W !,?6," POW SRV: " S L=$P(A(.52),U,6) W $E($S($D(^DIC(22,+L,0)):$P(^(0),U,1),1:""),1,23)
-COU W ?47,"County: ",$S($D(^DIC(5,+$P(A(.11),U,5),1,+$P(A(.11),U,7),0)):$P(^(0),U,1),1:"")
+COU W ?45,$S('$$FORIEN^DGADDUTL($P(A(.11),U,10))!('$P(A(.11),U,10)):"  County: "_$S($D(^DIC(5,+$P(A(.11),U,5),1,+$P(A(.11),U,7),0)):$P(^(0),U,1),1:""),1:"Province: "_$P(A(.11),U,8))
 ION W !,"   Ion Rad Exp: " S L=$P(A(.321),U,3) W $S(L="Y":"YES",L="N":"NO",1:"UNKNOWN")
 METH S L=$P(A(.321),U,12) W:L'="" ?38,"Exposure Method: ",$S(L="N":"Nagasaki/Hiroshima",L="T":"Nuclear Testing",L="B":"Both",1:"")
-AO W !,"  Agent Or exp: " S L=$P(A(.321),U,2) W $S(L="Y":"YES",L="N":"NO",1:"UNKNOWN")
-AOLOC S L=$P(A(.321),U,13) W:L'="" ?36,"Exposure Location: ",$S(L="V":"Vietnam",L="K":"Korean DMZ",1:"")
+AO W !,"    AO Exp/Loc: " S L=$P(A(.321),U,2) W $S(L="Y":"YES",L="N":"NO",1:"UNKNOWN")
+ S L=$P(A(.321),U,13) W:L'="" $S(L="V":"/VIET",L="K":"/DMZ",L="O":"/OTHER",1:"")
+SHAD W ?40,"PROJ 112/SHAD: ",$S(A("SHAD")=1:"YES",1:"NO")
 MST W !,"    Claims MST: " S L=$P(A("MST"),U) W $S(L="Y":"YES",L="N":"NO",L="D":"DECLINED TO ANSWER",1:"UNKNOWN") ; added 6/17/98 for MST enhancement
-NTR W !,"    N/T Radium: " S L=A("NTR") W $S(L'="":L,1:"UNKNOWN")
+NTR W ?39,"    N/T Radium: " S L=A("NTR") W $E($S(L'="":L,1:"UNKNOWN"),1,25)
+CV S L=$S($P(A("CV"),U,1)>0:1,1:0)
+ W !,"Combat Veteran: ",$S(L:"YES",1:"NO")
+ I L S Y=$P(A("CV"),U,2) D D^DGPTUTL W ?45,"End Date: ",Y
  ;
  D EN^DGPTF4 K A,B Q:DGPR
  ;
@@ -77,6 +81,8 @@ GET F I=.32,.52,57,.521,0,.321,.11,.3 S A(I)="" S:$D(^DPT(DFN,I))&('DGST) A(I)=^
  K DGNTARR
  F I=0,101,70 S B(I)="" S:$D(^DGPT(PTF,I)) B(I)=^(I)
  S DGDD=+B(70),DGFC=+$P(B(0),U,3)
+ S A("CV")=$$CVEDT^DGCV(DFN,$P($G(B(0)),U,2))
+ S A("SHAD")=$$GETSHAD^DGUTL3(DFN)
  K PT G DGPTF1
 PR W !,"Enter '^' to stop the display and edit of data",!,"'^N' to jump to screen #N (screen # appears in upper right of screen '<N>')",!,"<RET> to continue on to the next screen or 1-7 to edit:"
  W !?10,"1-Facility, Source of admis, Payment, Transf facil, and Cat. of Benef",!?10,"2-Marital Stat, Race, Ethnicity, Sex, SCI, DOB"

@@ -1,5 +1,5 @@
 DGYMBSRX ;ALB/ABR - REPORT OF G&L ORDERS FROM FILE 42
- ;;5.3;Registration;**59**;Aug 13, 1993
+ ;;5.3;Registration;**59,1015**;Aug 13, 1993;Build 21
  ;
 EN ;set up temp global based on G&L ORDER
  W !!,"WARD LOCATION FILE DIAGNOSTIC ROUTINE",!!

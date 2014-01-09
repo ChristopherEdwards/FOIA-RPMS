@@ -1,5 +1,5 @@
 DGLP3USR ; SLC/AEB,CLA -User Options - Pt. List Defaults ;9/22/97
- ;;5.3;Registration;**447**;Aug 13, 1993
+ ;;5.3;Registration;**447,1015**;Aug 13, 1993;Build 21
  ;
  ; SLC/PKS - Modifications for "combinations" - 3/2000.
  ;

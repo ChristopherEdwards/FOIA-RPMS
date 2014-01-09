@@ -1,5 +1,5 @@
-ORBCMA1 ; SLC/JLI - Pharmacy Calls for Windows Dialog [ 2/11/02 4:30PM ]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**133**;Dec 17, 1997
+ORBCMA1 ; SLC/JLI - Pharmacy Calls for Windows Dialog [ 3/7/2006 ]
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**133,243**;Dec 17, 1997;Build 242
  ;;OR BCMA ORDER COM V1.0 ;**133**; Jan 19, 2002
  ;
 ODSLCT(LST,PSTYPE,DFN,LOC) ; return default lists for dialog
@@ -63,12 +63,16 @@ DISPMSG()       ; return 1 to suppress dispense message
  ;
 SCHALL(LST) ; return all schedules
  N ILST,SCH,IEN,EXP,TYP,X0
+ K ^TMP($J,"ORBCMA1 SCHALL")
+ D AP^PSS51P1("PSJ",,,,"ORBCMA1 SCHALL")
  S ILST=0,SCH=""
- F  S SCH=$O(^PS(51.1,"APPSJ",SCH)) Q:SCH=""  D
+ F  S SCH=$O(^TMP($J,"ORBCMA1 SCHALL","APPSJ",SCH)) Q:SCH=""  D
  . I (SCH="STAT")!(SCH="NOW") D
- .. S IEN=$O(^PS(51.1,"APPSJ",SCH,0))
- .. S X0=$G(^PS(51.1,IEN,0)),EXP=$P(X0,U,8),TYP=$P(X0,U,5)
+ .. S IEN=$O(^TMP($J,"ORBCMA1 SCHALL","APPSJ",SCH,""))
+ .. S EXP=$G(^TMP($J,"ORBCMA1 SCHALL",SCH,8))
+ .. S TYP=$P($G(^TMP($J,"ORBCMA1 SCHALL",SCH,5)),U)
  .. S ILST=ILST+1,LST(ILST)=SCH_U_EXP_U_TYP
+ K ^TMP($J,"ORBCMA1 SCHALL")
  Q
 FORMALT(ORLST,IEN,PSTYPE) ; return a list of formulary alternatives
  N PSID,I

@@ -1,5 +1,5 @@
 VAFCMGU0 ;ALB/JRP-MERGE SCREEN UTILITIES ;10/18/96
- ;;5.3;Registration;**149;295**;Aug 13, 1993
+ ;;5.3;Registration;**149,295,479,1015**;Aug 13, 1993;Build 21
  ;
 REPEAT(CHAR,TIMES)      ;Repeat a string
  ;
@@ -159,16 +159,16 @@ GETDATA(DFN,GROUP,TARGET,MESSAGE) ;Get local data required to build
  S MESSAGE=$G(MESSAGE)
  S:(MESSAGE="") MESSAGE="^TMP(""VAFC-MERGE-TO"","_$J_",""MESSAGE"")"
  ;Declare variables
- N IENS,FIELDS,COUNTY
+ N IENS,FIELDS ;,COUNTY ;**479
  S IENS=DFN_","
- S COUNTY=0
+ ;S COUNTY=0 ;**479
  ;Group 1
  S FIELDS=".01;.03;.09;.351"
  ;Group 2
  I (GROUP=2) D
- .S FIELDS=".111;.1112;.112;.113;.114;.115;.117;.131;.132"
+ .S FIELDS=".131;.132" ;".111;.1112;.112;.113;.114;.115;.117;.131;.132" ;**479
  .;Remember that COUNTY (field #.117) was retrieved
- .S COUNTY=1
+ .;S COUNTY=1 ;**479
  ;Group 3
  I (GROUP=3) D
  .S FIELDS=".02;.05;.08;.211;.219;.2403;.31115"
@@ -178,7 +178,7 @@ GETDATA(DFN,GROUP,TARGET,MESSAGE) ;Get local data required to build
  ;Extract data
  D GETS^DIQ(2,IENS,FIELDS,"",TARGET,MESSAGE)
  ;Accomodate for incorrect extraction of COUNTY (field #.117)
- S:(COUNTY) @TARGET@(2,IENS,.117)=$$COUNTY(DFN)
+ ;S:(COUNTY) @TARGET@(2,IENS,.117)=$$COUNTY(DFN) ;**479
  ;Done
  Q
  ;

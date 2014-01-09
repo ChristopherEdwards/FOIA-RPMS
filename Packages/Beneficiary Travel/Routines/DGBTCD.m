@@ -1,5 +1,5 @@
 DGBTCD ;ALB/SCK - BENEFICIARY TRAVEL CLAIM DISPLAY; 12/15/92 4/14/93
- ;;5.3;Registration;**60,119**;Aug 13, 1993
+ ;;5.3;Registration;**60,119,1015**;Aug 13, 1993;Build 21
  Q
 SCREEN Q:'$D(^DGBT(392,DGBTDT,0))  S U="^" K DGBTVAR F I=0,"A","D","M","R","T" S DGBTVAR(I)=$S($D(^DGBT(392,DGBTDT,I)):^(I),1:"")
  S DGBTACCT=$S($D(^DGBT(392.3,+$P(DGBTVAR(0),U,6),0)):$P($G(^(0)),U,5),1:0)

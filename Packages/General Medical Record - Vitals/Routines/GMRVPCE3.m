@@ -1,5 +1,10 @@
-GMRVPCE3 ;HIRMFO/RM,FT-V/M Data Validation for AICS ;6/13/01  11:24
- ;;4.0;Vitals/Measurements;**8,13**;Apr 25, 1997
+GMRVPCE3 ;HIRMFO/RM,FT-V/M Data Validation for AICS ;07/26/05 8:26am
+ ;;5.0;GEN. MED. REC. - VITALS;**13**;Oct 31, 2002
+ ;
+ ; This routine uses the following IAs:
+ ; #10104 - ^XLFSTR calls          (supported)
+ ;07/25/2005 BAY/KAM HD 0000000068371 changed lowest range height from 0 to 10
+ ;
 VALID(TYPE,X) ; This function returns 1 if rate (X) is valid for
  ; measurement type (TYPE).
  N FXN S FXN=0
@@ -53,7 +58,7 @@ HE ; INPUT TRANSFORM FOR HEARING
  K:"^N^A^"'[("^"_$$UP^XLFSTR(X)_"^") X
  Q
 HT ; INPUT TRANSFORM FOR HEIGHT
- D EN3^GMRVUT0 K:X=0!(X>100)!(X<1) X
+ D EN3^GMRVUT0 K:X=0!(X>100)!(X<10) X
  Q
 PU ; INPUT TRANSFORM FOR PULSE
  K:+X'=X!(X>300)!(X<0)!(X?.E1"."1N.N) X
@@ -96,6 +101,7 @@ UNITRATE(TYPE,RATE,UNIT) ; This function will add the unit of
  .  Q
  I TYPE="TMP" D
  .  I "^C^F^"'[("^"_UNIT_"^") S FXN=""
+ .  I UNIT="F",RATE<45 S FXN=""
  .  I UNIT="C" S FXN=+$J(+RATE*(9/5)+32,0,1)
  .  Q
  I TYPE="WT" D

@@ -1,5 +1,5 @@
 FHPRC2 ; HISC/REL - List Weekly Menu ;1/23/98  16:09
- ;;5.0;Dietetics;**13**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 F0 R !!,"Select PRODUCTION DIET (or ALL): ",X:DTIME G:'$T!("^"[X) KIL D:X="all" TR^FH I X="ALL" S FHX1=0
  E  K DIC S DIC="^FH(116.2,",DIC(0)="EQM" D ^DIC G:Y<1 F0 S FHX1=+Y
 F1 S %DT("A")="Select SUNDAY Date: ",%DT="AEX" D ^%DT Q:"^"[X!$D(DTOUT)  G:Y<1 F1

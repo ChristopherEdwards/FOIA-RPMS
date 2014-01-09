@@ -1,5 +1,5 @@
 FHADR9A ; HISC/NCA,RTK - Dietetic Survey (cont.) ;1/10/94  16:10
- ;;5.0;Dietetics;**34**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN2 ; Print the Dietetic Survey
  D:$Y'<(LIN-16) HDR^FHADRPT
  K T1,T2,TOT S TQ=0

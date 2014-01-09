@@ -1,5 +1,5 @@
 DGMTCOU ;ALB/CAW - Copay Utilities ; 12/10/92
- ;;5.3;Registration;**45,182**;Aug 13, 1993
+ ;;5.3;Registration;**45,182,1015**;Aug 13, 1993;Build 21
  ;
 EDT(DFN,DGDT) ;Display patients current copay test information and provide
  ;        the user with the option of proceeding with adding a
@@ -18,7 +18,8 @@ EDT(DFN,DGDT) ;Display patients current copay test information and provide
  S DGMTI=+$$LST^DGMTU(DFN,DGDT,2)
  S DGMT0=$G(^DGMT(408.31,DGMTI,0)),DGMTDT=+DGMT0 S DGMTS=$P(DGMT0,"^",3)
  I $$YR(DFN,DGDT,+DGMT0) S DGMTS=""
- G:$P($$RXST^IBARXEU(DFN,DT),U,3)=2010&('$$YR(DFN,DT,DGMTI)) EDTQ D DISP^IBARXEU(DFN,DGDT,2) W !
+ ;ihs/cmi/maw 02/08/2012 patch 1014 no IB next line
+ ;G:$P($$RXST^IBARXEU(DFN,DT),U,3)=2010&('$$YR(DFN,DT,DGMTI)) EDTQ D DISP^IBARXEU(DFN,DGDT,2) W !
  ;
  ;If test is uneditable, print error message and allow user to view test
  S SOURCE=$P($G(^DGMT(408.31,DGMTI,0)),U,23)

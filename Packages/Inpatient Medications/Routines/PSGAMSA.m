@@ -1,9 +1,9 @@
 PSGAMSA ;BIR/CML3-ENTERS RETURNS, EXTRAS, & PRE-EX NEEDS INTO 57.6 ; 15 May 98 / 9:25 AM
- ;;5.0; INPATIENT MEDICATIONS ;**3,84**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**3,84,130**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191.
  ; Reference to ^PSDRUG is supported by DBIA# 2192.
- ; Reference to ^ECXUD1 is supported by DBIA# 634.
+ ; Reference to ^ECXUD1 is supported by DBIA# 172.
  ; 
 EN(DFN,PSGORD,PSGORD1,PSGLOG) ;
  ; PSGLOG: 2 - pre-exchange needs, 3 - extra units dispensed, 4 - returns
@@ -16,7 +16,9 @@ EN(DFN,PSGORD,PSGORD1,PSGLOG) ;
  D ENLOG,ENOPC
  ;
 OUT ;
- I PSGDRG=+PSGDRG,PSGPRVR=+PSGPRVR,PSGWARD=+PSGWARD S X="ECXUD1" X ^%ZOSF("TEST") I  S ECUD=DFN_"^"_DT_"^"_+PSGDRG_"^"_$S(PSGAMSF:-PSGX,1:+PSGX)_"^"_+PSGWARD_"^"_+PSGPRVR_";200^"_$S(PSGAMSF:-PSGDRGC,1:+PSGDRGC)_"^"_PSGSTRT D ^ECXUD1
+ I PSGDRG=+PSGDRG,PSGPRVR=+PSGPRVR,PSGWARD=+PSGWARD D
+ . S X="ECXUD1" X ^%ZOSF("TEST")
+ . I  S ECUD=DFN_"^"_DT_"^"_+PSGDRG_"^"_$S(PSGAMSF:-PSGX,1:+PSGX)_"^"_+PSGWARD_"^"_+PSGPRVR_";200^"_$S(PSGAMSF:-PSGDRGC,1:+PSGDRGC)_"^"_PSGSTRT_"^"_$G(PSGORD) D ^ECXUD1
  Q
  ;
 ENOPC ; outpatient entry point

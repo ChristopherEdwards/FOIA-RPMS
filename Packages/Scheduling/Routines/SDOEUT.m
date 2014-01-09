@@ -1,5 +1,5 @@
 SDOEUT ;ALB/MJK - ACRP Misc APIs For An Encounter ;8/12/96
- ;;5.3;Scheduling;**131,132,211**;Aug 13, 1993
+ ;;5.3;Scheduling;**131,132,211,1015**;Aug 13, 1993;Build 21
  ;
 VIEN(SDOE) ; -- get visit ien from valid encounter
  Q +$P($G(^SCE(SDOE,0)),U,5)

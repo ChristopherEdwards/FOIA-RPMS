@@ -1,7 +1,5 @@
-VADPT5 ;ALB/MRL/MJK - PATIENT VARIABLES [REG]; 14 DEC 1988 ;2/5/92  09:12
- ;;5.3;Registration;**54,63,242,1004**;Aug 13, 1993
- ;IHS/OIT/LJF  11/10/2005 PATCH 1004 included for sites where it has been overwritten
- ;
+VADPT5 ;ALB/MRL/MJK - PATIENT VARIABLES 
+ ;;5.3;PIMS;**54,63,242,584,1004,1015,1016**;JUN 30, 2012;Build 20
 10 ;Registration/Disposition [REG]
  N VARPSV
  S VARPSV("C")=$S('$G(VARP("C")):999999999,1:+VARP("C"))
@@ -28,20 +26,78 @@ VADPT5 ;ALB/MRL/MJK - PATIENT VARIABLES [REG]; 14 DEC 1988 ;2/5/92  09:12
  S $P(VAX("I"),"^",1)=+VAZ,$P(VAX("E"),"^",1)=$S($D(^SC(+VAZ,0)):$P(^(0),"^",1),1:""),VAX(1)=VAX(1)+1,@VAV@(VAX(1),"I")=VAX("I"),@VAV@(VAX(1),"E")=VAX("E") Q
  ;
 12 ;Appointments [SDA]
- N VASDSV
- D NOW^%DTC
- S VASDSV("F")=$S($G(VASD("F"))?7N.E:VASD("F"),1:%)
+ N VASDSV,SDCNT,SDARRAY,VANOW
+ S VANOW=$$NOW^XLFDT
+ S VASDSV("F")=$S($G(VASD("F"))?7N.E:VASD("F"),1:VANOW)
  S VASDSV("T")=$S(+$G(VASD("T")):+VASD("T"),1:9999999) I '$P(VASDSV("T"),".",2) S $P(VASDSV("T"),".",2)=999999
  S VASDSV("W")=$S('$G(VASD("W")):12,1:VASD("W"))
  S VAZ(2)=$S($D(VASD("N")):VASD("N"),1:9999)
- S VAZ="^I^N^NA^C^CA^PC^PCA^NT^",VAZ(1)="^" F I=1:1 S I1=+$E(VASDSV("W"),I) Q:'I1  S VAZ(1)=VAZ(1)_$P(VAZ,"^",I1)_"^"
- S VASDSV("C")=0 I $O(VASD("C",0))>0 S VASDSV("C")=1
- S VAX=VASDSV("F"),VAX(1)=0 F I=0:0 S VAX=$O(^DPT(DFN,"S",VAX)) Q:VAX'>0!(VAX>VASDSV("T"))!(VAX(1)'<VAZ(2))  S VAZ=$S($D(^DPT(DFN,"S",VAX,0)):^(0),1:"") I VAZ,$P(VAZ,"^",2)=""!(VAZ(1)[("^"_$P(VAZ,"^",2)_"^")) D 121,122:VAX(5)
+ ;Set STATUS Codes (VistA;RSA)
+ S VAZ=";R^I;I^N;NS^NA;NSR^C;CC^CA;CCR^PC;CP^PCA;CPR^NT;NT^",VAZ(1)=""
+ ;Extract User Required STATUS Codes in RSA format
+ F I=1:1 S I1=+$E(VASDSV("W"),I) Q:'I1  D
+ .S VAZ(1)=VAZ(1)_$P($P(VAZ,"^",I1),";",2)_";"
+ ;Create parameter list for the extrinsic call to the Appointment API
+ ;Note: Appointment API can only accept a maximum of 3 fields 
+ ;               to filter on.
+ ; 1 : "FROM;TO" Appointment Date Range to Search
+ ; 2 : Clinic IEN or Array of Clinic IENs if defined (Pass the Root)
+ ; 3 : Requested STATUS Codes (Passed if VASD("C") is not defined.)
+ ; 4 : Patient IEN
+ S SDARRAY="",SDARRAY(1)=VASDSV("F")_";"_VASDSV("T")
+ I $O(VASD("C",0))>0 S SDARRAY(2)="VASD(""C"","
+ E  S SDARRAY(3)=VAZ(1)
+ S SDARRAY(4)=DFN
+ ;Set Fields for API to Return
+ ;  1 : Appointment Date/Time
+ ;  2 : Clinic
+ ;  3 : Appointment Status
+ ; 10 : Appointment Type
+ S SDARRAY("FLDS")="1;2;3;10"
+ ;Remove Clinic IEN from Global Reference
+ S SDARRAY("SORT")="P"
+ ;Call Appointment API (Pass Array by reference)
+ S SDCNT=$$SDAPI^SDAMA301(.SDARRAY)
+ S VAX="",VAX(1)=0
+ ;If error returned, determine error and set VAERR appropriately
+ ; 1 : For any error other than 101
+ ; 2 : If error is 101 : Database is unavailable  
+ I SDCNT<0 S VAX=$O(^TMP($J,"SDAMA301",VAX)) S VAERR=$S(VAX=101:2,1:1) K ^TMP($J,"SDAMA301") Q
+ D 122:SDCNT>0
  Q
 121 S VAX(5)=1 I VASDSV("W")'[1,$P(VAZ,"^",2)']"" S VAX(5)=0 Q
  I VASDSV("C"),'$D(VASD("C",+VAZ)) S VAX(5)=0 Q
  S (VAX("I"),VAX("E"))="",VAX(2)=1,$P(VAX("I"),"^",1)=+VAX F I1=1,2,16 S VAX(2)=VAX(2)+1,$P(VAX("I"),"^",VAX(2))=$P(VAZ,"^",I1)
  Q
-122 S Y=+VAX X ^DD("DD") S $P(VAX("E"),"^",1)=Y,Y=$P(VAZ,"^",1),$P(VAX("E"),"^",2)=$S($D(^SC(+Y,0)):$P(^(0),"^",1),1:""),Y=+$P(VAX("I"),"^",4),$P(VAX("E"),"^",4)=$S($D(^SD(409.1,+Y,0)):$P(^(0),"^",1),1:"")
- S Y=$P(VAX("I"),"^",3) I Y]"" S X=$S($D(^DD(2.98,3,0)):$P(^(0),"^",3),1:""),$P(VAX("E"),"^",3)=$P($P(X,Y_":",2),";",1)
- S VAX(1)=VAX(1)+1,@VAV@(VAX(1),"I")=VAX("I"),@VAV@(VAX(1),"E")=VAX("E") Q
+122 ;Build Internal/External Output Globals
+ ;
+ N SDCIEN,SDDTM,SDNODE
+ S (SDCIEN,SDDTM)=""
+ ;Redefine VAZ (STATUS Codes(RSA;VistA))
+ S VAZ="R;^I;I^NS;N^NSR;NA^CC;C^CCR;CA^CP;PC^CPR;PCA^NT;NT^"
+ S SDDTM=""
+ ;Loop through appointments and convert for output
+ F  S SDDTM=$O(^TMP($J,"SDAMA301",DFN,SDDTM)) Q:'SDDTM  D 
+ .;Get Appointment Information and clear VAX("I") & VAX("E")
+ .S SDNODE=^(SDDTM),(VAX("I"),VAX("E"))=""
+ .;If Clinics were passed to appointment API,
+ .;     Filter on Appointment Status Codes
+ .I $O(VASD("C",0))>0,(VAZ(1)'[($P($P(SDNODE,"^",3),";")_";")) Q
+ .;Extract and format Appointment Date/Time
+ .S Y=$P(SDNODE,"^",1)
+ .S $P(VAX("I"),"^",1)=Y
+ .X ^DD("DD") S $P(VAX("E"),"^",1)=Y
+ .;Extract and format Clinic Information
+ .S $P(VAX("I"),"^",2)=$P($P(SDNODE,"^",2),";",1)
+ .S $P(VAX("E"),"^",2)=$P($P(SDNODE,"^",2),";",2)
+ .;Extract and format Appointment Type
+ .S $P(VAX("I"),"^",4)=$P($P(SDNODE,"^",10),";",1)
+ .S $P(VAX("E"),"^",4)=$P($P(SDNODE,"^",10),";",2)
+ .;Extract and format Appointment Status
+ .S Y=$P($P(VAZ,$P($P(SDNODE,"^",3),";")_";",2),"^"),$P(VAX("I"),"^",3)=Y
+ .I Y]"" S X=$S($D(^DD(2.98,3,0)):$P(^(0),"^",3),1:""),$P(VAX("E"),"^",3)=$P($P(X,Y_":",2),";",1)
+ .S VAX(1)=VAX(1)+1
+ .;Store information in global
+ .S @VAV@(VAX(1),"I")=VAX("I"),@VAV@(VAX(1),"E")=VAX("E")
+ K ^TMP($J,"SDAMA301")
+ Q

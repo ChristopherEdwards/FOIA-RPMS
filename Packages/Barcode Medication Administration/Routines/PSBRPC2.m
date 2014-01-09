@@ -1,14 +1,14 @@
 PSBRPC2 ;BIRMINGHAM/EFC-BCMA RPC BROKER CALLS ;Mar 2004
- ;;3.0;BAR CODE MED ADMIN;**6,3,16**;Mar 2004
+ ;;3.0;BAR CODE MED ADMIN;**6,3,16,32**;Mar 2004;Build 32
+ ;Per VHA Directive 2004-038 (or future revisions regarding same), this routine should not be modified.
  ;
  ; Reference/IA
  ; File 50/221
  ; File 52.6/436
  ; File 52.7/437
  ; File 200/10060
- ;
 GETOHIST(RESULTS,DFN,PSBORD) ;
- S RESULTS=$NAME(^TMP("PSB",$J)),PSB=0
+ S RESULTS=$NAME(^TMP("PSB",$J)),PSB=0 K ^TMP("PSB",$J)
  S ^TMP("PSB",$J,0)=1,^TMP("PSB",$J,1)="-1^No History On File"
  D NOW^%DTC S PSBNOW=$P(%,".",1),PSBNOWZ=%
  D EN^PSBPOIV(DFN,PSBORD)

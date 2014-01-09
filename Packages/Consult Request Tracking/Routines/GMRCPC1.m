@@ -1,5 +1,6 @@
-GMRCPC1 ;SLC/dee - List Manager Routine: Collect and display consults by service and status ;1/27/00
- ;;3.0;CONSULT/REQUEST TRACKING;**7**;DEC 27, 1997
+GMRCPC1 ;SLC/dee - List Manager Routine: Collect and display consults by service and status ;25-Jul-2012 11:26;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**7,1002,1003**;DEC 27, 1997;Build 14
+ ;Modified - IHS/MSC/PLS - 09/19/2011 - New EP - TESTPT
  Q
  ;
 ENSTS ;GMRC List Manager Routine -- Second entry point for GMRC PENDING CONSULTS with user selected statuses
@@ -34,7 +35,7 @@ STSAGAIN ;Loop to get another status.
  G:$G(GMRCSTCK)'="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,99" STSAGAIN
 END Q $S($D(GMRCSTCK):GMRCSTCK,1:"")
  ;
-STCK(RES)     ;change code to status
+STCK(RES) ;change code to status
  N CODE
  ; al:All Status's;dc:Discont.;c:Completed;h:On Hold;f:Flagged;p:Pending;a:Active;e:Expired;s:Scheduled
  ;;pr:Incomplete;d:Delayed;u:Unreleased;dce:Discont/Ed;x:Cancelled;l:Lapsed;rn:Renewed;':No Status")
@@ -78,3 +79,15 @@ NUMBER ;
  E  S GMRCCTRL=0
  Q
  ;
+TESTPT() ;IHS/MSC/MGH Check to see if test pts included.
+ ;PATCH 1002
+ N RESULT
+ K DIR
+ S DIR(0)="S^E:Exclude DEMO Pts;D:Include ONLY DEMO Pts;A:Include ALL pts"
+ S DIR("?")="Enter type of pts in report "
+ S DIR("A")="Demo Pts, Real pts, or both?",DIR("B")="E"
+ D ^DIR
+ I $D(DIRUT) S GMRCQUT=1 Q 1
+ S RESULT=Y
+ K DIR
+ Q RESULT

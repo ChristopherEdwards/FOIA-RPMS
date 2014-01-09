@@ -1,5 +1,5 @@
 SDAMOW1 ;ALB/CAW - Waiting Time Report (con't) ; 8-NOV-93
- ;;5.3;Scheduling;**12**;Aug 13, 1993
+ ;;5.3;Scheduling;**12,1015**;Aug 13, 1993;Build 21
  ;
 START ; -- entry point to start
  K ^TMP("SDWAIT",$J),^TMP("SDWTTOT",$J)

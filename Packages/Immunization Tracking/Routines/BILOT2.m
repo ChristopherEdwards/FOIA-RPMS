@@ -1,7 +1,9 @@
 BILOT2 ;IHS/CMI/MWR - EDIT LOT NUMBERS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT VACCINE FIELDS: CURRENT LOT, ACTIVE, VIS DATE DEFAULT.
+ ;   PATCH 2: Make Display Inactives a separate Action.  CHGORDR+11
+ ;   PATCH 3: Correct leftover prompt from Inactive question. DISPLYI+7
  ;
  ;
  ;----------
@@ -66,10 +68,7 @@ SUBLOTH(BIA) ;EP
  ;
  ;----------
 CHGORDR ;EP
- ;---> Edit the parameter directing the ImmServe Forecast to return
- ;---> Immunization Due dates for either the Minimum Acceptable Age
- ;---> or the Recommended Age.
- ;---> Called by Protocol BI SITE FORC MIN VS RECOMM
+ ;---> Menu for selecting Lot listing order.
  ;
  D FULL^VALM1,TITLE^BIUTL5("SELECT LOT LISTING ORDER"),TEXT2^BILOT1
  N DIR,Y
@@ -78,13 +77,29 @@ CHGORDR ;EP
  S DIR("B")=$G(BICOLL)
  D ^DIR
  S:(Y>0) BICOLL=Y
- I Y="^" D RESET^BILOT1 Q
  ;
- ;---> Include Inacive Lots?
+ ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
+ ;---> Make Display Inactives a separate Action.
+ ;I Y="^" D RESET^BILOT1 Q
+ D RESET^BILOT1
+ Q
+ ;
+ ;
+ ;----------
+DISPLYI ;EP
+ ;---> Display Inactive Lot Numbers.
+ ;---> Called by Protocol:
+ ;
+ D FULL^VALM1,TITLE^BIUTL5("DISPLAY INACTIVE LOT NUMBERS YES/NO")
  W !!,"   Do you wish to include INACTIVE Lots in this display?"
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Remove leftover "NO" prompt by N DIR.
+ N DIR
+ ;**********
  S DIR("?")="     Enter YES to include INACTIVE Lots."
  S DIR(0)="Y",DIR("A")="   Enter Yes or No",DIR("B")="NO"
  D ^DIR
  S BIINACT=$S(Y>0:1,1:0)
  D RESET^BILOT1
  Q
+ ;**********

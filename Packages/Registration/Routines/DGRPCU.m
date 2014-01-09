@@ -1,12 +1,13 @@
-DGRPCU ;ALB/MRL - CONSISTENCY FLAGGER, CHECK EXISTING ; 11 FEB 1987
- ;;5.3;Registration;;Aug 13, 1993
+DGRPCU ;ALB/MRL,BAJ - CONSISTENCY FLAGGER, CHECK EXISTING ; NOV 18, 2005
+ ;;5.3;Registration;**653,1015**;Aug 13, 1993;Build 21
  S U="^" D DT^DICRW F I=1:1 S J=$P($T(T+I),";;",2) Q:J']""  W !,J
  D ^DGRPCS G Q:DGCONRUN S Y=$S($D(^DG(43,1,"CON")):$P(^("CON"),"^",6),1:"") I +Y X ^DD("DD") W !!,"LAST RUN COMPLETED:  ",Y
 OK W !!,"Do you really want to update existing inconsistent entries" S %=2 D YN^DICN G Q:%=2!(%=-1)
  I '% W !!?4,"Y - If you want me to run through all the entries currently filed in",!?9,"the INCONSISTENT DATA file and verify they're still inconsistent.",!?4,"N - If you wish to QUIT and rethink this action." G OK
  S ION="",DGPGM="ST^DGRPCU",DGVAR="DUZ" D QUE^DGUTQ S IOP="HOME" D ^%ZIS K IOP
-Q K DFN,DGCONRUN,DGPGM,DGTIME,DGVAR,I,J,Y,%,%Y D CLOSE^DGUTQ Q
-ST D H^DGUTL S $P(^DG(43,1,"CON"),"^",5)=DGTIME F DFN=0:0 S DFN=$O(^DGIN(38.5,DFN)) Q:'DFN  D EN^DGRPC
+Q K DFN,DGCONRUN,DGPGM,DGTIME,DGVAR,I,J,Y,%,%Y,PASS D CLOSE^DGUTQ Q
+ ; DG*5.3*653 BAJ Added call to Z07 Consistency checker
+ST D H^DGUTL S $P(^DG(43,1,"CON"),"^",5)=DGTIME F DFN=0:0 S DFN=$O(^DGIN(38.5,DFN)) Q:'DFN  D EN^DGRPC S PASS=$$EN^IVMZ07C(DFN)
  D H^DGUTL S $P(^DG(43,1,"CON"),"^",6)=DGTIME G Q
 T ;
  ;;This option is designed to loop through the existing entries in the INCONSISTENT

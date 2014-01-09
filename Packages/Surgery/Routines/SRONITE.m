@@ -1,5 +1,5 @@
-SRONITE ;B'HAM ISC/MAM - NIGHTLY BACKGROUND TASK ; [ 12/16/98  2:09 PM ]
- ;;3.0; Surgery ;**47,58,62,41,86**;24 Jun 93
+SRONITE ;BIR/MAM - NIGHTLY BACKGROUND TASK ;12/16/98  2:09 PM
+ ;;3.0; Surgery ;**47,58,62,41,86,142,167**;24 Jun 93;Build 27
  F SRI=1:1 S SRX=$P($T(TASK+SRI),";;",2) Q:SRX=""  S SRRTN=$P(SRX,";"),SRDESC=$P(SRX,";",2) S ZTDESC=SRDESC,ZTRTN="JOB^SRONITE",ZTIO="",ZTDTH=$H,ZTSAVE("SRRTN")="" D ^%ZTLOAD
  D EN^SROA30
  Q
@@ -19,7 +19,7 @@ TASK ;
  ;;LOCK^SROLOCK;Lock Surgery Cases
  ;;TASK^SRSAVG;Store Operation Times
  ;;^SROATMIT;Transmit Surgery Risk Assessments
+ ;;NIGHT^SRTPTMIT;Transmit Surgery Transplant Assessments
  ;;TASK^SROAWL;Surgery Workload Report
  ;;NIGHT^SROQT;Surgery Quarterly Report
- ;;NITE^SROPCE;File Surgery Data in PCE
  ;;^SRHLXTMP;Surgery Interface Purge

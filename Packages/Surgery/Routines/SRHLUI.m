@@ -1,5 +1,5 @@
-SRHLUI ;B'ham ISC/DLR - Surgery Interface Utility to process incoming segments ; [ 05/06/98   7:14 AM ]
- ;;3.0; Surgery ;**41**;24 Jun 93
+SRHLUI ;B'ham ISC/DLR - Surgery Interface Utility to process incoming segments ; [ 02/06/01  9:53 PM ]
+ ;;3.0; Surgery ;**41,100**;24 Jun 93
  ; Per VHA Directive 10-93-142, this routine SHOULD NOT be modified.
  ;;This routine utilizes the Surgery Interface file (133.2).
 OBR(CASE,DFN,IEN,MSG) ;process Observation Request Segment (OBR) fields 3-4,7-8,27
@@ -17,9 +17,12 @@ OBR(CASE,DFN,IEN,MSG) ;process Observation Request Segment (OBR) fields 3-4,7-8,
  S OBR=MSG,DA=CASE,DIE=$P(^SRO(133.2,IEN,0),U,2) K DR,DO
  ;if there is a VISTA Surgery field(s) associated with this entry process the DR strings
  I $P(^SRO(133.2,IEN,0),U,3)!($D(^(1,0))) D
- .S:$P(^SRO(133.2,IEN,0),U,3) DR=$P(^(0),U,3)_"///^S X="_$$VALUE(IEN) D:$D(^SRO(133.2,IEN,1,0))  I $D(DR) D DRCHK D ^DIE K DIE,DA,DR,DO I $D(Y) S SRDISC="Unknown OBR identifier ("_$G(ID)_")." D SETDSC^SRHLU(.HL,SRDISC,.SRHL)
+ .S:$P(^SRO(133.2,IEN,0),U,3) DR=$P(^(0),U,3)_"///^S X="_$$VALUE(IEN) D:$D(^SRO(133.2,IEN,1,0))
  ..;sets the DR string level (DR and DR(2,...)) for the standard DIE call
  ..S SRX=0 F  S SRX=$O(^SRO(133.2,IEN,1,SRX)) Q:'SRX  S LVL=$P(^SRO(133.2,SRX,0),U,9) Q:"12"[$G(LVL)&($G(LVL)="")  I $$VALUE(SRX)'="" D:$$CHECK(SRX) DR(LVL,SRX)
+ .I $D(DR) N SRESQ D
+ ..D ^SROESHL Q:SRESQ
+ ..D DRCHK D ^DIE K DIE,DA,DR,DO I $D(Y) S SRDISC="Unknown OBR identifier ("_$G(ID)_")." D SETDSC^SRHLU(.HL,SRDISC,.SRHL)
  Q OBR
 CHECK(IEN) ;check universal id or observation id sequence to the Surgery Interface file
  I $G(IEN)="" Q 0
@@ -52,7 +55,7 @@ NTE(MSG,OBR,CASE) ;process Observation Segment (OBX) fields 3,5,14,16 and NTE-3
  .S:$P(MSG,HL("FS"),2)=1 ^SRF(CASE,6,1,7,0)="^^0^0^"_DT_"^^^^" S ^SRF(CASE,6,1,7,$P(^SRF(CASE,6,1,7,0),U,3)+1,0)=$P(MSG,HL("FS"),4),$P(^(0),U,3)=$P(^SRF(CASE,6,1,7,0),U,3)+1,$P(^(0),U,4)=$P(^(0),U,4)+1,$P(^(0),U,5)=DT
  Q
 OBX(MSG,OBR,CASE) ;process Observation Segment (OBX) fields 3,5,14,16 and NTE-3
- N ID,IEN,NM,OBX,TYPE
+ N ID,IEN,NM,OBX,SRESQ,TYPE
  S DA=CASE,OBX=MSG
  S ID=$P($P(OBR,HL("FS"),5),HLCOMP,2) I $G(ID)="" S SRDISC="Unknown OBR identifier ("_$G(ID)_")." D SETDSC^SRHLU(.HL,SRDISC,.SRHL) Q
  S IEN=$O(^SRO(133.2,"AC",ID,0)) I $G(IEN)="" S SRDISC="Unknown OBX identifier ("_$G(ID)_")." D SETDSC^SRHLU(.HL,SRDISC,.SRHL) Q
@@ -66,7 +69,7 @@ OBX(MSG,OBR,CASE) ;process Observation Segment (OBX) fields 3,5,14,16 and NTE-3
  S IEN=$O(^SRO(133.2,"AC",ID,0)) I $G(IEN)="" S SRDISC="Unknown OBX identifier ("_$G(ID)_")." D SETDSC^SRHLU(.HL,SRDISC,.SRHL) Q
  S NM=$$VALUE(IEN) I NM="" Q
  ;if field is set to receive, then set DR string for DIE call
- I $$CHECK(IEN)=1 S LVL=$P(^SRO(133.2,IEN,0),U,9) D DR(LVL,IEN) D:$D(^SRO(133.2,IEN,1,0))  D ^DIE K DIE,DA,DR,DO
+ I $$CHECK(IEN)=1 S LVL=$P(^SRO(133.2,IEN,0),U,9) D DR(LVL,IEN) D:$D(^SRO(133.2,IEN,1,0))  N SRESQ D ^SROESHL Q:SRESQ  D ^DIE K DIE,DA,DR,DO
  .S SRX=0 F  S SRX=$O(^SRO(133.2,IEN,1,SRX)) Q:'SRX  S LVL=$P(^SRO(133.2,SRX,0),U,9) Q:"12"[$G(LVL)&($G(LVL)="")  I $$VALUE(SRX)'="" D DR(LVL,SRX)
  Q
 DRCHK ;CHECK DR STRING (for debugging only)

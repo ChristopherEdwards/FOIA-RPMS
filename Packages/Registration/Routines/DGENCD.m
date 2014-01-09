@@ -1,5 +1,5 @@
-DGENCD ;ALB/CJM,Zoltan,ISA/KWP,JAN - Catastrophic Disability Enter/Edit Option;May 24, 1999,Nov 14, 2001
- ;;5.3;Registration;**121,122,232,237,302,387**;Aug 13,1993
+DGENCD ;ALB/CJM,Zoltan,ISA/KWP,JAN,BRM - Catastrophic Disability Enter/Edit Option;May 24, 1999,Nov 14, 2001 ; 8/4/03 3:01pm
+ ;;5.3;Registration;**121,122,232,237,302,387,451,1015**;Aug 13,1993;Build 21
  ;
 EN ;
  ;Description: Entry point used for enter/edit catastrophic disability
@@ -20,7 +20,7 @@ EDITCD(DFN) ;
  S QUIT=0
  I $$GET^DGENCDA(DFN,.DGCDIS) D  ; If GET CD succeeds ...
  . ; Set up default values.
- . I DGCDIS("FACDET")="" S DGCDIS("FACDET")=$$INST^DGENU()
+ . S DGCDIS("FACDET")=$$INST^DGENU()
  . I 'DGCDIS("DATE") S DGCDIS("DATE")=$G(DT)
  . I 'DGCDIS("REVDTE") S DGCDIS("REVDTE")=DGCDIS("DATE")
  . I DGCDIS("METDET")="" S DGCDIS("METDET")=""
@@ -61,7 +61,7 @@ EDIT(DGCDIS) ;
  ; which is passed by reference.
  N SUB,OK,RESPONSE,FLST,EXIT,SUBEXIT,ITEM,FILENUM,FLDNUM,GETOUT,REQ,VAL
  S OK=1
- F VAL="BY^1","DATE^1","FACDET^1","REVDTE^1","METDET^1" D  Q:'OK
+ F VAL="BY^1","DATE^1","REVDTE^1","METDET^1" D  Q:'OK
  . S SUB=$P(VAL,"^",1)
  . S REQ=$P(VAL,"^",2)
  . S FILENUM=$$FILE^DGENCDU(SUB)

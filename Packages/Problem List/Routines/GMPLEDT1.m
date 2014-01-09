@@ -1,5 +1,5 @@
-GMPLEDT1 ; SLC/MKB/KER -- Edit Problem List fields ; 04/15/2002
- ;;2.0;Problem List;**17,20,26**;Aug 25, 1994
+GMPLEDT1 ; SLC/MKB/KER/AJB -- Edit Problem List fields ; 04/21/2003
+ ;;2.0;Problem List;**17,20,26,28,35**;Aug 25, 1994;Build 26
  ;
  ; External References
  ;   DBIA 10006  ^DIC
@@ -68,6 +68,8 @@ SP ; Edit Exposures/Conditions
  ;   Persian Gulf/Environmental Contaminants - field 1.13
  ;   Head and/or Neck Cancer - field 1.15
  ;   Military Sexual Trauma - field 1.16
+ ;   Combat Vet - field 1.17
+ ;   SHAD - field 1.18
  G SPEXP^GMPLEDT2
  Q
 SOURCE ; Edit Service - field 1.06
@@ -118,6 +120,11 @@ ICD1 ;   Get ICD Code
  Q
 NOTE ; Attach a note to problem - field 11
  N X,Y,I,DEFAULT,PROMPT,DONE,NXT,NCNT S (I,NCNT,DONE)=0
+ ; added for Code Set Versioning (CSV)
+ I $G(GMPICD),'+$$STATCHK^ICDAPIU(GMPICD,DT) D  Q
+ . W !!,"This problem has an inactive ICD code. Please edit the problem before using.",! H 3
+ I $G(GMPIFN),'$$CODESTS^GMPLX(GMPIFN,DT) D  Q
+ . W !!,"This problem has an inactive ICD code. Please edit the problem before using.",! H 3
  F  D  Q:$D(GMPQUIT)!($G(GMPLJUMP))!DONE
  . S NXT=$O(GMPFLD(10,"NEW",I)) S:'NXT NXT=I+1
  . S I=NXT,NCNT=NCNT+1

@@ -1,5 +1,5 @@
 DG53315P ;ALB-CIOFO/MRY - Add PTF Quarterly Census date;8/10/00
- ;;5.3;Scheduling/Registration;**315**;Aug 13, 1993
+ ;;5.3;Scheduling/Registration;**315,1015**;Aug 13, 1993;Build 21
  ;
  ;
 CENSUS ;--- add new census date

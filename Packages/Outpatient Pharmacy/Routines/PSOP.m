@@ -1,9 +1,9 @@
-PSOP ;BIR/SAB - medication profile long or short ;02/25/94
- ;;7.0;OUTPATIENT PHARMACY;**2,15,98,132**;DEC 1997
+PSOP ;BIR/SAB - Medication profile long or short ;02/25/94
+ ;;7.0;OUTPATIENT PHARMACY;**2,15,98,132,148,326**;DEC 1997;Build 11
  ;External reference to PS(55 supported by DBIA 2228
  ;External reference to PS(59.7 supported by DBIA 694
  ;External reference to PSDRUG supported by DBIA 221
- W !! K ^TMP($J),ZTSK,CLS S DIC=2,DIC(0)="QEAM" D ^DIC G Q:Y<0  S PSOLOUD=1,DFN=+Y D:$P($G(^PS(55,+Y,0)),"^",6)'=2 EN^PSOHLUP(+Y) K PSOLOUD S Y=DFN
+ W !! K ^TMP($J),ZTSK,CLS S DIC(0)="QEAM" D EN^PSOPATLK S Y=PSOPTLK G Q:+Y<1  S PSOLOUD=1,DFN=+Y D:$P($G(^PS(55,+Y,0)),"^",6)'=2 EN^PSOHLUP(+Y) K PSOLOUD S Y=DFN
 DOIT S (FN,DFN,D0,DA)=+Y I '$D(^PS(55,+Y,"P")),'$D(^("ARC")),'$D(^("NVA")),'$D(^PS(52.41,"AOR",+Y)) W !?20,$C(7),"NO PHARMACY INFORMATION" H 5 D ^PSODEM G PSOP
  I '$O(^PS(55,+Y,"P",0)),$D(^PS(55,+Y,"ARC")) D ^PSODEM W !!,"PATIENT HAS ARCHIVED PRESCRIPTIONS",! G PSOP
  S DIR("?")="Enter 'L' for a long profile or 'S' for a short profile",DIR("A")="LONG or SHORT: ",DIR(0)="SA^L:LONG;S:SHORT",DIR("B")="SHORT" D ^DIR G:$D(DUOUT)!$D(DIRUT) Q S PLS=Y K DIR
@@ -25,16 +25,18 @@ P U IO S PAGE=1,$P(PSOPLINE,"-",80)="" K ^TMP($J) D LOOP D ^PSODEM W:$O(^PS(55,D
  I PLS="S" D ^PSOP1 G Q
  W ! S DRUG="" F II=0:0 S DRUG=$O(^TMP($J,DRUG)) Q:DRUG=""!($D(PQT))  F J=0:0 S J=$O(^TMP($J,DRUG,J)) Q:'J  D O W:$G(PQT) @IOF Q:$G(PQT)  I $Y+8>IOSL,$E(IOST)="C" D DIR^PSOP1 W @IOF Q:$D(PQT)
  D PEND^PSOP2,NVA^PSOP2
-Q D ^%ZISC K CP,HDR,X1,X2,RX3,^TMP($J),ST0,PSODTCT,ST,D0,DIC,DIR,DIRUT,DUOUT,G,II,K,RXD,RXF,ZX,DRUG,X,DFN,PHYS,PSRT,CT,AL,I1,PLS,REF,LMI,PI,FN,Y,I,J,RX,DRX,ST,RX0,RX2,DA,PSOPLINE,PAGE,PRLBL,PSOPATOK
+Q D ^%ZISC K CP,HDR,X1,X2,RX3,^TMP($J),ST0,PSODTCT,ST,D0,DIC,DIR,DIRUT,DUOUT,G,II,K,RXD,RXF,ZX,DRUG,X,DFN,PHYS,PSRT,CT,AL,I1,PLS,REF,LMI,PI,FN,Y,I,J,RX,DRX,ST,RX0,RX2,DA,PSOPLINE,PAGE,PRLBL,PSOPATOK,PSOPTLK
  K PSOLR,PSDIV,PQT,TO,FR,CLS,DRG,DRS,DTS,DTOUT,PSFR,PSTO,SDT,EDT,PPP,FSIG,IIII,STAT,PP,EEEE,PPPCNT,PENDREX,PSOPEND,PPDIS,PPOI,PCOUNT,PPCOUNT,PPP S:$D(ZTQUEUED) ZTREQ="@" Q
+ ;
 O S RX0=^PSRX(J,0),RX2=$G(^(2)),RX3=$G(^(3)),$P(RX0,"^",15)=$G(^("STA")),DRX="NOT ON FILE",CP=$S(+$G(^PSRX(J,"IB")):"$",1:" ") S:$P(RX0,"^",15)="" $P(RX0,"^",15)=-1
+ ;
  I $D(^PSDRUG(+$P(RX0,"^",6),0)) S DRX=$P(^(0),"^")
  I $Y+10>IOSL,IOSL["C-" D DIR^PSOP1 W @IOF Q:$D(PQT)
  I $Y+10>IOSL,$E(IOST)'="C" S PAGE=PAGE+1 D
- .W @IOF,!,$P(^DPT(DFN,0),"^")_" ("_$E($P(^DPT(DFN,0),"^",9),6,9)_")",?70,"Page: "_PAGE
+ .W @IOF,!,$P(^DPT(DFN,0),"^"),?70,"Page: "_PAGE
  .W !?(80-$L("Medication Profile Sorted by "_HDR))/2,"Medication Profile Sorted by "_HDR W:$G(FR)]"" !?(80-$L(FR_" to "_TO))/2,FR_" to "_TO
  .W !,PSOPLINE
- W !!,"Rx #: "_CP_$P(RX0,"^"),?32,"Drug: ",$G(DRX)
+ W !!,"Rx #: "_CP_$P(RX0,"^"),$$ECME^PSOBPSUT(J),?32,"Drug: ",$G(DRX)
  S PSOBRSIG=$P($G(^PSRX(J,"SIG")),"^",2) K FSIG,BSIG D
  .I PSOBRSIG D FSIG^PSOUTLA("R",J,70) Q
  .D EN2^PSOUTLA1(J,70) F IIII=0:0 S IIII=$O(BSIG(IIII)) Q:'IIII  S FSIG(IIII)=BSIG(IIII)
@@ -42,7 +44,7 @@ O S RX0=^PSRX(J,0),RX2=$G(^(2)),RX3=$G(^(3)),$P(RX0,"^",15)=$G(^("STA")),DRX="NO
  W !?2,"SIG: "_$G(FSIG(1)) D:$O(FSIG(1))
  .F IIII=1:0 S IIII=$O(FSIG(IIII)) Q:'IIII!($G(PQT))  W !?7,$G(FSIG(IIII))  D:($Y+5>IOSL)&($E(IOST)["C") DIR^PSOP1 Q:$G(PQT)  D:$Y+5>IOSL
  ..S PAGE=PAGE+1
- ..W @IOF,!,$P(^DPT(DFN,0),"^")_" ("_$E($P(^DPT(DFN,0),"^",9),6,9)_")",?70,"Page: "_PAGE
+ ..W @IOF,!,$P(^DPT(DFN,0),"^"),?70,"Page: "_PAGE
  ..W !?(80-$L("Medication Profile Sorted by "_HDR))/2,"Medication Profile Sorted by "_HDR W:$G(FR)]"" !?(80-$L(FR_" to "_TO))/2,FR_" to "_TO
  ..W !,PSOPLINE
  Q:$G(PQT)
@@ -57,14 +59,14 @@ O S RX0=^PSRX(J,0),RX2=$G(^(2)),RX3=$G(^(3)),$P(RX0,"^",15)=$G(^("STA")),DRX="NO
  S CT=0,REF=$P(RX0,"^",9) F K=0:0 S K=$O(^PSRX(J,1,K)) Q:'K  S RX1=^PSRX(J,1,K,0) D
  .I $Y+5>IOSL,IOSL["C-" D DIR^PSOP1 W @IOF Q:$D(PQT)
  .I $Y+5>IOSL,$E(IOST)'="C" S PAGE=PAGE+1 D
- ..W @IOF,!,$P(^DPT(DFN,0),"^")_" ("_$E($P(^DPT(DFN,0),"^",9),6,9)_")",?70,"Page: "_PAGE
+ ..W @IOF,!,$P(^DPT(DFN,0),"^"),?70,"Page: "_PAGE
  ..W !?(80-$L("Medication Profile Sorted by "_HDR))/2,"Medication Profile Sorted by "_HDR W:$G(FR)]"" !?(80-$L(FR_" to "_TO))/2,FR_" to "_TO
  ..W !,PSOPLINE
  .W !?2,"Refilled: "_$E($P(RX1,"^"),4,5)_"-"_$E($P(RX1,"^"),6,7)_"-"_$E($P(RX1,"^"),2,3)_" ("_$P(RX1,"^",2)_")"_$S($P(RX1,"^",16):"(R)",1:"")
  .W ?30,"Released: "_$S($P(RX1,"^",18):$E($P(RX1,"^",18),4,5)_"-"_$E($P(RX1,"^",18),6,7)_"-"_$E($P(RX1,"^",18),2,3),1:"")
  .S REF=REF-1
  I $Y+2>IOSL,IOSL["C-" D DIR^PSOP1 W @IOF Q:$D(PQT)
- I $Y+2>IOSL,$E(IOST)'="C" S PAGE=PAGE+1 W @IOF,!,$P(^DPT(DFN,0),"^")_" ("_$E($P(^DPT(DFN,0),"^",9),6,9)_")",?70,"Page: "_PAGE
+ I $Y+2>IOSL,$E(IOST)'="C" S PAGE=PAGE+1 W @IOF,!,$P(^DPT(DFN,0),"^"),?70,"Page: "_PAGE
  I $O(^PSRX(J,"P",0)) W !?2,"Partials: " F K=0:0 S K=$O(^PSRX(J,"P",K)) Q:'K  W $E(^(K,0),4,5),"-",$E(^(0),6,7),"-",$E(^(0),2,3)," (",$P(^(0),"^",2),") QTY:",$P(^(0),"^",4)_$S($P(^(0),"^",16):" (R)",1:"")_", "
  W:$P(RX3,"^",7)]"" !?2,"Remarks: ",$P(RX3,"^",7) D STAT^PSOFUNC
  S PSDIV=$S($D(^PS(59,+$P(RX2,"^",9),0)):$P(^(0),"^")_" ("_$P(^(0),"^",6)_")",1:"Unknown")

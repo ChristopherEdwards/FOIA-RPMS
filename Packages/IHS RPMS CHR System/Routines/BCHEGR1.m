@@ -1,0 +1,117 @@
+BCHEGR1 ; IHS/CMI/LAB - GROUP ENTRY ;
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
+ ;
+ ;
+GATHER ;EP
+ K ^TMP($J,"BCHEGR")
+ S BCHLINE=0,BCHD=$$FMADD^XLFDT(BCHRED,1)
+ F  S BCHD=$O(^BCHGRPD("B",BCHD),-1) Q:BCHD'=+BCHD!($P(BCHD,".")<BCHRBD)  D
+ .S BCHX=0 F  S BCHX=$O(^BCHGRPD("B",BCHD,BCHX)) Q:BCHX'=+BCHX  D
+ ..S BCHN=$G(^BCHGRPD(BCHX,0))
+ ..Q:$P(BCHN,U,7)'=BCHPROV
+ ..S BCHLINE=BCHLINE+1,X=BCHLINE_")",$E(X,7)=$E(BCHD,4,5)_"/"_$E(BCHD,6,7)_"/"_$E(BCHD,2,3),$E(X,16)=$E($P(BCHN,U,3),1,20)
+ ..S A=$P(BCHN,U,7) I A S A=$E($P(^VA(200,A,0),U,1),1,15),$E(X,37)=A
+ ..S $E(X,54)=$P(BCHN,U,9)
+ ..S $E(X,63)=$$POV(BCHX)
+ ..S ^TMP($J,"BCHEGR",BCHLINE,0)=X,^TMP($J,"BCHEGR","IDX",BCHLINE,BCHLINE)=BCHX
+ Q
+POV(R) ;
+ I 'R Q ""
+ NEW Y,X,P
+ S X=0,Y="" F  S X=$O(^BCHGRPD(R,21,X)) Q:X'=+X!(Y]"")  S P=$P(^BCHGRPD(R,21,X,0),U),S=$P(^BCHGRPD(R,21,X,0),U,3) Q:'P  Q:'S  S:Y]"" Y=Y_"; " S Y=Y_$P(^BCHTPROB(P,0),U,2)_" - "_$P(^BCHTSERV(S,0),U,3)
+ Q Y
+PAUSE ;EP
+ K DIR
+ S DIR(0)="EO",DIR("A")="Press enter to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ Q
+PRTEF ;EP
+ D EN^VALM2(XQORNOD(0),"OS")
+ I '$D(VALMY) W !,"No records selected." D EXIT^BCHEGR Q
+ S R=$O(VALMY(0)) I 'R K R,VALMY,XQORNOD W !,"No record selected." D EXIT^BCHEGR Q
+ S BCHNG=0 S BCHNG=^TMP($J,"BCHEGR","IDX",R,R)
+ I '$D(^BCHGRPD(BCHNG,0)) W !,"Not a valid GROUP." K R,BCHNG,R1 D PAUSE,EXIT^BCHEGR Q
+ D FULL^VALM1
+ I '$O(^BCHGRPD(BCHNG,61,0)) W !!,"There were no visits created for this group." D PAUSE,EXIT^BCHEGR Q
+ W !!,"Forms will be generated for the following patient visits:"
+ S BCHY=0 F  S BCHY=$O(^BCHGRPD(BCHNG,61,BCHY)) Q:'BCHY  S BCHR=$P(^BCHGRPD(BCHNG,61,BCHY,0),U) I $D(^BCHR(BCHR,0)) D
+ .W !?2,$$VAL^XBDIQ1(90002,BCHR,1101),?34,$$VAL^XBDIQ1(90002,BCHR,.01)
+ W !! S DIR(0)="Y",DIR("A")="Do you wish to PRINT a hard copy encounter form for each patient in the group",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I $D(DIRUT) D EXIT^BCHEGR Q
+ I 'Y D EXIT^BCHEGR Q
+ S XBRP="PRINT1^BCHEGR1",XBRC="",XBRX="EOJ^BCHEGR",XBNS="BCH"
+ D ^XBDBQUE
+ D EXIT^BCHEGR
+ ;loop through all patients, records and print forms
+ W !!!!
+ Q
+PRINT1 ;
+ S BCHGRPX=0 F  S BCHGRPX=$O(^BCHGRPD(BCHNG,61,BCHGRPX)) Q:BCHGRPX'=+BCHGRPX!($G(BCHQUIT))  S BCHR=$P(^BCHGRPD(BCHNG,61,BCHGRPX,0),U,1) D PRINT1^BCHUFPP
+ Q
+DISP ;EP - called from protocol
+ D EN^VALM2(XQORNOD(0),"OS")
+ NEW BCHG,BCHX
+ I '$D(VALMY) W !,"No records selected." D EXIT^BCHEGR Q
+ S R=$O(VALMY(0)) I 'R K R,VALMY,XQORNOD W !,"No record selected." D EXIT^BCHEGR Q
+ S BCHG=0 S BCHG=^TMP($J,"BCHEGR","IDX",R,R)
+ I '$D(^BCHGRPD(BCHG,0)) W !,"Not a valid GROUP." K BCHRDEL,R,BCHG,R1 D PAUSE,EXIT^BCHEGR Q
+ D FULL^VALM1
+ S %="Group Definition Display"
+ D VIEWR^XBLM("DISP1^BCHEGR1",%)
+ D EXIT^BCHEGR
+ Q
+DUP ;EP
+ D EN^VALM2(XQORNOD(0),"OS")
+ I '$D(VALMY) W !,"No records selected." D EXIT^BCHEGR Q
+ S R=$O(VALMY(0)) I 'R K R,VALMY,XQORNOD W !,"No record selected." D EXIT^BCHEGR Q
+ S BCHG=0 S BCHG=^TMP($J,"BCHEGR","IDX",R,R)
+ I '$D(^BCHGRPD(BCHG,0)) W !,"Not a valid GROUP." K BCHRDEL,R,BCHG,R1 D PAUSE D EXIT^BCHEGR Q
+ D FULL^VALM1
+ W !
+ K DIR S DIR(0)="D^:DT:EP",DIR("A")="Enter Date for the new group entry" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EXIT^BCHEGR Q
+ S BCHD=Y,BCHDATE=Y
+ S X=BCHD,DIC="^BCHGRPD(",DLAYGO=90002.67,DIADD=1,DIC(0)="L" K DD,DO D FILE^DICN
+ I Y=-1 W !!,"entry of new group failed." K DIADD,DLAYGO D ^XBFMK D EXIT^BCHEGR Q
+ S BCHNG=+Y
+ K DIADD,DLAYGO D ^XBFMK
+ K ^BCHGRPD("B",BCHD,BCHNG)
+ M ^BCHGRPD(BCHNG)=^BCHGRPD(BCHG)
+ K ^BCHGRPD(BCHNG,61) ;get rid of records
+ ;per BJ 5/13/09 - get rid of deceased patients
+ NEW BCHX,P,BCHY
+ S BCHX=0 F  S BCHX=$O(^BCHGRPD(BCHNG,51,BCHX)) Q:BCHX'=+BCHX  D
+ .S P=$P($G(^BCHGRPD(BCHNG,51,BCHX,0)),U)
+ .Q:P=""
+ .Q:P["BCHPAT"
+ .S P=+P
+ .I $$DOD^AUPNPAT(P)]"" D
+ ..S DA(1)=BCHNG,DA=BCHX,DIK="^BCHGRPD("_DA(1)_",51," D ^DIK K DA,DIK
+ S DA=BCHNG,DIE="^BCHGRPD(",DR=".01///"_BCHD_";.04////"_DT_";.12////"_DUZ_";.13////"_DT_";.15////"_DUZ D ^DIE
+ S DA=BCHNG,DIK="^BCHGRPD(" D IX1^DIK
+ ;move over assessments
+ S BCHX=0 F  S BCHX=$O(^BCHGRPDA("AD",BCHG,BCHX)) Q:BCHX'=+BCHX  D
+ .;add new record
+ .S DIC="^BCHGRPDA(",X=$P(^BCHGRPDA(BCHX,0),U,1),DIC(0)="L",DIADD=1,DLAYGO=90002.68 D FILE^DICN
+ .I Y=-1 K DIC,DIADD,DLAYGO W !!,"Failed..." H 5 Q
+ .K DIC,DIADD,DLAYGO
+ .S BCHY=+Y
+ .M ^BCHGRPDA(BCHY)=^BCHGRPDA(BCHX)
+ .S DA=BCHY,DIK="^BCHGRPDA(" D IX1^DIK
+ .K DA,DIK
+ .S DIE="^BCHGRPDA(",DR=".03////"_BCHNG,DA=BCHY D ^DIE K DIE,DA,DR
+ D EDITGRP^BCHEGR
+ Q
+DISP1 ;EP - called from XBLM
+ S DIC="^BCHGRPD(",DA=BCHG D EN^DIQ
+ NEW BCHX,F,V
+ W "Assessments:"
+ S BCHX=0 F  S BCHX=$O(^BCHGRPDA("AD",BCHG,BCHX)) Q:BCHX'=+BCHX  D
+ .F F=".01",".04",".05",".06" W ?14,$P(^DD(90002.68,F,0),U,1),":",?35,$$VAL^XBDIQ1(90002.68,BCHX,F),!
+ Q
+DISP2 ;EP - called from XBLM
+ S DIC="^BCHGRPD(",DA=BCHNG D EN^DIQ
+ NEW BCHX,F,V
+ W "Assessments:"
+ S BCHX=0 F  S BCHX=$O(^BCHGRPDA("AD",BCHNG,BCHX)) Q:BCHX'=+BCHX  D
+ .F F=".01",".04",".05",".06" W ?14,$P(^DD(90002.68,F,0),U,1),":",?35,$$VAL^XBDIQ1(90002.68,BCHX,F),!
+ Q

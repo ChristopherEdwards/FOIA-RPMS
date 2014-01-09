@@ -1,5 +1,5 @@
 DGMSTAPI ;ALB/SCK - API's for Military Sexual Trauma ; 2/28/02 4:56pm
- ;;5.3;Registration;**195,243,308,353,379,443**;Aug 13, 1993
+ ;;5.3;Registration;**195,243,308,353,379,443,700,1015**;Aug 13, 1993;Build 21
  Q
  ;
 GETSTAT(DFN,DGDATE) ;  Retrieves the current MST status for a patient
@@ -240,8 +240,11 @@ VALID(DFN,DGSTAT,DGDATE,DGPROV,DGSITE,DGERR) ;Validate fields before filing
  .; Check for valid FIELD values
  . S DGMSG=" IS NOT VALID"
  .; need to strip off the 'seconds' to pass the CHK^DIE() call...
- . I DGDATE["." S DGDATE=$P(DGDATE,".")_"."_$E($P(DGDATE,".",2),1,4)
- . S DGSTR=".01;DGDATE^2;DFN^3;DGSTAT^4;DGPROV^5;DUZ^6;DGSITE"
+ . I DGDATE["." N DGSECS S DGSECS=$E($P(DGDATE,".",2),5,6) I DGSECS'="" I DGSECS<0!(DGSECS>60) D MSG(DGFILE,.01,DGMSG,.DGERR) Q
+ . N DGDATEX S DGDATEX=DGDATE
+ . I DGDATEX["." S DGDATEX=$P(DGDATEX,".")_"."_$E($P(DGDATEX,".",2),1,4)
+ . I $E($P(DGDATEX,".",2),1,4)="0000" S DGDATEX=$P(DGDATEX,".")_".1"
+ . S DGSTR=".01;DGDATEX^2;DFN^3;DGSTAT^4;DGPROV^5;DUZ^6;DGSITE"
  .;
  . F I=1:1:$L(DGSTR,U) S DGX=$P(DGSTR,U,I) Q:DGX=""  D  Q:'VALID
  .. S DGFLD=$P(DGX,";"),DGVAR=$P(DGX,";",2),DGVAL=@DGVAR

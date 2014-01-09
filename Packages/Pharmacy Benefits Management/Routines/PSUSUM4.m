@@ -1,5 +1,5 @@
 PSUSUM4 ;BIR/DAM - Patient Demographics Summary for IV Extract ; 20 DEC 2001
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ;DBIA's
  ; Reference to file #55 supported by DBIA 3502
@@ -203,7 +203,7 @@ TAB1 ;EN  Calculate tab spacing for 'Total of all Divisions' line,
  S ^XTMP("PSU_"_PSUJOB,"PSUSUMA",I)="* This report includes Outpatients receiving IV orders." S I=I+1
  S ^XTMP("PSU_"_PSUJOB,"PSUSUMA",I)="" S I=I+1
  S ^XTMP("PSU_"_PSUJOB,"PSUSUMA",I)="**PLEASE NOTE: Final TOTAL may not match sum of all SUBTOTALS.  A patient may" S I=I+1
- S ^XTMP("PSU_"_PSUJOB,"PSUSUMA",I)="have been provided pharmacy services at more than one ouptatient and/or" S I=I+1
+ S ^XTMP("PSU_"_PSUJOB,"PSUSUMA",I)="have been provided pharmacy services at more than one outpatient and/or" S I=I+1
  S ^XTMP("PSU_"_PSUJOB,"PSUSUMA",I)="inpatient division."
  Q
  ;

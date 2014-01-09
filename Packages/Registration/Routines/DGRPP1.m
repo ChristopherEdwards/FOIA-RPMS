@@ -1,5 +1,5 @@
 DGRPP1 ;ALB/MRL - REGISTRATION SCREEN PROCESSOR (CONTINUED) ;06 JUN 88@2300
- ;;5.3;Registration;**489**;Aug 13, 1993
+ ;;5.3;Registration;**489,508,1015**;Aug 13, 1993;Build 21
  ;
 STR ;write string of selectable items on the bottom of the screen
  ;
@@ -23,7 +23,7 @@ LT ;local registration template questions
  K XX Q
  ;
 JUMP ;jump screens (^N)
- S X=+$E(DGRPANN,2,99),X1=$E(DGRPVV,X) I X1]"",'X1 G:X'=1.1 @("^DGRP"_X) G:X=1.1 ^DGRPCADD
+ S X=+$E(DGRPANN,2,99) I $D(DGRPVV(X)) S X1=$E(DGRPVV,$P(X,".")) I X1]"",'X1 G @$S(X=1.1:"^DGRPCADD",1:"^DGRP"_X)
  S Z="INVALID SCREEN NUMBER...VALID SCREENS ARE " F I=1,1.1,2:1:DGRPLAST I '$E(DGRPVV,I) S Z=Z_$S(I=DGRPLAST:" and ",1:"")_I_$S(I<DGRPLAST:",",1:".")
  W !,*7 D W H 2
  G:DGRPS'=1.1 @("^DGRP"_DGRPS) G:DGRPS=1.1 ^DGRPCADD  ;return to same screen

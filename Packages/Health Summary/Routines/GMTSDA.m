@@ -1,5 +1,5 @@
-GMTSDA ; SLC/DLT,KER/NDBI - Appointments ; 02/27/2002 [4/14/04 1:53pm]
- ;;2.7;Health Summary;**5,19,28,49,70**;Oct 20, 1995;Build 5
+GMTSDA ; SLC/DLT,KER/NDBI - Appointments ; 5/21/07 11:12am
+ ;;2.7;Health Summary;**5,19,28,49,70,80**;Oct 20, 1995;Build 9
  ;               
  ; External Reference
  ;   DBIA  1024  ^DIC(40.7
@@ -14,6 +14,7 @@ PAST ; Gets Patient's Past Appointments for date range
  S VASD("F")=$S(GMTSBEG=1:2560101,1:GMTSBEG),VASD("T")=$S(GMTS1=6666666:DT,1:9999999-GMTS1)
  S MAX=$S(+($G(GMTSNDM))>0:+($G(GMTSNDM)),1:99999)
  S VASD("W")=123456789 D SDA^VADPT
+ I VAERR=1 D CKP^GMTSUP W "RSA ERROR",! D END Q
  I VAERR=2 D CKP^GMTSUP W "DATABASE NOT AVAILABLE",! D END Q
  S (YCNT,Y)=0 F  S Y=$O(^UTILITY("VASD",$J,Y)) Q:'Y  S YCNT=YCNT+1,ADATE=$P(^(Y,"I"),U,1),^UTILITY("GMTSVASD",$J,9999999-ADATE)=ADATE_U_$P(^UTILITY("VASD",$J,Y,"E"),U,2,99)
  S GMDT=VASD("F")

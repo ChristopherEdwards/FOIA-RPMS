@@ -1,18 +1,18 @@
-BGOVEXAM ; IHS/BAO/TMD - V Exam Management ;15-Jun-2007 09:25;DKM
- ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+BGOVEXAM ; IHS/BAO/TMD - V Exam Management ;22-Oct-2012 10:08;DU
+ ;;1.1;BGO COMPONENTS;**1,3,11**;Mar 20, 2007;Build 3
  ; Return exam records for a patient
  ;  DFN = Patient IEN
  ; .RET = Returned as a list of record in one of two formats:
  ;   For exams:
  ;    E ^ Exam Name [2] ^ Visit Date [3] ^ Result [4] ^ Comment [5] ^ Provider Name [6] ^ Facility Name [7] ^
  ;    Provider IEN [8] ^ Location Name [9] ^ Exam IEN [10] ^ V File IEN [11] ^ Visit IEN [12] ^ Visit Category [13] ^
- ;    Visit Locked [14]
+ ;    Visit Locked [14] ^ Event date [15]
  ;
  ;   For refusals:
  ;    R ^ Exam Name [2] ^ Refusal Date [3] ^ Reason [4] ^ Comment [5] ^ Exam IEN [6] ^ V File IEN [7] ^
  ;    Refusal Locked [8]
 GET(RET,DFN) ;EP
- N X,CNT,REC,VCAT,EXAM,VDT,VXAM,RESULT,LOC,FAC,FACNAM,EXNAME,PRVIEN,PRVNAME
+ N X,CNT,REC,VCAT,EXAM,VDT,VXAM,RESULT,LOC,FAC,FACNAM,EXNAME,PRVIEN,PRVNAME,EVNDT
  N EXAM,VDATE,VIEN,COMMENT
  S RET=$$TMPGBL^BGOUTL
  S (CNT,EXAM)=0
@@ -27,6 +27,8 @@ GET(RET,DFN) ;EP
  ...I RESULT="",$O(^AUPNPREF("AA",DFN,9999999.15,EXAM,VDT,"")) Q
  ...S EXNAME=$P($G(^AUTTEXAM(EXAM,0)),U)
  ...S PRVIEN=$P($G(^AUPNVXAM(VXAM,12)),U,4)
+ ...;Patch 11
+ ...S EVNDT=$$FMTDATE^BGOUTL($P($G(^AUPNVXAM(VXAM,12)),U,1))
  ...S PRVNAME=$S('PRVIEN:"",1:$P($G(^VA(200,+PRVIEN,0)),U))
  ...S VIEN=$P(REC,U,3)
  ...Q:'VIEN
@@ -39,7 +41,7 @@ GET(RET,DFN) ;EP
  ...S VDATE=$$FMTDATE^BGOUTL(9999999-VDT)
  ...S COMMENT=$P($G(^AUPNVXAM(VXAM,811)),U)
  ...S CNT=CNT+1
- ...S @RET@(CNT)="E"_U_EXNAME_U_VDATE_U_RESULT_U_COMMENT_U_PRVNAME_U_FACNAM_U_PRVIEN_U_LOC_U_EXAM_U_VXAM_U_VIEN_U_VCAT_U_$$ISLOCKED^BEHOENCX(VIEN)
+ ...S @RET@(CNT)="E"_U_EXNAME_U_VDATE_U_RESULT_U_COMMENT_U_PRVNAME_U_FACNAM_U_PRVIEN_U_LOC_U_EXAM_U_VXAM_U_VIEN_U_VCAT_U_$$ISLOCKED^BEHOENCX(VIEN)_U_EVNDT
  ; Add refusal data
  D REFGET^BGOUTL2(RET,DFN,9999999.15,.CNT)
  Q
@@ -54,6 +56,8 @@ GETTYPES(RET,DUMMY) ;EP
  .S REC=$G(^AUTTEXAM(EXAM,0))
  .Q:'$L(REC)
  .Q:$P(REC,U,4)=1
+ .;Do not allow nutritional screening in list
+ .Q:$P(REC,U,2)=40
  .S NAME=$P(REC,U)
  .S CODE=$P(REC,U,2)
  .S CPT=$P(REC,U,11)
@@ -91,11 +95,14 @@ SET(RET,INP) ;EP
  S VCAT=$P($G(^AUPNVSIT(VIEN,0)),U,7)
  S:VCAT="E" HIST=1
  S PROV=$P(INP,U,4)
+ ;IHS/MSC/MGH Patch 11
+ I PROV="" S PROV=DUZ
  I 'PROV,'VFIEN S RET=$$ERR^BGOUTL(1027) Q
  S RESULT=$P(INP,U,5)
  S:RESULT="NORMAL"!(RESULT="NEGATIVE") RESULT="N"
  S COMMENT=$P(INP,U,6)
  S EVNTDT=$P(INP,U,7)
+ I EVNTDT="" S EVNTDT=$$NOW^XLFDT
  S LOCIEN=$P(INP,U,8)
  S OUTLOC=$P(INP,U,9)
  I HIST D  Q:RET
@@ -110,8 +117,16 @@ SET(RET,INP) ;EP
  S @FDA@(.01)="`"_TYPE
  S @FDA@(.04)=RESULT
  S:'VFNEW!$L(COMMENT) @FDA@(81101)=COMMENT
- S:PROV @FDA@(1204)="`"_PROV
- S @FDA@(1201)="N"
+ ;IHS/MSC/MGH Patch 11 change for new fields
+ S @FDA@(1204)="`"_DUZ
+ S @FDA@(1201)=EVNTDT
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

@@ -1,5 +1,5 @@
 DGPTOM2 ;ALB/AS - PTF MEANS TEST INDICATOR of 'U' Report (CONT) ; 2 FEB 90  14:30
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  G:'$D(^DGPT("AMT","U")) NONE K ^UTILITY($J,"DGPTFU") D LO^DGUTL S $P(DGLN,"=",81)="",(DGTOT,DGPAG)=0,DGQUIT=""
  F PTF=0:0 S PTF=$O(^DGPT("AMT","U",PTF)) Q:PTF'>0  I $D(^DGPT(PTF,0)),$P(^(0),U,11)=1 D DT
  G:'$D(^UTILITY($J,"DGPTFU")) NONE D HDR,PRT G Q:DGQUIT W !,"Total of  ",DGTOT,"  PTF Records" D PG G Q

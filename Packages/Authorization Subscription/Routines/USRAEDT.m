@@ -1,5 +1,5 @@
 USRAEDT ; SLC/JER - Business Rule Edit ;2/28/01
- ;;1.0;AUTHORIZATION/SUBSCRIPTION;**15**;Jun 20, 1997
+ ;;1.0;AUTHORIZATION/SUBSCRIPTION;**15,29**;Jun 20, 1997;Build 7
 MAIN ; Controls branching
  N DIC,DA,DIE,DR,DLAYGO,X,Y,DWPK,TIUFPRIV,USRY,USRI S TIUFPRIV=1
  W !,"Please Enter or Edit a Business Rule:",!
@@ -22,7 +22,7 @@ XLATE(Y,DA) ; Translate business rule
  S Y=Y_" "_STATUS_" "
  ;**ID** was " may be "
  S Y=Y_$$DOCUMENT(DA,USRD0)_" may "_$$ACTION(DA,USRD0)_" by "
- S Y=Y_USRCLASS_$S($P(USRD0,U,5)="&":" who is also ",$P(USRD0,U,5)="!":" OR ",1:"")
+ S Y=Y_USRCLASS_$S($P(USRD0,U,5)="&":" who is also ",$P(USRD0,U,5)="!":" OR ",(($G(USRCLASS)'="")&($G(USROLE)'="")):" OR ",1:"")
  S Y=Y_USROLE,Y=$$WRAP^USRLS(Y,75)
  F USRI=1:1:$L(Y,"|") S Y(USRI)=$P(Y,"|",USRI)
  Q

@@ -1,5 +1,5 @@
 AUTP5PRE ; IHS/ASDST/GTH - AUT 98.1 PATCH 5 ENVIRON CHECK ; [ 02/10/2000  1:36 PM ]
- ;;98.1;IHS DICTIONARIES (POINTERS);**5**;MAR 04, 1998
+ ;;98.1;IHS DICTIONARIES (POINTERS);**5**;MAR 04, 1998;Build 6
  ;
  I '$G(DUZ) W !,"DUZ UNDEFINED OR 0." D SORRY Q
  ;
@@ -54,8 +54,8 @@ AUTP5MSG ;
  ;;This is for your information, only.  You need not do anything
  ;;in response to this message.
  ;;  
- ;;Questions can be directed to the Help Desk
- ;;
+ ;;Questions can be directed to George T. Huggins, RPMS/DBA, at
+ ;;520-670-4871, or via IHS Mailman or Exchange.
  ;;  
  ;; --- AUT v 98.1, Patch 5, has been installed into this uci ---
 HELLO ;;  

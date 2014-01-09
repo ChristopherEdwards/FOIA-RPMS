@@ -1,5 +1,5 @@
 DG53372M ;ALB/PDJ DG*5.3*372 Elig Code Cleanup Mailman Msg ; 03/30/01
- ;;5.3;Registration;**372**;Aug 13, 1993
+ ;;5.3;Registration;**372,1015**;Aug 13, 1993;Build 21
  ;
  ; A mail message will be sent to the user when the edit process
  ; is complete.

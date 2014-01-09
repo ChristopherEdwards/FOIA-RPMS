@@ -1,5 +1,5 @@
-DGPTC1 ;ALN/MJK - Census Record Processing; 15 APR 90 ; 3/19/02 2:20pm
- ;;5.3;Registration;**37,413**;Aug 13, 1993
+DGPTC1 ;ALN/MJK - Census Record Processing; JAN 27, 2005
+ ;;5.3;Registration;**37,413,643,701,1015**;Aug 13, 1993;Build 21
  ;
 CEN ; -- determine if PTF rec is current Census rec
  ; input: PTF   := ptf rec #
@@ -9,18 +9,29 @@ CEN ; -- determine if PTF rec is current Census rec
  ;        DGCST := census rec status
  ;        DGCN  := census date entry to 45.86
  ;
- K DGCST,DGCI,DGCN,DGCN0
+ K DGCST,DGCI,DGCN,DGCN0,DGFEE
+ S DGFEE=0
  G CENQ:'$D(^DGPT(PTF,0)) N DFN S DGPTF0=^(0),DFN=+DGPTF0
- G CENQ:$P(DGPTF0,U,4)
+ ;G CENQ:$P(DGPTF0,U,4)
  D CEN^DGPTUTL I DGCN0=""!(DT'>DGCN0) K DGCN G CENQ
- S DGT=$P(DGCN0,U)_".9" D WARD I 'Y K DGCN G CENQ
+ ;I $P(DGPTF0,U,4) D FEE G CENQ  ;DG*701 reposition line 
+ S DGT=$P(DGCN0,U)_".9" I '$P(DGPTF0,U,4) D WARD I 'Y K DGCN G CENQ
+ ;if Fee Basis quit if admit > census date or admit < census date if disch
+ I $P(DGPTF0,U,4)=1,$P(DGPTF0,U,2)>DGT G CENQ
+ I $P(DGPTF0,U,4)=1,+$P($G(^DGPT(PTF,70)),U),$P(DGPTF0,U,2)<DGT G CENQ
+ I $P(DGPTF0,U,4)=1 D FEE G CENQ
  S DGCST=0,DGCI=""
  F  S DGCI=$O(^DGPT("ACENSUS",PTF,DGCI)) Q:'DGCI  I $D(^DGPT(DGCI,0)),$P(^(0),U,13)=DGCN S DGCST=$P(^(0),U,6) Q:DGCST'=0  D  Q
  .S DGCI=$$RDGCI(DGCI),DGCST=1
-CENQ K DGCN0,DGA1,DGT,X,DGPTF0 Q
+CENQ K DGCN0,DGA1,DGT,X,DGPTF0,DGFEE Q
  ;
 KVAR K DGCN,DGCI,DGCST Q
  ;
+FEE ;
+ S DGCST=0,DGCI="",DGFEE=1
+ F  S DGCI=$O(^DGPT("ACENSUS",PTF,DGCI)) Q:'DGCI  I $D(^DGPT(DGCI,0)),$P(^(0),U,13)=DGCN S DGCST=$P(^(0),U,6) Q:DGCST'=0  D  Q
+ . S DGCI=$$RDGCI(DGCI),DGCST=+$P(^DGPT(DGCI,0),U,6)
+ Q
 ACT ; -- census actions with input of X
  Q:'$D(X)
  S Y=2 D RTY^DGPTUTL
@@ -37,7 +48,8 @@ RDGCI(DGCI) ;-- eliminating 'OPEN' status census record and duplicates
  Q DGCI
  ;
 CLS ;
- W !,"Updating TRANSFER DRGs..." S DGADM=$P(^DGPT(PTF,0),U,2) D SUDO1^DGPTSUDO
+ S DGFEE=0
+ I $P(^DGPT(DGPTF,0),U,4)'=1 W !,"Updating TRANSFER DRGs..." S DGADM=$P(^DGPT(PTF,0),U,2) D SUDO1^DGPTSUDO
  S J=PTF,DGERR=-1,T2=^DG(45.86,DGCN,0)+.9,T1=$P(^(0),U,5)
  S DGPTFMTX=DGPTFMT S Y=T2 D FMT^DGPTUTL
  W !,"Performing edit checks..."
@@ -50,14 +62,16 @@ CLS ;
  ;-- do austin edits
  ;
  D ^DGPTAE I DGERR>0 K DGERR D ^DGPTF2 G CLSQ
- K DGERR,^TMP("AEDIT",$J),DGACNT D CREATE G CLSQ:'DGCI
+ K DGERR,^TMP("AEDIT",$J),DGACNT
+ I $P(^DGPT(PTF,0),U,4) S DGFEE=1 D FEE1 G CLSQ:'DGCI
+ I $P(^DGPT(PTF,0),U,4)'=1 D CREATE G CLSQ:'DGCI
  S DR="7////"_DUZ_";8///T",DA=DGCI,DIE="^DGPT(" D ^DIE K DIE,DR
  S (X,DINUM)=DGCI,DIC(0)="L",DIC="^DGP(45.84,",DIC("DR")="2///NOW;3////"_DUZ
  K DD,DO D FILE^DICN K DIC,DINUM
  F I=0,.11,.52,.321,.32,57,.3 S:$D(^DPT(DFN,I)) ^DGP(45.84,DGCI,$S(I=0:10,1:I))=^DPT(DFN,I)
  W !,"****** CENSUS CLOSED OUT ******" D HANG^DGPTUTL
  S DGCST=1
-CLSQ S DGPTFMT=DGPTFMTX K DGPTFMTX Q
+CLSQ S DGPTFMT=DGPTFMTX K DGPTFMTX,DGFEE Q
  ;
 CREATE ; -- create census record
  W !,"Creating Census Record..."
@@ -73,6 +87,17 @@ CREATE ; -- create census record
  K DA,DIKLM S DA=DGCI,DIK="^DGPT(" D IX1^DIK
 CREATEQ K X,Y,DGCSUF,DGBEG,DGEND Q
  ;
+FEE1 ; -- create census record for fee record
+ W !,"Creating Census Record..."
+ S Y=$P(^DGPT(PTF,0),U,2) D CREATE^DGPTFCR G CREATEQ:Y<0 S DGCI=+Y W "#",DGCI
+ S DGEND=+^DG(45.86,DGCN,0)_".2359",DGBEG=+$P(^(0),U,5)
+ S ^DGPT(DGCI,0)=$P(^DGPT(PTF,0),U,1,10)_"^2^"_PTF_"^"_DGCN,DGCSUF=$P(^(0),U,5)
+ I $D(^DGPT(PTF,70)) S ^DGPT(DGCI,70)=^DGPT(PTF,70)
+ S $P(^DGPT(DGCI,70),U)=DGEND
+ I $D(^DGPT(PTF,101)) S ^DGPT(DGCI,101)=^DGPT(PTF,101)
+ F NODE="M","P","S",535 F I=0:0 S I=$O(^DGPT(PTF,NODE,I)) Q:'I  I $D(^DGPT(PTF,NODE,I,0)) S X=^(0) D @("SET"_NODE_"^DGPTC2")
+ K DA,DIKLM S DA=DGCI,DIK="^DGPT(" D IX1^DIK
+FEE1Q K X,Y,DGCSUF,DGBEG,DGEND Q
 OPEN ; -- re-open census rec by deleting
  S DGPTIFN=DGCI D OPEN^DGPTFDEL S (DGCI,DGCST)=0
  K DGPTIFN Q

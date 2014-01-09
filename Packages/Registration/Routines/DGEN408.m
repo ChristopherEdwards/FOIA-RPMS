@@ -1,5 +1,5 @@
 DGEN408 ;ALB/RKS - SEED THE HEC ; 5/3/02 3:04pm
- ;;5.3;Registration;**408**;Aug 13,1993
+ ;;5.3;Registration;**408,1015**;Aug 13,1993;Build 21
  Q
  ;
 EN ; Main entry point for collection of MPI fields & transmission to HEC
@@ -123,10 +123,10 @@ SEND(DGDATA,DGMSG,DGDEST) ;  Build and send individual mailman messages
  ;
  S XMDUZ="HEC MPI SEEDING"
  I DGDEST=1 D                                 ;send to production
- . S XMY("S.IVMB MPI SERVER@DOMAIN.NAME")=""
+ . S XMY("S.IVMB MPI SERVER@IVM.MED.VA.GOV")=""
  E  D                                       ;send to a test account
  . N TMP
- . S TMP="S.IVMB MPI SERVER@"_DGDEST_"DOMAIN.NAME"
+ . S TMP="S.IVMB MPI SERVER@"_DGDEST_"DQMGR.IVM.MED.VA.GOV"
  . S XMY(TMP)=""
  ;
  S XMY(.5)=""

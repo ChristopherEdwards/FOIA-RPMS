@@ -1,5 +1,5 @@
 SDCODD ;ALB/RMO - Data Dictionary Calls - Check Out;30 DEC 1992 9:00 am
- ;;5.3;Scheduling;**132**;Aug 13, 1993
+ ;;5.3;Scheduling;**132,1015**;Aug 13, 1993;Build 21
  ;
 ACT(SDCTI,SDDT) ;Determine if Outpatient Classification Type is active
  ; Input  -- SDCTI    Outpatient Classification Type file IEN

@@ -1,5 +1,5 @@
 DGQEHL73 ;ALB/JFP - VIC HL7 Message Builder (A08); 09/01/96
- ;;5.3;REGISTRATION;**73,120,148**;DEC 11,1996
+ ;;5.3;REGISTRATION;**73,120,148,1015**;DEC 11,1996;Build 21
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
  ;
 BLDA08(XMITPTR,HL,MID,XMITARRY,INSRTPNT) ;

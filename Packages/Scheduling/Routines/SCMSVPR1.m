@@ -1,5 +1,5 @@
 SCMSVPR1 ;ALB/ESD HL7 PR1 Segment Validation ;06/24/99
- ;;5.3;Scheduling;**44,66,142,180**;Aug 13, 1993
+ ;;5.3;Scheduling;**44,66,142,180,1015**;Aug 13, 1993;Build 21
  ;06/24/99 ACS - Added CPT modifier to the validation process
  ;
 EN(PR1ARRY,HLQ,HLFS,HLECH,VALERR,ENCDT) ;

@@ -1,9 +1,11 @@
 BIPATUP3 ;IHS/CMI/MWR - UPDATE PATIENT DATA 2; DEC 15, 2011
- ;;8.5;IMMUNIZATION;**1**;JAN 03,2012
+ ;;8.5;IMMUNIZATION;**4**;DEC 01,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  IHS FORECAST. UPDATE PATIENT DATA, IMM FORECAST IN ^BIPDUE(.
- ;   HOLDING RTN IN CASE H1N1 (OR SIMILAR) FORECASTING IS NEEDED IN THE FUTURE.
- ;   PATCH 1: Clarify Report explanation.  IHSZOS+19
+ ;;  HOLDING RTN IN CASE H1N1 (OR SIMILAR) FORECASTING IS NEEDED IN THE FUTURE.
+ ;;  PATCH 1: Clarify Report explanation.  IHSZOS+19
+ ;;  PATCH 4, v8.5: Use newer Related Contraindications call to determine
+ ;;                 contraindicaton.  IHSZOS+29
  ;
  ;----------
 IHSZOS(BIDFN,BIFLU,BIFFLU,BIRISKP,BINF,BIFDT,BIAGE,BIDUZ2) ;EP
@@ -35,7 +37,12 @@ IHSZOS(BIDFN,BIFLU,BIFFLU,BIRISKP,BINF,BIFDT,BIAGE,BIDUZ2) ;EP
  Q:$D(BIFLU(121))
  ;
  ;---> Quit if this patient has a contraindication to Zoster.
- Q:$$CONTR^BIUTL11(BIDFN,227)
+ ;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
+ ;---> Use newer Related Contraindications call to determine contraindication.
+ ;Q:$$CONTR^BIUTL11(BIDFN,227)
+ N BICT D CONTRA^BIUTL11(BIDFN,.BICT)
+ Q:$D(BICT(121))
+ ;**********
  ;
  ;---> Forecast Zoster.
  D SETDUE^BIPATUP2(BIDFN_U_$$HL7TX^BIUTL2(121)_U_U_BIFDT)

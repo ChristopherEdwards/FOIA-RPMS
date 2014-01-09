@@ -1,5 +1,5 @@
-RAEDCN1 ;HISC/GJC-Utility routine for RAEDCN ;9/18/97  13:49
- ;;5.0;Radiology/Nuclear Medicine;**18,45,93**;Mar 16, 1998;Build 3
+RAEDCN1 ;HISC/GJC-Utility routine for RAEDCN ; 20 Apr 2011  7:26 PM
+ ;;5.0;Radiology/Nuclear Medicine;**18,45,93,1003**;Nov 01, 2010;Build 3
  ; last modif by SS for P18
  ; 07/15/2008 BAY/KAM rem call 249750 RA*5*93 Correct DIK Calls
 UNDEF ; Message for undefined imaging types
@@ -48,6 +48,9 @@ ASKDEL R !!,"Do you wish to delete this exam? NO// ",X:DTIME S:'$T!(X="")!(X["^"
  I $P($G(^RA(72,X,0)),U,3)'=0 D
  . K RAIENS,RAERR S RAIENS=""_RACNI_","_RADTI_","_RADFN_","_"",RAFDA(70.03,RAIENS,3)="CANCELLED" D FILE^DIE("KSE","RAFDA","RAERR") K RAIENS,RAERR,RAFDA D CANCEL^RAHLRPC
  . Q
+ ;IHS/BJI/DAY - Patch 1003 - Add hang to let HL7 messages get created
+ W !,"Beginning deletion - please wait " H 24
+ ;End Patch
  K RA7003 S RABULL="",DA(2)=RADFN,DA(1)=RADTI,DA=RACNI
  ;S DIK="^RADPT(DA(2),""DT"",DA(1),""P""," D ^DIK
  S DIK="^RADPT("_DA(2)_",""DT"","_DA(1)_",""P""," D ^DIK

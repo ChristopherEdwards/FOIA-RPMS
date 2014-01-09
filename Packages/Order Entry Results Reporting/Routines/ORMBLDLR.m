@@ -1,5 +1,6 @@
-ORMBLDLR ; SLC/MKB - Build outgoing Lab ORM msgs ;17-Jun-2009 12:01;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**97,190,1002,1004**;Dec 17, 1997
+ORMBLDLR ; SLC/MKB - Build outgoing Lab ORM msgs ;14-May-2010 11:26;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**97,190,1002,1004,195,1010**;Dec 17, 1997;Build 47
+ ; Modified - IHS/MSC/DKM - Line CH+5
 HL7DATE(DATE) ; -- FM -> HL7 format
  Q $$FMTHL7^XLFDT(DATE)  ;**97
  ;
@@ -26,7 +27,7 @@ CH ; -- new Lab CH order
  . S I=I+1,ORMSG(I)="NTE|"_INST_"|P|"_^TMP("ORWORD",$J,CMMT,INST,J,0)
  . S L=0 F  S J=$O(^TMP("ORWORD",$J,CMMT,INST,J)) Q:J'>0  S L=L+1,ORMSG(I,L)=^(J,0)
  ; Add DG1 & ZCL segment(s) for Billing Aware
- D DG1^ORWDBA1($G(IFN),"I",I)
+ D DG1^ORWDBA3($G(IFN),"I",I)
  Q
  ;
 BB ; -- new Lab BB order

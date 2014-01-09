@@ -1,5 +1,5 @@
 SCDD ;ALB/RMO - Data Dictionary Calls ;02 DEC 1994 9:00 am [ 12/02/94  1:39 PM ]
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
  ;
 ACTSTOP(SCSCI,SCDT) ;Determine if Stop Code is Active
  ; Input  -- SCSCI    Stop Code file IEN

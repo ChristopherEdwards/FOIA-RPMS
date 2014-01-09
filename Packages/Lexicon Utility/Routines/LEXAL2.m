@@ -1,5 +1,5 @@
 LEXAL2 ; ISL Look-up List (Array)                 ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
  ;  LEXL        Last on List
  ;  LEXT/LEXF  List To/From

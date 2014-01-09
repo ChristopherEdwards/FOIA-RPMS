@@ -1,5 +1,5 @@
 SD53105C ;ALB/JRP - BULLETINS FOR PATCH 105;12-MAR-1997
- ;;5.3;Scheduling;**105,132**;Aug 13, 1993
+ ;;5.3;Scheduling;**105,132,1015**;Aug 13, 1993;Build 21
  ;
 BULL1 ;Generate/send completion bulletin for cleanup #1 (see EN^SD53105A)
  ;

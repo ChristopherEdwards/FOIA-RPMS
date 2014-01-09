@@ -1,7 +1,8 @@
-PXRMPINF ; SLC/PKR - Routines relating to patient information. ;07-May-2009 12:49;MGH
- ;;1.5;CLINICAL REMINDERS;**2,10,1004,1006**;Jun 19, 2000
+PXRMPINF ; SLC/PKR - Routines relating to patient information. ;13-Jan-2012 09:47;DU
+ ;;1.5;CLINICAL REMINDERS;**2,10,1004,1006,1008**;Jun 19, 2000;Build 25
  ;IHS/CIA/MGH Modified to add variable for HRN
  ;IHS/CIA/MGH Modified to kill health factor cache
+ ;IHS/MSC/MGH 1008 Modified to kill problem list cache
  ;=======================================================================
 DATACHG ;This entry point is called whenever patient data has changed.
  ;It is attached to the following event points:
@@ -94,6 +95,8 @@ KILLHF(PXRMDFN) ;Kill the health factor cache.
  S LOCK=$$LOCKPC(PXRMDFN)
  I LOCK D
  .K ^XTMP(PXRMDFN,"HF")
+ .;IHS/MSC/MGH kill problem list each time patient is reviewed
+ .K ^XTMP(PXRMDFN,"PROB")
  .D UNLOCKPC(PXRMDFN)
  Q
  ;=======================================================================

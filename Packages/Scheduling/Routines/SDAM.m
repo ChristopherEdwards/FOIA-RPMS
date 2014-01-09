@@ -1,5 +1,5 @@
-SDAM ;MJK/ALB - Appt Mgt ; 8/30/99 9:09am [ 01/05/2005  8:18 AM ]
- ;;5.3;Scheduling;**149,177,76,242,1001,1005**;Aug 13, 1993
+SDAM ;MJK/ALB - Appt Mgt ; 8/30/99 9:09am
+ ;;5.3;Scheduling;**149,177,76,242,380,1001,1005,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  6/01/2000 removed "* - New GAF Required" from header
  ;              8/18/2000 cleared screen before entering list template
  ;              9/29/2000 added kill of patient variables
@@ -23,13 +23,17 @@ EN1 ;PEP; entry point when patient is known - see technical documentation
  Q
  ;
 INIT ; -- set up appt man vars
- K I,X,SDBEG,SDEND,SDB,XQORNOD,SDFN,SDCLN,DA,DR,DIE,DNM,DQ,%B
+ K I,X,SDBEG,SDEND,SDB,XQORNOD,SDFN,SDCLN,DA,DR,DIE,DNM,DQ,%B,SDRES
  S DIR(0)="43,213",DIR("A")="Select Patient name or Clinic name"
  D ^DIR K DIR I $D(DIRUT) S VALMQUIT="" G INITQ
  S SDY=Y
  I SDY["DPT(" S DFN=+SDY D 2^VADPT I +VADM(6) D  G:SDUP="^" INIT
  . W !!,"WARNING ",VADM(7),!!
  . R "Press Return to Continue or ^ to Quit: ",SDUP:DTIME
+ ;I SDY["DPT(" S SDAMTYP="P",SDFN=+SDY D INIT^SDAM1
+ ;I SDY["SC(" S SDRES=$$CLNCK^SDUTL2(+SDY,1) I 'SDRES D  G INIT
+ ;. W !,?5,"Clinic MUST be corrected before continuing."
+ ;I SDY["SC(" S SDAMTYP="C",SDCLN=+SDY D INIT^SDAM3
  ;
  ;IHS/ANMC/LJF 8/29/2001 changed code so can be called with patient set
  Q
@@ -42,13 +46,13 @@ INIT1 ; added line label
  ;I SDY["SC(" S SDAMTYP="C",SDCLN=+SDY D INIT^SDAM3
  I SDY["SC(" S SDAMTYP="C",SDCLN=+SDY K DFN D INIT^SDAM3
  D CLEAR^VALM1  ;IHS/ANMC/LJF 8/18/2000
+ ;
 INITQ Q
  ;
 HDR ; -- screen head
  N X,SDX,SDLNX S SDLNX=2
  ;I SDAMTYP="P" D HDR^SDAM10 S VALM("TM")=5 D
  I SDAMTYP="P" D HDR^SDAM10 D
- .;
  .;IHS/OIT/LJF 12/29/2005 PATCH 1005 added patient age to PCP line
  .;S SDX=$$PCLINE^SDPPTEM(SDFN,DT) Q:'$L(SDX)
  .S SDX="    Age:  "_$$AGE^AUPNPAT(SDFN,DT,"R")_"  "_$$PCLINE^SDPPTEM(SDFN,DT) Q:'$L(SDX)
@@ -62,7 +66,7 @@ HDR ; -- screen head
  I SDAMTYP="C" D HDR^SDAM3
  S X=$P(SDAMLIST,"^",2)
  S VALMHDR(SDLNX)=X
- ;S X="* - New GAF Required",VALMHDR(SDLNX)=$$SETSTR^VALM1(X,VALMHDR(SDLNX),34,30)              ;IHS/ANMC/LJF 6/1/2000
+ ;S X="* - New GAF Required",VALMHDR(SDLNX)=$$SETSTR^VALM1(X,VALMHDR(SDLNX),34,30)
  I SDAMTYP="P" S VALMHDR(SDLNX)=$$SETSTR^VALM1($$INSUR^BDGF2(SDFN,SDBEG),VALMHDR(SDLNX),40,15)  ;IHS/ANMC/LJF 10/19/2001
  S VALMHDR(SDLNX)=$$SETSTR^VALM1($$FDATE^VALM1(SDBEG)_" thru "_$$FDATE^VALM1(SDEND),VALMHDR(SDLNX),59,22)
  Q

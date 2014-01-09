@@ -1,5 +1,5 @@
 VAFHLZCL ;ALB/ESD - Create generic HL7 ZCL Segment ; 02-MAY-1996
- ;;5.3;Registration;**94,103,102,397,423**;Aug 13, 1993
+ ;;5.3;Registration;**94,103,102,397,423,1015**;Aug 13, 1993;Build 21
  ;
  ;  This function will create VA-specific ZCL segment(s) for a 
  ;  given outpatient encounter.  The ZCL segment is designed to transfer

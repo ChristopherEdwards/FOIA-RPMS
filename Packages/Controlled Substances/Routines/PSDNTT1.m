@@ -1,5 +1,5 @@
 PSDNTT1 ;BIR/BJW-Transfer Green Sheet - Receive this NAOU ; 17 JUL 97
- ;;3.0; CONTROLLED SUBSTANCES ;**1,56**;13 Feb 97;Build 1
+ ;;3.0; CONTROLLED SUBSTANCES ;**1,56,66**;13 Feb 97;Build 3
  ;rtn chg for nois#:pal-0697-60605,pth-0697-20147,sux-0597-42235
 COM ;complete order and transaction
  S FLAG=0 D NOW^%DTC S PSDT=X,(RECD,Y)=+$E(%,1,12) X ^DD("DD") S RECDT=Y
@@ -19,7 +19,7 @@ DIE ;create the order request in 58.8
  D ^DIE K DIE,DR
  W "transaction..."
 ADD ;find entry number in 58.81
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDREC=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDREC)) S $P(^PSD(58.81,0),"^",3)=PSDREC G FIND
  K DIC,DLAYGO S DIC(0)="L",(DIC,DLAYGO)=58.81,(X,DINUM)=PSDREC D ^DIC K DIC,DLAYGO
  L -^PSD(58.81,0)
@@ -38,7 +38,7 @@ EDIT ;edit new transaction in 58.81
  S $P(^PSD(58.8,AOU,1,PSDRG,3,PSDRN,0),"^",17)=PSDREC
  S $P(^PSD(58.81,PSDA,7),"^",4)=RECD,$P(^(7),"^",5)=PSDUZ,$P(^(7),"^",3)=AOU
 BAL ;update naou to balance
- F  L +^PSD(58.8,AOU,1,PSDRG,0):0 I  Q
+ F  L +^PSD(58.8,AOU,1,PSDRG,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  ;PSD*3*56;REMOVED CHECK FOR PATIENT ID
  S $P(^PSD(58.8,AOU,1,PSDRG,0),"^",4)=$P(^PSD(58.8,AOU,1,PSDRG,0),"^",4)+RQTY
  L -^PSD(58.8,AOU,1,PSDRG,0)

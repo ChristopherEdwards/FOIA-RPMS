@@ -1,5 +1,6 @@
-DGPT70DX ;ALB/MTC -  DXLS Edit Checks for 701 ; 13 NOV 92
- ;;5.3;Registration;;Aug 13, 1993
+DGPT70DX ;ALB/MTC/ADL -  DXLS Edit Checks for 701 ; 13 NOV 92
+ ;;5.3;Registration;**510,1015**;Aug 13, 1993;Build 21
+ ;;ADL;Update for CSV Project;;Mar 24, 2003
  ;
  ;
 EN ;-- check dxls 
@@ -14,12 +15,14 @@ NUM ;
  S DGPTERC=715 G EXIT
 SET ;
  S J=$O(^ICD9("AB",DGPTDIA1,0)) I J="" S DGPTERC=715 Q
- I '$D(^ICD9(J,0)) S DGPTERC=715 Q
- I ($P(^ICD9(J,0),U,9)=1)&($E(DGPTDDS,1,7)>$P(^(0),U,11)) S DGPTERC=715 Q
+ S DGPTTMP=$$ICDDX^ICDCODE(J,$S($G(DGPTDDS)'="":DGPTDDS,1:DT))  ;use date of disp. if defined, else today
+ I DGPTTMP=-1!('$P(DGPTTMP,U,10)) S DGPTERC=715 Q
+ I ($P(DGPTTMP,U,10)=0)&($E(DGPTDDS,1,7)>$P(DGPTTMP,U,12)) S DGPTERC=715 Q
  Q
 GENDR ;
- G:$P(^ICD9(J,0),U,10)']"" DDXE
- I $P(^ICD9(J,0),U,10)'=DGPTGEN S DGPTERC=751 G EXIT
+ S DGPTTMP=$$ICDDX^ICDCODE(J,$S($G(DGPTDDS)'="":DGPTDDS,1:DT))  ;use date of disp. if defined, else today
+ G:$P(DGPTTMP,U,11)']"" DDXE
+ I $P(DGPTTMP,U,11)'=DGPTGEN S DGPTERC=751 G EXIT
 DDXE ;
  S ICDDX(1)=J
  S DGPTDDXE=$P(DGPTDIA1," ",1)

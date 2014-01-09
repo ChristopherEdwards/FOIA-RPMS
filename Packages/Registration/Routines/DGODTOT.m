@@ -1,5 +1,5 @@
 DGODTOT ;ALB/EG - PRINT TOTALS FOR OUTPUT REPORTS ; 2/22/89 1420
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;V 4.5
 TOTI ;grand total
  Q:ZRT[U  F I=30:10:110 W ?I,"======"

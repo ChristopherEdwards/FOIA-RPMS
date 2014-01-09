@@ -1,7 +1,8 @@
 BIREPA3 ;IHS/CMI/MWR - REPORT, VAC ACCOUNTABILITY; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW OR PRINT VACCINE ACCOUNTABILITY REPORT.
+ ;;  PATCH 3: Add Source (MVX) to display of Lot Numbers.  CHKSET+29
  ;
  ;
  ;----------
@@ -58,9 +59,24 @@ CHKSET(BIDATE,BIVIEN,BIIIEN,BICC,BIHCF,BICM,BIBEN,BIHIST,BIVT) ;EP
  ;
  N BIAGRP,BIDFN,BIIMM,BILOT,BIVGRP,BIVNAM,BIDOSE,Y
  S Y=^AUPNVIMM(BIIIEN,0)
- S BIDFN=$P(Y,U,2),BIIMM=$P(Y,U),BILOT=$P(Y,U,5) ;,BIDOSE=$P(Y,U,4)
+ S BIDFN=$P(Y,U,2),BIIMM=$P(Y,U),BILOT=$P(Y,U,5)
  ;
- I BILOT S BILOT=$P($G(^AUTTIML(BILOT,0)),U)
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Add Source (.13 field) to display of Lot Numbers.
+ ;I BILOT S BILOT=$P($G(^AUTTIML(BILOT,0)),U)
+ I BILOT D
+ .N BISRC D
+ ..N Y S Y=$P($G(^AUTTIML(BILOT,0)),U,13)
+ ..I Y="" S BISRC="No Source" Q
+ ..I '$D(^DD(9999999.41,.13,0)) S BISRC="^DD missing" Q
+ ..S BISRC=$P($P(^DD(9999999.41,.13,0),Y_":",2),";")
+ .;
+ .S BILOT=$P($G(^AUTTIML(BILOT,0)),U)
+ .I BILOT="" S BILOT="Bad pointer" Q
+ .;---> Append Source.
+ .S BILOT=BILOT_" ("_BISRC_")"
+ ;**********
+ ;
  S:BILOT="" BILOT="No Lot Number"
  ;
  ;---> Quit if this Vaccine should not be included in this report.

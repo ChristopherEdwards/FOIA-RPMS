@@ -1,5 +1,5 @@
 SCMCHLG ;BP/DJB - PCMM HL7 Generate Message ; 3/2/00 12:39pm
- ;;5.3;Scheduling;**177,210**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,210,1015**;AUG 13, 1993;Build 21
  ;
 GENERATE() ;Generate a PCMM Primary Care HL7 message
  ;

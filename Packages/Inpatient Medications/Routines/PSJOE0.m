@@ -1,5 +1,5 @@
 PSJOE0 ;BIR/CML3-INPATIENT PROFILE AND ORDER ENTRY ;17 SEP 97 /  1:41 PM
- ;;5.0; INPATIENT MEDICATIONS ;**47,56**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**47,56,110,133,162**;16 DEC 97
  ;
  ; Reference to ^PS(51.2 is supported by DBIA 2178.
  ; Reference to ^PS(55 is supported by DBIA 2191.
@@ -14,7 +14,10 @@ ENVW ; ask user to select or view any of the orders shown
  ;G:X="^" DONE I X]"" S PSGOEA=""
  G:X["^" DONE I X]"" S PSGOEA=""
  K PSJDLW
- I  F PSJOE=1:1:PSGODDD S PSGOE=PSJOE F PSJOE1=1:1:$L(PSGODDD(PSJOE),",")-1 S PSJOE2=$P(PSGODDD(PSJOE),",",PSJOE1),(PSGORD,PSJORD)=^TMP("PSJON",$J,PSJOE2) G:$D(PSJDLW) DONE D GODO Q:PSGOEA["^"
+ I  F PSJOE=1:1:PSGODDD S PSGOE=PSJOE F PSJOE1=1:1:$L(PSGODDD(PSJOE),",")-1 S PSJOE2=$P(PSGODDD(PSJOE),",",PSJOE1),(PSGORD,PSJORD)=^TMP("PSJON",$J,PSJOE2) G:$D(PSJDLW) DONE D 
+ .I PSJORD=+PSJORD N PSJO,PSJO1 S PSJO=PSJORD,PSJO1=0 F  S PSJO1=$O(^PS(53.1,"ACX",PSJO,PSJO1)) Q:'PSJO1  Q:PSGOEA["^"  Q:$D(PSJDLW)  S PSJORD=PSJO1_"P" D GODO S PSJORD=""
+ .Q:PSJORD=""  Q:PSGOEA["^"
+ .D GODO Q:PSGOEA["^"
  Q
  ;
 LMNEW(PSGP,PSJPROT) ;Entry point for new order entry from listman.
@@ -27,7 +30,9 @@ LMNEW(PSGP,PSJPROT) ;Entry point for new order entry from listman.
  I PSGOEPR>0,$D(^VA(200,+PSGOEPR,"PS")) S PSGOEPR=$S('$P(^("PS"),"^",4):PSGOEPR,($P(^("PS"),"^",4)<DT):0,1:PSGOEPR)
  S:'PSGOEPR PSGOEPR=PSJPTSP
  ;* F PSJOE=0:0 Q:PSJORQF  D:PSJPCAF&(PSJPROT'=2) EN^PSJOE1 K PSGEFN,PSGOEF I PSJPROT>1,(+PSJSYSU=3) D ENIN^PSIVORE
- F PSJOE=0:0 Q:PSJORQF  D:PSJPCAF&(PSJPROT'=2) EN^PSJOE1 K PSGEFN,PSGOEF I PSJPROT>1 D ENIN^PSIVORE
+ ;F PSJOE=0:0 Q:PSJORQF  D:PSJPCAF&(PSJPROT'=2) EN^PSJOE1 K PSGEFN,PSGOEF I PSJPROT>1 D ENIN^PSIVORE
+ ; line below fixes bug in line above - infinite loop when selecting New Order in Unit Dose OE for Outpatient.
+ F PSJOE=0:0 Q:PSJORQF!('(PSJPCAF&(PSJPROT'=2))&(PSJPROT'>1))  D:PSJPCAF&(PSJPROT'=2) EN^PSJOE1 K PSGEFN,PSGOEF I PSJPROT>1 D ENIN^PSIVORE
  Q
  ;
 DONE ;
@@ -36,9 +41,13 @@ DONE ;
  Q
  ;
 CKNEW ;
- K CF,CHK,OD,PSGLMT,PSGODDD,PSGOEA,PSGON,PSGONC,PSGONR,PSGONV,PSJOE1,PSJOE2 Q:$D(PSJPRF)
- I $P(PSJPDD,"^",3) W !!?2,"Patient is shown as deceased.  You may not enter orders for this patient." Q
- I 'PSJPCAF W !!,"(NOTE: You cannot enter Unit Dose orders for this patient.)"
+ K CF,CHK,OD,PSGLMT,PSGODDD,PSGOEA,PSGON,PSGONC,PSGONR,PSGONV,PSGORD,PSJCOM,PSJOE1,PSJOE2 Q:$D(PSJPRF)
+ I $P(PSJPDD,"^",3) W !!?2,"Patient is shown as deceased.  You may not enter orders for this patient." D CONT Q
+ I 'PSJPCAF W !!,"(NOTE: You cannot enter Unit Dose orders for this patient.)" D CONT
+ Q
+ ;
+CONT ;
+ K DIR S DIR(0)="EA",DIR("A")="Press Return to continue..." D ^DIR
  Q
  ;
 GODO ;Display selected order.
@@ -56,6 +65,18 @@ ASKTYP ; Ask if completing as IV or UD.
  W ! K DIR S DIR(0)="SOA^U:Unit Dose;I:IV Medication",DIR("A")="Do you wish to complete this as an IV or Unit Dose order (I/U)? ",DIR("?")="^D PENDIU^PSJO3" D ^DIR
  Q
  ;
+OLDCOM(DFN,PSJORD) ;
+ Q:$$COMPLEX^PSJOE(DFN,PSJORD)
+ N DURFLG S DURFLG=$S($G(PSJORD)["P":$G(^PS(53.1,+PSJORD,2.5)),$G(PSJORD)["V":$G(^PS(55,DFN,"IV",+PSJORD,2.5)),1:$G(^PS(55,DFN,5,+PSJORD,2.5))) I $P(DURFLG,"^",2)]"" D
+ . D CLEAR^VALM1 W !!!!!?21," * WARNING * "
+ . W !!!?5,"The following order contains a Requested Duration"
+ . W !?12,"and may be part of a complex dose!"
+ . W !!," Review the entire profile to determine appropriate action(s).",!!!!!!! D PAUSE^VALM1
+ . D CLEAR^VALM1 W !!!!!?21," * WARNING * "
+ . W !!!?5,"The following order contains a Requested Duration"
+ . W !?12,"and may be part of a complex dose!"
+ . W !!," Review the entire profile to determine appropriate action(s).",!!!!!!! D PAUSE^VALM1
+ Q
 AM ;
  W !!?2,"Enter a 'Y' (or press the RETURN key) to enter new INPATIENT orders for this",!,"patient.  Enter an 'N' (or an '^') if there are no new orders for this patient."
  W:'PSJPCAF !!?2,"PLEASE NOTE: The patient selected is NOT shown as currently admitted.",!,"Therefore, you cannot enter Unit Dose orders for this patient.  (You can enter",!,"IV orders.)" Q

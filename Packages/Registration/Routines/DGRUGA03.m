@@ -1,5 +1,5 @@
 DGRUGA03 ;ALB/GRR - HL7 ADT A03 MESSAGE BUILDER ;8/5/99  15:31
- ;;5.3;Registration;**190,312,328,430**;Aug 13, 1993
+ ;;5.3;Registration;**190,312,328,430,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will build a ADT A03 (Discharge) HL7 message for an inpatient.
  ;

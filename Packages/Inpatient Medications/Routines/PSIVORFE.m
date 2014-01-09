@@ -1,9 +1,11 @@
-PSIVORFE ;BIR/MLM-IV FLUID ORDER ENTRY FOR OE/RR FRONT DOOR. ;26 NOV 97 / 9:55 AM 
- ;;5.0; INPATIENT MEDICATIONS ;**58,81**;16 DEC 97
+PSIVORFE ;BIR/MLM-IV FLUID ORDER ENTRY FOR OE/RR FRONT DOOR. ;02-Apr-2013 14:25;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**58,81,110,1015**;16 DEC 97;Build 62
  ;
  ; Reference to ^VA(200 is supported by DBIA 10060.
- ; Reference to ^%DTC is supported by DBIA 10000.
  ;
+ ; Modified - IHS/MSC/PB - 4/25/12 to add the stability offset value to the fields to be edited
+ ;            IHS/MSC/PB - 3/22/13 Took out the code to add the beyond use days field from the EDIT variable
+ ;            IHS/MSC/PLS - 04/02/13 - SETUP+1
 EN ; Entry pt. to create new IV Fluid order.
  S PSJORNP=$G(ORNP) D PS^PSIVOREN Q:PSJORPF  F  D NEWORD Q:DONE
  D DONE^PSIVORA1
@@ -17,11 +19,16 @@ NEWORD ; Create new IV Fluid order.
  Q
  ;
 GTFLDS ;Ask field no.s to be edited.
+ ;IHS/MSC/PB - 4/25/12 line below modified to add the stability offset value to the fields to be edited
+ ;IHS/MSC/PB - 3/22/13 commented out the line below so field number 9999999 isn't added to the EDIT variable. this is added in GSTRING^PSIVORE1
+ ;S:$G(EDIT)'["9999999" EDIT=EDIT_"^9999999"
  N PSGEFN F X=1:1:$L(EDIT,U) S PSGEFN(X)=$P(EDIT,U,X)_U_$S($P(EDIT,U,X)=999:"Edit OE/RR Fields",1:$$CODES2^PSIVUTL(53.1,$P(EDIT,U,X)))
  S Y=$P($G(XQORNOD(0)),"=",2)
  S PSGEFN=1_":"_$L(EDIT,U),PSJDTYP=$E(PSIVAC,1) D:Y="" ENEFA^PSGON K PSJDTYP I '$G(Y) S:PSIVAC="OE" DONE=1 S PSJEDFLG=1 Q
  S X=EDIT,EDIT="" F X1=1:1:$L(Y,",") S:$P(X,U,$P(Y,",",X1)) $P(EDIT,"^",X1)=$P(X,U,$P(Y,",",X1))
+ N PSIVRENW S PSIVRENW=1
  D EDIT^PSIVEDT
+ K PSIVRENW
  Q
  ;
 SET ; Set variables needed to create/update orders in the ORDERS file (100).
@@ -54,11 +61,13 @@ ORTXF ; Set up ORTX( for Fluids.
  Q
  ;
 SETUP ; Initialize variables.
- K DRG D NEWENT S DRGN="" F X=2,3,5,7,8,9,11,15,23,"AD","DO","IVRM","MR","NEWON","PC","PD","OLDON","OPI","REM","REN","SI","SOL","SYRS" S P(X)=""
+ ;IHS/MSC/PLS - 04/02/13
+ ;K DRG D NEWENT S DRGN="" F X=2,3,5,7,8,9,11,15,23,"AD","DO","IVRM","MR","NEWON","PC","PD","OLDON","OPI","REM","REN","SI","SOL","SYRS" S P(X)=""
+ K DRG D NEWENT S DRGN="" F X=2,3,5,7,8,9,11,15,23,"AD","DO","IVRM","MR","NEWON","PC","PD","OLDON","OPI","REM","REN","SI","SOL","SYRS","OFFSET" S P(X)=""
  S PSJORSTS=11,P("OT")="F^",P("RES")="N",P(4)="A",P(17)="U",Y=$G(^VA(200,+PSJORNP,0)),P(6)=+PSJORNP_U_$P(Y,U)
  ;; S PSJORSTS=11,P("OT")="F^"_$O(^ORD(101,"B","PSJI OR PAT FLUID OE",0))_";ORD(101,",P("RES")="N",P(4)="A",P(17)="U",Y=$G(^VA(200,+PSJORNP,0)),P(6)=+PSJORNP_U_$P(Y,U)
  Q
  ;
 NEWENT ; Get login date/entry code for new order
- D NOW^%DTC S P("LOG")=+$E(%,1,12),P("CLRK")=DUZ_U_$P($G(^VA(200,DUZ,0)),U)
+ S P("LOG")=$$DATE^PSJUTL2(),P("CLRK")=DUZ_U_$P($G(^VA(200,DUZ,0)),U)
  Q

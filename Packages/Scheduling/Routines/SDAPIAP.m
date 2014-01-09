@@ -1,5 +1,5 @@
 SDAPIAP ;ALB/MJK - Outpatient API/Appointments ; 22 FEB 1994 11:30 am
- ;;5.3;Scheduling;**27,132**;08/13/93
+ ;;5.3;Scheduling;**27,132,1015**;08/13/93;Build 21
  ;
 EN(DFN,SDT,SDCL,SDUZ,SDMODE,SDVIEN) ; -- check api for appts
  N SDDA,SDOE

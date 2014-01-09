@@ -1,5 +1,5 @@
-PSIVORE ;BIR/PR,MLM-ORDER ENTRY ;28-Mar-2011 19:51;DU
- ;;5.0; INPATIENT MEDICATIONS ;**18,29,50,56,58,81,1011**;16 DEC 97;Build 17
+PSIVORE ;BIR/PR,MLM-ORDER ENTRY ;29-May-2012 14:34;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**18,29,50,56,58,81,1011,110,127,133,157,203,213,1015**;16 DEC 97;Build 62
  ;
  ; Reference to ^PS(55 is supported by DBIA 2191
  ; Reference to ^ORX2 is supported by DBIA #867
@@ -10,7 +10,7 @@ PSIVORE ;BIR/PR,MLM-ORDER ENTRY ;28-Mar-2011 19:51;DU
  ; Reference to ^VADPT is supported by DBIA 10061.
  ;
  ; Modified - IHS/MSC/PLS - 03/28/2011 - Line SETN+1
- N PSJNEW,PSJOUT,PSGPTMP,PPAGE S PSJNEW=1
+ N PSJNEW,PSJOUT,PSGPTMP,PPAGE,FLAG S PSJNEW=1
  ;
  D SITE Q:'$G(PSIVQ)  K PSIVQ S PSGOP=""
  ;
@@ -30,7 +30,7 @@ ASK ;See if patient has been admitted.
  ;
 SETN ;Set up patient 0 node if needed.
  D SETPTCX^APSPFUNC(DFN)  ;IHS/MSC/PLS - 03/28/11
- I '$D(^PS(55,DFN,0)) K DO,DA,DD,DIC,PSIVFN S:$D(^(5.1)) PSIVFN=^(5.1) K:$D(PSIVFN) ^(5.1) S (DINUM,X)=DFN,DIC(0)="L",DIC="^PS(55," D FILE^DICN S:$D(PSIVFN) ^PS(55,DFN,5.1)=PSIVFN D  K DIC,PSIVFN,DO,DA,DD
+ I '$D(^PS(55,DFN,0)) K DO,DA,DD,DIC,PSIVFN S:$D(^(5.1)) PSIVFN=^(5.1) K:$D(PSIVFN) ^(5.1) S (DINUM,X)=DFN,DIC(0)="L",DIC="^PS(55," D FILE^DICN S:$D(PSIVFN) ^PS(55,DFN,5.1)=PSIVFN D  K DIC,PSIVFN,DO,DA,DD,DINUM
  .; Mark PSJ and PSO as converted
  .S $P(^PS(55,DFN,5.1),"^",11)=2
  S PSJNARC=1
@@ -72,8 +72,10 @@ OK ;Print example label, run order through checker, ask if it is ok.
  D ^PSIVCHK I $D(DUOUT) S X="^" G DOA
  I ERR=1 S X="N" G BAD
  W ! D ^PSIVORLB K PSIVEXAM S Y=P(2) W !,"Start date: " X ^DD("DD") W $P(Y,"@")," ",$P(Y,"@",2),?30," Stop date: " S Y=P(3) X ^DD("DD") W $P(Y,"@")," ",$P(Y,"@",2),!
+ ;PSJ*5*157 EFD for IVs
+ D EFDIV^PSJUTL($G(ZZND))
  W:$G(PSIVCHG) !,"*** This change will cause a new order to be created. ***"
- G:PSIVAC["R" OK1 S X="Is this O.K.: ^"_$S(ERR:"NO",1:"YES")_"^^NO"_$S(ERR'=1:",YES",1:"") D ENQ^PSIV
+ I '$G(PSIVCOPY) G:PSIVAC["R" OK1 S X="Is this O.K.: ^"_$S(ERR:"NO",1:"YES")_"^^NO"_$S(ERR'=1:",YES",1:"") D ENQ^PSIV
  S PSJIVBD=1 ;var use to indicate order enter from back door
 BAD ;; I X["N" D GSTRING^PSIVORE1,^PSIVORV2,GTFLDS^PSIVORFE G OK
  I ON55["V",($G(P(21))="") S P(17)="N"
@@ -95,10 +97,10 @@ CAL ;Calculate doses.
  S OD=P(2) D EN,^PSIVOPT
  Q
  ;
-EN ;UPdate schedual interval P(15) only on continous orders.
+EN ;Update schedule interval P(15) only on continuous orders.
  ;This includes Hyp/Adm/Continuous Syringes/Chemos =>P(5)=0
  Q:'$D(DFN)!('$D(ON55))  Q:$P(^PS(55,DFN,"IV",+ON55,0),U,4)="P"!($P(^(0),U,5))!($P(^(0),U,23)="P")
- D SPSOL S XXX=$P(^PS(55,DFN,"IV",+ON55,0),U,8) G:'SPSOL ENQ I XXX?1N.N.1"."1N.N1" ml/hr" S P(15)=$S('XXX:0,1:SPSOL\XXX*60+(SPSOL#XXX/XXX*60+.5)\1),$P(^PS(55,DFN,"IV",+ON55,0),U,15)=P(15) G ENQ
+ D SPSOL S XXX=$P(^PS(55,DFN,"IV",+ON55,0),U,8) G:'SPSOL ENQ I XXX?1N.N.1".".N1" ml/hr"!(XXX?1"0."1N1" ml/hr") S P(15)=$S('XXX:0,1:SPSOL\XXX*60+(SPSOL#XXX/XXX*60+.5)\1),$P(^PS(55,DFN,"IV",+ON55,0),U,15)=P(15) G ENQ
  S P(15)=$S('$P(XXX,"@",2):0,1:1440/$P(XXX,"@",2)\1),$P(^PS(55,DFN,"IV",+ON55,0),U,15)=P(15)
 ENQ K SPSOL,XXX Q
 SPSOL S SPSOL=0 F XXX=0:0 S XXX=$O(^PS(55,DFN,"IV",+ON55,"SOL",XXX)) Q:'XXX  S SPSOL=SPSOL+$P(^(XXX,0),U,2)
@@ -109,7 +111,7 @@ ENIN ;Entry for Combined IV/UD order entry. Called by PSJOE0.
  N PSJOUT S (DONE,FLAG)=0,PSIVAC="PN"
 ENIN1 ;
  N DA,DIR,PSJOE,PSJPCAF,PSJSYSL,WSCHADM S:$G(VAIN(4)) WSCHADM=VAIN(4)
- K P,PSIVCHG
+ K P,PSIVCHG,PSJCOM
  S PSJOE=1,DIR(0)="55.01,.04O",DIR("A")="Select IV TYPE" D ^DIR
  I X]"",X'="^",$P("^PROFILE",X)="" S PSJOEPF=X Q
  S:$D(DTOUT) X="^" I "^"[X S PSJORQF=PSJORQF+$S(X="^":2,$G(FLAG):0,1:1),X="." Q
@@ -134,7 +136,7 @@ NONVF(PSJOC) ;If file at NonVF then quit with 1
 DEL55 ;
  Q:ON55["P"
  S X=$G(^PS(55,DFN,"IV",+ON55,0))
- I $P(X,U,21)]"",($G(^PS(55,DFN,"IV",+ON55,2))]"") S $P(^(2),U,6)=ON,$P(^PS(53.1,ON,0),U,25)=ON55 Q
+ I $P(X,U,21)]"",($G(^PS(55,DFN,"IV",+ON55,2))]"") S $P(^(2),U,6)=ON,$P(^PS(53.1,+ON,0),U,25)=ON55 Q
  NEW PSIVORFA S PSIVORFA=1
  D DEL55^PSIVORE2
  Q

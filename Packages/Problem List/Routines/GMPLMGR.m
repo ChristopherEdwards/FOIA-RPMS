@@ -1,5 +1,5 @@
-GMPLMGR ; SLC/MKB -- Problem List VALM Utilities ;3/1/00  12:28
- ;;2.0;Problem List;**21**;Aug 25, 1994
+GMPLMGR ; SLC/MKB/AJB -- Problem List VALM Utilities ;3/1/00  12:28
+ ;;2.0;Problem List;**21,28**;Aug 25, 1994
  ; 28 Feb 00 - MA added view comments accross Divisions
 INIT ; -- init variables, list array
  S:'$G(GMPDFN) GMPDFN=$$PAT^GMPLX1 I +GMPDFN'>0 K GMPDFN S VALMQUIT=1 Q
@@ -43,6 +43,8 @@ BLD1 S GMPCOUNT=+$G(GMPCOUNT)+1
  S ^TMP("GMPL",$J,VALMCNT,0)=LINE,^TMP("GMPL",$J,"IDX",VALMCNT,GMPCOUNT)=""
  S ^TMP("GMPLIDX",$J,GMPCOUNT)=VALMCNT_U_IFN
  I GMPARAM("VER"),$P(GMPL1,U,2)="T",'DELETED S LINE=$E(LINE,1,4)_"$"_$E(LINE,6,79),^TMP("GMPL",$J,VALMCNT,0)=LINE D CNTRL^VALM10(VALMCNT,5,1,IOINHI,IOINORM)
+ ; added for Code Set Versioning (CSV) - annotates inactive ICD code with #
+ I '$$CODESTS^GMPLX(IFN,DT) S LINE=$E(LINE,1,4)_"#"_$E(LINE,6,79),^TMP("GMPL",$J,VALMCNT,0)=LINE D CNTRL^VALM10(VALMCNT,5,1,IOINHI,IOINORM)
  Q:DELETED
 BLD2 I TEXT>1 F I=2:1:TEXT D
  . S LINE="",LINE=$$SETFLD^VALM1(TEXT(I),LINE,"PROBLEM")
@@ -80,8 +82,8 @@ HELP ; -- help code
  W !?4,"Display; to change whether all or only selected problems for this"
  W !?4,"patient are listed, choose Select View.  Enter ?? to see more"
  W !?4,"actions for facilitating navigation of the list."
- W !?4,"Problem statuses:  * - Acute   I - Inactive"
- W:GMPARAM("VER") "   $ - Unverified"
+ W !?4,"Problem statuses: *-Acute I-Inactive #-Inactive ICD Code"
+ W:GMPARAM("VER") " $-Unverified"
  W !!,"Press <return> to continue ... " R X:DTIME
  S VALMSG=$$MSG^GMPLX,VALMBCK=$S(VALMCC:"",1:"R")
  Q

@@ -1,7 +1,8 @@
-GMRCSTLM ;SLC/DCM,dee,MA - List Manager Format Routine - Get Active Consults by service - pending,active,scheduled,incomplete,etc. ;11/21/02  05:29
- ;;3.0;CONSULT/REQUEST TRACKING;**1,7,21,23,22,29**;DEC 27, 1997
+GMRCSTLM ;SLC/DCM,dee,MA - List Manager Format Routine - Get Active Consults by service - pending,active,scheduled,incomplete,etc. ;25-Jul-2012 09:30;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,7,21,23,22,29,1002,63,1003**;DEC 27, 1997;Build 14
  ; Patch #21 added a initialization KILL for ^TMP("GMRCTOT",$J)
  ; Patch #23 remove the default prompt "ALL SERVICES"
+ ; Modified - IHS/MSC/PLS - 09/20/2011 - Line EN+18
  Q
  ;
 EN ;Ask for new service and date range
@@ -16,23 +17,26 @@ EN ;Ask for new service and date range
  I Y<1 S VALMBCK="Q" Q
  S GMRCDG=+Y,GMRCSVNM=$P(Y,U,2)
  D SERV1^GMRCASV
- I '$O(^TMP("GMRCSLIST",$J,0)) S VALMBCK="Q" Q 
+ I '$O(^TMP("GMRCSLIST",$J,0)) S VALMBCK="Q" Q
  ;
  ;Ask for date range
  D ^GMRCSPD
  I $D(GMRCQUT) S VALMBCK="Q" G EXIT
  D LISTDATE^GMRCSTU1(GMRCDT1,GMRCDT2,.GMRCEDT1,.GMRCEDT2)
+ ;Patch 1002 Check for test patients
+ S GMRTST=$$TESTPT^GMRCPC1()
+ I $D(GMRCQUT) S VALMBCK="Q" G EXIT
  Q
  ;
-ENOR(RETURN,GMRCSVC,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCCTRL,GMRCARRN) ;Entry point for GUI interface.
+ENOR(RETURN,GMRCSVC,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCCTRL,GMRCARRN,GMRTST) ;Entry point for GUI interface.
  ;.RETURN:   This is the root to the returned temp array.
  ;GMRCSVC:  Service for which consults are to be displayed.
  ;GMRCDT1:  Starting date or "ALL"
  ;GMRCDT2:  Ending date if not GMRCDT1="ALL"
  ;GMRCSTAT: The list of status to include separated by commas
- ;GMRCCTRL:   0, null or not define then just the display list is 
+ ;GMRCCTRL:   0, null or not define then just the display list is
  ;                displayed
- ;            1 then the list will be two pieces with the first piece 
+ ;            1 then the list will be two pieces with the first piece
  ;                being the ien of the consult for selection in the gui
  ;                and the second piece being the display text.
  ;           10 then the consults will have a line number on them for
@@ -42,6 +46,7 @@ ENOR(RETURN,GMRCSVC,GMRCDT1,GMRCDT2,GMRCSTAT,GMRCCTRL,GMRCARRN) ;Entry point for
  ;      1, (10 or 20) and 100 can be added together to add there features
  ;GMRCARRN: List Template Array Name
  ;          "CP": pending; "IFC": inter-facility
+ ;GMRTST: Whether or not to return consults on test patients
  ;
  ;This temp array is used internally by the report:
  ;^TMP("GMRCSLIST",$J,n)=ien^name^parient ien^"+" if grouper^status
@@ -75,12 +80,14 @@ ENORSTR ;Common part
  N STS,GMRCD,GMRCDT,GMRCSVCG,TEMP
  N GMRCPT,CTRLTEMP,LINETEMP,GMRCLINE
  N GMRCPTN,GMRCPTSN,GMRCDLA,GMRCXDT,GMRCLOC,GMRCSVCP
- N GRP,GMRCIRF,GMRCIRFN,GMRCIDD,GMRCST,GMRCRDT
+ N GRP,GMRCIRF,GMRCIRFN,GMRCIDD,GMRCST,GMRCRDT,CNT,IDX
  S:'$D(GMRCARRN) GMRCARRN="CP"
  ;
  ; Patch #21 added the kill for ^TMP("GMRCTOT",$J)
- K ^TMP("GMRCR",$J,GMRCARRN),^TMP("GMRCRINDEX",$J),^TMP("GMRCTOT",$J)
+ K ^TMP("GMRCR",$J,GMRCARRN),^TMP("GMRCRINDEX",$J),^TMP("GMRCTOT",$J),^TMP("GMRCT",$J)
+ K ^TMP("GMRCTOTX",$J),GMRCCNSLT
  ;
+ S CNT=0
  S GMRCCT=0
  S NUMCLIN=0
  S GMRCLINE=0
@@ -171,12 +178,15 @@ GROUPER .;Check if starting a new Grouper
  ..S GROUPER=GROUPER+1
  ..S GROUPER(GROUPER)=GMRCSVC
 STAT .;Loop for one status at a time
- .F LOOP=1:1:$L(GMRCSTAT,",") S STATUS=$P(GMRCSTAT,",",LOOP) D ONESTAT^GMRCSTL2(GMRCARRN)
+ .F LOOP=1:1:$L(GMRCSTAT,",") S STATUS=$P(GMRCSTAT,",",LOOP) D ONESTAT^GMRCSTL2(GMRCARRN,GMRTST)
  .F GRP=GROUPER:-1:1 D
  ..;  pending for this service to all of its groupers
+ ..I $D(^TMP("GMRCTOTX",$J,GROUPER(GRP),GMRCSVC,"P")) Q
  ..S ^TMP("GMRCTOT",$J,2,GROUPER(GRP),"P")=$G(^TMP("GMRCTOT",$J,2,GROUPER(GRP),"P"))+^TMP("GMRCTOT",$J,1,GMRCSVC,"P")
- ..;  for all status for this service to all of its groupers
+ ..S ^TMP("GMRCTOTX",$J,GROUPER(GRP),GMRCSVC,"P")=""
+ ..I $D(^TMP("GMRCTOTX",$J,GROUPER(GRP),GMRCSVC,"T")) Q
  ..S ^TMP("GMRCTOT",$J,2,GROUPER(GRP),"T")=$G(^TMP("GMRCTOT",$J,2,GROUPER(GRP),"T"))+^TMP("GMRCTOT",$J,1,GMRCSVC,"T")
+ ..S ^TMP("GMRCTOTX",$J,GROUPER(GRP),GMRCSVC,"T")=""
  ..;IF Consults
  ..I GMRCARRN="IFC" S GMRCIRFN="" F  S GMRCIRFN=$O(^TMP("GMRCTOT",$J,1,GMRCSVC,"F",GMRCIRFN)) Q:GMRCIRFN=""  D
  ...I '$D(^TMP("GMRCTOT",$J,2,GROUPER(GRP),"F",GMRCIRFN)) D
@@ -191,12 +201,34 @@ STAT .;Loop for one status at a time
  ...S $P(GMRCST(2,GROUPER(GRP)),"^",2)=($P(GMRCST(2,GROUPER(GRP)),"^",2))+($P(GMRCST(1,GMRCSVC),"^",2))
  .;
 PRINTST .;Print the totals for this service that are >0
+ .S GMRCSVNM=GMRCHEAD
  .I ^TMP("GMRCTOT",$J,1,GMRCSVC,"T")>0 D LISTTOT^GMRCSTL1(.GMRCCT,1,GMRCSVC,GMRCSVCP,$P($G(^GMR(123.5,GMRCSVCG,0)),"^",1),GMRCCTRL,GMRCARRN)
+ .I ^TMP("GMRCTOT",$J,1,GMRCSVC,"T")=0,GMRCSVNM'="ALL SERVICES" D
+ ..S GMRCCT=GMRCCT+1
+ ..S ^TMP("GMRCR",$J,GMRCARRN,GMRCCT,0)=CTRLTEMP
+ ..S GMRCCT=GMRCCT+1
+ ..S TEMP="SERVICE: "_GMRCSVCP
+ ..S:GMRCSVCG>0 TEMP=TEMP_" in Group: "_$P(^GMR(123.5,GMRCSVCG,0),"^",1)
+ ..S ^TMP("GMRCR",$J,GMRCARRN,GMRCCT,0)=CTRLTEMP_TEMP
+ ..S NUMCLIN=NUMCLIN+1
+ ..D LISTTOT^GMRCSTL1(.GMRCCT,1,GMRCSVC,GMRCSVCP,$P($G(^GMR(123.5,GMRCSVCG,0)),"^",1),GMRCCTRL,GMRCARRN)
+ .I ^TMP("GMRCTOT",$J,1,GMRCSVC,"T")=0,GMRCSVNM="ALL SERVICES" D
+ ..S CNT=CNT+1
+ ..S ^TMP("GMRCT",$J,0,GMRCSVC)=""
  ;
  ;Done so
  ;Now list the group totals for the current groups
  F GROUPER=GROUPER:-1:1 D
  .D LISTTOT^GMRCSTL1(.GMRCCT,2,GROUPER(GROUPER),$P(^GMR(123.5,GROUPER(GROUPER),0),"^",1),"",GMRCCTRL,GMRCARRN)
+ ;
+ I CNT D
+ .S GMRCCT=GMRCCT+1
+ .S ^TMP("GMRCR",$J,GMRCARRN,GMRCCT,0)=CTRLTEMP,GMRCCT=GMRCCT+1
+ .S ^TMP("GMRCR",$J,GMRCARRN,GMRCCT,0)=CTRLTEMP_"The following Consult Services had zero requests for the specified date range:",GMRCCT=GMRCCT+1
+ .S ^TMP("GMRCR",$J,GMRCARRN,GMRCCT,0)=CTRLTEMP,GMRCCT=GMRCCT+1
+ .S IDX="" F  S IDX=$O(^TMP("GMRCT",$J,0,IDX)) Q:IDX=""  D
+ ..I $P(^GMR(123.5,IDX,0),U,2)=1 Q  ;don't add to list if service is a grouper only...
+ ..S ^TMP("GMRCR",$J,GMRCARRN,GMRCCT,0)=CTRLTEMP_$P(^GMR(123.5,IDX,0),U,1),GMRCCT=GMRCCT+1
  ;
  S VALMCNT=$O(^TMP("GMRCR",$J,GMRCARRN," "),-1)
  I $D(IOBM),$D(IOTM) S VALMBCK="R"

@@ -1,6 +1,8 @@
 LR7OSAP1 ;slc/dcm/wty/kll - Silent AP rpt cont. ;3/28/2002
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**121,227,230,259,317**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1003,1030,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 121,227,230,259,317,315
+ ;
  Q:'$D(^XUSEC("LRLAB",DUZ))
  D LN
  S $P(LR("%"),"-",GIOM)="",^TMP("LRC",$J,GCNT,0)=$$S^LR7OS(1,CCNT,LR("%"))
@@ -14,11 +16,14 @@ LR7OSAP1 ;slc/dcm/wty/kll - Silent AP rpt cont. ;3/28/2002
  . S ^(0)=^TMP("LRC",$J,GCNT,0)_X
  . D M
  D LINE^LR7OSUM4
+ N LRX
  S C=0
- F  S C=$O(^LR(LRDFN,LRSS,LRI,3,C)) Q:'C  S X=+^(C,0),X=$G(^ICD9(X,0)) I $L(X) D
- . S X(9)=$P(X,"^"),X=$P(X,"^",3)
+ F  S C=$O(^LR(LRDFN,LRSS,LRI,3,C)) Q:'C  S LRX=+^(C,0) D
+ . S LRX=$$ICDDX^ICDCODE(LRX,,,1)
+ . I +LRX=-1 Q
  . D LN
- . S ^TMP("LRC",$J,GCNT,0)=$$S^LR7OS(1,CCNT,"ICD code: "_X(9))
+ . S ^TMP("LRC",$J,GCNT,0)=$$S^LR7OS(1,CCNT,"ICD code: "_$P(LRX,"^",2))
+ . S X=$P(LRX,"^",4)
  . D:LR(69.2,.05) C^LRUA
  . S ^(0)=^TMP("LRC",$J,GCNT,0)_$$S^LR7OS(20,CCNT,X)
  Q

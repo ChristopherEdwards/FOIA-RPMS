@@ -1,5 +1,5 @@
-DGENELA ;ALB/CJM,KCL,Zoltan - Patient Eligibility API ; 12/6/00 10:23pm
- ;;5.3;Registration;**121,147,232,314**;Aug 13,1993
+DGENELA ;ALB/CJM,KCL,Zoltan/PJR,RGL,LBD,EG,TMK,CKN,ERC - Patient Eligibility API ; 9/19/06 9:27am
+ ;;5.3;PIMS;**121,147,232,314,451,564,631,672,659,583,653,688,1015,1016**;JUN 30, 2012;Build 20
  ;
 GET(DFN,DGELG) ;
  ;Description: Used to obtain the patient eligibility data.
@@ -10,41 +10,53 @@ GET(DFN,DGELG) ;
  ;  Function Value - returns 1 on success, 0 on failure
  ;  DGELG - this is  a local array that will be used to return patient eligibility data. The array subscripts and the fields mapped to are defined below. (pass by reference)
  ;
- ;suscript             field name
+ ;subscript             field name
  ;"DFN"                ien Patient record
  ;"ELIG","CODE"        Primary Eligibility Code
  ;"ELIG","CODE",<ien>  Patient Eligibilities
  ;"SC"                 Service Connected
  ;"SCPER"              Service Connected Percentage
+ ;"EFFDT"              SC Combined Effective Date
  ;"POW"                POW Status Indicated
  ;"A&A"                Receiving A&A Benefits
  ;"HB"                 Receiving Housebound Benefits
  ;"VAPEN"              Receiving a VA Pension
  ;"VACKAMT"            Total Annual VA Check Amount
- ;"DISRET"             Disability Ret. From Military
+ ;"DISRET"             Military Disability Retirement
+ ;"DISLOD"             Discharge Due to Disability (added with DG 672)
  ;"MEDICAID"           Medicaid
+ ;"MEDASKDT"           Date Medicaid Last Asked
  ;"AO"                 Exposed to Agent Orange
  ;"IR"                 Radiation Exposure Indicated
- ;"EC"                 Environmental Contaminants
+ ;"RADEXPM"            Radiation Exposure Method
+ ;"EC"                 SW Asia Cond - change from Env Con, DG*5.3*688
  ;"MTSTA"              Means Test Status
  ;P&T                  P&T
+ ;P&TDT                P&T EFFECTIVE DATE (added with DG 688)
  ;POS                  PERIOD OF SERVICE
  ;UNEMPLOY             UNEMPLOYABLE
  ;SCAWDATE             SC AWARD DATE
  ;RATEINC              RATED INCOMPETENT
  ;CLAIMNUM             CLAIM NUMBER
- ;** removed ***     CLAIMLOC             *CLAIM FOLDER LOCATION
+ ;CLAIMLOC             CLAIM FOLDER LOCATION
  ;VADISAB              RECEIVING VA DISABILITY?
  ;ELIGSTA              ELIGIBILITY STATUS
  ;ELIGSTADATE          ELIGIBILITY STATUS DATE
  ;ELIGVERIF            ELIGIBILITY VERIF. METHOD
+ ;ELIGVSITE            ELIGIBILITY VERIFICATION SITE
  ;ELIGENTBY            ELIGIBILITY STATUS ENTERED BY
  ;RATEDIS
  ;  <COUNT>,"RD"      RATED DISABILITY
  ;  <COUNT>,"PER"      DISABILITY %
  ;  <COUNT>,"RDSC"     SERVICE CONNECTED
+ ;  <COUNT>,"RDEXT"    EXTREMITY
+ ;  <COUNT>,"RDORIG"   ORIGINAL RD EFFECTIVE DATE
+ ;  <COUNT>."RDCURR"   CURRENT RD EFFECTIVE DATE
  ;"VCD"               Veteran Catastrophically Disabled? (#.39)
  ;"PH"                PURPLE HEART INDICATED
+ ;"AOEXPLOC"          AGENT ORANGE EXPOSURE LOCATION
+ ;"CVELEDT"           COMBAT VETERAN END DATE
+ ;"SHAD"              SHAD EXPOSURE
  ;
  K DGELG
  S DGELG=""
@@ -62,23 +74,27 @@ GET(DFN,DGELG) ;
  S DGELG("SC")=$P(NODE,"^")
  S DGELG("SCPER")=$P(NODE,"^",2)
  S DGELG("P&T")=$P(NODE,"^",4)
+ S DGELG("P&TDT")=$P(NODE,"^",13)
  S DGELG("UNEMPLOY")=$P(NODE,"^",5)
  S DGELG("SCAWDATE")=$P(NODE,"^",12)
  S DGELG("VADISAB")=$P(NODE,"^",11)
+ S DGELG("EFFDT")=$P(NODE,"^",14)
  ;
  S NODE=$G(^DPT(DFN,.31))
  S DGELG("CLAIMNUM")=$P(NODE,"^",3)
- ;S DGELG("CLAIMLOC")=$P(NODE,"^",2) ;removed
+ S DGELG("CLAIMLOC")=$P(NODE,"^",4)
  ;
  S NODE=$G(^DPT(DFN,.32))
  S DGELG("POS")=$P(NODE,"^",3)
  ;
  S NODE=$G(^DPT(DFN,.36))
  S DGELG("ELIG","CODE")=$P(NODE,"^") ;primary eligibility
- S DGELG("DISRET")=$P(NODE,"^",2)
+ S DGELG("DISRET")=$P(NODE,"^",12)
+ S DGELG("DISLOD")=$P(NODE,"^",13)
  ;
  S NODE=$G(^DPT(DFN,.38))
  S DGELG("MEDICAID")=$P(NODE,"^")
+ S DGELG("MEDASKDT")=$P(NODE,"^",2) ;Date Medicaid Last Asked
  ;
  S NODE=$G(^DPT(DFN,.361))
  S DGELG("ELIGSTA")=$P(NODE,"^")
@@ -96,12 +112,16 @@ GET(DFN,DGELG) ;
  S NODE=$G(^DPT(DFN,.321))
  S DGELG("AO")=$P(NODE,"^",2)
  S DGELG("IR")=$P(NODE,"^",3)
+ S DGELG("RADEXPM")=$P(NODE,"^",12)
+ S DGELG("AOEXPLOC")=$P(NODE,"^",13)
+ S DGELG("SHAD")=$P(NODE,"^",15)  ;added with DG*5.3*653
  ;
  S NODE=$G(^DPT(DFN,.322))
  S DGELG("EC")=$P(NODE,"^",13)
  ;
  S NODE=$G(^DPT(DFN,.52))
  S DGELG("POW")=$P(NODE,"^",5)
+ S DGELG("CVELEDT")=$P(NODE,"^",15)
  ;
  ; Purple Heart Indicator
  S NODE=$G(^DPT(DFN,.53))
@@ -117,7 +137,7 @@ GET(DFN,DGELG) ;
  F  S SUBREC=$O(^DPT(DFN,"E",SUBREC)) Q:'SUBREC  D
  .S CODE=+$G(^DPT(DFN,"E",SUBREC,0))
  .;
- .;need to check the "B" x-ref, because when a code is deleted from the multiple, the kill logic is executed BEFORE the data is actuall removed - but the "B" x-ref has been deleted at this point
+ .;need to check the "B" x-ref, because when a code is deleted from the multiple, the kill logic is executed BEFORE the data is actually removed - but the "B" x-ref has been deleted at this point
  .I CODE,$D(^DPT(DFN,"E","B",CODE)) S DGELG("ELIG","CODE",CODE)=SUBREC
  ;
  ;rated disability multiple
@@ -129,6 +149,9 @@ GET(DFN,DGELG) ;
  .S DGELG("RATEDIS",COUNT,"RD")=$P(NODE,"^")
  .S DGELG("RATEDIS",COUNT,"PER")=$P(NODE,"^",2)
  .S DGELG("RATEDIS",COUNT,"RDSC")=$P(NODE,"^",3)
+ .S DGELG("RATEDIS",COUNT,"RDEXT")=$P(NODE,"^",4)
+ .S DGELG("RATEDIS",COUNT,"RDORIG")=$P(NODE,"^",5)
+ .S DGELG("RATEDIS",COUNT,"RDCURR")=$P(NODE,"^",6)
  ;
  Q 1
  ;

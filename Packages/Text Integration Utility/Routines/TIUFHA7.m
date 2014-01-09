@@ -1,17 +1,26 @@
-TIUFHA7 ; SLC/MAM - VALMBG(FILEDA,EFILEDA,EOLDLNO), UPDATE, MOVETL, REEXPAND(FILEDA,LINENO,UPDATE), WHICHDC(FILEDA,PFILEDA,ACTION) ;8/27/97  14:02
- ;;1.0;TEXT INTEGRATION UTILITIES;**11,27**;Jun 20, 1997
+TIUFHA7 ; SLC/MAM - VALMBG(FILEDA,EFILEDA,EOLDLNO), UPDATE, MOVETL, REEXPAND(FILEDA,LINENO,UPDATE), WHICHDC(FILEDA,PFILEDA,ACTION) ;1/27/06
+ ;;1.0;TEXT INTEGRATION UTILITIES;**11,27,184**;Jun 20, 1997
  ;
 WHICHDC(FILEDA,PFILEDA,ACTION) ; Function returns IFN of DC to copy/move Title to, or 0 if none chosen
  ;Requires FILEDA = IFN of Title to copy/move
  ;Requires PFILEDA = parent of Title
- ;Requires ACTION = MT or MD or C
+ ;Requires ACTION = MT or C
  N X,Y,GPFILEDA,DIC,DIR,NEWDCY,CWAD1,CWAD2
- S GPFILEDA=+$O(^TIU(8925.1,"AD",PFILEDA,0))
+ S GPFILEDA=+$O(^TIU(8925.1,"AD",PFILEDA,0)) ;orig g'parent of title
 AGAINDC S DIC=8925.1,DIC(0)="AEMNQZ"
  I ACTION="MT" D
- . W !!,"Selecting target Document Class.",!,"Enter '??' for a list of Document Classes within the ",$S(TIUFWHO="N":"hierarchy.",1:"original Class.")
- . S DIC("A")="Select TIU DOCUMENT CLASS NAME to Move Title to: ",DIC("S")="I $P(^(0),U,4)=""DC""&($$ORPHAN^TIUFLF4(Y,^(0))=""NO"")&(Y'=PFILEDA)&(Y'=512)"
- . S DIC("S")=DIC("S")_$S(TIUFWHO="N":"",1:"&(GPFILEDA=+$O(^TIU(8925.1,""AD"",Y,0)))")
+ . W !!,"  Selecting target Document Class.  Enter '??' for a list of selectable ones.",!
+ . W "  You may not select PRF Flag Document Classes"
+ . I TIUFWHO'="N" W " or Document Classes",!,"    outside the original Class."
+ . E  W "."
+ . S DIC("A")="Select TIU DOCUMENT CLASS NAME to Move Title to: "
+ . ; - Selected DC must: be DC, in hierarchy, not=current DC,
+ . ;   not addm, not PRF DC, & unless user is natl,
+ . ;   must be in same class as orig DC:
+ . ; - Careful! last global ref could change during screen:
+ . S DIC("S")="I $P(^(0),U,4)=""DC""&($$ORPHAN^TIUFLF4(Y,^(0))=""NO"")"
+ . S DIC("S")=DIC("S")_"&(Y'=PFILEDA)&(Y'=512)&'$$ISPFDC^TIUPRFL(Y)"
+ . I TIUFWHO'="N" S DIC("S")=DIC("S")_"&(GPFILEDA=+$O(^TIU(8925.1,""AD"",Y,0)))"
  I ACTION="C" S DIC("A")="Select TIU DOCUMENT CLASS NAME to Add Copy to: ",DIC("S")="I $P(^(0),U,4)=""DC""&($$ORPHAN^TIUFLF4(Y,^(0))=""NO"")&(Y'=512)"
  D ^DIC I Y=-1 G WDCX
  S NEWDCY=Y,NEWDCY(0)=Y(0)
@@ -66,6 +75,7 @@ AGAINTL D EN^VALM2(TIUFXNOD,"SO") G:'$O(VALMY(0)) MTLX S INFO=$G(^TMP("TIUF1IDX"
  ; Need TIUFXNOD phrase to prevent loop:
  N DIRUT I $P(NODE0,U,4)'="DOC" W !,"   ?? Entry must be a TITLE (not a Document Class, etc.).",! D PAUSE^TIUFXHLX G MTLX:$D(DIRUT)!(TIUFXNOD["="),AGAINTL
  I $P(NODE0,U,13) W !,"   ?? Can't Move National Titles",! D PAUSE^TIUFXHLX G MTLX:$D(DIRUT)!(TIUFXNOD["="),AGAINTL
+ I $$ISPFTTL^TIUPRFL(FILEDA) W !,"   ?? Can't Move PRF Flag Titles",! D PAUSE^TIUFXHLX G MTLX:$D(DIRUT)!(TIUFXNOD["="),AGAINTL
  S PFILEDA=+$O(^TIU(8925.1,"AD",FILEDA,0))
  S TENDA=$P(INFO,U,6),PLINENO=$P(INFO,U,5)
  ; -----Check Title under PRESENT parent:

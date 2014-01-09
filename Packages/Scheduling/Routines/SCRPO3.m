@@ -1,8 +1,5 @@
-SCRPO3 ;BP-CIOFO/KEITH - Historical Provider Position Assignment Listing ; 9/14/99 10:06am [ 11/02/2000  7:10 AM ]
- ;;5.3;Scheduling;**177**;AUG 13, 1993
- ;IHS/ANMC/LJF 11/01/2000 added call to list template
- ;             11/02/2000 kill of IO variables moved to BSDSCO3
- ;                        footer code now accounts for list template
+SCRPO3 ;BP-CIOFO/KEITH - Historical Provider Position Assignment Listing ; 9/14/99 10:06am
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;
 EN ;Queue report
  N LIST,SORT,RTN,DESC,SCSP
@@ -12,8 +9,6 @@ EN ;Queue report
  D PROMPT^SCRPO1(LIST,SORT,SCSP,RTN,DESC) Q
  ;
 RUN ;Print report
- I $E(IOST,1,2)="C-" D ^BSDSCO3 Q    ;IHS/ANMC/LJF 11/1/2000
-IHS ;EP; entry point for list template  ;IHS/ANMC/LJF 11/1/2000     
  N SCFMT,SCTITL,SCTITL2,SCLINE,SCPAGE,SCOUT,SCFF,SCX,SCPNOW,SCFD
  N SC1,SC2,SC3,SC4,SC5,SC6,SCN,SCI,SCPNOW,SCY,SCFF,SCLINE,SCPAGE
  S SCFMT=$E(^TMP("SC",$J,"FMT")),(SCFF,SCOUT)=0
@@ -44,8 +39,7 @@ IHS ;EP; entry point for list template  ;IHS/ANMC/LJF 11/1/2000
  ......S SC6=""
  ......F  S SC6=$O(^TMP("SCRPT",$J,2,SCN,SC4,SC5,SC6)) Q:SC6=""!SCOUT  D
  .......S SCX=^TMP("SCRPT",$J,2,SCN,SC4,SC5,SC6)
- .......;I $Y>(IOSL-11) D FOOT1,HDR^SCRPO(.SCTITL,132),SHDR("D") Q:SCOUT  ;IHS/ANMC/LJF 11/2/2000
- .......I '$G(VALM),$Y>(IOSL-11) D FOOT1,HDR^SCRPO(.SCTITL,132),SHDR("D") Q:SCOUT  ;IHS/ANMC/LJF 11/2/2000
+ .......I $Y>(IOSL-11) D FOOT1,HDR^SCRPO(.SCTITL,132),SHDR("D") Q:SCOUT
  .......S SCY="0^21^41^46^67^86^94^102^110^118^126" W !
  .......F SCI=1:1:5 W ?($P(SCY,U,SCI)),$P(SCX,U,SCI)
  .......F SCI=6:1:11 W ?($P(SCY,U,SCI)),$J($P(SCX,U,SCI),6,0)
@@ -63,14 +57,12 @@ IHS ;EP; entry point for list template  ;IHS/ANMC/LJF 11/1/2000
  F  S SCDIV=$O(^TMP("SCRPT",$J,0,SCDIV)) Q:SCDIV=""!SCOUT  D
  .S SCPC=$S($D(^TMP("SCRPT",$J,0,SCDIV,"PC")):"YES",1:"NO")
  .S SCX=^TMP("SCRPT",$J,0,SCDIV)
- .;D:$Y>(IOSL-11) FOOT2,HDR^SCRPO(.SCTITL,132),SHDR("S") Q:SCOUT  ;IHS/ANMC/LJDF 11/2/2000
- .I '$G(VALM) D:$Y>(IOSL-11) FOOT2,HDR^SCRPO(.SCTITL,132),SHDR("S") Q:SCOUT  ;IHS/ANMC/LJF 11/2/2000
+ .D:$Y>(IOSL-11) FOOT2,HDR^SCRPO(.SCTITL,132),SHDR("S") Q:SCOUT
  .W:SCFD ! D SLINE(SCDIV,SCPC,SCX) S SCTEAM="",SCFD=1
  .F  S SCTEAM=$O(^TMP("SCRPT",$J,0,SCDIV,1,SCTEAM)) Q:SCTEAM=""!SCOUT  D
  ..S SCPC=$S($D(^TMP("SCRPT",$J,0,SCDIV,1,SCTEAM,"PC")):"YES",1:"NO")
  ..S SCX=^TMP("SCRPT",$J,0,SCDIV,1,SCTEAM)
- ..;D:$Y>(IOSL-10) FOOT2,HDR^SCRPO(.SCTITL,132),SHDR("S") Q:SCOUT  ;IHS/ANMC/LJF 11/2/2000
- ..I '$G(VALM) D:$Y>(IOSL-10) FOOT2,HDR^SCRPO(.SCTITL,132),SHDR("S") Q:SCOUT  ;IHS/ANMC/LJF 11/2/2000
+ ..D:$Y>(IOSL-10) FOOT2,HDR^SCRPO(.SCTITL,132),SHDR("S") Q:SCOUT
  ..D SLINE("  "_SCTEAM,SCPC,SCX)
  ..Q
  .Q
@@ -88,8 +80,7 @@ IHS ;EP; entry point for list template  ;IHS/ANMC/LJF 11/1/2000
  ;
 EXIT I $E(IOST)="C",'$G(SCOUT) W ! N DIR S DIR(0)="E" D ^DIR
  F SCI="SC","SCARR","SCRPT" K ^TMP(SCI,$J)
- ;K SC D END^SCRPW50 Q
- K SC Q  ;IHS/ANMC/LJF 11/2/2000 END^SCRPW50 called by list template
+ K SC D END^SCRPW50 Q
  ;
 SLINE(SCNAME,SCPC,SCX) ;Print report summary line
  ;Input: SCNAME=division or team name to print
@@ -197,8 +188,7 @@ BTPOS(SCTP,SCDIV,SCTEAM,SCPOS,SCLINIC,SCFMT) ;Build from team position
  ;
 FOOT1 ;Detail report footer
  N SCI
- ;F SCI=1:1:80 W ! Q:$Y>(IOSL-9)  ;IHS/ANMC/LJF 11/2/2000
- I '$G(VALM) F SCI=1:1:80 W ! Q:$Y>(IOSL-9)  ;IHS/ANMC/LJF 11/2/2000
+ F SCI=1:1:80 W ! Q:$Y>(IOSL-9)
  W !,SCLINE
  W !,"NOTE: This report reflects a count of all unique patients assigned to Primary Care and non-Primary Care within the date range"
  W !?6,"selected.  If a date range larger than one day has been selected, the total patients assigned to a provider may be greater"
@@ -209,8 +199,7 @@ FOOT1 ;Detail report footer
  ;
 FOOT2 ;Summary report footer
  N SCI
- ;F SCI=1:1:80 W ! Q:$Y>(IOSL-8)  ;IHS/ANMC/LJF 11/2/2000
- I '$G(VALM) F SCI=1:1:80 W ! Q:$Y>(IOSL-8)  ;IHS/ANMC/LJF 11/2/2000
+ F SCI=1:1:80 W ! Q:$Y>(IOSL-8)
  W !,SCLINE
  W !,"NOTE: Although presented by division and team, the maximum patients allowed, assigned patients, open slots and precepted patients"
  W !?6,"reflected in this summary represent a sum of those categories for the provider position assignments identified within the"

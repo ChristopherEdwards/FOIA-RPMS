@@ -1,5 +1,5 @@
-BRAWH ; IHS/ITSC/PDW,CLS - RADIOLOGY WOMEN'S HEALTH LINK ;    [ 11/01/2001  12:15 PM ]
- ;;5.0;Radiology/Nuclear Medicine;**1002**;Feb 20, 2004
+BRAWH ; IHS/ITSC/PDW,CLS - RADIOLOGY WOMEN'S HEALTH LINK ; 20 Apr 2011  7:23 PM
+ ;;5.0;Radiology/Nuclear Medicine;**1002,1003**;Nov 01, 2010;Build 3
  ;;  RA*5.0*1002 IHS/OIT/CLS modified to accomodate 2007 mammogram CPT's
  ;;  
  ;;* MICHAEL REMILLARD, DDS * ALASKA NATIVE MEDICAL CENTER *
@@ -37,6 +37,8 @@ CREATE(DFN,DATE,CASE) ;EP
  ;
  ;---> QUIT IF RADIOLOGY DATA IS NOT DEFINED OR ="".
  Q:($G(DFN)']"")!($G(DATE)']"")!($G(CASE)']"")
+ I $P($G(^DPT(DFN,0)),U,2)'="F" Q
+ I $$AGE^AUPNPAT(DFN)<13 Q
  Q:'$D(^RADPT(DFN,"DT",DATE,"P",CASE,0))
  ;
  ;---> RAEXAM0=ZERO NODE OF RADIOLOGY EXAM.
@@ -45,8 +47,13 @@ CREATE(DFN,DATE,CASE) ;EP
  ;The next line identifies the Interpreting Physician for WH records
  S BRAIRAD=$P(RAEXAM0,U,15)   ;IHS/HQW/SCR 10/29/01 **11**
  ;
- S RACPT=$P(^RAMIS(71,$P(RAEXAM0,U,2),0),U,9)
- Q:(RACPT'=77055)&(RACPT'=77056)&(RACPT'=77057)&(RACPT'=77031)&(RACPT'=76645)  ;IHS/OIT/CLS patch 1002
+ S RACPTI=$P(^RAMIS(71,$P(RAEXAM0,U,2),0),U,9)
+ S RACPT=$$GET1^DIQ(81,RACPTI,.01)
+ ;
+ ;IHS/BJI/DAY - Patch 1003 - Add new G codes for Digital Mammos
+ Q:(RACPT'=77055)&(RACPT'=77056)&(RACPT'=77057)&(RACPT'=77031)&(RACPT'=76645)&(RACPT'="G0202")&(RACPT'="G0204")&(RACPT'="G0206")
+ ;End patch
+ ;
  ;
  ;---> QUIT IF NO WOMEN'S HEALTH SITE PARAMETER FILE ON THIS MACHINE.
  Q:'$D(^BWSITE(DUZ(2)))
@@ -80,6 +87,12 @@ CREATE(DFN,DATE,CASE) ;EP
  I RACPT=77031 S RAPROC=35 D COPY(RAEXAM0) G EXIT  ;IHS/ANMC/MWR  ;IHS/OIT/CLS patch 1002
  I RACPT=76645 S RAPROC=38 D COPY(RAEXAM0) G EXIT  ;IHS/ANMC/MWR
  ;
+ ;IHS/BJI/DAY - Patch 1003 - Add new G codes for Digital Mammos
+ I RACPT="G0202" S RAPROC=28 D COPY(RAEXAM0) G EXIT
+ I RACPT="G0204" S RAPROC=25 D COPY(RAEXAM0) G EXIT
+ I RACPT="G0206" S RAPROC=26 D COPY(RAEXAM0) G EXIT
+ ;End patch
+ ;
 EXIT ;EP
  K I,N,X
  Q
@@ -104,7 +117,7 @@ COPY(Y) ;EP
  S:'$D(^RADPT("ADC",RACASE,DFN,DATE,CASE)) RACASE="UNKNOWN"
  ;
  ;---> QUIT IF THIS PROCEDURE HAS ALREADY BEEN SENT TO WOMEN'S HEALTH.
- Q:$D(^BWPCD("E",RACASE))
+ I $D(^BWPCD("E",RACASE)) Q
  ;
  ;---> PCC DATE/TIME; IF NO TIME, ATTACH 12 NOON.
  I $D(^RADPT(DFN,"DT",DATE,"P",CASE,"PCC")) D
@@ -166,11 +179,15 @@ UPDATE(DFN,DATE,CASE) ;EP
  ;---> CALLED FROM RARTE1 (DELETE A REPORT AND UNVERIFY A REPORT).
  ; maybe called by RAEDFN if the system is setup to send PCC date at EXAMINED
  ;
- W !!?20,"* Updating Women's Health Database. *",!
  ;
  ;Q:'$D(DFN)!('$D(DATE))!('$D(CASE))
  Q:'$G(DFN)!('$G(DATE))!('$G(CASE))  ;IHS/ITSC/CLS 12/31/2003
  Q:'$D(^RADPT(DFN,"DT",DATE,"P",CASE,0))
+ I $P($G(^DPT(DFN,0)),U,2)'="F" Q
+ I $$AGE^AUPNPAT(DFN)<13 Q
+ ;
+ W !!,?20,"* Updating Women's Health Database *",!
+ ;
  N RAIEN,RADATE,RACASE,RAMSG
  ;
  ;---> RADATE=DATE OF PROCEDURE.
@@ -192,6 +209,54 @@ UPDATE(DFN,DATE,CASE) ;EP
  .S RAMSG=RAMSG_"  PREVIOUS CLINICAL HX: "
  .S RAMSG=RAMSG_^BWPCD(RAIEN,3),RAMSG=$E(RAMSG,1,240)
  D RADMOD^BWPROC(RAIEN,RAMSG)
+ Q
+ ;
+ ;
+UPDTDX(DFN,DATE,CASE) ;EP - Called from BRAPRAD when report is filed
+ ;
+ N RAZERO,RACASE,RADATE,RAACC,RADA
+ N RADX,RAIRAD,RABWDX,DA,DR
+ I '$G(DFN) Q
+ I '$G(DATE) Q
+ I '$G(CASE) Q
+ I '$D(^RADPT(DFN,"DT",DATE,"P",CASE,0)) Q
+ I $P($G(^DPT(DFN,0)),U,2)'="F" Q
+ I $$AGE^AUPNPAT(DFN)<13 Q
+ ;
+ ;Check WH Site Parameter to see if we pass data
+ I $$GET1^DIQ(9002086.02,DUZ(2),.1,"I")'=1 Q
+ ;
+ ;Build Accession Number
+ S RAZERO=$G(^RADPT(DFN,"DT",DATE,"P",CASE,0))
+ I RAZERO="" Q
+ S RACASE=$P(RAZERO,U)
+ S RADATE=$P($P(^RADPT(DFN,"DT",DATE,0),U),".")
+ S RAACC=$E(RADATE,4,7)_$E(RADATE,2,3)_"-"_RACASE
+ ;
+ ;If BW Procedure does not exist then Create it and quit
+ S RADA=$O(^BWPCD("E",RAACC,0))
+ I RADA="" D CREATE^BRAWH(DFN,DATE,CASE) Q
+ ;
+ ;Get DX
+ S RADX=$P(RAZERO,U,13)
+ I +RADX D
+ .S RABWDX=$O(^BWRADX("C",RADX,0))
+ .I RABWDX="" Q
+ .;
+ .;File in Women's Health BW PROCEDURE file
+ .S DA=RADA
+ .S DR=".05////"_RABWDX
+ .D DIE^BWFMAN(9002086.1,DR,DA)
+ ;
+ ;Get Interpreting Radiologist
+ S RAIRAD=$P(RAZERO,U,15)
+ I +RAIRAD D
+ .;
+ .;File in Women's Health BW PROCEDURE file
+ .S DA=RADA
+ .S DR=".35////"_RAIRAD
+ .D DIE^BWFMAN(9002086.1,DR,DA)
+ ;
  Q
  ;
 LOOP ;EP

@@ -1,5 +1,5 @@
 DGSSNRP1 ;ALB/SEK - DUPLICATE SPOUSE/DEPENDENT SSN REPORT; Dec 15, 1999
- ;;5.3;Registration;**313**;Aug 13,1993
+ ;;5.3;Registration;**313,1015**;Aug 13,1993;Build 21
  ;
 REPORT ;This routine creates the Duplicate Spouse/Dependent SSN Report.
  ;The option name is Duplicate Spouse/Dependent SSN Report [DG DUPLICATE

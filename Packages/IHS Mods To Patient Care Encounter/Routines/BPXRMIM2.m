@@ -1,5 +1,5 @@
-BPXRMIM2 ; IHS/CIA/MGH - Handle Computed findings for immunizations. ;09-Sep-2008 15:46;MGH
- ;;1.5;CLINICAL REMINDERS;**1002,1004,1005,1006**;Jun 19, 2000
+BPXRMIM2 ; IHS/CIA/MGH - Handle Computed findings for immunizations. ;09-Jan-2012 10:47;DU
+ ;;1.5;CLINICAL REMINDERS;**1002,1004,1005,1006,1008**;Jun 19, 2000;Build 25
  ;=================================================================
  ;This routine is designed to search  the immunication forcast
  ;data to determine if an immunization is due for a child requiring a

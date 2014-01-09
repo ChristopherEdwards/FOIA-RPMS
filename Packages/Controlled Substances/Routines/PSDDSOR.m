@@ -1,5 +1,5 @@
-PSDDSOR ;BHM/MHA - Digitally signed CS Orders Report; 08/30/02
- ;;3.0; CONTROLLED SUBSTANCES ;**40,42,45**;13 Feb 97
+PSDDSOR ;BHM/MHA/PWC - Digitally signed CS Orders Report; 08/30/02
+ ;;3.0; CONTROLLED SUBSTANCES ;**40,42,45,67**;13 Feb 97;Build 8
  ;Ref. to ^PSRX( supp. by IA 1977
  ;Ref. to ^PS(52.41, supp. by IA 3848
  ;Ref. to ^PS(59, supp. by IA 2621
@@ -52,6 +52,7 @@ D ;ask drug(s)
  K DRG,DIC S PSDRG=0,DIC("A")="Select DRUG: ",DIC=50,DIC(0)="QEAM"
  S DIC("S")="I $S('$D(^(""I"")):1,'^(""I""):1,DT'>+^(""I""):1,1:0),$P($G(^(2)),""^"",3)[""O"",$D(^PSDRUG(""ASP"",+$G(^(2)),+Y)),+$P(^PSDRUG(+Y,0),""^"",3)&(+$P(^PSDRUG(+Y,0),""^"",3)<6)"
  F  D ^DIC Q:Y<0  S DRG(+Y)=""
+ S X=$$UP^XLFSTR(X)  ; PSD*3*67 pwc
  K DIC I X="^ALL" S PSDRG=1 K DUOUT Q
  Q:($D(DUOUT))!($D(DTOUT))
  I '$D(DRG)&(Y<0) G D
@@ -60,14 +61,16 @@ PR ;ask provider(s)
  W !!,?5,"You may select a single provider, several providers,",!,?5,"or enter ^ALL to select all providers.",!!
  K PRO,DIC S PSDPR=0,DIC="^VA(200,",DIC(0)="QEAM",DIC("A")="Select Provider: "
  F  D ^DIC Q:Y<0  S PRO(+Y)=""
+ S X=$$UP^XLFSTR(X)  ; PSD*3*67 PWC
  K DIC I X="^ALL" S PSDPR=1 K DUOUT Q
  Q:$D(DUOUT)!($D(DTOUT))
  I '$D(PRO)&(Y<0) G PR
  Q
-PA ;ask provider(s)
+PA ;ask patient(s)
  W !!,?5,"You may select a single patient, several patients,",!,?5,"or enter ^ALL to select all patients.",!!
  K PAT,DIC S PSDPT=0,DIC=2,DIC(0)="QEAM",DIC("A")="Select Patient: "
  F  D ^DIC Q:Y<0  S PAT(+Y)=""
+ S X=$$UP^XLFSTR(X)  ; PSD*3*67 pwc
  K DIC I X="^ALL" S PSDPT=1 K DUOUT Q
  Q:$D(DUOUT)!($D(DTOUT))
  I '$D(PAT)&(Y<0) G PA

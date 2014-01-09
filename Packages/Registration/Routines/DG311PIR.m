@@ -1,5 +1,5 @@
 DG311PIR ;ALB/JJG-Total Dependents Calculation Utility ; 07 AUG 2000
- ;;5.3;Registration;**311**;Aug 13, 1993
+ ;;5.3;Registration;**311,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will be run as a post-installation routine for patch
  ; DG*5.3*311. The main purpose for this routine is to recalculate 

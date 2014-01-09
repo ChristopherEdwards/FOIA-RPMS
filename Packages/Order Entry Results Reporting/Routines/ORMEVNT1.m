@@ -1,7 +1,8 @@
 ORMEVNT1 ;SLC/MKB-Trigger HL7 msg off OR events,ORMTIME ;9/9/03  13:00
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,165,177,186**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,165,177,186,215**;Dec 17, 1997
  ;
  ;DBIA Section
+ ; 3559 - Direct read of ^SRF
  ;10039 - Direct read of ^DIC(42,
  ;
 OR2(ORSRDA) ;Queue EDO process to background, return control to surgery
@@ -11,7 +12,6 @@ OR2(ORSRDA) ;Queue EDO process to background, return control to surgery
  Q
  ;
 OR2Q ; -- Kill logic, from Surgery package [DBIA #3558]
- ;    ^SRF reads allowed by DBIA #3559
  I $D(^XTMP("ORSURG",ORSRDA)) D OR2(ORSRDA) Q  ;186 requeue if flag set
  N X,Y,DA,OREVT,ORSRF,ORACT
  S OREVT=+$O(^ORE(100.2,"ASR",+$G(ORSRDA),0)) Q:OREVT<1
@@ -25,7 +25,6 @@ OR1(ORSRDA,ORSRX) ;Queue EDO process to background, return control to surgery
  Q
  ;
 OR1Q ; -- Set logic, from Surgery package [DBIA #3558]
- ;    ^SRF reads allowed by DBIA #3559
  I $D(^XTMP("ORSURG",ORSRDA)) D OR1(ORSRDA,ORSRX) Q  ;186 requeue if flag set
  N X S X=ORSRX
  I $G(^SRF(+$G(ORSRDA),"CON")),$D(^ORE(100.2,"ASR",+^("CON"))) Q  ;concurrent
@@ -105,7 +104,8 @@ RELEASE(OREVT) ; -- release orders for OREVT [also from ORMEVNT]
  Q:'$G(OREVT)  N ORPARM,ORLR,ORX,ORI,ORV,ORIFN,ORERR,OR0,OR3,ORLAB
  S ORPARM="" I $G(ORL) F ORI="CHART COPY","LABELS","REQUISITIONS","SERVICE","WORK COPY" S ORX=$S(ORI="SERVICE":0,1:$$GET^XPAR("ALL^"_ORL,"ORPF PROMPT FOR "_ORI,1,"I")),ORPARM=ORPARM_U_$S(ORX="*":0,1:1)
  I $D(^XTMP("ORSURG",+$G(ORSRDA))) S ORL=+$G(^DIC(42,+$G(VAIP(5)),44))_";SC(" ;186 Reset loc
- S ORLR=+$O(^DIC(9.4,"C","LR",0)),ORX=OREVT,ORI=0
+ F ORI="LR","VBEC" S ORX=+$O(^DIC(9.4,"C",ORI,0)) S:ORX ORLR(ORX)=1
+ S ORX=OREVT,ORI=0
  F  S ORI=+$O(^ORE(100.2,"DAD",OREVT,ORI)) Q:ORI<1  S ORX=ORX_U_ORI
  F ORV=1:1:$L(ORX,U) S OREVT=$P(ORX,U,ORV) D  ;event[+children]
  . F  S ORI=$O(^OR(100,"AEVNT",ORVP,OREVT,ORI)) Q:ORI'>0  D
@@ -113,10 +113,10 @@ RELEASE(OREVT) ; -- release orders for OREVT [also from ORMEVNT]
  .. I ORIFN=+$P($G(^ORE(100.2,OREVT,0)),U,4) D  Q  ;event order
  ... Q:$$TYPE^OREVNTX(OREVT)="D"  Q:$P(OR3,U,3)=11
  ... S ORPRINT=+$G(ORPRINT)+1,ORPRINT(ORPRINT)=ORIFN_";1"_ORPARM
- .. Q:$P(OR3,U,3)'=10  ;released or cancelled
+ .. Q:$P(OR3,U,3)'=10  Q:$P(OR3,U,9)  ;released or cancelled, has parent
  .. S:$G(ORL) $P(^OR(100,ORIFN,0),U,10)=ORL ;set location
  .. S:$G(ORTS) $P(^OR(100,ORIFN,0),U,13)=ORTS ;set specialty
- .. I $P(OR0,U,14)=ORLR,'$G(ORLAB) D BHS^ORMBLD(ORVP) S ORLAB=1
+ .. I $G(ORLR(+$P(OR0,U,14))),'$G(ORLAB) D BHS^ORMBLD(ORVP) S ORLAB=1
  .. K ORERR D EN1^ORCSEND(ORIFN,.ORERR) Q:$G(ORERR)
  .. Q:"^10^11^"[(U_$P($G(^OR(100,ORIFN,3)),U,3)_U)  D SAVE(ORIFN,OREVT,2)
  .. S ORPRINT=+$G(ORPRINT)+1,ORPRINT(ORPRINT)=ORIFN_";1"_ORPARM
@@ -156,26 +156,27 @@ SAVE(IFN,EVT,NODE,PKG) ; -- Save order# IFN with EVT at NODE
  S ^ORE(100.2,EVT,NODE,+IFN,0)=+IFN_$S($D(PKG):U_PKG,1:"")
  Q
  ;
-EXP ; -- expire an order from ORMTIME
- ;    from EXP^ORMEVNT(ORDER,ORSTOP)
+EXP ; -- expire an order from EXP^ORMEVNT(ORDER,ORSTOP)
+ ;    [ORMTIME]
  G:'$D(^OR(100,+ORDER,0)) EXPQ
  N OR0,ORNMSP,ORSTS
  S OR0=$G(^OR(100,+ORDER,0)),ORSTS=$P($G(^(3)),U,3)
- I "^1^2^7^12^13^14^"[(U_ORSTS_U) G EXPQ ; already expired or done
- I $O(^OR(100,+ORDER,2,0)) G EXPQ ; parent
+ I "^1^2^7^12^13^14^"[(U_ORSTS_U) G EXPQ ;done
+ I $O(^OR(100,+ORDER,2,0)) G EXPQ ;parent
+ I $P(^ORD(100.98,$P(OR0,U,11),0),U,3)="NV RX" G EXPQ  ;Non-VA med
  S ORNMSP=$$NMSP^ORCD($P(OR0,U,14))
  D:ORNMSP="PS"!(ORNMSP="FH") MSG^ORMBLD(+ORDER,"SS")
- I ORNMSP="OR"!(ORNMSP="FH"),"^1^7^"'[(U_ORSTS_U) D STATUS^ORCSAVE2(+ORDER,7) ;ck FH order status after SS update
+ I ORNMSP="OR"!(ORNMSP="FH"),"^1^7^"'[(U_ORSTS_U) D STATUS^ORCSAVE2(+ORDER,7) ;ck FH
 EXPQ K ^OR(100,"AE",ORSTOP,ORDER)
  Q
  ;
-ACT ; -- activate an order from ORMTIME
- ;    from ACTIVE^ORMEVNT(ORDER,ORSTRT)
+ACT ; -- activate an order from ACTIVE^ORMEVNT(ORDER,ORSTRT)
+ ;    [ORMTIME]
  G:'$D(^OR(100,+ORDER,0)) ACTQ
  N OR0,ORNMSP,ORSTS
  S OR0=$G(^OR(100,+ORDER,0)),ORSTS=$P($G(^(3)),U,3)
- I "^1^2^6^7^12^13^14^"[(U_ORSTS_U) G ACTQ ; already active or done
- I $O(^OR(100,+ORDER,2,0)) G ACTQ ; parent
+ I "^1^2^6^7^12^13^14^"[(U_ORSTS_U) G ACTQ ;done
+ I $O(^OR(100,+ORDER,2,0)) G ACTQ ;parent
  S ORNMSP=$$NMSP^ORCD($P(OR0,U,14))
  D:ORNMSP="PS"!(ORNMSP="FH") MSG^ORMBLD(+ORDER,"SS")
  I ORNMSP="OR"!(ORNMSP="FH"),ORSTS=8 D STATUS^ORCSAVE2(+ORDER,6) ;ck FH
@@ -193,9 +194,8 @@ PUR ; -- purge an order
  Q
  ;
 CHKOBS ;177, previous dx from obs?
- ;
  N INVDT,PDCDT,PDCMVT,CADMDT
- S CADMDT=+$G(VAIP(13,1)) Q:'CADMDT  ;Get current admission date/time for this movement
+ S CADMDT=+$G(VAIP(13,1)) Q:'CADMDT  ;Current admission d/t of movement
  S INVDT=9999999.9999999-(+VAIP(3)) ;Inverse date of movement
  S PDCDT=$O(^DGPM("ATID3",DFN,INVDT)) Q:'+PDCDT  ;No previous discharge
  S PDCMVT=$O(^DGPM("ATID3",DFN,PDCDT,0))

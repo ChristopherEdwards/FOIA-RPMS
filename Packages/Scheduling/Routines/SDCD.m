@@ -1,5 +1,5 @@
 SDCD ;BSN/GRR - DISCHARGE PATIENT FROM CLINIC ;3/15/91  11:24 ;
- ;;5.3;Scheduling;**41,148**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,148,1015**;AUG 13, 1993;Build 21
 15 D:'$D(DT) DT^SDUTL I '$G(SDFN) S DIC="^DPT(",DIC(0)="AEQM" D ^DIC G:Y=-1 QUIT
  S:$G(SDFN) Y=+SDFN S DA(2)=+Y
  I '$G(SDCLN) G:'$D(^DPT(+Y,"DE")) NOPE S DIC="^DPT("_DA(2)_",""DE"",",DIC("S")="I $P(^(0),""^"",2)']""""",VAUTSTR="clinic",VAUTNI=2,VAUTVB="VAUTC" D FIRST^VAUTOMA K DIC("S") Q:Y<0

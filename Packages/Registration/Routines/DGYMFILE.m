@@ -1,5 +1,5 @@
 DGYMFILE ;ALB/MLI - Set File Access Codes for MAS files ; October 20, 1994
- ;;5.3;Registration;**49**;Aug 13, 1993
+ ;;5.3;Registration;**49,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will loop through the MAS files and show the site's
  ; existing file access and the recommended file access.  It will

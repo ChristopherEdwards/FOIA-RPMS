@@ -1,13 +1,15 @@
 PSGCAP ;BIR/CML3-ACTION PROFILE (#2) ;04 APR 96 / 1:10 PM
- ;;5.0; INPATIENT MEDICATIONS ;;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**111**;16 DEC 97
  N PSJNEW,PSGPTMP,PPAGE S PSJNEW=1
  ;
  D ENCV^PSGSETU I $D(XQUIT) Q
  ;
 START ;
- S (PSGAP,PSGP,PSGAPWD,PSGAPWG)=0,(PSGAPWDN,PSGAPWGN)="",PSGSSH="AP" S PSGPTMP=0,PPAGE=1 D ^PSGSEL G:"^"[PSGSS DONE D @PSGSS I Y'>0 W !!?3,"No patient(s) selected.  Option terminated." G START
+ S (PSGAP,PSGP,PSGAPWD,PSGAPWG)=0,(PSGAPWDN,PSGAPWGN)="",PSGSSH="AP" S PSGPTMP=0,PPAGE=1
+ D ^PSGSEL G:PSGSS="^"!(PSGSS="") DONE D @PSGSS I (Y'="^OTHER"),(Y'>0) W !!?3,"No patient(s) selected.  Option terminated." G START
  ;
-ORS S PSGAPS="T" I $S(PSGSS'="P":1,1:PSGPAT>1) F  W !!,"Sort Action Profiles by (T)eam or Treating (P)rovider? T// " R PSGAPS:DTIME D Q1 Q:PSGAPS]""
+ORS I '$G(PSGAPWG) S PSGAPS="P" G ORS1
+ S PSGAPS="T" I $S(PSGSS'="P":1,1:PSGPAT>1) F  W !!,"Sort Action Profiles by (T)eam or Treating (P)rovider? T// " R PSGAPS:DTIME D Q1 Q:PSGAPS]""
 ORS1 G:PSGAPS="^" START D NOW^%DTC S PSGDT=% F N="START","STOP" D GDT G:$D(DIRUT) START
  F  W !!,"Print (A)ll active orders, or (E)xpiring orders only? A// " R PSGAPO:DTIME D Q2 Q:PSGAPO]""
  G:PSGAPO="^" START
@@ -31,8 +33,24 @@ GDT ;
   Q
  ;
 G ; get ward group
- S DIC="^PS(57.5,",DIC(0)="QEAMZ",DIC("A")="Select WARD GROUP: " W ! D ^DIC K DIC S:Y>0 PSGAPWG=+Y,PSGAPWGN=Y(0,0) Q
+ S DIC="^PS(57.5,",DIC(0)="QEAMZ",DIC("A")="Select WARD GROUP: " W ! D ^DIC K DIC S:Y>0 PSGAPWG=+Y,PSGAPWGN=Y(0,0) I Y<0,X="^OTHER" D
+ . S (Y,PSGAPWG,PSGAPWGN)="^OTHER",(PSGAPWD,PSGAPWDN)="zz"
+ Q
  ;
+C ;
+ K DIR S DIR(0)="FAO",DIR("A")="Select CLINIC: "
+ S DIR("?")="^D CDIC^PSGVBW" W ! D ^DIR
+CDIC ;
+ K DIC S DIC="^SC(",DIC(0)="QEMIZ" D ^DIC K DIC S:+Y>0 CL=+Y
+ W:X["?" !!,"Enter the clinic you want to use to select patients for processing.",!
+ Q
+L ;
+ K DIR S DIR(0)="FAO",DIR("A")="Select CLINIC GROUP: "
+ S DIR("?")="^D LDIC^PSGVBW" W ! D ^DIR
+LDIC ;
+ K DIC S DIC="^PS(57.8,",DIC(0)="QEMI" D ^DIC K DIC S:+Y>0 CG=+Y
+ W:X["?" !!,"Enter the name of the clinic group you want to use to select patients for processing."
+ Q
 W ; get ward
  S DIC="^DIC(42,",DIC(0)="QEAMZ",DIC("A")="Select WARD: " W ! D ^DIC K DIC S:Y>0 (PSGWD,PSGAPWD)=+Y,PSGAPWDN=Y(0,0) Q
  ;

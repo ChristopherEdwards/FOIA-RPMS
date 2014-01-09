@@ -1,5 +1,5 @@
 SDCO23 ;ALB/RMO - Classification Cont. - Help - Check Out;31 MAR 1993 3:10 pm
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 SC(DFN) ;Service Connected Help
  ; Input  -- DFN      Patient file IEN  

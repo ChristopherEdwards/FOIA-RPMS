@@ -1,5 +1,5 @@
 DGODOSM ;ALB/EG - OUTPATIENT WORKLOAD SUMMARY ; 2/28/89 1600
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;V 4.5
  S A1X="AS^AN^B^C^N^X^U"
  S HR="Outpatient Workload Summary",^UTILITY("DGOD",$J,"T","C")=0 W @IOF,!,?((IOM-$L(HR))/2),HR,?IOM-20,T2,!

@@ -1,5 +1,5 @@
 DGYXCEN ;ALB/LM - ANNUAL PATIENT CENSUS CLOSEOUT OF PTF ; 8/10/95
- ;;5.3;Registration;**66**;Aug 13, 1993
+ ;;5.3;Registration;**66,1015**;Aug 13, 1993;Build 21
  ;
  ;
 CENSUS ;--- add new census date

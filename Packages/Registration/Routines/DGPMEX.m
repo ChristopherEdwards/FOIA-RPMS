@@ -1,5 +1,5 @@
 DGPMEX ;ALB/MIR - EXTENDED BED CONTROL ; [ 03/23/2004  9:49 AM ]
- ;;5.3;Registration;**40,59,1005**;Aug 13, 1993
+ ;;5.3;Registration;**40,59,1005,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 03/02/2001 added kill of patient variables
  ;                        removed calls to PTF code
  ;             01/09/2002 fixed code to see duplicate admissions

@@ -1,5 +1,5 @@
 DGYVPST1 ;ALB/LD - Patch DG*5.3*64 Post-Init (cont.); 8/8/95
- ;;5.3;Registration;**64**;Aug 13, 1993
+ ;;5.3;Registration;**64,1015**;Aug 13, 1993;Build 21
  ;
  ;
  ;

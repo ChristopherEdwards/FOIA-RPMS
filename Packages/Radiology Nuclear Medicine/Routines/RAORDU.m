@@ -1,5 +1,5 @@
-RAORDU ;HISC/CAH - AISC/RMO-Update Request Status ;9/7/04 11:01am
- ;;5.0;Radiology/Nuclear Medicine;**18,41,57**;Mar 16, 1998
+RAORDU ;HISC/CAH - AISC/RMO-Update Request Status ; 20 Apr 2011  7:30 PM
+ ;;5.0;Radiology/Nuclear Medicine;**18,41,57,1003**;Nov 01, 2010;Build 3
  ; last modif JULY 5,00
  ;The variables RAOIFN and RAOSTS must be defined. The variable
  ;RAOREA is set when Canceling and Holding a request. The
@@ -52,7 +52,9 @@ RAORDU ;HISC/CAH - AISC/RMO-Update Request Status ;9/7/04 11:01am
  . D COMPLETE^RAPCE(RADFN,RADTI,RACNI)
  . Q
  ; PFSS 1B project. If the request status is discontinue then send the delete event to IBB
- I RAOSTS=1 D DC^RABWIBB(RAOIFN)  ; Requirement 8
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;I RAOSTS=1 D DC^RABWIBB(RAOIFN)  ; Requirement 8
+ ;End Patch
  Q
  ;
 SETLOG K N I $D(RAOREA)>1 S N=$S($D(RAOIFN):RAOIFN,$D(ORPK):ORPK,1:1) I '$D(RAOREA(N)) S N=$O(RAOREA(0))

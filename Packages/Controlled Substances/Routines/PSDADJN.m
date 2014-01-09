@@ -1,5 +1,5 @@
 PSDADJN ;B'ham ISC/LTL,JPW - Adjustments for NAOU ; 16 Feb 94
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
  I '$D(PSDSITE) D ^PSDSET G:'$D(PSDSITE) QUIT
  ;I '$D(^XUSEC("PSD ERROR",DUZ)) W !!,"Sorry, you need the PSD ERROR Security key to do adjustments.",!! G QUIT
  N DIC,DIE,DINUM,D0,D1,DLAYGO,DR,DIR,DIRUT,DTOUT,DUOUT,PSDAT,PSDB,PSDEX,PSDLOC,PSDLOCN,DA,PSDOUT,PSDRUG,PSDRUGN,PSDS,PSAQ,PSDR,PSDREC,PSDT,X,Y,%,%H,%I
@@ -24,7 +24,7 @@ CHKD I '$O(^PSD(58.8,PSDLOC,1,0)) W !!,"There are no drugs in ",PSDLOCN G QUIT
  .S DIR(0)="F^1:45",DIR("A")="Please enter reason for adjustment" W ! D ^DIR K DIR Q:$D(DIRUT)  S PSDR=Y
 POST .S DIR(0)="Y",DIR("A")="OK to post",DIR("B")="Yes" W ! D ^DIR K DIR D:Y=1  K PSDRUG Q
  ..W !!,"There were ",$S($P($G(^PSD(58.8,+PSDLOC,1,+PSDRUG,0)),U,4):$P($G(^(0)),U,4),1:0)," on hand.",?40,"There are now ",$P($G(^(0)),U,4)+PSDREC," on hand.",!
- ..F  L +^PSD(58.8,+PSDLOC,1,+PSDRUG,0):0 I  Q
+ ..F  L +^PSD(58.8,+PSDLOC,1,+PSDRUG,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  ..D NOW^%DTC S PSDAT=+%
  ..S PSAQ=$P($G(^PSD(58.8,+PSDLOC,1,+PSDRUG,0)),U,4)
  ..S $P(^PSD(58.8,+PSDLOC,1,+PSDRUG,0),U,4)=PSDREC+PSAQ
@@ -33,7 +33,7 @@ MON ..S:'$D(^PSD(58.8,+PSDLOC,1,+PSDRUG,5,0)) ^(0)="^58.801A^^"
  ..I '$D(^PSD(58.8,+PSDLOC,1,+PSDRUG,5,$E(DT,1,5)*100,0)) S DIC="^PSD(58.8,+PSDLOC,1,+PSDRUG,5,",DIC(0)="LM",DLAYGO=58.8,(X,DINUM)=$E(DT,1,5)*100,DA(2)=PSDLOC,DA(1)=PSDRUG D ^DIC K DIC,DLAYGO
  ..S DIE="^PSD(58.8,+PSDLOC,1,+PSDRUG,5,",DA(2)=PSDLOC,DA(1)=PSDRUG,DA=$E(DT,1,5)*100,DR="7////^S X=$P($G(^(0)),U,5)+PSDREC" D ^DIE
  ..W !,"Updating monthly adjustments and transaction history.",!
-TR ..F  L +^PSD(58.81,0):0 I  Q
+TR ..F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND ..S PSDT=$P(^PSD(58.81,0),U,3)+1 I $D(^PSD(58.81,PSDT)) S $P(^PSD(58.81,0),U,3)=$P(^PSD(58.81,0),U,3)+1 G FIND
  ..S DIC="^PSD(58.81,",DIC(0)="L",DLAYGO=58.81,(DINUM,X)=PSDT D ^DIC K DIC,DLAYGO L -^PSD(58.81,0)
  ..S DIE="^PSD(58.81,",DA=PSDT,DR="1////9;2////^S X=PSDLOC;3////^S X=PSDAT;4////^S X=PSDRUG;5////^S X=PSDREC;6////^S X=DUZ;9////^S X=PSAQ;15////^S X=PSDR;17////^S X=PSDLOC;100////1" D ^DIE K DIE

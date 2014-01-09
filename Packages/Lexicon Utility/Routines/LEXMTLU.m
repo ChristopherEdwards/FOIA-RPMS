@@ -1,5 +1,5 @@
 LEXMTLU ; ISL Setup Appl/User Defaults for Look-up ; 05/25/1998
- ;;2.0;LEXICON UTILITY;**11**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**11**;Sep 23, 1996;Build 15
  ;
 EN ; X not set
  D MTLU^LEXSET5 S X=$$TERM Q:X=""!(X["^")

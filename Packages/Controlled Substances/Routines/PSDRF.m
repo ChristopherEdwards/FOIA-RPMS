@@ -1,5 +1,5 @@
 PSDRF ;BIR/JPW,LTL - Nurse RF Dispensing ; 8 Aug 94
- ;;3.0; CONTROLLED SUBSTANCES ;**25,51**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**25,51,60**;13 Feb 97
  ;Reference to ^PSD(58.8 are covered by DBIA #2711
  ;Reference to ^PSD(58.81 are covered by DBIA #2808
  ;Reference to ^PSDRUG( are covered by DBIA #221
@@ -26,19 +26,28 @@ PATIENT N DIC,DTOUT,DUOUT,X,Y,PSDOUT S DIC="^DPT(",DIC(0)="AEMQ"
  S DIC("A")="Scan/Enter Patient: "
  W ! D ^DIC K DIC G:Y<1 END S PAT=+Y
 DRUG ;select drug
- N DIR,PSD,PSDR,PSDQ,WQTY
+ N DIR,PSD,PSDR,PSDQ,WQTY,PSDDT
  S DIR(0)="FAO^1:40"
  S DIR("A")="Scan Drug Label or Enter Label # or Drug: "
  W ! D ^DIR K DIR G:Y="" PATIENT G:$D(DIRUT) END
  I $L(Y)=1,Y'=" " W $C(7),!!,"Please enter more than one character.",! G DRUG
- I $O(^PSD(58.81,"D",Y,0)) D  I '$G(PSDR) W $C(7),!!,"This is not a valid Pharmacy Dispensing number for this ward.",!! G END
+ I $O(^PSD(58.81,"D",Y,0)) D
  .S PSD=0
- .F  S PSD=$O(^PSD(58.81,"D",Y,PSD)) Q:'PSD  S PSD(1)=$G(^PSD(58.81,PSD,0)) I $P(PSD(1),U,11)>3,$P(PSD(1),U,18)=NAOU S PSDR=$P(PSD(1),U,5),PSDPN=$P(PSD(1),U,17),PSDTYP=17 Q
- W:$G(PSDR) !!,$P($G(^PSDRUG(PSDR,0)),U)
+ .F  S PSD=$O(^PSD(58.81,"D",Y,PSD)) Q:'PSD  S PSD(1)=$G(^PSD(58.81,PSD,0)) I $P(PSD(1),U,11)>3,$P(PSD(1),U,18)=NAOU S PSDR=$P(PSD(1),U,5),PSDPN=$P(PSD(1),U,17),PSDTYP=17
+ I $D(PSDR),PSDR'=Y D
+ .I $D(^PSDRUG(Y)),$D(^PSD(58.8,NAOU,1,Y)) D
+ ..S PSDDT=$$FMDIFF^DILIBF(DT,$P(PSD(1),U,4),"")
+ ..I PSDDT>365 S PSDR=Y
+ .I '$D(^PSDRUG(Y)),$D(PSD(1)) D
+ ..S PSDDT=$$FMDIFF^DILIBF(DT,$P(PSD(1),U,4),"")
+ ..I PSDDT>365 K PSDR
+ .I '$D(^PSDRUG(Y)),'$D(^PSD(58.8,NAOU,1,Y)),'$D(PSDR) W $C(7),!!,"This is not a valid Pharmacy Dispensing number for this ward.",!! G END
  D:'$G(PSDR)  G:$D(DTOUT)!($D(DUOUT)) END G:Y<1 PATIENT
  .S DIC="^PSD(58.8,NAOU,1,",DIC(0)="EMQSZ",DA(1)=NAOU
- .W ! D ^DIC K DIC Q:$D(DTOUT)!($D(DUOUT))!(Y<1)
+ .W ! D ^DIC K DIC I $D(DTOUT)!($D(DUOUT))!(Y<1) W $C(7),!!,"This is not a valid Pharmacy Dispensing number for this ward.",!! Q
  .S PSDR=+Y,PSDTYP=17
+ I '$G(PSDR) W $C(7),!!,"This is not a valid Pharmacy Dispensing number for this ward.",!! G END
+ W:$G(PSDR) !!,$P($G(^PSDRUG(PSDR,0)),U)
 BAL S PSDR(1)=$G(^PSD(58.8,NAOU,1,PSDR,0)),OQTY=$P(PSDR(1),U,4)
  W:'OQTY&$D(Y(0,0)) !,?12,Y(0,0)
  I 'OQTY,'$P($G(^PSD(58.81,+$G(PSD),9)),U) W !!,"Sorry, this drug has a zero balance." G DRUG

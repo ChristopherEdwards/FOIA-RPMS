@@ -1,5 +1,5 @@
-SROACCM ;BIR/MAM - TOTAL CPTS ; [ 12/15/98  11:34 AM ]
- ;;3.0; Surgery ;**59,50,88**;24 Jun 93
+SROACCM ;BIR/MAM - TOTAL CPTS ;12/15/98  11:34 AM
+ ;;3.0; Surgery ;**59,50,88,127,142**;24 Jun 93
 EN ; entry when queued
  U IO S SRSOUT=0,SRINST=SRSITE("SITE") K ^TMP("SR",$J)
  N SRFRTO S Y=SDATE X ^DD("DD") S SRFRTO="FROM: "_Y_"  TO: " S Y=EDATE X ^DD("DD") S SRFRTO=SRFRTO_Y
@@ -11,7 +11,7 @@ EN ; entry when queued
 PRINT ; print info
  I $Y+6>IOSL D PAGE I SRSOUT Q
  S TOT1=$S($D(^TMP("SR",$J,CPT,1)):^(1),1:0),TOT2=$S($D(^TMP("SR",$J,CPT,2)):^(2),1:0),TOT=TOT1+TOT2
- S Y=$$CPT^ICPTCOD(CPT),CPT1=$P(Y,"^",2)_"  "_$P(Y,"^",3)
+ S Y=$$CPT^ICPTCOD(CPT,EDATE),CPT1=$P(Y,"^",2)_"  "_$P(Y,"^",3)
  W !,CPT1,?55,TOT,?79,TOT1,?110,TOT2,! F LINE=1:1:132 W "-"
  Q
 PAGE I $E(IOST)'="P" W !!,"Press RETURN to continue, or '^' to quit:  " R X:DTIME I '$T!(X["^") S SRSOUT=1 Q
@@ -27,6 +27,6 @@ UTIL ; set ^TMP("SR")
  I SRFLG=1!(SRFLG=3&('SRNON)) Q:$P($G(^SRF(SRTN,.2)),"^",12)=""
  I SRFLG=2 Q:'SRNON
  I $P($G(^SRF(SRTN,30)),"^")'="" Q
- S CPT=$P(^SRF(SRTN,"OP"),"^",2) I CPT S X=$S($D(^TMP("SR",$J,CPT,1)):^(1),1:0),^TMP("SR",$J,CPT,1)=X+1
- S OP=0 F  S OP=$O(^SRF(SRTN,13,OP)) Q:'OP  I $D(^SRF(SRTN,13,OP,2)),$P(^(2),"^") S CPT=$P(^(2),"^") I CPT S X=$S($D(^TMP("SR",$J,CPT,2)):^(2),1:0),^TMP("SR",$J,CPT,2)=X+1
+ S CPT=$P($G(^SRO(136,SRTN,0)),"^",2) I CPT S X=$S($D(^TMP("SR",$J,CPT,1)):^(1),1:0),^TMP("SR",$J,CPT,1)=X+1
+ S OP=0 F  S OP=$O(^SRO(136,SRTN,3,OP)) Q:'OP  I $D(^SRO(136,SRTN,3,OP,0)),$P(^(0),"^") S CPT=$P(^(0),"^") I CPT S X=$S($D(^TMP("SR",$J,CPT,2)):^(2),1:0),^TMP("SR",$J,CPT,2)=X+1
  Q

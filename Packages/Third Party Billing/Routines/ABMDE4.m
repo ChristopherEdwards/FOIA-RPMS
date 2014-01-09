@@ -1,5 +1,5 @@
 ABMDE4 ; IHS/ASDST/DMJ - Edit Page 4 - Providers ;  
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p9 - task 1
  ;    Only allows providers on page 4
@@ -10,6 +10,7 @@ ABMDE4 ; IHS/ASDST/DMJ - Edit Page 4 - Providers ;
  ; IHS/SD/SDR - v2.5 p11 - NPI
  ; IHS/SD/SDR - abm*2.6*1 - HEAT4207 - If subpart NPI is populated show it
  ;   on page4
+ ; IHS/SD/SDR - abm*2.6*3 HEAT12442 - Make error 92 display for all 837s
  ;
  Q:$D(ABMP("WORKSHEET"))
  K ABM,ABME,ABMZ
@@ -50,8 +51,9 @@ PROV ; Provider Info
  .S ABM("I")=ABM("I")+1
  I $P(^ABMDEXP(ABMP("EXP"),0),U)["HCFA-1500",ABMP("EXP")'=15,$P(^ABMDPARM(DUZ(2),1,0),U,17)=2 Q
  I '$D(ABM("A")) D
- .Q:ABMP("EXP")=22
- .Q:ABMP("EXP")=23
+ .;Q:ABMP("EXP")=22  ;abm*2.6*3 HEAT12442
+ .;Q:ABMP("EXP")=23  ;abm*2.6*3 HEAT12442
+ .Q:ABMP("EXP")=22!(ABMP("EXP")=32)  ;abm*2.6*9 HEAT57734
  .S ABME(92)=""
  I '$D(^ABMDCLM(DUZ(2),ABMP("CDFN"),41,"C","O")),$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),19,0)),ABMP("PAGE")'[8 S ABME(2)=""
 ER I +$O(ABME(0)) S ABME("CONT")="" D ^ABMDERR K ABME("CONT")

@@ -1,5 +1,5 @@
-PSOCPIBC ;BHAM ISC/EJW - PHARMACY CO-PAY APPLICATION UTILITIES FOR IB ; 01/15/02
- ;;7.0;OUTPATIENT PHARMACY;**93**;DEC 1997
+PSOCPIBC ;BHAM ISC/EJW - PHARMACY CO-PAY APPLICATION UTILITIES FOR IB ;01/15/02
+ ;;7.0;OUTPATIENT PHARMACY;**93,303**;DEC 1997;Build 19
  ;External references to IBARX is supported by DBIA 125
  ;External reference to PSDRUG( is supported by DBIA 221
  ;This routine is called by PSOCPIBF to attempt to bill for released CMOP copays.
@@ -99,11 +99,12 @@ COPAYREL ; Recheck copay status at release
  ;
  ; check Rx patient status
  I $P(^PSRX(RXP,0),"^",3)'="",$P($G(^PS(53,$P(^PSRX(RXP,0),"^",3),0)),"^",7)=1 S PSOCHG=0,PSOCOMM="Rx Patient Status Change",PSOOLD="Copay",PSONW="No Copay" Q
- ; see if drug is investigational or supply
+ ; see if drug is nutritional supplement, investigational or supply
  N DRG,DRGTYP
  S DRG=+$P(^PSRX(RXP,0),"^",6),DRGTYP=$P($G(^PSDRUG(DRG,0)),"^",3)
  I DRGTYP["I" S PSOCOMM="Investigational Drug",PSOCHG=0,PSOOLD="Copay",PSONW="No Copay",PSOCHG=0 Q
  I DRGTYP["S" S PSOCOMM="Supply Item",PSOCHG=0,PSOOLD="Copay",PSONW="No Copay",PSOCHG=0 Q
+ I DRGTYP["N" S PSOCOMM="Nutritional Supplement",PSOCHG=0,PSOOLD="Copay",PSONW="No Copay",PSOCHG=0 Q
  K PSOTG
  N EXMT
  D XTYPE

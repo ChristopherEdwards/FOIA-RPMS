@@ -1,5 +1,5 @@
-VAFCCCAP ;ALB/CMM,PKE OUTPATIENT CAPTURE TEST ;4/12/95
- ;;5.3;Registration;**91,179**;Jun 06, 1996
+VAFCCCAP ;ALB/CMM/PKE/PHH/EG/GAH OUTPATIENT CAPTURE TEST ; 5/5/05 9:04am
+ ;;5.3;Registration;**91,179,553,582,568,585,662,725,744,1015**;Jun 06, 1996;Build 21
  ;
  ;
 CAP ;Only fire if check-in,check-out, add/edit add, add/edit change
@@ -23,6 +23,7 @@ EN ;
  N DFN,HLD,EVDT,CHK,ERR,SEND,NEW,EVENT,HOSP,THLD,PTR,REM,HPTR
  ;
  ;Appointments
+ ;
  I SDAMEVT=4!(SDAMEVT=5) D
  .S DFN=$P(SDATA,"^",2),EVDT=$P(SDATA,"^",3),PTR=$$GETPTR^VAFHCUTL(1),PTR=PTR_";SCE(",(CHK,UP,REM)=""
  .I SDAMEVT=4 S PTR=DFN_";DPT(" ;check-in or unscheduled visit check-in
@@ -36,7 +37,9 @@ EN ;
  ..I +HLD=-1 S HLD=$$PIVNW^VAFHPIVT(DFN,EVDT,2,PTR)
  ..;S EVENT=$P(HLD,":"),ERR=$$OA08^VAFHCA08(DFN,EVENT,EVDT,PTR,"2,3,4,5,6,7,8,9,11,12,13,14,16,19","2,3,4,5,6,7,8,9,10,11,12,13,14,15","A","A")
  ..;set up call to vafcmsg for out-patient
- ..D SETUP
+ ..I +HLD=-1 S ERR=HLD
+ ..S EVENT=$P(HLD,":")
+ ..I EVENT>0 D SETUP
  ;
  ;Stop codes, Add/Edits
  I SDAMEVT=6!(SDAMEVT=7) D
@@ -52,12 +55,14 @@ EN ;
  ..I ^TMP("SDEVT",$J,SDHDL,2,"SDOE",HLD,0,"AFTER")'="" D
  ...S DFN=$P(^TMP("SDEVT",$J,SDHDL,2,"SDOE",HLD,0,"AFTER"),"^",2),EVDT=$P(^TMP("SDEVT",$J,SDHDL,2,"SDOE",HLD,0,"AFTER"),"^"),PTR=HLD_";SCE("
  ..I '$D(EVENT) S THLD=$$PIVNW^VAFHPIVT(DFN,EVDT,2,PTR),EVENT=$P(THLD,":")
+ ..I +$G(THLD)=-1 S ERR=THLD
  ..I REMOVE="Y" S PTR="@",UP=$$UPDATE^VAFHUTL(+EVENT,EVDT,PTR,1)
  ..;I +EVENT>0 S ERR=$$OA08^VAFHCA08(DFN,EVENT,EVDT,PTR,"2,3,4,5,6,7,8,9,11,12,13,14,16,19","2,3,4,5,6,7,8,9,10,11,12,13,14,15","A","A")
  ..;set up call to vafcmsg for out-patient
  ..I +EVENT>0 D SETUP
  ;
 EXIT ;
+ I $D(ZTQUEUED) S ZTREQ="@"
  I +ERR<0 D ERROR(ERR,DFN)
  D KILL^HLTRANS
  Q
@@ -65,19 +70,31 @@ EXIT ;
 ERROR(PNUM,DFN) ;
  ;Error message unable to generate A08 Message
  N GBL S GBL="^TMP($J,""ERR"")"
- I +PNUM<0 S @GBL@(0)="ERROR",@GBL@(1)=$P(PNUM,"^",2)_", unable to generate A08 Message" D EBULL^VAFHUTL2(DFN,"","",$P(GBL,")")_",")
+ I +PNUM<0 S @GBL@(0)="ERROR",@GBL@(1)=$P(PNUM,"^",2)_", unable to generate A08 Message" D EBULL^VAFHUTL2(DFN,EVDT,"",$P(GBL,")")_",")
  Q
  ;
 UPPTR(DFN,ADATE) ;
  ;Have deleted checkout, update variable pointer
  N PTR S PTR="@"
- I $D(^DPT(DFN,"S",ADATE,0)) S PTR=DFN_";DPT("
+ N DGARRAY,DGCOUNT,SDDATE
+ S DGARRAY(4)=DFN,DGARRAY(1)=ADATE_";"_ADATE,DGARRAY("FLDS")=3,DGARRAY("SORT")="P"
+ S DGCOUNT=$$SDAPI^SDAMA301(.DGARRAY)
+ ;
+ I DGCOUNT>0 D
+ .S SDDATE=0
+ .F  S SDDATE=$O(^TMP($J,"SDAMA301",DFN,SDDATE)) Q:'SDDATE  D
+ ..I SDDATE=ADATE S PTR=DFN_";DPT("
+ I DGCOUNT'=0 K ^TMP($J,"SDAMA301")
  Q PTR
  ;
 SETUP ;
- S EVENT=$P(HLD,":")
+ N PIVOTPTR
+ ;S EVENT=$P(HLD,":")
  S EVNTINFO="^TMP(""VAFCMSG"",""EVNTINFO"","_$J_")"
  K @EVNTINFO
+ S PIVOTPTR=+$O(^VAT(391.71,"D",+EVENT,0))
+ I ('PIVOTPTR) S ERR="-1^Unable to create entry in ADT/HL7 PIVOT FILE" Q
+ S @EVNTINFO@("PIVOT")=PIVOTPTR
  S @EVNTINFO@("SERVER PROTOCOL")="VAFC ADT-A08-SDAM SERVER"
  S @EVNTINFO@("VAR-PTR")=PTR
  S @EVNTINFO@("EVENT-NUM")=EVENT

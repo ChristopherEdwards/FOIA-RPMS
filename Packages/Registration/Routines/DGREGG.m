@@ -1,5 +1,5 @@
 DGREGG ;ALB/MRL - CONTINUATION OF REGISTRATION PROCESS ;16 AUG 88@1303
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  K DEF S DEF=0 W !! I $D(^DPT(DA,.15))#10,$P(^(.15),"^",2)?7N W !,"Patient is ineligible for benefits." S DEF(1)=1,DEF=1
  I $D(^DPT(DA,.32))#10,$P(^(.32),"^",4)>1 W $S($D(DEF)\10:", He",1:"Patient") W:$X>70 ! W " did not receive an honorable discharge." S DEF(3)=1,DEF=1
  I DEF W !!

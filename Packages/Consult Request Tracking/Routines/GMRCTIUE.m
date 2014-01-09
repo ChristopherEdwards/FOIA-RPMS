@@ -1,5 +1,5 @@
-GMRCTIUE ;SLC/DCM,DLT,JFR - Complete/Update TIU notes ;10/09/01  23:10
- ;;3.0;CONSULT/REQUEST TRACKING;**4,10,14,12,15,17**;DEC 27, 1997
+GMRCTIUE ;SLC/DCM,DLT,JFR - Complete/Update TIU notes ;07/10/03 15:26
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,10,14,12,15,17,35**;DEC 27, 1997
  ;
  ; This routine invokes IA #2410,#2694,#2833,#2699,#2700
  ;
@@ -10,12 +10,15 @@ ENTER(GMRCO) ; Enter a note in TIU for the consult result
  N GMRCMC
  I '$L($G(GMRCO)) D SELECT^GMRCA2(.GMRCO)
  Q:$D(GMRCQUT)!'$L($G(GMRCO))
+ I $P($G(^GMR(123,GMRCO,12)),U,5)="P" D  D EDEX Q
+ . N DIR
+ . W !,"The requesting facility may not complete an inter-facility "
+ . W "consult."
+ . S DIR(0)="E" D ^DIR
  I '$$LOCK^GMRCA1(GMRCO) D EDEX Q
  S GMRCLCK=1
  D CHKSTS I $G(GMRCQUT) D EDEX Q
  I $D(VALM) D FULL^VALM1
- ;
- ; ***Insert logic for being admin and update user****
  ;
  ;Find out access if a Clinical Procedure request
  N GMRCCP
@@ -32,20 +35,21 @@ ENTER(GMRCO) ; Enter a note in TIU for the consult result
  . D EDEX
  ;
  I GMRCAU=4 D  I $G(GMRCQIT)=1 D EDEX Q
+ . N DIRUT
  . I $P(^GMR(123,+GMRCO,0),U,12)'=2,'GMRCCP S GMRCMC=$$MED(GMRCO)
  . I $G(GMRCMC),$P(^GMR(123,+GMRCO,0),U,12)=2 Q
  . S DIR(0)="YA",DIR("A")="Administratively complete this request? "
  . D ^DIR I $D(DIRUT) S GMRCQIT=1 Q
  . I Y<1 Q
  . W !,$$CJ^XLFSTR("- Proceeding with Administrative Complete -",80)
-        . D COMP^GMRCAAC(+GMRCO) S GMRCQIT=1
+ . D COMP^GMRCAAC(+GMRCO) S GMRCQIT=1
  . Q 
  ;
  ;Assume the user is a clinical user
  I GMRCCP=0 S GMRCMC=$$MED(GMRCO) ;only go med if not a CP
  ;If a Procedure, allow Medicine or fall through to a note
  I $G(GMRCMC) D  I $G(GMRCQIT)=1 D EDEX Q
- . N DUOUT,DTOUT,X,Y,DIR
+ . N DUOUT,DTOUT,DIROUT,DIRUT,X,Y,DIR
  . W !
  . S DIR(0)="YA",DIR("B")="Y",DIR("A")="Continue with Note Entry? "
  . D ^DIR I Y<1 S GMRCQIT=1
@@ -63,7 +67,7 @@ ENTER(GMRCO) ; Enter a note in TIU for the consult result
  S GMRCVF="TIU(8925,"
  I GMRCTIUC(GMRCVF)=1 D  Q
  . I GMRCCP=3 D CPGUI Q  ;incomplete CP document, must go to GUI
- . N DIR,X,Y,DTOUT,DUOUT
+ . N DIR,X,Y,DTOUT,DUOUT,DIROUT,DIRUT
  . D SHOWTIU^GMRCTIUL
  . S DIR(0)="YA",DIR("B")="Yes",DIR("A")="Edit/Review this note? "
  . D ^DIR I Y>0 D

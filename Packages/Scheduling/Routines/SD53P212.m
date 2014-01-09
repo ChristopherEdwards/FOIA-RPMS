@@ -1,5 +1,5 @@
 SD53P212 ;ALB/KCL - Patch SD*5.3*212 Install Utility Routine ; 04/1/2000
- ;;5.3;Scheduling;**212**;AUG 13, 1993
+ ;;5.3;Scheduling;**212,1015**;AUG 13, 1993;Build 21
  ;
  ;
 ENV ;Main entry point for Environment check point.

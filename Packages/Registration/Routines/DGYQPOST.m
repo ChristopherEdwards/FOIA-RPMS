@@ -1,5 +1,5 @@
 DGYQPOST ;AISC/TET - POST INIT TO PATCH DG*5.3*41
- ;;5.3;Registration;**41**;Aug 13, 1993
+ ;;5.3;Registration;**41,1015**;Aug 13, 1993;Build 21
 EN ;entry point for entire post init
  D RCOMP,WARD,DOB
  Q

@@ -1,5 +1,5 @@
 LEXSC2 ; ISL Shortcuts Add/Delete                 ; 05/25/1998
- ;;2.0;LEXICON UTILITY;**11**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**11**;Sep 23, 1996;Build 15
  ;
 WRT(LEXSTR) ;
  W ! N LEXI,LEXLEN S LEXLEN=70 F  D  Q:$L(LEXSTR)<LEXLEN

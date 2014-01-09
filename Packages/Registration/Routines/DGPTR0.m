@@ -1,5 +1,6 @@
-DGPTR0 ;MJK/JS - PTF TRANSMISSION ; 01 DEC 87 @0800
- ;;5.3;Registration;**114,247,338,342**;Aug 13, 1993
+DGPTR0 ;MJK/JS/ADL - PTF TRANSMISSION ; 9/26/05 6:44pm
+ ;;5.3;PIMS;**114,247,338,342,510,524,565,678,729,1015,1016**;JUN 30, 2012;Build 20
+ ;;ADL;Update for CSV Project;;Mar 27, 2003
  ; -- setup control data
  ; ssn
  S X=$P(DG10,U,9),Y=$S($E(X,10)="P":"P",1:" ")_$E(X_"         ",1,9)
@@ -49,6 +50,15 @@ DGPTR0 ;MJK/JS - PTF TRANSMISSION ; 01 DEC 87 @0800
  E  S X=DG101,Z=7,L=6 D ENTER0
  ;MST
  S X=$$GETSTAT^DGMSTAPI(+DG0) S Y=Y_$S(X<0:"U",1:$P(X,"^",2))
+ ;Combat Vet
+ S X=$$CVEDT^DGCV(+DG0,$P(DG0,"^",2)) S Y=Y_$S((+X)>0:1,1:0)
+ S X=$P(X,"^",2)_"       " S Y=Y_$E(X,4,5)_$E(X,6,7)_$E(X,2,3)
+ ;Project 112/SHAD
+ S X=$$SHAD^SDCO22(+DG0) S Y=Y_$S((+X)>0:1,1:0)
+ ;Emergency Response Indicator
+ S X=$$EMGRES^DGUTL(+DG0) S Y=Y_$S("^K^"[(U_X_U):X,1:" ")
+ ;Country Code
+ S X=$$GET1^DIQ(779.004,$P(DG11,U,10)_",",.01),Z=1,L=3 D ENTER
  D FILL^DGPTR2,SAVE
  I T1 S Y=$E(Y,1,52)_" "_$E(Y,54,125)
  ;
@@ -56,21 +66,25 @@ P401 ; -- setup 401P transaction
  G 401:'$D(^DGPT(J,"401P"))!(T1) S DG41=^("401P"),Y=$S(T1:"C",1:"N")_"401"_DGHEAD_"P"_"           "
  S DG41=$S($D(^DGPT(J,"401P")):^("401P"),1:"")
  S L=1 F K=1:1:5 S:'$P(DG41,U,K) DG41=$P(DG41,U,1,K-1)_U_$P(DG41,U,K+1,99),K=K-1 S L=L+1 Q:L=5
- F I=1:1:5 S Y=Y_$S($D(^ICD0(+$P(DG41,U,I),0)):$J($P($P(^(0),U,1),".",1),2)_$E($P($P(^(0),U,1),".",2)_"   ",1,3),1:"     ")_"  "
+ F I=1:1:5 S DGPTTMP=$$ICDOP^ICDCODE(+$P(DG41,U,I),$$GETDATE^ICDGTDRG(J)),Y=Y_$S(+DGPTTMP>0:$J($P($P(DGPTTMP,U,2),".",1),2)_$E($P($P(DGPTTMP,U,2),".",2)_"   ",1,3),1:"     ")_"  "
  I $E(Y,40)'=" " D FILL^DGPTR2,SAVE
  ;
 401 ; -- setup 401 transactions
  G 501:'$D(^DGPT(J,"S")) K ^UTILITY($J,"S") S I=0
 SUR S I=$O(^DGPT(J,"S",I)) G 501:'I S DGSUR=^(I,0),DGAUX=$S($D(^DGPT(J,"S",I,300)):^(300),1:"") G SUR:'DGSUR
  G SUR:DGSUR<T1!(DGSUR>T2) S DGSUD=+^(0)\1,^UTILITY($J,"S",DGSUD)=$S($D(^UTILITY($J,"S",DGSUD)):^(DGSUD),1:0)+1,F=$S(DGSUD<2871000:0,1:1)
- I ^UTILITY($J,"S",DGSUD)>$S(F:3,1:2) W !,"More than ",$S(F:"three",1:"two")," surgeries on same date" S DGERR=1 Q
+ I ^UTILITY($J,"S",DGSUD)>$S(F:3,1:2) D  I Y'=1 S DGERR=1 Q
+ .W !,"**There are more than ",$S(F:"three",1:"two")," surgeries on the same date**"
+ .S DIR(0)="Y",DIR("B")="YES",DIR("A")="OK to continue?" D ^DIR K DIR
  S Y=$S(T1:"C",1:"N")_"40"_^(DGSUD)_DGHEAD_$E(DGSUD,4,5)_$E(DGSUD,6,7)_$E(DGSUD,2,3)_$E($P(+DGSUR,".",2)_"0000",1,4)_$S($D(^DIC(45.3,+$P(DGSUR,U,3),0)):$P(^(0),U,1),1:"  ")
  S L=1,X=DGSUR F Z=4:1:7 D ENTER
  S L=1 F K=8:1:12 S:'$P(DGSUR,U,K) DGSUR=$P(DGSUR,U,1,K-1)_U_$P(DGSUR,U,K+1,99),K=K-1 S L=L+1 Q:L=5
- F K=8:1:12 S Y=Y_$S($D(^ICD0(+$P(DGSUR,U,K),0)):$J($P($P(^(0),U,1),".",1),2)_$E($P($P(^(0),U,1),".",2)_"   ",1,3),1:"     ")_"  "
+ F K=8:1:12 S DGPTTMP=$$ICDOP^ICDCODE(+$P(DGSUR,U,K),$$GETDATE^ICDGTDRG(J)),Y=Y_$S(+DGPTTMP>0:$J($P($P(DGPTTMP,U,2),".",1),2)_$E($P($P(DGPTTMP,U,2),".",2)_"   ",1,3),1:"     ")_"  "
  ;-- att phy
  S Y=Y_"         "
  ;-- additional ptf question
+ ;send null, if disch date>inactive date. DG/729
+ I +$P($G(^DIC(45.88,1,0)),U,3) S DGAUX=$S((+$G(^DGPT(J,70))<$P(^DIC(45.88,1,0),U,3)):DGAUX,1:"")
  S Y=Y_$E($P(DGAUX,U)_" ")
  K DGAUX
  D FILL^DGPTR2,SAVE G SUR

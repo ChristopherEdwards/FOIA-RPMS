@@ -1,5 +1,6 @@
-SROWL ;B'HAM ISC/MAM - ENTER PATIENT ON WAITING LIST ; 13 Feb 1989  11:32 AM
- ;;3.0; Surgery ;**58**;24 Jun 93
+SROWL ;B'HAM ISC/MAM - ENTER PATIENT ON WAITING LIST ; 4/18/07 11:55am
+ ;;3.0;Surgery;**58,119,162**;24 Jun 93;Build 4
+ ;
 ENTER ; enter a patient on the waiting list
  S SRSOUT=0 W @IOF K DIC S DIC(0)="QEAMZL",(DIC,DLAYGO)=133.8,DIC("A")="  Select Surgical Specialty: " D ^DIC K DIC,DLAYGO G:Y<0 END S SRSS=+Y,SRSS1=+Y(0)
  S SRSSNM=$P(^SRO(137.45,SRSS1,0),"^")
@@ -39,4 +40,40 @@ LIST ; list existing procedures for specialty selected
  Q
 LOOP ; break procedure if greater than 36 characters
  S SROP(M)="" F LOOP=1:1 S MM=$P(SROPER," "),MMM=$P(SROPER," ",2,200) Q:MMM=""  Q:$L(SROP(M))+$L(MM)'<36  S SROP(M)=SROP(M)_MM_" ",SROPER=MMM
+ Q
+REFPHY   ; Look up Referring Physician in "New Person" file with filter and auto-populate Referring Physician demographic fields
+ N SRCONT,Y,SRDEMO
+ S SRCONT=""
+PRMPT R !,"Is this a VA Physician from this facility?  (Y/N): <Y> ",SRCONT:DTIME I '$T Q
+ I SRCONT["?" D  G PRMPT
+ .W !!,"Enter 'Y' if you would like to select the Referring Physician from this facility's VA personnel.",!,"Enter 'N' to continue data entry.",!
+ S:SRCONT="" SRCONT="Y"
+ I SRCONT="^" S X="" Q
+ Q:(SRCONT'["Y")&(SRCONT'["y")
+ ; Store FileMan variables and arrays
+ M SRDABAK=DA,SRDICBAK=DIC,SRDZERO=D0,SRDRBAK=DR,SRXBAK=X,SRDOBAK=DO
+ ; Setup variables and call ^DIC to lookup REFERRING PHYSICIAN from NEW PERSON file
+ S DIC="^VA(200,",DIC(0)="E",DIC("B")=X
+ D ^DIC
+ ; Restore FileMan's variables and arrays
+ M DA=SRDABAK,DIC=SRDICBAK,D0=SRDZERO,DR=SRDRBAK,X=SRXBAK,DO=SRDOBAK
+ K SRCONT,SRDABAK,SRDICBAK,SRDZERO,SRDRBAK,SRXBAK,SRDOBAK
+ Q:Y="-1"        ; Quit if no record was selected from the NEW PERSON file
+ S SRNPREC=$P(Y,U,1)_","   ;The record number of the NEW PERSON file
+ ; Retrieve demographic data from the NEW PERSON file.
+ D GETS^DIQ(200,SRNPREC,".01:.116;.132","","SRDEMO")
+ ; Build SRDEMO array for "stuffing" into REFERRING PHYSICIAN demographic fields
+ S X=SRDEMO(200,SRNPREC,".01")                       ;Name
+ S SRDEMO(1)=SRDEMO(200,SRNPREC,".111")        ;Address
+ S:$L(SRDEMO(200,SRNPREC,".112"))>0 SRDEMO(1)=SRDEMO(1)_" "_SRDEMO(200,SRNPREC,".112")   ;Concatenate Address 2 to single address
+ S:$L(SRDEMO(200,SRNPREC,".113"))>0 SRDEMO(1)=SRDEMO(1)_" "_SRDEMO(200,SRNPREC,".113")   ;Concatenate Address 3 to single address
+ S SRDEMO(1)=$E(SRDEMO(1),1,75)
+ S SRDEMO(2)=SRDEMO(200,SRNPREC,".114")        ;City
+ S SRDEMO(3)=SRDEMO(200,SRNPREC,".115")        ;State
+ S SRDEMO(4)=SRDEMO(200,SRNPREC,".116")        ;Zip
+ S SRDEMO(5)=SRDEMO(200,SRNPREC,".132")        ;Office Phone
+ ; Set up DR array that FileMan will use, with a call to ^DIE, after this subroutine Quits to "stuff" the demographic data.
+ ; all fields except STATE will ignore input transform (SR*3.0*162)
+ S DIC("DR")="1////"_SRDEMO(1)_";2////"_SRDEMO(2)_";3///"_SRDEMO(3)_";4////"_SRDEMO(4)_";5////"_SRDEMO(5)_";6////"_$P(Y,U,1)
+ S DIC(0)="Z"    ;Tells FileMan to file the data without any more user input
  Q

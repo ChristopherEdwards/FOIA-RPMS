@@ -1,5 +1,5 @@
 PSGMMIVC ;BIR/MV-PRT MULT DAYS MAR C ORDERS(IV) ;16 Mar 99 / 2:10 PM
- ;;5.0; INPATIENT MEDICATIONS ;**20,21,28,31,35,67,58**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**20,21,28,31,35,67,58,110**;16 DEC 97
  ;
  ; Reference to ^PS(52.7 supported by DBIA #2173.
  ; Reference to ^PS(55 supported by DBIA #2191.
@@ -98,7 +98,11 @@ CELL(X,X1)         ;
 INITOPI ;* Set nurse's initial and the other print info.
  D RPHINIT^PSGMIV(.PSGLRPH)
  S PSGLRN="_____"
- I ON["V",$G(^PS(55,DFN,"IV",+ON,4)) D NAME(+^(4),"",.PSGLRN)
+ I ON["V" N ND4 S ND4=$G(^PS(55,DFN,"IV",+ON,4))
+ I $G(ND4) D
+ .I $G(DFN),$G(ON) N PSGLREN S PSGLREN=+$$LASTREN^PSJLMPRI(DFN,ON) D
+ ..N PSGLRNDT S PSGLRNDT=$P(ND4,"^",2),ND4=+ND4 I PSGLRNDT,$G(PSGLREN) I $G(PSGLREN)>PSGLRNDT S ND4=0
+ .I ND4 D NAME(+ND4,"",.PSGLRN)
  I ON["P" D
  . I P("OPI")="",$O(^PS(53.1,ON,12,0)) S X=0 F  S X=$O(^PS(53.1,ON,12,X)) Q:'X  S Z=$G(^(X,0)),Y=$L(P("OPI")) S:Y+$L(Z)'>179 P("OPI")=P("OPI")_Z_" " I Y+$L(Z)>179 S P("OPI")="SEE PROVIDER COMMENTS"
  . S PSGST=""

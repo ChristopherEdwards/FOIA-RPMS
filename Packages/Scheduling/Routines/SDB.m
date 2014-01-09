@@ -1,5 +1,5 @@
-SDB ;FLA/RF,BSN/GRR - SET UP A CLINIC ; [ 09/13/2001  2:18 PM ]
- ;;5.3;Scheduling;**20,63,167**;Aug 13, 1993
+SDB ;FLA/RF,BSN/GRR - SET UP A CLINIC ;9/30/10  15:59
+ ;;5.3;PIMS;**20,63,167,455,1015,1016**;JUN 30, 2012;Build 20
  ;IHS/ANMC/LJF  6/23/2000 changed edit from input template to call to
  ;                        ^BSDB which calls ScreenMan form
  ;              8/18/2000 added DIC("W") to warn if clinic inactivated
@@ -7,14 +7,15 @@ SDB ;FLA/RF,BSN/GRR - SET UP A CLINIC ; [ 09/13/2001  2:18 PM ]
  ;
  S SDTOP=1,SDZQ=1 K SDREACT
 C Q:$D(SDREACT)!('$D(SDTOP))  W !! D DT^DICRW S (DLAYGO,DIC)=44,DIC(0)="MAQEZL",DIC("A")="Select CLINIC NAME: ",DIC("DR")="2////C",DIC("S")="I $P(^(0),""^"",3)=""C"",'$G(^(""OOS""))" K SDREACT
+ D TURNON^DIAUTL(44,".01;8;2502;2503;2505;2506")
  S DIC("W")=$$INACTMSG^BSDU  ;IHS/ANMC/LJF 8/18/2000
  D ^DIC K DIC("A"),DIC("S") G:Y<0 END S DIE=44,DA=+Y S:$P(Y,U,3)=1 DIE("NO^")=""
  I '$$OWNER^BSDU(+Y,+$G(DUZ)) D MSG^BDGF("You are NOT an owner of this clinic.  Please select again.",2,1) G C  ;IHS/ANMC/LJF 9/21/2000
  K SDIN,SDINH,SDRE,SDRE1 I $D(^SC(DA,"I")),+^("I")>0 S SDIN=+^("I"),SDINH=SDIN,SDRE=+$P(^("I"),"^",2)
  ;S DR="[SDB]" S:'$D(^SC(DA,"ST",0)) ^SC(DA,"ST",0)="^44.005" D ^DIE K DIE("NO^")  ;IHS/ANMC/LJF 6/23/2000
  S DR="[SDB]" S:'$D(^SC(DA,"ST",0)) ^SC(DA,"ST",0)="^44.005" D SETUP^BSDB(DA) K DIE("NO^")  ;IHS/ANMC/LJF 6/23/2000
-EN ;Q:$D(SDONE)&('$D(SDTOP))
- G C:'$D(^SC(DA,"SL")) S SL=^("SL"),STARTDAY=8,X=$P(SL,U,3),D=$P(SL,U,6),SI=$S(D:D,1:4),DIC(0)="MAQEZL",(DIC,DIE)="^SC("_DA_",""T"",",DIC("W")=$P($T(DOW),";",3) S:'$D(^("T",0)) ^(0)="^44.002D" S:$L(X) STARTDAY=X
+EN ;Q:$D(SDONE)&('$D(SDTOP))  SD*5.3*455 added 2nd Go on next line
+ G C:'$D(^SC(DA,"SL")) G C:'+$G(^SC(DA,"SL")) S SL=^("SL"),STARTDAY=8,X=$P(SL,U,3),D=$P(SL,U,6),SI=$S(D:D,1:4),DIC(0)="MAQEZL",(DIC,DIE)="^SC("_DA_",""T"",",DIC("W")=$P($T(DOW),";",3) S:'$D(^("T",0)) ^(0)="^44.002D" S:$L(X) STARTDAY=X
  ;K SDREACT
 G1 D:$D(SDREACT)&('$D(SDTOP)) E1 S SI=$P(SL,"^",6) K Y,HY S SDFSW="" S:$D(SDINH) SDIN=SDINH D PRINT
  S (SDREB,SDEL)=0,(SDSAV,SDPAT)="" R !!,"AVAILABILITY DATE: ",X:DTIME Q:U[X&$D(SDREACT)  G C:U[X S %DT="EFX" K Y D ^%DT G HLPD^SDB1:X["?" S POP=0 I $D(SDIN),$S(SDIN>Y!(SDIN=0):0,(SDRE'>Y&(SDRE'=0))!(SDRE=0&(SDIN=0)):0,1:1) D INACT G:POP G1

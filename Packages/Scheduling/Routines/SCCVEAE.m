@@ -1,5 +1,5 @@
 SCCVEAE ;ALB/RMO,TMP - Add/Edit Conversion; [ 03/31/95  3:11 PM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 EN(SCCVEVT,SCSTDT,SCENDT,SCLOG,SCREQ,SCSTOPF) ;Entry point to loop through all add/edits for a specified date range
  ; Input  -- SCCVEVT  Conversion event

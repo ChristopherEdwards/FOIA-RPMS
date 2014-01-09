@@ -1,15 +1,19 @@
-PSORXRP1 ;BIR/SAB-rx speed reprint listman ;12-Oct-2011 15:09;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,27,120,1013**;DEC 1997;Build 33
+PSORXRP1 ;BIR/SAB-rx speed reprint listman ;25-Feb-2013 15:00;DU
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,120,1013,156,148,1015**;DEC 1997;Build 62
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ; Modified - IHS/MSC/PLS - 10/12/2011 - Line SEL+3
-SEL N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
+ ;            IHS/MSC/MGH - 2/25/2013 - Line ACT1+5
+SEL N PSODISP,VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
  S RXCNT=0 K PSOFDR,DIR,DUOUT,DIRUT S DIR("A")="Select Orders by number",DIR(0)="LO^1:"_PSOCNT D ^DIR S LST=Y I $D(DTOUT)!($D(DUOUT)) K DIR,DIRUT,DTOUT,DUOUT S VALMBCK="" Q
  K DIR,DIRUT,DTOUT,PSOOELSE,PSOREPX I +LST S PSOOELSE=1 D
  .I '$$ESIG^APSPFUNC S VALMBCK="" Q  ;IHS/MSC/PLS - 10/12/2011 - Added call to validate esig
- .D FULL^VALM1 K DIR S DIR("A")="Number of Copies? ",DIR(0)="N^1:99:0",DIR("?")="Enter the number of copies you want (1 TO 99)"
+ .D FULL^VALM1 K DIR S DIR("A")="Number of Copies? ",DIR(0)="N^1:99:0",DIR("?")="Enter the number of copies you want (1 TO 99)",DIR("B")=1
  .D ^DIR K DIR S:$D(DIRUT) PSOREPX=1 Q:$D(DIRUT)  S COPIES=Y
- .K DIR S DIR("A")="Print adhesive portion of label only? ",DIR(0)="Y",DIR("B")="N",DIR("?",1)="If entire label, including trailers are to print press RETURN for default."
+ .K DIR S DIR("A")="Print adhesive portion of label only? ",DIR(0)="Y",DIR("B")="No",DIR("?",1)="If entire label, including trailers are to print press RETURN for default."
  .S DIR("?")="Else if only bottle and mailing labels are to print enter Y or YES." D ^DIR K DIR S:$D(DIRUT) PSOREPX=1 Q:$D(DIRUT)  S SIDE=Y
+ .I $P(PSOPAR,"^",30),$$GET1^DIQ(59,PSOSITE_",",105,"I")=2.4 D  Q:$G(PSOREPX)
+ ..K DIR,DIRUT S DIR("A")="Do you want to resend to Dispensing System Device",DIR(0)="Y",DIR("B")="No"
+ ..D ^DIR K DIR S:$D(DIRUT) PSOREPX=1 Q:$D(DIRUT)  S PSODISP=$S(Y:0,1:1)
  .K DIRUT,DIR S DIR("A")="Comments: ",DIR(0)="FA^5:60",DIR("?")="5-60 characters input required for activity log." S:$G(PCOMX)]"" DIR("B")=$G(PCOMX)
  .D ^DIR K DIR S:$D(DIRUT) PSOREPX=1 Q:$D(DIRUT)  S (PCOM,PCOMX)=Y
  .S PSOCLC=DUZ
@@ -24,10 +28,12 @@ SEL N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALM
  ;
 RX ;process reprint request
  Q:$P(^PSRX($P(PSOLST(ORN),"^",2),"STA"),"^")>11
+ I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2)) W $C(7),!!,"Rx "_$$GET1^DIQ(52,$P(PSOLST(ORN),"^",2),.01)_" has OPEN/UNRESOLVED 3rd Party Payer Rejects!" K DIR D PAUSE^VALM1 Q
  S PSORPSRX=$P(PSOLST(ORN),"^",2) D PSOL^PSSLOCK(PSORPSRX) I '$G(PSOMSG) W $C(7),!!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing Rx "_$P($G(^PSRX(PSORPSRX,0)),"^")),! D PAUSE^VALM1 K PSORPSRX,PSOMSG Q
  S RX=$P(PSOLST(ORN),"^",2),STA=$P(^PSRX($P(PSOLST(ORN),"^",2),"STA"),"^") D CHK I $G(QFLG) D ULR Q
  S RXF=0,ZD(RX)=DT,REPRINT=1
- S RXRP($P(PSOLST(ORN),"^",2))=1_"^"_$G(COPIES)_"^"_$S($G(SIDE):1,1:0)
+ S RXRP($P(PSOLST(ORN),"^",2))=1_"^"_COPIES_"^"_SIDE
+ I $G(PSODISP)=1 S RXRP($P(PSOLST(ORN),"^",2),"RP")=1
  S RXFL($P(PSOLST(ORN),"^",2))=0 F ZZZ=0:0 S ZZZ=$O(^PSRX($P(PSOLST(ORN),"^",2),1,ZZZ)) Q:'ZZZ  S RXFL($P(PSOLST(ORN),"^",2))=ZZZ
  K ZZZ
  I $G(PSORX("PSOL",1))']"" S PSORX("PSOL",1)=RX_"," S ST="" D ACT1,ULR Q
@@ -60,7 +66,8 @@ GOOD K X
 ACT1 S RXF=0 F J=0:0 S J=$O(^PSRX(RX,1,J)) Q:'J  S RXF=J S:J>5 RXF=J+1
  S IR=0 F J=0:0 S J=$O(^PSRX(RX,"A",J)) Q:'J  S IR=J
  S IR=IR+1,^PSRX(RX,"A",0)="^52.3DA^"_IR_"^"_IR
- D NOW^%DTC S ^PSRX(RX,"A",IR,0)=%_"^"_$S($G(ST)'="C":"W",1:"C")_"^"_DUZ_"^"_RXF_"^"_PCOM_$S($G(ST)'="C":" ("_COPIES_" COPIES)",1:""),PCOMX=PCOM K PC,IR,PS,XX,%,%H,%I,RXF
+ ;IHS/MSC/MGH variable APSPREIS added for reissue
+ D NOW^%DTC S ^PSRX(RX,"A",IR,0)=%_"^"_$S($G(APSPREIS)=1:"Z",$G(ST)'="C":"W",1:"C")_"^"_DUZ_"^"_RXF_"^"_PCOM_$S($G(ST)'="C":" ("_COPIES_" COPIES)",1:""),PCOMX=PCOM K PC,IR,PS,XX,%,%H,%I,RXF
  S:$P(^PSRX(RX,2),"^",15)&($G(ST)'="C") $P(^PSRX(RX,2),"^",14)=1
  Q
 VALID ;check for rx in label array

@@ -1,5 +1,5 @@
 DGRUGV ;ALB/BOK - RUG/PAI TRANSMISSION ; 12 MAY 87 07:25
- ;;5.3;Registration;**89,159**;Aug 13, 1993
+ ;;5.3;Registration;**89,159,1015**;Aug 13, 1993;Build 21
  S VATNAME="RUG-II" D ^VATRAN G QUIT:VATERR
  W !,*7,"This option will send the RUG/PAI data to the Austin DPC."
 A S %=2 W !,"Are you sure you want to continue" D YN^DICN I '% W !,"REPLY (Y)ES OR (N)O" G A

@@ -1,5 +1,5 @@
-GMVSR0 ;HOIFO/RM,YH,FT-VITAL SIGNS RECORD SF 511 ;10/25/02  10:39
- ;;5.0;GEN. MED. REC. - VITALS;;Oct 31, 2002
+GMVSR0 ;HOIFO/RM,YH,FT-VITAL SIGNS RECORD SF 511 ;6/6/07
+ ;;5.0;GEN. MED. REC. - VITALS;**23**;Oct 31, 2002;Build 25
  ;
  ; This routine uses the following IAs:
  ; #10039 - FILE 42 references     (supported)
@@ -23,6 +23,8 @@ EN1(RESULT,GMVDATA) ; GMV PT GRAPH [RPC entry point]
  ; GMVHLOC  - hospital location internal entry number
  ; GMVRMLST - list of rooms separated by a comma (e.g., 210,220,230) 
  ;
+ S RESULT="This report is no longer available. Please right click on the data grid and use 'Print Graph' instead."
+ Q
  N DFN,G,GMROUT,GFLAG,GRAPH,GMRSTRT,GMRFIN,GMVPDT,GMVDEV,GMVIEN,GMREDB
  N GMRLEN,GMVHLOC,GMRWARD,GMVRMLST,GSTRFIN,GMVDEVUC
  S DFN=+$P(GMVDATA,"^"),GMRSTRT=$P(GMVDATA,"^",2),GMRFIN=$P(GMVDATA,"^",3),GRAPH=$P(GMVDATA,"^",4),GMVDEV=$P(GMVDATA,"^",5),GMVIEN=+$P(GMVDATA,"^",6),GMVPDT=$P(GMVDATA,"^",7)
@@ -34,7 +36,7 @@ EN1(RESULT,GMVDATA) ; GMV PT GRAPH [RPC entry point]
  S GMREDB=$S(DFN>0:"P",GMVRMLST'="":"S",1:"A")
  S GMRWARD(1)=$S(GMRWARD>0:$P($G(^DIC(42,GMRWARD,0)),U,1),1:"") ;ward name
  I $G(GMREDB)="P" D
- .D DEM^VADPT S GMRNAM=$P(VADM(1),"^"),SSN=$P(VADM(2),"^",2)
+ .D DEM^VADPT S GMRNAM=$P(VADM(1),"^"),SSN=$E($P(VADM(2),"^",2),8,11)
  .D INP^VADPT ;get inpatient data
  .S GMRWARD(1)=$P(VAIN(4),U,2),GMRWARD=$P(VAIN(4),U) ;inpatient location
  .S GMRRMBD=$S(VAIN(5)'="":VAIN(5),1:"  BLANK") ;roombed
@@ -63,7 +65,7 @@ EN2 ; Start the graphic report
  I GRAPH=3 D ^GMVLWT0 G:"Pp"[GMREDB Q1 Q
  I GRAPH=4 D ^GMVLPO0 G:"Pp"[GMREDB Q1 Q
  I GRAPH=5 S:'$G(GMRPERR) GMRPERR=1 G:"Pp"[GMREDB Q1 Q
- S GMRS=(9999999-GMRFIN)-.0001,GMRQ=9999999-GMRSTRT
+ S GMRS=GMRSTRT-.0001,GMRQ=GMRFIN
  F GMRTY="B","P","R","T","H","W","PO2","CVP","CG","PN" D SETT^GMVSR1
  U IO D SF511^GMVSR1
 Q1 ;

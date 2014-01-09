@@ -1,5 +1,5 @@
-SRSCONR ;B'HAM ISC/MAM - REQUEST CONCURRENT CASES ; [ 01/08/98   9:54 AM ]
- ;;3.0; Surgery ;**67,68,77**;24 Jun 93
+SRSCONR ;B'HAM ISC/MAM - REQUEST CONCURRENT CASES ; [ 01/30/01  9:54 AM ]
+ ;;3.0; Surgery ;**67,68,77,100**;24 Jun 93
  S SRCC=1,(SRSOUT,SRWL)=0 I $D(ORVP) S (DFN,SRSDPT)=+ORVP G DEAD
  W @IOF,! K DIC S DIC=2,DIC(0)="QEAMZ",DIC("A")="Request Concurrent Cases for which Patient ?  " D ^DIC K DIC I Y<0 S SRSOUT=1 G END
  S (DFN,SRSDPT)=+Y
@@ -15,11 +15,13 @@ DATE W ! K SRDUOUT,%DT S (OPT,SRSCON)=0,%DT="AEFX",%DT("A")="Make a Request for 
 R2 I SRSOUT,SRSCON=2 K SRSCON(2) D DEL I 'SRSOUT G END
 DISP K POP W @IOF,!,"The following requests have been entered."
  S SRSCON=0 F I=0:0 S SRSCON=$O(SRSCON(SRSCON)) Q:'SRSCON  D LIST
- I '$D(SRSCON(2)) S SRSCON=1,SRTN=SRSCON(1) D ^SRSRQST1 G END
+ I '$D(SRSCON(2)) S SRSCON=1,SRTN=SRSCON(1) D  G END
+ .I $$LOCK^SROUTL(SRTN) D ^SRSRQST1,UNLOCK^SROUTL(SRTN)
  W !!!!,"1. Enter Request Information for Case #"_SRSCON(1),!,"2. Enter Request Information for Case #"_SRSCON(2),!
 REQ K DIR S DIR("?")=" ",DIR("?",1)="Select the number corresponding to the case for which you want",DIR("?",2)="to enter request information.  Enter '^' or RETURN to exit."
  S DIR(0)="NO^1:2",DIR("A")="Select Number" D ^DIR I Y=""!$D(DUOUT) S SRSOUT=1 G END
- S SRSCON=Y S (DA,SRTN)=SRSCON(SRSCON) D ^SRSRQST1 G DISP
+ S SRSCON=Y S (DA,SRTN)=SRSCON(SRSCON) D  G DISP
+ .I $$LOCK^SROUTL(SRTN) D ^SRSRQST1,UNLOCK^SROUTL(SRTN)
 END I 'SRSOUT W ! K DIR S DIR(0)="FOA",DIR("A")=" Press RETURN to continue.  " D ^DIR
  K SRTN D ^SRSKILL W @IOF
  Q

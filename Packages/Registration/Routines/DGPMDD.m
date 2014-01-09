@@ -1,5 +1,5 @@
-DGPMDD ;ALB/MRL - FILE 405 DD CALLS; 27 JAN 89]
- ;;5.3;Registration;**41,129**;Aug 13, 1993
+DGPMDD ;ALB/MRL - FILE 405 DD CALLS; 27 JAN 89] ; 6/27/07 11:05am
+ ;;5.3;PIMS;**41,129,1015,1016**;JUN 30, 2012;Build 20
 ID ;Display Identifiers
  N DGPMDISP
  S DGPMDD(1)=$S($D(^DPT(+$P(DGPMDD,"^",3),0)):^(0),1:"")
@@ -30,11 +30,29 @@ SCREEN(Y,DA,DGDT) ;screen called from various files/fields - select active provi
  ;        DGDT=date, either today's or date of movement
  ;date of movement is used for fields .19 (attending) & .08 (primary) in file 405.
  ;OUTPUT: 1 to select; 0 to not select
+ ;
+ ; begin patch *755*
+ ; DBIA #2349 - ACTIVE PROVIDER will be used for validation.
+ ; The INACTIVE DATE (#53.4) field will no longer be used.
+ ; New Input selection logic...
+ ;  If input selection has the PROVIDER security key...
+ ;   the TERMINATION DATE (#9.2) and the PERSON CLASS (#8932.1) fields
+ ;   will be used to determine if selection is active in the
+ ;   NEW PERSON (#200) file for a given date.
+ ;
  S:'+$G(DA) DA=0 S:'+$G(DGDT) DGDT=DT I '+$G(Y) Q 0
  N DGINACT,DGY S DGY=0,DGDT=$P(DGDT,".")
  I $D(^VA(200,"AK.PROVIDER",$P($G(^VA(200,+Y,0)),U),+Y)) D
  .S DGY=0,DGINACT=$G(^VA(200,+Y,"PS"))
  .S DGY=$S(DGINACT']"":1,'+$P(DGINACT,U,4):1,DGDT'>+$P(DGINACT,U,4):1,1:0)
+ ;
+ ;ihs/cmi/maw 06/18/2012 PATCH 1016 code below does not work in IHS environment
+ ;N DGY S DGY=0
+ ;I +$G(Y) D
+ ;. S:'+$G(DA) DA=0 S:'+$G(DGDT) DGDT=DT S DGDT=$P(DGDT,".")
+ ;. I $D(^VA(200,"AK.PROVIDER",$P($G(^VA(200,+Y,0)),U),+Y)) D
+ ;. . I $$ACTIVPRV^PXAPI(+Y,DGDT) S DGY=1  ;DBIA #2349
+ ; end patch *755*
  Q DGY
  ;
 HELP(DA,DGDT) ;executable help called from various files/fields - display active providers in file 200

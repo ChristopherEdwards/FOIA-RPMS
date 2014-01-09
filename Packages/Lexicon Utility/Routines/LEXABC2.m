@@ -1,5 +1,5 @@
 LEXABC2 ; ISL Look-up by Code (part 2)             ; 01-25-97
- ;;2.0;LEXICON UTILITY;**4**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**4**;Sep 23, 1996;Build 15
  ;
 REO ; Reorder list
  Q:'$D(^TMP("LEXL",$J))  N LEXS,LEXT,LEXP,LEXE,LEXEX,LEXFT,LEXM,LEXX S LEXS="" F  S LEXS=$O(^TMP("LEXL",$J,LEXS)) Q:LEXS=""  S LEXT=0 F  S LEXT=$O(^TMP("LEXL",$J,LEXS,LEXT)) Q:+LEXT=0  D

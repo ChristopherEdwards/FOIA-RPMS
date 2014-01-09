@@ -1,5 +1,5 @@
-PSOP2 ;BIR/SAB - medication profile long or short ;08-Nov-2011 17:45;PLS
- ;;7.0;OUTPATIENT PHARMACY;**15,98,132,1013**;DEC 1997;Build 33
+PSOP2 ;BIR/SAB - medication profile long or short ;29-May-2012 15:04;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**15,98,132,1013,326,1015**;DEC 1997;Build 62
  ;External reference to File #55 supported by DBIA 2228
  ;External reference to PSDRUG supported by DBIA 221
  ;External reference ^PS(50.606 supported by DBIA 2174
@@ -40,7 +40,7 @@ PEND ;list pending orders
  Q
 HD1 ;W @IOF W !,?29,"PENDING ORDERS",!,PSOPLINE
  I $G(PLS)="L" S PAGE=PAGE+1
- W @IOF W !,"Patient: "_$P($G(^DPT(DFN,0)),"^")_" ("_$E($P($G(^DPT(DFN,0)),"^",9),6,9)_")",?70,"Page: "_PAGE,!?21,$S($G(NVA):"Non-VA MEDS (Not Dispensed by VA)",1:"Pending Outpatient Orders"),!,PSOPLINE
+ W @IOF W !,"Patient: "_$P($G(^DPT(DFN,0)),"^"),?70,"Page: "_PAGE,!?21,$S($G(NVA):"Non-VA MEDS (Not Dispensed by VA)",1:"Pending Outpatient Orders"),!,PSOPLINE
  I $G(PLS)="S" S PAGE=PAGE+1
  Q
 NVA ;non-va meds

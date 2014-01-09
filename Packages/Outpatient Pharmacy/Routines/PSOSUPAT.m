@@ -1,12 +1,14 @@
 PSOSUPAT ;BIR/RTR-Pull all Rx's from suspense for a patient ;03/01/96
- ;;7.0;OUTPATIENT PHARMACY;**8,130**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**8,130,185**;DEC 1997
  ;External reference to ^PS(55 supported by DBIA 2228
  ;External reference to ^PSSLOCK supported by DBIA 2789
 PAT N PSOALRX,PSOALRXS S POP=0 K RXP,RXRR,RXFL,RXRP,RXPR,ASKED,BC,DELCNT,WARN,PSOAL,PSOPROFL,PSOQFLAG,PSOPULL,PSOWIN,PSOWINEN,PPLHOLD,PPLHOLDX W ! S DIR("A")="Are you entering the patient name or barcode",DIR(0)="SBO^P:Patient Name;B:Barcode"
  S DIR("?")="Enter P if you are going to enter the patient name. Enter B if you are going to enter or wand the barcode."
  D ^DIR K DIR G:$D(DIRUT) ^PSOSUPRX S BC=Y D NOW^%DTC S TM=$E(%,1,12),TM1=$P(TM,".",2)
 BC S (OUT,POP)=0 I BC="B" W ! S DIR("A")="Enter/wand barcode",DIR(0)="FO^5:20",DIR("?")="Enter or wand a prescription barcode for the patient you wish to pull all Rx's for" D ^DIR K DIR G:$G(DIRUT) PAT S BCNUM=Y D
- .D PSOINST Q:OUT  S RX=$P(BCNUM,"-",2) K RTE S MW="" I $D(^PSRX(RX,0)) S (DFN,PSODFN)=$P(^PSRX(RX,0),"^",2) W " ",$P($G(^DPT(DFN,0)),"^")
+ .D PSOINST Q:OUT  S RX=$P(BCNUM,"-",2) K RTE S MW="" D:$D(^PSRX(RX,0))
+ ..S (DFN,PSODFN)=$P(^PSRX(RX,0),"^",2) W " ",$P($G(^DPT(DFN,0)),"^")
+ ..D ICN^PSODPT(DFN)
  .I '$D(^PSRX(RX,0)) W !,$C(7),"NO PRESCRIPTION RECORD FOR THIS BARCODE." S OUT=1
  G:OUT BC
 NAM I BC="P" W ! S DIC(0)="AEMZQ",DIC="^DPT(",DIC("S")="I $D(^PS(52.5,""AC"",+Y))!($D(^PS(52.5,""AG"",+Y)))" D ^DIC K DIC G:$D(DTOUT)!($D(DUOUT))!(Y<0) PAT S (DFN,PSODFN)=+Y K RTE S MW=""

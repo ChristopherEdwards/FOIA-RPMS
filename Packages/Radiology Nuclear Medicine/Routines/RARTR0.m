@@ -1,5 +1,5 @@
-RARTR0 ;HISC/GJC-Queue/Print Radiology Rpts utility routine. ;05/20/09  09:30
- ;;5.0;Radiology/Nuclear Medicine;**8,26,74,84,99**;Mar 16, 1998;Build 5
+RARTR0 ;HISC/GJC-Queue/Print Radiology Rpts utility routine. ; 20 Apr 2011  7:03 PM
+ ;;5.0;Radiology/Nuclear Medicine;**8,26,74,84,99,1003**;Nov 01, 2010;Build 3
  ; 06/28/2006 BAY/KAM Remedy Call 146291 - Change Patient Age to DOB
  ;
  ;Integration Agreements
@@ -48,11 +48,19 @@ EN1 ; Called from RARTR ;P84 GETS^DIQ added...
  . I $D(RAVERFND)&(RAPIS=RAVERF),(RAPIS(200,RAPIS("IENS"),.01)'="RADIOLOGY,OUTSIDE SERVICE") D
  .. I $G(RARPT(10))']"",('$D(RAUTOE)) D  Q
  ... W:RAWHOVER=RAPIS !?10,"(Verifier, no e-sig)"
- ... W:RAWHOVER'=RAPIS !?10,"Verified by transcriptionist for "_RALBS  ;Removed RA*5*8 _", M.D."
+ ... ;IHS/BJI/DAY - Patch 1003 - display verifier if not Radiologist
+ ... ;Other verifier may not be a transcriptionist
+ ... ;W:RAWHOVER'=RAPIS !?10,"Verified by transcriptionist for "_RALBS  ;Removed RA*5*8 _", M.D."
+ ... W:RAWHOVER'=RAPIS !?5,"Verified by ",$$GET1^DIQ(200,+RAWHOVER,.01)," for "_RALBS  ;Removed RA*5*8 _", M.D."
+ ... ;End Patch
  ... Q
  .. I $G(RARPT(10))']"",($D(RAUTOE)) D  Q
  ... S:RAWHOVER=RAPIS ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          (Verifier, no e-sig)"
- ... S:RAWHOVER'=RAPIS ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          Verified by transcriptionist for "_RALBS  ;Removed RA*5*8 _", M.D."
+ ... ;IHS/BJI/DAY - Patch 1003 - display verifier if not Radiologist
+ ... ;Other verifier may not be a transcriptionist
+ ... ;S:RAWHOVER'=RAPIS ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          Verified by transcriptionist for "_RALBS  ;Removed RA*5*8 _", M.D."
+ ... S:RAWHOVER'=RAPIS ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="     Verified by "_$$GET1^DIQ(200,+RAWHOVER,.01)_" for "_RALBS  ;Removed RA*5*8 _", M.D."
+ ... ;End Patch
  ... Q
  .. W:'$D(RAUTOE) " (Verifier)"
  .. S:$D(RAUTOE) ^TMP($J,"RA AUTOE",RAACNT)=^TMP($J,"RA AUTOE",RAACNT)_" (Verifier)"
@@ -86,11 +94,19 @@ EN1 ; Called from RARTR ;P84 GETS^DIQ added...
  . I $D(RAVERFND)&(RAPIR=RAVERF) D
  .. I $G(RARPT(10))']"",('$D(RAUTOE)) D  Q
  ... W:RAWHOVER=RAPIR !?10,"(Verifier, no e-sig)"
- ... W:RAWHOVER'=RAPIR !?10,"Verified by transcriptionist for "_RALBR  ;Removed RA*5*8 _", M.D."
+ ... ;IHS/BJI/DAY - Patch 1003 - display verifier if not Radiologist
+ ... ;Other verifier may not be a transcriptionist
+ ... ;W:RAWHOVER'=RAPIR !?10,"Verified by transcriptionist for "_RALBR  ;Removed RA*5*8 _", M.D."
+ ... W:RAWHOVER'=RAPIR !?5,"Verified by ",$$GET1^DIQ(200,+RAWHOVER,.01)," for "_RALBR  ;Removed RA*5*8 _", M.D."
+ ... ;End Patch
  ... Q
  .. I $G(RARPT(10))']"",($D(RAUTOE)) D  Q
  ... S:RAWHOVER=RAPIR ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          (Verifier, no e-sig)"
- ... S:RAWHOVER'=RAPIR ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          Verified by transcriptionist for "_RALBR  ;Removed RA*5*8 _", M.D."
+ ... ;IHS/BJI/DAY - Patch 1003 - display verifier if not Radiologist
+ ... ;Other verifier may not be a transcriptionist
+ ... ;S:RAWHOVER'=RAPIR ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="          Verified by transcriptionist for "_RALBR  ;Removed RA*5*8 _", M.D."
+ ... S:RAWHOVER'=RAPIR ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="     Verified by "_$$GET1^DIQ(200,+RAWHOVER,.01)_" for "_RALBR  ;Removed RA*5*8 _", M.D."
+ ... ;End Patch
  ... Q
  .. W:'$D(RAUTOE) " (Verifier)"
  .. S:$D(RAUTOE) ^TMP($J,"RA AUTOE",RAACNT)=^TMP($J,"RA AUTOE",RAACNT)_" (Verifier)"
@@ -126,7 +142,11 @@ HEAD ; Set up header info for e-mail message (called from INIT^RARTR)
  S RAILOC=$$XTERNAL^RAUTL5($P(RAY2,"^",4),$P($G(^DD(70.02,4,0)),"^",2))
  S:RAILOC']"" RAILOC="Unknown" S:RASERV']"" RASERV="Unknown"
  S RANME=$E(RANME,1,20)_"  "
- S RASSN=$E(RASSN,1,3)_"-"_$E(RASSN,4,5)_"-"_$E(RASSN,6,9)_"    "
+ ;IHS/BJI/DAY - Patch 1003 - Continue Chris Saddler 2003 patch
+ ;Use standard call for SSN, and remove SSN formatting
+ ;S RASSN=$E(RASSN,1,3)_"-"_$E(RASSN,4,5)_"-"_$E(RASSN,6,9)_"    "
+ S RASSN=$$SSN^RAUTL,RASSN=RASSN_"    "
+ ;End Patch
  ; Remedy Call 146291 Changed next line to use RADOB(0)
  S RAGE="DOB-"_$G(RADOB(0))_" "_$S(RASEX="F":"F",RASEX="M":"M",1:"UNK")
  S $P(RASPACE," ",(22-$L(RAGE)))=""

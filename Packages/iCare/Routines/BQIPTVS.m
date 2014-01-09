@@ -1,5 +1,6 @@
 BQIPTVS ;PRXM/HC/BWF-Patient Visit Utilities ; 15 Nov 2005  3:17 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;
  ;
  ; This is a utility program containing special function calls
  ; needed for patient visit data.
@@ -90,7 +91,8 @@ VSTDATA(VSTIEN,BQII) ;EP
  S VPOVIEN=0,ICDNSTR=""
  F  S VPOVIEN=$O(^AUPNVPOV("AD",VSTIEN,VPOVIEN)) Q:VPOVIEN=""  D
  .S ICDNAR=$$GET1^DIQ(9000010.07,VPOVIEN,".019","E")
- .I ICDNAR'="" S ICDNSTR=$S(ICDNSTR'="":ICDNSTR_$C(13)_$C(10)_ICDNAR,1:ICDNAR)
+ .S ICDNST=$$GET1^DIQ(9000010.07,VPOVIEN,".01","E")
+ .I ICDNAR'="" S ICDNSTR=ICDNSTR_ICDNST_" "_ICDNAR_$C(13)_$C(10)
  ;
  ; Gather all POV narratives, separated by a LF/CR.
  S VPOVIEN=0,POVNSTR=""

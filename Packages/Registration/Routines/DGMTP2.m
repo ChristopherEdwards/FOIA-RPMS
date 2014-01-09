@@ -1,5 +1,5 @@
 DGMTP2 ;ALB/RMO - Print Means Test 10-10F Cont. ;7 APR 1992 11:00 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point to print income and net worth
  ;Also calls DGMTP3 to print deductible expenses and

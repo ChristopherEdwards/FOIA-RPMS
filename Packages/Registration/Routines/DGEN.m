@@ -1,5 +1,5 @@
 DGEN ;ALB/RMO/CJM - Patient Enrollment Option; 11/17/00 12:12pm ; 12/6/00 5:32pm
- ;;5.3;Registration;**121,122,165,147,232,314**;Aug 13,1993
+ ;;5.3;Registration;**121,122,165,147,232,314,624,1015**;Aug 13,1993;Build 21
  ;
 EN ;Entry point for stand-alone enrollment option
  ; Input  -- None
@@ -18,7 +18,7 @@ EN1(DFN) ;Entry point for enrollment from registration and disposition
  ; Output -- None
  N DGENOUT
  ;
- ;Check if patient chould be asked to enroll
+ ;Check if patient should be asked to enroll
  I $$CHK(DFN) D
  . ;Enroll patient
  . I $$ENRPAT(DFN,.DGENOUT)
@@ -60,6 +60,24 @@ ENRPAT(DFN,DGENOUT) ;Enroll patient
  . ;Cancel/decline functionality disabled by DG*5.3*232
  . ;S DGOKF=$$DECLINE(DFN,DT)
  . S DGOKF=0
+ . ;* Prompt for requested appt. (DG*5.3*624)
+ . I $P($G(^DPT(DFN,1010.15)),"^",9)="" DO
+ . . N DGSXS,DGAPPTAN
+ . . S DGSXS=$$PROMPT^DGENU(2,1010.159,1,.DGAPPTAN,"",1)
+ . . I DGSXS DO
+ . . . N DA,DR,DIE
+ . . . S DA=DFN
+ . . . S DIE="^DPT("
+ . . . S DR="1010.159////^S X=DGAPPTAN"
+ . . . D ^DIE
+ . . . K DA,DR,DIE
+ . . . ;*Set Appointment Request Date to current date
+ . . . N DA,DR,DIE
+ . . . S DIE="^DPT("
+ . . . S DA=DFN
+ . . . S DR="1010.1511////^S X=DT"
+ . . . D ^DIE
+ . . . K DA,DR,DIE
 ENRPATQ Q +$G(DGOKF)
  ;
 ASK(ACTION,DGENOUT) ;Ask patient if s/he would like to enroll or cease enrollment
@@ -99,10 +117,38 @@ ENROLL(DFN) ;Create new local unverified enrollment
  . . . D PREFER^DGENPT(DFN)
  . . . ;If patient's means test status is required, send bulletin
  . . . I $$MTREQ(DFN) D MTBULL(DFN,.DGENR)
+ I $P($G(^DPT(DFN,1010.15)),"^",11)="" DO
+ . N DGSXS,DGAPPTAN,DGDFLT
+ . S DGDFLT=$P($G(^DPT(DFN,1010.15)),"^",9)
+ . S:DGDFLT="" DGDFLT=1
+ . S DGSXS=$$PROMPT^DGENU(2,1010.159,DGDFLT,.DGAPPTAN,"",1)
+ . I DGSXS DO
+ . . N DA,DR,DIE
+ . . S DA=DFN
+ . . S DIE="^DPT("
+ . . S DR="1010.159////^S X=DGAPPTAN"
+ . . D ^DIE
+ . . K DA,DR,DIE
+ . . ;*If patient answered NO to "Do you want an appt" question
+ . . I $P($G(^DPT(DFN,1010.15)),"^",9)=0 DO
+ . . . N DA,DR,DIE
+ . . . S DIE="^DPT("
+ . . . S DA=DFN
+ . . . S DR="1010.1511////^S X=DT"
+ . . . D ^DIE
+ . . . K DA,DR,DIE
+ . . ;*If patient answered YES to "Do you want an appt" question
+ . . I $P($G(^DPT(DFN,1010.15)),"^",9)=1 DO
+ . . . N DA,DR,DIE
+ . . . S DIE="^DPT("
+ . . . S DA=DFN
+ . . . S DR="1010.1511////^S X=APPDATE"
+ . . . D ^DIE
+ . . . K DA,DR,DIE
 ENROLLQ D UNLOCK^DGENA1(DFN)
  Q +$G(DGOKF)
  ;
-CANCEL(DFN,DGENR,EFFDATE) ;Cancel current enrollment enrollment
+CANCEL(DFN,DGENR,EFFDATE) ;Cancel current enrollment
  ; Input
  ;    DFN      Patient IEN
  ;    DGENR    Array containing current enrollment (pass by reference)

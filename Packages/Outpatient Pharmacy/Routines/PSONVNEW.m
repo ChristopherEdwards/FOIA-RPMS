@@ -1,45 +1,40 @@
-PSONVNEW ;BIR/SAB - Add Non-VA Med orders ;09-Aug-2010 08:04;SM
- ;;7.0;OUTPATIENT PHARMACY;**132,1009**;DEC 1997
+PSONVNEW ;BIR/SAB - Add Non-VA Med orders ;29-May-2012 14:56;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**132,1009,118,203,265,1015**;DEC 1997;Build 62
  ;External reference ^PS(50.606 supported by DBIA 2174
  ;External reference ^PS(50.7 supported by DBIA 2223
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to ^PS(51.2 supported by DBIA 2226
  ;adds new non-va med to #55
  ;
- ;Modified - IHS/MSC/PLS - 08/06/2010 - Line REIN+17, Added +57
+ ;*203 change 3 fields from "///" to "////" they can be larger than
+ ;      defined and need to be put in as is to prevent hard crash.
+ ;*265 change update of Dosage & Sched fields DR strings, can contain ;      free form char ";"
+ ;Modified - IHS/MSC/PLS - 08/30/2010 - Line REIN+17, Added +32, STATU EP
  ;
  I '$D(^PS(55,DFN,0)) D
  .K DD,DO S DIC(0)="L",(DINUM,X)=DFN,DIC("DR")="52.1////2" D FILE^DICN D:Y<1  K DIC,DA,DR,DD,DO
  ..S $P(^PS(55,DFN,0),"^")=DFN,$P(^(0),"^",6)=2
  ..K DIK S DA=DFN,DIK="^PS(55,",DIK(1)=.01 D EN^DIK K DIK
  ;
- ;
- N PSONVA,SCH,SCHED,SDL,SGL,ZSB,W,WW,SZZ,DSC K HOLD,PCOM
+ N PSONVA,DSC K PCOM
  F I=0:0 S I=$O(MSG(I)) Q:'I  D
  .I $P(MSG(I),"|")="NTE",$P(MSG(I),"|",2)=6 S DSC=$G(DSC)+1 S PCOM(DSC)=$P(MSG(I),"|",4) F T=0:0 S T=$O(MSG(I,T)) Q:'T  S DSC=DSC+1,PCOM(DSC)=MSG(I,T)
  .I $P(MSG(I),"|")="ORC" S STDT=$P(MSG(I),"|",8),STRDT=$$HL7TFM^XLFDT($P(STDT,"^",4))
- F IV=0:0 S IV=$O(^PS(55,DFN,"NVA",IV)) Q:'IV  S PSONVA=$G(PSONVA)+1
- K IV,DSC,STDT
- S PSONVA=$G(PSONVA)+1,^PS(55,DFN,"NVA",0)="^55.05P^"_PSONVA_"^"_PSONVA
- S ^PS(55,DFN,"NVA",PSONVA,0)=PSORDITE_"^"_PSODDRUG
- S ^PS(55,DFN,"NVA","B",$E(PSORDITE,1,30),PSONVA)=""
- S $P(^PS(55,DFN,"NVA",PSONVA,0),"^",11)=$G(ENTERED),$P(^(0),"^",10)=$G(PSOLOG),$P(^(0),"^",12)=$G(LOCATION)
- S ^PS(55,"ADCDT",$E(PSOLOG,1,30),DFN,PSONVA)="",SCH=$P($G(QTARRAY(1)),"^")
- S $P(^PS(55,DFN,"NVA",PSONVA,0),"^",8)=PLACER,$P(^(0),"^",9)=$G(STRDT)
- S $P(^PS(55,DFN,"NVA",PSONVA,0),"^",3)=$G(PSOLQ1I(1)) ;,$P(^(0),"^",5)=$P($G(QTARRAY(1)),"^")
- I $G(SCH)]"" D
- .S SGL=0 F W=0:0 S W=$O(^PS(51.1,"B",SCH,W)) Q:'W!($G(SGL))  I $P($G(^PS(51.1,W,0)),"^",8)'="" S SCHED=$P($G(^(0)),"^",8),SGL=1
- .Q:$G(SGL)
- .I $G(^PS(51,"A",SCH))'="" S SCHED=$P(^PS(51,"A",SCH),"^") Q
- .S ZSB=0 F ZZS=1:1:$L(SCH) S SZZ=$E(SCH,ZZS) I SZZ=" " S ZSB=ZSB+1
- .S ZSB=ZSB+1 K HOLD F Z=1:1:ZSB S (SDL,HOLD(Z))=$P(SCH," ",Z) D
- ..Q:$G(SDL)=""
- ..S SGL=0 F WW=0:0 S WW=$O(^PS(51.1,"B",SDL,WW)) Q:'WW!($G(SGLFLAG))  I $P($G(^PS(51.1,WW,0)),"^",8)'="" S HOLD(Z)=$P($G(^(0)),"^",8),SGL=1
- ..Q:$G(SGL)
- ..I $G(^PS(51,"A",SDL))]"" S HOLD(Z)=$P(^(SDL),"^")
- .S SCHED="",SGL=0 F WW=1:1:ZSB S SCHED=SCHED_$S($G(SGL):" ",1:"")_$G(HOLD(WW)),SGL=1
- I $G(SCHED)]"" S $P(^PS(55,DFN,"NVA",PSONVA,0),"^",5)=SCHED
- I $G(ROUTE(1)) S $P(^PS(55,DFN,"NVA",PSONVA,0),"^",4)=$S($P($G(^PS(51.2,ROUTE(1),0)),"^",2)]"":$P(^PS(51.2,ROUTE(1),0),"^",2),1:$P(^PS(51.2,ROUTE(1),0),"^"))
+ ;
+ ; - Files the Non-VA Med order into the "NVA" multiple in File #55
+ K DR,DIC,DD,DA,DO,DINUM S DA(1)=DFN,X=PSORDITE
+ ;*203,*265 fix DR & dose & sched fields
+ S PSODOS=$G(PSOLQ1I(1)),PSOSCH=$$SCHED($P($G(QTARRAY(1)),"^"))
+ S DR="1////"_PSODDRUG_";2////^S X=PSODOS;3////"_$$ROUTE($G(ROUTE(1)))
+ S DR=DR_";4////^S X=PSOSCH;7////"_$G(PLACER)_";8///"_$G(STRDT)
+ S DR=DR_";11///"_$G(PSOLOG)_";12////"_$G(ENTERED)_";13////"_$G(LOCATION)
+ ; IHS/MSC/REC/PLS - Add MED REC Fields 8/30/10
+ S DR=DR_";21401///"_$G(MSCLD)_";21402///"_$G(MSCHMLST)_";21403///"_$G(MSCHMLOC)
+ S DIC("DR")=DR,DIC(0)="L",DIC="^PS(55,"_DFN_",""NVA"",",DLAYGO=55.05
+ D FILE^DICN S PSONVA=+Y K DR,DIC,DD,DA,DO,DINUM
+ K PSODOS,PSOSCH
+ ;
+ K DSC,STDT
  I $P(PSODSC,"^",2)]"" D
  .S DSC=1,^PS(55,DFN,"NVA",PSONVA,"DSC",1,0)=$P(PSODSC,"^",2)
  .S ^PS(55,DFN,"NVA",PSONVA,"DSC",0)="^55.052^1^1^"_DT_"^^^^"
@@ -66,8 +61,7 @@ PSONVNEW ;BIR/SAB - Add Non-VA Med orders ;09-Aug-2010 08:04;SM
  ...K MSCRSN(T)
  ..S ^PS(55,DFN,"NVA",PSONVA,21401,0)="^55.521404^"_MSCR_U_MSCR_U_DT_"^^^^"
  K MSCLD,MSCHMLST,MSCHMLOC,MSCRSN
- K HOLD,SCH,SCHED,SDL,SGL,ZSB,W,WW,SZZ,STRDT
- ;
+ K HOLD,SCH,SCHED,SDL,SGL,A,W,WW,CHR,STRDT
  ;
  M PMSG=MSG
 REIN K MSG S NULLFLDS="F JJ=0:1:LIMIT S FIELD(JJ)="""""
@@ -110,6 +104,32 @@ DC F OO=0:0 S OO=$O(PMSG(OO)) Q:'OO  I $P(PMSG(OO),"|")="ORC",$P(PMSG(OO),"|",2)
  I +$G(POERR("PSOFILNM")),$G(^PS(55,DFN,"NVA",+$G(POERR("PSOFILNM")),0)) S PDFN=DFN D XO^PSOORUTL
  K XO,OO,PMSG
  Q
+SCHED(SCH) ; Returns the SCHEDULE description
+ N SCHED,CNT,FND,A,I,K,HOLD
+ S SCHED="" Q:$G(SCH)="" SCHED
+ ;
+ F A=0:0 S A=$O(^PS(51.1,"B",SCH,A)) Q:'A  D  I SCHED'="" Q
+ . S:$P($G(^PS(51.1,A,0)),"^",8)'="" SCHED=$P($G(^(0)),"^",8)
+ I SCHED'="" G QSCH
+ ;
+ I $G(^PS(51,"A",SCH))'="" S SCHED=$P(^PS(51,"A",SCH),"^") G QSCH
+ ;
+ S CNT=$L(SCH," "),FND=0
+ F I=1:1:CNT S (WORD,HOLD(I))=$P(SCH," ",I) D
+ . I WORD="" Q
+ . F K=0:0 S K=$O(^PS(51.1,"B",WORD,K)) Q:'K  D  I FND Q
+ . . I $P($G(^PS(51.1,K,0)),"^",8)'="" D
+ . . . S HOLD(I)=$P($G(^PS(51.1,K,0)),"^",8),FND=1
+ . I $G(^PS(51,"A",WORD))]"" S HOLD(I)=$P(^(WORD),"^")
+ S FND=0 F K=1:1:CNT S SCHED=SCHED_$S($G(FND):" ",1:"")_$G(HOLD(K)),FND=1
+ ;
+QSCH Q SCHED
+ ;
+ROUTE(RTIEN) ; Returns the ROUTE description
+ N X
+ Q:'$G(RTIEN) "" S X=$G(^PS(51.2,RTIEN,0))
+ Q $S($P(X,"^",2)'="":$P(X,"^",2),1:$P(X,"^"))
+ ;
 APSOD ;dc non-va meds because of date of death entry called from psocan3
  N PDA,PDFN ;,POERR("PSOFILNM")
  F PDA=0:0 S PDA=$O(^PS(55,PSODFN,"NVA",PDA)) Q:'PDA  I '$P(^PS(55,PSODFN,"NVA",PDA,0),"^",6),'$P(^(0),"^",7) D

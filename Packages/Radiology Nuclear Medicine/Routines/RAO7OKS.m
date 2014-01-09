@@ -1,5 +1,5 @@
-RAO7OKS ;HISC/GJC-Accept/reject OE/RR request ;9/5/97  09:33
- ;;5.0;Radiology/Nuclear Medicine;**18,57**;Mar 16, 1998
+RAO7OKS ;HISC/GJC-Accept/reject OE/RR request ; 20 Apr 2011  7:27 PM
+ ;;5.0;Radiology/Nuclear Medicine;**18,57,1003**;Nov 01, 2010;Build 3
  ;Last modified for P18 Oct 24 by SS
 ACC(Y1,Y2,Y3,Y4,Y5) ; Rad accepts OE/RR request
  ; Y1-> order control                 Y2-> universal service ID
@@ -8,9 +8,13 @@ ACC(Y1,Y2,Y3,Y4,Y5) ; Rad accepts OE/RR request
  ;
  ; PFSS 1B Project Account Referance Number
  ; If the order status is "NEW", call to set up a new account number.
- I RAORD="NW" D FB^RABWIBB(+RAORC3)  ; Requirement 1, 5
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;I RAORD="NW" D FB^RABWIBB(+RAORC3)  ; Requirement 1, 5
+ ;End Patch
  ; If the order status is "DISCONTINUE", call to set up a discontinue event
- I RAORD="DC" D DC^RABWIBB(+RAORC3) ; Requirement 8
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;I RAORD="DC" D DC^RABWIBB(+RAORC3) ; Requirement 8
+ ;End Patch
  ;
  N MSG S MSG(1)=$$MSH^RAO7UTL("ORR")
  S MSG(2)=$$MSA^RAO7UTL(+RAORC2,"AA") ;P18 add MSA segment with accept AA

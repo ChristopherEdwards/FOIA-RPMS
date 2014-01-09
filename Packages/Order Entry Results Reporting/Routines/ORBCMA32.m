@@ -1,6 +1,6 @@
-ORBCMA32 ; SLC/JLI - Pharmacy Calls for GUI Dialog 1/17/02
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**133**;Dec 17, 1997
- ;;BCMA ORDER V1.0 ;**133**;Jan 17, 2002
+ORBCMA32 ; SLC/JLI - Pharmacy Calls for GUI Dialog 02/11/2008
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**133,243**;Dec 17, 1997;Build 242
+ ;;BCMA ORDER V1.0 ;**133,243**;Jan 17, 2002
  ;
 NXT() ; -- returns next available index in return data array
  S ILST=ILST+1
@@ -21,7 +21,6 @@ DLGSLCT(LST,PSTYPE) ; return default lists for dialog
  . S LST($$NXT)="~SCStatus" D SCLIST
  Q
 SHORT ; from DLGSLCT, get short list of med quick orders
- ; !!! change this so that it uses the ORWDXQ call!!!
  N I,X,TMP
  I PSTYPE="U" S X="UD RX"
  I PSTYPE="F" S X="IV RX"
@@ -31,13 +30,18 @@ SHORT ; from DLGSLCT, get short list of med quick orders
  Q
 SCHED ; from DLGSLCT, get all pharmacy administration schedules
  N X
- S X="" F  S X=$O(^PS(51.1,"APPSJ",X)) Q:X=""  S LST($$NXT)="i"_X
+ K ^TMP($J,"ORBCMA32 SCHED")
+ D AP^PSS51P1("PSJ",,,,"ORBCMA32 SCHED")
+ S X="" F  S X=$O(^TMP($J,"ORBCMA32 SCHED","APPSJ",X)) Q:X=""  S LST($$NXT)="i"_X
+ K ^TMP($J,"ORBCMA32 SCHED")
  Q
 SCHEDA ; (similar to SCHED, but also returns administration times)
  N X,IEN,SCH
- S SCH="" F  S SCH=$O(^PS(51.1,"APPSJ",SCH)) Q:SCH=""  D
- . S IEN=0 F  S IEN=$O(^PS(51.1,"APPSJ",SCH,IEN)) Q:IEN'>0  D
- . . S X=^PS(51.1,IEN,0) S X=$S($L($P(X,U,2)):"  ("_$P(X,U,2)_")",1:"")
+ K ^TMP($J,"ORBCMA32 SCHEDA")
+ D AP^PSS51P1("PSJ",,,,"ORBCMA32 SCHEDA")
+ S SCH="" F  S SCH=$O(^TMP($J,"ORBCMA32 SCHEDA","APPSJ",SCH)) Q:SCH=""  D
+ . S IEN=0 F  S IEN=$O(^TMP($J,"ORBCMA32 SCHEDA","APPSJ",SCH,IEN)) Q:IEN'>0  D
+ . . S X=$S($L(^TMP($J,"ORBCMA32 SCHEDA",IEN,2)):"  ("_^TMP($J,"ORBCMA32 SCHEDA",IEN,2)_")",1:"")
  . . S LST($$NXT)="i"_IEN_U_SCH_X
  Q
 PRIOR ; from DLGSLCT, get list of allowed priorities
@@ -127,18 +131,28 @@ MESSAGE ; message
  S I=0 F  S I=$O(^ORD(101.43,OI,8,I)) Q:I'>0  S LST($$NXT)="t"_^(I,0)
  Q
 ALLROUTE(LST) ; returns a list of all available med routes
- N I,X,ILST S ILST=0
- S I=0 F  S I=$O(^PS(51.2,I)) Q:'I  S X=^(I,0) D
- . I $P(X,U,4) S LST($$NXT)=I_U_$P(X,U)_U_$P(X,U,3)
+ N I,X,ILST
+ S ILST=0
+ K ^TMP($J,"ORWDPS32 ALLROUTE")
+ D ALL^PSS51P2(,"??",,,"ORWDPS32 ALLROUTE")
+ S I=0 F  S I=$O(^TMP($J,"ORWDPS32 ALLROUTE",I)) Q:'I  D
+ . I +$P(^TMP($J,"ORWDPS32 ALLROUTE",I,3),U)>0 S LST($$NXT)=I_U_^TMP($J,"ORWDPS32 ALLROUTE",I,.01)_U_^TMP($J,"ORWDPS32 ALLROUTE",I,1)
  Q
 VALROUTE(REC,X)        ; validates route name & returns IEN + abbreviation
- N ORLST,ABBR
- D FIND^DIC(51.2,"",1,"MO",X,1,,"I $P(^(0),U,4)=1",,"ORLST")
- I 'ORLST("DILIST",0) S REC=0 Q
- S X=$$UPPER(X),ABBR=ORLST("DILIST","ID",1,1)
- I '$L(ABBR) S ABBR=ORLST("DILIST",1,1)
- I ($$UPPER(ORLST("DILIST",1,1))'=X),($$UPPER(ABBR)'=X) S REC=0 Q
- S REC=ORLST("DILIST",2,1)_U_ABBR
+ N ABBR,NAME,IEN
+ K ^TMP($J,"ORBCMA32 VALROUTE")
+ S X=$$UPPER(X)
+ D ALL^PSS51P2(,X,,1,"ORBCMA32 VALROUTE")
+ I $P(^TMP($J,"ORBCMA32 VALROUTE",0),U)=-1 K ^TMP($J,"ORBCMA32 VALROUTE") S REC=0 Q
+ S IEN=$O(^TMP($J,"ORBCMA32 VALROUTE","B",X,""))
+ I IEN'>0 S IEN=$O(^TMP($J,"ORBCMA32 VALROUTE","C",X,""))
+ I IEN'>0 S REC=0 Q
+ S NAME=$G(^TMP($J,"ORBCMA32 VALROUTE",IEN,.01))
+ S ABBR=$G(^TMP($J,"ORBCMA32 VALROUTE",IEN,1))
+ I '$L(ABBR) S ABBR=NAME
+ I ($$UPPER(NAME)'=X),($$UPPER(ABBR)'=X) S REC=0 K ^TMP($J,"ORBCMA32 VALROUTE") Q
+ S REC=IEN_U_ABBR
+ K ^TMP($J,"ORBCMA32 VALROUTE")
  Q
 AUTH(VAL,PRV) ; For inpatient meds, check restrictions
  N NAME,AUTH,INACT,X S VAL=0
@@ -172,7 +186,7 @@ IVAMT(VAL,OI,ORWTYP)     ; return UNITS^AMOUNT |^AMOUNT^AMOUNT...| for IV soln
  . S AMT=0,VAL="ML" F  S AMT=$O(AMT(AMT)) Q:AMT'>0  S VAL=VAL_U_AMT
  I ORWTYP="A" D
  . S I=+$O(ORWY(0)) S VAL=$P($G(ORWY(I)),U,2)
- . I '$L(VAL) S VAL="ML^LITER^MCG^MG^GM^UNITS^IU^MEQ^MM^MU^THOUU"
+ . I '$L(VAL) S VAL="ML^LITER^MCG^MG^GM^UNITS^IU^MEQ^MM^MU^THOUU^MG-PE^NANOGRAM^MMOL"
  Q
 VALRATE(VAL,X)   ; return "1" (true) if IV rate text is valid
  I $E($RE($$UPPER(X)),1,5)="RH/LM"  S X=$E(X,1,$L(X)-5)
@@ -217,10 +231,13 @@ DOSES(LST,OI) ; return doses for an orderable item  -  TEST ONLY
  N ORTMP,ORI,ORJ,ILST,NDF,VAPN,X,PSTYPE S PSTYPE="O"
  D ENDD^PSJORUTL("^^^"_+$P($G(^ORD(101.43,OI,0)),"^",2),PSTYPE,.ORTMP)
  S ORI=0 F  S ORI=$O(ORTMP(ORI)) Q:'ORI  S ORWDRG=+ORTMP(ORI) D
- . S NDF=$G(^PSDRUG(+ORWDRG,"ND")),VAPN=$P(NDF,U,3),NDF=+NDF
+ . K ^TMP($J,"ORBCMA32 DRUG")
+ . D NDF^PSS50(+ORWDRG,,,,,"ORBCMA32 DRUG")
+ . S VAPN=$P($G(^TMP($J,"ORBCMA32 DRUG",+ORWDRG,22)),U),NDF=$P($G(^TMP($J,"ORBCMA32 DRUG",+ORWDRG,20)),U)
  . S X=$$DFSU^PSNAPIS(NDF,VAPN)
  . S LSTA($P(X,U,4),$P(X,U,6))=""
  . I +$P(X,U,4)=$P(X,U,4) S LSTA($P(X,U,4)*2,$P(X,U,6))=""
+ K ^TMP($J,"ORBCMA32 DRUG")
  S ORI="",ILST=0 F  S ORI=$O(LSTA(ORI)) Q:ORI=""  D
  . S ORJ="" F  S ORJ=$O(LSTA(ORI,ORJ)) Q:ORJ=""  D
  . . S ILST=ILST+1,LST(ILST)=ORI_" "_ORJ

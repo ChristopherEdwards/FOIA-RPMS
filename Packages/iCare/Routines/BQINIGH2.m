@@ -1,5 +1,5 @@
 BQINIGH2 ;VNGT/HS/ALA-Continuation of the nightly job ; 19 Feb 2010  2:02 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
  ;
 NGHT ;EP - Nightly Update of panels
  NEW DA
@@ -16,6 +16,8 @@ NGHT ;EP - Nightly Update of panels
  ;
  S USR=""
  F  S USR=$O(^BQICARE("AC","N",USR)) Q:'USR  D
+ . ; Check for terminated users
+ . I ($P($G(^VA(200,USR,0)),U,11)'=""),(+$P($G(^VA(200,USR,0)),U,11)<DT) Q
  . S PNL=""
  . F  S PNL=$O(^BQICARE("AC","N",USR,PNL)) Q:'PNL  D
  .. ; Lock panel to be repopulated
@@ -50,6 +52,8 @@ NGHT ;EP - Nightly Update of panels
  K PLIDEN
  S USR=""
  F  S USR=$O(^BQICARE("AC","N",USR)) Q:USR=""  D
+ . ; Check for terminated users
+ . I ($P($G(^VA(200,USR,0)),U,11)'=""),(+$P($G(^VA(200,USR,0)),U,11)<DT) Q
  . S PNL=""
  . F  S PNL=$O(^BQICARE("AC","N",USR,PNL)) Q:'PNL  D
  .. ;  For each panel, check current status, if not currently running, quit
@@ -103,4 +107,62 @@ CMA ;EP - Do Community Alerts
  ;
  ; Do Export
  D ^BQICAEXP
+ Q
+ ;
+ARM ;EP - Check and set up the 'ALL REMINDERS' Patient Health Summary Definition if needed
+ I '$$FIND1^DIC(9001015,"","","ALL REMINDERS","B","","") D
+ . N X,Y,DA,DR,DIC,DLAYGO,CMPNDX,REMNDX
+ . ;
+ . ; Create top level for 'ALL REMINDERS' Hlth Summary
+ . S X="ALL REMINDERS",DIC(0)="LZ",DLAYGO=9001015,DIC="^APCHSCTL("
+ . D FILE^DICN
+ . ;
+ . ; Build Sort Order Sub-File
+ . N DIC,DA,DIE,DR,X,BQIUPD
+ . S DLAYGO=9001015.01
+ . S (DA(1),REMNDX)=+Y,DA=10,DIC(0)="LZ",DIC="^APCHSCTL("_DA(1)_",1,"
+ . D FILE^DICN
+ . ;
+ . ; Add Component IEN for Reminders (from 9001016) to Hlth Summary
+ . S CMPNDX=$$FIND1^DIC(9001016,"","","HEALTH MAINTENANCE REMINDERS","B","","")
+ . Q:'CMPNDX
+ . S DA(1)=REMNDX,DA=10,DIE=DIC
+ . S DR=".01////"_DA_";1////"_CMPNDX
+ . D ^DIE
+ . ;
+ . ; Build Health Summary nodes.
+ . N DIC,DA,NDX,NDX2,RMNDR,X,Y,DR
+ . S DA(1)=REMNDX,DLAYGO=9001015.06,DIC(0)="LZ"
+ . S DIC="^APCHSCTL("_DA(1)_",5,"
+ . D FILE^DICN
+ . S NDX=""
+ . F  S NDX=$O(^APCHSURV("AC",NDX)) Q:NDX=""  D
+ .. S RMNDR=""
+ .. F  S RMNDR=$O(^APCHSURV("AC",NDX,RMNDR)) Q:RMNDR=""  D
+ ... I $$GET1^DIQ(9001018,RMNDR,.07,"I")'="R" Q
+ ... I $$GET1^DIQ(9001018,RMNDR,.03,"I")'="D" D
+ .... S (DA,NDX2)=(NDX*100)+RMNDR,DIE=DIC
+ .... S DR=".01////"_NDX2_";1////"_RMNDR
+ .... D ^DIE
+ .... Q
+ Q
+ ;
+IMM ;EP - Set up Immunizations
+ ; Clean out immunizations
+ NEW DA,DIK
+ S DA=0,DA(1)=8,DIK="^BQI(90506.5,"_DA(1)_",10,"
+ F  S DA=$O(^BQI(90506.5,8,10,DA)) Q:'DA  D ^DIK
+ ;
+ ; Set up immunizations
+ NEW BN,CT,CD
+ S BN=0,CT=0
+ F  S BN=$O(^AUTTIMM(BN)) Q:'BN  D
+ . I $P(^AUTTIMM(BN,0),U,7)=1 Q
+ . S NM=$P(^AUTTIMM(BN,0),U,2)
+ . S CT=CT+1
+ . S CD="I_"_$E("0000",$L(CT),2)_CT
+ . S ^BQI(90506.5,8,10,CT,0)=CD_"^8^"_NM_U_BN_"^D^D^"
+ . S ^BQI(90506.5,8,10,"B",CD,CT)=""
+ ;
+ S ^BQI(90506.5,8,10,0)="^90506.51^"_CT_U_CT
  Q

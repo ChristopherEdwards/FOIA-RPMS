@@ -1,5 +1,5 @@
-RARTE4 ;HISC/GJC - Edit/Delete Reports (cont) ;11/4/97  08:02
- ;;5.0;Radiology/Nuclear Medicine;**15,27,41,82,56**;Mar 16, 1998;Build 3
+RARTE4 ;HISC/GJC - Edit/Delete Reports (cont) ;11/4/97  08:02 [ 12/05/2011  10:19 AM ]
+ ;;5.0;Radiology/Nuclear Medicine;**15,27,41,82,56,47*1004**;Mar 16, 1998;Build 21
  ;Supported IA #10060 ^VA(200
  ;Supported IA #10007 DO^DIC1
 LOCK ;Try to lock next avail IEN, if locked - fail, if used - increment again
@@ -33,9 +33,17 @@ IN1 ;skip to here if div param disallows rpt copying
  I $P(RAMDV,"^",14) W !,RAI
  K RAFIN
  S DR="50///"_RACN
- S DR(2,70.03)="12//^S X=$S($D(RARES)&($D(RABTCH)):RARES,1:"""");S:$D(^VA(200,+X,0)) RARES=$P(^(0),U);I X'>0 S Y=""@15"";70;@15;15"
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Don't Ask Primary Resident
+ ;Patch 1004 - Continue Chris Saddler 2004 Patch
+ ;S DR(2,70.03)="12//^S X=$S($D(RARES)&($D(RABTCH)):RARES,1:"""");S:$D(^VA(200,+X,0)) RARES=$P(^(0),U);I X'>0 S Y=""@15"";70;@15;15"
+ ;I $P(RAMDV,"^",28) S DR(2,70.03)=DR(2,70.03)_"R" ; req'd for DIVISION
+ ;S DR(2,70.03)=DR(2,70.03)_"//^S X=$S($D(RASTFF)&($D(RABTCH)):RASTFF,1:"""");S:$D(^VA(200,+X,0)) RASTFF=$P(^(0),U);I X'>0 S Y=""@1"";60;@1;S RAFIN="""""
+ S DR(2,70.03)=15
  I $P(RAMDV,"^",28) S DR(2,70.03)=DR(2,70.03)_"R" ; req'd for DIVISION
- S DR(2,70.03)=DR(2,70.03)_"//^S X=$S($D(RASTFF)&($D(RABTCH)):RASTFF,1:"""");S:$D(^VA(200,+X,0)) RASTFF=$P(^(0),U);I X'>0 S Y=""@1"";60;@1;S RAFIN="""""
+ S DR(2,70.03)=DR(2,70.03)_"//^S X=$S($D(RASTFF)&($D(RABTCH)):RASTFF,1:"""");S:$D(^VA(200,+X,0)) RASTFF=$P(^(0),U);I X'>0 S Y=""@1"";@1;S RAFIN="""""
+ ;End Patch
+ ;
  S DA(1)=RADFN,DA=RADTI,DIE="^RADPT("_DA(1)_",""DT""," D ^DIE K DE,DQ
  D ELOC^RABWRTE ; Billing Aware -- ask Inter. Img Loc
  I RAPRTSET S RADRS=2 D COPY^RARTE2 ; copy resid and staff
@@ -48,8 +56,6 @@ IN1 ;skip to here if div param disallows rpt copying
  I '$D(RACOPY),$P(RAMDV,"^",12) D STD^RARTE1 I X="^" G PRT
  W !,RAI D EDTRPT^RARTE1
 PRT D UNLOCK^RAUTL12(RAPNODE,RACNI)
- ; --- copy diags to other cases of print set
- I RAPRTSET S RADRS=1,RAXIT=0 D COPY^RARTE2 L -^RADPT(RADFN,"DT",RADTI) ;unlock dt level only after copying is done
  ; wait til report has been checked for completeness before unlocking it
  S RAXIT=$$EN3^RAUTL15(RARPT) D UNLOCK^RAUTL12("^RARPT(",RARPT)
  I RAXIT S RAXIT=0 D UNLOCK2 D INCRPT G START^RARTE

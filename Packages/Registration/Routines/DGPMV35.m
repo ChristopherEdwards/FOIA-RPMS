@@ -1,5 +1,5 @@
 DGPMV35 ;ALB/MIR - CHECK-OUT LODGERS ; MAR 12 1990
- ;;5.3;Registration;**111**;Aug 13, 1993
+ ;;5.3;Registration;**111,1015**;Aug 13, 1993;Build 21
  ;
  I '$P(DGPMA,"^",4) W !,"Incomplete Check-Out Movement" S DIK="^DGPM(",DA=DGPMDA D ^DIK W "   deleted" S DGPMA="" G Q
  ;D ADM^DGPMV33

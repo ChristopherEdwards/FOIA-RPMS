@@ -1,5 +1,5 @@
 ABSPOSI1 ; IHS/FCS/DRS - support for the prescrip. field on the form ;    [ 09/12/2002  10:10 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,10**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,10,44**;JUN 21, 2001
  ;----------------------------------------------------------------------
  ;IHS/SD/lwj 03/10/04 patch 10
  ; Routine adjusted to call ABSPFUNC to retrieve
@@ -129,7 +129,8 @@ EFFECTS N ERR ; side effects of putting a value in the prescription field
  . S PAT=$P(R0,U,2)
  . S PATNAME=$P(^DPT(PAT,0),U)
  . S DRUG=$P(R0,U,6) ; get pointer to drug file ; ABSP*1.0T7*11 ; removed "N DRUG", the NEW happened at the calling level and DRUG is needed below
- . I DRUG S DRUGNAME=$P($G(^PSDRUG(DRUG,0)),U) ; get drug name
+ . ;OIT/CAS/RCS 10022012 - Patch 44, only allow 40 characters for the drug name, HEAT # 86226
+ . I DRUG S DRUGNAME=$E($P($G(^PSDRUG(DRUG,0)),U),1,40) ; get drug name
  . E  S DRUGNAME="?missing from ^PSRX?"
  . I RXR D  ; refill
  . . S FILLDATE=$P(^PSRX(RXI,1,RXR,0),U) ;$O(^PSRX(X,1,"B",""),-1)

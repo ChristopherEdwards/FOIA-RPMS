@@ -1,5 +1,5 @@
 DGOIL2 ;ALB/AAS - CALCULATE LOS BY TRANSFER ; 28-SEPT-90
- ;;5.3;Registration;**93,498**;Aug 13, 1993
+ ;;5.3;Registration;**93,498,1015**;Aug 13, 1993;Build 21
  ;
  ;INPUT   -   Admission ifn in DGPMIFN - call EN^
  ;

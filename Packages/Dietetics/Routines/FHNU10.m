@@ -1,5 +1,5 @@
 FHNU10 ; HISC/REL - Print DRI Values ;3/8/95  13:26
- ;;5.0;Dietetics;**36**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  W !!,"The list requires a 132 column printer.",!
  W ! K IOP,%ZIS S %ZIS("A")="Select LIST PRINTER: ",%ZIS="MQ" D ^%ZIS K %ZIS,IOP G:POP KIL
  I $D(IO("Q")) S FHPGM="Q1^FHNU10",FHLST="" D EN2^FH G KIL

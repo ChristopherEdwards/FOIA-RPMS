@@ -1,5 +1,5 @@
 DGPMTS ;ALB/LM - TREATING SPECIALTY INPATIENT PRINT ; 2-2-93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 EN ;
  S %DT="AEPX"
  S %DT("A")="Select Date for Treating Specialty Inpatient Information: "

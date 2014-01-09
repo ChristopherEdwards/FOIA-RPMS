@@ -1,5 +1,8 @@
-DGPFDD ;ALB/RPM - PRF DATA DICTIONARY UTILITIES ; 02/04/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFDD ;ALB/RPM - PRF DATA DICTIONARY UTILITIES ; 9/06/06 1:14pm
+ ;;5.3;Registration;**425,554,650,1015,1016**;Aug 13, 1993;Build 20
+ ;
+ ;ihs/cmi/maw 07/26/2012 PATCH 1015 SCRNDIV not using parents in IHS
+ ;
  ;
  Q  ;No direct entry
  ;
@@ -97,3 +100,172 @@ COS(DGAPRV) ;transform POSTMASTER to CHIEF OF STAFF
  Q:(+$G(DGAPRV)'>0) ""
  ;
  Q $S(DGAPRV=.5:"CHIEF OF STAFF",1:$$GET1^DIQ(200,DGAPRV_",",.01,"","","DGERR"))
+ ;
+TIULIST(DGTIUIEN) ;DD lookup screen for (#26.11) file (#.07) field
+ ;Get list of TIU Progress Note Titles for Category II (Local) Flags.
+ ;This function will assist the DIC("S") lookup screen of allowable
+ ;TIU Progress Note Titles the user can see and select from.
+ ;
+ ; Supported DBIA:  #4380 - $$CHKDOC^TIUPRF - TIU API's for PRF
+ ;                  #4383 - $$FNDTITLE^DGPFAPI1
+ ;
+ ;  Input:
+ ;    DGTIUIEN - [Required] IEN of (#8925.1) entry being screened
+ ;
+ ;  Output:
+ ;    Function Value - Returns 1 on success, 0 on failure
+ ;
+ N DGPNLIST  ;temporary file name to hold list of titles
+ N DGRSLT    ;function return value
+ N DGX       ;loop var
+ N DGY       ;loop var
+ ;
+ Q:DGTIUIEN']"" 0
+ ;
+ S DGRSLT=0
+ ;
+ ; get list from TIU Progress Note Title API call IA #4380
+ S DGPNLIST=$NA(^TMP("DGPNLIST",$J))
+ K @DGPNLIST
+ ;
+ ; only get Category II (Local) TIU PN Titles (pass a 2)
+ I $$GETLIST(2,DGPNLIST) D
+ . S (DGX,DGY)="" F  S DGX=$O(@DGPNLIST@("CAT II",DGX)) Q:DGX=""  D
+ . . S DGY=$G(@DGPNLIST@("CAT II",DGX))
+ . . ; Need to setup the current assigned progress note title as a
+ . . ;  selectable entry or the ^DIR call won't accept the default
+ . . ;   entry when the user hits the retrun key to go to next prompt.
+ . . ; Only setup if called by PRF action protocol DGPF EDIT FLAG
+ . . I $P($G(XQORNOD(0)),U,3)="Edit Record Flag",+DGY=$P($G(DGPFORIG("TIUTITLE")),U) D  Q
+ . . . S @DGPNLIST@(+DGY)=""
+ . . Q:'DGY
+ . . I '$$FNDTITLE^DGPFAPI1($P(DGY,U,1)) S @DGPNLIST@(+DGY)=""
+ ;
+ I $D(@DGPNLIST@(DGTIUIEN)) S DGRSLT=1
+ K @DGPNLIST
+ ;
+ Q DGRSLT
+ ;
+GETLIST(DGCAT,DGLIST) ;Get list of TIU Progress Note Titles
+ ; This function is used to retrieve a list of active TIU Progress
+ ; Note Titles that can be associated with Category I or Category II
+ ; Record Flags.
+ ;
+ ;  Supported DBIA:  #4380 - $$CHKDOC^TIUPRF - TIU API's for PRF
+ ;
+ ;  Input: [Required]
+ ;     DGCAT - Category of TIU Progress Note Titles to look for
+ ;             1:Category I
+ ;             2:Category II
+ ;             3:Both Category I and II
+ ;    DGLIST - Closed root reference array name to return values
+ ;
+ ;  Output:
+ ;    Function Value - returns 1 on success, 0 on failure
+ ;          DGLIST() - Closed Root reference name of returned data
+ ;
+ N DGRSLT  ;function value
+ S DGRSLT=0
+ ;
+ I $G(DGCAT)>0,DGLIST]"",$$GETLIST^TIUPRF(DGCAT,DGLIST) S DGRSLT=1
+ ;
+ Q DGRSLT
+ ;
+EVENT(DGDFN) ;PRF HL7 EVENT trigger
+ ;This trigger creates an entry in the PRF HL7 EVENT (#26.21) file
+ ;with an INCOMPLETE status.
+ ;
+ ;  Input:
+ ;    DGDFN - pointer to patient in PATIENT (#2) file
+ ;
+ ;  Output: none
+ ;
+ N DGASGN
+ ;
+ ;validate input parameter
+ Q:'$G(DGDFN)!('$D(^DPT(+$G(DGDFN),0)))
+ ;
+ ;don't record event when file re-indexing
+ I $D(DIU(0))!($D(DIK)&$D(DIKJ)&$D(DIKLK)&$D(DIKS)&$D(DIN)) Q
+ ;
+ ;ICN must be national value
+ Q:'$$MPIOK^DGPFUT(DGDFN)
+ ;
+ ;limit to one event per patient
+ Q:$$FNDEVNT^DGPFHLL1(DGDFN)
+ ;
+ ;don't trigger when Category I PRF assignments exist
+ Q:$$GETALL^DGPFAA(DGDFN,.DGASGN,"",1)
+ ;
+ ;record event
+ D STOEVNT^DGPFHLL1(DGDFN)
+ ;
+ Q
+ ;
+SCRNSEL(DGIEN,DGSEL) ;screen user selection
+ ;This function checks that the selected action does not equal the
+ ;current field value.
+ ;
+ ;  Input:
+ ;   DGIEN - (required) MEDICAL CENTER DIVISION (#40.8) file (IEN)
+ ;
+ ;   DGSEL - (required) user selected action [1=enable, 0=disable]
+ ;
+ ; Output:
+ ;   Function value - returns 1 on success, 0 on failure
+ ;
+ N DGERR   ;error root
+ N DGFLD   ;field value
+ N DGRSLT  ;function result
+ ;
+ S DGRSLT=0
+ ;
+ I +$G(DGIEN)>0,($G(DGSEL)]"") D
+ . ;
+ . S DGFLD=+$$GET1^DIQ(40.8,DGIEN_",",26.01,"I","","DGERR")
+ . Q:$D(DGERR)
+ . Q:(DGFLD=DGSEL)
+ . ;
+ . S DGRSLT=1
+ ;
+ Q DGRSLT
+ ;
+SCRNDIV(DGIEN,DGSEL) ;division screen
+ ;This function contains the screen logic for enabling/disabling a
+ ;medical center division.
+ ;
+ ;The function (screen) is called from the following locations:
+ ;   Function: $$ASKDIV^DGPFDIV
+ ;         DD: Screen code for PRF ASSIGNMENT OWNERSHIP (#26.01) field
+ ;             of the MEDICAL CENTER DIVISION (#40.8) file
+ ;
+ ;Entries will be screened if:
+ ; - division is enabled and active assignments are associated with
+ ;   the division
+ ; - division is not associated with an active institution
+ ; - division does not have a PARENT association in the
+ ;   INSTITUTION (#4) file
+ ;
+ ;  Input:
+ ;   DGIEN - (required) MEDICAL CENTER DIVISION (#40.8) file entry (IEN)
+ ;           being screened
+ ;   DGSEL - (required) user selected action [1=enable, 0=disable]
+ ;
+ ; Output:
+ ;   Function value - returns 1 on success, 0 on failure
+ ;
+ N DGINST  ;ptr to INSTITUTION file
+ N DGRSLT  ;function result
+ ;
+ S DGRSLT=0
+ ;
+ I +$G(DGIEN)>0,($G(DGSEL)]"") D
+ . ;
+ . S DGINST=+$P($G(^DG(40.8,DGIEN,0)),U,7)
+ . I DGSEL=0,($D(^DGPF(26.13,"AOWN",DGINST,1))) Q
+ . I DGSEL=1,'$$ACTIVE^XUAF4(DGINST) Q
+ . ;I DGSEL=1,'$$PARENT^DGPFUT1(DGINST) Q  ;ihs/cmi/maw PATCH 1015 not used in IHS
+ . ;
+ . S DGRSLT=1
+ ;
+ Q DGRSLT

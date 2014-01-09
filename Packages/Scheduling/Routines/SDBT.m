@@ -1,13 +1,17 @@
-SDBT ; GENERATED FROM 'SDB' INPUT TEMPLATE(#1847), FILE 44;10/29/04
- D DE G BEGIN
+SDBT ; GENERATED FROM 'SDB' INPUT TEMPLATE(#2136), FILE 44;02/09/12
+ D DE G BEGIN;;;;;;Build 21
 DE S DIE="^SC(",DIC=DIE,DP=44,DL=1,DIEL=0,DU="" K DG,DE,DB Q:$O(^SC(DA,""))=""
- I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,1) S:%]"" DE(1)=% S %=$P(%Z,U,2) S:%]"" DE(2)=% S %=$P(%Z,U,7) S:%]"" DE(12)=% S %=$P(%Z,U,8) S:%]"" DE(4)=% S %=$P(%Z,U,15) S:%]"" DE(10)=% S %=$P(%Z,U,17) S:%]"" DE(5)=% S %=$P(%Z,U,19) S:%]"" DE(3)=%
- I  S %=$P(%Z,U,21) S:%]"" DE(7)=%
- I $D(^(99)) S %Z=^(99) S %=$P(%Z,U,1) S:%]"" DE(14)=%
+ I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,1) S:%]"" DE(1)=% S %=$P(%Z,U,2) S:%]"" DE(2)=% S %=$P(%Z,U,7) S:%]"" DE(12)=% S %=$P(%Z,U,8) S:%]"" DE(4)=% S %=$P(%Z,U,11) S:%]"" DE(42)=% S %=$P(%Z,U,15) S:%]"" DE(10)=% S %=$P(%Z,U,17) S:%]"" DE(5)=%
+ I  S %=$P(%Z,U,18) S:%]"" DE(36)=% S %=$P(%Z,U,19) S:%]"" DE(3)=% S %=$P(%Z,U,21) S:%]"" DE(7)=% S %=$P(%Z,U,24) S:%]"" DE(22)=% S %=$P(%Z,U,25) S:%]"" DE(14)=% S %=$P(%Z,U,30) S:%]"" DE(26)=%
+ I $D(^(99)) S %Z=^(99) S %=$P(%Z,U,1) S:%]"" DE(15)=%
  I $D(^("AT")) S %Z=^("AT") S %=$P(%Z,U,1) S:%]"" DE(13)=%
- I $D(^("LTR")) S %Z=^("LTR") S %=$P(%Z,U,1) S:%]"" DE(17)=% S %=$P(%Z,U,2) S:%]"" DE(18)=% S %=$P(%Z,U,3) S:%]"" DE(19)=% S %=$P(%Z,U,4) S:%]"" DE(20)=%
- I $D(^("PS")) S %Z=^("PS") S %=$P(%Z,U,1) S:%]"" DE(16)=%
- I $D(^("RAD")) S %Z=^("RAD") S %=$P(%Z,U,1) S:%]"" DE(15)=%
+ I $D(^("LTR")) S %Z=^("LTR") S %=$P(%Z,U,1) S:%]"" DE(18)=% S %=$P(%Z,U,2) S:%]"" DE(19)=% S %=$P(%Z,U,3) S:%]"" DE(20)=% S %=$P(%Z,U,4) S:%]"" DE(21)=%
+ I $D(^("PC")) S %Z=^("PC") S %=$P(%Z,U,1) S:%]"" DE(24)=%
+ I $D(^("PS")) S %Z=^("PS") S %=$P(%Z,U,1) S:%]"" DE(17)=%
+ I $D(^("RAD")) S %Z=^("RAD") S %=$P(%Z,U,1) S:%]"" DE(16)=%
+ I $D(^("SDP")) S %Z=^("SDP") S %=$P(%Z,U,1) S:%]"" DE(27)=% S %=$P(%Z,U,2) S:%]"" DE(28)=% S %=$P(%Z,U,3) S:%]"" DE(33)=% S %=$P(%Z,U,4) S:%]"" DE(34)=%
+ I $D(^("SDPROT")) S %Z=^("SDPROT") S %=$P(%Z,U,1) S:%]"" DE(37)=%
+ I $D(^("SL")) S %Z=^("SL") S %=$P(%Z,U,3) S:%]"" DE(30)=% S %=$P(%Z,U,5) S:%]"" DE(43)=% S %=$P(%Z,U,7) S:%]"" DE(44)=% S %=$P(%Z,U,8) S:%]"" DE(35)=%
  K %Z Q
  ;
 W W !?DL+DL-2,DLB_": "
@@ -56,8 +60,8 @@ NKEY W:'$D(ZTQUEUED) "??  Required key field" S X="?BAD" G QS
 KEYCHK() Q:$G(DE(DW,"KEY"))="" 1 Q @DE(DW,"KEY")
 BEGIN S DNM="SDBT",DQ=1
  N DIEZTMP,DIEZAR,DIEZRXR,DIIENS,DIXR K DIEFIRE,DIEBADK S DIEZTMP=$$GETTMP^DIKC1("DIEZ")
- M DIEZAR=^DIE(1847,"AR") S DICRREC="TRIG^DIE17"
- S:$D(DTIME)[0 DTIME=300 S D0=DA,DIIENS=DA_",",DIEZ=1847,U="^"
+ M DIEZAR=^DIE(2136,"AR") S DICRREC="TRIG^DIE17"
+ S:$D(DTIME)[0 DTIME=300 S D0=DA,DIIENS=DA_",",DIEZ=2136,U="^"
 1 S DW="0;1",DV="RF",DU="",DLB="NAME",DIFLD=.01
  S DE(DW)="C1^SDBT"
  G RE
@@ -141,8 +145,8 @@ X9 S:$S('$D(^DG(43,1,"GL")):1,$D(^DG(43,1,"GL"))&('$P(^DG(43,1,"GL"),"^",2)):1,1
  G Y
 X10 Q
 11 S DQ=12 ;@10
-12 S DW="0;7",DV="R*P40.7'",DU="",DLB="STOP CODE NUMBER",DIFLD=8
- S DE(DW)="C12^SDBT"
+12 S DW="0;7",DV="R*P40.7'X",DU="",DLB="STOP CODE NUMBER",DIFLD=8
+ S DE(DW)="C12^SDBT",DE(DW,"INDEX")=1
  S DU="DIC(40.7,"
  G RE
 C12 G C12S:$D(DE(12))[0 K DB
@@ -151,8 +155,18 @@ C12 G C12S:$D(DE(12))[0 K DB
 C12S S X="" G:DG(DQ)=X C12F1 K DB
  S X=DG(DQ),DIC=DIE
  S ^SC("ASTOP",$E(X,1,30),DA)=""
-C12F1 Q
-X12 S DIC("S")="I $P(^(0),U,2)'=900&$S('$P(^(0),U,3):1,$P(^(0),U,3)>DT:1,1:0)" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
+C12F1 N X,X1,X2 S DIXR=294 D C12X1(U) K X2 M X2=X D C12X1("O") K X1 M X1=X
+ I $G(X(1))]"" D
+ . K ^SC("AST",X,DA)
+ K X M X=X2 I $G(X(1))]"" D
+ . S ^SC("AST",X,DA)=""
+ G C12F2
+C12X1(DION) K X
+ S X(1)=$G(@DIEZTMP@("V",44,DIIENS,8,DION),$P($G(^SC(DA,0)),U,7))
+ S X=$G(X(1))
+ Q
+C12F2 Q
+X12 S DIC("S")="I $P(^(0),U,2)'=900&$S('$P(^(0),U,3):1,$P(^(0),U,3)>DT:1,1:0),""PE""[$P(^(0),U,6),$S('$P(^(0),U,7):1,$P(^(0),U,7)'>DT:1,1:0)" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
  Q
  ;
 13 D:$D(DG)>9 F^DIE17,DE S DQ=13,DW="AT;1",DV="*P409.1'",DU="",DLB="DEFAULT APPOINTMENT TYPE",DIFLD=2507
@@ -162,71 +176,226 @@ X12 S DIC("S")="I $P(^(0),U,2)'=900&$S('$P(^(0),U,3):1,$P(^(0),U,3)>DT:1,1:0)" D
 X13 S DIC("S")="I '$P(^(0),U,3)" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
  Q
  ;
-14 S DW="99;1",DV="F",DU="",DLB="TELEPHONE",DIFLD=99
+14 S DW="0;25",DV="S",DU="",DLB="ADMINISTER INPATIENT MEDS?",DIFLD=2802
+ S DE(DW)="C14^SDBT"
+ S DU="1:YES;"
  G RE
-X14 K:$L(X)>13!($L(X)<3) X
+C14 G C14S:$D(DE(14))[0 K DB
+ S X=DE(14),DIC=DIE
+ K ^SC("AE",$E(X,1,30),DA)
+C14S S X="" G:DG(DQ)=X C14F1 K DB
+ S X=DG(DQ),DIC=DIE
+ S ^SC("AE",$E(X,1,30),DA)=""
+C14F1 Q
+X14 Q
+15 D:$D(DG)>9 F^DIE17,DE S DQ=15,DW="99;1",DV="F",DU="",DLB="TELEPHONE",DIFLD=99
+ G RE
+X15 K:$L(X)>13!($L(X)<3) X
  I $D(X),X'?.ANP K X
  Q
  ;
-15 S DW="RAD;1",DV="S",DU="",DLB="REQUIRE X-RAY FILMS?",DIFLD=2000
+16 S DW="RAD;1",DV="S",DU="",DLB="REQUIRE X-RAY FILMS?",DIFLD=2000
  S DU="Y:YES;"
  G RE
-X15 Q
-16 S DW="PS;1",DV="RS",DU="",DLB="REQUIRE ACTION PROFILES?",DIFLD=2000.5
+X16 Q
+17 S DW="PS;1",DV="RS",DU="",DLB="REQUIRE ACTION PROFILES?",DIFLD=2000.5
  S DU="0:YES;1:NO;"
  S Y="YES"
  G Y
-X16 Q
-17 S DW="LTR;1",DV="*P407.5'",DU="",DLB="NO SHOW LETTER",DIFLD=2508
- S DE(DW)="C17^SDBT"
- S DU="VA(407.5,"
- G RE
-C17 G C17S:$D(DE(17))[0 K DB
- S X=DE(17),DIC=DIE
- K ^SC("ALTN",$E(X,1,30),DA)
-C17S S X="" G:DG(DQ)=X C17F1 K DB
- S X=DG(DQ),DIC=DIE
- S ^SC("ALTN",$E(X,1,30),DA)=""
-C17F1 Q
-X17 S DIC("S")="I $P(^(0),""^"",2)=""N""" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
- Q
- ;
-18 D:$D(DG)>9 F^DIE17,DE S DQ=18,DW="LTR;2",DV="*P407.5'",DU="",DLB="PRE-APPOINTMENT LETTER",DIFLD=2509
+X17 Q
+18 S DW="LTR;1",DV="*P407.5'",DU="",DLB="NO SHOW LETTER",DIFLD=2508
  S DE(DW)="C18^SDBT"
  S DU="VA(407.5,"
  G RE
 C18 G C18S:$D(DE(18))[0 K DB
  S X=DE(18),DIC=DIE
- K ^SC("ALTP",$E(X,1,30),DA)
+ K ^SC("ALTN",$E(X,1,30),DA)
 C18S S X="" G:DG(DQ)=X C18F1 K DB
  S X=DG(DQ),DIC=DIE
- S ^SC("ALTP",$E(X,1,30),DA)=""
+ S ^SC("ALTN",$E(X,1,30),DA)=""
 C18F1 Q
-X18 S DIC("S")="I $P(^(0),""^"",2)=""P""" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
+X18 S DIC("S")="I $P(^(0),""^"",2)=""N""" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
  Q
  ;
-19 D:$D(DG)>9 F^DIE17,DE S DQ=19,DW="LTR;3",DV="*P407.5'",DU="",DLB="CLINIC CANCELLATION LETTER",DIFLD=2510
+19 D:$D(DG)>9 F^DIE17,DE S DQ=19,DW="LTR;2",DV="*P407.5'",DU="",DLB="PRE-APPOINTMENT LETTER",DIFLD=2509
  S DE(DW)="C19^SDBT"
  S DU="VA(407.5,"
  G RE
 C19 G C19S:$D(DE(19))[0 K DB
- D ^SDBT1
+ S X=DE(19),DIC=DIE
+ K ^SC("ALTP",$E(X,1,30),DA)
 C19S S X="" G:DG(DQ)=X C19F1 K DB
- D ^SDBT2
+ S X=DG(DQ),DIC=DIE
+ S ^SC("ALTP",$E(X,1,30),DA)=""
 C19F1 Q
-X19 S DIC("S")="I $P(^(0),""^"",2)=""C""" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
+X19 S DIC("S")="I $P(^(0),""^"",2)=""P""" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
  Q
  ;
-20 D:$D(DG)>9 F^DIE17,DE S DQ=20,DW="LTR;4",DV="*P407.5'",DU="",DLB="APPT. CANCELLATION LETTER",DIFLD=2511
+20 D:$D(DG)>9 F^DIE17,DE S DQ=20,DW="LTR;3",DV="*P407.5'",DU="",DLB="CLINIC CANCELLATION LETTER",DIFLD=2510
  S DE(DW)="C20^SDBT"
  S DU="VA(407.5,"
  G RE
 C20 G C20S:$D(DE(20))[0 K DB
- D ^SDBT3
+ S X=DE(20),DIC=DIE
+ K ^SC("ALTC",$E(X,1,30),DA)
 C20S S X="" G:DG(DQ)=X C20F1 K DB
- D ^SDBT4
+ S X=DG(DQ),DIC=DIE
+ S ^SC("ALTC",$E(X,1,30),DA)=""
 C20F1 Q
-X20 S DIC("S")="I $P(^(0),""^"",2)=""A""" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
+X20 S DIC("S")="I $P(^(0),""^"",2)=""C""" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
  Q
  ;
-21 D:$D(DG)>9 F^DIE17 G ^SDBT5
+21 D:$D(DG)>9 F^DIE17,DE S DQ=21,DW="LTR;4",DV="*P407.5'",DU="",DLB="APPT. CANCELLATION LETTER",DIFLD=2511
+ S DE(DW)="C21^SDBT"
+ S DU="VA(407.5,"
+ G RE
+C21 G C21S:$D(DE(21))[0 K DB
+ S X=DE(21),DIC=DIE
+ K ^SC("ALTA",$E(X,1,30),DA)
+C21S S X="" G:DG(DQ)=X C21F1 K DB
+ S X=DG(DQ),DIC=DIE
+ S ^SC("ALTA",$E(X,1,30),DA)=""
+C21F1 Q
+X21 S DIC("S")="I $P(^(0),""^"",2)=""A""" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
+ Q
+ ;
+22 D:$D(DG)>9 F^DIE17,DE S DQ=22,DW="0;24",DV="S",DU="",DLB="ASK FOR CHECK IN/OUT TIME",DIFLD=24
+ S DU="0:NO;1:YES;"
+ G RE
+X22 Q
+23 S D=0 K DE(1) ;2600
+ S DIFLD=2600,DGO="^SDBT1",DC="2^44.1P^PR^",DV="44.1M*P200'",DW="0;1",DOW="PROVIDER",DLB=$P($$EZBLD^DIALOG(8042,DOW),":") S:D DC=DC_D
+ S DU="VA(200,"
+ G RE:D I $D(DSC(44.1))#2,$P(DSC(44.1),"I $D(^UTILITY(",1)="" X DSC(44.1) S D=$O(^(0)) S:D="" D=-1 G M23
+ S D=$S($D(^SC(DA,"PR",0)):$P(^(0),U,3,4),$O(^(0))'="":$O(^(0)),1:-1)
+M23 I D>0 S DC=DC_D I $D(^SC(DA,"PR",+D,0)) S DE(23)=$P(^(0),U,1)
+ G RE
+R23 D DE
+ S D=$S($D(^SC(DA,"PR",0)):$P(^(0),U,3,4),1:1) G 23+1
+ ;
+24 S DW="PC;1",DV="S",DU="",DLB="DEFAULT TO PC PRACTITIONER?",DIFLD=2801
+ S DU="1:YES;0:NO;"
+ G RE
+X24 Q
+25 S D=0 K DE(1) ;2700
+ S DIFLD=2700,DGO="^SDBT2",DC="2^44.11P^DX^",DV="44.11M*P80'",DW="0;1",DOW="DIAGNOSIS",DLB=$P($$EZBLD^DIALOG(8042,DOW),":") S:D DC=DC_D
+ S DU="ICD9("
+ G RE:D I $D(DSC(44.11))#2,$P(DSC(44.11),"I $D(^UTILITY(",1)="" X DSC(44.11) S D=$O(^(0)) S:D="" D=-1 G M25
+ S D=$S($D(^SC(DA,"DX",0)):$P(^(0),U,3,4),$O(^(0))'="":$O(^(0)),1:-1)
+M25 I D>0 S DC=DC_D I $D(^SC(DA,"DX",+D,0)) S DE(25)=$P(^(0),U,1)
+ G RE
+R25 D DE
+ S D=$S($D(^SC(DA,"DX",0)):$P(^(0),U,3,4),1:1) G 25+1
+ ;
+26 S DW="0;30",DV="S",DU="",DLB="WORKLOAD VALIDATION AT CHK OUT",DIFLD=30
+ S DU="1:YES;0:NO;"
+ G RE
+X26 Q
+27 S DW="SDP;1",DV="RNJ3,0",DU="",DLB="ALLOWABLE CONSECUTIVE NO-SHOWS",DIFLD=2001
+ G RE
+X27 K:+X'=X!(X>999)!(X<0)!(X?.E1"."1N.N) X
+ Q
+ ;
+28 S DW="SDP;2",DV="RNJ3,0",DU="",DLB="MAX # DAYS FOR FUTURE BOOKING",DIFLD=2002
+ G RE
+X28 K:+X'=X!(X>999)!(X<11)!(X?.E1"."1N.N) X
+ Q
+ ;
+29 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=29 D X29 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
+X29 S:+$O(^SC(DA,"ST",0))>0 Y="@25"
+ Q
+30 S DW="SL;3",DV="NJ2,0",DU="",DLB="HOUR CLINIC DISPLAY BEGINS",DIFLD=1914
+ G RE
+X30 K:+X'=X!(X>16)!(X<0)!(X?.E1"."1N.N) X
+ Q
+ ;
+31 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=31 G A
+32 S DQ=33 ;@25
+33 S DW="SDP;3",DV="NJ2,0X",DU="",DLB="START TIME FOR AUTO REBOOK",DIFLD=2003
+ G RE
+X33 K:+X'=X!(X>16)!(X<0)!(X?.E1"."1N.N) X I $D(X),$D(^SC(DA,"SL")) I X<$S('$P(^("SL"),"^",3):8,1:$P(^("SL"),"^",3)) W !,*7,"MUST NOT BE EARLIER THAN CLINIC START TIME" K X
+ Q
+ ;
+34 S DW="SDP;4",DV="RNJ3,0",DU="",DLB="MAX # DAYS FOR AUTO-REBOOK",DIFLD=2005
+ G RE
+X34 K:+X'=X!(X>365)!(X<1)!(X?.E1"."1N.N) X
+ Q
+ ;
+35 S DW="SL;8",DV="S",DU="",DLB="SCHEDULE ON HOLIDAYS?",DIFLD=1918.5
+ S DU="Y:YES;"
+ G RE
+X35 Q
+36 S DW="0;18",DV="*P40.7'X",DU="",DLB="CREDIT STOP CODE",DIFLD=2503
+ S DE(DW)="C36^SDBT",DE(DW,"INDEX")=1
+ S DU="DIC(40.7,"
+ G RE
+C36 G C36S:$D(DE(36))[0 K DB
+C36S S X="" G:DG(DQ)=X C36F1 K DB
+C36F1 N X,X1,X2 S DIXR=293 D C36X1(U) K X2 M X2=X D C36X1("O") K X1 M X1=X
+ I $G(X(1))]"" D
+ . K ^SC("ACST",X,DA)
+ K X M X=X2 I $G(X(1))]"" D
+ . S ^SC("ACST",X,DA)=""
+ G C36F2
+C36X1(DION) K X
+ S X(1)=$G(@DIEZTMP@("V",44,DIIENS,2503,DION),$P($G(^SC(DA,0)),U,18))
+ S X=$G(X(1))
+ Q
+C36F2 Q
+X36 S DIC("S")="I $P(^(0),U,2)'=900&$S('$P(^(0),U,3):1,$P(^(0),U,3)>DT:1,1:0),""SE""[$P(^(0),U,6),$S('$P(^(0),U,7):1,$P(^(0),U,7)'>DT:1,1:0)" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
+ Q
+ ;
+37 D:$D(DG)>9 F^DIE17,DE S DQ=37,DW="SDPROT;1",DV="S",DU="",DLB="PROHIBIT ACCESS TO CLINIC?",DIFLD=2500
+ S DU="Y:YES;"
+ G RE
+X37 Q
+38 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=38 D X38 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
+X38 S:X'="Y" Y="@30"
+ Q
+39 S D=0 K DE(1) ;2501
+ S DIFLD=2501,DGO="^SDBT3",DC="1^44.04PA^SDPRIV^",DV="44.04MP200'X",DW="0;1",DOW="PRIVILEGED USER",DLB=$P($$EZBLD^DIALOG(8042,DOW),":") S:D DC=DC_D
+ S DU="VA(200,"
+ G RE:D I $D(DSC(44.04))#2,$P(DSC(44.04),"I $D(^UTILITY(",1)="" X DSC(44.04) S D=$O(^(0)) S:D="" D=-1 G M39
+ S D=$S($D(^SC(DA,"SDPRIV",0)):$P(^(0),U,3,4),$O(^(0))'="":$O(^(0)),1:-1)
+M39 I D>0 S DC=DC_D I $D(^SC(DA,"SDPRIV",+D,0)) S DE(39)=$P(^(0),U,1)
+ G RE
+R39 D DE
+ S D=$S($D(^SC(DA,"SDPRIV",0)):$P(^(0),U,3,4),1:1) G 39+1
+ ;
+40 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=40 G A
+41 S DQ=42 ;@30
+42 S DW="0;11",DV="F",DU="",DLB="PHYSICAL LOCATION",DIFLD=10
+ G RE
+X42 K:$L(X)>25!($L(X)<1) X
+ I $D(X),X'?.ANP K X
+ Q
+ ;
+43 S DW="SL;5",DV="*P44'",DU="",DLB="PRINCIPAL CLINIC",DIFLD=1916
+ S DE(DW)="C43^SDBT"
+ S DU="SC("
+ G RE
+C43 G C43S:$D(DE(43))[0 K DB
+ S X=DE(43),DIC=DIE
+ K ^SC("AIHSPC",$E(X,1,30),DA)
+C43S S X="" G:DG(DQ)=X C43F1 K DB
+ S X=DG(DQ),DIC=DIE
+ S ^SC("AIHSPC",$E(X,1,30),DA)=""
+C43F1 Q
+X43 S DIC("S")="I $P(^(0),""^"",3)=""C"",'$G(^(""OOS""))" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
+ Q
+ ;
+44 D:$D(DG)>9 F^DIE17,DE S DQ=44,DW="SL;7",DV="RNJ4,0",DU="",DLB="OVERBOOKS/DAY MAXIMUM",DIFLD=1918
+ G RE
+X44 K:+X'=X!(X>9999)!(X<0)!(X?.E1"."1N.N) X
+ Q
+ ;
+45 S D=0 K DE(1) ;1910
+ S DIFLD=1910,DGO="^SDBT4",DC="1^44.03A^SI^",DV="44.03F",DW="0;1",DOW="SPECIAL INSTRUCTIONS",DLB=$P($$EZBLD^DIALOG(8042,DOW),":") S:D DC=DC_D
+ I $D(DSC(44.03))#2,$P(DSC(44.03),"I $D(^UTILITY(",1)="" X DSC(44.03) S D=$O(^(0)) S:D="" D=-1 G M45
+ S D=$S($D(^SC(DA,"SI",0)):$P(^(0),U,3,4),$O(^(0))'="":$O(^(0)),1:-1)
+M45 I D>0 S DC=DC_D I $D(^SC(DA,"SI",+D,0)) S DE(45)=$P(^(0),U,1)
+ G RE
+R45 D DE
+ G A
+ ;
+46 D:$D(DG)>9 F^DIE17 G ^SDBT5

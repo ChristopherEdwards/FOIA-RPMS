@@ -1,21 +1,21 @@
-BGOVAST ; IHS/BAO/TMD - Manage V ASTHMA ;02-Dec-2009 18:11;MGH
- ;;1.1;BGO COMPONENTS;**1,3,6**;Mar 20, 2007
+BGOVAST ; IHS/BAO/TMD - Manage V ASTHMA ;09-Apr-2012 14:56;DU
+ ;;1.1;BGO COMPONENTS;**1,3,6,10,11**;Mar 20, 2007;Build 3
  ;---------------------------------------------
  ; Get V Asthma entries by individual entry, visit, or patient
  ;  INP = Patient IEN [1] ^ V File IEN [2] ^ Visit IEN [3]
 GET(RET,INP) ;EP
  D VFGET^BGOUTL2(.RET,INP,$$FNUM,".03;.04;.05;.06;.07;.08;.09;.11;.12;1201;1204")
  Q
- ;Get asthma control data
- ;INP = Patient IEN [1]  ^V File [IEN] ^ Visit IEN [3]
+ ;Get last asthma control data for a patient
+ ;INP = Patient IEN [1]
  ;Ret=Paient [1] ^Visit IEN [2] ^ date [3] ^control [4]
 GET2(RET,INP) ;EP
- N DFN,DT,CONTROL,IEN,X,VST,DTE
+ N DFN,ADT,CONTROL,IEN,X,VST,DTE
  S CONTROL=""
  S DFN=$P(INP,U,1)
- S DT="" S DT=$O(^AUPNVAST("AAC",DFN,DT)) Q:DT=""  D
- .S IEN="" S IEN=$O(^AUPNVAST("AAC",DFN,DT,IEN),-1) Q:IEN=""  D
- ..S CONTROL=$G(^AUPNVAST("AAC",DFN,DT,IEN))
+ S ADT="" S ADT=$O(^AUPNVAST("AAC",DFN,ADT)) Q:ADT=""  D
+ .S IEN="" S IEN=$O(^AUPNVAST("AAC",DFN,ADT,IEN),-1) Q:IEN=""  D
+ ..S CONTROL=$G(^AUPNVAST("AAC",DFN,ADT,IEN))
  S X=$S(CONTROL="W":"WELL CONTROLLED",CONTROL="N":"NOT WELL CONTROLLED",CONTROL="V":"VERY POORLY CONTROLLED",1:"")
  S VST=$$GET1^DIQ(9000010.41,IEN,.03,"I")
  S DTE=$$GET1^DIQ(9000010.41,IEN,.03,"E")
@@ -33,8 +33,6 @@ GETNOTE(RET,DFN) ;EP
  Q
  ; Add/edit V Asthma Registry entry
  ;  INP = V File IEN [1] ^ Visit IEN [2] ^ Asthma Status [4]
- ;^ FEV [4] ^ FEF [5] ^ PEF [6] ^ ETS [7] ^
- ;        Matter [8] ^ Mites [9] ^ Plan [10]
 SET(RET,INP) ;EP
  N VIEN,FNUM,VFIEN,VIEN,VFNEW,FDA
  S RET="",FNUM=$$FNUM
@@ -43,20 +41,20 @@ SET(RET,INP) ;EP
  S VIEN=$P(INP,U,2)
  S RET=$$CHKVISIT^BGOUTL(VIEN)
  Q:RET
+ I 'VFIEN S VFIEN=$O(^AUPNVAST("AD",VIEN,VFIEN),-1)
  I 'VFIEN D  Q:'VFIEN
  .D VFNEW^BGOUTL2(.RET,FNUM,1,VIEN)
  .S:RET>0 VFIEN=RET,RET=""
  S FDA=$NA(FDA(FNUM,VFIEN_","))
  S @FDA@(.14)=$P(INP,U,3)
- ;S @FDA@(.05)=$P(INP,U,4)
- ;S @FDA@(.06)=$P(INP,U,5)
- ;S @FDA@(.07)=$P(INP,U,6)
- ;S @FDA@(.08)=$P(INP,U,7)
- ;S @FDA@(.09)=$P(INP,U,8)
- ;S @FDA@(.11)=$P(INP,U,9)
- ;S @FDA@(.12)=$P(INP,U,10)
- ;S @FDA@(1201)="N"
  S @FDA@(1204)="`"_DUZ
+ S @FDA@(1201)="N"
+ ;IHS/MSC/MGH new fields patch 11
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)
@@ -86,5 +84,61 @@ PTR(X) Q $S($L(X):"`"_X,1:"")
 DEL(RET,VFIEN) ;EP
  D VFDEL^BGOUTL2(.RET,$$FNUM,VFIEN)
  Q
+ ;Get RED and YELLOW zone data
+ ;INP = Patient IEN [1]
+ ;Ret= RED [1] ^ RED ZONE [2] ^ DATE [3]
+GETZONE(RET,INP) ;EP
+ N DFN,EDT,ADT,CONTROL,IEN,YDT,RDT,DTE,VST,RED,YELLOW,CNT
+ S CNT=0
+ S RET=$$TMPGBL^BGOUTL
+ S (RED,YELLOW)=""
+ S DFN=$P(INP,U,1)
+ S ADT="" F  S ADT=$O(^AUPNVAST("AA",DFN,ADT)) Q:ADT=""  D
+ .S IEN="" F  S IEN=$O(^AUPNVAST("AA",DFN,ADT,IEN),-1) Q:IEN=""  D
+ ..S EDT=$P($G(^AUPNVAST(IEN,12)),U,1)
+ ..I EDT="" D
+ ...S VST=$P($G(^AUPNVAST(IEN,0)),U,3)
+ ...S EDT=$P($G(^AUPNVSIT(VST,0)),U,1)
+ ..S RED=$P($G(^AUPNVAST(IEN,13)),U,1),RDT=9999999-ADT
+ ..S YELLOW=$P($G(^AUPNVAST(IEN,11)),U,1),YDT=9999999-ADT
+ ..Q:RED=""&(YELLOW="")
+ ..S CNT=CNT+1 S @RET@(CNT)=IEN_U_"RED"_U_RED_U_EDT
+ ..S CNT=CNT+1 S @RET@(CNT)=IEN_U_"YELL0W"_U_YELLOW_U_EDT
+ Q
+SETZONE(RET,DFN,VIEN,INP) ;EP to set red and yellow zone instructions
+ N RET,FNUM,VFIEN,INSTR,DATA,OLDR,OLDY
+ S RET="",FNUM=$$FNUM
+ S RET=$$CHKVISIT^BGOUTL(VIEN,DFN)
+ Q:RET
+ S VFIEN="" S VFIEN=$O(^AUPNVAST("AD",VIEN,VFIEN),-1)
+ S VFNEW='VFIEN
+ ;If RED and YELLOW already set for this visit, make a new entry
+ I VFIEN D
+ .S OLDR=$$GET1^DIQ(9000010.41,VFIEN,1301)
+ .S OLDY=$$GET1^DIQ(9000010.41,VFIEN,1101)
+ .I (OLDR'="")!(OLDY'="") S VFIEN=""
+ I 'VFIEN D  Q:'VFIEN
+ .D VFNEW^BGOUTL2(.RET,FNUM,1,VIEN)
+ .S:RET>0 VFIEN=RET,RET=""
+ S FDA=$NA(FDA(FNUM,VFIEN_","))
+ S INSTR="" F  S INSTR=$O(INP(INSTR)) Q:INSTR=""  D
+ .S DATA=$G(INP(INSTR))
+ .I $P(DATA,U,2)="" S $P(DATA,U,2)="@"
+ .I $P(DATA,U,1)="R" S @FDA@(1301)=$P(DATA,U,2)
+ .I $P(DATA,U,1)="Y" S @FDA@(1101)=$P(DATA,U,2)
+ S @FDA@(1204)="`"_DUZ
+ S @FDA@(1201)="N"
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
+ S RET=$$UPDATE^BGOUTL(.FDA,"E")
+ I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
+ D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)
+ S:'RET RET=VFIEN
+ Q
+ ; Asthma education topic IEN
+EDTOP() Q $O(^AUTTEDT("B","ASM-SMP",0))
  ; Return V File #
 FNUM() Q 9000010.41

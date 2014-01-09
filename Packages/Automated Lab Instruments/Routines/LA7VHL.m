@@ -1,5 +1,8 @@
-LA7VHL ;VA/DALOI/DLR - Main Driver for incoming HL7 V1.6 messages ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,46,62,64,1027**;NOV 01, 1997
+LA7VHL ;VA/DALOI/DLR - Main Driver for incoming HL7 V1.6 messages ; Jan 12, 2005
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**1002,1031**;NOV 01, 1997
+ ;
+ ;;VA LA Patche(s): 27,46,62,64,67
+ ;
  ; This routine is not meant to be invoked by name
  ;
  QUIT
@@ -15,38 +18,47 @@ ACK ; Process incoming ACK messages
 ORM ; Process incoming ORM messages
 ORU ; Process incoming ORU messages
  ;
- N HLA,HLP
- N LA76248,LA76249,LA7AAT,LA7AERR,LA7CS,LA7DT,LA7ECH,LA7FS,LA7HLS,LA7HLSA,LA7INTYP,LA7MEDT,LA7MTYP,LA7RAP,LA7PRID,LA7RSITE,LA7SAP,LA7SEQ,LA7SSITE,LA7TYPE,LA7VER,LA7VI
- N X,Y
+ N HLA,HLL,HLP,X,Y
+ N LA76248,LA76249,LA7AAT,LA7AERR,LA7CS,LA7DT,LA7ECH,LA7FS,LA7HLS,LA7HLSA,LA7INTYP,LA7MEDT,LA7MTYP,LA7RAP,LA7PRID,LA7RSITE,LA7SAP,LA7SEQ,LA7SSITE,LA7TYPE,LA7VER,LA7VI,LA7VJ,LA7X
  ;
  S DT=$$DT^XLFDT
+ S (LA76248,LA76249,LA7INTYP,LA7SEQ)=0
+ ;
  K ^TMP("HLA",$J)
+ ;
+ ; Setup DUZ array to 'non-human' user LRLAB,HL
+ ; If user not found - send alert to G.LAB MESSAGING
+ S LA7X=$$FIND1^DIC(200,"","OX","LRLAB,HL","B","")
+ I LA7X<1 D  Q
+ . N MSG
+ . S MSG="Lab Messaging - Unable to identify user 'LRLAB,HL' in NEW PERSON file"
+ . D XQA^LA7UXQA(0,LA76248,0,0,MSG,"",0)
+ D DUZ^XUP(LA7X)
  ;
  ; Set up LA7HLS with HL variables to build ACK message.
  ; Handle situation when systems use different encoding characters.
  D RSPINIT^HLFNC2(HL("EIDS"),.LA7HLS)
  ;
- S (LA76248,LA76249,LA7INTYP,LA7SEQ)=0
- ;
  ; Move message from HL7 global to Lab global
  F LA7VI=1:1 X HLNEXT Q:HLQUIT'>0  D
- . N LA7SEG,LA7VJ
+ . K LA7SEG
+ . I HLNODE="" Q
  . S LA7SEG(0)=HLNODE
  . S LA7VJ=0
  . F  S LA7VJ=$O(HLNODE(LA7VJ)) Q:'LA7VJ  S LA7SEG(LA7VJ)=HLNODE(LA7VJ)
- . I '$L(LA7SEG(0)) Q
  . I $E(LA7SEG(0),1,3)="MSH" D MSH
  . I LA7SEQ<1 D REJECT("no MSH segment found") Q
  . D FILE6249^LA7VHLU(LA76249,.LA7SEG)
  ;
- I $G(LA76249)>0 D
- . ; Update entry in 62.49
- . ; Change status to (Q)ueued for processing from (B)uilding
+ ; Update entry in 62.49
+ ; Change status to (Q)ueued for processing from (B)uilding
+ I LA76249>0,$P($G(^LAHM(62.49,LA76249,0)),"^",3)'="E" D
  . N FDA,LA7ERR
  . S FDA(1,62.49,LA76249_",",2)="Q"
  . D FILE^DIE("","FDA(1)","LA7ERR(1)")
- . ; Release lock on file #62.49 entry (tells LA7VIN message is stored).
- . L -^LAHM(62.49,LA76249)
+ ;
+ ; Release lock on file #62.49 entry (tells LA7VIN message is stored).
+ I LA76249>0 L -^LAHM(62.49,LA76249)
  ;
  ; Run processing routine
  I '$D(^LAHM(62.48,LA76248,1)) D CREATE^LA7LOG(5)
@@ -67,6 +79,11 @@ ORU ; Process incoming ORU messages
  ; If POC interface and no error then quit - send application ack after
  ; processing message.
  I $G(LA7AERR)="",LA7INTYP>19,LA7INTYP<30 S X=$$DONTPURG^HLUTIL() Q
+ ;
+ ; If POC interface and error then setup HLL array
+ I LA7INTYP>19,LA7INTYP<30 D
+ . S HLL("SET FOR APP ACK")=1
+ . S HLL("LINKS",1)=HL("EIDS")_"^"_$P(LA76248(0),"^")
  ;
  ; HL7 returns this as ACK if no errors found
  I $G(LA7AERR)="" S HLA("HLA",1)="MSA"_LA7HLS("RFS")_"AA"_LA7HLS("RFS")_HL("MID")
@@ -127,7 +144,7 @@ MSH ;;MSH
  ; Determine interface type
  S LA7INTYP=+$P(^LAHM(62.48,LA76248,0),"^",9)
  ;
- I '$P($G(^LAHM(62.48,LA76248,0)),"^",3) D  Q
+ I '$P($G(^LAHM(62.48,LA76248,0)),"^",3) D
  . D CREATE^LA7LOG(3)
  . D REJECT("config is inactive")
  ;

@@ -1,5 +1,5 @@
-OCXOZ0X ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0X ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -38,8 +38,8 @@ R61R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #61
  Q:$D(OCXRULE("R61R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^1^^Est. CrCl: "_$$GETDATA(DFN,"73^96^97",76)_" ("_$$GETDATA(DFN,"73^96^97",64)_")" I 1
- E  S OCXCMSG="Est. CrCl: "_$$GETDATA(DFN,"73^96^97",76)_" ("_$$GETDATA(DFN,"73^96^97",64)_")"
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^1^^Est. CrCl: "_$$GETDATA(DFN,"73^96^97",76)_" ("_$$GETDATA(DFN,"73^96^97",64)_")  [Est. CrCl based on modified Cockcroft-Gault equation using Adjusted Body Weight (if ht > 60 in.)]" I 1
+ E  S OCXCMSG="Est. CrCl: "_$$GETDATA(DFN,"73^96^97",76)_" ("_$$GETDATA(DFN,"73^96^97",64)_")  [Est. CrCl based on modified Cockcroft-Gault equation using Adjusted Body Weight (if ht > 60 in.)]"
  S OCXNMSG=""
  ;
  Q:$G(OCXOERR)
@@ -49,41 +49,45 @@ R61R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #61
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
-R62R1A ; Verify all Event/Elements of  Rule #62 'FOOD/DRUG INTERACTION'  Relation #1 'INPATIENT FOOD DRUG REACTION'
- ;  Called from EL84+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE84( ----------->  Verify Event/Element: 'INPATIENT FOOD-DRUG REACTION'
- ;
- Q:$G(^OCXS(860.2,62,"INACT"))
- ;
- I $$MCE84 D R62R1B^OCXOZ0Y
- Q
- ;
 CRCL(DFN) ;  Compiler Function: CREATININE CLEARANCE (ESTIMATED/CALCULATED)
  ;
- N WT,AGE,SEX,SCR,SCRD,CRCL,UNAV,OCXTL,OCXTLS,OCXT,OCXTS,PSCR
- S UNAV="0^<Unavailable>"
+ N HT,AGE,SEX,SCR,SCRD,CRCL,LRWKLD,RSLT,ORW,ORH,PSCR
+ N HTGT60,ABW,IBW,BWRATIO,BWDIFF,LOWBW,ADJBW
+ S RSLT="0^<Unavailable>"
  S PSCR="^^^^^^0"
- S WT=$P($$WT^ORQPTQ4(DFN),U,2)*.454 Q:'WT UNAV
- S AGE=$$AGE^ORQPTQ4(DFN) Q:'AGE UNAV
- S SEX=$P($$SEX^ORQPTQ4(DFN),U,1) Q:'$L(SEX) UNAV
- S OCXTL="" Q:'$$TERMLKUP("SERUM CREATININE",.OCXTL) UNAV
- S OCXTLS="" Q:'$$TERMLKUP("SERUM SPECIMEN",.OCXTLS) UNAV
+ D VITAL^ORQQVI("WEIGHT","WT",DFN,.ORW,0,"",$$NOW^XLFDT)
+ Q:'$D(ORW) RSLT
+ S ABW=$P(ORW(1),U,3) Q:+$G(ABW)<1 RSLT
+ S ABW=ABW/2.2  ;ABW (actual body weight) in kg
+ D VITAL^ORQQVI("HEIGHT","HT",DFN,.ORH,0,"",$$NOW^XLFDT)
+ Q:'$D(ORH) RSLT
+ S HT=$P(ORH(1),U,3) Q:+$G(HT)<1 RSLT
+ S AGE=$$AGE^ORQPTQ4(DFN) Q:'AGE RSLT
+ S SEX=$P($$SEX^ORQPTQ4(DFN),U,1) Q:'$L(SEX) RSLT
+ S OCXTL="" Q:'$$TERMLKUP^ORB31(.OCXTL,"SERUM CREATININE") RSLT
+ S OCXTLS="" Q:'$$TERMLKUP^ORB31(.OCXTLS,"SERUM SPECIMEN") RSLT
  S SCR="",OCXT=0 F  S OCXT=$O(OCXTL(OCXT)) Q:'OCXT  D
  .S OCXTS=0 F  S OCXTS=$O(OCXTLS(OCXTS)) Q:'OCXTS  D
- ..S SCR=$$LOCL^ORQQLR1(DFN,OCXT,OCXTS)
+ ..S SCR=$$LOCL^ORQQLR1(DFN,$P(OCXTL(OCXT),U),$P(OCXTLS(OCXTS),U))
  ..I $P(SCR,U,7)>$P(PSCR,U,7) S PSCR=SCR
- S SCR=PSCR,SCRV=$P(SCR,U,3) Q:+$G(SCRV)<.01 UNAV
- S SCRD=$P(SCR,U,7) Q:'$L(SCRD) UNAV
+ S SCR=PSCR,SCRV=$P(SCR,U,3) Q:+$G(SCRV)<.01 RSLT
+ S SCRD=$P(SCR,U,7) Q:'$L(SCRD) RSLT
  ;
- S CRCL=(((140-AGE)*WT)/(SCRV*72))
+ S HTGT60=$S(HT>60:(HT-60)*2.3,1:0)  ;if ht > 60 inches
+ I HTGT60>0 D
+ .S IBW=$S(SEX="M":50+HTGT60,1:45.5+HTGT60)  ;Ideal Body Weight
+ .S BWRATIO=(ABW/IBW)  ;body weight ratio
+ .S BWDIFF=$S(ABW>IBW:ABW-IBW,1:0)
+ .S LOWBW=$S(IBW<ABW:IBW,1:ABW)
+ .I BWRATIO>1.3,(BWDIFF>0) S ADJBW=((0.3*BWDIFF)+IBW)
+ .E  S ADJBW=LOWBW
+ I +$G(ADJBW)<1 D
+ .S ADJBW=ABW
+ S CRCL=(((140-AGE)*ADJBW)/(SCRV*72))
  ;
- I (SEX="M") Q SCRD_U_$J(CRCL,1,2)
- I (SEX="F") Q SCRD_U_$J((CRCL*.85),1,2)
- Q UNAV
+ S:SEX="M" RSLT=SCRD_U_$J(CRCL,1,1)
+ S:SEX="F" RSLT=SCRD_U_$J((CRCL*.85),1,1)
+ Q RSLT
  ;
 DT2INT(OCXDT) ;      This Local Extrinsic Function converts a date into an integer
  ; By taking the Years, Months, Days, Hours and Minutes converting
@@ -160,14 +164,6 @@ MCE73() ; Verify Event/Element: CREATININE CLEARANCE ESTIMATE
  N OCXRES
  S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(73,37)=OCXDF(37)
  Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),73)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),73))
- Q 0
- ;
-MCE84() ; Verify Event/Element: INPATIENT FOOD-DRUG REACTION
- ;
- ;
- N OCXRES
- I $L(OCXDF(37)) S OCXRES(84,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),84)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),84))
  Q 0
  ;
 MCE96() ; Verify Event/Element: CREATININE CLEARANCE DATE/TIME

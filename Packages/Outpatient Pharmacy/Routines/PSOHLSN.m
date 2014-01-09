@@ -1,5 +1,5 @@
 PSOHLSN ;BIR/RTR-Send order information to OERR from file 52.41 ;10/10/94
- ;;7.0;OUTPATIENT PHARMACY;**1,7,15,24,27,30,55,46,98,88,121**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**1,7,15,24,27,30,55,46,98,88,121,292**;DEC 1997;Build 1
  ;Externel reference EN^ORERR supported by DBIA 2187
  ;
  ; PS EVSEND OR PROTOCOL MUST BE OUR DRIVER RTN, (52 OR 52.41 INDICATOR
@@ -11,6 +11,7 @@ EN(PLACER,STAT,COMM,PSNOO) ;
  ;I '$G(PSIEN) W !!,?5,"PROBLEM WITH ENTRY IN PENDING FILE!",! Q
  I '$G(PSIEN) Q
  I $G(STAT)="OC"!($G(STAT)="OD")!($G(STAT)="CR")!($G(STAT)="DR") D
+ .D CHKOLDRX
  .I $D(^PS(52.41,PSIEN,0)) K ^PS(52.41,"AD",$P(^PS(52.41,PSIEN,0),"^",12),+$P($G(^("INI")),"^"),PSIEN),^PS(52.41,"ACL",+$P(^PS(52.41,PSIEN,0),"^",13),+$P(^(0),"^",12),PSIEN),^PS(52.41,"AQ",+$P($G(^PS(52.41,PSIEN,0)),"^",21),PSIEN)
  S PSZERO=$G(^PS(52.41,PSIEN,0)),PSOHSTAT=$G(STAT)
  S NULLFLDS="F JJ=0:1:LIMIT S FIELD(JJ)="""""
@@ -158,4 +159,9 @@ SEGXX ;
  .S PVAR1=$E(SEG1,CC)
  .S PLIM=PVAR
  .S PVAR=$S(PVAR="":PVAR1,1:PVAR_PVAR1)
+ Q
+CHKOLDRX ; when dc a pending renewal - if prior Rx is expired, set piece 19 to 1 so will update CPRS from 'renewed' to 'expired' in PSOHLSN1
+ N PSOOLD
+ S PSOOLD=$P($G(^PS(52.41,PSIEN,0)),"^",21)
+ I PSOOLD'="",$P($G(^PSRX(PSOOLD,"STA")),"^")=11 S $P(^PSRX(PSOOLD,0),"^",19)=1
  Q

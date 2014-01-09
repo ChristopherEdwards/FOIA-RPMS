@@ -1,5 +1,5 @@
 DGPMGL ;ALB/MRL/LM/MJK - G&L ENTRY POINT; 29 APR 2003
- ;;5.3;Registration;**85,515**;Aug 13, 1993
+ ;;5.3;Registration;**85,515,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  3/30/2001 replaced VA header with IHS one
  ;                        checked IHS census files for data
  ;                        commented out code we don't need

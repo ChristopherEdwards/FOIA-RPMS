@@ -1,5 +1,5 @@
-PSDNTT ;BIR/JPW-Transfer Green Sheet - Receive this NAOU ; 22 Jun 93
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+PSDNTT ;BIR/JPW-Transfer Green Sheet - Receive this NAOU ; 6/25/07 12:16pm
+ ;;3.0; CONTROLLED SUBSTANCES ;**64**;13 Feb 97;Build 33
  I '$D(PSDSITE) D ^PSDSET Q:'$D(PSDSITE)
  S OK=$S($D(^XUSEC("PSJ RNURSE",DUZ)):1,$D(^XUSEC("PSD NURSE",DUZ)):1,1:0)
  I 'OK W $C(7),!!,?9,"** Please contact your Coordinator for access to transfer",!,?12,"narcotic orders.",!!,"PSJ RNURSE or PSD NURSE security key required.",! K OK Q
@@ -23,6 +23,8 @@ GS ;select green sheet #
  S NAOU=+$P($G(^PSD(58.81,PSDA,7)),"^",3),NAOUN=$P($G(^PSD(58.8,NAOU,0)),"^")
  S PAT=+$P($G(^PSD(58.81,PSDA,9)),U)
  I STAT'=10 W !!,"This Green Sheet has a status of "_$S(STATN]"":STATN,1:"UNKNOWN")_".",!,"Please contact your Pharmacy Coordinator for assistance.",! G END
+ ;*64
+ I RQTY=0 W !!,"Quantity of zero was transferred.  Use menu option",!,"'Receive GS for PCA/Infusion Signed Out to Patient'",! G END
  D CHK G:PSDOUT END N X,X1 D SIG^XUSESIG G:X1="" END
  D ^PSDNTT1
 END K %,%DT,%H,%I,AOU,AOUN,D,DA,DIC,DIE,DIK,DINUM,DIR,DIROUT,DIRUT,DLAYGO,DR,DTOUT,DUOUT,EXP,FLAG,JJ,LOT,MFG

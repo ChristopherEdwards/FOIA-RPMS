@@ -1,5 +1,5 @@
 SCCVEDI1 ;ALB/RMO,TMP - Disposition Conversion cont.; [ 04/05/95  8:12 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 CON(SCCVEVT,DFN,SCDTM,SCCVDIS) ; Should conversion event be processed for disposition
  ; Input  -- SCCVEVT  Conversion event

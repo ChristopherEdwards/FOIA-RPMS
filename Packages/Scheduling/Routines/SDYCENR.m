@@ -1,5 +1,5 @@
 SDYCENR ;ALB/CAW - CLINIC ENROLLMENT ; 7/18/94
- ;;5.3;Scheduling;**21**;Aug 13, 1993
+ ;;5.3;Scheduling;**21,1015**;Aug 13, 1993;Build 21
  ;
 EN N SDFLAG,SDASH,SDPAGE,SDQUIT
  D WRT,INIT

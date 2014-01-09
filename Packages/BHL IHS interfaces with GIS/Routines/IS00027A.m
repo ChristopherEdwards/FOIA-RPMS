@@ -1,6 +1,6 @@
-IS00027A ;Compiled from script 'Generated: HL IHS IZV04 V03VXR IN-I' on SEP 05, 2011
+IS00027A ;Compiled from script 'Generated: HL IHS IZV04 V03VXR IN-I' on FEB 28, 2013
  ;Part 2
- ;Copyright 2011 SAIC
+ ;Copyright 2013 SAIC
 EN S:DO @("@INV@(""IN26"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,7)
  S:DO @("@INV@(""IN28"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,9)
  Q
@@ -20,11 +20,6 @@ D1 ;WHILE $P(DATA,DELIM)="ORC"
  .D GET^INHOU(UIF,0) S LINE=$G(LINE),DO=1
  .I LINE?1"R"1"X"1"A".ANPC S DO=1
  .E  S LCT=LCT-CNT,DO=0
- .S:DO @("@INV@(""RXA1"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,2)
- .S:DO @("@INV@(""RXA2"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,3)
- .S:DO @("@INV@(""RXA3"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,4)
- .S:DO @("@INV@(""RXA5"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,6)
- .S:DO @("@INV@(""RXA15"",INI(1))")=$$PIECE^INHU(.LINE,DELIM,16)
  .Q
  D:'INVS MC^INHS
  ;Entering TRANS section.
@@ -156,5 +151,10 @@ D1 ;WHILE $P(DATA,DELIM)="ORC"
  .S (INX,X)=$G(@INV@("PID11"))
  .I $L(X) S:$P(X,INSUBDEL,4)="" $P(X,INSUBDEL,4)=INSUBDEL
  .S @INV@("PID11")=$G(X)
+ .I '$D(X) D ERROR^INHS("Variable 'PID11' failed input transform. Processing continues.",0),ERROR^INHS("  Value = '"_INX_"'",0)
+ .K DXS
+ .S (INX,X)=$G(@INV@("PID13"))
+ .I $P($G(INTHL7F2),U,4) S X=$$SUBESC^INHUT7(X,INDELIMS,"I")
+ .S @INV@("PID13")=$G(X)
 9 .D EN^IS00027B
  G I1^IS00027B

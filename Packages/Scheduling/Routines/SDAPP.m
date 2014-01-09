@@ -1,6 +1,5 @@
-SDAPP ;ALB/TMP - SCHEDULING  CHART REQUEST ; [ 11/30/2001  3:04 PM ]
- ;;5.3;Scheduling;**21,32,41,79**;AUG 13, 1993
- ;
+SDAPP ;ALB/TMP - SCHEDULING  CHART REQUEST ; 07 SEP 84  4:17 pm
+ ;;5.3;Scheduling;**21,32,41,79,1015**;AUG 13, 1993;Build 21
 4 ;;Chart Request
  S:'$D(DTIME) DTIME=300 I '$D(DT) D DT^SDUTL
  S (DIC,DIE)="^SC(",DIC(0)="AQME",DIC("S")="I $P(^(0),""^"",3)=""C"",'$G(^(""OOS""))",DIC("A")="SELECT CLINIC NAME: " D ^DIC K DIC("A"),DIC("S") Q:+Y<0  S SDIN=$S($D(^SC(+Y,"I")):1,1:""),SDRE="" I SDIN S SDIN=+^("I"),SDRE=+$P(^("I"),"^",2)

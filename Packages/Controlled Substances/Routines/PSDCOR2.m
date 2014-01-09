@@ -1,5 +1,5 @@
 PSDCOR2 ;BIR/JPW-CS Correction Action (cont'd) ; 6 July 94
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
  S PSDS=$P(PSDSITE,U,3),PSDSN=$P(PSDSITE,U,4) G:$P(PSDSITE,U,5) GS
 ASKD ;ask disp site
  K DA,DIC W ! S DIC=58.8,DIC(0)="QEA",DIC("A")="Select Dispensing Site: ",DIC("S")="I $P(^(0),""^"",3)=+PSDSITE,$S($P(^(0),""^"",2)=""M"":1,$P(^(0),""^"",2)=""S"":1,1:0)",DIC("B")=PSDSN
@@ -29,7 +29,7 @@ ASK W !!,"This action will update Green Sheet #",PSDPN," as ",!,?5,"** COMPLETED
 COM ;complete correction
  D NOW^%DTC S RECDT=+$E(%,1,12)
  W !!,"Accessing Green Sheet #",PSDPN," information...",!!
- F  L +^PSD(58.87,0):0 I  Q
+ F  L +^PSD(58.87,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDCOR=$P(^PSD(58.87,0),"^",3)+1 I $D(^PSD(58.87,PSDCOR)) S $P(^PSD(58.87,0),"^",3)=PSDCOR G FIND
  K DA,DIC,DLAYGO S (DIC,DLAYGO)=58.87,DIC(0)="L",X=PSDCOR D ^DIC K DIC,DLAYGO
  L -^PSD(58.87,0)

@@ -1,10 +1,12 @@
-PSGMMAR4 ;BIR/CML3-MD MARS - PRINT O/P ORDERS ;02-Nov-2011 15:05;DU
- ;;5.0; INPATIENT MEDICATIONS ;**8,12,20,1008,1013**;16 DEC 97;Build 33
+PSGMMAR4 ;BIR/CML3-MD MARS - PRINT O/P ORDERS ;16-Nov-2012 12:16;DU
+ ;;5.0; INPATIENT MEDICATIONS ;**8,12,20,1008,1013,1014,111,1015**;16 DEC 97;Build 62
  ;
  ; Modified - IHS/CIA/PLS - 06/21/04 - Line ENB+5
  ;            IHS/MSC/PLS - 12/09/08 - Line HEADER+2
  ;                          11/17/09 - Line BOT+2
  ;            IHS/MSC/MGH - 11/02/11 - Line HEADER+10
+ ;            IHS/MSC/PLS - 05/24/12 - Line BOT+4
+ ;            IHS/MSC/MGH - 11/16/12 - Line HEADER+4
 PSGMARB ;***Print blank MAR for PRN orders.
  NEW L1 S L1="      |           |"
  D HEADER F X=1:1:(BL/2) D
@@ -33,11 +35,12 @@ EN ;***Start print prn orders.
 HEADER ;*** Patient info
  S:'$G(PSGXDT) PSGXDT=PSGDT
  ;W:$G(PSGPG) @IOF S PSGPG=1 W ?1,"ONE-TIME/PRN SHEET",?61,PSGMARDF_" DAY MAR",?100,PSGMARSP_"  through  "_PSGMARFP
- W:$G(PSGPG) @IOF S PSGPG=1 W ?1,"ONE-TIME/PRN SHEET",?31,PSGMARDF_" DAY MAR",?60,PSGMARSP_"  through  "_PSGMARFP,?110,"Page ___ of ___"
+ S PSGMAROC=0    ;IHS/MSC/MGH Patch 1015
+ W:$G(PSGPG) @IOF S PSGPG=1 W !?1,"ONE-TIME/PRN SHEET",?31,PSGMARDF_" DAY MAR",?60,PSGMARSP_"  through  "_PSGMARFP,?110,"Page ___ of ___"
  W !?5,$P($$SITE^PSGMMAR2(80),U,2),?102,"Printed on  ",$$ENDTC2^PSGMI(PSGXDT)
- W !?5,"Name:  "_PPN,?62,"Weight (kg): "_WT,?103,"Ward: "_PWDN
- W !?6,"PID:  "_PSSN,?25,"DOB: "_BD_"  ("_PAGE_")",?62,"Height (cm): "_HT,?99,"Room-Bed: "_PRB
- W !?6,"Sex:  "_PSEX,?25," Dx: "_DX,?$S(TD:94,1:99),$S(TD:"Last Transfer: "_TD,1:"Admitted: "_AD)
+ W !?5,"Name:  "_PPN,?62,"Weight (kg): "_WT,?103,"Loc: "_$S(PWDN'["C!":PWDN,1:$P($G(^SC($P(PWDN,"!",2),0)),"^"))
+ W !?6,"PID:  "_PSSN,?25,"DOB: "_BD_"  ("_PAGE_")",?62,"Height (cm): "_HT,?99,"Room-Bed: "_$S(PWDN'["C!":PRB,1:"")
+ W !?6,"Sex:  "_PSEX,?25," Dx: "_DX,?$S(TD:94,1:99),$S(TD:"Last Transfer: "_TD,1:"Admitted: "_$S(PWDN'["C!":AD,1:""))
  I '$D(PSGALG) W !,"Allergies:  See attached list of Allergies/Adverse Reactions"
  ;Updated patch 1013 to display all allergies on each page
  ;NEW PSGX S PSGX=0 D ATS^PSGMAR3(.PSGX) D:PSGX HEADER Q:PSGX
@@ -51,7 +54,8 @@ HEADER ;*** Patient info
 BOT ; rest of PRN sheet
  W !,"|  DATE  |  TIME  |         MEDICATION/DOSE/ROUTE           | INIT |        REASON         |       RESULTS         |  TIME  | INIT |"
  ;S X=$S(BL=4:26,1:20) F Q=1:1:X W !,LN31
- S X=$S(BL=4:25,1:19) F Q=1:1:X W !,LN31  ;IHS/MSC/PLS - Patch 1008
+ ;S X=$S(BL=4:25,1:19) F Q=1:1:X W !,LN31  ;IHS/MSC/PLS - Patch 1008
+ S X=$S($G(APSPATS)&(BL=4):14,BL=4:25,$G(APSPATS):9,1:17) F Q=1:1:X W !,LN31  ;IHS/MSC/PLS - Patch 1014
  ;W "|        |        |                                         |      |                       |                       |        |      |"
 ENB ;
  I $D(PSGMPG) S PSGMPG=PSGMPG+1 S PSGMPGN=$S(PSGMPGN'["LAST":"PAGE: ",1:PSGMPGN)_PSGMPG
@@ -59,7 +63,7 @@ ENB ;
  W !,"|",?13,"SIGNATURE/TITLE",?40,"| INIT |          INJECTION SITES           |",?97,"SIGNATURE/TITLE",?124,"| INIT |"
  F Q=1:1:10 W !,"|"_$E(LN1,1,39)_"|------|"_BLN(Q),?84,"|"_$E(LN1,1,39)_"|------|"
  ; IHS/CIA/PLS - 06/21/04 - Removed reference to VA Form
- ;W !,LN1,!?3,PPN,?45,PSSN,?58,"Room-Bed: "_PRB,?100,$S($D(PSGMPG):PSGMPGN,1:""),?116,"VA FORM 10-5568d",*13
- W !,LN1,!?3,PPN,?45,PSSN,?58,"Room-Bed: "_PRB,?100,$S($D(PSGMPG):PSGMPGN,1:""),*13
+ ;W !,LN1,!?3,PPN,?45,PSSN,?58,"Room-Bed: "_$S(PWDN'["C!":PRB,1:""),?100,$S($D(PSGMPG):PSGMPGN,1:""),?116,"VA FORM 10-5568d",*13
+ W !,LN1,!?3,PPN,?45,PSSN,?58,"Room-Bed: "_$S(PWDN'["C!":PRB,1:""),?100,$S($D(PSGMPG):PSGMPGN,1:""),*13
  S PSGMAROC=0,(PSGMAPA(1),PSGMAPB(1),PSGMAPC(1),PSGMAPD(1))="      |       |" F Q=2:1:6 S (PSGMAPA(Q),PSGMAPB(Q),PSGMAPC(Q),PSGMAPD(Q))=""
  Q

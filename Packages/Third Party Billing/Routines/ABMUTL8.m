@@ -1,5 +1,5 @@
 ABMUTL8 ; IHS/ASDST/DMJ - 837 UTILITIES ;      
- ;;2.6;IHS Third Party Billing;**1,4,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,4,6,8,9**;NOV 12, 2009
  ;Original;DMJ;09/21/95 12:47 PM
  ;
  ; 02/18/04 V2.5 P5 - 837 modification
@@ -92,6 +92,7 @@ DXSET2(X) ;EP - set dx array
  ..S:ABMCNT=1 ABMDX(ABMCNT)="BK"
  ..S:ABMCNT'=1 ABMDX(ABMCNT)="BF"
  ..S $P(ABMDX(ABMCNT),":",2)=$TR($P($$DX^ABMCVAPI(J,ABMP("VDT")),U,2),".")  ;CSV-c 
+ ..I ABMP("EXP")=31,($P($G(^ABMDBILL(DUZ(2),X,17,J,0)),U,5)'="") S $P(ABMDX(ABMCNT),":",9)=$P($G(^ABMDBILL(DUZ(2),X,17,J,0)),U,5)  ;abm*2.6*9 HEAT57041
  ;
  S ABMCNT=0
  S I=0
@@ -102,6 +103,7 @@ DXSET2(X) ;EP - set dx array
  ..S ABMCNT=ABMCNT+1
  ..S ABMDXE(ABMCNT)="BN:"_$TR($P($$DX^ABMCVAPI(J,ABMP("VDT")),U,2),".")  ;CSV-c
  ..I $P($G(^ABMDBILL(DUZ(2),X,17,J,0)),U,5)'="" S $P(ABMDXE(ABMCNT),":",9)=$P($G(^ABMDBILL(DUZ(2),X,17,J,0)),U,5)
+ ..I ABMP("EXP")=31,($P($G(^ABMDBILL(DUZ(2),X,17,J,0)),U,5)'="") S $P(ABMDX(ABMCNT),":",9)=$P($G(^ABMDBILL(DUZ(2),X,17,J,0)),U,5)  ;abm*2.6*9 HEAT57041
  I $P($G(^ABMDBILL(DUZ(2),X,5)),U,9)'="" S ABMDX("ADM")=$TR($P($$DX^ABMCVAPI($P($G(^ABMDBILL(DUZ(2),X,5)),U,9),ABMP("VDT")),U,2),".")   ;abm*2.6*8 5010
  Q
  ;end new code abm*2.6*8
@@ -269,8 +271,9 @@ OVER(ABMLN,ABMPCE) ;EP - get override values from 3P Insurer file
  .I ABMELE["06" S ABMELEM=7
  .I ABMELE["07" S ABMELEM=8
  .I ABMELE["08" S ABMELEM=9
- .I ABMELE["09" S ABMELEM=10
- .I ABMELE["15" S ABMELEM=160
+ .;I ABMELE["09" S ABMELEM=10  ;abm*2.6*9 HEAT59090
+ .I ABMELE["09" S ABMELEM=100  ;abm*2.6*9 HEAT59090
+ .I ABMELE["15" S ABMELEM=16  ;abm*2.6*9 HEAT58133
  .S ABMR(ABME("RTYPE"),ABMELEM)=""
  .S $P(ABMREC(ABME("RTYPE")),"*",$E(ABMELEM,1,$L(ABMELEM)-1))=""
  I $D(^ABMNINS(DUZ(2),ABMP("INS"),2.5,"A837",+ABMP("EXP"),ABMLOOP,ABME("RTYPE"))) D  ;segment override
@@ -287,8 +290,11 @@ OVER(ABMLN,ABMPCE) ;EP - get override values from 3P Insurer file
  ...I ABMELE["06" S ABMELEM=7
  ...I ABMELE["07" S ABMELEM=8
  ...I ABMELE["08" S ABMELEM=9
- ...I ABMELE["09" S ABMELEM=10
+ ...;I ABMELE["09" S ABMELEM=10  ;abm*2.6*9 HEAT59090
+ ...I ABMELE["09" S ABMELEM=100  ;abm*2.6*9 HEAT59090
+ ...I ABMELE["15" S ABMELEM=16  ;abm*2.6*9 HEAT58133
  ...S ABMR(ABME("RTYPE"),ABMELEM)=ABMVALUE
+ ...I ABME("RTYPE")="ISA",ABMELEM=9 S ABMVALUE=$$FMT^ABMERUTL((ABMVALUE),15)  ;abm*2.6*9 NOHEAT - ensure ISA08 15 characters
  ...S $P(ABMREC(ABME("RTYPE")),"*",$E(ABMELEM,1,$L(ABMELEM-1)))=ABMVALUE
  Q
  ;end new code 5010

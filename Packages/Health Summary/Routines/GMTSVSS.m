@@ -1,8 +1,8 @@
 GMTSVSS ; SLC/KER - Selected Vital Signs           ; 02/27/2002
- ;;2.7;Health Summary;**8,20,28,35,49**;Oct 20, 1995
+ ;;2.7;Health Summary;**8,20,28,35,49,78**;Oct 20, 1995
  ;                          
  ; External References
- ;   DBIA  1446  EN1^GMRVUT0
+ ;   DBIA  4791  EN1^GMVHS
  ;   DBIA 10141  $$VERSION^XPDUTL
  ;   DBIA 10015  EN^DIQ1
  ;   DBIA 10022  %XY^%RCR
@@ -18,10 +18,11 @@ OUTPAT ; Outpatient Select Vitals Signs Main control
  S GMRVSTR(0)=GMTSBEG_U_GMTSEND_U_MAX_U_1
  ;   Set to only get Vital Sign for Clinics
  S GMRVSTR("LT")="^C^"
- D BLDHDR,EN1^GMRVUT0
+ ;D BLDHDR,EN1^GMRVUT0
+ D BLDHDR,EN1^GMVHS
  ;   If no data, display most recent inpatient measurements
  I '$D(^UTILITY($J,"GMRVD")) D  Q
- . D CKP^GMTSUP Q:$D(GMTSQIT)  W "*** No Outpatient measurements ***",!
+ . D CKP^GMTSUP Q:$D(GMTSQIT)  W "*** No Outpatient measurements ***",!!
  . S MAX=1 D ENVS
  S ROW=1 D NXTROW
  D WRTHDR,WRTHDR1
@@ -34,12 +35,13 @@ OUTPAT ; Outpatient Select Vitals Signs Main control
  Q
 ENVS ; Set up for extraction routine
  N CNT,COL,COLL,HDR,HDR1,GMTSDA,GMTSDT,GMTSF,GMTSI,GMW,LOOP,ROW,WIDTH
- K ^UTILITY($J,"GMRVD")
+ K ^UTILITY($J,"GMRVD"),GMRVSTR("LT")
  S MAX=$S(+($G(MAX))>0:MAX,+($G(MAX))'>0&(+($G(GMTSNDM))>0):+($G(GMTSNDM)),1:100)
  S GMTSI=0 F  S GMTSI=$O(GMTSEG(GMTSEGN,120.51,GMTSI)) Q:GMTSI'>0  S GMTSDA=GMTSEG(GMTSEGN,120.51,GMTSI) D BLDSTR
  Q:'$D(GMRVSTR)
  S GMRVSTR(0)=GMTSBEG_U_GMTSEND_U_MAX_U_1
- D BLDHDR,EN1^GMRVUT0
+ ;D BLDHDR,EN1^GMRVUT0
+ D BLDHDR,EN1^GMVHS
  I '$D(^UTILITY($J,"GMRVD")) Q
  S ROW=1 D NXTROW
  D WRTHDR,WRTHDR1
@@ -62,8 +64,8 @@ BLDHDR ; Builds the HDR array
  F GMTSI=1:1:$L(GMRVSTR,";") D
  . S (HDR(GMTSI-1),ABB)=$P(GMRVSTR,";",GMTSI)
  . S HDR(GMTSI-1)=HDR(GMTSI-1)_U
- . S HDR(GMTSI-1)=HDR(GMTSI-1)_$S(ABB="BP":"BP",ABB="PN":"PAIN",ABB="HT":"HEIGHT",ABB="WT":"WEIGHT",ABB="P":"PULSE",ABB="R":"RESP",ABB="T":"TEMP",1:ABB)
- . S WIDTH=$S($P(HDR(GMTSI-1),U)="T":13,$P(HDR(GMTSI-1),U)="P":7,$P(HDR(GMTSI-1),U)="R":6,$P(HDR(GMTSI-1),U)="WT":20,$P(HDR(GMTSI-1),U)="CG":20,1:12)
+ . S HDR(GMTSI-1)=HDR(GMTSI-1)_$S(ABB="BP":"BP",ABB="PN":"PAIN",ABB="HT":"HEIGHT",ABB="WT":"WEIGHT",ABB="P":"PULSE",ABB="R":"RESP",ABB="T":"TEMP",ABB="PO2":"POx",1:ABB)
+ . S WIDTH=$S($P(HDR(GMTSI-1),U)="T":13,$P(HDR(GMTSI-1),U)="P":8,$P(HDR(GMTSI-1),U)="R":12,$P(HDR(GMTSI-1),U)="WT":20,$P(HDR(GMTSI-1),U)="CG":34,$P(HDR(GMTSI-1),U)="CVP":16,$P(HDR(GMTSI-1),U)="HT":13,$P(HDR(GMTSI-1),U)="PO2":13,1:12)
  . S COLL=$P(COL,U,GMTSI)+WIDTH
  . S COL=COL_U
  . S COL=COL_COLL
@@ -124,15 +126,15 @@ WRT ; Writes vitals record for one observation time
  . I +IEN D CKP^GMTSUP Q:$D(GMTSQIT)  D
  . . S GMTSVAL=$P(^UTILITY($J,"GMRVD",GMTSDT,GMTSVT,+IEN),U,8)
  . . S:GMTSVT="PN"&(GMTSVAL=99) GMTSVAL="No Response"
+ . . S:GMTSVT="P"&(GMTSVAL?1A.E) GMTSVAL=$E(GMTSVAL,1,7)
  . . W ?$P(COL,U,GMTSI+1),GMTSVAL
  . . S GMTSMET=$P(^UTILITY($J,"GMRVD",GMTSDT,GMTSVT,+IEN),U,13,17)
  . . S GMTSLMIN=$P(GMTSMET,U,3),GMTSPERC=$P(GMTSMET,U,4)
- . . S GMTSQUAL=$P(GMTSMET,U,5) S:GMTSQUAL]"" GMTSQUAL=$E(GMTSQUAL,1,5)
+ . . S GMTSQUAL=$P(GMTSMET,U,5) S:GMTSQUAL]"" GMTSQUAL=$E(GMTSQUAL,1,15)
  . . S GMTSBMI=$P(GMTSMET,U,2),GMTSMET=$P(GMTSMET,U,1)
  . . I GMTSMET'="" W "("_GMTSMET_")" ;   centigrade/kilos/centimeters
  . . I GMTSBMI'="" W "["_GMTSBMI_"]" ;   body mass index
- . . I GMTSLMIN'="" W "["_GMTSLMIN_"]" ;   liters/min supplemental O2
- . . I GMTSPERC'="" W "["_GMTSPERC_"]" ;   % supplemental O2
+ . . I GMTSLMIN'=""!(GMTSPERC'="") W "["_GMTSLMIN_"]["_GMTSPERC_"]" ; [liters/min supplemental O2][% supplemental O2]
  . . I GMTSVT="CG",GMTSQUAL]"" W "["_GMTSQUAL_"]" ;   qualifiers
  . . Q
  . Q

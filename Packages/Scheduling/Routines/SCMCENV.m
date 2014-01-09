@@ -1,5 +1,5 @@
 SCMCENV ;ALB/REW - PCMM Environment Checker ; 3 Feb 1996
- ;;5.3;Scheduling;**41**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,1015**;AUG 13, 1993;Build 21
 EN ;entry point
  W !,"PCMM Installation Requirements:",!
  IF $D(XPDABORT)#2 W !!?4,"*** Warning: Because variable XPDABORT exists, PCMM will not install."

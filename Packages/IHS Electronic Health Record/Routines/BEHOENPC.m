@@ -1,5 +1,5 @@
-BEHOENPC ;MSC/IND/DKM - PCC Data Management ;01-Sep-2011 12:42;DU
- ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007**;Sep 18, 2007
+BEHOENPC ;MSC/IND/DKM - PCC Data Management ;13-Aug-2012 09:12;DU
+ ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007,005008,005009**;Sep 18, 2007
  ;=================================================================
  ; RPC: Update PCC data
  ; DATA = Returned as 0 if successful
@@ -71,10 +71,15 @@ STORE(FN,CF,CRT,NEW) ;
  .S:CF&$D(COM) FLD(CF)=$P(COM,U,3,999)
  .I '$D(FLD(1204)),VCAT'="E" S FLD(1204)=DUZ
  .S:'$D(FLD(1201))&$G(DAT) FLD(1201)=DAT
+ .I NEW=1 S FLD(1216)=$$NOW^XLFDT,FLD(1217)=DUZ
+ .S FLD(1218)=$$NOW^XLFDT,FLD(1219)=DUZ
+ ;Modified 7/6/2012 for ehr 11
  I TYP="PRV"&($G(FLD(.04))="P") D
  .S BPRV="" F  S BPRV=$O(^AUPNVPRV("AD",VIEN,BPRV)) Q:BPRV=""  D
  ..Q:FLD(.01)=$P($G(^AUPNVPRV(BPRV,0)),U,1)
- ..I $P($G(^AUPNVPRV(BPRV,0)),U,4)="P" S FLD(.04)="S"
+ ..I $P($G(^AUPNVPRV(BPRV,0)),U,4)="P" D
+ ...N FLD S FLD(.04)="S"
+ ...M BEHFLD(FN,BPRV_",")=FLD
  M BEHFLD(FN,IEN_",")=FLD
  K FLD
  D UPDATE^DIE("","BEHFLD","BEHIEN","BEHERR")
@@ -186,7 +191,7 @@ SK ;; Skin tests
  Q
 PED ;; Patient education
  ; PED[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^level of understanding[7]^
- ;    refused[8]^elapsed[9]^setting[10]^goals[11]^outcome[12]
+ ;    refused[8]^elapsed[9]^setting[10]^goals[11]^outcome[12]^Readiness to learn[13]
  N REF
  S REF=$P(VAL,U,8)
  I "@"[REF,$P(VAL,U,7)=5 S REF="R"
@@ -194,11 +199,16 @@ PED ;; Patient education
  S:'$P(VAL,U,6) $P(VAL,U,6)=DUZ  ;Patch 003
  S $P(VAL,U,3)=$$PEDTOPIC($P(VAL,U,3))  ;Patch 004
  S:"@"'[REF $P(VAL,U,7)=5
- D SET(.12,3),SET(.05,6),SET(.06,7),SET(.08,9),SET(.07,10),SET(.13,11),SET(.14,12),STORE(.16,.11)
+ D SET(.12,3),SET(.05,6),SET(.06,7),SET(.08,9),SET(.07,10),SET(.13,11),SET(.14,12),SET(1102,13),STORE(.16,.11)
  Q
 HF ;; Health factors
  ; HF[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^level/severity[7]
  D SET(.01,2),SET(.04,7),STORE(.23)
+ Q
+ASM ;; Asthma
+ ; ASM[1]^Code[2]^Severity[3]^Asthma Control[4]
+ S CODE=1
+ D SET(.14,4),STORE(.41)
  Q
 XAM ;; Patient exams
  ; XAM[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^result[7]^refused[8]
@@ -214,7 +224,7 @@ TRT ;; Treatments
 MSR ;; Vital measurements (new format)
  ; MSR[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^Value[7]^Units[8]^
  ;VMSR IEN[9]^GMRV IEN[10]^When entered[11]^Taken date[12]^Entered by[13]^Qualfier[14]
- N GMRV,IEN,WHEN,XM,YM,Z,BEHDATA,TAKEN,ENTER,ENTERIEN,I,QUALNAME,QUALS,RESULT,NEW
+ N GMRV,IEN,WHEN,XM,YM,Z,BEHDATA,TAKEN,ENTER,ENTERIEN,I,QUALNAME,QUALS,RESULT,NEW,QUALCT
  S ENTERIEN=""
  S:'$D(VMSR) VMSR=$$GET^XPAR("ALL","BEHOVM USE VMSR")
  S XM=$P(VAL,U,7),YM=$P(VAL,U,8)
@@ -261,7 +271,12 @@ MSR ;; Vital measurements (new format)
  I IEN&($P(VAL,U,14)'="") D
  .K QUAL
  .S QUALS=$P(VAL,U,14)
- .F I=1:1 S QUALNAME=$P(QUALS,"~",I) Q:QUALNAME=""  S QUAL(QUALNAME)=""
+ .;IHS/MSC/MGH Update for qualifiers EHR 11
+ .I $P($G(^AUTTMSR(CODE,0)),U,1)="O2" D PO2^BEHOVM2(.RESULT,IEN,QUALS) Q
+ .S QUALCT=$L(QUALS,"~")
+ .F I=1:1:QUALCT S QUALNAME=$P(QUALS,"~",I) D
+ ..Q:QUALNAME=""
+ ..S QUAL(QUALNAME)=""
  .D QUAL^BEHOVM2(.RESULT,IEN,.QUAL)
  Q
 VIT ;; Vital measurements (old format)

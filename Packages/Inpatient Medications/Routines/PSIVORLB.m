@@ -1,15 +1,16 @@
-PSIVORLB ;BIR/MLM-PRINT OUT LABELS ;05-Dec-2003 10:03;PLS
- ;;5.0; INPATIENT MEDICATIONS ;**58**;16 DEC 97
+PSIVORLB ;BIR/MLM-PRINT OUT LABELS ;03-Apr-2013 14:13;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**58,184,1015**;16 DEC 97;Build 62
  ;
  ; Reference to ^PS(52.6 is supported by DBIA 1231.
  ; Reference to ^PS(52.7 is supported by DBIA 2173.
  ;
  ; Modified - IHS/CIA/PLS - 12/05/03 - Line RE+4
+ ;          - IHS/MSC/PB  - 2/11/13  - Line INF+7 to INF+10 and Line Tag OFFSET added to print the Beyond Use Date data to the sample iv label
 ENX ;Print example label
  D FULL^VALM1
  S PSIVFLAG=1,PSIVRM=$P(PSIVSITE,U,13) S:PSIVRM<1 PSIVRM=30 D:$E(P("OT"))="I" ORFLDS^PSIVEDT1 W:$E(P("OT"))'="I" !,"Med Route: ",$P(P("MR"),U,2),!
 START F PSIV1=1:1:PSIVNOL S LINE=0 D RE I '$D(PSIVFLAG) F LINE=LINE+1:1:(PSIVSITE+$P(PSIVSITE,U,16)) W !
-Q K PSIVDOSE,P16,LINE,MESS,PSIVCT,PSIV2,PSIVFLAG,PSIVRM,PSIV1,PDOSE,PDATE,XX1,XX2,BAG,CX Q
+Q K PSIVDOSE,P16,LINE,MESS,PSIVCT,PSIV2,PSIVFLAG,PSIVRM,PSIV1,PDOSE,PDATE,XX1,XX2,BAG,CX,PSIMESS Q
 RE ;
  D:'$D(VADM(2)) DEM^VADPT
  I PSIV1,P(4)="A"!(P(5)=0) S:P(15)>2880!('P(15)) P(15)=2880 S P(16)=P16+PSIV1#(1440/P(15)+.5\1) S:'P(16) P(16)=1440/P(15)+.5\1
@@ -28,18 +29,41 @@ SOL F PSIV=0:0 S PSIV=$O(DRG("SOL",PSIV)) Q:'PSIV  S Y=DRG("SOL",PSIV) D SOL1,P 
 INF S X=$P(P(8),"@") D:X]"" P I P("OPI")]"" S X=$P(P("OPI"),"^") D P
  S X=P(9) D:X]"" P
  S X=P(11) D:X]"" P
- I $D(MESS) S X=MESS D P
+ ; PSJ*5*184 - Display all messages if more than one additive has a message.
+ I $D(MESS) S PSIMESS="" F  S PSIMESS=$O(MESS(PSIMESS)) Q:PSIMESS=""  S X=PSIMESS D P
  I $D(^PS(59.5,PSIVSN,4)) S Y=^(4) F PSIV=1:1 S X=$P(Y,U,PSIV) Q:X=""  D P
  S X=PSIV1_"["_PSIVNOL_"]" D P
+ ;ISH/MSC/PB - 2/11/13 Next block of below added to add the Beyond Use Date information to the sample label
+ ;IHS/MSC/PLS - 04/02/13
+ I $P($G(^PS(59.5,PSIVSN,9999999)),U)=1 D
+ .I $G(P("OFFSET"))>0 D
+ ..S X="Do Not Use After: "_$$FMTE^XLFDT($$FMADD^XLFDT($$DT^XLFDT(),P("OFFSET")),"5Z")
+ ..D:X]"" P
+ .E  D
+ ..N TEXT1
+ ..S X=""
+ ..D OFFSET
+ ..S:$L(TEXT1) X="Do Not Use After: "_$G(TEXT1) D:X]"" P
+ ;IHS/MSC/PLS - 04/02/13
+ ;IHS/MSC/PB - 2/11/13 End mods for printing Beyond Use Date.
  Q
 P F LINE=LINE+1:1 X:LINE>+PSIVSITE "S LINE=1 F ZZ=1:1 Q:ZZ>$P(PSIVSITE,""^"",16)  W !" K ZZ W $E(X,1,PSIVRM),! S X=$E(X,PSIVRM+1,999) Q:$L(X)<1
  Q
 SOL1 S X=$S($P(Y,U,2)]"":$P(Y,U,2)_" "_$P(Y,U,3),1:"**********") Q
-MESS I '$D(MESS) I $P(^PS(52.6,+$P(Y,U),0),U,9)]"" S MESS=$P(^(0),U,9)
+MESS ; PSJ*5*184 - make MESS a local array so all messages display for all additives.
+ I $P(^PS(52.6,+$P(Y,U),0),U,9)]"" S MESS($P(^PS(52.6,+$P(Y,U),0),U,9))=""
  Q
 CONVER ;Expand dose to date.dose and set in X
  I P(15)>1440 S X=$$CONVER1^PSIVORE2($P(PSIVDOSE," "),P(15),(PSIV1-1)) Q
  S PDOSE=X S:PSIV1=2 PDATE=$E($P(PSIVDOSE," "),1,7)
  I $P(PSIVDOSE," ",PSIV1-1)#1'<PDOSE!(P(15)>1440) S:$D(X1) XX1=X1 S:$D(X2) XX2=X2 S X1=PDATE,X2=1 D C^%DTC S PDATE=X,X=X_PDOSE S:$D(XX1) X1=XX1 S:$D(XX2) X2=XX2 Q
  S X=PDATE_PDOSE
+ Q
+OFFSET ;IHS/MSC/PB - 2/11/13 code block added to compute the Beyond use date for printing on the sample label printed to the screen.
+ N XX1,EXDT
+ S TEXT1="________"
+ I $P($G(^PS(55,DFN,"IV",+$G(ON),9999999)),U)'="" D
+ .Q:$P($G(^PS(55,DFN,"IV",+ON,9999999)),U)<1  ;S TEXT1="________" Q
+ .S XX1=$P(^PS(55,DFN,"IV",+ON,9999999),U),EXDT=$$FMADD^XLFDT($$DT^XLFDT(),XX1)
+ .S TEXT1=$$FMTE^XLFDT(EXDT,"5Z")
  Q

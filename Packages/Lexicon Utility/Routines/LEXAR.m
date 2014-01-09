@@ -1,5 +1,5 @@
-LEXAR ;ISA/FJF-Look-up (Interpret User Response) ;09-10-01
- ;;2.0;LEXICON UTILITY;**3,19**;Sep 23, 1996
+LEXAR ;ISA/FJF/KER-Look-up (Interpret User Response) ;11/30/2008
+ ;;2.0;LEXICON UTILITY;**3,19,25,55**;Sep 23, 1996;Build 15
  ;
  ; User Responses
  ;
@@ -32,7 +32,7 @@ LEXAR ;ISA/FJF-Look-up (Interpret User Response) ;09-10-01
  ; Narrative     Return and store Unresolved Narrative
  ;
  ; --------------------------------------------------------
-EN(LEXUR) ; Interpret user response
+EN(LEXUR,LEXVDT) ; Interpret user response
  I '$D(LEX) D APN Q
  K LEX("HLP")
  N LEXLL,LEXMAX
@@ -61,7 +61,7 @@ EN(LEXUR) ; Interpret user response
  ; Up Arrow
  I LEXUR["^",$D(^TMP("LEXSCH",$J)) D UPA^LEXAR2(LEXUR) D END Q
  ; Select
- I +LEXUR>0,+LEXUR'>LEXMAX D SEL^LEXAR4(+LEXUR) D END Q
+ I +LEXUR>0,+LEXUR'>LEXMAX D SEL^LEXAR4(+LEXUR,$G(LEXVDT)) D END Q
  ; User Unresolved Narrative
  I LEXUR=$G(^TMP("LEXSCH",$J,"NAR",0)),+$G(^TMP("LEXSCH",$J,"UNR",0))=1 D  D END Q
  .D SAVE^LEXAR6
@@ -102,7 +102,7 @@ KLST ; Kill Global List
  Q
 KSCH ; Kill Search Variables
  ;      ^TMP("LEXSCH",$J)
- I +$G(LEX)'=0 K ^TMP("LEXSCH",$J)  ; PCH 3 Do not kill if not found condition exist
+ ; PCH 55 - The only way to kill ^TMP("LEXSCH",$J) is exiting LEXA1
  Q
 KARL ; Kill Array List and supporting variables
  ;       LEX("LIST"),LEX("MAT"),LEX("MIN"),LEX("MAX")

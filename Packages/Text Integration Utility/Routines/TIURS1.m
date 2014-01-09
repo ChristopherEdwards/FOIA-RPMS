@@ -1,5 +1,5 @@
-TIURS1 ; SLC/JER - Additional /es/ actions ;12/17/02
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,36,58,100,109,142,156**;Jun 20, 1997
+TIURS1 ; SLC/JER - Additional /es/ actions ;1/18/05
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,36,58,100,109,142,156,184**;Jun 20, 1997
  ;12/11/00 Moved ELSIG,MULTIPRN,LIST here from TIURS
 ELSIG ; Sign rec
  N TIULST,TIUSLST,TIURJCT,TIUES,TIUI,X,X1,Y,TIUDAARY,TIUCHNG
@@ -34,10 +34,10 @@ ELSIG ; Sign rec
  . . W !,"Removed from signature list.",!
  . . I $$READ^TIUU("FOA","Press RETURN to continue...")
  . E  D
- . . ;If document is a clinical procedures title, check if clinical
+ . . ;If document is a clinical procedures title AND (P184) this is not an additional signature, check if clinical
  . . ;procedure fields are required.  If the fields are required, prompt for
  . . ;them and don't permit the user to sign unless the fields are defined.
- . . I +$$ISA^TIULX(+TIU0,+$$CLASS^TIUCP),$$REQCPF^TIULP(+$P($G(^TIU(8925,+TIUDA,14)),U,5)) D  Q:+TIUPOP
+ . . I '$G(XTRASGNR),+$$ISA^TIULX(+TIU0,+$$CLASS^TIUCP),$$REQCPF^TIULP(+$P($G(^TIU(8925,+TIUDA,14)),U,5)) D  Q:+TIUPOP
  . . . N TIUCPFLD
  . . . W !!,"Item #",TIUI,": ",TIUTYPE," for "
  . . . W $$PTNAME^TIULC1($P(TIU0,U,2))," will need Procedure Summary Code and Date/Time Performed..."
@@ -166,7 +166,8 @@ CNVPOST ; Change Titles/Convert Postings
  D VMSG($G(TIULST),.TIUDAARY,"Title changed")
  Q
 CNVPOST1 ; Convert Single Posting to another title
- N TIUD0,DIE,DR,TIUTITL,CHKSUM,TIUCHTTL,TIUCLSS,TIUCON
+ N TIUD0,DIE,DR,TIUTITL,CHKSUM,TIUCHTTL,TIUCLSS,TIUCON,TIUQUIT
+ N DA,X,Y
  ; Added TIUCON for **142
  S TIUD0=$G(^TIU(8925,TIUDA,0)),TIUCHNG=0
  ; Added TIUNOCS for **142
@@ -185,15 +186,20 @@ CNVPOST1 ; Convert Single Posting to another title
  S TIUCLSS=$$CLASS^TIUCNSLT()
  S TIUCON=+$$ISA^TIULX(TIUTITL,TIUCLSS)
  I TIUCON=1,+TIUD0'=TIUTITL D CHANGE^TIUCNSLT(TIUDA,"",.TIUNOCS)
- I $G(TIUNOCS)=-1 D  Q
- . K TIUNOCS
+ I $G(TIUNOCS)=-1 D  G POST1Q
  . I $$READ^TIUU("EA","Press RETURN to continue...")  ; **142
+ ;*184->
+ D CONSCT^TIUCNSLT(TIUDA,+TIUD0,TIUTITL)
+ D PRFCT^TIUPRF1(+TIUD0,TIUTITL,TIUDA)
+ ;<-*184
+ I $G(TIUQUIT)=1 G POST1Q
  S DIE=8925,DA=TIUDA
  S DR=".01////^S X="_TIUTITL_";.04////^S X="_$$DOCCLASS^TIULC1(TIUTITL)
  D ^DIE
  I +$G(^TIU(8925,+TIUDA,0))'=+TIUD0 S TIUCHNG=1
  S CHKSUM=+$$CHKSUM^TIULC("^TIU(8925,"_+TIUDA_",""TEXT"")")
  D AUDIT^TIUEDI1(TIUDA,CHKSUM,CHKSUM)
+POST1Q ;clean up, linetag put in with *171
  L -^TIU(8925,TIUDA,0)
  K TIUNOCS
  Q

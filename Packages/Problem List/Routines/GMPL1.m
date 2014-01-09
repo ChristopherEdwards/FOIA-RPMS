@@ -1,5 +1,5 @@
-GMPL1 ; SLC/MKB -- Problem List actions ;3/13/00  10:43
- ;;2.0;Problem List;**3,20**;Aug 25, 1994
+GMPL1 ; SLC/MKB/AJB -- Problem List actions ; 04/22/03
+ ;;2.0;Problem List;**3,20,28**;Aug 25, 1994
  ; 10 MAR 2000 - MA - Added to the routine another user prompt
  ; to backup and refine Lexicon search if ICD code 799.9
 ADD ;add new entry to list - Requires GMPDFN
@@ -17,6 +17,8 @@ ADD ;add new entry to list - Requires GMPDFN
  S:'$L(GMPICD) GMPICD="799.9"
 ADD1 ; set up default values
  ; -- May enter here with GMPROB=text,GMPICD=code,GMPTERM=#^term
+ ; added for Code Set Versioning (CSV)
+ I '+$$STATCHK^ICDAPIU(GMPICD,DT) W !,GMPROB,!,"has an inactive code.  Please edit before adding." H 3 Q
  N OK,GMPI,GMPFLD K GMPLJUMP
  S GMPFLD(1.01)=GMPTERM,GMPFLD(.05)=U_GMPROB
  S GMPFLD(.01)=$O(^ICD9("AB",GMPICD_" ",0))_U_GMPICD
@@ -67,6 +69,7 @@ STATUS ; -- inactivate problem
 NEWNOTE ; -- add a new comment
  N GMPFLD
  W !!,$$PROBTEXT^GMPLX(GMPIFN)
+ I '$$CODESTS^GMPLX(GMPIFN,DT) W !,"is inactive.  Edit the problem before adding comments.",! H 2 Q
  D NOTE^GMPLEDT1 Q:$D(GMPQUIT)!($D(GMPFLD(10,"NEW"))'>9)
  D NEWNOTE^GMPLSAVE,DTMOD^GMPLX(GMPIFN)
  S GMPSAVED=1
@@ -87,6 +90,7 @@ DELETE ; -- delete a problem
 VERIFY ; -- verify a transcribed problem, if parameter on
  N NOW,CHNGE S NOW=$$HTFM^XLFDT($H)
  W !!,$$PROBTEXT^GMPLX(GMPIFN),!
+ I '$$CODESTS^GMPLX(GMPIFN,DT) W "has an inactive ICD9 code. Edit the problem before verification.",! H 2 Q
  I $P($G(^AUPNPROB(GMPIFN,1)),U,2)'="T" W "does not require verification.",! H 2 Q
  L +^AUPNPROB(GMPIFN,0):1 I '$T W $C(7),$$LOCKED^GMPLX,! H 2 Q
  S $P(^AUPNPROB(GMPIFN,1),U,2)="P",GMPSAVED=1 W "."

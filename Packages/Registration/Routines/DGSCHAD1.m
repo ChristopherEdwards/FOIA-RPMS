@@ -1,5 +1,5 @@
 DGSCHAD1 ;ALB/MRL - PURGE SCHEDULED ADMISSIONS ; 06 May 87
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  D:'$D(DT) DT^DICRW S U="^" S:'$D(DTIME) DTIME=999 S IOP="HOME" D ^%ZIS K IOP
  F I=1:1 S J=$P($T(T+I),";;",2) Q:J']""  W !,J
 1 W !! S X1=DT,X2=-90 D C^%DTC S X1=$E(X,1,5)_"01",X2=-1 D C^%DTC S DGPD=X_".2359",Y=X X ^DD("DD") S %DT("A")="Purge Scheduled Admissions Through What Date: ",%DT("B")=Y,%DT="EA" D ^%DT K %DT G Q:Y'>0 S Y=Y_".2359"

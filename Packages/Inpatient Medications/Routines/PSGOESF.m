@@ -1,18 +1,23 @@
-PSGOESF ;BIR/MLM-SPEED FINISH ORDERS ENTERED THROUGH OE/RR ;10 Mar 98 / 2:35 PM
- ;;5.0; INPATIENT MEDICATIONS ;**7,11,29,35**;16 DEC 97
+PSGOESF ;BIR/MLM-SPEED FINISH ORDERS ENTERED THROUGH OE/RR ; 4/27/09 2:39pm
+ ;;5.0; INPATIENT MEDICATIONS ;**7,11,29,35,127,133,221**;16 DEC 97;Build 11
  ;
  ; Reference to ^PS(55 is supported by DBIA 2191
+ ; Reference to ^TMP is supported by DBIA 2190
  ; Reference to ^PSSLOCK is supported by DBIA #2789
  ;
 EN ;
  I '$$HIDDEN^PSJLMUTL("SPEED") S VALMBCK="R" Q
- N CODE,ST,DRG,ON,PSGONF,PSGONF2,PSGSFD
- D FULL^VALM1 S PSGLMT=PSJOCNT,(PSGONF,PSGONF2)=0
+ ;PSJ*5*221 Account for pending orders being below pending renewals
+ N CODE,ST,DRG,ON,PSGONF,PSGONF2,PSGSFD,PENDCT
+ D FULL^VALM1 S PSGLMT=PSJOCNT,(PSGONF,PSGONF2,PENDCT)=0
  S CODE="" F  S CODE=$O(^TMP("PSJ",$J,CODE)) Q:CODE=""  D
  .S ST="" F  S ST=$O(^TMP("PSJ",$J,CODE,ST)) Q:ST=""  D
  ..S DRG="" F  S DRG=$O(^TMP("PSJ",$J,CODE,ST,DRG)) Q:DRG=""  D
  ...S ON="" F  S ON=$O(^TMP("PSJ",$J,CODE,ST,DRG,ON)) Q:ON=""  S PSGONF=PSGONF+1 D
  ....I CODE="CC" S:$G(PSGONF2)=0 PSGONF2=PSGONF S PSGRLAST=PSGONF ;gets first renewal #
+ ....;PSJ*5*221 count pending orders to offset SF selection
+ ....I CODE="CB" S PENDCT=PENDCT+1
+ I PENDCT,$G(PSGRLAST) S PSGRLAST=PSGRLAST-PENDCT,PSGONF2=PSGONF2-PENDCT
  I PSGONF2'>0 W !,"There are no orders which can be Speed Finished at this time.",!,"Only PENDING RENEWALS can be Speed Finished." D PAUSE^VALM1 Q
  S PSGONF=PSGONF2_"^"_PSGRLAST
  N DIR,L1,L2 S L1=+PSGONF,L2=$P(PSGONF,U,2),DIR(0)="LAO^"_L1_":"_L2,DIR("A")="FINISH which orders ("_L1_"-"_L2_"): ",DIR("?",1)="Select order"_$E("s",L1'=L2)_"to finish: ",DIR("??")="^D HELP^PSGOESF"
@@ -48,6 +53,7 @@ ENCHK ;
  ;
 DONE ; Kill and exit.
  S DIR(0)="E" D ^DIR K DIR
+ I $G(PSGPXN) D ^PSGPER1
  K PSJSPEED,PSGODDD,PSGOERS,PSGORD,PSGOERS2,PSGPDRGN,PSGDO,PSGSCH,PSGSI,NF,Y,PSGRLAST
  Q
 HELP    ; Display help text for select order to be finished prompt."

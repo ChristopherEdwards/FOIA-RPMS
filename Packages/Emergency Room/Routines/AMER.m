@@ -1,5 +1,5 @@
 AMER ; IHS/ANMC/GIS - PRIMARY ROUTINE FOR ER ADMISSION ;
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**4**;MAR 03, 2009;Build 24
  ;
  N AMERLINE,AMERPCC,AMERTIME
  I $D(AMERBFLG) K AMERBFLG S AMERSTRT=10,AMERFIN=14,AMERQSEQ=AMERSSEQ G RUN
@@ -29,6 +29,25 @@ RUN F AMERRUN=AMERSTRT:1 Q:AMERRUN>AMERFIN  Q:$D(AMERQUIT)  D
  I $D(AMERQUIT) G EXIT
  I '$D(AMERNOHS) D PRINT I $D(AMERQUIT) G EXIT
  D ^AMER0 I $D(AMERQUIT) G EXIT
+ ;
+ ;AMER*3.0*4
+ ;Supply information to BEDD application if loaded
+ ;
+ ;First see if RPMS patch has been loaded
+ I $$VERSION^XPDUTL("BEDD") D
+ . ;
+ . ;Check if XML portion has been loaded
+ . N X
+ . S X="BEDDUTW" X ^%ZOSF("TEST") Q:'$T
+ . ;
+ . ;Check for needed fields
+ . I $G(DFN)="" Q
+ . S:$G(D0)="" D0=$$GET1^DIQ(9009081,DFN_",",1.1,"I")
+ . S:$G(D1)="" D1=$$GET1^DIQ(9009081,DFN_",",1,"I")
+ . ;
+ . ;Call routine to pass info to BEDD
+ . D NEW^BEDDUTIL($G(D),AMERDFN,$G(D0),$G(D1),DFN)
+ ;
  W *7,!!,"ER admission data collection is now complete.  Thank you.",!!
 EXIT ; ENTRY POINT FROM AMERD
  H 2 I $D(IOF) W @IOF

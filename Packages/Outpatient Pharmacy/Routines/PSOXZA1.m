@@ -1,4 +1,4 @@
-PSOXZA1 ; COMPILED XREF FOR FILE #52 ; 05/21/12
+PSOXZA1 ; COMPILED XREF FOR FILE #52 ; 08/08/13
  ; 
  S DIKZK=2
  S DIKZ(0)=$G(^PSRX(DA,0))
@@ -42,6 +42,8 @@ PSOXZA1 ; COMPILED XREF FOR FILE #52 ; 05/21/12
  S X=$P($G(DIKZ(2)),U,15)
  I X'="" K ^PSRX("AJ",X,DA,0)
  S DIKZ("OR1")=$G(^PSRX(DA,"OR1"))
+ S X=$P($G(DIKZ("OR1")),U,8)
+ I X'="" K ^PSRX("AFDT",$E(X,1,30),DA)
  S X=$P($G(DIKZ("OR1")),U,2)
  I X'="" K ^PSRX("APL",$E(X,1,30),DA)
  S X=$P($G(DIKZ("OR1")),U,3)
@@ -80,5 +82,27 @@ CR2 S DIXR=154
  . K X1,X2 M X1=X,X2=X
  . S:$D(DIKIL) (X2,X2(1))=""
  . K ^PSRX("APKI",$E(X,1,30),DA)
-CR3 K X
+CR3 S DIXR=427
+ K X
+ S DIKZ(0)=$G(^PSRX(DA,0))
+ S X(1)=$P(DIKZ(0),U,8)
+ S DIKZ(2)=$G(^PSRX(DA,2))
+ S X(2)=$P(DIKZ(2),U,13)
+ S X=$G(X(1))
+ I $G(X(1))]"",$G(X(2))]"" D
+ . K X1,X2 M X1=X,X2=X
+ . S:$D(DIKIL) (X2,X2(1),X2(2))=""
+ . D SKIDX^PSOPXRMU(.X,.DA,"O","K")
+CR4 S DIXR=430
+ K X
+ S DIKZ(0)=$G(^PSRX(DA,0))
+ S X(1)=$P(DIKZ(0),U,8)
+ S DIKZ(2)=$G(^PSRX(DA,2))
+ S X(2)=$P(DIKZ(2),U,2)
+ S X=$G(X(1))
+ I $G(X(1))]"",$G(X(2))]"" D
+ . K X1,X2 M X1=X,X2=X
+ . S:$D(DIKIL) (X2,X2(1),X2(2))=""
+ . D ERX^PSOPXRMU(.X,.DA,"O","K")
+CR5 K X
 END G ^PSOXZA2

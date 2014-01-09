@@ -1,18 +1,18 @@
-ORWORR ; SLC/KCM/JLI - Retrieve Orders for Broker ;2/5/03 3PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,92,116,110,132,141,163,189**;Dec 17, 1997
+ORWORR ; SLC/KCM/JLI - Retrieve Orders for Broker ;7/24/05
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,92,116,110,132,141,163,189,195,215,243**;Dec 17, 1997;Build 242
  ;
 GET(LST,DFN,FILTER,GROUPS) ; procedure
  Q  ; don't call until using same treating specialty logic as AGET
- ;    also until MULT, ORWARD, & ORIGVIEW implemented
- ;    also until the date ranges are implemented
- ; Get orders for a patient
+ ;    & until MULT, ORWARD, & ORIGVIEW implemented
+ ;    & until the date ranges implemented
+ ; Get orders for patient
  ;        1   2    3     4      5     6   7   8   9   10     11    12    13    14     15     16 17    18
  ; .LST=~IFN^Grp^ActTm^StrtTm^StopTm^Sts^Sig^Nrs^Clk^PrvID^PrvNam^ActDA^Flag^DCType^ChrtRev^DEA#^^Schedule
  ; .LST=tOrder Text (repeating as necessary)
  ;     DFN=Patient ID
- ;  FILTER=number indicates which orders to return, default=2 (current)
- ;  GROUPS=display group of orders to show (default=ALL)
- ; -- this section uses ORQ1 to get the orders list rather than XGET --
+ ;  FILTER=# indicates which orders to return, default=2 (current)
+ ;  GROUPS=display grp of orders to show (default=ALL)
+ ; -- section uses ORQ1 to get orders list rather than XGET --
  N ORLIST,ORIFN,X0,X3,X8,IDX,IFN,ACT,PRV,LN,TXT,STRT,STOP,CSTS,EYE,DEA ;PKI
  K ^TMP("ORR",$J)
  S (IDX,LST)=0 S:'$D(GROUPS) GROUPS=1 S:'$D(FILTER) FILTER=2
@@ -22,20 +22,21 @@ GET(LST,DFN,FILTER,GROUPS) ; procedure
  . D GETFLDS
  K ^TMP("ORR",$J)
  G EXIT
-AGET(REF,DFN,FILTER,GROUPS,DTFROM,DTTHRU,EVENT) ;Get an abbreviated event delayed order list for a patient 
+AGET(REF,DFN,FILTER,GROUPS,DTFROM,DTTHRU,EVENT,ORRECIP) ;Get abbrev. event delayed order list for patient 
  ; returns ^TMP("ORR",$J,ORLIST,n)=IFN^DGrp^ActTm
- ; see above for input parameters
+ ; see input parameters above
  ; -- from ORWORR
- ; -- this section uses ORQ1 to get the orders list rather than XGET --
+ ; -- section uses ORQ1 to get orders list rather than XGET --
  N ORLIST,ORIFN,IFN,I,ORWTS,TOT,MULT,ORWARD,TXTVW,ORYD,PTEVTID,EVTNAME
  S (PTEVTID,EVTNAME)=""
  K ^TMP("ORR",$J),^TMP("ORRJD",$J)
  S:'$D(GROUPS) GROUPS=1 S:'$D(FILTER) FILTER=2
  S ORWTS=+$P(FILTER,U,2),FILTER=+FILTER
  S MULT=$S("^1^6^8^9^10^11^13^14^20^22^"[(U_FILTER_U):1,1:0)
- I $L($G(^DPT(DFN,.1))) S ORWARD=1 ; should normally be ptr to 42
+ I $L($G(^DPT(DFN,.1))) S ORWARD=1 ; normally ptr to 42
  S:'$L($G(DTFROM)) DTFROM=0
  S:'$L($G(DTTHRU)) DTTHRU=0
+ I $P(DTFROM,".")=$P(DTTHRU,"."),$P(DTFROM,".",2)>$P(DTTHRU,".",2),$P(DTTHRU,".",2)="" S $P(DTTHRU,".",2)=2359
  S:'$L($G(EVENT)) EVENT=0
  I $G(EVTDCREL)="TRUE" D
  . D EN^ORQ1(DFN_";DPT(",GROUPS,FILTER,"",DTFROM,DTTHRU,2,MULT,"",1,EVENT)
@@ -49,7 +50,7 @@ RGET(REF,DFN,FILTER,GROUPS,DTFROM,DTTHRU,EVENT) ;Orders of AutoDC/Release Event
  S EVTDCREL="TRUE"
  D AGET(.REF,DFN,FILTER,GROUPS,DTFROM,DTTHRU,EVENT)
  Q
-XGET ; -- this was the retrieval algorithm before all the AC xref changes
+XGET ; retrieval algorithm before all the AC xref changes
  N X,X0,X3,IDX,IFN,LN,TIME,DGRP,MASK,TXT,ACT,PRV,ID,DEA,PASS ;PKI
  S DFN=DFN_";DPT(",IDX=0,LST=0
  I '$G(FILTER) S FILTER=2                    ; Default: Current/Active
@@ -75,7 +76,7 @@ EXIT I LST=0 D
  . N %,X,%I D NOW^%DTC
  . S LST(1)="~0^0^"_%_"^^^97",LST(2)="tNo Orders Found."
  Q
-DOGET ; Come here if need to filter the orders 
+DOGET ; Here to filter orders 
  S TIME=0 F  S TIME=$O(^OR(100,"AO",DFN,TIME)) Q:'TIME  D
  . S DGRP=0 F  S DGRP=$O(^OR(100,"AO",DFN,TIME,DGRP)) Q:'DGRP  D
  . . I $D(GROUPS)>1 Q:'$D(GROUPS(DGRP))           ;filter by display grp
@@ -83,10 +84,10 @@ DOGET ; Come here if need to filter the orders
  . . . S X0=^OR(100,IFN,0),X3=^(3)                ;get main nodes
  . . . I $P(X3,U,8)!$P(X3,U,9)!($P(X3,U,3)=99) Q  ;skip veil,chld,sts=99
  . . . I $L(PASS),(PASS'[(";"_$P(X3,U,3)_";")) Q  ;filter by status
- . . . ; do any other filtering
+ . . . ; any other filtering
  . . . D GETFLDS
  Q
-DOALL ; Come here if retrieve all orders (no filter by status)
+DOALL ; Here to get all orders (no filter by status)
  S TIME=0 F  S TIME=$O(^OR(100,"AO",DFN,TIME)) Q:'TIME  D
  . S DGRP=0 F  S DGRP=$O(^OR(100,"AO",DFN,TIME,DGRP)) Q:'DGRP  D
  . . I $D(GROUPS)>1 Q:'$D(GROUPS(DGRP))           ;filter by display grp
@@ -95,7 +96,7 @@ DOALL ; Come here if retrieve all orders (no filter by status)
  . . . I $P(X3,U,8)!$P(X3,U,9)!($P(X3,U,3)=99) Q  ;skip veil,chld,sts=99
  . . . D GETFLDS
  Q
-DOCUR ; Come here to retrieve all current orders
+DOCUR ; Here to get all current orders
  N AOCTXT,STS,STOP,%
  S X=-$$GET^XPAR("ALL","ORPF ACTIVE ORDERS CONTEXT HRS")
  S %H=$H,X=(%H*86400+$P(%H,",",2))+(X*3600),%H=(X\86400)_","_(X#86400)
@@ -116,10 +117,11 @@ DOCUR ; Come here to retrieve all current orders
 ACKILL ; called only from DOCUR - kill AC xref
  ; K ^OR(100,"AC",DFN,TIME,IFN,ACT)  ; let ORQ1 kill if for now
  Q
-GET4V11(LST,TXTVW,ORYD,IFNLST) ; get the order fields TEMPORARY
+GET4V11(LST,TXTVW,ORYD,IFNLST) ; get order fields TEMP
  G GET41
-GET4LST(LST,IFNLST)     ; get the order fields for a list of orders
+GET4LST(LST,IFNLST) ; get order fields for list of orders
 GET41 N ACT,ACTID,IDX,X0,X3,X8,PRV,ID,LN,TXT,STRT,STOP,CSTS,IFN,IFNIDX,ORIGVIEW,DEA ;PKI
+ N LOC ;IMO
  S (IDX,LST,IFNIDX)=0
  F  S IFNIDX=$O(IFNLST(IFNIDX)) Q:'IFNIDX  S IFN=IFNLST(IFNIDX) D
  . S ACT=$S($P(IFN,";",2):$P(IFN,";",2),1:1),IFN=+IFN
@@ -127,9 +129,9 @@ GET41 N ACT,ACTID,IDX,X0,X3,X8,PRV,ID,LN,TXT,STRT,STOP,CSTS,IFN,IFNIDX,ORIGVIEW,
  . D GETFLDS
  Q
 GETBYIFN(LST,IFN) ; procedure
- ; get the fields for a single order
- ; .LST(n)=as described above in GET
- ;     IFN=internal entry number for order
+ ; get fields for single order
+ ; .LST(n)=described above in GET
+ ;  IFN=internal entry # for order
  I 'IFN Q
  N ACT,IDX,X0,X3,X8,PRV,ID,LN,TXT,STRT,STOP,CSTS,ACTID,ORIGVIEW,ORYD,TXTVW,DEA ;PKI
  S IDX=0,LST=0,ORYD=0
@@ -138,7 +140,7 @@ GETBYIFN(LST,IFN) ; procedure
  S IFN=+IFN,X8=$G(^OR(100,IFN,8,ACT,0))
 GETFLDS ; used by entry points to place order fields into list
  ; expects IDX=sequence #, IFN=order, X0=node 0, X3=node 3, LST=results
- ; LST(IDX)=~IFN^Grp^OrdTm^StrtTm^StopTm^Sts^Sig^Nrs^Clk^PrvID^PrvNam^Act^Flagged[^DCType]^ChartRev^DEA#^^DigSig
+ ; LST(IDX)=~IFN^Grp^OrdTm^StrtTm^StopTm^Sts^Sig^Nrs^Clk^PrvID^PrvNam^Act^Flagged[^DCType]^ChartRev^DEA#^^DigSig^LOC
  S PRV=$P(X8,U,5) S:'PRV PRV=$P(X8,U,3) S PRV=PRV_U
  I PRV S PRV=PRV_$P(^VA(200,+PRV,0),U)
  S DEA=$$DEA^XUSER(,+PRV) ; get user DEA info - PKI
@@ -162,8 +164,19 @@ GETFLDS ; used by entry points to place order fields into list
  . I PKG'=$O(^DIC(9.4,"B","OUTPATIENT PHARMACY",0)) Q
  . D PKI^ORWDPS1(.ORY,OI,ORCAT,+ORVP,$$GET^XPAR("ALL^USR.`"_DUZ,"ORWOR PKI USE",1,"Q"))
  . I $E($G(ORY))=2 S $P(LST(IDX),U,18)=ORY
+ ; Change to display location for Clinic Orders, Inpatients, & IV infusion orders.
+ N DGID,DGNAM
+ S LOC=""
+ S DGID=$P(X0,U,11)
+ I $L(DGID) D 
+ .S DGNAM=$P($G(^ORD(100.98,DGID,0)),U)
+ .;I DGNAM="CLINIC ORDERS"!(DGNAM="INPATIENT MEDICATIONS")!(DGNAM="IV MEDICATIONS")!(DGNAM="UNIT DOSE MEDICATIONS") D
+ .S LOC=$P(X0,U,10) ;IMO
+ .S:+LOC LOC=$P($G(^SC(+LOC,0)),U)_":"_+LOC ;IMO
+ S $P(LST(IDX),U,19)=LOC ;IMO
+ ;
  S ORIGVIEW=$S($G(TXTVW)=0:0,$G(TXTVW)=1:1,ORYD=-1:1,'ORYD:1,$P(X8,U)'<ORYD:0,1:1)
- K TXT D TEXT^ORQ12(.TXT,ID,255)                  ; optimize this later
+ K TXT D TEXT^ORQ12(.TXT,ID,255)                  ; optimize later
  I $O(^OR(100,+IFN,2,0)) S LN=$O(TXT(0)),TXT(LN)="+"_TXT(LN)
  I $O(^OR(100,+IFN,8,"C","XX",0)) S LN=$O(TXT(0)),TXT(LN)="*"_TXT(LN)
  S LN=0 F  S LN=$O(TXT(LN)) Q:'LN  S IDX=IDX+1,LST(IDX)="t"_TXT(LN)
@@ -174,17 +187,17 @@ RSTRT() ; return start date from responses
  Q $G(^OR(100,IFN,4.5,+$O(^OR(100,IFN,4.5,"ID","START",0)),1))
 RSTOP() ; return stop date from responses
  Q $G(^OR(100,IFN,4.5,+$O(^OR(100,IFN,4.5,"ID","STOP",0)),1))
-GETTXT(LST,IFN)     ; get the text of an order
+GETTXT(LST,IFN) ; get text of an order
  I $L(IFN,";")=1 S IFN=IFN_";1"
  D TEXT^ORQ12(.LST,IFN,255)
  Q
 XPND(AGRP) ; procedure
- ; Expand a display group (GROUPS must be defined outside of call)
+ ; Expand display group (GROUPS defined outside of call)
  N I,CHLD
  S GROUPS(AGRP)=^ORD(100.98,AGRP,0),I=0
  F  S I=$O(^ORD(100.98,AGRP,1,I)) Q:'I  S CHLD=$P(^(I,0),U) D XPND(CHLD)
  Q
-GETPKG(Y,IFN) ; get package for an order
+GETPKG(Y,IFN) ; get order pkg
  N ORDERID,PKGID
  Q:+IFN<1
  S ORDERID=+IFN,Y=""

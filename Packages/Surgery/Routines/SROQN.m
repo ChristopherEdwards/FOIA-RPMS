@@ -1,13 +1,12 @@
-SROQN ;BIR/ADM - REPORT OF MISSING DATA FOR QUARTERLY REPORT ; [ 12/09/99  9:11 AM ]
- ;;3.0; Surgery ;**62,77,92**;24 Jun 93
- ;
+SROQN ;BIR/ADM - REPORT OF MISSING DATA FOR QUARTERLY REPORT ;07/20/04  9:11 AM
+ ;;3.0; Surgery ;**62,77,92,129,142**;24 Jun 93
  ;** NOTICE: This routine is part of an implementation of a nationally
- ;**         controlled procedure.  Local modifications to this routine
+ ;**         controlled procedure. Local modifications to this routine
  ;**         are prohibited.
  ;
  S SRSOUT=0,SRSPEC="" W @IOF,!,?18,"Report of Missing Quarterly Report Data",!!
  W !,"For surgical cases with an entry in the TIME PAT IN OR field and that are not",!,"aborted, this option generates a report of cases missing any of the following",!,"pieces of information used by the Quarterly Report:"
- W !!,?10,"In/Out-Patient Status",!,?10,"Major/Minor",!,?10,"Case Schedule Type",!,?10,"Attending Code",!,?10,"Time Pat Out OR",!,?10,"Wound Classification",!,?10,"ASA Class",!,?10,"CPT Code (Principal)",!,?10,"CPT Code (Other)",!
+ W !!,?10,"In/Out-Patient Status",!,?10,"Major/Minor",!,?10,"Case Schedule Type",!,?10,"Attending Code",!,?10,"Time Pat Out OR",!,?10,"Wound Classification",!,?10,"ASA Class",!,?10,"CPT Code (Principal)",!
 SEL ; select date range and specialty
  D DATE^SROUTL(.SDATE,.EDATE,.SRSOUT) G:SRSOUT END D SPEC^SROUTL G:SRSOUT END
  N SRINSTP S SRINST=$$INST^SROUTL0() G:SRINST="^" END S SRINSTP=$P(SRINST,"^"),SRINST=$S(SRINST["ALL DIVISIONS":SRINST,1:$P(SRINST,"^",2))
@@ -25,7 +24,7 @@ EN U IO S (SRTOT,SRSOUT)=0,(SRHDR,SRPAGE)=1,SRSD=SDATE-.0001,SRED=EDATE+.9999,Y=
  D CODES
 END W:$E(IOST)="P" @IOF I $D(ZTQUEUED) Q:$G(ZTSTOP)  S ZTREQ="@" Q
  I 'SRSOUT,$E(IOST)'="P" D PRESS
- D ^%ZISC K ^TMP("SR",$J),SRCPTO,SRFRTO,SRIO,SRTOT,SRRPT,SRTN D ^SRSKILL W @IOF
+ D ^%ZISC K ^TMP("SR",$J),SRFRTO,SRIO,SRTOT,SRRPT,SRTN D ^SRSKILL W @IOF
  Q
 AC F  S SRSD=$O(^SRF("AC",SRSD)) Q:'SRSD!(SRSD>SRED)!SRSOUT  S SRTN=0 F  S SRTN=$O(^SRF("AC",SRSD,SRTN)) Q:'SRTN  I $D(^SRF(SRTN,0)),$$MANDIV^SROUTL0(SRINSTP,SRTN) D CASE
  Q
@@ -33,9 +32,9 @@ CASE ; examine case for missing items
  Q:'$P($G(^SRF(SRTN,.2)),"^",10)!($P($G(^SRF(SRTN,"NON")),"^")="Y")!$P($G(^SRF(SRTN,30)),"^")
  S SR(0)=^SRF(SRTN,0),DFN=$P(SR(0),"^"),SRSS=$P(SR(0),"^",4) I SRSPEC Q:SRSS'=SRSPEC
  S SRIO=$P(SR(0),"^",12) I SRIO'="O"&(SRIO'="I") S SRIO=""
- S SRMM=$P(SR(0),"^",3),SRTYPE=$P(SR(0),"^",10),SRASA=$P($G(^SRF(SRTN,1.1)),"^",3),SRATT=$P($G(^SRF(SRTN,.1)),"^",16),SRWC=$P($G(^SRF(SRTN,"1.0")),"^",8) I SRATT="" D RS^SROQ0A I SRATT=4
- S SROUT=$P($G(^SRF(SRTN,.2)),"^",12),SRCPT=$P($G(^SRF(SRTN,"OP")),"^",2),SRCPTO=1 I $O(^SRF(SRTN,13,0)) S X=0 F  S X=$O(^SRF(SRTN,13,X)) Q:'X  I '$P($G(^SRF(SRTN,13,X,2)),"^") S SRCPTO=0 Q
- S (SRMISS,X)="" S:SRIO="" X="A," S:SRMM="" X=X_"B," S:SRTYPE="" X=X_"C," S:SRATT=4 X=X_"D," S:'SROUT X=X_"E," S:SRWC="" X=X_"F," S:SRASA="" X=X_"G," S:'SRCPT X=X_"H," S:'SRCPTO X=X_"I,"
+ S SRMM=$P(SR(0),"^",3),SRTYPE=$P(SR(0),"^",10),SRASA=$P($G(^SRF(SRTN,1.1)),"^",3),SRATT=$P($G(^SRF(SRTN,.1)),"^",10),SRWC=$P($G(^SRF(SRTN,"1.0")),"^",8) I SRATT="" D RS^SROQ0A
+ S SROUT=$P($G(^SRF(SRTN,.2)),"^",12),SRCPT=$P($G(^SRO(136,SRTN,0)),"^",2)
+ S (SRMISS,X)="" S:SRIO="" X="A," S:SRMM="" X=X_"B," S:SRTYPE="" X=X_"C," S:SRATT=99 X=X_"D," S:'SROUT X=X_"E," S:SRWC="" X=X_"F," S:SRASA="" X=X_"G," S:'SRCPT X=X_"H,"
  S Y=$L(X),SRMISS=$E(X,1,Y-1) I SRMISS'="" S ^TMP("SR",$J,SRSD,SRTN)=DFN_"^"_SRSS_"^"_SRMISS
  Q
 PRINT ; print case information
@@ -63,5 +62,5 @@ CODES ; missing items code definition
  F I=$Y:1:(IOSL-8) W !
  W ! F I=1:1:IOM W "-"
  W !,"MISSING ITEMS CODES:  A-IN/OUT-PATIENT STATUS,   B-MAJOR/MINOR,   C-CASE SCHEDULE TYPE,     D-ATTENDING CODE,"
- W !,"E-TIME PAT OUT OR,    F-WOUND CLASSIFICATION,    G-ASA CLASS,     H-CPT CODE (PRINCIPAL),   I-CPT CODE (OTHER)"
+ W !,"E-TIME PAT OUT OR,    F-WOUND CLASSIFICATION,    G-ASA CLASS,     H-CPT CODE (PRINCIPAL)"
  Q

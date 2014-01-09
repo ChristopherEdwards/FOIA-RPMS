@@ -1,5 +1,5 @@
-BCHEXDI2 ; IHS/TUCSON/LAB - Export initialization ;  [ 11/18/02  9:21 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**2**;OCT 28, 1996
+BCHEXDI2 ; IHS/CMI/LAB - Export initialization ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;IHS/TUCSON/LAB - modified this to not error out if this is the
  ;first export and old data exists patch 1 06/03/97
@@ -47,7 +47,7 @@ EERR ;
  S BCH("QFLG")=13
  ;
  Q:$D(ZTQUEUED)
- W $C(7),$C(7),!!,"*****ERROR ENCOUNTERED*****",!,"The last PCC Data Export never successfully completed to end of job!!!",!,"This must be resolved before any other exports can be done.",!
+ W $C(7),$C(7),!!,"*****ERROR ENCOUNTERED*****",!,"The last CHR Data Export never successfully completed to end of job!!!",!,"This must be resolved before any other exports can be done.",!
  Q
 PERR ;
  S BCH("QFLG")=14
@@ -60,19 +60,19 @@ RERR ;
  S BCH("QFLG")=15
  ;
  Q:$D(ZTQUEUED)
- W $C(7),$C(7),!!,"PCC Data Transmission is currently running!!"
+ W $C(7),$C(7),!!,"CHR Data Transmission is currently running!!"
  Q
 QERR ;
  S BCH("QFLG")=16
  ;
  Q:$D(ZTQUEUED)
- W !!,$C(7),$C(7),"PCC Data Transmission is already queued to run!!"
+ W !!,$C(7),$C(7),"CHR Data Transmission is already queued to run!!"
  Q
 FERR ;
  S BCH("QFLG")=17
  ;
  Q:$D(ZTQUEUED)
- W !!,$C(7),$C(7),"The last PCC Export failed and has never been reset.",!,"See your site manager for assistence",!
+ W !!,$C(7),$C(7),"The last CHR Export failed and has never been reset.",!,"See your site manager for assistence",!
  Q
  ;
 DISPLOG ; DISPLAY LAST LOG DATA

@@ -1,9 +1,10 @@
-SDM ;SF/GFT,ALB/BOK - MAKE AN APPOINTMENT ; 08 Nov 2000  2:26 PM
- ;;5.3;Scheduling;**15,32,38,41,44,79,94,167,168,218,223,250,254,296,1005**;AUG 13, 1993
+SDM ;SF/GFT,ALB/BOK - MAKE AN APPOINTMENT ; 4/21/05 10:22pm
+ ;;5.3;Scheduling;**15,32,38,41,44,79,94,167,168,218,223,250,254,296,380,478,441,1005,1015**;AUG 13, 1993;Build 21
  ;                                           If defined...
  ; appt mgt vars:  SDFN := DFN of patient....will not be asked
  ;                SDCLN := ifn of clinic.....will not be asked    
  ;              SDAMERR := returned if error occurs
+ ; 
  ;IHS/ANMC/LJF  6/29/2000 removed display of enrollment status
  ;                        added prin clinic availability display
  ;              7/05/2000 bypassed pend appt display, race question
@@ -21,6 +22,7 @@ EN1 ;L  W !! D I^SDUTL I '$D(SDCLN) S DIC="^SC(",DIC(0)="AEMZQ",DIC("A")="Select
  I '$D(SDCLN),'$D(^SC(+Y,"SL")) G END  ;IHS/ANMC/LJF 6/29/2000 rest of original line
  ;
  K SDAPTYP,SDIN,SDRE,SDXXX S:$D(SDCLN) Y=+SDCLN
+ S TMPYCLNC=Y,STPCOD=$P($G(^SC(+TMPYCLNC,0)),U,7) ;SD/478
  I $D(^SC(+Y,"I")) S SDIN=+^("I"),SDRE=+$P(^("I"),U,2)
  K SDINA I $D(SDIN),SDIN S SDINA=SDIN K SDIN
  I $D(SD),$D(SC),+Y'=+SC K SD
@@ -53,12 +55,14 @@ EN K SDMLT1 W:$P(VAEL(9),U,2)]"" !!,?15,"MEANS TEST STATUS: ",$P(VAEL(9),U,2),!
  I $D(^DGS(41.1,"B",DFN)) F I=0:0 S I=$O(^DGS(41.1,"B",DFN,I)) Q:I'>0  I $P(^DGS(41.1,I,0),U,2)'<DT&('$P(^DGS(41.1,I,0),U,13)) W !,"SCHEDULED FOR ADMISSION ON " S Y=$P(^(0),U,2) D DT^SDM0
 PEND S %="" W:$O(^DPT(DFN,"S",DT))'>DT !,"NO PENDING APPOINTMENTS"
  I $O(^DPT(DFN,"S",DT))>DT D  G END:%<0,HELP:'%
- .S %=2 W !,"DISPLAY PENDING APPOINTMENTS:"
+ .S %=1 W !,"DISPLAY PENDING APPOINTMENTS:"
  .D YN^DICN
  .I %Y["^" S SDMLT1=1
  D:%=1
  .N DX,DY,SDXY,SDEND S SDXY="S DX=$X,DY=0"_$S($L($G(^%ZOSF("XY"))):" "_^("XY"),1:"") X SDXY
- .F Y=DT:0 S Y=$O(^DPT(DFN,"S",Y)) Q:Y'>0  I "I"[$P(^(Y,0),U,2) X:(($Y+4)>IOSL) "D OUT^SDUTL X SDXY" Q:$G(SDEND)  D CHKSO W:$X>9 ! W ?11 D DT^SDM0 W ?32 S DA=+SSC W SDLN,$S($D(^SC(DA,0)):$P(^(0),U),1:"DELETED CLINIC "),COV,"  ",SDAT16
+ .S CN=1
+ .F Y=DT:0 S Y=$O(^DPT(DFN,"S",Y)) Q:Y'>0  I "I"[$P(^(Y,0),U,2) X:(($Y+4)>IOSL) "D OUT^SDUTL X SDXY" Q:$G(SDEND)  D CHKSO W:$X>9 ! W CN,".",?4 D DT^SDM0 W ?23 S DA=+SSC W SDLN,$S($D(^SC(DA,0)):$P(^(0),U),1:"DELETED CLINIC "),COV,"  ",SDAT16 D
+ ..S CNIEN=0 F  S CNIEN=$O(^SC(+SSC,"S",HY,1,CNIEN)) Q:'+CNIEN  S CNPAT=$P($G(^SC(+SSC,"S",HY,1,CNIEN,0)),U) I CNPAT=DFN W:+$G(^SC(+SSC,"S",HY,1,CNIEN,"CONS")) " Consult Appt." S CN=CN+1 Q  ;SD/478
  ;Prompt for ETHNICITY if no value on file
  I '$O(^DPT(DFN,.06,0)) D
  .S DA=DFN,DR="6ETHNICITY",DIE="^DPT("
@@ -69,12 +73,12 @@ PEND S %="" W:$O(^DPT(DFN,"S",DT))'>DT !,"NO PENDING APPOINTMENTS"
  .S DA=DFN,DR="2RACE",DIE="^DPT("
  .S DR(2,2.02)=".01RACE"
  .D ^DIE K DR
- S DA=DFN,DR=$S('$D(^DPT(DA,.11)):"[SDM1]",$P(^(.11),U)="":"[SDM1]",1:"")
- S DIE="^DPT(" D ^DIE:DR]"" K DR Q:$D(SDXXX)
+ I $S('$D(^DPT(DFN,.11)):1,$P(^(.11),U)="":1,1:0) N FLG S FLG(1)=1 D EN^DGREGAED(DFN,.FLG)
+ Q:$D(SDXXX)
 E S Y=$P(SL,U,5)
  S SDW="" I $D(^DPT(DFN,.1)) S SDW=^(.1) W !,"NOTE - PATIENT IS NOW IN WARD "_SDW
  Q:$D(SDXXX)
-EN2 F X=0:0 S X=$O(^DPT(DFN,"DE",X)) Q:'$D(^(+X,0))  I ^(0)-SC=0!'(^(0)-Y) F XX=0:0 S XX=$O(^DPT(DFN,"DE",X,1,XX)) Q:XX<1  S SDDIS=$P(^(XX,0),U,3) G ^SDM0:'SDDIS
+EN2 F X=0:0 S X=$O(^DPT(DFN,"DE",X)) Q:'$D(^(+X,0))  I ^(0)-SC=0!'(^(0)-Y) F XX=0:0 S XX=$O(^DPT(DFN,"DE",X,1,XX)) Q:XX<1  S SDDIS=$P(^(XX,0),U,3) I 'SDDIS D:'$D(SDMULT) A^SDCNSLT G ^SDM0
  I '$D(^SC(+Y,0)) S Y=+SC
  S Y=$P(^SC(Y,0),U)
  ; SCRESTA = Array of pt's teams causing restricted consults
@@ -92,15 +96,18 @@ EN2 F X=0:0 S X=$O(^DPT(DFN,"DE",X)) Q:'$D(^(+X,0))  I ^(0)-SC=0!'(^(0)-Y) F XX=
  .W !,?15,"Edit Clinic Enrollment Data option"
  D:$G(SCREST) MAIL^SCMCCON(DFN,.SCCLNM,2,DT,"SCRESTA")
  K DR,SCREST,SCCLNM
+ D:'$D(SDMULT) ^SDCNSLT ;SD/478
  G ^SDM0
  ;
 CHKSO S COV=$S($P(^DPT(DFN,"S",Y,0),U,11)=1:" (COLLATERAL)",1:""),HY=Y,SSC=^(0),SDAT16=$S($D(^SD(409.1,+$P(SSC,U,16),0)):$P(^(0),U),1:"")
  F SDJ=3,4,5 I $P(^DPT(DFN,"S",HY,0),U,SDJ)]"" S Y=$P(^(0),U,SDJ) W:$X>9 ! W ?10,"*" D DT^SDM0 W ?32,$S(SDJ=3:"LAB",SDJ=4:"XRAY",1:"EKG")
- S SDLN="" F J=0:0 S J=$O(^SC(+SSC,"S",HY,1,J)) Q:'J  I $D(^(J,0)),+^(0)=DFN S SDLN="("_$P(^(0),U,2)_" MINUTES) " Q
+ S SDLN="" F J=0:0 S J=$O(^SC(+SSC,"S",HY,1,J)) Q:'J  I $D(^(J,0)),+^(0)=DFN S SDLN="("_$P(^(0),U,2)_" MIN) " Q
  S Y=HY Q
  ;
 END D KVAR^VADPT K SDAPTYP,SDSC,%,%DT,ASKC,COV,DA,DIC,DIE,DP,DR,HEY,HSI,HY,J,SB,SC,SDDIF,SDJ,SDLN,SD17,SDMAX,SDU,SDYC,SI,SL,SSC,STARTDAY,STR
  K WY,X,XX,Y,S,SD,SDAP16,SDEDT,SDTY,SM,SS,ST,ARG,CCX,CCXN,HX,I,PXR,SDINA,SDW,COLLAT,SDDIS I $D(SDMM) K:'SDMM SDMM
+ K A,CC,CLNIEN,CN,CNIEN,CNPAT,CNSLTLNK,CNSULT,CNT,CONS,CPRSTAT,CW,DSH,DTENTR,DTIN,DTLMT,DTR,ND,P8,PROC,PT,PTIEN,PTNM,RTMP,NOSHOW,SCPTTM,SD1,SDAMSCN,SDATE,SDDOT,SDII,SDINC,SDINCM,SDLEN,SDNS,SDSI,SDST,SDSTR,SDSTRTDT
+ K SDXSCAT,SENDER,SERVICE,SRV,STATUS,STPCOD,TMP,TMPYCLNC,TYPE
  I '$D(SDMLT) K SDMLT1
  Q
  ;

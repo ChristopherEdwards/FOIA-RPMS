@@ -1,5 +1,6 @@
-ORMEVNT ;SLC/MKB-Trigger HL7 msg off MAS events ;9/9/03  13:41
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**24,45,70,79,141,165,177,186**;Dec 17, 1997
+ORMEVNT ;SLC/MKB-Trigger HL7 msg off MAS events ;3/31/04  09:21
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**24,45,70,79,141,165,177,186,195,278,243**;Dec 17, 1997;Build 242
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
 EN1 ; -- tasked entry point
  Q:'$G(DFN)  Q:$D(DGPMPC)  Q:DGPMT=4!(DGPMT=5)  ;skip lodger mvts
@@ -13,6 +14,8 @@ EN1 ; -- tasked entry point
 EN ; -- main entry point
  S:$D(ZTQUEUED) ZTREQ="@"
  Q:'$G(DFN)  Q:$D(DGPMPC)  Q:DGPMT=4!(DGPMT=5)
+ I '$G(DGPMP) S ^XTMP("OREVENT",DFN,DGPMDA,0)=DT_U_$$FMADD^XLFDT(DT,2)_U_"Event process flag" ;195
+ I $G(DGPMP),$D(^XTMP("OREVENT",DFN,DGPMDA)) D EN1 Q  ;195 edits processed after new JEH
  N XQORQUIT,XQORPOP,DTOUT,DUOUT,DIRUT,DIROUT ;protect protocol context
  N VAIP,DONE,ORVP,ORWARD,ORTS,ORL,ORDIV,ORLAST,X,Y,I,ORCURRNT,OREVENT,ORDCRULE,ORACT,ORPRINT
  S VAIP("E")=DGPMDA D IN5^VADPT M ORVP=VAIP I '$G(DGPMA) D  Q  ;deleted
@@ -25,13 +28,17 @@ A ;
  S ORL=$S(ORWARD:+$G(^DIC(42,ORWARD,44))_";SC(",1:""),ORDIV=$$DIV(+ORL)
  S ORLAST("TS")=$$PREVTS,X=+VAIP(15,4) F I="WD","LOC","DIV" S ORLAST(I)=""
  S:X ORLAST("WD")=X,Y=+$G(^DIC(42,X,44)),ORLAST("LOC")=Y_";SC(",ORLAST("DIV")=$$DIV(Y)
- S ORCURRNT=$$CURRENT,OREVENT=$$PATEVT,ORACT=$S($G(DGPMP):"ED",1:"NW")
- I $G(DGPMP),$D(^ORE(100.2,"ADT",DGPMDA)) D  Q:$G(DONE)  ;edited
+ N OREVNTLK S OREVNTLK=""  ;JEH
+ S ORCURRNT=$$CURRENT,OREVENT=$$PATEVT,ORACT=$S($G(DGPMP):"ED",1:"NW") ; Lock
+ I OREVENT=-1 D EN1 Q  ;195 Can't lock, retry
+ S OREVNTLK=OREVENT  ; save routine copy of ifn JEH
+ I $G(DGPMP),$D(^ORE(100.2,"ADT",DGPMDA)) D   ;edited 
  . N LAST,OREVT,DA,X,I S LAST=+$O(^ORE(100.2,"ADT",DGPMDA,""),-1) Q:LAST<1
  . S OREVT=+$O(^ORE(100.2,"ADT",DGPMDA,LAST,0)),DA=+$O(^(OREVT,0))
  . S X=$G(^ORE(100.2,OREVT,10,DA,0)) ;last activity on movement
  . I $P(X,U,5)=+$G(VAIP(4)),$P(X,U,6)=+$G(VAIP(8)),$P(X,U,7)=+$G(VAIP(5)) S DONE=1 Q  ;no change
  . I 'OREVENT D ACTLOG^OREVNTX(OREVT,"ED",$$TYPE(DGPMT),1) S DONE=1
+ I $G(DONE) D FINISHED Q  ; unlock and clean up before quit IFNjeh 
 B ;
  I '$G(DGPMP),ORCURRNT D  ;new mvt - autoDC
  . I $D(^ORE(100.2,"ADT",DGPMDA)) D  Q:$G(DONE)  ;ReEntered
@@ -49,9 +56,12 @@ C ;
  . I '$G(VAIP(1)) M VAIP=ORVP ;reset for ACTLOG use
  . D ACTLOG^OREVNTX(OREVENT,ORACT,$$TYPE(DGPMT),1)
  . I DGPMT=1,'$P($G(^ORE(100.2,+OREVENT,0)),U,3) S $P(^(0),U,3)=DGPMDA
+ . ;D UNLEVT^ORX2(OREVENT)
  I $O(ORPRINT(0)),$G(ORL) D PRINTS^ORWD1(.ORPRINT,+ORL)
  I DGPMT=3,ORCURRNT,'$G(DGPMP) D DISCH ;lapse remaining events
  I '$G(DFN),$G(ORVP) S DFN=+ORVP ;just in case
+FINISHED  ; unlock and clean up JEH
+ D:$G(OREVNTLK) UNLEVT^ORX2(OREVNTLK) K ^XTMP("OREVENT",DFN,DGPMDA) ;195
  Q
  ;
 CURRENT() ; -- Returns 1 or 0, if DGPMDA is the latest movement
@@ -102,6 +112,7 @@ PATEVT() ; -- Find match to new data in Patient Event file
  . I $O(^ORD(100.5,EVT,"TS",0)) Q:'$D(^("B",ORTS))  Q:ORTS=ORLAST("TS")&(ORDIV=ORLAST("DIV"))
  . I $O(^ORD(100.5,EVT,"LOC",0)) Q:'$D(^("B",ORWARD))  Q:ORWARD=ORLAST("WD")
  . S Y=+IFN ;ok
+ I Y S:'$$LCKEVT^ORX2(Y) Y=-1 ;195 Lock event if possible
 PTQ Q Y
  ;
 DCEVT() ; -- Find match to event in AutoDC Rules file for [new] ORDIV,ORTS,ORL
@@ -149,20 +160,7 @@ LOC(NODE) ; -- Returns [new] patient location from NODE
  Q Y
  ;
 DISCH ; -- Lapse/cancel outstanding events on discharge
- N X,ADM,EVT,ORP,X0,IFN,STS,X8,ORNOW S ORNOW=+$E($$NOW^XLFDT,1,12)
- S X=$P(DGPMA,U,18),ADM=$S(X=12!(X=38):"",1:+$G(VAIP(13))),EVT=0
- F  S EVT=+$O(^ORE(100.2,"AE",+ORVP,EVT)) Q:EVT<1  S ORP=+$O(^(EVT,0)) D
- . I $G(^ORE(100.2,ORP,1)) K ^ORE(100.2,"AE",+ORVP,EVT,ORP) Q
- . Q:$$LAPSED^OREVNTX(ORP)  I $$EMPTY^OREVNTX(ORP) D CANCEL^OREVNTX(ORP) Q
- . I ADM,$P($G(^ORE(100.2,ORP,0)),U,3)'=ADM Q  ;ck adm if not death
- . S X0=$G(^ORE(100.2,ORP,0))
- . S IFN=0 F  S IFN=$O(^OR(100,"AEVNT",ORVP,ORP,IFN)) Q:IFN<1  D
- .. S STS=$P($G(^OR(100,IFN,3)),U,3) I (STS=10)!(IFN=+$P(X0,U,4)) D
- ... D STATUS^ORCSAVE2(IFN,13) S X8=$G(^OR(100,IFN,8,1,0))
- ... S:$P(X8,U,15) $P(^OR(100,IFN,8,1,0),U,15)=13
- ... D:$P(X8,U,4)=2 SIGN^ORCSAVE2(IFN,"","",5,1)
- ... S ^OR(100,IFN,6)=+$O(^ORD(100.02,"C","A",0))_U_U_ORNOW_U_+$O(^ORD(100.03,"C","ORDIS",0))_U_U_U_U_$G(OREVENT)
- . D DONE^OREVNTX(ORP),ACTLOG^OREVNTX(ORP,"CA")
+ D DISCH^ORMEVNT2 ;195 Code moved to ORMEVNT2 for space considerations
  Q
  ;
 XTMP ; -- Save ORIFN to possibly reinstate on admission
@@ -178,12 +176,12 @@ XTMP ; -- Save ORIFN to possibly reinstate on admission
  Q
  ;
 REINST ; -- Reinstate meds from observation
- I '$L($T(ENR^PSJOERI)) K ^XTMP("ORDCOBS-"_+ORVP) Q
+ I '$L($T(ENR^PSJOERI)) K ^XTMP("ORDCOBS-"_+ORVP) Q   ;DBIA 3598
  N ORIDT,ORLASTDC,X0,ORIFN,PSIFN
  S ORIDT=+$O(^DGPM("ATID3",+ORVP,0)) S:DGPMT=2 ORIDT=$O(^DGPM("ATID3",+ORVP,ORIDT)) Q:ORIDT<1  S ORLASTDC=+$O(^(ORIDT,0)) ;186 If reinstating for transfer TO ASIH then skip pseudo discharge for WHILE ASIH
  Q:$G(^XTMP("ORDCOBS-"_+ORVP,"DISCHARGE"))'=ORLASTDC  S X0=$G(^(0))
  I $P(X0,U)<$$NOW^XLFDT K ^XTMP("ORDCOBS-"_+ORVP) Q  ;readmit after one hour 177
- S ORIFN=0 F  S ORIFN=+$O(^XTMP("ORDCOBS-"_+ORVP,ORIFN))  Q:ORIFN<1  S PSIFN=$G(^(ORIFN)) D:PSIFN ENR^PSJOERI(+ORVP,PSIFN,+ORWARD)
+ S ORIFN=0 F  S ORIFN=+$O(^XTMP("ORDCOBS-"_+ORVP,ORIFN))  Q:ORIFN<1  S PSIFN=$G(^(ORIFN)) D:PSIFN ENR^PSJOERI(+ORVP,PSIFN,+ORWARD)  ;DBIA 3598
  K ^XTMP("ORDCOBS-"_+ORVP)
  Q
  ;

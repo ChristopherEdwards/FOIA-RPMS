@@ -1,5 +1,5 @@
-BTIUMED4 ; SLC/JM - Active/Recent Med Objects Routine ;07-Oct-2010 16:43;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1007**;Jun 20, 1997
+BTIUMED4 ; SLC/JM - Active/Recent Med Objects Routine ;30-May-2012 13:15;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1007,1010**;Jun 20, 1997;Build 24
  ;Drugs sorted by clincial indication
  Q
 LIST(DFN,TARGET) ; EP
@@ -173,6 +173,8 @@ LIST(DFN,TARGET) ; EP
  ....S INDEX=@TARGET@("C",INDIC,STATUS,DATA,CNT)
  ....S TYPE=$P(INDEX,U,2),CHRONIC=$P(INDEX,U,3),INDEX=+INDEX
  ....S NODE=^TMP("PS",$J,INDEX,0)
+ ....;IHS/MSC/MGH  Patch 1010
+ ....I STATUS="OUTSIDE" S $P(NODE,U,9)=STATUS
  ....;If hold meds, find the reason and add it to the node data
  ....I STATUS="HOLD" D
  .....S HIEN=+($P(NODE,U))

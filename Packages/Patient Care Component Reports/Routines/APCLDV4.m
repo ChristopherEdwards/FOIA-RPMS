@@ -1,5 +1,5 @@
 APCLDV4 ; IHS/CMI/LAB - list refusals ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**8**;MAY 14, 2009;Build 2
  ;
  ;
 INFORM ;
@@ -57,8 +57,9 @@ TALLY ;which items to tally
 EXCL ;
  S APCLEXBH=""
  W !!,"Would you like to include screenings done in the behavioral health clinics: "
- W !,"Mental Health (14); Alcohol and Substance Abuse (43) and Medical"
- S DIR(0)="Y",DIR("A")="Social Services (48)",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ W !,"Mental Health (14); Alcohol and Substance Abuse (43); Medical"
+ W !,"Social Services (48); Behavioral Health (C4) "
+ S DIR(0)="Y",DIR("A")="and Telebehavioral Health (C9)",DIR("B")="N" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G DATES
  S APCLEXBH=Y
 FAC ;
@@ -133,7 +134,7 @@ PROC ;
  .Q:APCLDATE<APCLBD
  .I APCLLOCT="O",$P(^AUPNVSIT(APCLVIEN,0),U,6)'=APCLLOCT("ONE") Q
  .I APCLLOCT="S",$$VALI^XBDIQ1(9999999.06,$P(^AUPNVSIT(APCLVIEN,0),U,6),.05)'=APCLLOCT("SU") Q
- .I 'APCLEXBH S C=$$CLINIC^APCLV(APCLVIEN,"C") I C=14!(C=45)!(C=48) Q
+ .I 'APCLEXBH S C=$$CLINIC^APCLV(APCLVIEN,"C") I C=14!(C=43)!(C=48)!(C="C4")!(C="C9") Q
  .S X=$O(^XTMP("APCLDV4",APCLJ,APCLH,"PTS",DFN,0))
  .I X]"",X<APCLDATE K ^XTMP("APCLDV4",APCLJ,APCLH,"PTS",DFN,X)
  .S APCLRES=$$VAL^XBDIQ1(9000010.13,APCLEIEN,.04) S:APCLRES["REFUSED" APCLRES="REFUSED SCREENING" S:APCLRES["NEGATIVE" APCLRES="NEGATIVE"
@@ -193,7 +194,9 @@ BHPPNAME(R) ;EP primary provider internal # from 200
  I %1]"" Q %1
  Q "UNKNOWN"
 SPRV(E) ;
+ ;get 1204 if it exists, otherwise take 1202
  I $P($G(^AUPNVXAM(E,12)),U,4) Q $$VAL^XBDIQ1(9000010.13,E,1204)
+ I $P($G(^AUPNVXAM(E,12)),U,2) Q $$VAL^XBDIQ1(9000010.13,E,1202)
  Q "UNKNOWN"
 PRVREF(R) ;
  I $P($G(^AUPNPREF(R,12)),U,4)]"" Q $$VAL^XBDIQ1(9000022,R,1204)

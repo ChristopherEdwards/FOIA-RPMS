@@ -1,5 +1,5 @@
 GMRCSLM1 ;SLC/DCM - Gather data and format ^TMP global for consult tracking Silent call for use by List Manager and GUI ;10/9/01 23:12
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,10,12,15,17,22**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,10,12,15,17,22,32,63**;DEC 27, 1997;Build 10
  ;
  ; This routine invokes IA #2638,#2740
  ;
@@ -30,6 +30,7 @@ SET ;;Format entries into a word processing 'TMP("GMRCR",$J,"CS",' global that L
  ;;GMRCOER=1 : Data is OE/RR GUI formatted.
  S:'$D(TAB) TAB="",$P(TAB," ",30)=""
  S GMRCIFN=$G(GMRCDA) I '$L(GMRCIFN),$D(XQADATA) S (GMRCDA,GMRCIFN)=+XQADATA
+ I $G(XQADATA)["@" S (GMRCDA,GMRCIFN)=+$P($P(XQADATA,"@",2),"|",2)
  S GMRCSEX=$S($P(^DPT(DFN,0),"^",2)="M":"MALE",1:"FEMALE")
  I '$D(^GMR(123,+GMRCIFN,0)) S GMRCQUT=1 Q
  S PROC="",GMRC(0)=^GMR(123,GMRCIFN,0)
@@ -90,7 +91,7 @@ SET ;;Format entries into a word processing 'TMP("GMRCR",$J,"CS",' global that L
  . K STSOER Q
  Q
 END I LNCT<2 S (BLK,LNCT,GMRCNUL)=1,GMRCNPM="< PATIENT DOES NOT HAVE ANY CONSULTS/REQUESTS "_$S($D(GMRCPRNM):"FOR "_GMRCPRNM,1:"")_" ON FILE. >",GMRCNPM=$E(TAB,1,(80-$L(GMRCNPM))\80)_GMRCNPM,^TMP("GMRCR",$J,"CS",LNCT,0)=GMRCNPM D
- .I GMRCDT1'="ALL",$D(GMRCDT1)&($D(GMRCDT2)) S LNCT=LNCT+1,^TMP("GMRCR",$J,"CS",LNCT,0)="Between Dates: "_$$FMTE^XLFDT(GMRCDT1)_" and "_$$FMTE^XLFDT(GMRCDT2)
+ .I $D(GMRCDT1)&($D(GMRCDT2)),GMRCDT1'="ALL" S LNCT=LNCT+1,^TMP("GMRCR",$J,"CS",LNCT,0)="Between Dates: "_$$FMTE^XLFDT(GMRCDT1)_" and "_$$FMTE^XLFDT(GMRCDT2)
  .I $D(GMRCSTCK),$L(GMRCSTCK) S LNCT=LNCT+1,^TMP("GMRCR",$J,"CS",LNCT,0)="With Status: " S STS="" F I=1:1 S STS=$P(GMRCSTCK,",",I) Q:STS=""  S ^TMP("GMRCR",$J,"CS",LNCT,0)=^(0)_$P($G(^ORD(100.01,+STS,0)),"^",1)_" "
  .Q
  E  S (BLK,LNCT)=LNCT-1,^TMP("GMRCR",$J,"CS",0)="^^^"_LNCT

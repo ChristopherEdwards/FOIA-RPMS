@@ -1,5 +1,5 @@
 DGYXPT ;ALB/REW - DG Post-Init Driver for 10/1 Maintenance Patch ; 6/14/94
- ;;5.3;Registration;**66**;Aug 13, 1993
+ ;;5.3;Registration;**66,1015**;Aug 13, 1993;Build 21
  ;
 EN ; -- main entry point
  D HOME^%ZIS

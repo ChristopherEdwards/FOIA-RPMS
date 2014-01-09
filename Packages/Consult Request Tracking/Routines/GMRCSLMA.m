@@ -1,5 +1,5 @@
 GMRCSLMA ;SLC/DLT - List Manager protocol entry, exit actions ; 11/25/2000
- ;;3.0;CONSULT/REQUEST TRACKING;**4,18**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,18,63**;DEC 27, 1997;Build 10
  ; This routine invokes IA #875,#2638
  ;Variables used in entry and exit actions
  ; GMRCALFL is 1 flags the action is executing from an alert
@@ -47,6 +47,7 @@ ENTRY(TYPE) ; -- Entry action for list manager actions
  . S VALMBCK="R"
  . D SET^GMRCSLM1
  . D INIT^GMRCSLM
+ . S VALMCNT=1
  . ;D END^GMRCSLM1 ;cancel,receive
  . Q
  ;

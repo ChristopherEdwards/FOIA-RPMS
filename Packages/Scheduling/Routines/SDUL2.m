@@ -1,5 +1,5 @@
 SDUL2 ;ALB/MJK - List Manager Utilities; 4/22/92
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 SEL ; -- select w/XQORNOD(0) defined
  D EN(XQORNOD(0)) Q

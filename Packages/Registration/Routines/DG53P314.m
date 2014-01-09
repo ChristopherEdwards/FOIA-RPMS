@@ -1,5 +1,5 @@
 DG53P314 ;ALB/RPM - Patch DG*5.3*314 Install Utility Routine ; 12/12/00 5:19pm
- ;;5.3;Registration;**314**;AUG 13, 1993
+ ;;5.3;Registration;**314,1015**;AUG 13, 1993;Build 21
  ;
  ;
 ENV ;Main entry point for Environment check point.

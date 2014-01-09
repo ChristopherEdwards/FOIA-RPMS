@@ -1,5 +1,5 @@
 SDACSCGB ;ALBISC/TET - BATCH UPDATE COMP GEN APPT TYPES FOR C&P'S ;3/23/92  13:59
- ;;5.3;Scheduling;**132**;Aug 13, 1993
+ ;;5.3;Scheduling;**132,1015**;Aug 13, 1993;Build 21
  ;
 BATCH ; - enter here for batch update cg appt types fm cg (possible C&P) to C&P
 READ ;enter here to read

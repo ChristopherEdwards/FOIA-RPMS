@@ -1,5 +1,5 @@
-BCHRC9P ; IHS/TUCSON/LAB - = print all visit report ;  [ 04/02/01  10:14 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,11,12,16**;OCT 28, 1996
+BCHRC9P ; IHS/CMI/LAB - = print all visit report ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
 START ;
  D NOW^%DTC S Y=X D DD^%DT S BCHDT=Y
  K BCHQUIT S BCHPG=0
@@ -35,9 +35,12 @@ HEAD2 ; if printer
  W !!?28,"DATA SUMMARY BY PROVIDER"
  S BCHPROGN=$S(BCHPRG:$P(^BCHTPROG(BCHPRG,0),U)_" ("_$P(^(0),U,5)_")",1:"ALL"),X=$L(BCHPROGN)+10
  W !?((80-X)/2),"PROGRAM:  ",BCHPROGN
+ S X=$L("PATIENTS:  "_BCHREGN)
+ W !?((80-X)/2),"PATIENTS:  ",BCHREGN
  W !?17,"REPORT DATES:  ",BCHBDD,"  TO  ",BCHEDD,!
  W !,"**Note:  S&T HRS stands for Service and Travel Hours"
+ W !,"         ADM Service is defined as service codes AM, LT and OT"
  W !!?25,"TOT NUM OF",?36,"    NUMBER",?47,"   S&T HRS",?58,"   S&T HRS",?69,"   S&T HRS"
- W !,"PROVIDER",?25,"ACTIVITIES",?36,"    SERVED",?47,"  ALL SRVS",?58,"   NON-ADM",?69,"   ADM SRV"
+ W !,"PROVIDER",?25,"SERVICES",?36,"    SERVED",?47,"  ALL SRVS",?58,"   NON-ADM",?69,"   ADM SRV"
  W !,$TR($J(" ",80)," ","-")
  Q

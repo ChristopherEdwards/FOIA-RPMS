@@ -1,5 +1,5 @@
 DGPMBSR1 ;ALB/LM - BED STATUS REPORT RECALCULATION CONT.; 16 JAN 91
- ;;5.3;Registration;**85**;Aug 13, 1993
+ ;;5.3;Registration;**85,1015**;Aug 13, 1993;Build 21
  ;
 A S DIE="^DG(43,",DA=1,DR="53///"_RD D ^DIE K DA,DIE,DR ;  Date when recalc up to
  S W=0 F I=0:0 S W=$O(^DIC(42,W)) Q:'W  D SET

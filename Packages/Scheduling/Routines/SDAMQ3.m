@@ -1,5 +1,5 @@
 SDAMQ3 ;ALB/MJK - AM Background Job/Appointments ; 12/1/91
- ;;5.3;Scheduling;**24**;Aug 13, 1993
+ ;;5.3;Scheduling;**24,466,1015**;Aug 13, 1993;Build 21
  ;
 EN(SDBEG,SDEND) ; -- search appts
  N VAUTD,SDCL,X,SDIVNM,SDNAME,SDT,SDDA,SDREQ,SDNONCNT
@@ -34,11 +34,11 @@ CHK(SDCL,SDT,SDDA,SDIVNM,SDNAME,SDREQ) ; -- check appts
  S X=$P(SDPT,U,2) I X'="I",X'="",X'="NT" G CHKQ
  ;
  ; -- re-set for inpatient appt
- I X="I"!(X="") D  I $P(SDPT,U,2)="I" G CHKQ
+ I X="I"!(X="") D
  .N Y
  .S Y=$$INP^SDAM2(DFN,SDT)
  .I X'=Y S $P(SDPT,U,2)=Y,^DPT(DFN,"S",SDT,0)=SDPT
- .I Y="I" D CO(DFN,SDT,SDCL,SDREQ)
+ .;I Y="I" D CO(DFN,SDT,SDCL,SDREQ)
  ;
  ; -- non-count processing
  I SDNONCNT D CO(DFN,SDT,SDCL,SDREQ) G CHKQ

@@ -1,5 +1,5 @@
-GMRAPEM0 ;HIRMFO/WAA,FT-ALLERGY/ADVERSE REACTION PATIENT EDIT DRIVER ;18-Mar-2011 11:02;MGH
- ;;4.0;Adverse Reaction Tracking;**2,5,17,21,36,1002**;Mar 29, 1996;Build 32
+GMRAPEM0 ;HIRMFO/WAA,FT-ALLERGY/ADVERSE REACTION PATIENT EDIT DRIVER ;01-May-2012 14:24;DU
+ ;;4.0;Adverse Reaction Tracking;**2,5,17,21,36,1002,1006**;Mar 29, 1996;Build 29
  ;IHS/MSC/MGH added data to enter source
 EN11 ; Entry point for GMRA USER E/E PAT REC DATA option
  ; GMRAUSER is a flag that indicates that this is a User
@@ -15,7 +15,7 @@ EN1 ; Entry for ENTER/EDIT PATIENT REACTION DATA option
  Q
 EN21 ; Process patient data and determine if patient is NKA
  S GMRAOUT=$G(GMRAOUT,0)
- ;IHS/MSC/MGH
+ ;IHS/MSC/MGH Patch 1006
  ;Check and see if patient is marked unassessable, if so, ask if the user wishes resolve this issue
  N GMRCK,VAL,Y,DIR,STOP
  S GMRCK=$$INASSESS(DFN)
@@ -29,6 +29,7 @@ EN21 ; Process patient data and determine if patient is NKA
  .D ^DIR I $D(DIRUT) K DIRUT Q
  .I Y=1 D CKIN^BEHOARMU(DFN) S STOP=1 Q
  .I Y=0 D SET^GMRAOR8(DFN) S STOP=1 Q
+ ;END MOD
  ; check patient assessment before enter/edit reaction
  I $$NKA^GMRANKA(DFN),$$NKASCR^GMRANKA(DFN) D  ;delete 120.86 entry if assessment=yes, but no active reactions in 120.8
  .N DA,DIK
@@ -44,7 +45,7 @@ EN21 ; Process patient data and determine if patient is NKA
  .I 'GMRARP S GMRACNT=$O(^TMP($J,"GMRASF","B"),-1) D
  ..I GMRACNT D SIGNOFF^GMRASIGN
  ..I 'GMRAOUT D IDBAND^GMRASIGN
- ..;Add call for interface
+ ..;IHS/MSC/MGH Add call for interface patch 1002,1006
  ..N X
  ..S X=$$FIND1^DIC(101,,"BX","GMRA ALLERGY UPDATE")_";ORD(101,"
  ..D:X EN^XQOR ;Process protocols hanging off this protocol
@@ -108,9 +109,9 @@ SELECT ;Select a patient reaction
  Q
 TYPE ; Select the type of the process to use this reaction
  S GMRAERR=0
- ; IHS/MSC/MGH If reaction is not new check to see if user want to enter in error
+ ; If reaction is not new check to see if user want to enter in error
  I 'GMRANEW W @IOF N GMRADFN D EN1^GMRAPEE0 I GMRAERR!GMRAOUT Q
- ;Add source of information
+ ;IHS/MSC/MGH Add source of information Patch 1006
  I GMRANEW D
  .S DA=GMRAPA,DIE=120.8,DR=9999999.11
  .D ^DIE
@@ -146,7 +147,7 @@ OBSDATE .;
  .D EDIT^GMRAPEM4
  .I $P($G(^GMR(120.8,GMRAPA,0)),U,16) S GMRASLL(GMRAPA)=1
  .Q
- ;Add the last modified data patch 8
+ ;IHS/MSC/MGH Add the last modified data patch 1006
  N MIEN,FDA,IEN,ERR,X
  S MIEN="+1,"_GMRAPA_","
  S FDA(120.899999914,MIEN,.01)=$$NOW^XLFDT

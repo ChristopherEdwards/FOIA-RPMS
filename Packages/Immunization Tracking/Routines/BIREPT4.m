@@ -1,9 +1,10 @@
 BIREPT4 ;IHS/CMI/MWR - REPORT, TWO-YR-OLD RATES; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW TWO-YR-OLD IMMUNIZATION RATES REPORT, WRITE HEADERS, ETC.
  ;;  PATCH 1: Exclude patients whose Inactive Date=Not in Register.  CHKSET+35
- ;
+ ;;  PATCH 3: Extensive edits to allow Hx of Chickenpox to count for Varicella.
+ ;;           CHKSET+60, CHKSET+209
  ;
  ;----------
 GETPATS(BIBEGDT,BIENDDT,BICC,BIHCF,BICM,BIBEN,BIQDT,BIAGRPS,BISITE,BIUP) ;EP
@@ -97,6 +98,29 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  ;---> Add refusals, if any.
  N Z D CONTRA^BIUTL11(BIDFN,.Z,1) I $O(Z(0)) S BITMP("REFUSALS",BIDFN)=""
  ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Check for Hx of Chicken Pox (as a reason for contra to Var & MMRV.)
+ ;---> If HX of Chicken Pox to add to Hx of Chickenpox line and count as
+ ;---> Varicella Combo Stats Lines.
+ N BICHXDT,BIHXX,Z
+ D CONTRA^BIUTL11(BIDFN,.Z,2,1) I (+$G(Z(21))=12)!(+$G(Z(94))=12) D
+ .N BICHXDT D
+ ..;---> Get the date of Chickenpox contraindication.
+ ..I $D(Z(21)) S BICHXDT=$P(Z(21),U,2) Q
+ ..I $D(Z(21)) S BICHXDT=$P(Z(94),U,2)
+ .Q:'BICHXDT
+ .;
+ .N BIAGE,J,K S J=1
+ .F K=1:1 S BIAGE=$P(BIAGRPS,",",K) Q:'BIAGE  D
+ ..D:J PASTMTH^BIAGE(BICHXDT,BIAGE,.BIDATE)
+ ..Q:BIDATE>BIDOB
+ ..;---> Patient received imm by BIAGE months, set in stats array.
+ ..N Z S Z=$G(BITMP("STATS",132,1,BIAGE)) S BITMP("STATS",132,1,BIAGE)=Z+1
+ ..S J=0
+ ..;---> Also set for combo lines.
+ ..S BIHXX(132,1,BIAGE)=""
+ ;**********
+ ;
  ;---> Set BIHX=to a valid Immunization History.
  N BIHX S BIHX=$P(BIRETVAL,BI31,1)
  ;
@@ -145,7 +169,6 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  .;
  .;---> Set this immunization in the STATS array for each Age (A)
  .;---> by which the patient had already received it (cumulative).
- .;W !,BIAGRPS R ZZZ
  .N J,K S J=1
  .F K=1:1 S BIAGE=$P(BIAGRPS,",",K) Q:'BIAGE  D
  ..;---> If patient received imm by BIAGE months on the previous iteration
@@ -214,9 +237,6 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  .Q:'$D(BIHX(3,3,A))
  .Q:'$D(BIHX(4,3,A))
  .D COMBO("1|4^2|3^6|1^3|3^4|3",A)
- .;---> Store for Patient Report Roster (complete 43133).
- .;---> v8.5: No longer 43133; now 4313314 below.
- .;S BIVAL=2
  ;
  ;---> 4-DTP, 3-OPV, 1-MMR, 3-HIB, 3-HEPB, 1-VAR
  F K=1:1 S A=$P(BIAGRPS,",",K) Q:'A  D
@@ -226,7 +246,11 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  .I BIHIB2<2 Q:'$D(BIHX(3,4,A))
  .Q:'$D(BIHX(3,3,A))
  .Q:'$D(BIHX(4,3,A))
- .Q:'$D(BIHX(7,1,A))
+ .;
+ .;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ .;---> Allow Hx of Chickenpox to count for Varicella.
+ .;Q:'$D(BIHX(7,1,A))
+ .Q:(('$D(BIHX(7,1,A)))&('$D(BIHXX(132,1,A))))
  .D COMBO("1|4^2|3^6|1^3|3^4|3^7|1",A)
  ;
  ;
@@ -238,12 +262,13 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  .I BIHIB2<2 Q:'$D(BIHX(3,4,A))
  .Q:'$D(BIHX(3,3,A))
  .Q:'$D(BIHX(4,3,A))
- .Q:'$D(BIHX(7,1,A))
+ .;---> Allow Hx of Chickenpox to count for Varicella.
+ .;Q:'$D(BIHX(7,1,A))
+ .Q:(('$D(BIHX(7,1,A)))&('$D(BIHXX(132,1,A))))
  .Q:'$D(BIHX(11,3,A))
  .D COMBO("1|4^2|3^6|1^3|3^4|3^7|1^11|3",A)
  ;
  ;
- ;I BIDFN=119 X ^O
  ;---> 4-DTP, 3-OPV, 1-MMR, 3-HIB, 3-HEPB, 1-VAR, 4-PNE  vvv83
  F K=1:1 S A=$P(BIAGRPS,",",K) Q:'A  D
  .Q:'$D(BIHX(1,4,A))
@@ -252,7 +277,9 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  .I BIHIB2<2 Q:'$D(BIHX(3,4,A))
  .Q:'$D(BIHX(3,3,A))
  .Q:'$D(BIHX(4,3,A))
- .Q:'$D(BIHX(7,1,A))
+ .;---> Allow Hx of Chickenpox to count for Varicella.
+ .;Q:'$D(BIHX(7,1,A))
+ .Q:(('$D(BIHX(7,1,A)))&('$D(BIHXX(132,1,A))))
  .Q:'$D(BIHX(11,4,A))
  .D COMBO("1|4^2|3^6|1^3|3^4|3^7|1^11|4",A)
  .;---> Store for Patient Report Roster (complete 4313314).
@@ -266,7 +293,9 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  .I BIHIB2<2 Q:'$D(BIHX(3,4,A))
  .Q:'$D(BIHX(3,3,A))
  .Q:'$D(BIHX(4,3,A))
- .Q:'$D(BIHX(7,1,A))
+ .;---> Allow Hx of Chickenpox to count for Varicella.
+ .;Q:'$D(BIHX(7,1,A))
+ .Q:(('$D(BIHX(7,1,A)))&('$D(BIHXX(132,1,A))))
  .Q:'$D(BIHX(11,4,A))
  .Q:'$D(BIHX(9,1,A))
  .D COMBO("1|4^2|3^6|1^3|3^4|3^7|1^11|4^9|1",A)
@@ -279,7 +308,9 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  .I BIHIB2<2 Q:'$D(BIHX(3,4,A))
  .Q:'$D(BIHX(3,3,A))
  .Q:'$D(BIHX(4,3,A))
- .Q:'$D(BIHX(7,1,A))
+ .;---> Allow Hx of Chickenpox to count for Varicella.
+ .;Q:'$D(BIHX(7,1,A))
+ .Q:(('$D(BIHX(7,1,A)))&('$D(BIHXX(132,1,A))))
  .Q:'$D(BIHX(11,4,A))
  .Q:'$D(BIHX(9,2,A))
  .;Q:'$D(BIHX(15,3,A))
@@ -295,7 +326,10 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIDOB,BIQDT,BIVAL,BIAGRPS,BIUP) ;EP
  .I BIHIB2<2 Q:'$D(BIHX(3,4,A))
  .Q:'$D(BIHX(3,3,A))
  .Q:'$D(BIHX(4,3,A))
- .Q:'$D(BIHX(7,1,A))
+ .;---> Allow Hx of Chickenpox to count for Varicella.
+ .;Q:'$D(BIHX(7,1,A))
+ .Q:(('$D(BIHX(7,1,A)))&('$D(BIHXX(132,1,A))))
+ .;**********
  .Q:'$D(BIHX(11,4,A))
  .Q:'$D(BIHX(9,2,A))
  .;Q:'$D(BIHX(15,3,A))

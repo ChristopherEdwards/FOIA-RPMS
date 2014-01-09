@@ -1,10 +1,10 @@
 SDPPAT1 ;ALB/CAW-Patient Profile (Generic Patient Info) Screen 1;5/4/92
- ;;5.3;Scheduling;**6,140**;Aug 13, 1993
+ ;;5.3;Scheduling;**6,140,441,1015**;Aug 13, 1993;Build 21
  ;
  ;
 PDATA ; Patient Data
  N SD,SDELIG,SDDIS,SDCNT,CNT,SDCT,SDCOPS
- F SD=0,.3,.11,.121,.13,.32,.321,.35,.36,.52,"TYPE","VET" S SD(SD)=$G(^DPT(DFN,SD))
+ F SD=0,.3,.11,.121,.122,.13,.32,.321,.35,.36,.52,"TYPE","VET" S SD(SD)=$G(^DPT(DFN,SD))
  I $D(^DPT(DFN,.372,0)) S SDDIS=0 F  S SDDIS=$O(^DPT(DFN,.372,SDDIS)) Q:'SDDIS  D
  .S SDDIS(SDDIS)=$G(^DPT(DFN,.372,SDDIS,0))
  .S SDDIS(SDDIS)=$P($G(^DIC(31,+$P(SDDIS(SDDIS),U),0)),U)_" ("_$S($P(SDDIS(SDDIS),U,3):"SC-",1:"NSC-")_$P(SDDIS(SDDIS),U,2)_"%)"

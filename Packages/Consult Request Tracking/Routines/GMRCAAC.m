@@ -1,5 +1,5 @@
 GMRCAAC ;SLC/DLT - Administrative Complete action consult logic ;7/16/98  01:47
- ;;3.0;CONSULT/REQUEST TRACKING;**4,12**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,12,53**;DEC 27, 1997;Build 3
 COMP(GMRCO) ;Clerk action to Complete an order
  ;GMRCO is the selected consult
  K GMRCQUT,GMRCQIT
@@ -27,14 +27,17 @@ COMP(GMRCO) ;Clerk action to Complete an order
  S GMRCSFO=$P(GMRC(0),"^",19)
  S GMRCSF=$$GETSIGF^GMRCASF(GMRCSFO) I GMRCSF=0 D END Q
  ;
- ;Update status, last action and significant findings
+ ;Update the Activity Log for an audit trail
  S GMRCSTS=2,GMRCA=10
+ N GMRCQUIT S GMRCOM=1 D AUDIT^GMRCP I +$G(GMRCQUIT)=1 Q
+ I $G(GMRCERR)=1 S GMRCMSG=GMRCERMS D EXAC^GMRCADC(GMRCMSG) Q
+ ;Update status, last action and significant findings
  S GMRCDR="8////^S X=GMRCSTS;9////^S X=GMRCA;15////^S X=GMRCSF"
  D STATUS^GMRCP
- I $G(GMRCERR)=1 S GMRCMSG=GMRCERMS D EXAC^GMRCADC(GMRCMSG) Q
- ;Update the Activity Log for an audit trail
- S GMRCOM=1 D AUDIT^GMRCP
- I $G(GMRCERR)=1 S GMRCMSG=GMRCERMS D EXAC^GMRCADC(GMRCMSG)
+ I $G(GMRCERR)=1 S GMRCMSG=GMRCERMS D  Q
+ . N DA,DIK
+ . D EXAC^GMRCADC(GMRCMSG)
+ . S DA=$O(^GMR(123,+GMRCO,40,"A"),-1),DA(1)=+GMRCO,DIK="^GMR(123,"_DA(1)_",40," D ^DIK K DIK
  ;
  D EN^GMRCHL7(DFN,GMRCO,$G(GMRCTYPE),$G(GMRCRB),"RE",GMRCORNP,$G(GMRCVSIT),.GMRCOM,,$G(GMRCAD))
  S GMRCADUZ=""

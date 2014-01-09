@@ -1,5 +1,5 @@
 DGMTE ;ALB/RMO,CAW,LD,SCG - Edit an Existing Means Test ;03 APR 2002 2:00 pm
- ;;5.3;Registration;**33,45,182,344,332,433**;Aug 13, 1993
+ ;;5.3;Registration;**33,45,182,344,332,433,624,1015**;Aug 13, 1993;Build 21
  ;
 EN ;Entry point to edit an existing means test
  N DGMDOD S DGMDOD=""
@@ -26,12 +26,12 @@ DT S DIC("A")="Select DATE OF TEST: "
  S DGMTI=+Y,DGMTDT=$P(Y,"^",2),DGMT0=Y(0)
  ;
  ;If test is uneditable, print error message and allow user to view test
- ;or print 10/10F
+ ;or print 10-10EZ/EZR
  ;
  I '$P($G(^DG(408.34,+$P(Y(0),U,23),0)),U,2) D  D:$G(DGMTERR) VIEWPRT G EN
  .W !!?3,*7,"Warning: Uneditable "_$S(DGMTYPT=1:"means",1:"copay")_" test.  The source of this test is "_$S($$SR^DGMTAUD1(Y(0))]"":$$SR^DGMTAUD1(Y(0)),1:"UNKNOWN")
  .W !?12,"which has been flagged as an uneditable source.",!
- .S DIR("A")="Would you like to view the "_$S(DGMTYPT=1:"means",1:"copay")_" test or print the 10/10F",DIR("B")="NO",DIR(0)="Y"
+ .S DIR("A")="Would you like to view the "_$S(DGMTYPT=1:"means",1:"copay")_" test or print the 10-10EZR/EZ",DIR("B")="NO",DIR(0)="Y"
  .D ^DIR K DIR S DGMTERR=Y I $D(DTOUT)!($D(DUOUT)) K DGMTERR,DTOUT,DUOUT
  I "^3^10^"[("^"_$P(Y(0),"^",3)_"^") W !?3,*7,$S(DGMTYPT=1:"Means",1:"Copay")_" test is NO LONGER "_$S(DGMTYPT=1:"REQUIRED",1:"APPLICABLE")_", it cannot be edited." G EN
  I DGMTYPT=4,$P($G(^DGMT(408.31,DGMTI,2)),U,8) D  I $G(DGOUT) K DGOUT G EN
@@ -58,12 +58,23 @@ Q K DFN,DGMTACT,DGMTDT,DGMTERR,DGMT0,DGMTI,DGMTROU,DGMTYPT,DGMTX,DGOUT,DTOUT,DUO
 PAUSE S DIR(0)="E" D ^DIR
  Q
  ;
-VIEWPRT ; Select 1 to view an uneditable means test or 2 to print a 10/10F
+VIEWPRT ; Select 1 to view an uneditable means test or 2 to print a 10-10EZ/EZR
  ;
- S DIR(0)="S^1:View Means Test;2:Print Means Test 10/10F",DIR("A")="Select Choice"
+ S DIR(0)="S^1:View Means Test;2:Print Means Test 10-10EZR/EZ",DIR("A")="Select Choice"
  D ^DIR S DGMTANS=Y G:$D(DTOUT)!($D(DUOUT)) VIEWPRTQ
  I DGMTANS=1 D EN1^DGMTV
- I DGMTANS=2 D DEV^DGMTP
+ I DGMTANS=2 D 
+ .N RPTSEL,DGTASK
+ .D FULL^VALM1
+ .S (RPTSEL,DGTASK)=""
+ .I $D(DGFINOP) DO
+ ..W !!,"Options for printing financial assessment information will follow."
+ ..W !,"Generally, you should answer 'YES' to 'PRINT 10-10EZR?' after updating"
+ ..W !,"patient demographic or financial information.  Answer 'YES' to 'PRINT"
+ ..W !,"10-10EZ?' after entering new patient demographic and financial information."
+ .S RPTSEL=$$SEL1010^DG1010P("EZR/EZ") ;*Select 1010EZ/R form to print
+ .S:RPTSEL'="-1" DGTASK=$$PRT1010^DG1010P(RPTSEL,DFN,DGMTI) ;*Print 1010EZ/R
+ ;
 VIEWPRTQ ;
  K DGMTANS,DIR,DTOUT,DUOUT,Y
  Q

@@ -1,5 +1,5 @@
 ABMDF28X ; IHS/ASDST/DMJ - PRINT UB-04 ;  
- ;;2.6;IHS Third Party Billing;**1,3**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25033 - Made changes for NM Medicaid
  ; IHS/SD/SDR - v2.5 p12 - IM25136 - Made change for alignment of FL4
@@ -151,7 +151,8 @@ ABMDF28X ; IHS/ASDST/DMJ - PRINT UB-04 ;
  D WRT^ABMDF28W  ; form locator #14
  I +$G(ABMR(20,110))'=0 S ABMR(20,110)="0"_ABMR(20,110)
  S ABMDE=(ABMR(20,110))_"^24^3"  ;Source of admission
- I ($P($G(^AUTNINS(ABMP("INS"),0)),U)="NEW MEXICO MEDICAID")!($P($G(^AUTNINS(ABMP("INS"),0)),U)="MEDICAID EXEMPT") S ABMDE=+(ABMR(20,110))_"24^3"
+ ;I ($P($G(^AUTNINS(ABMP("INS"),0)),U)="NEW MEXICO MEDICAID")!($P($G(^AUTNINS(ABMP("INS"),0)),U)="MEDICAID EXEMPT") S ABMDE=+(ABMR(20,110))_"24^3"  ;abm*2.6*9 HEAT53204
+ I ($P($G(^AUTNINS(ABMP("INS"),0)),U)="NEW MEXICO MEDICAID")!($P($G(^AUTNINS(ABMP("INS"),0)),U)="MEDICAID EXEMPT") S ABMDE=+(ABMR(20,110))_"^24^3"  ;abm*2.6*9 HEAT53204
  I $P($G(^AUTNINS(ABMP("INS"),0)),U)="ARIZONA MEDICAID",(ABMP("VTYP")=998) S ABMDE="^^24^3"
  D WRT^ABMDF28W  ; form locator #15
  S:ABMR(20,220) ABMDE=ABMR(20,220)_"^27^3"  ;Discharge hour

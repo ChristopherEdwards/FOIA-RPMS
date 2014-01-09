@@ -1,13 +1,16 @@
-LEXABC ; ISL Look-up by Code                      ; 01-25-97
- ;;2.0;LEXICON UTILITY;**4**;Sep 23, 1996
+LEXABC ;ISL/KER - Look-up by Code ;01/03/2011
+ ;;2.0;LEXICON UTILITY;**4,25,26,29,38,73**;Sep 23, 1996;Build 15
  ;
- ; S X=$$EN^LEXABC(CODE)
+ ; S X=$$EN^LEXABC(CODE,LEXVDT)
  ;
- ; INPUT  Code     Ppreferred terms only
- ;        Code+    All terms
- ;
-EN(LEXSO) ; Entry from LEXA
- S LEXSO=$G(LEXSO) D BLD S:$L($G(^TMP("LEXSCH",$J,"NAR",0))) LEX("NAR")=$G(^TMP("LEXSCH",$J,"NAR",0)) Q:$D(^TMP("LEXHIT",$J)) 1 Q 0
+ ; INPUT
+ ;   LEXSO   Code     Preferred terms only
+ ;           Code+    All terms
+ ;   LEXVDT  Version  Date to screen against (default = today)
+ ;                  
+EN(LEXSO,LEXVDT) ; Entry from LEXA
+ S LEXSO=$G(LEXSO) Q:'$L(LEXSO) 0  Q:$L(LEXSO)>40 0  S:$D(LEXISCD) LEXISCD=$$IS(LEXSO)
+ D BLD S:$L($G(^TMP("LEXSCH",$J,"NAR",0))) LEX("NAR")=$G(^TMP("LEXSCH",$J,"NAR",0)) Q:$D(^TMP("LEXHIT",$J)) 1 Q 0
 BLD ; Build List
  N LEXSO2 D CLR K ^TMP("LEXSCH",$J,"LST",0),^TMP("LEXSCH",$J,"TOL",0),LEX S ^TMP("LEXSCH",$J,"NUM",0)=0,LEXSO=$G(LEXSO)
  I $E(LEXSO,$L(LEXSO))'="+"&($L(LEXSO)'>2)!($E(LEXSO,$L(LEXSO))="+"&($L(LEXSO)'>3)) D CLR Q
@@ -16,16 +19,28 @@ BLD ; Build List
  Q
 FND ; Find expressions
  K ^TMP("LEXL",$J),^TMP("LEXLE",$J)
- N LEXSIEN,LEXMIEN,LEXEIEN,LEXDESF,LEXDSPL,LEXFORM,LEXFMTY,LEXS,LEXSAB,LEXSDATA,LEXP,LEXTP,LEXTYPE,LEXFILR,LEXFORM S U="^",LEXS=($$SCH(LEXSO))_" "
- S:'$L($G(LEXFIL))&($L($G(DIC("S")))) LEXFIL=DIC("S") S:'$L($G(LEXFIL))&($L($G(^TMP("LEXSCH",$J,"LEXFIL",0)))) LEXFIL=$G(^TMP("LEXSCH",$J,"LEXFIL",0))
+ N LEXSIEN,LEXMIEN,LEXEIEN,LEXDESF,LEXDSPL,LEXDSPLA,LEXFORM,LEXFMTY,LEXS,LEXSAB,LEXSRC,LEXSDATA
+ N LEXP,LEXTP,LEXTYPE,LEXFILR,LEXFORM,LEXC,LEXCSTAT,LEXDSAB,LEXSSAB
+ S LEXSSAB=$G(^TMP("LEXSCH",$J,"DIS",0)),U="^",LEXS=$$SCH(LEXSO)_" "
+ S:'$L($G(LEXFIL))&($L($G(DIC("S")))) LEXFIL=DIC("S")
+ S:'$L($G(LEXFIL))&($L($G(^TMP("LEXSCH",$J,"LEXFIL",0)))) LEXFIL=$G(^TMP("LEXSCH",$J,"LEXFIL",0))
  F  S LEXS=$O(^LEX(757.02,"AVA",LEXS)) Q:$E(LEXS,1,$L(LEXSO))'=LEXSO  D
  . S LEXEIEN=0 F  S LEXEIEN=$O(^LEX(757.02,"AVA",LEXS,LEXEIEN)) Q:+LEXEIEN=0  D
  . . I $L($G(LEXFIL)) S LEXFILR=$$EN^LEXAFIL($G(LEXFIL),+($G(^LEX(757,+($G(^LEX(757.01,LEXEIEN,1))),0)))) Q:LEXFILR=0
  . . S LEXSAB="" F  S LEXSAB=$O(^LEX(757.02,"AVA",LEXS,LEXEIEN,LEXSAB)) Q:LEXSAB=""  D
  . . . S LEXSIEN=0 F  S LEXSIEN=$O(^LEX(757.02,"AVA",LEXS,LEXEIEN,LEXSAB,LEXSIEN)) Q:+LEXSIEN=0  D
- . . . . S LEXSDATA=$G(^LEX(757.02,LEXSIEN,0)),LEXMIEN=+($P(LEXSDATA,"^",4)),LEXP=+($P(LEXSDATA,"^",5)),LEXTYPE=+($P(LEXSDATA,"^",3)),LEXTP=LEXP
- . . . . Q:+($$DS(LEXSIEN))=1  Q:+($$DE(LEXEIEN))=1
- . . . . S LEXDESF=$$DC(LEXEIEN,LEXTP),LEXDSPL=$$DP(LEXS,LEXTYPE),LEXFORM=$$F(LEXEIEN),LEXFMTY=$P(LEXFORM,"^",1),LEXFORM=$P(LEXFORM,"^",2)
+ . . . . S LEXSDATA=$G(^LEX(757.02,LEXSIEN,0))
+ . . . . S LEXC=$P(LEXSDATA,"^",2),LEXSRC=$P(LEXSDATA,"^",3)
+ . . . . Q:+$$STATCHK^LEXSRC2(LEXC,$G(LEXVDT),,LEXSRC)'=1
+ . . . . S LEXTYPE=+$P(LEXSDATA,"^",3)
+ . . . . S LEXDSAB=$E($G(^LEX(757.03,+LEXTYPE,0)),1,3)
+ . . . . S LEXMIEN=+$P(LEXSDATA,"^",4),(LEXP,LEXTP)=+$P(LEXSDATA,"^",5)
+ . . . . Q:$$STATIEN(LEXSIEN)=0
+ . . . . S LEXDESF=$$DC(LEXEIEN,LEXTP)
+ . . . . S LEXDSPL=$$DP(LEXS,LEXTYPE)
+ . . . . S LEXDSPLA=$$DSO(+LEXEIEN,$G(LEXVDT),$G(LEXSSAB),$G(LEXDSAB))
+ . . . . S LEXDSPL=$$MDS(LEXDSPL,LEXDSPLA)
+ . . . . S LEXFORM=$$F(LEXEIEN),LEXFMTY=$P(LEXFORM,"^",1),LEXFORM=$P(LEXFORM,"^",2)
  . . . . I LEXTYPE>3,LEXTYPE'=17 D NP Q
  . . . . D PF
  D:$D(^TMP("LEXL",$J)) REO^LEXABC2,ADD^LEXABC2
@@ -56,17 +71,54 @@ F(LEX) ; Form
  Q LEX
 DE(LEX) ; Deactivated 757.01
  S LEX=+($G(LEX)) Q:'$D(^LEX(757.01,LEX,0)) 1 Q:+($P($G(^LEX(757.01,LEX,1)),"^",5))=1 1
- S LEX=+($G(^LEX(757.01,LEX,1))) Q:'$D(^LEX(757,LEX,0)) 1 S LEX=+($G(^LEX(757,LEX,0))) Q:'$D(^LEX(757.01,LEX,1)) 1 Q:+($P($G(^LEX(757.01,LEX,1)),"^",5))=1 1
+ S LEX=+($G(^LEX(757.01,LEX,1)))
+ Q:'$D(^LEX(757,LEX,0)) 1 S LEX=+($G(^LEX(757,LEX,0)))
+ Q:'$D(^LEX(757.01,LEX,1)) 1
+ Q:+($P($G(^LEX(757.01,LEX,1)),"^",5))=1 1
  Q 0
-DS(LEX) ; Deactivated 757.02
- S LEX=+($G(LEX)) Q:'$D(^LEX(757.02,LEX,0)) 1 Q:+($P($G(^LEX(757.02,LEX,0)),"^",6))=1 1 Q 0
 DC(LEX,LEXT) ; Description
  N LEXD,LEXM S LEXD="",LEX=+($G(LEX)),LEXM=$P($G(^LEX(757.01,+($G(LEX)),1)),"^",1),LEXM=+($G(^LEX(757,+($G(LEXM)),0))) S:$D(^LEX(757.01,LEXM,3))&(+($G(LEXT))'=2) LEXD="*" S LEX=$G(LEXD) Q LEX
 DP(LEXS,LEXT) ; Display
- S LEXT=+($G(LEXT)),LEXT=$P($G(^LEX(757.03,LEXT,0)),"^",2),LEXS=$G(LEXS) S:$E(LEXS,$L(LEXS))=" " LEXS=$E(LEXS,1,($L(LEXS)-1)) S:$L(LEXS)&($L(LEXT)) LEXS=LEXT_" "_LEXS Q:$L(LEXS)&($L(LEXT)) LEXS Q ""
+ S LEXT=+($G(LEXT)),LEXT=$P($G(^LEX(757.03,LEXT,0)),"^",2)
+ S LEXS=$G(LEXS) S:$E(LEXS,$L(LEXS))=" " LEXS=$E(LEXS,1,($L(LEXS)-1))
+ S:$L(LEXS)&($L(LEXT)) LEXS=LEXT_" "_LEXS Q:$L(LEXS)&($L(LEXT)) LEXS Q ""
+DSO(X,LEXVDT,LEXS,LEXD) ; Display Sources String
+ N LEXT,LEXIEN,LEXSAB S LEXIEN=+($G(X)) Q:+LEXIEN'>0 ""
+ S LEXT=$G(LEXS),LEXSAB=$G(LEXD) S:$L(LEXSAB)=3&(LEXT'[LEXSAB) LEXT=LEXT_"/"_LEXSAB
+ F  Q:$E(LEXT,1)'="/"  S LEXT=$E(LEXT,2,$L(LEXT))
+ S X=$$SO^LEXASO(LEXIEN,LEXT,1,$G(LEXVDT))
+ Q X
+MDS(LEXD,LEXA) ; Merge Display Strings
+ S LEXA=$G(LEXA) F  Q:LEXA'[") ("  S LEXA=$P(LEXA,") (",1)_"/"_$P(LEXA,") (",2,299)
+ S LEXA=$TR(LEXA,"(",""),LEXA=$TR(LEXA,")","")
+ Q:'$L(LEXD) LEXA
+ S:LEXA'[LEXD LEXA=LEXD_"/"_LEXA
+ Q LEXA
 CLR ; Clear
  K ^TMP("LEXFND",$J),^TMP("LEXHIT",$J),^TMP("LEXL",$J),LEX S LEX=0 Q
 IN(LEX) ; Flag in/not in file 757.02
  Q:$O(^LEX(757.02,"AVA",(($$SCH($E(LEX,1,61)))_" ")))[LEX 1 Q 0
 SCH(LEX) ; Search
  S LEX=$E(LEX,1,($L(LEX)-1))_$C($A($E(LEX,$L(LEX)))-1)_"~" Q LEX
+STATIEN(LEXCIEN)        ; Determine status of code-expression pairing based
+ ;                 on code IEN
+ N STATDAT,STATIEN
+ S STATDAT=$O(^LEX(757.02,LEXCIEN,4,"B",$S($G(LEXVDT)'="":LEXVDT+1,1:"")),-1)
+ Q:STATDAT="" 0
+ S STATIEN=$O(^LEX(757.02,LEXCIEN,4,"B",STATDAT,""),-1)
+ Q +$P(^LEX(757.02,LEXCIEN,4,STATIEN,0),"^",2)
+NONPLUS(STRING) ; Remove trialing plus from a string
+ S STRING=$G(STRING)
+ I $E($RE(STRING))="+" Q $RE($E($RE(STRING),2,$L(STRING)))
+ Q STRING
+IS(X) ; Is a Code
+ N CODE,ISACODE S CODE=$G(X),ISACODE=0
+ ; If the user input is a valid code (active or inactive) ISACODE=1
+ S:$D(^ICPT("BA",(CODE_" ")))!$D(^ICD9("BA",(CODE_" ")))!$D(^ICD0("BA",(CODE_" "))) ISACODE=1 I ISACODE>0 S X="1" Q X
+ ; If the user intended to search for a code (pattern match) with a typo, then ISACODE =1
+ S:(CODE?5N)!(CODE?1A4N)!(CODE?4N1"T")!(CODE?4N1"F") ISACODE=1
+ S:(CODE?3N1"."2N)!(CODE?3N1"."1N)!(CODE?3N1".") ISACODE=1
+ S:(CODE?1"E"3N1"."2N)!(CODE?1"E"3N1"."1N)!(CODE?1"E"3N1".") ISACODE=1
+ S:(CODE?1"V"2N1"."2N)!(CODE?1"V"2N1"."1N)!(CODE?1"V"2N1".") ISACODE=1
+ S:(CODE?2N1"."2N)!(CODE?2N1"."1N)!(CODE?2N1".") ISACODE=1
+ S X=+ISACODE Q X

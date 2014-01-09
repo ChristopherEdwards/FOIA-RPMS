@@ -1,5 +1,5 @@
 DGJTEE3 ;ALB/MAF - ENTER/EDIT (CONT) LIST PROCESSOR SET UP VARIABLES CONT. ;SEP 5 1992@100
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 DATA N DA K DIR("A"),DIR("B") S DIR(0)="393,.03" D ^DIR G Q:Y="^"!$D(DTOUT) S DGJTDT=Y
  I DGJTAIFN]"",$D(^DGPM(DGJTAIFN,0)),Y<+^DGPM(DGJTAIFN,0) S Y=+^DGPM(DGJTAIFN,0) X ^DD("DD") W !!?10,"Event Date must be after admission"," ",Y,! G DATA
  I DGJTAIFN]"" S X=$S($D(^DGPM(DGJTAIFN,0)):$P(^(0),"^",17),1:"") I $D(^DGPM(+X,0)),Y>+^DGPM(+X,0) S Y=+^DGPM(+X,0) X ^DD("DD") W !!?10,"Event date must not be after discharge date"," ",Y,! G DATA

@@ -1,5 +1,5 @@
-SCMCPM1 ;ALB/REW - Pt PC Team Assignment on Inpt Discharge ; 1 Apr 1996 [ 02/23/2001  3:17 PM ]
- ;;5.3;Scheduling;**41,130**;AUG 13, 1993
+SCMCPM1 ;ALB/REW - Pt PC Team Assignment on Inpt Discharge ; 1 Apr 1996
+ ;;5.3;Scheduling;**41,130,1015**;AUG 13, 1993;Build 21
  ;
 PCMMDIS ; - called by 'SC ASSIGN PC TEAM ON DISCHARGE' which is 
  ;   called by the patient movement event driver

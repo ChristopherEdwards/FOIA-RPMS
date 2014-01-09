@@ -1,5 +1,5 @@
 PSUCS3 ;BIR/DJE,DJM - GENERATE PSU CS RECORDS (TYPE 17) ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ;DBIA'S
  ; Reference to file #40.8   supported by DBIA 2438
@@ -8,9 +8,9 @@ PSUCS3 ;BIR/DJE,DJM - GENERATE PSU CS RECORDS (TYPE 17) ;25 AUG 1998
  ; Reference to file #42     supported by DBIA 1848
  ; Reference to file #2      supported by DBIA 10035
  ; Reference to file #58.8   supported by DBIA 2519
- ; ***********************************************
+ ; ***
  ; TYPE 17 - "Logged for patient"
- ; ***********************************************
+ ; ***
  ;     
 TYP17 ; Processing the transaction for dispensing type 17 
  ;('logged for patient'). If the dispensing type=17 and a patient IEN 
@@ -43,9 +43,9 @@ TYP17 ; Processing the transaction for dispensing type 17
  Q 
  ;
  ;
- ; ****************************************************
+ ; 
  ; Type 17 specific calls
- ; ****************************************************
+ ; 
  ;
 MULTCHK ; 
  ; store in array (quit if already administered) 
@@ -77,27 +77,27 @@ FACILTY ;
  ;Field # 42,.015 [DIVISION]  Points to File # 40.8
  S PSUDIV(.015)=$$VALI^PSUTL(42,PSUWARD(1),".015")
  ;
- ;Field # 40.8,1 [FACILITY NUMBER]**********Field to be extracted
+ ;Field # 40.8,1 [FACILITY NUMBER]**Field to be extracted
  S PSUFCN(1)=$$VALI^PSUTL(40.8,PSUDIV(.015),"1")
  S SENDER=PSUFCN(1)
  S PSURI=""
  Q
  ;
 SSN ;Field # 58.81,73 [PATIENT]  Points to File # 2
- ;Field # 2,.09 [SOCIAL SECURITY NUMBER]**********Field to be extracted
+ ;Field # 2,.09 [SOCIAL SECURITY NUMBER]**Field to be extracted
  Q:$G(PSUPIEN(73))=""
  S DFN=PSUPIEN(73) D PID^VADPT
  S PSUSSN(.09)=$TR(VA("PID"),"-","")
  Q
  ; 
 DUNIT ;Dispense Unit
- ;Field # 50,14.5 [DISPENSE UNIT]**********Field to be extracted
+ ;Field # 50,14.5 [DISPENSE UNIT]**Field to be extracted
  S PSUDUN(14.5)=$$VALI^PSUTL(50,PSUDRG(4),"14.5")
  S UNIT=PSUDUN(14.5)
  Q
  ;
 UNITC ;Unit Cost
- ;Field # 50,16 [PRICE PER DISPENSE UNIT]**********Field to be extracted
+ ;Field # 50,16 [PRICE PER DISPENSE UNIT]**Field to be extracted
  S PSUPDU(16)=$$VALI^PSUTL(50,PSUDRG(4),"16")
  Q
  ;
@@ -107,7 +107,7 @@ QTY17 ;For transactions with a dispensing type =17, total the number of doses
  ;will be the date the first dose was administered to the patient during
  ;the reporting period. The data will be transmitted as a single data
  ;record.
- ;Sum of Values # 58.81,5 [TOTAL QUANTITY]******Field to be extracted
+ ;Sum of Values # 58.81,5 [TOTAL QUANTITY]**Field to be extracted
  Q  ;this is handled in gathering into "MC"
  S PSUTQ(5)=$$VALI^PSUTL(58.81,PSUIENDA,5)
  S OLDXTMP=$G(^XTMP(PSUCSJB,"MC",PSULOC,PSUPIEN(73),PSUDRG(4)),"QT")

@@ -1,5 +1,5 @@
 PSSLOCK ;BIR/RSB-Pharmacy patient lock ;09/15/97 13:30
- ;;1.0;PHARMACY DATA MANAGEMENT;**26,58**;9/30/97
+ ;;1.0;PHARMACY DATA MANAGEMENT;**26,58,125**;9/30/97;Build 2
  ;
  ; Reference to ^ORX2 supported by DBIA #867
  ; Reference to ^PS(53.1 supported by DBIA #2140
@@ -12,7 +12,7 @@ L(DFN,DIS) ;
  N FLAG S ^XTMP("PSSLOCK",0)=$$PDATE
  I '$D(^XTMP("PSSLOCK",DFN)) D  Q FLAG
  . D NOW^%DTC S ^XTMP("PSSLOCK",DFN)=DUZ_"^"_%
- . L +^XTMP("PSSLOCK",DFN):1 S FLAG=$S($T=1:$T,1:0)
+ . L +^XTMP("PSSLOCK",DFN):$S($G(DILOCKTM)>0:DILOCKTM,1:3) S FLAG=$S($T=1:$T,1:0)
  I $D(^XTMP("PSSLOCK",DFN)) Q $$R
 UL(DFN) ; unlock
  I $G(PSONOLCK) Q
@@ -22,7 +22,7 @@ UL(DFN) ; unlock
 R() ; check lock on node
  ;if user has same patient already locked, Q 1, will only lock once
  I $P($G(^XTMP("PSSLOCK",DFN)),"^")=DUZ Q 1
- L +^XTMP("PSSLOCK",DFN):1
+ L +^XTMP("PSSLOCK",DFN):$S($G(DILOCKTM)>0:DILOCKTM,1:3)
  I $T=1 D NOW^%DTC S ^XTMP("PSSLOCK",DFN)=DUZ_"^"_% Q 1
  I $T=0 W:DIS=1 !,$$WHO(DFN) S Y=$P($G(^XTMP("PSSLOCK",DFN)),"^",2) X ^DD("DD") Q $S(DIS=0:0_"^"_$P($G(^VA(200,+$P($G(^XTMP("PSSLOCK",DFN)),"^"),0)),"^")_"^"_Y,1:0)
  ;

@@ -1,5 +1,5 @@
 PSGPEN ;BIR/CML3-FIND DEFAULT FOR PRE-EXCHANGE NEEDS ;03 Feb 99 / 9:13 AM
- ;;5.0; INPATIENT MEDICATIONS ;**30,37,50,58,115**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**30,37,50,58,115,110,127,129**;16 DEC 97
  ;
  ; References to ^PSD(58.8 supported by DBIA #2283.
  ; References to ^PSI(58.1 supported by DBIA #2284.
@@ -14,14 +14,20 @@ EN(PSGPENO) ;
  S PSGPENWS=0 I PSJPWD F Q=0:0 S Q=$O(^PS(55,PSGP,5,PSGPENO,1,Q)) Q:'Q  S ND=$G(^(Q,0)) I ND,'$P(ND,"^",3),($D(^PSI(58.1,"D",+ND,PSJPWD))!$D(^PSD(58.8,"D",+ND,PSJPWD))) S PSGPENWS=1 Q
  I PSGPENWS F  S Q=$O(^PS(55,PSGP,5,PSGPENO,1,Q)) Q:'Q  S ND=$G(^(Q,0)) I ND,'$P(ND,"^",3) S:'$D(^PSI(58.1,"D",+ND,PSJPWD))&'$D(^PSD(58.8,"D",+ND,PSJPWD)) PSGPENWS=0 Q:'PSGPENWS  S $P(PSGPENWS,"^",2)=1
  I PSGPENWS W !!,"The dispense drug",$E("s",$P(PSGPENWS,"^",2))," for this order ",$S($P(PSGPENWS,"^",2):"are",1:"is a")," WARD STOCK item",$E("s",$P(PSGPENWS,"^",2)),"." S PSGPEN=0
- I 'PSGPENWS,PSJPWD S WG=+$O(^PS(57.5,"AB",PSJPWD,0)),PSGPLS=$P($G(^PS(55,PSGP,5,PSGPENO,2)),"^",2) I PSGPLS S PSGPLF=$O(^PS(53.5,"AB",WG,PSGDT)) D:'PSGPLF GF I PSGPLF S PSGPLO=PSGPENO D NCE,^PSGPL0 S:PSGPLC'<0 PSGPEN=PSGPLC
- I PSGPRIO="DONE" S PSGPEN=0
+ I 'PSGPENWS,PSJPWD S WG=+$O(^PS(57.5,"AB",PSJPWD,0)),PSGPLS=$P($G(^PS(55,PSGP,5,PSGPENO,2)),"^",2) I PSGPLS D
+ .S PSGPLF=$O(^PS(53.5,"AB",WG,PSGDT))
+ .N RNDT,PSJRNOS S RNDT=$$LASTREN^PSJLMPRI(PSGP,$S($G(PSJORD)["P":PSJORD,1:"")),PSJRNOS=$P(RNDT,"^",4) I PSJRNOS,'$G(PSJREN) S PSGPLS=PSJRNOS
+ .I $G(PSJREN),$G(PSJORD)["U" S PSJRNOS=$P(^PS(55,PSGP,5,+PSJORD,2),"^",4) S PSGPLS=$S(PSJRNOS>PSGDT:PSJRNOS,1:$$DATE2^PSJUTL2(PSGDT))
+ .D:'PSGPLF GF I PSGPLF S PSGPLO=PSGPENO D NCE,^PSGPL0 S:PSGPLC'<0 PSGPEN=PSGPLC
+ I $G(PSGPRIO)="DONE" S PSGPEN=0
  ;
 UPDD ;
  N DIR S DIR(0)="NOA^0:9999:0",DIR("A")="Pre-Exchange DOSES: ",DIR("?")="^D DH^PSGPEN" S:PSGPEN]"" DIR("B")=PSGPEN W ! D ^DIR G:'Y DONE S PSGY=+Y W !!,"...updating dispense drug(s)..."
  F FQ=0:0 S FQ=$O(^PS(55,PSGP,5,PSGPENO,1,FQ)) Q:'FQ  S ND=$G(^(FQ,0)),$P(^(0),"^",9)="" I ND,'$P(ND,"^",3) D DD
  ;
-DONE K PSGID,PSGMAR,PSGOD,PSGPLC,PSGPLF,PSGPLO,PSGPLS,PSGPLUD,WG Q
+DONE ;
+ I $P(PSJSYSW0,"^",29)="",$$DEFON^PSGPER1 S $P(PSJSYSW0,"^",29)=0
+ K PSGID,PSGMAR,PSGOD,PSGPLC,PSGPLF,PSGPLO,PSGPLS,PSGPLUD,WG S:$G(PSJREN) DUOUT=0 Q
  ;
 NCE ;
  W !!,"The next cart exchange is ",$$ENDTC^PSGMI(PSGPLF),! Q
@@ -37,19 +43,20 @@ DD ;
  S PSGDA=PSGY I 'PSGPENWS,ND,PSJPWD,($D(^PSI(58.1,"D",+ND,PSJPWD))!$D(^PSD(58.8,"D",+ND,PSJPWD))) D PSGPENWS Q:'PSGDA
  K DA,DR S PSGDA=$S(UD#1:(PSGDA*((UD\1)+1)),1:PSGDA*UD)
  S DIE="^PS(55,"_PSGP_",5,"_PSGPENO_",1,",DA(2)=PSGP,DA(1)=PSGPENO,DA=FQ,DR=".09////"_PSGDA D ^DIE
+ S PSGPXN=$G(PSGPXN)
  D:'PSGPXN
  .D NOW^%DTC L +^PS(53.4,0):0 S ND=$G(^PS(53.4,0)) S:ND="" ND="PRE-EXCHANGE NEEDS^53.4P" F PSGPXN=$P(ND,"^",3)+1:1 I '$D(^PS(53.4,PSGPXN)) L +^PS(53.4,PSGPXN):0 I  S ^PS(53.4,0)=$P(ND,"^",1,2)_"^"_PSGPXN_"^"_($P(ND,"^",4)+1) L -^PS(53.4,0) Q
  .S ^PS(53.4,PSGPXN,0)=DUZ_"^"_%,^PS(53.4,"B",DUZ,PSGPXN)="",^PS(53.4,"AUD",DUZ,%,PSGPXN)="" L -^PS(53.4,PSGPXN) Q
  I $D(^PS(53.4,PSGPXN,1,PSGP,1,PSGPENO,1,FQ,0)) S $P(^(0),"^",2)=$P(^(0),"^",2)+PSGDA Q
- ; naked ref below is from line above
+ ; naked reference below refers to line above
  S ^(0)=FQ_"^"_PSGDA I $D(^PS(53.4,PSGPXN,1,PSGP,1,PSGPENO,1,0)) S $P(^(0),"^",3,4)=FQ_"^"_($P(^(0),"^",4)+1) Q
- ; naked ref below is from line PSGPEN+33
+ ; naked reference below refers to line above
  S ^(0)="^53.401101A^"_FQ_"^1" Q:$D(^PS(53.4,PSGPXN,1,PSGP,1,PSGPENO,0))  S ^(0)=PSGPENO
  I $D(^PS(53.4,PSGPXN,1,PSGP,1,0)) S $P(^(0),"^",3,4)=PSGPENO_"^"_($P(^(0),"^",4)+1) Q
- ; naked ref below is from line above
+ ; naked reference below is from line above
  S ^(0)="^53.4011A^"_PSGPENO_"^1" Q:$D(^PS(53.4,PSGPXN,1,PSGP,0))  S ^(0)=PSGP
  I $D(^PS(53.4,PSGPXN,1,0)) S $P(^(0),"^",3,4)=PSGP_"^"_($P(^(0),"^",4)+1) Q
- ; naked ref below is from line above
+ ; naked reference below is from line above
  S ^(0)="^53.401PA^"_PSGP_"^1" Q
  ;
 DH ;

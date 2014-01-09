@@ -1,5 +1,5 @@
 DG53486P ;ALB/PHH - 2003 MEANS TEST THRESHOLDS ;12/11/02
- ;;5.3;Registration;**486**;Aug 13, 1993
+ ;;5.3;Registration;**486,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will upload the 2003 means test thresholds onto your
  ; system.

@@ -1,24 +1,21 @@
 SCRPW24 ;RENO/KEITH - ACRP Ad Hoc Report (cont.) ;06/19/99
- ;;5.3;Scheduling;**144,163,180,254,243**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,163,180,254,243,295,329,351,510,530,1015**;AUG 13, 1993;Build 21
  ;06/19/99 ACS - Added CPT modifier API calls
+ ;11/26/03 RLC - 329 fixes primary/secondary dx problem with report
  ;
 APAC(SDX) ;Get all procedure codes
- ;K SDX N SDY,SDI D GETCPT^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U),SDX=SDX_U_$P($G(^ICPT(+SDX,0)),U)_U_$P(SDY(SDI),U,16) I $L($P(SDX,U,2)) D APOTR S SDX(SDI)=SDX
  D APAC^SCRPW241(.SDX)
  D NX Q
  ;
 APOTR ;Transform procedure external value
- ;S $P(SDX,U,2)=$P(SDX,U,2)_" "_$P(^ICPT(+SDX,0),U,2) Q
  D APOTR^SCRPW241(.SDX)
  Q
  ;
 APAP(SDX) ;Get ambulatory procedures (no E&M codes)
- ;K SDX N SDY,SDI D GETCPT^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U) I '$D(^IBE(357.69,"B",SDX)) S SDX=SDX_U_$P($G(^ICPT(+SDX,0)),U) I $L($P(SDX,U,2)) D APOTR S SDX(SDI)=SDX
  D APAP^SCRPW241(.SDX)
  D NX Q
  ;
 APEM(SDX) ;Get evaluation and management codes
- ;K SDX N SDY,SDI D GETCPT^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U) I $D(^IBE(357.69,"B",SDX)) S SDX=SDX_U_$P($G(^ICPT(+SDX,0)),U) I $L($P(SDX,U,2)) D APOTR S SDX(SDI)=SDX
  D APEM^SCRPW241(.SDX)
  D NX Q
  ;
@@ -35,11 +32,19 @@ CLCS(SDX) ;Get clinic service
  D NX Q
  ;
 DXAD(SDX) ;Get all diagnoses
- K SDX N SDY,SDI D GETDX^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U) I SDX S SDX=SDX_U_$P($G(^ICD9(+SDX,0)),U) I $L($P(SDX,U,2)) D DXOTR S SDX(SDI)=SDX
+ K SDX N SDY,SDI D GETDX^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U) I SDX S SDX=SDX_U_$P($$ICDDX^ICDCODE(+SDX,+SDOE0),U,2) I $L($P(SDX,U,2)) D DXOTR S SDX(SDI)=SDX
  D NX Q
  ;
 DXOTR ;Transform diagnosis external value
- S SDX=SDX_" "_$P(^ICD9(+SDX,0),U,3) Q
+ N ENCDT
+ S ENCDT=+$G(SDOE0)
+ I 'ENCDT D
+ .I '$G(SDOE) S ENCDT=$$NOW^XLFDT() Q
+ .N SDY
+ .D GETGEN^SDOE(SDOE,"SDY")
+ .S ENCDT=+$G(SDY(0))
+ .K SDY
+ S SDX=SDX_" "_$P($$ICDDX^ICDCODE(+SDX,ENCDT),U,4) Q
  ;
 DXGS(SDX,SDZ) ;Get GAF score
  K SDX N SDI,SDY S SDY=$S(SDZ="H":$P($P(SDOE0,U),"."),1:DT)_.9999,SDY=9999999-SDY,SDY=$O(^YSD(627.8,"AX5",$P(SDOE0,U,2),SDY))
@@ -53,11 +58,13 @@ DXGSQ(SDI) ;Set up GAF help text
  Q
  ;
 DXPD(SDX) ;Get primary diagnosis
- K SDX N SDY,SDI D GETDX^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U) I SDX,$P(SDY(SDI),U,12)="P" S SDX=SDX_U_$P($G(^ICD9(+SDX,0)),U) I $L($P(SDX,U,2)) D DXOTR S SDX(SDI)=SDX Q
+ ;SD*5.3*329 fixes problem of report not working for primary dx
+ K SDX N SDY,SDI D GETDX^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U) I SDX,$P(SDY(SDI),U,12)="P" S SDX=SDX_U_$P($$ICDDX^ICDCODE(+SDX,+SDOE0),U,2) I $L($P(SDX,U,2)) D DXOTR S SDX(SDI)=SDX
  D NX Q
  ;
 DXSD(SDX) ;Get secondary diagnoses
- K SDX N SDY,SDI D GETDX^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U) I SDX,$P(SDY(SDI),U,12)'="P" S SDX=SDX_U_$P($G(^ICD9(+SDX,0)),U) I $L($P(SDX,U,2)) D DXOTR S SDX(SDI)=SDX
+ ;SD*5.3*329 fixes problem of report not working for secondary dx
+ K SDX N SDY,SDI D GETDX^SDOE(SDOE,"SDY") S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  S SDX=$P(SDY(SDI),U) I SDX,$P(SDY(SDI),U,12)'="P" S SDX=SDX_U_$P($$ICDDX^ICDCODE(+SDX,+SDOE0),U,2) I $L($P(SDX,U,2)) D DXOTR S SDX(SDI)=SDX
  D NX Q
  ;
 ENED(SDX,SDZ) ;Get enrollment date
@@ -174,7 +181,11 @@ PDZC(SDX) ;Get patient zip code
  D NX Q
  ;
 ENROL(SDATE)  ;Get enrollment record (most recent to encounter date)
- N SDY,SDI,X1,X2,X,%Y S:SDATE#1=0 SDATE=SDATE+.9999 S SDI=0 F  S SDI=$O(^DGEN(27.11,"C",+$P(SDOE0,U,2),SDI)) Q:'SDI  S SDY=$G(^DGEN(27.11,SDI,0)),SDY(+SDY)=SDY
+ ;SD/530 changed For loop and added check for zero node to eliminate undefined error
+ N SDY,SDI,X1,X2,X,%Y
+ S:SDATE#1=0 SDATE=SDATE+.9999 S SDI=0 F  S SDI=$O(^DGEN(27.11,"C",+$P(SDOE0,U,2),SDI)) Q:'SDI  D
+ .Q:'$D(^DGEN(27.11,SDI,0))
+ .S SDY=$G(^DGEN(27.11,SDI,0)),SDY($P($P(^DGEN(27.11,SDI,"U"),U,1),".",1))=SDY  ;SD/510 changed logic to use date/time entered
  S SDI=$O(SDY(SDATE),-1) Q:'SDI ""  S X1=$P($P(SDOE0,U),"."),X2=SDI D ^%DTC Q SDY(SDI)
  ;
 NX S:$D(SDX)<10 SDX(1)="~~~NONE~~~^~~~NONE~~~" Q

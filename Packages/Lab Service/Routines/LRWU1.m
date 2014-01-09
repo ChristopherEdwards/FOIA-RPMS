@@ -1,11 +1,18 @@
-LRWU1 ;DALOI/RWF/FHS/RLM-ORDERING/ACCESSION UTILITIES ;6/5/89 16:25 [ 04/25/2003  9:03 AM ]
- ;;5.2;LR;**1004,1018,1020**;Sep 13, 2005
- ;;5.2;LAB SERVICE;**153,272**;Sep 27, 1994
+LRWU1 ;DALOI/RWF/WTY - ORDERING/ACCESSION UTILITIES;12/08/04
+ ;;5.2;LAB SERVICE;**1018,1020,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 153,272,291
+ ;
  ; Reference to ^DIC supported by IA #10007
  ; Reference to ^%DT supported by IA #10003
  ; Reference to YN^DICN supported by IA #10009
  ; Reference to INP^VADPT supported by IA #10061
  ; Reference to ^VA(200 supported by IA #10060
+ ; Reference to $$ORESKEY^ORWDBA1 supported by IA #4569
+ ; Reference to ^XUSEC("PROVIDER" supported by IA #10076
+ ; Reference to $$ACTIVE^XUSER supported by IA #2343
+ ; 
+ ; NOTE: LR*5.2*1031 restores LR*5.2*1018 & LR*5.2*1020 modifications
  ;
 URGG W !,"For ",$P(LRSTIK(LRSSX),U,2) D URG^LRORD2 Q
 MICRO W !,"Is there one sample for this patient's order" S %=1 D YN^DICN I %=2!(%=-1) Q
@@ -16,13 +23,23 @@ MICRO W !,"Is there one sample for this patient's order" S %=1 D YN^DICN I %=2!(
  S LRECOM=0 D GCOM^LRORD2
  Q
 TIME ;
- S %DT="ET" R !,"Collection Date@Time: NOW//",X:DTIME I '$T!(X="^") S LRCDT=-1 G TE
+ N LRMSG
+ S %DT="ET" R !,"Collection Date@Time: NOW//",X:DTIME
+ I '$T!(X="^") S LRCDT=-1 G TE
  S:X="" X="N"
- W:X["?" !!,"You may enter ""T@U"" or just ""U"", for Today at Unknown time",!!
- I X["@U",$P(X,"@U",2)="" S X=$P(X,"@U",1) D ^%DT G TIME:Y<1 S LRCDT=+Y_"^1" G TE
- S:X="U" LRCDT=DT_"^1"
+ I X["?" D
+ .S LRMSG="You may enter ""T@U"" or just ""U"", for Today at Unknown "
+ .S LRMSG=LRMSG_"time."
+ .W !!,LRMSG,!!
+ I X["@U",$P(X,"@U",2)="" D  G TIME:Y<1  Q
+ .S X=$P(X,"@U",1) D ^%DT
+ .Q:Y<1
+ .S LRCDT=+Y_"^1"
+ .D TE
+ S:X="U" LRCDT=DT_"^1",Y=DT
  I X'="U" D ^%DT G TIME:X["?" S LRCDT=+Y_"^" G TIME:Y'["."
-TE K %DT Q
+TE K %DT
+ Q
 PRAC ;
  I $G(LRORDRR)="R" D  Q
  . S LRPRAC="REF:"_+LRRSITE("RSITE")
@@ -31,19 +48,30 @@ PRAC ;
  S DFN=$P(^LR(LRDFN,0),U,3) S LRDPF=$P(^LR(LRDFN,0),U,2)
  I LRDPF=2,$L($G(VAIN(2))) S DIC("B")=$P(VAIN(2),U)
  I LRDPF=2,'$D(VAIN(2)) D
- .; N I,Y,X,N D INP^VADPT S (DIC("B"),LRPRAC)=$P(VAIN(2),U)
- .;----- BEGIN IHS MODIFICATIONS LR*5.2*1018
- . ;N I,Y,X,N D INP^BLRDPT S (DIC("B"),LRPRAC)=$P(VAIN(2),U)  ;IHS/DIR TUC/AAB 06/25/98
+ . ; N I,Y,X,N D INP^VADPT S (DIC("B"),LRPRAC)=$P(VAIN(2),U)
+ . ; 
+ . ;----- BEGIN IHS MODIFICATIONS LR*5.2*1018
  . N I,Y,X,N D @$S($$ISPIMS^BLRUTIL:"INP^VADPT",1:"INP^BLRDPT") S (DIC("B"),LRPRAC)=$P(VAIN(2),U)
- .;----- END IHS MODIFICATIONS
+ . ;----- END IHS MODIFICATIONS
+ . ; 
  I $D(LRLABKY),'DIC("B"),$P(LRPARAM,U,16) S DIC("B")=$S($D(^LR(LRDFN,.2)):+^(.2),1:"")
 P1 I $D(^VA(200,+DIC("B"),0))#2 S:'$D(^VA(200,"AK.PROVIDER",$P($G(^VA(200,+DIC("B"),0)),U))) DIC("B")=""
  S DIC("B")=$P($G(^VA(200,+DIC("B"),0)),U) D P S:Y>0 (^LR(LRDFN,.2),LRPRAC)=+Y
  Q
+P ;Prompt for PROVIDER
+ S DIC="^VA(200,",DIC(0)="AMNEQ",LRPRAC=""
+ S DIC("S")="I $D(^VA(200,""AK.PROVIDER"",$P(^(0),U))),"
+ ;
+ ; S DIC("S")=DIC("S")_"$$ACTIVE^XUSER(Y),"
+ ;
  ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1020 - Use IHS Version of $$ACTIVE
-P ; S DIC="^VA(200,",DIC(0)="AMNEQ",DIC("S")="I $D(^VA(200,""AK.PROVIDER"",$P(^(0),U))),$$ACTIVE^XUSER(Y)",LRPRAC="",DIC("A")="PROVIDER: ",D="AK.PROVIDER"
- S DIC="^VA(200,",DIC(0)="AMNEQ",DIC("S")="I $D(^VA(200,""AK.PROVIDER"",$P(^(0),U))),$$ACTIVE^BLRUTIL2(Y)",LRPRAC="",DIC("A")="PROVIDER: ",D="AK.PROVIDER"
- ;----- END IHS/OIT/MKK MOD LR*5.2*1020
- S DIC("W")="Q" D ^DIC K DIC G:Y<0 QUIT S LRPRAC=+Y
+ S DIC("S")=DIC("S")_"$$ACTIVE^BLRUTIL2(Y),"
+ ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1020
+ ;
+ S DIC("S")=DIC("S")_"$D(^XUSEC(""PROVIDER"",Y))"
+ S DIC("A")="PROVIDER: ",D="AK.PROVIDER"
+ S DIC("W")="Q" D ^DIC K DIC
+ I Y<0 D QUIT Q
+ S LRPRAC=+Y
  Q
 QUIT S LREND=1 Q

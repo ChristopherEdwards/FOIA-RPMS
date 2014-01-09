@@ -1,5 +1,5 @@
-SCRPO7 ;BP-CIOFO/KEITH - Historical Team Assignment Summary (cont.) ; 06 Jul 99  7:41 AM [ 11/02/2000  8:59 AM ]
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+SCRPO7 ;BP-CIOFO/KEITH - Historical Team Assignment Summary (cont.) ; 06 Jul 99  7:41 AM
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/02/2000 changed footer code for list template
  ;
 CKTEAM(SCTM) ;Build from team

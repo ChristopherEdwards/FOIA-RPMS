@@ -1,5 +1,5 @@
 DGWIN ;ALB/JDS - WARD BED STATUS INITIALIZATION ; 13 JAN 84  09:58
- ;;5.3;Registration;**85,161**;Aug 13, 1993
+ ;;5.3;Registration;**85,161,1015**;Aug 13, 1993;Build 21
  ;
 DGEGL S DGEGL=+^DG(43,1,"G")\1 I DGEGL'?7N W !!,"I cannot run this program until you specify an early date",!,"to run the G&L in the site parameters.",!!,*7,*7 G Q
  S X1=DGEGL,X2=-1 D C^%DTC S DGEGL=X

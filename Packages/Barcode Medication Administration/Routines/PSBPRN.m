@@ -1,10 +1,10 @@
 PSBPRN ;BIRMINGHAM/EFC-BCMA PRN FUNCTIONS ;Mar 2004
- ;;3.0;BAR CODE MED ADMIN;**5,3**;Mar 2004
+ ;;3.0;BAR CODE MED ADMIN;**5,3,13**;Mar 2004
  ;
  ;Reference/IA
  ;DEM^VADPT/10061
  ;INP^VADPT/10061
- ;
+ ;$$GET1^DIQ/2056
 EN ;
  Q
  ;
@@ -107,11 +107,11 @@ DISCHRGD(DFN) ; Patient Discharged OR Deceased?
  S DISCHRGD=0
  ;
  D DEM^VADPT ;check for date of death entry
- I VADM(6)]"" S DISCHRGD=1,^TMP("PSB",$J,0)=1,^TMP("PSB",$J,1)="-1^A ""DATE OF DEATH"" has been logged for this patient." K VADM
+ I VADM(6)]"" S DISCHRGD=1,^TMP("PSB",$J,0)=0 K VADM
  ;
  I DISCHRGD=0 D  ;check for discharge if they're not dead
  .D INP^VADPT
- .I VAIN(1)']"" S DISCHRGD=1,^TMP("PSB",$J,0)=1,^TMP("PSB",$J,1)="-1^The selected patient has been DISCHARGED." K VAIN
+ .I VAIN(1)']"" S DISCHRGD=1,^TMP("PSB",$J,0)=0 K VAIN
  ;
  I DISCHRGD D  ;setup results and clean up
  .S RESULTS=$NAME(^TMP("PSB",$J))

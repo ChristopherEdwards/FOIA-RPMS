@@ -1,5 +1,6 @@
 FHDCR1B ; HISC/NCA - Diet Card Utilities ;2/23/00  09:51
- ;;5.0;Dietetics;**2,25**;Oct 11, 1995
+ ;;5.5;DIETETICS;**5**;Jan 28, 2005;Build 53
+ ;patch#5 - added outpatient SO.
 Q1 ; Store Bread/Beverage default, Food Preference, and Recipes of meal
  S LN=$S(IOST?1"C".E:IOSL-2,1:IOSL-6),FHX4=FHX1 F SP=0:0 S SP=$O(^FH(119.72,SP)) Q:SP<1  S Z=$G(^(SP,0)),^TMP($J,"SRP",SP)=$P(Z,"^",1,4)
  I MEAL'="A" S M1=MEAL D GET Q
@@ -48,23 +49,32 @@ DECOD ; Decode code string
 DISL ; Store patient dislikes
  F LL=0:0 S LL=$O(^TMP($J,"X",MEAL,LL)) Q:LL<1  D DL1 F KK=0:0 S KK=$O(^TMP($J,"X",MEAL,LL,KK)) Q:KK<1
  Q
-DL1 S X6=$O(^FHPT(DFN,"P","B",LL,0)) Q:X6<1
- S X2=$G(^FHPT(DFN,"P",X6,0)) Q:$P(X2,"^",2)'[MEAL
+DL1 S X6=$O(^FHPT(FHDFN,"P","B",LL,0)) Q:X6<1
+ S X2=$G(^FHPT(FHDFN,"P",X6,0)) Q:$P(X2,"^",2)'[MEAL
  S TT(MEAL)=TT(MEAL)+1
  S SRT(TT(MEAL),MEAL)="    "_$E($P($G(^FH(115.2,+X2,0)),"^",1),1,15)
  Q
 CHK ; Check for Patient dislike on meal
  F LL=0:0 S LL=$O(^TMP($J,"X",MEAL,LL)) Q:LL<1  F KK=0:0 S KK=$O(^TMP($J,"X",MEAL,LL,KK)) Q:KK<1  S X1=+$G(^TMP($J,"X",MEAL,LL,KK)) D
- .S X6=$O(^FHPT(DFN,"P","B",LL,0)) Q:X6<1
- .S X2=$G(^FHPT(DFN,"P",X6,0)) Q:$P(X2,"^",2)'[MEAL
+ .S X6=$O(^FHPT(FHDFN,"P","B",LL,0)) Q:X6<1
+ .S X2=$G(^FHPT(FHDFN,"P",X6,0)) Q:$P(X2,"^",2)'[MEAL
  .S FP(MEAL,X1)=""
  .Q
  Q
 SO ; Store Standing Orders
- F K=0:0 S K=$O(^FHPT("ASP",DFN,ADM,K)) Q:K<1  D
- .S X=$G(^FHPT(DFN,"A",ADM,"SP",K,0)),Z=$P(X,"^",2),M=$P(X,"^",3) Q:'Z
+ F K=0:0 S K=$O(^FHPT("ASP",FHDFN,ADM,K)) Q:K<1  D
+ .S X=$G(^FHPT(FHDFN,"A",ADM,"SP",K,0)),Z=$P(X,"^",2),M=$P(X,"^",3) Q:'Z
  .I M[MEAL S TT(MEAL)=TT(MEAL)+1,SRT(TT(MEAL),MEAL)=$S($P(X,"^",8):$P(X,"^",8),1:1)_"   "_$E($P($G(^FH(118.3,+Z,0)),"^",1),1,15) Q
  Q
+ ;
+SOUT ; Store Outpatient Standing Orders.
+ Q:'$G(FHKD)
+ S FHOPDAT0=$G(^FHPT(FHDFN,"OP",FHKD,0)) Q:$P(FHOPDAT0,U,15)="C"
+ F K=0:0 S K=$O(^FHPT("ASPO",FHDFN,FHKD,K)) Q:K<1  D
+ .S X=$G(^FHPT(FHDFN,"OP",FHKD,"SP",K,0)),Z=$P(X,"^",2),M=$P(X,"^",3) Q:'Z
+ .I M[MEAL S TT(MEAL)=TT(MEAL)+1,SRT(TT(MEAL),MEAL)=$S($P(X,"^",8):$P(X,"^",8),1:1)_"   "_$E($P($G(^FH(118.3,+Z,0)),"^",1),1,15) Q
+ Q
+ ;
 SRP ; Store service point for each Production Diet of recipe
  I Z1 S:'$F(P4,"~"_SP_"~") P4=P4_SP_"~"
  S FHX3=$P(FHX2,";",2),SC=$S(FHX3'="":$E(FHX3,1),1:""),NUM=$S(SC'="":$P(FHX3,SC,2),1:"")

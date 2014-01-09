@@ -1,5 +1,5 @@
 BUD0Z ; IHS/CMI/LAB -CREATED BY ^ATXSTX ON JAN 12, 2011 ;
- ;;6.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2012;Build 25
+ ;;7.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2013;Build 31
  ;
  ; See referenced routines to see taxonomies being loaded.
  ;

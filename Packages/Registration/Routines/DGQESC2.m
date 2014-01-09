@@ -1,5 +1,5 @@
-DGQESC2 ;ALB/JFP - VIC OUTPATIENT CLINIC SCAN ROUTINE ; 01/09/96
- ;;V5.3;REGISTRATION;**73**;DEC 11,1996
+DGQESC2 ;ALB/JFP - VIC OUTPATIENT CLINIC SCAN ROUTINE ; 03/29/2004
+ ;;5.3;Registration;**73,568,725,1015**;Aug 13, 1993;Build 21
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
  ;
 ENO ; -- Entry Point
@@ -13,9 +13,9 @@ ENO ; -- Entry Point
  I Y D  Q
  .; -- New Variables
  .N VAUTD,VAUTNI,VAUTC
- .N DATE,DFNARR,CNT,Y,ERR,SDATE,EDATE,DFN,RESULTS,ZTSTOP
+ .N DATE,DFNARR,CNT,Y,ERR,SDATE,EDATE,DFN,RESULTS
  .N DIVFLAG,DIVISION,SELDIV
- .N DGSUB,DGJ,DGUTD,DGWD,DGDV
+ .N DGSUB,DGJ,DGUTD,DGWD,DGDV,ZTSTOP
  .; -- Set Variables
  .S VAUTD=1  ; -- All divisions selected
  .D NOW^%DTC S DATE=%
@@ -57,16 +57,39 @@ EXIT ; -- Finish Process
  ;
 OUTSCAN ; Scan the clinics for appointments to create VIC cards
  ;
- N CLINIC,CLINDATE,DPTINFO
+ N CLINIC,CLINDATE,DPTINFO,I,CLNARRAY,DGARRAY,DGDIV,SDCNT S I=1
+ K ^TMP($J,"SDAMA"),^TMP($J,"SDAMA301")
  ;
- I '$D(ZTQUEUED) W !!,"Note: Each Dot equals a clinic",!,"."
- ; -- Scans OUTPATIENT clinic
- S (CLINIC,CLINDATE)=""
- I VAUTC=1 D
- .F  S CLINIC=$O(^SC("AC","C",CLINIC)) Q:CLINIC=""  D SCAN1
- I VAUTC=0 D
- .F  S CLINIC=$O(VAUTC(CLINIC)) Q:CLINIC=""  D SCAN1
-HL7 ; -- Building HL7 batch message
+ I '$D(ZTQUEUED) W !!,"Note: Each Dot equals a clinic",!
+ I VAUTC,VAUTD D
+ .S CLINIC=0 F  S CLINIC=$O(^SC(CLINIC)) Q:'CLINIC  D
+ ..I $P(^SC(CLINIC,0),U,3)="C" D CBLD3(CLINIC)
+ ;
+ I VAUTC,'VAUTD S DGDIV="" D
+ .S DGDIV="" F  S DGDIV=$O(VAUTD(DGDIV)) Q:'DGDIV  D
+ ..S CLINIC=0 F  S CLINIC=$O(^SC(CLINIC)) Q:'CLINIC  D
+ ...I $P(^SC(CLINIC,0),U,3)="C",$P(^SC(CLINIC,0),U,15)=DGDIV D CBLD3(CLINIC)
+ ;
+ I 'VAUTC S CLINIC=0 F  S CLINIC=$O(VAUTC(CLINIC)) Q:'CLINIC  D CBLD3(CLINIC)
+ ;
+ D SDAMA,BLDTMP,BLDHL7
+ K DGARRAY,SDCNT,^TMP($J,"SDAMA301"),^TMP($J,"SDAMA")
+ Q
+CBLD3(CLINIC) ; Build array of specified Clinics for specified Divisions
+ S CLNARRAY(I)=$G(CLNARRAY(I))_CLINIC_";"
+ I $L(CLNARRAY(I))>120 S I=I+1
+ I '$D(ZTQUEUED) W "."
+ Q
+ ;
+SDAMA ; Build TMP Global with Appointment API Data for Report
+ S DGARRAY(1)=SDATE_";"_EDATE
+ S DGARRAY("FLDS")="2;3"
+ F I=1:1 Q:'$D(CLNARRAY(I))  D
+ .S DGARRAY(2)=CLNARRAY(I)
+ .I $$SDAPI^SDAMA301(.DGARRAY)>0 M ^TMP($J,"SDAMA")=^TMP($J,"SDAMA301")
+ .K ^TMP($J,"SDAMA301")
+ Q
+BLDHL7 ; -- Building HL7 batch message
  S DFN=""
  F  S DFN=$O(@DFNARR@(DFN)) Q:'DFN  S CNT=CNT+1
  S RESULTS=$$EVENT^DGQEHL72("A08",DFNARR)
@@ -76,21 +99,13 @@ HL7 ; -- Building HL7 batch message
  D EXIT
  Q
  ;
-SCAN1 ; --
- ; -- Check to see if users wants task to stop
- I $$S^%ZTLOAD D  Q
- .S ZTSTOP=1
- I VAUTD=0 D CHKDIV Q:'DIVFLAG
- ;W !,"CLINIC = ",CLINIC
- I '$D(ZTQUEUED) W "."
- S CLINDATE=SDATE
- F  S CLINDATE=$O(^SC(CLINIC,"S",CLINDATE)) Q:CLINDATE=""  D
- .I $P(CLINDATE,".")>EDATE Q
- .;W !,"CLINDATE = ",CLINDATE
- .S DFN=$P($G(^SC(CLINIC,"S",CLINDATE,1,1,0)),"^") Q:DFN=""
- .S DPTINFO=$P($G(^DPT(DFN,"S",CLINDATE,0)),"^",1,2)
- .I $P(DPTINFO,"^")=CLINIC&($P(DPTINFO,"^",2)="") D
- ..S @DFNARR@(DFN)=""
+BLDTMP ;
+ ; -- Building Temporary Storage Data
+ S (ZTSTOP,CLINIC)=0 F  S CLINIC=$O(^TMP($J,"SDAMA",CLINIC)) Q:'CLINIC!(ZTSTOP)  D
+ .I $$S^%ZTLOAD S ZTSTOP=1 Q
+ .S DFN=0 F  S DFN=$O(^TMP($J,"SDAMA",CLINIC,DFN)) Q:'DFN  D
+ ..S CLINDATE=0 F  S CLINDATE=$O(^TMP($J,"SDAMA",CLINIC,DFN,CLINDATE)) Q:'CLINDATE  D
+ ...I $P($P(^TMP($J,"SDAMA",CLINIC,DFN,CLINDATE),U,3),";")="R" S @DFNARR@(DFN)=""
  Q
  ;
 CHKDIV ; -- Check to see if clinic is part of Division selected

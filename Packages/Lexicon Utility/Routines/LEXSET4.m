@@ -1,5 +1,5 @@
 LEXSET4 ; ISL Setup Functions                      ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 NS(LEX) ; Look-up application namespace
  N D,DIC,DTOUT,DUOUT D:'$D(LEXSAVE) SAVE K DIC S DIC("A")="Select APPLICATION:  "

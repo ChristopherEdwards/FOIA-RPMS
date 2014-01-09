@@ -1,5 +1,5 @@
-DGENCDA2 ;ALB/CJM,ISA/KWP,Zoltan,JAN - Catastrophic Disabilty API - File Data;May 24, 1999,Nov 14, 2001
- ;;5.3;Registration;**232,387**;Aug 13,1993
+DGENCDA2 ;ALB/CJM,ISA/KWP,Zoltan,JAN,CKN - Catastrophic Disabilty API - File Data;May 24, 1999,Nov 14, 2001 ; 9/22/05 5:40pm
+ ;;5.3;Registration;**232,387,653,1015**;Aug 13,1993;Build 21
  ;
 STORE(DFN,DGCDIS,ERROR) ;
  ;Description: Creates a catastrophic disability record for a patient.
@@ -33,6 +33,12 @@ STORE(DFN,DGCDIS,ERROR) ;
  . S FDB(2.399,HIEN,.394)=DGCDIS("REVDTE")
  . S FDA(2,DFN_",",.395)=DGCDIS("METDET")
  . S FDB(2.399,HIEN,.395)=DGCDIS("METDET")
+ . S FDA(2,DFN_",",.3951)=DGCDIS("VETREQDT")
+ . S FDB(2.399,HIEN,.3951)=DGCDIS("VETREQDT")
+ . S FDA(2,DFN_",",.3952)=DGCDIS("DTFACIRV")
+ . S FDB(2.399,HIEN,.3952)=DGCDIS("DTFACIRV")
+ . S FDA(2,DFN_",",.3953)=DGCDIS("DTVETNOT")
+ . S FDB(2.399,HIEN,.3953)=DGCDIS("DTVETNOT")
  . S SUB="",HSUB=0
  . S NIEN=0 F  S SUB=$O(DGCDIS("DIAG",SUB)) Q:'SUB  D
  . . I DGCDIS("DIAG",SUB)="" Q

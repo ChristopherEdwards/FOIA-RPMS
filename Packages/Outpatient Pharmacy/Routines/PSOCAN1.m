@@ -1,5 +1,5 @@
 PSOCAN1 ;BIR/BHW - modular rx cancel with speed cancel ability ;2/22/93
- ;;7.0;OUTPATIENT PHARMACY;**8,20,24,27,32,131,163**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**8,20,24,27,32,131,163,185,238**;DEC 1997
  ;External reference to File #55 supported by DBIA 2228
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^DPT supported by DBIA 10035
@@ -9,7 +9,9 @@ PAT S RXCNT=0 K X,PSODFN,ASKED,BC,DELCNT,WARN W ! S DIR("A")="Are you entering t
  S DIR("?")="Enter a P if you are going to enter the patient name.  Enter a B if you are going to enter or wand the barcode."
  D ^DIR K DIR G:$D(DIRUT) ^PSOCAN S BC=Y
 BC D KCAN1^PSOCAN3 S OUT=0 I BC="B" W ! S DIR("A")="Enter/wand barcode",DIR(0)="FO^5:20",DIR("?")="Enter the barcode number or wand the barcode to discontinue all prescriptions for one patient" D ^DIR K DIR G:$G(DIRUT) PAT S BCNUM=Y D
- .D PSOINST^PSOSUPAT Q:OUT  S RX=$P(BCNUM,"-",2) I $D(^PSRX(RX,0)) S PSODFN=$P(^PSRX(RX,0),"^",2) W " ",$P($G(^DPT(PSODFN,0)),"^")
+ .D PSOINST^PSOSUPAT Q:OUT  S RX=$P(BCNUM,"-",2) D:$D(^PSRX(RX,0))
+ ..S PSODFN=$P(^PSRX(RX,0),"^",2) W " ",$P($G(^DPT(PSODFN,0)),"^")
+ ..D ICN^PSODPT(PSODFN)
  .I '$D(^PSRX(RX,0)) W !,$C(7),"No Prescription record for this barcode." S OUT=1
  G:OUT BC
 NAM D KCAN^PSOCAN3 S PSOCANRA=1 I BC="P" W ! S DIC(0)="AEMZQ",DIC="^DPT(" D ^DIC K DIC G:$D(DTOUT)!($D(DUOUT))!(Y<0) PAT S PSODFN=+Y S PSOLOUD=1 D:$P($G(^PS(55,PSODFN,0)),"^",6)'=2 EN^PSOHLUP(PSODFN) K PSOLOUD
@@ -20,6 +22,13 @@ NAM D KCAN^PSOCAN3 S PSOCANRA=1 I BC="P" W ! S DIC(0)="AEMZQ",DIC="^DPT(" D ^DIC
  S ALL=Y G:Y="S" LINE D RTESTA D COM I '$D(INCOM)!($D(DIRUT)) D ULP^PSOCAN G NAM
  K PSOSDX,PSOSDXY,PENCAN,PSOCANPN S SPEED=1,(DRG,DRUG,IN,STA)="",II=0 F  S STA=$O(PSOSD(STA)) Q:STA=""  F  S DRUG=$O(PSOSD(STA,DRUG)) Q:DRUG=""  S II=II+1,DRG=DRUG D
  .I STA="PENDING" S DA=$P(PSOSD(STA,DRG),"^",10) S PSOSDX(DA)="" Q
+ .;PSO*7*238
+ .I STA="ZNONVA" D  Q
+ ..D NOW^%DTC
+ ..N TMP
+ ..S TMP(55.05,PSOOI_","_PSODFN_",",5)=1
+ ..S TMP(55.05,PSOOI_","_PSODFN_",",6)=%
+ ..D FILE^DIE("","TMP")
  .S PSOCANPN=1
  .D PSPEED
  K SPEED D ASK D:$G(REA)="C"&('$G(PSOSDXY))&($O(PSOSDX(0)))&($G(PSOCANPN))  D:'$G(PSOCANPN)  K PSOCANPN,PSOSDX,PSOSDXY,PENCAN D ULP^PSOCAN G PAT

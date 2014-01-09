@@ -1,5 +1,6 @@
-ORKCHKM ; IHS/MSC/DKM - Support routine called by ORKCHK to do MANUAL mode order checks ;29-Nov-2007 17:57;DKM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**1005**;Nov 29, 2007
+ORKCHKM ; IHS/MSC/DKM - Support routine called by ORKCHK to do MANUAL mode order checks ;23-Nov-2011 11:46;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**1005,1010**;Nov 29, 2007;Build 47
+ ; Modified - IHS/MSC/DKM - 11/29/07 -
  Q
  ;
 EN(ORKS,ORKDFN,ORKA,ORENT,ORKTMODE) ;perform manual order checking

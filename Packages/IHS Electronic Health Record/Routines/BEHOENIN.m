@@ -1,10 +1,9 @@
-BEHOENIN ;MSC/IND/DKM - Installation Support ;16-Sep-2010 20:28;PLS
- ;;1.1;BEH COMPONENTS;**005001,005004,005005**;Mar 20, 2007
+BEHOENIN ;MSC/IND/DKM - Installation Support ;06-Sep-2011 14:33;PLS
+ ;;1.1;BEH COMPONENTS;**005001,005004,005005,005008**;Mar 20, 2007
  ;=================================================================
 PREINIT ;EP - Preinitialization
  Q
 POSTINIT ;EP - Postinitialization
- D VPOV
  Q
  ; Add a report to the ORRPW ADT VISITS report header.
 ADDCHILD(RPT) ;

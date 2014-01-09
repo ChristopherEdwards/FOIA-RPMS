@@ -1,5 +1,5 @@
 DGODUTL ;ALB/EG - INITIALIZE ARRAYS FOR DGODNP1/DGODOP1 & TOTAL ; JAN-13-1989 @ 0854
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;V 4.5
 G0 ;initializes array
  S A1=0 F I=1:1 S A1=$O(^DG(40.8,A1)) Q:(A1="")!(A1'?.N)  S A(I)=^DG(40.8,A1,0),A2=I,DGDV=$E($P(A(I),U,2)_"     ",1,5) S ^UTILITY("DGOD",$J,"AO",I)=A(I) F K1=1:1:DGTN D G1

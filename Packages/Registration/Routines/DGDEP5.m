@@ -1,5 +1,5 @@
 DGDEP5 ;ALB/CAW - Delete Duplicate Dependents ;12/15/94
- ;;5.3;Registration;**45**;Aug 13, 1993
+ ;;5.3;Registration;**45,1015**;Aug 13, 1993;Build 21
 EN ;
  N BEG,DATE
  I $G(DGMTI),$G(DGMTACT)="VEW" W !,"Cannot edit when viewing a means test." H 2 G ENQ

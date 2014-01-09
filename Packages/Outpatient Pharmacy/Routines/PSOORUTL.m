@@ -1,10 +1,10 @@
-PSOORUTL ;ISC BHAM/SAB  - updates order status from oerr ;14-Aug-2008 15:19;SM
- ;;7.0;OUTPATIENT PHARMACY;**14,46,146,132,1002,1005,1007**;DEC 1997
+PSOORUTL ;ISC BHAM/SAB  - updates order status from oerr ;29-May-2012 15:03;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**14,46,146,132,1002,1005,1007,118,199,223,148,249,274,225,1015**;DEC 1997;Build 62
  ;External reference to EN^ORERR - 2187
  ;External reference to ^PS(55 - 2228
  ;Input variables, poerr("psofilnm")=pharmacy pointer # from OE/RR, poerr("stat")=Order Control status
  ;poerr("pharmst")=will contain 'ZE'if rx has expired, poerr("comm")=Comments, poerr("user")=Person placing request
- ; Modified - IHS/CIA/PLS - 11/11/04 - Line PEXIT+7 and new EP CANDATE
+ ; Modified - IHS/CIA/PLS - 11/11/04 - Line PEXIT+7 and new EP CANDATE (Removed in patch 1010)
  ;            IHS/MSC/PLS - 08/14/08 - Line CAN+2
 EN(POERR) ;
  N PSZORS,III
@@ -17,16 +17,15 @@ EN(POERR) ;
 RXO S III=POERR("PSOFILNM") I $D(^PSRX(III,0)) D  G PEXIT
  .I $G(PDFN),$P($G(^PSRX(III,0)),"^",2),PDFN'=$P(^PSRX(III,0),"^",2) S ORS=1
  S (ORS,PSZORS)=1
-PEXIT I $G(ORS) S POERR("STAT")=$S(POERR("STAT")="CA":"UC",POERR("STAT")="DC":"UD",POERR("STAT")="HD":"UH",1:"UR"),POERR("FILLER")="",POERR("COMM")=$S($G(PSZORS):"Unable to locate order.",1:"Patient does not match.") K ORS,PSZORS,III Q
+PEXIT I $G(ORS) S POERR("STAT")=$S(POERR("STAT")="CA":"UC",POERR("STAT")="DC":"UD",POERR("STAT")="HD":"UH",1:"UR"),POERR("FILLER")="",POERR("COMM")=$S($G(PSZORS):"Invalid Pharmacy order number",1:"Patient does not match.") K ORS,PSZORS,III Q
  S POERR("PHARMST")="" G:POERR("STAT")="HD"!(POERR("STAT")="RL") HD
  S ORS=0 I POERR("PSOFILNM")["S" S DA=+POERR("PSOFILNM") I $D(^PS(52.41,DA,0)) D  G EXIT
  .Q:$P($G(^PS(52.41,DA,0)),"^",3)="RF"
  .S $P(^PS(52.41,DA,0),"^",3)="DC",POERR("PLACE")=$P(^(0),"^"),POERR("STAT")="CR",POERR("FILLER")=DA_"^P"
  .K ^PS(52.41,"AOR",+$P($G(^PS(52.41,DA,0)),"^",2),+$P($G(^PS(52.41,DA,"INI")),"^"),DA)
  .S:$G(POERR("COMM"))']"" POERR("COMM")="Order Canceled by OE/RR before finishing." S ORS=1,$P(^PS(52.41,DA,4),"^")=$G(POERR("COMM"))
- ; IHS/CIA/PLS - 11/11/04 - Change to call CANDATE
- ;S DA=POERR("PSOFILNM") I $D(^PSRX(DA,0)) D  S $P(^PSRX(DA,"STA"),"^")=14 D CAN^PSOTPCAN(DA) G EXIT
- S DA=POERR("PSOFILNM") I $D(^PSRX(DA,0)) D  S $P(^PSRX(DA,"STA"),"^")=14 D CANDATE,CAN^PSOTPCAN(DA) G EXIT
+ S DA=POERR("PSOFILNM") D:$D(^PSRX(DA,0)) REVERSE^PSOBPSU1(DA,,"DC",7)
+ I $D(^PSRX(DA,0)) D  S $P(^PSRX(DA,"STA"),"^")=14,$P(^PSRX(DA,3),"^",5)=DT,$P(^PSRX(DA,3),"^",10)=$P(^PSRX(DA,3),"^") D CAN^PSOTPCAN(DA) G EXIT
  .;cancel/discontinue action
  .S POERR("PLACE")=+$P($G(^PSRX(DA,"OR1")),"^",2),POERR("STAT")=$S(POERR("STAT")="CA":"CR",1:"DR"),POERR("FILLER")=DA_"^R"
  .S:'$D(POERR("COMM")) POERR("COMM")="Prescription DISCONTINUED by OERR"
@@ -70,16 +69,21 @@ HD ;place order on hold
  .I $P(^PSRX(DA,"STA"),"^")=3!($P(^("STA"),"^")>11) S POERR("STAT")="UH",POERR("COMM")="Unable to place on HOLD" Q
  .S $P(^PSRX(DA,"STA"),"^")=16,POERR("STAT")="HR",^PSRX(DA,"H")=99_"^"_POERR("COMM")_"^"_DT
  .S (PSUS,RXF)=0 F I=0:0 S I=$O(^PSRX(DA,1,I)) Q:'I  S RXF=I S:RXF>1 RSDT=$P(^(RXF-1,0),"^")
+ .S DA=PSDA D ACT D REVERSE^PSOBPSU1(DA,,"HLD",2)
  .S DA=$O(^PS(52.5,"B",PSDA,0)) I DA S DIK="^PS(52.5,",PSUS=1 D ^DIK K DA,DIK
- .S DA=PSDA D ACT
  I 'ORS S POERR("COMM")="Unable to place order on HOLD" G EXIT
  Q
 NVA ;non-va med action
- K NVA
+ N DIE,DR,DA K NVA
  I POERR("PSOFILNM")'["N"!('$D(^PS(55,PDFN,"NVA",+POERR("PSOFILNM"),0))) D EN^ORERR("Order was not located by Pharmacy",.MSG) Q
  I $G(OR("STAT"))'="CA",$G(OR("STAT"))'="DC" D EN^ORERR("Invalid Order Control Code",.MSG) Q
-XO S ORD=+POERR("PSOFILNM") D NOW^%DTC S $P(^PS(55,PDFN,"NVA",ORD,0),"^",6)=$S($G(PSODEATH):2,1:1),$P(^(0),"^",7)=%,PLACER=$P(^PS(55,PDFN,"NVA",ORD,0),"^",8)
- S:$G(PSODEATH) ^PS(55,PSODFN,"NVA","APSOD",ORD)="" K ORD,%
+XO S ORD=+POERR("PSOFILNM")
+ N TMP
+ D NOW^%DTC
+ K TMP S TMP(55.05,ORD_","_PDFN_",",5)=$S($G(PSODEATH):2,1:1)
+ S TMP(55.05,ORD_","_PDFN_",",6)=%
+ D FILE^DIE("","TMP")
+ S PLACER=$P(^PS(55,PDFN,"NVA",ORD,0),"^",8)
  K MSG S NULLFLDS="F JJ=0:1:LIMIT S FIELD(JJ)="""""
  K ^UTILITY("DIQ1",$J),DIQ S DA=$P($$SITE^VASITE(),"^")
  I $G(DA) S DIC=4,DIQ(0)="I",DR="99" D EN^DIQ1 S PSOHINST=$G(^UTILITY("DIQ1",$J,4,DA,99,"I")) K ^UTILITY("DIQ1",$J),DA,DR,DIQ,DIC
@@ -102,12 +106,6 @@ ACT ;activity log
  D NOW^%DTC S NOW=%
  S IR=0 F FDA=0:0 S FDA=$O(^PSRX(DA,"A",FDA)) Q:'FDA  S IR=FDA
  S IR=IR+1,^PSRX(DA,"A",0)="^52.3DA^"_IR_"^"_IR
+ S RXF=$S(RXF>5:RXF+1,1:RXF)
  S ^PSRX(DA,"A",IR,0)=NOW_"^"_$S(ACT:"U",1:"H")_"^"_POERR("USER")_"^"_RXF_"^"_"RX "_$S('ACT:"placed in a",1:"removed from")_" HOLD status "_$S(+$G(PSUS):"and removed from SUSPENSE ",1:"")_"("_$E(DT,4,5)_"-"_$E(DT,6,7)_"-"_$E(DT,2,3)_") by OERR."
- Q
- ; IHS/CIA/PLS - 11/11/04
- ; Set Cancel Date Field
-CANDATE ;
- N FDA,MSG
- S FDA(52,DA_",",26.1)=$$DT^XLFDT
- D FILE^DIE("","FDA","MSG")
  Q

@@ -1,5 +1,5 @@
 SDACSCGP ;ALB/TET - Print Computer Generated Appt Types or Stop Codes ;3/18/92  14:26
- ;;5.3;Scheduling;**132,202**;Aug 13, 1993
+ ;;5.3;Scheduling;**132,202,1015**;Aug 13, 1993;Build 21
  ;
  Q
  ;

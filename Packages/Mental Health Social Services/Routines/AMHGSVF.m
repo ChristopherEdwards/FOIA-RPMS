@@ -1,5 +1,5 @@
 AMHGSVF ; IHS/CMI/MAW - AMHG Save Visit Form Data (frmVisitDataEntry) 2/12/2009 3:01:26 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,3**;JUN 18, 2010;Build 10
  ;
  ;
  ;
@@ -76,6 +76,7 @@ POV(RETVAL,AMHSTR) ;-- save POV called from method SavePOV in clsVisitDataEntry
 AXIS2(D,RC,P,A2) ;-- add/modify pov
  N AMHDA,R,AMHN
  S R="~"
+ D CLNPOV(RC)  ;ihs/cmi/maw patch 3 remove all povs before readding or editing since primary and secondary not segregated
  S AMHDA=0 F  S AMHDA=$O(A2(AMHDA)) Q:'AMHDA  D
  . N STR,PIEN,PCODE,PNARR
  . S STR=$G(A2(AMHDA))
@@ -84,6 +85,9 @@ AXIS2(D,RC,P,A2) ;-- add/modify pov
  . S PNARR=$P(STR,R,3)
  . I $G(PNARR)]"" D
  ..S AMHN=$$FNDNARR^AMHGU(PNARR,1)
+ . D ADDPOV^AMHGEVF(PIEN,P,RC,$G(AMHN))
+ . Q
+ . ;below code was used before patch 3 not needed anymore
  . I D="A" D ADDPOV^AMHGEVF(PIEN,P,RC,$G(AMHN)) Q
  . I D="E" D  Q
  .. N AMHPREC
@@ -92,6 +96,12 @@ AXIS2(D,RC,P,A2) ;-- add/modify pov
  .. D EDITPOV^AMHGEVF(AMHPREC,$G(AMHN))
  I D="E" D  Q
  . D DELPOV^AMHGEVF(RC,.A2)
+ Q
+ ;
+CLNPOV(REC) ;-- clean out all POV records first
+ N IEN
+ S IEN=0 F  S IEN=$O(^AMHRPRO("AD",REC,IEN)) Q:'IEN  D
+ . S DIK="^AMHRPRO(",DA=IEN D ^DIK
  Q
  ;
 AXIS3(D,RC,P,A3) ;-- file axis 3 data

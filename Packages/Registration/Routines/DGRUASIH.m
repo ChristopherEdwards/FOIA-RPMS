@@ -1,5 +1,5 @@
 DGRUASIH ; ALB/GRR - RAI/MDS ASIH BACKGROUND JOB ; 11-1-00
- ;;5.3;Registration;**328,371,373,424**;Aug 13, 1993
+ ;;5.3;Registration;**328,371,373,424,1015**;Aug 13, 1993;Build 21
 EN ;Main Entry Point
  ;
  Q:'$D(^DGRU(46.14,"AD","A"))  ;No patients on ASIH

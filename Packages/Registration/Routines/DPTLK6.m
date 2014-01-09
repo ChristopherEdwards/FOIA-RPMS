@@ -1,5 +1,5 @@
-DPTLK6 ;BAY/JAT - Patient lookup RPCs for patient safety issue ; 24 Feb 2000  6:58 PM
- ;;5.3;Patient File;**265,276,277**;Aug 13, 1993
+DPTLK6 ;BAY/JAT,EG - Patient lookup RPCs for patient safety issue ; 11 Aug 2005 8:33 AM
+ ;;5.3;Registration;**265,276,277,675,1015**;Aug 13, 1993;Build 21
 GUIBS5(GUIDATA,DFN) ; RPC checks if other patients on "BS5" xref
  ; with same last name
  ; returns:  1 or 0 (or -1 if bad dfn or no zero node)
@@ -70,7 +70,8 @@ GUIDMT(GUIDATA,DUZ2) ; RPC checks if the 'Display Means Test Required'
  S DPTDIV=$O(^DG(40.8,"AD",DUZ2,DPTDIV))
  I '$G(DPTDIV) S GUIDATA(1)=-1 Q
  S GUIDATA(1)=0
- S DPTDIVMT=$G(^DG(40.8,DPTDIV,"MT")) I $P(DPTDIVMT,U,3)="Y" S GUIDATA(1)=1,GUIDATA(2)="MEANS TEST REQUIRED",GUIDATA(3)=$P(DPTDIVMT,U,2)
+ S DPTDIVMT=$G(^DG(40.8,DPTDIV,"MT"))
+ I $P(DPTDIVMT,U,3)="Y" S GUIDATA(1)=1,GUIDATA(2)="MEANS TEST REQUIRED",GUIDATA(3)=$P(DPTDIVMT,U,2)
  Q
  ;
 GUIMT(GUIDATA,DFN) ; RPC checks if Means Test is required for this patient
@@ -103,7 +104,9 @@ GUIMTD(GUIDATA,DFN,DUZ2) ; RPC checks if Means Test is required for this
  N Y,DGREQF,DGMTLST
  S GUIDATA(1)=0
  S DGMTLST=$$CMTS^DGMTU(DFN)
- I $P(DGMTLST,U,4)'="R" Q
- S DPTDIVMT=$G(^DG(40.8,DPTDIV,"MT")) I $P(DPTDIVMT,U,3)="Y" S GUIDATA(1)=1,GUIDATA(2)="MEANS TEST REQUIRED",GUIDATA(3)=$P(DPTDIVMT,U,2)
+ ;only display division message if means test is required
+ I '$$MFLG^DGMTU(DGMTLST) Q
+ S DPTDIVMT=$G(^DG(40.8,DPTDIV,"MT"))
+ I $P(DPTDIVMT,U,3)="Y" S GUIDATA(1)=1,GUIDATA(2)="MEANS TEST REQUIRED",GUIDATA(3)=$P(DPTDIVMT,U,2)
  Q
  ;

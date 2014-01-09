@@ -1,5 +1,5 @@
 SDOEPRV ;ALB/MJK - ACRP Provider APIs For An Encounter ;8/12/96
- ;;5.3;Scheduling;**131**;Aug 13, 1993
+ ;;5.3;Scheduling;**131,1015**;Aug 13, 1993;Build 21
  ;
 PRV(SDOE,SDERR) ; -- SDOE ASSIGNED A PROVIDER
  ;   API ID: 63

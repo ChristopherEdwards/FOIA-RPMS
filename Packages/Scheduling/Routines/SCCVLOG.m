@@ -1,5 +1,5 @@
 SCCVLOG ;ALB/RMO,TMP - CST/AST Log Utilities - Log Event; [ 04/05/95  8:39 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 UPDREC(SCLOG,SCIEN,SCCVT) ;Update CST/AST last entry and number of records
  ; Input  -- SCLOG    CST/AST log IEN

@@ -1,5 +1,5 @@
-SCRPO2 ;BP-CIOFO/KEITH - Historical Patient Position Assignment Listing (cont.) ;7/31/99  22:36 [ 11/02/2000  7:59 AM ]
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+SCRPO2 ;BP-CIOFO/KEITH - Historical Patient Position Assignment Listing (cont.) ;7/31/99  22:36
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/02/2000 changed SSN to HRCN
  ;                        replaced elig/means test with gender/age
  ;
@@ -45,7 +45,6 @@ BPTPA(SCPASS,SCDIV,SCTEAM,SCPOS,SCLINIC,SCFMT) ;Evaluate patient team position a
  ;S SCX=$E($P(SCPAT,U),1,18)_U_$E(SCSSN,6,10)   ;IHS/ANMC/LJF 11/2/2000
  S SCX=$E($P(SCPAT,U),1,18)_U_SCSSN             ;IHS/ANMC/LJF 11/2/2000
  ;S SCX=SCX_U_$P(SCPELIG,U,2)_U_$P(SCMTST,U,2)  ;IHS/ANMC/LJF 11/2/2000
- S SCX=SCX_U_SCAGE_U_$E(SCGEND,1)  ;IHS/ANMC/LJF 11/2/2000
  S SCX=SCX_U_$E($P(SCTEAM,U),1,13)_U_U_$E($P(SCPOS,U),1,14)_U
  S SCX=SCX_U_$E($P(SCLINIC,U),1,14)
  ;

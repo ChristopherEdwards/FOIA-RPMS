@@ -1,5 +1,5 @@
 BGP3DP41 ; IHS/CMI/LAB - print ind 31 ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;13.0;IHS CLINICAL REPORTING;;NOV 20, 2012;Build 81
  ;
  ;
 I1AGE ;EP special age tallies

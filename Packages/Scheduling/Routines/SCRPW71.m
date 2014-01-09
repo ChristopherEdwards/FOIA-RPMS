@@ -1,5 +1,5 @@
-SCRPW71 ;BP-CIOFO/KEITH - Clinic appointment availability extract (cont.) ; 14 May 99  9:19 PM [ 10/06/2000  10:21 AM ]
- ;;5.3;Scheduling;**192**;AUG 13, 1993
+SCRPW71 ;BP-CIOFO/KEITH - Clinic appointment availability extract (cont.) ; 14 May 99  9:19 PM
+ ;;5.3;Scheduling;**192,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 10/6/2000 IHS uses only one clinic code
  ;
 CLINIC(SC,SDFMT,SDSTRTDT,MAXDT,MAX,SDPAST) ;Evaluate a clinic

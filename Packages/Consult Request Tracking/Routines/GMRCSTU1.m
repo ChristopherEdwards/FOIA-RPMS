@@ -1,5 +1,5 @@
 GMRCSTU1 ;SLC/DCM,dee - Statistic Utilities for C/RT ;9/26/02 10:15
- ;;3.0;CONSULT/REQUEST TRACKING;**7,29**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**7,29,43**;DEC 27, 1997
  Q
  ;
 SQRT(X) ;calculate the square root of number X
@@ -107,7 +107,7 @@ SERVSTAT(COUNT,GEN,ND,GRP) ;Build list for a service or a grouper
  S ^TMP("GMRCR",$J,"PRL",COUNT,0)="Total Number Of Consults Completed: "_NUMBER
  S COUNT=COUNT+1
  S TEMP="Mean Days To Complete: "
- S:NUMBER>0 TEMP=TEMP_$J($P(^TMP("GMRCSVC",$J,GEN,ND,"T"),"^",4),4,1)
+ S:NUMBER>0 TEMP=TEMP_$J($P(^TMP("GMRCSVC",$J,GEN,ND,"T"),"^",4),4,2)
  S TEMP=TEMP_$E(TAB,1,50-$L(TEMP))_"Standard Deviation: "
  I NUMBER>0 S ^TMP("GMRCR",$J,"PRL",COUNT,0)=TEMP_$S($P(^TMP("GMRCSVC",$J,GEN,ND,"T"),"^",5)=+$P(^TMP("GMRCSVC",$J,GEN,ND,"T"),"^",5):$J($P(^TMP("GMRCSVC",$J,GEN,ND,"T"),"^",5),4,1),1:$P(^TMP("GMRCSVC",$J,GEN,ND,"T"),"^",5))
  E  S ^TMP("GMRCR",$J,"PRL",COUNT,0)=TEMP
@@ -116,7 +116,7 @@ SERVSTAT(COUNT,GEN,ND,GRP) ;Build list for a service or a grouper
  S ^TMP("GMRCR",$J,"PRL",COUNT,0)="Total INPATIENT Consults: "_NUMBER
  S COUNT=COUNT+1
  S TEMP="Mean Days To Complete: "
- S:NUMBER>0 TEMP=TEMP_$J($P(^TMP("GMRCSVC",$J,GEN,ND,"I"),"^",4),4,1)
+ S:NUMBER>0 TEMP=TEMP_$J($P(^TMP("GMRCSVC",$J,GEN,ND,"I"),"^",4),4,2)
  S TEMP=TEMP_$E(TAB,1,50-$L(TEMP))_"Standard Deviation: "
  I NUMBER>0 D
  . S TEMP=TEMP_$S($P(^TMP("GMRCSVC",$J,GEN,ND,"I"),"^",5)=+$P(^TMP("GMRCSVC",$J,GEN,ND,"I"),"^",5):$J($P(^TMP("GMRCSVC",$J,GEN,ND,"I"),"^",5),4,1),1:$P(^TMP("GMRCSVC",$J,GEN,ND,"I"),"^",5))
@@ -126,7 +126,7 @@ SERVSTAT(COUNT,GEN,ND,GRP) ;Build list for a service or a grouper
  S ^TMP("GMRCR",$J,"PRL",COUNT,0)="Total OUTPATIENT Consults: "_NUMBER
  S COUNT=COUNT+1
  S TEMP="Mean Days To Complete: "
- S:NUMBER>0 TEMP=TEMP_$J($P(^TMP("GMRCSVC",$J,GEN,ND,"O"),"^",4),4,1)
+ S:NUMBER>0 TEMP=TEMP_$J($P(^TMP("GMRCSVC",$J,GEN,ND,"O"),"^",4),4,2)
  S TEMP=TEMP_$E(TAB,1,50-$L(TEMP))_"Standard Deviation: "
  I NUMBER>0 D
  . S TEMP=TEMP_$S($P(^TMP("GMRCSVC",$J,GEN,ND,"O"),"^",5)=+$P(^TMP("GMRCSVC",$J,GEN,ND,"O"),"^",5):$J($P(^TMP("GMRCSVC",$J,GEN,ND,"O"),"^",5),4,1),1:$P(^TMP("GMRCSVC",$J,GEN,ND,"O"),"^",5))
@@ -137,7 +137,7 @@ SERVSTAT(COUNT,GEN,ND,GRP) ;Build list for a service or a grouper
  .S ^TMP("GMRCR",$J,"PRL",COUNT,0)="Total Unclassified Consults: "_NUMBER
  .S COUNT=COUNT+1
  .S TEMP="Mean Days To Complete: "
- .S:NUMBER>0 TEMP=TEMP_$J($P(^TMP("GMRCSVC",$J,GEN,ND,"U"),"^",4),4,1)
+ .S:NUMBER>0 TEMP=TEMP_$J($P(^TMP("GMRCSVC",$J,GEN,ND,"U"),"^",4),4,2)
  .S TEMP=TEMP_$E(TAB,1,50-$L(TEMP))_"Standard Deviation: "
  .I NUMBER>0 D
  .. S TEMP=TEMP_$S($P(^TMP("GMRCSVC",$J,GEN,ND,"U"),"^",5)=+$P(^TMP("GMRCSVC",$J,GEN,ND,"U"),"^",5):$J($P(^TMP("GMRCSVC",$J,GEN,ND,"U"),"^",5),4,1),1:$P(^TMP("GMRCSVC",$J,GEN,ND,"U"),"^",5))

@@ -1,9 +1,10 @@
-SROQD1 ;BIR/ADM-Cases with Deaths within 30 Days ; [ 01/29/98  6:39 AM ]
- ;;3.0; Surgery ;**62,70,77**;24 Jun 9
- ;
+SROQD1 ;BIR/ADM - CASES WITH DEATHS WITHIN 30 DAYS ;01/29/98
+ ;;3.0; Surgery ;**62,70,77,142**;24 Jun 93
  ;** NOTICE: This routine is part of an implementation of a nationally
  ;**         controlled procedure.  Local modifications to this routine
  ;**         are prohibited.
+ ;
+ ; Reference to ^DIC(45.3 supported by DBIA #218
  ;
 NAT ; loop through national specialties
  D HDR I SRSPEC S SRNAT=SRSPEC,SRNATNM=$P(^DIC(45.3,SRNAT,0),"^",2),SRDNAT=0 D PATS Q
@@ -30,7 +31,7 @@ CASE ; print case information
  S SRTN=^TMP("SRSEC",$J,SRNAT,SRNM,DFN),SR=^SRF(SRTN,0),X=$P(SR,"^",9),SRX=^TMP("SR",$J,DFN,X,SRTN),SRSD=$E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3)
  S Y=$P(SRX,"^",2),SRIOSTAT=$S(Y="I":"INPAT",Y="O":"OUTPAT",1:"???")
  S Y=$P(SRX,"^",3),SRREL=$S(Y="U":"UNRELATED",Y="R":"RELATED",1:"???")
- S X=$P(SR,"^",4),SRSS=$S(X:$P(^SRO(137.45,X,0),"^"),1:"SPECIALTY NOT ENTERED"),SRL=86 D PROC^SROUTL
+ S X=$P(SR,"^",4),SRSS=$S(X:$P(^SRO(137.45,X,0),"^"),1:"SPECIALTY NOT ENTERED"),SRL=86,SRSUPCPT=1 D PROC^SROUTL
  W !,SRSD,?12,SRNM,?44,SRDD,?60,SRSS,?102,SRIOSTAT,?111,SRREL,!,SRTN,?12,SRSSN_"  ("_SRAGE_")" S I=0 F  S I=$O(SRPROC(I)) Q:'I  W ?44,SRPROC(I),!
  Q
 PAGE I $E(IOST)="P"!SRHDR G HDR

@@ -1,5 +1,5 @@
 SCCVCDS1 ; ALB/TMP - SCHED VSTS CONV - SCREEN BUILD ; 25-NOV-97
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 BLD ; -- build selected template display
  N SCCV0,SCCV1,SCCV2,SCCVLRQ,SCCVZ,SCCVZ1

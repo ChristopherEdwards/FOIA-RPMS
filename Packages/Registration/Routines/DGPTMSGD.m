@@ -1,5 +1,5 @@
 DGPTMSGD ;ALB/JDS - PTF MULTIMESSAGE DELETE ; 19 DEC 84@ 0800
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  D LO^DGUTL
 EN S Z="^PATIENT^NUMBER" R !!,"DELETE BY [P]ATIENT OR [N]UMBER: ",X:DTIME G Q:X=""!('$T)!(X="^") D IN^DGHELP G:%'=-1 @X W !!,"Enter 'P' to delete PTF messages by patient",!,"   or 'N' to delete PTF messages by number" G EN
 P S DIC="^DPT(",DIC(0)="QEAM",DIC("S")="I $D(^DGM(""PT"",+Y))",DIC("A")="Select Patient whose messages you wish to check off:  " D ^DIC G Q:+Y'>0 S DGPTF=+Y K DIC S %DT="XT",X="N" D ^%DT S NOW=+Y D READ G EN

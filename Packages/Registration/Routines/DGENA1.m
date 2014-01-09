@@ -1,5 +1,5 @@
 DGENA1 ;ALB/CJM,ISA/KWP - Enrollment API - File Data; 05/05/99
- ;;5.3;Registration;**121,147,232**;Aug 13,1993
+ ;;5.3;Registration;**121,147,232,1015**;Aug 13,1993;Build 21
  ;PHASE II moved CHECK and TESTVAL to DGENA3
 LOCK(DFN) ;
  ;Description: This lock is used to prevent another process from editing

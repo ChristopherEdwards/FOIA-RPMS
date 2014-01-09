@@ -1,5 +1,5 @@
-SDAMOS1 ;ALB/SCK - AM MGT REPORTS STATISTICS OUTPUT ; [ 02/27/2002  3:01 PM ]
- ;;5.3;Scheduling;;Aug 13, 1993
+SDAMOS1 ;ALB/SCK - AM MGT REPORTS STATISTICS OUTPUT ; 5/14/93
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/01/2001 added quit to end of subrtn
  ;              2/27/2002 fixed call to line label that doesn't exist
  ;
@@ -14,7 +14,10 @@ BLD ;  build report from data stored in TMP global
  .. S STATUS=0 F  S STATUS=$O(^TMP("SDAMS",$J,SDNXT,NXTSC,STATUS)) Q:'STATUS  D  Q:SDFIN
  ... S SDFIN=$$STCNT(STATUS,+^(STATUS)) ; ref to tmp(sdams,$j,div,stocode,status)
  .. S SDFIN=$$SUBTOT(NXTSC)
- Q   ;IHS/ANMC/LJF 11/01/2001
+ . D TOTALS
+ D TDIV
+BLDQ K SDCO,SDAR,SDIP,SDTOT,TCOCNT,TARCNT,TIPCNT,SDLST,LSTSC,SDNXT,NXTSC,ACTION,QFLAG,TC,TI,TA,TOT,PAGE,SDFIN,%
+ Q
  ;
 STCNT(STAT,COUNT) ; increment action count for stopcode
  ;   sdar = action req by stop code

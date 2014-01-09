@@ -1,5 +1,5 @@
 DGENCDU ;ALB/CJM,Zoltan - Catastrophic Disability Utilities;May 24, 1999
- ;;5.3;Registration;**121,232**;Aug 13,1993
+ ;;5.3;Registration;**121,232,1015**;Aug 13,1993;Build 21
  ;
 EXT(SUB,VAL) ;
  ;Description: Given the subscript used in the Catastrophic Disability

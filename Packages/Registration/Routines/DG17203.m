@@ -1,5 +1,5 @@
 DG17203 ;BHM/RGY,ALS-Setup conversion files ;FEB 20, 1998
- ;;5.3;Registration;**172**;Aug 13, 1993
+ ;;5.3;Registration;**172,1015**;Aug 13, 1993;Build 21
  Q
 START ;
  NEW DIK,FILE,TYPE,LOCAL,IEN,DA,DR,DIE,POINTER,TEXT,X1,X2

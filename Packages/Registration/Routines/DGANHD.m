@@ -1,5 +1,5 @@
 DGANHD ;ALB/RMO - Driver Routine to Generate NHCU and DOM AMIS's 345-346 ; 29 AUG 90 10:20 am
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  D LO^DGUTL
 MYR ;Prompt User for AMIS Month/Year

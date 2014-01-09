@@ -1,5 +1,5 @@
 SCMCGU ;ALB/JLU;General PCMM utilities;7/1/99 ; 3/29/00 12:34pm
- ;;5.3;Scheduling;**195,177,212**;AUG 13, 1993
+ ;;5.3;Scheduling;**195,177,212,1015**;AUG 13, 1993;Build 21
  ;
 NEWPERSN(IEN,ARY) ;This function takes an internal value/DUZ of the
  ;person you wish info on and performs a silent FM call to retrieve

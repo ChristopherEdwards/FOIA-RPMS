@@ -1,5 +1,5 @@
 SCCVDSP1 ; ALB/TMP - SCHED VSTS CONV/ARCHIVE TEMPLATE DETAIL; 25-NOV-97
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 INIT(SCCVTYP) ; -- build template detail screen
  I SCCVTYP="CST" D BLD^SCCVCDS1

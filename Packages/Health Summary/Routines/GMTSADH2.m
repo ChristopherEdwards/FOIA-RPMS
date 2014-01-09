@@ -1,5 +1,5 @@
 GMTSADH2 ; SLC/JER,KER - Ad Hoc Summary Driver ; 02/27/2002
- ;;2.7;Health Summary;**12,37,49**;Oct 20, 1995
+ ;;2.7;Health Summary;**12,37,49,63**;Oct 20, 1995
  ;                
  ; External Reference
  ;   DBIA    67  ^LAB(60,
@@ -53,7 +53,14 @@ GETSEL ; Updates GMTSEG array with Selections
  I X["?" W:$O(GMTSEG(SBS,0)) !!,"Current Selection items are   " D SHOWDEF
  S DIC(0)="EMQ",DIC=$$FLOC^GMTSU(+SEL)
  I SEL=60 S DIC("S")="I $P(^(0),U,4)=""CH"",""BO""[$P(^(0),U,3)"
- I SEL=9999999.64 S DIC("S")="I $P(^(0),U,10)=""C"",+$P(^(0),U,11)'=1"
+ I SEL=9999999.64 D
+ . I $P($G(^GMT(142.1,$P($G(GMX),U,2),0)),U,4)="GECH" D
+ . .S DIC("S")="I (($P(^(0),U,10)=""C"")&(+$P(^(0),U,11)'=1))&($P(^(0),"" "",1)=""GEC"")"
+ . E  D
+ ..S DIC("S")="I +$P(^(0),U,11)'=1"
+ ..I SEL=9999999.64 S DIC("W")="W ?47,$S($P(^(0),U,10)=""F"":""FACTOR"",$P(^(0),U,10)=""C"":""CATEGORY"")"
+ ;I SEL=9999999.64 S DIC("S")="I +$P(^(0),U,11)'=1"
+ ;I SEL=9999999.64 S DIC("W")="W ?47,$S($P(^(0),U,10)=""F"":""FACTOR"",$P(^(0),U,10)=""C"":""CATEGORY"")"
  I SEL=811.9 S DIC("S")="I +$P(^(0),U,6)'=1"
  I SEL=8925.1 S DIC("S")="I $P(^TIU(8925.1,+Y,0),U,4)=""DOC"",+$$ISA^TIULX(+Y,3)"
  D ^DIC

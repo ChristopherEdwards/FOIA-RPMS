@@ -1,5 +1,5 @@
 DGCRBR ; IHS/ADC/PDW/ENM - ADD/EDIT BILLING RATES FILE ;  [ 03/25/1999  11:48 AM ]
- ;;5.0;ADMISSION/DISCHARGE/TRANSFER;;MAR 25, 1999
+ ;;5.3;Registration;**1015**;MAR 25, 1999;Build 21
  ;;MAS VERSION 5.0;
  ;
  ;ask date, bed section, revenue code, amount, the file.

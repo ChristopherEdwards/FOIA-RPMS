@@ -1,8 +1,8 @@
-PSUOP1 ;BIR/CFL - PSU PBM Outpatient Pharmacy Data Collection for Version 6.0 ;25 AUD 1998
- ;;3.0;PHARMACY BENEFITS MANAGMENT;**3**;Oct 15, 1998
+PSUOP1 ;BIR/CFL - PSU PBM Outpatient Pharmacy Data Collection for Version 6.0 ;25 AUG 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ;DBIAs
- ; Referrence to ^PSRX( file #52 supported by DBIA(s) 465, 2512, 2513
+ ; Reference to ^PSRX( file #52 supported by DBIA(s) 465, 2512, 2513
 EN ;Entry to data collection
  K ^TMP($J)
  D CMOPARY,ADLOOP
@@ -106,7 +106,7 @@ GETPART ;Get data for Partial Fills
  D PROVDR^PSUOP3  ;Get shared variables
  Q
 COMVAR ;Get the common variables
- D GETS^PSUTL(52,PSURXIEN,".01;2;3;4;6;7;8;10;11;17;20;22;27;31","PSUOP","I")
+ D GETS^PSUTL(52,PSURXIEN,".01;2;3;4;6;7;8;11;17;20;22;27;31","PSUOP","I")
  D MOVEI^PSUTL("PSUOP")
  S PSURXN=PSUOP(.01)
  S DFN=PSUOP(2) D PID^VADPT
@@ -114,7 +114,7 @@ COMVAR ;Get the common variables
  S PSUWPC="" ;Patient counseling only exists for version 7.0
  S PSUDR=PSUOP(6)
  S PSURXP=PSUOP(3)
- S PSUSIG=PSUOP(10)
+ ;S PSUSIG=PSUOP(10)
  D GETDRUG^PSUOP3
  Q
 CMOPARY ;Loop through the "AR" cross reference and build CMOP array

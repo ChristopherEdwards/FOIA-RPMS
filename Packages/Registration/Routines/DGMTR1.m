@@ -1,5 +1,5 @@
 DGMTR1 ;ALB/CJM,SCG,LBD - Check Means Test Requirements Cont'd;3/25/92  09:51
- ;;5.3;Registration;**182,344,433,456**;Aug 13, 1993
+ ;;5.3;PIMS;**1016**;JUN 30, 2012;Build 20
  ;
 COPYRX(DFN,MTIEN) ;
  ;Creates a Pharmacy Copay test based on the means test if the vet is
@@ -46,6 +46,8 @@ COPYRX(DFN,MTIEN) ;
  .;if already copied, reuse the same record
  .I RXIEN,$P($G(^DGMT(408.31,RXIEN,2)),"^",6)=MTIEN D
  ..S DGMTI=RXIEN
+ ..; Check for another test in the current year and convert IAI records, if needed
+ ..S CONVRT=$$VRCHKUP^DGMTU2(2,TYPE,$P(^DGMT(408.31,MTIEN,0),"^"),$P(^DGMT(408.31,RXIEN,0),"^"))
  .E  D  Q:'DGMTI
  ..;This call works. Adding via the ADD^DGENDBS encountered an error
  ..S DGMTDT=$P(NODE0,"^") S DGMTYPT=2 D ADD^DGMTA
@@ -67,6 +69,7 @@ COPYRX(DFN,MTIEN) ;
  ..S COMMENTS("LINES",3,0)="was copied from the test on "_$$FMTE^XLFDT($$NOW^XLFDT)_"."
  .S DATA(50)="COMMENTS(""LINES"")"
  .S (DATA(.03),DATA(2.03))=$$RXSTATUS(MTIEN)
+ .S DATA(2.11)=1
  .I $$UPD^DGENDBS(408.31,DGMTI,.DATA,.ERROR)
  .K DATA
  .S:TYPE=1 DATA(2.06)=DGMTI
@@ -94,24 +97,21 @@ RXSTATUS(MTIEN) ;
  ;
 CHK(DFN) ;
  ;can the veteran take a RX copay test?
- N DGMTI,DGMTE,DGMTCOR,DGNODE,DGMTYPT,STATUS,ELIG,ELIGIEN
- S DGMTCOR=1,DGMT="",DGMTYPT=2
- ;
+ N DGMTI,DGMTCOR,DGNODE,DGELIG,DGI,DGE
+ S DGMTCOR=1
  ;
  I $P($G(^DPT(DFN,"VET")),U,1)'="Y" S DGMTCOR=0 G CHKQ ;NON-VET
- S DGMTI=0 I '$P($G(^DPT(DFN,.36)),U) S DGMTCOR=0 G CHKQ
- ;
- S ELIG=$P($G(^DPT(DFN,.36)),"^")
- I 'ELIG S DGMTCOR=0 G CHKQ
- S DGMTE=$P($G(^DIC(8,ELIG,0)),U,9)
- I "^1^2^4^15^"[("^"_DGMTE_"^") S DGMTCOR=0 G CHKQ
- S ELIGIEN=0
- F  S ELIGIEN=$O(^DPT(DFN,"E",ELIGIEN)) Q:'ELIGIEN  S ELIG=$P($G(^DPT(DFN,"E",ELIGIEN,0)),"^") I ELIG  S DGMTE=$P($G(^DIC(8,ELIG,0)),U,9) I "^1^2^4^15^"[("^"_DGMTE_"^") S DGMTCOR=0 G CHKQ
- ;
- S DGNODE=$G(^DPT(DFN,.362))
- I DGMTCOR,$P(DGNODE,U,12)["Y" S DGMTCOR=0 G CHKQ ;A&A
- I DGMTCOR,$P(DGNODE,U,13)["Y" S DGMTCOR=0 G CHKQ ;HB
- I DGMTCOR,$P(DGNODE,U,14)["Y" S DGMTCOR=0 G CHKQ ;PENSION
+ S DGI=$P($G(^DPT(DFN,.36)),U) I 'DGI S DGMTCOR=0 G CHKQ ;NO PRIM ELIG
+ S DGELIG=U_$P($G(^DIC(8,+DGI,0)),U,9)_U
+ S DGI=0 F  S DGI=$O(^DPT(DFN,"E",DGI)) Q:'DGI  S DGE=$P($G(^DPT(DFN,"E",DGI,0)),U),DGELIG=DGELIG_$P($G(^DIC(8,+DGE,0)),U,9)_U
+ I (DGELIG["^1^") S DGMTCOR=0 G CHKQ  ;SC 50-100%
+ F DGI=.3,.362,.39,.52 S DGNODE(DGI)=$G(^DPT(DFN,DGI))
+ I $P(DGNODE(.362),U,12)["Y"!(DGELIG["^2^") S DGMTCOR=0 G CHKQ ;A&A
+ I $P(DGNODE(.362),U,13)["Y"!(DGELIG["^15^") S DGMTCOR=0 G CHKQ ;HB
+ I $P(DGNODE(.362),U,14)["Y"!(DGELIG["^4^") S DGMTCOR=0 G CHKQ ;PENSION
+ I $P(DGNODE(.52),U,5)["Y"!(DGELIG["^18^") S DGMTCOR=0 G CHKQ ;POW
+ I $P(DGNODE(.39),U,6)["Y"!(DGELIG["^21^") S DGMTCOR=0 G CHKQ ;CD DG*5.3*840
+ I $P(DGNODE(.3),U,5)["Y"&($P(DGNODE(.3),U,2)>0)&($P(DGNODE(.362),U,20)>0) S DGMTCOR=0 G CHKQ ;UNEMPLOYABLE
 CHKQ ;
  Q DGMTCOR
 MAIL ; Send a mailman msg to user/ INCONSISTENCY EDIT GROUP with results

@@ -1,5 +1,5 @@
 DG53244U ;ALB/JDS,BPOIFO/KEITH - Patient Name Standardization ; 27 Jan 2002 11:55 PM
- ;;5.3;Registration;**244**;Aug 13, 1993
+ ;;5.3;Registration;**244,620,1015**;Aug 13, 1993;Build 21
  ;Adapted from XLFNAME3 MKO
 RUN(DGFLAG) ;Convert PATIENT file names;
  ;In: DGFLAG [ "U"  : Quit, use existing global
@@ -98,7 +98,7 @@ MSG K DGTEXT
  N XMY,XMTEXT,XMDUN,XMDUZ,XMSUB,XMZ,DGLINE
  S DGLINE="",$P(DGLINE,"-",80)=""
  S XMSUB="Patient Name Conversion Process"
- S XMY("G.PMSTRACK@DOMAIN.NAME")=""
+ S XMY("G.PMSTRACK@FORUM.VA.GOV")=""
  S XMY(+$G(DUZ))="",(XMDUN,XMDUZ)="Patch DG*5.3*244"
  S DGTEXT(1,0)="The Patient Name Standardization conversion has completed" S DGTEXT=1
  I DGOUT D
@@ -119,7 +119,7 @@ UPDATE(DGFLAG,DGFIL,DGIENS,DGFLD,DGNAM,DGNMSP,DPTMAX,DPTA,DGMPI) ;Process name f
  S $P(^XTMP(DGNMSP,"STATS",DGFIL,DGFLD),U)=$P($G(^XTMP(DGNMSP,"STATS",DGFIL,DGFLD)),U)+1
  ;Format name
  S DGOLD=$G(DGNAM)
- S DGNAM=$$FORMAT^DPTNAME(.DGNAM,3,DPTMAX,,2,.DGAUD,$S(DGFLD=.2403:1,1:0))
+ S DGNAM=$$FORMAT^XLFNAME7(.DGNAM,3,DPTMAX,,2,.DGAUD,$S(DGFLD=.2403:1,1:0))
  D:(DGAUD'=0) RECORD(DGFIL,DGFLD,DGIENS,DGNAM,.DGAUD,DGNMSP,DGIEN,DGOLD)
  Q:DGFLAG'="P"  ;Processing only
  Q:DGAUD=2  ;Unconvertible

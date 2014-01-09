@@ -1,5 +1,5 @@
 DGV53PTC ;ALB/SCK - POST INIT CONVERSION MESSAGE BUILDER FOR POST INIT ROUTINE;4/19/23
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 START ;
  Q
 RMK ;  message builder of cities with add'l information field set

@@ -1,5 +1,5 @@
 SCMSVROL ;BP/JRP - HL7 ROL Segment Validation;6-MAR-1998
- ;;5.3;Scheduling;**142,245**;Aug 13, 1993
+ ;;5.3;Scheduling;**142,245,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN(ROLARRY,HLQ,HLFS,HLECH,VALERR) ;Entry point to validate all HL7 ROL

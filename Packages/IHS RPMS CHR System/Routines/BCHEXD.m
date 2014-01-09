@@ -1,10 +1,10 @@
-BCHEXD ; IHS/TUCSON/LAB - MAIN DRIVER FOR CHR EXPORT TX GEN ;  [ 11/18/02  12:40 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,10,12**;OCT 28, 1996
+BCHEXD ; IHS/CMI/LAB - MAIN DRIVER FOR CHR EXPORT TX GEN ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - PATCH 10 NEW RECORD FORMAT
  ;IHS/CMI/LAB ;added $J to ^TMP
  ;
  ;Main driver routine for the generation of transactions to be
- ;exported to the CHRIS II System.
+ ;exported to the CHR System.
  ;
 START ;
  I $D(ZTQUEUED) S BCHO("SCHEDULED")=""

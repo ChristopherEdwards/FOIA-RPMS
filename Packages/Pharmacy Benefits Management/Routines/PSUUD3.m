@@ -1,5 +1,5 @@
 PSUUD3 ;BIR/TJH/,PDW - PBM UNIT DOSE OUTPUT ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
 EN ;
  ;
 NONE ; send "no data" message if nothing collected
@@ -16,13 +16,14 @@ NONE ; send "no data" message if nothing collected
 NONEQ ; routine does not pass this point if "no data" due to Quit at NONE+1
  ;
 MMFULL ; send full detail to Hines if Master File update was selected
- I PSUMASF!PSUDUZ!PSUPBMG D              ;Send detailed to self   DAM
- .I 'PSUSMRY D
- ..K PSUXMY,^XTMP(PSUUDSUB,"RECORDS")
- ..M PSUXMY=PSUXMYH
- ..M ^XTMP(PSUUDSUB,"RECORDS")=^XTMP(PSUUDSUB,"DETAIL")
- ..D EN^PSUUD4(.PSUMSGT)
- ..M ^XTMP("PSU_"_PSUJOB,"CONFIRM")=PSUMSGT
+ K PSUXMY,^XTMP(PSUUDSUB,"RECORDS")
+ M PSUXMY=PSUXMYH
+ M ^XTMP(PSUUDSUB,"RECORDS")=^XTMP(PSUUDSUB,"DETAIL")
+ D EN^PSUUD6    ;AMIS Summary report
+ I 'PSUSMRY D
+ .D EN^PSUUD4(.PSUMSGT)
+ .M ^XTMP("PSU_"_PSUJOB,"CONFIRM")=PSUMSGT
+ ;
  ;
 MMSSUM ; statistical summary
  N PSUUDFLG S PSUUDFLG=1         ;Flag for summary reports
@@ -31,24 +32,10 @@ MMSSUM ; statistical summary
  M PSUXMY=PSUXMYS1
  S PSUFACN=""
  F  S PSUFACN=$O(^XTMP(PSUUDSUB,"DIS",PSUFACN)) Q:PSUFACN=""  D
- .S X="Unit Dose Statistical Data Summary for "_PSURP("START")_" through "_PSURP("END")
- .S ^XTMP(PSUUDSUB,"STATSUM",PSUFACN,1)=X
- .S ^XTMP(PSUUDSUB,"STATSUM",PSUFACN,2)=" "
- .S PSUF1=$G(^XTMP(PSUUDSUB,"ORD",PSUFACN)) ; Total UD orders
  .S PSUF2=$G(^XTMP(PSUUDSUB,"SSN",PSUFACN)) ; Total patients
- .S PSUDIV=PSUFACN D GETDIV^PSUIV3 I PSUDIVNM'="" D
+ .S PSUDIV=PSUFACN D GETDIV^PSUV3 I PSUDIVNM'="" D
  ..S ^XTMP("PSU_"_PSUJOB,"PSUCT",PSUDIVNM)=PSUF2
  .I PSUDIVNM="" S ^XTMP("PSU_"_PSUJOB,"PSUCT",PSUDIV)=PSUF2
- .S PSUF3=$G(^XTMP(PSUUDSUB,"DIS",PSUFACN)) ; Total doses dispensed
- .S PSUF4=$G(^XTMP(PSUUDSUB,"CST",PSUFACN)) ; Total cost
- .S PSUF5=$S(PSUF4=0:0,1:PSUF4/PSUF3)
- .S X=$E("Total UD Orders: "_PSUF1_SPACES,1,45)_"Total Patients: "_PSUF2
- .S ^XTMP(PSUUDSUB,"STATSUM",PSUFACN,3)=X
- .S X=$E("Total Doses Dispensed: "_PSUF3_SPACES,1,45)_"Total Cost: $"_$J(PSUF4,0,2)
- .S ^XTMP(PSUUDSUB,"STATSUM",PSUFACN,4)=X
- .S ^XTMP(PSUUDSUB,"STATSUM",PSUFACN,5)="Average Cost Per Dose Dispensed: $"_$J(PSUF5,0,2)
- M ^XTMP(PSUUDSUB,"RECORDS")=^XTMP(PSUUDSUB,"STATSUM")
- D EN^PSUUD4(.PSUMSGT)
  ;
 MMDRUG ; summary by drug
  K ^XTMP(PSUUDSUB,"RECORDS"),^XTMP(PSUUDSUB,"DRUGSUM")

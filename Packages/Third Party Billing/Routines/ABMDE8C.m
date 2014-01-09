@@ -1,5 +1,5 @@
 ABMDE8C ; IHS/ASDST/DMJ - Page 8 - ROOM AND BOARD ; 
- ;;2.6;IHS Third Party Billing System;**2,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,6,8,9**;NOV 12, 2009
  ;
  ; IHS/SD/SDR - v2.5 p9 - IM16660 - 4-digit revenue codes
  ; IHS/SD/SDR - v2.5 p10 - IM20018 - Added CPT prompt
@@ -77,6 +77,14 @@ E ;EDIT EXISTING ENTRY
  S ABMZ("UC")=$P($$ONE^ABMFEAPI(ABMP("FEE"),31,ABMZ("RVCODE"),ABMP("VDT")),U)  ;abm*2.6*2 3PMS10003A
  S DIE="^ABMDCLM(DUZ(2),DA(1),25,"
  S DR=".02;.03//"_ABMZ("UC")_";.07"
+ ;start new code abm*2.6*9 NARR
+ D ^DIE
+ S DR=""
+ I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),25,DA,0)),U,7)'="",$D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),25,DA,0)),U,7))) D
+ .Q:$P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010"  ;only 5010 formats
+ .S ABMCNCK=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),25,DA,0)),U,7),0))
+ .I ABMCNCK,$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMCNCK,0)),U,2)="Y" S DR="22"
+ ;end new code abm*2.6*9 NARR
  ;S:'$P(^AUTTREVN(ABMZ("RVCODE"),0),"^",5) DR=DR_";.04"  ;abm*2.6*6 NOHEAT
  S DR=DR_";.04"  ;abm*2.6*6 NOHEAT
  D ^DIE

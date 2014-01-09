@@ -1,5 +1,5 @@
 SCDXRT01 ;ALB/JRP - AMB CARE RETRANSMISSION;09-MAY-1996
- ;;5.3;Scheduling;**44**;AUG 13, 1993
+ ;;5.3;Scheduling;**44,1015**;AUG 13, 1993;Build 21
  ;
 RTRNRNG ;Mark all [Deleted] Outpatient Encounters for a user specified
  ; date range for retransmission to the National Ambulatory Care

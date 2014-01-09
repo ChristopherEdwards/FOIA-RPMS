@@ -1,5 +1,5 @@
 SD53121 ;ALB/JRP - PATCH 121 POST-INIT;18-APR-97
- ;;5.3;Scheduling;**121**;Aug 13, 1993
+ ;;5.3;Scheduling;**121,1015**;Aug 13, 1993;Build 21
  ;
 POST ;Main entry point of post-init
  D DELTRIG

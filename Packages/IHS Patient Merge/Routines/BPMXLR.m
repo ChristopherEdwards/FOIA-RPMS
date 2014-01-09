@@ -1,7 +1,9 @@
-BPMXLR ;IHS/PHXAO/AEF - REPOINT LAB DATA
- ;;1.0;IHS PATIENT MERGE;;MAR 01, 2010
+BPMXLR ;IHS/PHXAO/AEF - REPOINT LAB DATA - 6/26/12 ;
+ ;;1.0;IHS PATIENT MERGE;**2**;MAR 01, 2010;Build 1
  ;IHS/OIT/LJF 10/26/2006 routine originated from Phoenix Area Office
  ;                       changed namespace BZXM to BPM
+ ;IHS/OIT/NKD  6/13/2012 Save and restore "AC" x-ref
+ ;                       Moved processing check from BPMXDRV
  ;
 DESC ;----- ROUTINE DESCRIPTION
  ;;
@@ -27,7 +29,10 @@ EN(BPMRY) ;EP
  ;      BLRFM  =  PATIENT DFN BEING MERGED FROM
  ;      BLRTO  =  PATIENT DFN BEING MERGED INTO
  ;
- N BLRFM,BLRNEW,BLROLD,BLRTO,XDRMRG,DA,DIE,DR,X,Y
+ ;IHS/OIT/NKD BPM*1.0*2 QUIT IF BLRMERG NOT INSTALLED
+ Q:'$L($T(EN^BLRMERG))
+ ;
+ N BLRFM,BLRNEW,BLROLD,BLRTO,XDRMRG,DA,DIE,DR,X,Y,I,J
  ;
  S BLRFM=$O(@BPMRY@(0))
  Q:'BLRFM
@@ -48,7 +53,22 @@ EN(BPMRY) ;EP
  . S DR=".03////"_BLRTO
  . D ^DIE
  ;
+ ;IHS/OIT/NKD BPM*1.0*2 STORE VALUES OF "AC" X-REF
+ I $D(^LRO(68,"AC",BLROLD)) K ^TMP("BPMLR",$J) M ^TMP("BPMLR",$J,68,"AC",BLROLD)=^LRO(68,"AC",BLROLD)
+ ;
  D MERGE^BLRMERG
+ ;
+ ;IHS/OIT/NKD BPM*1.0*2 RESTORE VALUES OF "AC" X-REF
+ I $D(^TMP("BPMLR",$J))  D
+ . S I=0
+ . F  S I=$O(^LRO(68,"AC",BLRNEW,I)) Q:+I'=I  D
+ . . S J=0
+ . . F  S J=$O(^LRO(68,"AC",BLRNEW,I,J)) Q:+J'=J  D
+ . . . ; QUIT IF X-REF HAS A VALUE
+ . . . Q:$L(^LRO(68,"AC",BLRNEW,I,J))>0
+ . . . ; QUIT IF X-REF DID NOT COME FROM BLROLD
+ . . . Q:'$D(^TMP("BPMLR",$J,68,"AC",BLROLD,I,J))
+ . . . S ^LRO(68,"AC",BLRNEW,I,J)=$G(^TMP("BPMLR",$J,68,"AC",BLROLD,I,J))
  ;
  ;Repoint ^LR("BLRA") ESIG xref in Lab Data file #63
  D EN^BPMXLR2(BLRFM,BLRTO)

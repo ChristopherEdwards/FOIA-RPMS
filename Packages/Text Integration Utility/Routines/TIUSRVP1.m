@@ -1,5 +1,6 @@
-TIUSRVP1 ; SLC/JER - More API's in support of PUT ;22-Dec-2011 11:21;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**19,59,89,100,109,167,113,112,1009**;Jun 20, 1997;Build 22
+TIUSRVP1 ; SLC/JER - More API's in support of PUT ;11-Sep-2012 13:00;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**19,59,89,100,109,167,113,112,1009,219,1010**;Jun 20, 1997;Build 24
+ ;Updated for event type
 SITEPARM(TIUY) ; Get site parameters for GUI
  N TIUPRM0,TIUPRM1
  D SETPARM^TIULE
@@ -22,9 +23,19 @@ CURDOC(USER,TIUDT) ; Is the current user a known Provider?
  I +TIUPROV S TIUY=USER_U_$$PERSNAME^TIULC1(USER)
  Q TIUY
 ISAPROV(TIUY,USER,DATE) ; Is user a provider?
+ ; Checks USR CLASS PROVIDER AND 200 Person Class
+ ; DATE must not include time (for ISA^USRLM)
  S USER=$G(USER,DUZ)
  S DATE=$G(DATE,DT)
  S TIUY=$$PROVIDER^TIUPXAP1(USER,DATE)
+ Q
+USRPROV(TIUY,USER,DATE) ; Is USER a USR CLASS provider?
+ ; Checks USR CLASS PROVIDER only
+ ; DATE must not include time
+ N TIUERR
+ S USER=$G(USER,DUZ)
+ S DATE=$G(DATE,DT),TIUY=0
+ I +$$ISA^USRLM(USER,"PROVIDER",.TIUERR,DATE) S TIUY=1 ;  DBIA/ICR 2324
  Q
 DOCPARM(TIUY,TIUDA,TIUTYP) ; Get document parameters for GUI
  I '+$G(TIUTYP),+$G(TIUDA) S TIUTYP=+$G(^TIU(8925,+TIUDA,0))
@@ -51,12 +62,12 @@ STUB(TIUDA,TIUTITL,DFN) ; Create a stub
  S DR=".02////"_+DFN_";.03////"_$P($G(TIU("VISIT")),U)_";.04////"_+$$DOCCLASS^TIULC1(TIUTITL)_";.05///UNDICTATED;.13////E;1301////"_+$$NOW^XLFDT
  D ^DIE
  Q
-EVENT(TIUY,DFN,VDT,VLOC,VSTR) ; Create an Event-type Visit Entry
+EVENT(TIUY,DFN) ; Create an Event-type Visit Entry
  ;IHS/MSC/MGH This call was modified to use the IHS visit
  ;creation for a historical entry Patch 1009
  ;N VDT,VSTR,DGPM
  N DGPM,VIEN
- S DGPM=$G(^DPT(DFN,.105))
+ S DGPM=$G(^DPT(DFN,.105)) ;DBIA/ICR 10035
  ;I +DGPM'>0 D
  ;. S VDT=$$NOW^XLFDT
  ;. S VSTR=";"_VDT_";"_"E"
@@ -66,7 +77,7 @@ EVENT(TIUY,DFN,VDT,VLOC,VSTR) ; Create an Event-type Visit Entry
  .N TIUPREF,IDX
  .S TIUPREF=$$PERSPRF^TIULE(DUZ)
  .S IDX=+$P(TIUPREF,U,2)
- .I IDX S TIUY("LOC")=IDX_U_$P($G(^SC(IDX,0)),U,1)
+ .I IDX S TIUY("LOC")=IDX_U_$P($G(^SC(IDX,0)),U,1) ; DBIA/ICR 10040
  S VIEN=$$FNDVIS^BEHOENCX(DFN,VDT,"E",VLOC,-1,,"")
  I +VIEN S TIU("VISIT")=VIEN
  Q

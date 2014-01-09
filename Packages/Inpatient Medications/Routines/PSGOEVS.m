@@ -1,5 +1,5 @@
 PSGOEVS ;BIR/CML3-SPEED VERIFY SELECTED ORDERS ;05 DEC 97 / 8:43 AM
- ;;5.0; INPATIENT MEDICATIONS ;**29**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**29,110**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA 2191
  ; Reference to ^PSSLOCK is supported by DBIA #2789
@@ -16,6 +16,7 @@ EN2 S PSGONV=PSJOCNT,PSJSPEED=1 D NOW^%DTC S PSGDT=+$E(%,1,2)
  .I $$CHKIV Q
  .I $$CHKVER Q
  .;I '$$ACTIONS Q
+ .N PSJCOM I $$CHKCOM Q
  .I '$$RENEWED Q
  .I $$FROMOERR Q
  .D VERIFY(PSJSPEED)
@@ -55,6 +56,12 @@ CHKIV() ;   check if this order is an IV
  I PSGORD["V"
  I  W !,"  Order ",PSGOEVS2," is an IV order.",! H 2
  Q $T
+CHKCOM() ;       Check if this order is a complex order
+ S PSJCOM=0
+ I PSGORD=+PSGORD S PSJCOM=PSGORD W !,"  Order ",PSGOEVS2," is part of a complex order series, No change made.",! H 2 Q PSJCOM
+ S PSJCOM=$S(PSGORD["U":$P($G(^PS(55,PSGP,5,+PSGORD,.2)),U,8),1:$P($G(^PS(53.1,+PSGORD,.2)),U,8))
+ I PSJCOM  W !,"  Order ",PSGOEVS2," is part of a complex order series, No change made.",! H 2
+ Q PSJCOM
  ;
 VMSG ;
  S N=$$ENNPN^PSGMI(N),PSJRB=$G(^PS(55,PSGP,5,+PSGORD,.2))

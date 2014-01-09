@@ -1,5 +1,5 @@
-SDAMOSP ;ALB/CAW - Print for Appointment Statistics; [ 09/13/2001  2:14 PM ]
- ;;5.3;Scheduling;**22**;Aug 13, 1993
+SDAMOSP ;ALB/CAW - Print for Appointment Statistics;4/15/92
+ ;;5.3;Scheduling;**22,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  9/29/2000 added call to display legend within 80 columns
  ;
 HDR ;Report Header

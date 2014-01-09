@@ -1,5 +1,5 @@
 DGMT141A ;ALB/ABR - SC 0% MT CHANGES REPORT (PATCH DG*5.3*141) ; 9/25/97
- ;;5.3;Registration;**141**;Aug 13, 1993
+ ;;5.3;Registration;**141,1015**;Aug 13, 1993;Build 21
  ;
 EN ; entry point
  N DGREPT,I,DIR,POP,TXT,X,Y,%ZIS,ZTSK,ZTSAVE,ZTDESC,ZTRTN

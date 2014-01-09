@@ -1,5 +1,5 @@
 ABME5L12 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,9**;NOV 12, 2009
  ;Header Segments
  ;
 EP ;START HERE
@@ -62,6 +62,7 @@ LOOP ;
  .I $G(ABMOUTLB)'=1 D
  ..I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),ABMI,ABMJ,0)),U,13)'="",($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),ABMI,ABMJ,0)),U,13)=($P($G(ABMB9),U,22))) Q  ;abm*2.6*8
  ..D EP^ABME5REF("X4","1SV","1SV")
+ ..Q:($G(ABMR("REF",30))="")  ;abm*2.6*9 HEAT64640
  ..D WR^ABMUTL8("REF")
  .I $G(ABMOUTLB)=1 D  ;if reference lab
  ..D EP^ABME5REF("F4",1,1)
@@ -83,10 +84,12 @@ LOOP ;
  ;
  ; Loop 2420A - Rendering Physician
  S ABMLOOP="2420A"
- I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,13) D
+ ;I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,13) D  ;abm*2.6*9 NOHEAT
+ I ((ABMI'=23&$P($G(ABMRV(ABMI,ABMJ,ABMK)),U,13))!(ABMI=23&$P($G(ABMRV(ABMI,ABMJ,ABMK)),U,22))) D  ;abm*2.6*9 NOHEAT
  .Q:$G(ABMP("VTYP"))=831&($G(ABMP("ITYPE"))="R")  ;don't write provider info for ASC
  .Q:$G(ABMP("CLIN"))="A3"
- .S ABM("PRV")=$P(ABMRV(ABMI,ABMJ,ABMK),U,13)
+ .;S ABM("PRV")=$P(ABMRV(ABMI,ABMJ,ABMK),U,13)  ;abm*2.6*9 NOHEAT
+ .S ABM("PRV")=$S(ABMI'=23:$P(ABMRV(ABMI,ABMJ,ABMK),U,13),1:$P(ABMRV(ABMI,ABMJ,ABMK),U,22))  ;abm*2.6*9 NOHEAT
  .Q:ABM("PRV")=$O(ABMP("PRV","D",0))
  .Q:$D(ABMP("PRV","A",ABM("PRV")))!($D(ABMP("PRV","R",ABM("PRV"))))
  .D EP^ABME5NM1(82,ABM("PRV"))

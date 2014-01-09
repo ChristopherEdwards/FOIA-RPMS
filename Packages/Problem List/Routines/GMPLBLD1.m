@@ -1,5 +1,8 @@
-GMPLBLD1 ; SLC/MKB -- Bld PL Selection Lists cont ;;9-5-95 11:51am
- ;;2.0;Problem List;**3**;Aug 25, 1994
+GMPLBLD1 ; SLC/MKB -- Bld PL Selection Lists cont ;;3/12/03 13:48
+ ;;2.0;Problem List;**3,28**;Aug 25, 1994
+ ;
+ ; This routine invokes IA #3991,#10082
+ ;
 SEL() ; Select item(s) from list
  N DIR,X,Y,MAX,GRP S GRP=$D(GMPLGRP) ; =1 if editing groups, 0 if lists
  S MAX=$P($G(^TMP("GMPLST",$J,0)),U,1) I MAX'>0 Q "^"
@@ -56,6 +59,7 @@ CODE(CODE) ; Enter/edit problem code
  N DIR,X,Y
  S DIR(0)="PAO^ICD9(:QEMZ",DIR("A")="ICD CODE: " S:$L(CODE) DIR("B")=CODE
  S DIR("?")="Enter the code you wish to be displayed with this problem."
+ S DIR("S")="I $$STATCHK^ICDAPIU($P(^(0),U),DT)"
 C1 D ^DIR I $D(DTOUT)!(X="^") S Y="^" G CQ
  I X?1"^".E W $C(7),$$NOJUMP G C1
  I X="@" G:'$$SURE^GMPLX C1 S Y=""

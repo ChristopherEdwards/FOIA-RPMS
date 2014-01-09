@@ -1,5 +1,5 @@
 DG53467P ; ALB/SCK - POST INSTALLATION ROUTINE DG*5.3*467  ; 8/6/2002
- ;;5.3;Registration;**467**;Aug 13, 1993
+ ;;5.3;Registration;**467,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Main entry point for means test cleanup
  ;

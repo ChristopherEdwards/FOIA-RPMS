@@ -1,5 +1,5 @@
-BEHOOGP ;IHS/MSC/MGH - Group Order API  ;27-Sep-2010 10:21;MGH
- ;;1.1;BEH COMPONENTS;**011003**;Sep 23,2004
+BEHOOGP ;IHS/MSC/MGH - Group Order API  ;01-May-2012 15:58;PLS
+ ;;1.1;BEH COMPONENTS;**011003,011005**;Sep 23,2004
  Q
  ;===================================================================
  ;Input
@@ -135,7 +135,7 @@ IMGLOC(ORDITM) ;EP-
  I ABB="" Q ""
  D EN4^RAO7PC1(ABB,"ORY")
  S X="" F  S X=$O(ORY(X)) Q:X=""!(STOP=1)  D
- .I $P($G(ORY(1)),U,3)=DUZ(2) S ILOC=$P($G(ORY(1)),U,1),STOP=1
+ .I $P($G(ORY(X)),U,3)=DUZ(2) S ILOC=$P($G(ORY(X)),U,1),STOP=1
  Q ILOC
  ;
  ; Input: OARY - ORDIALOG passed in by reference

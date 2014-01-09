@@ -1,7 +1,7 @@
 SROANP ;B'HAM ISC/MAM - LIST OF ANESTHETIC PROCEDURES ; [ 09/07/00  11:27 AM ]
- ;;3.0; Surgery ;**38,53,50,95**;24 Jun 93
+ ;;3.0; Surgery ;**38,53,50,95,151**;24 Jun 93
  ;
- ; Reference to ^PSDRUG supported by DBIA #221
+ ;Reference to ^PSS50 supported by DBIA #4533
  ;
 SET ; set and print information for a case
  S SRNON=0 I $P($G(^SRF(SRTN,"NON")),"^")="Y" S SRNON=1
@@ -39,7 +39,8 @@ OTHER ; other operations
 LOOP ; break procedure name if greater than 50 characters
  S SROPS(M)="" F LOOP=1:1 S MM=$P(SROPER," "),MMM=$P(SROPER," ",2,200) Q:MMM=""  Q:$L(SROPS(M))+$L(MM)'<50  S SROPS(M)=SROPS(M)_MM_" ",SROPER=MMM
  Q
-AGENT S SRAGNT=$O(^SRF(SRTN,6,SRT,1,0)) Q:SRAGNT=""  S SRAGNT=$P(^SRF(SRTN,6,SRT,1,SRAGNT,0),"^"),SRAGNT=$P(^PSDRUG(SRAGNT,0),"^")
+AGENT S SRAGNT=$O(^SRF(SRTN,6,SRT,1,0)) Q:SRAGNT=""  S SRAGNT=$P(^SRF(SRTN,6,SRT,1,SRAGNT,0),"^") D
+ .D DATA^PSS50(SRAGNT,,,,,"SRRX") S SRAGNT=$P($G(^TMP($J,"SRRX",SRAGNT,.01)),"^") K ^TMP($J,"SRRX",SRAGNT)
  Q
 BEG ;
  U IO N SRFRTO S SRED1=SRED_.9999,SRF=0,PAGE=1,Y=DT X ^DD("DD") S SRPRINT="DATE PRINTED: "_Y S Y=SRSD X ^DD("DD") S SRFRTO="FROM: "_Y_"  TO: ",Y=SRED X ^DD("DD") S SRFRTO=SRFRTO_Y

@@ -1,22 +1,22 @@
-PSGMAR3 ;BIR/CML3-24 HOUR MAR(HEADER,BOT) ;02-Nov-2011 15:21;DU
- ;;5.0; INPATIENT MEDICATIONS ;**8,20,85,1008,1013**;16 DEC 97;Build 33
+PSGMAR3 ;BIR/CML3-24 HOUR MAR(HEADER,BOT) ;25-May-2012 11:00;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**8,20,85,1008,1013,111,131,1014**;16 DEC 97;Build 62
  ;
  ;Modified - IHS/MSC/PLS - 12/09/08 - Line HEADER+3
  ;Modified - IHS/MSC/MGH - 11/01/11 - Line HEADER+12
+ ;           IHS/MSC/PLS - 05/24/12 - Line ATS+25,ATS+10
 HEADER ; pat info
  S:'$G(PSGXDT) PSGXDT=PSGDT
- S PSGFORM="VA FORM 10-"_$S(PST["C":"2970",1:"5568d")
+ S PSGFORM="FORM"  ;"VA FORM 10-"_$S(PST["C":"2970",1:"5568d")
  ;S PSGMAROC=0,(MSG1,MSG2)="",PSGL=$E("|",PST["C")_" " W:$G(PSGPG)&($Y) @IOF S PSGPG=1 W !,$S(PST["C":"CONTINUOUS",1:"ONE-TIME/PRN")_" SHEET",?60,"24 HOUR MAR",?86,PSGMARSP_"  through  "_PSGMARFP
  S PSGMAROC=0,(MSG1,MSG2)="",PSGL=$E("|",PST["C")_" " W:$G(PSGPG)&($Y) @IOF S PSGPG=1 W !,$S(PST["C":"CONTINUOUS",1:"ONE-TIME/PRN")_" SHEET",?30,"24 HOUR MAR",?60,PSGMARSP_"  through  "_PSGMARFP,?110,"Page ___ of ___"
  W !?5,$P($$SITE^PSGMMAR2(80),U,2),?101,"Printed on   "_$$ENDTC2^PSGMI(PSGXDT)
- W !?5,"Name:  "_PPN,?62,"Weight (kg): "_WT,?103,"Ward: "_PWDN
- W !?6,"PID:  "_PSSN,?25,"DOB: "_BD_"  ("_PAGE_")",?62,"Height (cm): "_HT,?99,"Room-Bed: "_PRB
- W !?6,"Sex:  "_PSEX,?25," Dx: "_DX,?$S(TD:94,1:99),$S(TD:"Last Transfer: "_TD,1:"Admitted: "_AD)
+ W !?5,"Name:  "_PPN,?62,"Weight (kg): "_WT,?103,"Loc: "_$S(PWDN'["C!":PWDN,1:$P($G(^SC($P(PWDN,"!",2),0)),"^"))
+ W !?6,"PID:  "_PSSN,?25,"DOB: "_BD_"  ("_PAGE_")",?62,"Height (cm): "_HT,?99,"Room-Bed: "_$S(PWDN'["C!":PRB,1:"")
+ W !?6,"Sex:  "_PSEX,?25," Dx: "_DX,?$S(TD:94,1:99),$S(TD:"Last Transfer: "_TD,1:"Admitted: "_$S(PWDN'["C!":AD,1:""))
  I '$D(PSGALG) W !,"Allergies:  See attached list of Allergies/Adverse Reactions"
  ;Updated patch 1013 to display all allergies on each page
  ;NEW PSGX S PSGX=0 D ATS(.PSGX) D:PSGX HEADER Q:PSGX
  NEW PSGX S PSGX=0 D ATS(.PSGX)
- ;* W !,?49,"Admin" W !?1,"Order",?8,"Start",?20,"Stop",?49,"Times" W ?59 F X=PSGMARSD:1 S:X>24 X=1 W $S(X<10:0_X,1:X)," " Q:X=+PSGMARFD
  W !,?49,"Admin"
  W:$G(PSJDIET)]"" ?57,"Diet: ",PSJDIET
  W !?1,"Order",?8,"Start",?20,"Stop",?49,"Times" W ?59 F X=PSGMARSD:1 S:X>24 X=1 W $S(X<10:0_X,1:X)," " Q:X=+PSGMARFD
@@ -24,6 +24,7 @@ HEADER ; pat info
  Q
  ;
 ATS(PSGX) ;*** Print allergies and reactions.
+ N I,SAVE,SAVE1
  I '$D(PSGALG),'$D(PSGVALG),'$D(PSGADR),'$D(PSGVADR) Q
  I (PSGALG+PSGADR+PSGVALG+PSGVADR)<116 D  Q
  . I PSGALG(1)["NKA",(PSGVALG(1)["NKA") S PSGALG(1)=""
@@ -32,20 +33,30 @@ ATS(PSGX) ;*** Print allergies and reactions.
  . I PSGADR=20,(PSGADR(1)["_______") S PSGADR(1)=""
  . S:PSGVALG(1)="" PSGVALG(1)="No Allergy Assessment"
  . W !,"Allergies:  ",PSGVALG(1)," ",PSGALG(1),"   ADR: ",PSGVADR(1)," ",PSGADR(1)
+ .S PSGMAROC=PSGMAROC+1  ;IHS/MSC/PLS - 05/24/2012
  S PSGX=1
+ S SAVE=$Y
  W !!,"Verified Allergies:",!
- F X=0:0 S X=$O(PSGVALG(X)) Q:'X  W ?12,PSGVALG(X),!
- W !,"Non-Verified Allergies:",!
- F X=0:0 S X=$O(PSGALG(X)) Q:'X  W ?12,PSGALG(X),!
- W !,"Verified Adverse Reactions:",!
- F X=0:0 S X=$O(PSGVADR(X)) Q:'X  W ?12,PSGVADR(X),!
- W !,"Non-Verified Adverse Reactions:",!
- F X=0:0 S X=$O(PSGADR(X)) Q:'X  W ?12,PSGADR(X),!
- ;K PSGALG,PSGADR,PSGVALG,PSGVADR
+ F X=0:0 S X=$O(PSGVALG(X)) Q:'X  W ?2,PSGVALG(X),!
+ W "Non-Verified Allergies:",!
+ F X=0:0 S X=$O(PSGALG(X)) Q:'X  W ?2,PSGALG(X),!
+ W "Verified Adverse Reactions:",!
+ F X=0:0 S X=$O(PSGVADR(X)) Q:'X  W ?2,PSGVADR(X),!
+ W "Non-Verified Adverse Reactions:",!
+ F X=0:0 S X=$O(PSGADR(X)) Q:'X  W ?2,PSGADR(X),!
+ ;IHS/MSC/MGH Patch 1014
+ ;K PSGALG,PSGADR,PSGVALG,PSGVADR   ;IHS/MSC/MGH 1014
+ S SAVE=$Y-(SAVE-3)
+ S SAVE1=SAVE\6
+ S PSGMAROC=SAVE1
+ S APSPATS=1
+ ;F I=1:1:SAVE#7 W !
  Q
-TMSTR ;*** Set up the Admin times to print across on the the 24 hour MAR.
- W ?59 S MPH=PSGPLS\1,(HRS,TIM)="" F MPH=1:1:$L(TMSTR,"-") S HRS=HRS_$E($P(TMSTR,"-",MPH),1,2)_"-"
- F Q=PSGMARSD:1 D:Q>24 ADD S:Q>24 Q=1 S QQ=$S(Q<10:"0"_Q,Q>24:"01",1:Q) S:HRS[QQ TIM=$P(HRS,"-",($F(HRS,QQ)/3)) S TIM=$S(HRS[QQ&(TIM=(QQ_"00")):QQ,HRS[QQ:TIM,1:"  ") W $S(MPH_"."_QQ'<PSGLFFD:"***",1:TIM_" ") Q:Q=+PSGMARFD
+TMSTR ;*** Set up the Admin times to print across on the 24 hour MAR.
+ ;BHW;Added/modified next 2 lines to account for admin times between 0000 and 0059
+ N ADMINHR
+ W ?59 S MPH=PSGPLS\1,(HRS,TIM)="" F MPH=1:1:$L(TMSTR,"-") S ADMINHR=$E($P(TMSTR,"-",MPH),1,2) S:ADMINHR="00" ADMINHR=24 S HRS=HRS_ADMINHR_"-"
+ F Q=PSGMARSD:1 D:Q>24 ADD S:Q>24 Q=1 S QQ=$S(Q<10:"0"_Q,Q>24:"01",1:Q) S:HRS[QQ TIM=$P(HRS,"-",($F(HRS,QQ)/3)) S TIM=$S(HRS[QQ&(TIM=(QQ_"00")):QQ,HRS[QQ:TIM,1:"  ") W $S(MPH_"."_QQ'<PSGLFFD:"***",($G(ONHOLD)&TIM):"HLD",1:TIM_" ") Q:Q=+PSGMARFD
  K HRS,TIM,MPH Q
 ADD ;
  S X1=$P(MPH,"."),X2=1 D C^%DTC S MPH=X
@@ -67,5 +78,5 @@ ENB ;
  W !,LN1
  W !,"|",?12,"SIGNATURE/TITLE",?39,"| INIT |  ALLERGIES   |  INJECTION SITES   |",?87,"MED/DOSE OMITTED",?107,"|     REASON     | INIT |"
  F Q=1:1:10 W !,"|"_$E(LN1,1,38)_"|------|--------------|"_BLN(Q),?82,"|"_$E(LN1,1,24)_"|"_$E(LN1,1,16)_"|------|"
- W !,LN1,!?3,PPN,?45,PSSN,?58,"Room-Bed: "_PRB,?100,$S($D(PSGMPG):PSGMPGN,1:""),?116,PSGFORM
+ W !,LN1,!?3,PPN,?45,PSSN,?58,"Room-Bed: "_$S(PWDN'["C!":PRB,1:""),?100,$S($D(PSGMPG):PSGMPGN,1:""),?116,PSGFORM
  Q

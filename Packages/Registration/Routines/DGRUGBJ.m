@@ -1,5 +1,5 @@
-DGRUGBJ ; ALB/SCK - RAI/MDS COTS ADT Background job ; 8-10-99
- ;;5.3;Registration;**190,312,357**;Aug 13, 1993
+DGRUGBJ ; ALB/SCK - RAI/MDS COTS ADT Background job ; 11/7/07 3:49pm
+ ;;5.3;PIMS;**190,312,357,1015,1016**;JUN 30, 2012;Build 20
  ;
 EN ; Main Entry point for patient demographic update to COTS system
  ;
@@ -25,7 +25,8 @@ EN ; Main Entry point for patient demographic update to COTS system
  . S EVNTDT=+DGNODE
  . ; Check for patient, if not valid, then mark as transmitted and quit
  . I ('$D(^DPT(DFN,0))) D XMITFLAG^VAFCDD01(PVTPTR,"",1) Q
- . ;
+ . N VAIN D INP^VADPT ; p-762
+ . I '$$CHKWARD^DGRUUTL(+VAIN(4)) D XMITFLAG^VAFCDD01(PVTPTR,"",1) K VAIN Q  ; P-762
  . K @DGARRAY
  . S @DGARRAY@("PIVOT")=PVTPTR
  . S @DGARRAY@("REASON",1)=""
@@ -92,7 +93,7 @@ SENDMSG(GLOREF) ; Transmit the HL7 message
  K HLA,HERR
  Q (HLRST)
  ;
-ERRBUL(EVNTINFO,RESULT) ; Generate bulliten if an error occurred while building the HL7 message.
+ERRBUL(EVNTINFO,RESULT) ; Generate bulletin if an error occurred while building the HL7 message.
  ;
  N XMY,XMDUZ,XMDT,XMZ,XMB,XMCHAN,XMSUB
  ;

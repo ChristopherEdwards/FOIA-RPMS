@@ -1,5 +1,5 @@
 SCRPIUT1 ; ALB/SCK - Incomplete Encounter Mgmt Report Utilities ; 20 Nov 98 12:36 AM
- ;;5.3;Scheduling;**66,147,154**;AUG 13, 1993
+ ;;5.3;Scheduling;**66,147,154,1015**;AUG 13, 1993;Build 21
  ;
  Q
 DIV() ;  Returns either list of selected divisions for multi-divisional site, or primary

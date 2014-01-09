@@ -1,5 +1,5 @@
-BGOVPRC ; IHS/BAO/TMD - Manage V PROCEDURE ;20-Mar-2007 13:52;DKM
- ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+BGOVPRC ; IHS/BAO/TMD - Manage V PROCEDURE ;09-Apr-2012 14:19;DU
+ ;;1.1;BGO COMPONENTS;**1,3,11**;Mar 20, 2007;Build 3
  ; Add/edit V Procedure entry
  ; INP = V File IEN [1] ^ ICD0 IEN [2] ^ Visit IEN [3] ^ Patient IEN [4] ^ Event Date [5] ^ Diagnosis [6] ^
  ;       Principal [7] ^ Narrative [8] ^ Infection [9] ^ Operating Provider [10] ^ Anesthesiologist [11] ^
@@ -54,6 +54,13 @@ SET(RET,INP) ;EP
  S @FDA@(.13)=ANESTIME
  S @FDA@(1201)=$S(EVNTDT:EVNTDT,1:"N")
  S @FDA@(1204)="`"_DUZ
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

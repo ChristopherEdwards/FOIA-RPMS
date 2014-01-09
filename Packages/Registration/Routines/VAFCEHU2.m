@@ -1,5 +1,5 @@
 VAFCEHU2 ;ALB/JLU,LTL-UTILITIES FOR 391.98 AND 391.99 AND LIST MAN ;10/10/02  15:55
- ;;5.3;Registration;**149,255,333,474,477**;Aug 13, 1993
+ ;;5.3;Registration;**149,255,333,474,477,620,1015**;Aug 13, 1993;Build 21
 SORTS(SRT,ARY) ;
  ;this tag will sort the exceptions in different formats depending on
  ;what the user has selected.
@@ -134,8 +134,8 @@ FRMDATA(IEN,ARY) ;
  . I $P(DATA,U,2)=""!($P(DATA,U,3)="") Q  ;**477
  . I $S($P(DATA,U,3)=.211:1,$P(DATA,U,3)=.2403:1,1:0) D  ;**477 standardize mmn and nok for old pdr entries
  . . N DGNAME S DGNAME=$G(^DGCN(391.99,LP,"VAL")) I $S(DGNAME="":0,DGNAME["@":0,1:1) D
- . . . I $P(DATA,U,3)=.211 D STDNAME^XLFNAME(.DGNAME,"P") S DGNAME=$$FORMAT^DPTNAME(.DGNAME,3,35) I DGNAME="" Q
- . . . I $P(DATA,U,3)=.2403 D STDNAME^XLFNAME(.DGNAME,"P") S DGNAME=$$FORMAT^DPTNAME(.DGNAME,3,35,,2,,1) I DGNAME="" Q
+ . . . I $P(DATA,U,3)=.211 D STDNAME^XLFNAME(.DGNAME,"P") S DGNAME=$$FORMAT^XLFNAME7(.DGNAME,3,35) I DGNAME="" Q
+ . . . I $P(DATA,U,3)=.2403 D STDNAME^XLFNAME(.DGNAME,"P") S DGNAME=$$FORMAT^XLFNAME7(.DGNAME,3,35,,2,,1) I DGNAME="" Q
  . . . D UPD(LP,50,DGNAME)
  . I $P(DATA,U,3)=.05,($G(^DGCN(391.99,LP,"VAL"))="N") D UPD(LP,50,"NEVER MARRIED"),UPD(LP,.06,"@") S $P(DATA,"^",6)="" ;**477 translate marital status from 'n' to 'never married' and remove unresolved flag
  . ;

@@ -1,5 +1,5 @@
 DG53244T ;BPOIFO/KEITH - NAME STANDARDIZATION ; 27 Jan 2002 11:05 PM
- ;;5.3;Registration;**244**;Aug 13, 1993
+ ;;5.3;Registration;**244,1015**;Aug 13, 1993;Build 21
  ;
 PRINT ;Print name conversion report
  ;

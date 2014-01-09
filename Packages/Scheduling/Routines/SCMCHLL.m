@@ -1,5 +1,5 @@
 SCMCHLL ;BP/DJB - PCMM HL7 Log Transmission ; 3/2/00 12:59pm
- ;;5.3;Scheduling;**210,272**;AUG 13, 1993
+ ;;5.3;Scheduling;**210,272,1015**;AUG 13, 1993;Build 21
  ;
 LOG ;Record HL7 messages in PCMM HL7 TRANSMISSION LOG file.
  ;Parse the HL7 array and build an array in ^TMP("PCMM","LOG",$J) and

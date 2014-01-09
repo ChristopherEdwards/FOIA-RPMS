@@ -1,5 +1,5 @@
 PSODACT ;BHAM ISC/JrR - CREATE DUE ANSWER SHEET FROM ACTION PROFILE ; 11/18/92 18:58
- ;;7.0;OUTPATIENT PHARMACY;**2**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**2,326**;DEC 1997;Build 11
  Q
 ENSAVE ;Enter here from PSOSD0 to store info about each DUE RX
  ;as Action Profile is printing. Needs RXNODE=NODE '0' OF RXN,RXN
@@ -51,7 +51,7 @@ PRINT ;prints DUE Questionnaire
  S PSOQPHYS=$P($G(^VA(200,+$P(^PSRX(RXN,0),"^",4),0)),"^")
  W !!,"Rx Provider: ",$E(PSOQPHYS,1,20)
  S PSOQDFN=^TMP("PSOD",$J,RXN,PSOQDRG,PSOQ,8)
- W ?($X+3),"Patient: ",$P(^DPT(PSOQDFN,0),"^"),@$S($G(PSORM)=0:"!",1:"?$X+3"),"ID#: "_VA("PID"),?($X+3),"Section: ______________"
+ W ?($X+3),"Patient: ",$P(^DPT(PSOQDFN,0),"^"),@$S($G(PSORM)=0:"!",1:"?$X+3"),?($X+3),"Section: ______________"
  W @$S($G(PSORM)=0:"?$X+3",1:"?109"),"Date: "
  S Y=DT D DT^DIQ
 QOUT ;Enter here from ^PSODUE to print questions for Questionaire

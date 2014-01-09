@@ -1,5 +1,5 @@
 VAFHLPR1 ;ALB/ESD - Create generic HL7 PR1 Segment ;4/4/00
- ;;5.3;Registration;**94,123,160,215,243**;Aug 13, 1993
+ ;;5.3;Registration;**94,123,160,215,243,606,1015**;Aug 13, 1993;Build 21
  ;06/22/99 ACS - Added CPT modifier API calls and added CPT modifier to the
  ;PR1 segment (sequence 16)
  ;
@@ -23,9 +23,11 @@ EN(VAFENC,VAFSTR,VAFHLQ,VAFHLFS,VAFHLECH,VAFARRY) ; Entry point for Ambulatory C
  ; Output: Array of HL7 PR1 segments
  ;
  ;
- N I,J,VAFCPT,VAFIDX,VAFPR,VAFPROC,VAFPRTYP,VAFY,X,PTRVCPT,PROCCNT,PROCLOOP
+ N I,J,VAFCPT,VAFIDX,VAFPR,VAFPROC,VAFPRTYP,VAFY,X,PTRVCPT,PROCCNT,PROCLOOP,ICPTVDT
  S (J,VAFIDX)=0
- S VAFARRY=$G(VAFARRY)
+ S VAFARRY=$G(VAFARRY),ICPTVDT=$$SCE^DGSDU(VAFENC,1,0)
+ ;
+ ; - Variable ICPTVDT gets correct CPT/Modifier descriptor for event date
  ;
  ; - If VAFARRY not defined, use ^TMP("VAFHL",$J,"PROCEDURE")
  S:(VAFARRY="") VAFARRY="^TMP(""VAFHL"",$J,""PROCEDURE"")"

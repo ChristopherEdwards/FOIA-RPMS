@@ -1,5 +1,5 @@
 VAFHCDG ;ALB/CM OUTPATIENT DG1 SEGMENT GENERATOR ;3/30/95
- ;;5.3;Registration;**91,151**;Jun 06, 1996
+ ;;5.3;Registration;**91,151,606,1015**;Jun 06, 1996;Build 21
  ;
  ;This routine generates the Outpatient DG1 segment
  ;for the Philly project
@@ -84,7 +84,8 @@ DES(CDX) ;
  S CDX=$O(^ICD9("AB",CDX,""))
  I CDX="" Q QUOT
  I '$D(^ICD9(CDX,0)) Q QUOT
- S CDX=$P(^ICD9(CDX,0),"^",3) I CDX="" S CDX=QUOT
+ S CDX=$$ICDDX^ICDCODE(CDX,$G(EVDT))
+ S CDX=$S(+CDX<1:QUOT,1:$P(CDX,"^",4))
  Q CDX
  ;
 GETPDX(PTR) ;returns first primary diagnois or 0

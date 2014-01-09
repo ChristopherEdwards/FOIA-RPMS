@@ -1,5 +1,5 @@
 FHADRPT ; HISC/NCA - Print Dietetic Annual Report ;1/23/98  16:05
- ;;5.0;Dietetics;**13**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN1 ; Get the Station Data for Printing
  D GET^FHADR1 G:Y<1 KIL
  S FHX1=+Y,LS=$E(DT,1,3) W !

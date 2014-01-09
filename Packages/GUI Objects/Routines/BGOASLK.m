@@ -1,5 +1,5 @@
-BGOASLK ; IHS/MSC/MGH - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;03-Feb-2010 11:28;PLS
- ;;1.1;BGO COMPONENTS;**6**;Mar 20, 2007
+BGOASLK ; IHS/MSC/MGH - ASTHMA FILE ;27-Jan-2012 08:49;DU
+ ;;1.1;BGO COMPONENTS;**6,10**;Mar 20, 2007;Build 2
  ;---------------------------------------------------------------
 CHECK(CODE) ;EP see if the icd code entered is an asthma code
  N X,TAX,LOW,HIGH,ICD,NODE
@@ -44,16 +44,16 @@ DICLASS(RET,INP) ;EP Get the classifications for an asthma DX
  ..I CTYPE'="" S VAL=$P(CTYPE,U,1)_"^"_$P(CTYPE,U,2)
  ..S CNT=CNT+1,RET(CNT)=VAL
  Q
-ACONTROL(DFN) ;Find last entry of patient's asthma control
+ACONTROL(DFN,VST) ;Find last entry of patient's asthma control
+ ;IHS/MSC/MGH Patch 10 modified to loop through IENs on visit
  N LEVEL,DT,IEN
  S LEVEL=""
  I DUZ("AG")'="I" Q LEVEL
- S DT="" S DT=$O(^AUPNVAST("AAC",DFN,DT))
- I DT="" Q LEVEL
- S IEN="" S IEN=$O(^AUPNVAST("AAC",DFN,DT,IEN),-1)  ;Reverse $O if there is more than one on a given date  - p6
- I IEN="" Q LEVEL
- S LEVEL=$G(^AUPNVAST("AAC",DFN,DT,IEN))
- S LEVEL=$S(LEVEL="W":"WELL CONTROLLED",LEVEL="N":"NOT WELL CONTROLLED",LEVEL="V":"VERY POORLY CONTROLLED",1:"")
+ S IEN="" F  S IEN=$O(^AUPNVAST("AD",VST,IEN),-1) Q:IEN=""!(LEVEL'="")  D
+ .S LEVEL=$P($G(^AUPNVAST(IEN,0)),U,14)
+ .I LEVEL'="" D
+ ..S LEVEL=$S(LEVEL="W":"WELL CONTROLLED",LEVEL="N":"NOT WELL CONTROLLED",LEVEL="V":"VERY POORLY CONTROLLED",1:"")
+ ..S LEVEL=LEVEL_U_IEN
  Q LEVEL
 TMPGBL(X) ;EP
  K ^TMP("BGO"_$G(X),$J) Q $NA(^($J))

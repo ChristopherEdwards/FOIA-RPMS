@@ -1,5 +1,5 @@
 DGBTE ;ALB/SCK-BENEFICIARY TRAVEL SETUP/MAIN ENTRY CALL UP; 11/20/92@1000; 11/25/92
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
 START ;
  D QUIT^DGBTEND ; kill all variables
  S PRCABN=1,IOP="HOME" D ^%ZIS K IOP

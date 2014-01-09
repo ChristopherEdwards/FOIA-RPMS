@@ -1,5 +1,5 @@
 DG53P343 ;ALB/RPM - Patch DG*5.3*343 Install Utility Routine ; 12/06/00 11:04am
- ;;5.3;Registration;**343**;AUG 13, 1993
+ ;;5.3;Registration;**343,1015**;AUG 13, 1993;Build 21
  ;
  ;
 ENV ;Main entry point for Environment check point.

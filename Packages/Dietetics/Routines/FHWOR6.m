@@ -1,5 +1,5 @@
-FHWOR6 ; HISC/NCA - Update Orderable Items For Master File ;8/21/96  11:28
- ;;5.0;Dietetics;**12**;Oct 11, 1995
+FHWOR6 ; HISC/NCA - Update Orderable Items For Master File ;5/2/00  10:07
+ ;;5.5;DIETETICS;**5**;Jan 28, 2005;Build 53
 UPDATE ; Update Diet Orders and Tubefeedings
  K MSG
  I TYP="D" D CHKD
@@ -79,7 +79,7 @@ DO ; Code Diet Order MFE, ZFH, and ZSY
  S SYN=$P(Z1,"^",2),N1=N1+1
  S MSG(N1)="MFE|"_ACT_"|||^^^"_IEN_"^"_NAM_"^99FHD"
  S N1=N1+1,MSG(N1)="ZFH|D|"_PREC_"||"_$P(Z1,"^",3)
- I $G(^FH(111,IEN,0)) S FHK=0 D  Q
+ I $G(^FH(111,IEN,0))="" S FHK=0 D  Q
  .F IEN1=0:0 S IEN1=$O(^TMP($J,"FHNOD3",IEN1)) Q:IEN1<1  S FHK=IEN1 D
  ..S SYN1=$G(^TMP($J,"FHNOD3",IEN1)) I SYN1'="" S N1=N1+1,MSG(N1)="ZSY|"_IEN1_"|"_SYN1 Q
  .I SYN'="" S N1=N1+1,MSG(N1)="ZSY|"_(FHK+1)_"|"_SYN

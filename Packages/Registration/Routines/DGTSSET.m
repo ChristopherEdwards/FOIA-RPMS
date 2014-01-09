@@ -1,5 +1,5 @@
 DGTSSET ;ALB/LM - TREATING SPECIALTY SETUP & INITIALIZATION ; 4-1-93
- ;;5.3;Registration;**27,36,39,64,68,85,242**;Aug 13, 1993
+ ;;5.3;Registration;**27,36,39,64,68,85,242,1015**;Aug 13, 1993;Build 21
  ;
 START S DGEGL=+^DG(43,1,"G")\1 ; G&L init date
  S DGTSDIV=+$P($G(^DG(43,1,"GL")),"^",2) ; Multidivision Med Center

@@ -1,5 +1,5 @@
 SDUL1 ;ALB/MJK - Screen Malipulation Utilities ; 12/1/91
- ;;5.3;Scheduling;**140**;Aug 13, 1993
+ ;;5.3;Scheduling;**140,1015**;Aug 13, 1993;Build 21
  ;
 INSTR(STR,X,Y,LENGTH,ERASE) ; -- insert text
  ;    STR := string to insert

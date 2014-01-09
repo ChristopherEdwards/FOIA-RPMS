@@ -1,5 +1,5 @@
 BDGILD1 ; IHS/ANMC/LJF - ADMISSIONS BY DATE ; 
- ;;5.3;PIMS;**1009**;APR 26, 2002
+ ;;5.3;PIMS;**1009,1016**;APR 26, 2002;Build 20
  ;
  ;cmi/anch/maw 05/02/2008 PATCH 1009 modified insurance calls to NEWINS^BDGF2
  ;
@@ -73,10 +73,10 @@ INIT ; -- init variables and list array
  .... ;S X=$$MCR^BDGF2(DFN,IEN),Y=$$MCD^BDGF2(DFN,IEN)  ;cmi/anch/maw 5/2/2008 PATCH 1009 requirements 22,31 orig line
  .... ;D INS^BDGF2(DFN,IEN,.BDGRR)  ;cmi/anch/maw 5/2/2008 PATCH 1009 requirements 22,31 orig line
  .... N BDGW,BDGX,BDGY,BDGZ
- .... S BDGX=$$NEWINS^BDGF2(DFN,IEN,"MCR")  ;cmi/anch/maw 5/2/2008 PATCH 1009 requirements 22,31
+ .... S BDGX=$$NEWINS^BDGF2(DFN,IEN,"MCR")
  .... S BDGY=$$NEWINS^BDGF2(DFN,IEN,"MCD")  ;cmi/anch/maw 5/2/2008 PATCH 1009 requirements 22,31
- .... S BDGZ=$$NEWINS^BDGF2(DFN,IEN,"PI")  ;cmi/anch/maw 5/2/2008 PATCH 1009 requirements 22,31
  .... S BDGW=$$NEWINS^BDGF2(DFN,IEN,"RR")  ;cmi/anch/maw 5/2/2008 PATCH 1009 requirements 22,31
+ .... S BDGZ=$$NEWINS^BDGF2(DFN,IEN,"PI")
  .... I BDGCOV=0 D SET($$SP(10)_"**No Additional Coverage**",.VALMCNT) Q
  .... I (BDGW]"")!(BDGX]"")!(BDGY]"") D SET($$SP(10)_BDGX_$$SP(2)_BDGY_$$SP(2)_BDGW,.VALMCNT)  ;cmi/anch/maw 5/2/2008 PATCH 1009 requirements 22,31
  .... ;I (X]"")!(Y]"") D SET($$PAD($$SP(10)_X,40)_Y,.VALMCNT)  ;cmi/anch/maw 5/2/2008 PATCH 1009 orig line

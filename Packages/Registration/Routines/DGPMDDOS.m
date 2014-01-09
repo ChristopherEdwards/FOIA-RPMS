@@ -1,5 +1,5 @@
 DGPMDDOS ;ALB/MIR - OUT-OF-SERVICE BEDS/WARDS ; 29 MAY 90 @1400
- ;;5.3;Registration;**161**;Aug 13, 1993
+ ;;5.3;Registration;**161,1015**;Aug 13, 1993;Build 21
  ;called from DDs of files 42 and 405.4 in the out-of-service multiples
  ;and computed out-of-service fields
  ;FOR WARDS

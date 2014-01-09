@@ -1,5 +1,5 @@
-PSOORDRG ;BIR/SAB - order entry drug selection ;30-Jul-2008 12:52;PLS
- ;;7.0;OUTPATIENT PHARMACY;**3,29,49,46,81,105,134,144,132,1005,188,1007**;DEC 1997
+PSOORDRG ;BIR/SAB - order entry drug selection ;08-Apr-2013 14:53;DU
+ ;;7.0;OUTPATIENT PHARMACY;**3,29,49,46,81,105,134,144,132,1005,188,1007,207,148,243,1015**;DEC 1997;Build 62
  ;External references to ^PSJORUT2 supported by DBIA 2376
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference to ^PS(50.605 supported by DBIA 696
@@ -8,11 +8,15 @@ PSOORDRG ;BIR/SAB - order entry drug selection ;30-Jul-2008 12:52;PLS
  ;External reference to ^PS(56 supported by DBIA 2229
  ;External reference to ^PS(50.416 supported by DBIA 692
  ;External reference to DDIEX^PSNAPIS supported by DBIA 2574
+ ;External references to ^ORRDI1 supported by DBIA 4659
+ ;Reference to $$GETNDC^PSSNDCUT supported by IA 4707
  ; Modified - IHS/CIA/PLS - 08/12/04 - Line DRG+8
  ;                          01/05/07 - Line DRG+8
  ;            IHS/MSC/PLS - 07/14/08 - Included VistA patch 188
+ ;            IHS/MSC/MGH - 04/08/13 - Changed for compound meds
+ ;                          Added DOIT and PROCESS entry points
 EN(PSODFN,DREN) ;
- K ^TMP($J,"DI"),^TMP($J,"DD"),^TMP($J,"DC"),PSOPHI S INDX=0
+ K ^TMP($J,"DI"),^TMP($J,"DD"),^TMP($J,"DC"),^TMP($J,"DI"_PSODFN),PSOPHI S INDX=0
  ;build patient's drug profile outpat/inpat/non-va
  D BLD,ENCHK^PSJORUT2(PSODFN,.INDX),NVA
  ;collect drug info
@@ -23,7 +27,8 @@ DRG ;S X=DREN,DIC="^PSDRUG(",DIC(0)="MQNZO" D ^DIC K DIC,PSOY Q:Y<1  S PSOY=Y,PS
  S:+$G(^PSDRUG(+PSOY,2)) PSODRUG("OI")=+$G(^(2)),PSODRUG("OIN")=$P(^PS(50.7,+$G(^(2)),0),"^")
  S PSODRUG("NDF")=$S($G(^PSDRUG(+PSOY,"ND"))]"":+^("ND")_"A"_$P(^("ND"),"^",3),1:0)
  S PSODRUG("MAXDOSE")=$P(PSOY(0),"^",4),PSODRUG("DEA")=$P(PSOY(0),"^",3),PSODRUG("CLN")=$S($D(^PSDRUG(+PSOY,"ND")):+$P(^("ND"),"^",6),1:0)
- S PSODRUG("SIG")=$P(PSOY(0),"^",5),PSODRUG("NDC")=$P($G(^PSDRUG(+PSOY,2)),"^",4)
+ S PSODRUG("SIG")=$P(PSOY(0),"^",5),PSODRUG("NDC")=$$GETNDC^PSSNDCUT(+PSOY,$G(PSOSITE))
+ S PSODRUG("DAW")=$$GET1^DIQ(50,+PSOY,81)
  S PSOX1=$G(^PSDRUG(+PSOY,660)),PSODRUG("COST")=$P($G(PSOX1),"^",6),PSODRUG("UNIT")=$P($G(PSOX1),"^",8),PSODRUG("EXPIRATION DATE")=$P($G(PSOX1),"^",9)
  ; IHS/CIA/PLS - 08/12/04 - Calculate NDC, AWP and COST
  ;               01/05/07 - Add check for PSOSITE to prevent the PSONEW array from getting set for inpatient meds
@@ -42,22 +47,43 @@ DRG ;S X=DREN,DIC="^PSDRUG(",DIC(0)="MQNZO" D ^DIC K DIC,PSOY Q:Y<1  S PSOY=Y,PS
  ..S DC=$G(DC)+1,^TMP($J,"DC",DC,0)=PSODRUG("VA CLASS")
  ..S PSODC=$P(^PS(50.605,PSODC,0),"^",2),^TMP($J,"DC",DC,0)=^TMP($J,"DC",DC,0)_"^"_PSODC_"^"_$O(^PSDRUG("B",DRNM,0))_"^"_DRNM_"^"_$P(^TMP($J,"ORDERS",DNM),"^",4)_"^"_$P(^(DNM),"^",5)
  ;drug interaction check
+ N CMP,CMPDR,CDRG,TDRG,CNDF
  S DRG=0
- F  S DRG=$O(^TMP($J,"ORDERS",DRG)) Q:'DRG  S NDF=$P(^TMP($J,"ORDERS",DRG),"^",2) D
- .S IT=0,PSOICT=""
- .F  S IT=$O(^PS(56,"APD",NDF,PSODRUG("NDF"),IT)) Q:'IT  D
- ..Q:$$DDIEX^PSNAPIS($P(NDF,"A"),$P(NDF,"A",2))
- ..Q:$$DDIEX^PSNAPIS($P(PSODRUG("NDF"),"A"),$P(PSODRUG("NDF"),"A",2))
- ..Q:$P(^PS(56,IT,0),"^",7)&($P(^PS(56,IT,0),"^",7)<DT)
- ..I 'PSOICT S PSOICT=IT Q
- ..I $P($G(^PS(56,IT,0)),"^",4)=1 S PSOICT=IT Q
- ..Q
- .I 'PSOICT Q
- .S IT=PSOICT
- .S DRNM=$P(^TMP($J,"ORDERS",DRG),"^",3),ORN=$P(^(DRG),"^",4),RXN=$P(^(DRG),"^",5)
- .S DI=$G(DI)+1,^TMP($J,"DI",DI,0)=$O(^PSDRUG("B",DRNM,0))_"^"_DRNM_"^"_IT_"^"_$S($P(^PS(56,IT,0),"^",4)=1:"CRITICAL",1:"SIGNIFICANT")_"^"
- .S ^TMP($J,"DI",DI,0)=^TMP($J,"DI",DI,0)_$P(^PS(50.416,$P(^PS(56,IT,0),"^",2),0),"^")_"^"_$P(^PS(50.416,$P(^PS(56,IT,0),"^",3),0),"^")_"^"_ORN_"^"_RXN
+ ;IHS/MSC/MGH changed to allow for compound drugs
+ ;DOIT entry point created to allow for looping
+ F  S DRG=$O(^TMP($J,"ORDERS",DRG)) Q:'DRG  D
+ .S DRNM=$P(^TMP($J,"ORDERS",DRG),"^",3)
+ .S TDRG=$O(^PSDRUG("B",DRNM,""))
+ .Q:TDRG=""
+ .S CMP=$P($G(^PSDRUG(TDRG,999999935)),U,1)
+ .I CMP=1 D
+ ..S CMPDR=0
+ ..F  S CMPDR=$O(^PSDRUG(TDRG,999999936,CMPDR)) Q:'+CMPDR  D
+ ...S CDRG=$P($G(^PSDRUG(TDRG,999999936,CMPDR,0)),U,1)
+ ...S CNDF=$S($G(^PSDRUG(CDRG,"ND"))]"":+^("ND")_"A"_$P(^("ND"),"^",3),1:0)
+ ...D DOIT(DRG,CNDF)
+ .E  D
+ ..S NDF=$P(^TMP($J,"ORDERS",DRG),"^",2)
+ ..D DOIT(DRG,NDF)
+ D EXIT
+ Q
+DOIT(DRG,NDF) ;Process the drug  IHS/MSC/MGH 04/08/2013
+ S IT=0,PSOICT=""
+ F  S IT=$O(^PS(56,"APD",NDF,PSODRUG("NDF"),IT)) Q:'IT  D
+ .Q:$$DDIEX^PSNAPIS($P(NDF,"A"),$P(NDF,"A",2))
+ .Q:$$DDIEX^PSNAPIS($P(PSODRUG("NDF"),"A"),$P(PSODRUG("NDF"),"A",2))
+ .Q:$P(^PS(56,IT,0),"^",7)&($P(^PS(56,IT,0),"^",7)<DT)
+ .I 'PSOICT S PSOICT=IT Q
+ .I $P($G(^PS(56,IT,0)),"^",4)=1 S PSOICT=IT Q
+ .Q
+ I 'PSOICT Q
+ S IT=PSOICT
+ S DRNM=$P(^TMP($J,"ORDERS",DRG),"^",3),ORN=$P(^(DRG),"^",4),RXN=$P(^(DRG),"^",5)
+ S DI=$G(DI)+1,^TMP($J,"DI",DI,0)=$O(^PSDRUG("B",DRNM,0))_"^"_DRNM_"^"_IT_"^"_$S($P(^PS(56,IT,0),"^",4)=1:"CRITICAL",1:"SIGNIFICANT")_"^"
+ S ^TMP($J,"DI",DI,0)=^TMP($J,"DI",DI,0)_$P(^PS(50.416,$P(^PS(56,IT,0),"^",2),0),"^")_"^"_$P(^PS(50.416,$P(^PS(56,IT,0),"^",3),0),"^")_"^"_ORN_"^"_RXN
+ D REMOTE
  Q:$G(PSOPHI)
+ Q
 EXIT K ^TMP($J,"ORDERS"),DFN,DA,DNM,DUPRX0,RX,Y,ZZ,PSOCLOZ,PSOY,DRG,DNM,DD,DI,DC,IT,PSODRUG,PSOY,ORN,DRNM
  K PSOX,EXPDT,PSODRUG0,PSORX0,PSORX2,PSORX3,PSOST0,PSOVACL,X,Y,X1,X2,RXN
  Q
@@ -110,8 +136,8 @@ CLOZ ;
  Q
 DRGCHK(PSODFN,DREN,DDRUG) ;Only check DREN against drug in DDRG()
  ;* PSODFN = Patient's DFN
- ;* DREN   = Dispendse drug to be checked against the drug in the array
- ;* DDRUG  = The array of dispendse drug in the buffer.
+ ;* DREN   = Dispense drug to be checked against the drug in the array
+ ;* DDRUG  = The array of dispense drug in the buffer.
  ;*
  K ^TMP($J,"DI"),^TMP($J,"DD"),^TMP($J,"DC")
  NEW DDRUG0,DDRUGND,COD,PSJINX S COD="",PSJINX=0
@@ -137,3 +163,11 @@ NVA1 S PSOY=$G(^PSDRUG(DRG,0)),DRGN=$P(PSOY,"^"),VACL=$P(PSOY,"^",2)
  S NDF=$S($G(^PSDRUG(DRG,"ND"))]"":+^("ND")_"A"_$P(^("ND"),"^",3),1:0)
  S INDX=$G(INDX)+1,^TMP($J,"ORDERS",INDX)=VACL_"^"_NDF_"^"_DRGN_"^"_ORN_"^"_I_"N;O"
  Q
+ ;
+REMOTE ;
+ I $T(HAVEHDR^ORRDI1)']"" Q
+ I '$$HAVEHDR^ORRDI1 Q
+ D REMOTE^PSOORRDI(PSODFN,DREN)
+ K ^TMP($J,"DI"_PSODFN) ;THIS LEVEL ONLY NEEDED FOR BACKDOOR OUTPATIENT PHARMACY CHECKS
+ Q
+ ;

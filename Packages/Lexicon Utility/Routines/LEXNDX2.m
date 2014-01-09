@@ -1,5 +1,5 @@
 LEXNDX2 ; ISL Set/kill indexes (Part 2)            ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 SS ; Get (unique) text for an expression in the Subset file
  Q:'$D(X)!('$D(DA))

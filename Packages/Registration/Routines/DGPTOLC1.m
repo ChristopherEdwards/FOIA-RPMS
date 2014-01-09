@@ -1,5 +1,5 @@
 DGPTOLC1 ;ALB/AS - SUMMARY by ADM Rpt, lists diagnoses, sur, pro ; 2 AUG 88 @ 1300
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
  D LO^DGUTL S DGPTF=0,DIC="^DGPT(",DIC(0)="EQMZ",DIC("S")="I $P(^(0),U,11)=1"
  F PTF=1:0:20 W !,"Select ",$S(PTF>1:"another",1:"PTF PATIENT") R " RECORD: ",DGX:DTIME D HELP:DGX["?" Q:DGX=""!(DGX["^")!('$T)  S X=DGX D ^DIC I Y>0 D PAT

@@ -1,6 +1,6 @@
-GMPLDUP2 ;SLC/JVS -- Duplicate Problem #3
- ;;2.0;Problem List;**12**;Aug 25, 1994
- ;
+GMPLDUP2 ;SLC/JVS -- Duplicate Problem #3;18-May-2010 05:58;PLS
+ ;;2.0;Problem List;**12,1001**;Aug 25, 1994;Build 9
+ ;Modified - IHS/MSC/PLS - 8/5/2001 - Line SEARCH+9
  ;VARIABLES:
  ;PATIENT  = Pointer to the PATIENT/IHS #9000001
  ;IEN,IFN  = IEN of problem in PROBLEM #9000011
@@ -39,7 +39,7 @@ SEARCH ;Search for possible duplicates and locate in ^TMP("GMPLDUP")
  .S IEN=0 F  S IEN=$O(^AUPNPROB("AC",PATIENT,IEN)) Q:IEN=""  D
  ..Q:$P($G(^AUPNPROB(IEN,1)),"^",2)="H"
  ..S ICD=$P($G(^AUPNPROB(IEN,0)),"^",1)
- ..S PROBLEM=$P($G(^AUPNPROB(IEN,1)),"^",1) Q:'PROBLEM  ;IHS/PLS 08/05/2001
+ ..S PROBLEM=$P($G(^AUPNPROB(IEN,1)),"^",1) Q:'PROBLEM  ;IHS/CIA/PLS 08/05/2001
  ..S CNT=CNT+1
  ..I '$D(^TMP("GMPLD",$J,PATIENT,ICD,PROBLEM)) D
  ...S ^TMP("GMPLD",$J,PATIENT,ICD,PROBLEM,IEN)=""

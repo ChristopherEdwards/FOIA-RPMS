@@ -1,9 +1,9 @@
 FHNU8 ; HISC/REL/NCA - Nutrient Intake Study ;11/16/93  09:52 
- ;;5.0;Dietetics;**36**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  S %DT="X",X="T" D ^%DT,HDR S DT=Y
 F4 K DIC S MENU=0,DIC="^FHUM(",DIC(0)="AEQMZ",DIC("S")="I '$P(^(0),U,5)" W ! D ^DIC G KIL:U[X!$D(DTOUT),F4:Y<1 S MENU=+Y,MNAM="Menu: "_$P(Y,U,2),TYP=$P(Y(0),U,2)
 F5 K DIC S DIC="^FH(112.2,",DIC(0)="AEQM",DIC("A")="Select DRI Category: " W ! D ^DIC G:X["^"!$D(DTOUT) KIL S RDA=$S(Y<1:0,1:+Y) K DIC
-F1 S ALL=1 D ^FHDPA G PAT:X="*",KIL:'DFN S NAM=$P(Y(0),U,1),SEX=$P(Y(0),U,2),AGE=$P(Y(0),U,3) G:SEX=""!(AGE="") P1
+F1 S ALL=1 D ^FHDPA G PAT:X="*",KIL:'DFN G:FHDFN="" KIL S NAM=$P(Y(0),U,1),SEX=$P(Y(0),U,2),AGE=$P(Y(0),U,3) G:SEX=""!(AGE="") P1
  I $P($G(^DPT(DFN,.35)),"^",1) W *7,!!?5,"  [ Patient has expired. ]" G KIL
  S AGE=$E(DT,1,3)-$E(AGE,1,3)-($E(DT,4,7)<$E(AGE,4,7))
 F2 K IOP S %ZIS="MQ" W ! D ^%ZIS K %ZIS,IOP G:POP KIL

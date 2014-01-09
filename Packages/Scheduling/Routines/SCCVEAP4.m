@@ -1,5 +1,5 @@
 SCCVEAP4 ;ALB/RMO,TMP - Appointment Conversion cont.; [ 04/05/95  10:19 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 CREDIT(SCOE,SCDTM,SCCV,SCCVEVT) ; Add/delete visit for credit stop
  ;  (for add encounter and visit - ^SDVSIT does it)

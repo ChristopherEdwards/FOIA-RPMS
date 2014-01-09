@@ -1,5 +1,5 @@
-OCXOZ0I ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0I ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -15,8 +15,8 @@ EL135 ; Examine every rule that involves Element #135 [DIET ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R70R1A^OCXOZ10   ; Check Relation #1 in Rule #70 'NO ALLERGY ASSESSMENT'
- D R72R1A^OCXOZ11   ; Check Relation #1 in Rule #72 'ALLERGIES UNASSESSIBLE'
+ D R70R1A^OCXOZ11   ; Check Relation #1 in Rule #70 'NO ALLERGY ASSESSMENT'
+ D R72R1A^OCXOZ12   ; Check Relation #1 in Rule #72 'ALLERGIES UNASSESSIBLE'
  Q
  ;
 EL136 ; Examine every rule that involves Element #136 [NO ALLERGY ASSESSMENT]
@@ -24,7 +24,7 @@ EL136 ; Examine every rule that involves Element #136 [NO ALLERGY ASSESSMENT]
  ;
  Q:$G(OCXOERR)
  ;
- D R70R1A^OCXOZ10   ; Check Relation #1 in Rule #70 'NO ALLERGY ASSESSMENT'
+ D R70R1A^OCXOZ11   ; Check Relation #1 in Rule #70 'NO ALLERGY ASSESSMENT'
  Q
  ;
 EL137 ; Examine every rule that involves Element #137 [PHARMACY ORDER]
@@ -32,8 +32,8 @@ EL137 ; Examine every rule that involves Element #137 [PHARMACY ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R70R1A^OCXOZ10   ; Check Relation #1 in Rule #70 'NO ALLERGY ASSESSMENT'
- D R72R1A^OCXOZ11   ; Check Relation #1 in Rule #72 'ALLERGIES UNASSESSIBLE'
+ D R70R1A^OCXOZ11   ; Check Relation #1 in Rule #70 'NO ALLERGY ASSESSMENT'
+ D R72R1A^OCXOZ12   ; Check Relation #1 in Rule #72 'ALLERGIES UNASSESSIBLE'
  Q
  ;
 EL138 ; Examine every rule that involves Element #138 [DUP OPIOID MEDS]
@@ -41,7 +41,7 @@ EL138 ; Examine every rule that involves Element #138 [DUP OPIOID MEDS]
  ;
  Q:$G(OCXOERR)
  ;
- D R71R1A^OCXOZ11   ; Check Relation #1 in Rule #71 'OPIOID MEDICATIONS'
+ D R71R1A^OCXOZ12   ; Check Relation #1 in Rule #71 'OPIOID MEDICATIONS'
  Q
  ;
 EL139 ; Examine every rule that involves Element #139 [OPIOID MED ORDER]
@@ -49,7 +49,7 @@ EL139 ; Examine every rule that involves Element #139 [OPIOID MED ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R71R1A^OCXOZ11   ; Check Relation #1 in Rule #71 'OPIOID MEDICATIONS'
+ D R71R1A^OCXOZ12   ; Check Relation #1 in Rule #71 'OPIOID MEDICATIONS'
  Q
  ;
 EL140 ; Examine every rule that involves Element #140 [ALLERGIES UNASSESSIBLE]
@@ -57,7 +57,7 @@ EL140 ; Examine every rule that involves Element #140 [ALLERGIES UNASSESSIBLE]
  ;
  Q:$G(OCXOERR)
  ;
- D R72R1A^OCXOZ11   ; Check Relation #1 in Rule #72 'ALLERGIES UNASSESSIBLE'
+ D R72R1A^OCXOZ12   ; Check Relation #1 in Rule #72 'ALLERGIES UNASSESSIBLE'
  Q
  ;
 R3R1A ; Verify all Event/Elements of  Rule #3 'CRITICAL LAB RESULTS'  Relation #1 'CRITICAL LAB TEST'
@@ -179,17 +179,20 @@ NEWRULE(OCXDFN,OCXORD,OCXRUL,OCXREL,OCXNOTF,OCXMESS) ; Has this rule already bee
  Q:'$G(OCXREL) 0  Q:'$G(OCXNOTF) 0  Q:'$L($G(OCXMESS)) 0
  S OCXORD=+$G(OCXORD),OCXDFN=+OCXDFN
  ;
- N OCXNDX,OCXDATA,OCXDFI,OCXELE,OCXGR,OCXTIME,OCXCKSUM
+ N OCXNDX,OCXDATA,OCXDFI,OCXELE,OCXGR,OCXTIME,OCXCKSUM,OCXTSP,OCXTSPL
  ;
  S OCXTIME=(+$H)
  S OCXCKSUM=$$CKSUM(OCXMESS)
  ;
- Q:$D(^OCXD(860.7,"AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)) 0
+ S OCXTSP=($H*86400)+$P($H,",",2)
+ S OCXTSPL=($G(^OCXD(860.7,"AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM))+$G(OCXTSPI,300))
+ ;
+ Q:(OCXTSPL>OCXTSP) 0
  ;
  K OCXDATA
  S OCXDATA(OCXDFN,0)=OCXDFN
  S OCXDATA("B",OCXDFN,OCXDFN)=""
- S OCXDATA("AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)=""
+ S OCXDATA("AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)=OCXTSP
  ;
  S OCXGR="^OCXD(860.7"
  D SETAP(OCXGR_")",0,.OCXDATA,OCXDFN)

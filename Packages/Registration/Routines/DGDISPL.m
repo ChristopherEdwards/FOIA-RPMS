@@ -1,5 +1,5 @@
 DGDISPL ;ALB/JDS - DISPOSITION LOG ;1/8/91  13:25
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 EN S Z="^In Process^ALL"
  R !,"In process(I) or All(A): I// ",X:DTIME G Q:X["^"!'$T X:X="" "S X=""I"" W X" D IN^DGHELP I %=-1 W !!,"Enter 'I' to print only those dispositions in process,",!,"'A' to print all disposition's for a specified date range.",*7 G EN

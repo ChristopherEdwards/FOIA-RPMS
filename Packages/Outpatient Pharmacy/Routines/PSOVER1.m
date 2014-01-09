@@ -1,14 +1,17 @@
-PSOVER1 ;BHAM ISC/SAB - verify one rx ;01-Jul-2011 10:13;PLS
- ;;7.0;OUTPATIENT PHARMACY;**32,46,90,131,1002,1004,1007,1011**;DEC 1997;Build 17
+PSOVER1 ;BHAM ISC/SAB - verify one rx ;29-May-2012 15:17;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**32,46,90,131,1002,1004,1007,1011,202,207,148,243,268,281,1015**;DEC 1997;Build 62
  ;External reference ^PSDRUG( supported by DBIA 221
  ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to PSSORPH is supported by DBIA 3234
+ ;External references to ^ORRDI1 supported by DBIA 4659
+ ;External reference ^XTMP("ORRDI" supported by DBIA 4660
  ; Modified - IHS/CIA/PLS - 01/29/04 - Line CHANGE+3
  ;            IHS/CIA/PLS - 12/16/04 - Lines REDO+1, EDIT+1, new EP (CHKPRV)
  ;            IHS/MSC/PLS - 07/10/08 - Changed references to PSOVER array to PSOVERA
  ;            IHS/MSC/PLS - 06/30/11 - Lines REDO+5 and new NVA EP to match patch 202
-REDO S (DRG,PSODRUG("NAME"))=$P(^PSDRUG(+$P(^PSRX(PSONV,0),"^",6),0),"^"),PSODRUG("VA CLASS")=$P(^(0),"^",2)
+REDO ;
+ S (DRG,PSODRUG("NAME"))=$P(^PSDRUG(+$P(^PSRX(PSONV,0),"^",6),0),"^"),PSODRUG("VA CLASS")=$P(^(0),"^",2)
  I '$D(PSODFN) S PSODFN=$P(^PSRX(PSONV,0),"^",2)
  ; IHS/CIA/PLS - 12/16/04 - Added check and message.
  I '$$CHKPRV(PSONV) D  Q
@@ -22,8 +25,10 @@ REDO S (DRG,PSODRUG("NAME"))=$P(^PSDRUG(+$P(^PSRX(PSONV,0),"^",6),0),"^"),PSODRU
  .I $G(PSZZZDUP),$G(PSVFLAG),$P($G(^PSRX($P(PSOSD(STA,DNM),"^"),"STA")),"^")=12,$D(^PS(52.4,$P(PSOSD(STA,DNM),"^"),0)) S DA=$P(PSOSD(STA,DNM),"^"),DIK="^PS(52.4," D ^DIK K DIK
  .I $G(PSZZZDUP),$G(PSVFLAG),$P($G(^PSRX($P(PSOSD(STA,DNM),"^"),"STA")),"^")'=12 S PSZZQUIT=1
  K MSG I $G(PSZZQUIT),$G(PSVFLAG) K PSZZQUIT,PSODRUG,PSODFN,PSZZZDUP,DNM,PSDTSTOP D CLEAN Q
+ D REMOTE
  K PSODRUG,PSODFN,PSZZZDUP,DNM,PSZZQUIT
 ALLR ;Allergy check
+ S PSONOAL="" D ALLERGY^PSOORUT2 D:PSONOAL'="" NOALRGY K PSONOAL I $G(PSZZQUIT) K MSG,PSZZQUIT,PSODRUG,PSODFN,PSZZZDUP,DNM,PSDTSTOP D CLEAN Q
  G:'$P($G(^PSRX(PSONV,3)),"^",6) EDIT
  I '$G(PSDTSTOP) K DIR S DIR(0)="E" D ^DIR K DIR I $D(DTOUT)!($D(DUOUT)) K PSDTSTOP G OUT
  W !!,"A Drug-Allergy Reaction exists for this medication!",!!,"***SIGNIFICANT*** Allergy Reaction"
@@ -81,6 +86,14 @@ VERY I $G(PKI1)=1 D REA^PSOPKIV1 G:'$D(PKIR) VERIFY
  S PSOVERA(PSONV)="" S $P(^PSRX(PSONV,"STA"),"^")=0,$P(PSOSD("NON-VERIFIED",DRG),"^",2)=0,PSOSD("ACTIVE",DRG)=PSOSD("NON-VERIFIED",DRG)
  I $G(PKI1)=1,$G(PKIR)]"" D ACT^PSOPKIV1(DA)
  K PSOSD("NON-VERIFIED",DRG) D EN^PSOHLSN1(PSONV,"SC","CM","")
+ ;
+ ; - Calling ECME for claims generation and transmission / REJECT handling
+ N ACTION
+ I $$SUBMIT^PSOBPSUT(PSONV) D  I ACTION="Q"!(ACTION="^") Q
+ . S ACTION="" D ECMESND^PSOBPSU1(PSONV,,,$S($O(^PSRX(PSONV,1,0)):"RF",1:"OF"))
+ . I $$FIND^PSOREJUT(PSONV) D
+ . . S ACTION=$$HDLG^PSOREJU1(PSONV,0,"79,88","OF","IOQ","Q")
+ ;
 KILL S DA=PSONV,DIK="^PS(52.4," D ^DIK K DA,DIK D DCORD^PSONEW2
 OUT K DIRUT,DTOUT,DUOUT,UPFLAGX D CLEAN Q
 DELETE K UPFLAGX D DELETE^PSOVER2 G:$G(UPFLAGX) OUT K PSOSD("NON-VERIFIED",$G(DRG)) Q
@@ -103,6 +116,30 @@ NVA ;
  S (Y,FLG)=""
  S RXREC=$P(PSOSD(STA,DNM),"^",10),PSOOI=+$G(^PS(55,DFN,"NVA",RXREC,0)),IFN=RXREC N DNM
  F  S Y=$O(^PSDRUG("ASP",PSOOI,Y)) Q:Y=""!(FLG)  S DNM=$P(^PSDRUG(Y,0),"^"),CLASS=$P(^PSDRUG(Y,0),"^",2) I PSODRUG("NAME")=DNM!(CLASS=PSODRUG("VA CLASS")) D DSP^PSODRDU1 S FLG=1 Q
+ Q
+REMOTE ;
+ K ^TMP($J,"DD"),^TMP($J,"DC"),^TMP($J,"DI"),^TMP($J,"DI"_PSODFN) D
+ .I $T(HAVEHDR^ORRDI1)']"" Q
+ .I '$$HAVEHDR^ORRDI1 Q
+ .I $D(^XTMP("ORRDI","OUTAGE INFO","DOWN")) D  Q
+ ..I $T(REMOTE^PSORX1)]"" Q
+ ..W !,"Remote data not available - Only local order checks processed." D PAUSE^PSOORRD2
+ .W !,"Now doing remote order checks. Please wait..."
+ .D REMOTE^PSOORRDI(PSODFN,+$P($G(^PSRX(PSONV,0)),"^",6))
+ .I $P($G(^XTMP("ORRDI","PSOO",PSODFN,0)),"^",3)<0 W !,"Remote data not available - Only local order checks processed." D PAUSE^PSOORRD2 Q
+ .I $D(^TMP($J,"DD")) D DUP^PSOORRD2
+ .I $D(^TMP($J,"DC")) D CLS^PSOORRD2
+ .I $D(^TMP($J,"DI"_PSODFN)) K ^TMP($J,"DI") M ^TMP($J,"DI")=^TMP($J,"DI"_PSODFN) D DRGINT^PSOORRD2
+ K ^TMP($J,"DD"),^TMP($J,"DC"),^TMP($J,"DI"),^TMP($J,"DI"_PSODFN)
+ Q
+NOALRGY ;
+ W $C(7),!,"There is no allergy assessment on file for this patient."
+ W !,"You will be prompted to intervene if you continue with this prescription"
+ K DIR
+ S DIR(0)="SA^1:YES;0:NO",DIR("A")="Do you want to Continue?: ",DIR("B")="N" D ^DIR
+ I 'Y S PSZZQUIT=1 Q
+ S PSORX("INTERVENE")=0
+ D EN1^PSORXI(PSONV)
  Q
  ; Ensure that the prescription has a provider
 CHKPRV(RXIEN) ; EP

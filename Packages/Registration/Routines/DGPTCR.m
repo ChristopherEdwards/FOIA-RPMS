@@ -1,5 +1,5 @@
-DGPTCR ;ALB/MJK - Census Worklist Re-gen ; 5/11/01 2:31pm
- ;;5.3;Registration;**136,383**;Aug 13, 1993
+DGPTCR ;ALB/MJK - Census Worklist Re-gen ; JAN 27, 2005
+ ;;5.3;Registration;**136,383,643,1015**;Aug 13, 1993;Build 21
  ;
 GEN ; -- ask user regen ques
  D CHKCUR^DGPTCO1
@@ -25,10 +25,14 @@ REGEN ; -- census workfile generation
  K ^UTILITY("DGPT REGEN",$J) S:'$D(XQM) XQM=0
  S:'$D(DGFIRST) DGFIRST='$O(^DG(45.85,"ACENSUS",DGCN,0))
  S DGOLD="^UTILITY(""DGPT REGEN"",$J,""OLD"")",DGNEW="^UTILITY(""DGPT REGEN"",$J,""NEW"")"
- F DGI=0:0 S DGI=$O(^DG(45.85,"ACENSUS",DGCN,DGI)) Q:'DGI  S DIK="^DG(45.85,",DA=DGI I $D(^DG(45.85,DA,0)) S @DGOLD@(+^(0),+$P(^(0),U,3))="" D ^DIK
- K DIK
+ F DGI=0:0 S DGI=$O(^DG(45.85,"ACENSUS",DGCN,DGI)) Q:'DGI  D
+ . S DIK="^DG(45.85,",DA=DGI
+ . I $D(^DG(45.85,DA,0)) D
+ . . S DGPTF=$P(^DG(45.85,DA,0),U,12)
+ . . S @DGOLD@(+^DG(45.85,DA,0),+$P(^(0),U,3),+DGPTF)="" D ^DIK K DIK,DGPTF
  ; -- scan and create new values
  F DGDT=0:0 S DGDT=$O(^DGPM("ATT1",DGDT)) Q:'DGDT!(DGDT>DGCDT)  F DGAD=0:0 S DGAD=$O(^DGPM("ATT1",DGDT,DGAD)) Q:'DGAD  D CHK
+ D FEE
  S DIE="^DG(45.86,",DA=DGCN,DR=".06///NOW" D ^DIE
  L -^DG(45.85,"DGPT CENSUS REGEN WORKFILE")
  D BULL
@@ -37,12 +41,35 @@ Q K DGEW,DGOLD,DGI,DGMV,DGAD0,DGAD1,DGDT,DFN,DGFIRST,^UTILITY("DGPT REGEN",$J),D
  ;
 CHK ; -- determine if good adm then set work entry
  G CHKQ:'$D(^DGPM(DGAD,0)) S DGPMCA=DGAD,(DGPMAN,DGAD0)=^(0)
- S DFN=+$P(DGAD0,U,3),DGT=DGCDT D WARD^DGPTC1 G CHKQ:'Y S DGCWD=+Y
+ S DFN=+$P(DGAD0,U,3) G CHKQ:'$D(^DPT(DFN,0))
+ S DGT=DGCDT D WARD^DGPTC1 G CHKQ:'Y S DGCWD=+Y
+ S DGPTF=+$P(DGAD0,U,16)
  S DGAD1=$S($D(^DGPM(+$P(DGAD0,U,17),0)):^(0),1:"")
- S:'$D(@DGOLD@(DFN,DGAD)) @DGNEW@(DFN,DGAD)="" K @DGOLD@(DFN,DGAD)
+ S:'$D(@DGOLD@(DFN,DGAD,+DGPTF)) @DGNEW@(DFN,DGAD,+DGPTF)="" K @DGOLD@(DFN,DGAD,+DGPTF)
  S X=DFN,DIC="^DG(45.85,",DIC(0)="L",DIC("DR")="[DGPT STUFF ENTRY]"
  K DD,DO D FILE^DICN K DIC
-CHKQ K DFN,DGT,DGPMCA,DGPMAN Q
+CHKQ K DFN,DGT,DGPMCA,DGPMAN,DGCWD Q
+FEE ; --check for fee entries
+ F DFN=0:0 S DFN=$O(^DGPT("AFEE",DFN)) Q:'DFN  D
+ . F DGDT=0:0 S DGDT=$O(^DGPT("AFEE",DFN,DGDT)) Q:'DGDT  D
+ ..; -- dgds=discharge date
+ .. S PTFEE=$O(^DGPT("AFEE",DFN,DGDT,0))
+ .. Q:'$D(^DGPT(PTFEE,0))
+ .. Q:$P(^DGPT(PTFEE,0),U,11)=2
+ .. S DGDS="" I $D(^DGPT(PTFEE,70)) S DGDS=$P(^(70),"^")
+ .. I DGDS="" S DGDS=9999999
+ .. D FEECHK
+ Q
+FEECHK ; -- determine if good adm then set work entry
+ G FEECHKQ:'$D(^DGPT(PTFEE,0))
+ G FEECHKQ:'$D(^DPT(DFN,0))
+ I DGDT<DGCDT,DGDS>DGCDT D
+ . S DGAD0=DGDT,$P(DGAD0,U,16)=PTFEE
+ . S DGAD1=$S((DGDS=9999999):"",1:DGDS)
+ . S:'$D(@DGOLD@(DFN,0,+PTFEE)) @DGNEW@(DFN,0,+PTFEE)="" K @DGOLD@(DFN,0,+PTFEE)
+ . S X=DFN,DIC="^DG(45.85,",DIC(0)="L",DIC("DR")="[DGPT STUFF ENTRY]"
+ . K DD,DO D FILE^DICN K DIC
+FEECHKQ K PTFEE,DGDS Q
  ;
 BULL ; -- bull to user re-generating
  G BULLQ:DGFIRST K ^UTILITY("DGPT REGEN",$J,"TEXT")
@@ -74,6 +101,7 @@ NEW ;
  D BLANK,BLANK
  S DGL=">>> NEW ADMISSIONS added to workfile needing a Census Record <<< " D SET,HEAD
  F DFN=0:0 S DFN=$O(@DGNEW@(DFN)) Q:'DFN  F DGAD=0:0 S DGAD=$O(@DGNEW@(DFN,DGAD)) Q:'DGAD  D AD
+ F DFN=0:0 S DFN=$O(@DGNEW@(DFN)) Q:'DFN  F PTFEE=0:0 S PTFEE=$O(@DGNEW@(DFN,0,+PTFEE)) Q:'PTFEE  D AD1
  Q
  ;
 HEAD ;
@@ -88,6 +116,12 @@ AD G ADQ:'$D(^DGPM(DGAD,0)) S DGX=^(0),DGL=""
  F DGCI=0:0 S DGCI=$O(^DGPT("ACENSUS",+$P(DGX,U,16),DGCI)) Q:'DGCI  I $D(^DGPT(DGCI,0)),$P(^(0),U,13)=DGCN S DGL=DGL_$J(DGCI,5) Q
  D SET
 ADQ K DGCI Q
+AD1 G AD1Q:'$D(^DGPT(PTFEE,0)) S DGX=^(0),DGL=""
+ S DGL=$E($S($D(^DPT(DFN,0)):$P(^(0),U),1:"")_DGBLK,1,20)_" ("_$E($P(^(0),U,9),6,10)_")"
+ S Y=$P(DGX,U,2) X ^DD("DD") S DGL=DGL_$E(DGBLK,1,5)_$E(Y_DGBLK,1,20)_$E(DGBLK,1,4)_$J(PTFEE,5)_$E(DGBLK,1,8)
+ F DGCI=0:0 S DGCI=$O(^DGPT("ACENSUS",PTFEE,DGCI)) Q:'DGCI  I $D(^DGPT(DGCI,0)),$P(^(0),U,13)=DGCN S DGL=DGL_$J(DGCI,5) Q
+ D SET
+AD1Q Q
  ;
 BLDMSG ;Build message text if regen currently running
  S DGPTMSG(1,0)="The Census Status Report or the Regenerate Census Workfile option was"

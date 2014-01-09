@@ -1,5 +1,5 @@
 SDAMBMR2 ;ALB/MLI - PRINT AMBULATORY PROCEDURES MANAGEMENT REPORTS ; 4/27/00 12:14pm
- ;;5.3;Scheduling;**28,140,132,180**;Aug 13, 1993
+ ;;5.3;Scheduling;**28,140,132,180,339,387,402,1015**;Aug 13, 1993;Build 21
 HD S SDPG=SDPG+1 W @IOF,!?20,"AMBULATORY PROCEDURE MANAGEMENT REPORTS",!!,"DATE RANGE: ",SDB,"-",SDE,?50,"DATE PRINTED: ",SDNOW,!,$S(SDFL:SDSTR_" NAME:",1:"ALL "_SDSTR_"S"),?16,SDT,?71,"PAGE: ",$J(SDPG,3) Q
 DT S SDB=SDB+.1,SDE=SDE-.9,SDB=$TR($$FMTE^XLFDT(SDB,"5DF")," ","0"),SDE=$TR($$FMTE^XLFDT(SDE,"5DF")," ","0") Q
 1 S SDSTR=$S(SDSC="C":"CLINIC",1:"SERVICE") D DT G 2:SDRT="E" I SDSC="C" S I=0 F I1=0:0 S I=$S(VAUTC:$O(^TMP($J,I)),1:$O(VAUTC(I))) Q:I=""!SDFG  I $D(^TMP($J,I,"T")),^("T") S SDT=I,SDFL=1 D P^SDAMBMR3 Q:SDFG
@@ -24,17 +24,19 @@ PNAME N %
  ;If prompt "Sort by 'P'rocedure or patient 'N'ame: P//PROCEDURE"
  ;CPTMOD is called to print Procedure (CPT) codes and associated
  ;Modifiers.
-CD N BLKLN,MODCODE,MODINFO,MODTEXT,MODVAL,SDJJ
+CD N BLKLN,MODCODE,MODINFO,MODTEXT,MODVAL,SDJJ,KK,ICPTVDT
  S (BLKLN,MODVAL)=0,SDHI=I D HD2:($Y>(IOSL-5)) Q:SDFG
- S J=$P($$CPT^ICPTCOD(J,0),"^",1)
- W !!,+$G(J)
+ S %DT="X",X=SDE D ^%DT S ICPTVDT=$S(Y<0:DT,1:Y)
+ S J=$P($$CPT^ICPTCOD(J,ICPTVDT),"^",1)  ; equals IEN for CPT
+ S KK=$P($$CPT^ICPTCOD(J,ICPTVDT),"^",2)  ; SD*5.3*339 external CPT value
+ W !!,$G(KK)  ; SD*5.3*339 print external CPT code
  S I=J D N W ?7,$E(SDN,1,72) S I=SDHI
  Q:'SDMOD
  I $D(^TMP($J,"*PRO",I,J,0)) S MODVAL=$P(^TMP($J,"*PRO",I,J,0),"^",2,99)
  I $D(^TMP($J,"*PRO",I,J,1)) S MODVAL=$P(^TMP($J,"*PRO",I,J,1),"^",2,99)
  Q:'MODVAL
  F SDJJ=1:1:$L(MODVAL,"^") S MODINFO=$P(MODVAL,"^",SDJJ)  D
- . S MODINFO=$$MOD^ICPTMOD(MODINFO,"I",,1)
+ . S MODINFO=$$MOD^ICPTMOD(MODINFO,"I",ICPTVDT,1)
  . Q:MODINFO'>0
  . S MODCODE="-"_$P(MODINFO,"^",2)
  . S MODTEXT=$P(MODINFO,"^",3)
@@ -57,16 +59,17 @@ C2 W !!,$E(J,1,24),?27,$P(SDINFO,U,10) ; 10th piece is ssn
  ;
  ;If "Sort by 'P'rocedure or patient 'N'ame: P//NAME" the patient name
  ;,Procedure (CPT) Codes and Modifiers will be printed.
-LIST N BLKLN,MODCODE,MODINFO,MODTEXT,MODVAL,SDJJ
+LIST N BLKLN,MODCODE,MODINFO,MODTEXT,MODVAL,SDJJ,ICPTVDT
+ S %DT="X",X=SDE D ^%DT S ICPTVDT=$S(Y<0:DT,1:Y)
  S BLKLN=1
  F PR=11:1 S SDPRO=$P(SDINFO,U,PR) Q:'SDPRO  D
  . S SDHI=I D HD:($Y>(IOSL)) Q:SDFG
- . W !?5,$P($$CPT^ICPTCOD(SDPRO,0),U) S I=SDPRO D N
+ . W !?5,$P($$CPT^ICPTCOD(SDPRO,ICPTVDT),U,2) S I=SDPRO D N  ; SD*5.3*402
  . W ?12,$E(SDN,1,67) S I=SDHI
  . Q:'SDMOD
  . S MODVAL=SDINFO(PR-10)
  . F SDJJ=1:1:$L(MODVAL,"^") S MODINFO=$P(MODVAL,"^",SDJJ)  D
- . . S MODINFO=$$MOD^ICPTMOD(MODINFO,"I",,1)
+ . . S MODINFO=$$MOD^ICPTMOD(MODINFO,"I",ICPTVDT,1)
  . . Q:MODINFO'>0
  . . S MODCODE="-"_$P(MODINFO,"^",2)
  . . S MODTEXT=$P(MODINFO,"^",3)
@@ -79,12 +82,13 @@ TOT Q:SDFG  K I S SDT="",SDFL=0 D P^SDAMBMR3 Q
  ;
  ;Retrieves the Procedure (CPT) Code description by calling API
  ;CPTD^ICPTCOD
-N N DATA,SDIX,SDDATA,SDCOUNT
+N N DATA,SDIX,SDDATA,SDCOUNT,ICPTVDT
+ S %DT="X",X=SDE D ^%DT S ICPTVDT=$S(Y<0:DT,1:Y)
  S SDN="",DATA=""
  ;F  S DATA=$O(DESCR(DATA)) Q:'DATA  S SDN=SDN_" "_DESCR(DATA) Q:$L(SDN)>72
  ;SDDATA will contain the returned information from the call to CPTD^ICPTCOD.
  ;This is an extrinsic function, and can't be called with a "Do" statement.
- S SDDATA=$$CPTD^ICPTCOD(I,"DESCR")
+ S SDDATA=$$CPTD^ICPTCOD(I,"DESCR",,ICPTVDT)
  S SDCOUNT=$P(SDDATA,"^",1)
  F SDIX=1:1:SDCOUNT S SDN=SDN_" "_DESCR(SDIX) Q:$L(SDN)>72
  S SDN=$E(SDN,1,72)

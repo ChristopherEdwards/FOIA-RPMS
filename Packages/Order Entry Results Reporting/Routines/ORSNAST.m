@@ -1,5 +1,6 @@
-ORSNAST ;SLC/RAF - Policy order search  ;10/20/00  14:10
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**50**;Dec 17, 1997
+ORSNAST ;SLC/RAF - Policy order search  ;06/25/2007
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**50,263**;Dec 17, 1997;Build 9
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
  ;this utility will allow the user to enter a date range to search
  ;the orders file, 100, looking for orders with a specific nature
@@ -9,8 +10,8 @@ ORSNAST ;SLC/RAF - Policy order search  ;10/20/00  14:10
 EN ;
  S U="^" K ^TMP("ORNS",$J),^TMP("ORSERV",$J)
  W @IOF,!!?18,"Nature of Order or Order Status Search.",!?15,"This report is formatted for 132 column output."
- N DASH,DATE,DFN,DIR,DTOUT,DUOUT,ED1,EDATE,FORMAT,HDR,HDR1,IEN
- N LOC,LONER,ORIGVIEW,PAGE,PNM,PROV,QUIT,REF,RPDT,SD1,SDATE,SER,SERVICE,STOP,TEXT,TEXTSUB
+ N DASH,DATE,DFN,DIR,DTOUT,DUOUT,EDATE,FORMAT,HDR,HDR1,IEN
+ N LOC,LONER,ORIGVIEW,PAGE,PNM,PROV,QUIT,REF,RPDT,SDATE,SER,SERVICE,STOP,TEXT,TEXTSUB
  N SINGLE,SIGNED,SNAME,SSN,STATUS,SORT,SEARCH,SUB
  N VA,VADM,WHEN,WHO,Y
 SORT S DIR(0)="SX^1:Nature of order;2:Order Status"
@@ -20,23 +21,9 @@ SORT S DIR(0)="SX^1:Nature of order;2:Order Status"
  S DIR(0)=$S(SORT=1:"PA^100.02:AEMQ",SORT=2:"PA^100.01:AEMQ")
  S DIR("A")="Select "_$S(SORT=1:"Nature of order: ",1:"Order Status: ")
  D ^DIR S:+Y>0 SEARCH=+Y,SNAME=$P(Y,U,2) K DIR I $D(DTOUT)!($D(DUOUT)) G EXIT
-SDATE ;sets DIR call to ask the user for a starting date
- S DIR(0)="DA^::ETX"
- S DIR("A")="Enter a starting date: "
- S DIR("?")="Enter the date that you wish to start searching with. This date needs to be older than the ending date. For example: If you enter a start date of T-3, the Stop date should be T-2 or less. Enter an ^ to exit the option."
- D ^DIR S:+Y>0 (SDATE,SD1)=+Y K DIR I $D(DTOUT)!($D(DUOUT)) G EXIT
- I SDATE'["." S (SDATE,SD1)=SDATE_.2359
- I $D(DTOUT)!$D(DUOUT) G EXIT
-EDATE ;sets DIR call to ask the user for an ending date (optional)
- S DIR(0)="DA^::ETX"
- S DIR("A")="Enter a ending date: "
- S DIR("?")="Enter the date that you would like the search to end with. This date needs to be more recent than the start date. For example: If you entered a T-3 for the start date, enter a T-2 or less here. Enter an ^ to exit the option."
- D ^DIR S:+Y>0 (EDATE,ED1)=+Y K DIR I $D(DTOUT)!($D(DUOUT)) G EXIT
- I EDATE'["." S (EDATE,ED1)=EDATE_.0001
- I $D(DTOUT)!$D(DUOUT) G EXIT
-SWITCH ;takes the date input from the user and does a switcheroo so the program
- ;can work as intended
- I EDATE'>SDATE S EDATE=SD1,SDATE=ED1
+ D SDATE I $D(DTOUT)!$D(DUOUT) G EXIT
+ D EDATE I $D(DTOUT)!$D(DUOUT) G EXIT
+ D CKDATE I $D(DTOUT)!$D(DUOUT) G EXIT
 FORMAT ;allows choice of formats for evaluation purpose
  S DIR(0)="SX^1:Detailed format;2:Columnar format"
  S DIR("A")="Select output format"
@@ -72,7 +59,28 @@ TASK ;
  .S ZTSAVE("ED1")="",ZTSAVE("LONER*")="",ZTSAVE("SINGLE")=""
  .D ^%ZTLOAD I $D(ZTSK) W !,?32,"REQUEST QUEUED"
  U IO D EN^ORSNAST1
+ G EXIT
  ;
+SDATE ;sets DIR call to ask the user for a starting date
+ S DIR(0)="DA^::ETX"
+ S DIR("A")="Enter a starting date: "
+ S DIR("?")="Enter the date that you wish to start searching with. This date needs to be older than the ending date. For example: If you enter a start date of T-3, the Stop date should be T-2 or less. Enter an ^ to exit the option."
+ D ^DIR S:+Y>0 SDATE=+Y K DIR I $D(DTOUT)!($D(DUOUT)) Q
+ I SDATE'["." S SDATE=SDATE_.0001
+ Q
+EDATE ;sets DIR call to ask the user for an ending date (optional)
+ S DIR(0)="DA^::ETX"
+ S DIR("A")="Enter a ending date: "
+ S DIR("?")="Enter the date that you would like the search to end with. This date needs to be more recent than the start date. For example: If you entered a T-3 for the start date, enter a T-2 or less here. Enter an ^ to exit the option."
+ D ^DIR S:+Y>0 EDATE=+Y K DIR I $D(DTOUT)!($D(DUOUT)) Q
+ I EDATE'["." S EDATE=EDATE_.2359
+ Q
+CKDATE ; Make sure the end date is not older than the start date.
+ I EDATE>SDATE Q
+ W !!,?10,"The starting date must be older than the ending date.",!,?10,"Please re-enter start and end dates.",!!
+ D SDATE I $D(DTOUT)!$D(DUOUT) Q
+ D EDATE I $D(DTOUT)!$D(DUOUT) Q
+ G CKDATE
 EXIT ;
  K ^TMP("ORNS",$J),^TMP("ORSERV",$J)
  D ^%ZISC

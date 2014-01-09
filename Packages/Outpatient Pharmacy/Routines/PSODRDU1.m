@@ -1,5 +1,5 @@
-PSODRDU1 ;BIR/SAB - dup drug class checker for pending orders ;7/19/96
- ;;7.0;OUTPATIENT PHARMACY;**4,27,32,56,63,130,132**;DEC 1997
+PSODRDU1 ;BIR/SAB - dup drug class checker for pending orders ;1/3/05 11:33am
+ ;;7.0;OUTPATIENT PHARMACY;**4,27,32,56,63,130,132,192**;DEC 1997
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(50.606 supported by DBIA 2174
  ;External reference to ^PS(51.2 supported by DBIA 2226
@@ -39,7 +39,7 @@ DATA S DUPRX0=^PS(52.41,RXREC,0),RFLS=$P(DUPRX0,"^",11),ISSD=$P(DUPRX0,"^",6)
  W ?30,"Patient Status: SC",!,"Patient Location: "_$S($P(DUPRX0,"^",13):$P($G(^SC($P(DUPRX0,"^",13),0)),"^"),1:""),!,"Med Route: "_$P($G(^PS(51.2,+$P(DUPRX0,"^",15),0)),"^"),?30,"Provider: "_$P(^VA(200,$P(DUPRX0,"^",5),0),"^")
  S Y=$P(DUPRX0,"^",6) X ^DD("DD") W !,"Issue Date: "_Y
  W !,"Provider Comments: " S TY=3 D INST
- W !,PSONULN,! I $P($G(^PS(53,+$P($G(PSORX("PATIENT STATUS")),"^"),0)),"^")["AUTH ABS",'$P(PSOPAR,"^",5) W !,"PATIENT ON AUTHORIZED ABSENSE!" K RXRECLOD Q
+ W !,PSONULN,! I $P($G(^PS(53,+$P($G(PSORX("PATIENT STATUS")),"^"),0)),"^")["AUTH ABS"!($G(PSORX("PATIENT STATUS"))["AUTH ABS")&'$P(PSOPAR,"^",5) W !,"PATIENT ON AUTHORIZED ABSENCE!" K RXRECLOD Q
 ASKCAN D PSOL^PSSLOCK(RXRECLOD_"S") I '$G(PSOMSG) D  K PSOMSG,DIR,DUP,RXRECLOD S DIR(0)="E",DIR("A")="Press Return to continue" D ^DIR K DIR S PSORX("DFLG")=1 Q
  .I $P($G(PSOMSG),"^",2)'="" W !!,$P(PSOMSG,"^",2),! Q
  .W !!,"Another person is editing this pending order.",!
@@ -66,10 +66,10 @@ ULPN ;
  I '$G(RXRECLOD) Q
  D PSOUL^PSSLOCK(RXRECLOD_"S") K RXRECLOD
  Q
-NVA ;displays dupclicate drugs and classes for non-va meds
+NVA ;displays duplicate drugs and classes for non-va meds
  I $G(IT) D  Q
  .S SER=$P($G(^PS(56,IT,0)),"^",4)
- .W "***"_$S(SER=1:"Critical",1:"Significant")_"*** Drug Interacton with a Non-VA Med Order.",!,"Drug: "_$P(DNM,"^")
+ .W "***"_$S(SER=1:"Critical",1:"Significant")_"*** Drug Interaction with a Non-VA Med Order.",!,"Drug: "_$P(DNM,"^")
  .K DIR,DIRUT,DTOUT,DUOUT S DIR(0)="E",DIR("A")="Press Return to continue" D ^DIR K DIR,DIRUT,DTOUT,DUOUT
  Q:'$D(^PS(55,PSODFN,"NVA",$P(PSOSD(STA,DNM),"^",10),0))
  S IFN=$P(PSOSD(STA,DNM),"^",10),RXREC=IFN
@@ -84,7 +84,7 @@ DSP S $P(PSONULN,"-",79)="-"
  W !,"Drug Class: "_$G(PSODRUG("VA CLASS"))
  W !,"Dosage: "_$P(DUPRX0,"^",3)
  W !,"Schedule: "_$P(DUPRX0,"^",5),?40,"Medication Route: "_$P(DUPRX0,"^",4)
- W !,"Start Date: "_$$FMTE^XLFDT($P(DUPRX0,"^",9)),?40,"CPRS Oder #: "_$P(DUPRX0,"^",8)
+ W !,"Start Date: "_$$FMTE^XLFDT($P(DUPRX0,"^",9)),?40,"CPRS Order #: "_$P(DUPRX0,"^",8)
  W !,"Documented By: "_$P(^VA(200,$P(DUPRX0,"^",11),0),"^")_" on "_$$FMTE^XLFDT($P(DUPRX0,"^",10))
  F I=0:0 S I=$O(^PS(55,PSODFN,"NVA",IFN,"OCK",I)) Q:'I  D  W !
  .S ORD1=$P(^PS(55,PSODFN,"NVA",IFN,"OCK",I,0),"^"),ORP=$P(^(0),"^",2)

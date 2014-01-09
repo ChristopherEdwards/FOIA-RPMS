@@ -1,5 +1,5 @@
-SDMM1 ;ALB/GRR - MULTIPLE BOOKINGS ; [ 04/22/2004  5:18 PM ]
- ;;5.3;Scheduling;**28,206,168,1001,1014**;Aug 13, 1993
+SDMM1 ;ALB/GRR - MULTIPLE BOOKINGS ; 2/7/05 8:16am
+ ;;5.3;Scheduling;**28,206,168,327,1001,1014,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 7/06/2000 hard set of date appt made now includes time
  ;            12/13/2000 added check for overbook access by clinic
  ;             6/22/2001 added call to create xref on date appt made
@@ -15,7 +15,6 @@ SC S POP=0,SD=X D SC^SDM1 I SDLOCK W ! D DT W " HAS BEEN LOCKED BY ANOTHER USER 
  S SM=9 G SC
  ;
 OK S ^SC(SC,"ST",$P(X,"."),1)=S,^SC(SC,"S",X,0)=X S:'$D(^DPT(DFN,"S",0)) ^(0)="^2.98^^" S:'$D(^SC(SC,"S",0)) ^(0)="^44.001DA^^" L
- ;
  ;IHS/ANMC/LJF 7/06/2000;6/22/2001
 S1 ;L ^SC(SC,"S",X,1):5 G:'$T S1 F Y=1:1 I '$D(^SC(SC,"S",X,1,Y)) S:'$D(^(0)) ^(0)="^44.003PA^^" S ^(Y,0)=DFN_U_(+SL)_U_U_D_U_U_$S($D(DUZ):DUZ,1:"")_U_DT_U_U_U_$S(+SDEMP:+SDEMP,1:"") S SDY=Y L  Q
  L ^SC(SC,"S",X,1):5 G:'$T S1 F Y=1:1 I '$D(^SC(SC,"S",X,1,Y)) S:'$D(^(0)) ^(0)="^44.003PA^^" S ^(Y,0)=DFN_U_(+SL)_U_U_D_U_U_$S($D(DUZ):DUZ,1:"")_U_$$NOW^XLFDT_U_U_U_$S(+SDEMP:+SDEMP,1:"") D XREFC^BSDDAM(SC,X,Y) S SDY=Y L  Q
@@ -29,9 +28,12 @@ S1 ;L ^SC(SC,"S",X,1):5 G:'$T S1 F Y=1:1 I '$D(^SC(SC,"S",X,1,Y)) S:'$D(^(0)) ^(
  D SDM^BSDMMU(COV,SDYC,DFN,X,SC,SDINP,SDAPTYP,"","","M",0,"","",.BSDER)  ;ihs/cmi/maw 2/2/2012 patch 1014 for GUI Scheduling
  I $G(BSDER)]"" W !,"Error making appointment in file 2.98" Q  ;ihs/cmi/maw 2/2/2012 patch 1014 for GUI Scheduling
  ;D XRDT(DFN,X)  ;xref DATE APPT. MADE field  ihs/cmi/maw 2/2/2012 patch 1014 not used after 1013
+ S SDMADE=1  ;ihs/cmi/maw 05/14/2012 fix for multiple appt bookings
  K:$D(^DPT("ASDCN",SC,X,DFN)) ^(DFN) K:$D(^DPT(DFN,"S",X,"R")) ^("R")
  S SDRT="A",SDTTM=X,SDPL=SDY,SDSC=SC D RT^SDUTL
  L  W !,"APPOINTMENT MADE ON " S Y=X D DT^DIQ
+ ;check for open EWL entries and create TMP($J,"APPT";SD/327
+ N SDEV,SD D EN^SDWLEVAL(DFN,.SDEV) S SD=X I SDEV D APPT^SDWLEVAL(DFN,SD,SC)
  D EVT
  Q
  ;
@@ -51,15 +53,13 @@ X L  I SDZ=1 W !,*7,"CLINIC DOES NOT MEET THEN!!" S SDERRFT=1 Q
  S SDMES="CLINIC DOES NOT MEET ON " G WRTER
  ;
 EVT ; -- separate tag if need to NEW vars
- ;N D,SI,SC,SL,COLLAT D MAKE^SDAMEVT(DFN,SDTTM,SDSC,SDPL,0)
- N D,SI,SC,SL,COLLAT,SD D MAKE^SDAMEVT(DFN,SDTTM,SDSC,SDPL,0)  ;IHS/ITSC/LJF 4/22/2004 PATCH #1001
+ N D,SI,SC,SL,COLLAT D MAKE^SDAMEVT(DFN,SDTTM,SDSC,SDPL,0)
  Q
  ;
 OB ; check for overbook keys
  N %,D,I,S,ST
  S SDNOT=1
- ;I '$D(^XUSEC("SDOB",DUZ)),'$D(^XUSEC("SDMOB",DUZ)) D NOOB G OBQ ; user has neither key  ;IHS/ANMC/LJF 12/13/2000
- I '$$OVRBKUSR^BSDU(DUZ,+SC) D NOOB G OBQ ; user has neither key  ;IHS/ANMC/LJF 12/13/2000
+ I '$D(^XUSEC("SDOB",DUZ)),'$D(^XUSEC("SDMOB",DUZ)) D NOOB G OBQ ; user has neither key
  S I=$P(SD,".",1),(S,ST)=$P(SL,U,7) ; counter of OBs for day = ST
  I ST F D=I-.01:0 S D=$O(^SC(SC,"S",D)) Q:$P(D,".",1)-I  F %=0:0 S %=$O(^SC(SC,"S",D,1,%)) Q:'%  I $P(^(%,0),"^",9)'["C",$D(^("OB")) S ST=ST-1
  I ST<1 D  G OBQ
@@ -68,8 +68,7 @@ OB ; check for overbook keys
  . S MXOK=$$DIR("WILL EXCEED MAXIMUM ALLOWABLE OVERBOOKS FOR "_$$FMTE^XLFDT(Y)_", OK","YES")
  . I 'MXOK S SM=9,SDNOT=0 Q
  . I MXOK S S=^SC(SC,"ST",I,1),SM=9,MXOK=""
- ;I '$D(^XUSEC("SDOB",DUZ)) D NOOB G OBQ  ;IHS/ANMC/LJF 12/13/2000
- I '$$OVRBKUSR^BSDU(DUZ,+SC) D NOOB G OBQ      ;IHS/ANMC/LJF 12/13/2000
+ I '$D(^XUSEC("SDOB",DUZ)) D NOOB G OBQ
  I '$$DIR($$FMTE^XLFDT(Y)_" WILL BE AN OVERBOOK, OK","NO") S SM=9,SDNOT=0
 OBQ Q
  ;

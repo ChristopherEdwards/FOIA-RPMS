@@ -1,8 +1,12 @@
-VAFCTFU ;ALB/JLU-UTILITIES FOR THE TREATING FACILITY FILE 391.91 ;10/10/02  15:55
- ;;5.3;Registration;**149,240,261,255,316,392,440,428,474**;Aug 13, 1993
+VAFCTFU ;ALB/JLU-UTILITIES FOR THE TREATING FACILITY FILE 391.91 ; 1/15/10 5:00pm
+ ;;5.3;PIMS;**149,240,261,255,316,392,440,428,474,520,697,1015,1016**;JUN 30, 2012;Build 20
  ;
  ;Reference to EXC^RGHLLOG and STOP^RGHLLOG supported by IA #2796
  ;Reference to $$UPDATE^ MPIFAPI supported by IA #2706
+ ;
+ ;CHKSUB & GETSCN line tags removed, patch DG*5.3*697
+ ;Subscriptions are no longer used and errors are being
+ ;generated when attempting to add a subscription.
  ;
 FILETF(PAT,INST) ;programmer entry point.
  ;INPUT   PAT - This is the patient's ICN
@@ -31,7 +35,7 @@ FILETFQ Q VAFCER
  ; both the SET & QUERYTF subroutines have been moved to VAFCTFU1 as
  ; the result of DG*5.3*261  *261 gjc@120899
  ;
-FILE(PDFN,FSTRG,TICN,VAFCSLT,ERROR) ;this module files the individual entry
+FILE(PDFN,FSTRG,TICN,VAFCSLT,ERROR,IPP,SOURCEID,IDENSTAT) ;this module files the individual entry
  ;PDFN is the patient's DFN
  ;FSTRG = institution or treating facility^Date of treatment^Event reason
  ;TICN - if 1 suppress add entries to ADT HL7 PIVOT (#391.71) file
@@ -58,11 +62,11 @@ FILE(PDFN,FSTRG,TICN,VAFCSLT,ERROR) ;this module files the individual entry
  S ICN=+$$MPINODE^MPIFAPI(PDFN)
  S TFIEN=$O(^DGCN(391.91,"APAT",PDFN,FAC,0)) D
  .;TFIEN is used in other places so quit after adding new entry
- .I 'TFIEN D FILENEW(PDFN,FAC,PDLT,EVNTR,VAFCSLT,.ERROR) Q
- .I TFIEN D FILEDIT(TFIEN,PDLT,PDFN,FAC,EVNTR,VAFCSLT,.ERROR)
+ .I 'TFIEN D FILENEW(PDFN,FAC,PDLT,EVNTR,VAFCSLT,.ERROR,$G(IPP),$G(SOURCEID),$G(IDENSTAT)) Q
+ .I TFIEN D FILEDIT(TFIEN,PDLT,PDFN,FAC,EVNTR,VAFCSLT,.ERROR,$G(IPP),$G(SOURCEID),$G(IDENSTAT))
  ;look to see if CMOR is in TF list if not add
  S CMOR=$$GETVCCI^MPIF001(PDFN)
- S CMOR=$$LKUP^XUAF4(+CMOR)
+ S CMOR=$$LKUP^XUAF4(CMOR) ; **520 REMOVED +
  ;check to see if CMOR exist if not add it
  I +$G(CMOR)>0 D:'$D(^DGCN(391.91,"APAT",PDFN,CMOR)) FILENEW^VAFCTFU(PDFN,CMOR)
  ;create the entry in the pivot to broadcast the MFU.
@@ -71,7 +75,7 @@ FILE(PDFN,FSTRG,TICN,VAFCSLT,ERROR) ;this module files the individual entry
  I $G(TICN)'=1,$P($$SEND^VAFHUTL,"^",2)>0 D SETSND(PDFN)
 FILEQ Q
  ;
-FILENEW(PDFN,FAC,PDLT,EVNTR,VAFCSLT,ERROR) ;
+FILENEW(PDFN,FAC,PDLT,EVNTR,VAFCSLT,ERROR,IPP,SOURCEID,IDENSTAT) ;
  N DGSENFLG ;**240 added y
  K DD,DO,DIC,DA,RESULT
  S DGSENFLG=""
@@ -81,14 +85,28 @@ FILENEW(PDFN,FAC,PDLT,EVNTR,VAFCSLT,ERROR) ;
  S FDA(1,391.91,"+1,",.02)=FAC
  S FDA(1,391.91,"+1,",.03)=$G(PDLT)
  S FDA(1,391.91,"+1,",.07)=$G(EVNTR)
+ S FDA(1,391.91,"+1,",.08)=$G(IPP)
  L +^DGCN(391.91,0):30
  I '$D(^DGCN(391.91,"APAT",PDFN,FAC)) D UPDATE^DIE("","FDA(1)","FDAIEN","ERR") I $D(ERR("DIERR",1)) S ERROR(STA)="Add of "_STA_" Failed at "_$P($$SITE^VASITE,"^",3)_" due to "_$G(ERR("DIERR",1,"TEXT",1))
- ;check to see if TF exist as a subscription if not add it, but only if call from old entry point without the VAFCSLT parameter
- I '$D(ERROR(STA)) I FAC'=+$$SITE^VASITE I $G(VAFCSLT)'=1 D CHKSUB(PDFN,FAC)
+ I $G(SOURCEID)'="",$G(FDAIEN(1))'="" D UPDSID(PDFN,FAC,SOURCEID,IDENSTAT,FDAIEN(1))  ;Update SourceID multiple
+ ;removed code to add a subscription
  L -^DGCN(391.91,0)
  K DIC,DD,DO,DA
  Q
  ;
+UPDSID(PDFN,FAC,SID,IDSTAT,TFIEN) ;Update sourceid multiple
+ N FDA,DGENDA,FILE,IENS
+ S FILE=391.9101
+ I $D(^DGCN(391.91,TFIEN,1,"B",SID)) D  Q  ;Update existing sub record
+ . S DGENDA=$O(^DGCN(391.91,TFIEN,1,"B",SID,0))
+ . S DGENDA(1)=TFIEN,IENS=$$IENS^DILF(.DGENDA)
+ . S FDA(FILE,IENS,.01)=SID,FDA(FILE,IENS,1)=IDSTAT
+ . D FILE^DIE("K","FDA","ERRORS(1)")
+ ;add new sub record
+ S DGENDA="+1",DGENDA(1)=TFIEN,IENS=$$IENS^DILF(.DGENDA)
+ S FDA(FILE,IENS,.01)=SID,FDA(FILE,IENS,1)=IDSTAT
+ D UPDATE^DIE("","FDA","IENA","ERRORS(1)")
+ Q
 SETSND(PDFN) ;sets the pivot file entry to send MFU
  ;
  N ANS,X
@@ -96,7 +114,7 @@ SETSND(PDFN) ;sets the pivot file entry to send MFU
  ; check if other facilities other than CMOR in TF list
  N SIT,CMOR,STOP
  S CMOR=$$GETVCCI^MPIF001(PDFN)
- S CMOR=$$LKUP^XUAF4(+CMOR)
+ S CMOR=$$LKUP^XUAF4(CMOR) ; **520 REMOVED +
  I CMOR=$P($$SITE^VASITE,"^") D
  .S SIT=0
  .S SIT=$O(^DGCN(391.91,"APAT",PDFN,SIT))
@@ -107,16 +125,17 @@ SETSND(PDFN) ;sets the pivot file entry to send MFU
  D XMITFLAG^VAFCDD01(0,+ANS,0)
 SETSNDQ Q
  ;
-FILEDIT(TFIEN,PDLT,PDFN,FAC,EVNTR,VAFCSLT,ERROR) ;
+FILEDIT(TFIEN,PDLT,PDFN,FAC,EVNTR,VAFCSLT,ERROR,IPP,SOURCEID,IDENSTAT) ;
  N DGSENFLG,FDA,FDAIEN,ERR,RESULT S DGSENFLG="",ERR=""
- I $G(PDLT)'="" D
+ I $G(PDLT)'=""!($G(IPP)'="") D
  .S TFIEN(0)=$G(^DGCN(391.91,TFIEN,0))
  .I $G(EVNTR)'="" D CHK^DIE(391.91,.07,"",EVNTR,.RESULT) I +RESULT>0 S EVNTR=RESULT
- .S FDA(1,391.91,+TFIEN_",",.03)=$G(PDLT)
+ .I $G(PDLT)'="" S FDA(1,391.91,+TFIEN_",",.03)=$G(PDLT)
  .S FDA(1,391.91,+TFIEN_",",.07)=$G(EVNTR)
+ .I $G(IPP)'="" S FDA(1,391.91,+TFIEN_",",.08)=$G(IPP)
  .D FILE^DIE("K","FDA(1)","ERR") I VAFCSLT I $D(ERR("DIERR",1)) S ERROR(STA)="Edit of "_STA_" Failed at "_$P($$SITE^VASITE,"^",3)_" due to "_$G(ERR("DIERR",1,"TEXT",1))
- ;check to see if TF exist as a subscription if not add it, but only if call from old entry point without the VAFCSLT parameter
- I $G(VAFCSLT)'=1 I FAC'=+$$SITE^VASITE D CHKSUB(PDFN,FAC)
+ I $G(SOURCEID)'="" D UPDSID(PDFN,FAC,SOURCEID,IDENSTAT,TFIEN)
+ ;remove code to add a subscription
  Q
  ;
 DELETETF(PAT,INST) ;deletion entry point
@@ -172,27 +191,4 @@ DELALLTF(PAT) ;Entry point to delete all Treating Facilities for a single
  . F  S TFIEN=$O(^DGCN(391.91,"APAT",PDFN,LP,TFIEN)) Q:TFIEN'>0  D DELETE(TFIEN)
  ;
  Q VAFCER
- Q
-CHKSUB(DFN,FAC) ;check for an existing subscription if one does not exist add it
- N VAFCSCN,VAFC,VAFCLL,VAFCLLI,VAFCLLN,FLAG,LOOP,HLER,ERR
- Q:FAC=""
- Q:DFN=""
- S VAFCSCN=$$GETSCN(DFN)
- D GET^HLSUB(VAFCSCN,0,"VAFC MFU-TFL CLIENT",.VAFCLL)
- D LINK^HLUTIL3("`"_FAC,.VAFC,"I") S VAFCLLI=$O(VAFC(0)) I $G(VAFCLLI)="" S ERR="Msg#"_$G(HL("MID"))_" Unknown Logical link for facility IEN#"_$G(FAC)_"  unable to add SC for DFN#"_$G(DFN) D EXC^RGHLLOG(224,$G(ERR),DFN) D STOP^RGHLLOG(1) Q
- S VAFCLLN=VAFC(VAFCLLI)
- S FLAG=0,LOOP=0 F  S LOOP=$O(VAFCLL("LINKS",LOOP)) Q:'LOOP  I $P(VAFCLL("LINKS",LOOP),"^",2)=VAFCLLN S FLAG=1
- ;if TF Logical Link is not in subscription list add it
- I FLAG=0 D UPD^HLSUB(VAFCSCN,VAFCLLN,0,$$NOW^XLFDT,"@",,.HLER)
- ;if TF logical link is there make sure its does not have a termination date
- I FLAG=1 D UPD^HLSUB(VAFCSCN,VAFCLLN,0,,"@",,.HLER)
- I $D(HLER) D EXC^RGHLLOG(224,"Msg#"_$G(HL("MID"))_" Unable to add/update SC for facility IEN "_FAC_", Link "_$G(VAFCLLN)_", SUBSCRIPTION #"_$G(VAFCSCN),DFN) D STOP^RGHLLOG(1) Q  ; log exception **307
- Q
-GETSCN(DFN) ;Return existing SCN or Activate a new subscription
- ;DFN - PATIENT (#2) file ien
- N VAFCAR,VAFCAN
- ;get subscription control #
- S VAFCSCN=+$P($$MPINODE^MPIFAPI(DFN),"^",5)
- ;if no SCN, create new and update 991.05, then return result
- I 'VAFCSCN S VAFCSCN=$$ACT^HLSUB S VAFCAR(991.05)=VAFCSCN S VAFCAN=$$UPDATE^MPIFAPI(DFN,"VAFCAR") I VAFCAN=-1 S VAFCSCN=""
- Q VAFCSCN
+ ;

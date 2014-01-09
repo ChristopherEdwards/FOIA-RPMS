@@ -1,7 +1,7 @@
-GMRAPED0 ;HIRMFO/RM,WAA-VERIFIER EDIT OF DRUG A/AR ;09-Feb-2011 17:05;MGH
- ;;4.0;Adverse Reaction Tracking;**17,1002**;Mar 29, 1996;Build 32
- ;IHS/MSC/MGH added data to edit source
+GMRAPED0 ;HIRMFO/RM,WAA-VERIFIER EDIT OF DRUG A/AR ;01-May-2012 14:23;DU
+ ;;4.0;Adverse Reaction Tracking;**17,1002,1006**;Mar 29, 1996;Build 29
 EN1 ; ENTRY TO EDIT INFO SPECIFIC TO DRUG A/AR FOR VERIFIER
+ ;IHS/MSC/MGH added data to edit source Patch 1006
  K GMRAINGR,GMRACLAS
  I '$D(^XUSEC("GMRA-ALLERGY VERIFY",DUZ)) G Q1
  S GMRAPA(0)=$G(^GMR(120.8,GMRAPA,0)) G:GMRAPA(0)="" Q1
@@ -29,7 +29,7 @@ YNED W !!,"Would you like to edit any of this data" S %=0 D YN^DICN I '% W !?4,$
  S DA=GMRAPA,DIE="^GMR(120.8,",DR="2" D ^DIE S:$D(Y) GMRAOUT=1 G Q1:GMRAOUT
  S GMRAPA(0)=$G(^GMR(120.8,+GMRAPA,0))
  D DRGCLS^GMRAPED1
- ;IHS/MSC/MGH added to edit source
+ ;IHS/MSC/MGH added to edit source Patch 1006
  S DA=GMRAPA,DIE="^GMR(120.8,",DR="9999999.11" D ^DIE S:$D(Y) GMRAOUT=1 G Q1:GMRAOUT
  I 'GMRAOUT F  K Y D  Q:GMRAOUT!('$D(Y))
  .S GMRAPA(0)=$S($D(^GMR(120.8,GMRAPA,0)):^(0),1:"")
@@ -44,10 +44,9 @@ YNED W !!,"Would you like to edit any of this data" S %=0 D YN^DICN I '% W !?4,$
  ..Q
  .Q
  I 'GMRAOUT D EN1^GMRAPER2(GMRAPA,"120.8",.GMRAOUT)
- ;Added into the snomed event
- ;I 'GMRAOUT D MECH Q:GMRAOUT
- ;Add the event type IHS/MSC/MGH
+ ;Add the SNOMED event type IHS/MSC/MGH Patch 1006
  I 'GMRAOUT D EVENT Q:GMRAOUT
+ ;I 'GMRAOUT D MECH Q:GMRAOUT
  S GMRAPA(0)=$S($D(^GMR(120.8,GMRAPA,0)):^(0),1:"")
  S GMRAOUT=0 G EN1
 Q1 ;Exit
@@ -61,7 +60,8 @@ MECH ;Mechanism for ADRs
  .S:$D(Y) GMRAOUT=1
  .Q
  Q
-EVENT N DIC,DA,DR,DIE,X,Y,IEN,TXT,MECH
+EVENT ;Store the event
+ N DIC,DA,DR,DIE,X,Y,IEN,TXT,MECH
  S TXT=""
  S DIE="^GMR(120.8,",DA=GMRAPA,DR=9999999.13
  D ^DIE

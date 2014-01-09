@@ -1,5 +1,5 @@
-GMRAUTL2 ;SLC/DAN New style index utilities, update utility for 120.8 ;1/3/07  08:02
- ;;4.0;Adverse Reaction Tracking;**23,36**;Mar 29, 1996;Build 9
+GMRAUTL2 ;SLC/DAN New style index utilities, update utility for 120.8 ;21-Jun-2012 08:36;DU
+ ;;4.0;Adverse Reaction Tracking;**23,36,1005,1006**;Mar 29, 1996;Build 29
  ;
  N GMRAI,GMRAC,ENTRY,UPDATED
  Q:$G(X1(1))=$G(X2(1))  ;Entry unchanged
@@ -119,12 +119,14 @@ MAIL ;Send message containing potential order checks to user.
  Q
  ;
 TOP10 ;Check top 10 reactions after push of file 120.83
+ ;IHS/MSC/MGH added check for inactive in the screen patch 1005
  N SUB,REAC,REACNO,ARRAY,SUBNM,REACNM,GMRATXT,XMSUB,XMTEXT,XMDUZ,XMY,DIFROM,CNT
  I '$L($T(SCREEN^XTID)) Q  ;No screening code so quit
  S SUB=0 F  S SUB=$O(^GMRD(120.84,SUB)) Q:'+SUB  I $D(^GMRD(120.84,SUB,1)) D
  .S REAC=0 F  S REAC=$O(^GMRD(120.84,SUB,1,REAC)) Q:'+REAC  D
  ..S REACNO=$P(^GMRD(120.84,SUB,1,REAC,0),U) Q:'+REACNO
- ..I $$SCREEN^XTID(120.83,.01,REACNO_",") D
+ ..;IHS/MSC/MGH checks added
+ ..I $$SCREEN^XTID(120.83,.01,REACNO_",")!($$CHECKS^GMRAPER0(REACNO)) D
  ...S SUBNM=$P(^GMRD(120.84,SUB,0),U),REACNM=$P(^GMRD(120.83,REACNO,0),U)
  ...S ARRAY(SUBNM,REACNM)=""
  I $D(ARRAY) D

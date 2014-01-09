@@ -1,5 +1,5 @@
 SCRPW241 ;BPCIOFO/ACS - ACRP Ad Hoc Report (cont.) ;06/30/99
- ;;5.3;Scheduling;**180,254**;AUG 13, 1993
+ ;;5.3;Scheduling;**180,254,351,1015**;AUG 13, 1993;Build 21
  ;
  ;----------------------------------------------------------------
  ; This routine was created due to the max number of bytes
@@ -17,12 +17,11 @@ APAC(SDX) ;Get all procedure codes
  N SDY,SDI,CPTINFO,CPTCODE
  ; array SDY will contain the CPT information
  D GETCPT^SDOE(SDOE,"SDY")
- ;
  ; Spin through CPT array and get CPT code and quantity
  S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  D
  . I $D(SDY(SDI,0)) S SDX=$P(SDY(SDI,0),U)
  . E  Q
- . S CPTINFO=$$CPT^ICPTCOD(+SDX,,1)
+ . S CPTINFO=$$CPT^ICPTCOD(+SDX,+SDOE0,1)
  . Q:CPTINFO'>0
  . S CPTCODE=$P(CPTINFO,U,2)
  . S SDX=SDX_U_CPTCODE_U_$P(SDY(SDI,0),U,16)
@@ -34,8 +33,14 @@ APOTR(SDX) ;Transform procedure external value
  ; INPUT - .SDX  CPT pointer
  ; OUTPUT-  SDX  text string containing CPT code, CPT text
  ;
- N CPTINFO,CPTTEXT
- S CPTINFO=$$CPT^ICPTCOD(+SDX,,1)
+ N CPTINFO,CPTTEXT,ENCDT
+ S ENCDT=+$G(SDOE0)
+ I 'ENCDT D
+ .I '$G(SDOE) S ENCDT=$$NOW^XLFDT() Q
+ .D GETGEN^SDOE(SDOE,"SDY")
+ .S ENCDT=+$G(SDY(0))
+ .K SDY
+ S CPTINFO=$$CPT^ICPTCOD(+SDX,ENCDT,1)
  Q:CPTINFO'>0
  S CPTTEXT=$P(CPTINFO,U,3)
  S $P(SDX,U,2)=$P(SDX,U,2)_" "_CPTTEXT
@@ -53,7 +58,7 @@ APAP(SDX) ;Get ambulatory procedures (no E&M codes)
  . I $D(SDY(SDI,0)) S SDX=$P(SDY(SDI,0),U)
  . E  Q
  . I '$D(^IBE(357.69,"B",SDX)) D
- .. S CPTINFO=$$CPT^ICPTCOD(+SDX,,1)
+ .. S CPTINFO=$$CPT^ICPTCOD(+SDX,+SDOE0,1)
  .. Q:CPTINFO'>0
  .. S CPTCODE=$P(CPTINFO,U,2)
  .. S SDX=SDX_U_CPTCODE
@@ -69,13 +74,12 @@ APEM(SDX) ;Get evaluation and management codes
  K SDX
  N SDY,SDI,CPTINFO,CPTCODE
  D GETCPT^SDOE(SDOE,"SDY")
- ;
  ; Spin through CPT array and get CPT code
  S SDI=0 F  S SDI=$O(SDY(SDI)) Q:'SDI  D
  . I $D(SDY(SDI,0)) S SDX=$P(SDY(SDI,0),U)
  . E  Q
  . I $D(^IBE(357.69,"B",SDX)) D
- .. S CPTINFO=$$CPT^ICPTCOD(+SDX,,1)
+ .. S CPTINFO=$$CPT^ICPTCOD(+SDX,+SDOE0,1)
  .. Q:CPTINFO'>0
  .. S CPTCODE=$P(CPTINFO,U,2)
  .. S SDX=SDX_U_CPTCODE

@@ -1,5 +1,5 @@
 BUD0UPVL ; IHS/CMI/LAB - update visit locations UDS 30 Dec 2010 10:34 AM ;
- ;;6.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2012;Build 25
+ ;;7.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2013;Build 31
  ;
  ;
 START ;update visit locations

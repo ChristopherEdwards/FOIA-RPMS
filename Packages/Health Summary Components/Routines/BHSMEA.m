@@ -1,5 +1,5 @@
-BHSMEA ;IHS/CIA/MGH - Health Summary for Measurements and immunizations ;26-Apr-2011 16:42;DU
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,3,4,5**;March 17, 2006;Build 9
+BHSMEA ;IHS/CIA/MGH - Health Summary for Measurements and immunizations ;05-Jul-2012 10:50;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,3,4,5,7**;March 17, 2006;Build 12
  ;===================================================================
  ;Taken from APCHS2
  ; IHS/TUCSON/LAB - PART 2 OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;
@@ -35,7 +35,7 @@ MEASDSP ;
  N DATA,V,T,BHSDAT2
  S BHSDFN="" F  S BHSDFN=$O(^AUPNVMSR("AA",BHSPAT,BHSMT,BHSIVD,BHSDFN)) Q:BHSDFN=""  D
  .Q:$P($G(^AUPNVMSR(BHSDFN,2)),U,1)   ;entered in error
- .S V=$P(^AUPNVMSR(BHSDFN,0),U,3) Q:$P($G(^AUPNVSIT(V,0)),U,7)="H"  ;exclude inpatient
+ .S V=$P(^AUPNVMSR(BHSDFN,0),U,3)     Q:$P($G(^AUPNVSIT(V,0)),U,7)="H"  ;exclude inpatient
  .S BHSDAT=$P($G(^AUPNVMSR(BHSDFN,12)),U,1) S X=BHSDAT
  .I BHSDAT="" S (X,BHSDAT)=-BHSIVD\1+9999999
  .D REGDTM^GMTSU
@@ -43,7 +43,7 @@ MEASDSP ;
  .S ARRAY(BHSMT2,BHSDAT)=BHSDFN_"^"_BHSDAT2
  Q
 WRTOUT ;Write out the vitals
- N I,BHSDAT,BHSDFN,BHSDAT2,BHSMT,BHSX
+ N I,BHSDAT,BHSDFN,BHSDAT2,BHSMT,BHSX,PO2
  D CKP^GMTSUP Q:$D(GMTSQIT)
  S BHSMT2=""
  S BHSMT="" F  S BHSMT=$O(ARRAY(BHSMT)) Q:BHSMT=""  D
@@ -56,12 +56,20 @@ WRTOUT ;Write out the vitals
  ..S DATA=$P($G(^AUPNVMSR(BHSDFN,0)),U,4)
  ..I $P(DATA,".",2)'="" S DATA=+$J(DATA,0,2)
  ..W ?22,DATA
+ ..I BHSMT="O2" D
+ ...S PO2=$P($G(^AUPNVMSR(BHSDFN,0)),U,10)
+ ...W ?32,"Supplemental O2: "_PO2,!
  ..I '$O(^AUPNVMSR(BHSDFN,5,0)) W ! Q   ;no qualifiers
- ..S C=0,X=0 F  S X=$O(^AUPNVMSR(BHSDFN,5,X)) Q:X'=+X  S C=C+1
- ..W ?32,"QUALIFIER"_$S(C>1:"'s",1:""),":"
- ..S T=45 S BHSX=0 F  S BHSX=$O(^AUPNVMSR(BHSDFN,5,BHSX)) D  Q:BHSX'=+BHSX
- ...S Y=$P($G(^AUPNVMSR(BHSDFN,5,BHSX,0)),U) I Y W ?T,$P($G(^GMRD(120.52,Y,0)),U,2) S T=T+5
- ...W !
+ ..S C=0,X=0,D=0 F  S X=$O(^AUPNVMSR(BHSDFN,5,X)) Q:X'=+X  S C=C+1
+ ..W ?32,"Qualifier"_$S(C>1:"s",1:""),":"
+ ..S T="" S BHSX=0 F  S BHSX=$O(^AUPNVMSR(BHSDFN,5,BHSX)) D  Q:BHSX'=+BHSX
+ ...S Y=$P($G(^AUPNVMSR(BHSDFN,5,BHSX,0)),U) I Y D
+ ....S D=D+1
+ ....I T'="" S T=T_", "
+ ....S T=T_$P($G(^GMRD(120.52,Y,0)),U,1)
+ ....I D>1 W ?45,T,! S D=0,T=""
+ ..W ?45,T
+ ..W !
  Q
  ;
 IMMUN ; ******************** IMMUNIZATIONS * 9000010.11 *******

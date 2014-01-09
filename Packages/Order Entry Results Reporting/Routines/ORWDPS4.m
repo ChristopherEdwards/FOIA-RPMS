@@ -1,5 +1,5 @@
-ORWDPS4 ;; SLC/JDL - Order Dialogs CO-PAY and Other;[12/31/01 6:38pm] [4/29/04 8:47am]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**116,125,131,141,173,187,190**;Dec 17, 1997
+ORWDPS4 ;; SLC/JDL - Order Dialogs CO-PAY and Other;[12/31/01 6:38pm]
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**116,125,131,141,173,187,190,195,215,243**;Dec 17, 1997;Build 242
  ;
 CPLST(TEST,PTIFN,ORIFNS) ; --Get CP questions
  N ORIFN,ORDA,ORI,ORPSO,CPX
@@ -7,6 +7,10 @@ CPLST(TEST,PTIFN,ORIFNS) ; --Get CP questions
  F  S ORI=$O(ORIFNS(ORI)) Q:'ORI  D
  .S ORIFN=+ORIFNS(ORI),ORDA=$P(ORIFNS(ORI),";",2)
  .I $D(^OR(100,ORIFN,0)),($P(^OR(100,ORIFN,0),U,14)=ORPSO) D
+ ..N PRIO S PRIO=0
+ ..I $D(^OR(100,ORIFN,4.5,"ID","URGENCY")) S PRIO=$O(^("URGENCY",0))
+ ..S PRIO=$G(^OR(100,ORIFN,4.5,+PRIO,1))
+ ..Q:PRIO=99
  ..S CPX=$$SC(ORIFN)
  ..I $L(CPX)>1 S TEST(ORIFN)=ORIFN_";"_ORDA_CPX
  K PTIFN,ORIFN,ORDA,ORI,CPX
@@ -31,11 +35,12 @@ SC(ORIFN) ; -- Dialog validation, to ask CP questions
  I '$L($T(SCNEW^PSOCP))!('$G(ORIFN))!('$G(ORDA)) Q DR
  I $P($G(^OR(100,ORIFN,8,ORDA,0)),U,2)'="NW" Q DR
  ;
- N OR3,ORDRUG,ORENEW,ORX,I,X,Y,CPNODE,ASC,AAO,AIR,AEC,AMST,AHNC,ACV
- S ORX=""
+ N OR3,ORDRUG,ORENEW,ORX,I,XACT,YACT,CPNODE,ASC,AAO,AIR,AEC,AMST,AHNC,ACV,ASHD
+ S ORX="",XACT=""
  ;--Only new, renew, edited, copied outpatient order can continue...
- S OR3=$G(^OR(100,ORIFN,3)),X=$P(OR3,U,11) I (X'=0)&((X'=2)&(X'=1)) Q DR
- I (X=1)&($D(^OR(100,ORIFN,5))=0) Q DR
+ ;AGP CHANGE 26.65, will returned service connection data for change orders
+ S OR3=$G(^OR(100,ORIFN,3)),XACT=$P(OR3,U,11) I (XACT'=0)&(XACT'=1)&((XACT'=2)&(XACT'="C")) Q DR
+ I (XACT=1)&($D(^OR(100,ORIFN,5))=0) Q DR
  I $D(^OR(100,ORIFN,5))>0 D
  .S CPNODE=$G(^OR(100,ORIFN,5))
  .S ASC=$S($L($P(CPNODE,"^",1)):"SC;"_$P(CPNODE,"^",1),1:"")
@@ -52,13 +57,15 @@ SC(ORIFN) ; -- Dialog validation, to ask CP questions
  .S DR=$S($L(AHNC):DR_U_AHNC,1:DR)
  .S ACV=$S($L($P(CPNODE,"^",7)):"CV;"_$P(CPNODE,"^",7),1:"")
  .S DR=$S($L(ACV):DR_U_ACV,1:DR)
+ .S ASHD=$S($L($P(CPNODE,"^",8)):"SHD;"_$P(CPNODE,"^",8),1:"")
+ .S DR=$S($L(ASHD):DR_U_ASHD,1:DR)
  .D CPCOMP(.DR)
  .K ASC,AAO,AIR,AEC,AMST,AHNC,CPNODE
  I $L(DR)>0 Q DR
- I X=2 S Y=$P(OR3,U,5),ORENEW=$G(^OR(100,Y,4)) ;get PS# if renewal
+ I XACT=2 S YACT=$P(OR3,U,5),ORENEW=$G(^OR(100,YACT,4)) ;get PS# if renewal
  S ORDRUG=$$VALUE^ORCSAVE2(ORIFN,"DRUG")
  D SCNEW^PSOCP(.ORX,+PTIFN,ORDRUG,$G(ORENEW)) I '$D(ORX) Q DR
- F I="SC","AO","IR","EC","MST","HNC","CV" D
+ F I="SC","AO","IR","EC","MST","HNC","CV","SHD" D
  . I $D(ORX(I)) S DR=DR_U_I_$S($L(ORX(I)):";"_ORX(I),1:"")
  Q DR
 REFMT(ORX,INFO) ;
@@ -76,6 +83,7 @@ REFMT(ORX,INFO) ;
  S ORX("EC")=$P(RST1,U,4)
  S ORX("HNC")=$P(RST1,U,6)
  S ORX("CV")=$P(RST1,U,7)
+ S ORX("SHD")=$P(RST1,U,8)
  K RST,RST1
  Q
 CPCOMP(PREX) ; -- Compare the existed exemptions with new exemption questions
@@ -83,7 +91,7 @@ CPCOMP(PREX) ; -- Compare the existed exemptions with new exemption questions
  S LSTCP=""
  S ORDRUG1=$$VALUE^ORCSAVE2(ORIFN,"DRUG")
  D SCNEW^PSOCP(.ORX1,+PTIFN,ORDRUG1,$G(ORENEW)) I '$D(ORX1) Q
- F CPI="SC","AO","IR","EC","MST","HNC","CV" D
+ F CPI="SC","AO","IR","EC","MST","HNC","CV","SHD" D
  . I $D(ORX1(CPI)) D
  . . S TMPVAL=""
  . . I $F(PREX,CPI) D
@@ -114,4 +122,10 @@ UPDTDG(ORY,ORID) ;Update Inpt order for outpatient DG to Inpt DG
  N UDDG
  S UDDG=$O(^ORD(100.98,"B","UD RX",0))
  S $P(^OR(100,+ORID,0),U,11)=UDDG
+ Q
+ISUDIV(ORY,ORIFN) ;True: OI of the order is for both UD and IV
+ N OI
+ S (OI,ORY)=0
+ S OI=+$O(^OR(100,+$G(ORIFN),.1,"B",0)) Q:OI<1
+ I $O(^ORD(101.43,OI,9,"B","IVM RX",0)) S ORY=1
  Q

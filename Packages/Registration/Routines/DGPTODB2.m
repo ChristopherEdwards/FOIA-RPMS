@@ -1,5 +1,5 @@
 DGPTODB2 ;ALB/AS - PTF DRG Breakeven REPORTS (CONT) ; 26 JUN 87  10:00
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  F DRG=0:0 S:DRG>0&('$D(^UTILITY($J,"DGTC",DRG))) ^UTILITY($J,"DGTC",DRG,DGPAG)="" S DRG=$O(^UTILITY($J,"DGPTFR","D",DRG)) Q:DRG'>0  S Z=^(DRG) D LN
  D WM Q
 LN I $Y>$S($D(IOSL):(IOSL-12),1:54) D HD^DGPTODB1

@@ -1,5 +1,5 @@
 SCCVDEL ;ALB/TMP - OLD SCHED VISITS FILE DELETE; [ 03/04/98  09:39 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Main entry point - display scheduling files to delete
  N Z

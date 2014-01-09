@@ -1,5 +1,5 @@
 SCRPW20 ;RENO/KEITH - ACRP Ad Hoc Report ; 15 Nov 98  4:31 PM
- ;;5.3;Scheduling;**144,171**;AUG 13, 1993
+ ;;5.3;Scheduling;**144,171,1015**;AUG 13, 1993;Build 21
  I $E(IOST)'="C" D  Q
  .N SDX S SDX="Your current terminal type is "_IOST_"." W !?(IOM-$L(SDX)\2),SDX
  .S SDX="This option requires a CRT terminal type!" W !!?(IOM-$L(SDX)\2),SDX,! Q

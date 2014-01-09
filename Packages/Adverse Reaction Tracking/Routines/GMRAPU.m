@@ -1,5 +1,5 @@
-GMRAPU ;HIRMFO/WAA- PRINT ALLERGY LIST BY LOCATION UNVERIFIED ; 8/27/93 [ 05/03/2002  10:11 AM ]
- ;;4.0;Adverse Reaction Tracking;;Mar 29, 1996
+GMRAPU ;HIRMFO/WAA- PRINT ALLERGY LIST BY LOCATION UNVERIFIED ;8/27/93
+ ;;4.0;Adverse Reaction Tracking;**33**;Mar 29, 1996;Build 5
 EN1 ; This routine will loop through the GMRA patient allergy file (120.8)
  ; to find all patients with unverified reactions
  ;
@@ -26,10 +26,9 @@ REPORT ; Print out the report
  F  S GMALOC=$O(^TMP($J,"GMRAPU",GMALOC)) Q:GMALOC=""  D HEAD Q:GMRAOUT  D  Q:GMRAOUT
  .S GMRANAM="" F  S GMRANAM=$O(^TMP($J,"GMRAPU",GMALOC,GMRANAM)) Q:GMRANAM=""  D  Q:GMRAOUT
  ..S GMADFN=0 F  S GMADFN=$O(^TMP($J,"GMRAPU",GMALOC,GMRANAM,GMADFN)) Q:GMADFN<1  D  Q:GMRAOUT
- ...S GMRASSN="",GMRARB="",DFN=GMADFN,APSPHRN=$$HRCN^APSGFUNC ;IHS/ITSC/ENM 05/03/02 HRN CALL
+ ...S GMRASSN="",GMRARB=""
  ...D VAD^GMRAUTL1(GMADFN,"","","","",.GMRASSN,.GMRARB)
- ...W !,GMRARB,$S(GMRARB'="":"  ",1:""),GMRANAM," (",APSPHRN,")" ;IHS/ITSC/ENM 05/03/02
- ...;W !,GMRARB,$S(GMRARB'="":"  ",1:""),GMRANAM," (",GMRASSN,")"
+ ...W !,GMRARB,$S(GMRARB'="":"  ",1:""),GMRANAM," (",GMRASSN,")"
  ...S GMADT=0 F  S GMADT=$O(^TMP($J,"GMRAPU",GMALOC,GMRANAM,GMADFN,GMADT)) Q:GMADT<1  S GMRAPA=0 F  S GMRAPA=$O(^TMP($J,"GMRAPU",GMALOC,GMRANAM,GMADFN,GMADT,GMRAPA)) Q:GMRAPA<1  D  Q:GMRAOUT
  ....S GMRAPA(0)=$G(^GMR(120.8,GMRAPA,0))
  ....Q:GMRAPA(0)=""
@@ -42,7 +41,6 @@ REPORT ; Print out the report
  ..Q
  .Q
  D CLOSE^GMRAUTL
- K APSPHRN ;IHS/ITSC/ENM 05/03/02
  Q
 HEAD ; Print header information
  I $E(IOST,1)="C" D  Q:GMRAOUT
@@ -68,6 +66,7 @@ FIND ; This subroutines will build the data for the report.
  F  S GMADFN=$O(^GMR(120.8,"AVER",GMADFN)) Q:GMADFN<1  D
  .N GMRALOC,GMRANAM,GMALOC,GMRAPA
  .S GMRANAM="",GMRALOC=""
+ .Q:'$$PRDTST^GMRAUTL1(GMADFN)  ;GMRA*4*33 Exclude test patients if production or legacy environment.
  .D VAD^GMRAUTL1(GMADFN,"",.GMRALOC,.GMRANAM,"","","") I GMRALOC="" S GMALOC="OUTPATIENT"
  .E  S GMALOC=$P($G(^DIC(42,GMRALOC,0)),U)
  .Q:GMALOC=""

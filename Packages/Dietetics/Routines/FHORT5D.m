@@ -1,14 +1,15 @@
-FHORT5D ; HISC/REL/NCA - Tubefeeding Reports (cont) ;5/4/93  10:52 
- ;;5.0;Dietetics;**38,39**;Oct 11, 1995
+FHORT5D ; HISC/REL/NCA/RVD - Tubefeeding Reports (cont) ;5/4/93  10:52 
+ ;;5.5;DIETETICS;;Jan 28, 2005
+ ;
 CST ; Print Cost Report for Tubefeeding
- S NAM="" F  S NAM=$O(^FH(118.2,"B",NAM)) Q:NAM=""  F LL=0:0 S LL=$O(^FH(118.2,"B",NAM,LL)) Q:LL<1  S ^TMP($J,"P",NAM_"~"_LL)=LL W !,"1) ",NAM,"  ",LL
+ S NAM="" F  S NAM=$O(^FH(118.2,"B",NAM)) Q:NAM=""  F LL=0:0 S LL=$O(^FH(118.2,"B",NAM,LL)) Q:LL<1  S ^TMP($J,"P",NAM_"~"_LL)=LL
  I SUM S CNOD="0" D C2 Q
  S CNOD="0" F  S CNOD=$O(^TMP($J,"C",CNOD)) Q:CNOD=""  D C2
  Q
 C2 S D2=0,NAM="" D HD4 S X0=$G(^TMP($J,"C",CNOD,0))
  F  S NAM=$O(^TMP($J,"P",NAM)) Q:NAM=""  S LL=^(NAM) I $D(^TMP($J,"C",CNOD,LL)) S X1=$G(^(LL,0)),TU=$P(X1,"^",1),TP=$P(X1,"^",2) D
  .I $Y>(IOSL-8) D HD4
- .S Y0=^FH(118.2,LL,0),TU=TU+.95\1,PR=$P($G(^FH(114,+$P(Y0,"^",7),0)),"^",13),D2=TU*PR+D2 W !,"2) ",Y0,"  ",TU,"  ",PR,"  ",D2,!
+ .S Y0=^FH(118.2,LL,0),TU=TU+.95\1,PR=$P($G(^FH(114,+$P(Y0,"^",7),0)),"^",13),D2=TU*PR+D2
  .W !,$P(Y0,"^",1),?31,$J($S(TP:TP,1:0),5),?41,$P(Y0,"^",2),?53,$J(TU,5),?62,$J(PR,7,2),?72,$J(TU*PR,7,2) Q
  W !!,"Total: ",?71,$J(D2,8,2),!!!,"No. of Patients on TF: ",?33,$J($P(X0,"^",1),6)
  W !,"No. of Patients on TF and Tray: ",?33,$J($P(X0,"^",2),6),!,"No. of Patients on TF and SF: ",?33,$J($P(X0,"^",3),6)

@@ -1,14 +1,19 @@
 LRPX ;VA/SLC/STAFF - Process lab indexes ;9/26/03  15:39
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
+ ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+ ;
+ ;;VA LR Patch(s): 295
  ;
  ;
 CHKILL(LRDFN,LRIDT) ; from LROC
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")              ; IHS/MSC/MKK - LR*5.2*1031
+ ;
+ ; 
  ; delete Chem xrefs in ^PXRMINDX(63
  N DAS,DATE,DFN,LRDN,OK,TEST
  I '$L($G(^LR(+$G(LRDFN),"CH",+$G(LRIDT),0))) Q
@@ -26,8 +31,11 @@ CHSET(LRDFN,LRIDT) ; from LRVER3A
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; add Chem xrefs in ^PXRMINDX(63
  N DAS,DATE,DFN,LRDN,OK,TEST
  I '$P($G(^LR(+$G(LRDFN),"CH",+$G(LRIDT),0)),U,3) Q
@@ -45,8 +53,11 @@ PATIENT(LRDFN,DFN,OK) ;
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N ZERO
  S OK=1
  I '$G(LRDFN) S OK=0 Q
@@ -60,8 +71,11 @@ TESTS(LRDFN,LRIDT,LRDN,TEST) ;
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  N DATA
  S DATA=^LR(LRDFN,"CH",LRIDT,LRDN)
  S TEST=+$P($P(DATA,U,3),"!",6)
@@ -74,8 +88,11 @@ KLAB(DFN,DATE,ITEM,NODE) ; from LRPXRM
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; delete index for lab data.
  K ^PXRMINDX(63,"PI",DFN,ITEM,DATE,NODE) ; dbia 4114
  K ^PXRMINDX(63,"IP",ITEM,DFN,DATE,NODE) ; dbia 4114
@@ -87,8 +104,11 @@ SLAB(DFN,DATE,ITEM,NODE) ; from LRPXRM, LRPXSXRA, LRPXSXRB, LRPXSXRL
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  ;       RPMS Lab does not use Clinical Reminders.
  ;       None of the following code will be used.
- Q
+ ; Q
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
+ ; 
+ Q:'$$PATCH^BLRUTIL4("PXRM*1.5*12")              ; IHS/MSC/MKK - LR*5.2*1031
+ ; 
  ; set index for lab data.
  S ^PXRMINDX(63,"PI",DFN,ITEM,DATE,NODE)="" ; dbia 4114
  S ^PXRMINDX(63,"IP",ITEM,DFN,DATE,NODE)="" ; dbia 4114

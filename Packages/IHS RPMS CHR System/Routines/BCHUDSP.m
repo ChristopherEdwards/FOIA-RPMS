@@ -1,5 +1,5 @@
-BCHUDSP ; IHS/TUCSON/LAB - display record in detail ;  [ 10/28/96  2:05 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;;OCT 28, 1996
+BCHUDSP ; IHS/CMI/LAB - display record in detail ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;CALLER passes BCHR as record ien
 EN ;EP

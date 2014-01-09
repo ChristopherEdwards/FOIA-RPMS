@@ -1,5 +1,5 @@
 DG17204 ;BHM/RGY,ALS-Edit mapping entries ;FEB 20, 1998
- ;;5.3;Registration;**172**;Aug 13, 1993
+ ;;5.3;Registration;**172,1015**;Aug 13, 1993;Build 21
 EDIT(TYPE) ;
  NEW DA,DIE,DR,L,TO,FR,DIC,FLDS,BY
  F X=0:0 S X=$O(^XTMP("DGTMP",390.2,X)) Q:'X  I $P(^(X,0),"^",2)=TYPE,'$P(^(0),"^",3) Q

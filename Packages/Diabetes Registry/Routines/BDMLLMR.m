@@ -1,5 +1,5 @@
 BDMLLMR ; IHS/CMI/LAB - PCC HEALTH SUMMARY ; 
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**4,6**;JUN 14, 2007;Build 6
  ;
  W:$D(IOF) @IOF
  W !!,"This report will list all lab tests or medications that are used at"
@@ -81,7 +81,7 @@ TAX(I,TYPE) ;
  .S N=$P(^ATXLAB(X,0),U)
  .Q:'$D(^BDMTAXS(Y,11,"B",N))  ;not used by dms
  .Q:'$D(^ATXLAB(X,21,"B",I))  ;not in this taxonomy
- .S G=$S(G]"":"; "_N,1:N)
+ .S G=$S(G]"":G_"; "_N,1:N)
  .Q
  Q G
 TAXM(I) ;
@@ -94,7 +94,7 @@ TAXM(I) ;
  .S N=$P(^ATXAX(X,0),U)
  .Q:'$D(^BDMTAXS(Y,11,"B",N))  ;not used by dms
  .Q:'$D(^ATXAX(X,21,"B",I))  ;not in this taxonomy
- .S G=$S(G]"":"; "_N,1:N)
+ .S G=$S(G]"":G_"; "_N,1:N)
  .Q
  Q G
 C(X,X2,X3) ;

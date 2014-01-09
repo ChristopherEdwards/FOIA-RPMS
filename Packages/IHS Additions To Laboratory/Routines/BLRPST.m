@@ -1,5 +1,5 @@
 BLRPST ;IHS/HQT/MJL - Show processor status ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1011,1025,1027,1030**;NOV 01, 1997
+ ;;5.2;IHS LABORATORY;**1011,1025,1027,1030,1031**;NOV 01, 1997
  ;
 EP ; EP
  NEW DATETIME        ; IHS/OIT/MKK - LR*5.2*1030
@@ -87,7 +87,8 @@ DSP ;
  . W:BLRLEA-BLRLEP>1 ?22,$J($FN(BLRLEP+1,","),11)
  . I BLRLTA-BLRLTP>1 D
  .. W ?35,$J($FN(BLRLTP+1,","),11)
- .. W ?50,$J($FN(BLRNSQP,","),10)
+ .. ; W ?50,$J($FN(BLRNSQP,","),10)
+ .. W ?50,$J($FN(BLRNSQP,","),11)                ; IHS/MSC/MKK - LR*5.2*1031
  .. S DATETIME=$P($G(^BLRTXLOG(BLRLSQP,1)),"^",3)
  .. W:$L(DATETIME) ?63,$TR($$FMTE^XLFDT(DATETIME,"5MZ"),"@"," ")
  . ; ----- END IHS/OIT/MKK - LR*5.2*1030
@@ -107,8 +108,28 @@ DSP ;
  ;..W "Update PCC"
  L -^BLRLOCK
  I $G(BLRNPMT) Q
- I BLRF R !!,"Press Enter to exit: ",BLR:DTIME,! W ! Q
- R !!,"Press Enter to continue: ",BLR:5,! S BLRF=$T S BLRCNT=$S(BLRF:0,1:BLRCNT+1),BLRF=$S(BLR="^":1,1:BLRCNT=(DTIME\5))
+ ; I BLRF R !!,"Press Enter to exit: ",BLR:DTIME,! W ! Q
+ ; R !!,"Press Enter to continue: ",BLR:5,! S BLRF=$T S BLRCNT=$S(BLRF:0,1:BLRCNT+1),BLRF=$S(BLR="^":1,1:BLRCNT=(DTIME\5))
+ ;
+ ; ------- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ I BLRF D  Q
+ . D ^XBFMK
+ . S DIR(0)="FO"
+ . S DIR("A")="Press Enter to exit"
+ . S DIR("T")=5
+ . D ^DIR
+ . W !
+ D ^XBFMK
+ S DIR(0)="FO"
+ S DIR("A")="Press Enter to continue"
+ S DIR("T")=5
+ D ^DIR
+ S BLR=$G(X)
+ S BLRF=$T
+ S BLRCNT=$S(BLRF:0,1:BLRCNT+1)
+ S BLRF=$S($G(BLR)="^":1,1:BLRCNT=(DTIME\5))
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
+ ;
  D:$G(SNAPSHOT) ENTRYAUD^BLRUTIL("EXIT ^BLRTNB")
  Q
  ;

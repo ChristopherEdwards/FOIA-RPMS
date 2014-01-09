@@ -1,6 +1,7 @@
-ORMPS ; SLC/MKB - Process Pharmacy ORM msgs ;3/8/02  13:05
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,54,62,86,92,94,116,138,152,141,165,149**;Dec 17, 1997
-EN ; -- entry point for PS messages
+ORMPS ; SLC/MKB - Process Pharmacy ORM msgs ;02/06/2007  10:32
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,54,62,86,92,94,116,138,152,141,165,149,213,195,243**;Dec 17, 1997;Build 242
+ ;
+EN ; -- entry point
  I '$L($T(@ORDCNTRL)) Q  ;S ORERR="Invalid order control code" Q
  I ORDCNTRL'="SN",ORDCNTRL'="ZC",ORDCNTRL'="ZP",'ORIFN!('$D(^OR(100,+ORIFN,0))) S ORERR="Invalid OE/RR order number" Q
  N ORSTS,RXE,ZRX,ORWHO,ORNOW
@@ -43,14 +44,14 @@ OK ; -- Order accepted, PS order # assigned [ack]
  D:ORSTS STATUS^ORCSAVE2(+ORIFN,ORSTS)
  Q
  ;
-ZC ; -- Convert existing 2.5 orders to 3.0 format
+ZC ; -- convert orders
  N RXO,RXC,ORDIALOG,ORDG,ORPKG,ORP,ORSIG,ORIG,TYPE,EVNT
  I '$D(^VA(200,ORDUZ,0)) S ORERR="Missing or invalid entering person" Q
  I '$D(^VA(200,ORNP,0)) S ORERR="Missing or invalid ordering provider" Q
  I 'RXE S ORERR="Missing or invalid RXE segment" Q
  S RXO=$$RXO,RXC=$$RXC K ^TMP("ORWORD",$J)
  D @($S(RXC:"IV",$G(ORCAT)="I":"UDOSE",1:"OUT")_"^ORMPS1")
-ZC1 ; continue ... save responses, post reply
+ZC1 ; continue
  Q:$D(ORERR)  I 'ORIFN!('$D(^OR(100,+ORIFN,0))) D  Q  ;create
  . K ORIFN D SN1 Q:'$G(ORIFN)  S ORDCNTRL="SN"
  . I ORSTOP,ORSTOP<ORNOW S $P(^OR(100,ORIFN,3),U)=ORSTOP
@@ -68,25 +69,28 @@ SN ; -- New backdoor order, return OE# via NA msg
  I 'RXE S ORERR="Missing or invalid RXE segment" Q
  S RXO=$$RXO,RXC=$$RXC K ^TMP("ORWORD",$J),ORIFN
  D @($S(RXC:"IV",$G(ORCAT)="I":"UDOSE",1:"OUT")_"^ORMPS1") Q:$D(ORERR)
-SN1 ; continue ... save order, post messsage
- D EN^ORCSAVE K ^TMP("ORWORD",$J)
- I '$G(ORIFN) S ORERR="Cannot create new order" Q
+SN1 ; save order
+ D EN^ORCSAVE I '$G(ORIFN) S ORERR="Cannot create new order" G SNQ
+ D BDOSTR^ORWDBA3 ;DG1 & ZCL data
  S ORIG=+$P(ZRX,"|",2),TYPE=$P(ZRX,"|",4) I ORIG D  ;set fwd/bwd ptrs
- . S TYPE=$S(TYPE="R":2,1:1)
+ . S TYPE=$S(TYPE="R":2,1:1) Q:'$D(^OR(100,ORIG,0))
  . S $P(^OR(100,ORIFN,3),U,5)=ORIG,$P(^(3),U,11)=TYPE
- . I $D(^OR(100,ORIG,0)) S $P(^(3),U,6)=ORIFN,EVNT=$P(^(0),U,17) I $L(EVNT),TYPE=1 S $P(^OR(100,ORIFN,0),U,17)=EVNT
- I $G(ORCAT)="O" S ZSC=$$ZSC^ORMPS1 I ZSC,$P(ZSC,"|",2)'?2.3U S ^OR(100,ORIFN,5)=$TR($P(ZSC,"|",2,7),"|","^") ;1 or 0 instead of [N]SC
+ . S $P(^OR(100,ORIG,3),U,6)=ORIFN,EVNT=$P(^(0),U,17)
+ . I $L(EVNT),TYPE=1 S $P(^OR(100,ORIFN,0),U,17)=EVNT
+ . I TYPE=2,$G(ORCAT)="I" S ORSTRT=ORLOG D PARENT^ORMPS3 ;ck if complex
+ I $G(ORCAT)="O" S ZSC=$$ZSC^ORMPS3 I ZSC,$P(ZSC,"|",2)'?2.3U S ^OR(100,ORIFN,5)=$TR($P(ZSC,"|",2,9),"|","^") ;1 or 0 instead of [N]SC
 SN2 D DATES^ORCSAVE2(ORIFN,ORSTRT,ORSTOP)
  D:ORSTS STATUS^ORCSAVE2(ORIFN,ORSTS)
  D RELEASE^ORCSAVE2(ORIFN,1,ORLOG,ORDUZ,ORNATR)
  ; if unsigned edit, leave ORIFN unsigned & mark ORIG as Sig Not Req'd
- S ORSIG=$S('ORIG:1,TYPE'=1:1,$P($G(^OR(100,ORIG,8,1,0)),U,4)'=2:1,1:0)
+ S ORSIG=1 ;$S('ORIG:1,TYPE'=1:1,$P($G(^OR(100,ORIG,8,1,0)),U,4)'=2:1,1:0)
  D SIGSTS^ORCSAVE2(ORIFN,1):ORSIG,SIGN^ORCSAVE2(ORIG,,,5,1):'ORSIG
  I ORDCNTRL="SN" D  ;print
  . S:ORNATR="" $P(^OR(100,ORIFN,8,1,0),U,12)="" ;CHCS/OP orders
  . S ORP(1)=ORIFN_";1"_$S(ORNATR="":"^^^^1",$G(ORL):"^1",1:"")
  . I ORP(1)["^" D PRINTS^ORWD1(.ORP,+$G(ORL))
  S ^OR(100,ORIFN,4)=PKGIFN
+SNQ K ^TMP("ORWORD",$J)
  Q
  ;
 XX ; -- Changed (new order not necessary)
@@ -98,11 +102,16 @@ RO ; -- Replacement order (finished)
  ;
 SC ; -- Status changed (verified, expired, suspended, renewed, reinstate)
  N OR0,OR3,ZSC,DONE S OR0=$G(^OR(100,+ORIFN,0)),OR3=$G(^(3))
+ I "^1^13^"[(U_$P(OR3,U,3)_U),ORSTS=7 Q  ;retain DC status
  I $P(OR3,U,3)=5,ORSTS=6 D  Q:$G(DONE)
  . I $$CHANGED^ORMPS2 S ORNATR="S" D RO^ORMPS2 S DONE=1 Q
  . I $P(ZRX,"|",7)="TPN",+$P(OR0,U,11)'=$O(^ORD(100.98,"B","TPN",0)) D
  .. N DA,DR,DIE,ORDG S ORDG=+$O(^ORD(100.98,"B","TPN",0))
  .. S DA=+ORIFN,DR="23////"_ORDG,DIE="^OR(100," D ^DIE
+ . I $P(OR3,U,11)=2,$P(OR0,U,12)="I" S ORSTRT=+$P($G(^OR(100,+ORIFN,8,1,0)),U,16) ;use Release Date for inpt renewals
+ I $P(OR0,U,12)="I",$P(ZRX,"|",4)="R",+$P(ZRX,"|",2)=+ORIFN S ORSTRT=$P(OR0,U,8) ;keep orig start when renewed
+ I ORSTS=7,ORSTOP S $P(^OR(100,+ORIFN,6),U,6)=ORSTOP ;save exp date
+ I ORSTS=1 D EXPDT
  D DATES^ORCSAVE2(+ORIFN,ORSTRT,ORSTOP)
  D:ORSTS STATUS^ORCSAVE2(+ORIFN,ORSTS)
  I ORSTS=$P(OR3,U,3),ORSTOP'=$P(OR0,U,9) D SETALL^ORDD100(+ORIFN) ;AC xrf
@@ -111,14 +120,14 @@ SC ; -- Status changed (verified, expired, suspended, renewed, reinstate)
  . I $P($G(^OR(100,+ORIFN,8,+$P(OR3,U,7),0)),U,2)="DC" S ^(2)=ORNOW_U_ORWHO ; When^Who reinstated order
  . S I="?" F  S I=$O(^OR(100,+ORIFN,8,I),-1) Q:'+I  I $P(^(I,0),U,15)="" S $P(^OR(100,+ORIFN,3),U,7)=I Q  ;138 Finds current action
  . K ^OR(100,+ORIFN,6) D SETALL^ORDD100(+ORIFN)
- I $G(ORCAT)="O" S ZSC=$$ZSC^ORMPS1 I ZSC,$P(ZSC,"|",2)'?2.3U S ^OR(100,+ORIFN,5)=$TR($P(ZSC,"|",2,7),"|","^") ;1 or 0 instead of [N]SC
+ D UPD^ORMPS3 ;update some responses
  Q
  ;
-STATUS(X) ; -- Returns order status from HL7 code
+STATUS(X) ; -- HL7 order status
  N Y S Y=$S(X="IP":5,X="CM":6,X="DC":1,X="ZE":7,X="HD":3,X="ZX":11,X="RP":12,X="ZZ":15,X="ZS":6,X="ZU":6,1:"")
  Q Y
  ;
-DE ; -- Data Errors in SS msg
+DE ; -- Data Errors
  Q
  ;
 UA ; -- Unable to accept [ack]
@@ -136,29 +145,36 @@ UR ; -- Unable to release hold [ack]
  . S:$L(OREASON) ^OR(100,+ORIFN,8,ORDA,1)=OREASON
  Q
  ;
-OC ; -- Cancelled (prior to pharmacist's verification)
+OC ; -- Cancelled (before pharmacist's verification)
  G:ORTYPE="ORR" UA S:ORNATR="A" ORWHO=""
  S:'ORSTS ORSTS=13 S:ORSTS=12 ORNATR="S"
- S ^OR(100,+ORIFN,6)=$S($L(ORNATR):$O(^ORD(100.02,"C",ORNATR,0)),1:"")_U_ORWHO_U_ORNOW_U_U_OREASON
+ S $P(^OR(100,+ORIFN,6),U,1,5)=$S($L(ORNATR):$O(^ORD(100.02,"C",ORNATR,0)),1:"")_U_ORWHO_U_ORNOW_U_U_OREASON
  I $P($G(^OR(100,+ORIFN,3)),U,11)=2 N ORIG S ORIG=$P(^(3),U,5) S:ORIG $P(^OR(100,ORIG,3),U,6)="" ;remove fwd ptr when pending renewal cancelled
  S ^OR(100,+ORIFN,4)=PKGIFN S:ORSTOP>ORNOW ORSTOP=ORNOW
- D UPDATE(ORSTS,"DC")
+ D EXPDT,UPDATE(ORSTS,"DC")
  Q
  ;
 CR ; -- Cancelled [ack]
+ D EXPDT ;save exp date, if past
  D STATUS^ORCSAVE2(+ORIFN,13) S ^OR(100,+ORIFN,4)=PKGIFN
  Q
  ;
 OD ; -- Discontinued (cancelled after pharmacist's verification)
  S:'ORSTS ORSTS=1 S:ORSTS=12 ORNATR="C"
  I ORNATR="A" S ORWHO="" I $G(DGPMT)=3,$$MVT^DGPMOBS(DGPMDA) D XTMP^ORMEVNT ;save order#
- S ^OR(100,+ORIFN,6)=$S($L(ORNATR):$O(^ORD(100.02,"C",ORNATR,0)),1:"")_U_ORWHO_U_ORNOW_U_U_OREASON
+ S $P(^OR(100,+ORIFN,6),U,1,5)=$S($L(ORNATR):$O(^ORD(100.02,"C",ORNATR,0)),1:"")_U_ORWHO_U_ORNOW_U_U_OREASON
  S ^OR(100,+ORIFN,4)=PKGIFN S:ORSTOP>ORNOW ORSTOP=ORNOW
- D UPDATE(ORSTS,"DC")
+ D EXPDT,UPDATE(ORSTS,"DC")
  Q
  ;
 DR ; -- Discontinued [ack]
+ D EXPDT ;save exp date, if past
  D STATUS^ORCSAVE2(+ORIFN,1) S ^OR(100,+ORIFN,4)=PKGIFN
+ Q
+ ;
+EXPDT ; -- save exp date when dc'd
+ N STOP S STOP=$P($G(^OR(100,+ORIFN,0)),U,9)
+ I STOP,STOP<ORNOW,'$P($G(^OR(100,+ORIFN,6)),U,6) S $P(^(6),U,6)=STOP
  Q
  ;
 OH ; -- Held
@@ -181,7 +197,7 @@ OR ; -- Released / [ack]
  D:ORSTRT!ORSTOP DATES^ORCSAVE2(+ORIFN,ORSTRT,ORSTOP)
  Q
  ;
-UPDATE(ORSTS,ORACT) ; -- continue processing
+UPDATE(ORSTS,ORACT) ; -- continue
  N ORX,ORDA,ORP D:$G(ORSTS) STATUS^ORCSAVE2(+ORIFN,ORSTS)
  D:ORSTRT!ORSTOP DATES^ORCSAVE2(+ORIFN,ORSTRT,ORSTOP)
  S ORX=$$CREATE^ORX1(ORNATR) D:ORX
@@ -191,31 +207,31 @@ UPDATE(ORSTS,ORACT) ; -- continue processing
  . D SIGSTS^ORCSAVE2(+ORIFN,ORDA)
  . I $G(ORL) S ORP(1)=+ORIFN_";"_ORDA_"^1" D PRINTS^ORWD1(.ORP,+ORL)
  . S $P(^OR(100,+ORIFN,3),U,7)=ORDA
- I 'ORX,ORACT="DC",'$$ACTV^ORX1(ORNATR) S $P(^OR(100,+ORIFN,3),U,7)=0
+ I ORACT="DC",'$$ACTV^ORX1(ORNATR) S $P(^OR(100,+ORIFN,3),U,7)=0
  D:$G(ORACT)="DC" CANCEL^ORCSEND(+ORIFN)
  Q
  ;
-RXO() ; -- Return subscript of RXO segment
+RXO() ; -- RXO segment
  N I,X S X="",I=$O(@ORMSG@(+ORC))
  I I,$E(@ORMSG@(I),1,3)="RXO" S X=I_U_@ORMSG@(I)
  Q X
  ;
-RXE() ; -- Return subscript of RXE segment
+RXE() ; -- RXE segment
  N X,I,SEG S X="",I=+ORC
  F  S I=$O(@ORMSG@(I)) Q:I'>0  S SEG=$E(@ORMSG@(I),1,3) Q:SEG="ORC"  I SEG="RXE" S X=I_U_@ORMSG@(I) Q
  Q X
  ;
-RXR() ; -- Return subscript of RXR segment
+RXR() ; -- RXR segment
  N X,I,SEG S X="",I=+RXE
  F  S I=$O(@ORMSG@(I)) Q:I'>0  S SEG=$E(@ORMSG@(I),1,3) Q:SEG="ORC"  I SEG="RXR" S X=I_U_@ORMSG@(I) Q
  Q X
  ;
-RXC() ; -- Return subscript of [first] RXC segment
+RXC() ; -- [First] RXC segment
  N X,I,SEG S X="",I=+RXE
  F  S I=$O(@ORMSG@(I)) Q:I'>0  S SEG=$E(@ORMSG@(I),1,3) Q:SEG="ORC"  I SEG="RXC" S X=I Q
  Q X
  ;
-ZRX() ; -- Return subscript of ZRX segment
+ZRX() ; -- ZRX segment
  N X,I,SEG S X="",I=+ORC
  F  S I=$O(@ORMSG@(I)) Q:I'>0  S SEG=$E(@ORMSG@(I),1,3) Q:SEG="ORC"  I SEG="ZRX" S X=I_U_@ORMSG@(I) Q
  Q X

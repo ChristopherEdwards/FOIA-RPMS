@@ -1,5 +1,5 @@
 ORCMEDT5 ;SLC/MKB-Misc menu utilities ;03:29 PM  12 Feb 1999
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,46**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,46,296**;Dec 17, 1997;Build 19
 SEARCH ; -- Search/replace menu items
  N ORDLG
  F  S ORDLG=$$DIC Q:ORDLG'>0  D SR1(ORDLG) W !!
@@ -7,8 +7,8 @@ SEARCH ; -- Search/replace menu items
  ;
 SR1(ORX) ; -- list parents, get replacement
  N DA,DR,DIE,DIK,I,J,ORDAD,ORY,ORNMBR,NUM,ORI,ORDAD,ORNM
- I '$O(^ORD(101.41,"AD",+ORX,0)) W !,$P(ORX,U,2)_" has no ancestors." Q
- W @IOF,"Ancestors of "_$P(ORX,U,2),!?4,"Name",?69,"Type",!,$$REPEAT^XLFSTR("-",79)
+ I '$O(^ORD(101.41,"AD",+ORX,0)) W !,$P(ORX,U,2)_" has no menu items." Q
+ W @IOF,"Menu items of "_$P(ORX,U,2),!?4,"Name",?69,"Type",!,$$REPEAT^XLFSTR("-",79)
  S (I,ORDAD)=0 F  S I=$O(^ORD(101.41,"AD",+ORX,I)) Q:I'>0  D
  . S J=0 F  S J=$O(^ORD(101.41,"AD",+ORX,I,J)) Q:J'>0  D
  . . S ORDAD=ORDAD+1,ORDAD(ORDAD)=I_U_J

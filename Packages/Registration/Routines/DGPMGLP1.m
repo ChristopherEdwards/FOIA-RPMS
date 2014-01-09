@@ -1,5 +1,5 @@
 DGPMGLP1 ;ALB/LM - G&L PRINT ROUTINE; 8 NOV 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 A I TT=6!(TT=9999)!(TT=8888),'SNM Q
  D TTHD,TT

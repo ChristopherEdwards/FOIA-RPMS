@@ -1,5 +1,5 @@
 SD53105A ;ALB/JRP - XMIT, DELETE, AND ERROR FILE CLEAN UP;12-MAR-1997
- ;;5.3;Scheduling;**105**;Aug 13, 1993
+ ;;5.3;Scheduling;**105,1015**;Aug 13, 1993;Build 21
  ;
 SCAN ;Entry point to scan only (prints what would have been deleted)
  N ZTRTN,ZTDESC

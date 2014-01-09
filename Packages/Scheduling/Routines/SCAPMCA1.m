@@ -1,5 +1,5 @@
 SCAPMCA1 ;BP-CIOFO/KEITH - Get all assignment info. (cont.) ; 30 Jul 99  3:29 PM
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;
 GETDAT ;Get assignment data
  ;

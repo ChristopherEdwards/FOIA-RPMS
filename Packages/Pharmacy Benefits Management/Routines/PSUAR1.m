@@ -1,5 +1,5 @@
 PSUAR1 ;BIR/PDW - Start AR/WS Extract ;11 AUG 1999
- ;;3.0;PHARMACY BENEFITS MANAGMENT;**1,8,10**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;;
  ;PSUDTDA - IEN FOR DATE
  ;PSUSDA - IEN FOR INPATIENT SITE
@@ -13,9 +13,12 @@ PSUAR1 ;BIR/PDW - Start AR/WS Extract ;11 AUG 1999
  ; Reference to file #59.4  supported by DBIA 2498
  ; Reference to file #44    supported by DBIA 2439
  ; Reference to file #40.8  supported by DBIA 2438
+ ; Reference to file #59    supported by DBIA 1876
+ ; Reference to file #59.7  supported by DBIA 2854
  ;
 EN ;EP MAIN ENTRY POINT
  ;
+ K PSUTDSP,PSUTRET
  ;
 START ;Start date scan thru stats file
  S PSUSDT=PSUSDT-.1
@@ -46,6 +49,7 @@ SITE ;Process one site for one date
  F  S PSUDRDA=$O(PSUDRUG(PSUDRDA)) Q:PSUDRDA'>0  D DRUG Q:$G(PSUQUIT)
  K PSUDRUG
  ;
+ D MAP
  ;    Process Amis categories from 58.501
  ;    Category multiple loaded into PSUCAT
  K PSUCAT
@@ -67,6 +71,7 @@ CATEGORY ;EP Pull Categories
  . S ^XTMP(PSUARSUB,"DIV_CAT",PSUDIV,PSUAMCAT,"DISP")=X+PSUDISP
  . S X=$G(^XTMP(PSUARSUB,"DIV_CAT",PSUDIV,PSUAMCAT,"COST"))
  . S ^XTMP(PSUARSUB,"DIV_CAT",PSUDIV,PSUAMCAT,"COST")=X+PSUCOST
+ . M ^XTMP("PSUTCST",PSUDIV,PSUAMCAT)=^XTMP(PSUARSUB,"DIV_CAT",PSUDIV,PSUAMCAT,"COST")
  ;
  Q
  ;
@@ -79,16 +84,28 @@ DRUG ;  Process one drug for one site for one day
  K PSUCAT
  D GETM^PSUTL(58.52,"PSUDTDA,PSUSDA,PSUDRDA","1*^.01;1","PSUCAT","I")
  ;
- S PSUCDA=0,PSUDISP=0
+ S PSUCDA=0,PSUDISP=0,PSUTR=0
  F  S PSUCDA=$O(PSUCAT(PSUCDA)) Q:PSUCDA'>0  Q:$G(PSUQUIT)  D
  . S X=PSUCAT(PSUCDA,.01,"I")
  . S Y=PSUCAT(PSUCDA,1,"I")
- . I (X="A")!(X="W") S PSUDISP=PSUDISP+Y
- . I (X="RA")!(X="RW") S PSUDISP=PSUDISP-Y
+ . I (X="A")!(X="W") S PSUDISP=PSUDISP+Y,PSUTDS=PSUDISP
+ . I (X="RA")!(X="RW") S PSUDISP=PSUDISP-Y,PSUTR=PSUTR+Y
  ;  Adjust accumulative dispenses
  ;
  S X=$G(^XTMP(PSUARSUB,"DIV_DRUG",PSUDIV,PSUDRIEN))
  S ^XTMP(PSUARSUB,"DIV_DRUG",PSUDIV,PSUDRIEN)=X+PSUDISP
+ ;
+ N PSUT
+ S PSUT=$G(PSUTDSP(PSUDIV,PSUDRIEN))
+ I $D(PSUTDS) D
+ .S PSUTDSP(PSUDIV,PSUDRIEN)=PSUTDS+PSUT    ;Total Quantity dispensed
+ .I (PSUTDS+PSUT)=0 S PSUTDSP(PSUDIV,PSUDRIEN)=""
+ ;
+ N PSUT1
+ S PSUT1=$G(PSUTRET(PSUDIV,PSUDRIEN))
+ I $D(PSUTR) D
+ .S PSUTRET(PSUDIV,PSUDRIEN)=PSUTR+PSUT1    ;Total Quantity returned
+ .I (PSUTR+PSUT1)=0 S PSUTRET(PSUDIV,PSUDRIEN)=""
  K PSUCAT
  Q
 DIV(PSUSDA,PSUDTDA) ;EP process for a site the associated divisions by date.
@@ -107,34 +124,61 @@ DIV(PSUSDA,PSUDTDA) ;EP process for a site the associated divisions by date.
 AOU ;EP map divisions by dates for  inpatient sites from the AOU file
  ;PSUADA - ien for AOU Stock file
  ;
- N PSUSDA,PSUADA,PSUDIV,PSUINACT,PSUDIV,PSUSLOC
+ N PSUADA,PSUDIV,PSUINACT,PSUDIV,PSUSLOC,MAPLOCI
+ ;
+ D GETM^PSUTL(59.7,1,"90.01*^.01;.02;.03","MAPLOCI","I")
+ ;set array MAPLOCI(ien,fld)=internal value
+ ;field .02 points to 40.8 Medical Center Division where fac num is #1
+ ;field .03 points to 59 Outpatient site where site num is #.06
+ D MOVEMI^PSUTL("MAPLOCI")
  ;
  K ^XTMP(PSUARSUB,"DIVLK")
+ ;
  S PSUADA=0
- F  S PSUADA=$O(^PSI(58.1,PSUADA)) Q:PSUADA'>0  D
- . S PSUSDA=$$VALI^PSUTL(58.1,PSUADA,4)
+ F  S PSUADA=$O(^PSI(58.1,"ASITE",PSUSDA,PSUADA)) Q:PSUADA'>0  D
+ . N PSUDIV S PSUDIV=""
  . S PSUSLOC=$$VALI^PSUTL(59.4,PSUSDA,.01)
  . S PSUINACT=$$VALI^PSUTL(58.1,PSUADA,3)
  . I PSUINACT Q  ; inactivated sites are to be ignored regardles of date
  . S:'PSUINACT PSUINACT=DT+1
- . ; look into the multiple for links to get to division
- . N PSUDIV S PSUDIV=""
- . S PSUDIVX=0 F  S PSUDIVX=$O(^PSI(58.1,PSUADA,2,PSUDIVX)) Q:'PSUDIVX  Q:+$G(PSUDIV)  D
- .. S PSUDIV=$$VALI^PSUTL(58.14,"PSUADA,PSUDIVX",.01)
- .. S PSUDIV=$$VALI^PSUTL(44,PSUDIV,3.5)
- .. S PSUDIV=$$VALI^PSUTL(40.8,PSUDIV,1)
- . S:$G(PSUDIV) ^XTMP(PSUARSUB,"DIVLK",PSUSDA,PSUDIV)=""  ;  set ^TMP NODE
- ; Clear out node if multiple divisions exist for a single 
- ; inpatient site but leave a footprint so a recalc at every 
- ; record wont have to be done.
- S PSUSDA=0
- F  S PSUSDA=$O(^TMP(PSUARSUB,$J,"DIVLK",PSUSDA)) Q:PSUSDA'>0  D
- . S PSUDIV="",PSUDIVC=0
- . F  S PSUDIV=$O(^TMP(PSUARSUB,$J,"DIVLK",PSUSDA,PSUDIV)) Q:'$L(PSUDIV)  S PSUDIVC=$G(PSUDIVC)+1
- . ; if counter '=1 notate DIV=NULL
- . I PSUDIVC'=1 D
- .. K ^TMP(PSUARSUB,$J,"DIVLK",PSUSDA)
- .. S ^TMP(PSUARSUB,$J,"DIVLK",PSUSDA,"NULL")=""
+ . I '$G(MAPLOCI(PSUADA,.01)) S PSUDIV="NULL"
+ . I $G(MAPLOCI(PSUADA,.01)) D
+ .. S X=$G(MAPLOCI(PSUADA,.02)) I X S PSUDIV=$$VALI^PSUTL(40.8,X,1)
+ .. S X=$G(MAPLOCI(PSUADA,.03)) I X S PSUDIV=$$VALI^PSUTL(59,X,.06)
+ .. S ^XTMP(PSUARSUB,"DIVLK",PSUSDA,PSUDIV)=""
+ ;
+ Q
+ ;
+MAP ;Find out whether an Area of Use (AOU) is mapped to a division or
+ ;outpatient site.  If it is not mapped, store the NAME and INACTIVATION
+ ;DATE (if applicable) in a global to be mailed to the user.
+ ;
+ S PSUNAM=0                         ;This is the name of the Area of USE
+ ;
+ F  S PSUNAM=$O(^PSI(58.1,"B",PSUNAM)) Q:PSUNAM=""  D
+ .S IEN=0                        ;This is the IEN for file 58.1
+ .F  S IEN=$O(^PSI(58.1,"B",PSUNAM,IEN)) Q:IEN=""  D
+ ..K AOU
+ ..D GETS^PSUTL(58.1,IEN,".01;3","AOU(IEN)")  ;Name & Inactive Date
+ ..D MAP1
+ Q
+ ;
+MAP1 ;MAP continued. This subroutine takes the IEN from file 58.1 and looks
+ ;to see if it is in file 59.7, field 90.01.  If it is, then it has
+ ;been mapped if there is a value in subfield .02 or .03.
+ ;If there is no value in subfield .02 or .03 it has not been mapped
+ ;
+ ;Keep only the entries that are NOT mapped
+ ;
+ N PSUDA
+ ;
+ I $G(^PS(59.7,1,90.01,IEN,0)) D
+ .D GETM^PSUTL(59.7,1,"90.01*^.01;.02;.03","MAPLOCI")
+ .S PSUDA=0
+ .F  S PSUDA=$O(MAPLOCI(PSUDA)) Q:PSUDA=""  D
+ ..I MAPLOCI(PSUDA,.02)'="" K AOU(PSUDA)
+ ..I $G(MAPLOCI(PSUDA,.03))'="" K AOU(PSUDA)
+ M ^XTMP(PSUARSUB,"AOU")=AOU          ;Contains only unmapped locations
  Q
  ;
 CLEAR ;EP Clear ^XTMP("PSUAR*")

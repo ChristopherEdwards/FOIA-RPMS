@@ -1,5 +1,6 @@
-GMRCILKP ;SLC/JFR - LOOK UP IFC BY REMOTE CONS #; 1/2/02 14:34
- ;;3.0;CONSULT/REQUEST TRACKING;**22**;DEC 27, 1997
+GMRCILKP ;SLC/JFR - LOOK UP IFC BY REMOTE CONS #;15-Mar-2012 10:39;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**22,1001,1003**;DEC 27, 1997;Build 14
+ ;Modified - IHS/CIA/MGH - 11/28/2005 - Line EN+38  -  Modified to use hrcn instead of SSN
 EN ; start here
  N DIR,DIRUT,DIROUT,DTOUT,DUOUT,X,Y,GMRCSIT,GMRCO,DFN,GMRCREMC
  N VALMBCK,VALMCNT,GMRCA,GMRCDIF,GMRCDVL,GMRCLOC,GMRCWARD,GMRCX,GMRCDISP
@@ -38,9 +39,12 @@ EN ; start here
  . S GMRCPNM=$E(GMRCPNM,1,23)
  . S GMRCST=$$GET1^DIQ(100.01,$P(^GMR(123,GMRCO,0),U,12),.1)
  . S GMRCSS=$E($$SVC^GMRCAU(GMRCO),1,22)
- . W !!,"Local cslt#   To Service",?37,"Status   Patient",?74,"SSN"
+ . ;W !!,"Local cslt#   To Service",?37,"Status   Patient",?74,"SSN"
+ . ;IHS/CIA/MGH Modified to use HRCN instead of SSN
+ . W !!,"Local cslt#   To Service",?37,"Status   Patient",?74,"HRCN"
  . W !,$$REPEAT^XLFSTR("-",79)
- . W !,GMRCO,?14,GMRCSS,?39,GMRCST,?46,GMRCPNM,?74,GMRCSN,!!
+ . ;W !,GMRCO,?14,GMRCSS,?39,GMRCST,?46,GMRCPNM,?74,GMRCSN,!!
+ . W !,GMRCO,?14,GMRCSS,?39,GMRCST,?46,GMRCPNM,?74,GMRCHRCN,!!
  . K DIR S DIR(0)="E" D ^DIR
  . W !,"Select again"
  . D ^GMRCREXT

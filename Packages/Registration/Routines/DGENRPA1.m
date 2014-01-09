@@ -1,5 +1,5 @@
 DGENRPA1 ;ALB/CJM - Enrolled Veterans Report; JUL 9,1997
- ;;5.3;Registration;**121,232**;Aug 13,1993
+ ;;5.3;Registration;**121,232,1015**;Aug 13,1993;Build 21
  ;
 REPORT ;
  N INDATE

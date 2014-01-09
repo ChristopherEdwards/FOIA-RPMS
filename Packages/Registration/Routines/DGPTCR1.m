@@ -1,5 +1,5 @@
 DGPTCR1 ;ALB/MJK - Census Worklist Re-gen(cont) ; 15 APR 90
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 ALL ; -- regen all for all census'
  F DGCN=0:0 S DGCN=$O(^DG(45.86,DGCN)) Q:'DGCN  I $D(^(DGCN,0)) S DGCDT=+^(0)_".9",DGFIRST=0 D REGEN^DGPTCR

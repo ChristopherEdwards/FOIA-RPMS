@@ -1,5 +1,5 @@
-GMVDS1 ;HOIFO/YH,FT-CURRENT VITALS BY PATIENT OR LOCATION ;10/25/02  10:20
- ;;5.0;GEN. MED. REC. - VITALS;;Oct 31, 2002
+GMVDS1 ;HOIFO/YH,FT-CURRENT VITALS BY PATIENT OR LOCATION ;6/6/07
+ ;;5.0;GEN. MED. REC. - VITALS;**23**;Oct 31, 2002;Build 25
  ;
  ; This routine uses the following IAs:
  ; #10039 - FILE 42 references     (supported)
@@ -74,7 +74,7 @@ HDR ; Report Header
 PRT ; Body of report
  D:IOSL<($Y+6)!($E(IOST)'="P") HDR Q:GMROUT
  D DEM^VADPT K GMRDT
- W !,$S(GMRRMBD'="  BLANK":$E(GMRRMBD,1,10),1:""),?12,$E(GMVNAME,1,20),?34,$P(VADM(2),U,2),!
+ W !,$S(GMRRMBD'="  BLANK":$E(GMRRMBD,1,10),1:""),?12,$E(GMVNAME,1,20),?34,$E($P(VADM(2),U,2),8,11),!
  D EN1^GMVDS0,Q2
  Q
 Q2 ; Kill variables

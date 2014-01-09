@@ -1,5 +1,5 @@
 DGPFLMD ;ALB/RPM - PRF DISPLAY ACTIVE FLAG ASSIGNMENTS LM ; 5/20/03 2:49pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,1015**;Aug 13, 1993;Build 21
  ;
  ;no direct entry
  QUIT

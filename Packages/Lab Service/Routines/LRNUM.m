@@ -1,6 +1,8 @@
-LRNUM ;SLC/BA-NUMERIC INPUT TRANSFORM ;2/6/91  08:55
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**153,221**;Sep 27, 1994
+LRNUM ;VA/SLC/BA - NUMERIC INPUT TRANSFORM ;2/6/91  08:55
+ ;;5.2;LAB SERVICE;**1004,1013,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patch(s): 153,221,386
+ ;
 BEGIN Q:X="pending"
  S LRLOW=$P(Q9,","),LRHIGH=$P(Q9,",",2),LRDEC=$P(Q9,",",3),Q8="" S:"<>"[$E(X,1) Q8=$E(X,1),X=$E(X,2,99) S Q1=$P(X,"."),Q2=$E($P(X,".",2),1,99) D CHECK
 END K LRLOW,LRHIGH,LRDEC,Q1,Q2,Q8,Q9
@@ -8,7 +10,7 @@ END K LRLOW,LRHIGH,LRDEC,Q1,Q2,Q8,Q9
 CHECK I $L(Q1),Q1'="-",Q1'="-0",+Q1'=Q1 K X Q
  I $L(Q2),Q2'?1N.N K X Q
  I $L(Q2)>LRDEC K X Q
- I X>LRHIGH!(X<LRLOW)!($L($P(X,".",3)))!(X["..")!(X["-"&(+X=0)) K X Q
+ I X>LRHIGH!(X<LRLOW)!($L(X,".")>2)!(X["..")!(X["-"&(+X=0)) K X Q
  S X=Q8_X
  Q
 COM ;expands lab description from LRMISTF1, dd

@@ -1,5 +1,5 @@
 DGPTFRU1 ; ALB/SCK - PTF RECORDS CLOSEOUT RPT FOR MT INDICATOR = U ; 21 JULY 2003
- ;;5.3;Registration;**537**;Aug 13, 1993
+ ;;5.3;Registration;**537,1015**;Aug 13, 1993;Build 21
  ;
 EN ; Main entry point for report
  N DIR,DIRUT,DGBEG,DGEND,RSLT,Y,X

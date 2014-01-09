@@ -1,6 +1,6 @@
-IS00027(UIF,INOA,INODA) ;Compiled from script 'Generated: HL IHS IZV04 V03VXR IN-I' on SEP 05, 2011
+IS00027(UIF,INOA,INODA) ;Compiled from script 'Generated: HL IHS IZV04 V03VXR IN-I' on FEB 28, 2013
  ;Part 1
- ;Copyright 2011 SAIC
+ ;Copyright 2013 SAIC
 EN S X="ERROR^IS00027",@^%ZOSF("TRAP")
  G START
 ERROR ;

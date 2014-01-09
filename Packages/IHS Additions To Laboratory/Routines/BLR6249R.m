@@ -1,0 +1,221 @@
+BLR6249R ; IHS/MSC/MKK - LA7 MESSAGE QUEUE incoming messages only Report ;   [ February 29, 2012  8:00 AM ]
+ ;;5.2;LAB SERVICE;**1031**;Nov 1, 1997
+  ;
+EEP ; Ersatz EP
+ D EEP^BLRGMENU
+ Q
+ ;
+EP ; EP
+PEP ; EP
+ NEW CNT,IEN,IEN2,IEN3,STR
+ NEW BLRVERN,HD1,HEADER,LINES,MAXLINES,PG,QFLG
+ NEW INSTR,LRAA,LRAD,LRAN,LRAS,ENTRYDTT,MSGNUM,STATUS,UID
+ NEW LRANYAA,LRLL,LRPROF,REFLABIN
+ ;
+ D INITVARS
+ ;
+ F  S IEN=$O(^LAHM(62.49,IEN))  Q:IEN<1!(QFLG="Q")  D
+ . Q:$P($G(^LAHM(62.49,IEN,0)),"^",2)'="I"   ; Only Incoming messages
+ . Q:$P($G(^LAHM(62.49,IEN,0)),"^",3)="X"    ; Only Non-Purgeable messages
+ . ;
+ . D PRNTLINE
+ ;
+ W:CNT>0 !,?4,"Number of Non-Purgeable, Incoming messages = ",CNT,!
+ ;
+ D ^%ZISC
+ ;
+ I CNT<1 D
+ . W $J("",20),$C(13)
+ . W !,?9,"No Messages in 62.49",!
+ ;
+ D PRESSKEY^BLRGMENU(4)
+ Q
+ ;
+INITVARS ; EP - Initialization
+ S BLRVERN=$$TRIM^XLFSTR($P($T(+1),";"),"R"," ")
+ ;
+ S REFLABIN=$$GET1^DIQ(9009029,DUZ(2),3001)
+ ;
+ S HEADER(1)="LA7 MESSAGE QUEUE (#62.49) File"
+ S HEADER(2)=REFLABIN_" Incoming Messages"
+ S HEADER(3)=$$CJ^XLFSTR("Non-Purgeable Statuses Only",IOM)
+ S HEADER(4)=" "
+ ;
+ D HEADONE(.HD1)
+ ;
+ S HEADER(5)="Msg #"
+ S $E(HEADER(5),9)="STS"
+ S $E(HEADER(5),14)="UID"
+ S $E(HEADER(5),26)="Accession"
+ S $E(HEADER(5),46)="Entry Date/Time"
+ S $E(HEADER(5),67)="Instrument"
+ ;
+ S IEN=.9999999,(CNT,INCNT,OUTCNT)=0
+ S (PG,WOT)=0
+ ;
+ S QFLG="N"
+ ;
+ D ^%ZIS
+ U IO
+ S MAXLINES=IOSL-4
+ S LINES=MAXLINES+10
+ Q
+ ;
+HEADONE(HD1) ; EP -- Asks if user wants only 1 header line
+ D HEADERDT^BLRGMENU
+ ;
+ D ^XBFMK
+ S DIR("A")="One Header Line ONLY"
+ S DIR("B")="NO"
+ S DIR(0)="YO"
+ D ^DIR
+ S HD1=$S(+$G(Y)=1:"YES",1:"NO")
+ D ^XBFMK
+ D HEADERDT^BLRGMENU
+ Q
+ ;
+PRNTLINE ; EP - Print a line of data
+ D BREAKOUT
+ ;
+ Q:INSTR'=REFLABIN                  ; Only messages for Reference Lab
+ ;
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HD1)  Q:QFLG="Q"
+ ;
+ W MSGNUM
+ W ?9,STATUS
+ W ?13,UID
+ W ?25,LRAS
+ W ?45,ENTRYDTT
+ W ?66,$E(INSTR,1,14)
+ W !
+ S LINES=LINES+1
+ S CNT=CNT+1
+ ;
+ Q
+ ;
+BREAKOUT ; EP - "Break Out" variables
+ NEW IEN2,STR,X
+ ;
+ S STR=$G(^LAHM(62.49,IEN,0))
+ ;
+ S MSGNUM=$P(STR,"^",1)
+ S STATUS=$P(STR,"^",3)
+ S X=$$UP^XLFSTR($$FMTE^XLFDT($P(STR,"^",5),"5MPZ"))
+ S INSTR=$P($P(STR,"^",6),"-")
+ S ENTRYDTT=$P(X," ")_$$RJ^XLFSTR($P(X," ",2,3),9)
+ ;
+ S UID=0,IEN2=.9999999
+ F  S IEN2=$O(^LAHM(62.49,IEN,150,IEN2))  Q:IEN2<1!(UID)  D
+ . Q:$G(^LAHM(62.49,IEN,150,IEN2,0))'["OBR"
+ . ;
+ . S UID=$TR($$LJ^XLFSTR(+$RE(+$RE($P($G(^LAHM(62.49,IEN,150,IEN2,0)),"|",3))),10)," ","0")
+ ;
+ I UID<1 S (UID,LRAS)="" Q
+ ;
+ S LRAA=+$O(^LRO(68,"C",UID,0))
+ S LRAD=+$O(^LRO(68,"C",UID,LRAA,0))
+ S LRAN=+$O(^LRO(68,"C",UID,LRAA,LRAD,0))
+ ;
+ S LRAS=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
+ ;
+ Q
+ ;
+ONELRASR ; EP - Report on 1 Accession: INCOMING and OUTGOING messages
+ NEW BLRVERN,HD1,HEADER,LINES,MAXLINES,PG,QFLG
+ NEW CNT,DAYSAGO2,ENTRYDT,CNTINCOM,HEADER,INDEXDT,INSTALLN,INSTLLDT
+ NEW INSTR,LABPATCH,LRAS,LRODT,MAX,OBRCNT,OBRSTR,OBRTXN,STATUS,STR,TXN,TXNCNT,TYPE
+ ;
+ Q:$$ONELRASI()="Q"
+ ;
+ F  S INDEXDT=$O(^LAHM(62.49,"AD",INDEXDT))  Q:INDEXDT=""!(CNT>MAX)  D
+ . F  S TXN=$O(^LAHM(62.49,"AD",INDEXDT,TXN))  Q:TXN=""!(TXN'?.N)!(CNT>MAX)  D
+ .. D TXNVARS
+ .. F  S OBRTXN=$O(^LAHM(62.49,TXN,150,OBRTXN))  Q:OBRTXN<1!(CNT>MAX)!($L(OBRLRAS)>0)  D
+ ... D ONELRASL
+ ;
+ W:INDEXDT=""!(CNT>MAX) !!,?4,"Number of Transactions:",TXNCNT,!
+ W:OBRCNT>0&((INDEXDT="")!(CNT>MAX)) ?9,"Number of TXNs with OBR Segments:",OBRCNT,!!
+ Q
+ ;
+ONELRASI() ; EP - Initialization of variables
+ S BLRVERN=$$TRIM^XLFSTR($P($T(+1),";"),"R"," ")
+ ;
+ W !!
+ D ^LRWU4
+ S LRAS=$G(^LRO(68,+LRAA,1,+LRAD,1,+LRAN,.2))
+ ;
+ I $L(LRAS)<1 D  Q 0
+ . W !!,?4,"Accession Does not Exist..  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S HEADER(1)="LA7 Message Queue (#62.49)"
+ S HEADER(2)="Accession "_LRAS_" Transactions"
+ S HEADER(3)=" "
+ S HEADER(4)="Txn"
+ S $E(HEADER(4),10)="EntryDt"
+ S $E(HEADER(4),20)="Instrument"
+ S $E(HEADER(4),35)="Type"
+ S $E(HEADER(4),40)="STS"
+ S $E(HEADER(4),45)="PID"
+ S $E(HEADER(4),55)="DFN"
+ S $E(HEADER(4),65)="LogP"
+ S $E(HEADER(4),75)="OrdL"
+ ;
+ S MAXLINES=IOSL-4,LINES=MAXLINES+10,(NOPG,QFLG)="N"
+ S INDEXDT=.9999999
+ S TXN=0
+ K INSTR,OBRLRAS
+ S (CNT,CNTINCOM,OBRCNT,TXN,TXNCNT)=0
+ S MAX=9999
+ Q 1
+ ;
+TXNVARS ; EP - Setup variables at TXN level
+ S TXNCNT=TXNCNT+1
+ S STR=$G(^LAHM(62.49,TXN,0))
+ S TYPE=$P(STR,"^",2)
+ S STATUS=$P(STR,"^",3)
+ S ENTRYDT=$P(STR,"^",5)
+ S INSTR=$P($P(STR,"^",6),"-",1)
+ S CNTINCOM=1+CNTINCOM
+ S PID=$P($G(^LAHM(62.49,TXN,150,2,0)),"|",4)
+ S OBRLRAS=""
+ S OBRTXN=0
+ Q
+ ;
+ONELRASL ; EP - Write a line of data
+ S OBRSTR=$G(^LAHM(62.49,TXN,150,OBRTXN,0))
+ Q:$P(OBRSTR,"|",1)'="OBR"
+ ;
+ S OBRCNT=1+$G(OBRCNT)
+ S OBRLRAS=$P($P(OBRSTR,"|",17),"^",6)
+ S:$L(OBRLRAS)<1 OBRLRAS=$P($P(OBRSTR,"|",20),"^",6)
+ Q:OBRLRAS'=LRAS
+ ;
+ D ONELRASB
+ ;
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,NOPG)  Q:QFLG="Q"
+ ;
+ W TXN
+ W ?9,$P(ENTRYDT,".")
+ W ?19,$E(INSTR,1,13)
+ W ?35,TYPE
+ W ?40,$E(STATUS,1)
+ W ?44,PID
+ W ?54,DFN
+ W ?64,LOGINP
+ W ?74,ORDLOC
+ W !
+ S CNT=CNT+1
+ Q
+ ;
+ONELRASB ; EP - Break out variables
+ S STROBR=OBRSTR
+ S:$G(OBRLRAS)=""&($P(OBRSTR,"|",1)="OBR") OBRLRAS=$P($P(OBRSTR,"|",20),"^",6)
+ S X=$$GETACCCP^BLRUTIL3(OBRLRAS,.LRAA,.LRAD,.LRAN)
+ S STR=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0))
+ S LRDFN=$P(STR,"^")
+ S PROV=$P(STR,"^",8)
+ S LOGINP=$P(STR,"^",10)
+ S ORDLOC=$P(STR,"^",13)
+ S DFN=$P($G(^LR(LRDFN,0)),"^",3)
+ Q

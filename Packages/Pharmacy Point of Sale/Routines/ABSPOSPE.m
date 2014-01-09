@@ -1,5 +1,5 @@
 ABSPOSPE ; IHS/OIT/RAN - Pharmacy EXPENSE report modeled after ABSPOSEX Patient Expense report
- ;;1.0;PHARMACY POINT OF SALE;**38,40**;MAR 8, 2010
+ ;;1.0;PHARMACY POINT OF SALE;**38,40,44**;MAR 8, 2010
   Q
     ;
 MAIN(ABSPTRNS) ;PHAREX
@@ -16,7 +16,8 @@ MAIN(ABSPTRNS) ;PHAREX
  S ABSPPDOB=$$DOB^AUPNPAT(ABSPPIEN,"E")
  S ABSPPHRN=$$HRN^AUPNPAT(ABSPPIEN,DUZ(2))
  S OK=0
- S OK=$$DEVSEL()
+ ;IHS/OIT/CASSEVERN/RCS patch 44 5/21/2012 Make Device selection Pharmacy Specific
+ S OK=$$DEVSEL(ABSPPHRM)
  Q:'OK  ;Even if they chose to run this report, if they didn't set up a device don't bother
  D GETINFO(ABSPPIEN,ABSPTRNS)
  S ABSPSDAT=""
@@ -114,10 +115,12 @@ CHKPARMS(ABSBPATI,ABSPPHRM)  ;CHECK PARAMETERS TO SEE IF THIS SHOULD RUN
  . I '$$ISBEN^ABSPOS26  S OK=1  ;NON BENIFICIERY
  Q OK
  ;
-DEVSEL()  ;SELECT DEVICE
+ ;IHS/OIT/CASSEVERN/RCS patch 44 5/21/2012 Pass Pharmacy parameter
+DEVSEL(ABSPPHRM)  ;SELECT DEVICE
  N ABSPSTOP,IOP,OK
  S OK=0
- S IOP=$P($G(^ABSP(9002313.56,1,"REP")),U,4)
+ ;IHS/OIT/CASSEVERN/RCS patch 44 5/21/2012 Add Pharmacy variable
+ S IOP=$P($G(^ABSP(9002313.56,ABSPPHRM,"REP")),U,4)
  Q:IOP="" 0
  S IOP="`"_IOP
  S %ZIS("HFSMODE")="W"  ;Just in case the Device is a flat file

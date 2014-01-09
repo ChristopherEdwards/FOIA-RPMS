@@ -1,5 +1,5 @@
 DGABUL ;ALB/MRL/MJK - TRANSMIT OVERDUE ABSENCE BULLETIN; 23 OCT 1990
- ;;5.3;Registration;**418**;Aug 13, 1993
+ ;;5.3;Registration;**418,1015**;Aug 13, 1993;Build 21
 EN ;
  Q:'$D(DUZ)#2
  S U="^",Y=$S($D(^DG(43,1,"CON")):$P(^("CON"),"^",7),1:"") X:Y]"" ^DD("DD")

@@ -1,5 +1,5 @@
 ABMDE8X ; IHS/ASDST/DMJ - Page 8 - ERROR CHECKS ; 
- ;;2.6;IHS Third Party Billing System;**3,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**3,6,8,9**;NOV 12, 2009
  ; IHS/SD/SDR - v2.6 CSV
  ; IHS/SD/SDR -abm*2.6*3 - HEAT12234 - Require coor. DX for all CPT categories
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - error 239 if no RX number on line
@@ -23,25 +23,23 @@ A1 ;A1
  .S ABMCODXS=$P(ABMX("X0"),U,6)
  .I ABMCODXS'="" D
  ..F ABMJ=1:1 S ABMCODX=$P(ABMCODXS,",",ABMJ) Q:+$G(ABMCODX)=0  D
- ...;start old code abm*2.6*8 NOHEAT
- ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX
- ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX
- ...;end old code start new code
+ ...;start new code abm*2.6*8 NOHEAT
  ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")
  ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX("I")
  ...;end new code
  .;I $P($$CPT^ABMCVAPI(ABMX("CPT"),ABMP("VDT")),U,4)>22,$P($$CPT^ABMCVAPI(ABMX("CPT"),ABMP("VDT")),U,4)<30 Q  ;CSV-c  ;abm*2.6*3 HEAT12234
- .;I $P(ABMX("X0"),U,6)="" S ABME(122)=$S($D(ABME(122)):ABME(122)_","_ABMX,1:ABMX) Q  ;abm*2.6*8 NOHEAT
  .I $P(ABMX("X0"),U,6)="" S ABME(122)=$S($D(ABME(122)):ABME(122)_","_ABMX("I"),1:ABMX("I")) Q  ;abm*2.6*8 NOHEAT
+ I $D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMX("CPT")))&($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),27,ABMX,2)),U,2)="") D  ;abm*2.6*9 NARR
+ .Q:($P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010")  ;abm*2.6*9 NARR
+ .K ABMP("CPTNT") S ABMP("CPTNT")=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMX("CPT"),0))  ;abm*2.6*9 NARR
+ .Q:($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMP("CPTNT"),0)),U,2)'="Y")  ;abm*2.6*9 NARR
+ .S ABME(241)=$S('$D(ABME(241)):ABMX("I"),1:ABME(241)_","_ABMX("I"))  ;abm*2.6*9 NARR
  I ABMMODE(1)=22!(ABMMODE(1)=27) D
  .S ABMPIEN=0
  .F  S ABMPIEN=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),27,ABMX,"P",ABMPIEN)) Q:+ABMPIEN=0  D
  ..S ABMNPIUS=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))
  ..S ABMPRV=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),27,ABMX,"P",ABMPIEN,0)),U)
- ..;start old code abm*2.6*8 NOHEAT
- ..;I ABMNPIUS="N",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(220)=$S('$D(ABME(220)):ABMX,1:ABME(220)_","_ABMX)
- ..;I ABMNPIUS="B",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(221)=$S('$D(ABME(221)):ABMX,1:ABME(221)_","_ABMX)
- ..;end old code start new code
+ ..;start new code abm*2.6*8 NOHEAT
  ..I ABMNPIUS="N",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(220)=$S('$D(ABME(220)):ABMX("I"),1:ABME(220)_","_ABMX("I"))
  ..I ABMNPIUS="B",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(221)=$S('$D(ABME(221)):ABMX("I"),1:ABME(221)_","_ABMX("I"))
  ..;end new code
@@ -82,15 +80,17 @@ B1 S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),21,ABMX(1),0)
  I $P(ABMX("X0"),U,8)="Y" S ABME(164)=$S('$D(ABME(164)):ABMX("I"),1:ABME(164)_","_ABMX("I"))
  I $P(ABMX("X0"),U,5)]"",$P(ABMX("X0"),U,5)<ABMP("VDT") S ABME(127)=""
  I $G(ABMP("DDT")),$P(ABMX("X0"),U,5)]"",($P(ABMX("X0"),U,5)\1)>ABMP("DDT") S ABME(130)=""
+ I $D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",+ABMX("X0")))&($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),21,ABMX,2)),U,2)="") D  ;abm*2.6*9 NARR
+ .Q:$P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010"  ;abm*2.6*9 NARR
+ .K ABMP("CPTNT") S ABMP("CPTNT")=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",+ABMX("X0"),0))  ;abm*2.6*9 NARR
+ .Q:($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMP("CPTNT"),0)),U,2)'="Y")  ;abm*2.6*9 NARR
+ .S ABME(241)=$S('$D(ABME(241)):ABMX("I"),1:ABME(241)_","_ABMX("I"))  ;abm*2.6*9 NARR
  I ABMMODE(2)=22!(ABMMODE(2)=27) D
  .S ABMPIEN=0
  .F  S ABMPIEN=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),21,ABMX,"P",ABMPIEN)) Q:+ABMPIEN=0  D
  ..S ABMNPIUS=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))
  ..S ABMPRV=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),21,ABMX,"P",ABMPIEN,0)),U)
- ..;start old code abm*2.6*8 NOHEAT
- ..;I ABMNPIUS="N",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(220)=$S('$D(ABME(220)):ABMX,1:ABME(220)_","_ABMX)
- ..;I ABMNPIUS="B",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(221)=$S('$D(ABME(221)):ABMX,1:ABME(221)_","_ABMX)
- ..;end old code start new code
+ ..;start old new abm*2.6*8 NOHEAT
  ..I ABMNPIUS="N",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(220)=$S('$D(ABME(220)):ABMX("I"),1:ABME(220)_","_ABMX("I"))
  ..I ABMNPIUS="B",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(221)=$S('$D(ABME(221)):ABMX("I"),1:ABME(221)_","_ABMX("I"))
  ..;end new code
@@ -115,6 +115,11 @@ C1 S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),25,ABMX,0)
  I +ABMX("X0")>99&(+ABMX("X0")<220) S ABMX("CNT")=ABMX("CNT")+$P(ABMX("X0"),U,2)
  I $P(ABMX("X0"),U,2)="" S ABME(123)=""
  I $P(ABMX("X0"),U,3)="" S ABME(126)=""
+ I +$P(ABMX("X0"),U,7),$D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P(ABMX("X0"),U,7)))&($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),25,ABMX,2)),U,2)="") D  ;abm*2.6*9 NARR
+ .Q:$P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010"  ;abm*2.6*9 NARR
+ .K ABMP("CPTNT") S ABMP("CPTNT")=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P(ABMX("X0"),U,7),0))  ;abm*2.6*9 NARR
+ .Q:($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMP("CPTNT"),0)),U,2)'="Y")  ;abm*2.6*9 NARR
+ .S ABME(241)=$S('$D(ABME(241)):ABMX,1:ABME(241)_","_ABMX)  ;abm*2.6*9 NARR
  Q
  ;
 D ;EP - Entry Point for Page 8D Errors
@@ -133,10 +138,7 @@ D1 S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABMX,0)
  .S ABMCODXS=$P(ABMX("X0"),U,13)
  .I ABMCODXS'="" D
  ..F ABMJ=1:1 S ABMCODX=$P(ABMCODXS,",",ABMJ) Q:+$G(ABMCODX)=0  D
- ...;start old code abm*2.6*8 NOHEAT
- ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX
- ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX
- ...;end old code start new code
+ ...;start new code abm*2.6*8 NOHEAT
  ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")
  ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX("I")
  ...;end new code
@@ -151,10 +153,7 @@ D1 S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),23,ABMX,0)
  .F  S ABMPIEN=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),21,ABMX,"P",ABMPIEN)) Q:+ABMPIEN=0  D
  ..S ABMNPIUS=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))
  ..S ABMPRV=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),21,ABMX,"P",ABMPIEN,0)),U)
- ..;start old code abm*2.6*8 NOHEAT
- ..;I ABMNPIUS="N",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(220)=$S('$D(ABME(220)):ABMX,1:ABME(220)_","_ABMX)
- ..;I ABMNPIUS="B",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(221)=$S('$D(ABME(221)):ABMX,1:ABME(221)_","_ABMX)
- ..;end old code start new code
+ ..;start new code abm*2.6*8 NOHEAT
  ..I ABMNPIUS="N",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(220)=$S('$D(ABME(220)):ABMX("I"),1:ABME(220)_","_ABMX("I"))
  ..I ABMNPIUS="B",($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)<0) S ABME(221)=$S('$D(ABME(221)):ABMX("I"),1:ABME(221)_","_ABMX("I"))
  ..;end new code
@@ -242,13 +241,13 @@ J ;EP - Entry Point for Page 8J Errors
  ..S ABMCODXS=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),45,ABMX,0)),U,6)
  ..I ABMCODXS'="" D
  ...F ABMJ=1:1 S ABMCODX=$P(ABMCODXS,",",ABMJ) Q:+$G(ABMCODX)=0  D
- ....;start old code abm*2.6*8 NOHEAT
- ....;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX
- ....;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX
- ....;end old code start new code
+ ....;start new code abm*2.6*8 NOHEAT
  ....I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")
  ....I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX("I")
  ....;end new code
+ ....I $D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMX("CPT")))&($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),45,ABMX,2)),U,2)="") D  ;abm*2.6*9 NARR
+ .....Q:$P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010"  ;abm*2.6*9 NARR
+ .....S ABME(241)=$S('$D(ABME(241)):ABMX("I"),1:ABME(241)_","_ABMX("I"))  ;abm*2.6*9 NARR
  S ABME("TITL")="PAGE 8J - SUPPLIES"
  G XIT
 K ;EP - Entry Point for Page 8K Errors

@@ -1,5 +1,5 @@
-DGSTAT ;ALB/MRL - ADT SYSTEM STATUS DISPLAY ; 19 JUN 87  13:39 [12/8/95 3:08pm]
- ;;5.3;Registration;**75,151**;Aug 13, 1993
+DGSTAT ;ALB/MRL - ADT SYSTEM STATUS DISPLAY ; 03/12/2004
+ ;;5.3;Registration;**75,151,568,1015**;Aug 13, 1993;Build 21
  ;
  ; modified for K8, 12/7/95; mli
  ;
@@ -25,7 +25,7 @@ EN ; main entry point
  W !,"Gains & Losses (G&L)" S DGX=$X D L W "Last run ",$$DATE($G(^DG(43,1,"GLS")),11) ;                        g&l
  W !,"HINQ Option from Registration" S DGX=$X D L W "Is turned ",$$ONOFF(27) ;                                 hinq at reg
  W !,"RUG-II Background Job" S DGX=$X D L W "Last run ",$$DATE($G(^DG(43,1,"RUG")),1) ;                        rug bgj
- S X=$$LAST^SDAMLD,X=$G(^SDD(409.65,+X,0)) ;                                                                   appt stat upd
+ S X=$$LAST^DGSDUTL,X=$G(^SDD(409.65,+X,0)) ;                                                                   appt stat upd
  W !,"Appointment Status Update" S DGX=$X D L W "Last run ",$$DATE(X,5)
  W ! D L W "Updated appointments for ",$$DATE(X,1)
  W ! D L W "Scheduled for " S X=$$SCHED("SDAM BACKGROUND JOB") W $S(X:$$UP^XLFSTR($$FMTE^XLFDT(X)),1:"(not currently scheduled)")

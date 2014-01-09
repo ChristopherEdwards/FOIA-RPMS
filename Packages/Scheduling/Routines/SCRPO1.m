@@ -1,5 +1,5 @@
-SCRPO1 ;BP-CIOFO/KEITH - Historical Patient Position Assignment Listing ; 20 Aug 99  7:49 AM [ 11/02/2000  8:40 AM ]
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+SCRPO1 ;BP-CIOFO/KEITH - Historical Patient Position Assignment Listing ; 20 Aug 99  7:49 AM
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/02/2000 changed 132 column message
  ;                        added call to list template & header
  ;                        moved IO variables kill to list template
@@ -228,8 +228,7 @@ BTPOS(SCTP,SCDIV,SCTEAM,SCPOS,SCLINIC,SCFMT) ;Build list of patients for a posit
  ;
 FOOT1 ;Detail report footer
  N SCI
- ;F SCI=1:1:80 W ! Q:$Y>(IOSL-7)             ;IHS/ANMC/LJF 11/2/2000
- I '$G(VALM) F SCI=1:1:80 W ! Q:$Y>(IOSL-7)  ;IHS/ANMC/LJF 11/2/2000
+ F SCI=1:1:80 W ! Q:$Y>(IOSL-7)
  W !,SCLINE
  W !,"NOTE: More than one provider may be associated with a single patient position assignment.  This output returns a separate output"
  W !?6,"line for each related provider during the date range selected."
@@ -239,8 +238,7 @@ FOOT1 ;Detail report footer
  ;
 FOOT2 ;Summary report footer
  N SCI
- ;F SCI=1:1:80 W ! Q:$Y>(IOSL-7)              ;IHS/ANMC/LJF 11/2/2000
- I '$G(VALM) F SCI=1:1:80 W ! Q:$Y>(IOSL-7)   ;IHS/ANMC/LJF 11/2/2000
+ F SCI=1:1:80 W ! Q:$Y>(IOSL-7)
  W !,SCLINE
  W !,"NOTE: More than one provider may be associated with a single patient position assignment.  The sum of assignments related to"
  W !?6,"providers detailed in this summary is likely to be greater than the actual number of patient position assignments"

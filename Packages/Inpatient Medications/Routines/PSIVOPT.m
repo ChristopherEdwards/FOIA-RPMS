@@ -1,5 +1,5 @@
 PSIVOPT ;BIR/PR,MLM-OPTION DRIVER ;06 Aug 98 / 2:17 PM
- ;;5.0; INPATIENT MEDICATIONS ;**17,27,58,88,104**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**17,27,58,88,104,110,155**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191
  ; Reference to ^PSDRUG is supported by DBIA# 2192        
@@ -25,9 +25,14 @@ K ; Kill variables.
  Q
 ACT ; Prompt for order action.
  K PSJIVBD NEW PSGFDX,PSGSDX S (PSJORD,ON)=ON55
+ S PSJCOM=$S(ON["V":$P($G(^PS(55,DFN,"IV",+ON,.2)),"^",8),1:$P($G(^PS(53.1,+ON,.2)),"^",8))
  D:ON["V" EN^PSJLIORD(DFN,ON)
- I ON["P",($P($G(^PS(53.1,+ON,0)),U,9)="N") D GT531^PSIVORFA(DFN,ON),VF^PSIVORC2 S DONE=1 Q
- D:ON'["V" EN^PSJLIFN
+ I ON["P",($P($G(^PS(53.1,+ON,0)),U,9)="N"),'PSJCOM D GT531^PSIVORFA(DFN,ON),VF^PSIVORC2 S DONE=1 Q
+ I ON["P",PSJCOM Q:'$$LOCK^PSJOEA(DFN,PSJCOM)  N PSJO,ON,PSJORD S PSJO=0 F  S PSJO=$O(^PS(53.1,"ACX",PSJCOM,PSJO)) Q:'PSJO  Q:$G(Y)="Q"  S (PSJORD,ON)=PSJO_"P" D
+ .D:($P($G(^PS(53.1,+ON,0)),U,9)="N") GT531^PSIVORFA(DFN,ON),VF^PSIVORC2
+ .D:($P($G(^PS(53.1,+ON,0)),U,9)="P") EN^PSJLIFN
+ I $G(PSJCOM) N PSJORD S PSJORD=PSJCOM D CHK^PSJOEA1
+ I ON'["V",'+$G(PSJCOM) D EN^PSJLIFN
  S DONE=1
  Q
  ;
@@ -68,6 +73,7 @@ S ; View order.
  Q
  ;
 EXPIR ; Update status of expired orders.
+ I STAT="H" S PSIVREA="H",P(17)="E"
  S STAT="E" D UPSTAT,EXPIR^PSIVOE W $C(7),"  This order has expired."
  Q
  ;
@@ -122,10 +128,11 @@ ENLBL(PSGTOL,PSGUOW,PSGP,PSGTOO,DA,RES) ;
  Q
  ;
 IVDUPADD(PSGP,ORDERNUM) ;
+ N PSJCOM
  S DUPLOOP=0
  S DUPFOUND=0
  ;Loop through the additives of order to reinstate
- F  S DUPLOOP=$O(^PS(55,PSGP,"IV",ORDERNUM,"AD",DUPLOOP)) Q:((DUPLOOP="")!(DUPFOUND))  D
+ S PSJCOM=+$P($G(^PS(55,+PSGP,"IV",ORDERNUM,.2)),"^",8) F  S DUPLOOP=$O(^PS(55,PSGP,"IV",ORDERNUM,"AD",DUPLOOP)) Q:((DUPLOOP="")!(DUPFOUND))  D
  .;Get the additive code no.
  .S TARGET=$P(^PS(55,PSGP,"IV",ORDERNUM,"AD",DUPLOOP,0),"^",1)
  .D NOW^%DTC
@@ -136,6 +143,7 @@ IVDUPADD(PSGP,ORDERNUM) ;
  ..;Loop through the orders for date by order number
  ..F  S EXISTORD=$O(^PS(55,PSGP,"IV","AIS",DATELOOP,EXISTORD)) Q:((EXISTORD="")!(DUPFOUND))  D
  ...;Loop through additives for the existing order
+ ...I PSJCOM>0 Q:+$P($G(^PS(55,+PSGP,"IV",EXISTORD,.2)),"^",8)
  ...S EXISTADD=0
  ...F  S EXISTADD=$O(^PS(55,PSGP,"IV",EXISTORD,"AD",EXISTADD)) Q:((EXISTADD="")!(DUPFOUND))  D 
  ....;Extract the Additive Code number for the Order

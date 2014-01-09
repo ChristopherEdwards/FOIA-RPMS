@@ -1,5 +1,5 @@
-BRAPCC ; IHS/ITSC/PDW,CLS - RADIOLOGY PCC LINK ;05-Feb-2002 10:56;PLS
- ;;5.0;Radiology/Nuclear Medicine;**1001**;Feb 20, 2004
+BRAPCC ; IHS/ITSC/PDW,CLS - RADIOLOGY PCC LINK ; 17 Aug 2011  2:05 PM
+ ;;5.0;Radiology/Nuclear Medicine;**1001,1003**;Nov 01, 2010;Build 3
  ; RA*4*2 IHS/ADC/GTH 01/21/98 If the conversion has not been done, walk back to file 6.
  ;
  ;
@@ -23,6 +23,11 @@ CREATE ;EP---> CREATE OR MODIFY A VISIT FILE ENTRY, CREATE A NEW V RAD ENTRY.
  Q:'$D(RADFN)  Q:'$D(RADTI)  Q:'$D(RACNI)  Q:'$D(RADTE)
  ;---> QUIT IF PCC DATE/TIME NODE DOES NOT EXIST.
  Q:'$D(^RADPT(RADFN,"DT",RADTI,"P",RACNI,"PCC"))
+ ;IHS/BJI/DAY - Patch 1003 - Block Future Exam Dates
+ D NOW^%DTC
+ S Y=$P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,"PCC"),U)
+ I Y>% Q
+ ;End Patch
  ;
  ;I interactive S variable D EN^BSDAPI3 I IEN S APCDVSIT=IEN D VRAD Q  ;IHS/ITSC/CLS 05/11/2004
  ;
@@ -39,6 +44,13 @@ VISIT ;---> CREATE OR MODIFY VISIT IN VISIT FILE.
  ;
  ;---> LOCATION
  S APCDALVR("APCDLOC")=DUZ(2)
+ ;IHS/BJI/DAY - Patch 1003 - Can't use DUZ(2) in a multi-div site
+ ;Get Pointer to Imaging Location
+ S BRAZZ=$P($G(^RADPT(RADFN,"DT",RADTI,0)),U,4)
+ ;Check Pointer to Radiology Division
+ I BRAZZ,+$G(^RA(79.1,BRAZZ,"DIV")) S APCDALVR("APCDLOC")=$G(^RA(79.1,BRAZZ,"DIV"))
+ K BRAZZ
+ ;End Patch
  ;
  ;---> VISIT TYPE FROM PCC MASTER CONTROL FILE. (I,C,T,6,V)
  S APCDALVR("APCDTYPE")=$P(^APCCCTRL(DUZ(2),0),U,4)
@@ -107,6 +119,11 @@ VRAD ;---> CREATE (ADD) VISIT TO V RADIOLOGY FILE.
  ;---> RADIOLOGY PROCEDURE
  S APCDALVR("APCDTRAD")="`"_$P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),U,2)
  ;
+ ;IHS/BJI/DAY - Patch 1003 - Add Encounter Provider to V Rad
+ S X=$P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),U,15)
+ I +X S APCDALVR("APCDTEPR")="`"_X
+ ;End patch
+ ;
  ;---> RADIOLOGY PROCEDURE EVENT DATE/TIME
  S APCDALVR("APCDTCDT")=$P(^RADPT(RADFN,"DT",RADTI,0),U)
  ;
@@ -120,7 +137,7 @@ VRAD ;---> CREATE (ADD) VISIT TO V RADIOLOGY FILE.
  ;---> 3/17/97 WE DECIDED TO LEAVE .05 FIELD AS IS FOR DIRECT DATA
  ;---> ENTRY AND ADDED A .06 FIELD FOR DIAGNOSTIC CODE IHS/ISD/EDE
  ;S APCDALVR("APCDTDC")="`"_$P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),U,13)
- I $P($G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0)),U,13)]"" D
+ I +$P($G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0)),U,13) D
  .S APCDALVR("APCDTDC")="`"_$P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),U,13)
  ;---> REMOVE THE ; FROM ABOVE LINE WHEN PCC READY TO TAKE DIAGNOSTIC
  ;---> CODES ::IHS/ISD/EDE 03/17/97
@@ -243,6 +260,9 @@ UPDTIMP(RADFN,RADTI) ;EP ---> Called from BRAPRAD and VRAD above
  ;at EXAMINED with "NO IMPRESSION." in V RAD file 
  ;IHS/HQW/SCR - 07/20/01 **8**
  ;
+ ;IHS/CMI/DAY - We sometimes get calls with RACNE instead of RACN
+ I $G(RACN)="",$G(RACNE)]"" S RACN=RACNE
+ ;
  S RAXM=0,RACNUM=""   ;IHS/HQW/SCR - 07/20/01 **8**
  ;
  ;If the exam has been VERIFIED locate the CaseNumber of the EXam since
@@ -273,7 +293,7 @@ UPDTIMP(RADFN,RADTI) ;EP ---> Called from BRAPRAD and VRAD above
  .;N RARPT S RARPT=$P(^RADPT(RADFN,"DT",RADTI,"P",RAXM,0),U,17) Q:'$D(^RARPT(RARPT,"I"))  ;IHS/ITSC/CLS 07/15/2004
  .I '$G(RARPT) N RARPT S RARPT=$P(^RADPT(RADFN,"DT",RADTI,"P",RAXM,0),U,17) G CLN:RARPT=""  G CLN:'$D(^RARPT(RARPT,"I"))  ;IHS/ITSC/CLS 07/15/2004 09/28/2004
  .S I=$$SETIMP  ;IHS/ITSC/CLS 01/08/2004
- .I $P($G(^RADPT(RADFN,"DT",RADTI,"P",RAXM,0)),U,13)]"" D
+ .I +$P($G(^RADPT(RADFN,"DT",RADTI,"P",RAXM,0)),U,13) D
  ..S DC="`"_$P(^RADPT(RADFN,"DT",RADTI,"P",RAXM,0),U,13)  ;IHS/ITSC/CLS 01/09/2004 added diagnostic code
  .D CDIE
  Q
@@ -290,8 +310,9 @@ CDIE ;CALL DIE
  ;last modified and is needed whenever PCC is not updated through
  ; ^APCDALVR per Lori Butcher - IHS/HQW/SCR - 07/24/01 **8**
  ; 
- S AUPNVSIT=$P(^AUPNVRAD(PCCVRAD,0),U,3)  ;IHS/HQW/SCR - 7/24/01 **8** 
- D MOD^AUPNVSIT                    ;IHS/HQW/SCR - 07/24/01 **8**
+ S AUPNVSIT=""
+ I $G(PCCVRAD)]"" S AUPNVSIT=$P($G(^AUPNVRAD(PCCVRAD,0)),U,3)  ;IHS/HQW/SCR - 7/24/01 **8** 
+ I $G(AUPNVSIT)]"" D MOD^AUPNVSIT                    ;IHS/HQW/SCR - 07/24/01 **8**
  K DIE,DA,DR,AUPNVSIT              ;IHS/HQW/SCR - 07/20/01 **8**
 CLN ;
  K DC,I,RAFN,RATI,XM,CN,PCCVRAD     ;IHS/HQW/SCR - 07/20/01 **8**
@@ -304,4 +325,9 @@ SETIMP() ;moved set impression string to function call  ;IHS/ITSC/CLS 01/08/2004
  S I="",N=0 F  S N=$O(^RARPT(RARPT,"I",N)) Q:'N  D
  .I $L(I)+$L(^RARPT(RARPT,"I",N,0))<220 S I=I_" "_^(0) Q
  .S I=I_"...*MORE* (SEE EXAM).",N=-1
+ ;IHS/BJI/DAY - Patch 1003 - Cleanup needed for Fileman
+ I $E(I)=" " S I=$E(I,2,999)
+ I $E(I)=" " S I=$E(I,2,999)
+ I $E(I)=" " S I=$E(I,2,999)
+ S I=$TR(I,";",",")
  Q I

@@ -1,5 +1,5 @@
-DGENCDA ;ALB/CJM,Zoltan,JAN - Catastrophic Disability API - Retrieve Data;May 24, 1999;Nov 14, 2001
- ;;5.3;Registration;**121,147,232,387**;Aug 13,1993
+DGENCDA ;ALB/CJM,Zoltan,JAN,BRM,TDM - Catastrophic Disability API - Retrieve Data;May 24, 1999;Nov 14, 2001 ; 9/19/05 11:35am
+ ;;5.3;Registration;**121,147,232,387,451,653,1015**;Aug 13,1993;Build 21
  ;
 GET(DFN,DGCDIS) ;
  ;Description: Get catastrophic disability information for a patient
@@ -12,11 +12,14 @@ GET(DFN,DGCDIS) ;
  ;   "DATE"     Date of Decision
  ;   "FACDET"     Facility Making Determination
  ;   "REVDTE"     Review Date
+ ;   "VETREQDT"   Date Veteran Requested CD Evaluation
+ ;   "DTFACIRV"   Date Facility Initiated Review
+ ;   "DTVETNOT"   Date Veteran Was Notified
  ;
  N SUB,ITEM,SITEM,SIEN,IND
  K DGCDIS S DGCDIS=""
  I '$G(DFN) D  Q 0
- . F SUB="VCD","BY","DATE","FACDET","REVDTE","METDET" S DGCDIS(SUB)=""
+ . F SUB="VCD","BY","DATE","FACDET","REVDTE","METDET","VETREQDT","DTFACIRV","DTVETNOT" S DGCDIS(SUB)=""
  ; .39 VETERAN CATASTROPHICALLY DISABLED? field.
  S DGCDIS("VCD")=$P($G(^DPT(DFN,.39)),"^",6)
  ; .391 DECIDED BY field.
@@ -29,6 +32,12 @@ GET(DFN,DGCDIS) ;
  S DGCDIS("REVDTE")=$P($G(^DPT(DFN,.39)),"^",4)
  ; .395 METHOD OF DETERMINATION field.
  S DGCDIS("METDET")=$P($G(^DPT(DFN,.39)),"^",5)
+ ; .3951 DATE VETERAN REQUESTED CD EVAL
+ S DGCDIS("VETREQDT")=$P($G(^DPT(DFN,.39)),"^",7)
+ ; .3952 DATE FACILITY INITIATED REVIEW
+ S DGCDIS("DTFACIRV")=$P($G(^DPT(DFN,.39)),"^",8)
+ ; .3953 DATE VETERAN WAS NOTIFIED
+ S DGCDIS("DTVETNOT")=$P($G(^DPT(DFN,.39)),"^",9)
  ; .396 CD STATUS DIAGNOSES field (multiple):
  S SIEN=0
  F ITEM=1:1 S SIEN=$O(^DPT(DFN,.396,SIEN)) Q:'SIEN  D
@@ -71,3 +80,30 @@ HASCAT(DFN) ;
  ;
  Q:'$G(DFN) 0
  Q $P($G(^DPT(DFN,.39)),"^",6)="Y"
+ ;
+CHKSITE(DFN) ;is this the facility that made the CD determination?
+ ; 
+ ;Input:
+ ;  DFN - Patient IEN
+ ;Output:
+ ;  Function Value - returns 1 if CD evaluation was entered at local
+ ;     site, otherwise 0^SITE #
+ ;
+ Q:'$G(DFN) 0
+ N SITE
+ S SITE=$$SITE^VASITE
+ Q:$P($G(^DPT(DFN,.39)),"^",3)=$P(SITE,"^") 1
+ Q "0^"_$P($G(^DPT(DFN,.39)),"^",3)
+ ;
+CDTYPE(DFN) ; Was the method of determination "Physical Exam"?
+ ;
+ ;Input:
+ ;  DFN - Patient IEN
+ ;Output:
+ ;  Function Value - returns 1 if CD='Yes' & Method='Physical Exam'
+ ;     otherwise 0
+ ;
+ Q:'$G(DFN) 0
+ Q:'$$HASCAT(DFN) 0
+ Q $P($G(^DPT(DFN,.39)),"^",5)=3
+ ;

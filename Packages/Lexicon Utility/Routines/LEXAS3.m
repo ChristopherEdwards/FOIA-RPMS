@@ -1,5 +1,5 @@
 LEXAS3 ; ISL Look-up Check Input (SHIFT)          ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 SHIFT(LEXX) ; Letters are shifted out of position
  ;

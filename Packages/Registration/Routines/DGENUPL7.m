@@ -1,5 +1,5 @@
-DGENUPL7 ;ISA/KWP/CKN - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 04/24/023
- ;;5.3;REGISTRATION;**232,367,397,417,379,431,513**;Aug 13,1993
+DGENUPL7 ;ISA/KWP/CKN/TMK,TDM,LBD - PROCESS INCOMING (Z11 EVENT TYPE) HL7 MESSAGES ; 8/1/11 5:07pm
+ ;;5.3;PIMS;**232,367,397,417,379,431,513,628,673,653,742,1015,1016**;JUN 30, 2012;Build 20
  ;Phase II split from DGENUPL
 Z11(MSGIEN,MSGID,CURLINE,DFN,ERRCOUNT) ;
  ;Description:  This is used to process a single ORU~Z11 or ORF~Z11 msg. 
@@ -15,8 +15,8 @@ Z11(MSGIEN,MSGID,CURLINE,DFN,ERRCOUNT) ;
  ;  CURLINE - upon leaving the procedure this parameter should be set to the end of the current message. (pass by reference)
  ;  ERRCOUNT - set to count of messages that were not processed due to errors encountered  (pass by reference)
  ;
- N DGELG,DGENR,DGPAT,DGCDIS,ERROR,ERRMSG,MSGS,DGELGSUB,DGENUPLD,DGCON
- N DGNEWVAL,DIV,SUB,OLDELG,OLDPAT,OLDDCDIS,DGSEC,OLDSEC,DGNTR,DGMST,DGPHINC
+ N DGELG,DGENR,DGPAT,DGCDIS,DGOEIF,ERROR,ERRMSG,MSGS,DGELGSUB,DGENUPLD,DGCON,DGNMSE
+ N DGNEWVAL,DIV,SUB,OLDELG,OLDPAT,OLDDCDIS,OLDEIF,DGSEC,OLDSEC,DGNTR,DGMST,DGPHINC
  ;
  ;some process is killing these HL7 variables, so need to protect them
  S SUB=HLFS
@@ -24,24 +24,26 @@ Z11(MSGIEN,MSGID,CURLINE,DFN,ERRCOUNT) ;
  N HLDA,HLDAN,HLDAP,HLDT,HLDT1,HLECH,HLFS,HLNDAP,HLNDAP0,HLPID,HLQ,HLVER,HLERR,HLMTN,HLSDT
  S HLFS=SUB
  S HLECH=DIV
+ S HLQ=""""""
  K DIV,SUB
  ;
  ;drops out of block on error
  D
- .Q:'$$PARSE^DGENUPL1(MSGIEN,MSGID,.CURLINE,.ERRCOUNT,.DGPAT,.DGELG,.DGENR,.DGCDIS,.DGSEC,.DGNTR,.DGMST)
+ .Q:'$$PARSE^DGENUPL1(MSGIEN,MSGID,.CURLINE,.ERRCOUNT,.DGPAT,.DGELG,.DGENR,.DGCDIS,.DGOEIF,.DGSEC,.DGNTR,.DGMST,.DGNMSE)
  .D GETLOCKS^DGENUPL5(DFN)
  .;
  .;Used by cross-references to determine if an upload is in progress.
  .S DGENUPLD="ENROLLMENT/ELIGIBILITY UPLOAD IN PROGRESS"
  .;
  .;Update the PATIENT, ELIGIBILITY, CATASTROPHIC DISABILITY objects in memory
- .Q:'$$UOBJECTS^DGENUPL4(DFN,.DGPAT,.DGELG,.DGCDIS,MSGID,.ERRCOUNT,.MSGS,.OLDPAT,.OLDELG,.OLDCDIS)
+ .Q:'$$UOBJECTS^DGENUPL4(DFN,.DGPAT,.DGELG,.DGCDIS,.DGOEIF,MSGID,.ERRCOUNT,.MSGS,.OLDPAT,.OLDELG,.OLDCDIS,.OLDEIF)
  .S ERROR=0
  .;if the msg contains patient security, process it
  .I $D(DGSEC) D  Q:ERROR
  ..S DGSEC("DFN")=DFN
  ..S DGSEC("USER")=.5
- ..S DGSEC("DATETIME")=$$NOW^XLFDT
+ ..I DGSEC("LEVEL")'="" D
+ ...I DGSEC("DATETIME")="" S DGSEC("DATETIME")=$$NOW^XLFDT ;DG*5.3*653 
  ..;
  ..; check consistency of patient security record
  ..I '$$CHECK^DGENSEC(.DGSEC,.ERRMSG) D  Q
@@ -71,12 +73,15 @@ Z11(MSGIEN,MSGID,CURLINE,DFN,ERRCOUNT) ;
  ..I '$$CHECK^DGENA3(.DGENR,.DGPAT,.ERRMSG) D  Q
  ...S ERROR=1
  ...D ADDERROR^DGENUPL(MSGID,DGPAT("SSN"),ERRMSG,.ERRCOUNT)
+ ..;
+ ..; removed EGT consistency check with DG*5.3*628
  ..;Phase II EGT consistency checks (SRS 6.5.1.3)
  ..;Only do the EGT consistency checks for Rejected-Fiscal Year (11),Rejected-Mid Cycle (12),Rejected-Stop enrolling new apps (13),Rejected-Initil App by VAMC (14),Rejected below EGT threshold (22)
- ..I "^11^12^13^14^22^"[("^"_DGENR("STATUS")_"^"),$$ABOVE^DGENEGT1(DGENR("DFN"),DGENR("PRIORITY"),DGENR("SUBGRP"),"","",1) D  Q
- ...S ERROR=1
- ...S ERRMSG="THE ENROLLMENT RECORD DID NOT PASS THE EGT CONSISTENCY CHECKS."
- ...D ADDERROR^DGENUPL(MSGID,DGPAT("SSN"),ERRMSG,.ERRCOUNT)
+ ..;I "^11^12^13^14^22^"[("^"_DGENR("STATUS")_"^"),$$ABOVE^DGENEGT1(DGENR("DFN"),DGENR("PRIORITY"),DGENR("SUBGRP"),"","",1) D  Q
+ ..;.S ERROR=1
+ ..;.S ERRMSG="THE ENROLLMENT RECORD DID NOT PASS THE EGT CONSISTENCY CHECKS."
+ ..;.D ADDERROR^DGENUPL(MSGID,DGPAT("SSN"),ERRMSG,.ERRCOUNT)
+ ..;
  ..;Allow null overwrites for Ineligible vets (Ineligible Project):
  ..I $G(DGPAT("INELDATE"))'="" S (DGENR("PRIORITY"),DGENR("SUBGRP"))=""
  ..I DGENR("DATE")="@" S DGENR("DATE")=""
@@ -95,6 +100,14 @@ Z11(MSGIEN,MSGID,CURLINE,DFN,ERRCOUNT) ;
  .;Call PIMS api to file MST data.
  .I DGMST("MSTSTAT")'="",DGMST("MSTDT")'="",DGMST("MSTST")'="" D
  ..I $$NEWSTAT^DGMSTAPI(DFN,DGMST("MSTSTAT"),DGMST("MSTDT"),".5",DGMST("MSTST"),0)
+ .;
+ .;Since HEC is authoritative source, If no OEF/OIF data in Z11, set count to 0 so existing data in VistA will be deleted.
+ .I '$D(DGOEIF) S DGOEIF("COUNT")=0
+ .;Call PIMS api to file OEF/OIF data.
+ .I $D(DGOEIF) D OEIFUPD^DGCLAPI1(DFN,.DGOEIF)
+ .;
+ .;File the Military Service Episode (MSE) data (DG*5.3*797)
+ .I $D(DGNMSE) D UPDMSE^DGMSEUTL(DFN,.DGNMSE)
  .;
  .;if the current enrollment is a local then log patient for transmission
  .I $$SOURCE^DGENA(DFN)=1!$G(DGPHINC) K DGENUPLD,DGPHINC D EVENT^IVMPLOG(DFN)

@@ -1,5 +1,5 @@
 DGMTU3 ;ALB/MLI/GN/LBD - Internal Entry Number Utility Calls ; 2/20/03 8:45am
- ;;5.3;Registration;**33,45,137,182,300,433,499,518**;Aug 13, 1993
+ ;;5.3;Registration;**33,45,137,182,300,433,499,518,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine will return the IENs for the primary income
  ; test from various files.

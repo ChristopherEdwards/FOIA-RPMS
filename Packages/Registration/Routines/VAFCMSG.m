@@ -1,5 +1,5 @@
-VAFCMSG ;ALB/JRP-BACKGROUND JOB TO TRANSMIT ENTRIES IN PIVOT FILE ;12-SEP-1996
- ;;5.3;Registration;**91,149**;Jun 06, 1996
+VAFCMSG ;ALB/JRP-BACKGROUND JOB TO TRANSMIT ENTRIES IN PIVOT FILE ; 3/2/04 12:54pm
+ ;;5.3;Registration;**91,149,530,578,1015**;Jun 06, 1996;Build 21
  ;
 MAIN ;Main entry point for background job
  ;
@@ -17,6 +17,7 @@ MAIN ;Main entry point for background job
  D BCKTFMFU^VAFCTFMF
  ;unlock global
  L -^VAT(391.71,"VAFC BATCH UPDATE ADT/HL7")
+ ;K DIC,X,Y
  Q
  ;
 BCSTA08 ;Broadcast ADT-A08 messages for all entries in ADT/HL PIVOT file
@@ -38,8 +39,12 @@ BCSTA08 ;Broadcast ADT-A08 messages for all entries in ADT/HL PIVOT file
  .S NODE=$G(^VAT(391.71,PIVOTPTR,0))
  .S EDITDATE=+NODE
  .S DFN=+$P(NODE,"^",3)
+ .;PATCH 530 check global for lock status - quit if locked.
+ .L +^DPT(DFN):1 I '$T Q
  .;Bad pointer to patient - mark entry as transmitted and quit
  .I ('$D(^DPT(DFN,0)))!($G(^DPT(DFN,-9))) D XMITFLAG^VAFCDD01(PIVOTPTR,"",1) Q
+ .I $P(^DPT(DFN,0),U)="" D XMITFLAG^VAFCDD01(PIVOTPTR,"",1) Q
+ .I '$D(^DPT("B",$P(^DPT(DFN,0),U),DFN)) D XMITFLAG^VAFCDD01(PIVOTPTR,"",1) Q
  .;Store info into event information array
  .K @INFOARR
  .S @INFOARR@("PIVOT")=PIVOTPTR
@@ -66,6 +71,8 @@ BCSTA08 ;Broadcast ADT-A08 messages for all entries in ADT/HL PIVOT file
  .Q:(TMP<0)
  .;Mark entry in pivot file as transmitted
  .D XMITFLAG^VAFCDD01(PIVOTPTR,"",1)
+ .;PATCH 530 if locked by check unlock.
+ .L -^DPT(DFN)
  ;Done - clean up and quit
  K @INFOARR
  Q
@@ -88,10 +95,15 @@ BCSTA04 ;Broadcast ADT-A04 messages for all entries in ADT/HL PIVOT file
  .S USER=+$P(NODE,"^",9)
  .S EDITDATE=+NODE
  .S DFN=+$P(NODE,"^",3)
+ .;PATCH 530 check for locked record - quit if locked.
+ .L +^DPT(DFN):1 I '$T Q
  .;Bad pointer to patient - mark entry as transmitted and quit
  .I ('$D(^DPT(DFN,0)))!($G(^DPT(DFN,-9))) D XMITFLAG^VAFCDD01(PIVOTPTR,"",1) Q
+ .I $P(^DPT(DFN,0),U)="" D XMITFLAG^VAFCDD01(PIVOTPTR,"",1) Q
+ .I '$D(^DPT("B",$P(^DPT(DFN,0),U),DFN)) D XMITFLAG^VAFCDD01(PIVOTPTR,"",1) Q
  .;Broadcast ADT-A04 message
  .S RESULT=$$EN^VAFCA04(DFN,EDITDATE,USER,PIVOTPTR)
  .D XMITFLAG^VAFCDD01(PIVOTPTR,"",1)
+ .L -^DPT(DFN)
  ;Done - quit
  Q

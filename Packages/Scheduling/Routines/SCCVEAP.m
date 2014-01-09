@@ -1,5 +1,5 @@
 SCCVEAP ;ALB/RMO,TMP - Appointment Conversion; [ 03/31/95  11:23 AM ]
- ;;5.3;Scheduling;**211**;Aug 13, 1993
+ ;;5.3;Scheduling;**211,1015**;Aug 13, 1993;Build 21
  ;
 EN(SCCVEVT,SCSTDT,SCENDT,SCLOG,SCREQ,SCDFN,SCSTOPF) ;Entry point to loop through all appointments for a specified date range
  ; Input  -- SCCVEVT  Conversion event

@@ -1,9 +1,10 @@
 DGVPTIB6 ;alb/mjk - DGCRNS for export with PIMS v5.3; 4/21/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 DGCRNS ;ALB/AAS - IS INSURANCE ACTIVE ; 22-JULY-91
  ;;Version 1.5 ; INTEGRATED BILLING ;**14**; 29-JUL-92
  ;
+ Q  ;ihs/cmi/maw 02/08/2012 patch 1014 no IB in IHS so entire routine not needed
  ;Input   -  DFN       = patient
  ;        -  DGCRINDT  = (optional) date to check ins active for or today if not defined
  ;        -  DGCROUTP  = (optional) 1 if want active insurance returned in DGCRDD(insurance company)=node in patient file

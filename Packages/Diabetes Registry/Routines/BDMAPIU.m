@@ -1,5 +1,5 @@
 BDMAPIU ; IHS/CMI/LAB - visit data ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,4,6**;JUN 14, 2007;Build 6
  ;IHS/TUCSON/LAB - added G parameter to provider call
  ;
  ;
@@ -131,7 +131,7 @@ LASTDXT(P,BD,ED,T,F) ;EP
  ..Q:C=""  ;bad xref
  ..Q:'$D(^ICD9(C))
  ..I TIEN Q:'$$ICD^ATXCHK(C,TIEN,9)
- ..S R=(9999999-D)_"^DX: "_$P($$ICDDX^ICDCODE(C,(9999999-D)),U,2)_"^"_$$VAL^XBDIQ1(9000010.07,I,.04)_"^"_$P(^AUPNVPOV(I,0),U,3)_"^9000010.07^"_I_"^"
+ ..S R=(9999999-D)_"^PROC: "_$P($$ICDDX^ICDCODE(C,(9999999-D)),U,2)_"^"_$$VAL^XBDIQ1(9000010.07,I,.04)_"^"_$P(^AUPNVPOV(I,0),U,3)_"^9000010.07^"_I_"^"
  ..Q
  .Q
  I R="" Q ""
@@ -155,7 +155,7 @@ LASTPRCT(P,BD,ED,T,F) ;EP
  ..Q:C=""  ;bad xref
  ..Q:'$D(^ICD0(C))
  ..I TIEN Q:'$$ICD^ATXCHK(C,TIEN,0)
- ..S R=(9999999-D)_"^DX: "_$P($$ICDOP^ICDCODE(C,(9999999-D)),U,2)_"^"_$$VAL^XBDIQ1(9000010.08,I,.04)_"^"_$P(^AUPNVPRC(I,0),U,3)_"^9000010.08^"_I
+ ..S R=(9999999-D)_"^PROC: "_$P($$ICDOP^ICDCODE(C,(9999999-D)),U,2)_"^"_$$VAL^XBDIQ1(9000010.08,I,.04)_"^"_$P(^AUPNVPRC(I,0),U,3)_"^9000010.08^"_I
  ..Q
  .Q
  I R="" Q ""

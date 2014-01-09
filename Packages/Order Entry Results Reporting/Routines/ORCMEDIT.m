@@ -1,5 +1,6 @@
 ORCMEDIT ;SLC/MKB-Menu Editor ;4/19/01  11:27
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,46,95**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,46,95,263**;Dec 17, 1997;Build 9
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
 EN ; -- start here
  S ORMENU=$$MENU D:ORMENU EN^VALM("OR MENU EDITOR")
  Q
@@ -23,7 +24,7 @@ MN1 S DIC="^ORD(101.41,",DIC(0)="AEQL",DLAYGO=101.41,DIC("DR")="4///^S X=""M"""
  . M ^ORD(101.41,+ORNEW,10)=^ORD(101.41,+Y,10) ; menu items
  . M ^ORD(101.41,+ORNEW,2)=^ORD(101.41,+Y,2) ; description
  . S:$D(^ORD(101.41,+Y,5)) ^ORD(101.41,+ORNEW,5)=^ORD(101.41,+Y,5)
- . S X=$P(Y(0),U,2),$P(^ORD(101.41,+ORNEW,0),U,2)=X,^ORD(101.41,"C",$$UP^XLFSTR(X),+ORNEW)="" ; display text
+ . S X=$P(Y(0),U,2),$P(^ORD(101.41,+ORNEW,0),U,2)=X S:X'="" ^ORD(101.41,"C",$$UP^XLFSTR(X),+ORNEW)="" ; display text
  . S DA(1)=+ORNEW,DIK="^ORD(101.41,"_+ORNEW_",10,",DIK(1)="2^AD" D ENALL^DIK
  I $P(ORNEW,U,3) S DA=+ORNEW,DIE="^ORD(101.41,",DR="2;20;51;52;53"_$S($G(DUZ(0))="@":";30;40",1:"") D ^DIE
  I $G(OROLD) L -^ORD(101.41,+OROLD,0),-^XUTL("XQORM",+OROLD_";ORD(101.41,","XQORM PROTECT",$J)

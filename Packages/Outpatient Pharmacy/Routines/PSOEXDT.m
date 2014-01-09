@@ -1,5 +1,5 @@
-PSOEXDT ;BHAM ISC/SAB - set exp. date and determine rx status ;13-Feb-2012 18:23;PLS
- ;;7.0;OUTPATIENT PHARMACY;**23,73,1011,1013**;DEC 1997;Build 33
+PSOEXDT ;BHAM ISC/SAB - set exp. date and determine rx status ;29-May-2012 14:49;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**23,73,1011,1013,222,1015**;DEC 1997;Build 62
  ;
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference ^PSDRUG( supported by DBIA 221
@@ -11,7 +11,7 @@ PSOEXDT ;BHAM ISC/SAB - set exp. date and determine rx status ;13-Feb-2012 18:23
  ;                          02/13/2012 - Line A+5,A+10
 A S CS=0,RFLS=$P(RX0,"^",9),DYS=$P(RX0,"^",8),X1=$P(RX0,"^",13),X2=DYS*(RFLS+1)\1,PSODEA=$P(^PSDRUG($P(RX0,"^",6),0),"^",3)
  F DEA=1:1 Q:$E(PSODEA,DEA)=""  I $E(+PSODEA,DEA)>1,$E(+PSODEA,DEA)<6 S $P(CS,"^")=1 S:$E(+PSODEA,DEA)=2 $P(CS,"^",2)=1
- S X2=$S($G(CLOZPAT)=1&(RFLS):14,DYS=X2:X2,CS:184,1:366) I X1']"" S X1=DT,X2=-1
+ S X2=$S($G(CLOZPAT)=2&(RFLS):28,$G(CLOZPAT)=1&(RFLS):14,DYS=X2:X2,CS:184,1:366) I X1']"" S X1=DT,X2=-1
  ;IHS/MSC/PLS - 05/19/2011 - added next three lines
  N EXTEXP
  S X2=$S(CS:184,1:366)  ;IHS/MSC/PLS - 02/13/2012

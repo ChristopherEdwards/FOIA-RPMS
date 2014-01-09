@@ -1,5 +1,5 @@
-BGOREP ; IHS/BAO/TMD - Manage REPRODUCTIVE FACTORS ;25-Aug-2009 12:42;MGH
- ;;1.1;BGO COMPONENTS;**1,3,5,6**;Mar 20, 2007
+BGOREP ; IHS/BAO/TMD - Manage REPRODUCTIVE FACTORS ;22-May-2013 17:50;DU
+ ;;1.1;BGO COMPONENTS;**1,3,5,6,10,11**;Mar 20, 2007;Build 2
  ; Returns reproductive history as a single string
  ; Patch 5 updates the expanded history logic to prevent error on an empty element.
  ; Patch 6 updates to use new field formats for repro history
@@ -12,14 +12,20 @@ TIUSTR() ;EP
  ; Returned as a list of data elements
  ;  INP = Patient IEN [1] ^ Date Obtained (opt) [2] ^ Expand History (opt) [3]
  ; .RET =
- ;        "L" ^ LMP Date [2]
- ;        "C" ^ Contraception Method [2] ^ Contraception Begun [3]
- ;        "P" ^ How EDC Determined [2] ^ EDC Date [3] ^ Pregnant [4}
- ;        "R" ^ Gravida[2] ^ Date[3] ^ Multiple Births[4] ^ Date[5] ^ Full term[6] ^ Date[7] ^ Premature[8]
+ ;        "L" [1] ^ LMP Date [2] ^ Date Changed [3]
+ ;        "C" [1] ^ Contraception Method;Contraception Begun [2]^....(MULTIPLE)
+ ;        "P" [1] ^ Pregnant [2] ^ Preg Provider [3] ^Date updated [4]
+ ;        "R" [1] ^ Gravida[2] ^ Date[3] ^ Multiple Births[4] ^ Date[5] ^ Full term[6] ^ Date[7] ^ Premature[8]
  ;            ^ Date[9] ^ Ectopics[10] ^ Date[11] ^ Living Children[12] ^ Date[13] ^ Spontaneous abortions[14] ^ Date[15]^Theraputic abortions[16]^Date[17]
+ ;        "B" [1] ^ Lactation Status [2] ^ Provider [3] ^ Date changed [4]
+ ;        "M" [1] ^ Menarche Age [2] ^ Coitarche Age [3] ^ Menopause age [4]
+ ;        "D" [1] ^ DES Daugher [2] ^ Date updated [3]
+ ;        "E" [1] ^ EDD def [2]  ^ EDD Def  prov [3] ^ EDD Def Dt [4] ^ EDD Def Comment [5] ^ EDD LMP [6] ^ EDD LMP prov [7] ^ EDD LMP Date [8]^ EDD LMP Comment [9]
+ ;                ^ EDD ult [10] ^EDD Ult Prov [11] ^EDD ult Date [12] ^ EDD Ult Comment [13]
+ ;                ^ EDD Clin [14] ^ EDD Clin prov [15] ^ EDD Clin Date [16] ^EDD Clin Comment [17] ^ EDD unknown [18] ^EDD Unknown prov [19] ^EDD unknown date [20] ^ EDD unknown comment [21]
 GET(RET,INP) ;EP
- N DFN,REC,HX,LMP,BEG,REPC,CONT,DELDT,METHOD,DAT,FNUM,EXP,CNT,REP,PREG,STR
- N X,Y,Z,G,M,F,P,E,L,T,S,GD,MD,FD,PD,ED,LD,TD,SD,REPDT
+ N DFN,REC,HX,LMP,LMPDT,BEG,REPC,CONT,DELDT,METHOD,DAT,FNUM,EXP,CNT,REP,PREG,STR
+ N X,Y,Z,G,M,F,P,E,L,T,S,GD,MD,FD,PD,ED,LD,TD,SD,REPDT,ARRAY
  S RET=$$TMPGBL^BGOUTL
  S FNUM=$$FNUM
  S CNT=0
@@ -31,42 +37,47 @@ GET(RET,INP) ;EP
  S REC=$G(^AUPNREP(DFN,0))
  D GETDATA
  S CNT=CNT+1
- S @RET@(CNT)="L"_U_LMP
- S CNT=CNT+1
- S @RET@(CNT)="C"_U_CONT_U_BEG
- S CNT=CNT+1
- S @RET@(CNT)="P"_U_METHOD_U_DELDT_U_PREG
+ S @RET@(CNT)="L"_U_LMP_U_LMPDT
  S CNT=CNT+1
  I EXP=1 D
  . S STR="Total # of pregnancies="_G_U_GD_U_"Multiple Births="_M_U_MD_U_"Full Term="_F_U_FD_U_"Premature="_P_U_PD_U
  . S STR=STR_"Ectopic Pregnancies="_E_U_ED_U_"Living Children="_L_U_LD_U_"Spontaneous Abortions (Miscarriages)="_S_U_SD_U_"Induced Abortions="_T_U_TD
  . S @RET@(CNT)="R"_U_STR
  E  S @RET@(CNT)="R"_U_G_U_GD_U_M_U_MD_U_F_U_FD_U_P_U_PD_U_E_U_ED_U_L_U_LD_U_S_U_SD_U_T_U_TD
+ D LAC^BGOREP1(.RET,.CNT,DFN)   ;Get lactation data
+ D CONT^BGOREP1(.RET,.CNT,DFN)   ;Get contraceptive data
+ D MEN^BGOREP1(.RET,.CNT,DFN)   ;Get menstrual data
+ D EDD^BGOREP1(.RET,.CNT,DFN)   ;Get EDD data
  ;I DAT,$P(REC,U,3)'=DAT S HX=""
 GETDATA ;Get the data needed for the repro history
  S LMP=$P(REC,U,4)
  I DAT'="",$P(REC,U,5)'=DAT S LMP=""
  S LMP=$$FMTDATE^BGOUTL(LMP)
- S CONT=$$EXTERNAL^DILFD(FNUM,3,,$P(REC,U,6))
- S BEG=$P(REC,U,7)
- I DAT'="",$P(REC,U,8)'=DAT S CONT="",BEG=""
- S BEG=$$FMTDATE^BGOUTL(BEG)
- S METHOD=$$EXTERNAL^DILFD(FNUM,4.05,,$P(REC,U,10))
- S DELDT=$P(REC,U,9)
- I DAT'="",$P(REC,U,11)'=DAT S METHOD="",DELDT=""
- S DELDT=$$FMTDATE^BGOUTL(DELDT)
- S REP=$G(^AUPNREP(DFN,11))
- S PREG=$$EXTERNAL^DILFD(FNUM,1101,,$P(REP,U,1))
- D CHECK(REP)
+ S LMPDT=$P(REC,U,5)
+ S LMPDT=$$FMTDATE^BGOUTL(LMPDT)
+ S REC=$G(^AUPNREP(DFN,11))
+ D CHECK(REC)
  Q
  ; Add/edit reproductive factor
- ;  INP = Patient IEN [1] ^ LMP Date [2] ^ Contraceptive Method [3] ^ Contraception Begun [4] ^
- ;        EDC Date [5] ^ EDC Determined [6] ^ Gravida[7] ^ Date Updated [8], Multiple Births[9] ^ Date Updated [10] ^
- ;        Full term[11] ^ Date Updated [12] ^Premature[13] ^ Date Updated [14] ^Ectopics[15] ^ Date Updated [16] ^
- ;        Living Children[17] ^ Date Updated [18] ^ Spontaneous abortions[19] ^ Date Updated [20]^Theraputic abortions[21]^Date Updated[22] ^Currently pregnant [23]
-SET(RET,INP) ;EP
- N DFN,FNUM,REPHX,LMP,FP,FPDATE,PREG,DELIVDT,DELMETH,FDA,IENS,NEW
+ ;INP=dfn of patient
+ ;DATA is an array
+ ;DATA(1)=L [1] ^ LMP [2] ^ DATE updated [3]
+ ;DATA(2)=R [1] ^ Gravida [2]^ Date Updated [3] ^Multiple Births [4] ^ Date Updated [5] ^Full term [6] ^ Date Updated [7] ^Premature [8]
+ ;^ Date Updated [9] ^Ectopics [10] ^ Date Updated  [11] ^Living Children [12] ^ Date Updated [13] ^ Spontaneous abortions [14] ^ SA dt update[15]
+ ;^ Induced abortions [16] ^ TA dt updated [17]
+ ;DATA(3)=M [1] ^ Menarche age [2] ^Dte updated [3] ^coitarche age [4] ^date updated [5] ^menopause age [6] ^date updated [7] ^DES [8] ^Des updated [9]
+ ;DATA(4)=E [1]^ PREGNANT [2]^ Dt updated [3] ^ Pregnant updated  prov [4]
+ ;^EDD LMP [5] ^ EDD LMP DT [6] ^ EDD LMP Prov [7] ^ EDD LMP COMMENT [8]
+ ;^EDD ult [9] ^EDD ul dte [10] ^EDD ult prov [11] ^ EDD ult comment [12]
+ ;^EDD Clin [13] ^ EDD Clin dte [14] ^ EDD Clin Prov [15] ^ EDD clin Comment [16
+ ;^EDD unknown [17] ^EDD Unk dte [18] ^ EDD unk prv [19] ^ EDD unk comment [20]
+ ;^EDD Def [21] ^ EDD Def Dte [22] ^EDD Def prov [23] ^ EDD Def Comment [24]
+ ;DATA(5)="B [1] ^lac status [2] ^dt updated [3] ^prov update [4]
+SET(RET,INP,DATA) ;EP
+ N DFN,FNUM,REPHX,LMP,TXT,FP,ARRAY,FPDATE,IDX,PREG,DELIVDT,DELMETH,FDA,IENS,NEW,EDDTX
  N EDC,EDCBY,GRAV,GRAVDT,MB,MBDT,FT,FTDT,PRE,PREDT,EC,ECDT,LC,LCDT,SA,SADT,TA,TADT
+ N DEDD,DEDDP,DEDDT,TODAY,TYPE,PRV
+ S PRV=$P($G(^VA(200,DUZ,0)),U,1)
  S RET="",FNUM=$$FNUM
  S TODAY=$$DT^XLFDT
  S DFN=+INP
@@ -75,65 +86,195 @@ SET(RET,INP) ;EP
  S NEW='$D(^AUPNREP(DFN))
  S IENS=$S('NEW:DFN_",",1:"+1,")
  S FDA=$NA(FDA(FNUM,IENS))
- S LMP=$P(INP,U,2)
- S FP=$P(INP,U,3)
- S FPDATE=$P(INP,U,4)
- S EDC=$P(INP,U,5)
- S PREG=$P(INP,U,23)
- S EDCBY=$P(INP,U,6)
  S:NEW @FDA@(.01)="`"_DFN
  S @FDA@(1.1)=TODAY
- S:$L(LMP) @FDA@(2)=LMP,@FDA@(2.1)=TODAY
- S:$L(FP) @FDA@(3)=FP,@FDA@(3.1)=TODAY,@FDA@(3.05)="@"
- S:$L(FPDATE) @FDA@(3.05)=FPDATE
- S:$L(PREG) @FDA@(1101)=PREG
- I EDC D
- .S:$L(EDC) @FDA@(4)=EDC,@FDA@(4.1)=TODAY
- .S:$L(EDCBY) @FDA@(4.05)=EDCBY
- E  S @FDA@(4)="@",@FDA@(4.05)="@"
- S GRAV=$P(INP,U,7),GRAVDT=$P(INP,U,8)
+ S (IDX,EDDTX)=""
+ F  S IDX=$O(DATA(IDX)) Q:'IDX  D
+ .S TYPE=$P(DATA(IDX),U,1)
+ .S TXT=$G(DATA(IDX))
+ .I TYPE="B" D LAC(TXT)
+ .I TYPE="L" D LMP(TXT)
+ .I TYPE="R" D REP(TXT)
+ .I TYPE="M" D MEN(TXT)
+ .I TYPE="E" D EDD(TXT)
+ I NEW D
+ .S RET=$$UPDATE^BGOUTL(.FDA,"E")
+ E  D
+ .D FILE^DIE("E","FDA","ERR")
+ .I $D(ERR("DIERR")) S RET=ERR("DIERR")
+ D:'RET EVT(DFN,'NEW)
+ ;I 'RET D STORE(EDDTX)
+ K ERR
+ D STORE(EDDTX)
+ S:'RET RET=DFN
+ Q
+LMP(TXT) ;Store LMP data
+ N LMP,LMPUP
+ S LMP=$P(TXT,U,2)
+ S LMPUP=$P(TXT,U,3)
+ I LMPUP="" S LMPUP=$$EXTERNAL^DILFD(TODAY)
+ I LMP'="" D
+ .S @FDA@(2)=LMP
+ .S @FDA@(2.1)=LMPUP
+ Q
+LAC(TXT) ;Store lactation data
+ N LAC,LACUP,LACPR
+ S LAC=$$UP^XLFSTR($P(TXT,U,2))
+ S LACUP=$P(TXT,U,3)
+ I LACUP="" S LACUP=$$EXTERNAL^DILFD(TODAY)
+ S LACPR=$P(TXT,U,4)
+ I LACPR="" S LACPR=PRV
+ I $L(LAC) D
+ .S @FDA@(2.01)=LAC
+ .S:$L(LACPR) @FDA@(2.03)=LACPR
+ .S:$L(LACUP) @FDA@(2.02)=LACUP
+ Q
+REP(INP) ;Store reproductive history data
+ S GRAV=$P(INP,U,2),GRAVDT=$P(INP,U,3)
  I GRAV'="" D
  .S:$L(GRAV) @FDA@(1103)=GRAV
  .I $L(GRAVDT) S @FDA@(1104)=GRAVDT
- .E  S @FDA@(1104)=TODAY
- S MB=$P(INP,U,9),MBDT=$P(INP,U,10)
+ .E  S @FDA@(1104)=$$EXTERNAL^DILFD(TODAY)
+ S MB=$P(INP,U,4),MBDT=$P(INP,U,5)
  I MB'="" D
  .S:$L(MB) @FDA@(1105)=MB
  .I $L(MBDT) S @FDA@(1106)=MBDT
- .E  S @FDA@(1106)=TODAY
- S FT=$P(INP,U,11),FTDT=$P(INP,U,12)
+ .E  S @FDA@(1106)=$$EXTERNAL^DILFD(TODAY)
+ S FT=$P(INP,U,6),FTDT=$P(INP,U,7)
  I FT'="" D
  .S:$L(FT) @FDA@(1107)=FT
  .I $L(FTDT) S @FDA@(1108)=FTDT
- .E  S @FDA@(1108)=TODAY
- S PRE=$P(INP,U,13),PREDT=$P(INP,U,14)
+ .E  S @FDA@(1108)=$$EXTERNAL^DILFD(TODAY)
+ S PRE=$P(INP,U,8),PREDT=$P(INP,U,9)
  I PRE'="" D
  .S:$L(PRE) @FDA@(1109)=PRE
  .I $L(PREDT) S @FDA@(1110)=PREDT
- .E  S @FDA@(1110)=TODAY
- S EC=$P(INP,U,15),ECDT=$P(INP,U,16)
+ .E  S @FDA@(1110)=$$EXTERNAL^DILFD(TODAY)
+ S EC=$P(INP,U,10),ECDT=$P(INP,U,11)
  I EC'="" D
  .S:$L(EC) @FDA@(1111)=EC
  .I $L(ECDT) S @FDA@(1112)=ECDT
- .E  S @FDA@(1112)=TODAY
- S LC=$P(INP,U,17),LCDT=$P(INP,U,18)
+ .E  S @FDA@(1112)=$$EXTERNAL^DILFD(TODAY)
+ S LC=$P(INP,U,12),LCDT=$P(INP,U,13)
  I LC'="" D
  .S:$L(LC) @FDA@(1113)=LC
  .I $L(LCDT) S @FDA@(1114)=LCDT
- .E  S @FDA@(1114)=TODAY
- S SA=$P(INP,U,19),SADT=$P(INP,U,20)
+ .E  S @FDA@(1114)=$$EXTERNAL^DILFD(TODAY)
+ S SA=$P(INP,U,14),SADT=$P(INP,U,15)
  I SA'="" D
  .S:$L(SA) @FDA@(1133)=SA
  .I $L(SADT) S @FDA@(1134)=SADT
- .E  S @FDA@(1134)=TODAY
- S TA=$P(INP,U,21),TADT=$P(INP,U,22)
+ .E  S @FDA@(1134)=$$EXTERNAL^DILFD(TODAY)
+ S TA=$P(INP,U,16),TADT=$P(INP,U,17)
  I TA'="" D
  .S:$L(TA) @FDA@(1131)=TA
  .I $L(TADT) S @FDA@(1132)=TADT
- .E  S @FDA@(1132)=TODAY
- S RET=$$UPDATE^BGOUTL(.FDA,"E")
- D:'RET EVT(DFN,'NEW)
- S:'RET RET=DFN
+ .E  S @FDA@(1132)=$$EXTERNAL^DILFD(TODAY)
+ Q
+MEN(TXT) ;Store menstrual history data
+ N MAGE,CAGE,MENO,DES,MDT,CDT,MENODT,DESDT
+ S MAGE=$P(TXT,U,2),MDT=$P(TXT,U,3)
+ I MAGE="" S MAGE="@"
+ S:$L(MAGE) @FDA@(1117)=MAGE
+ I $L(MDT) S @FDA@(1118)=MDT
+ E  S @FDA@(1118)=$$EXTERNAL^DILFD(TODAY)
+ S CAGE=$P(TXT,U,4),CDT=$P(TXT,U,5)
+ I CAGE="" S CAGE="@"
+ S:$L(CAGE) @FDA@(1119)=CAGE
+ I $L(CDT) S @FDA@(1120)=CDT
+ E  S @FDA@(1120)=$$EXTERNAL^DILFD(TODAY)
+ S MENO=$P(TXT,U,6),MENODT=$P(TXT,U,7)
+ I MENO="" S MENO="@"
+ S:$L(MENO) @FDA@(1121)=MENO
+ I $L(MENODT) S @FDA@(1122)=MENODT
+ E  S @FDA@(1122)=$$EXTERNAL^DILFD(TODAY)
+ S DES=$P(TXT,U,8),DESDT=$P(TXT,U,9)
+ I DES'="" D
+ .S:$L(DES) @FDA@(1127)=DES
+ .I $L(DESDT) S @FDA@(1128)=DESDT
+ .E  S @FDA@(1128)=$$EXTERNAL^DILFD(TODAY)
+ Q
+EDD(TXT) ;Get EDD data string and save
+ S EDDTX=TXT
+ Q
+STORE(TXT) ;Store EDD data string
+ N EDD,EDDP,EDDT,PREG,PREGPR,PREGDT,FDA,IENS,FNUM,EDDCO
+ K FDA
+ Q:TXT=""
+ S FNUM=$$FNUM
+ S IENS=DFN_","
+ S FDA=$NA(FDA(FNUM,IENS))
+ S PREG=$P(TXT,U,2),PREGPR=$P(TXT,U,3),PREGDT=$P(TXT,U,4)  ;Pregnancy data
+ S PREG=$$UPPER(PREG)
+ I PREGPR="" S PREGPR=PRV
+ I PREG'="" D
+ .S:$L(PREG) @FDA@(1101)=PREG
+ .S:$L(PREGPR) @FDA@(1135)=PREGPR
+ .I $L(PREGDT) S @FDA@(1102)=PREGDT
+ .E  S @FDA@(1102)=$$EXTERNAL^DILFD(TODAY)
+ S EDD=$P(TXT,U,5),EDDP=$P(TXT,U,6),EDDT=$P(TXT,U,7),EDDCO=$P(TXT,U,8)  ;EDD by LMP data
+ I EDDP="" S EDDP=PRV
+ I PREG="NO" S (EDD,EDDP,EDDT,EDDCO)="@"
+ I EDD'="" D
+ .S:$L(EDD) @FDA@(1302)=EDD
+ .S:$L(EDDP) @FDA@(1304)=EDDP
+ .I $L(EDDT) S @FDA@(1303)=EDDT
+ .E  S @FDA@(1303)=$$EXTERNAL^DILFD(TODAY)
+ .I $L(EDDCO) S @FDA@(1401)=EDDCO
+ D FILE^DIE("E","FDA","ERR")
+ I $D(ERR("DIERR")) S RET=ERR("DIERR")
+ K FDA,ERR
+ S FDA=$NA(FDA(FNUM,IENS))
+ S EDD=$P(TXT,U,9),EDDP=$P(TXT,U,10),EDDT=$P(TXT,U,11),EDDCO=$P(TXT,U,12)  ;EDD by ultrasound data
+ I PREG="NO" S (EDD,EDDP,EDDT,EDDCO)="@"
+ I EDDP="" S EDDP=PRV
+ I EDD'="" D
+ .S:$L(EDD) @FDA@(1305)=EDD
+ .S:$L(EDDP) @FDA@(1307)=EDDP
+ .I $L(EDDT) S @FDA@(1306)=EDDT
+ .E  S @FDA@(1306)=$$EXTERNAL^DILFD(TODAY)
+ .I $L(EDDCO) S @FDA@(1402)=EDDCO
+ .D FILE^DIE("E","FDA","ERR")
+ I $D(ERR("DIERR")) S RET=ERR("DIERR")
+ K FDA,ERR
+ S FDA=$NA(FDA(FNUM,IENS))
+ S EDD=$P(TXT,U,13),EDDP=$P(TXT,U,14),EDDT=$P(TXT,U,15),EDDCO=$P(TXT,U,16) ;EDD by clinical parameters data
+ I PREG="NO" S (EDD,EDDP,EDDT,EDDCO)="@"
+ I EDDP="" S EDDP=PRV
+ I EDD'="" D
+ .S:$L(EDD) @FDA@(1308)=EDD
+ .S:$L(EDDP) @FDA@(1310)=EDDP
+ .I $L(EDDT) S @FDA@(1309)=EDDT
+ .E  S @FDA@(1309)=$$EXTERNAL^DILFD(TODAY)
+ .I $L(EDDCO) S @FDA@(1501)=EDDCO
+ .D FILE^DIE("E","FDA","ERR")
+ I $D(ERR("DIERR")) S RET=ERR("DIERR")
+ K FDA,ERR
+ S FDA=$NA(FDA(FNUM,IENS))
+ S EDD=$P(TXT,U,17),EDDP=$P(TXT,U,18),EDDT=$P(TXT,U,19),EDDCO=$P(TXT,U,20) ;EDD by known method data
+ I PREG="NO" S (EDD,EDDP,EDDT,EDDCO)="@"
+ I EDDP="" S EDDP=PRV
+ I EDD'="" D
+ .S:$L(EDD) @FDA@(1314)=EDD
+ .S:$L(EDDP) @FDA@(1316)=EDDP
+ .I $L(EDDT) S @FDA@(1315)=EDDT
+ .E  S @FDA@(1315)=$$EXTERNAL^DILFD(TODAY)
+ .I $L(EDDCO) S @FDA@(1601)=EDDCO
+ .D FILE^DIE("E","FDA","ERR")
+ I $D(ERR("DIERR")) S RET=ERR("DIERR")
+ S DEDD=$P(TXT,U,21),DEDDP=$P(TXT,U,22),DEDDT=$P(TXT,U,23),EDDCO=$P(TXT,U,24)
+ K FDA,ERR
+ S FDA=$NA(FDA(FNUM,IENS))
+ I PREG="NO" S (DEDD,DEDDP,DEDDT,EDDCO)="@"
+ I DEDDP="" S DEDDP=PRV
+ I DEDD'="" D
+ .S:$L(DEDD) @FDA@(1311)=DEDD
+ .S:$L(DEDDP) @FDA@(1313)=DEDDP
+ .I $L(DEDDT) S @FDA@(1312)=DEDDT
+ .E  S @FDA@(1312)=$$EXTERNAL^DILFD(TODAY)
+ .I $L(EDDCO) S @FDA@(1502)=EDDCO
+ .D FILE^DIE("E","FDA","ERR")
+ I $D(ERR("DIERR")) S RET=ERR("DIERR")
  Q
  ; Delete reproductive history
  ;  DFN = Patient IEN
@@ -176,5 +317,7 @@ CHECK(REP) ;Get the different reproductive elements
  S T=$P(REP,U,31),TD=$$FMTDATE^BGOUTL($P(REP,U,32))
  S S=$P(REP,U,33),SD=$$FMTDATE^BGOUTL($P(REP,U,34))
  Q
+UPPER(X) ;Turn value to upper case
+ Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
  ; Return file number
 FNUM() Q 9000017

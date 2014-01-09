@@ -1,5 +1,5 @@
 SD53167P ;ALB/JDS - Patch 218 postinit ; Nov 16 1998
- ;;5.3;Scheduling;**167**;AUG 13, 1993
+ ;;5.3;Scheduling;**167,1015**;AUG 13, 1993;Build 21
  ;go through hopital location file printing clinics with '0' starttime
  N A,SCCNT,XPDIDTOT,SC D MES^XPDUTL("Searching for Clinics with HOUR CLINC DISPLAY BEGINS of '0'")
  S A="",SCCNT=0

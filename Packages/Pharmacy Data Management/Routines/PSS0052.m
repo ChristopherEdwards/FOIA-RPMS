@@ -1,5 +1,5 @@
 PSS0052 ;BIR/JLC-POPULATE FIRST SERVICE DATE ;01/14/2002
- ;;1.0;PHARMACY DATA MANAGEMENT;**52**;9/30/97
+ ;;1.0;PHARMACY DATA MANAGEMENT;**52,125**;9/30/97;Build 2
  ;
  ;Reference to ^PSRX is supported by DBIA 3500.
  ;
@@ -12,7 +12,7 @@ EN I $G(DUZ)="" W !,"Your DUZ is not defined.  It must be defined to run this ro
  Q
 ENQN S DFN=0
  F  S DFN=$O(^PS(55,DFN)) Q:'DFN  K A D
- . L ^PS(55,DFN)
+ . L ^PS(55,DFN):$S($G(DILOCKTM)>0:DILOCKTM,1:3)
  . S PSJORD=0 F  S PSJORD=$O(^PS(55,DFN,5,PSJORD)) Q:'PSJORD  S LOG=$P($G(^PS(55,DFN,5,PSJORD,0)),"^",16) I LOG]"" S A(LOG)="" Q
  . S PSJORD=0 F  S PSJORD=$O(^PS(55,DFN,"IV",PSJORD)) Q:'PSJORD  S LOG=$P($G(^PS(55,DFN,"IV",PSJORD,2)),"^") I LOG]"" S A(LOG)="" Q
  . S ARC=$O(^PS(55,DFN,"ARC",0)) I ARC S A(ARC)=""

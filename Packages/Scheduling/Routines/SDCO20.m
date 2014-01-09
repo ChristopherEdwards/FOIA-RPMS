@@ -1,5 +1,5 @@
 SDCO20 ;ALB/RMO - Process One Classification - Check Out;30 DEC 1992 1:10 pm
- ;;5.3;Scheduling;**20**;Aug 13, 1993
+ ;;5.3;Scheduling;**20,1015**;Aug 13, 1993;Build 21
  ;
 ONE(SDCTI,SDATA,SDOE,SDCOQUIT) ;Process One Classification
  ; Input  -- SDCTI    Outpatient Classification Type IEN

@@ -1,5 +1,5 @@
-BCHRC6P ; IHS/TUCSON/LAB - print dx by age ;  [ 12/06/00  8:50 AM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**7,11**;OCT 28, 1996
+BCHRC6P ; IHS/CMI/LAB - print dx by age ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;IHS/CMI/LAB - tmp to xtmp
 START ;
  S Y=BCHBD D DD^%DT S BCHBDD=Y S Y=BCHED D DD^%DT S BCHEDD=Y
@@ -13,29 +13,29 @@ START ;
  I $Y>(IOSL-4) D HEAD G:$D(BCHQUIT) DONE
  W !,"TOTAL"
  F I=1:1:10 S V="V"_I S @V=$P(^XTMP("BCHRC6",BCHJOB,BCHBT,"TOTAL"),U,I)
- S V1=V1/60 W ?25,$J($FN(V1,",",0),10)
- S V2=V2/60 W ?37,$J($FN(V2,",",0),10)
- S V3=V3/60 W ?49,$J($FN(V3,",",0),10)
- S V4=V4/60 W ?61,$J($FN(V4,",",0),10)
- W ?73,$J($FN(V5,",",0),10)
- W ?85,$J($FN(V6,",",0),10)
- W ?97,$J($FN(V7,",",0),10)
- S V8=$S(V7:V10/V7,1:0) W ?109,$J($FN(V8,",",1),10)
- W ?121,$J($FN(V9,",",0),10)
+ S V1=V1/60 W ?19,$J($FN(V1,",",0),7)
+ S V2=V2/60 W ?26,$J($FN(V2,",",0),7)
+ S V3=V3/60 W ?34,$J($FN(V3,",",0),7)
+ S V4=V4/60 W ?42,$J($FN(V4,",",0),7)
+ W ?50,$J($FN(V5,",",0),7)
+ W ?58,$J($FN(V6,",",0),7)
+ W ?62,$J($FN(V7,",",0),7)
+ ;S V8=$S(V7:V10/V7,1:0) W ?109,$J($FN(V8,",",1),10)
+ W ?73,$J($FN(V9,",",0),7)
 PROV ;print each provider
  S BCHX="" F  S BCHX=$O(^XTMP("BCHRC6",BCHJOB,BCHBT,"PROVIDER",BCHX)) Q:BCHX=""!($D(BCHQUIT))  D
  .I $Y>(IOSL-4) D HEAD G:$D(BCHQUIT) DONE
- .W !,$E(BCHX,1,24)
+ .W !,$E(BCHX,1,13)
  .F I=1:1:10 S V="V"_I S @V=$P(^XTMP("BCHRC6",BCHJOB,BCHBT,"PROVIDER",BCHX),U,I)
- .S V1=V1/60 W ?25,$J($FN(V1,",",0),10)
- .S V2=V2/60 W ?37,$J($FN(V2,",",0),10)
- .S V3=V3/60 W ?49,$J($FN(V3,",",0),10)
- .S V4=V4/60 W ?61,$J($FN(V4,",",0),10)
- .W ?73,$J($FN(V5,",",0),10)
- .W ?85,$J($FN(V6,",",0),10)
- .W ?97,$J($FN(V7,",",0),10)
- .S V8=$S(V7:V10/V7,1:0) W ?109,$J($FN(V8,",",1),10)
- .W ?121,$J($FN(V9,",",0),10)
+ .S V1=V1/60 W ?19,$J($FN(V1,",",0),7)
+ .S V2=V2/60 W ?26,$J($FN(V2,",",0),7)
+ .S V3=V3/60 W ?34,$J($FN(V3,",",0),7)
+ .S V4=V4/60 W ?42,$J($FN(V4,",",0),7)
+ .W ?50,$J($FN(V5,",",0),7)
+ .W ?58,$J($FN(V6,",",0),7)
+ .W ?62,$J($FN(V7,",",0),7)
+ .;S V8=$S(V7:V10/V7,1:0) W ?109,$J($FN(V8,",",1),10)
+ .W ?73,$J($FN(V9,",",0),7)
 DONE D DONE^BCHUTIL1
  K ^XTMP("BCHRC6",BCHJOB,BCHBT),BCHJOB,BCHBT
  Q
@@ -47,12 +47,14 @@ HEAD2 ; if printer
  S BCHPG=BCHPG+1
  W !,$P(^VA(200,DUZ,0),U,2),?56,"DATE GENERATED:  ",BCHDT,?124,"Page ",BCHPG,!
  W $$CTR^BCHRLU($$LOC^BCHRLU),!
- W !?46,"**********  CHR REPORT NO. 6  **********"
- W !!?59,"PROVIDER DATA"
+ S X="**********  CHR REPORT NO. 6  **********" W !,$$CTR^BCHRLU(X,80)
+ S X="PROVIDER DATA" W !!,$$CTR^BCHRLU(X,80)
  S BCHPROGN=$S(BCHPRG:$P(^BCHTPROG(BCHPRG,0),U)_" ("_$P(^(0),U,5)_")",1:"ALL"),X=$L(BCHPROGN)+10
- W !!?((132-X)/2),"PROGRAM:  ",BCHPROGN
- W !?43,"REPORT DATES:  ",BCHBDD,"  TO  ",BCHEDD,!
- W !!?25,"   SERVICE",?37,"    TRAVEL",?49,"     LEAVE",?61,"     TOTAL",?73,"0 NUM SERV",?85,"1 NUM SERV",?97,"     GROUP",?109,"   AVERAGE",?121,"TOT NUMBER"
- W !,"PROVIDER",?25,"     HOURS",?37,"     HOURS",?49,"     HOURS",?61,"     HOURS",?73,"ACTIVITIES",?85,"ACTIVITIES",?97,"ACTIVITIES",?109,"  GRP SIZE",?121,"    SERVED"
- W !,$TR($J(" ",132)," ","-")
+ W !?((80-X)/2),"PROGRAM:  ",BCHPROGN
+ S X=$L("PATIENTS:  "_BCHREGN)
+ W !?((80-X)/2),"PATIENTS:  ",BCHREGN
+ S X="REPORT DATES:  "_BCHBDD_"  TO  "_BCHEDD W !,$$CTR^BCHRLU(X,80)
+ W !!?20,"SERVICE",?28,"TRAVEL",?36,"LEAVE",?44,"TOTAL",?52,"0 NUM",?60,"1 NUM",?68,">1 NUM",?75,"TOT #"
+ W !,"PROVIDER",?20,"HOURS",?28,"HOURS",?36,"HOURS",?44,"HOURS",?52,"SERV",?60,"SERV",?68,"SERV",?74,"SERVED"
+ W !,$TR($J(" ",80)," ","-")
  Q

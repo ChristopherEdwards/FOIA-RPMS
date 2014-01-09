@@ -1,7 +1,6 @@
-SDAUT1 ;MAN/GRR - AUTO REBOOK SET REQUIRED AVAILABILITY NODES ; [ 09/13/2001  2:15 PM ]
- ;;5.3;Scheduling;**140**;Aug 13, 1993
+SDAUT1 ;MAN/GRR - AUTO REBOOK SET REQUIRED AVAILABILITY NODES ; 28 MAR 84  1:46 pm
+ ;;5.3;Scheduling;**140,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF  8/18/2000 changed $N to $O
- ;
  K SDXXX S MAX=$S($D(^SC(SC,"SDP")):$P(^("SDP"),"^",4),1:0)
  Q:MAX=0  S STIME=$S($D(^SC(SC,"SDP")):$P(^("SDP"),"^",3),1:"0800"),X1=CDATE,X2=DT D ^%DTC
  I X<10 S X1=$S(CDATE<DT:DT,1:CDATE),X2=10 D C^%DTC S SDSTRTDT=X G OVR
@@ -13,7 +12,6 @@ EN1 ;S:$N(^SC(+SC,"T",0))>X X=$N(^(0)) D DOW S I=Y+32,SM=X,D=Y D WM  ;IHS/ANMC/L
  K J F Y=0:1:6 I $D(^SC(+SC,"T"_Y)) S J(Y)="",DA=+SC,DOW=Y D:'$D(^SC(+SC,"T"_Y,0)) TX^SDB1
  Q:'$D(J)
 X1 Q:X>ENDATE  S X1=X\100_28
- ;
  ;IHS/ANMC/LJF 8/18/2000
 W ;S X=X\1 I '$D(^SC(+SC,"ST",X,1)) S Y=D#7 G L:'$D(J(Y)),H:$D(^HOLIDAY(X))&('SDSOH) S SS=$N(^SC(+SC,"T"_Y,X)) G L:SS<0,L:^(SS,1)="" S ^SC(+SC,"ST",X\1,1)=$E($P($T(DAY),U,Y+2),1,2)_" "_$E(X,6,7)_$J("",SI+SI-6)_^(1),^(0)=X\1
  S X=X\1 I '$D(^SC(+SC,"ST",X,1)) S Y=D#7 G L:'$D(J(Y)),H:$D(^HOLIDAY(X))&('SDSOH) S SS=$O(^SC(+SC,"T"_Y,X)) G L:SS'>0,L:^(SS,1)="" S ^SC(+SC,"ST",X\1,1)=$E($P($T(DAY),U,Y+2),1,2)_" "_$E(X,6,7)_$J("",SI+SI-6)_^(1),^(0)=X\1

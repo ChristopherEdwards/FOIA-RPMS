@@ -1,5 +1,5 @@
-BEHOCACV ;MSC/IND/DKM - CWADF ;24-Aug-2009 11:54;PLS
- ;;1.1;BEH COMPONENTS;**029003**;Sep 18, 2007
+BEHOCACV ;MSC/IND/DKM - CWADF ;18-Dec-2012 10:55;PLS
+ ;;1.1;BEH COMPONENTS;**029003,029004**;Sep 18, 2007
  ;=================================================================
  ; Return posting list for patient
 LIST(DATA,DFN) ;
@@ -46,7 +46,7 @@ GET(DFN) N PRF,CNT,RES
  .N X,Y
  .S Y=$O(^DGPF(26.13,"C",DFN,$P(PRF(PRF,"FLAG"),U),0))_"^F"
  .F X="2^FLAG","2^FLAGTYPE","1^ASSIGNDT" S Y=Y_U_$P($G(PRF(PRF,$P(X,U,2))),U,+X)
- .S CNT=CNT+1,^TMP("TIUPPCV",$J,CNT)=Y
+ .S CNT=CNT+1,^TMP("TIUPPCV",$J,CNT)=Y_U_PRF
  Q
  ; Get patient record flag detail
 PRF(DATA,DFN,IEN) ;

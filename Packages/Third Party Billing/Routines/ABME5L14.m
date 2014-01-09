@@ -1,5 +1,5 @@
 ABME5L14 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9**;NOV 12, 2009
  ;Header Segments
  ;
 EP ;START HERE
@@ -41,9 +41,17 @@ EP ;START HERE
  ; Loop 2310C - Service Facility Name
  S ABMLOOP="2310C"
  ;I "21^22^31^35"[$$POS^ABMERUTL() D  ;abm*2.6*8
- I $P($G(^DIC(4,DUZ(2),0)),U)'=($P($G(^DIC(4,ABMP("LDFN"),0)),U)) D  ;abm*2.6*8
+ ;I $P($G(^DIC(4,DUZ(2),0)),U)'=($P($G(^DIC(4,ABMP("LDFN"),0)),U)) D  ;abm*2.6*8  ;abm*2.6*9 HEAT57746
+ S ABMSLOC=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,17)  ;abm*2.6*9 HEAT57746
+ I ((ABMSLOC="S")!((ABMSLOC="D")!(ABMSLOC="")&($P($G(^DIC(4,DUZ(2),0)),U)'=$P($G(^DIC(4,ABMP("LDFN"),0)),U)))) D  ;abm*2.6*8  ;abm*2.6*9 HEAT57746
  .D EP^ABME5NM1("77")
  .D WR^ABMUTL8("NM1")
+ .;abm*2.6*9 NOHEAT IHS/SD/AML 1/19/2012 - Add Service Line Address
+ .D EP^ABME5N3(4,ABMP("LDFN"))
+ .D WR^ABMUTL8("N3")
+ .D EP^ABME5N4(4,ABMP("LDFN"))
+ .D WR^ABMUTL8("N4")
+ .;abm*2.6*9 NOHEAT IHS/SD/AML 1/19/2012 - End Add Service Line Address
  .;I ABMNPIU'="N" D
  .;.I ABMP("ITYPE")="R" D
  .;..D EP^ABME5REF("1C",9999999.06,ABMP("LDFN"))

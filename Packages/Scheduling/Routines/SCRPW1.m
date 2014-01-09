@@ -1,5 +1,5 @@
 SCRPW1 ;RENO/KEITH - Review of Scheduling/Outpatient Encounter/Visit file relationships ; 03 Aug 98 10:56 AM
- ;;5.3;Scheduling;**139,132,144**;AUG 13, 1993
+ ;;5.3;Scheduling;**139,132,144,1015**;AUG 13, 1993;Build 21
 ASK ;Ask for patient
  D TITL^SCRPW50("Review of Scheduling/PCE/Problem List Data")
  W ! S DIC="^DPT(",DIC(0)="AEMQ" D ^DIC G:($D(DTOUT)!$D(DUOUT)) EXIT G:Y'>0 EXIT S DFN=+Y,SDPNAM=$P(Y,U,2)

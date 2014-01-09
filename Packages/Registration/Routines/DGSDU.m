@@ -1,5 +1,5 @@
 DGSDU ;ALB/TMP - ACRP API UTILITIES ; 12/8/97  15:09
- ;;5.3;Registration;**151**;Aug 13, 1993
+ ;;5.3;Registration;**151,1015**;Aug 13, 1993;Build 21
  ;;
 SCAN(DGINDX,DGVAL,DGFILTER,DGCBK,DGCLOSE,DGQUERY,DGDIR) ; Scan encounters
  ;  *** NOTE *** When using this call, the variable passed as DGQUERY

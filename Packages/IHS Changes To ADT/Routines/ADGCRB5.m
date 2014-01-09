@@ -1,5 +1,5 @@
 ADGCRB5 ; IHS/ADC/PDW/ENM - A SHEET lines 8-11 ;  [ 08/25/2004  11:38 AM ]
- ;;5.3;PIMS;**1001,1008,1009**;APR 26, 2002
+ ;;5.3;PIMS;**1001,1008,1009,1010,1016**;APR 26, 2002;Build 20
  ;IHS/ITSC/WAR 8/1/2004 Modified 2nd line to be consistent with version
  ;   number and IHS patch number. Need to copy this routine and rename
  ;  it to match current naming scheme for PIMS. Original 2nd line is 
@@ -8,12 +8,15 @@ ADGCRB5 ; IHS/ADC/PDW/ENM - A SHEET lines 8-11 ;  [ 08/25/2004  11:38 AM ]
  ;
  ;cmi/anch/maw 12/7/2007 patch 1008 added code set versioning VPOV,VPRC
  ;cmi/anch/maw 02/21/2008 PATCH 1009 mods to VPRC requirement 57
+ ;cmi/anch/maw 04/07/2009 PATCH 1010 mods to check for .05 DIAGNOSIS field before displaying
  ;
 A ;EP -- driver
  D VSIT Q:'DGVSDA  K DGZN D H8,VPOV,H9,VPRC,H10,VINP Q
  ;
 H8 ; -- sub heading 8
- W !,DGLIN,!,"26 ICD9   27 Hosp Acq",?24,"28 Established DX",!,DGLIN1 Q
+ ;W !,DGLIN,!,"26 ICD9   27 Hosp Acq",?24,"28 Established DX",!,DGLIN1 Q
+ ;ihs/cmi/maw 07/02/2012 PATCH 1016 changed ICD9 to ICD
+ W !,DGLIN,!,"26 ICD    27 Hosp Acq",?24,"28 Established DX",!,DGLIN1 Q
  ;
 VSIT ; -- visit DGFN
  ;IHS/DSD/ENM 10/18/99 A Break Cmd was removed from this line
@@ -34,7 +37,9 @@ VPOV ; -- diagnosis
  Q
  ;
 H9 ; -- sub heading 9
- W !,DGLIN1,!,"29 ICD9  30 DX",?18,"31 Op & Selec Procedures"
+ ;W !,DGLIN1,!,"29 ICD9  30 DX",?18,"31 Op & Selec Procedures"
+ ;ihs/cmi/maw 07/02/2012 PATCH 1016 changed ICD9 to ICD
+ W !,DGLIN1,!,"29 ICD   30 DX",?18,"31 Op & Selec Procedures"
  W ?55,"32 Post-Op 33   33a Op"
  W !?3,"Code",?58,"Infec   Date  Phy Code",!,DGLIN1 Q
  ;
@@ -43,7 +48,7 @@ VPRC ; -- procedures
  . Q:'$D(^AUPNVPRC(DGX,0))  S DGY=^(0) Q:'DGY!('$D(^ICD0(+DGY,0)))
  . ;W !?3,$P(^ICD0(+DGY,0),U)
  . W !?3,$P($$ICDOP^ICDCODE(+DGY),U,2)
- . W ?11,$P($G(^ICD9($P(DGY,U,5),0)),U) ;cmi/maw 2/21/2008 PATCH 1009 requirement 57
+ . I $P(DGY,U,5)]"" W ?11,$P($G(^ICD9($P(DGY,U,5),0)),U) ;cmi/maw 2/21/2008 PATCH 1009 requirement 57 updated 4/7/2009
  .; S X=$P(DGY,U,5) I X]"" W ?12,$P($G(^ICD9(X,0)),U) ;dx
  . S X=$P(DGY,U,4) I X]"" D  ;prov narr
  .. Q:'+$P(DGY,U,4)!('$D(^AUTNPOV(+$P(DGY,U,4),0)))

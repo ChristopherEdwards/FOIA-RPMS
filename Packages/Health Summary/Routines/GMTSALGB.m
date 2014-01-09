@@ -1,10 +1,10 @@
-GMTSALGB ; SLC/DLT,KER - Brief Adverse Reaction/Allergy ; 02/27/2002
- ;;2.7;Health Summary;**28,49**;Oct 20, 1995
- ;                 
+GMTSALGB ; SLC/DLT,KER - Brief Adverse Reaction/Allergy ;08-Mar-2011 08:39;DU
+ ;;2.7;Health Summary;**28,49,1004**;Oct 20, 1995;Build 9
+ ;
  ; External References
  ;   DBIA 10096  ^%ZOSF("TEST"
- ;   DBIA 10099  EN1^GMRADPT 
- ;                   
+ ;   DBIA 10099  EN1^GMRADPT
+ ;
 ALLRG ; Allergies
  N I,Z,X,SEQ,GMTSA,ALLRG K GMTSA S (SEQ,ALLRG)=0 S X="GMRADPT" X ^%ZOSF("TEST")
  I $T D  Q:$D(GMTSQIT)
@@ -18,7 +18,10 @@ ALLRGP ; Allergy Print
  . D CKP^GMTSUP Q:$D(GMTSQIT)  W GMTSA(I)
  Q:$D(GMTSQIT)  D CKP^GMTSUP Q:$D(GMTSQIT)  W ! Q
 GETALLRG ; Get Allergies
- N GMI,GMJ,GMRAL D EN1^GMRADPT I GMRAL="" S ALLRG=0 Q
+ N GMI,GMJ,GMTAL,CHK,GMRAUNDT,GMRAL
+ D UNASS^GMTSALG(DFN)
+ I GMRAUNDT'="" D CKP^GMTSUP Q:$D(GMTSQIT)  W:$L($G(GMRAUNDT)) !,?1,"Unassessable at this time: ",GMRAUNDT,!
+ D EN1^GMRADPT I GMRAL="" S ALLRG=0 Q
  I GMRAL="0" S ALLRG=1,GMTSA(1)="No Known Allergies" Q
  S ALLRG=1,GMI=0 F  S GMI=$O(GMRAL(GMI)) Q:GMI'>0  D
  . S GMTSA(GMI)=$P(GMRAL(GMI),U,2)

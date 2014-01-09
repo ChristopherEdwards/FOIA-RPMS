@@ -1,10 +1,11 @@
-BTIUPCC4 ; IHS/CIA/MGH - IHS PCC INPT OBJECTS ;07-Jun-2010 14:23;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1004,1005,1006**;NOV 04, 2004
+BTIUPCC4 ; IHS/CIA/MGH - IHS PCC INPT OBJECTS ;28-Jun-2012 17:26;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1004,1005,1006,1010**;NOV 04, 2004;Build 24
  ;Patch 1005 added measurment list object
+ ;Patch 1010 adds qualifiers
  ;==================================================================
 LSTMEAS(DFN,TIUMSR,VAIN) ; -- returns most current measurement (internal values)
  ;Designed to return most recent vital signs for inpatients
- NEW MSR,VDT,IEN,X,TIU,LINE,ARR,DATE,STOP,ISINP
+ NEW MSR,VDT,IEN,X,TIU,LINE,ARR,DATE,STOP,ISINP,QUALIF
  S MSR=$O(^AUTTMSR("B",TIUMSR,0)) I MSR="" Q ""
  ;
  ;Check whether patient is an inpatient or not
@@ -18,7 +19,8 @@ LSTMEAS(DFN,TIUMSR,VAIN) ; -- returns most current measurement (internal values)
  .. K TIU D ENP^XBDIQ1(9000010.01,IEN,".03;.04;1201;2","TIU(","I")
  .. ; value ^ visit ien ^ event date internal format
  .. Q:TIU(2,"I")=1    ;Quit if entered in error
- .. S LINE=$G(TIU(.04))_U_$G(TIU(.03,"I"))_U_$G(TIU(1201,"I"))
+ .. S QUALIF=$$QUAL^BTIULO7(IEN)
+ .. S LINE=$G(TIU(.04))_U_$G(TIU(.03,"I"))_U_$G(TIU(1201,"I"))_U_QUALIF
  .. S DATE=$S($G(TIU(1201,"I"))]"":TIU(1201,"I"),1:(9999999-$P(VDT,"."))_"."_$P(VDT,".",2))
  .. S ARR(DATE,IEN)=LINE
  ;

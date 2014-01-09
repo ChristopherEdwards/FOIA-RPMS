@@ -1,5 +1,5 @@
-BCHRLP ; IHS/TUCSON/LAB - PRINT CHR RECORD REPORT ;  [ 06/03/99  7:22 PM ]
- ;;1.0;IHS RPMS CHR SYSTEM;**5,7**;OCT 28, 1996
+BCHRLP ; IHS/CMI/LAB - PRINT CHR RECORD REPORT ; 
+ ;;2.0;IHS RPMS CHR SYSTEM;;OCT 23, 2012;Build 27
  ;
  ;IHS/CMI/LAB - tmp to xtmp
  ;CMI/TUCSON/LAB - modified 2 lines to replace a reference to the 8th piece to a reference to 4th piece 6/22/98 patch 5

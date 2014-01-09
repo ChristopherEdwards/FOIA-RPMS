@@ -1,5 +1,5 @@
 APCLDOD1 ; IHS/CMI/LAB - INFANT FEEDING REPORT #1 ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**8**;MAY 14, 2009;Build 2
  ;
  ;
  ;
@@ -127,7 +127,7 @@ HEADER1 ;
  W:$D(IOF) @IOF S APCLPG=APCLPG+1
  W !?3,$P(^VA(200,DUZ,0),U,2),?35,$$FMTE^XLFDT(DT),?70,"Page ",APCLPG,!
  W $$CTR($P(^DIC(4,DUZ(2),0),U),80),!
- W !,$$CTR("DEASEASED PATIENTS REPORT",80),!
+ W !,$$CTR("DECEASED PATIENTS REPORT",80),!
  S X="Date of Death: "_$$FMTE^XLFDT(APCLBD)_" - "_$$FMTE^XLFDT(APCLED) W $$CTR(X,80),!
  W !,"Patient Name",?25,"HRN",?32,"DOB",?43,"Age at",?50,"DOD",?61,"Tribe"
  W !?43,"Death"

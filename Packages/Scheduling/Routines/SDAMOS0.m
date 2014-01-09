@@ -1,5 +1,5 @@
 SDAMOS0 ;ALB/SCK - AM MGT REPORTS STATISTICS BUILD GLOBAL ;5/25/93
- ;;5.3;Scheduling;;Aug 13, 1993
+ ;;5.3;Scheduling;**1015**;Aug 13, 1993;Build 21
  ;
 STOPC ;  build global of action counts from division/stopcode in TMP
  N I,SDFIN

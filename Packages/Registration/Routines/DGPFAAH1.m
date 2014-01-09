@@ -1,5 +1,5 @@
 DGPFAAH1 ;ALB/RPM - PRF ASSIGNMENT HISTORY VALIDATION DATA ; 02/06/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+ ;;5.3;Registration;**425,1015**;Aug 13, 1993;Build 21
  ;
 XREF ;;array node name;field#;required field;word processing?;description
  ;;ASSIGN;.01;1;0;pointer to 26.13

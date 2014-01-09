@@ -1,5 +1,5 @@
 DGV53PTB ;ALB/SCK - POST INIT CONVERSION ROUTINE FOR DISTANCE FILE; 2/2/93  4/19/93
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  Q
 EN ;
  S (ZCNT,RCNT,MCNT,TOT)=0,U="^"

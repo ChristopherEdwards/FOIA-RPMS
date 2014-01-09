@@ -1,10 +1,10 @@
-SCAPMR6 ;ALB/REW/PDR - Team Reassignment APIs:APPTTM ; 5 Jul 1995 [ 11/30/2000  10:07 AM ]
- ;;5.3;Scheduling;**148,157**;AUG 13, 1993
+SCAPMR6 ;ALB/REW/PDR - Team Reassignment APIs:APPTTM ; 5 Jul 1995
+ ;;5.3;Scheduling;**148,157,1015**;AUG 13, 1993;Build 21
  ;
  ; --------------------------- MAIN -------------------------------------
 ACPTRATM(DFNA,SCTMTO,SCTMFRM,SCOTH,SCFIELDA,SCACT,SCERR,SCNEWTM,SCOLDTM,SCBADTM) ; list of patients RE-assigned to a team (404.42)
  ; input: as per ACPTTM (above with the following change:)
- ;     DFNA    = is the name of a patient array (e.g. $O(^TMP(SCJOB,"SC PATIENT LIST")))
+ ;     DFNA    = is the name of a patient array (e.g. $N(^TMP(SCJOB,"SC PATIENT LIST")))
  ;              there is at least one scpt(dfn)="" defined
  ;     SCTMTO   = pointer to "TO" team file
  ;     SCTMFRM  = pointer to "FROM" team file - PDR 7/98

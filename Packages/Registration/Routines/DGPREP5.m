@@ -1,5 +1,5 @@
-DGPREP5 ;ALB/SCK - PreRegistration Audit field totals ; 1/3/97
- ;;5.3;Registration;**109**;Aug 13, 1993
+DGPREP5 ;ALB/SCK - PreRegistration Audit field totals ; 10/10/03 3:16pm
+ ;;5.3;Registration;**109,555,1015**;Aug 13, 1993;Build 21
  Q
 EN ;  Entry point for audit totals by user
  N DGPBEG,DGPEND,VAUTD,DGPFLD1,DGPDSH,DGPABRT,DGPLN
@@ -69,6 +69,7 @@ BLD2 ;  Build array of audit data for the PATIENT File, #2
  F  S DGPN1=$O(^DIA(2,"C",DGPN1)) Q:'DGPN1!(DGPN1>DGPE)  D
  . S DGPN2="" F  S DGPN2=$O(^DIA(2,"C",DGPN1,DGPN2)) Q:'DGPN2  D
  .. S DGPDATA=$G(^DIA(2,DGPN2,0))
+ .. Q:$P(DGPDATA,U,3)=""
  .. Q:'$D(DGPFLD(+$P($G(DGPDATA),U,3)))
  .. S DGPDUZ=+$P($G(DGPDATA),U,4) Q:DGPDUZ'>0
  .. Q:'($D(^XUSEC("DGPRE EDIT",DGPDUZ))!($D(^XUSEC("DGPRE SUPV",DGPDUZ))))
@@ -88,6 +89,7 @@ BLD3 ;  Build array of audit data for file 2.312
  F  S DGPN1=$O(^DIA(2,"C",DGPN1)) Q:'DGPN1!(DGPN1>DGPE)  D
  . S DGPN2="" F  S DGPN2=$O(^DIA(2,"C",DGPN1,DGPN2)) Q:'DGPN2  D
  .. S DGPDATA=$G(^DIA(2,DGPN2,0))
+ .. Q:$P(DGPDATA,U,3)=""
  .. Q:'$D(DGPFLD($P($G(DGPDATA),U,3)))
  .. S DGPDUZ=+$P($G(DGPDATA),U,4) Q:DGPDUZ'>0
  .. Q:'($D(^XUSEC("DGPRE EDIT",DGPDUZ))!($D(^XUSEC("DGPRE SUPV",DGPDUZ))))

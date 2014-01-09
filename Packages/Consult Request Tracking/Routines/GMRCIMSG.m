@@ -1,5 +1,5 @@
 GMRCIMSG ;SLC/JFR - IFC MESSAGE HANDLING ROUTINE; 09/26/02 00:23
- ;;3.0;CONSULT/REQUEST TRACKING;**22,28**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**22,28,51**;DEC 27, 1997
  ;
  Q  ;don't start at the top
 IN ;process incoming message and save segments to ^TMP(
@@ -81,6 +81,8 @@ ORRIN ;process IFC responses
  .. D SNDALRT^GMRCIERR(MSGLOG,"C","IFC patient error at remote facility")
  . D SNDALRT^GMRCIERR(MSGLOG,"C")
  K ^TMP("GMRCIF",$J)
+ I $T(ORRIN^MAGDTR01)'="" D  ;invoke Imaging code if tag^routine exists
+ . D ORRIN^MAGDTR01
  Q
  ;
 VALMSG(GMRCORC) ;check to make sure placer and filler # match current entry

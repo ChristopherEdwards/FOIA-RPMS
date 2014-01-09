@@ -1,5 +1,5 @@
 DGYMTRT ;ALB/CAW/LD - Add new treating specialties ; 9/8/94
- ;;5.3;Registration;**39**;Aug 13, 1993
+ ;;5.3;Registration;**39,1015**;Aug 13, 1993;Build 21
 EN ;
  D ADD
  D EN^DGYMTRT1

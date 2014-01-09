@@ -1,7 +1,8 @@
-BADEHL1 ;IHS/MSC/MGH/PLS/VAC/AMF - Dentrix HL7 interface  ;17-Nov-2010;AMF
- ;;1.0;DENTAL/EDR INTERFACE;**1**;AUG 22, 2011
+BADEHL1 ;IHS/MSC/MGH/PLS/VAC/AMF - Dentrix HL7 interface  ;20-Feb-2013;fje
+ ;;1.0;DENTAL/EDR INTERFACE;**1,2**;FEB 20, 2013;Build 7
  ;; Modified - IHS/MSC/AMF - 11/23/10 - More descriptive alert messages
  ;; Modified - IHS/MSC/VAC, IHS/SAIC/FJE, IHS/MSC/PLS,AMF - 9/10/10,1/3/11 - Fix for DUZ(2) problem
+ ;; Modified - SAIC/FJE Patch 2 Sets LOCK for HLB,HLA,HLC globals, allows inactive patient messages to pass to DENTRIX after upload.
  Q
  ; Build Outbound A28 or A31 HL7 segments
 NEWMSG(DFN,EVNTTYPE) ;EP
@@ -41,8 +42,10 @@ NEWMSG(DFN,EVNTTYPE) ;EP
  .S WHO("RECEIVING APPLICATION")="DENTRIX"
  .S WHO("FACILITY LINK NAME")="DENTRIX"
  .;S WHO("STATION NUMBER")=11555  ;Used for testing on external RPMS system
+ .L +(^HLB,^HLA,^HLC):10 I '$T D NOTIF(DFN,"Unable to create EDR message (LOCK issue)") Q  ;SAIC/FJE 1/1/13 Patch 02
  .I '$$SENDONE^HLOAPI1(.HLST,.APPARMS,.WHO,.ERR) D
  ..D NOTIF(DFN,"Unable to send HL7 message. "_$G(ERR)) ;IHS/MSC/AMF 11/23/10 More descriptive alert
+ . L -(^HLB,^HLA,^HLC)
  Q
  ;
 AACK ; EP - Application ACK callback - called when AA, AE or AR is received.
@@ -134,6 +137,7 @@ PID(DFN) ;EP
  S ASU=0
  S ASU=$$ASUFAC^BADEHL1(DFN)
  I ASU=0 I '$G(BADELOAD) S ERR="PID ERROR" D NOTIF(DFN,"No ASUFAC.  Can't create PID.") Q  ;SAIC/FJE 08/04/2011;IHS/MSC/AMF 11/23/10 More descriptive alert
+ I HRCN="" S HRCN=$$HRN(DFN,$S($G(AGDUZ2):AGDUZ2,1:DUZ(2)))  ;FJE 1/1/2013 Patch 02 If no active HRCN find first inactive to allow inactive patients to go to DENTRIX 
  I '$G(BADELOAD) I '+HRCN S ERR="PID ERROR" D NOTIF(DFN,"No HRN.  Can't create PID.") Q  ;SAIC/FJE 08/04/2011;IHS/MSC/AMF 11/23/10 More descriptive alert
  D SET(.ARY,$P(HRCN,U),3,1) ; Patient HRN IHS/MSC/AMF 1/3/11 DUZ problem
  ;D SET(.ARY,"MR",3,5)  ; Medical Record
@@ -292,6 +296,19 @@ FINDHRN(PAT,LOC) ;DD
  ..Q:'$L($P(X,U,2))  ;No HRN
  ..S RET=$$FMTHRN(L,$P(X,U,2))_U_-1_U_LOC
  Q RET
+ ;
+HRN(PAT,LOC) ;;FJE 1/1/2013 Patch 02 Finds an HRCN active or inactive
+ N L,RETHRN,X
+ S RETHRN=""
+ S X=$G(^AUPNPAT(PAT,41,LOC,0))
+ I $L($P(X,U,2)) S RETHRN=$$FMTHRN(LOC,$P(X,U,2))
+ I RETHRN="" D
+ .S L=0 F  S L=$O(^AUPNPAT(PAT,41,L)) Q:'L  D  Q:$L(RETHRN)
+ ..S X=$G(^AUPNPAT(PAT,41,L,0))
+ ..Q:'$L($P(X,U,2))  ;No HRN
+ ..S RETHRN=$$FMTHRN(L,$P(X,U,2))_U_-1_U_LOC
+ Q RETHRN
+ ;
 FMTHRN(L,HRN) ;
  N S
  S S=$P(^AUTTLOC(L,0),U,10)

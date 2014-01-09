@@ -1,5 +1,5 @@
-SCUTBK11 ;ALB/SCK - Scheduling Broker Utilities; 2/2/96 ; 10/3/01 4:30pm
- ;;5.3;Scheduling;**41,54,86,148,177,205,209,255**;AUG 13, 1993
+SCUTBK11 ;ALB/SCK - Scheduling Broker Utilities; 2/2/96 ;9/7/96  17:28
+ ;;5.3;Scheduling;**41,54,86,148,177,205,209,255,297,1015**;AUG 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/30/2000 added call to IHS style patient lookup
  ;
  Q
@@ -45,18 +45,18 @@ FINDP(SCOUT,SCIN) ; patient lookup used by SC PATIENT LOOKUP rpc
  ; output:
  ;   SCOUT = location of data = ^TMP("DILIST",$J,i,0)
  ;   for i=1:number of records returned: 
- ;    DFN^patient name^DOB^PID
- ;     1        2       3   4
- ;
- D PTLOOKUP^BSDSCRPC(SCIN("VALUE"),300)  ;IHS/ANMC/LJF 11/30/2000
- I $D(^TMP("DILIST",$J)) K SCOUT S SCOUT="^TMP(""DILIST"","_$J_")"  ;IHS/ANMC/LJF 11/30/2000
- Q  ;IHS/ANMC/LJF 11/30/2000
- ;
+ ;    DFN^patient name^DOB^PID^DOD
+ ;     1        2       3   4   5
  ;
  ;bp/cmf 205 original code next line
  ;D FIND^DIC(2,,".01;.03;.363;.09","MPS",SCIN("VALUE"),500)
  ;bp/cmf 205 change code next line
- D FIND^DIC(2,,".01;.03;.363;.09","PS",SCIN("VALUE"),300,"B^BS^BS5^SSN")
+ ;oifo/swo 297 added .351 for DOD warning new functionality
+ D PTLOOKUP^BSDSCRPC(SCIN("VALUE"),300)  ;IHS/ANMC/LJF 11/30/2000
+ I $D(^TMP("DILIST",$J)) K SCOUT S SCOUT="^TMP(""DILIST"","_$J_")"  ;IHS/ANMC/LJF 11/30/2000
+ Q  ;IHS/ANMC/LJF 11/30/2000
+ ;
+ D FIND^DIC(2,,".01;.03;.363;.09;.351","PS",SCIN("VALUE"),300,"B^BS^BS5^SSN")
  I $G(DIERR) D CLEAN^DILF Q
  N SCOUNT S SCOUNT=+^TMP("DILIST",$J,0)
  N SC F SC=1:1:SCOUNT D
@@ -71,7 +71,8 @@ FINDP(SCOUT,SCIN) ; patient lookup used by SC PATIENT LOOKUP rpc
  . I $E(SSN,1,9)'?9N S (DSSN,PLID)=SSN
  . S $P(NODE,U,4)=$S($L(PLID)>5:PLID,1:DSSN)
  . ;Move screened data back into output global
- . S ^TMP("DILIST",$J,SC,0)=$P(NODE,U,1,4)
+ . ;oifo/swo 297 piece 6 is DOD field. Added for DOD warning
+ . S ^TMP("DILIST",$J,SC,0)=$P(NODE,U,1,4)_U_$P(NODE,U,6)
  K ^TMP("DILIST",$J,0)
  K SCOUT S SCOUT="^TMP(""DILIST"","_$J_")"
  Q

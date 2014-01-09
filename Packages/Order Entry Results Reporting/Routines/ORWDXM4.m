@@ -1,9 +1,11 @@
-ORWDXM4 ; SLC/KCM - Order Dialogs, Menus;10:42 AM  6 Sep 1998
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85**;Dec 17, 1997
- ;
+ORWDXM4 ; SLC/KCM - Order Dialogs, Menus;01-Apr-2013 16:20;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,215,296,1010**;Dec 17, 1997;Build 47
+ ; Modified - IHS/MSC/MGH - 06/04/12 - Line CHGSTS+3
+ ;            IHS/MSC/PLS - 04/01/13 - Line SETUP+2
 SETUP ; -- setup dialog (continued from ORWDXM1)
  ;    if xfer med order, setup ORDIALOG differently
- I ORWMODE,$$ISMED(ORIT),$$CHGSTS(ORCAT,ORIT) D MEDXFER Q
+ ;I ORWMODE,$$ISMED(ORIT),$$CHGSTS(ORCAT,ORIT) D MEDXFER Q
+ I ORWMODE,ORWMODE'=3,$$ISMED(ORIT),$$CHGSTS(ORCAT,ORIT) D MEDXFER Q
  ;    get base dialog (based on display group) & location of responses
  I ORWMODE D
  . S ORDG=$P(^OR(100,+ORIT,0),U,11),ORDIALOG=+$P(^(0),U,5)
@@ -17,6 +19,27 @@ SETUP ; -- setup dialog (continued from ORWDXM1)
  ;    setup the ORDIALOG array
  D GETDLG^ORCD(ORDIALOG)
  D GETORDER^ORCD(RSPREF)
+ Q
+SETUPS ; -- setup for specific types of dialogs (continued from ORWDXM1)
+ ; pharmacy uses ORCAT to know order package
+ I ORDIALOG=$O(^ORD(101.41,"B","PSO OERR",0)) S ORCAT="O"
+ I ORDIALOG=$O(^ORD(101.41,"B","PSJ OR PAT OE",0)) D
+ . I ORCAT="O",'ORIMO S ORWPSWRG="" ; not auto-ack, pt not inpt
+ . S ORCAT="I"
+ I ORCAT="O",$D(OREVENT("EFFECTIVE")),(ORDG=+$O(^ORD(100.98,"B","O RX",0))) D
+ . S ORDIALOG($O(^ORD(101.41,"B",X,0)),1)=OREVENT("EFFECTIVE")
+ I ORDIALOG=$O(^ORD(101.41,"B","RA OERR EXAM",0))         D RA^ORWDXM2 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","LR OTHER LAB TESTS",0))   D LR^ORWDXM2 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","FHW1",0))                 D DO^ORWDXM2 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","FHW2",0))                 D EL^ORWDXM2 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","PSJ OR PAT OE",0))        D UD^ORWDXM2 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","PSJI OR PAT FLUID OE",0)) D IV^ORWDXM2 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","PSO OERR",0))             D OP^ORWDXM2 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","PSO SUPPLY",0))           D OP^ORWDXM2 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","PS MEDS",0))              D PS^ORWDPS3 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","VBEC BLOOD BANK",0))      D VB^ORWDXM4 G XENV
+ I ORDIALOG=$O(^ORD(101.41,"B","GMRAOR ALLERGY ENTER/EDIT",0)) S ORQUIT=1
+XENV ;    end case
  Q
 MEDXFER ; -- setup ORDIALOG for a med that is transferred (from SETUP)
  ;
@@ -73,20 +96,50 @@ OUT2IN ; make outpatient responses into inpatient
 PTR(NAME) ; -- Returns pointer to OR GTX NAME (copied from ORCMED)
  Q +$O(^ORD(101.41,"AB",$E("OR GTX "_NAME,1,63),0))
  ;
-MEDOK(OI,CAT)   ; return 1 if med may be ordered for this patient category
+MEDOK(OI,CAT) ; return 1 if med may be ordered for this patient category
  N P S P=$S(CAT="I":1,1:2)
  Q $P($G(^ORD(101.43,+OI,"PS")),U,P)
  ;
-CHGSTS(ECAT,IFN)        ; return 1 if out to in or in to out
- N OCAT
+CHGSTS(ECAT,IFN) ; return 1 if out to in or in to out
+ N OCAT,PKG
  S OCAT=$P($G(^OR(100,+IFN,0)),U,12)
+ ;IHS/MSC/MGH patch 1010
+ S PKG=$P($G(^OR(100,+IFN,0)),U,14)
+ I $P($G(^DIC(9.4,PKG,0)),U,2)="PSH" S OCAT="O"
  Q OCAT'=ECAT
  ;
-ISMED(IFN)      ; return 1 if this is a pharmacy order
+ISMED(IFN) ; return 1 if this is a pharmacy order
  N PKG S PKG=$P($G(^OR(100,+IFN,0)),U,14)
  Q $$NMSP^ORCD(PKG)="PS"
-SETERR(ID,X)       ; sets LST to rejection with error message
+SETERR(ID,X) ; sets LST to rejection with error message
  D GETTXT^ORWORR(.LST,ID)
  S LST(0)="8^0",LST(.5)=X,LST(.6)=""
  Q
-  
+VB ; setup environment for VBECS
+ ; -- setup ORTIME, ORIMTIME arrays
+ D GETIMES^ORCDLR1
+ ; -- setup ORCOMP, ORTEST, and ORTAS
+ S (ORCOMP,ORTEST,ORTAS)=""
+ N P,I,X,X0 S P=+$O(^ORD(101.41,"AB","OR GTX ORDERABLE ITEM",0))
+ S I=0 F  S I=$O(ORDIALOG(P,I)) Q:I<1  S X=+$G(ORDIALOG(P,I)) D
+ . S X0=$G(^ORD(101.43,X,"VB")),X=+$P($G(^(0)),U,2)
+ . I $P(X0,U) S ORCOMP=ORCOMP_$S($L(ORCOMP):U,1:"")_X Q
+ . S ORTEST=ORTEST_$S($L(ORTEST):U,1:"")_X
+ . I X=2 S ORTAS=1
+ Q
+VBASK(I) ; set the ORASK variable for child component prompts in VBECS order
+ I ORDIALOG'=$O(^ORD(101.41,"B","VBEC BLOOD BANK",0)) Q
+ N P S P=+$O(^ORD(101.41,"AB","OR GTX ORDERABLE ITEM",0))
+ N OI S OI=+$G(ORDIALOG(P,I))
+ I +$G(^ORD(101.43,+$G(OI),"VB")) S ORASK=1
+ Q
+VBQO(IFN) ;Check to see if it's a good VBECS QO
+ ;regular order treated as good QO
+ ;
+ I $P($G(^ORD(101.41,IFN,0)),U,4)'="Q" Q 1
+ N ODP,ODG,RESULT,P,TNS,I
+ S RESULT=0
+ S ODP=+$P($G(^ORD(101.41,IFN,0)),U,7),ODG=+$P($G(^(0)),U,5)
+ S ODP=$$GET1^DIQ(9.4,+ODP_",",1),ODG=$P($G(^ORD(100.98,ODG,0)),U,3)
+ I ODP'["VBEC" Q 1
+ Q RESULT

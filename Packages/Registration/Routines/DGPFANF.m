@@ -1,5 +1,5 @@
-DGPFANF ;ALB/KCL - PRF NATIONAL FLAG API'S ; 4/24/03 4:25pm
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFANF ;ALB/KCL - PRF NATIONAL FLAG API'S ; 4/7/04 2:09pm
+ ;;5.3;Registration;**425,554,1015**;Aug 13, 1993;Build 21
  ;
  ;- no direct entry
  QUIT
@@ -25,6 +25,7 @@ GETNF(DGPFIEN,DGPFNF) ;retrieve a single NATIONAL FLAG record
  ;                    "REVFREQ"           .04      internal^external
  ;                    "NOTIDAYS"          .05      internal^external
  ;                    "REVGRP"            .06      internal^external
+ ;                    "TIUTITLE"          .07      internal^external
  ;                    "DESC",line#,0      1        character string
  ;                    "PRININV",line#,0   2        character string
  ;
@@ -48,6 +49,7 @@ GETNF(DGPFIEN,DGPFNF) ;retrieve a single NATIONAL FLAG record
  . S DGPFNF("REVFREQ")=$G(DGFLDS(26.15,DGIENS,.04,"I"))_U_$G(DGFLDS(26.15,DGIENS,.04,"E"))
  . S DGPFNF("NOTIDAYS")=$G(DGFLDS(26.15,DGIENS,.05,"I"))_U_$G(DGFLDS(26.15,DGIENS,.05,"E"))
  . S DGPFNF("REVGRP")=$G(DGFLDS(26.15,DGIENS,.06,"I"))_U_$G(DGFLDS(26.15,DGIENS,.06,"E"))
+ . S DGPFNF("TIUTITLE")=$G(DGFLDS(26.15,DGIENS,.07,"I"))_U_$G(DGFLDS(26.15,DGIENS,.07,"E"))
  . ;-- flag description word processing array
  . M DGPFNF("DESC")=DGFLDS(26.15,DGIENS,1)
  . K DGPFNF("DESC","E"),DGPFNF("DESC","I")

@@ -1,5 +1,5 @@
 SCAPMC8A ;bp/cmf - Build "ALL" array for $$PRTP^SCAPCM8 ;13 June 1999
- ;;5.3;Scheduling;**177,204**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,204,1015**;AUG 13, 1993;Build 21
  ;
 TPALL(SCFILE) ;
  N SCD1,SCD0,SCAN,SCX,SCIEN,SCFLD

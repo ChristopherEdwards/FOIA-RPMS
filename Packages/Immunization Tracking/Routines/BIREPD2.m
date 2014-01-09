@@ -1,8 +1,9 @@
 BIREPD2 ;IHS/CMI/MWR - REPORT, ADOLESCENT RATES; DEC 15, 2011
- ;;8.5;IMMUNIZATION;**1**;JAN 03,2012
+ ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW ADOLESCENT IMMUNIZATION RATES REPORT, GATHER DATA.
  ;   PATCH 1: Clarify Report explanation.  START+121
+ ;;  PATCH 3: Include new "1-Td 1-Men 3-HPV" lines. START+69
  ;
  ;
  ;----------
@@ -163,6 +164,11 @@ START(BIQDT,BIDAR,BIAGRPS,BICC,BIHCF,BICM,BIBEN,BISITE,BIUP) ;EP
  D VCOMB^BIREPD3(.BILINE,"8|1^4|3^6|2^16|1^7|2",BIAGRPS,.BITMP,,.BIERR)
  D VCOMB^BIREPD3(.BILINE,"8|1^16|1",BIAGRPS,.BITMP,,.BIERR)
  ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Include new "1-Td 1-Men 3-HPV" line for both sexes.
+ D VCOMB^BIREPD3(.BILINE,"8|1^16|1^17|3",BIAGRPS,.BITMP,"B",.BIERR)
+ ;**********
+ ;
  ;*******
  ;---> Break to write FEMALE Denominators subheader.
  D DENOMS(.BILINE,.BITOTFPT,1)
@@ -171,7 +177,13 @@ START(BIQDT,BIDAR,BIAGRPS,BICC,BIHCF,BICM,BIBEN,BISITE,BIUP) ;EP
  F BIVGRP=17 D VGRP^BIREPD3(.BILINE,BIVGRP,BIAGRPS,.BITMP,"F",.BIERR)
  I $G(BIERR)]"" D WRITE^BIREPD3(.BILINE,BIERR) Q
  ;
- ;---> Now write FEMALE combo.
+ ;---> Now write FEMALE combos.
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Add "1-Td 1-Men 3-HPV" combo line for females.
+ D VCOMB^BIREPD3(.BILINE,"8|1^16|1^17|3",BIAGRPS,.BITMP,"F",.BIERR)
+ ;**********
+ ;
  D VCOMB^BIREPD3(.BILINE,"8|1^4|3^6|2^16|1^7|2^17|3",BIAGRPS,.BITMP,"F",.BIERR)
  ;*******
  ;
@@ -182,7 +194,13 @@ START(BIQDT,BIDAR,BIAGRPS,BICC,BIHCF,BICM,BIBEN,BISITE,BIUP) ;EP
  F BIVGRP=17 D VGRP^BIREPD3(.BILINE,BIVGRP,BIAGRPS,.BITMP,"M",.BIERR)
  I $G(BIERR)]"" D WRITE^BIREPD3(.BILINE,BIERR) Q
  ;
- ;---> Now write MALE combo.
+ ;---> Now write MALE combos.
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Add "1-Td 1-Men 3-HPV" combo line for males.
+ D VCOMB^BIREPD3(.BILINE,"8|1^16|1^17|3",BIAGRPS,.BITMP,"M",.BIERR)
+ ;**********
+ ;
  D VCOMB^BIREPD3(.BILINE,"8|1^4|3^6|2^16|1^7|2^17|3",BIAGRPS,.BITMP,"M",.BIERR)
  ;*******
  ;
@@ -213,11 +231,17 @@ START(BIQDT,BIDAR,BIAGRPS,BICC,BIHCF,BICM,BIBEN,BISITE,BIUP) ;EP
  ;S X=" *All patients (11-17yrs) with 1-Tdap_TD and 1-Mening are considered ""Current."""
  ;D WRITE^BIREPD3(.BILINE,X)
  ;S X=" *Patients 11-12yrs without 1-Tdap_TD and 1-Mening are listed as ""Not Current"""
- S X="  in order to support patient recall."
- S X=" *All patients (11-17yrs) with 1-Tdap_TD and 1-Mening are considered ""Current"";"
+ ;S X="  in order to support patient recall."
+ ;
+ ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
+ ;---> Update "Current" explanation to include 3-HPV.
+ ;S X=" *All patients (11-17yrs) with 1-Tdap_TD and 1-Mening are considered ""Current"";"
+ S X=" *All patients (11-17yrs) with 1-TD_B, 1-MEN, 3-HPV are considered ""Current"";"
+ ;**********
+ ;
  D WRITE^BIREPD3(.BILINE,X)
  S X="  otherwise they are listed as ""Not Current"" in order to support patient recall."
- ;**********
+ ;
  D WRITE^BIREPD3(.BILINE,X)
  D WRITE^BIREPD3(.BILINE,$$SP^BIUTL5(79,"-"))
  ;

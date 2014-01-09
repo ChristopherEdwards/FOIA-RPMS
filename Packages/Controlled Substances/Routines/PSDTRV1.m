@@ -1,5 +1,5 @@
 PSDTRV1 ;BIR/JPW-Transfer CS Drugs between Vaults (cont'd) ; 17 Nov 93
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
 UPDATE ;update vault balances
  D CHK G:PSDLES END
  W !!,"Updating vault on-hand balances now..." F CNT=1:1:2 D CALC
@@ -11,12 +11,12 @@ END K %,%H,%I,BAL,CNT,DA,DD,DIC,DIE,DINUM,DIR,DIROUT,DIRUT,DLAYGO,DO,DR,DTOUT,DU
 CALC ;sub/add qty from dsp sites
  W $S(CNT=2:VAULTN,1:PSDSN)_"..."
  S TEMP=$S(CNT=2:VAULT,1:PSDS),TQTY=-TQTY
- F  L +^PSD(58.8,TEMP,1,PSDR,0):0 I  Q
+ F  L +^PSD(58.8,TEMP,1,PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S PSDT=+%
  S BAL(CNT)=$P(^PSD(58.8,TEMP,1,PSDR,0),"^",4),$P(^(0),"^",4)=$P(^(0),"^",4)+TQTY,$P(BAL(CNT),"^",2)=+BAL(CNT)+TQTY
  L -^PSD(58.8,TEMP,1,PSDR,0)
 ADD ;find entry number
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDREC=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDREC)) S $P(^PSD(58.81,0),"^",3)=PSDREC G FIND
  K DIC,DLAYGO S DIC(0)="L",(DIC,DLAYGO)=58.81,(X,DINUM)=PSDREC D ^DIC K DIC,DLAYGO
  L -^PSD(58.81,0)

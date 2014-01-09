@@ -1,5 +1,5 @@
 PSDRFX ;B'ham ISC/JPW,LTL,BJW - File Dispensing Info ; 14 May 98
- ;;3.0; CONTROLLED SUBSTANCES ;**7**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**7,66**;13 Feb 97;Build 3
  ;inserted line 15 to save date return for activity rpt
 UPDAT I $G(PSDPN) F JJ=0:0 S JJ=$O(^PSD(58.8,"F",PSDPN,NAOU,PSDR,JJ)) Q:'JJ  S ORD=+JJ
  ;$S(WQTY:18,CQTY:9,1:17) S:PSDTYP=9 QTY=CQTY-OQTY
@@ -11,7 +11,7 @@ END ;kill variables
  Q
 UPDATE ;update 58.8 and 58.81
  ;updating drug balance in 58.8
- F  L +^PSD(58.8,NAOU,1,PSDR,0):0 I  Q
+ F  L +^PSD(58.8,NAOU,1,PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S (PSDTN,PSDT)=+%
  S BAL=$P(^PSD(58.8,NAOU,1,PSDR,0),"^",4),$P(^(0),"^",4)=$P(^(0),"^",4)+WQTY
  L -^PSD(58.8,NAOU,1,PSDR,0)
@@ -23,7 +23,7 @@ UPDATE ;update 58.8 and 58.81
  .K DIE,DR S DIE="^PSD(58.81,",DR="10////12;11////1" D ^DIE K DA,DIE,DR
  .K DA,DIE,DR S DIE="^PSD(58.8,"_NAOU_",1,"_PSDR_",3,",DA=+ORD,DA(1)=+PSDR,DA(2)=+NAOU,DR="10////12;11////1" D ^DIE K DA,DIE,DR
 ADD ;find entry number in 58.81
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDREC=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDREC)) S $P(^PSD(58.81,0),"^",3)=PSDREC G FIND
  K DIC,DLAYGO S DIC(0)="L",(DIC,DLAYGO)=58.81,(X,DINUM)=PSDREC D ^DIC K DIC,DLAYGO
  L -^PSD(58.81,0)
@@ -36,7 +36,7 @@ EDIT ;edit transaction in 58.81
  ;I PSDTYP'=17 D ERR
  Q
 ERR ;err log update
- F  L +^PSD(58.89,0):0 I  Q
+ F  L +^PSD(58.89,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND9 S PSDER=$P(^PSD(58.89,0),"^",3)+1 I $D(^PSD(58.89,PSDER)) S $P(^PSD(58.89,0),"^",3)=PSDER G FIND9
  K DIC,DLAYGO S DIC(0)="L",(DIC,DLAYGO)=58.89,(X,DINUM)=PSDER D ^DIC K DIC,DLAYGO
  L -^PSD(58.89,0)

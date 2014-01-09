@@ -1,10 +1,12 @@
-GMVPXRM ;HIOFO/FT-API to return FILE 120.5 data ;10/14/04  11:46
- ;;5.0;GEN. MED. REC. - VITALS;**6**;Oct 31, 2002;Build 1
+GMVPXRM ;HIOFO/FT-API to return FILE 120.5 data ;01/20/09  13:11
+ ;;5.0;GEN. MED. REC. - VITALS;**6,23**;Oct 31, 2002;Build 25
  ;
  ; This routine uses the following IAs:
  ;  #4113 - ^PXRMSXRM routine    (controlled) 
  ;  #4114 - ^PXRMINDX global     (controlled)
+ ;  #5076 - ^MDCLIO1 calls       (private)
  ; #10103 - ^XLFDT calls         (supported)
+ ; #10040 - FILE 44 references   (supported)
  ; #10141 - ^XPDUTL calls        (supported)
  ;
  ; Entry point(s) available for use by other packages:
@@ -14,7 +16,7 @@ GMVPXRM ;HIOFO/FT-API to return FILE 120.5 data ;10/14/04  11:46
 EN(GMVDATA,GMVIEN,GMVIB) ; Returns data for a single FILE 120.5 entry.
  ; Input:
  ;   GMVDATA = Array name passed by reference       (required)
- ;    GMVIEN = IEN for FILE 120.5 entry             (required)
+ ;    GMVIEN = IEN for FILE 120.5 or GUID for FILE 704.117    (required)
  ;     GMVIB = "I" for Internal value only
  ;             "B" for Internal and External values (default = B)
  ; 
@@ -40,41 +42,47 @@ EN(GMVDATA,GMVIEN,GMVIB) ; Returns data for a single FILE 120.5 entry.
  ;
  ; If the lookup failed then: GMVDATA(1)=-1^error text
  ;
- N GMVCNT,GMVIEN1
+ N GMVCNT,GMVIEN1,GMVLIST,GMVLEN,GMVLOOP,GMVTEMP,TEMP,TEMP2,TEMP5,TP,EM
  I $G(GMVIB)'="I",$G(GMVIB)'="B" S GMVIB="B"
  I $G(GMVIEN)="" S GMVDATA(1)="-1^Record Number is Null" Q
- I '$D(^GMR(120.5,+GMVIEN,0)) D  Q
+ I GMVIEN=+GMVIEN D
+ .D F1205^GMVUTL(.GMVTEMP,GMVIEN,1)
+ .S TEMP=$G(GMVTEMP(0))
+ .S TEMP2=$G(GMVTEMP(2))
+ .S TEMP5=$G(GMVTEMP(5))
+ .Q
+ I GMVIEN'=+GMVIEN D
+ .D CLIO^GMVUTL(.GMVTEMP,GMVIEN)
+ .S TEMP=$G(GMVTEMP(0))
+ .S TEMP2=$G(GMVTEMP(2))
+ .S TEMP5=$G(GMVTEMP(5))
+ .Q
+ I TEMP="" D  Q
  .S GMVDATA(1)="-1^The entry does not exist"
  .Q
  ;
- N TEMP
- S TEMP=^GMR(120.5,GMVIEN,0)
  S GMVDATA(1)=$P(TEMP,U,1)
  S GMVDATA(2)=$P(TEMP,U,2)
  S GMVDATA(3)=$P(TEMP,U,3)
  S GMVDATA(4)=$P(TEMP,U,4)
  S GMVDATA(5)=$P(TEMP,U,5)
+ I '$D(^SC(+GMVDATA(5),0)) S GMVDATA(5)=0
  S GMVDATA(6)=$P(TEMP,U,6)
  S GMVDATA(7)=$P(TEMP,U,8)
  S GMVDATA(8)=$P(TEMP,U,10)
- S TEMP=$G(^GMR(120.5,GMVIEN,2))
- S GMVDATA(9)=$P(TEMP,U,1)
- S GMVDATA(10)=$P(TEMP,U,2)
- ;entered-in-error reasons
- S (GMVCNT,GMVIEN1)=0
- F  S GMVIEN1=$O(^GMR(120.5,GMVIEN,2.1,GMVIEN1)) Q:'GMVIEN1  D
- .S GMVCNT=GMVCNT+1
- .S TP=+$P($G(^GMR(120.5,GMVIEN,2.1,GMVIEN1,0)),U,1)
- .S GMVDATA(11,GMVCNT)=TP
+ S GMVDATA(9)=$P(TEMP2,U,1)
+ S GMVDATA(10)=$P(TEMP2,U,2)
+ S GMVCNT=0
+ S GMVLIST=$P(TEMP2,U,3)
+ S GMVLEN=$L(GMVLIST,"~")
+ F GMVCNT=1:1:GMVLEN D
+ .S GMVDATA(11,GMVCNT)=$P(GMVLIST,"~",GMVCNT)
  .Q
- ;loop through qualifier multiple
- N EM,TP
  I GMVCNT=0 S GMVDATA(11,1)=""
- S (GMVCNT,GMVIEN1)=0
- F  S GMVIEN1=$O(^GMR(120.5,GMVIEN,5,GMVIEN1)) Q:'GMVIEN1  D
+ S GMVLIST=$G(TEMP5),GMVCNT=0
+ F GMVLOOP=1:1 Q:$P(GMVLIST,U,GMVLOOP)=""  D
  .S GMVCNT=GMVCNT+1
- .S TP=+$P($G(^GMR(120.5,GMVIEN,5,GMVIEN1,0)),U,1)
- .S GMVDATA(12,GMVCNT)=TP
+ .S GMVDATA(12,GMVCNT)=$P(GMVLIST,U,GMVLOOP)
  .Q
  I GMVCNT=0 S GMVDATA(12,1)=""
  ;
@@ -114,14 +122,13 @@ EN(GMVDATA,GMVIEN,GMVIB) ; Returns data for a single FILE 120.5 entry.
 VITALS ; This entry point is for use by the Clinical Reminders package
  ; to re-index the ACR cross-reference nodes for FILE 120.5.
  ;
- ; a) This entry point kills the ACR cross-reference nodes for FILE 120.5
- ;    i.e., ^PXRMINDX(120.5).
+ ; a) This entry point kills the ACR cross-reference nodes for ^PXRMINDX(120.5).
  ; b) Re-builds the ACR cross-reference nodes.
  ; c) Calls the Clinical Reminders package to generate a mail message
  ;    summarizing the rebuilding of the ACR cross-reference.
  ;
  N DAS,DATE,DFN,END,ENTRIES,ETEXT,GLOBAL,IND,NE,NE1,NE2,NERROR
- N START,TEMP,TENP,TEXT,VT
+ N START,TEMP,TENP,TEXT,VT,GMVCLIO,GMVTYPE,GMVLOOP,GMVIEN
  S GLOBAL=$$GET1^DID(120.5,"","","GLOBAL NAME")
  ; Don't leave any old cross-reference nodes around.
  K ^PXRMINDX(120.5)
@@ -129,8 +136,8 @@ VITALS ; This entry point is for use by the Clinical Reminders package
  S TENP=ENTRIES/10
  S TENP=+$P(TENP,".",1)
  D BMES^XPDUTL("Building index for VITALS DATA.")
- S TEXT="There are "_ENTRIES_" entries to process."
- D MES^XPDUTL(TEXT)
+ ;S TEXT="There are "_ENTRIES_" entries to process."
+ ;D MES^XPDUTL(TEXT)
  S START=$H
  S (DAS,IND,NE,NE1,NE2,NERROR)=0
  F  S DAS=+$O(^GMR(120.5,DAS)) Q:DAS=0  D
@@ -140,23 +147,43 @@ VITALS ; This entry point is for use by the Clinical Reminders package
  .. D MES^XPDUTL(TEXT)
  . I IND#10000=0 W "."
  . S TEMP=^GMR(120.5,DAS,0)
- . S DATE=$P(TEMP,U,1)
- . I DATE="" D  Q
- .. S ETEXT=DAS_" no date",NE1=NE1+1
- .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
- . S DFN=$P(TEMP,U,2)
- . I DFN="" D  Q
- .. S ETEXT=DAS_" no patient",NE1=NE1+1
- .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR) Q
- . S VT=$P(TEMP,U,3)
- . I VT="" D  Q
- .. S ETEXT=DAS_" no vital type",NE1=NE1+1
- .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . I $P(TEMP,U,1)'?7N1"."1.6N S NE1=NE1+1 Q
+ . I $P(TEMP,U,2)'>0 S NE1=NE1+1 Q
+ . I $P(TEMP,U,3)'>0 S NE1=NE1+1 Q
+ . S DATE=$P(TEMP,U,1),DFN=$P(TEMP,U,2),VT=$P(TEMP,U,3)
  .;If this entry is marked as entered-in-error do not index it.
  . I $P($G(^GMR(120.5,DAS,2)),U,1) S NE2=NE2+1 Q
  . S ^PXRMINDX(120.5,"IP",VT,DFN,DATE,DAS)=""
  . S ^PXRMINDX(120.5,"PI",DFN,VT,DATE,DAS)=""
  . S NE=NE+1
+ . Q
+ ; Get vital type iens
+ F GMVLOOP="BP","CG","CVP","HT","P","PN","PO2","R","T","WT" D
+ .S GMVIEN=$O(^GMRD(120.51,"C",GMVLOOP,0))
+ .Q:'GMVIEN
+ .S GMVTYPE(GMVIEN)=""
+ .Q
+ K ^TMP($J)
+ ; get records from Clinical Observations
+ I $T(QRYDATE^MDCLIO1)]"" D
+ .D QRYDATE^MDCLIO1("^TMP($J)",3070101,$$FMADD^XLFDT($$NOW^XLFDT(),,24))
+ .S GMVLOOP=0
+ .F  S GMVLOOP=$O(^TMP($J,GMVLOOP)) Q:'GMVLOOP  D
+ ..S DAS=^TMP($J,GMVLOOP)
+ ..Q:DAS=""
+ ..D CLIO^GMVUTL(.GMVCLIO,DAS)
+ ..S GMVCLIO(0)=$G(GMVCLIO(0))
+ ..I GMVCLIO(0)="" S NE1=NE1+1 Q
+ ..I $P(GMVCLIO(0),U,1)'?7N1"."1.6N S NE1=NE1+1 Q
+ ..I $P(GMVCLIO(0),U,2)'>0 S NE1=NE1+1 Q
+ ..I $P(GMVCLIO(0),U,3)'>0 S NE1=NE1+1 Q
+ ..I '$D(GMVTYPE($P(GMVCLIO(0),U,3))) Q  ;not a vitals entry
+ ..S DATE=$P(GMVCLIO(0),U,1),DFN=$P(GMVCLIO(0),U,2),VT=$P(GMVCLIO(0),U,3)
+ ..S ^PXRMINDX(120.5,"IP",VT,DFN,DATE,DAS)=""
+ ..S ^PXRMINDX(120.5,"PI",DFN,VT,DATE,DAS)=""
+ ..S NE=NE+1
+ ..Q
+ .Q
  S END=$H
  S TEXT="  VITAL MEASUREMENTS entries indexed: "_NE
  D BMES^XPDUTL(TEXT)
@@ -167,8 +194,6 @@ VITALS ; This entry point is for use by the Clinical Reminders package
  S TEXT=" "
  D MES^XPDUTL(TEXT)
  D DETIME^PXRMSXRM(START,END)
- ; If there were errors send a message.
- I NERROR>0 D ERRMSG^PXRMSXRM(NERROR,GLOBAL)
  ;Send a MailMan message with the results.
  D COMMSG^PXRMSXRM(GLOBAL,START,END,NE,NERROR)
  S ^PXRMINDX(120.5,"GLOBAL NAME")=$$GET1^DID(120.5,"","","GLOBAL NAME")

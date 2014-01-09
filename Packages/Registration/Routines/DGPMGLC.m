@@ -1,5 +1,5 @@
 DGPMGLC ;ALB/XAK,JDS,MJK,LM - G&L CORRECTIONS ;10 AUG 84  15:19
- ;;5.3;Registration;**36,59,170**;Aug 13, 1993
+ ;;5.3;Registration;**36,59,170,1015**;Aug 13, 1993;Build 21
  ;
  ;
 EN ;

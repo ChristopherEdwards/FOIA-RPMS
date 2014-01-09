@@ -1,5 +1,5 @@
-PSOCMOP ;BIR/HTW-Rx Order Entry Screen for CMOP ;02/19/98  9:21 AM 
- ;;7.0;OUTPATIENT PHARMACY;**2,16,21,27,43,61,126**;DEC 1997
+PSOCMOP ;BIR/HTW-Rx Order Entry Screen for CMOP ; 6/28/07 7:35am
+ ;;7.0;OUTPATIENT PHARMACY;**2,16,21,27,43,61,126,148,274**;DEC 1997;Build 8
  ;External reference to ^PS(55 supported by DBIA 2228
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PSDRUG supported by DBIA 3165
@@ -75,8 +75,10 @@ LOCK S RXP=+$G(RXPR(DA)),DIC="^PS(52.5,",DIC(0)="",X=RXN
  S VALMSG="Rx# "_$P(^PSRX(RXN,0),"^")_" Has Been Suspended for CMOP Until "_LFD_"."
  S COMM="Rx# "_$P(^PSRX(RXN,0),"^")_" Has Been Suspended for CMOP Until "_LFD_"."
  D EN^PSOHLSN1(RXN,"SC","ZS",COMM) K COMM
+ ;- Calling ECME to reverse any PAYABLE claim for the prescription/fill
+ D REVERSE^PSOBPSU1(RXN,,"DC",3)
  Q
-ACT I '$D(RXF) S RXF=0 F I=0:0 S I=$O(^PSRX(DA,1,I)) Q:'I  S RXF=I S:I>5 RXF=I+1
+ACT S RXF=0 F I=0:0 S I=$O(^PSRX(DA,1,I)) Q:'I  S RXF=I S:I>5 RXF=I+1
  S IR=0 F FDA=0:0 S FDA=$O(^PSRX(DA,"A",FDA)) Q:'FDA  S IR=FDA
  S IR=IR+1,^PSRX(DA,"A",0)="^52.3DA^"_IR_"^"_IR
  D NOW^%DTC S ^PSRX(DA,"A",IR,0)=%_"^S^"_DUZ_"^"_RXF_"^"_"RX Placed on Suspense for CMOP until "_LFD

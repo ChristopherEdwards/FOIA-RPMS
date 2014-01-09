@@ -1,5 +1,5 @@
 DGQEHL70 ;ALB/JFP - VIC HL7 Utility Bulletins; 09/01/96
- ;;V5.3;REGISTRATION;**73**;DEC 11,1996
+ ;;5.3;Registration;**73,1015**;DEC 11,1996;Build 21
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
  ;
 ERRBULL(REASON) ; -- Sends error bulletin

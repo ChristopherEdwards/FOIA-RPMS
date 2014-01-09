@@ -1,5 +1,5 @@
 SCRPRAC2 ;ALB/CMM - Practitioner Demographics continued ; 29 Jun 99  04:11PM
- ;;5.3;Scheduling;**41,177**;AUG 13, 1993
+ ;;5.3;Scheduling;**41,177,520,1015**;AUG 13, 1993;Build 21
  ;
  ;Practitioner Demographics Report
  ;
@@ -39,7 +39,8 @@ GATHER(PARRAY,PRAC) ;
  .S NODE=$G(^SCTM(404.57,PIEN,0))
  .S MAX=$P(NODE,"^",8) ;max patient assignments to position
  .S ASSIGN=+$$PCPOSCNT^SCAPMCU1(PIEN,DT,0) ;assigned patients
- .S CNAME=$P($G(^SC(+$P(NODE,U,9),0)),U) ;associated clinic
+ .N CNAME,SCCLIEN
+ .D SETASCL(PIEN,.CNAME,.SCCLIEN) ;associated clinics
  .;
  .;Get preceptor
  .S PRCP=$P($$OKPREC2^SCMCLK(PIEN,DT),U,2)
@@ -55,8 +56,8 @@ GATHER(PARRAY,PRAC) ;
  .D SET1("Room",ROOM),SET2("Pts. Allowed",MAX)
  .D SET1("Phone",PHONE),SET2("Pts. Assigned",ASSIGN)
  .I $L($G(PRCP)) D SET3(1,"Preceptor: "_PRCP)
- .D SET3(4,"Assoc.")
- .D SET3(4,"Clinic: "_CNAME)
+ .D SET3(4,"Assoc. Clinic: ")
+ .D SETCNAME(.CNAME)
  .I $L(PCLASS(1)) D
  ..D SET3(4,"Person"),SET3(5,"Class: "_PCLASS(1)) D
  ..I $L(PCLASS(2)) D SET3(15,PCLASS(2)) D
@@ -81,6 +82,12 @@ GATHER(PARRAY,PRAC) ;
  .Q
  Q
  ;
+SETASCL(PIEN,CNAME,SCCLIEN) ;SET ASSOCIATED CLINICS
+ N I,CNT1
+ S CNT1=0,I=0
+ F  S I=$O(^SCTM(404.57,PIEN,5,I)) Q:'I  D
+ .S SCCLIEN(CNT1)=I,CNAME(CNT1)=$P($G(^SC(I,0)),U),CNT1=CNT1+1
+ Q
 SET1(LABEL,VALUE) ;Set output line
  S SCLN=SCLN+1
  S @STORE@(PNAME,PIEN,SCLN)=$J(LABEL,9)_": "_$E(VALUE,1,26)
@@ -101,8 +108,13 @@ SET4(V1,V2,V3) ;Set output line
  S @STORE@(PNAME,PIEN,SCLN)=V1
  Q
  ;
+SETCNAME(CNAME) ;associated clinics 
+ N A
+ S A="" F  S A=$O(CNAME(A)) Q:A=""  D SET3(12,CNAME(A))
+ Q
+ ;
 PINFO(VAE,PRACT,OPH,ROOM,SERV) ;
- ;practitioner information form new person file
+ ;practitioner information from new person file
  S PRACT=$P($G(^VA(200,VAE,0)),"^") ;practitioner name
  S OPH=$P($G(^VA(200,VAE,.13)),"^",2) ;office phone
  S ROOM=$P($G(^VA(200,VAE,.14)),"^") ;room

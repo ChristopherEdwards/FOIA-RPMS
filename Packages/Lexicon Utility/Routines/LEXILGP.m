@@ -1,5 +1,5 @@
 LEXILGP ; ISL Save/Restore Pointers                ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  Q
 SP ; Save "Pointed to by"
  N LEXQ,LEXC S LEXQ="^DD(757.01,0,""PT"")",LEXC="^DD(757.01,0,""PT""," F  S LEXQ=$Q(@LEXQ) Q:LEXQ'[LEXC  S ^TMP("LEXPT",757.01,LEXQ)=""

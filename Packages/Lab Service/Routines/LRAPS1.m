@@ -1,6 +1,8 @@
 LRAPS1 ;AVAMC/REG/CYM/KLL - ANATOMIC PATH PRINT ;2/9/98  08:04 ;
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**72,173,201,259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1002,1003,1006,1030,1031**;NOV 01, 1997
+ ;
+ ;VA LR Patch(s): 72,173,201,259
+ ;
  S LRA("A")="Y"
 S ;from LRAPS
  F S="SP","CY","EM" D HDR1 Q:LRA("A")]""  F LRI=0:0 S LRI=$O(^LR(LRDFN,S,LRI)) Q:'LRI  D:$Y>(IOSL-3) M Q:LRA("A")]""  D EN
@@ -31,4 +33,5 @@ HDR3 D M Q:LRA("A")]""  D HDR21 W !?5,O(6) W:W(3) " ",W(3)," gm" Q
  ;
 M Q:$D(ORHFS)  ;Don't allow reads if coming from CPRS
  Q:LRA("A")]""  R !,"'^' TO STOP ",LRA("A"):DTIME S:'$T LRA("A")="^" Q:LRA("A")="^"  I LRA("A")]"" W $C(7) G M
- W @IOF,$E(LRP,1,30),?31,SSN,?50,"DOB: ",DOB,?68,"LOC: ",$E(LRLLOC,1,5) D HDR1 Q
+ ; W @IOF,$E(LRP,1,30),?31,SSN,?50,"DOB: ",DOB,?68,"LOC: ",$E(LRLLOC,1,5) D HDR1 Q
+ W @IOF,$E(LRP,1,30),?31,HRCN,?50,"DOB: ",DOB,?68,"LOC: ",$E(LRLLOC,1,5) D HDR1 Q   ; IHS/MSC/MKK - LR*5.2*1031

@@ -1,5 +1,15 @@
-TIUFHA8 ; SLC/MAM - MOVEDOC, MDRPOINT(OLDTLDA,NEWTLDA,POLDTLDA,PNEWTLDA,NOLOCK), NEWTITLE(FILEDA,PFILEDA), MTRPOINT(TITLEDA,OLDCLASS) ;9/10/98  11:13
- ;;1.0;TEXT INTEGRATION UTILITIES;**11,27,64**;Jun 20, 1997
+TIUFHA8 ; SLC/MAM - MOVEDOC, MDRPOINT(OLDTLDA,NEWTLDA,POLDTLDA,PNEWTLDA,NOLOCK), NEWTITLE(FILEDA,PFILEDA), MTRPOINT(TITLEDA,OLDCLASS) ;1/29/06
+ ;;1.0;TEXT INTEGRATION UTILITIES;**11,27,64,184**;Jun 20, 1997
+ ;
+CANT(FILEDA,NODE0) ; Check if docmts can be moved; return 1 if cant
+ N CANTMSG,CANT S CANT=0
+ I $P(NODE0,U,4)'="DOC" S CANTMSG="   ?? Entry must be a TITLE (not a Document Class, etc.)" G:$D(CANTMSG) CANTX
+ I $$HASITEMS^TIUFLF1(FILEDA) S CANTMSG="   ?? Documents cannot be moved for Titles with Components" G:$D(CANTMSG) CANTX
+ I '$O(^TIU(8925,"B",FILEDA,0)) S CANTMSG="  ?? Title has no documents to move" G:$D(CANTMSG) CANTX
+ I FILEDA=81 S CANTMSG="   ?? Can't Move Addenda" G:$D(CANTMSG) CANTX
+ I $$ISPFTTL^TIUPRFL(FILEDA) S CANTMSG="   ?? Documents cannot be moved for PRF Flag Titles" G:$D(CANTMSG) CANTX
+CANTX I $D(CANTMSG) W !,CANTMSG,! D PAUSE^TIUFXHLX S CANT=1
+ Q CANT
  ;
 MOVEDOC ; Move documents from old Title to new Title.  Template H ONLY.  Titles must have same grandparent.  Titles cannot have components.
  N INFO,FILEDA,NODE0,PFILEDA,TENDA,NEWTLY,LINENO,PLINENO
@@ -8,11 +18,9 @@ MOVEDOC ; Move documents from old Title to new Title.  Template H ONLY.  Titles 
  S VALM("ENTITY")="Title whose documents you want to Move"
 AGAINDOC D EN^VALM2(TIUFXNOD,"SO") G:'$O(VALMY(0)) MDOCX S INFO=$G(^TMP("TIUF1IDX",$J,$O(VALMY(0)))) I 'INFO W !," Missing List Manager Data; See IRM",! D PAUSE^TIUFXHLX S VALMBCK="Q" G MDOCX
  S FILEDA=$P(INFO,U,2),NODE0=^TIU(8925.1,FILEDA,0),LINENO=+INFO
- ; Need TIUFXNOD phrase to prevent loop:
- N DIRUT I $P(NODE0,U,4)'="DOC" W !,"   ?? Entry must be a TITLE (not a Document Class, etc.).",! D PAUSE^TIUFXHLX G MDOCX:$D(DIRUT)!(TIUFXNOD["="),AGAINDOC
- N DIRUT I $$HASITEMS^TIUFLF1(FILEDA) W !,"   ?? Documents cannot be moved for Titles with Components",! D PAUSE^TIUFXHLX G MDOCX:$D(DIRUT)!(TIUFXNOD["="),AGAINDOC
- I '$O(^TIU(8925,"B",FILEDA,0)) W !,"  ?? Title has no documents to move",! D PAUSE^TIUFXHLX G MDOCX:$D(DIRUT)!(TIUFXNOD["="),AGAINDOC
- I FILEDA=81 W !,"   ?? Can't Move Addenda",! D PAUSE^TIUFXHLX G MDOCX:$D(DIRUT)!(TIUFXNOD["="),AGAINDOC ;P64 allow move from natl titles, except addenda
+ N DIRUT
+ ; - Check selected title. Need TIUFXNOD phrase to prevent loop:
+ I $$CANT(FILEDA,NODE0) G MDOCX:$D(DIRUT)!(TIUFXNOD["="),AGAINDOC
  S PFILEDA=+$O(^TIU(8925.1,"AD",FILEDA,0)),PLINENO=$P(INFO,U,5)
  S TENDA=$P(INFO,U,6)
  S VALMBCK="R" K DIRUT
@@ -54,12 +62,20 @@ NEWTITLE(FILEDA,PFILEDA) ; Function returns DIC's Y=N^S of New Title to move doc
  ;Requires FILEDA = IFN of old Title
  ;Requires PFILEDA = parent of old Title
  N X,Y,DIC,DIR,NEWTLY,TIUFCK,NPFILEDA,GPFILEDA,OVERRIDE
- S GPFILEDA=+$O(^TIU(8925.1,"AD",PFILEDA,0))
+ N SCRN1,SCRN2,SCRN3
+ S GPFILEDA=+$O(^TIU(8925.1,"AD",PFILEDA,0)) ; G'parent of old Title
 AGAINNEW S DIC=8925.1,DIC(0)="AEMNQZ" K NEWTLY
- W !!,"Selecting target Title.",!,"Enter '??' for a list of Titles within the original Class."
- S DIC("A")="Select TIU TITLE NAME to Move documents to: ",DIC("S")="I $P(^(0),U,4)=""DOC""&(Y'=FILEDA)&(GPFILEDA=+$O(^TIU(8925.1,""AD"",+$O(^TIU(8925.1,""AD"",Y,0)),0)))"
+ W !!,"  Selecting target Title."
+ W "  Enter '??' for a list of selectable ones.",!
+ W "  You may not select PRF Flag Titles or Titles outside"
+ W " the original Class."
  S DIC("A")="Select TIU TITLE NAME to Move documents to: "
- S DIC("S")="I $P(^(0),U,4)=""DOC""&(Y'=FILEDA)&(Y'=81)&(GPFILEDA=+$O(^TIU(8925.1,""AD"",+$O(^TIU(8925.1,""AD"",Y,0)),0)))" ;P64 exclude addendum in case future DC gets put under Clinical Documents
+ ; - Type=TL, not=old title, not addm title, not PRF title,
+ ;   same g'parent (i.e. class):
+ S SCRN1="I $P(^(0),U,4)=""DOC""&(Y'=FILEDA)&(Y'=81)"
+ S SCRN2="&'$$ISPFTTL^TIUPRFL(Y)&(GPFILEDA="
+ S SCRN3="+$O(^TIU(8925.1,""AD"",+$O(^TIU(8925.1,""AD"",Y,0)),0)))"
+ S DIC("S")=SCRN1_SCRN2_SCRN3
  D ^DIC I Y=-1 G NEWTLX
  S NEWTLY=Y,NEWTLY(0)=Y(0),NPFILEDA=+$O(^TIU(8925.1,"AD",+NEWTLY,0))
  ;P64 removed "can't move docmts to natl titles"

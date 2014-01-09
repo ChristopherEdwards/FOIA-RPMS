@@ -1,6 +1,7 @@
 LRAURPT ;AVAMC/REG/WTY - AUTOPSY RPT ;9/22/00
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**1,72,173,248,259**;Sep 27, 1994
+ ;;5.2;LAB SERVICE;**1002,1003,1018,1030,1031**;NOV 01, 1997
+ ;
+ ; VA LR Patch(s): 1,72,173,248,259
  ;
  ;Reference to ^DD(63 supported by IA #10155
  ;WTY;24-AUG-01;Added ICD to the print coding question
@@ -201,7 +202,8 @@ FT ;Footer
  W !,"Pathologist: ",LRM(3),?52,LRW(9),?55,"| Date "
  W $E($S(LRH(3)]"":LRH(3),1:LRH(17)),1,12)
  D W W !,LRQ(1),?IOM-17,"AUTOPSY PROTOCOL"
- W !,"Patient: ",$E(LRP,1,30),?43,SSN,?56,"SEX:",SEX,?63,"DOB:",DOB
+ ; W !,"Patient: ",$E(LRP,1,30),?43,SSN,?56,"SEX:",SEX,?63,"DOB:",DOB
+ W !,"Patient: ",$E(LRP,1,30),?43,HRCN,?56,"SEX:",SEX,?63,"DOB:",DOB      ; IHS/MSC/MKK - LR*5.2*1031 - restore LR*5.2*1018 code
  W !,$E(LRLLOC,1,22),?23,"Physician: ",$E(LRM(1),1,28)
  W ?63,"AGE AT DEATH:",$J(AGE,3)
  Q

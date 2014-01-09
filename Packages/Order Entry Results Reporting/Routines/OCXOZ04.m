@@ -1,5 +1,5 @@
-OCXOZ04 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ04 ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -60,7 +60,7 @@ CHK34 ; Look through the current environment for valid Event/Elements for this p
  ; LIST( ------------> IN LIST OPERATOR
  ;
  I $$LIST(OCXDF(6),"H,L") D CHK35
- I $$LIST(OCXDF(6),"HH,LL"),$L(OCXDF(23)),$$LIST(OCXDF(23),"F,C"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) D CHK325^OCXOZ0B
+ I $$LIST(OCXDF(6),"HH,LL"),$L(OCXDF(23)),$$LIST(OCXDF(23),"F,C"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) D CHK324^OCXOZ0B
  Q
  ;
 CHK35 ; Look through the current environment for valid Event/Elements for this patient.
@@ -81,7 +81,7 @@ CHK35 ; Look through the current environment for valid Event/Elements for this p
  ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
  ;
  I $L(OCXDF(23)),$$LIST(OCXDF(23),"F,C"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)) D CHK43
- I $L(OCXDF(15)),$$LIST(OCXDF(15),"F,C"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)) D CHK315^OCXOZ0B
+ I $L(OCXDF(15)),$$LIST(OCXDF(15),"F,C"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)) D CHK314^OCXOZ0B
  Q
  ;
 CHK43 ; Look through the current environment for valid Event/Elements for this patient.

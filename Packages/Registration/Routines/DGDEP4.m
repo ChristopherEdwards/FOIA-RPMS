@@ -1,5 +1,5 @@
 DGDEP4 ;ALB/CAW - Dependents Utilities (con't) ;12/1/94
- ;;5.3;Registration;**45**;Aug 13, 1993
+ ;;5.3;PIMS;**45,1015,1016**;JUN 30, 2012;Build 20
  ;
 EN ; Spouse Demographics
  N BEG,CNT,END,FLAG,QUIT,DGERR S CNT=0
@@ -17,14 +17,6 @@ EN1 S DGPRI=$P(DGDEP(1),U,20),DGIRI=$P(DGDEP(1),U,22) D SPOUSE1^DGMTSC1
 ENQ D INIT^DGDEP
  Q
  ;
-COPY ; Copy information
- I $G(DGMTI),$G(DGMTACT)="VEW" W !,"Cannot edit when viewing a means test." H 2 G COPYQ
- I '$D(DGMTI),$G(DGRPV)=1 W !,"Not while viewing" H 2 G COPYQ
- D COPY^DGMTU22(DFN,$S($G(DGMTDT):DGMTDT,1:DT),$G(DGMTI))
- D INIT^DGDEP
-COPYQ S VALMBCK="R"
- Q
- ;
 ADDEP ; Add a new dependent
  ;
  N DGANS
@@ -37,8 +29,13 @@ ADDEP ; Add a new dependent
  D GETREL^DGMTU11(DFN,"S",$S($G(DGMTD):DGMTD,1:DT))
  I DGANS="S",$G(DGREL("S")) W !,"An active spouse is currently on file.  Use the 'ES - Edit Spouse'",!,"action to edit." H 3 G ADDEPQ
  I DGANS="S",$G(DGMTI) S CNT=0 F  S CNT=$O(DGDEP(CNT)) Q:'CNT  I $P(DGDEP(CNT),U,2)="SPOUSE" D REMOVE^DGDEP2(DFN,DGDEP(CNT),DGMTI)
+ D GETREL^DGMTU11(DFN,"C",$S($G(DGMTD):DGMTD,1:DT))
+ I ((DGANS="C")!(DGANS="D")),(+$$CNTDEPS^DGMTU11(DFN)>18) DO
+ . W !,"The addition of another dependent child can not be completed."
+ . W !,"Nineteen (19) dependent children are already associated to the veteran."
+ I ((DGANS="C")!(DGANS="D")),(+$$CNTDEPS^DGMTU11(DFN)>18) H 3 G:(DGANS="C") ADDEPQ
  D CLEAR^VALM1
- D ADD^DGRPEIS(DFN,DGANS,$S($G(DGMTI):$P(^DGMT(408.31,DGMTI,0),U),1:DT))
+ D ADD^DGRPEIS(DFN,DGANS,$S($G(DGMTI):$P(^DGMT(408.31,DGMTI,0),U),1:DT),DGDEP)
  S PERSON=DGPRI
  I DGFL=-1!(DGFL=-2) G ADDEPQ
  D INIT^DGDEP

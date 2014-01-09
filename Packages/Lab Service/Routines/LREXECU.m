@@ -1,16 +1,35 @@
 LREXECU ;VA/SLC/RWF - EXECUTE CODE UTILITY ;8/11/97
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**121,200**;Sep 27, 1994
-TDM ; DRUG MONITORING
- W !,"Will (is) the sample to be drawn at ",!," Peak, Trough, Mid, or Unknown: " R X:DTIME S Y=$F("PTMU",$E(X,1)) S:Y<2 Y=1 S X=$P("?^PEAK^TROUGH^MID^UNK",U,Y)
- I X["^"!(X="")!(X["?") W !,"You must answer this question!  just enter a 'P', 'T', 'M', 'U' " G TDM
- S LRCCOM="~Dose is expected to be at "_X_" level."
- ; I $$VER^LR7OU1>2.5 D TCOM^LRORD2(+LRTEST(LRTSTN),LRCCOM)
- ; I $$VER^LR7OU1<3 D RCS^LRXO9 I '$D(ORACTION) D TCOM^LRORD2(+LRTEST(LRTSTN),LRCCOM) ;OE/RR 2.5
- ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
- D TCOM^LRORD2(+LRTEST(LRTSTN),LRCCOM)      ; IHS NOT CONCERNED ABOUT OE/RR VERSION
- ; ----- END IHS/OIT/MKK - LR*5.2*1030
- R !,"ADDITIONAL COMMENT: ",LRCCOM:DTIME Q
+ ;;5.2;LAB SERVICE;**1003,1013,1015,1031**;NOV 1, 1997
+ ;
+ ;;VA LR Patche(s): 121,200,362
+ ;
+TDM ;DRUG MONITORING
+ N DIR,DTOUT,DUOUT,DIRUT
+ ;Set the DIR array for sample to be drawn question
+ S DIR(0)="SO^P:Peak;T:Trough;M:Mid;U:Unknown"
+ S DIR("A")="Please select"
+ S DIR("L",1)="Will (is) the sample to be drawn at"
+ S DIR("L")=" Peak, Trough, Mid, or Unknown"
+ S DIR("T")=60
+ S DIR("?",1)="Enter a 'P', 'T', 'M', 'U', or hit the Enter Key."
+ S DIR("?",2)="Hitting the Enter key will default to Unknown "
+ S DIR("?")="Entering ""^"" or a timeout will cancel the order."
+ D ^DIR K DIR  ;Prompt for user selection
+ ;Process user selection
+ I $D(DUOUT)!($D(DTOUT)) W !!!,$C(7),"ORDER CANCELED" S LRKIL=1 Q
+ I Y="" S Y(0)="Unknown" W !!!,$C(7),"Defaulted to Unknown"
+ E  W !!!,$C(7),Y(0)_" has been selected."
+ S LRCCOM="~Dose is expected to be at "_Y(0)_" level."
+ I $$VER^LR7OU1>2.5 D TCOM^LRORD2(+LRTEST(LRTSTN),LRCCOM)
+ I $$VER^LR7OU1<3 D RCS^LRXO9 I '$D(ORACTION) D TCOM^LRORD2(+LRTEST(LRTSTN),LRCCOM) ;OE/RR 2.5
+ ;Set DIR array for additional comment question
+ S DIR(0)="FO^1:250"
+ S DIR("A")="ADDITIONAL COMMENT"
+ S DIR("T")=60
+ S DIR("?")="This is a free text field, up to 250 characters in length."
+ D ^DIR K DIR
+ I $D(DUOUT)!($D(DTOUT)) S Y=""
+ S LRCCOM=Y
  Q
 DOSE ;DOSE/DRAW TIMES
 EN ;
@@ -24,5 +43,4 @@ DRAW W ! S %DT("A")="Enter draw time: ",%DT="AT" D ^%DT S LRDRAW=Y
  I LRDRAW["." S Y=LRDRAW D DD^LRX S LRDRAW=Y
  S LRCCOM="~Last dose: "_LRDOSE_"   draw time: "_LRDRAW W !,LRCCOM
  W !,"OK" S %=1 D YN^DICN G EN:%'=1
- K LRDOSE,LRDRAW,%DT
- Q
+ K LRDOSE,LRDRAW,%DT Q

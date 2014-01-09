@@ -1,5 +1,5 @@
 FHLABEL ; HISC/RTK - Laser label sheet build and display;9/27/02  9:25
- ;;5.0;Dietetics;**38,39**;Mar 25, 1996
+ ;;5.5;DIETETICS;;Jan 28, 2005
 LAB ;
  S FHCOL=$S(LAB=3:3,1:2)
  I LABSTART>1 F FHLABST=1:1:(LABSTART-1)*FHCOL D  S LABSTART=1

@@ -1,5 +1,5 @@
-DGPFUT2 ;ALB/KCL - PRF UTILITIES CONTINUED ; 8/15/03 1:43pm
- ;;5.3;Registration;**425,1007,1008**;Aug 13, 1993
+DGPFUT2 ;ALB/KCL - PRF UTILITIES CONTINUED ; 12/17/03 2:56pm
+ ;;5.3;Registration;**425,554,650,1007,1015**;Aug 13, 1993;Build 21
  ;
  ; This routine contains generic calls for use throughout DGPF*.
  ;
@@ -7,7 +7,7 @@ DGPFUT2 ;ALB/KCL - PRF UTILITIES CONTINUED ; 8/15/03 1:43pm
  QUIT
  ;
  ;
-GETPAT(DGDFN,DGPAT) ;EP-retrieve patient identifying information
+GETPAT(DGDFN,DGPAT) ;retrieve patient identifying information
  ; Used to obtain identifying information for a patient
  ; in the PATIENT (#2) file and place it in an array format.
  ;
@@ -34,6 +34,7 @@ GETPAT(DGDFN,DGPAT) ;EP-retrieve patient identifying information
  S RESULT=0
  ;
  I $G(DGDFN)>0,$D(^DPT(DGDFN,0)) D
+ .
  . ;-- obtain zero node of patient record (supported by DBIA #10035)
  . S DGNODE=$G(^DPT(DGDFN,0))
  . ;
@@ -42,15 +43,14 @@ GETPAT(DGDFN,DGPAT) ;EP-retrieve patient identifying information
  . S DGPAT("SEX")=$P(DGNODE,"^",2)
  . S DGPAT("DOB")=$P(DGNODE,"^",3)
  . S DGPAT("SSN")=$P(DGNODE,"^",9)
+ . S RESULT=1  ;success
  . ;
  . ;IHS/OIT/LJF 12/22/2006 PATCH 1007 set SSN to chart # with dashes
  . S DGPAT("SSN")=$$HRCND^BDGF2($$HRCN^BDGF2(DGDFN,+$G(DUZ(2))))
  . ;
- . S RESULT=1  ;success
- ;
  Q RESULT
  ;
-GETDFN(DGICN,DGDOB,DGSSN) ;Convert ICN to DFN after verifying DOB and SSN
+GETDFN(DGICN,DGEROOT) ;Used to convert an ICN to a DFN.
  ;
  ;  Supported DBIA #2701:  The supported DBIA is used to retrieve the
  ;                         pointer (DFN) to the PATIENT (#2) file for a
@@ -58,63 +58,74 @@ GETDFN(DGICN,DGDOB,DGSSN) ;Convert ICN to DFN after verifying DOB and SSN
  ;
  ;  Input:
  ;    DGICN - Integrated Control Number with or without checksum
- ;    DGDOB - Date of Birth in FileMan format
- ;    DGSSN - Social Security Number with no delimiters
+ ;  DGEROOT - (optional) closed root array name (i.e. "DGERROR") for
+ ;            error dialog returned from BLD^DIALOG.  If not passed,
+ ;            error dialog is returned in ^TMP("DIERR",$J) global.
  ;
  ;  Output:
  ;   Function Value - DFN on success, 0 on failure
+ ;        DGEROOT() - error output array from BLD^DIALOG
  ;
- N DGDFN   ;pointer to patient
- N DGDPT   ;patient data array
- N DGRSLT  ;function value
+ N DGDFN   ;ptr to patient
+ N DIERR   ;var returned from BLD^DIALOG
  ;
- S DGRSLT=0
- S DGICN=+$G(DGICN)
- S DGDOB=+$G(DGDOB)
- S DGSSN=+$G(DGSSN)
- I DGICN,DGDOB,DGSSN D  ;drops out of block on first failure
- . S DGDFN=+$$GETDFN^MPIF001(DGICN)
- . Q:(DGDFN'>0)
- . Q:('$$GETPAT^DGPFUT2(DGDFN,.DGDPT))
- . Q:(DGDOB'=+DGDPT("DOB"))
- . Q:(DGSSN'=+DGDPT("SSN"))
- . S DGRSLT=DGDFN
- Q DGRSLT
+ ;init error output array if passed
+ S DGEROOT=$G(DGEROOT)
+ I DGEROOT]"" K @DGEROOT
  ;
-SORT(DGPFAPI) ;sort active record flags by category then name
- ; This procedure takes the initial active flag assignment list for a
- ; patient and sorts it by category then by name.
+ S DGDFN=+$$GETDFN^MPIF001(+$G(DGICN))
+ I DGDFN'>0 D BLD^DIALOG(261127,,,DGEROOT,"F")
  ;
- ;  Input:
- ;    DGPFAPI - active flag data array list
+ Q $S(DGDFN'>0:0,1:DGDFN)
+ ;
+SORT(DGPFARR) ;Re-sort of active record assignments by category then flag name
+ ; This function re-sorts the active record flag assignment list for a
+ ; patient by category (Cat I or Cat II) and then by flag name.
+ ;
+ ;  Input: [Required]
+ ;    DGPFARR - Closed root reference array name of active assignments
+ ;              to be sorted
  ;
  ;  Output:
- ;    DGPFAPI - sorted active flag data array list
+ ;    Function Value - returns 1 on success, 0 on failure
+ ;
+ ;    DGPFARR() - Closed Root reference name of re-sorted assignments
+ ;              - Category I's will sort first in the returned array.
+ ;              - Category II's will sort second.
  ;
  N DGCAT   ;category
  N DGINDX  ;index array
  N DGNAME  ;flag name
- N DGSORT  ;sorted data array
+ N DGSORT  ;re-sorted data array
  N DGX     ;generic counter
  ;
- ;build index
- S DGX=0
- F  S DGX=$O(DGPFAPI(DGX)) Q:'DGX  D
- . S DGCAT=$S($P(DGPFAPI(DGX,"FLAG"),U)[26.11:2,1:1)
- . S DGINDX(DGCAT,$P(DGPFAPI(DGX,"FLAG"),U,2))=DGX
+ ; check for input value - Quit if none found
+ Q:DGPFARR']"" 0
+ Q:'$O(@DGPFARR@("")) 0
  ;
- ;build sorted data array
- S DGCAT=0,DGX=0
+ S DGSORT=$NA(^TMP("DGPFUT2",$J))
+ K @DGSORT
+ ;
+ ;build index - ARRAY(Category (I or II),Flag Name)=sort number
+ S DGX=0
+ F  S DGX=$O(@DGPFARR@(DGX)) Q:'DGX  D
+ . S DGCAT=$S($P(@DGPFARR@(DGX,"FLAG"),U)[26.11:2,1:1)
+ . S DGINDX(DGCAT,$P(@DGPFARR@(DGX,"FLAG"),U,2))=DGX
+ ;
+ ;build sorted data array - 
+ S (DGCAT,DGX)=0
  F  S DGCAT=$O(DGINDX(DGCAT)) Q:'DGCAT  D
  . S DGNAME=""
  . F  S DGNAME=$O(DGINDX(DGCAT,DGNAME)) Q:DGNAME=""  D
  . . S DGX=DGX+1
- . . M DGSORT(DGX)=DGPFAPI(DGINDX(DGCAT,DGNAME))
+ . . M @DGSORT@(DGX)=@DGPFARR@(DGINDX(DGCAT,DGNAME))
  ;
- ;remove input array and replace with sorted array
- K DGPFAPI
- M DGPFAPI=DGSORT
- Q
+ ;remove input array and replace with sorted array, kill sort array
+ K @DGPFARR
+ M @DGPFARR=@DGSORT
+ K @DGSORT
+ ;
+ Q 1
  ;
 ACTDT ; update PRF Software Activation Date field in (#26.18)
  ; This utility should only be run at the Alpha and Beta test sites
@@ -190,3 +201,36 @@ ACTDT ; update PRF Software Activation Date field in (#26.18)
  . W "Field was successfully changed from ",$G(DGPARM(26.18,"1,",1,"E"))," to ",$G(DGFDA(26.18,DGIENS,DGFLD)),"."
  ;
  Q
+ ;
+BLDTFL(DGDFN,DGTFL) ;build array of Treating Facilities
+ ; This function builds an array of INSTITUTION (#4) file pointers
+ ; that are non-local medical treating facilities for a given patient.
+ ;
+ ;  Input:
+ ;    DGDFN - pointer to patient in PATIENT (#2) file
+ ;
+ ;  Output:
+ ;   Function value - 1 on results returned; 0 on failure
+ ;    DGTFL - array of treating facility INSTITUTION (#4) file pointers
+ ;            Format:  DGTFL(pointer)=date last treated
+ ;
+ N DGLOC   ;pointer to local facility in INSTITUTION (#4) file
+ N DGDLT   ;date last treated
+ N DGFAC   ;TFL API results array
+ N DGI     ;generic counter
+ N DGINST  ;pointer to INSTITUTION (#4) file
+ ;
+ Q:$G(DGDFN)'>0 0  ;validate input parameter
+ ;
+ D TFL^VAFCTFU1(.DGFAC,DGDFN)
+ S DGLOC=$P($$SITE^VASITE(),U)
+ S DGI=0
+ F  S DGI=$O(DGFAC(DGI)) Q:'DGI  D
+ . S DGINST=$$IEN^XUAF4($P(DGFAC(DGI),U))
+ . Q:DGINST'>0
+ . Q:DGINST=DGLOC  ;filter local facility
+ . Q:'$$TF^XUAF4(DGINST)  ;facility must be active treating facility
+ . S DGDLT=+$P(DGFAC(DGI),U,3)
+ . S DGTFL(DGINST)=DGDLT
+ ;
+ Q $S(+$O(DGTFL(0)):1,1:0)

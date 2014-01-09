@@ -1,5 +1,5 @@
 SD53227 ;ALB/RBS - Print Encounter/Visit Date/Time 421 error ; 10/11/00 5:23pm
- ;;5.3;Scheduling;**227**;AUG 13, 1993
+ ;;5.3;Scheduling;**227,1015**;AUG 13, 1993;Build 21
  ;
  ;DBIA Integration Reference # 3211.
  ;

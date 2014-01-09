@@ -1,5 +1,5 @@
-TIURB2 ; SLC/JER,AJB - More Review Screen Actions ;02-Mar-2012 17:18;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**100,109,154,112,1009**;Jun 20, 1997;Build 22
+TIURB2 ; SLC/JER,AJB - More Review Screen Actions ;04-Jun-2012 16:25;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**100,109,154,112,1009,184,1010**;Jun 20, 1997;Build 24
  ; 2/3: Update TEXTEDIT from TIUEDIT to TIUEDI4
  ; 9/28 Moved DELETE, DEL, DELTEXT, DIK to new rtn TIURB2
  ; 8/2/02 DELTEXT logic to bypass user-response if called by GUI TIU*1*154
@@ -97,8 +97,12 @@ DELTEXT(DA,TIURSN) ; After signature, only retraction possible
  S DR="1610////^S X=+DUZ;1611////^S X=+$$NOW^XLFDT;1612////^S X=TIURSN"
  D ^DIE
  S DA=$$RETRACT^TIURD2(DA,"",14)
+ ; Unlink PRF titles when TIU changes require it TIU*1*184
+ D ISPRFTTL^TIUPRF2(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY D UNLINK^TIUPRF1(TIUDA)
  ; Roll back SURGICAL REPORT TITLES when TIU changes require it ; TIU*1*112
  D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY D RETRACT^TIUSROI1(TIUDA)
+ ; Remove link to consult if a Consult Title
+ D ISCNSLT^TIUCNSLT(.TIUY,+$G(^TIU(8925,TIUDA,0))) I +TIUY D REMCNSLT^TIUCNSLT(TIUDA)
  I '$$BROKER^XWBLIB D
  . I '$D(ZTQUEUED),$$READ^TIUU("EA","Press RETURN to continue...")
  Q

@@ -1,5 +1,5 @@
 SDQ ;ALB/MJK - Query Object Methods ;8/12/96
- ;;5.3;Scheduling;**131**;Aug 13, 1993
+ ;;5.3;Scheduling;**131,1015**;Aug 13, 1993;Build 21
  ;
 OPEN(SDQ,SDERR) ; -- SDQ OPEN                                     [API ID: 79]
  D PREP^SDQUT

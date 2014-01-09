@@ -1,5 +1,5 @@
-SDM3 ;SF/GFT - MAKE APPOINTMENT ; [ 09/13/2001  2:32 PM ]
- ;;5.3;Scheduling;**32**;Aug 13, 1993
+SDM3 ;SF/GFT - MAKE APPOINTMENT ; 14 SEP 84  11:33 am
+ ;;5.3;Scheduling;**32,1015**;Aug 13, 1993;Build 21
  ;IHS/ANMC/LJF 11/30/2000 changed $N to $O
  ;             12/13/2000 added master overbook access by clinic check
  ;

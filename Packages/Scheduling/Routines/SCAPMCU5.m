@@ -1,5 +1,5 @@
 SCAPMCU5 ;bp/cmf - TEAM API UTILITIES ; 2 june 1999
- ;;5.3;Scheduling;**177**;AUG 13, 1993
+ ;;5.3;Scheduling;**177,1015**;AUG 13, 1993;Build 21
  ;;1.0
  ;
 VALHIST(SCFILE,SCTPIEN,SCVAL) ; returns valid act/inact ien pairs in SCVAL

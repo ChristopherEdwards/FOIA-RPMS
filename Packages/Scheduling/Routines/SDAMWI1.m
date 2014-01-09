@@ -1,5 +1,5 @@
-SDAMWI1 ;ALB/MJK - Walk-Ins (cont.) ; [ 01/03/2002  4:11 PM ]
- ;;5.3;Scheduling;**94,167,206,168,1006,1009,1010,1012**;Aug 13, 1993
+SDAMWI1 ;ALB/MJK - Walk-Ins (cont.) ; 31 Dec 99  6:30 PM
+ ;;5.3;Scheduling;**94,167,206,168,1006,1009,1010,1012,1015,1016**;Aug 13, 1993;Build 20
  ;IHS/ANMC/LJF 7/06/2000 added call to IHS routing slip code
  ;                       hard set of date appt made now includes time
  ;            11/29/2000 added call to enter other info
@@ -8,6 +8,7 @@ SDAMWI1 ;ALB/MJK - Walk-Ins (cont.) ; [ 01/03/2002  4:11 PM ]
  ;cmi/anch/maw  04/07/2008 PATCH 1009 requirement 61 added check of default prompt for printing routing slips
  ;cmi/anch/maw  05/04/2009 PATCH 1010 added check of default prompt if no DIV
  ;cmi/flag/maw  06/17/2010 PATCH 1012 added setting of date appointment made xref for walkins RQMT147
+ ;ihs/cmi/maw 10/23/2012 PATCH 1016 added call to BSDMMU in MAKE for BMW software
  ;
 MAKE(DFN,SDCL,SDT) ; -- set globals for appt
  ;    input:     DFN ; SDCL := clinic# ; SDT := appt d/t
@@ -18,7 +19,9 @@ MAKE(DFN,SDCL,SDT) ; -- set globals for appt
  S SD=SDT D EN1^SDM3
  S:'$D(^DPT(DFN,"S",0)) ^(0)="^2.98P^^"
  ;S ^DPT(DFN,"S",SDT,0)=SC_"^"_$$STATUS^SDM1A(SC,SDINP,SDT)_"^^^^^4^^^^^^^^^"_SDAPTYP_"^^^"_DT_"^^^^^"_$G(SDXSCAT)_"^W^0"
- S ^DPT(DFN,"S",SDT,0)=SC_"^"_$$STATUS^SDM1A(SC,SDINP,SDT)_"^^^^^4^^^^^^^^^"_SDAPTYP_"^^^"_$$NOW^XLFDT_"^^^^^"_$G(SDXSCAT)_"^W^0"   ;IHS/ANMC/LJF 7/06/2000
+ ;S ^DPT(DFN,"S",SDT,0)=SC_"^"_$$STATUS^SDM1A(SC,SDINP,SDT)_"^^^^^4^^^^^^^^^"_SDAPTYP_"^^^"_$$NOW^XLFDT_"^^^^^"_$G(SDXSCAT)_"^W^0"   ;IHS/ANMC/LJF 7/06/2000
+ D SDM^BSDMMU(4,"",DFN,SD,SC,SDINP,SDAPTYP,"",$G(SDXSCAT),"W",0,"","",.BSDER)  ;ihs/cmi/maw 10/23/2012 to call UPDATE^DIE
+ I $G(BSDER)]"" W !,"Error making appointment in file 2.98" Q  ;ihs/cmi/maw 10/23/2012 patch 1016 for GUI Scheduling
  ;xref DATE APPT. MADE field
  D
  .N DIV
@@ -66,7 +69,6 @@ ROUT(DFN) ; -- print routing slip
  S DIR("A")="DO YOU WANT TO PRINT A ROUTING SLIP NOW",DIR(0)="Y"
  W ! D ^DIR K DIR G ROUTQ:$D(DIRUT)!(Y=0)
  K IOP S (SDX,SDSTART,ORDER,SDREP)="" D EN^SDROUT1
- ;
 ROUTQ Q
  ;
 DUAL ; -- ask elig if pt has more than one
@@ -80,4 +82,3 @@ EVT ; -- separate if need to NEW vars
 XREFC(C,D,N) ;-- set the date appointment made cross reference patch 1012
  D XREFC^BSDDAM(C,D,N)
  Q
- ;

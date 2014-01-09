@@ -1,5 +1,5 @@
-DGPFRFA1 ;ALB/RBS - PRF FLAG ASSIGNMENT REPORT CONT. ; 5/21/03 4:35pm
- ;;5.3;Registration;**425,1007,1008**;Aug 13, 1993
+DGPFRFA1 ;ALB/RBS - PRF FLAG ASSIGNMENT REPORT CONT. ; 1/21/04 5:14pm
+ ;;5.3;Registration;**425,554,1007,1015**;Aug 13, 1993;Build 21
  ;
  ;This routine will compile and produce the FLAG ASSIGNMENT REPORT.
  ;This routine will be used to display or print all of the patient
@@ -45,15 +45,13 @@ LOOP(DGSORT) ;use sort var's for record searching to build list
  S DGF=$P(DGFLAG,U) ;"A"=all flags - "5;DGPF(26.11," is selection
  ; re-seed var to start looping before actual selection
  D:+DGF
- . S DGSUB=+DGF-1
- . S:DGSUB<0 DGSUB=0
- . S DGSUB=DGSUB_";"_$P(DGF,";",2)
- ;ex.  DGSUB="5;DGPF(26.11," to loop ^DGPF(26.13,"AFLAG",DGSUB,dfn,ien
+ . S DGSUB=$O(^DGPF(26.13,"AFLAG",DGF),-1)  ;previous value or NULL
+ ; ex. DGSUB="5;DGPF(26.11," to loop ^DGPF(26.13,"AFLAG",DGSUB,dfn,ien
  ;
  S (DGDFN,DGIEN)=""
  F  S DGSUB=$O(^DGPF(26.13,"AFLAG",DGSUB)) Q:DGSUB=""  D  Q:DGQ
  . I DGC,DGSUB'[DGC Q          ;not correct file based on category
- . I +DGF,DGSUB>DGF S DGQ=1 Q  ;done with loop on user selection
+ . I +DGF,DGSUB'[DGF S:DGSUB>DGF DGQ=1 Q  ;don't setup or quit loop
  . K DGDFNLST
  . S DGCNT=$$ASGNCNT^DGPFLF6(DGSUB,.DGDFNLST)  ;get list of dfn's
  . Q:'DGCNT
@@ -190,7 +188,6 @@ HEAD ;Print/Display page header
  ;IHS/OIT/LJF 12/22/2006 PATCH 1007 changed SSN to CHART #
  ;W !,"PATIENT NAME",?22,"SSN",?33,"ASSIGNED",?43,"REVIEW DT",?53,"STATUS",?63,"OWNING SITE"
  W !,"PATIENT NAME",?22,"CHART #",?33,"ASSIGNED",?43,"REVIEW DT",?53,"STATUS",?63,"OWNING SITE"
- ;
  W !,"--------------------",?22,"---------",?33,"--------",?43,"--------",?53,"--------",?63,"-----------------"
  Q
  ;

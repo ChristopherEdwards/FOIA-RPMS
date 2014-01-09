@@ -1,5 +1,5 @@
 DGOVBC ;ALB/MRL - VBC DRIVER ROUTINE ; 12 FEB 87
- ;;5.3;Registration;**162,279**;Aug 13, 1993
+ ;;5.3;Registration;**162,279,1015**;Aug 13, 1993;Build 21
  W ! D DT^DICRW S IOP="HOME" D ^%ZIS K IOP I $D(IOF),IOF']"" W @IOF
 1 W ! S DGHOW="S",VAUTNALL="",VAUTNI=2,DIC("S")="S DG36=$S($D(^(.36)):^(.36),1:0) I $S('DG36:1,'$D(^DIC(8,+$P(DG36,U,1),0)):1,$P(^DIC(8,+$P(DG36,U,1),0),U,5)=""Y"":1,1:0)" D PATIENT^VAUTOMA I Y<0 G Q^DGOVBC1
 P W !!,"DISPLAY THE FOLLOWING PATIENTS",!,"------------------------------" S DFN=0 F DFN1=0:0 S DFN=$O(VAUTN(DFN)) Q:DFN=""  I $D(^DPT(DFN,0)) S X=^(0),Y=$P(X,"^",3) X:Y]"" ^DD("DD") W !,$P(X,"^",1),?40,Y,?60,$P(X,"^",9)

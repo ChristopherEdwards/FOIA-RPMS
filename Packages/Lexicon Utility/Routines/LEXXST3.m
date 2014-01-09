@@ -1,5 +1,5 @@
-LEXXST3 ; ISL Lexicon Status (KIDS/Routines Patch) ; 12-08-97
- ;;2.0;LEXICON UTILITY;**4,5,8**;Sep 23, 1996
+LEXXST3 ; ISL Lexicon Status (KIDS/Routines Patch) ; 05/14/2003
+ ;;2.0;LEXICON UTILITY;**4,5,8,25**;Sep 23, 1996;Build 15
  Q
 KIDS ; KIDS entries
  N LEXBLD D GB,SB Q
@@ -82,7 +82,7 @@ PAT ; Save Patch Routines
  Q
 PL(LEXX,LEXI) ; Patch Line
  S LEXX=$G(LEXX) Q:'$L(LEXX)  S LEXI=+($G(LEXI)) I LEXI>1 D
- . N LEXNX,LEXNI S LEXNI=$O(^TMP("LEXINS",$J,9999999999),-1)
+ . N LEXNX,LEXNI S LEXNI=$O(^TMP("LEXINS",$J,9999999999),-1) Q:+LEXNI'>0
  . S LEXNX=$G(^TMP("LEXINS",$J,LEXNI))
  . I $L(LEXNX) D
  . . K ^TMP("LEXINS",$J,LEXNI)

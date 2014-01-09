@@ -1,5 +1,5 @@
 PSIVORAL ;BIR/MLM-ACTIVITY LOGGER FOR PHARMACY EDITS ;16 DEC 97 / 1:40 PM 
- ;;5.0; INPATIENT MEDICATIONS ;**58**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**58,135**;16 DEC 97
  ;
  ; Reference to ^PS(52.7 is supported by DBIA 2173.
  ; Reference to ^PS(55 is supported by DBIA 2191.
@@ -46,6 +46,12 @@ LOG ; Update activity log (ask for comment.)
  S:+$G(PSJPINIT)'>0 PSJPINIT=DUZ
  I $G(PSIVALT)=1,'$G(PSJUNDC) K DA,DIR S DIR(0)="55.04,.04" D ^DIR K DA,DIR S PSIVAL=$S($D(DIRUT):"",1:Y)
  S:$G(PSIVALT)=2 PSIVAL="Action taken using OE/RR options." D ENTACT^PSIVAL
- K DA,DIE,DR S DA(2)=DFN,DA(1)=+ON55,DA=PSIVLN,DIE="^PS(55,"_DFN_",""IV"","_+ON55_",""A"",",DR=".02////"_PSIVREA_";.03////"_$P(^VA(200,PSJPINIT,0),U)_";.04////^S X=$G(PSIVAL)"_";.06////"_PSJPINIT D ^DIE
+ K TMP
+ S TMP(55.04,""_PSIVLN_","_+ON55_","_DFN_","_"",.02)=PSIVREA
+ S TMP(55.04,""_PSIVLN_","_+ON55_","_DFN_","_"",.03)=$P(^VA(200,PSJPINIT,0),U)
+ S TMP(55.04,""_PSIVLN_","_+ON55_","_DFN_","_"",.04)=$G(PSIVAL)
+ S TMP(55.04,""_PSIVLN_","_+ON55_","_DFN_","_"",.06)=PSJPINIT
+ D FILE^DIE("","TMP")
+ K TMP
  D:$D(PSIVALCK) @PSIVALCK K PSIVALT,PSIVALCK,PSIVAL
  Q

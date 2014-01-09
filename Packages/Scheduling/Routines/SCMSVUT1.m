@@ -1,7 +1,6 @@
-SCMSVUT1 ;ALB/JLU;validation utility routine;06/19/99 ; 4/24/03
- ;;5.3;Scheduling;**66,143,180,239,247,258,296**;AUG 13,1993
+SCMSVUT1 ;ALB/JLU;validation utility routine;06/19/99 ; 4/30/03 11:58am
+ ;;5.3;Scheduling;**66,143,180,239,247,258,296,295,321,341,387,459,394,442,1015**;AUG 13,1993;Build 21
  ;06/19/99 ACS - Added CPT Modifier API calls to PROCCOD(DATA)
- ;04/24/03 SCK - Added allowable MT Indicator of 'U' to MEANSTST and DEPMEANS
  ;
 SEGERR(DATA,HLFS) ;
  ;INPUT DATA - This is a check for the segment errors of null
@@ -73,11 +72,13 @@ PATCLSS(DATA) ;
  ;INPUT  DATA - the patient's class
  ;
  I '$D(DATA) Q 0
- I DATA'="O" Q 0
+ I ("^O^I^")'[("^"_DATA_"^") Q 0
  Q 1
  ;
 POV(DATA) ;
+ ;
  ;INPUT DATA - the purpose of visit.
+ ;SD*5.3*394 - Correction for addition POV.
  ;
  N VAR
  I '$D(DATA) Q 0
@@ -86,7 +87,7 @@ POV(DATA) ;
  S VAR=$E(DATA,1,2)
  I VAR<1!(VAR>4) Q 0
  S VAR=$E(DATA,3,4)
- I VAR<1!(VAR>9) Q 0
+ I VAR<1!(VAR=10) Q 0
  Q 1
  ;
 COMPGEN(DATA) ;
@@ -124,18 +125,20 @@ FACACT(DATA,ENCDT,DIV) ;
  I DATA'=$P(SITE,U,3) Q 0
  Q 1
  ;
-ENCDT(DATA) ;
+ENCDT(DATA,XMTFLG) ;
  ;INPUT DATA - The date/time of the encounter
+ ;    XMTFLG - Flag to check $$OKTOXMIT^SCDXFU04(DATA)
  ;
  I '$D(DATA) Q 0
+ S XMTFLG=$G(XMTFLG,0)
  N %DT,X,Y
  S %DT="T"
  S X=DATA
  D ^%DT
  I Y=-1 Q 0
+ I XMTFLG Q 1
  N VAR
  S VAR=$$OKTOXMIT^SCDXFU04(DATA)
- ;I +VAR=1 Q 1
  I +VAR<4&(VAR'<0) Q 1  ;SD*5.3*247
  Q 0
  ;
@@ -181,17 +184,8 @@ DIAGCOD(DATA,ENCDT) ;
  N VAR
  I '$D(DATA) Q 0
  I DATA="" Q 0
- S VAR=$O(^ICD9("BA",DATA_" ",""))
- I 'VAR Q 0
- S VAR=$G(^ICD9(VAR,0))
- I VAR']"" Q 0
- ;this is the inactive flag
- I $P(VAR,U,9)'=1 Q 1
- S VAR=$P(VAR,U,11)
- N %DT,X,Y
- S %DT="ST",%DT(0)=-VAR,X=ENCDT
- D ^%DT
- Q $S(Y=-1:0,1:1)
+ ;
+ Q $P($$ICDDX^ICDCODE(DATA,ENCDT),"^",10)
  ;
 PRIOR(DATA) ;
  ;INPUT DATA - The priority of the diagnosis found
@@ -308,20 +302,25 @@ CLAQUETY(DATA) ;
  I '$D(^SD(409.41,DATA,0)) Q 0
  Q 1
  ;
-CLAVET(DATA,DFN,TYPE) ;
+CLAVET(DATA,DFN,TYPE,ENCPTR) ; SD*5.3*341 added parameter ENCPTR
  ;INPUT DATA - Classification question information to compare to VET
  ;             status
  ;       DFN - The patient to compare this info to.
  ;      TYPE - The classification type.
+ ;    ENCPTR - Pointer to Outpatient Encounter
  ;
  I '$D(DATA) Q 0
  I '$D(DFN) Q 0
- N VET
- S VET=$P($G(^DPT(DFN,"VET")),U,1)
+ I '$D(TYPE) Q 0  ; SD*5.3*341
+ N VET,SDELG0,SDDT  ; SD*5.3*341
+ S ENCPTR=$G(ENCPTR)  ; SD*5.3*341 added this plus next 3 lines
+ S SDDT=+$G(^SCE(ENCPTR,0)) S:'SDDT SDDT=$$DT^XLFDT()
+ S SDELG0=$$EL^SDCO22(DFN,ENCPTR)
+ S VET=$P(SDELG0,U,5)
  I VET="Y",DATA'=1,DATA'=0,DATA'="" Q 0
  ;This edit check is per a mail message from austin
  I TYPE=4,VET'="Y",DATA'="","^A^B^C^D^"'[("^"_($P($G(^DIC(21,+$P($G(^DPT(DFN,.32)),"^",3),0)),"^",3))_"^") Q 0
- I VET'="Y",DATA'="" Q $$EC^SDCO22(DFN)
+ I VET'="Y",DATA'="" Q $$SCR^SDCO21(TYPE,DFN,SDDT,ENCPTR)  ; SD*5.3*341
  Q 1
  ;
 STPCOD(DATA) ;
@@ -406,7 +405,7 @@ PCODMTHD(DATA) ;
  I DATA'="C4" Q 0
  Q 1
  ;
-PROCCOD(DATA) ;
+PROCCOD(DATA,ENCDT) ;
  ;INPUT DATA - The procedure code to be checked.
  ;This call makes the assumption that leading zeros are intact in the 
  ;input.
@@ -414,16 +413,25 @@ PROCCOD(DATA) ;
  N VAR
  I '$D(DATA) Q 0
  I DATA="" Q 0
- ;S VAR=+$O(^ICPT("B",DATA,""))
- ;I '$D(^ICPT(VAR,0)) Q 0
- I $$CPT^ICPTCOD(DATA,,1)'>0 Q 0
+ I $$CPT^ICPTCOD(DATA,ENCDT,1)'>0 Q 0
  Q 1
  ;
 PROVCLS(DATA) ;
  ;INPUT DATA - The practitioner class to be checked.
  ;
+ N INACT S INACT=""
  I '$D(DATA) Q 0
  I DATA="" Q 0
  I $$CODE2TXT^XUA4A72(DATA)']"" Q 0
+ S INACT=$P($$IEN2DATA^XUA4A72($$VCLK^XUA4A72(DATA)),U,5)  ;SD*5.3*442
+ I INACT'="" I ENCDT>INACT Q 0  ;SD*5.3*442
+ Q 1
+ ;
+ERI(DATA) ;
+ ;INPUT  DATA - The Emergency Response indicator to be validated.
+ ;
+ I '$D(DATA) Q 0
+ I DATA="" Q 1
+ I DATA'="K" Q 0
  Q 1
  ;

@@ -1,5 +1,5 @@
-ORWOR ; SLC/KCM - Orders Calls;10:54 PM  02 Feb 2003
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,132,141,163,187,190**;Dec 17, 1997
+ORWOR ; SLC/KCM - Orders Calls;10:54 PM  08/15/2006
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,132,141,163,187,190,215,243**;Dec 17, 1997;Build 242
  ;
 CURRENT(LST,DFN) ; Get Current Orders for a Patient
  ; Returns two lists in ^TMP("ORW",$J), fields and text
@@ -59,6 +59,7 @@ VWSET(ORERR,VIEW)       ; Set the preferred view for orders
  ;        7 - sort by display group
  N FMT
  ; use short name for display group instead of pointer
+ I $E($P(VIEW,";",2))="T" S $P(VIEW,";",2)=$P($P(VIEW,";",2),"@") ;allows all orders for Today
  S $P(VIEW,";",4)=$P($G(^ORD(100.98,+$P(VIEW,";",4),0)),U,3)
  ; use last saved format, since this is used only by LM
  S FMT=$P($$GET^XPAR("ALL","ORCH CONTEXT ORDERS",1,"I"),";",5)
@@ -124,7 +125,7 @@ UNSIGN(LST,ORVP,HAVE)   ; Return Unsigned Orders that are not on client
  . . . Q:$D(HAVE(IFN_";"_ACT))                        ;in Changes
  . . . S X8=$G(^OR(100,IFN,8,ACT,0))
  . . . I '$S(LVL=1&($P(X8,U,3)=DUZ):1,LVL=2:1,1:0) Q  ;chk user
- . . . S ILST=ILST+1,LST(ILST)=IFN_";"_ACT
+ . . . S ILST=ILST+1,LST(ILST)=IFN_";"_ACT_U_$P(X8,U,3)
  Q
 PKIUSE(RETURN) ; RPC determines user can use PKI Digital Signature
  S RETURN=0

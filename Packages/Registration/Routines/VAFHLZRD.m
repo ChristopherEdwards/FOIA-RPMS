@@ -1,5 +1,5 @@
-VAFHLZRD ;ALB/KCL - CREATE HL7 RATED DISABILITIES (ZRD) SEGMENTS ; 13-SEPTEMBER-1997 
- ;;5.3;Registration;**122,144**;Aug 13,1993
+VAFHLZRD ;ALB/KCL,PJH - CREATE HL7 RATED DISABILITIES (ZRD) SEGMENTS ; 5/31/07 2:59pm
+ ;;5.3;PIMS;**122,144,1016**;JUN 30, 2012;Build 20
  ;
  ;
  ; This generic function creates HL7 VA-Specific Rated Disabilities
@@ -34,7 +34,7 @@ EN(DFN,VAFSTR,VAFHLQ,VAFHLFS,VAFARRY) ;--
  I '$G(DFN) S @VAFARRY@(1,0)="ZRD"_VAFHLFS_1 G ENQ
  ;
  ; if VAFSTR not passed, return all data fields
- I $G(VAFSTR)']"" S VAFSTR="1,2,3,4"
+ I $G(VAFSTR)']"" S VAFSTR="1,2,3,4,12,13,14"
  S (VAFINDX,VAFSUB)=0,VAFSTR=","_VAFSTR_","
  ;
  ; get all rated disabilities for patient
@@ -71,6 +71,11 @@ BUILD ; Build array of ZRD segments
  I VAFSTR[",2," S $P(VAFY,VAFHLFS,2)=DXCODE_$E($G(HLECH))_NAME ;Disabilty Condition
  I VAFSTR[",3," S $P(VAFY,VAFHLFS,3)=$S($P(VAFNODE,"^",2)]"":$P(VAFNODE,"^",2),1:VAFHLQ) ; Disability %
  I VAFSTR[",4," S $P(VAFY,VAFHLFS,4)=$S($P(VAFNODE,"^",3)]"":$P(VAFNODE,"^",3),1:VAFHLQ) ; Service Connected?
+ ;
+ ; *** PJH - DG*5.3*754 data fields added ***
+ I VAFSTR[",12," S $P(VAFY,VAFHLFS,12)=$S($P(VAFNODE,"^",4)]"":$P(VAFNODE,"^",4),1:VAFHLQ) ; Extremity
+ I VAFSTR[",13," S $P(VAFY,VAFHLFS,13)=$S($P(VAFNODE,"^",5)]"":$$HLDATE^HLFNC($P(VAFNODE,"^",5)),1:VAFHLQ) ; Original Effective Date
+ I VAFSTR[",14," S $P(VAFY,VAFHLFS,14)=$S($P(VAFNODE,"^",6)]"":$$HLDATE^HLFNC($P(VAFNODE,"^",6)),1:VAFHLQ) ; Current Effective Date
  ;
  ; set segment into array
  S @VAFARRY@(VAFINDX,0)="ZRD"_VAFHLFS_$G(VAFY)

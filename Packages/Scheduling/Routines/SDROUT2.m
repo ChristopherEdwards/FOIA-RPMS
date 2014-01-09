@@ -1,9 +1,9 @@
-SDROUT2 ;BSN/GRR - PRINT ROUTING SLIPS HEADING ; [ 09/13/2001  2:41 PM ]
- ;;5.3;Scheduling;**28**;Aug 13, 1993
- ;IHS/ANMC/LJF 11/30/2000 contains $N but not called by IHS
- ;
-HED W !,@IOF,"*** FACILITY: ",$S($D(^DG(40.8,+DIV,0)):$P(^(0),"^"),1:$P($$SITE^VASITE,U,2)) S P=P+1
+SDROUT2 ;BSN/GRR - PRINT ROUTING SLIPS HEADING ; 4/24/01 3:10pm
+ ;;5.3;Scheduling;**28,377,441,1015**;Aug 13, 1993;Build 21
+HED N LL,NAME,SDX,SSN,Y,ADDR
+ W !,@IOF,"*** FACILITY: ",$S($D(^DG(40.8,+DIV,0)):$P(^(0),"^"),1:$P($$SITE^VASITE,U,2)) S P=P+1
  I ORDER=2 W !,"*** CLINIC: ",$P(^SC(+SC,0),"^")
+ I ORDER=3 W !,"*** PHYSICAL LOCATION: "_I
  I $D(^DPT(J,.321)) F SDX1=1,2,3 I $P(^(.321),"^",SDX1)["Y" Q
  ;I  W ?45,"*** EXPOSURE SURVEY ***",!
  ;I $D(^DPT(J,.321)) F SDX1=1,2,3 I $P(^(.321),"^",SDX1)=""!($P(^(.321),"^",SDX1)["U") W ?45,"*** UPDATE SURVEY DATA ***" Q
@@ -18,14 +18,23 @@ HED W !,@IOF,"*** FACILITY: ",$S($D(^DG(40.8,+DIV,0)):$P(^(0),"^"),1:$P($$SITE^V
  I $D(^DPT(J,.1)) W !!,"*** INPATIENT ***",!,"LOCATED ON WARD: ",$P(^DPT(J,.1),"^",1),! G OVR
  S ADDR=$S($D(^DPT(J,.11)):^DPT(J,.11),1:"")
  F LL=1:1:3 W:$P(ADDR,"^",LL)]"" !,$P(ADDR,"^",LL)
- W !,$S($P(ADDR,"^",4)]"":$P(ADDR,"^",4),1:"")," ",$S($P(ADDR,"^",5)]"":$P(^DIC(5,+$P(ADDR,"^",5),0),"^",1),1:"")," ",$S($P(ADDR,"^",6)]"":$P(ADDR,"^",6),1:"")
+ ; retrieve country info -- PERM country is piece 10 of .11
+ N FILE,CNTRY,FORIEN,FOREIGN
+ S FILE=779.004,FORIEN=$P(ADDR,U,10),CNTRY=$$GET1^DIQ(FILE,FORIEN_",",2),CNTRY=$$UPPER^VALM1(CNTRY),FOREIGN=$$FORIEN^DGADDUTL(FORIEN)
+ I 'FOREIGN D
+ . N SDZIP S SDZIP=$P(ADDR,U,12) S:$E(SDZIP,6,10)'="" SDZIP=$E(SDZIP,1,5)_"-"_$E(SDZIP,6,10)
+ . W !,$P(ADDR,U,4)_", "_$P($G(^DIC(5,+$P(ADDR,U,5),0)),U)_"  "_SDZIP
+ E  D
+ . W !,$P(ADDR,U,9)_" "_$P(ADDR,U,4)_" "_$P(ADDR,U,8)
+ W:CNTRY'="" !,CNTRY
+ ;W !,$S($P(ADDR,"^",4)]"":$P(ADDR,"^",4),1:"")," ",$S($P(ADDR,"^",5)]"":$P(^DIC(5,+$P(ADDR,"^",5),0),"^",1),1:"")," ",$S($P(ADDR,"^",6)]"":$P(ADDR,"^",6),1:"")
  W !!,"PSA: UNKNOWN"
 OVR W !
  N I S DFN=J D DIS
  N DGINSDT S DGINSDT=SDATE
  D INS^DGRPDB,KVAR^VADPT S J=DFN
  W ! Q
-WCAT S DGMT=$$LST^DGMTCOU1(J,"",3) Q:DGMT']""  S SDVA=$P(DGMT,U,3) I SDVA']"" Q  ;Q:$S('$D(^DG(41.3,+J,0)):1,$P(^(0),"^",2)']"":1,1:0)
+WCAT N DGMT S DGMT=$$LST^DGMTCOU1(J,"",3) Q:DGMT']""  S SDVA=$P(DGMT,U,3) I SDVA']"" Q  ;Q:$S('$D(^DG(41.3,+J,0)):1,$P(^(0),"^",2)']"":1,1:0)
  S SDVA=$S($P(DGMT,U,4)="R":"REQUIRES MEANS TEST",$P(DGMT,U,4)="N":"MEANS TEST NOT REQUIRED",1:SDVA)
  D KVAR^VADATE I $P(DGMT,U,2)]"",$P(DGMT,U,4)'="R",$P(DGMT,U,4)'="N" S VADAT("W")=$P(DGMT,U,2) D ^VADATE ;$N(^DG(41.3,+J,2,0))>0 S VADAT("W")=9999999-$N(^DG(41.3,J,2,0)) D ^VADATE
  W !?27,SDZ,!?27,$S($P(DGMT,U,5)=1:SDVA,1:"PHARMACY CO-PAY: "_SDVA) I $D(VADATE("E")) W !?27,"LAST TEST: ",VADATE("E")

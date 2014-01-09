@@ -1,5 +1,5 @@
 BUD8RP7B ; IHS/CMI/LAB - UDS REPORT PROCESSOR 01 Dec 2008 5:11 PM ;
- ;;6.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2012;Build 25
+ ;;7.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2013;Build 31
  ;
 HTN ;EP - list of HTN
  ;is patient pregnant during the time period BUDBD and BUDED

@@ -1,5 +1,5 @@
-BPXRMEA ; IHS/CIA/MGH - Handle measurement findings. ;23-Jan-2006 10:15;MGH
- ;;1.5;CLINICAL REMINDERS;**1001,1003,1004**;Jun 19, 2000
+BPXRMEA ; IHS/CIA/MGH - Handle measurement findings. ;11-Jan-2012 11:31;MGH
+ ;;1.5;CLINICAL REMINDERS;**1001,1003,1004,1008**;Jun 19, 2000;Build 25
  ;COPY OF PXRMMEAS using IHS V Measurement file instead of VA Vitals app
  ;
  ;=======================================================================
@@ -35,39 +35,43 @@ EVALTERM(DFN,FINDING,TERMIEN,TFIEVAL) ;EP Evaluate vitals/measurement terms.
  ;=======================================================================
 FIEVAL(DFN,MTYPE,INVDATE,FIND0,FIND3,TFIND0,TFIND3,FINDING,FIEVAL) ;
  ;Use the most recent measurement.
- N VALID,CONVAL,TEMP,RSLT,VIEN,DATE,ERR,GMRVSTR,IC,IEN
+ N VALID,CONVAL,TEMP,RSLT,VIEN,DATE,ERR,GMRVSTR,IC,IEN,SAVE
+ S SAVE=0
  I INVDATE="" S FIEVAL(FINDING)=0 Q
- S IEN=$O(^AUPNVMSR("AA",DFN,MTYPE,INVDATE,""))
- Q:IEN=""
- S TEMP=$G(^AUPNVMSR(IEN,0))
- S RSLT=$P(TEMP,U,4)
- S VIEN=$P(TEMP,U,3)
- S DATE=$P($G(^AUPNVMSR(IEN,12)),U,1)    ;Get date entered
- I DATE="" S DATE=$$VDATE^PXRMDATE(VIEN) ;else get visit date
- ;Save the rest of the finding information.
- S FIEVAL(FINDING)=1
- S FIEVAL(FINDING,"DATE")=DATE
- S FIEVAL(FINDING,"FINDING")=MTYPE_";AUTTMSR(,"
- S FIEVAL(FINDING,"SOURCE")=IEN_";AUTTVMSR(,"
- S FIEVAL(FINDING,"RATE")=RSLT
- S FIEVAL(FINDING,"VALUE")=RSLT
- S FIEVAL(FINDING,"VIEN")=VIEN
- ;If this is being called as part of a term evaluation we are done.
- I TFIND0'="" Q
- ;Determine if the finding has expired.
- S VALID=$$VALID^PXRMDATE(FIND0,TFIND0,DATE)
- I 'VALID D  Q
- . S FIEVAL(FINDING)=0
- . S FIEVAL(FINDING,"EXPIRED")=""
- ;If there is a condition for this finding evaluate it.
- S CONVAL=$$COND^PXRMUTIL(FIND3,TFIND3,RSLT)
- I CONVAL'="" D
- . I CONVAL D
- .. S FIEVAL(FINDING)=CONVAL
- .. S FIEVAL(FINDING,"CONDITION")=CONVAL
- . E  D
- .. K FIEVAL(FINDING)
- .. S FIEVAL(FINDING)=0
+ S IEN=$C(1) F  S IEN=$O(^AUPNVMSR("AA",DFN,MTYPE,INVDATE,IEN),-1) Q:IEN=""!(SAVE=1)  D
+ .;Quit if entered in error patch 1008
+ .I +$P($G(^AUPNVMSR(IEN,2)),U,1) S FIEVAL(FINDING)=0
+ .E  D
+ ..S SAVE=1
+ ..S TEMP=$G(^AUPNVMSR(IEN,0))
+ ..S RSLT=$P(TEMP,U,4)
+ ..S VIEN=$P(TEMP,U,3)
+ ..S DATE=$P($G(^AUPNVMSR(IEN,12)),U,1)    ;Get date entered
+ ..I DATE="" S DATE=$$VDATE^PXRMDATE(VIEN) ;else get visit date
+ ..;Save the rest of the finding information.
+ ..S FIEVAL(FINDING)=1
+ ..S FIEVAL(FINDING,"DATE")=DATE
+ ..S FIEVAL(FINDING,"FINDING")=MTYPE_";AUTTMSR(,"
+ ..S FIEVAL(FINDING,"SOURCE")=IEN_";AUTTVMSR(,"
+ ..S FIEVAL(FINDING,"RATE")=RSLT
+ ..S FIEVAL(FINDING,"VALUE")=RSLT
+ ..S FIEVAL(FINDING,"VIEN")=VIEN
+ ..;If this is being called as part of a term evaluation we are done.
+ ..I TFIND0'="" Q
+ ..;Determine if the finding has expired.
+ ..S VALID=$$VALID^PXRMDATE(FIND0,TFIND0,DATE)
+ ..I 'VALID D  Q
+ ...S FIEVAL(FINDING)=0
+ ...S FIEVAL(FINDING,"EXPIRED")=""
+ ..;If there is a condition for this finding evaluate it.
+ ..S CONVAL=$$COND^PXRMUTIL(FIND3,TFIND3,RSLT)
+ ..I CONVAL'="" D
+ ...I CONVAL D
+ ....S FIEVAL(FINDING)=CONVAL
+ ....S FIEVAL(FINDING,"CONDITION")=CONVAL
+ ...E  D
+ ....K FIEVAL(FINDING)
+ ....S FIEVAL(FINDING)=0
  Q
  ;
  ;=======================================================================

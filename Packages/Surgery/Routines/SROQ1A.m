@@ -1,34 +1,37 @@
-SROQ1A ;B'HAM ISC/ADM - QUARTERLY REPORT (CONTINUED) ; [ 09/22/98  11:43 AM ]
- ;;3.0; Surgery ;**38,62,50**;24 Jun 93
- ;
+SROQ1A ;BIR/ADM - QUARTERLY REPORT (CONTINUED) ;01/30/07
+ ;;3.0; Surgery ;**38,62,50,129,153,160**;24 Jun 93;Build 7
  ;** NOTICE: This routine is part of an implementation of a nationally
- ;**         controlled procedure.  Local modifications to this routine
+ ;**         controlled procedure. Local modifications to this routine
  ;**         are prohibited.
  ;
+ ; Reference to ^DIC(45.3 supported by DBIA #218
+ ;
 CC ; occurrence categories
- I $E(IOST)="C" D HDR^SROQ0 Q:SRSOUT
+ I $E(IOST,1,2)="C-" D HDR^SROQ0 Q:SRSOUT
  W !!!,?21,"PERIOPERATIVE OCCURRENCE CATEGORIES",!,?21,"-----------------------------------",!
 WC W !,?2,"Wound Occurrences",?31,"Total",?42,"Urinary Occurrences",?71,"Total"
- W !,?2,"A. Superficial Infection",?31,$J(SRC(1),5),?42,"A. Renal Insufficiency",?71,$J(SRC(8),5)
- W !,?2,"B. Deep Wound Infection",?31,$J(SRC(2),5),?42,"B. Acute Renal Failure",?71,$J(SRC(9),5)
+ W !,?2,"A. Superficial Incisional SSI",?31,$J(SRC(1),5),?42,"A. Renal Insufficiency",?71,$J(SRC(8),5)
+ W !,?2,"B. Deep Incisional SSI",?31,$J(SRC(2),5),?42,"B. Acute Renal Failure",?71,$J(SRC(9),5)
  W !,?2,"C. Wound Disruption",?31,$J(SRC(22),5),?42,"C. Urinary Tract Infection",?71,$J(SRC(10),5)
- W !,?42,"D. Other",?71,$J(SRC(31),5),!
+ W !,?2,"D. Other",?31,$J(SRC(36),5),?42,"D. Other",?71,$J(SRC(31),5),!
 RC W !,?2,"Respiratory Occurrences",?31,"Total",?42,"CNS Occurrences",?71,"Total"
  W !,?2,"A. Pneumonia",?31,$J(SRC(4),5),?42,"A. CVA/Stroke",?71,$J((SRC(12)+SRC(28)),5)
  W !,?2,"B. Unplanned Intubation",?31,$J((SRC(7)+SRC(11)),5),?42,"B. Coma >24 Hours",?71,$J(SRC(13),5)
  W !,?2,"C. Pulmonary Embolism",?31,$J(SRC(5),5),?42,"C. Peripheral Nerve Injury",?71,$J(SRC(14),5)
  W !,?2,"D. On Ventilator >48 Hours",?31,$J(SRC(6),5),?42,"D. Other",?71,$J(SRC(30),5)
- W !,?2,"E. Other",?31,$J(SRC(29),5),!
- I $E(IOST)="C" D HDR^SROQ0 Q:SRSOUT  W !,?15,"PERIOPERATIVE OCCURRENCE CATEGORIES (Continued)",!
-CARD W !,?2,"Cardiac Occurrences",?31,"Total",?42,"Other Occurrences",?71,"Total"
- W !,?2,"A. Cardiac Arrest Req. CPR",?31,$J(SRC(16),5),?42,"A. Ileus/Bowel Obstruction",?71,$J(SRC(18),5)
- W !,?2,"B. Myocardial Infarction",?31,$J(SRC(17),5),?42,"B. Bleeding/Transfusions",?71,$J(SRC(15),5)
- W !,?2,"C. Endocarditis",?31,$J(SRC(23),5),?42,"C. Graft/Prosthesis/Flap"
- W !,?2,"D. Low Cardiac Output >6 Hrs.",?31,$J(SRC(24),5),?62,"Failure",?71,$J(SRC(19),5)
- W !,?2,"E. Mediastinitis",?31,$J(SRC(25),5),?42,"D. DVT/Thrombophlebitis",?71,$J(SRC(20),5)
- W !,?2,"F. Repeat Card-Pul Bypass",?31,$J(SRC(27),5),?42,"E. Systemic Sepsis",?71,$J(SRC(3),5)
- W !,?2,"G. Other",?31,$J(SRC(32),5),?42,"F. Reoperation for Bleeding",?71,$J(SRC(26),5)
- W !,?42,"G. Other",?71,$J(SRC(21),5)
+ W !,?2,"E. Tracheostomy",?31,$J(SRC(33),5),!,?2,"F. Repeat Vent w/in 30 Days",?31,$J(SRC(37),5)
+ W !,?2,"G. Other",?31,$J(SRC(29),5)
+ I $E(IOST,1,2)="C-" D HDR^SROQ0 Q:SRSOUT  W !,?15,"PERIOPERATIVE OCCURRENCE CATEGORIES (Continued)",!
+ W !,?42,"Other Occurrences",?71,"Total"
+CARD W !,?2,"Cardiac Occurrences",?31,"Total",?42,"A. Organ/Space SSI",?71,$J(SRC(35),5)
+ W !,?2,"A. Cardiac Arrest Req. CPR",?31,$J(SRC(16),5),?42,"B. Bleeding/Transfusions",?71,$J(SRC(15),5)
+ W !,?2,"B. Myocardial Infarction",?31,$J(SRC(17),5),?42,"C. Graft/Prosthesis/Flap"
+ W !,?2,"C. Endocarditis",?31,$J(SRC(23),5),?62,"Failure",?71,$J(SRC(19),5)
+ W !,?2,"D. Low Cardiac Output >6 Hrs.",?31,$J(SRC(24),5),?42,"D. DVT/Thrombophlebitis",?71,$J(SRC(20),5)
+ W !,?2,"E. Mediastinitis",?31,$J(SRC(25),5),?42,"E. Systemic Sepsis",?71,$J(SRC(3),5)
+ W !,?2,"F. Repeat Card Surg Proc",?31,$J(SRC(27),5),?42,"F. Reoperation for Bleeding",?71,$J(SRC(26),5)
+ W !,?2,"G. New Mech Circulatory Sup",?31,$J(SRC(34),5),?42,"G. C. difficile Colitis",?71,$J(SRC(38),5)
+ W !,?2,"H. Other",?31,$J(SRC(32),5),?42,"H. Other",?71,$J(SRC(21),5)
 CLEAN ; clean wounds
  S:'SRWC SRWC=1 W !!,?2,"Clean Wound Infection Rate: ",$J((SRIN/SRWC*100),5,1),"%"
  Q

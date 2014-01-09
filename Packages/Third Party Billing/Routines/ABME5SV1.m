@@ -1,5 +1,5 @@
 ABME5SV1 ; IHS/ASDST/DMJ - 837 SV1 Segment 
- ;;2.6;IHS Third Party Billing System;**6**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,9**;NOV 12, 2009
  ;Transaction Set Header
  ;
 EP ;EP
@@ -34,14 +34,17 @@ LOOP ;LOOP HERE
  .I ABM("NDC")?5N1"-"4N1"-"2N S ABMR("SV1",20)="N4"
  .S $P(ABMR("SV1",20),":",2)=ABM("NDC")
  N I
- F I=3,4,12,22 D
+ ;F I=3,4,12,22 D  ;abm*2.6*9
+ F I=3,4,12 D  ;abm*2.6*9
  .Q:$P(ABMRV(ABMI,ABMJ,ABMK),U,I)=""
  .S ABMR("SV1",20)=ABMR("SV1",20)_":"_$P(ABMRV(ABMI,ABMJ,ABMK),U,I)
  .I $P(ABMRV(ABMI,ABMJ,ABMK),U,I)=90 S ABMOUTLB=1
+ I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,39)'="" S $P(ABMR("SV1",20),":",7)=$P($G(ABMRV(ABMI,ABMJ,ABMK)),U,39)  ;abm*2.6*9 NARR
  Q
 30 ;SV102 - Monetary Amount (Charges)
  S ABMR("SV1",30)=$P(ABMRV(ABMI,ABMJ,ABMK),U,6)
- S ABMR("SV1",30)=$$TRIM^ABMUTLP($J(ABMR("SV1",30),0,2),"L","0")
+ ;S ABMR("SV1",30)=$$TRIM^ABMUTLP($J(ABMR("SV1",30),0,2),"L","0")  ;abm*2.6*9 HEAT64640
+ S ABMR("SV1",30)=$S(ABMR("SV1",30)=0:ABMR("SV1",30),1:$$TRIM^ABMUTLP($J(ABMR("SV1",30),0,2),"L","0"))  ;abm*2.6*9 HEAT64640
  Q
 40 ;SV103 - Unit or Basis for Measurement Code
  I ABMI=39 S ABMR("SV1",40)="MJ"

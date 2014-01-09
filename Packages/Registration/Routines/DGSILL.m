@@ -1,5 +1,5 @@
 DGSILL ;ALB/JDS - ENTER/EDIT PATIENTS FROM SERIOUSLY ILL LIST ; 19 JUL 84  12:42
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;
 GET W !! S DIC="^DPT(",DIC(0)="AEQMZ",DIC("S")="I $D(^(.1))" D ^DIC K DIC("S") G Q:Y'>0 S (DA,DFN)=+Y
  W ! S DIE=DIC,DR="401.3;S:X="""" Y=0;401.4//TODAY;" D ^DIE G GET

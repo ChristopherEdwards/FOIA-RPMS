@@ -1,5 +1,5 @@
 DGV53PTE ;AISC/SAW-Convert EDR data from file 705 to file 391.51 ;7/16/93  16:07
- ;;5.3;Registration;;Aug 13, 1993
+ ;;5.3;Registration;**1015**;Aug 13, 1993;Build 21
  ;;
  W !!,">>> Converting EDR data from file #705 to file #391.51..."
  S %X="^EDR(705,",%Y="^VAT(391.51," D %XY^%RCR S $P(^VAT(391.51,0),"^",1,2)="PIMS EDR EVENT^391.51D" K %X,%Y

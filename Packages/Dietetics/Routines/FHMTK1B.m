@@ -1,5 +1,6 @@
 FHMTK1B ; HISC/NCA - Tray Ticket Utilities ;2/23/00  09:53
- ;;5.0;Dietetics;**2,25,34,38**;Oct 11, 1995
+ ;;5.5;DIETETICS;**5,8**;Jan 28, 2005;Build 28
+ ;patch #5 - added outpatient SO.
 Q1 ; Store Service Point, Bread/Beverage default, Food Preference,
  ; and Recipes of meal
  S LN=$S(IOST?1"C".E:IOSL-2,1:IOSL-6),SL=40 F SP=0:0 S SP=$O(^FH(119.72,SP)) Q:SP<1  S Z=$G(^(SP,0)),^TMP($J,"SRP",SP)=$P(Z,"^",1,4)
@@ -8,8 +9,11 @@ Q1 ; Store Service Point, Bread/Beverage default, Food Preference,
  Q
 GET S LS(M1)=40 F LL=0:0 S LL=$O(^FH(115.2,LL)) Q:LL<1  S L2=$G(^(LL,0)) D
  .I $P(L2,"^",2)="D" D  Q
- ..F KK=0:0 S KK=$O(^FH(115.2,LL,"X",KK)) Q:KK<1  S REC=$P($G(^(KK,0)),"^",1),^TMP($J,"X",M1,LL,KK)=+REC
- ..Q
+ ..F KK=0:0 S KK=$O(^FH(115.2,LL,"X",KK)) Q:KK<1  S REC=$P($G(^(KK,0)),"^",1),^TMP($J,"X",M1,LL,KK)=+REC,KKNUM=KK D
+ ...I $P($G(^FH(115.2,LL,0)),U,7)'="Y" Q  ;must be set to excl emb recps
+ ...I REC'="" F FHKK=0:0 S FHKK=$O(^FH(114,"AB",REC,FHKK)) Q:FHKK'>0  S FHEMB(FHKK)=FHKK
+ ..F FHKK=0:0 S FHKK=$O(FHEMB(FHKK)) Q:FHKK'>0  S KKNUM=KKNUM+1,^TMP($J,"X",M1,LL,KKNUM)=FHKK  ;exclude EMBEDDED RECIPES
+ ..K FHEMB Q
  .S REC=$P(L2,"^",4) Q:'REC  S Y=$G(^FH(114,+REC,0)),NAM=$P(Y,"^",1),K3=$P(Y,"^",7) I $P(L2,"^",5),$P(L2,"^",6)[M1 D
  ..S:'$D(^TMP($J,"FHDEF",M1,+REC)) ^TMP($J,"FHDEF",M1,+REC)=K3_"^"_+REC_"^"_NAM
  ..Q
@@ -58,23 +62,39 @@ DECOD ; Decode code string
  Q
 CHK ; Check for Patient dislike on meal
  F LL=0:0 S LL=$O(^TMP($J,"X",MEAL,LL)) Q:LL<1  F KK=0:0 S KK=$O(^TMP($J,"X",MEAL,LL,KK)) Q:KK<1  S X1=+$G(^TMP($J,"X",MEAL,LL,KK)) D
- .S X6=$O(^FHPT(DFN,"P","B",LL,0)) Q:X6<1
- .S X2=$G(^FHPT(DFN,"P",X6,0)) Q:$P(X2,"^",2)'[MEAL
+ .S X6=$O(^FHPT(FHDFN,"P","B",LL,0)) Q:X6<1
+ .S X2=$G(^FHPT(FHDFN,"P",X6,0)) Q:$P(X2,"^",2)'[MEAL
  .S FP(X1)=""
  .Q
  Q
 SO ; Store Standing Orders
- K ALPHA,SONAME S INDX=1 F K=0:0 S K=$O(^FHPT("ASP",DFN,ADM,K)) Q:K<1  D
- .S X=$G(^FHPT(DFN,"A",ADM,"SP",K,0)),Z=$P(X,"^",2)
- .S SONAME=$P($G(^FH(118.3,+Z,0)),U,1)
+ K ALPHA,SONAME S INDX=1 F K=0:0 S K=$O(^FHPT("ASP",FHDFN,ADM,K)) Q:K<1  D
+ .S X=$G(^FHPT(FHDFN,"A",ADM,"SP",K,0)),Z=$P(X,"^",2)
+ .S SONAME=$P($G(^FH(118.3,+Z,0)),U,1) I SONAME="" Q
  .I $D(ALPHA(SONAME)) S SONAME=SONAME_INDX,INDX=INDX+1
  .S ALPHA(SONAME)=K_"^"_Z
  .Q
  S SONAME="" F  S SONAME=$O(ALPHA(SONAME)) Q:SONAME=""  D
  .S K=$P(ALPHA(SONAME),U,1)
- .S X=$G(^FHPT(DFN,"A",ADM,"SP",K,0)),Z=$P(X,U,2),M=$P(X,U,3) Q:'Z
+ .S X=$G(^FHPT(FHDFN,"A",ADM,"SP",K,0)),Z=$P(X,U,2),M=$P(X,U,3) Q:'Z
  .I M[MEAL S S(NBR)=S(NBR)+1,MM(S(NBR),NBR)=$S($P(X,"^",8):$P(X,"^",8),1:1)_"    "_$P(^FH(118.3,+Z,0),"^",1) Q
  Q
+ ;
+SOUT ; Store Outpatient Standing Orders.
+ Q:'$G(ADM)
+ S FHOPDAT0=$G(^FHPT(FHDFN,"OP",ADM,0)) Q:$P(FHOPDAT0,U,15)="C"
+ K ALPHA,SONAME S INDX=1 F K=0:0 S K=$O(^FHPT("ASPO",FHDFN,ADM,K)) Q:K<1  D
+ .S X=$G(^FHPT(FHDFN,"OP",ADM,"SP",K,0)),Z=$P(X,"^",2)
+ .S SONAME=$P($G(^FH(118.3,+Z,0)),U,1) I SONAME="" Q
+ .I $D(ALPHA(SONAME)) S SONAME=SONAME_INDX,INDX=INDX+1
+ .S ALPHA(SONAME)=K_"^"_Z
+ .Q
+ S SONAME="" F  S SONAME=$O(ALPHA(SONAME)) Q:SONAME=""  D
+ .S K=$P(ALPHA(SONAME),U,1)
+ .S X=$G(^FHPT(FHDFN,"OP",ADM,"SP",K,0)),Z=$P(X,U,2),M=$P(X,U,3) Q:'Z
+ .I M[MEAL S S(NBR)=S(NBR)+1,MM(S(NBR),NBR)=$S($P(X,"^",8):$P(X,"^",8),1:1)_"    "_$P(^FH(118.3,+Z,0),"^",1) Q
+ Q
+ ;
 BRK ; Break the line if allergies' length > 35 chars
  I J>2 S S(NBR)=S(NBR)+1,MM(S(NBR),NBR)=$S($L(ALG)<36:ALG,1:$J("",8)_"OTHERS") Q
  I $L(ALG)<36 S S(NBR)=S(NBR)+1,J=J+1,MM(S(NBR),NBR)=ALG Q

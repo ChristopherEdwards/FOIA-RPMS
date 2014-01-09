@@ -1,5 +1,5 @@
 DGENRPB1 ;ALB/CJM - Pending Applications for Enrollment Report; May 4,1998
- ;;5.3;Registration;**147**;08/13/93
+ ;;5.3;Registration;**147,1015**;08/13/93;Build 21
  ;
 REPORT ;
  N DGENEND,DGENBEG,DGENINST

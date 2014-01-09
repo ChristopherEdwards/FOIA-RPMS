@@ -1,5 +1,7 @@
-ORCSAVE2 ;SLC/MKB-Utilities to update an order ;04:19 PM  11 Jan 2001
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,27,56,70,94,116,190,1003,1005**;Dec 17, 1997
+ORCSAVE2 ;SLC/MKB-Utilities to update an order ;14-May-2010 11:23;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,27,56,70,94,116,190,1003,1005,157,215,265,243,1010**;Dec 17, 1997;Build 47
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
+ ;Modified - IHS/MSC/PLS - 5/14/2010 - Lines STRT+2, STOP+2, CVTDATE EP
 STATUS(IFN,ST) ; -- Update status of order
  Q:'$G(IFN)  Q:'$D(^OR(100,+IFN,0))  Q:$P($G(^(3)),U,3)=$G(ST)  ;no change
  Q:'$G(ST)  Q:'$D(^ORD(100.01,+ST,0))
@@ -36,24 +38,27 @@ RELEASE(ORDER,ACTION,WHEN,WHO,NATURE) ; -- Mark order as released to service
  Q:'$G(ORDER)  N OR0 S OR0=$G(^OR(100,ORDER,8,ACTION,0))
  S:$L($G(NATURE)) $P(OR0,U,12)=$S(NATURE:NATURE,1:+$O(^ORD(100.02,"C",NATURE,0)))
  S:($P(OR0,U,15)=10)!($P(OR0,U,15)=11) $P(OR0,U,15)=""
- S $P(OR0,U,16,17)=WHEN_U_WHO,^OR(100,"AR",ORVP,9999999-WHEN,ORDER,ACTION)=""
+ ;S $P(OR0,U,16,17)=WHEN_U_WHO,^OR(100,"AR",ORVP,9999999-WHEN,ORDER,ACTION)=""
+ S $P(OR0,U,16,17)=WHEN_U_WHO
  S ^OR(100,ORDER,8,ACTION,0)=OR0
  I $P(OR0,U,2)="NW",'$P(^OR(100,ORDER,0),U,8) D STARTDT(ORDER)
+ ;Set the "AR" index.
+ D RS^ORDD100(ORDER,ACTION,ORVP,WHEN)
  Q
  ;
 STARTDT(DA) ; -- resolve Start and Stop dates from Responses
  N X,Y,%DT,ORDG,ORT,ORLAB
  S ORDG=$P($G(^ORD(100.98,+$P(^OR(100,DA,0),U,11),0)),U,3)
- S ORLAB="^LAB^CH^HEMA^MI^AP^AU^EM^SP^CY^BB^"[(U_ORDG_U)
- I ORDG="E/L T" S ORT=$$VALUE(DA,"TIME")
-STRT S X=$$VALUE(DA,"START") Q:'$L(X)  I ORDG="E/L T" S X=X_"@"_ORT
+ S ORLAB="^LAB^CH^HEMA^MI^AP^AU^EM^SP^CY^BB^"[(U_ORDG_U),ORT=""
+ S:ORDG="E/L T" ORT=$$VALUE(DA,"TIME") S:ORDG="MEAL" ORT=$$MEALTIME^ORCDFHO(DA)
+STRT S X=$$VALUE(DA,"START") I '$L(X) D WS^ORDD100 Q  S:$L(ORT) X=X_"@"_ORT
  D AM:X="AM",NEXT:X="NEXT",ADMIN("NEXT"):X="NEXTA",ADMIN("CLOSEST"):X="CLOSEST"
  ; IHS/MSC/DKM - Modified next line to accommodate alternate date format
  ;S %DT="TX" D ^%DT Q:Y'>0  S:$E($P(Y,".",2),1,2)=24 Y=$P(Y,".")_".2359"
  S %DT="TX",X=$$CVTDATE(X) D ^%DT Q:Y'>0  S:$E($P(Y,".",2),1,2)=24 Y=$P(Y,".")_".2359"
  S $P(^OR(100,DA,0),U,8)=Y D SS^ORDD100,WS^ORDD100,OI1^ORDD100A(DA)
 STOP I ORLAB S X=$$VALUE(DA,"DAYS") Q:X'>1  S X=$$FMADD^XLFDT(Y,(X-1))
- I 'ORLAB S X=$$VALUE(DA,"STOP") Q:'$L(X)  S:ORDG="E/L T" X=X_"@"_ORT
+ I 'ORLAB S X=$$VALUE(DA,"STOP") Q:'$L(X)  S:$L(ORT) X=X_"@"_ORT
  ; IHS/MSC/DKM - Modified next line to accommodate alternate date format
  ;S %DT="TX" D ^%DT Q:Y'>0  S:$E($P(Y,".",2),1,2)=24 Y=$P(Y,".")_".2359"
  S %DT="TX",X=$$CVTDATE(X) D ^%DT Q:Y'>0  S:$E($P(Y,".",2),1,2)=24 Y=$P(Y,".")_".2359"
@@ -62,6 +67,7 @@ STOP I ORLAB S X=$$VALUE(DA,"DAYS") Q:X'>1  S X=$$FMADD^XLFDT(Y,(X-1))
  ;
 NEXT ; -- Resolve next lab collection to FM date/time
  N ORTIME,ORDAY,NOW,NEXT,ENT
+ ;is referenced by DBIA #964
  S ENT=$S($P($G(^SC(+$G(ORL),0)),U,4):+$P(^(0),U,4),1:+$G(DUZ(2)))_";DIC(4," S:ENT'>0 ENT="ALL"
  D GETLST^XPAR(.ORTIME,ENT,"LR PHLEBOTOMY COLLECTION","N")
  S NOW=$P($H,",",2),ORDAY=$S($O(ORTIME(NOW)):"T",1:"T+1")
@@ -71,6 +77,7 @@ NEXT ; -- Resolve next lab collection to FM date/time
  ;
 AM ; -- Resolve AM lab collection to FM date/time
  N ORTIME,ORDAY,AM,NOW,ENT
+ ;is referenced by DBIA #964
  S ENT=$S($P($G(^SC(+$G(ORL),0)),U,4):+$P(^(0),U,4),1:+$G(DUZ(2)))_";DIC(4," S:ENT'>0 ENT="ALL"
  D GETLST^XPAR(.ORTIME,ENT,"LR PHLEBOTOMY COLLECTION","N")
  S AM=$O(ORTIME(0)),NOW=$P($H,",",2)
@@ -89,6 +96,7 @@ ADMIN(START) ; -- Resolve next/closest administration times to FM date/time
  . S PAT=$G(ORVP),SCH=$G(ORDIALOG($$PTR^ORCD("OR GTX SCHEDULE"),I))
  . S OI=$G(ORDIALOG($$PTR^ORCD("OR GTX ORDERABLE ITEM"),1)),LOC=""
  S OI=+$P($G(^ORD(101.43,+OI,0)),U,2) ;PSOI
+ ;is referenced by DBIA #3167
  S Y=$$RESOLVE^PSJORPOE(PAT,SCH,OI,START,LOC),X=$P(Y,U,2)
  Q
  ;
@@ -126,12 +134,14 @@ VERIFY(IFN,DA,TYPE,WHO,WHEN) ; -- order verified
  N FLD S FLD=$S(TYPE="N":8,TYPE="C":10,1:18)
  S:'$G(WHO) WHO=DUZ S:'$G(WHEN) WHEN=+$E($$NOW^XLFDT,1,12)
  S $P(^OR(100,IFN,8,DA,0),U,FLD,FLD+1)=WHO_U_WHEN
+ D:$L($T(VER^EDPFMON)) VER^EDPFMON(IFN)
  Q
  ;
 COMP(IFN,WHO,WHEN) ; -- order completed
  Q:'$G(IFN)  S:'$G(WHO) WHO=DUZ S:'$G(WHEN) WHEN=+$E($$NOW^XLFDT,1,12)
  D DATES(+IFN,,WHEN),STATUS(+IFN,2)
  S $P(^OR(100,+IFN,6),U,6,7)=WHEN_U_WHO
+ D:$L($T(COMP^EDPFMON)) COMP^EDPFMON(IFN)
  Q
  ;
 DATES(DA,START,STOP) ; -- Update start/stop dates for order DA
@@ -166,8 +176,55 @@ VALUE(IFN,ID,INST) ; -- Returns value of prompt by identifier ID
 SC(ORX,ORIFN) ; -- save responses to SC questions
  Q:'$G(ORIFN)  Q:'$D(^OR(100,+ORIFN,0))  ;invalid order number
  N OR5,I,P S OR5=$G(^OR(100,+ORIFN,5)),P=0
- F I="SC","MST","AO","IR","EC","HNC","CV" S P=P+1 S:$D(ORX(I)) $P(OR5,U,P)=ORX(I)
+ F I="SC","MST","AO","IR","EC","HNC","CV","SHD" S P=P+1 S:$D(ORX(I)) $P(OR5,U,P)=ORX(I)
  S ^OR(100,+ORIFN,5)=OR5
+ Q
+ ;
+CANCEL(ORDER) ; -- cancel order [action]
+ N ORA,DIE,DA,DR,ORX
+ S ORDER=$G(ORDER),ORA=+$P(ORDER,";",2) Q:'ORA!('ORDER)
+ I $D(^OR(100,+ORDER,8,ORA)) D
+ .S ORX="Unsigned/unreleased order cancelled by provider"
+ .S DIE="^OR(100,"_+ORDER_",8,",DA=ORA,DA(1)=+ORDER
+ .S DR="4////5;15////13;1////^S X=ORX" D ^DIE
+ I ORA=1 D
+ .K DA S DIE="^OR(100,",DA=+ORDER,DR="5////13" D ^DIE
+ Q
+ ;
+LAPSE(ORDER) ; -- lapse order [action]
+ N ORA S ORA=+$P(ORDER,";",2)
+ Q:'$D(^OR(100,+ORDER,0))  Q:'ORA!('ORDER)
+ I $D(^OR(100,+ORDER,8,ORA)) D
+ .N DIE,DA,DR
+ .S DIE="^OR(100,"_+ORDER_",8,",DA=ORA,DA(1)=+ORDER
+ .S DR="4////5;15////14" D ^DIE
+ I ORA=1 D
+ .N DIE,DA,DR
+ .S DIE="^OR(100,",DA=+ORDER,DR="5////14"
+ .D ^DIE,ALPS(DA,ORA)
+ Q
+ALPS(DA,ORACT,TYPE) ;set the lapse index ^OR(100,"ALPS")
+ N ORVP,X,OR0,ORLOG
+ S OR0=$G(^OR(100,DA,8,ORACT,0))
+ S ORLOG=$P(OR0,U),ORVP=$P($G(^OR(100,DA,0)),U,2)
+ I ORVP,ORLOG S ^OR(100,"ALPS",ORVP,9999999-ORLOG,DA,ORACT)=$G(TYPE)
+ S ^OR(100,DA,10)=$$NOW^XLFDT
+ Q
+ ;
+RESP(IFN,PRMT,VAL,INST) ; -- update a single Response VALue
+ S IFN=+$G(IFN),VAL=$G(VAL),PRMT=+$O(^ORD(101.41,"AB",PRMT,0))
+ N ID,DA,DIK S:'$G(INST) INST=1
+ S ID=$P($G(^ORD(101.41,PRMT,1)),U,3) Q:'$L(ID)
+ S DA=0 F  S DA=$O(^OR(100,IFN,4.5,"ID",ID,DA)) Q:DA<1  Q:$P($G(^OR(100,IFN,4.5,DA,0)),U,3)=INST
+ I 'DA D:$L(VAL)  Q  ;add
+ . N DO,DIC,DLG,X
+ . S DIC="^OR(100,"_IFN_",4.5,",DA(1)=IFN,DIC(0)="FL"
+ . S DIC("DR")=".02///"_PRMT_";.03///"_INST_";.04///"_ID
+ . S DLG=+$P($G(^OR(100,IFN,0)),U,5)
+ . S X=+$O(^ORD(101.41,DLG,10,"D",PRMT,0))
+ . D FILE^DICN S:Y ^OR(100,IFN,4.5,+Y,1)=VAL
+ I $L(VAL) S ^OR(100,IFN,4.5,DA,1)=VAL Q  ;change
+ S DIK="^OR(100,"_IFN_",4.5,",DA(1)=IFN D ^DIK ;delete
  Q
 CVTDATE(X) ; Converts space-delimited time to @-delimited
  N Y

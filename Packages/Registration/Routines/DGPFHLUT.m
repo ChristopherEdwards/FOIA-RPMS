@@ -1,5 +1,5 @@
-DGPFHLUT ;ALB/RPM - PRF HL7 UTILITIES ; 1/13/03
- ;;5.3;Registration;**425**;Aug 13, 1993
+DGPFHLUT ;ALB/RPM - PRF HL7 UTILITIES ; 5/31/05 3:45pm
+ ;;5.3;Registration;**425,650,1015**;Aug 13, 1993;Build 21
  ;This routine contains generic utilities used when building
  ;or processing received patient record flag HL7 messages.
  ;
@@ -237,3 +237,30 @@ CKSTR(DGFLDS,DGSTR) ;validate comma-delimited HL7 field string
  F DGI=1:1 S DGREQ=$P(DGFLDS,",",DGI) Q:DGREQ=""  D
  . I ","_DGSTR_","'[(","_DGREQ_",") S DGSTR=DGSTR_$S($L(DGSTR)>0:",",1:"")_DGREQ
  Q DGSTR
+ ;
+CONVMID(DGID) ;convert #772 msgid to #773 msgid
+ ;This function takes the HL7 message ID from the DIRECT^HLMA API result,
+ ;which is based on the HL7 MESSAGE TEXT (#772) file IEN and converts it
+ ;into a message ID based on the HL7 MESSAGE ADMINISTRATION (#773) file.
+ ;
+ ;  Integration Agreements:
+ ;    #4564 - allows access to the "C" index of HL7 MESSAGE TEXT (#772)
+ ;    #4669 - allows access to the "B" index and MESSAGE ID (#2) field
+ ;            of HL7 MESSAGE ADMINISTRATION (#773) file.
+ ;  Input:
+ ;    DGID - HL7 message id returned from DIRECT^HLMA
+ ;
+ ;  Output:
+ ;    Function value - returns HL7 message control ID from HL MESSAGE
+ ;                     ADMINISTRATION (#773) file on success;
+ ;                     0 on failure
+ ;
+ N DG772  ;HL7 MESSAGE TEXT (#772) file IEN
+ N DG773  ;HL7 MESSAGE ADMINISTRATION (#773) file IEN
+ N DGERR  ;FM error array
+ N DGMCID  ;message ID
+ ;
+ S DG772=+$O(^HL(772,"C",+$G(DGID),0))
+ S DG773=+$O(^HLMA("B",DG772,0))
+ S DGMCID=+$$GET1^DIQ(773,DG773_",",2,"I","","DGERR")
+ Q $S(DGMCID&('$D(DGERR)):DGMCID,1:0)
