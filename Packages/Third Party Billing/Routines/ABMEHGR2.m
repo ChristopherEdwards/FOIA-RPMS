@@ -1,5 +1,5 @@
 ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;     
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9,10,11**;NOV 12, 2009;Build 133
  ;Original;DMJ;03/20/96 9:07 AM
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
@@ -77,9 +77,12 @@ ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  .S ABM(7)=ABM(3)*ABM(4)+ABM(5)  ;units * units cost + dispense fee
  .S ABM(7)=$J(ABM(7),1,2)
  .S $P(ABMRV(23,DA,ABMLCNT),U,6)=ABM(7)   ;charges
- .S $P(ABMRV(23,DA,ABMLCNT),U,9)=$P($G(^PSDRUG(ABM(1),2)),U,4)_" "_$P($G(^(0)),U)  ;NDC generic name
+ .;S $P(ABMRV(23,DA,ABMLCNT),U,9)=$P($G(^PSDRUG(ABM(1),2)),U,4)_" "_$P($G(^(0)),U)  ;NDC generic name  ;abm*2.6*11
+ .I ABM(24)'="" S $P(ABMRV(23,DA,ABMLCNT),U,9)=ABM(24)_" "_$P($G(^PSDRUG(ABM(1),0)),U)  ;NDC generic name  ;abm*2.6*11
+ .I ABM(24)="" S $P(ABMRV(23,DA,ABMLCNT),U,9)=$P($G(^PSDRUG(ABM(1),2)),U,4)_" "_$P($G(^PSDRUG(ABM(1),0)),U)  ;NDC generic name  ;abm*2.6*11
  .;S $P(ABMRV(23,DA,ABMLCNT),U,13)=$S(ABM(6)'="":ABM(6),1:ABM(22))  ;prescription  ;abm*2.6*9 HEAT63888
- .S $P(ABMRV(23,DA,ABMLCNT),U,13)=$S(ABM(6)'="":ABM(6),ABM(22)'="":$$GET1^DIQ(52,ABM(22),".01","E"),1:"")  ;prescription  ;abm*2.6*9 HEAT63888
+ .;S $P(ABMRV(23,DA,ABMLCNT),U,13)=$S($G(ABM(6))'="":ABM(6),$G(ABM(22))'="":$$GET1^DIQ(52,ABM(22),".01","E"),1:"")  ;prescription  ;abm*2.6*9 HEAT63888  ;abm*2.6*10 HEAT78446
+ .S $P(ABMRV(23,DA,ABMLCNT),U,28)=$S($G(ABM(6))'="":ABM(6),$G(ABM(22))'="":$$GET1^DIQ(52,ABM(22),".01","E"),1:"")  ;prescription  ;abm*2.6*9 HEAT63888  ;abm*2.6*10 HEAT78446
  .K ABMDA,ABM(52)
  .S ABM(21)=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,"P","C","D",0))  ;ordering provider
  .I +$G(ABM(21))'=0 S $P(ABMRV(23,DA,ABMLCNT),U,21)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,"P",ABM(21),0)),U)
@@ -107,7 +110,8 @@ ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  .S $P(ABMRV(23,DA,ABMLCNT),U,10)=ABM(14)
  .S $P(ABMRV(23,DA,ABMLCNT),U,17)=ABM(19)
  .S $P(ABMRV(23,DA,ABMLCNT),U,11)=ABM(13)  ;corresponding dx
- .S $P(ABMRV(23,DA,ABMLCNT),U,27)=$S($G(ABM(28))'="":ABM(28),1:ABM(5))  ;service date to
+ .;S $P(ABMRV(23,DA,ABMLCNT),U,27)=$S($G(ABM(28))'="":ABM(28),1:ABM(5))  ;service date to  ;abm*2.6*10 HEAT70933
+ .S $P(ABMRV(23,DA,ABMLCNT),U,27)=$S($G(ABM(28))'="":ABM(28),1:ABM(14))  ;service date to  ;abm*2.6*10 HEAT70933
  .S $P(ABMRV(23,DA,ABMLCNT),U,32)=ABM(25)  ;date written  ;abm*2.6*6 5010
  .S $P(ABMRV(23,DA,ABMLCNT),U,38)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U)  ;abm*2.6*6 5010 line item control number
  .S $P(ABMRV(23,DA,ABMLCNT),U,39)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U,2)  ;abm*2.6*9 NARR
@@ -124,7 +128,8 @@ ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  .S:'+ABM(2) ABM(2)=1                  ; Default units = 1
  .S ABMLCNT=+$G(ABMLCNT)+1
  .S $P(ABMRV(25,DA,ABMLCNT),U)=ABM(1)  ;Revenue code IEN
- .S $P(ABMRV(25,DA,ABMLCNT),U,2)=ABM(7)
+ .;S $P(ABMRV(25,DA,ABMLCNT),U,2)=ABM(7)  ;abm*2.6*11 HEAT117086
+ .S $P(ABMRV(25,DA,ABMLCNT),U,2)=$P($$CPT^ABMCVAPI(ABM(7),ABMP("VDT")),U,2)  ;abm*2.6*11 HEAT117086
  .S $P(ABMRV(25,DA,ABMLCNT),U,5)=ABM(2)  ;units
  .S $P(ABMRV(25,DA,ABMLCNT),U,6)=(ABM(2)*ABM(3))+ABM(6)  ;charges
  .S $P(ABMRV(25,DA,ABMLCNT),U,8)=ABM(3)  ;Unit charge

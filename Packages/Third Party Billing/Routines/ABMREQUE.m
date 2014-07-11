@@ -1,5 +1,5 @@
 ABMREQUE ; IHS/SD/SDR - Requeue bills in UFMS session ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**4**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,11**;NOV 12, 2009;Build 133
 CR8SESS ;EP - create new session in file
  ;location
  K DIC,DIE,X,Y,DA
@@ -67,6 +67,7 @@ ADDBENTR ;EP - Add claim/bill to session log
  S ABMFLG=0
  F  D  Q:ABMFLG=1
  .W !!
+ .W !,"Use 1-3 character code for insurer type",!
  .K DIC,DIE,X,Y,DA
  .S DA(3)=ABMLOC
  .S DA(2)=ABMUSER
@@ -77,7 +78,7 @@ ADDBENTR ;EP - Add claim/bill to session log
  .I +Y<0 S ABMFLG=1 Q
  .S ABMBA=+Y
  .S ABMBAOUT=$P(Y,U,2)
- .S ABMBAOUT=$P($T(@ABMBAOUT^ABMUCASH),";;",2)
+ .;S ABMBAOUT=$P($T(@ABMBAOUT^ABMUCASH),";;",2)
  .S ABMFLG1=0
  .F  D  Q:ABMFLG1=1
  ..K DIC,DIE,X,Y,DA

@@ -1,5 +1,5 @@
 ABMDF27D ; IHS/ASDST/DMJ - Set HCFA1500 (08/05) Print Array - Part 4 ;  
- ;;2.6;IHS Third Party Billing;**1,2,4,6,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,2,4,6,9,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25331
  ;   Put taxonomy code if NPI ONLY
@@ -35,6 +35,7 @@ DX ; Diagnosis Info
  .;end new code HEAT46087
  .S ABM(9)=""
  .S ABM("DIAG")=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)  ; CSV-c
+ .I $P($G(^AUTNINS(ABMP("INS"),0)),U)="PHC MEDICAID" S ABM("DIAG")=$TR($P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2),".")  ;abm*2.6*11 IHS/SD/AML 3/31/2011 HEAT30524 - REMOVE DECIMAL FOR PARTNERSHIP
  .;start old code abm*2.6*9 HEAT46087
  .;S ABM("DIAG")=$S(ABM("I")=35:"5. "_ABM("DIAG"),ABM("I")=36:"6. "_ABM("DIAG"),ABM("I")=37:"7. "_ABM("DIAG"),ABM("I")=38:"8. "_ABM("DIAG"),1:ABM("DIAG"))  ;abm*2.6*4 HEAT12115
  .;end old code start new code HEAT46087
@@ -115,7 +116,8 @@ PRV ; Provider Info
  .S:$P(ABMF(52),U)="" $P(ABMF(52),U)=$P(ABM("A"),U)
 PDT ;S $P(ABMF(54),U)=DT  ;abm*2.6*2 FIXPMS10006
  ;S $P(ABMF(54),U)=$S($G(ABMPDT)="O":$P($G(^ABMDTXST(DUZ(2),+$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,7),0)),U),1:DT)  ;abm*2.6*2 FIXPMS10006  ;abm*2.6*4 HEAT17615
- S $P(ABMF(54),U)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),+$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,7),0)),U),1:DT)  ;abm*2.6*2 FIXPMS10006  ;abm*2.6*4 HEAT17615
+ ;S $P(ABMF(54),U)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),+$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,7),0)),U),1:DT)  ;abm*2.6*2 FIXPMS10006  ;abm*2.6*4 HEAT17615  ;abm*2.6*11 HEAT81561
+ S $P(ABMF(54),U)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),+$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,7),0)),U),$G(ABMP("PRINTDT"))="A":$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,5),1:DT)  ;abm*2.6*11 HEAT81561
  I $D(ABM("A")) D
  .S ABM("PRO")=$P(ABM("A"),U,2)
  .S $P(ABMF(54),U,4)=$S($P($$NPI^XUSNPI("Individual_ID",ABM("PRO")),U)>0:$P($$NPI^XUSNPI("Individual_ID",ABM("PRO")),U),1:"")

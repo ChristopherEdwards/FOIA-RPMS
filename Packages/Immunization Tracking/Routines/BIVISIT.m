@@ -1,9 +1,12 @@
 BIVISIT ;IHS/CMI/MWR - ADD/EDIT IMM/SKIN VISITS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**6**;OCT 15,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
- ;;  CODE TO ADD V IMMUNIZATION AND V SKIN TEST VISITS.
- ;;  CALLED BY BIRPC3.
+ ;;  CODE TO ADD V IMMUNIZATION AND V SKIN TEST VISITS.  CALLED BY BIRPC3.
  ;;  PATCH 3: Set DATE/TIME LAST MODIFIED  VFILE+155, +192
+ ;;  PATCH 5: Added BINOM parameter to ADDEDIT P.E.P. for Visit Selection Menu. ADDV+0
+ ;;           Added Admin Note, piece 27.  PARSE+36,+66, ADDV+16, VFILE+13,+184
+ ;;           Moved TRIGADD to rtn BIVISIT2 for RSIZE.  TRIGADD+0
+ ;;  PATCH 6: Fix so that VIS Date error codes will not be stored as a date.  VFILE+173
  ;
  ;
  ;----------
@@ -43,6 +46,7 @@ PARSE(Y,Z) ;EP
  ;                       (called from BIRPC6
  ;    25 - BIMPRT  (opt) If =1 it was imported.
  ;    26 - BINDC   (opt) NDC Code IEN pointer to file #9002084.95.
+ ;    27 - BIANOT  (opt) Administrative Note (<161 chars).
  ;
  N V S V="|"
  ;
@@ -72,11 +76,14 @@ PARSE(Y,Z) ;EP
  S BICCPT=$P(Y,V,24)
  S BIMPRT=$P(Y,V,25)
  S BINDC=$P(Y,V,26)
+ S BIANOT=$P(Y,V,27)
  Q
  ;
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BINOM parameter to control Visit Menu display.
  ;----------
-ADDV(BIERR,BIDATA,BIOIEN) ;EP
+ADDV(BIERR,BIDATA,BIOIEN,BINOM) ;EP
  ;---> Add a Visit (if necessary) and V FILE entry for this patient.
  ;---> Called exclusively by ^BIRPC3.
  ;---> Parameters:
@@ -85,12 +92,14 @@ ADDV(BIERR,BIDATA,BIOIEN) ;EP
  ;                      See BIDATA definition at linelabel PARSE (above).
  ;     3 - BIOIEN (opt) IEN of V IMM or V SKIN being edited (if
  ;                      not new).
+ ;     4 - BINOM  (opt) 0=Allow display of Visit Selection Menu if site
+ ;                       parameter is set. 1=No display (for export).
  ;
  I BIDATA="" D ERRCD^BIUTL2(437,.BIERR) S BIERR="1^"_BIERR Q
  ;
  N BIVTYPE,BIDFN,BIPTR,BIDOSE,BILOT,BIDATE,BILOC,BIOLOC,BICAT,BIVSIT
  N BIOIEN,BIRES,BIREA,BIDTR,BIREC,BIVISD,BIPROV,BIOVRD,BIINJS,BIVOL
- N BIREDR,BISITE,BICCPT,BIMPRT
+ N BIREDR,BISITE,BICCPT,BIMPRT,BIANOT
  ;
  ;---> See BIDATA definition at linelabel PARSE.
  D PARSE(BIDATA)
@@ -121,7 +130,12 @@ ADDV(BIERR,BIDATA,BIOIEN) ;EP
  ;---> Create or edit Visit if necessary.
  ;---> NOTE: BIVSIT, even if sent, might come backed changed (due to
  ;---> change in Date, Category, etc.)
- D VISIT^BIVISIT1(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,.BIVSIT,.BIERR)
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BINOM parameter to control Visit Menu display.
+ S:($G(BINOM)="") BINOM=0
+ ;D VISIT^BIVISIT1(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,.BIVSIT,.BIERR)
+ D VISIT^BIVISIT1(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,.BIVSIT,.BIERR,BINOM)
+ ;**********
  Q:BIERR
  ;
  ;---> Create V FILE entry.
@@ -151,7 +165,7 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  ;
  N BIVTYPE,BIDFN,BIPTR,BIDOSE,BILOT,BIDATE,BILOC,BIOLOC,BICAT
  N BIOIEN,BIRES,BIREA,BIDTR,BIREC,BIVISD,BIPROV,BIOVRD,BIINJS,BIVOL
- N BIREDR,BISITE,BICCPT,BIMPRT
+ N BIREDR,BISITE,BICCPT,BIMPRT,BIANOT
  ;
  ;---> See BIDATA definition at linelabel PARSE (above).
  D PARSE(BIDATA,1)
@@ -310,19 +324,28 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  ;
  ;---> Add VIS, Dose Override, Injection Site and Volume data.
  ;---> Build DR string.
- S:BIVISD="" BIVISD="@" S:BIOVRD="" BIOVRD="@"
+ ;
+ ;********** PATCH 6, v8.5, OCT 15,2013, IHS/CMI/MWR
+ ;---> Fix so that VIS Date error codes will not be stored as a date.
+ ;S:BIVISD="" BIVISD="@" S:BIOVRD="" BIOVRD="@"
+ S:(BIVISD<1) BIVISD="@" S:BIOVRD="" BIOVRD="@"
+ ;**********
+ ;
  S:BIINJS="" BIINJS="@" S:BIVOL="" BIVOL="@"
  S:BILOT="" BIILOT="@" S:BINDC="" BINDC="@"
  ;
  ;---> Store Additional data.
  N BIFLD
- ;---> Imm v8.5: Move add/edit of Lot Number here, so it doesn't mess up APDC call.
  S BIFLD(.05)=BILOT
  S BIFLD(.08)=BIOVRD,BIFLD(.09)=BIINJS
  S BIFLD(.11)=BIVOL,BIFLD(.12)=BIVISD,BIFLD(.13)=BICCPT
  S BIFLD(.14)=BIVFC
  S BIFLD(.15)=$S(BIMPRT>0:2,1:"")
  S BIFLD(.16)=BINDC
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added Admin Note, piece 27.
+ S:($G(BIANOT)]"") BIFLD(1)=BIANOT
+ ;**********
  ;
  ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
  ;---> Set DATE/TIME LAST MODIFIED, per Lori Butcher, 5/26/12
@@ -358,41 +381,14 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  Q
  ;
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Moved TRIGADD to rtn BIVISIT2 for RSIZE.
  ;----------
 TRIGADD ;EP
  ;---> Immunization Added Trigger Event call to Protocol File.
- ;---> Called at the end/bottom of BIVISIT, after new V IMM created.
- ;---> (Note: Trigger Event for DELETE Immunization is in rtn BIVISIT2.)
- ;---> Local variables available when Event is triggered:
- ;
- ;     BIADFN -  IEN of V IMMUNIZATION just created.
- ;     BICAT  -  Category: A (Ambul), I (Inpat), E (Event/Hist)
- ;     BIDATE -  Date of Visit (Fileman format).
- ;     BIDFN  -  DFN of patient.
- ;     BILOC  -  Location of encounter (IEN).
- ;     BILOT  -  Lot Number IEN for this Immunization (text).
- ;     BIOLOC -  Other Location of encounter (text).
- ;     BIPTR  -  Vaccine (IEN in IMMUNIZATION File).
- ;     BIREC  -  Vaccine Reaction (text).
- ;     BITYPE -  Type of Visit (PCC Master Control File I,C,6).
- ;     BIVHL7 -  Vaccine HL7 Code.
- ;     BIVNAM -  Vaccine Name, short form.
- ;     BIVSIT -  IEN of Visit.
- ;
- ;
- N BIVNAM,BIVHL7,BISAVE
- S BIVNAM=$$VNAME^BIUTL2(BIPTR)
- S BIVHL7=$$CODE^BIUTL2(BIPTR,1)
- S BIREC=$$REACTXT^BIUTL6(BIREC)
- S BILOT=$$LOTTX^BIUTL6(BILOT)
- ;
- S BISAVE="BIADFN;BICAT;BIDATE;BIDFN;BILOC;BILOT;BIOLOC;BIPTR"
- S BISAVE=BISAVE_";BIREC;BITYPE;BIVHL7;BIVNAM;BIVSIT;DIC;X;XQORS"
- D
- .S DIC=101,X="BI IMMUNIZATION ADDED"
- .D EN^XBNEW("EN^XQOR",BISAVE)
- ;
+ D TRIGADD^BIVISIT2
  Q
+ ;**********
  ;
  ;
  ;----------

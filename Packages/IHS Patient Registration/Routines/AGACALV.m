@@ -1,0 +1,160 @@
+AGACALV ; IHS/OIT/NKD - VERIFY AN IHS ELIGIBILITY LETTER ; OCTOBER 2013
+ ;;7.1;PATIENT REGISTRATION;;AUG 25,2005;Build 1
+EN ;EP
+ N AGTEXT,AGCNT
+ F AGCNT=1:1 S AGTEXT=$P($T(HDR+AGCNT^AGACALV),";;",2) Q:AGTEXT="END"  D
+ . W !,AGTEXT
+ D MAIN
+ Q
+ ;
+MAIN ;MAIN PROCESSING
+ N AGQUIT
+ S AGQUIT=0
+ F  Q:AGQUIT  D
+ . N DIR,DTOUT,DUOUT,DIRUT,DIROUT,Y,AGCODE,AGRES
+ . S DIR(0)="FOU^21"
+ . S DIR("A")="ENTER THE UNIQUE IDENTIFIER CODE (MINIMUM 21 DIGITS)"
+ . D ^DIR
+ . I $D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT) S AGQUIT=1 Q
+ . S AGCODE=Y
+ . S AGRES=$$DEC(AGCODE)
+ . W !!,?16,"LETTER",?35,"RPMS",?60,"RESULTS"
+ . W !,?16,"------------",?35,"------------",?60,"------------"
+ . I '$$P1(+AGRES) D PROMPT Q
+ . I '$$P2(+AGRES,$P(AGRES,U,2))
+ . I '$$P3(+AGRES,$P(AGRES,U,3))
+ . D PROMPT
+ Q
+ ;
+PROMPT ;ENTER TO CONTINUE
+ K DIR S DIR(0)="EO",DIR("A")="Press Enter to continue." D ^DIR K DIR Q
+ ;
+P1(AGREC) ;EP - CHECK RECORD NUMBER
+ N AGRES
+ ;
+ S AGRES=$S($D(^AGACAL(AGREC,0)):AGREC_U_"PASSED",1:"0^FAILED ***")
+ ;
+ W !,"RECORD NUMBER: ",?16,AGREC,?30,"...",?35,+AGRES,?60,$P(AGRES,U,2)
+ ;
+ Q $S(+AGRES:1,1:0)
+ ;
+P2(AGREC,AGUID) ;EP - CHECK USER/DT
+ N AGUSR,AGDT,AGUSRL,AGDTL,AGUSRR,AGDTR
+ ;
+ S AGUSRL=$P($P(AGUID,"[",2),"__",1),AGDTL=$P($P($P(AGUID,"[",2),"__",2),"]",1)
+ ;
+ S AGUSRR=$$GET1^DIQ(9009063.5,AGREC,.03,"E"),AGDTR=$$FMTE^XLFDT($$GET1^DIQ(9009063.5,AGREC,.05,"I"))
+ ;
+ S AGUSR=$S(($E(AGUSRL,1,3)=$E(AGUSRR,1,3))&($E($P(AGUSRL,",",2),1)=$E($P(AGUSRR,",",2),1)):"1^PASSED",1:"0^FAILED ***")
+ S AGDT=$S(AGDTL=$P(AGDTR,"@",1):"1^PASSED",1:"0^FAILED ***")
+ ;
+ W !,"USER: ",?16,AGUSRL,?30,"...",?35,$E(AGUSRR,1,23),?60,$P(AGUSR,U,2)
+ W !,"DATE/TIME: ",?16,AGDTL,?30,"...",?35,$E(AGDTR,1,23),?60,$P(AGDT,U,2)
+ ;
+ Q $S(+AGUSR++AGDT=2:1,1:0)
+ ;
+P3(AGREC,AGPID) ;EP - CHECK PATIENT
+ N AGDFN,AGNAM,AGDOB,AGSSN,AGNAML,AGDOBL,AGSSNL,AGNAMR,AGDOBR,AGSSNR
+ ;
+ S AGNAML=$P($P(AGPID,"[",2),"__",1),AGDOBL=$P($P(AGPID,"[",2),"__",2),AGSSNL="XXX-XX-"_$P($P($P(AGPID,"[",2),"__",3),"]",1)
+ ;
+ S AGDFN=$$GET1^DIQ(9009063.5,AGREC,.01,"I")
+ S AGNAMR=$$GET1^DIQ(2,AGDFN,.01),AGDOBR=$$FMTE^XLFDT($$GET1^DIQ(2,AGDFN,.03,"I")),AGSSNR=$$GET1^DIQ(9000001,AGDFN,1107.3)
+ ;
+ S AGNAM=$S(($E(AGNAML,1,3)=$E(AGNAMR,1,3))&($E($P(AGNAML,",",2),1)=$E($P(AGNAMR,",",2),1)):"1^PASSED",1:"0^FAILED ***")
+ S AGDOB=$S(AGDOBL=AGDOBR:"1^PASSED",1:"0^FAILED ***"),AGSSN=$S(AGSSNL=AGSSNR:"1^PASSED",1:"0^FAILED ***")
+ ;
+ W !,"PT NAME: ",?16,AGNAML,?30,"...",?35,$E(AGNAMR,1,23),?60,$P(AGNAM,U,2)
+ W !,"PT DOB: ",?16,AGDOBL,?30,"...",?35,$E(AGDOBR,1,23),?60,$P(AGDOB,U,2)
+ W !,"PT SSN: ",?16,AGSSNL,?30,"...",?35,$E(AGSSNR,1,23),?60,$P(AGSSN,U,2)
+ ;
+ Q $S(+AGNAM++AGDOB++AGSSN=3:1,1:0)
+ ;
+ENC(AGUSER,AGDT,AGDFN,AGREC) ;EP - CREATE UID
+ N AGRES,AGCNT,AGRECE
+ S AGRES=$$UIDE(AGUSER,AGDT)_$$ENC^AUPNPAT(AGDFN),AGRECE=""
+ S AGREC=$TR(AGREC,"1234567890","7950318246")
+ S:$L(AGREC>5) AGRECE=$E(AGREC,6,$L(AGREC)),AGREC=$E(AGREC,1,5)
+ F AGCNT=$L(AGREC):-1:1 S AGRES=$E(AGRES,1,$S((AGCNT-1*4)<$L(AGRES)+1:(AGCNT-1*4),1:$L(AGRES)))_$E(AGREC,AGCNT,AGCNT)_$S((AGCNT-1*4+1)<$L(AGRES):$E(AGRES,(AGCNT-1*4+1),$L(AGRES)),1:"")
+ S AGRES=AGRES_AGRECE
+ Q AGRES
+ ;
+DEC(AGSTR) ;EP - DECODE UID
+ N AGRES,AGCNT,AGUID,AGPID,AGREC
+ S AGRES=AGSTR,AGREC="",AGRECE=""
+ S:$L(AGRES>25) AGRECE=$E(AGRES,26,$L(AGRES)),AGRES=$E(AGRES,1,25)
+ F AGCNT=0:1:$L(AGRES)-21 S AGREC=AGREC_$E(AGRES,(4*AGCNT+1),(4*AGCNT+1)),AGRES=$S((4*AGCNT)>0:$E(AGRES,1,(4*AGCNT)),1:"")_$E(AGRES,(4*AGCNT+2),$L(AGRES))
+ S AGREC=AGREC_AGRECE
+ S AGREC=$TR(AGREC,"7950318246","1234567890")
+ Q AGREC_"^"_$$UIDD($E(AGRES,1,8))_"^"_$$DEC^AUPNPAT($E(AGRES,9,20))
+ ;
+UIDE(AGUSER,AGDT) ;EP - CREATE ENCRYPTED USER/DT CODE
+ N AUPNX,AUPNV,X,X1,Y,I
+ ; take 1st 3 chars of name, replace punctuation with numbers, pad out
+ ;   to 3 chars
+ S AUPNX=$E($P($P(^VA(200,AGUSER,0),U),","),1,3)
+ S AUPNX=$TR(AUPNX," '-.,","01234")
+ F I=1:1:(3-$L(AUPNX)) S AUPNX=AUPNX_"5"
+ S AUPNV=AUPNX
+ ;----------
+ ; take 1st initial, 0 if null
+ S AUPNX=$E($P($P(^VA(200,AGUSER,0),U),",",2)) S:AUPNX="" AUPNX=0
+ ;----------
+ ; concatenate in reverse order
+ S AUPNV=$E(AUPNV,3)_$E(AUPNV,2)_$E(AUPNV)_AUPNX
+ ;----------
+ ; concatenate fileman date printed (converted to $H/hex format)
+ S AUPNX=AGDT S:$L(AUPNX)'=7 AUPNX=3991231
+ S AUPNX=$$FMTH^XLFDT(AUPNX,1)
+ S X=AUPNX,X1=16 D CNV^XTBASE S Y=$E(Y,1,4)
+ F I=1:1:(4-$L(Y)) S Y=Y_"-"
+ S AUPNV=AUPNV_Y
+ ;----------
+ ; shuffle
+ S AUPNV=$E(AUPNV,3,4)_$E(AUPNV,7,8)_$E(AUPNV,1,2)_$E(AUPNV,5,6)
+ ;----------
+ ; encrypt
+ S AUPNV=$TR(AUPNV,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","UVWXJKLMYZABQRSTCDGHIEFNOP")
+ S AUPNV=$TR(AUPNV,"1234567890","8967320415")
+ ;----------
+ Q AUPNV
+UIDD(AGUID) ;EP - DECODE ENCRYPTED USER/DT CODE
+ N AUPNX,AUPNV,AUPNY,X,X1,Y,I
+ S AUPNV="["
+ ;----------
+ ; decrypt
+ S AGUID=$TR(AGUID,"UVWXJKLMYZABQRSTCDGHIEFNOP","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ S AGUID=$TR(AGUID,"8967320415","1234567890")
+ ;----------
+ ; unshuffle
+ S AGUID=$E(AGUID,5,6)_$E(AGUID,1,2)_$E(AGUID,7,8)_$E(AGUID,3,4)
+ ;----------
+ ; take 1st 3 chars of name, replace numbers with punctuation
+ S AUPNX=""
+ F I=3,2,1 S AUPNX=AUPNX_$E(AGUID,I)
+ S AUPNX=$TR(AUPNX,"01234"," '-.,")
+ S AUPNY=""
+ F I=1:1:3 S:$E(AUPNX,I)'="5" AUPNY=AUPNY_$E(AUPNX,I)
+ S AUPNX=AUPNY_","_$S($E(AGUID,4)'="0":$E(AGUID,4),1:"")
+ S AUPNV=AUPNV_AUPNX
+ ;----------
+ ; fileman date printed (converted to external format)
+ S AUPNX=""
+ S X=$E(AGUID,5,8)
+ F I=1:1:4 S:$E(X,I)'="-" AUPNX=AUPNX_$E(X,I)
+ S X=AUPNX,X1=16 D DEC^XTBASE S AUPNX=Y
+ S AUPNX=$$HTE^XLFDT(AUPNX,1)
+ S AUPNV=AUPNV_"__"_AUPNX
+ ;----------
+ S AUPNV=AUPNV_"]"
+ Q AUPNV
+HDR ;HEADER TEXT
+ ;;
+ ;;Verify the authenticity of a printed IHS Eligibility Letter by entering the
+ ;;unique identifier code given to you by the representative of the entity
+ ;;requesting verification.
+ ;;
+ ;;*** NOTE: The codes printed on the IHS Eligibility Letters are unique to ***
+ ;;*** a facility and can only be verified at the site it was printed from. ***
+ ;;
+ ;;END

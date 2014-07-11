@@ -1,5 +1,5 @@
 ABMESTAT ; IHS/SD/SDR - Bills Export Statistical Report;
- ;;2.6;IHS Third Party Billing System;**3**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**3,10,11**;NOV 12, 2009;Build 133
  ; IHS/SD/SDR - abm*2.6*3 - MU - new routine
  ;
  K ABM,ABMY
@@ -54,8 +54,10 @@ DATA ;
  S ABMP("HIT")=0 D BILL^ABMDRCHK Q:'ABMP("HIT")
  I ABM("SRT")="I" S ABM("SORT")=$P($G(^AUTNINS(ABM("I"),0)),U)
  I ABM("SRT")="T" D
- .S ABM("SORT")=$$GET1^DIQ(9999999.18,ABM("I"),".21","E")
- I ABM("SRT")="A" S ABM("SORT")=$P($T(@($P(^AUTNINS(ABM("I"),2),U))),";;",2)
+ .;S ABM("SORT")=$$GET1^DIQ(9999999.18,ABM("I"),".21","E")  ;abm*2.6*10 HEAT73780
+ .S ABM("SORT")=$$GET1^DIQ(9999999.18,ABM("I"),".211","E")  ;abm*2.6*10 HEAT73780
+ ;I ABM("SRT")="A" S ABM("SORT")=$P($T(@($P(^AUTNINS(ABM("I"),2),U))),";;",2)  ;abm*2.6*10 HEAT73780
+ I ABM("SRT")="A" S ABM("SORT")=$P($T(@($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM("I"),".211","I"),1,"I"))),";;",2)  ;abm*2.6*10 HEAT73780
  S ABM("L")=$P(^DIC(4,ABM("L"),0),U)
  S ABM("EXP")=$P($G(^ABMDBILL(DUZ(2),ABM,0)),U,6)
  S:$G(ABM("EXP"))="" ABM("EXP")="MANUAL BILL W/O EXPORT MODE"  ;no export mode--manual bill
@@ -108,6 +110,7 @@ SUB Q:'ABM("SUBCNT")
  W !?20,"Subtotal:",?40,$J(ABM("SUBCNT"),"6R"),?55,$J((ABM("SUBCNT")/ABM("TCNT")*100),".",1),?64,$J($FN(ABM("SUBAMT"),",",2),"12R")
  S ABM("SUBCNT")=0,ABM("SUBAMT")=0
  Q
+ ;abm*2.6*11 VMBP#4
 TXT ;
 H ;;PRIVATE
 M ;;PRIVATE
@@ -124,3 +127,4 @@ T ;;OTHER
 G ;;OTHER
 MD ;;MEDICARE
 MH ;;MEDICARE
+V ;;VMBP

@@ -1,10 +1,11 @@
 BIUTL11 ;IHS/CMI/MWR - UTIL: PATIENT INFO; AUG 10,2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: PATIENT FUNCTIONS: CONTRAS, INPATIENT, HIDOSE.
  ;;  PATCH 1: Correct typo "Q", so that unmatched CVX returns 0 (zero),
  ;;           not "Q".  LASTIMM+17
  ;;  PATCH 3: Append date to Hx of Chickenpox Reason.  CONTRA+45
+ ;;  PATCH 5: Unused call, was never a P.E.P..  CONTR+0
  ;
  ;
  ;----------
@@ -104,31 +105,10 @@ CONTRHL7(BIVAC,A) ;EP
  ;
  ;----------
 CONTR(BIDFN,BIVAC) ;EP
- ;---> Return 1 if Patient has a Contraindication to the passed
- ;---> Vaccine; return 0 if not.
- ;---> Parameters:
- ;     1 - BIDFN (req) Patient's IEN in VA PATIENT File #2.
- ;     2 - BIVAC (req) Vaccine IEN.
  ;
- Q:'$G(BIDFN) 0  Q:'$G(BIVAC) 0  Q:'$D(^AUTTIMM(BIVAC,0)) 0
- ;
- ;---> Quit if this Patient does not have a contra for this vaccine.
- Q:'$D(^BIPC("AC",BIDFN,BIVAC)) 0
- ;
- ;---> Quit if the Reason for this contraindication is one that
- ;---> still allows forecasting of the vaccine.  For example,
- ;---> if the reason is "Patient Refusal", then the vaccine should
- ;---> still be forecast as due.
- ;
- N N S N=$O(^BIPC("AC",BIDFN,BIVAC,0))
- Q:'N 0
- S N=$P($G(^BIPC(N,0)),U,3)
- ;---> If no Reason given, then return 1 (as valid Contraindication).
- Q:'N 1
- Q:$P($G(^BICONT(N,0)),U,2) 0
- ;
- ;---> Valid Contraindication (do not forecast).
- Q 1
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> REMOVED. Was never a P.E.P.
+ Q
  ;
  ;
  ;----------

@@ -1,5 +1,5 @@
-ABMDE2X3 ; IHS/ASDST/DMJ - PAGE 2 - INSURER DATA CK PART 3 ;    
- ;;2.6;IHS Third Party Billing System;**3,8**;NOV 12, 2009
+ABMDE2X3 ; IHS/SD/SDR - PAGE 2 - INSURER DATA CK PART 3 ;    
+ ;;2.6;IHS Third Party Billing System;**3,8,10,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/ASDS/DMJ - 10/04/00 - V2.4 P3 - NOIS HQW-1000-100062
  ;     Modified code to be CACHE compliant
@@ -27,7 +27,8 @@ ABMDE2X3 ; IHS/ASDST/DMJ - PAGE 2 - INSURER DATA CK PART 3 ;
  ;start new code abm*2.6*3 HEAT8996
 GRP ;
  ;I $P($G(^AUTNINS(ABMP("INS"),2)),U)="D" D  ;abm*2.6*8 HEAT37612
- I +$G(ABMP("INS"))'=0,$P($G(^AUTNINS(ABMP("INS"),2)),U)="D" D  ;abm*2.6*8 HEAT37612
+ ;I +$G(ABMP("INS"))'=0,$P($G(^AUTNINS(ABMP("INS"),2)),U)="D" D  ;abm*2.6*8 HEAT37612  ;abm*2.6*10 HEAT73780
+ I +$G(ABMP("INS"))'=0,$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="D" D  ;abm*2.6*8 HEAT37612  ;abm*2.6*10 HEAT73780
  .S:(+$G(ABMX("2"))'=0) ABMX("GRP")=$P($G(^AUPNMCD(+ABMX("2"),0)),U,17)
  .I $G(ABMX("GRP"))]"" D
  ..I $D(^AUTNEGRP(ABMX("GRP"),0)) D
@@ -39,7 +40,8 @@ REG ;
  S ABMX("HDFN")=ABMP("PDFN")
  S ABMV("X2")=ABMP("PDFN")_";"_$S($P(ABMV("X1"),U,5)]"":$P(ABMV("X1"),U,5),1:$P(^DPT(ABMP("PDFN"),0),U))
  I $P(^DPT(ABMP("PDFN"),0),U,2)]"" S $P(ABMV("X2"),U,6)=$P(^(0),U,2)
- E  S ABME(13)=""
+ ;E  S ABME(13)=""  ;abm*2.6*11 MU2 gender
+ I $P(^DPT(ABMP("PDFN"),0),U,2)=""!($P(^DPT(ABMP("PDFN"),0),U,2)="U") S ABME(13)=""  ;abm*2.6*11 MU2 gender
  S $P(ABMV("X2"),U,7)=$P(^DPT(ABMP("PDFN"),0),U,3)
  S $P(ABMV("X2"),U,2)=$O(^AUTTRLSH("B","SELF",""))_";SELF"
  I '+$D(^DPT(ABMX("HDFN"),.11)) S ABME(11)="" Q

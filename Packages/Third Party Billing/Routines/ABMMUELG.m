@@ -1,5 +1,5 @@
 ABMMUELG ;IHS/SD/SDR - Meaningful Use Report - count patients/eligibility ;
- ;;2.6;IHS 3P BILLING SYSTEM;**5**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**5,11**;NOV 12, 2009;Build 133
  ;
  W !!,"The date range selected will be used for: "
  W !,?3,"1. Was the patient's record active during that range"
@@ -218,6 +218,10 @@ TOTALS ;
  W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","PI")),7)_" Patients with Private  ( "_$J($FN((+$G(^TMP($J,"ABM-MURPT","CNT","PI"))/(+$G(^TMP($J,"ABM-MURPT","CNT","PTS")))*100),",",2),5)_"% )"
  ;no eligibility
  W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","NO")),7)_" Patients Uninsured     ( "_$J($FN((+$G(^TMP($J,"ABM-MURPT","CNT","NO"))/(+$G(^TMP($J,"ABM-MURPT","CNT","PTS")))*100),",",2),5)_"% )"
+ ;start new code abm*2.6*11 VMBP#9 - uncomment in patch 12
+ ;vmbp
+ ;W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","VMBP")),7)_" Patients with VA Med B  ( "_$J($FN((+$G(^TMP($J,"ABM-MURPT","CNT","VMBP"))/(+$G(^TMP($J,"ABM-MURPT","CNT","PTS")))*100),",",2),5)_"% )"
+ ;end new code VMBP#9
  W !!,"(REPORT COMPLETE)"
  Q
  ;
@@ -263,6 +267,12 @@ WRTELIG ;
  .S ABMP("MDFN")=0
  .F  S ABMP("MDFN")=$O(^TMP($J,"ABM-MURPT","RR",ABMP("PDFN"),ABMP("MDFN"))) Q:'ABMP("MDFN")  D
  ..W !?3,ABMP("PDFN"),?15,$P($G(^DPT(ABMP("PDFN"),0)),U),?50,$P($G(^AUPNRRE(ABMP("PDFN"),0)),U,3)
+ ;
+ ;start new code abm*2.6*11 VMBP#9 - uncomment in patch 12
+ ;^TMP($J,"ABM-MURPT","VMBP",ABMP("PDFN"),ABMP("MDFN"))
+ ;W !!!,"VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP "
+ ;W !?3,"PDFN",?15,"NAME",?50,"HRN"
+ ;end new code VMBP#9
  ;
  ;^TMP($J,"ABM-MURPT","PI",ABMP("PDFN"),ABMP("MDFN"))
  W !!!,"PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE "

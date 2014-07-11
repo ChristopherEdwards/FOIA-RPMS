@@ -1,5 +1,5 @@
 ABMAPASS ; IHS/ASDST/DMJ - PASS INFO TO A/R ;    
- ;;2.6;IHS 3P BILLING SYSTEM;**3,4,6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,4,6,8,10,11**;NOV 12, 2009;Build 133
  ;Original;DMJ
  ;
  ;IHS/DSD/MRS-4/1/1999 Modify to check for missing root of insurer array
@@ -127,6 +127,10 @@ BLD ; PEP
  S K=0
  ; Loop through each type of bill service and find ITEM ARRAY data
  S ABMP("VDT")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U)  ;fix for CSV; needed for CSV API call
+ ;start new code ABM*2.6*11 HEAT90370
+ S:'+$G(ABMP("INS")) ABMP("INS")=+$G(ABMA("INS"))
+ S:'+$G(ABMP("LDFN")) ABMP("LDFN")=+$G(ABMA("VSLC"))
+ ;end new code HEAT90370
  F I=21,23,25,27,33,35,37,39,43,47 D
  . K ABM,ABMRV
  . D @(I_"^ABMERGR2")  ; Build ABRV Array for all items for service type
@@ -139,7 +143,8 @@ BLD ; PEP
  D CONV
  N ABME
  ; Get insurer data
- S ABMP("ITYPE")=$P($G(^AUTNINS(+ABMA("INS"),2)),"^",1)
+ ;S ABMP("ITYPE")=$P($G(^AUTNINS(+ABMA("INS"),2)),"^",1)  ;abm*2.6*10 HEAT73780
+ S ABMP("ITYPE")=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,+ABMA("INS"),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
  D ISET^ABMERUTL       ; Set insurer priorities based on 3P BILL
  D CONV2               ; Convert insurer to ABMA array
  K ABMP("SET")
@@ -192,7 +197,6 @@ BLD ; PEP
  I ABMP("ARVERS")'<1.1 M @ABMA=ABMA  ;abm*2.6*3
  Q
  ;
- ; *********************************************************************
 PASS ;
  ;PASS TO A/R
  I ABMP("ARVERS")'<1.1 D

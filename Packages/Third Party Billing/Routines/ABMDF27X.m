@@ -1,5 +1,5 @@
 ABMDF27X ; IHS/ASDST/DMJ - New HCFA-1500 (08/05) Format ;   
- ;;2.6;IHS Third Party Billing;**1,3,4,8,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,4,8,9,10,11**;NOV 12, 2009;Build 133
  ;
  ; Objective: Print designated form using data contained in the
  ;            ABMF array.
@@ -49,6 +49,18 @@ LOOP ;Loop thru line number array
  ...S ABMF(ABMLOOP)=$G(ABMF("TMP"))
  K ABMLOOP,ABMCHK,ABMF("TMP")
  ;
+ ;start new code abm*2.6*11 HEAT97421
+ I $P(ABMF(17),U,4)["IOWA MEDICAID" D
+ .F ABMLOOP=37:2:47 D
+ ..Q:'$D(ABMF(ABMLOOP))
+ ..S ABMCHK=$TR($P(ABMF(ABMLOOP),U,5)," ","")
+ ..I ABMCHK["T1015",ABMLOOP'=37 D
+ ...S ABMF("TMP")=$G(ABMF(37))
+ ...S ABMF(37)=$G(ABMF(ABMLOOP))
+ ...S ABMF(ABMLOOP)=$G(ABMF("TMP"))
+ K ABMLOOP,ABMCHK,ABMF("TMP")
+ ;end new code HEAT97421
+ ;
  ;Skip to req'd line
  F  Q:$Y-ABM("TM")>(ABM("LN")+5)  W ! D
  .Q:($Y-ABM("TM")<1)!($Y-ABM("TM")>5)
@@ -71,6 +83,7 @@ LOOP ;Loop thru line number array
 LOOP2 ;Loop thru the pieces of the line array
  F ABM("I")=1:1:$L(ABMF(ABM("LN")),U) D
  .Q:'+$P(ABM("TABS"),U,ABM("I"))
+ .I ABM("LN")=29,(ABM("I")=4),ABMPGCNT>2 Q  ;abm*2.6*10 HEAT65976
  .I ABM("LN")>30,(ABM("LN")<34),(ABM("I")<3),($P(ABMF(17),U,4)["MAINE MEDICAID") D
  ..S $P(ABMF(ABM("LN")),U,ABM("I"))=$TR($P(ABMF(ABM("LN")),U,ABM("I")),".","")
  .;if Maine Medicaid take commas of out box 24E
@@ -85,7 +98,9 @@ LOOP2 ;Loop thru the pieces of the line array
  ;
  ;Write the field in the designated format
 FRMT S ABM("LTH")=$P(ABM("FMAT"),U,ABM("I")) I +ABM("LTH")=0 S ABM("LTH")=99
- I ABM("LTH")["$" S ABM("LTH")=$P(ABM("LTH"),"$") W $J($FN(+ABM("FLD"),",",2),ABM("LTH")) S:ABM("LN")'=49 ABM("LTOT")=+$G(ABM("LTOT"))+ABM("FLD") Q
+ I $P(ABMF(17),U,4)="PHC MEDICAID",ABM("LTH")["$" S ABM("LTH")=$P(ABM("LTH"),"$") W $J($TR($FN(+ABM("FLD"),",",2),"."),ABM("LTH")) S:ABM("LN")'=49 ABM("LTOT")=+$G(ABM("LTOT"))+ABM("FLD") Q  ;abm*2.6*11 IHS/SD/AML HEAT30524 PARTNERSHIP MCD
+ ;I ABM("LTH")["$" S ABM("LTH")=$P(ABM("LTH"),"$") W $J($FN(+ABM("FLD"),",",2),ABM("LTH")) S:ABM("LN")'=49 ABM("LTOT")=+$G(ABM("LTOT"))+ABM("FLD") Q  ;abm*2.6*10 HEAT65976
+ I ABM("LTH")["$" S ABM("LTH")=$P(ABM("LTH"),"$") W $J($FN(+ABM("FLD"),",",2),ABM("LTH")) S:(ABM("LN")'=49&(ABM("LN")'=29)) ABM("LTOT")=+$G(ABM("LTOT"))+ABM("FLD") Q  ;abm*2.6*10 HEAT65976
  ;if Maine Medicaid take spaces out of dates
  I $P(ABMF(17),U,4)["MAINE MEDICAID",(ABM("LTH")["D") S ABM("LTH")=$P(ABM("LTH"),"D") W $E(ABM("FLD"),4,5),$E(ABM("FLD"),6,7),$E(ABM("FLD"),1,3)+1700 Q
  I ABM("LTH")["T" S ABM("LTH")=$P(ABM("LTH"),"T") W $E(ABM("FLD"),4,5)," ",$E(ABM("FLD"),6,7)," ",$E(ABM("FLD"),2,3) Q
@@ -115,14 +130,17 @@ OVER ;GET OVRRIDE VALUES FROM 3P INSURER FILE
  ..;S ABMVALUE=^ABMNINS(DUZ(2),ABMP("INS"),2,"AOVR",27,ABMOLN,ABMOPC,ABMOVTYP)  ;abm*2.6*9 HEAT51380
  ..S ABMVALUE=^ABMNINS(ABMP("LDFN"),ABMP("INS"),2,"AOVR",27,ABMOLN,ABMOPC,ABMOVTYP)  ;abm*2.6*9 HEAT51380
  ..;I ABMOLN>35,ABMOLN<49 N I F I=36:2:47 D  ;abm*2.6*1 HEAT3077
- ..I ABMOLN>35,ABMOLN<49 N I F I=36:1:47 D  ;abm*2.6*1 HEAT3077
+ ..;I ABMOLN>35,ABMOLN<49 N I F I=36:1:47 D  ;abm*2.6*1 HEAT3077  ;abm*2.6*10 HEAT64983
+ ..;I ABMOLN>35,ABMOLN<49 N I F I=36:1:47 D  Q  ;abm*2.6*1 HEAT3077  ;abm*2.6*10 HEAT64983  ;abm*2.6*11 HEAT104682
+ ..I ABMOLN>35,ABMOLN<49 N I F I=36:1:47 D  ;abm*2.6*11 HEAT104682
  ...Q:'$D(ABMF(I))
  ...Q:$L(ABMF(I),"^")<3
  ...;Q:((ABMF(I)#2)'=(ABMOLN#2))  ;abm*2.6*3 HEAT11389
  ...Q:((I#2)'=(ABMOLN#2))  ;abm*2.6*3 HEAT11389
  ...S $P(ABMF(I),"^",ABMOPC)=ABMVALUE
- ..I ABMOLN>36,ABMOLN<49 Q
- ..S $P(ABMF(ABMOLN),"^",$S((ABMOLN=53):(ABMOPC-1),(ABMOLN=54):(ABMOPC+1),1:ABMOPC))=ABMVALUE
+ ..;I ABMOLN>36,ABMOLN<49 Q  ;abm*2.6*10 HEAT64983
+ ..;S $P(ABMF(ABMOLN),"^",$S((ABMOLN=53):(ABMOPC-1),(ABMOLN=54):(ABMOPC+1),1:ABMOPC))=ABMVALUE  ;abm*2.6*10 HEAT64983
+ ..S $P(ABMF(ABMOLN),"^",$S((ABMOLN=53&ABMOPC=1):ABMOPC,(ABMOLN=53):(ABMOPC-1),(ABMOLN=54):(ABMOPC+1),1:ABMOPC))=ABMVALUE  ;abm*2.6*10 HEAT64983
  K ABMOLN,ABMOPC,ABMVALUE,ABMOVTYP
  Q
 XIT K ABM
@@ -151,10 +169,13 @@ TEXT ;;TABS;;FIELD LENGTH
  ;;3^30^50;;25^19^29C  ;abm*2.6*4 HEAT12115 original 33
 36 ;;1^65^68;;61^2^12
  ;;1^63^65;;61^2^15  ;abm*2.6*8 HEAT14200 original 36
-37 ;;1^10^19^22^23^45^50^59^63^65^68;;8T^8T^2R^1R^19^7^8$^3R^2R^2R^10
+37 ;;1^10^19^22^23^45^50^59^63^65^68;;8T^8T^2R^1R^19^5^8$^4C^2R^2R^10 
+ ;;1^10^19^22^23^45^50^59^63^65^68;;8T^8T^2R^1R^19^7^8$^5R^2R^2R^10  ;abm*2.6*11 IHS/SD/AML HEAT97406 - Move Units to left
+ ;;1^10^19^22^23^45^50^59^63^65^68;;8T^8T^2R^1R^19^7^8$^3R^2R^2R^10  ;abm*2.6*10 HEAT60484 original line 37
 49 ;;1^17^19^23^38^43^51^61^71;;15^1^1^14C^1^1^9$^8$^8$
 50 ;;65;;14
 51 ;;23^50;;26^29
 52 ;;1^23^50;;21^26^29
-53 ;;23^50;;26^29
+53 ;;1^23^50;;21^26^29
+ ;;23^50;;26^29  ;original line 53 abm*2.6*10 HEAT64983
 54 ;;12^23^33^50^62;;10D^10^14R^10C^17

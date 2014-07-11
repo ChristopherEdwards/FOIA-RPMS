@@ -1,5 +1,5 @@
 ABMDES4 ; IHS/ASDST/DMJ - ADA Form Dental Charge Summary ;   
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/EFG - V2.5 P8 - IM16385
  ;   Fix header wrapping; include misc services
@@ -36,7 +36,26 @@ HD ;
  Q
  ;
 WRT ;
- S (ABM("C"),ABM,ABM("TCHRG"))=0
+ ;start new code abm*2.6*11 HEAT117086
+ S ABM("TCHRG")=0
+ S ABM=0
+ I '$G(ABMQUIET) W !
+ F  S ABM=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),43,ABM)) Q:'ABM  S ABM(0)=^(ABM,0)  D
+ .I $P($$CPT^ABMCVAPI(+ABM(0),ABMP("VDT")),U,2)'="T1015" Q  ;CSV-c
+ .S ABM("CHRG")=$P(ABM(0),U,4)
+ .S ABM("CHRG")=ABM("CHRG")*$P($G(ABM(0)),U,3)
+ .S ABM("TCHRG")=ABM("TCHRG")+ABM("CHRG")
+ .Q:$G(ABMQUIET)
+ .I $Y+5>IOSL D HD Q:$D(DUOUT)
+ .W !
+ .W ?18,$E($P($$CPT^ABMCVAPI(+ABM(0),ABMP("VDT")),U,3),1,30)  ;CSV-c
+ .W ?50,$$HDT^ABMDUTL($P(ABM(0),U,7))
+ .W ?62,$P($$CPT^ABMCVAPI(+ABM(0),ABMP("VDT")),U,2)  ;CSV-c
+ .W ?70,$J($FN(ABM("CHRG"),",",2),8)
+ ;end new code HEAT117086
+ ;
+ ;S (ABM("C"),ABM,ABM("TCHRG"))=0  ;abm*2.6*11 HEAT117086
+ S (ABM("C"),ABM)=0  ;abm*2.6*11 HEAT117086
  F  S ABM=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),33,ABM)) Q:'ABM  S ABM(0)=^(ABM,0) D  Q:$D(DUOUT)
  .S ABM("CHRG")=$P(ABM(0),U,8)
  .S ABM("CHRG")=ABM("CHRG")*$P($G(ABM(0)),U,9)
@@ -58,6 +77,7 @@ WRT ;
  S ABM=0
  I '$G(ABMQUIET) W !
  F  S ABM=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),43,ABM)) Q:'ABM  S ABM(0)=^(ABM,0)  D
+ .I $P($$CPT^ABMCVAPI(+ABM(0),ABMP("VDT")),U,2)="T1015" Q  ;CSV-c  ;abm*2.6*11 HEAT117086
  .S ABM("CHRG")=$P(ABM(0),U,4)
  .S ABM("CHRG")=ABM("CHRG")*$P($G(ABM(0)),U,3)
  .S ABM("TCHRG")=ABM("TCHRG")+ABM("CHRG")

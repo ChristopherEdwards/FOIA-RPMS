@@ -1,5 +1,5 @@
 ABMMUPVP ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**7,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**7,8,10,11**;NOV 12, 2009;Build 133
  ;
  I $P($G(^ABMMUPRM(1,0)),U,2)="" D  Q
  .W !!,"Setup has not been done.  Please do MUP option prior to running any reports",!
@@ -28,6 +28,12 @@ EN ;
  I ABMY("RTYP")="SEL" D  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)!'$D(ABMPRVDR)
  .D PRVDR Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)!'$D(ABMPRVDR)
  D PARTYR Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
+ ;start new code abm*2.6*11 MU4
+ I (ABMY("PYR")>2012) D  Q
+ .W !!?5,"**NOTE** For CY 2013+, you should use report options within menu "
+ .W !?15,"MUS2 PARTICIPATION CY 2013+ PATIENT VOLUME REPORTS"
+ .W ! S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
+ ;end new code MU4
  D 90DAY Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  D RFORMAT Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  D SUMMARY
@@ -96,15 +102,18 @@ FAC ;
  .S DIR(0)="SO^"_$G(ABMDIR)
  .S:'$D(ABMF) DIR(0)="S^"_$G(ABMDIR)
  .I ABMFQHC=1 D
- ..S DIR("A",1)="Note: you cannot select a combination of FQHC/RHC and non-FQHC/RHC data on"
- ..S DIR("A",2)="this report"
+ ..;S DIR("A",1)="Note: you cannot select a combination of FQHC/RHC and non-FQHC/RHC data on"  ;abm*2.6*10 HEAT61752
+ ..S DIR("A",1)="Note: you cannot select a combination of FQHC/RHC/Tribal and non-FQHC/RHC/Tribal"  ;abm*2.6*10 HEAT61752
+ ..S DIR("A",2)="data on this report"
  ..S DIR("A",3)=""
  .S DIR("A")="Select one or more facilities to use for calculating patient volume"
  .D ^DIR K DIR
  .Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  .S ABMFANS=Y
- .I ABMFANS'=ABMTOT,$D(ABMF),(ABMFQHC>1),'$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only FQHCs are allowed based on your first selection" H 1 Q
- .I ABMFANS'=ABMTOT,$D(ABMF),(ABMFQHC=1),$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only non-FQHCs are allowed based on your first selection" H 1 Q
+ .;I ABMFANS'=ABMTOT,$D(ABMF),(ABMFQHC>1),'$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only FQHCs are allowed based on your first selection" H 1 Q  ;abm*2.6*10 HEAT61752
+ .I ABMFANS'=ABMTOT,$D(ABMF),(ABMFQHC>1),'$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only FQHC/RHC/Tribals are allowed based on your first selection" H 1 Q  ;abm*2.6*10 HEAT61752
+ .;I ABMFANS'=ABMTOT,$D(ABMF),(ABMFQHC=1),$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only non-FQHCs are allowed based on your first selection" H 1 Q  ;abm*1.6*10 HEAT61501
+ .I ABMFANS'=ABMTOT,$D(ABMF),(ABMFQHC=0),$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only non-FQHC/RHC/Tribal clinics are allowed based on your first selection" H 1 Q  ;abm*1.6*10 HEAT61501, HEAT61752
  .I ABMFANS'=ABMTOT,$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS))) S ABMFQHC=2
  .I ABMFANS'=(ABMTOT) S ABMF($G(ABMFLIST(ABMFANS)))=""
  .I ABMFANS=(ABMTOT) D
@@ -117,7 +126,8 @@ FACLST ;
  F  S ABMCNT=$O(ABMFLIST(ABMCNT)) Q:'ABMCNT  D
  .S:ABMDIR'="" ABMDIR=ABMDIR_";"_ABMCNT_":"_$$GET1^DIQ(9999999.06,$G(ABMFLIST(ABMCNT)),.01,"E")
  .S:ABMDIR="" ABMDIR=ABMCNT_":"_$$GET1^DIQ(9999999.06,$G(ABMFLIST(ABMCNT)),.01,"E")
- .S ABMDIR=ABMDIR_$S($D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))):" (FQHC/RHC)",1:"")
+ .;S ABMDIR=ABMDIR_$S($D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))):" (FQHC/RHC)",1:"")  ;abm*2.6*10 HEAT61752
+ .S ABMDIR=ABMDIR_$S($D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))):" (FQHC/RHC/Tribal)",1:"")  ;abm*2.6*10 HEAT61752
  .S ABMDIR=ABMDIR_$S($D(ABMF($G(ABMFLIST(ABMCNT)))):" *",1:"")
  .I $D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))) S ABMFQHC=1
  .I '$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))) S ABMNFQHC=1
@@ -232,5 +242,6 @@ SUMMARY ;
  S ABMFC=0
  F  S ABMFC=$O(ABMF(ABMFC)) Q:'ABMFC  D
  .W !?3,$$GET1^DIQ(9999999.06,ABMFC,".01","E")
- .I $D(^ABMMUPRM(1,1,"B",ABMFC)) W " (FQHC/RHC)"
+ .;I $D(^ABMMUPRM(1,1,"B",ABMFC)) W " (FQHC/RHC)"  ;abm*2.6*10 HEAT61752
+ .I $D(^ABMMUPRM(1,1,"B",ABMFC)) W " (FQHC/RHC/Tribal)"  ;abm*2.6*10 HEAT61752
  Q

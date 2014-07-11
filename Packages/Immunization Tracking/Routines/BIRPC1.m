@@ -1,8 +1,9 @@
 BIRPC1 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETURNS PATIENT DATA, DATA FOR AN IMMUNIZATION OR SKIN TEST VISIT.
  ;;  PATCH 3: Add Eligibility Code to default Hx string.  GET+35
+ ;;  PATCH 5: Add Admin Note to default Hx string. GET+38
  ;
  ;
  ;----------
@@ -84,8 +85,11 @@ GET(BIDATA,BIDA,BIVTYPE,BIDE) ;PEP - Return data for one Immunization or Skin Te
  ;
  ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
  ;---> Add Eligibility Code Text and NDC Code Text to default Hx string.
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Add Admin Note to default Hx string.
  ;I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80  S BIDE(I)=""
- I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80,82,84  S BIDE(I)=""
+ ;I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80,82,84  S BIDE(I)=""
+ I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80,82,84,87  S BIDE(I)=""
  ;**********
  ;
  ;---> IEN PC  DATA
@@ -117,6 +121,7 @@ GET(BIDATA,BIDA,BIVTYPE,BIDE) ;PEP - Return data for one Immunization or Skin Te
  ;---> 80 25 = NDC Code pointer IEN.
  ;---> 82 22 = Eligibility Code Text.
  ;---> 84 23 = NDC Code Text.
+ ;---> 87 24 = Administrative Note.
  ;
  ;
  ;---> SKIN TEST:

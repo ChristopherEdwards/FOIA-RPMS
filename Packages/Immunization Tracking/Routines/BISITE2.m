@@ -1,10 +1,11 @@
 BISITE2 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT SITE PARAMETERS.
  ;;  PATCH 1: Update text to relect DTap change in Option 1,
  ;;           and allow for Option 11.  RULES+9 and TEXT-4.
  ;;  PATCH 2: Update prompts and help text for HPV.  RULES+41, TEXT9+15
+ ;;  PATCH 5: Update help text for HPV.  TEXT8+8
  ;
  ;
  ;----------
@@ -325,6 +326,9 @@ RULES ;EP
  Q
  ;
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Update HPV text below.
+ ;**********
  ;----------
 TEXT8 ;EP
  ;;Versions 1, 3, 5, 6, 7 and 11 forecast the first vaccines series at 6 wks;
@@ -334,8 +338,7 @@ TEXT8 ;EP
  ;;Hep A starting at 12 months, while options 1,2,5 and 11 forecast Hep A
  ;;at 15 months.  Option 11 does not forecast Hep A or Hep B in persons
  ;;over 18 years, regardless of prior doses. All options forecast Tdap, MCV4,
- ;;and HPV for adolescents per ACIP recs (HPV doses 2 and 3 forecast only in
- ;;males who receive dose 1).
+ ;;and HPV for adolescents per ACIP recommendations.
  ;;
  ;;   Option       6 Mths         12 Mths                     15 Mths
  ;;   ------       ------  -----------------------------      ----------

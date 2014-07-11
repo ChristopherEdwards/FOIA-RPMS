@@ -1,10 +1,11 @@
 BIREPF4 ;IHS/CMI/MWR - REPORT, FLU IMM; OCT 15, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  INFLUENZA IMM REPORT, GATHER/STORE PATIENTS.
  ;;  PATCH 1: Exclude patients whose Inactive Date=Not in Register.  CHKSET+31
  ;;  PATCH 2: Filter for Active Clinical, all ages, using $$ACTCLIN^BIUTL6 call.
  ;;           CHKSET+39
+ ;;  PATCH 5: Begin Flu Report on July 1.  CHKSET+107
  ;
  ;
  ;----------
@@ -144,7 +145,11 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIAGRP,BIQDT,BIFH,BIYEAR,BIUP) ;EP
  .;
  .;---> If this was in the current season, C=1; otherwise C=0 (before this season).
  .D
- ..I BIDT<($E(BIQDT,1,3)_"0901") S C=0 Q
+ ..;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ..;---> Begin Flu Report on July 1.
+ ..;I BIDT<($E(BIQDT,1,3)_"0901") S C=0 Q
+ ..I BIDT<($E(BIQDT,1,3)_"0701") S C=0 Q
+ ..;**********
  ..S C=1
  .;
  .;---> Set Dose# (increment by 1's to assign highest/latest dose#).

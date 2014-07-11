@@ -1,8 +1,36 @@
 BIUTLFIX ;IHS/CMI/MWR - UTIL: FIX STUFF.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: FIXES: LISTMAN HIDDEN MENUS.
  ;;  PATCH 1: UPDATE VACCINE TABLE: ADD "INFLUENZA, 1203" CVX=123
+ ;;  PATCH 5: Back-populate SNOMED Codes to all Contraindications.  SNOMED+0
+ ;
+ ;
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+SNOMED ;PEP - Back-populate SNOMED Codes to all Contraindications.
+ ;
+ N BIIEN S BIIEN=0 F  S BIIEN=$O(^BIPC(BIIEN)) Q:'BIIEN  D
+ .Q:'$D(^BIPC(BIIEN,0))
+ .N BICRIEN,BIVIEN,BIY
+ .S BIY=^BIPC(BIIEN,0)
+ .S BIVIEN=$P(BIY,U,2)  ;Vaccine IEN.
+ .S BICRIEN=$P(BIY,U,3) ;Contraindication Reason IEN.
+ .N I,X,Y
+ .;---> Get string of Vaccine Component IEN's.
+ .S X=$$VCOMPS^BIUTL2(BIVIEN)
+ .;---> If no components process the vaccine itself.
+ .S:('+X) X=BIVIEN
+ .;
+ .F I=1:1:6 S Y=$P(X,";",I) Q:'Y  D
+ ..;---> Get Vaccine Group IEN of this vaccine.
+ ..N BIVGRP S BIVGRP=$$IMMVG^BIUTL2(Y)
+ ..;---> Quit if Vaccine Group is Other, Skin Test, or Combo.
+ ..Q:((BIVGRP=12)!(BIVGRP=13)!(BIVGRP=14)!(BIVGRP<1))
+ ..;---> Call Lori's Magic Mapper to get SNOMED Code.
+ ..D SNOMED^BIRPC4(BIVGRP,BICRIEN,BIIEN)
+ Q
+ ;**********
  ;
  ;
  ;----------

@@ -1,5 +1,5 @@
 ABMDEMLE ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;
- ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9,10,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
  ; IHS/SD/SDR - v2.5 p6 - 7/9/04 - IM14079 and IM14121 - Edited code for TOS
@@ -38,7 +38,8 @@ E2 W !!!,"[",+Y,"]  ",$P(ABMZ(+Y),U) S ABMX("Y")=+Y
  I $P(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),$P(ABMZ(ABMX("Y")),U,2),0),U,17)'["|TC" D
  .I $D(ABMZ("MOD")),$P($G(^ABMDPARM(DUZ(2),1,2)),"^",5) D MOD2^ABMDEMLC S ABMZ("DR")=ABMZ("DR")_ABMZ("CHRG")_"////"_ABMZ("MODFEE")
  ;start new code abm*2.6*9 NARR
- I ABMZ("SUB")>21,ABMZ("SUB")<47,ABMZ("SUB")'=41,$D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMZIEN)) D
+ ;I ABMZ("SUB")>21,ABMZ("SUB")<47,ABMZ("SUB")'=41,$D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMZIEN)) D  ;abm*2.6*10 HEAT74291
+ I ABMZ("SUB")>21,ABMZ("SUB")<47,ABMZ("SUB")'=41,$G(ABMZIEN)'="",$D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMZIEN)) D  ;abm*2.6*10 HEAT74291
  .Q:$P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010"  ;only 5010 formats
  .S ABMCNCK=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",ABMZIEN,0))
  .I ABMCNCK,$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMCNCK,0)),U,2)="Y" S ABMZ("DR")=ABMZ("DR")_";22"
@@ -51,7 +52,7 @@ E2 W !!!,"[",+Y,"]  ",$P(ABMZ(+Y),U) S ABMX("Y")=+Y
  .I $G(ABMZ("SUB"))=17&($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,13)="Y")&(($E(ABMP("BTYP"),1,2)=11)!($E(ABMP("BTYP"),1,2)="12")) S ABMZ("DR")=ABMZ("DR")_";.05//"
  ; don't do POS if page 5 (Dxs)
  I $G(ABMZ("SUB"))'=17 D
- .;D POSA^ABMDEMLC  ;abm*2.6*9 NOHEAT
+ .D POSA^ABMDEMLC  ;abm*2.6*9 NOHEAT  ;abm*2.6*10 IHS/SD/AML HEAT76189 - <<REACTIVATED LINE>> REMOVE DUPLICATE POS FIELD FROM 8G, ASKS FOR POS NOW
  .I ABMP("EXP")'=21,(ABMP("EXP")'=22),(ABMP("EXP")'=23) D TOSA^ABMDEMLC  ;don't do for 837 formats
  ;I $G(ABMZIEN)'="",((ABMZIEN>79999)&(ABMZIEN<90000))!($P($$CPT^ABMCVAPI(ABMZIEN,ABMP("VDT")),U,2)="G0107") D  ;G0107 or Lab charges only  ;CSV-c  ;abm*2.6*3 HEAT11696
  ;I $G(ABMZIEN)'="",((ABMZIEN>79999)&(ABMZIEN<90000))!($P($$CPT^ABMCVAPI(ABMZIEN,ABMP("VDT")),U,2)="G0107")!(ABMZIEN=36415) D  ;G0107 or Lab charges only  ;CSV-c  ;abm*2.6*3 HEAT11696  ;abm*2.6*8 HEAT40295
@@ -62,6 +63,7 @@ E2 W !!!,"[",+Y,"]  ",$P(ABMZ(+Y),U) S ABMX("Y")=+Y
  .I ABMZ("SUB")=37 F ABMMOD=6,7,8 I $P(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),DA,0),U,ABMMOD)=90 S ABMXMOD=1
  .I $G(ABMXMOD)'="" D
  ..S ABMODFLT=$S($P(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),DA,0),U,14):$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),DA,0),U,14),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),9)),U,23))
+ ..S ABMODFLT=$$GET1^DIQ(9002274.35,ABMODFLT,".01","E")  ;display ref lab by name, not IEN into ref lab file  ;abm*2.6*11 HEAT85498
  ..S ABMZ("DR")=ABMZ("DR")_";.13////@;.14//^S X=ABMODFLT"
  .E  S ABMZ("DR")=ABMZ("DR")_";.14////@;.13//"_$S($P(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),DA,0),U,13):$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),DA,0),U,13),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),9)),U,22))
  I ABMZ("SUB")=37 D
@@ -108,6 +110,7 @@ PROV ;
  S ABMFLNM="9002274.30"_$G(ABMZ("SUB"))
  S DIC("P")=$P($G(^DD(ABMFLNM,.18,0)),U,2)
  Q:DIC("P")=""
+ I $G(ABMDPRV)'="" S DIC("B")=ABMDPRV  ;abm*2.6*10
  S DIC("DR")=".01;.02//RENDERING"
  I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),DA(1),"P","C","R",0))>0 S DIC("DR")=".01;.02//ORDERING"
  D ^DIC
@@ -134,12 +137,25 @@ PROV ;
  ..W !!,"YOU HAVE ENTERED TWO ",$S(ABMPVCKR>1:"RENDERING",1:"ORDERING")," PROVIDERS AND ONLY ONE CAN BE PUT ON AN 837P."
  ..K ABMPVCKR,ABMPVCKD,ABMTYP,ABMIEN,ABMLN
 MILEAGE ;
- I ((ABMZ("SUB")=47)!(ABMZ("SUB")=43)),("A0888^A0425"[$P(ABMZ(ABMX("Y")),U)) D
+ ;I ((ABMZ("SUB")=47)!(ABMZ("SUB")=43)),("A0888^A0425"[$P(ABMZ(ABMX("Y")),U)) D  ;abm*2.6*10 COB billing
+ I ((ABMZ("SUB")=47)!(ABMZ("SUB")=43)),("^A0888^A0425^"[("^"_$P(ABMZ(ABMX("Y")),U))_"^") D  ;abm*2.6*10 COB billing
  .S DIE="^ABMDCLM(DUZ(2),"
  .S DA=ABMP("CDFN")
- .S ABMIEN=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),"B",ABMX("Y"),0))
- .I $P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)="A0425" S DR=".128////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8))  ;CSV-c
- .I $P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)="A0888" S DR=".129////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9))  ;CSV-c
+ .;start old code abm*2.6*10 HEAT68832
+ .;S ABMIEN=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),"B",ABMX("Y"),0))
+ .;I $P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)="A0425" S DR=".128////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8))  ;CSV-c
+ .;I $P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)="A0888" S DR=".129////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9))  ;CSV-c
+ .;end old code start new code HEAT68832
+ .S ABMIEN=$P(ABMZ(ABMX("Y")),U,2)
+ .I $P(ABMZ(ABMX("Y")),U)="A0425" D
+ ..;changed below during p10 testing to update page 3A all the time
+ ..;S DR=".128////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8))  ;CSV-c  ;abm*2.6*10
+ ..S DR=".128////"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3)  ;abm*2.6*10
+ .I $P(ABMZ(ABMX("Y")),U)="A0888" D
+ ..;changed below during p10 testing to update page 3A all the time
+ ..;S DR=".129////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9))  ;CSV-c  ;abm*2.6*10
+ ..S DR=".129////"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3)  ;abm*2.6*10
+ .;end new code HEAT68832
  .D ^DIE
  ;
 XIT K ABMX

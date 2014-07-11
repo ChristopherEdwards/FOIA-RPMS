@@ -1,5 +1,5 @@
 ABMUCASH ; IHS/SD/SDR - 3PB/UFMS Cashiering Options   
- ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**9,11**;NOV 12, 2009;Build 133
  ; New routine - v2.5 p12 SDD item 4.9.1
  ; Cashiering Sign In/Out option
 EP ;EP
@@ -39,7 +39,8 @@ EP ;EP
  .S ABMBA=""
  .I '$D(ABMBAL) W !?5,"AT THIS TIME THERE IS NO BILLING ACTIVITY FOR THIS SESSION.",!
  .F  S ABMBA=$O(ABMBAL(ABMBA)) Q:ABMBA=""  D
- ..W !?5,$P($T(@ABMBA),";;",2)
+ ..;W !?5,$P($T(@ABMBA),";;",2)  ;abm*2.6*11 insurer type
+ ..W !?5,$$INSTYP(ABMBA)  ;abm*2.6*11 insurer type
  ..W !?10,"- Cancelled Claims",?33,+$G(ABMBAL(ABMBA,"CCLMS"))
  ..W !?10,"- Approved Bills",?33,+$G(ABMBAL(ABMBA,"ABILLS")),?40,"$",$J($FN(+$G(ABMBAL(ABMBA,"ABAMT")),",",2),10)
  ..I ABMTRIBL=1,(+$G(ABMBAL(ABMBA,"EBILLS"))>0) D
@@ -234,7 +235,8 @@ DTAILPRT ;
  S ABMBAOUT=""
  F  S ABMBAOUT=$O(ABMB(ABMBAOUT)) Q:ABMBAOUT=""  D  Q:+$G(Y)=0&(IOST["C")
  .Q:ABMBAOUT=12!(ABMBAOUT=13)  ;skip requeued bills/exports for now
- .W !!,$P($T(@ABMBAOUT^ABMUCASH),";;",2)
+ .;W !!,$P($T(@ABMBAOUT^ABMUCASH),";;",2)  ;abm*2.6*11 insurer type
+ .W !!,$$INSTYP(ABMBAOUT)  ;abm*2.6*11 insurer type
  .F ABMI=1:1:3 D  Q:+$G(Y)=0&(IOST["C")
  ..I ABMI=1,(+$G(ABMBAL(ABMBAOUT,"CCLMS"))'=0) W !?2,"-CANCELLED CLAIMS - ",+$G(ABMBAL(ABMBAOUT,"CCLMS"))
  ..I ABMI=2,(+$G(ABMBAL(ABMBAOUT,"ABILLS"))'=0) D
@@ -270,9 +272,7 @@ DTAILPRT ;
  .....I +ABMP("XMIT")=0 D  ;bill not transmitted yet
  ......I $$BILL^ABMUEAPI(ABMDUZ2,ABMBDFN)=0 W "*"  ;excluded/tribal data
  ...I ABMI=1 D
- ....;S ABME(ABMBAOUT,"AMT")=$G(ABME(ABMBAOUT,"AMT"))+(ABME(21))  ;cnt bill amt
  ....S ABME("CNT")=+$G(ABME("CNT"))+1  ;cnt tot bills
- ....;S ABME("TOT")=+$G(ABME("TOT"))+(ABME(21))  ;cnt tot bill amt
  ....S ABME(21)=$$SDT^ABMDUTL($P($G(^ABMCCLMS(ABMDUZ2,ABMBDFN,0)),U,2))
  ....S ABME(1)=ABMBDFN
  ....S ABME(3)=$P($G(^ABMCCLMS(ABMDUZ2,ABMBDFN,0)),U,3)
@@ -323,19 +323,11 @@ QUE ;QUE TO TASKMAN
  W:$G(ZTSK) !,"Task # ",ZTSK," queued.",!
  Q
  ;
-H ;;HMO
-M ;;MEDICARE SUPPL.
-D ;;MEDICAID FI
-R ;;MEDICARE FI
-P ;;PRIVATE
-W ;;WORKMEN'S COMP
-C ;;CHAMPUS
-F ;;FRATERNAL ORG
-N ;;NON-BENEFICIARY
-I ;;BENEFICIARY
-K ;;KIDSCARE (CHIP)
-T ;;THIRD PARTY LIABILITY
-G ;;GUARANTOR
-MD ;;MEDICARE PART D
-MH ;;MEDICARE HMO
- Q
+ ;start new code abm*2.6*11 insurer type
+INSTYP(X) ;PEP - returns insurer type name
+ ; X = CODE (1)
+ N ABMINS,ABMITYP
+ S ABMINS=$O(^AUTTINTY("C",X,0))
+ S ABMITYP=$$GET1^DIQ(9999999.181,ABMINS,".01","E")
+ Q ABMITYP
+ ;end new code insurer type

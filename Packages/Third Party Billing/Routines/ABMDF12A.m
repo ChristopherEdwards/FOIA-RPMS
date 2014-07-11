@@ -1,13 +1,11 @@
-ABMDF12A ; IHS/ASDST/DMJ - ADA Dental Export -part 2 ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6**;NOV 12, 2009
+ABMDF12A ; IHS/SD/SDR - ADA Dental Export -part 2 ;   
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,10,11**;NOV 12, 2009;Build 133
  ;Original;TMD;08/13/96 11:47 AM
  ;
- ;  IHS/DSD/DMJ - 7/20/98 - NOIS XFA-0698-200102
- ;                Meds showing up on split bill for ADA & HCFA.
- ;                Modified to show meds on HCFA only
- ;                Also add code so claim generator will not bomb
- ;                if auto approve is turned on and Y2K fix to
- ;                print 4 digit year in 3 birthdate fields.
+ ; IHS/DSD/DMJ - 7/20/98 - NOIS XFA-0698-200102
+ ;   Meds showing up on split bill for ADA & HCFA.
+ ;   Modified to show meds on HCFA only.  Also add code so claim generator will not bomb
+ ;   if auto approve is turned on and Y2K fix to print 4 digit year in 3 birthdate fields.
  ;
  ;IHS/DSD/DMJ - 5/5/1999 - NOIS PCB-0599-90008 Patch 1
  ;     Previous payments not printing in block #42
@@ -52,7 +50,8 @@ ENT ;EP for getting data
  ;
 BADDR S ABM("J")=ABMP("BDFN"),ABM("I")=$P(^AUTNINS(ABMP("INS"),0),U)_"-"_ABMP("INS")
  S ABM("INS",ABM("I"),ABM("J"))=""
- I $P($G(^AUTNINS(ABMP("INS"),2)),U)="N" D
+ ;I $P($G(^AUTNINS(ABMP("INS"),2)),U)="N" D  ;abm*2.6*10 HEAT73780
+ I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="N" D  ;abm*2.6*10 HEAT73780
  .S ABM("INS",ABM("I"),ABM("J"))=ABMP("PDFN")
  S ABM("IDFN")=ABMP("INS") D BADDR^ABMDLBL1 G PAT:'$D(ABM("ADD"))
  S ABMF(2)="^^"_$P(ABM("ADD"),U,1),ABMF(3)="X^"_$P(ABM("ADD"),U,2),ABMF(4)="^^"_$P(ABM("ADD"),U,3)
@@ -95,7 +94,8 @@ PRV S ABM("X")=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),41,"C","A",0)) I ABM("X") D
  .D PAYED^ABMERUTL
  .;S ABMF(58)=$P(ABM("A"),U)_U_ABM("PNUM")_U_DT_U_$G(ABMP("PAYED"))  ;abm*2.6*6 HEAT27940
  .S ABMF(58)=$P(ABM("A"),U)_U_ABM("PNUM")_U_U_$G(ABMP("PAYED"))  ;abm*2.6*6 HEAT27940
- .S $P(ABMF(58),U,3)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,7),0)),U),1:DT)  ;abm*2.6*6 HEAT27940
+ .;S $P(ABMF(58),U,3)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,7),0)),U),1:DT)  ;abm*2.6*6 HEAT27940  ;abm*2.6*11 HEAT81561
+ .S $P(ABMF(58),U,3)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,7),0)),U),$G(ABMP("PRINTDT"))="A":$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,5),1:DT)  ;abm*2.6*6 HEAT27940  ;abm*2.6*11 HEAT81561
 POL ;POLICY INFORMATION
  N I S I=0 F  S I=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,I)) Q:'I  D
  .I $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,I,0),"^",3)="I" S ABM("XIEN")=I

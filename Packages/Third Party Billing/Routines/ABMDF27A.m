@@ -1,5 +1,5 @@
-ABMDF27A ; IHS/ASDST/DMJ - Set HCFA-1500 (08/05) Print Array ;    
- ;;2.6;IHS Third Party Billing;**1,4**;NOV 12, 2009
+ABMDF27A ; IHS/SD/SDR - Set HCFA-1500 (08/05) Print Array ;    
+ ;;2.6;IHS Third Party Billing;**1,4,10,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25331
  ;   Put taxonomy code if NPI ONLY
@@ -18,7 +18,8 @@ ENT ;
  S ABMP("BTYP")=$P(ABMP("B0"),"^",2)                 ;Bill type
  S ABMP("VTYP")=$P(ABMP("B0"),"^",7)                 ;Visit Type IEN
  S (ABMP("CLN"),ABMP("CLIN"))=$P(ABMP("B0"),"^",10)                ;clinic
- S ABMP("ITYPE")=$P($G(^AUTNINS(ABMP("INS"),2)),U)  ; Type of ins.
+ ;S ABMP("ITYPE")=$P($G(^AUTNINS(ABMP("INS"),2)),U)  ; Type of ins.  ;abm*2.6*10 HEAT73780
+ S ABMP("ITYPE")=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")  ; Type of ins.  ;abm*2.6*10 HEAT73780
  S ABMP("NPIS")=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))
  S (ABMV("X1"),ABMV("X2"),ABMV("X3"))=""
  D PAT^ABMDE1X                        ; returns ABMV("X2") array
@@ -33,7 +34,8 @@ BLOC ;
  I $P(ABMF(51),"^",2)="" D
  .S $P(ABMF(51),U,2)=$S($P($G(^ABMDPARM(DUZ(2),1,2)),U,6)]"":$P(^(2),U,6),$P($P(ABMV("X1"),U,2),"C/O ",2)]"":$P($P(ABMV("X1"),U,2),"C/O ",2),1:$P($P(ABMV("X1"),U),";",2))
  S $P(ABMF(52),U,3)=$P(ABMV("X1"),U,3)   ; Billing Address
- S $P(ABMF(53),U,2)=$TR($P(ABMV("X1"),U,4),",")   ; Billing City,State Zip
+ ;S $P(ABMF(53),U,2)=$TR($P(ABMV("X1"),U,4),",")   ; Billing City,State Zip  ;abm*2.6*10 HEAT64983
+ S $P(ABMF(53),U,3)=$TR($P(ABMV("X1"),U,4),",")   ; Billing City,State Zip  ;abm*2.6*10 HEAT64983
  S ABMLNPI=$S($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,8)'="":$P(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1),U,8),$P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,12)'="":$P(^ABMDPARM(ABMP("LDFN"),1,2),U,12),1:ABMP("LDFN"))
  S $P(ABMF(54),U,2)=$P($$NPI^XUSNPI("Organization_ID",ABMLNPI),U)
  I ($P($G(^DIC(40.7,ABMP("CLIN"),0)),U,2)=72)&($P($G(^ABMDPARM(ABMP("LDFN"),1,5)),U,4)'="") S $P(ABMF(54),U,2)=$P($G(^ABMDPARM(ABMP("LDFN"),1,5)),U,4)  ;abm*2.6*1 HEAT4158
@@ -53,11 +55,13 @@ VLOC ;
  I $D(^DIC(4,ABMP("LDFN"),1)) D
  .S ABMVLOC=^DIC(4,ABMP("LDFN"),1)
  .S $P(ABMF(52),"^",2)=$P(ABMVLOC,U)
- .S $P(ABMF(53),U)=$TR($$CSZ^ABMDUTL($P(ABMVLOC,"^",3)_"^"_$P(^DIC(4,ABMP("LDFN"),0),"^",2)_"^"_$P(ABMVLOC,"^",4)),",")
+ .;S $P(ABMF(53),U)=$TR($$CSZ^ABMDUTL($P(ABMVLOC,"^",3)_"^"_$P(^DIC(4,ABMP("LDFN"),0),"^",2)_"^"_$P(ABMVLOC,"^",4)),",")  ;abm*2.6*10 HEAT64983
+ .S $P(ABMF(53),U,2)=$TR($$CSZ^ABMDUTL($P(ABMVLOC,"^",3)_"^"_$P(^DIC(4,ABMP("LDFN"),0),"^",2)_"^"_$P(ABMVLOC,"^",4)),",")  ;abm*2.6*10 HEAT64983
  .K ABMVLOC
  I '$D(^DIC(4,ABMP("LDFN"),1)) D
  .S $P(ABMF(52),U,2)=$P(^AUTTLOC(ABMP("LDFN"),0),U,12)
- .S $P(ABMF(53),U)=$TR($$CSZ^ABMDUTL($P(^AUTTLOC(ABMP("LDFN"),0),U,13,15)),",")
+ .;S $P(ABMF(53),U)=$TR($$CSZ^ABMDUTL($P(^AUTTLOC(ABMP("LDFN"),0),U,13,15)),",")  ;abm*2.6*10 HEAT64983
+ .S $P(ABMF(53),U,2)=$TR($$CSZ^ABMDUTL($P(^AUTTLOC(ABMP("LDFN"),0),U,13,15)),",")  ;abm*2.6*10 HEAT64983
  I $P($G(^DIC(40.7,$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,10),0)),U)["AMBULANCE" D
  .S ABMDREC=$$GETDEST^ABMDE31($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),12)),U,7))
  .S $P(ABMF(52),U,2)="DESTINATION: "_$P(ABMDREC,U)
@@ -74,13 +78,24 @@ INSNUM ;
  .S ABM("INUM")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,$S(ABM("I")="Y":999,1:$P(ABMP("B0"),U,7)),0)),U,8)
  S:ABM("INUM")="" ABM("INUM")=$P($G(^AUTNINS(ABMP("INS"),15,ABMP("LDFN"),0)),U,2)
  S:(ABMP("NPIS")'="N") $P(ABMF(54),U,5)=ABM("INUM")
- I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R"&(ABMP("NPIS")'="N") S $P(ABMF(54),U,5)=$P(^AUTTLOC(ABMP("LDFN"),0),U,19)
- S ABM("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)
+ ;I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R"&(ABMP("NPIS")'="N") S $P(ABMF(54),U,5)=$P(^AUTTLOC(ABMP("LDFN"),0),U,19)  ;abm*2.6*10 HEAT73780
+ ;S ABM("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)  ;abm*2.6*10 HEAT73780
+ S ABM("ITYP")=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
+ I ABM("ITYP")="R"&(ABMP("NPIS")'="N") S $P(ABMF(54),U,5)=$P(^AUTTLOC(ABMP("LDFN"),0),U,19)  ;abm*2.6*10 HEAT73780
  S ABM("ITYP")=$S(ABM("ITYP")="R":1,ABM("ITYP")="D":2,ABM("ITYP")="C":3,1:7)
+ I $P($G(^AUTNINS(ABMP("INS"),0)),U)="PHC MEDICAID" S ABM("ITYP")=5  ;abm*2.6*11 IHS/SD/AML 3/31/2011 HEAT30524 - PARTNERSHIP MEDICAID EDITS
  S $P(ABMF(1),U,ABM("ITYP"))="X"
  ;
 TAX ;
  S $P(ABMF(49),U,1)=$P(ABMV("X1"),U,6)
+ ;abm*2.6*11 IHS/SD/AML 7/1/13 - BEGIN NEW CODE - Uses new Tax ID for VA Billing only
+ I $P($G(^AUTNINS(ABMP("INS"),0)),U)["VMBP"  D
+ .I DUZ(2)=2248 S $P(ABMF(49),U,1)="364587378"  ;Crow Hospital
+ .I DUZ(2)=2299 S $P(ABMF(49),U,1)="371522894"  ;Fort Belknap
+ .I DUZ(2)=2311 S $P(ABMF(49),U,1)="364587381"  ;Fort Peck
+ .I DUZ(2)=2348 S $P(ABMF(49),U,1)="364587379"  ;Lame Deer
+ .I DUZ(2)=2336 S $P(ABMF(49),U,1)="364587384"  ;Fort Washakie
+ ;abm*2.6*11 IHS/SD/AML 7/1/13 - END NEW CODE - Uses new Tax ID for VA Billing only
  S:$P(ABMV("X1"),U,6)]"" $P(ABMF(49),U,3)="X"
  S $P(ABMF(49),U,5)="X"
  ;

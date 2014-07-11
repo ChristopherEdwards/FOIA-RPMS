@@ -1,5 +1,5 @@
 ABME5L8 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9,10,11**;NOV 12, 2009;Build 133
  ;Header Segments
 START ;START HERE
  D PAYED^ABMUTLP
@@ -7,7 +7,8 @@ START ;START HERE
  S ABMI=0
  F  S ABMI=$O(ABMP("INS",ABMI)) Q:'ABMI  D
  .S ABMLINE=ABMP("INS",ABMI)
- .I $P(ABMLINE,U)=ABMP("INS"),$P(ABMLINE,"^",3)="I" Q
+ .;I $P(ABMLINE,U)=ABMP("INS"),$P(ABMLINE,"^",3)="I" Q  ;abm*2.6*10 HEAT58915
+ .I $S($P(ABMLINE,U,11):$P(ABMLINE,U,11),1:$P(ABMLINE,U))=ABMP("INS"),$P(ABMLINE,"^",3)="I" Q  ;abm*2.6*10 HEAT58915
  .; Loop 2320 - Other Subscriber Information
  .S ABMLOOP=2320
  .;abm*2.6*8 start new code
@@ -25,6 +26,12 @@ START ;START HERE
  .I $G(ABMP("PAYED",+ABMLINE))!($P($G(^ABMNINS(ABMP("LDFN"),+ABMLINE,0)),U,11)="Y") D  ;abm*2.6*9 tribal self-insured
  ..D EP^ABME5AMT("D")
  ..D WR^ABMUTL8("AMT")
+ .;start new code abm*2.6*10 COB billing
+ .;I ABMPSQ'=1,$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,+ABMP("INS"),".211","I"),1,"I")="R" D
+ ..S ABMAMT=0
+ ..D EP^ABME5AMT("B6")
+ ..D WR^ABMUTL8("AMT")
+ ..;end new code abm*2.6*10 COB billing
  .D ^ABME5OI
  .D WR^ABMUTL8("OI")
  .; Loop 2330A - Other Subscriber Name
@@ -42,7 +49,8 @@ START ;START HERE
  .;I $G(ABMP("PAYED",+ABMLINE)) D  ;abm*2.6*9 tribal self-insured
  .I $G(ABMP("PAYED",+ABMLINE))'="" D  ;abm*2.6*9 tribal self-insured
  ..;S ABMPDT=$G(ABMP("PDT",+ABMLINE))  ;abm*2.6*9 tribal self-insured
- ..S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:"")  ;abm*2.6*9 tribal self-insured
+ ..;S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:"")  ;abm*2.6*9 tribal self-insured  ;abm*2.6*10 COB billing
+ ..S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:DT)  ;abm*2.6*9 tribal self-insured  ;abm*2.6*10 COB billing
  ..D EP^ABME5DTP(573,"D8",ABMPDT)
  ..D WR^ABMUTL8("DTP")
  ..K ABMPDT

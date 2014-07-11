@@ -1,8 +1,10 @@
 BIEXPRT3 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: GATHER IMM HISTORIES FOR PATIENTS
  ;;  STORED IN ^BITMP(.
+ ;;  PATCH 5: Added BI01 for Admin Note at 1-node.  HISTORY+20,HISTORY1+13,+29
+ ;;  PATCH 5: Increase nodes to accommodate Admin Notes.  GLBSET+30
  ;
  ;
  ;----------
@@ -25,7 +27,11 @@ HISTORY(BIFMT,BIDE,BIMM,BIFDT,BISKIN,BIDUZ2,BINF) ;EP
  ;---> If no Forecast Date passed, set it equal to today.
  S:'$G(BIFDT) BIFDT=DT
  ;
- N BI0,BI012,BIDFN,BIVIMM,BIVSKN
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BI01 for Admin Note at 1-node.
+ ;N BI0,BI012,BIDFN,BIVIMM,BIVSKN
+ N BI0,BI01,BI012,BIDFN,BIVIMM,BIVSKN
  ;
  ;---> Do not include Skin Test in HL7 or Immserve Formats.
  S:BIFMT>1 BISKIN=0 S:'$G(BISKIN) BISKIN=0
@@ -119,7 +125,11 @@ HISTORY1(BIVIEN,BIDE,BIFMT,BIVTYPE,BIDATA,BIERR,BISTOR) ;EP
  ;     6 - BIERR   (ret) Text of Error Code if any, otherwise null.
  ;     7 - BISTOR  (opt) Store: zero or null=store in ^BITMP; 1=don't.
  ;
- N BI0,BI012,BIDATE,BIVG,BISUB,BITMP,BIVPTR,N,Q,V
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BI01 for Admin Note at 1-node.
+ ;N BI0,BI012,BIDATE,BIVG,BISUB,BITMP,BIVPTR,N,Q,V
+ N BI0,BI01,BI012,BIDATE,BIVG,BISUB,BITMP,BIVPTR,N,Q,V
+ ;
  ;---> Set local variables necessary for collection of Data Elements.
  ;---> Set subscripts and delimiters necessary for selected format.
  S BIERR="",BISUB=1,Q="",V=U
@@ -131,9 +141,13 @@ HISTORY1(BIVIEN,BIDE,BIFMT,BIVTYPE,BIDATA,BIERR,BISTOR) ;EP
  I ($G(BIVTYPE)'="I")&($G(BIVTYPE)'="S") D  Q
  .D ERRCD^BIUTL2(410,.BIERR)
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BI01 for Admin Note at 1-node.
  ;---> BI0=Zero node of V FILE Visit; BI012=12 node of V FILE Visit.
- S:BIVTYPE="I" BI0=$G(^AUPNVIMM(BIVIEN,0)),BI012=$G(^(12))
- S:BIVTYPE="S" BI0=$G(^AUPNVSK(BIVIEN,0)),BI012=$G(^(12))
+ ;S:BIVTYPE="I" BI0=$G(^AUPNVIMM(BIVIEN,0)),BI012=$G(^(12))
+ ;S:BIVTYPE="S" BI0=$G(^AUPNVSK(BIVIEN,0)),BI012=$G(^(12))
+ S:BIVTYPE="I" BI0=$G(^AUPNVIMM(BIVIEN,0)),BI01=$G(^(1)),BI012=$G(^(12))
+ S:BIVTYPE="S" BI0=$G(^AUPNVSK(BIVIEN,0)),BI01=$G(^(1)),BI012=$G(^(12))
  I BI0="" D ERRCD^BIUTL2(412,.BIERR) Q
  ;
  ;---> Quit if Format is Immserve and Vaccine is "OTHER" (HL7=0).
@@ -266,6 +280,16 @@ GLBSET(BISUB,BIDFN,BIVG,BIDATE,BIVIEN,BIDATA) ;EP
  S ^BITMP($J,BISUB,BIDFN,BIVG,BIDATE,BIVIEN,6)=$E(BIDATA,1501,1750)
  Q:$L(BITMP)<1751
  S ^BITMP($J,BISUB,BIDFN,BIVG,BIDATE,BIVIEN,7)=$E(BIDATA,1751,2000)
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Increase nodes to accommodate Admin Notes.
+ Q:$L(BITMP)<2001
+ S ^BITMP($J,BISUB,BIDFN,BIVG,BIDATE,BIVIEN,8)=$E(BIDATA,2001,2250)
+ Q:$L(BITMP)<2251
+ S ^BITMP($J,BISUB,BIDFN,BIVG,BIDATE,BIVIEN,9)=$E(BIDATA,2251,2500)
+ Q:$L(BITMP)<2501
+ S ^BITMP($J,BISUB,BIDFN,BIVG,BIDATE,BIVIEN,10)=$E(BIDATA,2501,2750)
+ ;**********
  Q
  ;
  ;

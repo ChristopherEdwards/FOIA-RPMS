@@ -1,19 +1,5 @@
 ABMDTIN1 ; IHS/ASDST/DMJ - Maintenance of INSURER FILE part 2 ;   
- ;;2.6;IHS Third Party Billing;**1,6,8,9**;NOV 12, 2009
- ; IHS/SD/SDR - v2.5 p8 IM13693/IM17856 - Ask for new EMC REFERENCE ID
- ; IHS/SD/SDR - v2.5 p8 - task 8 - Added code for replacement insurer prompts
- ; IHS/SD/SDR - v2.5 p9 - IM19305 - Added itemized question to 837I format
- ; IHS/SD/SDR - v2.5 p9 - IM16962 - Ask EMC SUBMITTER ID all the time
- ; IHS/SD/SDR - v2.5 p9 - IM17789 - Fixed multiple lookup-error <SUBSCRIPT>I1+4^DICUIX
- ; IHS/SD/SDR - v2.5 p10 - IM20309 - Added RX in FL44 prompt
- ; IHS/SD/SDR - v2.5 p10 - IM20606 - Added code to put end date if none is put
- ; IHS/SD/SDR - v2.5 p10 - block 29 - Added code for new block 29 prompt
- ; IHS/SD/SDR - v2.5 p10 - IM21068 - Added prompt so CLIA number will print all the time or not
- ;   Also included DME group number issue IM20225
- ; IHS/SD/SDR - v2.5 p11 - NPI changes
- ; IHS/SD/SDR - v2.5 p11 - IM22787 - Fix display of replacement insurer with future term date
- ; IHS/SD/SDR - v2.5 p11 - IM24315 - New prompt for UB relationship code
- ; IHS/SD/SDR - v2.5 p12 - IM25207 - Edited display of prompt RX# in fl44
+ ;;2.6;IHS Third Party Billing;**1,6,8,9,10,11**;NOV 12, 2009;Build 133
  ; IHS/SD/SDR - abm*2.6*1 - FIXPMS10028 - prompt for UB04 FL38
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added code for BHT06
  ; IHS/SD/SDR - 2.6*9 - HEAT46087 - Added parameter chk for 4 vs 8 DXs
@@ -21,7 +7,8 @@ ABMDTIN1 ; IHS/ASDST/DMJ - Maintenance of INSURER FILE part 2 ;
  ;
  W ! K DIC
  S X="`"_ABM("DFN"),DIC="^ABMNINS(DUZ(2),",DIC(0)="LX" D ^DIC Q:+Y<0
- S DIE=DIC,DA=+Y,DR=".02;.03;.04;.05;.08;.09;.11" D ^DIE
+ ;S DIE=DIC,DA=+Y,DR=".02;.03;.04;.05;.08;.09;.11" D ^DIE  ;abm*2.6*10 ICD10 023
+ S DIE=DIC,DA=+Y,DR=".02;.03;.04;.05;.08;.09;.11;.12//10/1/2013" D ^DIE  ;abm*2.6*10 ICD10 023
  I $D(^DD(9002274.093)) D
  .W !
  .S DR=".06"
@@ -141,14 +128,28 @@ DIC2 S DA=ABM("VTYP")
  ;end old code start new code FIXPMS10028
  S DR=".04Mode of Export......:" D ^DIE
  K DR
- ;I ("^11^21^51^28^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) S DR=".18Relationship Code?;.12Itemized UB?.....:;115UB-04 Form Locater 38;109ICD PX on Claim?"  ;abm*2.6*8 5010
- I ("^11^21^31^51^28^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) S DR=".18Relationship Code?;.12Itemized UB?.....:;115UB-04 Form Locater 38;109ICD PX on Claim?;.125Print meds on 2 lines?"  ;abm*2.6*8 5010
+ ;I ("^11^21^31^51^28^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) S DR=".18Relationship Code?;.12Itemized UB?.....:;115UB-04 Form Locater 38;109ICD PX on Claim?;.125Print meds on 2 lines?"  ;abm*2.6*8 5010  ;abm*2.6*11 IHS/SD/AML HEAT92962
+ I ("^11^21^31^51^28^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) D  ;abm*2.6*11 IHS/SD/AML HEAT92962
+ .S DR=".18Relationship Code?;.12Itemized UB?.....:;115UB-04 Form Locater 38;109ICD PX on Claim?;.125Print meds on 2 lines?;120UB-04 Block 44 Blank?"  ;abm*2.6*11 IHS/SD/AML HEAT92962
  ;I ("^3^14^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) S DR=".15Block 24K..........:;.17Block 29...........:;.2Block 33 PIN#......:"  ;abm*2.6*8 HEAT32544
- I ("^3^14^22^27^32^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) S DR=".15Block 24K..........:;.17Block 29...........:;.2Block 33 PIN#......:"  ;abm*2.6*8 HEAT32544
+ ;start old code abm*2.6*10 HEAT72503
+ ;I ("^3^14^22^27^32^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) S DR=".15Block 24K..........:;.17Block 29...........:;.2Block 33 PIN#......:"  ;abm*2.6*8 HEAT32544
+ ;end old code start new code HEAT72503
+ I ("^3^14^22^27^32^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) D
+ .S DR=".15Block 24K..........:"
+ .I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR=DR_";118Block 28...........:"
+ .S DR=DR_";.17Block 29...........:;.2Block 33 PIN#......:"
+ ;end new code HEAT72503
+ ;start new code abm*2.6*11 HEAT66367
+ I ("^29^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) D
+ .S DR="119Block 48..........:"
+ ;end new code HEAT66367
  D:($G(DR)) ^DIE G XIT:$D(Y)
  ;end new code FIXPMS10028
- I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR="116//"_$S($P(^AUTNINS(ABM("DFN"),2),U)="R":8,1:4)  D ^DIE G XIT:$D(Y)  ;abm*2.6*9 HEAT46087
- I ($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=3!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=14)),$P($G(^AUTNINS(ABM("DFN"),2)),U)="D" D
+ ;I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR="116//"_$S($P(^AUTNINS(ABM("DFN"),2),U)="R":8,1:4)  D ^DIE G XIT:$D(Y)  ;abm*2.6*9 HEAT46087  ;abm*2.6*10 HEAT73780
+ I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR="116//"_$S($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM("DFN"),".211","I"),1,"I")="R":8,1:4)  D ^DIE G XIT:$D(Y)  ;abm*2.6*10 HEAT73780
+ ;I ($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=3!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=14)),$P($G(^AUTNINS(ABM("DFN"),2)),U)="D" D  ;abm*2.6*10 HEAT73780
+ I ($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=3!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=14)),$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM("DFN"),".211","I"),1,"I")="D" D  ;abm*2.6*10 HEAT73780
  .S DR="107Dash in block 1A?" D ^DIE
  I ("^11^21^31^51^28^"[(U_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_U)),$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,0)),U,12)=1!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,0)),U,4)=11)!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,0)),U,4)=28) D
  .S DR=".24RX# IN FL44?....." D ^DIE
@@ -180,7 +181,8 @@ DIC2 S DA=ABM("VTYP")
  ..S DA(1)=ABM("DFN")
  ..S DIE="^ABMNINS(DUZ(2),DA(1),1,"
  ..S DA=ABM("VTYP")
- ..S DR="113////N"
+ ..;S DR="113////N"  ;abm*2.6*10 HEAT61723
+ ..S DR="113////N;111////@;112////@"  ;abm*2.6*10 HEAT61723
  ..D ^DIE
  .S DA(1)=ABM("DFN")
  .S DIE="^ABMNINS(DUZ(2),DA(1),1,"

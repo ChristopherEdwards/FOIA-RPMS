@@ -1,9 +1,10 @@
 ABMDVPAT ; IHS/ASDST/DMJ - CLAIM FOR ONE PAT ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;;Y2K/OK - IHS/ADC/JLG 12-03-97
  S DIC="^AUPNPAT("
  S DIC(0)="AEMQ"
  S DIC("S")="I $D(^AUPNVSIT(""AC"",Y))"
+ S AUPNLK("ALL")=""  ;universal lookup  ;abm*2.6*11 NOHEAT6
  D ^DIC
  I Y<1 D  Q
  .W !,"No patient selected."

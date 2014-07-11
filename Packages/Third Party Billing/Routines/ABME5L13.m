@@ -1,5 +1,5 @@
 ABME5L13 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,11**;NOV 12, 2009;Build 133
  ;Header Segments
  ; 
 START ;START HERE
@@ -9,12 +9,22 @@ START ;START HERE
  I $P(ABMB8,U,2) D  ;accident
  .D EP^ABME8DTP(439,"D8",$P(ABMB8,U,2))
  .D WR^ABMUTL8("DTP")
+ ;start new code abm*2.6*11 HEAT78400
+ I $P(ABMB4,U,5)'="" D
+ .D EP^ABME8DTP(452,"D8",$P(ABMB4,U,5))
+ .D WR^ABMUTL8("DTP")
+ ;end new code HEAT78400
  I $P(ABMB7,U)'=$P(ABMB7,"^",2) D
  .D EP^ABME5DTP(472,"RD8",$P(ABMB7,U),$P(ABMB7,"^",2))
  .D WR^ABMUTL8("DTP")
  I $P(ABMB7,U)=$P(ABMB7,"^",2) D
  .D EP^ABME5DTP(472,"D8",$P(ABMB7,U))
  .D WR^ABMUTL8("DTP")
+ ;start new code abm*2.6*11 HEAT78400
+ I $P(ABMB4,U,13)'="" D
+ .D EP^ABME5DN1
+ .D WR^ABMUTL8("DN1")
+ ;end new code HEAT78400
  I $D(^ABMDBILL(DUZ(2),ABMP("BDFN"),71)) D
  .K ABM71CNT
  .S ABM71IEN=0

@@ -1,5 +1,5 @@
 ABMDE1X ; IHS/ASDST/DMJ - SCRN 1 - CLaim Iden Data Ck ;    
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,11**;NOV 12, 2009;Build 133
  ;
  ;IHS/DSD/DMJ  - 03/23/98 - Modified to clear an undef error.
  ;add $G around expression
@@ -36,6 +36,7 @@ D ;EP
  S ABMP("LDFN")=ABM(3)
  S ABM(71)=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),7)),U)
  S ABM(72)=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),7)),U,2)
+ I $E(ABM(71),6,7)="00"!($E(ABM(72),6,7)="00") S ABME(242)=""  ;abm*2.6*10 HEAT65628
  S ABMP("VDT")=ABM(71)
  I ABM(6)]"",$D(^DIC(40.7,ABM(6),0)) S ABM(6)=$P(^(0),U,1)
  E  S ABME(106)=""
@@ -79,7 +80,8 @@ HRN ;
  S $P(ABMV("X2"),U,2)=$P(^DPT(ABMP("PDFN"),0),U,2)
  S $P(ABMV("X2"),U,6)=$$HDT^ABMDUTL($P(^DPT(ABMP("PDFN"),0),U,3))
  S $P(ABMV("X2"),U,7)=$S($P($G(^AUPNPAT(ABMP("PDFN"),2)),U,2):"M;MARRIED",1:"U;UNKNOWN")
- I $P(ABMV("X2"),U,2)="" S ABME(13)=""
+ ;I $P(ABMV("X2"),U,2)="" S ABME(13)=""  ;abm*2.6*11 MU2 gender
+ I $P(ABMV("X2"),U,2)=""!($P(ABMV("X2"),U,2)="U") S ABME(13)=""  ;abm*2.6*11 MU2 gender
  I $P(ABMV("X2"),U,6)="" S ABME(12)=""
  I ABMP("VDT")]"" D
  .I $G(^DPT(ABMP("PDFN"),.35)) D

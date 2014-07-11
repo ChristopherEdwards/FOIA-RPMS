@@ -1,5 +1,5 @@
 ABMEHGRV ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6,7**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,7,11**;NOV 12, 2009;Build 133
  ;Original;DMJ;01/26/96 4:02 PM
  ; IHS/ASDS/DMJ - 09/06/00 - V2.4 Patch 3 (no NOIS)
  ;
@@ -48,6 +48,24 @@ P1 ;EP - SET UP ABMRV ARRAY
  ..K ABM
  ..D @(I_"^ABMEHGR2")  ; get ancillary services revenue code info
  ;
+ ;start new code abm*2.6*11 HEAT117086
+ I ABMP("ITYPE")="D" D
+ .S ABMIS=$O(ABMRV(0))
+ .S ABMJS=$O(ABMRV(ABMIS,0))
+ .S ABMKS=$O(ABMRV(ABMIS,ABMJS,0))
+ .S ABMI=0
+ .F  S ABMI=$O(ABMRV(ABMI)) Q:'ABMI  D
+ ..S ABMJ=0
+ ..F  S ABMJ=$O(ABMRV(ABMI,ABMJ)) Q:'ABMJ  D
+ ...S ABMK=0
+ ...F  S ABMK=$O(ABMRV(ABMI,ABMJ,ABMK)) Q:'ABMK  D
+ ....I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,2)'="T1015" Q
+ ....S ABMTMP("TMP")=$G(ABMRV(ABMIS,ABMJS,ABMKS))
+ ....S ABMRV(ABMIS,ABMJS,ABMKS)=$G(ABMRV(ABMI,ABMJ,ABMK))
+ ....S ABMRV(ABMI,ABMJ,ABMK)=$G(ABMTMP("TMP"))
+ K ABMI,ABMJ,ABMK,ABMTMP
+ ;end new code HEAT117086
+ ;
  I $P($G(^DIC(40.7,$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,10),0)),U,2)="A3" D
  .S ABMODMOD=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),12)),U,14)_$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),12)),U,16)
  .S I=0
@@ -83,19 +101,21 @@ P1 ;EP - SET UP ABMRV ARRAY
  ..S $P(ABMRV(+ABM(2),"TOT"),U,2)=ABMCPT
  .S ABM(4)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),6)),U,6)
  .I ABM(4),ABMP("VTYP")=111 S $P(ABMRV(1,1,1),U,7)=(ABM(4)*ABM(1))
- .I ABMP("VTYP")=831 D
- ..K ABMRV(+ABM(2),0),ABM("831SET")
- ..N I
- ..F I=21,27,35 D @(I_"^ABMEHGR2")
- ..S I=0
- ..F  S I=$O(ABMRV(I)) Q:'I  D
- ...N J
- ...S J=0
- ...F  S J=$O(ABMRV(I,J)) Q:'J  D
- ....S K=0
- ....F  S K=$O(ABMRV(I,J,K)) Q:K=""  D
- .....S $P(ABMRV(I,J,K),U,6)=0
- .....S:'$G(ABM("831SET")) $P(ABMRV(I,J,K),U,6)=$P(ABMP("FLAT"),U),ABM("831SET")=1
+ .;start old code abm*2.6*11 HEAT105003
+ .;I ABMP("VTYP")=831 D
+ .;.K ABMRV(+ABM(2),0),ABM("831SET")
+ .;.N I
+ .;.F I=21,27,35 D @(I_"^ABMEHGR2")
+ .;.S I=0
+ .;.F  S I=$O(ABMRV(I)) Q:'I  D
+ .;..N J
+ .;..S J=0
+ .;..F  S J=$O(ABMRV(I,J)) Q:'J  D
+ .;...S K=0
+ .;...F  S K=$O(ABMRV(I,J,K)) Q:K=""  D
+ .;....S $P(ABMRV(I,J,K),U,6)=0
+ .;....S:'$G(ABM("831SET")) $P(ABMRV(I,J,K),U,6)=$P(ABMP("FLAT"),U),ABM("831SET")=1
+ .;end old code HEAT105003
  K ABMCPT
  Q
  ;

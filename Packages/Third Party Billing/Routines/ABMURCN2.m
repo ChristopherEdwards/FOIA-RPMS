@@ -1,5 +1,5 @@
 ABMURCN2 ; IHS/SD/SDR - 3PB/UFMS Reconcile Sessions Option (2)   
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,11**;NOV 12, 2009;Build 133
  ;split routine from ABMURCON
  ; IHS/SD/SDR - abm*2.6*1 - Added fields (3PMS10019):
  ;   FIXPMS10001 and FIXPMS10011 - Date of Service
@@ -25,10 +25,18 @@ RECORD ;EP
  S ABMREC=ABMREC_$$FMT^ABMERUTL(ABMTCODE,"10R")
  S ABMREC=ABMREC_ABMOCL
  S ABMREC=ABMREC_ABMCAN  ;this is actually ba/cc
- I "^R^MD^MH^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="MCR"
- I "^D^K^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="MCD"
- I "^H^M^P^F^T^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="PRV"
- I "^W^C^N^G^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="OTH"
+ ;start old code abm*2.6*11 Update insurer type groupings
+ ;I "^R^MD^MH^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="MCR"
+ ;I "^D^K^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="MCD"
+ ;I "^H^M^P^F^T^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="PRV"
+ ;I "^W^C^N^G^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="OTH"
+ ;end old code start new code
+ I "^R^MD^MH^MC^MMC^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="MCR"
+ I "^D^K^FPL^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="MCD"
+ I "^H^M^P^F^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="PRV"
+ I "^W^C^N^I^T^G^SEP^TSI^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="OTH"
+ I "^V^"[("^"_ABMP("ITYP")_"^") S ABMPTIN="VET"
+ ;end new code
  S ABMPTIN=ABMSASUF_ABMPTIN
  ;
  K DIC,DIE,X,Y,DA

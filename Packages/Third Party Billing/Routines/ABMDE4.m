@@ -1,5 +1,5 @@
 ABMDE4 ; IHS/ASDST/DMJ - Edit Page 4 - Providers ;  
- ;;2.6;IHS Third Party Billing;**1,3,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,9,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p9 - task 1
  ;    Only allows providers on page 4
@@ -50,6 +50,7 @@ PROV ; Provider Info
  ..S ABM("NUM")=ABM("I") D PRV
  .S ABM("I")=ABM("I")+1
  I $P(^ABMDEXP(ABMP("EXP"),0),U)["HCFA-1500",ABMP("EXP")'=15,$P(^ABMDPARM(DUZ(2),1,0),U,17)=2 Q
+ I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),41,"B",0))=0 S ABME(244)=""  ;abm*2.6*11 HEAT81017
  I '$D(ABM("A")) D
  .;Q:ABMP("EXP")=22  ;abm*2.6*3 HEAT12442
  .;Q:ABMP("EXP")=23  ;abm*2.6*3 HEAT12442

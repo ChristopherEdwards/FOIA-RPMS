@@ -1,5 +1,5 @@
 ABMDESM1 ; IHS/ASDST/DMJ - Display Summarized Claim Info ; 
- ;;2.6;IHS Third Party Billing;**1,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,6,8,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
  ;     Modified to display 2nd and 3rd modifiers and units
@@ -67,6 +67,18 @@ ITEM ;itemized
  I ABMP("VTYP")=995 D ^ABMDESMX G XIT
  I $G(ABMP("CLN"))'="",($P($G(^DIC(40.7,ABMP("CLN"),0)),U,2)="A3") D MISC^ABMDESMU,AMB^ABMDESMB G XIT
  D MS,^ABMDESMM,^ABMDESMX,^ABMDESML,^ABMDESMA,^ABMDESMD,^ABMDESMR,ER,ROO^ABMDESMU,MISC^ABMDESMU,REVN^ABMDESMU,SUP^ABMDESMU
+ ;
+ ;start new code abm*2.6*11 HEAT117086
+ I (($G(ABMP("ITYPE"))="D")!($G(ABMP("ITYP"))="D")) D
+ .S ABMIL=0
+ .F  S ABMIL=$O(ABMS(ABMIL)) Q:'ABMIL  D
+ ..I $P($G(ABMS(ABMIL)),U,4)'="T1015" Q
+ ..S ABMTMP("TMP")=$G(ABMS(1))
+ ..S ABMS(1)=$G(ABMS(ABMIL))
+ ..S ABMS(ABMIL)=$G(ABMTMP("TMP"))
+ K ABMIL,ABMTMP
+ ;end new code HEAT117086
+ ;
  G XIT
  ;
 MS ;

@@ -1,5 +1,5 @@
 ABMPPAD1 ; IHS/SD/SDR - Prior Payments/Adjustments page (CE); 
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25430
  ;   Made correction for <SUBSCR>EDIT2+3^ABMPPAD1

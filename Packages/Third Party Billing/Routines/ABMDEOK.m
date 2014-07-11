@@ -1,5 +1,5 @@
 ABMDEOK ; IHS/ASDST/DMJ - Approve Claim for Billing ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009;Build 133
  ;
  ; IHS/ASDS/SDH - 03/12/01 - V2.4 Patch 9 - NOIS XJG-0500-160047
  ;     Remove the post pre-payment on the fly functionality

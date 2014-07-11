@@ -1,9 +1,10 @@
 BIUTL5 ;IHS/CMI/MWR - UTIL: MENU TITLS, DATE FORMAT; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**4**;DEC 01,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: SETVARS, MENUT, TITLE, CENTERT, COPYLET,
  ;;           UPPERCASE XREFS, DATE FORMATS, PADS/SPACES.
  ;;  PATCH 4: Call to add a leading zero left of the decimal point. LEADZ+0
+ ;;  PATCH 5: Ensure that only one leading zero is displayed. LEADZ+8
  ;
  ;
  ;----------
@@ -273,6 +274,11 @@ LEADZ(X) ;EP
  ;     1 - X  (req) Number to be evaulated and given a leading zero.
  ;
  Q:(+X=0) X
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Ensure that only one leading zero is displayed.
+ Q:($E(X,1)=0) X
+ ;**********
  I ((X<1)&(X>0)) S X="0"_X
  I ((X>-1)&(X<0)) S X="-0"_-X
  Q X

@@ -1,11 +1,6 @@
 ABMDF28Z ; IHS/ASDST/DMJ - PRINT UB-04 ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**3,8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,8,9,10,11**;NOV 12, 2009;Build 133
  ;
- ; IHS/SD/SDR - v2.5 p12 - IM24881 - Form alignment changes
- ; IHS/SD/SDR - v2.5 p12 - IM25363 - Removed line 45 (not needed on this form)
- ; IHS/SD/SDR - v2.5 p12 - IM25551 - Made change for Medicare and visit type not 111
- ;   to not print FL74.  Also some old code due to routine size.
- ; IHS/SD/SDR - v2.5 p13 - POA changes - POA changes aren't documented due to routine size
  ; IHS/SD/SDR - abm*2.6*3 - POA changes - removed insurer type "R" check
  ;
 45 ; ABMPAID = Primary + Secondary + Tertiary + Prepaid
@@ -27,6 +22,13 @@ ABMDF28Z ; IHS/ASDST/DMJ - PRINT UB-04 ;
  .S ABMDE=$E(ABMREC(30,I),144,145)_"^26^2"  ; Pat relation to Ins
  .D WRT^ABMDF28W                                ; FL #59
  .S ABMDE=$E(ABMREC(30,I),35,53)_"^29^20"   ; Claim Certificate ID
+ .;start new code abm*2.6*11 HEAT86014
+ .I ("^T^W^"[(ABMP("ITYPE")))&(I=1) D
+ ..I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,13)'="" S ABMDE=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,13)_"^29^20" Q
+ ..I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,26)'="" S ABMDE=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,26)_"^29^20" Q
+ ..I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),4)),U,8)'="" S ABMDE=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),4)),U,8)_"^29^20"
+ .;end new code HEAT86014
+ .I ($P($G(ABMP("INS",I)),U,2)="V")&($P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)'="") S ABMDE=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)_"^29^20"  ;abm*2.6*11 VMBP
  .D WRT^ABMDF28W                                ; FL #60
  .S ABMDE=$E(ABMREC(30,I),97,110)_"^49^14"  ; Insured Group Name
  .D WRT^ABMDF28W                                ; FL #61
@@ -256,14 +258,23 @@ ABMDF28Z ; IHS/ASDST/DMJ - PRINT UB-04 ;
 60 ;
  W !
  S ABMDE=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),61,1,0))_"^^19"  ; remarks line 1
+ I (ABMP("ITYPE")="V")&($P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)'="") S ABMDE=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)_"^^19"  ;abm*2.6*11 VMBP
  D WRT^ABMDF28W                      ; FL #80
  ;
  ;If NM Medicaid add Taxonomy and qualifier
  ;I ($P($G(^AUTNINS(ABMP("INS"),0)),U)="NEW MEXICO MEDICAID")!($P($G(^AUTNINS(ABMP("INS"),0)),U)="MEDICAID EXEMPT") D  ;abm*2.6*8 NOHEAT - ADD TAX FOR IA MCD ONLY
  I ($P($G(^AUTNINS(ABMP("INS"),0)),U)="NEW MEXICO MEDICAID")!($P($G(^AUTNINS(ABMP("INS"),0)),U)="MEDICAID EXEMPT")!($P($G(^AUTNINS(ABMP("INS"),0)),U)="IOWA MEDICAID") D  ;abm*2.6*8 NOHEAT - ADD TAX FOR IA MCD ONLY
- .S ABMDE="B3"_$$PTAX^ABMUTLF(ABMP("LDFN"))  ;taxonomy - form locator #81D
+ .S ABMNLOC=$S($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,8)'="":$P(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1),U,8),$P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,12)'="":$P(^(2),U,12),1:ABMP("LDFN"))  ;abm*2.6*10 HEAT82967
+ .;S ABMDE="B3"_$$PTAX^ABMUTLF(ABMP("LDFN"))  ;taxonomy - form locator #81D  ;abm*2.6*10 IHS/SD/AML 9/18/12 -  HEAT82967
+ .S ABMDE="B3"_$$PTAX^ABMUTLF(ABMNLOC) ;taxonomy - form locator #81D ;abm*2.6*10 IHS/SD/AML 9/18/12 - HEAT82967
  .S ABMDE=ABMDE_"^26^15"
  .D WRT^ABMDF28W
+ ;abm*2.6*10 IHS/SD/AML 9/12/2012 HEAT83791 Begin changes
+ I ($P($G(^AUTNINS(ABMP("INS"),0)),U)="NEBRASKA MEDICAID") D
+ .S ABMDE=" "_$$PTAX^ABMUTLF(ABMP("LDFN"))
+ .S ABMDE=ABMDE_"^26^15"
+ .D WRT^ABMDF28W ;FL 81D, Line 1
+ ;abm*2.6*10 IHS/SD/AML 9/11/12 HEAT83791 End changes
  ;
  ;Other provider (1)
  I $$RCID^ABMERUTL(ABMP("INS"))'=61044 D
@@ -281,6 +292,15 @@ ABMDF28Z ; IHS/ASDST/DMJ - PRINT UB-04 ;
  W !
  S ABMDE=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),61,2,0))_"^^24"  ; remarks line 2
  D WRT^ABMDF28W                      ; FL #80
+ ;
+ ;abm*2.6*10 IHS/SD/AML 9/11/2012 - BEGIN HEAT83791 - Winnebago Claim Form Modifications
+ I ($P($G(^AUTNINS(ABMP("INS"),0)),U)="NEBRASKA MEDICAID") D
+ .I $D(^DIC(4,ABMP("LDFN"),1)) D
+ ..S ABMVLOC=$G(^DIC(4,ABMP("LDFN"),1))
+ ..S ABMLZIP=$P(ABMVLOC,U,4)
+ ..S ABMDE=" "_ABMLZIP_"^26^15"
+ ..D WRT^ABMDF28W ; FL #81D Line 2
+ ;abm*2.6*10 IHS/SD/AML 9/11/12 - END HEAT83791 - Winnebago claim form modifications
  ;
  ;Other Provider name (1)
  I $$RCID^ABMERUTL(ABMP("INS"))'=61044 D

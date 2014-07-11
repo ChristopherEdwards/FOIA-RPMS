@@ -1,5 +1,5 @@
 ABMPPFLR ; IHS/SD/SDR - Prior Payments/Adjustments filer (CE) ;
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009;Build 133
  ;
  ; ABMPL(Insurer priority, Insurer IEN)=13 multiple IEN ^ Billing status
  ; ABMPP(Insurer IEN, "P" or "A", Counter)=Amount ^ Adj Category ^ Trans. Type ^ Std Adj. Reason

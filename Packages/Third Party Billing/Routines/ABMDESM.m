@@ -1,5 +1,5 @@
 ABMDESM ; IHS/ASDST/DMJ - Display Summarized Claim Info ;    
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009;Build 133
  ;
  ; IHS/ASDS/DMJ - 04/18/00 - V2.4 Patch 1 - NOIS XAA-0400-200044
  ;     Modified mode of export loop to include 16 and 17

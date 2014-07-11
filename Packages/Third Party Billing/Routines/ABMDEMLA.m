@@ -1,5 +1,5 @@
 ABMDEMLA ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES PART 2 ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**4,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,9,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/ASDS/LSL - 04/26/01 - V2.4 Patch 9 - NOIS BXX-0401-150085
  ;     Allow resequencing of DX when list contains more than
@@ -24,7 +24,9 @@ S1 ; Sequence Multiple
  S DIR("A",8)=" "
  D ^DIR K DIR
  Q:$D(DIRUT)!$D(DIROUT)
-S2 K ABMX F ABMX=1:1 S ABMX("Y")=$P(Y,",",ABMX) Q:ABMX("Y")=""  Q:+ABMX("Y")'>0!(ABMX("Y")'<(ABMZ("NUM")+1))!$D(ABMX(ABMX("Y")))  S ABMX(ABMX("Y"))=ABMX
+S2 ;
+ ;K ABMX F ABMX=1:1 S ABMX("Y")=$P(Y,",",ABMX) Q:ABMX("Y")=""  Q:+ABMX("Y")'>0!(ABMX("Y")'<(ABMZ("NUM")+1))!$D(ABMX(ABMX("Y")))  S ABMX(ABMX("Y"))=ABMX  ;abm*2.6*11 HEAT116046
+ K ABMX F ABMX=1:1 S ABMX("Y")=+$P(Y,",",ABMX) Q:ABMX("Y")=""  Q:+ABMX("Y")'>0!(ABMX("Y")'<(ABMZ("NUM")+1))!$D(ABMX(ABMX("Y")))  S ABMX(ABMX("Y"))=ABMX  ;abm*2.6*11 HEAT116046
  I (ABMZ("NUM")+1)'=ABMX W *7,!!,"ERROR: Invalid input, to re-sequence all sequence numbers must be specified",!,"       and separated with commas.",! Q
  S DA(1)=ABMP("CDFN"),DIC="^ABMDCLM(DUZ(2),"_DA(1)_","_ABMZ("SUB")_",",DIC(0)="LE"
  K ^ABMDCLM(DUZ(2),DA(1),ABMZ("SUB")) S ^ABMDCLM(DUZ(2),DA(1),ABMZ("SUB"),0)="^9002274.30"_ABMZ("SUB")_"P^^"

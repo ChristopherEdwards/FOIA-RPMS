@@ -1,9 +1,10 @@
 BIREPD2 ;IHS/CMI/MWR - REPORT, ADOLESCENT RATES; DEC 15, 2011
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW ADOLESCENT IMMUNIZATION RATES REPORT, GATHER DATA.
  ;   PATCH 1: Clarify Report explanation.  START+121
  ;;  PATCH 3: Include new "1-Td 1-Men 3-HPV" lines. START+69
+ ;;  PATCH 5: Return Patient Totals for queued reports.  START+0
  ;
  ;
  ;----------
@@ -95,18 +96,21 @@ HEAD(BIQDT,BIDAR,BIAGRPS,BICC,BIHCF,BICM,BIBEN,BIUP) ;EP - Header for Adolescent
  ;
  ;
  ;----------
-START(BIQDT,BIDAR,BIAGRPS,BICC,BIHCF,BICM,BIBEN,BISITE,BIUP) ;EP
+START(BIQDT,BIDAR,BIAGRPS,BICC,BIHCF,BICM,BIBEN,BISITE,BIUP,BITOTPTS,BITOTFPT,BITOTMPT) ;EP
  ;---> Produce array for Report.
  ;---> Parameters:
- ;     1 - BIQDT   (req) Quarter Ending Date.
- ;     2 - BIDAR   (opt) Adolescent Report Age Range: "11-18^1" (years).
- ;     3 - BIAGRPS (req) String of Age Groups ("1112,1313,1317").
- ;     4 - BICC    (req) Current Community array.
- ;     5 - BIHCF   (req) Health Care Facility array.
- ;     6 - BICM    (req) Case Manager array.
- ;     7 - BIBEN   (req) Beneficiary Type array.
- ;     8 - BISITE  (req) Site IEN.
- ;     9 - BIUP    (req) User Population/Group (All, Imm, User, Active).
+ ;     1 - BIQDT    (req) Quarter Ending Date.
+ ;     2 - BIDAR    (opt) Adolescent Report Age Range: "11-18^1" (years).
+ ;     3 - BIAGRPS  (req) String of Age Groups ("1112,1313,1317").
+ ;     4 - BICC     (req) Current Community array.
+ ;     5 - BIHCF    (req) Health Care Facility array.
+ ;     6 - BICM     (req) Case Manager array.
+ ;     7 - BIBEN    (req) Beneficiary Type array.
+ ;     8 - BISITE   (req) Site IEN.
+ ;     9 - BIUP     (req) User Population/Group (All, Imm, User, Active).
+ ;    10 - BITOTPTS (ret) Total Patients.
+ ;    11 - BITOTFPT (ret) Total Female Patients.
+ ;    12 - BITOTmPT (ret) Total Male Patients.
  ;
  K ^TMP("BIREPD1",$J)
  N BILINE,BITMP,X S BILINE=0

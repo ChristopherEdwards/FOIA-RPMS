@@ -1,7 +1,8 @@
 BILETPR ;IHS/CMI/MWR - PRINT PATIENT LETTERS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  PRINT PATIENT LETTERS.
+ ;;  PATCH 5: Add call to log Notification by iCARE API.  PRINT+65
  ;
  ;
  ;----------
@@ -139,20 +140,6 @@ PRINT(BIDFN,BILET,BIDLOC,IOP,BIFDT,BIPOP) ;EP
  D BUILD^BILETPR1(BIDFN,BILET,$G(BIDLOC),$G(BIFDT))
  ;
  ;---> Now print.
- ;
- ;---> Unsuccessful use of ^DIWF.
- ;S DIWF="^TMP(""BILET"","_$J_","
- ;S DIWF(1)=2
- ;---> This method takes too long too find patient (up to 40 minutes!).
- ;S BY="INTERNAL(#.01)="_BIDFN
- ;---> This method finds the patient quickly but reprints the letter
- ;---> in an unending loop.
- ;S BY="",BY(0)="^DPT(",L(0)=1,FR(0,1)=BIDFN,TO(0,1)=BIDFN
- ;S:'BICRT DIOEND="W @IOF"
- ;---> Print it to IOP.
- ;D EN2^DIWF
- ;D:BICRT DIRZ^BIUTL3(.BIPOP)
- ;
  ;---> Call homegrown letter printer.
  D PRINT^BILETPR4(BIDFN,IO,IOST,.BIERR)
  ;
@@ -172,7 +159,14 @@ PRINT(BIDFN,BILET,BIDLOC,IOP,BIFDT,BIPOP) ;EP
  ;
  ;---> Store the date of this letter in the DATE OF LAST LETTER
  ;---> field of the BI PATIENT File.
- I 'BICRT,$D(^BIP(BIDFN,0)) D DIE^BIFMAN(9002084,".14////"_DT,BIDFN)
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Add call to log Notification by iCARE API.
+ ;I 'BICRT,$D(^BIP(BIDFN,0)) D DIE^BIFMAN(9002084,".14////"_DT,BIDFN)
+ I 'BICRT,$D(^BIP(BIDFN,0)) D
+ .D DIE^BIFMAN(9002084,".14////"_DT,BIDFN)
+ .I $T(LOG^BQINOTR)]"" D LOG^BQINOTR(BIDFN,"LETTER","",BILET,"","IMMUNIZATIONS","")
+ ;**********
  ;
  D UNLOCK^BIPATUP(BIDFN)
  Q

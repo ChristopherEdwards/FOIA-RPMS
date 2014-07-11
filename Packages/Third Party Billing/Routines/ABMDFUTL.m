@@ -1,5 +1,5 @@
-ABMDFUTL ; IHS/ASDST/DMJ - Export Forms Utility ;     
- ;;2.6;IHS Third Party Billing System;**2,6,8,9**;NOV 12, 2009
+ABMDFUTL ; IHS/SD/DMJ - Export Forms Utility ;     
+ ;;2.6;IHS Third Party Billing System;**2,6,8,9,10**;NOV 12, 2009;Build 133
  ;Original;TMD;
  ;
  ; IHS/ASDS/DMJ - 05/15/00 - V2.4 Patch 1 - NOIS HQW-0500-100032 - Modified to allow population of the PIN number for KIDSCARE
@@ -79,6 +79,7 @@ PREV ;EP for obtaining previous payment info
  I $D(ABMPM) M ABMP=ABMPM K ABMPM Q
  S (ABMP("PD"),ABMP("WO"))=0
  S ABM("W")=0  ;abm*2.6*9 HEAT46390
+ I $G(ABMAFLG)=1,($G(ABMMFLG)=1),(ABMP("EXP")>30) Q  ;treat as primary if tribal self insured and Medicare  ;abm*2.6*10 COB billing
  S ABM("CLM")=$S($G(ABMP("BDFN")):+$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),0),U),1:ABMP("CDFN"))
  S ABM("BIL")=$S($G(ABMP("BDFN")):ABMP("BDFN"),1:0)
  S ABM("A")="" F  S ABM("A")=$O(^ABMDBILL(DUZ(2),"AS",ABM("CLM"),ABM("A"))) Q:ABM("A")=""  D
@@ -87,7 +88,8 @@ PREV ;EP for obtaining previous payment info
  ..Q:$P($G(^ABMDBILL(DUZ(2),ABM,0)),U,5)'=ABMP("PDFN")
  ..Q:$P($G(^ABMDBILL(DUZ(2),ABM,0)),"^",4)="X"
  ..;Q:($P($G(^AUTNINS(ABMP("INS"),2)),U)="R")  ;abm*2.6*2 HEAT10900
- ..Q:(($P($G(^AUTNINS(ABMP("INS"),2)),U)="R")&($G(ABMR("SBR",30))="P"))  ;abm*2.6*2 HEAT10900
+ ..;Q:(($P($G(^AUTNINS(ABMP("INS"),2)),U)="R")&($G(ABMR("SBR",30))="P"))  ;abm*2.6*2 HEAT10900  ;abm*2.6*10 HEAT73780
+ ..Q:(($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="R")&($G(ABMR("SBR",30))="P"))  ;abm*2.6*2 HEAT10900  ;abm*2.6*10 HEAT73780
  ..;S ABM("W")=0,ABM(ABM)=""  ;abm*2.6*9 HEAT46390
  ..S ABM(ABM)=""  ;abm*2.6*9 HEAT46390
  ..F ABM("J")=0:0 S ABM("J")=$O(^ABMDBILL(DUZ(2),ABM,3,ABM("J"))) Q:'ABM("J")  D

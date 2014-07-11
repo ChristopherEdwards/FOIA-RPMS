@@ -1,5 +1,5 @@
-ABMDE4X ; IHS/ASDST/DMJ - Edit Page 4 - Providers DATA CK ;    
- ;;2.6;IHS Third Party Billing;**1,3,8,9**;NOV 12, 2009
+ABMDE4X ; IHS/SD/SDR - Edit Page 4 - Providers DATA CK ; 11 Sep 2012  9:33 AM
+ ;;2.6;IHS Third Party Billing;**1,3,8,9,10,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/DSD/LSL - 05/20/98 - NOIS HQW-0598-100109
  ;               Modified to check file 200, payer assigned provider
@@ -33,6 +33,7 @@ ABMDE4X ; IHS/ASDST/DMJ - Edit Page 4 - Providers DATA CK ;
 PROV ; Provider Info
 ERR S ABME("TITL")="PAGE 4 - PROVIDER INFORMATION"
  K ABM("A"),ABM("O")
+ I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),41,"B",0))=0 S ABME(244)=""  ;abm*2.6*11 HEAT81017
  S ABM=""
  F ABM("I")=1:1 S ABM=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),41,"C",ABM)) Q:ABM=""  D
  .S ABM("X")=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),41,"C",ABM,0))
@@ -76,7 +77,8 @@ DR ;PHYSICIAN'S PROVIDER NUMBER
  I +ABMP("CDFN") D  Q:$D(ABME(189))
  .S:ABMP("VTYP")="" ABMP("VTYP")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,7)
  .S:ABMP("INS")="" ABMP("INS")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,8)
- .S:ABMP("INS")'="" ABMP("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)
+ .;S:ABMP("INS")'="" ABMP("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)  ;abm*2.6*10 HEAT73780
+ .S:ABMP("INS")'="" ABMP("ITYP")=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
  .S:ABMP("EXP")="" ABMP("EXP")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,14)
  .S:ABMP("LDFN")="" ABMP("LDFN")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,3)
  .;start old code abm*2.6*9 NOHEAT
@@ -99,14 +101,16 @@ DR ;PHYSICIAN'S PROVIDER NUMBER
  I $G(ABM("PNUM"))="" D
  .S ABM("PNUM")=$P($G(^VA(200,+ABM("X0"),9999999.18,+ABMP("INS"),0)),"^",2)
  I ABM("PNUM")="" D
- .I $P($G(^AUTNINS(+ABMP("INS"),2)),U)="R" D
+ .;I $P($G(^AUTNINS(+ABMP("INS"),2)),U)="R" D  ;abm*2.6*10 HEAT73780
+ .I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="R" D  ;abm*2.6*10 HEAT73780
  ..S ABM("PNUM")=$P($G(^VA(200,+ABM("X0"),9999999)),U,6)
  ..S:ABM("PNUM")="" ABM("PNUM")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),3,+ABM("X0"),0)),U,2)
  ..I ABM("PNUM")="" S ABME(170)=""
  ..S:ABM("PNUM")="" ABM("PNUM")=$P($G(^VA(200,+ABM("X0"),9999999)),"^",8)
  ..S:ABM("PNUM")="" ABM("PNUM")="PHS000"
  .;I $P($G(^AUTNINS(+ABMP("INS"),2)),U)="D" D  ;IHS/SD/SDR 9/25/09
- .I $P($G(^AUTNINS(+ABMP("INS"),2)),U)="D",(ABMNPIUS'="N") D  ;IHS/SD/SDR 9/25/09
+ .;I $P($G(^AUTNINS(+ABMP("INS"),2)),U)="D",(ABMNPIUS'="N") D  ;IHS/SD/SDR 9/25/09  ;abm*2.6*10 HEAT73780
+ .I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,+ABMP("INS"),".211","I"),1,"I")="D",(ABMNPIUS'="N") D  ;IHS/SD/SDR 9/25/09  ;abm*2.6*10 HEAT73780
  ..S ABM("PNUM")=$P($G(^VA(200,+ABM("X0"),9999999)),U,7)
  ..S:ABM("PNUM")="" ABME(170)=""
  I ABM("PNUM")="",(ABMNPIUS'="N") D

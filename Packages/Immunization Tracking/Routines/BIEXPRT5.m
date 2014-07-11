@@ -1,10 +1,11 @@
 BIEXPRT5 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: BUILD IMMSERVE EXPORT.
  ;;  CALLED BY BIEXPRT3.
  ;;  PATCH 2: Include CVX 20 (DTaP) in translation to -13, so that
  ;;           DTaP satisfies Tdap.   DOSES+42
+ ;;  PATCH 5: Translate new Flu codes to 15 for Immserve.  DOSES+54
  ;
  ;
  ;----------
@@ -274,7 +275,12 @@ DOSES(Y,BIAGE,BITMP,BIDOSES) ;EP
  .;********** PATCH 2, v8.4.2, Oct 15,2010, IHS/CMI/MWR
  .;---> Translate new Flu CVX Codes 140 & 141 to 15 until Immserve can accommodate.
  .;---> If this is a new Flu, send 15.
- .I ($P(Y,U,2)=140)!($P(Y,U,2)=141)  S BITMP=BITMP_U_15 Q
+ .;
+ .;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ .;---> Recognize new Flu Codes.
+ .;I ($P(Y,U,2)=140)!($P(Y,U,2)=141)  S BITMP=BITMP_U_15 Q
+ .N Z S Z=($P(Y,U,2))
+ .I (Z=149)!(Z=150)!(Z=151)!(Z=153)!(Z=155)!(Z=158)  S BITMP=BITMP_U_15 Q
  .;**********
  .;
  .;---> No translation of this dose.

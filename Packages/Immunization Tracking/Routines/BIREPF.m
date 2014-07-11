@@ -1,7 +1,8 @@
 BIREPF ;IHS/CMI/MWR - REPORT, FLU IMM; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW INFLUENZA IMMUNIZATION REPORT.
+ ;;  PATCH 5: Display new beginning date as July 1.  INIT+20, TEXT1.
  ;
  ;
  ;----------
@@ -44,8 +45,13 @@ INIT ;EP
  .S BIYEAR=1700+$E(DT,1,3)
  ;
  S X="     1 - Report Year (Flu Season).......: "_+BIYEAR_"/"_(BIYEAR+1)
- S X=X_"  (09/01/"_$E(BIYEAR,3,4)
-  D
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Display new beginning date as July 1.
+ ;S X=X_"  (09/01/"_$E(BIYEAR,3,4)
+ S X=X_"  (07/01/"_$E(BIYEAR,3,4)
+ ;**********
+ D
   .I $P(BIYEAR,U,2)="m" S X=X_" - 03/31/"_$E((BIYEAR+1),3,4)_")" Q
   .S X=X_" - 12/31/"_$E(BIYEAR,3,4)_")"
  D WRITE(.BILINE,X,1)
@@ -131,6 +137,8 @@ HELP1 ;EP
  D START^BIHELP("INFLUENZA IMMUNIZATION REPORT - HELP",.BITEXT)
  Q
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Correct items in Help Text below to reflect new begin date as July 1.
  ;
  ;----------
 TEXT1(BITEXT) ;EP
@@ -139,7 +147,7 @@ TEXT1(BITEXT) ;EP
  ;;
  ;;This Influenza Report is designed to comply with influenza vaccination
  ;;recommendations for patients of all ages.  The report examines the
- ;;influenza season (9/1 - 12/31) for the year selected. (An end date of
+ ;;influenza season (7/1 - 12/31) for the year selected. (An end date of
  ;;3/31 may also be selected.)
  ;;
  ;;
@@ -147,7 +155,7 @@ TEXT1(BITEXT) ;EP
  ;;--------------_
  ;;The "Age in Months" is calculated on 12/31 of the year selected,
  ;;in order to include children who were at least 6 months of age during
- ;;entire influenza season (9/1 - 12/31).
+ ;;entire influenza season (7/1 - 12/31).
  ;;
  ;;The first column, 10-23 months, includes children who were 6-23 months
  ;;old during the influenza season of the selected year.
@@ -182,7 +190,7 @@ TEXT1(BITEXT) ;EP
  ;;
  ;;  24-59 Months Old:
  ;;    1) Received 2 doses during the influenza season of the year selected.
- ;;       (Sept 1 - Dec 31 or Mar 31, whichever is selected),
+ ;;       (July 1 - Dec 31 or Mar 31, whichever is selected),
  ;;   or
  ;;    2) Received 2+ dose before Sept 1 and 1+ dose during Sept-Dec/March.
  ;;
@@ -208,7 +216,7 @@ TEXT1(BITEXT) ;EP
  ;;tying up your screen while the report is being prepared.)
  ;;
  ;;REPORT YEAR: The report will compile influenza immunization rates
- ;;for the year entered, in the date range of 9/1 to 12/31.  An optional
+ ;;for the year entered, in the date range of 7/1 to 12/31.  An optional
  ;;End Date of 3/31 following the selected report year is also available.
  ;;
  ;;COMMUNITY: If you select for specific Communities, only patients

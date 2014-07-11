@@ -1,10 +1,10 @@
 BIEXPRT4 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: WRITE IMM HISTORIES OF PATIENTS
  ;;  STORED IN ^BITMP( TO SCREEN, HOST FILE, OR RETURN AS A STRING.
- ;;  PATCH 1: If string of patient data is too long, set error and quit.
- ;;           WRITE+72
+ ;;  PATCH 1: If string of patient data is too long, set error and quit. WRITE+72
+ ;;  PATCH 5: Increase nodes to accommodate Admin Notes.  WRITE+63
  ;
  ;
  ;----------
@@ -70,6 +70,13 @@ WRITE(BIOUT,BIFMT,BIFLNM,BIPATH,BISTRING,BICSV) ;EP
  ....S:$D(^BITMP($J,2,N,M,P,Q,5)) X=X_^(5)
  ....S:$D(^BITMP($J,2,N,M,P,Q,6)) X=X_^(6)
  ....S:$D(^BITMP($J,2,N,M,P,Q,7)) X=X_^(7)
+ ....;
+ ....;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ....;---> Increase nodes to accommodate Admin Notes.
+ ....S:$D(^BITMP($J,2,N,M,P,Q,8)) X=X_^(8)
+ ....S:$D(^BITMP($J,2,N,M,P,Q,9)) X=X_^(9)
+ ....S:$D(^BITMP($J,2,N,M,P,Q,10)) X=X_^(10)
+ ....;**********
  ....;
  ....;---> If BICSV=1, translate to Comma Separated Values,
  ....;---> and remove first piece ("I" for Imm, "S" for Skin Test).

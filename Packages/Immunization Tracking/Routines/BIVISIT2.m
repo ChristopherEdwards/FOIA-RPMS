@@ -1,7 +1,8 @@
 BIVISIT2 ;IHS/CMI/MWR - DELETE VISITS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  CODE TO DELETE V FILE VISITS, TRIGGER EVENT FOR DELETE IMM.
+ ;;  PATCH 5: TRIGADD EP moved from rtn BIVISIT for Rsize.  TRIGADD+0
  ;
  ;
  ;----------
@@ -22,9 +23,9 @@ DELETE(BIDA,BIVTYPE,BIERR) ;EP
  .D ERRCD^BIUTL2(410,.BIERR)
  ;
  ;---> DIK kills D.
- N BIGBL,D,DA,DIK
- S BIGBL=$S(BIVTYPE="I":"^AUPNVIMM(",1:"^AUPNVSK(")
- S DA=BIDA,DIK=BIGBL,BIGBL=BIGBL_DA_",0)"
+ N BIGBL,BIGBLK
+ S BIGBLK=$S(BIVTYPE="I":"^AUPNVIMM(",1:"^AUPNVSK(")
+ S BIGBL=BIGBLK_BIDA_",0)"
  ;
  ;---> If V File Visit doesn't exist, set Error and quit.
  I '$D(@BIGBL) D ERRCD^BIUTL2(411,.BIERR) Q
@@ -36,8 +37,37 @@ DELETE(BIDA,BIVTYPE,BIERR) ;EP
  N BIDATA
  D:BIVTYPE="I" SAVEDATA(BIDA,.BIDATA)
  ;
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Switch to logical deletion of V Immunizations.
+ ;---> Note: Edits are also stored and can be reviewed.
+ ;
+ D:BIVTYPE="I"
+ .N BINODE S BINODE=@BIGBL
+ .;---> Create an entry in BI PATIENT CONTRAINDICATION DELETED File.
+ .N BIERR,BIIEN,BIFLD
+ .S BIFLD(.01)=$P(BINODE,U,1)
+ .S BIFLD(.02)=$P(BINODE,U,2)
+ .S BIFLD(.03)=$P(BINODE,U,3)
+ .S BIFLD(2.01)=+$G(DUZ)
+ .D NOW^%DTC S BIFLD(2.02)=%
+ .D UPDATE^BIFMAN(9002084.118,.BIIEN,.BIFLD,.BIERR)
+ .;---> Quit if new entry failed.
+ .I BIERR]"" S BIERR=BI31_BIERR Q
+ .;---> Quit if new entry IEN bad.
+ .I '$D(^BIVIMMD(+BIIEN(1),0)) D  Q
+ ..D ERRCD^BIUTL2(450,.BIERR) S BIERR=BI31_BIERR
+ .;---> Now copy the rest of the Imm data.
+ .S ^BIVIMMD(+BIIEN(1),0)=^AUPNVIMM(BIDA,0)
+ .S:($D(^AUPNVIMM(BIDA,1))) ^BIVIMMD(+BIIEN(1),1)=^AUPNVIMM(BIDA,1)
+ .S:($D(^AUPNVIMM(BIDA,12))) ^BIVIMMD(+BIIEN(1),12)=^AUPNVIMM(BIDA,12)
+ ;
+ Q:(BIERR]"")
+ ;**********
+ ;
  ;---> Delete the V File entry (and decrement the
  ;---> Dependent Entry Count of the parent Visit).
+ N D,DA,DIK S DA=BIDA,DIK=BIGBLK
  D ^DIK
  ;
  ;---> If deletion of the V File Visit failed, set Error and quit.
@@ -144,3 +174,44 @@ TRIGDEL(BIDATA) ;EP
  .D EN^XBNEW("EN^XQOR",BISAVE)
  ;
  Q
+ ;
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> TRIGADD EP moved from rtn BIVISIT for Rsize.
+ ;----------
+TRIGADD ;EP
+ ;---> Exclusively called from VFILE+216^BIVISIT.
+ ;---> Immunization Added Trigger Event call to Protocol File.
+ ;---> Called at the end/bottom of BIVISIT, after new V IMM created.
+ ;---> (Note: Trigger Event for DELETE Immunization is in rtn BIVISIT2.)
+ ;---> Local variables available when Event is triggered:
+ ;
+ ;     BIADFN -  IEN of V IMMUNIZATION just created.
+ ;     BICAT  -  Category: A (Ambul), I (Inpat), E (Event/Hist)
+ ;     BIDATE -  Date of Visit (Fileman format).
+ ;     BIDFN  -  DFN of patient.
+ ;     BILOC  -  Location of encounter (IEN).
+ ;     BILOT  -  Lot Number IEN for this Immunization (text).
+ ;     BIOLOC -  Other Location of encounter (text).
+ ;     BIPTR  -  Vaccine (IEN in IMMUNIZATION File).
+ ;     BIREC  -  Vaccine Reaction (text).
+ ;     BITYPE -  Type of Visit (PCC Master Control File I,C,6).
+ ;     BIVHL7 -  Vaccine HL7 Code.
+ ;     BIVNAM -  Vaccine Name, short form.
+ ;     BIVSIT -  IEN of Visit.
+ ;
+ ;
+ N BIVNAM,BIVHL7,BISAVE
+ S BIVNAM=$$VNAME^BIUTL2(BIPTR)
+ S BIVHL7=$$CODE^BIUTL2(BIPTR,1)
+ S BIREC=$$REACTXT^BIUTL6(BIREC)
+ S BILOT=$$LOTTX^BIUTL6(BILOT)
+ ;
+ S BISAVE="BIADFN;BICAT;BIDATE;BIDFN;BILOC;BILOT;BIOLOC;BIPTR"
+ S BISAVE=BISAVE_";BIREC;BITYPE;BIVHL7;BIVNAM;BIVSIT;DIC;X;XQORS"
+ D
+ .S DIC=101,X="BI IMMUNIZATION ADDED"
+ .D EN^XBNEW("EN^XQOR",BISAVE)
+ ;
+ Q
+ ;**********

@@ -1,5 +1,5 @@
 ABMUVCSH ; IHS/SD/SDR - 3PB/UFMS View Cashiering Session Option   
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ; New routine - v2.5 p12 SDD item 4.9.2.2
  ;
  ; IHS/SD/SDR - v2.5 p13 - NO IM
@@ -105,7 +105,8 @@ DISPLAY(ABMFLG) ;EP
  .W !?5,"AT THIS TIME THERE IS NO BILLING ACTIVITY FOR THIS SESSION.",!
  .S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
  F  S ABMBA=$O(ABMBAL(ABMBA)) Q:ABMBA=""  D
- .W !?5,$P($T(@ABMBA^ABMUCASH),";;",2)
+ .;W !?5,$P($T(@ABMBA^ABMUCASH),";;",2)  ;abm*2.6*11 insurer type
+ .W !?5,$$INSTYP^ABMUCASH(ABMBA)  ;abm*2.6*11 insurer type
  .W !?15,"- Cancelled Claims",?40,+$G(ABMBAL(ABMBA,"CCLMS"))
  .W !?15,"- Approved Bills",?40,+$G(ABMBAL(ABMBA,"ABILLS")),?50,"$",$J($FN(+$G(ABMBAL(ABMBA,"ABAMT")),",",2),10)
  .I +$G(ABMBAL(ABMBA,"EBILLS"))>0 D

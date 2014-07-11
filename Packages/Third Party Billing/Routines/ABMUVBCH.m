@@ -1,8 +1,9 @@
 ABMUVBCH ; IHS/SD/SDR - 3PB/UFMS View Batch option   
- ;;2.6;IHS Third Party Billing;**1,3,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,9,11**;NOV 12, 2009;Build 133
  ; View Batch
  ; IHS/SD/SDR - v2.6 p1 - NO HEAT - Added totals for cash. sessions
- ; v2.6 p9 - HEAT28995 - added screen so only exports from current DUZ(2) are displayed
+ ; v2.6 p9 - HEAT28995 - added screen so only exports from current DUZ(2) display
+ ; IHS/SD/SDR - v2.6 p11 - added V to list of codes
 START ;START HERE
  ; Find requested UFMS export batch in UFMS export file
 BEG ;
@@ -14,7 +15,6 @@ BEG ;
  S DIC(0)="AEMQ"
  S DIC("A")="Select beginning export: "
  S ABMSCRND=$P($G(^ABMDPARM(DUZ(2),1,4)),U,16)  ;only show limited entries
- ;S DIC("S")="S X1=DT,X2=$P(^ABMUTXMT(Y,0),U) D ^%DTC I X<ABMSCRND"  ;abm*2.6*9 HEAT28995
  S DIC("S")="I $P(^(0),U,4)=DUZ(2) S X1=DT,X2=$P(^ABMUTXMT(Y,0),U) D ^%DTC I X<ABMSCRND"  ;abm*2.6*9 HEAT28995
  D ^DIC
  Q:Y<0
@@ -296,15 +296,21 @@ STOT ;SITE TOTAL
 R ;;MEDICARE
 MD ;;MEDICARE
 MH ;;MEDICARE
+MC ;;MEDICARE
+MMC ;;MEDICARE
 D ;;MEDICAID
 K ;;MEDICAID
+FPL ;;MEDICAID
 F ;;PRIVATE INSURANCE
 P ;;PRIVATE INSURANCE
 H ;;PRIVATE INSURANCE
 M ;;PRIVATE INSURANCE
-T ;;PRIVATE INSURANCE
 N ;;OTHER
 I ;;OTHER
 W ;;OTHER
 C ;;OTHER
 G ;;OTHER
+T ;;OTHER
+SEP ;;OTHER
+TSI ;;OTHER
+V ;;VET

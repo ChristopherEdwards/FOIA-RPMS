@@ -1,5 +1,5 @@
 ABMDLCK1 ; IHS/ASDST/DMJ - check visit for elig - CONT'D ;    
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;;Y2K/OK - IHS/ADC/JLG 12-18-97
  ;Original;TMD;
  ; Code has been added to use the billing limit from the parameters file
@@ -60,7 +60,14 @@ INS2 ;
  .S X2=0-(ABMBBL*30.417)
  .D C^%DTC
  S:'$D(ABMVT) ABMVT=$$VTYP^ABMDVCK1(ABMVDFN,$G(SERVCAT),ABM("INS"),$G(ABMCLN))
- S V=$G(^ABMNINS(DUZ(2),ABM("INS"),1,+ABMVT,0))
+ ;S V=$G(^ABMNINS(DUZ(2),ABM("INS"),1,+ABMVT,0))  ;abm*2.6*11 HEAT100200
+ ;start new code abm*2.6*11 HEAT100200
+ I $G(ABMP("LDFN"))="" D
+ .I $G(ABMVDFN) S ABMP("LDFN")=$P($G(^AUPNVSIT(ABMVDFN,0)),U,6)
+ .I $G(ABMP("CDFN")) S ABMP("LDFN")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,3)
+ I $G(ABMP("LDFN"))'="" S V=$G(^ABMNINS(ABMP("LDFN"),ABM("INS"),1,+ABMVT,0))
+ I $G(ABMP("LDFN"))="" S V=$G(^ABMNINS(DUZ(2),ABM("INS"),1,+ABMVT,0))
+ ;end new code HEAT100200
  ;
  ; V is the Visit type multiple of the insurer file, p 7 billable
  ; If not billable set ABMNON

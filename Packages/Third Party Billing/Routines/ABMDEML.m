@@ -1,5 +1,5 @@
 ABMDEML ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;   
- ;;2.6;IHS Third Party Billing;**1,2,3,6,8,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,2,3,6,8,9,10,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/ASDS/DMJ - 09/07/01 - V2.4 Patch 7 - NOIS HQW-0701-100066
  ;     Modifications made related to Medicare Part B.
@@ -184,7 +184,8 @@ STUFF ;FILE MULTIPLE
  .K DD,DO
  .D FILE^DICN
 PROV ;
- I ABMZ("SUB")=21!(ABMZ("SUB")=23)!(ABMZ("SUB")=27)!(ABMZ("SUB")=35)!(ABMZ("SUB")=37)!(ABMZ("SUB")=39)!(ABMZ("SUB")=43) D
+ ;I ABMZ("SUB")=21!(ABMZ("SUB")=23)!(ABMZ("SUB")=27)!(ABMZ("SUB")=35)!(ABMZ("SUB")=37)!(ABMZ("SUB")=39)!(ABMZ("SUB")=43) D  ;abm*2.6*10
+ I ABMZ("SUB")=21!(ABMZ("SUB")=23)!(ABMZ("SUB")=27)!(ABMZ("SUB")=35)!(ABMZ("SUB")=37)!(ABMZ("SUB")=39)!(ABMZ("SUB")=43)!(ABMZ("SUB")=47) D  ;abm*2.6*10
  .K DIC,DR,DIE,DA
  .S DA(2)=ABMP("CDFN")
  .S DA(1)=+Y
@@ -207,15 +208,18 @@ XIT ;
  K ABMX,DIC
  Q
 39 ;EP - dr string for anesthesia page
- S ABMZ("DR")=ABMZ("DR")_";.15//11;.07:.08"  ;abm*2.6*1 HEAT6566
+ ;S ABMZ("DR")=ABMZ("DR")_";.15//11;.07:.08"  ;abm*2.6*1 HEAT6566  ;abm*2.6*10 HEAT76189
+ S ABMZ("DR")=ABMZ("DR")_";.07:.08"  ;abm*2.6*1 HEAT6566  ;IHS/SD/AML 7/20/2012 HEAT76189 - REMOVE DUPLICATE POS FIELD
  ;I ABMP("ITYP")'="R" S ABMZ("DR")=ABMZ("DR")_";.15//11;.07:.08"  ;abm*2.6*1 HEAT6566
  ;I ABMP("ITYP")="R" S ABMZ("DR")=ABMZ("DR")_";.12//1;.06;.07:.09;.03"  ;abm*2.6*1 HEAT6566
  Q
 MILEAGE ;
- I (ABMZ("SUB")=47)!(ABMZ("SUB")=43),"A0888^A0425"[$P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2) D  ;CSV-c
+ ;I (ABMZ("SUB")=47)!(ABMZ("SUB")=43),"A0888^A0425"[$P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2) D  ;CSV-c  ;abm*2.6*10
+ I (ABMZ("SUB")=47)!(ABMZ("SUB")=43),"^A0888^A0425^"[("^"_$P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)_"^") D  ;CSV-c  ;abm*2.6*10
  .S DIE="^ABMDCLM(DUZ(2),"
  .S DA=ABMP("CDFN")
  .S ABMIEN=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),"B",ABMX("Y"),0))
+ .Q:+ABMIEN=0  ;abm*2.6*11 HEAT88601
  .I $P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)="A0425" S DR=".128////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8))  ;CSV-c
  .I $P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)="A0888" S DR=".129////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9))  ;CSV-c
  .D ^DIE
