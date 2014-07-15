@@ -1,5 +1,5 @@
-PSOBBC ;IHS/DSD/JCM-BATCH BARCODE DRIVER ;29-May-2012 14:39;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,22,27,34,46,130,146,1004,1005,185,242,264,300,1015**;DEC 1997;Build 62
+PSOBBC ;IHS/DSD/JCM-BATCH BARCODE DRIVER ;26-Aug-2013 15:36;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,22,27,34,46,130,146,1004,1005,185,242,264,300,1015,1016**;DEC 1997;Build 74
  ;External reference to ^IBE(350.1,"ANEW" supported by DBIA 592
  ;External references CHPUS^IBACUS and TRI^IBACUS supported by DBIA 2030
  ;External references LK^ORX2 and ULK^ORX2 supported by DBIA 867
@@ -12,6 +12,8 @@ PSOBBC ;IHS/DSD/JCM-BATCH BARCODE DRIVER ;29-May-2012 14:39;PLS
  ;                                     Line REFILL+2, REFILL+3
  ;                                     New IHSFLDS API
  ;            IHS/MSC/PLS   05/27/06 - Line PT+3 - AudioCare Support
+ ;                          08/01/13 - Line PROCESSX+8
+ ;                          08/26/13 - Line SUSP+4
 START ;
  N PSODFN,PSOBBCNO
  D INIT I '$D(PSOPAR) D ^PSOLSET G:'$D(PSOPAR) EOJ
@@ -53,7 +55,8 @@ ASKX Q
 SUSP ;
  S DIR(0)="SAB^Q:QUEUED;S:SUSPENDED"
  S DIR("A")="Will these refills be Queued or Suspended ? "
- S DIR("B")="S"   ;PSO*242
+ ;S DIR("B")="S"   ;PSO*242
+ S DIR("B")="Q"  ;IHS/MSC/PLS - 08/26/13
  D DIR G:PSOBBC("QFLG") SUSPX
  S (PSOBBC1("QS"),PSOBBC("QS"))=Y S:PSOBBC1("QS")="S" BINGCRT=0
 SUSPX K X,Y,DIR
@@ -120,8 +123,11 @@ PROCESSX ;I $G(PPL) D SETX,TRI,Q^PSORXL K PPL,RXFL  ; IHS/CIA/PLS - 01/16/04
  .;IHS/CIA/PLS - 06/24/05 - Changed reference from VEX to BEX in next two lines
  .;I '$G(VEXRX) D Q^PSORXL
  .;E  D OPT^APSPNE4 K VEXPPL
- .I '$G(BEXRX) D Q^PSORXL
- .E  D OPT^APSPNE4 K BEXPPL
+ .;IHS/MSC/PLS - 08/01/13 - Added argumentless D command
+ .I '$G(BEXRX) D
+ ..D Q^PSORXL
+ .E  D
+ ..D OPT^APSPNE4 K BEXPPL
  .K PPL
  Q
 GETRXM ;

@@ -1,5 +1,5 @@
 BAREDIUT ; IHS/SD/LSL - UTILITY FOR TANSPORT FILE ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,21**;OCT 26,2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,21,23**;OCT 26,2005
  ;;
  ; IHS/ASDS/LSL - 09/11/01 - V1.5 Patch 2 - NOIS CXX-0501-110014
  ;     Allow deletion of ERA Import files
@@ -13,7 +13,7 @@ BAREDIUT ; IHS/SD/LSL - UTILITY FOR TANSPORT FILE ;
  ;     lengthen filename to 50 characters
  ;     FIELD CROSS REFERENCE CHANGED TO 80
  ;     POST ROUTINE RE-INDEXS RECORDS 
- ;
+ ; ;P.OTT HEAT# 80621
  ; *********************************************************************
  ;
 PRTVARA(TRDA) ; EP
@@ -134,13 +134,18 @@ STRIP(XX) ; EP
  Q XX
  ; *********************************************************************
  ;
+STATUS() ;PREPARE STRING OF STATUSES OF CLAIMS P.OTT
+ NEW STR,STA
+ S STR=""
+ S STA="" F  S STA=$O(^BAREDI("I",DUZ(2),Y,30,"AC",STA)) Q:STA=""  S STR=STR_STA_" "
+ QUIT STR
 DELIMP ; EP
  ; Delete an Import
  K DIC,DR,DA
- W !!,"This is to delete ERA Imports",!
+ W !!,"This is to delete ERA Import file",!
  S DIC=90056.02
  S DIC(0)="AEQM"
- S DIC("W")="W ?35,$P(^(0),U,5)"
+ S DIC("W")="W ?35,$P(^(0),U,5),?70,$$STATUS^BAREDIUT()" ;P.OTT DISPLAY STATUS(ES)
  D ^DIC
  I Y'>0 D  Q
  . W !!,"None Chosen",!
@@ -149,12 +154,23 @@ DELIMP ; EP
  . S DIR(0)="E"
  . D ^DIR
  S IMPDA=+Y
+ I $D(^BAREDI("I",DUZ(2),IMPDA,30,"AC","P")) D  QUIT  ;P.OTT
+ . W !,"This file has one or more posted claims. Cannot delete."
+ . K DIR
+ . S DIR("A")="hit ^ to return"
+ . S DIR(0)="E"
+ . D ^DIR
+ ;E  W !,"No posted claims for this file. "
  K IMP
  D ENP^XBDIQ1(90056.02,IMPDA,".01:.07","IMP(")
- W !!,"IMPORT:",?15,IMP(.01)
- W !,"EDI:",?15,IMP(.03),?40,"ERA:",?55,IMP(.05)
- W !,"BATCH:",?15,IMP(.06),?40,"ITEM:",?55,IMP(.07),!!
+ ;I DUZ=838 W ! ZW IMP W ! R ASD
+ W !
+ W !,"IMPORT: ",IMP(.01)
+ W !,"EDI   : ",IMP(.03)
+ W !,"ERA   : ",IMP(.05)
+ ;W !,"BATCH: ",IMP(.06),?40,"ITEM: ",IMP(.07),!!
  K DIR
+ S DIR("A")="Delete this file"
  S DIR(0)="Y"
  S DIR("B")="N"
  D ^DIR
@@ -176,7 +192,6 @@ FNAME ; EP
  ;
 FNAME1 ;
  S XBFN=""
- ;S DIR(0)="FO^1:30"
  S DIR(0)="FO^1:50"               ;IM14472
  S DIR("A")="File Name "
  D ^DIR
@@ -189,7 +204,15 @@ FNAME1 ;
  I Y["*" D  G FNAME
  . K XBFL
  . S X=$$LIST^%ZISH(XBDIR,Y,.XBFL)
- . ;F XBI=1:1 Q:'$D(XBFL(XBI))  W !?5,XBI,?10,XBFL(XBI) I '(XBI#20) R X:DTIME
- . S XBI="" F  S XBI=$O(XBFL(XBI)) Q:XBI=""!($G(X)=U)  W !?5,XBI,?10,XBFL(XBI) I '(XBI#20) R X:DTIME  ;IM13589
+ . S XBI="" F  S XBI=$O(XBFL(XBI)) Q:XBI=""!($G(X)=U)  D
+ . . W !?5,XBI,?10,XBFL(XBI)
+ . . I (XBI#20) Q
+ . . ;;;R X:DTIME  ;IM13589
+ . . K DIR S (X,Y)=""
+ . . S DIR(0)="E"
+ . . S DIR("A")="Hit ENTER to continue" ;ANY CHAR, 
+ . . D ^DIR
+ . . K DIR
+ . Q
  S XBFN=Y
  Q

@@ -1,5 +1,5 @@
-PSOR52 ;IHS/DSD/JCM-files refill entries in prescription file ;06-Mar-2013 09:52;PLS
- ;;7.0;OUTPATIENT PHARMACY;**10,22,27,1005,1006,1013,181,148,201,260,281,1015**;DEC 1997;Build 62
+PSOR52 ;IHS/DSD/JCM-files refill entries in prescription file ;23-Sep-2013 16:30;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**10,22,27,1005,1006,1013,181,148,201,260,281,1015,1016**;DEC 1997;Build 74
  ;Reference to ^PSDRUG supported by DBIA 221
  ;Reference to PSOUL^PSSLOCK supported by DBIA 2789
  ;Reference SWSTAT^IBBAPI supported by DBIA 4663
@@ -13,7 +13,9 @@ PSOR52 ;IHS/DSD/JCM-files refill entries in prescription file ;06-Mar-2013 09:52
  ;                          10/24/07 - DD section
  ;                          06/01/10 - Line FILE+12
  ;                          09/27/11 - APSPPRIO support
+ ;                          11/20/12 - RXNORM CODE support
  ;                          03/06/13 - Line DD-1
+ ;                          09/23/13 - Line INIT+17
 EN(PSOX) ;Entry Point
 START ;
  D:$D(XRTL) T0^%ZOSV ; Start RT monitor
@@ -43,7 +45,8 @@ INIT ;
  I $P(PSOX("RX2"),"^",12)]"" S PSOX("GENERIC PROVIDER")=$P(PSOX("RX2"),"^",12)
  S PSOX("PROVIDER")=$P(PSOX("RX0"),"^",4)
  S:'$D(PSOX("CLERK CODE")) PSOX("CLERK CODE")=DUZ
- S PSOX("DAW")=$$GETDAW^PSODAWUT(+PSOX("IRXN")),PSOX("NDC")=$$GETNDC^PSSNDCUT($P(PSOX("RX0"),"^",6))
+ ;IHS/MSC/PLS - 09/23/2013
+ ;S PSOX("DAW")=$$GETDAW^PSODAWUT(+PSOX("IRXN")),PSOX("NDC")=$$GETNDC^PSSNDCUT($P(PSOX("RX0"),"^",6))
  S:$L($G(APSPPRIO)) PSOX("APSPPRIO")=APSPPRIO  ;IHS/MSC/PLS - 09/27/11
 INITX Q
  ;
@@ -148,3 +151,4 @@ DD ;rx data nodes
  ;;PSOX("CLINIC");;9999999;;16  ;IHS/MSC/PLS 05/16/06
  ;;PSOX("REQ PROVIDER");;9999999;;1 ; IHS/MSC/PLS 10/24/2007
  ;;PSOX("APSPPRIO");;9999999;;18  ;IHS/MSC/PLS - 09/27/2011
+ ;;PSOX("RXNORM");;9999999;;19    ;IHS/MSC/PLS - 11/20/2012

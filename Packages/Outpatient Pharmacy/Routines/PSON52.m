@@ -1,5 +1,5 @@
 PSON52 ;BIR/DSD - files new entries in prescription file ;06-Mar-2013 09:46;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013,1014,143,219,148,239,201,268,260,225,303,1015**;DEC 1997;Build 62
+ ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013,1014,143,219,148,239,201,268,260,225,303,1015,1016**;DEC 1997;Build 74
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
  ;External reference to ^XUSEC supported by DBIA 10076
@@ -13,6 +13,7 @@ PSON52 ;BIR/DSD - files new entries in prescription file ;06-Mar-2013 09:46;PLS
  ;                          09/27/11 - Added APSPPRIO references
  ;                          10/13/11 - Line INIT+5,INIT+9
  ;                          05/22/12 - Line DT+2
+ ;                          11/20/12 - Line DT+15
  ;                          03/06/13 - Line DD-2
 EN(PSOX) ;Entry Point
 START ;
@@ -53,6 +54,7 @@ DT ;IHS/MSC/PLS - 02/13/2012
  S PSOX("COPIES")=$S($G(PSOX("COPIES"))]"":PSOX("COPIES"),1:1)
  I $G(PSORX("PHARM"))]"" S PSOX("PHARMACIST")=PSORX("PHARM") K PSORX("PHARM")
  S:$L($G(APSPPRIO)) PSOX("APSPPRIO")=APSPPRIO  ;IHS/MSC/PLS - 09/27/11
+ S PSOX("RXNORM")=$$RXNORM^APSPFNC1($G(PSOX("NDC")))  ;IHS/MSC/PLS - 11/20/2012
  D INITPRV
 INITX Q
  ;
@@ -164,7 +166,7 @@ EOJ ;
  D PSOUL^PSSLOCK(PSOX("IRXN"))
  Q
  ;
- ;;PSODRUG("DAW");;EPH;;1  ;REMOVED IN PATCH 1015
+ ;;PSODRUG("DAW");;EPH;;1
  ;;PSOX("SIG");;SIG;;1
 DD ;;PSOX("RX #");;0;;1
  ;;PSOX("ISSUE DATE");;0;;13
@@ -209,6 +211,7 @@ DD ;;PSOX("RX #");;0;;1
  ;;PSOX("AUTOFIN");;999999921;;3
  ;;PSOX("ELECTRONIC PHARMACY");;999999921;;4
  ;;PSOX("CASH DUE");;999999921;;6
+ ;;PSOX("RXNORM");;999999921;;7
  ;;PSOX("DAW");;999999921;;5
  ;;PSOX("COST");;0;;17
  ;;PSOX("NDC");;2;;7

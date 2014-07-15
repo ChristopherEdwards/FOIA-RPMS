@@ -1,5 +1,5 @@
 ABSPDB1A ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" Claims for D.0 (Claim Segment)
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42,46**;JUN 21, 2001
  ;
 CLAIM ;EP CALLED FROM ABSPDB1 to set up CLAIM SEGMENT
  N FIELD
@@ -344,12 +344,12 @@ CLAIM ;EP CALLED FROM ABSPDB1 to set up CLAIM SEGMENT
 996SET ;Not Yet Implemented
  Q
  ;Pharmacy Service Type
-147GET I '$D(SPECIAL(147)) S ABSP("X")=""
+147GET I '$D(SPECIAL(147)) S ABSP("X")="01"
  ELSE  X SPECIAL(147)
  Q
 147FMT S:ABSP("X")'="" ABSP("X")="U7"_$$ANFF^ABSPECFM($G(ABSP("X")),2)
  Q
-147SET ;Not Yet Implemented
+147SET S $P(^ABSPC(ABSP(9002313.02),140),U,7)=ABSP("X")
  Q
 APPEND(FIELD) ;This is where the record is built field by field
  I FIELD["111" D

@@ -1,5 +1,5 @@
-BGOVEXAM ; IHS/BAO/TMD - V Exam Management ;22-Oct-2012 10:08;DU
- ;;1.1;BGO COMPONENTS;**1,3,11**;Mar 20, 2007;Build 3
+BGOVEXAM ; IHS/BAO/TMD - V Exam Management ;02-Oct-2013 13:02;PLS
+ ;;1.1;BGO COMPONENTS;**1,3,11,12**;Mar 20, 2007;Build 3
  ; Return exam records for a patient
  ;  DFN = Patient IEN
  ; .RET = Returned as a list of record in one of two formats:
@@ -118,7 +118,8 @@ SET(RET,INP) ;EP
  S @FDA@(.04)=RESULT
  S:'VFNEW!$L(COMMENT) @FDA@(81101)=COMMENT
  ;IHS/MSC/MGH Patch 11 change for new fields
- S @FDA@(1204)="`"_DUZ
+ ;S @FDA@(1204)="`"_DUZ
+ S @FDA@(1204)="`"_PROV
  S @FDA@(1201)=EVNTDT
  ;Patch 11 Set date entered
  I VFNEW D

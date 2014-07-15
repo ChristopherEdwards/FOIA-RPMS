@@ -1,8 +1,9 @@
-ORWDPS33 ; SLC/KCM - Pharmacy Calls for GUI Dialog ;22-Nov-2011 14:20;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**243,1010**;Dec 17, 1997;Build 47
+ORWDPS33 ; SLC/KCM - Pharmacy Calls for GUI Dialog ;06-Jun-2013 09:19;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**243,1010,1011**;Dec 17, 1997;Build 242
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;This routine move several RPCs from ORWDPS32 because of the routine size
  ; Modified - IHS/MSC/PLS - 11/22/2011 - Line VALQTY+3
+ ;                        - 06/06/2013 - Line VALQTY+6
 COMPLOC(ORY,ORID,LOC) ;
  S ORY=0
  I LOC'=+$P($G(^OR(100,+ORID,0)),U,10) S ORY=1
@@ -125,7 +126,9 @@ VALQTY(OK,X) ; validate a quantity, return 1 if valid, 0 if not
  ; this is based on the input transform from 52,7
  ;IHS/MSC/PLS - 11/22/11
  ;K:(+X'>0)!(+X>99999999)!(X'?.8N.1".".2N)!($L(X)>12) X
- K:(+X'>0)!(+X>99999999)!(X'?.8N.1".".3N)!($L(X)>12) X
+ ;K:(+X'>0)!(+X>99999999)!(X'?.8N.1".".3N)!($L(X)>12) X
+ ;IHS/MSC/PLS - 06/06/13
+ K:(+X'>0)!(+X>99999999)!(X'?.8N.1".".3N)!($L(X)>12)!((X[".")&(+$P(X,".",2)=0)) X
  S OK=$S($D(X):1,1:0)
  Q
  ;

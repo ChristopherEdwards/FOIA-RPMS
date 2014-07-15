@@ -1,5 +1,5 @@
 ABSPOSBB ; IHS/FCS/DRS - POS billing - new ;        [ 03/14/2003  11:18 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**6,7,11,14,19,22,28,31,36,37,38,39**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**6,7,11,14,19,22,28,31,36,37,38,39,46**;JUN 21, 2001
  ;
  ; When a transaction completes, POSTING^ABSPOSBB is called
  ; (the transaction completion happens in ^ABSPOSU)
@@ -104,6 +104,8 @@ THIRD()  ; IHS Third Party Billing ; ABSP*1.0T7*6  entire paragraph is new
  . . .I ABSPRJCT(ABSPCNT,"CODE")="98" S ABSPQUIT=1 ;98 Connection to Payer is Down
  . . .I ABSPRJCT(ABSPCNT,"CODE")="R8" S ABSPQUIT=1 ;R8 Syntax Error
  . . .S ABSPRJCT(ABSPCNT,"REASON")=$P(ABSPREJS(ABSPCNT),":",2)
+ ;IHS/OIT/RCS 7/5/2013 Patch 46 - The Category 'E OTHER' should not be sent 
+ I CAT="E OTHER" S ABSPQUIT=1 ;Considered an error
  Q:ABSPQUIT 0  ;DON'T SEND UN-PROCESSED REJECTIONS TO 3PB - return used update free-text .14 field in ABSPT
  ;IHS/OIT/SCR 020110 patch 37 END  send additional REJECTED information to 3PB
  I CAT["DUPLICATE" D  Q:'$$TIMEOUT ""

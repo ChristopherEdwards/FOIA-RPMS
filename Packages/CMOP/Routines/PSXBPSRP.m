@@ -1,16 +1,18 @@
-PSXBPSRP ;BHAM ISC/MFR - CMOP/ECME ACTIVITY REPORT ;09/01/2006
- ;;2.0;CMOP;**63,65**;11 Apr 97;Build 31
+PSXBPSRP ;BHAM ISC/MFR - CMOP/ECME ACTIVITY REPORT ;30-Aug-2013 16:46;PLS
+ ;;2.0;CMOP;**63,65,1016**;11 Apr 97;Build 74
  ;External reference to ^PSRX( supported by IA #1221
  ;External reference to ^PSOBPSUT supported by IA #4701
  ;External reference to ^BPSUTIL supported by IA #4410
  ;External reference to ^IBNCPDPI supported by IA #4729
- ; 
+ ;
+ ; Modified - IHS/MSC/PLS - 06/20/13 - Line CHKEPH+11,PDET+7
+ ;                          08/30/13 - Line PDET+21
 EN ; Entry Point
  N %,%ZIS,EXCEL,STDT,TERM,ENDT,DIVDA,DIVNM,DTOUT,I,LINE,POP,VA,VAERR
  N TYPE,PATS
  N X,Y,ZTDESC,ZTIO,ZTQUEUED,ZTREQ,ZTRTN,ZTSAVE,ZTSK
  ;
-BDT ; - Prompt to select Date Range (Return: Start Date^End Date) 
+BDT ; - Prompt to select Date Range (Return: Start Date^End Date)
  S X=$$SELDATE() I X="^" S POP=1 G EXIT
  S STDT=$P(X,U),ENDT=$P(X,U,2)
  ;
@@ -110,7 +112,9 @@ CHKEPH(TRX) ;check batch for ePharmacy Rx's
  . I RFL>0 S RELDAT=$$GET1^DIQ(52.1,RFL_","_RX,17,"I")
  . Q:RLNRALL=2&(RELDAT="")
  . Q:RLNRALL=3&(RELDAT'="")
- . I $$STATUS^PSOBPSUT(RX,RFL)'="" S EPHARM=1
+ .;IHS/MSC/PLS - 06/20/13
+ . ;I $$STATUS^PSOBPSUT(RX,RFL)'="" S EPHARM=1
+ .S EPHARM=1
  Q EPHARM
  ;
 HEAD1 ;
@@ -145,7 +149,7 @@ PDET(TRX,PATS) N BIEN,DFN,RFL,M,N,NDCR,NDCS,RXS,PS,RDT,RXI,VA
  .S RFL=+$$GET1^DIQ(550.215,RXS_","_TRX,".02","I")
  .S DFN=+$$GET1^DIQ(550.215,RXS_","_TRX,".03","I")
  .Q:$$GOODPAT(DFN,.PATS)=0
- .Q:$$STATUS^PSOBPSUT(RXI,RFL)=""
+ .;Q:$$STATUS^PSOBPSUT(RXI,RFL)=""  ;IHS/MSC/PLS - 06/20/13
  .D CHKP(2) Q:$G(POP)
  .I RFL=0 S RELDAT=$$GET1^DIQ(52,RXI,31,"I")
  .I RFL>0 S RELDAT=$$GET1^DIQ(52.1,RFL_","_RXI,17,"I")
@@ -159,8 +163,11 @@ PDET(TRX,PATS) N BIEN,DFN,RFL,M,N,NDCR,NDCS,RXS,PS,RDT,RXI,VA
  .S (NDCS,NDCR)="",(M,N)=0
  .F  S M=$O(^PSRX(RXI,4,M)) Q:'M  S N=^(M,0) I $P(N,"^",3)=RFL S NDCR=$P(N,"^",8),NDCS=$P(N,"^",9)
  .W ?45,$E(NDCS,1,13),?59,$E(NDCR,1,13),?73,$S(RDT:"D",1:"T")
- .W !,?3,$E($$GET1^DIQ(52,RXI,6),1,18),?22,$E($$BPSPLN^BPSUTIL(RXI,RFL),1,15)
- .W ?38,$E($$STATUS^PSOBPSUT(RXI,RFL),1,7),?48,$P($$BILLINFO^IBNCPDPI(RXI,RFL),"^",1)
+ .;IHS/MSC/PLS - 08/30/2013
+ .;W !,?3,$E($$GET1^DIQ(52,RXI,6),1,18),?22,$E($$BPSPLN^BPSUTIL(RXI,RFL),1,15)
+ .W !,?3,$E($$GET1^DIQ(52,RXI,6),1,18)
+ .;W ?38,$E($$STATUS^PSOBPSUT(RXI,RFL),1,7),?48,$P($$BILLINFO^IBNCPDPI(RXI,RFL),"^",1)
+ .W ?38,$E($$STATUS^PSOBPSUT(RXI,RFL),1,7)
  .W ?58,$S(RDT:$E(RDT,4,5)_"/"_$E(RDT,6,7)_"/"_$E(RDT,2,3),1:"")
  Q PS
  ;
@@ -239,7 +246,7 @@ CHKP(BPLINES) Q:$G(EXCEL)
  I $G(TERM) S BPLINES=BPLINES+2
  I $Y>(IOSL-BPLINES) D:$G(TERM) PAUSE Q:$G(POP)  D TITLE,PLINE Q
  Q
- ;                
+ ;
 SELDATE() Q $$SELDATE^PSXBPSR1()
  ;
 SELDIV D SELDIV^PSXBPSR1 Q

@@ -1,7 +1,8 @@
-ORQ20 ; SLC/MKB - Detailed Order Report cont ;12-Jun-2012 13:00;DU
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**12,27,92,94,116,141,177,186,190,215,243,1006,1008,1010**;Dec 17, 1997;Build 47
+ORQ20 ; SLC/MKB - Detailed Order Report cont ;12-Sep-2013 12:07;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**12,27,92,94,116,141,177,186,190,215,243,1006,1008,1010,1011**;Dec 17, 1997;Build 47
  ;Modified - IHS/MSC/PLS - 09/21/2010 - Line ACTION+2
  ;                       - 04/12/11 Line A2+1
+ ;           IHS/MSC/MGH - 09/12/13 Line A2+3
 ACT ; -- add Activity [from ^ORQ2]
  N ORACT S ORACT=$P(ACTION,U,2)
  I ORACT'="NW",$P(ACTION,U,4)=5,$P(ACTION,U,15)=13 Q  ;skip canc actions
@@ -31,7 +32,8 @@ A1 I $P(ACTION,U,12) D  ;Nature of Order/Release
 A2 I $P(ACTION,U,5) S CNT=CNT+1,@ORY@(CNT)=$S($P(ACTION,U,4)=7:"      Dig",1:"     Elec")_" Signature:    "_$$USER(+$P(ACTION,U,5))_" on "_$$DATE($P(ACTION,U,6))
  ;IHS/MSC/MGH Change Documented by to entering user for non-va meds
  N DOCBY S DOCBY=$S($D(NVA):$$USER($P(OR0,U,6)),1:$$USER(+$P(ACTION,U,3)))
- I '$P(ACTION,U,5)!($P(ACTION,U,3)'=$P(ACTION,U,5)),'$$SERVCORR S CNT=CNT+1,@ORY@(CNT)="     "_$S($D(NVA):"Documented by:",1:"Ordered by:   ")_"     "_DOCBY  ;IHS/MSC/MGH
+ ;I '$P(ACTION,U,5)!($P(ACTION,U,3)'=$P(ACTION,U,5)),'$$SERVCORR S CNT=CNT+1,@ORY@(CNT)="     "_$S($D(NVA):"Documented by:",1:"Ordered by:   ")_"     "_DOCBY  ;IHS/MSC/MGH
+ I '$$SERVCORR S CNT=CNT+1,@ORY@(CNT)="     "_$S($D(NVA):"Documented by:",1:"Ordered by:   ")_"     "_DOCBY  ;IHS/MSC/MGH Patch 1011
  I '$P(ACTION,U,5),$L($P(ACTION,U,4)) D
  .I $P(ACTION,U,4)=0 D
  ..S USER=$$USER(+$P(ACTION,U,7))

@@ -1,5 +1,5 @@
-PSORENW4 ;BIR/SAB - rx speed renew ;31-Dec-2012 10:38;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,23,27,32,37,64,46,75,71,100,130,117,152,1004,1005,1009,148,264,225,301,1014**;DEC 1997;Build 62
+PSORENW4 ;BIR/SAB - rx speed renew ;24-Jun-2013 11:00;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,23,27,32,37,64,46,75,71,100,130,117,152,1004,1005,1009,148,264,225,301,1014,1016**;DEC 1997;Build 74
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External references L, UL, PSOL, and PSOUL^PSSLOCK supported by DBIA 2789
@@ -7,6 +7,7 @@ PSORENW4 ;BIR/SAB - rx speed renew ;31-Dec-2012 10:38;PLS
  ; Modified - IHS/CIA/PLS - 12/26/05 - Line PROCESS+18
  ;            IHS/MSC/PLS - 12/09/10 - Added three lines at PROCESS+35
  ;                          12/05/11 - Line PROCESS+1,PROCESS+3
+ ;                          06/24/13 - Line PROCESS+1
 SEL K PSODRUG ;PSO*7*301
  I $P(PSOPAR,"^",4)=0 S VALMSG="Renewing is NOT Allowed. Check Site Parameters!",VALMBCK="" Q
  N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!",VALMBCK="" Q
@@ -23,6 +24,9 @@ SELQ K PSORNSPD,RTE,DRET,PRC,PHI S X=PSODFN_";DPT(" D ULK^ORX2,UL^PSSLOCK(PSODFN
  Q
  ;
 PROCESS ; Process one order at a time
+ ;IHS/MSC/PLS - 06/24/2013
+ I $E($$GET1^DIQ(52,$P(PSOLST(ORN),U,2),.01),1)="X" D  K DIR,PSOMSG D PAUSE^VALM1 Q
+ .W $C(7),!!,"Rx "_$$GET1^DIQ(52,$P(PSOLST(ORN),"^",2),.01)_" is an external prescription and can't be refilled!"
  I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2)) W $C(7),!!,"Rx "_$$GET1^DIQ(52,$P(PSOLST(ORN),"^",2),.01)_" has OPEN/UNRESOLVED 3rd Party Payer Rejects!" K DIR,PSOMSG D PAUSE^VALM1 Q
  D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) W $C(7),!!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing Rx "_$P(^PSRX($P(PSOLST(ORN),"^",2),0),"^")),! K DIR,PSOMSG D PAUSE^VALM1 Q
  N APSPDRG

@@ -1,10 +1,11 @@
-ORQ21 ; SLC/MKB/GSS - Detailed Order Report cont ;15-Apr-2013 22:27;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,190,1005,1007,195,215,243,1010**;Dec 17, 1997;Build 47
+ORQ21 ; SLC/MKB/GSS - Detailed Order Report cont ;11-Sep-2013 12:15;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,190,1005,1007,195,215,243,1010,1011**;Dec 17, 1997;Build 47
  ;
  ; DBIA 2400   OEL^PSOORRL   ^TMP("PS",$J)
  ; DBIA 2266   EN30^RAO7PC1  ^TMP($J,"RAE2")
  ; Modified - IHS/MSC/PLS - 03/15/2011 - Line M2+10
  ;                          04/15/2013 - Line ACTLOG+19
+ ;                          09/11/2013 - Line MED+3
 RAD(TCOM) ; -- add RA data for 2.5 orders
  N RAIFN,CASE,PROC,ORD,ORI,X,ORTTL,ORB
  S RAIFN=$G(^OR(100,ORIFN,4)) Q:RAIFN'>0
@@ -31,6 +32,7 @@ RAD1 I $L($G(^TMP($J,"RAE2",+ORVP,CASE,PROC,"TCOM",1))) S X=^(1) D
 MED ; -- Add Pharmacy order data
  Q:$G(^OR(100,ORIFN,4))["N"  ;non-VA med -- no refill history
  N TYPE,NODE,RXN,OR5,STAT S TYPE=$P(OR0,U,12)
+ I TYPE="O",$G(^OR(100,ORIFN,4))["V" S TYPE="I"  ;IHS/MSC/PLS - 09/11/2013 Fix for Outpatient IV Orders
  I '$D(^TMP("PS",$J,0)) D  ;get PS data / DBIA 2400
  . N PSIFN S PSIFN=$G(^OR(100,ORIFN,4))
  . S:TYPE="O" PSIFN=$TR(PSIFN,"S","P")_$S(PSIFN?1.N:"R",1:"")

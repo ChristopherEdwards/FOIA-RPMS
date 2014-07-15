@@ -1,8 +1,8 @@
 BIENVCHK ;IHS/CMI/MWR - ENVIRONMENTAL CHECK FOR KIDS; DEC 15, 2010
- ;;8.5;IMMUNIZATION;**6**;OCT 15,2013
+ ;;8.5;IMMUNIZATION;**7**;JAN 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ENVIRONMENTAL CHECK ROUTINE FOR KIDS INSTALLATION.
- ;;  PATCH 5, v8.5: Check environment for Imm v8.5 Patch 5.  START+53
+ ;;  PATCH 7, v8.5: Check environment for Imm v8.5 Patch 6.  START+53
  ;
  ;
  ;----------
@@ -59,7 +59,7 @@ START ;EP
  ;.W !,$$CJ^XLFSTR("BGP v9.0 Patch 1 NOT INSTALLED",IOM)
  ;
  ;
- ;********** PATCH 1, v8.5, JAN 03,2012, IHS/CMI/MWR
+ ;********** PATCH 7, v8.5, DEC 15,2013, IHS/CMI/MWR
  ;---> Check environment for previous load of Imm v8.5.
  D
  .;---> Either never before installed or at least v8.5, Patch 0.
@@ -78,13 +78,13 @@ START ;EP
  .;I $P(X,U)'=2&($P(X,U)'>2) D  S XPDQUIT=2
  .;.W !,$$CJ^XLFSTR("BI v8.5 Patch 2 NOT INSTALLED",IOM)
  .;---> Patch 5.
- .I $P(X,U)'=5&($P(X,U)'>5) D  S XPDQUIT=2
- ..W !,$$CJ^XLFSTR("BI v8.5 Patch 5 NOT INSTALLED",IOM)
+ .I $P(X,U)'=6&($P(X,U)'>6) D  S XPDQUIT=2
+ ..W !,$$CJ^XLFSTR("BI v8.5 Patch 6 NOT INSTALLED",IOM)
  .;
  .I XPDQUIT'=2 D
  ..;W !,$$CJ^XLFSTR("Checking for Patch 1 of BI v8.5.....Patch 1 Present",IOM)
  ..;W !,$$CJ^XLFSTR("Checking for Patch 2 of BI v8.5.....Patch 2 Present",IOM)
- ..W !,$$CJ^XLFSTR("Checking for Patch 5 of BI v8.5...Patch 5 Present",IOM)
+ ..W !,$$CJ^XLFSTR("Checking for Patch 6 of BI v8.5...Patch 6 Present",IOM)
  ;**********
  ;
  ;---> Check for multiple BI entries in the Package File.

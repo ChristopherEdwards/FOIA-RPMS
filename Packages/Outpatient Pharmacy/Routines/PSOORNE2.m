@@ -1,5 +1,5 @@
 PSOORNE2 ;BIR/SAB-display finished orders from backdoor ;21-Mar-2013 14:46;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,21,23,27,32,37,46,84,103,117,131,146,1004,1008,156,210,148,222,238,264,281,289,1015**;DEC 1997;Build 62
+ ;;7.0;OUTPATIENT PHARMACY;**11,21,23,27,32,37,46,84,103,117,131,146,1004,1008,156,210,148,222,238,264,281,289,1015,1016**;DEC 1997;Build 74
  ;^PSDRUG( -  221
  ;^YSCL(603.01 - 2697
  ;^PS(50.606 - 2174
@@ -12,6 +12,7 @@ PSOORNE2 ;BIR/SAB-display finished orders from backdoor ;21-Mar-2013 14:46;PLS
  ;            IHS/MSC/PLS - 03/13/08 - Line PTST+49 Substitution
  ;                          01/23/09 - Line PTST+50 Cash Due
  ;                          03/21/13 - Line PTST+54
+ ;            IHS/MSC/PB    08/03/12 - Line tag SIGN added at line PST+2 to pull the SIGNS and SYMPTOMS and the INDICATION CODES for display
 SEL N ORN,ORD I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
  D K1^PSOORNE6 S DIR("A")="Select Orders by number",DIR(0)="LO^1:"_PSOCNT D ^DIR I $D(DIRUT) D KV^PSOVER1 S VALMBCK="" Q
 NEWSEL N ORN,ORD D K2^PSOORNE6
@@ -72,7 +73,10 @@ ACT N REF K ^TMP("PSOAO",$J),PCOMX,PDA,PHI,PRC,ACOM,ANS,PSOFDR,CLOZPAT,ANQREM,DU
  . S MIG=$P(^PSRX(RXN,"SIG1",I,0),"^")
  . D WORDWRAP^PSOUTLA2(MIG,.IEN,$NA(^TMP("PSOAO",$J)),21)
  S SIGOK=1 K MIG,SG
-PTST S $P(RN," ",25)=" ",PTST=$S($G(^PS(53,+$P(RX0,"^",3),0))]"":$P($G(^PS(53,+$P(RX0,"^",3),0)),"^"),1:""),IEN=IEN+1
+PTST ;
+ ;IHS/MSC/PB - 08/03/12 Next line added to pull the SIGNS and SYMPTOMS and the INDICATION CODE for display
+ S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)=" Clinical Indication: "_$P($G(^PSRX(RXN,999999921)),"^",1)_"  "_$P($G(^PSRX(RXN,999999921)),"^",2)      ;IEN=IEN+1
+ S $P(RN," ",25)=" ",PTST=$S($G(^PS(53,+$P(RX0,"^",3),0))]"":$P($G(^PS(53,+$P(RX0,"^",3),0)),"^"),1:""),IEN=IEN+1
  S ^TMP("PSOAO",$J,IEN,0)=" (5)  Patient Status: "_PTST_$E(RN,$L(PTST)+1,25)
  S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)=" (6)      Issue Date: "_$E($P(RX0,"^",13),4,5)_"/"_$E($P(RX0,"^",13),6,7)_"/"_$E($P(RX0,"^",13),2,3)
  S ^TMP("PSOAO",$J,IEN,0)=^TMP("PSOAO",$J,IEN,0)_"               (7)  Fill Date: "_$E($P(RX2,"^",2),4,5)_"/"_$E($P(RX2,"^",2),6,7)_"/"_$E($P(RX2,"^",2),2,3)

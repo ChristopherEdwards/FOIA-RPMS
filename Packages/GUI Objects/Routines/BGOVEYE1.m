@@ -1,5 +1,5 @@
 BGOVEYE1 ; IHS/MSC/MGH - V EYE GLASS RX ;16-Jul-2013 08:04;DU
- ;;1.1;BGO COMPONENTS;**11,12**;Mar 20, 2007;Build 9
+ ;;1.1;BGO COMPONENTS;**11,12**;Mar 20, 2007;Build 2
  ;-----------------------------------------------------------------
  ; Validate the data entry
 VAL(RET,INP) ;EP

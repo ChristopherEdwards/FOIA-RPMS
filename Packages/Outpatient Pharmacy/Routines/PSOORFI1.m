@@ -1,5 +1,5 @@
-PSOORFI1 ;BIR/SAB - finish OP orders from OE/RR continued ;21-Mar-2013 14:49;PLS
- ;;7.0;OUTPATIENT PHARMACY;**7,15,23,27,32,44,51,46,71,90,108,131,152,1003,1005,1006,1008,1013,186,210,222,258,260,225,1015**;DEC 1997;Build 62
+PSOORFI1 ;BIR/SAB - finish OP orders from OE/RR continued ;31-Dec-2012 09:26;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**7,15,23,27,32,44,51,46,71,90,108,131,152,1003,1005,1006,1008,1013,186,210,222,258,260,225,1015,1016**;DEC 1997;Build 74
  ;Ref. ^PS(50.7 supp. DBIA 2223
  ;Ref. ^PSDRUG( supp. DBIA 221
  ;Ref. L^PSSLOCK supp. DBIA 2789
@@ -16,7 +16,8 @@ PSOORFI1 ;BIR/SAB - finish OP orders from OE/RR continued ;21-Mar-2013 14:49;PLS
  ;                          03/13/08 - PST+46 - Added line for Substitution display
  ;                          01/23/09 - PST+47 - Added line for Cash Due display
  ;                          10/24/11 - OBX+1
- ;                          12/06/12 - PST+19
+ ;            IHS/MSC/PB    08/03/12 - Line tag SIGN added at line PST+8 to pull the SIGNS and SYMPTOMS and the INDICATION CODES for display
+ ;            IHS/MSC/PLS   12/06/12 - PST+19
  S SIGOK=1
 DSPL K ^TMP("PSOPO",$J),CLOZPAT,PSOPRC,PSODSPL
  S (OI,PSODRUG("OI"))=$P(OR0,"^",8),PSODRUG("OIN")=$P(^PS(50.7,$P(OR0,"^",8),0),"^"),OID=$P(OR0,"^",9)
@@ -65,6 +66,8 @@ PST D DOSE^PSOORFI4 K PSOINSFL
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="  Provider Comments:" S TY=3 D INST
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="       Instructions:" S TY=2 D INST
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="                SIG:" D SIG
+ ;IHS/MSC/PB - 08/03/12 Next line added to pull the SIGNS and SYMPTOMS and the INDICATION CODE for display
+ S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="Clinical Indication: "_$G(PSONEW("CLININD"))_"  "_$G(PSONEW("CLININD2"))
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)=" (5) Patient Status: "_$P($G(^PS(53,+PSONEW("PATIENT STATUS"),0)),"^")
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)=" (6)     Issue Date: "_PSONEW("ISSUE DATE")
  S (Y,PSONEW("FILL DATE"))=$S($E($P(OR0,"^",6),1,7)<DT:DT,1:$E($P(OR0,"^",6),1,7)) X ^DD("DD") S PSORX("FILL DATE")=Y,^TMP("PSOPO",$J,IEN,0)=^TMP("PSOPO",$J,IEN,0)_"        (7) Fill Date: "_Y

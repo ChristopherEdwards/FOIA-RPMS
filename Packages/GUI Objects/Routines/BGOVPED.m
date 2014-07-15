@@ -1,5 +1,5 @@
-BGOVPED ; IHS/BAO/TMD - Patient Education ;09-Apr-2012 14:22;DU
- ;;1.1;BGO COMPONENTS;**1,2,3,5,6,8,11**;Mar 20, 2007;Build 3
+BGOVPED ; IHS/BAO/TMD - Patient Education ;02-Apr-2013 14:26;DU
+ ;;1.1;BGO COMPONENTS;**1,2,3,5,6,8,11,12**;Mar 20, 2007;Build 5
  ;---------------------------------------------
  ;  Get patient ed records for a patient
  ;  INP = Patient IEN ^ Visit IEN (optional)
@@ -35,6 +35,7 @@ GET(RET,INP) ;EP
  .S PRVIEN=$P(REC,U,5)
  .;Patch 11 add event date
  .S EVNDT=$$FMTDATE^BGOUTL($P($G(^AUPNVPED(VPED,12)),U,1))
+ .I EVNDT="" S EVNDT=$P($G(^AUPNVSIT(VIEN,0)),U,1)
  .S PRV=$P($G(^VA(200,+PRVIEN,0)),U)
  .S LVL=$$EXTERNAL^DILFD($$FNUM,.06,,$P(REC,U,6))
  .S GRP=$P(REC,U,7)
@@ -48,9 +49,20 @@ GET(RET,INP) ;EP
  .S ICDFIELD=$$ICDF^BGOVPED    ;P6
  .S ICDIEN=$P(REC,U,ICDFIELD)  ;P6
  .S:'ICDIEN ICDIEN=$P($G(^AUTTEDT(EDTIEN,0)),U,ICDFIELD)  ;P6
- .S ICD=$S(ICDIEN:$P($G(^ICD9(+ICDIEN,0)),U,3),1:"")
+ .;Patch 12 changed for AICD
+ .;S ICD=$S(ICDIEN:$P($G(^ICD9(+ICDIEN,0)),U,3),1:"")
+ .I $$AICD^BGOUTL2 D
+ ..S ICD=$P($$ICDDX^ICDEX(ICDIEN,EVNDT),U,4)
+ .E  D
+ ..S ICD=$S(ICDIEN:$P($G(^ICD9(+ICDIEN,0)),U,3),1:"")
  .;IHS/MSC/MGH patch 8
- .S ICDCD=$S(ICDIEN:$P($G(^ICD9(+ICDIEN,0)),U,1),1:"")
+ .;IHS/MSC/MGH patch 12
+ .;S ICDCD=$S(ICDIEN:$P($G(^ICD9(+ICDIEN,0)),U,1),1:"")
+ .I $$AICD^BGOUTL2 D
+ ..S ICDCD=$P($$ICDDX^ICDEX(ICDIEN,EVNDT),U,2)
+ .E  D
+ ..S ICDCD=$P($$ICDDX^ICDCODE(ICDIEN,EVNDT),U,2)
+ .;end changes
  .S:$L(ICD) TOPIC=ICD_"-"_$P(TOPIC,"-",2)
  .S COMMENT=$P(REC,U,11)
  .S CAT=$P(REC,U,12)
@@ -110,7 +122,12 @@ GETTYPES(RET,MODE) ;EP
  ..S CATNAME="",ICDNAME="",TYPE="E"
  ..S NAME=$P(REC,U,NAMEP)
  ..S ICD=$P(REC,U,ICDFIELD)
- ..I ICD S ICDNAME=$P($G(^ICD9(ICD,0)),U,3)
+ ..;MSC/IHS/MGH Patch 12
+ ..;I ICD S ICDNAME=$P($G(^ICD9(ICD,0)),U,3)
+ ..I $$AICD^BGOUTL2 D
+ ...S ICDNAME=$P($$ICDDX^ICDEX(ICD,$$NOW^XLFDT),U,4)
+ ..E  D
+ ...S ICDNAME=$S(ICD:$P($G(^ICD9(+ICD,0)),U,3),1:"")
  ..S CATP=$P(REC,U,6)
  ..I CATP'="" D
  ...I $L(CATP)>4 S CATP=$E(CATP,1,4)
@@ -142,7 +159,13 @@ GETNAME(RET,EDT) ;EP
  .S:X RET=$P($G(^AUTTEDMT(X,0)),U)
  I '$L(RET) D
  .S X=$P(X0,U,4)
- .S:X RET=$P($G(^ICD9(X,0)),U,3)
+ .;IHS/MSC/MGH Patch 12
+ .;S:X RET=$P($G(^ICD9(X,0)),U,3)
+ .I $$AICD^BGOUTL2 D
+ ..S X=$P($$ICDDX^ICDEX(X,$$NOW^XLFDT),U,4)
+ .E  D
+ ..S X=$S(X:$P($G(^ICD9(X,0)),U,3),1:"")
+ .S:X RET=X
  I '$L(RET) D
  .S X=$P(X0,U,11)
  .S:X RET=$P($G(^ICPT(X,0)),U,2)
@@ -196,7 +219,15 @@ SETTOP(CODEIEN,EDCVIEN,ICDFLG) ;
  Q:'EDCVIEN ""
  S TOPIC=$P($G(^APCDEDCV(EDCVIEN,0)),U),TOP=$P($G(^(0)),U,2)
  Q:'$L(TOPIC)!'$L(TOP) ""
- I ICDFLG S CODE=$P($G(^ICD9(CODEIEN,0)),U),CODENM=$P($G(^(0)),U,3)
+ ;IHS/MSC/MGH Patch 12
+ ;I ICDFLG S CODE=$P($G(^ICD9(CODEIEN,0)),U),CODENM=$P($G(^(0)),U,3)
+ I ICDFLG D
+ .I $$AICD^BGOUTL2 D
+ ..S Y=$$ICDDX^ICDEX(CODEIEN,$$NOW^XLFDT)
+ ..S CODE=$P(Y,U,2),CODENM=$P(Y,U,4)
+ .E  D
+ ..S Y=$$ICDDX^ICDCODE(CODEIEN,$$NOW^XLFDT)
+ ..S CODE=$P(Y,U,2),CODENM=$P(Y,U,4)
  E  S CODE=$P($G(^ICPT(CODEIEN,0)),U),CODENM=$P($G(^(0)),U,2)
  ;IHS/MSC/MGH changed to store code
  S:'$L(CODENM) CODENM=CODEIEN,CODEIEN=""  ; Uncoded entry

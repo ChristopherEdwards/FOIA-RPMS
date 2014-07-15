@@ -1,5 +1,5 @@
-BEHORXFN ;MSC/IND/DKM/PLS - Supporting calls for EHR ;12-Dec-2011 16:27;PLS
- ;;1.1;BEH COMPONENTS;**009005,009006,009007,009008**;Sep 18, 2007
+BEHORXFN ;MSC/IND/DKM/PLS - Supporting calls for EHR ;02-Oct-2013 21:21;PLS
+ ;;1.1;BEH COMPONENTS;**009005,009006,009007,009008,009010**;Sep 18, 2007
  ;=================================================================
  ; RPC: BEHORXFN FINISH
  ; Finish a pending script
@@ -111,7 +111,11 @@ GETRXS(DATA,DFN,DAYS) ;
  ..S J=$P($P(FIELDS,U),";")
  ..I J["R" D
  ...S RXN=$P($G(^PSRX(+J,0)),U),J=$G(^(2)),K=+$G(^("STA"))
- ...I K<12,'$P(J,U,13),$P(J,U,15) S $P(FIELDS,U,9,10)="Not Picked Up^",REASON="Returned to stock on "_$$FMTE^XLFDT($P(J,U,15))
+ ...;IHS/MSC/PLS - 09/30/2013
+ ...;I K<12,'$P(J,U,13),$P(J,U,15) S $P(FIELDS,U,9,10)="Not Picked Up^",REASON="Returned to stock on "_$$FMTE^XLFDT($P(J,U,15))
+ ...I '$P(J,U,13),$P(J,U,15) D
+ ....I K<12 S $P(FIELDS,U,9,10)="Not Picked Up^",REASON="Returned to stock on "_$$FMTE^XLFDT($P(J,U,15))
+ ....E  S $P(FIELDS,U,10)=""
  .E  I TYPE="IV" D
  ..D IVINST(.INSTRUCT)
  ..D SETMULT(.COMMENTS,"SIO")

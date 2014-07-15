@@ -1,49 +1,52 @@
 BGP4PDL9 ; IHS/CMI/LAB - print ind ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
  ;
  ;
 I1AGE ;EP
- I BGPINDT="W",BGPRTYPE=4 G FEM
+ D S(" ",1,1)
+ ;S X="Age specific Diabetes Prevalence" D S(X,1,1) S Y=" " D S(Y,1,1) S X=BGPHD1 D S(X,1,1) S Y=" " D S(Y,1,1)
+ I BGPINDJ="E",BGPRTYPE=4 Q
+ I BGPINDJ="W",BGPRTYPE=4 G FEM
  S BGPHD1="TOTAL USER POPULATION",BGPHD2="Total # User Pop"
  S X=" " D S(X,1,1) D H3 S X=" " D S(X,1,1)
  K BGPDAC,BGPDAP,BGPDAB S (C,D)=0 F BGPX="TA","TB","TC","TD","TE","TF","TG","TH" D I1AGE1,I1AGE2
  D I1AGEP
  S BGPHD1="MALE USER POPULATION",BGPHD2="Total # MALE User Pop"
- ;S X=^BGPINDF(BGPIC,53,1,0) D S(X,1,1) D H3
+ ;S X=^BGPINDJ(BGPIC,53,1,0) D S(X,1,1) D H3
  D H3
  K BGPDAC,BGPDAP,BGPDAB S (D,C)=0 F BGPX="D","E","F","G","H","I","J","K" D I1AGE1,I1AGE2
  D I1AGEP
 FEM ;
  S BGPHD1="FEMALE USER POPULATION",BGPHD2="Total # FEMALE User Pop"
- ;S X=^BGPINDF(BGPIC,53,1,0) D S(X,1,1) D H3
+ ;S X=^BGPINDJ(BGPIC,53,1,0) D S(X,1,1) D H3
  D H3
  K BGPDAC,BGPDAP,BGPDAB S (C,D)=0 F BGPX="L","M","N","O","P","Q","R","S" D I1AGE1,I1AGE2
  D I1AGEP
  Q
 I1AGE1 ;
  S C=C+1
- S BGPF="001."_BGPX_".1" S BGPPC=$O(^BGPINDFC("C",BGPF,0))
- S BGPDF=$P(^BGPINDFC(BGPPC,0),U,8)
- S BGPNP=$P(^DD(90244.03,BGPDF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
- S $P(BGPDAC(C),U)=$$V(1,BGPRPT,N,P)
- S $P(BGPDAP(C),U)=$$V(2,BGPRPT,N,P)
- S $P(BGPDAB(C),U)=$$V(3,BGPRPT,N,P)
+ S BGPF="001."_BGPX_".1" S BGPPC=$O(^BGPINDJC("C",BGPF,0))
+ S BGPDF=$P(^BGPINDJC(BGPPC,0),U,8)
+ S BGPNP=$P(^DD(90552.03,BGPDF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
+ S $P(BGPDAC(C),U)=$$V^BGP4DP1C(1,BGPRPT,N,P)
+ S $P(BGPDAP(C),U)=$$V^BGP4DP1C(2,BGPRPT,N,P)
+ S $P(BGPDAB(C),U)=$$V^BGP4DP1C(3,BGPRPT,N,P)
  ;set 2nd piece to numerator and 3rd to %
- S BGPNF=$P(^BGPINDFC(BGPPC,0),U,9)
- S BGPNP=$P(^DD(90244.03,BGPNF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
- S $P(BGPDAC(C),U,2)=$$V(1,BGPRPT,N,P),$P(BGPDAC(C),U,3)=$S($P(BGPDAC(C),U,1):($P(BGPDAC(C),U,2)/$P(BGPDAC(C),U)*100),1:"")
- S $P(BGPDAP(C),U,2)=$$V(2,BGPRPT,N,P),$P(BGPDAP(C),U,3)=$S($P(BGPDAP(C),U,1):($P(BGPDAP(C),U,2)/$P(BGPDAP(C),U)*100),1:"")
- S $P(BGPDAB(C),U,2)=$$V(3,BGPRPT,N,P),$P(BGPDAB(C),U,3)=$S($P(BGPDAB(C),U,1):($P(BGPDAB(C),U,2)/$P(BGPDAB(C),U)*100),1:"")
+ S BGPNF=$P(^BGPINDJC(BGPPC,0),U,9)
+ S BGPNP=$P(^DD(90552.03,BGPNF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
+ S $P(BGPDAC(C),U,2)=$$V^BGP4DP1C(1,BGPRPT,N,P),$P(BGPDAC(C),U,3)=$S($P(BGPDAC(C),U,1):($P(BGPDAC(C),U,2)/$P(BGPDAC(C),U)*100),1:"")
+ S $P(BGPDAP(C),U,2)=$$V^BGP4DP1C(2,BGPRPT,N,P),$P(BGPDAP(C),U,3)=$S($P(BGPDAP(C),U,1):($P(BGPDAP(C),U,2)/$P(BGPDAP(C),U)*100),1:"")
+ S $P(BGPDAB(C),U,2)=$$V^BGP4DP1C(3,BGPRPT,N,P),$P(BGPDAB(C),U,3)=$S($P(BGPDAB(C),U,1):($P(BGPDAB(C),U,2)/$P(BGPDAB(C),U)*100),1:"")
  Q
 I1AGE2 ;
  S D=D+1
- S BGPF="001."_BGPX_".2" S BGPPC=$O(^BGPINDFC("C",BGPF,0))
+ S BGPF="001."_BGPX_".2" S BGPPC=$O(^BGPINDJC("C",BGPF,0))
  ;set 4th piece to numerator and 5th to %
- S BGPNF=$P(^BGPINDFC(BGPPC,0),U,9)
- S BGPNP=$P(^DD(90244.03,BGPNF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
- S $P(BGPDAC(D),U,4)=$$V(1,BGPRPT,N,P),$P(BGPDAC(D),U,5)=$S($P(BGPDAC(D),U,1):($P(BGPDAC(D),U,4)/$P(BGPDAC(D),U)*100),1:"")
- S $P(BGPDAP(D),U,4)=$$V(2,BGPRPT,N,P),$P(BGPDAP(D),U,5)=$S($P(BGPDAP(D),U,1):($P(BGPDAP(D),U,4)/$P(BGPDAP(D),U)*100),1:"")
- S $P(BGPDAB(D),U,4)=$$V(3,BGPRPT,N,P),$P(BGPDAB(D),U,5)=$S($P(BGPDAB(D),U,1):($P(BGPDAB(D),U,4)/$P(BGPDAB(D),U)*100),1:"")
+ S BGPNF=$P(^BGPINDJC(BGPPC,0),U,9)
+ S BGPNP=$P(^DD(90552.03,BGPNF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
+ S $P(BGPDAC(D),U,4)=$$V^BGP4DP1C(1,BGPRPT,N,P),$P(BGPDAC(D),U,5)=$S($P(BGPDAC(D),U,1):($P(BGPDAC(D),U,4)/$P(BGPDAC(D),U)*100),1:"")
+ S $P(BGPDAP(D),U,4)=$$V^BGP4DP1C(2,BGPRPT,N,P),$P(BGPDAP(D),U,5)=$S($P(BGPDAP(D),U,1):($P(BGPDAP(D),U,4)/$P(BGPDAP(D),U)*100),1:"")
+ S $P(BGPDAB(D),U,4)=$$V^BGP4DP1C(3,BGPRPT,N,P),$P(BGPDAB(D),U,5)=$S($P(BGPDAB(D),U,1):($P(BGPDAB(D),U,4)/$P(BGPDAB(D),U)*100),1:"")
  Q
 I1AGEP ;
  S X=" " D S(X,1,1)
@@ -54,12 +57,12 @@ I1AGEP ;
  F X=1:1:8 S V=$P(BGPDAC(X),U,2) S Y=V D S(Y,,X+1)
  S X="% w/ DM DX ever" D S(X,1,1)
  F X=1:1:8 S V=$P(BGPDAC(X),U,3) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
- S X="# w/DM DX in past yr" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="# w/DM DX in past yr" D S(X,1,1)
  F X=1:1:8 S V=$P(BGPDAC(X),U,4) S Y=V D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="% w/DM DX in past yr" D S(X,1,1)
+ S X="% w/DM DX in past yr" D S(X,1,1)
  F X=1:1:8 S V=$P(BGPDAC(X),U,5) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
 PR ; 
- ;S X=^BGPINDF(BGPIC,53,1,0) D S(X,1,1) D H3
+ ;S X=^BGPINDJ(BGPIC,53,1,0) D S(X,1,1) D H3
  S X=" " D S(X,1,1) S X="PREVIOUS YEAR PERIOD" D S(X,1,1)
  S X=" " D S(X,1,1) S X=BGPHD2 D S(X,1,1)
  F X=1:1:8 S V=$P(BGPDAP(X),U) S Y=V D S(Y,,X+1)
@@ -78,7 +81,7 @@ PR ;
  S X="w/DM DX in past yr" D S(X,1,1)
  F X=1:1:8 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAP(X),U,5) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
 BL ;
- ;S X=^BGPINDF(BGPIC,53,1,0) D S(X,1,1) D H3
+ ;S X=^BGPINDJ(BGPIC,53,1,0) D S(X,1,1) D H3
  S X=" " D S(X,1,1) S X="BASELINE REPORT PERIOD" D S(X,1,1)
  S X=" " D S(X,1,1) S X=BGPHD2 D S(X,1,1)
  F X=1:1:8 S V=$P(BGPDAB(X),U) S Y=V D S(Y,,X+1)
@@ -98,9 +101,9 @@ BL ;
  F X=1:1:8 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAB(X),U,5) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
  Q
 SETN ;set numerator fields
- S BGPCYN=$$V(1,BGPRPT,N,P)
- S BGPPRN=$$V(2,BGPRPT,N,P)
- S BGPBLN=$$V(3,BGPRPT,N,P)
+ S BGPCYN=$$V^BGP4DP1C(1,BGPRPT,N,P)
+ S BGPPRN=$$V^BGP4DP1C(2,BGPRPT,N,P)
+ S BGPBLN=$$V^BGP4DP1C(3,BGPRPT,N,P)
  S BGPCYP=$S(BGPCYD:((BGPCYN/BGPCYD)*100),1:"")
  S BGPPRP=$S(BGPPRD:((BGPPRN/BGPPRD)*100),1:"")
  S BGPBLP=$S(BGPBLD:((BGPBLN/BGPBLD)*100),1:"")
@@ -108,15 +111,15 @@ SETN ;set numerator fields
 V(T,R,N,P) ;EP
  I $G(BGPAREAA) G VA
  NEW X
- I T=1 S X=$P($G(^BGPGPDCF(R,N)),U,P) Q $S(X]"":X,1:0)
- I T=2 S X=$P($G(^BGPGPDPF(R,N)),U,P) Q $S(X]"":X,1:0)
- I T=3 S X=$P($G(^BGPGPDBF(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=1 S X=$P($G(^BGPGPDCJ(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=2 S X=$P($G(^BGPGPDPJ(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=3 S X=$P($G(^BGPGPDBJ(R,N)),U,P) Q $S(X]"":X,1:0)
  Q ""
 VA ;
  NEW X,V,C S X=0,C="" F  S X=$O(BGPSUL(X)) Q:X'=+X  D
- .I T=1 S C=C+$P($G(^BGPGPDCF(X,N)),U,P)
- .I T=2 S C=C+$P($G(^BGPGPDPF(X,N)),U,P)
- .I T=3 S C=C+$P($G(^BGPGPDBF(X,N)),U,P)
+ .I T=1 S C=C+$P($G(^BGPGPDCJ(X,N)),U,P)
+ .I T=2 S C=C+$P($G(^BGPGPDPJ(X,N)),U,P)
+ .I T=3 S C=C+$P($G(^BGPGPDBJ(X,N)),U,P)
  .Q
  Q $S(C:C,1:0)
 C(X,X2,X3) ;
@@ -133,7 +136,7 @@ CALC(N,O) ;
  S Z=N-O,Z=$FN(Z,"+,",1)
  Q Z
 H3 ;EP
- S X="Age specific Diabetes Prevalence" D S(X,1,1) S Y=" " D S(Y,1,1) S X=BGPHD1 D S(X,1,1) S Y=" " D S(Y,1,1)
+ ;;S X="Age specific Diabetes Prevalence" D S(X,1,1) S Y=" " D S(Y,1,1) S X=BGPHD1 D S(X,1,1) S Y=" " D S(Y,1,1)
  S X="Age Distribution" D S(X,1,1) S X=" " D S(X,1,1)
  S Y="<15" D S(Y,1,2)
  S Y="15-19" D S(Y,,3)

@@ -1,5 +1,5 @@
 BUD0EXP ; IHS/CMI/LAB - Export to UDS ;
- ;;7.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2013;Build 31
+ ;;8.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 03, 2014;Build 36
  ;
  ;
  Q  ;not yet availabe

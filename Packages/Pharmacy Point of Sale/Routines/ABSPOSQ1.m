@@ -1,5 +1,5 @@
 ABSPOSQ1 ; IHS/FCS/DRS - POS background, Part 1 ; [ 11/04/2002  2:21 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 01, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,46**;JUN 01, 2001
  ;
  ; This is usually started by Taskman call in TASK^ABSPOSIZ
  ;
@@ -34,6 +34,9 @@ LOOP ; line item detail: your work list is ^ABSPT("AD",0)
  N IEN59,ABSBRXI,ABSBRXR,ABSBNDC,MODULO
  N ABSBPATI,ABSBPDIV,ABSBSDIV,ABSBVISI,ABSPHARM,INSURER
  N VMEDDFN,APCDVCN
+ ;
+ ;IHS/OIT/CAS/RCS Patch 46...If 'POSSTAT' flag is set to '1' then halt the POS process
+ I $G(^ABSP(9002313.99,1,"POSSTAT"))=1 Q  ;Halt the POS Process, only used by programmers
  ;
  ;IHS/SD/lwj 11/04/02 on behalf of IHS/OKCAO/POC 11/04/02
  I $D(ZTQUEUED) S ZTREQ="@"  ;delete task if complete

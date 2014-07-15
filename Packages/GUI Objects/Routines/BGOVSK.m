@@ -1,5 +1,5 @@
-BGOVSK ;IHS/BAO/TMD - Skin test management   ;04-Jan-2011 19:11;MGH
- ;;1.1;BGO COMPONENTS;**3,4,5,6,7,8**;Mar 20, 2007
+BGOVSK ;IHS/BAO/TMD - Skin test management   ;12-Jul-2013 12:08;DU
+ ;;1.1;BGO COMPONENTS;**3,4,5,6,7,8,12**;Mar 20, 2007
  ; Retrieve skin tests and associated refusals
  ;  DFN = Patient IEN
  ;  RET returned as a list of records with one of two formats:
@@ -32,7 +32,7 @@ GET(RET,DFN) ;EP
  ..;IHS/MSC/MGH Patch 7 added site and volume fields
  ..S X=$P(A,V,16)
  ..S:$L(X) $P(A,V,16)=X_"~"_$$EXTERNAL^DILFD(9000010.12,.09,,X)
- ..S VSK=$P(A,V,3),VIEN=$P(A,V,13),$P(A,V,18)=$$ISLOCKED^BEHOENCX(VIEN),$P(A,V,19)=$$FMTDATE^BGOUTL($P($G(^AUPNVSK(VSK,12)),U),1)
+ ..S VSK=$P(A,V,3),VIEN=$P(A,V,13),$P(A,V,18)=$$ISLOCKED^BEHOENCX(VIEN),$P(A,V,19)=$$FMTDATE^BGOUTL($P($G(^AUPNVSK(VSK,12)),U))
  ..I VIEN,$P(A,V,5)="" D
  ...S X=$O(^AUPNPREF("AA",$P(^AUPNVSK(VSK,0),U,2),FNUM,+^(0),(9999999-$P($P(^AUPNVSIT(VIEN,0),U),".")),""),-1)
  ...S:X $P(A,V,5)=$S($P($G(^AUPNPREF(X,0)),U,7)="R":"Refused",1:"")

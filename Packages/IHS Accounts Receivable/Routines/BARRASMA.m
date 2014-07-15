@@ -1,5 +1,5 @@
 BARRASMA ; IHS/SD/LSL - Age Summary Report Questions ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,23***;OCT 26, 2005
  ;
  ; IHS/ASDS/LSL - 02/27/02 - Routine created
  ;     Called from BARRASM
@@ -16,7 +16,7 @@ BARRASMA ; IHS/SD/LSL - Age Summary Report Questions ;
  ; IHS/SD/LSL - 11/24/03 - V1.7 Patch 4
  ;     Add Visit Location Sort level to accomodate EISS
  ;     Move print logic to BARRASMB.  Routine too large
- ;
+ ; ; MAR 2013 P.OTTIS ADDED NEW VA billing
  Q
  ; *********************************************************************
  ;
@@ -57,7 +57,7 @@ ASK ; EP
  Q:$D(DTOUT)!($D(DUOUT))
  D RTYP                             ; Ask report type
  ;I $D(BARY("ALL")) S BARY("ALL")=$S(BARY("ALL")=1:"R",BARY("ALL")=2:"D",BARY("ALL")=3:"P",BARY("ALL")=4:"K",1:"O")
- I $D(BARY("ALL")) S BARY("ALL")=$S(BARY("ALL")=1:"R",BARY("ALL")=2:"D",BARY("ALL")=3:"P",1:"O")  ;BAR*1.8*6 DD 4.1.1 IM21585
+ I $D(BARY("ALL")) S BARY("ALL")=$S(BARY("ALL")=1:"R",BARY("ALL")=2:"D",BARY("ALL")=3:"P",BARY("ALL")=4:"V",1:"O") ;P.OTT
  Q
  ; *********************************************************************
  ;

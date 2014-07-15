@@ -1,5 +1,5 @@
-PSOOREDT ;BIR/SAB - edit orders from backdoor ;14-Feb-2013 16:28;PLS
- ;;7.0;OUTPATIENT PHARMACY;**4,20,27,37,57,46,78,102,104,119,1002,1008,1013,143,148,260,281,304,289,1015**;DEC 1997;Build 62
+PSOOREDT ;BIR/SAB - edit orders from backdoor ;14-Feb-2013 16:44;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**4,20,27,37,57,46,78,102,104,119,1002,1008,1013,143,148,260,281,304,289,1015,1016**;DEC 1997;Build 74
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to PSSLOCK supported by DBIA 2789
  ;External reference to ^VA(200 supported by DBIA 10060
@@ -7,7 +7,15 @@ PSOOREDT ;BIR/SAB - edit orders from backdoor ;14-Feb-2013 16:28;PLS
  ;                        - 12/13/04 - Line EDT+13
  ;            IHS/MSC/PLS - 01/27/09 - Line EDT+20, EDT+21
  ;                          02/15/12 - Line PROV+1
-SEL K PSOISLKD,PSOLOKED S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY D SVAL K PSOPLCK S VALMBCK="" Q
+ ;            IHS/MSC/PB  - 01/22/13 - Line SEL+1 modified to screen for external Rx and not allow it to be edited.
+SEL ;
+ ;IHS/MSC/PB start code to screen for external Rx to be edited 1/22/13
+ I $E($P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^",1))="X" D  Q
+ .W !,"An external Rx can't be Edited in RPMS Prescription Processing."
+ .W !,"Use Copy to create a new internal Rx from this external Rx."
+ .S DIR("A")="Press Return to continue",DIR(0)="E",DIR("?")="Press Return to continue" D ^DIR K DIR
+ ;ISH/MSC/PB end changes for screen of external Rx for editing
+ K PSOISLKD,PSOLOKED S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY D SVAL K PSOPLCK S VALMBCK="" Q
  K PSOPLCK D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) D UL^PSSLOCK(+$G(PSODFN)) D SVALO K PSOMSG S VALMBCK="" Q
  K PSOMSG S PSOLOKED=1
  K PSORX("DFLG"),DIR,DUOUT,DIRUT S DIR("A")="Select fields by number"

@@ -1,48 +1,33 @@
 BAR50P08 ; IHS/SD/LSL - POST HIPAA CLAIMS ; 12/01/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,10,19,20,21**;OCT 26,2005
- Q
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,10,19,20,21,23**;OCT 26,2005
+ ;; NOHEAT 11/06/2013 REFINING ERROR MESSAGE >> -> >>>
+  Q
 POST(BARCKDA) ; EP  bar*1.8*20 REQ6 changed BARCKIEN to BARCKDA
  ;Post this ERA Check (called from POST^BAR50P00)
  N BPR02  ;TPF BAR*1.8*6 SCR119
  K BAROLD  ;MRS:BAR*1.8*6 DD 4.2.4
  S BARFND=0
  S BARSECT=BARUSR(29,"I")
- ;start old code bar*1.8*20 REQ6
- ;S BARCHECK=$P($G(^BARECHK(BARCKIEN,0)),U)
- ;S BARBATCH=$P($G(^BARECHK(BARCKIEN,0)),U,3)
- ;S BARITEM=$P($G(^BARECHK(BARCKIEN,0)),U,4)
- ;BAR*1.8*1 SRS ADDENDUM TO BAR*1.8*1
- ;S BARICQ=$$GET1^DIQ(90056.22,BARCKIEN_",",.08)  ;ID CODE QUALIFIER FROM A/R EDI IMPORT XX=NPI, FI = TAX ID
- ;S BARNPI=$$GET1^DIQ(90056.22,BARCKIEN_",",.09)  ;ID CODE (NPI) FROM A/R EDI IMPORT
- ;S BARTIN=$$GET1^DIQ(90056.22,BARCKIEN_",",.11)  ;TAX ID FROM A/R EDI IMPORT
- ;end old code start new code REQ6
  S BARCHECK=$P($G(^BARECHK(BARCKDA,0)),U)
  S BARBATCH=$P($G(^BARECHK(BARCKDA,0)),U,3)
  S BARPITEM=$P($G(^BARECHK(BARCKDA,0)),U,4)
- ;BAR*1.8*1 SRS ADDENDUM TO BAR*1.8*1
  S BARICQ=$$GET1^DIQ(90056.22,BARCKDA_",",.08)  ;ID CODE QUALIFIER FROM A/R EDI IMPORT XX=NPI, FI = TAX ID
  S BARNPI=$$GET1^DIQ(90056.22,BARCKDA_",",.09)  ;ID CODE (NPI) FROM A/R EDI IMPORT
  S BARTIN=$$GET1^DIQ(90056.22,BARCKDA_",",.11)  ;TAX ID FROM A/R EDI IMPORT
- ;end new code REQ6
- ;BEGIN TPF BAR*1.8*6 SCR119
  S BPR02=$$GETBPR02(BARCHECK)
  I BPR02?.A D  Q
- .W !,"CANNOT FIND A BPR02 VALUE IN IMPORT FILE!"
+ .;W !,"CANNOT FIND A BPR02 VALUE IN IMPORT FILE!" OLD CODE
+ .W !,"CANNOT FIND A BPR02 VALUE IN IMPORT FILE! ("_BPR02_")" ;11/06/2013 MORE SPECIFIC MESSAGE
  .K DIR S DIR(0)="E"
  .D ^DIR
- ;END TPF BAR*1.8*6 SCR119
  K BARADD,BARERR
- ;D GETS^DIQ(90056.22,BARCKIEN_",","2211*","E","BARADD","BARERR")  ;GET PAYEE ADD IDENTIFICATION  ;bar*1.8*20 REQ6
  D GETS^DIQ(90056.22,BARCKDA_",","2211*","E","BARADD","BARERR")  ;GET PAYEE ADD IDENTIFICATION  ;bar*1.8*20 REQ6
- ;END
  I BARBATCH'="",'$$CKDATE^BARPST(BARBATCH,1,"POSTING TO A/R COLLECTION BATCH") D  Q  ;MRS:BAR*1.8*6 DD 4.2.4 USER ALLOWED TO POST TO NO BATCH SCR119
  .S (BARBATCH,BAROLD)=""
  .D NOBATCH
- ;I (BARBATCH=""!(BARITEM="")) D NOBATCH  ;TPF BAR*1.8*6 SCR119
  I (BARBATCH=""!(BARPITEM="")),(BPR02>0) D NOBATCH  ;TPF BAR*1.8*6 SCR119
  Q:+BARFND
  I $D(BAROLD) K BAROLD Q  ;MRS:BAR*1.8*6 DD 4.2.4
- ;start new code bar*1.8*20
  ;if there are claims w/BUILT status
  I $D(^BAREDI("I",DUZ(2),IMPDA,30,"AC","B")) D
  .S CLMDA=0
@@ -51,7 +36,6 @@ POST(BARCKDA) ; EP  bar*1.8*20 REQ6 changed BARCKIEN to BARCKDA
  ..I $P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,2)),U)=BARCHECK S BARSTOP=1
  .I $G(BARSTOP)=1 W !!,"EDI Claims are still in a BUILT status for this check!",!,"Run BLMT or REV auto-review for matching."
  Q:($G(BARSTOP)=1)
- ;end new code bar*1.8*20
  D ASKPOST
  Q:'BARANS  ;MRS:BAR*1.8*10 H1228
  K DIR
@@ -111,48 +95,43 @@ POSTEM ; LOOP Claims with this chk
  ;start new bar*1.8*20 REQ6
  S CLMCNT=0,PSTQFLG=0
  K ^XTMP("BAR-MBAMT",$J,DUZ(2))
- ;end new REQ6
  F  S CLMDA=$O(^BAREDI("I",DUZ(2),"F",BARCHECK,IMPDA,CLMDA)) Q:'+CLMDA  D  Q:+BARDONE
- .;start new bar*1.8*20 REQ6
  .S ^XTMP("BAR-MBAMT",$J,DUZ(2),+$P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,4),CLMDA)=""  ;E-payment
  S CLMAMT=""
  F  S CLMAMT=$O(^XTMP("BAR-MBAMT",$J,DUZ(2),CLMAMT)) Q:($G(CLMAMT)="")  D
  .S CLMDA=0
  .F  S CLMDA=$O(^XTMP("BAR-MBAMT",$J,DUZ(2),+CLMAMT,CLMDA)) Q:'+CLMDA  D  Q:+BARDONE
- ..;end new REQ6
  ..;below lines added 1 dot to line up w/new code
  ..S BARCKIEN=$O(^BAREDI("I",DUZ(2),IMPDA,5,"B",BARCHECK,0))  ;bar*1.8*20 REQ6
  ..S BARBL=$P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U)  ;bar*1.8*20 REQ6
  ..D CLMFLG^BAR50P04(CLMDA,.ERRORS)  ;bar*1.8*20 REQ6
  ..I $$IHS^BARUFUT(DUZ(2)) S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;bar*1.8*20
+ ..;;;I $$IHSERA^BARUFUT(DUZ(2)) S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;bar*1.8*20
  ..D:$$IHS^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA)  ;bar*1.8*20
+ ..;;;D:$$IHSERA^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA)  ;bar*1.8*20
  ..Q:$P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,2)'="M"
  ..Q:(($P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,2)="M")&(+$O(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4,0))'=0))  ;matched but reason not to post bar*1.8*20 REQ5
  ..S CLMCNT=+$G(CLMCNT)+1  ;bar*1.8*20 REQ6
  ..D BASIC
- ..;D NEGBAL  ;BAR*1.8*5 SRS-80 TPF 6/17/2008 NEG BALANCE CHK IS DONE IN IMPORT & "AUTO-REVIEW"
- ..;Q:'+BARANS  ;BAR*1.8*5 SRS-80 TPF 6/17/2008
- ..;start old bar*1.8*20 REQ6
- ..;D PAY
- ..;D ADJMULT
- ..;end old start new REQ6
+ .. S PSTQFLG=0 ;INIT VALUE
  ..;check if posting this payment will create a negative balance on batch/item
+ ..;------------------------------------------------------------------------
  ..D ENP^XBDIQ1(90056.0205,"IMPDA,CLMDA",".01;.05;1.01;.02;.04;.11;.12;301;501;601;602","CLM(")  ;BAR*1.8*5 INCLUDE 'POST THIS CLAIM AS TYPE' FIELD
- ..;W !!,$J(CLMCNT,4),?7,"Claim: ",CLM(.01)," <> ",CLM(1.01)  ;bar*1.8*20
  ..W !?7,"Billed: ",CLM(.05),?25,"Payment: ",CLM(.04)
  ..S IENS=BARITM_","_BARCOL_","
  ..S ITEMAMT=$$GET1^DIQ(90051.1101,IENS,19)  ;item posting balance
  ..S IENS=CLMDA_","_IMPDA_","
  ..S BARCR=$$GET1^DIQ(90056.0205,IENS,".04")
+ ..;------------------------------------------------------------------------
  ..I (ITEMAMT-BARCR)<0 D
  ...W !!?7,$$EN^BARVDF("HIN"),"<<PYMT EXCEEDS COLLECTION ITEM BALANCE. MARKED AS 'ITEM BALANCE EXCEEDED'",$$EN^BARVDF("HIF")
  ...S PSTQFLG=1
+ ..;------------------------------------------------------------------------
  ..I PSTQFLG=1 D UP^BAR50P0Z(IMPDA,CLMDA,"EBAL") Q  ;leave bill as matched but with NTP reason item balance exceeded
  ..D NEGBAL
  ..Q:'BARANS
  ..D ADJMULT
  ..D PAY
- ..;end new REQ6
  ..D RMKCD  ;Post remark codes
  ..D NCPDP  ;Post NCPDP codes
  ..D MRKCLMP
@@ -170,6 +149,7 @@ BASIC ;
  S BARITM=BARPITEM  ;bar*1.8*20
  S BARVLOC=$$GET1^DIQ(90050.01,BARBLIEN,108,"I") ;A/R LOCATION
  Q
+ ;---------------------------------------------------------
 NEGBAL ;
  S BARANS=1
  S BARTOT=0
@@ -182,7 +162,8 @@ NEGBAL ;
  S BARTOT=BARTOT+BARADJ
  I (BARBAL-BARTOT)=0 Q
  I (BARBAL-BARTOT)>0 Q
- W !!,"<<Posting this bill will result in a negative balance on the bill>>"
+ I BARBAL>0 W !!,"<<Posting this bill will result in a negative balance on the bill>>" ;11/22/2013
+ I BARBAL=0 W !!,"<<<Posting this bill will result in a negative balance on the bill >>>" ;11/22/2013
  ;Mark bill not to post
  D UP^BAR50P0Z(IMPDA,CLMDA,"NEGR")
  S BARANS=0  ;bar*1.8*20
@@ -237,12 +218,9 @@ DR ;  Gather data needed for transaction
  S DR=DR_";13////^S X=DUZ"  ;Entry by
  S DR=DR_";101////^S X=BARTRAN"  ;Transaction Type
  S DR=DR_";106////^S X=""e"""  ;Data Source = e
- ;BAR*1.8*1 SRS ADDENDUM FOR BAR*1.8*1
  S DR=DR_";401////^S X=BARICQ"  ;INDENTIFICATION CODE QUALIFIER XX=NPI, FI=TAX ID
  S DR=DR_";402////^S X=BARNPI"  ;IF BARICQ='XX' NPI
  S DR=DR_";403////^S X=BARTIN"  ;IF BARICQ='FI' TAX ID
- ;END
- ;BAR*1.8*5 TPF 6/17/2008
  S DR=DR_";501////^S X=$G(BARTO)"  ;PYMT CREDIT APPLIED FROM BILL
  S DR=DR_";502////^S X=$G(BARFROM)"  ;PYMT CREDIT APPLIED TO BILL
  I BARTRAN=138 D
@@ -257,7 +235,6 @@ DR ;  Gather data needed for transaction
  .S BARREAS=139
  .S DR=DR_";102////^S X=BARCAT"
  .S DR=DR_";103////^S X=BARREAS"  ;CREDIT FROM OTHER BILL
- ;END
  Q
  ; *************
 MRKCLMP ;EP ;  MARK CLAIM AS POSTED
@@ -302,7 +279,6 @@ POSTRAN ;EP  ; SET TRANSACTION & POST FILES
  .S DIE="^BARTR("_DUZ(2)_","_DA(1)_",11,"
  .S DR=".02///^S X=BARREF"
  .D ^DIE
- ;END BAR*1.8*1 SRS ADDENDUM FOR BAR*1.8*1
  ; Post from trans file to related files unless General/Pending
  I BARTRAN=43,(",21,22,"[(","_BARCAT_",")) Q
  D TR^BARTDO(BARTRIEN)

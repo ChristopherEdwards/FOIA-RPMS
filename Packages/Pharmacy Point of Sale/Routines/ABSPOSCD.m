@@ -1,5 +1,5 @@
 ABSPOSCD ; IHS/FCS/DRS - ABSP("RX",*) ;      [ 10/28/2002  2:40 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,10,12,18,19,20,21,23,32,36,40,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,10,12,18,19,20,21,23,32,36,40,42,46**;JUN 21, 2001
  ;---
  ;IHS/SD/lwj 8/20/02  NCPDP 5.1 changes
  ; One of the new segments in 5.1 is the DUR/PPS segment - this 
@@ -98,7 +98,8 @@ MEDINFO(VMEDINFO,MEDN,INSPINS) ;EP
  ;
  ;IHS/OIT/SCR 060909 - Get 419 value - start changes
  ;S ABSPORGN=$$ISPOE(RXIEN)
- S ABSPORGN=$$ISPOE^APSPFUNC(RXIEN) ;IHS/OIT/SCR 011110 patch 36
+ S ABSPORGN=$$ISOR1^ABSPFUNC(RXIEN) ;IHS/CAS/RCS 090913 Patch 46 New way of finding Field 419, else use original
+ I ABSPORGN="" S ABSPORGN=$$ISPOE^APSPFUNC(RXIEN) ;IHS/OIT/SCR 011110 patch 36
  S:ABSPORGN=1 ABSP("RX",MEDN,"Origin Code")=3 ;ELECTRONIC - if not controlled substance and entered through EHR
  S:ABSPORGN=0 ABSP("RX",MEDN,"Origin Code")=1 ;WRITTEN - required for controlled substances
  ;IHS/OIT/SCR 060909 end changes
@@ -123,6 +124,12 @@ MEDINFO(VMEDINFO,MEDN,INSPINS) ;EP
  .S ABSP("RX",MEDN,"Subm Clar Code 2")=$P(ABSP("OVERRIDE","RX",MEDN,30),",",2) I ABSP("RX",MEDN,"Subm Clar Code 2")]"" S OCNT=OCNT+1
  .S ABSP("RX",MEDN,"Subm Clar Code 3")=$P(ABSP("OVERRIDE","RX",MEDN,30),",",3) I ABSP("RX",MEDN,"Subm Clar Code 3")]"" S OCNT=OCNT+1
  .I OCNT S ABSP("RX",MEDN,"Subm Clar Count")=OCNT
+ ;
+ ;OIT/CAS/RCS 110113 Patch 46, Create Dx Clinic segment from NCPDP Overrides, HEAT #135659, On hold
+ ;I $G(ABSP("OVERRIDE","RX",MEDN,492))=99,$G(ABSP("OVERRIDE","RX",MEDN,424))]"" D
+ ;.S ABSP("RX",MEDN,"DIAG",0,491)=1
+ ;.S ABSP("RX",MEDN,"DIAG",1,492)=ABSP("OVERRIDE","RX",MEDN,492)
+ ;.S ABSP("RX",MEDN,"DIAG",1,424)=ABSP("OVERRIDE","RX",MEDN,424)
  ;
  S ABSP("RX",MEDN,"# Refills")=$P($G(^PSRX(RXIEN,0)),U,9)
  S ABSP("RX",MEDN,"Refill #")=$$RXRFN(RXIEN,RXRFIEN)

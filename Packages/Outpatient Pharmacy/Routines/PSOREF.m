@@ -1,11 +1,12 @@
-PSOREF ;BIR/SAB-refill data entry ;05-Oct-2011 10:08;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,23,27,36,46,78,130,131,1001,1006,1009,1013,148,206,1014**;DEC 1997;Build 62
+PSOREF ;BIR/SAB-refill data entry ;24-Jun-2013 10:51;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**1,23,27,36,46,78,130,131,1001,1006,1009,1013,148,206,1014,1016**;DEC 1997;Build 74
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ;
  ; Modified - IHS/CIA/PLS - 10/27/04 - Line SPEED+16
  ;            IHS/MSC/PLS - 11/20/2010 - Line REFILL+6
  ;                          10/05/2011 - Line OERR+1,OERR+8,SPEED+1,SPEED+10
+ ;                          06/24/2013 - Line OERR+3,SPEED+10
 EOJ ;
  K PSOMSG,PSOREF,PSORX("BAR CODE"),PSOLIST,LFD,MAX,MIN,NODE,PS,PSOERR,REF,RF,RXO,RXN,RXP,RXS,SD,VAERR,PSORX("FILL DATE")
  D PSOUL^PSSLOCK($P(PSOLST(ORN),"^",2))
@@ -13,6 +14,8 @@ EOJ ;
 OERR ;single refil
  I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2),,.VALMSG,.VALMBCK) Q
  N APSPDRG
+ ;IHS/MSC/PLS - 06/24/2013
+ I $E($$GET1^DIQ(52,$P(PSOLST(ORN),U,2),.01),1)="X" S VALMBCK="R",VALMSG="An external Rx can't be refilled!" Q
  I $D(RXRP($P(PSOLST(ORN),"^",2))) S VALMBCK="",VALMSG="A Reprint Label has been requested!" Q
  I $D(RXPR($P(PSOLST(ORN),"^",2))) S VALMBCK="",VALMSG="A Partial has already been requested!" Q
  I $D(RXRS($P(PSOLST(ORN),"^",2))) S VALMBCK="",VALMSG="Rx is being pulled from suspense!" Q
@@ -37,6 +40,9 @@ SPEED ;speed refill
  K DIR,DIRUT,DTOUT,PSOOELSE,DTOUT I +Y S (ASK,SPEED,PSOOELSE)=1 D FULL^VALM1 S LST=Y D  G:$G(PSOREF("DFLG"))!($G(PSOREF("QFLG"))) SPEEDX
  .F ORD=1:1:$L(LST,",") Q:$P(LST,",",ORD)']""!($G(PSOREF("QFLG")))  S ORN=$P(LST,",",ORD) D:+PSOLST(ORN)=52
  ..I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2)) W $C(7),!!,"Rx "_$$GET1^DIQ(52,$P(PSOLST(ORN),"^",2),.01)_" has OPEN/UNRESOLVED 3rd Party Payer Reject!" K DIR D PAUSE^VALM1 Q
+ ..;IHS/MSC/PLS - 06/24/2013
+ ..I $E($$GET1^DIQ(52,$P(PSOLST(ORN),U,2),.01),1)="X" D  K DIR D PAUSE^VALM1 Q
+ ...W $C(7),!!,"Rx "_$$GET1^DIQ(52,$P(PSOLST(ORN),"^",2),.01)_" is an external prescription and can't be refilled!"
  ..;IHS/MSC/MGH Text for REM medication. Patch 1013
  ..S APSPDRG=$P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^",6)
  ..I +APSPDRG D REMMSG^APSPFUNC(APSPDRG)

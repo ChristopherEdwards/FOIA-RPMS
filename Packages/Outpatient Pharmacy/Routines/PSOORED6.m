@@ -1,5 +1,5 @@
-PSOORED6 ;BHAM ISC/SAB-edit orders from backdoor ;21-Jun-2012 15:57;PLS
- ;;7.0;OUTPATIENT PHARMACY;**78,104,117,133,1005,1013,1014,143,219,148,247,268,260,269,1015**;DEC 1997;Build 62
+PSOORED6 ;BHAM ISC/SAB-edit orders from backdoor ;05-Sep-2013 15:44;DU
+ ;;7.0;OUTPATIENT PHARMACY;**78,104,117,133,1005,1013,1014,143,219,148,247,268,260,269,1015,1016**;DEC 1997;Build 74
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference ^PS(50.606 supported by DBIA 2174
@@ -100,6 +100,7 @@ UPDATE ;add new data to file
  ..S RXREF=$P(^PSRX(PSORXED("IRXN"),0),"^",9)-$P(^PSRX(PSORXED("IRXN"),1,0),"^",4)
  .E  S RXREF=0
  .K X,DIRUT,DUOUT,DTOUT
+UPDATE1 ;IHS/MSC/MGH separated for reissue code
  S:$O(PSORXED("FLD",0)) ^TMP("APSPPOS",$J,PSORXED("IRXN"))=1  ;IHS/MSC/PLS - 09/15/06
  I $D(PSORXED("FLD",39.3)) D UPDATE^PSODIAG  ;update ICD's after edit
  ; - Retrieving fields before changes that are relevant for 3rd Party Billing

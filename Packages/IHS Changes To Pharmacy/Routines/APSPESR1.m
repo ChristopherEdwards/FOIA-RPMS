@@ -1,5 +1,5 @@
-APSPESR1 ; IHS/MSC/MGH - AUTO-FINISH REPORT ;14-Jun-2011 10:57;DU
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1011**;Sep 23, 2004;Build 17
+APSPESR1 ; IHS/MSC/MGH - AUTO-FINISH REPORT ;04-Jun-2013 08:24;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1011,1016**;Sep 23, 2004;Build 74
  ;
 EN ;EP
  N APSPBD,APSPED,APSPDIV,APSPRTYP,APSPQ,APSPDSUB,APSPDCLS,APSPSRT,APSPSRT2
@@ -66,7 +66,9 @@ FIND(APSPBD,APSPED) ;EP
  ..Q:'+ORDER
  ..;Now we have prescriptions that were not auto-finished but have a pharmacy defined
  ..;This is what we want so we can find the other variables.
- ..S LOC=$P($G(^OR(100,ORDER,0)),U,6)
+ ..S LOC=$P($G(^OR(100,ORDER,0)),U,10)
+ ..S LOC=$P(LOC,";",1)
+ ..Q:'+LOC
  ..S DIV=$P($G(^SC(LOC,0)),U,4)
  ..D SET(DIV,ORDER)
  Q

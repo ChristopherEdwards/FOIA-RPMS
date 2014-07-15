@@ -1,9 +1,14 @@
 BARBAD3 ; IHS/SD/LSL - PAYMENT COMMAND PROCESSOR ; 12/29/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,7,10,19,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,7,10,19,21,23**;OCT 26, 2005
  ;** 'Select Command' processor
  ; ********************************************************************
- ;
+ ;P.OTTIS NOV 2012 FIXING GOTO IN DOTTED BLOCK HEAT# 86250
+ ;        APR 2013 NOHEAT CONDITIONAL DISPLAY OF TXD AND MESSSAGES 
+ ;        NOV 2013 BETA P23: added lower to upper conversion after command input
+ ;        NOV 2013 BETA P23: added return to line selection if bill bal =0 11/26/2013
+ Q
 EN ;EP - command processor
+ N BARCAM,BARCOAM ;FROM ASKCOM1
  K DIR,^TEMP($J,"BARPOST"),BARTR
  S (BARADJ,BARPMT)=0
  S BARDFLT=""
@@ -37,20 +42,20 @@ ASKCOM ;EP - select command
  W !
  ; -------------------------------
 ASKCOM1 ;
- N BARCAM,BARCOAM
+ I $$NOTOPEN^BARUFUT(.DUZ,$G(UFMSESID)) Q  ;IS SESSION STILL OPEN
+ ;N BARCAM,BARCOAM
  K REVERSAL,REVSCHED
  W !,"Select Command (Line # "_BARLIN_") : "
  ;IHS/SD/TPF BAR*1.8*21 8/3/2011 HEAT20490
- I $$NOTOPEN^BARUFUT(.DUZ,$G(UFMSESID)) Q  ;IS SESSION STILL OPEN
  R BARCOM:DTIME
- S BARCOM=$$UPC^BARUTL(BARCOM)
- S:'$D(BARCOM) BARCOM="Q"
- I $D(BARTR(BARLIN,1))&(($G(BARCOM)="S")!($G(BARCOM)="V")!($G(BARCOM)="1")!($G(BARCOM)="2")) D
+ I BARCOM="" G EN1
+ S BARCOM=$$LU(BARCOM) ;11/07/2013
+ I (BARCOM["?") D COMHLP^BARBADU G ASKCOM1
+ I $D(BARTR(BARLIN,1))&(($G(BARCOM)="S")!($G(BARCOM)="V")!($G(BARCOM)="1")!($G(BARCOM)="2")) D  G ASKCOM1 ;P.OTT
  . W !,"A transaction already exists on this bill.  You can cancel it."
  . W !,"You can also edit the amount or adjustment type."
  . D EOP^BARUTL(1)
- . ;S BARCOM="Q"
- . G ASKCOM1
+ . Q  ;G ASKCOM1 ;
  I ("S1V2"[BARCOM) D  I $D(DIROUT)!$D(DIRUT)!$D(DTOUT)!$D(DUOUT)!($G(Y)=0) G ASKCOM
  .S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
  .S BARTPB=$$FIND3PB^BARUTL(DUZ(2),BARBLDA)
@@ -87,14 +92,14 @@ ASKCOM1 ;
  . S BARCOAM=$O(^BARBL(DUZ(2),BARBLDA,9,"AAA"),-1)
  . S:$G(BARCOAM) BARCOAM=$P(^BARBL(DUZ(2),BARBLDA,9,BARCOAM,0),U,4)
  . S:'$G(BARCOAM) BARCOAM=0
- I ($G(BARCOM(1))="S")&($G(BARCAM)'>0) D
+ I ($G(BARCOM(1))="S")&($G(BARCAM)'>0) D  G ASKLIN ;COM1 ;11/26/2013
  . W !,"The current balance on this bill 0.  There is nothing to put into collections."
  . D EOP^BARUTL(1)
- . S BARCOM(1)="Q"
- I ($G(BARCOM(1))="V")&($G(BARCOAM)'>0) D
+ . ;S BARCOM(1)="Q"
+ I ($G(BARCOM(1))="V")&($G(BARCOAM)'>0) D  G ASKLIN ;COM1 ;11/26/2013
  . W !,"There isn't an amount in collections to take out of collections."
  . D EOP^BARUTL(1)
- . S BARCOM(1)="Q"
+ . ;S BARCOM(1)="Q"
  I J=1,BARCOM(1)="T" D  G ASKCOM
  .S Y=$$DSPLY^BARBAD4(BARLIN)
  .D EOP^BARUTL(1)
@@ -104,9 +109,9 @@ ASKCOM1 ;
  .S BARACC=$$GET1^DIQ(90050.01,BARBLDA,3,"I")
  .D EN^BARBAD6(BARPAT,BARBLDA,BARACC)
  .Q
- I J=1,BARCOM(1)="H" D  G ASKCOM
- .S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
- .D EN^BARBAD5(BARBLDA)
+ I J=1,BARCOM(1)="H" D HISTORY G ASKCOM ;P.OTT
+ ;.S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
+ ;.D EN^BARBAD5(BARBLDA)
  G:"SV"[BARCOM(1) GOSR
  ; -------------------------------
 GOQ  ;
@@ -129,6 +134,7 @@ COMHLP ;
  ; *********************************************************************
 CKNEG(LIN) ;EP; CHECK FOR NEGATIVE BALANCE  ;BAR*1.8*4 DD 4.1.7.2
  Q:'$$IHS^BARUFUT(DUZ(2))              ;IGNORE NON-IHS
+ ;;;Q:'$$IHSERA^BARUFUT(DUZ(2))              ;IGNORE NON-IHS AND TRIBAL WITH RESTRICTION FLAG ON
  N BARDA,BARB
 REDO S BARDA=$O(^BARTMP($J,"B",LIN,""))
  S BARB=$P(^BARTMP($J,BARDA,LIN),U,5)
@@ -152,7 +158,13 @@ ASKAMT ;
  W:BARCOM(1)="S" !,"Amount is added to Sent to Collections amount and deducted from Current Balance."
  W:BARCOM(1)="V" !,"Amount is added to Current Balance and deducted from Sent to Collections amount."
  S BARASK=$S(BARCOM(1)="S":"STATUS ",BARCOM(1)="V":"REVERSE STATUS ",1:"")_"Amount: "
- W !,BARASK R X:DTIME
+ ;W !,BARASK R X:DTIME
+ K DIR
+ S DIR(0)="FAO"
+ S DIR("A")=BARASK
+ S DIR("T")=DTIME
+ D ^DIR
+ K DIR
  S X=$$AMT^BARPSTU(X)
  I X="^" G ASKCOM
  I X="?" W *7,"  Must be a valid number!" G ASKAMT
@@ -209,3 +221,34 @@ PDIR ;
  K DIR
  I $D(DUOUT)!(Y="") W *7 G PDIR
  Q Y
+ ;***********************************
+HISTORY ;P.OTT
+ S BARFLGRP=$$GETFLGRP() I BARFLGRP=U Q
+ S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
+ D EN^BARPST5(BARBLDA)
+ Q
+GETFLGRP() ;
+ ;S BARFLGRP="N" 
+ ;S Y=$$DIR^XBDIR("S^T:Transaction number;M:Message(s);B:Both;N:None","Enter a viewing option","N","","","",1)
+ ;S BARFLGRP="1" 
+ ;S Y=$$DIR^XBDIR("N^1:Transactions only;2:Messages only;3:T+M:Both","Enter a viewing option","1","","","",1)
+ ;K DA
+ ;Q:$D(DIRUT) "^"
+ ;S BARFLGRP=Y
+ ;Q BARFLGRP
+ ;-----------------
+ K DIR,DA
+ S DIR(0)="SO^T:Add Transaction number to report;"
+ S DIR(0)=DIR(0)_"M:Add Bill Messages to report;"
+ S DIR(0)=DIR(0)_"B:Add both Transaction number and Bill Messages;"
+ S DIR(0)=DIR(0)_"N:Don't add Transaction number and Bill Messages;"
+ S DIR(0)=DIR(0)_"O:Show only Bill Messages;"
+ S DIR("A")="Enter a viewing option"
+ D ^DIR
+ Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)!(Y="") U
+ S BARFLGRP=Y
+ Q BARFLGRP
+ ;----------------
+LU(X) ;
+ Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ ;EOR

@@ -1,5 +1,5 @@
-APSPFNC2 ;IHS/MSC/PLS - Prescription Creation Support ;04-Apr-2013 09:24;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1006,1007,1008,1009,1011,1013,1015**;Sep 23, 2004;Build 62
+APSPFNC2 ;IHS/MSC/PLS - Prescription Creation Support ;03-Oct-2013 11:36;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1006,1007,1008,1009,1011,1013,1015,1016**;Sep 23, 2004;Build 74
  ;=================================================================
  ; Create a verified prescription
 MAKEVRX(DATA,RXORD) ;
@@ -33,10 +33,6 @@ CREATE(ORIEN,FORCE) ;
  S PSODFN=+$P(OR0,U,2)
  S RNWORDER=$P(OR0,U,21)
  S APSPPRIO=""  ;P13 Set priority variable
- ;D AUTO^PSONRXN
- ;S PSONEW("RX #")="X"_PSONEW("RX #")
- ;S PSOX=PSONEW("RX #")
- ;S PSONEW("AUTOFIN")=1
  S (OI,PSODRUG("OI"))=+$P(OR0,U,8),PSODRUG("OIN")=$P(^PS(50.7,$P(OR0,"^",8),0),"^"),OID=$P(OR0,"^",9)
  I $P($G(OR0),"^",9) S POERR=1,DREN=$P(OR0,"^",9) D DRG^PSOORDRG K POERR
  E  D DREN^PSOORNW2
@@ -44,7 +40,7 @@ CREATE(ORIEN,FORCE) ;
  .N DFN,POIN
  .S DFN=+$P(OR0,U,2)
  .S POIN=$$GET1^DIQ(50.7,$P(OR0,U,8),.01)
- .D NOTIF(DUZ,DFN,ORIEN,"Unable to generate "_POIN_" prescription for "_$$GET1^DIQ(2,DFN,.01))
+ .D NOTIF(DUZ,DFN,ORIEN,"Unable to generate "_POIN_" prescription for "_$$GET1^DIQ(2,DFN,.01),"Missing Drug")
  .D AFLOG(.RET,+OR0,0,"No available drug for "_POIN)
  ;
 DRG I $P($G(^PSDRUG(+$G(PSODRUG("IEN")),"CLOZ1")),"^")="PSOCLO1" D CLOZ^PSOORFI2
@@ -234,7 +230,7 @@ DOSE(ORD) ;pending orders
  .S:$P(DOSE,"^",8) ROUTE=$P(^PS(51.2,$P(DOSE,"^",8),0),"^")
  .S PSONEW("SCHEDULE",I)=$P(DOSE,"^"),PSONEW("DURATION",I)=$P(DOSE,"^",2)
  .S PSONEW("DURATION",I)=$S($E(PSONEW("DURATION",I),1)'?.N:$E(PSONEW("DURATION",I),2,99)_$E(PSONEW("DURATION",I),1),1:PSONEW("DURATION",I))  ;IHS/MSC/MGH - P1013
- .;S DOENT=$G(DOENT)+1 S PSONEW("CONJUNCTION",I)=$S($P(DOSE,"^",6)="A":"AND",$P(DOSE,"^",6)="S":"THEN",$P(DOSE,"^",6)="X":"EXCEPT",1:"")  ;IHS/MSC/PLS - P1015
+ .;S DOENT=$G(DOENT)+1 S PSONEW("CONJUNCTION",I)=$S($P(DOSE,"^",6)="A":"AND",$P(DOSE,"^",6)="S":"THEN",$P(DOSE,"^",6)="X":"EXCEPT",1:"")  ;IHSMSC/PLS - P1015
  .S DOENT=$G(DOENT)+1 S PSONEW("CONJUNCTION",I)=$P(DOSE,"^",6)
  S PSONEW("ENT")=DOENT
  Q
@@ -246,13 +242,18 @@ DIVSCN(ENT) ;
  Q 0
  ;Return list of pharmacies from APSP PHARMACY LIST
 PHMLST(DATA,ZIP,RAD) ;EP
- N IEN,CNT,ZARY,ZC
+ N IEN,CNT,ZARY,ZC,PTYPE
  S DATA=$NA(^TMP("APSPOPHM",$J))
  K @DATA
  Q:'$G(ZIP)
  D GETZC(.ZARY,ZIP,RAD)
  S ZC="",CNT=0 F  S ZC=$O(ZARY(ZC)) Q:'$L(ZC)  D
  .S IEN=0 F  S IEN=$O(^APSPOPHM("ZIP",ZC,IEN)) Q:'IEN  D ADDPHM(IEN,ZARY(ZC))
+ I $$GET^XPAR("ALL","APSP SS PHARMACY MAILORDER") D
+ .S PTYPE=1
+ .S LP=0
+ .F  S LP=$O(^APSPOPHM(LP)) Q:'LP  D
+ ..D:$$SPECID^APSPFNC5(LP,PTYPE,1) ADDPHM(LP,99)
  Q
  ;Return list of pharmacies from IEN list
 PHMLST2(DATA,IEN) ;EP
@@ -261,17 +262,29 @@ PHMLST2(DATA,IEN) ;EP
  K @DATA
  S:$G(IEN) IEN(-1)=IEN
  S IEN="",CNT=0
- F  S IEN=$O(IEN(IEN)) Q:IEN=""  D ADDPHM(IEN(IEN))
+ F  S IEN=$O(IEN(IEN)) Q:IEN=""  D ADDPHM(+IEN(IEN),,0)
  Q
-ADDPHM(IEN,DIST) ;
- N N0,N1,N2,N7
+ADDPHM(IEN,DIST,NEWRX) ;
+ N N0,N1,N2,N7,N8,I,ID,SPEC,SVL
+ S SPEC=""
+ S NEWRX=$G(NEWRX,1)
  S N0=$G(^APSPOPHM(IEN,0)),N1=$G(^(1)),N2=$G(^(2)),N7=$G(^(7))
  Q:'$L(N0)
+ S SVL=$P(N0,U,5)
+ I NEWRX Q:'(SVL#2)  ;P12 Only return NEWRX service level
  I N7,DT<N7 Q
  I $P(N7,U,2),DT>$P(N7,U,2) Q
  S CNT=CNT+1,DIST=$G(DIST)
- ; IEN^StoreName^Address1 Address2^City^State^Zip^PPhone^PFax^Distance
- S @DATA@(+DIST,CNT)=IEN_U_$P(N0,U,10)_U_$P(N1,U)_" "_$P(N1,U,2)_U_$P(N1,U,3)_U_$P(N1,U,4)_U_$P(N1,U,5)_U_$P(N2,U,2)_U_$P(N2,U)_U_DIST
+ ;IHS/MSC/MGH Update for specialty IDs
+ I $D(^APSPOPHM(IEN,8)) D
+ .S I=0 F  S I=$O(^APSPOPHM(IEN,8,I)) Q:I=""   D
+ ..S ID=$G(^APSPOPHM(IEN,8,I,0))
+ ..S ID=$S(ID=1:"MAIL ORDER",ID=2:"FAX",ID=8:"RETAIL",ID=16:"SPECIALTY",ID=32:"LONG-TERM CARE",ID=64:"24 HOUR",1:"")
+ ..I ID'="" D
+ ...I SPEC="" S SPEC=ID
+ ...E  S SPEC=SPEC_","_ID
+ ; IEN^StoreName^Address1 Address2^City^State^Zip^PFAX^PPhone^Distance^Specialty
+ S @DATA@(+DIST,CNT)=IEN_U_$P(N0,U,10)_U_$P(N1,U)_" "_$P(N1,U,2)_U_$P(N1,U,3)_U_$P(N1,U,4)_U_$P(N1,U,5)_U_$P(N2,U,2)_U_$P(N2,U)_U_DIST_U_SPEC
  Q
  ; Return array of zipcodes for given zipcode
  ; Input: ARY - return array - pass by reference
@@ -332,12 +345,13 @@ ISSCH(DRUG,SCH) ;PEP - Returns boolean value
  ;         DFN - Patient IEN
  ;         ORIEN - Order IEN
  ;         MSG - Message text
-NOTIF(USR,DFN,ORIEN,MSG) ;EP -
+ ;       ALRTD - Alert data
+NOTIF(USR,DFN,ORIEN,MSG,ALRTD) ;EP -
  N XQA,XQAID,XQADATA,XQAMSG
  S XQA(USR)=""
- S XQAMSG="e-Prescribe Failure:"_$G(MSG)
+ S XQAMSG="Autofinish Failure:"_$G(MSG)
  S XQAID="OR"_","_DFN_","_99003
- S:$G(ORIEN) XQADATA=ORIEN_"@"
+ S:$G(ORIEN) XQADATA=ORIEN_"@"_$G(ALRTD)
  D SETUP^XQALERT
  Q
  ; Check for renewed prescription
@@ -361,7 +375,7 @@ CHKRNW(RXIEN) ;
  Q:'ORGPKGID
  S ORXNUM=$$GET1^DIQ(52,ORGPKGID,.01)
  S REA="C",DA=ORGPKGID
- S MSG="Renewed from CPRS"
+ S MSG="Renewed/Updated from RPMS EHR"
  S PSCAN(ORXNUM)=DA_"^C"
  D CAN^PSOCAN
  D:RNWORDER

@@ -1,4 +1,4 @@
-OCXOZ0G ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+OCXOZ0G ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
  ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
@@ -8,6 +8,38 @@ OCXOZ0G ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
  ; ** will be lost the next time the rule compiler executes.    **
  ; ***************************************************************
  ;
+ Q
+ ;
+CHK513 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK95+26^OCXOZ06.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK513 Variables
+ ; OCXDF(161) --> Data Field: SS REFILL REQUEST (BOOLEAN)
+ ;
+ ;      Local Extrinsic Functions
+ ; FILE(DFN,142, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: NO SS REFILL REQUEST)
+ ; FILE(DFN,143, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: SS REFILL REQUEST)
+ ;
+ I '(OCXDF(161)) S OCXOERR=$$FILE(DFN,142,"") Q:OCXOERR 
+ I (OCXDF(161)) S OCXOERR=$$FILE(DFN,143,"") Q:OCXOERR 
+ Q
+ ;
+EL24 ; Examine every rule that involves Element #24 [HL7 LAB TEST RESULTS CRITICAL]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R3R1A^OCXOZ0I   ; Check Relation #1 in Rule #3 'CRITICAL LAB RESULTS'
+ Q
+ ;
+EL105 ; Examine every rule that involves Element #105 [HL7 LAB ORDER RESULTS CRITICAL]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R3R2A^OCXOZ0J   ; Check Relation #2 in Rule #3 'CRITICAL LAB RESULTS'
  Q
  ;
 EL44 ; Examine every rule that involves Element #44 [ORDER FLAGGED]
@@ -23,7 +55,7 @@ EL134 ; Examine every rule that involves Element #134 [ORDER UNFLAGGED]
  ;
  Q:$G(OCXOERR)
  ;
- D R5R2A^OCXOZ0J   ; Check Relation #2 in Rule #5 'ORDER FLAGGED FOR CLARIFICATION'
+ D R5R2A^OCXOZ0K   ; Check Relation #2 in Rule #5 'ORDER FLAGGED FOR CLARIFICATION'
  Q
  ;
 EL45 ; Examine every rule that involves Element #45 [ORDER REQUIRES CHART SIGNATURE]
@@ -31,7 +63,7 @@ EL45 ; Examine every rule that involves Element #45 [ORDER REQUIRES CHART SIGNAT
  ;
  Q:$G(OCXOERR)
  ;
- D R6R1A^OCXOZ0J   ; Check Relation #1 in Rule #6 'ORDER REQUIRES CHART SIGNATURE'
+ D R6R1A^OCXOZ0K   ; Check Relation #1 in Rule #6 'ORDER REQUIRES CHART SIGNATURE'
  Q
  ;
 EL21 ; Examine every rule that involves Element #21 [PATIENT ADMISSION]
@@ -47,7 +79,7 @@ EL31 ; Examine every rule that involves Element #31 [RADIOLOGY ORDER CANCELLED]
  ;
  Q:$G(OCXOERR)
  ;
- D R11R1A^OCXOZ0K   ; Check Relation #1 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
+ D R11R1A^OCXOZ0L   ; Check Relation #1 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
  Q
  ;
 EL100 ; Examine every rule that involves Element #100 [CANCELED BY NON-ORIG ORDERING PROVIDER]
@@ -55,10 +87,10 @@ EL100 ; Examine every rule that involves Element #100 [CANCELED BY NON-ORIG ORDE
  ;
  Q:$G(OCXOERR)
  ;
- D R11R1A^OCXOZ0K   ; Check Relation #1 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
- D R11R2A^OCXOZ0K   ; Check Relation #2 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
- D R11R3A^OCXOZ0L   ; Check Relation #3 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
- D R35R1A^OCXOZ0P   ; Check Relation #1 in Rule #35 'LAB ORDER CANCELLED'
+ D R11R1A^OCXOZ0L   ; Check Relation #1 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
+ D R11R2A^OCXOZ0L   ; Check Relation #2 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
+ D R11R3A^OCXOZ0M   ; Check Relation #3 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
+ D R35R1A^OCXOZ0Q   ; Check Relation #1 in Rule #35 'LAB ORDER CANCELLED'
  Q
  ;
 EL30 ; Examine every rule that involves Element #30 [RADIOLOGY ORDER PUT ON-HOLD]
@@ -66,7 +98,7 @@ EL30 ; Examine every rule that involves Element #30 [RADIOLOGY ORDER PUT ON-HOLD
  ;
  Q:$G(OCXOERR)
  ;
- D R11R2A^OCXOZ0K   ; Check Relation #2 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
+ D R11R2A^OCXOZ0L   ; Check Relation #2 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
  Q
  ;
 EL32 ; Examine every rule that involves Element #32 [RADIOLOGY ORDER DISCONTINUED]
@@ -74,7 +106,7 @@ EL32 ; Examine every rule that involves Element #32 [RADIOLOGY ORDER DISCONTINUE
  ;
  Q:$G(OCXOERR)
  ;
- D R11R3A^OCXOZ0L   ; Check Relation #3 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
+ D R11R3A^OCXOZ0M   ; Check Relation #3 in Rule #11 'IMAGING REQUEST CANCELLED/HELD'
  Q
  ;
 EL46 ; Examine every rule that involves Element #46 [SERVICE ORDER REQUIRES CHART SIGNATURE]
@@ -82,7 +114,7 @@ EL46 ; Examine every rule that involves Element #46 [SERVICE ORDER REQUIRES CHAR
  ;
  Q:$G(OCXOERR)
  ;
- D R16R1A^OCXOZ0L   ; Check Relation #1 in Rule #16 'SERVICE ORDER REQUIRES CHART SIGNATURE'
+ D R16R1A^OCXOZ0M   ; Check Relation #1 in Rule #16 'SERVICE ORDER REQUIRES CHART SIGNATURE'
  Q
  ;
 EL76 ; Examine every rule that involves Element #76 [STAT LAB RESULT]
@@ -90,7 +122,7 @@ EL76 ; Examine every rule that involves Element #76 [STAT LAB RESULT]
  ;
  Q:$G(OCXOERR)
  ;
- D R18R1A^OCXOZ0L   ; Check Relation #1 in Rule #18 'STAT RESULTS AVAILABLE'
+ D R18R1A^OCXOZ0M   ; Check Relation #1 in Rule #18 'STAT RESULTS AVAILABLE'
  Q
  ;
 EL75 ; Examine every rule that involves Element #75 [STAT IMAGING RESULT]
@@ -98,7 +130,7 @@ EL75 ; Examine every rule that involves Element #75 [STAT IMAGING RESULT]
  ;
  Q:$G(OCXOERR)
  ;
- D R18R2A^OCXOZ0M   ; Check Relation #2 in Rule #18 'STAT RESULTS AVAILABLE'
+ D R18R2A^OCXOZ0N   ; Check Relation #2 in Rule #18 'STAT RESULTS AVAILABLE'
  Q
  ;
 EL110 ; Examine every rule that involves Element #110 [STAT CONSULT RESULT]
@@ -106,7 +138,7 @@ EL110 ; Examine every rule that involves Element #110 [STAT CONSULT RESULT]
  ;
  Q:$G(OCXOERR)
  ;
- D R18R3A^OCXOZ0M   ; Check Relation #3 in Rule #18 'STAT RESULTS AVAILABLE'
+ D R18R3A^OCXOZ0N   ; Check Relation #3 in Rule #18 'STAT RESULTS AVAILABLE'
  Q
  ;
 EL56 ; Examine every rule that involves Element #56 [PATIENT DISCHARGE]
@@ -114,7 +146,7 @@ EL56 ; Examine every rule that involves Element #56 [PATIENT DISCHARGE]
  ;
  Q:$G(OCXOERR)
  ;
- D R19R1A^OCXOZ0M   ; Check Relation #1 in Rule #19 'PATIENT DISCHARGE'
+ D R19R1A^OCXOZ0N   ; Check Relation #1 in Rule #19 'PATIENT DISCHARGE'
  Q
  ;
 EL47 ; Examine every rule that involves Element #47 [ORDER REQUIRES CO-SIGNATURE]
@@ -122,7 +154,7 @@ EL47 ; Examine every rule that involves Element #47 [ORDER REQUIRES CO-SIGNATURE
  ;
  Q:$G(OCXOERR)
  ;
- D R22R1A^OCXOZ0N   ; Check Relation #1 in Rule #22 'ORDER REQUIRES CO-SIGNATURE'
+ D R22R1A^OCXOZ0O   ; Check Relation #1 in Rule #22 'ORDER REQUIRES CO-SIGNATURE'
  Q
  ;
 EL5 ; Examine every rule that involves Element #5 [HL7 FINAL LAB RESULT]
@@ -130,9 +162,9 @@ EL5 ; Examine every rule that involves Element #5 [HL7 FINAL LAB RESULT]
  ;
  Q:$G(OCXOERR)
  ;
- D R24R1A^OCXOZ0N   ; Check Relation #1 in Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'
- D R66R1A^OCXOZ0Y   ; Check Relation #1 in Rule #66 'LAB RESULTS'
- D R69R1A^OCXOZ10   ; Check Relation #1 in Rule #69 'LAB THRESHOLD'
+ D R24R1A^OCXOZ0O   ; Check Relation #1 in Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'
+ D R66R1A^OCXOZ10   ; Check Relation #1 in Rule #66 'LAB RESULTS'
+ D R69R1A^OCXOZ12   ; Check Relation #1 in Rule #69 'LAB THRESHOLD'
  Q
  ;
 EL49 ; Examine every rule that involves Element #49 [ORDER FLAGGED FOR RESULTS]
@@ -140,7 +172,7 @@ EL49 ; Examine every rule that involves Element #49 [ORDER FLAGGED FOR RESULTS]
  ;
  Q:$G(OCXOERR)
  ;
- D R24R1A^OCXOZ0N   ; Check Relation #1 in Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'
+ D R24R1A^OCXOZ0O   ; Check Relation #1 in Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'
  Q
  ;
 EL55 ; Examine every rule that involves Element #55 [CONSULT FINAL RESULTS]
@@ -148,7 +180,7 @@ EL55 ; Examine every rule that involves Element #55 [CONSULT FINAL RESULTS]
  ;
  Q:$G(OCXOERR)
  ;
- D R24R1A^OCXOZ0N   ; Check Relation #1 in Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'
+ D R24R1A^OCXOZ0O   ; Check Relation #1 in Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'
  Q
  ;
 EL101 ; Examine every rule that involves Element #101 [HL7 FINAL IMAGING RESULT]
@@ -156,7 +188,7 @@ EL101 ; Examine every rule that involves Element #101 [HL7 FINAL IMAGING RESULT]
  ;
  Q:$G(OCXOERR)
  ;
- D R24R1A^OCXOZ0N   ; Check Relation #1 in Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'
+ D R24R1A^OCXOZ0O   ; Check Relation #1 in Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'
  Q
  ;
 EL60 ; Examine every rule that involves Element #60 [NEW OBR STAT ORDER]
@@ -164,7 +196,7 @@ EL60 ; Examine every rule that involves Element #60 [NEW OBR STAT ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R28R1A^OCXOZ0O   ; Check Relation #1 in Rule #28 'STAT ORDER PLACED'
+ D R28R1A^OCXOZ0P   ; Check Relation #1 in Rule #28 'STAT ORDER PLACED'
  Q
  ;
 EL61 ; Examine every rule that involves Element #61 [NEW ORC STAT ORDER]
@@ -172,7 +204,7 @@ EL61 ; Examine every rule that involves Element #61 [NEW ORC STAT ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R28R1A^OCXOZ0O   ; Check Relation #1 in Rule #28 'STAT ORDER PLACED'
+ D R28R1A^OCXOZ0P   ; Check Relation #1 in Rule #28 'STAT ORDER PLACED'
  Q
  ;
 EL42 ; Examine every rule that involves Element #42 [PATIENT TRANSFERRED FROM PSYCH WARD]
@@ -180,7 +212,7 @@ EL42 ; Examine every rule that involves Element #42 [PATIENT TRANSFERRED FROM PS
  ;
  Q:$G(OCXOERR)
  ;
- D R32R1A^OCXOZ0O   ; Check Relation #1 in Rule #32 'PATIENT TRANSFERRED FROM PSYCHIATRY TO ANOTHER UNIT'
+ D R32R1A^OCXOZ0P   ; Check Relation #1 in Rule #32 'PATIENT TRANSFERRED FROM PSYCHIATRY TO ANOTHER UNIT'
  Q
  ;
 EL20 ; Examine every rule that involves Element #20 [HL7 LAB ORDER CANCELLED]
@@ -188,7 +220,7 @@ EL20 ; Examine every rule that involves Element #20 [HL7 LAB ORDER CANCELLED]
  ;
  Q:$G(OCXOERR)
  ;
- D R35R1A^OCXOZ0P   ; Check Relation #1 in Rule #35 'LAB ORDER CANCELLED'
+ D R35R1A^OCXOZ0Q   ; Check Relation #1 in Rule #35 'LAB ORDER CANCELLED'
  Q
  ;
 EL40 ; Examine every rule that involves Element #40 [HL7 LAB REQUEST CANCELLED]
@@ -196,7 +228,7 @@ EL40 ; Examine every rule that involves Element #40 [HL7 LAB REQUEST CANCELLED]
  ;
  Q:$G(OCXOERR)
  ;
- D R35R1A^OCXOZ0P   ; Check Relation #1 in Rule #35 'LAB ORDER CANCELLED'
+ D R35R1A^OCXOZ0Q   ; Check Relation #1 in Rule #35 'LAB ORDER CANCELLED'
  Q
  ;
 EL6 ; Examine every rule that involves Element #6 [HL7 NEW OERR ORDER]
@@ -204,7 +236,7 @@ EL6 ; Examine every rule that involves Element #6 [HL7 NEW OERR ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R38R1A^OCXOZ0P   ; Check Relation #1 in Rule #38 'NEW ORDER PLACED'
+ D R38R1A^OCXOZ0Q   ; Check Relation #1 in Rule #38 'NEW ORDER PLACED'
  Q
  ;
 EL126 ; Examine every rule that involves Element #126 [HL7 DCED OERR ORDER]
@@ -212,7 +244,7 @@ EL126 ; Examine every rule that involves Element #126 [HL7 DCED OERR ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R38R2A^OCXOZ0P   ; Check Relation #2 in Rule #38 'NEW ORDER PLACED'
+ D R38R2A^OCXOZ0Q   ; Check Relation #2 in Rule #38 'NEW ORDER PLACED'
  Q
  ;
 EL23 ; Examine every rule that involves Element #23 [HL7 LAB ORDER RESULTS ABNORMAL]
@@ -220,7 +252,7 @@ EL23 ; Examine every rule that involves Element #23 [HL7 LAB ORDER RESULTS ABNOR
  ;
  Q:$G(OCXOERR)
  ;
- D R42R1A^OCXOZ0Q   ; Check Relation #1 in Rule #42 'ABNORMAL LAB RESULTS'
+ D R42R1A^OCXOZ0R   ; Check Relation #1 in Rule #42 'ABNORMAL LAB RESULTS'
  Q
  ;
 EL103 ; Examine every rule that involves Element #103 [HL7 LAB TEST RESULTS ABNORMAL]
@@ -228,7 +260,7 @@ EL103 ; Examine every rule that involves Element #103 [HL7 LAB TEST RESULTS ABNO
  ;
  Q:$G(OCXOERR)
  ;
- D R42R2A^OCXOZ0Q   ; Check Relation #2 in Rule #42 'ABNORMAL LAB RESULTS'
+ D R42R2A^OCXOZ0R   ; Check Relation #2 in Rule #42 'ABNORMAL LAB RESULTS'
  Q
  ;
 EL48 ; Examine every rule that involves Element #48 [ORDER REQUIRES ELECTRONIC SIGNATURE]
@@ -236,60 +268,22 @@ EL48 ; Examine every rule that involves Element #48 [ORDER REQUIRES ELECTRONIC S
  ;
  Q:$G(OCXOERR)
  ;
- D R44R1A^OCXOZ0Q   ; Check Relation #1 in Rule #44 'ORDER REQUIRES ELECTRONIC SIGNATURE'
+ D R44R1A^OCXOZ0R   ; Check Relation #1 in Rule #44 'ORDER REQUIRES ELECTRONIC SIGNATURE'
+ D R44R2A^OCXOZ0S   ; Check Relation #2 in Rule #44 'ORDER REQUIRES ELECTRONIC SIGNATURE'
  Q
  ;
-EL58 ; Examine every rule that involves Element #58 [NEW SITE FLAGGED ORDER]
- ;  Called from SCAN+9^OCXOZ01.
+FILE(DFN,OCXELE,OCXDFL) ;     This Local Extrinsic Function logs a validated event/element.
  ;
- Q:$G(OCXOERR)
+ N OCXTIMN,OCXTIML,OCXTIMT1,OCXTIMT2,OCXDATA,OCXPC,OCXPC,OCXVAL,OCXSUB,OCXDFI
+ S DFN=+$G(DFN),OCXELE=+$G(OCXELE)
  ;
- D R48R1A^OCXOZ0R   ; Check Relation #1 in Rule #48 'SITE FLAGGED ORDER'
- D R48R2A^OCXOZ0R   ; Check Relation #2 in Rule #48 'SITE FLAGGED ORDER'
- Q
+ Q:'DFN 1 Q:'OCXELE 1 K OCXDATA
  ;
-EL127 ; Examine every rule that involves Element #127 [INPATIENT]
- ;  Called from SCAN+9^OCXOZ01.
+ S OCXDATA(DFN,OCXELE)=1
+ F OCXPC=1:1:$L(OCXDFL,",") S OCXDFI=$P(OCXDFL,",",OCXPC) I OCXDFI D
+ .S OCXVAL=$G(OCXDF(+OCXDFI)),OCXDATA(DFN,OCXELE,+OCXDFI)=OCXVAL
  ;
- Q:$G(OCXOERR)
+ M ^TMP("OCXCHK",$J,DFN)=OCXDATA(DFN)
  ;
- D R48R1A^OCXOZ0R   ; Check Relation #1 in Rule #48 'SITE FLAGGED ORDER'
- D R49R1A^OCXOZ0S   ; Check Relation #1 in Rule #49 'SITE FLAGGED RESULT'
- Q
- ;
-EL128 ; Examine every rule that involves Element #128 [OUTPATIENT]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R48R2A^OCXOZ0R   ; Check Relation #2 in Rule #48 'SITE FLAGGED ORDER'
- D R49R2A^OCXOZ0T   ; Check Relation #2 in Rule #49 'SITE FLAGGED RESULT'
- Q
- ;
-EL59 ; Examine every rule that involves Element #59 [SITE FLAGGED FINAL LAB RESULT]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R49R1A^OCXOZ0S   ; Check Relation #1 in Rule #49 'SITE FLAGGED RESULT'
- D R49R2A^OCXOZ0T   ; Check Relation #2 in Rule #49 'SITE FLAGGED RESULT'
- Q
- ;
-EL102 ; Examine every rule that involves Element #102 [SITE FLAGGED FINAL IMAGING RESULT]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R49R1A^OCXOZ0S   ; Check Relation #1 in Rule #49 'SITE FLAGGED RESULT'
- D R49R2A^OCXOZ0T   ; Check Relation #2 in Rule #49 'SITE FLAGGED RESULT'
- Q
- ;
-EL109 ; Examine every rule that involves Element #109 [SITE FLAGGED FINAL CONSULT RESULT]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R49R1A^OCXOZ0S   ; Check Relation #1 in Rule #49 'SITE FLAGGED RESULT'
- D R49R2A^OCXOZ0T   ; Check Relation #2 in Rule #49 'SITE FLAGGED RESULT'
- Q
+ Q 0
  ;

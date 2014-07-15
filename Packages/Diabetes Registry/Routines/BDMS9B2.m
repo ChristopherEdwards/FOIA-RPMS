@@ -1,5 +1,5 @@
 BDMS9B2 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,6**;JUN 14, 2007;Build 6
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,6,7**;JUN 14, 2007;Build 24
  ;
  ;
 MORE ;EP
@@ -29,16 +29,16 @@ L ;
  S X="Urine Protein Assessment:" D S(X)
  S Z=0
  S Y=$$ACRATIO(BDMSDFN)
- I Y="" S X=" UACR (Quant A/C Ratio):",$E(X,25)="<None Found>" D S(X)
- I Y]"" S X=" UACR (Quant A/C Ratio):",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) I $P(Y,"|||",2)>$$FMADD^XLFDT(DT,-365) G EDUCD
+ S X=" UACR (Quant A/C Ratio):",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) I $P(Y,"|||",2)>$$FMADD^XLFDT(DT,-365) D
+ .;S X="     Note:  UACR test was done over 1 year ago." D S(X)
  ;if no a/c ratio in the past year display next best in past year
- S X=" Alternate Urine Protein Test in past year:" D S(X)
- S Y=$$PCR(BDMSDFN) I Y]"" S X=" UPCR (P/C Ratio:",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- S Y=$$HR24(BDMSDFN) I Y]"" S X=" Urine Protein/24 Hr",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- S Y=$$SEMI(BDMSDFN) I Y]"" S X=" UACR (Semi-Quant A/C)",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- S Y=$$MICRO(BDMSDFN) I Y]"" S X=" Microalbumin only",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- S Y=$$URIN(BDMSDFN) I Y]"" S X=" Dipstick Protein",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- I 'Z D S("       No Urine Protein Assessment Lab Values on File in the past year")
+ ;S X=" Alternate Urine Protein Test in past year:" D S(X)
+ ;S Y=$$PCR(BDMSDFN) I Y]"" S X=" UPCR (P/C Ratio:",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
+ ;S Y=$$HR24(BDMSDFN) I Y]"" S X=" Urine Protein/24 Hr",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
+ ;S Y=$$SEMI(BDMSDFN) I Y]"" S X=" UACR (Semi-Quant A/C)",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
+ ;S Y=$$MICRO(BDMSDFN) I Y]"" S X=" Microalbumin only",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
+ ;S Y=$$URIN(BDMSDFN) I Y]"" S X=" Dipstick Protein",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
+ ;I 'Z D S("       No Urine Protein Assessment Lab Values on File in the past year")
 EDUCD D S(" ")
  S BDMSBEG=$$FMADD^XLFDT(DT,-365)
  S X="DM Education Provided (in past yr): " D S(X)

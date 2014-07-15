@@ -1,7 +1,8 @@
-APSPCO ; IHS/MSC/PLS - List Manager Complete Orders ;28-Sep-2012 09:48;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1013,1014,1015**;Sep 23, 2004;Build 62
+APSPCO ; IHS/MSC/PLS - List Manager Complete Orders ;24-Jul-2013 08:46;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1013,1014,1015,1016**;Sep 23, 2004;Build 74
  ; Modified - IHS/MSC/PB - 09/28/012 - OERR+26 to remove patient language flag
  ;=================================================================
+ ;IHS/MSC/MGH Patch 1016 ADDITEM +2,6,11 Added visual for a flagged order
 EN ; -- main entry point for APSP COMPLETE ORDERS
  D:'$D(PSOPAR) ^PSOLSET I '$D(PSOPAR) D MSG^PSODPT G EX^PSOORFIN
  N APSPINS,APSPQ,LOCFLG,APSPLOCS,APSPSORT,APSPORPT
@@ -67,10 +68,12 @@ BUILDLST(INST) ;EP-
  Q
  ; Add a single line item
 ADDITEM(IEN,INST) ;EP-
- N NOD0,LINE,COM,PTLOCK
+ N NOD0,LINE,COM,PTLOCK,FLAG
+ S FLAG=0
  S NOD0=$G(^PS(52.41,IEN,0))
  Q:'NOD0
  I LOCFLG Q:'$D(APSPLOCS($P(NOD0,U,13)))
+ I $P($G(^PS(52.41,IEN,0)),"^",23)=1 S FLAG=1
  S VALMCNT=VALMCNT+1
  S COM=$P($G(^PS(52.41,IEN,4)),U)
  S LINE=$$SETFLD^VALM1(VALMCNT,"","ITEM")
@@ -82,6 +85,7 @@ ADDITEM(IEN,INST) ;EP-
  S LINE=$$SETFLD^VALM1($$GET1^DIQ(44,$P(NOD0,U,13),.01),LINE,"HOSPLOC")
  ;S LINE=$$SETFLD^VALM1($P(NOD0,U),LINE,"ORDNUM")
  S LINE=$$SETFLD^VALM1($S($L(COM)>30:$E(COM,1,27)_"...",1:COM),LINE,"COMMENT")
+ I FLAG=1 D CNTRL^VALM10(VALMCNT,1,3,IORVON,IORVOFF,0)
  D SETARR(VALMCNT,LINE,IEN)
  Q
  ; Return lock state of patient record
@@ -299,21 +303,7 @@ UPDCOL(MODE) ;EP-
  Q
  ;
 CHGCOM ;EP-
- N DA,DUOUT,Y,VAL,ITM,DTOUT,DIRUT,DIE,DR,LST,APSPCOQF,COM
- S DIR("A")="Select Orders by number",DIR(0)="LO^1:"_VALMCNT D ^DIR
- I $D(DUOUT) S VALMBCK="R" Q
- I +Y D FULL^VALM1 S LST=Y
- F ITM=1:1:$L(LST,",") Q:$P(LST,",",ITM)']""!($G(APSPCOQF))  S VAL=$P(LST,",",ITM) D
- .S DA=$P(@VALMAR@(VAL,"POFIEN"),U,2)
- .I '$$GET1^DIQ(52.41,DA,.01) D  Q
- ..W !,"This order has already been processed and removed from the Pending Order File!"
- .W !,"Comment for order number: "_$$GET1^DIQ(52.41,DA,.01)," on patient: "_$$GET1^DIQ(52.41,DA,1)
- .S DIE=52.41,DR="23" D ^DIE
- .S COM=$$GET1^DIQ(52.41,DA,23)
- .S COM=$S($L(COM)>30:$E(COM,1,27)_"...",1:COM)
- .D FLDTEXT^VALM10(VAL,"COMMENT",COM)
- .S APSPCO("QFLG")='+$$DIRYN^APSPUTIL("Continue: ","N",,.APSPPOP)
- S VALMBCK="R"
+ D CHGCOM^APSPCO1
  Q
  ;
 POST(Y) ;

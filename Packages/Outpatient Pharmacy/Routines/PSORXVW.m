@@ -1,5 +1,5 @@
-PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;29-May-2012 15:14;PLS
- ;;7.0;OUTPATIENT PHARMACY;**14,35,46,96,103,88,117,131,146,1008,156,185,210,148,233,260,264,281,1015**;DEC 1997;Build 62
+PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;24-Jul-2013 08:41;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**14,35,46,96,103,88,117,131,146,1008,156,185,210,148,233,260,264,281,1015,1016**;DEC 1997;Build 74
  ;External reference to File ^PS(55 supported by DBIA 2228
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference ^PSDRUG( supported by DBIA 221
@@ -12,6 +12,8 @@ PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;29-May-2012 15:14;PLS
  ;          - IHS/MSC/PLS - 03/13/08 - Line IHSFLDS+4
  ;                        - 01/23/09 - Line IHSFLDS+5
  ;                        - 03/26/12 - Line IHSFLDS+2 change of AWP to BENCHMARK PRICE
+ ;            IHS/MSC/PB    08/03/12 - Line tag SIGN added at line PTST+2 to pull the SIGNS and SYMPTOMS and the INDICATION CODES for display
+ ;	      IHS/MSC/PB  - 10/26/12 - Line PTST+5 to increment the variable IEN so as to not overwrite the last node created in the TMP("PSOAL" global
  S PS="VIEW"
 A1 ; - Prescription prompt
  S DIR(0)="FAO^1:30",DIR("A")=PS_" PRESCRIPTION: ",(DIR("?"),DIR("??"))="^D HLP^PSORXVW1"
@@ -69,7 +71,12 @@ DP S (PSODFN,DFN)=+$P(^PSRX(DA,0),"^",2) S PSOLOUD=1 D:$P($G(^PS(55,PSODFN,0)),"
  . S MIG=^PSRX(RXN,"SIG1",I,0)
  . D WORDWRAP^PSOUTLA2(MIG,.IEN,$NA(^TMP("PSOAL",$J)),21)
  S SIGOK=1 K MIG,SG
-PTST S $P(RN," ",25)=" ",PTST=$S($G(^PS(53,+$P(RX0,"^",3),0))]"":$P($G(^PS(53,+$P(RX0,"^",3),0)),"^"),1:""),IEN=IEN+1
+PTST ;EP-
+ ;IHS/MSC/PB - 08/03/12 Next line added to pull the SIGNS and SYMPTOMS and the INDICATION CODE for display
+ ;S ^TMP("PSOAL",$J,IEN,0)=" Clinical Indication: "_$$GET1^DIQ(52,RXN,9999999.21)_"  "_$$GET1^DIQ(52,RXN,9999999.22),IEN=IEN+1
+ ;IHS/MSC/PB - 10/26/12 Next line changed to add incrementing the variable IEN so that the next node in TMP("PSOAL" doesn't overwrite the last node in the TMP global
+ S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)=" Clinical Indication: "_$$GET1^DIQ(52,RXN,9999999.21)_"  "_$$GET1^DIQ(52,RXN,9999999.22),IEN=IEN+1
+ S $P(RN," ",25)=" ",PTST=$S($G(^PS(53,+$P(RX0,"^",3),0))]"":$P($G(^PS(53,+$P(RX0,"^",3),0)),"^"),1:""),IEN=IEN+1
  S ^TMP("PSOAL",$J,IEN,0)="      Patient Status: "_PTST_$E(RN,$L(PTST)+1,25)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="          Issue Date: "_$E($P(RX0,"^",13),4,5)_"/"_$E($P(RX0,"^",13),6,7)_"/"_$E($P(RX0,"^",13),2,3)
  S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"                 Fill Date: "_$E($P(RX2,"^",2),4,5)_"/"_$E($P(RX2,"^",2),6,7)_"/"_$E($P(RX2,"^",2),2,3)

@@ -1,5 +1,5 @@
 BARPUC3 ; IHS/SD/LSL - UNALLOCATED COMMAND PROCESSING ; 07/16/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,21,23***;OCT 26, 2005
  ;
  ; IHS/SD/SDR - 10/18/02 - V1.7 - OEA-1002-190010
  ;       Resolve <UNDEF>PARSE+6^XBDIQ1
@@ -8,7 +8,7 @@ BARPUC3 ; IHS/SD/LSL - UNALLOCATED COMMAND PROCESSING ; 07/16/2008
  ;      Allow new adjustment categories 21 and 22
  ;
  ; *********************************************************************
- ;
+ ; ;APR 2013 CONDITIONAL DISPLAY OF TXD AND MESSSAGES 
  ;** 'Select Command' processor
  ;
 EN ;EP - command processor for unallocated
@@ -48,10 +48,17 @@ ASKCOM ;EP - ask command
  ; -------------------------------
  ;
 ASKCOM1 ;
- W !,"Select Command (Line # "_BARLIN_") : "
  ;IHS/SD/TPF BAR*1.8*21 8/3/2011 HEAT20490
  I $$NOTOPEN^BARUFUT(.DUZ,$G(UFMSESID)) Q  ;IS SESSION STILL OPEN
+ W !,"Select Command (Line # "_BARLIN_") : "
  R BARCOM:DTIME
+ ;K DIR
+ ;S DIR(0)="FAO"
+ ;S DIR("A")="Select Command (Line # "_BARLIN_") "
+ ;S DIR("T")=DTIME
+ ;D ^DIR
+ ;K DIR
+ ;S BARCOM=$$UPC^BARUTL(X) 
  S BARCOM=$$UPC^BARUTL(BARCOM)
  S Q=0
  F J=1:1 D  Q:Q
@@ -71,9 +78,9 @@ ASKCOM1 ;
  I J=1,BARCOM(J)="T" D  G ASKCOM
  .S Y=$$DSPLY^BARPUC4(BARLIN)
  .D EOP^BARUTL(1)
- I J=1,BARCOM(J)="H" D  G ASKCOM
- .S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
- .D EN^BARPST5(BARBLDA)
+ I J=1,BARCOM(J)="H" D HISTORY^BARBAD3 G ASKCOM ;P.OTT
+ .;S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
+ .;D EN^BARPST5(BARBLDA)
  ; -------------------------------
  ;
 GOQ ;

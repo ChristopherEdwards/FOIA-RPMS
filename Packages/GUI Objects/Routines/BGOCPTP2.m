@@ -1,5 +1,5 @@
-BGOCPTP2 ; IHS/BAO/TMD - CPT PREFERENCES MANAGER-2 ;21-Jun-2012 12:14;DU
- ;;1.1;BGO COMPONENTS;**1,3,4,5,11**;Mar 20, 2007
+BGOCPTP2 ; IHS/BAO/TMD - CPT PREFERENCES MANAGER-2 ;27-Feb-2013 15:34;DU
+ ;;1.1;BGO COMPONENTS;**1,3,4,5,11,12**;Mar 20, 2007;Build 5
  ;
  ; Returns list of assocs for specified category and item
  ;  INP = Category IEN ^ Item IEN
@@ -35,7 +35,12 @@ GETASSOC(RET,INP) ;EP
  .I ITEMIEN=CPT,TYP="ICPT(",$L(NAR) S $P(X,U,2)=NAR,CPT=0
  .S P=$$TYPECVT(TYP,1,3)
  .I TYP="DIC(81.3," S P=$$TYPECVT(TYP,1,3)
- .S ITEMNAME=$P(X,U,P)
+ .;Changes made for AICD version 4.0 and Patch 12
+ .I TYP="ICD9(" D
+ ..I $$AICD^BGOUTL2 S ITEMNAME=$$SD^ICDEX(80,ITEMIEN,DT)
+ ..E  S ITEMNAME=$P(X,U,P)
+ .E  S ITEMNAME=$P(X,U,P)
+ .;End chagnes
  .S P=$$TYPECVT(TYP,1,4)
  .S CODE=$P(X,U,P)
  .S AUTO=$P(N0,U,2)

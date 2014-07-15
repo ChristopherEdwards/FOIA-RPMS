@@ -1,4 +1,4 @@
-OCXOZ0J ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+OCXOZ0J ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
  ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
@@ -10,8 +10,54 @@ OCXOZ0J ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
  ;
  Q
  ;
+R3R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #3 'CRITICAL LAB RESULTS'  Relation #1 'CRITICAL LAB TEST'
+ ;  Called from R3R1A+10^OCXOZ0I.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ; INT2DT( ----------> CONVERT DATE FROM OCX FORMAT TO READABLE FORMAT
+ ; NEWRULE( ---------> NEW RULE MESSAGE
+ ;
+ Q:$D(OCXRULE("R3R1B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ S OCXCMSG=""
+ S OCXNMSG="Critical lab: "_$$GETDATA(DFN,"24^",114)_" "_$$GETDATA(DFN,"24^",12)_" "_$$INT2DT($$GETDATA(DFN,"24^",13),0)
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Notification
+ ;
+ S (OCXDUZ,OCXDATA)="",OCXNUM=0
+ I ($G(OCXOSRC)="GENERIC HL7 MESSAGE ARRAY") D
+ .S OCXDATA=$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",2))_"|"_$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",3))
+ .S OCXDATA=$TR(OCXDATA,"^","@"),OCXNUM=+OCXDATA
+ I ($G(OCXOSRC)="CPRS ORDER PROTOCOL") D
+ .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
+ .S OCXNUM=+$P(OCXORD,U,2)
+ S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
+ S OCXRULE("R3R1B")=""
+ I $$NEWRULE(DFN,OCXNUM,3,1,24,OCXNMSG) D  I 1
+ .D:($G(OCXTRACE)<5) EN^ORB3(24,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
+ Q
+ ;
+R3R2A ; Verify all Event/Elements of  Rule #3 'CRITICAL LAB RESULTS'  Relation #2 'CRITICAL LAB ORDER'
+ ;  Called from EL105+5^OCXOZ0G.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE105( ---------->  Verify Event/Element: 'HL7 LAB ORDER RESULTS CRITICAL'
+ ;
+ Q:$G(^OCXS(860.2,3,"INACT"))
+ ;
+ I $$MCE105 D R3R2B
+ Q
+ ;
 R3R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #3 'CRITICAL LAB RESULTS'  Relation #2 'CRITICAL LAB ORDER'
- ;  Called from R3R2A+10^OCXOZ0I.
+ ;  Called from R3R2A+10.
  ;
  Q:$G(OCXOERR)
  ;
@@ -52,117 +98,7 @@ R5R1A ; Verify all Event/Elements of  Rule #5 'ORDER FLAGGED FOR CLARIFICATION' 
  ;
  Q:$G(^OCXS(860.2,5,"INACT"))
  ;
- I $$MCE44 D R5R1B
- Q
- ;
-R5R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #5 'ORDER FLAGGED FOR CLARIFICATION'  Relation #1 'ORDER FLAGGED'
- ;  Called from R5R1A+10.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ; NEWRULE( ---------> NEW RULE MESSAGE
- ;
- Q:$D(OCXRULE("R5R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- S OCXCMSG=""
- S OCXNMSG="Order(s) needing clarification: Flagged "_$$GETDATA(DFN,"44^",115)_"."
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Notification
- ;
- S (OCXDUZ,OCXDATA)="",OCXNUM=0
- I ($G(OCXOSRC)="GENERIC HL7 MESSAGE ARRAY") D
- .S OCXDATA=$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",2))_"|"_$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",3))
- .S OCXDATA=$TR(OCXDATA,"^","@"),OCXNUM=+OCXDATA
- I ($G(OCXOSRC)="CPRS ORDER PROTOCOL") D
- .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
- .S OCXNUM=+$P(OCXORD,U,2)
- S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
- S OCXRULE("R5R1B")=""
- I $$NEWRULE(DFN,OCXNUM,5,1,6,OCXNMSG) D  I 1
- .D:($G(OCXTRACE)<5) EN^ORB3(6,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
- Q
- ;
-R5R2A ; Verify all Event/Elements of  Rule #5 'ORDER FLAGGED FOR CLARIFICATION'  Relation #2 'ORDER UNFLAGGED'
- ;  Called from EL134+5^OCXOZ0G.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE134( ---------->  Verify Event/Element: 'ORDER UNFLAGGED'
- ;
- Q:$G(^OCXS(860.2,5,"INACT"))
- ;
- I $$MCE134 D R5R2B
- Q
- ;
-R5R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #5 'ORDER FLAGGED FOR CLARIFICATION'  Relation #2 'ORDER UNFLAGGED'
- ;  Called from R5R2A+10.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ;
- Q:$D(OCXRULE("R5R2B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- S OCXCMSG=""
- S OCXNMSG=""
- ;
- ;
- ; Run Execute Code
- ;
- D UNFLAG^ORB3FUP1($$GETDATA(DFN,"134^",37))
- Q:$G(OCXOERR)
- Q
- ;
-R6R1A ; Verify all Event/Elements of  Rule #6 'ORDER REQUIRES CHART SIGNATURE'  Relation #1 'SIGNATURE'
- ;  Called from EL45+5^OCXOZ0G.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE45( ----------->  Verify Event/Element: 'ORDER REQUIRES CHART SIGNATURE'
- ;
- Q:$G(^OCXS(860.2,6,"INACT"))
- ;
- I $$MCE45 D R6R1B
- Q
- ;
-R6R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #6 'ORDER REQUIRES CHART SIGNATURE'  Relation #1 'SIGNATURE'
- ;  Called from R6R1A+10.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; NEWRULE( ---------> NEW RULE MESSAGE
- ;
- Q:$D(OCXRULE("R6R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- S OCXCMSG=""
- S OCXNMSG="Order released - requires chart signature."
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Notification
- ;
- S (OCXDUZ,OCXDATA)="",OCXNUM=0
- I ($G(OCXOSRC)="GENERIC HL7 MESSAGE ARRAY") D
- .S OCXDATA=$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",2))_"|"_$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",3))
- .S OCXDATA=$TR(OCXDATA,"^","@"),OCXNUM=+OCXDATA
- I ($G(OCXOSRC)="CPRS ORDER PROTOCOL") D
- .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
- .S OCXNUM=+$P(OCXORD,U,2)
- S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
- S OCXRULE("R6R1B")=""
- I $$NEWRULE(DFN,OCXNUM,6,1,5,OCXNMSG) D  I 1
- .D:($G(OCXTRACE)<5) EN^ORB3(5,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
+ I $$MCE44 D R5R1B^OCXOZ0K
  Q
  ;
 CKSUM(STR) ;  Compiler Function: GENERATE STRING CHECKSUM
@@ -178,13 +114,36 @@ GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime dat
  F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
  Q VAL
  ;
-MCE134() ; Verify Event/Element: ORDER UNFLAGGED
+INT2DT(OCXDT,OCXF) ;      This Local Extrinsic Function converts an OCX internal format
+ ; date into an Externl Format (Human Readable) date.   'OCXF=SHORT FORMAT OCXF=LONG FORMAT
  ;
- ;  OCXDF(37) -> PATIENT IEN data field
+ Q:'$L($G(OCXDT)) "" S OCXF=+$G(OCXF)
+ N OCXYR,OCXLPYR,OCXMON,OCXDAY,OCXHR,OCXMIN,OCXSEC,OCXCYR
+ S (OCXYR,OCXLPYR,OCXMON,OCXDAY,OCXHR,OCXMIN,OCXSEC,OCXAP)=""
+ S OCXSEC=$E(OCXDT#60+100,2,3),OCXDT=OCXDT\60
+ S OCXMIN=$E(OCXDT#60+100,2,3),OCXDT=OCXDT\60
+ S OCXHR=$E(OCXDT#24+100,2,3),OCXDT=OCXDT\24
+ S OCXCYR=($H\1461)*4+1841+(($H#1461)\365)
+ S OCXYR=(OCXDT\1461)*4+1841,OCXDT=OCXDT#1461
+ S OCXLPYR=(OCXDT\365),OCXDT=OCXDT-(OCXLPYR*365),OCXYR=OCXYR+OCXLPYR
+ S OCXCNT="031^059^090^120^151^181^212^243^273^304^334^365"
+ S:(OCXLPYR=3) OCXCNT="031^060^091^121^152^182^213^244^274^305^335^366"
+ F OCXMON=1:1:12 Q:(OCXDT<$P(OCXCNT,U,OCXMON))
+ S OCXDAY=OCXDT-$P(OCXCNT,U,OCXMON-1)+1
+ I OCXF S OCXMON=$P("January^February^March^April^May^June^July^August^September^October^November^December",U,OCXMON)
+ E  S OCXMON=$E(OCXMON+100,2,3)
+ S OCXAP=$S('OCXHR:"Midnight",(OCXHR=12):"Noon",(OCXHR<12):"AM",1:"PM")
+ I OCXF S OCXHR=OCXHR#12 S:'OCXHR OCXHR=12
+ Q:'OCXF $E(OCXMON+100,2,3)_"/"_$E(OCXDAY+100,2,3)_$S((OCXCYR=OCXYR):" "_OCXHR_":"_OCXMIN,1:"/"_$E(OCXYR,3,4))
+ Q:(OCXHR+OCXMIN+OCXSEC) OCXMON_" "_OCXDAY_","_OCXYR_" at "_OCXHR_":"_OCXMIN_"."_OCXSEC_" "_OCXAP
+ Q OCXMON_" "_OCXDAY_","_OCXYR
+ ;
+MCE105() ; Verify Event/Element: HL7 LAB ORDER RESULTS CRITICAL
+ ;
  ;
  N OCXRES
- S OCXDF(37)=$P($G(OCXORD),"^",1) I $L(OCXDF(37)) S OCXRES(134,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),134)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),134))
+ I $L(OCXDF(37)) S OCXRES(105,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),105)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),105))
  Q 0
  ;
 MCE44() ; Verify Event/Element: ORDER FLAGGED
@@ -194,15 +153,6 @@ MCE44() ; Verify Event/Element: ORDER FLAGGED
  N OCXRES
  S OCXDF(37)=$P($G(OCXORD),"^",1) I $L(OCXDF(37)) S OCXRES(44,37)=OCXDF(37)
  Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),44)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),44))
- Q 0
- ;
-MCE45() ; Verify Event/Element: ORDER REQUIRES CHART SIGNATURE
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$P($G(OCXORD),"^",1) I $L(OCXDF(37)) S OCXRES(45,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),45)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),45))
  Q 0
  ;
 NEWRULE(OCXDFN,OCXORD,OCXRUL,OCXREL,OCXNOTF,OCXMESS) ; Has this rule already been triggered for this order number

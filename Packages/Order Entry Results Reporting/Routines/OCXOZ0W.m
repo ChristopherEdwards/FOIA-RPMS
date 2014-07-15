@@ -1,4 +1,4 @@
-OCXOZ0W ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+OCXOZ0W ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
  ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
@@ -10,19 +10,32 @@ OCXOZ0W ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
  ;
  Q
  ;
-R57R4B ; Send Order Check, Notication messages and/or Execute code for  Rule #57 'CLOZAPINE'  Relation #4 'CLOZAPINE AND 1.5 <= ANC < 2.0'
- ;  Called from R57R4A+12^OCXOZ0V.
+R51R1A ; Verify all Event/Elements of  Rule #51 'RECENT CHOLECYSTOGRAM ORDER'  Relation #1 'RECENT CHOLECGRM'
+ ;  Called from EL63+5^OCXOZ0H.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE63( ----------->  Verify Event/Element: 'PATIENT HAS RECENT CHOLECYSTOGRAM'
+ ;
+ Q:$G(^OCXS(860.2,51,"INACT"))
+ ;
+ I $$MCE63 D R51R1B
+ Q
+ ;
+R51R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #51 'RECENT CHOLECYSTOGRAM ORDER'  Relation #1 'RECENT CHOLECGRM'
+ ;  Called from R51R1A+10.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ;
- Q:$D(OCXRULE("R57R4B"))
+ Q:$D(OCXRULE("R51R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^19^^ANC between 1.5 and 2.0 - please repeat CBC/Diff including WBC and ANC immediately and twice weekly.  Most recent results - "_$$GETDATA(DFN,"116^141",130) I 1
- E  S OCXCMSG="ANC between 1.5 and 2.0 - please repeat CBC/Diff including WBC and ANC immediately and twice weekly.  Most recent results - "_$$GETDATA(DFN,"116^141",130)
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^15^^Recent Cholecystogram: "_$$GETDATA(DFN,"63^",61)_" ["_$$GETDATA(DFN,"63^",122)_"]" I 1
+ E  S OCXCMSG="Recent Cholecystogram: "_$$GETDATA(DFN,"63^",61)_" ["_$$GETDATA(DFN,"63^",122)_"]"
  S OCXNMSG=""
  ;
  Q:$G(OCXOERR)
@@ -32,32 +45,32 @@ R57R4B ; Send Order Check, Notication messages and/or Execute code for  Rule #57
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
-R59R1A ; Verify all Event/Elements of  Rule #59 'AMINOGLYCOSIDE ORDER'  Relation #1 'AGS ORDER'
- ;  Called from EL71+5^OCXOZ0H.
+R53R1A ; Verify all Event/Elements of  Rule #53 'RENAL FUNCTIONS OVER AGE 65 CHECK'  Relation #1 'PHARM PAT OVER 65'
+ ;  Called from EL64+5^OCXOZ0H.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE71( ----------->  Verify Event/Element: 'AMINOGLYCOSIDE ORDER SESSION'
+ ; MCE64( ----------->  Verify Event/Element: 'PHARMACY PATIENT OVER 65'
  ;
- Q:$G(^OCXS(860.2,59,"INACT"))
+ Q:$G(^OCXS(860.2,53,"INACT"))
  ;
- I $$MCE71 D R59R1B
+ I $$MCE64 D R53R1B
  Q
  ;
-R59R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #59 'AMINOGLYCOSIDE ORDER'  Relation #1 'AGS ORDER'
- ;  Called from R59R1A+10.
+R53R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #53 'RENAL FUNCTIONS OVER AGE 65 CHECK'  Relation #1 'PHARM PAT OVER 65'
+ ;  Called from R53R1A+10.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ;
- Q:$D(OCXRULE("R59R1B"))
+ Q:$D(OCXRULE("R53R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^20^^Aminoglycoside - est. CrCl: "_$$GETDATA(DFN,"71^",76)_" ("_$$GETDATA(DFN,"71^",64)_")  [Est. CrCl based on modified Cockcroft-Gault equation using Adjusted Body Weight (if ht > 60 in)]" I 1
- E  S OCXCMSG="Aminoglycoside - est. CrCl: "_$$GETDATA(DFN,"71^",76)_" ("_$$GETDATA(DFN,"71^",64)_")  [Est. CrCl based on modified Cockcroft-Gault equation using Adjusted Body Weight (if ht > 60 in)]"
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^21^^Patient >65. Renal Results: "_$$GETDATA(DFN,"64^",64) I 1
+ E  S OCXCMSG="Patient >65. Renal Results: "_$$GETDATA(DFN,"64^",64)
  S OCXNMSG=""
  ;
  Q:$G(OCXOERR)
@@ -67,32 +80,32 @@ R59R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #59
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
-R60R1A ; Verify all Event/Elements of  Rule #60 'CT OR MRI PHYSICAL LIMIT CHECK'  Relation #1 'TOO BIG'
- ;  Called from EL72+5^OCXOZ0H.
+R54R1A ; Verify all Event/Elements of  Rule #54 'CONCURRENT LAB ORDERS FOR ANGIOGRAM, CAT...'  Relation #1 'ANGIOGRAM'
+ ;  Called from EL65+5^OCXOZ0H.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE72( ----------->  Verify Event/Element: 'PATIENT OVER CT OR MRI DEVICE LIMITATIONS'
+ ; MCE65( ----------->  Verify Event/Element: 'SESSION ORDER FOR ANGIOGRAM'
  ;
- Q:$G(^OCXS(860.2,60,"INACT"))
+ Q:$G(^OCXS(860.2,54,"INACT"))
  ;
- I $$MCE72 D R60R1B
+ I $$MCE65 D R54R1B
  Q
  ;
-R60R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #60 'CT OR MRI PHYSICAL LIMIT CHECK'  Relation #1 'TOO BIG'
- ;  Called from R60R1A+10.
+R54R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #54 'CONCURRENT LAB ORDERS FOR ANGIOGRAM, CAT...'  Relation #1 'ANGIOGRAM'
+ ;  Called from R54R1A+10.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ;
- Q:$D(OCXRULE("R60R1B"))
+ Q:$D(OCXRULE("R54R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^8^^Patient may be "_$$GETDATA(DFN,"72^",79)_" for the "_$$GETDATA(DFN,"72^",80)_"." I 1
- E  S OCXCMSG="Patient may be "_$$GETDATA(DFN,"72^",79)_" for the "_$$GETDATA(DFN,"72^",80)_"."
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^22^^Missing Labs for Angiogram: "_$$GETDATA(DFN,"65^",68) I 1
+ E  S OCXCMSG="Missing Labs for Angiogram: "_$$GETDATA(DFN,"65^",68)
  S OCXNMSG=""
  ;
  Q:$G(OCXOERR)
@@ -100,6 +113,93 @@ R60R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #60
  ; Send Order Check Message
  ;
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
+ ;
+R55R1A ; Verify all Event/Elements of  Rule #55 'ALLERGY - CONTRAST MEDIA REACTION'  Relation #1 'ALLERGY'
+ ;  Called from EL66+5^OCXOZ0H.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE66( ----------->  Verify Event/Element: 'CONTRAST MEDIA ALLERGY'
+ ;
+ Q:$G(^OCXS(860.2,55,"INACT"))
+ ;
+ I $$MCE66 D R55R1B
+ Q
+ ;
+R55R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #55 'ALLERGY - CONTRAST MEDIA REACTION'  Relation #1 'ALLERGY'
+ ;  Called from R55R1A+10.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R55R1B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^4^^Patient allergic to contrast media. ("_$$GETDATA(DFN,"66^",160)_") This procedure uses: "_$$GETDATA(DFN,"66^",66) I 1
+ E  S OCXCMSG="Patient allergic to contrast media. ("_$$GETDATA(DFN,"66^",160)_") This procedure uses: "_$$GETDATA(DFN,"66^",66)
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
+ ;
+R56R1A ; Verify all Event/Elements of  Rule #56 'RECENT BARIUM STUDY'  Relation #1 'BARIUM'
+ ;  Called from EL67+5^OCXOZ0H.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE67( ----------->  Verify Event/Element: 'RECENT BARIUM STUDY ORDERED'
+ ;
+ Q:$G(^OCXS(860.2,56,"INACT"))
+ ;
+ I $$MCE67 D R56R1B
+ Q
+ ;
+R56R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #56 'RECENT BARIUM STUDY'  Relation #1 'BARIUM'
+ ;  Called from R56R1A+10.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R56R1B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^14^^Recent Barium study: "_$$GETDATA(DFN,"67^",70)_" ["_$$GETDATA(DFN,"67^",121)_"]" I 1
+ E  S OCXCMSG="Recent Barium study: "_$$GETDATA(DFN,"67^",70)_" ["_$$GETDATA(DFN,"67^",121)_"]"
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
+ ;
+R57R1A ; Verify all Event/Elements of  Rule #57 'CLOZAPINE'  Relation #1 'CLOZAPINE AND (NO WBC W/IN 7 DAYS OR NO ANC W/IN 7...'
+ ;  Called from EL116+5^OCXOZ0H, and EL117+5^OCXOZ0H, and EL118+5^OCXOZ0H.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE116( ---------->  Verify Event/Element: 'CLOZAPINE DRUG SELECTED'
+ ; MCE117( ---------->  Verify Event/Element: 'CLOZAPINE NO ANC W/IN 7 DAYS'
+ ; MCE118( ---------->  Verify Event/Element: 'CLOZAPINE NO WBC W/IN 7 DAYS'
+ ;
+ Q:$G(^OCXS(860.2,57,"INACT"))
+ ;
+ I $$MCE116 D 
+ .I $$MCE118 D R57R1B^OCXOZ0X
+ .I $$MCE117 D R57R1B^OCXOZ0X
  Q
  ;
 GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime data
@@ -108,21 +208,75 @@ GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime dat
  F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
  Q VAL
  ;
-MCE71() ; Verify Event/Element: AMINOGLYCOSIDE ORDER SESSION
+MCE116() ; Verify Event/Element: CLOZAPINE DRUG SELECTED
  ;
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(71,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),71)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),71))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(116,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),116)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),116))
  Q 0
  ;
-MCE72() ; Verify Event/Element: PATIENT OVER CT OR MRI DEVICE LIMITATIONS
+MCE117() ; Verify Event/Element: CLOZAPINE NO ANC W/IN 7 DAYS
  ;
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(72,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),72)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),72))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(117,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),117)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),117))
+ Q 0
+ ;
+MCE118() ; Verify Event/Element: CLOZAPINE NO WBC W/IN 7 DAYS
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(118,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),118)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),118))
+ Q 0
+ ;
+MCE63() ; Verify Event/Element: PATIENT HAS RECENT CHOLECYSTOGRAM
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(63,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),63)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),63))
+ Q 0
+ ;
+MCE64() ; Verify Event/Element: PHARMACY PATIENT OVER 65
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(64,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),64)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),64))
+ Q 0
+ ;
+MCE65() ; Verify Event/Element: SESSION ORDER FOR ANGIOGRAM
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(65,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),65)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),65))
+ Q 0
+ ;
+MCE66() ; Verify Event/Element: CONTRAST MEDIA ALLERGY
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(66,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),66)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),66))
+ Q 0
+ ;
+MCE67() ; Verify Event/Element: RECENT BARIUM STUDY ORDERED
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(67,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),67)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),67))
  Q 0
  ;

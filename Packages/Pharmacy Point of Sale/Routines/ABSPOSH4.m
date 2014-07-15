@@ -1,5 +1,5 @@
 ABSPOSH4 ; IHS/FCS/DRS - Parse Claim 5.1,D.0 Response ;    [ 09/04/2002  12:56 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,14,36,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,14,36,42,46**;JUN 21, 2001
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Parse ASCII Response Claim Record and Sup FDATA() Array
@@ -80,9 +80,8 @@ TRANSMSN ;This subroutine will work through the transmission level information
  ; There are 2 optional segments on the trasmission level - message
  ; and insurance.  We'll check for both and parse what we find.
  ;
- F SEG=2:1:3 D
- . S SEGMENT=$P(RTRANM,SS,SEG)
- . Q:SEGMENT=""
+ ; OIT/CAS/RCS 092013 Patch 46 More that two segments are allowed
+ F SEG=2:1 S SEGMENT=$P(RTRANM,SS,SEG) Q:SEGMENT=""  D
  . S SEGID=$P(SEGMENT,FS,2)
  . I $E(SEGID,1,2)="AM" D                ;segment identification
  . D:($E(SEGID,3,4)=20)!($E(SEGID,3,4)=25) PARSETM

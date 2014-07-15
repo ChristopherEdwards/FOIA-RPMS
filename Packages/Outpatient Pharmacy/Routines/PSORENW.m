@@ -1,5 +1,5 @@
-PSORENW ;BIR/SAB-renew main driver ;05-Oct-2011 10:13;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,27,30,46,71,96,100,130,1004,1009,1010,148,206,1014**;DEC 1997;Build 62
+PSORENW ;BIR/SAB-renew main driver ;22-Jan-2013 17:42;DU
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,30,46,71,96,100,130,1004,1009,1010,148,206,1014,1016**;DEC 1997;Build 74
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references L, UL, PSOL, and PSOUL^PSSLOCK supported by DBIA 2789
  ;External reference to LK^ORX2 and ULK^ORX2 supported by DBIA 867
@@ -9,6 +9,7 @@ PSORENW ;BIR/SAB-renew main driver ;05-Oct-2011 10:13;PLS
  ;           IHS/MSC/JDS - 11/20/2010 - Line RENEW+7
  ;           IHS/MSC/JDS - 01/25/2011 - Line OERR+5
  ;                       - 10/25/2011 - Line OERR+1,OERR+8
+ ;           IHS/MSC/PB  - 01/22/2013 - Line OERR+5 added for external rx screen during renew
 ASK ;
  K PSORENW("FILL DATE") D FILLDT^PSODIR2(.PSORENW) S:$G(PSORENW("DFLG")) VALMSG="Renew Rx request canceled",VALMBCK="R"
  I PSORENW("DFLG")!('$D(PSORENW("FILL DATE"))) S PSORENW("QFLG")=1,PSORENW("DFLG")=0 G ASKX
@@ -32,6 +33,12 @@ EOJ ;
 OERR ;entry for renew backdoor
  I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2),,.VALMSG,.VALMBCK) Q
  N APSPDRG
+ ;ISH/MSC/PB - Screen added in P1016 to check for external Rx. If external, Rx can't be renewed, must be copied and a new Rx created. 1/22/13
+ I $E($P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^",1))="X" D  Q
+ .W !,"An external Rx can't be Renewed in RPMS Prescription Processing."
+ .W !,"Use Copy to create a new internal Rx from this external Rx."
+ .S DIR("A")="Press Return to continue",DIR(0)="E",DIR("?")="Press Return to continue" D ^DIR K DIR
+ ;ISH/MSC/PB end changes for screen of external Rx for renew
  S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY S VALMSG=$S($P($G(PSOPLCK),"^",2)'="":$P($G(PSOPLCK),"^",2)_" is working on this patient.",1:"Another person is entering orders for this patient.") K PSOPLCK S VALMBCK="" Q
  K PSOPLCK S X=PSODFN_";DPT(" D LK^ORX2 I 'Y S VALMSG="Another person is entering orders for this patient.",VALMBCK="" D UL^PSSLOCK(PSODFN) Q
  K PSOID,PSOFDMX,PSORX("FILL DATE"),PSORENW("FILL DATE"),PSORX("QS"),PSORENW("QS"),PSOBARCD,COPY

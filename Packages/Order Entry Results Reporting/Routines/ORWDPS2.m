@@ -1,6 +1,7 @@
-ORWDPS2 ; SLC/KCM/JLI - Pharmacy Calls for Windows Dialog;05/09/2007
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,116,125,131,132,148,141,195,215,258,243**;Dec 17, 1997;Build 242
+ORWDPS2 ; SLC/KCM/JLI - Pharmacy Calls for Windows Dialog;17-Jun-2013 10:14;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,116,125,131,132,148,141,195,215,258,243,1011**;Dec 17, 1997;Build 242
  ;
+ ; Modified - IHS/MSC/PLS - 06/01/2013 - Line DISPLST+5
 OISLCT(LST,OI,PSTYPE,ORVP,NEEDPI,PKIACTIV) ; return for defaults for pharmacy orderable item
  N ILST,ORDOSE,ORWPSOI,ORWDOSES,X1,X2
  K ^TMP("PSJINS",$J),^TMP("PSJMR",$J),^TMP("PSJNOUN",$J),^TMP("PSJSCH",$J),^TMP("PSSDIN",$J)
@@ -51,11 +52,13 @@ DOSAGE ; from OISLCT, set up the list of dosages
  S I=0 F  S I=$O(ORWDOSES(I)) Q:I'>0  S ILST=ILST+1,LST(ILST)=ORWDOSES(I)
  Q
 DISPLST ; from OISLCT, set up list of dispense drugs
- ; DrugIEN^Strength^Units^Name^Split
+ ; DrugIEN^Strength^Units^Name^Split^Drug Long Name^Qty Qualifier
  N DD
  S DD=0 F  S DD=$O(ORDOSE("DD",DD)) Q:'DD  D
  . S ILST=ILST+1
- . S LST(ILST)="i"_DD_U_$P(ORDOSE("DD",DD),U,5,6)_U_$P(ORDOSE("DD",DD),U)_U_$P(ORDOSE("DD",DD),U,11)
+ . ;IHS/MSC/PLS - 06/17/13
+ . ;S LST(ILST)="i"_DD_U_$P(ORDOSE("DD",DD),U,5,6)_U_$P(ORDOSE("DD",DD),U)_U_$P(ORDOSE("DD",DD),U,11)
+ . S LST(ILST)="i"_DD_U_$P(ORDOSE("DD",DD),U,5,6)_U_$P(ORDOSE("DD",DD),U)_U_$P(ORDOSE("DD",DD),U,11)_U_$$GET1^DIQ(50,DD,9999999.352)_U_$$QTYTXT^APSPES1(DD)
  Q
 ALLDOSE ; from OISLCT, set up a list of all possible doses
  ; LST(n)=iDrugName^Strength^NF^... (see BLDDOSE)
@@ -193,7 +196,7 @@ CHKPI(VAL,ODIFN) ; return pre-existing patient instruct
  Q
 CHKGRP(VAL,ORIFN) ;
  ;Inpatient Med Order Group or Clin Meds Group: return 1
- ;If order belong to Outpatient Med Order Grpoup: return 2 
+ ;If order belong to Outpatient Med Order Grpoup: return 2
  ;Otherwise, return 0
  S VAL=0
  I '$L(ORIFN) Q

@@ -1,5 +1,5 @@
-BEHORXF2 ;MSC/IND/PLS -  XML Support for Pharmacy Rx Gen service ;19-Nov-2012 14:00;DU
- ;;1.1;BEH COMPONENTS;**009009**;Sep 18, 2007
+BEHORXF2 ;MSC/IND/PLS -  XML Support for Pharmacy Rx Gen service ;24-Jul-2013 15:13;PLS
+ ;;1.1;BEH COMPONENTS;**009009,009010**;Sep 18, 2007
  ;=================================================================
  ; RPC: BEHORXF2 DRUGTXT
  ; Returns data from 51.7 associated with drug
@@ -48,7 +48,7 @@ BMI(DFN) ; Get latest BMI
  S MSR="WT"
  D QRYGMR:'VMSR,QRYMSR:VMSR
  S WT=$P(OUT,U,2),WTDT=$P(OUT,U,3)
- I '+WT G END
+ I '+WT  G END
  S MSR="HT"
  D QRYGMR:'VMSR,QRYMSR:VMSR
  S HT=$P(OUT,U,2),HTDT=$P(OUT,U,3)
@@ -102,3 +102,52 @@ RXNORM(POF) ;
  .S RXNORM=+$O(^C0CRXN(176.002,"NDC",NDC,0))
  .S RXNORM=$$GET1^DIQ(176.002,RXNORM,.01)
  Q RXNORM
+ ;Get patient data
+BLDPT(DFN,RX) ;
+ N SSN
+ S RX=$G(RX)
+ I RX'="" D ADD($$TAG^BEHORXF1("PatientHRN",2,$$HRN^AUPNPAT3(DFN,$$GET1^DIQ(59,$$GET1^DIQ(52,RX,20,"I"),100,"I"))))
+ I RX="" D ADD($$TAG^BEHORXF1("PatientHRN",2,$$HRN^AUPNPAT3(DFN,DUZ(2))))
+ D ADD($$TAG^BEHORXF1("PatientDOB",2,$$FMTE^XLFDT($$GET1^DIQ(2,DFN,.03,"I"),9)))
+ D ADD($$TAG^BEHORXF1("PatientGender",2,$$GET1^DIQ(2,DFN,.02)))
+ D ADD($$TAG^BEHORXF1("PatientPhone",2,$$GET1^DIQ(2,DFN,.131)))
+ S SSN=$$GET1^DIQ(2,DFN,.09)
+ D ADD($$TAG^BEHORXF1("PatientLastFour",2,$$FMTSSN^APSPFUNC(SSN)))
+ Q
+ ; Build nodes for patient address
+BLDPTADD(DFN) ;
+ D ADD($$TAG^BEHORXF1("PatientAddress1",2,$$GET1^DIQ(2,DFN,.111)))
+ D ADD($$TAG^BEHORXF1("PatientAddress2",2,$$GET1^DIQ(2,DFN,.112)))
+ D ADD($$TAG^BEHORXF1("PatientAddress3",2,$$GET1^DIQ(2,DFN,.113)))
+ D ADD($$TAG^BEHORXF1("PatientCity",2,$$GET1^DIQ(2,DFN,.114)))
+ D ADD($$TAG^BEHORXF1("PatientState",2,$$GET1^DIQ(2,DFN,.115)))
+ D ADD($$TAG^BEHORXF1("PatientZipCode",2,$$GET1^DIQ(2,DFN,.116)))
+ Q
+PROV(PRVIEN,ORD) ;
+ N X
+ D ADD($$TAG^BEHORXF1("ProviderDEA",2,$$DEAVAUS^APSPFUNC(PRVIEN)))
+ ;D ADD($$TAG^BEHORXF1("ProvIEN",2,PRVIEN))
+ D ADD($$TAG^BEHORXF1("ProviderPhone",2,$$PRVINFO(PRVIEN,.132)))
+ D ADD($$TAG^BEHORXF1("ProviderFax",2,$$PRVINFO(PRVIEN,.136)))
+ ;D ADD($$TAG^BEHORXF1("ProviderESig",2,$S($L($$PRVINFO(PRVIEN,20.4)):"Electronic Signature on File",1:"")))
+ S X=$$PRVINFO(PRVIEN,20.2)
+ D ADD($$TAG^BEHORXF1("ProviderESig",2,$S($L(X):"/ES/ "_X,1:"")))
+ D ADD($$TAG^BEHORXF1("ProviderESigTitle",2,$$PRVINFO(PRVIEN,20.3)))
+ D ADD($$TAG^BEHORXF1("ProviderNPI",2,$$PRVINFO(PRVIEN,41.99)))
+ Q
+ ;Get patient data
+DATA(DFN) ;
+ D ADD($$TAG^BEHORXF1("Allergies",2,$$GETALG^BEHORXF2(DFN)))
+ D ADD($$TAG^BEHORXF1("Weight",2,$$WEIGHT^BEHORXF2(DFN)))
+ D ADD($$TAG^BEHORXF1("Height",2,$$HT^BEHORXF2(DFN)))
+ D ADD($$TAG^BEHORXF1("BMI",2,$$BMI^BEHORXF2(DFN)))
+ Q
+ ; Add data to array
+ADD(VAL) ;EP-
+ S CNT=CNT+1
+ S @DATA@(CNT)=VAL
+ Q
+ ; Returns Provider information
+PRVINFO(USR,FLD,FLG) ;EP-
+ S FLG=$G(FLG,"E")
+ Q $$GET1^DIQ(200,USR,FLD,FLG)

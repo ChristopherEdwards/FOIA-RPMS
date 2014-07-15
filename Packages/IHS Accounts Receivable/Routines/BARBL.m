@@ -1,6 +1,12 @@
 BARBL ; IHS/SD/LSL - AGE DAY LETTER AND LIST ; 07/30/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6**;OCT 26, 2005
- ;;
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,23**;OCT 26, 2005
+ ; NOV 2012 P.OTTIS HEAT #75153 ADDED PAT DOB
+ ;                       SPLIT LONG BILL #
+ ; JAN 2013 ADDED PAT SSN
+ ; MAY 2013 HEAT 117349 UNDEF BARA(.01) 
+ ; AUG 2013 FIXED UNDEF ENTRY IN ^BARBL (YAKAMA) ONEAC+3
+ ; OCT 2013 REFORMATING DOB & LONG NAMES BETA P23 10/24/2013
+ ;*************************************************************
  W !!,"Enter the minimum age (in days) of bills to be itemized."
  K DIR
  S DIR(0)="N0^0:9000"
@@ -52,6 +58,7 @@ AGE ; *
 ONEAC ;ONE A/R ACCOUNT
  S DA=0
  F  S DA=$O(^BARBL(DUZ(2),"ABAL",BARACDA,DA)) Q:'DA  D
+ .I '$D(^BARBL(DUZ(2),DA)) Q  ;P.OTT
  .K BART
  .D ENP^XBDIQ1(90050.01,DA,"3;7.2;10;15","BART(","I")
  .I BART(7.2)<BARAGE Q  ;age
@@ -119,21 +126,32 @@ CNT F BARL=BARL+1:1 Q:'$D(BARLT(100,BARL))  Q:$E(BARLT(100,BARL))="~"  W !,BARLT
  ; *********************************************************************
  ;
 LIST ;** list bills
+ NEW BARTMP1,BARTMP2,BARSSN
  S BARBLDA=0,BARSVAL=0
- S BARPG("HDR")=BARA(.01)_"   over  "_BARAGE_"  days"
+ S BARPG("HDR")=$G(BARA(.01),"UNKNOWN")_"   over  "_BARAGE_"  days" ;P.OTT MAY 2013
  D BARHDR
  F  S BARSVAL=$O(^TMP("BAR",$J,"BLAGE",BARACDA,BARSVAL)) Q:BARSVAL=""  D
  .F  S BARBLDA=$O(^TMP("BAR",$J,"BLAGE",BARACDA,BARSVAL,BARBLDA)) Q:BARBLDA'>0  Q:$G(BARQUIT)  D  Q:($G(DIROUT)!$G(DUOUT)!$G(DTOUT)!$G(DROUT))
  ..K BARB
  ..D ENP^XBDIQ1(90050.01,BARBLDA,".01;101;102;13;15;7.2;701;702","BARB(","I")
+ .. S BARPIEN=$P(^BARBL(DUZ(2),BARBLDA,1),U)
+ .. S BARDOB=$$GET1^DIQ(2,BARPIEN,".03","E")
+ .. S BARSSN=$P($G(^DPT(BARPIEN,0)),U,9) ;S BARSSN=$P($G(^DPT(BARPTDA,0)),U,9)
  ..W !,$E(BARB(701),1,22)
  ..W ?25,$E(BARB(702),1,12)
- ..W ?39,$E(BARB(.01),1,8)
+ ..S BARTMP2=BARB(.01),BARTMP1=$P(BARTMP2,"-"),BARTMP2=$P(BARTMP2,"-",2,99)
+ ..W ?39,BARTMP1
  ..W ?49,$$FMDT(BARB(102,"I"))
  ..W ?58,$J(BARB(13),10,2)
  ..W ?69,$J(BARB(15),10,2)
- ..W !,"Pat:",?5,BARB(101),"   Comment:"
+ ..W !,"Pat: ",BARB(101)
+ ..I BARTMP2]"" W ?39,BARTMP2
+ ..W ?49,BARDOB
+ ..W !,BARSSN
+ ..;;;;W !,"Pat DOB: "
+ ..W "   Comment:"
  ..F  W "_" Q:$X+3>IOM
+ .. ;-----------------------------------
  ..W !
  ..I $Y+4>IOSL D
  ...D EOP
@@ -211,7 +229,9 @@ BARHDR ;EP
 BARHD ;EP
  ; Write column header / message
  W !
- I BARPG("HDR")'["mmary" W "Policy Holder",?25,"Policy #",?39,"Claim #",?49,"DOS",?58,$J("Amt Bld",10),?69,$J("Balance",10)
+ I BARPG("HDR")'["mmary" D
+ . W "Policy Holder",?25,"Policy #",?39,"Claim #",?49,"DOS",?58,$J("Amt Bld",10),?69,$J("Balance",10)
+ . W !,"PT. SS #",?49,"DOB"
  W !,BARDASH,!
  Q
  ; *********************************************************************

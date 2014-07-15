@@ -1,8 +1,8 @@
 BAR50P03 ; IHS/SD/LSL - EDI CLAIM & POSTING ELEMENTS ; 
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,20,21**;OCT 26,2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,20,21,23**;OCT 26,2005
  ;
  ; IHS/SD/LSL - 09/16/03 - V1.7 Patch 4 - HIPAA
- ;
+ ; p.ottis beta p23 11/27/2013 compare num values, not strings
  ; ********************************************************************
  ;
 EN(TRDA,IMPDA) ; EP
@@ -55,8 +55,11 @@ EN(TRDA,IMPDA) ; EP
  .S CKAMT=$$GET1^DIQ(90056.02011,IENS,".03")
  .S PLBAMT=$$GET1^DIQ(90056.02011,IENS,".09")
  .W:FLG=0 !?40,"(CLP04)",?55,"(PLB)",?70,"(BPR02)"
- .I (+$G(CLP(CK))-PLBAMT)'=CKAMT W !,"Check "_CK_" does NOT balance "
- .I (+$G(CLP(CK))-PLBAMT)=CKAMT W !,"Check "_CK_" balances "
+ .;old code
+ .;I (+$G(CLP(CK))-PLBAMT)'=CKAMT W !,"Check "_CK_" does NOT balance "
+ .;I (+$G(CLP(CK))-PLBAMT)=CKAMT W !,"Check "_CK_" balances "
+ .I (+$G(CLP(CK))-PLBAMT)'=+CKAMT W !,"Check "_CK_" does NOT balance " ;11/27/2013 compare num values, not strings
+ .I (+$G(CLP(CK))-PLBAMT)=+CKAMT W !,"Check "_CK_" balances " ;11/27/2013 compare num values, not strings  
  .W ?35,$J($FN(+$G(CLP(CK)),",",2),12)_" - "_$S(+$$GET1^DIQ(90056.02011,IENS,".09")=0:"  NO PLB ",1:$J($FN(+PLBAMT,",",2),10))_" <> "_$J($FN(+CKAMT,",",2),12),!
  .S FLG=1
  ;end new code REQ5
@@ -64,6 +67,8 @@ EN(TRDA,IMPDA) ; EP
  Q
  ; *********************************************************************
  ;
+ ;
+ Q
 PULLVARS  ;EP
  ; pull and process posting variables from segments
  M XREC=@REC@(RECDA)

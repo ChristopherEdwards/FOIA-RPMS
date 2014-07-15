@@ -1,10 +1,13 @@
 BARPBEN ; IHS/SD/LSL - AUTO POSTING OF BENEFICIARY ACCOUNTS ; 
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**21,23**;OCT 26, 2005
  ;;
  ; IHS/SD/LSL - 04/29/03 - V1.8
  ;     Tweaked code for national release.  Original routine AZLKAP01.
  ;     Thanks to California area (7/10/2000)
  ;
+ ;APR 2012 P.OTTIS TICKET # 66991 CODE FIX: <UNDEF> LOOP+21
+ ;                        # 64722
+ ;                        # 57240
  ; ********************************************************************
  Q
  ;
@@ -76,7 +79,9 @@ LOOP ; EP
  S BARBLDA=0
  F  S BARBLDA=$O(^BARBL(DUZ(2),"ABAL",BARACDA,BARBLDA)) Q:'+BARBLDA  D
  . D GET
+ . S HAVETRIEN=0 ;P.OTTIS TICKET # 66991
  . D POST
+ . I HAVETRIEN=0 QUIT  ;P.OTTIS TICKET # 66991
  . Q:BARTRIEN<1
  . D LOG
  Q
@@ -114,6 +119,7 @@ POST ;EP
  S BARTRIEN=$$NEW^BARTR               ; Create Transaction
  ; Populate Transaction file
  I BARTRIEN<1 D MSG^BARTR(BARBLDA) Q
+ S HAVETRIEN=1                        ;P.OTTIS TICKET # 66991
  S DA=BARTRIEN                        ; IEN to A/R TRANSACTION
  S DIE=90050.03
  S DIDEL=90050

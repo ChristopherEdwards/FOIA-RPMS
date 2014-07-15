@@ -1,5 +1,5 @@
 ABSPOS29 ; IHS/FCS/DRS - BUILD COMBINED INSURANCE ;  [ 09/12/2002  10:04 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,14,15,16,17,21,22,37,44**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,14,15,16,17,21,22,37,44,46**;JUN 21, 2001
  ; 
  ; Copied from VTLCOMB on 08/18/2000
  ; Removed $ZT="DX^KCRZT"
@@ -44,6 +44,9 @@ ABSPOS29 ; IHS/FCS/DRS - BUILD COMBINED INSURANCE ;  [ 09/12/2002  10:04 AM ]
  ;---
  ;IHS/SD/RLT - 07/25/07 - Patch 22
  ;    Updated Medicare and RR D lookup.
+ ;---
+ ;IHS/CAS/RCS - 08/12/13 - Patch 46
+ ;    Skip Patient records with missing Insurer link
  ;
 EN(PATDFN)         ;EP - from ABSPOS25
  ;
@@ -86,6 +89,7 @@ PRIVATE ;
  . S BEGDAT=$P(REC,U,6)
  . S ENDDAT=$P(REC,U,7)
  . S POLIEN=$P(REC,U,8)
+ . Q:INSDFN=""  ;OIT/CAS/RCS - 081213 Patch 46, skip insurer with missing pointer
  . ;I POLIEN DO   ;vtl 6/26/00 - get elig dates from Pvt Ins. file
  .;.; S BEGDAT=$P(^AUPN3PPH(POLIEN,0),U,17)
  .;.; S ENDDAT=$P(^AUPN3PPH(POLIEN,0),U,18)
@@ -100,6 +104,7 @@ MEDICAID ;
  . ;S NUMBER=NUMBER+1
  . S REC=^AUPNMCD(CAIDDFN,0)
  . S INSDFN=$P(REC,U,2)
+ . Q:INSDFN=""  ;OIT/CAS/RCS - 081213 Patch 46, skip insurer with missing pointer
  . S POLNUM=$P(REC,U,3)
  . S STATE=$P(REC,U,4)
  . I INSDFN,STATE S INSDFN=$$TRANSFI(INSDFN,STATE)

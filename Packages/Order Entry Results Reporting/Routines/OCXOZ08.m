@@ -1,4 +1,4 @@
-OCXOZ08 ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+OCXOZ08 ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
  ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
@@ -10,8 +10,25 @@ OCXOZ08 ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
  ;
  Q
  ;
+CHK163 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK58+18^OCXOZ05.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK163 Variables
+ ; OCXDF(2) ----> Data Field: FILLER (FREE TEXT)
+ ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(40) ---> Data Field: ORDER MODE (FREE TEXT)
+ ; OCXDF(43) ---> Data Field: OI NATIONAL ID (FREE TEXT)
+ ;
+ I (OCXDF(40)="ACCEPT") D CHK164
+ I (OCXDF(40)="DISPLAY") S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)),($E(OCXDF(2),1,2)="PS") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK182
+ I (OCXDF(40)="SELECT") D CHK196^OCXOZ09
+ I (OCXDF(40)="SESSION") S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)),($E(OCXDF(2),1,2)="PS") S OCXDF(43)=$P($P($G(OCXPSD),"|",3),"^",1) I $L(OCXDF(43)) D CHK227^OCXOZ0A
+ Q
+ ;
 CHK164 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK163+11^OCXOZ07.
+ ;  Called from CHK163+11.
  ;
  Q:$G(OCXOERR)
  ;
@@ -59,7 +76,7 @@ CHK176 ; Look through the current environment for valid Event/Elements for this 
  Q
  ;
 CHK182 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK163+12^OCXOZ07.
+ ;  Called from CHK163+12.
  ;
  Q:$G(OCXOERR)
  ;

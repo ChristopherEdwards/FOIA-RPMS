@@ -1,0 +1,170 @@
+BUDARP6M ; IHS/CMI/LAB - UDS REPORT PROCESSOR 01 Dec 2013 5:11 PM ;
+ ;;8.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 03, 2014;Build 36
+ ;
+ ;
+NDC(A,B) ;
+ ;a is drug ien
+ ;b is taxonomy ien
+ NEW BUDNDC
+ S BUDNDC=$P($G(^PSDRUG(A,2)),U,4)
+ I BUDNDC]"",B,$D(^ATXAX(B,21,"B",BUDNDC)) Q 1
+ Q 0
+J ;EP ;IVD
+ S BUDDOB=$P(^DPT(DFN,0),U,3)
+ S BUD18RB=($E(BUDBD,1,3)-18)_"1231"
+ Q:BUDDOB>BUD18RB
+ Q:BUDMEDV<1
+ S BUD18TH=$E(BUDDOB,1,3)+18_$E(BUDDOB,4,7)
+ I '$$VBBD^BUDARP6V(DFN,$$FMADD^XLFDT(BUD18TH,1),BUDED) Q  ;quit if no visiT AFTER 18TH BIRTHDAY
+ K ^TMP($J,"A")
+ S BUDIVD=$$IVD(DFN,$E(BUDBD,1,3)-1_$E(BUDBD,4,7),BUDED)  ;return date of problem list or visit date during report period
+ K ^TMP($J,"A")
+ ;I BUDIVD="" S X="",X=$$ASPTHER(DFN,BUDBD,BUDED) I X]"" S ^XTMP("BUDARP6B",BUDJ,BUDH,"IVD2",BUDAGE,$P(^DPT(DFN,0),U),BUDCOM,DFN)=$P(BUDIVD,U)_U_$P(X,U,2) Q
+ Q:BUDIVD=""  ;no IVD diagnosis
+ S BUDIVDT=$$ASPTHER(DFN,BUDBD,BUDED)
+ I BUDIVDT]"" S BUDSECTJ("IVD")=$G(BUDSECTJ("IVD"))+1
+ ;put the rest in demoninator
+ S BUDSECTJ("PTS")=$G(BUDSECTJ("PTS"))+1 D
+ .I $G(BUDIVD2L) D
+ ..I BUDIVDT="" S ^XTMP("BUDARP6B",BUDJ,BUDH,"IVD2",BUDAGE,$P(^DPT(DFN,0),U),BUDCOM,DFN)=$P(BUDIVD,U)_U_$P(BUDIVDT,U,2)
+ .I $G(BUDIVD1L) D
+ ..I BUDIVDT]"" S ^XTMP("BUDARP6B",BUDJ,BUDH,"IVD1",BUDAGE,$P(^DPT(DFN,0),U),BUDCOM,DFN)=$P(BUDIVD,U)_U_$P(BUDIVDT,U,2)
+ Q
+ASPDALG(P,ED) ;
+ ;allergy tracking
+ NEW BUDC,X,N,G,Y,T,T1,S,A,B,C
+ S T=$O(^ATXAX("B","BUD ASPD LOWERING MEDS",0))
+ S T1=$O(^ATXAX("B","BGPMU ASPD LOWERING NDCS",0))
+ S BUDC=0
+ S X=0 F  S X=$O(^GMR(120.8,"B",P,X)) Q:X'=+X  D
+ .Q:$P($P($G(^GMR(120.8,X,0)),U,4),".")>ED  ;entered after end date
+ .S N=$P($G(^GMR(120.8,X,0)),U,3)
+ .;IF PSDRUG CHECK AGAINST MEDS TAXONOMY
+ .I N["PSDRUG"!(N["PSNDF") D  I BUDC Q 1
+ ..S Y=+N
+ ..I T,$D(^ATXAX(T,21,"AA",Y)) S BUDC=1
+ ..S D=$P($G(^PSDRUG(Y,2)),U,4)
+ ..I D,$D(^ATXAX(T1,21,"AA",D)) S BUDC=1
+ Q BUDC
+IVD(P,BDATE,EDATE) ;EP
+ NEW A,B,E,T,G,X,V,Y,T1,T2
+ K ^TMP($J,"A")
+ K G
+ S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(B,A)
+ I '$D(^TMP($J,"A",1)) Q ""
+ S T=$O(^ATXAX("B","BUD IVD DXS",0))
+ S T1=$O(^ATXAX("B","BUD CABG PTCA DXS",0))
+ I 'T Q ""
+ S X=0,G="" F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$P(^AUPNVSIT(V,0),U,9)
+ .Q:$P(^AUPNVSIT(V,0),U,11)
+ .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
+ .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y  D
+ ..S D=0
+ ..I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U)
+ ..I $$ICD^ATXCHK(%,T,9) S D=1
+ ..I $$VD^APCLV(V)<($E(BDATE,1,3)_"1102"),$$ICD^ATXCHK(%,T1,9) S D=1
+ ..Q:'D
+ ..S G($$VD^APCLV(V))=$$VAL^XBDIQ1(9000010.07,Y,.01)
+ ..Q
+ S Y=$O(G(""),-1)
+ I Y S X=G(Y) Q $$FMTE^XLFDT(Y)_"  "_X_U_Y
+ S Y=$$CPT^BUDADU(P,BDATE,$E(BDATE,1,3)_"1101",$O(^ATXAX("B","BUD IVD CPTS",0)),5)
+ I Y Q $$FMTE^XLFDT($P(Y,U,1))_"  CPT: "_$P(Y,U,2)
+ S Y=$$LASTPRC^BUDAUTL1(P,"BUD CABG PTCA PROCS",BDATE,$E(BDATE,1,3)_"1101")
+ I Y]"" Q $$FMTE^XLFDT($P(Y,U,3))_"  PROC: "_$P(Y,U,2)
+ S Y=$$LASTDX^BUDAUTL1(P,"BUD CARDIAC SURGERY DXS",BDATE,$E(BDATE,1,3)_"1101")
+ I Y]"" Q $$FMTE^XLFDT($P(Y,U,3))_"  DX: "_$P(Y,U,2)
+ Q ""
+ASPTHER(P,BD,ED) ;
+ NEW BUDMEDS1,G,A,C,M,V,V1D
+ S G=""
+ D GETMEDS^BUDAUTL2(P,BD,ED,"BUD ANTIPLATELET MEDS","BGPMU IVD ANTIPLATELET NDCS",,,.BUDMEDS1)
+ I '$D(BUDMEDS1) G ASP  ; no meds
+ S BUDISD=""
+ S A=0,C="" F  S A=$O(BUDMEDS1(A)) Q:A'=+A!(C)  D
+ .S M=$P(BUDMEDS1(A),U,4)  ;IEN OF V MED
+ .Q:'$D(^AUPNVMED(M,0))
+ .I $$UP^XLFSTR($P($G(^AUPNVMED(M,11)),U))["RETURNED TO STOCK" K BUDMEDS1(A) Q
+ .I $$STATDC(M) K BUDMEDS1(A) Q  ;d/c'ed BY PROVIDER OR EDIT
+ .S V=$P(BUDMEDS1(A),U,5)
+ .S V1D=$$VD^APCLV(V)
+ .S C=1_U_$$VAL^XBDIQ1(9000010.14,M,.01)_" on "_$$FMTE^XLFDT(V1D)
+ I C Q C
+ASP ;
+ S G=""
+ D GETMEDS^BUDAUTL2(P,BD,ED,"DM AUDIT ASPIRIN DRUGS","",,,.BUDMEDS1)
+ I '$D(BUDMEDS1) Q G  ;no aspirin
+ S BUDISD=""
+ S A=0,C="" F  S A=$O(BUDMEDS1(A)) Q:A'=+A!(C)  D
+ .S M=$P(BUDMEDS1(A),U,4)  ;IEN OF V MED
+ .Q:'$D(^AUPNVMED(M,0))
+ .I $$UP^XLFSTR($P($G(^AUPNVMED(M,11)),U))["RETURNED TO STOCK" K BUDMEDS1(A) Q
+ .I $$STATDC(M) K BUDMEDS1(A) Q  ;d/c'ed BY PROVIDER OR EDIT
+ .S V=$P(BUDMEDS1(A),U,5)
+ .S V1D=$$VD^APCLV(V)
+ .S C=1_U_$$VAL^XBDIQ1(9000010.14,M,.01)_" on "_$$FMTE^XLFDT(V1D)
+ I C Q C
+ Q ""
+ ;
+STATDC(V) ;EP - is the prescription associated with this V MED discontinued?
+ I '$G(V) Q ""
+ I '$D(^AUPNVMED(V,0)) Q 0
+ NEW P,S,X
+ S P=$S($D(^PSRX("APCC",V)):$O(^(V,0)),1:0)
+ I 'P Q 0
+ S X=$P($G(^PSRX(P,0)),U,15)
+ I X=12 Q 1
+ I X=13 Q 1
+ I X=14 Q 1
+ I X=15 Q 1
+ S X=$P($G(^PSRX(P,"STA")),U,1)
+ I X=12 Q 1
+ I X=13 Q 1
+ I X=14 Q 1
+ I X=15 Q 1
+ Q 0
+GETV(P,BD,ED,SITE) ;EP - get all visits for this patient and COUNT MEDICAL VISITS
+ NEW TV,T35V,T6V,MEDV,MEDVI,LASTV,A,X,VLOC,CLINC,TIEN,VSIT,VDATE,PP,S,LINE,D
+ S TV=0,T35V=0,T6V=0,MEDV=0,MEDVI="",LASTV=""
+ S A="A(""VISITS"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BD)_"-"_$$FMTE^XLFDT(ED),E=$$START1^APCLDF(B,A)
+ S X=0 F  S X=$O(A("VISITS",X)) Q:X'=+X!(MEDV>1)  S VSIT=$P(A("VISITS",X),U,5) D
+ .Q:'$D(^AUPNVSIT(VSIT,0))
+ .Q:'$P(^AUPNVSIT(VSIT,0),U,9)
+ .Q:$P(^AUPNVSIT(VSIT,0),U,11)
+ .S VLOC=$P(^AUPNVSIT(VSIT,0),U,6)
+ .Q:VLOC=""
+ .Q:'$D(^BUDQSITE(SITE,11,VLOC))  ;not valid location
+ .Q:"AHSORMEI"'[$P(^AUPNVSIT(VSIT,0),U,7)
+ .S CLINC=$$CLINIC^APCLV(VSIT,"C")
+ .S TIEN=$O(^BUDQCNTL("B","FIRST LEVEL CLINIC EXCLUSIONS",0))
+ .I CLINC]"",$D(^BUDQCNTL(TIEN,11,"B",CLINC)) Q  ;not a clinic code we want in any table
+ .;now eliminate subsequent visits to same provider on same day  = item 4 in SRD visit definition
+ .S VDATE=$$VD^APCLV(VSIT)
+ .S PP=$$PRIMPROV^APCLV(VSIT,"I")
+ .I $P(^AUPNVSIT(VSIT,0),U,7)="I" Q  ;don't count I visits
+ .I '$D(^AUPNVPOV("AD",VSIT)) Q
+ .S S=0
+ .I PP]"" D
+ ..S D=$P($G(A("SAMEPROV",P,VDATE,PP)),U,1)
+ ..I D]"",D'>$P(^AUPNVSIT(VSIT,0),U) S S=1 Q  ;already had a visit to this provider on this date
+ ..S A("SAMEPROV",P,VDATE,PP)=$P(^AUPNVSIT(VSIT,0),U)_U_VSIT
+ .Q:S  ;quit if already had a visit to this provider
+ .S PP=$$PRIMPROV^APCLV(VSIT,"D")
+ .I PP="" Q
+MEDC .;NOW CHECK FOR MEDICAL CARE, CAN ONLY HAVE 1 PER LOCATION OF ENCOUNTER
+ .S S=0
+ .S TIEN=$O(^BUDQCNTL("B","MEDICAL CARE LINE NUMBERS",0))
+ .;S PP=$$PRIMPROV^APCLV(VSIT,"D")
+ .I $E($$VAL^XBDIQ1(9000010,VSIT,.06),1,3)="CHS",PP=15 S LINE=2 G MEDC1
+ .S Y=$O(^BUDQTFIV("C",PP,0)) I Y="" S LINE=35 G MEDC1
+ .S LINE=$O(^BUDQTFIV("AA",PP,""))
+MEDC1 .S S=0
+ .I $D(^BUDQCNTL(TIEN,11,"B",LINE)) D
+ ..S D=$P($G(A("MEDCARE",P,VDATE,VLOC,TIEN)),U,1)
+ ..I D]"",D'>$P(^AUPNVSIT(VSIT,0),U) S S=1 Q  ;already have a medical care visit on this date
+ ..S A("MEDCARE",P,VDATE,VLOC,TIEN)=$P(^AUPNVSIT(VSIT,0),U)_U_VSIT
+ ..S MEDV=MEDV+1,MEDVI=VSIT
+ ..Q
+ Q MEDV

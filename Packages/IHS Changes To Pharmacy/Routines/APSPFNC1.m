@@ -1,5 +1,5 @@
-APSPFNC1 ;IHS/CIA/DKM - Supporting calls for EHR ;15-Apr-2013 22:34;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1004,1006,1015**;Sep 23, 2004;Build 62
+APSPFNC1 ;IHS/CIA/DKM/PLS - Supporting calls for EHR and Pharmacy;15-Apr-2013 22:22;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1004,1006,1016**;Sep 23, 2004;Build 74
  ;=================================================================
  ; RPC: APSPFNC GETRXS
  ; Fetch list of current prescriptions
@@ -179,3 +179,10 @@ ACTLOG(DATA,RX) ;EP
  .S CNT=CNT+1
  .S DATA(CNT)=AIEN_U_A0
  Q
+ ; Return RXNORM value for associated NDC
+RXNORM(NDC) ;EP-
+ N RXNORM
+ S NDC=$TR($G(NDC),"-","")
+ Q:NDC="" ""
+ S RXNORM=$O(^C0CRXN(176.002,"NDC",NDC,0))
+ Q $$GET1^DIQ(176.002,RXNORM,.01)

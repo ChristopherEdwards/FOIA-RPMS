@@ -1,9 +1,9 @@
 BAR50P11 ; IHS/SD/LSL - NEW REPORT ERA CLAIMS (2) ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,5,20,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,5,20,21,23**;OCT 26, 2005
  ;
  ; IHS/SD/LSL - 10/14/03 - V1.7 Patch 4 - HIPAA
  ;      Routine Created
- ;
+ ;;REVERTED P.OTT 10/28/2013 DON'T DISPLAY 'REASON NOT POSTABLE' IF MATCHED
  ; ********************************************************************
  ;
 COMPUTE ;EP
@@ -44,7 +44,6 @@ DETAIL ;
  D HDB
  K BARFLG  ;bar*1.8*20
  F XI=1:1:$L(BARINDX) S IND=$E(BARINDX,XI) D INDEX Q:$G(BAR("F1"))
- ;start new code bar*1.8*20
  I $D(^XTMP("BAR-ERARPT",$J,DUZ(2))) D
  .W !!,$$EN^BARVDF("RVN"),$$CJ^XLFSTR(BARZ("W","HDR"),IOM),!
  .W $$EN^BARVDF("RVF")
@@ -126,31 +125,10 @@ CLAIM ; EP
  W ?49,CLM(.08)  ;RA dos begin
  W ?62,"- ",$E($P(CLM(.07)," ",3,999),1,15)  ;RA HRN/HIC
  I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))
- ;W !,"  ** BILL NOT MATCHED TO RPMS "
- ;I BARERRCD]"" W "- ",BARERRCD," "
- ;IHS/SD/TPF BAR*1.8*3 UFMS SESSION 
- ;I BARERRCD]"",(BARERRCD'="MATCHED") W !,"-  ** BILL NOT MATCHED TO RPMS ",!,"(OLD) REASON: ",BARERRCD
- ;E  W !,"- Matched: "
- ;END IHS/SD/TPF BAR*1.8*3 UFMS SESSION
- ;BEGIN BAR*1.8*5 SRS-80 IHS/SD/TPF 4/15/2008 NEW ERRORS CAN BE MULTIPLE
- ;start old bar*1.8*20
- ;I $O(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4,0)),(BARERRCD'="MATCHED") D
- ;.N REASDA,REASIENS,REASON
- ;.W !,"-  ** BILL NOT MATCHED TO RPMS "
- ;.W !?4,"REASON NOT MATCHED: "
- ;.S REASDA=0
- ;.F  S REASDA=$O(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4,REASDA)) Q:'REASDA  D
- ;..S REASIENS=REASDA_","_CLMDA_","_IMPDA_","
- ;..S REASON=$$GET1^DIQ(90056.0205401,REASIENS,.01,"I")
- ;..S REASON=$$GET1^DIQ(90056.21,REASON_",",.02,"E")
- ;..W !?6,REASON
- ;.K REASDA,REASIENS,REASON
- ;.W !,"-  **"
- ;E  W !,"- Matched: "
- ;end old start new bar*1.8*20
  I BARERRC'="M",BARERRC'="P" D
  .W !,"-  ** BILL NOT MATCHED TO RPMS "
  N REASDA,REASIENS,REASON
+ ;I (BARERRC'="M"),(BARERRC'="P"),$D(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4)) D  ;P.OTT 10/28/2013
  I (BARERRC'="P"),$D(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4)) D
  .W !?4,"REASON NOT POSTABLE: "
  .S REASDA=0
@@ -160,11 +138,7 @@ CLAIM ; EP
  ..S REASON=$$GET1^DIQ(90056.21,REASON_",",.02,"E")
  ..W !?6,REASON
  K REASDA,REASIENS,REASON
- ;W !,"-  **"  ;bar*1.8*20
  I BARERRC="M" S BARMIEN=CLMDA_","_IMPDA_"," W !,"- Matched: "_$$GET1^DIQ(90056.0205,BARMIEN,"1.01","E")
- ;end new bar*1.8*20
- ;W "**"
- ;END 
  I BARTYP="D" D  Q:$G(BAR("F1"))
  . I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))
  . W !!,"AMOUNT BILLED.............................................$",$J($FN(CLM(.05),",",2),15)

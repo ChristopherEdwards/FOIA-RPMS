@@ -1,8 +1,8 @@
-ORQQAL ; slc/CLA,JFR - Functions which return patient allergy data ;06-Feb-2013 11:37;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,85,162,190,1007,216,232,243,1010**;Dec 17, 1997;Build 47
+ORQQAL ; slc/CLA,JFR - Functions which return patient allergy data ;19-Jan-2013 09:43;DU
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,85,162,190,1007,216,232,243,1010,1011**;Dec 17, 1997;Build 29
  ;Modified - IHS/MSC/MGH Modified to remove inactive allergies
  ;              IHS/MSC/MGH - 04/06/2012 -  Patch 10 added data for reactions
- ;              IHS/MSC/MGH - 12/21/2012 -  Patch 10 for compound medications
+ ;              IHS/MSC/MGH - 12/21/2012 -  Patch 12 for compound medications
 LIST(ORAY,ORPT) ; RETURN PATIENT'S ALLERGY/ADVERSE REACTION INFO:
  ; null:no allergy assessment, 0:no known allergies, 1:pt has allergies
  ; if 1 also get: allergen/reactant^reaction/symptom^severity^allergy ien
@@ -48,7 +48,7 @@ RXN(ORAY,ORPT,SRC,NDF,PSDRUG) ; RETURN TRUE OR FALSE IF PATIENT IS ALLERGIC TO A
  N CMP,CMPDR,SAVE,TEMP,TEMP2,CDRG,CNT,NDF2
  I +PSDRUG D
  .S SAVE=0,TEMP2=""
- .;IHS/MSC/MGH Mod for compound meds patch 1010
+ .;IHS/MSC/MGH Mod for compound meds patch 1011
  .S CMP=$P($G(^PSDRUG(PSDRUG,999999935)),U,1)
  .I CMP=1 D
  ..S CMPDR=0

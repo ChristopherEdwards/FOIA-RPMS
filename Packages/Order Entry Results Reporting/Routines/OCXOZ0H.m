@@ -1,4 +1,4 @@
-OCXOZ0H ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+OCXOZ0H ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
  ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
@@ -10,12 +10,82 @@ OCXOZ0H ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
  ;
  Q
  ;
+EL142 ; Examine every rule that involves Element #142 [NO SS REFILL REQUEST]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R44R1A^OCXOZ0R   ; Check Relation #1 in Rule #44 'ORDER REQUIRES ELECTRONIC SIGNATURE'
+ Q
+ ;
+EL143 ; Examine every rule that involves Element #143 [SS REFILL REQUEST]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R44R2A^OCXOZ0S   ; Check Relation #2 in Rule #44 'ORDER REQUIRES ELECTRONIC SIGNATURE'
+ Q
+ ;
+EL58 ; Examine every rule that involves Element #58 [NEW SITE FLAGGED ORDER]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R48R1A^OCXOZ0S   ; Check Relation #1 in Rule #48 'SITE FLAGGED ORDER'
+ D R48R2A^OCXOZ0T   ; Check Relation #2 in Rule #48 'SITE FLAGGED ORDER'
+ Q
+ ;
+EL127 ; Examine every rule that involves Element #127 [INPATIENT]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R48R1A^OCXOZ0S   ; Check Relation #1 in Rule #48 'SITE FLAGGED ORDER'
+ D R49R1A^OCXOZ0U   ; Check Relation #1 in Rule #49 'SITE FLAGGED RESULT'
+ Q
+ ;
+EL128 ; Examine every rule that involves Element #128 [OUTPATIENT]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R48R2A^OCXOZ0T   ; Check Relation #2 in Rule #48 'SITE FLAGGED ORDER'
+ D R49R2A^OCXOZ0U   ; Check Relation #2 in Rule #49 'SITE FLAGGED RESULT'
+ Q
+ ;
+EL59 ; Examine every rule that involves Element #59 [SITE FLAGGED FINAL LAB RESULT]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R49R1A^OCXOZ0U   ; Check Relation #1 in Rule #49 'SITE FLAGGED RESULT'
+ D R49R2A^OCXOZ0U   ; Check Relation #2 in Rule #49 'SITE FLAGGED RESULT'
+ Q
+ ;
+EL102 ; Examine every rule that involves Element #102 [SITE FLAGGED FINAL IMAGING RESULT]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R49R1A^OCXOZ0U   ; Check Relation #1 in Rule #49 'SITE FLAGGED RESULT'
+ D R49R2A^OCXOZ0U   ; Check Relation #2 in Rule #49 'SITE FLAGGED RESULT'
+ Q
+ ;
+EL109 ; Examine every rule that involves Element #109 [SITE FLAGGED FINAL CONSULT RESULT]
+ ;  Called from SCAN+9^OCXOZ01.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ D R49R1A^OCXOZ0U   ; Check Relation #1 in Rule #49 'SITE FLAGGED RESULT'
+ D R49R2A^OCXOZ0U   ; Check Relation #2 in Rule #49 'SITE FLAGGED RESULT'
+ Q
+ ;
 EL129 ; Examine every rule that involves Element #129 [ABNORMAL RENAL RESULTS]
  ;  Called from SCAN+9^OCXOZ01.
  ;
  Q:$G(OCXOERR)
  ;
- D R50R1A^OCXOZ0T   ; Check Relation #1 in Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHECK'
+ D R50R1A^OCXOZ0V   ; Check Relation #1 in Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHECK'
  Q
  ;
 EL130 ; Examine every rule that involves Element #130 [CONTRAST MEDIA ORDER]
@@ -23,8 +93,8 @@ EL130 ; Examine every rule that involves Element #130 [CONTRAST MEDIA ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R50R1A^OCXOZ0T   ; Check Relation #1 in Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHECK'
- D R50R2A^OCXOZ0U   ; Check Relation #2 in Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHECK'
+ D R50R1A^OCXOZ0V   ; Check Relation #1 in Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHECK'
+ D R50R2A^OCXOZ0V   ; Check Relation #2 in Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHECK'
  Q
  ;
 EL133 ; Examine every rule that involves Element #133 [NO CREAT RESULTS W/IN X DAYS]
@@ -32,7 +102,7 @@ EL133 ; Examine every rule that involves Element #133 [NO CREAT RESULTS W/IN X D
  ;
  Q:$G(OCXOERR)
  ;
- D R50R2A^OCXOZ0U   ; Check Relation #2 in Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHECK'
+ D R50R2A^OCXOZ0V   ; Check Relation #2 in Rule #50 'BIOCHEM ABNORMALITIES/CONTRAST MEDIA CHECK'
  Q
  ;
 EL63 ; Examine every rule that involves Element #63 [PATIENT HAS RECENT CHOLECYSTOGRAM]
@@ -40,7 +110,7 @@ EL63 ; Examine every rule that involves Element #63 [PATIENT HAS RECENT CHOLECYS
  ;
  Q:$G(OCXOERR)
  ;
- D R51R1A^OCXOZ0U   ; Check Relation #1 in Rule #51 'RECENT CHOLECYSTOGRAM ORDER'
+ D R51R1A^OCXOZ0W   ; Check Relation #1 in Rule #51 'RECENT CHOLECYSTOGRAM ORDER'
  Q
  ;
 EL64 ; Examine every rule that involves Element #64 [PHARMACY PATIENT OVER 65]
@@ -48,7 +118,7 @@ EL64 ; Examine every rule that involves Element #64 [PHARMACY PATIENT OVER 65]
  ;
  Q:$G(OCXOERR)
  ;
- D R53R1A^OCXOZ0U   ; Check Relation #1 in Rule #53 'RENAL FUNCTIONS OVER AGE 65 CHECK'
+ D R53R1A^OCXOZ0W   ; Check Relation #1 in Rule #53 'RENAL FUNCTIONS OVER AGE 65 CHECK'
  Q
  ;
 EL65 ; Examine every rule that involves Element #65 [SESSION ORDER FOR ANGIOGRAM]
@@ -56,7 +126,7 @@ EL65 ; Examine every rule that involves Element #65 [SESSION ORDER FOR ANGIOGRAM
  ;
  Q:$G(OCXOERR)
  ;
- D R54R1A^OCXOZ0U   ; Check Relation #1 in Rule #54 'CONCURRENT LAB ORDERS FOR ANGIOGRAM, CATH - PERIPHERAL'
+ D R54R1A^OCXOZ0W   ; Check Relation #1 in Rule #54 'CONCURRENT LAB ORDERS FOR ANGIOGRAM, CATH - PERIPHERAL'
  Q
  ;
 EL66 ; Examine every rule that involves Element #66 [CONTRAST MEDIA ALLERGY]
@@ -64,7 +134,7 @@ EL66 ; Examine every rule that involves Element #66 [CONTRAST MEDIA ALLERGY]
  ;
  Q:$G(OCXOERR)
  ;
- D R55R1A^OCXOZ0U   ; Check Relation #1 in Rule #55 'ALLERGY - CONTRAST MEDIA REACTION'
+ D R55R1A^OCXOZ0W   ; Check Relation #1 in Rule #55 'ALLERGY - CONTRAST MEDIA REACTION'
  Q
  ;
 EL67 ; Examine every rule that involves Element #67 [RECENT BARIUM STUDY ORDERED]
@@ -72,7 +142,7 @@ EL67 ; Examine every rule that involves Element #67 [RECENT BARIUM STUDY ORDERED
  ;
  Q:$G(OCXOERR)
  ;
- D R56R1A^OCXOZ0V   ; Check Relation #1 in Rule #56 'RECENT BARIUM STUDY'
+ D R56R1A^OCXOZ0W   ; Check Relation #1 in Rule #56 'RECENT BARIUM STUDY'
  Q
  ;
 EL116 ; Examine every rule that involves Element #116 [CLOZAPINE DRUG SELECTED]
@@ -80,10 +150,10 @@ EL116 ; Examine every rule that involves Element #116 [CLOZAPINE DRUG SELECTED]
  ;
  Q:$G(OCXOERR)
  ;
- D R57R1A^OCXOZ0V   ; Check Relation #1 in Rule #57 'CLOZAPINE'
- D R57R2A^OCXOZ0V   ; Check Relation #2 in Rule #57 'CLOZAPINE'
- D R57R3A^OCXOZ0V   ; Check Relation #3 in Rule #57 'CLOZAPINE'
- D R57R4A^OCXOZ0V   ; Check Relation #4 in Rule #57 'CLOZAPINE'
+ D R57R1A^OCXOZ0W   ; Check Relation #1 in Rule #57 'CLOZAPINE'
+ D R57R2A^OCXOZ0X   ; Check Relation #2 in Rule #57 'CLOZAPINE'
+ D R57R3A^OCXOZ0X   ; Check Relation #3 in Rule #57 'CLOZAPINE'
+ D R57R4A^OCXOZ0X   ; Check Relation #4 in Rule #57 'CLOZAPINE'
  Q
  ;
 EL117 ; Examine every rule that involves Element #117 [CLOZAPINE NO ANC W/IN 7 DAYS]
@@ -91,7 +161,7 @@ EL117 ; Examine every rule that involves Element #117 [CLOZAPINE NO ANC W/IN 7 D
  ;
  Q:$G(OCXOERR)
  ;
- D R57R1A^OCXOZ0V   ; Check Relation #1 in Rule #57 'CLOZAPINE'
+ D R57R1A^OCXOZ0W   ; Check Relation #1 in Rule #57 'CLOZAPINE'
  Q
  ;
 EL118 ; Examine every rule that involves Element #118 [CLOZAPINE NO WBC W/IN 7 DAYS]
@@ -99,7 +169,7 @@ EL118 ; Examine every rule that involves Element #118 [CLOZAPINE NO WBC W/IN 7 D
  ;
  Q:$G(OCXOERR)
  ;
- D R57R1A^OCXOZ0V   ; Check Relation #1 in Rule #57 'CLOZAPINE'
+ D R57R1A^OCXOZ0W   ; Check Relation #1 in Rule #57 'CLOZAPINE'
  Q
  ;
 EL114 ; Examine every rule that involves Element #114 [CLOZAPINE ANC < 1.5]
@@ -107,7 +177,7 @@ EL114 ; Examine every rule that involves Element #114 [CLOZAPINE ANC < 1.5]
  ;
  Q:$G(OCXOERR)
  ;
- D R57R2A^OCXOZ0V   ; Check Relation #2 in Rule #57 'CLOZAPINE'
+ D R57R2A^OCXOZ0X   ; Check Relation #2 in Rule #57 'CLOZAPINE'
  Q
  ;
 EL119 ; Examine every rule that involves Element #119 [CLOZAPINE WBC < 3.0]
@@ -115,7 +185,7 @@ EL119 ; Examine every rule that involves Element #119 [CLOZAPINE WBC < 3.0]
  ;
  Q:$G(OCXOERR)
  ;
- D R57R2A^OCXOZ0V   ; Check Relation #2 in Rule #57 'CLOZAPINE'
+ D R57R2A^OCXOZ0X   ; Check Relation #2 in Rule #57 'CLOZAPINE'
  Q
  ;
 EL115 ; Examine every rule that involves Element #115 [CLOZAPINE ANC >= 1.5]
@@ -123,7 +193,7 @@ EL115 ; Examine every rule that involves Element #115 [CLOZAPINE ANC >= 1.5]
  ;
  Q:$G(OCXOERR)
  ;
- D R57R3A^OCXOZ0V   ; Check Relation #3 in Rule #57 'CLOZAPINE'
+ D R57R3A^OCXOZ0X   ; Check Relation #3 in Rule #57 'CLOZAPINE'
  Q
  ;
 EL120 ; Examine every rule that involves Element #120 [CLOZAPINE WBC >= 3.0 & < 3.5]
@@ -131,7 +201,7 @@ EL120 ; Examine every rule that involves Element #120 [CLOZAPINE WBC >= 3.0 & < 
  ;
  Q:$G(OCXOERR)
  ;
- D R57R3A^OCXOZ0V   ; Check Relation #3 in Rule #57 'CLOZAPINE'
+ D R57R3A^OCXOZ0X   ; Check Relation #3 in Rule #57 'CLOZAPINE'
  Q
  ;
 EL141 ; Examine every rule that involves Element #141 [CLOZAPINE ANC >= 1.5 & < 2.0]
@@ -139,7 +209,7 @@ EL141 ; Examine every rule that involves Element #141 [CLOZAPINE ANC >= 1.5 & < 
  ;
  Q:$G(OCXOERR)
  ;
- D R57R4A^OCXOZ0V   ; Check Relation #4 in Rule #57 'CLOZAPINE'
+ D R57R4A^OCXOZ0X   ; Check Relation #4 in Rule #57 'CLOZAPINE'
  Q
  ;
 EL71 ; Examine every rule that involves Element #71 [AMINOGLYCOSIDE ORDER SESSION]
@@ -147,7 +217,7 @@ EL71 ; Examine every rule that involves Element #71 [AMINOGLYCOSIDE ORDER SESSIO
  ;
  Q:$G(OCXOERR)
  ;
- D R59R1A^OCXOZ0W   ; Check Relation #1 in Rule #59 'AMINOGLYCOSIDE ORDER'
+ D R59R1A^OCXOZ0X   ; Check Relation #1 in Rule #59 'AMINOGLYCOSIDE ORDER'
  Q
  ;
 EL72 ; Examine every rule that involves Element #72 [PATIENT OVER CT OR MRI DEVICE LIMITATIONS]
@@ -155,7 +225,7 @@ EL72 ; Examine every rule that involves Element #72 [PATIENT OVER CT OR MRI DEVI
  ;
  Q:$G(OCXOERR)
  ;
- D R60R1A^OCXOZ0W   ; Check Relation #1 in Rule #60 'CT OR MRI PHYSICAL LIMIT CHECK'
+ D R60R1A^OCXOZ0Y   ; Check Relation #1 in Rule #60 'CT OR MRI PHYSICAL LIMIT CHECK'
  Q
  ;
 EL73 ; Examine every rule that involves Element #73 [CREATININE CLEARANCE ESTIMATE]
@@ -163,7 +233,7 @@ EL73 ; Examine every rule that involves Element #73 [CREATININE CLEARANCE ESTIMA
  ;
  Q:$G(OCXOERR)
  ;
- D R61R1A^OCXOZ0X   ; Check Relation #1 in Rule #61 'CREATININE CLEARANCE ESTIMATION'
+ D R61R1A^OCXOZ0Z   ; Check Relation #1 in Rule #61 'CREATININE CLEARANCE ESTIMATION'
  Q
  ;
 EL96 ; Examine every rule that involves Element #96 [CREATININE CLEARANCE DATE/TIME]
@@ -171,7 +241,7 @@ EL96 ; Examine every rule that involves Element #96 [CREATININE CLEARANCE DATE/T
  ;
  Q:$G(OCXOERR)
  ;
- D R61R1A^OCXOZ0X   ; Check Relation #1 in Rule #61 'CREATININE CLEARANCE ESTIMATION'
+ D R61R1A^OCXOZ0Z   ; Check Relation #1 in Rule #61 'CREATININE CLEARANCE ESTIMATION'
  Q
  ;
 EL97 ; Examine every rule that involves Element #97 [RENAL RESULTS]
@@ -179,7 +249,7 @@ EL97 ; Examine every rule that involves Element #97 [RENAL RESULTS]
  ;
  Q:$G(OCXOERR)
  ;
- D R61R1A^OCXOZ0X   ; Check Relation #1 in Rule #61 'CREATININE CLEARANCE ESTIMATION'
+ D R61R1A^OCXOZ0Z   ; Check Relation #1 in Rule #61 'CREATININE CLEARANCE ESTIMATION'
  Q
  ;
 EL84 ; Examine every rule that involves Element #84 [INPATIENT FOOD-DRUG REACTION]
@@ -187,7 +257,7 @@ EL84 ; Examine every rule that involves Element #84 [INPATIENT FOOD-DRUG REACTIO
  ;
  Q:$G(OCXOERR)
  ;
- D R62R1A^OCXOZ0Y   ; Check Relation #1 in Rule #62 'FOOD/DRUG INTERACTION'
+ D R62R1A^OCXOZ10   ; Check Relation #1 in Rule #62 'FOOD/DRUG INTERACTION'
  Q
  ;
 EL91 ; Examine every rule that involves Element #91 [PATIENT WITH GLUCOPHAGE MED]
@@ -195,7 +265,7 @@ EL91 ; Examine every rule that involves Element #91 [PATIENT WITH GLUCOPHAGE MED
  ;
  Q:$G(OCXOERR)
  ;
- D R63R1A^OCXOZ0Y   ; Check Relation #1 in Rule #63 'GLUCOPHAGE - CONTRAST MEDIA'
+ D R63R1A^OCXOZ10   ; Check Relation #1 in Rule #63 'GLUCOPHAGE - CONTRAST MEDIA'
  Q
  ;
 EL106 ; Examine every rule that involves Element #106 [RADIOLOGY PROCEDURE CONTAINS NON-BARIUM CONTRAST MEDIA]
@@ -203,7 +273,7 @@ EL106 ; Examine every rule that involves Element #106 [RADIOLOGY PROCEDURE CONTA
  ;
  Q:$G(OCXOERR)
  ;
- D R63R1A^OCXOZ0Y   ; Check Relation #1 in Rule #63 'GLUCOPHAGE - CONTRAST MEDIA'
+ D R63R1A^OCXOZ10   ; Check Relation #1 in Rule #63 'GLUCOPHAGE - CONTRAST MEDIA'
  Q
  ;
 EL95 ; Examine every rule that involves Element #95 [POLYPHARMACY]
@@ -211,7 +281,7 @@ EL95 ; Examine every rule that involves Element #95 [POLYPHARMACY]
  ;
  Q:$G(OCXOERR)
  ;
- D R65R1A^OCXOZ0Y   ; Check Relation #1 in Rule #65 'POLYPHARMACY'
+ D R65R1A^OCXOZ10   ; Check Relation #1 in Rule #65 'POLYPHARMACY'
  Q
  ;
 EL86 ; Examine every rule that involves Element #86 [GLUCOPHAGE ORDER]
@@ -219,82 +289,7 @@ EL86 ; Examine every rule that involves Element #86 [GLUCOPHAGE ORDER]
  ;
  Q:$G(OCXOERR)
  ;
- D R67R1A^OCXOZ0Z   ; Check Relation #1 in Rule #67 'GLUCOPHAGE - LAB RESULTS'
- D R67R2A^OCXOZ0Z   ; Check Relation #2 in Rule #67 'GLUCOPHAGE - LAB RESULTS'
- Q
- ;
-EL111 ; Examine every rule that involves Element #111 [GLUCOPHAGE CREATININE > 1.5]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R67R1A^OCXOZ0Z   ; Check Relation #1 in Rule #67 'GLUCOPHAGE - LAB RESULTS'
- Q
- ;
-EL112 ; Examine every rule that involves Element #112 [NO GLUCOPHAGE CREATININE]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R67R2A^OCXOZ0Z   ; Check Relation #2 in Rule #67 'GLUCOPHAGE - LAB RESULTS'
- Q
- ;
-EL122 ; Examine every rule that involves Element #122 [AMITRIPTYLINE ORDER]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R68R1A^OCXOZ10   ; Check Relation #1 in Rule #68 'DANGEROUS MEDS OVER AGE 64'
- Q
- ;
-EL125 ; Examine every rule that involves Element #125 [MED ORDER FOR PT > 64]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R68R1A^OCXOZ10   ; Check Relation #1 in Rule #68 'DANGEROUS MEDS OVER AGE 64'
- D R68R2A^OCXOZ10   ; Check Relation #2 in Rule #68 'DANGEROUS MEDS OVER AGE 64'
- D R68R3A^OCXOZ10   ; Check Relation #3 in Rule #68 'DANGEROUS MEDS OVER AGE 64'
- Q
- ;
-EL123 ; Examine every rule that involves Element #123 [CHLORPROPAMIDE ORDER]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R68R2A^OCXOZ10   ; Check Relation #2 in Rule #68 'DANGEROUS MEDS OVER AGE 64'
- Q
- ;
-EL124 ; Examine every rule that involves Element #124 [DIPYRIDAMOLE ORDER]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R68R3A^OCXOZ10   ; Check Relation #3 in Rule #68 'DANGEROUS MEDS OVER AGE 64'
- Q
- ;
-EL131 ; Examine every rule that involves Element #131 [GREATER THAN LAB THRESHOLD]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R69R1A^OCXOZ10   ; Check Relation #1 in Rule #69 'LAB THRESHOLD'
- Q
- ;
-EL132 ; Examine every rule that involves Element #132 [LESS THAN LAB THRESHOLD]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R69R1A^OCXOZ10   ; Check Relation #1 in Rule #69 'LAB THRESHOLD'
- Q
- ;
-EL28 ; Examine every rule that involves Element #28 [RADIOLOGY ORDER]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R70R1A^OCXOZ11   ; Check Relation #1 in Rule #70 'NO ALLERGY ASSESSMENT'
- D R72R1A^OCXOZ12   ; Check Relation #1 in Rule #72 'ALLERGIES UNASSESSIBLE'
+ D R67R1A^OCXOZ11   ; Check Relation #1 in Rule #67 'GLUCOPHAGE - LAB RESULTS'
+ D R67R2A^OCXOZ11   ; Check Relation #2 in Rule #67 'GLUCOPHAGE - LAB RESULTS'
  Q
  ;

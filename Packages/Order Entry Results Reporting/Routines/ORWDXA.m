@@ -1,15 +1,26 @@
-ORWDXA ; SLC/KCM/JLI - Utilites for Order Actions;14-Mar-2011 17:27;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,116,132,148,141,149,187,1004,1005,1006,1007,213,195,215,243,1010**;Dec 17, 1997;Build 47
+ORWDXA ; SLC/KCM/JLI - Utilites for Order Actions;22-Aug-2013 11:04;mgh
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,116,132,148,141,149,187,1004,1005,1006,1007,213,195,215,243,1010,1011**;Dec 17, 1997;Build 34
  ; Modified - IHS/MSC/PLS - 09/21/08 - Line DC+30
  ;                          08/09/10 - VALID+1, HOLD+3, UNHOLD+3
+ ;                          02/05/13 - VALID+36
+ ;                          08/14/13 - VALID+9
 VALID(VAL,ORID,ACTION,ORNP,ORWNAT) ; Return error message if not valid action for order
  ;IHS/MSC/JDS/PLS - 08/09/10 - Track home med transfer
+ S VAL=""
  I $E($G(ACTION),1,3)="XFR" D
  .K ^TMP("BEHPSHMX",$J)
- .N XFRIO
- .S XFRIO=$E(ACTION,4),ACTION=$E(ACTION,1,3)
+ .N XFRIO,DRUG,C,Z,ATYPE
+ .S Z=0
+ .S XFRIO=$E(ACTION,4),ATYPE=$E(ACTION,4),ACTION=$E(ACTION,1,3)
  .I $P($G(^DIC(9.4,+$P($G(^OR(100,+ORID,0)),U,14),0)),U,2)="PSH" D
- ..S ^TMP("BEHPSHMX",$J)=ORID_U_XFRIO
+ ..;IHS/MSC/MGH Patch 1011 check to see if narcotic being transferred
+ ..S C=$$GET^XPAR("ALL","APSP AUTO RX CII PRESCRIBING")
+ ..I C=0 D
+ ...S DRUG=$$VALUE^ORCSAVE2(+ORID,"DRUG")
+ ...S Z=$$ISSCH^APSPFNC2(DRUG,2)
+ ..I (Z=1)&(ATYPE="O") S VAL="CII drugs cannot be transferred to outpt meds"
+ ..E  S ^TMP("BEHPSHMX",$J)=ORID_U_XFRIO
+ Q:VAL'=""
  N ORACT,ORVP,ORVER,ORIFN,PRTID S VAL="",PRTID=0
  I +ORID=0 S VAL="This order has been deleted." Q
  I '$D(^OR(100,+ORID,0)) S VAL="This order has been deleted!" Q
@@ -38,6 +49,12 @@ VALID(VAL,ORID,ACTION,ORNP,ORWNAT) ; Return error message if not valid action fo
  . I ISIV,($P(^ORD(100.98,ISIV,0),U,3)="IV RX") S IVOD=1
  . D:'IVOD GTORITM^ORWDXR(.OIIEN,+ORID)
  . D:OIIEN ISACTOI(.VAL,OIIEN) I $L(VAL)>0 Q
+ . ;IHS/MSC/MGH Patch 1011 change for eRX
+ . N OSTAT,RRIEN
+ . S OSTAT=$P(^OR(100,+ORID,3),U,3)
+ . S RRIEN=$$VALUE^ORCSAVE2(+ORID,"SSRREQIEN")
+ . I OSTAT=11&(+RRIEN) S VAL="Copy or Change cannot be used on an order created by a Surescript refill request." Q
+ . ;IHS/MSC/MGH end modification
  . N DLG,FRM
  . S DLG=$P(^OR(100,+ORID,0),U,5),FRM=0
  . I $P(DLG,";",2)'="ORD(101.41," S DLG=0
@@ -79,7 +96,7 @@ DC(REC,ORID,ORNP,ORL,REASON,DCORIG,ISNEWORD) ; Discontinue/Cancel/Delete an orde
  S CURRACT=0
  S ORL(2)=ORL_";SC(",ORL=ORL(2),NATURE=""
  I REASON S NATURE=$P(^ORD(100.02,$P(^ORD(100.03,REASON,0),U,7),0),U,2)
- S:NATURE="" NATURE="W"  ; S:ORNP=DUZ NATURE="E" 
+ S:NATURE="" NATURE="W"  ; S:ORNP=DUZ NATURE="E"
  ;change the way create work to support forcing signature for all DC
  ;reasons
  S CREATE=1,PRINT=$$PRINT^ORCACT2(NATURE)

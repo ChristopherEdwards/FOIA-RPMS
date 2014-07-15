@@ -1,8 +1,9 @@
-ORCDPS2 ;SLC/MKB-Pharmacy dialog utilities ;25-Feb-2013 09:24;DU
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**94,116,125,131,243,1010**;Dec 17, 1997;Build 47
+ORCDPS2 ;SLC/MKB-Pharmacy dialog utilities ;25-Mar-2013 09:41;DU
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**94,116,125,131,243,1010,1011**;Dec 17, 1997;Build 2
  ;
  ; Modified - IHS/MSC/PLS - 02/15/2012 - Line RTE+5
  ; Modified - IHS/MSC/MGH - 02/25/2013 - Line CHDOSE+3
+ ; Modified - IHS/MSC/MGH - 08/30/2012 - Patch 1011 to modified pt instructions
 COMPLEX() ; -- Single or complex?
  N X,Y,DIR,DUOUT,DTOUT,COMPLX
  S COMPLX=$S($O(ORDIALOG(PROMPT,"?"),-1)>1:1,$L($G(ORDIALOG($$PTR("DURATION"),1))):1,1:0)
@@ -162,23 +163,42 @@ DOSETEXT ; -- Reset dose text in ORDIALOG(INSTR) for backdoor orders
  I '$D(ORDIALOG(+$$PTR("SIG"),1)) S PROMPT=INSTR D SIG
  Q
  ;
+ ;IHS/MSC/MGH Broke this into 2 sections to get and put the patient instructions
 PI ; -- Include Pt Instructions w/Sig in Outpt order?
  N X,Y,DIR,DUOUT,DTOUT,DIRUT,ORTX,ORMAX,I,CNT
  I $G(ORCAT)'="O" D CLEARWP Q  ;!'$O(ORDOSE("PI",0))
  Q:$G(ORENEW)  S I=0,ORMAX=57
- I $G(OREDIT)!$G(OREWRITE),$O(^TMP("ORWORD",$J,PROMPT,INST,0)) K ORDOSE("PI") S I=0 F  S I=$O(^TMP("ORWORD",$J,PROMPT,INST,I)) Q:I<1  S ORDOSE("PI",I)=$G(^(I,0))
- I '$O(ORDOSE("PI",0)) D CLEARWP Q
+ I $G(OREDIT)!$G(OREWRITE),$O(^TMP("ORWORD",$J,PROMPT,INST,0)) K ORDOSE("PI")
+ S I=0 F  S I=$O(^TMP("ORWORD",$J,PROMPT,INST,I)) Q:I<1  S ORDOSE("PI",I)=$G(^(I,0))
+ ;IHS/MSC/MGH Commented out patch 1011
+ ;I '$O(ORDOSE("PI",0)) D CLEARWP Q
  F  S I=$O(ORDOSE("PI",I)) Q:I'>0  S X=ORDOSE("PI",I) D TXT^ORCHTAB
- S DIR(0)="YA",DIR("A")="Include Patient Instructions in Sig? "
+ ;IHS/MSC/MGH Lines here moved to PIOUT
+ ;S DIR(0)="YA",DIR("A")="Save and include Patient Instructions in Sig? "
+ ;S DIR("?")="Enter NO if you do not want these instructions included in the sig for this order",DIR("B")=$S($D(^TMP("ORWORD",$J,PROMPT)):"YES",1:"NO")
+ ;W ! S I=0 F  S I=$O(ORTX(I)) Q:I'>0  W !,$S(I=1:"Patient Instructions: ",1:"                      ")_ORTX(I)
+ ;D ^DIR I $D(DUOUT)!$D(DTOUT) S ORQUIT=1 Q
+ ;IHS/MSC/MGH Removed most of this since it was already there
+ ;I Y D  Q  ;save text
+ ;. K ^TMP("ORWORD",$J,PROMPT,INST) S CNT=0
+ ;. S I=0 F  S I=$O(ORTX(I)) Q:I'>0  S ^TMP("ORWORD",$J,PROMPT,INST,1,0)=ORTX(I),CNT=CNT+1
+ ;. S ^TMP("ORWORD",$J,PROMPT,INST,0)="^^"_CNT_U_CNT_U_DT_U
+ ;.S ORDIALOG(PROMPT,INST)="^TMP(""ORWORD"","_$J_","_PROMPT_","_INST_")"
+ S CNT=0
+ S I=0 F  S I=$O(ORTX(I)) Q:'I  D
+ .S ^TMP("ORWORD",$J,PROMPT,INST,I,0)=ORTX(I)
+ .S CNT=CNT+1
+ S ^TMP("ORWORD",$J,PROMPT,INST,0)="^^"_CNT_U_CNT_U_DT_U
+ I CNT>0 S ORDIALOG(PROMPT,INST)="^TMP(""ORWORD"","_$J_","_PROMPT_","_INST_")"
+ Q
+ ;IHS/MSC/MGH Broke into 2 sections to edit pt instructions
+PIOUT ; -- Store Pt instructions exit action
+ N TXT,DIR,Y,CNT
+ S DIR(0)="YA",DIR("A")="Save and include Patient Instructions in Sig? "
  S DIR("?")="Enter NO if you do not want these instructions included in the sig for this order",DIR("B")=$S($D(^TMP("ORWORD",$J,PROMPT)):"YES",1:"NO")
- W ! S I=0 F  S I=$O(ORTX(I)) Q:I'>0  W !,$S(I=1:"Patient Instructions: ",1:"                      ")_ORTX(I)
  D ^DIR I $D(DUOUT)!$D(DTOUT) S ORQUIT=1 Q
- I Y D  Q  ;save text
- . K ^TMP("ORWORD",$J,PROMPT,INST) S CNT=0
- . S I=0 F  S I=$O(ORDOSE("PI",I)) Q:I'>0  S ^TMP("ORWORD",$J,PROMPT,INST,I,0)=ORDOSE("PI",I),CNT=CNT+1
- . S ^TMP("ORWORD",$J,PROMPT,INST,0)="^^"_CNT_U_CNT_U_DT_U
- . S ORDIALOG(PROMPT,INST)="^TMP(""ORWORD"","_$J_","_PROMPT_","_INST_")"
  I Y'>0 K ORDIALOG(PROMPT,INST),^TMP("ORWORD",$J,PROMPT,INST)
+ E  S ORDIALOG(PROMPT,INST)="^TMP(""ORWORD"","_$J_","_PROMPT_","_INST_")"
  Q
  ;
 CLEARWP ; -- Clear INST of wp field PROMPT

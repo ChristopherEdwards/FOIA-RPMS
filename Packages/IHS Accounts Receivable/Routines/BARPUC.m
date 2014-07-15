@@ -1,6 +1,6 @@
 BARPUC ; IHS/SD/LSL - UN-ALLOCATED CASH JAN 16,1997 ; 01/26/2009
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,7,9,10,17,21**;OCT 26, 2005
- ;
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,7,9,10,17,21,23**;OCT 26, 2005
+ ;MAR 2013 P.OTTIS ADDED NEW VA billing
  ; ********************************************
  ;
 EN ;EP - Unallocated Posting
@@ -20,7 +20,6 @@ ENTRY ;
  ;
 GETTX ;
  ;** list open u/c transactions and get selection from user
- ;IHS/SD/TPF BAR*1.8*21 8/3/2011 HEAT20490
  I $$NOTOPEN^BARUFUT(.DUZ,$G(UFMSESID)) Q  ;IS SESSION STILL OPEN
  K BARVL
  K BARTX
@@ -56,56 +55,22 @@ CHOOSE ;
  W ?47,BARTX(14),!
  S BARPRTQ=0 ; PRINT COMMENTS ON LETTER VARIABLE PKD BAR 1.8.17
  K DIR
- ;S DIR(0)="SAO^1:Post to A/R Bill;2:Refund;3:Exit"
- ;S DIR("A")="Action (1=Post to an A/R Bill, 2=Refund, 3=Exit): "
- ; Remove old Action list and insert new ; PKD:BAR*1.8*17 IHS/SD/PKD 2/12/2010 Add Msg to Item per Adrian
- ;S DIR(0)="SAO^1:Post to A/R Bill;2:Refund;3:Unbilled Reimb;4:Transfers;6:Exit"
- ;S DIR("A")="Action (1=Post to an A/R Bill, 2=Refund, 3=Unbilled Reimbursement, 4=Transfer to another facility, 6=Exit): "  ;BAR*1.8*P4 SCR56
  S DIR(0)="SAO^1:Post to A/R Bill;2:Refund;3:Unbilled Reimb;4:Transfers;5:Add Item Message;6:Exit"
  S DIR("A")="Action (1=Post to an A/R Bill, 2=Refund, 3=Unbilled Reimbursement, 4=Transfer to another facility, 5=Add Item Message, 6=Exit): "  ;BAR*1.8*P17 
- ; Remove old Action list and insert new ; PKD:BAR*1.8*17 IHS/SD/PKD 2/12/2010 Add Msg to Item per Adrian
- ;I $$IHS^BARUFUT(DUZ(2)) D               ;MRS:BAR*1.8*7 TO131 REQ_11
- ;.S DIR(0)="SAO^1:Post to A/R Bill;2:Refund;3:Transfers;4:Exit"
- ;.S DIR("A")="Action (1=Post to an A/R Bill, 2=Refund, 3=Transfer to another facility, 4=Exit): "  ;BAR*1.8*P4 SCR56
  I $$IHS^BARUFUT(DUZ(2)) D               ;MRS:BAR*1.8*7 TO131 REQ_11
- .S DIR(0)="SAO^1:Post to A/R Bill;2:Refund;3:Transfers;4:Add Item Message;5:Exit"
- .S DIR("A")="Action (1=Post to an A/R Bill, 2=Refund, 3=Transfer to another facility, 4=Add Item Message, 5=Exit): "  ;BAR*1.8*P17
- ;take out reprint from this action menu
- ;per Adrian testing of 12/1/2007
- ;S DIR(0)="SAO^1:Post to A/R Bill;2:Refund;3:Unbilled Reimb;4:Transfers;5:Reprint Letter;6:Exit"
- ;S DIR("A")="Action (1=Post to an A/R Bill, 2=Refund, 3=Unbilled Reimbursement, 4=Transfer to another facility, 5=Reprint Letter, 6=Exit): "  ;BAR*1.8*P4
+ . ;;;I $$IHSERA^BARUFUT(DUZ(2)) D               ;MRS:BAR*1.8*7 TO131 REQ_11
+ . S DIR(0)="SAO^1:Post to A/R Bill;2:Refund;3:Transfers;4:Add Item Message;5:Exit"
+ . S DIR("A")="Action (1=Post to an A/R Bill, 2=Refund, 3=Transfer to another facility, 4=Add Item Message, 5=Exit): "  ;BAR*1.8*P17
  D ^DIR
- ;Begin old code ;MRS:BAR*1.8*9 IM30896
- ;K DIR
- ;I $D(DIRUT) G ENTRY
- ;I Y=3 G EXIT
- ;I Y=5 G EXIT  ;BAR*1.8*4 ITEM 4 SCR
- ;I Y=6 G EXIT  ;BAR*1.8*4
- ;I Y=5 D REPRINT^BARUFLTR G ENTRY  ;BAR*1.8*4
- ;I Y=3 D REIMBURS S REIMBURS=1 G ENTRY
- ;I Y=4 D TRANSFER G ENTRY
- ;END BAR*1.8*4 SCR56
- ;I Y=2 D REFUND G ENTRY
- ;I Y=6 G EXIT  ;BAR*1.8*4
- ;I Y=5 D REPRINT^BARUFLTR G ENTRY  ;BAR*1.8*4
- ;I Y=5 G EXIT  ;BAR*1.8*4 ITEM 4 SCR
- ;END BAR*1.8*4 SCR56
- ;Begin new code ;MRS:BAR*1.8*9 IM30896
  N STR
  S STR=$P($E($P(DIR("A"),Y,2),2,99),",")  ; Get the Action Choice
  I $D(DIRUT) G ENTRY
  I Y=1 G GETBILL
  I Y=2 D REFUND G ENTRY
- ; Remove old code to simplify selection BAR*1.8*17 PKD
- ;I Y=3,STR["3=Unbilled Reimb" D REIMBURS S REIMBURS=1 G ENTRY
- ;I Y=3,STR["3=Transfer" D TRANSFER G ENTRY
- ;I Y=4,STR["4=Transfer" D TRANSFER G ENTRY  ;MRS:BAR*1.8*10 H1333
- ; Begin new code, simplify selection ; PKD:BAR*1.8.17 2/12/10
  I STR["Unbilled Reimb" D REIMBURS S REIMBURS=1 G ENTRY
  I STR["Transfer" D TRANSFER G ENTRY
  I STR["Item Message" D ITMSG^BARPUC2 G ENTRY  ; Adding Item Msg per Adrian
  G EXIT
- ;End new code ;MRS:BAR*1.8*9 IM30896
  ;--------------------------------
  ;
 GETBILL ;
@@ -160,7 +125,6 @@ REFPST ;** post refund
  S DIC=90052.02
  S DIC(0)="AEMNQZ"
  S DIC("A")="Adjustment Type: "
- ;S DIC("S")="I $P(^(0),U,2)=BARCAT"
  S DIC("S")="I $P(^(0),U,2)=BARCAT,(Y<1000)"  ;BAR*1.8*4 LATE REQUEST PER SANDRA 11/27/2007
  K DD,DO
  D ^DIC
@@ -172,11 +136,9 @@ REFPST ;** post refund
  S NEWEXTYP=$P(Y,U,2)
  S NEWTYP=$P(Y,U)
  ;
- ;BEGIN NEW CODE BAR*1.8*4 ADD REFUND LETTER CAPABILITY
 ASKREF ;EP - VERIFY ENTRY
  N ASKREF
  K DIR
- ;S DIR("A",1)="You have entered "_BARAMT_" as an Refund to "_BARAC_"."
  S DIR("A",1)="You have entered "_BARAMT_" as a Refund to "_$$GET1^DIQ(90050.02,BARAC_",",.01,"E")_"."  ;IHS/SD/TPF; BAR*1.8*6 IM30170
  S DIR("A")="Would you like to Post this or Print the Finance Letter"
  S DIR("B")="L"
@@ -184,9 +146,6 @@ ASKREF ;EP - VERIFY ENTRY
  D ^DIR
  I $D(DTOUT)!$D(DUOUT) G REFUND
  S ASKREF=Y
- ;S BARAMT=NEWVALUE
- ;S BARSIB(101,"I")=NEWTYP
- ;S BARAC=BARTX(6,"I")
  S BARCHK=$$GET1^DIQ(90051.1101,BARTX(15,"I")_","_BARTX(14,"I")_",",11,"E")
  S BARSCHED=$$GET1^DIQ(90051.1101,BARTX(15,"I")_","_BARTX(14,"I")_",",20,"E")
  I ASKREF="L" D  Q  ; If comments exist, give option to print BAR1.8*17 PKD 2/24/2010 
@@ -209,8 +168,6 @@ TRANCONT ;EP - TRANSFER CONTINUED
  S DR=DR_";12////^S X=DT"
  S DR=DR_";13////^S X=DUZ"
  S DR=DR_";101////^S X=BARTT"
- ;S DR=DR_";102///^S X=+BARCAT"
- ;S DR=DR_";103///^S X=+BARATYP"
  S:'REIMBURS&'(TRANSFER) DR=DR_";102///^S X=+BARCAT"  ;BAR*1.8*4 UFMS SCR56
  S:'REIMBURS&'(TRANSFER) DR=DR_";103///^S X=+BARATYP"
  S DR=DR_";201////^S X=+BARTX(""ID"")"
@@ -220,12 +177,8 @@ TRANCONT ;EP - TRANSFER CONTINUED
  ;
 PX ; 
  S X=$$NEW^BARTR
- ;I X<1 D  G REFUND
- ;. W !!,"The system couldn't create a REFUND transaction.  Please try again.",!
- ;IHS/SD/TPF BAR*1.8*4 UFMS SCR56
  I X<1 D  G:'REIMBURS&'(TRANSFER) REFUND Q
  . W !!,"The system couldn't create a "_$S($G(REIMBURS):"REIMBURSEMENT",$G(TRANSFER):"TRANSFER",1:"REFUND")_" transaction.  Please try again.",!
- ;END
  S DA=X
  S DIE=90050.03
  S DIDEL=90050
@@ -436,18 +389,28 @@ ASKVERT ;EP - VERIFY ENTRY
  G:'Y!$D(DTOUT)!$D(DUOUT) ASKVERT
  D REIMCONT
  Q
-R ;;MEDICARE
-MD ;;MEDICARE
-MH ;;MEDICARE
-D ;;MEDICAID
-K ;;MEDICAID
-F ;;PRIVATE INS
-P ;;PRIVATE INS
-H ;;PRIVATE INS
-M ;;PRIVATE INS
-T ;;PRIVATE INS
-N ;;OTHER
-I ;;OTHER
-W ;;OTHER
-C ;;OTHER
-G ;;OTHER
+ ; ********************************************************************
+ ;THIS TABLE REPLICATES ^AUTTINTY INSURER TYPE (21 ENTRIES) P.OTT 4/12/2013
+ ;AND MAPS INSURER TYPE CODE TO CATEGORY (IE: W --> OTHER)
+H ;;PRIVATE INSURANCE;;HMO
+M ;;PRIVATE INSURANCE;;MEDICARE SUPPL.
+D ;;MEDICAID;;MEDICAID FI
+R ;;MEDICARE;;MEDICARE FI
+P ;;PRIVATE INSURANCE;;PRIVATE INSURANCE
+W ;;OTHER;;WORKMEN'S COMP
+C ;;OTHER;;CHAMPUS
+N ;;OTHER;;NON-BENEFICIARY (NON-INDIAN)
+I ;;OTHER;;INDIAN PATIENT
+K ;;MEDICAID;;CHIP (KIDSCARE)
+T ;;OTHER;;THIRD PARTY LIABILITY 
+G ;;OTHER;;GUARANTOR
+MD ;;MEDICARE;;MCR PART D
+MH ;;MEDICARE;;MEDICARE HMO
+MMC ;;MEDICARE;;MCR MANAGED CARE
+TSI ;;OTHER;;TRIBAL SELF INSURED
+SEP ;;OTHER;;STATE EXCHANGE PLAN
+FPL ;;MEDICAID;;FPL 133 PERCENT
+MC ;;MEDICARE;;MCR PART C
+F ;;PRIVATE INSURANCE;;FRATERNAL ORGANIZATION
+V ;;VETERAN;;VETERANS MEDICAL BENEFITS
+  ;;***END OF TABLE** 

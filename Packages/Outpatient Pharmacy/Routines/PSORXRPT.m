@@ -1,13 +1,14 @@
-PSORXRPT ;BIR/SAB-reprint of a prescription label ;12-Mar-2013 13:26;PLS
- ;;7.0;OUTPATIENT PHARMACY;**3,21,27,34,120,138,1013,156,148,280,1015**;DEC 1997;Build 62
+PSORXRPT ;BIR/SAB-reprint of a prescription label ;29-Aug-2013 07:12;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**3,21,27,34,120,138,1013,156,148,280,1015,1016**;DEC 1997;Build 74
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ; Modified - IHS/CIA/PLS - 12/22/03 - BCK+33,BCK+51 and ACT+1
  ;            IHS/MSC/PLS - 09/16/2011 - BCK+1,BCK+13
  ; Modified - IHS/MSC/MGH - 02/25/2013 - ACT1 + 5
+ ;            IHS/MSC/PLS - 08/29/2013 - Added label BCK1
 BCK I $G(PSOBEDT) W $C(7),$C(7) S VALMSG="Invalid Action at this time !",VALMBCK="" Q
  Q:'$$ESIG^APSPFUNC  ;IHS/MSC/PLS - patch 1013
- N PSODISP S PSORPLRX=$P(PSOLST(ORN),"^",2)
+BCK1 N PSODISP S PSORPLRX=$P(PSOLST(ORN),"^",2)
  I $$LMREJ^PSOREJU1(PSORPLRX,,.VALMSG,.VALMBCK) Q
  D PSOL^PSSLOCK(PSORPLRX) I '$G(PSOMSG) S VALMSG=$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing this order."),VALMBCK="" K PSOMSG Q
  I $G(POERR) K QFLG D  I $G(QFLG) D ULR G KILL

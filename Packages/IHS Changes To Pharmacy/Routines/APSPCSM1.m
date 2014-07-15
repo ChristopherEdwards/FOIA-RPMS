@@ -1,5 +1,5 @@
-APSPCSM1 ; IHS/MSC/PLS - CONTROLLED SUBSTANCE MANAGEMENT REPORT ;17-Sep-2012 14:28;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1007,1011,1013,1015**;Sep 23, 2004;Build 62
+APSPCSM1 ; IHS/MSC/PLS - CONTROLLED SUBSTANCE MANAGEMENT REPORT ;13-Aug-2013 09:25;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1007,1011,1013,1015,1016**;Sep 23, 2004;Build 74
  ;=====================================================================
  ;IHS/MSC/MGH Added column for fills in CMOP
  ;
@@ -129,7 +129,7 @@ PRTDSUM ; EP -
  ...S RXCNT=$G(RXCNT)+1
  ..W:$G(RXCNT) !,$$TAG("TotalPrescriptionCount",2,RXCNT)
  ..W !,$$TAG("TotalFills",2,STATS("FILLS"))
- .W !,$$TAG("ReportTotals",1)
+ .W !,$$TAG("ReportSubTotals",1)
  E  D
  .D PRINT3
  .W !,"Report sub-totals",!

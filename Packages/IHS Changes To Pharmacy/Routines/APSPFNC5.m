@@ -1,10 +1,12 @@
-APSPFNC5 ;IHS/MSC/PLS - Prescription Creation Support ;22-Jun-2011 15:10;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1011**;Sep 23, 2004;Build 17
+APSPFNC5 ;IHS/MSC/PLS - Prescription Creation Support ;28-Oct-2013 10:10;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1011,1016**;Sep 23, 2004;Build 74
  ;=================================================================
+ ;IHS/MSC/MGH Added seach by type of pharmacy
  ;Return list of pharmacies
-PHMLSTSC(DATA,SFLG,ZIP,RAD,NAME,NFLG,CITY,STATE) ;
- N PLST,ZARY,ZC,CNT
- S SFLG=$G(SFLG)   ;ZNC
+PHMLSTSC(DATA,SFLG,ZIP,RAD,NAME,NFLG,CITY,STATE,PTYPE,ONEOF) ;
+ N PLST,ZARY,ZC,CNT,IEN
+ S SFLG=$G(SFLG)   ;ZNCT
+ S:'$L(SFLG) SFLG="A"  ;Used when all pharmacy types is checked and no other search criteria
  S NFLG=+$G(NFLG)  ;0-Starts with name;1-contains name;2-exact match
  S DATA=$NA(^TMP("APSPOPHM",$J))
  K @DATA
@@ -16,7 +18,8 @@ PHMLSTSC(DATA,SFLG,ZIP,RAD,NAME,NFLG,CITY,STATE) ;
  .Q:'$G(ZIP)
  .D GETZC^APSPFNC2(.ZARY,ZIP,RAD)
  .S ZC="",CNT=0 F  S ZC=$O(ZARY(ZC)) Q:'$L(ZC)  D
- ..S IEN=0 F  S IEN=$O(^APSPOPHM("ZIP",ZC,IEN)) Q:'IEN  S @PLST@(IEN)=1
+ ..S IEN=0 F  S IEN=$O(^APSPOPHM("ZIP",ZC,IEN)) Q:'IEN  S @PLST@(IEN)=1_U_ZARY(ZC)
+ .S @PLST@(0)="ZIPCODE"
  I SFLG["N" D
  .N LP,RXNM,NM
  .Q:'$L(NAME)
@@ -26,33 +29,77 @@ PHMLSTSC(DATA,SFLG,ZIP,RAD,NAME,NFLG,CITY,STATE) ;
  ..F  S LP=$O(@PLST@(LP)) Q:'LP  D
  ...Q:'@PLST@(LP)
  ...S RXNM=$$UP^XLFSTR($P(^APSPOPHM(LP,0),U,10))
- ...S @PLST@(LP)=$S(NFLG=2:RXNM=NM,NFLG:RXNM[NM,1:$E(RXNM,1,$L(NM))=NM)
+ ...S $P(@PLST@(LP),U)=$S(NFLG=2:RXNM=NM,NFLG:RXNM[NM,1:$E(RXNM,1,$L(NM))=NM)
  .E  D
  ..F  S LP=$O(^APSPOPHM(LP)) Q:'LP  D
  ...S RXNM=$$UP^XLFSTR($P(^APSPOPHM(LP,0),U))
- ...S:$S(NFLG=2:RXNM=NM,NFLG:RXNM[NM,1:$E(RXNM,1,$L(NM))=NM) @PLST@(LP)=1
+ ...S:$S(NFLG=2:RXNM=NM,NFLG:RXNM[NM,1:$E(RXNM,1,$L(NM))=NM) $P(@PLST@(LP),U)=1
+ ..S @PLST@(0)="NAME"
  I SFLG["C" D
  .N LP,CTY
- .Q:'$L(CITY)
+ .;Q:'$L(CITY)
  .S CTY=$$UP^XLFSTR(CITY)
  .S LP=0
  .I $D(@PLST) D
  ..F  S LP=$O(@PLST@(LP)) Q:'LP  D
  ...Q:'@PLST@(LP)
- ...S @PLST@(LP)=($$UP^XLFSTR($P($G(^APSPOPHM(LP,1)),U,4))=STATE)&($E($$UP^XLFSTR($P($G(^APSPOPHM(LP,1)),U,3)),1,$L(CTY))=CTY)
+ ...S $P(@PLST@(LP),U)=($$UP^XLFSTR($P($G(^APSPOPHM(LP,1)),U,4))=STATE)&($S($L(CTY):$E($$UP^XLFSTR($P($G(^APSPOPHM(LP,1)),U,3)),1,$L(CTY))=CTY,1:1))
  .E  D
  ..F  S LP=$O(^APSPOPHM("D",STATE,LP)) Q:'LP  D
- ...S:($E($$UP^XLFSTR($P($G(^APSPOPHM(LP,1)),U,3)),1,$L(CTY))=CTY) @PLST@(LP)=1
+ ...S:($S($L(CTY):$E($$UP^XLFSTR($P($G(^APSPOPHM(LP,1)),U,3)),1,$L(CTY))=CTY,1:1)) $P(@PLST@(LP),U)=1
+ ..S @PLST@(0)="CITY"
+ ;IHS/MSC/MGH Patch 1016 Add selection for type of pharmacy
+ I SFLG["T" D
+ .N LP
+ .S PTYPE=$G(PTYPE)
+ .S LP=0
+ .I $D(@PLST) D
+ ..F  S LP=$O(@PLST@(LP)) Q:'LP  D
+ ...Q:'@PLST@(LP)
+ ...;Loop through type
+ ...S $P(@PLST@(LP),U)=$$SPECID(LP,PTYPE,ONEOF)
+ .E  D
+ ..F  S LP=$O(^APSPOPHM(LP)) Q:'LP  D
+ ...S:$$SPECID(LP,PTYPE,ONEOF) $P(@PLST@(LP),U)=1
+ ; Forces return of pharmacy list if the only criteria is All Pharmacy Types
+ I SFLG["A" D
+ .N LP
+ .S LP=0
+ .F  S LP=$O(^APSPOPHM(LP)) Q:'LP  D
+ ..S $P(@PLST@(LP),U)=1
+ ;IHS/MSC/PLS - 10/01/2013
+ I (SFLG="Z"!(SFLG="C"))&($$GET^XPAR("ALL","APSP SS PHARMACY MAILORDER")) D
+ .S PTYPE=1
+ .S LP=0
+ .F  S LP=$O(^APSPOPHM(LP)) Q:'LP  D
+ ..S:$$SPECID(LP,PTYPE,ONEOF) $P(@PLST@(LP),U)="1^99"
+ ;Finish by adding
  S LP=0 F  S LP=$O(@PLST@(LP)) Q:'LP  D
- .D:@PLST@(LP) ADDPHM^APSPFNC2(LP)
+ .D:@PLST@(LP) ADDPHM^APSPFNC2(LP,$P(@PLST@(LP),U,2))
  Q
+SPECID(LP,VAL,ONEOF) ;EP-
+ N I,J,X,Y,Z,DONE,LIST,VALUE
+ S I=0,X=0,DONE=0,VALUE=0
+ S J=$L(VAL,":")
+ F I=1:1:J S LIST($P(VAL,":",I))="" S VALUE=VALUE+$P(VAL,":",I)
+ S I=0
+ F  S I=$O(^APSPOPHM(LP,8,I)) Q:'+I!(DONE>0)  D
+ .S Z=$G(^APSPOPHM(LP,8,I,0))
+ .I ONEOF D
+ ..I $D(LIST(Z)) S DONE=1
+ .E  D
+ ..S X=X+$G(^APSPOPHM(LP,8,I,0))
+ S VAL=$S(ONEOF:DONE,1:$$AND^XUMF5AU(VALUE,X)=VALUE)
+ Q VAL
+ ;Q VAL=$S(ONEOF:$$OR^XUMF5AU(VAL,X),1:$$AND^XUMF5AU(VAL,X))
+ ;.;S X=$S(ID=1:"MAIL ORDER",ID=2:"FAX",ID=8:"RETAIL",ID=16:"SPECIALTY",ID=32:"LONG-TERM CARE",ID=64:"24 THOUR",1:"")
  ;Return list of states
 GSTATES(DATA) ;EP
  N LP,ST
  F LP=1:1 S ST=$P($T(STATES+LP),";;",2) Q:'$L(ST)  D
  .S DATA(LP)=ST
  Q
-STATES ;List of states
+STATES ;;List of states
  ;;AL^ALABAMA
  ;;AK^ALASKA
  ;;AZ^ARIZONA

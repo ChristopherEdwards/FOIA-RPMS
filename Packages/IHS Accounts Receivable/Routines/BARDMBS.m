@@ -1,10 +1,10 @@
 BARDMBS ; IHS/OIT/FCJ - DEBT MANAGEMENT BILL SEARCH ; 26 May 2011  8:41 AM
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**22**;OCT 26, 2005;Build 38
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**22,23**;OCT 26, 2005;Build 38
  ;New routine 5-12-2011 for Debt Letter Management
  ;
  ;Search the A/R Bill file for overdue bills and
  ;and queue letters for overdue bills.
- ;
+ ; ; JULY 2013 FIXED BAREND IN DATE "AG" LOOP
 ST ;
  ;
  D PAR^BARDMU,VAR
@@ -24,7 +24,7 @@ ST ;
  ;F  S BARDADT=$O(^BARBL(DUZ(2),"AG",BARDADT)) Q:BARDADT=""  D
  ;.Q:BARDADT'<BARDMDT
  ;end old code start new code bar*1.8*22 SDR
- F  S BARDRDT=$O(^BARBL(DUZ(2),"AG",BARDRDT)) Q:BARDRDT=""!(BARDRDT>BARDADT)  D
+ F  S BARDRDT=$O(^BARBL(DUZ(2),"AG",BARDRDT)) Q:BARDRDT=""!(BARDRDT\1>BARDADT)  D  ;P.OTT
  .Q:BARDRDT'<BARDADT
  .;end new code bar*1.8*22 SDR
  .D CHKBIL

@@ -1,11 +1,12 @@
-BGOPROB ; IHS/BAO/TMD - pull patient PROBLEMS ;23-Aug-2012 09:39;DU
- ;;1.1;BGO COMPONENTS;**1,3,6,7,8,10,11**;Mar 20, 2007
+BGOPROB ; IHS/BAO/TMD - pull patient PROBLEMS ;29-Oct-2013 12:11;DU
+ ;;1.1;BGO COMPONENTS;**1,3,6,7,8,10,11,12**;Mar 20, 2007;Build 5
  ;---------------------------------------------
  ; Check for existence of problem id
  ;  INP = Patient IEN ^ Problem ID ^ Site IEN ^ Problem IEN (optional)
  ; Patch 6 removed references to family history since they are in separate components
  ; Patch 6 also added ability to view and add classification for ashtma dx
  ; Patch 8 changes - problems are now logically deleted
+ ; Patch 12 changes for AICD install
 CKID(RET,INP) ;EP
  N DFN,SITE,PIEN,IEN,X1,X2
  S DFN=+INP
@@ -49,7 +50,7 @@ SETPRI(RET,INP) ;EP
  ;   ICD9 Short Name [13] ^ Provider [14] ^ Facility IEN [15] ^ Priority [16] ^ Classification [17]
 GET(RET,DFN) ;EP
  N REC,CNT,PRIEN,NOTES,POVIEN,ICD,ICDNAME,MODDT,CLS,FAC,FACIEN,FACAB
- N PNAR,DENT,NMBCOD,STAT,ONSET,PRI,CLASS,PRV,ARRAY,PHXCNT
+ N PNAR,DENT,NMBCOD,STAT,ONSET,PRI,CLASS,PRV,ARRAY,PHXCNT,EVNDT
  S RET=$$TMPGBL^BGOUTL
  S (CNT,PRIEN)=0
  F  S PRIEN=$O(^AUPNPROB("AC",DFN,PRIEN)) Q:'PRIEN  D
@@ -58,9 +59,19 @@ GET(RET,DFN) ;EP
  .D NOTES^BGOPRBN(.NOTES,PRIEN,0)
  .S POVIEN=$P(REC,U)
  .Q:POVIEN=""
- .S ICD=$P($G(^ICD9(POVIEN,0)),U)
- .S ICDNAME=$P($G(^ICD9(POVIEN,0)),U,3)
+ .S EVNDT=$$FMTDATE^BGOUTL($P($G(^AUPNPROB(PRIEN,0)),U,8))
+ .;IHS/MSC/MGH Patch 12 changes
+ .I $$AICD^BGOUTL2 D
+ ..S ICD=$P($$ICDDX^ICDEX(POVIEN,EVNDT),U,2)
+ .E  D
+ ..S ICD=$P($$ICDDX^ICDCODE(POVIEN,EVNDT),U,2)
+ .;S ICD=$P($G(^ICD9(POVIEN,0)),U)
  .Q:ICD=""
+ .I $$AICD^BGOUTL2 D
+ ..S ICDNAME=$$LD^ICDEX(80,POVIEN,EVNDT)
+ .E  D
+ ..S ICDNAME=$P($G(^ICD9(POVIEN,0)),U,3)
+ .;end patch 12 mods
  .S MODDT=$$FMTDATE^BGOUTL($P(REC,U,3))
  .S CLS=$P(REC,U,4)
  .S:CLS="" CLS="U"
@@ -97,9 +108,18 @@ GET(RET,DFN) ;EP
  S IEN=0,PHXCNT=9000
  F  S IEN=$O(@GBL@("AC",DFN,IEN)) Q:'IEN  D  Q:RET
  .S X=$G(@GBL@(IEN,0)),POVIEN=$P(X,U,1)
- .S ICD=$P($G(^ICD9(POVIEN,0)),U)
+ .;IHS/MSC/MGH Patch 12 mods
+ .S EVNDT=$P(X,U,3)
+ .I $$AICD^BGOUTL2 D
+ ..S ICD=$P($$ICDDX^ICDEX(POVIEN,EVNDT),U,2)
+ .E  D
+ ..S ICD=$P($$ICDDX^ICDCODE(POVIEN,EVNDT),U,2)
+ .;S ICD=$P($G(^ICD9(POVIEN,0)),U)
  .Q:$D(ARRAY(ICD))
- .S ICDNAME=$P($G(^ICD9(POVIEN,0)),U,3)
+ .I $$AICD^BGOUTL2 S ICDNAME=$$LD^ICDEX(80,POVIEN,EVNDT)
+ .E   S ICDNAME=$P($G(^ICD9(POVIEN,0)),U,3)
+ .;S ICDNAME=$P($G(^ICD9(POVIEN,0)),U,3)
+ .;end patch 12 mode
  .S DMOD=$$FMTDATE^BGOUTL($P(X,U,3))
  .S DFN=$P(X,U,2),PNAR=$P(X,U,4),ONSET=$$FMTDATE^BGOUTL($P(X,U,5))
  .S PNAR=$TR($P($G(^AUTNPOV(PNAR,0)),U),$C(13,10))

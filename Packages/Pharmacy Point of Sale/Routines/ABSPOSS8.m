@@ -1,5 +1,5 @@
 ABSPOSS8 ; IHS/FCS/DRS - 9002313.99 ;  
- ;;1.0;PHARMACY POINT OF SALE;**19,39,45**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**19,39,45,46**;JUN 21, 2001
  ;----------------------------------------------------------------------
  ;IHS/SD/RLT 11/7/06 - Patch 19
  ; Force user to run BAS setup option first.  Running other options
@@ -108,6 +108,14 @@ INS ;EP - option ABSP INSURANCE SEL
  W !,?5,"for the individual Insurer using the ADV option.",!
  W !
  S DR="800Default ICD10 effective date"
+ D ^DIE
+ ;
+ ;OIT/CAS/RCS 080913 Patch 46 - Add Maximum Dollar Limit
+ W !!,"Enter the Maximum Dollar Limit."
+ W !,"Any Claim that is billed higher than this limit,"
+ W !,"will automatically be sent to paper for review.",!
+ W !
+ S DR="801Maximum Dollar Limit"
  D ^DIE
  ;
  N ALLRULES,MYRULES

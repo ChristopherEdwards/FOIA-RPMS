@@ -1,11 +1,12 @@
-BGOFHLK ; IHS/BAO/TMD - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;15-Jan-2009 09:33;MGH
- ;;1.1;BGO COMPONENTS;**6**;Mar 20, 2007
+BGOFHLK ; IHS/BAO/TMD - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;02-Apr-2013 09:12;MGH
+ ;;1.1;BGO COMPONENTS;**6,12**;Mar 20, 2007;Build 5
  ;---------------------------------------------------------------
  ; Lookup ICD's matching input
  ;  INP = Lookup Value [1] ^ Visit Date [2] ^ Patient Gender [3]
  ;        ^ FROM [4], TO [5]
  ;  Returned as a list of records in the format:
  ;    Descriptive Text [1] ^ ICD IEN [2] ^ Narrative Text [3] ^ ICD Code [4]
+ ; Patch 12 updated for new ICD lookup
 ICDLKUP(RET,INP) ;PEP - ICD lookup
  N LKUP,VDT,SEX,CNT,DIC,X,Y,I,ICD,FROM,TO,CNT
  N AICDRET,XTLKSAY,REC,DESC,CODE,NARR
@@ -17,18 +18,29 @@ ICDLKUP(RET,INP) ;PEP - ICD lookup
  S SEX=$P(INP,U,3)
  S CNT=0
  I LKUP'="" D
- .S DIC="^ICD9(",DIC(0)="TM",X=LKUP,XTLKSAY=0
- .K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
- .D ^DIC
- .I Y'=-1 D
- ..S ICD=+Y
- ..D CHKHITS
- .I 'CNT,$L(LKUP)>2 D
- ..N LK,LN
- ..S LK=LKUP,LN=$L(LKUP)
- ..F  D  S LK=$O(^ICD9("BA",LK)) Q:$E(LK,1,LN)'=LKUP
- ...S ICD=0
- ...F  S ICD=$O(^ICD9("BA",LK,ICD)) Q:'ICD  D CHKHITS
+ .I $G(DUZ("AG"))="I"  D
+ ..I $$AICD^BGOUTL2 D
+ ...N HITS
+ ...S HITS=0
+ ...K ^TMP("ICD9")
+ ...S HITS=$$LKTX^ICDEX(LKUP,"ICD9(",VDT,1,1,2)
+ ...I HITS>0 D
+ ....S X=0 F  S X=$O(^TMP("ICD9",$J,"SEL",X)) Q:X=""  D
+ .....S ICD=$P($G(^TMP("ICD9",$J,"SEL",X)),U,1)
+ .....D CHKHITS
+ .E  D
+ ..S DIC="^ICD9(",DIC(0)="TM",X=LKUP,XTLKSAY=0
+ ..K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
+ ..D ^DIC
+ ..I Y'=-1 D
+ ...S ICD=+Y
+ ...D CHKHITS
+ ..I 'CNT,$L(LKUP)>2 D
+ ...N LK,LN
+ ...S LK=LKUP,LN=$L(LKUP)
+ ...F  D  S LK=$O(^ICD9("BA",LK)) Q:$E(LK,1,LN)'=LKUP
+ ....S ICD=0
+ ....F  S ICD=$O(^ICD9("BA",LK,ICD)) Q:'ICD  D CHKHITS
  I LKUP="" D
  . N LK,LK1
  .I FROM="" S FROM="V16"
@@ -46,7 +58,9 @@ CHKHITS ;Q:$D(@RET@(0,ICD))  S ^(ICD)=""
  I OK=0 Q
  I VDT,$P(REC,U,11),$$FMDIFF^XLFDT(VDT,$P(REC,U,11))>-1 Q
  I $L(SEX),$P(REC,U,10)'="",SEX'=$P(REC,U,10) Q
- S NARR=$G(^ICD9(ICD,1)),CODE=$P(REC,U),DESC=$P(REC,U,3)
+ I $$AICD^BGOUTL2 S NARR=$P($$ICDDX^ICDEX(ICD,VDT),U,4)    ;Patch 12
+ E  S NARR=$G(^ICD9(ICD,1))
+ S CODE=$P(REC,U),DESC=$P(REC,U,3)
  S CNT=CNT+1
  S @RET@(CNT)=DESC_U_ICD_U_NARR_U_CODE
  Q

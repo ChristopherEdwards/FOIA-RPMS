@@ -1,5 +1,5 @@
 BIPOST ;IHS/CMI/MWR - POST-INIT ROUTINE; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**6**;OCT 15,2013
+ ;;8.5;IMMUNIZATION;**7**;JAN 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  PATCH 3: Set MenCY-Hib (148) and Flu-nasal4 (149) and all Skin Tests
  ;;           in the Vaccine Table to Inactive.   START+30
@@ -46,10 +46,10 @@ START ;EP
  ;
  ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
  ;---> Update Manufacturer Table.
- S ^BIMAN(163,0)="Protein Sciences^PSC^1^Protein Sciences"
- S ^BIMAN(155,0)="CSL Behring, Inc.^CSL^1^CSL Behring, Inc."
- S ^BIMAN(164,0)="Grifols^GRF^1^Grifols"
- S ^BIMAN(165,0)="ID Biomedical^IDB^1^ID Biomedical"
+ ;S ^BIMAN(163,0)="Protein Sciences^PSC^1^Protein Sciences"
+ ;S ^BIMAN(155,0)="CSL Behring, Inc.^CSL^1^CSL Behring, Inc."
+ ;S ^BIMAN(164,0)="Grifols^GRF^1^Grifols"
+ ;S ^BIMAN(165,0)="ID Biomedical^IDB^1^ID Biomedical"
  ;
  ;**********
  ;
@@ -186,7 +186,7 @@ TEXT1 ;EP
  ;;
  ;;                       * CONGRATULATIONS! *
  ;;
- ;;          You have successfully installed Immunization v8.56.
+ ;;          You have successfully installed Immunization v8.57.
  ;;
  ;;
  ;;

@@ -1,5 +1,5 @@
-BEHOENPC ;MSC/IND/DKM - PCC Data Management ;13-Aug-2012 09:12;DU
- ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007,005008,005009**;Sep 18, 2007
+BEHOENPC ;MSC/IND/DKM - PCC Data Management ;18-Jul-2013 17:33;PLS
+ ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007,005008,005009,005010**;Sep 18, 2007
  ;=================================================================
  ; RPC: Update PCC data
  ; DATA = Returned as 0 if successful
@@ -176,9 +176,9 @@ SK ;; Skin tests
  ;MSC/MGH added offset for Vista/RPMS field conflicts
  S OFF=$S($G(DUZ("AG"))="I":0,1:9999999)
  S TODAY=$$DT^XLFDT()
- S DTR=$P(VAL,U,9)
+ S DTR=$P($P(VAL,U,9),".")
  S GTR=$P(VAL,U,10)
- I GTR>TODAY!(DTR>TODAY) S DATA="-1^You cannot enter dates in the future" Q
+ I (GTR>$$NOW^XLFDT)!(DTR>TODAY) S DATA="-1^You cannot enter dates in the future" Q
  I +DTR,GTR>DTR S DATA="-1^The skin test read date must be after the applied date" Q
  S REF=$P(VAL,U,12),GVN=$P(VAL,U,10)
  S:'$L(GVN) (GVN,$P(VAL,U,10))=$G(VDAT)
@@ -228,13 +228,14 @@ MSR ;; Vital measurements (new format)
  S ENTERIEN=""
  S:'$D(VMSR) VMSR=$$GET^XPAR("ALL","BEHOVM USE VMSR")
  S XM=$P(VAL,U,7),YM=$P(VAL,U,8)
+ I XM="" S DATA=0 Q
  ;OIT/MSC/MGH Delete is now marked as entered in error
  I DEL S BEHDATA=$P(VAL,U,9)_U_DUZ_U_4 D EIE^BEHOVM2(.RESULT,BEHDATA) I RESULT="OK" S DATA=0 Q
  ;OIT/MSC/MGH Edits are now a delete and make a new entry
  I 'ADD D
  .S BEHDATA=$P(VAL,U,9)_U_DUZ_U_4 D EIE^BEHOVM2(.RESULT,BEHDATA)
  .I RESULT="OK" S DATA=0
- .E  S DATA=RESULT Q DATA
+ .E  S DATA=1  ;RESULT
  .S ADD=1,$P(VAL,U,9)=0
  I 'DEL,$L(YM) D
  .S DATA=$$NORM^BEHOVM(CODE,.XM,.YM,VMSR)

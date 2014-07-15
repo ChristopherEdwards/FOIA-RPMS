@@ -1,5 +1,5 @@
 BARBAD3A ; IHS/SD/LSL - PAYMENT COMMAND CNT. ; 05/07/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,19**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,19,23**;OCT 26, 2005
  ;** A/R posting program
  ;   continuation of command processing
  ;
@@ -48,12 +48,12 @@ HELP ;
  ;
  ; *********************************************************************
 WARN(BARLVL,BARDIF)       ;EP - warner
- I BARLVL=4,'$$IHS^BARUFUT(DUZ(2)) K BARFLG("BARWARN") Q  ;BAR*1.8*4 DD 4.1.7.2
+ I BARLVL=4,'$$IHS^BARUFUT(DUZ(2)) K BARFLG("BARWARN") Q  ;
+ ;;;I BARLVL=4,'$$IHSERA^BARUFUT(DUZ(2)) K BARFLG("BARWARN") Q  ;
  I '$G(BARFLG("BARWARN")) W !
  W *7,!,"Warning - Posted amount exceeds the "
- ;W $S(BARLVL=1:"batch",BARLVL=2:"item",1:"location")_" balance." ;BAR*1.8*4 DD 4.1.7.2
- W $S(BARLVL=1:"BATCH",BARLVL=2:"ITEM",BARLVL=3:"LOCATION",1:"BILL")_" balance" ;BAR*1.8*4 DD 4.1.7.2
- W " by "_BARDIF_" amount"              ;BAR*1.8*4 DD 4.1.7.2
+ W $S(BARLVL=1:"BATCH",BARLVL=2:"ITEM",BARLVL=3:"LOCATION",1:"BILL")_" balance" ;
+ W " by "_BARDIF_" amount"              ;
  S BARFLG("BARWARN")=1
  Q
  ;
@@ -65,7 +65,7 @@ SETTMPO(BARTYP,BARAMT,BARLIN,BARCAT,BARATYP,BAROAMT) ;EP - store & check amounts
  Q:BARDA=""
  ; -------------------------------
 B1O ;
- S BARBBAL=$P(^BARTMP($J,BARDA,BARLIN),U,5)  ;BAR*1.8*4 DD 4.1.7.2
+ S BARBBAL=$P(^BARTMP($J,BARDA,BARLIN),U,5)  ;
  I BARTYP="P" D  Q:BARSTOP
  .I (BARBBAL-BARAMT)<0 D WARN(4,(BARBBAL-BARAMT))                 ;BAR*1.8*4 SDD 4.1.7.2
  .I +$G(BAREOB),(BAREOV(4)-(BARPMT+BARAMT))<0 D WARN(3,(BAREOV(4)-(BARPMT+BARAMT)))

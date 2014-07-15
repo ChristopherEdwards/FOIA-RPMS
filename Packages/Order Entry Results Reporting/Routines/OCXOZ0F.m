@@ -1,4 +1,4 @@
-OCXOZ0F ;SLC/RJS,CLA - Order Check Scan ;AUG 8,2013 at 03:40
+OCXOZ0F ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
  ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
@@ -120,22 +120,6 @@ CHK508 ; Look through the current environment for valid Event/Elements for this 
  ; FILE(DFN,141, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE ANC >= 1.5 & < 2.0)
  ;
  S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXOERR=$$FILE(DFN,141,"130") Q:OCXOERR 
- Q
- ;
-EL24 ; Examine every rule that involves Element #24 [HL7 LAB TEST RESULTS CRITICAL]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R3R1A^OCXOZ0I   ; Check Relation #1 in Rule #3 'CRITICAL LAB RESULTS'
- Q
- ;
-EL105 ; Examine every rule that involves Element #105 [HL7 LAB ORDER RESULTS CRITICAL]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R3R2A^OCXOZ0I   ; Check Relation #2 in Rule #3 'CRITICAL LAB RESULTS'
  Q
  ;
 ABREN(DFN) ;  Compiler Function: DETERMINE IF RENAL LAB RESULTS ARE ABNORMAL HIGH OR LOW

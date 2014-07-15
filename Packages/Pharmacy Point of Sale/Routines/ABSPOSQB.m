@@ -1,5 +1,5 @@
 ABSPOSQB ; IHS/FCS/DRS - POS background, Part 1 ;   [ 08/20/2002  9:01 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,3,23**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,3,23,46**;JUN 21, 2001
  ;
  ;IHS/DSD/lwj 10/09/01 on behalf of David Slauenwhite - change 
  ; consist of one line be altered in the "C" subroutine.
@@ -22,6 +22,9 @@ ABSPOSQB ; IHS/FCS/DRS - POS background, Part 1 ;   [ 08/20/2002  9:01 AM ]
  ;
  ;IHS/SD/RLT - 06/21/07 - 10/18/07 - Patch 23
  ; Get DIAGNOSIS CODE POINTER from prescription file
+ ;
+ ;IHS/OIT/CAS/RCS - 08/12/13 - Patch 46
+ ; Create error message on Claim when there is no Division
  Q
 CLAIMINF() ;EP - from ABSPOSQA
  ; Send in ABSBRXI, ABSBRXR, ABSBNDC, IEN59
@@ -105,6 +108,7 @@ D S ABSPHARM=$P(^ABSPT(IEN59,1),U,7)
  I 'ABSPHARM D
  . D GETPHARM^ABSPOSQC
  . S FDA(FN,IEN59COM,1.07)=ABSPHARM
+ I 'ABSPHARM Q 105 ; OIT/CAS/RCS 081313 Patch 46, result code 105 - pharmacy lookup failed
  ;
  ; 1.06 INSURER - see ^(6) and ^(7), below
  ; 1.08 PINS PIECE - see ^(6) and ^(7), below
@@ -173,6 +177,12 @@ I I INSURER D  ; whoever set up this entry included insurance data
  . . I I=1 D
  . . . S (INSURER,FDA(FN,IEN59COM,1.06))=$P(INSARRAY(I),U)
  . . . S FDA(FN,IEN59COM,1.08)=1
+ ;
+ ; ***   Check to make sure Prescriber NPI is defined - it is now required
+ ;
+N N NPI D  I 'NPI Q 106 ; OIT/CAS/RCS 081913 Patch 46, result code 106 - prescriber NPI lookup failed
+ .N PROVIEN,ABSPRXI,XUSDATE
+ .S ABSPRXI=$$RXI^ABSPOSQ,PROVIEN=$P($G(^PSRX(ABSPRXI,0)),U,4),NPI=$P($$NPI^XUSNPI("Individual_ID",+PROVIEN),U)
  ;
  ; ***
  ; ***   PRICING data - in the ^(5) node

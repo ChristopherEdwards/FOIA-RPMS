@@ -1,6 +1,7 @@
 BARTRANS ; IHS/SD/SDR - Transaction Summary/Detail Report ; 03/10/2009
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**10,19,20**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**10,19,20,23**;OCT 26, 2005
  ;NEW ROUTINE BAR*1.8*10 H2470
+ ;01-OCT-2012 HEAT # 86006 P.OTT FIXING RTYP answered wrong
  Q
  ; *********************************************************************
  ;
@@ -18,6 +19,7 @@ EN ; EP
  I +BARSTART<1 D XIT Q               ; Dates answered wrong
  ; Ask rpt type (only if sort by allow cat/bill ent-return BARY("RTYP")
  D RTYP                             ; Ask report type
+ I Y<1 D XIT Q                      ; Rtyp answered wrong or ^  P.OTT
  ; IHS/SD/PKD 1/25/11 1.8*20 Allow detail lines to all display $$
  I BARY("RTYP")=2 D
  . W !!,"Note: Some bills may contain more than one adjustment transaction on the report."

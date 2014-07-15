@@ -1,12 +1,14 @@
 BAREUTL ; IHS/SD/LSL - EDI UTILITIES ;  11/05/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**10**;OCT 26, 2005
- ;
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**23**;OCT 26, 2005
+ ;MAR 2013 P.OTT DO NOT SHOW CHKS IF NOT PART OF THE ERA FILE
  Q
  ; ********************************************************************
  ;
  ;
 CHKSEL(IMPDA,BARACTN) ; EP
  ; List checks for file and allow user to choose
+ N BARRAY
+ D GETCHK ;GET ARRAY OF CHECKS P.OTT
  D DISPLAY                             ; Display list
  I BARCNT<1 D  Q BARCKIEN
  . S BARCKIEN=0
@@ -17,6 +19,14 @@ CHKSEL(IMPDA,BARACTN) ; EP
  D ASK                                 ; Ask user to choose
  Q BARCKIEN                            ; IEN to A/R EDI Check file
  ; ********************************************************************
+GETCHK N IENS,I,BARI ;P.OTT
+ K BARRAY
+ S I=0 F  S I=$O(^BAREDI("I",DUZ(2),IMPDA,5,I)) Q:'I  D
+ . S IENS=I_","_IMPDA_","
+ . S BARI=$$GET1^DIQ(90056.02011,IENS,.01) I BARI="" Q
+ . S BARRAY(BARI)=""
+ . ;W ! ZW BARRAY W ! ;P.OTT
+ Q
  ;
 DISPLAY ;
  ; Loop checks to choose from (A/R EDI CHECKS File)
@@ -36,8 +46,10 @@ LINE ;
  S BARDTREV=$P($G(^BARECHK(BARCKIEN,0)),U,5)
  ; If posting, only list reviewed checks
  I BARACTN="POST",BARDTREV="" Q
- S BARCNT=BARCNT+1
  S BARTMP2=$G(^BARECHK(BARCKIEN,0))
+ S BARXCHK=$P(BARTMP2,U,1)
+ I BARXCHK]"" I '$D(BARRAY(BARXCHK)) Q  ;P.OTT W !,"CHECK ",BARXCHK,"  --- IS NOT A PART OF THE ERA FILE!"
+ S BARCNT=BARCNT+1
  S BARBTCH=$P(BARTMP2,U,3)
  ;I BARBTCH]"" D             ;IHS/OIT/MRS:BAR*1.8*10 H831                
  D                           ;IHS/OIT/MRS:BAR*1.8*10 H831

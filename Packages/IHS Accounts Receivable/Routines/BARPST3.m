@@ -1,10 +1,11 @@
 BARPST3 ; IHS/SD/LSL - PAYMENT COMMAND PROCESSOR ; 12/29/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,7,10,20,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,7,10,20,21,23**;OCT 26, 2005
  ;** 'Select Command' processor
  ; IHS/SD/PKD  1.8*21 HEAT20490 - 3/18/11
  ; Prevent Cashier from continuing to post in the same Session
  ;   if Session t
- ;   
+ ; JUL 2012 P.OTTIS HEAT#76683 LIMIT COMMAND FORMAT & LENGTH  
+ ; APR 2013 CONDITIONAL DISPLAY OF TXD AND MESSSAGES 
  ; ********************************************************************
  ;
 EN ;EP - command processor
@@ -39,10 +40,18 @@ ASKCOM ;EP - select command
  W !
  ; -------------------------------
 ASKCOM1 ;
+ I $$NOTOPEN^BARUFUT(.DUZ,$G(UFMSESID)) Q  ;IS SESSION STILL OPEN
  K REVERSAL,REVSCHED  ;BAR*1.8*4 SCR56,SCR58
  W !,"Select Command (Line # "_BARLIN_") : "
  ;IHS/SD/TPF BAR*1.8*21 8/3/2011 HEAT 20490
- I $$NOTOPEN^BARUFUT(.DUZ,$G(UFMSESID)) Q  ;IS SESSION STILL OPEN
+ ;-------
+ ;K DIR
+ ;S DIR(0)="FAO"
+ ;S DIR("A")="Select Command (Line # "_BARLIN_") "
+ ;S DIR("T")=DTIME
+ ;D ^DIR
+ ;K DIR
+ ;S BARCOM=$$UPC^BARUTL(X)
  R BARCOM:DTIME
  S BARCOM=$$UPC^BARUTL(BARCOM)
 0 ;start new code IHS/SD/SDR bar*1.8*4 DD item 4.1.7.1
@@ -61,8 +70,8 @@ ASKCOM1 ;
  .D ^DIR K DIR
  ;end new code IHS/SD/SDR bar*1.8*4 DD item 4.1.7.1
  S Q=0
- F J=1:1 D  Q:Q
- .S BARCOM(J)=$P(BARCOM,",",J)
+ F J=1:1 D  Q:Q  ;P.OTTIS HEAT#76683
+ .S BARCOM(J)=$E($P(BARCOM,",",J)) ;TAKE FIRST CHAR
  .Q:$L(BARCOM(J))
  .K BARCOM(J)
  .S J=J-1
@@ -84,9 +93,7 @@ ASKCOM1 ;
  I J=1,BARCOM(J)="T" D  G ASKCOM
  .S Y=$$DSPLY^BARPST4(BARLIN)
  .D EOP^BARUTL(1)
- I J=1,BARCOM(J)="H" D  G ASKCOM
- .S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
- .D EN^BARPST5(BARBLDA)
+ I J=1,BARCOM(J)="H" D HISTORY^BARBAD3 G ASKCOM
  ; -------------------------------
 GOQ ;
  ;I J=1,BARCOM(J)="Q" G:BARCNT>1 EN1 G FINISH    ;BAR*1.8*4 DD 4.1.7.2
@@ -123,31 +130,36 @@ B I J=2,BARCOM(1)="P" D  G:'BARAMT ASKCOM D SETTMP^BARPST3A(BARTYP,BARAMT,BARLIN
 ASKAMT ;
  S (BARCAT,BARATYP)=""
  S BARASK=$S(BARTYP="P":"Payment ",BARTYP="A":"Adjustment ",1:"")_"Amount: "
- W !,BARASK R X:DTIME
- ;S X=$$AMT^BARPSTU(X)  ;bar*1.8*20
+ ;W !,BARASK R X:DTIME
+ K DIR
+ S DIR(0)="FAO"
+ S DIR("A")=BARASK
+ S DIR("T")=DTIME
+ D ^DIR
+ K DIR
  S X=$$AMT^BARPSTU(X,-9999999.99,9999999.99)  ;bar*1.8*20
  I X="^" G ASKCOM
  I X="?" W *7,"  Must be a valid number!" G ASKAMT
  S BARAMT=X
  ;IHS/SD/TPF BAR*1.8*3 UFMS REQUEST FOR REVERSAL RECEIPT
- ;ONLY FOR IHS AFFILIATED SITES
- ;I $$IHS^BARUFUT(DUZ(2)),(BARAMT<0),(BARTYP="P") D  G:'REVERSAL!$D(DTOUT)!$D(DUOUT)!(Y="") ASKCOM  ;bar*1.8*20
- I $$IHS^BARUFUT(DUZ(2)),(+BARAMT<0),(BARTYP="P") D  G:'REVERSAL!$D(DTOUT)!$D(DUOUT)!(Y="") ASKCOM  ;bar*1.8*20
- .K REVERSAL,REVSCHED,REVERS
- .S REVERS=$$REVERSAL()
- .S REVERSAL=$P(REVERS,U)
- .S REVSCHED=$P(REVERS,U,2)
- .S Y=$G(Y)                                ;BAR*1.8*4 DD 4.1.7.3
+ ;ONLY FOR IHS AFFILIATED SITES AND TRIBALS WITH FLAG 'RESTRICT POSTING NEG BAL'
+ I $$IHS^BARUFUT(DUZ(2)),(+BARAMT<0),(BARTYP="P") D  G:'REVERSAL!$D(DTOUT)!$D(DUOUT)!(Y="") ASKCOM  ;bar*1.8*20 OTT
+ . ;;;I $$IHSERA^BARUFUT(DUZ(2)),(+BARAMT<0),(BARTYP="P") D  G:'REVERSAL!$D(DTOUT)!$D(DUOUT)!(Y="") ASKCOM  ;bar*1.8*20 OTT
+ . K REVERSAL,REVSCHED,REVERS
+ . S REVERS=$$REVERSAL()
+ . S REVERSAL=$P(REVERS,U)
+ . S REVSCHED=$P(REVERS,U,2)
+ . S Y=$G(Y)                                ;BAR*1.8*4 DD 4.1.7.3
  ;END IHS/SD/TPF BAR*1.8*3, BAR*1.8*4
  ;ONLY ALLOW ZERO DOLLAR PAYMENTS ON NONPAYMENT BATCHES; BAR*1.8*4 DD4.1.5.6
  ;
- ;I $$IHS^BARUFUT(DUZ(2)),(BARAMT'=0),(BARTYP="P"),$P(BARCOL(0),U,28)["NONP" D  G ASKCOM  ;MRS:BAR*1.8*7 IM??
- I $$IHS^BARUFUT(DUZ(2)),(+BARAMT'=0),(BARTYP="P"),$P(BARCOL(0),U,28)["NONP" D  G ASKCOM  ;MRS:BAR*1.8*7 IM??
- .W !!,"You can not post a payment of anything other than $0 if the TDN is NONPAYMENT"
- .D EOP^BARUTL(1)
+ I $$IHS^BARUFUT(DUZ(2)),(+BARAMT'=0),(BARTYP="P"),$P(BARCOL(0),U,28)["NONP" D  G ASKCOM  ;MRS:BAR*1.8*7 IM?? OTT
+ . ;;;I $$IHSERA^BARUFUT(DUZ(2)),(+BARAMT'=0),(BARTYP="P"),$P(BARCOL(0),U,28)["NONP" D  G ASKCOM  ;MRS:BAR*1.8*7 IM?? OTT
+ . W !!,"You can not post a payment of anything other than $0 if the TDN is NONPAYMENT"
+ . D EOP^BARUTL(1)
  ;
  I BARTYP="P" D  G S1
- .S BARCAT=$O(^BAR(90052.01,"B","PAYMENT TYPE",""))
+ . S BARCAT=$O(^BAR(90052.01,"B","PAYMENT TYPE",""))
  ;
  ;** adjustment category/type dialog
  S DIC=90052.01
@@ -325,6 +337,7 @@ REVHDR ;EP - REVERSAL HEADER
  Q
 CKNEG(LIN) ;EP; CHECK FOR NEGATIVE BALANCE  ;BAR*1.8*4 DD 4.1.7.2
  Q:'$$IHS^BARUFUT(DUZ(2))              ;IGNORE NON-IHS
+ ;;;Q:'$$IHSERA^BARUFUT(DUZ(2))              ; OTT
  N BARDA,BARB
 REDO S BARDA=$O(^BARTMP($J,"B",LIN,""))
  S BARB=$P(^BARTMP($J,BARDA,LIN),U,5)
@@ -361,3 +374,4 @@ EXCHK(BARDA,TX) ; BAR*1.8*6 DD 4.2.6
  ..I $P(BARTR(BARLIN,X),U,5)=TX S Z=0
  I 'Z S BARNOTZ=1                         ;SET FLAG FOR DISPLAY MESSAGE
  Q Z
+ ;*********************************************

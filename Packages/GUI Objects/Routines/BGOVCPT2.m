@@ -1,5 +1,5 @@
-BGOVCPT2 ; IHS/BAO/TMD - Manage V CPT PART 2 ;20-Jun-2011 09:51;DU
- ;;1.1;BGO COMPONENTS;**1,3,5,6,8,9**;Mar 20, 2007
+BGOVCPT2 ; IHS/BAO/TMD - Manage V CPT PART 2 ;25-Feb-2013 15:56;DU
+ ;;1.1;BGO COMPONENTS;**1,3,5,6,8,9,12**;Mar 20, 2007;Build 5
  ;---------------------------------------------
  ; Lookup CPT code for input
  ;  INP = Lookup Text [1] ^ Use Lexicon [2] ^ Date [3] ^ Exclude Med [4] ^ Exclude Surg [5] ^
@@ -36,17 +36,18 @@ CPTLKUP(RET,INP) ;EP
  ..Q:CODE=""
  ..S CODE=$O(^ICPT("B",CODE,0))
  ..D:CODE CHKHITS(CODE)
- E  I $G(DUZ("AG"))="I"  D
- .K ^TMP("XTLKHITS",$J)
- .S DIC="^ICPT(",DIC(0)="TM",XTLKSAY=0,X=LKUP
- .D ^DIC
- .I Y'=-1 D
- ..D CHKHITS(Y)
- .E  D
- ..S BGO=0
- ..F  S BGO=$O(^TMP("XTLKHITS",$J,BGO)) Q:'BGO  D
- ...D CHKHITS($G(^TMP("XTLKHITS",$J,BGO)))
- .K ^TMP("XTLKHITS",$J)
+ ;Patch 12, removed this lookup because duplicates are needed
+ ;E  I $G(DUZ("AG"))="I"  D
+ ;.K ^TMP("XTLKHITS",$J)
+ ;.S DIC="^ICPT(",DIC(0)="TM",XTLKSAY=0,X=LKUP
+ ;.D ^DIC
+ ;.I Y'=-1 D
+ ;..D CHKHITS(Y)
+ ;.E  D
+ ;..S BGO=0
+ ;..F  S BGO=$O(^TMP("XTLKHITS",$J,BGO)) Q:'BGO  D
+ ;...D CHKHITS($G(^TMP("XTLKHITS",$J,BGO)))
+ ;.K ^TMP("XTLKHITS",$J)
  E  D
  .D FIND^DIC(81,,".01;2","M",LKUP,,,,,"RES")
  .Q:'$O(RES("DILIST",0))

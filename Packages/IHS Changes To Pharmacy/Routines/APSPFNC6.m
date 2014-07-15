@@ -1,9 +1,12 @@
-APSPFNC6 ;IHS/MSC/PLS - Prescription Creation Support ;22-Sep-2011 14:35;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1011,1012**;Sep 23, 2004;Build 5
+APSPFNC6 ;IHS/MSC/PLS - Prescription Creation Support ;11-Sep-2013 10:08;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1011,1012,1016**;Sep 23, 2004;Build 74
  ;=================================================================
  ;Returns string containing the possible pickup locations
-GPKUP(DATA,USR,OI) ; EP -
- N AUTORX,RET,C,CRX,RSCH
+GPKUP(DATA,USR,OI,ORDER) ; EP -
+ N AUTORX,RET,C,CRX,RSCH,OKERX,AUTOOR
+ S ORDER=$G(ORDER),AUTOOR=-1
+ ;IHS/MSC/MGH 1016 If the order number is sent in and the order is e-prescribed, then renewals must be electronic.
+ S:ORDER'="" AUTOOR=$$CHKERX(ORDER)
  S C=$$GET^XPAR("ALL","APSP AUTO RX CII PRESCRIBING")
  S CRX=$$GET^XPAR("ALL","APSP AUTO RX ERX OF CS II")
  S AUTORX=+$$GET^XPAR("ALL","APSP AUTO RX")
@@ -12,14 +15,23 @@ GPKUP(DATA,USR,OI) ; EP -
  .S RET="CMW"
  E  I AUTORX=1 D  ;Internal and External Pharmacy
  .I '$$ERXUSER(USR) D  ;User not able to select E
- ..S RET="CMWP"
+ ..S RET=$S(AUTOOR>0:"CP",1:"CMWP")
  .E  D
- ..S RET="CMWP"_$S($L(RSCH)&($$ERXOI(OI,RSCH)):"",$$ERXOI(OI,"2"):$S(CRX:"E",1:""),1:"E")
+ ..;IHS/MSC/MGH Patch 1016 Changes to incorporate ERX field
+ ..S OKERX=$$OKTOUSE(OI,RSCH)
+ ..I '+OKERX D
+ ...S RET=$S(AUTOOR>0:"CP",'AUTOOR:"CMW",1:"CMWP")
+ ..E  D
+ ...S RET=$S(AUTOOR>0:"CP",'AUTOOR:"CMW",1:"CMWP")
+ ...I AUTOOR'=0 S RET=RET_$S(OKERX=1:"E",$L(RSCH)&($$ERXOI(OI,RSCH)):"",$$ERXOI(OI,"2"):$S(CRX:"E",1:""),1:"E")
  E  I AUTORX=2 D  ;External Pharmacy
  .I '$$ERXUSER(USR) D  ;User not able to select E
  ..S RET="CP"
  .E  D
- ..S RET="CP"_$S($L(RSCH)&($$ERXOI(OI,RSCH)):"",$$ERXOI(OI,"2"):$S(CRX:"E",1:""),1:"E")
+ ..;IHS/MSC/MGH Patch 1016 Changes to incorporate ERX field
+ ..S OKERX=$$OKTOUSE(OI,RSCH)
+ ..I '+OKERX S RET="CP"
+ ..E  S RET="CP"_$S(OKERX=1:"E",$L(RSCH)&($$ERXOI(OI,RSCH)):"",$$ERXOI(OI,"2"):$S(CRX:"E",1:""),1:"E")
  S DATA=RET
  Q
  ; Returns ability of user to e-prescribe
@@ -64,3 +76,35 @@ CKRXACT(RX,REASON,TYPE) ;EP-
  .Q:PT=""
  .S:TYPE[PT RES=1
  Q RES
+ ;Returns if this drug is OK to send as a eRX
+OKTOUSE(OI,RSCH) ;function call
+ N RES,IEN,STOP,POI,NODE
+ S RES=1
+ I $L(RSCH)&($$ERXOI(OI,RSCH)) Q 0
+ S POI=$P($P($G(^ORD(101.43,OI,0)),U,2),";",1)
+ I POI="" Q RES
+ S IEN="" F  S IEN=$O(^PSDRUG("ASP",POI,IEN)) Q:IEN=""!(RES=0)  D
+ .S NODE=$G(^PSDRUG(IEN,0))
+ .Q:NODE=""
+ .I $P($G(^PSDRUG(IEN,999999935)),U,3)=1 S RES=0
+ Q RES
+CHKERX(ORDER) ;Find out if ORDER was an eRX one
+ N VALUE,RX
+ S VALUE=0,ORDER=$P(ORDER,";")
+ S RX="" S RX=$O(^PSRX("APL",ORDER,RX))
+ Q:RX="" VALUE
+ S VALUE=+$$GET1^DIQ(52,RX,9999999.23,"I")
+ Q VALUE
+ ; Return long name of drug
+ ; Input: Order File IEN
+GETLONG(RET,ORDER) ;EP-
+ N DRUG
+ S RET=""
+ S DRUG=$$VALUE^ORCSAVE2(ORDER,"DRUG")
+ Q:'+DRUG
+ S RET=$$GET1^DIQ(50,DRUG,9999999.352)
+ Q
+ ; Return long name of drug
+ ; Input: Drug File IEN
+GETLNGDG(DRUG) ;EP-
+ Q $$GET1^DIQ(50,DRUG,9999999.352)

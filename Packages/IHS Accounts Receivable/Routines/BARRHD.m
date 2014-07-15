@@ -1,12 +1,13 @@
 BARRHD ; IHS/SD/LSL - Report Header Generator ; 07/28/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,6,10,19**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,6,10,19,23*;OCT 26, 2005
  ;
  ; TMM 07/25/2010 V1.8*19
  ;     - Modify A/R Statitical Report to allow user to
  ;     filter specific (Employer) Group Plans when
  ;     BILLING ENTITY/6)SELECT A SPECIFIC A/R ACCOUNT
  ;      - Allow user to select report to print in printer OR delimited file format
- ;
+ ;JUL 2013 P.OTTIS ADDED SUPPORT FOR ICD-10
+ ;         FIXED DUPLICATE DX IN BAR("HD")
  ; *********************************************************************
  ;
 HD ;EP for setting Report Header
@@ -26,9 +27,6 @@ BIL ; EP
  ; Billing entity parameters
  S BAR("LVL")=0
  S BAR("CONJ")="for "
- ;---BEGIN ADD(1)--->  ;M819*ADD*TMM*201007259
- ;I $D(BARY("ACCT")) S BAR("TXT")=BARY("ACCT","NM") Q     ;M819*DEL*TMM*20100729
- ;M819*DEL*TMM*20100816  I $D(BARY("ACCT")) D  Q
  I $G(BAR("OPT"))="STA",$D(BARY("ACCT")) D  Q           ;M819*ADD*TMM*20100816
  . S BARTMPG=$S($G(BARY("GRP PLAN"))>0:"GROUPS: ",1:"GROUP: ")
  . S BAR("TXT")=BARY("ACCT","NM")_"     "_BARTMPG
@@ -39,19 +37,9 @@ BIL ; EP
  ... S BARGPCNT=BARGPCNT+1
  ... I BARGPCNT'=1 S BAR("TXT")=BAR("TXT")_","
  ... S BAR("TXT")=BAR("TXT")_$G(BARY("GRP PLAN",BARGRP))
- ;-----END ADD(1)--->  ;M819*ADD*TMM*20100725
  S BAR("TXT")="ALL"
  I $D(BARY("PAT")) S BAR("TXT")=$P(^DPT(BARY("PAT"),0),U) Q
  I $D(BARY("TYP")) D
- . ;I BARY("TYP")="R" S BAR("TXT")="MEDICARE" Q
- . ;I BARY("TYP")="D" S BAR("TXT")="MEDICAID" Q
- . ;I BARY("TYP")="W" S BAR("TXT")="WORKMEN'S COMP" Q
- . ;I BARY("TYP")["W" S BAR("TXT")="PRIVATE+WORKMEN'S COMP" Q
- . ;I BARY("TYP")["P" S BAR("TXT")="PRIVATE INSURANCE" Q
- . ;I BARY("TYP")="N" S BAR("TXT")="NON-BENEFICIARY PATIENTS" Q
- . ;I BARY("TYP")="I" S BAR("TXT")="BENEFICIARY PATIENTS" Q
- . ;I BARY("TYP")="K" S BAR("TXT")="CHIP" Q
- . ;BEGIN NEW CODE BAR*1.8*6  DD 4.1.1 IM21585
  . I BARY("TYP")=(U_"R"_U_"MD"_U_"MH"_U) S BAR("TXT")="MEDICARE" Q
  . I BARY("TYP")=(U_"D"_U) S BAR("TXT")="MEDICAID" Q
  . I BARY("TYP")=(U_"W"_U) S BAR("TXT")="WORKMEN'S COMP" Q
@@ -60,8 +48,8 @@ BIL ; EP
  . I BARY("TYP")=(U_"N"_U) S BAR("TXT")="NON-BENEFICIARY PATIENTS" Q
  . I BARY("TYP")=(U_"I"_U) S BAR("TXT")="BENEFICIARY PATIENTS" Q
  . I BARY("TYP")=(U_"K"_U) S BAR("TXT")="CHIP" Q
+ . I BARY("TYP")=(U_"V"_U) S BAR("TXT")="VETERANS" Q
  . I BARY("TYP")=(U_"G"_U) S BAR("TXT")="OTHER" Q
- . ;END NEW CODE
  . S BAR("TXT")="UNSPECIFIED"
  S BAR("TXT")=BAR("TXT")_" BILLING SOURCE(S)"
  Q
@@ -111,27 +99,20 @@ XIT ;
  ; *********************************************************************
  ;
 CHK ; EP
- I ($L(BAR("HD",BAR("LVL")))+1+$L(BAR("CONJ"))+$L(BAR("TXT")))<($S($D(BAR(132)):104,1:52)+$S(BAR("LVL")>0:28,1:0)) S BAR("HD",BAR("LVL"))=BAR("HD",BAR("LVL"))_" "_BAR("CONJ")_BAR("TXT")
- ;E  S BAR("LVL")=BAR("LVL")+1,BAR("HD",BAR("LVL"))=BAR("CONJ")_BAR("TXT")      ;M819*DEL*TMM*20100731
- E  S BAR("LVL")=BAR("LVL")+1,BAR("HD",BAR("LVL"))=BAR("CONJ")_BAR("TXT")_$$TEXTCK^BARDRST()   ;M819*ADD*TMM*20100731
+ I ($L(BAR("HD",BAR("LVL")))+1+$L(BAR("CONJ"))+$L(BAR("TXT")))<($S($D(BAR(132)):104,1:52)+$S(BAR("LVL")>0:28,1:0)) D
+ . S BAR("HD",BAR("LVL"))=BAR("HD",BAR("LVL"))_" "_BAR("CONJ")_BAR("TXT")
+ . Q
+ E  S BAR("LVL")=BAR("LVL")+1,BAR("HD",BAR("LVL"))=BAR("CONJ")_BAR("TXT")_$$TEXTCK^BARDRST()
  Q
  ; *********************************************************************
  ;
 WHD ;EP for writing Report Header
- ;W $$EN^BARVDF("IOF"),!   ;M819*DEL*TMM*20100731
- ;I $D(BAR("PRIVACY")) W ?($S($D(BAR(132)):34,1:8)),"WARNING: Confidential Patient Information, Privacy Act Applies",!
- ;I $D(BAR("PRIVACY")) W ?($S($D(BAR(132)):34,$D(BAR(180)):68,1:8)),"WARNING: Confidential Patient Information, Privacy Act Applies",!  ;BAR*1.8*6 ITEM 2  ;M819*DEL*TMM*20100731
- ; ---BEGIN ADD(1)--->  ;M819*ADD*TMM*20100731
  W $$EN^BARVDF("IOF"),!             ;not a delimited file
  I $D(BAR("PRIVACY")),$G(BARTEXT)'=1 W ?($S($D(BAR(132)):34,$D(BAR(180)):68,1:8)),"WARNING: Confidential Patient Information, Privacy Act Applies",!  ;BAR*1.8*6 ITEM 2
  I $D(BAR("PRIVACY")),$G(BARTEXT)=1 W "^","WARNING: Confidential Patient Information, Privacy Act Applies",!  ;BAR*1.8*6 ITEM 2
- ; -----END ADD(1)--->  ;M819*ADD*TMM*20100731
  K BAR("LINE")
- ;S $P(BAR("LINE"),"=",$S($D(BAR(133)):132,1:81))=""
  S $P(BAR("LINE"),"=",$S($D(BAR(133)):132,$D(BAR(180)):181,1:81))=""  ;BAR*1.8*6 ITEM 2  ;M819*DEL*TMM*20100731
  W BAR("LINE"),!
- ;W BAR("HD",0),?$S($D(BAR(132)):102,1:51)
- ;W BAR("HD",0),?$S($D(BAR(132)):102,$D(BAR(180)):150,1:51)  ;BAR*1.8*6 ITEM 2  ;M819*DEL*TMM*20100731
  I $G(BARTEXT)'=1 W BAR("HD",0),?$S($D(BAR(132)):102,$D(BAR(180)):150,1:51)  ;BAR*1.8*6 ITEM 2  ;M819*DEL*TMM*20100731
  I $G(BARTEXT)=1 W BAR("HD",0),"^^^^"  ;BAR*1.8*6 ITEM 2  ;M819*ADD*TMM*20100731  adv to column 6
  D NOW^%DTC
@@ -139,12 +120,8 @@ WHD ;EP for writing Report Header
  X ^DD("DD")
  W $P(Y,":",1,2),"   Page ",BAR("PG")
  I $G(BARTEXT)=1 W "^"     ;M819*ADD*TMM*20100731
- ;F I=1:1:BAR("LVL") W:$G(BAR("HD",BAR("LVL")))]"" !,BAR("HD",I)
- ;BEGIN BAR*1.8*1 SRS ADDENDUM
- ;CHANGE MADE TO ACCOMODATE DECIMALS IN THE HEADER LEVELS. EASIER TO ADD LEVELS
  S BAR("TMPLVL")=0
  F  S BAR("TMPLVL")=$O(BAR("HD",BAR("TMPLVL"))) Q:'BAR("TMPLVL")&(BAR("TMPLVL")'=0)  W:$G(BAR("HD",BAR("TMPLVL")))]"" !,BAR("HD",BAR("TMPLVL"))
- ;END BAR*1.8*1 SRS ADDENDUM
  W !,BAR("LINE")
  K BAR("LINE")
  Q
@@ -159,8 +136,8 @@ ALLOW ; EP
  . I BARY("ALL")=1!(BARY("ALL")="R") S BAR("TXT")="MEDICARE" Q
  . I BARY("ALL")=2!(BARY("ALL")="D") S BAR("TXT")="MEDICAID" Q
  . I BARY("ALL")=3!(BARY("ALL")="P") S BAR("TXT")="PRIVATE INSURANCE" Q
- . ;I BARY("ALL")=4!(BARY("ALL")="K") S BAR("TXT")="CHIP" Q
- . I BARY("ALL")=4!(BARY("ALL")="O") S BAR("TXT")="OTHER" Q  ;BAR*1.8*6 DD 4.1.1 IM21585
+ . I BARY("ALL")=4!(BARY("ALL")="V") S BAR("TXT")="VETERANS" Q
+ . I BARY("ALL")=5!(BARY("ALL")="O") S BAR("TXT")="OTHER" Q  ;BAR*1.8*6 DD 4.1.1 IM21585
  . S BAR("TXT")="OTHER"
  S BAR("TXT")=BAR("TXT")_" ALLOWANCE CATEGORY(S)"
  S BAR("TXT")=BAR("TXT")_$$TEXTCK^BARDRST()   ;formatting if delimited file M819*ADD*TMM*20100731
@@ -175,23 +152,43 @@ DSCHG ;
  S BAR("TXT")=BAR("TXT")_" Discharge Services"
  S BAR("CONJ")="for "
  D CHK
+ S BAR("TXT")=""
+ S BAR("CONJ")=""
  Q
  ; ********************************************************************
  ;
 DX ;
- ; Diagnosis Range
+ ; Diagnosis Range modified P.OTT
+ NEW BARICDVR,BARTMP1
+ S BARTMP1=0
+ I $G(BARY("DXTYPE"))="P" S BARTMP1=1
+ I $G(BARY("DXTYPE"))="O" S BARTMP1=2
+ I $G(BARY("DXTYPE"))="A" S BARTMP1=3
  S BAR("CONJ")="for "
- S BAR("TXT")="ALL Primary Diagnosis"
- I $D(BARY("DX")) D
+ F BARICDVR="DX9","DX10" D DX01
+ Q
+DX01 I $D(BARY(BARICDVR,1)) D  ;P.OTT
  . S BAR("CONJ")="for "
- . S BAR("TXT")="Primary Diagnosis"
+ . S BAR("TXT")=$P("Primary;Primary Only;Other Only;ALL (Primary and Other);",";",BARTMP1+1)_" Diagnosis ICD-"_$TR(BARICDVR,"DX") ;P.OTT
  . D CHK
  . S BAR("CONJ")="from "
- . S BAR("TXT")=BARY("DX",1)
+ . S BAR("TXT")=BARY(BARICDVR,1)
  . D CHK
  . S BAR("CONJ")="to "
- . S BAR("TXT")=BARY("DX",2)
+ . S BAR("TXT")=BARY(BARICDVR,2)
  D CHK
+ I $D(BARY(BARICDVR,3)) D
+ . S BAR("CONJ")="for "
+ . I $D(BARY(BARICDVR,1)) S BAR("CONJ")="and for "
+ . S BAR("TXT")="Individual "_$P("Primary;Primary Only;Other Only;ALL (Primary and Other);",";",BARTMP1+1)_" Diagnosis ICD-"_$TR(BARICDVR,"DX") ;P.OTT
+ . D CHK
+ . N BARDX,BARAPP
+ . S BARDX="" F  S BARDX=$O(BARY(BARICDVR,3,BARDX)) Q:BARDX=""  D
+ . . S BAR("TXT")=BARDX
+ . . S BAR("CONJ")=""
+ . . D CHK
+ S BAR("TXT")=""  ;
+ S BAR("CONJ")=""
  Q
  ; ********************************************************************
  ;
@@ -201,4 +198,6 @@ ITYP ; EP
  S BAR("TXT")="ALL"
  S:$D(BARY("ITYP")) BAR("TXT")=BARY("ITYP","NM")
  S BAR("TXT")=BAR("TXT")_" INSURER TYPE(S)"
+ S BAR("TXT")=""  ;
+ S BAR("CONJ")=""
  Q

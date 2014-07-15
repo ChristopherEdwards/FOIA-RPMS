@@ -1,5 +1,5 @@
-BGOICDLK ; IHS/BAO/TMD - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;01-Jun-2011 13:24;DU
- ;;1.1;BGO COMPONENTS;**1,3,6,8,9**;Mar 20, 2007
+BGOICDLK ; IHS/BAO/TMD - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;29-Oct-2013 13:00;DU
+ ;;1.1;BGO COMPONENTS;**1,3,6,8,9,12**;Mar 20, 2007;Build 5
  ;---------------------------------------------------------------
  ; Lookup ICD's matching input
  ;  INP = Lookup Value [1] ^ Use Lexicon [2] ^ Visit Date [3] ^
@@ -8,8 +8,9 @@ BGOICDLK ; IHS/BAO/TMD - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;01-Jun-2011 13:
  ;         VCodes = 0: include, 1: exclude, 2: only vcodes
  ;  Returned as a list of records in the format:
  ;    Descriptive Text [1] ^ ICD IEN [2] ^ Narrative Text [3] ^ ICD Code [4]
+ ;  Patch 12 updated for new ICD lookup
 ICDLKUP(RET,INP) ;PEP - ICD lookup
- N LKUP,VDT,SEX,ECD,VCD,CNT,DIC,X,Y,I,ICD,LEX,RES
+ N LKUP,VDT,SEX,ECD,VCD,CNT,DIC,X,Y,I,ICD,LEX,RES,IEN
  N AICDRET,XTLKSAY,REC,DESC,CODE,NARR
  S RET=$$TMPGBL^BGOUTL
  S LKUP=$P(INP,U)
@@ -31,22 +32,32 @@ ICDLKUP(RET,INP) ;PEP - ICD lookup
  ..S:'ICD ICD=$O(^ICD9("BA",X_" ",0))
  ..D:ICD CHKHITS
  E  I $G(DUZ("AG"))="I"  D
- .S DIC="^ICD9(",DIC(0)="TM",X=LKUP,XTLKSAY=0
- .K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
- .D ^DIC
- .I Y'=-1 D
- ..S ICD=+Y
- ..D CHKHITS
- .E  I $G(^DD(80,0,"DIC"))="XTLKDICL" D
- ..D XTLKUP
- .E  D AICDLKUP
- .I 'CNT,$L(LKUP)>2 D
- ..N LK,LN
- ..S LK=LKUP,LN=$L(LKUP)
- ..F  D  S LK=$O(^ICD9("BA",LK)) Q:$E(LK,1,LN)'=LKUP
- ...S ICD=0
- ...F  S ICD=$O(^ICD9("BA",LK,ICD)) Q:'ICD  D CHKHITS
- .K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
+ .I $$AICD^BGOUTL2 D          ;Patch 12
+ ..N HITS
+ ..S HITS=0
+ ..K ^TMP("ICD9")
+ ..S HITS=$$LKTX^ICDEX(LKUP,"ICD9(",VDT,1,1,2)
+ ..I HITS>0 D
+ ...S X=0 F  S X=$O(^TMP("ICD9",$J,"SEL",X)) Q:X=""  D
+ ....S ICD=$P($G(^TMP("ICD9",$J,"SEL",X)),U,1)
+ ....D CHKHITS
+ .E  D
+ ..S DIC="^ICD9(",DIC(0)="TM",X=LKUP,XTLKSAY=0
+ ..K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
+ ..D ^DIC
+ ..I $P(Y,U,1)'=-1 D
+ ...S ICD=+Y
+ ...D CHKHITS
+ ..E  I $G(^DD(80,0,"DIC"))="XTLKDICL" D
+ ...D XTLKUP
+ ..E  D AICDLKUP
+ ..I 'CNT,$L(LKUP)>2 D
+ ...N LK,LN
+ ...S LK=LKUP,LN=$L(LKUP)
+ ...F  D  S LK=$O(^ICD9("BA",LK)) Q:$E(LK,1,LN)'=LKUP
+ ....S ICD=0
+ ....F  S ICD=$O(^ICD9("BA",LK,ICD)) Q:'ICD  D CHKHITS
+ ..K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
  E  D
  .D FIND^DIC(80,,".01;10","M",LKUP,,,,,"RES")
  .I '$O(RES("DILIST",0)) Q
@@ -70,9 +81,14 @@ CHKHITS Q:$D(@RET@(0,ICD))  S ^(ICD)=""
  .S IEN=$$ICDDX^ICDCODE(ICD,VDT)
  .I IEN>0&($P(IEN,U,10)=1) D     ;PATCH 8
  ..S CNT=CNT+1
- ..;Patch 9
- ..S NARR=$G(^ICD9(ICD,1))
- ..I NARR="" S NARR=$P(IEN,U,4)
+ ..;Patch 12
+ ..I $$AICD^BGOUTL2 S NARR=$$LD^ICDEX(80,IEN,VDT)
+ ..E  D
+ ...;Patch 9
+ ...S NARR=$G(^ICD9(ICD,1))
+ ...I NARR="" S NARR=$P(IEN,U,4)
+ ..I 'ECD,$E($P(IEN,U,2))="E" Q
+ ..I ECD=2,$E($P(IEN,U,2))'="E" Q
  ..S @RET@(CNT)=$P(IEN,U,4)_U_ICD_U_NARR_U_$P(IEN,U,2)
  E  D
  .S REC=$G(^ICD9(ICD,0))
@@ -89,7 +105,7 @@ CHKHITS Q:$D(@RET@(0,ICD))  S ^(ICD)=""
  Q
  ; Retrieve diagnosis list
 DXLIST(RET,INP) ;PEP - retrieve dx list
- N LKUP,VDT,SEX,ECD,VCD
+ N LKUP,VDT,SEX,ECD,VCD,MAX,MORE
  S LKUP=$P(INP,U)
  S MAX=$P(INP,U,2)
  S MORE=$P(INP,U,3)

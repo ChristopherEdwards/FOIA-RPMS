@@ -1,5 +1,5 @@
 ABSPOSJ1 ;IHS/SD/lwj - NCPDP 5.1 pre and post init for V1.0 patch 3 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**3,6,12,14,16,17,24,28,29,31,32,36,37,38,39,42,43,44,45**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**3,6,12,14,16,17,24,28,29,31,32,36,37,38,39,42,43,44,45,46**;Jun 21,2001
  ;
  ; Pre and Post init routine use in absp0100.03k
  ;------------------------------------------------------------------
@@ -113,6 +113,11 @@ DELFLD(FLDNUM) ;
  S FDA(9002313.0201,MEDIEN_","_CLMIEN_",",FLDNUM)=""
  D FILE^DIE("","FDA","MSG")
  S FND=1              ;we found at least 1
+ Q
+POST46 ; IHS/OIT/RCS 11/28/2012 Patch 46 Add the Maximum Dollar Limit, Unsuppress Fields 147,384 for Medicare Part D plans
+ D DOL^ABSPOSJ2
+ D MCAR^ABSPOSJ2
+ D POST45
  Q
 POST45 ; IHS/OIT/RCS 11/28/2012 Patch 45 Add the ICD10 General default date
  D DEF^ABSPOSJ2

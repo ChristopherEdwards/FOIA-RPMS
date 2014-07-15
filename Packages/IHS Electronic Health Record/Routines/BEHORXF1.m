@@ -1,5 +1,5 @@
-BEHORXF1 ;MSC/IND/PLS - XML Support for Pharmacy Rx Gen service ;02-Jul-2013 16:31;DU
- ;;1.1;BEH COMPONENTS;**009007,009009**;Sep 18, 2007
+BEHORXF1 ;MSC/IND/PLS - XML Support for Pharmacy Rx Gen service ;22-Aug-2013 10:07;DU
+ ;;1.1;BEH COMPONENTS;**009007,009009,009010**;Sep 18, 2007
  ;=================================================================
  ; RPC: BEHORXF1 SFMTXML
  ; Save prescription xml format
@@ -53,12 +53,12 @@ VALQUE(DATA,ORLST) ;EP-
  .S PSIFN=+$G(^OR(100,+ID,4))
  .Q:'PSIFN
  .S STS=$$GET1^DIQ(100,+ID,5)
+ .S OI=$$VALUE^ORCSAVE2(+ID,"ORDERABLE")
  .I STS="ACTIVE" D
+ ..Q:('$$ERXOI^APSPFNC6(OI,"2345"))&('$$GET^XPAR("ALL","BEHORX AUTO-RECEIPT"))&(+$P($G(^PSRX(PSIFN,999999921)),U,4))
  ..S ATF=$P($G(^PSRX(PSIFN,999999921)),U,3)
  ..D:ATF ADDID(ID)
  .E  I STS="PENDING" D
- ..S OI=$$VALUE^ORCSAVE2(+ID,"ORDERABLE")
- ..;Q:'$$ERXOI^APSPFNC6(OI,"2")
  ..Q:'$$ERXOI^APSPFNC6(OI,"2"_$S($$GET^XPAR("ALL","BEHORX PRINT QUEUE C35"):"345",1:""))
  ..D ADDID(ID)
  Q
@@ -111,7 +111,7 @@ BATCHXML(DATA,ORDARY,DFN) ;EP-
  D ADD($$TAG("Batch",0))
  D RXSXML(.ORDARY)
  D ORDSXML(.ORDARY)
- D RECSXML(.ORDARY)
+ I $$GET^XPAR("ALL","BEHORX AUTO-RECEIPT") D RECSXML(.ORDARY)
  D ADD($$TAG("Batch",1))
  Q
 RXSXML(ORDARY) ;EP-Build Prescription xml
@@ -134,14 +134,15 @@ ORDSXML(ORDARY) ;EP-Build Order XML
  D ADD($$TAG("Orders",1))
  Q
 RECSXML(ORDARY) ;EP-Build Receipt XML
+ N ID
  N PNM
  S PNM=$$GET1^DIQ(2,DFN,.01)
  S PNM=$P(PNM,",",2)_" "_$P(PNM,",")
  D ADD($$TAG("Transactions",0))
  D ADD($$TAG("PatientName",2,PNM))
- D BLDPT^BEHORXF1(DFN,"")
- D BLDPTADD^BEHORXF1(DFN)
- D DATA^BEHORXF1(DFN)
+ D BLDPT^BEHORXF2(DFN,"")
+ D BLDPTADD^BEHORXF2(DFN)
+ D DATA^BEHORXF2(DFN)
  S LP=0 F  S LP=$O(ORDARY(LP)) Q:LP=""  D
  .S ID=+ORDARY(LP)
  .S PSIFN=$$GETPSIFN^BEHORXFN(+ORDARY(LP))
@@ -167,7 +168,7 @@ ISA(TYPE,ID) ;EP-
  Q RET
  ; Add XML record for a prescription
 RXXML(RX,ORDID,ADDHDR) ;EP-
- N RXINFO,PRVIEN,QTY,QTYW,INI,PHMI,DRUG,DISPU
+ N RXINFO,PRVIEN,QTY,QTYW,RRIEN,SSNUM,INI,PHMI,DRG,LNAME,DRUG,DISPU,RXDIV
  K ^TMP("PS",$J)
  D OEL^PSOORRL(DFN,RX)
  S DRUG=$$GET1^DIQ(52,RX,6,"I")
@@ -178,11 +179,13 @@ RXXML(RX,ORDID,ADDHDR) ;EP-
  S $P(RXINFO,U,10)=RX_"R;O"
  S $P(RXINFO,U,13)=$$GET1^DIQ(59,+$$LOC^APSPFNC2(+ORDID),.01)
  S $P(RXINFO,U,14)=$$NDCVAL^APSPFUNC(RX)
+ S RRIEN=$$VALUE^ORCSAVE2(+ORDID,"SSRREQIEN")
+ S SSNUM=$$GET1^DIQ(9009033.91,RRIEN,.1)
  D:$G(ADDHDR) ADD($$TAG("Prescription"))
  D ADD($$TAG("PatientName",2,$$GET1^DIQ(2,DFN,.01)))
- D BLDPT(DFN,RX)
- D BLDPTADD(DFN)
- D DATA(DFN)
+ D BLDPT^BEHORXF2(DFN,RX)
+ D BLDPTADD^BEHORXF2(DFN)
+ D DATA^BEHORXF2(DFN)
  D ADD($$TAG("Chronic",2,$$GET1^DIQ(52,RX,9999999.02)))
  D ADD($$TAG("DAW",2,$S($$GETDAW^BEHORXFN(ORDID):"Yes",1:"No")))
  D ADD($$TAG("DaysSupply",2,$P(RXINFO,U,7)))
@@ -193,7 +196,7 @@ RXXML(RX,ORDID,ADDHDR) ;EP-
  D ADD($$TAG("OrderLocation",2,$$GET1^DIQ(100,ORDID,6)))
  D ADD($$TAG("DEA",2,$$GET1^DIQ(50,$$GET1^DIQ(52,RX,6,"I"),3)))
  D ADD($$TAG("Instruct",2,$$RXINSTR()))
- D ADD($$TAG("Comment",2,$$ORDCOM(ORDID)))
+ D ADD($$TAG("NotesToPharmacist",2,$$ORDCOM(ORDID)))
  D ADD($$TAG("IssueDate",2,$$FMTE^XLFDT($P(RXINFO,U,5),9)))
  ;D ADD($$TAG("LastFill",2,$$FMTE^XLFDT($P(RXINFO,U,12),9)))
  ;D ADD($$TAG("NDC",2,$P(RXINFO,U,14)))
@@ -203,7 +206,7 @@ RXXML(RX,ORDID,ADDHDR) ;EP-
  D ADD($$TAG("OrderableItem",2,$$GET1^DIQ(101.43,$$VALUE^ORCSAVE2(ORDID,"ORDERABLE"),.01)))
  D ADD($$TAG("PharmSite",2,$P(RXINFO,U,13)))  ;name
  D ADD($$TAG("Provider",2,$P($P(RXINFO,U,9),"~",2)))
- D PROV(PRVIEN,ORDID)
+ D PROV^BEHORXF2(PRVIEN,ORDID)
  S QTY=$P(RXINFO,U,8),QTYW=$$WRDFMT^APSPFNC7(QTY)
  ;D ADD($$TAG("Quantity",2,QTY_"("_QTYW_")"))
  ; DKA 2013-02-25 artf13536 Don't add parentheses if Quantity-In-Words is blank for decimal value.
@@ -211,12 +214,27 @@ RXXML(RX,ORDID,ADDHDR) ;EP-
  D ADD($$TAG("Refills",2,$P(RXINFO,U,4)))
  ;D ADD($$TAG("RxNum",2,$P(RXINFO,U,2)))
  D ADD($$TAG("RxNorm",2,$$GETRXNRM^BEHORXFN(ORDID,RX)))
+ I SSNUM'="" D ADD($$TAG("RxRefNum",2,SSNUM))
+ I SSNUM'="" D
+ .N Z,ZZZ,RSCH
+ .S RSCH=$$GET^XPAR("ALL","APSP AUTO RX SCHEDULE RESTRICT")
+ .S Z=$$ISSCH^APSPFNC2(DRUG,RSCH)
+ .Q:Z=0
+ .S ZZZ=$$GET1^DIQ(9009033.91,RRIEN,.03,"I")
+ .I ZZZ=5 D ADD($$TAG("C2Msg",2,"This is in response to an electronic refill renewal request for a controlled substance."))
  ;D ADD($$TAG("Status",2,$P(RXINFO,U,6)))
  ;D ADD($$TAG("StopDate",2,$$FMTE^XLFDT($P(RXINFO,U,3),9)))
  D ADD($$TAG("ProcessState",2,$$PSTATE^BEHORXFN(RX)))
  D ADD($$TAG("NeedsReason",2,$$GETNDRSN($$PSTATE^BEHORXFN(RX))))
+ S DRG=$$GET1^DIQ(52,RX,6,"I")
+ S LNAME=""
+ S LNAME=$$GET1^DIQ(50,DRG,9999999.352)
+ D ADD($$TAG("TransmittedDrugName",2,$S(LNAME'="":LNAME,1:$$GET1^DIQ(52,RX,6))))
  D ADD($$TAG("Date_Time",2,$$XMTDATE^BEHORXRT(RX)))
  S INI=$$GET1^DIQ(44,$$GET1^DIQ(52,RX,5,"I"),3,"I")
+ I INI="" D
+ .S RXDIV=$$GET1^DIQ(52,RX,20,"I")
+ .S INI=$$GET1^DIQ(44,$$GET1^DIQ(9009033,RXDIV,317,"I"),3,"I")
  D INST2^BEHORXRT(INI)
  S PHMI=$$GET1^DIQ(52,RX,9999999.24,"I")
  D PHARM2^BEHORXRT(PHMI)
@@ -224,12 +242,12 @@ RXXML(RX,ORDID,ADDHDR) ;EP-
  Q
  ; Add XML record for an order
 ORDXML(ORD) ;EP-
- N POF,DEA,PRVIEN,QTY,QTYW,INI,PHMI,DRUG,DISPU
+ N POF,DEA,PRVIEN,QTY,QTYW,INI,DRUG,DISPU
  D ADD($$TAG("Order"))
  D ADD($$TAG("PatientName",2,$$GET1^DIQ(2,DFN,.01)))
- D BLDPT(DFN)
- D BLDPTADD(DFN)
- D DATA(DFN)
+ D BLDPT^BEHORXF2(DFN)
+ D BLDPTADD^BEHORXF2(DFN)
+ D DATA^BEHORXF2(DFN)
  D ADD($$TAG("Chronic",2,$S($$VALUE^ORCSAVE2(ORD,"CMF")["Y":"True",1:"False")))
  D ADD($$TAG("DAW",2,$S($$VALUE^ORCSAVE2(ORD,"DAW"):"Yes",1:"No")))
  D ADD($$TAG("DaysSupply",2,$$VALUE^ORCSAVE2(ORD,"SUPPLY")))
@@ -243,7 +261,7 @@ ORDXML(ORD) ;EP-
  S DRUG=$$VALUE^ORCSAVE2(ORD,"DRUG")
  D ADD($$TAG("DEA",2,$$GET1^DIQ(50,DRUG,3)))
  D ADD($$TAG("OrderableItem",2,$$GET1^DIQ(101.43,$$VALUE^ORCSAVE2(ORD,"ORDERABLE"),.01)))
- D ADD($$TAG("Comment",2,$$ORDCOM(ORD)))
+ D ADD($$TAG("NotesToPharmacist",2,$$ORDCOM(ORD)))
  S POF=$$POFIEN(ORD)
  I POF D
  .D ADD($$TAG("Provider",2,$$GET1^DIQ(52.41,POF,5)))
@@ -256,7 +274,7 @@ ORDXML(ORD) ;EP-
  .;D ADD($$TAG("PharmID",2,$P(RXINFO,U,10)))
  .;D ADD($$TAG("PharmSite",2,$P(RXINFO,U,13)))  ;ien
  .S PRVIEN=$$GET1^DIQ(52.41,POF,5,"I")
- .D PROV(PRVIEN,ORD)
+ .D PROV^BEHORXF2(PRVIEN,ORD)
  .S QTY=$$GET1^DIQ(52.41,POF,12),QTYW=$$WRDFMT^APSPFNC7(QTY)
  .S DISPU=$$GET1^DIQ(50,$$VALUE^ORCSAVE2(ORD,"DRUG"),14.5)
  .;D ADD($$TAG("Quantity",2,QTY_"("_QTYW_")"))
@@ -340,10 +358,6 @@ TMPGBL() N GBL
  ; Returns NEEDREASON value
 GETNDRSN(PROCESS) ;EP-
  Q $S(PROCESS="P":"True",PROCESS="E":"True",1:"False")
- ; Returns Provider information
-PRVINFO(USR,FLD,FLG) ;EP-
- S FLG=$G(FLG,"E")
- Q $$GET1^DIQ(200,USR,FLD,FLG)
  ; RPC: Return a set of hospital locations
 HOSPLOC(DATA,FROM,DIR,MAX,TYPE,START,END) ;EP
  N IEN,CNT,APT
@@ -369,43 +383,3 @@ ACTLOC(LOC,DAT) ;PEP - Is active location?
  Q:'X 1                                                                ; No inactivate date
  Q:DAT'<$P(X,U)&($P(X,U,2)=""!(DAT<$P(X,U,2))) 0                       ; Check reactivate date
  Q 1                                                                   ; Must still be active
- ;Get patient data
-BLDPT(DFN,RX) ;
- N SSN
- S RX=$G(RX)
- I RX'="" D ADD($$TAG("PatientHRN",2,$$HRN^AUPNPAT3(DFN,$$GET1^DIQ(59,$$GET1^DIQ(52,RX,20,"I"),100,"I"))))
- I RX="" D ADD($$TAG("PatientHRN",2,$$HRN^AUPNPAT3(DFN,DUZ(2))))
- D ADD($$TAG("PatientDOB",2,$$FMTE^XLFDT($$GET1^DIQ(2,DFN,.03,"I"),9)))
- D ADD($$TAG("PatientGender",2,$$GET1^DIQ(2,DFN,.02)))
- D ADD($$TAG("PatientPhone",2,$$GET1^DIQ(2,DFN,.131)))
- S SSN=$$GET1^DIQ(2,DFN,.09)
- D ADD($$TAG("PatientLastFour",2,$$FMTSSN^APSPFUNC(SSN)))
- Q
- ; Build nodes for patient address
-BLDPTADD(DFN) ;
- D ADD($$TAG("PatientAddress1",2,$$GET1^DIQ(2,DFN,.111)))
- D ADD($$TAG("PatientAddress2",2,$$GET1^DIQ(2,DFN,.112)))
- D ADD($$TAG("PatientAddress3",2,$$GET1^DIQ(2,DFN,.113)))
- D ADD($$TAG("PatientCity",2,$$GET1^DIQ(2,DFN,.114)))
- D ADD($$TAG("PatientState",2,$$GET1^DIQ(2,DFN,.115)))
- D ADD($$TAG("PatientZipCode",2,$$GET1^DIQ(2,DFN,.116)))
- Q
-PROV(PRVIEN,ORD) ;
- N X
- D ADD($$TAG("ProviderDEA",2,$$DEAVAUS^APSPFUNC(PRVIEN)))
- ;D ADD($$TAG("ProvIEN",2,PRVIEN))
- D ADD($$TAG("ProviderPhone",2,$$PRVINFO(PRVIEN,.132)))
- D ADD($$TAG("ProviderFax",2,$$PRVINFO(PRVIEN,.136)))
- ;D ADD($$TAG("ProviderESig",2,$S($L($$PRVINFO(PRVIEN,20.4)):"Electronic Signature on File",1:"")))
- S X=$$PRVINFO(PRVIEN,20.2)
- D ADD($$TAG("ProviderESig",2,$S($L(X):"/ES/ "_X,1:"")))
- D ADD($$TAG("ProviderESigTitle",2,$$PRVINFO(PRVIEN,20.3)))
- D ADD($$TAG("ProviderNPI",2,$$PRVINFO(PRVIEN,41.99)))
- Q
- ;Get patient data
-DATA(DFN) ;
- D ADD($$TAG("Allergies",2,$$GETALG^BEHORXF2(DFN)))
- D ADD($$TAG("Weight",2,$$WEIGHT^BEHORXF2(DFN)))
- D ADD($$TAG("Height",2,$$HT^BEHORXF2(DFN)))
- D ADD($$TAG("BMI",2,$$BMI^BEHORXF2(DFN)))
- Q
