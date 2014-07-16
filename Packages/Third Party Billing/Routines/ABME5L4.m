@@ -1,6 +1,7 @@
 ABME5L4 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing;**6,8,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**6,8,10,11,13**;NOV 12, 2009;Build 213
  ;Header Segments
+ ;IHS/SD/SDR - 2.6*13 - Added DTP segments for Initial Treatment Date and Acute Manifestation Date
  ;
 START ;START HERE
  K ABMOUTLB
@@ -14,11 +15,21 @@ START ;START HERE
  .Q:$P(ABMB8,U,6)=$P(ABMB6,U)  ;IHS/SD/AML 6/13/2012
  .D EP^ABME5DTP(431,"D8",$P(ABMB8,U,6))
  .D WR^ABMUTL8("DTP")
+ ;start new code abm*2.6*13 exp mode 35 (454)
+ I $P(ABMB8,"^",23) D
+ .D EP^ABME5DTP(454,"D8",$P(ABMB8,"^",23))  ;Initial Treatment Date
+ .D WR^ABMUTL8("DTP")
+ ;end new code exp mode 35
  ;start new code abm*2.6*10 IHS/SD/AML HEAT79778
  I $P(ABMB9,"^",11) D
  .D EP^ABME5DTP(304,"D8",$P(ABMB9,"^",11))  ;Date last seen
  .D WR^ABMUTL8("DTP")
- .;end new code abm*2.6*10 IHS/SD/AML HEAT79778  
+ .;end new code abm*2.6*10 IHS/SD/AML HEAT79778
+ ;start new code abm*2.6*13 exp mode 35 (453)
+ I $P(ABMB7,"^",27) D
+ .D EP^ABME5DTP(453,"D8",$P(ABMB7,"^",27))  ;Acute Manifestation Date
+ .D WR^ABMUTL8("DTP")
+ ;end new code exp mode 35
  ;I $P(ABMB8,U,2) D  ;accident  ;abm*2.6*10 HEAT66142
  I $P(ABMB8,U,2),($P(ABMB8,U,3)'="") D  ;accident  ;abm*2.6*10 HEAT66142
  .D EP^ABME8DTP(439,"D8",$P(ABMB8,U,2))

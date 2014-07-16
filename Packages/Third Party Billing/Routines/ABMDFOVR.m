@@ -1,5 +1,5 @@
 ABMDFOVR ; IHS/ASDST/DMJ - Set Up Form Override ;   
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,13**;NOV 12, 2009;Build 213
  ;IHS/DSD/MRS - Added hcfa block 11c 11/25/1998
  ;
  ;IHS/SD/SDR - V2.5 P2 - 4/17/02 - NOIS LUA-0102-160077
@@ -7,14 +7,11 @@ ABMDFOVR ; IHS/ASDST/DMJ - Set Up Form Override ;
  ;    editing one line for box 24,32, and 33.  It now asks if you
  ;    would like to edit another line.
  ;
- ;IHS/SD/SDR - V2.5 P2 - 4/17/02 - NOIS NCA-1001-180096
- ;    Modified to correct so block 53 would print the correct info
+ ;IHS/SD/SDR - V2.5 P2 - 4/17/02 - NOIS NCA-1001-180096 - Modified to correct so block 53 would print correct info
+ ;IHS/SD/SDR - v2.5 p8 - task 8 - Added code to correct add/edit prompt for FL override
+ ;IHS/SD/SDR - v2.5 p13 - IM25365 - Added FL 32a/32b/33a/33b for export mode 27
  ;
- ; IHS/SD/SDR - v2.5 p8 - task 8
- ;   Added code to correct add/edit prompt for FL override
- ;
- ; IHS/SD/SDR - v2.5 p13 - IM25365
- ;   Added FL 32a/32b/33a/33b for export mode 27
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
 START ;start
  K DIC
@@ -32,19 +29,25 @@ STARTA K ABMLINE,ABMPIECE,ABMNM D @ABMBOX
  Q
 FORM ;select form
  S DIC="^ABMDEXP(",DIC(0)="AEMQ"
- S DIC("S")="I +Y=3!(+Y=14)!(+Y=27)"
+ ;S DIC("S")="I +Y=3!(+Y=14)!(+Y=27)"  ;abm*2.6*13 export mode 35
+ S DIC("S")="I +Y=3!(+Y=14)!(+Y=27)!(+Y=35)"  ;abm*2.6*13 export mode 35
  D ^DIC K DIC
  Q:+Y<0
  S ABMFORM=+Y
  Q
 INS ;select insurer
- S DIC="^ABMNINS(DUZ(2),"
+ ;S DIC="^ABMNINS(DUZ(2),"  ;abm*2.6*13 IHS/SD/AML HEAT132667
+ S DIC="^AUTNINS("  ;abm*2.6*13 IHS/SD/AML HEAT132667
  S DIC(0)="AEMQ"
  D ^DIC Q:+Y<0
  S ABMINS=+Y
  Q
 BOX ;select form locator
- S DIR(0)="S^10:RESERVED FOR LOCAL USE;11:BOX 11C - INSURANCE PLAN/PROGRAM NAME;19:RESERVED FOR LOCAL USE;24:LINE ITEMS;241:LINE 24, LINE 1 ITEM;32:WHERE SERVICES RENDERED;33:BILLING INFO",DIR("A")="Select Form Locator"
+ S DIR(0)="S^10:RESERVED FOR LOCAL USE;11:BOX 11C - INSURANCE PLAN/PROGRAM NAME;19:RESERVED FOR LOCAL USE;24:LINE ITEMS;241:LINE 24, LINE 1 ITEM;32:WHERE SERVICES RENDERED;33:BILLING INFO"
+ ;start new code abm*2.6*10 HEAT64983
+ I ABMFORM'=3  S DIR(0)="S^10:RESERVED FOR LOCAL USE;11:BOX 11C - INSURANCE PLAN/PROGRAM NAME;19:RESERVED FOR LOCAL USE;24:LINE ITEMS;241:LINE 24, LINE 1 ITEM;31:SIGNATURE OF PHYSICIAN;32:WHERE SERVICES RENDERED;33:BILLING INFO"
+ S DIR("A")="Select Form Locator"
+ ;end new code HEAT64983
  D ^DIR K DIR
  Q:'+Y
  S ABMBOX=+Y
@@ -88,7 +91,8 @@ FILE ;file in 3P Insurer file
  I ABMANS=2 D
  .W !,"Entry Deleted.",!
  .D EOP^ABMDUTL(1)
- I ABMNM["BOX 32"!(ABMNM["BOX 33")!(ABMNM["BOX 24") D
+ ;I ABMNM["BOX 32"!(ABMNM["BOX 33")!(ABMNM["BOX 24") D  ;abm*2.6*10 HEAT64983
+ I ABMNM["BOX 31"!(ABMNM["BOX 32")!(ABMNM["BOX 33")!(ABMNM["BOX 24") D  ;abm*2.6*10 HEAT64983
  .K DIR
  .S DIR(0)="Y"
  .S DIR("A")="EDIT ANOTHER LINE?"
@@ -115,7 +119,8 @@ FILE ;file in 3P Insurer file
 24 ;locator 24
  K DIR
  S DIR(0)="S^1:A1 - DOS FROM;2:A2 - DOS TO;3:B - POS;4:C - TOS;5:D - HCPCS;6:E - DIAGNOSIS;7:F - CHARGE;8:G - UNITS;9:H - EPSDT;10:I - EMG;11:J - COB;12:K - LOCAL USE"
- S:ABMFORM=27 DIR(0)="S^1:A1 - DOS FROM;2:A2 - DOS TO;3:B - POS;4:C - EMG;5:D - HCPCS;6:E - DIAGNOSIS;7:F - CHARGE;8:G - UNITS;9:H - EPSDT;10:I - QUALIFIER;11:J - PROVIDER#"
+ ;S:ABMFORM=27 DIR(0)="S^1:A1 - DOS FROM;2:A2 - DOS TO;3:B - POS;4:C - EMG;5:D - HCPCS;6:E - DIAGNOSIS;7:F - CHARGE;8:G - UNITS;9:H - EPSDT;10:I - QUALIFIER;11:J - PROVIDER#"  ;abm*2.6*13 export mode 35
+ S:ABMFORM=27!(ABMFORM=35) DIR(0)="S^1:A1 - DOS FROM;2:A2 - DOS TO;3:B - POS;4:C - EMG;5:D - HCPCS;6:E - DIAGNOSIS;7:F - CHARGE;8:G - UNITS;9:H - EPSDT;10:I - QUALIFIER;11:J - PROVIDER#"  ;abm*2.6*13 export mode 35
  S DIR("A")="Which Section?"
  D ^DIR K DIR
  Q:'Y
@@ -124,14 +129,38 @@ FILE ;file in 3P Insurer file
  S ABMNM="BOX 24 "_$S($G(Y(0)):Y(0),1:Y)
  Q
 241 ;location 24, line 1
+ ;IHS/SD/AML 7/18/2012 - Begin new code - Allow correct override for Shaded line in Box 24
+ K DIR
+ S DIR(0)="S^1:PIECE 1 - FREE TEXT;2:I - ID QUALIFIER;3:J - IDENTIFIER"
+ S DIR("A")="Which Section?"
+ D ^DIR K DIR
+ Q:'Y
  S ABMLINE=36
- S ABMPIECE=3
- S ABMNM="BOX 24, Line 1"
+ S ABMPIECE=+Y
+ S ABMNM="BOX 24, Line 1 "_$S($G(Y(0)):Y(0),1:Y)
+ ;IHS/SD/AML 7/18/2012 - End new code, begin old code
+ ;S ABMLINE=36
+ ;S ABMPIECE=3
+ ;S ABMNM="BOX 24, Line 1"
+ ;IHS/SD/AML 7/18/2012 - End old code
  Q
+ ;start new code abm*2.6*10 HEAT64983
+31 ;locator 31
+ K DIR
+ S DIR(0)="S^1:LINE 1;2:LINE 2"
+ S DIR("A")="Enter Line Number"
+ D ^DIR K DIR
+ Q:'Y
+ S ABMLINE=+Y+51
+ S ABMPIECE=1
+ S ABMNM="BOX 31 "_$S($G(Y(0)):Y(0),1:Y)
+ Q
+ ;end new code HEAT64983
 32 ;locator 32
  K DIR
  S DIR(0)="N^1:4"
- I ABMFORM=27 S DIR(0)="S^1:LINE 1;2:LINE 2;3:LINE 3;4:LINE 4 32A;5:LINE 4 32B"
+ ;I ABMFORM=27 S DIR(0)="S^1:LINE 1;2:LINE 2;3:LINE 3;4:LINE 4 32A;5:LINE 4 32B"  ;abm*2.6*13 export mode 35
+ I ABMFORM=27!(ABMFORM=35) S DIR(0)="S^1:LINE 1;2:LINE 2;3:LINE 3;4:LINE 4 32A;5:LINE 4 32B"  ;abm*2.6*13 export mode 35
  S DIR("A")="Enter Line Number"
  D ^DIR K DIR
  Q:'Y
@@ -145,7 +174,8 @@ FILE ;file in 3P Insurer file
 33 ;locator 33
  K DIR
  S DIR(0)="S^1:LINE 1;2:LINE 2;3:LINE 3;4:LINE 4 PIN#;5:LINE 4 GRP#"
- I ABMFORM=27 S DIR(0)="S^1:LINE 1;2:LINE 2;3:LINE 3;4:LINE 4 33A;5:LINE 4 33B"
+ ;I ABMFORM=27 S DIR(0)="S^1:LINE 1;2:LINE 2;3:LINE 3;4:LINE 4 33A;5:LINE 4 33B"  ;abm*2.6*13 export mode 35
+ I ABMFORM=27!(ABMFORM=35) S DIR(0)="S^1:LINE 1;2:LINE 2;3:LINE 3;4:LINE 4 33A;5:LINE 4 33B"  ;abm*2.6*13 export mode 35
  S DIR("A")="Enter Line Number"
  D ^DIR K DIR
  Q:'Y

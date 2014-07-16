@@ -1,5 +1,6 @@
 ABMDF34B ; IHS/SD/SDR - ADA 2012 Dental Export -part 3 ;    
- ;;2.6;IHS Third Party Billing;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**11,13**;NOV 12, 2009;Build 213
+ ;IHS/SD/SDR - 2.6*13 - VMBP RQMT_95 - Updated to put VA STATION NUMBER in box 2.
  ;
 INS ;Ins Info
  S ABM("I")=0
@@ -36,6 +37,11 @@ BNODES ; Bill nodes
  .S ABM("B8")=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),8))
  .S ABM("B9")=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9))
  S $P(ABMF(4),U)=$P(ABM("B5"),U,12)  ;Prior Auth(2)
+ ;start new code abm*2.6*13 VMBP RQMT_95
+ I ((ABMP("ITYP")="V")!($P($G(^AUTNINS(ABMP("INS"),0)),U)["VMBP"))&($P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)'="") D
+ .S $P(ABMF(4),U)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)  ;VA station# (2)
+ .S ABMF(41)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)  ;VA contract# (35)
+ ;end new code VMBP RQMT_95
  I $P(ABM("B9"),U)]"" S $P(ABMF(49),U,3)="X"  ;Occup. illness(45)
 ACCD ;Accident?
  I $P(ABM("B8"),U,3)'="" D

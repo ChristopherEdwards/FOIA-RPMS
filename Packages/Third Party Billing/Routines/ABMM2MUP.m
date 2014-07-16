@@ -1,5 +1,6 @@
 ABMM2MUP ;IHS/SD/SDR - MU Report Parameters ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,12**;NOV 12, 2009;Build 187
+ ;IHS/SD/SDR - 2.6*12 - Updated FQHC/RHC/Tribal to include Urban
  ;
  ;
  I $P($G(^ABMMUPRM(1,0)),U,2)'="" D  Q
@@ -18,7 +19,8 @@ ABMM2MUP ;IHS/SD/SDR - MU Report Parameters ;
  Q:Y<1
  D ^XBFMK
  S DIR(0)="Y"
- S DIR("A")="Do you wish to designate a Facility as an FQHC, RHC or Tribal clinic"
+ ;S DIR("A")="Do you wish to designate a Facility as an FQHC, RHC or Tribal clinic"  ;abm*2.6*12 include Urban
+ S DIR("A")="Do you wish to designate a Facility as an FQHC, RHC, Tribal or Urban clinic"  ;abm*2.6*12 include Urban
  D ^DIR K DIR
  Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  S ABMANS=+Y
@@ -39,7 +41,8 @@ EN ;
  ..D ^XBFMK
  ..S DIR(0)="SAO^"_$G(ABMDIR)
  ..;S DIR("A")="Select one or more facilities to designate as an FQHC or RHC: "  ;abm*2.6*10 HEAT61752
- ..S DIR("A")="Select one or more facilities to designate as an FQHC, RHC or Tribal clinic: "  ;abm*2.6*10 HEAT61752
+ ..;S DIR("A")="Select one or more facilities to designate as an FQHC, RHC or Tribal clinic: "  ;abm*2.6*10 HEAT61752  ;abm*2.6*12 include Urban
+ ..S DIR("A")="Select one or more facilities to designate as an FQHC, RHC, Tribal or Urban clinic: "  ;abm*2.6*10 HEAT61752  ;abm*2.6*12 include Urban
  ..D ^DIR K DIR
  ..Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  ..Q:+$G(Y)<0
@@ -48,7 +51,8 @@ EN ;
  ..D ^XBFMK
  ..S DIR(0)="Y"
  ..;S DIR("A")="Is this FQHC led by a PA? "  ;abm*2.6*10 HEAT61752
- ..S DIR("A")="Is this FQHC/RHC/Tribal clinic led by a PA? "  ;abm*2.6*10 HEAT61752
+ ..;S DIR("A")="Is this FQHC/RHC/Tribal clinic led by a PA? "  ;abm*2.6*10 HEAT61752  ;abm*2.6*12 include Urban
+ ..S DIR("A")="Is this FQHC/RHC/Tribal/Urban clinic led by a PA? "  ;abm*2.6*10 HEAT61752  ;abm*2.6*12 include Urban
  ..D ^DIR K DIR
  ..Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  ..S ABMF($G(ABMFLIST(ABMFANS)))=Y
@@ -57,7 +61,8 @@ EN ;
  ...F  S ABMCNT=$O(ABMF(ABMCNT)) Q:'ABMCNT  S ABMF($G(ABMFLIST(ABMFANS)))=ABMFANS2
  I $D(ABMF) D
  .;W !!!,"The following have been identified by you as FQHC/RHC facilities"  ;abm*2.6*10 HEAT61752
- .W !!!,"The following have been identified by you as FQHC/RHC/Tribal facilities"  ;abm*2.6*10 HEAT61752
+ .;W !!!,"The following have been identified by you as FQHC/RHC/Tribal facilities"  ;abm*2.6*10 HEAT61752  ;abm*2.6*12 include Urban
+ .W !!!,"The following have been identified by you as FQHC/RHC/Tribal/Urban facilities"  ;abm*2.6*10 HEAT61752  ;abm*2.6*12 include Urban
  .S ABMCNT=0
  .F  S ABMCNT=$O(ABMF(ABMCNT)) Q:'ABMCNT  D
  ..W !?2,$$GET1^DIQ(9999999.06,ABMCNT,.01,"E")
@@ -65,8 +70,13 @@ EN ;
  ..;W:+$G(ABMF(ABMCNT))=0 " (FQHC)"
  ..;W:+$G(ABMF(ABMCNT))=1 " (FQHC led by PA)"
  ..;end old code start new code HEAT61752
- ..W:+$G(ABMF(ABMCNT))=0 " (FQHC/RHC/Tribal)"
- ..W:+$G(ABMF(ABMCNT))=1 " (FQHC/RHC/Tribal led by PA)"
+ ..;start old code abm*2.6*12 include Urban
+ ..;W:+$G(ABMF(ABMCNT))=0 " (FQHC/RHC/Tribal)"
+ ..;W:+$G(ABMF(ABMCNT))=1 " (FQHC/RHC/Tribal led by PA)"
+ ..;end old code start new code include Urban
+ ..W:+$G(ABMF(ABMCNT))=0 " (FQHC/RHC/Tribal/Urban)"
+ ..W:+$G(ABMF(ABMCNT))=1 " (FQHC/RHC/Tribal/Urban led by PA)"
+ ..;end new code include Urban
  ..;end new code HEAT61752
  .D ^XBFMK
  .S DIR(0)="Y"

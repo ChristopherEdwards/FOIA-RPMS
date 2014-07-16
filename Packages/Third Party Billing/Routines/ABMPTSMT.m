@@ -1,7 +1,8 @@
 ABMPTSMT ; IHS/SD/SDR - Non-ben patient statement ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**3,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,10,11,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*p13 - HEAT116546 - shorten stmt by 5 lines to fit on 1 page
  ;
 MARG ;Set left and top margins
  S (ABM("LM"),ABM("TM"),ABM("LN"))=0
@@ -12,6 +13,7 @@ MARG ;Set left and top margins
  S ABMP("VTYP")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,7)
  S ABMP("BTYP")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,2)
  S ABMP("INS")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,8)
+ S (ABMP("ITYP"),ABMP("ITYPE"))=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,+ABMP("INS"),".211","I"),1,"I")  ;abm*2.6*13
  S ABMP("CLIN")=$P($G(^DIC(40.7,$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,10),0)),U,2)
  S ABMP("VDT")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U)
  S ABMP("EXP")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,6)  ;abm*2.6*10 HEAT72987
@@ -104,7 +106,8 @@ SLINES ;service lines
  ...I ABMII=23 D
  ....S ABMSCD=$P($G(ABMRV(ABMII,ABMJ,ABMK)),U,13)  ;pharmacy RX
  ....S ABMSDT=$$SDTO^ABMDUTL($S($P(ABMRV(ABMII,ABMJ,ABMK),U,10)'="":+$P(ABMRV(ABMII,ABMJ,ABMK),U,10),1:$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U)))
- ...I ABMI=25 S ABMSCD=$P($G(ABMRV(ABMII,ABMJ,ABMK)),U)  ;Rev code
+ ...;I ABMI=25 S ABMSCD=$P($G(ABMRV(ABMII,ABMJ,ABMK)),U)  ;Rev code  ;abm*2.6*13
+ ...I ABMII=25 S ABMSCD=$P($G(ABMRV(ABMII,ABMJ,ABMK)),U)  ;Rev code  ;abm*2.6*13
  ...S ABMDESC=$P($G(ABMRV(ABMII,ABMJ,ABMK)),U,9)
  ...I ABMII'=23&(ABMII'=33)&(ABMII'=25),($P(ABMRV(ABMII,ABMJ,ABMK),U,2)'="") S ABMDESC=$P($$CPT^ABMCVAPI(+$P(ABMRV(ABMII,ABMJ,ABMK),U,2),ABMP("VDT")),U,3)  ;CSV-c
  ...;I ABMI'=33&($A($E($P(ABMRV(ABMI,ABMJ,ABMK),U,2)))>64) S ABMDESC=$P($$CPT^ABMCVAPI($O(^ICPT("B",$P(ABMRV(ABMI,ABMJ,ABMK),U,2),0)),ABMP("VDT")),U,3)  ;CSV-c  ;abm*2.6*10
@@ -153,9 +156,11 @@ TOTAL ;total
  W ?20,"|"
  W ?50,"TOTAL CHARGES|"
  W ?67,"|",$J($FN(ABMTCHRG,",",2),10),"|",!
- I ABMLNCNT<20 D
+ ;I ABMLNCNT<20 D  ;abm*2.6*13 HEAT116546
+ I ABMLNCNT<15 D  ;abm*2.6*13 HEAT116546
  .S ABMLN=" |        |         |                                          |   |          |"
- .F ABMLNCNT=ABMLNCNT:1:20 W ABMLN,!
+ .;F ABMLNCNT=ABMLNCNT:1:20 W ABMLN,!  ;abm*2.6*13 HEAT116546
+ .F ABMLNCNT=ABMLNCNT:1:15 W ABMLN,!  ;abm*2.6*13 HEAT116546
  ;
 WCOVRG ; coverage info from bill
  D COVRG

@@ -1,5 +1,8 @@
 ABMM2PV5 ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,12**;NOV 12, 2009;Build 187
+ ;IHS/SD/SDR - 2.6*12 - Updated FQHC/RHC/Tribal to include Urban
+ ;IHS/SD/SDR - 2.6*12 - Made changes for uncompensated care; uncompensated should be a separate detail line
+ ;  and should be included in the patient volume total, not as a separate line.  Also initialized ABMFQHC variable.
  ;
 NOTMET ;EP
  S ABMCNT=0
@@ -14,7 +17,8 @@ NOTMET ;EP
  ..F  S ABMP("PRV")=$O(^XTMP("ABM-PVP2",$J,"PRV PERCENT",ABMDT,ABMP("PRV"))) Q:'ABMP("PRV")  D
  ...I ABMP("PRV")'=ABMPRV Q
  ...S ABMCNT=ABMCNT+1
- ...S ABMPRC($G(^XTMP("ABM-PVP2",$J,"PRV PERCENT",ABMDT,ABMPRV)),ABMCNT)=ABMDT
+ ...;S ABMPRC($G(^XTMP("ABM-PVP2",$J,"PRV PERCENT",ABMDT,ABMPRV)),ABMCNT)=ABMDT  ;abm*2.6*12 HEAT136326
+ ...S ABMPRC(+$G(^XTMP("ABM-PVP2",$J,"PRV PERCENT",ABMDT,ABMPRV)),ABMCNT)=ABMDT  ;abm*2.6*12 HEAT136326
  .S ABMP=""
  .S ABMSAV=ABMCNT-ABMY("TVDTS")
  .F  S ABMP=$O(ABMPRC(ABMP)) Q:ABMP=""  D
@@ -48,7 +52,14 @@ NOTMET ;EP
  S ABMSDT=0,ABMCNT=0
  S ABMDTCNT=0
  F  S ABMSDT=$O(^XTMP("ABM-PVP2",$J,"PRV-DENOM",ABMSDT)) Q:'ABMSDT  D
- .I ABMY("90")'="A"&(ABMY("SDT")'=ABMSDT) Q  ;only calculate whole year for automated
+ .;I ABMY("90")'="A"&(ABMY("SDT")'=ABMSDT) Q  ;only calculate whole year for automated  ;abm*2.6*12 uncomp care
+ .I "^A^D^"'[("^"_ABMY("90")_"^")&(ABMY("SDT")'=ABMSDT) Q  ;only whole year for automated ;abm*2.6*12 uncomp care
+ .;start new code abm*2.6*12 HEAT134048
+ .S X1=ABMY("SDT")
+ .S X2=275
+ .D C^%DTC
+ .I "^A^D^"[("^"_ABMY("90")_"^")&(ABMSDT>X) Q  ;275 days after start won't contain 90 days anymore
+ .;end new code HEAT134048
  .S ABMDTCNT=+$G(ABMDTCNT)+1
  .;
  .I $Y+5>IOSL D HD^ABMM2PV3,NMHDR Q:(IOST["C")&((+$G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
@@ -56,23 +67,30 @@ NOTMET ;EP
  .F  S ABMP("PRV")=$O(^XTMP("ABM-PVP2",$J,"PRV-DENOM",ABMSDT,ABMP("PRV"))) Q:'ABMP("PRV")  D
  ..I $Y+5>IOSL D HD^ABMM2PV3,NMHDR Q:(IOST["C")&((+$G(Y)=0)!($D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)))
  ..I ABMP("PRV")'=ABMPRV Q
- ..I +$G(ABMY("EDT"))=0 D
- ...S X1=ABMSDT
- ...S X2=89
- ...D C^%DTC
- ...S ABMEDT=X
- ..I +$G(ABMY("EDT"))'=0 S ABMEDT=ABMY("EDT")
+ ..;I +$G(ABMY("EDT"))=0 D
+ ..;.S X1=ABMSDT
+ ..;.S X2=89
+ ..;.D C^%DTC
+ ..;.S ABMEDT=X
+ ..;I +$G(ABMY("EDT"))'=0 S ABMEDT=ABMY("EDT")
+ ..S X1=ABMSDT
+ ..S X2=89
+ ..D C^%DTC
+ ..S ABMEDT=X
  ..S ABMPD=$TR($P($$MDT^ABMDUTL(ABMSDT),"-",1,2),"-"," ")_"-"_$TR($P($$MDT^ABMDUTL(ABMEDT),"-",1,2),"-"," ")  ;report period
  ..S ABMRT=$J($G(^XTMP("ABM-PVP2",$J,"PRV PERCENT",ABMSDT,ABMPRV)),5)_"%"  ;rate
  ..S ABMDEN=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-DENOM",ABMSDT,ABMPRV)),6)  ;denominator
  ..S ABMNUM=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM",ABMSDT,ABMPRV)),6)  ;numerator
  ..S ABMMCDPD=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,ABMPRV,"MCD")),6)
- ..S ABMSCHPD=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,ABMPRV,"CHIP")),6)
+ ..S ABMSCHPD=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,ABMPRV,"CHIP")),5)
  ..S ABMMCDZP=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,ABMPRV,"MCD")),6)
  ..S ABMMCDEN=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"MCD")),6)
- ..S ABMSCHZP=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,ABMPRV,"CHIP")),6)
- ..S ABMSCHEN=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"CHIP")),6)
- ..W !,ABMPD,?15,ABMRT,?20,ABMDEN,?28,ABMNUM,?35,ABMMCDPD,?41,ABMMCDZP,?50,ABMMCDEN,?57,ABMSCHPD,?63,ABMSCHZP,?73,ABMSCHEN
+ ..S ABMSCHZP=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,ABMPRV,"CHIP")),5)
+ ..S ABMSCHEN=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"CHIP")),5)
+ ..S ABMUNCOM=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM UNCOMP",ABMSDT,ABMPRV,"UNCOMP")),6)  ;abm*2.6*12
+ ..;W !,ABMPD,?15,ABMRT,?20,ABMDEN,?28,ABMNUM,?35,ABMMCDPD,?41,ABMMCDZP,?50,ABMMCDEN,?57,ABMSCHPD,?63,ABMSCHZP,?73,ABMSCHEN  ;abm*2.6*12
+ ..W !,ABMPD,?13,ABMRT,?20,ABMDEN,?27,ABMNUM,?34,ABMMCDPD,?41,ABMMCDZP,?48,ABMMCDEN,?55,ABMSCHPD,?62,ABMSCHZP,?67,ABMSCHEN  ;abm*2.6*12
+ ..I ABMFQHC=1 W ?74,ABMUNCOM  ;abm*2.6*12
  I ABMDTCNT=0 D
  .W !!, "<< NO DATA FOUND FOR SELECTION >>"
  Q
@@ -80,8 +98,15 @@ NMHDR ;EP
  W !
  F ABM=1:1:80 W "="
  W !,"MEDICAID"_$S($G(ABMFQHC)=1:"/NEEDY INDIVIDUAL",1:"")_" PATIENT VOLUME"_$S($G(ABMY("ADT"))="":" - QUALIFICATION YEAR "_ABMY("QYR"),1:"")
- W !,"Report Period",?15,"Rate",?21,"Denom-",?30,"Numer-",?38,"Mcd",?44,"Mcd",?52,"Mcd",?58,"Schip",?64,"Schip",?73,"Schip"
- W !?21,"inator",?30,"ator",?37,"Paid",?42,"ZeroPd",?49,"Enrolled",?59,"Paid",?64,"ZeroPd",?71,"Enrolled"
+ ;start old code abm*2.6*12 uncomp care
+ ;W !,"Report Period",?15,"Rate",?21,"Denom-",?30,"Numer-",?38,"Mcd",?44,"Mcd",?52,"Mcd",?58,"Schip",?64,"Schip",?73,"Schip"
+ ;W !?21,"inator",?30,"ator",?37,"Paid",?42,"ZeroPd",?49,"Enrolled",?59,"Paid",?64,"ZeroPd",?71,"Enrolled"
+ ;end old start new uncomp care
+ W !?20,"Denom-",?28,"Numer-",?34,"|    --Medicaid--    | --- Schip --- |"
+ I ABMFQHC=1 W ?73,"Uncomp-"
+ W !,"Report Period",?15,"Rate",?20,"inator",?28,"ator",?34,"|",?38,"Pd",?44,"ZP",?51,"En",?55,"|",?57,"Pd",?63,"ZP",?69,"En|"
+ I ABMFQHC=1 W ?73,"ensated"
+ ;end new uncomp care
  W !
  F ABM=1:1:80 W "="
  Q
@@ -107,6 +132,7 @@ HDR      ;EP
  W !
  D CENTER^ABMUCUTL("Report Generated by: "_$$GET1^DIQ(200,DUZ,.01,"E"))
  I ABM("PG")=1 D
+ .S ABMFQHC=0  ;abm*2.6*12
  .I ABMY("RTYP")'="HOS" D
  ..W !!,"Participation Year: ",ABMY("PYR")
  ..W:("^A^B^C^"[("^"_ABMY("90")_"^")) !,"Qualification Year: ",ABMY("QYR")
@@ -118,35 +144,46 @@ HDR      ;EP
  .I ("^F^H^"[("^"_$G(ABMY("A90"))_"^")) D
  ..W !,$S($G(ABMY("A90"))="F":"First",1:"Highest")_" Reporting Period Identified: "
  ..W $S(ABMSDT:$$SDT^ABMDUTL(ABMSDT),1:"")
+ ..;start new abm*2.6*12
+ ..S X1=$P(ABMSDT,".")
+ ..S X2=+89
+ ..D C^%DTC
+ ..W " thru "_$$SDT^ABMDUTL(X)
+ ..;end new abm*2.6*12
  .I ("^D^E^"[("^"_ABMY("90")_"^")) W !,$S($G(ABMY("90"))="D":"Automated",1:"Specified")_" 90-Day Period in last 12 months "
- .I ("^A^D^E^"'[("^"_ABMY("90")_"^")) W !,"Reporting Period Identified: ",$S(ABMSDT:$$SDT^ABMDUTL(ABMSDT)_" thru "_$$SDT^ABMDUTL(ABMEDT),ABMY("SDT"):$$SDT^ABMDUTL(ABMY("SDT"))_" thru "_$$SDT^ABMDUTL(ABMEDT),1:"NONE FOUND")
+ .;I ("^A^D^E^"'[("^"_ABMY("90")_"^")) W !,"Reporting Period Identified: ",$S(ABMSDT:$$SDT^ABMDUTL(ABMSDT)_" thru "_$$SDT^ABMDUTL(ABMEDT),ABMY("SDT"):$$SDT^ABMDUTL(ABMY("SDT"))_" thru "_$$SDT^ABMDUTL(ABMEDT),1:"NONE FOUND")  ;abm*2.6*12 HEAT134048
+ .;below line new abm*2.6*12 HEAT134048
+ .I ("^F^H^"'[("^"_$G(ABMY("A90"))_"^")) W !,"Reporting Period Identified: ",$S(ABMSDT:$$SDT^ABMDUTL(ABMSDT)_" thru "_$$SDT^ABMDUTL(ABMEDT),ABMY("SDT"):$$SDT^ABMDUTL(ABMY("SDT"))_" thru "_$$SDT^ABMDUTL(ABMEDT),1:"NONE FOUND")
  .I ABMY("RTYP")'="HOS" D
  ..W !,"Facility(s): ",!
  ..S ABML=0
- ..F  S ABML=$O(ABMF(ABML)) Q:'ABML  W ?10,$$GET1^DIQ(9999999.06,ABML,.01,"E"),$S($D(^ABMMUPRM(1,1,"B",ABML)):" (FQHC/RHC/Tribal)",1:""),! I $D(^ABMMUPRM(1,1,"B",ABML)) S ABMFQHC=1
+ ..;F  S ABML=$O(ABMF(ABML)) Q:'ABML  W ?10,$$GET1^DIQ(9999999.06,ABML,.01,"E"),$S($D(^ABMMUPRM(1,1,"B",ABML)):" (FQHC/RHC/Tribal)",1:""),! I $D(^ABMMUPRM(1,1,"B",ABML)) S ABMFQHC=1  ;abm*2.6*12 include Urban
+ ..F  S ABML=$O(ABMF(ABML)) Q:'ABML  W ?10,$$GET1^DIQ(9999999.06,ABML,.01,"E"),$S($D(^ABMMUPRM(1,1,"B",ABML)):" (FQHC/RHC/Tribal/Urban)",1:""),! I $D(^ABMMUPRM(1,1,"B",ABML)) S ABMFQHC=1  ;abm*2.6*12 include Urban
  .;
- .I $G(ABMFQHC)=1 D
- ..S ABMMPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,ABMPRV,"MCD"))
- ..S ABMMZPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,ABMPRV,"MCD"))
- ..S ABMMENR=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"MCD"))
- ..S ABMCPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,ABMPRV,"CHIP"))
- ..S ABMCZPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,ABMPRV,"CHIP"))
- ..S ABMCENR=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"CHIP"))
- ..S ABMOTHPD=+$G(^XTMP("ABM-PVP2",$J,"PRV ENC CNT",ABMSDT,ABMPRV,"OTHR"))
- ..S (ABMTENC,ABMDENOM)=+$G(^XTMP("ABM-PVP2",$J,"PRV-DENOM",ABMSDT,ABMPRV))
- ..I ABMY("RTYP")="GRP" D
- ...S ABMMPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,"MCD"))
- ...S ABMMZPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,"MCD"))
- ...S ABMMENR=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,"MCD"))
- ...S ABMCPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,"CHIP"))
- ...S ABMCZPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,"CHIP"))
- ...S ABMCENR=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,"CHIP"))
- ...S ABMOTHPD=+$G(^XTMP("ABM-PVP2",$J,"PRV ENC CNT",ABMSDT,"OTHR"))
- ...S (ABMTENC,ABMDENOM)=+$G(^XTMP("ABM-PVP2",$J,"PRV-DENOM",ABMSDT))
- ..S ABMUNCOM=ABMTENC-ABMMPD-ABMMZPD-ABMMENR-ABMCPD-ABMCZPD-ABMCENR-ABMOTHPD
- ..S ABMNUMER=ABMMPD+ABMMZPD+ABMMENR+ABMCPD+ABMCZPD+ABMCENR+ABMUNCOM
- ..S ABMTUNCR=$S(+$G(ABMDENOM)>0:(ABMNUMER/ABMDENOM),1:0)
- ..W !,"Uncompensated Care: ",$J(ABMTUNCR*100,0,1)_"%"
+ .;start old code abm*2.6*12 uncomp care
+ .;I $G(ABMFQHC)=1 D
+ .;.S ABMMPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,ABMPRV,"MCD"))
+ .;.S ABMMZPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,ABMPRV,"MCD"))
+ .;.S ABMMENR=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"MCD"))
+ .;.S ABMCPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,ABMPRV,"CHIP"))
+ .;.S ABMCZPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,ABMPRV,"CHIP"))
+ .;.S ABMCENR=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"CHIP"))
+ .;.S ABMOTHPD=+$G(^XTMP("ABM-PVP2",$J,"PRV ENC CNT",ABMSDT,ABMPRV,"OTHR"))
+ .;.S (ABMTENC,ABMDENOM)=+$G(^XTMP("ABM-PVP2",$J,"PRV-DENOM",ABMSDT,ABMPRV))
+ .;.I ABMY("RTYP")="GRP" D
+ .;..S ABMMPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,"MCD"))
+ .;..S ABMMZPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,"MCD"))
+ .;..S ABMMENR=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,"MCD"))
+ .;..S ABMCPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM PD",ABMSDT,"CHIP"))
+ .;..S ABMCZPD=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,"CHIP"))
+ .;..S ABMCENR=+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,"CHIP"))
+ .;..S ABMOTHPD=+$G(^XTMP("ABM-PVP2",$J,"PRV ENC CNT",ABMSDT,"OTHR"))
+ .;..S (ABMTENC,ABMDENOM)=+$G(^XTMP("ABM-PVP2",$J,"PRV-DENOM",ABMSDT))
+ .;.S ABMUNCOM=ABMTENC-ABMMPD-ABMMZPD-ABMMENR-ABMCPD-ABMCZPD-ABMCENR-ABMOTHPD
+ .;.S ABMNUMER=ABMMPD+ABMMZPD+ABMMENR+ABMCPD+ABMCZPD+ABMCENR+ABMUNCOM
+ .;.S ABMTUNCR=$S(+$G(ABMDENOM)>0:(ABMNUMER/ABMDENOM),1:0)
+ .;.W !,"Uncompensated Care: ",$J(ABMTUNCR*100,0,1)_"%"
+ .;end old code uncomp care
  .;
  .W !!,"SCHIP insurers included:"
  .I '$D(ABMI) W !?3,"<NONE>"

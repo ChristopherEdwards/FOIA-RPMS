@@ -1,5 +1,5 @@
 ABMDLCK ; IHS/ASDST/DMJ - Eligibility Checker ;    
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**13**;NOV 12, 2009;Build 213
  ;Original;TMD;
  ;
  ;This rtn expects that ABMVDFN, the visit file ien be defined
@@ -37,7 +37,6 @@ ABMDLCK ; IHS/ASDST/DMJ - Eligibility Checker ;
  ;
  ; IHS/SD/SDR - v2.5 p9 - IM19399
  ;    Added code to look at new worker's comp file for eligibility
- ;
  ; *********************************************************************
  ;
 ELG(ABMVDFN,ABML,DFN,ABMVDT) ;EP Entry point - Eligibility checker
@@ -120,9 +119,7 @@ ELG(ABMVDFN,ABML,DFN,ABMVDT) ;EP Entry point - Eligibility checker
  ...S $P(ABML(99,ABM("INS")),U,3)="M"
  ..S $P(ABML(99,ABM("INS")),U,6)=34
  E  I $D(ABML(ABM("PRI"),ABM("INS"))),ABM("PRI")<97 D
- .K ABML(99,ABM("INS"))
- K COV
- I $G(ABM("XIT")) D UNCHK^ABMDLCK2 Q
+ .K ABML(99,ABM("INS")) I $G(ABM("XIT")) D UNCHK^ABMDLCK2 Q
  I $G(ABM("XIT"))="A" K ABML(ABM("PRI"),ABM("INS"),"COV",ABM("CV"))
  Q
  ;

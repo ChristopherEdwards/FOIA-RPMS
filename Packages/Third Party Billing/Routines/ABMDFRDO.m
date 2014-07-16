@@ -1,5 +1,5 @@
 ABMDFRDO ; IHS/ASDST/DMJ - Re-Print Selected Bills ;    
- ;;2.6;IHS Third Party Billing System;**2,4,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing System;**2,4,11,13**;NOV 12, 2009;Build 213
  ;Original;TMD;02/21/96 12:13 PM
  ;
  ; IHS/SD/SDR - v2.5 p8 - IM14693/IM16105
@@ -7,6 +7,8 @@ ABMDFRDO ; IHS/ASDST/DMJ - Re-Print Selected Bills ;
  ;
  ; IHS/SD/SDR - v2.5 p11 - NPI
  ; IHS/SD/SDR - abm*2.6*2 - FIXPMS10006 - added prompt for DATE to use when reprinting
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35; Updated check to look for HCFA or CMS in the
+ ;  export name.
  ;
  K ABMY,ABMP
  S ABMP("XMIT")=0
@@ -66,9 +68,15 @@ ZIS ;EP
  I $P($G(^ABMDEXP(ABMY("EXP"),1)),"^",5)="E" D
  .K DIC,DIE,DIR,X,Y
  .S DIR("A")="**Use the following export mode: "
- .I $P(ABMY("FORM"),U,2)["HCFA" D
- ..S DIR("B")="1500 (08/05)"
- ..S DIR(0)="S^3:1500 B;14:1500 Y2K;27:1500 (08/05)"
+ .;I $P(ABMY("FORM"),U,2)["HCFA" D  ;abm*2.6*13 exp mode 35
+ .I $P(ABMY("FORM"),U,2)["HCFA"!($P(ABMY("FORM"),U,2)["CMS") D  ;abm*2.6*13 exp mode 35
+ ..;start old code abm*2.6*13 export mode 35
+ ..;S DIR("B")="1500 (08/05)"
+ ..;S DIR(0)="S^3:1500 B;14:1500 Y2K;27:1500 (08/05)"
+ ..;end old start new export mode 35
+ ..S DIR("B")="1500 (02/12)"
+ ..S DIR(0)="S^27:1500 (08/05);35:1500 (02/12)"
+ ..;end new export mode 35
  .I $P(ABMY("FORM"),U,2)["UB" D
  ..S DIR("B")="UB-04"
  ..S DIR(0)="S^11:UB-92;28:UB-04"
@@ -81,7 +89,8 @@ ZIS ;EP
  ..S DIR(0)="S^25:ADA-2002;29:ADA-2006;34:ADA-2012"
  ..;end new code
  .D ^DIR K DIR
- .I $P(ABMY("FORM"),U,2)["HCFA" S ABMY("FORM")=$S(Y=3:"3^HCFA-1500B",Y=14:"14^HCFA-1500 Y2K",1:"27^HCFA 1500 (08/05)")
+ .;I $P(ABMY("FORM"),U,2)["HCFA" S ABMY("FORM")=$S(Y=3:"3^HCFA-1500B",Y=14:"14^HCFA-1500 Y2K",1:"27^HCFA 1500 (08/05)")  ;abm*2.6*13 export mode 35
+ .I $P(ABMY("FORM"),U,2)["HCFA" S ABMY("FORM")=$S(Y=27:"27^HCFA 1500 (08/05)",1:"35^HCFA 1500 (02/12)")  ;abm*2.6*13 export mode 35
  .I $P(ABMY("FORM"),U,2)["UB" S ABMY("FORM")=$S(Y=11:"11^UB-92",1:"28^UB-04")
  .;I $P(ABMY("FORM"),U,2)["ADA" S ABMY("FORM")=$S(Y=25:"25^ADA-2002",1:"29^ADA-2012")  ;abm*2.6*11 new ADA form
  .I $P(ABMY("FORM"),U,2)["ADA" S ABMY("FORM")=$S(Y=25:"25^ADA-2002",Y=29:"29^ADA-2006",1:"34^ADA-2012")  ;abm*2.6*11 new ADA form I +ABMY("FORM")=2,$P($G(^ABMDPARM(DUZ(2),1,2)),9)=2 D  G XIT:$D(DIRUT)

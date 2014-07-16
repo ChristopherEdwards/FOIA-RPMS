@@ -1,5 +1,6 @@
 ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;    
- ;;2.6;IHS Third Party Billing;**1,2,4,6,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,2,4,6,9,10,11,13**;NOV 12, 2009;Build 213
+ ;IHS/SD/SDR -2.6*13 - HEAT117086 - T1015 should be top line for all Medicaid
  ;
 13 ; EP
  D 13^ABMDF28V
@@ -132,8 +133,9 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  S ABMPGTOT=ABMLCNT/22  ;# of pages
  I $P(ABMPGTOT,".",2)>0 S ABMPGTOT=(ABMPGTOT\1)+1
  K ABMLCNT
- ;start new code abm*2.6*11 HEAT91321
- ;I +$G(ABMCDNUM)'=0,($$GET1^DIQ(9000004,ABMCDNUM,".11","E")["IOWA MEDICAID") D
+ ;start new code abm*2.6*13 HEAT117086
+ S (ABMCTR,ABMRV("ZZTOT"),ABMRV("NCTOT"))=0
+ I ABMP("ITYPE")="D" D
  .K I,J,L
  .S I=0
  .S ABMFND=0
@@ -181,14 +183,6 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  .....S ABMDE=$S($L($P(ABMRV(I,J,L),U,2))>3:$P(ABMRV(I,J,L),U,2)_ABMMODL_"^30^14",$P(ABMRV(I,J,L),U,8)&(+$P(ABMRV(I,J,L),U,2)'=0):$J($P(ABMRV(I,J,L),U,8),1,2)_"^30^14R",+ABMMODL:$J(ABMMODL,1,2)_"^30^14",1:"")
  .....I $P($G(ABMRV(I,J,L)),U,14)'="",($P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),0)),U,24)="Y") S ABMDE="RX"_$P(ABMRV(I,J,L),U,14)_"^30^9"
  .....I ABMDE=""&($D(ABMP("FLAT"))!((I>99)&(I<250))) S ABMDE=$J($S($D(ABMP("FLAT")):$P(ABMP("FLAT"),U),1:$P(ABMRV(I,J,L),U,8)),1,2)_"^30^14"  ;default flat rate  ;new
- .....;start new abm*2.6*10 HEAT68319
- .....;I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,9)="A" D  ;abm*2.6*11 HEAT102837
- .....;.S ABMDENP=$P($G(^ABMDREC(ABMP("INS"),0)),U,2)  ;Dent remap
- .....;.S:ABMDENP="" ABMDENP=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,11)
- .....;.S:ABMDENP="" ABMDENP=$P($G(^ABMDPARM(DUZ(2),1,3)),U,11)
- .....;.I +$O(^AUTTADA("B",+$P(ABMDE,U),0))=0 Q  ;abm*2.6*11 HEAT102837
- .....;.S:ABMDENP]"" $P(ABMDE,U)=ABMDENP_$P(ABMDE,U)
- .....;end new HEAT68319
  .....D WRT^ABMDF28W
  .....S ABMDE=$$MDY^ABMDUTL($P(ABMRV(I,J,L),U,10))_"^45^6" ;DOS
  .....D WRT^ABMDF28W  ;FL #45
@@ -203,11 +197,11 @@ ABMDF28Y ; IHS/ASDST/DMJ - PRINT UB-04 ;
  ......S ABMDE=$TR(ABMDE,".")_"^71^9R"  ;Tot noncover chgs/item
  ......D WRT^ABMDF28W  ;FL #48
  ....S ABMFND=1
- ;end new code HEAT91321
+ ;end new code HEAT117086
  K I,J,L
  S I=0
  ;
- S (ABMCTR,ABMRV("ZZTOT"),ABMRV("NCTOT"))=0
+ ;S (ABMCTR,ABMRV("ZZTOT"),ABMRV("NCTOT"))=0  ;abm*2.6*13 HEAT117086
  S ABMPGCNT=1
  F  S I=$O(ABMRV(I)) Q:'I  D
  .S J=-1

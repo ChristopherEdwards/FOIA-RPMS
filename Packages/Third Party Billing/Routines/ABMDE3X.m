@@ -1,5 +1,5 @@
 ABMDE3X ; IHS/ASDST/DMJ - Edit Page 3 - ERROR CHK ;
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,10,13**;NOV 12, 2009;Build 213
  ;
  ; 03/10/04 V2.5 Patch 5 - 837 Modifications - Added errror code 192 for imprecise accident dates
  ; IHS/SD/SDR - v2.5 p5 - 5/17/2004 - Added code to check for error 193
@@ -12,6 +12,7 @@ ABMDE3X ; IHS/ASDST/DMJ - Edit Page 3 - ERROR CHK ;
  ; IHS/SD/SDR - v2.5 p11 - NPI
  ; IHS/SD/SDR -v2.5 p12 - IM23474 - Added warning if clinic is ER and admitting DX is missing
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - Added warning 238 if both disability dates aren't populated
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
  ; Rel of info, Assign of Benefits
  D QUES^ABMDE3:'$D(ABM("QU"))
@@ -19,6 +20,7 @@ ABMDE3X ; IHS/ASDST/DMJ - Edit Page 3 - ERROR CHK ;
  I $D(ABM("QU",2)),$D(^ABMDCLM(DUZ(2),ABMP("CDFN"),7)),$P(^(7),U,5)'="Y" S ABME(59)=""
  ; Having a date of accident and accident type determine Accident Related
  I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3) D
+ .I ($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)=5)&($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2)=""!($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,4)="")!($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,16)="")) S ABME(19)=""  ;abm*2.6*10 HEAT72979
  .I +$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2),$E($P(^(8),U,2),6,7)="00" S ABME(192)=""
  I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,8)'="" D
  .;I ABMP("EXP")=21!(ABMP("EXP")=22)!(ABMP("EXP")=23) D  ;abm*2.6*8 5010
@@ -31,7 +33,8 @@ ABMDE3X ; IHS/ASDST/DMJ - Edit Page 3 - ERROR CHK ;
  ...I $G(ABMPTAX)="" S ABME(202)=""
  ...I $G(ABMPTAX),$G(^ABMPTAX("A7",ABMPTAX))="" S ABME(202)=""
  .;I ABMP("EXP")=21!(ABMP("EXP")=22)!(ABMP("EXP")=23)!(ABMP("EXP")=27)!(ABMP("EXP")=28)!(ABMP("EXP")=29) D  ;abm*2.6*8 5010
- .I ABMP("EXP")=21!(ABMP("EXP")=22)!(ABMP("EXP")=23)!(ABMP("EXP")=27)!(ABMP("EXP")=28)!(ABMP("EXP")=29)!(ABMP("EXP")=31)!(ABMP("EXP")=32)!(ABMP("EXP")=33) D  ;abm*2.6*8 5010
+ .;I ABMP("EXP")=21!(ABMP("EXP")=22)!(ABMP("EXP")=23)!(ABMP("EXP")=27)!(ABMP("EXP")=28)!(ABMP("EXP")=29)!(ABMP("EXP")=31)!(ABMP("EXP")=32)!(ABMP("EXP")=33) D  ;abm*2.6*8 5010  ;abm*2.6*13 export mode 35
+ .I ABMP("EXP")=21!(ABMP("EXP")=22)!(ABMP("EXP")=23)!(ABMP("EXP")=27)!(ABMP("EXP")=28)!(ABMP("EXP")=29)!(ABMP("EXP")=31)!(ABMP("EXP")=32)!(ABMP("EXP")=33)!(ABMP("EXP")=35) D  ;abm*2.6*8 5010  ;abm*2.6*13 export mode 35
  ..S ABMNPIU=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))
  ..I ABMNPIU="N"!(ABMNPIU="B"),$D(ABM("QU",12)),($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,17)="") S ABME(223)=""  ;Ref prv NPI missing
  ..I ABMNPIU="N"!(ABMNPIU="B"),$D(ABM("QU",25)),($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),9)),U,12)'=""),($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),9)),U,25)="") S ABME(224)=""  ;sup prv NPI missing

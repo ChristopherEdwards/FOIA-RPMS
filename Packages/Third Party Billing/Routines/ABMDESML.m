@@ -1,17 +1,14 @@
 ABMDESML ; IHS/ASDST/DMJ - Summarized Claim LAB Charges ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**13**;NOV 12, 2009;Build 213
  ;
- ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164
- ;    Prompt/display provider
- ; IHS/SD/SDR - v2.5 p9 - task 1
- ;    Use new service line provider multiple
+ ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164 - Prompt/display provider
+ ; IHS/SD/SDR - v2.5 p9 - task 1 - Use new service line provider multiple
  ; IHS/SD/SDR - v2.5 p11 - NPI
- ; IHS/SD/SDR - v2.5 p12 - IM25331
- ;   Add provider taxonomy to CMS-1500 block 24K
- ; IHS/SD/SDR - v2.5 p13 - IM25899
- ;   Alignment changes
+ ; IHS/SD/SDR - v2.5 p12 - IM25331 - Add provider taxonomy to CMS-1500 block 24K
+ ; IHS/SD/SDR - v2.5 p13 - IM25899 - Alignment changes
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
 LAB ;EP for Lab Charges
  I $G(ABMP("VTYP",996)),'$G(ABMPRINT) Q:ABMP("VTYP",996)'=ABMP("EXP")
@@ -41,11 +38,13 @@ LABU S ABMX("R")=$P(ABMX(0),U,2) Q:ABMX("R")=""  D REVN
 LABH S ABMS(ABMS("I"))=ABMX("SUB")
  S ABMCAT=37 D HDT^ABMDESM1
  S ABMX("C")=$P(ABMX(0),U) D CPT S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,6)]"":"-"_$P(ABMX(0),U,6),1:"")_$S($P(ABMX(0),U,7)]"":"-"_$P(ABMX(0),U,7),1:"")_$S($P(ABMX(0),U,8)]"":"-"_$P(ABMX(0),U,8),1:"")
- I ABMP("EXP")=27 D
+ ;I ABMP("EXP")=27 D   ;abm*2.6*13 export mode 35
+ I ABMP("EXP")=27!(ABMP("EXP")=35) D   ;abm*2.6*13 export mode 35
  .S ABMX("C")=$P(ABMX(0),U) D CPT S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,6)]"":"   "_$P(ABMX(0),U,6),1:"")_$S($P(ABMX(0),U,7)]"":" "_$P(ABMX(0),U,7),1:"")_$S($P(ABMX(0),U,8)]"":" "_$P(ABMX(0),U,8),1:"")
  S $P(ABMS(ABMS("I")),"^",5)=$P(ABMX(0),"^",9)
  S $P(ABMS(ABMS("I")),U,6)=ABMZ("UNIT")
  S $P(ABMS(ABMS("I")),U,7)=5
+ S $P(ABMS(ABMS("I")),U,10)=$P($G(ABMX(0)),U,15)  ;POS  ;IHS/SD/AML 5/10/11 HEAT35787
  S $P(ABMS(ABMS("I")),U,8)=$P($$CPT^ABMCVAPI(+ABMX(0),ABMP("VDT")),U,3)  ;CSV-c
  S ABMX(0)=@(ABMP("GL")_"37,"_ABMX("X")_",0)")
  S ABMDPRV=$O(@(ABMP("GL")_"37,"_ABMX_",""P"",""C"",""R"",0)"))

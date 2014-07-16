@@ -1,5 +1,5 @@
 ABMDEVAR ; IHS/SD/SDR - SET UP CLAIM VARIABLES ;      
- ;;2.6;IHS Third Party Billing;**1,4,6,7,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,4,6,7,10,11,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/ASDS/DMJ - v2.4 p7 - 9/7/01 NOIS HQW-0701-100066
  ;     Modifications done related to Medicare Part B.
@@ -13,6 +13,7 @@ ABMDEVAR ; IHS/SD/SDR - SET UP CLAIM VARIABLES ;
  ; IHS/SD/SDR - abm*2.6*1 - HEAT7884 - display page7 if visit type 731
  ; IHS/SD/SDR - abm*2.6*4 - HEAT15368 - <SUBSCR>PAGE+11^ABMDEVAR
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added page 3B
+ ;IHS/SD/SDR  2.6*13 - exp mode 35 - make page 9A show up
  ;
  S ABMP("C0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),0)
  S ABMP("PDFN")=$P(ABMP("C0"),U)
@@ -115,7 +116,8 @@ PAGE ;EP - SET  SELECTABLE PAGES
  ;end new code HEAT7884
  S:$G(ABMP("PX"))'="I"!(ABMP("VTYP")=831) ABMP("PAGE")=ABMP("PAGE")_",8"
  ;I $P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["UB"!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["ADA")!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["837 P") S ABMP("PAGE")=ABMP("PAGE")_",9"  ;abm*2.6*1 HEAT6439
- I $P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["UB"!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["ADA")!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["837") S ABMP("PAGE")=ABMP("PAGE")_",9"  ;abm*2.6*1 HEAT6439
+ ;I $P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["UB"!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["ADA")!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["837") S ABMP("PAGE")=ABMP("PAGE")_",9"  ;abm*2.6*1 HEAT6439  ;abm*2.6*13 exp mode 35
+ I $P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["UB"!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["ADA")!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["837")!(+$G(ABMP("EXP"))=35) S ABMP("PAGE")=ABMP("PAGE")_",9"  ;abm*2.6*1 HEAT6439  ;abm*2.6*13 exp mode 35
  Q
  ;
 AFFL ;EP - for determining Affiliation

@@ -1,5 +1,5 @@
 ABMDE ; IHS/ASDST/DMJ - Claim Editor Selection ;      
- ;;2.6;IHS Third Party Billing;**1,3,6,8,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,6,8,9,10,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/ASDS/LSL - 08/13/2001 - V2.4 Patch 9 - NOIS HQW-0798-100082
  ;     Only check eligibility once.
@@ -22,6 +22,7 @@ ABMDE ; IHS/ASDST/DMJ - Claim Editor Selection ;
  ;  all export modes; all others only for UB or 837I
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added changes for page3B
  ; IHS/SD/SDR - abm*2.6*6 - NOHEAT - fix for <NOLINE>SCRN+2^ABMDE
+ ;IHS/SD/SDR - 2.6*13 - made HCFA go to page 9A instead of straight to 9E
  ;
  ; *********************************************************************
  ;
@@ -113,7 +114,9 @@ RTN ;
  S:ABMP("SCRN")[5 ABMP("SCRN")=5  ;abm*2.6*8
  ;I ABMP("SCRN")["9" S ABP("SCRN")="9"  ;abm*2.6*1 HEAT6439  ;abm*2.6*6
  I ABMP("SCRN")["9" S ABMP("SCRN")="9"  ;abm*2.6*1 HEAT6439  ;abm*2.6*6
- I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["837 P",(+ABMP("SCRN")["9") S ABMP("LABEL")="OPT6"  ;abm*2.6*3 HEAT10547
+ ;I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["837 P",(+ABMP("SCRN")["9") S ABMP("LABEL")="OPT6"  ;abm*2.6*3 HEAT10547  ;abm*2.6*10 HEAT68575
+ ;I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["HCFA",(+ABMP("SCRN")["9") S ABMP("LABEL")="OPT5"  ;abm*2.6*10 HEAT68575  ;abm*2.6*13 exp mode 35
+ I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["HCFA",(+ABMP("SCRN")["9") S ABMP("LABEL")="OPT"  ;abm*2.6*10 HEAT68575  ;abm*2.6*13 exp mode 35
  ;I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["ADA",(+ABMP("SCRN")["9") S ABMP("LABEL")="OPT6"  ;abm*2.6*8
  S:+ABMP("SCRN")=0 ABMP("SCRN")=0
  S ABMP("RTN")=ABMP("LABEL")_"^ABMDE"_ABMP("SCRN")

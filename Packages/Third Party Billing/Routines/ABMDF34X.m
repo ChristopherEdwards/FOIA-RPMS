@@ -1,5 +1,6 @@
 ABMDF34X ; IHS/SD/SDR - ADA-2012 FORM ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,13**;NOV 12, 2009;Build 213
+ ;IHS/SD/SDR - 2.6*13 - VMBP - RQMT_95 - Added code to populated remarks box 35 (line 41)
  ;************************************************************************************
  ;
 MARG ;Set left and top margins
@@ -130,6 +131,8 @@ TEXT ;;TABS;;FIELD LENGTH
 37 ;;48^59;;8^8
 38 ;;48^59^74;;8^8^6$
 39 ;;5;;73
+41 ;;1;;40
+ ;abm*2.6*13 VMBP RQMT_95
 42 ;;49;;2
 43 ;;70;;1
 45 ;;1^28^42^51^65;;25^10D^1^1^10D

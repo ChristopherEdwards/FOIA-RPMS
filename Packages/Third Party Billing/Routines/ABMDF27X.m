@@ -1,5 +1,5 @@
 ABMDF27X ; IHS/ASDST/DMJ - New HCFA-1500 (08/05) Format ;   
- ;;2.6;IHS Third Party Billing;**1,3,4,8,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,3,4,8,9,10,11,13**;NOV 12, 2009;Build 213
  ;
  ; Objective: Print designated form using data contained in the
  ;            ABMF array.
@@ -13,6 +13,7 @@ ABMDF27X ; IHS/ASDST/DMJ - New HCFA-1500 (08/05) Format ;
  ; IHS/SD/SDR - abm*2.6*3 - HEAT11389 - made correction to OVER to check line number
  ; IHS/SD/SDR - abm*2.6*4  HEAT12115 - allow 5+ DX codes
  ; IHS/SD/SDR - 2.6*9 - fixed FL override to use LDFN not DUZ(2)
+ ;IHS/SD/SDR - 2.6*13 - HEAT117086 - changed it so T1015 will be top line for any D insurer type
  ;
  ;
 MARG ;Set left and top margins
@@ -50,7 +51,8 @@ LOOP ;Loop thru line number array
  K ABMLOOP,ABMCHK,ABMF("TMP")
  ;
  ;start new code abm*2.6*11 HEAT97421
- I $P(ABMF(17),U,4)["IOWA MEDICAID" D
+ ;I $P(ABMF(17),U,4)["IOWA MEDICAID" D  ;abm*2.6*13 HEAT117086
+ I ABMP("ITYPE")="D" D  ;abm*2.6*13 HEAT117086
  .F ABMLOOP=37:2:47 D
  ..Q:'$D(ABMF(ABMLOOP))
  ..S ABMCHK=$TR($P(ABMF(ABMLOOP),U,5)," ","")

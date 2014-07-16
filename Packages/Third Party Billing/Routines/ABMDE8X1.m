@@ -1,5 +1,5 @@
 ABMDE8X1 ; IHS/ASDST/DMJ - Page 8 - ERROR CHECKS-CONT ;
- ;;2.6;IHS 3P BILLING SYSTEM;**8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**8,9,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/SD/SDR - v2.5 p8 - task 6
  ;    Added code for page 8K error checks; also added
@@ -12,6 +12,7 @@ ABMDE8X1 ; IHS/ASDST/DMJ - Page 8 - ERROR CHECKS-CONT ;
  ;   Added code for NPI errors 220 and 221
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
 E1 ;EP - Entry Point Page 8E error checks cont
  S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),37,ABMX,0)
@@ -43,7 +44,8 @@ E1 ;EP - Entry Point Page 8E error checks cont
  .K ABMP("CPTNT") S ABMP("CPTNT")=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P(ABMX("X0"),U),0))  ;abm*2.6*9 NARR
  .Q:($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMP("CPTNT"),0)),U,2)'="Y")  ;abm*2.6*9 NARR
  .S ABME(241)=$S('$D(ABME(241)):ABMX("I"),1:ABME(241)_","_ABMX("I"))  ;abm*2.6*9 NARR
- I ABMMODE(5)=22!(ABMMODE(5)=27) D
+ ;I ABMMODE(5)=22!(ABMMODE(5)=27) D  ;abm*2.6*13 export mode 35
+ I ABMMODE(5)=22!(ABMMODE(5)=27)!(ABMMODE(5)=35) D  ;abm*2.6*13 export mode 35
  .S ABMPIEN=0
  .F  S ABMPIEN=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),37,ABMX,"P",ABMPIEN)) Q:+ABMPIEN=0  D
  ..S ABMNPIUS=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))
@@ -87,7 +89,8 @@ F1 ;EP - Entry Point Page 8F error checks cont
  .K ABMP("CPTNT") S ABMP("CPTNT")=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P(ABMX("X0"),U),0))  ;abm*2.6*9 NARR
  .Q:($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMP("CPTNT"),0)),U,2)'="Y")  ;abm*2.6*9 NARR
  .S ABME(241)=$S('$D(ABME(241)):ABMX("I"),1:ABME(241)_","_ABMX("I"))  ;abm*2.6*9 NARR
- I ABMMODE(6)=22!(ABMMODE(6)=27) D
+ ;I ABMMODE(6)=22!(ABMMODE(6)=27) D  ;abm*2.6*13 export mode 35
+ I ABMMODE(6)=22!(ABMMODE(6)=27)!(ABMMODE(6)=35) D  ;abm*2.6*13 export mode 35
  .S ABMPIEN=0
  .F  S ABMPIEN=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),35,ABMX,"P",ABMPIEN)) Q:+ABMPIEN=0  D
  ..S ABMNPIUS=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))

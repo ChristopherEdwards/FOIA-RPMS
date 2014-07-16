@@ -1,5 +1,5 @@
 ABMAPASS ; IHS/ASDST/DMJ - PASS INFO TO A/R ;    
- ;;2.6;IHS 3P BILLING SYSTEM;**3,4,6,8,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,4,6,8,10,11,13**;NOV 12, 2009;Build 213
  ;Original;DMJ
  ;
  ;IHS/DSD/MRS-4/1/1999 Modify to check for missing root of insurer array
@@ -23,6 +23,7 @@ ABMAPASS ; IHS/ASDST/DMJ - PASS INFO TO A/R ;
  ; IHS/SD/SDR - abm*2.6*4 - POS rejection change was causing 3P CREDIT A/R transactions to create.
  ;  Modified to only pass the codes not the whole ABMPOS array.
  ; IHS/SD/SDR - abm*2.6*6 - NOHEAT - Added code to put a partial bill number as other identifier
+ ;IHS/SD/SDR - 2.6*13 - NOHEAT1 - Made change to default date/time approved if there is no export date.
  ;
  ; *********************************************************************
  ; This routine is called each time the Bill Status is changed in
@@ -121,7 +122,8 @@ BLD ; PEP
  . S ABMA("DR")=$P(ABMA("LINE"),";;",2)
  . S ABMA($P(ABMA("LINE"),";;",3))=$$VALI^XBDIQ1("^ABMDBILL(DUZ(2),",DA,ABMA("DR"))
  . I ABMA("DR")=.17,ABMA("DTBILL") S ABMA("DTBILL")=$$VALI^XBDIQ1(^DIC(9002274.6,0,"GL"),ABMA("DTBILL"),.01)
- I ABMA("ACTION")="B",ABMA("DTBILL")="" S ABMA("DTBILL")=DT
+ ;I ABMA("ACTION")="B",ABMA("DTBILL")="" S ABMA("DTBILL")=DT  ;abm*2.6*13 NOHEAT1
+ I ABMA("ACTION")="B",ABMA("DTBILL")="" S ABMA("DTBILL")=ABMA("DTAP")  ;abm*2.6*13 NOHEAT1
  D BLNM                      ; Calculate complete bill name
  N I,DA,K
  S K=0

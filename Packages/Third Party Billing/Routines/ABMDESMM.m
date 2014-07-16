@@ -1,5 +1,5 @@
 ABMDESMM ; IHS/ASDST/DMJ - Summarized Claim Medical Charges ;
- ;;2.6;IHS Third Party Billing System;**3**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**3,13**;NOV 12, 2009;Build 213
  ;
  ;IHS/DSD/LSL -03/26/98  - Semicolon out the line in
  ;subrtn PRO that  quits if Optometry visit.
@@ -10,19 +10,15 @@ ABMDESMM ; IHS/ASDST/DMJ - Summarized Claim Medical Charges ;
  ;             already defined.
  ;
  ; IHS/SD/SDR - v2.5 - p5 - 5/18/04 - Modified to put POS and TOS by line item
- ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164
- ;    Prompt/display provider
- ; IHS/SD/SDR - v2.5 p9 - task 1
- ;   Use new service line provider multiple
+ ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164 - Prompt/display provider
+ ; IHS/SD/SDR - v2.5 p9 - task 1 - Use new service line provider multiple
  ; IHS/SD/SDR - v2.5 p11 - NPI
- ; IHS/SD/SDR - v2.5 p12 - IM25331
- ;   Add provider taxonomy to CMS-1500 block 24K
- ; IHS/SD/SDR - v2.5 p13 - IM25574
- ;   Correction for CPT modifier in Medical multiple
- ; IHS/SD/SDR - v2.5 p13 - IM25899
- ;   Alignment changes
+ ; IHS/SD/SDR - v2.5 p12 - IM25331 - Add provider taxonomy to CMS-1500 block 24K
+ ; IHS/SD/SDR - v2.5 p13 - IM25574 - Correction for CPT modifier in Medical multiple
+ ; IHS/SD/SDR - v2.5 p13 - IM25899 - Alignment changes
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
 PRO ;EP for Medical Charges
  ;
@@ -46,7 +42,8 @@ PROH S ABMS(ABMS("I"))=ABMX("SUB")
  S ABMX("C")=$P(ABMX(0),U) D CPT
  ;S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,5)]"":"-"_$P($$MOD^ABMCVAPI($P(ABMX(0),U,5),"",ABMP("VDT")),U,2),1:"")_$S($P(ABMX(0),U,8)]"":"-"_$P(ABMX(0),U,8),1:"")_$S($P(ABMX(0),U,9)]"":"-"_$P(ABMX(0),U,9),1:"")  ;CSV-c  ;IHS/SD/SDR 3/1/2010 HEAT11136
  S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,5)]"":"-"_$P(ABMX(0),U,5),1:"")_$S($P(ABMX(0),U,8)]"":"-"_$P(ABMX(0),U,8),1:"")_$S($P(ABMX(0),U,9)]"":"-"_$P(ABMX(0),U,9),1:"")  ;CSV-c  ;IHS/SD/SDR 3/1/2010 HEAT11136
- I ABMP("EXP")=27  S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,5)]"":"   "_$P(ABMX(0),U,5),1:"")_$S($P(ABMX(0),U,8)]"":" "_$P(ABMX(0),U,8),1:"")_$S($P(ABMX(0),U,9)]"":" "_$P(ABMX(0),U,9),1:"")
+ ;I ABMP("EXP")=27  S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,5)]"":"   "_$P(ABMX(0),U,5),1:"")_$S($P(ABMX(0),U,8)]"":" "_$P(ABMX(0),U,8),1:"")_$S($P(ABMX(0),U,9)]"":" "_$P(ABMX(0),U,9),1:"")  ;abm*2.6*13 new export mode 35
+ I ABMP("EXP")=27!(ABMP("EXP")=35) S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,5)]"":"   "_$P(ABMX(0),U,5),1:"")_$S($P(ABMX(0),U,8)]"":" "_$P(ABMX(0),U,8),1:"")_$S($P(ABMX(0),U,9)]"":" "_$P(ABMX(0),U,9),1:"")  ;abm*2.6*13 exp mode 35
  S $P(ABMS(ABMS("I")),U,5)=$P(ABMX(0),U,6)
  S $P(ABMS(ABMS("I")),U,6)=ABMZ("UNIT")
  I $P(ABMX(0),"^",16) D

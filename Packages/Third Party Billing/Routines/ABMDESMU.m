@@ -1,5 +1,5 @@
 ABMDESMU ; IHS/ASDST/DMJ - Summarized Claim Misc. Info ;   
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**13**;NOV 12, 2009;Build 213
  ;
  ; IHS/DSD/LSL - 09/02/98 - Patch 2 - NOIS NDA-0898-180038
  ;             0.00 charges on HCFA because version 2.0 does not assume
@@ -9,20 +9,16 @@ ABMDESMU ; IHS/ASDST/DMJ - Summarized Claim Misc. Info ;
  ;     Modified Supply section to quit if the item has been deleted
  ;     from the Charge Master (Supply) file.
  ;
- ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
- ;     Modified to display 2nd and 3rd modifiers and units
+ ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190 - Modified to display 2nd and 3rd modifiers and units
  ; IHS/SD/SDR - v2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
- ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164
- ;   Prompt/display provider
- ; IHS/SD/SDR - v2.5 p9 - task 1
- ;   Use new service line provider multiple
+ ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164 - Prompt/display provider
+ ; IHS/SD/SDR - v2.5 p9 - task 1 - Use new service line provider multiple
  ; IHS/SD/SDR - v2.5 p11 - NPI
- ; IHS/SD/SDR - v2.5 p12 - IM25331
- ;   Add provider taxonomy to CMS-1500 block 24K
- ; IHS/SD/SDR,AML - v2.5 p13 - IM25899
- ;   Alignment changes
+ ; IHS/SD/SDR - v2.5 p12 - IM25331 - Add provider taxonomy to CMS-1500 block 24K
+ ; IHS/SD/SDR,AML - v2.5 p13 - IM25899 - Alignment changes
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
 MISC ;EP for MISC charges
  I $G(ABMP("VTYP",993)),'$G(ABMPRINT) Q:ABMP("VTYP",993)'=ABMP("EXP")
@@ -54,7 +50,8 @@ MISCH ;ABMS ARRAY FOR HCFA 1500
  S $P(ABMS(ABMS("I")),U,10)=$P($G(ABMX(0)),"^",15)  ;POS
  S ABMX("C")=$P(ABMX(0),U) D CPT
  S ABMX("C")=$P(ABMX(0),U) D CPT S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,5)]"":"-"_$P(ABMX(0),U,5),1:"")_$S($P(ABMX(0),U,8)]"":"-"_$P(ABMX(0),U,8),1:"")_$S($P(ABMX(0),U,9)]"":"-"_$P(ABMX(0),U,9),1:"")
- I ABMP("EXP")=27 D
+ ;I ABMP("EXP")=27 D  ;abm*2.6*13 export mode 35
+ I ABMP("EXP")=27!(ABMP("EXP")=35) D  ;abm*2.6*13 export mode 35
  .S ABMX("C")=$P(ABMX(0),U) D CPT S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,5)]"":"   "_$P(ABMX(0),U,5),1:"")_$S($P(ABMX(0),U,8)]"":" "_$P(ABMX(0),U,8),1:"")_$S($P(ABMX(0),U,9)]"":" "_$P(ABMX(0),U,9),1:"")
  S $P(ABMS(ABMS("I")),U,8)=$P($$CPT^ABMCVAPI(+ABMX(0),ABMP("VDT")),U,3)  ;CSV-c
  S ABMX(0)=@(ABMP("GL")_"43,"_ABMX("X")_",0)")

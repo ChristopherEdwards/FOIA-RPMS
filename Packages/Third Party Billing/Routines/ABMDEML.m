@@ -1,5 +1,5 @@
-ABMDEML ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;   
- ;;2.6;IHS Third Party Billing;**1,2,3,6,8,9,10,11**;NOV 12, 2009;Build 133
+ABMDEML ; IHS/SD/SDR - Edit Utility - FOR MULTIPLES ;   
+ ;;2.6;IHS Third Party Billing;**1,2,3,6,8,9,10,11,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/ASDS/DMJ - 09/07/01 - V2.4 Patch 7 - NOIS HQW-0701-100066
  ;     Modifications made related to Medicare Part B.
@@ -11,18 +11,12 @@ ABMDEML ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;
  ;     Added 837 format to list so it would inquire for corresponding
  ;     diagnosis
  ; IHS/SD/SDR - V2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
- ; IHS/SD/SDR - v2.5 p8 - 7/9/04 - IM14079 - Edited code to not do TOS prompt
- ;     if 837 format
- ; IHS/SD/SDR - v2.5 p8 - IM12246
- ;    Added In-House and Reference LAB CLIA prompts
- ; IHS/SD/SDR - v2.5 p8 - task 6
- ;    Added code to populate mileage on page 3A when A0425/A0888 are used
- ; IHS/SD/SDR - v2.5 p9 - task 1
- ;    Coded for new line item provider multiple
- ; IHS/SD/SDR - v2.5 p10 - IM20346
- ;   Variables getting carried over for Stuff tag
- ; IHS/SD/SDR - v2.5 p10 - IM21539
- ;   Made OBSTETRICAL? question be asked in correct place
+ ; IHS/SD/SDR - v2.5 p8 - 7/9/04 - IM14079 - Edited code to not do TOS prompt if 837 format
+ ; IHS/SD/SDR - v2.5 p8 - IM12246 - Added In-House and Reference LAB CLIA prompts
+ ; IHS/SD/SDR - v2.5 p8 - task 6 - Added code to populate mileage on page 3A when A0425/A0888 are used
+ ; IHS/SD/SDR - v2.5 p9 - task 1 - Coded for new line item provider multiple
+ ; IHS/SD/SDR - v2.5 p10 - IM20346 - Variables getting carried over for Stuff tag
+ ; IHS/SD/SDR - v2.5 p10 - IM21539 - Made OBSTETRICAL? question be asked in correct place
  ; IHS/SD/SDR - v2.5 p13 - POA changes
  ;
  ; IHS/SD/SDR - v2.6 CSV
@@ -31,6 +25,7 @@ ABMDEML ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;
  ; IHS/SD/SDR - abm*2.6*3 - HEAT11696 - added 36415 to use lab prompts
  ; IHS/SD/SDR - abm*2.6*3 - HEAT12742 - removed HEAT6566 changes
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - Added prompt for 2400 DTP test date
+ ;IHS/SD/SDR - 2.6*13 - added check for new export mode 35 and to populate DATE OF FIRST SYMPTOM and INJURY DATE based on occurrence code 11
  ; *********************************************************************
  ;
 A1 ;
@@ -92,6 +87,7 @@ DIC ;
  ;
 DUPCHK ;USED TO BE THE DUPLICATE CHECK LINE TAG
  S ABMX("Y")=+Y
+ ;
  ;if Dental multiple (page) . . . 
  ;and no opsite asked add level of serive to DR string
  I $G(ABMZ("SUB"))=33 D
@@ -162,7 +158,8 @@ DIAG ;CORRESPONDING DIAGNOSES
  D
  .Q:'$D(ABMZ("DIAG"))
  .;I '$D(ABMP("EXP",2)),'$D(ABMP("EXP",3)),'$D(ABMP("EXP",14)),'$D(ABMP("EXP",15)),'$D(ABMP("EXP",19)),'$D(ABMP("EXP",20)),'$D(ABMP("EXP",22)),'$D(ABMP("EXP",27)) Q  ;abm*2.6*6 5010
- .I '$D(ABMP("EXP",2)),'$D(ABMP("EXP",3)),'$D(ABMP("EXP",14)),'$D(ABMP("EXP",15)),'$D(ABMP("EXP",19)),'$D(ABMP("EXP",20)),'$D(ABMP("EXP",22)),'$D(ABMP("EXP",27)),'$D(ABMP("EXP",32)) Q  ;abm*2.6*6 5010
+ .;I '$D(ABMP("EXP",2)),'$D(ABMP("EXP",3)),'$D(ABMP("EXP",14)),'$D(ABMP("EXP",15)),'$D(ABMP("EXP",19)),'$D(ABMP("EXP",20)),'$D(ABMP("EXP",22)),'$D(ABMP("EXP",27)),'$D(ABMP("EXP",32)) Q  ;abm*2.6*6 5010  ;abm*2.6*13 export mode 35
+ .I '$D(ABMP("EXP",2)),'$D(ABMP("EXP",3)),'$D(ABMP("EXP",14)),'$D(ABMP("EXP",15)),'$D(ABMP("EXP",19)),'$D(ABMP("EXP",20)),'$D(ABMP("EXP",22)),'$D(ABMP("EXP",27)),'$D(ABMP("EXP",32)),'$D(ABMP("EXP",35)) Q  ;abm*2.6*13 export mode 35
  .D DX^ABMDEMLC Q:$G(Y(0))=""
  .S ABMZ("DR")=ABMZ("DR")_ABMZ("DIAG")_"////"_$G(Y(0))
  ;
@@ -183,6 +180,8 @@ STUFF ;FILE MULTIPLE
  .S:+$G(ABMZ("NUM"))=0 ^ABMDCLM(DUZ(2),DA(1),ABMZ("SUB"),0)="^9002274.30"_ABMZ("SUB")_"P^^"
  .K DD,DO
  .D FILE^DICN
+ .S ABMOIEN=ABMX("Y")  ;abm*2.6*13
+ .I ABMZ("SUB")=51,"^01^11^"[("^"_$P($G(^ABMDCODE(ABMOIEN,0)),U)_"^") D OCCURCD  ;for new export mode 35  abm*2.6*13
 PROV ;
  ;I ABMZ("SUB")=21!(ABMZ("SUB")=23)!(ABMZ("SUB")=27)!(ABMZ("SUB")=35)!(ABMZ("SUB")=37)!(ABMZ("SUB")=39)!(ABMZ("SUB")=43) D  ;abm*2.6*10
  I ABMZ("SUB")=21!(ABMZ("SUB")=23)!(ABMZ("SUB")=27)!(ABMZ("SUB")=35)!(ABMZ("SUB")=37)!(ABMZ("SUB")=39)!(ABMZ("SUB")=43)!(ABMZ("SUB")=47) D  ;abm*2.6*10
@@ -224,3 +223,16 @@ MILEAGE ;
  .I $P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)="A0888" S DR=".129////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9))  ;CSV-c
  .D ^DIE
  Q
+ ;start new code abm*2.6*13 new export mode
+OCCURCD ;
+ ;populated page3 DATE OF FIRST SYMPTOM if occurrence code 11 is entered
+ I ABMZ("SUB")=51 D
+ .S ABMP("ACDT")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMOIEN,0)),U,2)
+ .S ABMTEST=$P(^ABMDCODE($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMOIEN,0)),U),0),U)
+ .S DIE="^ABMDCLM(DUZ(2),"
+ .S DA=ABMP("CDFN")
+ .I ABMTEST="01" S DR=".82////"_$S(+$G(ABMDEL)=1:"@",1:ABMP("ACDT"))
+ .I ABMTEST=11 S DR=".86////"_$S(+$G(ABMDEL)=1:"@",1:ABMP("ACDT"))
+ .D ^DIE K DR
+ Q
+ ;end new code abm*2.6*13

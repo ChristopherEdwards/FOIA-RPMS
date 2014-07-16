@@ -1,5 +1,7 @@
 ABMMUELG ;IHS/SD/SDR - Meaningful Use Report - count patients/eligibility ;
- ;;2.6;IHS 3P BILLING SYSTEM;**5,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**5,11,12**;NOV 12, 2009;Build 187
+ ;IHS/SD/SDR - 2.6*12 - HEAT120278 - Made change to correct Railroad member#
+ ;IHS/SD/SDR - 2.6*12 - VMBP RQMT_103 - Added VA elig to summary and detail
  ;
  W !!,"The date range selected will be used for: "
  W !,?3,"1. Was the patient's record active during that range"
@@ -7,7 +9,6 @@ ABMMUELG ;IHS/SD/SDR - Meaningful Use Report - count patients/eligibility ;
  W !,?3,"3. How many encounters they had during that time"
  W !!,"Detail information will be supplied for validation purposes but once validated"
  W !,"the summary option should be used."
- ;
  K ABMY,ABMP
  K ^TMP($J,"ABM-MURPT")
 DT ;
@@ -25,7 +26,7 @@ DT ;
  G DT:$D(DIRUT)
  S ABMY("DT",2)=Y
  I ABMY("DT",1)>ABMY("DT",2) W !!,*7,"INPUT ERROR: Start Date is Greater than than the End Date, TRY AGAIN!",!! G DT
-RTYPE ;summary or detail?
+RTYPE ;
  W !
  K DIC,DIE,DIR,X,Y,DA
  S DIR(0)="S^S:SUMMARY;D:DETAIL (will include Summary)"
@@ -33,10 +34,6 @@ RTYPE ;summary or detail?
  S DIR("B")="SUMMARY"
  D ^DIR K DIR
  S ABMSUMDT=Y
- ;D GETPTS
- ;D GETELIG
- ;D GETVSTS
- ;
 SEL ;
  ; Select device
  I ABMSUMDT="D" D
@@ -91,17 +88,17 @@ GETPTS ;
  S ABMP("PDFN")=0
  F  S ABMP("PDFN")=$O(^AUPNPAT(ABMP("PDFN"))) Q:'ABMP("PDFN")  D
  .I $D(^AUPNPAT(ABMP("PDFN"),41,DUZ(2))) D
- ..S ABMPTINA=$P($G(^AUPNPAT(ABMP("PDFN"),41,DUZ(2),0)),U,3)  ;date inactive/deleted
- ..I ABMPTINA'=""&((ABMPTINA<ABMY("DT",1))!(ABMPTINA>ABMY("DT",2))) Q  ;patient inactive prior to or after range of report
+ ..S ABMPTINA=$P($G(^AUPNPAT(ABMP("PDFN"),41,DUZ(2),0)),U,3)  ;dt inactive/deleted
+ ..I ABMPTINA'=""&((ABMPTINA<ABMY("DT",1))!(ABMPTINA>ABMY("DT",2))) Q  ;pt inactive prior to or after range of rpt
  ..S ^TMP($J,"ABM-MURPT","PTS",ABMP("PDFN"))=""
- ..S ^TMP($J,"ABM-MURPT","CNT","PTS")=+$G(^TMP($J,"ABM-MURPT","CNT","PTS"))+1  ;count patients
+ ..S ^TMP($J,"ABM-MURPT","CNT","PTS")=+$G(^TMP($J,"ABM-MURPT","CNT","PTS"))+1  ;cnt pts
  Q
  ;
 GETELIG ;
  ;medicaid
  S ABMP("PDFN")=0
  F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","PTS",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .I $D(^AUPNMCD("B",ABMP("PDFN"))) D  ;patient has medicaid entry
+ .I $D(^AUPNMCD("B",ABMP("PDFN"))) D  ;pt has mcd entry
  ..S ABMP("MDFN")=0
  ..F  S ABMP("MDFN")=$O(^AUPNMCD("B",ABMP("PDFN"),ABMP("MDFN"))) Q:'ABMP("MDFN")  D
  ...S ABMP("EFFDT")=0,ABMMFLG=0
@@ -109,25 +106,25 @@ GETELIG ;
  ....S ABMP("ENDDT")=$P($G(^AUPNMCD(ABMP("MDFN"),11,ABMP("EFFDT"),0)),U,2)  ;end date
  ....;effective date after end of range or end date before start of range
  ....I (ABMP("EFFDT")>ABMY("DT",2))!((ABMP("ENDDT")'="")&(ABMP("ENDDT")<ABMY("DT",1))) Q
- ....S ABMMFLG=1  ;if it gets here patient has eligibility in our window
- ...I ABMMFLG=1 D  ;patient has at least one entry that's what we want
+ ....S ABMMFLG=1  ;if it gets here pt has elig in our window
+ ...I ABMMFLG=1 D  ;pt has at least one entry that's what we want
  ....S ^TMP($J,"ABM-MURPT","MCD",ABMP("PDFN"),ABMP("MDFN"))=""
- ....S ^TMP($J,"ABM-MURPT","CNT","MCD")=+$G(^TMP($J,"ABM-MURPT","CNT","MCD"))+1  ;count medicaid patients
+ ....S ^TMP($J,"ABM-MURPT","CNT","MCD")=+$G(^TMP($J,"ABM-MURPT","CNT","MCD"))+1  ;cnt mcd pts
  ;
  ;medicare
  S ABMP("PDFN")=0
  F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","PTS",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .I $D(^AUPNMCR(ABMP("PDFN"))) D  ;patient had medicare entry
+ .I $D(^AUPNMCR(ABMP("PDFN"))) D  ;pt had mcr entry
  ..S ABMP("MDFN")=0,ABMMFLG=0
  ..F  S ABMP("MDFN")=$O(^AUPNMCR(ABMP("PDFN"),11,ABMP("MDFN"))) Q:'ABMP("MDFN")  D  Q:(ABMMFLG=1)
- ...S ABMP("EFFDT")=$P($G(^AUPNMCR(ABMP("PDFN"),11,ABMP("MDFN"),0)),U)  ;effective date
- ...S ABMP("ENDDT")=$P($G(^AUPNMCR(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,2)  ;end date
+ ...S ABMP("EFFDT")=$P($G(^AUPNMCR(ABMP("PDFN"),11,ABMP("MDFN"),0)),U)  ;effective dt
+ ...S ABMP("ENDDT")=$P($G(^AUPNMCR(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,2)  ;end dt
  ...;effective date after end of range or end date before start of range
  ...I (ABMP("EFFDT")>ABMY("DT",2))!((ABMP("ENDDT")'="")&(ABMP("ENDDT")<ABMY("DT",1))) Q
- ...S ABMMFLG=1  ;if it gets here patient has eligibility in our window
- ..I ABMMFLG=1 D  ;patient has at least one entry that's what we want
+ ...S ABMMFLG=1  ;if it gets here pt has elig in our window
+ ..I ABMMFLG=1 D  ;pt has at least one entry that's what we want
  ...S ^TMP($J,"ABM-MURPT","MCR",ABMP("PDFN"),ABMP("MDFN"))=""
- ...S ^TMP($J,"ABM-MURPT","CNT","MCR")=+$G(^TMP($J,"ABM-MURPT","CNT","MCR"))+1  ;count medicare patients
+ ...S ^TMP($J,"ABM-MURPT","CNT","MCR")=+$G(^TMP($J,"ABM-MURPT","CNT","MCR"))+1  ;cnt mcr pts
  ;
  ;railroad
  S ABMP("PDFN")=0
@@ -135,14 +132,14 @@ GETELIG ;
  .I $D(^AUPNRRE(ABMP("PDFN"))) D  ;patient had medicare entry
  ..S ABMP("MDFN")=0,ABMMFLG=0
  ..F  S ABMP("MDFN")=$O(^AUPNRRE(ABMP("PDFN"),11,ABMP("MDFN"))) Q:'ABMP("MDFN")  D  Q:(ABMMFLG=1)
- ...S ABMP("EFFDT")=$P($G(^AUPNRRE(ABMP("PDFN"),11,ABMP("MDFN"),0)),U)  ;effective date
- ...S ABMP("ENDDT")=$P($G(^AUPNRRE(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,2)  ;end date
- ...;effective date after end of range or end date before start of range
+ ...S ABMP("EFFDT")=$P($G(^AUPNRRE(ABMP("PDFN"),11,ABMP("MDFN"),0)),U)  ;effective dt
+ ...S ABMP("ENDDT")=$P($G(^AUPNRRE(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,2)  ;end dt
+ ...;effective dt after end of range or end dt before start of range
  ...I (ABMP("EFFDT")>ABMY("DT",2))!((ABMP("ENDDT")'="")&(ABMP("ENDDT")<ABMY("DT",1))) Q
- ...S ABMMFLG=1  ;if it gets here patient has eligibility in our window
- ..I ABMMFLG=1 D  ;patient has at least one entry that's what we want
+ ...S ABMMFLG=1  ;if it gets here pt has elig in our window
+ ..I ABMMFLG=1 D  ;pt has at least one entry that's what we want
  ...S ^TMP($J,"ABM-MURPT","RR",ABMP("PDFN"),ABMP("MDFN"))=""
- ...S ^TMP($J,"ABM-MURPT","CNT","RR")=+$G(^TMP($J,"ABM-MURPT","CNT","RR"))+1  ;count railroad patients
+ ...S ^TMP($J,"ABM-MURPT","CNT","RR")=+$G(^TMP($J,"ABM-MURPT","CNT","RR"))+1  ;cnt rr pts
  ;
  ;private
  S ABMP("PDFN")=0
@@ -150,20 +147,37 @@ GETELIG ;
  .I $D(^AUPNPRVT(ABMP("PDFN"))) D  ;patient has private entry
  ..S ABMP("MDFN")=0,ABMMFLG=0
  ..F  S ABMP("MDFN")=$O(^AUPNPRVT(ABMP("PDFN"),11,ABMP("MDFN"))) Q:'ABMP("MDFN")  D  Q:(ABMMFLG=1)
- ...S ABMP("EFFDT")=$P($G(^AUPNPRVT(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,6)  ;effective date
- ...S ABMP("ENDDT")=$P($G(^AUPNPRVT(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,7)  ;end date
+ ...S ABMP("EFFDT")=$P($G(^AUPNPRVT(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,6)  ;effective dt
+ ...S ABMP("ENDDT")=$P($G(^AUPNPRVT(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,7)  ;end dt
+ ...;effective dt after end of range or end dt before start of range
+ ...I (ABMP("EFFDT")>ABMY("DT",2))!((ABMP("ENDDT")'="")&(ABMP("ENDDT")<ABMY("DT",1))) Q
+ ...S ABMMFLG=1  ;if it gets here pt has elig in our window
+ ..I ABMMFLG=1 D  ;pt has at least one entry that's what we want
+ ...S ^TMP($J,"ABM-MURPT","PI",ABMP("PDFN"),ABMP("MDFN"))=""
+ ...S ^TMP($J,"ABM-MURPT","CNT","PI")=+$G(^TMP($J,"ABM-MURPT","CNT","PI"))+1  ;cnt private pts
+ ;
+ ;start new abm*2.6*12 VMBP RQMT_103
+ ;medicare
+ S ABMP("PDFN")=0
+ F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","PTS",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
+ .I $D(^AUPNVAMB(ABMP("PDFN"))) D  ;pt had VAMB eligible entry
+ ..S ABMP("MDFN")=0,ABMMFLG=0
+ ..F  S ABMP("MDFN")=$O(^AUPNVAMB(ABMP("PDFN"),11,ABMP("MDFN"))) Q:'ABMP("MDFN")  D  Q:(ABMMFLG=1)
+ ...S ABMP("EFFDT")=$P($G(^AUPNVAMB(ABMP("PDFN"),11,ABMP("MDFN"),0)),U)  ;effective dt
+ ...S ABMP("ENDDT")=$P($G(^AUPNVAMB(ABMP("PDFN"),11,ABMP("MDFN"),0)),U,2)  ;end dt
  ...;effective date after end of range or end date before start of range
  ...I (ABMP("EFFDT")>ABMY("DT",2))!((ABMP("ENDDT")'="")&(ABMP("ENDDT")<ABMY("DT",1))) Q
- ...S ABMMFLG=1  ;if it gets here patient has eligibility in our window
- ..I ABMMFLG=1 D  ;patient has at least one entry that's what we want
- ...S ^TMP($J,"ABM-MURPT","PI",ABMP("PDFN"),ABMP("MDFN"))=""
- ...S ^TMP($J,"ABM-MURPT","CNT","PI")=+$G(^TMP($J,"ABM-MURPT","CNT","PI"))+1  ;count private patients
+ ...S ABMMFLG=1  ;if it gets here pt has elig in our window
+ ..I ABMMFLG=1 D  ;pt has at least one entry that's what we want
+ ...S ^TMP($J,"ABM-MURPT","VAMB",ABMP("PDFN"),ABMP("MDFN"))=""
+ ...S ^TMP($J,"ABM-MURPT","CNT","VAMB")=+$G(^TMP($J,"ABM-MURPT","CNT","VAMB"))+1  ;cnt VAMB pts
+ ;end new VMBP RQMT_103
  ;
  ;no insurance
  S ABMP("PDFN")=0
  F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","PTS",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
  .I '$D(^TMP($J,"ABM-MURPT","PI",ABMP("PDFN")))&'$D(^TMP($J,"ABM-MURPT","MCD",ABMP("PDFN")))&'$D(^TMP($J,"ABM-MURPT","MCR",ABMP("PDFN")))&'$D(^TMP($J,"ABM-MURPT","RR",ABMP("PDFN"))) D
- ..S ^TMP($J,"ABM-MURPT","CNT","NO")=+$G(^TMP($J,"ABM-MURPT","CNT","NO"))+1  ;count no insurance patients
+ ..S ^TMP($J,"ABM-MURPT","CNT","NO")=+$G(^TMP($J,"ABM-MURPT","CNT","NO"))+1  ;cnt no insurance pts
  ..S ^TMP($J,"ABM-MURPT","NO",ABMP("PDFN"))=""
  ;
  Q
@@ -174,14 +188,14 @@ GETVSTS ;
  F  S ABMP("SDT")=$O(^AUPNVSIT("B",ABMP("SDT"))) Q:('ABMP("SDT")!(ABMP("SDT")>ABMP("EDT")))  D
  .S ABMP("VDFN")=0
  .F  S ABMP("VDFN")=$O(^AUPNVSIT("B",ABMP("SDT"),ABMP("VDFN"))) Q:'ABMP("VDFN")  D
- ..S ABMPT=$P($G(^AUPNVSIT(ABMP("VDFN"),0)),U,5)  ;patient
+ ..S ABMPT=$P($G(^AUPNVSIT(ABMP("VDFN"),0)),U,5)  ;pt
  ..Q:ABMPT=""  ;no patient on visit
- ..I '$D(^TMP($J,"ABM-MURPT","PTS",ABMPT)) Q  ;not one of our patients
+ ..I '$D(^TMP($J,"ABM-MURPT","PTS",ABMPT)) Q  ;not one of our pts
  ..S ^TMP($J,"ABM-MURPT","ENC",ABMP("VDFN"))=""
- ..S ^TMP($J,"ABM-MURPT","CNT","ENC")=+$G(^TMP($J,"ABM-MURPT","CNT","ENC"))+1  ;count encounters
+ ..S ^TMP($J,"ABM-MURPT","CNT","ENC")=+$G(^TMP($J,"ABM-MURPT","CNT","ENC"))+1  ;cnt encounters
  ..I '$D(^TMP($J,"ABM-MURPT","UNQ",ABMPT)) D
  ...S ^TMP($J,"ABM-MURPT","UNQ",ABMPT)=""
- ...S ^TMP($J,"ABM-MURPT","CNT","UNQ")=+$G(^TMP($J,"ABM-MURPT","CNT","UNQ"))+1  ;count unique patients
+ ...S ^TMP($J,"ABM-MURPT","CNT","UNQ")=+$G(^TMP($J,"ABM-MURPT","CNT","UNQ"))+1  ;cnt unique pts
  Q
  ;
 TOTALS ;
@@ -201,11 +215,6 @@ TOTALS ;
  W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","UNQ")),7)_" Unique Patients"
  ;
  ;Patient Demographics
- ;% of Patients on Medicaid
- ;% of Patients on Medicare
- ;% of Patients on Private Insurance
- ;% of Patients Uninsured
- ;% of Patients on Managed Care
  I +$G(^TMP($J,"ABM-MURPT","CNT","PTS"))=0 W !!,"(REPORT COMPLETE)" Q  ;no patients found so it cause a DIVIDE error if we continue
  W !!,"Patient Demographics"
  ;medicaid
@@ -218,85 +227,23 @@ TOTALS ;
  W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","PI")),7)_" Patients with Private  ( "_$J($FN((+$G(^TMP($J,"ABM-MURPT","CNT","PI"))/(+$G(^TMP($J,"ABM-MURPT","CNT","PTS")))*100),",",2),5)_"% )"
  ;no eligibility
  W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","NO")),7)_" Patients Uninsured     ( "_$J($FN((+$G(^TMP($J,"ABM-MURPT","CNT","NO"))/(+$G(^TMP($J,"ABM-MURPT","CNT","PTS")))*100),",",2),5)_"% )"
- ;start new code abm*2.6*11 VMBP#9 - uncomment in patch 12
+ ;start new abm*2.6*11 VMBP#9 RQMT_103
  ;vmbp
- ;W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","VMBP")),7)_" Patients with VA Med B  ( "_$J($FN((+$G(^TMP($J,"ABM-MURPT","CNT","VMBP"))/(+$G(^TMP($J,"ABM-MURPT","CNT","PTS")))*100),",",2),5)_"% )"
- ;end new code VMBP#9
+ W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","VAMB")),7)_" Patients with VA Med B ( "_$J($FN((+$G(^TMP($J,"ABM-MURPT","CNT","VAMB"))/(+$G(^TMP($J,"ABM-MURPT","CNT","PTS")))*100),",",2),5)_"% )"
+ ;end new VMBP#9 RQMT_103
  W !!,"(REPORT COMPLETE)"
  Q
  ;
 WRTPTS ;^TMP($J,"ABM-MURPT","PTS",ABMP("PDFN"))
- W !!!,"PATIENTS PATIENTS PATIENTS PATIENTS PATIENTS"
- W !?3,"PDFN",?15,"NAME",?50,"HRN",?60,"DATE INACTIVE"
- S ABMP("PDFN")=0
- F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","PTS",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .W !?3,ABMP("PDFN"),?15,$P($G(^DPT(ABMP("PDFN"),0)),U),?50,$P($G(^AUPNPAT(ABMP("PDFN"),41,DUZ(2),0)),U,2),?60,$$SDT^ABMDUTL($P($G(^AUPNPAT(ABMP("PDFN"),41,DUZ(2),0)),U,3))
- ;
- ;^TMP($J,"ABM-MURPT","UNQ",ABMPT)
- W !!!,"UNIQUE PATIENTS UNIQUE PATIENTS UNIQUE PATIENTS UNIQUE PATIENTS UNIQUE PATIENTS"
- W !?3,"PDFN",?15,"NAME",?50,"HRN"
- S ABMP("PDFN")=0
- F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","UNQ",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .W !?3,ABMP("PDFN"),?15,$P($G(^DPT(ABMP("PDFN"),0)),U),?50,$P($G(^AUPNPAT(ABMP("PDFN"),41,DUZ(2),0)),U,2)
+ D WRTPTS^ABMMUEL1
  Q
  ;
 WRTELIG ;
- ;^TMP($J,"ABM-MURPT","MCD",ABMP("PDFN"),ABMP("MDFN"))
- W !!!,"MEDICAID MEDICAID MEDICAID MEDICAID MEDICAID MEDICAID MEDICAID "
- W !?3,"PDFN",?15,"NAME",?50,"MCD#",?62,"PLAN"
- S ABMP("PDFN")=0
- F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","MCD",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .S ABMP("MDFN")=0
- .F  S ABMP("MDFN")=$O(^TMP($J,"ABM-MURPT","MCD",ABMP("PDFN"),ABMP("MDFN"))) Q:'ABMP("MDFN")  D
- ..W !?3,ABMP("PDFN"),?15,$P($G(^DPT(ABMP("PDFN"),0)),U),?50,$P($G(^AUPNMCD(ABMP("MDFN"),0)),U,3),?62,$P($G(^AUPNMCD(ABMP("MDFN"),0)),U,10)
- ;
- ;^TMP($J,"ABM-MURPT","MCR",ABMP("PDFN"),ABMP("MDFN"))
- W !!!,"MEDICARE MEDICARE MEDICARE MEDICARE MEDICARE MEDICARE MEDICARE MEDICARE "
- W !?3,"PDFN",?15,"NAME",?50,"MCR#"
- S ABMP("PDFN")=0
- F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","MCR",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .S ABMP("MDFN")=0
- .F  S ABMP("MDFN")=$O(^TMP($J,"ABM-MURPT","MCR",ABMP("PDFN"),ABMP("MDFN"))) Q:'ABMP("MDFN")  D
- ..W !?3,ABMP("PDFN"),?15,$P($G(^DPT(ABMP("PDFN"),0)),U),?50,$P($G(^AUPNMCR(ABMP("PDFN"),0)),U,3)
- ;
- ;^TMP($J,"ABM-MURPT","RR",ABMP("PDFN"),ABMP("MDFN"))
- W !!!,"RAILROAD RAILROAD RAILROAD RAILROAD RAILROAD RAILROAD RAILROAD RAILROAD "
- W !?3,"PDFN",?15,"NAME",?50,"RR#"
- S ABMP("PDFN")=0
- F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","RR",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .S ABMP("MDFN")=0
- .F  S ABMP("MDFN")=$O(^TMP($J,"ABM-MURPT","RR",ABMP("PDFN"),ABMP("MDFN"))) Q:'ABMP("MDFN")  D
- ..W !?3,ABMP("PDFN"),?15,$P($G(^DPT(ABMP("PDFN"),0)),U),?50,$P($G(^AUPNRRE(ABMP("PDFN"),0)),U,3)
- ;
- ;start new code abm*2.6*11 VMBP#9 - uncomment in patch 12
- ;^TMP($J,"ABM-MURPT","VMBP",ABMP("PDFN"),ABMP("MDFN"))
- ;W !!!,"VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP VMBP "
- ;W !?3,"PDFN",?15,"NAME",?50,"HRN"
- ;end new code VMBP#9
- ;
- ;^TMP($J,"ABM-MURPT","PI",ABMP("PDFN"),ABMP("MDFN"))
- W !!!,"PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE PRIVATE "
- W !?3,"PDFN",?15,"NAME",?50,"INS",?62,"MEM#"
- S ABMP("PDFN")=0
- F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","PI",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .S ABMP("MDFN")=0
- .F  S ABMP("MDFN")=$O(^TMP($J,"ABM-MURPT","PI",ABMP("PDFN"),ABMP("MDFN"))) Q:'ABMP("MDFN")  D
- ..W !?3,ABMP("PDFN"),?15,$P($G(^DPT(ABMP("PDFN"),0)),U),?50,$P($G(^AUPNPRVT(ABMP("PDFN"),11,ABMP("MDFN"),0)),U),?62,$P($G(^AUPNPRVT(ABMP("PDFN"),11,ABMP("MDFN"),2)),U)
- ;
- ;^TMP($J,"ABM-MURPT","NO",ABMP("PDFN"))
- W !!!,"NOT INSURED NOT INSURED NOT INSURED NOT INSURED NOT INSURED NOT INSURED "
- W !?3,"PDFN",?15,"NAME"
- S ABMP("PDFN")=0
- F  S ABMP("PDFN")=$O(^TMP($J,"ABM-MURPT","NO",ABMP("PDFN"))) Q:'ABMP("PDFN")  D
- .W !?3,ABMP("PDFN"),?15,$P($G(^DPT(ABMP("PDFN"),0)),U)
+ D WRTELIG^ABMMUEL1
  Q
  ;
 WRTVSTS ;^TMP($J,"ABM-MURPT","ENC",ABMP("VDFN"))
- W !!!,"VISITS VISITS VISITS VISITS VISITS VISITS VISITS VISITS VISITS "
- W !?3,"VDFN",?13,"VISIT",?30,"PDFN",?40,"PATIENT"
- S ABMP("VDFN")=0
- F  S ABMP("VDFN")=$O(^TMP($J,"ABM-MURPT","ENC",ABMP("VDFN"))) Q:'ABMP("VDFN")  D
- .W !?3,ABMP("VDFN"),?13,$P($G(^AUPNVSIT(ABMP("VDFN"),0)),U),?30,$P($G(^AUPNVSIT(ABMP("VDFN"),0)),U,5),?40,$P($G(^DPT($P($G(^AUPNVSIT(ABMP("VDFN"),0)),U,5),0)),U)
+ D WRTVSTS^ABMMUEL1
  Q
 WHD ;EP for writing Report Header
  W $$EN^ABMVDF("IOF"),!

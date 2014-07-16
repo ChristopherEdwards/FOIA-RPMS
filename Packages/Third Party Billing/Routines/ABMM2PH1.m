@@ -1,18 +1,23 @@
 ABMM2PH1 ;IHS/SD/SDR - MU Patient Volume Hospital Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,12**;NOV 12, 2009;Build 187
+ ;IHS/SD/SDR - 2.6*12 - Included numerator and msgs about numerator and denominator.
  ;
 MET ;EP
  W !!,"Patient Volume: ",+$P($G(^XTMP("ABM-PVH2",$J,"LOC TOP",ABMVLOC)),U)_"%"
  ;
  S ABMLOC=$$GET1^DIQ(9999999.06,ABMVLOC,.02,"E")
- W !!,"Total Patient Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-DENOM",ABMSDT,ABMVLOC)),8)
+ ;W !!,"Total Patient Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-DENOM",ABMSDT,ABMVLOC)),8)  ;abm*2.6*12
+ W !!,"Total Patient Encounters (Denominator) "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-DENOM",ABMSDT,ABMVLOC)),8)  ;abm*2.6*12
+ W !,"Total Numerator Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM",ABMSDT,ABMVLOC)),8)  ;abm*2.6*12
  W !,"Total Medicaid Paid Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM PD",ABMSDT,ABMVLOC,"MCD")),8)
  W !,"Total Medicaid Zero Paid Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM ZEROPD",ABMSDT,ABMVLOC,"MCD")),8)
- W !,"Total Medicaid Enrolled Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM ENR",ABMSDT,ABMVLOC,"MCD")),8)
+ W !,"Total Medicaid Enrolled (Not Billed) Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM ENR",ABMSDT,ABMVLOC,"MCD")),8)  ;abm*2.6*12
  W !,"Total Kidscare/Chip Paid Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM PD",ABMSDT,ABMVLOC,"CHIP")),8)
  W !,"Total Kidscare/Chip Zero Paid Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM ZEROPD",ABMSDT,ABMVLOC,"CHIP")),8)
- W !,"Total Kidscare/Chip Enrolled Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM ENR",ABMSDT,ABMVLOC,"CHIP")),8)
- W !,"Total Other Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC ENC CNT",ABMSDT,ABMVLOC,"OTHR")),8)
+ ;W !,"Total Kidscare/Chip Enrolled Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM ENR",ABMSDT,ABMVLOC,"CHIP")),8)  ;abm*2.6*12
+ W !,"Total Kidscare/Chip Enrolled (Not Billed) Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC-NUM ENR",ABMSDT,ABMVLOC,"CHIP")),8)  ;abm*2.6*12
+ ;W !,"Total Other Encounters "_ABMLOC_": ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC ENC CNT",ABMSDT,ABMVLOC,"OTHR")),8)  ;abm*2.6*12
+ W !,"Total Other Encounters "_ABMLOC_" (*not included in numerator): ",?70,$J(+$G(^XTMP("ABM-PVH2",$J,"LOC ENC CNT",ABMSDT,ABMVLOC,"OTHR")),8)  ;abm*2.6*12
  Q
 NOTMET ;EP
  W !!,"The Patient Volume Threshold (10% for Hospitals) was not met for the"
@@ -113,6 +118,7 @@ PATIENT ;EP
  Q
 PTHSTFL ;EP
  S ABMSDT=$P($G(^XTMP("ABM-PVH2",$J,"LOC TOP")),U,2)
+ K ABMDCNT
  D OPEN^%ZISH("ABM",ABMPATH,ABMFN,"W")
  Q:POP
  U IO
@@ -120,7 +126,7 @@ PTHSTFL ;EP
  D HDR^ABMM2PV3
  S ABMPMET=0
  W !,"Visit Location"_U_"Patient"_U_"Chart#"_U_"Policy Holder ID"_U_"Serv Cat"_U_"Clinic"_U_"InsType"_U_"BilledTo"
- W U_"DateOfService"_U_"DatePaid"_U_"Medicaid/SchipPaid"_U_"Bill#"_U_"Payment"_U_"Primary POV"_U_"PRVT"_U_"MCR"_U_"MCD"_U_"CHIP"_U_"RR"_U_"NEEDY INDIV"
+ W U_"DateOfService"_U_"DatePaid"_U_"Medicaid/SchipPaid"_U_"Bill#"_U_"Payment"_U_"Primary POV"_U_"PRVT"_U_"MCR"_U_"MCD"_U_"CHIP"_U_"NEEDY INDIV"
  Q:ABMSDT=""
  S ABMVLOC=0
  F  S ABMVLOC=$O(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC)) Q:'ABMVLOC  D
@@ -134,32 +140,43 @@ PTHSTFL ;EP
  ....F  S ABMPTF=$O(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF)) Q:ABMPTF=""  D
  .....S ABMVDT=0
  .....F  S ABMVDT=$O(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT)) Q:'ABMVDT  D
- ......S ABMVDFN=$O(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,0))
- ......S ABMPT=$P($G(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN)),U,2)
- ......S ABMTRIEN=$P($G(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN)),U,3)
- ......S IENS=ABMVLOC_","_ABMPT_","
- ......S ABMHRN=$$GET1^DIQ(9000001.41,IENS,.02)
- ......W !,$$GET1^DIQ(9999999.06,ABMVLOC,".02","E")
- ......W U_ABMPTL_", "_ABMPTF  ;pt name
- ......W U_ABMHRN  ;HRN
- ......S ABMMIEN=$O(^AUPNMCD("B",ABMPT,0))
- ......I ABMMIEN D
- .......S ABMMCDN=$P($G(^AUPNMCD(ABMMIEN,0)),U,3)
- .......W U_ABMMCDN  ;Medicaid # - policy holder ID
- ......I 'ABMMIEN W U
- ......W U_$$GET1^DIQ(9000010,ABMVDFN,.07,"E")  ;Category
- ......W U_$$GET1^DIQ(9000010,ABMVDFN,.08,"E")  ;clinic
- ......W U_$S(ABMITYP="X":"",1:ABMITYP)  ;insurer type
- ......W U_$S(ABMINS="NO BILL":"NOT BILLED",1:$E(ABMINS,1,10))  ;insurer
- ......W U_$$CDT^ABMDUTL(ABMVDT)  ;visit date
- ......W U_$S(+ABMTRIEN:$$SDTO^ABMDUTL(ABMTRIEN),1:"") ;dt paid
- ......S ABMREC=$G(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN))
- ......D ELGCHK^ABMM2PV3
- ......W U_$P($G(ABMREC),U,4)
- ......W U_$P($G(ABMREC),U,5)
- ......W U_$P($G(ABMREC),U,6)
- ......W U_$P($G(ABMREC),U,7)
- ......W U_ABMPI_U_ABMMCR_U_ABMMCD_U_ABMCHIP_U_ABMRR_U_ABMNI
+ ......S ABMP("VDT")=ABMVDT
+ ......S ABMVDFN=0
+ ......F  S ABMVDFN=$O(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN)) Q:'ABMVDFN  D
+ .......I +$G(^XTMP("ABM-PVP2",$J,"DUPS",ABMVDFN))=1 S ABMDCNT=+$G(ABMDCNT)+1
+ .......S ^XTMP("ABM-PVP2",$J,"DUPS",ABMVDFN)=1
+ .......S ABMPT=$P($G(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN)),U,2)
+ .......S ABMTRIEN=$P($G(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN)),U,3)
+ .......S IENS=ABMVLOC_","_ABMPT_","
+ .......S ABMHRN=$$GET1^DIQ(9000001.41,IENS,.02)
+ .......W !,$$GET1^DIQ(9999999.06,ABMVLOC,".02","E")
+ .......W U_ABMPTL_", "_ABMPTF  ;pt name
+ .......W U_ABMHRN  ;HRN
+ .......K ABML
+ .......D ELGCHK^ABMM2PV3
+ .......S ABMMIEN=0
+ .......K ABMMCDN
+ .......I ($G(ABML("MCD"))!($G(ABML("CHIP")))) D
+ ........S ABMMIEN=+$G(ABMP("SAVE"))
+ ........I ABMMIEN D
+ .........S ABMMCDN=$P($G(^AUPNMCD(ABMMIEN,0)),U,3)
+ ........I 'ABMMIEN D PRVTCHIP^ABMM2PV3
+ .......I $G(ABMMCDN)'="" W U_ABMMCDN  ;Medicaid # - policy holder ID
+ .......I 'ABMMIEN W U
+ .......W U_$$GET1^DIQ(9000010,ABMVDFN,.07,"E")  ;Category
+ .......W U_$$GET1^DIQ(9000010,ABMVDFN,.08,"E")  ;clinic
+ .......W U_$S(ABMITYP="X":"",1:ABMITYP)  ;insurer type
+ .......W U_$S(ABMINS="NO BILL":"NOT BILLED",1:$E(ABMINS,1,10))  ;insurer
+ .......W U_$$CDT^ABMDUTL(ABMVDT)  ;visit date
+ .......W U_$S(+ABMTRIEN:$$SDTO^ABMDUTL(ABMTRIEN),1:"") ;dt paid
+ .......S ABMREC=$G(^XTMP("ABM-PVH2",$J,"PT LST",ABMSDT,ABMVLOC,ABMITYP,ABMINS,ABMPTL,ABMPTF,ABMVDT,ABMVDFN))
+ .......D ELGCHK^ABMM2PV3
+ .......W U_$P($G(ABMREC),U,4)
+ .......W U_$P($G(ABMREC),U,5)
+ .......W U_$P($G(ABMREC),U,6)
+ .......W U_$P($G(ABMREC),U,7)
+ .......W U_ABMPI_U_ABMMCR_U_ABMMCD_U_ABMCHIP_U_ABMNI
+ I +$G(ABMDCNT)>0 W !!,"Duplicate visits for this period: "_ABMDCNT
  D CLOSE^%ZISH("ABM")
  Q
 PTHDR ;

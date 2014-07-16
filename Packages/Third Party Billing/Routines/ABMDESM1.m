@@ -1,5 +1,5 @@
 ABMDESM1 ; IHS/ASDST/DMJ - Display Summarized Claim Info ; 
- ;;2.6;IHS Third Party Billing;**1,6,8,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,6,8,11,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
  ;     Modified to display 2nd and 3rd modifiers and units
@@ -26,6 +26,7 @@ ABMDESM1 ; IHS/ASDST/DMJ - Display Summarized Claim Info ;
  ; IHS/SD/SDR - abm*2.6*1 - HEAT7884 - display if visit type 731
  ; IHS/SD/SDR - abm*2.6*6 - HEAT28973 - if 55 modifier present use '1' for units when calculating charges
  ; IHS/SD/SDR - abm*2.6*6 - NOHEAT - Swing bed changes
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
  K ABMS
  ;
@@ -109,7 +110,8 @@ MSH S ABMS(ABMS("I"))=ABMX("SUB")
  S $P(ABMS(ABMS("I")),U,4)=$P(ABMS(ABMS("I")),U,4)_$S($P(ABMX(0),U,12)]"":"-"_$P(ABMX(0),U,12),1:"")
  S $P(ABMS(ABMS("I")),U,4)=$P(ABMS(ABMS("I")),U,4)_$S($P(ABMX(1),U)]"":"-"_$P(ABMX(1),U),1:"")
  S $P(ABMS(ABMS("I")),U,4)=$P(ABMS(ABMS("I")),U,4)_$S($P(ABMX(1),U,2)]"":"-"_$P(ABMX(1),U,2),1:"")
- I ABMP("EXP")=27 D
+ ;I ABMP("EXP")=27 D  ;abm*2.6*13 export mode 35
+ I ABMP("EXP")=27!(ABMP("EXP")=35) D  ;abm*2.6*13 export mode 35
  .S $P(ABMS(ABMS("I")),U,4)=ABMX("C")_$S($P(ABMX(0),U,9)]"":"   "_$P(ABMX(0),U,9),1:"")
  .S $P(ABMS(ABMS("I")),U,4)=$P(ABMS(ABMS("I")),U,4)_$S($P(ABMX(0),U,11)]"":" "_$P(ABMX(0),U,11),1:"")
  .S $P(ABMS(ABMS("I")),U,4)=$P(ABMS(ABMS("I")),U,4)_$S($P(ABMX(0),U,12)]"":" "_$P(ABMX(0),U,12),1:"")

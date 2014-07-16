@@ -1,5 +1,5 @@
 ABMERGRV ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;   
- ;;2.6;IHS Third Party Billing;**1,8,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,8,11,13**;NOV 12, 2009;Build 213
  ;Original;DMJ;01/26/96 4:02 PM
  ; IHS/SD/SDR - v2.5 p8 - task 6
  ;    Added code for new ambulance multiple 47
@@ -15,6 +15,8 @@ ABMERGRV ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  ; IHS/SD/SDR - abm*2.6*1 - HEAT5691 - Correction for covered days
  ; IHS/SD/SDR - abm*2.6*1 - HEAT6395 - allow dental codes to print on UB
  ; IHS/SD/SDR - abm*2.6*1 - HEAT7884 -
+ ;IHS/SD/SDR - 2.6*13 - HEAT135507 - fix for <SUBSCR>P1+39^ABMERGRV
+ ;IHS/SD/SDR - 2.6*13 - HEAT117086 - Removed code to put T1015 as top line; it doesn't work here.
  ;
  ; *********************************************************************
  ;
@@ -61,21 +63,32 @@ P1 ;EP - SET UP ABMRV ARRAY
  ..D @(I_"^ABMERGR2")  ; get ancillary services revenue code info
  ;
  ;start new code abm*2.6*11 HEAT117086
- I ABMP("ITYPE")="D"&($D(ABMRV)) D
- .S ABMIS=$O(ABMRV(0))
- .S ABMJS=+$O(ABMRV(ABMIS,0))
- .S ABMKS=$O(ABMRV(ABMIS,ABMJS,0))
- .S ABMI=0
- .F  S ABMI=$O(ABMRV(ABMI)) Q:'ABMI  D
- ..S ABMJ=""
- ..F  S ABMJ=$O(ABMRV(ABMI,ABMJ)) Q:$G(ABMJ)=""  D
- ...S ABMK=0
- ...F  S ABMK=$O(ABMRV(ABMI,ABMJ,ABMK)) Q:'ABMK  D
- ....I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,2)'="T1015" Q
- ....S ABMTMP("TMP")=$G(ABMRV(ABMIS,ABMJS,ABMKS))
- ....S ABMRV(ABMIS,ABMJS,ABMKS)=$G(ABMRV(ABMI,ABMJ,ABMK))
- ....S ABMRV(ABMI,ABMJ,ABMK)=$G(ABMTMP("TMP"))
- K ABMI,ABMJ,ABMK,ABMTMP
+ ;I ABMP("ITYPE")="D" D  ;abm*2.6*13 HEAT135507
+ ;I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="D"&($D(ABMRV)) D  ;abm*2.6*13 HEAT117086
+ ;.S ABMIS=$O(ABMRV(0))
+ ;.;S ABMJS=+$O(ABMRV(ABMIS,0))  ;abm*2.6*13 HEAT135507
+ ;.S ABMJS=$O(ABMRV(ABMIS,""))  ;abm*2.6*13 HEAT135507
+ ;.;S ABMKS=$O(ABMRV(ABMIS,ABMJS,0))  ;abm*2.6*13 HEAT135507
+ ;.S ABMKS=$O(ABMRV(ABMIS,ABMJS,""))  ;abm*2.6*13 HEAT135507
+ ;.S ABMI=0
+ ;.F  S ABMI=$O(ABMRV(ABMI)) Q:'ABMI  D
+ ;..S ABMJ=""
+ ;..F  S ABMJ=$O(ABMRV(ABMI,ABMJ)) Q:$G(ABMJ)=""  D
+ ;...;S ABMK=0  ;abm*2.6*13 HEAT135507
+ ;...S ABMK=""  ;abm*2.6*13 HEAT135507
+ ;...F  S ABMK=$O(ABMRV(ABMI,ABMJ,ABMK)) Q:'ABMK  D
+ ;....I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,2)'="T1015" Q
+ ;....;start old abm*2.6*13 HEAT147327
+ ;....;S ABMTMP("TMP")=$G(ABMRV(ABMIS,ABMJS,ABMKS))
+ ;....;S ABMRV(ABMIS,ABMJS,ABMKS)=$G(ABMRV(ABMI,ABMJ,ABMK))
+ ;....;S ABMRV(ABMI,ABMJ,ABMK)=$G(ABMTMP("TMP"))
+ ;....;end old start new HEAT147327
+ ;....B "L+"
+ ;....S ABMTMP("TMP")=$G(ABMRV(ABMIS,ABMJS,ABMKS))
+ ;....S ABMRV(ABMIS,ABMJS,ABMKS)=$G(ABMRV(ABMI,ABMJ,ABMK))
+ ;....S ABMRV(ABMI,ABMJ,ABMK)=$G(ABMTMP("TMP"))
+ ;....;end new HEAT147327
+ ;K ABMI,ABMJ,ABMK,ABMTMP
  .;end new code HEAT117086
  ;
  I $P($G(^DIC(40.7,$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,10),0)),U,2)="A3" D

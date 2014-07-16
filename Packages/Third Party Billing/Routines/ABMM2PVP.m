@@ -1,5 +1,9 @@
 ABMM2PVP ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,12**;NOV 12, 2009;Build 187
+ ;2.6*12-Updated FQHC/RHC/Tribal to include Urban
+ ;2.6*12-Made changes for uncomp care; uncomp should be separate detail line
+ ;  and should be included in pt vol total, not separate line.
+ ;2.6*12-Added screen on options B,C dts so it won't cross yrs.
  ;
  I $P($G(^ABMMUPRM(1,0)),U,2)="" D  Q
  .W !!,"Setup has not been done.  Please do MUP option prior to running any reports",!
@@ -8,17 +12,14 @@ ABMM2PVP ;IHS/SD/SDR - MU Patient Volume EP Report ;
 EN ;
  K ABMF,ABMPRVDR,ABMY,ABM,ABMEFLG
  D FAC Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)!'$D(ABMF)
- ;
  W !!,"In order for an Eligible Professional (EP) to participate in the Medicaid EHR"
  W !,"Incentive program EPs have to meet a patient volume requirement of 30% or 20%"
  W !,"minimum for pediatricians. This can be accomplished as an individual or as a"
  W !,"group."
- ;
  W !!,"The SEL report is to be used to determine patient volume for an individual EP."
  W !,"The GRP report is to be used to determine patient volume for an entire group"
  W !,"practice. If GRP report is utilized all EPs within the facility will need to"
  W !,"utilize the GRP report."
- ;
  W !!
  D RTYPE
  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)!$D(DIRUT)
@@ -38,7 +39,7 @@ EN ;
  .S DIR("A")="<P> to Print, <H> to Host File, or <R> to Reselect"
  D ^DIR K DIR Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  I $P(Y,U)="R" K ABMY,ABMPRVDR,ABMF,ABMP,ABMPRV G EN
- I $P(Y,U)="H" D  Q  ;host file selected; prompt for path/filename
+ I $P(Y,U)="H" D  Q  ;HFS; prompt for path/filename
  .D ^XBFMK
  .S DIR(0)="F"
  .S DIR("A")="Enter Path"
@@ -59,7 +60,6 @@ EN ;
  S ABMQ("RP")="COMPUTE^ABMM2PV1"
  D ^ABMDRDBQ
  Q
- ;
 RTYPE ;
  K ^XTMP("ABM-PVP2",$J)
  D ^XBFMK
@@ -77,7 +77,7 @@ PRVDR ;EP
  .S DIC(0)="AEMQ"
  .D ^DIC
  .S ABMPRV=+Y
- .I +Y<0 Q  ;nothing selected
+ .I +Y<0 Q  ;none selected
  .I +$$GET1^DIQ(200,ABMPRV,53.5,"I")=0 D  Q
  ..W !!,"Provider "_$$GET1^DIQ(200,ABMPRV,".01","E")_" does not have a Provider Class so they can't be"
  ..W !,"considered for this report"
@@ -88,51 +88,59 @@ PRVDR ;EP
  ..W !,"is not an Eligible Professional for the Medicaid MU EHR Program"
  ..W !,"Please enter a different Eligible Professional's name.",!!
  .;
- .I $$GET1^DIQ(200,ABMPRV,53.5,"E")="PHYSICIAN ASSISTANT" D  Q:ABMPAFLG=0
+ .I $$GET1^DIQ(200,ABMPRV,53.5,"E")="PHYSICIAN ASSISTANT" D
  ..S ABMPAFLG=0
- ..I $D(^ABMMUPRM(1,1,"B")) D
- ...S ABMFQ=0
- ...F  S ABMFQ=$O(^ABMMUPRM(1,1,ABMFQ)) Q:'ABMFQ  D
- ....I $P($G(^ABMMUPRM(1,1,ABMFQ,0)),U,2)=1 S ABMPAFLG=1
+ ..S ABMFQ=0
+ ..F  S ABMFQ=$O(ABMF(ABMFQ)) Q:'ABMFQ  D
+ ...S ABMFQIEN=0
+ ...S ABMFQIEN=+$O(^ABMMUPRM(1,1,"B",ABMFQ,0))
+ ...Q:'ABMFQIEN
+ ...I $P($G(^ABMMUPRM(1,1,ABMFQIEN,0)),U,2)=1 S ABMPAFLG=1
  ..Q:ABMPAFLG=1
  ..W !!,"Provider "_$$GET1^DIQ(200,ABMPRV,".01","E")_" ("_$$GET1^DIQ(200,ABMPRV,53.5,"E")_")"
  ..W !,"can't be included because the facility has to be led by a PA for a PA"
  ..W !,"to qualify"
+ .Q:(+$G(ABMPAFLG)=1)
  .S ABMPRVDR(ABMPRV)=""
  M ABMP=ABMPRVDR
  Q
 FAC ;
- D GETFACS^ABMM2MUP  ;get list of facilities
+ D GETFACS^ABMM2MUP  ;get fac list
  W !!
  K ABMFANS,ABMF
- F  D  Q:+$G(Y)<0!(Y=ABMTOT)!$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)  ;they didn't answer or ALL was selected
+ S ABMFQHC=0,ABMNFQHC=0
+ F  D  Q:+$G(Y)<0!(Y=ABMTOT)!$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)  ;didn't answer or ALL selected
  .D ^XBFMK
  .D FACLST
  .S DIR(0)="SO^"_$G(ABMDIR)
  .S:'$D(ABMF) DIR(0)="S^"_$G(ABMDIR)
  .I ABMFQHC=1 D
- ..S DIR("A",1)="Note: you cannot select a combination of FQHC/RHC/Tribal and non-FQHC/RHC/Tribal"
- ..S DIR("A",2)="data on this report"
+ ..S DIR("A",1)="Note: A combination of FQHC/RHC/Tribal/Urban and non-FQHC/RHC/"
+ ..S DIR("A",2)="      Tribal/Urban data may not be selected on this report"
  ..S DIR("A",3)=""
  .S DIR("A")="Select one or more facilities to use for calculating patient volume"
  .D ^DIR K DIR
  .Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  .S ABMFANS=Y
- .I ABMFANS'=ABMTOT,$D(ABMF),(ABMFQHC>1),'$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only FQHC/RHC/Tribals are allowed based on your first selection" H 1 Q
- .I ABMFANS'=ABMTOT,$D(ABMF),(ABMFQHC=0),$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only non-FQHC/RHC/Tribal clinics are allowed based on your first selection" H 1 Q
- .I ABMFANS'=ABMTOT,$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS))) S ABMFQHC=2
+ .I ABMFANS'=ABMTOT,$D(ABMF),($G(ABMFTYP)="T"),'$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only FQHC/RHC/Tribal/Urbans are allowed based on your first selection" H 1 Q
+ .I ABMFANS'=ABMTOT,$D(ABMF),($G(ABMFTYP)="I"),$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS)))  W !!,"only non-FQHC/RHC/Tribal/Urban clinics are allowed based on your first selection" H 1 Q
+ .;
+ .I ABMFANS'=ABMTOT,$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS))) S ABMFQHC=2,ABMFTYP=$S($G(ABMFTYP)="":"T",1:$G(ABMFTYP))
+ .I ABMFANS'=ABMTOT,'$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMFANS))),($G(ABMFTYP)="") S ABMFTYP="I"
  .I ABMFANS'=(ABMTOT) S ABMF($G(ABMFLIST(ABMFANS)))=""
  .I ABMFANS=(ABMTOT) D
  ..S ABMCNT=0
  ..F  S ABMCNT=$O(ABMFLIST(ABMCNT)) Q:'ABMCNT  S ABMF($G(ABMFLIST(ABMCNT)))=""
- K ABMFQHC
+ ;Q:+$G(Y)<0!(Y=ABMTOT)!$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
+ S ABMFQHC=0
+ I $D(^ABMMUPRM(1,1,"B",$O(ABMF(0)))) S ABMFQHC=1
  Q
 FACLST ;
- S ABMCNT=0,ABMDIR="",ABMFQHC=0,ABMNFQHC=0
+ S ABMCNT=0,ABMDIR=""  ;abm*2.6*12
  F  S ABMCNT=$O(ABMFLIST(ABMCNT)) Q:'ABMCNT  D
  .S:ABMDIR'="" ABMDIR=ABMDIR_";"_ABMCNT_":"_$$GET1^DIQ(9999999.06,$G(ABMFLIST(ABMCNT)),.01,"E")
  .S:ABMDIR="" ABMDIR=ABMCNT_":"_$$GET1^DIQ(9999999.06,$G(ABMFLIST(ABMCNT)),.01,"E")
- .S ABMDIR=ABMDIR_$S($D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))):" (FQHC/RHC/Tribal)",1:"")
+ .S ABMDIR=ABMDIR_$S($D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))):" (FQHC/RHC/Tribal/Urban)",1:"")
  .S ABMDIR=ABMDIR_$S($D(ABMF($G(ABMFLIST(ABMCNT)))):" *",1:"")
  .I $D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))) S ABMFQHC=1
  .I '$D(^ABMMUPRM(1,1,"B",ABMFLIST(ABMCNT))) S ABMNFQHC=1
@@ -155,95 +163,11 @@ PARTYR ;
  S ABMY("QYR")=ABMY("PYR")-1
  Q
 90DAY ;
- W !!,"Patient Volume is calculated based on a 90-day period. There are two different"
- W !,"time frame options that can be utilized to determine patient volume."
- W !!?3,"1. Qualification year - This is the year prior to the participation year."
- W !?6,"Any 90-day period can be selected within the qualification year to"
- W !?6,"determine patient volume."
- W !?3,"2. Look-back period - This can be a 90-day period in the previous 12 months"
- W !?6,"from attestation."
- W !!,"Select option A, B, or C to utilize the Qualification year time frame"
- W !,"Select option D or E to utilize the look-back time frame"
- W !!,"Note: All reports will be run for a 90-day reporting period. The 90-day"
- W !,"period may be automatically calculated or user may select a specific start date."
- W !,"The automated calculation will return the first 90-day period in which required"
- W !,"patient volumes are met or the 90-day period with the highest volume percentage"
- W !,"(first occurrence in the year)."
- ;
- D ^XBFMK
- S DIR(0)="S^A:Automated 90-Day Report;B:Specific 90-Day Report Period;C:User specified Report Period"
- S DIR(0)=DIR(0)_";D:Automated 90-Day Period within the last 12 months;E:Specific 90-Day Period within the last 12 months"
- S DIR("A",1)=""
- S DIR("A")="Enter selection"
- D ^DIR K DIR
- Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
- S ABMY("90")=$P(Y,U)
- I ABMY("90")="D" D  Q:+$G(ABMY("SDT"))=0
- .D ^XBFMK
- .S DIR(0)="D^::EX"
- .S DIR("A")="Enter Attestation Date"
- .D ^DIR K DIR
- .Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
- .S (ABMY("QYR"),ABMY("AYR"))=$E($$SDT^ABMDUTL(+Y),7,10)
- .S ABMY("ADT")=+Y
- .S (ABMY("EDT"),ABMEDT)=Y
- .S X1=$P(ABMEDT,".")
- .S X2=-365
- .D C^%DTC
- .S (ABMY("SDT"),ABMP("SDT"))=X
- I ABMY("90")="A"!(ABMY("90")="D") D
- .D ^XBFMK
- .S DIR(0)="S^F:First 90-day period found;H:Highest 90-day period found"
- .S DIR("A",1)=""
- .S DIR("A")="Enter selection"
- .S DIR("B")="F"
- .D ^DIR K DIR
- .Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
- .S ABMY("A90")=$P(Y,U)
- I ABMY("90")="B"!(ABMY("90")="C") D
- .D ^XBFMK
- .S DIR(0)="D^"_(ABMY("QYR")-1700)_"0101:"_(ABMY("QYR")-1700)_"1231:%DT"
- .I ABMY("RTYP")="HOS" S DIR(0)="D^"_(ABMY("QYR")-1701)_"1001:"_(ABMY("QYR")-1700)_"0930:%DT"
- .S DIR("A",1)=""
- .S DIR("A",2)="Select a specific start date in the calendar year"
- .I ABMY("90")="B" S DIR("A",2)=DIR("A",2)_" for the 90-Day Report Period."
- .I ABMY("RTYP")="HOS" S DIR("A",2)="Select a specific start date in the fiscal year for the 90-Day Report Period."
- .S DIR("A",3)="Note:  End Date must not be after December 31."
- .I ABMY("RTYP")="HOS" S DIR("A",3)="Note:  End Date must not be after September 30."
- .S DIR("A",4)=""
- .S DIR("A")="Enter first day of reporting period for "_ABMY("QYR")
- .D ^DIR K DIR
- .S (ABMY("SDT"),ABMP("SDT"))=Y
- .I ABMY("90")="C" D
- ..D ^XBFMK
- ..S DIR(0)="D^"_(ABMY("QYR")-1700)_"0101:"_(ABMY("QYR")-1700)_"1231:%DT"
- ..I ABMY("RTYP")="HOS" S DIR(0)="D^"_(ABMY("QYR")-1701)_"1001:"_(ABMY("QYR")-1700)_"0930:%DT"
- ..S DIR("A",1)=""
- ..S DIR("A",2)="Select a specific end date in the calendar year"
- ..I ABMY("90")="B" S DIR("A",2)=DIR("A",2)_" for the 90-Day Report Period."
- ..I ABMY("RTYP")="HOS" S DIR("A",2)="Select a specific start date in the fiscal year for the 90-Day Report Period."
- ..S DIR("A",3)="Note:  End Date must not be after December 31."
- ..S DIR("A",4)=""
- ..S DIR("A")="Enter last day of reporting period for "_ABMY("QYR")
- ..D ^DIR K DIR
- ..S (ABMY("EDT"),ABMP("EDT"))=Y
- I ABMY("90")="E" D
- .D ^XBFMK
- .S DIR(0)="D^"
- .S DIR("A",1)=""
- .S DIR("A",2)="Select a specific END date"
- .S DIR("A",4)=""
- .S DIR("A")="Enter last day of 90-day period"
- .D ^DIR K DIR
- .S (ABMY("EDT"),ABMEDT)=Y
- .S X1=$P(ABMEDT,".")
- .S X2=-89
- .D C^%DTC
- .S (ABMY("SDT"),ABMP("SDT"))=X
+ D 90DAY^ABMM2PP1
  Q
 RFORMAT ;
  D ^XBFMK
- S DIR(0)="S^S:Summary Report;A:Abbreviated Summary Report;P:Patient List"
+ S DIR(0)="S^S:Summary Report;P:Patient List"  ;abm*2.6*12
  S DIR("A",1)=""
  S DIR("A")="Enter Report Format Choice"
  D ^DIR K DIR
@@ -289,7 +213,7 @@ SELINS ;EP
  ....S DIC="^AUTNINS("
  ....S DIC(0)="QEAM"
  ....S DIC("A")="Select Insurer: "
- ....;only insurer type K and P and can't add an insurer that's already on list
+ ....;only ityp K,P and can't add an insurer that's already on list
  ....S DIC("S")="I (($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,Y,"".211"",""I""),1,""I"")=""K"")!($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,Y,"".211"",""I""),1,""I"")=""P""))&('$D(ABML(X)))"
  ....D ^DIC
  ....S ABMINS=+Y
@@ -325,6 +249,9 @@ RBINSLST ;EP
  S ABMCNT=ABMCNT2
  K ABMI
  M ABMI=ABMK
+ K ABMK
+ S ABMK=$O(ABMI(99),-1)
+ F ABM=1:1:ABMK S ABMI("INS",$O(ABMI(ABM,0)))=""
  K ABMK
  Q
 FINDINS ;EP

@@ -1,10 +1,11 @@
 ABMDF29B ; IHS/SD/SDR - ADA 2006 Dental Export -part 2 ;    
- ;;2.6;IHS Third Party Billing;**1,2,3,4,6,8,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,2,3,4,6,8,9,10,11,13**;NOV 12, 2009;Build 213
  ;abm*2.6*1 - split from ABMDF29A due to routine size
  ;IHS/SD/SDR - abm*2.6*2 - FIXPMS10006 - check what date to print FL37
  ;IHS/SD/PMT - abm*2.6*3 - HEAT8604 - moved entire form up one line
  ;IHS/SD/SDR - abm*2.6*3 - HEAT13493 - put facility NPI in box54 if UTAH MEDICAID
  ;IHS/SD/SDR - abm*2.6*6 - NOHEAT - AIDC local mods
+ ;IHS/SD/SDR - 2.6*13 - VMBP RQMT_95 - Updated to put VA STATION NUMBER in box 2.
  ;
 INS ;Ins Info
  S ABM("I")=0
@@ -46,6 +47,11 @@ BNODES ; Bill nodes
  .S ABM("B8")=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),8))
  .S ABM("B9")=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9))
  S $P(ABMF(4),U)=$P(ABM("B5"),U,12)  ;Prior Auth(2)  ;abm*2.6*1 HEAT6673 and  abm*2.6*3 HEAT8604
+ ;start new code abm*2.6*13 VMBP RQMT_95
+ I ((ABMP("ITYP")="V")!($P($G(^AUTNINS(ABMP("INS"),0)),U)["VMBP"))&($P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)'="") D
+ .S $P(ABMF(4),U)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)  ;VA station# (2)
+ .S ABMF(41)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)  ;VA contract# (35)
+ ;end new code VMBP RQMT_95
  I $P(ABM("B9"),U)]"" S $P(ABMF(49),U,3)="X"  ;Occup. illness(45)  ;HEAT8604
 ACCD ;Accident?
  I $P(ABM("B8"),U,3)'="" D

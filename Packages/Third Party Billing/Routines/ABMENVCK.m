@@ -1,5 +1,5 @@
 ABMENVCK ;IHS/SD/SDR - ENVIRONMENT CHECKER ;   
- ;;2.6;IHS Third Party Billing;**1,2,3,4,5,6,7,8,9,10**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,2,3,4,5,6,7,8,9,10**;NOV 12, 2009;Build 213
  ;
  ;
  I '$G(DUZ) W !,"DUZ UNDEFINED OR 0." D SORRY(2) Q

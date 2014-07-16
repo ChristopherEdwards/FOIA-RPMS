@@ -1,27 +1,22 @@
 ABMUTL8 ; IHS/ASDST/DMJ - 837 UTILITIES ;      
- ;;2.6;IHS Third Party Billing;**1,4,6,8,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,4,6,8,9,10,11,13**;NOV 12, 2009;Build 213
  ;Original;DMJ;09/21/95 12:47 PM
  ;
  ; 02/18/04 V2.5 P5 - 837 modification
  ;     Use HRN in following priority order -  visit location/parent/loop satellites
  ; IHS/SD/SDR - v2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
  ; IHS/SD/SDR - v2.5 p6 - 7/13/04 - Modified so OVER works correctly
- ; IHS/SD/SDR - v2.5 p8 - IM13324/IM15558
- ;    Added code to format 0 to 0.00
- ; IHS/SD/SDR - v2.5 p8 - IM12628
- ;    Removed special delimiter for CA
- ; IHS/SD/SDR - v2.5 p8 - task 6
- ;    Check value code before formatting; can be dollar amt or zip
- ; IHS/SD/SDR - v2.5 p9 - IM14702/IM17968
- ;    Correct HRN lookup for satellites
- ;IHS/SD/SDR - v2.5 p9 - IM17270
- ;   Changed "~" to "-" to avoid delimiter issues
- ; IHS/SD/SDR - v2.5 p9 - IM16962
- ;    If BCBS/OK add CR/LF to delimiter; they can't do streamed data
+ ; IHS/SD/SDR - v2.5 p8 - IM13324/IM15558 - Added code to format 0 to 0.00
+ ; IHS/SD/SDR - v2.5 p8 - IM12628 - Removed special delimiter for CA
+ ; IHS/SD/SDR - v2.5 p8 - task 6 - Check value code before formatting; can be dollar amt or zip
+ ; IHS/SD/SDR - v2.5 p9 - IM14702/IM17968 - Correct HRN lookup for satellites
+ ;IHS/SD/SDR - v2.5 p9 - IM17270 - Changed "~" to "-" to avoid delimiter issues
+ ; IHS/SD/SDR - v2.5 p9 - IM16962 - If BCBS/OK add CR/LF to delimiter; they can't do streamed data
  ;
  ; IHS/SD/SDR - v2.6 CSV
  ; IHS/SD/SDR - abm*2.6*1 - HEAT2836 - Remove Dxs when inpt Medicare/RR
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added code to pull anesthesia charges
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
 HRN(X) ;PEP - health record number
  ; First look at Visit Location for HRN
@@ -257,7 +252,8 @@ OVER(ABMLN,ABMPCE) ;EP - get override values from 3P Insurer file
  ;I $D(^ABMNINS(DUZ(2),ABMP("INS"),2,"AOVR",14,ABMLN,ABMPCE,0)) S ABMOVTYP=0
  ;I $D(^ABMNINS(DUZ(2),ABMP("INS"),2,"AOVR",14,ABMLN,ABMPCE,ABMP("VTYP"))) S ABMOVTYP=ABMP("VTYP")
  ;end old code start new code HEAT53137 and HEAT67605
- S ABMT("EXP")=$S(ABMP("EXP")=32:27,1:14)
+ ;S ABMT("EXP")=$S(ABMP("EXP")=32:27,1:14)  ;abm*2.6*13 export mode 35
+ S ABMT("EXP")=$S(ABMP("EXP")=32:35,1:14)  ;abm*2.6*13 export mode 35
  I $D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),2,"AOVR",ABMT("EXP"),ABMLN,ABMPCE,0)) S ABMOVTYP=0
  I $D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),2,"AOVR",ABMT("EXP"),ABMLN,ABMPCE,ABMP("VTYP"))) S ABMOVTYP=ABMP("VTYP")
  ;end new code HEAT53137

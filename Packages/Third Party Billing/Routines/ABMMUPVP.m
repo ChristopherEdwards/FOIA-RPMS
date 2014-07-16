@@ -1,5 +1,5 @@
 ABMMUPVP ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**7,8,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**7,8,10,11,12**;NOV 12, 2009;Build 187
  ;
  I $P($G(^ABMMUPRM(1,0)),U,2)="" D  Q
  .W !!,"Setup has not been done.  Please do MUP option prior to running any reports",!
@@ -119,6 +119,7 @@ FAC ;
  .I ABMFANS=(ABMTOT) D
  ..S ABMCNT=0
  ..F  S ABMCNT=$O(ABMFLIST(ABMCNT)) Q:'ABMCNT  S ABMF($G(ABMFLIST(ABMCNT)))=""
+ Q:+$G(Y)<0!(Y=ABMTOT)!$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  K ABMFQHC
  Q
 FACLST ;

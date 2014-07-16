@@ -1,5 +1,5 @@
 ABMMUPV1 ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**7,8,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**7,8,10,11,12**;NOV 12, 2009;Build 187
  ;
 COMPUTE ;EP - gather data report
  I ABMY("90")="B" D  Q
@@ -69,11 +69,9 @@ VISITS ;
  .F  S ABMVDFN=$O(^AUPNVSIT("B",ABMSDT,ABMVDFN)) Q:'ABMVDFN  D
  ..S ABMSCAT=$$GET1^DIQ(9000010,ABMVDFN,.07,"I")  ;service cat
  ..S ABMCLNC=$$GET1^DIQ(9000010,ABMVDFN,.08,"I")  ;clinic
- ..;Q:"^39^D1^D2^76^63^51^52^72^22^42^54^57^66^71^77^B5^C6^"[("^"_$$GET1^DIQ(40.7,$$GET1^DIQ(9000010,ABMVDFN,.08,"I"),1,"E")_"^")  ;exclude clinics 39/D1/D2/76/63  ;abm*2.6*8
  ..Q:"^39^D1^D2^76^63^51^52^72^22^42^54^57^66^71^77^B5^C6^"[("^"_$$GET1^DIQ(40.7,$$GET1^DIQ(9000010,ABMVDFN,.08,"I"),1,"E")_"^")&(ABMY("RTYP")="SEL")  ;exclude clinics  ;abm*2.6*8
  ..S ABMPT=$$GET1^DIQ(9000010,ABMVDFN,.05,"I")  ;patient
  ..;if SEL report type, service cat MUST be S,O,R, or (A w/clinic'=30)
- ..;I ABMY("RTYP")="SEL",(("^H^I^C^T^N^E^D^X^R^"[("^"_ABMSCAT_"^")!(ABMSCAT="A"&ABMCLNC=30))) Q  ;abm*2.6*8
  ..I "^H^I^C^T^N^E^D^X^R^"[("^"_ABMSCAT_"^") Q  ;abm*2.6*8
  ..I (ABMSCAT="A")&(ABMCLNC=30) Q  ;abm*2.6*8
  ..S ABMVLOC=$$GET1^DIQ(9000010,ABMVDFN,.06,"I")
@@ -82,9 +80,15 @@ VISITS ;
  ..Q:'$D(ABMF(ABMVLOC))  ;not a selected location
  ..I ABMY("RTYP")="GRP" D GRPVST Q  ;abm*2.6*8
  ..S ABMPIEN=0
+ ..K ABMPRVC  ;abm*2.6*12 HEAT124020
  ..F  S ABMPIEN=$O(^AUPNVPRV("AD",ABMVDFN,ABMPIEN)) Q:'ABMPIEN  D
  ...S ABMPRV=$$GET1^DIQ(9000010.06,ABMPIEN,.01,"I")
  ...Q:'$D(ABMPRVDR(ABMPRV))
+ ...;start new abm*2.6*12 HEAT124020
+ ...;skip provider if on visit more than once
+ ...Q:$D(ABMPRVC(ABMPRV))
+ ...S ABMPRVC(ABMPRV)=1
+ ...;end new HEAT124020
  ...;I $D(^ABMMUPRM(1,1,"B",ABMVLOC)) S ABMFQ=$O(^ABMMUPRM(1,1,"B",ABMVLOC,0)) I $$GET1^DIQ(200,ABMPRV,53.5,"E")="PHYSICIAN ASSISTANT",$P($G(^ABMMUPRM(1,1,ABMFQ,0)),U,2)'=1 Q
  ...S ^XTMP("ABM-PVP",$J,"PRV-DENOM",ABMP("SDT"),ABMPRV)=+$G(^XTMP("ABM-PVP",$J,"PRV-DENOM",ABMP("SDT"),ABMPRV))+1
  ...S ^XTMP("ABM-PVP",$J,"PRV-DENOM",ABMP("SDT"),ABMPRV,ABMVLOC)=+$G(^XTMP("ABM-PVP",$J,"PRV-DENOM",ABMP("SDT"),ABMPRV,ABMVLOC))+1
@@ -100,12 +104,16 @@ VISITS ;
  ;start new abm*2.6*8
 GRPVST ;
  S ABMPIEN=0
+ K ABMPRVC  ;abm*2.6*12 HEAT124020
  F  S ABMPIEN=$O(^AUPNVPRV("AD",ABMVDFN,ABMPIEN)) Q:'ABMPIEN  D
  .S ABMPRV=$$GET1^DIQ(9000010.06,ABMPIEN,.01,"I")
+ .;start new abm*2.6*12 HEAT124020
+ .;skip provider if on visit more than once
+ .Q:$D(ABMPRVC(ABMPRV))
+ .S ABMPRVC(ABMPRV)=1
+ .;end new HEAT124020
  .S ABMPRVCL=+$$GET1^DIQ(200,ABMPRV,53.5,"I")
  .I ABMPRVCL=0 S ABMPRV("O",ABMPRV)=""
- .;I (ABMPRVCL'=0)&('$D(^ABMMUPRM(1,2,"B",ABMPRVCL))) S ABMPRV("O",ABMPRV)=""
- .;I ABMPRVCL,$D(^ABMMUPRM(1,2,"B",ABMPRVCL)) S ABMPRV("E",ABMPRV)=""
  .I ABMPRVCL'=0 D
  ..I '$D(^ABMMUPRM(1,2,"B",ABMPRVCL)) S ABMPRV("O",ABMPRV)=""
  ..I $$GET1^DIQ(7,ABMPRVCL,9999999.01,"E")=11 D
@@ -137,7 +145,7 @@ BILLS ;EP
  .S ABMVDFN=0
  .F  S ABMVDFN=$O(^XTMP("ABM-PVP",$J,"VISITS",ABMVDFN)) Q:'ABMVDFN  D
  ..S ABMBILLF=0  ;abm*2.6*8 HEAT47191
- ..Q:($G(^XTMP("ABM-PVP",$J,"VISITS",ABMVDFN))=1)  ;already counted this visit on report
+ ..Q:($G(^XTMP("ABM-PVP",$J,"VISITS",ABMVDFN))=1)  ;already counted this vst on report
  ..Q:'$D(^ABMDBILL(ABMDUZ2,"AV",ABMVDFN))  ;visit not under this DUZ(2)
  ..S ABMP("BDFN")=0
  ..;F  S ABMP("BDFN")=$O(^ABMDBILL(ABMDUZ2,"AV",ABMVDFN,ABMP("BDFN"))) Q:'ABMP("BDFN")  ;abm*2.6*8 HEAT47191

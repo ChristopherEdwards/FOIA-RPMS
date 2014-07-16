@@ -1,19 +1,14 @@
 ABMDBLK ; IHS/ASDST/DMJ - Bill Selection ;     
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**13**;NOV 12, 2009;Build 213
  ;
  ; IHS/ASDS/DMJ - 05/15/00 - V2.4 Patch 1 - NOIS HQW-0500-100032
- ;     Modified to allow population of the PIN number for KIDSCARE
- ;     as well as visit type 999.
- ;
+ ;     Modified to allow population of the PIN number for KIDSCARE as well as visit type 999.
  ; IHS/SD/SDR - 10/10/02 - V2.5 P2 - OFB-0802-190066
  ;    Modified to put provider # in block 33 for Medicare insurers
- ;
- ; IHS/SD/SDR - v2.5 p8 - IM14823
- ;    Modified to not print Medicaid number when PI claim
- ;
- ; IHS/SD/SDR - v2.5 p9 - IM16942
- ;   For OK Medicaid - if VT 999 - print payer assigned provider#
- ;                     if not VT 999-PIN# from Insurer file
+ ; IHS/SD/SDR - v2.5 p8 - IM14823 - Modified to not print Medicaid number when PI claim
+ ; IHS/SD/SDR - v2.5 p9 - IM16942 - For OK Medicaid - if VT 999 - print payer assigned provider#
+ ;     if not VT 999-PIN# from Insurer file
+ ;IHS/SD/SDR - 2.6*13 - Added checks for new export mode 35
  ;
 BILL ;SELECT BILL
  K %P,DIC,ABMP("BDFN"),ABM
@@ -136,13 +131,28 @@ SELO .S ABM("E")=$E(ABM,$L(ABM)),DIC("A")="Select "_ABM_$S(ABM>3&(ABM<21):"th",A
  I $G(ABMPNUM)="",ABMP("ITYPE")="R" D
  .S ABMPNUM=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),3,ABMPROV,0)),U,2)
  I ABMP("VTYP")=999,($P($G(^AUTNINS(ABMP("INS"),0)),U)["OKLAHOMA MEDICAID") D  Q
- .S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27:4,1:3))=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),3,ABMPROV,0)),U,2)
- .S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27:5,1:4))=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),0)),U,6)
+ .;start old code abm*2.6*13 Export mode 35
+ .;S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27:4,1:3))=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),3,ABMPROV,0)),U,2)
+ .;S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27:5,1:4))=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),0)),U,6)
+ .;end old start new export mode 35
+ .S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27!($G(ABMP("EXP"))=35):4,1:3))=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),3,ABMPROV,0)),U,2)
+ .S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27!($G(ABMP("EXP"))=35):5,1:4))=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),0)),U,6)
+ .;end new export mode 35
  I $G(ABMPNUM)="",(ABMP("ITYPE")="D") D
  .S ABMPNUM=$P($G(^VA(200,ABMPROV,9999999)),"^",7)
- I $P(ABMF(54),U,$S($G(ABMP("EXP"))=27:4,1:3))'="" D
- .S:$G(ABMP("EXP"))=27 $P(ABMF(54),U,5)=$P(ABMF(54),U,4)
+ ;start old code abm*2.6*13 Export mode 35
+ ;I $P(ABMF(54),U,$S($G(ABMP("EXP"))=27:4,1:3))'="" D
+ ;.S:$G(ABMP("EXP"))=27 $P(ABMF(54),U,5)=$P(ABMF(54),U,4)
+ ;end old start new export mode 35
+ I $P(ABMF(54),U,$S($G(ABMP("EXP"))=27!($G(ABMP("EXP"))=35):4,1:3))'="" D
+ .S:($G(ABMP("EXP"))=27!($G(ABMP("EXP"))=35)) $P(ABMF(54),U,5)=$P(ABMF(54),U,4)
+ .;end new export mode 35
  .E  S $P(ABMF(54),U,4)=$P(ABMF(54),U,3)
- S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27:4,1:3))=ABMPNUM
- S:$G(ABMP("EXP"))=27 $P(ABMF(54),U,4)=$S($P($$NPI^XUSNPI("Individual_ID",ABMPROV),U)>0:$P($$NPI^XUSNPI("Individual_ID",ABMPROV),U),1:"")
+ ;start old code abm*2.6*13 export mode 35
+ ;S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27:4,1:3))=ABMPNUM
+ ;S:$G(ABMP("EXP"))=27 $P(ABMF(54),U,4)=$S($P($$NPI^XUSNPI("Individual_ID",ABMPROV),U)>0:$P($$NPI^XUSNPI("Individual_ID",ABMPROV),U),1:"")
+ ;end old start new export mode 35
+ S $P(ABMF(54),U,$S($G(ABMP("EXP"))=27!($G(ABMP("EXP"))=35):4,1:3))=ABMPNUM
+ S:($G(ABMP("EXP"))=27!($G(ABMP("EXP"))=35)) $P(ABMF(54),U,4)=$S($P($$NPI^XUSNPI("Individual_ID",ABMPROV),U)>0:$P($$NPI^XUSNPI("Individual_ID",ABMPROV),U),1:"")
+ ;end new export mode 35
  Q

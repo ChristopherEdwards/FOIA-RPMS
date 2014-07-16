@@ -1,27 +1,20 @@
 ABMDEMLE ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;
- ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9,10,11,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/SD/SDR - v2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
  ; IHS/SD/SDR - v2.5 p6 - 7/9/04 - IM14079 and IM14121 - Edited code for TOS
  ;     call to not do if 837 format
- ; IHS/SD/SDR - v2.5 p8 - IM12246/IM17548
- ;    Coded new prompts for In-House and Reference Lab CLIAs
- ; IHS/SD/SDR - v2.5 p8 - task 6
- ;    Added code for mileage population on page 3A and message about
- ;    editing
- ; IHS/SD/SDR - v2.5 p9 - task 1
- ;    Added code for new provider multiple on service lines
- ; IHS/SD/SDR - v2.5 p9 - IM19820
- ;    Fix for <UNDEF>E2+37^ABMDEMLE
- ; IHS/SD/SDR - v2.5 p10 - task order item 1
- ;    Calls added for Chargemaster.  Calls supplied by Lori Butcher
- ; IHS/SD/SDR - v2.5 p11 - IM23175
- ;    Added code so G0107 could be entered on the lab page.
- ;    It needs a CLIA number
+ ; IHS/SD/SDR - v2.5 p8 - IM12246/IM17548 - Coded new prompts for In-House and Reference Lab CLIAs
+ ; IHS/SD/SDR - v2.5 p8 - task 6 - Added code for mileage population on page 3A and message about editing
+ ; IHS/SD/SDR - v2.5 p9 - task 1 - Added code for new provider multiple on service lines
+ ; IHS/SD/SDR - v2.5 p9 - IM19820 - Fix for <UNDEF>E2+37^ABMDEMLE
+ ; IHS/SD/SDR - v2.5 p10 - task order item 1 - Calls added for Chargemaster.  Calls supplied by Lori Butcher
+ ; IHS/SD/SDR - v2.5 p11 - IM23175 - Added code so G0107 could be entered on the lab page.  It needs a CLIA number
  ;
  ; IHS/SD/SDR - v2.6 CSV
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added code for SV5 segment
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added code for 2400 DTP Test Date
+ ;IHS/SD/SDR - 2.6*13 - exp mode 35.  Linked occurrence codes (01 and 11) to page 3 questions (Date First Symptom and Injury Date)
  ;
 E1 ; Edit Multiple
  I ABMZ("NUM")=0 W *7,!!,"There are no entries to edit, you must first ADD an entry.",! K DIR S DIR(0)="E" D ^DIR K DIR Q
@@ -93,6 +86,7 @@ E2 W !!!,"[",+Y,"]  ",$P(ABMZ(+Y),U) S ABMX("Y")=+Y
  .I $P($G(^ICPT($P(ABMZ(ABMX("Y")),U),0)),U,3)="" Q  ;CPT has no CPT category to check
  .I ($P($G(^DIC(81.1,$P($G(^ICPT(+$P(ABMZ(ABMX("Y")),U),0)),U,3),0)),U)["IMMUNIZATION") S DR="15//" D ^DIE
  ;end new code 5010
+ I ABMZ("SUB")=51,"^01^11^"[("^"_$P($G(^ABMDCODE($P(ABMZ(ABMX("Y")),U,2),0)),U)_"^") S ABMOIEN=$P(ABMZ(ABMX("Y")),U,2) D OCCURCD^ABMDEML  ;abm*2.6*13 exp mode 35
 PROV ;
  S DA=$P(ABMZ(ABMX("Y")),U,2)
  I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),DA,"P",0))>0 D

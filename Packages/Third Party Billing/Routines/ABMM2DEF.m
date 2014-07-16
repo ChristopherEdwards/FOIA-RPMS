@@ -1,5 +1,6 @@
 ABMM2DEF ;IHS/SD/SDR - MU Patient Volume DEF Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,12**;NOV 12, 2009;Build 187
+ ;IHS/SD/SDR - 2.6*12 - Updated FQHC/RHC/Tribal to include Urban
  ;
  S ABMQ("RC")="COMPUTE^ABMM2DEF"
  S ABMQ("RX")="POUT^ABMDRUTL"
@@ -57,15 +58,25 @@ PRINT ;
  ;W !?3,"six (6) months in the most recent calendar year.  FQHCs and RHCs use the"
  ;W !?3,"Needy Individual encounter definition (expanded from the basic Medicaid"
  ;W !?3,"encounter) for their encounters."
- ;end old code start new code HEAT61752
- W !?3,"will be used for EPs who work predominately at an FQHC, RHC or Tribal clinic."
- W !?3,"An EP is considered to work predominantly at an FQHC, RHC or Tribal clinic"
- W !?3,"when the FQHC/RHC/Tribal clinic is the clinical location for over 50% of all"
- W !?3,"of the provider's total encounters for six (6) months in the most recent"
- W !?3,"calendar year.  FQHCs, RHCs and Tribal clinics use the Needy Individual"
- W !?3,"encounter definition (expanded from the basic Medicaid encounter) for their"
- W !?3,"encounters."
- ;end new code HEAT61752
+ ;start old code abm*2.6*12
+ ;;end old code start new code HEAT61752
+ ;W !?3,"will be used for EPs who work predominately at an FQHC, RHC or Tribal clinic."
+ ;W !?3,"An EP is considered to work predominantly at an FQHC, RHC or Tribal clinic"
+ ;W !?3,"when the FQHC/RHC/Tribal clinic is the clinical location for over 50% of all"
+ ;W !?3,"of the provider's total encounters for six (6) months in the most recent"
+ ;W !?3,"calendar year.  FQHCs, RHCs and Tribal clinics use the Needy Individual"
+ ;W !?3,"encounter definition (expanded from the basic Medicaid encounter) for their"
+ ;W !?3,"encounters."
+ ;;end new code HEAT61752
+ ;end old code start new code abm*2.6*12
+ W !?3,"will be used for EPs who work predominately at an FQHC, RHC, Tribal or Urban"
+ W !?3,"clinic.  An EP is considered to work predominantly at an FQHC, RHC, Tribal or"
+ W !?3,"Urban clinic when the FQHC/RHC/Tribal/Urban clinic is the clinical location"
+ W !?3,"for over 50% of all of the provider's total encounters for six (6) months in"
+ W !?3,"the most recent calendar year.  FQHCs, RHCs, Tribal and Urban clinics use the"
+ W !?3,"Needy Individual encounter definition (expanded from the basic Medicaid"
+ W !?3,"encounter) for their encounters."
+ ;end new code abm*2.6*12
  W !
  ;
  W !,$$EN^ABMVDF("HIN"),"NEEDY INDIVIDUALS:",$$EN^ABMVDF("HIF")," Needy Individual encounters include all patient encounters"

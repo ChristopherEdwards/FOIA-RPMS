@@ -1,5 +1,5 @@
 ABMDEMLC ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES - PART 4 ;  
- ;;2.6;IHS Third Party Billing System;**2,3,6,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,3,6,9,10,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
  ;     Modified to display 2nd and 3rd modifiers and units
@@ -20,14 +20,18 @@ ABMDEMLC ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES - PART 4 ;
  ; IHS/SD/SDR - abm*2.6*3 - NOHEAT - fixed modifiers so they work correctly; it would let
  ;   user but garbage
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added export mode 32
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
 DX ;EP for selecting Corresponding Diagnosis
  I '+$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C","")) W !!,"There are no Diagnosis entered to select from." Q
  S ABMX=0 K DIR
  W !!,?21,"DIAGNOSES"
- W !,?7,"Seq",?13,"ICD9"
- W !,?7,"Num",?13,"Code",?32,"Diagnosis Description"
- W !,?7,"===",?12,"======",?21,"============================================"
+ ;W !,?7,"Seq",?13,"ICD9"  ;abm*2.6*10 ICD10 002I
+ W !,?7,"Seq",?14,"ICD"  ;abm*2.6*10 ICD10 002I
+ ;W !,?7,"Num",?13,"Code",?32,"Diagnosis Description"   ;abm*2.6*10 ICD10 002I
+ W !,?7,"Num",?14,"Code",?33,"Diagnosis Description"   ;abm*2.6*10 ICD10 002I
+ ;W !,?7,"===",?12,"======",?21,"============================================"  ;abm*2.6*10 ICD10 002I
+ W !,?7,"===",?12,"========",?22,"============================================"  ;abm*2.6*10 ICD10 002I
  D RES^ABMDEMLA(17)
  F ABMX("I")=1:1 S ABMX=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMX)) Q:'ABMX  D DX1
  I ABMX("I")=2 D  Q
@@ -65,7 +69,8 @@ DX ;EP for selecting Corresponding Diagnosis
 DX1 ;LIST DX'S
  S ABMX("X")=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMX,"")),ABMX(ABMX("X"))=ABMX("I"),ABMX("X0")=$$DX^ABMCVAPI(ABMX("X"),ABMP("VDT"))  ;CSV-c
  I $D(ABMX("EDIT")),$D(ABMZ(ABMX("Y"))) S:ABMX("X")=$P(ABMZ(ABMX("Y")),U,5) DIR("B")=ABMX("I")
- W !,?8,ABMX("I"),?12,$P(ABMX("X0"),U,2),?21,$P(ABMX("X0"),U,4)  ;CSV-c
+ ;W !,?8,ABMX("I"),?12,$P(ABMX("X0"),U,2),?21,$P(ABMX("X0"),U,4)  ;CSV-c  ;abm*2.6*10 ICD10 002I
+ W !,?8,ABMX("I"),?12,$P(ABMX("X0"),U,2),?22,$P(ABMX("X0"),U,4)  ;CSV-c  ;abm*2.6*10 ICD10 002I
  Q
  ;
 NARR ;EP for entering Provider's Narrative
@@ -156,7 +161,8 @@ SELMOD ;
  Q
 POSA ; EP - place of service
  ;I "^3^14^15^19^20^22^27"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*6 5010
- I "^3^14^15^19^20^22^27^32"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*6 5010
+ ;I "^3^14^15^19^20^22^27^32"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*6 5010  ;abm*2.6*13 export mode 35
+ I "^3^14^15^19^20^22^27^32^35"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*13 export mode 35
  D POS
  I $D(ABMZ("DR")) S ABMZ("DR")=ABMZ("DR")_";.15T//"_ABMDFLT
  E  S ABMZ("DR")=";W !;.15T//"_ABMDFLT
