@@ -1,5 +1,5 @@
 PSIVQUI ;BIR/RGY,MLM-HANDLE QUICK CODE ENTRIES ;15 Dec 98 / 8:29 AM
- ;;5.0; INPATIENT MEDICATIONS ;**21,50,65,73,76,93,104**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**21,50,65,73,76,93,104,110**;16 DEC 97
  ;
  ;Reference to ^PS(51.1 is supported by DBIA 2177
  ;Reference to ^PS(51.2 is supported by DBIA 2178
@@ -64,7 +64,8 @@ SET K DRG S PSIVX0=$S($D(^PS(52.6,+Y,1,+$O(^PS(52.6,"C",X,+Y,0)),0)):^(0),1:""),
  S X=$P(PSIVX0,"^",3)
  I $P(PSIVX0,U,8) D
  .S P("MR")=+$P(PSIVX0,U,8)_U_$S($P($G(^PS(51.2,+$P(PSIVX0,U,8),0)),U,3):$P($G(^PS(51.2,+$P(PSIVX0,U,8),0)),U,3),1:$E($P($G(^PS(51.2,+$P(PSIVX0,U,8),0)),U),1,5))
- W " ",X D ENI^PSIVSP I '$D(X) S P(15)=0 W $C(7),"  --> Invalid infusion rate !!"
+ W " ",X D ENI^PSIVSP I '$D(X) W $C(7),"  --> Invalid infusion rate !!" I '$$SCHREQ^PSJLIVFD(.P) S P(15)=0
+ I $$SCHREQ^PSJLIVFD(.P),'$$DOW^PSIVUTL($G(P(9))),'(P(15)>0) S P(15)=$$INTERVAL^PSIVUTL(.P)
  S PSIVOK="57^58^59^3^26^39^63^64^"_$S($E(P("OT"))="I":"101^109^",1:"")_"10^25^1"
  S P(17)="A",P(8)=$S($D(X):X,1:""),PSIVE=0,PSIVSTR="QUICK CODE",(DRG(2),Y)="",EDIT=$S(+P("MR"):"",1:"3^")_$P(EDIT,"64^",2) K ND,PSIVX0,PSIVSC,PSIVX
  Q

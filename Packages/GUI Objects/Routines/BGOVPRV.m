@@ -1,5 +1,5 @@
-BGOVPRV ; IHS/BAO/TMD - V PROVIDER file RPCs ;21-Jun-2011 08:20;MGH
- ;;1.1;BGO COMPONENTS;**1,3,9**;Mar 20, 2007
+BGOVPRV ; IHS/BAO/TMD - V PROVIDER file RPCs ;09-Apr-2012 14:54;DU
+ ;;1.1;BGO COMPONENTS;**1,3,9,11**;Mar 20, 2007;Build 3
  ; Return primary provider for a visit
 PRIPRV(RET,VIEN) ;EP
  S RET=$$PRIPRV^BGOUTL(VIEN)
@@ -33,6 +33,12 @@ SETVPRV(RET,INP) ;
  S @FDA@(.02)=DFN
  S @FDA@(.03)=VIEN
  S @FDA@(.04)=PRI
+ ;Patch 11 Set date entered
+ S @FDA@(1216)=$$NOW^XLFDT
+ S @FDA@(1217)=DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)=$$NOW^XLFDT
+ S @FDA@(1219)=DUZ
  S RET=$$UPDATE^BGOUTL(.FDA)
  Q
  ; Return V File #

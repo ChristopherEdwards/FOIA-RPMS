@@ -1,5 +1,5 @@
 BARPST4 ; IHS/SD/LSL - POSTING AND ADJUSTMENTS CONTINUED ; 12/29/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,10,20**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,10,20,23**;OCT 26, 2005
  ;
  ; *********************************************************************
  ;
@@ -14,7 +14,6 @@ EN ;EP
  K DIR  ;IHS/SD/TPF BAR*1.8*3 FOUND DURING BETA TESTING
  S DIR(0)="N^1:"_BARSEL
  D ^DIR
- ;I $D(DUOUT) G ASKCOM^BARPST3
  I $D(DUOUT)!$D(DTOUT) G ASKCOM^BARPST3  ;IHS/SD/TPF BAR*1.8*3 FOUND DURING BETA TESTING
  S BARSEL=Y
  ; -------------------------------
@@ -38,7 +37,8 @@ ASKAMT ;
  S X=$$AMT^BARPSTU(X)
  I X="^" G ASKCOM^BARPST3
  I X="?" W *7,"  Must be a valid number!" G ASKAMT
- I BARTYP="P",X<0,$$IHS^BARUFUT(DUZ(2)) D STOP^BARFPST1 G ASKAMT  ;MRS:BAR*1.8*10 D158-3
+ I BARTYP="P",X<0,$$IHS^BARUFUT(DUZ(2)) D STOP^BARFPST1 G ASKAMT  ;MRS:BAR*1.8*10 D158-3 OTT
+ ;;;I BARTYP="P",X<0,$$IHSERA^BARUFUT(DUZ(2)) D STOP^BARFPST1 G ASKAMT  ;MRS:BAR*1.8*10 D158-3 OTT
  S BARAMT=X
  ;
  I BARTYP="P" G S1
@@ -159,9 +159,9 @@ SURE ;EP; WARNING MESSAGE
  ; *********************************************************************
 WARN(BARLVL,BARDIF)       ;EP - warner MOVED FROM BARPST3A ;BAR*1.8*4 DD 4.1.7.2
  I BARLVL=4,'$$IHS^BARUFUT(DUZ(2)) K BARFLG("BARWARN") Q  ;BAR*1.8*4 DD 4.1.7.2
+ ;;;I BARLVL=4,'$$IHSERA^BARUFUT(DUZ(2)) K BARFLG("BARWARN") Q  ;BAR*1.8*4 DD 4.1.7.2 OTT
  I '$G(BARFLG("BARWARN")) W !
  W *7,!,"Warning - Posted amount exceeds the "
- ;W $S(BARLVL=1:"batch",BARLVL=2:"item",1:"location")_" balance." ;BAR*1.8*4 DD 4.1.7.2
  W $S(BARLVL=1:"BATCH",BARLVL=2:"ITEM",BARLVL=3:"LOCATION",1:"BILL")_" balance" ;BAR*1.8*4 DD 4.1.7.2
  W " by "_BARDIF_" amount"              ;BAR*1.8*4 DD 4.1.7.2
  S BARFLG("BARWARN")=1

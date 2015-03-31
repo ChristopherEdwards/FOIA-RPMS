@@ -1,5 +1,5 @@
-GMRCPC1 ;SLC/dee - List Manager Routine: Collect and display consults by service and status ;07-Dec-2011 14:49;DU
- ;;3.0;CONSULT/REQUEST TRACKING;**7,1002**;DEC 27, 1997;Build 1
+GMRCPC1 ;SLC/dee - List Manager Routine: Collect and display consults by service and status ;25-Jul-2012 11:26;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**7,1002,1003**;DEC 27, 1997;Build 14
  ;Modified - IHS/MSC/PLS - 09/19/2011 - New EP - TESTPT
  Q
  ;
@@ -86,6 +86,8 @@ TESTPT() ;IHS/MSC/MGH Check to see if test pts included.
  S DIR(0)="S^E:Exclude DEMO Pts;D:Include ONLY DEMO Pts;A:Include ALL pts"
  S DIR("?")="Enter type of pts in report "
  S DIR("A")="Demo Pts, Real pts, or both?",DIR("B")="E"
- D ^DIR Q:$D(DIRUT)  S RESULT=Y
+ D ^DIR
+ I $D(DIRUT) S GMRCQUT=1 Q 1
+ S RESULT=Y
  K DIR
  Q RESULT

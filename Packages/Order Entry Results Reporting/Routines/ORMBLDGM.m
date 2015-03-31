@@ -1,5 +1,5 @@
 ORMBLDGM ;SLC/MKB-Build outgoing GMR* ORM msgs ;11/17/00  11:07
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**26,68,97,190**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**26,68,97,190,195**;Dec 17, 1997
 HL7DATE(DATE) ; -- FM -> HL7 format
  Q $$FMTHL7^XLFDT(DATE)  ;**97
  ;
@@ -22,7 +22,7 @@ CS1 S QT="^^^^^"_$P($G(^ORD(101.42,+URG,0)),U,2),$P(ORMSG(4),"|",8)=QT
  S USID=$$USID^ORMBLD(OI) ;S:$L(CTYPE) $P(USID,U,5)=CTYPE
  S ORMSG(5)="OBR||||"_USID_"||||||||||||||"_PLACE_"|"_ATTN,Z=5
  ; Create DG1 & ZCL segment(s) for Billing Awareness (BA) project
- D DG1^ORWDBA1($G(IFN),"Z",5)
+ D DG1^ORWDBA3($G(IFN),"Z",5)
  I RSERV'>0,$P(USID,U,6)="99CON" S RSERV=+$P(USID,U,4)
  S:RSERV Z=Z+1,ORMSG(Z)="ZSV|^^^"_+RSERV_U_$$GET1^DIQ(123.5,+RSERV_",",.01)_"^99CON|"_CTYPE
  S I=0,J=+$O(^TMP("ORWORD",$J,WP,1,0)),Z=Z+1 ; get first line

@@ -1,18 +1,20 @@
-PSSSXRD ; BIR/PKR - Build indexes for drug files. ;06/05/2003
- ;;1.0;PHARMACY DATA MANAGEMENT;**62**;9/30/97
+PSSSXRD ; BIR/PKR - Build indexes for drug files. ;03-Oct-2012 13:22;DU
+ ;;1.0;PHARMACY DATA MANAGEMENT;**62,89,1015**;9/30/97;Build 62
  ;
  ;Reference to ^PXRMINDX supported by DBIA #4114
  ;Reference to ADDERROR^PXRMSXRM supported by DBIA #4113
  ;Reference to DETIME^PXRMSXRM supported by DBIA #4113
  ;Reference to COMMSG^PXRMSXRM supported by DBIA #4113
+ ;IHS/MSC/MGH add a check on order data and only send error message
+ ;if date is less than a year ago
  Q
  ;===============================================================
 PSPA ;Build the index for the Pharmacy Patient File.
  N ADD,DA,DA1,DAS,DATE,DFN,DRUG,END,ENTRIES,GLOBAL,IDEN,IND,INS,NE
- N NERROR,SDATE,SOL,START,STARTD,TEMP,TENP,TEXT
+ N NERROR,POI,SDATE,SOL,START,STARTD,TEMP,TENP,TEXT,ODATE,YR,X1,X2,X
  S GLOBAL=$$GET1^DID(55,"","","GLOBAL NAME")
  ;Don't leave any old stuff around.
- K ^PXRMINDX(55)
+ K ^PXRMINDX(55),^PXRMINDX("55NVA")
  S ENTRIES=$P(^PS(55,0),U,4)
  S TENP=ENTRIES/10
  S TENP=+$P(TENP,".",1)
@@ -21,6 +23,7 @@ PSPA ;Build the index for the Pharmacy Patient File.
  S TEXT="There are "_ENTRIES_" entries to process."
  D MES^XPDUTL(TEXT)
  S START=$H
+ S X1=$$NOW^XLFDT,X2=-365 D C^%DTC S YR=X
  S (DFN,IND,NE,NERROR)=0
  F  S DFN=+$O(^PS(55,DFN)) Q:DFN=0  D
  . S IND=IND+1
@@ -32,15 +35,19 @@ PSPA ;Build the index for the Pharmacy Patient File.
  . S DA=0
  . F  S DA=+$O(^PS(55,DFN,5,DA)) Q:DA=0  D
  .. S TEMP=$G(^PS(55,DFN,5,DA,2))
+ .. Q:TEMP=""                                 ;Patch 1015
  .. S STARTD=$P(TEMP,U,2)
+ .. S ODATE=$P($G(^PS(55,DFN,5,DA,0)),U,14)   ;Patch 1015
  .. I STARTD="" D  Q
- ... S IDEN="DFN="_DFN_" D1="_DA_" Unit Dose missing start date"
- ... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
+ ...I ODATE>YR D                              ;Patch 1015
+ .... S IDEN="DFN="_DFN_" D1="_DA_" Unit Dose missing start date"
+ .... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
  .. S SDATE=$P(TEMP,U,4)
  .. I SDATE=1 Q
  .. I SDATE="" D  Q
- ... S IDEN="DFN="_DFN_" D1="_DA_" Unit Dose missing stop date"
- ... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
+ ...I ODATE>YR D                 ;Patch 1015
+ .... S IDEN="DFN="_DFN_" D1="_DA_" Unit Dose missing stop date"
+ .... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
  .. S DA1=0
  .. F  S DA1=+$O(^PS(55,DFN,5,DA,1,DA1)) Q:DA1=0  D
  ... S DRUG=$P(^PS(55,DFN,5,DA,1,DA1,0),U,1)
@@ -51,19 +58,22 @@ PSPA ;Build the index for the Pharmacy Patient File.
  ... S ^PXRMINDX(55,"IP",DRUG,DFN,STARTD,SDATE,DAS)=""
  ... S ^PXRMINDX(55,"PI",DFN,DRUG,STARTD,SDATE,DAS)=""
  ... S NE=NE+1
- .;Process the IV mutiple.
+ .;Process the IV multiple.
  . S DA=0
  . F  S DA=+$O(^PS(55,DFN,"IV",DA)) Q:DA=0  D
  .. S TEMP=$G(^PS(55,DFN,"IV",DA,0))
+ .. S ODATE=$P($G(^PS(55,DFN,"IV",DA,2)),U,1)            ;Patch 1015
  .. S STARTD=$P(TEMP,U,2)
  .. I STARTD="" D  Q
- ... S IDEN="DFN="_DFN_" D1="_DA_" IV missing start date"
- ... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
+ ...I ODATE>YR D                                         ;Patch 1015
+ .... S IDEN="DFN="_DFN_" D1="_DA_" IV missing start date"
+ .... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
  .. S SDATE=$P(TEMP,U,3)
  .. I SDATE=1 Q
  .. I SDATE="" D  Q
- ... S IDEN="DFN="_DFN_" D1="_DA_" IV missing stop date"
- ... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
+ ...I ODATE>YR D                                       ;Patch 1015
+ .... S IDEN="DFN="_DFN_" D1="_DA_" IV missing stop date"
+ .... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
  ..;Process Additives
  .. S DA1=0
  .. F  S DA1=+$O(^PS(55,DFN,"IV",DA,"AD",DA1)) Q:DA1=0  D
@@ -94,6 +104,21 @@ PSPA ;Build the index for the Pharmacy Patient File.
  ... S DAS=DFN_";IV;"_DA_";SOL;"_DA1_";0"
  ... S ^PXRMINDX(55,"IP",DRUG,DFN,STARTD,SDATE,DAS)=""
  ... S ^PXRMINDX(55,"PI",DFN,DRUG,STARTD,SDATE,DAS)=""
+ .;Process the NVA multiple.
+ . S DA=0
+ . F  S DA=+$O(^PS(55,DFN,"NVA",DA)) Q:DA=0  D
+ .. S TEMP=$G(^PS(55,DFN,"NVA",DA,0))
+ .. S STARTD=$P(TEMP,U,9)
+ .. I STARTD="" S STARTD=$P(TEMP,U,10)
+ .. I STARTD="" D  Q
+ ... S IDEN="DFN="_DFN_" D1="_DA_" NVA missing start date"
+ ... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
+ .. S SDATE=$P(TEMP,U,7)
+ .. I SDATE="" S SDATE="U"_DFN_DA
+ .. S DAS=DFN_";NVA;"_DA_";0"
+ .. S POI=$P(TEMP,U,1)
+ .. S ^PXRMINDX("55NVA","IP",POI,DFN,STARTD,SDATE,DAS)=""
+ .. S ^PXRMINDX("55NVA","PI",DFN,POI,STARTD,SDATE,DAS)=""
  S END=$H
  S TEXT=NE_" PHARMACY PATIENTS results indexed."
  D MES^XPDUTL(TEXT)
@@ -107,4 +132,7 @@ PSPA ;Build the index for the Pharmacy Patient File.
  S ^PXRMINDX(55,"GLOBAL NAME")=$$GET1^DID(55,"","","GLOBAL NAME")
  S ^PXRMINDX(55,"BUILT BY")=DUZ
  S ^PXRMINDX(55,"DATE BUILT")=$$NOW^XLFDT
+ S ^PXRMINDX("55NVA","GLOBAL NAME")=^PXRMINDX(55,"GLOBAL NAME")
+ S ^PXRMINDX("55NVA","BUILT BY")=^PXRMINDX(55,"BUILT BY")
+ S ^PXRMINDX("55NVA","DATE BUILT")=^PXRMINDX(55,"DATE BUILT")
  Q

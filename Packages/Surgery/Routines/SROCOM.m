@@ -1,5 +1,5 @@
-SROCOM ;B'HAM ISC/MAM - ENTER COMMENTS ;5 Oct 1988  7:28 AM
- ;;3.0; Surgery ;;24 Jun 93
+SROCOM ;B'HAM ISC/MAM - ENTER COMMENTS ; [ 01/30/01  10:02 AM ]
+ ;;3.0; Surgery ;**100**;24 Jun 93
 CASE ; get case number
  W @IOF K DIC S DIC=2,DIC(0)="AEQMZ",DIC("A")="Select Patient: " D ^DIC K DIC Q:Y<0  S DFN=+Y,SRNAME=Y(0,0)
 LOOK W ! S (SRTN,CNT)=0 F I=0:0 S SRTN=$O(^SRF("B",DFN,SRTN)) Q:SRTN=""  S CNT=CNT+1,SROP1(CNT)=SRTN D LIST
@@ -7,7 +7,7 @@ LOOK W ! S (SRTN,CNT)=0 F I=0:0 S SRTN=$O(^SRF("B",DFN,SRTN)) Q:SRTN=""  S CNT=C
 ASK R !!,"Select Number: ",SRNUM:DTIME I '$T!("^"[SRNUM) G END
  I SRNUM["?" W !!,"Enter the number which corresponds to the case that you want to enter comments." G ASK
  I '$D(SROP1(SRNUM)) W !!,"You have entered an invalid number, please select again. " G ASK
- W !! S SRTN=SROP1(SRNUM),DIE=130,DA=SRTN,DR=".28T" D ^DIE K DR
+ W !! S SRTN=SROP1(SRNUM) I $$LOCK^SROUTL(SRTN) S DIE=130,DA=SRTN,DR=".28T" D ^DIE K DR D UNLOCK^SROUTL(SRTN)
 END K SRTN D ^SRSKILL W @IOF
  Q
 OTHER ; other operations

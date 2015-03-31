@@ -1,6 +1,6 @@
-SRSDIS1 ;B'HAM ISC/MAM - DISPLAY ONE ROOM ; 25 NOV 1991  3:15 PM
- ;;3.0; Surgery ;;24 Jun 93
-PICK W @IOF,!!,"Display of Available Operating Room Time",!!,"1. Display Availability (12:00 AM - 12:00 PM)",!,"2. Display Availability (06:00 AM - 08:00 PM)",!,"3. Display Availibility (12:00 PM - 12:00 AM)"
+SRSDIS1 ;B'HAM ISC/MAM - DISPLAY ONE ROOM ; [ 09/29/03  10:23 AM ]
+ ;;3.0; Surgery ;**100**;24 Jun 93
+PICK W @IOF,!!,"Display of Available Operating Room Time",!!,"1. Display Availability (12:00 AM - 12:00 PM)",!,"2. Display Availability (06:00 AM - 08:00 PM)",!,"3. Display Availability (12:00 PM - 12:00 AM)"
  W !!,"Select Number: 2//  " R X:DTIME I '$T!(X["^") S SRSOUT=1 Q
  S:X="" X=2 I X<1!(X>3) D HELP G PICK
  S SRDTYPE=X D HDR

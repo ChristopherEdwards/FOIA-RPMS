@@ -1,5 +1,5 @@
 PSUDEM0 ;BIR/DAM - Patient Demographics Summary Print Routine ; 20 DEC 2001
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19,26**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ;
 PRINT ;Print header for pt demographics
@@ -97,7 +97,7 @@ PRO ;EN   Provider information print routine. Prints summary report.
 PGHDR ;Page header for Provider summary message
  ;VMP-IOFO BAY PINES;ELR;PSU*3.0*26 REMOVE FORM FEED
  ;U IO W @IOF
- W "Provider Information for "_PSURP("START")_" through "_PSURP("END")_" for "_$P(^XTMP("PSU_"_PSUJOB,"PSUSITE"),U,2)
+ W "Provider Data for "_PSURP("START")_" through "_PSURP("END")_" for "_$P(^XTMP("PSU_"_PSUJOB,"PSUSITE"),U,2)
  W !,?68,"PAGE: "_PSUPGS("PG")
  S PSUPGS("PG")=PSUPGS("PG")+1
  F PSUH=9:1:12 W !,$G(^XTMP(PSUPROSB,"PSUPRO",PSUSNDR,PSUH))

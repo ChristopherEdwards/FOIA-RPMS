@@ -1,5 +1,8 @@
-SROUTL0 ;BIR/DLR,ADM - UTILITY ROUTINE ; [ 07/27/98   2:33 PM ]
- ;;3.0; Surgery ;**50**;24 Jun 93
+SROUTL0 ;BIR/DLR,ADM - UTILITY ROUTINE ; [ 06/20/01  2:33 PM ]
+ ;;3.0; Surgery ;**50,100**;24 Jun 93
+ ;
+ ; Reference to ^SC( supported by DBIA #964
+ ;
 NODATA() ;;utility to write no data
  W !!
  Q "No data for selected date range."
@@ -65,10 +68,11 @@ INST() ;extrinsic call used by the management reports to determine division
  Q $S(SRINST["ALL DIVISIONS":SRINST,SRINST=U:SRINST,1:$P(^SRO(133,SRINST,0),U)_U_SR("DILIST",1,+Y))
 SITE(CASE) ; returns pointer to file 133 indicating where case was performed
  ; CASE - ien in File 130
- N SRDIV,SROR I '$D(^SRF(CASE,"NON")) S SRDIV="",SROR=$P($G(^SRF(CASE,0)),"^",2) I SROR'="" S SROR=$P(^SRS(SROR,0),"^") I SROR'="" S SRDIV=$P(^SC(SROR,0),"^",4)
- I $D(^SRF(CASE,"NON")) S SRDIV="",SROR=$P(^SRF(CASE,"NON"),"^",2) I SROR'="" S SRDIV=$P(^SC(SROR,0),"^",4)
+ N SRDIV,SROR S SRDIV="" I '$D(^SRF(CASE,"NON")) S SROR=$P($G(^SRF(CASE,0)),"^",2) I SROR'="" S SROR=$P(^SRS(SROR,0),"^") I SROR'="" S SRDIV=$P(^SC(SROR,0),"^",4)
+ I $P($G(^SRF(CASE,"NON")),"^")="Y" S SROR=$P(^SRF(CASE,"NON"),"^",2) I SROR'="" S SRDIV=$P(^SC(SROR,0),"^",4)
  I SRDIV="" S SRDIV=$P($G(^SRF(CASE,8)),"^")
  S:SRDIV'="" SRDIV=$O(^SRO(133,"B",SRDIV,0))
+ S:SRDIV="" SRDIV=$O(^SRO(133,0))
  Q SRDIV
 WARD(SRW,SRINST,DGPMOS) ;a boolean divisional call for active ward location
  ; SRW - IEN in File 42
@@ -76,7 +80,7 @@ WARD(SRW,SRINST,DGPMOS) ;a boolean divisional call for active ward location
  ; DGPMOS - date to check for active ward
  ; returns 0 - non-divisional match; 1 - divisional match
  N SRLOC,D0,X
- S D0=SRW D ^DGPMDDCF I X=1 Q 0
+ S D0=SRW D WIN^DGPMDDCF I X=1 Q 0
  I '$O(^SRO(133,1))!(SRINST="")!(SRINST["ALL") Q 1
  S SRLOC=$P($G(^DIC(42,SRW,44)),"^") I SRLOC="" Q 1
  S SRDIV=$P($G(^SC(SRLOC,0)),"^",4) I SRDIV="" Q 1

@@ -1,5 +1,5 @@
-ORB3FUP1 ; slc/CLA - Routine to support notification follow-up actions ;7/15/95  17:23
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,64,74,105,139**;Dec 17, 1997
+ORB3FUP1 ; slc/CLA - Routine to support notification follow-up actions ; 4/8/08 9:32am
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,64,74,105,139,243**;Dec 17, 1997;Build 242
  Q
 TYPE(ORBY,ORXQAID) ; return notif follow-up action type
  N NIEN
@@ -16,7 +16,7 @@ GUI(ORBY,ORXQAID) ; Notification follow-up for GUI called via API: ORB FOLLOW-UP
 PROCESS ; main process for notification follow-up
  ;ORXQAID = OR,dfn,nien;
  ;XQADATA = placer num^placer id;filler num^filler id
- ;XQAKILL = value of parameter ORB DELETE MECHANISM for notif in 101.9
+ ;XQAKILL = value of parameter ORB DELETE MECHANISM for notif in 100.9
  N ORPDIEN,ORN,ORDFN,ORSITE,ORFID,ORFIEN,ORKILL
  D GETACT^XQALERT(ORXQAID)  ;return follow-up action info
  ;Q:'($D(XQADATA))  Q:'($D(XQAID))
@@ -172,14 +172,41 @@ ESORD ;order(s) requiring electronic signature follow-up
  ..K ^TMP("ORR",$J)
  Q
 UNFLAG(ORPT) ;order unflagged - delete alert if no more flagged orders
- N ORDG
+ N ORDG,ORDOIT,ORQUIT,X,XQAID,XQAKILL,XQAUSER
+ S ORDOIT=1,ORQUIT=0
  S ORDG=$$DG^ORQOR1("ALL")  ;get Display Group ien
  K ^TMP("ORR",$J)
  D EN^ORQ1(ORPT_";DPT(",ORDG,12,"","","",0,0)
+ ;========DELETE ALERT (FOR ALL USERS) IF NO FLAGGED ORDERS AT ALL=====
  S X="",X=$O(^TMP("ORR",$J,X)) Q:X=""  I +$G(^TMP("ORR",$J,X,"TOT"))<1 D
  .;if no more flagged orders found, delete alert:
  .S XQAKILL=$$XQAKILL^ORB3F1(6)
  .I $G(XQAKILL)="" S XQAKILL=1
+ .S XQAID="OR,"_ORPT_",6" D DELETEA^XQALERT K XQAID,XQAKILL S ORQUIT=1
+ Q:ORQUIT
+ ;========DELETE ALERT IF NO FLAGGED ORDERS LEFT RELATED TO THE USER THAT IS UNFLAGGING=====
+ S X="",X=$O(^TMP("ORR",$J,X)) Q:X=""  D
+ .N Y S Y="" F  S Y=$O(^TMP("ORR",$J,X,Y)) Q:'Y  D
+ ..N ORDER S ORDER=$G(^TMP("ORR",$J,X,Y))
+ ..I $$FLAGRULE^ORWORR1(+ORDER)=0 S ORDOIT=0 ; FOUND A FLAGGED ORDER THAT THE USER SHOULD GET
+ I ORDOIT D
+ .;if no more flagged orders found for this user, delete alert only for this user:
+ .S XQAKILL=1
  .S XQAID="OR,"_ORPT_",6" D DELETEA^XQALERT K XQAID,XQAKILL
+ ;========DELETE ALERT IF NO FLAGGED ORDERS LEFT RELATED TO THE USER THAT WAS THE ALERTED PROVIDER OF THE CURRENT ORDER=====
+ S ORDOIT=1
+ ;get the alerted provider
+ I $G(ORIFN) D
+ .N ORD,ORACT S ORD=+$G(ORIFN),ORACT=$P($G(ORIFN),";",2)
+ .N ORUSR S ORUSR=$P($G(^OR(100,ORD,8,ORACT,3)),U,9)
+ .I ORUSR D
+ ..S X="",X=$O(^TMP("ORR",$J,X)) Q:X=""  D
+ ...N Y S Y="" F  S Y=$O(^TMP("ORR",$J,X,Y)) Q:'Y  D
+ ....N ORDER S ORDER=$G(^TMP("ORR",$J,X,Y))
+ ....I $$FLAGRULE^ORWORR1(+ORDER,ORUSR)=0 S ORDOIT=0 ; FOUND A FLAGGED ORDER THAT THE USER SHOULD GET
+ ..I ORDOIT D
+ ...;if no more flagged orders found for this user, delete alert only for this user:
+ ...S XQAKILL=1,XQAUSER=ORUSR
+ ...S XQAID="OR,"_ORPT_",6" D DELETEA^XQALERT K XQAID,XQAKILL,XQAUSER
  K ^TMP("ORR",$J)
  Q

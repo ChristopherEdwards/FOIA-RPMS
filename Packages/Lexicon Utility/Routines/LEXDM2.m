@@ -1,5 +1,5 @@
 LEXDM2 ; ISL Default Misc - Ask to delete         ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
  ; Entry:  S X=$$EN^LEXDM2(USER,AP,DEF)
  ;

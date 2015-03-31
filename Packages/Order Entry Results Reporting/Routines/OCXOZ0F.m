@@ -1,5 +1,5 @@
-OCXOZ0F ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0F ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,12 +10,12 @@ OCXOZ0F ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-CHK478 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK472+19^OCXOZ0E.
+CHK469 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK463+19^OCXOZ0E.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK478 Variables
+ ;    Local CHK469 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(147) --> Data Field: PATIENT LOCATION (FREE TEXT)
  ;
@@ -26,12 +26,12 @@ CHK478 ; Look through the current environment for valid Event/Elements for this 
  S OCXDF(147)=$P($$PATLOC(OCXDF(37)),"^",2),OCXOERR=$$FILE(DFN,131,"12,37,96,113,147,152") Q:OCXOERR 
  Q
  ;
-CHK485 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK472+20^OCXOZ0E.
+CHK476 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK463+20^OCXOZ0E.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK485 Variables
+ ;    Local CHK476 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(147) --> Data Field: PATIENT LOCATION (FREE TEXT)
  ;
@@ -42,12 +42,12 @@ CHK485 ; Look through the current environment for valid Event/Elements for this 
  S OCXDF(147)=$P($$PATLOC(OCXDF(37)),"^",2),OCXOERR=$$FILE(DFN,132,"12,37,96,113,147,152") Q:OCXOERR 
  Q
  ;
-CHK491 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK455+17^OCXOZ0E.
+CHK482 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK446+17^OCXOZ0E.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK491 Variables
+ ;    Local CHK482 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(58) ---> Data Field: ABNORMAL RENAL BIOCHEM RESULTS (FREE TEXT)
  ;
@@ -58,12 +58,12 @@ CHK491 ; Look through the current environment for valid Event/Elements for this 
  S OCXDF(58)=$P($$ABREN(OCXDF(37)),"^",2),OCXOERR=$$FILE(DFN,133,"58,154") Q:OCXOERR 
  Q
  ;
-CHK498 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK196+15^OCXOZ09.
+CHK489 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK196+16^OCXOZ09.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK498 Variables
+ ;    Local CHK489 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(156) --> Data Field: ALLERGY ASSESSMENT (BOOLEAN)
  ; OCXDF(159) --> Data Field: ALLERGIES UNASSESSIBLE (BOOLEAN)
@@ -78,12 +78,12 @@ CHK498 ; Look through the current environment for valid Event/Elements for this 
  S OCXDF(159)=$$ALUNASS(OCXDF(37)) I $L(OCXDF(159)),'(OCXDF(159)) S OCXOERR=$$FILE(DFN,140,"") Q:OCXOERR 
  Q
  ;
-CHK506 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK363+15^OCXOZ0C.
+CHK497 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK360+15^OCXOZ0C.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK506 Variables
+ ;    Local CHK497 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(74) ---> Data Field: VA DRUG CLASS (FREE TEXT)
  ; OCXDF(158) --> Data Field: DUPLICATE OPIOID MEDICATIONS TEXT (FREE TEXT)
@@ -92,11 +92,11 @@ CHK506 ; Look through the current environment for valid Event/Elements for this 
  ; LIST( ------------> IN LIST OPERATOR
  ; OPIOID( ----------> OPIOID MEDICATIONS
  ;
- I $$LIST(OCXDF(74),"OPIOID ANALGESICS,OPIOID ANTAGONIST ANALGESICS") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXDF(158)=$P($$OPIOID(OCXDF(37)),"^",2) D CHK510
+ I $$LIST(OCXDF(74),"OPIOID ANALGESICS,OPIOID ANTAGONIST ANALGESICS") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXDF(158)=$P($$OPIOID(OCXDF(37)),"^",2) D CHK501
  Q
  ;
-CHK510 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK506+14.
+CHK501 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK497+14.
  ;
  Q:$G(OCXOERR)
  ;
@@ -106,36 +106,20 @@ CHK510 ; Look through the current environment for valid Event/Elements for this 
  S OCXOERR=$$FILE(DFN,139,"158") Q:OCXOERR 
  Q
  ;
-EL24 ; Examine every rule that involves Element #24 [HL7 LAB TEST RESULTS CRITICAL]
- ;  Called from SCAN+9^OCXOZ01.
+CHK508 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK355+14^OCXOZ0C.
  ;
  Q:$G(OCXOERR)
  ;
- D R3R1A^OCXOZ0I   ; Check Relation #1 in Rule #3 'CRITICAL LAB RESULTS'
- Q
+ ;    Local CHK508 Variables
+ ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(130) --> Data Field: CLOZAPINE LAB RESULTS (FREE TEXT)
+ ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
  ;
-EL105 ; Examine every rule that involves Element #105 [HL7 LAB ORDER RESULTS CRITICAL]
- ;  Called from SCAN+9^OCXOZ01.
+ ;      Local Extrinsic Functions
+ ; FILE(DFN,141, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE ANC >= 1.5 & < 2.0)
  ;
- Q:$G(OCXOERR)
- ;
- D R3R2A^OCXOZ0I   ; Check Relation #2 in Rule #3 'CRITICAL LAB RESULTS'
- Q
- ;
-EL44 ; Examine every rule that involves Element #44 [ORDER FLAGGED]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R5R1A^OCXOZ0J   ; Check Relation #1 in Rule #5 'ORDER FLAGGED FOR CLARIFICATION'
- Q
- ;
-EL134 ; Examine every rule that involves Element #134 [ORDER UNFLAGGED]
- ;  Called from SCAN+9^OCXOZ01.
- ;
- Q:$G(OCXOERR)
- ;
- D R5R2A^OCXOZ0J   ; Check Relation #2 in Rule #5 'ORDER FLAGGED FOR CLARIFICATION'
+ S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXOERR=$$FILE(DFN,141,"130") Q:OCXOERR 
  Q
  ;
 ABREN(DFN) ;  Compiler Function: DETERMINE IF RENAL LAB RESULTS ARE ABNORMAL HIGH OR LOW

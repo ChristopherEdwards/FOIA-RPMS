@@ -1,5 +1,5 @@
 BUD1BAN ; IHS/CMI/LAB - Banner routine for UDS package ;
- ;;7.0;IHS/RPMS UNIFORM DATA SYSTEM;;JAN 23, 2013;Build 31
+ ;;8.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 03, 2014;Build 36
  ;
  ;Writes all menu banners.
 EP ;EP

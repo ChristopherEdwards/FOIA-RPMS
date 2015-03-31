@@ -1,10 +1,10 @@
 PSSSOLIT ;BIR/RTR/WRT-Manual match Solutions to Orderable Items; 09/02/97 8:54
- ;;1.0;PHARMACY DATA MANAGEMENT;**32,41**;9/30/97
+ ;;1.0;PHARMACY DATA MANAGEMENT;**32,41,125**;9/30/97;Build 2
  ;
 EN I $D(PSSIEN) L -^PS(52.7,PSSIEN)
  D:$G(PSDELSLG) REMSS D:$G(PSMASTER) END Q:$G(PSSSSS)!($G(PSMASTER))  D END W ! S (PSSOUT,CHANGE,CHKFLAG)=0 K DIC S DIC="^PS(52.7,",DIC(0)="QEAMZ",DIC("A")="Select IV SOLUTION: " D ^DIC K DIC G:Y<0!($D(DTOUT))!($D(DUOUT)) END
 MAS ;Entry point for Master Drug Enter/Edit
- S PSSIEN=+Y,PSSNAME=$P(Y,"^",2),PSDISP=+$P($G(^PS(52.7,+Y,0)),"^",2),(PSSOI,PSOLDOI)=+$P($G(^(0)),"^",11),PSSVOL=$P($G(^(0)),"^",3) L +^PS(52.7,PSSIEN):0 I '$T W !,$C(7),"Another person is editing this one." Q
+ S PSSIEN=+Y,PSSNAME=$P(Y,"^",2),PSDISP=+$P($G(^PS(52.7,+Y,0)),"^",2),(PSSOI,PSOLDOI)=+$P($G(^(0)),"^",11),PSSVOL=$P($G(^(0)),"^",3) L +^PS(52.7,PSSIEN):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I '$T W !,$C(7),"Another person is editing this one." Q
  I 'PSDISP W $C(7),!!?5,"This IV Solution does not point to the Dispense Drug File (#50)",!?5,"it cannot be matched to an Orderable Item!",! G EN
 ENTER I 'PSSOI G ^PSSSOLI1
  S PSOINAME=$P($G(^PS(50.7,PSSOI,0)),"^"),PSOIDOSE=+$P($G(^(0)),"^",2) W !!,"IV Solution ->  ",PSSNAME,"    ",PSSVOL,!,"  is already matched to:",!,PSOINAME,"    ",$P($G(^PS(50.606,PSOIDOSE,0)),"^")

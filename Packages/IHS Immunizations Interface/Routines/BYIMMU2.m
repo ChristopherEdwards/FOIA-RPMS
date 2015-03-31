@@ -1,0 +1,362 @@
+BYIMMU2 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3,4**;NOV 01, 2013;Build 189
+ ;
+ ;----
+ Q
+ALL ;EP;
+ D MU2
+ H 5
+ D SEND
+ Q
+MU2 ;EP;SETUP MU2 PATIENTS AND DATA
+ D WARN
+ I $G(BYIMQUIT) K BYIMQUIT Q
+ ;I $D(^BYIMTMP("RESTORE")) D RESTORE
+ K ^BYIMTMP("MU2")
+ D MU21^BYIMMU21
+ D PAT
+ W !!,"NIST test environment prepared."
+ D PAUSE^BYIMIMM
+ Q
+ ;-----
+PAT ;SET PATIENT DEMOGRAPHICS
+ K ^BYIMTMP("MU2","PAT")
+ S TT=10
+ S JJ=0
+ F IEN=$R(999):10 D  Q:JJ=7&(TT=13)!(IEN>$P(^DPT(0),U,3))
+ .Q:'$D(^DPT(IEN,0))
+ .Q:'$D(^AUPNPAT(IEN,0))
+ .Q:'$D(^AUPNPAT(IEN,41,DUZ(2),0))
+ .Q:'$O(^AUPNVIMM("AC",IEN,0))
+ .Q:$O(^AUPNVIMM("AC",IEN,0))=$O(^AUPNVIMM("AC",IEN,9999999999),-1)
+ .K ^BYIMTMP("MU2","V7")
+ .S K=0
+ .S (J,X)=0
+ .F  S X=$O(^AUPNVIMM("AC",IEN,X)) Q:'X!K  D
+ ..S VSIT=+$P($G(^AUPNVIMM(X,0)),U,3)
+ ..S:'$D(^BYIMTMP("MU2","V7",VSIT)) J=J+1
+ ..S ^BYIMTMP("MU2","V7",VSIT)=""
+ ..I J>3 S K=1
+ .Q:'K
+ .S TT=TT+1
+ .S:TT=11 JJ=JJ+1
+ .S PID="P"_JJ_TT
+ .D P1(PID)
+ .I TT=13,JJ'=7 S TT=10
+ Q
+ ;-----
+P1(PID) ;PROCESS EACH PATIENT
+ ;S PID="P"_JJ_TT
+ S YY=^BYIMTMP("MU2","DATA",PID)
+ S ZZ=""
+ S:$E(PID,1,3)="P11" L2=PID_2,ZZ=^BYIMTMP("MU2","DATA",L2)
+ K DA,DR,DIE
+ S DR=$P(YY,";",3)
+ S DR=$TR(DR,"|",";")
+ S NET=$P($P(YY,"1802////",2),";")
+ S NAM=$P($P(DR,".01////",2),";")
+ S DR=$P(DR,";",2,99)
+ I 0,$D(^DPT("B",NAM,IEN)) D  Q
+ .I TT=11 S JJ=JJ-1
+ .S TT=TT-1
+ D NCLEAN(NAM,IEN)
+ M ^BYIMTMP("RESTORE","DPT",IEN)=^DPT(IEN)
+ M ^BYIMTMP("RESTORE","AUPNPAT",IEN)=^AUPNPAT(IEN)
+ W !,$J(IEN,6),?8,NAM,"..." H 1
+ S DA=IEN
+ S DIE="^DPT("
+ D ^DIE
+ D:ZZ]""
+ .S DA=IEN
+ .S DIE="^DPT("
+ .S DR=$P(ZZ,";",3)
+ .S DR=$TR(DR,"|",";")
+ .D ^DIE
+ S ^BYIMTMP("MU2","PAT",PID)=DA
+ S $P(^BIP(DA,0),U)=DA
+ S $P(^BIP(DA,0),U,8)=""
+ S $P(^BIP(DA,0),U,16)=""
+ S $P(^BIP(DA,0),U,21)=$P(^DPT(DA,0),U,3)
+ K ^DPT(DA,.35)
+ S:NET]"" $P(^AUPNPAT(DA,18),U,2)=NET
+ D VISIT(DA,PID)
+ Q
+ ;-----
+VISIT(DFN,PID) ;SETUP VISIT DATA
+ N X,Y,Z
+ S NUM=$E(PID,2)
+ I NUM=7 D V7(DFN,PID) Q
+ S ID=$E(PID,2,5)
+ S LOS="T"_$E(PID,2,5)
+ S VID="V"_ID
+ S IID="I"_ID
+ S BIP="BIP"_ID
+ S REF="REF"_ID
+ S BIPC="BIPC"_ID
+ K:NUM'=5 ^AUPNPREF("AC",DFN)
+ K:NUM'=6 ^BIPC("B",DFN)
+ S X=0
+ F  S X=$O(^AUPNVIMM("AC",DFN,X)) Q:'X  S ^BYIMEXP("D",X)="",VIMM=X
+ I NUM<5 K ^BYIMEXP("D",VIMM)
+ S VSIT=$P(^AUPNVIMM(VIMM,0),U,3)
+ K DA,DR,DIE
+ S DA=VSIT
+ S DR=$P(^BYIMTMP("MU2","DATA",VID),";",3)
+ S DR=$TR(DR,"|",";")
+ D:DR]""
+ .M ^BYIMTMP("RESTORE","DPT",DFN,"VSIT",DA)=^AUPNVSIT(DA)
+ .S DIE="^AUPNVSIT("
+ .D ^DIE
+ .K DA,DR,DIE
+ K DA,DR,DIE
+ S DA=VIMM
+ S DR=$P(^BYIMTMP("MU2","DATA",IID),";",3)
+ S DR=$TR(DR,"|",";")
+ D:DR["P1202"
+ .S P1202=^BYIMTMP("MU2","PRV",1202)
+ .S P1204=^BYIMTMP("MU2","PRV",1204)
+ .S P1214=^BYIMTMP("MU2","PRV",1214)
+ .S DR=$P(DR,"P1202")_P1202_$P(DR,"P1202",2)
+ .S DR=$P(DR,"P1204")_P1204_$P(DR,"P1204",2)
+ .S DR=$P(DR,"P1214")_P1214_$P(DR,"P1214",2)
+ S:LOS]"" LOT=$G(^BYIMTMP("MU2","LOT",LOS))
+ I LOT,DR[LOS S DR=$P(DR,LOS)_LOT_$P(DR,LOS,2)
+ S DIE="^AUPNVIMM("
+ M ^BYIMTMP("RESTORE","DPT",DFN,"VIMM",DA)=^AUPNVIMM(DA)
+ D:DR]"" ^DIE
+ K DA,DR,DIE
+ D:NUM=4 BIP
+ ;-----
+ D:NUM=5 REF
+ ;-----
+ D:NUM=6 BIPC
+ ;-----
+ Q
+ ;-----
+BIP ;
+ K DA,DR,DIE
+ S DA=DFN
+ S DR=$P(^BYIMTMP("MU2","DATA",BIP),";",3)
+ S DR=$TR(DR,"|",";")
+ S DIE="^BIP("
+ D ^DIE
+ K DA,DR,DIE
+ Q
+ ;-----
+REF ;
+ K DA,DR,DIE
+ S DA=$O(^AUPNPREF("AC",DFN,0))
+ D:'DA
+ .S X=3
+ .S DIC="^AUPNPREF("
+ .S DIC(0)="L"
+ .S DIC("DR")=".02////"_DFN
+ .D FILE^DICN
+ .S DA=+Y
+ K ^BYIMEXP("REF",DA)
+ S DR=$P(^BYIMTMP("MU2","DATA",REF),";",3)
+ S DR=$TR(DR,"|",";")
+ S DR=$P(DR,"DFN")_DFN_$P(DR,"DFN",2)
+ S DIE="^AUPNPREF("
+ D ^DIE
+ K DA,DR,DIE
+ Q
+ ;-----
+BIPC ;
+ K DA,DR,DIE
+ S DA=$O(^BIPC("B",DFN,0))
+ D:'DA
+ .S X=DFN
+ .S DIC="^BIPC("
+ .S DIC(0)="L"
+ .S DIR("DR")=".02////132"
+ .D FILE^DICN
+ .K DIC
+ .S DA=+Y
+ K ^BYIMEXP("HXV",DA)
+ S DR=$P(^BYIMTMP("MU2","DATA",BIPC),";",3)
+ S DR=$TR(DR,"|",";")
+ S DR=$P(DR,"DFN")_DFN_$P(DR,"DFN",2)
+ S DIE="^BIPC("
+ D ^DIE
+ K DA,DR,DIE
+ Q
+ ;-----
+SEND ;EP;SEND RT VXU MU2 MESSAGES
+ ;D WARN
+ N BYIMMU2
+ S BYIMMU2=1
+ I $G(BYIMQUIT) K BYIMQUIT Q
+ W !!,"Please stand by while I create and send the NIST messages...",!
+ S SCN=""
+ F  S SCN=$O(^BYIMTMP("MU2","PAT",SCN)) Q:SCN=""  S DFN=^(SCN) D
+ .S RT="VXU"
+ .D VXU^BYIMRT(DFN)
+ H 30
+ ;D RESTORE
+ Q
+ ;-----
+V7(DFN,PID) ;SETUP VISIT DATA
+ K ^BYIMTMP("MU2","V7")
+ N X,Y,Z
+ S NUM=7
+ S ID=$E(PID,2,5)
+ S LOS="T"_$E(PID,2,5)
+ S VID="V"_ID
+ S IID="I"_ID
+ K ^AUPNPREF("AC",DFN)
+ K ^BIPC("B",DFN)
+ S CNT=1
+ S X=0
+ F  S X=$O(^AUPNVIMM("AC",DFN,X)) Q:'X  D
+ .S ^BYIMEXP("D",X)=""
+ .S V=$P($G(^AUPNVIMM(X,0)),U,3)
+ .I CNT<4,'$D(^BYIMTMP("MU2","V7",V)) D
+ ..S TMP(CNT)=V_U_X
+ ..S CNT=CNT+1
+ ..K ^BYIMEXP("D",X)
+ ..S ^BYIMTMP("MU2","V7",V)=""
+ D P7(DFN,PID,.TMP)
+ Q
+ ;-----
+P7(DFN,PID,TMP) ;PROCESS SCENARIO 7 VISITS
+ N CNT
+ S CNT=0
+ F CNT=1,2,3 S X=TMP(CNT) D
+ .S VSIT=+X
+ .Q:'VSIT
+ .S VIMM=$P(X,U,2)
+ .K ^BYIMEXP("D",VIMM)
+ .S ^BYIMTMP("MU2","V7",VSIT)=""
+ .D:CNT>1
+ ..S VID=$E(VID,1,4)_CNT
+ ..S IID=$E(IID,1,4)_CNT
+ .S (LOS,LOT)=""
+ .S:CNT=1 LOS="T"_$E(PID,2,4)
+ .S:CNT=3 LOS="T"_$E(PID,2,4)_3
+ .K DA,DR,DIE
+ .S DA=VSIT
+ .S DR=$P(^BYIMTMP("MU2","DATA",VID),";",3)
+ .S DR=$TR(DR,"|",";")
+ .M ^BYIMTMP("RESTORE","DPT",DFN,"VSIT",DA)=^AUPNVSIT(DA)
+ .S DIE="^AUPNVSIT("
+ .D ^DIE
+ .K DA,DR,DIE
+ .S DA=VIMM
+ .S DR=$P(^BYIMTMP("MU2","DATA",IID),";",3)
+ .S DR=$TR(DR,"|",";")
+ .S:LOS]"" LOT=$G(^BYIMTMP("MU2","LOT",LOS))
+ .I LOT,DR[LOS S DR=$P(DR,LOS)_LOT_$P(DR,LOS,2)
+ .D:DR["P1202"
+ ..S P1202=^BYIMTMP("MU2","PRV",1202)
+ ..S P1204=^BYIMTMP("MU2","PRV",1204)
+ ..S P1214=^BYIMTMP("MU2","PRV",1214)
+ ..S DR=$P(DR,"P1202")_P1202_$P(DR,"P1202",2)
+ ..S DR=$P(DR,"P1204")_P1204_$P(DR,"P1204",2)
+ ..S DR=$P(DR,"P1214")_P1214_$P(DR,"P1214",2)
+ .S DIE="^AUPNVIMM("
+ .M ^BYIMTMP("RESTORE","DPT",DFN,"VIMM",DA)=^AUPNVIMM(DA)
+ .D ^DIE
+ .K DA,DR,DIE
+ K ^BYIMTMP("MU2","V7",VSIT)
+ Q
+ ;-----
+NCLEAN(NAM,IEN) ;CLEAN 'B' XREF
+ S ^DPT("B",NAM,IEN)=""
+ N X,Y,Z
+ S X=0
+ F  S X=$O(^DPT("B",NAM,X)) Q:'X  I X'=IEN K ^DPT("B",NAM,X)
+ Q
+ ;-----
+RESTORE ;RESTORE ORIGINAL DPT AND AUPNPAT CONTENT
+ Q  W !!,"Please stand by while I restore the pre-NIST environment...",!
+ S DFN=0
+ F  S DFN=$O(^BYIMTMP("RESTORE","AUPNPAT",DFN)) Q:'DFN  D R1(DFN)
+RPRV S PRV=0
+ F  S PRV=$O(^BYIMTMP("RESTORE","PRV",PRV)) Q:'PRV  D
+ .M ^VA(200,PRV)=^BYIMTMP("RESTORE","PRV",PRV)
+ .K DA,DIK
+ .S DA=PRV
+ .S DIK="^VA(200,"
+ .D IX1^DIK
+ .K DA,DIK
+RIML S IML=0
+ F  S IML=$O(^BYIMTMP("RESTORE","IML",IML)) Q:'IML  D
+ .M ^AUTTIML(IML)=^BYIMTMP("RESTORE","IML",IML)
+ .K DA,DIK
+ .S DA=IML
+ .S DIK="^AUTTIML("
+ .D IX1^DIK
+ .K DA,DIK
+RIMM S IMM=0
+ F  S IMM=$O(^BYIMTMP("RESTORE","IMM",IMM)) Q:'IMM  D
+ .M ^AUTTIMM(IMM)=^BYIMTMP("RESTORE","IMM",IMM)
+ .K DA,DIK
+ .S DA=IMM
+ .S DIK="^AUTTIMM("
+ .D IX1^DIK
+ .K DA,DIK
+ S X=0
+ F  S X=$O(^BYIMTMP("RESTORE","AUPNPAT",X)) Q:'X  I $D(^AUPNPAT(X,0)) K ^BYIMTMP("RESTORE","AUPNPAT",X)
+ I $O(^BYIMTMP("RESTORE","AUPNPAT",0)) W !!,"AUPNPAT... Pending"
+ E  K ^BYIMTMP("RESTORE")
+ W !!,"Database RESTORE process complete."
+ D PAUSE^BYIMIMM
+ Q
+ ;-----
+R1(DFN) ;DO RESTORE
+ M ^AUPNPAT(DFN)=^BYIMTMP("RESTORE","AUPNPAT",DFN)
+ K DA,DIK
+ S DA=DFN
+ S DIK="^AUPNPAT("
+ D IX1^DIK
+ K DA,DIK
+ M ^DPT(DFN)=^BYIMTMP("RESTORE","DPT",DFN)
+ S DA=DFN
+ S DIK="^DPT("
+ D IX1^DIK
+ K DA,DIK
+VSIT S VSIT=0
+ F  S VSIT=$O(^BYIMTMP("RESTORE","DPT",DFN,"VSIT",VSIT)) Q:'VSIT  D
+ .M ^AUPNVSIT(VSIT)=^BYIMTMP("MU2","DPT",DFN,"VSIT",VSIT)
+ .K DA,DIK
+ .S DA=VSIT
+ .S DIK="^AUPNVSIT("
+ .D IX1^DIK
+ .K DA,DIK
+VIMM S VIMM=0
+ F  S VIMM=$O(^BYIMTMP("RESTORE","DPT",DFN,"VIMM",VIMM)) Q:'VIMM  D
+ .M ^AUPNVIMM(VIMM)=^BYIMTMP("RESTORE","DPT",DFN,"VIMM",VIMM)
+ .K DA,DIK
+ .S DA=VIMM
+ .S DIK="^AUPNVIMM("
+ .D IX1^DIK
+ .K DA,DIK
+ Q
+ ;-----
+WARN ;CHECK FOR TEST DATABASE
+ W @IOF
+ W !?10,"Warning - Warning - Warning"
+ W !!?10,"The BYIM automated NIST Process - PREP, SEND and RESTORE"
+ W !?10,"can only be run on a test database, never on a production database"
+ K DIR
+ S DIR(0)="YO"
+ S DIR("A")="Do you certify that this is a TEST database"
+ S DIR("B")="NO"
+ W !
+ D ^DIR
+ K DIR
+ I Y'=1 D  Q
+ .S BYIMQUIT=1
+ .W !!,"Please run the BYIM automated NIST Process on a test database"
+ .H 4
+ Q
+ ;-----
+MPAT ;EP;SETUP MASTER DB PATIENTS
+ D MU21^BYIMMU21
+ S PID=""
+ F  S PID=$O(^BYIMTMP("PAT",PID)) Q:PID=""  S IEN=^(PID),JJ=$E(PID,2),TT=$E(PID,2,3) D P1(PID)
+ Q
+MSEND D SEND
+ Q
+ ;-----

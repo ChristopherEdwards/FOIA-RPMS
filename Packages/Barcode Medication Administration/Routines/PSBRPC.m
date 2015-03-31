@@ -1,39 +1,20 @@
-PSBRPC ;BIRMINGHAM/EFC-BCMA RPC BROKER CALLS ;16-Jan-2008 12:43;SM
- ;;3.0;BAR CODE MED ADMIN;**6,3,4,1005,1006**;Mar 2004
+PSBRPC ;BIRMINGHAM/EFC - BCMA RPC BROKER CALLS ;29-May-2012 14:21;PLS
+ ;;3.0;BAR CODE MED ADMIN;**6,3,4,1005,1006,13,32,28,1010,42,1015**;Mar 2004;Build 62
+ ;Per VHA Directive 2004-038 (or future revisions regarding same), this routine should not be modified.
  ;
  ; Reference/IA
- ; EN1^GMRADPT/10099
- ; EN6^GMRVUTL/1120
- ; DEM^VADPT/10061
- ; IN5^VADPT/10061
- ; File 200/10060
  ; File 211.4/1409
  ; CHECKAV^XUSRB/2882
  ; GUIMTD^DPTLK6/3023
  ; ^ORD(101.24/3429
- ; File 2/10035
- ; File 4/10090
  ; EN1^GMRVUT0/1446
- ; HASH^XUSHSHP/10045
- ; $$DECRYP^XUSRB1/2241
- ; ^DIC(42/1377
- ; ^DIC(42/2440
  ; $$GETACT^DGPFAPI/3860
- ; $$GETICN^MPIF001/2701
- ; $$GETDFN^MPIF001/2701
- ; $$PROD^XUPROD/4440
- ; $$GET^XPAR/2263
- ; EN^XPAR/2263
- ; $$BASE^XLFUTL/2622
  ;
- ; Modified - IHS/MSC/PLS - 03/27/06 - Reapplied mod at line SCANPT+30
- ;                        - 01/16/08 - VITALS api
+ ; Modified - IHS/MSC/PLS - 03/27/06 - Reapplied mod at line VITALS+14
  ; Also modified the VITALS API
 FMDATE(RESULTS,X) ;
- ;
  ; RPC: PSB FMDATE
- ;
- ; Description: Returns a valid FM Date/Time from Client DateToStr()
+ ; Descr: Returns FM Date/Time from Clnt DateToStr()
  ;
  I $P(X,"@",2)="0000" S $P(X,"@",2)="0001"
  ;if no time for dates like T-1, append the current time
@@ -49,18 +30,15 @@ FMDATE(RESULTS,X) ;
 USRLOAD(RESULTS,DUMMY) ;
  ;
  ; RPC: PSB USERLOAD
+ ; Descr: Load wkst user
  ;
- ; Description: Loads a user at sign-on on the client wkstn
- ;
- S RESULTS(0)=DUZ ; User IEN
- S RESULTS(1)=$$GET1^DIQ(200,DUZ_",",.01) ; User Name
- S RESULTS(2)=$S($D(^XUSEC("PSB STUDENT",DUZ)):1,1:0) ; Student 0/1
- S RESULTS(3)=$S($D(^XUSEC("PSB MANAGER",DUZ)):1,1:0) ; Mgr 0/1
+ S RESULTS(0)=DUZ ;UsrIEN
+ S RESULTS(1)=$$GET1^DIQ(200,DUZ_",",.01) ; Usr Nm
+ S RESULTS(2)=$S($D(^XUSEC("PSB STUDENT",DUZ)):1,1:0) ; Studnt?
+ S RESULTS(3)=$S($D(^XUSEC("PSB MANAGER",DUZ)):1,1:0) ; Mgr?
  S RESULTS(4)=$S($D(^XUSEC("PSB CPRS MED BUTTON",DUZ)):1,1:0)
  S RESULTS(5)=$$GET^XPAR("USR","PSB WINDOW")
- ;
- ; Build the Virtual Due List String
- ;
+ ;VDL Strng
  S X=$S(+$$GET^XPAR("ALL","PSB VDL INCL CONT"):"T",1:"F")
  S X=X_"/"_$S(+$$GET^XPAR("ALL","PSB VDL INCL PRN"):"T",1:"F")
  S X=X_"/"_$S(+$$GET^XPAR("ALL","PSB VDL INCL ONE-TIME"):"T",1:"F")
@@ -69,7 +47,7 @@ USRLOAD(RESULTS,DUMMY) ;
  S X=X_"/"_+$$GET^XPAR("ALL","PSB VDL PB SORT COLUMN")
  S X=X_"/"_+$$GET^XPAR("ALL","PSB VDL IV SORT COLUMN")
  ;
- S RESULTS(6)=X ; Virtual Due List Setup
+ S RESULTS(6)=X ;VDL Setp
  S RESULTS(7)=+$G(DUZ(2))
  I RESULTS(7) S RESULTS(8)=$$GET1^DIQ(4,RESULTS(7)_",",.01)
  E  S RESULTS(8)="Undefined Division"
@@ -85,21 +63,27 @@ USRLOAD(RESULTS,DUMMY) ;
  S RESULTS(16)=$$GET^XPAR("USR","PSB PRINTER USER DEFAULT")
  S RESULTS(17)=$$GET^XPAR("USR","PSB GUI DEFAULT PRINTER")
  S RESULTS(18)=$S($D(^XUSEC("PSB READ ONLY",DUZ)):1,1:0)
- S RESULTS(19)=$G(DUZ("AG"))  ;IHS/MSC/PLS - 05/22/06
+ S RESULTS(19)=$$GET^XPAR("USR","PSB COVERSHEET VIEWS COL SORT")
+ S RESULTS(20)=$$GET^XPAR("USR","PSB COVERSHEET V1 COL WIDTHS")
+ S RESULTS(21)=$$GET^XPAR("USR","PSB COVERSHEET V2 COL WIDTHS")
+ S RESULTS(22)=$$GET^XPAR("USR","PSB COVERSHEET V3 COL WIDTHS")
+ S RESULTS(23)=$$GET^XPAR("USR","PSB COVERSHEET V4 COL WIDTHS")
+ S RESULTS(24)=$S($D(^XUSEC("PSB UNABLE TO SCAN",DUZ)):1,1:0)
+ S RESULTS(25)=$$GET^XPAR("DIV","PSB 5 RIGHTS UNITDOSE")
+ S RESULTS(26)=$$GET^XPAR("DIV","PSB 5 RIGHTS IV")
+ S RESULTS(27)=$G(DUZ("AG"))  ;IHS/MSC/PLS
  Q
  ;
-USRSAVE(RESULTS,PSBWIN,PSBVDL,PSBUDCW,PSBPBCW,PSBIVCW,PSBDEV) ;
+USRSAVE(RESULTS,PSBWIN,PSBVDL,PSBUDCW,PSBPBCW,PSBIVCW,PSBDEV,PSBCSRT,PSBCV1,PSBCV2,PSBCV3,PSBCV4) ;
  ;
  ; RPC: PSB USERSAVE
+ ; Descr: Saves user settings.
  ;
- ; Description: Saves user settings for next sign-on.
+ S RESULTS(0)="-1^FAILED - Parameters Save"
+ S PSBWIN=$G(PSBWIN),PSBVDL=$G(PSBVDL),PSBUDCW=$G(PSBUDCW)
+ S PSBPBCW=$G(PSBPBCW),PSBIVCW=$G(PSBIVCW),PSBDEV=$G(PSBDEV)
+ S PSBCSRT=$G(PSBCSRT),PSBCV1=$G(PSBCV1),PSBCV2=$G(PSBCV2),PSBCV3=$G(PSBCV3),PSBCV4=$G(PSBCV4)
  ;
- S PSBWIN=$G(PSBWIN)
- S PSBVDL=$G(PSBVDL)
- S PSBUDCW=$G(PSBUDCW)
- S PSBPBCW=$G(PSBPBCW)
- S PSBIVCW=$G(PSBIVCW)
- S PSBDEV=$G(PSBDEV)
  D EN^XPAR("USR","PSB WINDOW",1,PSBWIN)
  D EN^XPAR("USR","PSB VDL INCL CONT",1,$P(PSBVDL,"/",1)["T")
  D EN^XPAR("USR","PSB VDL INCL PRN",1,$P(PSBVDL,"/",2)["T")
@@ -112,16 +96,20 @@ USRSAVE(RESULTS,PSBWIN,PSBVDL,PSBUDCW,PSBPBCW,PSBIVCW,PSBDEV) ;
  D EN^XPAR("USR","PSB IVPB COLUMN WIDTHS",1,PSBPBCW)
  D EN^XPAR("USR","PSB IV COLUMN WIDTHS",1,PSBIVCW)
  D EN^XPAR("USR","PSB GUI DEFAULT PRINTER",1,PSBDEV)
+ D EN^XPAR("USR","PSB COVERSHEET VIEWS COL SORT",1,PSBCSRT)
+ D EN^XPAR("USR","PSB COVERSHEET V1 COL WIDTHS",1,PSBCV1)
+ D EN^XPAR("USR","PSB COVERSHEET V2 COL WIDTHS",1,PSBCV2)
+ D EN^XPAR("USR","PSB COVERSHEET V3 COL WIDTHS",1,PSBCV3)
+ D EN^XPAR("USR","PSB COVERSHEET V4 COL WIDTHS",1,PSBCV4)
  S RESULTS(0)="1^Parameters Saved"
  Q
  ;
 INST(RESULTS,PSBACC,PSBVER) ;
  ;
  ; RPC: PSB INSTRUCTOR
- ;
- ; Description:
- ; Used by frmInstructor to validate an instructors presence at
- ; the client via their encrypted A/V Code.
+ ; Descr:
+ ; Used by frmInstructor to validate an instructor(s) at
+ ; the client via encrypted A/V Code.
  ;
  S PSBACC=$$DECRYP^XUSRB1(PSBACC)
  S PSBVER=$$DECRYP^XUSRB1(PSBVER)
@@ -130,16 +118,12 @@ INST(RESULTS,PSBACC,PSBVER) ;
  I '$D(^XUSEC("PSB INSTRUCTOR",PSBINST)) S RESULTS(0)="-1^Instructor doesn't have authority" K PSBINST Q
  S PSBINST(0)=$$GET1^DIQ(200,PSBINST_",",.01)
  S RESULTS(0)=PSBINST_U_PSBINST(0)
- ;
  Q
  ;
 ESIG(RESULTS,PSBESIG) ;
  ;
  ; RPC: PSB VALIDATE ESIG
- ;
- ; Description:
- ; Validate the data in PSBESIG against the user currently
- ; signed on (DUZ)
+ ; Descr: Validate the data in PSBESIG against user (DUZ)
  ;
  S PSBDSIG=$P($G(PSBESIG),U,2) I PSBDSIG'="" S PSBDSIG=$$DECRYP^XUSRB1(PSBDSIG),PSBESIG=PSBDSIG
  I $G(PSBESIG)="" S RESULTS(0)="-1^Must Supply ESig" Q
@@ -148,58 +132,67 @@ ESIG(RESULTS,PSBESIG) ;
  E  S RESULTS(0)="1^ESig Verified"
  Q
  ;
- ;
 SCANPT(RESULTS,PSBDATA) ; Lookup Pt by Full SSN
  ;
  ; RPC: PSB SCANPT
- ;
- ; Description:
- ; Does a lookup on file 2 either by full SSN
- ; returns -1 on error or patient date on success
- ;
+ ; Descr:
+ ; File #2 lookup either by full SSN
+ ; returns -1 on error or patient data
  ; Check for Interleave 2 of 5 Check Digit on SSN and remove
+ ;
  N DFN
  I "SS"[$P($G(PSBDATA),"^",3)  D  Q:RESULTS(1)<0
  .S:$P(PSBDATA,"^")?1"0"9N.U PSBDATA=$E(PSBDATA,2,99) N PSBCNT
+ .;  IHS vs VA Agency check for Patient ID info
+ .I $G(DUZ("AG"))'="I",$G(DUZ("AG"))'="V" S RESULTS(0)=1,RESULTS(1)="-1^Invalid Agency Code - Not IHS or VA" Q
  .I $G(DUZ("AG"))="I" D
  ..S X=-1
  ..I $P(PSBDATA,U)?12N S X=$$HRCNF^APSPFUNC($P(PSBDATA,U))
+ ..S:X'>0 RESULTS(0)=1,RESULTS(1)="-1^Patient not found or # not 12 digit"
  .E  D
  ..I $P(PSBDATA,U)'?9N.1U S RESULTS(0)=1,RESULTS(1)="-1^Invalid Patient Lookup" Q
  ..S X=$$FIND1^DIC(2,"","",$P(PSBDATA,U),"SSN")
- .I X<1 S RESULTS(0)=1,RESULTS(1)="-1^Invalid Patient Lookup" Q
+ ..I X<1 S RESULTS(0)=1,RESULTS(1)="-1^Invalid Patient Lookup"
+ .Q:$G(RESULTS(1))<0
+ .;
  .S (DFN,RESULTS(1),PSBDFN)=X
  .S PSBICN=$$GETICN^MPIF001(PSBDFN) I +PSBICN=-1 S PSBICN=""
  I $G(DFN)']"" D  Q:+PSBDFN'>0
- .; CCOW - BCMA implements CCOW
+ .; CCOW !
  .I "DF"[$P($G(PSBDATA),"^",3) S PSBDFN=$P($G(PSBDATA),"^"),PSBICN=$$GETICN^MPIF001(PSBDFN) I +PSBICN=-1 S PSBICN="",RESULTS(0)=1,RESULTS(1)="-1^Cannot find ICN via DFN"
  .I "IC"[$P($G(PSBDATA),"^",3) S PSBICN=$P($G(PSBDATA),"^"),PSBDFN=$$GETDFN^MPIF001(PSBICN) I +PSBDFN=-1 S PSBDFN="",RESULTS(0)=1,RESULTS(1)="-1^Cannot find DFN via ICN" Q
  .S (DFN,RESULTS(1))=PSBDFN
  .;
  K VADM,VAIN
  D DEM^VADPT,IN5^VADPT
- I ('$P(PSBDATA,U,2))&('VAIP(13)&'VADM(6)) S RESULTS(0)=1,RESULTS(1)="-1^Patient has been DISCHARGED" I ($P($G(PSBDATA),U,3)'["IC")&($P($G(PSBDATA),U,3)'["DF") K VAIP,VADM Q
- I ('$P(PSBDATA,U,2))&(VADM(6)'="") S RESULTS(0)=1,RESULTS(1)="-1^"_"This patient died "_$TR($P(VADM(6),U,2),"@"," ") I ($P($G(PSBDATA),U,3)'["IC")&($P($G(PSBDATA),U,3)'["DF") K VAIP,VADM Q
+ I ('$P(PSBDATA,U,2))&('VAIP(13)&'VADM(6)) S RESULTS(0)=1,RESULTS(1)="-1^Patient has been DISCHARGED" I ($P($G(PSBDATA),U,3)'["IC")&($P($G(PSBDATA),U,3)'["DF") K VAIP,VADM,VA Q
+ I ('$P(PSBDATA,U,2))&(VADM(6)'="") S RESULTS(0)=1,RESULTS(1)="-1^"_"This patient died "_$TR($P(VADM(6),U,2),"@"," ") I ($P($G(PSBDATA),U,3)'["IC")&($P($G(PSBDATA),U,3)'["DF") K VAIP,VADM,VA Q
  S RESULTS(1)=PSBDFN
- F X=1,2,3,4,5 S RESULTS(X+1)=$G(VADM(X))
- S RESULTS(3)=$TR(VA("PID"),"-")_U_VA("PID")  ;IHS/MSC/PLS - 5/22/2006
+ F X=1,3,4,5 S RESULTS(X+1)=$G(VADM(X))
+ ;  IHS/VA - use VA("PID") instead of VADM(2) for Pat ID
+ S RESULTS(3)=$TR(VA("PID"),"-")_U_VA("PID")
  F X=3,4,5,6,7,8,9,10,11 S RESULTS(X+4)=$G(VAIP(X))
- ; IHS/MSC/PLS - 03/27/06 - Changed to call PCC Vitals based on parameter flag
- I $G(DUZ("AG"))="I" D
+ ;
+ ; IHS/MSC/PLS - 03/27/06 - Changed to call PCC Vitals based on
+ ;  parameter flag DUZ("AG")="I" and PCC Vitals package usage
+ ;  flag "BEHOVM USE VMSR"=1
+ ;
+ I $G(DUZ("AG"))="I",$$GET^XPAR("ALL","BEHOVM USE VMSR") D
  .S X=+$P($$VITAL^APSPFUNC(DFN,"HT"),U,2),X=$$VITCHT^APSPFUNC(X)\1,PSBHDR("HEIGHT")=$S(X:X_"cm",1:"*")
  .S X=+$P($$VITAL^APSPFUNC(DFN,"WT"),U,2),X=$$VITCWT^APSPFUNC(X)\1,PSBHDR("WEIGHT")=$S(X:X_"kg",1:"*")
  E  D
  .S GMRVSTR="HT" D EN6^GMRVUTL
  .S X=+$P(X,U,8) S:X X=X*2.54\1 S PSBHDR("HEIGHT")=$S(X:X_"cm",1:"*")
- .;S RESULTS(16)=PSBHDR("HEIGHT")
  .S GMRVSTR="WT" D EN6^GMRVUTL
  .S X=+$P(X,U,8) S X=$J(X/2.2,0,2) S PSBHDR("WEIGHT")=$S(X:X_"kg",1:"*")
+ ;
+ S $P(RESULTS(9),U,3)=$$GET1^DIQ(42,$P(RESULTS(9),U)_",",44,"I")_"^"_$$GET1^DIQ(42,$P(RESULTS(9),U)_",",44)
  S RESULTS(16)=PSBHDR("HEIGHT")
  S RESULTS(17)=PSBHDR("WEIGHT")
  S GMRA="0^0^111" D EN1^GMRADPT
  I $O(GMRAL(0)) S RESULTS(18)=1
  E  S RESULTS(18)=0
- ; Means Tests
+ ; Means Tst
  D GUIMTD^DPTLK6(.PSBDATA,PSBDFN)
  S RESULTS(19)=+$G(PSBDATA(1))_U_$G(PSBDATA(2))_U_$G(PSBDATA(3))
  S PSBICN=$$GETICN^MPIF001(PSBDFN) I +PSBICN=-1 S PSBICN=""
@@ -214,42 +207,50 @@ SCANPT(RESULTS,PSBDATA) ; Lookup Pt by Full SSN
  .S $P(PSBPFLAG,U,3)=PSBINDX,PSBCNT=21+PSBINDX,RESULTS(PSBCNT)=PSBPFLAG
  S RESULTS(0)=PSBCNT
  I $D(PSBPTFLG) K @PSBPTFLG
- K VAIP,VADM
+ K VAIP,VADM,VA
  Q
  ;
 MAX(RESULTS,PSBDAYS) ;
  ;
- ; RPC: PSB MAXDAYS  ; Maximum number of days user can view/print MAH
+ ; RPC: PSB MAXDAYS  ; Max days user view/print MAH
  ;
  S X=$O(^ORD(101.24,"B","ORRP BCMA MAH",""))
  S RESULTS(0)=$$GET1^DIQ(101.24,X_",",.42)
  Q
  ;
-NWLIST(RESULTS,DUMMY) ; ward list from NURS LOCATION, file 211.4
+NWLIST(RESULTS,DUMMY) ; ward list - NURS LOCATION, file 211.4
+ ;
+ ; RPC: PSB NURS WARDLIST
  ;
  K ^TMP("PSB",$J)
  S PSBIEN=0 F  S PSBIEN=$O(^NURSF(211.4,PSBIEN)) Q:PSBIEN'?.N  D
- .S ^TMP("PSB",$J,$$GET1^DIQ(211.4,PSBIEN_",",.01))=PSBIEN
+ .S ^TMP("PSB",$J,$$GET1^DIQ(211.4,PSBIEN_",",.01)_" [NURS UNIT]")=PSBIEN
  .S PSBX=0 F  S PSBX=$O(^NURSF(211.4,PSBIEN,3,PSBX)) Q:PSBX=""  D
  ..S PSBWIEN=$P(^NURSF(211.4,PSBIEN,3,PSBX,0),"^")
- ..I $$GET1^DIQ(42,PSBWIEN_",",.01)]"" S ^TMP("PSB",$J,$$GET1^DIQ(42,PSBWIEN_",",.01))=PSBIEN
+ ..I $$GET1^DIQ(42,PSBWIEN_",",.01)]"" S ^TMP("PSB",$J,$$GET1^DIQ(42,PSBWIEN_",",.01)_" [MAS WARD]")=PSBIEN
  S RESULTS(0)=0
- S X="" F  S X=$O(^TMP("PSB",$J,X)) Q:X=""  S RESULTS(0)=RESULTS(0)+1,RESULTS(RESULTS(0))=^TMP("PSB",$J,X)_U_X
+ S X="" F  S X=$O(^TMP("PSB",$J,X)) Q:X=""  D
+ .S RESULTS(0)=RESULTS(0)+1
+ .S RESULTS(RESULTS(0))=^TMP("PSB",$J,X)_U_X_U_$S(($$GET1^DIQ(211.4,^TMP("PSB",$J,X)_",",1)="ACTIVE")&($$GET1^DIQ(211.4,^TMP("PSB",$J,X)_",",1.5)'="**INACTIVE**"):"1",1:"0")
  K ^TMP("PSB",$J)
  Q
  ;
-VITALS(RESULTS,DFN) ;Vital signs from Vitals API
+VITALS(RESULTS,DFN) ;Vitals API
  ;
  ; RPC PSB VITALS
  ;
- I $G(DUZ("AG"))="I" D  Q
+ ;Retrieve vitals from either the PCC V Measurment file or VA Vitals
+ ; file.  Based on agency code = "I" & Vitals package flag=1 for the
+ ; PCC V Measurement file or "V" for the VA Vitals file.
+ ;
+ I $G(DUZ("AG"))="I",$$GET^XPAR("ALL","BEHOVM USE VMSR") D  Q
  .K RESULTS
  .N PSBNOW,PSBSTRT,VITS,CNT,VTYP,LP,DATA,NODE,XREF
  .S XREF("TMP")="T",XREF("PU")="P",XREF("BP")="BP",XREF("RS")="R",XREF("PA")="PN"
  .S PSBNOW=$$NOW^XLFDT(),PSBSTRT=$$FMADD^XLFDT(PSBNOW,-168)
  .S CNT=0 F LP="TMP","PU","RS","BP","PA" D
  ..;IHS/MSC/PLS - 1/16/08 - Fixed IEN lookup
- ..;S VTYP=$$FIND1^DIC(9999999.07,"","BX",$$UP^XLFSTR(LP))
+ ..;S VTYP=$$FIND1^DIC(9999999.07,"","BX",LP)
  ..S VTYP=+$$VCTL^BEHOVM(LP)
  ..I VTYP S VITS(CNT+1)=VTYP,CNT=CNT+1
  .D GRID^BEHOVM(.DATA,DFN,PSBNOW,$$FMADD^XLFDT(PSBNOW,"",-168),0,.VITS)
@@ -261,6 +262,7 @@ VITALS(RESULTS,DFN) ;Vital signs from Vitals API
  ..S RESULTS(CNT+1)=XREF($P(@DATA@(0,$P(NODE,U,2)),U,4))_U_$E($$GET1^DIQ(9000010.01,$P(NODE,U,5),1201,"I"),1,12)_U_DFN_U_$P(NODE,U,3)
  ..S CNT=CNT+1
  .S RESULTS(0)=CNT
+ ;
  K RESULTS
  N PSBSTRT,PSBSTOP,PSBNOW
  S PSBDFN=DFN,GMRVSTR="T;P;R;BP;PN"
@@ -281,4 +283,3 @@ VITALS(RESULTS,DFN) ;Vital signs from Vitals API
  S RESULTS(0)=PSBCNT-1
  K ^UTILITY($J,"GMRVD"),GMRBSTR,PSBDFN,PSBTYPE,PSBDATA,PSBCNT
  Q
- ;

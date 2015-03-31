@@ -1,5 +1,5 @@
 ABMEEPRV ;IHS/ASDST/DMJ - PROVIDER INFO   
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p5 - 5/17/04 - Added code to get info for
  ;      referring provider if on page 3
@@ -56,7 +56,8 @@ MCR(X) ;EP  - medicare provider number
  I '$D(^VA(200,+X)) S X="" Q X
  N I
  S I=0 F  S I=$O(^VA(200,X,9999999.18,I)) Q:'I  D
- .Q:$P($G(^AUTNINS(I,2)),U)'="R"
+ .;Q:$P($G(^AUTNINS(I,2)),U)'="R"  ;abm*2.6*10 HEAT73780
+ .Q:($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,I,".211","I"),1,"I")'="R")  ;abm*2.6*10 HEAT73780
  .Q:I'=ABMP("INS")
  .S ABMCR=$P(^VA(200,X,9999999.18,I,0),"^",2)
  I $G(ABMCR)="" D
@@ -140,10 +141,20 @@ PTAX(X) ;EP - provider taxonomy
  .S X=$P($G(ABMP("PRV","F",ABMIEN)),U,2)
  I '+$G(X) S X="" Q X
  N Y
- S Y=$O(^VA(200,X,"USC1",0))
- S ABMPCLAS=$P($G(^VA(200,X,"USC1",+Y,0)),U)
- S ABMPTAX=$G(^ABMPTAX("AUSC",+ABMPCLAS))
+ ;start old code abm*2.6*11 HEAT92505
+ ;S Y=$O(^VA(200,X,"USC1",0))
+ ;S ABMPCLAS=$P($G(^VA(200,X,"USC1",+Y,0)),U)
+ ;S ABMPTAX=$G(^ABMPTAX("AUSC",+ABMPCLAS))
+ ;I ABMPTAX'="" Q ABMPTAX
+ ;end old code start new code HEAT92505
+ S Y=0
+ S ABMPTAX=""
+ F  S Y=$O(^VA(200,X,"USC1",Y)) Q:'Y  D  Q:($G(ABMPTAX)'="")
+ .Q:$P($G(^VA(200,X,"USC1",+Y,0)),U,3)'=""  ;expiration date
+ .S ABMPCLAS=$P($G(^VA(200,X,"USC1",+Y,0)),U)
+ .S ABMPTAX=$G(^ABMPTAX("AUSC",+ABMPCLAS))
  I ABMPTAX'="" Q ABMPTAX
+ ;end new code HEAT92505
  S Y=$P($G(^VA(200,X,"PS")),"^",5)
  S:Y Y=$P($G(^DIC(7,Y,9999999)),U)
  S ABMPTAX=$S($G(Y)'="":$G(^ABMPTAX("A7",Y)),1:0)
@@ -170,5 +181,6 @@ GETPRV ;EP - build provider array
  .S:$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),8)),U,17)'="" $P(ABMP("PRV","F",$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),8)),U,8)),U,3)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),8)),U,17)
  I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,12)'="" D  ;supervising provider
  .S ABMP("PRV","S",$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),9),U,12))=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,24)
- .S:$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,25)'="" $P(ABMP("PRV","S",$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),9),U,12)),U,2)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,25)
+ .;S:$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,25)'="" $P(ABMP("PRV","S",$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),9),U,12)),U,2)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,25)  ;abm*2.6*10 HEAT80154
+ .S:$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,25)'="" $P(ABMP("PRV","S",$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),9),U,12)),U,3)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,25)  ;abm*2.6*10 HEAT80154
  Q

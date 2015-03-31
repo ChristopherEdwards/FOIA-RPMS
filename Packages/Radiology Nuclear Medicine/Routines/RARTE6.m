@@ -1,5 +1,5 @@
-RARTE6 ;HISC/SM Restore deleted report ;03/01/10 13:44
- ;;5.0;Radiology/Nuclear Medicine;**56,95,99,47**;Mar 16, 1998;Build 21
+RARTE6 ;HISC/SM Restore deleted report ;03/01/10 13:44 [ 12/05/2011  10:12 AM ]
+ ;;5.0;Radiology/Nuclear Medicine;**56,95,99,47*1004**;Mar 16, 1998;Build 21
  ;Supported IA #10060 ^VA(200
  ;Supported IA #2053 FILE^DIE, UPDATE^DIE
  ;Supported IA #2052 GET1^DID
@@ -312,7 +312,22 @@ LOCK(X,Y) ; Lock the data global
  ; 'Y' is the record number
  N RALCKFLG,XY
  S RADUZ=+$G(DUZ),RALCKFLG=0,XY=X_Y
- L +@(XY_")"):DILOCKTM
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - DILOCKTM not always defined
+ ;L +@(XY_")"):DILOCKTM
+ L +@(XY_")"):$G(DILOCKTM,3)
+ ;End Patch
+ ;
+ I '$T S RALCKFLG=1 D
+ . W !?5,"This record is being edited by another user."
+ . W !?5,"Try again later!",$C(7)
+ . Q
+ E  D
+ . S ^TMP("RAD LOCKS",$J,RADUZ,X,Y)=""
+ . Q
+ Q RALCKFLG
+INTRO ;
+ ;; +--------------------------------------------------------+
  I '$T S RALCKFLG=1 D
  . W !?5,"This record is being edited by another user."
  . W !?5,"Try again later!",$C(7)

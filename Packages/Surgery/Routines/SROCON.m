@@ -1,15 +1,17 @@
-SROCON ;B'HAM ISC/MAM - STUFF ENTRY IN CONCURRENT CASE ; 23 AUG 1990  9:15 AM
- ;;3.0; Surgery ;**78**;24 Jun 93
+SROCON ;B'HAM ISC/MAM - STUFF ENTRY IN CONCURRENT CASE ;23 AUG 1990  9:15 AM
+ ;;3.0;Surgery;**78,119,161**;24 Jun 93;Build 5
  I $D(SRNOCON),SRNOCON=1 Q
- S SRCON=$P(^SRF(DA,"CON"),"^")
+ I $D(SRFLAG) S SRCON=$P(^SRF(DA(1),"CON"),"^")
+ I '$D(SRFLAG) S SRCON=$P(^SRF(DA,"CON"),"^")
 ASK W !!,"Do you want to store this information in the concurrent case ?  YES//  " R SRYN:DTIME I '$T!(SRYN["^") S SRYN="N" Q
  S:SRYN="" SRYN="Y" S SRYN=$E(SRYN) I "YyNn"'[SRYN D HELP G ASK
  I "Yy"'[SRYN W ! Q
 STUFF ; concatonate field to SRODR
- W ! S SRODR(130,SRCON_",",SRFLD)=X
+ W ! I $G(SRFLAG)=1 S SRODR(130.213,DA(2)_","_SRCON_",",SRFLD)=X K SRFLAG Q
+ S SRODR(130,SRCON_",",SRFLD)=X
  Q
 HELP ;
- S SRMX=X W @IOF S DFN=$P(^SRF(DA,0),"^") D DEM^VADPT S X=SRMX
+ S SRMX=X W @IOF S DFN=$P(^SRF(SRTN,0),"^") D DEM^VADPT S X=SRMX  ;; < RJS *161 >
  W !!,"There is a concurrent surgical case associated with this procedure.  A brief",!,"description of that case is listed below."
  S SROPER=$P(^SRF(SRCON,"OP"),"^") I $O(^SRF(SRCON,13,0)) S SROTHER=0 F I=0:0 S SROTHER=$O(^SRF(SRCON,13,SROTHER)) Q:'SROTHER  D OTHER
  K SROPS,MM,MMM S:$L(SROPER)<65 SROPS(1)=SROPER I $L(SROPER)>64 S SROPER=SROPER_"  " F M=1:1 D LOOP Q:MMM=""

@@ -1,5 +1,5 @@
-PSOLLL3 ;BHAM/JLC - LASER LABELS ;09-Mar-2004 09:29;PLS
- ;;7.0;OUTPATIENT PHARMACY;**120**;DEC 1997
+PSOLLL3 ;BHAM/JLC - LASER LABELS ;29-May-2012 14:52;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**120,161,148,200,1015**;DEC 1997;Build 62
  ;
  ; Modified - IHS/CIA/PLS - 03/05/04
  S PRCOPAY=$S('$D(PSOCPN):0,1:1)
@@ -9,26 +9,28 @@ PF ;PATIENT FILL DOCUMENT
  . S OFONT=PSOFONT,PSOFONT=PSOHFONT
  . I $P(RXY,"^",9)=0 S T="NO REFILL for this prescription" D PRINT(T,1,1) S PSOY=PSOY+PSOYI Q
  . I RXF+1=(1+$P(RXY,"^",9)) S T="NO REFILLS LEFT for this prescription" D PRINT(T,1,1) S PSOY=PSOY+PSOYI Q
- . S T="PHONE IN OR MAIL YOUR REFILL REQUEST" D PRINT(T,1,1)
- . S PSOFONT=OFONT,T="Follow the refill instructions provided with your prescription." D PRINT(T,0,1) S PSOY=PSOY+PSOYI
- S T=PNM_"  "_$G(SSNPN) D PRINT(T,0)
- S PSOY=PSOY+PSOYI,T="Rx# "_RXN_"   " D PRINT(T,1)
+ . S T="PHONE IN OR MAIL THIS REFILL REQUEST" D PRINT(T,1,1)
+ . S PSOFONT=OFONT,T="Follow the refill instructions provided with your prescription." D PRINT(T,0,1)
+ . S PSOFONT=OFONT,OPSOX=PSOX,PSOX=PSOX+300,T="For Refill Call "_$P(PS,"^",3)_"-"_$P(PS,"^",4) D PRINT(T,0) S PSOX=OPSOX
+ S T=PNM_"  "_$G(SSNPN) D PRINT(T,1)
+ S T="Rx# "_RXN_"   " D PRINT(T,1)
  D STRT^PSOLLU1("SEC2",T,.L) S OPSOX=PSOX,PSOX=L($E(PSOFONT,2,99))*300+PSOX
  S T=DATE_"  Fill "_(RXF+1)_" of "_(1+$P(RXY,"^",9)),PSOY=PSOY-PSOYI D PRINT(T) S PSOX=OPSOX
- S T="Qty: "_$G(QTY)_"  "_$G(PSDU)_"    Days supply: "_$G(DAYS),PSOY=PSOY+PSOYI D PRINT(T,0)
+ S T=$S($$STATUS^PSOBPSUT(RX,+RXF)'="":"3rd Party Rx",1:"") D PRINT(T,1)
+ S T="Qty: "_$G(QTY)_"  "_$G(PSDU)_"    Days supply: "_$G(DAYS) D PRINT(T,0)
  S T=DRUG D PRINT(T,0)
+ S T=$$GETNDC^PSONDCUT(RX,RXF) D PRINT(T,1)
  D  D PRINT(T,1)
  . S NOR=$P(RXY,"^",9)-RXF
  . I $P(RXY,"^",9)=0 S T="NO REFILL" Q
  . I NOR=0 S T="NO REFILLS LEFT" Q
- . S T=NOR_" refills left until "_EXPDT
+ . S T="May refill "_NOR_"X by "_EXPDT
  S PS=$S($D(^PS(59,PSOSITE,0)):^(0),1:"")
  ;D PRINT(COPAYVAR)  ; IHS/CIA/PLS - 03/06/04
  D PRINT("")
  S T=$P(PS,"^")_"-"_$P(PS,"^",6) D STRT^PSOLLU1("SEC2",T,.L)
  S OPSOX=PSOX,PSOX=2340-(L($E(PSOFONT,2,99))*300),PSOY=PSOY-PSOYI
  D PRINT(T)
- Q:'$P(RXY,"^",9)!'NOR
  S PSOX=OPSOX,PSOYI=PSOBYI
  ; IHS/CIA/PLS - 03/08/04 - Changed to use barcode output routine
  ;I $G(PSOIO("SBT"))]"" X PSOIO("SBT")

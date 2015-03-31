@@ -1,5 +1,5 @@
 FHSEL3 ; HISC/REL/NCA - Print Tabulated Preferences ;1/23/98  16:11
- ;;5.0;Dietetics;**13**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  K S S S1=38
  F K=0:0 S K=$O(D(K)) Q:K=""  S X=^FH(119.72,K,0),N2=$P(X,"^",1),N3=$P(X,"^",4) S:N3="" N3=$E(N2,1,6) S S(N3,K)=$J(N3,8),S1=S1+8
  S:S1<80 S1=80
@@ -52,7 +52,7 @@ C31 S X1=$P(^FH(115.2,Z,0),"^",1)_"~"_Z
  Q
 C4 I $D(^TMP($J,"P",Z,PD,SP)) S X2=^(SP),CODE=$O(^FH(116.2,"C",PD,0)),CODE=$P($G(^FH(116.2,+CODE,0)),"^",1),LNOD=$S(SRT:$E(CODE,1,18),1:"0") S:'$D(^TMP($J,TP,LNOD,X1,SP)) ^TMP($J,TP,LNOD,X1,SP)=0 S ^(SP)=^(SP)+X2
  Q
-HDR W:'($E(IOST,1,2)'="C-"&'PG) @IOF S PG=PG+1 W !,H1,?(S1-29\2),"M E A L   P R E F E R E N C E S",?(S1-6),"Page ",PG
+HDR W:'($E(IOST,1,2)'="C-"&'PG) @IOF S PG=PG+1 W !,H1,?(S1-29\2),"M E A L   P R E F E R E N C E S",?(S1-8),"Page ",PG
  I D3 W !!?(S1-14\2),"MENU SPECIFIC"
  S DTP=TIM\1 D DTP^FH S X=$P("SUN^MON^TUES^WEDNES^THURS^FRI^SATUR","^",DOW)_"DAY  "_DTP_"  "_$S(MEAL="B":"BREAKFAST",MEAL="N":"NOON",1:"EVENING")
  W:D3 ! W !?(S1+2-$L(X)\2),X

@@ -1,5 +1,5 @@
 AUT98P25 ; IHS/OIT/FBD - AUT V98.1 PATCH 25 ENVIRONMENT CHECKS ;   
- ;;98.1;IHS DICTIONARIES (POINTERS);**25**;FEB 9,2011;Build 2
+ ;;98.1;IHS DICTIONARIES (POINTERS);**25**;FEB 9,2011;Build 6
  ;
  ;
  ; The following line prevents the "Disable Options..." and "Move Routines..." questions from being asked during the install.

@@ -1,19 +1,23 @@
 PSOCMOPB ;BIR/HTW-CMOP Release/Edit Utility ; 6/17/97 [ 12/15/97  2:11 PM ]
- ;;7.0;OUTPATIENT PHARMACY;**11**;DEC 1997
-OREL ;      Called from PSODISP to check for CMOP during manual Release
+ ;;7.0;OUTPATIENT PHARMACY;**11,148**;DEC 1997
+OREL(RXP) ;      Called from PSODISP to check for CMOP during manual Release
+ ; IF ePharmacy Rx and it was returned to Stock, allow release
+ I $$STATUS^PSOBPSUT(RXP,0)'="",$$RXRLDT^PSOBPSUT(RXP,0)="",$$GET1^DIQ(52,RXP,32.1,"I") G D1
  D LAST
- ;      This for original fill
- ;      No release unless cancelled.
+ ;      This for original fill. No release unless cancelled.
  I $G(CMOP(0))=0!($G(CMOP(0))=1)!($G(CMOP(0))=2) S ISUF=1
  G D1
-RREL ;      This for Release Refills PSODISP
+RREL(RXP,RFL) ;      This for Release Refills PSODISP
+ ; IF ePharmacy Rx and it was returned to Stock, allow release
+ I $$STATUS^PSOBPSUT(RXP,RFL)'="",$$RXRLDT^PSOBPSUT(RXP,RFL)="",$$GET1^DIQ(52.1,RFL_","_RXP,14,"I") G D1
  D LAST
- ; No release of fills unless cancelled
-RREL1 I $G(CMOP(YY))=0!($G(CMOP(YY))=1)!($G(CMOP(YY))=2) S ISUF=1
+ ; 
+RREL1 ; No release of fills unless cancelled
+ I $G(CMOP(YY))=0!($G(CMOP(YY))=1)!($G(CMOP(YY))=2) S ISUF=1
  G D1
-CS N YY,ISUF
- I +$G(XTYPE) S YY=$P($G(XTYPE),"^",2) D RREL I $G(ISUF) S XFLAG=1 K ISUF Q
- I $P($G(XTYPE),"^")="" D OREL I $G(ISUF) S XFLAG=1 K ISUF Q
+CS(RXP) N YY,ISUF
+ I +$G(XTYPE) S YY=$P($G(XTYPE),"^",2) D RREL(RXP,YY) I $G(ISUF) S XFLAG=1 K ISUF Q
+ I $P($G(XTYPE),"^")="" D OREL(RXP) I $G(ISUF) S XFLAG=1 K ISUF Q
  Q
 LAST ; Find last event, Find last fill
  F B=0:0 S B=$O(^PSRX(RXP,4,B)) Q:(+B<1)  S CMOP($P(^PSRX(RXP,4,B,0),"^",3))=$P(^PSRX(RXP,4,B,0),"^",4)
@@ -27,8 +31,7 @@ SUS ; From SUP^PSORXED1 If suspense date edited to future date resuspend
  S RXN=DA,RX0=^PSRX(DA,0),DA=RXS,DIK="^PS(52.5," D ^DIK S DA=RXN
  S DIC="^PS(52.5,",DIC(0)="L",X=RXN
  S DIC("DR")=".02///"_SD_";.03////"_$P(^PSRX(DA,0),"^",2)_";.04///M;.05///0;.06////"_PSOSITE_";2///0;3////Q;9////"_$G(RFD)
- K DD,DO
- D FILE^DICN
+ K DD,DO D FILE^DICN K DD,DO
  K ^PS(52.5,"AC",$P(^PSRX(RXN,0),"^",2),SD,+Y)
  S IR=0 F FDA=0:0 S FDA=$O(^PSRX(DA,"A",FDA)) Q:'FDA  S IR=FDA
  S IR=IR+1,^PSRX(DA,"A",0)="^52.3DA^"_IR_"^"_IR

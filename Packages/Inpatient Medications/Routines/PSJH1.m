@@ -1,5 +1,5 @@
-PSJH1 ;BIR/CML3,PR-GET UNIT DOSE/IV ORDERS FOR INPATIENT ;09 DEC 97 / 8:38 AM
- ;;5.0; INPATIENT MEDICATIONS ;**35,47,58,85**;16 DEC 97
+PSJH1 ;BIR/CML3,PR-GET UNIT DOSE/IV ORDERS FOR INPATIENT ; 11/15/07 4:21pm
+ ;;5.0; INPATIENT MEDICATIONS ;**35,47,58,85,174,198**;16 DEC 97;Build 7
  ;
  ;Reference to ^PS(50.7 is supported by DBIA 2180
  ;Reference to ^PS(55 is supported by DBIA 2191
@@ -20,7 +20,8 @@ SET ;
  ;
 IVSET ; Set IV data in ^TMP("PSJ",$J,.
  N DRG,DRGT,ON55,ORTX,P,STAT,TYP,X,Y,ND
- I ON["V" S ON55=ON,Y=$G(^PS(55,DFN,"IV",+ON,0)) Q:$D(PSJHDATE)&($P(Y,"^",2)<PSJHDATE)  F X=2,3,4,9,17 S P(X)=$P(Y,U,X)
+ ;GMZ;PSJ*5*198;Change date search criteria for IV orders to be consistent with the way unit dose orders work
+ I ON["V" S ON55=ON,Y=$G(^PS(55,DFN,"IV",+ON,0)) Q:$D(PSJHDATE)&($P(Y,"^",3)<PSJHDATE)  F X=2,3,4,9,17 S P(X)=$P(Y,U,X)
  I ON'["V" S ND=$G(^PS(53.1,+ON,0)) I 'ND K ^PS(53.1,"AS",SD,PSGP,+ON) Q
  I ON'["V",ND S P(17)=$P($G(^PS(53.1,+ON,0)),U,9),Y=$G(^PS(53.1,+ON,2)),P(9)=$P(Y,U),P(2)=$P(Y,U,2),P(3)=$P(Y,U,4),P(4)=$P($G(^PS(53.1,+ON,8)),U)
  G:PSJOS IVSET1 I P(4)="H" S ORTX="* TPN *" G IVSET1
@@ -55,9 +56,10 @@ EN ; enter here
  Q
  ;
 NVSET ; Set up orders from 53.1.
- N ND S ND=$G(^PS(53.1,O,0)) I 'ND D  Q
+ N ND,OSAVE,PORD S ND=$G(^PS(53.1,O,0)) I 'ND D  Q
  .K ^PS(53.1,"AS",SD,PSGP,O)
- S ST=$P($G(^PS(53.1,O,0)),U,7),START=-$P($G(^(2)),U,2),DRG=$P($G(^(.2)),U),C="N"_$TR(SD,"NIP","XYZ") S:ST="" ST="z" S O=O_"P" D SET S O=+O
+ S ST=$P($G(^PS(53.1,O,0)),U,7),START=-$P($G(^(2)),U,2),DRG=$P($G(^(.2)),U),C="N"_$TR(SD,"NIP","XYZ") S:ST="" ST="z"
+ S PORD=$P($G(^PS(53.1,O,.2)),U,8),OSAVE=O,O=$S(PORD:PORD,1:O_"P") D SET S O=+OSAVE
  Q
  ;
 KILL ;

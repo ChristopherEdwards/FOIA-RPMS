@@ -1,5 +1,5 @@
 ORMTIME ; SLC/RJS - PROCESS TIME BASED EVENT ;9/29/99  09:35 [2/1/00 9:30am]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**40**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**40,253,243**;Dec 17, 1997;Build 242
  ;
 EN ; Main entry tag.
  ;
@@ -20,9 +20,11 @@ EN ; Main entry tag.
  S:'OCXLOCK ^TMP("OCXORMTIME",$J,"STATUS")="ORMTIME: Unable to lock ^OR(100,""AE"") at "_OCXSTDT_" attempt."
  Q
  ;
-SCAN ; Call ORMTIM01 for order checking, etc.
+SCAN ; Call ORMTIM01 for order checking, etc.  ORMTIM02 for misc time based tasks
  ;
  D SCAN^ORMTIM01
+ D MISC^ORMTIM02
+ D TASK^ORTSKLPS
  Q
  ;
 EDATE(Y) X ^DD("DD") S:(Y["@") Y=$P(Y,"@",1)_" at "_$P(Y,"@",2) Q Y

@@ -1,5 +1,5 @@
 FHNU12 ; HISC/REL - Recipe Analysis Output ;2/23/00  12:36
- ;;5.0;Dietetics;**25**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  K A,B F K=1:1:66 S A(K)=0,B(K)=0
  S NX=0,SUM=0
 D1 S NX=$O(FHM(NX)) I NX="" G D2

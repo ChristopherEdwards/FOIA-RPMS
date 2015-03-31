@@ -1,0 +1,146 @@
+APSPRIS ;IHS/MSC/PLS- Support for speed REISSUE ;13-Sep-2013 13:44;DU
+ ;;7.0;OUTPATIENT PHARMACY;**1015,1016**;DEC 1997;Build 74
+REISSUE ;speed REISSUE
+ K LST,PSORX("FILL DATE")
+ N APSPVAL
+ N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
+ K PSONEW,PSOFDR,DIR,DUOUT,DIRUT S DIR("A")="Select Orders by number",DIR(0)="LO^1:"_PSOCNT D ^DIR I $D(DIRUT)!($D(DTOUT))!($D(DUOUT)) K DIR,DIRUT,DTOUT,DUOUT S VALMBCK="" Q
+ K DIR,DIRUT,DTOUT,PSOOELSE,DTOUT I +Y S (SPEED,PSOOELSE)=1 D FULL^VALM1 S LST=Y D  G:$G(PSONEW("DFLG"))!($G(PSONEW("QFLG"))) REISSUEX
+ .;D ASKVAL(.APSPVAL)
+ .;Q:$G(APSPVAL("DFLG"))
+ .F ORD=1:1:$L(LST,",") Q:$P(LST,",",ORD)']""!($G(PSONEW("QFLG")))  S ORN=$P(LST,",",ORD) D:+PSOLST(ORN)=52
+ ..I '$P($G(^PSRX($P(PSOLST(ORN),U,2),2)),U,15) D  Q
+ ...W !!,"This prescription has not been returned to stock and is not available for reissue."
+ ...D DIRZ^APSPUTIL("Press ENTER to exit")
+ ..I +$G(^PSRX($P(PSOLST(ORN),U,2),"STA"))'=0 D  Q
+ ...W !!,"This prescription lacks an Active status and is not available for reissue."
+ ...D DIRZ^APSPUTIL("Press ENTER to exit")
+ ..D PSOL^PSSLOCK($P(PSOLST(ORN),"^",2)) I '$G(PSOMSG) W $C(7),!!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing Rx "_$P(^PSRX($P(PSOLST(ORN),"^",2),0),"^")),! D PAUSE^VALM1 K PSOMSG Q
+ ..I $P($G(^PSRX($P(PSOLST(ORN),"^",2),"STA")),"^")=11 D  D ULK Q
+ ...W $C(7),!!?5,"RX "_$P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^")_" is in an EXPIRED status." W ! K DIR S DIR(0)="E",DIR("A")="Press Return to Continue" D ^DIR K DIR Q
+ ...D:$G(PSONEW("QFLG")) ULK
+ ..D RIS($P(PSOLST(ORN),U,2))
+ ..D ULK
+ S:'$G(PSOOELSE) VALMBCK=""
+ S PSORXED=1 D ^PSOBUILD,BLD^PSOORUT1
+REISSUEX D EX K PSOREF,PSORX("BAR CODE"),PSOLIST,LFD,MAX,MIN,NODE,PS,PSOERR,REF,RF,RXO,RXN,RXP,RXS,SD,VAERR,PSORX("FILL DATE")
+ K LST,SPEED,PSORXED,PSOREF,PSOFDR,PSOOELSE S:'$D(VALMBCK) VALMBCK="R"
+ K PSORX("FILL DATE"),PSORX("MAIL/WINDOW"),PSORX("METHOD OF PICK-UP")
+ Q
+ ;
+ULK D PSOUL^PSSLOCK($P(PSOLST(ORN),"^",2))
+ Q
+ ;
+ULP D ULP^PSOHLD
+ Q
+RIS(DA) ;EP-
+ D FULL^VALM1 K DIR,DTOUT,DUOUT,DIRUT,PSLST,PSORXED
+ N RXREF,UPDATE,FLDS,CHGNDC,AO
+ N APSPRCHK,APSPRFLG S APSPRCHK=0,APSPRFLG=0
+ ;S DIE="^PSRX("
+ ;S DR="22///^S X=APSPVAL(""FILL DATE"");Q;"
+ ;D ^DIE
+ S PSORXED("IRXN")=DA
+ D ASKVAL(.PSORXED,DA)
+ Q:$G(PSORXED("DFLG"))
+ Q:'$$ESIG^APSPFUNC  ;P1016
+ S PSORXED("FLD",22)=PSORXED("FILL DATE")
+ D NDCCH(PSORXED("IRXN"))
+ S APSPREIS=1
+ ;IHS/MSC/MGH added from PSOORED6
+ I $D(^PSRX(PSORXED("IRXN"),1,0))  D
+ .S RXREF=$P(^PSRX(PSORXED("IRXN"),0),"^",9)-$P(^PSRX(PSORXED("IRXN"),1,0),"^",4)
+ E  S RXREF=0
+ S POERR=1
+ D UPDATE1^PSOORED6
+ D BCK1^PSORXRPT
+ M PSLST=LST
+ K ^PSRX(PSORXED("IRXN"),999999911)  ;1015-Remove PCC Link
+ ;IHS/MSC/MGH  added from PSODISPS
+ I '$D(PSOPAR) D ^PSOLSET I '$D(PSOPAR) W $C(7),!!,?5,"Site Parameters must be defined to use the Release option!",! S VALMBCK="" Q
+ S VALMBCK="Q",Y=$G(^PS(59,PSOSITE,"IB")),PSOIBSS=$$SERV^IBARX1(+Y) I 'PSOIBSS D IBSSR^PSOUTL I 'PSOIBFL D  S VALMBCK="" G EX
+ .W $C(7),!!,"The IB SERVICE/SECTION defined in your site parameter file is not valid.",!,"You will not be able to release any medication until this is corrected!",!
+ W !! S PSIN=+$P($G(^PS(59.7,1,49.99)),"^",2),RXP=$P(PSOLST($P(PSLST,",",ORD)),"^",2)
+ D OERR1^PSODISPS
+ Q
+EX ;D PSOUL^PSSLOCK($P(PSOLST(ORN),"^",2))
+ D ^PSOBUILD
+ K PSOHRL,PSOMSG,PSOPLCK,ST,PSL,PSNP,IR,NOW,DR,NEW1,NEW11,RTN,DA,PPL,RXN,RX0,RXS,DIK,RXP,FLD,ACT,DIE,DIC,DIR,DIE,X,Y,DIRUT,DUOUT,SUSPT,C,D0,LFD,I,PSDA,RFDATE,DI,DQ,%,RFN,XFLAG
+ K HRX,PSHLD,PSOLIST,PSORX("FILL DATE"),STA,QTY,RFDT,PSORX0,PSRXN,RXF,JJ Q
+ K PSORX("FILL DATE"),PSORX("MAIL/WINDOW"),PSORX("METHOD OF PICK-UP")
+ ;
+ ; Ask user for values to stuff.
+ASKVAL(APSPVAL,RXIEN) ;EP-
+ N DATAARY,DIR,PSOID
+ S (DATAARY("DFLG"),DATAARY("QFLG"))=0
+ S DATAARY("FIELD")=0
+ S DATAARY("DAYS SUPPLY")=$P($G(^PSRX(RXIEN,0)),U,8)
+ S DATAARY("# OF REFILLS")=$P($G(^PSRX(RXIEN,0)),U,9)
+ S PSOID=$P($G(^PSRX(RXIEN,0)),U,13)
+ S DATAARY("CS")=$$ISSCH^APSPFNC2($P($G(^PSRX(RXIEN,0)),U,6),"2345")
+ D PHNAME(.APSPVAL)   ;P1016
+ Q:APSPVAL("DFLG")=1  ;P1016
+ D FILLDT^PSODIR2(.DATAARY)
+ I $G(DATAARY("DFLG")) S APSPVAL("DFLG")=1 Q
+ S APSPVAL("FILL DATE")=DATAARY("FILL DATE")
+ Q
+PHNAME(APSPVAL) ;Get pharmacist
+PHNAME1 S APSPVAL("DFLG")=0
+ S DIC("S")="I $D(^XUSEC(""PSORPH"",+Y))",DIC("A")="Enter PHARMACIST: ",DIC="^VA(200,",DIC(0)="QEAM"
+ D ^DIC G:$L(X)=0 PHNAME1 K DIC
+ I X="^"!($D(DTOUT))!($D(DUOUT))!($D(DIRUT))!(Y=-1) S APSPVAL("DFLG")=1
+ E  S PSRH=+Y
+ Q
+RI ;EP- Called from APSP REISSUE protocol
+ N POERR,PSORXED
+ N RXREF,UPDATE,FLDS,CHGNDC,APSPVAK,APSPVAL
+ N APSPRCHK,APSPRFLG S APSPRCHK=0,APSPRFLG=0
+ I +PSOLST(ORN)'=52 D  Q
+ .W !!,"A prescription entry was not selected."
+ .D DIRZ^APSPUTIL("Press ENTER to exit")
+ S PSORXED("IRXN")=$P(PSOLST(ORN),U,2)
+ I '$P($G(^PSRX(PSORXED("IRXN"),2)),U,15) D  Q
+ .W !!,"This order has not been returned to stock and is not available for reissue."
+ .D DIRZ^APSPUTIL("Press ENTER to exit")
+ I +$G(^PSRX(PSORXED("IRXN"),"STA"))'=0 D  Q
+ .W !!,"This prescription lacks an Active status and is not available for reissue."
+ .D DIRZ^APSPUTIL("Press ENTER to exit")
+ S PSORXED("DFLG")=0
+ D PHNAME(.APSPVAL)   ;p1016
+ I APSPVAL("DFLG") S VALMBCK="R" Q  ;P1016
+ D FILLDT^PSODIR2(.PSORXED)
+ I PSORXED("DFLG") S VALMBCK="R" Q
+ Q:'$$ESIG^APSPFUNC  ;P1016
+ S PSORXED("FLD",22)=PSORXED("FILL DATE")
+ D NDCCH($P(PSOLST(ORN),U,2))
+ S APSPREIS=1
+ ;IHS/MSC/MGH  added from PSOORED6
+ I $D(^PSRX(PSORXED("IRXN"),1,0))  D
+ .S RXREF=$P(^PSRX(PSORXED("IRXN"),0),"^",9)-$P(^PSRX(PSORXED("IRXN"),1,0),"^",4)
+ E  S RXREF=0
+ D UPDATE1^PSOORED6
+ S POERR=1 D BCK1^PSORXRPT       ;P1016
+ K ^PSRX(PSORXED("IRXN"),999999911)  ;1015-Remove PCC Link
+ ;IHS/MSC/MGH Added from PSODISPS
+ I '$D(PSOPAR) D ^PSOLSET I '$D(PSOPAR) W $C(7),!!,?5,"Site Parameters must be defined to use the Release option!",! S VALMBCK="" Q
+ S VALMBCK="Q",Y=$G(^PS(59,PSOSITE,"IB")),PSOIBSS=$$SERV^IBARX1(+Y) I 'PSOIBSS D IBSSR^PSOUTL I 'PSOIBFL D  S VALMBCK="" G EX
+ .W $C(7),!!,"The IB SERVICE/SECTION defined in your site parameter file is not valid.",!,"You will not be able to release any medication until this is corrected!",!
+ W !! S PSIN=+$P($G(^PS(59.7,1,49.99)),"^",2),RXP=$P(PSOLST($P(PSLST,",",ORD)),"^",2)
+ D OERR1^PSODISPS
+ Q
+NDCCH(RX) ;Check and see if the NDC changed since RX written
+ N RXDRG,RXNDC,DRNDC,AWP,COST,FDA,ERR,MESS
+ S DRNDC=""
+ S RXDRG=$$GET1^DIQ(52,RX,6,"I")
+ S RXNDC=$$GET1^DIQ(52,RX,27,"I")
+ I +RXDRG S DRNDC=$$GET1^DIQ(50,RXDRG,31,"I")
+ ;NDC code has changed, then update the cost as well.
+ I RXNDC'=DRNDC D
+ .S AWP=$$AWP^APSQDAWP(DRNDC,RXDRG,.MESS)
+ .S COST=$$COST^APSQDAWP(DRNDC,RXDRG,.MESS)
+ .S FDA=$NA(FDA(52,RX_","))
+ .S @FDA@(27)=DRNDC
+ .S @FDA@(17)=COST
+ .S @FDA@(9999999.06)=AWP
+ .D UPDATE^DIE(,"FDA",,"ERR")
+ Q

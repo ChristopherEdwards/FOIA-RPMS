@@ -1,5 +1,5 @@
 BLRAG02 ; IHS/MSC/SAT - LABORATORY ACCESSION GUI RPCS ; MAY 23, 2013  1500; SAT
- ;;5.2;IHS LABORATORY;**1031**;NOV 01, 1997;Build 185
+ ;;5.2;IHS LABORATORY;**1031,1032**;NOV 01, 1997;Build 185
  ;
  ;return all accessioned lab records - RPC
 ABD(BLRY,BLRBDT,BLREDT,BLRDFN,BLRDEV) ;return all accessioned records for given date range - RPC
@@ -119,6 +119,8 @@ ABDA ;
  S BLRNODS1=$G(^LRO(69,BLRDT,1,BLRSP,1))         ; specimen mult collection node
  S BLRCTIM=$P(BLRNODS1,U,1)                      ; Collection Time
  Q:+BLRCTIM<1                                    ; Quit if Collection time is null
+ ;
+ Q:$P(BLRCTIM,".")<$P(BLRBDT,".")!($P(BLRCTIM,".")>$P(BLREDT,"."))   ; IHS/MSC/MKK - BLR*5.2*1032 -- Quit if collection date not today, no matter the Accession Area.
  ;
  S BLRNODS=$G(^LRO(69,BLRDT,1,BLRSP,0))          ; specimen mult node
  S BLR62NAM=$P($G(^LAB(62,+$P(BLRNODS,U,3),0)),U,1)   ; Collection Sample

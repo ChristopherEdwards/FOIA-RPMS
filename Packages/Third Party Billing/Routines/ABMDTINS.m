@@ -1,5 +1,5 @@
 ABMDTINS ; IHS/ASDST/DMJ - Table Maintenance of INSURER FILE ; 
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p12 - UFMS
  ;   Added prompt for Federal Tax ID
@@ -38,7 +38,9 @@ ADDR W !!,"<--------------- MAILING ADDRESS --------------->"
  W ! S DR=".06Phone Number.......: ;.09Contact Person.....: ;.11Federal Tax ID#....: ;.08AO Control Number..: " D ^DIE G XIT:$D(Y)
  I $P($G(^AUTNINS(DA,1)),U,7)'=2 D  G XIT:$D(Y)
  .S DR=".17Insurer Status.....: " D ^DIE Q:$D(Y)
- .I "HMPWCF"[$P($G(^AUTNINS(DA,2)),U) S DR=".21Type of Insurer....: " D ^DIE
+ .;I "HMPWCF"[$P($G(^AUTNINS(DA,2)),U) S DR=".21Type of Insurer....: " D ^DIE  ;abm*2.6*10 HEAT73780
+ .;I "HMPWCF"[$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,DA,".211","I"),1,"I") S DR=".211Type of Insurer....: " D ^DIE  ;abm*2.6*10 HEAT73780
+ .I "HMPWCF"[$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,DA,".211","I"),1,"I") S DR=".211R~Type of Insurer....: " D ^DIE  ;abm*2.6*11  Make insurer type required
  S ABM("DFLT")=0 F  S ABM("DFLT")=$O(^ABMNINS(DUZ(2),DA,1,ABM("DFLT"))) Q:'ABM("DFLT")  I $O(^(ABM("DFLT"),11,0)) Q
  S DR=".22All Inclusive Mode.: //"_$S(ABM("DFLT"):"Y",1:"")_";.24Backbill Limit (months): " D ^DIE G XIT:$D(Y)
  I ABM("DFLT"),$P(^AUTNINS(DA,2),U,2)="N" S ABM=0 F  S ABM=$O(^ABMNINS(DUZ(2),DA,1,ABM)) Q:'ABM  D
@@ -62,7 +64,7 @@ CLINIC ;
  .S DR=".01     Clinic...."
  .D ^DIE
  D ^ABMDTIN1 G XIT:$D(DTOUT)!$D(DIROUT)!$D(DUOUT)
- I $P(^AUTNINS(ABM("DFN"),2),U,2)="Y" W ! K DIC S DIE="^AUTNINS(",DA=ABM("DFN"),DR="4301" D ^DIE
+ ;I $P(^AUTNINS(ABM("DFN"),2),U,2)="Y" W ! K DIC S DIE="^AUTNINS(",DA=ABM("DFN"),DR="4301" D ^DIE  ;abm*2.6*10 ICD10 023
  G XIT
  ;
 PAZ K DIR S DIR(0)="E" D ^DIR

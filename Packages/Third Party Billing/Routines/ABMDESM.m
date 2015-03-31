@@ -1,5 +1,5 @@
-ABMDESM ; IHS/ASDST/DMJ - Display Summarized Claim Info ;    
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
+ABMDESM ; IHS/ASDST/DMJ - Display Summarized Claim Info ; 17 Oct 2013  9:59 AM
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/ASDS/DMJ - 04/18/00 - V2.4 Patch 1 - NOIS XAA-0400-200044
  ;     Modified mode of export loop to include 16 and 17
@@ -15,6 +15,7 @@ ABMDESM ; IHS/ASDST/DMJ - Display Summarized Claim Info ;
  ; IHS/SD/SDR - v2.5 p11 - NPI; Added checks for new export modes (27/28/29)
  ; IHS/SD/SDR - v2.5 p13 - IM25002 - Change for Medi-Cal when Medi/Medi
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added export mode 32
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
  ;
  ; *********************************************************************
  ;
@@ -23,7 +24,8 @@ ABMDESM ; IHS/ASDST/DMJ - Display Summarized Claim Info ;
  S ABMP("TMP-EXP")=ABMP("EXP")
  ;F ABMP("EXP")=1,10,11,2,3,13,14,15,16,17,19,20,21,22,23,24,27,28,51 I $D(ABMP("EXP",ABMP("EXP"))) D  ;abm*2.6*6 5010
  ;F ABMP("EXP")=1,10,11,2,3,13,14,15,16,17,19,20,21,22,23,24,27,28,32,51 I $D(ABMP("EXP",ABMP("EXP"))) D  ;abm*2.6*6 5010  ;abm*2.6*8 5010
- F ABMP("EXP")=1,10,11,2,3,13,14,15,16,17,19,20,21,22,24,27,28,31,32,51 I $D(ABMP("EXP",ABMP("EXP"))) D  ;abm*2.6*6 5010  ;abm*2.6*8 5010
+ ;F ABMP("EXP")=1,10,11,2,3,13,14,15,16,17,19,20,21,22,24,27,28,31,32,51 I $D(ABMP("EXP",ABMP("EXP"))) D  ;abm*2.6*6 5010  ;abm*2.6*8 5010  ;abm*2.6*13 export mode 35
+ F ABMP("EXP")=1,10,11,2,3,13,14,15,16,17,19,20,21,22,24,27,28,31,32,35,51 I $D(ABMP("EXP",ABMP("EXP"))) D  ;abm*2.6*13 export mode 35
  .D ^ABMDESM1
  .S ABMP("EXP",ABMP("EXP"))=+ABMS("TOT")
  .I $P(^ABMDEXP(ABMP("EXP"),0),U)["UB" D  Q
@@ -55,6 +57,7 @@ VTYP S ABMP=3 F  S ABMP=$O(ABMP("EXP",ABMP)) Q:'ABMP  D
  .Q:ABMP=28
  .Q:ABMP=31  ;abm*2.6*8 5010
  .Q:ABMP=32  ;abm*2.6*6 5010
+ .Q:ABMP=35  ;abm*2.6*13 export mode 35
  .Q:ABMP=51
  .I $P($G(^ABMDEXP(ABMP,1)),U)]"" D @("^"_$P(^(1),U)) I 1
  .E  D @("^ABMDES"_ABMP)

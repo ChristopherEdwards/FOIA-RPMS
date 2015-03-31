@@ -1,30 +1,30 @@
 FHMTK11 ; HISC/REL/NCA - Build Tray Tickets (Cont.) ;2/23/00  09:53
- ;;5.0;Dietetics;**2,25,34,36**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 BLD ; Build Tray Ticket list for a patient
- S X1=$G(^FHPT(+DFN,"A",+ADM,0)),FHORD=$P(X1,"^",2),SVC=$P(X1,"^",5),SF=$P(X1,"^",7),IS=$P(X1,"^",10),FHD=$P(X1,"^",15),(FHOR,X)=""
+ S X1=$G(^FHPT(+FHDFN,"A",+ADM,0)),FHORD=$P(X1,"^",2),SVC=$P(X1,"^",5),SF=$P(X1,"^",7),IS=$P(X1,"^",10),FHD=$P(X1,"^",15),(FHOR,X)=""
  I FHPAR'="Y" Q:SVC="C"
  I SVC="C" S:SP'=SP1 SP=SP1 Q:'SP
- Q:'FHORD  S X=$G(^FHPT(DFN,"A",ADM,"DI",FHORD,0))
+ Q:'FHORD  S X=$G(^FHPT(FHDFN,"A",ADM,"DI",FHORD,0))
  S PD=$P(X,"^",13),FHOR=$P(X,"^",2,6) Q:"^^^^"[FHOR
  I IS S IS=$G(^FH(119.4,+IS,0)) S:IS'="" SVC=SVC_"-"_$P(IS,"^",2)_$P(IS,"^",3)
- S:SF SVC=SVC_"  "_"SF"_"("_$S($P($G(^FHPT(DFN,"A",ADM,"SF",+SF,0)),"^",34)="Y":"M",1:"I")_")"
+ S:SF SVC=SVC_"  "_"SF"_"("_$S($P($G(^FHPT(FHDFN,"A",ADM,"SF",+SF,0)),"^",34)="Y":"M",1:"I")_")"
  I UPD D OLD I OLD=FHOR S FLG2=0 D EVT^FHDCR2 Q:'FLG2
- S STR=$G(^FHPT(DFN,"A",ADM,"DI",FHORD,2)) K FP,MP,N2,NN,P4,PS D:STR'="" DECOD^FHMTK1B
+ S STR=$G(^FHPT(FHDFN,"A",ADM,"DI",FHORD,2)) K FP,MP,N2,NN,P4,PS D:STR'="" DECOD^FHMTK1B
  S DPAT=$O(^FH(111.1,"AB",FHOR,0))
  I DPAT S PD=$P($G(^FH(111.1,DPAT,0)),"^",7) I STR="",$O(MP(""))="" F X8=0:0 S X8=$O(^FH(111.1,DPAT,MEAL,X8)) Q:X8<1  S Z1=$G(^(X8,0)),MP(+Z1)=$P(Z1,"^",2)
  Q:PD=""  S PD=$P($G(^FH(116.2,PD,0)),"^",2) Q:PD=""  D CHK^FHMTK1B
  I NBR=3 D PRT^FHMTK1C K MM,PP,S S NBR=0
  S NBR=NBR+1 D PID^FHDPA
- F X6=0:0 S X6=$O(^FHPT(DFN,"P","B",X6)) Q:X6<1  F X7=0:0 S X7=$O(^FHPT(DFN,"P","B",X6,X7)) Q:X7<1  S PS=$P($G(^FH(115.2,+X6,0)),"^",4) I PS S P4=$G(^FH(114,+PS,0)),P1=$P(P4,"^",7)_"^"_+PS_"^"_$P(P4,"^",1) I +P1 D
+ F X6=0:0 S X6=$O(^FHPT(FHDFN,"P","B",X6)) Q:X6<1  F X7=0:0 S X7=$O(^FHPT(FHDFN,"P","B",X6,X7)) Q:X7<1  S PS=$P($G(^FH(115.2,+X6,0)),"^",4) I PS S P4=$G(^FH(114,+PS,0)),P1=$P(P4,"^",7)_"^"_+PS_"^"_$P(P4,"^",1) I +P1 D
  .S CHK="" F  S CHK=$O(^TMP($J,"DEF",MEAL,PD,CHK)) Q:CHK=""  S C1=$G(^(CHK)) I $D(^TMP($J,"FHDEF",MEAL,+C1)),+^TMP($J,"FHDEF",MEAL,+C1)=+P1 D  Q
- ..S C2=$G(^FHPT(DFN,"P",+X7,0)) Q:$P(C2,"^",2)'[MEAL
+ ..S C2=$G(^FHPT(FHDFN,"P",+X7,0)) Q:$P(C2,"^",2)'[MEAL
  ..S P2=+CHK,P3=$P(P1,"^",3) S:'$D(N2(P2,+C1,P3)) N2(P2,+C1,P3)=+$P(P1,"^",2)_"^"_P3 Q
  .Q
  S Y0=$P($G(^DPT(DFN,0)),"^",1)_" ("_BID_")"_"  "_SVC,S(NBR)=0,N1=0
  D CUR^FHORD7 S N1=N1+1 I $L(Y)<40 S PP(N1,NBR)=Y
  E  S L=$S($L($P(Y,",",1,3))<40:3,1:2) S PP(N1,NBR)=$P(Y,",",1,L),N1=N1+1,PP(N1,NBR)=$E($P(Y,",",L+1,5),2,99)
  S MM(0,NBR)=Y0_"^"_WRDN_"^"_RM
- D ALG^FHCLN S ALG="ALLGS.: "_$S(ALG="":"NONE ON FILE",1:ALG) S J=0 D BRK^FHMTK1B
+ I $G(DFN) D ALG^FHCLN S ALG="ALLGS.: "_$S(ALG="":"NONE ON FILE",1:ALG) S J=0 D BRK^FHMTK1B
  S X8="" F  S X8=$O(^TMP($J,MEAL,PD,X8)) Q:X8=""  S (P4,X1)=^(X8),X1=+X1,P4=$P(P4,"^",3) D
  .S Z1=+$P(X8,"~",2) Q:'$F(P4,"~"_SP_"~")
  .S (MSG,X6)="",CTR=1
@@ -65,10 +65,10 @@ C1 ; Setup Service Points Array
  I SUM,'$D(TP(M3,SP)) S TP(M3,SP)=$J(M3,10),SL=SL+10,T1(M3,SP)=""
  Q
 OLD ; Get Previous Diet Order
- S:'FHD FHD=$P($G(^FHPT(DFN,"A",ADM,0)),"^",1)
- S E1="" F NXT=0:0 S NXT=$O(^FHPT(DFN,"A",ADM,"AC",NXT)) Q:NXT<1!(NXT>FHD)  S E1=NXT
+ S:'FHD FHD=$P($G(^FHPT(FHDFN,"A",ADM,0)),"^",1)
+ S E1="" F NXT=0:0 S NXT=$O(^FHPT(FHDFN,"A",ADM,"AC",NXT)) Q:NXT<1!(NXT>FHD)  S E1=NXT
  I 'E1 S OLD="^^^^" Q
- S KK=$P($G(^FHPT(DFN,"A",ADM,"AC",E1,0)),"^",2) I 'KK S OLD="^^^^" Q
- S NNXX="" I NXT'="" S NNXX=$P($G(^FHPT(DFN,"A",ADM,"AC",NXT,0)),"^",2)
- I NNXX'="",$P($G(^FHPT(DFN,"A",ADM,"DI",NNXX,0)),U,10)=$P($G(^FHPT(DFN,"A",ADM,"DI",FHORD,0)),U,9),$P($G(^FHPT(DFN,"A",ADM,"DI",NNXX,0)),U,7)="N" S OLD="^^^^" Q
- S OLD=$P($G(^FHPT(DFN,"A",ADM,"DI",KK,0)),"^",2,6) Q
+ S KK=$P($G(^FHPT(FHDFN,"A",ADM,"AC",E1,0)),"^",2) I 'KK S OLD="^^^^" Q
+ S NNXX="" I NXT'="" S NNXX=$P($G(^FHPT(FHDFN,"A",ADM,"AC",NXT,0)),"^",2)
+ I NNXX'="",$P($G(^FHPT(FHDFN,"A",ADM,"DI",NNXX,0)),U,10)=$P($G(^FHPT(FHDFN,"A",ADM,"DI",FHORD,0)),U,9),$P($G(^FHPT(FHDFN,"A",ADM,"DI",NNXX,0)),U,7)="N" S OLD="^^^^" Q
+ S OLD=$P($G(^FHPT(FHDFN,"A",ADM,"DI",KK,0)),"^",2,6) Q

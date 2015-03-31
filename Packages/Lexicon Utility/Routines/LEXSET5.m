@@ -1,5 +1,5 @@
 LEXSET5 ; ISL Setup Appl/User Defaults for Look-up ; 05/25/1998
- ;;2.0;LEXICON UTILITY;**6,11**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**6,11**;Sep 23, 1996;Build 15
  ;
 EN ; Set variables
  D:+($G(LEXQ))=0 MTLU

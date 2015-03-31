@@ -1,5 +1,5 @@
 PSDORP1 ;BIR/JPW-Pharm CS Order Entry (cont'd) ; 2 Aug 94
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
  ;MULTIPLE ORDERS
  I $D(ORD) F CNT1=1:1:CNT S PSDA=+ORD(CNT1) S:$G(PSDR(2))&(CNT1=1) PSDQTY=PSDR(2) D ASK
  Q
@@ -32,7 +32,7 @@ DEL ;deletes order request
  S PSDOUT=1 W !!,?25,"Request being deleted...",! K DIK S DA=PSDA,DA(1)=PSDR,DA(2)=NAOU,DIK="^PSD(58.8,"_NAOU_",1,"_PSDR_",3," D ^DIK K DIK
  Q
 PHARM ;create worksheet entry in file 58.85
- W ?5,!!,"Processing your request now..." F  L +^PSD(58.85,0):0 I  Q
+ W ?5,!!,"Processing your request now..." F  L +^PSD(58.85,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 ADD S PSDREC=$P(^PSD(58.85,0),"^",3)+1 I $D(^PSD(58.85,PSDREC)) S $P(^PSD(58.85,0),"^",3)=PSDREC G ADD
  K DA,DIC,DIE,DR,DLAYGO S (DIC,DIE,DLAYGO)=58.85,DIC(0)="L",X=PSDREC D ^DIC K DIC,DLAYGO
  L -^PSD(58.85,0)

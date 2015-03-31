@@ -1,11 +1,12 @@
 PSGFILED ;BIR/CML3-VARIOUS FILES' UPKEEP ;16 Mar 99 / 10:22 AM
- ;;5.0; INPATIENT MEDICATIONS ;**20,50,63,119**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**20,50,63,119,110,111,112,154,184**;16 DEC 97;Build 12
  ;
  ; Reference to ^PS(50.606 supported by DBIA# 2174.
  ; Reference to ^PSDRUG supported by DBIA# 2192.
  ; Reference to ^PS(59.7 is supported by DBIA# 2181.
  ; Reference to ^PS(51 is supported by DBIA# 2176.
- ; Reference to ^PS(51.2 is supported by DBIA# 2178.     
+ ; Reference to ^PS(51.2 is supported by DBIA# 2178.
+ ; Reference to ^PS(55 is supported by DBIA# 2191.
  ;
 DONE D ENKV^PSGSETU K D0,D1,D2,PSGRBS Q
  ;
@@ -51,11 +52,10 @@ RBCHK ; used to validate room-bed
  ;K X,Z0 Q
  ;
 RBQ ; show room-beds for a ward
- W !,"ANSWER WITH A ROOM-BED FROM THIS WARD ",$S('$D(^DIC(42,DA(1),0)):"",$P(^(0),"^")]"":" ("_$P(^(0),"^")_")",1:"") Q:'$D(^(0))  W !,"DO YOU WANT THE ENTIRE ROOM-BED LIST" S %=0 D YN^DICN Q:%'=1
- W ! S (Z0,Z3)=0 F Z1=0:0 S Z1=$O(^DIC(42,DA(1),2,Z1)) Q:'Z1  I $D(^(Z1,0)) S Z4=$P(^(0),"^") I Z4]"" F Z2=0:0 S Z2=$O(^DIC(42,DA(1),2,Z1,1,Z2)) Q:'Z2  I $D(^(Z2,0)),$P(^(0),"^")]"" S Z0=Z0+1 D:'(Z0#11) RBNP Q:Z3["^"  W ?1,Z4,"-",$P(^(0),"^"),!
- K Z0,Z1,Z2,Z3,Z4 Q
+ ;No longer used.
+ Q
  ;
-RBNP W """^"" TO STOP: " R Z3:DTIME W:'$T $C(7) S:'$T Z3="^" W *13,"            ",*13 Q
+RBNP W """^"" TO STOP: " R Z3:DTIME W:'$T $C(7) S:'$T Z3="^" W $C(13),"            ",$C(13) Q
  ;
 ENPPD ; edit pharmacy patient data
  ; W !!?3,"...This option is still under development...",! Q
@@ -71,7 +71,7 @@ ENCPDD ; edit patient's default stop date (wall)
  ;
 ENSYS ; edit system file
  ;/S DIE="^PS(59.7,",DA=1,DR="21;26;26.3;26.4;26.2;20.412ALLOW THE CHANGE OF ORDER TYPES ON ORDERS FROM OERR;32"
- S DIE="^PS(59.7,",DA=1,DR="21;26;26.3;26.4;26.2;26.5;26.6;26.7"
+ S DIE="^PS(59.7,",DA=1,DR="21;26;26.3;26.4;26.2;26.5;26.6;26.7;34;27;27.1"
  W ! D ^DIE K DIE,DA,DR Q
  ;
 ENPLSP ; edit pick list site parameters
@@ -90,3 +90,11 @@ DF ; Add/edit Med route, instruction... to the Dosage form file.
  . K DIE,DIC,DR,MR S DIE="^PS(50.606,",DR="1;3;4;5",DA=DFNO D ^DIE
  ;. K DIE,DIC,DR,MR S DIE="^PS(50.606,",DR="1;2;3;4;5",DA=DFNO D ^DIE
  Q
+ENCD ;edit Clinic Definitions file
+ F  K DIC S DIC="^PS(53.46,",DIC(0)="AELMQ",DIC("A")="Select CLINIC: ",DLAYGO=53.46 D ^DIC K DIC Q:Y<0  D
+ . S DIE="^PS(53.46,",DA=+Y,DR="1;2;3" D ^DIE K DIE,DA,DR Q
+ Q
+ENCG ; ward group file0
+ F  S DIC="^PS(57.8,",DIC(0)="QEAMIL",DLAYGO=57.8 W ! D ^DIC K DA,DIC,DR Q:+Y'>0  S DA=+Y,DIE="^PS(57.8,",DR=".01;1" D ^DIE
+ G DONE
+ ;

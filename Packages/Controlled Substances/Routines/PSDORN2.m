@@ -1,5 +1,10 @@
 PSDORN2 ;BIR/JPW,LTL-Nurse CS Infusion Order Entry (cont'd) ; 16 Feb 95
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
+ ;
+ ; Reference to DPT( supported by DBIA # 1035
+ ; Reference to VA(200 supported  by DBIA # 10060
+ ; Line tag SIG^XUSESIG supported by DBIA # 10050
+ ;
 ASK ;displays order for review
  D DISPLAY
  W !! K DA,DIR,DIRUT S DIR(0)="Y",DIR("B")="YES",DIR("A")="Is this OK",DIR("?",1)="Answer 'YES' to send this request to pharmacy for processing,"
@@ -37,7 +42,7 @@ DEL ;deletes order request
  S PSDOUT=1 W !!,?25,"Request being deleted...",! K DIK S DA=PSDA,DA(1)=PSDR,DA(2)=NAOU,DIK="^PSD(58.8,"_NAOU_",1,"_PSDR_",3," D ^DIK K DIK
  Q
 PHARM ;create worksheet entry in file 58.85
- W ?5,!!,"Processing your request now..." F  L +^PSD(58.85,0):0 I  Q
+ W ?5,!!,"Processing your request now..." F  L +^PSD(58.85,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 ADD S PSDREC=$P(^PSD(58.85,0),"^",3)+1 I $D(^PSD(58.85,PSDREC)) S $P(^PSD(58.85,0),"^",3)=PSDREC G ADD
  K DA,DIC,DIE,DLAYGO,DR S (DIC,DIE,DLAYGO)=58.85,DIC(0)="L",X=PSDREC D ^DIC K DIC,DLAYGO
  L -^PSD(58.85,0)

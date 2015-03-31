@@ -1,5 +1,5 @@
 AUT98P10 ;IHS/SET/GTH - AUT 98.1 PATCH 10 ; [ 06/06/2002   4:31 PM ]
- ;;98.1;IHS DICTIONARIES (POINTERS);**10**;MAR 04, 1998
+ ;;98.1;IHS DICTIONARIES (POINTERS);**10**;MAR 04, 1998;Build 6
  ;
  ; IHS/SET/GTH AUT*98.1*10 06/06/2002
  ;
@@ -119,9 +119,9 @@ GREET ;;To add to mail message.
  ;;You need do nothing in response to this message.
  ;;  
  ;;Questions about this patch, which is a product of the RPMS DBA
- ;;can be directed to the
- ;;Help Desk
- ;;Please refer to patch "AUT*98.1*10".
+ ;;(George T. Huggins, 520-670-4871), can be directed to the DIR/RPMS
+ ;;Support Center, at 505-248-4371, or via e-mail to
+ ;;"hqwhd@mail.ihs.gov".  Please refer to patch "AUT*98.1*10".
  ;;  
  ;;Requests for modifications or additions to RPMS standard data
  ;;dictionaries must be directed to the RPMS DBA.

@@ -1,5 +1,5 @@
 PSONRXN ;IHS/DSD/JCM - GETS NEXT VALID RX NUMBER ;08/09/93 9:17
- ;;7.0;OUTPATIENT PHARMACY;**5,25,166**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**5,25,166,268**;DEC 1997;Build 9
  ;
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^DIC supported by DBIA 10006
@@ -40,7 +40,7 @@ CHECK ; Entry Point to check if valid new rx number
  . S PSONRXN("ERR FLG")=1
  . I $G(PSOFIN)!($G(PSOFINFL)),'$G(PSOAC) W ! K DIR S DIR(0)="E",DIR("A")="Press Return to Continue" D ^DIR K DIR
  . Q
- L +^PSRX("B",PSOX):0 I '$T L -^PSRX("B",PSOX) D  G MANUALX
+ L +^PSRX("B",PSOX):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) I '$T L -^PSRX("B",PSOX) D  G MANUALX
  . W $C(7),?10,"Prescription Rx# "_PSOX_" already being processed."
  . W:$G(PSODRUG("NAME")) !,"Rx Deleted",!
  . S PSONRXN("ERR FLG")=1
@@ -53,13 +53,13 @@ MANUALX I $G(PSONRXN("ERR FLG"))=1 S (PSONEW("DFLG"),PSONEW("QFLG"))=1
 AUTO ; Entry point for getting next rx # if autonumbering
  S PSONEW("QFLG")=0
  S PSONRXN("TYPE")=$S('+$G(^PS(59,+PSOSITE,2)):8,PSODRUG("DEA")[2&(+$G(^PS(59,+PSOSITE,2))):3,1:8)
- L +^PS(59,+PSOSITE,PSONRXN("TYPE")):0
+ L +^PS(59,+PSOSITE,PSONRXN("TYPE")):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3)
  S PSOX1=^PS(59,+PSOSITE,PSONRXN("TYPE")),PSONRXN("LO")=$P(PSOX1,"^")
  S PSONRXN("HI")=$P(PSOX1,"^",2),PSOI=$P(PSOX1,"^",3),PSONEW("OLD LAST RX#",PSONRXN("TYPE"))=PSOI
  S:PSOI<PSONRXN("LO") PSOI=PSONRXN("LO")
 LOOP2 F  S PSOI=PSOI+1 D:PSOI>PSONRXN("HI") FATAL Q:'$D(^PSRX("B",PSOI))!PSONEW("QFLG")
  G:PSONEW("QFLG") AUTOX
- K DUP L +^PSRX("B",PSOI):0 D  I $G(DUP) K DUP,I G LOOP2
+ K DUP L +^PSRX("B",PSOI):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) D  I $G(DUP) K DUP,I G LOOP2
  .I $D(^PSRX("B",PSOI))!'$T L -^PSRX("B",PSOI) S DUP=1 Q
  .F I=65:1:90 I $D(^PSRX("B",PSOI_$C(I))) L -^PSRX("B",PSOI) S DUP=1 Q
  K DIC,DIE,DA,DUP,I

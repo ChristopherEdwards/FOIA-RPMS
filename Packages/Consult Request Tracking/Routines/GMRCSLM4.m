@@ -1,5 +1,5 @@
 GMRCSLM4 ;SLC/DCM - List Manager routine - Activity Log Detailed Display ;1/28/99 10:30
- ;;3.0;CONSULT/REQUEST TRACKING;**4,12,15,22**;DEC 27,1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,12,15,22,50**;DEC 27,1997;Build 8
  ;
  ; This routine invokes IA #3138
  ;
@@ -70,7 +70,8 @@ BLDLN2 ;SECOND line for activity
  . Q
  I GMRCX D
  . S X=$P(GMRCDA(0),"^",1) D REGDTM^GMRCU
- . S GMRCSLN=$E(GMRCSLN_TAB,1,15)_"(entered) "_X_$E(TAB)_$S($P(GMRCDA(2),"^",3)]"":$P(GMRCDA(2),"^",3),1:$E(TAB,1,3))
+ . ;S GMRCSLN=$E(GMRCSLN_TAB,1,15)_"(entered) "_X_$E(TAB)_$S($P(GMRCDA(2),"^",3)]"":$P(GMRCDA(2),"^",3),1:$E(TAB,1,3))
+ . S GMRCSLN=$E(GMRCSLN_TAB,1,15)_"(entered) "_X_$E(TAB,1,4)
  . Q
  ;
  I $L(GMRCSLN) D  S GMRCSLN=""

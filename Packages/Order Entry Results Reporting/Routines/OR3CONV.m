@@ -1,5 +1,5 @@
-OR3CONV ;SLC/MLI-OE/RR v3 conversion entry points ;8/2/97
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**14**;Dec 17, 1997
+OR3CONV ;SLC/MLI-OE/RR v3 conversion entry points ;8/11/06  13:31
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**14,215,260,243,296**;Dec 17, 1997;Build 19
  ;
  ; This routine contains the entry points to convert orders from
  ; all package (OE/RR, pharmacy, dietetics, etc.).
@@ -127,16 +127,21 @@ BGJ ; process via background job in order below
  ;
  ;
 5 ; patients with appointments past 4 weeks through next 4 weeks
- N DFN,ORDATE,OREND,ORIEN,ORLOC,ORSTART,X
+ ; this call is no longer used
+ N DFN,OREND,ORERR,ORI,ORLOC,ORSTART,X
  S ORSTART=$$FMADD^XLFDT(DT,-29),OREND=$$FMADD^XLFDT(DT,+29)
  S ORLOC=+$G(ORESTART) K ORESTART
+ K ^TMP($J,"SDAMA202","GETPLIST")
  F  S ORLOC=$O(^SC(ORLOC)) Q:'ORLOC!ORSTOP  D
- . S ORDATE=ORSTART
- . F  S ORDATE=$O(^SC(ORLOC,"S",ORDATE)) Q:'ORDATE!(ORDATE>OREND)!ORSTOP  D
- . . F ORIEN=0:0 S ORIEN=$O(^SC(ORLOC,"S",ORDATE,1,ORIEN)) Q:'ORIEN  D
- . . . S DFN=+$G(^SC(ORLOC,"S",ORDATE,1,ORIEN,0)) Q:'DFN
- . . . S X=$$CONVERT(DFN,1)
+ . D GETPLIST^SDAMA202(ORLOC,"4","",ORSTART,OREND)
+ . S ORERR=$$CLINERR^ORQRY01
+ . I $L(ORERR) W !,ORERR S ORSTOP=1 Q
+ . S ORI=0
+ . F  S ORI=$O(^TMP($J,"SDAMA202","GETPLIST",ORI)) Q:ORI<1  D
+ .. S DFN=+$G(^TMP($J,"SDAMA202","GETPLIST",ORI,4))
+ .. I DFN S X=$$CONVERT(DFN,1)
  . D SET(9,ORLOC)
+ K ^TMP($J,"SDAMA202","GETPLIST")
  Q
  ;
  ;
@@ -222,9 +227,9 @@ ORCONV(ORVP) ; return 1 if OR orders need to be converted, otherwise 0
  Q 0
  ;
 PSCONV(DFN) ; return 1 to convert pharmacy orders for patient, otherwise 0
- I $P($G(^PS(55,DFN,0)),U,6)'=2!'$P($G(^(5.1)),U,11) Q 1
+ ;I $P($G(^PS(55,DFN,0)),U,6)'=2!'$P($G(^(5.1)),U,11) Q 1
  Q 0
-        ;
+ ;
 LRCONV() ; return 1 to convert
  Q 1
  ;

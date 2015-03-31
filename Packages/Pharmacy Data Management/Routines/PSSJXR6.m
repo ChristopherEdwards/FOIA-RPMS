@@ -1,4 +1,4 @@
-PSSJXR6 ; COMPILED XREF FOR FILE #55.05 ; 01/17/11
+PSSJXR6 ; COMPILED XREF FOR FILE #55.05 ; 08/08/13
  ; 
  S DA=0
 A1 ;
@@ -7,14 +7,26 @@ A1 ;
 A S DA=$O(^PS(55,DA(1),"NVA",DA)) I DA'>0 S DA=0 G END
 1 ;
  S DIKZ(0)=$G(^PS(55,DA(1),"NVA",DA,0))
- S X=$P(DIKZ(0),U,6)
+ S X=$P($G(DIKZ(0)),U,6)
  I X'="" K:$G(PSODEATH) ^PS(55,DA(1),"NVA","APSOD",DA)
- S X=$P(DIKZ(0),U,10)
+ S X=$P($G(DIKZ(0)),U,10)
  I X'="" K ^PS(55,"ADCDT",$E(X,1,30),DA(1),DA)
  S DIKZ(999999911)=$G(^PS(55,DA(1),"NVA",DA,999999911))
- S X=$P(DIKZ(999999911),U,1)
+ S X=$P($G(DIKZ(999999911)),U,1)
  I X'="" K ^PS(55,"APCC",$E(X,1,30),DA(1),DA)
- S X=$P(DIKZ(0),U,1)
+ S X=$P($G(DIKZ(0)),U,1)
  I X'="" K ^PS(55,DA(1),"NVA","B",$E(X,1,30),DA)
+CR1 S DIXR=433
+ K X
+ S X(1)=$P(DIKZ(0),U,1)
+ S X(2)=$P(DIKZ(0),U,10)
+ S X(3)=$P(DIKZ(0),U,9)
+ S X(4)=$P(DIKZ(0),U,7)
+ S X=$G(X(1))
+ I $G(X(1))]"",$G(X(2))]"" D
+ . K X1,X2 M X1=X,X2=X
+ . S:$D(DIKIL) (X2,X2(1),X2(2),X2(3),X2(4))=""
+ . D KNVA^PSOPXRMU(.X,.DA)
+CR2 K X
  G:'$D(DIKLM) A Q:$D(DIKILL)
 END G ^PSSJXR7

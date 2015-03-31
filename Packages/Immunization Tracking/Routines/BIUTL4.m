@@ -1,10 +1,12 @@
 BIUTL4 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: SCREENMAN CODE: VAC SELECT ACTIONS, SERIES VALID,
  ;;           LOC BRANCHING LOGIC, VISIT LOC DEF, SKIN TEST READ MM.
  ;;  PATCH 2: Comment out code that would disable VFC Elig field for
  ;            patients >19yrs.  OLDDATE+15
+ ;;  PATCH 5: Add NDC to reset fields when vaccine is changed.  VACCHG+14
+ ;;  PATCH 5: Add leading zero to default volume if less than 1.  VISVOL+21
  ;
  ;----------
 VACSCR ;EP
@@ -73,8 +75,11 @@ VACCHG(BIVAC) ;EP
  ;---> Reaction, and VIS will be deleted and replaced.
  D:$G(BI("K"))
  .N BIMSG
+ .;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ .;---> Add NDC to reset fields when vaccine is changed.
  .S BIMSG="* NOTE: Because you have changed the vaccine, Dose Override,"
- .S BIMSG=BIMSG_"Lot#, and any Reaction and VIS will be removed or replaced"
+ .;S BIMSG=BIMSG_"Lot#, and any Reaction and VIS will be removed or replaced"
+ .S BIMSG=BIMSG_"Lot#, NDC, and any Reaction and VIS will be removed or replaced"
  .S BIMSG=BIMSG_" with defaults for the new vaccine."
  .D HLP^DDSUTL(BIMSG),HLP^DDSUTL("$$EOP")
  ;
@@ -83,7 +88,9 @@ VACCHG(BIVAC) ;EP
  D PUT^DDSVALF(13) S BI("O")=""   ;Reaction
  D PUT^DDSVALF(10) S BI("Q")=""   ;VIS
  D PUT^DDSVALF(14) S BI("S")=""   ;Dose Override
- D PUT^DDSVALF(5) S BI("W")=""   ;Volume
+ D PUT^DDSVALF(5) S BI("W")=""    ;Volume
+ D PUT^DDSVALF(3.8) S BI("H")=""  ;NDC
+ ;**********
  ;
  ;---> If Category is Historical Event, do not stuff Lot# and VIS defaults.
  Q:$G(BI("I"))="E"
@@ -119,8 +126,12 @@ VISVOL(BIVAC) ;EP
  .;---> For Influenza CVX 15, if patient is <36 mths change default=.25 ml.
  .D:BIVAC=148
  ..Q:'$G(BIDFN)  S:$$AGE^BIUTL1(BIDFN)<36 X=".25"
+ .;
+ .;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ .;---> Add leading zero to default volume if less than 1.
+ .S:(X<1) X="0"_X
+ .;**********
  .S BI("W")=X D PUT^DDSVALF(5,,,BI("W"),"I")
- ;D VOLDISP^BIUTL4(1,BI("W"))
  ;
  Q
  ;
@@ -178,9 +189,6 @@ LOTSCR ;EP
  N BILOC S BILOC=$P($G(^AUTTIML(+Y,0)),U,14)
  ;
  ;---> Next line: Concat to avoid suspected naked ref.
- ;S DIR("S")="I $P(^"_"(0),U,3)=0,$D(^AUTTIML(""C"",+$G(BI(""B"")),Y))"
- ;S DIR("S")=DIR("S")_",(('$P($G(^AUTTIML(Y,0)),U,14))!($P($G(^AUTTIML(Y,0)),U,14)=$G(DUZ(2))))"
- ;
  S DIR("S")="I $P(^"_"(0),U,3)=0,($G(BI(""B""))=""""!$D(^AUTTIML(""C"",+$G(BI(""B"")),Y)))"
  S DIR("S")=DIR("S")_",(('$P($G(^AUTTIML(Y,0)),U,14))!($P($G(^AUTTIML(Y,0)),U,14)=$G(DUZ(2))))"
  Q
@@ -433,13 +441,8 @@ BADREAD ;EP
  ;---> the Reading must be less than 15 millimeters; in that case,
  ;---> display help message and reject value.
  ;
- N X S X="If the result is NEGATIVE, the Reading must be less than"
- ;
- ;********** PATCH 2, v8.4, OCT 15,2010, IHS/CMI/MWR
- ;---> Correct misspelling of millimeters.
- S X=X_" 15 millimeters."
- ;**********
- ;
+ N X
+ S X="If the result is NEGATIVE, the Reading must be less than 15 millimeters."
  D HLP^DDSUTL(X)
  S DDSERROR=""
  Q

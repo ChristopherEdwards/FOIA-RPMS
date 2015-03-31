@@ -1,6 +1,7 @@
 PSOLLL9 ;BIR/JLC -Prints allergy warning label ;01/24/03
- ;;7.0;OUTPATIENT PHARMACY;**120**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**120,161,1015**;DEC 1997;Build 62
  ;
+ ; Modified - IHS/MSC/MGH - 02/26/13 - Line STORE+2
  N AAA,DATE1,EXPDT,ISD,HARDCOPY,PSAA,PSAQUIT,PSBQUIT,PSCQUIT,BBBB,ICOUNT,PSOING,NOW,TB1,TB2,TB2,SSG
  S HARDCOPY=COPIES
 START ;
@@ -18,7 +19,7 @@ START ;
  S PSOY=PSOY+PSOYI,T="This prescription may require reviewing by a pharmacist" D PRINT(T)
  S PSOY=PSOY+PSOYI I $G(RXRP(RX)) S T="(REPRINT)" D PRINT(T)
  F ICOUNT=1:1 S T=$G(SGY(ICOUNT)) Q:T=""  D PRINT(T)
- S T=RXN_"  "_DATE1_"  Fill 1 of "_(1+$P(RXY,"^",9)) D PRINT(T)
+ S T=RXN_"  "_DATE1_" Fill "_(RXF+1)_" of "_(1+$P(RXY,"^",9)) D PRINT(T)
  S T=PNM_"  "_SSNP D PRINT(T)
  S T="Qty: "_$G(QTY)_"  "_$G(PHYS) D PRINT(T)
  S T=$G(DRUG) D PRINT(T)
@@ -34,7 +35,9 @@ START ;
  ;
 STORE ;ALLERGY LABEL PRINT NODE - SHOULD ALWAYS BE ON THE ORIGINAL
  D NOW^%DTC S NOW=% S PSAA=0 F AAA=0:0 S AAA=$O(^PSRX(RX,"L",AAA)) Q:'AAA  S PSAA=AAA
- S PSAA=PSAA+1,^PSRX(RX,"L",0)="^52.032DA^"_PSAA_"^"_PSAA,^PSRX(RX,"L",PSAA,0)=NOW_"^"_0_"^Allergy warning label"_$S($G(RXRP(RX)):" (Reprint)",1:"")_"^"_PDUZ_"^2"
+ ;IHS/MSC/MGH - 02/26/13
+ ;S PSAA=PSAA+1,^PSRX(RX,"L",0)="^52.032DA^"_PSAA_"^"_PSAA,^PSRX(RX,"L",PSAA,0)=NOW_"^"_0_"^Allergy warning label"_$S($G(RXRP(RX)):" (Reprint)",1:"")_"^"_PDUZ_"^2"
+ S PSAA=PSAA+1,^PSRX(RX,"L",0)="^52.032DA^"_PSAA_"^"_PSAA,^PSRX(RX,"L",PSAA,0)=NOW_"^"_0_"^Allergy warning label"_$S($G(RXRP(RX)):$S($G(APSPREIS)=1:"( Reissue)",1:" (Reprint)"),1:"")_"^"_PDUZ_"^2"
 END ;
  Q
 PRINT(T) ;

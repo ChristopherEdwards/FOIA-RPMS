@@ -1,5 +1,5 @@
-SROUTL ;BIR/ADM - Utility Routine ; [ 05/04/00  8:32 AM ]
- ;;3.0; Surgery ;**58,62,69,77,50,88,94**;24 Jun 93
+SROUTL ;BIR/ADM - UTILITY ROUTINE ;02/14/07
+ ;;3.0; Surgery ;**58,62,69,77,50,88,94,100,129,134,141,142,160**;24 Jun 93;Build 7
  ;
  ; Reference to $P(^SC(SRLOC,0),"^",17) supported by DBIA #964
  ;
@@ -47,12 +47,12 @@ SPEC ; select surgical specialty
  Q
 PROC ; put procedures and CPT code in array for display
  N SRDA,X,Y K SRPROC S K=1,Y=$P(^SRF(SRTN,"OP"),"^",2),Y=$S(Y:$P($$CPT^ICPTCOD(Y),"^",2),1:"???") I Y'="???" D SSPRIN^SROCPT
- S X=$P(^SRF(SRTN,"OP"),"^")_" (CPT Code: "_Y_")" I $L(X)<(SRL+1) S SRPROC(K)=X,K=K+1 G OTH
+ S X=$P(^SRF(SRTN,"OP"),"^")_$S($G(SRSUPCPT)=1:"",1:" (CPT Code: "_Y_")") I $L(X)<(SRL+1) S SRPROC(K)=X,K=K+1 G OTH
  D FORMAT
 OTH S SRDA=0 F  S SRDA=$O(^SRF(SRTN,13,SRDA)) Q:'SRDA  D
  .S Y=$P($G(^SRF(SRTN,13,SRDA,2)),"^"),Y=$S(Y:$P($$CPT^ICPTCOD(Y),"^",2),1:"???")
  .I Y'="???" D SSOTH^SROCPT
- .S X=$P(^SRF(SRTN,13,SRDA,0),"^")_" (CPT Code: "_Y_")"
+ .S X=$P(^SRF(SRTN,13,SRDA,0),"^")_$S($G(SRSUPCPT)=1:"",1:" (CPT Code: "_Y_")")
  .I $L(X)<(SRL+1) S SRPROC(K)=X,K=K+1 Q
  .D FORMAT
  Q
@@ -68,7 +68,57 @@ DIAG ; check diagnosis input for required space in every 31 characters
  .S SRC(1)="Answer must contain at least one space in every 31 characters of length.",SRC(1,"F")="!!?5",SRC(2)="If you are using a comma (,) to separate information, leave a space after",SRC(2,"F")="!?5"
  .S SRC(3)="it.  Please re-enter the diagnosis.",SRC(3,"F")="!?5" D EN^DDIOL(.SRC)
  Q
-PRE94 ; pre-install process for patch SR*3*94
- K DA,DIK S DIK="^DD(130.17,",DA=.01,DA(1)=130.17 D ^DIK K DA,DIK
- S DIK="^DD(130.18,",DA=.01,DA(1)=130.18 D ^DIK K DA,DIK
+LOCK(SRCASE) ;
+ N D0,SRCONCC,SRLCK,SRNOW,SRNOW1,SRTAG,SRUSER,SRX
+ S SRNOW=$$NOW^XLFDT,SRNOW1=$$FMADD^XLFDT(SRNOW,,2)
+ S SRLCK=1,SRTAG="",SRCONCC=$P($G(^SRF(SRCASE,"CON")),"^")
+ I $$SIGNED^SROESUTL(SRCASE)!$G(SRESIG) D SINED Q SRLCK
+ L +^XTMP("SRLOCK-"_SRCASE,DUZ,$J):$S($G(DILOCKTM)>0:DILOCKTM,1:3)
+ E  D E1 S SRLCK=0 Q SRLCK
+ I SRCONCC D
+ .L +^XTMP("SRLOCK-"_SRCONCC,DUZ,$J):$S($G(DILOCKTM)>0:DILOCKTM,1:3)
+ .E  D  S SRLCK=0
+ ..D E2 L -^XTMP("SRLOCK-"_SRCASE,DUZ,$J)
+ D:SRLCK XTMP
+ Q SRLCK
+E1 S SRUSER="Another person",SRX=$O(^XTMP("SRLOCK-"_SRCASE,0))
+ I SRX S SRUSER=$P($G(^VA(200,SRX,0)),"^")
+ D EN^DDIOL(SRUSER_" is editing this case. Please try later.","","!,$C(7)") H 2
+ Q
+E2 S SRUSER="Another person",SRX=$O(^XTMP("SRLOCK-"_SRCONCC,0))
+ I SRX S SRUSER=$P($G(^VA(200,SRX,0)),"^")
+ D EN^DDIOL(SRUSER_" is editing the concurrent case. Please try later.","","!,$C(7)") H 2
+ Q
+SINED L +^XTMP("SRLOCK-"_SRCASE):$S($G(DILOCKTM)>0:DILOCKTM,1:3)
+ E  D E1 S SRLCK=0 Q
+ I SRCONCC D  Q:'SRLCK
+ .L +^XTMP("SRLOCK-"_SRCONCC):$S($G(DILOCKTM)>0:DILOCKTM,1:3)
+ .E  D  S SRLCK=0
+ ..D E2 L -^XTMP("SRLOCK-"_SRCASE)
+ S SRTAG="-Master"
+XTMP S ^XTMP("SRLOCK-"_SRCASE,0)=SRNOW1_"^"_SRNOW_"^Surgery Case Lock"_SRTAG_"^"_$J,^XTMP("SRLOCK-"_SRCASE,DUZ,$J)=""
+ I SRCONCC S ^XTMP("SRLOCK-"_SRCONCC,0)=SRNOW1_"^"_SRNOW_"^Surgery Case Lock"_SRTAG_"^"_$J,^XTMP("SRLOCK-"_SRCONCC,DUZ,$J)=""
+ Q
+UNLOCK(SRCASE) ; apply decremental lock
+ N SRCC,SRCONCC S SRCONCC=$P($G(^SRF(SRCASE,"CON")),"^")
+ L -^XTMP("SRLOCK-"_SRCASE),-^XTMP("SRLOCK-"_SRCASE,DUZ,$J) K ^XTMP("SRLOCK-"_SRCASE,DUZ,$J)
+ I '$O(^XTMP("SRLOCK-"_SRCASE,0))!(($G(^XTMP("SRLOCK-"_SRCASE,0))["-Master")&($P($G(^XTMP("SRLOCK-"_SRCASE,0)),"^",4)=$J)) K ^XTMP("SRLOCK-"_SRCASE)
+ I SRCONCC D
+ .L -^XTMP("SRLOCK-"_SRCONCC),-^XTMP("SRLOCK-"_SRCONCC,DUZ,$J) K ^XTMP("SRLOCK-"_SRCONCC,DUZ,$J)
+ .I '$O(^XTMP("SRLOCK-"_SRCONCC,0))!(($G(^XTMP("SRLOCK-"_SRCONCC,0))["-Master")&($P($G(^XTMP("SRLOCK-"_SRCONCC,0)),"^",4)=$J)) K ^XTMP("SRLOCK-"_SRCONCC)
+ Q
+NOCNT(SRDA) ; screen for active, non-count clinic for this division
+ N SRDIV,SRKL,SRLOC,SRX,SRY,SRZ
+ S SRDIV=$P($G(^SRO(133,SRDA,0)),"^"),SRLOC=Y,SRZ=DT
+ I SRDIV'=$P($G(^SC(SRLOC,0)),"^",4) Q 0
+ S SRKL=$$GET1^DIQ(44,SRLOC,2.1) I SRKL'="CLINIC" Q 0
+ I $P(^SC(SRLOC,0),"^",17)'="Y" Q 0
+ S SRX=$P($G(^SC(SRLOC,"I")),"^") I 'SRX Q 1
+ S SRY=$P($G(^SC(SRLOC,"I")),U,2) I SRZ'<SRX,((SRY="")!(SRZ<SRY)) Q 0
+ Q 1
+DESC ; output attending code description when doing lookup
+ N SRX,SRY,SRZ
+ S SRX=0,SRY=Y F  S SRX=$O(^SRO(132.9,SRY,1,SRX)) Q:'SRX  S SRZ(SRX)=^SRO(132.9,SRY,1,SRX,0),SRZ(SRX,"F")="!?2"
+ I $O(SRZ(0)) D EN^DDIOL(.SRZ)
+ D EN^DDIOL(" ","","!")
  Q

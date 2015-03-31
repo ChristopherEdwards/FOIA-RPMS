@@ -1,9 +1,7 @@
-RACTRG2 ; ;07/26/12
+RACTRG2 ; ;07/06/13
  D DE G BEGIN
 DE S DIE="^RADPT(D0,""DT"",D1,""P"",",DIC=DIE,DP=70.03,DL=3,DIEL=2,DU="" K DG,DE,DB Q:$O(^RADPT(D0,"DT",D1,"P",DA,""))=""
- I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(11)=%,DE(18)=% S %=$P(%Z,U,3) S:%]"" DE(8)=% S %=$P(%Z,U,4) S:%]"" DE(42)=% S %=$P(%Z,U,9) S:%]"" DE(48)=% S %=$P(%Z,U,11) S:%]"" DE(38)=% S %=$P(%Z,U,14) S:%]"" DE(39)=%
- I  S %=$P(%Z,U,18) S:%]"" DE(40)=% S %=$P(%Z,U,26) S:%]"" DE(4)=% S %=$P(%Z,U,31) S:%]"" DE(6)=%
- I $D(^("R")) S %Z=^("R") S %=$P(%Z,U,1) S:%]"" DE(45)=%
+ I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(11)=%,DE(18)=% S %=$P(%Z,U,3) S:%]"" DE(8)=% S %=$P(%Z,U,26) S:%]"" DE(4)=% S %=$P(%Z,U,31) S:%]"" DE(6)=%
  I $D(^("SIUID")) S %Z=^("SIUID") S %=$E(%Z,1,240) S:%'?." " DE(7)=%
  K %Z Q
  ;
@@ -179,15 +177,9 @@ X17 W !?3,$C(7),"A 'detailed' procedure or a 'series' of procedures is required!
  S X=Y,DB(DQ)=1 G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
  G RD
 C18 G C18S:$D(DE(18))[0 K DB
- S X=DE(18),DIC=DIE
- K ^RADPT(DA(2),"DT","AP",$E(X,1,30),DA(1),DA)
- S X=DE(18),DIC=DIE
- D DW^RACPTMSC
+ D ^RACTRG3
 C18S S X="" G:DG(DQ)=X C18F1 K DB
- S X=DG(DQ),DIC=DIE
- S ^RADPT(DA(2),"DT","AP",$E(X,1,30),DA(1),DA)=""
- S X=DG(DQ),DIC=DIE
- ;
+ D ^RACTRG4
 C18F1 S DIEZRXR(70.03,DIIENS)=$$OREF^DILF($NA(@$$CREF^DILF(DIE)))
  F DIXR=84 S DIEZRXR(70.03,DIXR)=""
  Q
@@ -223,109 +215,4 @@ X28 S RAMOD=$S($D(^RAMIS(71.2,RAI,0)):$P(^(0),U),1:-1) S:RAMOD<0 Y="@6"
 29 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=29 D X29 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
 X29 S:'$D(^RAMIS(71.2,"AB",+$$ITYPE^RASITE(+$G(RAPRI)),RAI)) Y="@5"
  Q
-30 D:$D(DG)>9 F^DIE17,DE S DQ=30,D=0 K DE(1) ;125
- S DIFLD=125,DGO="^RACTRG3",DC="1^70.1P^M^",DV="70.1M*P71.2'X",DW="0;1",DOW="PROCEDURE MODIFIERS",DLB=$P($$EZBLD^DIALOG(8042,DOW),":") S:D DC=DC_D
- S DU="RAMIS(71.2,"
- G RE:D I $D(DSC(70.1))#2,$P(DSC(70.1),"I $D(^UTILITY(",1)="" X DSC(70.1) S D=$O(^(0)) S:D="" D=-1 G M30
- S D=$S($D(^RADPT(D0,"DT",D1,"P",DA,"M",0)):$P(^(0),U,3,4),$O(^(0))'="":$O(^(0)),1:-1)
-M30 I D>0 S DC=DC_D I $D(^RADPT(D0,"DT",D1,"P",DA,"M",+D,0)) S DE(30)=$P(^(0),U,1)
- S X=RAMOD
- S Y=X
- S X=Y,DB(DQ)=1 G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
- G RD
-R30 D DE
- G A
- ;
-31 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=31 D X31 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X31 S Y="@5"
- Q
-32 S DQ=33 ;@6
-33 S D=0 K DE(1) ;125
- S DIFLD=125,DGO="^RACTRG4",DC="1^70.1P^M^",DV="70.1M*P71.2'X",DW="0;1",DOW="PROCEDURE MODIFIERS",DLB=$P($$EZBLD^DIALOG(8042,DOW),":") S:D DC=DC_D
- S DU="RAMIS(71.2,"
- G RE:D I $D(DSC(70.1))#2,$P(DSC(70.1),"I $D(^UTILITY(",1)="" X DSC(70.1) S D=$O(^(0)) S:D="" D=-1 G M33
- S D=$S($D(^RADPT(D0,"DT",D1,"P",DA,"M",0)):$P(^(0),U,3,4),$O(^(0))'="":$O(^(0)),1:-1)
-M33 I D>0 S DC=DC_D I $D(^RADPT(D0,"DT",D1,"P",DA,"M",+D,0)) S DE(33)=$P(^(0),U,1)
- G RE
-R33 D DE
- S D=$S($D(^RADPT(D0,"DT",D1,"P",DA,"M",0)):$P(^(0),U,3,4),1:1) G 33+1
- ;
-34 S DQ=35 ;@7
-35 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=35 D X35 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X35 D:$T(SETDEFS^RACPTMSC)]"" SETDEFS^RACPTMSC
- Q
-36 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=36 D X36 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X36 S REM="don't ask cpt mods after stuffing"
- Q
-37 S DQ=38 ;@8
-38 S DW="0;11",DV="P75.1'",DU="",DLB="IMAGING ORDER",DIFLD=11
- S DE(DW)="C38^RACTRG2"
- S DU="RAO(75.1,"
- S X=RAOIFN
- S Y=X
- S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
- G RD:X="@",Z
-C38 G C38S:$D(DE(38))[0 K DB
- S X=DE(38),DIC=DIE
- K ^RADPT("AO",$E(X,1,30),DA(2),DA(1),DA)
-C38S S X="" G:DG(DQ)=X C38F1 K DB
- S X=DG(DQ),DIC=DIE
- S ^RADPT("AO",$E(X,1,30),DA(2),DA(1),DA)=""
-C38F1 Q
-X38 Q
-39 D:$D(DG)>9 F^DIE17,DE S DQ=39,DW="0;14",DV="R*P200'X",DU="",DLB="REQUESTING PHYSICIAN",DIFLD=14
- S DU="VA(200,"
- S X=$S($D(RAPIFN):RAPIFN,1:"")
- S Y=X
- S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
- G RD:X="@",Z
-X39 Q
-40 S DW="0;18",DV="*P78.6'",DU="",DLB="PRIMARY CAMERA/EQUIP/RM",DIFLD=18
- S DU="RA(78.6,"
- S X=$S($P(RAPX(RACNI),U,15)]"":$P(RAPX(RACNI),U,15),1:"")
- S Y=X
- S X=Y,DB(DQ)=1,DE(DW,"4/")="" G:X="" N^DIE17:DV,A I $D(DE(DQ)),DV["I"!(DV["#") D E^DIE0 G A:'$D(X)
- G RD:X="@",Z
-X40 Q
-41 S DQ=42 ;@20
-42 S DW="0;4",DV="RSX",DU="",DLB="CATEGORY OF EXAM",DIFLD=4
- S DU="I:INPATIENT;O:OUTPATIENT;C:CONTRACT;S:SHARING;E:EMPLOYEE;R:RESEARCH;"
- S X=RACAT
- S Y=X
- G Y
-X42 I $D(X),$E(X)="I" S DFN=DA(2),VAINDT=9999999.9999-DA(1) D ADM^VADPT2 I 'VADMVT K X W !?3,"Patient not an inpatient at registration time.",!
- Q
- ;
-43 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=43 D X43 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X43 S RAX=$E(X),Y=$S(RAX="I":"@60",RAX="E":"@45",RAX="R":"@30","CS"[RAX:"@40",1:"@50") K RAX
- Q
-44 S DQ=45 ;@30
-45 S DW="R;1",DV="FR",DU="",DLB="RESEARCH SOURCE",DIFLD=9.5
- S X=$S($D(RARSH):RARSH,1:"")
- S Y=X
- G Y
-X45 K:$L(X)>40!($L(X)<3) X
- I $D(X),X'?.ANP K X
- Q
- ;
-46 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=46 D X46 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X46 S Y=$S($D(RAWARD):"@60",1:"@50")
- Q
-47 S DQ=48 ;@40
-48 S DW="0;9",DV="*P34'R",DU="",DLB="CONTRACT/SHARING SOURCE",DIFLD=9
- S DU="DIC(34,"
- S X=$S($D(RASHA):RASHA,1:"")
- S Y=X
- G Y
-X48 S DIC("S")="I $S('$D(^(""I"")):1,'^(""I""):1,DT'>^(""I""):1,1:0)" D ^DIC K DIC S DIC=DIE,X=+Y K:Y<0 X
- Q
- ;
-49 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=49 D X49 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X49 S Y="@100"
- Q
-50 S DQ=51 ;@45
-51 D:$D(DG)>9 F^DIE17,DE S Y=U,DQ=51 D X51 D:$D(DIEFIRE)#2 FIREREC^DIE17 G A:$D(Y)[0,A:Y=U S X=Y,DIC(0)="F",DW=DQ G OUT^DIE17
-X51 S:$D(RAWARD) Y="@60"
- Q
-52 S DQ=53 ;@50
-53 D:$D(DG)>9 F^DIE17 G ^RACTRG5
+30 D:$D(DG)>9 F^DIE17 G ^RACTRG5

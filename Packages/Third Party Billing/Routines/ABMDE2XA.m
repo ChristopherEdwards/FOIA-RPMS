@@ -1,5 +1,5 @@
 ABMDE2XA ; IHS/ASDST/DMJ - PAGE 2 - INSURER data chk - cont ;  
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - V2.5 P2 - 4/17/02 -  NOIS NEA-0401-180046
  ;     Modified to print coverage type on insurer view option
@@ -26,6 +26,7 @@ MCD ;EP - Entry Point for setting MCD Info
  I $D(^AUPNMCD(ABMX(2),21)) D
  .S:$P(^AUPNMCD(ABMX(2),21),U)]"" $P(ABMV("X1"),U,5)=$P(^AUPNMCD(ABMX(2),21),U)
  .S:$P(^AUPNMCD(ABMX(2),21),U,2)]"" $P(ABMV("X1"),U,6)=$P(^AUPNMCD(ABMX(2),21),U,2)
+ I $P($G(^AUPNMCD(ABMX(2),0)),U,7)=""!($P($G(^AUPNMCD(ABMX(2),0)),U,7)="U") S ABME(66)=""  ;abm*2.6*11 MU2 gender
  S ABMLDT=9999999
  K ABMP("COV")
  F  S ABMLDT=$O(^AUPNMCD(ABMX(2),11,ABMLDT),-1) Q:'ABMLDT  D
@@ -55,6 +56,11 @@ PRVT ;EP - Entry Point for setting PI Info
  S:$P(ABMX("REC"),U,11)]"" $P(ABMV("X1"),U,6)=$P(ABMX("REC"),U,11)
  S ABMPH=$P(ABMX("REC"),U,8)
  I ABMPH'="" S ABMCOVT=$P($G(^AUPN3PPH(ABMPH,0)),U,5)
+ ;start new code abm*2.6*11 MU2 gender
+ I ABMPH'="" D
+ .I $P($G(^AUPN3PPH(ABMPH,0)),U,8)=""!($P($G(^AUPN3PPH(ABMPH,0)),U,8)="U") S ABME(66)=""
+ ;end new code MU2 gender
+ I ABMPH'=""
  K ABMP("COV")
  S:$G(ABMCOVT)'="" ABMP("COV",$P($G(^AUTTPIC(ABMCOVT,0)),U))=$P($G(ABMX("REC")),U,6)_U_$P($G(ABMX("REC")),U,7)
  S $P(ABMV("X1"),U,10)=$P($G(ABMX("REC")),U,6)
@@ -79,6 +85,7 @@ MCR ;EP - Entry Point for setting MCR Info
  .Q:ABMPCOV=""
  .Q:$D(ABMP("COV",ABMPCOV))
  .S (ABMCOVT,ABMP("COV",ABMPCOV))=$P($G(^AUPNMCR(ABMX(2),11,ABMLDT,0)),U)_U_$P($G(^AUPNMCR(ABMX(2),11,ABMLDT,0)),U,2)
+ .I $P($G(^AUPNMCR(ABMX(2),11,ABMLDT,0)),U,8)=""!($P($G(^AUPNMCR(ABMX(2),11,ABMLDT,0)),U,8)="U") S ABME(66)=""  ;abm*2.6*11 MU2 gender
  K ABMLDT,ABMESDT,ABMCOVT,ABMEEDT
  Q
  ;
@@ -97,6 +104,7 @@ RRE ;EP - Entry Point for setting RR Info
  .S ABMPCOV=$P($G(^AUPNRRE(ABMX(2),11,ABMLDT,0)),U,3)
  .Q:$D(ABMP("COV",ABMPCOV))
  .S (ABMCOVT,ABMP("COV",ABMPCOV))=$P($G(^AUPNRRE(ABMX(2),11,ABMLDT,0)),U)_U_$P($G(^AUPNRRE(ABMX(2),11,ABMLDT,0)),U,2)
+ .I $P($G(^AUPNRRE(ABMX(2),11,ABMLDT,0)),U,8)=""!($P($G(^AUPNRRE(ABMX(2),11,ABMLDT,0)),U,8)="U") S ABME(66)=""  ;abm*2.6*11 MU2 gender
  K ABMLDT,ABMESDT,ABMCOVT,ABMEED
  Q
  ;

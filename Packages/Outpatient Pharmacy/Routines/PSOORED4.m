@@ -1,5 +1,5 @@
-PSOORED4 ;BIR/SAB-edit front door dosing ;07/13/00
- ;;7.0;OUTPATIENT PHARMACY;**46,91,78,99,111,117,133**;DEC 1997
+PSOORED4 ;BIR/SAB - Edit front door dosing ;07/13/00
+ ;;7.0;OUTPATIENT PHARMACY;**46,91,78,99,111,117,133,159,148**;DEC 1997
  ;External reference ^PS(51 supported by DBIA 2224
  ;External reference to PS(51.2 supported by DBIA 2226
  ;External reference to PS(51.1 supported by DBIA 2225
@@ -66,7 +66,7 @@ CON D CON^PSOOREDX I X[U,$L(X)>1 S FIELD="CON" G JUMP
  I $G(PSORXED("CONJUNCTION",ENT))]"" S ENT=ENT+1 K DIR G ASK
  S X=$G(PSORXED("INS")) D SIG^PSOHELP S:$G(INS1)]"" PSORXED("SIG")=$E(INS1,2,9999999)
  D EN^PSOFSIG(.PSORXED),VERI I $G(CKX),'$G(PSOSIGFL) D MP1 K CKX
- I $G(PSOSIGFL)=1 S PSORXED("ENT")=ENT,SIGOK=1,VALMSG="This change will create a new prescription!"
+ I $G(PSOSIGFL)=1 S PSORXED("ENT")=ENT,SIGOK=1,VALMSG="This change will create a new prescription!",NCPDPFLG=1
  K QTYHLD S:$G(PSORXED("QTY")) QTYHLD=PSORXED("QTY") D QTY^PSOSIG(.PSORXED) I $G(PSORXED("QTY")) S QTY=1
  I $G(QTYHLD),'$G(PSORXED("QTY")) S PSORXED("QTY")=QTYHLD
  K QTYHLD
@@ -82,6 +82,7 @@ EXQ ;
 MP1 D MP1^PSOOREDX
  Q
 VERI ;checks for changes to dosing instructions
+ S ENTS=0
  F I=0:0 S I=$O(PSORXED("DOSE",I)) Q:'I  S ENTS=$G(ENTS)+1
  I ENTS<OLENT!(ENTS>OLENT) S PSOSIGFL=1 Q
  F I=1:1:OLENT D

@@ -1,8 +1,9 @@
 BADEHL1 ;IHS/MSC/MGH/PLS/VAC/AMF - Dentrix HL7 interface  ;20-Feb-2013;fje
- ;;1.0;DENTAL/EDR INTERFACE;**1,2**;FEB 20, 2013;Build 7
+ ;;1.0;DENTAL/EDR INTERFACE;**1,2,3**;FEB 22, 2010;Build 4
  ;; Modified - IHS/MSC/AMF - 11/23/10 - More descriptive alert messages
  ;; Modified - IHS/MSC/VAC, IHS/SAIC/FJE, IHS/MSC/PLS,AMF - 9/10/10,1/3/11 - Fix for DUZ(2) problem
  ;; Modified - SAIC/FJE Patch 2 Sets LOCK for HLB,HLA,HLC globals, allows inactive patient messages to pass to DENTRIX after upload.
+ ;; Modified - GDIT/DMB Patch 3 Remove LOCK for HLB,HLA,HLC globals based on new adapters
  Q
  ; Build Outbound A28 or A31 HL7 segments
 NEWMSG(DFN,EVNTTYPE) ;EP
@@ -42,7 +43,7 @@ NEWMSG(DFN,EVNTTYPE) ;EP
  .S WHO("RECEIVING APPLICATION")="DENTRIX"
  .S WHO("FACILITY LINK NAME")="DENTRIX"
  .;S WHO("STATION NUMBER")=11555  ;Used for testing on external RPMS system
- .L +(^HLB,^HLA,^HLC):10 I '$T D NOTIF(DFN,"Unable to create EDR message (LOCK issue)") Q  ;SAIC/FJE 1/1/13 Patch 02
+ .; 06/06/2013 - DMB - TFS8008 - Remove extraneous locks on the HLO globals.
  .I '$$SENDONE^HLOAPI1(.HLST,.APPARMS,.WHO,.ERR) D
  ..D NOTIF(DFN,"Unable to send HL7 message. "_$G(ERR)) ;IHS/MSC/AMF 11/23/10 More descriptive alert
  . L -(^HLB,^HLA,^HLC)

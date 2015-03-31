@@ -1,8 +1,9 @@
-BGOUTL2 ; IHS/BAO/TMD - Utilities (continued)  ;21-Oct-2011 08:41;DU
- ;;1.1;BGO COMPONENTS;**1,3,5,6,10**;Mar 20, 2007
+BGOUTL2 ; IHS/BAO/TMD - Utilities (continued)  ;25-Feb-2013 15:53;DU
+ ;;1.1;BGO COMPONENTS;**1,3,5,6,10,11,12**;Mar 20, 2007;Build 5
  ; Add refusals to output stream
  ;  R ^ Refusal IEN [2] ^ Type IEN [3] ^ Type Name [4] ^ Item IEN [5] ^ Item Name [6] ^ Provider IEN [7] ^
  ;  Provider Name [8] ^ Date [9] ^ Locked [10] ^ Reason [11] ^ Comment [12]
+ ;  Added AICD lookup
 REFGET(RET,DFN,FNUM,CNT) ;EP
  N TYPE,VDT,RIEN,REC,TYPNM,DATE,REASON,COMMENT,PRV,PRVNM
  S TYPE=0,CNT=+$G(CNT)
@@ -61,6 +62,12 @@ REFSET2(DFN,DAT,ITEM,TYPE,RSN,CMNT,PRV,IEN) ;EP
  S:$D(CMNT) @FDA@(1101)=CMNT
  S:'$G(PRV) PRV=DUZ
  S @FDA@(1204)="`"_PRV
+ ;IHS/MSC/MGH new fields patch 11
+ I $E(IEN)="+" D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E@",.IENX)
  S:$E(IEN)="+" IEN=$G(IENX(1))
  D:'RET REFEVT(IEN,OPR,.ZN)
@@ -212,3 +219,5 @@ FNDNARR(NARR,CREATE) ;EP
  ; Returns true if CSV is active
 CSVACT(RTN) ;EP
  Q $S(DUZ("AG")'="I":1,$$VERSION^XPDUTL("BCSV")="":0,'$L($G(RTN)):1,1:$T(+0^@RTN)'="")
+AICD() ;EP
+ Q $S($$VERSION^XPDUTL("AICD")="4.0":1,1:0)

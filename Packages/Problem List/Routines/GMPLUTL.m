@@ -1,5 +1,5 @@
-GMPLUTL ; SLC/MKB/KER -- PL Utilities                      ; 04/15/2002
- ;;2.0;Problem List;**3,6,8,10,16,26**;Aug 25, 1994
+GMPLUTL ; SLC/MKB/KER -- PL Utilities                      ; 4/15/2002
+ ;;2.0;Problem List;**3,6,8,10,16,26,35**;Aug 25, 1994;Build 26
  ;
  ; External References
  ;   DBIA    348  ^DPT(
@@ -33,6 +33,8 @@ ACTIVE(GMPDFN,GMPL) ; Returns list of Active Problems for a Patient
  ;                            EC^Evn Contaminants
  ;                            HNC^Head/Neck Cancer
  ;                            MST^Mil Sexual Trauma
+ ;                            CV^Combat Vet
+ ;                            SHD^SHAD
  ;                            null
  ;          
  N I,IFN,CNT,GMPL0,GMPL1,SP,NUM,ONSET,GMPLIST,GMPLVIEW,GMPARAM,GMPTOTAL
@@ -47,8 +49,8 @@ ACTIVE(GMPDFN,GMPL) ; Returns list of Active Problems for a Patient
  . S GMPL(CNT,2)=+GMPL0_U_$P($G(^ICD9(+GMPL0,0)),U),ONSET=$P(GMPL0,U,13)
  . S GMPL(CNT,3)=$S(ONSET:ONSET_U_$$EXTDT^GMPLX(ONSET),1:"")
  . S GMPL(CNT,4)=$S(+$P(GMPL1,U,10):"SC^SERVICE-CONNECTED",$P(GMPL1,U,10)=0:"NSC^NOT SERVICE-CONNECTED",1:"")
- . F I=11,12,13,15,16 S:$P(GMPL1,U,I) SP=$S(I=11:"A",I=12:"I",I=13:"P",I=15:"H",1:"M")
- . S GMPL(CNT,5)=$S(SP="A":"AO^AGENT ORANGE",SP="I":"IR^RADIATION",SP="P":"EC^ENV CONTAMINANTS",SP="H":"HNC^HEAD AND/OR NECK CANCER",SP="M":"MST^MILIARY SEXUAL TRAUMA",1:"")
+ . F I=11,12,13,15,16,17,18 S:$P(GMPL1,U,I) SP=$S(I=11:"A",I=12:"I",I=13:"P",I=15:"H",16:"M",17:"C",1:"S")
+ . S GMPL(CNT,5)=$S(SP="A":"AO^AGENT ORANGE",SP="I":"IR^RADIATION",SP="P":"EC^ENV CONTAMINANTS",SP="H":"HNC^HEAD AND/OR NECK CANCER",SP="M":"MST^MILIARY SEXUAL TRAUMA",SP="C":"CV^COMBAT VET",SP="S":"SHD^SHAD",1:"")
  S GMPL(0)=CNT
  Q
  ;
@@ -74,13 +76,15 @@ CREATE(PL,PLY) ; Creates a new problem
  ;      PL("EC")         Env Contamination 1 = Yes 0 = No
  ;      PL("HNC")        Head/Neck Cancer  1 = Yes 0 = No
  ;      PL("MST")        Mil Sexual Trauma 1 = Yes 0 = No
+ ;      PL("CV")         Combat Vet        1 = Yes 0 = No
+ ;      PL("SHD")        Shipboard Hazard & Defense 1=Yes  0=No
  ;                   
  ;  Output, passed by reference
  ;      PLY              Equivalent of Fileman Y, DA
  ;      PLY(0)           Equivalent of Fileman Y(0)
  ;               
  N GMPI,GMPQUIT,GMPVAMC,GMPVA,GMPFLD,GMPSC,GMPAGTOR,GMPION,GMPGULF
- N GMPHNC,GMPMST,DA,GMPDFN,GMPROV
+ N GMPHNC,GMPMST,GMPCV,GMPSHD,DA,GMPDFN,GMPROV
  K PLY S PLY=-1,PLY(0)=""
  S GMPVAMC=+$G(DUZ(2)),GMPVA=$S($G(DUZ("AG"))="V":1,1:0)
  I '$L($G(PL("NARRATIVE"))) S PLY(0)="Missing problem narrative" Q
@@ -90,7 +94,7 @@ CREATE(PL,PLY) ; Creates a new problem
  D:GMPVA VADPT^GMPLX1(GMPDFN)
  F GMPI="DIAGNOSI","LEXICON","DUPLICAT","LOCATION","STATUS" D @(GMPI_"^GMPLUTL1") Q:$D(GMPQUIT)
  Q:$D(GMPQUIT)
- F GMPI="ONSET","RESOLVED","RECORDED","SC","AO","IR","EC","HNC","MST" D @(GMPI_"^GMPLUTL1") Q:$D(GMPQUIT)
+ F GMPI="ONSET","RESOLVED","RECORDED","SC","AO","IR","EC","HNC","MST","CV","SHD" D @(GMPI_"^GMPLUTL1") Q:$D(GMPQUIT)
  Q:$D(GMPQUIT)
 CR1 ; Ok to Create
  S GMPFLD(.01)=PL("DIAGNOSIS"),GMPFLD(1.01)=PL("LEXICON")
@@ -104,6 +108,7 @@ CR1 ; Ok to Create
  S:$L($G(PL("COMMENT"))) GMPFLD(10,"NEW",1)=$E(PL("COMMENT"),1,60)
  S GMPFLD(1.1)=PL("SC"),GMPFLD(1.11)=PL("AO"),GMPFLD(1.12)=PL("IR")
  S GMPFLD(1.13)=PL("EC"),GMPFLD(1.15)=$G(PL("HNC")),GMPFLD(1.16)=$G(PL("MST"))
+ S GMPFLD(1.17)=$G(PL("CV")),GMPFLD(1.18)=$G(PL("SHD"))
  D NEW^GMPLSAVE S PLY=DA
 CRQ ; Quit Create
  Q
@@ -131,6 +136,8 @@ UPDATE(PL,PLY) ; Update a Problem/Create if Not Found
  ;      PL("EC")         Env Contamination 1 = Yes 0 = No
  ;      PL("HNC")        Head/Neck Cancer  1 = Yes 0 = No
  ;      PL("MST")        Mil Sexual Trauma 1 = Yes 0 = No
+ ;      PL("CV")         Combat Veteran    1 = Yes 0 = No
+ ;      PL("SHD")        SHAD              1 = Yes 0 = No
  ;            
  ;  Output, passed by reference
  ;      PLY              Equivalent of Fileman Y, DA
@@ -146,7 +153,7 @@ UPDATE(PL,PLY) ; Update a Problem/Create if Not Found
  I +$G(PL("PATIENT")),+PL("PATIENT")'=GMPDFN S PLY(0)="Patient does not match for this problem" Q
  I $L($G(PL("RECORDED"))) S PLY(0)="Date Recorded is not editable" Q
  S (GMPSC,GMPAGTOR,GMPION,GMPGULF)=0 D:GMPVA VADPT^GMPLX1(GMPDFN)
- S ITEMS="LEXICON^DIAGNOSIS^LOCATION^STATUS^ONSET^RESOLVED^SC^AO^IR^EC^HNC^MST^",FLD="1.01^.01^1.08^.12^.13^1.07^1.1^1.11^1.12^1.13^1.15^1.16"
+ S ITEMS="LEXICON^DIAGNOSIS^LOCATION^STATUS^ONSET^RESOLVED^SC^AO^IR^EC^HNC^MST^SHD",FLD="1.01^.01^1.08^.12^.13^1.07^1.1^1.11^1.12^1.13^1.15^1.16^1.17^1.18"
  F GMPI=1:1 S SUB=$P(ITEMS,U,GMPI) Q:SUB=""  D  Q:$D(GMPQUIT)
  . I '$L($G(PL(SUB))) S PL(SUB)=$P(GMPFLD($P(FLD,U,GMPI)),U) Q
  . I SUB="STATUS",PL(SUB)="@" S GMPQUIT=1,PLY(0)="Cannot delete problem status" Q

@@ -1,6 +1,7 @@
-BEHOENPV ;IHS/CIA/MGH - Summary Report for Selected Encounter ;05-May-2010 13:35;MGH
- ;;1.1;BEH COMPONENTS;**005002,005004**;Mar 20, 2007
+BEHOENPV ;IHS/CIA/MGH - Summary Report for Selected Encounter ;21-Jan-2013 17:05;DU
+ ;;1.1;BEH COMPONENTS;**005002,005004,005009**;Mar 20, 2007
  ;=================================================================
+ ;Added code to support eye, PHN and anticoag components
  ; RPC: Retrieve report
 GETRPT(DATA,BEHVSIT,BEHFLG) ;EP
  S DATA=$$TMPGBL^CIAVMRPC
@@ -11,9 +12,10 @@ GETRPT(DATA,BEHVSIT,BEHFLG) ;EP
  ; RPC: Retrieve report
  ; Entry point for OE/RR REPORT file
 OERRRPT(ROOT,ORDFN,ID,ALPHA,OMEGA,ORDTRNG,REMOTE,ORMAX,ORFHIE) ;EP
- N BEHVSIT
- S BEHVSIT=$$VSTR2VIS^BEHOENCX(ORDFN,$$GETVAR^CIANBUTL("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER"))
- D GETRPT(.ROOT,BEHVSIT)
+ ;N BEHVSIT
+ ;S BEHVSIT=$$VSTR2VIS^BEHOENCX(ORDFN,$$GETVAR^CIANBUTL("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER"))
+ ;D GETRPT(.ROOT,BEHVSIT)
+ D GETRPT(.ROOT,$$VSTR2VIS^BEHOENCX(ORDFN,$$GETVAR^CIANBUTL("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")))
  Q
  ; RPC: Retrieve reports for date range
 GETRPTS(DATA,DFN,BEHFLG,STRT,END) ;EP
@@ -54,7 +56,7 @@ REPORT(BEHVSIT,BEHQUIT,BEHFLG) ;
  F BEHLP=0:1 S X=$P($T(FLAG+BEHLP),";;",2,99) Q:'$L(X)  D
  .S Y=$P(X,";")
  .S BEHTBL(Y,0)=$P(X,";",2),BEHTBL(Y,1)=$P(X,";",3,99)
- S BEHFLG=$G(BEHFLG,"CMIKEPHNORVT")
+ S BEHFLG=$G(BEHFLG,"CMIKEPHNORVTYAU")
  F BEHLP=1:1:$L(BEHFLG) D  Q:$G(BEHQUIT)
  .S X=$E(BEHFLG,BEHLP)
  .I $D(BEHTBL(X)),@BEHTBL(X,1) D @(BEHTBL(X,0)_"(BEHVSIT,DFN,.BEHQUIT)")
@@ -74,6 +76,9 @@ FLAG ;;C;CHIEF;$L($T(^BEHOENPP))
  ;;K;SKIN;$L($T(^BEHOENPP))
  ;;R;RESULTS;$L($T(^BEHOENPR))
  ;;T;CPT;$L($T(^BEHOENPP))
+ ;;Y;EYE;$L($T(^BEHOENPP))
+ ;;A;ANTICOAG;$L($T(^BEHOENPP))
+ ;;U;PHN;$L($T(^BEHOENPP))
  ;;
  ; Display all notes associated with specified visit
  ; Optionally limit notes to those with the specified status (BEHST).
@@ -96,6 +101,15 @@ FACTORS(BEHVSIT,DFN,BEHQUIT) ;Get the health factors for this visit
  Q
 EDU(BEHVSIT,DFN,BEHQUIT) ;Get the education topics for this visit
  D EDU^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+EYE(BEHVSIT,DFN,BEHQUIT) ;Get the education topics for this visit
+ D EYE^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+ANTICOAG(BEHVSIT,DFN,BEHQUIT) ;Get the education topics for this visit
+ D ANTICOAG^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
+ Q
+PHN(BEHVSIT,DFN,BEHQUIT) ;Get the education topics for this visit
+ D PHN^BEHOENPP(BEHVSIT,DFN,.BEHQUIT)
  Q
  ; Display all orders associated with specified visit
 ORDERS(BEHVSIT,DFN,BEHQUIT) ;

@@ -1,5 +1,5 @@
 LEXHLP ; ISL Help/input transformations              ; 05/25/1998
- ;;2.0;LEXICON UTILITY;**11**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**11**;Sep 23, 1996;Build 15
  ;
 EXC ; Excluded Word Help
  I '$D(X) Q

@@ -1,5 +1,5 @@
 ALPBCBU ;OIFO-DALLAS/SED/KC/MW  BCMA-BCBU INPT TO HL7 ;5/2/2002
- ;;2.0;BAR CODE MED ADMIN;**17**;May 2002
+ ;;3.0;BAR CODE MED ADMIN;**8**;Mar 2004
  ;This is the main routine for the BCBU software.
  ;It handles all the entries points for the BCBU software. 
  ;It also handles error checking.
@@ -36,7 +36,7 @@ NURV(ALDFN,ALPORD) ;Use this entry to send verifying nursing.
  . I $E(ALPB(ALPBI),1,3)="PID" S PID=ALPBI
  . I $E(ALPB(ALPBI),1,3)="PV1" S PV1=ALPBI
  . I $E(ALPB(ALPBI),1,3)="ORC" S ORC=ALPBI
- I +MSH'>0 Q   ;MISSING MSH SEGMENT BAD MESSAGE
+ I +$G(MSH)'>0 Q   ;MISSING MSH SEGMENT BAD MESSAGE
  S MSCTR=$E(ALPB(MSH),4,8)
  S ALPRSLT=$$INI^ALPBINP()
  ;I $P(ALPRSLT,U,2)'="" D ERRLG
@@ -47,7 +47,9 @@ PMOV ;Entry Point to send patient movement
  ;CHECK IF BCBU IS ACTIVE AT PACKAGE LEVEL
  Q:+$$GET^XPAR("PKG.BAR CODE MED ADMIN","PSB BKUP ONLINE",1,"Q")'>0
  Q:'$D(DFN)!'$D(DGPMTYP)!'$D(DGPMUC)
- S ALPRSLT=$$PMOV^ALPBINP(DFN,DGPMTYP,DGPMUC)
+ ;Screen out Lodgers
+ Q:DGPMUC["LODGER"
+ S ALPRSLT=$$PMOV^ALPBINP(DFN,DGPMTYP,DGPMUC,$P($G(DGPMA),U))
  I $P(ALPRSLT,U,2)'="" D ERRLG
  Q
 ERRLG ;Error Log Message

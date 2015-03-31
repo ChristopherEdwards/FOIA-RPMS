@@ -1,5 +1,5 @@
-GMVRPCM ; HOIFO/DP - RPC for Vitals Manager ;3/3/05  12:28
- ;;5.0;GEN. MED. REC. - VITALS;**1,8**;Oct 31, 2002
+GMVRPCM ; HOIFO/DP - RPC for Vitals Manager ;07/25/05 9:10am
+ ;;5.0;GEN. MED. REC. - VITALS;**1,8,13,3,22**;Oct 31, 2002;Build 22
  ; Integration Agreements:
  ; #10040 [Supported] File 44 references
  ; #10076 [Supported] XUSEC Calls
@@ -8,7 +8,7 @@ GMVRPCM ; HOIFO/DP - RPC for Vitals Manager ;3/3/05  12:28
  ; #2692 [Controlled] ORQPTQ1
  ; #3227 [Private] NURAPI Calls
  ; #4084 [Private] File 44 AC x-ref
- ;
+ ; #4360 [Private] GMV MANAGER RPC
 ADDQUAL ; [P] Add qualifier to vital/category
  S GMVVIT=+$P(DATA,";",1),GMVCAT=+$P(DATA,";",2),GMVQUAL=+$P(DATA,";",3)
  I $O(^GMRD(120.52,GMVQUAL,1,"B",GMVVIT,0)) D  Q
@@ -66,7 +66,7 @@ GETHILO ; [P] Returns an abnormal value
  S @RESULTS@(0)=+$$GET1^DIQ(120.57,"1,",DATA)
  Q
 GETLIST ; [P] Return listing of file
- K GMVRET,^TMP("DILIST",$J)
+ K GMVCNT,GMVLOOP,GMVRET,^TMP("DILIST",$J)
  S GMVSCRN=""
  I +DATA=44 S DATA2=$P(DATA,U,2),DATA=+DATA
  I DATA=120.51 D  ; Set screen for vitals list
@@ -89,7 +89,16 @@ GETLIST ; [P] Return listing of file
  .D ACTLOCS^NURAPI(.GMVRET)
  .F X=0:0 S X=$O(GMVRET(X)) Q:'X  S @RESULTS@(X)=DATA_";"_GMVRET(X)
  .S @RESULTS@(0)=+$O(@RESULTS@(""),-1)
- I DATA=120.52 S GMVSCRN="I '$$ACTIVE^GMVUID(120.52,.01,+Y_"","","""")"
+ I DATA=120.52 D  S @RESULTS@(0)=GMVCNT_U_$$GET1^DID(DATA,"","","NAME") Q  ;qualifiers
+ .S GMVCNT=0,GMVLOOP=""
+ .F  S GMVLOOP=$O(^GMRD(120.52,"B",GMVLOOP)) Q:GMVLOOP=""  D
+ ..S GMVIEN=0
+ ..F  S GMVIEN=$O(^GMRD(120.52,"B",GMVLOOP,GMVIEN)) Q:'GMVIEN  D
+ ...S GMVNAME=$P($G(^GMRD(120.52,GMVIEN,0)),U,1)
+ ...Q:GMVNAME=""
+ ...Q:$$ACTIVE^GMVUID(120.52,.01,GMVIEN_",","")  ;inactive vuid
+ ...S GMVCNT=GMVCNT+1
+ ...S @RESULTS@(GMVCNT)="120.52;"_GMVIEN_U_GMVNAME
  D LIST^DIC(DATA,"","@;.01","P","","","","",GMVSCRN)
  F X=0:0 S X=$O(^TMP("DILIST",$J,X)) Q:'X  D
  .S @RESULTS@(X)=DATA_";"_^TMP("DILIST",$J,X,0)
@@ -134,10 +143,12 @@ GETTEMP ; [P] Get Template List
  S @RESULTS@(0)=+$O(@RESULTS@(""),-1)
  Q
 LOOKUP ; [P] Does a lookup on a file
+ N GMVSCRN
+ S GMVSCRN=$S(+DATA=44:"I "_"""^C^W^"""_"[$P(^(0),U,3)",1:"")
  I $P(DATA,"^",3)="" S GMVFLD="@;.01"
  E  S GMVFLD="@;"_$P(DATA,"^",3)
  S GMVFLD=$P(GMVFLD,";",1,5) ; Limit lookup to 4 display fields
- D FIND^DIC(+DATA,"",GMVFLD,"P",$P(DATA,"^",2),61)
+ D FIND^DIC(+DATA,"",GMVFLD,"P",$P(DATA,"^",2),61,,GMVSCRN)
  I ^TMP("DILIST",$J,0)<1 D  Q
  .S @RESULTS@(0)="-1^No entries found matching '"_$P(DATA,U,2)_"'."
  I ^TMP("DILIST",$J,0)>60 D  Q

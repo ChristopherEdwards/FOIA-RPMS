@@ -1,18 +1,27 @@
 BIRPC3 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ADD/EDIT A VISIT (IMMUNIZATION OR SKIN TEST), DELETE A VISIT.
  ;;  Check validity of data in several fields.
  ;;  PATCH 3: If Category=Historical Event, Lot need not be Active.
  ;;                                                    ADDEDIT+117, LOTCHK+34
+ ;;  PATCH 5: Added BINOM parameter to ADDEDIT P.E.P. for Visit Selection Menu.
+ ;;                                                    ADDEDIT+0
+ ;;  PATCH 5: Ignore 1st piece of zero node; just check for node. ADDEDIT+63
  ;
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BINOM parameter to ADDEDIT P.E.P., to control Visit Menu display.
+ ;---> Added Admin Note, piece 27.
  ;----------
-ADDEDIT(BIERR,BIDATA) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
+ADDEDIT(BIERR,BIDATA,BINOM) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
  ;---> Add/Edit an V IMMUNIZATION or V SKIN TEST.
  ;---> Called by RPC: BI VISIT ADD/EDIT.
  ;---> Parameters:
  ;     1 - BIERR   (ret) Text of Error Code if any, otherwise null.
  ;     2 - BIDATA  (req) String of data for the Visit to be added.
+ ;     3 - BINOM   (opt) 0=Allow display of Visit Selection Menu if site
+ ;                       parameter is set. 1=No display (for export).
  ;
  ;---> Pieces of BIDATA delimited by "|":
  ;     ----------------------------------
@@ -42,10 +51,15 @@ ADDEDIT(BIERR,BIDATA) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
  ;    23 - (opt) If this was an imported CPT Coded Imm from PCC (=IEN of V CPT).
  ;    25 - (opt) If this =1, then imported (IF =2, then was edited after import).
  ;    26 - (opt) NDC pointer IEN (to file #9002084.95).
+ ;    27 - (opt) Administrative Note (<161 chars).
  ;
  ;---> Define delimiter to pass error and error variable.
  N BI31,BIDUZ2,BIOIEN
  S BI31=$C(31)_$C(31),BIERR=""
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BINOM parameter to ADDEDIT P.E.P., to control Visit Menu display.
+ S:($G(BINOM)="") BINOM=0
  ;
  ;---> If this is an edit of an old Visit, preserve IEN of old V File entry.
  S BIOIEN=$P(BIDATA,"|",11)
@@ -63,7 +77,13 @@ ADDEDIT(BIERR,BIDATA) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
  ;
  ;---> Check for valid Patient.
  N BIDFN S BIDFN=$P(BIDATA,"|",2)
- I '$G(^AUPNPAT(+BIDFN,0)) D  Q
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Ignore 1st piece of zero node; just check for node.
+ ;I '$G(^AUPNPAT(+BIDFN,0)) D  Q
+ I '$D(^AUPNPAT(+BIDFN,0)) D  Q
+ .;**********
+ .;
  .D ERRCD^BIUTL2(217,.BIERR) S BIERR=BI31_BIERR
  ;
  ;---> Visit Type: "I"=Immunization Visit, "S"=Skin Text Visit.
@@ -137,10 +157,12 @@ ADDEDIT(BIERR,BIDATA) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
  I BIVTYPE="S",BICAT'="E",$P(BIDATA,"|",12)]"",$P(BIDATA,"|",13)="" D  Q
  .D ERRCD^BIUTL2(436,.BIERR) S BIERR=BI31_BIERR
  ;
- ;***********
  ;
  ;---> Add Visit.
- D ADDV^BIVISIT(.BIERR,BIDATA)
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BINOM parameter to ADDEDIT P.E.P., to control Visit Menu display.
+ ;D ADDV^BIVISIT(.BIERR,BIDATA)
+ D ADDV^BIVISIT(.BIERR,BIDATA,,BINOM)
  ;
  ;---> If add Visit fails, then return error and quit;
  ;---> do NOT delete the old Visit.

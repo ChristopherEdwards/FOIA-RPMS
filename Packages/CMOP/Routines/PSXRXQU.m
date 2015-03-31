@@ -1,7 +1,9 @@
-PSXRXQU ;BIR/BAB,WPB-CMOP RX QUEUE File Utility ;23-Sep-2011 15:54;PLS
- ;;2.0;CMOP;**7,12,25,33,40,41,1013**;11 Apr 97;Build 33
+PSXRXQU ;BIR/BAB,WPB-CMOP RX QUEUE File Utility ;01-May-2013 11:10;PLS
+ ;;2.0;CMOP;**7,12,25,33,40,41,1013,54,1015**;11 Apr 97;Build 62
+ ;
  ;Reference to ^PS(55, supported by DBIA #2228
  ;Modified - IHS/MSC/PLS - 09/23/2011 - Line PID+9
+ ;                       - 04/29/2013 - Line PID+13
 PURGE ;Purge 550.1 of any entries w/Message Status "IN TRANSITION"
  Q:'$D(^PSX(550.1,"AB"))  S MSG="" F  S MSG=$O(^PSX(550.1,"AB",MSG)) Q:'MSG  S DIK=550.1,DA=MSG D ^DIK
  K DIK,MSG,DA
@@ -27,8 +29,17 @@ PID ; build patients PID HL7 segment
  ; Add other language flag
  S PSXLANG=$P($G(^PS(55,DFN,"LAN")),"^",2)
  I $G(PSXLANG)'>1 S PSXLANG=1
+ I PSXLANG>1,'$P($G(^PS(55,DFN,"LAN")),"^") S PSXLANG=1 ; DON'T MARK AS SPANISH IF NO SPANISH SIG
+ I $P($G(^PS(59.7,PSSWSITE,10)),"^",10)="N" S PSXLANG=$S(PSXLANG=1:"ENG",1:"SPA")
  S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",15)=$G(PSXLANG) K PSXLANG
  S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",18)=VA("PID")  ;IHS/MSC/PLS 7/29/10
+ ; GET PATIENT ICN - DON'T SEND IF LOCAL ICN ONLY
+ ;IHS/MSC/PLS - 04/29/2013 - Next four lines commented out
+ ;S PSXICN=$$MPINODE^MPIFAPI(DFN) D
+ ;.I PSXICN<0 S PSXICN="" Q
+ ;.I $P(PSXICN,"^",4)=1 S PSXICN="" Q
+ ;.S PSXICN=$P(PSXICN,"^")_"V"_$P(PSXICN,"^",2)
+ S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",18)=$G(PSXICN) K PSXICN
  S TDT=$P(VAPA(10),"^")
  I $G(VAPA(3))]""!($G(TDT)]"") D
  .I $G(TDT)>1 S TDT=TDT+17000000,TDT1=$E(TDT,1,4),TDT2=$E(TDT,5,6),TDT3=$E(TDT,7,8) S:TDT2'>0 TDT2="01" S:TDT3'>0 TDT3="01" S TDT=$G(TDT1)_$G(TDT2)_$G(TDT3)

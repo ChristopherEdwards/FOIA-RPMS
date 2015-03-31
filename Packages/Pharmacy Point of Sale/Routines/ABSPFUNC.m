@@ -1,5 +1,5 @@
 ABSPFUNC ;IHS/ITSC/ENM - MISC FUNCTIONS [ 02/24/2004  9:00 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**10**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**10,46**;JUN 21, 2001
  ;
  ;-------------------------------------------------------------
  ;IHS/SD/lwj 03/10/04 Patch 10
@@ -47,3 +47,15 @@ RFNDC(RX,RF,APSPNDC)       ;EP API SET NDC FLD #11
  D ^DIE
  K DA,DIE,DR,DA,APSPNDC,RX,RF
  Q
+ISOR1(RX) ;Find Filed 419 value using OR1 (Order #)
+ ;OIT/CAS/RCS 090913 Patch 46
+ N OR1,NEW
+ S OR1=$P($G(^PSRX(RX,"OR1")),U,2)
+ I 'OR1 Q "" ;Not set
+ S NEW=$O(^OR(100,OR1,8,"C","NW","")) ;Find New entry
+ I 'NEW Q "" ;No New entry found
+ S TYP=$P($G(^OR(100,OR1,8,NEW,0)),U,12)
+ I 'TYP Q "" ;Type not set
+ I TYP=1 Q 0 ;Written
+ I TYP=8 Q 1 ;Electronic
+ Q "" ;Type not used

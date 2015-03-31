@@ -1,5 +1,6 @@
 GMRCIUTL ;SLC/JFR - UTILITIES FOR INTER-FACILITY CONSULTS ;11/26/01 15:34
- ;;3.0;CONSULT/REQUEST TRACKING;**22**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**22,58**;DEC 27, 1997;Build 4
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
  Q  ;don't start at the top
  ;
@@ -114,6 +115,9 @@ GETSERV(GMRCSRV) ;return local service from IFC service in HL7 msg
  I '$D(ERROR) D
  . I $O(^GMR(123.5,SERV,"IFCS","B",SENDER,0)) Q
  . S ERROR="-1^IMPROPER SENDING FACILITY^301"
+ I '$D(ERROR) D
+ . I $P($G(^GMR(123.5,SERV,0)),U,2)'=9 Q
+ . S ERROR="-1^SERVICE IS DISABLED^702"
  Q $S($D(ERROR):ERROR,1:SERV)
  ;
 GETPROC(GMRCSID) ;return procedure and sercvice ordered by IFC
@@ -136,6 +140,9 @@ GETPROC(GMRCSID) ;return procedure and sercvice ordered by IFC
  . D GETSVC^GMRCPR0(.GMRCSS,GMRCPR)
  . I GMRCSS>1 S ERROR="-1^MULTIPLE SERVICES DEFINED^601" Q
  . S GMRCSS=+GMRCSS(1)
+ I '$D(ERROR) D
+ . I $P($G(^GMR(123.3,GMRCPR,0)),U,2)'=1 Q
+ . S ERROR="-1^PROCEDURE IS INACTIVE^703"
  Q $S($D(ERROR):ERROR,1:GMRCPR_U_GMRCSS)
 CODEOI(GMRCDA) ; look at ordered procedure or service and code it for IFC msg
  ;Input:
@@ -204,6 +211,8 @@ ERR401 ;Procedure not matched to receiving facility
 ERR501 ;Error in procedure name
 ERR601 ;Multiple services matched to procedure
 ERR701 ;Error in Service name
+ERR702 ;Service is Disabled
+ERR703 ;Procedure is Inactive
 ERR801 ;Inappropriate action for specified request
 ERR802 ;Duplicate, activity not filed
 ERR901 ;Unable to update record successfully

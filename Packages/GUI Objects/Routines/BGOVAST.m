@@ -1,5 +1,5 @@
-BGOVAST ; IHS/BAO/TMD - Manage V ASTHMA ;27-Jan-2012 09:06;DU
- ;;1.1;BGO COMPONENTS;**1,3,6,10**;Mar 20, 2007;Build 2
+BGOVAST ; IHS/BAO/TMD - Manage V ASTHMA ;09-Apr-2012 14:56;DU
+ ;;1.1;BGO COMPONENTS;**1,3,6,10,11**;Mar 20, 2007;Build 3
  ;---------------------------------------------
  ; Get V Asthma entries by individual entry, visit, or patient
  ;  INP = Patient IEN [1] ^ V File IEN [2] ^ Visit IEN [3]
@@ -49,6 +49,12 @@ SET(RET,INP) ;EP
  S @FDA@(.14)=$P(INP,U,3)
  S @FDA@(1204)="`"_DUZ
  S @FDA@(1201)="N"
+ ;IHS/MSC/MGH new fields patch 11
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)
@@ -122,6 +128,11 @@ SETZONE(RET,DFN,VIEN,INP) ;EP to set red and yellow zone instructions
  .I $P(DATA,U,1)="Y" S @FDA@(1101)=$P(DATA,U,2)
  S @FDA@(1204)="`"_DUZ
  S @FDA@(1201)="N"
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

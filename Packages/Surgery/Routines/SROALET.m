@@ -1,10 +1,13 @@
-SROALET ;B'HAM ISC/MAM - PRINT 30 DAY LETTER ; [ 11/20/00  8:16 AM ]
- ;;3.0; Surgery ;**38,63,95,98,113**;24 Jun 93
+SROALET ;BIR/MAM - PRINT 30 DAY LETTER ;01/31/07
+ ;;3.0; Surgery ;**38,63,95,98,113,153,160**;24 Jun 93;Build 7
  K VADM,VAPA I $P($G(^SRF(SRTN,30)),"^")!'$P($G(^SRF(SRTN,.2)),"^",12) Q
  S SR("RA")=$G(^SRF(SRTN,"RA")) I $P(SR("RA"),"^",6)["N" Q
  I $P(SR("RA"),"^")="" Q
- S DFN=$P(^SRF(SRTN,0),"^") S X=$G(^DPT(DFN,.35)) Q:$P(X,"^")'=""  D DEM^VADPT,ADD^VADPT
- S SRANAME=$P(VADM(1),"^"),X=$P(SRANAME,",") D
+ S DFN=$P(^SRF(SRTN,0),"^") S X=$G(^DPT(DFN,.35)) Q:$P(X,"^")'=""  ; no letter if deceased
+ S VAINDT="NOW" D INP^VADPT I $G(VAIN(1)) Q  ; no letter if inpatient
+ D DEM^VADPT,ADD^VADPT
+ S SRANAME=$P(VADM(1),"^"),X=$P(SRANAME,",")
+ S SRSP=$P($G(^SRF(SRTN,0)),"^",4),SRSP="Specialty: "_$E($P($G(^SRO(137.45,SRSP,0)),"^"),1,17) D
  .I X["-" N SRNM,J,Z D  Q
  ..F J=1:1 S Z=$P(X,"-",J) Q:Z=""  S SRNM(J)=$E(Z)_$TR($E(Z,2,$L(Z)),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")
  ..S Y=SRNM(1) F J=2:1 Q:'$D(SRNM(J))  S Y=Y_"-"_SRNM(J)
@@ -15,9 +18,15 @@ SROALET ;B'HAM ISC/MAM - PRINT 30 DAY LETTER ; [ 11/20/00  8:16 AM ]
  S SEX=$P(VADM(5),"^")
  S SRNM=$P(VADM(1),",",2)_" "_$P(VADM(1),",")
  W:$Y @IOF W !!!!!!!!!!,?4,SRNM,?60,SRDT
- N SRCCADD S SRCCADD=0 D CCADD
+ N SRCCADD,SRSPF,SRADO S SRCCADD=0,SRSPF=1
+ S Y=$P(^SRF(SRTN,0),"^",9),SRADO=$E(Y,4,5)_"/"_$E(Y,6,7)_"/"_$E(Y,2,3) D CCADD
  I 'SRCCADD S STATE="" I VAPA(5) S STATE=$P(^DIC(5,$P(VAPA(5),"^"),0),"^",2)
- I 'SRCCADD W !,?4,VAPA(1) W:$G(VAPA(2))'="" !,?4,VAPA(2) W:$G(VAPA(3))'="" !,?4,VAPA(3) W:VAPA(4)'="" !,?4,VAPA(4)_", "_STATE_" "_VAPA(6)
+ I 'SRCCADD D
+ .W !,?4,VAPA(1),?48,"Operation Date: ",SRADO
+ .I $G(VAPA(2))'="" W !,?4,VAPA(2),?48,SRSP S SRSPF=0
+ .I $G(VAPA(3))'="" W !,?4,VAPA(3) I SRSPF W ?48,SRSP S SRSPF=0
+ .I $G(VAPA(4))'="" W !,?4,VAPA(4)_", "_STATE_" "_VAPA(6) I SRSPF W ?48,SRSP S SRSPF=0
+ I SRSPF W !,?48,SRSP S SRSPF=0
  W !!!,?4,"Dear "_SRANAME_","
 MM ;
  N SRDIV S SRDIV=$$SITE^SROUTL0(SRTN) I 'SRDIV D DFLT Q

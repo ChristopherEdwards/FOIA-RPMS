@@ -1,5 +1,5 @@
-PSUPR2 ;BIR/PDW - Procurement extract from file 58.811 ;20 AUG 1999
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**1,8,17,19**;Oct 15, 1998
+PSUPR2 ;BIR/PDW - Procurement extract from file 58.811 ; 4/1/08 4:09pm
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;**13**;MARCH, 2005;Build 3
  ;DBIAs
  ; Reference to file #58.811 supported by DBIA 2521
  ; Reference to file #51.5   supported by DBIA 1931
@@ -11,6 +11,7 @@ PSUPR2 ;BIR/PDW - Procurement extract from file 58.811 ;20 AUG 1999
  ; Reference to file #59     supported by DBIA 2510
  ;
 EN ;
+ S PSUEND=PSUEDT
  S PSUEDT=PSUEDT\1+.24
  S:'$D(PSUPRJOB) PSUPRJOB=$J
  S:'$D(PSUPRSUB) PSUPRSUB="PSUPR_"_$J
@@ -18,6 +19,9 @@ EN ;
  . S ^XTMP(PSUPRSUB,"RECORDS",0)=""
  . S X1=DT,X2=6 D C^%DTC
  . S ^XTMP(PSUPRSUB,0)=X_"^"_DT_"^ PBMS Procurement Extraction"
+ ;
+ S PSUARJOB=PSUPRJOB,PSUARSUB="PSUAR_"_PSUARJOB
+ D MAP
  ;
  ;   check for Drug Accountability
  S X=$$VERSION^XPDUTL("DRUG ACCOUNTABILITY")
@@ -39,16 +43,21 @@ INVOICE ;EP process an invoice within an order
  N PSUORD
  D GETS^PSUTL(58.811,PSUORDA,".01;1","PSUORD")
  ;
- N PSUINV
- D GETS^PSUTL(58.8112,"PSUORDA,PSUINVDA",".01;1;2;3;4;7;13","PSUINV","I")
+ S PSUINV=""
+ N PSURDT,PSUIVNUM
+ D GETS^PSUTL(58.8112,"PSUORDA,PSUINVDA",".01;1;2;3;4;7;8;13","PSUINV","I")
  D MOVEI^PSUTL("PSUINV")
+ S PSURDT=PSUINV(8)
+ S PSUIVNUM=PSUINV(.01)
  ;
- S PSUDIV=$$DIVISION()
+ I $G(PSUINV(4)) D DIV
  I $L(PSUDIV) S PSUDIVI=""
  E  S PSUDIV=PSUSNDR,PSUDIVI="H"
- K ^TMP($J,"PSUMIT") ;**3**   array for multiple items
+ ;
+ ;
+ K ^TMP($J,"PSUMIT") ;   array for multiple items
  D GETM^PSUTL(58.8112,"PSUORDA,PSUINVDA","5*^1;2;3;4;7;13;14;15","^TMP($J,""PSUMIT"")","I")
- I '$D(^TMP($J,"PSUMIT")) Q  ;**3**
+ I '$D(^TMP($J,"PSUMIT")) Q  ;
  D MOVEMI^PSUTL("^TMP($J,""PSUMIT"")")
  ;
  S PSUITDA=0 F  S PSUITDA=$O(^TMP($J,"PSUMIT",PSUITDA)) Q:PSUITDA'>0  D ITEM
@@ -92,7 +101,7 @@ ITEM ;EP  process one item within the invoice
  ;  if PSUIT(1) is a supply item the following will not be computed
  I PSUIT(1)=+PSUIT(1) D
  . S PSUDRDA=PSUIT(1)
- . S PSUARJOB=PSUPRJOB,PSUARSUB="PSUAR_"_PSUARJOB
+ . ;S PSUARJOB=PSUPRJOB,PSUARSUB="PSUAR_"_PSUARJOB
  . D GETS^PSUTL(50,PSUDRDA,".01;2;13;25;14.5;21;31","PSUDRUG","I")
  . D MOVEI^PSUTL("PSUDRUG")
  . S PSUIT(1)=PSUDRUG(.01)                          ; Generic Name
@@ -117,6 +126,12 @@ ITEM ;EP  process one item within the invoice
  ;
  I '$D(PSUADJ),'PSUIT(9999) S PSUIT(9999)="" ; per Lina
  ;
+ ;PSU*4*13 Comment out To prevent XINDEX from complaining about
+ ; ^PSUPR7 (CoreFLS remnance)
+ ;Create "RECORDS" global for CoreFLS data
+ ;I $D(PSUFLSFG) S PSUA="" D
+ ;.F  S PSUA=$O(^XTMP(PSUPRSUB,"PSUFLS",PSUA)) Q:PSUA=""  D SIMPL^PSUPR7
+ ;
  ;   Construct record and store into ^XTMP(PSUPRSUB,"RECORDS",PSUDIV,LC)
  S PSUR=$$RECORD()
  ;   Store Records by Division
@@ -133,7 +148,7 @@ RECORD() ;EP Assemble record
  S PSUR(5)=$G(PSUDRUG(21)) ; 3.2.6.2.9
  S PSUR(6)=$G(PSUDRUG(2))  ;  ""
  S PSUR(7)=PSUIT(1)     ; 3.2.6.2.8
-5 S PSUR(9)=PSUIT(13)    ; 3.2.6.2.9
+ S PSUR(9)=PSUIT(13)    ; 3.2.6.2.9
  S PSUR(10)=PSUIT(14)    ;    ""
  S PSUR(11)=PSUIT(15)    ;    ""
  S PSUR(12)=$G(PSUDRUG(14.5)) ; ""
@@ -151,37 +166,77 @@ RECORD() ;EP Assemble record
  S PSUR=PSUR_U
  Q PSUR
  ;
-DIVISION() ;EP Process to get Division
- ;   3.2.6.2.3
- N PSULOC,PSUDIV
- S PSULOC=PSUINV(4)
- S PSUDIV=$$PSLOCDIV(PSULOC,PSUDT)
- Q PSUDIV
+DIV ;Find division or outpatient site
  ;
-PSLOCDIV(PSULOC,PSUDT) ;EP  Get division from 58.8
- S PSULOC(.01)=$$VAL^PSUTL(58.8,PSULOC,.01)
- S PSULOC(1)=$$VALI^PSUTL(58.8,PSULOC,1)
- ;
- ;  Process for Division according to 3.2.6.2.3
- ;   uses PSULOC,PSUDT
  S PSUDIV=""
- ;    WRD-ward INP-inpatient IV-iv OUT-outpatient
- I PSULOC(.01)["INPATIENT",PSULOC(1)="P" S PSUDIV=$$WRD() S:'$L(PSUDIV) PSUDIV=$$INP()
- I $L(PSUDIV) Q PSUDIV
- I PSULOC(.01)["OUTPATIENT",PSULOC(1)="P" S PSUDIV=$$IV() S:'$L(PSUDIV) PSUDIV=$$OUT()
- I $L(PSUDIV) Q PSUDIV
- I PSULOC(.01)["COMBINED (IP/OP)",PSULOC(1)="P" D
- . S PSUDIV=$$OUT()
- . I '$L(PSUDIV) S PSUDIV=$$WRD()
- . I '$L(PSUDIV) S PSUDIV=$$IV()
- . I '$L(PSUDIV) S PSUDIV=$$INP()
- I $L(PSUDIV) Q PSUDIV
+ N MAPLOCI
+ D GETM^PSUTL(59.7,1,"90.03*^.01;.02;.03","MAPLOCI","I")
+ D MOVEMI^PSUTL("MAPLOCI")
  ;
- I PSUDIV="",PSUINV(13) S PSULOC=PSUINV(13) S PSUDIV=$$INP() S:'$L(PSUDIV) PSUDIV=$$OUT()
+ I $G(MAPLOCI(PSUINV(4),.01)) D
+ .S X=$G(MAPLOCI(PSUINV(4),.02)) I X S PSUDIV=$$VALI^PSUTL(40.8,X,1)
+ .S X=$G(MAPLOCI(PSUINV(4),.03)) I X S PSUDIV=$$VALI^PSUTL(59,X,.06)
+ I '$G(MAPLOCI(PSUINV(4),.01)) D
+ .S PSUDIV=PSUSNDR
+ .S PSUDIVI="H"
+ Q
  ;
- Q PSUDIV
  ;
-WRD() ;EP    Process for ward
+MAP ;Find out whether a Narcotics Area of Use (NAOU) or a DA Pharmacy
+ ;Location is mapped to a division or outpatient site.  If it is not
+ ;mapped, store the NAME and INACTIVATION DAT (if applicable) in a
+ ;global to be mailed to the user.
+ ;
+ K NAOU,DAPH
+ K MAPLOCI,MAPLOC
+ S PSUNAM=0            ;This is the name of the NAOU or DA PHARMACY
+ ;
+ F  S PSUNAM=$O(^PSD(58.8,"B",PSUNAM)) Q:PSUNAM=""  D
+ .S IEN=0
+ .F  S IEN=$O(^PSD(58.8,"B",PSUNAM,IEN)) Q:IEN=""  D
+ ..D GETS^PSUTL(58.8,IEN,".01;1;4","NAOU(IEN)")
+ ..I NAOU(IEN,1)="PRIMARY" M DAPH(IEN)=NAOU(IEN) K NAOU(IEN)
+ ..D MAP1
+ ;
+ Q
+ ;
+MAP1 ;MAP continued. This subroutine takes the IEN from file 58.8 and looks
+ ;to see if it is in file 59.7, field 90.02 or 90.03.
+ ;
+ ;If it is in 90.02, and field 4 from 58.8 is NOT "P", and there is
+ ;no value in subfield .02 or .03, then an NAOU has not been mapped.
+ ;
+ ;If it is in 90.03, and field 4 from 58.8 IS a "P", and there is
+ ;no value in subfield .02 or .03, then a DA PHARMACY location has not
+ ;been mapped.
+ ;
+ ;Keep only the entries that are NOT mapped
+ ;
+ N PSUDA
+ ;
+ ;Look for unmapped NAOU's
+ ;I $G(NAOU(IEN),1) D
+ I $G(^PS(59.7,1,90.02,IEN,0)) D
+ .D GETM^PSUTL(59.7,1,"90.02*^.01;.02;.03","MAPLOCI")
+ .S PSUDA=0
+ .F  S PSUDA=$O(MAPLOCI(PSUDA)) Q:PSUDA=""  D
+ ..I MAPLOCI(PSUDA,.02)'="" K NAOU(PSUDA)
+ ..I MAPLOCI(PSUDA,.03)'="" K NAOU(PSUDA)
+ M ^XTMP(PSUARSUB,"NAOU")=NAOU          ;only unmapped NAOU locations.
+ ;
+ ;
+ ;Look for unmapped DA PHARM
+ I $G(^PS(59.7,1,90.03,IEN,0)) D
+ .D GETM^PSUTL(59.7,1,"90.03*^.01;.02;.03","MAPLOC")
+ .S PSUDA=0
+ .F  S PSUDA=$O(MAPLOC(PSUDA)) Q:PSUDA=""  D
+ ..;PSU*4*13 Correct Problm DA Pharm Report
+ ..I $G(MAPLOC(PSUDA,.02))'="" K DAPH(PSUDA)
+ ..I $G(MAPLOC(PSUDA,.03))'="" K DAPH(PSUDA)
+ M ^XTMP(PSUARSUB,"DAPH")=DAPH      ;only unmapped DA PHARM locations.
+ Q
+ ;
+WRD() ;EP    Process for ward;
  N PSUWD,PSUWDDA,PSUDIV
  S PSUDIV=""
  D GETM^PSUTL(58.8,PSULOC,"21*^.01","PSUWD","I")
@@ -225,3 +280,4 @@ OUT() ;EP  Process for Outpatient
  S X=$$VALI^PSUTL(58.8,PSULOC,20)
  I X S X=$$VALI^PSUTL(59,X,.06)
  Q X
+ ;

@@ -1,5 +1,5 @@
 FHPRF4 ; HISC/REL - Print Other Meals ;4/27/93  13:41 
- ;;5.0;Dietetics;**37**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 R1 W ! K IOP,%ZIS S %ZIS("A")="Select LIST Printer: ",%ZIS="MQ" D ^%ZIS K %ZIS,IOP G:POP KIL
  I $D(IO("Q")) S FHPGM="Q1^FHPRF4",FHLST="" D EN2^FH G KIL
  U IO D Q1 D ^%ZISC K %ZIS,IOP G KIL

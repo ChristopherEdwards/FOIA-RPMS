@@ -1,5 +1,6 @@
-GMRCPOR ;SLC/DCM,DLT - Get DOC,LOC,TS in interactive defaults ;29-Nov-2005 12:02;MGH
- ;;3.0;CONSULT/REQUEST TRACKING;**1,1001**;DEC 27, 1997
+GMRCPOR ;SLC/DCM,DLT - Get DOC,LOC,TS in interactive defaults ;15-Mar-2012 10:40;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,1001,1003**;DEC 27, 1997;Build 14
+ ;Modified - IHS/CIA/MGH - 11/29/2005 - Line DEM+5
 DEM ;Similiar to load of variables done by ORUDPA
  ;;Call from ^GMRCR0
  ;IHS/CIA/MGH Added code to use HRCN instead of SSN

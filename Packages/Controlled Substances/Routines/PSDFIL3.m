@@ -1,5 +1,5 @@
 PSDFIL3 ;BIR/JPW,BJW-File TRAKKER Info - Insp Inv Adj ; 24 Mar 98
- ;;3.0; CONTROLLED SUBSTANCES ;**8,3**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**8,3,66**;13 Feb 97;Build 3
  ;Y2K compliance**after FM patch DI*21*44 installed
 EN1 ;entry for filing vault inventory adjustments trakker info
  K CNT,DA,DATA,DIC,DIR,DIROUT,DIRUT,DTOUT,DUOUT,PSDS,PSDSN,X,X1,Y
@@ -37,11 +37,11 @@ END ;kill variables
  Q
 UPDATE ;update 58.8 and 58.81
  ;vault balance
- F  L +^PSD(58.8,+PSDS,1,+PSDR,0):0 I  Q
+ F  L +^PSD(58.8,+PSDS,1,+PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S PSDT=+%
  S BAL=$P(^PSD(58.8,+PSDS,1,+PSDR,0),"^",4),$P(^(0),"^",4)=$P(^(0),"^",4)+QTY
  L -^PSD(58.8,+PSDS,1,+PSDR,0)
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDREC=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDREC)) S $P(^PSD(58.81,0),"^",3)=PSDREC G FIND
  K DIC,DLAYGO S DIC(0)="L",(DIC,DLAYGO)=58.81,(X,DINUM)=PSDREC D ^DIC K DIC,DLAYGO
  L -^PSD(58.81,0)
@@ -55,7 +55,7 @@ EDIT ;edit new transaction in 58.81
  I '$D(^PSD(58.8,+PSDS,1,+PSDR,4,+PSDREC,0)) K DA,DIC,DD,DO S DIC(0)="L",DIC="^PSD(58.8,"_+PSDS_",1,"_+PSDR_",4,",DA(2)=+PSDS,DA(1)=+PSDR,(X,DINUM)=PSDREC D FILE^DICN K DA,DIC
  I PSDTYP'=9 W "." Q
 ERR ;err log update
- F  L +^PSD(58.89,0):0 I  Q
+ F  L +^PSD(58.89,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND9 S PSDER=$P(^PSD(58.89,0),"^",3)+1 I $D(^PSD(58.89,PSDER)) S $P(^PSD(58.89,0),"^",3)=PSDER G FIND9
  K DIC,DLAYGO S DIC(0)="L",(DIC,DLAYGO)=58.89,(X,DINUM)=PSDER D ^DIC K DIC,DLAYGO
  L -^PSD(58.89,0)

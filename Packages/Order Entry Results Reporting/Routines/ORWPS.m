@@ -1,29 +1,43 @@
-ORWPS ; SLC/KCM/JLI/REV/CLA - Meds Tab; 05/22/03
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,116,132,141,173,203,190**;Dec 17, 1997
-COVER(LST,DFN)  ; retrieve meds for cover sheet
+ORWPS ; SLC/KCM/JLI/REV/CLA - Meds Tab; 02/11/2008
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,116,132,141,173,203,190,195,265,275,243**;Dec 17, 1997;Build 242
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
+COVER(LST,DFN) ; retrieve meds for cover sheet
  K ^TMP("PS",$J)
  D OCL^PSOORRL(DFN,"","")
  N ILST,ITMP,X S ILST=0
  S ITMP="" F  S ITMP=$O(^TMP("PS",$J,ITMP)) Q:'ITMP  D
  . S X=^TMP("PS",$J,ITMP,0)
  . I '$L($P(X,U,2)) S X="??"  ; show something if drug empty
- . S LST($$NXT)=$P(X,U,1,2)_U_$P(X,U,8,9)
+ . I $D(^TMP("PS",$J,ITMP,"CLINIC",0)) S LST($$NXT)=$P(X,U,1,2)_U_$P(X,U,8,9)_U_"C"
+ . E  S LST($$NXT)=$P(X,U,1,2)_U_$P(X,U,8,9)
  K ^TMP("PS",$J)
  Q
 DT(X) ; -- Returns FM date for X
  N Y,%DT S %DT="T",Y="" D:X'="" ^%DT
  Q Y
  ;
-ACTIVE(LST,DFN) ; retrieve active inpatient & outpatient meds
+ACTIVE(LST,DFN,USER,VIEW,UPDATE) ; retrieve active inpatient & outpatient meds
  K ^TMP("PS",$J)
  K ^TMP("ORACT",$J)
- N BEG,END,CTX
+ N BEG,END,ERROR,CTX,STVIEW
  S (BEG,END,CTX)=""
+ S VIEW=+$G(VIEW)
+ S UPDATE=+$G(UPDATE)
+ I VIEW=0,UPDATE=0 S VIEW=1
+ S CTX=$$GET^XPAR("ALL","ORCH CONTEXT MEDS")
+ I CTX=";" D DEL^XPAR("USR.`"_DUZ,"ORCH CONTEXT MEDS")
  S CTX=$$GET^XPAR("ALL","ORCH CONTEXT MEDS")
  S BEG=$$DT($P(CTX,";")),END=$$DT($P(CTX,";",2))
- D OCL^PSOORRL(DFN,BEG,END)
+ I +$G(USER)=0 S USER=DUZ
+ I UPDATE=1 D
+ .S STVIEW=$$GET^XPAR($G(USER)_";VA(200,","OR MEDS TAB SORT",1,"I")
+ .I VIEW>0,+STVIEW'=VIEW D PUT^XPAR(DUZ_";VA(200,","OR MEDS TAB SORT",,VIEW,.ERROR) S STVIEW=VIEW
+ .I VIEW=0,+STVIEW=0 D PUT^XPAR(DUZ_";VA(200,","OR MEDS TAB SORT",,"1",.ERROR) S STVIEW=1,VIEW=1
+ .I VIEW=0,+STVIEW'=VIEW S VIEW=+STVIEW
+ .S LST(0)=STVIEW
+ D OCL^PSOORRL(DFN,BEG,END,VIEW)
  N ITMP,FIELDS,INSTRUCT,COMMENTS,REASON,NVSDT,TYPE,ILST,J S ILST=0
- S ITMP="" F  S ITMP=$O(^TMP("PS",$J,ITMP),-1) Q:'ITMP  D
+ S ITMP="" F  S ITMP=$O(^TMP("PS",$J,ITMP)) Q:'ITMP  D
  . K INSTRUCT,COMMENTS,REASON
  . K ^TMP("ORACT",$J,"COMMENTS")
  . S COMMENTS="^TMP(""ORACT"",$J,""COMMENTS"")"
@@ -31,18 +45,23 @@ ACTIVE(LST,DFN) ; retrieve active inpatient & outpatient meds
  . I +$P(FIELDS,"^",8),$D(^OR(100,+$P(FIELDS,"^",8),8,"C","XX")) D
  . . S $P(^TMP("PS",$J,ITMP,0),"^",2)="*"_$P(^TMP("PS",$J,ITMP,0),"^",2) ;dan testing
  . S TYPE=$S($P($P(FIELDS,U),";",2)="O":"OP",1:"UD")
+ . I $D(^TMP("PS",$J,ITMP,"CLINIC",0)) S TYPE="CP"
+ . N LOC,LOCEX S (LOC,LOCEX)=""
+ . I TYPE="CP" S LOC=$G(^TMP("PS",$J,ITMP,"CLINIC",0))
+ . S:LOC LOCEX=$P($G(^SC(+LOC,0)),U)_":"_+LOC ;IMO NEW
  . I TYPE="OP",$P(FIELDS,";")["N" S TYPE="NV"          ;non-VA med
  . I $O(^TMP("PS",$J,ITMP,"A",0))>0 S TYPE="IV"
  . I $O(^TMP("PS",$J,ITMP,"B",0))>0 S TYPE="IV"
- . I TYPE="UD" D UDINST(.INSTRUCT,ITMP)
+ . I (TYPE="UD")!(TYPE="CP") D UDINST(.INSTRUCT,ITMP)
  . I TYPE="OP" D OPINST(.INSTRUCT,ITMP)
  . I TYPE="IV" D IVINST(.INSTRUCT,ITMP)
  . I TYPE="NV" D NVINST(.INSTRUCT,ITMP),NVREASON(.REASON,.NVSDT,ITMP)
- . I (TYPE="UD")!(TYPE="IV")!(TYPE="NV") D SETMULT(COMMENTS,ITMP,"SIO")
+ . I (TYPE="UD")!(TYPE="IV")!(TYPE="NV")!(TYPE="CP") D SETMULT(COMMENTS,ITMP,"SIO")
  . M COMMENTS=@COMMENTS
  . I $D(COMMENTS(1)) S COMMENTS(1)="\"_COMMENTS(1)
  . S:TYPE="NV" $P(FIELDS,U,4)=$G(NVSDT)
- . S LST($$NXT)="~"_TYPE_U_FIELDS
+ . I LOC S LST($$NXT)="~CP:"_LOCEX_U_FIELDS
+ . E  S LST($$NXT)="~"_TYPE_U_FIELDS
  . S J=0 F  S J=$O(INSTRUCT(J)) Q:'J  S LST($$NXT)=INSTRUCT(J)
  . S J=0 F  S J=$O(COMMENTS(J)) Q:'J  S LST($$NXT)="t"_COMMENTS(J)
  . S J=0 F  S J=$O(REASON(J)) Q:'J  S LST($$NXT)="t"_REASON(J)
@@ -83,16 +102,32 @@ OPINST(Y,INDEX) ; assembles instructions for an outpatient prescription
  M Y=@RST K @RST
  Q
 IVINST(Y,INDEX) ; assembles instructions for an IV order
- N SOLN1,I,RST
+ N SOLN1,I,RST,IVDUR,CNT
+ S IVDUR=""
  S RST="^TMP(""ORACT"",$J,""INSTRUCT"")"
  S @RST=0 D SETMULT(RST,INDEX,"A") S SOLN1=@RST+1
  D SETMULT(RST,INDEX,"B")
  I $D(@RST@(SOLN1)),$L($P(FIELDS,U,2)) S @RST@(SOLN1)="in "_@RST@(SOLN1)
  S SOLN1=@RST+1
- D SETMULT(RST,INDEX,"SCH") S:$D(@RST@(SOLN1)) @RST@(SOLN1)=" "_@RST@(SOLN1)
+ S CNT=@RST
+ D SETMULT(RST,INDEX,"MDR")
+ I $D(^TMP("PS",$J,INDEX,"SCH",1,0)) S @RST@(@RST)=@RST@(@RST)_" "_^TMP("PS",$J,INDEX,"SCH",1,0)
  F I=1:1:@RST S @RST@(I)="\"_$TR(@RST@(I),U," ")
  I $D(@RST@(1)) S @RST@(1)=" "_$E(@RST@(1),2,999)
  S @RST@(@RST)=@RST@(@RST)_" "_$P(^TMP("PS",$J,INDEX,0),U,3)
+ S:$D(^TMP("PS",$J,INDEX,"IVLIM",0)) IVDUR=$G(^TMP("PS",$J,INDEX,"IVLIM",0))
+ I $L(IVDUR) D
+ . N DURU,DURV S DURU="",DURV=0
+ . I IVDUR["dose" D  Q
+ . .S DURV=$P(IVDUR,"doses",2)
+ . .S IVDUR="for a total of "_+DURV_$S(+DURV=1:"dose",+DURV>1:" doses",1:" dose")
+ . .S @RST@(@RST)=@RST@(@RST)_" "_IVDUR
+ . S DURU=$E(IVDUR,1),DURV=$E(IVDUR,2,$L(IVDUR))
+ . I (DURU="D")!(DURU="d") S IVDUR="for "_+DURV_$S(+DURV=1:" day",+DURV>1:" days",1:" day")
+ . I (DURU="H")!(DURU="h") S IVDUR="for "_+DURV_$S(+DURV=1:" hours",+DURV>1:" hours",1:" hour")
+ . I (DURU="M")!(DURU="m") S IVDUR="with total volume "_+DURV_" ml"
+ . I (DURU="L")!(DURU="l") S IVDUR="with total volume "_+DURV_" L"
+ . S @RST@(@RST)=@RST@(@RST)_" "_IVDUR
  M Y=@RST K @RST
  Q
 NVINST(Y,INDEX) ; assembles instructions for a non-VA med
@@ -141,16 +176,28 @@ DETAIL(ROOT,DFN,ID) ; -- show details for a med order
  D MEDS^ORCXPND1
  S ROOT=$NA(^TMP("ORXPND",$J))
  Q
-MEDHIST(ORROOT,DFN,ORIFN)       ; -- show admin history for a med  (RV)
- N ORPSID,ISIV,CKPKG,ORPHMID
- S ORPSID=+$P($$OI^ORX8(ORIFN),U,3),ISIV=0
+MEDHIST(ORROOT,DFN,ORIFN) ; -- show admin history for a med  (RV)
+ N ORPSID,HPIV,ISIV,CKPKG,ORPHMID
+ N CLINDISP,IVDIAL
+ S ORPSID=+$P($$OI^ORX8(ORIFN),U,3),ISIV=0,HPIV=0
  S ORROOT=$NA(^TMP("ORHIST",$J)) K @ORROOT
+ S ORPHMID=$G(^OR(100,+ORIFN,4))  ;Pharmacy order number
  S ISIV=$O(^ORD(100.98,"B","IV RX",ISIV))
+ S HPIV=$O(^ORD(100.98,"B","TPN",HPIV))
+ S CLINDISP=$O(^ORD(100.98,"B","C RX",""))
+ S IVDIAL=$O(^ORD(101.41,"B","PSJI OR PAT FLUID OE",""))
  S CKPKG=$$PATCH^XPDUTL("PSB*2.0*19")
- I $P($G(^OR(100,+ORIFN,0)),U,11)=ISIV D  Q
+ ;if the order is pending or the order has no pharmacy # 
+ ;or the order is not in the Display Group IV MEDICATION
+ ; then use the Orderable item number to get the MAH.
+ I (ORPHMID["P")!(ORPHMID="") D  Q
+ . I '$L($T(HISTORY^PSBMLHS)) D  Q
+ . . S @ORROOT@(0)="This report is only available using BCMA version 2.0."
+ . D HISTORY^PSBMLHS(.ORROOT,DFN,ORPSID)  ; DBIA #3459 for BCMA v2.0
+ ; If the order has a Display Group of IV MEDICATION the use the Pharmacy order number to get the MA
+ I ($P($G(^OR(100,+ORIFN,0)),U,11)=ISIV)!($P($G(^OR(100,+ORIFN,0)),U,11)=HPIV)!(($P($G(^OR(100,+ORIFN,0)),U,11)=CLINDISP)&(+$P($G(^OR(100,+ORIFN,0)),U,5)=IVDIAL)) D  Q
  . I 'CKPKG S @ORROOT@(0)="Medication Administration History is not available at this time for IV fluids."
  . I CKPKG D
- . . S ORPHMID=$G(^OR(100,+ORIFN,4))  ;Pharmacy order number
  . . D RPC^PSBO(.ORROOT,"PM",DFN,"","","","","","","","","",ORPHMID)  ;DBIA #3955
  . . I '$D(@ORROOT) S @ORROOT@(0)="No Medication Administration History found for the IV order."
  I '$L($T(HISTORY^PSBMLHS)) D  Q

@@ -1,5 +1,5 @@
 LEXXST4 ; ISL Lexicon Status (Dates)               ; 05-17-97
- ;;2.0;LEXICON UTILITY;**4,5**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**4,5**;Sep 23, 1996;Build 15
  Q
 DTS(LEXX) ; Date to sequential
  ; PCH 5 default quit value 0

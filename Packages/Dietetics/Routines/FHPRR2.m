@@ -1,5 +1,6 @@
-FHPRR2 ; HISC/REL - Projected Usage (cont). ;1/23/98  16:11
- ;;5.0;Dietetics;**2,13**;Oct 11, 1995
+FHPRR2 ; HISC/REL/RVD - Projected Usage (cont). ;1/23/98  16:11
+ ;;5.5;DIETETICS;;Jan 28, 2005
+ ;RVD - Outpatient meals.
  S T0=0 F P0=0:0 S P0=$O(M(P0)) Q:P0<1  S T0=T0+M(P0)
  S DTP=SDT D DTP^FH S H1=DTP,DTP=EDT D DTP^FH S H1=H1_" to "_DTP
  S X=SDT D DOW^%DTC S DOW=Y+1

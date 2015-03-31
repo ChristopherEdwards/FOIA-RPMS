@@ -1,5 +1,5 @@
-PSOLMRN ;ISC-BHAM/SAB - displays renewal rxs ; 21-APR-1995
- ;;7.0;OUTPATIENT PHARMACY;**11,46,84**;DEC 1997
+PSOLMRN ;ISC-BHAM/SAB - displays renewal rxs ;04/21/1995
+ ;;7.0;OUTPATIENT PHARMACY;**11,46,84,225**;DEC 1997;Build 29
 EN ; -- main entry point for PSO LM RENEW LIST
  S VALMCNT=PSOPF,PSOLM=1
  D EN^VALM("PSO LM RENEW LIST")
@@ -21,6 +21,7 @@ HELP ; -- help code
 EXIT ; -- exit code
  I $G(Y)=-1!($G(Y)="Q") S PSOQUIT=1
  I $G(Y)="Q",$P($G(Y(1)),"^",3)="QU" S PSOQQ=1
+ K FLAGLINE D CLEAN^VALM10
  Q
  ;
 EXPND ; -- expand code

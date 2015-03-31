@@ -1,12 +1,12 @@
 PSSUTIL ;BIR/RTR-utility routine for NDF changes ;04/04/00
- ;;1.0;PHARMACY DATA MANAGEMENT;**34,38**;9/30/97
- ;Reference to ^PS(50.607 supported by DBIA 2221
+ ;;1.0;PHARMACY DATA MANAGEMENT;**34,38,147**;9/30/97;Build 16
  ;
-EN(PSSDIEN) ;Recieve Drug entries unmatched as a result of NDF changes
+ ;Reference to PS(50.607 supported by DBIA 2221
+EN(PSSDIEN) ;Receive Drug entries unmatched as a result of NDF changes
  ;Not called, NDF deletes the possible and local possible dosages
  Q
 EN1(PSSDIEN,PSSTALK) ;Receive Drug entries that have been unmatched
- N PSSLD,PSSLOCV
+ N PSSLD,PSSLOCV,PSSPWXEX
  S PSSLOCV=$O(^PS(59.7,0))
  ;I $P($G(^PS(59.7,+$G(PSSLOCV),80)),"^",3)<2 Q
  W !!,"Deleting Possible Dosages.."
@@ -14,10 +14,10 @@ EN1(PSSDIEN,PSSTALK) ;Receive Drug entries that have been unmatched
  H 1 W "."
  I '$G(PSSTALK) K ^PSDRUG(PSSDIEN,"DOS2") G EQ
  I '$O(^PSDRUG(PSSDIEN,"DOS2",0)) W !
- I $O(^PSDRUG(PSSDIEN,"DOS2",0)) D  W ! K DIR S DIR(0)="Y",DIR("B")="Y",DIR("A")="Delete these Local Possible Dosages" D ^DIR K DIR I Y=1 W !!,"Deleting Local Possible Dosages.." K ^PSDRUG(PSSDIEN,"DOS2") H 1 W "." W ! G EQ
- .W !!,"LOCAL POSSIBLE DOSAGES:"
- .W ! F PSSLD=0:0 S PSSLD=$O(^PSDRUG(PSSDIEN,"DOS2",PSSLD)) Q:'PSSLD  D
- ..W !,$P($G(^PSDRUG(PSSDIEN,"DOS2",PSSLD,0)),"^")_"   "_$S($P($G(^(0)),"^",2)="":"(No package)",1:"(Package -> "_$P($G(^(0)),"^",2)_")")
+ I $O(^PSDRUG(PSSDIEN,"DOS2",0)) D DASK D  W ! K DIR S DIR(0)="Y",DIR("B")="Y",DIR("A")="Delete these Local Possible Dosages" D ^DIR K DIR I Y=1 W !!,"Deleting Local Possible Dosages.." K ^PSDRUG(PSSDIEN,"DOS2") H 1 W "." W ! G EQ
+ .S PSSPWXEX=0 W !!,"LOCAL POSSIBLE DOSAGES:"
+ .W ! F PSSLD=0:0 S PSSLD=$O(^PSDRUG(PSSDIEN,"DOS2",PSSLD)) Q:'PSSLD!(PSSPWXEX)  D
+ ..D:($Y+5)>IOSL ZASK Q:PSSPWXEX  W !,$P($G(^PSDRUG(PSSDIEN,"DOS2",PSSLD,0)),"^")_"   "_$S($P($G(^(0)),"^",2)="":"(No package)",1:"(Package -> "_$P($G(^(0)),"^",2)_")") D DOSEADD
  I $O(^PSDRUG(PSSDIEN,"DOS2",0)) W !!,"Local Possible Dosages not deleted.",!
 EQ Q
 EN2(PSSDIEN,PSSTALK) ;Receive Drug entries matched to NDF
@@ -88,13 +88,13 @@ QUIET ;
  I PSSLTOT>1 S PSSLTOTX=PSSLTOT-1 S ^PSDRUG(PSSDIEN,"DOS2",0)="^50.0904^"_$G(PSSLTOTX)_"^"_$G(PSSLTOTX)
  Q
 LOCMRG ;Merge new Local Possible Dosages with existing ones
- N PSSLIEN,PSSLIENX
+ N PSSLIEN,PSSLIENX,PSSPWZEX
  I '$G(PSSTALK) G QUIET1
  W !!,"This drug has the following Local Possible Dosages:",!
- F PSSLIEN=0:0 S PSSLIEN=$O(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN)) Q:'PSSLIEN  D
- .S PSSLIENX=$P($G(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN,0)),"^")
- .I $L(PSSLIENX)'>53 W !,PSSLIENX,?55,"PACKAGE: ",$P($G(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN,0)),"^",2) Q
- .W !,PSSLIENX,!,?55,"PACKAGE: ",$P($G(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN,0)),"^",2)
+ S PSSPWZEX=0 F PSSLIEN=0:0 S PSSLIEN=$O(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN)) Q:'PSSLIEN!(PSSPWZEX)  D
+ .D:($Y+5)>IOSL XASK Q:PSSPWZEX  S PSSLIENX=$P($G(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN,0)),"^")
+ .I $L(PSSLIENX)'>53 W !,PSSLIENX,?55,"PACKAGE: ",$P($G(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN,0)),"^",2) D DOSEADX Q
+ .W !,PSSLIENX,!,?55,"PACKAGE: ",$P($G(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN,0)),"^",2) D DOSEADX
  W ! K DIR S DIR(0)="Y",DIR("B")="Y",DIR("A")="Do you want to merge new Local Possible Dosages"
  S DIR("?")=" ",DIR("?",1)="If you answer 'YES', any new Local Possible Dosages found based on the nouns",DIR("?",2)="associated with the "_$P($G(^PS(50.606,+$G(PSSOID),0)),"^")_" Dosage Form"
  S DIR("?",3)="will be added to you current Local Possible Dosages."
@@ -122,4 +122,59 @@ QUIET1 ;
  .Q:PSSLPNO
  .S PSSLPT=PSSLPT+1,PSSLPTX=PSSLPTX+1
  .S ^PSDRUG(PSSDIEN,"DOS2",PSSLPT,0)=$G(PSNOUNPT)_"^"_$G(PSNOUNPA),^PSDRUG(PSSDIEN,"DOS2","B",$E(PSNOUNPT,1,30),PSSLPT)="",^PSDRUG(PSSDIEN,"DOS2",0)="^50.0904^"_$G(PSSLPT)_"^"_$G(PSSLPTX)
+ Q
+ ;
+ ;
+DOSEADD ;New fields added with PSS*1*147
+ N PSSPW1,PSSPW2,PSSPW3,PSSPW4,PSSPW5,PSSPW6,PSSPW7,PSSPW8
+ S PSSPW7=""
+ S PSSPW1=$G(^PSDRUG(PSSDIEN,"DOS2",PSSLD,0))
+ S PSSPW2=$P(PSSPW1,"^",3)
+ S PSSPW3=$S($E(PSSPW2)=".":"0",1:"")_PSSPW2
+ D:($Y+5)>IOSL ZASK Q:PSSPWXEX  W !?3,"BCMA UNITS PER DOSE: "_PSSPW3
+ S PSSPW4=$P(PSSPW1,"^",5),PSSPW5=$P(PSSPW1,"^",6)
+ S PSSPW6=$S($E(PSSPW5)=".":"0",1:"")_PSSPW5
+ I PSSPW4 S PSSPW7=$P($G(^PS(51.24,+PSSPW4,0)),"^")
+ S PSSPW8=$L(PSSPW6)+$L(PSSPW7)
+ D:($Y+5)>IOSL ZASK Q:PSSPWXEX  I PSSPW8<49 W !?3,"NUMERIC DOSE: "_PSSPW6_"   DOSE UNIT: "_PSSPW7 Q
+ W !?3,"NUMERIC DOSE: "_PSSPW6
+ W !?3,"DOSE UNIT: "_PSSPW7
+ Q
+ ;
+ ;
+DOSEADX ;New fields added with PSS*1*147
+ N PSSPWX1,PSSPWX2,PSSPWX3,PSSPWX4,PSSPWX5,PSSPWX6,PSSPWX7,PSSPWX8
+ S PSSPWX7=""
+ S PSSPWX1=$G(^PSDRUG(PSSDIEN,"DOS2",PSSLIEN,0))
+ S PSSPWX2=$P(PSSPWX1,"^",3)
+ S PSSPWX3=$S($E(PSSPWX2)=".":"0",1:"")_PSSPWX2
+ D:($Y+5)>IOSL XASK Q:PSSPWZEX  W !?3,"BCMA UNITS PER DOSE: "_PSSPWX3
+ S PSSPWX4=$P(PSSPWX1,"^",5),PSSPWX5=$P(PSSPWX1,"^",6)
+ S PSSPWX6=$S($E(PSSPWX5)=".":"0",1:"")_PSSPWX5
+ I PSSPWX4 S PSSPWX7=$P($G(^PS(51.24,+PSSPWX4,0)),"^")
+ S PSSPWX8=$L(PSSPWX6)+$L(PSSPWX7)
+ D:($Y+5)>IOSL XASK Q:PSSPWZEX  I PSSPWX8<49 W !?3,"NUMERIC DOSE: "_PSSPWX6_"   DOSE UNIT: "_PSSPWX7 Q
+ W !?3,"NUMERIC DOSE: "_PSSPWX6
+ W !?3,"DOSE UNIT: "_PSSPWX7
+ Q
+ ;
+ ;
+ZASK ;Ask to continue
+ N DIR,X,Y,DTOUT,DUOUT,DIRUT,DIROUT
+ K DIR W ! S DIR(0)="E",DIR("A")="Press Return to continue,'^' to exit the list"  D ^DIR K DIR I 'Y S PSSPWXEX=1
+ W @IOF
+ Q
+ ;
+ ;
+XASK ;Ask to continue
+ N DIR,X,Y,DTOUT,DUOUT,DIRUT,DIROUT
+ K DIR W ! S DIR(0)="E",DIR("A")="Press Return to continue,'^' to exit the list"  D ^DIR K DIR I 'Y S PSSPWZEX=1
+ W @IOF
+ Q
+ ;
+ ;
+DASK ;Ask to continue
+ N DIR,X,Y,DTOUT,DUOUT,DIRUT,DIROUT
+ K DIR W ! S DIR(0)="E",DIR("A")="Press Return to continue"  D ^DIR K DIR
+ W @IOF
  Q

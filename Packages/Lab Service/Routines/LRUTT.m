@@ -1,7 +1,5 @@
 LRUTT ;AVAMC/REG/CYM - LAB TEST TURNAROUND TIME; 2/19/98 ;
- ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
- ;
- ;;VA LR Patch(s): 153,201,354
+ ;;5.2;LAB SERVICE;**153,1018,354,1031,1032**;NOV 1, 1997
  ;
  D END W !!?24,"Laboratory Test Turnaround Times"
 AT S DIC=60,DIC(0)="AEQM" D ^DIC K DIC I Y>0 S LRT(+Y)=$P(Y,U,2) G AT
@@ -43,7 +41,8 @@ W D:$Y>(IOSL-6) H1 Q:LR("Q")
 C S E=$O(^LRO(69,LRA,1,LRB,2,"B",T,0)),LRS=$S($D(^LRO(69,LRA,1,LRB,3)):+^(3),1:0),E=$S($D(^(2,E,0)):^(0),1:""),W=$P(E,"^",4),LRC=$P(E,"^",3),LRX=$P(E,"^",5)
  I $P(E,"^",11)'="" Q
  I $$CANCEL Q
- I LRS,W,LRC,LRX,$D(^LRO(68,W,1,LRC,1,LRX,4,T,0)) S X=$P(^(0),"^",5) Q:X'["."  Q:$P(^(0),"^",8)=""  D T S LRF=X D S
+ ; I LRS,W,LRC,LRX,$D(^LRO(68,W,1,LRC,1,LRX,4,T,0)) S X=$P(^(0),"^",5) Q:X'["."  Q:$P(^(0),"^",8)=""  D T S LRF=X D S
+ I LRS,W,LRC,LRX,$D(^LRO(68,W,1,LRC,1,LRX,4,T,0)) S X=$P(^(0),"^",5) Q:X'["."  D T S LRF=X D S     ; IHS/MSC/MKK - LR*5.2*1032 -- Do *NOT* check for the WKLD SUFFIX in file 68
  Q
 S S (LRS(1),X)=LRS D T S LRS=X,LRDFN=+^LRO(68,W,1,LRC,1,LRX,0) S X=$P(LRF,".")-$P(LRS,".") S:X X=X*1440 S LRT=X+$P(LRF,".",2)-$P(LRS,".",2)
  S LRG(T)=LRG(T)+LRT,LRH(T)=LRH(T)+1 S:$D(LRI) ^TMP($J,LRDFN,T,LRA,W,LRX)=LRT_"^"_$P(LRS(1),".",2)_"000" Q

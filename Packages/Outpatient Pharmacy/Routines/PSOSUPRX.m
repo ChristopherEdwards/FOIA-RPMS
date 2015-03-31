@@ -1,5 +1,5 @@
-PSOSUPRX ;BIR/RTR-Suspense pull early ;3/1/96
- ;;7.0;OUTPATIENT PHARMACY;**8,36,130**;DEC 1997
+PSOSUPRX ;BIR/RTR - Suspense pull early ;3/1/96
+ ;;7.0;OUTPATIENT PHARMACY;**8,36,130,185,148,287**;DEC 1997;Build 77
  ;External reference to ^PS(55 supported by DBIA 2228
  ;External reference to ^PSSLOCK supported by DBIA 2789
 ST N PSOPLLRX D:'$D(PSOPAR) ^PSOLSET G:'$D(PSOPAR) ST
@@ -31,8 +31,11 @@ BEG S PSOSPEC=1,PDUZ=DUZ I +$G(^PS(52.5,SFN,"P")) W !,">>> Rx #",$P(^PSRX(+$P(^(
  I +$P($G(^PSRX(RXREC,2)),"^",6)<DT,+$P($G(^("STA")),"^")<11 D  S DIE=52,DA=RXREC,DR="100///"_11 D ^DIE S DA=SFN,DIK="^PS(52.5," D ^DIK K DIE,DA,DIK W !,"Rx # "_$P(^PSRX(RXREC,0),"^")_" has expired!" F PSOE=1:1:3 W "." H 1
  .D EX^PSOSUTL
  I '$D(^PS(52.5,SFN,0)) K PSOE Q
+ D ICN^PSODPT(+$P(^PSRX(RXREC,0),"^",2))
  S RXFL(RXREC)=$P($G(^PS(52.5,SFN,0)),"^",13)
- S HDSFN=SFN,(PPL,DA)=RXREC S:$P(^PS(52.5,SFN,0),"^",5) (RXP1,RXPR(RXREC))=$P(^(0),"^",5) S:$P(^PS(52.5,SFN,0),"^",12) RXRP(RXREC)=1 D QUES Q:$G(PSOQFLAG)  S (PSOPULL,PSODBQ,PSONOPRT)=1,RXLTOP=1 D WIND D Q^PSORXL S PPL=RXREC
+ S HDSFN=SFN,(PPL,DA)=RXREC S:$P(^PS(52.5,SFN,0),"^",5) (RXP1,RXPR(RXREC))=$P(^(0),"^",5)
+ S:$P(^PS(52.5,SFN,0),"^",12) RXRP(RXREC)=1 D QUES Q:$G(PSOQFLAG)
+ S (PSOPULL,PSODBQ,PSONOPRT)=1,RXLTOP=1 D WIND D Q^PSORXL S PPL=RXREC
  I '$G(PSOQFLAG) W !!,"LABEL QUEUED TO PRINT",! K RX
  I '$G(PSOQFLAG) D PRF D:'$G(PSOQFLAG)  S PSOQFLAG=0
  .S:'$G(PSOPROFL) PSOPRFLG=1 W:$G(PSOPROFL) !!,"PROFILE QUEUED TO PRINT"
@@ -49,7 +52,15 @@ QUES I '$D(RTE) W ! K DIR S DIR("A")="Select routing for Rx(s)",DIR(0)="S^M:MAIL
  I '$D(PSODELE)!($G(PSOSPEC)) W !! S DIR("A")="Pull Rx(s) and delete from suspense",DIR("B")="Y",DIR(0)="Y" D  D ^DIR K DIR S PSODELE=Y I Y'=1 W $C(7),!!?5,"Nothing pulled from suspense!",! S PSOQFLAG=1 K PSODELE Q
  .S DIR("?",1)="Enter Yes to pull selected Rx(s) from suspense. Since Rx(s) pulled early from",DIR("?",2)="suspense are not associated with a printed batch, these Rx(s) cannot be"
  .S DIR("?",3)="reprinted from suspense using the 'Reprint batches from Suspense' option.",DIR("?")="Therefore, any Rx(s) pulled early from suspense will be deleted from suspense."
- S HDSFN=SFN Q
+ S HDSFN=SFN
+ ;
+ ; - Submitting Rx to ECME for 3rd Party Billing
+ N RFL S RFL=RXFL(RXREC) I RFL="" S RFL=$$LSTRFL^PSOBPSU1(RXREC)
+ D ECMESND^PSOBPSU1(RXREC,RFL,,"PE")
+ N PSOTRIC S PSOTRIC="",PSOTRIC=$$TRIC^PSOREJP1(RXREC,RFL,.PSOTRIC)
+ I $$FIND^PSOREJUT(RXREC,RFL),$$HDLG^PSOREJU1(RXREC,RFL,"79,88","PE","IOQ","I")="Q" S:'PSOTRIC PSOQFLAG=1 Q
+ ;
+ Q
 PRF S:'$D(DFN) DFN=+$P(^PS(52.5,SFN,0),"^",3) I $P(PSOPAR,"^",8),'$D(^PSRX(RXREC,1)),'$D(PRF(DFN)),'$G(RXP1) S PSOPROFL=1,HOLDDFN=DFN D ^PSOPRF S DFN=HOLDDFN K HOLDDFN S PRF(DFN)=""
  Q
 LIST S X="?",DIC("S")="I $D(^PSRX(+$P(^PS(52.5,+Y,0),""^""),0)),$P($G(^(""STA"")),""^"")=5",DIC="^PS(52.5,",DIC(0)="ZQ" D ^DIC K DIC W ! Q:Y<0!($D(DTOUT))  Q
@@ -70,4 +81,3 @@ UNLK ;Unlock prescription
  Q:'$G(PSOPLLRX)
  D PSOUL^PSSLOCK(PSOPLLRX)
  K PSOPLLRX
- Q

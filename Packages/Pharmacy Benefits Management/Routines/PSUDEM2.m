@@ -1,5 +1,5 @@
-PSUDEM2 ;BIR/DAM - Outpatient Visits Extract ; 20 DEC 2001
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+PSUDEM2 ;BIR/DAM - Outpatient Visits Extract ; 1/23/09 3:10pm
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;**15**;MARCH, 2005;Build 2
  ;
  ;DBIA's
  ; Reference to file 2            supported by DBIA 10035
@@ -7,88 +7,75 @@ PSUDEM2 ;BIR/DAM - Outpatient Visits Extract ; 20 DEC 2001
  ; Reference to file 9000010      supported by DBIA 3512
  ; Reference to file 4.3          supported by DBIA 2496
  ; Reference to file 80           supported by DBIA 10082
- ;
+ ; Reference to file 9000010.18   supported by DBIA 3560
+ ; Reference to file 81           supported by DBIA 2815
 EN ;EN Called from PSUCP
+ K ^XTMP("PSU_"_PSUJOB,"PSUOPV"),^XTMP("PSU_"_PSUJOB,"PSUTMP")
+ K NONE
+ NEW CPTDA,CPTNM,ICD9DA,ICD9NM,PSUICN,PSUSSN,PSUSUB,PSUTEDT
+ NEW PSUVSTDT,PSUX,PSUY,PTSTAT,SEG,VCPTDA,XX,J
  D DAT1
- I '$D(^XTMP("PSU_"_PSUJOB,"PSUOPV")) D NODATA
+ I '$D(^XTMP("PSU_"_PSUJOB,"PSUTMP")) D NODATA
  D XMD
- K ^XTMP("PSU_"_PSUJOB,"PSUPDFLAG")
+EX K ^XTMP("PSU_"_PSUJOB,"PSUPDFLAG")
  K ^XTMP("PSU_"_PSUJOB,"PSUOPV")
  K ^XTMP("PSU_"_PSUJOB,"PSUXMD")
+ K ^XTMP("PSU_"_PSUJOB,"PSUTMP")
  Q
  ;
  ;
 DAT1 ;Find visits from V POV file that fall within the date range
- ;of the extract by $O through the ^AUPNVPOV("AA" cross reference
- ;
- S PSUPT=0
- F  S PSUPT=$O(^AUPNVPOV("AA",PSUPT)) Q:'PSUPT  D   ;PSUPT is Pt. IEN
- .S PSUDT=0
- .F  S PSUDT=$O(^AUPNVPOV("AA",PSUPT,PSUDT)) Q:'PSUDT  D
- ..N PSUDTE
- ..S PSUDTE=10000000-PSUDT
- ..I (PSUDTE>PSUSDT)!(PSUDTE=PSUSDT) D
- ...I (PSUDTE<PSUEDT)!(PSUDTE=PSUEDT) D DAT2
+ S PSUTEDT=PSUEDT
+ S PSUDT=PSUSDT-1,PSUX=9999999-PSUDT,PSUY=9999999-PSUEDT N PSUEDT
+ S PSUY=PSUSDT-.0001
+ F  S PSUY=$O(^AUPNVSIT("B",PSUY)) Q:PSUY'>0  Q:((PSUY\1)>PSUTEDT)  D
+ . S PSUVIEN=0 F  S PSUVIEN=$O(^AUPNVSIT("B",PSUY,PSUVIEN)) Q:$G(PSUVIEN)'>0  D
+ .. S PSUPT=$$VALI^PSUTL(9000010,PSUVIEN,.05)
+ .. D DAT2
  Q
- ;
-DAT2 ;DAT1 continued
- S PSUPOV=0
- F  S PSUPOV=$O(^AUPNVPOV("AA",PSUPT,PSUDT,PSUPOV)) Q:'PSUPOV  D
- .N PSUVIEN,PSUICD0,PSUICD1
- .S PSUVIEN=$P($G(^AUPNVPOV(PSUPOV,0)),U,3) D   ;Visit file IEN
+DAT2 ;
+ S PSUPOV=0 F  S PSUPOV=$O(^AUPNVPOV("AD",PSUVIEN,PSUPOV)) Q:PSUPOV'>0  D
+ .N PSUVIEN
+ .S PSUVIEN=$P($G(^AUPNVPOV(PSUPOV,0)),U,3)
  .Q:PSUVIEN=""
- .S PSUMR=$P($G(^AUPNVSIT(PSUVIEN,0)),U)
- .I PSUMR S $P(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUVIEN),U,4)=$E($P(PSUMR,U),1,7)
- .D FAC
- .D SSNICN
- .S PSUICD0=$P($G(^AUPNVPOV(PSUPOV,0)),U,1)
- .I $G(PSUICD0) S PSUICD1=$P($G(^ICD9(PSUICD0,0)),U,1)
- .I $G(PSUICD1) S $P(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUVIEN),U,7)=PSUICD1
- .I '$G(PSUICD1) S $P(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUVIEN),U,7)=""
- .D EN^PSUDEM3
+ .Q:$D(^XTMP("PSU"_PSUJOB,"PSUOPV",PSUVIEN))  ; quit if visit psuvien already stored
+ . D POVS
+ .S PSUVSTDT=$P($G(^AUPNVSIT(PSUVIEN,0)),U)\1
+ .S PSUSSN=$P(^DPT(PSUPT,0),U,9)
+ .S PSUICN=$$GETICN^MPIF001(PSUPT)
+ .I PSUICN[-1 S PSUICN=""
+ .;PSU*4*15 Protect from empty 150 nodes
+ .S PTSTAT=$P($G(^AUPNVSIT(PSUVIEN,150)),U,2),PTSTAT=$S(+PTSTAT:"I",1:"O")
+ . D SET
  Q
- ;
-FAC ;Find facility sending message
- ;
- ;I PSUVIEN'="" D
- S $P(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUVIEN),U,2)=PSUSNDR
+POVS ;severl POVs can have same visit, work all when the first is found
+ N PSUPOV
+ ;PSU*4*15 move kills out of loop.
+ K ALLICD9,ALLCPT
+ S PSUPOV=0 F  S PSUPOV=$O(^AUPNVPOV("AD",PSUVIEN,PSUPOV)) Q:PSUPOV'>0  D
+ .;LOOP CPTs linked by visit
+ . S VCPTDA=0 F  S VCPTDA=$O(^AUPNVCPT("AD",PSUVIEN,VCPTDA)) Q:VCPTDA'>0  D
+ .. ; get/gather cpts
+ ..S CPTDA=$P($G(^AUPNVCPT(VCPTDA,0)),U),CPTNM=$P($G(^ICPT(CPTDA,0)),U) S:$L(CPTNM) ALLCPT(CPTNM)=""
+ .. ;get/gather icd9s 
+ ..S ICD9DA=$P($G(^AUPNVCPT(VCPTDA,0)),U,5) I ICD9DA S ICD9NM=$P($G(^ICD9(ICD9DA,0)),U) S:$L(ICD9NM) ALLICD9(ICD9NM)=""
+ . ;get orig ICD9
+ .S ICD9DA=$P($G(^AUPNVPOV(PSUPOV,0)),U) I ICD9DA S ICD9NM=$P($G(^ICD9(ICD9DA,0)),U) S:$L(ICD9NM) ALLICD9(ICD9NM)=""
  Q
- ;
-SSNICN ;Find patient SSN and ICN for outpatient visit
- ;
- N PSUIENP
- ;I PSUVIEN'="" D
- S PSUIENP=$P($G(^AUPNVSIT(PSUVIEN,0)),U,5)     ;Pt pointer to ^DPT file
- ;
- N PSUREC,PSUICN,PSUICN1
- I $G(PSUIENP) D
- .S PSUREC=$P($G(^DPT(PSUIENP,0)),U,9) D REC
- .S $P(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUVIEN),U,5)=PSUREC     ;Pt SSN
- .S PSUICN=$$GETICN^MPIF001(PSUIENP)
- .I PSUICN'[-1 S PSUICN1=$TR(PSUICN,"V","^") D
- ..S $P(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUVIEN),U,6)=$P(PSUICN1,U,1)
- .D ENC
- Q
- ;
-ENC ;Find Encounter Patient Status  O=Outpatient  I=Inpatient
- ;
- S PSUREC=$P($G(^AUPNVSIT(PSUVIEN,150)),U,2)
- I PSUREC=1 S $P(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUVIEN),U,3)="I"  ;Encnter status
- I PSUREC=0 S $P(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUVIEN),U,3)="O"  ;Encnter status
- Q
- ;
-REC ;EN    If "^" is contained in any record, replace it with "'"
- ;
- I $G(PSUREC)["^" S PSUREC=$TR(PSUREC,"^","'")
+SET ; Set segment
+ I '$D(ALLICD9),'$D(ALLCPT) Q  ;insure visit has either CPT or ICD9
+ ;assemble elements and set
+ S SEG=U_PSUSNDR_U_PTSTAT_U_PSUVSTDT_U_PSUSSN_U_PSUICN_U
+ I $D(ALLICD9) S ICD9NM="" F I=7:1:16 S ICD9NM=$O(ALLICD9(ICD9NM)) Q:ICD9NM=""  S $P(SEG,U,I)=ICD9NM
+ I $D(ALLCPT) S CPTNM="" F J=17:1:26 S CPTNM=$O(ALLCPT(CPTNM)) Q:CPTNM=""  S $P(SEG,U,J)=CPTNM
+ S $P(SEG,U,27)=""
+ S ^XTMP("PSU_"_PSUJOB,"PSUTMP",PSUVIEN)=SEG
  Q
  ;
 XMD ;Format mailman message and send.
- ;
- S PSUAB=0,PSUPL=1
- F  S PSUAB=$O(^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUAB)) Q:PSUAB=""  D
- .M ^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUPL)=^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUAB)  ;Global numerical order
- .S PSUPL=PSUPL+1
- ;
+ S PSUAB=0
+ F PSUPL=1:1 S PSUAB=$O(^XTMP("PSU_"_PSUJOB,"PSUTMP",PSUAB)) Q:PSUAB'>0  S XX=^(PSUAB) D
+ . S ^XTMP("PSU_"_PSUJOB,"PSUOPV",PSUPL)=XX
  NEW PSUMAX,PSULC,PSUTMC,PSUTLC,PSUMC
  S PSUMAX=$$VAL^PSUTL(4.3,1,8.3)
  S PSUMAX=$S(PSUMAX="":10000,PSUMAX>10000:10000,1:PSUMAX)
@@ -102,7 +89,7 @@ XMD ;Format mailman message and send.
  .S PSUMLC=PSUMLC+1
  .S ^XTMP("PSU_"_PSUJOB,"PSUXMD",PSUMC,PSUMLC)="*"_$E(X,I+1,999)
  ;
- ;   Count Lines sent
+TLC ;   Count Lines sent
  S PSUTLC=0
  F PSUM=1:1:PSUMC S X=$O(^XTMP("PSU_"_PSUJOB,"PSUXMD",PSUM,""),-1),PSUTLC=PSUTLC+X
  ;
@@ -125,4 +112,8 @@ NODATA ;Generate a 'No data' message if there is no data in the extract
  M PSUXMYH=PSUXMYS1
  S PSUM=1
  S ^XTMP("PSU_"_PSUJOB,"PSUXMD",PSUM,1)="No data to report"
+ Q
+REC ;EN If "^" is contained in any record, replace it with "'"
+ ;
+ I PSUREC["^" S PSUREC=$TR(PSUREC,"^","'")
  Q

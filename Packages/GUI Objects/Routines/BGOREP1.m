@@ -1,5 +1,5 @@
-BGOREP1 ; IHS/BAO/TMD - Manage REPRODUCTIVE FACTORS ;15-Nov-2011 16:40;DU
- ;;1.1;BGO COMPONENTS;**10**;Mar 20, 2007;Build 2
+BGOREP1 ; IHS/BAO/TMD - Manage REPRODUCTIVE FACTORS ;17-Apr-2013 12:09;PLS
+ ;;1.1;BGO COMPONENTS;**10,11**;Mar 20, 2007;Build 2
  ; Returns reproductive history as a single string
  ; Patch 5 updates the expanded history logic to prevent error on an empty element.
  ; Patch 6 updates to use new field formats for repro history
@@ -138,7 +138,7 @@ CONTALL(RET,DFN) ;EP for RPC call to get all contrceptive data
  ;DATA= array of items to be edited/stored in this format
  ;  (n)= IEN of subfile (if edit) [1] ^ Type of contraception [2] ^ date start [3] ^ date end [4] ^ reason DC [5] ^ comment [6]
 SETCONT(RET,DFN,DATA) ;EP
- N I,RET,FNUM,NEW,AIEN,IENS,NODE,CON,CONB,CONE,CONDC,COM,TODAY,FDA,IEN,ERR
+ N I,RET,FNUM,NEW,AIEN,IENS,NODE,CON,CONB,CIEN,CONE,CONDC,COM,TODAY,FDA,IEN,ERR
  S RET="",FNUM=$$FNUM^BGOREP
  S TODAY=$$DT^XLFDT
  S DFN=+DFN
@@ -154,10 +154,11 @@ SETCONT(RET,DFN,DATA) ;EP
  .I $D(IEN(1)) S RET=""
  .I $D(ERR) S RET="Unable to store patient"
  S I="" F  S I=$O(DATA(I)) Q:I=""!(RET'="")  D
+ .K FDA
  .S NODE=$G(DATA(I))
  .S FNUM=9000017.02101
  .Q:$P(NODE,U,2)=""
- .I $P(NODE,U,1)="" S AIEN="+1,"_DFN_","
+ .I $P(NODE,U,1)="" D NEW Q
  .E  S AIEN=$P(NODE,U,1)_","_DFN_","
  .S FDA=$NA(FDA(FNUM,AIEN))
  .S CON=$P(NODE,U,2)
@@ -167,12 +168,53 @@ SETCONT(RET,DFN,DATA) ;EP
  .S CONE=$P(NODE,U,4)
  .I CONE="" S CONE="@"
  .S @FDA@(.03)=CONE
- .S @FDA@(.04)=TODAY
+ .S @FDA@(.04)=$$FMTE^XLFDT(DT)
  .S CONDC=$P(NODE,U,5)
  .S:$L(CONDC) @FDA@(.05)=CONDC
  .S COM=$P(NODE,U,6)
  .S:$L(COM) @FDA@(.06)=COM
- .S RET=$$UPDATE^BGOUTL(.FDA,"E")
- .D:'RET EVT^BGOREP(DFN,1)
- S:'RET RET=DFN
+ .S RET=$$UPDATE^BGOUTL(.FDA,"E@")
+ .D:'$D(ERR) EVT^BGOREP(DFN,1)
+ S:'$D(ERR) RET=DFN
+ Q
+NEW ;Add new one
+ N APCDCMI,DA,DIC,DIE,X,CON,CONB,CONE,COM,CONDC
+ S APCDREPI=DFN
+ S CON=$P(NODE,U,2)
+ S CON=$O(^AUTTCM("B",CON,""))
+ Q:CON=""
+ S DIC(0)="AEMQ"
+ S DIC="^AUPNREP("_APCDREPI_",2101,"
+ S DA(1)=APCDREPI
+ S DIC("P")=$P(^DD(9000017,2101,0),U,2)
+ S X=CON
+ S DIE("NO^")=1
+ S DIC("DR")=""
+ K DD,D0,DO
+ D FILE^DICN
+ S CONB=$P(NODE,U,3)
+ S CONE=$P(NODE,U,4)
+ I CONE="" S CONE="@"
+ S CONDC=$P(NODE,U,5)
+ S COM=$P(NODE,U,6)
+ S DIE("NO^")=1
+ S (APCDY,DA)=+Y,DA(1)=APCDREPI,DR=".02///"_CONB_";.03///"_CONE_";.04///^S X=$$FMTE^XLFDT(DT)"_";.05///"_CONDC_";.06///"_COM
+ S DIE="^AUPNREP("_APCDREPI_",2101,",DIE("NO^")=1
+ D ^DIE
+ K DIE,DR,DA
+ D EVT^BGOREP(DFN,1)
+ Q
+DELCONT(RET,DFN,INP) ;EP-
+ N RET,DIE,DA,IEN,APCDY,APCDCM
+ S RET=""
+ Q:'DFN
+ Q:$P(INP,U,1)=""
+ K DIC,DA,DR
+ S APCDY=$P(INP,U,1)
+ S DA=APCDY,DA(1)=DFN,DR=".01///@"
+ S DIE="^AUPNREP("_DFN_",2101,"
+ D ^DIE
+ S DA=APCDY,DA(1)=DFN D MULTOSET^APCDRF
+ K DA
+ D EVT^BGOREP(DFN,2)
  Q

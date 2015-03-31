@@ -1,5 +1,5 @@
-SROAUTL2 ;BIR/ADM - Risk Assessment Utility ; [ 02/09/99  1:43 PM ]
- ;;3.0; Surgery ;**38,47,63,88**;24 Jun 93
+SROAUTL2 ;BIR/ADM - RISK ASSESSMENT UTILITY ;01/29/07
+ ;;3.0; Surgery ;**38,47,63,88,125,153,160**;24 Jun 93;Build 7
  S SRZ=0 F  S SRZ=$O(SRY(130,SRTN,SRZ)) Q:'SRZ  D
  .I SRY(130,SRTN,SRZ,"I")="" D TR S X=$T(@SRP),SRFLD=$P(X,";;",2),SRX(SRZ)=$P(SRFLD,"^",2)
  .I SRY(130,SRTN,SRZ,"I")="NS" D TR S X=$T(@SRP),SRFLD=$P(X,";;",2),SRDT=$P(SRFLD,"^",4) S:SRDT'="" SRLR(SRDT)=""
@@ -67,14 +67,28 @@ DEE ;;455^Highest Postoperative Serum Troponin I^Highest Troponin I^455.1
 DEEPA ;;455.1^Date of Highest Postop Troponin I^^
 DEF ;;456^Highest Postoperative Serum Troponin T^Highest Troponin T^456.1
 DEFPA ;;456.1^Date of Highest Postop Troponin T^^
+DHG ;;487^Preoperative INR^INR^487.1
+DHGPA ;;487.1^Date Preoperative INR was Performed^^
+DDD ;;444^Preoperative Anion Gap^Anion Gap^444.1
+DDDPA ;;444.1^Date Preoperative Anion Gap was Recorded^^
+DDE ;;445^Highest Postoperative Anion Gap^Highest Anion Gap^445.1
+DDEPA ;;445.1^Date Highest Anion Gap was Recorded^^
+EJD ;;504^Preoperative Hemoglobin A1c^Hemoglobin A1c^504.1
+EJDPA ;;504.1^Date Preoperative Hemoglobin A1c was Performed^^
 BG ;;27^Principal Procedure Code (CPT)^Principal CPT Code^
-BAD ;;214^Post Graduate Year ('0' for Staff Surgeon)^PGY of Primary Surgeon^
+BAD ;;214^PGY of Primary Surgeon ('0' for Staff Surgeon)^PGY of Primary Surgeon^
 PJCE ;;.035^Case Schedule Type^Surgical Priority^
 APJI ;;1.09^Wound Classification^Wound Classification^
 APAC ;;1.13^ASA Class^ASA Classification^
 PBB ;;.22^Time the Operation Began^Date/Time Operation Began^
 PBC ;;.23^Time the Operation Ends^Date/Time Operation Ended^
 CDJ ;;340^Number of RBC Units Transfused^RBC Units Transfused^
+DDC ;;443^Intraoperative Disseminated Cancer (Y/N)^Intraoperative Disseminated Cancer^
+DDF ;;446^Intraoperative Ascites (Y/N)^Intraoperative Ascites
 FF ;;66^Principal Diagnosis Code (ICD9)^Postop Diagnosis Code (ICD9)^
 BDG ;;247^Length of Postoperative Stay^Length of Postoperative Hospital Stay^
 AJB ;;102^Reason for not Creating an Assessment^Exclusion Criteria^
+PJAA ;;.011^In/Out-Patient Status^Hospital Admission Status^
+PAFF ;;.166^Attending Code^Attending Code
+PBA ;;.21^Anesthesia Care Start Time^Anesthesia Start^
+PBD ;;.24^Anesthesia Care End Time^Anesthesia Finish^

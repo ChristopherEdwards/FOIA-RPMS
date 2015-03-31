@@ -1,5 +1,5 @@
 ORWTPD ; slc/jdl - Personal Reference Tool ;6/20/02 11:40am [7/22/03 11:27am]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,120,132,148,141,173**;Dec 17,1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,120,132,148,141,173,195,243**;Dec 17,1997;Build 242
  ;; Allow user to customize the CPRS reports date/time
  ;; and max occurences setting
  ;
@@ -48,13 +48,15 @@ GETINDV(Y,RPT) ;----Get time/occ limits for this report
  Q
  ;
 GETSETS(Y) ;----Get time/occ limit set for each report
- N I,CNT,CAT S I=0,CNT=1,RST=""
+ N I,CNT,CAT,SEC
+ S I=0,CNT=1,RST=""
  F  S I=$O(^ORD(101.24,I)) Q:'I   D
- .I $P($G(^ORD(101.24,I,0)),U,8)="R",$P($G(^ORD(101.24,I,0)),U,12)'="M" D
- ..S CAT=$P(^ORD(101.24,I,0),U,7) I $S(CAT=1:1,CAT=6:1,1:0)!($P(^(0),U)="ORRP IMAGING") D
- ...D GETINDV(.RST,I)
- ...I $L($P(^ORD(101.24,I,2),U,4))>0 S Y(CNT)=I_U_$P(^ORD(101.24,I,2),U,4)_U_RST
- ...E  S Y(CNT)=I_U_$P(^ORD(101.24,I,2),U,3)_U_RST
+ . I $P($G(^ORD(101.24,I,0)),U,12)'="M" D
+ .. S CAT=$P(^ORD(101.24,I,0),U,7),SEC=$P(^(0),U,8)
+ .. I $S(CAT=1:1,CAT=6:1,1:0)!($P(^(0),U)="ORRP IMAGING") D
+ ... D GETINDV(.RST,I)
+ ... I $L($P(^ORD(101.24,I,2),U,4))>0 S Y(CNT)=I_U_$P(^(2),U,4)_" ["_SEC_"]"_U_RST
+ ... E  S Y(CNT)=I_U_$P(^ORD(101.24,I,2),U,3)_" ["_SEC_"]"_U_RST
  ... S CNT=CNT+1
  K I,CNT,RST,CAT
  Q
@@ -92,7 +94,7 @@ GETOCM(ORY) ;Get value of "ORCH CONTEXT MEDS"
  Q
  ;
 PUTOCM(ORY,ORVAL) ;Set value of "ORCH CONTEXT MEDS"
- Q:'$L(ORVAL)
+ I '$L(ORVAL) D DEL^XPAR("USR.`"_DUZ,"ORCH CONTEXT MEDS",1) Q
  N ORERR S ORERR=""
  D EN^XPAR(DUZ_";VA(200,","ORCH CONTEXT MEDS",1,ORVAL,.ORERR)
  S ORY=ORERR

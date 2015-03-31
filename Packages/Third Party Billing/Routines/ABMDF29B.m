@@ -1,10 +1,11 @@
-ABMDF29B ; IHS/ASDST/DMJ - ADA 2006 Dental Export -part 2 ;    
- ;;2.6;IHS Third Party Billing;**1,2,3,4,6,8,9**;NOV 12, 2009
+ABMDF29B ; IHS/SD/SDR - ADA 2006 Dental Export -part 2 ;    
+ ;;2.6;IHS Third Party Billing;**1,2,3,4,6,8,9,10,11,13**;NOV 12, 2009;Build 213
  ;abm*2.6*1 - split from ABMDF29A due to routine size
  ;IHS/SD/SDR - abm*2.6*2 - FIXPMS10006 - check what date to print FL37
  ;IHS/SD/PMT - abm*2.6*3 - HEAT8604 - moved entire form up one line
  ;IHS/SD/SDR - abm*2.6*3 - HEAT13493 - put facility NPI in box54 if UTAH MEDICAID
  ;IHS/SD/SDR - abm*2.6*6 - NOHEAT - AIDC local mods
+ ;IHS/SD/SDR - 2.6*13 - VMBP RQMT_95 - Updated to put VA STATION NUMBER in box 2.
  ;
 INS ;Ins Info
  S ABM("I")=0
@@ -13,18 +14,25 @@ INS ;Ins Info
  .S ABM=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,ABM,0),U)
  .I ABM'=ABMP("INS") D  Q
  ..I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,ABM,0)),U,3)="U" Q
- ..I $P($G(^AUTNINS(ABM,2)),U)="N"!($P($G(^AUTNINS(ABM,2)),U)="I") Q  ;ben/non-ben don't count
+ ..;I $P($G(^AUTNINS(ABM,2)),U)="N"!($P($G(^AUTNINS(ABM,2)),U)="I") Q  ;ben/non-ben don't count  ;abm*2.6*10 HEAT73780
+ ..S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM,".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
+ ..I ABMITYP="N"!(ABMITYP="I") Q  ;ben/non-ben don't count  ;abm*2.6*10 HEAT73780
  ..S Y=ABM
  ..S ABMP("GL")="^ABMDBILL(DUZ(2),"_ABMP("BDFN")_","
+ ..S ABM("XIEN")=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,"C",ABM("I"),0))  ;abm*2.6*11 HEAT96284
  ..D SEL^ABMDE2X
  ..Q:$G(ABMP("INS2"))=""
  ..S $P(ABMF(14),U)=$P($P(ABMV("X2"),U),";",2)  ;(5)  ;HEAT8604
  ..S $P(ABMF(16),U)=$P(ABMV("X2"),U,7)  ;(6)  ;HEAT8604
- ..I $P($G(^AUTNINS(ABMP("INS2"),2)),U)="P" D
+ ..;I $P($G(^AUTNINS(ABMP("INS2"),2)),U)="P" D  ;abm*2.6*10 HEAT73780
+ ..I ABMITYP="P" D
  ...S ABMPIEN=$O(^AUPNPRVT(ABMP("PDFN"),11,"B",ABMP("INS2"),0))
+ ...Q:+ABMPIEN=0  ;abm*2.6*11 HEAT88243
  ...S $P(ABMF(14),U)=$P($G(^AUPN3PPH($P($G(^AUPNPRVT(ABMP("PDFN"),11,ABMPIEN,0)),U,8),0)),U)  ;(5)  ;HEAT8604
  ...S $P(ABMF(16),U)=$P($G(^AUPN3PPH($P($G(^AUPNPRVT(ABMP("PDFN"),11,ABMPIEN,0)),U,8),0)),U,19)  ;(6)  ;HEAT8604
- ..I $P($G(^AUTNINS(ABMP("INS2"),2)),U)="D" D
+ ..;I $P($G(^AUTNINS(ABMP("INS2"),2)),U)="D" D  ;abm*2.6*10 HEAT73780
+ ..S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM,".211","I"),1,"I")  ;abm*2.6*11 HEAT96284
+ ..I ABMITYP="D" D  ;abm*2.6*10 HEAT73780
  ...S $P(ABMF(14),U)=$P($G(^DPT(ABMP("PDFN"),0)),U)  ;(5)  ;HEAT8604
  ...S $P(ABMF(16),U)=$P($G(^DPT(ABMP("PDFN"),0)),U,3)  ;(6)  ;HEAT8604
  ..S $P(ABMF(12),U,2)="X"  ;Other cov(4)
@@ -39,6 +47,11 @@ BNODES ; Bill nodes
  .S ABM("B8")=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),8))
  .S ABM("B9")=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9))
  S $P(ABMF(4),U)=$P(ABM("B5"),U,12)  ;Prior Auth(2)  ;abm*2.6*1 HEAT6673 and  abm*2.6*3 HEAT8604
+ ;start new code abm*2.6*13 VMBP RQMT_95
+ I ((ABMP("ITYP")="V")!($P($G(^AUTNINS(ABMP("INS"),0)),U)["VMBP"))&($P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)'="") D
+ .S $P(ABMF(4),U)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)  ;VA station# (2)
+ .S ABMF(41)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)  ;VA contract# (35)
+ ;end new code VMBP RQMT_95
  I $P(ABM("B9"),U)]"" S $P(ABMF(49),U,3)="X"  ;Occup. illness(45)  ;HEAT8604
 ACCD ;Accident?
  I $P(ABM("B8"),U,3)'="" D
@@ -55,7 +68,8 @@ FSYM I $P(ABM("B7"),U,4)="Y" D  ;ROI
  .S $P(ABMF(45),U,2)=$P(ABM("B7"),U,11)  ;(36)  ;abm*2.6*1 HEAT5760 and abm*2.6*3 HEAT8604
  I $P(ABM("B7"),U,5)="Y" D  ;AOB
  .S $P(ABMF(49),U)="SIGNATURE ON FILE"  ;(37)  ;abm*2.6*2 FIXPMS10006 and abm*2.6*3 HEAT8604
- .S $P(ABMF(49),U,2)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),1),U,7),0)),U),1:DT)  ;(37)  ;abm*2.6*1 HEAT5760  ;abm*2.6*2 FIXPMS10006 and abm*2.6*3 HEAT8604  abm*2.6*4 HEAT17615
+ .;S $P(ABMF(49),U,2)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),1),U,7),0)),U),1:DT)  ;(37)  ;abm*2.6*1 HEAT5760  ;abm*2.6*2 FIXPMS10006 and abm*2.6*3 HEAT8604  abm*2.6*4 HEAT17615  ;abm*2.6*11 HEAT81561
+ .S $P(ABMF(49),U,2)=$S($G(ABMP("PRINTDT"))="O":$P($G(^ABMDTXST(DUZ(2),$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),1),U,7),0)),U),$G(ABMP("PRINTDT"))="A":$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1)),U,5),1:DT)  ;(37)  ;abm*2.6*11 HEAT81561
  I $P($G(^AUTTLOC(ABMP("LDFN"),0)),U,2)="AIDC" S $P(ABMF(49),U,2)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,12)  ;abm*2.6*6 NOHEAT
  I ABMP("BTYP")=111 S $P(ABMF(43),U,2)="X"  ;Hosp(38)  ;HEAT8604
  I $$POS^ABMERUTL=32 S $P(ABMF(43),U,3)="X"  ;EFC(38)  ;HEAT8604

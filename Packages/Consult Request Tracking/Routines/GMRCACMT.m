@@ -1,6 +1,7 @@
-GMRCACMT ;SLC/DLT,DCM,MA - Comment Action and alerting ;11/15/02 07:27
- ;;3.0;CONSULT/REQUEST TRACKING;**4,14,18,20,22,29**;DEC 27, 1997
+GMRCACMT ;SLC/DLT,DCM,MA,JFR - Comment Action and alerting ;8/19/03 07:27
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,14,18,20,22,29,35,47,55**;DEC 27, 1997;Build 4
  ; This routine invokes IA #10060
+ ;
 COMMENT(GMRCO) ;Add a comment without changing the status
  K GMRCQIT,GMRCQUT N GMRCA
  I $D(IOTM),$D(IOBM),$D(IOSTBM) D FULL^VALM1
@@ -44,7 +45,12 @@ SENDMSG(NOTIF,GMRCO,GMRCATM) ;Send the alert
  I '$D(GMRCADUZ) S GMRCADUZ=""
  W !,"Processing Alerts..."
  S GMRCDFN=$P($G(^GMR(123,+GMRCO,0)),"^",2)
- S GMRCORTX=$S($L(GMRCORTX):GMRCORTX,1:"Comment Added to Consult ")_$$ORTX^GMRCAU(+GMRCO)
+ I '$L(GMRCORTX) D
+ . N TXT
+ . S TXT="Comment Added to "
+ . I $P($G(^GMR(123,GMRCO,12)),U,5)'="P" S GMRCORTX=TXT_"consult " Q
+ . S GMRCORTX=TXT_"remote consult "
+ S GMRCORTX=GMRCORTX_$$ORTX^GMRCAU(+GMRCO)
  D MSG^GMRCP(GMRCDFN,GMRCORTX,+GMRCO,NOTIF,.GMRCADUZ,$G(GMRCATM))
  Q
  ;
@@ -64,10 +70,10 @@ WHOTO ;Get the users who should receive an alert
  I GMRCRP=DUZ D  ;alert team if ord. prov. takes the action
  . S GMRCTM=1
  . W !,"Service update users will be notified.",!
- I GMRCUPD D  ; alert ord. prov if update users takes action
+ I +GMRCUPD>1,GMRCRP'=DUZ D  ; alert ord. prov if update users takes action
  . S GMRCADUZ(GMRCRP)=""
  . W !,"Requesting provider will be notified.",!
- I '$G(GMRCTM),'GMRCUPD D  ;alert both if not ord. prov or update user
+ I '$G(GMRCTM),+GMRCUPD<2 D  ;alert both if not ord. prov or update user
  . S GMRCTM=1,GMRCADUZ(GMRCRP)=""
  . W !,"Requesting provider and service update users will be notified.",!
  ;

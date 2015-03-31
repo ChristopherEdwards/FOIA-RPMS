@@ -1,5 +1,5 @@
-BARRERL ; IHS/SD/LSL - Bill File Error Checker ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;;OCT 26, 2005
+BARRERL ; IHS/SD/LSL - Bill File Error Checker ; 07/2/2010
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;*23*;OCT 26, 2005
  ;
  ; IHS/ASDS/LSL - 09/11/01 - Version 1.5 Patch 2 - NOIS CGA-0701-110093
  ;     Modified to set 0 node of A/R Bill Error File if it doesn't
@@ -9,7 +9,9 @@ BARRERL ; IHS/SD/LSL - Bill File Error Checker ;
  ; IHS/SD/LSL - 12/06/02 - Version 1.7 - NOIS NHA-0601-180049
  ;     Modified to look for 3P bill properly.
  ;
- ; *********************************************************************
+ ; JUNE 2013 P.OTT MODIFIED TO ACCOMODATE NEW INSURER TYPE FILE (^AUTTINTY)
+ ;
+ ; ***********************************************************************
  ;
  W !!,"This option will scan the A/R Bill file for problems and must be"
  W !,"run before printing any of the synchronization reports",!
@@ -129,8 +131,11 @@ MM ;check for 3p/ar mis-matches
  S:(($P(BAR3P(2),"^",1)+.005)\.01/100)'=(($P(BAR(0),"^",13)+.005)\.01/100) BARMM=1     ;amt billed
  S:$P(BAR3P(7),"^",1)'=$P(BAR(1),"^",2) BARMM=1      ;dos from
  ;insurer
- S BARITYP=$P($G(^AUTNINS(+$P(BAR3P(0),"^",8),2)),"^",1)
+ ;;;S BARITYP=$P($G(^AUTNINS(+$P(BAR3P(0),"^",8),2)),"^",1)
  S BARINAME=$P($G(^AUTNINS(+$P(BAR3P(0),U,8),0)),"^",1)
+ S BARITYPX=$P($G(^AUTNINS(+$P(BAR3P(0),U,8),3)),"^",1) ;PTR TO ^AUTTINTY (.211)
+ S BARITYP=$P($G(^AUTTINTY(BARITYPX,0)),U,2) ;P.OTT
+ ;I DUZ=838 W !,"BARITYP= ",BARITYP,"  ",$ZR R ASD QUIT  ;------------------>
  I BARITYP'="N" D
  .Q:BARINAME=$G(BAR(90050.01,BARBLDA,3,"E"))
  .S BARMM=1

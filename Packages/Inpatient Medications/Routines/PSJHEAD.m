@@ -1,5 +1,5 @@
-PSJHEAD ;BIR/KKA-PROFILE HEADER ;05 Oct 98 / 10:26 AM
- ;;5.0; INPATIENT MEDICATIONS ;**8,20,85,95**;16 DEC 97
+PSJHEAD ;BIR/KKA-PROFILE HEADER ; 4/1/08 4:29pm
+ ;;5.0; INPATIENT MEDICATIONS ;**8,20,85,95,203**;16 DEC 97;Build 13
  ;
  ; Reference to ^PS(55 supported by DBIA #2191.
  ;
@@ -47,7 +47,7 @@ ENHEAD ; print new page, name, ssn, dob, and ward
  .S LENCHK=0,LEN=$L(SI)
  .F  S WRD=$P(SI," ",WCNT) Q:$L(WRD)=0&(LENCHK'<LEN)  S WCNT=WCNT+1 W:$X+$L(WRD)>79 !,?21 W " ",WRD S LENCHK=LENCHK+$L(WRD)+1
  S PSGP=DFN,ALFLG=0 D ATS^PSJMUTL(68,68,2)
- W !?1,"Allergies: " D:PSGALG+PSGVALG+PSGADR+PSGVADR=0 NONE I PSGALG+PSGVALG+PSGADR_PSGVADR>0 D ALG,ADR I ALFLG D
+ W !?1,"Allergies: " D:PSGALG+PSGVALG+PSGADR+PSGVADR=0 NONE I PSGALG+PSGVALG+PSGADR+PSGVADR>0 D ALG,ADR I ALFLG D
  .W "See patient's first ",$S($E(IOST)="C":"screen",1:"page")," for Allergies/Adverse Reactions"
  I $D(^PS(55,DFN,5.1)),$P(^(5.1),"^",7) S X=$P(^(5.1),"^",10),X="* ALL "_$S($P(^(5.1),"^",7)=1:"UNIT DOSE ",1:"")_"ORDERS PLACED ON HOLD "_$E("(",X]"")_X_$E(")",X]"")_" *" W $C(7),!!?80-$L(X)\2,X
  Q

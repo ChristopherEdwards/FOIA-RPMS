@@ -1,13 +1,18 @@
 GMVPAR ; HOIFO/DP - XPARameter RPC ; 31-MAY-2002 10:06:18
- ;;5.0;GEN. MED. REC. - VITALS;;Oct 31, 2002
+ ;;5.0;GEN. MED. REC. - VITALS;**3**;Oct 31, 2002
  ; Integration Agreements:
- ; IA# 2263 [Supported] XPAR parameter call.
- ; IA# 2541 [Supported] Call to XUPARAM.
+ ; IA# 2263  [Supported] XPAR parameter call.
+ ; IA# 2541  [Supported] Call to XUPARAM.
+ ; IA# 10060 [Supported] FILE 200 fields
+ ; IA# 10090 [Supported] FILE 4 references
  ;
-DELLST ; [Procedure] Delete list of parameters
- D NDEL^XPAR(ENT,PAR,.ERR)
- S:'$G(ERR) @RESULTS@(0)="1^All instances removed"
- Q
+ ; This routine supports the following IAs:
+ ; #4367 - GMV PARAMETER RPC is called at RPC (private)
+ ; 
+ ;DELLST; [Procedure] Delete list of parameters
+ ;D NDEL^XPAR(ENT,PAR,.ERR)
+ ;S:'$G(ERR) @RESULTS@(0)="1^All instances removed"
+ ;Q
  ;
 DELPAR ; [Procedure] Delete single parameter value
  D DEL^XPAR(ENT,PAR,INST,.ERR)
@@ -22,11 +27,11 @@ ENTVAL ; [Procedure] Return value of the entity
  S @RESULTS@(0)=ENT
  Q
  ;
-GETHDR ; [Procedure] Returns common header format
- S X=$$FIND1^DIC(8989.51,,"QX",PAR)
- I X S @RESULTS@(0)=X_";8989.51^"_PAR
- E  S @RESULTS@(0)="-1^No such parameter ["_PAR_"]"
- Q
+ ;GETHDR; [Procedure] Returns common header format
+ ;S X=$$FIND1^DIC(8989.51,,"QX",PAR)
+ ;I X S @RESULTS@(0)=X_";8989.51^"_PAR
+ ;E  S @RESULTS@(0)="-1^No such parameter ["_PAR_"]"
+ ;Q
  ;
 GETLST ; [Procedure] Return all instances of a parameter
  D GETLST^XPAR(.RET,ENT,PAR,"E",.ERR)
@@ -41,14 +46,14 @@ GETPAR ; [Procedure] Returns external value of a parameter
  S @RESULTS@(0)=$$GET^XPAR(ENT,PAR,INST,"E")
  Q
  ;
-GETWP ; [Procedure] Returns WP text for a parameter
- D GETWP^XPAR(.RET,ENT,PAR,INST,.ERR)
- Q:$G(ERR,0)
- S TMP="RET"
- F  S TMP=$Q(@TMP) Q:TMP=""  D
- .S @RESULTS@($O(@RESULTS@(""),-1)+1)=@TMP
- S @RESULTS@(0)=$O(@RESULTS@(""),-1)_U_INST
- Q
+ ;GETWP; [Procedure] Returns WP text for a parameter
+ ;D GETWP^XPAR(.RET,ENT,PAR,INST,.ERR)
+ ;Q:$G(ERR,0)
+ ;S TMP="RET"
+ ;F  S TMP=$Q(@TMP) Q:TMP=""  D
+ ;.S @RESULTS@($O(@RESULTS@(""),-1)+1)=@TMP
+ ;S @RESULTS@(0)=$O(@RESULTS@(""),-1)_U_INST
+ ;Q
  ;
 RPC(RESULTS,OPTION,ENT,PAR,INST,VAL) ; [Procedure] Main RPC Hit Point
  ; RPC: [GMV PARAMETER]
@@ -75,25 +80,25 @@ RPC(RESULTS,OPTION,ENT,PAR,INST,VAL) ; [Procedure] Main RPC Hit Point
  D CLEAN^DILF
  Q
  ;
-SETLST ; [Procedure] Build list of parameters
- N GMVINS ; Instance Counter
- D DELLST(ENT,PAR)
- S GMVINS=""
- F  S GMVINS=$O(VAL(GMVINS)) Q:GMVINS=""  D
- .D EN^XPAR(ENT,PAR,GMVINS,VAL(GMVINS),.ERR)
- S:'$G(ERR) @RESULTS@(0)="1^List "_PAR_" rebuilt"
- Q
+ ;SETLST; [Procedure] Build list of parameters
+ ;N GMVINS ; Instance Counter
+ ;D DELLST(ENT,PAR)
+ ;S GMVINS=""
+ ;F  S GMVINS=$O(VAL(GMVINS)) Q:GMVINS=""  D
+ ;.D EN^XPAR(ENT,PAR,GMVINS,VAL(GMVINS),.ERR)
+ ;S:'$G(ERR) @RESULTS@(0)="1^List "_PAR_" rebuilt"
+ ;Q
  ;
 SETPAR ; [Procedure] Set single value into a parameter
  D EN^XPAR(ENT,PAR,INST,VAL,.ERR)
  S:'$G(ERR) @RESULTS@(0)="1^Parameter updated"
  Q
  ;
-SETWP ; [Procedure] Set WP text into a parameter
- S TXT=INST,TMP=""
- F  S TMP=$O(VAL(TMP)) Q:TMP=""  D
- .S TXT($O(TXT(""),-1)+1,0)=VAL(TMP)
- D EN^XPAR(ENT,PAR,INST,.TXT,.ERR)
- S:'$G(ERR) @RESULTS@(0)="1^WP Text Saved"
- Q
+ ;SETWP; [Procedure] Set WP text into a parameter
+ ;S TXT=INST,TMP=""
+ ;F  S TMP=$O(VAL(TMP)) Q:TMP=""  D
+ ;.S TXT($O(TXT(""),-1)+1,0)=VAL(TMP)
+ ;D EN^XPAR(ENT,PAR,INST,.TXT,.ERR)
+ ;S:'$G(ERR) @RESULTS@(0)="1^WP Text Saved"
+ ;Q
  ;

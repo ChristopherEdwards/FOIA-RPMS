@@ -1,5 +1,5 @@
 FHWOR2 ; HISC/NCA - HL7 Diet Order ;11/22/00  11:05
- ;;5.0;Dietetics;**6,28,27,35,38**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  S (DATE,D1)=SDT I DATE="" S TXT="No Start Date." D ERR^FHWOR Q
  D NOW^%DTC D CVT^FHWOR S D1=DATE
  S (DATE,D2)=EDT
@@ -26,7 +26,7 @@ FHWOR2 ; HISC/NCA - HL7 Diet Order ;11/22/00  11:05
  ; Process PROC
  D PROC^FHORD1
  S CAN=$$CANCEL^ORCDFH(FHRDER)
- I CAN S FHTF=$P($G(^FHPT(DFN,"A",ADM,0)),"^",4) D:FHTF ORCAN^FHWOR5 K FHRDER
+ I CAN S FHTF=$P($G(^FHPT(FHDFN,"A",ADM,0)),"^",4) D:FHTF ORCAN^FHWOR5 K FHRDER
  K FHRDER G KIL
 CAN ; Process Cancel or Discontinue
  S FHORD=$P(FILL,";",3) I 'FHORD D CSEND^FHWOR Q
@@ -37,10 +37,10 @@ CAN ; Process Cancel or Discontinue
  D KIL^FHORD3 Q
 NC ; Cancel Diet Order
  D NOW^%DTC S NOW=% S OLD=""
- I '$D(^FHPT(DFN,"A",+ADM,"DI",+FHORD,0)) Q
- I $P($G(^FHPT(DFN,"A",ADM,"DI",+FHORD,0)),"^",19)'="" Q
- S NSTR=0 F KK=0:0 S KK=$O(^FHPT(DFN,"A",ADM,"AC",KK)) Q:KK<1!(KK'<NOW)  S NSTR=KK
- F KK=NSTR-.000001:0 S KK=$O(^FHPT(DFN,"A",ADM,"AC",KK)) Q:KK<1  I $P(^(KK,0),"^",2)=FHORD G F1
+ I '$D(^FHPT(FHDFN,"A",+ADM,"DI",+FHORD,0)) Q
+ I $P($G(^FHPT(FHDFN,"A",ADM,"DI",+FHORD,0)),"^",19)'="" Q
+ S NSTR=0 F KK=0:0 S KK=$O(^FHPT(FHDFN,"A",ADM,"AC",KK)) Q:KK<1!(KK'<NOW)  S NSTR=KK
+ F KK=NSTR-.000001:0 S KK=$O(^FHPT(FHDFN,"A",ADM,"AC",KK)) Q:KK<1  I $P(^(KK,0),"^",2)=FHORD G F1
  Q
 F1 D T0^FHORD3
  Q
@@ -82,7 +82,7 @@ CODE ; Code Cancel/Discontinue Diet Order Status Change
  K ACT,DATE,FHORR,FILL,SITE,WKDAYS Q
 NA ; OE/RR Number Assign
  S FHORD=+$P(FILL,";",3) S:ADM'=$P(FILL,";",2) ADM=$P(FILL,";",2)
- S $P(^FHPT(DFN,"A",ADM,"DI",FHORD,0),"^",14)=+FHORN Q
+ S $P(^FHPT(FHDFN,"A",ADM,"DI",FHORD,0),"^",14)=+FHORN Q
 EL ; Late Trays HL7 to OE/RR
  K MSG S WKDAYS="",(EDT,SDT)=DTE
  S ITVL="ONCE",WKD="",SERV="L"

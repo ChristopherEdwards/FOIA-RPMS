@@ -1,5 +1,5 @@
-BTIULO13 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;20-Jun-2012 10:48;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009,1010**;NOV 04, 2004;Build 24
+BTIULO13 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;15-Jul-2013 10:03;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009,1010,1011**;NOV 04, 2004;Build 9
 TMORDER(DFN,TARGET) ;EP Med Orders for today
  NEW X,I,CNT,RESULT
  S CNT=0
@@ -13,7 +13,7 @@ TMORDER(DFN,TARGET) ;EP Med Orders for today
  Q "~@"_$NA(@TARGET)
 GETORD(RETURN,DFN) ;Get list of orders
  K RETURN
- NEW VDT,END,ORLIST,ORD,HDR,HLF,LOC,X,Y,C,GROUP,GROUPIEN,ORDER,OLDOR
+ NEW VDT,END,ORLIST,ORD,HDR,HLF,LOC,X,Y,C,GROUP,GROUPIEN,ORDER,OLDOR,NEWORD
  S C=0,OLDOR=0
  K ^TMP("ORR",$J)
  ;Get all orders for today
@@ -32,10 +32,13 @@ GETORD(RETURN,DFN) ;Get list of orders
  . S C=C+1
  . F Y=0:0 S Y=$O(ORD("TX",Y)) Q:'Y  D
  .. I $E(ORD("TX",Y),1)="<" Q
- .. I $E(ORD("TX",Y),1,6)="Change" Q
- .. ;I $E(ORD("TX",Y),1,3)="to " Q
- .. I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;I
- .. S RETURN(C)=$G(RETURN(C))_"  "_$P(ORD("TX",Y)," Quantity:")
+ .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999) ;patch 1011
+ .. ;I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;I
+ .. I $E(ORD("TX",Y),1,3)="to " D
+ ... K RETURN(C)
+ ... S NEWORD=$E(ORD("TX",Y),4,999)
+ ... S RETURN(C)="  "_NEWORD
+ .. E  S RETURN(C)=$G(RETURN(C))_"  "_$P(ORD("TX",Y)," Quantity:")
  I C=0 S RETURN(1)=""
  K ^TMP("ORR",$J)
  Q

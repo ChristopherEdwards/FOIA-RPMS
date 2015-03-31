@@ -1,5 +1,5 @@
 ABMDEOPT ; IHS/ASDST/DMJ - EDIT PAGE OPTIONS ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR,TPF - v2.5 p8 - added code for pending status (12)
  ;
@@ -46,6 +46,7 @@ B ;;     Back - Backup to the previous Edit Screen;;Back
 Q ;;     Quit - Stop Editing the Data of this Claim;;Quit
 M ;;     Mode - Change mode of export for this page;;Mode
 F ;;     Pend - Pend the claim and enter Pend Status;;Pend
+R ;;     Review - Review Previous Payments/Adjustments;;Review
  ;
 FLDS ;EP for Field Edit Controller
  S ABMO("Y")=+$E(Y,2,3) I ABMO("Y")>0&(ABMO("Y")<(ABMP("FLDS")+1)) S Y=ABMO("Y") G EJ

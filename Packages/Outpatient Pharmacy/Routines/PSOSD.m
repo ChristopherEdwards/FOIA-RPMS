@@ -1,8 +1,7 @@
 PSOSD ;BHAM ISC/SAB - action or informational profile ;11/18/92 18:30
- ;;7.0;OUTPATIENT PHARMACY;**2,17,155,176**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**2,17,155,176,300**;DEC 1997;Build 4
  ;External reference to ^PS(55 supported by DBIA 2228
  ;External reference to ^PSDRUG( supported by DBIA 221
- ;External reference to ^PPPPRT9 supported by DBIA 1085
  ;
 START S X=$$SITE^VASITE,PSOINST=$P(X,"^",3) K X
  K IOP,DIR S DIR("A")="Action or Informational (A or I): ",DIR("?",1)="Enter 'A' for action profile",DIR("?",2)="      'I' for informational profile",DIR("?")="      'E' to EXIT process",DIR("B")="A",DIR(0)="SAM^1:Action;0:Informational;E:Exit"
@@ -37,11 +36,10 @@ PAT N K D:$P($G(^PS(55,DFN,0)),"^",6)'=2 EN^PSOHLUP(DFN)
  S PSDT=PSDATE-1 I '$O(^PS(55,DFN,"P","A",PSDT)) D HD^PSOSD2 Q:$D(DIRUT)  W !!?13,">>>> NO PRESCRIPTIONS ON FILE <<<<" G PAT1
  K ^TMP($J,DFN),^TMP($J,"PRF"),^TMP($J,"ACT")
  F Z1=0:0 S PSDT=$O(^PS(55,DFN,"P","A",PSDT)) Q:'PSDT  D RX
- I '$D(^TMP($J,"PRF")) D HD^PSOSD2 W !!?13,">>>>> NO CURRENT PRESCRIPTIONS DATA FOUND <<<<<" S X="PPPPRT9" X ^%ZOSF("TEST") D:$T PLP^PPPPRT9(DFN) D PAT1 Q
+ I '$D(^TMP($J,"PRF")) D HD^PSOSD2 W !!?13,">>>>> NO CURRENT PRESCRIPTIONS DATA FOUND <<<<<" D PAT1 Q
  D ^PSOSDP:$G(PSOPOL)&('$D(CLINICX))
  D HD^PSOSD2:'$D(CLINICX)
  D ^PSOSD0,PAT1 Q:($D(DIRUT))
- S X="PPPPRT9" X ^%ZOSF("TEST") I $T D PLP^PPPPRT9(DFN)
  Q
 RX F J=0:0 S J=$O(^PS(55,DFN,"P","A",PSDT,J)) Q:'J  D RX1
  Q

@@ -1,5 +1,5 @@
 ORRCDPT ;SLC/MKB - Patient List for Physician Dashboard ; 19 Sept 2003 10:09 AM
- ;;1.0;CARE MANAGEMENT;;Jul 15, 2003
+ ;;1.0;CARE MANAGEMENT;**5**;Jul 15, 2003;Build 4
  ;
 MAIN(ORY,USER,TYPE,LIST) ; -- Return patient list for dashboard
  ; where USER    = pointer to #200
@@ -38,9 +38,12 @@ EN1(ORY,ORUSR,ORLST) ; -- Return patients on ORLST for ORUSR's dashboard
  N ORI,ORX,X,ORID,ORPAT,ORTN,ORBEG,OREND,ORJ,PAT,ERRI S ORUSR=+$G(ORUSR),ERRI=0
  K ^TMP($J,"ORRCY"),^TMP($J,"ORRCNOTF"),^TMP($J,"ORRCPTS")
  S ^TMP($J,"ORRCLST")=""
+ N ORSRV,FROM
+ S ORSRV=$G(^VA(200,DUZ,5)) I +ORSRV>0 S ORSRV=$P(ORSRV,U)
+ S FROM=$$GET^XPAR("USR^SRV.`"_+$G(ORSRV),"ORLP DEFAULT LIST SOURCE",1,"Q")
  S ORI=0 F  S ORI=$O(ORLST(ORI)) Q:ORI<1  S ORX=$G(ORLST(ORI)) D
  . S X=$$UP^XLFSTR($P(ORX,":")),ORID=+$P(ORX,":",2) D  Q:'$G(ORPAT(1))
- .. I X="X" D DEFLIST^ORQPTQ11(.ORPAT) D:$E($G(ORPAT))="M"  Q
+ .. I X="X" D DEFLIST^ORQPTQ11(.ORPAT) D:$G(FROM)="M"  Q
  ... S ORJ=0 F  S ORJ=$O(^TMP("OR",$J,"PATIENTS",ORJ)) Q:ORJ<1  S PAT=+$G(^(ORJ,0)),^TMP($J,"ORRCY",PAT)=""
  .. I X="T" D TEAMPTS^ORQPTQ1(.ORPAT,ORID) Q
  .. S ORTN=$S(X="P":"PROV",X="S":"SPEC",X="W":"WARD",X="C":"CLIN",1:"") Q:'$L(ORTN)

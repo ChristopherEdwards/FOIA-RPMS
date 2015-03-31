@@ -1,13 +1,15 @@
-PSOCSRL ;BIR/SAB-release interface for control substance pkg ;7/22/94
- ;;7.0;OUTPATIENT PHARMACY;**27,71**;DEC 1997
+PSOCSRL ;BIR/BHW-release interface for control substance pkg ;7/22/94
+ ;;7.0;OUTPATIENT PHARMACY;**27,71,118,148,247**;DEC 1997;Build 18
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(55 supported by DBIA 2228
  ;External reference to ^PS(59.7 supported by DBIA 694
- ;External reference to SERV^IBARX1 supported by DBIA 2245
-EN(RXP,XTYPE,PSRH) I '$D(PSOPAR) D  G:'$D(PSOPAR) EX
+ ;External reference to $$SERV^IBARX1 supported by DBIA 2245
+EN(RXP,XTYPE,PSRH) ;
+ N NCPDP
+ I '$D(PSOPAR) D  G:'$D(PSOPAR) EX
  .D ^PSOLSET I '$D(PSOPAR) W $C(7),!!,?5,"Site Parameters must be defined to use the Release option!",! Q
  .S PSOCSUB=1
- D CS^PSOCMOPB I $G(XFLAG) K XFLAG Q
+ K XFLAG D CS^PSOCMOPB(RXP) I $G(XFLAG) K XFLAG Q
  S Y=$G(^PS(59,PSOSITE,"IB")),PSOIBSS=$$SERV^IBARX1(+Y) I 'PSOIBSS D IBSSR^PSOUTL I 'PSOIBFL D  G EX
  .W $C(7),!!,"The IB SERVICE/SECTION defined in your site parameter file is not valid.",!,"You will not be able to release any medication until this is corrected!",!
  W !! S PSIN=+$P($G(^PS(59.7,1,49.99)),"^",2)
@@ -23,14 +25,22 @@ ORI ;orig
  S PSOCPN=$P(^PSRX(RXP,0),"^",2),QTY=$P($G(^PSRX(RXP,0)),"^",7),QDRUG=$P(^PSRX(RXP,0),"^",6)
  I '$P($G(^PSRX(RXP,2)),"^",13),+$P($G(^(2)),"^",2)'<PSIN S RXFD=$P(^(2),"^",2) D  G:$G(PSOUT) EX D:$G(LBLP) UPDATE I $G(ISUF) D UPDATE
  .S SUPN=$O(^PS(52.5,"B",RXP,0)) I SUPN,$D(^PS(52.5,"C",RXFD,SUPN)),$G(^PS(52.5,SUPN,"P"))'=1 S ISUF=1 Q
+ .;
  .F LBL=0:0 S LBL=$O(^PSRX(RXP,"L",LBL)) Q:'LBL  I '+$P(^PSRX(RXP,"L",LBL,0),"^",2),'$P(^(0),"^",5) S LBLP=1
  .Q:'$G(LBLP)  D ASK Q:$G(PSOUT)
+ .;
+ .; - Checking for OPEN/UNRESOLVED 3rd. Party Payer Rejects / NDC Editing
+ .I $$MANREL^PSOBPSUT(RXP,0)="^" K LBLP Q
+ .;
  .S:$D(^PSDRUG(QDRUG,660.1)) ^PSDRUG(QDRUG,660.1)=^PSDRUG(QDRUG,660.1)-QTY
  .Q:$P($G(^PSRX(RXP,2)),"^",13)
  .D NOW^%DTC S DIE="^PSRX(",DA=RXP,DR="31///"_%_";23///"_PSRH
- .;D EN^PSOHLSN1(RXP,"ZD")
  .D ^DIE K DIE,DR,DA,LBL
  .D EN^PSOHLSN1(RXP,"ZD")
+ .; ECME - 3rd Party Billing
+ .;
+ .; - Notifying IB through ECME of the Rx being released
+ .D IBSEND^PSOBPSUT(RXP,0)
  G EX
 REF ;release ref or par
  K LBLP,ISUF,IFN D QTY S:($P($G(XTYPE),"^")="P") $P(^PSRX(RXP,"TYPE"),"^")=0
@@ -38,7 +48,6 @@ EX K OUT,RX2,RXFD,RESK,ISUF,SUPN,%,DIC,IFN,J,DA,DR,DIE,X,Y,RXP,REC,DIRUT,PSOCPN,
  K DIR,DUOUT,DTOUT,LBL,LBLP,PSOUT
  Q
 UPDATE I $G(ISUF) W $C(7),!!?7,$S($P(XTYPE,"^")=1:"RE",$P(XTYPE,"^")="P":"PARTIAL ",1:"ORIGINAL")_"FILL ON SUSPENSE !",!,$C(7) Q
- ; I +$G(^PSRX(RXP,"IB")) S PSOCPRX=$P(^PSRX(RXP,0),"^") D CP^PSOCP
  S PSOCPRX=$P(^PSRX(RXP,0),"^") D CP^PSOCP
  W !?7,"PRESCRIPTION NUMBER "_$P(^PSRX(RXP,0),"^")_" RELEASED"
  Q
@@ -46,13 +55,24 @@ QTY S PSOCPN=$P(^PSRX(RXP,0),"^",2),QDRUG=$P(^PSRX(RXP,0),"^",6) K LBLP
  D:$P($G(^PSRX(RXP,$P(XTYPE,"^"),$P(XTYPE,"^",2),0)),"^")'<PSIN  K ISUF,LBLP G:$G(PSOUT) EX
  .S RXFD=$E($P(^PSRX(RXP,$P(XTYPE,"^"),$P(XTYPE,"^",2),0),"^"),1,7),SUPN=$O(^PS(52.5,"B",RXP,0)) I SUPN,$D(^PS(52.5,"C",RXFD,SUPN)),$G(^PS(52.5,SUPN,"P"))'=1 S ISUF=1 D UPDATE Q
  .I $P(^PSRX(RXP,$P(XTYPE,"^"),$P(XTYPE,"^",2),0),"^",$S($P($G(XTYPE),"^"):18,1:19))]""!($P(^(0),"^",16)) K IFN Q
+ .;
  .F LBL=0:0 S LBL=$O(^PSRX(RXP,"L",LBL)) Q:'LBL  I $P(^PSRX(RXP,"L",LBL,0),"^",2)=$S('$P(XTYPE,"^"):(99-$P(XTYPE,"^",2)),1:$P(XTYPE,"^",2)) S LBLP=1
  .Q:'$G(LBLP)  D ASK Q:$G(PSOUT)
+ .;
+ .; - Checking for OPEN/UNRESOLVED 3rd. Party Payer Rejects / NDC Editing
+ .I XTYPE,$$MANREL^PSOBPSUT(RXP,$P(XTYPE,"^",2))="^" K LBLP Q
+ .;
  .S IFN=$P(XTYPE,"^",2) S:$G(^PSDRUG(QDRUG,660.1))]"" QTY=$P(^PSRX(RXP,$P(XTYPE,"^"),$P(XTYPE,"^",2),0),"^",4),^PSDRUG(QDRUG,660.1)=^PSDRUG(QDRUG,660.1)-QTY
- .D NOW^%DTC S $P(^PSRX(RXP,$P(XTYPE,"^"),$P(XTYPE,"^",2),0),"^",$S($P($G(XTYPE),"^"):18,1:19))=%,^PSRX($S($P($G(XTYPE),"^"):"AL",1:"AM"),%,RXP,$P(XTYPE,"^",2))="",$P(^PSRX(RXP,$P(XTYPE,"^"),$P(XTYPE,"^",2),0),"^",5)=PSRH
+ .D NOW^%DTC S DIE="^PSRX("_RXP_","""_$P(XTYPE,"^")_""","
+ .S DA(1)=RXP,DA=$P(XTYPE,"^",2)
+ .S DR=$S(+XTYPE:17,1:8)_"///"_%_";"_$S(+XTYPE:4,1:.05)_"////"_PSRH
+ .D ^DIE K DIE,DR,DA
  .K PSODISPP S:'$P($G(XTYPE),"^") PSODISPP=1 D EN^PSOHLSN1(RXP,"ZD") K PSODISPP
+ .;
+ .; - Notifying IB through ECME of the Rx being released
+ .I XTYPE D IBSEND^PSOBPSUT(RXP,$P(XTYPE,"^",2))
+ .;
  .K:+XTYPE ^PSRX("ACP",$P($G(^PSRX(RXP,0)),"^",2),$P($G(^PSRX(RXP,1,$P(XTYPE,"^",2),0)),"^"),$P(XTYPE,"^",2),RXP)
- .; I +XTYPE,+$G(^PSRX(RXP,"IB")),$G(IFN),'$G(ISUF) S PSOCPRX=$P(^PSRX(RXP,0),"^"),YY=$P(XTYPE,"^",2) D CP^PSOCP
  .I +XTYPE,$G(IFN),'$G(ISUF) S PSOCPRX=$P(^PSRX(RXP,0),"^"),YY=$P(XTYPE,"^",2) D CP^PSOCP
  W:$G(IFN) !!?7,"PRESCRIPTION NUMBER "_$P(^PSRX(RXP,0),"^")_$S('+$G(XTYPE):" Partial Fill",1:" REFILL")_" #"_$P(XTYPE,"^",2)_" RELEASED"
  W:'$G(IFN) !!?7,$S(+$G(XTYPE):"REFILL",1:"PARTIAL")_" #"_$P(XTYPE,"^",2)_" NOT RELEASED"

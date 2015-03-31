@@ -1,14 +1,14 @@
-PSGOERS ;BIR/CML3-RENEW SELECTED ORDERS ;09-Dec-2010 09:05;SM
- ;;5.0; INPATIENT MEDICATIONS ;**11,29,35,47,58,1004,1009**;16 DEC 97
+PSGOERS ;BIR/CML3-RENEW SELECTED ORDERS ;29-May-2012 14:30;PLS
+ ;;5.0; INPATIENT MEDICATIONS ;**11,29,35,47,58,1004,1009,110,1015**;16 DEC 97;Build 62
  ;
  ; Reference to ^PS(50.7 is supported by DBIA 2180
  ; Reference to ^PS(55 is supported by DBIA 2191
  ; Reference to ^PSDRUG( is supported by DBIA 2192
  ; Reference to ^PSSLOCK is supported by DBIA 2789
  ; Reference to NOW^%DTC is supported by DBIA 10000
- ; Reference to ^DIE is supported by DBIA 100018
  ;
  ; Modified - IHS/CIA/PLS - 10/14/05 - Line RENEW+26
+ ;
  ;            IHS/MSC/PLS - 12/09/10 - Line HMSG+9
 MARK ; only mark order, not actually renew
  W !,"...marking ",PSGPDRGN," ",PSGDO,"..." S $P(^PS(55,PSGP,5,+PSGORD,4),"^",15,17)="1^"_DUZ_"^"_PSGDT,PSGAL("C")=13180 D ^PSGAL5 W "."
@@ -27,7 +27,7 @@ RENEW ; mark or renew order
  S PSGOER0=$G(^PS(55,PSGP,5,+PSGORD,0)),PSGST=$P(PSGOER0,"^",7),PSGOER2=$G(^(2)),PSGND4=$G(^(4)),PSGSI=$G(^(6)),PSGOSD=$P(PSGOER2,"^",2),PSGOFD=$P(PSGOER2,"^",4),PSGNEDFD=$P($$GTNEDFD^PSGOE7("U",PSGPDRG),U)_"^^"_PSGST
  N PSGOEAV S PSGOEAV=1,PSGOORD=PSGORD W "." K ^PS(53.45,PSJSYSP,1),^(2)
  I $$CHKDD() W !!,"...",PSGPDRGN," ",PSGDO," order NOT renewed..." Q
- W !!,"...renewing ",PSGOERS2,". ",PSGPDRGN," ",PSGDO,"...",!,"...creating new order..."
+ W !!,"...renewing ",PSGOERS2,". ",PSGPDRGN," ",PSGDO,"..."
  S PSGMR=$P(PSGOER0,"^",3),PSGMRN=$$ENMRN^PSGMI(PSGMR),PSGSM=$P(PSGOER0,"^",5),PSGHSM=$P(PSGOER0,"^",6),PSGPDRG=$P(PSGOER1,"^"),PSGDO=$P(PSGOER1,"^",2)
  S PSGSCH=$P(PSGOER2,"^"),PSGS0Y=$P(PSGOER2,"^",5),PSGS0XT=$P(PSGOER2,"^",6),PSGNESD=PSGSD,PSGNEFD=$S(PSGST="O":PSGSD,1:PSGFD)
  S:PSJPWD'=$P(PSGOER2,U,10) PSGS0Y=$$ENRNAT^PSGOU($P(PSGOER2,U,10),+PSJPWD,PSGSCH,PSGS0Y)
@@ -35,11 +35,13 @@ RENEW ; mark or renew order
  I $O(^PS(55,PSGP,5,+PSGORD,3,0)) S ^PS(53.45,PSJSYSP,1,0)=^(0),Q=0 F  S Q=$O(^PS(55,PSGP,5,+PSGORD,3,Q)) Q:'Q  S ^PS(53.45,PSJSYSP,1,Q,0)=$G(^(Q,0))
  I '$O(^PS(53.45,PSJSYSP,2,0)) D
  .S X=$O(^PS(55,PSGP,5,+PSGORD,1,0)) I X S (Q,Q1)=0 F  S Q=$O(^PS(55,PSGP,5,+PSGORD,1,Q)) Q:'Q  S ND=$G(^(Q,0)) I ND,$S('$P(ND,"^",3):1,1:$P(ND,"^",3)>DT) S Q1=Q1+1,^PS(53.45,PSJSYSP,2,Q1,0)=$P(ND,"^",1,3)
- S:$S(X:Q1,1:0) ^PS(53.45,PSJSYSP,2,0)="^53.4502P^"_Q1_"^"_Q1 D ^PSGOETO I +PSJSYSU=3,PSGOORD["O" D EN^PSGPEN(+PSGORD)
- W !,"...updating original order...",! K DA S DA(1)=PSGP,DA=+PSGOORD,PSGAL("C")=PSJSYSU*10+18000 D ^PSGAL5
- I PSGORD'["O",PSGSD<PSGOFD S PSGALR=70,DIE="^PS(55,"_PSGP_",5,",DR="34////"_+PSGSD S:PSGSD'>PSGDT DR=DR_";28////E"
- I  D ^DIE I $P($G(^PS(55,PSGP,5,+PSGOORD,0)),"^",21) D EN1^PSJHL2(PSGP,"SC",PSGOORD,"ORDER EXPIRED")
- S $P(PSGND4,"^",12,14)="^^",$P(PSGND4,"^",15,20)="^^^^^",$P(PSGND4,"^",22,24)="^^",^PS(55,PSGP,5,+PSGOORD,4)=PSGND4,$P(^(0),"^",26,27)=PSGORD_"^R"
+ D SPEED^PSGOER
+ ; PSGP,PSGORD) D UPDREN(PSGORD,PSGDT,PSGOEPR,PSGOFD,PSJNOO),UPDRENOE(PSGP,PSGORD,PSGDT
+ ;S:$S(X:Q1,1:0) ^PS(53.45,PSJSYSP,2,0)="^53.4502P^"_Q1_"^"_Q1 D ^PSGOETO I +PSJSYSU=3,PSGOORD["O" D EN^PSGPEN(+PSGORD)
+ ;W !,"...updating original order...",! K DA S DA(1)=PSGP,DA=+PSGOORD,PSGAL("C")=PSJSYSU*10+18000 D ^PSGAL5
+ ;I PSGORD'["O",PSGSD<PSGOFD S PSGALR=70,DIE="^PS(55,"_PSGP_",5,",DR="34////"_+PSGSD S:PSGSD'>PSGDT DR=DR_";28////E"
+ ;I  D ^DIE I $P($G(^PS(55,PSGP,5,+PSGOORD,0)),"^",21) D EN1^PSJHL2(PSGP,"SC",PSGOORD,"ORDER EXPIRED")
+ ;S $P(PSGND4,"^",12,14)="^^",$P(PSGND4,"^",15,20)="^^^^^",$P(PSGND4,"^",22,24)="^^",^PS(55,PSGP,5,+PSGOORD,4)=PSGND4,$P(^(0),"^",26,27)=PSGORD_"^R"
  D CALLBOP  ;IHS/CIA/PLS - 10/14/05 - Call to Automated Dispensing System
  Q
  ; Call Automated Dispensing System if present
@@ -74,6 +76,7 @@ EN ;
  ..S PSGOERS2=$P(PSGODDD(PSGOERS),",",PSGOERS1)
  ..I 'PSGOERS2 S EXITLOOP=1 Q
  ..S PSGORD=^TMP("PSJON",$J,PSGOERS2)
+ ..I $$CHKCOM Q
  ..I '$$LS^PSSLOCK(DFN,PSGORD) W !,$P($$DRUGNAME^PSJLMUTL(DFN,PSGORD),"^",1),!,"NO ACTION WAS TAKEN",!,$C(7) HANG 1 Q
  ..D RENEW
  ..; Call the unlock procedure
@@ -99,3 +102,9 @@ HMSG ; hold/'not to be given' message
 WO ;
  W $C(7),"  ??",! W:X]"" !,X S H1="Order number "_$G(PSGOERS2)_" "_H_", and cannot be renewed." W ! F H2=1:1:$L(H1," ") S H3=$P(H1," ",H2) W:$L(H3)+$X>78 ! W H3," "
  S F=1 K H,H1,H2,H3 Q
+CHKCOM() ;       Check if this order is a complex order
+ S PSJCOM=0
+ I PSGORD=+PSGORD S PSJCOM=PSGORD W !,"  Order ",PSGOERS2," is part of a complex order series, and cannot be renewed.",! H 2 Q PSJCOM
+ S PSJCOM=$S(PSGORD["U":$P($G(^PS(55,PSGP,5,+PSGORD,.2)),U,8),1:$P($G(^PS(53.1,+PSGORD,.2)),U,8))
+ I PSJCOM  W !,"  Order ",PSGOERS2," is part of a complex order series, and cannot be renewed.",! H 2
+ Q PSJCOM

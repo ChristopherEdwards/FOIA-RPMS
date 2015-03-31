@@ -1,9 +1,9 @@
 FHDCR2 ; HISC/REL/NCA - Find Order Changes ;4/20/95  11:33
- ;;5.0;Dietetics;**19**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EVT ; Find order changes,SF,FP,Isolation,SO,Location
  ; Except Allergies.
- I SF,$P($G(^FHPT(DFN,"A",ADM,"SF",+SF,0)),"^",2)>FHD,$P($G(^FHPT(DFN,"A",ADM,"SF",+SF,0)),"^",34)'="Y" S FLG2=1 Q
- F KK=FHD-.0001:0 S KK=$O(^FH(119.8,"AP",DFN,KK)) Q:KK>TIM!(KK<1)  F DA=0:0 S DA=$O(^FH(119.8,"AP",DFN,KK,DA)) Q:DA<1  D  Q:FLG2
+ I SF,$P($G(^FHPT(FHDFN,"A",ADM,"SF",+SF,0)),"^",2)>FHD,$P($G(^FHPT(FHDFN,"A",ADM,"SF",+SF,0)),"^",34)'="Y" S FLG2=1 Q
+ F KK=FHD-.0001:0 S KK=$O(^FH(119.8,"AP",FHDFN,KK)) Q:KK>TIM!(KK<1)  F DA=0:0 S DA=$O(^FH(119.8,"AP",FHDFN,KK,DA)) Q:DA<1  D  Q:FLG2
  .S Z=$G(^FH(119.8,DA,0)) Q:Z=""  S D1=$P(Z,"^",2),TYP=$P(Z,"^",5),ACT=$P(Z,"^",6)
  .I TYP="L" D  Q
  ..I "AT"[ACT S FLG2=1 Q

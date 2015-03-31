@@ -1,8 +1,8 @@
 FHMTK8 ; HIOFO/SS - DIET PATTERN RELATED UPDATES ;02/22/01  09:02
- ;;5.0;Dietetics;**30**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  ;
 SO ;check and update Stand.Orders,called from FHMTK7
- N FH S FH=$$DOSO(DFN,ADM)
+ N FH S FH=$$DOSO(FHDFN,ADM)
  Q
  ;
 DOSO(FHDFN,FHADM) ;check/update SO
@@ -14,7 +14,7 @@ DOSO(FHDFN,FHADM) ;check/update SO
  I FHDP'<0 Q:'$D(^TMP($J,+FHDP)) 0
  S FHCNT=0
  F FH=0:0 S FH=$O(^FHPT("ASP",FHDFN,FHADM,FH)) Q:FH<1  D
- . S FHS1=^FHPT(FHDFN,"A",FHADM,"SP",FH,0)
+ . S FHS1=$G(^FHPT(FHDFN,"A",FHADM,"SP",FH,0))
  . I $P(FHS1,"^",9)="Y" S FHCNT=FHCNT+1,FHPSO("C",FH)=FHS1
  Q $$CHKSO(FHDP,.FHPSO)  ;0-no changes,1-changes
  ;
@@ -41,7 +41,8 @@ CHKSO(FHDT,FHCSO) ;compares SO of diet patterns(FHDT)
 UPDTSO(FHDFN,FHADM,FHUCSO) ;update Standing orders. 
  ;FHUCSO-array(see CHKSO for format)
  N FHNOW,FH,FHNEW
- I '$D(DFN) N DFN S DFN=FHDFN ;for ^FHORX
+ ;D PATNAME^FHOMUTL I DFN="" Q ;for ^FHORX
+ ;I '$D(DFN) N DFN S DFN=FHDFN ;for ^FHORX
  I '$D(ADM) N ADM S ADM=FHADM
  D NOW^%DTC S FHNOW=%
  I '$D(DUZ) W !,"Unknown user" Q
@@ -76,7 +77,7 @@ AGN L +^FHPT(FHDFN,"A",FHADM,"SP",0)
  ;
  ;--------- Suppl Feedings --------------------
 SF ;check/update diet related SF,called from FHMTK7
- D DOSF(DFN,ADM)
+ D DOSF(FHDFN,ADM)
  Q
 DOSF(FHDFN,FHADM) ;check/update SF
  ;FHDFN-patient,FHADM-admission
@@ -111,7 +112,8 @@ DOSF(FHDFN,FHADM) ;check/update SF
 UPDSF(FHDFN,FHADM,FHSF,FHPSF) ;updates diet related Suppl.Feed.
  N FHX,FHNO,FHPNO,FHPNN,FHNOW
  D NOW^%DTC S FHNOW=%
- I '$D(DFN) N DFN S DFN=FHDFN ;for ^FHORX
+ ;D PATNAME^FHOMUTL I DFN="" Q ;for ^FHORX
+ ;I '$D(DFN) N DFN S DFN=FHDFN ;for ^FHORX
  I '$D(ADM) N ADM S ADM=FHADM
  I '$D(DUZ) W !,"Unknown user" Q
  ;if SF is diet related & diet pattr doesn't have SF - cancel it

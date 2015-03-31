@@ -1,0 +1,65 @@
+APSPNDCR ;IHS/MSC/MGH - DRUG NDC REPORT ;14-Mar-2013 18:39;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1016**;Sep 23, 2004;Build 74
+EN ;EP
+ N APSPNUM,APSPQ,APSPARY,APSPNAME,QFLG,APSPCNT
+ S APSPQ=""
+ ;All or selection of  drugs
+ W @IOF
+ W !,"Active Drug NDC Report",!!
+ S APSPNUM=$$DIR^APSPUTIL("S^A:All Drugs(this will be VERY LONG);U:Unmatched Drugs;N:Drugs with NO NDC code;M:Drugs with Mis-Matched codes","Type of Report? ",,,.APSPQ)
+ Q:APSPNUM=""
+ D DEV
+ Q
+DEV ;EP
+ N XBRP,XBNS
+ S XBRP="OUT^APSPNDCR"
+ S XBNS="APS*"
+ D ^XBDBQUE
+ Q
+OUT ;EP
+ N IEN,NODE,INACT,DRUG,INACTDT,NDC,VA,VANDC,VAIEN
+ U IO
+ D HDR
+ S IEN=0 F  S IEN=$O(^PSDRUG(IEN)) Q:IEN=""!('+IEN)  D
+ .S (VANDC,VA)=""
+ .S INACTDT=$$GET1^DIQ(50,IEN,100,"I")
+ .Q:+INACTDT
+ .S DRUG=$$GET1^DIQ(50,IEN,.01,"E")
+ .S NDC=$$GET1^DIQ(50,IEN,31)
+ .S NDC=$TR(NDC,"-","")
+ .S VAIEN=$$GET1^DIQ(50,IEN,22,"I")
+ .I VAIEN'="" D
+ ..S VA=$$GET1^DIQ(50.68,VAIEN,.01)
+ ..S VANDC=$$GET1^DIQ(50.68,VAIEN,13)
+ .I $L(VANDC)=12 S VANDC=$E(VANDC,2,12)
+ .I APSPNUM="A" D
+ ..S APSPARY(DRUG)=IEN_U_NDC_U_VA_U_VANDC
+ .I APSPNUM="U" D
+ ..I VA="" S APSPARY(DRUG)=IEN_U_NDC_U_VA_U_VANDC
+ .I APSPNUM="N" D
+ ..I NDC=""&(VANDC="") S APSPARY(DRUG)=IEN_U_NDC_U_VA_U_VANDC
+ .I APSPNUM="M" D
+ ..I NDC'=""&(VANDC'="")&(NDC'=VANDC) S APSPARY(DRUG)=IEN_U_NDC_U_VA_U_VANDC
+ S APSPQ=0
+ S DRUG="" F  S DRUG=$O(APSPARY(DRUG)) Q:DRUG=""!(+APSPQ)  D
+ .S NODE=$G(APSPARY(DRUG))
+ .S IEN=$P(NODE,U,1),NDC=$P(NODE,U,2),VA=$P(NODE,U,3),VANDC=$P(NODE,U,4)
+ .W !,IEN,?8,$E(DRUG,1,50),?58,NDC
+ .W !,?10,$E(VA,1,44),?58,VANDC,!
+ .I $Y+4>IOSL,IOST["C-" D PAUS Q:APSPQ  D HDR
+ .Q:APSPQ=1
+ K APSPARY
+ Q
+PAUS ;
+ N DTOUT,DUOUT,DIR
+ S DIR("?")="Enter '^' to Halt or Press Return to continue"
+ S DIR(0)="FO",DIR("A")="Press Return to continue or '^' to Halt"
+ D ^DIR
+ I $D(DUOUT) S APSPQ=1
+ Q
+HDR ;
+ I IOST["C-" W @IOF
+ W !,"Active Drug NDC Report"
+ W !,"IEN",?8,"Drug Name",?58,"NDC"
+ W !,?10,"VA Product",?58,"VA NDC",!
+ Q

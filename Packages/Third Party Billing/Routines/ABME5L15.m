@@ -1,5 +1,5 @@
 ABME5L15 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,11**;NOV 12, 2009;Build 133
  ;Header Segments
  ;
 EP ;START HERE
@@ -31,8 +31,13 @@ LOOP ;
  .Q:'$P(ABMRV(ABMI,ABMJ,ABMK),U,10)
  .D EP^ABME5DTP(472,"D8",$P(ABMRV(ABMI,ABMJ,ABMK),U,10))
  .D WR^ABMUTL8("DTP")
- D EP^ABME5REF("6R","")   ;line item control number
- D WR^ABMUTL8("REF")
+ ;D EP^ABME5REF("6R","")   ;line item control number  ;abm*2.6*11 HEAT92070
+ ;D WR^ABMUTL8("REF")  ;abm*2.6*11 HEAT92070
+ ;start new code abm*2.6*11 HEAT92070
+ I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,38)'="" D
+ .D EP^ABME5REF("6R","")
+ .D WR^ABMUTL8("REF")   ;line item control number
+ ;end new code HEAT92070
  ;
  ; Loop 2420A - Rendering Physician
  I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,13) D

@@ -1,5 +1,5 @@
 PSOBGMG1 ;BHAM ISC/LC - BINGO BOARD MANAGER (CONT'D) ; 12/06/94
- ;;7.0;OUTPATIENT PHARMACY;**10,22,60**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**10,22,60,268**;DEC 1997;Build 9
 INDX ;Re-index "ANAM" & "BA" X-REF
  N DA,DIE,DR,MNY,MRX,NNM,ONM,PTR
  F EN=0:0  S EN=$O(^PS(52.11,"ANAM",ADA,NAME,EN)) Q:'EN  D
@@ -8,7 +8,7 @@ INDX ;Re-index "ANAM" & "BA" X-REF
  .S PTR=$P(^PS(52.11,EN,0),"^"),NNM=$P(^DPT(PTR,0),"^") I NNM'=ONM D
  ..K ^PS(52.11,"ANAM",ADA,NAME,EN)
  ..S ^PS(52.11,"ANAM",ADA,MNY_MRX_" "_NNM,EN)=""
- ..S DA=EN,DR="8////"_NNM_"",DIE="^PS(52.11," L +^PS(52.11,DA):2 E  W !!,$C(7),ONM_" is being edited!",! Q
+ ..S DA=EN,DR="8////"_NNM_"",DIE="^PS(52.11," L +^PS(52.11,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),ONM_" is being edited!",! Q
  ..D ^DIE K DIE L -^PS(52.11,DA)
  Q
 WAIT ;compute/compare avg and normal wait times
@@ -46,7 +46,7 @@ QUE ;que job
  S ZTIO=DV,ZTRTN=$S($G(TCK)'="T":"ANAME^PSOBGMGR",1:"TICKET^PSOBGMGR"),ZTDESC="Run Bingo Board Display"
  D ^%ZTLOAD
  I $D(ZTSK) S TASK=ZTSK D
- .S DA=ADA,DR="15////"_TASK_"",DIE="^PS(59.3," L +^PS(59.3,DA):2 E  W !!,$C(7),"File is being edited!",! Q
+ .S DA=ADA,DR="15////"_TASK_"",DIE="^PS(59.3," L +^PS(59.3,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) E  W !!,$C(7),"File is being edited!",! Q
  .D ^DIE K DIE,DR L -^PS(59.3,DA)
  I $D(ZTSK)[0 W !!?5,"Auto-start aborted!"
  E  W !!?5,"Bingo Board has been queued!"

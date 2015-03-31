@@ -1,10 +1,10 @@
 BIRPC ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETURNS IMMUNIZATION HISTORY, FORECAST, IMM/SERV PROFILE.
  ;;  PATCH 1: Add API: FORCALL, to allow queued update of all BI Patients.
- ;;  PATCH 3: Add NDC and Elig Codes, plus Date of Event to default Hx string.
- ;;                                                                IMMHX+60
+ ;;  PATCH 3: Add NDC and Elig Codes, plus Date of Event to default Hx string. IMMHX+60
+ ;;  PATCH 5: Add Admin Note to default Hx string. IMMHX+60
  ;
  ;
  ;----------
@@ -69,10 +69,14 @@ IMMHX(BIHX,BIDFN,BIDE,BISKIN,BIFMT) ;PEP - Return Immunization History.
  ;---> Add NDC and Eligibility Codes, plus Date of Event to default Hx string.
  ;---> 85 24 = Date of Event (1201 field of V File) in MM/DD/YY
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Add Admin Note to default Hx string.
+ ;---> 87 25 = Administrative Note.
  ;
  D:'$D(BIDE)
  .;N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78 S BIDE(I)=""
- .N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78,80,82,84,85 S BIDE(I)=""
+ .;N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78,80,82,84,85 S BIDE(I)=""
+ .N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78,80,82,84,85,87 S BIDE(I)=""
  ;**********
  N BIMM S BIMM("ALL")=""
  ;

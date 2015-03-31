@@ -1,5 +1,5 @@
 GMVUTL1 ;HOIFO/YH,FT-EXTRACT CLINIC LIST AND MARK VITALS ENTERED IN ERROR ;6/11/03  09:25
- ;;5.0;GEN. MED. REC. - VITALS;**1**;Oct 31, 2002
+ ;;5.0;GEN. MED. REC. - VITALS;**1,3**;Oct 31, 2002
  ;
  ; This routine uses the following IAs:
  ;  #1246 - WIN^DGPMDDCF           (supported)
@@ -8,6 +8,9 @@ GMVUTL1 ;HOIFO/YH,FT-EXTRACT CLINIC LIST AND MARK VITALS ENTERED IN ERROR ;6/11/
  ; #10060 - FILE 200 fields        (supported)
  ; #10090 - FILE 4 references      (supported)
  ; #10104 - ^XLFSTR calls          (supported)
+ ;
+ ; This routine supports the following IAs:
+ ; #4414 - GMV MARK ERROR RPC is called at ERROR (private)
  ;
 ERROR(RESULT,GMVDATA)  ;GMV MARK ERROR [RPC entry point]
  ;GMVDATA CONSISTS OF THE FOLLOWING DATA:

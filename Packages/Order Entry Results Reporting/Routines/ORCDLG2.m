@@ -1,5 +1,6 @@
-ORCDLG2 ;SLC/MKB-Order dialogs cont ;3/13/01  11:16
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,60,79,94**;Dec 17, 1997
+ORCDLG2 ;SLC/MKB-Order dialogs cont ;10/12/2007
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,60,79,94,243**;Dec 17, 1997;Build 242
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
 DIR ; -- ^DIR read of X, returns Y
  N INPUTXFM,LKUP,REPL K DTOUT,DUOUT,DIRUT,DIROUT,DDER,Y
  S (X,Y)="",INPUTXFM=$P(DIR(0),U,3,99)
@@ -28,7 +29,7 @@ DIR1 I 'REPL W !,DIR("A")_$S($D(DIR("B")):DIR("B")_"// ",1:"") R X:DTIME I '$T S
  . ; S ORX=$$EXPLIST(X) F  S Y(Y+1)=$$FIND
  I DATATYPE="P" D DIC I Y'>0 D ERR G DIR1
  I (DATATYPE="R")!(DATATYPE="D") D DT I Y<0 D ERR G DIR1
- I "^F^N^S^Y^"[(U_DATATYPE_U),'REPL D  I $G(DDER) D ERR G DIR1
+ I "^F^N^S^Y^"[(U_DATATYPE_U) D  I $G(DDER) D ERR G DIR1 ;JEH 'REPL was  checked 
  . N I F I=1:1:31 S X=$TR(X,$C(I)) ; strip out control char's
  . S DIR("V")="" D ^DIR ; silent
  Q
@@ -41,7 +42,7 @@ FIND(LIST,X) ; -- find value X in LIST(#) or LIST("B",name)
  N Y,XP,CNT,MATCH,I,DIR
  S:$L(X)>63 X=$E(X,1,63) S X=$$UP^XLFSTR(X)
  S CNT=0,XP="" F  S XP=$O(@LIST@("B",XP)) Q:XP=""  I $S(X=+X:+XP=+X,1:$E(XP,1,$L(X))=X) S CNT=CNT+1,MATCH(CNT)=@LIST@("B",XP)_U_XP,DIR("A",CNT)=$J(CNT,3)_" "_XP
- I X=+X S Y=$G(@LIST@(X)) I $L(Y) W "   "_$P(Y,U,2) G:$$OK FQ S X="" W "   " ;force entire text to echo if CNT=1
+ I X=+X!(X?1"0."1.N) S Y=$G(@LIST@(X)) I $L(Y) W "   "_$P(Y,U,2) G:$$OK FQ S X="" W "   " ;force entire text to echo if CNT=1
  I 'CNT S Y="" G FQ
  I CNT=1 S Y=MATCH(1),XP=$P(Y,U,2) W $E(XP,$L(X)+1,$L(XP)) G FQ
  S DIR("A")="Select 1-"_CNT_": ",DIR(0)="NAO^1:"_CNT
@@ -136,7 +137,7 @@ FMDT(X) ; -- Return FM form of date X
  Q Y
  ;
 WP ; -- edit WP field
- N DIC,DWLW,DWPK,DIWESUB,DONE,ORLINEDT
+ N DIC,DWLW,DWPK,DIWESUB,DONE,ORLINEDT,LCNT,UPCARR
  S DIC="^TMP(""ORWORD"",$J,"_PROMPT_","_INST_",",DWLW=80,DWPK=1
  S DIWESUB=$P(DIR("A"),":"),ORLINEDT=$$LINEDTR(DUZ)
  I '$D(^TMP("ORWORD",$J,PROMPT,INST)) M:$D(^ORD(101.41,+ORDIALOG,10,ITM,8))>9 ^TMP("ORWORD",$J,PROMPT,INST)=^(8)
@@ -145,6 +146,10 @@ WP1 W:ORLINEDT !,DIR("A") S DIWESUB=$P(DIR("A"),":")
  D EN^DIWE I $D(DTOUT)!($D(DUOUT)) S ORQUIT=1 Q
  I REQD,'$O(^TMP("ORWORD",$J,PROMPT,INST,0)) W $C(7),!!,"A response is required!" G:'$$DONE WP1 S ORQUIT=1 Q
  I '$O(^TMP("ORWORD",$J,PROMPT,INST,0)) K ^TMP("ORWORD",$J,PROMPT,INST),ORDIALOG(PROMPT,INST) Q  ;empty
+ S LCNT="",UPCARR=0
+ F  S LCNT=$O(^TMP("ORWORD",$J,PROMPT,INST,LCNT)) Q:LCNT=""!(UPCARR=1)  D
+ .I LCNT>0,$G(^TMP("ORWORD",$J,PROMPT,INST,LCNT,0))[U S UPCARR=1
+ I UPCARR=1 W !!,"An ""^"" is not allowed in a word processing field." G:'$$DONE WP1 S ORQUIT=1 Q
  S ORDIALOG(PROMPT,INST)="^TMP(""ORWORD"","_$J_","_PROMPT_","_INST_")",DONE=1
  I $D(^ORD(101.41,+ORDIALOG,10,ITM,5)) X ^(5) Q:$G(ORQUIT)!($G(DONE))  G WP1
  Q

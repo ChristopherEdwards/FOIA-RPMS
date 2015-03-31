@@ -1,14 +1,9 @@
 PSJFTR ;BIR/JCH-INPATIENT MEDS FREE TEXT DOSAGE REPORT ;15 Nov 01 / 9:45 AM
- ;;5.0; INPATIENT MEDICATIONS ;**65,73,76**;16 Dec 97
+ ;;5.0; INPATIENT MEDICATIONS ;**65,73,76,111**;16 Dec 97
  ;
  ; Reference to ^PSDRUG is supported by DBIA 2192.
  ; Reference to ^PS(55 is supported by DBIA 2191.
  ; Reference to ^PSSORPH is supported by DBIA 3234.
- ; Reference to ^VA(200 is supported by DBIA 10060.
- ; Reference to ^XLFDT is supported by DBIA 10103.
- ; Reference to ^%ZTLOAD is supported by DBIA 10063.
- ; Reference to ^%ZIS is supported by DBIA 10086.
- ; Reference to ^%ZISC is supported by DBIA 10089.
  ; 
  ;List IP orders that have free text dosages for a given date range.
  ;Report is sorted by drug and physician.
@@ -76,7 +71,7 @@ DET ;
  ..W ?75,+Y,!,"    "
  ..S Q=Q+1,Q2=Q
  ..S PR=0 F  S PR=$O(^TMP("PSJFTR",$J,"B",J,L,PSGDRG,PR)) Q:'PR  D
- ...S Y=^(PR),T=$S(PR=.1:"PROVIDER NOT FOUND",1:$P(^VA(200,+PR,0),"^"))
+ ...S Y=^TMP("PSJFTR",$J,"B",J,L,PSGDRG,PR),T=$S(PR=.1:"PROVIDER NOT FOUND",1:$P(^VA(200,+PR,0),"^"))
  ...S T=T_":"_Y_"  "
  ...W:($X+$L(T))>74 !?4
  ...W T
@@ -89,7 +84,7 @@ PRD ;
  I 'PSJPR S PSJPR=.1
  I '$D(^TMP("PSJFTR",$J,"B",PSJDRN,ORDOSE,PSGDRG,PSJPR)) D  Q
  .S ^TMP("PSJFTR",$J,"B",PSJDRN,ORDOSE,PSGDRG,PSJPR)=1
- .S ^TMP("PSJFTR",$J,"B",PSJDRN,ORDOSE,PSGDRG,0)=$G(^(0))+1
+ .S ^TMP("PSJFTR",$J,"B",PSJDRN,ORDOSE,PSGDRG,0)=$G(^TMP("PSJFTR",$J,"B",PSJDRN,ORDOSE,PSGDRG,0))+1
  I $D(^TMP("PSJFTR",$J,"B",PSJDRN,ORDOSE,PSGDRG,PSJPR)) D  Q
  .S Y=^TMP("PSJFTR",$J,"B",PSJDRN,ORDOSE,PSGDRG,PSJPR)
  .S Y=Y+1,^TMP("PSJFTR",$J,"B",PSJDRN,ORDOSE,PSGDRG,PSJPR)=Y
@@ -101,7 +96,7 @@ CHKPOS ; Check for possible doses
  S NOTXT=0
  S NXT="" F  S NXT=$O(DARRAY(NXT)) Q:'NXT!NOTXT  D
  .Q:$P($G(^PSDRUG(PSGDRG,"DOS1",NXT,0)),"^",3)'["I"
- .S POSDOSE=$P(DARRAY(NXT),"^",11) I POSDOSE=ORDOSE S NOTXT=1
+ .S POSDOSE=$P(DARRAY(NXT),"^",1)_$P(DARRAY(NXT),"^",2) I POSDOSE=ORDOSE S NOTXT=1
  Q
  ;
 CHKLOC ; Check for local doses

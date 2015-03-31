@@ -1,5 +1,5 @@
 PSONVARP ;BHM/MFR - Non-VA Med Usage Report - Input ;04/10/03
- ;;7.0;OUTPATIENT PHARMACY;**132**;13 Feb 97
+ ;;7.0;OUTPATIENT PHARMACY;**132,118,326**;13 Feb 97;Build 11
  ;External reference to ^%DT is supported by DBIA 10003
  ;External reference to ^%ZTLOAD is supported by DBIA 10063
  ;External reference to ^%ZIS is supported by DBIA 10086
@@ -64,11 +64,11 @@ SRT1 ; - Selection of PATIENTS to print on the Report
  N DIC,X,I K PSOPT S PSOAPT=0
  W !!,?5,"You may select a single or multiple PATIENTS,"
  W !,?5,"or enter ^ALL to select all PATIENTS.",!
- S DIC=2,DIC(0)="QEAM",DIC("A")="     PATIENT: "
- F  D ^DIC Q:Y<0  S:'$$DEAD(+Y,1) PSOPT(+Y)="" K DIC("B")
- I X="^ALL" S PSOAPT=1 K PSOPT,DUOUT Q
+ S DIC(0)="QEAM",DIC("A")="     PATIENT: "
+ F  D EN^PSOPATLK S Y=PSOPTLK Q:+Y<1  S:'$$DEAD(+Y,1) PSOPT(+Y)="" K DIC("B"),PSOPTLK
+ I Y="^ALL" S PSOAPT=1 K PSOPT,DUOUT Q
  I $D(DUOUT)!($D(DTOUT)) S OK=0 Q
- I '$D(PSOPT),Y<0 S OK=0 Q
+ I '$D(PSOPT),Y<1 S OK=0 Q
  Q
  ;
 SRT2 ; - Selection of ORDERABLE ITEMS to print on the Report
@@ -116,7 +116,7 @@ DEAD(DFN,DSPL) ; Check if Patient has a Date Of Death on File
  N VADM,Y
  I '$G(DFN) Q 0
  D DEM^VADPT I $G(VADM(6))="" Q 0
- I $G(DSPL) W !?10,$P($G(VADM(1)),"^")," (",$P($G(VADM(2)),"^",2),") DIED ",$P($G(VADM(6)),"^",2),$G(7)
+ I $G(DSPL) W !?10,$P($G(VADM(1)),"^")," (",$P($G(VADM(2)),"^",2),") DIED ",$P($G(VADM(6)),"^",2),$C(7)
  Q 1
  ;
 HL1(S) ; - Help for the SORT BY prompt

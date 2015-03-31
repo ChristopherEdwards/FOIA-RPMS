@@ -1,9 +1,10 @@
 ABMDF29X ; IHS/ASDST/DMJ - ADA-2006 FORM ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**3,8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,8,9,11,13**;NOV 12, 2009;Build 213
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25568 - Corrected alignment issues
  ; IHS/SD/PMT - abm*2.6*3 - HEAT8604 - Corrected report to start at line 1, not line 2
  ; IHS/SD/SDR - abm*2.6*3 - HEAT12620 - Moved last lin of box 48 one space left
+ ;IHS/SD/SDR - 2.6*13 - VMBP - RQMT_95 - Added code to populated remarks box 35 (line 41)
  ;************************************************************************************
  ;
 MARG ;Set left and top margins
@@ -30,7 +31,8 @@ LOOP ;
  ;
  ;start new code abm*2.6*8 HEAT41791
  ;added NE Medicaid code for W0047 to print first
- I $P(ABMF(7),U)["NEBRASKA MEDICAID" D
+ ;I $P(ABMF(7),U)["NEBRASKA MEDICAID" D  ;abm*2.6*11 HEAT117086
+ I ABMP("ITYP")="D" D  ;abm*2.6*11 HEAT117086
  .F ABMLOOP=26:1:36 D
  ..Q:'$D(ABMF(ABMLOOP))
  ..S ABMCHK=$TR($P(ABMF(ABMLOOP),U,6)," ","")
@@ -162,6 +164,8 @@ TEXT ;;TABS;;FIELD LENGTH
  ;40 ;;5;;73  HEAT8604
 39 ;;5;;73
  ;44 ;;42^50^55^59^67^72^77;;1^1^1^1^2R^2R^2R  HEAT8604
+41 ;;1;;40
+ ;abm*2.6*13 VMBP RQMT_95
 43 ;;42^50^55^59^67^72^77;;1^1^1^1^2R^2R^2R
  ;46 ;;1^28^42^51^65;;25^10D^1^1^10D  HEAT8604
 45 ;;1^28^42^51^65;;25^10D^1^1^10D

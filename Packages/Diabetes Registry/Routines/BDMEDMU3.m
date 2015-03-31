@@ -1,0 +1,223 @@
+BDMEDMU3 ; IHS/CMI/LAB - prompt for refusal value ; 27 Jan 2011  2:41 PM
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;
+ ;
+HEPB(Y) ;EP
+ I $G(Y)="" Q 0
+ I '$D(^AUTTIMM(Y,0)) Q 0
+ I $P(^AUTTIMM(Y,0),U,3)=8 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=42 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=43 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=44 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=45 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=51 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=102 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=104 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=110 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=132 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=146 Q 1
+ Q 0
+FLU(Y) ;EP
+ I $G(Y)="" Q 0
+ I '$D(^AUTTIMM(Y,0)) Q 0
+ I $$VAL^XBDIQ1(9999999.14,+Y,.09)="FLU" Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=88 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=16 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=15 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=111 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=135 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=140 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=141 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=144 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=123 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=149 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=150 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=151 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=153 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=155 Q 1
+ I $P(^AUTTIMM(Y,0),U,3)=158 Q 1
+ Q 0
+PN(Y) ;EP
+ I $G(Y)="" Q 0
+ I '$D(^AUTTIMM(Y,0)) Q 0
+ I $$VAL^XBDIQ1(9999999.14,+Y,.09)="PNEUMO" Q 1
+ N Z
+ S Z=$P(^AUTTIMM(Y,0),U,3)
+ I Z=33 Q 1
+ I Z=100 Q 1
+ I Z=109 Q 1
+ I Z=152 Q 1
+ I Z=133 Q 1
+ Q 0
+TD(Y) ;EP
+ I $G(Y)="" Q 0
+ I '$D(^AUTTIMM(Y,0)) Q 0
+ ;I $P(^AUTTIMM(Y,0),U,7)=1 Q 0
+ N Z
+ S Z=$P(^AUTTIMM(Y,0),U,3)
+ I Z=1 Q 1
+ I Z=9 Q 1
+ I Z=20 Q 1
+ I Z=22 Q 1
+ I Z=28 Q 1
+ I Z=35 Q 1
+ I Z=50 Q 1
+ I Z=106 Q 1
+ I Z=107 Q 1
+ I Z=110 Q 1
+ I Z=113 Q 1
+ I Z=115 Q 1
+ I Z=120 Q 1
+ I Z=130 Q 1
+ I Z=132 Q 1
+ I Z=138 Q 1
+ I Z=139 Q 1
+ I Z=142 Q 1
+ Q 0
+REF ;EP
+ K BDMEX,BDMETF,BDMETERR,BDMETOLD,BDMETID,BDMETIEN,BDMERDN,BDMETREA
+ D ^XBFMK K DIADD,DLAYGO
+ S DIR(0)="9000022,.03",DIR("A")="Enter Date of Refusals/Declined Service" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EOJ Q
+ S BDMEDRN=Y
+ S DIC="^AUTTREFT(",DIC(0)="AEMQ",DIC("A")="Enter Service Type: " D ^DIC K DIC
+ I Y=-1 W !,"exiting......." Q
+ S BDMEX=+Y
+VALUE ;EP - called from input template
+ S BDMETF=$P(^AUTTREFT(BDMEX,0),U,2)
+ I 'BDMETF S BDMETERR=1 D EOJ Q
+ S DIC("B")=$S($D(BDMETOLD):BDMETOLD,1:""),DIC("A")="Enter the "_$P(^DIC(BDMETF,0),U)_" value: ",DIC=BDMETF,DIC(0)="AEMQ" D ^DIC K DIC
+ I Y=-1 W !!,"Invalid entry.  Try again." G REF
+ S BDMETIEN=+Y,BDMETID=$$VAL^XBDIQ1(BDMETF,BDMETIEN,$P(^AUTTREFT(BDMEX,0),U,3))
+ S DIR(0)="9000022,.07",DIR("A")="Enter Reason not Done" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) W !,"Reason is Required" G REF
+ I Y="" W !,"Reason is Required" G REF
+ S BDMETREA=Y
+ W !,"creating Refusal entry in PCC..."
+ K DIC,DLAYGO,DIADD
+ S DIC(0)="L",DIC="^AUPNPREF(",X=BDMEX,DIC("DR")=".02////"_BDMEDMPT_";.03////"_BDMEDRN_";.04////"_BDMETID_";.05////"_BDMETF_";.06////"_BDMETIEN_";.07////"_BDMETREA K DD,D0 D FILE^DICN
+ I Y=-1 W !!,"Creating refusal entry failed...." H 2 D ^XBFMK G REF
+ D ^XBFMK
+ K DIADD,DLAYGO
+ W !! S DIR(0)="Y",DIR("A")="Would you like to enter another Service not done",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EOJ Q
+ I 'Y D EOJ Q
+ G REF
+EOJ ;
+ K BDMEX,BDMETF,BDMETERR,BDMETOLD,BDMETID,BDMETIEN
+ D ^XBFMK
+ K Y
+ Q
+BTL(A) ;EP - called from screen on BARRIERS TO LEARN
+ I '$D(^AUTTHF(A,0)) Q 0
+ I $P(^AUTTHF(A,0),U,10)'="F" Q 0
+ I $P(^AUTTHF(A,0),U,13) Q 0
+ NEW B S B=$O(^AUTTHF("B","BARRIERS TO LEARNING",0)) I 'B Q 0
+ I $P(^AUTTHF(A,0),U,3)'=B Q 0
+ Q 1
+ ;
+RTL(A) ;EP - called from dd
+ I '$D(^AUTTHF(A,0)) Q 0
+ I $P(^AUTTHF(A,0),U,10)'="F" Q 0
+ I $P(^AUTTHF(A,0),U,13) Q 0
+ NEW B S B=$O(^AUTTHF("B","READINESS TO LEARN",0)) I 'B Q 0
+ I $P(^AUTTHF(A,0),U,3)'=B Q 0
+ Q 1
+ ;
+LP(A) ;EP - called from screen on LEARNING PREFERENCE
+ I '$D(^AUTTHF(A,0)) Q 0
+ I $P(^AUTTHF(A,0),U,10)'="F" Q 0
+ I $P(^AUTTHF(A,0),U,13) Q 0
+ NEW B S B=$O(^AUTTHF("B","LEARNING PREFERENCE",0)) I 'B Q 0
+ I $P(^AUTTHF(A,0),U,3)'=B Q 0
+ Q 1
+BTLHF ;EP
+ K BDMEVSIT
+ I $P($G(^BDMEDMUP(BDMEDA,11)),U,8)="" Q
+ S BDMEDMDT=$S($P(BDMEREC1,U,17)]"":$P(BDMEREC1,U,17),1:DT)
+ S BDMEMTYP=$P(^BDMEDMUP(BDMEDA,11),U,8)
+ S BDMEMCAT=$P(^AUTTHF(BDMEMTYP,0),U,3)
+ D EVSIT^BDMEDMUP ;get event visit
+ I '$G(BDMEVSIT) S T="Could not Create PCC Visit when attempting to update Barriers to Learning health factor." D ERR^BDMEDMUP(T) Q
+ S (X,G)=0 F  S X=$O(^AUPNVHF("AD",BDMEVSIT,X)) Q:X'=+X!(G)  I $P(^AUPNVHF(X,0),U)=BDMEMTYP S G=1
+ I G S T="Already have a health factor of "_$P(^AUTTHF($P(^BDMEDMUP(BDMEDA,11),U,8),0),U)_" on Visit Date "_$$FMTE^XLFDT($P(^AUPNVSIT(BDMEVSIT,0),U)) D ERR^BDMEDMUP(T) Q
+ K APCDALVR
+ S APCDALVR("APCDPAT")=BDMEDMPT
+ S APCDALVR("APCDVSIT")=BDMEVSIT
+ S APCDALVR("APCDATMP")="[APCDALVR 9000010.23 (ADD)]"
+ S APCDALVR("APCDTHF")="`"_BDMEMTYP
+ D ^APCDALVR
+ I $D(APCDALVR("APCDAFLG")) S T="Error creating V Health Factor Entry for Barriers to Learning.  PCC not updated." D ERR^BDMEDMUP(T)
+ K APCDALVR
+ ;update health status
+ ;S BDMEHSE="",X=0 F  S X=$O(^AUPNHF("AC",BDMEDMPT,X)) Q:X'=+X!(BDMEHSE)  I $P(^AUTTHF($P(^AUPNHF(X,0),U),0),U,3)=BDMEMCAT S BDMEHSE=X
+ ;I BDMEHSE D  Q
+ ;.D ^XBFMK K DIADD
+ ;.S DA=BDMEHSE,DIE="^AUPNHF(",DR=".01///`"_BDMEMTYP_";.03////"_DT D ^DIE
+ ;.I $D(Y) S T="Error updating Health Status entry for Barriers to Learning." D ERR^BDMEDMUP(T)
+ ;.D ^XBFMK
+ ;D ^XBFMK
+ ;S X=BDMEMTYP,DIC("DR")=".02////"_BDMEDMPT_";.03////"_DT,DIC(0)="L",DIADD=1,DLAYGO=9000019,DIC="^AUPNHF(" D FILE^DICN
+ ;I Y=-1 S T="Error adding health status entry for Barriers to Learning." D ERR^BDMEDMUP(T)
+ D ^XBFMK K DIADD,DLAYGO
+ Q
+RTLHF ;EP
+ K BDMEVSIT
+ I $P($G(^BDMEDMUP(BDMEDA,11)),U,9)="" Q
+ S BDMEDMDT=$S($P(BDMEREC1,U,18)]"":$P(BDMEREC1,U,18),1:DT)
+ S BDMEMTYP=$P(^BDMEDMUP(BDMEDA,11),U,9)
+ S BDMEMCAT=$P(^AUTTHF(BDMEMTYP,0),U,3)
+ D EVSIT^BDMEDMUP ;get event visit
+ I '$G(BDMEVSIT) S T="Could not Create PCC Visit when attempting to update READINESS TO LEARN health factor." D ERR^BDMEDMUP(T) Q
+ S (X,G)=0 F  S X=$O(^AUPNVHF("AD",BDMEVSIT,X)) Q:X'=+X!(G)  I $P(^AUPNVHF(X,0),U)=BDMEMTYP S G=1
+ I G S T="Already have a health factor of "_$P(^AUTTHF($P(^BDMEDMUP(BDMEDA,11),U,9),0),U)_" on Visit Date "_$$FMTE^XLFDT($P(^AUPNVSIT(BDMEVSIT,0),U)) D ERR^BDMEDMUP(T) Q
+ K APCDALVR
+ S APCDALVR("APCDPAT")=BDMEDMPT
+ S APCDALVR("APCDVSIT")=BDMEVSIT
+ S APCDALVR("APCDATMP")="[APCDALVR 9000010.23 (ADD)]"
+ S APCDALVR("APCDTHF")="`"_BDMEMTYP
+ D ^APCDALVR
+ I $D(APCDALVR("APCDAFLG")) S T="Error creating V Health Factor Entry for READINESS TO LEARN.  PCC not updated." D ERR^BDMEDMUP(T)
+ K APCDALVR
+ ;S BDMEHSE="",X=0 F  S X=$O(^AUPNHF("AC",BDMEDMPT,X)) Q:X'=+X!(BDMEHSE)  I $P(^AUTTHF($P(^AUPNHF(X,0),U),0),U,3)=BDMEMCAT S BDMEHSE=X
+ ;I BDMEHSE D  Q
+ ;.D ^XBFMK K DIADD
+ ;.S DA=BDMEHSE,DIE="^AUPNHF(",DR=".01///`"_BDMEMTYP_";.03////"_DT D ^DIE
+ ;.I $D(Y) S T="Error updating Health Status entry for READINESS TO LEARN." D ERR^BDMEDMUP(T)
+ ;.D ^XBFMK
+ ;D ^XBFMK
+ ;S X=BDMEMTYP,DIC("DR")=".02////"_BDMEDMPT_";.03////"_DT,DIC(0)="L",DIADD=1,DLAYGO=9000019,DIC="^AUPNHF(" D FILE^DICN
+ ;I Y=-1 S T="Error adding health status entry for READINESS TO LEARN." D ERR^BDMEDMUP(T)
+ D ^XBFMK K DIADD,DLAYGO
+ Q
+ ;
+LPHF ;EP
+ K BDMEVSIT
+ I $P($G(^BDMEDMUP(BDMEDA,11)),U,10)="" Q
+ S BDMEDMDT=$S($P(BDMEREC1,U,19)]"":$P(BDMEREC1,U,19),1:DT)
+ S BDMEMTYP=$P(^BDMEDMUP(BDMEDA,11),U,10)
+ S BDMEMCAT=$P(^AUTTHF(BDMEMTYP,0),U,3)
+ D EVSIT^BDMEDMUP ;get event visit
+ I '$G(BDMEVSIT) S T="Could not Create PCC Visit when attempting to update LEARNING PREFERENCE health factor." D ERR^BDMEDMUP(T) Q
+ S (X,G)=0 F  S X=$O(^AUPNVHF("AD",BDMEVSIT,X)) Q:X'=+X!(G)  I $P(^AUPNVHF(X,0),U)=BDMEMTYP S G=1
+ I G S T="Already have a health factor of "_$P(^AUTTHF($P(^BDMEDMUP(BDMEDA,11),U,10),0),U)_" on Visit Date "_$$FMTE^XLFDT($P(^AUPNVSIT(BDMEVSIT,0),U)) D ERR^BDMEDMUP(T) Q
+ K APCDALVR
+ S APCDALVR("APCDPAT")=BDMEDMPT
+ S APCDALVR("APCDVSIT")=BDMEVSIT
+ S APCDALVR("APCDATMP")="[APCDALVR 9000010.23 (ADD)]"
+ S APCDALVR("APCDTHF")="`"_BDMEMTYP
+ D ^APCDALVR
+ I $D(APCDALVR("APCDAFLG")) S T="Error creating V Health Factor Entry for LEARNING PREFERENCE.  PCC not updated." D ERR^BDMEDMUP(T)
+ K APCDALVR
+ ;S BDMEHSE="",X=0 F  S X=$O(^AUPNHF("AC",BDMEDMPT,X)) Q:X'=+X!(BDMEHSE)  I $P(^AUTTHF($P(^AUPNHF(X,0),U),0),U,3)=BDMEMCAT S BDMEHSE=X
+ ;I BDMEHSE D  Q
+ ;.D ^XBFMK K DIADD
+ ;.S DA=BDMEHSE,DIE="^AUPNHF(",DR=".01///`"_BDMEMTYP_";.03////"_DT D ^DIE
+ ;.I $D(Y) S T="Error updating Health Status entry for LEARNING PREFERENCE." D ERR^BDMEDMUP(T)
+ ;.D ^XBFMK
+ ;D ^XBFMK
+ ;S X=BDMEMTYP,DIC("DR")=".02////"_BDMEDMPT_";.03////"_DT,DIC(0)="L",DIADD=1,DLAYGO=9000019,DIC="^AUPNHF(" D FILE^DICN
+ ;I Y=-1 S T="Error adding health status entry for LEARNING PREFERENCE." D ERR^BDMEDMUP(T)
+ D ^XBFMK K DIADD,DLAYGO
+ Q
+ ;

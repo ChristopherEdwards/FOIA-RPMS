@@ -1,5 +1,5 @@
 BDMGU ; cmi/anch/maw - BDM DMS GUI Utilities ;
- ;;2.0;BDM DIABETES MANAGEMENT SYSTEM;**1,4**;JUN 14, 2007
+ ;;2.0;BDM DIABETES MANAGEMENT SYSTEM;**1,4,7**;JUN 14, 2007;Build 24
  ;
  ;
  ;
@@ -109,6 +109,10 @@ PATADO(PIEN) ;-- ado return
  . S BDMSX=$P($G(^DPT(BDMPI,0)),U,2)
  . S BDMCT=$$HRN^AUPNPAT(BDMPI,DUZ(2))
  . S BDMSSN=$P($G(^DPT(BDMPI,0)),U,9)
+ . I BDMSSN]"" D  ;ihs/cmi/maw p7 10/01/2013
+ .. N LN
+ .. S LN=$L(BDMSSN)
+ .. S BDMSSN="XXX-XX-"_$E(BDMSSN,(LN-3),LN)
  . I $D(^ACM(41,"AC",BDMPI)) D
  .. I $G(BDMREG)]"",$D(^ACM(41,"AC",BDMPI,BDMREG)) S BDMHD=+$G(^ACM(41,"AC",BDMPI,BDMREG))
  . S BDMI=BDMI+1

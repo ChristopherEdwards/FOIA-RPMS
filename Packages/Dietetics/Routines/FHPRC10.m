@@ -1,5 +1,5 @@
 FHPRC10 ; HISC/NCA - Meal Analysis ;3/6/95  15:41
- ;;5.0;Dietetics;**36**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  K ^TMP($J)
 GET W ! K DIC S DIC="^FHUM(",DIC(0)="AEQMZ",DIC("S")="I $P(^(0),U,5)",DIC("DR")=".01" D ^DIC K DLAYGO G KIL:U[X!$D(DTOUT),GET:Y<1 S MENU=+Y,MNAM="Menu: "_$P(Y,U,2) D RET^FHPRC14
 ED R !!,"Do you wish to EDIT this Menu? NO// ",YN:DTIME G:'$T!(YN["^") KIL S:YN="" YN="N" S X=YN D TR^FH S YN=X I $P("YES",YN,1)'="",$P("NO",YN,1)'="" W *7," Answer YES or NO" G ED
@@ -45,7 +45,7 @@ S3 R !!,"Do you wish a detailed analysis? Y// ",SUM:DTIME G:'$T!(SUM["^") KIL S:
  K IOP,%ZIS S %ZIS("A")="Print on Device: ",%ZIS="MQ" W ! D ^%ZIS K %ZIS,IOP G:POP KIL
  I $D(IO("Q")) D  G KIL
  .K IO("Q"),ZTUCI,ZTDTH,ZTIO,ZTSAVE
- .S ZTRTN="^FHPRC11",ZTREQ="@",ZSAVE("ZTREQ")="",ZTDESC=$P(XQY0,"^",1)
+ .S ZTRTN="^FHPRC11",ZTREQ="@",ZSAVE("ZTREQ")="",ZTDESC=$P($G(XQY0),U,1)
  .F G="AGE","DAY","MEAL","MNAM","NAM","^TMP($J,","RDA","SEX","SUM" S ZTSAVE(G)=""
  .D ^%ZTLOAD D ^%ZISC U IO W !,"Request Queued",! K ZTSK Q
  U IO X ^%ZOSF("BRK") D ^FHPRC11 X ^%ZOSF("NBRK") D ^%ZISC K %ZIS,IOP G KIL

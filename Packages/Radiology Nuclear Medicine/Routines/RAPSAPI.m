@@ -1,5 +1,5 @@
-RAPSAPI ;HOIFO/SWM-calling Pharmacy APIs ;8/29/05  08:12
- ;;5.0;Radiology/Nuclear Medicine;**65**;Mar 16, 1998;Build 8
+RAPSAPI ;HOIFO/SWM-calling Pharmacy APIs ; 20 Apr 2011  6:59 PM
+ ;;5.0;Radiology/Nuclear Medicine;**65,1003**;Nov 01, 2010;Build 3
  ;
  ;DBIA: 4533  DATA^PSS50 returns external value of field from file #50
  ;DBIA: 4533  ZERO^PSS50 returns B crossreference of file #50
@@ -9,6 +9,11 @@ RAPSAPI ;HOIFO/SWM-calling Pharmacy APIs ;8/29/05  08:12
  ;DBIA: 2055  reference to ROOT^DILFD
  Q
 EN1(RAX,RAN) ; call data^pss50 to get external values to some fields
+ ;IHS/BJI/DAY - Patch 1003 - Temporary Change for patch 1003
+ ;This can be removed when the full PSS patch is installed
+ S X=$$GET1^DIQ(50,+RAX,RAN)
+ Q X
+ ;End Patch
  ; input RAX is ien to file 50
  ; input RAN is field number of file 50 to display
  N RAY,X,SCR

@@ -1,41 +1,20 @@
-ORQQPL1 ; ALB/PDR/REV - PROBLEM LIST FOR CPRS GUI ;03/12/02
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,148,173,203,206**;Dec 17, 1997
+ORQQPL1 ; ALB/PDR/REV - PROBLEM LIST FOR CPRS GUI ; 02/12/08
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,148,173,203,206,249,243**;Dec 17, 1997;Build 242
  ;
  ;------------------------- GET PROBLEM FROM LEXICON -------------------
  ;
 LEXSRCH(LIST,FROM,N,VIEW,ORDATE) ; Get candidate Problems from LEX file
- N LEX,VAL,VAL1,COD,CIEN,SYS,MAX,NAME,ORLEX25
+ N LEX,VAL,VAL1,COD,CIEN,SYS,MAX,NAME
  S:'+$G(ORDATE) ORDATE=DT
  S:'$G(N) N=100
  S:'$L($G(VIEW)) VIEW="PL1"
- S ORLEX25=$$PATCH^XPDUTL("LEX*2.0*25")
- I +ORLEX25 D
- . D CONFIG^LEXSET("GMPL",VIEW,ORDATE)
- . D LOOK^LEXA(FROM,"GMPL",N,"",ORDATE)
- E  D
- . D CONFIG^LEXSET("GMPL",VIEW)
- . D LOOK^LEXA(FROM,"GMPL",N)
+ D CONFIG^LEXSET("GMPL",VIEW,ORDATE)
+ D LOOK^LEXA(FROM,"GMPL",N,"",ORDATE)
  S S=0
  F  S S=$O(LEX("LIST",S)) Q:S<1  D
  . S VAL1=LEX("LIST",S)
  . S COD="",CIEN="",SYS="",NAME=""
- . I $L(VAL1,"ICD-9-CM ")>1 D
- .. S SYS="ICD-9-CM "
- .. S COD=$P($P(VAL1,SYS,2),")")
- .. S:COD["/" COD=$P(COD,"/",1)
- .. I +ORLEX25 D
- .. . S CIEN=+$$CODEN^ICDCODE(COD,80)
- .. E  D
- .. . S CIEN=$$ICDREC(COD)
- .. S NAME=$P(VAL1," (ICD-9-CM")
  . I $L(VAL1,"CPT-4 ")>1 D
- .. ;S SYS="CPT-4 "
- .. ;S COD=$P($P(VAL1,SYS,2),")")
- .. ;S:COD["/" COD=$P(COD,"/",1)
- .. ;I +ORLEX25 D
- .. ;. S CIEN=$$CODEN^ICPTCOD(COD)
- .. ;E  D
- .. ;. S CIEN=$$CPTREC(COD)
  .. S SYS="ICD-9-CM "
  .. S COD="799.9"
  .. S CIEN=""
@@ -44,27 +23,35 @@ LEXSRCH(LIST,FROM,N,VIEW,ORDATE) ; Get candidate Problems from LEX file
  .. S SYS="DSM-IV "
  .. S COD=$P($P(VAL1,SYS,2),")")
  .. S:COD["/" COD=$P(COD,"/",1)
- .. I +ORLEX25 D
- .. . S CIEN=$$CODEN^ICDCODE($$ICDONE^LEXU($P(VAL1,U,1),ORDATE),80)
- .. E  D
- .. . S CIEN=$$ICDREC($$ICDONE^LEXU($P(VAL1,U,1)))
+ .. S CIEN=$$CODEN^ICDCODE($$ICDONE^LEXU($P(VAL1,U,1),ORDATE),80)
  .. S NAME=$P(VAL1," (DSM-IV")
  .. ;
  . I $L(VAL1,"(TITLE 38 ")>1 D
  .. S SYS="TITLE 38 "
  .. S COD=$P($P(VAL1,SYS,2),")")
  .. S:COD["/" COD=$P(COD,"/",1)
- .. I +ORLEX25 D
- .. . S CIEN=$$CODEN^ICDCODE($$ICDONE^LEXU($P(VAL1,U,1),ORDATE),80)
- .. E  D
- .. . S CIEN=$$ICDREC($$ICDONE^LEXU($P(VAL1,U,1)))
+ .. S CIEN=$$CODEN^ICDCODE($$ICDONE^LEXU($P(VAL1,U,1),ORDATE),80)
  .. S NAME=$P(VAL1,"(TITLE 38 ")
  .. ;
+ . I $L(VAL1,"ICD-9-CM ")>1 D
+ .. S SYS="ICD-9-CM "
+ .. S COD=$P($P(VAL1,SYS,2),")")
+ .. S:COD["/" COD=$P(COD,"/",1)
+ .. S CIEN=+$$CODEN^ICDCODE(COD,80)
+ .. S NAME=$P(VAL1," (ICD-9-CM")
  . I $L(NAME)=0 S NAME=$P($P(VAL1," (")," *")
+ . ;
+ . ; jeh Clean left over codes
+ . S NAME=$P(NAME," (CPT-4")
+ . S NAME=$P(NAME," (DSM-IV")
+ . S NAME=$P(NAME,"(TITLE 38 ")
+ . S NAME=$P(NAME," (ICD-9-CM")
+ . ;
  . S VAL=NAME_U_COD_U_CIEN_U_SYS ; ien^.01^icd^icdifn^system
  . S LIST(S)=VAL
  . S MAX=S
  I $G(MAX)'="" S LIST(MAX+1)=$G(LEX("MAT"))
+ K ^TMP("LEXSCH",$J)
  Q
  ;
 ICDREC(COD) ; 
@@ -189,7 +176,7 @@ INITUSER(RETURN,ORDUZ) ; INITIALIZE FOR NEW USER
  S RETURN(8)=$$SERVICE^GMPLX1(DUZ) ; user's service/section
  ; Guessing from what I see in the data that $$VIEW^GMPLX1 actually returns a composite
  ; of default view (in/out patient)/(c1/c2... if out patient i.e. GMPLVIEW("CLIN")) or
- ;                                                      /(s1/s2... if in patient i.e. GMPLVIEW("SERV"))
+ ;                                 /(s1/s2... if in patient i.e. GMPLVIEW("SERV"))
  ; Going with this assumption for now:
  I $L(RETURN(1),"/")>1 D
  . S PV=RETURN(1)
@@ -213,7 +200,7 @@ CLINUSER(ORDUZ) ;is this a clinical user?
  ;
 INITPT(RETURN,DFN) ; GET PATIENT PARAMETERS
  Q:+$G(DFN)=0
- N GMPSC,GMPAGTOR,GMPION,GMPGULF,GMPHNC,GMPMST
+ N GMPSC,GMPAGTOR,GMPION,GMPGULF,GMPHNC,GMPMST,GMPCV,GMPSHD
  ;
  S RETURN(0)=DUZ(2) ; facility #
  D DEM^VADPT ; get death indicator
@@ -226,6 +213,8 @@ INITPT(RETURN,DFN) ; GET PATIENT PARAMETERS
  S RETURN(6)=VA("BID") ; need this to reconstitute GMPDFN on return
  S RETURN(7)=$G(GMPHNC) ; head/neck cancer
  S RETURN(8)=$G(GMPMST) ; MST
+ S RETURN(9)=$G(GMPCV) ; CV
+ S RETURN(10)=$G(GMPSHD) ; SHAD
  Q
  ;
 PROVSRCH(LST,FLAG,N,FROM,PART) ; Get candidate Rroviders from person file

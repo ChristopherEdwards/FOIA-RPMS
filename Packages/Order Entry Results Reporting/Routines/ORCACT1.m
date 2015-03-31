@@ -1,5 +1,5 @@
 ORCACT1 ;SLC/MKB-Act on orders cont ;7/29/97  08:26
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,27,56,48,86,92,116,149**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,27,56,48,86,92,116,149,215**;Dec 17, 1997
  ;
 FLAG ; -- flag orders
  D EN("FL") Q
@@ -69,7 +69,7 @@ VERIFY(ORVER) ; -- Verify orders
  D FREEZE^ORCMENU S VALMBCK="R" K OREBUILD
  F ORI=1:1:$L(ORNMBR,",") S NMBR=$P(ORNMBR,",",ORI) D:NMBR  Q:$D(ORQUIT)
  . S IDX=$G(^TMP("OR",$J,ORTAB,"IDX",NMBR)),ORIFN=$P(IDX,U)
- . Q:'ORIFN  S:'$P(ORIFN,";",2) ORIFN=+ORIFN_";1"
+ . Q:'ORIFN  S:'$P(ORIFN,";",2) ORIFN=+ORIFN_";1" Q:$D(ORES(ORIFN))
  . I '$$VALID^ORCACT0(ORIFN,"VR",.ORERR) W !!,$$ORDITEM^ORCACT(ORIFN)_" invalid.",!,"  >> "_ORERR H 1 Q
  . S ORLK=$$LOCK1^ORX2(+ORIFN) I 'ORLK W !!,$$ORDITEM^ORCACT(ORIFN)_" invalid.",!,"  >> "_$P(ORLK,U,2) H 1 Q
  . S ORES(ORIFN)="" D REPLCD
@@ -94,12 +94,12 @@ REPLCD ; -- Ck for unverified replaced orders for ORIFN, add to ORES(order#)
  ;    [Expects ORVER; also called from VERIFY^ORWDXA,VERIFY^ORRCOR]
  N OR3,ORIG,ORFLD,ORDA,ORI,ORLK
  S ORFLD=$S($G(ORVER)="N":8,1:10),ORDA=+$P(ORIFN,";",2)
- I ORDA>1 D  Q  ;ck for XX action
- . Q:$P($G(^OR(100,+ORIFN,8,ORDA,0)),U,2)'="XX"
+ I ORDA>1 D  Q  ;ck for prior unverified actions
+ . ;Q:$P($G(^OR(100,+ORIFN,8,ORDA,0)),U,2)'="XX"
  . S ORI=0 F  S ORI=$O(^OR(100,+ORIFN,8,ORI)) Q:ORI<1  Q:ORI'<ORDA  D
- .. Q:$P($G(^OR(100,+ORIFN,8,ORI,0)),U,15)'=12  Q:$P($G(^(0)),U,ORFLD)
+ .. Q:$P($G(^OR(100,+ORIFN,8,ORI,0)),U,ORFLD)  ;already verified
  .. S ORLK=$$LOCK1^ORX2(+ORIFN) Q:'ORLK
- .. S ORES(+ORIFN_";"_ORI)="" ;verify dc/e actions
+ .. S ORES(+ORIFN_";"_ORI)=""
  S OR3=$G(^OR(100,+ORIFN,3)) Q:$P(OR3,U,11)'=1
  S ORIG=+$P(OR3,U,5) Q:'ORIG  Q:$P($G(^OR(100,ORIG,3)),U,3)'=12
  S ORDA=0 F  S ORDA=$O(^OR(100,ORIG,8,ORDA)) Q:ORDA'>0  I '$P($G(^(ORDA,0)),U,ORFLD) D

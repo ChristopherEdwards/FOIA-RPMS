@@ -1,5 +1,5 @@
 FHNUT ; HISC/NCA - Read in the and Calculate 100 Grams ;2/23/00  12:38
- ;;5.0;Dietetics;**25**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN1 ; Enter Data
  K DIC S FHX1=0,DIC="^FHNU(",DIC(0)="EMZ"
  R !!,"Food Nutrient Name: ",TIT:DTIME G:'$T!("^"[TIT) KIL I TIT'?.ANP W *7,"  ??" G EN1

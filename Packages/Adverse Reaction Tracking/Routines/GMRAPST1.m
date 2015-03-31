@@ -1,5 +1,5 @@
-GMRAPST1 ;HIRMFO/WAA- PRINT LISTING OF FATAL REACTIONS ;3/5/97  14:45 [ 05/03/2002  3:02 PM ]
- ;;4.0;Adverse Reaction Tracking;**7**;Mar 29, 1996
+GMRAPST1 ;HIRMFO/WAA- PRINT LISTING OF FATAL REACTIONS ;3/5/97  14:45
+ ;;4.0;Adverse Reaction Tracking;**7,33**;Mar 29, 1996;Build 5
 EN1 ; This routine will loop through the ADT entry point to get all
  ; the entries where the patient has died.
  S GMRAOUT=0
@@ -30,13 +30,11 @@ PRINT ;Queue point for report
  ..Q:+$G(^GMR(120.8,$P(GMRAPA1(0),U,15),"ER"))  ;data entered in error
  ..Q:$P(GMRAPA1(0),U,3)'="y"  ; If patient did not die of the reaction
  ..S GMRADFN=$P(GMRAPA1(0),U,2),GMRADDT=$P(GMRAPA1(0),U) ; reaction date
+ ..Q:'$$PRDTST^GMRAUTL1(GMRADFN)  ;GMRA*4*33 Exclude test patient from report in production or legacy environments.
  ..S (GMRAPID,GMRANAME)=""
  ..D VAD^GMRAUTL1(GMRADFN,GMRADDT,"",.GMRANAME,"",.GMRAPID)
- ..;IHS/ITSC/ENM 05/03/02 HRN MOD
- ..S DFN=GMRADFN,APSPHRN=$$HRCN^APSGFUNC ;IHS/DSD/ENM 05/03/02
  ..S GMRADIED=$P($G(^DPT(GMRADFN,.35)),U) ; Date patient died
- ..S ^TMP($J,"GMRAPST1",$E(GMRANAME,1,30),APSPHRN,GMRADDT,GMRAPA1)=GMRADIED ;IHS/ITSC/ENM 05/03/02
- ..;S ^TMP($J,"GMRAPST1",$E(GMRANAME,1,30),GMRAPID,GMRADDT,GMRAPA1)=GMRADIED
+ ..S ^TMP($J,"GMRAPST1",$E(GMRANAME,1,30),GMRAPID,GMRADDT,GMRAPA1)=GMRADIED
  ..Q
  .Q
  Q:GMRAOUT
@@ -46,8 +44,7 @@ PRINT ;Queue point for report
  .S GMRAPID=""
  .F  S GMRAPID=$O(^TMP($J,"GMRAPST1",GMRANAME,GMRAPID)) Q:GMRAPID=""  D  Q:GMRAOUT
  ..D HEAD Q:GMRAOUT
- ..W !,$E(GMRANAME,1,22)," (",APSPHRN,")" ;IHS/ITSC/ENM 05/03/02
- ..;W !,$E(GMRANAME,1,22)," (",$E(GMRANAME,1),$P(GMRAPID,"-",3),")"
+ ..W !,$E(GMRANAME,1,22)," (",$E(GMRANAME,1),$P(GMRAPID,"-",3),")"
  ..S GMRADDT=0
  ..F  S GMRADDT=$O(^TMP($J,"GMRAPST1",GMRANAME,GMRAPID,GMRADDT)) Q:GMRADDT<1  D  Q:GMRAOUT
  ...S GMRAPA1=0
@@ -69,9 +66,8 @@ PRINT ;Queue point for report
  ..Q
  .Q
  D CLOSE^GMRAUTL
- K APSPHRN ;IHS/ITSC/ENM 05/03/02
  Q
- ;has the patient died with inthe dat
+ ;has the patient died within the date
 HEAD ; Print header information
  I GMRAPG'=1  Q:$Y<(IOSL-4)
  I $E(IOST,1)="C" D  Q:GMRAOUT

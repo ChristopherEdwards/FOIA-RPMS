@@ -1,0 +1,60 @@
+ABMP2613 ; IHS/SD/SDR - 3P BILLING 2.6 Patch 13 POST INIT ;  
+ ;;2.6;IHS Third Party Billing;**13**;NOV 12, 2009;Build 213
+ ;
+ Q
+POST ;
+ K DIC,X,DINUM,DR,DLAYGO
+ S DIC="^ABMQUES("
+ S DIC(0)="LM"
+ S DLAYGO=9002274
+ S DINUM=43,X="INITIAL TREATMENT DATE"
+ S DIC("DR")=".02////W43;.03////ABMDE301;.04////43;1////ABMDE3C"
+ K DD,DO
+ D ^DIC
+ S DINUM=44,X="ORD/REF/SUP PHYS FL17"
+ S DIC("DR")=".02////W44;.03////ABMDE301;.04////44;1////ABMDE3C"
+ K DD,DO
+ D ^DIC
+ ;
+ I $P($G(^ABMDEXP(32,0)),U,8)'[",43" D
+ .K DIC,DIE,DIR,DR,X,Y,DA
+ .S DA=32
+ .S DIE="^ABMDEXP("
+ .S DR=".08////"_$P($G(^ABMDEXP(32,0)),U,8)_",43"
+ .D ^DIE
+ D EXP35  ;add new export mode 35
+ ;
+ F DA=32 D
+ .Q:$P($G(^ABMDEXP(DA,0)),U,8)[",24"
+ .K DIC,DIE,DR,X,Y
+ .S DIE="^ABMDEXP("
+ .S DR=".08////"_$P($G(^ABMDEXP(DA,0)),U,8)_",24"
+ .D ^DIE
+ ;
+ D REMOVE34  ;remove questions 34 and 39 from 5010 formats
+ ;
+ Q
+EXP35 ;
+ K DIC,DR,DINUM,DLAYGO,DIE
+ S DIC="^ABMDEXP("
+ S DIC(0)="LM"
+ S DLAYGO=9002274
+ S X="CMS-1500 (02/12)",DINUM=35
+ K DD,DO
+ D ^DIC
+ Q:Y<0
+ S DA=+Y
+ S DIE="^ABMDEXP("
+ S DR=".04////ABMDF35;.05////ABMDF35X;.06///0;.07///OMB No. 0938-1197;.08///1,2,3,4B,5,7,9,10,15,20,22,26,28,34,35,36,38,19,41,43,44;.11////ABMDES3;.15///H"
+ D ^DIE
+ Q
+ ;
+REMOVE34 ;
+ F DA=31,32,33 D
+ .S ABMJ=$P($G(^ABMDEXP(DA,0)),U,8)
+ .S ABMJ=$P(ABMJ,"34,")_$P(ABMJ,"34,",2)
+ .S ABMJ=$P(ABMJ,"39,")_$P(ABMJ,"39,",2)
+ .S DIE="^ABMDEXP("
+ .S DR=".08////"_ABMJ
+ .D ^DIE
+ Q

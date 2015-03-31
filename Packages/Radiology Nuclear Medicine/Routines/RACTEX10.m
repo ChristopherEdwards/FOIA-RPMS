@@ -1,0 +1,3 @@
+RACTEX10 ; ;07/06/13
+ S X=DG(DQ),DIC=DIE
+ I $P($G(^RA(78.1,+X,0)),U,2)="Y",$$RADD^GMRARAD(DA(2),"o","Y")

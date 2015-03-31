@@ -1,5 +1,5 @@
-LEXLGM ; ISL Lexicon Survey (Post Inst/Oper)     ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+LEXLGM ; ISL Lexicon Survey (Post Inst/Oper)     ; 05/14/2003
+ ;;2.0;LEXICON UTILITY;**25**;Sep 23, 1996;Build 15
  ;
 EN ; Operational Task
  K ^TMP("LEXMSG")
@@ -29,9 +29,10 @@ SG ; Show TMP Global
  N LEXI S LEXI=0 F  S LEXI=$O(^TMP("LEXMSG",LEXI)) Q:+LEXI=0  W:'$D(ZTQUEUED) !,^TMP("LEXMSG",LEXI)
  Q
 SEND ; Create message to send to ISC-SLC
- N DIFROM Q:'$D(ZTQUEUED)  Q:'$L($G(LEXTYPE))  N LEXT S LEXT=$G(LEXTYPE) Q:"OP"'[LEXT
+ N LEXADR,DIFROM Q:'$D(ZTQUEUED)  Q:'$L($G(LEXTYPE))  S LEXADR=$$ADR^LEXU Q:'$L(LEXADR)
+ N LEXT S LEXT=$G(LEXTYPE) Q:"OP"'[LEXT
  K XMZ S:LEXT="P" XMSUB="Lexicon Installation" S:LEXT="O" XMSUB="Lexicon/Problem List Survey"
- S XMY("G.LEXICON@DOMAIN.NAME")=""
+ S XMY(("G.LEXICON@"_LEXADR))=""
  S XMTEXT="^TMP(""LEXMSG"",",XMDUZ=.5 D ^XMD
  K ^TMP("LEXMSG"),XCNP,XMDUZ,XMY,XMZ,XMSUB,XMTEXT,XMDUZ,LEXT
  S:$D(ZTQUEUED) ZTREQ="@"

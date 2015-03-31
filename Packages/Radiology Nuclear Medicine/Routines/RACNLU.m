@@ -1,9 +1,15 @@
-RACNLU ;HISC/CAH,FPT,GJC AISC/MJK,RMO-Case Number Lookup ;11/13/00  09:13
- ;;5.0;Radiology/Nuclear Medicine;**7,15,23,47**;Mar 16, 1998;Build 21
+RACNLU ;HISC/CAH,FPT,GJC AISC/MJK,RMO-Case Number Lookup ;11/13/00  09:13 [ 12/05/2011  10:43 AM ]
+ ;;5.0;Radiology/Nuclear Medicine;**7,15,23,47,1004**;Mar 16, 1998;Build 21
 CASE N RADIV,RAIMAGE,RANODE
  R !!,"Enter Case Number: ",X:DTIME S:'$T!(X="") X="^" G Q:X="^"
  I X?1A W !?3,*7,"You must enter more than one character of the name!" G CASE
- I X?1A.AP!(X?1A4N)!(X?9N) S RAHEAD="**** Case Lookup by Patient ****",DIC(0)="EMQ" D ^RADPA G CASE:Y<0 S RADFN=+Y G ^RAPTLU
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Allow HRNO lookup
+ ;Patch 1004 - Continue Phil Salmon Patch from 2002
+ ;I X?1A.AP!(X?1A4N)!(X?9N) S RAHEAD="**** Case Lookup by Patient ****",DIC(0)="EMQ" D ^RADPA G CASE:Y<0 S RADFN=+Y G ^RAPTLU
+ I X?1A.AP!(X?1A4N)!(X?9N)!(X?5.7N) S RAHEAD="**** Case Lookup by Patient ****",DIC(0)="EMQ" D ^RADPA G CASE:Y<0 S RADFN=+Y G ^RAPTLU
+ ;End Patch
+ ;
  I X?16.N.E D QUES G CASE
  D SPACE:X=" " G Q:X="^" D QUES:'X&(X'="??") G CASE:X="^" D SEL G CASE:"^"[X!('RACNT) F I=1:1:11 S @$P("RADFN^RADTI^RACNI^RANME^RASSN^RADATE^RADTE^RACN^RAPRC^RARPT^RAST","^",I)=$P(Y,"^",I)
  W:RACNT'=1 !!?1,"Case No.: ",RACN,?16,"Procedure: ",$E(RAPRC,1,30),?58,"Name: ",$E(RANME,1,20)

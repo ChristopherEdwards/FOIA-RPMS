@@ -1,7 +1,9 @@
 PSOTPCLR ;BIRM/PDW-LETTER PRINT REPORTS ;AUG 8, 2003
- ;;7.0;OUTPATIENT PHARMACY;**145**
+ ;;7.0;OUTPATIENT PHARMACY;**145,227**;DEC 1997
  Q
-EN K DIR S DIR(0)="SO^N:Patients/Letters NOT Printed;P:Patients/Letters Printed" D ^DIR
+EN ;
+ Q  ;placed out of order by patch PSO*7*227
+ K DIR S DIR(0)="SO^N:Patients/Letters NOT Printed;P:Patients/Letters Printed" D ^DIR
  I Y="N" S PARAM=Y G DEVICE
  I Y="P" S PARAM=Y G DEVICE
  Q

@@ -1,5 +1,5 @@
 LEXAM ; ISL Look-up Misc (Setup/Parse)           ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 SETUP(LEXSUB) ; Set up search variables
  I '$L($G(LEXSUB)) D  Q

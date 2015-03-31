@@ -1,5 +1,5 @@
-ORPR01 ; slc/dcm - Some day my prints will come ;12/8/00  13:54
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**11,69,92**;Dec 17, 1997
+ORPR01 ; slc/dcm/rv - Some day my prints will come ;09/13/06  13:30
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**11,69,92,260**;Dec 17, 1997;Build 26
 LBL ;Print Labels
  W !,"Print how many labels? 1// "
  R X:DTIME
@@ -38,12 +38,13 @@ R1(PIECE,ORTIMES,ORSCREEN) ;
  ;PIECE=3 for labels
  ;ORTIMES=# of copies
  ;ORSCREEN=Mumps screen to pass to PRINT^ORPR00
- N P,ORFMT,ORIGVIEW
+ N P,ORFMT,ORIGVIEW,ORDLG
  Q:'$G(PIECE)
- S P=$P(ORX,"^",14)
+ S P=$P(ORX,"^",14),ORDLG=+$P(ORX,"^",5)
  I 'P Q
  S ORIGVIEW=1,ORFMT=$$GET^XPAR("SYS",$S(PIECE=3:"ORPF WARD LABEL FORMAT",PIECE=4:"ORPF WARD REQUISITION FORMAT",1:""),P,"I")
- I ORFMT<1 W !?2,$C(7),"Cannot print",!?2,$S(PIECE=3:"Labels",PIECE=4:"Requistions",1:"")_" not set up for orders in the "_$P(^DIC(9.4,P,0),"^")_" package." D READ^ORUTL Q
+ I PIECE=4,(P=$O(^DIC(9.4,"B","DIETETICS",0))),(ORDLG'=$O(^ORD(101.41,"B","FHW SPECIAL MEAL",0))) S ORFMT=0
+ I ORFMT<1 W !?2,$C(7),"Cannot print",!?2,$S(PIECE=3:"Labels",PIECE=4:"Requisitions",1:"")_" not set up for orders in the "_$P(^DIC(9.4,P,0),"^")_" package." D READ^ORUTL Q
  D CPRINT(ORIFN,$G(ORTIMES),$G(ORSCREEN))
  Q
 CPRINT(ORIFN,ORTIMES,ORSCREEN) ; Printit

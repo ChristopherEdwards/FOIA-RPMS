@@ -1,5 +1,5 @@
 FHPRI ; HISC/REL/NCA - Ingredient Management ;2/23/00  12:44
- ;;5.0;Dietetics;**25**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 EN1 ; Enter/Edit Unit File
  S (DIC,DIE)="^FH(119.1,",DIC(0)="AEQLM",DIC("DR")=".01",DLAYGO=119.1 W ! D ^DIC K DIC,DLAYGO G KIL:U[X!$D(DTOUT),EN1:Y<1
  I Y<11 W *7,!!,"Cannot edit this unit" G EN1

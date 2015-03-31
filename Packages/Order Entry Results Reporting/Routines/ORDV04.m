@@ -1,8 +1,12 @@
-ORDV04 ; slc/dan - OE/RR ; 12/05/02 11:03
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,148,160,208**;Dec 17,1997
+ORDV04 ; SLC/DAN/dcm - OE/RR ;7/21/04  15:32
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,148,160,208,195,241,215,274,256,243**;Dec 17,1997;Build 242
  ;OE/RR COMPONENT
-ORC(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT)     ; Current Orders
- ;External calls to EN^ORQ1, ^OR(100
+ ;
+ ; ^TMP("GMPLHS",$J) DBIA 1183
+ ; ^UTILITY & ^TMP("GMRVD") DBIA 10061
+ ; 
+ORC(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ; Current Orders
+ ;Calls EN^ORQ1, ^OR(100
  N ORCNT,ORJ,ORSITE,SITE,ORX0,ORLIST,GO
  Q:'$L(OREXT)
  S GO=$P(OREXT,";")_"^"_$P(OREXT,";",2)
@@ -19,11 +23,12 @@ ORC(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT)     ; Current Orders
  . S ^TMP("ORDATA",$J,ORLIST,ORJ,"WP",3)="3^"_$P(ORX0,"^",6) ; status
  . S ^TMP("ORDATA",$J,ORLIST,ORJ,"WP",4)="4^"_$$DATE^ORDVU($P(ORX0,"^",4)) ;start date
  . S ^TMP("ORDATA",$J,ORLIST,ORJ,"WP",5)="5^"_$$DATE^ORDVU($P(ORX0,"^",5)) ;stop date
+ . S ^TMP("ORDATA",$J,ORLIST,ORJ,"WP",7)="7^"_$P(^TMP("ORR",$J,ORLIST,ORJ),U) ;Order Number
  . I $O(^TMP("ORR",$J,ORLIST,ORJ,"TX",1)) S ^TMP("ORDATA",$J,ORLIST,ORJ,"WP",6)="6^[+]" ;flag for details
  K ^TMP("ORR",$J)
  S ROOT=$NA(^TMP("ORDATA",$J))
  Q
-ORCVA ;VA call to get Current Orders
+ORCVA ;Current Orders
  N ORVP
  S ORVP=DFN_";DPT("
  I '$D(^OR(100,"AC",ORVP)) Q
@@ -36,7 +41,7 @@ PLAILALL(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;Problem list API retur
  Q:'$L($T(@GO))
  D PLAIL
  Q
-PLALL ;Jump here for All Problems
+PLALL ;All Problems
  D GETLIST^GMPLHS(DFN,"ALL")
  Q
 PLAILI(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;Problem list API returns INACTIVE problems
@@ -46,7 +51,7 @@ PLAILI(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;Problem list API returns
  Q:'$L($T(@GO))
  D PLAIL
  Q
-PLI ;Jump here for Inactive Problems
+PLI ;Inactive Problems
  D GETLIST^GMPLHS(DFN,"I")
  Q
 PLAILA(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;Problem list API returns ACTIVE problems
@@ -56,23 +61,27 @@ PLAILA(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;Problem list API returns
  Q:'$L($T(@GO))
  D PLAIL
  Q
-PLA ;Jump here for Active Problems
+PLA ;Active Problems
  D GETLIST^GMPLHS(DFN,"A")
  Q
-PLAIL   ;problems(active, inactive or all)
+PLAIL ;problems(active, inactive or all)
  ;External calls to ^GMPLHS
  ; input:
- ;   STATUS = "A"   to produce active problems
- ;   STATUS = "I"   to produce inactive problems
- ;   STATUS = "ALL" to produce all problems
+ ;   STATUS = "A"   active problems
+ ;   STATUS = "I"   inactive problems
+ ;   STATUS = "ALL" all problems
  ;
+ I $L($T(GCPR^OMGCOAS1)) D  Q  ; Call if FHIE station 200
+ . S ORDBEG=0,ORDEND=9999999,ORMAX=99999
+ . D GCPR^OMGCOAS1(DFN,"PLL",ORDBEG,ORDEND,ORMAX)
+ . S ROOT=$NA(^TMP("ORDATA",$J))
  N ORPROBNO,ORXREC0,ORLOC,I,K,X,ORSITE,SITE,ORMORE
  S ORSITE=$$SITE^VASITE,ORSITE=$P(ORSITE,"^",2)_";"_$P(ORSITE,"^",3)
- K ^TMP("ORDATA",$J),^TMP("GMPLHS",$J)
+ K ^TMP("ORDATA",$J),^TMP("GMPLHS",$J)  ;DBIA #1183
  D @GO
  I '$D(^TMP("GMPLHS",$J)) Q
  S ORPROBNO=0
- F I=1:1:ORMAX S ORPROBNO=$O(^TMP("GMPLHS",$J,ORPROBNO)) Q:'ORPROBNO  D
+ F I=1:1 S ORPROBNO=$O(^TMP("GMPLHS",$J,ORPROBNO)) Q:'ORPROBNO  D
  . S ORXREC0=$G(^TMP("GMPLHS",$J,ORPROBNO,0)),ORMORE=0
  . S SITE=$S($L($G(^TMP("GMPLHS",$J,ORPROBNO,"facility"))):^("facility"),1:ORSITE)
  . S ^TMP("ORDATA",$J,ORPROBNO,"WP",1)="1^"_SITE ;Station ID
@@ -93,38 +102,21 @@ PLAIL   ;problems(active, inactive or all)
  S ROOT=$NA(^TMP("ORDATA",$J))
  Q
 SR(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;Surgery Report
- ;External call to ^ORDV04A (external calls are noted in that routine)
+ ;Call ^ORDV04A
  N ORCNT
  S ORCNT=0
  K ^TMP("ORDATA",$J)
  D ENSR^ORDV04A
  S ROOT=$NA(^TMP("ORDATA",$J))
  Q
-VS(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT)      ; get vital Signs
- ;External calls to GMRVUT0
- N ORDT,I,TYPE,IEN,GMRVSTR,ORSITE,SITE,PLACE,GO
- Q:'$L(OREXT)
- S GO=$P(OREXT,";")_"^"_$P(OREXT,";",2)
- Q:'$L($T(@GO))
- K ^UTILITY($J,"GMRVD"),^TMP("ORDATA",$J)
- S GMRVSTR="T;P;R;BP;HT;WT",GMRVSTR(0)=ORDBEG_"^"_ORDEND_"^"_ORMAX_"^"_1
- S ORSITE=$$SITE^VASITE,ORSITE=$P(ORSITE,"^",2)_";"_$P(ORSITE,"^",3)
- D @GO
- S ORDT=0
- F I=1:1 S ORDT=$O(^UTILITY($J,"GMRVD",ORDT)) Q:'+ORDT!(I>ORMAX)  D
- . S SITE=$S($L($G(^TMP("GMRVD",$J,ORDT,"facility"))):^("facility"),1:ORSITE)
- . S ^TMP("ORDATA",$J,"WP",ORDT,1)="1^"_SITE
- . S ^TMP("ORDATA",$J,"WP",ORDT,2)="2^"_$$DATE^ORDVU(9999999-ORDT) ;date vitals taken
- . S TYPE=""
- . F  S TYPE=$O(^UTILITY($J,"GMRVD",ORDT,TYPE)) Q:TYPE=""  D
- .. S IEN=$O(^UTILITY($J,"GMRVD",ORDT,TYPE,0)) Q:'IEN
- .. S PLACE=$S(TYPE="T":3,TYPE="P":4,TYPE="R":5,TYPE="BP":6,TYPE="HT":7,1:8)
- .. S ^TMP("ORDATA",$J,"WP",ORDT,PLACE)=PLACE_"^"_$P($G(^UTILITY($J,"GMRVD",ORDT,TYPE,IEN)),"^",8) ;Get value of vitals from global
- K ^UTILITY($J,"GMRVD")
- S ROOT=$NA(^TMP("ORDATA",$J))
+VS(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ; get vital Signs
+ D VS^ORDV04A
  Q
 TIUPRG(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;  TIU version of progress reports
- ;External calls to TIUSRVLO,TIUSRVR1,VASITE
+ ;Calls to TIUSRVLO,TIUSRVR1,VASITE
+ I $L($T(GCPR^OMGCOAS1)) D  Q  ; Call if FHIE station 200
+ . D GCPR^OMGCOAS1(DFN,"PN",ORDBEG,ORDEND,ORMAX)
+ . S ROOT=$NA(^TMP("ORDATA",$J))
  N ORDT,DATE,ORCI,ORGLOB,ORGLOBA,ORTEMP,ORSITE,SITE,I,ORNODE,GO,ORIMAG
  Q:'$L(OREXT)
  S GO=$P(OREXT,";")_"^"_$P(OREXT,";",2)
@@ -153,11 +145,11 @@ TIUPRG(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;  TIU version of progres
  K @ORGLOB
  S ROOT=$NA(^TMP("ORDATA",$J))
  Q
-TPRG ;Jump here for Tiu Progress Notes
+TPRG ;TIU Progress Notes
  D CONTEXT^TIUSRVLO(.ORGLOB,3,5,DFN,ORDBEG,ORDEND,,ORMAX)
  Q
 TIUDCS(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;  Discharge Summaries
- ;External calls to VASITE, DIQ1, TIUSRVLO
+ ;Calls VASITE, DIQ1, TIUSRVLO
  I $L($T(GCPR^OMGCOAS1)) D  Q  ; Call if FHIE station 200
  . D GCPR^OMGCOAS1(DFN,"DS",ORDBEG,ORDEND,ORMAX)
  . S ROOT=$NA(^TMP("ORDATA",$J))
@@ -182,22 +174,14 @@ TIUDCS(ROOT,ORALPHA,OROMEGA,ORMAX,ORDBEG,ORDEND,OREXT) ;  Discharge Summaries
  . S ^TMP("ORDATA",$J,ORNODE,"WP",4)="4^"_$G(@DIQ@(1202)) ;author/dicator
  . S ^TMP("ORDATA",$J,ORNODE,"WP",5)="5^"_$G(@DIQ@(1502)) ;signed by
  . S ^TMP("ORDATA",$J,ORNODE,"WP",6)="6^"_$G(@DIQ@(.05)) ;status
- . S ORICDIEN=+$O(^TIU(8925.9,"B",$P(ORTEMP,U),0))
- . S ORICDIEN=$P($G(^TIU(8925.9,ORICDIEN,0)),U,6)
- . I ORICDIEN D 
- .. K ORARRAY S DIC=80,DA=ORICDIEN,DR=".01;3",DIQ="ORARRAY"
- .. D EN^DIQ1
- .. S DIQ="ORARRAY(80,"_DA_")"
- .. S ^TMP("ORDATA",$J,ORNODE,"WP",7)="7^"_$G(@DIQ@(.01)) ;icd9 code
- .. S ^TMP("ORDATA",$J,ORNODE,"WP",8)="8^"_$G(@DIQ@(3)) ;icd9 diagnosis
  . S ORI=ORI+1
- . D TGET^TIUSRVR1(.ORGLOBA,$P(ORTEMP,U)) ;Call back to get summary text
- . D SPMRG^ORDVU($NA(@ORGLOBA),$NA(^TMP("ORDATA",$J,ORNODE,"WP",9)),9) ;summary Text
- . I $O(@ORGLOBA@(0)) S ^TMP("ORDATA",$J,ORNODE,"WP",10)="10^[+]" ;detail flag
+ . D TGET^TIUSRVR1(.ORGLOBA,$P(ORTEMP,U)) ;Call to get summary text
+ . D SPMRG^ORDVU($NA(@ORGLOBA),$NA(^TMP("ORDATA",$J,ORNODE,"WP",7)),7) ;summary Text
+ . I $O(@ORGLOBA@(0)) S ^TMP("ORDATA",$J,ORNODE,"WP",8)="8^[+]" ;detail flag
  . K @ORGLOBA
  K @ORGLOB
  S ROOT=$NA(^TMP("ORDATA",$J))
  Q
-TDCS ;Jump here for TIU Discharge Summary
+TDCS ;TIU Discharge Summary
  D CONTEXT^TIUSRVLO(.ORGLOB,244,5,DFN,ORDBEG,ORDEND,,ORMAX)
  Q

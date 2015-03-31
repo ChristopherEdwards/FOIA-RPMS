@@ -1,5 +1,5 @@
 LEXDDT1 ; ISL Display Defaults - Translate String  ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 EN ; String Type
  K LEX,LEXTSTR I '$D(LEXSTLN) S LEXSTLN=56

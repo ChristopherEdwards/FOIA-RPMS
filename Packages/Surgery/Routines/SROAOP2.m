@@ -1,5 +1,5 @@
-SROAOP2 ;BIR/ADM - OPERATION INFO, PAGE 2 ; [ 05/28/99  10:05 AM ]
- ;;3.0; Surgery ;**81,88**;24 Jun 93
+SROAOP2 ;BIR/ADM - OPERATION INFO, PAGE 2 ; [ 04/13/04  12:35 PM ]
+ ;;3.0; Surgery ;**81,88,100,125**;24 Jun 93
  ; called from SROAOP
 EDIT Q:SRSOUT  S SRHDR(.5)=SRDOC,SRPAGE="PAGE: 2 OF 2" D HDR^SROAUTL
  K DR S SRQ=0,(DR,SRDR)=".205;.22;.23;.232;.21;.24;1.18"
@@ -19,7 +19,8 @@ SEL W !!,"Select Operative Information to Edit: " R X:DTIME I '$T!(X["^")!(X="")
  I X?1.2N1":"1.2N S Y=$P(X,":"),Z=$P(X,":",2) I Y<1!(Z>SRX)!(Y>Z) D HELP Q
  I X="A" S X="1:"_SRX
  I X?1.2N1":"1.2N D RANGE Q
- I $D(SRX(X)),+X=X S EMILY=X D ONE
+ I $D(SRX(X)),+X=X S EMILY=X D
+ .I $$LOCK^SROUTL(SRTN) D ONE,UNLOCK^SROUTL(SRTN)
  Q
 HELP W @IOF,!!!!,"Enter the number or range of numbers you want to edit.  Examples of proper",!,"responses are listed below."
  W !!,"1. Enter 'A' to update all items.",!!,"2. Enter a number (1-"_SRX_") to update an individual item.  (For example,",!,"   enter '1' to update "_$P(SRX(1),"^")_")"
@@ -28,19 +29,22 @@ HELP W @IOF,!!!!,"Enter the number or range of numbers you want to edit.  Exampl
 PRESS W ! K DIR S DIR("A")="Press the return key to continue or '^' to exit: ",DIR(0)="FOA" D ^DIR K DIR I $D(DTOUT)!$D(DUOUT) S SRSOUT=1
  Q
 RANGE ; range of numbers
- S SHEMP=$P(X,":"),CURLEY=$P(X,":",2) F EMILY=SHEMP:1:CURLEY Q:SRSOUT  D ONE
+ I $$LOCK^SROUTL(SRTN) D  D UNLOCK^SROUTL(SRTN)
+ .S SHEMP=$P(X,":"),CURLEY=$P(X,":",2) F EMILY=SHEMP:1:CURLEY Q:SRSOUT  D ONE
  Q
 ONE ; edit one item
- K DR,DA,DIE S DR=$P(SRX(EMILY),"^",2)_"T",DA=SRTN,DIE=130,SRDT=$P(SRX(EMILY),"^",3) S:SRDT DR=DR_";"_SRDT_"T" D ^DIE K DR,DA I $D(Y) S SRSOUT=1
+ N SRW
+ W ! K DA,DIR S DA=SRTN,DIR(0)="130,"_$P(SRX(EMILY),"^",2),DIR("A")=$P(SRX(EMILY),"^") D ^DIR K DIR I $D(DTOUT)!$D(DUOUT) S SRSOUT=1 Q
+ S SRW=Y K DR,DA,DIE S DR=$P(SRX(EMILY),"^",2)_"////"_SRW,DA=SRTN,DIE=130 D ^DIE K DR,DA
  Q
 TR S J=I,J=$TR(J,"1234567890.","ABCDEFGHIJP")
  Q
 GET S X=$T(@J)
  Q
-PBJE ;;.205^Date/Time Patient In OR
-PBB ;;.22^Date/Time Operation Began
-PBC ;;.23^Date/Time Operation Ended
-PBCB ;;.232^Date/Time Patient Out OR
-PBA ;;.21^Anesthesia Care Start Date/Time
-PBD ;;.24^Anesthesia Care End Date/Time
-APAH ;;1.18^PAC(U) Discharge Date/Time
+PBJE ;;.205^Patient in Room (PIR)
+PBB ;;.22^Procedure/Surgery Start Time (PST)
+PBC ;;.23^Procedure/Surgery Finish (PF)
+PBCB ;;.232^Patient Out of Room (POR)
+PBA ;;.21^Anesthesia Start (AS)
+PBD ;;.24^Anesthesia Finish (AF)
+APAH ;;1.18^Discharge from PACU (DPACU)

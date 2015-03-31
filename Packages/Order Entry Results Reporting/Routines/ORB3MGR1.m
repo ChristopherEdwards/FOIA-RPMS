@@ -1,5 +1,5 @@
 ORB3MGR1 ; SLC/AEB - Manager Options - Notifications Parameters ;9/22/97
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**31,74,85,88,105,139,173**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**31,74,85,88,105,139,173,220**;Dec 17, 1997
  ;
  ;Calls to Add/Change/Delete Parameters
  ;
@@ -96,20 +96,32 @@ INPTOI ;
  F  D  Q:$D(DUOUT)!(Y="")
  .D TITLE(ORBT)
  .W !!,"1.  Flag Inpatient ORDERS."
- .W !,"2.  Flag Inpatient RESULTS."
- .W !,"3.  Flag Inpatient EXPIRING orders.",!
+ .W !,"2.  Flag Inpatient ORDERS for PROVIDER RECIPIENTS."
+ .W !,"3.  Flag Inpatient RESULTS."
+ .W !,"4.  Flag Inpatient RESULTS for PROVIDER RECIPIENTS."
+ .W !,"5.  Flag Inpatient EXPIRING orders."
+ .W !,"6.  Flag Inpatient EXPIRING orders for PROVIDER RECIPIENTS.",!
  .S PIEN=0,Y=0
- .K DIR S DIR(0)="NAO^1:3",DIR("A")="Select ""1"" to flag inpt ORDERS, ""2"" to flag inpt RESULTS, ""3"" to flag inpt EXPIRING orders: "
+ .K DIR S DIR(0)="NAO^1:6",DIR("A")="Select ""1 or 2"" to flag inpt ORDERS, ""3 or 4"" to flag inpt RESULTS, ""5 or 6"" to flag inpt EXPIRING orders: "
  .D ^DIR S ORBOI=Y K DIR Q:$D(DIRUT)
  .K X,DTOUT,DUOUT,DIRUT
  .I ORBOI=1 D
  ..S PIEN=$O(^XTV(8989.51,"B","ORB OI ORDERED - INPT",PIEN)) Q:PIEN=""
  ..S ORBPAR=PIEN
  .I ORBOI=2 D
- ..S PIEN=$O(^XTV(8989.51,"B","ORB OI RESULTS - INPT",PIEN)) Q:PIEN=""
+ ..S PIEN=$O(^XTV(8989.51,"B","ORB OI ORDERED - INPT PR",PIEN)) Q:PIEN=""
  ..S ORBPAR=PIEN
  .I ORBOI=3 D
+ ..S PIEN=$O(^XTV(8989.51,"B","ORB OI RESULTS - INPT",PIEN)) Q:PIEN=""
+ ..S ORBPAR=PIEN
+ .I ORBOI=4 D
+ ..S PIEN=$O(^XTV(8989.51,"B","ORB OI RESULTS - INPT PR",PIEN)) Q:PIEN=""
+ ..S ORBPAR=PIEN
+ .I ORBOI=5 D
  ..S PIEN=$O(^XTV(8989.51,"B","ORB OI EXPIRING - INPT",PIEN)) Q:PIEN=""
+ ..S ORBPAR=PIEN
+ .I ORBOI=6 D
+ ..S PIEN=$O(^XTV(8989.51,"B","ORB OI EXPIRING - INPT PR",PIEN)) Q:PIEN=""
  ..S ORBPAR=PIEN
  .D PROC(ORBPAR)
  Q
@@ -120,20 +132,32 @@ OUTPTOI ;
  F  D  Q:$D(DUOUT)!(Y="")
  .D TITLE(ORBT)
  .W !!,"1.  Flag Outpatient ORDERS."
- .W !,"2.  Flag Outpatient RESULTS."
- .W !,"3.  Flag Outpatient EXPIRING orders.",!
+ .W !,"2.  Flag Outpatient ORDERS for PROVIDER RECIPIENTS."
+ .W !,"3.  Flag Outpatient RESULTS."
+ .W !,"4.  Flag Outpatient RESULTS for PROVIDER RECIPIENTS."
+ .W !,"5.  Flag Outpatient EXPIRING orders."
+ .W !,"6.  Flag Outpatient EXPIRING orders for PROVIDER RECIPIENTS.",!
  .S PIEN=0,Y=0
- .K DIR S DIR(0)="NAO^1:3",DIR("A")="Select ""1"" to flag outpt ORDERS, ""2"" to flag outpt RESULTS, ""3"" to flag outpt EXPIRING orders: "
+ .K DIR S DIR(0)="NAO^1:6",DIR("A")="Select ""1 or 2"" to flag outpt ORDERS, ""3 or 4"" to flag outpt RESULTS, ""5 or 6"" to flag outpt EXPIRING orders: "
  .D ^DIR S ORBOI=Y K DIR Q:$D(DIRUT)
  .K X,DTOUT,DUOUT,DIRUT
  .I ORBOI=1 D
  ..S PIEN=$O(^XTV(8989.51,"B","ORB OI ORDERED - OUTPT",PIEN)) Q:PIEN=""
  ..S ORBPAR=PIEN
  .I ORBOI=2 D
- ..S PIEN=$O(^XTV(8989.51,"B","ORB OI RESULTS - OUTPT",PIEN)) Q:PIEN=""
+ ..S PIEN=$O(^XTV(8989.51,"B","ORB OI ORDERED - OUTPT PR",PIEN)) Q:PIEN=""
  ..S ORBPAR=PIEN
  .I ORBOI=3 D
+ ..S PIEN=$O(^XTV(8989.51,"B","ORB OI RESULTS - OUTPT",PIEN)) Q:PIEN=""
+ ..S ORBPAR=PIEN
+ .I ORBOI=4 D
+ ..S PIEN=$O(^XTV(8989.51,"B","ORB OI RESULTS - OUTPT PR",PIEN)) Q:PIEN=""
+ ..S ORBPAR=PIEN
+ .I ORBOI=5 D
  ..S PIEN=$O(^XTV(8989.51,"B","ORB OI EXPIRING - OUTPT",PIEN)) Q:PIEN=""
+ ..S ORBPAR=PIEN
+ .I ORBOI=6 D
+ ..S PIEN=$O(^XTV(8989.51,"B","ORB OI EXPIRING - OUTPT PR",PIEN)) Q:PIEN=""
  ..S ORBPAR=PIEN
  .D PROC(ORBPAR)
  Q

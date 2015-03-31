@@ -1,5 +1,5 @@
-PSOSD0 ;BHAM ISC/SAB - action or informational profile cont. ;3/24/93
- ;;7.0;OUTPATIENT PHARMACY;**2,19,40,66,107,110**;DEC 1997
+PSOSD0 ;BHAM ISC/SAB - action or informational profile cont. ;6/21/07 8:20am
+ ;;7.0;OUTPATIENT PHARMACY;**2,19,40,66,107,110,258,206**;DEC 1997;Build 39
  ;External reference to ^PS(50.605 supported by DBIA 696
  ;External reference to ^SC supported by DBIA 10040
  ;External reference to ^PSDRUG supported by DBIA 221
@@ -23,7 +23,8 @@ RXN1 S RFL=1,FILL(9999999-$P(RX2,"^",2))=+$P(RX2,"^",2)_"^"_$S($P(RX2,"^",15):"(
  I ZCLASS'=CLASS D:$S($G(PSTYPE):$Y>48,1:$Y>60) HD1^PSOSD2 W !,$S('PSORM:"Class: ",1:"Classification: ")_PCLASS,! S ZCLASS=CLASS
  I 'PSORM D EIGHTY Q
  W !,$S('$D(^PSDRUG(+$P(RX0,"^",6),0)):"",+$P(^PSDRUG(+$P(RX0,"^",6),0),"^",9):"N/F",1:"")," ",$S($D(^PSDRUG(+$P(RX0,"^",6),0)):$P(^(0),"^"),1:"NOT ON FILE")
- W ?45,"Qty: "_$P(RX0,"^",7)_" for "_$P(RX0,"^",8)_" Days ",?74,$P(RX0,"^"),?84," ",$S($P(RX0,"^",15)["PENDING":"PENDING",1:$P(RX0,"^",15)),?99,$E($P(RX2,"^",6),4,5)_"-"_$E($P(RX2,"^",6),6,7)_"-"_($E($P(RX2,"^",6),1,3)+1700)
+ N ACTS D ACTS
+ W ?45,"Qty: "_$P(RX0,"^",7)_" for "_$P(RX0,"^",8)_" Days ",?74,$P(RX0,"^"),?84," ",ACTS,?99,$E($P(RX2,"^",6),4,5)_"-"_$E($P(RX2,"^",6),6,7)_"-"_($E($P(RX2,"^",6),1,3)+1700)
  W ?110,$E(PHYS,1,30) D COS^PSOSDP
  I $G(^PSDRUG(+$P(RX0,"^",6),"PSO"))]"" W !," Message: "_$G(^PSDRUG(+$P(RX0,"^",6),"PSO"))
  S RXCNT=RXCNT+1 D SIG W !?9,"Sig: ",$G(BSIG(1))
@@ -37,7 +38,7 @@ RXN1 S RFL=1,FILL(9999999-$P(RX2,"^",2))=+$P(RX2,"^",2)_"^"_$S($P(RX2,"^",15):"(
  W ?105,"Price: " S PRICE=$S($D(^PSDRUG($P(RX0,"^",6),660)):$P(^(660),"^",6),1:0),COST=$P(RX0,"^",7)*PRICE S:COST<1 COST="0"_COST W "$",$J(COST,3,2),! K COST
  I 'PSTYPE D:$D(^PSDRUG(+$P(RX0,"^",6),"CLOZ"))&($P($G(^("CLOZ1")),"^")'="PSOCLO1") ^PSOLAB G RXN2
  G:$G(DOD(DFN))]"" RXN2
- D:+$G(PSOBAR4) BAR S PSRENW=0,PSODEA=$P($G(^PSDRUG(+$P(RX0,"^",6),0)),"^",3) I PSODEA'["2",PSODEA'["W",$P($G(^PS(53,+$P(RX0,"^",3),0)),"^",5) S PSRENW=1
+ D:+$G(PSOBAR4) BAR S PSRENW=0,PSODEA=$P($G(^PSDRUG(+$P(RX0,"^",6),0)),"^",3) I PSODEA'["1",PSODEA'["2",PSODEA'["W",$P($G(^PS(53,+$P(RX0,"^",3),0)),"^",5) S PSRENW=1
  S PSOIFSUP=$S(PSODEA']"":0,PSODEA["S":1,1:0),RXX=$P(RX0,"^"),RXX(1)="",RXX=$O(^PSRX("B",RXX,RXX(1)))
  W:$P($G(^PSRX(RXX,"IB")),"^") !?11,"****COPAY****" D PSRENW^PSOSD2
  I PSRENW W !?1,$S(PSOIFSUP:"",'$D(PSOPRINT):"",PSOPRINT]"":PSOPRINT,1:""),?11,"RENEW/MD:" F T=1:1:30 W "_" I T=30 W "VA#:" F I=1:1:10 W "_" I I=10 D
@@ -64,7 +65,8 @@ BAR ;barcode
 EIGHTY ;prints profile in 80 column format
  W !,$S('$D(^PSDRUG(+$P(RX0,"^",6),0)):"",+$P(^PSDRUG(+$P(RX0,"^",6),0),"^",9):"N/F",1:"")," ",$S($D(^PSDRUG(+$P(RX0,"^",6),0)):$P(^(0),"^"),1:"NOT ON FILE"),?45,"Rx #: "_$P(RX0,"^")
  I $G(^PSDRUG(+$P(RX0,"^",6),"PSO"))]"" W !," Message: "_$G(^PSDRUG(+$P(RX0,"^",6),"PSO"))
- W !?1,"Qty: "_$P(RX0,"^",7)_" for "_$P(RX0,"^",8)_" Days  "_$S($P(RX0,"^",15)["PENDING":"PENDING",1:$P(RX0,"^",15)),"  Exp: "_$E($P(RX2,"^",6),4,5)_"-"_$E($P(RX2,"^",6),6,7)_"-"_($E($P(RX2,"^",6),1,3)+1700)
+ N ACTS D ACTS
+ W !?1,"Qty: "_$P(RX0,"^",7)_" for "_$P(RX0,"^",8)_" Days  "_ACTS,"  Exp: "_$E($P(RX2,"^",6),4,5)_"-"_$E($P(RX2,"^",6),6,7)_"-"_($E($P(RX2,"^",6),1,3)+1700)
  W ?48," Prov: "_$E(PHYS,1,30) I $P($G(^PSRX(J,3)),"^",3),$D(^VA(200,+$P($G(^(3)),"^",3),0)) W !,?43,"COSIGNER: "_$P($G(^VA(200,+$P(^PSRX(J,3),"^",3),0)),"^")
  S RXCNT=RXCNT+1 D SIG W !?9,"Sig: ",$G(BSIG(1))
  I $O(BSIG(1)) F PSREV=1:0 S PSREV=$O(BSIG(PSREV)) Q:'PSREV  W !?14,$G(BSIG(PSREV))
@@ -77,7 +79,7 @@ EIGHTY ;prints profile in 80 column format
  W !?10,"Price: " S PRICE=$S($D(^PSDRUG($P(RX0,"^",6),660)):$P(^(660),"^",6),1:0),COST=$P(RX0,"^",7)*PRICE S:COST<1 COST="0"_COST W "$",$J(COST,3,2),! K COST
  I 'PSTYPE D:$D(^PSDRUG(+$P(RX0,"^",6),"CLOZ"))&($P($G(^("CLOZ1")),"^")'="PSOCLO1") ^PSOLAB G RXN2
  G:$G(DOD(DFN))]"" RXN3
- D:+$G(PSOBAR4) BAR S PSRENW=0,PSODEA=$P($G(^PSDRUG(+$P(RX0,"^",6),0)),"^",3) I PSODEA'["2",PSODEA'["W",$P($G(^PS(53,+$P(RX0,"^",3),0)),"^",5) S PSRENW=1
+ D:+$G(PSOBAR4) BAR S PSRENW=0,PSODEA=$P($G(^PSDRUG(+$P(RX0,"^",6),0)),"^",3) I PSODEA'["1",PSODEA'["2",PSODEA'["W",$P($G(^PS(53,+$P(RX0,"^",3),0)),"^",5) S PSRENW=1
  S PSOIFSUP=$S(PSODEA']"":0,PSODEA["S":1,1:0),RXX=$P(RX0,"^"),RXX(1)="",RXX=$O(^PSRX("B",RXX,RXX(1)))
  W:$P($G(^PSRX(RXX,"IB")),"^") !?11,"****COPAY****" D PSRENW^PSOSD2
  I PSRENW W !?1,$S(PSOIFSUP:"",'$D(PSOPRINT):"",PSOPRINT]"":PSOPRINT,1:""),?6,"RENEW/MD:" F T=1:1:30 W "_" I T=30 W "VA#:" F I=1:1:10 W "_" I I=10 D
@@ -87,4 +89,7 @@ EIGHTY ;prints profile in 80 column format
  .W !?11,"DISCONTINUE/MD:" F T=1:1:26 W "_" I T=26 W "VA#:" F I=1:1:10 W "_" I I=10 W "DATE__________",!
  D:$D(^PSDRUG(+$P(RX0,"^",6),"CLOZ"))&($P($G(^("CLOZ1")),"^")'="PSOCLO1") PRINT^PSOLAB
 RXN3 W ! K RX0,RX3,RX2,PRDT,LABEL,PHYS,PSI,PSII,PSIII,II,Y,SIG,X,FILL,FILLS,PHYS,Z9,PRICE,I,T,RXX
+ Q
+ACTS ;
+ S ACTS=$S($P(RX0,"^",15)["PENDING":"PENDING",$P(RX0,"^",15)["Suspended":"Active/Susp",1:$P(RX0,"^",15))
  Q

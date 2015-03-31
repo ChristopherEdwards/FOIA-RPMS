@@ -1,11 +1,12 @@
 ORX1 ; slc/dcm - OE/RR Nature of Order entry points ;12/26/96  09:49
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**92**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**92,242**;Dec 17, 1997;Build 6
+ ;
 NA(DEFAULT,REQUIRD,FB,DIRA,DC,LIST) ;Function to get Nature of order
  ;DEFAULT [not required] =Free text code or pointer to Nature of order (file 100.02).
  ;                        Used for default response.
  ;REQUIRD [not required] =1 to require a response from user,
  ;                       =0 (default) not to require response.
- ;FB [not required] =F for frondoor,
+ ;FB [not required] =F for frontdoor,
  ;                  =B (default) for backdoor.
  ;                  Screens on Frontdoor/Backdoor types.
  ;                  Nature of order entries are setup to be available for
@@ -22,7 +23,7 @@ NA(DEFAULT,REQUIRD,FB,DIRA,DC,LIST) ;Function to get Nature of order
  N DIR,X,Y,DIRUT,DUOUT
  S DIR("?",1)="This order/change will be recorded in the patient's electronic record."
  S DIR("?",2)="Depending on the nature of this activity, a notification may be sent to the"
- S DIR("?",3)="requesting clinician to electonically sign this action, and a copy of this"
+ S DIR("?",3)="requesting clinician to electronically sign this action, and a copy of this"
  S DIR("?",4)="action may be printed on the ward/clinic to be placed in the patient's chart."
  S DIR("?",5)=""
  S DIR("?",6)="   Enter '??' for more information."
@@ -34,6 +35,7 @@ NA(DEFAULT,REQUIRD,FB,DIRA,DC,LIST) ;Function to get Nature of order
  S:'$D(FB) FB="B" S:FB="" FB="B" S:'$D(DC) DC=0
  I $L($G(LIST)) S DIR("S")="I '$P(^(0),""^"",4),'$P(^(0),""^"",3),LIST[$P(^(0),""^"",2)"
  I '$L($G(LIST)) S DIR("S")="I '$P(^(0),""^"",4),'$P(^(0),""^"",3),('$P(^(0),""^"",6)!(DC)),"_$S(FB="B":"""XB""[$P(^(0),""^"",5)",FB="F":"""XF""[$P(^(0),""^"",5)",1:0)
+ S DIR("S")=DIR("S")_",'$$SCREEN^XTID(100.02,,Y_"","")" ;inactive VUID
  S DIR("??")="^D NA1^ORX1(DIR(""S""))"
 OT2 D ^DIR
  I 'Y,$G(REQUIRD)=1 W !,"A "_$S($L($G(DIRA)):DIRA,1:"NATURE OF ORDER/CHANGE")_" must be entered",$C(7),! G OT2
@@ -41,11 +43,11 @@ OT2 D ^DIR
  Q Y
 NA1(SCREEN) ;Executable help for Nature of order
  ;SCREEN=Mumps code that is used like DIC("S") to screen out entries
- N X,X1,I
+ N X,X1,Y
  W !?30," Require",?43,"   Print",?56,"Print on"
  W !?2,"Nature of Order Activity",?29,"E.Signature",?43,"Chart Copy",?56,"Summary"
  W !?2,"------------------------",?29,"-----------",?43,"----------",?56,"--------"
- S I=0 F  S I=$O(^ORD(100.02,I)) Q:I<1  I $D(^(I,0)) X:$D(SCREEN) SCREEN I $T S X=^(0),X1=$G(^(1)) W !,?2,$P(X,"^"),?34,$S($P(X1,"^",4)=2:"x",1:""),?47,$S($P(X1,"^",2):"x",1:""),?59,$S($P(X1,"^",3):"x",1:"")
+ S Y=0 F  S Y=$O(^ORD(100.02,Y)) Q:Y<1  I $D(^(Y,0)) X:$D(SCREEN) SCREEN I $T S X=^ORD(100.02,Y,0),X1=$G(^(1)) W !,?2,$P(X,"^"),?34,$S($P(X1,"^",4)=2:"x",1:""),?47,$S($P(X1,"^",2):"x",1:""),?59,$S($P(X1,"^",3):"x",1:"")
  Q
 NA2(SCREEN) ;Get help for DC Reasons
  ;SCREEN=Mumps code that is used like DIC("S") to screen out entries
@@ -87,7 +89,7 @@ DC(DEFAULT,REQ,PKG,DIRA) ;Function to get a DC Reason
  ;PKG=ptr to file 9.4 to only get reasons for a specific package
  ;DIRA=Default prompt to be used instead of DIR("A")
  N DIR,X,Y,DIRUT,DUOUT
- S DIR("?",1)="This order/change will be recorded in the  patient's electronic record."
+ S DIR("?",1)="This order/change will be recorded in the patient's electronic record."
  S DIR("?",2)="Depending of the nature of this activity, a notification may be sent to the"
  S DIR("?",3)="requesting clinician to electronically sign this action, and a copy of this"
  S DIR("?",4)="action may be printed on the ward/clinic to be placed in the patient's chart."
@@ -109,4 +111,13 @@ EDC1 S DIC=100.03,DIC(0)="AELNQM",DIC("A")="Select DC REASON: ",DLAYGO=100.03
  S DIC("DR")=".05////"_+$O(^DIC(9.4,"C","OR",0)) D MIX^DIC1 Q:Y'>0
  S DA=+Y,DIE=DIC,DR=".01;.03;.04;.07" D ^DIE
  W ! G EDC1
+ Q
+ ;
+EDITNAT ; -- Edit allowable Nature of Order fields
+ N X,Y,DA,DR,DIE,DIC W !
+EDN S DIC="^ORD(100.02,",DIC(0)="AEQM",DIC("A")="Select NATURE OF ORDER: "
+ S DIC("S")="I '$P(^(0),""^"",4),'$$SCREEN^XTID(100.02,,Y_"","")" ;inactive VUID
+ D ^DIC Q:Y<1
+ S DA=+Y,DIE=DIC,DR=".12;.13;.15;.16" D ^DIE
+ W ! G EDN
  Q

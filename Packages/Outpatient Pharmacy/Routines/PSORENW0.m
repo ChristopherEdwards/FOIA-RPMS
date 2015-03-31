@@ -1,13 +1,18 @@
-PSORENW0 ;IHS/DSD/JCM-renew main driver continuation ;01-Nov-2011 10:42;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,27,32,59,64,46,71,96,100,130,1008,1013**;DEC 1997;Build 33
+PSORENW0 ;IHS/DSD/JCM-renew main driver continuation ;23-Aug-2012 16:17;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,32,59,64,46,71,96,100,130,1008,1013,237,206,1014,1016**;DEC 1997;Build 74
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
+ ;
+ ;PSO*237 was not adding to Clozapine Override file, fix
  ; Modified - IHS/CIA/PLS - 01/06/04 - Line PROCESS+6 and new CANC label
  ;                        - 04/05/04 - Line EDIT+1
  ;                        - 04/20/04 - FILDATE+6
  ;                        - 10/23/09 - FILDATE+8
  ;                        - 11/01/11 - RXN+2,GETRXN EP
+ ;			  - 08/23/12 - Added line RXN+14 to strip the X from the new Rx number
+ ;				       for a renew where it was previously auto finished and the
+ ;				       mail/window flag changes to Window when renewed
 PROCESS ;
  D ^PSORENW1
  D INST2^PSORENW
@@ -34,6 +39,15 @@ DSPL K PSOEDT,PSOLM D DSPLY^PSORENW3 G:PSORENW("DFLG") PROCESSX
  D RNPSOSD^PSOUTIL
  D CAN,DCORD^PSONEW2
  S BBRN="",BBRN1=$O(^PSRX("B",PSORENW("NRX #"),BBRN)) I $P($G(^PSRX(BBRN1,0)),"^",11)["W" S BINGCRT="Y",BINGRTE="W"
+ ;PSO*237 add to Clozapine Override file
+ANQ I $G(ANQDATA)]"" D NOW^%DTC G:$D(^PS(52.52,"B",%)) ANQ D
+ . K DD,DO S DIC="^PS(52.52,",DIC(0)="L",DLAYGO=52.52,X=%
+ . D FILE^DICN K DIC,DLAYGO,DD,DO,DA,DR
+ . N PS52 S (PS52,DA)=+Y,DIE="^PS(52.52,",DR="1////"_PSORENW("IRXN")
+ . D ^DIE K DIE,DA,DR
+ . S $P(^PS(52.52,PS52,0),"^",3,6)=ANQDATA
+ . K ANQDATA,X,Y,%,ANQREM
+ ;
 PROCESSX I PSORENW("DFLG")!$G(PSRX("DFLG")) S PSOBBCLK=1 W:'$G(POERR) !,$C(7),"RENEWED RX DELETED",! D:$P($G(PSOLST(+$G(ORN))),"^",2) PSOUL^PSSLOCK($P(PSOLST(ORN),"^",2)) S POERR("DFLG")=1 D CLEAN^PSOVER1
  D:$G(PSORENW("OLD FILL DATE"))]"" SUSDATEK^PSOUTIL(.PSORENW)
  K PRC,PHI,PSOQUIT,BBRN,BBRN1,PSORENW,PSODRUG,PSORX("PROVIDER NAME"),PSORX("CLINIC"),PSORX("FN")
@@ -63,7 +77,7 @@ CHECK ;
  .I $G(PSORNSPD) W !
  ;
  S (PSOS,PSOX,PSOY)="" K ACOM,DIR,DIRUT,DIRUT,DUOUT
- I $G(PSOSD) F  S PSOS=$O(PSOSD(PSOS)) Q:PSOS=""  F  S PSOX=$O(PSOSD(PSOS,PSOX)) Q:PSOX']""!(PSORENW("DFLG"))  I PSORENW("OIRXN")=+PSOSD(PSOS,PSOX) S PSOY=PSOSD(PSOS,PSOX) I $P(PSOY,"^",3)]"" D  K ACOM,DIR,DIRUT,DIRUT,DUOUT
+ I $G(PSOSD) F  S PSOS=$O(PSOSD(PSOS)) Q:PSOS=""  F  S PSOX=$O(PSOSD(PSOS,PSOX)) Q:PSOX']""!(PSORENW("DFLG"))  I PSORENW("OIRXN")=+PSOSD(PSOS,PSOX) S PSOY=PSOSD(PSOS,PSOX) I $TR($P(PSOY,"^",3),"B")]"" D  K ACOM,DIR,DIRUT,DIRUT,DUOUT
  . S PSORENW("DFLG")=1
  . W !,$C(7),"Cannot renew Rx # ",$P(PSORENW("RX0"),"^")
  . S PSOREA=$P(PSOY,"^",3),PSOSTAT=+PSORENW("STA")
@@ -131,6 +145,8 @@ RXN ;
  ..S VALMSG="Cannot renew Rx # "_PSORENW("ORX #")_", Prescription number not available.",VALMBCK="R" S PSORENW("DFLG")=1
  S PSOX=$E(PSORENW("ORX #"),$L(PSORENW("ORX #")))
  S PSORENW("NRX #")=$S(PSOX?1N:PSORENW("ORX #")_"A",1:$E(PSORENW("ORX #"),1,$L(PSORENW("ORX #"))-1)_$C($A(PSOX)+1))
+ ;IHS/MSC/PB - 8/23/12 - Added next line to strip the X from the new Rx number for a renew where it was previously auto finished and the mail/window flag changes to Window
+ I $E(PSORENW("NRX #"),1)="X",$G(PSORENW("MAIL/WINDOW"))="W" S PSORENW("NRX #")=$E(PSORENW("NRX #"),2,$L(PSORENW("NRX #")))
 RETRY I $O(^PSRX("B",PSORENW("NRX #"),0)) D  G:'$G(PSORENW("DFLG")) RETRY
  .W:$A($E(PSORENW("NRX #"),$L(PSORENW("ORX #"))))'=90 !,"Rx # "_PSORENW("NRX #")_" is already on file."
  .S:$G(PSOFDR) VALMSG="Rx # "_PSORENW("NRX #")_" is already on file."

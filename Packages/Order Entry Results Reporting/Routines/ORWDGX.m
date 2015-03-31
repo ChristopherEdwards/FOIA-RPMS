@@ -1,5 +1,5 @@
 ORWDGX ; SLC/KCM - Generic Orders calls for Windows Dialogs [ 08/05/96  8:21 AM ]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**243**;Dec 17, 1997;Build 242
  ;
 ACT() N X,RSLT S X=^(0),RSLT=1
  I "DQ"'[$P(X,U,4) S RSLT=0
@@ -45,8 +45,11 @@ MEASURE ; Get measurements available
  S LST($$NXT)="dTPR B/P"      ; ** do this with a parameter
  Q
 VMSCHED ; Get vitals/measurements schedules
- S X="" F  S X=$O(^PS(51.1,"APGMRV",X)) Q:X=""  D
- . S I=$O(^PS(51.1,"APGMRV",X,0)),LST($$NXT)="i"_I_U_X
+ K ^TMP($J,"ORWDGX APGMRV")
+ D AP^PSS51P1("GMRV",,,,"ORWDGX APGMRV")
+ S X="" F  S X=$O(^TMP($J,"ORWDGX APGMRV","APGMRV",X)) Q:X=""  D
+ . S I=$O(^TMP($J,"ORWDGX APGMRV","APGMRV",X,0)),LST($$NXT)="i"_I_U_X
+ K ^TMP($J,"ORWDGX APGMRV")
  Q
 NXT() ; Increment index into LST
  S ILST=ILST+1

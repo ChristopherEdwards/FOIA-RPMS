@@ -1,6 +1,5 @@
-SROQD ;BIR/ADM-Cases with Deaths within 30 Days ; [ 09/22/98  11:45 AM ]
- ;;3.0; Surgery ;**62,77,50**;24 Jun 9
- ;
+SROQD ;BIR/ADM - CASES WITH DEATHS WITHIN 30 DAYS ;09/22/98  11:45 AM
+ ;;3.0; Surgery ;**62,77,50,142**;24 Jun 93
  ;** NOTICE: This routine is part of an implementation of a nationally
  ;**         controlled procedure.  Local modifications to this routine
  ;**         are prohibited.
@@ -53,7 +52,7 @@ OP ; print case information
  Q:SRSD<(SDATE-.0001)!(SRSD>(EDATE+.9999))  D:$Y+7>IOSL PAGE^SROQD0 Q:SRSOUT
  S SRZ=^TMP("SR",$J,DFN,SRSD,SRTN),Y=SRSD,SRSDATE=$E(Y,4,5)_"/"_$E(Y,6,7)_"/"_$E(Y,2,3),Y=$P(SRZ,"^"),SRSS=$S(Y=9999:"SPECIALTY NOT ENTERED",1:$P(^SRO(137.45,Y,0),"^"))
  S Y=$P(SRZ,"^",2),SRIOSTAT=$S(Y="I":"INPAT",Y="O":"OUTPAT",1:"???"),Y=$P(SRZ,"^",3),SRREL=$S(Y="U":"UNRELATED",Y="R":"RELATED",1:"???")
- S SRCON=$P(SRZ,"^",4) S SRL=52 D PROC^SROUTL
+ S SRCON=$P(SRZ,"^",4) S SRL=52,SRSUPCPT=1 D PROC^SROUTL
  W !,SRSDATE,?10,SRTN,?22,SRIOSTAT,?31,$E(SRSS,1,35),?69,SRPROC(1),?123,SRREL,! W:SRCON "*** CONCURRENT CASE #"_SRCON_" ***" S I=1 F  S I=$O(SRPROC(I)) Q:'I  W ?69,SRPROC(I),!
  I SRCON,'$D(SRPROC(2)) W !
  Q

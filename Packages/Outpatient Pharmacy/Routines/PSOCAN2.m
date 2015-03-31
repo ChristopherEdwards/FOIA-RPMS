@@ -1,5 +1,5 @@
-PSOCAN2 ;BHAM ISC/JMB - modular rx cancel with speed ability drug check ;30-Apr-2008 14:32;SM
- ;;7.0;OUTPATIENT PHARMACY;**8,18,62,46,88,164,1006**;DEC 1997
+PSOCAN2 ;BHAM ISC/JMB - modular rx cancel with speed ability drug check ;29-May-2012 14:40;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**8,18,62,46,88,164,1006,235,148,259,281,287,1015**;DEC 1997;Build 62
  ;External reference to ^PSDRUG supported by dbia 221
  ; Modified - IHS/MSC/PLS - 04/30/08 - Line HLD+2
 REINS N DODR
@@ -13,6 +13,7 @@ REINS N DODR
 ACT W ! F I=1:1:80 W "="
  D ^PSOBUILD S DRG=+$P(^PSRX(DA,0),"^",6),DRG=$S($D(^PSDRUG(DRG,0)):$P(^(0),"^"),1:""),HOLDRX=RX
  W !!,RX_"  "_DRG D DRGDRG S RX=HOLDRX K HOLDRX Q:$P(^PSRX(+PSCAN(RX),"STA"),"^")'=12!($G(PSORX("DFLG")))  S DA=+PSCAN(RX),REA=$P(PSCAN(RX),"^",2) D CAN^PSOCAN W !
+ N RXIEN S RXIEN=DA
  ;Takes action on reinstated Rx's
  S RFCNT=0 F RF=0:0 S RF=$O(^PSRX(DA,1,RF)) Q:'RF  S RFCNT=RF
  S (LPRT,LREF)="" F LL=0:0 S LL=$O(^PSRX(DA,"L",LL)) Q:'LL  S LPRT=$P($G(^PSRX(DA,"L",LL,0)),"."),LREF=$P($G(^(0)),"^",2)
@@ -24,14 +25,24 @@ ACT W ! F I=1:1:80 W "="
  I RELDT'="" W !,RX_" Reinstated -- ",!?3,$S('RFCNT:"Filled",1:"Refilled # "_LREF)_": "_XFDT,?32,"Printed: "_$S(LREF=RFCNT:XLPDT,1:""),?56,"Released: "_$G(XRELDT) H 3 Q
  ;If Rx not released, check fill/refill date for action
  I $G(PSXSYS) D REINS^PSOCMOPA I $G(XFLAG) K XFLAG Q
+ W !,"Prescription #"_RX_" REINSTATED!"
+ ;
+ N PSOTRIC S PSOTRIC="",PSOTRIC=$$TRIC^PSOREJP1(RXIEN,RFCNT,PSOTRIC)
+ D SUBMIT^PSOREJU3(RXIEN,RFCNT,PSOTRIC)
+ ;
+ W !?3,"Prescription #",RX_": "
+ W !?6,$S('RFCNT:"  Filled",1:"  Refilled # "_LREF)_": "_XFDT,"  Printed: "_$S(LREF=RFCNT:XLPDT,1:""),"  Released: "_$G(XRELDT),!
  I FDT<DT D
- .W !,RX_" REINSTATED -- ",!?3,$S('RFCNT:"Filled",1:"Refilled # "_LREF)_":  "_XFDT,?32,"Printed: "_$S(LREF=RFCNT:XLPDT,1:""),?56,"Released:"
+ .Q:$$FIND^PSOREJUT(RXIEN)  ;No label for Rx's with claims rejects
+ .Q:PSOTRIC&($$STATUS^PSOBPSUT(RXIEN,RFCNT)'["PAYABLE")  ;No labels for Tricare non-payable/in progess Rx
  .S DIR("A")="     ** Do you want to print the label now",DIR("B")="N",DIR(0)="Y",DIR("?")="Enter 'Y' to print the label now.  If 'N' is entered, the label may be reprinted through reprint at a later date."
- .D ^DIR K DIR Q:$G(DIRUT)!('Y)  S PPL=DA D Q^PSORXL Q
- I FDT=DT W !,RX_" Reinstated -- ",!?3,$S('RFCNT:"Filled",1:"Refilled # "_LREF)_": "_XFDT,?32,"Printed: "_$S(LREF=RFCNT:XLPDT,1:"")
- I  W ?56,"Released:",!?5,"Either print the label using the reprint option ",!?7,"or check later to see if the label has been printed." Q
- I FDT>DT W !,RX_" reinstated -- ",!?3,$S('RFCNT:"Filled",1:"Refilled # "_LREF)_": "_XFDT,?32,"Printed: "_$S(LREF=RFCNT:XLPDT,1:"")
- I  W ?56,"Released:" I '$G(DODR) W !?5,"Placing Rx on suspense.  Please wait..." D SUS
+ .D ^DIR K DIR Q:$G(DIRUT)!('Y)  S PPL=RXIEN D Q^PSORXL Q
+ I FDT=DT D
+ . Q:$$FIND^PSOREJUT(RXIEN)
+ . Q:PSOTRIC&($$STATUS^PSOBPSUT(RXIEN,RFCNT)'["PAYABLE")
+ . W !?5,"Either print the label using the reprint option "
+ . W !?7,"or check later to see if the label has been printed." Q
+ I FDT>DT&('$G(DODR)) W !?5,"Placing Rx on suspense.  Please wait..." D SUS
  K DODR
  Q
 SUS ;Adds rec to suspense
@@ -71,6 +82,12 @@ HLD N PSDTEST,PDA,CMOP,SUSD I $P(^PSRX(DA,"STA"),"^")=3 D
  Q
 REF S IFN=0 F  S IFN=$O(^PSRX(DA,1,IFN)) Q:'IFN  I $P($G(^PSRX(DA,1,IFN,0)),"^")=SUSD,'$P(^(0),"^",18) D
  .D DELREF I $G(PSORFDEL) K PSORFDEL Q
+ .;PSO*7*259;CHECK IF REFILL RELEASED OR LABEL PRINTED
+ .I $P($G(^PSRX(DA,1,IFN,0)),"^",18)]"" Q  ;REFILL RELEASED
+ .N PSONODEL,PSOLBL S PSONODEL=0
+ .I $P(^PSRX(DA,"STA"),"^")=5 D REF^PSOCAN4 Q:PSONODEL
+ .S PSOLBL="" F  S PSOLBL=$O(^PSRX(DA,"L",PSOLBL),-1) Q:'PSOLBL  Q:PSONODEL  Q:$P(^PSRX(DA,"L",PSOLBL,0),"^",2)<IFN  I $P(^PSRX(DA,"L",PSOLBL,0),"^",2)=IFN S PSONODEL=1
+ .Q:PSONODEL
  .K PSORFDEL K ^PSRX(DA,1,IFN),^PSRX("AD",SUSD,DA,IFN),^PSRX(DA,1,"B",SUSD,IFN)
  .S $P(^PSRX(DA,1,0),"^",4)=$P(^PSRX(DA,1,0),"^",4)-1,DA(1)=DA
  .S NODE=0 D SPR^PSOUTL K DA(1),RF,NODE
@@ -94,9 +111,9 @@ AUTOD ;reinstates Rxs dc'd by date of death
  S FILE=$P(DODS,";"),STA=$P(DODS,";",2)
  I FILE=52.4 D  Q
  .S RXN=DA,^PS(52.4,DA,0)=DODD,DIK="^PS(52.4," D IX^DIK K DIK,DA S DA=RXN,$P(^PSRX(DA,"STA"),"^")=STA
- .S ST="SC",PHST="IP",ACOM="Date of Death Deleted. Returned to Non-Verified status." D EN^PSOHLSN1(DA,ST,PHST,ACOM)
+ .S ST="SC",PHST="IP",ACOM="Date of Death Deleted. Returned to Non-Verified status."
  .K ^PSRX("APSOD",$P(^PSRX(DA,0),"^",2),DA),^PSRX(DA,"DDSTA")
- .S DA=RXN D LOG K ST,PHST,ACOM,RXN
+ .S DA=RXN D LOG D EN^PSOHLSN1(DA,ST,PHST,ACOM) K ST,PHST,ACOM,RXN
  I FILE=52.5 D  Q
  .;Adds rec to suspense
  .S RXN=DA,RXS=$O(^PS(52.5,"B",DA,0)) I RXS S DA=RXS,DIK="^PS(52.5," D ^DIK
@@ -105,11 +122,11 @@ AUTOD ;reinstates Rxs dc'd by date of death
  .S DIK="^PS(52.5," D IX^DIK K DIK,DA S DA=RXN,$P(^PSRX(DA,"STA"),"^")=STA
  .S ACOM="Date of Death Deleted. RX Placed on Suspense until "_LFD
  .K ^PSRX("APSOD",PSODFN,DA),^PSRX(DA,"DDSTA")
- .I STA=5 S ST="SC",PHST="ZS" D EN^PSOHLSN1(DA,ST,PHST,ACOM) D LOG K ST,PHST,ACOM,LFD
+ .I STA=5 S ST="SC",PHST="ZS" D LOG D EN^PSOHLSN1(DA,ST,PHST,ACOM) K ST,PHST,ACOM,LFD
  I FILE=52 S ^PSRX(DA,"STA")=STA I STA=3!(STA=16) D  Q
  .S ^PSRX(DA,"H")=DODD,^PSRX("AH",$P(^PSRX(DA,"H"),"^"),DA)=""
  .S ACOM="Date of Death Deleted. Medication Returned to"_$S(STA=16:" Provider",1:"")_" Hold Status "_$E(DT,4,5)_"/"_$E(DT,6,7)_"/"_$E(DT,2,3)_"."
- .D EN^PSOHLSN1(DA,"OH","",ACOM),LOG K ACOM
+ .D LOG,EN^PSOHLSN1(DA,"OH","",ACOM) K ACOM
  .K ^PSRX("APSOD",PSODFN,DA),^PSRX(DA,"DDSTA")
  S ACOM="Date of Death Deleted. Prescription Reinstated." D EN^PSOHLSN1(DA,"SC","CM",ACOM),LOG K ACOM
  Q
@@ -120,4 +137,17 @@ LOG K ACNT F SUB=0:0 S SUB=$O(^PSRX(DA,"A",SUB)) Q:'SUB  S ACNT=$G(ACNT)+1
  K ^PSRX("APSOD",PSODFN,DA),ACNT,RFCNT,RF,%
  S $P(^PSRX(DA,3),"^")=$P(^PSRX(DA,3),"^",5),$P(^(3),"^",2)=$P(^(3),"^",8)
  S $P(^PSRX(DA,3),"^",5)="",$P(^(3),"^",8)=""
+ Q
+NVER ;Called from PSOCAN3, needs DA defined
+ N PSONVC,PSONVCP,PSONVCC
+ S PSONVC="SC",PSONVCP="IP",PSONVCC="Put in non-verified status" D EN^PSOHLSN1(DA,PSONVC,PSONVCP,PSONVCC)
+ Q
+RMB(IDX) ;remove Rx if found in array BBRX() (Bingo Board)
+ N ST4,ST5,ST6,K
+ S ST4=BBRX(IDX) Q:ST4'[(DA_",")
+ S ST6=""
+ F K=1:1 S ST5=$P(ST4,",",K) Q:'ST5  D
+ . S:ST5'=DA ST6=ST6_$S('ST6:"",1:",")_ST5
+ . S:ST6]"" BBRX(IDX)=ST6_"," K:ST6="" BBRX(IDX)
+ I '$D(BBRX) K BINGCRT
  Q

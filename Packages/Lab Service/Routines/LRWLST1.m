@@ -1,7 +1,5 @@
 LRWLST1 ;DALOI/CJS/RWF/FHS - ACCESSION SETUP ; July 19, 2006
- ;;5.2;LAB SERVICE;**1010,1013,1018,1027,1030,1031**;NOV 1, 1997
- ;
- ;;VA LR Patch(s): 48,65,121,128,153,202,261,286,331,379
+ ;;5.2;LAB SERVICE;**48,65,1010,121,128,1013,153,202,261,1018,286,1027,1030,331,379,331,379,1031,1032**;NOV 1, 1997
  ;
  ; Reference to ^DIC(42 supported by IA #10039
  ; Reference to ^SC( supported by IA #10040
@@ -106,37 +104,43 @@ STWLN ; Set accession number
  ; I $D(LRDIE(1)) D MAILALRT
  I $D(LRDIE(1)) D MAILALRT(1)     ; IHS/MSC/MKK - LR*5.2*1031
  ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1032
+ ;       ONLY use data from the 69 for the Specimen & data from 60 for the Collection sample
+ ; 
  ; If specimen defined then set nodes, force to ien=1 since many lab
  ; routines expect the specimen to be record number 1.
  ; I $G(LRSPEC) D
- I +$G(LRSPEC) D                                      ; IHS/MSC/MKK - LR*5.2*1031
- . N FDAIEN
- . S FDAIEN(1)=1
- . S FDA(2,68.05,"+1,"_LR6802,.01)=LRSPEC
- . S FDA(2,68.05,"+1,"_LR6802,1)=$P(LRSAMP,";",1)
- . ;
- . ; Modification to prevent lock failures - loop 10 times to give system a chance to get lock
- . N LRLOCKOK,LRLOOPCT
- . S LRLOCKOK=0
- . F LRLOOPCT=1:1:10 Q:LRLOCKOK  D  I 'LRLOCKOK H 5
- . . K LRDIE(2)
- . . D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
- . . S:$D(LRDIE(2))=0 LRLOCKOK=1
- . K LRLOCKOK,LRLOOPCT
- . ;
- . ;D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
- . ; I $D(LRDIE(2)) D MAILALRT
- . I $D(LRDIE(2)) D MAILALRT(2)   ; IHS/MSC/MKK - LR*5.2*1031
+ ; I +$G(LRSPEC) D                                      ; IHS/MSC/MKK - LR*5.2*1031
+ ; . N FDAIEN
+ ; . S FDAIEN(1)=1
+ ; . S FDA(2,68.05,"+1,"_LR6802,.01)=LRSPEC
+ ; . S FDA(2,68.05,"+1,"_LR6802,1)=$P(LRSAMP,";",1)
+ ; . ;
+ ; . ; Modification to prevent lock failures - loop 10 times to give system a chance to get lock
+ ; . N LRLOCKOK,LRLOOPCT
+ ; . S LRLOCKOK=0
+ ; . F LRLOOPCT=1:1:10 Q:LRLOCKOK  D  I 'LRLOCKOK H 5
+ ; . . K LRDIE(2)
+ ; . . D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
+ ; . . S:$D(LRDIE(2))=0 LRLOCKOK=1
+ ; . K LRLOCKOK,LRLOOPCT
+ ; . ;
+ ; . D UPDATE^DIE("","FDA(2)","FDAIEN","LRDIE(2)")
+ ; . I $D(LRDIE(2)) D MAILALRT
+ ; . I $D(LRDIE(2)) D MAILALRT(2)   ; IHS/MSC/MKK - LR*5.2*1031
  ;
  ; If no specimen defined then use specimen values from file #69.
  ; I $G(LRSPEC)="",$D(^LRO(69,LRODT,1,LRSN,4,0)) D
- I +$G(LRSPEC)<1,$D(^LRO(69,LRODT,1,LRSN,4,0)) D      ; IHS/MSC/MKK - LR*5.2*1031
+ ; I +$G(LRSPEC)<1,$D(^LRO(69,LRODT,1,LRSN,4,0)) D      ; IHS/MSC/MKK - LR*5.2*1031
+ I $D(^LRO(69,LRODT,1,LRSN,4,0)) D
+ . ; ----- END IHS/MSC/MKK - LR*5.2*1032
  . N FDA,FDAIEN,LRI,LRX
  . S LRI=0
  . F  S LRI=$O(^LRO(69,LRODT,1,LRSN,4,LRI)) Q:'LRI  D
  . . S FDAIEN(1)=LRI,LRX=$G(^LRO(69,LRODT,1,LRSN,4,LRI,0))
  . . S FDA(LRI,68.05,"+1,"_LR6802,.01)=$P(LRX,"^")
- . . S FDA(LRI,68.05,"+1,"_LR6802,1)=$P($G(^LRO(69,LRODT,1,LRSN,0)),"^",3)     ; IHS/MSC/MKK - LR*5.2*1031 - Collection Sample
+ . . ; S FDA(LRI,68.05,"+1,"_LR6802,1)=$P($G(^LRO(69,LRODT,1,LRSN,0)),"^",3)     ; IHS/MSC/MKK - LR*5.2*1031 - Collection Sample
+ . . D IHSCOLS     ; IHS/MSC/MKK - LR*5.2*1032
  . . D UPDATE^DIE("","FDA(LRI)","FDAIEN","LRDIE(LRI)")
  . . ; I $D(LRDIE(LRI)) D MAILALRT
  . . I $D(LRDIE(LRI)) D MAILALRT("3 ("_LRI_")")  ; IHS/MSC/MKK - LR*5.2*1031
@@ -153,6 +157,46 @@ STWLN ; Set accession number
  ;
  L -^LRO(68,LRAA,1,LRAD,1,0)
  Q
+ ;
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1032
+ ;       See the LRORDST routine regarding the ^TMP("LRORDST") setup.
+IHSCOLS ; EP - Set Collection Sample - IHS Specific
+ NEW DN,F60IEN,COLLSAMP,COLLSIEN,CSAMP1,CSAMP2,CSAMP3,STR,TMPCNT,TMPSPEC,TMPSAMP,TMPTEST
+ ;
+ S TMPSAMP=0  F  S TMPSAMP=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP))  Q:TMPSAMP<1  D
+ . S TMPSPEC=0  F  S TMPSPEC=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC))  Q:TMPSPEC<1  D
+ .. S TMPCNT=0  F  S TMPCNT=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC,TMPCNT))  Q:TMPCNT<1  D
+ ... S TMPTEST(+$G(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC,TMPCNT)))=TMPSAMP_"^"_TMPSPEC
+ ;
+ S F60IEN=+LRTSTS
+ Q:F60IEN<1
+ ;
+ I $D(TMPTEST) D  Q:$L(LRSAMP)
+ . S STR=$G(TMPTEST(F60IEN))
+ . S LRSAMP=$P(STR,"^"),LRSPEC=$P(STR,"^",2)
+ . S FDA(LRI,68.05,"+1,"_LR6802,1)=LRSAMP
+ ;
+ ; Reset LRSPEC variable
+ S LRSPEC=+LRX
+ S:LRSPEC<1 LRSPEC=-1
+ ;
+ S COLLSIEN=+$O(^LAB(60,F60IEN,3,0))
+ S CSAMP1=+$$GET1^DIQ(60.03,COLLSIEN_","_F60IEN,.01,"I")   ; Collection Sample from File 60
+ S CSAMP2=+$$GET1^DIQ(61,LRSPEC,4.1,"I")                   ; Collection Sample from File 61
+ ;
+ S COLLSAMP=$S(CSAMP2:CSAMP2,1:CSAMP1)
+ Q:COLLSAMP<1
+ ;
+ S FDA(LRI,68.05,"+1,"_LR6802,1)=COLLSAMP
+ ;
+ ; Force the Order file to have the value, if null
+ S:$P(^LRO(69,LRODT,1,LRSN,0),"^",3)="" $P(^LRO(69,LRODT,1,LRSN,0),"^",3)=COLLSAMP
+ ;
+ ; Reset LRSAMP variable
+ S LRSAMP=COLLSAMP
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1032
  ;
  ;
 UPD696 ; Update file #69.6 if LEDI referral patient and no existing entry

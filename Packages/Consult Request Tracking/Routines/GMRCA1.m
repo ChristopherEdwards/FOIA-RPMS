@@ -1,5 +1,5 @@
-GMRCA1 ;SLC/DLT,DCM - Actions taken from Review Screens ; 11/25/2000
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,10,12,18**;DEC 27, 1997
+GMRCA1 ;SLC/DLT,DCM - Actions taken from Review Screens ; 7/11/03 14:05
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,10,12,18,35**;DEC 27, 1997
  ; Patch 18 addS the option to Edit/Resubmit a canceled consult
  ; This routine invokes IA #867,#2424
  ;
@@ -7,7 +7,11 @@ DC(GMRCO,GMRCA) ;Discontinue/Cancel(Deny) logic
  ;GMRCO = File 123 IEN of consult
  ;GMRCA = Action to take: 6=DISCONTINUED, 19=CANCELLED
  ;GMRCOM=comments array
- I '$G(GMRCA) S GMRCMSG="This Action not defined!" D EXAC^GMRCADC(GMRCMSG),END S GMRCQUT=1 Q
+ I '$G(GMRCA) D  Q
+ . S GMRCMSG="This Action not defined!"
+ . D EXAC^GMRCADC(GMRCMSG)
+ . D END
+ . S GMRCQUT=1
  K GMRCQUT,GMRCQIT
  D DC^GMRCADC(GMRCO,GMRCA)
  D END
@@ -50,6 +54,13 @@ RC(GMRCO,GMRCSCH) ;Service tracking request received or scheduled
  K GMRCQUT,GMRCQIT,GMRCSEL,GMRCAGN
  I '+$G(GMRCO) D SELECT^GMRCA2(.GMRCO) I $D(GMRCQUT) D END Q
  I '+$G(GMRCO) D END S GMRCQUT=1 Q
+ I $P($G(^GMR(123,GMRCO,12)),U,5)="P" D  Q
+ . N DIR
+ . W !,"The requesting facility may not take this action on an "
+ . W "inter-facility consult."
+ . S DIR(0)="E" D ^DIR
+ . D END
+ . S GMRCQUT=1
  I '$$LOCK(GMRCO) D END S GMRCQUT=1 Q
  ;
  N GMRCDA,GMRCIFN,GMRCLCK,GMRCAD

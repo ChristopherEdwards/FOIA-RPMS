@@ -1,5 +1,5 @@
 ABSPOSJ1 ;IHS/SD/lwj - NCPDP 5.1 pre and post init for V1.0 patch 3 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**3,6,12,14,16,17,24,28,29,31,32,36,37,38,39,42,43,44**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**3,6,12,14,16,17,24,28,29,31,32,36,37,38,39,42,43,44,45,46**;Jun 21,2001
  ;
  ; Pre and Post init routine use in absp0100.03k
  ;------------------------------------------------------------------
@@ -113,6 +113,15 @@ DELFLD(FLDNUM) ;
  S FDA(9002313.0201,MEDIEN_","_CLMIEN_",",FLDNUM)=""
  D FILE^DIE("","FDA","MSG")
  S FND=1              ;we found at least 1
+ Q
+POST46 ; IHS/OIT/RCS 11/28/2012 Patch 46 Add the Maximum Dollar Limit, Unsuppress Fields 147,384 for Medicare Part D plans
+ D DOL^ABSPOSJ2
+ D MCAR^ABSPOSJ2
+ D POST45
+ Q
+POST45 ; IHS/OIT/RCS 11/28/2012 Patch 45 Add the ICD10 General default date
+ D DEF^ABSPOSJ2
+ D POST44
  Q
 POST44 ; IHS/OIT/RCS 8/31/2012 Patch 44 fix for DIALOUT field
  D DIAL^ABSPOSJ2
@@ -277,30 +286,9 @@ POST ;EP - This will be the entry point for the post init in patch
  ; first thing - see if the conversion has run before - if so, quit
  Q:$$CKSETUP()
  D ^ABSPOSSC       ;create Cache entry in dial out (from Patch 2)
- D RESTORE
+ D RESTORE^ABSPOSJ2
  D UPSETUP         ;log that the conversion is complete
  Q
-RESTORE ;EP - Post init routine for absp0100.03k.
- ; This subroutine will take the values stored in the save global
- ; created in the above "SAVE" subroutine and restore the values
- ; in their new locations in the ^ABSPC file.
- N CLMIEN,MEDIEN,RTN,REC,LAST,I
- S (LAST,MEDIEN,CLMIEN)=""
- S RTN="ABSPOSJ1"
- ; if we have to restart - this is where we need to start
- S LAST=$G(^ABSPOSXX(RTN,"LAST PROCESSED"))
- I LAST'="" D
- . S CLMIEN=$P(LAST,U)
- . S MEDIEN=$P(LAST,U,2)
- F  S CLMIEN=$O(^ABSPOSXX(RTN,CLMIEN)) Q:CLMIEN=""  D
- . D RST320
- . F  S MEDIEN=$O(^ABSPOSXX(RTN,CLMIEN,400,MEDIEN)) Q:MEDIEN=""  D
- .. S REC=$G(^ABSPOSXX(RTN,CLMIEN,400,MEDIEN,400))
- .. Q:REC=""
- .. F I=31:1:43  D MOVFLD(I+400,$P(REC,U,I))
- .. S ^ABSPOSXX(RTN,"LAST PROCESSED")=CLMIEN_"^"_MEDIEN
- Q
- ;
 RST320 ; this will restore the 320 value onto the 320 node, piece 20
  N FDA,MSG,VALUE
  S VALUE=$P($G(^ABSPOSXX(RTN,CLMIEN,320)),U)

@@ -1,5 +1,5 @@
 ABMDE3C ; IHS/ASDST/DMJ - Edit Page 3 - QUESTIONS - part 4 ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,10,13**;NOV 12, 2009;Build 213
  ; IHS/DSD/DMJ - 5/1/98 -  NOIS NCA-0598-180002
  ;  Modified to set Admission Type, node 5, if it does not already exist
  ; IHS/SD/SDR - v2.5 p3 - 2/26/2003 - NDA-0402-180192 - Added new block 19 stuff
@@ -21,11 +21,41 @@ ABMDE3C ; IHS/ASDST/DMJ - Edit Page 3 - QUESTIONS - part 4 ;
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added patient paid amount
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added spinal manipulation cond code
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added vision condition info
+ ;IHS/SD/SDR 2.6*13 - ICD10 Added code to create/update 9A entry for Onset of Symptoms/Illness if
+ ;  Date of First Symptom is populated.  They should both exist and be the same date.
+ ;IHS/SD/SDR 2.6*13 - exp mode 35 - added Initial Treatment Date
+ ;IHS/SD/SDR 2.6*13 - exp mode 35  Added acute manifestation date
+ ;IHS/SD/SDR - 2.6*13 - exp mode 35 Added Ord/Ref/Sup Phys FL17
  ;
  ;**********************************************************************
  ;
 9 W ! S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".86["_ABM("#")_"] Date of First Symptom" D ^DIE K DR
  I X>ABMP("VDT") W *7,!!,"ERROR: Date can not be after the Visit Date (",$$HDT^ABMDUTL(ABMP("VDT")),")!" S DR=".86///@" D ^DIE G 9
+ ;start new code abm*2.6*13 ICD10 new export mode 35
+ S ABMTEST=+$O(^ABMDCODE("AC","O",11,0))
+ S ABMI=0
+ F  S ABMI=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI)) Q:'ABMI  D
+ .I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI,0)),U)'=ABMTEST Q
+ .D ^XBFMK
+ .S DA(1)=ABMP("CDFN")
+ .S DA=ABMI
+ .S DIK="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
+ .D ^DIK
+ I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,6)="" Q
+ K ABMTEST,ABMI
+ D ^XBFMK
+ S DA(1)=ABMP("CDFN")
+ S DIC="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
+ S DIC("P")=$P(^DD(9002274.3,51,0),U,2)
+ S X=+$O(^ABMDCODE("AC","O",11,0))
+ S DIC(0)="ML"
+ K DD,DO
+ D FILE^DICN
+ S DIE=DIC
+ S DA=+Y
+ S DR=".02////"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,6)
+ D ^DIE
+ ;end new code ICD10 new export mode
  Q
  ;
 11 W ! S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".87["_ABM("#")_"] Date First Consulted for this Condition" D ^DIE K DR
@@ -34,43 +64,44 @@ ABMDE3C ; IHS/ASDST/DMJ - Edit Page 3 - QUESTIONS - part 4 ;
  ;
 12 W ! S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".88["_ABM("#")_"] Name of Referring Physician" D ^DIE
  I X="",$P($G(^ABMDCLM(DUZ(2),DA,8)),U,11)]"" S DR=".884///@;.885///@;.886///@;.887///@;.888///@;.889///@" D ^DIE Q
- I X]"",$E(ABM("QU"),$L(ABM("QU")))="B" D
- .S ABMNPIU=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))
- .I ABMNPIU="B"!(ABMNPIU="N") D
- ..S DR=".889   Referring Physician NPI"
- ..D ^DIE
- .I ABMNPIU'="N" D
- ..S DR=".884    Referring Physician ID Qualifier"
- ..S DR=DR_";.885    Referring Physician I.D. No"
- ..D ^DIE
- .I $P($G(^ABMDCLM(DUZ(2),DA,8)),U,11)'="" D  ;only ask if UPIN was entered
- ..S ABMTXFLG=0
- ..I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,13)'="" D  ;Person Class
- ...W !!,"Person Class already entered:  ",$P($G(^USC(8932.1,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,13),0)),U)
- ...S ABMTXFLG=1
- ..I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,14)'="" D  ;Provider Class
- ...W !!,"Provider Class already entered:  ",$P($G(^DIC(7,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,14),9999999)),U)_"  "_$P($G(^DIC(7,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,14),0)),U)
- ...S ABMTXFLG=1
- ..I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,15)'="" D  ;Taxonomy Code
- ...W !!,"Taxonomy Code already entered:  ",$P($G(^ABMPTAX($P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,15),0)),U)
- ...S ABMTXFLG=1
- ..F  D  Q:ABMTXFLG=1
- ...S DIR(0)="SO^1:Person Class;2:Provider Class;3:Taxonomy Code"
- ...S DIR("A")="Which would you like to enter?"
- ...D ^DIR K DIR
- ...I Y=1 D  Q  ;Person Class
- ....S DR=".887////@;.888////@;.886          Referring Physician Person Class..:"
- ....D ^DIE
- ....I X'="" S ABMTXFLG=1
- ...I Y=2 D  Q  ;Provider Class
- ....S DR=".886////@;.888////@;.887          Referring Physician Provider Class..:"
- ....D ^DIE
- ....I X'="" S ABMTXFLG=1
- ...I Y=3 D  Q  ;Taxonomy code
- ....S DR=".886////@;.887////@;.888          Referring Physician Taxonomy Code..:"
- ....D ^DIE
- ....I X'="" S ABMTXFLG=1
- .K DR
+ ;I X]"",$E(ABM("QU"),$L(ABM("QU")))="B" D  ;abm*2.6*10 found while testing
+ ;removed 1 dot for all lines below in this TAG
+ S ABMNPIU=$$NPIUSAGE^ABMUTLF(ABMP("LDFN"),ABMP("INS"))
+ I ABMNPIU="B"!(ABMNPIU="N") D
+ .S DR=".889   Referring Physician NPI"
+ .D ^DIE
+ I ABMNPIU'="N" D
+ .S DR=".884    Referring Physician ID Qualifier"
+ .S DR=DR_";.885    Referring Physician I.D. No"
+ .D ^DIE
+ I $P($G(^ABMDCLM(DUZ(2),DA,8)),U,11)'="" D  ;only ask if UPIN was entered
+ .S ABMTXFLG=0
+ .I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,13)'="" D  ;Person Class
+ ..W !!,"Person Class already entered:  ",$P($G(^USC(8932.1,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,13),0)),U)
+ ..S ABMTXFLG=1
+ .I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,14)'="" D  ;Provider Class
+ ..W !!,"Provider Class already entered:  ",$P($G(^DIC(7,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,14),9999999)),U)_"  "_$P($G(^DIC(7,$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,14),0)),U)
+ ..S ABMTXFLG=1
+ .I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,15)'="" D  ;Taxonomy Code
+ ..W !!,"Taxonomy Code already entered:  ",$P($G(^ABMPTAX($P(^ABMDCLM(DUZ(2),ABMP("CDFN"),8),U,15),0)),U)
+ ..S ABMTXFLG=1
+ .F  D  Q:ABMTXFLG=1
+ ..S DIR(0)="SO^1:Person Class;2:Provider Class;3:Taxonomy Code"
+ ..S DIR("A")="Which would you like to enter?"
+ ..D ^DIR K DIR
+ ..I Y=1 D  Q  ;Person Class
+ ...S DR=".887////@;.888////@;.886          Referring Physician Person Class..:"
+ ...D ^DIE
+ ...I X'="" S ABMTXFLG=1
+ ..I Y=2 D  Q  ;Provider Class
+ ...S DR=".886////@;.888////@;.887          Referring Physician Provider Class..:"
+ ...D ^DIE
+ ...I X'="" S ABMTXFLG=1
+ ..I Y=3 D  Q  ;Taxonomy code
+ ...S DR=".886////@;.887////@;.888          Referring Physician Taxonomy Code..:"
+ ...D ^DIE
+ ...I X'="" S ABMTXFLG=1
+ K DR
  Q
  ;
 10 W ! S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".89["_ABM("#")_"] Similiar Illness or Injury Date" D ^DIE K DR
@@ -88,7 +119,8 @@ ABMDE3C ; IHS/ASDST/DMJ - Edit Page 3 - QUESTIONS - part 4 ;
  Q:($D(^ABMDCLM(DUZ(2),ABMP("CDFN"),53,0))<10)
  S DA(1)=ABMP("CDFN"),DIK="^ABMDCLM(DUZ(2),"_DA(1)_",53,",DA=$O(^ABMDCODE("AC","C",2,"")) D ^DIK
  Q
-EMCODE S (DINUM,X)=$O(^ABMDCODE("AC","C",2,"")) Q:X=""
+EMCODE ;
+ S (DINUM,X)=$O(^ABMDCODE("AC","C",2,"")) Q:X=""
  K DD,DO S DA(1)=ABMP("CDFN"),DIC="^ABMDCLM(DUZ(2),"_DA(1)_",53,",DIC(0)="LE"
  I '$D(^ABMDCLM(DUZ(2),DA(1),53,0)) S ^ABMDCLM(DUZ(2),DA(1),53,0)="^9002274.3053P^^"
  D FILE^DICN K DIC
@@ -139,6 +171,13 @@ ESET D ^DIE K DR
  S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".53["_ABM("#")_"]Discharge Status" D ^DIE
  Q
 24 ;Admitting DX
+ W !,"** CODING SYSTEM IS "_$S(ABMP("VDT")<ABMP("ICD10"):"ICD-9",1:"ICD-10")_" **"  ;abm*2.6*10 ICD10 002E
+ ;start new code abm*2.6*10 ICD10 002E
+ I $D(^ROUTINE("ICDSAPI")) D  Q
+ .W !,"["_ABM("#")_"] Admitting DX"
+ .S ABMFLD=+$$SEARCH^ICDSAPI("DIAG",,,$S($G(ABMP("ICD10")):ABMP("ICD10"),$G(ABMP("VDT")):ABMP("VDT"),1:DT))
+ .I ABMFLD>0 S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=ABMFLD D ^DIE
+ ;end new code ICD10 002E
  S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".59["_ABM("#")_"] Admitting DX" D ^DIE
  Q
 25 ; Supervising Prov (FL19)
@@ -212,6 +251,10 @@ ESET D ^DIE K DR
  Q
 41 ; Spinal Manipulation Cond Code
  S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".724["_ABM("#")_"] Spinal Manipulation Cond Code Ind: //" D ^DIE
+ ;start new code abm*2.6*13 exp mode 35
+ I "^A^M^"[("^"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),7)),U,24)_"^") S DR=".727 Acute Manifestation Date: //" D ^DIE
+ I "^A^M^"'[("^"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),7)),U,24)_"^") S DR=".727////@" D ^DIE
+ ;end new code exp mode 35
  Q
 42 ; Vision Condition Info
  S DIE="^ABMDCLM(DUZ(2),"
@@ -228,3 +271,19 @@ ESET D ^DIE K DR
  .D ^DIC
  Q
  ;end new code 5010
+ ;start new code abm*2.6*13 exp mode 35
+43 ;Initial Treatment Date
+ S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".823["_ABM("#")_"] Initial Treatment Date: //" D ^DIE
+ Q
+44 ;Ord/Ref/Sup Phys (FL17)
+ ;S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".824["_ABM("#")_"] Physician Name: //" D ^DIE
+ ;I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24)'="" D
+ ;.S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".825["_ABM("#")_"] Physician Type: //" D ^DIE
+ ;.S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".826["_ABM("#")_"] Physician NPI: //" D ^DIE
+ S ABM("PROVIDER")=$$PRVLKUP^ABMDFUTL($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24),$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,26))
+ S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".824////"_$S($P(ABM("PROVIDER"),U)'="":$P(ABM("PROVIDER"),U),1:"@") D ^DIE
+ S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".826////"_$S($P(ABM("PROVIDER"),U,2)'="":$P(ABM("PROVIDER"),U,2),1:"@") D ^DIE
+ I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24)'="" S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DIE("NO^")=1,DR=".825R~Physician Type: //" D ^DIE
+ I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24)="" S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".825////@" D ^DIE
+ Q
+ ;end new code exp mode 35

@@ -1,12 +1,12 @@
 BARVPM ; IHS/SD/LSL - MAP VP FIELDS TO TARGET FILES DEC 4,1996 ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**16**;OCT 22,2008
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**16,23**;OCT 26, 2005
  ;;
  ; IHS/SD/LSL - 02/25/2002 - V1.6 Patch 2 - NOIS LTA-0202-160141
  ;     Modified VALI line tag to find NON-BENEFICIARY insurer type on
  ;     A/R Patient accounts.  Similar to what is done in VAL.
  ;
- ; M2 TMM 01/13/2010 (BAR 1.8*16) - HEAT 8163. Resolve error <SYNTAX>EN+21^BARPTR
- ; 
+ ; M2 TMM 01/13/2010 (BAR 1.8*16) - HEAT 8163. ResolveD error <SYNTAX>EN+21^BARPTR
+ ; MAR 2013 P.OTTIS ADDED NEW VA billing 
  ; *********************************************************************
  ;
 VAL(X) ;EP
@@ -28,13 +28,14 @@ VAL(X) ;EP
  I "^DPT(_^VA(200,"[V,X=8 D                      ;M2*ADD*TMM
  . S V="^AUTNINS("
  . S P=$O(^AUTNINS("B","NON-BENEFICIARY PATIENT",0))
- . S F=".21"
+ . S F=".211" ;P.OTT
  S Z=$$VAL^XBDIQ1(V,P,F)
  Q Z
  ; *********************************************************************
  ;
 VALI(X) ;EP
  N Y,V,P,F,I,Z
+ ;I DUZ=838 W !,"INPUT: D0=",D0
  ; P-Pt value; F-Field
  ; V-VP File, Y-Internal of .01
  ; L-Line
@@ -52,14 +53,17 @@ VALI(X) ;EP
  I "^DPT(_^VA(200,"[V,X=8 D                      ;M2*ADD*TMM
  . S V="^AUTNINS("
  . S P=$O(^AUTNINS("B","NON-BENEFICIARY PATIENT",0))
- . S F=".21"
+ . S F=".211" ;P.OTT
  S Z=$$VALI^XBDIQ1(V,P,F)
+ I X=8 D  Q Z ;P.OTT
+ . I Z="" Q
+ . S Z=$P($G(^AUTTINTY(Z,0)),"^",2) ;="3P LIABILITY^T"
  Q Z
  ; *********************************************************************
  ;
  ; dd field modified ($T ref)
 FILES ;global^
- ;;AUTNINS(^.02;;;.03;.04;.05;.06;.21
+ ;;AUTNINS(^.02;;;.03;.04;.05;.06;.211
  ;;VA(200,^.111;.112;.113;.114;.115;.116;.131
  ;;DPT(^.111;.112;.113;.114;.115;.116;.131
  ;;AUTTVNDR(^1306;1310;;1307;1308;1309;1109

@@ -1,5 +1,5 @@
 PSSCLOZ ;BIR/TTH-CLOZAPINE DRUG ENTER/EDIT CLOZAPINE ; 01/25/99
- ;;1.0;PHARMACY DATA MANAGEMENT;**19**;9/30/97
+ ;;1.0;PHARMACY DATA MANAGEMENT;**19,90**;9/30/97
  ;
  ;Reference to ^LAB(60 supported by DBIA #10054
  ;Reference to ^LAB(61 supported by DBIA #10055
@@ -69,7 +69,7 @@ CLOZDEL ;Delete Clozapine sub-entry
  S DIR("A")="Are you sure that you want to delete this test",DIR("?")="Enter YES to delete the laboratory test, NO to return to selection.",DIR(0)="Y",DIR("B")="NO" D ^DIR Q:$D(DIRUT)  I +Y=0 D END W !! K PSSCLO G CLOZBEG
  ;
 CLOZDXX K DIK,X,Y
- S DA=PSSANS2,DIK="^PSDRUG(DISPDRG,""CLOZ2"","
+ S DA(1)=DISPDRG,DA=PSSANS2,DIK="^PSDRUG(DISPDRG,""CLOZ2"","
  D ^DIK  K DIK,X,Y
  I PSSANS="E",PSSCNT>1 Q
  Q:PSSANS="A"  W !!,"Deleting "_$P(PSSCLO(PSSNUM),U)_"...."

@@ -1,5 +1,5 @@
-OCXOZ0P ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0P ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,8 +10,8 @@ OCXOZ0P ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-R35R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #35 'LAB ORDER CANCELLED'  Relation #1 '(CANCEL OR REQCANCEL) AND CANCELED BY NON-ORIG ORD...'
- ;  Called from R35R1A+13^OCXOZ0O.
+R24R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #24 'ORDERER FLAGGED RESULTS AVAILABLE'  Relation #1 'ORDER FLAGGED FOR RESULTS AND (LAB RESULT OR IMAGI...'
+ ;  Called from R24R1A+14^OCXOZ0O.
  ;
  Q:$G(OCXOERR)
  ;
@@ -19,11 +19,11 @@ R35R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #35
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ; NEWRULE( ---------> NEW RULE MESSAGE
  ;
- Q:$D(OCXRULE("R35R1B"))
+ Q:$D(OCXRULE("R24R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
  S OCXCMSG=""
- S OCXNMSG="Lab order canceled: "_$$GETDATA(DFN,"20^40^100",105)
+ S OCXNMSG="Requested results available: "_$$GETDATA(DFN,"5^49^55^101",96)
  ;
  Q:$G(OCXOERR)
  ;
@@ -37,26 +37,28 @@ R35R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #35
  .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
  .S OCXNUM=+$P(OCXORD,U,2)
  S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
- S OCXRULE("R35R1B")=""
- I $$NEWRULE(DFN,OCXNUM,35,1,42,OCXNMSG) D  I 1
- .D:($G(OCXTRACE)<5) EN^ORB3(42,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
+ S OCXRULE("R24R1B")=""
+ I $$NEWRULE(DFN,OCXNUM,24,1,33,OCXNMSG) D  I 1
+ .D:($G(OCXTRACE)<5) EN^ORB3(33,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
  Q
  ;
-R38R1A ; Verify all Event/Elements of  Rule #38 'NEW ORDER PLACED'  Relation #1 'NEW'
- ;  Called from EL6+5^OCXOZ0G.
+R28R1A ; Verify all Event/Elements of  Rule #28 'STAT ORDER PLACED'  Relation #1 'NEW OBR STAT OR NEW ORC STAT'
+ ;  Called from EL60+5^OCXOZ0G, and EL61+5^OCXOZ0G.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE6( ------------>  Verify Event/Element: 'HL7 NEW OERR ORDER'
+ ; MCE60( ----------->  Verify Event/Element: 'NEW OBR STAT ORDER'
+ ; MCE61( ----------->  Verify Event/Element: 'NEW ORC STAT ORDER'
  ;
- Q:$G(^OCXS(860.2,38,"INACT"))
+ Q:$G(^OCXS(860.2,28,"INACT"))
  ;
- I $$MCE6 D R38R1B
+ I $$MCE60 D R28R1B
+ I $$MCE61 D R28R1B
  Q
  ;
-R38R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #38 'NEW ORDER PLACED'  Relation #1 'NEW'
- ;  Called from R38R1A+10.
+R28R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #28 'STAT ORDER PLACED'  Relation #1 'NEW OBR STAT OR NEW ORC STAT'
+ ;  Called from R28R1A+11.
  ;
  Q:$G(OCXOERR)
  ;
@@ -64,11 +66,11 @@ R38R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #38
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ; NEWRULE( ---------> NEW RULE MESSAGE
  ;
- Q:$D(OCXRULE("R38R1B"))
+ Q:$D(OCXRULE("R28R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
  S OCXCMSG=""
- S OCXNMSG="["_$$GETDATA(DFN,"6^",147)_"] New order(s) placed."
+ S OCXNMSG="STAT order: "_$$GETDATA(DFN,"60^61",96)
  ;
  Q:$G(OCXOERR)
  ;
@@ -82,26 +84,26 @@ R38R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #38
  .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
  .S OCXNUM=+$P(OCXORD,U,2)
  S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
- S OCXRULE("R38R1B")=""
- I $$NEWRULE(DFN,OCXNUM,38,1,50,OCXNMSG) D  I 1
- .D:($G(OCXTRACE)<5) EN^ORB3(50,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
+ S OCXRULE("R28R1B")=""
+ I $$NEWRULE(DFN,OCXNUM,28,1,43,OCXNMSG) D  I 1
+ .D:($G(OCXTRACE)<5) EN^ORB3(43,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
  Q
  ;
-R38R2A ; Verify all Event/Elements of  Rule #38 'NEW ORDER PLACED'  Relation #2 'DCED'
- ;  Called from EL126+5^OCXOZ0G.
+R32R1A ; Verify all Event/Elements of  Rule #32 'PATIENT TRANSFERRED FROM PSYCHIATRY TO A...'  Relation #1 'FROM PSYCH WARD'
+ ;  Called from EL42+5^OCXOZ0G.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE126( ---------->  Verify Event/Element: 'HL7 DCED OERR ORDER'
+ ; MCE42( ----------->  Verify Event/Element: 'PATIENT TRANSFERRED FROM PSYCH WARD'
  ;
- Q:$G(^OCXS(860.2,38,"INACT"))
+ Q:$G(^OCXS(860.2,32,"INACT"))
  ;
- I $$MCE126 D R38R2B
+ I $$MCE42 D R32R1B
  Q
  ;
-R38R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #38 'NEW ORDER PLACED'  Relation #2 'DCED'
- ;  Called from R38R2A+10.
+R32R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #32 'PATIENT TRANSFERRED FROM PSYCHIATRY TO A...'  Relation #1 'FROM PSYCH WARD'
+ ;  Called from R32R1A+10.
  ;
  Q:$G(OCXOERR)
  ;
@@ -109,11 +111,11 @@ R38R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #38
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ; NEWRULE( ---------> NEW RULE MESSAGE
  ;
- Q:$D(OCXRULE("R38R2B"))
+ Q:$D(OCXRULE("R32R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
  S OCXCMSG=""
- S OCXNMSG="["_$$GETDATA(DFN,"126^",147)_"] New DC order(s) placed."
+ S OCXNMSG="Transfer from Psych ward: "_$$GETDATA(DFN,"42^",95)_" to ward: "_$$GETDATA(DFN,"42^",90)
  ;
  Q:$G(OCXOERR)
  ;
@@ -127,54 +129,9 @@ R38R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #38
  .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
  .S OCXNUM=+$P(OCXORD,U,2)
  S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
- S OCXRULE("R38R2B")=""
- I $$NEWRULE(DFN,OCXNUM,38,2,62,OCXNMSG) D  I 1
- .D:($G(OCXTRACE)<5) EN^ORB3(62,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
- Q
- ;
-R42R1A ; Verify all Event/Elements of  Rule #42 'ABNORMAL LAB RESULTS'  Relation #1 'ABNORMAL LAB ORDER'
- ;  Called from EL23+5^OCXOZ0G.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE23( ----------->  Verify Event/Element: 'HL7 LAB ORDER RESULTS ABNORMAL'
- ;
- Q:$G(^OCXS(860.2,42,"INACT"))
- ;
- I $$MCE23 D R42R1B
- Q
- ;
-R42R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #42 'ABNORMAL LAB RESULTS'  Relation #1 'ABNORMAL LAB ORDER'
- ;  Called from R42R1A+10.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ; NEWRULE( ---------> NEW RULE MESSAGE
- ;
- Q:$D(OCXRULE("R42R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- S OCXCMSG=""
- S OCXNMSG="Abnormal labs - ["_$$GETDATA(DFN,"23^",96)_"]"
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Notification
- ;
- S (OCXDUZ,OCXDATA)="",OCXNUM=0
- I ($G(OCXOSRC)="GENERIC HL7 MESSAGE ARRAY") D
- .S OCXDATA=$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",2))_"|"_$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",3))
- .S OCXDATA=$TR(OCXDATA,"^","@"),OCXNUM=+OCXDATA
- I ($G(OCXOSRC)="CPRS ORDER PROTOCOL") D
- .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
- .S OCXNUM=+$P(OCXORD,U,2)
- S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
- S OCXRULE("R42R1B")=""
- I $$NEWRULE(DFN,OCXNUM,42,1,14,OCXNMSG) D  I 1
- .D:($G(OCXTRACE)<5) EN^ORB3(14,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
+ S OCXRULE("R32R1B")=""
+ I $$NEWRULE(DFN,OCXNUM,32,1,36,OCXNMSG) D  I 1
+ .D:($G(OCXTRACE)<5) EN^ORB3(36,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
  Q
  ;
 CKSUM(STR) ;  Compiler Function: GENERATE STRING CHECKSUM
@@ -190,28 +147,29 @@ GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime dat
  F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
  Q VAL
  ;
-MCE126() ; Verify Event/Element: HL7 DCED OERR ORDER
+MCE42() ; Verify Event/Element: PATIENT TRANSFERRED FROM PSYCH WARD
  ;
+ ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- I $L(OCXDF(37)) S OCXRES(126,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),126)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),126))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(42,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),42)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),42))
  Q 0
  ;
-MCE23() ; Verify Event/Element: HL7 LAB ORDER RESULTS ABNORMAL
+MCE60() ; Verify Event/Element: NEW OBR STAT ORDER
  ;
  ;
  N OCXRES
- I $L(OCXDF(37)) S OCXRES(23,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),23)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),23))
+ I $L(OCXDF(37)) S OCXRES(60,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),60)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),60))
  Q 0
  ;
-MCE6() ; Verify Event/Element: HL7 NEW OERR ORDER
+MCE61() ; Verify Event/Element: NEW ORC STAT ORDER
  ;
  ;
  N OCXRES
- I $L(OCXDF(37)) S OCXRES(6,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),6)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),6))
+ I $L(OCXDF(37)) S OCXRES(61,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),61)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),61))
  Q 0
  ;
 NEWRULE(OCXDFN,OCXORD,OCXRUL,OCXREL,OCXNOTF,OCXMESS) ; Has this rule already been triggered for this order number
@@ -221,17 +179,20 @@ NEWRULE(OCXDFN,OCXORD,OCXRUL,OCXREL,OCXNOTF,OCXMESS) ; Has this rule already bee
  Q:'$G(OCXREL) 0  Q:'$G(OCXNOTF) 0  Q:'$L($G(OCXMESS)) 0
  S OCXORD=+$G(OCXORD),OCXDFN=+OCXDFN
  ;
- N OCXNDX,OCXDATA,OCXDFI,OCXELE,OCXGR,OCXTIME,OCXCKSUM
+ N OCXNDX,OCXDATA,OCXDFI,OCXELE,OCXGR,OCXTIME,OCXCKSUM,OCXTSP,OCXTSPL
  ;
  S OCXTIME=(+$H)
  S OCXCKSUM=$$CKSUM(OCXMESS)
  ;
- Q:$D(^OCXD(860.7,"AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)) 0
+ S OCXTSP=($H*86400)+$P($H,",",2)
+ S OCXTSPL=($G(^OCXD(860.7,"AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM))+$G(OCXTSPI,300))
+ ;
+ Q:(OCXTSPL>OCXTSP) 0
  ;
  K OCXDATA
  S OCXDATA(OCXDFN,0)=OCXDFN
  S OCXDATA("B",OCXDFN,OCXDFN)=""
- S OCXDATA("AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)=""
+ S OCXDATA("AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)=OCXTSP
  ;
  S OCXGR="^OCXD(860.7"
  D SETAP(OCXGR_")",0,.OCXDATA,OCXDFN)

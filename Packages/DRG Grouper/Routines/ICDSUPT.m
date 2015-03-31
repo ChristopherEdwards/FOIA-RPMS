@@ -1,5 +1,5 @@
 ICDSUPT ;DLS/DEK - ICD SUPPORT FOR APIS ; 04/28/2003
- ;;18.0;DRG Grouper;**6**;Oct 20, 2000
+ ;;18.0;DRG Grouper;**6**;Oct 20, 2000;Build 9
  ;
  ; External References
  ;   DBIA 10103  $$DT^XLFDT

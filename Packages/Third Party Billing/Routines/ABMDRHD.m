@@ -1,5 +1,5 @@
 ABMDRHD ; IHS/ASDST/DMJ - Report Header Generator ; 
- ;;2.6;IHS Third Party Billing;**1,3,4**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,4,11**;NOV 12, 2009;Build 133
  ;Original;TMD;03/25/96 11:34 AM
  ;
  ; IHS/SD/SDR - v2.5 p8 - Added code for cancellation dates
@@ -20,6 +20,7 @@ HD ;EP for setting Report Header
  .I ABMY("TYP")="N" S ABM("TXT")="NON-BENEFICIARY PATIENTS" Q
  .I ABMY("TYP")="I" S ABM("TXT")="BENEFICIARY PATIENTS" Q
  .I ABMY("TYP")="K" S ABM("TXT")="CHIP" Q
+ .I ABMY("TYP")="V" S ABM("TXT")="VETERANS ADMINISTRATION" Q  ;abm*2.6*11 insurer type
  .S ABM("TXT")="UNSPECIFIED"
  ;
 LOC ;EP

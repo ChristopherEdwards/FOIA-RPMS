@@ -1,5 +1,5 @@
 ABMUTLF ; IHS/ASDST/DMJ - FACILITY UTILITIES ;      
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,11**;NOV 12, 2009;Build 133
  ;Original;DMJ;09/21/95 12:47 PM
  ;
  ; IHS/SD/SDR - v2.5 p8 - IM14883/IM16505
@@ -48,9 +48,18 @@ EIN(X) ;EP - federal tax id number
  Q Y
 PI(X) ;EP - PI Provider Number
  ;x=location ien
- I $G(ABMFILE)="9999999.06",($G(ABMNPIU)="N")!($G(ABMNPIU)="B"),ABMEIC="EI" S Y=$TR($P($G(^AUTTLOC(X,0)),U,18),"-") Q Y
+ ;I $G(ABMFILE)="9999999.06",($G(ABMNPIU)="N")!($G(ABMNPIU)="B"),ABMEIC="EI" S Y=$TR($P($G(^AUTTLOC(X,0)),U,18),"-") Q Y  ;abm*2.6*10 HEAT72888
+ ;start new code abm*2.6*10 HEAT72888
+ N Y
+ I $G(ABMFILE)="9999999.06",($G(ABMNPIU)="N")!($G(ABMNPIU)="B"),ABMEIC="EI" D  Q Y
+ .I $P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,8)'="" S Y=$P($G(^AUTTLOC($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,8),0)),U,18)
+ .I $G(Y)="",($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,12)'="") S Y=$P($G(^AUTTLOC($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,12),0)),U,18)
+ .I $G(Y)="" S Y=$P($G(^AUTTLOC(DUZ(2),0)),U,18)
+ .S Y=$TR(Y,"-")  ;abm*2.6*11 NOHEAT
+ ;end new code HEAT72888
  S Y=$P($G(^ABMNINS(X,ABMP("INS"),1,ABMP("VTYP"),0)),U,8)
  S:Y="" Y=$P($G(^AUTNINS(ABMP("INS"),15,X,0)),U,2)
+ S Y=$TR(Y,"-")  ;abm*2.6*10 HEAT72888
  Q Y
 NPIUSAGE(X,Y) ;PEP - NPI Usage in 3P Insurer file
  ;x=location (i.e., DUZ(2))

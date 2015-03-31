@@ -1,5 +1,5 @@
-BGOVPRC ; IHS/BAO/TMD - Manage V PROCEDURE ;20-Mar-2007 13:52;DKM
- ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+BGOVPRC ; IHS/BAO/TMD - Manage V PROCEDURE ;02-Apr-2013 10:28;MGH
+ ;;1.1;BGO COMPONENTS;**1,3,11,12**;Mar 20, 2007;Build 5
  ; Add/edit V Procedure entry
  ; INP = V File IEN [1] ^ ICD0 IEN [2] ^ Visit IEN [3] ^ Patient IEN [4] ^ Event Date [5] ^ Diagnosis [6] ^
  ;       Principal [7] ^ Narrative [8] ^ Infection [9] ^ Operating Provider [10] ^ Anesthesiologist [11] ^
@@ -12,11 +12,17 @@ SET(RET,INP) ;EP
  S VFNEW='VFIEN
  S TYPE=+$P(INP,U,2)
  S VIEN=+$P(INP,U,3)
- S X=$G(^ICD0(TYPE,0))
- I '$L(X) S RET=$$ERR^BGOUTL(1096) Q
- I $P(X,U,9) S RET=$$ERR^BGOUTL(1097) Q
- S X=$P(X,U,11),Y=+$G(^AUPNVSIT(VIEN,0))
- I X,Y,$$FMDIFF^XLFDT(Y,X)>-1 S RET=$$ERR^BGOUTL(1097) Q
+ I $$AICD^BGOUTL2 D
+ .S Y=+$G(^AUPNVSIT(VIEN,0))
+ .S X=$$ICDOP^ICDEX(TYPE,Y)
+ .I $P(X,U,10)=1 S RET=$$ERR^BGOUTL(1097) Q
+ E  D
+ .S X=$G(^ICD0(TYPE,0))
+ .I '$L(X) S RET=$$ERR^BGOUTL(1096) Q
+ .I $P(X,U,9) S RET=$$ERR^BGOUTL(1097) Q
+ .S X=$P(X,U,11)
+ .S Y=+$G(^AUPNVSIT(VIEN,0))
+ .I X,Y,$$FMDIFF^XLFDT(Y,X)>-1 S RET=$$ERR^BGOUTL(1097) Q
  S DFN=+$P(INP,U,4)
  S EVNTDT=$$CVTDATE^BGOUTL($P(INP,U,5))
  S DX=$P(INP,U,6)
@@ -54,6 +60,13 @@ SET(RET,INP) ;EP
  S @FDA@(.13)=ANESTIME
  S @FDA@(1201)=$S(EVNTDT:EVNTDT,1:"N")
  S @FDA@(1204)="`"_DUZ
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

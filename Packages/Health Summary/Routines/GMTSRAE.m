@@ -1,5 +1,5 @@
 GMTSRAE ; SLC/JER,KER HIN/GJC Selected Radiology Extract ; 04/19/2002
- ;;2.7;Health Summary;**14,25,30,37,40,47,49,51**;Oct 20, 1995
+ ;;2.7;Health Summary;**14,25,30,37,40,47,49,51,84**;Oct 20, 1995;Build 6
  ;
  ; External References
  ;   DBIA  3125  ^RADPT( file 70
@@ -64,13 +64,14 @@ GET ; Gets data associated with study and sets global array
  ;     Sequence # = 1   Primary Dx
  ;     Sequence # > 1   Secondary Dx
  ; ^TMP("RAE",$J,IDT,PN,"H",line #)= Clinical History line #
+ ; ^TMP("RAE",$J,IDT,PN,"S",line #)= Reason for Study line #
  ; ^TMP("RAE",$J,IDT,PN,"I",line #)= Impression Text line #
  ; ^TMP("RAE",$J,IDT,PN,"R",line #)= Report Text line #
  ;           
  N DA,DIC,DIQ,%,D0,DIW,DIWI,DIWT,DIWTC,DIWX,DIWF,DIWL,DIWR,DN,DR
  N I,J,Y,Z,GMTSCPT,GMTSED,GMTSCN,GMTSRP,GMTSRPI,GMTSST,GMTSPTR
  N GMTSTA,GMTSTAI,GMTSI,GMTSRAD,GMTSRRAD,GMTSSRAD,GMTSTC,GMTSSTO
- N GMTSRA27 S GMTSRA27=$$PROK^GMTSU("RAUTL9",27)
+ N GMTSIMGO,GMTSRA27 S GMTSRA27=$$PROK^GMTSU("RAUTL9",27)
  S GMTSED=+$P(GMTS7002,"^")
  S:GMTSXSET&('$D(^TMP("RAE",$J,GMTSIDT,"EXAMSET"))) ^TMP("RAE",$J,GMTSIDT,"EXAMSET")=""
  ;   Get
@@ -79,6 +80,7 @@ GET ; Gets data associated with study and sets global array
  ;     Case Number             70.03   .01   GMTSCN
  ;     Procedure               70.03    2    GMTSRP/GMTSRPI
  ;     Exam Status             70.03    3    GMTSST
+ ;     Imaging Order           70.03   11    GMTSIMGO
  ;     Prim Interpret Resident 70.03   12    GMTSRRAD
  ;     Prim Diagnostic Code    70.03   13    GMTSDX
  ;     Prim Interpreting Staff 70.03   15    GMTSSRAD
@@ -87,7 +89,7 @@ GET ; Gets data associated with study and sets global array
  ;     Exam Status Order       72       3    GMTSSTO
  ;           
  S DIC="^RADPT("_DFN_",""DT"","_GMTSIDT_",""P"",",DA=GMTSPN,DIQ="GMTSRAD("
- S DIQ(0)="IE",DR=".01;2;3;12;13;15;17;25" D TECH
+ S DIQ(0)="IE",DR=".01;2;3;11;12;13;15;17;25" D TECH
  D EN^DIQ1
  S GMTSCN=$G(GMTSRAD(70.03,GMTSPN,.01,"E"))
  S GMTSRP=$G(GMTSRAD(70.03,GMTSPN,2,"E"))
@@ -95,6 +97,7 @@ GET ; Gets data associated with study and sets global array
  S GMTSST=$G(GMTSRAD(70.03,GMTSPN,3,"E"))
  S GMTSSTO=$G(GMTSRAD(70.03,GMTSPN,3,"I"))
  S GMTSSTO=$$GET1^DIQ(72,+GMTSSTO,3,"I")
+ S GMTSIMGO=$G(GMTSRAD(70.03,GMTSPN,11,"I"))  ;Img Order # IEN
  I GMTSTC S GMTSTC(0)=$E($G(GMTSRAD(70.12,GMTSTC,.01,"E")),1,18)
  S GMTSRRAD=$E($G(GMTSRAD(70.03,GMTSPN,12,"E")),1,18)
  S GMTSSRAD=$E($G(GMTSRAD(70.03,GMTSPN,15,"E")),1,18)
@@ -127,7 +130,7 @@ GET ; Gets data associated with study and sets global array
  I $S(GMTSTAI="V":0,GMTSTAI="R":0,1:1) D  Q
  . S:GMTSPSET=2 ^TMP("RAE",$J,GMTSIDT,"PRINTSET")=""
  Q:$D(^TMP("RAE",$J,GMTSIDT,"PRINTSET"))
- D GETIMP D:$G(MODE)=2 GETHIS,GETADD,GETREP
+ D GETIMP D:$G(MODE)=2 GETHIS^GMTSRAE1,GETR4S^GMTSRAE1,GETADD,GETREP
  S:GMTSPSET=2 ^TMP("RAE",$J,GMTSIDT,"PRINTSET")=""
  Q
  ;           
@@ -135,27 +138,21 @@ GETIMP ; Gets Radiologist's Impression
  N X,GMTSLN S X=$$GET1^DIQ(74,GMTSPTR,300,,"GMTST")
  K ^UTILITY($J,"W") N X,GMTSI S GMTSI=0 F  S GMTSI=$O(GMTST(GMTSI)) Q:+GMTSI=0  S X=$G(GMTST(GMTSI)) D FORMAT
  I $D(^UTILITY($J,"W")) F GMTSLN=1:1:^UTILITY($J,"W",3) S ^TMP("RAE",$J,GMTSIDT,GMTSPN,"I",GMTSLN)=^UTILITY($J,"W",3,GMTSLN,0)
- K ^UTILITY($J,"W"),GMTST Q
- ;
-GETHIS ; Gets Clinical History (#70/#74)
- N X,GMTSLN
- I +($G(GMTSRA27))>0 S X=$$GET1^DIQ(70.03,(GMTSPN_","_GMTSIDT_","_DFN_","),400,,"GMTST")
- I +($G(GMTSRA27))'>0 S X=$$GET1^DIQ(74,GMTSPTR,400,,"GMTST")
- K ^UTILITY($J,"W") N X,GMTSI S GMTSI=0 F  S GMTSI=$O(GMTST(GMTSI)) Q:+GMTSI=0  S X=$G(GMTST(GMTSI)) D FORMAT
- I $D(^UTILITY($J,"W")) F GMTSLN=1:1:^UTILITY($J,"W",3) S ^TMP("RAE",$J,GMTSIDT,GMTSPN,"H",GMTSLN)=^UTILITY($J,"W",3,GMTSLN,0)
- K ^UTILITY($J,"W"),GMTST Q
+ K ^UTILITY($J,"W"),GMTST
  Q
 GETADD ; Gets Additional Clinical History (#74)
  Q:+($G(GMTSRA27))'>0  N X,GMTSLN S X=$$GET1^DIQ(74,GMTSPTR,400,,"GMTST")
  K ^UTILITY($J,"W") N X,GMTSI S GMTSI=0 F  S GMTSI=$O(GMTST(GMTSI)) Q:+GMTSI=0  S X=$G(GMTST(GMTSI)) D FORMAT
  I $D(^UTILITY($J,"W")) F GMTSLN=1:1:^UTILITY($J,"W",3) D
  . S ^TMP("RAE",$J,GMTSIDT,GMTSPN,"A",GMTSLN)=^UTILITY($J,"W",3,GMTSLN,0)
- K ^UTILITY($J,"W"),GMTST Q
+ K ^UTILITY($J,"W"),GMTST
+ Q
 GETREP ; Gets Radiologist's Report
  N X,GMTSLN S X=$$GET1^DIQ(74,GMTSPTR,200,,"GMTST")
  K ^UTILITY($J,"W") N X,I S GMTSI=0 F  S GMTSI=$O(GMTST(GMTSI)) Q:+GMTSI=0  S X=$G(GMTST(GMTSI)) D FORMAT
  I $D(^UTILITY($J,"W")) F GMTSLN=1:1:^UTILITY($J,"W",3) S ^TMP("RAE",$J,GMTSIDT,GMTSPN,"R",GMTSLN)=^UTILITY($J,"W",3,GMTSLN,0)
- K ^UTILITY($J,"W"),GMTST Q
+ K ^UTILITY($J,"W"),GMTST
+ Q
 PMOD ; Procedure Modifiers
  N GMTS,GMTSI S GMTS=$G(DIC) Q:'$L(DIC)  S GMTSI=+($G(DA)) Q:+GMTSI=0
  N DIC,DA,DR S DIC=GMTS_GMTSI_",""M"","

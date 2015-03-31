@@ -1,5 +1,5 @@
-OCXOZ07 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ07 ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -8,6 +8,29 @@ OCXOZ07 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ; ** will be lost the next time the rule compiler executes.    **
  ; ***************************************************************
  ;
+ Q
+ ;
+CHK113 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK1+30^OCXOZ02.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK113 Variables
+ ; OCXDF(32) ---> Data Field: ORDER FLAGGED FOR RESULTS (BOOLEAN)
+ ; OCXDF(34) ---> Data Field: ORDER NUMBER (NUMERIC)
+ ; OCXDF(96) ---> Data Field: ORDERABLE ITEM NAME (FREE TEXT)
+ ; OCXDF(105) --> Data Field: ORDER TEXT (51 CHARS) (FREE TEXT)
+ ; OCXDF(112) --> Data Field: ORDERED BY (FREE TEXT)
+ ; OCXDF(149) --> Data Field: ORDER CANCELED BY (FREE TEXT)
+ ;
+ ;      Local Extrinsic Functions
+ ; CANCELER( --------> ORDER CANCELING PROVIDER
+ ; FILE(DFN,49, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: ORDER FLAGGED FOR RESULTS)
+ ; ORDERER( ---------> ORDERING PROVIDER
+ ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
+ ;
+ S OCXDF(32)=$$RSLTFLG^ORQOR2(OCXDF(34)) I $L(OCXDF(32)),(OCXDF(32)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,49,"96") Q:OCXOERR 
+ S OCXDF(112)=$$ORDERER(OCXDF(34)),OCXDF(149)=$$CANCELER(OCXDF(34)) I '(OCXDF(112)=OCXDF(149)) S OCXDF(105)=$P($$TEXT^ORKOR(OCXDF(34),51),"^",2) D CHK293^OCXOZ0B
  Q
  ;
 CHK121 ; Look through the current environment for valid Event/Elements for this patient.
@@ -109,7 +132,7 @@ CHK151 ; Look through the current environment for valid Event/Elements for this 
  ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
  ;
  I $L(OCXDF(1)),$$LIST(OCXDF(1),"NW,SN"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,60,"96") Q:OCXOERR 
- I $L(OCXDF(15)),(OCXDF(15)="F"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)) D CHK265^OCXOZ0A
+ I $L(OCXDF(15)),(OCXDF(15)="F"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)),($E(OCXDF(2),1,2)="LR"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)) D CHK264^OCXOZ0B
  Q
  ;
 CHK157 ; Look through the current environment for valid Event/Elements for this patient.
@@ -130,25 +153,17 @@ CHK157 ; Look through the current environment for valid Event/Elements for this 
  ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
  ;
  I $L(OCXDF(1)),$$LIST(OCXDF(1),"NW,SN"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,61,"96") Q:OCXOERR 
- I $L(OCXDF(23)),(OCXDF(23)="F"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)) D CHK254^OCXOZ0A
+ I $L(OCXDF(23)),(OCXDF(23)="F"),$L(OCXDF(1)),$$LIST(OCXDF(1),"RE"),$L(OCXDF(2)) D CHK253^OCXOZ0B
  Q
  ;
-CHK163 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK58+18^OCXOZ05.
+CANCELER(ORNUM) ;  Compiler Function: ORDER CANCELING PROVIDER
  ;
- Q:$G(OCXOERR)
- ;
- ;    Local CHK163 Variables
- ; OCXDF(2) ----> Data Field: FILLER (FREE TEXT)
- ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
- ; OCXDF(40) ---> Data Field: ORDER MODE (FREE TEXT)
- ; OCXDF(43) ---> Data Field: OI NATIONAL ID (FREE TEXT)
- ;
- I (OCXDF(40)="ACCEPT") D CHK164^OCXOZ08
- I (OCXDF(40)="DISPLAY") S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)),($E(OCXDF(2),1,2)="PS") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK182^OCXOZ08
- I (OCXDF(40)="SELECT") D CHK196^OCXOZ09
- I (OCXDF(40)="SESSION") S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)),($E(OCXDF(2),1,2)="PS") S OCXDF(43)=$P($P($G(OCXPSD),"|",3),"^",1) I $L(OCXDF(43)) D CHK230^OCXOZ0A
- Q
+ Q:'$G(ORNUM) ""
+ S ORNUM=+$G(ORNUM)
+ N ORQDUZ
+ Q:'$D(^OR(100,ORNUM,6)) ""
+ S ORQDUZ=$P(^OR(100,ORNUM,6),U,2)
+ Q ORQDUZ
  ;
 FILE(DFN,OCXELE,OCXDFL) ;     This Local Extrinsic Function logs a validated event/element.
  ;
@@ -169,6 +184,17 @@ LIST(DATA,LIST) ;   IS THE DATA FIELD IN THE LIST
  ;
  S:'($E(LIST,1)=",") LIST=","_LIST S:'($E(LIST,$L(LIST))=",") LIST=LIST_"," S DATA=","_DATA_","
  Q (LIST[DATA)
+ ;
+ORDERER(ORNUM) ;  Compiler Function: ORDERING PROVIDER
+ ;
+ Q:'$G(ORNUM) ""
+ S ORNUM=+$G(ORNUM)
+ N ORQDUZ,ORQI S ORQDUZ=""
+ I $L($G(^OR(100,ORNUM,8,0))) D
+ .S ORQI=0,ORQI=$O(^OR(100,ORNUM,8,"C","NW",ORQI))
+ Q:+$G(ORQI)<1 ""
+ S ORQDUZ=$P(^OR(100,ORNUM,8,ORQI,0),U,3)
+ Q ORQDUZ
  ;
 ORDITEM(OIEN) ;  Compiler Function: GET ORDERABLE ITEM FROM ORDER NUMBER
  Q:'$G(OIEN) ""

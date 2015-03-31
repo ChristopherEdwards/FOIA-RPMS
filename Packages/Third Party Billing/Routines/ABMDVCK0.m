@@ -1,5 +1,5 @@
 ABMDVCK0 ; IHS/ASDST/DMJ - PCC Visit Edits ;      
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;Original;TMD;08/19/96 4:49 PM
  ;Split off from ABMDVCK
  ;
@@ -34,6 +34,7 @@ VCHX(ABMVDFN) ;EP -  CHECK EACH VISIT
  .S ^TMP($J,"PROC",ABMVDFN)=""
  ;
  ;10= Visit location not found in 3P site parameters file
+ ;start old code abm*2.6*11 HEAT86425
  S ABMARPS=$P($G(^ABMDPARM(DUZ(2),1,4)),"^",9)
  I $O(^ABMDCLM(ABMP("LDFN"),"AV",ABMVDFN,"")) S ABMARPS=""
  I 'ABMARPS,'$D(^ABMDPARM(ABMP("LDFN"),0)) D  Q
@@ -46,6 +47,20 @@ VCHX(ABMVDFN) ;EP -  CHECK EACH VISIT
  .D PCFL^ABMDVCK2(10)
  .S ABMP("FLAG1")=1
  .S ^TMP($J,"PROC",ABMVDFN)=""
+ ;end old code start new code HEAT86425
+ ;I $O(^ABMDCLM(DUZ(2),"AV",ABMVDFN,""))!($O(^ABMDCLM(ABMP("LDFN"),"AV",ABMVDFN,""))) Q
+ ;I '$D(ABMARPS) D LOOP^ABMDVCK  ;abm*2.6*11 so CG can be run manually for one VDFN
+ ;I 'ABMARPS,'$D(^ABMDPARM(ABMP("LDFN"),0)) D  Q
+ ;.D PCFL^ABMDVCK2(10)
+ ;.S ABMP("FLAG1")=1
+ ;.S ^TMP($J,"PROC",ABMVDFN)=""
+ ;I ABMARPS,'$D(^BAR(90052.05,DUZ(2),ABMP("LDFN"),0)) D  Q
+ ;.Q:$D(^BAR(90052.05,ABMP("LDFN"),ABMP("LDFN")))
+ ;.Q:$D(^BAR(90052.05,ABMP("LDFN"),DUZ(2)))
+ ;.D PCFL^ABMDVCK2(10)
+ ;.S ABMP("FLAG1")=1
+ ;.S ^TMP($J,"PROC",ABMVDFN)=""
+ ;end new code HEAT86425
  I ABMP("LDFN")'=DUZ(2),'ABMARPS Q
  I ABMARPS,$P($G(^BAR(90052.05,DUZ(2),ABMP("LDFN"),0)),"^",3)'=DUZ(2) Q
  I ABMARPS,$P($G(^BAR(90052.05,DUZ(2),ABMP("LDFN"),0)),"^",6)>ABMP("VDT") D  Q

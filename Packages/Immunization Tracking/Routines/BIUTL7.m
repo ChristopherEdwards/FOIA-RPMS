@@ -1,9 +1,8 @@
 BIUTL7 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**4**;DEC 01,2012
+ ;;8.5;IMMUNIZATION;**6**;OCT 15,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  SCREENMAN RELATED CODE TO LOAD & SAVE: VISIT, CASE DATA, CONTRAS.
- ;;  PATCH 3: Display Local Text with Elig Code.  LOADVIS+118
- ;;  PATCH 4: Add leading zero to Volume if necessary.  LOADVIS+49
+ ;;  PATCH 6: Correct error handling of VIS Date.  LOADVIS+48
  ;
  ;
  ;----------
@@ -54,7 +53,11 @@ LOADVIS(BIVTYPE) ;EP
  ..I $G(BI("T"))]"" D PUT^DDSVALF(4,,,BI("T"),"I")
  ..;
  ..;---> Release/Rev Date of VIS (DD-Mmm-YYYY).
- ..I $G(BI("Q")) D PUT^DDSVALF(10,,,BI("Q"),"E")
+ ..;********** PATCH 6, v8.5, OCT 15,2013, IHS/CMI/MWR
+ ..;---> Correct error handling of VIS Date.
+ ..;I $G(BI("Q")) D PUT^DDSVALF(10,,,BI("Q"),"E")
+ ..I $G(BI("Q"))>1 D PUT^DDSVALF(10,,,BI("Q"),"E")
+ ..;**********
  ..;
  ..;---> Load the Volume.
  ..;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
@@ -128,12 +131,8 @@ LOADVIS(BIVTYPE) ;EP
  D DEFSITE^BIUTL4
  S BI("F")=$$GET^DDSVALF(7),BI("I")=$$GET^DDSVALF(11)
  ;
- ;---> If this is an Immunization, load VFC Eligibility.
- ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
- ;---> Display Local Text with Elig Code.
- ;I BIVTYPE="I",$G(BI("P"))]"" D PUT^DDSVALF(10.5,,,BI("P"),"I")
+ ;---> If this is an Immunization, load VFC Eligibility and Local Text.
  I BIVTYPE="I",$G(BI("P"))]"" D PUT^DDSVALF(10.5,,,BI("P"),"I"),ELIGLAB^BIUTL8(BI("P"))
- ;**********
  ;
  ;---> If Provider already stored previously, load it and quit.
  I $G(BI("R")) D PUT^DDSVALF(9,,,BI("R"),"I") Q

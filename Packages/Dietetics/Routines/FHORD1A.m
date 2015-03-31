@@ -1,13 +1,13 @@
 FHORD1A ; HISC/REL/NCA - Diet Order Window ;7/11/96  12:21 ;
- ;;5.0;Dietetics;**6**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 WIN Q:$P(D1,".",1)'=$P(NOW,".",1)  S X1=+$E($P(D1,".",2)_"0000",1,4)
- S X2=+$E($P(NOW,".",2)_"0000",1,4),K1=$P($G(^FHPT(DFN,"A",ADM,0)),"^",8)
+ S X2=+$E($P(NOW,".",2)_"0000",1,4),K1=$P($G(^FHPT(FHDFN,"A",ADM,0)),"^",8)
  S DP=$P($G(^FH(119.6,+K1,0)),"^",8)
  S X=$G(^FH(119.73,+DP,2))
  F K=1:2:5 S A1=$P(X,"^",K),A2=$P(X,"^",K+1) I A1,A2,X1'<A1,X1'>A2,X2'<A1,X2'>A2 G W1
  Q
 W1 S MEAL=$S(K=1:"B",K=3:"N",1:"E"),A1=$P(D1,".",1)
- F K=A1:0 S K=$O(^FHPT(DFN,"A",ADM,"EL",K)) Q:K<1!(K\1'=A1)  I $P(^(K,0),"^",2)=MEAL G W5
+ F K=A1:0 S K=$O(^FHPT(FHDFN,"A",ADM,"EL",K)) Q:K<1!(K\1'=A1)  I $P(^(K,0),"^",2)=MEAL G W5
  W *7,!!,"You have missed the ",$S(MEAL="B":"BREAKFAST",MEAL="N":"NOON",1:"EVENING")," cut-off."
 W2 R !!,"Do you wish to order a LATE TRAY? (Y/N): ",YN:DTIME Q:'$T!(YN["^")  S:YN="" YN="^" S X=YN D TR^FH S YN=X I $P("YES",YN,1)'="",$P("NO",YN,1)'="" W *7," Answer YES or NO" G W2
  Q:YN?1"N".E

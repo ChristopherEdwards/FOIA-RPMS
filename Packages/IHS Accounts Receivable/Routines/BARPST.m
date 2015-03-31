@@ -1,5 +1,5 @@
 BARPST ; IHS/SD/LSL - PAYMENT BATCH POSTING JAN 15,1997 ; 07/14/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,7,13,15,19,21**;OCT 26, 2005;Build 38
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,7,13,15,19,21,22,23**;OCT 26, 2005;Build 38
  ;;
  ; IHS/SD/LSL - 07/31/2002 - V1.7 - NOIS HQW-0302-100213
  ;     Modified BATW to also display batch name.
@@ -14,7 +14,7 @@ BARPST ; IHS/SD/LSL - PAYMENT BATCH POSTING JAN 15,1997 ; 07/14/2010
  ;
  ; IHS/SD/TMM 12/21/09 M4  BAR*1.8*19
  ;                         Lockdown date not working correctly for batches in 12/2009.
- ;
+ ; P.OTT SEP 2012 HEAT#83479 FIXING BUG IF DATA IS MISSING IN I $D(^BAREDI("I",DUZ(2),BAR,0))
  ; *********************************************************************
  ;
 EN ;EP -  lookup collection id
@@ -231,8 +231,10 @@ CKDATE(Z,Q,P) ;EP; NEW; CHECK COLLECTION BATCH DATE ;MRS;BAR*1.8*6 DD 4.2.4
  ;ENTERS WITH: Z = COLLECTION BATCH IEN
  ;             Q = 0=SILENT OR 1=VERBOSE
  ;             P = TYPE (ERA or COLLECTION BATCH CHECK) ALSO CALLED BY BAREDP00
+ ;I DUZ=902 Q 1
  N X,Y,BAR
- I '$$IHS^BARUFUT(DUZ(2)) Q 1
+ I '$$IHS^BARUFUT(DUZ(2)) Q 1  ;
+ ;;;I '$$IHSERA^BARUFUT(DUZ(2)) Q 1  ;P.OTT
  I Z="",P["COLLECTION" D  Q 0          ;MRS;BAR*1.8*7 IM30386
  .N BARBIL
  .S BARBIL=$$GET1^DIQ(90050.03,BARTX_",",4,"E")
@@ -240,16 +242,6 @@ CKDATE(Z,Q,P) ;EP; NEW; CHECK COLLECTION BATCH DATE ;MRS;BAR*1.8*6 DD 4.2.4
  .W:BARBIL]"" !,"FOR A/R BILL # "_BARBIL
  .W !,"WITH MISSING COLLECTION BATCH, NOTIFY OIT SUPPORT"
  .D EOP^BARUTL(1)
- ;I P["COLLECTION",($P(^BARCOL(DUZ(2),+Z,0),U,4)>3051000) Q 1       ;IHS/SD/SDR 6/4/09 HEAT5219 BAR*1.8*13
- ;I P["ERA" D  I Y>3051000 Q 1              ;MRS;BAR*1.8*7 IM30386
- ;I P["ERA" D  I $G(Y)>3051000 Q 1          ;MRS;BAR*1.8*7 IM30386  ;IHS/SD/SDR 6/4/09 HEAT5219 BAR*1.8*13
- ;start new code IHS/SD/SDR 6/4/09 HEAT5219 BAR*1.8*13
- ;I DT>3090630 S BARCDT=3090100             ;M3*TMM*12/21/09*DEL
- ;I DT<3090701 S BARCDT=3051000             ;M3*TMM*12/21/09*DEL
- ;*********************
- ;W !,"IF TODAY WERE: "
- ;R DT:10
- ;Q:DT=""
  ;***BEGIN ADD***     ;M3*TMM*12/21/09*ADD
  ;N BARYYY,BARYYY2,BARYYY3,BARMM,BARTMP,BARQTR,BARL1,BARL2,BARL3,BARL4,BARL5,BARL6
  S BARYYY=$E(DT,1,3)
@@ -278,34 +270,17 @@ CKDATE(Z,Q,P) ;EP; NEW; CHECK COLLECTION BATCH DATE ;MRS;BAR*1.8*6 DD 4.2.4
  S BARL3DD=$E(BARL3,6,7)
  S BARL3YY=$E(BARL3,1,3)+1700
  S BARL3FMT=BARL3MM_"/"_BARL3DD_"/"_BARL3YY
- ;TMM W !,"BARL3FMT=",BARL3FMT
- ;***END ADD***     ;M3*TMM*12/21/09*ADD
- ;*********************
- ;TMM I P["COLLECTION",($P(^BARCOL(DUZ(2),+Z,0),U,4)>BARCDT) D
- ;TMM .S TMP=$P(^BARCOL(DUZ(2),+Z,0),U,4)>BARCDT
- ;TMM .W !,TMP
- ;TMM .W !,"COLLECTION BATCH OPEN DATE > LOCKDOWN DATE, QUIT '1'"
- ;TMM I P["ERA" D
- ;TMM .S BAR=$O(^BAREDI("I",DUZ(2),"C",$E(Z,1,30),"")) ;LIMIT TO 30 CHAR;MRS;BAR*1.8*7 IM30386
- ;TMM .Q:BAR=""                                  ;MRS:BAR*1.8*7 IM30386
- ;TMM .S X=$P($P($G(^BAREDI("I",DUZ(2),BAR,0)),U,2),"@",1)
- ;TMM .S %DT=""
- ;TMM .D ^%DT
- ;TMM .S TMP=$G(Y)
- ;TMM .W !,TMP
- ;TMM .W !,"ERA > LOCKDOWN DATE, QUIT '1'"
- ;
- ;Allow programmer to use older dates for testing
- ;TMM For testing:  S BARTMM1=$P($G(^VA(200,DUZ,0)),U,1)            ;for in-house testing only
- ;I BARTMM1="MORCZYNSKI,TERRI",$G(XQVOL)="DHC" Q 1    ;for in-house testing only
- ;TMM For testing:  I BARTMM1="MORCZYNSKI,TERRI" Q 1    ;for in-house testing only
  ;
  I P["COLLECTION",($P(^BARCOL(DUZ(2),+Z,0),U,4)>BARCDT) Q 1
+ ;-------------------------------------REWRITE P.OTT
  I P["ERA" D  I $G(Y)>BARCDT Q 1
- .;end new code HEAT5219 BAR*1.8*13
- .;S BAR=$O(^BAREDI("I",DUZ(2),"C",Z,""))   ;MRS;BAR*1.8*7 IM30386
- .;S BAR=$O(^BAREDI("I",DUZ(2),"C",$E(Z,1,30),"")) ;LIMIT TO 30 CHAR;MRS;BAR*1.8*7 IM30386  ;bar*1.8*22 SDR HEAT56444
- .;start new code bar*1.8*22 SDR HEAT56444
+ . S Y=0,BAR=$$GETONE(Z) ;W !,"RETURNED BAR=",BAR
+ . I 'BAR W !!,"Cannot find filename in A/R EDI IMPORT File" Q
+ . S X=$P($P($G(^BAREDI("I",DUZ(2),BAR,0)),U,2),"@",1)  ;RETURN DATE 
+ . S %DT="" D ^%DT ;RETURN Y (DATE)
+ . QUIT
+ ;--------------------------------------
+ I P["ERA" D  I $G(Y)>BARCDT Q 1
  .;some files have 30 characters; some have full name; check for both
  .S BAR=$O(^BAREDI("I",DUZ(2),"C",Z,""))
  .S:BAR="" BAR=$O(^BAREDI("I",DUZ(2),"C",$E(Z,1,30),""))
@@ -317,11 +292,19 @@ CKDATE(Z,Q,P) ;EP; NEW; CHECK COLLECTION BATCH DATE ;MRS;BAR*1.8*6 DD 4.2.4
  .D ^%DT
  I P["ERA",(BAR="") Q  ;bar*1.8*22 SDR HEAT56444
  I Q D
- .;W !!,"CANNOT "_P_" OLDER THAN 10/1/2005"  ;IHS/SD/SDR 6/4/09 HEAT5219 BAR*1.8*13
- .;W !!,"CANNOT "_P_" OLDER THAN "_$S(DT>3090630:"01/01/2009",1:"10/01/2005")  ;IHS/SD/SDR 6/4/09 ;M3*TMM*12/21/09*DEL
  .W !!,"CANNOT "_P_" OLDER THAN "_$S(DT>BARL2:BARL3FMT,1:"10/01/2005")  ;M3*TMM*12/21/09*ADD
  .D EOP^BARUTL(1)
  Q 0
+ ;
+GETONE(BARZNAM) ;P.OTT
+ NEW BARFN1,BARFN2
+ SET BARFN1=BARZNAM,BARFN2=$E(BARZNAM,1,30),CNT=0
+ S BAR="" F  S BAR=$O(^BAREDI("I",DUZ(2),"C",BARFN1,BAR)) Q:BAR=""  I $D(^BAREDI("I",DUZ(2),BAR,0)) Q
+ I BAR Q BAR
+ ;some files have 30 characters; some have full name; check for both
+ S BAR="" F  S BAR=$O(^BAREDI("I",DUZ(2),"C",BARFN2,BAR)) Q:BAR=""  I $D(^BAREDI("I",DUZ(2),BAR,0)) Q
+ I BAR Q BAR
+ Q 0  ;NO DATA FOUND: RETURN ZERO
  ;
 LOCKDOWN ;;$T quarter lockdown for posting   ;M3*TMM*12/21/09*ADD TAG
  ;;01^0630^0701^07^1^1

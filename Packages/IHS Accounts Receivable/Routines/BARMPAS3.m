@@ -1,9 +1,12 @@
 BARMPAS3 ; IHS/SD/LSL - Patient Account Statement Print ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,20,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,20,21,23**;OCT 26, 2005
  ;
  ; IHS/SD/LSL - 05/13/03 - V1.7 Patch 2
  ;
  ; ********************************************************************
+ ;FEB 2012 PETER OTTIS IHS/SD/OIT LINE PRINT+1 ADDED TO GET REPORT HEADER WHEN PRINTED (QUEUED)
+ ;HEAT#80718 21-AUG-2012 P.OTTIS  ADDED SORTING OPTION BY PATNAME
+ ;HEAT #91646 DROPPED KILLING COLLECTED DATA (RETAIN DISFUNCT) - WILL BE HANDLED BY THE NEW 'PUR' OPTION
  Q
  ;
 GETHDR  ;EP
@@ -78,13 +81,6 @@ HDR ; EP
  ; ********************************************************************
  ;
 PG(L) ; EP
- ; IHS/SD/PKD 1.8*20 Page Length correction
- ;I (IOSL-$Y)<L D
- . ; IHS/SD/PKD 1.8*19 Add extra line feeds to keep page alignment
- . ;I $E(IOST)="P" D PAZ,PGHDR Q  ; 1.8*19 If printer
- . ;D PAZ^BARRUTL
- . ;I $D(DTOUT)!$D(DUOUT)!$D(DIROUT) S BARF1=1 Q
- .;D PGHDR
  I ((IOSL-$Y)<L)&($E(IOST)="P") D PGHDR Q  ; Printer
  Q:IOSL>$Y
   D PAZ^BARRUTL
@@ -105,12 +101,17 @@ PRTASK ; EP
  ; Called from Print Patient Accounts' Statements AR Menu Option
  D SELECT                            ; Select run to Print
  Q:'$D(BARRUNDT)                     ; No run selected
- D RETAIN                            ; Keep run to print again?
+ S BARSRTBY=$G(^XTMP("BARPAS"_BARRUNDT,0,"SORTBY"),-1) ;P.OTT
+ I BARSRTBY<0 D  Q
+ . W !!,"THIS BATCH OF STATEMENTS IS NOT COMPATIBLE WITH THE NEW FILE STRUCTURE."
+ . W !,"WILL RUN REIDEXING FIRST, THEN TRY AGAIN",!!
+ . D REINDEX^BARMPAS5("BARPAS"_BARRUNDT)
+ . D EOP^BARUTL(0)
+ . Q
+ ;;;D RETAIN                         ; Keep run to print again?
  D GETHDR^BARMPAS3                   ; Get Statement Header
  Q:'$D(BARHDRDA)                     ; Not in A/R Letters and Text File
  S BARQ("RC")="COMPUTE^BARMPAS2"     ; Build tmp global with data
- ; IHS/SD/PKD 1.8*19 move PRINT to BARMPAS3
- ;S BARQ("RP")="PRINT^BARMPAS2"
  S BARQ("RP")="PRINT^BARMPAS3"       ; Print reports from tmp global
  S BARQ("NS")="BAR"                  ; Namespace for variables
  S BARQ("RX")="EXIT^BARMPAS2"        ; Clean-up routine
@@ -130,14 +131,16 @@ SELECT ;
  ; Display tasked runs to choose from
  W !,"Select Account Run time:  ",!
  S BARCNT=0
- S BAR1="BARPAS"
- F  S BAR1=$O(^XTMP(BAR1)) Q:BAR1'["BARPAS"  D
+ S BAR1="BARPAS" F  S BAR1=$O(^XTMP(BAR1)) Q:BAR1'["BARPAS"  D
  . S BARCNT=BARCNT+1                           ; Line counter
  . S BARDT=$P(BAR1,"BARPAS",2,99)              ; Date of Run
  . S BARRUN(BARCNT)=BARDT                      ; Array of runs
  . S Y=BARDT
  . D DD^%DT
  . W !,$J(BARCNT,2),?5,Y                       ; Line count,date run
+ . I '$D(^XTMP("BARPAS"_BARDT,0,"SORTBY")) W "  not compatible" Q
+ . S BARSRTBY=$G(^XTMP("BARPAS"_BARDT,0,"SORTBY"))+1
+ . ;;;I BARSRTBY W "  sorted by ",$P("Billing location, Account Number;Billing location, Patient name",";",BARSRTBY)
  ;
  ; Select run to print
  K DIR
@@ -162,16 +165,11 @@ RETAIN ;
  ; ***
  ;
 PRINT  ;EP
+ D GETHDR ;21 FEB 2012 P.OTT IHS/SD/OIT ADDED FOR QUEUED REPORTS 
  S BARTMP=$G(^XTMP("BARPAS"_BARRUNDT,0,"DT"))
+ S BARSRTBY=$G(^XTMP("BARPAS"_BARRUNDT,0,"SORTBY"),0) ;P.OTT 
  S BARDTB=$P(BARTMP,U)                         ; Statement begin date
  S BARDTE=$P(BARTMP,U,2)                       ; Statement end date
- ; IHS/SD/AR 1.8*19 10/13/10
- ; S HL1="DOS     Trans Bill    Service  Description  Chrg     Credit          Patient"
- ; S HL2="        Date  Num     Type                                           Bal"
- ;S HL1="SERVICE                                INSURANCE  PATIENT  INSURANCE    PAT"
- ;S HL2="DATE         BILL  PROVIDER    BILLED   PAYMENT   PAYMENT  OUTSTAND'G   RESP"
- ;S HL1="SVC DATE    BILL      PROVIDER"
- ;S HL2="BILLED       INS OWES       INS PMT        PT PMT        ADJ AMT        PAT RESP"
  S HL1="        BILLED    INSURANCE     PATIENT   ADJUSTED     INSURANCE    PATIENT"
  S HL2="        AMOUNT     PAYMENT      PAYMENT    AMOUNT     OUTSTANDING  AMOUNT DUE"
  D PRINT^BARMPAS2

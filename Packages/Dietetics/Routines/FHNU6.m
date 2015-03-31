@@ -1,5 +1,5 @@
 FHNU6 ; HISC/REL/NCA - Abbreviated Analysis Output ;8/2/94  16:09
- ;;5.0;Dietetics;**36**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  K A,B,C F K=1:1:3 S C(K)=0 F K=1:1:66 S A(K)=0,B(K)=0
  S NX=0
 D1 S NX=$O(FHM(NX)) I NX="" G D2

@@ -1,7 +1,7 @@
 FHMTK4 ; HISC/NCA - Patient Diet Pattern Utility ;4/25/95  10:01
- ;;5.0;Dietetics;**34**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 LIS ; List Diet Pattern of Diet Order
- S ANS="" D SO Q:ANS="^"  S STR=$G(^FHPT(DFN,"A",ADM,"DI",FHORD,2))
+ S ANS="" D SO Q:ANS="^"  S STR=$G(^FHPT(FHDFN,"A",ADM,"DI",FHORD,2))
  W !!!?33,"Diet Pattern"
  W !! F CTR=1:1:3 W ?$S(CTR=1:9,CTR=2:35,1:61),$S(CTR=1:"Breakfast",CTR=2:"Noon",1:"Evening")
  I STR'="" D DECOD G L1
@@ -17,7 +17,7 @@ LIST ; List Recipe Category of a selected meal
  Q
 SO ; List Standing Orders
  W !?16,"Standing Orders",!
- K N F K=0:0 S K=$O(^FHPT("ASP",DFN,ADM,K)) Q:K<1  S X=$G(^FHPT(DFN,"A",ADM,"SP",K,0)),M=$P(X,"^",3),M=$S(M="BNE":"A",1:$E(M,1)),N(M,K)=$P(X,"^",2,3)_"^"_$P(X,"^",8,9)
+ K N F K=0:0 S K=$O(^FHPT("ASP",FHDFN,ADM,K)) Q:K<1  S X=$G(^FHPT(FHDFN,"A",ADM,"SP",K,0)),M=$P(X,"^",3),M=$S(M="BNE":"A",1:$E(M,1)),N(M,K)=$P(X,"^",2,3)_"^"_$P(X,"^",8,9)
  S LN=0 F M="A","B","N","E" D  Q:ANS="^"
  .F K=0:0 S K=$O(N(M,K)) Q:K<1  S Z=+N(M,K) I Z D  Q:ANS="^"
  ..D L1^FHSPED W ! S NUM=$P(N(M,K),"^",3),LN=LN+1

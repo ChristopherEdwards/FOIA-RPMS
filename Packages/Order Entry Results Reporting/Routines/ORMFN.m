@@ -1,9 +1,9 @@
-ORMFN ; SLC/MKB - MFN msg router ;04:29 PM  19 Dec 2000
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**26,97,94,176**;Dec 17, 1997
+ORMFN ; SLC/MKB - MFN msg router ;11/21/2006
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**26,97,94,176,215,243**;Dec 17, 1997;Build 242
 EN(MSG) ; -- main entry point for OR ITEM RECEIVE
  N ORMSG,ORNMSP,ORDG,MSH,MFI,MFE,ZPKG,ZSY,NTE,ORMFE,ORDITEM,ORACTION,ORDIFN,ORFIEN,ORFLD,ORFDA,NUM,VALUE,X,Y,DA,DIC,DIK,SYS,ZLC,LAST,NAME,ID,INACTIVE,I,ORY,NEXT,DD,DO
  S ORMSG=$G(MSG,"MSG") Q:'$O(@ORMSG@(0))  ; msg array root
- N ORNOW S ORNOW=$$NOW^XLFDT M ^XTMP("OR ITEM RECEIVE",ORNOW)=@ORMSG
+ N ORNOW S ORNOW=$$NOW^XLFDT ;M ^XTMP("OR ITEM RECEIVE",ORNOW)=@ORMSG
 MSH S MSH=0 F  S MSH=$O(@ORMSG@(MSH)) Q:MSH'>0  Q:$E(@ORMSG@(MSH),1,3)="MSH"
  Q:'MSH  S MSH=MSH_U_@ORMSG@(MSH)
  S X=$P(MSH,"|",3) S:X="RADIOLOGY" X="IMAGING"
@@ -31,7 +31,7 @@ ZPKG . S LAST=+MFE,ZPKG=$O(@ORMSG@(+MFE))
  . D FILE^DIE("K","ORFDA") ; file data
 ZLC . S NEXT=$O(@ORMSG@(LAST)) I NEXT,$E(@ORMSG@(NEXT),1,3)="ZLC" D
  . . N COMP,CID,CODE,CSYS
- . . K DA,^ORD(101.43,ORDIFN,10) S DIC("P")=$P(^DD(101.43,10,0),U,2)
+ . . K DA,^ORD(101.43,ORDIFN,10) ;S DIC("P")=$P(^DD(101.43,10,0),U,2)
  . . S DA(1)=ORDIFN,DIC="^ORD(101.43,"_DA(1)_",10,",DIC(0)="L",ZLC=LAST
  . . F  S ZLC=$O(@ORMSG@(ZLC)) Q:ZLC'>0  Q:$E(@ORMSG@(ZLC),1,3)'="ZLC"  D
  . . . S COMP=$P(@ORMSG@(ZLC),"|",5),X=$P(COMP,U,5) I X="" S LAST=ZLC Q
@@ -44,8 +44,8 @@ ZSY . I $D(^ORD(101.43,ORDIFN,2)) D  ; kill old ones first
  . . S DA=0 F  S DA=$O(^ORD(101.43,DA(1),2,DA)) Q:DA'>0  D ^DIK
  . . K ^ORD(101.43,ORDIFN,2),DIK,DA
  . S NEXT=$O(@ORMSG@(LAST)) I NEXT,$E(@ORMSG@(NEXT),1,3)="ZSY" D
- . . S DA(1)=ORDIFN,DIC="^ORD(101.43,"_DA(1)_",2,"
- . . S DIC(0)="L",DIC("P")=$P(^DD(101.43,1,0),U,2),ZSY=LAST
+ . . K DA,DIC S DA(1)=ORDIFN,DIC="^ORD(101.43,"_DA(1)_",2,"
+ . . S DIC(0)="L",ZSY=LAST ;,DIC("P")=$P(^DD(101.43,1,0),U,2)
  . . F  S ZSY=$O(@ORMSG@(+ZSY)) Q:ZSY'>0  Q:$E(@ORMSG@(ZSY),1,3)'="ZSY"  D
  . . . S X=$P(@ORMSG@(ZSY),"|",3),LAST=ZSY
  . . . K DD,DO D:$L(X) FILE^DICN
@@ -90,16 +90,17 @@ FH ; -- Dietetics
 LR ; -- Laboratory
  S X=$P(ZPKG,"|",2),ORFLD(60.1)=$S(X="":"@",1:X)
  S X=$P(ZPKG,"|",3),ORFLD(60.2)=$S(X="":"@",1:X)
- S X=$P(ZPKG,"|",4),ORFLD(60.3)=$S(X="":"@",1:X)
+ ;S X=$P(ZPKG,"|",4),ORFLD(60.3)=$S(X="":"@",1:X)
  S X=$P(ZPKG,"|",5),ORFLD(60.6)=$S(X="":"@",1:X)
  S X=$P(ZPKG,"|",6),ORFLD(60.4)=$S(X="":"@",1:X)
  S X=$P(ZPKG,"|",7),ORFLD(60.5)=$S(X="":"@",1:X)
  S X=$P(ZPKG,"|",8),ORFLD(6)=$S(X="":"@",1:X)
  S X=$P(ZPKG,"|",9),ORFLD(60.7)=$S(X="":"@",1:X)
- F NUM=6,60.1,60.2,60.3,60.4,60.5,60.6,60.7 D VAL^DIE(101.43,ORFIEN,NUM,"F",ORFLD(NUM),.ORY,"ORFDA")
+ F NUM=6,60.1,60.2,60.4,60.5,60.6,60.7 D VAL^DIE(101.43,ORFIEN,NUM,"F",ORFLD(NUM),.ORY,"ORFDA")
  Q
  ;
 PS ; -- Pharmacy
+ N ROUTE
  S X=$P(ZPKG,"|",2)
  ;S ORFDA(101.43,ORFIEN,50.1)=$S(X'["I":0,$L($P($P(ORDITEM,U,5),"~",3)):2,1:1)
  S ORFDA(101.43,ORFIEN,50.1)=$S(X["V":2,X["I":1,1:0) ;inpt or iv med
@@ -109,7 +110,18 @@ PS ; -- Pharmacy
  S ORFDA(101.43,ORFIEN,50.5)=(X["S") ;supply item
  S ORFDA(101.43,ORFIEN,50.7)=(X["N") ;non-VA med
  S X=$P(ZPKG,"|",3),ORFDA(101.43,ORFIEN,50.6)=$S(X:1,1:0)
+ ;Check for default med route
+ ;S ROUTE=$$MEDROUTE
+ ;I ROUTE>0 S ORFDA(101.43,ORFIEN,50.8)=ROUTE
  Q
+ ;
+MEDROUTE() ;
+ N CNT,ROUTE
+ S CNT=0,ROUTE=0
+ F  S CNT=$O(@ORMSG@(CNT)) Q:CNT'>0  D
+ .I $P($G(@ORMSG@(CNT)),"|")'="ZPB" Q
+ .S ROUTE=+$P($G(@ORMSG@(CNT)),"|",4)
+ Q ROUTE
  ;
 RA ; -- Radiology/Nuc Medicine
  S X=$P(ZPKG,"|",4),ORFLD(6)=$S(X="":"@",1:X)

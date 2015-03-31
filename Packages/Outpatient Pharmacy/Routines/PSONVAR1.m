@@ -1,5 +1,5 @@
 PSONVAR1 ;BHM/MFR - Non-VA Med Usage Report ;04/10/03
- ;;7.0;OUTPATIENT PHARMACY;**132**;13 Feb 97
+ ;;7.0;OUTPATIENT PHARMACY;**132,118**;13 Feb 97
  ;External reference to File ^PS(55 supported by DBIA 2228
  ;External reference to $$GET1^DIQ is supported by DBIA 2056
  ;External reference to ^VADPT is supported by DBIA 10061
@@ -163,4 +163,7 @@ SRT(ST) ; - Convert the "1,2,4" (example) to "PATIENT,ORDERABLE ITEM,STATUS"
  Q ST
  ;
 DT(DT) ; - Convert FM Date to MM/DD/YYYY
+ I 'DT Q ""
+ I '(DT#10000) Q (1700+$E(DT,1,3))
+ I '(DT#100) Q $E(DT,4,5)_"/"_(1700+$E(DT,1,3))
  Q $E(DT,4,5)_"/"_$E(DT,6,7)_"/"_(1700+$E(DT,1,3))

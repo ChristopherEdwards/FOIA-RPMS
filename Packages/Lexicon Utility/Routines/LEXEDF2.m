@@ -1,5 +1,5 @@
 LEXEDF2 ; ISL Edit/Display a Definition (Part 2)   ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 EXP(LEXX) ; Select an expression
  N Y,LEXS,LEXC,LEXMC,LEXE,LEXI,LEXME S Y=LEXX,(LEXS,LEXC)=0

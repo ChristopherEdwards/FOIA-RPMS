@@ -1,5 +1,5 @@
 BARUP ; IHS/SD/LSL - UPLOAD BILL FROM 3P ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**19**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,23**;OCT 26, 2005
  ;
  ; IHS/SD/LSL - 11/27/02 - V1.7 - QAA-1200-130051
  ;    Inserted documentation.
@@ -26,7 +26,7 @@ BARUP ; IHS/SD/LSL - UPLOAD BILL FROM 3P ;
  ;** ACTION from 3P ABMAPASS will now be numeric. 
  ;    99 - indicates a cancelled bill in 3P
  ;    1,2,3 - indicates that the active insurer is primary,secondary,etc
- ;
+ ;** JUNE 2012 P.OTTIS HEAT # 73895: - DISPLAY EXCLUSION REASON
  Q
  ; *********************************************************************
  ;
@@ -70,20 +70,17 @@ GETPAR ;** visit location comes from #.03 of 3p bill file
  S BARSAT=$G(@BAR3PUP@("VSLC"))           ; Satellite = 3P Visit loc           
  S BARPAR=0                               ; Parent
  ; check site active at DOS to ensure bill added to correct site
- S DA=0
+ S DA=0,BARERR=0 ;P.OTTIS HEAT # 73895 - SET BARERR # AND 
  F  S DA=$O(^BAR(90052.06,DA)) Q:DA'>0  D  Q:BARPAR
- . Q:'$D(^BAR(90052.06,DA,DA))  ; Pos Parent UNDEF Site Parameter
- . Q:'$D(^BAR(90052.05,DA,BARSAT))  ; Satellite UNDEF Parent/Satellit
- . Q:+$P($G(^BAR(90052.05,DA,BARSAT,0)),U,5)  ; Par/Sat not usable
+ . I '$D(^BAR(90052.06,DA,DA)) S BARERR=1_";"_DA QUIT ; Pos Parent UNDEF Site Parameter
+ . I '$D(^BAR(90052.05,DA,BARSAT)) S BARERR=2_";"_DA_";"_BARSAT QUIT ; Satellite UNDEF Parent/Satellit
+ . I +$P($G(^BAR(90052.05,DA,BARSAT,0)),U,5) S BARERR=3_";"_DA_";"_BARSAT QUIT ; Par/Sat not usable
  . ; Q if sat NOT active at DOS
- . I @BAR3PUP@("DOSB")<$P($G(^BAR(90052.05,DA,BARSAT,0)),U,6) Q
+ . I @BAR3PUP@("DOSB")<$P($G(^BAR(90052.05,DA,BARSAT,0)),U,6) S BARERR=4_";"_DA_";"_BARSAT_";dos="_@BAR3PUP@("DOSB")_";activated:"_$P($G(^BAR(90052.05,DA,BARSAT,0)),U,6) QUIT
  . ; Q if sat became NOT active before DOS
- . I $P($G(^BAR(90052.05,DA,BARSAT,0)),U,7),(@BAR3PUP@("DOSB")>$P($G(^BAR(90052.05,DA,BARSAT,0)),U,7)) Q
- . S BARPAR=$S(BARSAT:$P($G(^BAR(90052.05,DA,BARSAT,0)),U,3),1:"")
- I 'BARPAR D  Q                     ; No parent defined for satellite
- . W !!,"A parent facility could not be found in A/R for this 3P visit location."
- . W !,"Therefore, a bill could not be created in A/R."
- . W !,"Please check A/R Parent/Satellite Setup in A/R."
+ . I $P($G(^BAR(90052.05,DA,BARSAT,0)),U,7),(@BAR3PUP@("DOSB")>$P($G(^BAR(90052.05,DA,BARSAT,0)),U,7)) S BARERR=5_";"_DA_";"_BARSAT QUIT
+ . S BARPAR=$S(BARSAT:$P($G(^BAR(90052.05,DA,BARSAT,0)),U,3),1:"") I BARPAR="" S BARERR=6_";"_DA_";"_BARSAT
+ I 'BARPAR D ERRMSG(BARERR) Q                     ; No parent defined for satellite
  S DUZ(2)=BARPAR
  ;
  ; -------------------------------
@@ -160,3 +157,14 @@ SETACC(BARACC) ;EP - establish record in A/R FACILITY ACCOUNT file
  K DLAYGO,DIC
  S BARACODA=$S(+Y<0:"",1:+Y)
  Q BARACODA
+ ;
+ERRMSG(BARERR) ;P.OTTIS HEAT # 73895 - DISPLAY BARERR TYPE
+ W !,"A bill could not be created in A/R. Reason:"
+ if +BARERR=1 W !,"Parent site not defined in: Site Parameter File"
+ if +BARERR=2 W !,"Satellite site not defined in: Parent/Satellit File"
+ if +BARERR=3 W !,"Parent/Satellite marked as 'not usable'"
+ if +BARERR=4 W !,"'Date of Service' is before the 'visit location activated date'"
+ if +BARERR=5 W !,"'Date of Service' is AFTER the 'visit location closed date'"
+ if +BARERR=6 w !,"Parent not defined for satellite in: Parent/Satellite file"
+ W !,"[internal BARERR code: ",BARERR,"]"
+ QUIT

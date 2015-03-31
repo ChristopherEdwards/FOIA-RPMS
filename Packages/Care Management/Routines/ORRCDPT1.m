@@ -1,5 +1,5 @@
 ORRCDPT1 ;SLC/MKB - Patient List for Nursing Dashboard ; 19 Sept 2003  10:10 AM
- ;;1.0;CARE MANAGEMENT;;Jul 15, 2003
+ ;;1.0;CARE MANAGEMENT;**5**;Jul 15, 2003;Build 4
  ;
 EN(ORY,ORUSR,ORLST) ; -- Return each patient in ORLSTs for ORUSR
  ; where ORLST(#) = <list-type>:<list-ID>:<clinic start>:<clinic stop>
@@ -12,12 +12,17 @@ EN(ORY,ORUSR,ORLST) ; -- Return each patient in ORLSTs for ORUSR
  ;             = "Vital=VIT:ID^...^*VIT:ID"
  ;             = "Error=^<error description>"
  ; RPC = ORRC NURS DASHBD PATIENTS
+ ;
+ ;
  K ^TMP($J,"ORRCPTS"),^TMP($J,"ORRCY")
  N ORI,ORX,X,ORID,ORBEG,OREND,ORTN,ORPAT,ORJ,PAT,ORDMIN,ORDMAX,ERRI
+ N ORSRV,FROM
+ S ORSRV=$G(^VA(200,DUZ,5)) I +ORSRV>0 S ORSRV=$P(ORSRV,U)
+ S FROM=$$GET^XPAR("USR^SRV.`"_+$G(ORSRV),"ORLP DEFAULT LIST SOURCE",1,"Q")
  S ORUSR=+$G(ORUSR),ERRI=0 D PARAMS
  S ORI=0 F  S ORI=$O(ORLST(ORI)) Q:ORI<1  S ORX=$G(ORLST(ORI)) D
  . S X=$$UP^XLFSTR($P(ORX,":")),ORID=+$P(ORX,":",2) D  Q:'$G(ORPAT(1))
- .. I X="X" D DEFLIST^ORQPTQ11(.ORPAT) D:$E($G(ORPAT))="M"  Q
+ .. I X="X" D DEFLIST^ORQPTQ11(.ORPAT) D:$G(FROM)="M"  Q
  ... S ORJ=0 F  S ORJ=$O(^TMP("OR",$J,"PATIENTS",ORJ)) Q:ORJ<1  S PAT=+$G(^(ORJ,0)),ORPAT(ORJ)=PAT
  .. I X="T" D TEAMPTS^ORQPTQ1(.ORPAT,ORID) Q
  .. S ORTN=$S(X="P":"PROV",X="S":"SPEC",X="W":"WARD",X="C":"CLIN",1:"") Q:'$L(ORTN)

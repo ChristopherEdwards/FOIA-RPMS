@@ -1,5 +1,5 @@
-PSOSD2 ;BHAM ISC/SAB - action or informational profile cont. ;29-Mar-2006 08:13;A,A
- ;;7.0;OUTPATIENT PHARMACY;**2,19,107,110,176,1005**;DEC 1997
+PSOSD2 ;BHAM ISC/SAB - action or informational profile cont. ;29-May-2012 15:14;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**2,19,107,110,176,1005,233,258,326,1015**;DEC 1997;Build 62
  ;External reference to ^PS(59.7 is supported by DBIA 694
  ;
  ; Modified - IHS/CIA/PLS - 12/11/03 - Line HD1+28
@@ -29,17 +29,14 @@ PSOSD2 ;BHAM ISC/SAB - action or informational profile cont. ;29-Mar-2006 08:13;
  Q
  ;
 HD S:'$D(PSORM) PSORM=1 N K S FN=DFN
- D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9)&(+VAPA(10)):"Temporary ",1:"")
+ D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9):"Temporary ",1:"")
  I $G(^TMP($J,DFN)),$D(CLINICX) D ^PSOSDP
  S PSNAME=$E(VADM(1),1,28),PSDOB=$P(VADM(3),"^",2)
  I '$D(PSOBAR0)!('$D(PSOBAR1)) S PSOIOS=IOS D DEVBAR^PSOBMST
  S PSOBAR2=PSOBAR0,PSOBAR3=PSOBAR1
  S PSOBAR4=$G(PSOBAR3)]""&($G(PSOBAR2)]"")&(+$P($G(PSOPAR),"^"))
 HD1 S RXCNT=0 I $E(IOST)="C",'PSTYPE K DIR S DIR(0)="E",DIR("A")="Press Return to Continue or ""^"" to Exit" D ^DIR Q:$D(DTOUT)!($D(DUOUT))
- D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9)&(+VAPA(10)):"Temporary ",1:"")
- S PSNAME=$E(VADM(1),1,28),PSDOB=$P(VADM(3),"^",2)
  I $D(IOF) W @IOF
- D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9)&(+VAPA(10)):"Temporary ",1:"")
  U IO
  W $S(PSTYPE:"Action",1:"Informational")_" Rx Profile",?47,"Run Date: " S Y=DT D DT^DIO2 W ?71,"Page: "_PAGE
  W !,"Sorted by drug classification for Rx's currently active"_$S('PSDAYS:" only.",1:"") W:PSDAYS !,"and for those Rx's that have been inactive less than "_PSDAYS_" days."
@@ -49,8 +46,9 @@ HD1 S RXCNT=0 I $E(IOST)="C",'PSTYPE K DIR S DIR(0)="E",DIR("A")="Press Return t
  W @$S(PSORM:"?70",1:"!"),"Site: "_$P($G(^PS(59,PSOSITE,0)),U),!,$E(LINE,1,$S('PSORM:80,1:IOM)-1)
  I $P(VAIN(4),"^",2)]"",+$P($G(^PS(59.7,1,40.1)),"^") W !,"Outpatient prescriptions are discontinued 72 hours after admission.",!
  I $D(CLINICX) W !?1,"Clinic: ",$E(CLINICX,1,28),?45,"Date/Time: " S Y=CLDT D DT^DIO2
- W !?1,"Name  : ",PSNAME,?30,"ID#: "_PSSN W:PSTYPE ?58,"Action Date: ________" W !?1,"DOB   : "_PSDOB
- W:ADDRFL]"" ?30,ADDRFL,! W ?30,"Address  : "
+ W !?1,"Name  : ",PSNAME W:PSTYPE ?58,"Action Date: ________" W !?1,"DOB   : "_PSDOB
+ W:ADDRFL]"" ?30,ADDRFL,! W ?30,"Address  :"
+ I $G(ADDRFL)="" D CHECKBAI^PSOSD1
  W ?41,VAPA(1) W:VAPA(2)]"" !?41,VAPA(2) W:VAPA(3)]"" !?41,VAPA(3)
  W !?41,VAPA(4)_", "_$P(VAPA(5),"^",2)_"  "_$S(VAPA(11)]"":$P(VAPA(11),"^",2),1:VAPA(6)),!?30,"Phone    : "_VAPA(8)
  I PSOBAR4 S X="S",X2=PSSN W @$S('PSORM:"!?30",1:"?$X+5") S X1=$X W @PSOBAR3,X2,@PSOBAR2,$C(13) S $X=0

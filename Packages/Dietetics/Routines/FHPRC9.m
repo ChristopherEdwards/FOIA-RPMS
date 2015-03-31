@@ -1,5 +1,5 @@
 FHPRC9 ; HISC/NCA - Weekly Menu Blocks ;1/23/98  16:10
- ;;5.0;Dietetics;**13**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 D0 K DIC W !! S DIC="^FH(114.1,",DIC(0)="AEQM",DIC("A")="Select RECIPE CATEGORY: " D ^DIC S:$D(DTOUT) X="^" G KIL:"^"[X,D0:Y<1 S FHX1=+Y
 F0 R !!,"Select PRODUCTION DIET (or ALL): ",X:DTIME G:'$T!("^"[X) KIL D:X="all" TR^FH I X="ALL" S FHX2=0
  E  K DIC S DIC="^FH(116.2,",DIC(0)="EQM" D ^DIC G KIL:$D(DTOUT),F0:Y<1 S FHX2=+Y

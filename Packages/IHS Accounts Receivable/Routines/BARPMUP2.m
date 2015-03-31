@@ -1,5 +1,5 @@
 BARPMUP2 ; IHS/SD/LSL - MANUAL UPLOAD PROCESS ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**23**;OCT 26, 2005
  ;
  ; IHS/SD/LSL - 12/12/02 - V1.7 - NHA-0601-180049
  ;      Modified to find the correct bill in 3P.  Modified routine
@@ -15,7 +15,7 @@ BARPMUP2 ; IHS/SD/LSL - MANUAL UPLOAD PROCESS ;
  ; *********************************************************************
  ;
  ;** Manual upload process by approval dates
- ;
+ ; JULY 2013 FIXED END DATE IN ^ABMDBILL(DUZ(2),"AP" DATE LOOP
  Q
  ; *********************************************************************
  ;
@@ -164,7 +164,7 @@ LOOPDT ;
  S ^BARTMP("BARUP","DUZ(2)")=DUZ(2)
  S BARAPDT=$O(^ABMDBILL(DUZ(2),"AP",BARSTART),-1)
  S:+BAR("CONT") BARAPDT=$O(^ABMDBILL(DUZ(2),"AP",^BARTMP("BARUP","LAST AP DATE",DUZ(2))),-1)
- F  S BARAPDT=$O(^ABMDBILL(DUZ(2),"AP",BARAPDT)) Q:'+BARAPDT!(BARAPDT>BAREND)  D LOOPBILL
+ F  S BARAPDT=$O(^ABMDBILL(DUZ(2),"AP",BARAPDT)) Q:'+BARAPDT!(BARAPDT\1>BAREND)  D LOOPBILL  ;P.OTT
  Q
  ; *********************************************************************
  ;

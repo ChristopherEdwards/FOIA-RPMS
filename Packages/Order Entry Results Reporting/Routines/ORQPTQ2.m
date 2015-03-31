@@ -1,5 +1,9 @@
-ORQPTQ2 ; slc/CLA - Functions which return patient lists and list sources pt 2 ;12/15/97 [ 04/02/97  3:41 PM ] [4/23/04 4:49pm]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,10,85,187,190**;Dec 17, 1997
+ORQPTQ2 ; slc/CLA - Functions which return patient lists and list sources pt 2 ;3/14/05  10:50
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,10,85,187,190,195,215**;Dec 17, 1997
+ ;
+ ; Ref. to ^UTILITY via IA 10061
+ ; DBIA 3869   GETPLIST^SDAMA202   ^TMP($J,"SDAMA202")
+ ; 
 CLIN(Y) ; RETURN LIST OF CLINICS
  N ORLST,IEN,I
  D GETLST^XPAR(.ORLST,"ALL","ORWD COMMON CLINIC")
@@ -25,22 +29,21 @@ CLINPTS(Y,CLIN,ORBDATE,OREDATE) ; RETURN LIST OF PTS W/CLINIC APPT W/IN BEGINNIN
  D DT^DILF("T",OREDATE,.OREDATE,"","")
  I (ORBDATE=-1)!(OREDATE=-1) S Y(1)="^Error in date range." Q 
  S OREDATE=$P(OREDATE,".")_.5 ; Add 1/2 day to end date.
+ ; IA# 3869:
  K ^TMP($J,"SDAMA202","GETPLIST") ; Clean house before starting.
  S ORRESULT=""
  S ORCLIN=+CLIN,ORFLDS="1;3;4;12",ORASTAT="R;NT",ORSTART=ORBDATE,OREND=OREDATE,ORSTAT="" ; Assign parameters.
  ; ORFLDS: 1;3;4;12 = ApptDateTime;ApptStatus;IEN^PtName;PtStatus.
- D GETPLIST^SDAMA202(ORCLIN,ORFLDS,ORASTAT,ORSTART,OREND,.ORRESULT,ORSTAT) ; DBIA # 3869.
+ D GETPLIST^SDAMA202(ORCLIN,ORFLDS,ORASTAT,ORSTART,OREND,.ORRESULT,ORSTAT) ; DBIA 3869.
  ;
  ; Deal with server errors:
- S ORERR=""
- I ORRESULT=-1 D
- .S ORERR=$O(^TMP($J,"SDAMA202","GETPLIST","ERROR",ORERR))
- I ORERR'="" S Y(1)="Server Error: "_ORERR Q
+ S ORERR=$$CLINERR^ORQRY01
+ I $L(ORERR) S Y(1)=U_ORERR Q
  ;
  ; Reassign ^TMP array to local array:
  S (ORPT,ORI)=0,ORMAX=MAXAPPTS
  I ORRESULT'>0 S Y(1)="^No appointments." Q
- F  S ORPT=$O(^TMP($J,"SDAMA202","GETPLIST",ORPT)) Q:ORPT=""!(ORI>ORMAX)  D
+ F  S ORPT=$O(^TMP($J,"SDAMA202","GETPLIST",ORPT)) Q:ORPT=""!(ORI>ORMAX)  D   ;DBIA 3869
  .S ORI=ORI+1
  .S Y(ORI)=$G(^TMP($J,"SDAMA202","GETPLIST",ORPT,4)) ; IEN^Name.
  .S Y(ORI)=Y(ORI)_U_ORCLIN ; ^Clinic IEN.
@@ -66,14 +69,14 @@ CDATRANG(ORY) ; return default start and stop dates for clinics in form start^st
 PTAPPTS(Y,DFN,ORBDATE,OREDATE,CLIN) ; return appts for a patient between beginning and end dates for a clinic, if no clinic return all appointments
  ;I +$G(CLIN)<1 S Y(1)="^No clinic identified" Q 
  I +$G(CLIN)>0,$$ACTLOC^ORWU(CLIN)'=1 S Y(1)="^Clinic is inactive or Occasion Of Service" Q
- N VASD,NUM,CNT,INVDT,INT,EXT,ORSRV S NUM=0,CNT=1
+ N ERR,ERRMSG,VASD,NUM,CNT,INVDT,INT,EXT,ORSRV,VAERR K ^UTILITY("VASD",$J) S NUM=0,CNT=1  ;IA 10061
  I (ORBDATE="")!(OREDATE="") D  ;get user's service and set up entities:
  .S ORSRV=$G(^VA(200,DUZ,5)) I +ORSRV>0 S ORSRV=$P(ORSRV,U)
  I ORBDATE="" D
- .I '$L(CLIN) S ORBDATE=$$UP^XLFSTR($$GET^XPAR("USR^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG","ORQQAP SEARCH RANGE START",1,"E"))
+ .I '$L(CLIN) S ORBDATE=$$UP^XLFSTR($$GET^XPAR("USR^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG","ORQQEAPT ENC APPT START",1,"E"))
  .S:ORBDATE="" ORBDATE="T" ;default start date across all clinics is today
  I OREDATE="" D
- .I '$L(CLIN) S OREDATE=$$UP^XLFSTR($$GET^XPAR("USR^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG","ORQQAP SEARCH RANGE STOP",1,"E"))
+ .I '$L(CLIN) S OREDATE=$$UP^XLFSTR($$GET^XPAR("USR^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG","ORQQEAPT ENC APPT STOP",1,"E"))
  .S:OREDATE="" OREDATE="T" ;default end date across all clinics is today
  ;CONVERT ORBDATE AND OREDATE INTO FILEMAN DATE/TIME
  D DT^DILF("T",ORBDATE,.ORBDATE,"","")
@@ -82,15 +85,15 @@ PTAPPTS(Y,DFN,ORBDATE,OREDATE,CLIN) ; return appts for a patient between beginni
  S VASD("F")=ORBDATE
  S VASD("T")=$P(OREDATE,".")_.5  ;ADD 1/2 DAY TO END DATE
  I $L($G(CLIN)) S VASD("C",CLIN)=""
- D SDA^VADPT
- Q:VAERR=1
+ D SDA^ORQRY01(.ERR,.ERRMSG)
+ I ERR K ^UTILITY("VASD",$J) S Y(1)=ERRMSG Q
  F  S NUM=$O(^UTILITY("VASD",$J,NUM)) Q:'NUM  D
  .S INT=^UTILITY("VASD",$J,NUM,"I"),INVDT=9999999-$P(INT,U)
  .S EXT=^UTILITY("VASD",$J,NUM,"E")
  .S Y(CNT)=$P(INT,U)_U_$P(EXT,U,2)_U_$P(EXT,U,3)_U_$P(EXT,U,4)_U_INVDT
  .S CNT=CNT+1
  S:+$G(Y(1))<1 Y(1)="^No appointments."
- K VAERR
+ K ^UTILITY("VASD",$J)
  Q
 PROV(Y) ; RETURN LIST OF PROVIDERS
  N I,IEN,NAME,TDATE

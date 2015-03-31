@@ -1,5 +1,5 @@
-SRSCHD1 ;B'HAM ISC/MAM - SCHEDULE REQUESTED OPERATIONS (CONT) ; 17 Nov 1988  8:15 AM
- ;;3.0; Surgery ;**37**;24 Jun 93
+SRSCHD1 ;B'HAM ISC/MAM - SCHEDULE REQUESTED OPERATIONS (CONT) ; [ 01/31/01  7:52 AM ]
+ ;;3.0; Surgery ;**37,100**;24 Jun 93
 REQ ; select request
  K SRCASE,SRTN W ! S SRSCHED=1 D ASK^SRSUPRQ G:'$D(SRTN) END
  I $D(^DPT(SRDFN,.35)),$P(^(.35),"^")'="" S Y=$E($P(^(.35),"^"),1,7) D D^DIQ W !!,"The records show that "_SRNM_" died on "_Y_".",!!,"Press RETURN to continue  " R X:DTIME G END
@@ -17,7 +17,7 @@ SEL W !!,"Is this the correct operation ?  YES//  " R SRYN:DTIME S:'$T SRYN="^" 
  I "NnYn"'[SRYN W !!,"Enter 'NO' if you have selected the wrong request, or RETURN to continue",!,"scheduling this request. ",! G SEL
  I "Yy"'[SRYN G END
  K NOWAY D ^SRSCHK I $D(NOWAY) G END
- D ^SRSCHD2
+ I $$LOCK^SROUTL(SRTN) D ^SRSCHD2,UNLOCK^SROUTL(SRTN)
  G REQ
 END ;
  K SRTN D ^SRSKILL W @IOF

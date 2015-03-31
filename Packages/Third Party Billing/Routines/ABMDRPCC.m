@@ -1,8 +1,9 @@
 ABMDRPCC ; IHS/ASDST/DMJ - View PCC Visit ;  
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
 START ;START HERE
  K APCDVDSP
  W !
+ S AUPNLK("ALL")=""  ;universal lookup  ;abm*2.6*11 NOHEAT6
  S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC Q:Y<0  S APCDPAT=+Y
  S ABM("PNM")=$P(^DPT(APCDPAT,0),U),ABM("SSN")=$P(^(0),"^",9)
  S ABM("SSN")=$E(ABM("SSN"),1,3)_"-"_$E(ABM("SSN"),4,5)_"-"_$E(ABM("SSN"),6,9)

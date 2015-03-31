@@ -1,5 +1,5 @@
-PSORXPR ;BHAM ISC/SAB - view individual prescription ;23-Jan-2009 10:41;PLS
- ;;7.0;OUTPATIENT PHARMACY;**131,1008**;DEC 1997
+PSORXPR ;BHAM ISC/SAB - view individual prescription ;29-May-2012 15:13;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**131,1008,156,148,1015**;DEC 1997;Build 62
  ;Reference to ^PS(55 supported by DBIA 2228
  ;Reference ^PSDRUG( supported by DBIA 221
  ;Reference to ^SC supported by DBIA 10040
@@ -48,12 +48,17 @@ PR D STAT^PSOFUNC I 'ST0,$D(^PS(52.4,"AREF",DFN,DA)) S ST="UNPRINTED"
  S II=J D LAST^PSORFL W !?4,"LATEST: ",RFLL,?37,"# OF REFILLS: ",$P(RX0,"^",9) S PL=0 D:$O(^PSRX(DA,1,0))  W "  REMAINING: ",$P(RX0,"^",9)-PL K IFN
  .S IFN=0 F  S IFN=$O(^PSRX(DA,1,IFN)) Q:'IFN  S PL=PL+1
 DTT S DTT=$P(RX0,"^",13) D DAT W !?4,"ISSUED: ",DAT
- S PHYS=$S($D(^VA(200,+$P(RX0,"^",4),0)):$P(^(0),"^"),1:"UNKNOWN") W ?41,"PROVIDER: "_PHYS S DTT=$P(RX2,"^")\1
- I $P(R3,"^",3),$D(^VA(200,+$P(R3,"^",3),0)) W !?41,"COSIGNER: "_$P($G(^VA(200,$P(R3,"^",3),0)),"^")
+ K DIC,X,Y S DIC="^VA(200,",DIC(0)="N,Z",X=+$P(R3,"^",3) D ^DIC
+ S PHYS=$S(+Y:$P(Y,"^",2),1:"UNKNOWN") W ?41,"PROVIDER: "_PHYS S DTT=$P(RX2,"^")\1
+ I $P(R3,"^",3),+Y W !?41,"COSIGNER: "_$P(Y,"^",2)
  D DAT W !?4,"LOGGED: ",DAT,?43,"CLINIC: ",$S($D(^SC(+$P(RX0,"^",5),0)):$P(^(0),"^"),1:"NOT ON FILE")
  W !?3,"EXPIRES: ",PSEXDT,?41,"DIVISION: ",PSDIV,!?7,"CAP: ",$P("NON-^","^",$S($D(^PS(55,DFN,0)):+$P(^(0),"^",2),1:0)),"SAFETY",?42,"ROUTING: " S X=$F("MWI",$P(RX0,"^",11))-1 W:X $P("MAIL^WINDOW^INPATIENT","^",X)
- W !?2,"ENTRY BY: ",$S($D(^VA(200,$P(RX0,"^",16),0)):$P(^(0),"^"),1:$P(RX0,"^",16)) W:$P(RX2,"^",10) ?38,"VERIFIED BY: ",$S($D(^VA(200,$P(RX2,"^",10),0)):$P(^(0),"^"),1:$P(RX2,"^",10))
- G:$D(PSOZVER) REM W !!,"FILLED: "_RFL,?20,"PHARMACIST: "_$S($D(^VA(200,+$P(RX2,"^",3),0)):$P(^(0),"^"),1:""),?52,"LOT #: "_$P(RX2,"^",4)
+ K DIC,X,Y S DIC="^VA(200,",DIC(0)="N,Z",X=+$P(RX0,"^",16) D ^DIC
+ W !?2,"ENTRY BY: ",$S(+Y:$P(Y,"^",2),1:$P(RX0,"^",16))
+ K DIC,X,Y S DIC="^VA(200,",DIC(0)="N,Z",X=+$P(RX2,"^",10) D ^DIC
+ W:+Y ?38,"VERIFIED BY: ",$S(+Y:$P(Y,"^",2),1:$P(RX2,"^",10))
+ G:$D(PSOZVER) REM K DIC,X,Y S DIC="^VA(200,",DIC(0)="N,Z",X=+$P(RX2,"^",3) D ^DIC
+ W !!,"FILLED: "_RFL,?20,"PHARMACIST: "_$S(+Y:$P(Y,"^",2),1:""),?52,"LOT #: "_$P(RX2,"^",4)
  W !," DISPENSED: "_$S($P(RX2,"^",5):$E($P(RX2,"^",5),4,5)_"/"_$E($P(RX2,"^",5),6,7)_"/"_$E($P(RX2,"^",5),2,3),1:"")
  W ?$X+10,$S($P(RX2,"^",15):" RETURNED TO STOCK: "_$E($P(RX2,"^",15),4,5)_"/"_$E($P(RX2,"^",15),6,7)_"/"_$E($P(RX2,"^",15),2,3),1:" RELEASED: "_$S($P(RX2,"^",13):$E($P(RX2,"^",13),4,5)_"/"_$E($P(RX2,"^",13),6,7)_"/"_$E($P(RX2,"^",13),2,3),1:""))
 REM W:$P($G(^PSRX(DA,3)),"^",7)]"" !?3,"REMARKS: ",$P($G(^PSRX(DA,3)),"^",7) W:$P($G(^PSRX(DA,"D")),"^")]"" !,"DELETION COMMENT: "_$P(^("D"),"^")
@@ -64,11 +69,16 @@ ACT I $O(^PSRX(DA,"A",0)) D CON:$Y>20 G Q:$D(DIRUT) D H1 F N=0:0 S N=$O(^PSRX(DA
  N X S X="PSXVIEW" X ^%ZOSF("TEST") K X I $T D ^PSXVIEW
  G Q
 LG I $Y>20 D CON Q:$D(DIRUT)  D L1
- W !,L1,?3,DAT,?14,$S($P(LBL,"^",2):"REFILL "_$P(^PSRX(DA,"L",L1,0),"^",2),1:"ORIGINAL"),?40,$P($G(^VA(200,+$P(^(0),"^",4),0)),"^"),!,"COMMENTS: "_$P(^PSRX(DA,"L",L1,0),"^",3)
+ W !,L1,?3,DAT,?14,$S($P(LBL,"^",2):"REFILL "_$P(^PSRX(DA,"L",L1,0),"^",2),1:"ORIGINAL")
+ K DIC,X,Y S DIC="^VA(200,",DIC(0)="N,Z",X=$P(^PSRX(DA,"L",L1,0),"^",4) D ^DIC
+ W ?40,$P(Y,"^",2),!,"COMMENTS: "_$P(^PSRX(DA,"L",L1,0),"^",3) K DIC,X,Y
  Q
 A1 D CON:$Y>20 Q:$D(DIRUT)  D H1:FFX,DAT W !,N,?3,DAT,?14
- S X=$P(P1,"^",2),X=$F("HUCELPRWSIVDABX",X)-1 W:X $P("HOLD^UNHOLD^DISCONTINUED ^EDIT^RENEWED^PARTIAL^REINSTATE^REPRINT^SUSPENSE^RETURNED^INTERVENTION^DELETED^DRUG INTERACTION^PROCESSED^X-INTERFACE^","^",X)
- W ?25 S X=+$P(P1,"^",4) W $S(X>0&(X<6):"REFILL "_X,X=6:"PARTIAL",X>6:"REFILL "_(X-1),1:"ORIGINAL") W ?40,$S($D(^VA(200,+$P(P1,"^",3),0)):$P(^(0),"^"),1:$P(P1,"^",3))
+ S X=$P(P1,"^",2),X=$F("HUCELPRWSIVDABXGKNM",X)-1
+ W:X $P("HOLD^UNHOLD^DISCONTINUED ^EDIT^RENEWED^PARTIAL^REINSTATE^REPRINT^SUSPENSE^RETURNED^INTERVENTION^DELETED^DRUG INTERACTION^PROCESSED^X-INTERFACE^PATIENT INST.^PKI/DEA^DISPENSE COMPLETED^ECME^","^",X)
+ W ?25 S X=+$P(P1,"^",4) W $S(X>0&(X<6):"REFILL "_X,X=6:"PARTIAL",X>6:"REFILL "_(X-1),1:"ORIGINAL")
+ K DIC,X,Y S DIC="^VA(200,",DIC(0)="N,Z",X=+$P(P1,"^",3) D ^DIC
+ W ?40,$S(+Y:$P(Y,"^",2),1:$P(P1,"^",3)) K DIC,X,Y
  W:$P(P1,"^",5)]"" !,"COMMENTS: ",$P(P1,"^",5) Q
 Q K ST0,RFL,RFLL,RFL1,ST,II,J,N,PHYS,L1,DIRUT,PSDIV,PSEXDT,MED,M1,FFX,DTT,DAT,RX0,RX2,R3,RTN,SIG,STA,P1,PL,P0,Z0,Z1,EXDT,IFN,DIR,DUOUT,DTOUT
  K LBL,I,RFDATE,%H,%I K:$G(PS)="VIEW" DFN Q

@@ -1,5 +1,5 @@
 ABMDE0 ; IHS/ASDST/DMJ - Claim Summary Page ; 10 Nov 2009  2:48 PM
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009;Build 133
  ;
  ; IHS/ASDS/LSL - 08/13/2001 - V2.4 Patch 9 NOIS HQW-0798-100082
  ;     If all insurers are unbillable - ask if delete claim

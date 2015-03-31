@@ -1,5 +1,5 @@
 ORB3U1 ; slc/CLA - Utilities which support OE/RR 3 Notifications ;12/15/97
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,74,88,91,105,179**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,74,88,91,105,179,220,250**;Dec 17, 1997;Build 1
  Q
 LIST(Y) ;return list of notifications from Notification File [#100.9]
  ; RETURN IEN^NAME^URGENCY
@@ -70,7 +70,7 @@ LMALT ; alternative selection code
  Q
 LMENTRY ; entry code for List Mgr display
  N ORBA,ORBAID,ORBDT,ORBMSG,ORBX,ORNUM,ORDATA,ORAD,LCNT,NUM
- N ORX,ORY
+ N ORX,ORY,ORBMSGP1,ORBMSGP2
  ;
  D CLEAN^VALM10
  ;
@@ -89,6 +89,11 @@ LMENTRY ; entry code for List Mgr display
  ...I ORDATA["@" S ORNUM=$P(ORDATA,"@")
  ...S ORNUM=$S(+$G(ORNUM)>0:"["_+ORNUM_"]",1:"")
  ...S ORBMSG=$P(ORBMSG,"): ",2)
+ ...S ORBMSGP1=$P(ORBMSG,":",1)   ;jeh
+ ...S ORBMSGP2=$P(ORBMSG,":",2,3)   ;jeh 
+ ...I $G(ORBMSGP1)="Order(s) needing clarification" D    ;jeh Shorten output to make room for OR IEN 
+ ....S ORBMSGP1="Order needs clarifying"  ;jeh
+ ....S ORBMSG=ORBMSGP1_":"_ORBMSGP2   ;jeh
  ...S ORBMSG=$E(ORBMSG_$S($L(ORNUM):" "_$G(ORNUM),1:"")_U_"                                                            ",1,60)
  ...S ^TMP("OR",$J,"ALERTS","B",9999999-ORBDT_ORBAID)=ORBAID_U_$P(ORBMSG,U)_U_$$FMTE^XLFDT($E(ORBDT,1,12),"2")
  ;
@@ -125,7 +130,7 @@ GETRECS(ORBAID)  ;get recipient data for an alert
  .S ORY(ORJ)="  Non-process deletion by:    "_$S($P(ORBR,U,9):$P(^VA(200,$P(ORBR,U,9),0),U),1:""),ORJ=ORJ+1
  Q
 RECIPS ;determine/report the list of recipients for a notification
- N ORY,ORN,ORBDFN,ORNUM,ORBADUZ,DESC,HDR,ORBPR
+ N ORY,ORN,ORBDFN,ORNUM,ORBADUZ,DESC,HDR,ORBPR,ORDIV
  ;prompt for patient (required):
  K DIC S DIC="^DPT(",DIC("A")="PATIENT (req'd): ",DIC(0)="AEQNM" D ^DIC Q:Y<1
  S ORBDFN=+Y
@@ -138,8 +143,9 @@ RECIPS ;determine/report the list of recipients for a notification
  Q:$D(DUOUT)
  K DIC,Y,DUOUT,DTOUT
  ;
- ;prompt for order num if notif processes order num or is a flagged oi:
  S ORBPR=$$GET^XPAR("DIV^SYS^PKG","ORB PROVIDER RECIPIENTS",ORN,"I")
+ ;
+ ;prompt for order num if notif processes order num or is a flagged oi:
  I (ORN=32)!(ORN=41)!(ORN=60)!(ORN=61)!(ORN=64)!(ORN=65)!(ORBPR["O")!(ORBPR["E") D
  .K DIR S DIR(0)="NAO^::2",DIR("A")="ORDER NUMBER: "
  .S DIR("?",1)="This notification uses order number to help determine alert recipients."
@@ -149,6 +155,9 @@ RECIPS ;determine/report the list of recipients for a notification
  .S DIR("?")=" "
  .D ^DIR
  .S ORNUM=+Y
+ .I +$G(ORNUM)>0 D
+ ..S ORDIV=$$ORDIV^ORB31(ORNUM)
+ ..S:+$G(ORDIV)>0 ORBPR=$$GET^XPAR(ORDIV_";DIV(4,^SYS^PKG","ORB PROVIDER RECIPIENTS",ORN,"I")
  Q:$D(DUOUT)
  K DIR,Y,X,DTOUT,DUOUT,DIRUT
  ;

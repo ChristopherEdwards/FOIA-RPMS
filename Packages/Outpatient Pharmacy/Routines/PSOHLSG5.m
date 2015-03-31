@@ -1,15 +1,17 @@
-PSOHLSG5 ;BIR/SJA-Logical Links derive ;08/13/01 13:46
- ;;7.0;OUTPATIENT PHARMACY;**70**;DEC 1997
- ;Reference to ^SC( is supported by DBIA #2675
+PSOHLSG5 ;BIR/SJA,PWC-Logical Links derive ;08/13/01 13:46
+ ;;7.0;OUTPATIENT PHARMACY;**70,156**;DEC 1997
+ ;Reference to ^SC( is supported by DBIA #10040
  ;Reference to ^DG(40.8 is supported by DBIA #1576
  ;Reference to ^HLCS(870 is supported by DBIA #1496
  ;
-STRT N PSONODE,PSOLL,INPTRX,NN,PSOCOI,II,CLIN,PSOS,PSRX,PXIEN
+STRT N PSONODE,PSOLL,INPTRX,NN,PSOCOI,II,CLIN,PSOS,PSRX,PXIEN,PSODISP
  S II=0 F  S II=$O(^UTILITY($J,"PSOHLL",II)) Q:'II  S PSONODE=$G(^(II)) D
  .S PXIEN=$P(PSONODE,"^"),CLIN=$P($G(^PSRX(PXIEN,0)),"^",5)
+ .S PSODISP=$$GET1^DIQ(59,PSOSITE_",",105,"I")
  .I CLIN D OI
  .I 'CLIN!($G(PSOLL)="") D LL2
  .I $G(PSOLL)="" S PSOLL="PSO LLP1"
+ .I $G(PSODISP)=2.4 S PSOLL="PSO DISP"  ;dispensing machine using V.2.4
  .S $P(^UTILITY($J,"PSOHLL",II),"^",11)=CLIN_"^"_PSOLL
  Q
 OI S PSOCOI="" S:'$D(^SC(CLIN,0)) CLIN=""

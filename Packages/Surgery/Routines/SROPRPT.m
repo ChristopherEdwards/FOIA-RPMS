@@ -1,27 +1,39 @@
-SROPRPT ;B'HAM ISC/MAM - OPERATION REPORT 516 ; [ 04/14/97  2:35 PM ]
- ;;3.0; Surgery ;**63,66,96**;24 Jun 93
- I '$D(SRSITE) D ^SROVAR S SRSITE("KILL")=1 I '$D(SRSITE) G END
- I '$D(SRTN) K SRNEWOP D ^SROPS G:'$D(SRTN) END S SRTN("KILL")=1
+SROPRPT ;BIR/MAM,ADM - OPERATION REPORT ;09/02/04
+ ;;3.0; Surgery ;**63,66,96,100,136,140**;24 Jun 93
+ ;
+ ;** NOTICE: This routine is part of an implementation of a nationally
+ ;**         controlled procedure.  Local modifications to this routine
+ ;**         are prohibited.
+ ;
+ ;I '$D(SRSITE) D ^SROVAR G:'$D(SRSITE) END S SRSITE("KILL")=1
+ ;checks if multi-divisional exists
+ I '$D(SRTN) D ^SROPS G:'$D(SRTN) END S SRTN("KILL")=1
  ;Variable MAGTMPR2 is being set by routine MAGGTRPT (IMAGING Package).
  I '$D(MAGTMPR2) D HOME^%ZIS
-IM ;Code for Imaging ; SRR 5/22/94
+IM N SRSINED,SRSTAT,SRDTITL,SRTIU
+ S SRDTITL="Operation Report"
+ S SRSINED=0,SRSTAT="",SRTIU=$P($G(^SRF(SRTN,"TIU")),"^")
+ I SRTIU S SRSTAT=$$STATUS^SROESUTL(SRTIU) S:SRSTAT=7 SRSINED=1
+ ;Code for Imaging ; SRR 5/22/94
  I IOST["C-IMPC",$D(^SRF(SRTN,2005)) S SRIMAGE=1
- I IOST["P-" G ^SROPRPT1 ; WISC/GEK - DELPHI APP
+ I IOST["P-" D DISPLY,END Q  ; WISC/GEK - DELPHI APP
  ;End Code for Imaging.
-EN2 ; entry from transcriptionists menu
- K %ZIS,IO("Q") S %ZIS="Q" D ^%ZIS I POP G END
- I $D(IO("Q")) K IO("Q") S ZTDESC="Operation Report",ZTRTN="^SROPRPT1",(ZTSAVE("SRSITE("),ZTSAVE("SRTN"))="" D ^%ZTLOAD G END
- G ^SROPRPT1
-END W @IOF D ^%ZISC I $D(SRSITE("KILL")) K SRSITE
+ D DISPLY,END
+ Q
+DISPLY I SRSINED S SRTIU=$P($G(^SRF(SRTN,"TIU")),"^") I SRTIU D PRNT^SROESPR(SRTN,SRTIU,SRDTITL) Q
+ I 'SRSINED W !!," * * The Operation Report for this case is not yet available. * *" D LAST
+ Q
+END K ^TMP("SROP",$J)
+ W @IOF I $D(ZTQUEUED) Q:$G(ZTSTOP)  S ZTREQ="@" Q
+ D ^SRSKILL K VAIN,VAINDT I $D(SRSITE("KILL")) K SRSITE
  I $D(SRTN("KILL")) K SRTN
  Q
-HDR ; print heading
- I $D(ZTQUEUED) D ^SROSTOP I SRHALT S SRSOUT=1 Q
- S SRPAGE=SRPAGE+1 W:$Y @IOF W !!!! I SRT="UL" D UL
- W !,?5,"MEDICAL RECORD",?45,"OPERATION REPORT     PAGE "_SRPAGE,!,?5,"CASE # "_SRTN
+LAST I IOST'["P-" W ! K DIR S DIR(0)="E" D ^DIR K DIR
  Q
-UL ; underline
- I SRT'="UL" W ! Q
- I IO(0)=IO,'$D(ZTQUEUED) W !
- W $C(13),SRUL
+CODE ; entry point from coding menu
+ N SRSINED,SRSTAT,SRDTITL,SRTIU
+ S SRDTITL="Operation Report"
+ S SRSINED=0,SRSTAT="",SRTIU=$P($G(^SRF(SRTN,"TIU")),"^")
+ I SRTIU S SRSTAT=$$STATUS^SROESUTL(SRTIU) S:SRSTAT=7 SRSINED=1
+ D DISPLY,END
  Q

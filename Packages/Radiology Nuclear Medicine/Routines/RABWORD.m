@@ -1,5 +1,5 @@
-RABWORD ;HOIFO/JH&MM - Radiology Billing Awareness ;12/20/04 12:55am
- ;;5.0;Radiology/Nuclear Medicine;**41,57,70**;Mar 16, 1998;Build 7
+RABWORD ;HOIFO/JH&MM - Radiology Billing Awareness ; 20 Apr 2011  7:22 PM
+ ;;5.0;Radiology/Nuclear Medicine;**41,57,70,1003**;Nov 01, 2010;Build 3
  ;
  ; Rtn invokes IA #226-C, #1300-A, #2083, #10082, #2343, #4419
  Q
@@ -7,7 +7,9 @@ RABWORD ;HOIFO/JH&MM - Radiology Billing Awareness ;12/20/04 12:55am
 ASK(RADFN,RASDDT) ; Ask ICD DX & SC/EI/MST/HNC questions at time of Order.
  ; Called from BAQUES^RAORD1
  Q:'$D(^XUSEC("PROVIDER",DUZ))  ;user provider key check
- Q:'$$CIDC^IBBAPI(RADFN)  ;patient insurance & CIDC switch check
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;Q:'$$CIDC^IBBAPI(RADFN)  ;patient insurance & CIDC switch check
+ ;End Patch
  N DIC,I11,RACNT,RADUP,RAQUIT,RABCOPY,RABASEC K RAKILL S RABASEC=0
  ;if previous order's ICD9 etc. were copied, then put them in RABWDX to file
  I $D(^TMP("RACOPY",$J)) D
@@ -22,7 +24,10 @@ PRIMDX I $D(^TMP("RACOPY",$J,"BA")) D
  S DIC("A")="Ordering ICD-9 Diagnosis: "
  S DIC("B")="" I $D(RABWDX(1))&($P($G(RABWDX(1)),U)>0) S DIC("B")=$P(^ICD9(+RABWDX(1),0),U)
  I $D(RABCOPY) S DIC("B")=$P(RABCOPY(1),U) K RABCOPY
- S DIC("S")="I $P($$ICDDX^ICDCODE(Y,DT),U,10)" D ^DIC
+ ;IHS/BJI/DAY - Patch 1003 - ICD lookup returns inactive ($$EFF^ICDSUPT)
+ ;S DIC("S")="I $P($$ICDDX^ICDCODE(Y,DT),U,10)" D ^DIC
+ D ^DIC
+ ;End patch
  S:(+Y<0) Y=0
  S:Y="^" RAQUIT=1
  I (+Y>0) D
@@ -41,7 +46,10 @@ SECDX F I11=1:1:7 Q:($G(RAQUIT)&'$O(RABWDX(I11)))  W ! D
  .S DIC("A")="Secondary Ordering ICD-9 Diagnosis: "
  .S DIC("B")="" I $D(RABWDX(I11+1)) S DIC("B")=$P(^ICD9(+RABWDX(I11+1),0),U)
  .I $D(RABCOPY(2)) S DIC("B")=$P(RABCOPY(2),U) K RABCOPY
- .S DIC("S")="I $P($$ICDDX^ICDCODE(Y,DT),U,10)" D ^DIC
+ .;IHS/BJI/DAY - Patch 1003 - ICD lookup returns inactive ($$EFF^ICDSUPT)
+ .;S DIC("S")="I $P($$ICDDX^ICDCODE(Y,DT),U,10)" D ^DIC
+ .D ^DIC
+ .;End patch
  .; delete node RABWDX() if its secondary ICD9 was @-deleted
  .I X="@" K RABWDX(I11+1)
  .I +Y<1 S RAQUIT=1 Q  ; No More Secondary ICD Dx to Enter.
@@ -113,5 +121,7 @@ FILEDX(RADFN,RAO) ; Store SC/EI Fields in Order file #75.1
 PFSS ; RAO is the IEN of file #75.1
  ; we need to make this call before testing for RABWDX because the GETACCT 
  ; must be done regardless of presence of the RABWDX array
- I '$D(RACPRS) D FB^RABWIBB(RAO)  ; Requirement 1
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;I '$D(RACPRS) D FB^RABWIBB(RAO)  ; Requirement 1
+ ;End Patch
  Q

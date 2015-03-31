@@ -1,5 +1,5 @@
 AUTP7 ; IHS/ASDST/GTH - AUT 98.1 PATCH 7 ; [ 02/14/2001  2:39 PM ]
- ;;98.1;IHS DICTIONARIES (POINTERS);**7**;MAR 04, 1998
+ ;;98.1;IHS DICTIONARIES (POINTERS);**7**;MAR 04, 1998;Build 6
  ;
  I '$G(DUZ) W !,"DUZ UNDEFINED OR 0." D SORRY(1) Q
  ;
@@ -91,8 +91,8 @@ MSG ;
  ;;This is for your information, only.  You need not do anything
  ;;in response to this message.
  ;;  
- ;;Questions can be directed to the Help Desk
- ;;
+ ;;Questions can be directed to George T. Huggins, RPMS/DBA, at
+ ;;520-670-4871, or via IHS Mailman or Exchange.
  ;;  
  ;; --- AUT v 98.1, Patch 7, has been installed into this uci ---
 HELLO ;;  

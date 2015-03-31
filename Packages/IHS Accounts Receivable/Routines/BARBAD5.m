@@ -1,5 +1,5 @@
 BARBAD5 ; IHS/SD/LSL - LIST TRANSACTION HISTORY OF A BILL ; 03/31/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,19,20**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,19,20,23**;OCT 26, 2005
  ;
  ; IHS/SD/SDR - 03/11/2002 - V1.6 Patch 2 - NOIS HQW-0801-100024
  ;     Modified routine to output insurer field as well as Entry By,
@@ -36,6 +36,7 @@ BARBAD5 ; IHS/SD/LSL - LIST TRANSACTION HISTORY OF A BILL ; 03/31/2008
  ;
  ;** List Detail command from posting command prompt
  ;** lists details from a single bill
+ ; JULY 2012 P.OTTIS ADDRESS TRIEN HEAT #76003
  ;
 EN(BARBLDA) ; EP - Display bill history
  ;
@@ -154,6 +155,7 @@ GETTX ;
  .I $G(BARTRX(BARTRDA,112))]"" W !?15,BARTRX(BARTRDA,112) ;MRS:BAR*1.8*4 SCR80 4.1.1
  .I BARTRX(BARTRDA,501)'="" W !?15,"PAYMENT CREDIT APPLIED TO: ",BARTRX(BARTRDA,501)    ;BAR*1.8*5 IHS/SD/TPF 6/17/2008
  .I BARTRX(BARTRDA,502)'="" W !?15,"PAYMENT CREDIT APPLIED FROM: ",BARTRX(BARTRDA,502)  ;BAR*1.8*5 IHS/SD/TPF 6/17/2008 
+ . W !?15,BARTRDA ;P.OTT
  Q:BARQ
  D EOP^BARUTL(1)
  Q
@@ -171,6 +173,7 @@ HEAD ;
  W !?45,"Balance: "_$J(BARBL(15),0,2)
  W !!,"Trans Dt",?11,"By",?15,"Trans Type",?57,"Amount",?70,"Balance"
  W !?15,"A/R Account",?45,"Batch",?67,"Item",!
+ W !?15,"Transaction #",! ;P.OTT
  S BARDSH="",$P(BARDSH,"-",IOM)="" W BARDSH
  Q
  ; *********************************************************************

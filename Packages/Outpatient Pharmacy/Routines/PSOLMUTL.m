@@ -1,9 +1,10 @@
-PSOLMUTL ;BIR/SAB - listman utilities ;23-Sep-2011 15:54;PLS
- ;;7.0;OUTPATIENT PHARMACY;**19,46,84,99,131,132,1005,1006,1013**;DEC 1997;Build 33
+PSOLMUTL ;BIR/SAB - listman utilities ;29-May-2012 14:54;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**19,46,84,99,131,132,1005,1006,1013,148,268,225,305,1015**;DEC 1997;Build 62
  ;External reference FULL^VALM1 supported by dbia 10116
  ;External reference $$SETSTR^VALM1 supported by dbia 10116
  ;External reference EN2^GMRAPEMO supported by dbia 190
  ;External reference to ^ORD(101 supported by DBIA 872
+ ;External reference to RE^VALM4 supported by dbia 10120
  ;
  ; Modified - IHS/CIA/PLS - 12/10/03 - Line HDR+3
  ;            IHS/MSC/PLS - 10/11/07 - Line HDR+12 and HDR+14
@@ -15,6 +16,8 @@ INITQ Q
 HDR ;patient med profile display
  K VALMHDR S HDR=^TMP("PSOHDR",$J,1,0)
  S:^TMP("PSOHDR",$J,8,0) X=IORVON_"<A>"_IORVOFF,HDR=$$SETSTR^VALM1(X,HDR,80-$L(X),80) S VALMHDR(1)=HDR
+ I '(^TMP("PSOHDR",$J,8,0)) S PSONOAL="" D ALLERGY^PSOORUT2 I PSONOAL'="" D  K PSONOAL
+ .S X=IORVON_"<NO ALLERGY ASSESSMENT>"_IORVOFF,HDR=$$SETSTR^VALM1(X,HDR,80-$L(X),80) S VALMHDR(1)=HDR
  ; IHS/CIA/PLS - 12/10/03 added call to retrieve HRN, HT and WT from PCC Vitals
  ;S HDR="  PID: "_^TMP("PSOHDR",$J,2,0)
  ;S VALMHDR(2)=$$SETSTR^VALM1("Ht(cm): "_^TMP("PSOHDR",$J,7,0),HDR,52,27)
@@ -86,7 +89,15 @@ ACTIONS1() ;screen actions on pending orders
  I Y="PSO LM DISCONTINUE" Q $S(PSOACT["D":1,1:0)
  I Y="PSO LM EDIT" Q $S(PSOACT["E":1,1:0)
  I Y="PSO LM FINISH" Q $S(PSOACT["F":1,1:0)
+ I Y="PSO LM FLAG" Q $S(PSOACT["X":1,1:0)
  Q 1
 PKIACT() ;screen actions on pending orders DEA/PKI proj.
  Q:$G(PKI1)=2 0
  Q 1
+RFDSP ;screen action to toggle display of prescriptions between LAST FILL date and LAST RELEASE Date.
+ S PSORFG='$G(PSORFG)
+ I '$D(PSOSD) D ^PSOBUILD
+ D ^PSOORUT2,BLD^PSOORUT1
+ K VALMHDR
+ D RE^VALM4
+ Q

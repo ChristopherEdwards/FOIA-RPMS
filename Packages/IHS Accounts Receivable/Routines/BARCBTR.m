@@ -1,10 +1,10 @@
 BARCBTR ; IHS/SD/LSL - COLLECTION BATCH CLOSING TRANSACTIONS DEC 4,1996 ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**23**;OCT 26, 2005
  ;
  ; IHS/SD/LSL - 12/05/02 - V1.7 - QAA-1200-130051
  ;     Added quit logic if error in getting new transaction.
  ;     Also split lines for readability and removed unused code
- ;
+ ; 5-SEP-2012 HEAT# 82979 P.OTTIS BUG FIX
  ; *********************************************************************
  ;;
 EN(BARCBDA)        ;EP COLLECTION BATCH DA
@@ -56,6 +56,11 @@ ITEM ;** process item
  ;
 CB2ACP ;** cb>acp  TR account postable
  K DR,DA,DIE
+ I BARIT(7,"I")="" D  Q  ;P.OTT
+ . S BARERROR=1
+ . S BARTTYPE="COL BAT TO ACC POST"
+ . D MSG1
+ . QUIT
  S DR="101///115"
  S DR=DR_";2///^S X=BARIT(101)"
  S DR=DR_";6////^S X=BARIT(7,""I"")"
@@ -151,3 +156,8 @@ MSG ;
  . W !,*7,$$CJ^XLFSTR("Could not create "_BARTTYPE_" transaction in A/R Transaction File.")
  . W !,$$CJ^XLFSTR("Please verify "_BARCOL_" item "_BARITDA_" closed properly.")
  Q
+MSG1     ;
+ I $E(IOST)="C",IOT["TRM" D
+ . W !,*7,$$CJ^XLFSTR("Could not create "_BARTTYPE_" transaction in A/R Transaction File.")
+ . W !,$$CJ^XLFSTR("BARIT(7,'I') = <nil> Please verify "_BARCOL_" item "_BARITDA_" closed properly.")
+ Q  ;EOR

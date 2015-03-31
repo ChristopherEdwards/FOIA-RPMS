@@ -1,5 +1,5 @@
-SRODTH ;BIR/ADM - Update Case as Unrelated or Related to Death ; [ 05/14/99  10:55 AM ]
- ;;3.0; Surgery ;**47,88**;24 Jun 93
+SRODTH ;BIR/ADM - UPDATE CASE AS UNRELATED OR RELATED TO DEATH ;01/30/01  10:06 AM
+ ;;3.0; Surgery ;**47,88,100,142**;24 Jun 93
 PAT W @IOF,!,?15,"Update Operations as Unrelated or Related to Death",!!
  S SRSOUT=0 K DIC S DIC("A")="Select Patient: ",DIC=2,DIC(0)="QEAM" D ^DIC K DIC I Y<0 G END
  S DFN=+Y D DEM^VADPT S SRDEATH=$P(VADM(6),"^") I 'SRDEATH G NODIE
@@ -15,7 +15,8 @@ SEL ; select operation to update
  G PAT
  Q
 RELATED ; update UNRELATED/RELATED status
- S SRCASE=SRCASE(NUM) D HDR W ! D LIST W ! K DA,DIE,DR S DA=SRCASE,DR="903T;904T",DIE=130 D ^DIE K DA,DIE,DR
+ S SRCASE=SRCASE(NUM) I $$LOCK^SROUTL(SRCASE) D  D UNLOCK^SROUTL(SRCASE)
+ .D HDR W ! D LIST W ! K DA,DIE,DR S DA=SRCASE,DR="903T;904T",DIE=130 D ^DIE K DA,DIE,DR
  Q
 SET ; set up array of cases in 90 days prior to death
  S SRSDATE=$P(^SRF(SRCASE,0),"^",9) I SRSDATE<SRDAY!(SRSDATE>SRDEATH) Q
@@ -25,18 +26,12 @@ SET ; set up array of cases in 90 days prior to death
 LIST ; display list of operations
  S X=$P($G(^SRF(SRCASE,.4)),"^",7) I X="" S X="U",$P(^SRF(SRCASE,.4),"^",7)=X
  S SRELATE=$S(X="U":"UNRELATED",1:"RELATED")
- S SROPER=$P(^SRF(SRCASE,"OP"),"^"),CPT=$P(^("OP"),"^",2),SRCPT=$S(CPT:$P($$CPT^ICPTCOD(CPT),"^",2),1:"CPT MISSING") I CPT D MOD
- S SROPER=SROPER_" ("_SRCPT_") - "_SRELATE
+ S SROPER=$P(^SRF(SRCASE,"OP"),"^")
+ S SROPER=SROPER_" - "_SRELATE
  S X1=SRDEATH,(DATE,X2)=$P(^SRF(SRCASE,0),"^",9),DATE=$E(DATE,4,5)_"/"_$E(DATE,6,7)_"/"_$E(DATE,2,3) D ^%DTC S SRLENGTH=X
  K SROPS,MM,MMM S:$L(SROPER)<65 SROPS(1)=SROPER I $L(SROPER)>64 S SROPER=SROPER_"  " F M=1:1 D LOOP Q:MMM=""
  W !,NUM_".",?3,DATE,?15,SROPS(1) I $D(SROPS(2)) W !,?15,SROPS(2) I $D(SROPS(3)) W !,?15,SROPS(3)
  W !,?15," >>> Died "_SRLENGTH_" day"_$S(SRLENGTH>1:"s",1:"")_" postop. <<<"
- Q
-MOD ; append CPT modifiers to CPT code
- N SRCMOD,SRCOMMA,X I $O(^SRF(SRCASE,"OPMOD",0)) D
- .S (SRCOMMA,SRI)=0,SRCMOD="",SRCPT=SRCPT_"-" F  S SRI=$O(^SRF(SRCASE,"OPMOD",SRI)) Q:'SRI  D
- ..S SRM=$P(^SRF(SRCASE,"OPMOD",SRI,0),"^"),SRCMOD=$P($$MOD^ICPTMOD(SRM,"I"),"^",2)
- ..S SRCPT=SRCPT_$S(SRCOMMA:",",1:"")_SRCMOD,SRCOMMA=1
  Q
 LOOP ; break procedures
  S SROPS(M)="" F LOOP=1:1 S MM=$P(SROPER," "),MMM=$P(SROPER," ",2,200) Q:MMM=""  Q:$L(SROPS(M))+$L(MM)'<65  S SROPS(M)=SROPS(M)_MM_" ",SROPER=MMM

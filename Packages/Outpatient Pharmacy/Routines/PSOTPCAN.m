@@ -1,11 +1,12 @@
 PSOTPCAN ;BIR/RTR - TPB Utility routine ;08/23/03
- ;;7.0;OUTPATIENT PHARMACY;**146,153,163**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**146,153,163,227**;DEC 1997
  ;External reference to PS(55 supported by DBIA 2228
  ;External reference to VA(200 supported by DBIA 224
  ;
  ;Check Rx being DC'd, if it's a TPB Rx, check to inactivate patient
  ;Called from all DC actions
 CAN(PSOTPRCX) ;
+ Q  ; placed out of order by PSO*7*227
  I '$G(PSOTPRCX) Q
  N PSOTPRC
  S PSOTPRC=$P($G(^PSRX(PSOTPRCX,0)),"^",2)

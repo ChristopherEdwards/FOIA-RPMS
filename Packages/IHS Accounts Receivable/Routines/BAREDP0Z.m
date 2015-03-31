@@ -1,11 +1,12 @@
 BAREDP0Z ; IHS/SD/LSL - MATCH REASONS AND CLAIMS ; 01/30/2009
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**10,20**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**10,20,23**;OCT 26, 2005
  ; NEW ROUTINE TO LOCKOUT REVERSALS AND PLB SEGMENTS; MRS:BAR*1.8*10 D159
  ; MODIFIED TO LIMIT LOCK OUT TO INDIVIDUAL CHECKS
  ;
 EN(IMPDA)     ; EP ; Scan SEGMENTS for PLB, REVERSALS AND NEGATIVE AMOUNTS
  N BARFLG
  Q:'$$IHS^BARUFUT(DUZ(2)) 0             ;Ignore if NON-IHS facility
+ ;;;Q:'$$IHSERA^BARUFUT(DUZ(2)) 0             ;Ignore if NON-IHS facility
  W !!,"Now will look for PLBs, Payment Reversals, and Negative Payments..."  ;bar*1.8*20 REQ4
  S BARFLG=0
  S BARFLG=$$PLB(IMPDA)            ;PLB
@@ -24,25 +25,6 @@ EN(IMPDA)     ; EP ; Scan SEGMENTS for PLB, REVERSALS AND NEGATIVE AMOUNTS
  ;
  ; **************
 PLB(IMPDA) ; EP  ;D159-2
- ;start old code bar*1.8*20 REQ4
- ;W !,"Looking for PLB Segment "
- ;N BARCDA,CNT,BARVCK,BARSEG,BARSCK
- ;S BARCDA=0
- ;S (BARVCK,BARSCK)=""
- ;F CNT=1:1 S BARCDA=$O(^BAREDI("I",DUZ(2),IMPDA,15,BARCDA)) Q:'BARCDA  D
- ;.W:'(CNT#1000) "."
- ;.S BAR15=^BAREDI("I",DUZ(2),IMPDA,15,BARCDA,0)
- ;.S BARSEG=$P(BAR15,"*")
- ;.S:BARSEG="TRN" BARVCK=$P(BAR15,"*",3) ;Check Number
- ;.Q:BARSEG'="PLB"                       ;Only want PLB
- ;.Q:BARVCK=BARSCK                       ;Only process once for each check
- ;.S BARFLG="NOT TO POST"
- ;.W !!?5,"PLB Segment found, all transactions"
- ;.W !?5,"in check ",BARVCK," will be set to ",BARFLG
- ;.D LOOP^BAREDP0Z(IMPDA,"PLB",BARVCK)   ;Mark all NOT TO POST
- ;.S BARSCK=BARVCK                       ;Save PLB check number
- ;I BARSCK="" W !,"No PBL Segments found "
- ;end old code start new code REQ4
  W !!,"Looking for PLB Segment... "
  S PLBAMT=+$P($G(^BAREDI("I",DUZ(2),IMPDA,5,BARCKIEN,0)),U,9)
  I (PLBAMT=0) W "No PLB Segments found" Q BARFLG  ;No PLB
@@ -61,22 +43,6 @@ REV(IMPDA) ;EP ;D159-1
  N BARCDA,BAR15,BARAMT,CNT,BARVCK,BARSCK
  S BARCDA=0
  S (BARVCK,BARSCK)=""
- ;start old code bar*1.8*20 REQ4
- ;F CNT=1:1 S BARCDA=$O(^BAREDI("I",DUZ(2),IMPDA,15,BARCDA)) Q:'BARCDA  D
- ;.W:'(CNT#1000) "."
- ;.S BAR15=$G(^BAREDI("I",DUZ(2),IMPDA,15,BARCDA,0))
- ;.S BARSEG=$P(BAR15,"*")
- ;.S:BARSEG="TRN" BARVCK=$P(BAR15,"*",3)    ;Check number
- ;.Q:$P(BAR15,"*")'="CLP"         ;Only looking for PAYMENTS
- ;.Q:$P(BAR15,"*",3)'=22          ;Only looking for REVERSALS CLP02
- ;.Q:BARSCK=BARVCK                ;Only process once for each check
- ;.S BARFLG="NOT TO POST"
- ;.W !!?5,"Payment Reversal found, all transactions"
- ;.W !?5,"in check ",BARVCK," will be set to ",BARFLG
- ;.D LOOP^BAREDP0Z(IMPDA,"REV",BARVCK)    ;Mark all NOT TO POST
- ;.S BARSCK=BARVCK                        ;Save Reversal check number
- ;I BARSCK="" W !,"No Payment Reversals found "
- ;end old code start new code REQ4
  S BAR="REV"
  S REVAMT=0
  S BARCNT=0
@@ -124,10 +90,7 @@ NEGP(IMPDA) ;EP ;D159-1
  ..I BARFLG=0 W "NEGATIVE PAYMENT AMOUNT FOUND",!?2,"Bills will be marked Not To Post to accommodate"  ;bar*1.8*20 REQ4
  ..I BARFLG=0 W !,?6,"E-Bill#",?27,"E-Pymt",?39,"E-Claim Status Code"  ;bar*1.8*20 REQ4
  ..S BARFLG=1
- ..;W !!?5,"Negative Payment Amount found, all transactions"  ;bar*1.8*20 REQ4
- ..;D LOOP^BAREDP0Z(IMPDA,"NEGP",BARVCK)   ;Mark all NOT TO POST  ;bar*1.8*20 REQ4
  ..S BARSCK=BARVCK                        ;Save Negative amount check number
- ..;Start new code bar*1.8*20 REQ4
  ..S BARCNT=+$G(BARCNT)+1
  ..S EAMT=$P($G(^BAREDI("I",DUZ(2),IMPDA,30,BARCDA,0)),U,4)
  ..S EBILL=$P($G(^BAREDI("I",DUZ(2),IMPDA,30,BARCDA,0)),U)
@@ -136,8 +99,6 @@ NEGP(IMPDA) ;EP ;D159-1
  ..D UP(IMPDA,BARCDA,"NEGP")
  ..S REVAMT=+$G(REVAMT)+$P($G(^BAREDI("I",DUZ(2),IMPDA,30,BARCDA,0)),U,4)
  I BARFLG S BAR="NEGP" D REVFIND
- ;end new code REQ4
- ;I BARSCK="" W !,"No Negative Payments found "  ;bar*1.8*20 REQ4
  I 'BARFLG W "No Negative Payments found "  ;bar*1.8*20 REQ4
  Q BARFLG
  ;
@@ -153,14 +114,6 @@ LOOP(IMPDA,REASON,VCHK) ;EP; LOOP THROUGH BAREDI("I",IMPDA AND FLAG NOT TO POST
  ;
 UP(IMPDA,XCLM,REASON) ;EP; UPDATE STATUS
  K DIR,DIE,DA,DIC,DR,X
- ;start old code bar*1.8*20 REQ5
- ;S BARSTAT="N"
- ;S DIE=$$DIC^XBDIQ1(90056.0205)
- ;S DA(1)=IMPDA
- ;S DA=XCLM
- ;S DR=".02///^S X=BARSTAT"
- ;D ^DIE
- ;end old code REQ5
  K DIR,DIE,DA,DIC,DR
  S DIC("P")=$P(^DD(90056.0205,401,0),U,2)
  S DA(2)=IMPDA

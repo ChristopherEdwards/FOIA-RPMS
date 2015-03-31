@@ -1,5 +1,5 @@
-PSOPRF ;BHAM ISC/SAB - PRINTS A PROFILE ;12-Oct-2007 14:57;SM
- ;;7.0;OUTPATIENT PHARMACY;**19,132,1006**;DEC 1997
+PSOPRF ;BHAM ISC/SAB - PRINTS A PROFILE ;29-May-2012 15:05;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**19,132,1006,300,320,326,1015**;DEC 1997;Build 62
  ;External reference to File #55 supported by DBIA 2228
  ;External reference ^PS(50.606 supported by DBIA 2174
  ;External reference ^PS(50.7 supported by DBIA 2223
@@ -22,7 +22,7 @@ START D:('$D(PSOBMST)) EN1P^PSOBSET K Z S IOP=PFIO D ^%ZIS U IO I '$D(PSODTCUT) 
  ;
 SD F SD="A","C","S" W:SD="S" !,?Z+1,"SUPPLIES",$E(LINE,1,89) I $D(^TMP($J,"PRF",SD)) S DRNME="" D DRNME
 PPP D PEND,NVA
- W !!,"NAME: "_$P(^DPT(DFN,0),"^"),!,"ID#: "_VA("PID"),!
+ W !!,"NAME: "_$P(^DPT(DFN,0),"^"),!
  W:IOF]"" @IOF K ^TMP($J,"PRF"),A,B,DRNME,DRP,EXP,EXPS,I,II,ISSD,J,LINE,LN,MESS,MJK,NEW1,NEW11,PHYS,POP,QTY,TTTT,RFL,RFS,RXF,RXNN,RXPX,RXPX2,RXPNO,RXX,SD,SIG,STA,X,X1,X2,Y,Z
  Q
  ;
@@ -49,9 +49,9 @@ PRT S RFS=$P(RXPX,"^",9),QTY=$P(RXPX,"^",7)
  Q
  ;
 HD D PID^VADPT
- W !,?Z+17,"PRESCRIPTION PROFILE AS OF ",$E(DT,4,5),"/",$E(DT,6,7),"/",($E(DT,1,3)+1700),!!,?Z+20,"NAME: "_$P(^DPT(DFN,0),"^"),!,?Z+20,"ID# : "_VA("PID")
+ W !,?Z+17,"PRESCRIPTION PROFILE AS OF ",$E(DT,4,5),"/",$E(DT,6,7),"/",($E(DT,1,3)+1700),!!,?Z+20,"NAME: "_$P(^DPT(DFN,0),"^")
  I $D(^PS(55,DFN,1)) S MESS=^(1),LN=$L(MESS),A=0 W ! F B=1:1 Q:$P(MESS," ",B,99)=""  W:$X>(Z+63) ! W ?Z+31,$P(MESS," ",B)," "
- S X="PPPGET7" X ^%ZOSF("TEST") I  I $$GETVIS^PPPGET7(DFN,"ZZ") K ZZ W !!,"THIS PATIENT HAS PRESCRIPTIONS AT OTHER FACILITIES" K ZZ
+ I $$RDI^PSORMRX(DFN) W !!,"THIS PATIENT HAS PRESCRIPTIONS AT OTHER FACILITIES"
  W !!?Z+20,"PHARMACIST: ___________________________  DATE: ____________"
  W !!?Z+52,"   DATES   ",?Z+67,"REFS ",?Z+86,"S"
  W !?Z+1,"RX #     ",?Z+15,"DRUG/STRENGTH/SIG",?Z+55,"ISSD  LAST ",?Z+67,"AL AC",?Z+77,"QTY",?Z+86,"T",?Z+93,"PROVIDER"
@@ -83,7 +83,7 @@ NVA ;displays non-va meds
  .W !,"Status: "_$S($P(DUPRX0,"^",7):"Discontinued ("_$$FMTE^XLFDT($P($P(DUPRX0,"^",7),"."))_")",1:"Active")
  .W !,"Drug Class: "_$S($P(DUPRX0,"^",2):$P(^PSDRUG($P(DUPRX0,"^",2),0),"^",2),1:"")
  .W !,"Dosage: "_$P(DUPRX0,"^",3),!,"Schedule: "_$P(DUPRX0,"^",5),!,"Medication Route: "_$P(DUPRX0,"^",4)
- .W !,"Start Date: "_$$FMTE^XLFDT($P(DUPRX0,"^",9)),?40,"CPRS Oder #: "_$P(DUPRX0,"^",8)
+ .W !,"Start Date: "_$$FMTE^XLFDT($P(DUPRX0,"^",9)),?40,"CPRS Order #: "_$P(DUPRX0,"^",8)
  .W !,"Documented By: "_$P(^VA(200,$P(DUPRX0,"^",11),0),"^")_" on "_$$FMTE^XLFDT($P(DUPRX0,"^",10))
  W ! K NVA,DUPRXO
  Q

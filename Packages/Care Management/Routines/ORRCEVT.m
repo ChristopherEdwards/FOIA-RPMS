@@ -1,5 +1,5 @@
-ORRCEVT ; SLC/MKB - Event utilities ; 25 Jul 2003  9:31 AM
- ;;1.0;CARE MANAGEMENT;;Jul 15, 2003
+ORRCEVT ; SLC/MKB,JFR - Event utilities ; 7/5/05 11:15
+ ;;1.0;CARE MANAGEMENT;**2**;Jul 15, 2003
  ;
  ; ID = "VST:"_alertID (="OR,<dfn>,<nien>;<user>;<date.time>")
  ;         or _apptID  (="A;<date.time>;<hospital location>;<dfn>")
@@ -17,9 +17,16 @@ PATS(ORY,ORUSR) ; -- Return list of patients for whom ORUSR has ADT alerts
  D USER^XQALERT(ORXQ,ORUSR) Q:+$G(@ORXQ)<1
  S ORI=0 F  S ORI=$O(@ORXQ@(ORI)) Q:ORI<1  S XQAID=$P(@ORXQ@(ORI),U,2) D
  . Q:XQAID'?1"OR,".E  S PAT=+$P(XQAID,",",2),NOT=+$P(XQAID,",",3)
- . I $D(^TMP($J,"ORRCLST")),'$D(^TMP($J,"ORRCY",PAT)) Q  ;pt not on list
- . I "^18^19^20^35^36^"'[(U_NOT_U) S:'$$INCLD ^TMP($J,"ORRCNOTF",PAT)=1 Q  ;non-ADT alerts
- . S X=+$G(@ORY@(PAT)),@ORY@(PAT)=X+1,@ORY@(PAT,"VST:"_XQAID)=""
+ . I $D(^TMP($J,"ORRCLST")),'$D(^TMP($J,"ORRCY",PAT)) Q
+ . I $D(^TMP($J,"ORRCLST")) D
+ .. I "^18^19^20^35^36^"'[(U_NOT_U) D:'$$INCLD  Q  ;non-ADT alerts
+ ... S ^TMP($J,"ORRCNOTF",PAT)=1
+ .. S X=+$G(@ORY@(PAT)),@ORY@(PAT)=X+1,@ORY@(PAT,"VST:"_XQAID)=""
+ . I '$D(^TMP($J,"ORRCLST")) D  ; add pts to dynamic if other notifs
+ .. I "^18^19^20^35^36^"'[(U_NOT_U) D:'$$INCLD  Q  ;non-ADT alerts
+ ... S ^TMP($J,"ORRCNOTF",PAT)=1
+ ... I '$D(^TMP($J,"ORRCY",PAT)) S ^TMP($J,"ORRCY",PAT)="" ; add patient
+ .. S X=+$G(@ORY@(PAT)),@ORY@(PAT)=X+1,@ORY@(PAT,"VST:"_XQAID)=""
  K @ORXQ,^TMP($J,"ORSLT")
  Q
  ;
@@ -36,10 +43,11 @@ IDS(ORY,ORPAT,ORBEG,OREND) ; -- Return appointments for ORPAT
  ; in @ORY@(ORPAT) = #appts
  ;    @ORY@(ORPAT,ID) = "" per appt
  ; [from ORRCDPT1]
- N ORVST,ORI,CNT,ID,ORDG,ORLIST,ORIFN,STS,STRT,ORDT
+ N ORRCVST,ORVST,ORI,CNT,ID,ORDG,ORLIST,ORIFN,STS,STRT,ORDT
  S ORY=$NA(^TMP($J,"ORRCEVT")) K @ORY
  S ORPAT=+$G(ORPAT),ORBEG=$G(ORBEG),OREND=$G(OREND)
- D VST^ORWCV(.ORVST,ORPAT,ORBEG,OREND,1) ;=ID^FMdate^ClinicName^StatusName
+ D VST^ORWCV(.ORRCVST,ORPAT,ORBEG,OREND,1) ;=ID^FMdate^ClinicName^StatusName
+ M ORVST=ORRCVST
  S (CNT,ORI)=0 F  S ORI=$O(ORVST(ORI)) Q:ORI<1  D
  . S ID="VST:"_$P(ORVST(ORI),U)_";"_ORPAT
  . S CNT=CNT+1,@ORY@(ORPAT,ID)=""
@@ -73,9 +81,11 @@ APPT(ORY,ORPAT,ORBEG,OREND,ORDET) ; -- Return past/future appointments
  ; in @ORY@(#) = Item=ID^Text^Date in HL7 format^Status, and also if ORDET
  ;             = Text=line of associated document text
  ; RPC = ORRC APPTS BY PATIENT
- N ORN,ORVST,ORI,X,ID,LOC,DATE,VISIT,ORNOTE,ORJ,ORDG,ORLIST,ORIFN,STS,STRT,NOW
+ N ORN,ORVST,ORI,X,ID,LOC,DATE,VISIT,ORNOTE,ORJ,ORDG,ORLIST,ORIFN,ORNOW
+ N STS,STRT,NOW,ORRCVST,ORRCNOTE
  S ORPAT=+$G(ORPAT),ORBEG=$$HL7TFM^XLFDT($G(ORBEG)),OREND=$$HL7TFM^XLFDT($G(OREND)),NOW=$$NOW^XLFDT
- D VST^ORWCV(.ORVST,ORPAT,ORBEG,OREND,1) ;=ID^FMdate^ClinicName^StatusName
+ D VST^ORWCV(.ORRCVST,ORPAT,ORBEG,OREND,1) ;=ID^FMdate^ClinicName^StatusName
+ M ORVST=ORRCVST
  S ORY=$NA(^TMP($J,"ORRCAPPT")),ORN=0 K @ORY
  S ORI=0 F  S ORI=$O(ORVST(ORI)) Q:ORI<1  D
  . S X=ORVST(ORI),DATE=$P(X,U,2)
@@ -85,7 +95,8 @@ APPT(ORY,ORPAT,ORBEG,OREND,ORDET) ; -- Return past/future appointments
  .. I DATE>NOW S ORN=ORN+1,@ORY@(ORN)="Text=Scheduled Appointment" Q
  .. I $G(^SC(LOC,"OOS")) S ORN=ORN+1,@ORY@(ORN)="Text=No note available" Q
  .. S VISIT=+$$GETENC^PXAPI(ORPAT,DATE,LOC) K ORNOTE
- .. D DETNOTE^ORQQVS(.ORNOTE,ORPAT,VISIT)
+ .. D DETNOTE^ORQQVS(.ORRCNOTE,ORPAT,VISIT)
+ .. M ORNOTE=ORRCNOTE
  .. S ORJ=0 F  S ORJ=$O(ORNOTE(ORJ)) Q:ORJ<1  S ORN=ORN+1,@ORY@(ORN)="Text="_ORNOTE(ORJ)
  ;+future Radiology procedures in #100
  S ORDG=+$O(^ORD(100.98,"B","XRAY",0)),ORPAT=+ORPAT_";DPT("
@@ -103,7 +114,7 @@ TEXT(ORY,VISIT) ; -- Return associated document text of VISITs
  ; in @ORY@(#) = Item=ID^Text^Date in HL7 format
  ;             = Text=line of document text
  ; RPC = ORRC EVENTS BY ID
- N ORN,ORI,ID,XQAID,LOC,TEXT,DATE,VST,ORIFN,DFN,ORNOTE,NOW
+ N ORN,ORI,ID,XQAID,LOC,TEXT,DATE,VST,ORIFN,DFN,ORNOTE,ORRCNOTE,NOW
  S NOW=$$NOW^XLFDT,ORN=0,ORY=$NA(^TMP($J,"ORRCEVT")) K @ORY
  S ORI="" F  S ORI=$O(VISIT(ORI)) Q:ORI=""  S ID=$P(VISIT(ORI),":",2) D
  . I ID D  Q  ;order
@@ -117,14 +128,15 @@ TEXT(ORY,VISIT) ; -- Return associated document text of VISITs
  . S DATE=$P(ID,";",2),LOC=+$P(ID,";",3),DFN=+$P(ID,";",4)
  . S ORN=ORN+1,@ORY@(ORN)="Item=VST:"_ID_U_$P($G(^SC(LOC,0)),U)_U_DATE
  . I DATE>NOW S ORN=ORN+1,@ORY@(ORN)="Text=Scheduled Appointment" Q
- . S VST=+$$GETENC^PXAPI(DFN,DATE,LOC) K ORNOTE
- . D DETNOTE^ORQQVS(.ORNOTE,DFN,VST)
+ . S VST=+$$GETENC^PXAPI(DFN,DATE,LOC) K ORNOTE,ORRCNOTE
+ . D DETNOTE^ORQQVS(.ORRCNOTE,DFN,VST)
+ . M ORNOTE=ORRCNOTE
  . S ORJ=0 F  S ORJ=$O(ORNOTE(ORJ)) Q:ORJ<1  S ORN=ORN+1,@ORY@(ORN)="Text="_ORNOTE(ORJ)
  Q
  ;
 NOTE ; -- Add note text associated with event in alert XQAID to @ORY@(ORN)
  ;    Expects TEXT,DATE from alert
- N DFN,NOT,VDT,VAIP,VAERR,LOC,VISIT,ORZ,ORI,ENC
+ N DFN,NOT,VDT,VAIP,VAERR,LOC,VISIT,ORZ,ORI,ENC,X0,ORRCZ
  S DFN=+$P(XQAID,",",2),NOT=+$P(XQAID,",",3),VDT=$$MSGDT^ORRCXQ(DATE,TEXT)
  I NOT=20,TEXT?1"Died on ".E S ORN=ORN+1,@ORY@(ORN)="Text=No details available." Q
  I NOT=19 D  ;Unsched visit
@@ -134,12 +146,14 @@ NOTE ; -- Add note text associated with event in alert XQAID to @ORY@(ORN)
  .. Q:$G(^SC(+$P(X0,U,4),"OOS"))  ;not OOS loc
  .. S LOC=+$P(X0,U,4),VISIT=+$P(X0,U,5)
  . S:VISIT<1 VISIT=+$$GETENC^PXAPI(DFN,VDT,LOC)
- . K ORZ D DETNOTE^ORQQVS(.ORZ,DFN,VISIT)
+ . K ORZ D DETNOTE^ORQQVS(.ORRCZ,DFN,VISIT)
+ . M ORZ=ORRCZ
  I NOT'=19 D  ;inpt mvt
  . S VAIP("D")=$S(NOT=18!(NOT=36):DATE,1:VDT) D IN5^VADPT
  . S VDT=+VAIP(13,1),LOC=+$G(^DIC(42,+VAIP(13,4),44))
  . S VISIT=+$$GETENC^PXAPI(DFN,VDT,LOC)
- . K ORZ D DETSUM^ORQQVS(.ORZ,DFN,VISIT)
+ . K ORZ D DETSUM^ORQQVS(.ORRCZ,DFN,VISIT)
+ . M ORZ=ORRCZ
  . K ^TMP("PXKENC",$J)
  S ORI=0 F  S ORI=$O(ORZ(ORI)) Q:ORI<1  S ORN=ORN+1,@ORY@(ORN)="Text="_ORZ(ORI)
  Q
@@ -157,7 +171,7 @@ CLEAR(ORY,ORUSR,VISIT) ; -- Clear VISIT alerts for ORUSR
  ;
 TEST19(USR) ; -- Trigger Unsched Visit alert to test
  N XQA,XQAID,XQAMSG
- S XQA(USR)="",XQAID="OR,54,19",XQAMSG="RAMBO,JOH (R1239): Unscheduled visit on OCT 14,1999@17:16:21"
+ S XQA(USR)="",XQAID="OR,54,19",XQAMSG="CPRS,JOH (C1239): Unscheduled visit on OCT 14,1999@17:16:21"
  D SETUP^XQALERT
  Q
  ;
@@ -169,6 +183,6 @@ TEST35(USR) ; -- Trigger Discharge alert to test
  ;
 TEST20(USR) ; -- Trigger Deceased alert to test
  N XQA,XQAID,XQAMSG
- S XQA(USR)="",XQAID="OR,91265,20",XQAMSG="BABBITT,K (B8838): Died on AUG 31,1999"
+ S XQA(USR)="",XQAID="OR,91265,20",XQAMSG="CPRS,K (C8838): Died on AUG 31,1999"
  D SETUP^XQALERT
  Q

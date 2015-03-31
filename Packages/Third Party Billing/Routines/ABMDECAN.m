@@ -1,5 +1,5 @@
 ABMDECAN ; IHS/ASDST/DMJ - Cancel Selected Claim ;
- ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**9,11**;NOV 12, 2009;Build 133
  ;
  ; 03/10/04 V2.5 Patch 5 - Deny cancel claim if bill attached
  ;
@@ -221,6 +221,7 @@ BKILL ;CANCEL BILL
  S DIE="^ABMDBILL(DUZ(2),"
  S DA=ABMP("BDFN")
  S DR=".04////X;.111////"_DUZ_";.112///NOW;.113R"
+ S DIE("NO^")=""  ;abm*2.6*11 HEAT89093
  D ^DIE
  D ADDBENTR^ABMUCUTL("CBILL",ABMP("BDFN"))  ;add bill to UFMS Cash. Session
  W !!,"Bill Number: ",ABMP("BILL")," has been Canceled!",!

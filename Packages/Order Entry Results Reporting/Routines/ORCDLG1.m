@@ -1,5 +1,6 @@
-ORCDLG1 ; SLC/MKB - Order dialogs cont ;11/21/01  08:03
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**60,71,95,110**;Dec 17, 1997
+ORCDLG1 ; SLC/MKB - Order dialogs cont ;14-Jun-2013 13:09;DU
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**60,71,95,110,243,1011**;Dec 17, 1997;Build 1
+ ;Per VHA Directive 2004-038, this routine should not be modified.
 EN(ITM,INST) ; -- ask each ITM prompt where
  ;    ORDIALOG(PROMPT,#) = internal form of each response
  ;
@@ -8,6 +9,7 @@ EN(ITM,INST) ; -- ask each ITM prompt where
  S PROMPT=$P(ITEM,U,2) Q:'PROMPT  S:'$G(INST) INST=1
  S MULT=$P(ITEM,U,7),ACTION=$P(ITEM,U,9)
  S REQD=$P(ITEM,U,6),EDITONLY=$P(ITEM,U,8) S:$G(ORTYPE)="Z" (REQD,EDITONLY)=0
+ I ORTYPE="Z"&($P(ITEM,U,8)=2) S EDITONLY=2   ;IHS/MSC/MGH
  I $D(^ORD(101.41,+ORDIALOG,10,ITM,9)) X ^(9) G:$G(ORQUIT) ENQ ;Entry
  I $G(ORTYPE)="Q",$D(ORDIALOG(PROMPT,INST)),$E(ORDIALOG(PROMPT,0))'="W" S EDITONLY=1
  I '$D(ORDIALOG(PROMPT,INST)) D  ; get default value
@@ -30,6 +32,7 @@ EN0 I FIRST&EDITONLY D:$D(ORDIALOG(PROMPT,INST))  G ENQ  ;ck child prompts
  I ($G(OREDIT)&(ACTION'["C"))!($G(ORENEW)&(ACTION'["R")) G ENQ ;ask?
  I $G(OREWRITE),ACTION'["W",FIRST,'REQD!$D(ORDIALOG(PROMPT,INST)) G ENQ
  I $L(COND) X COND G:'$T ENQ ; failed condition
+ I EDITONLY=2 G ENQ   ;IHS/MSC/MGH  Do not display some prompts
  M DIR=ORDIALOG(PROMPT) S DATATYPE=$E(DIR(0)),DOMAIN=$P(DIR(0),U,2)
  I 'MULT D WP^ORCDLG2:DATATYPE="W",ONE(INST,REQD):DATATYPE'="W" G ENQ
 EN1 ; -- loop for multiples
@@ -84,6 +87,7 @@ ONE(ORI,REQD) ; -- ask single-valued prompt
  . I X="" S DONE=1 Q
  . I X?1"^".E D UJUMP Q
  . I X="@" D DELETE Q
+ . I $E(DIR(0))="N",Y<1,$E(Y,1,2)'="0." S Y=0_Y
  . S ORDIALOG(PROMPT,ORI)=$P(Y,U),DONE=1
  . X:$L($G(^ORD(101.41,+ORDIALOG,10,ITM,5))) ^(5) I '$G(DONE) D RESET Q  ; validate - if failed, K DONE to reask
  . D:$D(^ORD(101.41,+ORDIALOG,10,"DAD",PROMPT)) CHILDREN(PROMPT,ORI) I '$G(DONE),'FIRST D DELCHILD(PROMPT,ORI),RESET Q

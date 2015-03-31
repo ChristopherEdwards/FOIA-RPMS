@@ -1,9 +1,10 @@
-SROQADM ;BIR/ADM-Admissions within 14 Days of Outpatient Surgery ; [ 09/22/98  11:44 AM ]
- ;;3.0; Surgery ;**62,77,50**;24 Jun 9
- ;
+SROQADM ;BIR/ADM - ADMISSIONS WITHIN 14 DAYS OF OUTPATIENT SURGERY ;09/22/98
+ ;;3.0; Surgery ;**62,77,50,142**;24 Jun 93
  ;** NOTICE: This routine is part of an implementation of a nationally
  ;**         controlled procedure.  Local modifications to this routine
  ;**         are prohibited.
+ ;
+ ; Reference to ^DGPM("APTT1" supported by DBIA #565
  ;
  S SRSOUT=0,SRSPEC="" W @IOF,!,?18,"Outpatient Cases with Postop Occurrences",!,?24,"and Admissions Within 14 Days"
  W !!!,"This report displays the completed outpatient surgical cases which resulted in",!,"at least one postoperative occurrence and a hospital admission within 14 days.",!
@@ -40,7 +41,7 @@ TMP ; set TMP global
  S SRSDATE=$O(SRADM(0)),^TMP("SR",$J,SRSD,SRTN)=DFN_"^"_SRSDATE_"^"_SRSS
  Q
 PRINT ; print case information
- D:$Y+9>IOSL PAGE Q:SRSOUT  S SRL=78 D PROC^SROUTL
+ D:$Y+9>IOSL PAGE Q:SRSOUT  S SRL=78,SRSUPCPT=1 D PROC^SROUTL
  S DFN=$P(SRZ,"^"),SRSS=$P(^SRO(137.45,$P(SRZ,"^",3),0),"^"),Y=$P(SRZ,"^",2) X ^DD("DD") S SRADM=$P(Y,":",1,2) S SRDOC=$P($G(^SRF(SRTN,.1)),"^",4) I SRDOC S SRDOC=$P(^VA(200,SRDOC,0),"^")
  D DEM^VADPT S SRSNM=VADM(1),SRSSN=VA("PID"),Y=SRSD X ^DD("DD") S SRSDATE=Y,SRAGE=$E(SRSD,1,3)-$E($P(VADM(3),"^"),1,3)-($E(SRSD,4,7)<$E($P(VADM(3),"^"),4,7))
  D TECH^SROPRIN S SRANES=$S(SRTECH'="":SRTECH,1:"NOT ENTERED") D OCC

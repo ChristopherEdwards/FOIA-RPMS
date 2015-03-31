@@ -1,5 +1,5 @@
 PSOORUT3 ;ISC-BHAM/SAB-build listman screen continued ;12/07/95 18:12
- ;;7.0;OUTPATIENT PHARMACY;**5,25**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**5,25,243**;DEC 1997;Build 22
  ;
  ;Reference to MAIN^TIUEDIT supported by IA# 2410
  ;Reference to RESET^VALM4 supported by IA# 2334
@@ -12,6 +12,7 @@ PSOORUT3 ;ISC-BHAM/SAB-build listman screen continued ;12/07/95 18:12
  S:$O(^TMP($J,"AL",2,1,""))]"" IEN=IEN+1,^TMP("PSOPI",$J,IEN,0)="Non-Verified: "
  S (DR,TY)="" F I=0:0 S TY=$O(^TMP($J,"AL",2,1,TY)) Q:TY=""  F D=0:0 S DR=$O(^TMP($J,"AL",2,1,TY,DR)) Q:DR=""  D
  .S:$L(^TMP("PSOPI",$J,IEN,0)_DR_", ")>80 IEN=IEN+1,$P(^TMP("PSOPI",$J,IEN,0)," ",14)=" " S ^TMP("PSOPI",$J,IEN,0)=$G(^TMP("PSOPI",$J,IEN,0))_DR_", "
+ D REMOTE^PSOORUT2
  S IEN=IEN+1,^TMP("PSOPI",$J,IEN,0)=" "
  S IEN=IEN+1,^TMP("PSOPI",$J,IEN,0)="Adverse Reactions "
  S:$O(^TMP($J,"AL",1,2,""))]"" IEN=IEN+1,^TMP("PSOPI",$J,IEN,0)="    Verified: "

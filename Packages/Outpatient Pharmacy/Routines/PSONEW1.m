@@ -1,5 +1,5 @@
-PSONEW1 ;IHS/DSD/JCM - new Rx order entry ;23-Jan-2009 10:19;PLS
- ;;7.0;OUTPATIENT PHARMACY;**46,104,117,1006,1008**;DEC 1997
+PSONEW1 ;BIR/DSD - new Rx order entry ;29-May-2012 14:55;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**46,104,117,1006,1008,143,1015**;DEC 1997;Build 62
  ;External reference ^PS(55 supported by DBIA 2228
  ;
  ; Modified - IHS/CIA/PLS - 01/02/04 -  New jump labels, END+2 and JUMP+2
@@ -17,7 +17,8 @@ START ;
 2 S PSONEW("FLD")=2 D PTSTAT^PSODIR1(.PSONEW) ; Get Patient Status
  G:PSONEW("DFLG") END G:PSONEW("FIELD") @PSONEW("FIELD")
  ;
-3 S PSONEW("FLD")=3 D ^PSODRG ; Get drug and related information
+3 S PSONEW("FLD")=3 D ^PSODRG  ; Get drug and related information
+ G:PSONEW("DFLG") END D EN^PSODIAG  ; get ICD diagnosis codes for order
  G:PSONEW("DFLG") END G:PSONEW("FIELD") @PSONEW("FIELD")
  ;
 31 S PSONEW("FLD")=31 D DOSE^PSODIR(.PSONEW) ; Get Dosing

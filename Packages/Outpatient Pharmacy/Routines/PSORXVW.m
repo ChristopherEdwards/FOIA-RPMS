@@ -1,5 +1,5 @@
-PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;23-Jan-2009 10:48;PLS
- ;;7.0;OUTPATIENT PHARMACY;**14,35,46,96,103,88,117,131,146,1008**;DEC 1997
+PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;24-Jul-2013 08:41;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**14,35,46,96,103,88,117,131,146,1008,156,185,210,148,233,260,264,281,1015,1016**;DEC 1997;Build 74
  ;External reference to File ^PS(55 supported by DBIA 2228
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference ^PSDRUG( supported by DBIA 221
@@ -11,11 +11,27 @@ PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;23-Jan-2009 10:48;PLS
  ; Modified - IHS/CIA/PLS - 01/08/04 - Line A1+22
  ;          - IHS/MSC/PLS - 03/13/08 - Line IHSFLDS+4
  ;                        - 01/23/09 - Line IHSFLDS+5
+ ;                        - 03/26/12 - Line IHSFLDS+2 change of AWP to BENCHMARK PRICE
+ ;            IHS/MSC/PB    08/03/12 - Line tag SIGN added at line PTST+2 to pull the SIGNS and SYMPTOMS and the INDICATION CODES for display
+ ;	      IHS/MSC/PB  - 10/26/12 - Line PTST+5 to increment the variable IEN so as to not overwrite the last node created in the TMP("PSOAL" global
  S PS="VIEW"
-A1 W ! S DIC("S")="I $P($G(^(0)),""^"",2),$D(^(""STA"")),$P($G(^(""STA"")),""^"")'=13",DIC=52,DIC(0)="QEA",DIC("A")=PS_" PRESCRIPTION: " D ^DIC K DIC("A") G:"^"[$E(X) KILL G A1:Y<0 S (DA,PSOVDA)=+Y K DIC
- S (PSODFN,DFN)=+$P(^PSRX(DA,0),"^",2) S PSOLOUD=1 D:$P($G(^PS(55,PSODFN,0)),"^",6)'=2 EN^PSOHLUP(PSODFN) K PSOLOUD
+A1 ; - Prescription prompt
+ S DIR(0)="FAO^1:30",DIR("A")=PS_" PRESCRIPTION: ",(DIR("?"),DIR("??"))="^D HLP^PSORXVW1"
+ W ! D ^DIR I X=""!$D(DIRUT) G KILL
+ S X=$$UP^XLFSTR(X),QUIT=0
+ I $E(X,1,2)'="E." S (DA,PSOVDA)=+$$LKP^PSORXVW1(X) I DA<0 G A1
+ I $E(X,1,2)="E." D  I QUIT G A1
+ . I $L(X)'=9 W !?5,"The ECME# must be 7 digits long!",$C(7) S QUIT=1 Q
+ . S (DA,PSOVDA)=+$$RXNUM^PSOBPSU2($E(X,3,9)) I DA<0 W " ??" S QUIT=1
+ ;
+DP S (PSODFN,DFN)=+$P(^PSRX(DA,0),"^",2) S PSOLOUD=1 D:$P($G(^PS(55,PSODFN,0)),"^",6)'=2 EN^PSOHLUP(PSODFN) K PSOLOUD
+ D ICN^PSODPT(PSODFN)
  K ^TMP("PSOHDR",$J) D ^VADPT,ADD^VADPT
- S ^TMP("PSOHDR",$J,1,0)=VADM(1),^TMP("PSOHDR",$J,2,0)=$P(VADM(2),"^",2)
+ S ^TMP("PSOHDR",$J,1,0)=VADM(1)
+ N PSOBADR,PSOTEMP
+ S PSOBADR=$$BADADR^DGUTL3(DFN) I PSOBADR S PSOTEMP=$$CHKTEMP^PSOBAI(DFN) D
+ .S ^TMP("PSOHDR",$J,1,0)=^TMP("PSOHDR",$J,1,0)_" ** BAD ADDRESS INDICATED-("_$S(PSOBADR=1:"UNDELIVERABLE",PSOBADR=2:"HOMELESS",1:"OTHER")_")"_$S(PSOTEMP:" Active Temporary Address",1:"")
+ S ^TMP("PSOHDR",$J,2,0)=$P(VADM(2),"^",2)
  S ^TMP("PSOHDR",$J,3,0)=$P(VADM(3),"^",2),^TMP("PSOHDR",$J,4,0)=VADM(4),^TMP("PSOHDR",$J,5,0)=$P(VADM(5),"^",2)
  S POERR=1 D RE^PSODEM K PSOERR
  S ^TMP("PSOHDR",$J,6,0)=$S(+$P(WT,"^",8):$P(WT,"^",9)_" ("_$P(WT,"^")_")",1:"_______ (______)")
@@ -30,26 +46,37 @@ A1 W ! S DIC("S")="I $P($G(^(0)),""^"",2),$D(^(""STA"")),$P($G(^(""STA"")),""^""
  S (DA,RXN)=PSOVDA K PSOVDA S RX0=^PSRX(RXN,0),RX2=$G(^(2)),RX3=$G(^(3)),ST=+$G(^("STA")),RXOR=$G(^("OR1"))
  I 'RXOR,$P(^PSDRUG($P(RX0,"^",6),2),"^") S $P(^PSRX(RXN,"OR1"),"^")=$P(^PSDRUG($P(RX0,"^",6),2),"^"),RXOR=$P(^PSDRUG($P(RX0,"^",6),2),"^")
  S IEN=0,$P(RN," ",12)=" "
- S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)=$S($P($G(^PSRX(RXN,"TPB")),"^"):"            TPB Rx #: ",1:"                Rx #: ")_$P(RX0,"^")_$S($G(^PSRX(RXN,"IB")):"$",1:"")_$E(RN,$L($P(RX0,"^")_$S($G(^PSRX(RXN,"IB")):"$",1:""))+1,12)
+ N APPND S APPND=$S($G(^PSRX(RXN,"IB")):"$",1:"")
+ I $$ECMENUM^PSOBPSU2(RXN)'="" S APPND=APPND_$$ECME^PSOBPSUT(RXN)_"  (ECME#: "_$$ECMENUM^PSOBPSU2(RXN)_")"
+ S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)=$S($P($G(^PSRX(RXN,"TPB")),"^"):"            TPB Rx #: ",1:"                Rx #: ")_$P(RX0,"^")_APPND_$E(RN,$L($P(RX0,"^")_APPND)+1,12)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="      Orderable Item: "_$S($D(^PS(50.7,$P(+RXOR,"^"),0)):$P(^PS(50.7,$P(+RXOR,"^"),0),"^")_" "_$P(^PS(50.606,$P(^(0),"^",2),0),"^"),1:"No Pharmacy Orderable Item")
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)=$S($D(^PSDRUG("AQ",$P(RX0,"^",6))):"           CMOP ",1:"                ")_"Drug: "_$P(^PSDRUG($P(RX0,"^",6),0),"^")
  S:$G(^PSRX(RXN,"TN"))]"" IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="          Trade Name: "_$G(^PSRX(RXN,"TN"))
+ I $$STATUS^PSOBPSUT(RXN,0)'="",$$RXRLDT^PSOBPSUT(RXN,0) D
+ . S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="                 NDC: "_$$GETNDC^PSONDCUT(RXN,0)
  D IHSFLDS   ; IHS/CIA/PLS - 01/08/04 - Build IHS output
  D DOSE^PSORXVW1
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="Patient Instructions:" I $O(^PSRX(RXN,"INS1",0)) D
- .F I=0:0 S I=$O(^PSRX(RXN,"INS1",I)) Q:'I  S MIG=$P(^PSRX(RXN,"INS1",I,0),"^") D
- ..F SG=1:1:$L(MIG) S:$L(^TMP("PSOAL",$J,IEN,0)_" "_$P(MIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOAL",$J,IEN,0)," ",21)=" " S:$P(MIG," ",SG)'="" ^TMP("PSOAL",$J,IEN,0)=$G(^TMP("PSOAL",$J,IEN,0))_" "_$P(MIG," ",SG)
+ . F I=0:0 S I=$O(^PSRX(RXN,"INS1",I)) Q:'I  D
+ .. S MIG=^PSRX(RXN,"INS1",I,0)
+ .. D WORDWRAP^PSOUTLA2(MIG,.IEN,$NA(^TMP("PSOAL",$J)),21)
  K MIG,SG
  I $P($G(^PS(55,PSODFN,"LAN")),"^") S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="  Other Pat. Instruc: "_$S($G(^PSRX(RXN,"INSS"))]"":^PSRX(RXN,"INSS"),1:"")
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="                 SIG:"
  I '$P($G(^PSRX(RXN,"SIG")),"^",2) D  G PTST
- .S X=$P($G(^PSRX(RXN,"SIG")),"^") D SIGONE^PSOHELP S SIG=$E($G(INS1),2,250)
- .F SG=1:1:$L(SIG) S:$L(^TMP("PSOAL",$J,IEN,0)_" "_$P(SIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOAL",$J,IEN,0)," ",21)=" " S:$P(SIG," ",SG)'="" ^TMP("PSOAL",$J,IEN,0)=$G(^TMP("PSOAL",$J,IEN,0))_" "_$P(SIG," ",SG)
+ . S X=$P($G(^PSRX(RXN,"SIG")),"^") D SIGONE^PSOHELP S SIG=$E($G(INS1),2,250)
+ . D WORDWRAP^PSOUTLA2(SIG,.IEN,$NA(^TMP("PSOAL",$J)),21)
  S SIGOK=1
- F I=0:0 S I=$O(^PSRX(RXN,"SIG1",I)) Q:'I  S MIG=$P(^PSRX(RXN,"SIG1",I,0),"^") D
- .F SG=1:1:$L(MIG) S:$L(^TMP("PSOAL",$J,IEN,0)_" "_$P(MIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOAL",$J,IEN,0)," ",21)=" " S:$P(MIG," ",SG)'="" ^TMP("PSOAL",$J,IEN,0)=$G(^TMP("PSOAL",$J,IEN,0))_" "_$P(MIG," ",SG)
+ F I=0:0 S I=$O(^PSRX(RXN,"SIG1",I)) Q:'I  D
+ . S MIG=^PSRX(RXN,"SIG1",I,0)
+ . D WORDWRAP^PSOUTLA2(MIG,.IEN,$NA(^TMP("PSOAL",$J)),21)
  S SIGOK=1 K MIG,SG
-PTST S $P(RN," ",25)=" ",PTST=$S($G(^PS(53,+$P(RX0,"^",3),0))]"":$P($G(^PS(53,+$P(RX0,"^",3),0)),"^"),1:""),IEN=IEN+1
+PTST ;EP-
+ ;IHS/MSC/PB - 08/03/12 Next line added to pull the SIGNS and SYMPTOMS and the INDICATION CODE for display
+ ;S ^TMP("PSOAL",$J,IEN,0)=" Clinical Indication: "_$$GET1^DIQ(52,RXN,9999999.21)_"  "_$$GET1^DIQ(52,RXN,9999999.22),IEN=IEN+1
+ ;IHS/MSC/PB - 10/26/12 Next line changed to add incrementing the variable IEN so that the next node in TMP("PSOAL" doesn't overwrite the last node in the TMP global
+ S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)=" Clinical Indication: "_$$GET1^DIQ(52,RXN,9999999.21)_"  "_$$GET1^DIQ(52,RXN,9999999.22),IEN=IEN+1
+ S $P(RN," ",25)=" ",PTST=$S($G(^PS(53,+$P(RX0,"^",3),0))]"":$P($G(^PS(53,+$P(RX0,"^",3),0)),"^"),1:""),IEN=IEN+1
  S ^TMP("PSOAL",$J,IEN,0)="      Patient Status: "_PTST_$E(RN,$L(PTST)+1,25)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="          Issue Date: "_$E($P(RX0,"^",13),4,5)_"/"_$E($P(RX0,"^",13),6,7)_"/"_$E($P(RX0,"^",13),2,3)
  S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"                 Fill Date: "_$E($P(RX2,"^",2),4,5)_"/"_$E($P(RX2,"^",2),6,7)_"/"_$E($P(RX2,"^",2),2,3)
@@ -63,11 +90,12 @@ PTST S $P(RN," ",25)=" ",PTST=$S($G(^PS(53,+$P(RX0,"^",3),0))]"":$P($G(^PS(53,+$
  .S RLD=$S($P(RX2,"^",13):$E($P(RX2,"^",13),4,5)_"/"_$E($P(RX2,"^",13),6,7)_"/"_$E($P(RX2,"^",13),2,3),1:"")
  .I $O(^PSRX(RXN,1,0)) F I=0:0 S I=$O(^PSRX(RXN,1,I)) Q:'I  D
  ..I $P(^PSRX(RXN,1,I,0),"^",18) S RLD=$E($P(^(0),"^",18),4,5)_"/"_$E($P(^(0),"^",18),6,7)_"/"_$E($P(^(0),"^",18),2,3)
- .S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_RLD
+ .S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_$S($G(RLD)]"":RLD,1:"        ")
+ S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"                     Lot #: "_$P(RX2,"^",4)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="             Expires: "_$E($P(RX2,"^",6),4,5)_"/"_$E($P(RX2,"^",6),6,7)_"/"_$E($P(RX2,"^",6),2,3)
- S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"                     Lot #: "_$S($P(RX2,"^",4):$P(RX2,"^",4),1:"")
+ S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"                       MFG: "_$P($G(RX2),"^",8)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="         Days Supply: "_$P(RX0,"^",8)_$S($L($P(RX0,"^",8))=1:" ",1:"")
- S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"                           QTY"_$S($P($G(^PSDRUG($P(RX0,"^",6),660)),"^",8)]"":" ("_$P($G(^PSDRUG($P(RX0,"^",6),660)),"^",8)_")",1:" (  )")_": "_$P(RX0,"^",7)
+ S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"                        QTY"_$S($P($G(^PSDRUG($P(RX0,"^",6),660)),"^",8)]"":" ("_$P($G(^PSDRUG($P(RX0,"^",6),660)),"^",8)_")",1:" (  )")_": "_$P(RX0,"^",7)
  I $P($G(^PSDRUG($P(RX0,"^",6),5)),"^")]"" D
  .S $P(RN," ",79)=" ",IEN=IEN+1
  .S ^TMP("PSOAL",$J,IEN,0)=$E(RN,$L("QTY DSP MSG: "_$P(^PSDRUG($P(RX0,"^",6),5),"^"))+1,79)_"QTY DSP MSG: "_$P(^PSDRUG($P(RX0,"^",6),5),"^") K RN
@@ -86,24 +114,22 @@ PTST S $P(RN," ",25)=" ",PTST=$S($G(^PS(53,+$P(RX0,"^",3),0))]"":$P($G(^PS(53,+$
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="             Remarks: "_$P(RX3,"^",7)
  D PC^PSORXVW1
  I $P($G(^PSRX(DA,"OR1")),"^",5) S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="         Finished By: "_$P(^VA(200,$P(^PSRX(DA,"OR1"),"^",5),0),"^")
- S $P(RN," ",35)=" ",IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="   Entry By: "_$P($G(^VA(200,+$P(RX0,"^",16),0)),"^")_$E(RN,$L($P($G(^VA(200,+$P(RX0,"^",16),0)),"^"))+1,35)
- S Y=$P(RX2,"^") X ^DD("DD")
- S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"Entry Date: "_$E($P(RX2,"^"),4,5)_"/"_$E($P(RX2,"^"),6,7)_"/"_$E($P(RX2,"^"),2,3)_" "_$P(Y,"@",2) K RN
  D ^PSORXVW1 S PSOAL=IEN K IEN,ACT,LBL,LOG
  I ST<12,$P(RX2,"^",6)<DT S ST=11
  S VALM("TITLE")="Rx View "_"("_$P("Error^Active^Non-Verified^Refill^Hold^Non-Verified^Suspended^^^^^Done^Expired^Discontinued^Deleted^Discontinued^Discontinued (Edit)^Provider Hold^","^",ST+2)_")"
  S:$P($G(^PSRX(DA,"PKI")),"^") VALMSG="Digitally Signed Order"
- D EN^PSOORAL,KILL G:PS="VIEW" PSORXVW
+ D EN^PSOORAL,KILL I $G(PS)="VIEW" G PSORXVW
  Q
-KILL K ^TMP("PSOAL",$J),PSOAL,IEN,^TMP("PSOHDR",$J) K:PS="VIEW" DA
+ ;
+KILL K ^TMP("PSOAL",$J),PSOAL,IEN,^TMP("PSOHDR",$J) I $G(PS)="VIEW" K DA
  K ST,RFL,RFLL,RFL1,ST,II,J,N,PHYS,L1,DIRUT,PSDIV,PSEXDT,MED,M1,FFX,DTT,DAT,RX0,RX2,R3,RTN,SIG,STA,P1,PL,P0,Z0,Z1,EXDT,IFN,DIR,DUOUT,DTOUT,PSOELSE
- K LBL,I,RFDATE,%H,%I,RN,RFT,%,%I,DFN,GMRAL,HDR,POERR,PTST,REFL,RF,RLD,RX3
+ K LBL,I,RFDATE,%H,%I,RN,RFT,%,%I,DFN,GMRA,GMRAL,HDR,POERR,PTST,REFL,RF,RLD,RX3
  K RXN,RXOR,SG,VA,VADM,VAERR,VALMBCK,VAPA,X,DIC,REA,ZD,PSOHD,PSOBCK,PSODFN
  Q
  ; IHS/CIA/PLS - 01/08/04 - Build IHS data
 IHSFLDS ; EP
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="                 NDC: "_$P(RX2,U,7)
- S ^TMP("PSOAL",$J,IEN,0)=^TMP("PSOAL",$J,IEN,0)_"     AWP: "_$$GET1^DIQ(52,RXN,9999999.06)_"    UP: "_$$GET1^DIQ(52,RXN,17)
+ S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="     BENCHMARK PRICE: "_$$GET1^DIQ(52,RXN,9999999.06)_"    UP: "_$$GET1^DIQ(52,RXN,17)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="        TRIPLICATE #: "_$$GET1^DIQ(52,RXN,9999999.14)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="        SUBSTITUTION: "_$$GET1^DIQ(52,RXN,9999999.25)  ;IHS/MSC/PLS - 03/13/08
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="            CASH DUE: "_$$GET1^DIQ(52,RXN,9999999.26)  ;IHS/MSC/PLS - 01/23/09

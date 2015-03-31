@@ -1,5 +1,5 @@
 ABME5NM1 ; IHS/ASDST/DMJ - 837 NM1 Segment 
- ;;2.6;IHS Third Party Billing System;**6,8,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,9,10,11**;NOV 12, 2009;Build 133
  ;Submitter Name
  ;
 EP(X,Y) ;EP - START HERE
@@ -78,7 +78,7 @@ LOOP ;LOOP HERE
  ; Facility
  I ABMEIC="77" D
  .S ABMR("NM1",40)=$P($G(^DIC(4,ABMP("LDFN"),0)),U)
- S:$G(ABMP("ITYPE"))'="D" ABMR("NM1",40)=$TR(ABMR("NM1",40),"-"," ")
+ ;S:$G(ABMP("ITYPE"))'="D" ABMR("NM1",40)=$TR(ABMR("NM1",40),"-"," ")  ;abm*2.6*11 HEAT104117
  ;
  ; Ambulance Drop Off Location
  I ABMEIC="45" D
@@ -159,7 +159,8 @@ LOOP ;LOOP HERE
  .I $D(^ABMRECVR("C",ABMP("INS"))) D
  ..S ABMCHIEN=$O(^ABMRECVR("C",ABMP("INS"),0))
  ..S:ABMCHIEN ABMR("NM1",100)=$P($G(^ABMRECVR(ABMCHIEN,1,ABMP("INS"),0)),U,2)
- .I ABMR("NM1",100)="" S ABMR("NM1",100)=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),0)),U,19)
+ .;I ABMR("NM1",100)="" S ABMR("NM1",100)=$P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),0)),U,19)  ;abm*2.6*10 HEAT68447
+ .I ABMR("NM1",100)="" S ABMR("NM1",100)=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),0)),U,19)  ;abm*2.6*10 HEAT68447
  .I ABMR("NM1",100)="" S ABMR("NM1",100)=$$RCID^ABMUTLP(ABMP("INS"))
  .;end new code HEAT45044
  ;
@@ -176,7 +177,8 @@ LOOP ;LOOP HERE
  ;attending/operating/other provider
  I "71^72^ZZ^82^DN^QB^DQ^DK^P3"[ABMEIC D
  .I ABMEIC="DN" S ABMR("NM1",100)=$S($D(^VA(200,ABMIEN)):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","F",ABMIEN)),U,3)) Q  ;abm*2.6*9 HEAT53094
- .I ABMEIC="DQ" S ABMR("NM1",100)=$S($D(^VA(200,ABMIEN)):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","S",ABMIEN)),U,3)) Q  ;abm*2.6*9 HEAT53094
+ .;I ABMEIC="DQ" S ABMR("NM1",100)=$S($D(^VA(200,ABMIEN)):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","S",ABMIEN)),U,3)) Q  ;abm*2.6*9 HEAT53094  ;abm*2.6*10 HEAT80154
+ .I ABMEIC="DQ" S ABMR("NM1",100)=$S(((+ABMIEN'=0)&$D(^VA(200,+ABMIEN))):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","S",ABMIEN)),U,3)) Q  ;abm*2.6*10 HEAT80154
  .S ABMR("NM1",100)=$P($$NPI^XUSNPI("Individual_ID",+ABM("PRV")),U) Q
  ;
  ; Payer

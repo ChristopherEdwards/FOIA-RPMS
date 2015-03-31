@@ -1,8 +1,8 @@
 PSJORUT2 ;BIR/MLM-MISC. PROCEDURE CALLS FOR OE/RR 3.0 (CONT.) ;03 Aug 98 / 8:42 AM
- ;;5.0; INPATIENT MEDICATIONS ;**14,29,50,56,58,107**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**14,29,50,56,58,107,152,134**;16 DEC 97;Build 124
  ;
  ; Reference to ^PS(55 is supported by DBIA 2191
- ; Reference to ^PS(50.605 is supported by DBIA 2138
+ ; Reference to ^PS(50.605 is supported by DBIA 2138,696.
  ; References to ^PS(52.6 supported by DBIA 1231
  ; Reference to ^PS(52.7 supported by DBIA 2173.
  ; Reference to ^PSDRUG( is supported by DBIA 2192
@@ -33,7 +33,8 @@ ENVAGN(PN) ; Return VA Generic Name for specified VA Product Name.
  Q $S('GDP:0,X="":0,1:GDP_U_X)
 ENVOL(PN,ARRAY) ;
  I (PN'["A")&(PN'["B") S ARRAY="0" Q
- N X,XX,F,INACT,IVFL S X(1)="ML",X(2)="LITER",X(3)="MCG",X(4)="MG",X(5)="GM",X(6)="UNITS",X(7)="IU",X(8)="MEQ",X(9)="MM",X(10)="MU",X(11)="THOUU"
+ N X,XX,F,INACT,IVFL
+ S X(1)="ML",X(2)="LITER",X(3)="MCG",X(4)="MG",X(5)="GM",X(6)="UNITS",X(7)="IU",X(8)="MEQ",X(9)="MM",X(10)="MU",X(11)="THOUU",X(12)="MG-PE",X(13)="NANOGRAM",X(14)="MMOL"
  I PN["A" N ADD S (ADD,X,XX)=0 F  S ADD=$O(^PS(52.6,"AOI",+PN,ADD))  Q:ADD=""  D
  .S INACT=$G(^PS(52.6,ADD,"I")) I INACT']""!(INACT>DT) S IVFL=$P($G(^(0)),"^",13) Q:'IVFL  S XX=XX+1,ARRAY(ADD)="^"_X($P($G(^PS(52.6,ADD,0)),U,3)) Q
  I PN["B" N SOL S SOL=0,XX=0 F  S SOL=$O(^PS(52.7,"AOI",+PN,SOL)) Q:SOL=""  D
@@ -43,7 +44,8 @@ ENVOL(PN,ARRAY) ;
  ;
 ENVOL2(PN,ARRAY) ;Only for Med Button IV orders.
  I (PN'["A")&(PN'["B") S ARRAY="0" Q
- N X,XX,F,INACT S X(1)="ML",X(2)="LITER",X(3)="MCG",X(4)="MG",X(5)="GM",X(6)="UNITS",X(7)="IU",X(8)="MEQ",X(9)="MM",X(10)="MU",X(11)="THOUU"
+ N X,XX,F,INACT
+ S X(1)="ML",X(2)="LITER",X(3)="MCG",X(4)="MG",X(5)="GM",X(6)="UNITS",X(7)="IU",X(8)="MEQ",X(9)="MM",X(10)="MU",X(11)="THOUU",X(12)="MG-PE",X(13)="NANOGRAM",X(14)="MMOL"
  I PN["A" N ADD S (ADD,X,XX)=0 F  S ADD=$O(^PS(52.6,"AOI",+PN,ADD))  Q:ADD=""  D
  .S INACT=$G(^PS(52.6,ADD,"I")) I INACT']""!(INACT>DT) S XX=XX+1,ARRAY(ADD)="^"_X($P($G(^PS(52.6,ADD,0)),U,3)) Q
  I PN["B" N SOL S SOL=0,XX=0 F  S SOL=$O(^PS(52.7,"AOI",+PN,SOL)) Q:SOL=""  D
@@ -57,7 +59,8 @@ SENVOL(PN,PSJ) ;Return array listing volume (base only) and volume units for the
  ;Output: ARRAY(IEN,A:additive or B:Base)=volume^volume units
  ;        If no volume or units found PSJ=0; If found PSJ=1.
  ;
- N X S PSJ=1,X(1)="ML",X(2)="LITER",X(3)="MCG",X(4)="MG",X(5)="GM",X(6)="UNITS",X(7)="IU",X(8)="MEQ",X(9)="MM",X(10)="MU",X(11)="THOUU"
+ N X S PSJ=1
+ S X(1)="ML",X(2)="LITER",X(3)="MCG",X(4)="MG",X(5)="GM",X(6)="UNITS",X(7)="IU",X(8)="MEQ",X(9)="MM",X(10)="MU",X(11)="THOUU",X(12)="MG-PE",X(13)="NANOGRAM",X(14)="MMOL"
  I PN'["A",PN'["B" S PSJ=0 Q
  S PSJ=PSJ+1
  I PN["A" S PSJ(+PN,"A")=U_X(+$P($G(^PS(52.6,+PN,0)),U,3)) Q
@@ -84,7 +87,6 @@ ENCHK(DFN,PSJINX)     ; Return dispense drug check array.
  ;        _ORDER NUMBER(P/I/V)_";I"
  ;
  NEW BDT,DDRUG,DDRUG0,DDRUGND,EDT,F,ON,ON1,PST,WBDT,X,PSJORIEN
- ;* S BDT=DT,WBDT=BDT_".000001",EDT=9999999
  D NOW^%DTC S (BDT,WBDT)=%,EDT=9999999
  S F="^PS(55,DFN,5," F  S WBDT=$O(^PS(55,DFN,5,"AUS",WBDT)) Q:'WBDT  F ON=0:0 S ON=$O(^PS(55,DFN,5,"AUS",WBDT,ON)) Q:'ON  D UD
  S F="^PS(53.1," F PST="P","N" F ON=0:0 S ON=$O(^PS(53.1,"AS",PST,DFN,ON)) Q:'ON  D
@@ -113,7 +115,6 @@ IV ;*** Get the dispense drugs for the IV orders.
  NEW X S X=^PS(55,DFN,"IV",ON,0),PSJORIEN=$P(X,U,21) Q:$P(X,U,17)="R"
  S ON1=0 F  S ON1=$O(^PS(55,DFN,"IV",ON,"AD",ON1)) Q:'ON1  S X=+^PS(55,DFN,"IV",ON,"AD",ON1,0),DDRUG=$P($G(^PS(52.6,X,0)),U,2) S COD=ON_"V" D DDRUG
  S ON1=0 F  S ON1=$O(^PS(55,DFN,"IV",ON,"SOL",ON1)) Q:'ON1  S X=+^PS(55,DFN,"IV",ON,"SOL",ON1,0),DDRUG=$P($G(^PS(52.7,X,0)),U,2) S COD=ON_"V" D DDRUG
- ;*D:$G(PSIVNEW) NEWIV
  Q
 NEWIV ;*** Get the dispense drugs for the newly entered IV order.
  NEW PSIVX,ON

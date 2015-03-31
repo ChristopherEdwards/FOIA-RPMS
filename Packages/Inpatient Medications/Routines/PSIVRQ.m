@@ -1,5 +1,5 @@
-PSIVRQ ;BIR/PR,MLM,MV-REPORT DRIVER ;15 DEC 95 / 10:41 AM
- ;;5.0; INPATIENT MEDICATIONS ;;16 DEC 97
+PSIVRQ ;BIR/PR,MLM,MV-REPORT DRIVER ; 9/25/08 12:31pm
+ ;;5.0; INPATIENT MEDICATIONS ;**196**;16 DEC 97;Build 13
 DTS ;Get start and stop dates for all reports
  I '$D(STSRPT),'$D(PSIVRC) S (Y,X2)=$S($D(^PS(50.8,1,.2)):^(.2),1:0) I Y X ^DD("DD") W !!,"The IV BACKGROUND JOB [PSJI BACKGROUND JOB] that compiles IV cost data",!,"was last successfully run on: ",Y
  I '$D(STSRPT),'$D(PSIVRC) S X1=DT D ^%DTC I X>1 W !!,$C(7),"**WARNING** that was <",X,"> days ago. PLEASE contact your site manager.",!?12,"Cost data is probably not accurate because of this."
@@ -19,7 +19,8 @@ LS ;Ask for long or short report if user is running the drug cost report.
  I $D(PSIVPCR) S DIR(0)="SO^C:Condensed;R:Regular",DIR("A")="(R)egular or (C)ondensed",DIR("B")="Regular",DIR("?")="Enter ""R"" to include drug data, or ""C"" to list only the drug total per provider" D ^DIR K DIR S:X="C" BRIEF=1
  G:'$D(PSIVDCR) IV
  S DIR(0)="SO^C:Condensed;R:Regular",DIR("A")="(R)egular or (C)ondensed",DIR("B")="Regular",DIR("?")="Enter ""R"" to include ward data, or ""C"" to exclude ward data",DIR("??")="^S HELP=""CON"" D ^PSIVHLP2" D ^DIR K DIR
- I X="C" S BRIEF=1 K PQ
+ ;PSJ*5*196
+ I $TR(X,"c","C")["C" S BRIEF=1 K PQ
  G:X="^" K
  ;
 IV ;Ask user for IV room to run reports for.

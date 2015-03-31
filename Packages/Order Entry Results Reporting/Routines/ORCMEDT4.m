@@ -1,5 +1,5 @@
 ORCMEDT4 ;SLC/MKB-Prompt Editor ;6/19/01  15:05
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,46,95**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,46,95,245**;Dec 17, 1997;Build 2
 EN ; -- Enter/edit prompts
  N PRMT F  S PRMT=+$$PROMPT Q:PRMT'>0  D  W !
  . I $P($G(^ORD(101.41,PRMT,0)),U,7)=$O(^DIC(9.4,"C","OR",0)) D  Q
@@ -27,24 +27,67 @@ PROMPT() ; -- Find prompt in #101.41
  Q Y
  ;
 NAME(IFN) ; -- Edit .01 name of dialog IFN
- N X,Y,DIR S DIR(0)="FAO^3:63",DIR("A")="NAME: "
- S DIR("B")=$P($G(^ORD(101.41,IFN,0)),U)
+ N X,Y,DIR,OLDNAME,ISPQO,NODELETE,DA,DIK,TYPE
+ S DIR(0)="FAO^3:63",DIR("A")="NAME: "
+ S OLDNAME=$P($G(^ORD(101.41,IFN,0)),U),ISPQO=0,NODELETE=1
+ S TYPE=$P($G(^ORD(101.41,IFN,0)),U,4)
+ I TYPE="Q",$E(OLDNAME,1,6)="ORWDQ " S ISPQO=1
+ I ISPQO!(TYPE="P") S NODELETE=0 ; OK to delete personal quick orders and prompts
+ S DIR("B")=OLDNAME
  S DIR("?")="Enter a unique name, up to 63 characters in length."
-NM D ^DIR S:$D(DTOUT)!(X["^") Y="^"
+NM I $L($P($G(^ORD(101.41,IFN,0)),U,3))>0 W !,!,"(This "_$$GETITM(IFN)_" has been disabled)"
+ D ^DIR S:$D(DTOUT)!(X["^") Y="^"
  I X="@" D  G NM:X=""
  . I $D(^ORD(101.41,"AD",IFN)) W $C(7),!,"Cannot delete - currently in use!",! S X="" Q
  . I $$INUSE^ORCMEDT5(IFN) W $C(7),!,"Cannot delete - currently an Add Orders Menu!",! S X="" Q
- . I '$$SURE(IFN) S X="" Q  ;reask
- . S DA=IFN,DIK="^ORD(101.41," D ^DIK W "  ...deleted." S (X,Y)="@"
+ . I NODELETE D DISABLE(IFN) S X="" Q
+ . I '$$SURE(IFN) S X="" Q  ;reask       
+ . N IDX1,IDX2 S IDX1=0
+ . F  S IDX1=$O(^ORD(101.44,"C",IFN,IDX1)) Q:'IDX1  D
+ . . S IDX2=0
+ . . F  S IDX2=$O(^ORD(101.44,"C",IFN,IDX1,IDX2)) Q:'IDX2  D
+ . . . S DA=IDX2,DA(1)=IDX1,DIK="^ORD(101.44,"_IDX1_",10," D ^DIK
+ . K DA S DA=IFN,DIK="^ORD(101.41," D ^DIK W "  ...deleted." S (X,Y)="@"
+ I ISPQO,Y'="^",X'="@",Y'=OLDNAME D  G NM
+ . W $C(7),!,"Cannot rename a personal quick order",!
  Q Y
  ;
+GETITM(DLG) ;
+ N ITM
+ S ITM=$P($G(^ORD(101.41,DLG,0)),U,4)
+ I ITM="Q",$E($P($G(^ORD(101.41,IFN,0)),U),1,6)="ORWDQ " Q "personal quick order"
+ S ITM=$S(ITM="P":"prompt",ITM="D":"dialog",ITM="Q":"quick order",ITM="O":"order set",ITM="A":"action",ITM="M":"menu",1:"item")
+ Q ITM
+ ;
 SURE(DLG) ; -- Are you sure?
- N X,Y,DIR,ITM
- S ITM=$P($G(^ORD(101.41,DLG,0)),U,4),ITM=$S(ITM="P":"prompt",ITM="D":"dialog",ITM="Q":"quick order",ITM="O":"order set",ITM="A":"action",ITM="M":"menu",1:"item")
+ N X,Y,DIR,ITM,DA
+ S ITM=$$GETITM(DLG)
  S DIR(0)="YA",DIR("A")="Are you sure you want to delete this "_ITM_"? "
  S DIR("?")="Enter YES if you want to delete this "_ITM_" from the file, or NO to quit."
  D ^DIR
  Q +Y
+ ;
+DISABLE(DLG) ; Disable item - return true if disabled
+ N DIR,X,Y,ITM,DA,DR,DIE,DIDEL,DISABLED
+ W $C(7),!,!,"Deletion not allowed outside of FileMan."
+ S ITM=$$GETITM(DLG)
+ S DISABLED=$L($P($G(^ORD(101.41,IFN,0)),U,3))>0
+ S DIR(0)="YA"
+ I DISABLED D  I 1
+ . S DIR("A",1)="This "_ITM_" is already disabled."
+ . S DIR("A")="Would you like to edit the disable message? "
+ . S DIR("?")="Enter YES if you want to edit the disabled message, or NO to quit."
+ . S DIR("B")="NO"
+ E  D
+ . S DIR("A")="Would you like to disable this "_ITM_"? "
+ . S DIR("?")="Enter YES if you want to disable this "_ITM_", or NO to quit."
+ . S DIR("B")="YES"
+ D ^DIR
+ I '+Y Q
+ W !,"Enter disable message:"
+ S DA=DLG,DR="3",DIE="^ORD(101.41,"
+ D ^DIE
+ Q
  ;
 DTEXT(X) ; -- Enter/edit display text of prompt
  N Y,DIR

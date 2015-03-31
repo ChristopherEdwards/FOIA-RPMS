@@ -1,5 +1,5 @@
-GMRCPSL1 ;SLC/MA - Special Consult Reports;23-Sep-2011 09:20;PLS
- ;;3.0;CONSULT/REQUEST TRACKING;**23,22,1002**;DEC 27, 1997;Build 1
+GMRCPSL1 ;SLC/MA - Special Consult Reports;25-Jul-2012 11:14;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**23,22,1002,1003**;DEC 27, 1997;Build 14
  ;
  ; Modified - IHS/MSC/MGH - 09/20/2011 -
  ; This is the main entry routine for the Consult Reports that
@@ -35,7 +35,7 @@ EN ;
  . D GETPROC(.GMRCARRY) D
  . . I '$D(GMRCARRY) D WARNING
  I GMRCEND=1 K GMRCEND Q
- S GMRTST=$$TESTPT^GMRCPC1()           ;Include test pts? Patch 1002
+ S GMRTST=$$TESTPT^GMRCPC1() Q:GMRTST=1   ;Include test pts? Patch 1002
  S GMRCRPT=$$TYPERPT Q:GMRCRPT=0       ; Get type or print
  I GMRCRPT'=3 S GMRCBRK=$$PAGEBRK      ; Break between sub-totals
  I GMRCBRK>1 Q

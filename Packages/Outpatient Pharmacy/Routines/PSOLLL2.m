@@ -1,38 +1,28 @@
-PSOLLL2 ;BIR/JLC-LASER LABEL ;29-Oct-2007 15:29;SM
- ;;7.0;OUTPATIENT PHARMACY;**120,138,141,1006**;DEC 1997
+PSOLLL2 ;BIR/JLC-LASER LABEL ;29-May-2012 14:52;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**120,138,141,1006,161,200,1015**;DEC 1997;Build 62
  ;
+ ;Reference to $$ECMEON^BPSUTIL supported by DBIA 4410
  ; Modified - IHS/CIA/PLS - 03/05/04
  ;            IHS/MSC/PLS - 09/11/07 - Line L11
+ ;                          05/26/10 - Line L11+7
 L1 I $G(PSOIO("PFDI"))]"" X PSOIO("PFDI")
- N PGY
- M PGY=SGY I $D(OSGY) K PGY M PGY=OSGY
+ I '$G(PFF) D
+ .N PGY
+ .M PGY=SGY I $D(OSGY) K PGY M PGY=OSGY
+ .D COUNTSGF^PSOLLLW
  S PFM=0,T=$S($D(REPRINT)&($G(PSOBLALL)):"(GROUP REPRINT)",$D(REPRINT):"(REPRINT)",1:"")
- S T=T_$S($G(RXP):"(PARTIAL)",1:"")_$S($D(REPRINT):" ",$G(RXP):" ",1:"")_$P(PS2,"^",2)_"  "_TECH_"  "_PSONOWT D PRINT(T)
+ S T=T_$S($G(RXP):"(PARTIAL)",1:"")_$S($D(REPRINT):" ",$G(RXP):" ",1:"")_$P(PS2,"^",2)_"  "_TECH_"  "_$P(PSONOWT,":",1,2) D PRINT(T)
  S T="Rx# "_RXN_"  "_DATE_"  "_$S('PFF:"Fill "_(RXF+1)_" of "_(1+$P(RXY,"^",9)),1:"(fill document continued)") D PRINT(T)
- S T=PNM_"  "_$G(SSNPN) D PRINT(T)
+ S T=PNM_"  "_$G(SSNPN) D PRINT(T,1)
  S LENGTH=0,PTEXT="",PFF=0,XFONT=$E(PSOFONT,2,99)
  N DP,TEXTP,TEXTL,MORE
- F DR=PFF("DR"):1 Q:$G(PGY(DR))=""  S TEXT=PGY(DR) D  Q:PFF
- . F I=1:1 Q:$E(TEXT,I)'=" "  S TEXT=$E(TEXT,2,255)
- . S DP=$S(TEXT[" ":" ",TEXT[",":",",1:" ")
- . F I=PFF("T"):1:$L(TEXT,DP) D  Q:PFF
- .. S TEXTP=$P(TEXT,DP,I) Q:TEXTP=""  I $D(PFF("J")) S TEXTP=$E(TEXTP,PFF("J"),255) K PFF("J")
- .. D STRT^PSOLLU1("SIG2",TEXTP_" ",.L) I L(XFONT)>3.7 D
- ... S MORE=0
- ... F J=$L(TEXTP):-1:1 S TEXTL=PTEXT_$E(TEXTP,1,J) D STRT^PSOLLU1("SIG2",TEXTL,.L) D  Q:PFF!MORE
- .... Q:L(XFONT)>3.7
- .... D PRINT(TEXTL) S TEXT=$E(TEXT,J+1,512),(PTEXT,TEXTL)=""
- .... I PSOY>PSOYM S PFF=1,PFF("DR")=DR,PFF("T")=I,PFF("J")=J+1 Q
- .... D STRT^PSOLLU1("SIG2",TEXT_" ",.L) S TEXTP=TEXT,J=$L(TEXTP) I L(XFONT)<3.7 S MORE=1,LENGTH=0
- .. I LENGTH+L(XFONT)<3.7 S PTEXT=PTEXT_TEXTP_" ",LENGTH=LENGTH+L(XFONT) Q
- .. S LENGTH=0,I=I-1
- .. D PRINT(PTEXT) S PTEXT=""
- .. I PSOY>PSOYM S PFF=1,PFF("DR")=DR,PFF("T")=I+1,PTEXT="" Q
- . I 'PFF S PFF("T")=1
- I PTEXT]"" D
- . D PRINT(PTEXT)
+ S DR=PFF("DR")
+ F I=1:1 Q:'$D(NPGY(DR,I))  S TEXT=NPGY(DR,I) D PRINT(TEXT)
+ I I>4,$D(NPGY(DR,5)) S PFF=1,PFF("DR")=DR+1
+ S OPSOY=PSOY
  I $G(PSOIO("PFDQ"))]"" X PSOIO("PFDQ")
- I PFF S PSOX=PSOCX,T="(continued on next fill document)" S PFM=1 D PRINT(T) Q
+ I PFF S PSOX=PSOCX,PSOY=OPSOY,T="(continued on next fill document)" S PFM=1 D PRINT(T) Q
+ K NPGY,^TMP($J,"PSOSIGF")
  S XFONT=$E(PSOQFONT,2,99)
  S TEXT="Qty: " D STRT^PSOLLU1("SIG2",TEXT,.L) S Q(1)=L(XFONT)
  S TEXT=" "_PSDU D STRT^PSOLLU1("SIG2",TEXT,.L) S Q(2)=L(XFONT)
@@ -49,9 +39,20 @@ L11 ; IHS/MSC/PLS - 09/11/07
  I $$GET1^DIQ(9009033,PSOSITE,311,"I") D
  .S T="NDC "_$$NDCVAL^APSPFUNC(RX,+$G(RXFL(RX))) S T=$$PAD^APSPFUNC(T," ",27)_" Lot# _______________________" D PRINT(T)  ;IHS/MSC/PLS - 09/11/07
  E  S T="Mfr ___________________ Lot# _______________________" D PRINT(T)
-L12 S T="Tech__________________ RPh _______________________" D PRINT(T)
+ G L12
+ N NDCTEXT
+ S NDCTEXT="NDC/MFR_______________"
+ ;IHS/MSC/PLS - 05/26/2010 - Next line commented out.
+ ;I $$ECMEON^BPSUTIL($$RXSITE^PSOBPSUT(RX,RXF)) S NDCTEXT="NDC "_$$GETNDC^PSONDCUT(RX,RXF)
+ S OPSOX=PSOX,T=NDCTEXT D PRINT(T)
+ S T="Lot# ___________________" D STRT^PSOLLU1("SIG2",T,.L)
+ S PSOY=PSOY-PSOYI,PSOX=L(XFONT+2)*300+OPSOX,T="Lot# _____________________" D PRINT(T)
+L12 S PSOX=OPSOX,T="Tech___________________    RPh _____________________" D PRINT(T)
  S PSOFONT=PSOTFONT
- S T="Routing: "_$S("W"[$E(MW):MW,PS55=2:"DO NOT MAIL",1:MW_" MAIL")_"    Days supply: "_$G(DAYS)_"     Cap: "_$S(PSCAP:"**NON-SFTY**",1:"SAFETY") D PRINT(T)
+ S T="Routing: "_$S("W"[$E(MW):MW,PS55=2:"DO NOT MAIL",1:MW_" MAIL")_"    Days supply: "_$G(DAYS)_"     Cap: "_$S('PSCAP:"SAFETY",1:"") D PRINT(T)
+ I PSCAP D
+ .D STRT^PSOLLU1("SIG2",T,.L) S LENGTH=L(XFONT+1)
+ .S OPSOX=PSOX,T="NON-SAFETY",PSOX=LENGTH*300+OPSOX,PSOY=PSOY-PSOYI D PRINT(T,1) S PSOX=OPSOX
  S T="Isd: "_ISD_"    Exp: "_EXPDT_"    Last Fill: "_$G(PSOFLAST) D PRINT(T)
  S PSOYI=PSOBYI,PSOY=PSOBY
  ; IHS/CIA/PLS - 03/08/04 - Barcode initialization not needed
@@ -59,12 +60,11 @@ L12 S T="Tech__________________ RPh _______________________" D PRINT(T)
  S X2=PSOINST_"-"_RX
  ; IHS/CIA/PLS - 03/08/04 - Changed to use barcode output routine
  ;W X2
- ;S PSOY=PSOY+PSOYI
  W $$BC^CIAUBC28(X2,0,50,PSOX,PSOY)
  I $G(PSOIO("EBT"))]"" X PSOIO("EBT")
  I $G(PSOIO("PFDW"))]"" X PSOIO("PFDW")
  S XFONT=$E(PSOFONT,2,99)
- I $G(WARN) S PTEXT="DRUG WARNING " D STRT^PSOLLU1("SIG2",PTEXT,.L) S LENGTH=L(XFONT) D
+ I $G(WARN)'="" S PTEXT="DRUG WARNING " D STRT^PSOLLU1("SIG2",PTEXT,.L) S LENGTH=L(XFONT) D
  . F I=1:1:$L(WARN,",") S TEXT=$P(WARN,",",I)_"," D
  .. D STRT^PSOLLU1("SIG2",TEXT,.L)
  .. I LENGTH+L(XFONT)<1.8 S PTEXT=PTEXT_TEXT,LENGTH=LENGTH+L(XFONT) Q
@@ -72,10 +72,15 @@ L12 S T="Tech__________________ RPh _______________________" D PRINT(T)
  .. S T=$P(PTEXT,",",1,$L(PTEXT,",")-1) D PRINT(T) S PTEXT=""
  .. I PSOY>PSOYM W "*"
  . I PTEXT]"" S T=$P(PTEXT,",",1,$L(PTEXT,",")-1) D PRINT(T)
+ S PTEXT="Pat. Stat "_PATST_" Clinic: "_PSCLN D STRT^PSOLLU1("SIG2",PTEXT,.L) S T=PTEXT D PRINT(T)
  Q
-PRINT(T) ;
- I $G(PSOIO(PSOFONT))]"" X PSOIO(PSOFONT)
+ ;
+PRINT(T,B) ;
+ S BOLD=$G(B)
+ I 'BOLD,$G(PSOIO(PSOFONT))]"" X PSOIO(PSOFONT)
+ I BOLD,$G(PSOIO(PSOFONT_"B"))]"" X PSOIO(PSOFONT_"B")
  I $G(PSOIO("ST"))]"" X PSOIO("ST")
  W T,!
  I $G(PSOIO("ET"))]"" X PSOIO("ET")
+ I BOLD,$G(PSOIO(PSOFONT))]"" X PSOIO(PSOFONT) ;TURN OFF BOLDING
  Q

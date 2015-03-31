@@ -1,5 +1,5 @@
 PSOVERC ;BHAM ISC/DMA,SAB - discontinue duplicate class from verify ; 07/22/95 17:11
- ;;7.0;OUTPATIENT PHARMACY;**146**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**146,223,148,249**;DEC 1997;Build 9
  W !,$C(7)," *** SAME CLASS *** OF DRUG IN RX # ",$P(^PSRX(+$P(RX0,"^"),0),"^"),"  ",$P(DRG,"^") Q:'$P(PSOPAR,"^",18)
  S PTST="" I $D(^PS(55,PSDFN,"PS")) S Z=+^("PS") I $D(^PS(53,Z,0)) S PTST=^(0)
 DATA S DUPRX0=^PSRX($P(RX0,"^"),0),$P(DUPRX0,"^",15)=+$G(^("STA")),PSRFLS=$P(DUPRX0,"^",9),ISSD=$P(^(0),"^",13),RX0=DUPRX0,RX2=^(2),CAN=$P(DUPRX0,"^",15)'<11 K PSONULN S $P(PSONULN,"-",79)="-"
@@ -12,7 +12,8 @@ DATA S DUPRX0=^PSRX($P(RX0,"^"),0),$P(DUPRX0,"^",15)=+$G(^("STA")),PSRFLS=$P(DUP
  I PTST["AUTH ABS",'$P(PSOPAR,"^",5) S X=1 Q
 ASKC S DIR("A")="Discontinue Prescription #"_$P(DUPRX0,"^")_" ",DIR("B")="N",DIR(0)="SA^1:YES;0:NO",DIR("?")="Enter Y to discontinue this Prescription." D ^DIR K DIR
  I 'Y W "  Prescription was not discontinued..." Q
-CANOLD S $P(^PSRX($P(RX0,"^"),"STA"),"^")=12,PSMSG="Discontinued by new prescription",PSREA="C",PSRXREF=0 N PSOVRCTP S PSOVRCTP=$P(RX0,"^") D CAN^PSOTPCAN(PSOVRCTP) D ACTLOG
+CANOLD S $P(^PSRX($P(RX0,"^"),"STA"),"^")=12,$P(^PSRX($P(RX0,"^"),3),"^",5)=DT
+ S PSMSG="Discontinued by new prescription",PSREA="C",PSRXREF=0 N PSOVRCTP S PSOVRCTP=$P(RX0,"^") D REVERSE^PSOBPSU1(PSOVRCTP,,"DC",7),CAN^PSOTPCAN(PSOVRCTP) D ACTLOG
  S PSI="",$P(PSD(DRG),"^",3)=12 W "  Prescription has been discontinued." S DA=$O(^PS(52.5,"B",$P(RX0,"^"),0)) I DA S PSI=$G(^PS(52.5,DA,"P")),DIK="^PS(52.5," D ^DIK K DIK,DA
  D:'PSI SUSPCAN^PSOUTL
  Q

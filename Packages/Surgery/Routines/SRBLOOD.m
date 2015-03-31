@@ -1,14 +1,15 @@
-SRBLOOD ;B'HAM  ISC/MM,SM - BLOOD PRODUCT VERIFICATION ; [ 12/16/97  12:50 PM]
- ;;3.0; Surgery ;**74,85,101**;24 Jun 93
+SRBLOOD ;B'HAM  ISC/MM,SM - BLOOD PRODUCT VERIFICATION ;08/11/05
+ ;;3.0; Surgery ;**74,85,101,148**;24 Jun 93
  ; 
  ; References to ^LRD(65 supported by DBIA #2331-A
  ; References to ^LR( supported by DBIA #894 and 252-B
  ; References to ^LAB(66 supported by DBIA #210
  ; Reference to BAR^LRBLB supported by DBIA #2331-B
  ; Reference to ^LRBLBU supported by DBIA #2333
+ ; Reference to VBECA1B supported by DBIA #4629
  ;
- ; scan UNIT ID 
-SCAN D BAR^LRBLB
+ S X="VBECA1B" X ^%ZOSF("TEST") I $T D ^SRBL Q  ; check if VBECS installed
+SCAN D BAR^LRBLB ; scan UNIT ID before VBECS
  ;obtain the LRDFN from the patient's DFN
  S SRDFN=$P($G(^DPT($P(^SRF(SRTN,0),"^"),"LR")),"^")
  I SRDFN="" G SRNO

@@ -1,5 +1,5 @@
-PSORXI ;IHS/DSD/JCM - logs pharmacy interventions ;16-Jan-2004 07:45;PLS
- ;;7.0;OUTPATIENT PHARMACY;;DEC 1997
+PSORXI ;IHS/DSD/JCM - logs pharmacy interventions ;29-May-2012 15:12;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**268,1015**;DEC 1997;Build 62
  ; This routine is used to create entries in the APSP INTERVENTION file.
  ; Modified - IHS/CIA/PLS - 12/22/03 - Line DIC+2
 START ;
@@ -35,7 +35,7 @@ DICX K X,Y
 DIE ;
  K DIE,DIC,DR,DA
  S DIE="^APSPQA(32.4,",DA=PSORXI("DA"),DR=$S($G(PSORXI("EDIT"))]"":".03:1600",1:".03;.08")
- L +^APSPQA(32.4,PSORXI("DA")) D ^DIE K DIE,DIC,DR,X,Y,DA L -^APSPQA(32.4,PSORXI("DA"))
+ L +^APSPQA(32.4,PSORXI("DA")):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) D ^DIE K DIE,DIC,DR,X,Y,DA L -^APSPQA(32.4,PSORXI("DA"))
  W $C(7),!!,"See 'Pharmacy Intervention Menu' if you want to delete this",!,"intervention or for more options.",!
  Q
 EDIT ;

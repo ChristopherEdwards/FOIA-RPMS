@@ -1,5 +1,5 @@
-PSUDBQUE ; IHS/ADC/GTH - DOUBLE QUEUING SHELL HANDLER ;  [ 11/04/97  10:26 AM ]
- ;;3.0;PHARMACY BENEFITS MANAGMENT;;Oct 15, 1998
+PSUDBQUE ; IHS/ADC/GTH - DOUBLE QUEUING SHELL HANDLER; 04 NOV 1997
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ; XB*3*5 - IHS/ADC/GTH 10-31-97
  ; Thanks to Paul Wesley, DSD, for the original routine.
  ; ---------------------------------------------------------
@@ -65,7 +65,7 @@ ZISQ ;
  ;
 QUE1 ;
  I ($D(IO("Q"))!($G(PSUFQ))) D  K IO("Q") W:(($G(ZTSK))&('$D(PSU("ZTSK")))) !,"Tasked with ",ZTSK W:'$G(ZTSK) !,*7,"Que not successful ... REPORTING ABORTED" D:'$D(ZTQUEUED) ^%ZISC S IOP=PSU("IOP1") D:'$D(ZTQUEUED) ^%ZIS G END1 ;--->
- . I '$D(ZTQUEUED),IO=IO(0),$G(PSURP)]"" W !,"Queing to slave printer not allowed ... Report Aborting" Q  ;---^
+ . ;I '$D(ZTQUEUED),IO=IO(0),$G(PSURP)]"" W !,"Queing to slave printer not allowed ... Report Aborting" Q  ;---^
  . I $D(PSU("TITLE")) S ZTDESC=PSU("TITLE")_" compute"
  . E  S ZTDESC="Double Que COMPUTing  "_PSURC_"  "_$G(PSURP)
  . S ZTIO="",ZTRTN="DEQUE1^PSUDBQUE"
@@ -152,6 +152,7 @@ SETIOPN ;EP Set IOP parameters with (N)o open
  . Q
  ; PSU*3*5 - IHS/ADC/GTH 10-31-97 end block
  S %ZIS="N"
+ S %H=299
  D ^%ZIS
  Q
 PGMNOTE ;

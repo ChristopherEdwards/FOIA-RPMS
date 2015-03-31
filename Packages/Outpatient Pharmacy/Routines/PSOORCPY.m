@@ -1,5 +1,5 @@
-PSOORCPY ;BIR/SAB-copy orders from backdoor ;07-Mar-2011 15:08;SM
- ;;7.0;OUTPATIENT PHARMACY;**10,21,27,32,46,100,117,1001,1006,1009,1010**;DEC 1997
+PSOORCPY ;BIR/SAB-copy orders from backdoor ;29-May-2012 14:56;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**10,21,27,32,46,100,117,1001,1006,1009,148,1015**;DEC 1997;Build 62
  ;External references LK^ORX2 and ULK^ORX2 supported by DBIA 867
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External references L, UL, PSOL, and PSOUL^PSSLOCK supported by DBIA 2789
@@ -7,6 +7,7 @@ PSOORCPY ;BIR/SAB-copy orders from backdoor ;07-Mar-2011 15:08;SM
  ;            IHS/MSC/PLS - 09/17/07 - Added support for CLININD and CLININD2
  ;                          12/09/10 - Line PSOORCPY+43
  ;I '$D(^XUSEC("PSORPH",DUZ)) S VALMSG="Invalid Action Selection!",VALMBCK="" Q
+ I $$LMREJ^PSOREJU1($P(PSOLST(ORN),"^",2),,.VALMSG,.VALMBCK) Q
  I $G(PSOBEDT) W $C(7),$C(7) S VALMSG="Invalid Action at this time !",VALMBCK="" Q
  I $G(PSONACT) W $C(7),$C(7) S VALMSG="No Pharmacy Orderable Item !",VALMBCK="" K PSOCOPY D ^PSOBUILD Q
  S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK S VALMSG=$S($P($G(PSOPLCK),"^",2)'="":$P($G(PSOPLCK),"^",2)_" is working on this patient.",1:"Another person is entering orders for this patient.") K PSOPLCK S VALMBCK="" Q

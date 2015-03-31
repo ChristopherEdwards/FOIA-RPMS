@@ -1,5 +1,5 @@
-PSONFI ;BIR/MHA - dispense drug/orderable item text display ; 09/13/00
- ;;7.0;OUTPATIENT PHARMACY;**46,94,131**;DEC 1997
+PSONFI ;BIR/MHA - dispense drug/orderable item text display ;09/13/00
+ ;;7.0;OUTPATIENT PHARMACY;**46,94,131,225**;DEC 1997;Build 29
  ;External reference to PSSDIN is supported by DBIA 3166
  ;External reference to ^PS(50.606 is supported by DBIA 2174
  ;External reference to ^PS(50.7 is supported by DBIA 2223
@@ -42,7 +42,13 @@ RV ;reverse video
  .D CNTRL^VALM10(1,1,$L(PKIE),IORVON,IORVOFF,0)
  D:$G(NFIO) CNTRL^VALM10(+NFIO,$P(NFIO,",",2),5,IORVON,IORVOFF,0)
  D:$G(NFID) CNTRL^VALM10(+NFID,$P(NFID,",",2),5,IORVON,IORVOFF,0)
- K NFIO,NFID,PKID Q
+ K NFIO,NFID,PKID
+ ;- Reverses video for the words "Flagged" and "Unflagged"
+ N L
+ F L=1:1:VALMCNT D
+ . D:$D(FLAGLINE(L)) CNTRL^VALM10(L,1,FLAGLINE(L),IORVON,IORVOFF,0)
+ Q
+ ;
 TD N N1,N2,N3,N4,TX,NX S NX="PSSDIN"
  W @IOF
  I NFI="O" D OIT
@@ -62,4 +68,5 @@ TXD K ^UTILITY($J,"W")
  .S N3="" F  S N3=$O(^TMP(NX,$J,N1,N2,N3)) Q:'N3!($D(DIRUT))  D
  ..S N4="" F  S N4=$O(^TMP(NX,$J,N1,N2,N3,N4)) Q:'N4!($D(DIRUT))  D
  ...W !?5,^TMP(NX,$J,N1,N2,N3,N4) I $Y>20 W ! D HLD Q:$D(DIRUT)  W @IOF
- W ! K ^UTILITY($J,"W") Q
+ W ! K ^UTILITY($J,"W")
+ Q

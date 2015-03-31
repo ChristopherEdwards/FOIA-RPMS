@@ -1,5 +1,5 @@
 BARUTL ; IHS/SD/LSL - UTILITY PROGRAM FOR FAC A/R ; 07/25/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**13,19,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**13,19,21,23**;OCT 26, 2005
  ;;
  ; IHS/SD/LSL - 04/04/02 - V1.6 Patch 2 - NOIS XJG-0302-160095
  ;     Added FIND3PB function to find bill in 3P Bill file if given
@@ -24,6 +24,9 @@ BARUTL ; IHS/SD/LSL - UTILITY PROGRAM FOR FAC A/R ; 07/25/2010
  ;      correctly by the HUB
  ; TMM 07/25/2010 V1.8*19 - Modify A/R Statistical report to 
  ;     include (Emloyer) Group Plan data.  requirement 4PMS10022.
+ ; P.OTT 08/12/2013 FIXED $$SBR: QUIT WITH VALUE
+ ;       Fixed BARPOLN (Policy Number reference to 702)
+ ;       HEAT#131103 8/28/2013 FIXED <UNDEF> IF DUZ(2) IS NOT REGIONALLY SETUP
  ; *********************************************************************
  ;
  ;VARIOUS ENTRY POINTS
@@ -35,11 +38,20 @@ INIT ;EP Initialize Environment
  . S BARQUIT=1
  . D EOP(1)
  ;
+ ;HEAT#131101 
+ I '$D(^DIC(4,DUZ(2))) D  Q
+ . W !,"USER / SITE IS NOT CORRECTLY SETUP"
+ . W !,"CONTACT YOUR A/R MANAGER",*7
+ . S BARQUIT=1
+ . D EOP(1)
+ . Q
+ ;
  I '$D(^BARBL(DUZ(2))) D  Q
  . W !,$P(^DIC(4,DUZ(2),0),U)," IS NOT REGIONALLY SETUP"
  . W !,"CONTACT YOUR A/R MANAGER",*7
  . S BARQUIT=1
  . D EOP(1)
+ ;
  ;
  D CHKFILES
  D BARUSR^BARUTL0 ; user parameters
@@ -302,20 +314,24 @@ INSIEN(BAR1,BAR2,BAR3) ; EP
  Q BARINS
  ; ********************************************************************
  ;
-SBR(BARDUZ,BARBL) ; EP
+SBR(BARDUZ,BARBL) ; EP CALLED AS FUNCTION FROM BARRAOI
  ;
  ; Find Insurance Subscriber given Bill IEN and DUZ(2)
  ; BARBL = A/R BILL IEN
  ; BARDUZ = A/R DUZ(2)
+ ;
  I '$D(BARBL),'$D(BARDUZ) Q ""          ; Correct data not passed in
  I '+BARBL,'+BARDUZ Q ""                ; Values must be numeric
- S BAR3PLOC=$$FIND3PB^BARUTL(BARDUZ,BARBL)  ; Find 3P bill
- S BARDUZ=$P(BAR3PLOC,",")                  ; 3P DUZ(2)
- S BAR3PIEN=$P(BAR3PLOC,",",2)              ; 3P BILL IEN
+ N BAR3PLOC,BAR3PIEN,BAR3DUZ            ; Preserve tmp vars
+ S BAR3PLOC=$$FIND3PB^BARUTL(BARDUZ,BARBL)   ; Find 3P bill
+ S BAR3DUZ=$P(BAR3PLOC,",")                  ; 3P DUZ(2)
+ S BAR3PIEN=$P(BAR3PLOC,",",2)               ; 3P BILL IEN
+ I '+BAR3DUZ Q ""
+ I 'BAR3PIEN Q ""
  ; The call below will also set up ABMP array
- S BARSBR=$$SBR^ABMUTLP(BAR3PIEN,BARDUZ)    ; Subscriber
+ S BARSBR=$$SBR^ABMUTLP(BAR3PIEN,BAR3DUZ)    ; Subscriber
  S BARREL=ABMP("REL")                       ; Relationship
- Q
+ Q BARSBR                                   ; fix: added ret value P.OTT
  ;start new code IHS/SD/SDR 5/26/09 HEAT4301 BAR*1.8*13
 PATCH(PKG,VER) ;EP - returns last patch applied for a Package, PATCH^DATE
  ;        Patch includes Seq # if Released
@@ -350,7 +366,7 @@ GROUPLAN(BARBL) ;  Return Group Plan (from Employer Group Insurance file)
  .. S ^TMP($J,"BARDRST",BARBL,BARTMP)="GRPPLAN_BARUTL^BARBL="_BARBL_"^0|BARPAT is null"_"|"_BARBL
  ;---Policy Holder file data
  S BARPOLH=$$GET1^DIQ(90050.01,BARBL_",",701,"I")       ;Policy Holder Name
- S BARPOLN=$$GET1^DIQ(90050.01,BARBL_",",701,"I")       ;Policy Number
+ S BARPOLN=$$GET1^DIQ(90050.01,BARBL_",",702,"I")       ;Policy Number FIXED: P.OTT
  S BARFIND=0
  S BARGPIEN=""
  S BARPH="" F  S BARPH=$O(^AUPN3PPH("C",BARPAT,BARPH)) Q:BARPH=""!BARFIND=1  D
@@ -369,3 +385,4 @@ GROUPLAN(BARBL) ;  Return Group Plan (from Employer Group Insurance file)
  S BARTMPPH=BARPHIEN_"|"_BARPOLH_"|"_BARPHINS_"|"_BARPAT    ;Policy Holder data
  S BARTMPBL=BARACIEN_"|"_BARINSI_"|"_BARINSE     ;A/R Bill data
  Q 1_U_BARTMPEG_U_BARTMPPH_U_BARTMPBL
+ ;-----------------EOR------------

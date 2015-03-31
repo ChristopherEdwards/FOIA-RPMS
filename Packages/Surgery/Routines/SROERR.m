@@ -1,9 +1,11 @@
-SROERR ;B'HAM ISC/MAM,ADM - ORDER ENTRY ROUTINE ; [ 01/22/99  9:47 AM ]
- ;;3.0; Surgery ;**14,67,73,41,80,86,107**;24 Jun 93
+SROERR ;B'HAM ISC/MAM,ADM - ORDER ENTRY ROUTINE ;01/22/99  9:47 AM
+ ;;3.0; Surgery ;**14,67,73,41,80,86,107,147,144**;24 Jun 93
  ;
  ; Reference to ^ORD(100.99 supported by DBIA #874
  ; Reference to FILE^ORX supported by DBIA #866
  ; Reference to ST^ORX supported by DBIA #866
+ ; Reference to NEW^VPRSR supported by DBIA #4750
+ ; Reference to DEL^VPRSR supported by DBIA #4750
  ;
 CREATE ; create order in ORDER file (100)
  I $P($G(^SRO(133,SRSITE,0)),"^",22)="Y" D
@@ -11,12 +13,13 @@ CREATE ; create order in ORDER file (100)
  .S SROP=SRTN,SROPER="" D ^SROP1 S SRTYPE=1
  .I SROPER["REQUESTED" Q
  .I $P($G(^SRF(SRTN,"OP")),"^",2)']"" D
- ..W !!,"  This Surgery case does not have a Principal CPT Code entered. The ",!,"  information sent to SPD for creation of a case cart may not contain ",!,"  enough information for processing."
+ ..W !!,"  This Surgery case does not have a Planned Principal CPT Code entered. The ",!,"  information sent to SPD for creation of a case cart may not contain ",!,"  enough information for processing."
  .I SROPER["SCHEDULED" S SRTYPE=1
  .I SROPER["NOT COMPLETE",$P($G(^SRF(SRTN,.2)),"^",10) S SRTYPE=1
  .D ST^SRSCOR(SRTN)
- ;
+ D SERR^SROPFSS(SRTN,"SROERR")
  N SREVENT S SREVENT="S12",SROERR=SRTN D STATUS^SROERR0,MSG^SRHLZIU(SRTN,SRSTATUS,SREVENT)
+ I $L($T(NEW^VPRSR)) D NEW^VPRSR(SROERR,$G(DFN),SRSTATUS) Q  ;CPRS-R
  I +$$VERSION^XPDUTL("ORDER ENTRY/RESULTS REPORTING")>2.5 K SROERR Q
  I '$D(^ORD(100.99)) Q
  I '$D(ORPCL) K DIC S DIC="^DIC(19,",X="SR SURGERY REQUEST",DIC(0)="" D ^DIC I Y'=-1 S ORPCL=+Y_";DIC(19,"
@@ -73,6 +76,7 @@ ADD ; add new requests to ORDER file (100)
  Q
 PURGE ; purge order from ORDER file
  N SREVENT,SRSTATUS S SREVENT="S17",SRSTATUS="(DELETED)" D MSG^SRHLZIU(ORPK,SRSTATUS,SREVENT)
+ I $L($T(DEL^VPRSR)) D DEL^VPRSR(ORPK,$G(DFN)) Q  ;CPRS-R
  I +$$VERSION^XPDUTL("ORDER ENTRY/RESULTS REPORTING")>2.5 Q
  I "589"'[ORSTS S:$D(^SRF(ORPK,0)) $P(^(0),"^",14)="" S ORSTS="K" D ST^ORX
  Q
@@ -81,8 +85,8 @@ DEL ; delete from ORDER file (100) and call CoreFLS API
  .N SRDYNOTE,SRTYPE
  .S SRDYNOTE=$P($G(^SRF(SRTN,31)),"^",10) Q:'SRDYNOTE
  .I SRDYNOTE S SRTYPE=4 D ST^SRSCOR(SRTN)
- ;
  N SREVENT,SRSTATUS S SREVENT="S17",SRSTATUS="(DELETED)" D MSG^SRHLZIU(SRTN,SRSTATUS,SREVENT)
+ I $L($T(DEL^VPRSR)) D DEL^VPRSR(SRTN,$G(DFN)) Q  ;CPRS-R
  I +$$VERSION^XPDUTL("ORDER ENTRY/RESULTS REPORTING")>2.5 Q
  S:'$D(ORIFN) ORIFN=$P(^SRF(SRTN,0),"^",14) I $D(ORIFN) S ORSTS="K" D ST^ORX K ORIFN
  Q

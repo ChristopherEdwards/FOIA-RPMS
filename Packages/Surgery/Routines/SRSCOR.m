@@ -1,5 +1,5 @@
 SRSCOR ;B'HAM ISC/SJA - Surgery/CoreFLS API ; [ 12/6/01  8:59 AM ]
- ;;3.0; Surgery ;**107**;24 Jun 93
+ ;;3.0; Surgery ;**107,127**;24 Jun 93
  ;
  ; Reference to $$MOD^ICPTMOD supported by DBIA #1996
  ; Reference to $$BLDSEG^CSLSUR1 is supported by DBIA #3498
@@ -23,18 +23,18 @@ AR4 ; Date/Time of Surgery
  ;
 AR5 ; Principle CPT code & Name
  S SROP=$G(^SRF(SRTN,"OP")),^TMP("CSLSUR1",$J,5,0)=$P(SROP,"^")
- I +$P(SROP,"^",2) S SRICPT=$$CPT^ICPTCOD($P(SROP,"^",2)),^TMP("CSLSUR1",$J,5,1)=$P(SRICPT,"^",2)_"^"_$P(SRICPT,"^",3)
+ I +$P(SROP,"^",2) S SRICPT=$$CPT^ICPTCOD($P(SROP,"^",2),$P($G(^SRF(SRTN,0)),"^",9)),^TMP("CSLSUR1",$J,5,1)=$P(SRICPT,"^",2)_"^"_$P(SRICPT,"^",3)
  ;
  ; CPT modifiers for principle code (X = sequential number)
  S PM=0 F  S PM=$O(^SRF(SRTN,"OPMOD",PM)) Q:'PM  S PMIEN=$P($G(^(PM,0)),"^") D
- .S ^TMP("CSLSUR1",$J,5,1,PM)=$P($$MOD^ICPTMOD(PMIEN,"I"),"^",2,3)
+ .S ^TMP("CSLSUR1",$J,5,1,PM)=$P($$MOD^ICPTMOD(PMIEN,"I",$P($G(^SRF(SRTN,0)),"^",9)),"^",2,3)
  ;
  ; Other CPT codes and names (N = value greater than 1)
  S II=0,JJ=1 F  S II=$O(^SRF(SRTN,13,II)) Q:'II  S OCIEN=$G(^(II,2)) D
- .I +OCIEN S OCPT=$$CPT^ICPTCOD(+OCIEN) S JJ=JJ+1,^TMP("CSLSUR1",$J,5,JJ)=$P(OCPT,"^",2)_"^"_$P(OCPT,"^",3)
+ .I +OCIEN S OCPT=$$CPT^ICPTCOD(+OCIEN,$P($G(^SRF(SRTN,0)),"^",9)) S JJ=JJ+1,^TMP("CSLSUR1",$J,5,JJ)=$P(OCPT,"^",2)_"^"_$P(OCPT,"^",3)
  .;
  .;CPT code modifiers
- .S MM=0 F  S MM=$O(^SRF(SRTN,13,II,"MOD",MM)) Q:'MM  S OMIEN=$G(^SRF(SRTN,13,II,"MOD",MM,0)),^TMP("CSLSUR1",$J,5,JJ,MM)=$P($$MOD^ICPTMOD(OMIEN,"I"),"^",2,3)
+ .S MM=0 F  S MM=$O(^SRF(SRTN,13,II,"MOD",MM)) Q:'MM  S OMIEN=$G(^SRF(SRTN,13,II,"MOD",MM,0)),^TMP("CSLSUR1",$J,5,JJ,MM)=$P($$MOD^ICPTMOD(OMIEN,"I",$P($G(^SRF(SRTN,0)),"^",9)),"^",2,3)
 AR6 ; Surgeon ID & Name
  S SURGN=$P($G(^SRF(SRTN,.1)),"^",4)
  I +SURGN S ^TMP("CSLSUR1",$J,6)=SURGN_"^"_$P($G(^VA(200,+SURGN,0)),"^")

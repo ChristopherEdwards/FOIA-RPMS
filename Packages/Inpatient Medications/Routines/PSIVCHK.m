@@ -1,9 +1,7 @@
 PSIVCHK ;BIR/PR,MLM-CHECK ORDER FOR INTEGRITY ;12 DEC 97 / 10:16 AM
- ;;5.0; INPATIENT MEDICATIONS ;**54,58,81**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**54,58,81,111,213**;16 DEC 97;Build 8
  ;
  ; Reference to ^PS(51.1 supported by DBIA# 2177.
- ; Reference to ^VA(200 supported by DBIA# 10060.
- ; Reference to ^DICN supported by DBIA# 10009.
  ; Reference to ^DIE supported by DBIA# 2053.
  ;
  ;Need DFN and ON
@@ -12,13 +10,14 @@ PSIVCHK ;BIR/PR,MLM-CHECK ORDER FOR INTEGRITY ;12 DEC 97 / 10:16 AM
  I P(11)]"" S X=P(11) D CHK^DIE(51.1,1,"",X,.PSJTIM) I PSJTIM="^" W !,"*** Your administration time(s) are in an invalid format !" S ERR=1
 M I P(15)<0 S ERR=1 W !,"*** Time interval between doses is less than zero !"
  NEW X S X=0 S:P(9)]"" X=$O(^PS(51.1,"APPSJ",P(9),0))
- I P("TYP")="P",('X!("^NOW^STAT^ONCE^"[(U_$P(P(9)," ")_U))),P(11)["-" S:'ERR ERR=2 W !,"*** WARNING -- You have a non-standard schedule ...",!?15,"with an administration time."
- ;* I P("TYP")="P",(P(15)!("^NOW^STAT^ONCE^"[(U_$P(P(9)," ")_U))),P(11)["-" S:'ERR ERR=2 W !,"*** WARNING -- You have a non-standard schedule ...",!?15,"with an administration time."
  N XX F XX=2,3 I $P(P(XX),".",2)=""!($L(P(XX))>12) S ERR=1 W !,"*** ",$S(XX=2:"Start",1:"Stop")," date is in an invalid format or must contain time !"
  I P(2)>P(3) S ERR=1 W !,"*** Start date/time CANNOT be greater than the stop date/time"
+ I $$SCHREQ^PSJLIVFD(.P),'X D
+ .N PSJXSTMP S PSJXSTMP=P(9) I PSJXSTMP="" S ERR=1 Q
+ .N X,Y,PSGS0XT,PSGS0Y,PSGOES S PSGOES=2,X=PSJXSTMP D ENOS^PSGS0 I $G(X)]""&($G(X)=$G(PSJXSTMP)) Q
+ .W !," *** WARNING -- Missing or Invalid Schedule ...",! S ERR=1
 INF I P(8)="","AH"[P("TYP") S ERR=1 W !,"*** You have no infusion rate defined !"
- ;I "AH"[P("TYP"),P(8)'?1N.N1" ml/hr",P(8)'?.E1"@"1N.N S ERR=1 W !,"*** Your infusion rate is in an invalid format !"
- I "AH"[P("TYP"),P(8)'?1N.N.1".".1N1" ml/hr",P(8)'?.E1"@"1N.N S ERR=1 W !,"*** Your infusion rate is in an invalid format !"
+ I "AH"[P("TYP"),P(8)'?1N.N.1".".1N1" ml/hr",P(8)'?.E1"@"1N.N,P(8)'?1"0."1N1" ml/hr" S ERR=1 W !,"*** Your infusion rate is in an invalid format !"
  I P(8)="",P("TYP")="P" S:'ERR ERR=2 W !,"*** WARNING -- You have not specified an infusion rate. "
  I '$$CODES1^PSIVUTL(P("TYP"),55.01,.04)!(P("TYP")="") S ERR=1 W !,"*** Type of order is invalid !"
  I '$$CODES1^PSIVUTL(P(17),55.01,100)!(P(17)="") S ERR=1 W !,"*** Status of order is invalid !"

@@ -1,6 +1,5 @@
 LEXILG ; ISL Env/Post for ^LEX and ^GMP           ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
- ;IHS/ITSC/LJF 05/14/2003 prevented install email from going to VA
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  Q
 PRE ; Pre-Init
  ; Save User Defaults
@@ -33,5 +32,5 @@ POST ; Post-Init
  D DG^LEXILGD
  I $D(IOST),IOST["C-" N LEXPOST W !,"  Press <Return> to continue   " R LEXPOST:660
  ; Mail
- ;D EN2^LEXLGM,EN^LEXPL   ;IHS/ITSC/LJF 05/14/2003 don't send email to VA
+ D EN2^LEXLGM,EN^LEXPL
  Q

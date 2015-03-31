@@ -1,27 +1,34 @@
-SROMOD ;BIR/ADM - CPT Modifier Input ; [ 11/10/99  9:20 AM ]
- ;;3.0; Surgery ;**88**;24 Jun 93
+SROMOD ;BIR/ADM - CPT Modifier Input ; [ 02/27/01  6:32 AM ]
+ ;;3.0; Surgery ;**88,100,127**;24 Jun 93
  Q
 DISPLAY ; display name with modifier
- N SRY S SRY=$$MOD^ICPTMOD(Y) I $P(SRY,"^")=-1 S SRY=$$MOD^ICPTMOD(Y,"I")
- Q:$P(SRY,"^")=-1  S Y=$P(SRY,"^",2)_"  "_$P(SRY,"^",3)
+ N SRY,SRDA,SRDATE S SRDATE=DT
+ S SRDA=$S($G(SRTN):SRTN,$D(DA(1)):DA(1),$D(DA):DA,1:"")
+ I $G(SRDA) S SRDATE=$P($G(^SRF(SRDA,0)),"^",9)
+ S SRY=$$MOD^ICPTMOD(Y,"I",SRDATE) Q:$P(SRY,"^")=-1
+ S Y=$P(SRY,"^",2)_"  "_$P(SRY,"^",3)
  Q
 SCR27() ; screen for acceptable CPT code/modifier pair for principal procedure
  N SRCODE,SRDA,SRCMOD,SROK,SRSDATE,SRZ D PCHK K SRM
  Q SROK
 PCHK ; return value of modifier if acceptable for principal procedure
+ N SRSDATE S SRSDATE=DT K ICPTVDT
  S SROK=0,SRCODE="",SRDA=$S($G(SRTN):SRTN,$D(DA(1)):DA(1),$D(DA):DA,1:""),SRM=$S($D(SRM):SRM,1:+Y)
  I SRDA S SRSDATE=$P(^SRF(SRDA,0),"^",9),SRCODE=$P($G(^SRF(SRDA,"OP")),"^",2)
  I 'SRCODE Q
  S SRZ=$P($$MODP^ICPTMOD(SRCODE,SRM,"I",SRSDATE),"^") I SRZ>0 S SROK=SRZ
+ S ICPTVDT=SRSDATE
  Q
 OTH() ; screen for acceptable CPT code/modifier pair for other procedure
  N SRCODE,SRDA,SRCMOD,SROK,SROTH,SRSDATE,SRZ D OCHK K SRM
  Q SROK
 OCHK ; return value of modifier if acceptable for other procedure
+ N SRSDATE S SRSDATE=DT K ICPTVDT
  S SROK=0,SRCODE="",SRDA=$S($G(SRTN):SRTN,$D(DA(2)):DA(2),$D(DA(1)):DA(1),$D(D0):D0,1:""),SROTH=$S($D(DA):DA,$D(D1):D1,1:""),SRM=$S($D(SRM):SRM,1:+Y)
  I SRDA&SROTH S SRSDATE=$P(^SRF(SRDA,0),"^",9),SRCODE=$P($G(^SRF(SRDA,13,SROTH,2)),"^")
  I 'SRCODE Q
  S SRZ=$P($$MODP^ICPTMOD(SRCODE,SRM,"I",SRSDATE),"^") I SRZ>0 S SROK=SRZ
+ S ICPTVDT=SRSDATE
  Q
 SPRIN ; set logic for ACPT x-ref
  Q:$E($G(IOST))'="C"!($G(DIK)'="")
@@ -82,13 +89,13 @@ HYPHOTH ; input CPT hyphenated modifier for other procedure
  Q
 QUES N SRI,SRMD,SRX,SRY,SRZ S DIR("?",1)=" Answer with PRIN. PROCEDURE CPT MODIFIER",DIR("?",2)="Choose from:"
  S SRI=0,SRCT=3 F  S SRI=$O(^SRF(SRDA,"OPMOD",SRI)) Q:'SRI  S SRMD=$P(^SRF(SRDA,"OPMOD",SRI,0),"^") D
- .S SRX=$$MOD^ICPTMOD(SRMD,"I"),SRY=$P(SRX,"^",2),SRZ=$P(SRX,"^",3)
+ .S SRX=$$MOD^ICPTMOD(SRMD,"I",$P($G(^SRF(SRDA,0)),"^",9)),SRY=$P(SRX,"^",2),SRZ=$P(SRX,"^",3)
  .S DIR("?",SRCT)="   "_SRY_"   "_SRZ,SRCT=SRCT+1
  S DIR("?",SRCT)="",DIR("?")="     You may enter a new PRIN. PROCEDURE CPT MODIFIER, if you wish."
  Q
 QUES1 N SRI,SRMD,SRX,SRY,SRZ S DIR("?",1)=" Answer with OTHER PROCEDURE CPT MODIFIER",DIR("?",2)="Choose from:"
  S SRI=0,SRCT=3 F  S SRI=$O(^SRF(SRDA(1),13,SRDA,"MOD",SRI)) Q:'SRI  S SRMD=$P(^SRF(SRDA(1),13,SRDA,"MOD",SRI,0),"^") D
- .S SRX=$$MOD^ICPTMOD(SRMD,"I"),SRY=$P(SRX,"^",2),SRZ=$P(SRX,"^",3)
+ .S SRX=$$MOD^ICPTMOD(SRMD,"I",$P($G(^SRF(SRDA,0)),"^",9)),SRY=$P(SRX,"^",2),SRZ=$P(SRX,"^",3)
  .S DIR("?",SRCT)="   "_SRY_"   "_SRZ,SRCT=SRCT+1
  S DIR("?",SRCT)="",DIR("?")="     You may enter a new OTHER PROCEDURE CPT MODIFIER, if you wish."
  Q

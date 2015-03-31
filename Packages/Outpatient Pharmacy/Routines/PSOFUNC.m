@@ -1,5 +1,5 @@
 PSOFUNC ;BHAM ISC/DRI - functions moved from the psf global ; 10/26/92 11:49
- ;;7.0;OUTPATIENT PHARMACY;**146**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**146,223,249**;DEC 1997;Build 9
 STAT ;gets status of rx
  S ST0=+$P(RX0,"^",15) I ST0<12,$O(^PS(52.5,"B",J,0)),$D(^PS(52.5,+$O(^(0)),0)),'$G(^("P")) S ST0=5
  I ST0<12,$P(RX2,"^",6)<DT S ST0=11
@@ -19,5 +19,5 @@ INP526 ;input transform for drug field (#6) in prescription file (#52)
 INP5261 D EN^DDIOL("Duplicate Drug in Rx #"_$P(^PSRX(RX,0),"^")_" . Discontinue? (Y/N): ","","$C(7),?10") R ZX:DTIME
  I ZX["^" D EN^DDIOL("NO UP ARROW ALLOWED","","!") S ZX="?"
  I ZX["?" D EN^DDIOL("Enter Y to discontinue this Prescription","","!") D EN^DDIOL(" ","","!") G INP5261
- S ZX=ZX?1"Y".E I ZX S $P(^PSRX(RX,"STA"),"^")=12 D CAN^PSOTPCAN(RX) D EN^DDIOL("     Discontinued") Q
+ S ZX=ZX?1"Y".E I ZX S $P(^PSRX(RX,"STA"),"^")=12,$P(^PSRX(RX,3),"^",5)=DT D CAN^PSOTPCAN(RX) D EN^DDIOL("     Discontinued") Q
  K X,XS,ZS Q

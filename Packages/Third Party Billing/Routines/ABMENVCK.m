@@ -1,5 +1,5 @@
 ABMENVCK ;IHS/SD/SDR - ENVIRONMENT CHECKER ;   
- ;;2.6;IHS Third Party Billing;**1,2,3,4,5,6,7,8,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,2,3,4,5,6,7,8,9,10**;NOV 12, 2009;Build 213
  ;
  ;
  I '$G(DUZ) W !,"DUZ UNDEFINED OR 0." D SORRY(2) Q
@@ -51,6 +51,15 @@ ABMENVCK ;IHS/SD/SDR - ENVIRONMENT CHECKER ;
  S X=$$PATCH^XPDUTL("XU*8.0*1014")
  I X'=1 W !,$$CJ^XLFSTR("KERNEL v8.0 Patch 1014 NOT INSTALLED",IOM) S XPDQUIT=2
  I X=1 W !,$$CJ^XLFSTR("XU Patch 1014 installed.",IOM)
+ ;
+ ;start new code abm*2.6*10
+ N X,ABM,I
+ S ABM=1
+ F I=1:1:3 D
+ .S X=$$PATCH^XPDUTL("BCSV*1.0*"_I)
+ .I X'=1 S ABM=0 W !,$$CJ^XLFSTR("Need BCSV IHS Code Set Versioning v1.0 Patch "_I_"..... "_$S(ABM=0:"NOT ",1:"")_"Present",IOM)
+ I ABM=0 S XPDQUIT=2
+ ;end new code abm*2.6*10
  ;
  NEW DA,DIC
  S X="ABM",DIC="^DIC(9.4,",DIC(0)="",D="C"

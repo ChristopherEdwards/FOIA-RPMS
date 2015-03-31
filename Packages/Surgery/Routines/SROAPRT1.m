@@ -1,28 +1,57 @@
-SROAPRT1 ;B'HAM ISC/MAM - PREOP INFO (PAGE 1) ; 17 MAR 1992 5:05 pm
- ;;3.0; Surgery ;**38,47**;24 Jun 93
- F I=0,200 S SRA(I)=$G(^SRF(SRTN,I))
- S NYUK=$P(SRA(200),"^") D YN S SRAO(1)=SHEMP_"^402"
- S X=$P(SRA(200),"^",2),X=$S(X="N":"NO",X="O":"ORAL",X="I":"INSULIN",X="NS":"NO STUDY",1:""),SRAO("1A")=X_"^346"
- S NYUK=$P(SRA(200),"^",3) D YN S SRAO("1B")=SHEMP_"^202",NYUK=$P(SRA(200),"^",4) D YN S SRAO("1C")=SHEMP_"^246"
- S X=$P(SRA(200),"^",6),X=$S(X=1:"                   NO",X=2:"          MINIMAL EXERTION",X=3:"                AT REST",X="NS":"                   NS",1:""),SRAO("1D")=X_"^325"
- S NYUK=$P(SRA(200),"^",7) D YN S SRAO("1E")=SHEMP_"^238",X=$P(SRA(200),"^",8),X=$S(X=1:"INDEPENDENT",X=2:"PARTIAL DEPENDENT",X=3:"TOTAL DEPENDENT",1:""),SRAO("1F")=X_"^240"
- S NYUK=$P(SRA(200),"^",9) D YN S SRAO(2)=SHEMP_"^241",NYUK=$P(SRA(200),"^",10) D YN S SRAO("2A")=SHEMP_"^204",NYUK=$P(SRA(200),"^",11) D YN S SRAO("2B")=SHEMP_"^203"
- S NYUK=$P(SRA(200),"^",12) D YN S SRAO("2C")=SHEMP_"^326"
- S NYUK=$P(SRA(200),"^",13) D YN S SRAO(3)=SHEMP_"^244",NYUK=$P(SRA(200),"^",15) D YN S SRAO("3A")=SHEMP_"^212"
- S NYUK=$P(SRA(200),"^",30) D YN S SRAO(4)=SHEMP_"^242",NYUK=$P(SRA(200),"^",35) D YN S SRAO("4A")=SHEMP_"^396"
- S NYUK=$P(SRA(200),"^",37) D YN S SRAO(5)=SHEMP_"^243",NYUK=$P(SRA(200),"^",38) D YN S SRAO("5A")=SHEMP_"^328",NYUK=$P(SRA(200),"^",39) D YN S SRAO("5B")=SHEMP_"^211"
- S X=$P($G(^SRF(SRTN,208)),"^",9),SRAO("1B1")=X_"^202.1"
- W:$E(IOST)="P" ! W !,?28,"PREOPERATIVE INFORMATION",!
- W !!,"GENERAL:",?29,$P(SRAO(1),"^"),?40,"HEPATOBILIARY:",?72,$P(SRAO(3),"^")
- W !,"Diabetes Mellitus:",?29,$P(SRAO("1A"),"^"),?40,"Ascites:",?72,$P(SRAO("3A"),"^")
- W !,"Current Smoker W/I 1 Year:",?29,$P(SRAO("1B"),"^"),!,"Pack/Years:",?29,$P(SRAO("1B1"),"^")
- W !,"ETOH > 2 Drinks/Day:",?29,$P(SRAO("1C"),"^"),?40,"CARDIAC:",?72,$P(SRAO(4),"^")
- W !,"Dyspnea:  "_$P(SRAO("1D"),"^"),?40,"CHF Within 1 Month:",?72,$P(SRAO("4A"),"^")
- W !,"DNR Status: ",?29,$P(SRAO("1E"),"^"),!,"Functional Status:  "_$P(SRAO("1F"),"^"),?40,"RENAL:",?72,$P(SRAO(5),"^"),!,?40,"Acute Renal Failure:",?72,$P(SRAO("5A"),"^")
- W !,"PULMONARY:",?29,$P(SRAO(2),"^"),?40,"Currently on Dialysis:",?72,$P(SRAO("5B"),"^")
- W !,"Ventilator Dependent:",?29,$P(SRAO("2A"),"^")
- W !,"History of Severe COPD:",?29,$P(SRAO("2B"),"^"),!,"Current Pneumonia:",?29,$P(SRAO("2C"),"^")
+SROAPRT1 ;BIR/MAM - PREOP INFO (PAGE 1) ;11/28/07
+ ;;3.0; Surgery ;**38,47,125,153,166**;24 Jun 93;Build 6
+ N SRX,Y F I=200,206 S SRA(I)=$G(^SRF(SRTN,I))
+ S Y=$P(SRA(200),"^"),SRX=402,SRAO(1)=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(206),"^"),SRX=236,SRAO("1A")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(206),"^",2),SRX=237,SRAO("1B")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",2),SRX=346,SRAO("1C")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",3),SRX=202,SRAO("1D")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",4),SRX=246,SRAO("1E")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",6),SRX=325,SRAO("1F")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",7),SRX=238,SRAO("1G")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P($G(^SRF(SRTN,200.1)),"^",2),SRX=492,SRAO("1H")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",9),SRX=241,SRAO(2)=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",10),SRX=204,SRAO("2A")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",11),SRX=203,SRAO("2B")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",12),SRX=326,SRAO("2C")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",13),SRX=244,SRAO(3)=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",15),SRX=212,SRAO("3A")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P($G(^SRF(SRTN,200.1)),"^"),SRX=486,SRAO(4)=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",16),SRX=213,SRAO("4A")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",30),SRX=242,SRAO(5)=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",35),SRX=396,SRAO("5A")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",31),SRX=394,SRAO("5B")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",32),SRX=220,SRAO("5C")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",33),SRX=266,SRAO("5D")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",34),SRX=395,SRAO("5E")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",36),SRX=208,SRAO("5F")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",40),SRX=206,SRAO(6)=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",41),SRX=329,SRAO("6A")=$$OUT(SRX,Y)_"^"_SRX
+ S Y=$P(SRA(200),"^",42),SRX=330,SRAO("6B")=$$OUT(SRX,Y)_"^"_SRX
+ W:$E(IOST)="P" ! W !,?28,"PREOPERATIVE INFORMATION",!!
+ W "GENERAL:",?31,$P(SRAO(1),"^"),?40,"GASTROINTESTINAL:",?72,$P(SRAO(4),"^")
+ W !,"Height: ",?22,$J($P(SRAO("1A"),"^"),15),?40,"Esophageal Varices:",?72,$P(SRAO("4A"),"^")
+ W !,"Weight:",?22,$J($P(SRAO("1B"),"^"),15)
+ W !,"Diabetes Mellitus:",?31,$P(SRAO("1C"),"^"),?40,"CARDIAC:",?72,$P(SRAO(5),"^")
+ W !,"Current Smoker W/I 1 Year:",?31,$P(SRAO("1D"),"^"),?40,"CHF Within 1 Month:",?72,$P(SRAO("5A"),"^")
+ W !,"ETOH > 2 Drinks/Day:",?31,$P(SRAO("1E"),"^"),?40,"MI Within 6 Months:",?72,$P(SRAO("5B"),"^")
+ W !,"Dyspnea: ",?13,$J($P(SRAO("1F"),"^"),25),?40,"Previous PCI:",?72,$P(SRAO("5C"),"^")
+ W !,"DNR Status: ",?31,$P(SRAO("1G"),"^"),?40,"Previous Cardiac Surgery:",?72,$P(SRAO("5D"),"^")
+ W !,"Preop Funct Status: ",$J($P(SRAO("1H"),"^"),17),?40,"Angina Within 1 Month:",?72,$P(SRAO("5E"),"^")
+ W !,?40,"Hypertension Requiring Meds:",?72,$P(SRAO("5F"),"^")
+ W !,"PULMONARY:",?31,$P(SRAO(2),"^")
+ W !,"Ventilator Dependent:",?31,$P(SRAO("2A"),"^"),?40,"VASCULAR:",?72,$P(SRAO(6),"^")
+ W !,"History of Severe COPD:",?31,$P(SRAO("2B"),"^"),?40,"Revascularization/Amputation:",?72,$P(SRAO("6A"),"^")
+ W !,"Current Pneumonia:",?31,$P(SRAO("2C"),"^"),?40,"Rest Pain/Gangrene:",?72,$P(SRAO("6B"),"^")
+ W !!,"HEPATOBILIARY:",?31,$P(SRAO(3),"^"),!,"Ascites:",?31,$P(SRAO("3A"),"^")
  Q
-YN ; store answer
- S SHEMP=$S(NYUK="NS":"NS",NYUK="N":"NO",NYUK="Y":"YES",1:"")
- Q
+OUT(SRFLD,SRY) ; get data in output form
+ N C,Y
+ S Y=SRY,C=$P(^DD(130,SRFLD,0),"^",2) D:Y'="" Y^DIQ
+ I Y="NO STUDY" S Y="NS"
+ I SRFLD=236!(SRFLD=237)!(SRFLD=346) S Y=$E(Y,1,15)
+ I SRFLD=240!(SRFLD=492) D
+ .I SRY=2 S Y="PARTIAL DEPENDENT" Q
+ .I SRY=4 S Y=Y_"  "
+ I SRFLD=325,$L(Y)=2 S Y=Y_"     "
+ Q Y

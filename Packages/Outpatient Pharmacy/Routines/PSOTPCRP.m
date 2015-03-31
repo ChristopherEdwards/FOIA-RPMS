@@ -1,5 +1,6 @@
 PSOTPCRP ;BIR/RTR-Non VA phycisian eligible patient report ;07/07/03
- ;;7.0;OUTPATIENT PHARMACY;**145,153**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**145,153,227**;DEC 1997
+ Q  ;placed out of order by patch PSO*7*227
 EN ;
  W !!,"This report prints entries from the TPB ELIGIBILITY file (#52.91)."
  W !,"If multiple Institutions are selected, and some Institutions have data and",!,"some don't, only those Institutions that have data will print on the report.",!

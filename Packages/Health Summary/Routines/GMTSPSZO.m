@@ -1,12 +1,16 @@
 GMTSPSZO ;SLC/JER - OP Rx 5.6 Summary Component ;12/2/91  13:45 ;
- ;;2.7;Health Summary;;Oct 20, 1995
+ ;;2.7;Health Summary;**80**;Oct 20, 1995;Build 9
 GMTSPSO ;SLC/JER - OP Rx Summary Component ;12/2/91  13:45 ;
  ;;2.7;Health Summary;;Oct 20, 1995
 MAIN N ECD,GMR,GMW,IX,PSOBEGIN
  S PSOBEGIN=$S(GMTS2'=9999999:(9999999-GMTS2),1:"")
  I PSOBEGIN="" S PSOACT=1
- K ^UTILITY("PSOO",$J) I '$D(^PS(55,DFN,"P")),'$D(^("ARC")) Q
- I '$O(^PS(55,DFN,"P",0)),$D(^PS(55,DFN,"ARC")) D CKP^GMTSUP Q:$D(GMTSQIT)  W "Patient Has Archived OP Prescriptions",!
+ K ^UTILITY("PSOO",$J),^TMP($J,"GMTSPS")
+ D PROF^PSO52API(DFN,"GMTSPS",1,9999999)
+ I +$G(^TMP($J,"GMTSPS",DFN,0))<1,'$D(^TMP($J,"GMTSPS",DFN,"ARC")) Q
+ I '$G(^TMP($J,"GMTSPS",DFN,0)),$D(^TMP($J,"GMTSPS",DFN,"ARC")) D CKP^GMTSUP Q:$D(GMTSQIT)  W "Patient Has Archived OP Prescriptions",!
+ ;I '$D(^PS(55,DFN,"P")),'$D(^("ARC")) Q
+ ;I '$O(^PS(55,DFN,"P",0)),$D(^PS(55,DFN,"ARC")) D CKP^GMTSUP Q:$D(GMTSQIT)  W "Patient Has Archived OP Prescriptions",!
  D ^PSOHCSUM I '$D(^UTILITY("PSOO",$J)) Q
  I $D(^DPT(DFN,.1)),^(.1)]"",$D(^DIC(59,+$O(^DIC(59,0)),1)),$P(^(1),"^",8) D CKP^GMTSUP Q:$D(GMTSQIT)  W "Outpatient prescriptions are cancelled 72 hours after admission",!
  S GMTSLO=GMTSLO+3

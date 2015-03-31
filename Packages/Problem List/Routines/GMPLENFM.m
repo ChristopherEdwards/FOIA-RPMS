@@ -1,5 +1,5 @@
 GMPLENFM ; SLC/MKB/KER -- Problem List Enc Form utilities ; 04/15/2002
- ;;2.0;Problem List;**3,4,7,26**;Aug 25, 1994
+ ;;2.0;Problem List;**3,4,7,26,35**;Aug 25, 1994;Build 26
  ;
  ; External References
  ;   DBIA 10082  ^ICD9(
@@ -15,12 +15,14 @@ ACTIVE ; List of Active Problems for DFN
  ;         3:  Date of Onset     00/00/00 format
  ;         4:  SC/NSC/""         serv-conn/not sc/unknown
  ;         5:  Y/N/""            serv-conn/not sc/unknown
- ;         6:  A/R/C/H/M/""      If problem is flagged as:
+ ;         6:  A/I/E/H/M/C/S/""      If problem is flagged as:
  ;                               A - Agent Orange
- ;                               R - Radiation
- ;                               C - Contaminants
+ ;                               I - Ionizing Radiation
+ ;                               E - Environmental Contaminants
  ;                               H - Head/Neck Cancer
  ;                               M - Mil Sexual Trauma
+ ;                               C - Combat Vet
+ ;                               S - SHAD
  ;                                 - None
  ;         7:  Special Exposure  Full text of piece 6
  ;                    
@@ -38,7 +40,9 @@ ACTIVE ; List of Active Problems for DFN
  . S PROB=PROB_U_$P($G(^ICD9(+$P(GMPL0,U),0)),U)
  . S PROB=PROB_U_$$EXTDT^GMPLX($P(GMPL0,U,13)),SC=$P(GMPL1,U,10)
  . S PROB=PROB_U_$S(+SC:"SC^Y",SC=0:"NSC^N",1:"^")
- . S PROB=PROB_U_$S($P(GMPL1,U,11):"A^Agent Orange",$P(GMPL1,U,12):"R^Radiation",$P(GMPL1,U,13):"C^Contaminants",$P(GMPL1,U,13):"H^Head/Neck Cancer",$P(GMPL1,U,16):"M^Mil Sexual Trauma",1:"^")
+ . S PROB=PROB_U_$$GMPL1
+ . ;S PROB=PROB_U_$S($P(GMPL1,U,11):"A^Agent Orange",$P(GMPL1,U,12):"I^Ionizing Radiation",$P(GMPL1,U,13):"E^Env. Contaminants"
+ . ;,$P(GMPL1,U,13):"H^Head/Neck Cancer",$P(GMPL1,U,16):"M^Mil Sexual Trauma",$P(GMPL1,U,17):"C^Combat Vet",$P(GMPL1,U,18):"S^SHAD",1:"^")
  . S ^TMP("IB",$J,"INTERFACES",+$G(DFN),"GMP PATIENT ACTIVE PROBLEMS",CNT)=PROB
  S ^TMP("IB",$J,"INTERFACES",+$G(DFN),"GMP PATIENT ACTIVE PROBLEMS",0)=CNT
  Q
@@ -68,12 +72,14 @@ DSELECT ; List of Active Problems for DFN
  ;         4:  Date of Onset     00/00/00 format
  ;         5:  SC/NSC/""         serv-conn/not sc/unknown
  ;         6:  Y/N/""            serv-conn/not sc/unknown
- ;         7:  A/R/C/H/M/""      If problem is flagged as:
+ ;         7:  A/I/E/H/M/C/S/""      If problem is flagged as:
  ;                               A - Agent Orange
- ;                               R - Radiation
- ;                               C - Contaminants
+ ;                               I - Ionizing Radiation
+ ;                               E - Environmental Contaminants
  ;                               H - Head/Neck Cancer
  ;                               M - Mil Sexual Trauma
+ ;                               C - Combat Vet
+ ;                               S - SHAD
  ;                                 - None
  ;         8:  Special Exposure  Full text of piece 6
  ;                
@@ -91,7 +97,15 @@ DSELECT ; List of Active Problems for DFN
  . S PROB=PROB_U_$P($G(^ICD9(+$P(GMPL0,U),0)),U)
  . S PROB=PROB_U_$$EXTDT^GMPLX($P(GMPL0,U,13)),SC=$P(GMPL1,U,10)
  . S PROB=PROB_U_$S(+SC:"SC^Y",SC=0:"NSC^N",1:"^")
- . S PROB=PROB_U_$S($P(GMPL1,U,11):"A^Agent Orange",$P(GMPL1,U,12):"R^Radiation",$P(GMPL1,U,13):"C^Contaminants",$P(GMPL1,U,13):"H^Head/Neck Cancer",$P(GMPL1,U,16):"M^Mil Sexual Trauma",1:"^")
+ . S PROB=PROB_U_$$GMPL1
+ . ;S PROB=PROB_U_$S($P(GMPL1,U,11):"A^Agent Orange",$P(GMPL1,U,12):"I^Radiation",$P(GMPL1,U,13):"E^Contaminants",$P(GMPL1,U,13):"H^Head/Neck Cancer"
+ . ;,$P(GMPL1,U,16):"M^Mil Sexual Trauma",$P(GMPL1,U,17):"C^Combat Vet",$P(GMPL1,U,18):"S^SHAD",1:"^")
  . S ^TMP("IB",$J,"INTERFACES","GMP SELECT PATIENT ACTIVE PROBLEMS",CNT)=PROB
  S ^TMP("IB",$J,"INTERFACES","GMP SELECT PATIENT ACTIVE PROBLEMS",0)=CNT
  Q
+ ;
+GMPL1() ;Determine Treatment Factor, if any
+ N NXTTF,TXFACTOR
+ S TXFACTOR="^"
+ F NXTTF=11,12,13,15,16,17,18 I $P(GMPL1,U,NXTTF) S TXFACTOR=$P("A^Agent Orange;I^Ionizing Radiation;E^Env. Contaminants;;H^Head/Neck Cancer;M^Mil Sexual Trauma;C^Combat Vet;S^SHAD",";",NXTTF-10) Q
+ Q TXFACTOR

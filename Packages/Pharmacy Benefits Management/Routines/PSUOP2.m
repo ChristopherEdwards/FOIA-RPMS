@@ -1,16 +1,17 @@
-PSUOP2 ;BIR/CFL - PSU PBM Outpatient Pharmacy Data Collection for Version 7.0 ; 01 May 2001  10:57 AM
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**3,16,18,19**;Oct 15, 1998
+PSUOP2 ;BIR/CFL - PSU PBM Outpatient Pharmacy Data Collection for Version 7.0 ; 7/11/06 4:21pm
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;**6,8,9**;MARCH, 2005;Build 6
  ;
  ;DBIAs
  ; Reference to ^PSRX( file # 52 supported by DBIAs 465, 2512
- ; Reference to EN^PSOORDER      supported by DBIA 2512
+ ; Reference to EN^PSOORDER      supported by DBIA 1878
+ ; 
  ;
 EN ;Entry to data collection
  D ALLOOP,AMLOOP
  K ^TMP("PSOR",$J)
  Q
-ALLOOP ;Loop through the AL cross reference
- N PSUDOC1,PSUCAN
+ALLOOP ;Loop through the AL cross refererence
+ N PSUDOC1,PSUCAN,PSUCL,PSUCMP,PSUFP,PSUORDT,PSUCO
  S PSUFDT=PSUSDT,PSUEDTM=PSUEDT_".24"
  F  S PSUFDT=$O(^PSRX("AL",PSUFDT)) Q:PSUFDT=""!(PSUFDT>PSUEDTM)  D
  .S PSURXIEN=""
@@ -18,16 +19,17 @@ ALLOOP ;Loop through the AL cross reference
  ..Q:$D(^XTMP(PSUOPSUB,"RXIEN",PSURXIEN))  ; already been processed
  ..Q:'$D(^PSRX(PSURXIEN,0))  ; watch out for dangling pointers
  ..S PSUCAN=$$GET1^DIQ(52,PSURXIEN,26.1,"I")   ;Cancel date
- ..D GETS^PSUTL(52,PSURXIEN,"2;27","PSUOP","I")
+ ..D GETS^PSUTL(52,PSURXIEN,"2;21;27","PSUOP","I")
  ..D MOVEI^PSUTL("PSUOP")
  ..S DFN=PSUOP(2)
- ..; Screen out test patients
+ ..;
  ..Q:$$TESTPAT^PSUTL1(DFN)
  ..D PID^VADPT
  ..S PSUSSN=$TR(VA("PID"),"^-","")
  ..N PSUPSO S PSUPSO=1   ;flag to avoid a PSO error when SIG is too long
  ..D EN^PSOORDER(DFN,PSURXIEN)
  ..Q:'$D(^TMP("PSOR",$J))
+ ..D EN^PSUOPAM      ;Gather AMIS data
  ..D CMOPA ; set array of CMOP recs
  ..D NEW ; check ^TMP to see if New Rx is in time frame, if so create record.
  ..D REF ; check ^TMP to see if refills are in time frame, if so create records
@@ -51,6 +53,7 @@ AMLOOP ; loop through "AM", partials, cross reference to see if any were missed
  ..D PID^VADPT
  ..S PSUSSN=$TR(VA("PID"),"^-","")
  ..D EN^PSOORDER(DFN,PSURXIEN)
+ ..D EN^PSUOPAM      ;Gather AMIS data   PSU*4*5 fix
  ..D PAR ; check ^TMP to see if partials are in time frame, if so create records
  Q
  ;
@@ -60,7 +63,10 @@ NEW ; New Rx
  S PSUTYP="N"
  S PSUCMOP=$S($D(PSUCMA(0)):"Y",1:"N")
  S PSUR0=^TMP("PSOR",$J,PSURXIEN,0)
+ S PSUORDT=$P(PSUR0,U,17)     ;AMIS Original Login Date
  S PSUQTY=+$P(PSUR0,U,6)
+ ;
+ ;
  S PSUDS=$P(PSUR0,U,7)
  S PSUDRCT=$P(PSUR0,U,10)
  S PSURELDT=$P($P(PSUR0,U,13),".",1)
@@ -69,10 +75,14 @@ NEW ; New Rx
 NEWX1 ;I PSUCMOP="Y" Q:((PSURELDT="")!(PSURELDT<PSUSDT)!(PSURELDT>PSUEDTM))
 NEWX2 ;I PSUCMOP="N",((PSUFD<PSUSDT)!(PSUFD\1>PSUEDT)) Q
  S PSUR1=^TMP("PSOR",$J,PSURXIEN,1)
+ ; MOVE NEXT 2 LINES TO COMMON VARIABLE AREA
+ ;S PSUCLN=$P($P(PSUR1,U,4),";",2)          ;AMIS data clinic
+ ;S PSUFP=$P($P(PSUR1,U,9),";",1)           ;AMIS finishing person
  S PSUPRID=$P($P(PSUR1,U,1),";",1)
  S PSURXP=$P($P(PSUR1,U,5),";",1)
  S PSUMW=$P($P(PSUR1,U,6),";",1)
  S PSUDIVP=$P(PSUR1,U,7)
+ ;
  S PSUNDC=""
  I PSUCMOP="Y" S PSUNDC=PSUCMA(0)
  I PSUNDC="" S PSUNDC=$S($L(PSUOP(27)):PSUOP(27),$L(PSUDRUG(31)):PSUDRUG(31),1:"No NDC")
@@ -88,6 +98,9 @@ REF ; Refills
  .S PSUTYP="R"
  .S PSUCMOP=$S($D(PSUCMA(PSUFLN)):"Y",1:"N")
  .S PSUR0=^TMP("PSOR",$J,PSURXIEN,"REF",PSUFLN,0)
+ .N PSUCLN,PSUR1
+ .S PSUR1=^TMP("PSOR",$J,PSURXIEN,1)
+ .S PSUCLN=$P($P(PSUR1,U,4),";",2)
  .S PSUWPC="N"
  .S PSUFD=$P(PSUR0,U,1)
  .S PSUPRID=$P($P(PSUR0,U,2),";",1)
@@ -98,6 +111,7 @@ REF ; Refills
  .Q:((PSURELDT<PSUSDT)!(PSURELDT>PSUEDTM))
  .S PSUMW=$P($P(PSUR0,U,10),";",1)
  .S PSUDIVP=$P(PSUR0,U,11)
+ .S PSUREDT=$P(PSUR0,U,12)     ;AMIS Refill Login Date
  .I PSURELDT'="" S PSURELDT=PSURELDT\1
  .;I PSUCMOP="Y" Q:((PSURELDT="")!(PSURELDT<PSUSDT)!(PSURELDT>PSUEDTM))
  .;I PSUCMOP="N",((PSUFD<PSUSDT)!(PSUFD\1>PSUEDT)) Q
@@ -105,6 +119,7 @@ REF ; Refills
  .I PSUCMOP="Y" S PSUNDC=PSUCMA(PSUFLN)
  .I PSUNDC="" S PSUNDC=$$VALI^PSUTL(52.1,PSURXIEN,11)
  .I PSUNDC="" S PSUNDC=$S(PSUDRUG(31)'="":PSUDRUG(31),1:"No NDC")
+ .;
  .D PROVDR^PSUOP3
  .D SETREC^PSUOP3
 REFQ Q
@@ -115,6 +130,9 @@ PAR ; Partials
  S PSUFLN=""
  F  S PSUFLN=$O(^TMP("PSOR",$J,PSURXIEN,"RPAR",PSUFLN)) Q:PSUFLN=""  D
  .S PSUR0=^TMP("PSOR",$J,PSURXIEN,"RPAR",PSUFLN,0)
+ .N PSUCLN,PSUR1
+ .S PSUR1=^TMP("PSOR",$J,PSURXIEN,1)
+ .S PSUCLN=$P($P(PSUR1,U,4),";",2)
  .S PSUTYP="P"
  .S PSUCMOP="N"
  .S PSUWPC="N"
@@ -127,19 +145,25 @@ PAR ; Partials
  .S PSURELDT=$P(PSUR0,U,8)
  .S PSUMW=$P($P(PSUR0,U,10),";",1)
  .S PSUDIVP=$P(PSUR0,U,11)
+ .S PSUPDT=$P(PSUR0,U,12)       ;AMIS Partial Login Date
  .I PSURELDT'="" S PSURELDT=PSURELDT\1
  .Q:((PSURELDT<PSUSDT)!(PSURELDT>PSUEDTM))
  .S PSUNDC=$$VALI^PSUTL(52.2,PSURXIEN,1)
  .I PSUNDC="" S PSUNDC=$S(PSUDRUG(31)'="":PSUDRUG(31),1:"No NDC")
+ .;
  .D PROVDR^PSUOP3
  .D SETREC^PSUOP3
 PARQ Q
  ;
 COMVAR ; set variables that are common between all record types
  S PSUDR=$P($P(^TMP("PSOR",$J,PSURXIEN,"DRUG",0),U,1),";",1)
+ ;S CMOPID=$P($G(^PSDRUG(PSUDR,"ND")),U,10)     ;AMIS CMOP ID
  S PSUSIG=$P($G(^TMP("PSOR",$J,PSURXIEN,"SIG",1,0)),U,1)
  S PSURXP=$P($P(^TMP("PSOR",$J,PSURXIEN,1),U,5),";",1)
  S PSURXN=$P(^TMP("PSOR",$J,PSURXIEN,0),U,5)
+ ; PSU*4*9 - INSERT NEXT 2 LINES
+ S PSUCLN=$P($P(^TMP("PSOR",$J,PSURXIEN,1),U,4),";",2)   ;AMIS CLINIC
+ S PSUFP=$P($P(^TMP("PSOR",$J,PSURXIEN,1),U,9),";",1)  ;FINISHING PERSON
  D GETDRUG^PSUOP3 ; loads data from file #50 using PSUDR as ien
 COMVARQ Q
  ;

@@ -1,11 +1,8 @@
-PSOORNE3 ;ISC-BHAM/SAB - display pending orders from backdoor ;13-Feb-2012 16:55;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,9,39,59,46,103,124,139,152,1005,1006,1008,1013**;DEC 1997;Build 33
- ;External reference to ^SC (File #44) (DBIA 10040)
- ;External reference to ^PSXOPUTL (DBIA 2200)
- ;External reference to ^PS(50.606 (DBIA 2174)
- ;External reference to ^PS(50.7 (DBIA 2223)
- ;External reference to ^PS(55 (DBIA 2228)
- ;External reference to ^PSDRUG (DBIA 221)
+PSOORNE3 ;ISC-BHAM/SAB - display pending orders from backdoor ;29-May-2012 14:59;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**11,9,39,59,46,103,124,139,152,1005,1006,1008,1013,194,1015**;DEC 1997;Build 62
+ ;Ext ref to ^SC (File #44) (DBIA 10040),^PSXOPUTL (DBIA 2200)
+ ;^PS(50.606 (DBIA 2174),^PS(50.7 DBIA 2223),^PS(55,DBIA 2228)
+ ;^PSDRUG (DBIA 221)
  ; Modified - IHS/CIA/PLS 01/27/04 - Added display of IHS Fields DSP+14 and PSOORNE3+44
  ;            IHS/MSC/PLS - 03/13/08 - Added line PSOORNE3+53 and DSP+24
  ;                          01/23/09 - Added line PSOORNE3+54 and DSP+25
@@ -63,6 +60,8 @@ PSOORNE3 ;ISC-BHAM/SAB - display pending orders from backdoor ;13-Feb-2012 16:55
  Q
 DSPL ;backdoor
  K ^TMP("PSOPO",$J) D DIN^PSONFI(PSODRUG("OI"),$S($G(PSODRUG("IEN")):PSODRUG("IEN"),1:"")) ;NFI
+ I $D(RX0),$D(PSODRUG("IEN")) D
+ .I PSODRUG("IEN")=$P(RX0,"^",6)!($P(PSLST,",",2)) D RST
  S IEN=0,IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="      Orderable Item: "_$P(^PS(50.7,PSODRUG("OI"),0),"^")_" "_$P(^PS(50.606,$P(^(0),"^",2),0),"^")_NFIO
  S:NFIO["DIN" NFIO=IEN_","_($L(^TMP("PSOPO",$J,IEN,0))-4)
  I $G(PSODRUG("NAME"))]"" D  G PST
@@ -93,6 +92,9 @@ PST S:$G(PSODRUG("TRADE NAME"))]"" IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="          T
  .S X=PSONEW("SIG") D SIGONE^PSOHELP S SIG=$E($G(INS1),2,250)
  .F SG=1:1:$L(SIG) S:$L(^TMP("PSOPO",$J,IEN,0)_" "_$P(SIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOPO",$J,IEN,0)," ",21)=" " S:$P(SIG," ",SG)'="" ^TMP("PSOPO",$J,IEN,0)=$G(^TMP("PSOPO",$J,IEN,0))_" "_$P(SIG," ",SG)
 DSP S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="  (7)    Days Supply: "_PSONEW("DAYS SUPPLY")_$S($L(PSONEW("DAYS SUPPLY"))=1:" ",1:"")
+ I '$D(PSONEW("FLD")),$D(RX0) S PSONEW("QTY")=$P(RX0,"^",7)
+ ;if sched PSONEW("FLD") not def. qty reset
+ ;if qty PSONEW("FLD")=7, qty NOT reset
  S ^TMP("PSOPO",$J,IEN,0)=^TMP("PSOPO",$J,IEN,0)_"                     (8)   QTY"_$S($G(PSODRUG("UNIT"))]"":" ("_PSODRUG("UNIT")_")",1:" ( )")_": "_PSONEW("QTY")
  I $P($G(^PSDRUG(+$G(PSODRUG("IEN")),5)),"^")]"" D
  .S $P(RN," ",79)=" ",IEN=IEN+1
@@ -133,6 +135,10 @@ CMOP ;
  .S PSOCMOP=$S($G(PSXZ(PSXZ("L")))=0!($G(PSXZ(PSXZ("L")))=2):"Transmitted",$G(PSXZ(PSXZ("L")))=1:"Released",$G(PSXZ(PSXZ("L")))=3:"Not Dispensed",1:"")
  .I $G(PSXZ(PSXZ("L")))=3 F LBL=0:0 S LBL=$O(^PSRX(RXN,"L",LBL)) Q:'LBL  I $P(^PSRX(RXN,"L",LBL,0),"^",2)=PSXZ("L"),'$P(^(0),"^",5),$P(^(0),"^",3)'["INTERACTION" S PSOCMOP="Local"
  .K PSXZ
+ Q
+RST ;
+ S PSODRUG("IEN")=$P(RX0,"^",6),PSODRUG("OI")=$P(^PSDRUG(($P(RX0,"^",6)),2),"^")
+ S PSODRUG("NAME")=$P(^PSDRUG(($P(RX0,"^",6)),0),"^")
  Q
 RMK ;
  I $P(RX3,"^",7)]"" D

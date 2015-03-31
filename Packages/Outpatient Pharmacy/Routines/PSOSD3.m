@@ -1,5 +1,5 @@
-PSOSD3 ;BHAM ISC/RTR - Prints pending orders on action profile ;12-Oct-2007 14:57;SM
- ;;7.0;OUTPATIENT PHARMACY;**2,19,107,110,132,1005,1006**;DEC 1997
+PSOSD3 ;BHAM ISC/RTR - Prints pending orders on action profile ;29-May-2012 15:14;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**2,19,107,110,132,1005,1006,233,258,326,1015**;DEC 1997;Build 62
  ;External reference ^PS(50.7 - 2223
  ;External reference ^PS(50.606 - 2174
  ;External reference ^PSDRUG( - 221
@@ -10,7 +10,7 @@ PSOSD3 ;BHAM ISC/RTR - Prints pending orders on action profile ;12-Oct-2007 14:5
  ;            IHS/MSC/PLS - 10/11/07 - Non-VA MEDS to Outside Medications
 START Q:$D(DUOUT)!($D(DTOUT))!('$G(DFN))
  N MMM,PNDIS,PNDLINE,PNDREX,PNPOI,PPPP,PSOPRVD,PSCONT,PSOEFF,PSOQTY,PSOREFLS,PZSTAT,WWW
- D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9)&(+VAPA(10)):"Temporary ",1:"")
+ D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9):"Temporary ",1:"")
  S PSNAME=$E(VADM(1),1,28),PSDOB=$P(VADM(3),"^",2)
  K ^TMP($J,"PSOPEND") S $P(PNDLINE,"-",33)=""
  S PSCONT=1 F MMM=0:0 S MMM=$O(^PS(52.41,"P",DFN,MMM)) Q:'MMM  S PZSTAT=$P($G(^PS(52.41,MMM,0)),"^",3) I PZSTAT="NW"!(PZSTAT="HD")!(PZSTAT="RNW") D
@@ -31,7 +31,7 @@ HD W !,PNDLINE,"PENDING ORDERS",PNDLINE,! Q
  ;
 HD1 S FN=DFN
  I $E(IOST)="C" K DIR S DIR(0)="E",DIR("A")="Press Return to Continue or ""^"" to Exit" D ^DIR Q:$D(DUOUT)!($D(DTOUT))
- D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9)&(+VAPA(10)):"Temporary ",1:"")
+ D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9):"Temporary ",1:"")
  S PSNAME=$E(VADM(1),1,28),PSDOB=$P(VADM(3),"^",2)
  I $D(IOF) W @IOF
  W $S(PSTYPE:"Action",1:"Informational")_" Rx Profile",?47,"Run Date: " S Y=DT D DT^DIO2 W ?71,"Page: "_PAGE
@@ -42,8 +42,9 @@ HD1 S FN=DFN
  W @$S(PSORM:"?70",1:"!"),"Site: "_$P(X,"^",2)_" ("_$P(X,"^",3)_")",!,$E(LINE,1,$S('PSORM:80,1:IOM)-1)
  I $P(VAIN(4),"^",2)]"",+$P($G(^PS(59.7,1,40.1)),"^") W !,"Outpatient prescriptions are discontinued 72 hours after admission.",!
  I $D(CLINICX) W !?1,"Clinic: "_$E(CLINICX,1,28),?45,"Date/Time: " S Y=CLDT D DT^DIO2
- W !?1,"Name  : ",PSNAME,?30,"ID#: "_PSSN W:PSTYPE ?58,"Action Date: ________" W !?1,"DOB   : "_PSDOB
- W:ADDRFL]"" ?30,ADDRFL,! W ?30,"Address  : "
+ W !?1,"Name  : ",PSNAME W:PSTYPE ?58,"Action Date: ________" W !?1,"DOB   : "_PSDOB
+ W:ADDRFL]"" ?30,ADDRFL,! W ?30,"Address  :"
+ I $G(ADDRFL)="" D CHECKBAI^PSOSD1
  W ?41,VAPA(1) W:VAPA(2)]"" !?41,VAPA(2) W:VAPA(3)]"" !?41,VAPA(3)
  W !?41,VAPA(4)_", "_$P(VAPA(5),"^",2)_"  "_$S(VAPA(11)]"":$P(VAPA(11),"^",2),1:VAPA(6)),!?30,"Phone    : "_VAPA(8)
  I PSOBAR4 S X="S",X2=PSSN W @$S('PSORM:"!?30",1:"?$X+5") S X1=$X W @PSOBAR3,X2,@PSOBAR2,$C(13) S $X=0
@@ -60,9 +61,8 @@ HD1 S FN=DFN
 NVA ;displays non-va meds
  Q:'$O(^PS(55,DFN,"NVA",0))
  Q:$D(DUOUT)!($D(DTOUT))!('$G(DFN))
- D ELIG^PSOSD1,DEM^VADPT,INP^VADPT,ADD^VADPT,PID^VADPT S PSSN=VA("PID"),ADDRFL=$S(+VAPA(9)&(+VAPA(10)):"Temporary ",1:"")
- S PSNAME=$E(VADM(1),1,28),PSDOB=$P(VADM(3),"^",2),$P(PNDLINE,"-",IOM)="",PSODFN=DFN
- D HD1 W !,PNDLINE,!?25,"Outside Medications",!,PNDLINE,!
+ D HD1 S $P(PNDLINE,"-",IOM)="",PSODFN=DFN
+ W !,PNDLINE,!?25,"Outside Medications",!,PNDLINE,!   ;,"Non-VA Meds (Not dispensed by VA)",!,PNDLINE,!  - IHS/MSC/PLS - 5/14/2010
  F NVA=0:0 S NVA=$O(^PS(55,DFN,"NVA",NVA)) Q:'NVA  D  Q:$G(PSQFLG)
  .I $Y+6>IOSL D HD1 S:$D(DTOUT)!($D(DUOUT)) PSQFLG=1 Q:$G(PSQFLG)
  .Q:'$P(^PS(55,PSODFN,"NVA",NVA,0),"^")

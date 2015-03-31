@@ -1,5 +1,5 @@
 FHPRF2 ; HISC/REL - Print Diet Percentages ;4/27/93  13:41 
- ;;5.0;Dietetics;**37**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  S FHP=$O(^FH(119.72,0)) I FHP'<1,$O(^FH(119.72,FHP))<1 S FHP=0 G R1
 R0 R !!,"Select SERVICE POINT (or ALL): ",X:DTIME G:'$T!("^"[X) KIL D:X="all" TR^FH I X="ALL" S FHP=0
  E  K DIC S DIC="^FH(119.72,",DIC(0)="EMQ" D ^DIC G:Y<1 R0 S FHP=+Y

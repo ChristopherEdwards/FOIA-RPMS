@@ -1,5 +1,5 @@
-RAPCE ;HIRMFO/GJC-Interface with PCE APIs for wrkload, visits ;9/7/04 12:36pm
- ;;5.0;Radiology/Nuclear Medicine;**10,17,21,26,41,57,56**;Mar 16, 1998;Build 3
+RAPCE ;HIRMFO/GJC-Interface with PCE APIs for wrkload, visits ; 20 Apr 2011  7:29 PM
+ ;;5.0;Radiology/Nuclear Medicine;**10,17,21,26,41,57,56,1003**;Nov 01, 2010;Build 3
  ;Supported IA #2053 FILE^DIE
  ;Supported IA #4663 SWSTAT^IBBAPI
  ;Controlled IA #1889 DATA2PCE^PXAPI
@@ -23,7 +23,10 @@ COMPLETE(RADFN,RADTI,RACNI) ; When an exam status changes to 'complete'
  S RAXAMSET=+$P(RA7002,"^",5) ; is this part of an exam set? 1=YES
 EN2 S RA791=$G(^RA(79.1,+$P(RA7002,"^",4),0))
  ; Initialize variables required for PFSS 1B project and check the switch status.
- N RAPFSW,RACCOUNT S RAPFSW=$$SWSTAT^IBBAPI ; Requirement 12
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB pkg - set variable
+ ;N RAPFSW,RACCOUNT S RAPFSW=$$SWSTAT^IBBAPI ; Requirement 12
+ N RAPFSW S RAPFSW=0
+ ;End Patch
  Q:+$P(RA791,"^",21)=2  ; no credit, quit
  S RAEARRY="RAERROR" N @RAEARRY
 LON ; lock at P level
@@ -71,6 +74,10 @@ ENC(X) ; Set up the '"RAPXAPI",$J,"ENCOUNTER"' nodes
  S ^TMP("RAPXAPI",$J,"ENCOUNTER",X,"ENCOUNTER TYPE")="A"
  Q
 PCE(RADFN,RADTI,RACNI) ; Pass on the information to the PCE software
+ ;IHS/BJI/DAY - Patch 1003 - Continue Chris Saddler 2003 patch
+ ;Quit this section, and use IHS calls to PCC instead
+ Q
+ ;End Patch
  N RASULT
  ; If the PFSS switch is not active then do not pass RACCOUNT parameter to DATA2PCE call.
  I 'RAPFSW S RASULT=$$DATA2PCE^PXAPI("^TMP(""RAPXAPI"",$J)",RAPKG,"RAD/NUC MED",.RAVSIT,"","","","",.@RAEARRY)
@@ -121,7 +128,9 @@ PROC(X) ; Set up the other '"RAPXAPI",$J,"PROCEDURE"' nodes for this case
  S ^TMP("RAPXAPI",$J,"PROCEDURE",X,"ORD PROVIDER")=RA7003(14) ; Requesting Physician.
  S ^TMP("RAPXAPI",$J,"PROCEDURE",X,"EVENT D/T")=RADTE
  ; if the PFSS switch is active Get both Dept. Code and Account Reference Number (RACCOUNT)
- I RAPFSW D GETDEPT^RABWIBB ; Requirement 9
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;I RAPFSW D GETDEPT^RABWIBB ; Requirement 9
+ ;End Patch
  D CPTMOD(X)
  D PROCDX^RABWPCE(X) ; Add Ordering ICD Dx to each Procedure.
  Q

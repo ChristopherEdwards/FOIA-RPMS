@@ -1,5 +1,5 @@
 FHXUTL ; HISC/NCA - OE/RR Post-Init Clean Up of 2.5 Protocols ;11/10/97  12:52
- ;;5.0;Dietetics;**6**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  I +$$VERSION^XPDUTL("OR")'=3 W !,?10,"You do not have version 3 of Order Entry.",!,?10,"The Protocols will not be removed." Q
  Q:'$D(^ORD(101,0))
  S FHX="FHW"

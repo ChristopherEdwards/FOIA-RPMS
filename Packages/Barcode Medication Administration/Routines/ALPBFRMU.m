@@ -1,5 +1,5 @@
-ALPBFRMU ;OIFO-DALLAS MW,SED,KC-STANDARD PRINT FORMATTING UTILITIES;01/01/03
- ;;2.0;BAR CODE MED ADMIN;**17**;May 2002
+ALPBFRMU ;OIFO-DALLAS MW,SED,KC-PRINT FORMATTING UTILITIES;01/01/03
+ ;;3.0;BAR CODE MED ADMIN;**8**;Mar 2004
  ;
 FTEXT(COL,TEXT,RESULTS) ; format TEXT array...
  ; COL  = number of columns (line length)
@@ -60,6 +60,10 @@ HDR(DATA,PG,RESULTS) ; print page header...
  S RESULTS(4)=RESULTS(4)_$S($P(DATA(0),"^",8)'="":$$FMTE^XLFDT($P(DATA(0),"^",8)),1:"<date not on file>")
  S LINE=4
  ; report allergies...
+ I '$D(DATA(1,0)) D
+ .;no allergies reported
+ .S LINE=LINE+1,RESULTS(LINE)=""
+ .S RESULTS(LINE)="No allergies reported to the Contingency"
  I +$O(DATA(1,0)) D
  .S LINE=LINE+1
  .S RESULTS(LINE)=""

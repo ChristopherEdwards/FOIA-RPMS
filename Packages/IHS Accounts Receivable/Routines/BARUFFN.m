@@ -1,40 +1,8 @@
 BARUFFN ; IHS/SD/TPF - UFMS REPORT BY FILENAME ; 03/03/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,20**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,20,23**;OCT 26, 2005
  Q
  ;
 LKUP ;EP - LOOK UP BY FILENAME
- ;start old code IHS/SD/PKD 1.8*20
- ;N SEARCH,TARGET,CHOICE,ITEM,MAX,LINE,ESC,PREFIX,SUFFIX
- ;S PREFIX="IHS_AR_RPMS_RCV_"
- ;S SUFFIX=".DAT"
- ;D FNHDR
- ;S $P(LINE,"-",81)=""
- ;K DIR,DIC,DIE,DR,DA
- ;S DIR("?",1)="Enter a file name e.g. IHS_AR_RPMS_RCV_398_113510_20070806_0847.DAT,"
- ;S DIR("?",2)="or a partial filename IHS_AR_RPMS_RCV_398*, the * is a wildcard,"
- ;S DIR("?")="or * to list all UFMS files on file in the sessioning log"
- ;S DIR("A")="Enter a UFMS File name: "
- ;S DIR(0)="FO^1:20"
- ;D ^DIR
- ;Q:$D(DIRUT)!$D(DTOUT)!$D(DUOUT)!(Y="")
- ;;
- ;S ESC=0
- ;S TARGET=Y
- ;K CHOICES
- ;I Y="*" S SEARCH="",TARGET=""
- ;E  S SEARCH=TARGET-1
- ;S (MAX,ESC,CHOICE)=0
- ;F ITEM=1:1 S SEARCH=$O(^BARSESS(DUZ(2),"FN",SEARCH)) Q:SEARCH=""!($E(SEARCH,1,$L(TARGET))'=TARGET)!(ESC)!(CHOICE)  D
- ;.S CHOICES(ITEM)=SEARCH
- ;.S MAX=MAX+1
- ;.W !,ITEM_". "_PREFIX_CHOICES(ITEM)_SUFFIX
- ;.I '(ITEM#10)!('$O(^BARSESS(DUZ(2),"FN",SEARCH))) K DIR S DIR(0)="NO^1:"_MAX W ! D ^DIR Q:Y=""  S ESC=$D(DIRUT)!$D(DTOUT)!$D(DUOUT) Q:ESC  S CHOICE=CHOICES(+Y)
- ;I ITEM=2,$D(CHOICES) D FNDATA(CHOICES(1)) G LKUP
- ;G:ESC!'(CHOICE) LKUP
- ;D FNDATA(CHOICE)
- ;G LKUP
- ;end old code start new code IHS/SD/PKD
- ; DO loop, not GoTo to avoid stack overflow
  F  D FILENM Q:'$G(TARGET)!$G(ESC)
  Q
 FILENM ;

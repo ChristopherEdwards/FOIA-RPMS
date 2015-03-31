@@ -1,5 +1,5 @@
 ABMDVST6 ; IHS/ASDST/DMJ - PCC VISIT STUFF - DENTAL ; 
- ;;2.6;IHS Third Party Billing System;**2**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,11**;NOV 12, 2009;Build 133
  ;Original;TMD;03/26/96 10:50 AM
  ;
  ;IHS/DSD/JLG - 05/21/98 -  NOIS NCA-0598-180077
@@ -36,7 +36,8 @@ TEST I ABMR("CODE")]"" D  Q:'X
  S ABMSRC="05|"_ABM_"|DEN"
  S ABM("HIT")=1
  S DIC("P")=$P(^DD(9002274.3,33,0),U,2)
- S DIC("DR")=".02////510;.05////"_ABMR("OPSITE")_";.06////"_ABMR("SURF")_";.07////"_ABMCHVDT_";.08////"_ABM("CHRG")_";.09////"_ABMR("UNIT")
+ ;S DIC("DR")=".02////510;.05////"_ABMR("OPSITE")_";.06////"_ABMR("SURF")_";.07////"_ABMCHVDT_";.08////"_ABM("CHRG")_";.09////"_ABMR("UNIT")  ;abm*2.6*11 IHS/SD/AML HEAT92863
+ S DIC("DR")=".02////512;.05////"_ABMR("OPSITE")_";.06////"_ABMR("SURF")_";.07////"_ABMCHVDT_";.08////"_ABM("CHRG")_";.09////"_ABMR("UNIT")  ;abm*2.6*11 IHS/SD/AML HEAT92863 Dental Revenue Code
  ;Next line set correspond diagnosis if only 1 POV  
  I $D(ABMP("CORRSDIAG")) S DIC("DR")=DIC("DR")_";.04////1"
  S DIC("DR")=DIC("DR")_";.17////"_ABMSRC

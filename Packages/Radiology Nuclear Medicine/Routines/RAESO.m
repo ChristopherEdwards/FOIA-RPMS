@@ -1,5 +1,5 @@
-RAESO ;HISC/CAH,GJC AISC/SAW-Override Exam Status to Complete ;4/28/97  08:00
- ;;5.0;Radiology/Nuclear Medicine;**47**;Mar 16, 1998;Build 21
+RAESO ;HISC/CAH,GJC AISC/SAW-Override Exam Status to Complete ;4/28/97  08:00 [ 12/05/2011  10:27 AM ]
+ ;;5.0;Radiology/Nuclear Medicine;**47,1004**;Mar 16, 1998;Build 21
  ;Mass override exam status to complete
  D SET^RAPSET1 I $D(XQUIT) K XQUIT,POP Q
  N RAXIT,RASAVDR S RAXIT=0 D CZECH Q:RAXIT
@@ -7,10 +7,22 @@ RAESO ;HISC/CAH,GJC AISC/SAW-Override Exam Status to Complete ;4/28/97  08:00
  K DIR S DIR(0)="Y",DIR("A")="Are you sure you want to proceed" D ^DIR I Y'=1 G EXIT
  K DIR,X,Y
 ASK K DIC S DIC(0)="AEQM",DIC="^RA(72,"
- S DIC("S")="I $P(^(0),U,3)'=9,($P(^(0),U,3)'=0),($P(^(0),U,7)=+$O(^RA(79.2,""B"",RAIMGTY,0)))"
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Don't allow override to complete from waiting for exam
+ ;Patch 1004 - Continue Chris Saddler Patch from 2004
+ ;S DIC("S")="I $P(^(0),U,3)'=9,($P(^(0),U,3)'=0),($P(^(0),U,7)=+$O(^RA(79.2,""B"",RAIMGTY,0)))"
+ S DIC("S")="I $P(^(0),U,3)'=9,($P(^(0),U,3)'=1),($P(^(0),U,3)'=0),($P(^(0),U,7)=+$O(^RA(79.2,""B"",RAIMGTY,0)))"
+ ;End Patch
+ ;
  D ^DIC G EXIT:$D(DUOUT)!($D(DTOUT)) I Y'<0 S RASTIEN(+Y)="" G ASK
  G EXIT:'$D(RASTIEN) K DIC W !!,"Enter a cutoff date that is at least sixty days prior to today."
- S X1=DT,X2=-60 D C^%DTC S DIR(0)="D^:"_X D ^DIR G EXIT:$D(DIRUT) S RAECDTI=9999999-Y D DD^%DT S RAECDTE=Y
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Allow Override without 60 day cutoff
+ ;Patch 1004 - Continue Chris Saddler Patch from 2004
+ ;S X1=DT,X2=-60 D C^%DTC S DIR(0)="D^:"_X D ^DIR G EXIT:$D(DIRUT) S RAECDTI=9999999-Y D DD^%DT S RAECDTE=Y
+ S X1=DT,X2=-0 D C^%DTC S DIR(0)="D^:"_X D ^DIR G EXIT:$D(DIRUT) S RAECDTI=9999999-Y D DD^%DT S RAECDTE=Y
+ ;End Patch
+ ;
  ;Following line commented out for v 4.5 - setting the 10th piece to 0 was preventing update of subfld 75, Exam Status Times. These are now updated.
  W ! S IOP="Q",ZTRTN="DQ^RAESO"
  S ZTSAVE("RAI*")="",ZTSAVE("RAM*")="",ZTSAVE("RAE*")=""

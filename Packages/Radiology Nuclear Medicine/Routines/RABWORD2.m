@@ -1,5 +1,5 @@
-RABWORD2 ;HOIFO/KAR - Radiology Billing Awareness ;12/20/04  3:55pm
- ;;5.0;Radiology/Nuclear Medicine;**41,70**;Mar 16, 1998;Build 7
+RABWORD2 ;HOIFO/KAR - Radiology Billing Awareness ; 20 Apr 2011  7:25 PM
+ ;;5.0;Radiology/Nuclear Medicine;**41,70,1003**;Nov 01, 2010;Build 3
  ;
  ; Rtn invokes IA #1300-A, #2083, #4419
  Q
@@ -28,7 +28,9 @@ HDR ; Header
  Q
 PREV ;Prompt for Copying a previous Order's DX/SC/EC values.
  Q:'$D(^XUSEC("PROVIDER",DUZ))  ;user provider key check
- Q:'$$CIDC^IBBAPI(RADFN)  ;patient insurance & CIDC switch check
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;Q:'$$CIDC^IBBAPI(RADFN)  ;patient insurance & CIDC switch check
+ ;End Patch
  N RAPREV S RAPREV=0 K DIR
  I $P($G(VAEL(3)),"^") D
  .S DIR("B")="NO",DIR("A")="Copy a previous order's ICD codes and SC/EI values",DIR(0)="YO"
@@ -59,7 +61,9 @@ ELIG ;List the Service Connected ratios for the patient
  Q
 ADDEXAM ;Add DX/SC/EI data to new order when adding order to Last Visit
  Q:'$D(^XUSEC("PROVIDER",DUZ))  ;user provider key check
- Q:'$$CIDC^IBBAPI(RADFN)  ;patient insurance & CIDC switch check
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;Q:'$$CIDC^IBBAPI(RADFN)  ;patient insurance & CIDC switch check
+ ;End Patch
  N RAOIEN,RACOPY,RABASEC
  S RAOIEN=$P(^RADPT(RADFN,"DT",RAVLEDTI,"P",RAVLECNI,0),U,11)
  Q:'$D(^RAO(75.1,RAOIEN,"BA"))

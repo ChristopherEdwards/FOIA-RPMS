@@ -1,12 +1,12 @@
 PSGOU ;BIR/CML3,MV-PROFILE UTILITIES ;19 SEP 96 / 3:59 PM
- ;;5.0; INPATIENT MEDICATIONS ;**34**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**34,110**;16 DEC 97
  ;
- ; Reference to ^PS(51.1 is supported by DBIA 2177
+ ; Reference to ^PS(51.1 is supported by DBIA# 2177
  ; Reference to ^PS(55 is supported by DBIA# 2191.
  ;
 ECHK ;
  D NOW^%DTC N PSGDT S PSGDT=% ;***Store PSGDT with seconds.
- S C="A" G:SD>PSGDT DS S ND=$G(^PS(55,PSGP,5,O,0)) G:$S($P(ND,"^",9)="":1,1:"DE"'[$P(ND,"^",9)) DS S ND4=$G(^(4))
+ S C="A",ON=O_"U" G:SD>PSGDT DS S ND=$G(^PS(55,PSGP,5,O,0)) G:$S($P(ND,"^",9)="":1,1:"DE"'[$P(ND,"^",9)) DS S ND4=$G(^(4))
  I ST'="O",SD'<PSGODT,$P(ND,"^",9)="E",$P(ND4,"^",16) G DS
  I ST="O",$P(ND,"^",9)'["D",$S('$P(ND4,"^",UDU):1,SD<PSGODT:0,1:$P(ND4,"^",16)) G DS
  Q:PSGOL="S"  S C="O"
@@ -15,7 +15,9 @@ DS ;
  NEW DRUGNAME D DRGDISP^PSJLMUT1(PSGP,+O_"U",80,0,.DRUGNAME,1) S DRG=DRUGNAME(1)
  ;
 SET ;
- S ^UTILITY("PSG",$J,C,ST,DRG_"^"_O)=$G(NF)
+ I ON["P",$G(P("PRNTON"))]"",$G(PRNTON)=+P("PRNTON") Q
+ I ON["P",$G(P("PRNTON"))]"" S PRNTON=+P("PRNTON"),ON=+P("PRNTON")
+ S ^TMP("PSG",$J,C,ST,DRG_"^"_ON)=$G(NF)
  Q
  ;
 ENS F S=0:0 R !!,"Sort by DATE or MEDICATION:  M// ",PSGOS:DTIME D SCHK Q:CHK
@@ -53,21 +55,22 @@ ENUNM ;
  K PSGO1,PSGO2,PSGO3,PSGO4,UD Q
  ;
 ENGORD ; get and sort orders
- D NOW^%DTC S PSGDT=%,X1=$P(%,"."),X2=-2 D C^%DTC S PSGODT=X_(PSGDT#1),HDT=$$ENDTC^PSGMI(PSGDT),UDU=$S($P(PSJSYSU,";",3)>1:3,1:1) K ^UTILITY("PSG",$J)
+ D NOW^%DTC S PSGDT=%,X1=$P(%,"."),X2=-2 D C^%DTC S PSGODT=X_(PSGDT#1),HDT=$$ENDTC^PSGMI(PSGDT),UDU=$S($P(PSJSYSU,";",3)>1:3,1:1) K ^TMP("PSG",$J)
  W:'$D(PSGPR) !!,"...a few moments, please..." D ENUNM
  F ST="C","O","OC","P","R" F SD=+PSJPAD:0 S SD=$O(^PS(55,PSGP,5,"AU",ST,SD)) Q:'SD  F O=0:0 S O=$O(^PS(55,PSGP,5,"AU",ST,SD,O)) Q:'O  D ECHK
  Q:$D(PSGONNV)
  NEW DRUGNAME
- F SD="I","N" S O=0 F  S O=$O(^PS(53.1,"AS",SD,PSGP,O)) Q:'O  D
- . S ND=$G(^PS(53.1,O,0)),ST=$P(ND,"^",7) S:ST="" ST="z"
+ N PRNTON F SD="I","N" S (PRNTON,O)=0 F  S O=$O(^PS(53.1,"AS",SD,PSGP,O)) Q:'O  S ON=+O_"P",ND=$G(^PS(53.1,O,0)) I $P(ND,"^",4)="U" D
+ . S ST=$P(ND,"^",7),P("PRNTON")=$P($G(^PS(53.1,O,.2)),"^",8) S:ST="" ST="z"
  . D DRGDISP^PSJLMUT1(PSGP,+O_"P",80,0,.DRUGNAME,1) S DRG=DRUGNAME(1)
- . S C="BA" D SET
+ . S C=$S(P("PRNTON")]"":"BD",1:"BA") D SET
  Q:+PSJSYSU'=3  S SD="P",O=0
- F  S O=$O(^PS(53.1,"AS",SD,PSGP,O)) Q:'O  S ND=$G(^PS(53.1,O,0)) I $P(ND,"^",4)="U" D
- . S ST=$P(ND,"^",7) S:ST="" ST="z"
+ N PRNTON F  S (PRNTON,O)=$O(^PS(53.1,"AS",SD,PSGP,O)) Q:'O  S ON=+O_"P",ND=$G(^PS(53.1,O,0)) I $P(ND,"^",4)="U" D
+ . S ST=$P(ND,"^",7),P("PRNTON")=$P($G(^PS(53.1,O,.2)),"^",8) S:ST="" ST="z"
  . D DRGDISP^PSJLMUT1(PSGP,+O_"P",80,0,.DRUGNAME,1) S DRG=DRUGNAME(1)
  . S C=$$CKPC^PSGOU(PSGP,$P(ND,U,25),O)
  . I C="CB",$P($G(^PS(53.1,O,.2)),U,4)="S" S C="CA"
+ . I P("PRNTON")]"" S C="CD"
  . D SET
  Q
  ;

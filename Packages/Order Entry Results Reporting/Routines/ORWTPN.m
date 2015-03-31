@@ -1,5 +1,5 @@
-ORWTPN ; SLC/STAFF Personal Preference - Notes ;2/21/01  08:11 [9/11/03 12:06pm]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,149,187**;Dec 17, 1997
+ORWTPN ; SLC/STAFF Personal Preference - Notes ;2/21/01  08:11 [1/29/04 2:32pm]
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,149,187,195**;Dec 17, 1997
  ;
 GETSUB(VALUE,USER) ; from ORWTPP
  ; get Ask for Subject on notes for user
@@ -31,56 +31,52 @@ SETSUB(OK,VALUE,USER) ; from ORWTPP
  Q
  ;
 GETCOS(ORY,ORUSER,ORFROM,ORDIR,ORVIZ) ; Get cosigners for user (from ORWTPP).
- ; (Keep this code matched with NP1^ORWU1.)
+ ; (Keep this code matched with NP1^ORWU1 / NEWPERS^ORWU.)
  ;
  ; Params:
  ;  .ORY=returned list, ORFROM=text to $O from, ORDIR=$O direction.
- ;  ORUSER=User seeking a Cosigner.
- ;  ORFROM=Starting value to use.
  ;  ORDIR=Direction to move through x-ref.
+ ;  ORFROM=Starting value to use.
+ ;  ORUSER=User seeking a Cosigner.
  ;  ORVIZ=If true, includes RDV users; otherwise not (optional).
  ;
- N OR1DIV,ORCNT,ORDD,ORDIV,ORDUP,ORGOOD,ORHOLD,ORI,ORIEN1,ORIEN2,ORIENP2,ORLAST,ORMAX,ORMRK,ORMULTI,ORNAME,ORPREV,ORSRV,ORTTL,ORVALID
+ N OR1DIV,ORCNT,ORDATE,ORDD,ORDIV,ORDUP,ORGOOD,ORI,ORIEN1,ORIEN2,ORKEY,ORLAST,ORMAX,ORMRK,ORMULTI,ORNODE,ORPREV,ORSRV,ORTTL
  ;
- S ORI=0,ORMAX=44,(ORLAST,ORPREV)=""
+ S ORI=0,ORMAX=44,(ORLAST,ORPREV)="",ORKEY=$G(ORKEY),ORDATE=$G(ORDATE)
  S ORMULTI=$$ALL^VASITE ; Do once at beginning of call.
- S ORNAME("FILE")=200,ORNAME("FIELD")=.01 ; Array for XLFNAME call.
  ;
- F  Q:ORI'<ORMAX  S ORFROM=$O(^VA(200,"B",ORFROM),ORDIR) Q:ORFROM=""  D
- .S ORVALID=0                                     ; Init each time.
+ ; NP3^ORWU1 tag includes visitors, uses full "B" x-ref.
+ I +$G(ORVIZ)=1 D NP3^ORWU1(1) Q  ; Use alt. version, skip rest.
+ ;
+ F  Q:ORI'<ORMAX  S ORFROM=$O(^VA(200,"AUSER",ORFROM),ORDIR) Q:ORFROM=""  D
  .S ORIEN1=""
- .F  S ORIEN1=$O(^VA(200,"B",ORFROM,ORIEN1),ORDIR) Q:'ORIEN1  D
+ .F  S ORIEN1=$O(^VA(200,"AUSER",ORFROM,ORIEN1),ORDIR) Q:'ORIEN1  D
  ..;
- ..; Screen out RDVs if applicable:
- ..I +$G(ORVIZ)=0,$D(^VA(200,"BB","VISITOR",ORIEN1))&'$D(^VA(200,ORIEN1,"USC1",1,0)) Q
  ..; Screen default cosigner selection:
  ..I '$$SCRDFCS^TIULA3(ORUSER,ORIEN1) Q
  ..S ORNODE=$P($G(^VA(200,ORIEN1,0)),U)
  ..I '$L(ORNODE) Q
- ..S ORNAME("IENS")=ORIEN1_","         ; For DIQ calls.
- ..S ORI=ORI+1,ORY(ORI)=ORIEN1_"^"_$$NAMEFMT^XLFNAME(.ORNAME,"F","CcMP")
- ..S ORHOLD=ORY(ORI)                   ; Save in case of duplication.
- ..S ORDUP=0                           ; Init flag, check duplication.
+ ..S ORI=ORI+1,ORY(ORI)=ORIEN1_"^"_$$NAMEFMT^XLFNAME(ORFROM,"F","DcMPC")
+ ..S ORDUP=0                            ; Init flag, check dupe.
  ..I ($P(ORPREV_" "," ")=$P(ORFROM_" "," ")) S ORDUP=1
  ..;
  ..; Append Title if not duplicated:
  ..I 'ORDUP D
- ...S ORVALID=1                        ; Valid user, set flag.
- ...S ORTTL=$$GET1^DIQ(200,ORIEN1,8)   ; Get Title.
+ ...S ORIEN2=ORIEN1
+ ...D NP4^ORWU1(0)                      ; Get Title.
  ...I ORTTL="" Q
  ...S ORY(ORI)=ORY(ORI)_U_"- "_ORTTL
  ..;
  ..; Get data in case of dupes:
  ..I ORDUP D
- ...S ORVALID=1                        ; Valid user(s), set flag.
- ...S ORIENP2=ORLAST                   ; Use prev IEN for call to NP2.
+ ...S ORIEN2=ORLAST                     ; Prev IEN for NP2^ORWU1 call.
  ...;
  ...; Reset, use previous array element, call for extended data:
  ...S ORI=ORI-1,ORY(ORI)=$P(ORY(ORI),U)_U_$P(ORY(ORI),U,2)  D NP2^ORWU1
  ...;
  ...; Then return to current user for second extended data call:
- ...S ORIENP2=ORIEN1,ORI=ORI+1  D NP2^ORWU1
- ..S ORLAST=ORIEN1,ORPREV=ORFROM       ; Reassign vars for next pass.
+ ...S ORIEN2=ORIEN1,ORI=ORI+1  D NP2^ORWU1
+ ..S ORLAST=ORIEN1,ORPREV=ORFROM        ; Reassign vars for next pass.
  ;
  Q
  ;

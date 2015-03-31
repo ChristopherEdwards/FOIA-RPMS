@@ -1,5 +1,5 @@
 ABME5L10 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing System;**6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,10,11**;NOV 12, 2009;Build 133
  ;Header Segments
  ;
 EP ;START HERE
@@ -31,12 +31,19 @@ LOOP ;
  I '$P(ABMRV(ABMI,ABMJ,ABMK),U,10) D
  .D EP^ABME5DTP(472,"D8",$P(ABMB7,U))
  D WR^ABMUTL8("DTP")
- D EP^ABME5REF("6R","")   ;line item control number
- D WR^ABMUTL8("REF")
+ ;D EP^ABME5REF("6R","")   ;line item control number  ;abm*2.6*11 HEAT92070
+ ;D WR^ABMUTL8("REF")  ;abm*2.6*11 HEAT92070
+ ;start new code abm*2.6*11 HEAT92070
+ I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,38)'="" D
+ .D EP^ABME5REF("6R","")
+ .D WR^ABMUTL8("REF")   ;line item control number
+ ;end new code HEAT92070
  ;
  ; Loop 2410 - Drug Identification
  S ABMLOOP=2410
- I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,14)'="" D
+ ;I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,14)'="" D  ;abm*2.6*10 HEAT72307
+ ;I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,13)'="" D  ;abm*2.6*10 HEAT72307  ;abm*2.6*10 HEAT78446
+ I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,28)'="" D  ;abm*2.6*10 HEAT72307  ;abm*2.6*10 HEAT78446
  .I $P($P(ABMRV(ABMI,ABMJ,ABMK),U,9)," ")'="" D
  ..D EP^ABME5LIN
  ..D WR^ABMUTL8("LIN")

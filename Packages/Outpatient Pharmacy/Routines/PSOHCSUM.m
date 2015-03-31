@@ -1,5 +1,5 @@
-PSOHCSUM ;BHAM ISC/SAB - gather data for outpatient rx health care summary ;29-Mar-2006 07:45;A,A
- ;;7.0;OUTPATIENT PHARMACY;**4,35,42,48,54,46,103,132,1005**;DEC 1997
+PSOHCSUM ;BHAM ISC/SAB - gather data for outpatient rx health care summary ;29-May-2012 14:49;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**4,35,48,54,46,103,132,1005,214,200,1015**;DEC 1997;Build 62
  ;External reference to File ^PS(55 supported by DBIA 2228
  ;External reference to File ^PSDRUG supported by DBIA 221
  ;External reference to File ^PS(50.7 supported by DBIA 2223
@@ -21,7 +21,8 @@ PSOHCSUM ;BHAM ISC/SAB - gather data for outpatient rx health care summary ;29-M
  ;otherwise loop through entire "P" multiple to get all Rx's
  ;
  ; Modified - IHS/CIA/PLS - 08/20/04 - Line GET+16
- K ^TMP("PSOO",$J),PSONV
+ S ACS=0
+EN K ^TMP("PSOO",$J),PSONV
  S PSOBEGIN=$S($D(PSOBEGIN):PSOBEGIN,1:DT)
  I $D(PSOACT) F PSODT=PSOBEGIN-1:0 S PSODT=$O(^PS(55,DFN,"P","A",PSODT)) Q:'PSODT  F PSORXX=0:0 S PSORXX=$O(^PS(55,DFN,"P","A",PSODT,PSORXX)) Q:'PSORXX  D:$G(^PSRX(PSORXX,0))]"" GET
  I '$D(PSOACT) F PSOI=0:0 S PSOI=$O(^PS(55,DFN,"P",PSOI)) Q:'PSOI  S PSORXX=+^(PSOI,0) D:$G(^PSRX(PSORXX,0))]"" GET
@@ -33,25 +34,28 @@ PSOHCSUM ;BHAM ISC/SAB - gather data for outpatient rx health care summary ;29-M
  .S ^TMP("PSOO",$J,"NVA",PSONV,1,0)=^TMP("PSOO",$J,"NVA",PSONV,1,0)_$S($D(^SC(+$P(NVA,"^",12),0)):$P(NVA,"^",12)_";"_$P(^SC($P(NVA,"^",12),0),"^"),1:"")
  .F S=0:0 S S=$O(^PS(55,DFN,"NVA",I,"DSC",S)) Q:'S  S ^TMP("PSOO",$J,"NVA",PSONV,"DSC",S,0)=^PS(55,DFN,"NVA",I,"DSC",S,0)
  ;
-END K PSODT,PSOST,PSORXX,PSO0,PSO2,PSOIDD,PSOFD,PSODR,PSOPR,PSOREF,PSORFL,PSOI,PSOJ,PSOX,PSOCF,I,PSONV,NVA
+END K PSODT,PSOST,PSORXX,PSO0,PSO2,PSOIDD,PSOFD,PSODR,PSOPR,PSOREF,PSORFL,PSOI,PSOJ,PSOX,PSOCF,I,PSONV,NVA,PSOPN,PSORS
  Q
  ;
 GET Q:$P($G(^PSRX(PSORXX,"STA")),"^")=13  S PSO0=^PSRX(PSORXX,0),PSO2=$G(^(2)),PSOFD=+$G(^(3)),PSODR=$P(PSO0,"^",6),PSOPR=$P(PSO0,"^",4),PSOREF=$P(PSO0,"^",9),PSOIDD=$P(PSO0,"^",13)
  I '$P(PSO0,"^",2)!('PSODR)!('PSOPR) Q
  I $D(^PS(55,$P(PSO0,"^",2),0)) D:$P($G(^PS(55,$P(PSO0,"^",2),0)),"^",6)'=2 EN^PSOHLUP($P(PSO0,"^",2))
- S PSOST=$P($G(^PSRX(PSORXX,"STA")),"^")
+ S PSOST=$P($G(^PSRX(PSORXX,"STA")),"^"),PSOPN=$P($G(^PSRX(PSORXX,"OR1")),"^",2)
  I '$D(PSOACT) D ODT I PSODT<PSOBEGIN Q
  I $D(PSOACT) Q:PSOST>10&(PSOST<16)
+ S PSORS="" I PSOFD=+$P(PSO2,"^",2),+$P(PSO2,"^",15) S PSORS="R"
  I 'PSOFD S PSOFD=$P(PSO0,"^",13) F PSOJ=0:0 S PSOJ=$O(^PSRX(PSORXX,1,PSOJ)) Q:'PSOJ  I $D(^(PSOJ,0)),^(0)>PSOFD S PSOFD=+^(0)
  S PSOX=$S($D(^PSDRUG(PSODR,0)):$P(^(0),"^"),1:"NOT ON FILE"),PSODR=PSODR_";"_PSOX
  S PSOX=$G(^VA(200,PSOPR,0)) S PSOPR=PSOPR_";"_$P(PSOX,"^")
  S PSOX="A;ACTIVE" S:$D(^PS(52.4,PSORXX,0)) PSOX="N;NON-VERIFIED" S:$O(^PS(52.5,"B",PSORXX,0))&($G(^PS(52.5,+$O(^PS(52.5,"B",PSORXX,0)),"P"))'=1) PSOX="S;SUSPENDED"
+ I PSOX["SUSPENDED",$G(ACS) S PSOX="S;ACTIVE/SUSP"
  S:PSODT<DT PSOX="E;EXPIRED" S:PSOST=4 PSOX="N;NON-VERIFIED" S:PSOST=3!(PSOST=16) PSOX="H;HOLD"
  S:PSOST=12!(PSOST=14)!(PSOST=15) PSOX="DC;DISCONTINUED"
  S PSOCF=+$P(PSO0,"^",17)*(+$P(PSO0,"^",7)) ; Cost/Fill
  S PSORFL=0 F PSOJ=0:0 S PSORFL=$O(^PSRX(PSORXX,1,PSORFL)) Q:PSORFL'>0  S PSOREF=PSOREF-1
  F PSOJ=9999999-PSOFD:.0001 Q:'$D(^TMP("PSOO",$J,PSOJ))
- S ^TMP("PSOO",$J,PSOJ,0)=PSOIDD_"^"_PSOFD_"^"_PSODR_"^"_PSOPR_"^"_PSOX_"^"_$P(PSO0,"^")_"^"_$P(PSO0,"^",7)_"^"_PSOREF_"^"_PSORXX_"^"_PSOCF_"^"_PSODT
+ S ^TMP("PSOO",$J,PSOJ,0)=PSOIDD_"^"_PSOFD_"^"_PSODR_"^"_PSOPR_"^"_PSOX_"^"_$P(PSO0,"^")_"^"_$P(PSO0,"^",7)_"^"_PSOREF_"^"_PSORXX_"^"_PSOCF_"^"_PSODT_"^"_PSOPN
+ S:PSORS="R" ^TMP("PSOO",$J,PSOJ,0)=^TMP("PSOO",$J,PSOJ,0)_"^"_PSORS
  ; IHS/CIA/PLS - 08/20/04 - Quit if SIG node doesn't exist.
  Q:'$D(^PSRX(PSORXX,"SIG"))
  I '$P(^PSRX(PSORXX,"SIG"),"^",2) D SIG Q
@@ -66,4 +70,7 @@ ODT ;canceled or expiration date
  .I $P(^PSRX(PSORXX,3),"^",5) S PSODT=$P(^PSRX(PSORXX,3),"^",5) Q
  .S PSODT=0 F PSOJ=0:0 S PSOJ=$O(^PSRX(PSORXX,"A",PSOJ)) Q:PSOJ'>0  I $D(^(PSOJ,0)),$P(^(0),"^",2)="C",+$P(^(0),"^")>PSODT S PSODT=+$P(^(0),"^")
  S PSODT=+$P(PSO2,"^",6)
+ Q
+ACS ;call from OE/RR to get the new active/susp status
+ S ACS=1 D EN
  Q

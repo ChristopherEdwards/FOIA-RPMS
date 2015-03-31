@@ -1,5 +1,5 @@
-BEHOVM2 ;IHS/MSC/MGH - Triage: Vital Measurements ;17-Jan-2011 12:43;DU
- ;;1.1;BEH COMPONENTS;**001004,001005,001007**;Sep 18, 2007
+BEHOVM2 ;IHS/MSC/MGH - Triage: Vital Measurements ;18-Jul-2012 12:43;DU
+ ;;1.1;BEH COMPONENTS;**001004,001005,001007,001009**;Sep 18, 2007
  ;=================================================================
 QUAL(RESULT,IEN,QUALS) ;EP Store the vitals qualifiers
  ;Entry data is the IEN of the measurment and the qualifiers separated by ~
@@ -27,6 +27,22 @@ QUAL(RESULT,IEN,QUALS) ;EP Store the vitals qualifiers
  .I $D(BEHERR) S RESULT="-1^Unable to store qualifier"
  .E  S RESULT=+$G(BEHOKAY(1))
  Q
+PO2(RESULT,IEN,QUALS) ;Store data for O2 Saturation
+ N QUAL,QUALNAME,VAL,O2,RESULT,FDA,FNUM,I
+ S VAL=""
+ S QUALNAME=$P(QUALS,"~",1)
+ S QUAL(QUALNAME)=""
+ D QUAL^BEHOVM2(.RESULT,IEN,.QUAL)
+ S O2=""
+ F I=2:1:3 D
+ .S VAL=$P(QUALS,"~",I)
+ .I VAL'="" S O2=$S(O2="":$P(VAL,";",1)_" "_$P(VAL,";",2),1:O2_" "_$P(VAL,";",1)_" "_$P(VAL,";",2))
+ I VAL'="" D
+ .S FNUM=9000010.01
+ .S FDA=$NA(FDA(FNUM,IEN_","))
+ .S @FDA@(1.4)=O2
+ .S RESULT=$$UPDATE^BGOUTL(.FDA,"E")
+ Q
 EIE(RESULT,BEHDATA) ; EP Store entered in error data
  ;BEHDATA CONSISTS OF THE FOLLOWING DATA:
  ;FILE IEN^DUZ^REASON
@@ -45,9 +61,11 @@ EIE(RESULT,BEHDATA) ; EP Store entered in error data
  D VFEVT^BEHOENPC(FNUM,+BEHDATA,1)
  I $D(BEHERR)>0 S RESULT="Unable to process entered in error"
  Q
-GETCATS(RESULTS,VIT) ;EP Given a vital sign, return the categories for this VM and the default
- N BEHCAT,BEHQUAL,ID,ABB,VMSR,Y
+GETCATS(RESULTS,VIT,LONG) ;EP Given a vital sign, return the categories for this VM and the default
+ N BEHCAT,BEHQUAL,ID,ABB,VMSR,Y,CNT
  S RESULTS=$$TMPGBL
+ S LONG=$G(LONG,0)
+ S CNT=0
  S VMSR=$$VMSR
  S FNUM=$S(VMSR:9999999.07,1:120.51)
  S ID="" S ID=$O(^BEHOVM(90460.01,"B",VIT,ID))
@@ -56,11 +74,20 @@ GETCATS(RESULTS,VIT) ;EP Given a vital sign, return the categories for this VM a
  I VMSR S IEN="" S IEN=$O(^AUTTMSR("B",ABB,IEN)) I IEN="" S @RESULTS@(1)="Unable to find MEASUREMENT TYPE in file" Q
  I 'VMSR S IEN="" S IEN=$O(^GMRD(120.51,"C",ABB,IEN)) I IEN="" S @RESULTS@(1)="Unable to find MEASUREMENT TYPE in file" Q
  ;Get all the qualifiers for this category
- F BEHCAT=0:0 S BEHCAT=$O(^GMRD(120.52,"AA",IEN,BEHCAT)) Q:'BEHCAT  D
- .S BEHQUAL="",X="" F  S X=$O(^GMRD(120.52,"AA",IEN,BEHCAT,X)) Q:X=""  D
- ..S BEHQUAL=BEHQUAL_$S(BEHQUAL]"":"~",1:"")_X
- .S Y=$O(@RESULTS@(""),-1)+1
- .S @RESULTS@(Y)=BEHCAT_U_$P(^GMRD(120.53,BEHCAT,0),U)_U_BEHQUAL
+ I LONG D
+ .F BEHCAT=0:0 S BEHCAT=$O(^GMRD(120.52,"AA",IEN,BEHCAT)) Q:'BEHCAT  D
+ ..S CNT=CNT+1,@RESULTS@(CNT)="C"_U_BEHCAT_U_$P(^GMRD(120.53,BEHCAT,0),U)
+ ..S BEHQUAL="",X="" F  S X=$O(^GMRD(120.52,"AA",IEN,BEHCAT,X)) Q:X=""  D
+ ...S CNT=CNT+1
+ ...S @RESULTS@(CNT)="Q"_U_$O(^GMRD(120.52,"AA",IEN,BEHCAT,X,0))_U_X
+ ..;S Y=$O(@RESULTS@("").-1)+1
+ ..;S @RESULTS@(Y)=BEHCAT
+ E  D
+ .F BEHCAT=0:0 S BEHCAT=$O(^GMRD(120.52,"AA",IEN,BEHCAT)) Q:'BEHCAT  D
+ ..S BEHQUAL="",X="" F  S X=$O(^GMRD(120.52,"AA",IEN,BEHCAT,X)) Q:X=""  D
+ ...S BEHQUAL=BEHQUAL_$S(BEHQUAL]"":"~",1:"")_X
+ ..S Y=$O(@RESULTS@(""),-1)+1
+ ..S @RESULTS@(Y)=BEHCAT_U_$P(^GMRD(120.53,BEHCAT,0),U)_U_BEHQUAL
  Q
 QRYBMI(PCTILE) ;Moved from BEHOVM for space
  N VTWT,VTHT,RSWT,RSHT,BMI,WTDT
@@ -72,9 +99,11 @@ QRYBMI(PCTILE) ;Moved from BEHOVM for space
  .F  S VIEN=$O(^TMP("BEHOVM",$J,VTWT,IDT,VIEN),-1) Q:'VIEN  D  Q:RCNT=RMAX
  ..D GETMSR^BEHOVM(VIEN,.RSWT,.DATE,.LOC,.ENTERBY)
  ..;IHS/MSC/MGH Save the wt date to use if the ht isn't too old patch 4
+ ..S QUALIF=""
  ..S WTDT=DATE
  ..S RSHT=$$FNDHT(IDT)
  ..Q:'RSHT
+ ..S QUALIF=""
  ..S RSWT=RSWT*.45359,RSHT=RSHT*.0254,RSHT=RSHT*RSHT,BMI=+$J(RSWT/RSHT,0,2)
  ..S:PCTILE BMI=$$BMIPCT(BMI,DFN,DATE)
  ..Q:'BMI
@@ -156,4 +185,27 @@ GMRBMI(PCTILE) ;Get BMI for sites using GMRV vitals
  ..S RESULT(VUNT)=BMI,RCNT=RCNT+1
  ..S DATE=WTDT
  ..D CALLBCK^BEHOVM
+ Q
+GETCATP(RESULTS,VIEN) ;EP Given a vital sign and an IEN, return the categories for this VM and the default
+ N BEHCAT,BEHQUAL,ID,ABB,VMSR,Y,CNT,FNUM2,CHK,QUALIEN
+ S RESULTS=$$TMPGBL
+ S CNT=0
+ S VMSR=$$VMSR
+ ;Get results for this IEN
+ I VMSR D
+ .S IEN=$P($G(^AUPNVMSR(VIEN,0)),U,1)
+ .S QUALS=0 F  S QUALS=$O(^AUPNVMSR(VIEN,5,QUALS)) Q:'+QUALS  D
+ ..S QUALIEN($P($G(^AUPNVMSR(VIEN,5,QUALS,0)),U,1))=""
+ I 'VMSR D
+ .S IEN=$P($G(^GMR(120.5,VIEN,0)),U,3)
+ .S QUALS=0 F  S QUALS=$O(^GMR(120.5,VIEN,5,QUALS)) Q:QUALS=""  D
+ ..S QUALIEN($P($G(^GMR(120.5,VIEN,5,QUALS,0)),U,1))=""
+ ;Get all the qualifiers for this category
+ F BEHCAT=0:0 S BEHCAT=$O(^GMRD(120.52,"AA",IEN,BEHCAT)) Q:'BEHCAT  D
+ .S CNT=CNT+1,@RESULTS@(CNT)="C"_U_BEHCAT_U_$P(^GMRD(120.53,BEHCAT,0),U)
+ .S BEHQUAL="",X="" F  S X=$O(^GMRD(120.52,"AA",IEN,BEHCAT,X)) Q:X=""  D
+ ..S CNT=CNT+1
+ ..S CHK=$O(^GMRD(120.52,"AA",IEN,BEHCAT,X,0))
+ ..S @RESULTS@(CNT)="Q"_U_CHK_U_X
+ ..I $D(QUALIEN(CHK)) S @RESULTS@(CNT)="Q"_U_CHK_U_X_U_1
  Q

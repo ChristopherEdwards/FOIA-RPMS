@@ -1,5 +1,5 @@
-PSORXL1 ;BIR/SAB-action to be taken on prescriptions ;10-Feb-2011 13:32;SM
- ;;7.0;OUTPATIENT PHARMACY;**36,46*,1010*;DEC 1997
+PSORXL1 ;BIR/SAB-action to be taken on prescriptions ;29-May-2012 15:12;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**36,46,1010,148,260,274,287,289,1015**;DEC 1997;Build 62
 S S SPPL="",PPL1=1 S:'$G(PPL) PPL=$G(PSORX("PSOL",PPL1)) G:$G(PPL)']"" D1
  ;Modified - IHS/MSC/PLS -02/10/2011 - Line SUS+6
 S1 F PI=1:1 Q:$P(PPL,",",PI)=""  S DA=$P(PPL,",",PI) D
@@ -29,9 +29,14 @@ LOCK I $P($G(^PSRX(RXN,"STA")),"^")=3 G SUSQ
  S COMM=$S(RXP:"Partial ",1:"")_"Rx# "_$P(^PSRX(RXN,0),"^")_" Has Been Suspended Until "_LFD_"."_$S($G(RXRP(RXN))&('$G(RXP)):" (Reprint)",1:"")
  D:'$D(^TMP("PSORXN",$J,RXN)) EN^PSOHLSN1(RXN,"SC","ZS",COMM)
  S:$D(^TMP("PSORXN",$J,RXN)) $P(^TMP("PSORXN",$J,RXN),"^",4)=COMM
+ ;
+ ; - If not a PARTIAL, reverse ECME Claim, if necessary
+ I '$G(RXFL(RXN)) S RXFL(RXN)=$$LSTRFL^PSOBPSU1(RXN)
+ I '$G(RXP),'$G(PSONPROG) D REVERSE^PSOBPSU1(RXN,,"DC",3)  ;PSONPROG - Tricare in progress, don't reverse
  K COMM
 SUSQ Q
-ACT I '$D(RXF) S RXF=0 F I=0:0 S I=$O(^PSRX(DA,1,I)) Q:'I  S RXF=I S:I>5 RXF=I+1
+ ;PSO*7*274 always recalculate RXF
+ACT S RXF=0 F I=0:0 S I=$O(^PSRX(DA,1,I)) Q:'I  S RXF=I S:I>5 RXF=I+1
  S IR=0 F FDA=0:0 S FDA=$O(^PSRX(DA,"A",FDA)) Q:'FDA  S IR=FDA
  S IR=IR+1,^PSRX(DA,"A",0)="^52.3DA^"_IR_"^"_IR
  D NOW^%DTC S ^PSRX(DA,"A",IR,0)=%_"^S^"_DUZ_"^"_RXF_"^"_$S(RXP:"Partial ",1:"")_"RX "_$S($G(RXRP(DA))&('$G(RXP)):"Reprint ",1:"")_"Placed on Suspense until "_LFD K RXF,I,FDA,DIC,DIE,DR,Y,X,%,%H,%I
@@ -60,9 +65,14 @@ SWARN ;
  S PSORXLDA=$G(DA),PSORXZD=$P($G(^PS(52.5,RXS,0)),"^",2)
  W $C(7),!!,"Rx "_$P($G(^PSRX(DA,0)),"^")_" is already suspended "_$S($G(RXCMOP)]"":"for CMOP ",1:"")_"until "_$E(PSORXZD,4,5)_"-"_$E(PSORXZD,6,7)_"-"_$E(PSORXZD,2,3)_"." K PSORXZD
  W !,"By suspending this fill, the fill that is already suspended will be overwritten",!,"and a label will not print for that fill!",!
+ N PSORF,PSOTRIC D TRIC(DA)
+ I PSOTRIC,$$STATUS^PSOBPSUT(DA,PSORF)'["PAYABLE" S PSOQFLAG=1 Q
  K DIR S DIR(0)="SA^Q:QUEUE;S:SUSPEND",DIR("B")="Q",DIR("A")="Do you want to Queue to print or Suspend Rx "_$P($G(^PSRX(DA,0)),"^")_": " D ^DIR K DIR
- I $G(Y)="Q" S PSOKSPPL=$G(PPL),PSOZXPPL=$G(PPL1),PSOZXPI=$G(PI),RXLTOP=1 S PPL=$G(RXN)_"," D SWARS D Q^PSORXL S PSOWFLG=1,PPL=PSOKSPPL,PI=PSOZXPI,PPL1=PSOZXPPL K PSOKSPPL,PSOZXPPL,PSOZXPI,RXLTOP,RXFL(+$G(PSORXLDA)) G SWARNQ
  I $G(Y)="S" K RXFL(PSORXLDA) G SWARNQ
+ I $G(Y)="Q" D  G SWARNQ
+ . S PSOKSPPL=$G(PPL),PSOZXPPL=$G(PPL1),PSOZXPI=$G(PI),RXLTOP=1
+ . S PPL=$G(RXN)_"," D SWARS D Q^PSORXL S PSOWFLG=1,PPL=PSOKSPPL
+ . S PI=PSOZXPI,PPL1=PSOZXPPL K PSOKSPPL,PSOZXPPL,PSOZXPI,RXLTOP,RXFL(+$G(PSORXLDA))
  W !!,"Nothing queued to print for Rx "_$P($G(^PSRX(PSORXLDA,0)),"^"),! S PSOWFLG=1
 SWARNQ ;
  S DA=$G(PSORXLDA) K PSORXLDA
@@ -73,4 +83,27 @@ SWARS ;
  S PSOZXFPN=$L(PSOZXFPL,PPL)-1
  I $G(PSOZXFL(PSORXLDA)),$G(PSOZXFPN) S RXFL(PSORXLDA)=$G(PSOZXFL(PSORXLDA))-$G(PSOZXFPN)
  K PSOZXFL,PSOZXFPL,PSOZXFPN
+ Q
+TRIC(PSORX) ;
+ S PSORF=$$LSTRFL^PSOBPSU1(PSORX)
+ S PSOTRIC="",PSOTRIC=$$TRIC^PSOREJP1(PSORX,PSORF,.PSOTRIC)
+ Q
+ECME ; - Looks for DUR/79 REJECTS and send Mail Rx's to ECME that have not been SUSPENDED
+ N PSOI,PSOJ,PSORX,PSORF,PSOACT,BWH,PPLTMP,PSOSTA,PSOTRIC,ESTAT,EACTION
+ S PPLTMP=$G(PPL)
+ F PSOI=1:1 S PSORX=+$P($G(PPLTMP),",",PSOI) Q:'PSORX  D
+ . D TRIC(PSORX) S ESTAT=$P($$STATUS^PSOBPSUT(PSORX,PSORF),"^")
+ . I PSOTRIC S EACTION=$S(ESTAT["PAYABLE":1,ESTAT["Inactive ECME Tricare":1,ESTAT="":1,1:0)
+ . I PSOTRIC,'EACTION,$G(PPL) D RMV(PSORX,.PPL) Q  ;no labels for "In Progress" Tricare Rx's.
+ . I $G(PSOCKDC) D  Q  ;PSOCKDC variable is set in PSORXL and is used to eliminate label print for DC'ed Rx's
+ . . S PSOSTA=$$GET1^DIQ(52,PSORX,100,"I") I PSOSTA=12!(PSOSTA=11),'$G(RXPR(PSORX)),$G(PPL) D RMV(PSORX,.PPL)
+ . I $G(RXPR(PSORX)) Q
+ . S PSOACT="",BWH=$S(PSORF:"RF",1:"OF")
+ . I $$FIND^PSOREJUT(PSORX,PSORF) D  I PSOACT="Q" D RMV(PSORX,.PPL) Q
+ . . S PSOACT=$$HDLG^PSOREJU1(PSORX,PSORF,"79,88",BWH,"OIQ","Q")
+ Q
+RMV(RX,PPL) ; Remove the Rx from the label print queue
+ N XPPL,I
+ S XPPL=PPL,PPL="" F I=1:1:$L(XPPL,",") I $P(XPPL,",",I)'="",$P(XPPL,",",I)'=RX S PPL=PPL_$P(XPPL,",",I)_","
+ I PPL="" K PPL
  Q

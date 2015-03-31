@@ -1,52 +1,11 @@
 BYIMIMM6 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3**;JAN 15, 2013;Build 79
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3,4**;NOV 01, 2013;Build 189
  ;
 MENU ;EP;HEADER DISPLAY
  W @IOF
  N PAC,PAH,VER,EXP,IMP
  D M1
  D M2
- Q
- S K=1
- D L1
- D L2
- D L3
- S K=2
- D L2
- D L1
- Q
-L1 ;
- S X=""
- F J=17:1:55 S $E(X,J)="*"
- W !,X
- Q
- ;-----
-L2 ;
- F J=1:1:2 D
- .S X=""
- .I J=1,K=1 S $E(X,17)="** Immunization Data Exchange"
- .I J=2,K=1 S $E(X,17)="** "_$E(LOC,1,26)
- .I J=1,K=2 S $E(X,17)="** "_VER
- .I J=2,K=2 S $E(X,17)="** "_HL7
- .S $E(X,47)="|*     **                      **"
- .W !,X
- Q
- ;-----
-L3 ;
- S X=""
- S $E(X,2)="<"
- F J=3:1:17 S $E(X,J)="="
- S $E(X,47)="|"
- F J=48:1:79 S $E(X,J)="*"
- W !,X
- Q
- ;-----
-L32 ;
- S X=""
- F J=5:1:23 S $E(X,J)="*"
- S $E(X,17)="*   **"
- F J=29:1:73 S $E(X,J)="*"
- W !,X
  Q
  ;-----
 M1 ;MENU DISPLAY
@@ -102,5 +61,40 @@ M2 ;VERSION 2.0 HEADER
  W !?80-$L(LOC)\2,LOC
  W !!?20,VER,?40,EXP
  W !?20,HL7,?40,IMP
+ Q
+ ;-----
+SCRN(INDA) ;EP;TO SCREEN IMM'S TO INCLUDE IN EXPORT
+ I $G(INDA("BYIMALL"))=2 Q 1
+ I '$G(BYIMDATE) S BYIMDATE=$O(^BYIMPARA(DUZ(2),"LAST EXPORT",9999999999),-1)
+ I $G(BYIMDATE),$P($G(^AUPNVIMM(INDA,12)),U,18)=BYIMDATE Q 1
+ I '$D(^BYIMEXP("D",INDA)),$P($G(^AUPNVIMM(INDA,0)),U,15)!($P($G(^AUTTIMM(+$G(^AUPNVIMM(+$G(INDA),0)),0)),U,3)=999) S ^BYIMEXP("D",INDA)="" Q 0
+ I '$D(^BYIMEXP("D",INDA)),'$P($G(^AUPNVIMM(INDA,0)),U,15),$P($G(^AUTTIMM(+$G(^AUPNVIMM(+$G(INDA),0)),0)),U,3)'=999 Q 1
+ Q 0
+ ;-----
+HFSA(DEST,PRI) ;EP;TO FIND HL7 MESSAGE THAT HAVEN'T BEEN EXPORTED
+ Q:PRI=""!'DEST
+ K ^BYIMTMP("LE")
+ K ^BYIMTMP("OF")
+ N X,Y,Z,XX
+ S X=""
+ F  S X=$O(^INLHDEST(DEST,PRI,X)) Q:X=""  D
+ .S Y=0
+ .F  S Y=$O(^INLHDEST(DEST,PRI,X,Y)) Q:'Y  S ^BYIMTMP("OF",Y)="" S:$G(^INTHU(Y,3,1,0))["FHS|" XX=$P(X,",")_","_($P(X,",",2)+1)
+ S X=0
+ F  S X=$O(^BYIMPARA(DUZ(2),"LAST EXPORT",X)) Q:'X  I X'=DT,'$P(^(X),U,2) S ^BYIMTMP("LE",X+17000000)="",$P(^BYIMPARA(DUZ(2),"LAST EXPORT"),X,U,2)=$P(^BYIMPARA(DUZ(2),"LAST EXPORT",X),U)
+ S:$G(BYIM("MSH3.1"))="" BYIM("MSH3.1")=$P($G(^BYIMPARA(DUZ(2)),1),U,3)
+ S:$G(BYIM("MSH3.1"))="" BYIM("MSH3.1")="RPMS"
+ S:'$G(XX) XX=$H
+ S X=0
+ F  S X=$O(^INTHU(X)) Q:'X  S Z=$G(^(X,3,1,0)) I Z["VXU^V04",Z["MSH|",$P($P(Z,"|",3),U)=BYIM("MSH3.1"),'$D(^BYIMTMP("OF",X)) D
+ .S Y=$E($P(Z,"|",7),1,8)
+ .Q:'$D(^BYIMTMP("LE",Y))
+ .S ^INLHDEST(DEST,PRI,XX,X)=""
+ .S ^BYIMTMP("OF",X)=""
+ .S $P(^BYIMTMP("NUM"),U,2)=$P($G(^BYIMTMP("NUM")),U,2)
+ .S Y=0
+ .F  S Y=$O(^INTHU(X,3,Y)) Q:'Y  S:^(Y,0)["RXA|" $P(^BYIMTMP("NUM"),U,3)=$P($G(^BYIMTMP("NUM")),U,3)+1
+ K ^BYIMTMP("LE")
+ K ^BYIMTMP("OF")
  Q
  ;-----

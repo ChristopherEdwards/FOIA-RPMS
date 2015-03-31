@@ -1,8 +1,9 @@
-FHSEL1 ; HISC/REL/NCA/JH - Patient Preferences ;6/28/96  10:19
- ;;5.0;Dietetics;**2,9,10,18**;Oct 11, 1995
+FHSEL1 ; HISC/REL/NCA/JH/RTK/FAI - Patient Preferences ;10/20/04  10:19
+ ;;5.5;DIETETICS;**8**;Jan 28, 2005;Build 28
 EN1 ; Enter/Edit Preference File entries
+ I $G(FHALGMZ)=1 QUIT
  W ! S (DIC,DIE)="^FH(115.2,",DIC(0)="AEQLM",DIC("DR")=".01;1",DLAYGO=115.2 W ! D ^DIC K DIC,DLAYGO G KIL:U[X!$D(DTOUT),EN1:Y<1
- S (FHDA,DA)=+Y,DR=".01;1;S:X=""D"" Y=0;3;20;S:'X Y=99;21;99" D ^DIE K DA,DIE,DR
+ S (FHDA,DA)=+Y,DR=".01;26;1;S:X=""D"" Y=0;3;20;S:'X Y=99;21;27;99" D ^DIE K DA,DIE,DR
  I $P($G(^FH(115.2,FHDA,0)),"^",2)'="D"!($D(Y)) G EN1
 TRAN R !!,"Do you want to import Recipes from another Food Preference? N // ",X:DTIME
  G:'$T!(X["^") EN1
@@ -12,7 +13,7 @@ T1 W ! K DIC S DIC="^FH(115.2,",DIC(0)="AEMQ",DIC("S")="I $P(^(0),U,2)=""D""" D 
  G KIL:"^"[X!($D(DTOUT)),T1:Y<1 S FHD=+Y
  S:'$D(^FH(115.2,FHDA,"X",0)) ^(0)="^115.21P^^"
  F DIS=0:0 S DIS=$O(^FH(115.2,FHD,"X",DIS)) Q:DIS<1  S L1=$G(^(DIS,0)) D ADD
-DIS S DA=FHDA,DIE="^FH(115.2,",DR="10;99" D ^DIE K DA,DIE,DR G EN1
+DIS S DA=FHDA,DIE="^FH(115.2,",DR="10;27;99" D ^DIE K DA,DIE,DR G EN1
 ADD ; Add dislikes recipes from another food preference
  I $D(^FH(115.2,FHDA,"X","B",+L1)) Q
 A L +^FH(115.2,FHDA,"X",0)
@@ -24,18 +25,27 @@ A L +^FH(115.2,FHDA,"X",0)
  S ^FH(115.2,FHDA,"X","B",+L1,FHX2)=""
  Q
 EN2 ; List Preference File
- W ! S L=0,DIC="^FH(115.2,",FLDS="[FHSELIST]",BY="LIKE OR DISLIKE,NAME"
+ W ! K DIR S DIR("A")="Do you want to print recipes?: "
+ S DIR(0)="YA",DIR("B")="Y" D ^DIR
+ I $D(DIRUT) K %ZIS S IOP="" D ^%ZIS G KIL
+ S FHALRC=Y I FHALRC=1 D EN2OLD Q
+ I FHALRC=0 D EN2NEW Q
+ Q
+EN2OLD W ! S L=0,DIC="^FH(115.2,",FLDS="[FHSELIST]",BY="LIKE OR DISLIKE,NAME"
+ S FR="@",TO="",DHD="PATIENT PREFERENCES" D EN1^DIP
+ K %ZIS S IOP="" D ^%ZIS G KIL
+EN2NEW W ! S L=0,DIC="^FH(115.2,",FLDS="[FHSELST2]",BY="LIKE OR DISLIKE,NAME"
  S FR="@",TO="",DHD="PATIENT PREFERENCES" D EN1^DIP
  K %ZIS S IOP="" D ^%ZIS G KIL
 EN3 ; Enter/Edit Patient Preferences
- S ALL=0 D ^FHDPA G:'DFN KIL D DISP S DA=DFN W !
- K PP F K=0:0 S K=$O(^FHPT(DFN,"P",K)) Q:K<1  S X=^(K,0),PP(+X)=$P(X,"^",2,3)
+ S FHALL=1 D ^FHOMDPA G:'FHDFN KIL D DISP S DA=FHDFN W !
+ K PP F K=0:0 S K=$O(^FHPT(FHDFN,"P",K)) Q:K<1  S X=^(K,0),PP(+X)=$P(X,"^",2,3)
  S DIE="^FHPT(",DR="[FHSEL]",DIE("NO^")="" D ^DIE K DIE S FLG=0
  S:$D(Y) FLG=1
- S STR="" F K=0:0 S K=$O(^FHPT(DFN,"P",K)) Q:K<1  S X=^(K,0) S:$P(X,"^",2)="" STR=STR_K_"," S:$P(X,"^",2)'="" $P(PP(+X),"^",3,4)=$P(X,"^",2)_"^"_$P(X,"^",3)
+ S STR="" F K=0:0 S K=$O(^FHPT(FHDFN,"P",K)) Q:K<1  S X=^(K,0) S:$P(X,"^",2)="" STR=STR_K_"," S:$P(X,"^",2)'="" $P(PP(+X),"^",3,4)=$P(X,"^",2)_"^"_$P(X,"^",3)
  D N31 K PP
  I FLG,STR'="" D
- .S DA(1)=DFN F K=1:1 Q:'$P(STR,",",K)  S DA=$P(STR,",",K) D
+ .S DA(1)=FHDFN F K=1:1 Q:'$P(STR,",",K)  S DA=$P(STR,",",K) D
  ..S DIK="^FHPT("_DA(1)_",""P""," D ^DIK
  ..Q
  .W *7,!,"<Preference deleted>" K DIK,DA Q
@@ -48,20 +58,20 @@ N32 S KK=$O(PP(KK)) I KK<1 Q:COM=""  S EVT="P^O^^"_$E(COM,2,999) D ^FHORX Q
 N33 S X1=$P(PP(K),"^",1,2),X2=$P(PP(K),"^",3,4) I X1=X2 K PP(K) Q
  S X1=$S(X1="^":"Add",X2="":"Del",1:"Mod"),Q=$P(X2,"^",2)
  I X1["Mod" D
- .S NOD=$O(^FHPT(DFN,"P","B",K,0)) Q:NOD<1
- .S:$P($G(^FHPT(DFN,"P",NOD,0)),"^",4)="Y" $P(^FHPT(DFN,"P",NOD,0),"^",4)=""
+ .S NOD=$O(^FHPT(FHDFN,"P","B",K,0)) Q:NOD<1
+ .S:$P($G(^FHPT(FHDFN,"P",NOD,0)),"^",4)="Y" $P(^FHPT(FHDFN,"P",NOD,0),"^",4)=""
  .Q
  S PP(K)=X1_" "_$S(X2="":"",Q:Q_" ",1:"1 ")_$P(^FH(115.2,K,0),"^",1) S:X2'="" PP(K)=PP(K)_" ("_$P(X2,"^",1)_")" Q
 EN4 ; Display Patient Preferences
- S ALL=1 D ^FHDPA G:'DFN KIL D E41 G EN4
+ S FHALL=1 D ^FHOMDPA G:'DFN KIL G:'FHDFN KIL D E41 G EN4
 E41 ; Display Patient Header and Food Preferences
  D NOW^%DTC S NOW=%,DT=NOW\1
  S Y(0)=^DPT(DFN,0),SEX=$P(Y(0),"^",2),DOB=$P(Y(0),"^",3) D PID^FHDPA
  S AGE=$E(NOW,1,3)-$E(DOB,1,3)-($E(NOW,4,7)<$E(DOB,4,7))
- W @IOF,!,PID,?17,$P(Y(0),"^",1),?49,$S(SEX="M":"Male",SEX="F":"Female",1:""),?57,"Age ",AGE,?66,$E(WARD,1,13)
+ W @IOF,!,PID,?17,$P(Y(0),"^",1),?49,$S(SEX="M":"Male",SEX="F":"Female",1:""),?55,"Age ",AGE
 DISP ; Display Food Preferences
  W !!?21,"Likes",?54,"DisLikes",!
- K P S P1=1 F K=0:0 S K=$O(^FHPT(DFN,"P",K)) Q:K<1  S X=^(K,0) D SP
+ K P S P1=1 F K=0:0 S K=$O(^FHPT(FHDFN,"P",K)) Q:K<1  S X=^(K,0) D SP
  W ! S (M,MM)="" F  S M=$O(P(M)) Q:M=""  I $D(P(M)) W $P(M,"~",2) D  S MM=M
  .  S (P1,P2)=0 F  S:P1'="" P1=$O(P(M,"L",P1)) S X1=$S(P1>0:P(M,"L",P1),1:"") S:P2'="" P2=$O(P(M,"D",P2)) S X2=$S(P2>0:P(M,"D",P2),1:"") Q:P1=""&(P2="")  D P0  W:MM'=M !
  .  Q

@@ -1,12 +1,11 @@
 PSIVORA1 ;BIR/MLM-UTILITIES FOR IV FLUIDS - OE/RR INTERFACE (CONT) ;05 FEB 97 / 1:30 PM
- ;;5.0; INPATIENT MEDICATIONS ;**58**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**58,110**;16 DEC 97
  ;
  ; Reference to ^PS(51.2 is supported by DBIA 2178.
  ; Reference to ^PS(55 is supported by DBIA 2191.
  ; Reference to ^PS(52.6 is supported by DBIA 1231.
  ; Reference to ^PS(52.7 is supported by DBIA 2173.
  ; Reference to ^VA(200 is supported by DBIA 10060.
- ; Reference to NOW^%DTC is supported by DBIA 10000.
  ;
 LOCKERR ; Display msg. if lock is unsuccessful.
  W $C(7),!!,"This order is being edited by another user." S OREND=1
@@ -21,7 +20,7 @@ EDIT ; Edit an existing order.
  E  D REDIT
  N DONE S PSJORNP=+P(6) K ON55 D ENED^PSIVORV1,GTFLDS^PSIVORFE I $G(DONE) S OREND=1 Q
  I PSJORSTS=11 W !,"...updating order..." D UPD100^PSIVORFA,PUT531^PSIVORFA Q
- D NOW^%DTC S P("LOG")=+$E(%,1,12),P("CLRK")=DUZ_U_$P($G(^VA(200,DUZ,0)),U)
+ S P("LOG")=$$DATE^PSJUTL2(),P("CLRK")=DUZ_U_$P($G(^VA(200,DUZ,0)),U)
  W !,"...creating new order..." S P(17)="U",P("OLDON")=$S(PSJORSTS=5:+ON_"P",1:+ON_"V") D ENGNN^PSGOETO S ON=DA D SET^PSIVORFE D PUT531^PSIVORFA
  I P("OLDON")["V",$D(^PS(55,DFN,"IV",+P("OLDON"),2)) S $P(^(2),U,6)=ON_"U",$P(^(2),U,9)="E" Q
  I P("OLDON")'["V",$D(^PS(53.1,+P("OLDON"),0)) S $P(^(0),U,26,27)=ON_"U"_U_"E"

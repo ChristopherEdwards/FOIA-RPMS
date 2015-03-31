@@ -1,26 +1,27 @@
 FHORD1 ; HISC/REL/NCA - Diet Order ;3/28/01  10:28
- ;;5.0;Dietetics;**6,15,27,37,38**;Oct 11, 1995
-F0 S ALL=1 D ^FHDPA G:'DFN KIL
+ ;;5.5;DIETETICS;**8**;Jan 28, 2005;Build 28
+F0 S ALL=1 D ^FHDPA G:'DFN KIL G:'FHDFN KIL
  I $G(ADM)="" W *7,!!," NOT CURRENTLY AN INPATIENT" D KIL Q
- D D0 G:'DFN KIL D PROC
+ D D0 G:'DFN KIL G:'FHDFN KIL D PROC
  S DTE="" D ^FHORD1A I FHWF,DTE S (SDT,EDT)=DTE,WKD="",SERV="L" D EL^FHWOR3 D:$D(MSG) MSG^XQOR("FH EVSEND OR",.MSG) K MSG
- S TF=$P(^FHPT(DFN,"A",ADM,0),"^",4) I TF W !!,"An ACTIVE Tubefeeding Order Exists!" S FHD="Y" D DIS^FHORT2,ASK^FHORT2 D:FHD="Y" CAN^FHORT2
+ S TF=$P(^FHPT(FHDFN,"A",ADM,0),"^",4) I TF W !!,"An ACTIVE Tubefeeding Order Exists!" S FHD="Y" D DIS^FHORT2,ASK^FHORT2 D:FHD="Y" CAN^FHORT2
  G F0
 D0 ; Process Diet Order
  D CUR^FHORD7 W !!,"Current Diet: ",$S(Y'="":Y,1:"No current order")
- I FHORD S COM=$G(^FHPT(DFN,"A",ADM,"DI",FHORD,1)) I COM'="" W !,"Comment: ",COM
+ D ALG^FHCLN W !!,"Allergies: ",$S(ALG="":"None on file",1:ALG)
+ I FHORD S COM=$G(^FHPT(FHDFN,"A",ADM,"DI",FHORD,1)) I COM'="" W !,"Comment: ",COM
  D NOW^%DTC S NOW=% K %,%H,%I D FUT
 C0 I CT W *7 R !!,"A new order with no expiration date will CANCEL these diets.",!!,"Do you wish to CONTINUE? (Y/N): ",X:DTIME G:'$T!(X="^") AB S:X="" X="^" D TR^FH G:$P("NO",X,1)="" AB I $P("YES",X,1)'="" W *7,"  Answer YES or NO" G C0
-F7 S WRD=$P($G(^FHPT(DFN,"A",ADM,0)),"^",8),SVC="" I WRD>0 S SVC=$P($G(^FH(119.6,WRD,0)),"^",10)
+F7 S WRD=$P($G(^FHPT(FHDFN,"A",ADM,0)),"^",8),SVC="" I WRD>0 S SVC=$P($G(^FH(119.6,WRD,0)),"^",10)
  S:SVC="" SVC="T" I $L(SVC)=1 S TYP=SVC G F8
- S N1=$P(^FHPT(DFN,"A",ADM,0),"^",5) S:SVC'[N1 N1=""
+ S N1=$P(^FHPT(FHDFN,"A",ADM,0),"^",5) S:SVC'[N1 N1=""
  S X="Tray^Cafeteria^Dining Room" W !!,$P(X,"^",$F("TCD",$E(SVC,1))-1),$S($L(SVC)=2:" or ",1:", "),$P(X,"^",$F("TCD",$E(SVC,2))-1)
  W:$L(SVC)=3 " or ",$P(X,"^",$F("TCD",$E(SVC,3))-1) W ": ",$S(N1="":$E(SVC,1),1:N1),"// "
  R X:DTIME G:'$T!(X="^") AB S:X="" X=$S(N1="":$E(SVC,1),1:N1) S X=$E(X,1) D TR^FH
  I SVC'[X W *7,!,"Enter one of the given type of services." G F7
  S TYP=X
  I 'FHORD!(N1="")!(N1=TYP) G F8
- S N1=^FHPT(DFN,"A",ADM,"DI",FHORD,0) I "^^^^"[$P(N1,"^",2,6) G F8
+ S N1=^FHPT(FHDFN,"A",ADM,"DI",FHORD,0) I "^^^^"[$P(N1,"^",2,6) G F8
 R1 R !!,"Retain Current Diet? N// ",Y:DTIME G:'$T!(Y="^") AB S:Y="" Y="N" S X=Y D TR^FH S Y=X I $P("YES",Y,1)'="",$P("NO",Y,1)'="" W *7,"  Answer YES or NO" G R1
  G:Y?1"N".E F8 S FHOR=$P(N1,"^",2,6),(D3,D4)=0,D2=$P(N1,"^",10)
  S D1=NOW G F10
@@ -44,13 +45,13 @@ F10 S FHLD="" W:FHWF'=2 !!,"... Diet Order Accepted"
  Q
 PROC ; Process & file order
  D STR^FHORD7,^FHORDR D:D4 POST^FHORD7 Q
-AB W *7,!!,"Diet Order for this Patient is UNCHANGED -- No order entered!",! S DFN="" Q
+AB W *7,!!,"Diet Order for this Patient is UNCHANGED -- No order entered!",! S (DFN,FHDFN)="" Q
 KIL ; Final variable kill
- K %,%H,%I,%T,%DT,A1,A2,ADM,ALL,C,COM,CORD,CT,D0,D1,D2,D3,D4,DA,DFN,DTP,DI,DIC,FHDU,FHD,FHLD,FHOR,FHPAR,FHWF,FHPV,FLG,I,J,K,KK,N1,NOW,FHORD,FHSAV,FHSAV1,FHDAY
+ K %,%H,%I,%T,%DT,A1,A2,ADM,ALL,C,COM,CORD,CT,D0,D1,D2,D3,D4,DA,FHDFN,DFN,DTP,DI,DIC,FHDU,FHD,FHLD,FHOR,FHPAR,FHWF,FHPV,FLG,I,J,K,KK,N1,NOW,FHORD,FHSAV,FHSAV1,FHDAY
  K FHK,FHK1,FHOE,FHOLD,FHMSG,FHNEW,K1,K2,KK1,LC,M,PREC,SVC,TYP,X,X1,X2,Y,WRD,WARD,TF,QUA,STR,TUN,XMKK,Z Q
 FUT ; List future diets
- S CT=0,CORD=FHORD F KK=NOW:0 S KK=$O(^FHPT(DFN,"A",ADM,"AC",KK)) Q:KK<1  S FHORD=$P(^(KK,0),"^",2) D T1
+ S CT=0,CORD=FHORD F KK=NOW:0 S KK=$O(^FHPT(FHDFN,"A",ADM,"AC",KK)) Q:KK<1  S FHORD=$P(^(KK,0),"^",2) D T1
  S FHORD=CORD Q
-T1 Q:'$D(^FHPT(DFN,"A",ADM,"DI",FHORD,0))  S DTP=KK D DTP^FH,C2^FHORD7
+T1 Q:'$D(^FHPT(FHDFN,"A",ADM,"DI",FHORD,0))  S DTP=KK D DTP^FH,C2^FHORD7
  I 'CT W !!,"Future Diet Orders:",!
  S CT=CT+1 W !?5,DTP,?25,Y Q

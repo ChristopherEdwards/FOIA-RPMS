@@ -1,9 +1,10 @@
-APSPDIR ;IHS/CIA/PLS - ASKS DATA FOR RX ORDER ENTRY ;29-Nov-2011 12:10;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1006,1008,1013**;Sep 23, 2004;Build 33
+APSPDIR ;IHS/CIA/PLS - ASKS DATA FOR RX ORDER ENTRY ;05-Mar-2013 11:50;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1006,1008,1013,1015**;Sep 23, 2004;Build 62
  ; This routine contains additional prompts for input of IHS specific data.
  ; Original Entry points courtesy of Patrick Cox.
  ; Patch 1006 adds new TRPDCLS entry point.
  ; Patch 1008 adds support for SUBSTITUTION and CASH DUE prompts and check for SANS default Chronic Med prompt
+ ; Patch 1015 added PSODRUG("DAW") at SUBS+3
 BST(PSODIR) ; EP - Bill Status
  N DIR,DIC,X,Y,B
  S DIR(0)="52,9999999.07"
@@ -207,7 +208,9 @@ PTSTATX K DTOUT,DUOUT,Y,DA
 SUBS(PSODIR) ; EP - Substitution Enter/Edit
  N DIR,DIC,Y,DA
  S DIR(0)="52,9999999.25"
- S DIR("B")=$S($L($G(PSODIR("DAW"))):$$EXTERNAL^DILFD(52,9999999.25,,PSODIR("DAW")),1:"")
+ ;IHS/MSC/PLS - 03/05/2013
+ ;S DIR("B")=$S($L($G(PSODIR("DAW"))):$$EXTERNAL^DILFD(52,9999999.25,,PSODIR("DAW")),1:"")
+ S DIR("B")=$S($L($G(PSODIR("DAW"))):$$EXTERNAL^DILFD(52,9999999.25,,PSODIR("DAW")),$G(PSODRUG("DAW")):PSODRUG("DAW"),1:"")
  D DIR^PSODIR1 G:PSODIR("DFLG")!PSODIR("FIELD") SUBSX
  S PSODIR("DAW")=Y
 SUBSX Q

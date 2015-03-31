@@ -1,11 +1,10 @@
-SROQ0 ;B'HAM ISC/ADM - QUARTERLY REPORT (CONTINUED) ; [ 09/07/00  12:43 PM ]
- ;;3.0; Surgery ;**62,70,77,50,95**;24 Jun 93
+SROQ0 ;BIR/ADM - QUARTERLY REPORT (CONTINUED) ;03/21/06
+ ;;3.0; Surgery ;**62,70,77,50,95,123,129,153**;24 Jun 93;Build 11
+ ;** NOTICE: This routine is part of an implementation of a nationally
+ ;**         controlled procedure. Local modifications to this routine
+ ;**         are prohibited.
  ;
  ; Reference to ^DIC(45.3 supported by DBIA #218
- ;
- ;** NOTICE: This routine is part of an implementation of a nationally
- ;**         controlled procedure.  Local modifications to this routine
- ;**         are prohibited.
  ;
  S SR(0)=^SRF(SRTN,0),DFN=$P(SR(0),"^") I '$D(^TMP("SRDPT",$J,DFN)) S ^TMP("SRDPT",$J,DFN)="",SRDPT=SRDPT+1
  D DEM^VADPT S X1=SRSD,X2=$P(VADM(3),"^"),SRAGE=$E(X1,1,3)-$E(X2,1,3)-($E(X1,4,7)<$E(X2,4,7)) I SRAGE>60 S SR60=SR60+1
@@ -32,14 +31,37 @@ WC ; clean wound ?
 CAT ; complication categories
  S SRW=0
  I SRPOC S SRC=0 F  S SRC=$O(^SRF(SRTN,16,SRC)) Q:'SRC  S SRCAT=$P(^SRF(SRTN,16,SRC,0),"^",2) I SRCAT D
- .S SRCAT=$S(SRCAT=33:29,SRCAT=34:32,1:SRCAT)
  .S SRC(SRCAT)=SRC(SRCAT)+1 I SRCLEAN,(SRCAT=1!(SRCAT=2)) S SRW=1
- I $O(^SRF(SRTN,10,0)) S SRC=0 F  S SRC=$O(^SRF(SRTN,10,SRC)) Q:'SRC  S SRCAT=$P(^SRF(SRTN,10,SRC,0),"^",2) I SRCAT S SRC(SRCAT)=SRC(SRCAT)+1 I SRCLEAN,(SRCAT=1!(SRCAT=2)) S SRW=1
+ I $O(^SRF(SRTN,10,0)) S SRC=0 F  S SRC=$O(^SRF(SRTN,10,SRC)) Q:'SRC  S SRCAT=$P(^SRF(SRTN,10,SRC,0),"^",2) I SRCAT D
+ .S SRC(SRCAT)=SRC(SRCAT)+1 I SRCLEAN,(SRCAT=1!(SRCAT=2)) S SRW=1
  I SRW S SRIN=SRIN+1
+ENSURE ; check ensuring correct surgery compliance
+ S SRVER=$G(^SRF(SRTN,"VER"))
+TOV ; process time out verified field
+ S SR71=$P(SRVER,"^",3) D
+ .I SR71="Y" S SRTOV=SRTOV+1 Q
+ .I SR71="N" S SRTONO=SRTONO+1 Q
+ .S SRTONE=SRTONE+1
+IC ; process imaging confirmed field
+ S SR72=$P(SRVER,"^",4) D
+ .I SR72="Y" S SRICY=SRICY+1 Q
+ .I SR72="I" S SRICNR=SRICNR+1 Q
+ .I SR72="N" S SRICNO=SRICNO+1 Q
+ .S SRICNE=SRICNE+1
+MRK ; process mark on surgical site confirmed field
+ S SR73=$P(SRVER,"^",5) D
+ .I SR73="Y" S SRSCY=SRSCY+1 Q
+ .I SR73="M" S SRSCNR=SRSCNR+1 Q
+ .I SR73="N" S SRSCNO=SRSCNO+1 Q
+ .S SRSCNE=SRSCNE+1
+HAIR ; process hair removal method
+ S X=$P(SRVER,"^",6) I X="" S X="ZZ"
+ I $D(SRHAIR(X)) S SRHAIR(X)=SRHAIR(X)+1 Q
+ S SRHAIR("ZZ")=SRHAIR("ZZ")+1
  Q
 HDR ; print page header
  I $D(ZTQUEUED) D ^SROSTOP I SRHALT S SRSOUT=1 Q
- I SRHDR,$E(IOST)="C" W !!,"Press RETURN to continue, or '^' to quit: " R X:DTIME I '$T!(X["^") S SRSOUT=1 Q
+ I SRHDR,$E(IOST,1,2)="C-" W !!,"Press RETURN to continue, or '^' to quit: " R X:DTIME I '$T!(X["^") S SRSOUT=1 Q
  S SRHDR=1 I $E(IOST)'="P" W @IOF Q
  S SRPAGE=SRPAGE+1 I 'SRFLG D HDR1 Q
  W:$Y @IOF W !,?23,"QUARTERLY REPORT - SURGICAL SERVICE",?76,"PAGE",!,?35,"VERSION 3.0",?78,SRPAGE
@@ -52,23 +74,4 @@ HDR1 ; print header if not quarterly report
  W:$Y @IOF W !,?24,"SUMMARY REPORT - SURGICAL SERVICE",?76,"PAGE",!,?35,"VERSION 3.0",?78,SRPAGE
  W !!,?(80-$L("Hospital: "_SRINST)\2),"Hospital: ",SRINST,!,?30,"Station Number: ",SRSTATN
  W !,?20,"For Dates: ",SRSD,"  to: ",SRED I $E(IOST)="P" W ! F I=1:1:80 W "="
- Q
-QTR D CHECK I '$D(X) D HELP
- K SRX,SRY
- Q
-CHECK I ($L(X)'=4&($L(X)'=6))!(X'["-") K X Q
- I $P(X,"-",2)?1N,"1243"'[$P(X,"-",2) K X Q
- I $L(X)=4 D FOUR Q
- I X'?4N1"-"1N K X Q
- S SRX=$P(X,"-") I SRX<1996!(SRX>2010) K X Q
- S SRY=$P(X,"-",2) I "1234"'[SRY K X Q
- S X=SRX_SRY
- Q
-HELP K SRHELP S SRHELP(1)="",SRHELP(2)="Answer must be in format :  FISCAL YEAR-QUARTER",SRHELP(3)="",SRHELP(4)="NOTE:  A hyphen (-) must separate FISCAL YEAR and QUARTER.  The FISCAL"
- S SRHELP(5)="       YEAR must be in the range 1996 to 2010.",SRHELP(6)="",SRHELP(7)="FISCAL YEAR portion of answer may be entered in either 2 or 4 digit",SRHELP(8)="format, for example, 1996 or 96 for FISCAL YEAR 1996."
- S SRHELP(9)="",SRHELP(10)="QUARTER must be a number, (1, 2, 3 or 4).",SRHELP(11)="",SRHELP(12)="Example:  For second quarter of fiscal year 1996, enter 1996-2 or 96-2.",SRHELP(13)="" D EN^DDIOL(.SRHELP) K SRHELP
- Q
-FOUR I X'?2N1"-"1N K X Q
- S SRX=$P(X,"-") I SRX>9&(SRX<96) K X Q
- S SRX=$S($E(X)=9:"19"_SRX,1:"20"_SRX),SRY=$P(X,"-",2),X=SRX_SRY
  Q

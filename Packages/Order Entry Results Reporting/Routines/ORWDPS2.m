@@ -1,6 +1,7 @@
-ORWDPS2 ; SLC/KCM/JLI - Pharmacy Calls for Windows Dialog ;7/3/02 4:30PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,116,125,131,132,148,141**;Dec 17, 1997
+ORWDPS2 ; SLC/KCM/JLI - Pharmacy Calls for Windows Dialog;17-Jun-2013 10:14;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**85,116,125,131,132,148,141,195,215,258,243,1011**;Dec 17, 1997;Build 242
  ;
+ ; Modified - IHS/MSC/PLS - 06/01/2013 - Line DISPLST+5
 OISLCT(LST,OI,PSTYPE,ORVP,NEEDPI,PKIACTIV) ; return for defaults for pharmacy orderable item
  N ILST,ORDOSE,ORWPSOI,ORWDOSES,X1,X2
  K ^TMP("PSJINS",$J),^TMP("PSJMR",$J),^TMP("PSJNOUN",$J),^TMP("PSJSCH",$J),^TMP("PSSDIN",$J)
@@ -51,11 +52,13 @@ DOSAGE ; from OISLCT, set up the list of dosages
  S I=0 F  S I=$O(ORWDOSES(I)) Q:I'>0  S ILST=ILST+1,LST(ILST)=ORWDOSES(I)
  Q
 DISPLST ; from OISLCT, set up list of dispense drugs
- ; DrugIEN^Strength^Units^Name^Split
+ ; DrugIEN^Strength^Units^Name^Split^Drug Long Name^Qty Qualifier
  N DD
  S DD=0 F  S DD=$O(ORDOSE("DD",DD)) Q:'DD  D
  . S ILST=ILST+1
- . S LST(ILST)="i"_DD_U_$P(ORDOSE("DD",DD),U,5,6)_U_$P(ORDOSE("DD",DD),U)_U_$P(ORDOSE("DD",DD),U,11)
+ . ;IHS/MSC/PLS - 06/17/13
+ . ;S LST(ILST)="i"_DD_U_$P(ORDOSE("DD",DD),U,5,6)_U_$P(ORDOSE("DD",DD),U)_U_$P(ORDOSE("DD",DD),U,11)
+ . S LST(ILST)="i"_DD_U_$P(ORDOSE("DD",DD),U,5,6)_U_$P(ORDOSE("DD",DD),U)_U_$P(ORDOSE("DD",DD),U,11)_U_$$GET1^DIQ(50,DD,9999999.352)_U_$$QTYTXT^APSPES1(DD)
  Q
 ALLDOSE ; from OISLCT, set up a list of all possible doses
  ; LST(n)=iDrugName^Strength^NF^... (see BLDDOSE)
@@ -72,7 +75,7 @@ ALLDOSE ; from OISLCT, set up a list of all possible doses
  . . S ILST=ILST+1
  . . S LST(ILST)="i"_$P(X,U,5)_U_$P($P(X,U,4),"&",6)_U_$P(X,U,4)
  Q
-BLDDOSE(X)  ; build dose info where X is ORDOSE node
+BLDDOSE(X) ; build dose info where X is ORDOSE node
  ; from ALLDOSE
  ;    X=TotalDose^Units^U/D^Noun^LocalDose^DispDrugIEN
  ;    Y=iDrugName^Strength^NF^TDose&Units&U/D&Noun&LDose&Drug&Stren&Units^
@@ -97,7 +100,7 @@ ROUTE ; from OISLCT, get list of routes for the drug form
  . S X=^TMP("PSJMR",$J,I)
  . S ROUT=$P(X,U),ABBR=$P(X,U,2),IEN=$P(X,U,3),EXP=$P(X,U,4)
  . S ILST=ILST+1,LST(ILST)="i"_IEN_U_ROUT_U_ABBR_U_EXP_U_$P(X,U,5)
- . I I=1,IEN S ILST=ILST+1,LST(ILST)="d"_IEN_U_ROUT ;_U_ABBR ; assume first always default
+ . I $P(X,U,6)="D",IEN S ILST=ILST+1,LST(ILST)="d"_IEN_U_ROUT ;_U_ABBR ; assume first always default
  ; add abbreviations to list of routes, commented out for 15.5 on
  ; S I="" F  S I=$O(^TMP("PSJMR",$J,I)) Q:I=""  D
  ; . S X=^TMP("PSJMR",$J,I)
@@ -116,13 +119,13 @@ GUIDE ; from OISLCT, get guidelines associated with this medication
 OIMSG ; from OISLCT, get the orderable item message for this medication
  S I=0 F  S I=$O(^ORD(101.43,OI,8,I)) Q:I'>0  S ILST=ILST+1,LST(ILST)="t"_^(I,0)
  Q
-ADMIN(REC,DFN,SCH,OI,LOC)       ; return administration time info
+ADMIN(REC,DFN,SCH,OI,LOC,ADMIN) ; return administration time info
  ; REC: StartText^StartTime^Duration^FirstAdmin
  S OI=+$P($G(^ORD(101.43,+OI,0)),U,2)
  S LOC=+$G(^SC(LOC,42)),REC=""
- I $L($G(^DPT(DFN,.1))) S REC=$$FIRST^ORCDPS3(DFN,LOC,OI,SCH)
+ I $L($G(^DPT(DFN,.1))) S REC=$$FIRST^ORCDPS3(DFN,LOC,OI,SCH,"",$G(ADMIN))
  Q
-REQST(VAL,DFN,SCH,OI,LOC,TXT)   ; return requested start time
+REQST(VAL,DFN,SCH,OI,LOC,TXT) ; return requested start time
  ; VAL: FirstAdmin time
  S VAL=""
  Q:'$L($G(SCH))  Q:'$G(OI)
@@ -130,7 +133,7 @@ REQST(VAL,DFN,SCH,OI,LOC,TXT)   ; return requested start time
  S LOC=+$G(^SC(LOC,42))
  S VAL=$P($$RESOLVE^PSJORPOE(DFN,SCH,OI,TXT,LOC),U,2)
  Q
-DAY2QTY(VAL,DAY,UPD,SCH,DUR,PAT,DRG)        ; return qty for days supply
+DAY2QTY(VAL,DAY,UPD,SCH,DUR,PAT,DRG) ; return qty for days supply
  ; VAL: quantity
  N ORWX,I,X,ADUR,ADURNM
  S ORWX("DAYS SUPPLY")=DAY
@@ -148,7 +151,7 @@ DAY2QTY(VAL,DAY,UPD,SCH,DUR,PAT,DRG)        ; return qty for days supply
  D QTYX^PSOSIG(.ORWX)
  S VAL=$G(ORWX("QTY"))
  Q
-QTY2DAY(VAL,QTY,UPD,SCH,DUR,PAT,DRG)        ; return days supply given quantity
+QTY2DAY(VAL,QTY,UPD,SCH,DUR,PAT,DRG) ; return days supply given quantity
  ; VAL: days supply
  N ORWX,I,X,ADUR
  S ORWX("QTY")=QTY
@@ -164,19 +167,19 @@ QTY2DAY(VAL,QTY,UPD,SCH,DUR,PAT,DRG)        ; return days supply given quantity
  D QTYX^PSOSIG(.ORWX)
  S VAL=$G(ORWX("DAYS SUPPLY"))
  Q
-MAXREF(VAL,PAT,DRG,SUP,OI,OUT)      ; return the maximum number of refills
+MAXREF(VAL,PAT,DRG,SUP,OI,OUT) ; return the maximum number of refills
  ; PAT=Patient DFN, DRG=ptr50, SUP=days supply, OI=orderable item
  ; VAL: maximum refills allowed
  N ORWX
  S ORWX("PATIENT")=PAT
  I $G(DRG) S ORWX("DRUG")=+DRG
  I $G(SUP) S ORWX("DAYS SUPPLY")=SUP
- I $G(OI)  S ORWX("ITEM")=OI
+ I $G(OI)  S ORWX("ITEM")=+$P(^ORD(101.43,+OI,0),U,2)
  I $G(OUT) S ORWX("DISCHARGE")=1
  D MAX^PSOSIGDS(.ORWX)
  S VAL=$G(ORWX("MAX"))
  Q
-SCHREQ(VAL,OI,RTE,DRG)  ; return 1 if schedule is required
+SCHREQ(VAL,OI,RTE,DRG) ; return 1 if schedule is required
  ; OI=orderable item, RTE=ptr route, DRG=ptr dispense drug
  S VAL=1
  Q:'$G(OI)  Q:'$G(RTE)
@@ -192,41 +195,43 @@ CHKPI(VAL,ODIFN) ; return pre-existing patient instruct
  K IDNUM,IDPI
  Q
 CHKGRP(VAL,ORIFN) ;
- ;If order belong to Inpatient Med Order Group: return 1
- ;If order belong to Outpatient Med Order Grpoup: return 2 
+ ;Inpatient Med Order Group or Clin Meds Group: return 1
+ ;If order belong to Outpatient Med Order Grpoup: return 2
  ;Otherwise, return 0
  S VAL=0
  I '$L(ORIFN) Q
- N UDGRP,IPGRP,OPGRP,ODGRP,ODID
+ N UDGRP,IPGRP,OPGRP,ODGRP,ODID,CLMED
  S ODID=+ORIFN
  Q:ODID<1
- S (UDGRP,IPGRP,OPGRP,ODGRP)=0
+ S (UDGRP,IPGRP,OPGRP,ODGRP,CLMED)=0
  S UDGRP=$O(^ORD(100.98,"B","UD RX",UDGRP))
  S OPGRP=$O(^ORD(100.98,"B","OUTPATIENT MEDICATIONS",OPGRP))
  S IPGRP=$O(^ORD(100.98,"B","INPATIENT MEDICATIONS",IPGRP))
+ S CLMED=$O(^ORD(100.98,"B","CLINIC ORDERS",CLMED))
  S:IPGRP=0 IPGRP=$O(^ORD(100.98,"B","I RX",IPGRP))
  I $L($G(^OR(100,ODID,0)))<1 Q
  S ODGRP=$P(^OR(100,ODID,0),U,11)
- I UDGRP=ODGRP S VAL=1
+ I (UDGRP=ODGRP)!(CLMED=ODGRP) S VAL=1
  I IPGRP=ODGRP S VAL=1
  I OPGRP=ODGRP S VAL=2
- K UDGRP,ODGRP,OPGRP,IPGRP,ODID
+ K UDGRP,ODGRP,OPGRP,IPGRP,ODID,CLMED
  Q
 QOGRP(VAL,QOIFN) ;
  ;If quick order belong to Inpatient Med Order Group: return 1
  ;Otherwise, return 0
  S VAL=0
  I '$L(QOIFN) Q
- N UDGRP,IPGRP,QOGRP,QOID
+ N UDGRP,IPGRP,QOGRP,QOID,CLMED
  S QOID=+QOIFN
  Q:QOID<1
- S (UDGRP,IPGRP,QOGRP)=0
+ S (UDGRP,IPGRP,QOGRP,CLMED)=0
  S UDGRP=$O(^ORD(100.98,"B","UD RX",UDGRP))
  S IPGRP=$O(^ORD(100.98,"B","INPATIENT MEDICATIONS",IPGRP))
+ S CLMED=$O(^ORD(100.98,"B","CLINIC ORDERS",CLMED))
  S:IPGRP=0 IPGRP=$O(^ORD(100.98,"B","I RX",IPGRP))
  I $L($G(^ORD(101.41,QOID,0)))<1 Q
  S QOGRP=$P(^ORD(101.41,QOID,0),U,5)
  I UDGRP=QOGRP S VAL=1
- I IPGRP=QOGRP S VAL=1
- K UDGRP,QOGRP,QOID,IPGRP
+ I (IPGRP=QOGRP)!(CLMED=QOGRP) S VAL=1
+ K UDGRP,QOGRP,QOID,IPGRP,CLMED
  Q

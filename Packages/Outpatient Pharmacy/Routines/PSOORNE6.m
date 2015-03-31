@@ -1,6 +1,7 @@
-PSOORNE6 ;ISC-BHAM/SAB-display  orders from backdoor ;17-May-2004 16:36;PLS
- ;;7.0;OUTPATIENT PHARMACY;**46,103,117**;DEC 1997
+PSOORNE6 ;ISC-BHAM/SAB-display  orders from backdoor ;29-May-2012 15:00;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**46,103,117,156,210,1015**;DEC 1997;Build 62
  ;External reference to MAIN^TIUEDIT is supported by DBIA 2410
+ ;PSO*210 add call to WORDWRAP api
  ; Modified - IHS/CIA/PLS - 05/17/04 - QTY
 SIG ;called from psoorne3
  I $G(PSOSIGFL)!$G(PSOCOPY)!($O(SIG(0))) G DOSE
@@ -41,32 +42,36 @@ INST ;formats instruction from front door
  I $O(^PSRX(RXN,"PI",0)) S PHI=^PSRX(RXN,"PI",0),T=0 D
  .F  S T=$O(^PSRX(RXN,"PI",T)) Q:'T  S PHI(T)=^PSRX(RXN,"PI",T,0)
  .S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="        Instructions:"
- .S T=0 F  S T=$O(^PSRX(RXN,"PI",T)) Q:'T  S MIG=^PSRX(RXN,"PI",T,0) D
- ..F SG=1:1:$L(MIG," ") S:$L(^TMP("PSOAO",$J,IEN,0)_" "_$P(MIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOAO",$J,IEN,0)," ",21)=" " S ^TMP("PSOAO",$J,IEN,0)=$G(^TMP("PSOAO",$J,IEN,0))_" "_$P(MIG," ",SG)
+ .S T=0 F  S T=$O(^PSRX(RXN,"PI",T)) Q:'T  D                  ;PSO*210
+ .. S MIG=^PSRX(RXN,"PI",T,0)
+ .. D WORDWRAP^PSOUTLA2(MIG,.IEN,$NA(^TMP("PSOAO",$J)),21)
  K T,TY,MIG,SG
  Q
 PC ;displays provider comments
  I $O(^PSRX(RXN,"PRC",0)) S PRC=^PSRX(RXN,"PRC",0),T=0 D
  .F  S T=$O(^PSRX(RXN,"PRC",T)) Q:'T  S PRC(T)=^PSRX(RXN,"PRC",T,0)
  .S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="   Provider Comments:"
- .S T=0 F  S T=$O(^PSRX(RXN,"PRC",T)) Q:'T  S MIG=^PSRX(RXN,"PRC",T,0) D
- ..F SG=1:1:$L(MIG," ") S:$L(^TMP("PSOAO",$J,IEN,0)_" "_$P(MIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOAO",$J,IEN,0)," ",21)=" " S ^TMP("PSOAO",$J,IEN,0)=$G(^TMP("PSOAO",$J,IEN,0))_" "_$P(MIG," ",SG)
+ .S T=0 F  S T=$O(^PSRX(RXN,"PRC",T)) Q:'T  D                 ;PSO*210
+ .. S MIG=^PSRX(RXN,"PRC",T,0)
+ .. D WORDWRAP^PSOUTLA2(MIG,.IEN,$NA(^TMP("PSOAO",$J)),21)
  K T,TY,MIG,SG
  Q
 INST1 ;formats instruction from front door
  I $O(^PSRX(RXN,"PI",0)) S PHI=^PSRX(RXN,"PI",0),T=0 D
  .F  S T=$O(^PSRX(RXN,"PI",T)) Q:'T  S PHI(T)=^PSRX(RXN,"PI",T,0)
  .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="        Instructions:"
- .S T=0 F  S T=$O(^PSRX(RXN,"PI",T)) Q:'T  S MIG=^PSRX(RXN,"PI",T,0) D
- ..F SG=1:1:$L(MIG," ") S:$L(^TMP("PSOPO",$J,IEN,0)_" "_$P(MIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOPO",$J,IEN,0)," ",21)=" " S ^TMP("PSOPO",$J,IEN,0)=$G(^TMP("PSOPO",$J,IEN,0))_" "_$P(MIG," ",SG)
+ .S T=0 F  S T=$O(^PSRX(RXN,"PI",T)) Q:'T  D                  ;PSO*210
+ .. S MIG=^PSRX(RXN,"PI",T,0)
+ .. D WORDWRAP^PSOUTLA2(MIG,.IEN,$NA(^TMP("PSOPO",$J)),21)
  K T,TY,MIG,SG
  Q
 PC1 ;displays provider comments
  I $O(^PSRX(RXN,"PRC",0)) S PRC=^PSRX(RXN,"PRC",0),T=0 D
  .F  S T=$O(^PSRX(RXN,"PRC",T)) Q:'T  S PRC(T)=^PSRX(RXN,"PRC",T,0)
  .S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="   Provider Comments:"
- .S T=0 F  S T=$O(^PSRX(RXN,"PRC",T)) Q:'T  S MIG=^PSRX(RXN,"PRC",T,0) D
- ..F SG=1:1:$L(MIG," ") S:$L(^TMP("PSOPO",$J,IEN,0)_" "_$P(MIG," ",SG))>80 IEN=IEN+1,$P(^TMP("PSOPO",$J,IEN,0)," ",21)=" " S ^TMP("PSOPO",$J,IEN,0)=$G(^TMP("PSOPO",$J,IEN,0))_" "_$P(MIG," ",SG)
+ .S T=0 F  S T=$O(^PSRX(RXN,"PRC",T)) Q:'T  D                 ;PSO*210
+ .. S MIG=^PSRX(RXN,"PRC",T,0)
+ .. D WORDWRAP^PSOUTLA2(MIG,.IEN,$NA(^TMP("PSOPO",$J)),21)
  K T,TY,MIG,SG
  Q
 ORCHK ;
@@ -101,4 +106,16 @@ QTY ;I PSONEW("QTY")'=+PSONEW("QTY") W !,"Quantity must be ALL numeric!",! D 9^P
  .D 8^PSOORNEW Q:$G(PSONEW("DFLG"))  D 9^PSOORNEW
  I $G(PSONEW("PROVIDER")) D PROV^PSOUTIL(.PSONEW) I $G(PSONEW("DFLG")) S PSODIR("DFLG")=1 Q
  S PSONEW("DFLG")=0 K DIC,X,Y
+ Q
+DISP ;
+ S:$P(RX2,"^",10)&('$G(PSOCOPY)) IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="         Verified By: "_$P(^VA(200,$P(RX2,"^",10),0),"^")
+ I $P($G(^PSRX(RXN,"OR1")),"^",5) S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="         Finished By: "_$P(^VA(200,$P(^PSRX(RXN,"OR1"),"^",5),0),"^")
+ I $P($G(^PSRX(RXN,"OR1")),"^",6) D
+ .S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="           Filled By: "_$P(^VA(200,$P(^PSRX(RXN,"OR1"),"^",6),0),"^")
+ I $P($G(^PSRX(RXN,"OR1")),"^",7) D
+ .S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="          Checked By: "_$P(^VA(200,$P(^PSRX(RXN,"OR1"),"^",7),0),"^")
+ S $P(RN," ",35)=" ",IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="   Entry By: "_$P(^VA(200,$P(RX0,"^",16),0),"^")_$E(RN,$L($P(^VA(200,$P(RX0,"^",16),0),"^"))+1,35)
+ S Y=$P(RX2,"^") X ^DD("DD")
+ S ^TMP("PSOAO",$J,IEN,0)=^TMP("PSOAO",$J,IEN,0)_"Entry Date: "_$E($P(RX2,"^"),4,5)_"/"_$E($P(RX2,"^"),6,7)_"/"_$E($P(RX2,"^"),2,3)_" "_$P(Y,"@",2) K RN
+ S (VALMCNT,PSOPF)=IEN S:$P($G(^PSRX(RXN,"PKI")),"^") VALMSG="Digitally Signed Order"
  Q

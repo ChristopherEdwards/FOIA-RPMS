@@ -1,4 +1,4 @@
-RADLQ3 ;HISC/GJC-Delq Status/Incomplete Rpt's ;5/7/97  15:58
+RADLQ3 ;HISC/GJC-Delq Status/Incomplete Rpt's ;5/7/97  15:58 [ 12/05/2011  10:32 AM ]
  ;;5.0;Radiology/Nuclear Medicine;**87,93,47**;Mar 16, 1998;Build 21
  ; 11/15/07 BAY/KAM RA*5*87 Rem Call 217642 change pat ssn to display last four
  ; 05/09/08 BAY/KAM RA*5*93 Rem Call 246868 correct printing of *** OUTPATIENT ***
@@ -53,7 +53,11 @@ OUTPUT ; Print out the results
  ;       Since only inpatient and outpatient is possibly stored, any
  ;       change in the variable RAVAR will be a change to 'outpatient'.
  ; 11/15/07 BAY/KAM RA*5*87 Rem Call 217642 Added next line
- S RASSN=$E(RASSN,8,11)
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Use 6 digit HRNO, not last last 4 of SSN
+ ;S RASSN=$E(RASSN,8,11)
+ ;End Patch
+ ;
  I IOM=132 D  ;132 column format
  . I $$USESSAN^RAHLRU1() D
  .. W !,RANME,?RATAB(1),RACN,?RATAB(2)+7,RASSN,?RATAB(3),RADT,?RATAB(4)

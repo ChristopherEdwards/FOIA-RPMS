@@ -1,5 +1,5 @@
 GMRCSTS1 ;SLC/JFR,MA - GROUP UPDATE OF CONSULTS cont'd ;4/18/01  10:31
- ;;3.0;CONSULT/REQUEST TRACKING;**8,18,21**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**8,18,21,50**;DEC 27, 1997;Build 8
  ; Patch 18 modified PRTTSK to stop for acknowledgement between
  ; printing the report and continuing with the group update.
  ; Patch 21 moved the ^%ZISC up a few lines to correct a problem
@@ -103,14 +103,17 @@ AUDIT(GMRCO,UPDSTS,GMRCOM) ;Update the processing activity of the consult
  . S COMMENT=COMMENT_" to "_$S(+UPDSTS=2:"COMPLETE",1:"DISCONTINUED")
  . S COMMENT=COMMENT_" during group status update process."
  . S ^GMR(123,+GMRCO,40,DA,1,1,0)=COMMENT
+ ;Check for IFC and update accordingly
+ I $D(^GMR(123,+GMRCO,12)),$D(^(40,DA)) D TRIGR^GMRCIEVT(GMRCO,DA)
  K DIE,GMRCA,GMRCDT
  Q
 STSUPD(GMRCO,UPDSTS) ;change status of consult to COMPLETE or DC
  ;GMRCO= IEN from file 123
  ;UPDSTS= 1 for DC ;  2 for COMPLETE
- N DIE,DA,DR,X
+ N DIE,DA,DR,GMRCLST,X
+ S GMRCLST=$S(UPDSTS=1:$O(^GMR(123.1,"B","DISCONTINUED",0)),UPDSTS=2:$O(^GMR(123.1,"B","COMPLETE/UPDATE",0)),1:99)
  S DIE="^GMR(123,",DA=GMRCO
- S DR="8////^S X=+UPDSTS"
+ S DR="8////^S X=+UPDSTS;9////"_GMRCLST
  D ^DIE
  Q
 CPRSUPDT(GMRCO,UPDSTS) ;Update CPRS order with new status

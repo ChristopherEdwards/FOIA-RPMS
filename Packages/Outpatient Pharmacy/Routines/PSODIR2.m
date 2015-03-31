@@ -1,5 +1,5 @@
-PSODIR2 ;IHS/DSD/JCM - rx order entry contd ;22-May-2012 14:52;PLS
- ;;7.0;OUTPATIENT PHARMACY;**3,9,26,46,124,146,139,152,166,1005,1008,1013,1014**;DEC 1997;Build 5
+PSODIR2 ;IHS/DSD/JCM - rx order entry contd ;29-May-2012 14:44;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**3,9,26,46,124,146,139,152,166,1005,1008,1013,1014,1015**;DEC 1997;Build 62
  ;External reference to ^DD(52 supported by DBIA 999
  ;External reference to ^VA(200 supported by DBIA 10060
  ;External reference to ^%DTC supported by DBIA 10000

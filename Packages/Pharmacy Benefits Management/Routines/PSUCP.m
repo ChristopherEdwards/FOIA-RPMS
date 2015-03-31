@@ -1,92 +1,79 @@
-PSUCP ;BIR/TJH,PDW - PBM CONTROL POINT ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**4,5,8,19**;Oct 15, 1998
- ;
- ; DBIAs
+PSUCP ;BIR/TJH,PDW - PBM CONTROL POINT ; 06/08/07
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;**12**;MARCH, 2005;Build 19
  ; Reference to File #4    supported by DBIA 10090
  ; Reference to File #4.3  supported by DBIA 10091
  ; Reference to File #40.8 supported by DBIA 2438
  ; Reference to File #59.7 supported by DBIA 2854
+ ; move CLEANUP^PSUHL from PSURT1, delete calls to PSUCP3 (PSU*4*12)
 MANUAL ; entry point for manual option
- S PSUFQ=1 ; set here for being available in PSUCP1
- ;
+ S PSUALERT=0 D MANUAL^PSUALERT
+ I PSUALERT K PSUALERT Q
+ K PSUALERT
+ S PSUFQ=1
  I $D(^XTMP("PSUJFLG")) D  Q:Y=0  Q:Y="^"
- .W !!,"PLEASE NOTE: AN EXTRACT IS CURRENTLY RUNNING, OR"
- .W !!,"             A PREVIOUS JOB HAS NOT COMPLETED DUE TO"
- .W !,"             AN ERROR OR SYSTEM PROBLEM."
- .W !!,"             PLEASE CHECK TASKMAN TO SEE IF AN EXTRACT"
- .W !,"             IS IN PROGRESS BEFORE CONTINUING."
- .W !!,"             IF IN PROGRESS, THE JOB MAY ABORT IF YOU"
- .W !,"             RESPOND 'YES' TO CONTINUE."
- .W !
+ .W !!,"NOTE: A PREVIOUS JOB HAS NOT COMPLETED DUE TO AN ERROR"
+ .W !!,"PLEASE ALERT YOUR IRM."
+ .W !!,"RESPOND 'YES' TO CONTINUE, OR 'NO' TO EXIT"
  .S DIR(0)="Y",DIR("B")="NO"
  .S DIR("A")="Do you wish to continue"
  .D ^DIR
- D ^PSUCP3
+ D CLEANUP^PSUHL
  S PSUJOB=$J_"_"_$P($H,",",2)
+ S ^XTMP("PSUMANL")=""
  D EN^PSUCP1 ; prompt for report choices
- ;
- D XMY^PSUTL1 ; Setup for mail groups according to choices
  I PSUERR G EXIT
- S ^XTMP("PSUJFLG")=""    ;FLAG to avoid concurrent jobs running
- ;                         This can't be set to include $J because
- ;                         it is a flag to see if ANY job is running
- ;                         rather than a specific job. 
- S PSUAUTO=0
- S ^XTMP("PSU_"_PSUJOB,"PSUJOB")=PSUJOB
+ D XMY^PSUTL1 ; Setup for mail groups according to choices
+ S ^XTMP("PSUJFLG")="",PSUAUTO=0,^XTMP("PSU_"_PSUJOB,"PSUJOB")=PSUJOB
  D PUT
- S PSUTITLE="PSU PBM MANUAL"
- S PSURC="RUN^PSUCP"
+ S PSUTITLE="PSU PBM MANUAL",PSURC="RUN^PSUCP"
  S PSURP=$S('$L(PSUIOP):"",1:"PRINT^PSUCP")
- S PSURX="EXIT^PSUCP"
- S PSUNS="PS"
- ;
- ;
+ S PSURX="EXIT^PSUCP",PSUNS="PS"
+ S ^XTMP("PSU","RUNNING")=$G(ZTSK)
+ K PSUALERT,XAQ,SQAFLG,SQAID,XQAMSG,XQMSG,ZTSK
  D ^PSUDBQUE
 MANUALQ Q
  ;
 AUTO ; set variables for Auto-report option and task to background
- D ^PSUCP3         ;Clear trash globals
+ S PSUALERT=0 D AUTO^PSUALERT
+ I PSUALERT K PSUALERT Q
+ I $D(^XTMP("PSU","RUNNING")) D  Q
+ .S XQA(DUZ)="",XQA("G.PSU PBM")="",XQMSG="An ERROR has occurred. Please contact IRM for assistance."
+ .S XQAID="PSU",XQAFLG="D" D SETUP^XQALERT
+ D CLEANUP^PSUHL
  S PSUJOB=$J_"_"_$P($H,",",2)
  S ^XTMP("PSU_"_PSUJOB,"PSUFLAG1")=""   ;flag for mail patient summary reports
  S ^XTMP("PSU_"_PSUJOB,"PSUPSUMFLAG")=1         ;Set 'auto' flag
  S ^XTMP("PSUJFLG")=""    ;FLAG to avoid concurrent jobs running
  D  ; schedule job completion check
- .S PSURC="AUTO^PSUCP2"
+ .S PSURC="AUTO^PSUCP2",PSUTITLE="PSU PBM JOB CHECK",PSUFQ=1
  .S (PSURP,PSURX,PSUIOP)=""
- .S PSUTITLE="PSU PBM JOB CHECK"
- .S PSUFQ=1
  .D NOW^%DTC S X1=%,X2=6 D C^%DTC S PSUDTH=X ; LIVE MODE, wait 6 days (72 hours)
  .D ^PSUDBQUE
- ;
+ .S ^XTMP("PSU","RUNNING")=$G(ZTSK)
  D NOW^%DTC S PSUMON=$S('$D(DT):X,1:DT),PSUMON=$E(PSUMON,1,5)-1 ; get previous month
  I $E(PSUMON,4,5)="00" S PSUMON=($E(PSUMON,1,3)-1)_"12" ; set to Dec. of previous year if this month is Jan.
- S ^XTMP("PSU_"_PSUJOB,"PSUMONTH")=PSUMON
- S PSUSDT=PSUMON_"01"
- S PSULY=$$LEAPYR(PSUMON)
- S X=U_$E(PSUMON,4,5)_U
+ S ^XTMP("PSU_"_PSUJOB,"PSUMONTH")=PSUMON,PSUSDT=PSUMON_"01"
+ S PSULY=$$LEAPYR(PSUMON),X=U_$E(PSUMON,4,5)_U
  S PSUEDT=PSUMON_$S(X["02":$S(PSULY:"29",1:"28"),"^04^06^09^11^"[X:"30",1:"31")
  S PSUDUZ=$S(DUZ=0:.5,1:DUZ),PSUMASF=1,PSUSMRY=0,PSUPBMG=1
  S ^XTMP("PSU_"_PSUJOB,"PSUPDFLAG")=1   ;Flag-detailed PD won't go to user auto extract
  S X=$$VALI^PSUTL(4.3,1,217),PSUSNDR=+$$VAL^PSUTL(4,X,99)
- S PSUOPTS="1,2,3,4,5,6,7,8,9,10,11",PSUAUTO=1,PSUIOP=""
+ S PSUOPTS="1,2,3,4,5,6,7,8,9,10,11,12,13",PSUAUTO=1,PSUIOP="" D
+ .S ^XTMP("PSU_"_PSUJOB,"CBAMIS")=""
  S ^XTMP("PSU_"_PSUJOB,"PSUJOB")=PSUJOB
  D PUT
- S PSUTITLE="PSU PBM AUTO"
- S PSURC="RUN^PSUCP"
- S PSURP=""
- S PSURX="EXIT^PSUCP"
- S PSUNS="PS"
- S PSUFQ=1
+ S PSUTITLE="PSU PBM AUTO",PSURC="RUN^PSUCP",PSURX="EXIT^PSUCP",PSURP="",PSUNS="PS",PSUFQ=1
  D NOW^%DTC S PSUDTH=%
  D ^PSUDBQUE
-AUTOQ D EXIT Q  ; exit from AUTO
+ K PSUALERT,XQA,XQAID,XQAFLG,XQA,ZTSK
+AUTOQ Q  ; exit from AUTO
  ;
 RUN ; run each selected module
+ L ^XTMP("PSU","RUNNING"):1 I '$T Q
  D PULL,OPTS
  K PSUMOD,PSUFDA
  I PSUAUTO S PSUFDA(59.7,"1,",90)="@" D FILE^DIE("","PSUFDA","")
  F I=1:1:$L(PSUOPTS,",") S PSUMOD($P(PSUOPTS,",",I))=""
- ;
  S PSUOPTN=""
  F  S PSUOPTN=$O(PSUMOD(PSUOPTN)) Q:PSUOPTN=""  D
  .K PSUMSGT
@@ -96,24 +83,22 @@ RUN ; run each selected module
  .S PSURTN=PSUA(PSUOPTN,"R")
  .D NOW^%DTC
  .S ^XTMP("PSU_"_PSUJOB,"STATUS",PSUOPTN,"START")=%
- .D @PSURTN
- .D PULL
- .D NOW^%DTC
+ .D @PSURTN,PULL,NOW^%DTC
  .S ^XTMP("PSU_"_PSUJOB,"STATUS",PSUOPTN,"STOP")=%
  D DT^DILF("E",PSUSDT,.EXTD)
  S PSURP("START")=EXTD(0)
  D DT^DILF("E",PSUEDT,.EXTD)
- S PSURP("END")=EXTD(0)
- S PSUSUB="PSU_"_PSUJOB
+ S PSURP("END")=EXTD(0),PSUSUB="PSU_"_PSUJOB
+ D MMNOMAP^PSUCP2 ; MM send regarding PBM locations not mapped
  D TIMING ; send a report of how long each module took to complete
- I PSUMASF!PSUPBMG D CONFIRM  ;Confirmation message went only if data went to Master File
+ I PSUMASF!PSUPBMG D CONFIRM  ;Confirmation message sent only if data went to Master File
  I PSUAUTO D
  .D NOW^%DTC
  .S PSUFDA(59.7,"1,",90)=% K %,%H,%I,X
  .D FILE^DIE("","PSUFDA","") ; file the completion date in 59.7,90;1
+ L
  ;
  Q
- ;
 PRINT ; print hard copy if requested
  Q:'$L(PSUIOP)  ; no printer selected, stop right here.
  D PULL,OPTS
@@ -124,25 +109,22 @@ PRINT ; print hard copy if requested
  .D PULL
  .S PSURTN=PSUA(PSUOPTN,"P")
  .D @PSURTN
-PRINTQ Q
- ; ********  THE END  *********
+ L
+ K ^XTMP("PSU","RUNNING")
+PRINTQ  Q
 EXIT ; exit point
+ K ^XTMP("PSU","RUNNING")
  K ^XTMP("PSUJFLG")   ;Remove flag to prevent concurrent jobs
- ;D VARKILL^PSUTL
- ;D PURGE^PSUTL1
  Q
- ;
 PUT ; put variables in ^XTMP so modules can retrieve them
  S PSUVARS="PSUSDT,PSUEDT,PSUMON,PSUDUZ,PSUMASF,PSUPBMG,PSUSMRY,PSUIOP,PSUSNDR,PSUOPTS,PSUAUTO"
  S PSUVSTR=""
  F I=1:1:$L(PSUVARS,",") S $P(PSUVSTR,U,I)=@$P(PSUVARS,",",I)
- ;K ^XTMP("PSU_"_PSUJOB)
  S X1=DT,X2=6 D C^%DTC
  S ^XTMP("PSU_"_PSUJOB,0)=X_U_DT_U_"Control data for PSU PBM individual modules"
  S ^XTMP("PSU_"_PSUJOB,1)=PSUVSTR
  K PSUVARS,PSUVSTR,X,X1
 PUTQ Q
- ;
 PULL ; pull variables from ^XTMP
  ; PSUJOB must exist and must be the job number used to store the data desired for this session.
  N I
@@ -151,7 +133,7 @@ PULL ; pull variables from ^XTMP
 PULLQ Q
  ;
 OPTS ; set option array
- S PSUA(1,"M")="IVs",PSUA(1,"R")="EN^PSUIV0",PSUA(1,"P")="PRINT^PSUIV0",PSUA(1,"C")="IV"
+ S PSUA(1,"M")="IVs",PSUA(1,"R")="EN^PSUV0",PSUA(1,"P")="PRINT^PSUV0",PSUA(1,"C")="IV"
  S PSUA(2,"M")="Unit Dose",PSUA(2,"R")="EN^PSUUD0",PSUA(2,"P")="PRINT^PSUUD0",PSUA(2,"C")="UD"
  S PSUA(3,"M")="AR/WS",PSUA(3,"R")="EN^PSUAR0",PSUA(3,"P")="PRINT^PSUAR0",PSUA(3,"C")="AR"
  S PSUA(4,"M")="Prescription",PSUA(4,"R")="EN^PSUOP0",PSUA(4,"P")="PRINT^PSUOP0",PSUA(4,"C")="OP"
@@ -160,8 +142,10 @@ OPTS ; set option array
  S PSUA(7,"M")="Patient Demographics",PSUA(7,"R")="EN^PSUDEM1",PSUA(7,"P")="PRINT^PSUDEM0",PSUA(7,"C")="PD"
  S PSUA(8,"M")="Outpatient Visits",PSUA(8,"R")="EN^PSUDEM2",PSUA(8,"P")="OPV^PSUDEM0",PSUA(8,"C")="OV"
  S PSUA(9,"M")="Inpatient PTF Records",PSUA(9,"R")="EN^PSUDEM7",PSUA(9,"P")="PTF^PSUDEM0",PSUA(9,"C")="PTF"
- S PSUA(10,"M")="Provider Information",PSUA(10,"R")="EN^PSUDEM4",PSUA(10,"P")="PRO^PSUDEM0",PSUA(10,"C")="PRO"
- S PSUA(11,"M")="Laboratory Results",PSUA(11,"R")="EN^PSULR0",PSUA(11,"P")="PRINT^PSULR0",PSUA(11,"C")="LR"
+ S PSUA(10,"M")="Provider Data",PSUA(10,"R")="EN^PSUDEM4",PSUA(10,"P")="PRO^PSUDEM0",PSUA(10,"C")="PRO"
+ S PSUA(11,"M")="Allergies/Adverse Events",PSUA(11,"R")="EN^PSUAA1",PSUA(11,"P")="PRINT^PSUAA1",PSUA(11,"C")="AA"
+ S PSUA(12,"M")="Vitals/Immunizations Information",PSUA(12,"R")="EN^PSUVIT1",PSUA(12,"P")="EN^PSUVIT0",PSUA(12,"C")="VI"
+ S PSUA(13,"M")="Laboratory Results",PSUA(13,"R")="EN^PSULR0",PSUA(13,"P")="PRINT^PSULR0",PSUA(13,"C")="LR"
  S PSUA("A")=""
 OPTSQ Q
  ;
@@ -170,7 +154,8 @@ CONFIRM ;Send confirmation by Division(s)
  S PSUDIV=0,$P(PSUDASH,"-",81)=""
  D OPTS
  S PSUCONF(1)="The chart below shows the package(s) whose dispensing statistics were extracted"
- S PSUCONF(2)="by the PBM "_$S(PSUAUTO:"Automatic",1:"Manual")_" Pharmacy Statistics option."
+ S PSUCONF(2)="by the PBM "_$S($G(PSUAUTO):"Automatic",$G(PSURXMT):"RETRANSMISSION",1:"Manual")_" Pharmacy Statistics option."
+ ; S PSUCONF(2)="by the PBM "_$S(PSUAUTO:"Automatic",1:"Manual")_" Pharmacy Statistics option."
  S PSUCONF(3)=" "
  S PSUCONF(4)="PACKAGE"_$J("# Line items",35)_$J("# MailMan msgs",19)
  S PSUCONF(5)=$E(PSUDASH,1,79)
@@ -184,14 +169,20 @@ CONFIRM ;Send confirmation by Division(s)
  ..S PSULIN=^XTMP(PSUSUB,"CONFIRM",PSUDIV,PSUOPT,"L")
  ..S PSUMSG=^XTMP(PSUSUB,"CONFIRM",PSUDIV,PSUOPT,"M")
  ..S ^XTMP(PSUSUB,"XMD",PSULCT)=PSUPKG_$J(PSULIN,37-$L(PSUPKG))_$J(PSUMSG,12)
+ ..Q:PSUPKG'="Prescription"  ;*
+ .. ; process Prescription MultiDose
+ ..S PSULCT=PSULCT+1
+ ..S PSUPKG="Prescription MultiDose"
+ ..S PSULIN=+$G(^XTMP(PSUSUB,"CONFIRMD",PSUDIV,PSUOPT,"L"))
+ ..S PSUMSG=+$G(^XTMP(PSUSUB,"CONFIRMD",PSUDIV,PSUOPT,"M"))
+ ..S ^XTMP(PSUSUB,"XMD",PSULCT)=PSUPKG_$J(PSULIN,37-$L(PSUPKG))_$J(PSUMSG,12) ;*
  .S PSUSUBJ="PBM Stats for "
- .I PSUMASF=1 D XMD
+ .I $G(PSUMASF)!$G(PSUDUZ)!$G(PSUPBMG) D XMD
 CONFIRMQ Q
  ;
 XMD ;Email
  ;
  S XMDUZ=DUZ
- ;S ^XTMP("PSU_"_PSUJOB,"PSUPBMG")=PSUPBMG
  D XMY^PSUTL1
  M XMY=PSUXMYS1
  I $G(PSUMASF)!$G(PSUPBMG) M XMY=PSUXMYH
@@ -222,7 +213,7 @@ TIMING ; Timing report
  S PSULCT=PSULCT+1
  S $P(^XTMP(PSUSUB,"XMD",PSULCT),"-",80)="" S PSULCT=PSULCT+1
  S ^XTMP(PSUSUB,"XMD",PSULCT)="" S PSULCT=PSULCT+1
- S ^XTMP(PSUSUB,"XMD",PSULCT)="**NOTE:  Timing for the Provider Information extract is not recorded when the" S PSULCT=PSULCT+1
+ S ^XTMP(PSUSUB,"XMD",PSULCT)="**NOTE:  Timing for the Provider Data extract is not recorded when" S PSULCT=PSULCT+1
  S ^XTMP(PSUSUB,"XMD",PSULCT)="         the IV, Unit Dose, Prescription, and Patient Demographics extracts" S PSULCT=PSULCT+1
  S ^XTMP(PSUSUB,"XMD",PSULCT)="         are run concurrently."
  S PSUDIV=PSUSNDR

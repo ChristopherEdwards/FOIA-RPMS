@@ -1,5 +1,5 @@
 GMVER0 ;HOIFO/FT-VITALS ENTERED IN ERROR FOR A PATIENT ;10/25/02  10:26
- ;;5.0;GEN. MED. REC. - VITALS;;Oct 31, 2002
+ ;;5.0;GEN. MED. REC. - VITALS;**23**;Oct 31, 2002;Build 25
  ;
  ; This routine uses the following IAs:
  ; #10061 - ^VADPT calls        (supported)
@@ -66,7 +66,7 @@ HEADER ; Report header
  S GMVPAGE=GMVPAGE+1
  W !,GMVNOW,?22,"ENTERED IN ERROR VITAL/MEASUREMENT REPORT",?70,"PAGE: ",GMVPAGE
  W !?22,GMVRANGE
- W !?22,"Patient: ",GMVNAME,?$X+5,GMVSSN
+ W !?22,"Patient: ",GMVNAME,?$X+5,$E(GMVSSN,8,11)
  W !!,"Date Vit./Meas. taken",?58,"User who made error"
  W !,GMVDASH,!
  Q

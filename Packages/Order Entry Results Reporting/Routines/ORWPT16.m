@@ -1,5 +1,5 @@
 ORWPT16 ; SLC/KCM - Patient Lookup Functions - 16bit ;7/20/96  15:43
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**243**;Dec 17, 1997;Build 242
  ;
 IDINFO(ORY,DFN) ; Return identifying information for a patient
  ; PID^DOB^AGE^SEX^SC%^TYPE^WARD^RM-BED^NAME
@@ -24,11 +24,6 @@ DEMOG(VAL,DFN) ; procedure
 PSCNVT(VAL,DFN) ; procedure
  ; Call conversion routine for pharmacy (both inpatient and outpatient)
  S VAL=0
- S:'$D(IOST) IOST="P-OTHER"  ; don't know why broker doesn't define IOST
- S VAL=$$OTF^OR3CONV(DFN,1)
- ; D EN1^PSOHLUP(DFN,0)
- ; D EN^LR7OV2(DFN,0)
- ; S VAL=1
  Q
 LISTALL(Y,DIR,FROM) ; Return a bolus of patient names
  N I,IEN,CNT S CNT=44,I=0

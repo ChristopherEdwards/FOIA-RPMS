@@ -1,5 +1,5 @@
 PSGOE6 ;BIR/CML3-ORDER ENTRY THROUGH OE/RR ;10 Mar 98 / 2:35 PM
- ;;5.0; INPATIENT MEDICATIONS ;**3,7,39,45,65,58,81**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**3,7,39,45,65,58,81,156,134**;16 DEC 97;Build 124
  ;
  ; Reference to ^PS(50.7 supported by DBIA #2180.
  ; Reference to ^PS(51.1 is supported by DBIA #2177.
@@ -12,6 +12,7 @@ PSGOE6 ;BIR/CML3-ORDER ENTRY THROUGH OE/RR ;10 Mar 98 / 2:35 PM
  K PSGFOK S F1=53.1,PSGPR=$S($D(PSGOERR):PSJORPV,1:PSGOEPR),PSGMR=$S($P(PSGNEDFD,"^",2):$P(PSGNEDFD,"^",2),1:PSGOEDMR),PSGSCH=$P(PSGNEDFD,"^",4),(PSGOROE1,PSGSI,SDT,PSGMRN,PSGSM,PSGHSM,PSGUD,PSGSD,PSGFD,PSGSI,PSGNEFD,PSGNESD)=""
  S:PSGMR PSGMRN=$S('$P(PSGNEDFD,"^",2):"ORAL",'$D(^PS(51.2,PSGMR,0)):PSGMR,$P(^(0),"^")]"":$P(^(0),"^"),1:PSGMR) I PSGPR S PSGPRN=$P($G(^VA(200,PSGPR,0)),"^") S:PSGPRN="" PSGPRN=PSGPR
  S PSGST=$S($P(PSGNEDFD,"^",3)]"":$P(PSGNEDFD,"^",3),1:"C")
+ ; Naked references in line below refer to ^PS(53.45,PSJSYSP
  K ^PS(53.45,PSJSYSP,1),^(2) I PSGDRG S ^(2,0)="^53.4502P^"_PSGDRG_"^1",^(1,0)=PSGDRG,^PS(53.45,PSJSYSP,2,"B",PSGDRG,1)=""
  ;
 109 ; dosage ordered
@@ -43,8 +44,6 @@ PSGOE6 ;BIR/CML3-ORDER ENTRY THROUGH OE/RR ;10 Mar 98 / 2:35 PM
  S PSGSCH=X,(PSGFOK(26),PSGST)="",PSGOES=1 S:PSGS0XT="O" $P(PSGNEDFD,"^",3)="O",PSGST="O" D ^PSGNE3 K PSGOES
  ;
 66 ; provider's comments
- ;S DA=PSJSYSP,DIE="^PS(53.45,",DR=4 D ^DIE K DA,DIE,DR
- ;S PSGFOK(66)="",Y=1
  ;
  ;
 DONE ;
@@ -62,17 +61,26 @@ DEL ;
  Q
  ;
 GTST(ON) ; Find schedule type for pending order.
- N PD,PDAP,ST,X S ST="" I $P($G(^PS(53.1,+ON,0)),U,24)="R" D
+ N PD,PDAP,ST,X,ST1 S ST=""
+ S ST=$P($G(^PS(53.1,+ON,0)),"^",7)
+ I $P($G(^PS(53.1,+ON,0)),U,24)="R" D
  .; naked ref below is from line above, ^PS(53.1,ON,0)
  .S X=$P(^(0),U,25) S ST=$S(X["N"!(X["P"):$P($G(^PS(53.1,+X,0)),U,7),X["V":"C",1:$P($G(^PS(55,PSGP,5,+X,0)),U,7))
  .I ST]"" S (PSGOST,PSGST)=ST,PSGSTN=$$ENSTN^PSGMI(ST) Q
+ I ST'="" D
+ . S ST1=""
+ . S PD=+$G(^PS(53.1,+ON,.2)) S X=$G(^PS(50.7,PD,0)),ST1=$P(X,U,7)
+ . I $G(ST1)="R" S ST="R"
+ . K ST1
  I ST="" D
+ . ;PSJ*5*156 - Don't allow backdoor to override intended schedule type from CPRS unless the default
+ . ;            schedule type (if any) is "Fill on Request".
+ . S PD=+$G(^PS(53.1,+ON,.2)) S X=$G(^PS(50.7,PD,0)),ST=$P(X,U,7)  ;see if there is a default schedule type.
+ . I ST="R" Q  ;Fill on Request default schedule type will override incoming schedule type from CPRS
+ . S ST=""  ;Reset to null in case default schedule type other than Fill on Request is defined.
  . D OTS I ST="O" Q
- . S PD=+$G(^PS(53.1,+ON,.2)) S X=$G(^PS(50.7,PD,0)),ST=$P(X,U,7),PDSCH=$P(X,U,8)
- . I PSGSCH="" S PSGSCH=PDSCH I PSGSCH]"" D OTS I ST="O" Q
- . I ST]"" Q
- . I PSGSCH["PRN" S ST="P" Q
  . I PSGSCH="ON CALL"!(PSGSCH="ONCALL")!(PSGSCH="ON-CALL") S ST="OC" Q
+ . I PSGSCH["PRN" S ST="P" Q
  . S ST="C"
  S (PSGOST,PSGST)=ST,PSGSTN=$$ENSTN^PSGMI(ST)
  Q

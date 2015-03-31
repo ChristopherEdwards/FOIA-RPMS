@@ -1,9 +1,10 @@
 BIUTL3 ;IHS/CMI/MWR - UTIL: ZTSAVE, ASKDATE, DIRZ.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: SAVE ANY AND ALL BI VARIABLES FOR QUEUEING TO TASKMAN,
  ;;  ASK DATE RANGE, DIRZ (PROMPT TO CONTINUE).
  ;;  PATCH 2: Add more variables to save: BIDELIM, BIU19.
+ ;;  PATCH 5: Add more variables to save: BITOTPTS, BITOTFPT, BITOTMPT ZSAVES+77
  ;
  ;
  ;----------
@@ -50,6 +51,9 @@ ZSAVES ;EP
  ;        BISITE  (opt) IEN of Site.
  ;        BISUBT  (opt) Subtitle String for Lot Order in BILOT.
  ;        BITAR   (opt) Two-Yr-Old Report Age Range.
+ ;        BITOTPTS(opt) Total Number of Patients.
+ ;        BITOTFPT(opt) Total Number of Female Patients.
+ ;        BITOTMPT(opt) Total Number of Male Patients.
  ;        BIU19   (opt) Include Adults (19 yrs & over).
  ;        BIUP    (opt) User Population/Group (Registered, User, Active).
  ;        BIVFC   (opt) VFC Eligibility for Imm Visits.
@@ -81,7 +85,11 @@ ZSAVES ;EP
  .S BISV="BI"_BISV
  .I $D(@(BISV)) S ZTSAVE(BISV)=""
  ;
- F BISV="PG","QDT","RDT","RPDT","SITE","SUBT","T","TAR","U19","UP","VFC","YEAR" D
+ F BISV="PG","QDT","RDT","RPDT","SITE","SUBT","T","TAR","TOTPTS","TOTFPT","TOTFMPT" D
+ .S BISV="BI"_BISV
+ .I $D(@(BISV)) S ZTSAVE(BISV)=""
+ ;
+ F BISV="U19","UP","VFC","YEAR" D
  .S BISV="BI"_BISV
  .I $D(@(BISV)) S ZTSAVE(BISV)=""
  ;

@@ -1,5 +1,5 @@
-OCXOZ11 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ11 ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,60 +10,66 @@ OCXOZ11 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-R70R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #70 'NO ALLERGY ASSESSMENT'  Relation #1 'NO ALLERGY ASSESSMENT AND (RADIOLOGY ORDER OR PHAR...'
- ;  Called from R70R1A+14^OCXOZ10.
+R66R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #66 'LAB RESULTS'  Relation #1 'HL7 LAB RESULTS'
+ ;  Called from R66R1A+10^OCXOZ10.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ; NEWRULE( ---------> NEW RULE MESSAGE
  ;
- Q:$D(OCXRULE("R70R1B"))
+ Q:$D(OCXRULE("R66R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^32^^Patient has no allergy assessment." I 1
- E  S OCXCMSG="Patient has no allergy assessment."
- S OCXNMSG=""
+ S OCXCMSG=""
+ S OCXNMSG="Labs resulted - ["_$$GETDATA(DFN,"5^",96)_"]"
  ;
- ;
- ; Run Execute Code
- ;
- Q:'$$NEWRULE(DFN,$J,39,1,999,"Patient has no allergy assessment.")
  Q:$G(OCXOERR)
  ;
- ; Send Order Check Message
+ ; Send Notification
  ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ S (OCXDUZ,OCXDATA)="",OCXNUM=0
+ I ($G(OCXOSRC)="GENERIC HL7 MESSAGE ARRAY") D
+ .S OCXDATA=$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",2))_"|"_$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",3))
+ .S OCXDATA=$TR(OCXDATA,"^","@"),OCXNUM=+OCXDATA
+ I ($G(OCXOSRC)="CPRS ORDER PROTOCOL") D
+ .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
+ .S OCXNUM=+$P(OCXORD,U,2)
+ S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
+ S OCXRULE("R66R1B")=""
+ I $$NEWRULE(DFN,OCXNUM,66,1,3,OCXNMSG) D  I 1
+ .D:($G(OCXTRACE)<5) EN^ORB3(3,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
  Q
  ;
-R71R1A ; Verify all Event/Elements of  Rule #71 'OPIOID MEDICATIONS'  Relation #1 'OPIOID MED ORDER AND DUP OPIOID MEDS'
- ;  Called from EL138+5^OCXOZ0I, and EL139+5^OCXOZ0I.
+R67R1A ; Verify all Event/Elements of  Rule #67 'GLUCOPHAGE - LAB RESULTS'  Relation #1 'GLUCOPHAGE ORDER AND GLUCOPHAGE CREATININE > 1.5'
+ ;  Called from EL86+5^OCXOZ0H, and EL111+5^OCXOZ0I.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE138( ---------->  Verify Event/Element: 'DUP OPIOID MEDS'
- ; MCE139( ---------->  Verify Event/Element: 'OPIOID MED ORDER'
+ ; MCE111( ---------->  Verify Event/Element: 'GLUCOPHAGE CREATININE > 1.5'
+ ; MCE86( ----------->  Verify Event/Element: 'GLUCOPHAGE ORDER'
  ;
- Q:$G(^OCXS(860.2,71,"INACT"))
+ Q:$G(^OCXS(860.2,67,"INACT"))
  ;
- I $$MCE139 D 
- .I $$MCE138 D R71R1B
+ I $$MCE86 D 
+ .I $$MCE111 D R67R1B
  Q
  ;
-R71R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #71 'OPIOID MEDICATIONS'  Relation #1 'OPIOID MED ORDER AND DUP OPIOID MEDS'
- ;  Called from R71R1A+12.
+R67R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #67 'GLUCOPHAGE - LAB RESULTS'  Relation #1 'GLUCOPHAGE ORDER AND GLUCOPHAGE CREATININE > 1.5'
+ ;  Called from R67R1A+12.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ;
- Q:$D(OCXRULE("R71R1B"))
+ Q:$D(OCXRULE("R67R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^33^^Duplicate opioid medications: "_$$GETDATA(DFN,"138^139",158) I 1
- E  S OCXCMSG="Duplicate opioid medications: "_$$GETDATA(DFN,"138^139",158)
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^28^^Metformin - Creatinine results: "_$$GETDATA(DFN,"86^111",125) I 1
+ E  S OCXCMSG="Metformin - Creatinine results: "_$$GETDATA(DFN,"86^111",125)
  S OCXNMSG=""
  ;
  Q:$G(OCXOERR)
@@ -73,23 +79,41 @@ R71R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #71
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
-R72R1A ; Verify all Event/Elements of  Rule #72 'ALLERGIES UNASSESSIBLE'  Relation #1 'ALLERGIES UNASSESSIBLE AND (RADIOLOGY ORDER OR PHA...'
- ;  Called from EL28+6^OCXOZ0H, and EL135+6^OCXOZ0I, and EL137+6^OCXOZ0I, and EL140+5^OCXOZ0I.
+R67R2A ; Verify all Event/Elements of  Rule #67 'GLUCOPHAGE - LAB RESULTS'  Relation #2 'GLUCOPHAGE ORDER AND NO GLUCOPHAGE CREATININE'
+ ;  Called from EL86+6^OCXOZ0H, and EL112+5^OCXOZ0I.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE135( ---------->  Verify Event/Element: 'DIET ORDER'
- ; MCE137( ---------->  Verify Event/Element: 'PHARMACY ORDER'
- ; MCE140( ---------->  Verify Event/Element: 'ALLERGIES UNASSESSIBLE'
- ; MCE28( ----------->  Verify Event/Element: 'RADIOLOGY ORDER'
+ ; MCE112( ---------->  Verify Event/Element: 'NO GLUCOPHAGE CREATININE'
+ ; MCE86( ----------->  Verify Event/Element: 'GLUCOPHAGE ORDER'
  ;
- Q:$G(^OCXS(860.2,72,"INACT"))
+ Q:$G(^OCXS(860.2,67,"INACT"))
  ;
- I $$MCE140 D 
- .I $$MCE28 D R72R1B^OCXOZ12
- .I $$MCE137 D R72R1B^OCXOZ12
- .I $$MCE135 D R72R1B^OCXOZ12
+ I $$MCE86 D 
+ .I $$MCE112 D R67R2B
+ Q
+ ;
+R67R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #67 'GLUCOPHAGE - LAB RESULTS'  Relation #2 'GLUCOPHAGE ORDER AND NO GLUCOPHAGE CREATININE'
+ ;  Called from R67R2A+12.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R67R2B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^28^^Metformin - no serum creatinine within past "_$$GETDATA(DFN,"86^112",127)_" days." I 1
+ E  S OCXCMSG="Metformin - no serum creatinine within past "_$$GETDATA(DFN,"86^112",127)_" days."
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
 CKSUM(STR) ;  Compiler Function: GENERATE STRING CHECKSUM
@@ -105,63 +129,43 @@ GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime dat
  F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
  Q VAL
  ;
-MCE135() ; Verify Event/Element: DIET ORDER
+MCE111() ; Verify Event/Element: GLUCOPHAGE CREATININE > 1.5
  ;
+ ;  OCXDF(127) -> RECENT GLUCOPHAGE CREATININE DAYS data field
+ ;  OCXDF(125) -> RECENT GLUCOPHAGE CREATININE TEXT data field
+ ;  OCXDF(126) -> RECENT GLUCOPHAGE CREATININE RESULT data field
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(135,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),135)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),135))
- Q 0
- ;
-MCE137() ; Verify Event/Element: PHARMACY ORDER
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(137,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),137)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),137))
- Q 0
- ;
-MCE138() ; Verify Event/Element: DUP OPIOID MEDS
- ;
- ;  OCXDF(158) -> DUPLICATE OPIOID MEDICATIONS TEXT data field
- ;  OCXDF(157) -> DUPLICATE OPIOID MEDICATIONS FLAG data field
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(138,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),138)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),138))
- S OCXRES(138)=0,OCXDF(157)=$P($$OPIOID(OCXDF(37)),"^",1) I $L(OCXDF(157)) S OCXRES(138,157)=OCXDF(157) I (OCXDF(157))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(111,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),111)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),111))
+ S OCXRES(111)=0,OCXDF(126)=$P($$GLCREAT^ORKPS(OCXDF(37)),"^",3) I $L(OCXDF(126)) S OCXRES(111,126)=OCXDF(126) I (OCXDF(126)>1.5)
  E  Q 0
- S OCXDF(158)=$P($$OPIOID(OCXDF(37)),"^",2),OCXRES(138)=11 M ^TMP("OCXCHK",$J,OCXDF(37),138)=OCXRES(138)
- Q +OCXRES(138)
+ S OCXDF(125)=$P($$GLCREAT^ORKPS(OCXDF(37)),"^",2),OCXDF(127)=$P($$GCDAYS^ORKPS(OCXDF(37)),"^",1),OCXRES(111)=11 M ^TMP("OCXCHK",$J,OCXDF(37),111)=OCXRES(111)
+ Q +OCXRES(111)
  ;
-MCE139() ; Verify Event/Element: OPIOID MED ORDER
+MCE112() ; Verify Event/Element: NO GLUCOPHAGE CREATININE
+ ;
+ ;  OCXDF(127) -> RECENT GLUCOPHAGE CREATININE DAYS data field
+ ;  OCXDF(125) -> RECENT GLUCOPHAGE CREATININE TEXT data field
+ ;  OCXDF(124) -> RECENT GLUCOPHAGE CREATININE FLAG data field
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(112,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),112)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),112))
+ S OCXRES(112)=0,OCXDF(124)=$P($$GLCREAT^ORKPS(OCXDF(37)),"^",1) I $L(OCXDF(124)) S OCXRES(112,124)=OCXDF(124) I '(OCXDF(124))
+ E  Q 0
+ S OCXDF(125)=$P($$GLCREAT^ORKPS(OCXDF(37)),"^",2),OCXDF(127)=$P($$GCDAYS^ORKPS(OCXDF(37)),"^",1),OCXRES(112)=11 M ^TMP("OCXCHK",$J,OCXDF(37),112)=OCXRES(112)
+ Q +OCXRES(112)
+ ;
+MCE86() ; Verify Event/Element: GLUCOPHAGE ORDER
  ;
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(139,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),139)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),139))
- Q 0
- ;
-MCE140() ; Verify Event/Element: ALLERGIES UNASSESSIBLE
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(140,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),140)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),140))
- Q 0
- ;
-MCE28() ; Verify Event/Element: RADIOLOGY ORDER
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(28,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),28)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),28))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(86,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),86)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),86))
  Q 0
  ;
 NEWRULE(OCXDFN,OCXORD,OCXRUL,OCXREL,OCXNOTF,OCXMESS) ; Has this rule already been triggered for this order number
@@ -171,17 +175,20 @@ NEWRULE(OCXDFN,OCXORD,OCXRUL,OCXREL,OCXNOTF,OCXMESS) ; Has this rule already bee
  Q:'$G(OCXREL) 0  Q:'$G(OCXNOTF) 0  Q:'$L($G(OCXMESS)) 0
  S OCXORD=+$G(OCXORD),OCXDFN=+OCXDFN
  ;
- N OCXNDX,OCXDATA,OCXDFI,OCXELE,OCXGR,OCXTIME,OCXCKSUM
+ N OCXNDX,OCXDATA,OCXDFI,OCXELE,OCXGR,OCXTIME,OCXCKSUM,OCXTSP,OCXTSPL
  ;
  S OCXTIME=(+$H)
  S OCXCKSUM=$$CKSUM(OCXMESS)
  ;
- Q:$D(^OCXD(860.7,"AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)) 0
+ S OCXTSP=($H*86400)+$P($H,",",2)
+ S OCXTSPL=($G(^OCXD(860.7,"AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM))+$G(OCXTSPI,300))
+ ;
+ Q:(OCXTSPL>OCXTSP) 0
  ;
  K OCXDATA
  S OCXDATA(OCXDFN,0)=OCXDFN
  S OCXDATA("B",OCXDFN,OCXDFN)=""
- S OCXDATA("AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)=""
+ S OCXDATA("AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)=OCXTSP
  ;
  S OCXGR="^OCXD(860.7"
  D SETAP(OCXGR_")",0,.OCXDATA,OCXDFN)
@@ -229,33 +236,4 @@ SETAP(ROOT,DD,DATA,DA) ;  Set Rule Event data
  ;
  Q
  ;
- ;
-OPIOID(ORPT) ;determine if pat is receiving opioid med
- ; rtn 1^opioid drug 1, opioid drug 2, opioid drug3, ...
- N ORDG,ORTN,ORNUM,ORDI,ORDCLAS,ORDERS,ORTEXT,DUP,DUPI,DUPJ,DUPLEN
- S ORDG=0,ORTN=0,DUPI=0,DUPLEN=20
- K ^TMP("ORR",$J)
- S ORDG=$O(^ORD(100.98,"B","RX",ORDG))
- D EN^ORQ1(ORPT_";DPT(",ORDG,2,"","","",0,0)
- N J,HOR,SEQ,X S J=1,HOR=0,SEQ=0
- S HOR=$O(^TMP("ORR",$J,HOR)) Q:+HOR<1 ORTN
- F  S SEQ=$O(^TMP("ORR",$J,HOR,SEQ)) Q:+SEQ<1  D
- .S X=^TMP("ORR",$J,HOR,SEQ)
- .S ORNUM=+$P(X,";")
- .Q:ORNUM=+$G(ORIFN)  ;quit if dup med order # = current order #
- .S ORDI=$$VALUE^ORCSAVE2(ORNUM,"DRUG")
- .I +$G(ORDI)>0 D
- ..S ORDCLAS=$P(^PSDRUG(ORDI,0),U,2)  ;va drug class
- ..I ($G(ORDCLAS)="CN101")!($G(ORDCLAS)="CN102") D  ;opioid classes
- ...S ORTEXT=$$FULLTEXT^ORQOR1(ORNUM)
- ...S ORTEXT=$P(ORTEXT,U)_" ["_$P(ORTEXT,U,2)_"]"
- ...S DUPI=DUPI+1,DUP(DUPI)=" ["_DUPI_"] "_ORTEXT
- ...S ORTN=1
- I DUPI>0 D
- .S DUPLEN=$P(215/DUPI,".")
- .F DUPJ=1:1:DUPI D
- ..I DUPJ=1 S ORDERS=$E(DUP(DUPJ),1,DUPLEN)
- ..E  S ORDERS=ORDERS_", "_$E(DUP(DUPJ),1,DUPLEN)
- K ^TMP("ORR",$J)
- Q ORTN_U_$G(ORDERS)
  ;

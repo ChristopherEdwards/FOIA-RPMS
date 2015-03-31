@@ -1,8 +1,9 @@
-GMRCHL7B ;SLC/DCM,MA - Process order parameters from ^GMRCHL7A and place data into ^GMR(123 global ;10/17/01 17:18
- ;;3.0;CONSULT/REQUEST TRACKING;**1,5,12,21,17,22**;DEC 27, 1997
- ; Patch #21 changed Activity title on Consult detail display
- ; from "ENTERED IN CPRS" to "CPRS RELEASED ORDER".
-NEW ;Add new order
+GMRCHL7B ;SLC/DCM,MA,JFR - Process data from GMRCHL7A ; 3/7/03 14:42
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,5,12,21,17,22,33**;DEC 27, 1997
+ ;
+ ; This routine invokes IA #3991
+ ;
+NEW(MESSAGE) ;Add new order
  ;GMRCO=^GMR(123,IFN, the new file number in file ^GMR(123,
  ;GMRCORFN=OE/RR file number       GMRCWARD=ward patient is on
  ;GMRCSS=service consult sent to   GMRCAD=date/time of request
@@ -14,6 +15,15 @@ NEW ;Add new order
  ;GMRCOTXT=order display text from dialog or orderable item
  ;GMRCPRDG=provisional DX
  ;GMRCPRCD=provisional DX code 
+ ;
+ ; Output:
+ ;    MESSAGE = rejection message if problems encountered while filing
+ ;
+ ;    check for inactive ICD-9 code in Prov. DX
+ I $L($G(GMRCPRCD)) D  I $D(MESSAGE) Q  ; rejected due to inactive code
+ . I +$$STATCHK^ICDAPIU(GMRCPRCD,DT) Q  ;code is OK
+ . S MESSAGE="Provisional DX code is inactive. Unable to file request."
+ ;
  N DIC,DLAYGO,X,DR,DIE,GMRCADUZ,GMRCCP
  S DIC="^GMR(123,",DIC(0)="L",X="""N""",DLAYGO=123 D ^DIC K DLAYGO Q:Y<1
  ; Patch #21 changed GMRCA=1 to GMRCA=2
@@ -59,6 +69,7 @@ DC(GMRCO,ACTRL) ;Discontinue request from OERR
  ;         CA control code = action DY for denied
  ;Update the last action taken, order status, and processing activity
  Q:'$L(GMRCO)
+ Q:'$D(^GMR(123,+GMRCO,0))
  N GMRCACT,GMRCSVC,GMRCDFN,GMRCFL,GMRCADUZ,GMRCRQR,DA
  S GMRCACT=$O(^GMR(123.1,"D",ACTRL,0))
  S GMRCSTS=$P(^GMR(123.1,GMRCACT,0),"^",2)

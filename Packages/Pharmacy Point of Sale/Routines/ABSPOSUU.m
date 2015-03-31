@@ -55,7 +55,9 @@ INSINQ ;IHS/OIT/RCS 07272012 Patch 44 - Add FM Inquiry for ABSP Insurers
  S ABSPSUB="INSURER" K DIC,DR S DIC="^ABSPEI(" D DIC
  Q
  ;
-DIC W !! S DIC("A")="Select INSURER: ",DIC(0)="QEAM" D ^DIC
+DIC W !! S DIC("A")="Select INSURER: ",DIC(0)="QEAM"
+ S DIC("S")="I $P(^(100),U,16)"
+ D ^DIC
  G XIT:X=""!(X["^")!$D(DUOUT)!$D(DTOUT)
  I +Y<1 G DIC
  S DA=+Y

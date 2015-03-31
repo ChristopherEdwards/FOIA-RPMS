@@ -1,5 +1,5 @@
-PSOLMAO ;BHAM ISC/LC - ACTIVE ORDERS ; 14-MAR-1995
- ;;7.0;OUTPATIENT PHARMACY;;DEC 1997
+PSOLMAO ;BHAM ISC/LC - ACTIVE ORDERS ;03/14/1995
+ ;;7.0;OUTPATIENT PHARMACY;**225**;DEC 1997;Build 29
 EN ; -- main entry point for PSO LM ACTION ORDER
  D EN^VALM("PSO LM ACTIVE ORDERS")
  Q
@@ -13,6 +13,7 @@ HDR ; -- header code
 INIT ; -- init variables and list array
  ;F LINE=1:1:30 D SET^VALM10(LINE,LINE_"     Line number "_LINE)
  S VALMCNT=PSOPF
+ D RV^PSOORFL
  Q
  ;
 HELP ; -- help code

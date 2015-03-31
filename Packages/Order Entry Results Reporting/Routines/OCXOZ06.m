@@ -1,5 +1,5 @@
-OCXOZ06 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ06 ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -11,7 +11,7 @@ OCXOZ06 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  Q
  ;
 CHK95 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from UPDATE+12^OCXOZ01.
+ ;  Called from UPDATE+13^OCXOZ01.
  ;
  Q:$G(OCXOERR)
  ;
@@ -21,22 +21,26 @@ CHK95 ; Look through the current environment for valid Event/Elements for this p
  ; OCXDF(29) ---> Data Field: SERV. ORDER REQ CHART SIG. (BOOLEAN)
  ; OCXDF(30) ---> Data Field: ORDER REQ. CO-SIG. (BOOLEAN)
  ; OCXDF(31) ---> Data Field: ORDER REQ. ELEC. SIG. (BOOLEAN)
+ ; OCXDF(34) ---> Data Field: ORDER NUMBER (NUMERIC)
+ ; OCXDF(161) --> Data Field: SS REFILL REQUEST (BOOLEAN)
  ;
  ;      Local Extrinsic Functions
  ; FILE(DFN,45, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: ORDER REQUIRES CHART SIGNATURE)
  ; FILE(DFN,46, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: SERVICE ORDER REQUIRES CHART SIGNATURE)
  ; FILE(DFN,47, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: ORDER REQUIRES CO-SIGNATURE)
  ; FILE(DFN,48, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: ORDER REQUIRES ELECTRONIC SIGNATURE)
+ ; REFILL( ----------> SS REFILL REQUEST
  ;
  S OCXDF(27)=$P($G(OCXORD),"^",4) I $L(OCXDF(27)) D CHK97
  S OCXDF(28)=$P($G(OCXORD),"^",5) I $L(OCXDF(28)),(OCXDF(28)) S OCXOERR=$$FILE(DFN,45,"") Q:OCXOERR 
  S OCXDF(29)=$P($G(OCXORD),"^",6) I $L(OCXDF(29)),(OCXDF(29)) S OCXOERR=$$FILE(DFN,46,"") Q:OCXOERR 
  S OCXDF(30)=$P($G(OCXORD),"^",7) I $L(OCXDF(30)),(OCXDF(30)) S OCXOERR=$$FILE(DFN,47,"") Q:OCXOERR 
  S OCXDF(31)=$P($G(OCXORD),"^",8) I $L(OCXDF(31)),(OCXDF(31)) S OCXOERR=$$FILE(DFN,48,"") Q:OCXOERR 
+ S OCXDF(34)=$P($G(OCXORD),"^",2) I $L(OCXDF(34)) S OCXDF(161)=$$REFILL(OCXDF(34)) I $L(OCXDF(161)) D CHK513^OCXOZ0G
  Q
  ;
 CHK97 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK95+18.
+ ;  Called from CHK95+21.
  ;
  Q:$G(OCXOERR)
  ;
@@ -54,38 +58,6 @@ CHK97 ; Look through the current environment for valid Event/Elements for this p
  I (OCXDF(27)) S OCXDF(37)=$P($G(OCXORD),"^",1),OCXDF(115)=$$INT2DT($$DT2INT("N"),0),OCXOERR=$$FILE(DFN,44,"37,115") Q:OCXOERR 
  I '(OCXDF(27)) S OCXDF(37)=$P($G(OCXORD),"^",1),OCXDF(115)=$$INT2DT($$DT2INT("N"),0),OCXOERR=$$FILE(DFN,134,"37,115") Q:OCXOERR 
  Q
- ;
-CHK113 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK1+30^OCXOZ02.
- ;
- Q:$G(OCXOERR)
- ;
- ;    Local CHK113 Variables
- ; OCXDF(32) ---> Data Field: ORDER FLAGGED FOR RESULTS (BOOLEAN)
- ; OCXDF(34) ---> Data Field: ORDER NUMBER (NUMERIC)
- ; OCXDF(96) ---> Data Field: ORDERABLE ITEM NAME (FREE TEXT)
- ; OCXDF(105) --> Data Field: ORDER TEXT (51 CHARS) (FREE TEXT)
- ; OCXDF(112) --> Data Field: ORDERED BY (FREE TEXT)
- ; OCXDF(149) --> Data Field: ORDER CANCELED BY (FREE TEXT)
- ;
- ;      Local Extrinsic Functions
- ; CANCELER( --------> ORDER CANCELING PROVIDER
- ; FILE(DFN,49, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: ORDER FLAGGED FOR RESULTS)
- ; ORDERER( ---------> ORDERING PROVIDER
- ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
- ;
- S OCXDF(32)=$$RSLTFLG^ORQOR2(OCXDF(34)) I $L(OCXDF(32)),(OCXDF(32)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,49,"96") Q:OCXOERR 
- S OCXDF(112)=$$ORDERER(OCXDF(34)),OCXDF(149)=$$CANCELER(OCXDF(34)) I '(OCXDF(112)=OCXDF(149)) S OCXDF(105)=$P($$TEXT^ORKOR(OCXDF(34),51),"^",2) D CHK294^OCXOZ0B
- Q
- ;
-CANCELER(ORNUM) ;  Compiler Function: ORDER CANCELING PROVIDER
- ;
- Q:'$G(ORNUM) ""
- S ORNUM=+$G(ORNUM)
- N ORQDUZ
- Q:'$D(^OR(100,ORNUM,6)) ""
- S ORQDUZ=$P(^OR(100,ORNUM,6),U,2)
- Q ORQDUZ
  ;
 DT2INT(OCXDT) ;      This Local Extrinsic Function converts a date into an integer
  ; By taking the Years, Months, Days, Hours and Minutes converting
@@ -164,21 +136,10 @@ INT2DT(OCXDT,OCXF) ;      This Local Extrinsic Function converts an OCX internal
  Q:(OCXHR+OCXMIN+OCXSEC) OCXMON_" "_OCXDAY_","_OCXYR_" at "_OCXHR_":"_OCXMIN_"."_OCXSEC_" "_OCXAP
  Q OCXMON_" "_OCXDAY_","_OCXYR
  ;
-ORDERER(ORNUM) ;  Compiler Function: ORDERING PROVIDER
- ;
- Q:'$G(ORNUM) ""
- S ORNUM=+$G(ORNUM)
- N ORQDUZ,ORQI S ORQDUZ=""
- I $L($G(^OR(100,ORNUM,8,0))) D
- .S ORQI=0,ORQI=$O(^OR(100,ORNUM,8,"C","NW",ORQI))
- Q:+$G(ORQI)<1 ""
- S ORQDUZ=$P(^OR(100,ORNUM,8,ORQI,0),U,3)
- Q ORQDUZ
- ;
-ORDITEM(OIEN) ;  Compiler Function: GET ORDERABLE ITEM FROM ORDER NUMBER
- Q:'$G(OIEN) ""
- ;
- N OITXT,X S OITXT=$$OI^ORQOR2(OIEN) Q:'OITXT "No orderable item found."
- S X=$G(^ORD(101.43,+OITXT,0)) Q:'$L(X) "No orderable item found."
- Q $P(X,U,1)
+REFILL(ORIEN)   ; determine if order is a refill request.
+ ; rtn 1 if a refill request, 0 otherwise
+ N RR
+ S RR=$$VALUE^ORCSAVE2(ORIEN,"SSRREQIEN")
+ Q:+RR 1
+ Q 0
  ;

@@ -1,5 +1,5 @@
 BARPNP3 ; IHS/SD/LSL - POSTING SELECT COMMAND PROCESSOR ; 05/07/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,21,23**;OCT 26, 2005
  ;** 'Select Command' processor
  ;
  ; IHS/SD/LSL - 09/23/02 - V1.6 Patch 3 - HIPAA
@@ -12,6 +12,7 @@ BARPNP3 ; IHS/SD/LSL - POSTING SELECT COMMAND PROCESSOR ; 05/07/2008
  ; IHS/SD/LS - 10/17/03 - V1.7 Patch 4
  ;      Allow rollover even if previously rolled.
  ;
+ ;P.OTTIS APR 2013 CONDITIONAL DISPLAY OF TXD AND MESSSAGES 
  ; ********************************************************************
  ;
 EN ;EP - posting command handler
@@ -52,9 +53,9 @@ ASKCOM ;EP - select command
  ; -------------------------------
  ;
 ASKCOM1 ;
+ I $$NOTOPEN^BARUFUT(.DUZ,$G(UFMSESID)) Q  ;IS SESSION STILL OPEN
  W !,"Select Command (Line # "_BARLIN_") : "
  ;IHS/SD/TPF BAR*1.8*21 8/3/2011 HEAT20490
- I $$NOTOPEN^BARUFUT(.DUZ,$G(UFMSESID)) Q  ;IS SESSION STILL OPEN
  R BARCOM:DTIME
  S BARCOM=$$UPC^BARUTL(BARCOM)
  ;start new code IHS/SD/SDR bar*1.8*4 DD item 4.1.7.1
@@ -92,9 +93,7 @@ ASKCOM1 ;
  I J=1,BARCOM(J)="T" D  G ASKCOM
  .S Y=$$DSPLY^BARPNP4(BARLIN)
  .D EOP^BARUTL(1)
- I J=1,BARCOM(J)="H" D  G ASKCOM
- .S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
- .D EN^BARPST5(BARBLDA)
+ I J=1,BARCOM(J)="H" D HISTORY^BARBAD3 G ASKCOM
  I J=1,BARCOM(J)="R" D ROLL G ASKCOM
  ;
  ;enable posting rollback

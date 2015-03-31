@@ -1,20 +1,22 @@
 GMPLHIST ; SLC/MKB/KER -- Problem List Historical data ; 04/15/2002
- ;;2.0;Problem List;**7,26**;Aug 25, 1994
+ ;;2.0;Problem List;**7,26,,31,35**;Aug 25, 1994;Build 26
  ;
  ; External References
  ;   DBIA 10060  ^VA(200
  ;            
 DT ; Add historical data (audit trail) to DT list
  ;   Called from ^GMPLDISP, requires AIFN and adds to GMPDT()
- N NODE,DATE,FLD,PROV,OLD,NEW,ROOT,CHNGE
+ N NODE,DATE,FLD,PROV,OLD,NEW,ROOT,CHNGE,REASON
  S NODE=$G(^GMPL(125.8,AIFN,0)) Q:NODE=""
  S DATE=$$EXTDT^GMPLX($P(NODE,U,3)),FLD=+$P(NODE,U,2),PROV=+$P(NODE,U,8)
  S:'PROV PROV=$P(NODE,U,4)
  S FLD=FLD_U_$$FLDNAME(+FLD),PROV=$P($G(^VA(200,PROV,0)),U)
  S OLD=$P(NODE,U,5),NEW=$P(NODE,U,6),LCNT=LCNT+1
  I +FLD=1101 D  Q
+ . S REASON=" removed by "
+ . S:OLD="C" REASON=" changed by "
  . S NODE=$G(^GMPL(125.8,AIFN,1))
- . S GMPDT(LCNT,0)=$J(DATE,10)_": NOTE "_$$EXTDT^GMPLX($P(NODE,U,5))_" removed by "_PROV
+ . S GMPDT(LCNT,0)=$J(DATE,10)_": NOTE "_$$EXTDT^GMPLX($P(NODE,U,5))_REASON_PROV_":"
  . S LCNT=LCNT+1,GMPDT(LCNT,0)="            "_$P(NODE,U,3)
  I +FLD=1.02 D  Q
  . S CHNGE=$S(NEW="H":"removed",OLD="T":"verified",1:"placed back on list")
@@ -39,11 +41,11 @@ ALP(X) ; Alpha Field Names
  S X(.06)="FACILITY",X(.07)="NUMBER",X(.08)="DATE ENTERED",X(.12)="STATUS",X(.13)="DATE OF ONSET",X(1.01)="PROBLEM",X(1.02)="CONDITION"
  S X(1.03)="ENTERED BY",X(1.04)="RECORDING PROVIDER",X(1.05)="RESPONSIBLE PROVIDER",X(1.06)="SERVICE",X(1.07)="DATE RESOLVED"
  S X(1.08)="CLINIC",X(1.09)="DATE RECORDED",X(1.1)="SERVICE CONNECTED",X(1.11)="AGENT ORANGE EXP",X(1.12)="RADIATION EXP",X(1.13)="ENV CONTAMINANTS EXP"
- S X(1.14)="PRIORITY",X(1.15)="HEAD/NECK CANCER",X(1.16)="MIL SEXUAL TRAUMA",X(1101)="NOTE"
+ S X(1.14)="PRIORITY",X(1.15)="HEAD/NECK CANCER",X(1.16)="MIL SEXUAL TRAUMA",X(1.17)="COMBAT VET",X(1.18)="SHAD",X(1101)="NOTE"
  Q
 NUM(X) ; Numeric Field Designations
  N FN F FN=.01:.01:.08 S X(+FN)=+FN
  F FN=.12:.01:.13 S X(+FN)=+FN
- F FN=1.01:.01:1.16 S X(+FN)=+FN
+ F FN=1.01:.01:1.18 S X(+FN)=+FN
  S X(1101)=1101
  Q

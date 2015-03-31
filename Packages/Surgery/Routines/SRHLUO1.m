@@ -1,5 +1,5 @@
 SRHLUO1 ;BIR/DLR - Surgery Interface (Cont.) Utilities for building Outgoing HL7 Segments ; [ 05/20/99   7:14 AM ]
- ;;3.0; Surgery ;**41,88**;24 Jun 93
+ ;;3.0; Surgery ;**41,88,127**;24 Jun 93
  ; Per VHA Directive 10-93-142, this routine SHOULD NOT be modified.
  ;INIT^HLTRANS MUST BE called before calling this routine.
 ZCH(SRI,SREVENT,SRSTATUS,SRENT) ;sets ^TMP(SRENT,$J global for sending ZCH Scheduling Appointment Information segment(s)
@@ -9,8 +9,8 @@ ZCH(SRI,SREVENT,SRSTATUS,SRENT) ;sets ^TMP(SRENT,$J global for sending ZCH Sched
  ;eventid^text(STATUS)^coding scheme^...
  S ZCH(4)=$G(SREVENT)_HLCOMP_$G(SRSTATUS)_HLCOMP_"L"
  I $D(^SRF(CASE,"OP")) S ZCH(5)=$P($G(^("OP")),U,2) I ZCH(5)'="" D
- .S SRX=$$CPT^ICPTCOD(ZCH(5)),ZCH(5)=$P(SRX,U,2)_HLCOMP_$P(SRX,U,3)_HLCOMP_"C4"
- .S (SRJ,SRREP)=0 F  S SRJ=$O(^SRF(CASE,"OPMOD",SRJ)) Q:'SRJ  S SRP=$P(^SRF(CASE,"OPMOD",SRJ,0),U),SRM=$$MOD^ICPTMOD(SRP,"I") D
+ .S SRX=$$CPT^ICPTCOD(ZCH(5),$P($G(^SRF(CASE,0)),"^",9)),ZCH(5)=$P(SRX,U,2)_HLCOMP_$P(SRX,U,3)_HLCOMP_"C4"
+ .S (SRJ,SRREP)=0 F  S SRJ=$O(^SRF(CASE,"OPMOD",SRJ)) Q:'SRJ  S SRP=$P(^SRF(CASE,"OPMOD",SRJ,0),U),SRM=$$MOD^ICPTMOD(SRP,"I",$P($G(^SRF(CASE,0)),U,9)) D
  ..S ZCH(18)=$G(ZCH(18))_$S(SRREP:HLREP,1:"")_$P(SRM,U,2)_HLCOMP_$P(SRM,U,3)_HLCOMP,SRREP=1
  I $G(ZCH(5))="" S ZCH(5)=HLCOMP_$P($G(^SRF(CASE,"OP")),U)
  I $D(^SRF(CASE,".4")) S ZCH(6)=$P($G(^(.4)),U) I ZCH(6)'="" S ZCH(6)=($P(ZCH(6),":")*60)+($P($G(ZCH(6)),":",2))_HLCOMP_"min"

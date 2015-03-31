@@ -1,5 +1,6 @@
-ORCACT2 ;SLC/MKB-DC orders ; 08 May 2002  2:12 PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,48,79,92,108,94,141,149**;Dec 17, 1997
+ORCACT2 ;SLC/MKB-DC orders ; 03/27/2007
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**7,48,79,92,108,94,141,149,265,243**;Dec 17, 1997;Build 242
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
 DC ; -- start here with:
  ;    ORNMBR = #,#,...,# of selected orders
  ;
@@ -40,7 +41,7 @@ DC2 . S ORDC(ORI)=ORIFN I $$NMSP^ORCD(+$P(OR0,U,14))="PS" S ORX=1 D  ;meds
  ... I $D(^TMP("ORNEW",$J,DA,1)) K ^(1) D UNLK1^ORX2(DA) ;unlock again
  G:'$O(ORDC(0)) DCQ D:$D(ORDC("DAD")) COMPLX
 DC3 S OREASON=$$DCREASON I OREASON'>0 D UNLOCK G DCQ
- S ORNATR=$P(OREASON,U,3),ORCREATE=$$CREATE^ORX1(ORNATR)
+ S ORNATR=$P(OREASON,U,3),ORCREATE=1 ; CHGD $$CREATE^ORX1(ORNATR)
  I 'ORCREATE,$G(ORX),$D(^XUSEC("OREMAS",DUZ)),$$GET^XPAR("ALL","OR OREMAS MED ORDERS")<2 W $C(7),!,"You are not authorized to release med orders.",! G DC3
  I ORCREATE D  I (ORNP="^")!($G(ORL)="^") D UNLOCK G DCQ
  . S ORNP=$$PROVIDER^ORCMENU1 Q:ORNP="^"  ;S:ORNP=DUZ ORNATR="E"
@@ -115,10 +116,10 @@ DCREASON() ; -- Returns Reason for DC
 DCRQ S:Y>0 Y=Y_U_$S($P(Y(0),U,7):$P($G(^ORD(100.02,+$P(Y(0),U,7),0)),U,2),1:"W") ; ^nature
  Q Y
  ;
-SET(ORDER,NATURE,REASON,TEXT) ; -- Set DC Reason into 6-node
+SET(ORDER,NATURE,REASON,TEXT,DCORIG) ; -- Set DC Reason into 6-node
  Q:'$G(ORDER)  Q:'$D(^OR(100,+ORDER,0))  S ORDER=+ORDER
  I $L($G(NATURE)),NATURE'>0 S NATURE=$O(^ORD(100.02,"C",NATURE,0))
- S ^OR(100,ORDER,6)=$G(NATURE)_U_DUZ_U_$E($$NOW^XLFDT,1,12)_U_$G(REASON)_U_$G(TEXT)
+ S $P(^OR(100,ORDER,6),U,1,5)=$G(NATURE)_U_DUZ_U_$E($$NOW^XLFDT,1,12)_U_$G(REASON)_U_$G(TEXT),$P(^(6),U,9)=$G(DCORIG)
  Q
  ;
 RESUME(ORDER) ; -- Resume tray service when dc'ing tubefeeding ORDER?
@@ -132,16 +133,27 @@ RESUME(ORDER) ; -- Resume tray service when dc'ing tubefeeding ORDER?
  Q
  ;
 UNREL ; -- Process unreleased/delayed order
- N ORA,ORA0,ORDEL,DA,DR,DIE
+ N ORA,ORA0,DA,DR,DIE
  S ORA=+$P(ORIFN,";",2),ORA0=$G(^OR(100,+ORIFN,8,ORA,0))
- S ORDEL=$S(ORSTS=11:1,$P(ORA0,U,4)=2:1,1:0)
- W !,"This order was not released "_$S(ORDEL:"to the service and will be deleted.",1:"but signed and will be cancelled.") H 1 I ORDEL D
- . K:$P(ORA0,U,2)="DC" ^OR(100,+ORIFN,6) I $P(ORA0,U,2)="NW" D
- .. S:$P(OR3,U,5) $P(^OR(100,+$P(OR3,U,5),3),U,6)=""
- .. I $P(OR0,U,17) S DA=+$O(^ORE(100.2,"AO",+ORIFN,0)) I DA S DR="4///@",DIE=100.2 D ^DIE
- . D DELETE^ORCSAVE2(ORIFN)
- D CLRDLY(+ORIFN):'ORDEL,UNLK1^ORX2(+ORIFN) S OREBUILD=1
- I $D(^TMP("ORNEW",$J,+ORIFN,ORA)) K ^(ORA) D UNLK1^ORX2(+ORIFN) ;decrement lock again
+ ;S ORDEL=$S(ORSTS=11:1,$P(ORA0,U,4)=2:1,1:0)
+ ;W !,"This order was not released "_$S(ORDEL:"to the service and will be deleted.",1:"but signed and will be cancelled.")
+ K:$P(ORA0,U,2)="DC" ^OR(100,+ORIFN,6) I $P(ORA0,U,2)="NW" D
+ . S:$P(OR3,U,5) $P(^OR(100,+$P(OR3,U,5),3),U,6)=""
+ . I $P(OR0,U,17) S DA=+$O(^ORE(100.2,"AO",+ORIFN,0)) I DA S DR="4///@",DIE=100.2 D ^DIE
+ D UNLK1^ORX2(+ORIFN) S OREBUILD=1
+ I $D(^TMP("ORNEW",$J,+ORIFN,ORA)) K ^(ORA) D  Q  ;new this session
+ . W !,"This order will be deleted." H 1
+ . D DELETE^ORCSAVE2(ORIFN),UNLK1^ORX2(+ORIFN) ;decrement lock again
+ W !,"This order was not released and will be cancelled." H 1
+ D CANCEL^ORCSAVE2(ORIFN):ORSTS=11,CLRDLY(+ORIFN):ORSTS=10
+ Q
+ ;
+CLRDLY(IFN) ; -- [old Clear delayed fields] Cancel delayed [event]order
+ N STS,ORX S IFN=+$G(IFN) Q:IFN'>0
+ Q:'$D(^OR(100,IFN,0))  S STS=$P($G(^(3)),U,3)
+ S ORX="Delayed "_$S(STS=10:"Order",1:"Release Event")_" Cancelled"
+ S ^OR(100,IFN,6)=$O(^ORD(100.02,"C","M",0))_U_DUZ_U_+$E($$NOW^XLFDT,1,12)_U_U_ORX
+ D STATUS^ORCSAVE2(IFN,13) S $P(^OR(100,IFN,8,1,0),U,15)=13
  Q
  ;
 EVENT ; -- Cancel event too?
@@ -164,11 +176,3 @@ DCD(IFN) ; -- order discontinued already?
  ;look for existing DC action awaiting ES:
  S I=0 F  S I=+$O(^OR(100,+IFN,8,"C","DC",I)) Q:I<1  I $P($G(^OR(100,+IFN,8,I,0)),U,15)=11 S Y=1 Q
 DQ Q Y
- ;
-CLRDLY(IFN) ; -- [old Clear delayed fields] Cancel delayed [event]order
- N STS,ORX S IFN=+$G(IFN) Q:IFN'>0
- Q:'$D(^OR(100,IFN,0))  S STS=$P($G(^(3)),U,3)
- S ORX="Delayed "_$S(STS=10:"Order",1:"Release Event")_" Cancelled"
- S ^OR(100,IFN,6)=$O(^ORD(100.02,"C","M",0))_U_DUZ_U_+$E($$NOW^XLFDT,1,12)_U_U_ORX
- D STATUS^ORCSAVE2(IFN,13) S $P(^OR(100,IFN,8,1,0),U,15)=13
- Q

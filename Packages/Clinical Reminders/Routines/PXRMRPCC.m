@@ -1,5 +1,5 @@
-PXRMRPCC ;SLC/PJH - PXRM REMINDER DIALOG ;04/12/2002
- ;;1.5;CLINICAL REMINDERS;**2,7,10**;Jun 19, 2000
+PXRMRPCC ;SLC/PJH - PXRM REMINDER DIALOG ;16-Feb-2012 15:55;MGH
+ ;;1.5;CLINICAL REMINDERS;**2,7,10,1009**;Jun 19, 2000;Build 24
  ;
 ACTIVE(ORY,ORREM) ;Check if active dialog exist for reminders
  ;
@@ -19,7 +19,7 @@ ACTIVE(ORY,ORREM) ;Check if active dialog exist for reminders
  Q
  ;
  ;
-DIALOG(ORY,ORREM) ;Load reminder dialog associated with the reminder
+DIALOG(ORY,ORREM,DFN) ;Load reminder dialog associated with the reminder
  ;
  ; input parameter ORREM - reminder ien [.01,#811.9]
  ;
@@ -70,20 +70,20 @@ RES(ORY,ORREM) ; Reminder Resources/Inquiry
  Q
  ;
 MH(ORY,OTEST) ; Mental Health dialog
- ;
+ ;Patch 1009 IHS does not use the mental health package
  ; Input mental health instrument NAME
  ;
- N YS,ARRAY S YS("CODE")=OTEST D SHOWALL^YTAPI3(.ARRAY,.YS) ; DBIA 2895
+ ;N YS,ARRAY S YS("CODE")=OTEST D SHOWALL^YTAPI3(.ARRAY,.YS) ; DBIA 2895
  ;
- N FNODE,FSUB,IC,NODE,OCNT,SUB
- S SUB="ARRAY",OCNT=0
- F  S SUB=$Q(@SUB) Q:SUB=""  D
- .S FSUB=$P($P(SUB,"(",2),")"),FNODE=""
- .F IC=1:1 S NODE=$P(FSUB,",",IC) Q:NODE=""  D
- ..I $E(NODE)="""" S NODE=$P(NODE,"""",2)
- ..S $P(FNODE,";",IC)=NODE
- .Q:FNODE=""
- .S OCNT=OCNT+1,ORY(OCNT)=FNODE_U_@SUB
+ ;N FNODE,FSUB,IC,NODE,OCNT,SUB
+ ;S SUB="ARRAY",OCNT=0
+ ;F  S SUB=$Q(@SUB) Q:SUB=""  D
+ ;.S FSUB=$P($P(SUB,"(",2),")"),FNODE=""
+ ;.F IC=1:1 S NODE=$P(FSUB,",",IC) Q:NODE=""  D
+ ;..I $E(NODE)="""" S NODE=$P(NODE,"""",2)
+ ;..S $P(FNODE,";",IC)=NODE
+ ;.Q:FNODE=""
+ ;.S OCNT=OCNT+1,ORY(OCNT)=FNODE_U_@SUB
  Q
  ;
 MHR(ORY,RESULT,ORES) ; Mental Health score and P/N text
@@ -97,10 +97,11 @@ MHR(ORY,RESULT,ORES) ; Mental Health score and P/N text
 MHS(ORY,YS) ; Mental Health save response
  ;
  ; Input mental health instrument response
- N ARRAY
- D SAVEIT^YTAPI1(.ARRAY,.YS) ; DBIA 2893
- I ARRAY(1)'="[DATA]" S ORY(1)="-1^"_ARRAY(1)_ARRAY(2)
- I ARRAY(1)="[DATA]" S ORY(1)=ARRAY(1)_ARRAY(2)
+ ;Patch 1009 IHS does not use the mental health instrument file
+ ;N ARRAY
+ ;D SAVEIT^YTAPI1(.ARRAY,.YS) ; DBIA 2893
+ ;I ARRAY(1)'="[DATA]" S ORY(1)="-1^"_ARRAY(1)_ARRAY(2)
+ ;I ARRAY(1)="[DATA]" S ORY(1)=ARRAY(1)_ARRAY(2)
  Q
  ;
 MST(ORY,DFN,DGMSTDT,DGMSTSC,DGMSTPR,FTYP,FIEN,RESULT) ; File MST status

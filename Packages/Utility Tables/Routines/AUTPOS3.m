@@ -1,5 +1,5 @@
-AUTPOS3 ; IHS/DIRM/JDM/DFM - Post Init to AUT ;  [ 11/25/97  12:34 PM ]
- ;;98.1;IHS DICTIONARIES (POINTERS);;NOV 25, 1997
+AUTPOS3 ; IHS/DIRM/JDM/DFM - Post Init to AUT ;  [ 03/04/98   8:10 AM ]
+ ;;98.1;IHS DICTIONARIES (POINTERS);;MAR 04, 1998;Build 6
  ;
  ;
 RECODE ;EP - Converts invalid phone #s to valid in INSURER file.

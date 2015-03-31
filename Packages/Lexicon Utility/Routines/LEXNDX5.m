@@ -1,5 +1,5 @@
 LEXNDX5 ; ISL Set/kill indexes (Part 5) Link       ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 EXCL ; Is a term used with an "Exclusive" meaning?
  Q:'$D(LEXREP)!('$D(LEXBY))

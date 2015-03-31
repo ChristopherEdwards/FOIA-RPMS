@@ -1,5 +1,5 @@
-BRAPRAD ;CIA/PLS,IHS/ITSC/CLS - Radiology Protocol Event API
- ;;5.0;Radiology/Nuclear Medicine;**1001**;Feb 20, 2004
+BRAPRAD ;CIA/PLS,IHS/ITSC/CLS - Radiology Protocol Event API ; 20 Apr 2011  4:32 PM
+ ;;5.0;Radiology/Nuclear Medicine;**1001,1003**;Nov 01, 2010;Build 3
  ;BRAPCCZ was modified at line VRAD+25 with $G(RARPT)
  ;BRAPCCZ seems to have problems if CREATE is called with
  ; an existing V Rad entry. A new entry is added but the
@@ -63,6 +63,9 @@ RE ; Report verification
  ;IHS/ITSC/CLS 12/16/2003 just update impression, visit & v rad already created
  I $P($G(RA74("0")),U,5)="V",RAPCC D  Q
  .D UPDTIMP^BRAPCC($G(RADFN),$G(RADTI))
+ .;
+ .;IHS/BJI/DAY - Patch 1003 - Update BW PROCEDURE with DX and Radiologist
+ .D UPDTDX^BRAWH($G(RADFN),$G(RADTI),$G(RACNI))
  ;
  ;IHS/ITSC/CLS 02/13/2004 create visit and v rad if exam status override to complete 
  I $P(^RA(72,$P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),"^",3),0),"^")["COMPLETE",'RAPCC D

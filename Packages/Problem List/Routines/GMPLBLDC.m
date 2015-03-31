@@ -1,5 +1,8 @@
-GMPLBLDC ; SLC/MKB -- Build Problem Selection Categories ;8/10/95  15:39
- ;;2.0;Problem List;**3,7**;Aug 25, 1994
+GMPLBLDC ; SLC/MKB -- Build Problem Selection Categories ;3/12/03 9:22
+ ;;2.0;Problem List;**3,7,28**;Aug 25, 1994
+ ;
+ ; This routine invokes IA #3991
+ ;
 EN ; -- main entry point for GMPL SELECTION GROUP BUILD
  D EN^VALM("GMPL SELECTION GROUP BUILD")
  Q
@@ -37,7 +40,10 @@ BUILD(LIST,MODE) ; Build ^TMP("GMPLST",$J,) of current items in LIST for display
  . S IFN=^TMP("GMPLIST",$J,"SEQ",SEQ),LCNT=LCNT+1,NUM=NUM+1
  . S PROB=$P(^TMP("GMPLIST",$J,IFN),U,2),TEXT=$P(^TMP("GMPLIST",$J,IFN),U,3),CODE=$P(^TMP("GMPLIST",$J,IFN),U,4)
  . S ^TMP("GMPLST",$J,LCNT,0)=$S(MODE="I":$J("<"_SEQ_">",8),1:"        ")_$J(NUM,4)_" "_TEXT
- . S:$L(CODE) ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_" ("_CODE_")"
+ . I $L(CODE) D
+ .. S ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_" ("_CODE_")"
+ .. I $$STATCHK^ICDAPIU(CODE,DT) Q  ; OK - code is active
+ .. S ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_"     <INACTIVE CODE>"
  . D CNTRL^VALM10(LCNT,9,5,IOINHI,IOINORM)
  . S ^TMP("GMPLST",$J,"B",NUM)=IFN
  S ^TMP("GMPLST",$J,0)=NUM_U_LCNT,VALMCNT=LCNT

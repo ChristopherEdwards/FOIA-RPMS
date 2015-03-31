@@ -1,5 +1,5 @@
 ABMDE2X ; IHS/ASDST/DMJ - PAGE 2 - INSURER data chk ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9,10,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - V2.5 P3 - 1/24/03 - NOIS NEA-0301-180044
  ;     Modified routine to display patient info when workers comp
@@ -64,7 +64,8 @@ SEL ;EP - Entry Point for Checking Select Insurer for Errors
  I $P($G(^ABMDPARM(DUZ(2),1,4)),U,14)=1 D  ;export
  .S ABMTIN=$P($G(^AUTNINS(ABMX("INS"),0)),U,11)
  .;if no TIN and anything except Ben Patient
- .I ABMTIN="",($P($G(^AUTNINS(ABMX("INS"),2)),U)'="I") S ABME(225)=$S('$D(ABME(225)):$P(ABMX("I0"),U,2),1:ABME(225)_","_$P(ABMX("I0"),U,2))
+ .;I ABMTIN="",($P($G(^AUTNINS(ABMX("INS"),2)),U)'="I") S ABME(225)=$S('$D(ABME(225)):$P(ABMX("I0"),U,2),1:ABME(225)_","_$P(ABMX("I0"),U,2))  ;abm*2.6*10 HEAT73780
+ .I ABMTIN="",($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMX("INS"),".211","I"),1,"I")'="I") S ABME(225)=$S('$D(ABME(225)):$P(ABMX("I0"),U,2),1:ABME(225)_","_$P(ABMX("I0"),U,2))  ;abm*2.6*10 HEAT73780
  .I $A($E(ABMTIN,9))>64,$A($E(ABMTIN,9))<91 S ABME(226)=$S('$D(ABME(226)):$P(ABMX("I0"),U,2),1:ABME(226)_","_$P(ABMX("I0"),U,2))
  .K ABMTIN
  ;
@@ -76,6 +77,14 @@ SEL ;EP - Entry Point for Checking Select Insurer for Errors
  .S DFN=ABMP("PDFN")
  .S ABMVDT=ABMP("VDT")
  .D ELG^ABMDLCK(ABMVDFN,.ABML,DFN,ABMVDT)
+ .;start new code abm*2.6*11 HEAT86262
+ .S ABM("PRI")=""
+ .S ABMMCR=0
+ .I $D(ABML(1,2))!($D(ABML(3,2))) S ABMMCR=1
+ .F  S ABM("PRI")=$O(ABML(ABM("PRI"))) Q:'ABM("PRI")  D
+ ..I ABMMCR,$D(ABML(ABM("PRI"),ABMP("INS"),"COV")),$$GET1^DIQ(9999999.65,$O(ABML(ABM("PRI"),ABMP("INS"),"COV",0)),".01","E")["MEDICARE SUPPL" S ABMG(47)=""
+ ..I $D(ABML(99,2)),$D(ABML(ABM("PRI"),ABMP("INS"),"COV")),$$GET1^DIQ(9999999.65,$O(ABML(ABM("PRI"),ABMP("INS"),"COV",0)),".01","E")["MEDICARE SUPPL" S ABMG(48)=""
+ .;end new code HEAT86262
  .S ABM("PRI")=""
  .F  S ABM("PRI")=$O(ABML(ABM("PRI"))) Q:'ABM("PRI")  I $D(ABML(ABM("PRI"),ABMX("INS"))) D  Q
  ..Q:"PMRDAW"'[$P(ABML(ABM("PRI"),ABMX("INS")),U,3)
@@ -91,9 +100,12 @@ SEL ;EP - Entry Point for Checking Select Insurer for Errors
  ...D ^DIE
  ..S ABMX("I0")=@(ABMP("GL")_"13,"_ABM("XIEN")_",0)")
  ..K ABML
- I "INW"[$P($G(^AUTNINS(ABMX("INS"),2)),U),$P(^(2),U)]"" D ^ABMDE2X3 G XIT
+ ;I "INW"[$P($G(^AUTNINS(ABMX("INS"),2)),U),$P(^(2),U)]"" D ^ABMDE2X3 G XIT  ;abm*2.6*10 HEAT73780
+ S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMX("INS"),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
+ I "INW"[ABMITYP,ABMITYP]"" D ^ABMDE2X3 G XIT  ;abm*2.6*10 HEAT73780
  ;I $P($G(^AUTNINS(ABMX("INS"),2)),U)="P",('$D(^AUPNPRVT(ABMP("PDFN"),11,"B",ABMX("INS")))) D ^ABMDE2X3 G XIT  ;abm*2.6*6 HEAT30524
- I $P($G(^AUTNINS(ABMX("INS"),2)),U)="P",('$D(^AUPNPRVT(ABMP("PDFN"),11,"B",ABMX("INS")))) D ^ABMDE2X3  ;abm*2.6*6 HEAT30524
+ ;I $P($G(^AUTNINS(ABMX("INS"),2)),U)="P",('$D(^AUPNPRVT(ABMP("PDFN"),11,"B",ABMX("INS")))) D ^ABMDE2X3  ;abm*2.6*6 HEAT30524  ;abm*2.6*10 HEAT73780
+ I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMX("INS"),".211","I"),1,"I")="P",('$D(^AUPNPRVT(ABMP("PDFN"),11,"B",ABMX("INS")))) D ^ABMDE2X3  ;abm*2.6*6 HEAT30524  ;abm*2.6*10 HEAT73780
  S ABMX("DIC")=$S($P(ABMX("I0"),U,6)]"":"^AUPNMCD(",$P(ABMX("I0"),U,8)]"":"^AUPNPRVT(",$P(ABMX("I0"),U,4)]"":"^AUPNMCR(",1:"^AUPNRRE("),ABMX("SUB")=$S($P(ABMX("I0"),U,7)]"":$P(ABMX("I0"),U,7),1:"")
  S ABMX(2)=$S(ABMX("DIC")="^AUPNMCD(":$P(ABMX("I0"),U,6),1:ABMP("PDFN"))
  I ABMX("DIC")="^AUPNPRVT(" S ABMX(1)=$P(ABMX("I0"),"^",8) G XIT:'ABMX(1)
@@ -109,13 +121,34 @@ SEL ;EP - Entry Point for Checking Select Insurer for Errors
  .S:$P(ABMV("X2"),U,2)]"" $P(ABMV("X2"),U,2)=$S($D(^AUTTRLSH($P(ABMV("X2"),U,2),0)):$P(ABMV("X2"),U,2)_";"_$P(^(0),U),1:"")
  S:$P(ABMV("X1"),U,4)="" ABME(68)=""
  I $P(ABMP("C0"),U,8)="" S ABME(111)=""  ;abm*2.6*8 HEAT37612
- I $P($G(^AUTNINS(ABMX("INS"),2)),U)="R" D
+ ;I $P($G(^AUTNINS(ABMX("INS"),2)),U)="R" D  ;abm*2.6*10 HEAT73780
+ I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMX("INS"),".211","I"),1,"I")="R" D  ;abm*2.6*10 HEAT73780
  .S $P(ABMV("X1"),U,7)=$P(^AUTTLOC(ABMP("LDFN"),0),U,19)
  .S:$P($G(^AUTTLOC(ABMP("LDFN"),0)),U,19)="" ABME(173)=""
+ .;start new code abm*2.6*10 HEAT68467
+ .I $D(^AUPNMSP("C",ABMP("PDFN"))) D
+ ..K ABMMSP,ABMFLAG,ABMMSPSV
+ ..; get correct entry based on visit date
+ ..S ABMMSP=9999999,ABMFLAG="",ABMMSPSV=9999999
+ ..F  S ABMMSP=$O(^AUPNMSP("C",ABMP("PDFN"),ABMMSP),-1) Q:ABMMSP=""  D  Q:ABMFLAG=1
+ ...I $G(ABMMSPSV)="" S ABMMSPSV=ABMMSP
+ ...I (ABMP("VDT")<ABMMSPSV&(ABMP("VDT")>ABMMSP))!(ABMMSP=ABMP("VDT")) S ABMMSPSV=$O(^AUPNMSP("C",ABMP("PDFN"),ABMMSP,0)),ABMFLAG=1 Q
+ ...I ABMP("VDT")=ABMMSP S ABMFLAG=1 Q
+ ...S ABMMSPSV=ABMMSP
+ ..; write the entry with date
+ ..I ABMFLAG=1 D
+ ...K %DT  ;abm*2.6*8
+ ...S Y=ABMMSP
+ ...D DD^%DT
+ ...S ABMMSPDT=Y
+ ...K %DT  ;abm*2.6*8
+ ...S ABMMSPRS=$S($G(ABMMSPSV)="":"NO REASON ENTERED",$P($G(^AUPNMSP(ABMMSPSV,0)),U,4)'="":$P($G(^AUPNMSP(ABMMSPSV,0)),U,4),1:"NO REASON ENTERED")
+ .;end new code HEAT68467
  .; no MSP and inpatient
  .I $G(ABMMSPRS)="",ABMP("BTYP")=111 S ABMG(194)=""
  .;
- .I ABMP("BTYP")'=111,($G(ABMMSP)="") S ABMG(218)=""
+ .;I ABMP("BTYP")'=111,($G(ABMMSP)="") S ABMG(218)=""  ;abm*2.6*11 HEAT104470
+ .I ABMP("BTYP")'=111,($G(ABMMSP)="") S ABME(218)=""  ;abm*2.6*11 HEAT104470
  .;
  .;not inpatient and >90 days since form signed
  .I ABMP("BTYP")'=111,($G(ABMMSP)'="") D
@@ -127,10 +160,12 @@ SEL ;EP - Entry Point for Checking Select Insurer for Errors
  ..I X>90 S ABME(195)=""
  .;
  .;no MSP and Medicare is secondary
- .I $G(ABMMSPRS)="",$D(ABMZ(2)),($P($G(^AUTNINS($P($G(ABMZ(2)),U,2),2)),U))="R" S ABMG(196)=""
+ .;I $G(ABMMSPRS)="",$D(ABMZ(2)),($P($G(^AUTNINS($P($G(ABMZ(2)),U,2),2)),U))="R" S ABMG(196)=""  ;abm*2.6*10 HEAT73780
+ .I $G(ABMMSPRS)="",$D(ABMZ(2)),($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,$P($G(ABMZ(2)),U,2),".211","I"),1,"I")="R") S ABMG(196)=""  ;abm*2.6*10 HEAT73780
  .;
  .; MSP but Medicare not secondary
- .I $G(ABMMSPRS)'="",$D(ABMZ(2)),($P($G(^AUTNINS($P($G(ABMZ(2)),U,2),2)),U)'="R"),($G(ABMMSP)'="") D
+ .;I $G(ABMMSPRS)'="",$D(ABMZ(2)),($P($G(^AUTNINS($P($G(ABMZ(2)),U,2),2)),U)'="R"),($G(ABMMSP)'="") D  ;abm*2.6*10 HEAT73780
+ .I $G(ABMMSPRS)'="",$D(ABMZ(2)),($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,$P($G(ABMZ(2)),U,2),".211","I"),1,"I")'="R"),($G(ABMMSP)'="") D  ;abm*2.6*10 HEAT73780
  ..I ABMP("BTYP")'=111 S ABMG(197)=""
  ..S X=ABMMSP
  ..D ^%DT
@@ -142,11 +177,14 @@ SEL ;EP - Entry Point for Checking Select Insurer for Errors
  I ABMV("X2")]"" D ^ABMDE2X2
  D ^ABMDE2X3
  S:$G(ABMP("INS"))="" ABMP("INS")=$P($G(ABMV("X1")),";")
- I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R"!($P($G(^AUTNINS(ABMP("INS"),2)),U)="D") D
+ ;I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R"!($P($G(^AUTNINS(ABMP("INS"),2)),U)="D") D  ;abm*2.6*10 HEAT73780
+ S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
+ I ABMITYP="R"!(ABMITYP="D") D  ;abm*2.6*10 HEAT73780
  .S ABMCK=$P(ABMV("X1"),U,5)
  .D NAME
  .I $G(ABMCK)="" S ABME(203)=""
- I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R",($P($G(ABMV("X1")),U,6)="") S ABME(219)=""
+ ;I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R",($P($G(ABMV("X1")),U,6)="") S ABME(219)=""  ;abm*2.6*10 HEAT73780
+ I ABMITYP="R",($P($G(ABMV("X1")),U,6)="") S ABME(219)=""  ;abm*2.6*10 HEAT73780
  I $P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),U,11)="Y" S ABME(234)=""  ;abm*2.6*3 HEAT7574
  I $P(ABMV("X1"),U,4)="" S ABME(236)=""  ;abm*2.6*6 5010
  ;

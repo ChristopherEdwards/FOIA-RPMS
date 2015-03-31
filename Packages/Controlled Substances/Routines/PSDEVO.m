@@ -1,5 +1,5 @@
 PSDEVO ;BIR/JPW,BJW-Edit/Cancel a Verified Order ; 20 Aug 98
- ;;3.0; CONTROLLED SUBSTANCES ;**10**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**10,66**;13 Feb 97;Build 3
  ;nois:mar-1297-21575
 EN ;entry for edit/cancel verified order
  I '$D(PSDSITE) D ^PSDSET Q:'$D(PSDSITE)
@@ -38,7 +38,7 @@ CANC ;canc ver ord
  I 'Y D MSG S PSDOUT=1 Q
  S AQTY=$S($D(NQTY):NQTY,1:QTY)
  W !!,"Accessing your transaction history..."
- F  L +^PSD(58.8,+PSDS,1,+PSDR,0):0 I  Q
+ F  L +^PSD(58.8,+PSDS,1,+PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S PSDT=+%
  S BAL=$P(^PSD(58.8,+PSDS,1,+PSDR,0),"^",4),$P(^(0),"^",4)=$P(^(0),"^",4)+AQTY
  L -^PSD(58.8,+PSDS,1,+PSDR,0) W !!,"Old Balance: ",BAL,?35,"New Balance :",BAL+AQTY,!!

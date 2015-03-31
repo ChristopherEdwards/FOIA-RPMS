@@ -1,5 +1,5 @@
 ABMDVS13 ; IHS/ASDST/DMJ - PCC VISIT STUFF, V CPT code ; 
- ;;2.6;IHS 3P BILLING SYSTEM**9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM**9,11**;NOV 12, 2009;;Build 133
  ;Original;DMJ;
  ;
  ; IHS/SD/SDR - 11/04/02 - V2.5 P2 - ZZZ-0301-210046
@@ -40,7 +40,16 @@ START ;START
  .;The next line is intended to prevent dupes being stuffed into the
  .;claim file.  It requires that other stuffing rtns put in ABMSRC
  .I $D(^ABMDCLM(DUZ(2),DA(1),"ASRC",ABMSRC)),(ABMCPT<ABMCPTTB("SURGERY","L"))!(ABMCPT>ABMCPTTB("SURGERY","H")) Q
+ .;start new code abm*2.6*11 HEAT83923
+ .I ($P(AUPNCPT(N),U,4)="9000010.08") D
+ ..S ABMAST=$$GET1^DIQ($P(AUPNCPT(N),U,4),$P(AUPNCPT(N),U,5),".19","I")  ;Anes. start dt/tm
+ ..S ABMAET=$$GET1^DIQ($P(AUPNCPT(N),U,4),$P(AUPNCPT(N),U,5),".21","I")  ;Anes. end dt/tm
+ .I ($P(AUPNCPT(N),U,4)="9000010.18") D
+ ..S ABMAST=$$GET1^DIQ($P(AUPNCPT(N),U,4),$P(AUPNCPT(N),U,5),".13","I")  ;Anes. start dt/tm
+ ..S ABMAET=$$GET1^DIQ($P(AUPNCPT(N),U,4),$P(AUPNCPT(N),U,5),".14","I")  ;Anes. end dt/tm
+ .;end new code HEAT83923
  .; Needs ABMCPT, ABMSDT, ABMSRC, & DA(1) OR ABMP("CDFN")
  .D ^ABMFCPT
- K ABMSDT,N,AUPNCPT,ABMSRC
+ ;K ABMSDT,N,AUPNCPT,ABMSRC  ;abm*2.6*11 HEAT83923
+ K ABMSDT,N,AUPNCPT,ABMSRC,ABMAST,ABMAET  ;abm*2.6*11 HEAT83923
  Q

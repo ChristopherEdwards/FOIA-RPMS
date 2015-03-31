@@ -1,5 +1,5 @@
 PSUPR3 ;BIR/PDW - EXTRACTION FROM FILE 58.81 ;12 AUG 1999
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**1,8,16,19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;DBIAs
  ; Reference to file #58.81 supported by DBIA 2520
  ; Reference to file #50    supported by DBIA 221
@@ -44,12 +44,15 @@ TRAN ;EP Scan Thru Transactions
 TRANDA ;EP work a transaction
  ;
  N PSUTR
- D GETS^PSUTL(58.81,PSUTRDA,".01;1;2;3;4;5;8;12;71;106","PSUTR","I")
+ D GETS^PSUTL(58.81,PSUTRDA,".01;1;2;3;4;5;8;12;71;106;107","PSUTR","I")
  D MOVEI^PSUTL("PSUTR")
  S PSUDTDA=PSUTR(3)
  ; 3.2.6.3.2-3.4
  Q:(PSUTR(1)'=1)
- I $L(PSUTR(8)),'$L($G(PSUTR(71))) Q
+ I '$D(PSUFLSFG) D
+ .I $L(PSUTR(8)),'$L($G(PSUTR(71))) Q
+ I $D(PSUFLSFG) D
+ .I PSUTR(107)'="" Q
  Q:$L(PSUTR(106))
  ;
  ;     setup file 50 fields
@@ -67,52 +70,10 @@ TRANDA ;EP work a transaction
  ;    setup division  3.2.3.6.3.5
  N PSULOC
  S PSULOC=PSUTR(2)
- ;
- ;   Get division from file 58.8
+ ;   Get division from file 58.8, file  59.7 fileds 90.02,90.03
  S PSUDIV="",PSUDIVI="H"
- K PSULDIV
- D GETS^PSUTL(58.8,PSULOC,".01;2;20","PSULDIV","I")
- D MOVEI^PSUTL("PSULDIV")
- ;
- ; if outpatient follow pointers
- I PSULDIV(20) D  G CONT
- . S X=$$VALI^PSUTL(59,PSULDIV(20),.06)
- . I X S PSUDIV=X,PSUDIVI="" Q
- . S PSUDIV=PSUSNDR
- ;
- ; if inpatient setup and call div^psuar1 to process AOU
- I PSULDIV(2) D  G CONT
- . S PSUARSUB=PSUPRSUB
- . S PSUDIV=$$DIV^PSUAR1(PSULDIV(2),PSUDTDA)
- . I PSUDIV="NULL" S PSUDIV=PSUSNDR Q
- . S PSUDIVI=""
- ;
- ; check to see if ward has multiples
- K PSUW
- D GETM^PSUTL(58.8,PSULOC,"21*^.01","PSUW","I")
- D MOVEMI^PSUTL("PSUW")
- S DA=0 I $D(PSUW) S DA=$O(PSUW(0))
- I DA D  G CONT
- . S X=$$VALI^PSUTL(42,PSUW(DA,.01),.015)
- . S PSUDIV=$$VALI^PSUTL(40.8,X,1)
- . I PSUDIV S PSUDIVI="" Q
- . S PSUDIV=PSUSNDR
- ;
- ; check to see if IV has multiples
- K PSUIV
- D GETM^PSUTL(58.8,PSULOC,"31*^.01","PSUIV","I")
- D MOVEMI^PSUTL("PSUIV")
- S DA=0 I $D(PSUIV) S DA=$O(PSUIV(0))
- I DA D  G CONT
- . S X=$$VALI^PSUTL(59.5,PSUIV(DA,.01),.02)
- . S X=$$VALI^PSUTL(40.8,X,1)
- . I X S PSUDIVI="" Q
- . S PSUDIV=PSUSNDR
- ;
- ; if none of the above could match set default
- S PSUDIV=PSUSNDR,PSUDIVI="H"
- ; 
- ; continue processing
+ S PSUINV="",PSUINV(4)=PSULOC
+ D DIV^PSUPR2
 CONT ;
  I $L(PSUDIV) S PSUDIVI=""
  E  S PSUDIV=PSUSNDR

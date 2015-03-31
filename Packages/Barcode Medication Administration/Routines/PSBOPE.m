@@ -1,5 +1,6 @@
 PSBOPE ;BIRMINGHAM/EFC-PRN EFFECTIVENESS WORKSHEET ;Mar 2004
- ;;3.0;BAR CODE MED ADMIN;**5**;Mar 2004
+ ;;3.0;BAR CODE MED ADMIN;**5,23,32**;Mar 2004;Build 32
+ ;Per VHA Directive 2004-038 (or future revisions regarding same), this routine should not be modified.
  ;
  ; Reference/IA
  ; ^DPT/10035
@@ -35,7 +36,7 @@ PRINT ; Print meds stored in ^TMP("PSB",$J,DFN,....
  ; Print by Patient
  ;
  D:$P(PSBRPT(.1),U,1)="P"
- .S PSBHDR(1)="PRN EFFECTIVENESS LIST from "_$$FMTE^XLFDT(PSBSTRT)_" thru "_$$FMTE^XLFDT(PSBSTOP)
+ .S PSBHDR(1)="PRN EFFECTIVENESS LIST for "_$$FMTE^XLFDT(PSBSTRT)_" to "_$$FMTE^XLFDT(PSBSTOP)
  .S DFN=$P(PSBRPT(.1),U,2)
  .W $$PTHDR()
  .I '$O(^TMP("PSB",$J,DFN,0)) W !,"No PRN Medications Found",$$PTFTR^PSBOHDR() Q
@@ -58,7 +59,7 @@ PRINT ; Print meds stored in ^TMP("PSB",$J,DFN,....
  .I '$O(^TMP("PSB",$J,0)) W !,"No PRN Medications Found" Q
  .S PSBSORT=$P(PSBRPT(.1),U,5)
  .F DFN=0:0 S DFN=$O(^TMP("PSB",$J,DFN)) Q:'DFN  D
- ..S PSBINDX=$S(PSBSORT="P":$P(^DPT(DFN,0),U),1:$G(^(.1))_" "_$G(^(.101)))
+ ..S PSBINDX=$S(PSBSORT="P":$P(^DPT(DFN,0),U),1:$G(^DPT(DFN,.1))_" "_$G(^DPT(DFN,.101)))  ;PSB*3*23
  ..S:PSBINDX="" PSBINDX=$P(^DPT(DFN,0),U)
  ..S ^TMP("PSB",$J,"B",PSBINDX,DFN)=""
  .S PSBINDX=""

@@ -1,5 +1,5 @@
 PSDBAN ;BIR/JPW,LTL-Nurse BAL Report ; 8 Aug 94
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**63**;13 Feb 97;Build 1
  I '$D(PSDSITE) D ^PSDSET Q:'$D(PSDSITE)
  S OK=$S($D(^XUSEC("PSJ RPHARM",DUZ)):1,$D(^XUSEC("PSJ PHARM TECH",DUZ)):1,$D(^XUSEC("PSJ RNURSE",DUZ)):1,$D(^XUSEC("PSD NURSE",DUZ)):1,1:0)
  ;I 'OK W $C(7),!!,?9,"** Please contact your Pharmacy Coordinator for access to",!,?12,"print this report.",! K OK Q
@@ -24,9 +24,11 @@ DEV ;ask device and queue info
  W !!,"You may queue this report to print at a later time.",!!
  K %ZIS,IOP,IO("Q"),POP S %ZIS="QM",%ZIS("B")="HOME" D ^%ZIS I POP W !,"NO DEVICE SELECTED OR REPORT PRINTED!" G END
  I $D(IO("Q")) K IO("Q"),ZTIO,ZTSAVE,ZTDTH,ZTSK S ZTRTN="START^PSDBAN",ZTDESC="Balance of NAOU drugs" D SAVE,^%ZTLOAD,HOME^%ZIS K ZTSK G END
- U IO
+ ;U IO
 START ;loops thru DRUGS
+ U 0
  W !!,"Give me a second or two to alphabetize.",!
+ U IO
  N PSDRUG,PSDRUGN S PSDRUG=0,PSDRUGN="" K ^TMP("PSDNST",$J)
  F  S PSDRUG=$O(^PSD(58.8,NAOU,1,PSDRUG)) Q:'PSDRUG  D:$P($G(^PSD(58.8,NAOU,1,PSDRUG,0)),U,4)
  .S ^TMP("PSDNST",$J,$P($G(^PSDRUG(+PSDRUG,0)),U))=$P($G(^PSD(58.8,NAOU,1,PSDRUG,0)),U,4)_" "_$S($P($G(^(0)),U,8)]"":$P($G(^(0)),U,8),1:$P($G(^PSDRUG(PSDRUG,660)),U,8))

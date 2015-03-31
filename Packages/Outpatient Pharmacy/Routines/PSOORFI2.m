@@ -1,5 +1,5 @@
-PSOORFI2 ;BIR/SAB-finish cprs orders cont. ;24-Oct-2007 11:18;SM
- ;;7.0;OUTPATIENT PHARMACY;**7,15,23,27,46,130,146,1005,1006**;DEC 1997
+PSOORFI2 ;BIR/BHW-finish cprs orders cont. ;29-May-2012 14:58;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**7,15,23,27,46,130,146,1005,1006,177,222,225,1015**;DEC 1997;Build 62
  ;External reference ^YSCL(603.01 supported by DBIA 2697
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ; Modified - IHS/MSC/PLS - 05/16/06 - Line RF+18
@@ -29,12 +29,8 @@ PROFILE ;display med profile
  K DIR,DUOUT,DIRUT,DTOUT
  Q
 DC I '$G(PSOORRNW),$G(PSOOPT)=3 S PSORENW("DFLG")=1 S:'$D(PSOBBC1("FROM")) VALMBCK="Q",VALMSG="Renew Rx Request Canceled.",Y=-1 Q
- N VALMCNT W ! K DIR,DUOUT,DIROUT,DTOUT,PSOELSE I '$G(PSOERR("DEAD")) S PSOELSE=1 D  Q:$D(DIRUT)
- .D NOOR^PSOCAN4 Q:$D(DIRUT)
- .S DIR("A")="Comments",DIR(0)="F^10:75",DIR("B")="Per Pharmacy Request" D ^DIR K DIR
- I '$G(PSOELSE) K PSOELSE S PSONOOR="A" G DE
- K PSOELSE I $D(DIRUT) K DIRUT,DUOUT,DTOUT,Y Q
- S ACOM=Y
+ G DC^PSOORFI6
+ Q
 DE Q:'$D(^PS(52.41,ORD,0))
  K ^PS(52.41,"AOR",$P(^PS(52.41,ORD,0),"^",2),+$P($G(^PS(52.41,ORD,"INI")),"^"),ORD),^PS(52.41,"AD",$P(^PS(52.41,ORD,0),"^",12),+$P($G(^PS(52.41,ORD,"INI")),"^"),ORD)
  S $P(^PS(52.41,ORD,0),"^",3)="DC",POERR("PLACER")=$P(^(0),"^"),POERR("STAT")="OC"
@@ -48,11 +44,31 @@ RF ;process refill request from CPRS
  S PSOREF("IRXN")=$P(OR0,"^",19) D PSOL^PSSLOCK($P(OR0,"^",19)) I '$G(PSOMSG) D  D PAUSE^VALM1 K PSOREF,PSOMSG Q
  .I $P($G(PSOMSG),"^",2)'="" W $C(7),!!,$P(PSOMSG,"^",2),! Q
  .W $C(7),!!,"Another person is editing Rx "_$P(^PSRX($P(OR0,"^",19),0),"^"),!
+ ;
+ D FULL^VALM1
+ I '$P($G(^PS(52.41,ORD,0)),"^",23),+$G(^PS(52.41,ORD,"FLG")) D  I $D(DIRUT)!'Y S VALMBCK="B" Q
+ . K DIRUT,DUOUT,DTOUT,DIR
+ . S DIR("A",1)="Flagged by "_$$GET1^DIQ(52.41,ORD,34)_" on "_$$GET1^DIQ(52.41,ORD,33)_": "_$$GET1^DIQ(52.41,ORD,35)
+ . S DIR("A",2)=""
+ . S DIR("A",3)="Unflagged by "_$$GET1^DIQ(52.41,ORD,37)_" on "_$$GET1^DIQ(52.41,ORD,36)_": "_$$GET1^DIQ(52.41,ORD,38)
+ . S DIR("A",4)=""
+ . S DIR(0)="Y",DIR("B")="YES",DIR("A")="Continue"
+ . W ! D ^DIR
+ ;
+ I $G(ORD),+$P($G(^PS(52.41,+ORD,0)),"^",23)=1 D  Q:$D(DIRUT)!'Y  D EN1^ORCFLAG(+$P($G(^PS(52.41,ORD,0)),"^")) H 1
+ . K DIRUT,DUOUT,DTOUT,DIR
+ . S DIR("A",1)="This Refill Request is flagged. In order to process it"
+ . S DIR("A",2)="you must unflag it first."
+ . S DIR("A",3)=""
+ . S DIR(0)="Y",DIR("A")="Unflag Refill Request",DIR("B")="NO"
+ . W ! D ^DIR I $D(DIRUT)!'Y S VALMBCK="B"
+ I $G(ORD),+$P($G(^PS(52.41,+ORD,0)),"^",23)=1 Q
+ ;
  K PSOMSG S (PSOREF("DFLG"),PSOREF("FIELD"),PSOREF1)=0,X="T-6M",%DT="X" D ^%DT
  S (PSOID,PSOREF("ISSUE DATE"))=$S($P(^PSRX(PSOREF("IRXN"),0),"^",13)<Y:Y,1:$P(^PSRX(PSOREF("IRXN"),0),"^",13))
  S:$G(PSORX("BAR CODE"))&($G(PSOBBC1("FROM"))="NEW") PSOREF("ISSUE DATE")=DT K X,X1,X2
  ;
- S PSONEW("DAYS SUPPLY")=$P(^PSRX(PSOREF("IRXN"),0),"^",8),PSONEW("# OF REFILLS")=$P(^(0),"^",9) D FULL^VALM1
+ S PSONEW("DAYS SUPPLY")=$P(^PSRX(PSOREF("IRXN"),0),"^",8),PSONEW("# OF REFILLS")=$P(^(0),"^",9)
  W !!,"Processing Refill Request for Rx "_$P(^PSRX(PSOREF("IRXN"),0),"^")
  ;S:$G(PSOREQFD)]"" PSORX("FILL DATE")=PSOREQFD
  D FILLDT^PSODIR2(.PSOREF) I PSOREF("DFLG") S VALMBCK="R" G END
@@ -93,6 +109,7 @@ KPRI K PSOSTATZ,PSOROUTZ,PSOEMERZ
 KPRIZ K PSOQUIT,POERR("QFLG")
  Q
 INST ;Select Institution
+ N PSOCNT
  I '$G(PSOSITE) D ^PSOLSET I '$G(PSOSITE) S PSOIQUIT=1 Q
  N PSIR,PSCT,PSINST K PSOPINST
  S PSCT=0 F PSIR=0:0 S PSIR=$O(^PS(59,PSOSITE,"INI1",PSIR)) Q:'PSIR  I $P($G(^PS(59,PSOSITE,"INI1",PSIR,0)),"^") S PSCT=PSCT+1 I PSCT=1 S PSOPINST=$P($G(^(0)),"^")
@@ -102,18 +119,34 @@ INST ;Select Institution
  K PSOPNAME D:$G(PSOPINST)  K DIC S DIC(0)="AEQMZ",DIC="^PS(59,"_PSOSITE_",""INI1""," S:$G(PSOPNAME)'="" DIC("B")=$G(PSOPNAME) D ^DIC K DIC,PSOPNAME I Y<1 W !!,"No Institution selected",! S PSOIQUIT=1 Q
  .K ^UTILITY("DIQ1",$J),DIQ S DA=$G(PSOPINST),DIC=4,DIQ(0)="E",DR=".01" D EN^DIQ1 S PSOPNAME=$G(^UTILITY("DIQ1",$J,4,DA,.01,"E")) K ^UTILITY("DIQ1",$J),DA,DR,DIC,DIQ
  W ! S PSOPINST=$P(Y,"^",2) K Y
- D INSTNM W !,"You have selected "_$G(PSODINST)_".",!,"After completing these orders, you may re-enter this option and select again.",! K PSODINST
+ D INSTNM W !,"You have selected "_$G(PSODINST)_"."
+ W !,"After completing these orders, you may re-enter this option and select again.",!
+ S PSOCNT=$$CNT(PSOPINST)
+ W !,"      <There ",$S(PSOCNT=1:"is ",1:"are "),$S(PSOCNT>0:PSOCNT,1:"no")," flagged order",$S(PSOCNT=1:"",1:"s")," for ",PSODINST,">",!
+ K PSODINST
  Q
+ ;
+CNT(SITE) ; - Counter for flagged pending orders by Site
+ N CNT,ORD
+ S (CNT,LOGIN,ORD)=0
+ F  S LOGIN=$O(^PS(52.41,"AD",LOGIN)) Q:'LOGIN  D
+ . F  S ORD=$O(^PS(52.41,"AD",LOGIN,SITE,ORD)) Q:'ORD  D
+ . . I $P(^PS(52.41,ORD,0),"^",3)="DC"!($P(^PS(52.41,ORD,0),"^",3)="DE") Q
+ . . I $P($G(^PS(52.41,ORD,0)),"^",23) S CNT=CNT+1
+ Q CNT
+ ;
 INST1 ;
  K PSOPINST N PSIR
  F PSIR=0:0 S PSIR=$O(^PS(59,PSOSITE,"INI1",PSIR)) Q:'PSIR!($G(PSOPINST))  I $P($G(^PS(59,PSOSITE,"INI1",PSIR,0)),"^") S PSOPINST=$P($G(^(0)),"^")
  Q
 CLOZ ;checks clozapine status of patient
  S CLOZPAT=$O(^YSCL(603.01,"C",PSODFN,0))
- S CLOZPAT=$S($P($G(^YSCL(603.01,+CLOZPAT,0)),"^",3)="B":1,1:0)
+ S CLOZPAT=$P($G(^YSCL(603.01,+CLOZPAT,0)),"^",3)
+ S CLOZPAT=$S(CLOZPAT="M":2,CLOZPAT="B":1,1:0)
  S:'$D(PSONEW("# OF REFILLS")) (PSONEW("# OF REFILLS"),PSONEW("N# REF"))=0
  Q
 ELIG I $G(CLOZPAT)=1 S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="   Patient Eligible for 14 Day Supply or 7 Day Supply with 1 refill"
+ I $G(CLOZPAT)=2 S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="   Patient Eligible for 28 Day Supply or 14 Day Supply with 1 refill or 7 Day Supply with 3 refill"
  Q
 USER(USER) ;returns .01 of 200
  K DIC,X,Y S DIC="^VA(200,",DIC(0)="M",X="`"_USER D ^DIC S USER1=$S(+Y:$P(Y,"^",2),1:"Unknown") K DIC,X,Y
@@ -123,7 +156,7 @@ INSTNM ;
  K PSODNM S DA=$G(PSOPINST) I DA S DIC=4,DIQ(0)="E",DR=".01",DIQ="PSODNM" D EN^DIQ1 S PSODINST=$G(PSODNM(4,DA,.01,"E")) K PSODNM,DIC,DR,DA
  I $G(PSOFINDA) S DA=$G(PSOFINDA) K PSOFINDA
  Q
-POST S PSOFINY=$G(Y) D ^PSOBUILD S Y=$G(PSOFINY) K PSOFINY D OERR^PSORX1
+POST S PSOFINY=$G(Y) D ^PSOBUILD S Y=$G(PSOFINY) K PSOFINY D OERR^PSORX1 I $G(PSOQUIT) Q
  K PSOQFLG F PT="GET","DEAD","INP","CNH","TPB","ADDRESS","COPAY" S RTN=PT_"^PSOPTPST" D @RTN K PSOXFLG Q:$G(POERR("DEAD"))!($G(PSOQFLG))
  I $G(POERR("DEAD")) S POERR("QFLG")=1 Q
  K PSOERR("DEAD") I $G(PSOQFLG) Q

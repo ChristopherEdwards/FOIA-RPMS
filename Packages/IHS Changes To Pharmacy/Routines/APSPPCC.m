@@ -1,5 +1,5 @@
-APSPPCC ;IHS/CIA/DKM/PLS - PCC Hook for Pharmacy Package ;28-Oct-2011 12:23;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1006,1007,1008,1009,1010,1013**;Sep 23, 2004;Build 33
+APSPPCC ;IHS/CIA/DKM/PLS - PCC Hook for Pharmacy Package ;07-Jan-2013 09:35;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1006,1007,1008,1009,1010,1013,1015**;Sep 23, 2004;Build 62
  ; EP - Called by event protocol.
  ;   DATA  = Event message.  May either be a global reference or
  ;           a local array passed by reference.
@@ -117,7 +117,8 @@ DOIT ;EP
  S POV=$TR($$GET^XPAR("SYS","APSP POV CACHE",+IEN_","_+REF),"~",U)
  ; Refills or suspended prescriptions will be set to 1300 unless the
  ; suspended prescription is an original dispensed on the day of release.
- I $L(POV),$$GET1^DIQ(9009033,PSOSITE,405,"I") D  ;IHS/MSC/PLS - 10/28/11 - Capture POV for all prescriptions
+ ;I $L(POV),$$GET1^DIQ(9009033,PSOSITE,405,"I") D  ;IHS/MSC/PLS - 10/28/11 - Capture POV for all prescriptions
+ I $L(POV),$$GET1^DIQ(9009033,$G(PSOSITE),405,"I") D  ;IHS/MSC/PLS - 01/07/13 - Wrap with $G
  .S DAT=$P(DAT,".")_".13"
  E  I $L(POV),$P(RX0,U,13)'=$P(DAT,".") D  ; if issue date<>fill date
  .S DAT=$P(DAT,".")_".13"

@@ -1,5 +1,5 @@
 LEXDMGV ; ISL Defaults - Manager/Verify            ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
  ; LEXDICS     Filter
  ; LEXDICS(0)  Filter name

@@ -1,5 +1,5 @@
 ABMDE9A ; IHS/ASDST/DMJ - Page 9 - UB-82 CODES-Cont ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p8 - task 6
  ;    Added code to put Zip code for AO on page 9D
@@ -50,7 +50,8 @@ VALU1 S ABM("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),55,ABM("X"),0),ABM("X")=$P(^(0),U
  I $Y>(IOSL-5) D PAUSE^ABMDE1 G:$D(DUOUT)!$D(DTOUT)!$D(DIROUT) XIT D HD4
  W !,"[",ABM("I"),"]",?7,$P(ABMZ(ABM("I")),U)
  W ?14,$P(^ABMDCODE(ABM("X"),0),U,3)
- W ?66,$S("A0^32"[$P(ABMZ(ABM("I")),U):$P(ABM("X0"),U,2),1:$J($P(ABM("X0"),U,2),8,2))
+ ;W ?66,$S("A0^32"[$P(ABMZ(ABM("I")),U):$P(ABM("X0"),U,2),1:$J($P(ABM("X0"),U,2),8,2))  ;abm*2.6*11 HEAT89676
+ W ?66,$S("A0^32^80^82^83"[$P(ABMZ(ABM("I")),U):$P(ABM("X0"),U,2),1:$J($P(ABM("X0"),U,2),8,2))  ;abm*2.6*11 HEAT89676
  Q
  ;
 XIT Q

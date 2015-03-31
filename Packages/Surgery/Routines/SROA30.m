@@ -1,5 +1,5 @@
-SROA30 ;B'HAM ISC/MAM  - 30 DAY LETTERS AND MAIL MESSAGE ; [ 08/18/00  11:16 AM ]
- ;;3.0; Surgery ;**7,18,31,38,95**;24 Jun 93
+SROA30 ;BIR/MAM - 30 DAY LETTERS AND MAIL MESSAGE ;01/26/06
+ ;;3.0; Surgery ;**7,18,31,38,95,153**;24 Jun 93;Build 11
  S SRSOUT=0 W @IOF K DIR S DIR("A")="Do you want to edit the text of the letter",DIR("B")="NO",DIR(0)="Y" D ^DIR K DIR I $D(DTOUT)!$D(DUOUT) G END
  I Y S X="Division: "_SRSITE("SITE")_"  ("_SRSITE("DIV")_")" W @IOF,!,?(80-$L(X)\2),X,! K DA,DIE,DR S DA=SRSITE,DR="31",DIE=133 D ^DIE K DA,DIE,DR
 ONE G:SRSOUT END W @IOF S DIR("?",1)="Enter <RET> to select a patient and print the letter for a specific risk",DIR("?")="assessment, or 'NO' to print letters for a date range."
@@ -43,7 +43,7 @@ MSG S XMSUB="RISK ASSESSMENT 30 DAY REMINDER FOR "_VADM(1),XMDUZ="SURGICAL CLINI
  Q
 END S SRPRINT=0 I $E(IOST)="P" S SRPRINT=1
  W:SRPRINT @IOF I $D(ZTQUEUED) Q:$G(ZTSTOP)  S ZTREQ="@" Q
- D ^%ZISC W @IOF D ^SRSKILL K SRTN
+ D ^%ZISC W @IOF D ^SRSKILL K SRTN,VAIN,VAINDT
  Q
 ADD ; Lines 2 and 3 of street address
  S SRAMSG(6,0)=VAPA(2),SRCNT=7

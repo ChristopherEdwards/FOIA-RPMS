@@ -1,5 +1,5 @@
 BDMLLMR ; IHS/CMI/LAB - PCC HEALTH SUMMARY ; 
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**4,6**;JUN 14, 2007;Build 6
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**4,6,7**;JUN 14, 2007;Build 24
  ;
  W:$D(IOF) @IOF
  W !!,"This report will list all lab tests or medications that are used at"
@@ -163,3 +163,51 @@ HDR1 ;
  W !,?5,"TAXONOMIES",!
  W "--------------------------------------------------------------------",!
  Q
+ ;
+BDMG(BDMJ,BDMBTH,BDMTYPE,BDMBD,BDMED) ;-- EP for LMR report
+ I BDMTYPE="L" S BDMTYPEP="LAB TESTS"
+ I BDMTYPE="M" S BDMTYPEP="MEDICATIONS (DRUGS)"
+ S X1=BDMBD,X2=-1 D C^%DTC S BDMSD=X
+ N BDMOPT  ;maw
+ S BDMOPT="Lab/Medication Report"
+ D NOW^%DTC
+ S BDMNOW=$G(%)
+ K DD,D0,DIC
+ S X=DUZ_"."_BDMBTH
+ S DIC("DR")=".02////"_DUZ_";.03////"_BDMNOW_";.05////1;.06///"_$G(BDMOPT)_";.07////R"
+ S DIC="^BDMGUI(",DIC(0)="L",DIADD=1,DLAYGO=9003201.4
+ D FILE^DICN
+ K DIADD,DLAYGO,DIC,DA
+ I Y=-1 S BDMIEN=-1 Q
+ S BDMIEN=+Y
+ S BDMGIEN=BDMIEN
+ D ^XBFMK
+ K ZTSAVE S ZTSAVE("*")=""
+ S ZTIO="",ZTDTH=$$NOW^XLFDT,ZTRTN="GUIEP^BDMLLMR",ZTDESC="LAB/MED REPORT" D ^%ZTLOAD
+ Q
+ ;
+GUIEP ;-- lets do the GUI report
+ D EN
+ K ^TMP($J,"BDMLAB")
+ S IOM=80  ;cmi/maw added
+ D GUIR^XBLM("PRINT^BDMLLMR","^TMP($J,""BDMLAB"",")
+ Q:$G(BDMDSP)  ;quit if to screen
+ S X=0,C=0 F  S X=$O(^TMP($J,"BDMLAB",X)) Q:X'=+X  D
+ .S BDMDBTA=^TMP($J,"BDMLAB",X)
+ .I BDMDBTA="ZZZZZZZ" S BDMDBTA=$C(12)
+ .S ^BDMGUI(BDMGIEN,11,X,0)=BDMDBTA,C=C+1
+ S ^BDMGUI(BDMGIEN,11,0)="^^"_C_"^"_C_"^"_DT_"^"
+ S DA=BDMGIEN,DIK="^BDMGUI(" D IX1^DIK
+ D ENDLOG
+ K ^TMP($J,"BDMLAB")
+ S ZTREQ="@"
+ Q
+ ;
+ENDLOG ;-- write the end of the log
+ D NOW^%DTC
+ S BDMNOW=$G(%)
+ S DIE="^BDMGUI(",DA=BDMGIEN,DR=".04////"_BDMNOW_";.07////C"
+ D ^DIE
+ K DIE,DR,DA
+ Q
+ ;

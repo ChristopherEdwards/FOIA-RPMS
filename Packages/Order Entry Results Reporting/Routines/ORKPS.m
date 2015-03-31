@@ -1,5 +1,7 @@
-ORKPS ; slc/CLA - Order checking support procedures for medications ;12/15/97 [3/18/04 10:28am]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,74,94,123,141,190**;Dec 17, 1997
+ORKPS ; slc/CLA - Order checking support procedures for medications ;08-Apr-2013 14:54;DU
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,74,94,123,141,190,232,1010**;Dec 17, 1997;Build 47
+ ;Modified - IHS/MSC/MGH - 08/21/2012 - Upper case for take med for order check
+ ;Modified - IHS/MSC/MGH - 04/05/2013 - Compound drugs check+10
  Q
 CHECK(YY,DFN,MED,OI,ORKDG) ; return drug order checks
  ;YY:    returned array of data
@@ -8,10 +10,23 @@ CHECK(YY,DFN,MED,OI,ORKDG) ; return drug order checks
  ;OI:    orderable item ien [file #101.43
  ;ORKDG: display group (should be PSI, PSIV, PSO or PSH)
  ; returned info: varies for ^TMP($J x-ref - refer to listings below
+ N CMP,CMPDR,CDRG,SAVEDFN
  K ^TMP($J,"DI"),^TMP($J,"DD"),^TMP($J,"DC")
  N ORDFN S ORDFN=DFN
- D EN^PSOORDRG(DFN,MED)
- D PROCESS(OI,ORDFN,ORKDG)
+ ;IHS/MSC/MGH Find compound meds for order checking
+ S CMP=$P($G(^PSDRUG(MED,999999935)),U,1)
+ I CMP=1 D
+ .S CMPDR=0
+ .F  S CMPDR=$O(^PSDRUG(MED,999999936,CMPDR)) Q:'+CMPDR  D
+ ..S CDRG=$P($G(^PSDRUG(MED,999999936,CMPDR,0)),U,1)
+ ..S SAVEDFN=DFN
+ ..D EN^PSOORDRG(DFN,CDRG)
+ ..D PROCESS^ORKPS1(OI,ORDFN,ORKDG)
+ ..S DFN=SAVEDFN
+ ..;end IHS mod
+ E  D
+ .D EN^PSOORDRG(DFN,MED)
+ .D PROCESS^ORKPS1(OI,ORDFN,ORKDG)
  K ^TMP($J,"DI"),^TMP($J,"DD"),^TMP($J,"DC")
  Q
 CHKSESS(YY,DFN,MED,OI,ORKPDATA,ORKDG) ; return drug order checks for session
@@ -69,56 +84,9 @@ CHKSESS(YY,DFN,MED,OI,ORKPDATA,ORKDG) ; return drug order checks for session
  ;
  K ^TMP($J,"DI"),^TMP($J,"DD"),^TMP($J,"DC")
  I $D(ORKDRUGA) D DRGCHK^PSOORDRG(DFN,MED,.ORKDRUGA)
- D PROCESS(OI,ORDFN,ORKDG)
+ ;I '$D(ORKDRUGA) D EN^PSOORDRG(DFN,MED)
+ D PROCESS^ORKPS1(OI,ORDFN,ORKDG)
  K ^TMP($J,"DI"),^TMP($J,"DD"),^TMP($J,"DC")
- Q
-PROCESS(OI,DFN,ORKDG) ;process data from pharmacy order check API
- Q:'$D(^TMP($J))
- N II,XX,ZZ,ZZD,ORTYPE,ORMTYPE,ORN,ORZ
- S II=1,XX=0,ZZ="",ZZD=""
- ;
- ;check to determine if inpatient or outpatient:
- I $L(ORKDG) S ORTYPE=$S($G(ORKDG)="PSI":"I",$G(ORKDG)="PSO":"O",$G(ORKDG)="PSIV":"I",$G(ORKDG)="PSH":"O",1:"")
- I '$L(ORTYPE) D  ;if no display group
- .D ADM^VADPT2
- .S ORTYPE=$S(+$G(VADMVT)>0:"I",1:"O")
- .K VADMVT
- ;
- ; drug-drug interactions:
- F  S XX=$O(^TMP($J,"DI",XX)) Q:XX<1  D
- .S ZZ=$G(^TMP($J,"DI",XX,0))
- .S ORN=$P($P(ZZ,U,7),";"),ORZ=""
- .I $L(ORN),$D(^OR(100,ORN,8,0)) S ORZ=^OR(100,ORN,8,0)
- .I $L($G(ORZ)),($P(^OR(100,ORN,8,$P(ORZ,U,3),0),U,2)="DC") Q
- .I $L(ORN),$P(^ORD(100.01,$P(^OR(100,ORN,3),U,3),0),U)="DISCONTINUED" Q
- .I ZZ'="" S YY(II)="DI^"_ZZ,II=II+1
- ;
- ; duplicate drugs:
- Q:$$SOLUT(OI)  ;quit if the orderable item is a solution (RX EP specs
- ;require that we do not perform dup drug/class OCs for solutions)
- S XX=0,ZZ=""
- F  S XX=$O(^TMP($J,"DD",XX)) Q:XX<1  D
- .S ZZ=$G(^TMP($J,"DD",XX,0)),ORMTYPE=$P($P(ZZ,U,4),";",2)
- .I $G(ORTYPE)'=$G(ORMTYPE) Q
- .S ORN=$P($P(ZZ,U,3),";"),ORZ=""
- .Q:+$G(ORN)=+$G(ORIFN)  ;QUIT if dup med ord # = current ord #
- .I $L(ORN),$D(^OR(100,ORN,8,0)) S ORZ=^OR(100,ORN,8,0)
- .I $L($G(ORZ)),($P(^OR(100,ORN,8,$P(ORZ,U,3),0),U,2)="DC") Q
- .I $L(ORN),$P(^ORD(100.01,$P(^OR(100,ORN,3),U,3),0),U)="DISCONTINUED" Q
- .I ZZ'="" S YY(II)="DD^"_ZZ,II=II+1
- ;
- ; duplicate classes:
- Q:$$SUPPLY(OI)  ;quit if the orderable item is a supply
- S XX=0,ZZ=""
- F  S XX=$O(^TMP($J,"DC",XX)) Q:XX<1  D
- .S ZZ=$G(^TMP($J,"DC",XX,0)),ORMTYPE=$P($P(ZZ,U,6),";",2)
- .I $G(ORTYPE)'=$G(ORMTYPE) Q
- .S ORN=$P($P(ZZ,U,5),";"),ORZ=""
- .Q:+$G(ORN)=+$G(ORIFN)  ;QUIT if dup class ord # = current ord #
- .I $L(ORN),$D(^OR(100,ORN,8,0)) S ORZ=^OR(100,ORN,8,0)
- .I $L($G(ORZ)),($P(^OR(100,ORN,8,$P(ORZ,U,3),0),U,2)="DC") Q
- .I $L(ORN),$P(^ORD(100.01,$P(^OR(100,ORN,3),U,3),0),U)="DISCONTINUED" Q
- .I ZZ'="" S YY(II)="DC^"_ZZ,II=II+1
  Q
 TAKEMED(ORKDFN,ORKMED) ;extrinsic function returns med orderable item if any
  ;active med patient is taking contains any piece of ORKMED
@@ -133,6 +101,8 @@ TAKEMED(ORKDFN,ORKMED) ;extrinsic function returns med orderable item if any
  S ORCNT=$L(ORKMED,U)
  S ORI=0 F  S ORI=$O(ORKY(ORI)) Q:ORI<1  D
  .S ORKARX=$P(ORKY(ORI),U,2)
+ .;IHS/MSC/MGH Make it uppercase
+ .S ORKARX=$$UP^XLFSTR(ORKARX)
  .F ORJ=1:1:ORCNT S ORKMEDP=$P(ORKMED,U,ORJ) D
  ..I $L(ORKMEDP),(ORKARX[ORKMEDP) S ORKRSLT="1^"_ORKARX
  Q ORKRSLT
@@ -149,8 +119,6 @@ POLYRX(DFN) ;extrins funct rtns 1 if patient exceeds polypharmacy, 0 if not
  N ORSLT,ORENT,ORLOC,ORPAR,ORMEDS
  S ORSLT=0
  Q:'$L(DFN) ORSLT
- ;get patient's location flag (INPATIENT ONLY - outpt locations cannot be
- ;reliably determined, and many simultaneous outpt locations can occur):
  S VA200="" D OERR^VADPT
  S ORLOC=+$G(^DIC(42,+VAIN(4),44))
  K VA200,VAIN
@@ -190,7 +158,7 @@ GLCREAT(DFN) ;extrinsic function returns patient's (DFN) most recent serum
  ..I CDT'<BDT S CREARSLT=1
  Q:+$G(CREARSLT)<1 "0^"
  Q $P(ORZ,U)_U_$P(ORZ,U,3)_" "_$P(ORZ,U,4)_" "_$P(ORZ,U,5)_" ("_$P(ORZ,U,6)_")  "_$$FMTE^XLFDT(CDT,"2P")_U_$P(ORZ,U,3)
-GCDAYS(DFN) ;extrinsic function to return number of days to look for 
+GCDAYS(DFN) ;extrinsic function to return number of days to look for
  ; glucophage serum creatinine result
  Q:'$L(DFN) ""
  N ORLOC,ORENT,ORDAYS
@@ -242,7 +210,7 @@ NUMRX(DFN) ;extrinsic funct returns number of active meds patient is taking
  .S NUMRX=NUMRX+1
  K ^TMP("PS",$J)
  Q NUMRX
-OI2DD(ORPSA,OROI,ORPSPKG)       ;rtn dispense drugs for a PS OI
+OI2DD(ORPSA,OROI,ORPSPKG) ;rtn dispense drugs for a PS OI
  N PSOI
  Q:'$D(^ORD(101.43,OROI,0))
  S PSOI=$P($P(^ORD(101.43,OROI,0),U,2),";")

@@ -1,5 +1,5 @@
 PSGAPIV ;BIR/MV-ACTION PROFILE #1 IV ORDERS ;07 Apr 98 / 1:10 PM
- ;;5.0; INPATIENT MEDICATIONS ;**9,58**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**9,58,169**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191
  ;
@@ -22,7 +22,9 @@ PRT(ON) ;*** Print IV on Action Profile #1.
  N ON55,DRG,P,PRTST S DFN=PSGP,PRTST=1 D GT55^PSIVORFB
  F X=2,3 S:P(X) P(X)=$E($$ENDTC^PSGMI(P(X)),1,5)
  S PSJSI=$$ENSET^PSGSICHK($P(P("OPI"),"^"))
- W !,$J(N,3),"  R D N "
+ S QST=$$ONE^PSJBCMA(DFN,ON,P(9),P(2),P(3))
+ I QST'="O" S QST=$S(P(9)["PRN":"P",1:"C")
+ W !,$J(N,3),$S(QST="O":"   ",1:"  R")_" D N "  ;PSJ*5*169 Don't allow RENEW on one-time orders.
  I '$D(DRG("AD",0)) D PRTST W !
  I $O(DRG("AD",0)) F X=0:0 S X=$O(DRG("AD",X)) Q:'X  W ?11,$$WRTDRG^PSIVUTL(DRG("AD",X),41) D:X=1 PRTST D NP("AD") G:$G(PSJDLW) EXIT W !
  W ?11,"in "

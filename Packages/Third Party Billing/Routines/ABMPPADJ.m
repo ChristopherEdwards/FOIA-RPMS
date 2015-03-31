@@ -1,5 +1,5 @@
 ABMPPADJ ; IHS/SD/SDR - Prior Payments/Adjustments page (CE); 
- ;;2.6;IHS 3P BILLING SYSTEM;**4,6,8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,6,8,9,10**;NOV 12, 2009;Build 133
  ; split routine to ABMPPAD1 because of size
  ;
  ; IHS/SD/SDR - v2.5 p13 - NO IM
@@ -24,10 +24,12 @@ DISPCK ; chk if no complete insurer OR if 2 export modes on claim
  K ABMAFLG,ABMMFLG
  F  S ABMA=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMA)) Q:+ABMA=0  D
  .S ABMAI=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMA,0)),U)
+ .Q:ABMAI=""  ;abm*2.6*10 HEAT74239
  .I $P($G(^ABMNINS(ABMP("LDFN"),ABMAI,0)),U,11)="Y",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMA,0)),U,3)="C") S ABMAFLG=1
  .;I $P($G(^AUTNINS(ABMAI,2)),U)="R",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,8)=ABMAI) S ABMMFLG=1  ;abm*2.6*9 tribal self-insured
- .I $P($G(^AUTNINS(ABMAI,2)),U)'="R",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,8)=ABMAI) S ABMMFLG=1  ;abm*2.6*9 tribal self-insured
- I $G(ABMAFLG)=1,($G(ABMMFLG)=1) Q  ;don't do COB page cuz there is a tribal insurer and not Medicare
+ .;I $P($G(^AUTNINS(ABMAI,2)),U)'="R",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,8)=ABMAI) S ABMMFLG=1  ;abm*2.6*9 tribal self-insured  ;abm*2.6*10 HEAT73780
+ .I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMAI,".211","I"),1,"I")="R",($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,8)=ABMAI) S ABMMFLG=1  ;abm*2.6*9 tribal self-insured  ;abm*2.6*10 HEAT73780
+ I $G(ABMAFLG)=1,($G(ABMMFLG)=1) Q  ;don't do COB page cuz there is a tribal insurer and Medicare
  K ABMAFLG,ABMMFLG  ;abm*2.6*9
  D DISPCK^ABMPPAD1
 GATHER Q:$G(ABMCHK)=1  ;quit if no complete insurer or 2 export modes on claim
@@ -101,14 +103,16 @@ GATHER Q:$G(ABMCHK)=1  ;quit if no complete insurer or 2 export modes on claim
  ..S DUZ(2)=ABMPAR
  ..S ABMAIEN=$O(^BARBL(DUZ(2),"B",ABMBNUM,0))
  ..I +$G(ABMAIEN)=0 S:+$G(ABMHOLD)'=0 DUZ(2)=ABMHOLD K ABMHOLD Q  ;there isn't an A/R bill w/this number
+ ..Q:$P($G(^BARAC(DUZ(2),$P($G(^BARBL(DUZ(2),ABMAIEN,0)),U,3),0)),U)'["AUTNINS"  ;abm*2.6*10 HEAT70085
+ ..S ABMBINS=+$P($G(^BARAC(DUZ(2),$P($G(^BARBL(DUZ(2),ABMAIEN,0)),U,3),0)),U)  ;abm*2.6*10 HEAT70085
  ..S ABMTRIEN=0,ABMLN=1
  ..F  S ABMTRIEN=$O(^BARTR(DUZ(2),"AC",ABMAIEN,ABMTRIEN)) Q:ABMTRIEN=""  D
  ...S ABMREC=$G(^BARTR(DUZ(2),ABMTRIEN,0))
  ...I $G(ABMOPDT)="" S ABMOPDT=$P($P(ABMREC,U),".")
  ...Q:+$P(ABMREC,U,2)=0&(+$P(ABMREC,U,3)=0)
- ...S ABMBINS=$P(ABMREC,U,6)
- ...Q:$P($G(^BARAC(DUZ(2),ABMBINS,0)),U)'["AUTNINS"
- ...S ABMBINS=+$P($G(^BARAC(DUZ(2),ABMBINS,0)),U)
+ ...;S ABMBINS=$P(ABMREC,U,6)  ;abm*2.6*10 HEAT70085
+ ...;Q:$P($G(^BARAC(DUZ(2),ABMBINS,0)),U)'["AUTNINS"  ;abm*2.6*10 HEAT70085
+ ...;S ABMBINS=+$P($G(^BARAC(DUZ(2),ABMBINS,0)),U)  ;abm*2.6*10 HEAT70085
  ...S ABMTTYP=$P($G(^BARTR(DUZ(2),ABMTRIEN,1)),U,1)
  ...S ABMADJC=$P($G(^BARTR(DUZ(2),ABMTRIEN,1)),U,2)
  ...S ABMCAT=""

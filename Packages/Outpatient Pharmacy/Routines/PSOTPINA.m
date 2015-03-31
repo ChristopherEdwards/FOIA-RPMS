@@ -1,7 +1,8 @@
 PSOTPINA ;BIR/MR - Driver to Inactivate TPB patients ;12/01/03
- ;;7.0;OUTPATIENT PHARMACY;**160**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**160,227**;DEC 1997
  ;
-EN N PSOSDHL,PSOSDOE,TODAY,%,DIE,DA,DR,DO,PSOINA,X
+EN Q  ;placed out of order by PSO*7*227
+ N PSOSDHL,PSOSDOE,TODAY,%,DIE,DA,DR,DO,PSOINA,X
  ; - Patient not defined
  I '$D(^DPT(+$G(DFN),0)) Q
  ;

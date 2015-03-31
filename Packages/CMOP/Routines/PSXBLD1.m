@@ -1,5 +1,5 @@
 PSXBLD1 ;BIR/BAB,HTW,WPB-Document Data for Transmission ;10/15/98  10:38 AM
- ;;2.0;CMOP;**3,18,19,42,41,49,57**;11 Apr 97
+ ;;2.0;CMOP;**3,18,19,42,41,49,57,64**;11 Apr 97;Build 1
  ;Reference to  ^PSRX(     supported by DBIA #1977
  ;Reference to  ^PSDRUG(   supported by DBIA #1983
  ;Reference to  ^PS(55,    supported by DBIA #2228
@@ -87,7 +87,7 @@ WARN ;send msg
  S XT(4)="NARRATIVE FOR COPAY DOCUMENT"
  S TXT(1)="The following Pharmacy Site instruction(s) exceed seven lines."
  S TXT(2)="This exceeds CMOP limits."
- S TXT(3)="Lines beyound seven are not being sent to the CMOP."
+ S TXT(3)="Lines beyond seven are not being sent to the CMOP."
  S TXT(4)=" ",TXT(5)="Pharmacy Site: "_$$GET1^DIQ(59,PSOSITE,.01),L=5
  F NODE=6,7,4 I $DATA(WARN(NODE)) S L=L+1,TXT(L)=XT(NODE)_"     "_WARN(NODE)_" lines"
  S XMTEXT="TXT("

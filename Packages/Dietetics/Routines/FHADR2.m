@@ -1,5 +1,5 @@
 FHADR2 ; HISC/NCA/JH - Type of Service ;2/15/95  16:02 
- ;;5.0;Dietetics;**8**;Jun 07, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 Q1 ; Bedside Tray, Cafeteria, and Dining Room Tray
  ; Enter/Edit the Type of Service
  S DP=0 D NOW^%DTC S NOW=%\1 K %

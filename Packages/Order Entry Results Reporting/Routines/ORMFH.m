@@ -1,9 +1,10 @@
-ORMFH ; SLC/MKB - Process Dietetics ORM msgs ;02:49 PM  26 Jul 2000
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,73,92**;Dec 17, 1997
+ORMFH ;SLC/MKB - Process Dietetics ORM msgs ;5/5/05  13:18
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,73,92,215,243**;Dec 17, 1997;Build 242
+ ;
 EN ; -- entry point for FH messages
  I '$L($T(@ORDCNTRL)) Q  ;S ORERR="Invalid order control code" Q
  I ORDCNTRL'="SN",ORDCNTRL'="ZP",'ORIFN!('$D(^OR(100,+ORIFN,0))) S ORERR="Invalid OE/RR order number" Q
- S ORDUZ=DUZ,ORLOG=+$E($$NOW^XLFDT,1,12) S:'$G(ORNP) ORNP=ORDUZ
+ S ORLOG=+$E($$NOW^XLFDT,1,12) S:'$G(ORDUZ) ORDUZ=DUZ S:'$G(ORNP) ORNP=ORDUZ
  S:$G(DGPMT) ORNATR="A",OREASON=$S(DGPMT=1:"Admission",DGPMT=3:"Discharge",1:"Transfer"),ORDUZ=""
  D @ORDCNTRL
  Q
@@ -28,22 +29,26 @@ OK ; -- Order accepted, FH order # assigned [ack]
  D STATUS^ORCSAVE2(+ORIFN,ORSTS)
  Q
  ;
+XX ; -- Edited backdoor order (OP recurring meals only)
+ D XX^ORMFH1 Q
+ ;
 SN ; -- New backdoor order: return NA msg w/ORIFN
  N ODS,ODT,OBR,ORDIALOG,X,I,OI,SEG,ORNEW,ORPARAM,ORTIME,ORSTS,ORDG,ORP,ORTRAIL
  ;I '$D(^VA(200,+ORNP,0)) S ORERR="Missing or invalid ordering provider"Q
  ; Don't require provider until Nature of Order is added
  I '$G(DGPMT),'$D(^VA(200,+ORDUZ,0)) S ORERR="Missing or invalid entering person" Q
  I 'ORSTRT S ORERR="Missing effective date/time" Q
- D EN^FHWOR8(+ORVP,.ORPARAM) S:'$L($G(ORPARAM(3))) ORPARAM(3)="T"
- I '$G(ORL) S ORERR="Missing or invalid patient location" Q
+ ;I '$G(ORL) S ORERR="Missing or invalid patient location" Q
+ D EN1^FHWOR8(ORL,.ORPARAM)
  S ODS=$O(@ORMSG@(+ORC)) I 'ODS S ORERR="Incomplete message" Q
- S ODS=ODS_U_@ORMSG@(ODS),ORSTS=6 S:'$L(ORNATR) ORNATR="S"
+ S ODS=ODS_U_@ORMSG@(ODS),ORSTS=6 I '$L(ORNATR),ORCAT="I" S ORNATR="S"
  I $E($P(ODS,U,2),1,3)="OBR" S OBR=ODS D IP G SN1
  I $E($P(ODS,U,2),1,3)="ODT" S ODT=ODS D TRAY G SN1
  I $E($P(ODS,U,2),1,3)'="ODS" S ORERR="Missing or invalid ODS segment" Q
  I $P(ODS,"|",2)="ZE" D TF G SN1
- I $P(ODS,"|",4)?1"^^^FH-5".E D NPO G SN1
  I $P(ODS,"|",4)?1"^^^FH-6".E D ADDL G SN1
+ I ORCAT'="I" D OPM^ORMFH1 G SN1
+ I $P(ODS,"|",4)?1"^^^FH-5".E D NPO G SN1
 DIET ; Diet order
  S ORDIALOG=$O(^ORD(101.41,"AB","FHW1",0)),ORTRAIL="Diet"
  D GETDLG1^ORCD(ORDIALOG) S:ORSTRT>ORLOG ORSTS=8
@@ -107,11 +112,12 @@ TF ; Tubefeeding
  . S:$L(DUR) QTY=QTY_" X "_+$E(DUR,2,99)_$S($E(DUR)="H":"HR",1:"")
  . S I=I+1,ORDIALOG(OI,I)=XI,ORDIALOG(STR,I)=X4,ORDIALOG(INSTR,I)=QTY
  . S:$L($P(ODS,"|",5)) ORDIALOG(CMMT,I)=$P(ODS,"|",5)
+ I ORCAT="O",ORQT["~" D DATES
  Q
  ;
 UNITS(X) ; -- Returns name of unit X
  N Y S X=$E(X)
- S Y=$S(X="K":"KCAL",X="C":"CC",X="O":"OZ",X="U":"UNITS",X="T":"TBSP",X="G":"GM",1:"")
+ S Y=$S(X="K":"KCAL",X="C":"CC",X="M":"ML",X="O":"OZ",X="U":"UNITS",X="T":"TBSP",X="G":"GM",1:"")
  Q Y
  ;
 NPO ; NPO <uses FHW1 dialog - FHW4 now a quick order>
@@ -125,6 +131,13 @@ NPO ; NPO <uses FHW1 dialog - FHW4 now a quick order>
 ADDL ; Additional order
  S ORDIALOG=$O(^ORD(101.41,"AB","FHW7",0)) D GETDLG1^ORCD(ORDIALOG)
  S ORDIALOG($$PTR("FREE TEXT 1"),1)=$P(ODS,"|",5)
+ I ORCAT="O",ORQT["~" D DATES
+ Q
+ ;
+DATES ; -- pull dates out of ORQT
+ N P,I,X S P=$$PTR("DATE/TIME")
+ F I=1:1:$L(ORQT,"~") S X=$P(ORQT,"~",I),ORDIALOG(P,I)=$$HL7TFM^XLFDT($P(X,U,4))
+ S ORSTRT=$G(ORDIALOG(P,1)),ORSTOP=$G(ORDIALOG(P,I))
  Q
  ;
 SC ; -- Status Change
@@ -183,7 +196,7 @@ UPDATE(ORSTS,ORACT) ; -- continue processing
  . D SIGSTS^ORCSAVE2(+ORIFN,DA)
  . I $G(ORL) S ORP(1)=+ORIFN_";"_DA_"^1" D PRINTS^ORWD1(.ORP,+ORL)
  . S $P(^OR(100,+ORIFN,3),U,7)=DA
- I 'ORX,ORACT="DC",'$$ACTV^ORX1(ORNATR) S $P(^OR(100,+ORIFN,3),U,7)=0
+ I ORACT="DC",'$$ACTV^ORX1(ORNATR) S $P(^OR(100,+ORIFN,3),U,7)=0
  D:ORACT="DC" CANCEL^ORCSEND(+ORIFN)
  Q
  ;

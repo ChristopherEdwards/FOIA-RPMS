@@ -1,5 +1,8 @@
-PSGON ;BIR/CML3-SELECT ORDERS ; 16 Dec 98 / 10:08 AM
- ;;5.0; INPATIENT MEDICATIONS ;**2,22,54**;16 DEC 97
+PSGON ;BIR/CML3-SELECT ORDERS ;14-Feb-2013 11:06;PB
+ ;;5.0; INPATIENT MEDICATIONS ;**2,22,54,1015**;16 DEC 97;Build 62
+ ;
+ ; Modified - IHS/MSC/PB - 4/20/12 - Modified H2+21 to add the Stability Offset Value field to the list of fields that can be edited
+ ;            IHS/MSC/PB - 2/13/13 - Modified H2+22 to change the wording of the Beyond Use Date to Beyond Use Days and to correct the numbering sequence for the fields
 ENCHK ;
  K PSGODDD S PSGODDD=1,PSGODDD(1)="" W:X="-" "  (ALL)" I X="ALL"!(X="-") S X="1-"_PSGLMT
  E  S:$E(X)="-" X=1_X S:$E(X,$L(X))="-" X=X_PSGLMT
@@ -77,7 +80,12 @@ H2 ;
  .W !?3,"*(7) Schedule",!?3," (8) Admin Times",!?3,"*(9) Provider"
  .I $G(P(4))="P"!($G(P("DTYP"))=0) D
  ..W !?3,"*(10) Orderable Item",!?3," (11) Other Print",!?3," (12) Remarks"
- .E  W !?3," (10) Other Print",!?3," (11) Remarks"
+ .;line below modified to add the Stability Offset Value to the list of fields that can be edited
+ .;E  W !?3," (10) Other Print",!?3," (11) Remarks"
+ .;IHS/MSC/PB 4/25/12 Modified to display the Beyond Use Date field in the list of fields to be edited
+ .;ISH/MSC/PB - 2/13/13 modified the line below to change the wording of the Beyond Use line and to correct the field numbering
+ .;E  W !?3," (10) Other Print",!?3," (11) Remarks",!?3," (12) Beyond Use Days"
+ .E  W !?3," (11) Other Print",!?3," (12) Remarks",!?3," (13) Beyond Use Days"
  W ! K DIR S DIR(0)="E" D ^DIR K DIR
  Q
  ;

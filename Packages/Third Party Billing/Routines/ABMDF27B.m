@@ -1,5 +1,5 @@
 ABMDF27B ; IHS/ASDST/DMJ - Set HCFA1500 (08/05) Print Array PART 2 ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**4**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,10,11**;NOV 12, 2009;Build 133
  ; IHS/SD/SDR - abm*2.6*4 - HEAT12115 - Moved box 23 over 2 to allow for "extra" dx codes
  ;
  ; *********************************************************************
@@ -23,6 +23,9 @@ BNODES S ABM("B5")=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),5)),ABM("B6")=$G(^(6)),ABM("
  ..S $P(ABMF(33),U,3)=$P($G(^ABMRLABS($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,23),0)),U,2)
  .I $P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),1)),U,6)="I" D
  ..S $P(ABMF(33),U,3)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),9)),U,22)
+ ;
+ I (ABMP("ITYPE")="V")&($P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)'="") S $P(ABMF(33),U,5)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,12)  ;abm*2.6*11 VMBP
+ ;
 EMPL I $P(ABM("B9"),U)]"" S $P(ABMF(13),U,2)="X"
  E  S $P(ABMF(13),U,3)="X" G ACCD
  I $P(ABM("B9"),U,3)]"" S $P(ABMF(25),U,3)=$P(ABM("B9"),U,3)
@@ -44,10 +47,13 @@ BLK19 ;
  S ABMBLK19=ABMBLK19_" "_$S($P(ABM("B9"),U,15)="Y":"HOSPICE EMP. PROV",1:"")
  S ABMBLK19=ABMBLK19_" "_$P(ABM("B10"),U,1)
  S $P(ABMF(29),U)=$E(ABMBLK19,1,48)
+ I (ABMP("ITYPE")="V")&($P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)'="") S $P(ABMF(29),U)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)  ;abm*2.6*11 VMBP
  K ABMBLK19
 LAB I '$P(ABM("B8"),U) S $P(ABMF(29),U,3)="X"
  E  S $P(ABMF(29),U,2)="X",$P(ABMF(29),U,4)=$P(ABM("B8"),U)
- I $P(ABM("B7"),U,4)="Y" S ABMF("23")="SIGNATURE ON FILE"_U_DT
+ ;I $P(ABM("B7"),U,4)="Y" S ABMF("23")="SIGNATURE ON FILE"_U_DT  ;abm*2.6*10 HEAT78335
+ ;I $P(ABM("B7"),U,4)="Y" S ABMF("23")="SIGNATURE ON FILE"_U_$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,12)  ;abm*2.6*10 HEAT78335  ;abm*2.6*11 IHS/SD/AML 3/31/2011 HEAT30524- ALLOW ROI DATE TO PRINT
+ I $P(ABM("B7"),U,4)="Y" S ABMF("23")="SIGNATURE ON FILE"_U_$P(ABM("B7"),U,11)  ;abm*2.6*11 IHS/SD/AML 3/31/2011 HEAT30524- ALLOW ROI DATE TO PRINT
  I $P(ABM("B7"),U,5)="Y" S $P(ABMF("23"),U,3)="SIGNATURE ON FILE"
  ;
  I $P(ABMP("B0"),U,7)'=111,($P(ABMP("B0"),U,7)'=999),($P(ABMP("B0"),U,7)'=141) G XIT

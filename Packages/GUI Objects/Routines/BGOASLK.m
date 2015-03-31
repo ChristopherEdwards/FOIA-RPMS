@@ -1,11 +1,13 @@
-BGOASLK ; IHS/MSC/MGH - ASTHMA FILE ;27-Jan-2012 08:49;DU
- ;;1.1;BGO COMPONENTS;**6,10**;Mar 20, 2007;Build 2
+BGOASLK ; IHS/MSC/MGH - ASTHMA FILE ;02-Apr-2013 10:27;DU
+ ;;1.1;BGO COMPONENTS;**6,10,12**;Mar 20, 2007;Build 5
  ;---------------------------------------------------------------
 CHECK(CODE) ;EP see if the icd code entered is an asthma code
  N X,TAX,LOW,HIGH,ICD,NODE
  S X=0
  I DUZ("AG")'="I" Q X
- S CODE=$$ICDDX^ICDCODE(CODE)
+ ;IHS/MSC/MGH Patch 12
+ I $$AICD^BGOUTL2 S CODE=$$ICDDX^ICDEX(CODE,$$NOW^XLFDT)
+ E  S CODE=$$ICDDX^ICDCODE(CODE)
  S CODE=$P(CODE,U,2)
  S TAX="" S TAX=$O(^ATXAX("B","BGP ASTHMA DXS",TAX))
  Q:TAX=""

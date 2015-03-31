@@ -1,5 +1,5 @@
 GMRCP ;SLC/DLT,DCM - Message audit and status process ;4/19/01  11:52
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,17,22,27**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,17,22,27,53,55**;DEC 27, 1997;Build 4
  ;Processing action on Generic Requests/Consults from OE/RR
 MSG(GMRCDFN,GMRCALRM,GMRCIFN,ORN,GMRCADUZ,FLG) ;send alert notification information to OERR for notification or update
  ;GMRCDFN=patient's DFN           GMRCORFN=OR file # ^OR(100,GMRCORFN
@@ -18,6 +18,7 @@ MSG(GMRCDFN,GMRCALRM,GMRCIFN,ORN,GMRCADUZ,FLG) ;send alert notification informat
  . S GMRCADUZ(+$P(^GMR(123,+GMRCIFN,0),U,14))=""
  I FLG,$P(^GMR(123,+GMRCIFN,0),"^",11) S GMRCADUZ($P(^(0),"^",11))=""
  S:'$D(GMRCADUZ) GMRCADUZ=""
+ N X S X="" F  S X=$O(GMRCADUZ(X)) Q:((X="")!(X=DUZ))  I +X=DUZ K GMRCADUZ(X) ;Don't send alert to user generating alert
  D EN^ORB3(ORN,GMRCDFN,GMRCORFN,.GMRCADUZ,GMRCALRM,GMRCIFN)
  Q
 AUDIT ;Build processing activity audit trail multiple.
@@ -42,7 +43,7 @@ AUDIT1 ;entry when the DA is not incremented (INCOMPLETE RPT writeovers)
  . S DR=".01///^S X=GMRCDT;1////^S X=GMRCA;2////^S X=GMRCAD;3////^S X=GMRCORNP;4////^S X=DUZ;6////^S X=GMRCFF;7////^S X=GMRCPA;9////^S X=GMRCRSLT;8///^S X=GMRCDEV"
  ;Added result to the DR string
  D ^DIE
- ;Enter comment
+COMMENT ;Enter comment
  I +$G(GMRCOM) S GMRCOM(0)=DA D
  . W !,"Enter COMMENT..."
  . N DIC,DWPK,DWLW,DIWESUB
@@ -51,6 +52,23 @@ AUDIT1 ;entry when the DA is not incremented (INCOMPLETE RPT writeovers)
  . I $P($G(^GMR(123.1,+$P(^GMR(123,+GMRCO,40,DA,0),U,2),0)),U)="ADDED COMMENT",'$O(^GMR(123,+GMRCO,40,DA,0)) D  Q
  .. S DA(1)=+GMRCO,DIK="^GMR(123,"_DA(1)_",40," D ^DIK K DIK
  .. Q
+ . I $P($G(^GMR(123.1,+$P(^GMR(123,+GMRCO,40,DA,0),U,2),0)),U)="COMPLETE/UPDATE",$P($G(^GMR(123,+GMRCO,40,DA,0)),U,9)="" D
+ .. N GMRCMT,GMRCMT1
+ .. S (GMRCMT,GMRCMT1)=0
+ .. F  S GMRCMT=$O(^GMR(123,+GMRCO,40,DA,1,GMRCMT)) Q:GMRCMT=""  D  Q:GMRCMT1=1
+ ... I $TR($G(^GMR(123,+GMRCO,40,DA,1,GMRCMT,0))," ","")'="" S GMRCMT1=1
+ .. I 'GMRCMT1 D  G:'GMRCQUIT COMMENT Q
+ ... S GMRCQUIT=0
+ ... W !!,"A comment is required to complete this request!",!
+ ... D WP^DIE(123.02,DA_","_+GMRCO_",",5,,"@")
+ ... K DIR
+ ... S DIR("A")="Type 'Q' to quit or 'C' to continue entering a comment:"
+ ... S DIR("B")="C"
+ ... S DIR(0)="S^C:CONTINUE;Q:QUIT"
+ ... S DIR("?")="Type 'Q' if you would like to abort completion of this Consult/Procedure."
+ ... S DIR("?",1)="Type 'C' or press <RETURN> to re-enter your comments."
+ ... D ^DIR K DIR I Y'="C" S GMRCQUIT=1,DA(1)=+GMRCO,DIK="^GMR(123,"_DA(1)_",40," D ^DIK K DIK
+ . I '$G(DA) S DA=D0
  . I $D(^GMR(123,+GMRCO,40,DA,0)),$O(^GMR(123,+GMRCO,40,DA,0)) S $P(GMRCOM,"^",2)=1
  . Q
  L -^GMR(123,+GMRCO,40)

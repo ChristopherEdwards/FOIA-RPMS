@@ -1,5 +1,5 @@
-RAUTL8 ;HISC/CAH-Utility routines ;05/19/09  12:02
- ;;5.0;Radiology/Nuclear Medicine;**45,72,99,90**;Mar 16, 1998;Build 20
+RAUTL8 ;HISC/CAH-Utility routines ; 17 Aug 2011  10:00 AM
+ ;;5.0;Radiology/Nuclear Medicine;**45,72,99,90,1003**;Nov 01, 2010;Build 3
  ;
  ;Called by File 70, Exam subfile, Procedure Fld 2 Input transform
  ;RA*5*45: modified -  logic in PRC1, ASK, ASK1, & MES1 subroutines
@@ -276,6 +276,12 @@ ASKPREG() ;RA*5.0*99 - Evaluate the conditions to present the PREGNANCY
  S RAGE=$$PTAGE^RAUTL8(RADFN,""),Y=$G(RA0(17))_","
  D:+Y GETS^DIQ(74,Y,5,"I","RAST","RAERR")
  S RAST=$G(RAST(74,Y,5,"I"),"")
+ ;
+ ;IHS/BJI/DAY - Patch 1003 - Allow Pregnancy Edit of Verified Reports
+ ;Controlled by a site parameter
+ I +$G(RAMDIV),$P($G(^RA(79,+RAMDIV,9999999)),U,3)=1,$$PTSEX^RAUTL8(RADFN)'="F"!((RAGE>55)!(RAGE<12))!(RAST="EF") S RAY="@8001" Q RAY
+ ;End patch
+ ;
  I $$PTSEX^RAUTL8(RADFN)'="F"!((RAGE>55)!(RAGE<12))!(RAST="V")!(RAST="EF") S RAY="@8001"
  Q RAY
  ;

@@ -1,4 +1,4 @@
-BEHORXFM ;IHS/MSC/PLS - Med Component print layout support;13-Oct-2011 16:53;PLS
+BEHORXFM ;IHS/MSC/PLS - Med Component print layout support;20-Dec-2012 12:54;DU
  ;;1.1;BEH COMPONENTS;**009007**;Mar 20, 2007;Build 1
  ;=================================================================
  ; Return list of templates
@@ -91,7 +91,7 @@ TMPGBL() N GBL
  Q GBL
  ; Return selectable instance types
 INSTTYP() ;
- Q "PC:RX CII;PN:RX NON-CII;OC:ORDER CII;ON:ORDER NON-CII;RC:RECEIPT CII;RN:RECEIPT NON-CII;LC:LABEL CII;LN:LABEL NON-CII"
+ Q "PC:RX CII;PN:RX NON;PF:RX C35;OC:ORDER CII;ON:ORDER NON;OF:ORDER C35;RC:RECEIPT CII;RN:RECEIPT NON-CII;LC:LABEL CII;LN:LABEL NON-CII"
  ; Screen logic for value field of BEHORX PRINT FORMATS parameter
 SCRNPF(INST) ;EP-
  Q $P(^(0),U,2)=INST&('$P(^(0),U,4))&($P(^(0),U,3))&($P(^(0),U,3)'>DT)

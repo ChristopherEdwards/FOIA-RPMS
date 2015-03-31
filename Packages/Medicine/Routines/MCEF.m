@@ -1,5 +1,6 @@
 MCEF ;WISC/MLH-FILEMAN ENTER/EDIT OF MED PROCS ;4/7/97  11:15
- ;;2.3;Medicine;**8,15**;09/13/1996
+ ;;2.3;Medicine;**8,15,42**;09/13/1996;Build 1
+ ; Reference DBIA #10061[Supported] call to VADPT
 ENTED ;(MCARGNAM,FULBRIEF);enter/edit entry point
  K DIC
  D MCEPROC^MCARE
@@ -50,11 +51,14 @@ EDIT3 ;
  Q:$D(DUOUT)  ;MC*2.3*8
  D ESRC^MCESSCR(MCFILE,MCARGDA)  ;MC*2.3*8
  Q
-BACK    ;Set Y to the new record and allow the user to edit the new record
+BACK ;Set Y to the new record and allow the user to edit the new record
  S Y=MCY,Y(0)=MCY(0),Y(0,0)=MCY(0,0),MCARGDA=+Y K MCY,DIROUT,DUOUT,DTOUT,EXIT
  Q
 MCSEX(DFN) ;
  N MCSEX,VADM
+ ; Due to Patient data merge the DIC error out referencing file 690
+ ; Uncomment next line if patching MCEF.
+ S:DIC="^MCAR(690," DIC="^MCAR(700,"
  I '$D(DFN) S DFN=$P(@(DIC_DA_",0)"),U,2)
  D DEM^VADPT
  S MCSEX=$P(VADM(5),U,1)

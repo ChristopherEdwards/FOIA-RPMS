@@ -1,12 +1,8 @@
 BDMGUA ; cmi/anch/maw - BDM DMS GUI Utilities ; 11 Feb 2010  7:45 AM
- ;;2.0;BDM DIABETES MANAGEMENT SYSTEM;**1,3,5,6**;JUN 14, 2007;Build 6
+ ;;2.0;BDM DIABETES MANAGEMENT SYSTEM;**1,3,5,6,7**;JUN 14, 2007;Build 24
  ;
  ;
  ;
- ;cmi/anch/maw 1/23/2005 added in PATCHT a quit if mult chts with same #
- ;cmi/anch/maw 2/1/2006 changed visit retrieval to ADO.NET
- ;cmi/anch/maw 3/22/2006 changed weight, bp, labs, to sort earliest to latest
- ;cmi/anch/maw 3/23/2006 changed patient lookup to not look at other names
  ;
 DEBUG(BDMRET,BDMSTR) ;-- debug
  D DEBUG^%Serenji("TAXCHK^BDMGUA(.BDMRET,.BDMSTR)")
@@ -122,6 +118,10 @@ UPDTAX(BDMRET,BDMSTR) ;update taxonomies based on option selected
  . D INIT^BDMPATS
  I BDMOPT="Upd DM Audit 13" D
  . D INIT^BDMDATS
+ I BDMOPT="Upd DM Audit P 14" D
+ . D INIT^BDMPBTS
+ I BDMOPT="Upd DM Audit 14" D
+ . D INIT^BDMDBTS
  N BDMDA,BDMT
  S BDMDA=0 F  S BDMDA=$O(BDMTAX("IDX",BDMDA)) Q:'BDMDA  D
  . N BDMN,BDMFL,BDMRO,BDMFLT,BDMPAN

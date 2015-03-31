@@ -1,5 +1,5 @@
 ABMUCUTL ; IHS/SD/SDR - 3PB/UFMS Cashiering Utilities   
- ;;2.6;IHS Third Party Billing;**1,3,4,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,3,4,6,8,10,11**;NOV 12, 2009;Build 133
  ; New routine - v2.5 p12 SDD item 4.9.1
  ; Cashiering Utilities
  ;
@@ -151,7 +151,8 @@ ADDBENTR(ABMGRP,ABMBIEN) ;EP - Add claim/bill to session log
  ;E  S ABMITYP=$P($G(^AUTNINS($P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8),2)),U)
  E  D
  .S ABMITYP=""
- .S:$P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8) ABMITYP=$P($G(^AUTNINS($P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8),2)),U)
+ .;S:$P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8) ABMITYP=$P($G(^AUTNINS($P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8),2)),U)  ;abm*2.6*10 HEAT73780
+ .S:$P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8) ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,$P($G(^ABMDCLM(DUZ(2),ABMBIEN,0)),U,8),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
  .I ABMITYP="" S ABMITYP=$S($P($G(^AUPNPAT($P(^ABMDCLM(DUZ(2),ABMBIEN,0),U),11)),U,12)="I":"N",1:"I")
  I ABMITYP="I" D
  .K DIC,DIE,X,Y,DA
@@ -236,7 +237,8 @@ BDISPLAY(ABMXMIT) ;EP - view batch info
  ...S ABMBACNT=+$P($G(ABMO(ABMSESSN,ABMUSER,ABMBAU)),U)
  ...S ABMBATOT=+$P($G(ABMO(ABMSESSN,ABMUSER,ABMBAU)),U,2)
  ...W !
- ...W ?5,$P($T(@ABMBAU^ABMUCASH),";;",2)
+ ...;W ?5,$P($T(@ABMBAU^ABMUCASH),";;",2)  ;abm*2.6*11 insurer type
+ ...W ?5,$$INSTYP^ABMUCASH(ABMBAU)  ;abm*2.6*11 insurer type
  ...W ?32,ABMBACNT,$S(ABMBACNT=1:" bill",1:" bills")
  ...W ?45,$$FMT^ABMERUTL($J(ABMBATOT,".",2),"10R")
  W !!,"TOTAL BILLS FOR THIS SESSION: ",?32,$P($G(ABMO("TOTAL")),U),$S($P($G(ABMO("TOTAL")),U)=1:"  BILL",1:" BILLS"),?45,$$FMT^ABMERUTL($J($P($G(ABMO("TOTAL")),U,2),".",2),"10R")
@@ -325,7 +327,8 @@ GETBILL(ABMPREC) ;EP - get bill info from appropriate 3P Bill file
  S ABMSASUF=$$ASUFAC($S(+$G(ABMUAOF)'=0:ABMUAOF,1:ABMP("LDFN")),ABMPDOS)
  S ABMPBNUM=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U)  ;Bill Number
  S ABMP("BAMT")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),2)),U)  ;bill amount
- S ABMP("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)
+ ;S ABMP("ITYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U)  ;abm*2.6*10 HEAT73780
+ S ABMP("ITYP")=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
  S ABMCLN=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,10)
  S ABMP("VTYP")=$P($G(^ABMDVTYP($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,7),0)),U)  ;abm*2.6*1 visit type description FIXPMS10011
  S ABMP("DOS")=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U)  ;DOS abm*2.6*1 FIXPMS10011

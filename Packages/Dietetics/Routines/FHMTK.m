@@ -1,5 +1,5 @@
 FHMTK ; HISC/REL/NCA - Enter/Edit Diet Patterns ;12/6/00  15:15
- ;;5.0;Dietetics;**27,30**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  ;last edited NOV 27,2000
  S FLG=0 K ^TMP($J)
 F0 K DI S N1=0,ANS=""

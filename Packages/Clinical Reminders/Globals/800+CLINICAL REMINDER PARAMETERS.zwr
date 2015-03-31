@@ -12,6 +12,7 @@ ZWR
 ^PXRM(800,1,"DISC1",4,0)="utilization of these for your individual patient must be based on clinical"
 ^PXRM(800,1,"DISC1",5,0)="judgment and the patient's current status."
 ^PXRM(800,1,"FULL SSN")="Y"
+^PXRM(800,1,"MIERR")="200"
 ^PXRM(800,1,"MST")="3020226.13583^0^^^3020226.13583"
 ^PXRM(800,1,"TRUNCATE EMPLOYEE SSN")="Y"
 ^PXRM(800,1,"VERSION")="1.5"

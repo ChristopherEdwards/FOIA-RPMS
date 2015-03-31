@@ -1,5 +1,5 @@
 LEXERI ; ISL Exc/Rep Word Input Transformations   ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  Q
  ;
 EXC ; Input transformation for ^LEX(757.04, - .01

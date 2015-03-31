@@ -1,5 +1,5 @@
 FHORR ; HISC/NCA/JH - Diet Order Utilities For OE/RR Interface ;10/10/00  14:54
- ;;5.0;Dietetics;**6,16,28**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 OE ; File OE/RR Diet Order For Re-instated Diet Order
  Q:$P(FHNO1,"^",7)="X"!($P(FHNO1,"^",7)="P")
  S FHO=$P(FHNO1,"^",2,6),VAL="" D VAL^FHWORP(FHO,.VAL) Q:VAL=""
@@ -8,7 +8,7 @@ OE ; File OE/RR Diet Order For Re-instated Diet Order
  I $P(FHNO1,"^",7)="N" D NPO D:$D(MSG) MSG^XQOR("FH EVSEND OR",.MSG) K MSG S FHORD=FHDIE K FHDIE G SAV
  I $P(FHNO1,"^",7)="" D DO D:$D(MSG) MSG^XQOR("FH EVSEND OR",.MSG) K MSG
  S FHORD=FHDIE K FHDIE
-SAV S:FHDU $P(^FHPT(DFN,"A",ADM,"DI",FHORD1,0),"^",15)=FHDU Q
+SAV S:FHDU $P(^FHPT(FHDFN,"A",ADM,"DI",FHORD1,0),"^",15)=FHDU Q
 DO ; Code Re-instated Diet Orders
  K MSG S FILL=$G(FHNEW)
  S SDT=D2,DATE1="" D SET
@@ -39,7 +39,7 @@ SET ; Set Date/Time in HL7 format
  S:DATR DATE1=$$FMTHL7^XLFDT(DATR) S:'DATE1 DATE1="" K DATR
  Q
 ORD ; Get next order # for re-instate diet order
- L +^FHPT(DFN,"A",ADM,"DI",0)
- I '$D(^FHPT(DFN,"A",ADM,"DI",0)) S ^FHPT(DFN,"A",ADM,"DI",0)="^115.02A^^"
- S X=^FHPT(DFN,"A",ADM,"DI",0),FHORD1=$P(X,"^",3)+1,^(0)=$P(X,"^",1,2)_"^"_FHORD1_"^"_($P(X,"^",4)+1)
- L -^FHPT(DFN,"A",ADM,"DI",0) Q:'$D(^FHPT(DFN,"A",ADM,"DI",FHORD1))  G ORD
+ L +^FHPT(FHDFN,"A",ADM,"DI",0)
+ I '$D(^FHPT(FHDFN,"A",ADM,"DI",0)) S ^FHPT(FHDFN,"A",ADM,"DI",0)="^115.02A^^"
+ S X=^FHPT(FHDFN,"A",ADM,"DI",0),FHORD1=$P(X,"^",3)+1,^(0)=$P(X,"^",1,2)_"^"_FHORD1_"^"_($P(X,"^",4)+1)
+ L -^FHPT(FHDFN,"A",ADM,"DI",0) Q:'$D(^FHPT(FHDFN,"A",ADM,"DI",FHORD1))  G ORD

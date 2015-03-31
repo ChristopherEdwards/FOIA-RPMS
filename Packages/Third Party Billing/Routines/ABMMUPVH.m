@@ -1,5 +1,5 @@
 ABMMUPVH ;IHS/SD/SDR - MU Patient Volume Hospital Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**7**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**7,10,11**;NOV 12, 2009;Build 133
  ;
 EN ;
  I $P($G(^ABMMUPRM(1,0)),U,2)="" D  Q
@@ -20,6 +20,12 @@ EN ;
  W !,"the current year, select next year as the participation year.",!
  ;
  D PARTYR^ABMMUPVP Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)  ;participation year
+ ;start new code abm*2.6*11 MU4
+ I (ABMY("PYR")>2012) D  Q
+ .W !!?5,"**NOTE** For CY 2013+, you should use report options within menu "
+ .W !?15,"MUS2 PARTICIPATION CY 2013+ PATIENT VOLUME REPORTS"
+ .W ! S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
+ ;end new code MU4
  D 90DAY^ABMMUPVP Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)  ;select 90-day window
  D RFORMAT^ABMMUPVP Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)  ;summary/abbrev. sum/patient list
  D SUMMARY^ABMMUPVP Q:$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)  ;summary of selections
@@ -163,7 +169,8 @@ BILLS ;EP
  .......S ^XTMP("ABM-PVH",$J,"VISITS",ABMVDFN)=1
  ......S ^XTMP("ABM-PVH",$J,"LOC ENC CNT",ABMY("SDT"),ABMVLOC,ABMGRP)=+$G(^XTMP("ABM-PVH",$J,"LOC ENC CNT",ABMY("SDT"),ABMVLOC,ABMGRP))+1
  ......S ^XTMP("ABM-PVH",$J,"LOC ENC CNT",ABMY("SDT"),ABMGRP)=+$G(^XTMP("ABM-PVH",$J,"LOC ENC CNT",ABMY("SDT"),ABMGRP))+1
- ......I ABMCNT#1000 U IO(0) W "."
+ ......;I ABMCNT#1000 U IO(0) W "."  ;abm*2.6*11 HEAT94295
+ ......I (ABMCNT#1000&(IOST["C")) U IO(0) W "."  ;abm*2.6*11 HEAT94295
  ......S ABMCNT=+$G(ABMCNT)+1
  ......D PTDATA
  .....S DUZ(2)=ABMHOLD
@@ -190,7 +197,8 @@ PTDATA ;EP
  S:$G(ABMITYP)="" ABMITYP="X"
  S:$G(ABMTRIEN)="" ABMTRIEN="NOT PAID"
  S ABMREC=ABMVDFN_U_ABMPT_U_$P(ABMTRIEN,".")_U_$S(ABMITYP="D"!((ABMITYP="K")&$D(^ABMMUPRM(1,1,"B",ABMVLOC))):"*",1:"")
- S ^XTMP("ABM-PVH",$J,"PT LST",ABMY("SDT"),ABMVLOC,ABMITYP,ABMINSO,$P(ABMPNM,","),$P(ABMPNM,",",2),$P($G(^AUPNVSIT(ABMVDFN,0)),U))=ABMREC
+ ;S ^XTMP("ABM-PVH",$J,"PT LST",ABMY("SDT"),ABMVLOC,ABMITYP,ABMINSO,$P(ABMPNM,","),$P(ABMPNM,",",2),$P($G(^AUPNVSIT(ABMVDFN,0)),U))=ABMREC  ;abm*2.6*11 HEAT94295
+ S ^XTMP("ABM-PVH",$J,"PT LST",ABMY("SDT"),ABMVLOC,ABMITYP,ABMINSO,$P(ABMPNM,","),$P(ABMPNM,",",2),$P($G(^AUPNVSIT(ABMVDFN,0)),U),ABMVDFN)=ABMREC  ;abm*2.6*11 HEAT94295
  I ($G(ABMTRIEN)'="NOT PAID"),$D(^XTMP("ABM-PVH",$J,"PT LST",ABMY("SDT"),ABMVLOC,"X","NO BILL",$P(ABMPNM,","),$P(ABMPNM,",",2),$P($G(^AUPNVSIT(ABMVDFN,0)),U))) D
  .K ^XTMP("ABM-PVH",$J,"PT LST",ABMY("SDT"),ABMVLOC,"X","NO BILL",$P(ABMPNM,","),$P(ABMPNM,",",2),$P($G(^AUPNVSIT(ABMVDFN,0)),U))
  Q
@@ -211,7 +219,8 @@ PRINT ;EP
  .S ABMSDT=$P($G(^XTMP("ABM-PVH",$J,"LOC TOP",ABMVLOC)),U,2)
  .I +$G(^XTMP("ABM-PVH",$J,"LOC TOP",ABMVLOC))>9.99 S ABMPMET=1
  .D HDR^ABMMUPV3
- .W !,"Hospital used in this report: ",$$GET1^DIQ(9999999.06,ABMVLOC,.01,"E"),$S($D(^ABMMUPRM(1,1,"B",ABMVLOC)):" (FQHC/RHC)",1:""),!
+ .;W !,"Hospital used in this report: ",$$GET1^DIQ(9999999.06,ABMVLOC,.01,"E"),$S($D(^ABMMUPRM(1,1,"B",ABMVLOC)):" (FQHC/RHC)",1:""),!  ;abm*2.6*10 HEAT61752
+ .W !,"Hospital used in this report: ",$$GET1^DIQ(9999999.06,ABMVLOC,.01,"E"),$S($D(^ABMMUPRM(1,1,"B",ABMVLOC)):" (FQHC/RHC/Tribal)",1:""),!  ;abm*2.6*10 HEAT61752
  .S ABMPMET=0
  .I ABMY("RFMT")="P" D PATIENT^ABMMUPH1 Q
  .I +$G(^XTMP("ABM-PVH",$J,"LOC TOP",ABMVLOC))>9.99 D MET^ABMMUPH1 Q

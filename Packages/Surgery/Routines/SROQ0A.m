@@ -1,28 +1,30 @@
-SROQ0A ;BIR/ADM - QUARTERLY REPORT (CONTINUED) ; [ 06/14/01  9:38 AM ]
- ;;3.0; Surgery ;**37,38,62,70,88,103**;24 Jun 93
- ;
+SROQ0A ;BIR/ADM - QUARTERLY REPORT (CONTINUED) ;06/16/04  9:38 AM
+ ;;3.0; Surgery ;**37,38,62,70,88,103,129,142**;24 Jun 93
  ;** NOTICE: This routine is part of an implementation of a nationally
- ;**         controlled procedure.  Local modifications to this routine
+ ;**         controlled procedure. Local modifications to this routine
  ;**         are prohibited.
  ;
  ; Reference to ^DGPM("APTT1" supported by DBIA #565
  ;
  S SRFLAG=1 D NDEX
 SUP ; look at resident supervision
- S SRATT=$P($G(^SRF(SRTN,.1)),"^",16) I SRATT="" D RS
+ S SRATT=$P($G(^SRF(SRTN,.1)),"^",10) I SRATT="" D RS
+ S:'$D(SRATT(SRATT)) (SRATT(SRATT),SRATT("J",SRATT),SRATT("N",SRATT))=0
  S SRATT(SRATT)=SRATT(SRATT)+1,SRMATCH=0,SRMM=$S(SRMM="J":"J",1:"N"),SRATT(SRMM,SRATT)=SRATT(SRMM,SRATT)+1
 IDP ; invasive diagnostic?
  D IDP^SROQIDP I SRIDP S SRINV(SRIOSTAT)=SRINV(SRIOSTAT)+1
  I SRIOSTAT="O",SRPOC D ADM
  Q
 NDEX ; look at procedures performed
- S SROP="",X=$P(^SRF(SRTN,"OP"),"^",2) S:X SROP=$P($$CPT^ICPTCOD(X),"^",2)_";"
- S Y=0 F  S Y=$O(^SRF(SRTN,13,Y)) Q:'Y  I Y S X=$P($G(^SRF(SRTN,13,Y,2)),"^") I X S SROP=SROP_$P($$CPT^ICPTCOD(X),"^",2)_";" I $L(SROP)>239 Q
+ S SROP="",X=$P($G(^SRO(136,SRTN,0)),"^",2) S:X SROP=$P($$CPT^ICPTCOD(X),"^",2)_";"
+ S Y=0 F  S Y=$O(^SRO(136,SRTN,3,Y)) Q:'Y  I Y S X=$P($G(^SRO(136,SRTN,3,Y,0)),"^") I X S SROP=SROP_$P($$CPT^ICPTCOD(X),"^",2)_";" I $L(SROP)>239 Q
 CHECK Q:SROP=""  F J=1:1:12 S SRMATCH=0,SRCODES=$P($T(PROC+J),";;",3) F K=1:1 Q:SRMATCH  S SRCPT=$P(SRCODES,",",K) Q:'SRCPT  I SROP[SRCPT S SRMATCH=1 D:SRFLAG ADD D:'SRFLAG IXDTH Q
  Q
 RS ; surgical residents used?
- N SRK,SRDIV,SRSITE S SRK=0,SRDIV=$P($G(^SRF(SRTN,8)),"^") I SRDIV S SRSITE=$O(^SRO(133,"B",SRDIV,0)),Y=$P(^SRO(133,SRSITE,0),"^",19) I Y=0 S SRATT=0 Q
- S SRATT=4
+ N SRK,SRDIV,SRSITE S SRK=0,SRDIV=$P($G(^SRF(SRTN,8)),"^") I SRDIV S SRSITE=$O(^SRO(133,"B",SRDIV,0)),Y=$P(^SRO(133,SRSITE,0),"^",19) I Y=0 D  Q
+ .I $P(^SRF(SRTN,0),"^",9)<3040401 S SRATT=1 Q
+ .S SRATT=9 Q
+ S SRATT=99
  Q
 ADM ; check for admission within 14 days of surgery
  S (SRSDATE,X1)=$P($G(^SRF(SRTN,.2)),"^",12),X2=14 D C^%DTC S SR14=X
@@ -47,8 +49,8 @@ TMP ; store index procedure names in ^TMP
  F J=1:1:12 S ^TMP("SRIP",$J,J)=$P($T(PROC+J),";;",2)
  Q
 DRPT ; from report of deaths within 30 days
- S SROP="",X=$P(^SRF(SRTN,"OP"),"^",2) S:X SROP=$P($$CPT^ICPTCOD(X),"^",2)_";"
- S Y=0 F  S Y=$O(^SRF(SRTN,13,Y)) Q:'Y  I Y S X=$P($G(^SRF(SRTN,13,Y,2)),"^") I X S SROP=SROP_$P($$CPT^ICPTCOD(X),"^",2)_";" I $L(SROP)>239 Q
+ S SROP="",X=$P($G(^SRO(136,SRTN,0)),"^",2) S:X SROP=$P($$CPT^ICPTCOD(X),"^",2)_";"
+ S Y=0 F  S Y=$O(^SRO(136,SRTN,3,Y)) Q:'Y  I Y S X=$P($G(^SRO(136,SRTN,3,Y,0)),"^") I X S SROP=SROP_$P($$CPT^ICPTCOD(X),"^",2)_";" I $L(SROP)>239 Q
 CK1 Q:SROP=""  F J=1:1:12 S SRMATCH=0,SRCODES=$P($T(PROC+J),";;",3) F K=1:1 Q:SRMATCH  S SRCPT=$P(SRCODES,",",K) Q:'SRCPT  I SROP[SRCPT D  Q
  .S SRMATCH=1,^TMP("SRDEATH",$J,DFN)=J,^TMP("SRNAT",$J,DFN,J)=SRTN
  .S:SRREL="R" ^TMP("SRREL",$J,DFN,(9999999-SRSD),SRTN)=J

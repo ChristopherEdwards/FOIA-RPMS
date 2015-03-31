@@ -1,5 +1,5 @@
-PSUDEM7 ;BIR/DAM - Inpatient PTF Record Extract ; 20 DEC 2001
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19,21**;Oct 15, 1998
+PSUDEM7 ;BIR/DAM - Inpatient PTF Record Extract ;20 DEC 2001
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ;DBIA's
  ; Reference to file 2    supported by DBIA 10035
@@ -41,6 +41,7 @@ DAT ;Find discharge dates that fall within the extract date range
  Q
  ;
 SSNICN ;Find patient Admission date, SSN and ICN for inpatient record
+ ;VMP - OIFO BAY PINES;ELR;PSU*3.0*24
  ;
  N PSUPT,PSUICN,PSUICN1
  S PSUPT=$P($G(^DGPT(PSUIEN,0)),U)     ;Pointer to patient file
@@ -50,8 +51,8 @@ SSNICN ;Find patient Admission date, SSN and ICN for inpatient record
  .S PSUREC=$P($G(^DPT(PSUPT,0)),U,9) D REC D
  ..S $P(^XTMP("PSU_"_PSUJOB,"PSUIPV",PSUIEN),U,6)=PSUREC     ;Pt SSN
  .S PSUICN=$$GETICN^MPIF001(PSUPT) D
- ..I PSUICN'[-1 S PSUICN1=$TR(PSUICN,"V","^") D
- ...S $P(^XTMP("PSU_"_PSUJOB,"PSUIPV",PSUIEN),U,7)=$P(PSUICN1,U,1)   ;ICN
+ ..I PSUICN'[-1 D
+ ...S $P(^XTMP("PSU_"_PSUJOB,"PSUIPV",PSUIEN),U,7)=PSUICN   ;ICN
  Q
  ;
 REC ;If "^" is contained in any record, replace it with (')

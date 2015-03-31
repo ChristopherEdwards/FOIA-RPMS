@@ -1,16 +1,14 @@
 BIPATUP2 ;IHS/CMI/MWR - UPDATE PATIENT DATA 2; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**4**;DEC 01,2012
+ ;;8.5;IMMUNIZATION;**7**;JAN 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  IHS FORECAST. UPDATE PATIENT DATA, IMM FORECAST IN ^BIPDUE(.
- ;;  PATCH 1, v8.4: Change Flu forecast dates to match Immserve dates:
- ;;                 begin 8/15 and end 3/14.   IHSFLU+24
- ;;  PATCH 2: Forecast cvx 141 instead of CVX 15.  IHSFLU+81
- ;;  PATCH 2: Adjust earliest day that a flu will count for this Flu season. IHSFLU+68
- ;
  ;;  PATCH 1, v8.5: Correct Flu forecast for new year of current season. IHSFLU+86
  ;;  PATCH 2, v8.5: Do not forecast Flu after 3/31 and before 8/01.  IHSFLU+69
  ;;  PATCH 2, v8.5: End of Flu season changed per request to 3/31.  IHSFLU+105
  ;;  PATCH 4, v8.5: Count Flu doses given up to 6/30/12 as last season.  IHSFLU+89
+ ;;  PATCH 6: Generalize for year, count Flu doses given up to 7/31 as last season.
+ ;;                                                IHSFLU+64, IHSFLU+98, IHSFLU+114
+ ;;  PATCH 7: Adjust Flu forecasting for 2014.  IHSFLU+104, IHSFLU+125
  ;
 IMMSERR(BIFORC) ; EP
  ;---> Collect any Error Codes for any individual Vaccine Groups
@@ -21,11 +19,9 @@ IMMSERR(BIFORC) ; EP
  ;---> Parameters:
  ;     1 - BIFORC (req) Forecast string coming back from ImmServe.
  ;
- ;N BIVX S BIVX="HEPB^DTP^TD_B^HIB^POLIO^MMR^HEPA^VAR^ROTA^PNEUMO^FLU^MENING^HPV"
  N BIVX S BIVX="HEPB^DTP^TD_B^HIB^POLIO^MMR^HEPA^VAR^ROTA^PNEUMO^FLU^MENING^HPV^H1N1"
  ;
  ;---> Next line: logic to associate correct Vaccine Group with error.
- ;F I=25:2:47 D    ;ImmString2005.1(v8.1)
  ;F I=25:2:49 D    ;ImmString2007.1(v8.2)
  F I=25:2:51 D    ;ImmString2010.1(v8.4)
  .N M,N,X S X=$P(BIFORC,U,I)
@@ -113,8 +109,13 @@ IHSFLU(BIDFN,BIFLU,BIFFLU,BIRISKI,BINF,BIFDT,BIAGE,BIIMMFL,BIDUZ2) ;EP
  ;
  N BIBEGS D
  .;---> Set earliest day that a flu will count for this Flu season.
- .I BIMDAY<401 S BIBEGS=($E(BIFDT,1,3)-1)_"0801" Q
- .S BIBEGS=$E(BIFDT,1,3)_"0801"
+ .;
+ .;********** PATCH 6, v8.5, OCT 15,2013, IHS/CMI/MWR	
+ .;---> Back up the start of the Flu season to 07/01 per Ros Singleton.
+ .;I BIMDAY<401 S BIBEGS=($E(BIFDT,1,3)-1)_"0801" Q
+ .;S BIBEGS=$E(BIFDT,1,3)_"0801"
+ .I BIMDAY<401 S BIBEGS=($E(BIFDT,1,3)-1)_"0701" Q
+ .S BIBEGS=$E(BIFDT,1,3)_"0701"
  ;
  ;---> If patient's last flu shot was this season AND they are 9 yrs old or
  ;---> or older, quit.
@@ -142,34 +143,42 @@ IHSFLU(BIDFN,BIFLU,BIFFLU,BIRISKI,BINF,BIFDT,BIAGE,BIIMMFL,BIDUZ2) ;EP
  ;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
  ;---> Count Flu doses given up to 6/30/12 as last season.
  ;F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>3120331)  S M=M+1
- F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>3120630)  S M=M+1
- ;**********
  ;
+ ;********** PATCH 6, v8.5, OCT 15,2013, IHS/CMI/MWR	
+ ;---> Generalize for year and count Flu doses given up to 6/30 as last season.
+ S M=0,N=3100630
+ ;F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>3120630)  S M=M+1
+ ;
+ ;********** PATCH 7, v8.5, JAN 15,2014, IHS/CMI/MWR	
+ ;---> Adjust the YEAR of Last Season based on Forecast Month (after DEC, last
+ ;---> season is also last year: BIYEAR-1).
+ ;F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>(BIYEAR_"0630"))  S M=M+1
+ N BIYEAR1 S BIYEAR1=BIYEAR I BIMTH<7 S BIYEAR1=BIYEAR1-1
+ F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>(BIYEAR1_"0630"))  S M=M+1	
+ ;**********
  Q:(M>1)
  ;
  ;---> Quit if there was one Flu since 7/1/10 and at least one flu prior to that.
  Q:((M=1)&($O(BIFLUR(0))<3100701))
- ;X ^O
+ ;
  ;
  ;---> Quit if this kid already has 2 or more flu shots EVER (not including
  ;---> the current season) and at least one dose of H1N1.
  S M=0,N=0
- F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>3120331)  S M=M+1
+ ;********** PATCH 6, v8.5, OCT 15,2013, IHS/CMI/MWR
+ ;---> Generalize for year and count Flu doses given up to 6/30 as last season.
+ ;F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>3120331)  S M=M+1
+ ;
+ ;********** PATCH 7, v8.5, JAN 15,2014, IHS/CMI/MWR	
+ ;---> Adjust the YEAR of Last Season based on Forecast Month (same as above).
+ ;F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>(BIYEAR_"0630"))  S M=M+1
+ N BIYEAR1 S BIYEAR1=BIYEAR I BIMTH<7 S BIYEAR1=BIYEAR1-1
+ F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>(BIYEAR1_"0630"))  S M=M+1	
+ ;**********
+ ;
  Q:((M>1)&($D(BIFLU(125))))
  ;
  ;---> Okay, so this <9 yr old had one flu shot this season 28 days or more ago.
- ;---> Quit if he had a flu shot last season 8/1/10 to 6/30/11.
- ;---> Set Last year/season.
- ;
- ;---> End of Flu season is 3/31.
- ;N BILYEAR S BILYEAR=$S((BIMDAY<401):BIYEAR-2,1:BIYEAR-1)
- ;
- ;---> Set M=number of doses last season.
- ;S M=0,N=BILYEAR_"0731"
- ;F  S N=$O(BIFLUR(N)) Q:'N  Q:(N>((BILYEAR+1)_"0630"))  S M=M+1
- ;---> Quit if this kid had 1 or more doses last season.
- ;Q:M
- ;
  ;---> Kid is <9 yrs, no doses last year, <2 doses this year.
  ;---> Set patient due for FLU-TIV.
  D SETDUE(BIDFN_U_$$HL7TX^BIUTL2(141)_U_U_BIFYEAR_0331)
@@ -184,7 +193,7 @@ DPROBS(BIFORC,BIPDSS,BIID) ;EP
  ;---> Visit IEN's with U.
  ;---> Parameters:
  ;     1 - BIFORC (req) Forecast string coming back from ImmServe.
- ;     2 - BIPDSS (ret) Returned string of Visit IEN's that are Problem Doses.
+ ;     2 - BIPDSS (ret) Returned string of V IMM IEN's that are Problem Doses.
  ;                      according to ImmServe.
  ;     3 - BIID   (ret) Immserve "Number of Input Doses" (Field 109 in 2010).
  ;
@@ -201,7 +210,6 @@ DPROBS(BIFORC,BIPDSS,BIID) ;EP
  F I=1:1:BIID D
  .N J,K,L
  .;---> Set K=string of data--27 ^-fields, which are the ImmServe Output
- .;---> Fields 102-128 (echo of input doses) for this dose. ImmString2005.1(v8.1)
  .;---> Fields 107-133 (echo of input doses) for this dose. ImmString2007.1(v8.2)
  .;---> Fields 111-137 (echo of input doses) for this dose. ImmString2010.1(v8.4)
  .S K=$P(BIFORC,U,BIPC,BIPC+26)

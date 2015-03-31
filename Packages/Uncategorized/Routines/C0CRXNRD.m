@@ -1,7 +1,7 @@
 C0CRXNRD ; WV/SMH - CCR/CCD PROJECT: Routine to Read RxNorm files;11/15/08
- ;;0.1;C0C;nopatch;noreleasedate;Build 5
+ ;;0.1;C0C;nopatch;noreleasedate;Build 6
  W "No entry from top" Q
-IMPORT(PATH)  ;EP-
+IMPORT(PATH) 
  I PATH="" QUIT
  D READSRC(PATH),READCON(PATH),READNDC(PATH)
  QUIT
@@ -38,20 +38,20 @@ READCON(PATH,INCRES) ; Open and read concepts file: RXNCONSO.RRF; EP
  . U IO
  . N LINE R LINE
  . IF $$STATUS^%ZISH QUIT
- . I '(C0CCOUNT#1000) U IO(0) W C0CCOUNT," of ",LINES," read ",! U IO ; update every 1000
+ . I '(C0CCOUNT#1000) U $P W C0CCOUNT," of ",LINES," read ",! U IO ; update every 1000
  . N RXCUI,RXAUI,SAB,TTY,CODE,STR  ; Fileman fields numbers below
- . S RXCUI=$P(LINE,"|",1)  ; .01
- . S RXAUI=$P(LINE,"|",8)  ; 1
- . S SAB=$P(LINE,"|",12)   ; 2
+ . S RXCUI=$P(LINE,"|",1)	; .01
+ . S RXAUI=$P(LINE,"|",8)	; 1
+ . S SAB=$P(LINE,"|",12)	; 2
  . ; If the source is a restricted source, decide what to do based on what's asked.
  . N SRCIEN S SRCIEN=$$FIND1^DIC(176.003,"","QX",SAB,"B") ; SrcIEN in RXNORM SOURCES file
  . N RESTRIC S RESTRIC=$$GET1^DIQ(176.003,SRCIEN,14,"I") ; 14 is restriction field; values 0-4
  . ; If RESTRIC is zero, then it's unrestricted. Everything else is restricted.
  . ; If user didn't ask to include restricted sources, and the source is restricted, then quit
  . I 'INCRES,RESTRIC QUIT
- . S TTY=$P(LINE,"|",13)  ; 3
- . S CODE=$P(LINE,"|",14)  ; 4
- . S STR=$P(LINE,"|",15)  ; 5
+ . S TTY=$P(LINE,"|",13)	; 3
+ . S CODE=$P(LINE,"|",14)	; 4
+ . S STR=$P(LINE,"|",15)	; 5
  . ; Remove embedded "^"
  . S STR=$TR(STR,"^")
  . ; Convert STR into an array of 80 characters on each line
@@ -83,18 +83,18 @@ READNDC(PATH) ; Open and read NDC/RxNorm/VANDF relationship file: RXNSAT.RRF
  . U IO
  . N LINE R LINE
  . IF $$STATUS^%ZISH QUIT
- . I '(C0CCOUNT#1000) U IO(0) W C0CCOUNT," of ",LINES," read ",! U IO ; update every 1000
+ . I '(C0CCOUNT#1000) U $P W C0CCOUNT," of ",LINES," read ",! U IO ; update every 1000
  . IF LINE'["NDC|RXNORM"  QUIT
  . ; Otherwise, we are good to go
  . N RXCUI,NDC ; Fileman fields below
- . S RXCUI=$P(LINE,"|",1)  ; .01
- . S NDC=$P(LINE,"|",11)  ; 2
+ . S RXCUI=$P(LINE,"|",1)	; .01
+ . S NDC=$P(LINE,"|",11)	; 2
  . ; Using classic call to update.
  . N DIC,X,DA,DR
  . K DO
  . S DIC="^C0CRXN(176.002,",DIC(0)="F",X=RXCUI,DIC("DR")="2////"_NDC
  . D FILE^DICN
- . I Y<1 U IO(0) W !,"THERE IS TROUBLE IN RIVER CITY",! G EX2
+ . I Y<1 U $P W !,"THERE IS TROUBLE IN RIVER CITY",! G EX2
 EX2 D CLOSE^%ZISH("FILE")
  QUIT
 READSRC(PATH) ; Open the read RxNorm Sources file: RXNSAB.RRF
@@ -107,7 +107,7 @@ READSRC(PATH) ; Open the read RxNorm Sources file: RXNSAB.RRF
  . U IO
  . N LINE R LINE
  . IF $$STATUS^%ZISH QUIT
- . U IO(0) W I,! U IO  ; Write I to the screen, then go back to reading the file
+ . U $P W I,! U IO  ; Write I to the screen, then go back to reading the file
  . N VCUI,RCUI,VSAB,RSAB,SON,SF,SVER,SRL,SCIT ; Fileman fields numbers below
  . S VCUI=$P(LINE,"|",1)        ; .01
  . S RCUI=$P(LINE,"|",2)        ; 2
@@ -116,7 +116,7 @@ READSRC(PATH) ; Open the read RxNorm Sources file: RXNSAB.RRF
  . S SON=$P(LINE,"|",5)         ; 5
  . S SF=$P(LINE,"|",6)          ; 6
  . S SVER=$P(LINE,"|",7)        ; 7
- . S SRL=$P(LINE,"|",14)        ; 14
+ . S SRL=$P(LINE,"|",14)		; 14
  . S SCIT=$P(LINE,"|",25)       ; 25
  . ; Remove embedded "^"
  . S SCIT=$TR(SCIT,"^")
@@ -135,8 +135,9 @@ READSRC(PATH) ; Open the read RxNorm Sources file: RXNSAB.RRF
  . S RXNFDA(176.003,"+"_I_",",7)=SVER
  . S RXNFDA(176.003,"+"_I_",",14)=SRL
  . D UPDATE^DIE("","RXNFDA")
- . I $D(^TMP("DIERR",$J)) U IO(0) W "ERR" G EX
+ . I $D(^TMP("DIERR",$J)) U $P W "ERR" G EX
  . ; Now, file WP field SCIT
  . D WP^DIE(176.003,I_",",25,,$NA(SCIT))
 EX3 D CLOSE^%ZISH("FILE")
  Q
+ 

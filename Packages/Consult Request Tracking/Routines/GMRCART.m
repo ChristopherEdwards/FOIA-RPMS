@@ -1,5 +1,5 @@
 GMRCART ;SLC/DCM,DLT,JFR - Result display logic ;12/17/01 22:39
- ;;3.0;CONSULT/REQUEST TRACKING;**4,15,17,23,22**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,15,17,23,22,38**;DEC 27, 1997
  ;
  ; This routine invokes IA #2638,#10060
  ;
@@ -36,7 +36,7 @@ GETRSLT(TMPGLOB,GMRCDET) ;load the results into global defined in TMPGLOB
  N GMRCCT,GMRCCTS,SF,TAB
  S TAB="",$P(TAB," ",31)=""
  S GMRCDVL="",$P(GMRCDVL,"-",41)=""
- K @TMPGLOB
+ K @TMPGLOB,^TMP("GMRCR",$J,"CP")
  S GMRCCT=1
  S:'$D(GMRCDET) GMRCDET=0
  I $L($P(^GMR(123,GMRCO,0),"^",19)) S SF=$P(^(0),"^",19),@TMPGLOB@(GMRCCT,0)="Significant Findings: "_$S(SF="Y":"**Yes**",SF="N":"No",1:"Unknown"),GMRCCT=GMRCCT+1

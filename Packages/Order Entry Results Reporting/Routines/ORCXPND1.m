@@ -1,5 +1,5 @@
-ORCXPND1 ; SLC/MKB - Expanded Display cont ; 02/20/2003
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**26,67,75,89,92,94,148,159,188,172**;Dec 17, 1997
+ORCXPND1 ; SLC/MKB - Expanded Display cont ; 04/25/2007
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**26,67,75,89,92,94,148,159,188,172,215,243**;Dec 17, 1997;Build 242
  ;
  ; External References
  ;   DBIA  2387  ^LAB(60
@@ -8,12 +8,11 @@ ORCXPND1 ; SLC/MKB - Expanded Display cont ; 02/20/2003
  ;   DBIA 10037  EN^DGRPD
  ;   DBIA   700  DIS^DGRPDB
  ;   DBIA  2926  RT^GMRCGUIA
- ;   DBIA  2925  DT^GMRCSLM2
- ;   DBIA 10146  DISP^IBCNS
- ;   DBIA  2503  RR^LR7OR1
- ;   DBIA  2951  EN1^LR7OSBR
+ ;   DBIA  2925  DT^GMRCSLM2                     ^TMP("GMRCR"
+ ;   DBIA  2503  RR^LR7OR1                       ^TMP("LRRR"
+ ;   DBIA  2951  EN1^LR7OSBR                     ^TMP("LRC"
  ;   DBIA  2952  EN^LR7OSMZ0
- ;   DBIA  2400  OEL^PSOORRL
+ ;   DBIA  2400  OEL^PSOORRL                     ^TMP("PS"
  ;   DBIA  2877  EN3^RAO7PC3
  ;   DBIA  2877  EN30^RAO7PC3
  ;   DBIA  1252  $$OUTPTPR^SDUTL3
@@ -23,6 +22,7 @@ ORCXPND1 ; SLC/MKB - Expanded Display cont ; 02/20/2003
  ;   DBIA 10061  KVAR^VADPT
  ;   DBIA 10061  OAD^VADPT
  ;   DBIA 10103  $$FMTE^XLFDT
+ ;   DBIA  4408  DISP^DGIBDSP
  ;                       
 COVER ; -- Cover Sheet
  N PKG S PKG=$P($G(^TMP("OR",$J,ORTAB,"IDX",NUM)),U,4)
@@ -39,14 +39,16 @@ PROBLEMS ; -- Problem List
  Q
 MEDS ; -- Pharmacy
  ;N NODE,ORIFN
+ K ^TMP("PS",$J)
  D OEL^PSOORRL(+ORVP,ID) ;S NODE=$G(^TMP("PS",$J,0)),ORIFN=+$P(NODE,U,11)
- S ID=+$P($G(^TMP("PS",$J,0)),U,11) D ORDERS
+ S ID=+$P($G(^TMP("PS",$J,0)),U,11) D ORDERS  ;DBIA 2400
  ;D @($S($P($G(^OR(100,ORIFN,0)),U,11)=$O(^ORD(100.98,"B","IV RX",0)):"IV",1:"DRUG")_"^ORCXPND2")
  K ^TMP("PS",$J)
  Q
 LABS ; -- Laboratory [RESULTS ONLY for ID=OE order #]
  N ORIFN,X,SUB,TEST,NAME,SS,IDE,IVDT,TST,CCNT,ORCY,IG,TCNT
- K ^TMP("LRRR",$J)
+ K ^TMP("LRRR",$J)  ;DBIA 2503
+ I (ID?2.5U1" "2N1" "1.N1"-"7N1"."1.4N)!(ID?2.5U1" "2N1" "1.N1"-"7N) D AP^ORCXPND3 Q  ;ID=Accession #-Date/time specimen taken
  S ORIFN=+ID,IDE=$G(^OR(100,+ID,4)) Q:'$L(IDE)  ; OE# -> Lab#
  I +IDE  D RR^LR7OR1(+ORVP,IDE) I '$D(^TMP("LRRR",$J,+ORVP)) S $P(IDE,";",1,3)=";;" ;Order possibly purged, reset to lookup on file 63
  I '+IDE,$P(IDE,";",5)  D RR^LR7OR1(+ORVP,,9999999-$P(IDE,";",5),9999999-$P(IDE,";",5),$P(IDE,";",4))
@@ -56,13 +58,13 @@ LABS ; -- Laboratory [RESULTS ONLY for ID=OE order #]
  M TEST=^TMP("LRRR",$J,+ORVP) S CCNT=0,SS=""
  F  S SS=$O(TEST(SS)) Q:SS=""  S IVDT=0 F  S IVDT=$O(TEST(SS,IVDT)) Q:'IVDT  D
  . I SS="BB" D
- .. I $L($T(EN^ORWLR1)),$L($T(CPRS^VBECA3B)) D  Q  ;Transition to VBEC's interface
+ .. I $$GET^XPAR("DIV^SYS^PKG","OR VBECS ON",1,"Q"),$L($T(EN^ORWLR1)),$L($T(CPRS^VBECA3B)) D  Q  ;Transition to VBEC's interface
  ... K ^TMP("ORLRC",$J)
  ... D EN^ORWLR1(DFN)
  ... I '$O(^TMP("ORLRC",$J,0)) S ^TMP("ORLRC",$J,1,0)="",^TMP("ORLRC",$J,2,0)="No Blood Bank report available..."
  ... N I S I=0 F  S I=$O(^TMP("ORLRC",$J,I)) Q:I<1  S X=^(I,0),LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)=X
  ... K ^TMP("ORLRC",$J)
- .. K ^TMP("LRC",$J) D EN1^LR7OSBR(+ORVP) Q:'$D(^TMP("LRC",$J))  D  Q
+ .. K ^TMP("LRC",$J) D EN1^LR7OSBR(+ORVP) Q:'$D(^TMP("LRC",$J))  D  Q  ;DBIA 2951
  ... N I S I=0 F  S I=$O(^TMP("LRC",$J,I)) Q:I<1  S X=^(I,0),LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)=X
  ... K ^TMP("LRC",$J)
  . I SS="MI" K ^TMP("LRC",$J) D EN^LR7OSMZ0(+ORVP) Q:'$D(^TMP("LRC",$J))  D  Q
@@ -109,9 +111,9 @@ CONSULTS ; -- Consults
  I ID'>0 S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="No data available." Q
  I '$G(ORESULTS) D  ;DT action
  . S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)="Consult No.:           "_ID
- . N GMRCOER S GMRCOER=2 D DT^GMRCSLM2(ID) S SUB="DT"
+ . N GMRCOER S GMRCOER=2 D DT^GMRCSLM2(ID) S SUB="DT"  ;DBIA 2925
  I $G(ORESULTS) D RT^GMRCGUIA(ID,"^TMP(""GMRCR"",$J,""RT"")") S SUB="RT"
- S I=0 F  S I=$O(^TMP("GMRCR",$J,SUB,I)) Q:I'>0  S X=$G(^(I,0)),LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)=X
+ S I=0 F  S I=$O(^TMP("GMRCR",$J,SUB,I)) Q:I'>0  S X=$G(^(I,0)),LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)=X  ;DBIA 2925
  K ^TMP("GMRCR",$J)
  Q
 XRAYS ; -- Radiology
@@ -153,7 +155,7 @@ DGINQ(DFN) ; Patient Inquiry
  D START^ORWRP(80,"DGINQB^ORCXPND1(DFN)")
  Q
 DGINQB(DFN) ; Build Patient Inquiry
- N ORDOC,ORTEAM,ORVP,XQORNOD,ORSSTRT,ORSSTOP,X,VAOA
+ N CONTACT,ORDOC,ORTEAM,ORVP,XQORNOD,ORSSTRT,ORSSTOPT,VAOA
  S ORVP=DFN_";DPT(",XQORNOD=1
  D EN^DGRPD ; MAS Patient Inquiry
  ;
@@ -164,23 +166,26 @@ DGINQB(DFN) ; Build Patient Inquiry
  . I ORDOC W !,"Primary Practitioner:  ",$P(ORDOC,"^",2)
  . I ORTEAM W !,"Primary Care Team:     ",$P(ORTEAM,"^",2)
  W !!,"Health Insurance Information:"
- D DISP^IBCNS
+ D DISP^DGIBDSP  ;DBIA #4408
  W !!,"Service Connection/Rated Disabilities:"
  D DIS^DGRPDB
- D OAD^VADPT ;   Get NOK Information
- I VAOA(9)]"" D
- . W !!,"Next of Kin Information:"
- . W !,"Name:  ",VAOA(9)                          ;     NOK Name
- . I VAOA(10)]"" W " (",VAOA(10),")"              ;     Relationship
- . I VAOA(1)]"" W !?7,VAOA(1)                     ;     Address Line 1
- . I VAOA(2)]"" W !?7,VAOA(2)                     ;     Line 2
- . I VAOA(3)]"" W !?7,VAOA(3)                     ;     Line 3
- . I VAOA(4)]"" D
- . . W !?7,VAOA(4)                                ;     City
- . . I VAOA(5)]"" W ", "_$P(VAOA(5),"^",2)        ;     State
- . . W "  ",$P(VAOA(11),"^",2)                    ;     Zip+4
- . I VAOA(8)]"" W !!?7,"Phone number:  ",VAOA(8)  ;     Phone
- . I $P($G(^DPT(DFN,.21)),U,11)]"" W !?7,"Work phone number:  ",$P(^DPT(DFN,.21),U,11)
+ F CONTACT="N","S" D
+ .S VAOA("A")=$S(CONTACT="N":"",1:3)
+ .D OAD^VADPT ;   Get NOK Information
+ .I VAOA(9)]"" D
+ .. W !!,$S(CONTACT="N":"Next of Kin Information:",1:"Secondary Next of Kin Information:")
+ .. W !,"Name:  ",VAOA(9)                          ;     NOK Name
+ .. I VAOA(10)]"" W " (",VAOA(10),")"              ;     Relationship
+ .. I VAOA(1)]"" W !?7,VAOA(1)                     ;     Address Line 1
+ .. I VAOA(2)]"" W !?7,VAOA(2)                     ;     Line 2
+ .. I VAOA(3)]"" W !?7,VAOA(3)                     ;     Line 3
+ .. I VAOA(4)]"" D
+ .. . W !?7,VAOA(4)                                ;     City
+ .. . I VAOA(5)]"" W ", "_$P(VAOA(5),"^",2)        ;     State
+ .. . W "  ",$P(VAOA(11),"^",2)                    ;     Zip+4
+ .. I VAOA(8)]"" W !!?7,"Phone number:  ",VAOA(8)  ;     Phone
+ .. I CONTACT="N",$P($G(^DPT(DFN,.21)),U,11)]"" W !?7,"Work phone number:  ",$P(^DPT(DFN,.21),U,11)
+ .. I CONTACT="S",$P($G(^DPT(DFN,.211)),U,11)]"" W !?7,"Work phone number:  ",$P(^DPT(DFN,.211),U,11)
  D KVAR^VADPT
  Q
 TRIM(X) ;   Trim Spaces

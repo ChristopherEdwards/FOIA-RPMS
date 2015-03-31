@@ -1,6 +1,6 @@
-ORWU ; SLC/KCM - General Utilites for Windows Calls;03-May-2006 15:44;DKM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,132,148,149,187,1004**;Dec 17, 1997
- ;
+ORWU ; SLC/KCM - General Utilites for Windows Calls;17-May-2010 08:32;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,132,148,149,187,1004,195,215,243,1010**;Dec 17, 1997;Build 47
+ ;Modified - IHS/MSC/PLS - 5/3/2006 - Line DEVICE+10
 DT(Y,X,%DT) ; Internal Fileman Date/Time
  ; change the '00:00' that could be passed so Fileman doesn't reject
  I $L($P(X,"@",2)),("00000000"[$TR($P(X,"@",2),":","")) S $P(X,"@",2)="00:00:01"
@@ -13,7 +13,7 @@ USERINFO(REC) ; Relevant info for current user
  ; return DUZ^NAME^USRCLS^CANSIGN^ISPROVIDER^ORDERROLE^NOORDER^DTIME^
  ;        COUNTDOWN^ENABLEVERIFY^NOTIFYAPPS^MSGHANG^DOMAIN^SERVICE^
  ;        AUTOSAVE^INITTAB^LASTTAB^WEBACCESS^ALLOWHOLD^ISRPL^RPLLIST^
- ;        CORTABS^RPTTAB^STANUM^GECSTATUS
+ ;        CORTABS^RPTTAB^STANUM^GECSTATUS^PRODACCT
  N X,ORRPL,ORRPL1,ORRPL2,ORTAB,CORTABS,RPTTAB,ORDT,OREFF,OREXP,ORDATEOK
  S REC=DUZ_U_$P(^VA(200,DUZ,0),U)
  S $P(REC,U,3)=$S($D(^XUSEC("ORES",DUZ)):3,$D(^XUSEC("ORELSE",DUZ)):2,$D(^XUSEC("OREMAS",DUZ)):1,1:0)
@@ -76,8 +76,8 @@ USERINFO(REC) ; Relevant info for current user
  S $P(REC,U,23)=RPTTAB                  ; "Reports" tab.
  ;
  S $P(REC,U,24)=$P($$SITE^VASITE,U,3)
- ;S $P(REC,U,24)=$E($$STA^XUAF4(DUZ(2)),1,3)     ; DBIA #2171 - station number for CCOW
  S $P(REC,U,25)=$$GET^XPAR("USR^TEA","PXRM GEC STATUS CHECK",1,"I")
+ S $P(REC,U,26)=$$PROD^XUPROD
  Q
  ;
 HASKEY(VAL,KEY) ; returns TRUE if the user possesses the security key
@@ -111,7 +111,7 @@ TOOLMENU(ORLST) ; returns a list of items for the Tools menu
  D GETLST^XPAR(.ORLST,ANENT,"ORWT TOOLS MENU","N")
  Q
 ACTLOC(LOC) ; Function: returns TRUE if active hospital location
- ; IA# 10040:
+ ; IA# 10040.
  N D0,X I +$G(^SC(LOC,"OOS")) Q 0                ; screen out OOS entry
  S D0=+$G(^SC(LOC,42)) I D0 D WIN^DGPMDDCF Q 'X  ; chk out of svc wards
  S X=$G(^SC(LOC,"I")) I +X=0 Q 1                 ; no inactivate date
@@ -140,10 +140,10 @@ HOSPLOC(Y,FROM,DIR) ; Return a set of locations from HOSPITAL LOCATION
  N I,IEN,CNT S I=0,CNT=44
  F  Q:I'<CNT  S FROM=$O(^SC("B",FROM),DIR) Q:FROM=""  D  ; IA# 10040.
  . S IEN="" F  S IEN=$O(^SC("B",FROM,IEN),DIR) Q:'IEN  D
- . . I '$$ACTLOC(IEN) Q
+ . . Q:("CW"'[$P($G(^SC(IEN,0)),U,3)!('$$ACTLOC(IEN)))
  . . S I=I+1,Y(I)=IEN_"^"_FROM
  Q
-NEWPERS(ORY,ORFROM,ORDIR,ORKEY,ORDATE,ORALLUSE,ORVIZ) ; Return a set of names from the NEW PERSON file.
+NEWPERS(ORY,ORFROM,ORDIR,ORKEY,ORDATE,ORVIZ,ORALL) ; Return a set of names from the NEW PERSON file.
  ; SLC/PKS: Code moved to ORWU1 on 12/3/2002.
  D NP1^ORWU1
  Q
@@ -151,7 +151,7 @@ GBLREF(VAL,FN) ; return global reference for file number
  S VAL="" Q:'FN
  S VAL=$$ROOT^DILFD(+FN)
  ; I $E($RE(VAL))="," S VAL=$E(VAL,1,$L(VAL)-1)_")"
- ; I $E($RE(VAL))="(" S VAL=$P(VAL,"(",1)
+ ; I $E($RE(VAL))="(" S VAL=$P(VAL,"(",1) 
  Q
 GENERIC(Y,FROM,DIR,REF) ; Return a set of entries from xref in REF
  ; .Y=returned list, FROM=text to $O from, DIR=$O direction,
@@ -169,6 +169,10 @@ PARAM(VAL,APARAM) ; return a parameter value for a user
  ; call assumes current user, default entities, single instance
  S VAL=$$GET^XPAR("ALL",APARAM,1,"I")
  Q
+PARAMS(ORLIST,APARAM) ; return a list of parameter values
+ ; call assumes current user, default entities, multiple instances
+ D GETLST^XPAR(.ORLIST,"ALL",APARAM,"Q")
+ Q
 DEVICE(Y,FROM,DIR) ; Return a subset of entries from the Device file
  ; .LST(n)=IEN;Name^DisplayName^Location^RMar^PLen
  ; FROM=text to $O from, DIR=$O direction
@@ -176,16 +180,16 @@ DEVICE(Y,FROM,DIR) ; Return a subset of entries from the Device file
  I FROM["<" S FROM=$RE($P($RE(FROM),"<  ",2))
  F  Q:I'<CNT  S FROM=$O(^%ZIS(1,"B",FROM),DIR) Q:FROM=""  D
  . S IEN=0 F  S IEN=$O(^%ZIS(1,"B",FROM,IEN)) Q:'IEN  D
- .. N X0,X1,X90,X91,X95,XTYPE,XSTYPE,XTIME,%A,%X,POP
+ .. N X0,X1,X90,X91,X95,XTYPE,XSTYPE,XTIME,ORA,ORPX,POP
  .. Q:'$D(^%ZIS(1,IEN,0))  S X0=^(0),X1=$G(^(1)),X90=$G(^(90)),X91=$G(^(91)),X95=$G(^(95)),XSTYPE=$G(^("SUBTYPE")),XTIME=$G(^("TIME")),XTYPE=$G(^("TYPE"))
  .. I $E($G(^%ZIS(2,+XSTYPE,0)))'="P" Q  ;Printers only
  ..; S X=$P(XTYPE,"^") I X'="TRM",X'="HG",X'="HFS",X'="CHAN" Q  ;Device Types ; IHS/CIA/PLS - 04/07/04 - Added "OTH" types
  .. S X=$P(XTYPE,"^") I X'="TRM",X'="HG",X'="HFS",X'="CHAN",X'="OTH" Q  ;Device Types
  .. S X=X0 I ($P(X,U,2)="0")!($P(X,U,12)=2) Q  ;Queuing allowed
  .. S X=+X90 I X,(X'>DT) Q  ;Out of Service
- .. I XTIME]"" S %A=$P(XTIME,"^"),%X=$P($H,",",2),%=%X\60#60+(%X\3600*100),%X=$P(%A,"-",2) I %X'<%A&(%'>%X&(%'<%A))!(%X<%A&(%'<%A!(%'>%X))) Q  ;Prohibited Times
+ .. I XTIME]"" S ORA=$P(XTIME,"^"),ORPX=$P($H,",",2),ORPCNT=ORPX\60#60+(ORPX\3600*100),ORPX=$P(ORA,"-",2) I ORPX'<ORA&(ORPCNT'>ORPX&(ORPCNT'<ORA))!(ORPX<ORA&(ORPCNT'<ORA!(ORPCNT'>ORPX))) Q  ;Prohibited Times
  .. S POP=0
- .. I X95]"" S %X=$G(DUZ(0)) I %X'="@" S POP=1 F %A=1:1:$L(%X) I X95[$E(%X,%A) S POP=0 Q
+ .. I X95]"" S ORPX=$G(DUZ(0)) I ORPX'="@" S POP=1 F ORA=1:1:$L(ORPX) I X95[$E(ORPX,ORA) S POP=0 Q
  .. Q:POP  ;Security check
  .. S SHOW=$P(X0,U) I SHOW'=FROM S SHOW=FROM_"  <"_SHOW_">"
  .. S I=I+1,Y(I)=IEN_";"_$P(X0,U)_U_SHOW_U_$P(X1,U)_U_$P(X91,U)_U_$P(X91,U,3)
@@ -197,6 +201,9 @@ URGENCY(Y) ; -- retrieve set values from dd for discharge summary urgency
  Q
 PATCH(VAL,X) ; Return 1 if patch X is installed
  S VAL=$$PATCH^XPDUTL(X)
+ Q
+VERSION(VAL,X) ;Return version of package or namespace
+ S VAL=$$VERSION^XPDUTL(X)
  Q
 VERSRV(VAL,X,CLVER) ; Return server version of option name
  S ORWCLVER=$G(CLVER)  ; leave in partition for session
@@ -211,6 +218,4 @@ VERSRV(VAL,X,CLVER) ; Return server version of option name
  I $P(VAL,".",3)="" S BADVAL=1
  I $P(VAL,".",4)="" S BADVAL=1
  I ((BADVAL)!('VAL)!(VAL="")) S VAL="0.0.0.0"
- ;N IEN S VAL="",IEN=$O(^DIC(19,"B",X,0)) Q:'IEN
- ;S VAL=$P($P($G(^DIC(19,IEN,0)),U,2),"version ",2)
  Q

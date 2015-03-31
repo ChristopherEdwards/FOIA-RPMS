@@ -1,5 +1,5 @@
 ABMURCON ; IHS/SD/SDR - 3PB/UFMS Reconcile Sessions Option   
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,11**;NOV 12, 2009;Build 133
  ; IHS/SD/SDR - v2.5 p13 - IM25924 - <UNDEF>EP+32^ABMUCAPI fix
  ; IHS/SD/SDR - v2.5 p13 - NO IM - Modified to add EP for recon. page display
  ; IHS/SD/SDR - v2.5 p13 - IM26756 - Fix for Cancel Claim total doubling
@@ -266,7 +266,8 @@ EXTRACT ;
  ...S ABMRQB=0
  ...F  S ABMRQB=$O(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT,12,ABMRQB)) Q:+ABMRQB=0  D
  ....S ABMPREC=$G(^ABMUCASH(ABMLOC,10,ABMDUZ,20,ABMSDT,12,ABMRQB,0))
- ....S ABMBAOUT=$P($G(^AUTNINS($P($G(^ABMDBILL(ABMLOC,$P(ABMPREC,U,3),0)),U,8),2)),U)
+ ....;S ABMBAOUT=$P($G(^AUTNINS($P($G(^ABMDBILL(ABMLOC,$P(ABMPREC,U,3),0)),U,8),2)),U)  ;abm*2.6*11 HEAT73780
+ ....S ABMBAOUT=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,+$P($G(^ABMDBILL(ABMLOC,$P(ABMPREC,U,3),0)),U,8),".211","I"),1,"I")  ;abm*2.6*11 HEAT73780 
  ....D RECORD
  ...;reque'd batches
  ...S ABMRQB=0

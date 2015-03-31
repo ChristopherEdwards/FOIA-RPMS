@@ -1,15 +1,30 @@
-FHPRF1 ; HISC/REL - Calculate Total Forecast ;1/23/98  16:10
- ;;5.0;Dietetics;**13,37**;Oct 11, 1995
+FHPRF1 ; HISC/REL/RVD - Calculate Total Forecast ;1/23/98  16:10
+ ;;5.5;DIETETICS;**5**;Jan 28, 2005;Build 53
+ ;
+ ;patch #5 - added screen for cancelled quest meals.
+ ;
  S %DT="X",X="T" D ^%DT S DT=+Y
+ D DIV^FHOMUTL G:'$D(FHSITE) KIL
 D1 R !!,"Forecast Date: ",X:DTIME G:'$T!("^"[X) KIL S %DT="EX" D ^%DT G KIL:"^"[X,D1:Y<1 S D1=+Y
  S FHP=$O(^FH(119.71,0)) I FHP'<1,$O(^FH(119.71,FHP))<1 G R1
 R0 R !!,"Select PRODUCTION FACILITY: ",X:DTIME G:'$T!("^"[X) KIL
  K DIC S DIC="^FH(119.71,",DIC(0)="EMQ" D ^DIC G:Y<1 R0 S FHP=+Y
 R1 W ! K IOP,%ZIS S %ZIS("A")="Select LIST Printer: ",%ZIS="MQ" D ^%ZIS K %ZIS,IOP G:POP KIL
- I $D(IO("Q")) S FHPGM="Q1^FHPRF1",FHLST="D1^FHP" D EN2^FH G KIL
+ I $D(IO("Q")) S FHPGM="Q1^FHPRF1",FHLST="D1^FHP^FHSITE^FHSITENM" D EN2^FH G KIL
  U IO D Q1 D ^%ZISC K %ZIS,IOP G KIL
 Q1 ; Process Census Forecast
- D Q2,Q3 G ^FHPRF1A
+ D Q2,Q3
+ ;get outpatient data
+ S FHD1SAV=D1
+ S:'$G(FHSITE) FHSITE=""
+ S:'$D(FHSITENM) FHSITENM="CONSOLIDATED"
+ D GETSM^FHOMRBLD(D1,FHSITE,"","")
+ D GETGM^FHOMRBL1(D1,FHSITE,"","")
+ S D1=D1-.000001
+ D GETRM^FHOMRBLD(D1,FHSITE,"","")
+ D PROSG   ;process recurring, special and guest meal from "OP" node
+ S D1=FHD1SAV
+ G ^FHPRF1A
 Q2 ; Calculate Service Point census forecast
  S X="T",%DT="X" D ^%DT S DT=+Y
  K ^TMP($J) S X=D1 D DOW^%DTC S DOW=Y+1 D BLD,DAT
@@ -44,11 +59,91 @@ DAT ; Build list of dates
 BLD ; Build list of MAS wards and %'s for each Service Point
  K ^TMP($J,"S"),^TMP($J,"W")
  F P0=0:0 S P0=$O(^FH(119.72,P0)) Q:P0<1  S X=$G(^(P0,0)) I $P(X,"^",3)=FHP,$G(^FH(119.72,P0,"I"))'="Y" S ^TMP($J,"S",P0)=""
- F K1=0:0 S K1=$O(^FH(119.6,K1)) Q:K1<1  S X=$G(^(K1,0)) D B1
+ ;F K1=0:0 S K1=$O(^FH(119.6,K1)) Q:K1<1  S X=$G(^(K1,0)) D B1
+ F K1=0:0 S K1=$O(^FH(119.6,K1)) Q:K1<1  S X=$G(^(K1,0)) D B1:($P(X,U,8)=FHSITE!(FHSITE=0))
  Q
 B1 S Z=$P(X,"^",5) I Z,$D(^TMP($J,"S",Z)) S Z1=$P(X,"^",17) S:$P(X,"^",7) Z1=Z1+$P(X,"^",19) S:'Z1 Z1=100 D B2
  S Z=$P(X,"^",6) I Z,$D(^TMP($J,"S",Z)) S Z1=$P(X,"^",18) S:Z1="" Z1=100 D B2
  Q
 B2 F L2=0:0 S L2=$O(^FH(119.6,K1,"W",L2)) Q:L2<1  S ZW=+$G(^(L2,0)) I ZW S ^TMP($J,"W",ZW)="",^TMP($J,"S",Z,ZW)=Z1
  Q
+ ;
+PROSG ;process outpatient data from ^tmp($j global
+ S FHPLNM=""
+ S:$G(FHSITE) FHPLNM=$P($G(^FH(119.73,FHSITE,0)),U,1)
+RECUR ;recurring meals
+ S FHDT=D1+.999999
+ S FHTMPS="^TMP($J,""OP"",""R"")"
+ S FHN="" F  S FHN=$O(@FHTMPS@(FHN)) Q:FHN=""  S FHI="" F  S FHI=$O(@FHTMPS@(FHN,FHI)) Q:FHI=""  S FHJ="" F  S FHJ=$O(@FHTMPS@(FHN,FHI,FHJ)) Q:FHJ=""  D
+ .I (FHPLNM'=""),(FHN'=FHPLNM) Q
+ .F FHK=0:0 S FHK=$O(@FHTMPS@(FHN,FHI,FHJ,FHK)) Q:(FHK'>0)!(FHK>FHDT)  D
+ ..S (FHPDIET,FHLOC,FHSER,FHDIET)="***"
+ ..S FHIJKDAT=@FHTMPS@(FHN,FHI,FHJ,FHK)
+ ..Q:$P(FHIJKDAT,U,19)="C"   ;quit if status is cancelled.
+ ..S FHDIET=$P(FHIJKDAT,U,3),FHDIET=$O(^FH(111,"B",FHDIET,0))
+ ..I $G(FHDIET),$D(^FH(111,FHDIET,0)) S FHPDIET=$P(^FH(111,FHDIET,0),U,5)
+ ..S:$D(^FH(119.6,"B",FHI)) FHLOC=$O(^FH(119.6,"B",FHI,0))
+ ..S:$G(FHLOC) FHSER=$P($G(^FH(119.6,FHLOC,0)),U,5)
+ ..S:'$G(FHSER) FHSER=$P($G(^FH(119.6,FHLOC,0)),U,6)
+ ..S:'$G(FHSER) FHSER=$O(^FH(119.72,0))
+ ..I $D(^FH(119.72,FHSER,0)),$P(^FH(119.72,FHSER,0),U,3)'=FHP Q
+ ..S:$D(^TMP($J,FHSER)) ^TMP($J,FHSER)=^TMP($J,FHSER)+1
+ ..S:'$D(^TMP($J,FHSER)) ^TMP($J,FHSER)=1
+ ..I $D(^TMP($J,FHSER,FHPDIET)) D
+ ...S ^TMP($J,FHSER,FHPDIET)=^TMP($J,FHSER,FHPDIET)+1
+ ..I '$D(^TMP($J,FHSER,FHPDIET)) D
+ ...S ^TMP($J,FHSER,FHPDIET)=1
+ ..I $D(^TMP($J,0,FHPDIET)) S ^TMP($J,0,FHPDIET)=^TMP($J,0,FHPDIET)+1
+ ..I '$D(^TMP($J,0,FHPDIET)) S ^TMP($J,0,FHPDIET)=1
+ ;
+SPEC ;special meals
+ S FHTMPS="^TMP($J,""OP"",""S"")"
+ S FHN="" F  S FHN=$O(@FHTMPS@(FHN)) Q:FHN=""  S FHI="" F  S FHI=$O(@FHTMPS@(FHN,FHI)) Q:FHI=""  S FHJ="" F  S FHJ=$O(@FHTMPS@(FHN,FHI,FHJ)) Q:FHJ=""  D
+ .I (FHPLNM'=""),(FHN'=FHPLNM) Q
+ .F FHK=0:0 S FHK=$O(@FHTMPS@(FHN,FHI,FHJ,FHK)) Q:(FHK'>0)!(FHK>FHDT)  D
+ ..S (FHPDIET,FHLOC,FHSER,FHDIET)="***"
+ ..S FHIJKDAT=@FHTMPS@(FHN,FHI,FHJ,FHK)
+ ..S FHDIET=$P(FHIJKDAT,U,4),FHDIET=$O(^FH(111,"B",FHDIET,0))
+ ..S:$D(^FH(111,FHDIET,0)) FHPDIET=$P(^FH(111,FHDIET,0),U,5)
+ ..S:$D(^FH(119.6,"B",FHI)) FHLOC=$O(^FH(119.6,"B",FHI,0))
+ ..S:$G(FHLOC) FHSER=$P($G(^FH(119.6,FHLOC,0)),U,5)
+ ..S:'$G(FHSER) FHSER=$P($G(^FH(119.6,FHLOC,0)),U,6)
+ ..S:'$G(FHSER) FHSER=$O(^FH(119.72,0))
+ ..I $D(^FH(119.72,FHSER,0)),$P(^FH(119.72,FHSER,0),U,3)'=FHP Q
+ ..S:$D(^TMP($J,FHSER)) ^TMP($J,FHSER)=^TMP($J,FHSER)+1
+ ..S:'$D(^TMP($J,FHSER)) ^TMP($J,FHSER)=1
+ ..I $D(^TMP($J,FHSER,FHPDIET)) D
+ ...S ^TMP($J,FHSER,FHPDIET)=^TMP($J,FHSER,FHPDIET)+1
+ ..I '$D(^TMP($J,FHSER,FHPDIET)) D
+ ...S ^TMP($J,FHSER,FHPDIET)=1
+ ..I $D(^TMP($J,0,FHPDIET)) S ^TMP($J,0,FHPDIET)=^TMP($J,0,FHPDIET)+1
+ ..I '$D(^TMP($J,0,FHPDIET)) S ^TMP($J,0,FHPDIET)=1
+ ;
+GUEST ;guest meals
+ S FHTMPS="^TMP($J,""OP"",""G"")"
+ S FHN="" F  S FHN=$O(@FHTMPS@(FHN)) Q:FHN=""  S FHI="" F  S FHI=$O(@FHTMPS@(FHN,FHI)) Q:FHI=""  S FHJ="" F  S FHJ=$O(@FHTMPS@(FHN,FHI,FHJ)) Q:FHJ=""  D
+ .I (FHPLNM'=""),(FHN'=FHPLNM) Q
+ .F FHK=0:0 S FHK=$O(@FHTMPS@(FHN,FHI,FHJ,FHK)) Q:(FHK'>0)!(FHK>FHDT)  D
+ ..S (FHPDIET,FHLOC,FHSER,FHDIET)="***"
+ ..S FHIJKDAT=@FHTMPS@(FHN,FHI,FHJ,FHK)
+ ..Q:$P(FHIJKDAT,U,7)="C"
+ ..S FHDIET=$P($G(^FH(119.9,1,0)),U,2)   ;default diet from 119.9
+ ..S FHDIETN=$P(FHIJKDAT,U,6)  ;diet from guest meal
+ ..S:$D(^FH(119.6,"B",FHI)) FHLOC=$O(^FH(119.6,"B",FHI,0))
+ ..S:$G(FHLOC) FHSER=$P($G(^FH(119.6,FHLOC,0)),U,5)
+ ..S:'$G(FHSER) FHSER=$P($G(^FH(119.6,FHLOC,0)),U,6)
+ ..S:'$G(FHSER) FHSER=$O(^FH(119.72,0))
+ ..I $D(^FH(119.72,FHSER,0)),$P(^FH(119.72,FHSER,0),U,3)'=FHP Q
+ ..S:$D(^TMP($J,FHSER)) ^TMP($J,FHSER)=^TMP($J,FHSER)+1
+ ..S:'$D(^TMP($J,FHSER)) ^TMP($J,FHSER)=1
+ ..I $G(FHDIETN),($D(^FH(111,FHDIETN,0))) D
+ ...S FHPDIET=$P(^FH(111,FHDIETN,0),U,5)
+ ..I $D(^TMP($J,FHSER,FHPDIET)) D
+ ...S ^TMP($J,FHSER,FHPDIET)=^TMP($J,FHSER,FHPDIET)+1
+ ..I '$D(^TMP($J,FHSER,FHPDIET)) D
+ ...S ^TMP($J,FHSER,FHPDIET)=1
+ ..I $D(^TMP($J,0,FHPDIET)) S ^TMP($J,0,FHPDIET)=^TMP($J,0,FHPDIET)+1
+ ..I '$D(^TMP($J,0,FHPDIET)) S ^TMP($J,0,FHPDIET)=1
+ Q
+ ;
 KIL K ^TMP($J) G KILL^XUSCLEAN

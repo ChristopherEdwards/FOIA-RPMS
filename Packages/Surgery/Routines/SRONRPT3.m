@@ -1,32 +1,77 @@
-SRONRPT3 ;TAMPA/CFB - NURSE'S REPORT ; 30 Jan 1989  8:52 AM
- ;;3.0; Surgery ;;24 Jun 93
- I $P(SRTN(.5),"^") D UL G:SRSOUT END W !,"Sponge, Sharps, and Instrument Count Verified As " S Q(7)=$P(SRTN(.5),"^",1),Q(3)=^DD(130,.52,0) D S W Q(7)
- I $P(SRTN(.5),"^",9) D UL G:SRSOUT END W !,"First Verifier: " S Z=$P(SRTN(.5),"^",9) D N W $E(Z,1,30) I $P(SRTN(.5),"^",12) S Z=$P(SRTN(.5),"^",12) D N W !,"Second Verifier: ",$E(Z,1,30)
- I $D(^SRF(SRTN,35)) W !,"Dressing: "_$P(^(35),"^")
- S X=$P($G(^SRF(SRTN,.8)),"^",11),SHEMP=$S(X="P":"PLAIN",X="I":"IDOFORM",X="V":"VASOLINE",X="B":"BETADINE",X="O":"OTHER",1:"NONE") W !,"Packing: "_SHEMP
- D UL G:SRSOUT END I $D(SRTN(.2)) W:+$P(SRTN(.2),"^",5) !,"Blood Loss: ",$P(SRTN(.2),"^",5)," cc's" W:+$P(SRTN(.2),"^",16) ?40,"Urine Output: ",$P(SRTN(.2),"^",16)," cc's"
- D UL G:SRSOUT END W !,"Postop Mood: "_$S($P(SRTN(.8),"^")'="":$P(^SRO(135.3,$P(SRTN(.8),"^"),0),"^"),1:"") W ?40,"Postop Cons: "_$S($P(SRTN(.8),"^",10):$P(^SRO(135.4,$P(SRTN(.8),"^",10),0),"^"),1:"")
- W !,"Postop Skin Integrity: "_$S($P(SRTN(.7),"^",6):$P(^SRO(135.2,$P(SRTN(.7),"^",6),0),"^"),1:"")
- W:$P(SRTN(0),"^",8)'="" !,"Postop Skin Color: " S Q(3)=^DD(130,.77,0),Q(7)=$P(SRTN(0),"^",8) D S W Q(7)
- D UL G:SRSOUT END W !,"Operation Disposition: " S Q(3)=^DD(130,.46,0),Q(7)=$P(SRTN(.4),"^",6) D S W Q(7)
- I $P(SRTN(.7),"^",4)'="" D UL G:SRSOUT END S SRVIA=$P(SRTN(.7),"^",4) W !,"Discharged Via: "_$P(^SRO(131.01,SRVIA,0),"^")
-TEXT W !!,"Nursing Care Comments: " I $O(^SRF(SRTN,7,0)) S SRNCC=0 F  S SRNCC=$O(^SRF(SRTN,7,SRNCC)) Q:SRNCC=""  D:$Y+10>IOSL FOOT^SRONRPT,HDR^SRONRPT D OUT
-P1 I SRT="UL",$Y<(IOSL-9) W ! G P1
- D FOOT^SRONRPT
-END Q:$D(SRNIGHT)
- W:$E(IOST)="P" @IOF I $D(ZTQUEUED) Q:$G(ZTSTOP)  S ZTREQ="@" Q
- S X=SRTN K SRT,SRTN S SRTN=X D ^SRSKILL
- D ^%ZISC W @IOF K:$D(SRSITE("KILL")) SRSITE Q
-UL Q:SRSOUT  I SRT="UL" D UL1
-Q I $Y>(IOSL-11) D FOOT^SRONRPT Q:SRSOUT  D HDR^SRONRPT
+SRONRPT3 ;BIR/ADM - NURSE INTRAOP REPORT ; [ 02/21/02  2:47 PM ]
+ ;;3.0; Surgery ;**100**;24 Jun 93
+ ;
+ ;** NOTICE: This routine is part of an implementation of a nationally
+ ;**         controlled procedure.  Local modifications to this routine
+ ;**         are prohibited.
+ ;
+ S SRLF=1,MOOD=$P(SR(.8),"^"),CONS=$P(SR(.8),"^",10),INTEG=$P(SR(.7),"^",6),COLOR=$P(SR(.7),"^",7)
+ S MOOD=$S(MOOD:$P(^SRO(135.3,MOOD,0),"^"),1:"N/A"),CONS=$S(CONS:$P(^SRO(135.4,CONS,0),"^"),1:"N/A"),INTEG=$S(INTEG:$P(^SRO(135.2,INTEG,0),"^"),1:"N/A")
+ S Y=COLOR,C=$P(^DD(130,.77,0),"^",2) D:Y'="" Y^DIQ S COLOR=$S(Y="":"N/A",1:Y)
+ I 'SRALL,MOOD="N/A" G CONS
+ D LINE(1) S @SRG@(SRI)="Postoperative Mood:",@SRG@(SRI)=@SRG@(SRI)_$$SPACE(30)_MOOD
+CONS I 'SRALL,CONS="N/A" G INTEG
+ D LINE(1) S @SRG@(SRI)="Postoperative Consciousness:  "_CONS
+INTEG I 'SRALL,INTEG="N/A" G COLOR
+ D LINE(1) S @SRG@(SRI)="Postoperative Skin Integrity: "_INTEG
+COLOR I 'SRALL,COLOR="N/A" G NEXT
+ D LINE(1) S @SRG@(SRI)="Postoperative Skin Color:     "_COLOR
+NEXT S SRLF=1,SRLINE="Laser Unit(s): " I '$O(^SRF(SRTN,44,0)),SRALL D LINE(1) S @SRG@(SRI)=SRLINE_"N/A"
+ I $O(^SRF(SRTN,44,0)) D LINE(1) S @SRG@(SRI)=SRLINE D LASER
+ S Y=$P(SR(.7),"^",3) I 'SRALL,Y="" G CS
+ S Y=$S(Y="Y":"YES",Y="N":"NO",1:"N/A") D LINE(2) S @SRG@(SRI)="Sequential Compression Device: "_Y
+CS S SRLF=1,SRLINE="Cell Saver(s): " I '$O(^SRF(SRTN,45,0)),SRALL D LINE(1) S @SRG@(SRI)=SRLINE_"N/A"
+ I $O(^SRF(SRTN,45,0)) D LINE(1) S @SRG@(SRI)=SRLINE D SAVE
+ S X=$P($G(^SRF(SRTN,46)),"^") S:X="" X="N/A" I 'SRALL,X="N/A" S SRLF=0 G NCC
+ D LINE(2) S @SRG@(SRI)="Devices: "_X
+NCC S SRLINE="Nursing Care Comments: " D LINE(2) S @SRG@(SRI)=SRLINE D
+ .I '$O(^SRF(SRTN,7,0)) S @SRG@(SRI)=@SRG@(SRI)_"NO COMMENTS ENTERED" Q
+ .S SRLINE=0 F  S SRLINE=$O(^SRF(SRTN,7,SRLINE)) Q:'SRLINE  S X=^SRF(SRTN,7,SRLINE,0) D COMM(X,2)
  Q
-UL1 I IO(0)=IO,'$D(ZTQUEUED) W !
- W $C(13) F X=1:1:79 W "_"
+LASER ; laser units
+ N C,DUR,ID,LAS,OP,PE,SRCT,WAT,X,Y
+ S LAS=0 F  S LAS=$O(^SRF(SRTN,44,LAS)) Q:'LAS  D
+ .S X=^SRF(SRTN,44,LAS,0),ID=$P(X,"^"),DUR=$P(X,"^",2),WAT=$P(X,"^",3),OP=$P(X,"^",4),PE=$P(X,"^",5)
+ .D LINE(1) S @SRG@(SRI)="  "_ID,@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Duration: "_$S(DUR'="":DUR_" min.",1:"N/A")
+ .D LINE(1) S @SRG@(SRI)="    Wattage: "_$S(WAT'="":WAT,1:"N/A"),@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Plume Evacuator: "_$S(PE="Y":"YES",PE="N":"NO",1:"N/A")
+ .S Y=OP,C=$P(^DD(130.0129,3,0),"^",2) D:Y Y^DIQ S:Y="" Y="N/A" D LINE(1) S @SRG@(SRI)="    Operator: "_Y
+ .S (SRCT,SRLINE)=0 F  S SRLINE=$O(^SRF(SRTN,44,LAS,1,SRLINE)) Q:'SRLINE  S SRCT=SRCT+1
+ .Q:'SRCT  D LINE(1) S SRLINE=0,SRL=4,SRLINE=$O(^SRF(SRTN,44,LAS,1,SRLINE)),X=^SRF(SRTN,44,LAS,1,SRLINE,0)
+ .I SRCT=1,$L(X)<67 S @SRG@(SRI)="    Comments: "_X Q
+ .S @SRG@(SRI)="    Comments:" D COMM(X,SRL)
+ .F  S SRLINE=$O(^SRF(SRTN,44,LAS,1,SRLINE)) Q:'SRLINE  S X=^SRF(SRTN,44,LAS,1,SRLINE,0) D COMM(X,SRL)
  Q
-N S Z=$S(Z="":Z,$D(^VA(200,Z,0)):$P(^(0),"^",1),1:Z) Q  ;S Z=$S(Z="":"",$D(^VA(200,Z,0)):$P(^(0),"^",1),1:Z),Z=$S(Z="":"",$D(^VA(200,Z,0)):$P(^(0),"^",1),1:Z) Q
-S Q:Q(7)=""  S Z1=$P(Q(3),"^",3) F X1=1:1 Q:Q(7)=$P($P(Z1,";",X1),":",1)  Q:X1=50
- Q:X1=50  S Q(7)=$P($P(Z1,";",X1),":",2) Q
-OUT S SRX=^SRF(SRTN,7,SRNCC,0) I $L(SRX)<77 W !,?1,SRX Q
- S SRX=SRX_"  " F M=1:1 Q:SRX=" "  S SRX(M)="" F L=1:1 S MM=$P(SRX," "),SRZ=$P(SRX," ",2,255) Q:SRZ=""  Q:$L(SRX(M))+$L(MM)'<77  S SRX(M)=SRX(M)_MM_" ",SRX=SRZ
- F I=1:1:M-1 D:$Y+10>IOSL FOOT^SRONRPT,HDR^SRONRPT W !,?1,SRX(I)
+SAVE ; cell saver(s)
+ N C,DISP,DNM,ID,INF,LOT,OP,SAL,SAV,SRCT,QTY,X,Y
+ S SAV=0 F  S SAV=$O(^SRF(SRTN,45,SAV)) Q:'SAV  D
+ .S X=^SRF(SRTN,45,SAV,0),ID=$P(X,"^"),SAL=$P(X,"^",3),INF=$P(X,"^",4),Y=$P(X,"^",2),C=$P(^DD(130.013,1,0),"^",2) D:Y Y^DIQ S OP=$S(Y'="":Y,1:"N/A")
+ .D LINE(1) S @SRG@(SRI)="  "_ID,@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Amount Salvaged:  "_$S(SAL:SAL_" ml",1:"N/A")
+ .D LINE(1) S @SRG@(SRI)="    Operator:"_OP,@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Amount Reinfused: "_$S(INF:INF_" ml",1:"N/A")
+ .I $O(^SRF(SRTN,45,SAV,1,0)) D LINE(1) S @SRG@(SRI)="    Disposables:",DISP=0 F  S DISP=$O(^SRF(SRTN,45,SAV,1,DISP)) Q:'DISP  D
+ ..S X=^SRF(SRTN,45,SAV,1,DISP,0),DNM=$P(X,"^"),LOT=$P(X,"^",2),QTY=$P(X,"^",3) D LINE(1) S @SRG@(SRI)="      "_DNM
+ ..D LINE(1) S @SRG@(SRI)=$$SPACE(8)_"Lot: "_LOT,@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Quantity: "_QTY
+ .S (SRCT,SRLINE)=0 F  S SRLINE=$O(^SRF(SRTN,45,SAV,2,SRLINE)) Q:'SRLINE  S SRCT=SRCT+1
+ .Q:'SRCT  D LINE(1) S SRLINE=0,SRL=4,SRLINE=$O(^SRF(SRTN,45,SAV,2,SRLINE)),X=^SRF(SRTN,45,SAV,2,SRLINE,0)
+ .I SRCT=1,$L(X)<67 S @SRG@(SRI)="    Comments: "_X Q
+ .S @SRG@(SRI)="    Comments:" D COMM(X,SRL)
+ .F  S SRLINE=$O(^SRF(SRTN,45,SAV,2,SRLINE)) Q:'SRLINE  S X=^SRF(SRTN,45,SAV,2,SRLINE,0) D COMM(X,SRL)
+ Q
+N(SRL) N SRN I $L(Y)>SRL S SRN=$P(Y,",")_","_$E($P(Y,",",2))_".",Y=SRN
+ Q
+COMM(X,NUM) ; output text
+ ; X = line of text to be processed
+ ; NUM = left margin
+ N I,J,K,Y,SRL S SRL=80-NUM
+ I $L(X)<(SRL+1)!($E(X,1,SRL)'[" ") D LINE(1) S @SRG@(SRI)=$$SPACE(NUM)_X Q
+ S K=1 F  D  I $L(X)<SRL+1 S X(K)=X Q
+ .F I=0:1:SRL-1 S J=SRL-I,Y=$E(X,J) I Y=" " S X(K)=$E(X,1,J-1),X=$E(X,J+1,$L(X)) S K=K+1 Q
+ F I=1:1:K D LINE(1) S @SRG@(SRI)=$$SPACE(NUM)_X(I)
+ Q
+SPACE(NUM) ; create spaces
+ ;pass in position returns number of needed spaces
+ I '$D(@SRG@(SRI)) S @SRG@(SRI)=""
+ Q $J("",NUM-$L(@SRG@(SRI)))
+LINE(NUM) ; create carriage returns
+ I $G(SRLF) S NUM=NUM+1,SRLF=0
+ F J=1:1:NUM S SRI=SRI+1,@SRG@(SRI)=""
  Q

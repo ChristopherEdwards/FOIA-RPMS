@@ -1,5 +1,5 @@
 ORRCOR ;SLC/MKB - OR data for CM ; 25 Jul 2003  9:31 AM
- ;;1.0;CARE MANAGEMENT;;Jul 15, 2003
+ ;;1.0;CARE MANAGEMENT;**3**;Jul 15, 2003
  ;
 PTUNS(ORY,ORUSR) ; -- Return list of patients with unsigned orders by ORUSR
  ; in @ORY@(PAT) = #unsigned orders
@@ -34,6 +34,17 @@ IDS(ORY,ORPAT,ORTYPE,ORBEG,OREND) ; -- Return order IDs for ORPAT where
  . I ORTYPE="ORN","^1^2^7^11^12^13^14^"[(U_STS_U)!(PKG'=ORPKG) S X="!" ;can't complete
  . S CNT=CNT+1,@ORY@(+ORPAT,ORID_ORIFN)=X
  S:CNT @ORY@(+ORPAT)=CNT K ^TMP("ORR",$J,ORLIST)
+ ;if ORTYPE=ORN also get all other GEN TEXT ORDERS not in NURSING display group
+ Q:ORTYPE'="ORN"
+ S ORDG="CLINIC ORDERS",ORDG=+$O(^ORD(100.98,"B",ORDG,0))
+ D EN^ORQ1(ORPAT,ORDG,ORFLG,,$G(ORBEG),$G(OREND))
+ S ORI=0 F  S ORI=+$O(^TMP("ORR",$J,ORLIST,ORI)) Q:ORI<1  D
+ . S ORIFN=$G(^TMP("ORR",$J,ORLIST,ORI))
+ . S STS=$P($G(^OR(100,+ORIFN,3)),U,3),PKG=+$P($G(^(0)),U,14),X=""
+ . I ORTYPE="ORN","^1^2^7^11^12^13^14^"[(U_STS_U)!(PKG'=ORPKG) S X="!" ;can't complete
+ . Q:(PKG'=ORPKG)
+ . S CNT=CNT+1,@ORY@(+ORPAT,ORID_ORIFN)=X
+ S:CNT @ORY@(+ORPAT)=CNT K ^TMP("ORR",$J,ORLIST)
  Q
  ;
 LISTUNS(ORY,ORUSR,ORPAT,ORDET) ; -- Return unsigned orders by ORUSR for ORPAT
@@ -41,16 +52,16 @@ LISTUNS(ORY,ORUSR,ORPAT,ORDET) ; -- Return unsigned orders by ORUSR for ORPAT
  ;             = Order=line of order text, and also if ORDET
  ;             = Text=line of report text
  ; [from LIST^ORRCSIG]
- N ORN,ORDT,ORIFN,ORACT,ORID,ORTX,I
+ N ORN,ORDT,ORIFN,ORACT,ORID,ORRCTX,I
  S ORY=$NA(^TMP($J,"ORRCORD")) K @ORY
  S ORUSR=+$G(ORUSR),ORPAT=+$G(ORPAT)_";DPT(",ORN=0
  S ORDT=0 F  S ORDT=+$O(^OR(100,"AS",ORPAT,ORDT)) Q:ORDT<1  D
  . S ORIFN=0 F  S ORIFN=+$O(^OR(100,"AS",ORPAT,ORDT,ORIFN)) Q:ORIFN<1  D
  .. S ORACT=0 F  S ORACT=+$O(^OR(100,"AS",ORPAT,ORDT,ORIFN,ORACT)) Q:ORACT<1  D
  ... Q:+$P($G(^OR(100,ORIFN,8,ORACT,0)),U,3)'=ORUSR  S ORID=ORIFN_";"_ORACT
- ... D TEXT^ORQ12(.ORTX,ORID,200)
+ ... D TEXT^ORQ12(.ORRCTX,ORID,200)
  ... S ORN=ORN+1,@ORY@(ORN)="Item=ORU:"_ORID_U_$$TXT1_U_$$FMTHL7^XLFDT(ORDT)_U_$$STS(ORIFN)
- ... S I=0 F  S I=$O(ORTX(I)) Q:I<1  S ORN=ORN+1,@ORY@(ORN)="Order="_ORTX(I)
+ ... S I=0 F  S I=$O(ORRCTX(I)) Q:I<1  S ORN=ORN+1,@ORY@(ORN)="Order="_ORRCTX(I)
  ... I $G(ORDET) D ORD ;add Detailed Display to @ORY@(#)
  ;S ORY(0)=CNT
  Q
@@ -64,7 +75,7 @@ LIST(ORY,ORPAT,ORTYPE,ORUSR,ORDET,ORBEG,OREND) ; -- Return orders for ORPAT wher
  ;             = Text=line of report text
  ;    where ID = ORTYPE_":"_order#;action#
  ; RPC = ORRC ORDERS BY PATIENT
- N ORN,ORWARD,ORIGVIEW,ORFLG,ORID,ORDG,ORLIST,ORI,ORIFN,ORACT,OR0,ORA0,ORDT,ORTX,I
+ N ORN,ORWARD,ORIGVIEW,ORFLG,ORID,ORDG,ORLIST,ORI,ORIFN,ORACT,OR0,ORA0,ORDT,ORRCTX,I
  S ORY=$NA(^TMP($J,"ORRCORD")) K @ORY
  S ORUSR=+$G(ORUSR),ORPAT=+$G(ORPAT)_";DPT(",ORTYPE=$G(ORTYPE,"ORD")
  S ORWARD=$G(^DPT(+ORPAT,.1)),ORIGVIEW=1
@@ -78,9 +89,9 @@ LIST(ORY,ORPAT,ORTYPE,ORUSR,ORDET,ORBEG,OREND) ; -- Return orders for ORPAT wher
  . S OR0=$G(^OR(100,+ORIFN,0)),ORA0=$G(^(8,ORACT,0))
  . I ORFLG=11,+$P(ORA0,U,3)'=ORUSR Q
  . S ORDT=$S('$P(OR0,U,8):$P(ORA0,U),"^DC^HD^"[(U_$P(ORA0,U,2)_U):$P(ORA0,U),1:$P(OR0,U,8))
- . D TEXT^ORQ12(.ORTX,ORIFN,200)
+ . D TEXT^ORQ12(.ORRCTX,ORIFN,200)
  . S ORN=ORN+1,@ORY@(ORN)="Item="_ORID_ORIFN_U_$$TXT1_U_$$FMTHL7^XLFDT(ORDT)_U_$$STS(ORIFN)
- . S I=0 F  S I=$O(ORTX(I)) Q:I<1  S ORN=ORN+1,@ORY@(ORN)="Order="_ORTX(I)
+ . S I=0 F  S I=$O(ORRCTX(I)) Q:I<1  S ORN=ORN+1,@ORY@(ORN)="Order="_ORRCTX(I)
  . I $G(ORDET) D ORD ;add Detailed Display to @ORY@(#)
  Q
  ;
@@ -90,26 +101,26 @@ DETAIL(ORY,ORDER) ; -- Return details of ORDERs
  ;             = Order=line of order text
  ;             = Text=line of report text
  ; RPC = ORRC ORDERS BY ID [and from DETAIL^ORRCSIG]
- N ORN,ORI,ORID,ORIFN,ORACT,ORDT,ORTX,I
+ N ORN,ORI,ORID,ORIFN,ORACT,ORDT,ORRCTX,I
  S ORN=0,ORY=$NA(^TMP($J,"ORRCORD")) K @ORY
  S ORI="" F  S ORI=$O(ORDER(ORI)) Q:ORI=""  S ORID=ORDER(ORI) D
  . S ORIFN=$P(ORID,":",2),ORACT=+$P(ORIFN,";",2)
  . S:ORACT<1 ORACT=+$P($G(^OR(100,+ORIFN,3)),U,7) S:ORACT<1 ORACT=1
  . S ORDT=+$G(^OR(100,+ORIFN,8,ORACT,0))
- . D TEXT^ORQ12(.ORTX,ORIFN,200)
+ . D TEXT^ORQ12(.ORRCTX,ORIFN,200)
  . S ORN=ORN+1,@ORY@(ORN)="Item="_ORID_U_$$TXT1_U_$P($$FMTHL7^XLFDT(ORDT),"-")_U_$$STS(ORIFN)
- . S I=0 F  S I=$O(ORTX(I)) Q:I<1  S ORN=ORN+1,@ORY@(ORN)="Order="_ORTX(I)
+ . S I=0 F  S I=$O(ORRCTX(I)) Q:I<1  S ORN=ORN+1,@ORY@(ORN)="Order="_ORRCTX(I)
  . D ORD
  Q
  ;
 TXT(IFN) ; -- Return [first line of] order IFN's text
- N ORTX,Y D TEXT^ORQ12(.ORTX,$G(IFN),200)
- S Y=$G(ORTX(1))_$S($O(ORTX(1)):"...",1:"")
+ N ORRCTX,Y D TEXT^ORQ12(.ORRCTX,$G(IFN),200)
+ S Y=$G(ORRCTX(1))_$S($O(ORRCTX(1)):"...",1:"")
  Q Y
  ;
-TXT1() ; -- Return [first line of] order text from ORTX()
+TXT1() ; -- Return [first line of] order text from ORRCTX()
  N Y
- S Y=$G(ORTX(1))_$S($O(ORTX(1)):"...",1:"")
+ S Y=$G(ORRCTX(1))_$S($O(ORRCTX(1)):"...",1:"")
  Q Y
  ;
 STS(IFN) ; --Return name of order IFN's status
@@ -119,11 +130,11 @@ STS(IFN) ; --Return name of order IFN's status
  Q Y
  ;
 ORD ; -- Add details of ORIFN to @ORY@(ORN)
- Q:'+$G(ORIFN)  N ORZ,ORI,ORVP
+ Q:'+$G(ORIFN)  N ORRCZ,ORI,ORVP
  S ORVP=$P($G(^OR(100,+ORIFN,0)),U,2)
- S ORZ="^TMP($J,""ORTXT"")" D DETAIL^ORQ2(.ORZ,ORIFN)
- S ORI=0 F  S ORI=$O(@ORZ@(ORI)) Q:ORI<1  S ORN=ORN+1,@ORY@(ORN)="Text="_@ORZ@(ORI)
- K @ORZ
+ S ORRCZ="^TMP($J,""ORRCTXT"")" D DETAIL^ORQ2(.ORRCZ,ORIFN)
+ S ORI=0 F  S ORI=$O(@ORRCZ@(ORI)) Q:ORI<1  S ORN=ORN+1,@ORY@(ORN)="Text="_@ORRCZ@(ORI)
+ K @ORRCZ
  Q
  ;
 VERIFY(ORY,ORUSR,ORDER) ; -- Mark ORDERs as verified by ORUSR
@@ -137,7 +148,7 @@ VERIFY(ORY,ORUSR,ORDER) ; -- Mark ORDERs as verified by ORUSR
  . I ORACT<1 S ORACT=+$P($G(^OR(100,+ORIFN,3)),U,7),ORIFN=+ORIFN_";"_ORACT
  . S ORA0=$G(^OR(100,+ORIFN,8,ORACT,0)) I $P(ORA0,U,9) D  Q  ;verified
  .. N WHO,WHEN,X S WHO=$P(ORA0,U,8),WHEN=$P(ORA0,U,9),X=""
- .. S:WHO X=X_" by "_$P($G(^VA(200,WHO,0)),U)
+ .. S:WHO X=X_" by "_$$UP^XLFSTR($$NAME^XUSER(WHO,"F"))
  .. S:WHEN X=X_" on "_$$FMTE^XLFDT(WHEN,"2P")
  .. S ORY(ORI)=ORID_"^0^This order has been verified"_X_"!" Q
  . S ORLK=$$LOCK1^ORX2(+ORIFN) I 'ORLK S ORY(ORI)=ORID_U_ORLK Q

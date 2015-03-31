@@ -1,18 +1,25 @@
 PSOP1 ;BHAM ISC/SAB - prints short medication profile ;02/25/94
- ;;7.0;OUTPATIENT PHARMACY;**15,46,103,132**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**15,46,103,132,148,233,326**;DEC 1997;Build 11
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(50.605 supported by DBIA 696
  K RX,DTOUT,DIRUT,DIROUT,DUOUT
  D HD S DRUG="" F I=0:0 S DRUG=$O(^TMP($J,DRUG)) Q:DRUG=""!($G(PQT))  D  G:$D(DTOUT)!($D(DUOUT))!($D(DIROUT)) Q
  .F J=0:0 S J=$O(^TMP($J,DRUG,J)) Q:'J!($G(PQT))  S RX0=^(J),RX2=$G(^PSRX(J,2)),$P(RX0,"^",15)=$G(^("STA")),CP=$S(+$G(^PSRX(J,"IB")):"$",1:" ") S:$P(RX2,"^",15)&($P(RX2,"^",2)) RST($P(RX2,"^",2))=1 S:$P(RX0,"^",15)="" $P(RX0,"^",15)=-1 D W
  D:'$G(PQT) PEND^PSOP2,NVA^PSOP2
-Q D ^%ZISC K ^TMP($J),PQT,PSODTCT,ST,D0,DIC,DIR,DIRUT,DUOUT,G,II,K,RXD,RXF,ZX,DRUG,X,DFN,PHYS,PSRT,CT,AL,I1,PLS,REF,LMI,PI,FN,Y,I,J,RX,DRX,ST,RX0,RX2,DA,PPPSTAT,PPP,EEEE,PPPCNT,PENDREX,PSOPEND,PPDIS,PPOI,PCOUNT,PP,FSIG S:$D(ZTQUEUED) ZTREQ="@"
- K ZZZZ Q
+Q D ^%ZISC K ^TMP($J),PQT,PSODTCT,ST,D0,DIC,DIR,DIRUT,DUOUT,G,II,K,RXD,RXF,ZX,DRUG,X,DFN,PHYS,PSRT,CT,AL,I1,PLS,REF
+ K LMI,PI,FN,Y,I,J,RX,DRX,ST,RX0,RX2,DA,PPPSTAT,PPP,EEEE,PPPCNT,PENDREX,PSOPEND,PPDIS,PPOI,PCOUNT,PP,FSIG,ZZZZ
+ S:$D(ZTQUEUED) ZTREQ="@"
+ Q
 W I $Y+6>IOSL,$E(IOST)="C" D DIR W @IOF Q:$D(PQT)  D HD
+ N PSOBADR
  U IO I IO'=IO(0),$Y+6>IOSL W @IOF D HD
  I $E(IOST)'="C",$Y+6>IOSL W @IOF D HD
  D STAT^PSOFUNC S STA="A^N^R^H^P^S^^^^^^E^DC^^DC^DE^PH",ST=$P(STA,"^",(ST0+1)) K STA
- W !,CP_$P(RX0,"^"),?13,$S($D(^PSDRUG(+$P(RX0,"^",6),0)):$P(^(0),"^"),1:"NOT ON FILE"),?54,$S($L(ST)=1:" "_ST,1:ST)
+ S PSOBADR=$O(^PSRX(J,"L",9999),-1)
+ I PSOBADR'="" S PSOBADR=$G(^PSRX(J,"L",PSOBADR,0)) I PSOBADR["(BAD ADDRESS)" S PSOBADR="B"
+ I PSOBADR'="B" S PSOBADR=""
+ S ST=ST_PSOBADR
+ W !,CP_$P(RX0,"^"),$$ECME^PSOBPSUT(J),?13,$S($D(^PSDRUG(+$P(RX0,"^",6),0)):$P(^(0),"^"),1:"NOT ON FILE"),?54,$S($L(ST)=1:" "_ST,1:ST)
  S RXD=$P($G(^PSRX(J,3)),"^"),RXF=$P(RX0,"^",9) F II=0:0 S II=$O(^PSRX(J,1,II)) Q:'II  S RXF=RXF-1 S:$P(^PSRX(J,1,II,0),"^",16) RST($P(^(0),"^"))=1
  W ?58,$S($L(RXF)=1:" "_RXF,1:RXF)
  W ?61,$E($P(RX0,"^",13),4,5)_"-"_$E($P(RX0,"^",13),6,7)_"-"_$E($P(RX0,"^",13),2,3) W:RXD ?70,$E(RXD,4,5)_"-"_$E(RXD,6,7)_"-"_$E(RXD,2,3)_$S($G(RST(RXD)):"R",1:"")
@@ -26,7 +33,7 @@ W I $Y+6>IOSL,$E(IOST)="C" D DIR W @IOF Q:$D(PQT)  D HD
  ;D SIG
  K RST Q
 HD D:PAGE>1
- .W !,"Patient: "_$P(^DPT(DFN,0),"^")_" ("_$E($P(^DPT(DFN,0),"^",9),6,9)_")",?70,"Page: "_PAGE
+ .W !,"Patient: "_$P(^DPT(DFN,0),"^"),?70,"Page: "_PAGE
  .W !?(80-$L("Medication Profile Sorted by "_HDR))/2,"Medication Profile Sorted by "_HDR W:$G(FR)]"" !?(80-$L(FR_" to "_TO))/2,FR_" to "_TO
  W !?57,"REF",!?1,"Rx#",?13,"Drug",?54,"ST",?57,"REM",?62,"Issued",?70,"Last Fill",!,PSOPLINE S PAGE=PAGE+1
  Q

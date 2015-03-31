@@ -1,8 +1,9 @@
-PSODEM ;BHAM ISC/SAB - PATIENT DEMOGRAPHICS ;23-Dec-2003 07:36;PLS
- ;;7.0;OUTPATIENT PHARMACY;**5,19**;DEC 1997
+PSODEM ;BHAM ISC/SAB - PATIENT DEMOGRAPHICS ;30-Oct-2013 23:38;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**5,19,233,258,326,1015,1016**;DEC 1997;Build 74
  ; Modified - IHS/CIA/PLS - 12/23/03 - Line RE
+ ;            IHS/MSC/PLS - 10/31/13 - Added ID# back after patch 326
 GET S DFN=DA D 6^VADPT,PID^VADPT U IO W @IOF,!,VADM(1),?40,"ID#:   "_VA("PID")
- I +VAPA(9),+VAPA(10) W !?5,"(TEMP ADDRESS from "_$P(VAPA(9),"^",2)_" till "_$P(VAPA(10),"^",2)_")"
+ I +VAPA(9) W !?5,"(TEMP ADDRESS from "_$P(VAPA(9),"^",2)_" till "_$S($P(VAPA(10),"^",2)]"":$P(VAPA(10),"^",2),1:"(no end date)")_")"
  W !,VAPA(1),?40,"DOB:   ",$S(+VADM(3):$P(VADM(3),"^",2),1:"UNKNOWN") W:VAPA(2)]"" !,VAPA(2) W:VAPA(3)]"" !,VAPA(3)
  W !,VAPA(4),?40,"PHONE: "_VAPA(8),!,$P(VAPA(5),"^",2)_"  "_$S(VAPA(11)]"":$P(VAPA(11),"^",2),1:VAPA(6)),?40,"ELIG:  "_$P(VAEL(1),"^",2) W:+VAEL(3) !?40,"SC%:   "_$P(VAEL(3),"^",2)
  I $D(^PS(55,DFN,0)) W:$P(^(0),"^",2) !,"CANNOT USE SAFETY CAPS." I +$P(^(0),"^",4) W ?40,"DIALYSIS PATIENT."

@@ -1,6 +1,8 @@
 PSGSH ;BIR/CML3-SCHEDULE HELP TEXT ;07 OCT 97 / 9:17 AM 
- ;;5.0; INPATIENT MEDICATIONS ;;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**111**;16 DEC 97
  ;
+ ; Reference to ^PS(55 is supported by DBIA 2191.
+ ; 
 ENSH3 ; from ^DD(53.1,26,4)
  S:'$D(PSGST) PSGST=$P($G(^PS(53.1,DA,0)),"^",7),PSGDDFLG=1 G ENSH
  ;
@@ -14,7 +16,7 @@ ENQ ;
  ;
 ENSH ;
  N D,DA,DIC,DIE,DZ,Y
- W !,"'STAT', 'ONCE', 'NOW', and 'DAILY' are acceptable schedules." I X?1"???".E F Q=1:1 Q:$P($T(HT+Q),";",3)=""  W !?5,$P($T(HT+Q),";",3)
+ I X?1"???".E F Q=1:1 Q:$P($T(HT+Q),";",3)=""  W !?5,$P($T(HT+Q),";",3)
  I X?1"???".E R !,"(Press RETURN to continue.) ",Q:DTIME W:'$T $C(7) S:'$T Q="^" I Q="^" K:$D(PSGDDFLG) PSGDDFLG,PSGST Q
  K DIC S DIC="^PS(51.1,",DIC(0)="E",D="APPSJ",DIC("W")="W ""  ""," I $D(PSJPWD),PSJPWD S DIC("W")=DIC("W")_"$S($D(^PS(51.1,+Y,1,PSJPWD,0)):$P(^(0),""^"",2),1:$P(^PS(51.1,+Y,0),""^"",2))"
  E  S DIC("W")=DIC("W")_"$P(^(0),""^"",2)"

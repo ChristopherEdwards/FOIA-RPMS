@@ -1,5 +1,5 @@
 FHPRC3 ; HISC/REL - List Meal ;4/12/95  13:56
- ;;5.0;Dietetics;**37**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  S DIC="^FH(116.1,",DIC(0)="AEQM" W ! D ^DIC K DIC G KIL:U[X!$D(DTOUT),FHPRC3:Y<1 S FHMN=+Y
  K IOP S %ZIS="MQ",%ZIS("A")="Select Listing Device: ",%ZIS("B")="HOME" W ! D ^%ZIS K %ZIS,IOP G:POP KIL
  I $D(IO("Q")) S FHPGM="Q1^FHPRC3",FHLST="FHMN" D EN2^FH G FHPRC3

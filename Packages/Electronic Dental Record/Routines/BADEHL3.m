@@ -1,7 +1,8 @@
 BADEHL3 ;IHS/MSC/MGH/VAC - Dentrix HL7 inbound interface  ;01-Oct-2010 10:20;EDR
- ;;1.0;DENTAL/EDR INTERFACE;**1**;AUG 22, 2011
+ ;;1.0;DENTAL/EDR INTERFACE;**1,3**;FEB 22, 2010;Build 4
  ;; Modified - IHS/MSC/AMF - 11/23/10 - More descriptive alert messages
  ;; Modified - IHS/MSC/AMF 10/2010 fix for hospital location FT1-16,2
+ ;; Modified - GDIT/KJH Patch 3 - Comment out incorrect call to tag ACK pending further review
  ; Return array of message data
  ; Input: MIEN - IEN to HLO MESSAGES and HLO MESSAGE BODY files
  ; Output: DATA
@@ -175,7 +176,10 @@ VISIT ;Create the visit
  I VTYPE="NEW" D POV,PRV("P"),DENT
  I VTYPE="ADD" D CHECKPRV,DENT
  N MSHMSG,MSA
- I DATA("HDR","APP ACK TYPE")="AL" D ACK(BADERR)
+ ;07/18/2013 - KJH - Following line was originally not called because "AL" was never set.
+ ;                 - Line became active after a fix to the adapter but calls ACK with wrong number of parameters.
+ ;                 - Comment out to restore original functionality until the code can be reviewed further.
+ ;I DATA("HDR","APP ACK TYPE")="AL" D ACK(BADERR)
  Q
 ACK(HLMSGIEN,DFN,BADERR) ;Send acknowledgement IHS/MSC/AMF 11/23/10 More descriptive alert
  N STR

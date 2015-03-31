@@ -1,5 +1,5 @@
 GMTSFH ; SLC/JER,MKB,KER - Dietetics Component ; 02/27/2002
- ;;2.7;Health Summary;**25,28,49**;Oct 20, 1995
+ ;;2.7;Health Summary;**25,28,49,83**;Oct 20, 1995;Build 1
  ;                    
  ; External References
  ;   DBIA  1407  ^FHWHEA
@@ -109,4 +109,8 @@ EN ; Dietetic Encounters
  . D CKP^GMTSUP Q:$D(GMTSQIT)  W STRT,?12,$P(GMZ,U,2),!
  . I $P(GMZ,U,3)]"" D CKP^GMTSUP Q:$D(GMTSQIT)  W ?6,$P(GMZ,U,3),!
  . I $P(GMZ,U,4)]"" D CKP^GMTSUP Q:$D(GMTSQIT)  W ?6,$P(GMZ,U,4),!
+ . I $D(^UTILITY($J,"NA",GMIDT)) D
+ . . ;I $G(^UTILITY($J,"NA",GMIDT,1)) D CKP^GMTSUP Q:$D(GMTSQIT)  W ?6,$G(^UTILITY($J,"NA",GMIDT,1)),!
+ . . ;I $G(^UTILITY($J,"NA",GMIDT,3)) D CKP^GMTSUP Q:$D(GMTSQIT)  W ?6,"Comments:",!
+ . . N I S I=0 F  S I=$O(^UTILITY($J,"NA",GMIDT,I)) Q:'I  D CKP^GMTSUP Q:$D(GMTSQIT)  W ?6,$G(^UTILITY($J,"NA",GMIDT,I)),!
  Q

@@ -1,40 +1,34 @@
 PSJHL9 ;BIR/LDT-VALIDATE INCOMING HL7 DATA/CREATE NEW ORDER ;08 Jul 99 / 10:50 AM
- ;;5.0; INPATIENT MEDICATIONS ;**1,18,31,42,47,50,63,72,75,58,80**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**1,18,31,42,47,50,63,72,75,58,80,110,111,134**;16 DEC 97;Build 124
  ;
  ; Reference to ^PSDRUG is supported by DBIA# 2192.
  ; Reference to ^PS(50.7 is supported by DBIA# 2180.
  ; Reference to ^PS(51.2 is supported by DBIA# 2178.
  ; Reference to ^PS(55 is supported by DBIA# 2191.
- ; Reference to ^%ZOSF is supported by DBIA# 10096.
- ; Reference to ^SC is supported by DBIA# 10040.
- ; Reference to ^VA(200 is supported by DBIA# 10060.
- ; Reference to ^%DT is supported by DBIA# 10003.
- ; Reference to ^DIE is supported by DBIA# 10018.
  ; Reference to ^ORERR is supported by DBIA# 2187.
- ; Reference to ^VADPT is supported by DBIA# 10061.
- ; Reference to ^XLFDT is supported by DBIA# 10103.
- ; Reference to ^XLFSTR is supported by DBIA# 10104.
+ ; Reference to ^ORHLESC is supported by DBIA# 4922.
  ;
 VALID ;
- I APPL']"",PSITEM']"" S PSREASON="Missing or invalid Orderable Item" D ERROR Q
+ I APPL="",PSITEM="" S PSREASON="Missing or invalid Orderable Item" D ERROR Q
  I PSITEM]"",'$D(^PS(50.7,+PSITEM,0)) S PSREASON="Missing or invalid Orderable Item" D ERROR Q
  I $G(APPL)'["B",$G(APPL)'["A",+$G(ROUTE)'>0 S PSREASON="Missing or invalid Med Route" D ERROR Q
  S APPL=$S($G(APPL)["B":"F",$G(APPL)["A":"F",$G(DISPENSE)]"":$$ORTYP(ROUTE,DISPENSE),1:$$TRYAGAIN(ROUTE,PSITEM))
  S:APPL="" APPL="IP"
  I APPL'="F" D
  .I $G(SCHEDULE)]"" N X S X=SCHEDULE D  S SCHEDULE=X
- ..I X[""""!($A(X)=45)!(X?.E1C.E)!($L(X," ")>3)!($L(X)>70)!($L(X)<1)!(X["P RN")!(X["PR N") S X="" Q
+ ..I X[""""!($A(X)=45)!(X?.E1C.E)!($L(X," ")>3)!($L($P(X,"@"))>70)!($L($P(X,"@",2))>119)!($L(X)<1)!(X["P RN")!(X["PR N") S X="" Q
  ..I X?.E1L.E S X=$$ENLU^PSGMI(X)
  ..S X=$$TRIM^XLFSTR(X,"R"," ")
  ..I X["Q0" S X="" Q
- .I APPL["U",$G(SCHEDULE)']"" S PSREASON="Missing or invalid schedule" D ERROR Q
- .N DFN S DFN=PSJHLDFN D IN5^VADPT I 'VAIP(5) D  I APPL="UN" S PSREASON="Cannot place Unit Dose orders for an Outpatient" D ERROR Q
+ .I APPL["U",$G(SCHEDULE)="" S PSREASON="Missing or invalid schedule" D ERROR Q
+ .N DFN S DFN=PSJHLDFN D IN5^VADPT I 'VAIP(5) D:APPT=""  I APPL="UN",APPT="" S PSREASON="Cannot place Unit Dose orders for an Outpatient" D ERROR Q
  .. I APPL="UP" S APPL="IN" Q
  .. I APPL="IP" S APPL="IN" Q
  .I $G(ROC)'="R",$G(ROUTE)'>0 S PSREASON="Missing or invalid Med Route" D ERROR Q
  I APPL="F" D
  .I '$O(^TMP("PSJNVO",$J,"SOL",0))&('$O(^TMP("PSJNVO",$J,"AD",0))) S PSREASON="IV Fluid orders must have at least one additive or solution" D ERROR Q
- .I $G(INFRT)']"" S PSREASON="Invalid Infusion Rate" D ERROR Q
+ .I $G(IVCAT)="I",$G(INFRT)="" Q  ;Allow intermittent IV orders to have a null infusion rate.
+ .I $G(INFRT)="" S PSREASON="Invalid Infusion Rate" D ERROR Q
  Q
  ;
 ERROR ;Sends error msg to CPRS, logs error in OE/RR Errors file
@@ -44,10 +38,12 @@ ERROR ;Sends error msg to CPRS, logs error in OE/RR Errors file
  ;
 NVO ; put new orders in non-verified orders file
  I '$D(ROUTE) S ROUTE=""
- S:APPL="F" ROUTE=$O(^PS(51.2,"B","INTRAVENOUS",0))
+ I $G(ROUTE)="" S:APPL="F" ROUTE=$O(^PS(51.2,"B","INTRAVENOUS",0))
  N DA,DR,DIE D ENGNN^PSGOETO S DIE="^PS(53.1,"
- S DR="1////"_PROVIDER_";3////"_ROUTE_";4////"_$E(APPL)_";28////P"_";108////"_PSITEM_";27.1////"_LOGIN_";27////"_LOGIN_";.5////"_PSJHLDFN_";.24////"_PRIORITY
- S:$P($G(^SC(+LOC,0)),U,3)="C" DR=DR_";113////"_LOC
+ S DR="1////"_PROVIDER_";3////"_$$ESC^ORHLESC(ROUTE)_";4////"_$E(APPL)_";28////P"_";108////"_PSITEM_";27.1////"_LOGIN_";27////"_LOGIN_";.5////"_PSJHLDFN_";.24////"_PRIORITY_";125////"_$G(PRNTON)
+ I $G(LOC)]"" S:$P($G(^SC(+LOC,0)),U,3)="C" DR=DR_";113////"_LOC_";126////"_$G(APPT)
+ I $G(IVCAT)]"" S DR=DR_";128////"_IVCAT S ADMINS=""
+ S:$G(SCHTYP)]"" DR=DR_";7////"_SCHTYP
  D ^DIE K PSJHLSKP S NEWORDER=DA,PSJORDER=DA_"P"
  S $P(^PS(55,PSJHLDFN,5.1),"^",2)=PROVIDER
  S:$G(ORDER)]"" $P(^PS(53.1,DA,0),"^",21)=$P(ORDER,"^")
@@ -55,37 +51,43 @@ NVO ; put new orders in non-verified orders file
  S $P(^PS(53.1,DA,0),"^",18)=DA
  S:$G(ROC)]"" $P(^PS(53.1,DA,0),"^",24)=ROC
  S:$G(PREON)]"" $P(^PS(53.1,DA,0),"^",25)=PREON
+ S:$G(ADMINS) $P(^PS(53.1,DA,2),"^",5)=ADMINS
  S:$G(REQST)]"" $P(^PS(53.1,DA,2.5),"^")=REQST
+ ; Transform duration units of doses to a for administrations
+ S:$E(DURATION,1,5)="doses" DURATION=$TR(DURATION,"doses","a")
  S:$G(DURATION)]"" $P(^PS(53.1,DA,2.5),"^",2)=DURATION
+ S:$G(IVLIMIT)]"" $P(^PS(53.1,DA,2.5),"^",4)=IVLIMIT
  I $G(REQST)]"",$G(DURATION)]"" S $P(^PS(53.1,DA,2.5),"^",3)=$$STOP(REQST,DURATION)
  S:$G(INSTR)]"" $P(^PS(53.1,DA,.3),"^")=INSTR
- S:$G(INFRT)]"" ^PS(53.1,DA,8)=IVTYP_"^^^^"_INFRT
+ I $G(INFRT)]"" D
+ .I INFRT S:(INFRT["Minutes"!(INFRT["Hours")) INFRT="INFUSE OVER "_INFRT
+ .S ^PS(53.1,DA,8)=IVTYP_"^^^^"_INFRT
  S:$G(FREQ)]"" $P(^PS(53.1,DA,2),"^",6)=FREQ
  S:$G(SCHTYP)]"" $P(^PS(53.1,DA,0),"^",7)=SCHTYP
- I $G(APPL)'="I" I $G(INSTR)]"" N X S X=INSTR D STRIP I $S(X?.E1C.E:0,$L(X)>60:0,X="":0,X["^":0,X?1.P:1,1:1) S $P(^PS(53.1,DA,.2),"^",2)=X,$P(^PS(53.1,DA,.2),"^",5,6)=$G(DOSE)_"^"_$G(UNIT)
+ I $G(APPL)'="I" I $G(INSTR)]"" N X S X=INSTR D STRIP I $S(X?.E1C.E:0,$L(X)>60:0,X="":0,X["^":0,X?1.P:1,1:1) S $P(^PS(53.1,DA,.2),"^",2)=X,$P(^PS(53.1,DA,.2),"^",5,6)=$G(DOSE)_"^"_$$UNESC^ORHLESC($G(UNIT))
  S $P(^PS(53.1,DA,.2),"^",3)=ORDCON
- I $G(SCHEDULE)]"" S ^PS(53.1,DA,2)=SCHEDULE
- I $G(APPL)="I" I $G(UNITS)]"" S $P(^PS(53.1,DA,.3),"^")=UNITS
+ I $G(SCHEDULE)]"" S $P(^PS(53.1,DA,2),"^")=$$UNESC^ORHLESC(SCHEDULE)
+ I $G(APPL)="I" I $G(UNITS)]"" S $P(^PS(53.1,DA,.3),"^")=$$UNESC^ORHLESC(UNITS)
  S ^PS(53.1,DA,4)="^^^^^^"_CLERK
- I $G(DISPENSE) S ^PS(53.1,DA,1,0)="^53.11P^1^1",^PS(53.1,DA,1,1,0)=DISPENSE_"^"_UNITS,^PS(53.1,DA,1,"B",$E(DISPENSE,1,30),1)=""
+ I $G(DISPENSE) S ^PS(53.1,DA,1,0)="^53.11P^1^1",^PS(53.1,DA,1,1,0)=DISPENSE_"^"_$$UNESC^ORHLESC(UNITS),^PS(53.1,DA,1,"B",$E(DISPENSE,1,30),1)=""
  I $D(PROCOM) D
  .I '$D(^PS(53.1,DA,12,0)) S ^(0)="^53.1012^0^0"
- .S JJ=0 F  S JJ=$O(PROCOM(JJ)) Q:'JJ  S $P(^PS(53.1,DA,12,0),"^",3,4)=JJ_"^"_JJ,^PS(53.1,DA,12,JJ,0)=PROCOM(JJ)
+ .S JJ=0 F  S JJ=$O(PROCOM(JJ)) Q:'JJ  S $P(^PS(53.1,DA,12,0),"^",3,4)=JJ_"^"_JJ,^PS(53.1,DA,12,JJ,0)=$$UNESC^ORHLESC(PROCOM(JJ))
  I $D(ADMINSTR) D
  .I '$D(^PS(53.1,DA,3,0)) S ^(0)="^53.12^0^0"
  .S JJ=0 F  S JJ=$O(ADMINSTR(JJ)) Q:'JJ  S $P(^PS(53.1,DA,3,0),"^",3,4)=JJ_"^"_JJ,^PS(53.1,DA,3,JJ,0)=ADMINSTR(JJ)
  I $D(^TMP("PSJNVO",$J,"AD")) D
  .S ^PS(53.1,DA,"AD",0)="^53.157PA^0^0"
- .S JJ=0 F  S JJ=$O(^TMP("PSJNVO",$J,"AD",JJ)) Q:'JJ  S $P(^PS(53.1,DA,"AD",0),"^",3,4)=JJ_"^"_JJ,^PS(53.1,DA,"AD",JJ,0)=^TMP("PSJNVO",$J,"AD",JJ,0),^PS(53.1,DA,"AD","B",$P(^TMP("PSJNVO",$J,"AD",JJ,0),"^"),JJ)=""
+ .S JJ=0 F  S JJ=$O(^TMP("PSJNVO",$J,"AD",JJ)) Q:'JJ  S $P(^PS(53.1,DA,"AD",0),"^",3,4)=JJ_"^"_JJ,^PS(53.1,DA,"AD",JJ,0)=^TMP("PSJNVO",$J,"AD",JJ,0),^PS(53.1,DA,"AD","B",$$UNESC^ORHLESC($P(^TMP("PSJNVO",$J,"AD",JJ,0),"^")),JJ)=""
  I $D(^TMP("PSJNVO",$J,"SOL")) D
  .S ^PS(53.1,DA,"SOL",0)="^53.158PA^0^0"
  .S JJ=0 F  S JJ=$O(^TMP("PSJNVO",$J,"SOL",JJ)) Q:'JJ  S $P(^PS(53.1,DA,"SOL",0),"^",3,4)=JJ_"^"_JJ,^PS(53.1,DA,"SOL",JJ,0)=^TMP("PSJNVO",$J,"SOL",JJ,0),^PS(53.1,DA,"SOL","B",$P(^TMP("PSJNVO",$J,"SOL",JJ,0),"^"),JJ)=""
  I $O(^TMP("PSJNVO",$J,10,0)) D
  .S ^PS(53.1,DA,10,0)="^53.1112A^0^0"
- .S JJ=0 F  S JJ=$O(^TMP("PSJNVO",$J,10,JJ)) Q:'JJ  S $P(^PS(53.1,DA,10,0),"^",3,4)=JJ_"^"_JJ,^PS(53.1,DA,10,JJ,0)=^TMP("PSJNVO",$J,10,JJ,0),^PS(53.1,DA,10,"B",$E(^TMP("PSJNVO",$J,10,JJ,0),1,30),JJ)="" D
+ .S JJ=0 F  S JJ=$O(^TMP("PSJNVO",$J,10,JJ)) Q:'JJ  S $P(^PS(53.1,DA,10,0),"^",3,4)=JJ_"^"_JJ,^PS(53.1,DA,10,JJ,0)=$$UNESC^ORHLESC(^TMP("PSJNVO",$J,10,JJ,0)),^PS(53.1,DA,10,"B",$$UNESC^ORHLESC($E(^TMP("PSJNVO",$J,10,JJ,0),1,30)),JJ)="" D
  ..S ^PS(53.1,DA,10,JJ,1)=$P($G(^VA(200,+CLERK,0)),"^")
  ..I $O(^TMP("PSJNVO",$J,10,JJ,2,0)) S ^PS(53.1,DA,10,JJ,2,0)="^53.11122^0^0" D
- ...S QQ=0 F  S QQ=$O(^TMP("PSJNVO",$J,10,JJ,2,QQ)) Q:'QQ  S $P(^PS(53.1,DA,10,JJ,2,0),"^",3,4)=QQ_"^"_QQ,^PS(53.1,DA,10,JJ,2,QQ,0)=^TMP("PSJNVO",$J,10,JJ,2,QQ,0)
+ ...S QQ=0 F  S QQ=$O(^TMP("PSJNVO",$J,10,JJ,2,QQ)) Q:'QQ  S $P(^PS(53.1,DA,10,JJ,2,0),"^",3,4)=QQ_"^"_QQ,^PS(53.1,DA,10,JJ,2,QQ,0)=$$UNESC^ORHLESC(^TMP("PSJNVO",$J,10,JJ,2,QQ,0))
  Q
 STRIP ;Strips spaces off the end of instructions.
  I $E(X,$L(X))=" " F  S X=$E(X,1,$L(X)-1) Q:$E(X,$L(X))'=" "
@@ -93,7 +95,11 @@ STRIP ;Strips spaces off the end of instructions.
  ;
 ORTYP(MDRT,DDRG)        ;Entry point to determine order type for 53.1
  ;MDRT=Med Route from 51.2, DDRG=Dispense Drug
+ I '$G(DDRG) S ORTYP="" Q ORTYP
+ I '$D(^PSDRUG(+DDRG,2)) S ORTYP="" Q ORTYP
  I $P(^PSDRUG(DDRG,2),"^",3)'["I",$P(^PSDRUG(DDRG,2),"^",3)'["U" S ORTYP="" Q ORTYP
+ I '$G(MDRT) S ORTYP="" Q ORTYP
+ I '$D(^PS(51.2,+MDRT,0)) S ORTYP="" Q ORTYP
  I $P(^PSDRUG(DDRG,2),"^",3)["I",$P(^PSDRUG(DDRG,2),"^",3)'["U",$P(^PS(51.2,MDRT,0),"^",6)=1 S ORTYP="IN" Q ORTYP
  I $P(^PSDRUG(DDRG,2),"^",3)'["I",$P(^PS(51.2,MDRT,0),"^",6)=1 S ORTYP="UP" Q ORTYP
  I $P(^PSDRUG(DDRG,2),"^",3)["I",$P(^PS(51.2,MDRT,0),"^",6)=1 S ORTYP="IP" Q ORTYP

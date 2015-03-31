@@ -1,5 +1,5 @@
 ABSPOSCC ; IHS/FCS/DRS - Set up ABSP() ;      [ 05/09/2003  9:37 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,4,6,9,11,15,16,17,19,20,21,29,37,40,42**;JUN 01, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,4,6,9,11,15,16,17,19,20,21,29,37,40,42,46**;JUN 01, 2001
  ;---
  ; IHS/SD/lwj 03/12/02  some insurers are requiring the entire
  ; untranslated value as the cardholder id - new array budget
@@ -52,7 +52,9 @@ ABSPOSCC ; IHS/FCS/DRS - Set up ABSP() ;      [ 05/09/2003  9:37 AM ]
  ;---
  ;IHS/SD/RLT - 5/14/07 - Patch 21
  ;    Updated NPI
- ;
+ ;---
+ ;IHS/OIT/RCS - 8/12/13 - Patch 46
+ ;    Added 'ABSP("Patient","Location")' variable
  Q
  ; Called from ABSPOSCA from ABSPOSQG from ABSPOSQ2
  ; Sets up the ABSP(*) nodes
@@ -128,6 +130,7 @@ GETINFO(DIALOUT,PATIEN,VSTIEN,PINS,INSIEN) ;EP
  S ABSP("Patient","DOB")=$P(XDATA,U,3)
  S ABSP("Patient","SSN")=$P(XDATA,U,9)
  S ABSP("Patient","EMAIL")=$P($G(^AUPNPAT(PATIEN,18)),U,2) ;Patch 42
+ S ABSP("Patient","Location")="01" ;Patch 46, Default value
  ;
  ;IHS/SD/lwj 12/04/03  patch 9 get address info
  D GETAINFO^ABSPOSCH

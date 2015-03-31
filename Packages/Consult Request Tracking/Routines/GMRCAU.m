@@ -1,5 +1,5 @@
 GMRCAU ;SLC/DLT,JFR - Action Utilities  ;10/17/01 18:31
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,11,14,12,15,17,22**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,11,14,12,15,17,22,55**;DEC 27, 1997;Build 4
  ;
  ; This routine invokes IA #2324,#2692
  ;
@@ -82,6 +82,7 @@ FINDPAR(SERV,ARCNT)     ;find parents of SERV
 VALIDU(GMRCSS,GMRCUSR,GMRCIFC) ;Check to see if user is an update user
  ;The value returned is the equivalent of this set of codes:
  ;    0 = not an update user
+ ;    1 = unrestricted access user
  ;    2 = update user
  ;    3 = administrative update user
  ;    4 = admin AND update user
@@ -92,11 +93,11 @@ VALIDU(GMRCSS,GMRCUSR,GMRCIFC) ;Check to see if user is an update user
  I '+$G(GMRCSS) Q 0
  S GMRCAD=0,GMRCUP=0
  I $G(GMRCIFC),$P($G(^GMR(123.5,GMRCSS,"IFC")),U,3) Q 5
- I 'GMRCUP,+$P($G(^GMR(123.5,GMRCSS,0)),U,6) S GMRCUP=2_$$FIELD(.06)
  I 'GMRCUP,$D(^GMR(123.5,+GMRCSS,123.3,"B",GMRCUSR)) D
  . S GMRCUP=2_$$FIELD(123.3)
  I 'GMRCUP,GMRCUSR=$P($G(^GMR(123.5,+GMRCSS,123)),"^",8) D
  . S GMRCUP=2_$$FIELD(123.08)
+ I 'GMRCUP,+$P($G(^GMR(123.5,GMRCSS,0)),U,6) S GMRCUP=1_$$FIELD(.06)
  I $D(^GMR(123.5,+GMRCSS,123.33,"B",GMRCUSR)) S GMRCAD=3_$$FIELD(123.33)
  ;
  I GMRCAD,GMRCUP Q $$BOTH(GMRCAD,GMRCUP) ;admin and upd user

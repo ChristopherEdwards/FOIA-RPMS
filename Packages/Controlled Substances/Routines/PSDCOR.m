@@ -1,5 +1,5 @@
 PSDCOR ;BIR/JPW-CS Correction Action ; 6 July 94
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
 EN1 ;sets type=1
  S TYPE=1 G START
 EN2 ;sets type=2
@@ -34,7 +34,7 @@ ASK W !!,"This action will update Green Sheet #",PSDPN," as ",!,?5,"** DELIVERED
 COM ;complete correction
  D NOW^%DTC S RECDT=+$E(%,1,12)
  W !!,"Accessing Green Sheet #",PSDPN," information...",!!
- F  L +^PSD(58.87,0):0 I  Q
+ F  L +^PSD(58.87,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDCOR=$P(^PSD(58.87,0),"^",3)+1 I $D(^PSD(58.87,PSDCOR)) S $P(^PSD(58.87,0),"^",3)=PSDCOR G FIND
  K DA,DIC,DLAYGO S (DIC,DLAYGO)=58.87,DIC(0)="L",X=PSDCOR D ^DIC K DIC,DLAYGO
  L -^PSD(58.87,0)

@@ -1,5 +1,5 @@
 LEXAR6 ; ISL Look-up Response (Unresolved Narr)   ; 05/25/1998
- ;;2.0;LEXICON UTILITY;**3,9,11**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**3,9,11**;Sep 23, 1996;Build 15
  ;
  Q
  ;  This routines saves Unresolved Narratives (terms not found

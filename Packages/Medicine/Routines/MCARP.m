@@ -1,5 +1,5 @@
 MCARP ;WISC/TJK,WAA-PRINT ROUTINES ;12/15/97  14:54
- ;;2.3;Medicine;**6,14,15,18,27,33,35**;09/13/1996
+ ;;2.3;Medicine;**6,14,15,18,27,33,35,39**;09/13/1996
  ; Reference IA #2432 for Hospital Location File #44 FM Lookup
  ;              #1576 for DIVISION file 40.8 lookup
  ;              #10035 for Patient File (#2) Direct Global Reads
@@ -99,7 +99,8 @@ RHFULL2 ;
  .I RH="A" D DISP^MCMAG K DXS
  Q
 RHB D ^MCOBRH K DXS Q:$D(MCOUT)  D ^MCOBRHA Q
-DTIME S MCT=$P(X,".",2),X=$S(X:$E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3),1:"")_" "_$S(MCT:$E(MCT,1,2)_$E("00",0,2-$L($E(MCT,1,2)))_":"_$E(MCT,3,4)_$E("00",0,2-$L($E(MCT,3,4))),1:"")
+DTIME ; Setup Date/Time
+ S MCT=$P(X,".",2),X=$S(X:$E(X,4,5)_"/"_$E(X,6,7)_"/"_$E(X,2,3),1:"")_" "_$S(MCT:$E(MCT,1,2)_$E("00",0,2-$L($E(MCT,1,2)))_":"_$E(MCT,3,4)_$E("00",0,2-$L($E(MCT,3,4))),1:"")
  K MCT Q
 HEAD ;
  S HOSP=$P($G(^DPT(DFN,.1)),U)

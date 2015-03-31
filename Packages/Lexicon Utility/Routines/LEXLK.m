@@ -1,5 +1,5 @@
 LEXLK ; ISL Demo Look Up                         ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 EN ; Initialize variables
  W @IOF N LEXSF,LEXCONT,LEXCLAS,LEXDEF,LEXDIS,LEXEXP,LEXFORM

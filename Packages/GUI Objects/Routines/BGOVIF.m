@@ -1,5 +1,5 @@
-BGOVIF ; IHS/BAO/TMD - Manage V INFANT FFEDING ;08-Jun-2010 09:30;MGH
- ;;1.1;BGO COMPONENTS;**1,3,6**;Mar 20, 2007
+BGOVIF ; IHS/BAO/TMD - Manage V INFANT FFEDING ;09-Apr-2012 14:19;DU
+ ;;1.1;BGO COMPONENTS;**1,3,6,11**;Mar 20, 2007;Build 3
  ;---------------------------------------------
  ; Return entries from V Infant Feeding by V File Entry or by Patient or by Visit
  ;  INP = Patient IEN [1] ^ V File IEN [2] ^ Visit IEN [3]
@@ -33,6 +33,13 @@ SET(RET,INP) ;EP
  S @FDA@(.01)=TYPE
  S @FDA@(1201)="N"
  S @FDA@(1204)="`"_DUZ
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

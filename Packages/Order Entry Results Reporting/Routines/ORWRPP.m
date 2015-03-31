@@ -1,5 +1,6 @@
 ORWRPP ; ALB/MJK - Background Report Print Driver ;18-Jun-2009 08:41;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,109,192,1002,1004**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,109,192,1002,1004,1010**;Dec 17, 1997;Build 47
+ ; Modified - IHS/MSC/DKM - 06/18/09 - Line REMOTE+7, PRINT+9, and others
 PRINT(ORY,ORIO,ORDFN,ORRPTID,ORHSTYPE,ORDTRNG,OREXAMID,ORCOMP,ORALPHA,OROMEGA) ; -- print report entry point
  ;  RPC: ORWRP PRINT REPORT
  ;  See RPC definition for details on input and output parameters

@@ -1,5 +1,5 @@
 GMRAPST2 ;HIRMFO/WAA- PRINT SUM LISTING OF OUT COMES ;3/5/97  14:50
- ;;4.0;Adverse Reaction Tracking;**7**;Mar 29, 1996
+ ;;4.0;Adverse Reaction Tracking;**7,33**;Mar 29, 1996;Build 5
 EN1 ; This routine will loop through the ADT entry point to get all
  ; the entries in that date range.
  S GMRAOUT=0
@@ -27,6 +27,7 @@ PRINT ;Queue point for report
  .S GMRAPA1=0 F  S GMRAPA1=$O(^GMR(120.85,"B",GMRADATE,GMRAPA1)) Q:GMRAPA1<1  D
  ..S GMRAPA1(0)=$G(^GMR(120.85,GMRAPA1,0)) Q:GMRAPA1(0)=""  ;Bad Node
  ..Q:+$G(^GMR(120.8,$P(GMRAPA1(0),U,15),"ER"))  ;Entered in Error data
+ ..Q:'$$PRDTST^GMRAUTL1($P(GMRAPA1(0),U,2))  ;GMRA*4*33 Exclude test patient from report if production or legacy environment.
  ..S GMRATOT=GMRATOT+1
  ..F GMRALAB=1:1 S GMRALINE=$T(TEXT+GMRALAB) Q:$P(GMRALINE,";",3)=""  D
  ...S GMRAP=$P(GMRALINE,";",4)
@@ -56,7 +57,7 @@ PRINT ;Queue point for report
  W !!,?22,"Total number of records processed ",GMRATOT
  D CLOSE^GMRAUTL
  Q
- ;has the patient died with inthe dat
+ ;has the patient died within the date
 HEAD ; Print header information
  I GMRAPG'=1  Q:$Y<(IOSL-4)
  I $E(IOST,1)="C" D  Q:GMRAOUT
@@ -76,7 +77,7 @@ HEAD ; Print header information
  S GMRAPG=GMRAPG+1
  I $D(ZTQUEUED) S:$$STPCK^GMRAUTL1 GMRAOUT=1 ; Check if stopped by user
  Q
-TEXT ;;these are the labeles that will denote the field data
+TEXT ;;these are the labels that will denote the field data
  ;;Patients that Died: ;3
  ;;Reactions treated with RX drugs: ;4
  ;;Life Threatening illness: ;5

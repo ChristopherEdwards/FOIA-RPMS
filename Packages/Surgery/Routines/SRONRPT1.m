@@ -1,38 +1,75 @@
-SRONRPT1 ;TAMPA/CFB - NURSES REPORT ; 30 Jan 1989  8:45 AM;
- ;;3.0; Surgery ;;24 Jun 93
- I $O(^SRF(SRTN,1,0)) D UL G:SRSOUT END W !,"Prosthesis Installed:" F V=0:0 S V=$O(^SRF(SRTN,1,V)) Q:'V  I $D(^(V,0)) S W=^(0),W(1)=$S($D(^(1)):^(1),1:"") W !,?5,$S($P(W,U,1)="":"",$D(^SRO(131.9,$P(W,U,1),0))#2:$P(^(0),U,1),1:"") D PRO
- I $O(^SRF(SRTN,22,0)) D UL G:SRSOUT END W !,"Medications:" F V=0:0 S V=$O(^SRF(SRTN,22,V)) Q:'V  I $D(^(V,0)) D Q S W=^SRF(SRTN,22,V,0) W !,?5,$S(+W=0:"",$D(^PSDRUG(+W,0))#2:$P(^(0),U,1),1:"") D MED
- I $D(^SRF(SRTN,26)) D UL G:SRSOUT END W !,"Irrigation Solution(s):" F V=0:0 S V=$O(^SRF(SRTN,26,V)) Q:'V  I $D(^(V,0)) S W=^(0) W !,?5,$S($D(^SRO(133.6,$P(W,U,1),0)):$P(^(0),U,1),1:$P(W,U,1)) D IRR
- I $O(^SRF(SRTN,4,0)) D UL G:SRSOUT END W !,"Blood Replacement Fluids:" F V=0:0 S V=$O(^SRF(SRTN,4,V)) Q:'V  I $D(^(V,0)) S W=^(0) W !,?5,$S($D(^SRO(133.7,$P(W,U,1),0)):$P(^(0),U,1),1:$P(W,U,1)) D BLOOD
- K SRCOUNT,S(25) I $D(^SRF(SRTN,25)) S S(25)=^(25),SRCOUNT(1)=$S($P(S(25),"^")="Y":"CORRECT",$P(S(25),"^")="N":"NOT CORRECT, SEE NURSING CARE COMMENTS",1:"NOT APPLICABLE")
- I $D(S(25)) S SRCOUNT(2)=$S($P(S(25),"^",2)="Y":"CORRECT",$P(S(25),"^",2)="N":"NOT CORRECT, SEE NURSING CARE COMMENTS",1:"NOT APPLICABLE")
- I $D(S(25)) S SRCOUNT(3)=$S($P(S(25),"^",3)="Y":"CORRECT",$P(S(25),"^",3)="N":"NOT CORRECT, SEE NURSING CARE COMMENTS",1:"NOT APPLICABLE")
- I $D(S(25)) S SRCNTR=$P(S(25),"^",4),SRVFR=$P(S(25),"^",5) S:SRCNTR'="" SRCNTR=$P(^VA(200,SRCNTR,0),"^") S:SRVFR'="" SRVFR=$P(^VA(200,SRVFR,0),"^")
- F I=1:1:3 I '$D(SRCOUNT(I)) S SRCOUNT(I)=""
- S:'$D(SRCNTR) SRCNTR="" I '$D(SRVFR) S SRVFR=""
- D UL G:SRSOUT END W !,"Sponge Count: "_SRCOUNT(1),!,"Sharps Count: "_SRCOUNT(2),!,"Instrument Count: "_SRCOUNT(3),!,?5,"Counter:: "_SRCNTR,!,?5,"Counts Verified By: "_SRVFR
- G ^SRONRPT3
-UL Q:SRSOUT  I SRT="UL" D UL1
-Q Q:$Y'>(IOSL-11)  D FOOT^SRONRPT Q:SRSOUT  D HDR^SRONRPT
+SRONRPT1 ;BIR/ADM - NURSE INTRAOP REPORT ;02/20/05
+ ;;3.0; Surgery ;**100,143,157**;24 Jun 93;Build 3
+ ;
+ ;** NOTICE: This routine is part of an implementation of a nationally
+ ;**         controlled procedure.  Local modifications to this routine
+ ;**         are prohibited.
+ ;
+ S SRLF=1 N SRTD S SRTD=$P($G(^SRF(SRTN,3)),"^") I SRTD="",SRALL D LINE(1) S @SRG@(SRI)="Tubes and Drains: N/A"
+ I SRTD'="" D LINE(1) S @SRG@(SRI)="Tubes and Drains: " D LINE(1) S @SRG@(SRI)="  "_SRTD
+ S SRLF=1 I '$O(^SRF(SRTN,2,0)),SRALL D LINE(1) S @SRG@(SRI)="Tourniquet: N/A"
+ I $O(^SRF(SRTN,2,0)) D LINE(1) S @SRG@(SRI)="Tourniquet:" D TOUR
+ S SRLF=1,SRLINE="Thermal Unit: " I '$O(^SRF(SRTN,21,0)),SRALL D LINE(1) S @SRG@(SRI)=SRLINE_"N/A"
+ I $O(^SRF(SRTN,21,0)) D LINE(1) S @SRG@(SRI)=SRLINE D THERM
+ S SRLF=1,SRLINE="Prosthesis Installed: " I '$O(^SRF(SRTN,1,0)),SRALL D LINE(1) S @SRG@(SRI)=SRLINE_"N/A"
+ I $O(^SRF(SRTN,1,0)) D LINE(1) S @SRG@(SRI)=SRLINE D PRO
+ S SRLF=1,SRLINE="Medications: " I '$O(^SRF(SRTN,22,0)),SRALL D LINE(1) S @SRG@(SRI)=SRLINE_"N/A"
+ I $O(^SRF(SRTN,22,0)) D LINE(1) S @SRG@(SRI)=SRLINE D MED
+ D ^SRONRPT2
  Q
-UL1 I IO(0)=IO,'$D(ZTQUEUED) W !
- W $C(13) F X=1:1:79 W "_"
+MED ; medications
+ N ADBY,ADM,COMMENT,DOSE,DRUG,MED,MM,ORBY,ROUTE,TIME
+ S MED=0 F  S MED=$O(^SRF(SRTN,22,MED)) Q:'MED  D
+ .S Y=$P(^SRF(SRTN,22,MED,0),"^"),C=$P(^DD(130.33,.01,0),"^",2) D Y^DIQ,LINE(1) S @SRG@(SRI)="  "_Y,ADM=0 F  S ADM=$O(^SRF(SRTN,22,MED,1,ADM)) Q:'ADM  D
+ ..S MM=^SRF(SRTN,22,MED,1,ADM,0),Y=$P(MM,"^") D D^DIQ S TIME=$P(Y,"@")_"  "_$P(Y,"@",2)
+ ..S DOSE=$P(MM,"^",2),X=$P(MM,"^",3) S:X="" ORBY="N/A" I X S Y=$P(^VA(200,X,0),"^") D N(20) S ORBY=Y
+ ..S X=$P(MM,"^",4) S:X="" ADBY="N/A" I X S Y=$P(^VA(200,X,0),"^") D N(29) S ADBY=Y
+ ..S Y=$P(MM,"^",5),C=$P(^DD(130.34,4,0),"^",2) D:Y'="" Y^DIQ S ROUTE=Y
+ ..S COMMENT=$P(MM,"^",6) S:COMMENT="" COMMENT="N/A"
+ ..D LINE(1) S @SRG@(SRI)="    Time Administered: "_TIME D LINE(1) S @SRG@(SRI)="      Route: "_ROUTE,@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Dosage: "_DOSE
+ ..D LINE(1) S @SRG@(SRI)="      Ordered By: "_ORBY S @SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Admin By: "_ADBY
+ ..D LINE(1) S @SRG@(SRI)="      Comments: "_COMMENT
  Q
-END Q:$D(SRNIGHT)
- W ! I $D(ZTQUEUED) Q:$G(ZTSTOP)  S ZTREQ="@" Q
- D ^SRSKILL D ^%ZISC W @IOF I $D(SRSITE("KILL")) K SRSITE
+N(SRL) N SRN I $L(Y)>SRL S SRN=$P(Y,",")_","_$E($P(Y,",",2))_".",Y=SRN
  Q
-PRO W:$P(W,"^",3)]"" ?40,"Model: ",$P(W,"^",3) W:$P(W,"^",5)]"" !,?40,"Lot/Serial Number: ",$P(W,"^",5) I $D(W(1)),W(1)]"" W !,?40,"Size: ",$P(W(1),"^")
+PRO ; prosthesis
+ N C,ITEM,MODEL,PRO,QTY,SERIAL,SIZE,SRISC,SRSED,SRRN,STERILE,VENDOR
+ S PRO=0 F  S PRO=$O(^SRF(SRTN,1,PRO)) Q:'PRO  D
+ .S X=^SRF(SRTN,1,PRO,0),ITEM=$P(X,"^"),VENDOR=$P(X,"^",2),MODEL=$P(X,"^",3),SERIAL=$P(X,"^",5),Y=$P(X,"^",7),C=$P(^DD(130.01,5,0),"^",2) D:Y'="" Y^DIQ S STERILE=$S(Y'="":Y,1:"N/A")
+ .S X=$G(^SRF(SRTN,1,PRO,1)),SIZE=$P(X,"^"),QTY=$P(X,"^",2)
+ .S X=$G(^SRF(SRTN,1,PRO,2)),SRISC=$S($P(X,"^")="Y":"YES",1:$P(X,"^"))
+ .S Y=$P(X,"^",2),C=$P(^DD(130.01,9,0),"^",2) D:Y'="" Y^DIQ S SRSED=$S(Y="":"NOT ENTERED",1:Y)
+ .S Y=$P(X,"^",3),C=$P(^DD(130.01,10,0),"^",2) D:Y'="" Y^DIQ S SRRN=$S(Y="":"NOT ENTERED",1:Y)
+ .D LINE(1) S @SRG@(SRI)="  Item: "_$P(^SRO(131.9,ITEM,0),"^")
+ .D LINE(1) S @SRG@(SRI)="    Implant Sterility Checked (Y/N): "_$S(SRISC'="":SRISC,1:"NOT ENTERED")
+ .D LINE(1) S @SRG@(SRI)="    Sterility Expiration Date: "_SRSED
+ .D LINE(1) S @SRG@(SRI)="    RN Verifier: "_SRRN
+ .D LINE(1) S @SRG@(SRI)="    Vendor: "_$S(VENDOR'="":VENDOR,1:"N/A")
+ .D LINE(1) S @SRG@(SRI)="    Model: "_$S(MODEL'="":MODEL,1:"N/A")
+ .D LINE(1) S @SRG@(SRI)="    Lot/Serial Number: "_$S(SERIAL'="":SERIAL,1:"N/A"),@SRG@(SRI)=@SRG@(SRI)_$$SPACE(53)_"Sterile Resp: "_STERILE
+ .D LINE(1) S @SRG@(SRI)="    Size: "_$S(SIZE'="":SIZE,1:"N/A"),@SRG@(SRI)=@SRG@(SRI)_$$SPACE(53)_"Quantity: "_$S(QTY'="":QTY,1:"N/A")
  Q
-N S Z=$S(Z="":Z,$D(^VA(200,Z,0)):$P(^(0),U,1),1:Z) Q  ;S Z=$S(Z="":"",$D(^VA(200,Z,0)):$P(^(0),U,1),1:Z),Z=$S(Z="":"",$D(^VA(200,Z,0)):$P(^(0),U,1),1:Z) Q
-S Q:Q(7)=""  S Z1=$P(Q(3),U,3) F X1=1:1 Q:Q(7)=$P($P(Z1,";",X1),":",1)  Q:X1=50
- Q:X1=50  S Q(7)=$P($P(Z1,";",X1),":",2) Q
-MED F A=0:0 S A=$O(^SRF(SRTN,22,V,1,A)) Q:'A  S W=^(A,0) W !,?5 S X=$P(W,U,1) D:X'="" ^%DT S Q(3)=^DD(130.34,4,0),Q(7)=$P(W,U,5) D S W:Q(7)'="" ?40,Q(7) D MED1
+THERM ; thermal unit
+ N OFF,ON,TEMP,TH,UNIT S TH=0 F  S TH=$O(^SRF(SRTN,21,TH)) Q:'TH  D
+ .S UNIT=^SRF(SRTN,21,TH,0),TEMP=$P(UNIT,"^",3),TEMP=$S(TEMP'="":TEMP,1:"N/A"),ON=$P(UNIT,"^",2),OFF=$P(UNIT,"^",4)
+ .D LINE(1) S @SRG@(SRI)="  "_$P(UNIT,"^"),@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Temperature: "_TEMP
+ .S Y=ON D:Y D^DIQ S ON=$S(Y="":"N/A",1:$P(Y,"@")_"  "_$P(Y,"@",2)),Y=OFF D:Y D^DIQ S OFF=$S(Y="":"N/A",1:$P(Y,"@")_"  "_$P(Y,"@",2))
+ .D LINE(1) S @SRG@(SRI)="    Time On: "_ON,@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Time Off: "_OFF
  Q
-MED1 S Z=$P(W,"^",3) W:$P(W,"^",2)'="" "  ("_$P(W,"^",2)_")" D N I Z'="" W !,?10,"Ordered By: ",$E(Z,1,20) I $P(W,"^",4)'="" W ?40,"Adm By: " S Z=$P(W,"^",4) D N W Z
- I $P(W,"^",6)'="" W !,?10,"Medication Comments: ",!,?10,$P(W,"^",6)
+TOUR ; tourniquet info
+ N APBY,C,M,PRESS,SITE,TIME,TIME2,TOUR
+ S TOUR=0 F  S TOUR=$O(^SRF(SRTN,2,TOUR)) Q:'TOUR  D
+ .S M=^SRF(SRTN,2,TOUR,0),Y=$P(M,"^") D D^DIQ S TIME=$P(Y,"@")_"  "_$P(Y,"@",2),Y=$P(M,"^",4) S TIME2="NOT ENTERED" I Y D D^DIQ S TIME2=$P(Y,"@")_"  "_$P(Y,"@",2)
+ .D LINE(1) S @SRG@(SRI)="  Time Applied: "_TIME S @SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Time Released: "_TIME2
+ .S Y=$P(M,"^",2),C=$P(^DD(130.02,1,0),"^",2) D:Y'="" Y^DIQ S SITE=$S(Y="":"NOT ENTERED",1:Y),X=$P(M,"^",5),PRESS=$S(X="":"N/A",1:X)
+ .D LINE(1) S @SRG@(SRI)="    Site Applied: "_SITE,@SRG@(SRI)=@SRG@(SRI)_$$SPACE(40)_"Pressure Applied (in TORR): "_PRESS
+ .S Y=$P(M,"^",3),C=$P(^DD(130.02,2,0),"^",2) D:Y'="" Y^DIQ S APBY=$S(Y="":"N/A",1:Y) D LINE(1) S @SRG@(SRI)="    Applied By: "_APBY
  Q
-IRR F V(1)=0:0 S V(1)=$O(^SRF(SRTN,26,V,1,V(1))) Q:'V(1)  S W=^(V(1),0),X=$P(W,U,1) W !,?10,"Time Used: " D:X'="" ^%DT W !,?10,"Amount: ",$P(W,U,2),?40 S Z=$P(W,U,3) D N W "Provider: "_Z
- Q
-BLOOD W ?40,"Quantity: ",$P(W,U,2)," cc's" I $P(W,U,3)'=""!($P(W,U,4)'="")!($P(W,U,5)'="") W !,?10,"Source ID: ",$P(W,U,4),?40,"VA ID: ",$P(W,U,5)
+SPACE(NUM) ; create spaces
+ ;pass in position returns number of needed spaces
+ I '$D(@SRG@(SRI)) S @SRG@(SRI)=""
+ Q $J("",NUM-$L(@SRG@(SRI)))
+LINE(NUM) ; create carriage returns
+ I $G(SRLF) S NUM=NUM+1,SRLF=0
+ F J=1:1:NUM S SRI=SRI+1,@SRG@(SRI)=""
  Q

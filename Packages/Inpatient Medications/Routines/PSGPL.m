@@ -1,5 +1,5 @@
 PSGPL ;BIR/CML3-PICK LIST ;12 DEC 97 / 10:01 AM
- ;;5.0; INPATIENT MEDICATIONS ;**50**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**50,184**;16 DEC 97;Build 12
  ;
  ; Reference to ^PS(59.7 is supported by DBIA #2181.
  ;
@@ -45,7 +45,14 @@ GETSF ;
  K %DT S %DT="AERTX",%DT("A")="Enter "_MES_" date/time for this pick list: "
  I MES["O",$D(^PS(57.5,PSGPLWG,0)),$P(^(0),"^",3) S X=$$EN^PSGCT(PSGPLS,$P(^(0),"^",3)*60-1),Y=$$ENDD^PSGMI(X),%DT("B")=Y
 GETSF1 D ^%DT I Y<0 W $C(7),!!,"This PICK LIST cannot be ",$E("re",1,RERUN),"run without a ",MES," date." Q
- S @($S(MES["O":"PSGPLF",1:"PSGPLS"))=Y I MES["O",(Y'>PSGPLS) W $C(7),!!,"*** Stop date must be greater than start date !! ***",! G GETSF1
+ S @($S(MES["O":"PSGPLF",1:"PSGPLS"))=Y
+ I MES["O",(Y'>PSGPLS) W $C(7),!!,"*** Stop date must be greater than start date !! ***",! G GETSF1
+ ;PSJ*5*184;Add warning message and prompt if stop date greater than 7 days in the future.
+ N X,PSGPLSF S X1=PSGPLS,X2="7" D C^%DTC S PSGPLSF=X
+ I MES["O",(Y>PSGPLSF) D  I %'=1 G GETSF1
+ . W $C(7),!!,"*** WARNING: You're Attempting to run the Pick List for greater than 7 days ***",!
+ . W !,"Are you Sure (Y/N):" S %=2 D YN^DICN
+ . Q
  Q
  ;
 RERUN ;

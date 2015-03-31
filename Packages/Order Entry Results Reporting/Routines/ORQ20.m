@@ -1,17 +1,20 @@
-ORQ20 ; SLC/MKB - Detailed Order Report cont ;12-Apr-2011 13:40;DU
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**12,27,92,94,116,141,177,186,190,1006,1008**;Dec 17, 1997
+ORQ20 ; SLC/MKB - Detailed Order Report cont ;12-Sep-2013 12:07;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**12,27,92,94,116,141,177,186,190,215,243,1006,1008,1010,1011**;Dec 17, 1997;Build 47
  ;Modified - IHS/MSC/PLS - 09/21/2010 - Line ACTION+2
+ ;                       - 04/12/11 Line A2+1
+ ;           IHS/MSC/MGH - 09/12/13 Line A2+3
 ACT ; -- add Activity [from ^ORQ2]
  N ORACT S ORACT=$P(ACTION,U,2)
- N NVA S:$P(^ORD(100.98,$P(^OR(100,+ORIFN,0),U,11),0),U)="NON-VA MEDICATIONS" NVA=1
+ I ORACT'="NW",$P(ACTION,U,4)=5,$P(ACTION,U,15)=13 Q  ;skip canc actions
+ N NVA,USER S:$P(^ORD(100.98,$P(^OR(100,+ORIFN,0),U,11),0),U)="NON-VA MEDICATIONS" NVA=1
  S CNT=CNT+1,@ORY@(CNT)=$$DATE($P(ACTION,U))_"  "_$$ACTION(ORACT)
  I $P(ACTION,U,13) S @ORY@(CNT)=@ORY@(CNT)_" entered by "_$$USER(+$P(ACTION,U,13))
  I ORACT="NW" D  ;Show original order text
- . N ORZ,I,ORIGVIEW S ORIGVIEW=2 D TEXT^ORQ12(.ORZ,ORIFN_";1",55)
+ . N ORZ,I,ORIGVIEW S ORIGVIEW=2 D TEXT^ORQ12(.ORZ,ORIFN_";1",80)
  . S CNT=CNT+1,@ORY@(CNT)="     Order Text:        "_$G(ORZ(1))
  . S I=1 F  S I=$O(ORZ(I)) Q:I'>0  S CNT=CNT+1,@ORY@(CNT)=$$REPEAT^XLFSTR(" ",24)_$G(ORZ(I))
  I ORACT="XX" D  ;Changed - show new text
- . N ORZ,I,ORIGVIEW S ORIGVIEW=2 D TEXT^ORQ12(.ORZ,ORIFN_";"_ORI,55)
+ . N ORZ,I,ORIGVIEW S ORIGVIEW=2 D TEXT^ORQ12(.ORZ,ORIFN_";"_ORI,80)
  . S CNT=CNT+1,@ORY@(CNT)="     Changed to:        "_$G(ORZ(1))
  . S I=1 F  S I=$O(ORZ(I)) Q:I'>0  S CNT=CNT+1,@ORY@(CNT)=$$REPEAT^XLFSTR(" ",24)_$G(ORZ(I))
 A1 I $P(ACTION,U,12) D  ;Nature of Order/Release
@@ -29,8 +32,16 @@ A1 I $P(ACTION,U,12) D  ;Nature of Order/Release
 A2 I $P(ACTION,U,5) S CNT=CNT+1,@ORY@(CNT)=$S($P(ACTION,U,4)=7:"      Dig",1:"     Elec")_" Signature:    "_$$USER(+$P(ACTION,U,5))_" on "_$$DATE($P(ACTION,U,6))
  ;IHS/MSC/MGH Change Documented by to entering user for non-va meds
  N DOCBY S DOCBY=$S($D(NVA):$$USER($P(OR0,U,6)),1:$$USER(+$P(ACTION,U,3)))
- I '$P(ACTION,U,5)!($P(ACTION,U,3)'=$P(ACTION,U,5)),'$$SERVCORR S CNT=CNT+1,@ORY@(CNT)="     "_$S($D(NVA):"Documented by:",1:"Ordered by:   ")_"     "_DOCBY
- I '$P(ACTION,U,5),$L($P(ACTION,U,4)) S:$P(ACTION,U,4)=0 CNT=CNT+1,@ORY@(CNT)="     Released by:       "_$$USER(+$P(ACTION,U,7))_" on "_$$DATE($P(ACTION,U,16)) S CNT=CNT+1,@ORY@(CNT)="     Signature:         "_$$SIG($P(ACTION,U,4)) ;186
+ ;I '$P(ACTION,U,5)!($P(ACTION,U,3)'=$P(ACTION,U,5)),'$$SERVCORR S CNT=CNT+1,@ORY@(CNT)="     "_$S($D(NVA):"Documented by:",1:"Ordered by:   ")_"     "_DOCBY  ;IHS/MSC/MGH
+ I '$$SERVCORR S CNT=CNT+1,@ORY@(CNT)="     "_$S($D(NVA):"Documented by:",1:"Ordered by:   ")_"     "_DOCBY  ;IHS/MSC/MGH Patch 1011
+ I '$P(ACTION,U,5),$L($P(ACTION,U,4)) D
+ .I $P(ACTION,U,4)=0 D
+ ..S USER=$$USER(+$P(ACTION,U,7))
+ ..S CNT=CNT+1
+ ..I USER'="" S @ORY@(CNT)="     Released by:       "_USER_" on "_$$DATE($P(ACTION,U,16))
+ ..I USER="" S @ORY@(CNT)="        Released:       "_$$DATE($P(ACTION,U,16))
+ .S CNT=CNT+1,@ORY@(CNT)="     Signature:         "_$$SIG($P(ACTION,U,4)) ;186
+ ;I '$P(ACTION,U,5),$L($P(ACTION,U,4)) S:$P(ACTION,U,4)=0 CNT=CNT+1,@ORY@(CNT)="     Released by:       "_$$USER(+$P(ACTION,U,7))_" on "_$$DATE($P(ACTION,U,16)) S CNT=CNT+1,@ORY@(CNT)="     Signature:         "_$$SIG($P(ACTION,U,4)) ;186
  I $P(ACTION,U,9) S CNT=CNT+1,@ORY@(CNT)="     Nurse Verified:    "_$S($P(ACTION,U,8):$$USER(+$P(ACTION,U,8))_" on ",1:"")_$$DATE($P(ACTION,U,9))
  I $P(ACTION,U,11) S CNT=CNT+1,@ORY@(CNT)="     Clerk Verified:    "_$S($P(ACTION,U,10):$$USER(+$P(ACTION,U,10))_" on ",1:"")_$$DATE($P(ACTION,U,11))
  I $P(ACTION,U,19) S CNT=CNT+1,@ORY@(CNT)="     Chart Reviewed:    "_$S($P(ACTION,U,18):$$USER(+$P(ACTION,U,18))_" on ",1:"")_$$DATE($P(ACTION,U,19))
@@ -98,7 +109,7 @@ SIG(X) ; -- Returns text of signature status X
  I X=2 S Y="NOT SIGNED"
  I X=3 S Y="NOT REQUIRED"
  I X=4 S Y="ON CHART WITH PRINTED ORDERS"
- I X=5 S Y="NOT REQUIRED DUE TO SERVICE CANCEL"
+ I X=5 S Y="NOT REQUIRED DUE TO SERVICE CANCEL/LAPSE"
  I X=6 S Y="SERVICE CORRECTION TO SIGNED ORDER"
  Q Y
  ;
@@ -120,7 +131,7 @@ EVENT(ORTX,DC) ; -- Returns patient event info for EVT
  I $G(DC)!(REL&'$L($P(REL,U,2))&($P(EVT1,U,2)!$P(EVT1,U,4))) D  Q
  . S Y=$S($P(EVT1,U,5):$P(EVT1,U,5),1:EVT) ;parent owns Activity
  . S Y=+$O(^ORE(100.2,+Y,10,0)),Y=$G(^(Y,0)),X=$P(Y,U,4) Q:'$L(X)
- . S X=$S(X="A":"ADMISSION",X="T":"TRANSFER",X="D":"DISCHARGE",X="S":"SPECIALTY CHANGE",1:"OUT OF O.R.")_" on "_$$DATE($P(EVT1,U))
+ . S X=$S(X="A":"ADMISSION",X="T":"TRANSFER",X="D":"DISCHARGE",X="S":"SPECIALTY CHANGE",1:$S($P(EVT1,U)>$$DPI^ORUTL1("SR*3.0*157"):"IN TO O.R.",1:"OUT OF O.R."))_" on "_$$DATE($P(EVT1,U)) ;243
  . S ORTX(1)=X,ORTX=1,ORMAX=56
  . I $P(Y,U,6) S X=$S($P(Y,U,4)="D":"from ",1:"to ")_$$GET1^DIQ(45.7,+$P(Y,U,6)_",",.01) D TXT^ORCHTAB
  . I $P(Y,U,7) S X="on "_$$GET1^DIQ(42,+$P(Y,U,7)_",",.01) D TXT^ORCHTAB

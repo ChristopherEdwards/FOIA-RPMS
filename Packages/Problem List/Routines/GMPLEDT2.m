@@ -1,5 +1,5 @@
 GMPLEDT2 ; SLC/MKB/KER -- Problem List edit actions ; 04/15/2002
- ;;2.0;Problem List;**26**;Aug 25, 1994
+ ;;2.0;Problem List;**26,35**;Aug 25, 1994;Build 26
  ;
  ; External References
  ;   DBIA 10060  ^VA(200
@@ -84,7 +84,7 @@ DTHELP ; Date help
  W !,"If the year is omitted, a date in the PAST will be assumed.",!
  Q
  ;
-SPEXP ; Edit Fields 1.11, 1.12, 1.13, 1.15, 1.16
+SPEXP ; Edit Fields 1.11, 1.12, 1.13, 1.15, 1.16, 1.17, 1.18
  D:GMPAGTOR SP(1.11,"Agent Orange") Q:$D(GMPQUIT)!($G(GMPLJUMP))
  S:$G(GMPFLD(1.11)) $P(GMPFLD(1.11),U,2)="AGENT ORANGE"
  D:GMPION SP(1.12,"Radiation") Q:$D(GMPQUIT)!($G(GMPLJUMP))
@@ -95,6 +95,10 @@ SPEXP ; Edit Fields 1.11, 1.12, 1.13, 1.15, 1.16
  S:$G(GMPFLD(1.15)) $P(GMPFLD(1.15),U,2)="HEAD/NECK CANCER"
  D:GMPMST SP(1.16,"Military Sexual Trauma") Q:$D(GMPQUIT)!($G(GMPLJUMP))
  S:$G(GMPFLD(1.16)) $P(GMPFLD(1.16),U,2)="MIL SEXUAL TRAUMA"
+ D:GMPCV SP(1.17,"Combat Veteran") Q:$D(GMPQUIT)!($G(GMPLJUMP))
+ S:$G(GMPFLD(1.17)) $P(GMPFLD(1.17),U,2)="COMBAT VET"
+ D:GMPSHD SP(1.18,"Shipboard Hazard and Defense") Q:$D(GMPQUIT)!($G(GMPLJUMP))
+ S:$G(GMPFLD(1.18)) $P(GMPFLD(1.18),U,2)="SHAD"
  Q
 SP(FLD,NAME) ; edit exposure fields -- Requires FLD number & field NAME
  N DIR,X,Y,GMPLN S DIR(0)="YAO",GMPLN=$$UP^XLFSTR(NAME)

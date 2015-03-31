@@ -1,5 +1,5 @@
 PSJBCMA1 ;BIR/MV-RETURN INFORMATION FOR AN ORDER ;16 Mar 99 / 10:59 AM
- ;;5.0; INPATIENT MEDICATIONS ;**32,41,46,57,63,66,56,58,81,91,104**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**32,41,46,57,63,66,56,58,81,91,104,186,159,173**;16 DEC 97;Build 4
  ;
  ; Reference to ^PS(50.7 is supported by DBIA 2180.
  ; Reference to ^PS(51.2 is supported by DBIA 2178.
@@ -45,7 +45,13 @@ IVVAR ;* Set variables for IV and pending orders
  . S PSJ("FREQ")=$P(X,U,15),PSJ("IVTYPE")=$P(X,U,4)
  . S PSJ("INSYR")=$P(X,U,5),PSJ("CPRS")=$P(X,U,21),PSJ("CHEMO")=$P(X,U,23)
  . S X=$G(^PS(55,DFN,"IV",+ON,.2))
- . S PSJ("OI")=$P(X,U),PSJ("DO")=""
+ . S PSJ("OI")=$P(X,U),PSJ("DO")="",PSJ("PRI")=$P(X,U,4),PSJ("FLG")=$P(X,U,7),PSJ("COM")="",PSJ("SRC")=""
+ . I PSJ("FLG") D
+ .. N S1,A,B,C
+ .. S S1="" F  S S1=$O(^PS(55,DFN,"IV",+ON,"A",S1),-1) Q:'S1  S C=$G(^(S1,0)) S A=$P(C,U,2),B=$P(C,U,4) Q:A="UG"  D  I PSJ("SRC")]"" Q
+ ... Q:A'="G"
+ ... S PSJ("SRC")=$S(B["FLAGGED BY PHARM":"PHARMACIST",B["FLAGGED BY CPRS":"CPRS",1:"")
+ ... S PSJ("COM")=$P(B," ",4,99)
  . S PSJ("MR")=$P(X,U,3)
  . S X=$G(^PS(55,DFN,"IV",+ON,4))
  . S PSJ("NURSE")=$P(X,U)
@@ -53,7 +59,7 @@ IVVAR ;* Set variables for IV and pending orders
  . S X=$G(^PS(55,DFN,"IV",+ON,2))
  . S PSJ("LDT")=$P(X,U)
  . S PSJ("PREV")=$P(X,U,5),PSJ("FOLLOW")=$P(X,U,6)
- . S PSJ("SIOPI")=$S($P($G(^PS(55,DFN,"IV",+ON,3)),"^",2):"!",1:"")_$P($G(^(3)),"^")
+ . S PSJ("SIOPI")=$S($P($G(^PS(55,DFN,"IV",+ON,3)),"^",2)&($P($G(^PS(55,DFN,"IV",+ON,3)),"^")'=""):"!",1:"")_$P($G(^(3)),"^")
  . N SCHD S SCHD=PSJ("SCHD")  ; SCHD var required to shorten $Select
  . S PSJ("STC")=$$ONE^PSJBCMA(DFN,ON,SCHD,PSJ("STARTDT"),PSJ("STOPDT"))
  . I PSJ("STC")=""!(PSJ("STC")="C") S PSJ("STC")=$S(SCHD["PRN":"P",1:"C")
@@ -94,7 +100,13 @@ UDPEND ;
  S PSJ("HSMYN")=$S(+PSJ("HSM"):"YES",1:"NO")
  S PSJ("CPRS")=$P(X,U,21),PSJ("PREV")=$P(X,U,25),PSJ("FOLLOW")=$P(X,U,26)
  S X=$G(@(F_",.2)"))
- S PSJ("OI")=$P(X,U),PSJ("DO")=$P(X,U,2)
+ S PSJ("OI")=$P(X,U),PSJ("DO")=$P(X,U,2),PSJ("PRI")=$P(X,U,4),PSJ("FLG")=$P(X,U,7),PSJ("COM")="",PSJ("SRC")=""
+ I PSJ("FLG") D
+ . N S1,A,B,C
+ . S S1="" F  S S1=$O(^PS(55,DFN,5,+ON,9,S1),-1) Q:'S1  S C=$G(^(S1,0)) S A=$P(C,U,3),B=$P(C,U,4) Q:A=7010!(A=7030)  D  I PSJ("SRC")]"" Q
+ .. Q:A'=7000&(A'=7020)
+ .. S PSJ("SRC")=$S(A=7000:"PHARMACIST",A=7020:"CPRS",1:"")
+ .. S PSJ("COM")=$G(@(F_",13)"))
  S X=$G(@(F_",2)"))
  S PSJ("SCHD")=$P(X,U),PSJ("STARTDT")=$P(X,U,2)
  S PSJ("STC")=PSJ("ST")
@@ -106,7 +118,7 @@ UDPEND ;
  S PSJ("NURSE")=$P(X,U),PSJ("AUTO")=$P(X,U,11)
  S:ON["U" PSJ("PHARM")=+$P(X,U,3)
  ; the naked reference on the line below refers to the full reference created by indirect reference to F, where F may refer to ^PS(53.1 or the IV or UD multiple ^PS(55
- S PSJ("SIOPI")=$S($P($G(@(F_",6)")),"^",2):"!",1:"")_$$ENSET^PSJBCMA($P($G(^(6)),"^"))
+ S PSJ("SIOPI")=$S($P($G(@(F_",6)")),"^",2)&($P($G(@(F_",6)")),"^")'=""):"!",1:"")_$$ENSET^PSJBCMA($P($G(^(6)),"^"))
  NEW FON S FON=ON D SIOPI^PSJBCMA
  Q 
  ;
@@ -119,7 +131,7 @@ TMP ;* Setup ^TMP that have common fields between IV and U/D
  I +PSJ("NURSE") D
  . D NAME(PSJ("NURSE"),.PSJNAME,.PSJINIT,"")
  . S PSJ("NNAME")=PSJNAME,PSJ("NINIT")=PSJINIT K PSJNAME,PSJINIT
- S A=$G(^PS(51.2,+PSJ("MR"),0)),PSJ("MRNM")=$P(A,U),PSJ("MRABB")=$P(A,U,3)
+ S A=$G(^PS(51.2,+PSJ("MR"),0)),PSJ("MRNM")=$P(A,U),PSJ("MRABB")=$P(A,U,3),PSJ("MRPIJ")=$P(A,U,8),PSJ("MRIVP")=$P(A,U,9)
  S PSJ("OINAME")=$$OIDF^PSJLMUT1(+PSJ("OI")) I PSJ("OINAME")["NOT FOUND" S PSJ("OINAME")=""
  S PSJ("OIDF")=$$GET1^DIQ(50.7,+PSJ("OI"),.02)
  I PSJ("OINAME")="" S PSJ("OIDF")=""
@@ -132,10 +144,13 @@ TMP ;* Setup ^TMP that have common fields between IV and U/D
  S ^TMP(PSJTMP,$J,0)=DFN_U_+ON_U_ON_U_PSJ("PREV")_U_PSJ("FOLLOW")_U_$G(PSJ("IVTYPE"))_U_$G(PSJ("INSYR"))_U_$G(PSJ("CHEMO"))_U_PSJ("CPRS")
  S ^TMP(PSJTMP,$J,1)=PSJ("PROVIDER")_U_PSJ("PRONAME")_U_PSJ("MR")_U_PSJ("MRABB")_U_$G(PSJ("SM"))_U_$G(PSJ("SMYN"))_U_$G(PSJ("HSM"))_U_$G(PSJ("HSMYN"))_U_$G(PSJ("NGIVEN"))_U_PSJ("STATUS")
  S ^TMP(PSJTMP,$J,1)=^TMP(PSJTMP,$J,1)_U_$$STATUS(ON,PSJ("STATUS"))_U_$G(PSJ("AUTO"))_U_$G(PSJ("MRNM"))
+ S ^TMP(PSJTMP,$J,1,0)=PSJ("MRPIJ")_U_$G(PSJ("MRIVP"))
  S ^TMP(PSJTMP,$J,2)=PSJ("OI")_U_PSJ("OINAME")_U_PSJ("DO")_U_$G(PSJ("INFRATE"))_U_$G(PSJ("SCHD"))_U_PSJ("OIDF")
  S ^TMP(PSJTMP,$J,3)=PSJ("SIOPI")
  S ^TMP(PSJTMP,$J,4)=PSJ("STC")_U_$G(PSJ("STNAME"))_U_PSJ("LDT")_U_PSJ("LDTN")_U_PSJ("STARTDT")_U_PSJ("STARTDTN")_U_PSJ("STOPDT")_U_PSJ("STOPDTN")_U_$$ADMIN(PSJ("ADM"))_U_$G(PSJ("ST"))_U_$G(PSJ("FREQ"))
  S ^TMP(PSJTMP,$J,5)=$G(PSJ("NURSE"))_U_$G(PSJ("NNAME"))_U_$G(PSJ("NINIT"))_U_$G(PSJ("PHARM"))_U_$G(PSJ("PNAME"))_U_$G(PSJ("PINIT"))
+ S A=$$SNDTSTA^PSJHL4A(PSJ("PRI"),PSJ("SCHD"))
+ S ^TMP(PSJTMP,$J,7)=$S(A=1:0,1:1)_U_PSJ("FLG")_U_PSJ("SRC")_U_PSJ("COM")
  Q
  ;
 NAME(X,NAME,INIT,IEN)  ;Lookup in ^VA(200.

@@ -1,11 +1,10 @@
-PSNPPIP ;BIR/DMA-WRT-print a medication instruction sheet ;18-Mar-2009 17:39;PLS
- ;;4.0; NATIONAL DRUG FILE;**3,7,30,62,84,141,1015**; 30 Oct 98;Build 3
+PSNPPIP ;BIR/DMA-WRT-print a medication instruction sheet ; 12 Apr 2007 8:38 AM
+ ;;4.0; NATIONAL DRUG FILE;**3,7,30,62,84,141,181**; 30 Oct 98;Build 3
  ;
  ; Reference to ^PS(59.7 supported by IA #2613
  ; Reference to ^PSDRUG supported by IA #221
  ; Reference to ^ps(55 supported by IA #2191
  ;
- ; Modified - IHS/MSC/PLS - 03/18/09 - IMP+1
 PICK ;select a drug from file 50
  D DEFLT
  I $D(PSNDRUG) Q
@@ -72,9 +71,8 @@ DOONE ;Print one PMI sheet
  I PSNTYPE=5 S PSNFILE1=50.624    ;PMI-MAP SPANISH file
  I PSNTYPE=5 S PSNFILE2=50.622    ;PMI-SPANISH file
  ;
- ; S PSNEMAP=0,PSNENG=""
- S PSNEMAP="",PSNENG=""
- ; F  S PSNEMAP=$O(^PS(PSNFILE1,PSNEMAP)) Q:PSNEMAP=""  D
+  ; S PSNEMAP=0,PSNENG=""
+  S PSNEMAP="",PSNENG=""
  I '$O(^PS(PSNFILE1,"B",PSNGCN,0)) I '$D(PSODFN) W @IOF W !,"Drug is not linked to a valid Medication Information Sheet for language selected" K PSNGCN,PSNDF,PSNPN Q
  I '$O(^PS(PSNFILE1,"B",PSNGCN,0)) I $D(PSODFN) S PSNPPI("MESSAGE")="Drug is not linked to a valid Medication Information Sheet for language selected",PSNFLAG=0 K PSNGCN,PSNDF,PSNPN W PSNPPI("MESSAGE"),! Q
  S PSNEMAP=$O(^PS(PSNFILE1,"B",PSNGCN,0)) D
@@ -85,9 +83,8 @@ DOONE ;Print one PMI sheet
  S CNTI=0,CNTO=1,PSNSP=""    ;NOTE  PSNSP is a blank line insert
  ;
 IMP ;Important note about the drug of choice
- ; Modified - IHS/MSC/PLS - 03/18/09 - Commented out next line
- ;I $D(IOST(0))
- S X="IOINHI;IOINORM;IOINLOW" D ENDR^%ZISS
+ ;
+ I $D(IOST(0)) S X="IOINHI;IOINORM;IOINLOW" D ENDR^%ZISS
  S PSNALPHA=""
  S PSNALPHA="Z" D TXT1
  ;
@@ -135,9 +132,8 @@ TXT1 ;Text portion
  ..S N=N+1,CNTO=CNTO+1
  .I N=1 S LINE(N)=LINE(N)_" "_LINE,P=LINE(N) D
  ..F I=1:1:$L(P) I $E(P,I)=":" D
- ...S PSNBOLD=$G(IOINHI)_$E(P,1,I-1),PSNORM=$G(IOINORM)_$E(P,I,999)     ;BOLD Section header
+ ...S PSNBOLD=$G(IOINHI)_$E(P,1,I-1),PSNORM=$G(IOINORM)_$E(P,I,999) ;BOLD Section header
  ..S LINE(N)=PSNBOLD_PSNORM
- ..;S LINE(N)=LINE(N)_" "_LINE D                  ;First line
  ..I $E(LINE(N),1)[" " S LINE(N)=$E(LINE(N),2,999)    ;Remove lead space
  ..S LENGTH=$L(LINE(N)),A=IOM-LENGTH
  ..S N=N+1
@@ -160,9 +156,8 @@ PRINT ;
  Q
 HEAD ;
  I PG>1,$E(IOST,1,2)="C-" S DIR(0)="E" D ^DIR K DIR I 'Y S QUIT=1 Q
- ; W:$Y @IOF W !!,LIN0,$S(PSNTYPE<4:"Medication instructions for ",1:"Informaci"_$C(243)_"n sobre su medicina "),DRUG,?70,$S(PSNTYPE<4:"Page ",1:"P"_$C(225)_"gina "),PG S PG=PG+1
- W:$Y @IOF W !!,?70,$S(PSNTYPE<4:"Page ",1:"P"_$C(160)_"gina "),PG,!,LIN0,$S(PSNTYPE<4:"Medication instructions for ",1:"Informaci"_$C(162)_"n sobre su medicin a  "),DRUG S PG=PG+1
- I $D(NAM) W !!,?2,"Printed for: ",NAM_" ("_VA("BID")_")",?60,$$HTE^XLFDT(+$H),!,?2,"Rx Number:   "_$G(PSRX)
+ W:$Y @IOF W !!,?70,$S(PSNTYPE<4:"Page ",1:"P"_$C(160)_"gina"),PG,!,LIN0,$S(PSNTYPE<4:"Medication instructions for ",1:"Informaci"_$C(162)_"n sobre su medicin a  "),DRUG S PG=PG+1
+ I $D(NAM) W !!,?2,"Printed for: ",NAM,?60,$$HTE^XLFDT(+$H),!,?2,"Rx Number: "_$G(PSRX)
  W !!! Q
  ;
  ;
@@ -174,7 +169,7 @@ DICS ;set DIC("S") to screen out inactives and entries in file 50
  Q
 ENOP(PSNDRUG,PSNTRADE,PSRX,PSNDFN) ;
  ;
- ;  entry point from OUtpatient Pharmacy
+ ;  entry point from Outpatient Pharmacy
  ;  PSNDRUG = IFN from the DRUG file (50)  ** REQUIRED **
  ;  PSRX = IFN from the PRESCRIPTION file (52)  ** OPTIONAL **
  ;  PSNTRADE = Trade Name in printable format  ** OPTIONAL **
@@ -193,7 +188,6 @@ ENOP(PSNDRUG,PSNTRADE,PSRX,PSNDFN) ;
  I 'PSNDF S PSNPPI("MESSAGE")="This drug is not matched to the National Drug File; therefore, a Medication Information Sheet cannot be printed.",PSNFLAG=0  K PSNDF,DRG,PSNPN Q
 LANGE S DEFLANG=$P($G(^PS(59.7,1,10)),"^",7) I DEFLANG]"" S PSNLANG=$S(DEFLANG=1:"English",1:"Spanish") S:PSNLANG="English" PSNTYPE=2 S:PSNLANG="Spanish" PSNTYPE=5
  S PSNGCN=$P($G(^PSNDF(50.68,PSNPN,1)),"^",5)
- ;S PPI=$P($G(^PSNDF(50.68,PSNPN,1)),"^",5)
  ;
  I 'PSNGCN S PSNPPI("MESSAGE")="This drug is not linked to a Medication Information Sheet.",PSNFLAG=0 K PSNGCN,DRG,PSNDF,PSNPN Q
  I PSNFLAG S DRG(DRG)=PSNGCN D EN1

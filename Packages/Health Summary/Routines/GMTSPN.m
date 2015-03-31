@@ -1,5 +1,5 @@
-GMTSPN ; SLC/KER - Progress Note                     ; 04/30/2002
- ;;2.7;Health Summary;**12,28,33,35,45,47,49,55**;Oct 20, 1995
+GMTSPN ; SLC/KER - Progress Note                     ; 5/17/06 2:06pm
+ ;;2.7;Health Summary;**12,28,33,35,45,47,49,55,81**;Oct 20, 1995;Build 23
  ;                          
  ; External References
  ;    DBIA  2902  VISIT^TIULAPIC
@@ -155,6 +155,7 @@ FLDS(X,I) ; Get Fields
  S PN("DATE")=$G(@(GMTSDIC_"1301,""I"")"))
  I PN("DATE")]"" S PN("DATE")=$$EDT^GMTSU(PN("DATE"))
  S REASON="",PN("DOCTYPE")=$G(@(GMTSDIC_".01,""E"")"))
+ S PN("VHATYPE")=$G(@(GMTSDIC_"89261,""E"")"))
  S PN("STATUS")=$G(@(GMTSDIC_".05,""E"")"))
  S PN("AUTHOR")=$G(@(GMTSDIC_"1202,""E"")"))
  S PN("EXPSIGNR")=$G(@(GMTSDIC_"1204,""E"")"))

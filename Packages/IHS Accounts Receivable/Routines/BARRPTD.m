@@ -1,7 +1,7 @@
 BARRPTD ; IHS/SD/PKD - Payment Summary Report by TDN or Date Range ;05/25/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**19**;OCT 26, 2005
- ; 
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,23**;OCT 26, 2005
  ; IHS/SD/PKD - 05/25/10 - V1.8*19  Based on BARRPRP
+ ; JULY 2013 FIXED BAREND IN DATE LOOP
  Q
  ; *********************************************************************
  ;
@@ -86,7 +86,7 @@ COMPUTE ; EP BY Date Range
  Q
  ;
 DTS S BARDT=BARSTART-1  ; DATE.TIME
- F  S BARDT=$O(^BARCOL(DUZ(2),"C",BARDT)) Q:((BARDT>BAREND)!(BARDT=""))  D
+ F  S BARDT=$O(^BARCOL(DUZ(2),"C",BARDT)) Q:((BARDT\1>BAREND)!(BARDT=""))  D  ;P.OTT
  . S SORT1=$P(BARDT,"."),BARGRDT=0
  . S BARIEN="" F  S BARIEN=$O(^BARCOL(DUZ(2),"C",BARDT,BARIEN)) Q:'BARIEN  D
  . . S GLODATA=$G(^BARCOL(DUZ(2),BARIEN,0)) Q:GLODATA=""

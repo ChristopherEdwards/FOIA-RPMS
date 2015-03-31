@@ -1,5 +1,5 @@
-BEHOPTPC ;MSC/IND/DKM - RPC calls for provider information ;05-May-2009 12:01;PLS
- ;;1.1;BEH COMPONENTS;**004004**;Mar 20, 2007
+BEHOPTPC ;MSC/IND/DKM - RPC calls for provider information ;16-Apr-2013 14:35;DU
+ ;;1.1;BEH COMPONENTS;**004004,004009**;Mar 20, 2007
  ;=================================================================
 USESD() Q $G(DUZ("AG"))'="I"
  ; Get the primary provider
@@ -36,8 +36,11 @@ DETAIL(DATA,DFN) ;EP
  ..S BDPCOUNT=BDPCOUNT+1,BDPRIEN=""
  ..S BDPTYPNM=$P(^BDPTCAT(BDPTYPE,0),U)                                  ;Type Print
  ..F  S BDPRIEN=$O(^BDPRECN("AA",DFN,BDPTYPE,BDPRIEN)) Q:BDPRIEN'=+BDPRIEN  D
- ...S BDPCPRV=+$P($G(^BDPRECN(BDPRIEN,0)),U,3)                           ;Current Provider IEN
- ...S BDPCPRVP=$S(BDPCPRV:$P($G(^VA(200,BDPCPRV,0)),U),1:"<None Currently Assigned>")
+ ...S BDPCPRV=+$P($G(^BDPRECN(BDPRIEN,0)),U,3)
+ ...Q:'+BDPCPRV
+ ...;Current Provider IEN
+ ...;S BDPCPRVP=$S(BDPCPRV:$P($G(^VA(200,BDPCPRV,0)),U),1:"<None Currently Assigned>")
+ ...S BDPCPRVP=$P($G(^VA(200,BDPCPRV,0)),U)
  ...D ADDDET(BDPCOUNT_"    "_$$LJ^XLFSTR($E(BDPTYPNM,1,30),30)_": "_$$LJ^XLFSTR($E(BDPCPRVP,1,35),45))
  Q
 ADDDET(TXT,LBL) ;
@@ -66,4 +69,24 @@ TEAM(BEHODUZ) ;EP
  F  S BEHOY=$O(^BSDPCT(BEHOX,1,BEHOY)) Q:BEHOY=""  D
  .S BEHOTM=$P($G(^BSDPCT(BEHOX,1,BEHOY,0)),U)
  .S:BEHOTM'="" ^TMP("ORIHS",$J,BEHOTM)=""
+ Q
+GETBDP(RET,DFN) ;RPC to get all designated providers for a patient
+ N ARRAY,CNT
+ D ALLDP^BDPAPI(DFN,"",.ARRAY)
+ S CNT=0
+ S TYP="" F  S TYP=$O(ARRAY(TYP)) Q:TYP=""  D
+ .S TXT=$G(ARRAY(TYP))
+ .I TXT'="" D
+ ..S CNT=CNT+1
+ ..S RET(CNT)=TYP_U_TXT
+ Q
+SETBDP(RET,DFN,TYPE,PROV) ;RPC to add/edit/delete a provider for a category
+ D AEDAP^BDPAPI(DFN,PROV,TYPE,.RET)
+ Q
+GETCATS(LIST) ;Return the list of categories
+ N CAT,CNT
+ S CNT=0
+ S CAT="" F  S CAT=$O(^BDPTCAT("B",CAT)) Q:CAT=""  D
+ .S CNT=CNT+1
+ .S LIST(CNT)=CAT
  Q

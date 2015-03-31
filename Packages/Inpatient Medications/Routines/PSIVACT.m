@@ -1,5 +1,5 @@
 PSIVACT ;BIR/PR,MLM-UPDATE ORDER STATUS AFTER PATIENT SELECTION ;16 Jul 98 / 12:51 PM
- ;;5.0; INPATIENT MEDICATIONS ;**15,38,58**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**15,38,58,110**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA 2191
  ;
@@ -34,12 +34,15 @@ NVACT ; Non-verified but have active status
  Q
  ;
 PEND ; Get pending and non-verified orders from 53.1
- F ON=0:0 S ON=$O(^PS(53.1,"AS","P",DFN,ON)) Q:'ON  D
+ N PSJCOM,PSJCOM1 S (PSJCOM,PSJCOM1)=0
+ F ON=0:0 S ON=$O(^PS(53.1,"AS","P",DFN,ON)) Q:'ON  D  S PSJCOM1=PSJCOM
  . NEW X S X=$P($G(^PS(53.1,ON,.2)),U,4),X=$S(X="S":1,X="A":2,X="R":3,X="P":4,1:5)
- . I $G(^PS(53.1,ON,0)),$P(^PS(53.1,ON,0),U,4)'="U" S ^TMP("PSIV",$J,"P",X_9999999999-ON)=""
- F ON=0:0 S ON=$O(^PS(53.1,"AS","N",DFN,ON)) Q:'ON  D
+ . S PSJCOM=$P($G(^PS(53.1,ON,.2)),U,8) I PSJCOM Q:'$$COMCHK^PSJO1(PSJCOM,2)  Q:PSJCOM=PSJCOM1
+ . I $G(^PS(53.1,ON,0)),$P(^PS(53.1,ON,0),U,4)'="U" S ^TMP("PSIV",$J,$S('PSJCOM:"P",1:"PD"),X_9999999999-ON)=""
+ F ON=0:0 S ON=$O(^PS(53.1,"AS","N",DFN,ON)) Q:'ON  D  S PSJCOM1=PSJCOM
  . NEW X S X=$P($G(^PS(53.1,ON,.2)),U,4),X=$S(X="S":1,X="A":2,X="R":3,X="P":4,1:5)
- . I $G(^PS(53.1,ON,0)),$P(^PS(53.1,ON,0),U,4)'="U" S ^TMP("PSIV",$J,"N",X_9999999999-ON)=""
+ . S PSJCOM=$P($G(^PS(53.1,ON,.2)),U,8) I PSJCOM Q:'$$COMCHK^PSJO1(PSJCOM,2)  Q:PSJCOM=PSJCOM1
+ . I $G(^PS(53.1,ON,0)),$P(^PS(53.1,ON,0),U,4)'="U" S ^TMP("PSIV",$J,$S('PSJCOM:"N",1:"ND"),X_9999999999-ON)=""
  .; S:$P(^PS(53.1,ON,0),U,4)'="U" ^TMP("PSIV",$J,"P",X_9999999999-ON)=""
  ;
 QUIT ; Kill and exit.

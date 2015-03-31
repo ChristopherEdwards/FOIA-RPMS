@@ -1,5 +1,5 @@
-RAUTL0 ;HISC/CAH,FPT,GJC-Utility Routine ;11/5/99  13:19
- ;;5.0;Radiology/Nuclear Medicine;**2,13,10,71**;Mar 16, 1998;Build 10
+RAUTL0 ;HISC/CAH,FPT,GJC-Utility Routine ; 20 Apr 2011  7:15 PM
+ ;;5.0;Radiology/Nuclear Medicine;**2,13,10,71,1003**;Nov 01, 2010;Build 3
  ; 07/05/2006 BAY/KAM Remedy Call 124379 Patch RA*5*71
 UPSTAT ;QUEUE ONE REPORT TO UPDATE STATUS
  ;07/05/2006 BAY/KAM/GJC If RAHLTCPB is defined, do not broadcast ORM messages. RAHLTCPB is referenced in UP2^RAUTL1

@@ -1,5 +1,5 @@
 BARCLU1 ; IHS/SD/LSL - UTILITY CALLS FROM BARCLU ; 07/09/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,19**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,19,23**;OCT 26, 2005
  ;;
  ; IHS/SD/TMM 06/18/2010 1.8*19 Add Prepayment functionality.
  ;      See work order 3PMS10001
@@ -11,7 +11,7 @@ BARCLU1 ; IHS/SD/LSL - UTILITY CALLS FROM BARCLU ; 07/09/2010
  ;      819_5. Allow user to assign prepayment to batch (^BARCLU,^BARCLU01,^BARPUTL,^BARPST1,^BARBLLK)
  ;      819_6. Print Prepayment Receipt (^BARPPY02) (new routine)
  ; *********************************************************************
- ; 
+ ; OCT 2012 HEAT #88320 P.OTT SET DEFAULT FACILITY TO BARLCIT(8) WHEN NIL
 NEW ; EP
  ; open a new batch
  K DA
@@ -113,6 +113,7 @@ BARCLIT ; EP
  .S BARCLIT("20")=$P($G(^BARCOL(DUZ(2),BARCLDA,1,BARITDA,0)),U,20)
  .S BARCLIT("20","I")=$P($G(^BARCOL(DUZ(2),BARCLDA,1,BARITDA,0)),U,20)
  ;END
+ I BARCLIT(8)="" S BARCLIT(8)=$G(BARSPAR(8)) ;P.OTT
  Q
  ; *********************************************************************
  ;

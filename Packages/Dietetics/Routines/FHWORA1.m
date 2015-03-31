@@ -1,5 +1,5 @@
 FHWORA1 ; HISC/GJC/JH - OE/RR Procedure Call (Assessments) 2 of 2;1/31/97  12:56 ;11/6/97  15:28
- ;;5.0;Dietetics;**6,16**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
 SETUP ; Set up our ^TMP($J,"FHASM",DFN) global.  Called from FHWORA
  S DTP=ADT D DTP^FH
  S ^TMP($J,"FHASM",DFN,$$CNT^FHWORA(CNT))=$$CJ^XLFSTR("Date of Assessment: "_$E(DTP,1,9),80," ")

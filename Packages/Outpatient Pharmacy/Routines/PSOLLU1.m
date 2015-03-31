@@ -1,5 +1,5 @@
 PSOLLU1 ;BHAM/RJS - LASER LABEL UTILITIES ;11/22/02
- ;;7.0;OUTPATIENT PHARMACY;**120,141**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**120,141,161**;DEC 1997
  ;
 FONT(RLN,TEXT) ;
  ;--------------------------------------------------------------------
@@ -75,7 +75,7 @@ STRT(RLN,TEXT,LNTH,FONT) ;
  S LN("RXVAMC")=2.626
  S LN("DRG")=3.376
  S LN("SIG")=3.126
- S LN("WRN")=1.9
+ S LN("WRN")=1.99
  S LN("ML")=2.376
  S LN("ML2")=1.76
  S LN("SEC2")=4.1876
@@ -103,8 +103,8 @@ STRT(RLN,TEXT,LNTH,FONT) ;
  I RLN="WRN" D  Q
  . I LNTH(12)<LN(RLN) S FONT="F12" Q
  . I LNTH(10)<(LN(RLN)*2) S FONT="F10" Q
- . I LNTH(9)<(LN(RLN)*3) S FONT="F9" Q
- . I LNTH(8)<(LN(RLN)*3) S FONT="F8" Q
+ . I LNTH(9)<(LN(RLN)*2.5) S FONT="F9" Q
+ . I LNTH(8)<(LN(RLN)*2.6) S FONT="F8" Q
  . S FONT="F6"
  S FONT="F0"
  I LNTH(8)<LN(RLN) S FONT="F8"
@@ -112,7 +112,7 @@ STRT(RLN,TEXT,LNTH,FONT) ;
  I LNTH(10)<LN(RLN) S FONT="F10"
  I LNTH(12)<LN(RLN) S FONT="F12"
  Q
-ADD ; Calculate the and pad "_" to the end of TEXT for change of address
+ADD ; Calculate the length and pad "_" to the end of TEXT for change of address
  ; then return FONT and TEXT to calling program.
  N NEEDED,CNT,DASH
  S NEEDED=LN("SEC2X")-LNTH(10)

@@ -1,5 +1,5 @@
 ABSPOS6D ; IHS/FCS/DRS - user screen subrous ;   
- ;;1.0;PHARMACY POINT OF SALE;**14,18,37,38,40,41**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**14,18,37,38,40,41,46**;JUN 21, 2001
  ;----------------------------------------------------------------------
  ;IHS/SD/RLT - 8/24/06 - Patch 18
  ;  Changed code so rejected reversals can be resubmitted.
@@ -149,6 +149,14 @@ RESUBMIT ; protocol ABSP P1 RESUBMIT ; resubmit a claim shown on your screen
  N IEN D SELECPAT(.IEN) ; gives IEN(*)
  N RXI D MAKERXI ; IEN(*) -> converted to RXI(*)
  D FULL^VALM1
+ ;
+ ;OIT/CAS/RCS 081913 Patch 46 If claim is paid ask if ok to resubmit,delete from list if not
+ N IEN59 S IEN59="" F  S IEN59=$O(RXI(IEN59)) Q:IEN59=""  D
+ .N X S X=$$RESULT59^ABSPOSRX(IEN59)
+ .I X="E PAYABLE" D  Q
+ ..W ! S DIR(0)="Y",DIR("A")="`"_IEN59_" has been paid, do you wish to Resubmit",DIR("B")="NO" D ^DIR K DIR
+ ..W ! I 'Y K RXI(IEN59)
+ ;
  N REVCOUNT S REVCOUNT=0
  N IEN59 S IEN59="" F  S IEN59=$O(RXI(IEN59)) Q:IEN59=""  D
  .N X S X=$$RESULT59^ABSPOSRX(IEN59)

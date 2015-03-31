@@ -1,5 +1,5 @@
-OCXOZ0X ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0X ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,36 +10,19 @@ OCXOZ0X ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-R61R1A ; Verify all Event/Elements of  Rule #61 'CREATININE CLEARANCE ESTIMATION'  Relation #1 'IF CREAT CLEAR AND ( CREATININE CLEARANCE DATE OR ...'
- ;  Called from EL73+5^OCXOZ0H, and EL96+5^OCXOZ0H, and EL97+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE73( ----------->  Verify Event/Element: 'CREATININE CLEARANCE ESTIMATE'
- ; MCE96( ----------->  Verify Event/Element: 'CREATININE CLEARANCE DATE/TIME'
- ; MCE97( ----------->  Verify Event/Element: 'RENAL RESULTS'
- ;
- Q:$G(^OCXS(860.2,61,"INACT"))
- ;
- I $$MCE73 D 
- .I $$MCE96 D R61R1B
- .I $$MCE97 D R61R1B
- Q
- ;
-R61R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #61 'CREATININE CLEARANCE ESTIMATION'  Relation #1 'IF CREAT CLEAR AND ( CREATININE CLEARANCE DATE OR ...'
- ;  Called from R61R1A+13.
+R57R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #57 'CLOZAPINE'  Relation #1 'CLOZAPINE AND (NO WBC W/IN 7 DAYS OR NO ANC W/IN 7...'
+ ;  Called from R57R1A+13^OCXOZ0W.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ;
- Q:$D(OCXRULE("R61R1B"))
+ Q:$D(OCXRULE("R57R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^1^^Est. CrCl: "_$$GETDATA(DFN,"73^96^97",76)_" ("_$$GETDATA(DFN,"73^96^97",64)_")" I 1
- E  S OCXCMSG="Est. CrCl: "_$$GETDATA(DFN,"73^96^97",76)_" ("_$$GETDATA(DFN,"73^96^97",64)_")"
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^19^^Clozapine orders require a CBC/Diff within past 7 days.  Please order CBC/Diff with WBC and ANC immediately.  Most recent results - "_$$GETDATA(DFN,"116^117^118",130) I 1
+ E  S OCXCMSG="Clozapine orders require a CBC/Diff within past 7 days.  Please order CBC/Diff with WBC and ANC immediately.  Most recent results - "_$$GETDATA(DFN,"116^117^118",130)
  S OCXNMSG=""
  ;
  Q:$G(OCXOERR)
@@ -49,103 +32,155 @@ R61R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #61
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
-R62R1A ; Verify all Event/Elements of  Rule #62 'FOOD/DRUG INTERACTION'  Relation #1 'INPATIENT FOOD DRUG REACTION'
- ;  Called from EL84+5^OCXOZ0H.
+R57R2A ; Verify all Event/Elements of  Rule #57 'CLOZAPINE'  Relation #2 'CLOZAPINE AND (WBC < 3.0 OR ANC < 1.5)'
+ ;  Called from EL116+6^OCXOZ0H, and EL114+5^OCXOZ0H, and EL119+5^OCXOZ0H.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE84( ----------->  Verify Event/Element: 'INPATIENT FOOD-DRUG REACTION'
+ ; MCE114( ---------->  Verify Event/Element: 'CLOZAPINE ANC < 1.5'
+ ; MCE116( ---------->  Verify Event/Element: 'CLOZAPINE DRUG SELECTED'
+ ; MCE119( ---------->  Verify Event/Element: 'CLOZAPINE WBC < 3.0'
  ;
- Q:$G(^OCXS(860.2,62,"INACT"))
+ Q:$G(^OCXS(860.2,57,"INACT"))
  ;
- I $$MCE84 D R62R1B^OCXOZ0Y
+ I $$MCE116 D 
+ .I $$MCE119 D R57R2B
+ .I $$MCE114 D R57R2B
  Q
  ;
-CRCL(DFN) ;  Compiler Function: CREATININE CLEARANCE (ESTIMATED/CALCULATED)
+R57R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #57 'CLOZAPINE'  Relation #2 'CLOZAPINE AND (WBC < 3.0 OR ANC < 1.5)'
+ ;  Called from R57R2A+13.
  ;
- N WT,AGE,SEX,SCR,SCRD,CRCL,UNAV,OCXTL,OCXTLS,OCXT,OCXTS,PSCR
- S UNAV="0^<Unavailable>"
- S PSCR="^^^^^^0"
- S WT=$P($$WT^ORQPTQ4(DFN),U,2)*.454 Q:'WT UNAV
- S AGE=$$AGE^ORQPTQ4(DFN) Q:'AGE UNAV
- S SEX=$P($$SEX^ORQPTQ4(DFN),U,1) Q:'$L(SEX) UNAV
- S OCXTL="" Q:'$$TERMLKUP("SERUM CREATININE",.OCXTL) UNAV
- S OCXTLS="" Q:'$$TERMLKUP("SERUM SPECIMEN",.OCXTLS) UNAV
- S SCR="",OCXT=0 F  S OCXT=$O(OCXTL(OCXT)) Q:'OCXT  D
- .S OCXTS=0 F  S OCXTS=$O(OCXTLS(OCXTS)) Q:'OCXTS  D
- ..S SCR=$$LOCL^ORQQLR1(DFN,OCXT,OCXTS)
- ..I $P(SCR,U,7)>$P(PSCR,U,7) S PSCR=SCR
- S SCR=PSCR,SCRV=$P(SCR,U,3) Q:+$G(SCRV)<.01 UNAV
- S SCRD=$P(SCR,U,7) Q:'$L(SCRD) UNAV
+ Q:$G(OCXOERR)
  ;
- S CRCL=(((140-AGE)*WT)/(SCRV*72))
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ;
- I (SEX="M") Q SCRD_U_$J(CRCL,1,2)
- I (SEX="F") Q SCRD_U_$J((CRCL*.85),1,2)
- Q UNAV
+ Q:$D(OCXRULE("R57R2B"))
  ;
-DT2INT(OCXDT) ;      This Local Extrinsic Function converts a date into an integer
- ; By taking the Years, Months, Days, Hours and Minutes converting
- ; Them into Seconds and then adding them all together into one big integer
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^19^^WBC < 3.0 and/or ANC < 1.5 - pharmacy cannot fill clozapine order. Most recent results - "_$$GETDATA(DFN,"114^116^119",130) I 1
+ E  S OCXCMSG="WBC < 3.0 and/or ANC < 1.5 - pharmacy cannot fill clozapine order. Most recent results - "_$$GETDATA(DFN,"114^116^119",130)
+ S OCXNMSG=""
  ;
- Q:'$L($G(OCXDT)) ""
- N OCXDIFF,OCXVAL S (OCXDIFF,OCXVAL)=0
+ Q:$G(OCXOERR)
  ;
- I $L(OCXDT),'OCXDT,(OCXDT[" at ") D  ; EXTERNAL EXPERT SYSTEM FORMAT 1 TO EXTERNAL FORMAT
- .N OCXHR,OCXMIN,OCXTIME
- .S OCXTIME=$P($P(OCXDT," at ",2),".",1),OCXHR=$P(OCXTIME,":",1),OCXMIN=$P(OCXTIME,":",2)
- .S:(OCXDT["Midnight") OCXHR=00
- .S:(OCXDT["PM") OCXHR=OCXHR+12
- .S OCXDT=$P(OCXDT," at ")_"@"_$E(OCXHR+100,2,3)_$E(OCXMIN+100,2,3)
+ ; Send Order Check Message
  ;
- I $L(OCXDT),(OCXDT?1.2N1"/"1.2N.1" ".2N.1":".2N) D  ; EXTERNAL EXPERT SYSTEM FORMAT 2 TO EXTERNAL FORMAT
- .N OCXMON
- .S OCXMON=$P("January^February^March^April^May^June^July^August^September^October^November^December",U,$P(OCXDT,"/",1))
- .I $L($P(OCXDT," ",2)) S OCXDT=OCXMON_" "_$P($P(OCXDT," ",1),"/",2)_"@"_$TR($P(OCXDT," ",2),":","")
- .E  S OCXDT=OCXMON_" "_$P($P(OCXDT," ",1),"/",2)
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
  ;
- I $L(OCXDT),(OCXDT?1.2N1"/"1.2N1"/"1.2N.1" ".2N.1":".2N) D  ; EXTERNAL EXPERT SYSTEM FORMAT 3 TO EXTERNAL FORMAT
- .N OCXMON
- .S OCXMON=$P("January^February^March^April^May^June^July^August^September^October^November^December",U,$P(OCXDT,"/",1))
- .I $L($P(OCXDT," ",2)) S OCXDT=OCXMON_" "_$P($P(OCXDT," ",1),"/",2)_","_$P($P(OCXDT," ",1),"/",3)_"@"_$TR($P(OCXDT," ",2),":","")
- .E  S OCXDT=OCXMON_" "_$P($P(OCXDT," ",1),"/",2)_", "_$P($P(OCXDT," ",1),"/",3)
+R57R3A ; Verify all Event/Elements of  Rule #57 'CLOZAPINE'  Relation #3 'CLOZAPINE AND 3.0 <= WBC < 3.5 AND ANC >= 1.5'
+ ;  Called from EL116+7^OCXOZ0H, and EL115+5^OCXOZ0H, and EL120+5^OCXOZ0H.
  ;
- I $L(OCXDT),'OCXDT D  ; EXTERNAL FORMAT TO INTERNAL FILEMAN FORMAT
- .I (OCXDT["@0000") S OCXDT=$P(OCXDT,"@",1),OCXDIFF=1
- .N %DT,X,Y S X=OCXDT,%DT="" S:(OCXDT["@")!(OCXDT="N") %DT="T" D ^%DT S OCXDT=+Y
+ Q:$G(OCXOERR)
  ;
- I ($L(OCXDT\1)>7) S OCXDT=$$HL7TFM^XLFDT(OCXDT)  ; HL7 FORMAT TO INTERNAL FILEMAN FORMAT
+ ;      Local Extrinsic Functions
+ ; MCE115( ---------->  Verify Event/Element: 'CLOZAPINE ANC >= 1.5'
+ ; MCE116( ---------->  Verify Event/Element: 'CLOZAPINE DRUG SELECTED'
+ ; MCE120( ---------->  Verify Event/Element: 'CLOZAPINE WBC >= 3.0 & < 3.5'
  ;
- I ($L(OCXDT\1)=7) S OCXDT=$$FMTH^XLFDT(+OCXDT)   ; INTERNAL FILEMAN FORMAT TO $H FORMAT
+ Q:$G(^OCXS(860.2,57,"INACT"))
  ;
- I (OCXDT?5N1","1.5N) S OCXVAL=(OCXDT*86400)+$P(OCXDT,",",2)     ;  $H FORMAT TO EXPERT SYSTEM INTERNAL FORMAT
+ I $$MCE116 D 
+ .I $$MCE120 D 
+ ..I $$MCE115 D R57R3B
+ Q
  ;
- Q OCXVAL
+R57R3B ; Send Order Check, Notication messages and/or Execute code for  Rule #57 'CLOZAPINE'  Relation #3 'CLOZAPINE AND 3.0 <= WBC < 3.5 AND ANC >= 1.5'
+ ;  Called from R57R3A+14.
  ;
-FLAB(DFN,OCXLIST,OCXSPEC) ;  Compiler Function: FORMATTED LAB RESULTS
+ Q:$G(OCXOERR)
  ;
- Q:'$G(DFN) "<Patient Not Specified>"
- Q:'$L($G(OCXLIST)) "<Lab Tests Not Specified>"
- N OCXLAB,OCXOUT,OCXPC,OCXSL,SPEC S OCXOUT="",SPEC=""
- I $L($G(OCXSPEC)) S OCXSL=$$TERMLKUP(OCXSPEC,.OCXSL)
- F OCXPC=1:1:$L(OCXLIST,U) S OCXLAB=$P(OCXLIST,U,OCXPC) I $L(OCXLAB) D
- .N OCXX,OCXY,X,Y,DIC,TEST,SPEC,OCXTL,OCXA,OCXR
- .S OCXTL="" Q:'$$TERMLKUP(OCXLAB,.OCXTL)
- .S OCXX="",TEST=0 F  S TEST=$O(OCXTL(TEST)) Q:'TEST  D
- ..I $L($G(OCXSL)) D
- ...S SPEC=0 F  S SPEC=$O(OCXSL(SPEC)) Q:'SPEC  D
- ....S OCXX=$$LOCL^ORQQLR1(DFN,TEST,SPEC) I $L(OCXX) D
- .....S OCXA($P(OCXX,U,7))=OCXX
- ..I '$L($G(OCXSL)) S OCXX=$$LOCL^ORQQLR1(DFN,TEST,"")
- ..Q:'$L(OCXX)
- .I $D(OCXA) S OCXR="",OCXR=$O(OCXA(OCXR),-1),OCXX=OCXA(OCXR)
- .I $L(OCXX) D
- ..S OCXY=$P(OCXX,U,2)_": "_$P(OCXX,U,3)_" "_$P(OCXX,U,4)
- ..S OCXY=OCXY_" "_$S($L($P(OCXX,U,5)):"["_$P(OCXX,U,5)_"]",1:"")
- ..I $L($P(OCXX,U,7)) S OCXY=OCXY_" "_$$FMTE^XLFDT($P(OCXX,U,7),"2P")
- .S:$L(OCXOUT) OCXOUT=OCXOUT_"   " S OCXOUT=OCXOUT_$G(OCXY)
- Q:'$L(OCXOUT) "<Results Not Found>" Q OCXOUT
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R57R3B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^19^^WBC between 3.0 and 3.5 with ANC >= 1.5 - please repeat CBC/Diff including WBC and ANC immediately and twice weekly.  Most recent results - "_$$GETDATA(DFN,"115^116^120",130) I 1
+ E  S OCXCMSG="WBC between 3.0 and 3.5 with ANC >= 1.5 - please repeat CBC/Diff including WBC and ANC immediately and twice weekly.  Most recent results - "_$$GETDATA(DFN,"115^116^120",130)
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
+ ;
+R57R4A ; Verify all Event/Elements of  Rule #57 'CLOZAPINE'  Relation #4 'CLOZAPINE AND 1.5 <= ANC < 2.0'
+ ;  Called from EL116+8^OCXOZ0H, and EL141+5^OCXOZ0H.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE116( ---------->  Verify Event/Element: 'CLOZAPINE DRUG SELECTED'
+ ; MCE141( ---------->  Verify Event/Element: 'CLOZAPINE ANC >= 1.5 & < 2.0'
+ ;
+ Q:$G(^OCXS(860.2,57,"INACT"))
+ ;
+ I $$MCE116 D 
+ .I $$MCE141 D R57R4B
+ Q
+ ;
+R57R4B ; Send Order Check, Notication messages and/or Execute code for  Rule #57 'CLOZAPINE'  Relation #4 'CLOZAPINE AND 1.5 <= ANC < 2.0'
+ ;  Called from R57R4A+12.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R57R4B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^19^^ANC between 1.5 and 2.0 - please repeat CBC/Diff including WBC and ANC immediately and twice weekly.  Most recent results - "_$$GETDATA(DFN,"116^141",130) I 1
+ E  S OCXCMSG="ANC between 1.5 and 2.0 - please repeat CBC/Diff including WBC and ANC immediately and twice weekly.  Most recent results - "_$$GETDATA(DFN,"116^141",130)
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
+ ;
+R59R1A ; Verify all Event/Elements of  Rule #59 'AMINOGLYCOSIDE ORDER'  Relation #1 'AGS ORDER'
+ ;  Called from EL71+5^OCXOZ0H.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE71( ----------->  Verify Event/Element: 'AMINOGLYCOSIDE ORDER SESSION'
+ ;
+ Q:$G(^OCXS(860.2,59,"INACT"))
+ ;
+ I $$MCE71 D R59R1B
+ Q
+ ;
+R59R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #59 'AMINOGLYCOSIDE ORDER'  Relation #1 'AGS ORDER'
+ ;  Called from R59R1A+10.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R59R1B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^20^^Aminoglycoside - est. CrCl: "_$$GETDATA(DFN,"71^",76)_" ("_$$GETDATA(DFN,"71^",64)_")  [Est. CrCl based on modified Cockcroft-Gault equation using Adjusted Body Weight (if ht > 60 in)]" I 1
+ E  S OCXCMSG="Aminoglycoside - est. CrCl: "_$$GETDATA(DFN,"71^",76)_" ("_$$GETDATA(DFN,"71^",64)_")  [Est. CrCl based on modified Cockcroft-Gault equation using Adjusted Body Weight (if ht > 60 in)]"
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
  ;
 GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime data
  ;
@@ -153,52 +188,66 @@ GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime dat
  F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
  Q VAL
  ;
-MCE73() ; Verify Event/Element: CREATININE CLEARANCE ESTIMATE
+MCE114() ; Verify Event/Element: CLOZAPINE ANC < 1.5
  ;
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(73,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),73)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),73))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(114,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),114)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),114))
  Q 0
  ;
-MCE84() ; Verify Event/Element: INPATIENT FOOD-DRUG REACTION
+MCE115() ; Verify Event/Element: CLOZAPINE ANC >= 1.5
  ;
+ ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- I $L(OCXDF(37)) S OCXRES(84,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),84)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),84))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(115,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),115)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),115))
  Q 0
  ;
-MCE96() ; Verify Event/Element: CREATININE CLEARANCE DATE/TIME
+MCE116() ; Verify Event/Element: CLOZAPINE DRUG SELECTED
  ;
- ;  OCXDF(76) -> CREATININE CLEARANCE (ESTIM) VALUE data field
- ;  OCXDF(64) -> FORMATTED RENAL LAB RESULTS data field
- ;  OCXDF(77) -> CREATININE CLEARANCE (ESTIM) DATE data field
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(96,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),96)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),96))
- S OCXRES(96)=0,OCXDF(77)=$$DT2INT($P($$CRCL(OCXDF(37)),"^",1)) I $L(OCXDF(77)) S OCXRES(96,77)=OCXDF(77) I (OCXDF(77)>$$DT2INT(0))
- E  Q 0
- S OCXDF(64)=$$FLAB(OCXDF(37),"SERUM CREATININE^SERUM UREA NITROGEN","SERUM SPECIMEN"),OCXDF(76)=$P($$CRCL(OCXDF(37)),"^",2),OCXRES(96)=11 M ^TMP("OCXCHK",$J,OCXDF(37),96)=OCXRES(96)
- Q +OCXRES(96)
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(116,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),116)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),116))
+ Q 0
  ;
-MCE97() ; Verify Event/Element: RENAL RESULTS
+MCE119() ; Verify Event/Element: CLOZAPINE WBC < 3.0
  ;
- ;  OCXDF(76) -> CREATININE CLEARANCE (ESTIM) VALUE data field
- ;  OCXDF(64) -> FORMATTED RENAL LAB RESULTS data field
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(97,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),97)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),97))
- S OCXRES(97)=0,OCXDF(64)=$$FLAB(OCXDF(37),"SERUM CREATININE^SERUM UREA NITROGEN","SERUM SPECIMEN") I '(OCXDF(64)="<Results Not Found>")
- E  Q 0
- S OCXDF(76)=$P($$CRCL(OCXDF(37)),"^",2),OCXRES(97)=11 M ^TMP("OCXCHK",$J,OCXDF(37),97)=OCXRES(97)
- Q +OCXRES(97)
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(119,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),119)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),119))
+ Q 0
  ;
-TERMLKUP(OCXTERM,OCXLIST) ;
- Q $$TERM^OCXOZ01(OCXTERM,.OCXLIST)
+MCE120() ; Verify Event/Element: CLOZAPINE WBC >= 3.0 & < 3.5
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(120,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),120)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),120))
+ Q 0
+ ;
+MCE141() ; Verify Event/Element: CLOZAPINE ANC >= 1.5 & < 2.0
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(141,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),141)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),141))
+ Q 0
+ ;
+MCE71() ; Verify Event/Element: AMINOGLYCOSIDE ORDER SESSION
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(71,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),71)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),71))
+ Q 0
  ;

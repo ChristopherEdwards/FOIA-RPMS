@@ -1,6 +1,5 @@
-GMRAU851 ;HIRMFO/RFM,WAA-UTILITIES FOR FILE 120.85 ;02-Nov-2010 16:37;DU
- ;;4.0;Adverse Reaction Tracking;**21,1002**;Mar 29, 1996;Build 32
- ;IHS/MSC/MGH modified to check for inactive
+GMRAU851 ;HIRMFO/RFM,WAA-UTILITIES FOR FILE 120.85 ;01-May-2012 14:26;DU
+ ;;4.0;Adverse Reaction Tracking;**21,1002,1006**;Mar 29, 1996;Build 29
 HLP ;
  N DIR
  I '$D(^GMR(120.8,"B",DFN)) W !?4,"There are no reactions on file for this patient." Q
@@ -14,7 +13,7 @@ HLP12085(DFN,SCR) ; THIS WILL LIST ENTRIES FOR PATIENT (DFN) IN FILE
  I $G(SCR)="" S SCR="SCR=SCR"
  S GMRAX="" F  S GMRAX=$O(^GMR(120.8,"B",DFN,GMRAX)) Q:GMRAX'>0  S GMRAY=$P($G(^GMR(120.8,GMRAX,0)),U,2) I GMRAY]"",@SCR S GMRAL(GMRAY,GMRAX)=""
  W #,!!,"CHOOSE FROM:" S GMRAY="" F  Q:GMRAOUT  S GMRAY=$O(GMRAL(GMRAY)) Q:GMRAY=""  S GMRAX="" F  S GMRAX=$O(GMRAL(GMRAY,GMRAX)) Q:GMRAX'>0  D  Q:GMRAOUT
- . ;IHS/MSC/MGH check for inactive
+ . ;IHS/MSC/MGH check for inactive patch 1006
  . S INAC=$$INACTIVE^GMRADSP6(GMRAX)
  . I INAC=1 S GMRAY=GMRAY_" (Inactive)"
  . I $Y>(IOSL-3) D ENDPG^GMRADSP3 Q:GMRAOUT  W #

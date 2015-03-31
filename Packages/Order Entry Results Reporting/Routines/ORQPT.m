@@ -1,6 +1,7 @@
-ORQPT ; SLC/MKB - Patient Selection ;8/8/97  13:07 [6/5/01 12:36pm]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**52,82,85**;Dec 17, 1997
+ORQPT ; SLC/MKB - Patient Selection ; 4/18/07 7:20am
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**52,82,85,215,243**;Dec 17, 1997;Build 242
  ;
+ ; Ref. to ^UTILITY via IA 10061
  ; SLC/PKS - 3/2000: Modified to deal with "Combinations."
  ;
 EN ; -- main entry point for OR PATIENT SELECTION
@@ -142,9 +143,12 @@ ID(DFN) ; -- Returns short ID for patient ID
  Q "("_$E(NAME)_ID_")"
  ;
 APPT(DFN,CLINIC,FROM,TO) ; -- Return [next?] clinic appointment
- N VASD,VAERR K ^UTILITY("VASD",$J)
+ ; returns date/time next appt or "", returns "^error message" on error
+ N ERR,ERRMSG,VASD,VAERR K ^UTILITY("VASD",$J)  ;IA 10061
  S VASD("F")=FROM,VASD("T")=TO,VASD("C",CLINIC)=""
- D SDA^VADPT S NEXT=+$O(^UTILITY("VASD",$J,0)),NEXT=$P($G(^(NEXT,"I")),U)
+ D SDA^ORQRY01(.ERR,.ERRMSG)
+ I ERR K ^UTILITY("VASD",$J) Q ERRMSG
+ S NEXT=+$O(^UTILITY("VASD",$J,0)),NEXT=$P($G(^(NEXT,"I")),U)
  K ^UTILITY("VASD",$J)
  Q NEXT
  ;
@@ -188,8 +192,6 @@ SLCT1 ; -- may enter here with DFN from FIND
  . W !!,"Press <return> to continue ..."
  . R X:DTIME
 SLCT2 ; -- convert patient's orders, if not already done
- S ORCNV=$$OTF^OR3CONV(+ORVP) Q:'ORCNV  I ORCNV>0 W !,"DONE" H 1 Q
- I ORCNV<0 W $C(7),!!,$P(ORCNV,U,2) H 2 S VALMBCK="R" Q
  Q
  ;
 OK(DATE) ; -- Patient is deceased; ok to continue?

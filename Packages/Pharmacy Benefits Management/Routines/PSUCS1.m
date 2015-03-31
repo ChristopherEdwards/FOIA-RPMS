@@ -1,5 +1,5 @@
 PSUCS1 ;BIR/DJE - PBM CONTROLLED SUBSTANCE GENERATE RECORDS ;20 OCT 1999
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**1,7,9,16,19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
  ;DBIA(s)
  ; Reference to file #58.81 supported by DBIA 2520
@@ -22,7 +22,7 @@ INIT ;
  S PSUSDT=$G(PSUSDT,"")
  S PSUEDT=$G(PSUEDT,"")
  S PSUEDT=PSUEDT\1+.24
- S PSURI="H"
+ ;S PSURI="H"   DAM TEST
  S PSUMCHK=0
  Q
  ;
@@ -46,11 +46,11 @@ EN ;ENTRY POINT
  .... ;
  .... ; Screen out test patients
  .... Q:$$TESTPAT^PSUTL1(PSUPIEN(73))
- .... ; Field # 58.81,3 [DATE/TIME]********Field to be extracted***********
+ .... ; Field # 58.81,3 [DATE/TIME]Field to be extracted***
  .... S PSUDTM(3)=$$VALI^PSUTL(58.81,PSUIENDA,"3")
- .... S PSURI="H" S SENDER=PSUSNDR ;DUZ
+ .... ;S PSURI="H" S SENDER=PSUSNDR ;DUZ    DAM TEST
  .... I PSUTYP=2 D TYP2^PSUCS2 D:'$G(PSUQUIT) BUILDREC^PSUCS5 K PSUSSN,PSUPLC,PSUQUIT ;**9
- .... I PSUTYP=17,PSUPIEN(73)'="" D TYP17^PSUCS3 K PSUSSN,PSUPLC
+ .... I PSUTYP=17,PSUPIEN(73)'="" D TYP17^PSUCS3 K PSUPLC
  .... ;     type 17s to be processed after all are gathered
  .... ;     into ^XTMP(,"MC",LOC,PAT,DRG)
  ....;3.2.5.5.  Functional Requirement 5

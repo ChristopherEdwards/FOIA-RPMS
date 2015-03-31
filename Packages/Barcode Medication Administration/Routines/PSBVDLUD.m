@@ -1,5 +1,6 @@
 PSBVDLUD ;BIRMINGHAM/EFC-BCMA UNIT DOSE VIRTUAL DUE LIST FUNCTIONS ;Mar 2004
- ;;3.0;BAR CODE MED ADMIN;**11**;Mar 2004
+ ;;3.0;BAR CODE MED ADMIN;**11,13,38,32**;Mar 2004;Build 32
+ ;Per VHA Directive 2004-038 (or future revisions regarding same), this routine should not be modified.
  ;
  ; Reference/IA
  ; EN^PSJBCMA/2828
@@ -30,7 +31,7 @@ EN(DFN,PSBDT) ;
  .Q:PSBOSP<PSBWBEG  ; For Non one-times Order Stop Date/Time < vdl window
  .Q:PSBOSTS["D"  ;     Is it DC'd
  .Q:PSBNGF  ;         Is it marked DO NOT GIVE!
- .Q:PSBMR="IVP"!(PSBMR="IV PUSH")
+ .Q:PSBIVPSH
  .;
  .; Non One-Times with stop date/time < now
  .;
@@ -71,14 +72,15 @@ EN(DFN,PSBDT) ;
  .S $P(PSBREC,U,7)=$S(PSBHSM:"HSM",PSBSM:"SM",1:"") ; self med
  .S $P(PSBREC,U,8)=PSBOITX ; drugname
  .S $P(PSBREC,U,9)=PSBDOSE_" "_PSBIFR ; dosage
- .S $P(PSBREC,U,10)=PSBMR ; route
+ .S $P(PSBREC,U,10)=PSBMR ; med route
  .; Last Given from the AOIP X-Ref - not given status not excepted
  .S (PSBCNT,PSBFLAG)=0,(YZ,PSBSTUS,PSBADMER)="" K PSBHSTA,PSBHSTAX
  .F XZ=1:1:20 S YZ=$O(^PSB(53.79,"AOIP",DFN,PSBOIT,YZ),-1),(PSBCNT,PSBFLAG)=0 Q:YZ=""  D
  ..S:YZ>0 $P(PSBREC,U,11)=YZ
  ..S X="" F  S X=$O(^PSB(53.79,"AOIP",DFN,PSBOIT,YZ,X),-1) Q:X=""  D
+ ...K PSBLCK L +^PSB(53.79,X):1  I  L -^PSB(53.79,X) S PSBLCK=1
  ...S PSBSTUS=$P(^PSB(53.79,X,0),U,9)
- ...I $G(PSBSTUS)="" S PSBADMER=1 L +^PSB(53.79,X):1  I  D  L -^PSB(53.79,X) Q
+ ...I $G(PSBSTUS)="" S:'$G(PSBLCK) PSBSTUS="X" I $G(PSBLCK) S PSBADMER=1 D
  ....K PSBPARM3,PSBPARM5,PSBPARM6,PSBPARM7
  ....S PSBPARM6=X,Y=$P(^PSB(53.79,X,.1),U,3) D DD^%DT S PSBPARM3=Y,Y=$P(^PSB(53.79,X,0),U,6) D DD^%DT S PSBPARM5=Y
  ....S PSBPARM7=$P(^PSB(53.79,X,0),U,7) S PSBPARM7="( # "_PSBPARM7_" ) "_$$GET1^DIQ(200,PSBPARM7_",",.01)
@@ -87,7 +89,7 @@ EN(DFN,PSBDT) ;
  ....D ERROR^PSBMLU(PSBONX,PSBOITX,DFN,PSBPARM3_" admin's ACTION STATUS is ""UNKNOWN"".",PSBSCH,PSBPARM5,PSBPARM6,PSBPARM7) ;  SEND AN E-MAIL
  ....D CLEAN^PSBVT,PSJ1^PSBVT(DFN,PSBXTMP)  ;Reset Variables
  ....S X=PSBPARM6 K PSBPARM3,PSBPARM5,PSBPARM6,PSBPARM7
- ...Q:PSBSTUS']""  I PSBSTUS'="N" S PSBFLAG=1,PSBHSTA(YZ,$G(PSBSTUS))="ORIG"_U_X
+ ...K PSBLCK S:(PSBSTUS']"") PSBSTUS="U"  I PSBSTUS'="N",($G(PSBSTUS)'="X") S PSBFLAG=1,PSBHSTA(YZ,$G(PSBSTUS))="ORIG"_U_X
  ...D:PSBSTUS="N"
  ....S $P(PSBREC,U,11)=""
  ....S Z="" F  S Z=$O(^PSB(53.79,X,.9,Z),-1) Q:'Z  Q:PSBFLAG=1  S PSBDATA=$G(^(Z,0)) D
@@ -103,16 +105,16 @@ EN(DFN,PSBDT) ;
  .S $P(PSBREC,U,13)=""  ;med log status inserted below for actual date
  .S $P(PSBREC,U,14)="" ; admin date inserted below
  .S $P(PSBREC,U,15)=PSBOIT ; OI Pointer
- .S $P(PSBREC,U,16)=0  ; Default to not injectable
- .F X="ID","IV","IM","SC","SQ" D  Q:$P(PSBREC,U,16)
- ..I PSBMR?@(".E1"""_X_""".E"),PSBMR'["MISC" S $P(PSBREC,U,16)=1
+ .S $P(PSBREC,U,16)=PSBNJECT  ;med route injectable flag
  .; Variable dosage entered as ####-####?
  .I $P(PSBREC,U,9)?1.4N1"-"1.4N.E S $P(PSBREC,U,17)=1
  .E  S $P(PSBREC,U,17)=0
  .S:PSBDOSEF?1"CAP".E!(PSBDOSEF?1"TAB".E)!(PSBDOSEF="PATCH") $P(PSBREC,U,18)=PSBDOSEF ; dosage form
- .S $P(PSBREC,U,20)=PSBSTUS S:$P(PSBREC,U,11)="" $P(PSBREC,U,20)=""  ; last action status
+ .S $P(PSBREC,U,20)=$S((PSBSTUS="X")!(PSBSTUS="N"):"",1:PSBSTUS) ; last action status
  .S $P(PSBREC,U,21)=PSBOST
  .S $P(PSBREC,U,22)=PSBOSTS
+ .S $P(PSBREC,U,26)=PSBOSP
+ .S $P(PSBREC,U,27)=$$LASTG^PSBCSUTL(DFN,PSBOIT)
  .;
  .; Gather Dispense Drugs
  .D NOW^%DTC

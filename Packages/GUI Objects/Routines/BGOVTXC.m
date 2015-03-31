@@ -1,5 +1,5 @@
-BGOVTXC ; IHS/BAO/TMD - Manage V TREATMENT CONTRACT ;20-Mar-2007 13:52;DKM
- ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+BGOVTXC ; IHS/BAO/TMD - Manage V TREATMENT CONTRACT ;09-Apr-2012 14:19;DU
+ ;;1.1;BGO COMPONENTS;**1,3,11**;Mar 20, 2007;Build 3
  ; Return treatment contract entries by individual entry, visit, or patient
  ;  INP = Patient IEN [1] ^ V File IEN [2] ^ Visit IEN [3]
 GET(RET,INP) ;EP
@@ -27,6 +27,13 @@ SET(RET,INP) ;EP
  S @FDA@(.05)=$S(PRV:"`"_PRV,1:"")
  S @FDA@(1201)="N"
  S @FDA@(1204)="`"_DUZ
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

@@ -1,7 +1,7 @@
 BARFPST1 ; IHS/SD/LSL - FLAT RATE POSTING (CONT) ; 12/22/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,10,21**;OCT 26, 2005
- ;;
-DOC ;
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,10,21,23**;OCT 26, 2005
+ ;; P.OTT Aug 2013 HEAT#126384 FIXED <undef> @ FDIH
+ ;
  Q
  ; *********************************************************************
 PAYADJD ; EP
@@ -66,7 +66,7 @@ PAYADJ ; EP
  . . . Q:BARJ>1
  . . . S BARATYP=1                  ; Adjustment Type Entry Flag
  . . . S BARSTYP=BARX               ; IEN to A/R TABLE ENTRY/IHS
- . . . S BARSTYP2=$P(^BARTBL(BARSTYP,0),U)  ; Adjustment Type
+ . . . S BARSTYP2=$P($G(^BARTBL(BARSTYP,0)),U)  ; Adjustment Type P.OTT HEAT#126384
  . . I BARJ>1 D ADJTYP Q:'+BARATYP  ; Ask Adjustment Type
  . . S BARTMP=BARSCAT_BARSTYP       ; Adj cat and typ used for dup chk
  . . ; Check to make sure category and type doesn't already exist
@@ -126,7 +126,8 @@ PAYMNT ;
  D ^DIR
  K DIR
  I $D(DUOUT)!(Y="") S BARPY=0 Q
- I Y<0,$$IHS^BARUFUT(DUZ(2)) D STOP S BARPY=0 Q     ;MRS:BAR*1.8*10 D158-3
+ I Y<0,$$IHS^BARUFUT(DUZ(2)) D STOP S BARPY=0 Q     ;MRS:BAR*1.8*10 D158-3 
+ ;;;I Y<0,$$IHSERA^BARUFUT(DUZ(2)) D STOP S BARPY=0 Q     ;MRS:BAR*1.8*10 D158-3 P.OTT
  S BARNPAY=+Y
  I '$D(BARIEN) D          ;MRS:BAR*1.8*6 DD 4.2.5 Check balance when creating
  .I BARNPAY>BARCLIT(19) D WARN("ITEM") Q
@@ -219,6 +220,9 @@ ADJTYP ;
  Q
 WARN(MSG) ;EP; NEW NEGATIVE BALANCE MESSAGE ;MRS:BAR*1.8*6 DD 4.2.5
  Q:'$$IHS^BARUFUT(DUZ(2))
+ ;;;Q:'$$IHSERA^BARUFUT(DUZ(2)) ;IS P.OTT NEG PAYMENT OK?
+ ; FALL THRU: ALL IHS FACILITIES
+ ;            TRIBAL WITH FLAG SET
  W !?10,"WARNING: PAYMENT AMOUNT EXCEEDS "_MSG_" BALANCE AMOUNT"
  W !?24,"PLEASE ENTER A VALID VALUE"
  K BARNPAY

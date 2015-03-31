@@ -1,8 +1,9 @@
 BIDX ;IHS/CMI/MWR - RISK FOR FLU & PNEUMO, CHECK FOR DIAGNOSES.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  CHECK FOR DIAGNOSES IN A TAXONOMY RANGE, WITHIN A GIVE DATE RANGE.
  ;;  FROM LORI BUTCHER, 9-18-05
+ ;;  PATCH 5: New code to check for Smoking Health Factors.   HFSMKR+23
  ;
  ;
  ;----------
@@ -112,21 +113,47 @@ HFSMKR(BIDFN,BIFDT) ;EP
  ;     2 - BIFDT   (req) Forecast Date (date used for forecast).
  ;
  ;---> Return 0 if routine APCHSMU is not in the namespace.
- Q:('$L($T(^APCHSMU))) 0
+ ;Q:('$L($T(^APCHSMU))) 0
  ;
  ;---> Return 0 if patient does not have these Health Factors.
- ;N Y S Y=$$LASTHF^APCHSMU(BIDFN,"TOBACCO","N")
- N Y S Y=$$LASTHF^APCHSMU(BIDFN,"TOBACCO (SMOKING)","N")
- Q:((Y'["CURRENT SMOKER")&(Y'["CURRENT SMOKELESS")&(Y'["TOBACCO READINESS TO QUIT")) 0
+ ;N Y S Y=$$LASTHF^APCHSMU(BIDFN,"TOBACCO (SMOKING)","N")
+ ;Q:((Y'["CURRENT SMOKER")&(Y'["CURRENT SMOKELESS")&(Y'["TOBACCO READINESS TO QUIT")) 0
  ;
- S Y=$$LASTHF^APCHSMU(BIDFN,"TOBACCO","D")
- Q:'Y 0  Q:'$G(DT) 0
+ ;S Y=$$LASTHF^APCHSMU(BIDFN,"TOBACCO","D")
+ ;Q:'Y 0  Q:'$G(DT) 0
  ;
  ;---> Return 0 if Smoker Health Factor is more than 2 years old.
- Q:($$FMDIFF^XLFDT(BIFDT,Y)>730) 0
+ ;Q:($$FMDIFF^XLFDT(BIFDT,Y)>730) 0
  ;
  ;---> Patient has SMOKER Health Factor in last 2 years.
- Q 1
+ ;Q 1
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> All above old code is commented out by this patch.
+ ;---> New code to check for Smoking Health Factors.
+ ;
+ ;---> Return 0 if routine APCLAPIU is not in the namespace.
+ ;---> APCLAPIU is from ;;2.0;IHS PCC SUITE;**2,6**;MAY 14, 2009.
+ Q:('$L($T(^APCLAPIU))) 0
+ Q:'$G(BIDFN) 0
+ S:'$G(BIFDT) BIFDT=$G(DT)
+ ;
+ N Y S Y=$$LASTHF^APCLAPIU(BIDFN,"TOBACCO (SMOKING)",$$FMADD^XLFDT(BIFDT,-730),BIFDT)
+ ;---> If there's a hit it looks like this:
+ ;--->     3110815^HF: CURRENT SMOKER, SOME DAY^^2580^9000010.23^2, otherwise null.
+ ;---> So, if there's a leading date, then patient has an HF "TOBACCO (SMOKING)" Category.
+ ;---> Looking for these Health Factors:
+ ;
+ Q:(Y["CURRENT SMOKER, STATUS UNKNOWN") 1
+ Q:(Y["CURRENT SMOKER, EVERY DAY") 1
+ Q:(Y["CURRENT SMOKER, SOME DAY") 1
+ Q:(Y["CESSATION-SMOKER") 1
+ Q:(Y["HEAVY TOBACCO SMOKER") 1
+ Q:(Y["LIGHT TOBACCO SMOKER") 1
+ ;
+ ;---> Patient does NOT have a SMOKER Health Factor 2 years prior to the Forecast Date.
+ Q 0
+ ;**********
  ;
  ;
  ;----------

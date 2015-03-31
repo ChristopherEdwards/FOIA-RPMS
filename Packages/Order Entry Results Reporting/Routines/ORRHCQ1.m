@@ -1,5 +1,5 @@
 ORRHCQ1 ; SLC/SRM - CPRS Query Tools - Utilities ;6/10/03  15:11
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**174**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**174,248**;Dec 17, 1997;Build 1
  ;
 QRYSITR(VAL,ORRITR)       ; Do query for the standard Iterator, saving off the sensitive patients
  ; VAL=PtSearched^RecordsFound^Iterator
@@ -49,7 +49,7 @@ DELSEN(RES,DFN) ;Removes Sensitive Patient from list
  S RES=0
  I $D(^TMP("ORRHCQ",$J,"DFN","S",DFN)) D
  .S RES=1 K ^TMP("ORRHCQ",$J,"DFN","S",DFN),^TMP("ORRHCQ",$J,"DFN","S","B",$$PTNAME(DFN)_"!"_DFN)
- Q RES
+ Q
  ;
 GETCNT(LEN)     ; Returns the count of sensitive patients
  S LEN=0

@@ -1,5 +1,6 @@
-GMRCIBKG ;SLC/JFR - IFC BACKGROUND ERROR PROCESSOR; 10/29/02 09:20
- ;;3.0;CONSULT/REQUEST TRACKING;**22,28,30**;DEC 27, 1997
+GMRCIBKG ;SLC/JFR - IFC BACKGROUND ERROR PROCESSOR; 07/02/03 13:54
+ ;;3.0;CONSULT/REQUEST TRACKING;**22,28,30,35,58**;DEC 27, 1997;Build 4
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
  ; This routine invokes IA# 3335
  ;
@@ -45,6 +46,7 @@ EN ;process file 123.6 and take action
  .. S DOW=$$DOW^XLFDT(DT,1)
  .. S GMRCSND=$S('GMRCPAR:1,(+DOW&(DOW<6)):1,1:0)
  .. I GMRCSND D  ;re-send based on parameter and day of week
+ ... D DELALRT(GMRCLOG) ;delete previous alerts on same transaction
  ... D TRIGR^GMRCIEVT($P(GMRCLOG0,U,4),$P(GMRCLOG0,U,5))
  .. I '($P(GMRCLOG0,U,7)#8),GMRCSND D
  ... ;alert CAC's about errors every 24 hrs.
@@ -65,6 +67,7 @@ EN ;process file 123.6 and take action
  .... S DOM=$$GET1^DIQ(870,+GMRCLNK,.03)
  .... S STA=$$STA^XUAF4($P(GMRCLOG0,U,2))
  .... S OBR=$E($$OBR^GMRCISG1(+$P(GMRCLOG0,U,4),+$P(GMRCLOG0,U,5)),5,999)
+ .... N DIV S DIV=STA,STA=+$$SITE^VASITE
  .... D PTERRMSG^GMRCIERR(PID,STA,DOM,OBR)
  . ;
  . ;  v-- resend local ICN errors after 3 hours
@@ -80,7 +83,8 @@ EN ;process file 123.6 and take action
  ... D DELALRT(GMRCLOG) ;delete previous alerts on same transaction
  ... D SNDALRT^GMRCIERR(GMRCLOG,"C") ; alert CAC's to patient errors
  . ;  v-- re-process implementation errors
- . I $P(GMRCLOG0,U,8)>300,$P(GMRCLOG0,U,8)<702 D  Q
+ . ;I $P(GMRCLOG0,U,8)>300,$P(GMRCLOG0,U,8)<702 D  Q
+ . I $P(GMRCLOG0,U,8)>300,$P(GMRCLOG0,U,8)<704 D  Q
  .. D DELALRT(GMRCLOG) ;delete previous alerts on same transaction
  .. D TRIGR^GMRCIEVT($P(GMRCLOG0,U,4),$P(GMRCLOG0,U,5)) ;re-send activity
  . ;  v-- if incomplete and no error, alert tech group

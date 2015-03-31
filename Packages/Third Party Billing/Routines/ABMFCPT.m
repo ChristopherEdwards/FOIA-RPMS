@@ -1,5 +1,5 @@
 ABMFCPT ; IHS/ASDST/DMJ - FILE CPT CODE ;   
- ;;2.6;IHS Third Party Billing System;**2**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/ASDS/JLG - 01/23/01 - V2.4 Patch 3 - NOIS NEA-0600-18022
  ;    Modified routine to fix problem with provider narrative not 
@@ -59,6 +59,8 @@ ANES ;ANESTHESIA CODE
  S DR=DR_";.04////"_$P($$ONE^ABMFEAPI(ABMP("FEE"),23,+ABMCPT,ABMP("VDT")),U)  ;abm*2.6*2 3PMS10003A
  S DR=DR_";.05////"_ABMSDT
  S DR=DR_";.06////"_ABMMOD1
+ S DR=DR_";.07////"_ABMAST  ;Anes. start dt/tm abm*2.6*11 HEAT83923
+ S DR=DR_";.08////"_ABMAET  ;Anes. end dt/tm abm*2.6*11 HEAT83923
  ;Next line set correspond diagnosis if only 1 POV
  I $D(ABMP("CORRSDIAG")) S DR=DR_";.1////1"
  S DR=DR_";.17////"_ABMSRC
@@ -228,7 +230,8 @@ EDIT ;EDIT EXISTING ENTRY
  N ABM1,ABMY,P
  K DIC,DIE
  S (DIC,DIE)="^ABMDCLM(DUZ(2),DA(1),ABMCTG,"
- S ABMCPTIE=$O(^ICPT("B",ABMCPT,0))
+ ;S ABMCPTIE=$O(^ICPT("B",ABMCPT,0))  ;abm*2.6*11 HEAT94153
+ S ABMCPTIE=$P(AUPNCPT(N),U,3)  ;abm*2.6*11 HEAT94153
  S ABMRVN=$P($$IHSCPT^ABMCVAPI(+ABMCPTIE,ABMP("VDT")),U,3)  ;CSV-c
  S DA=$O(^ABMDCLM(DUZ(2),DA(1),"ASRC",ABMSRC,0))
  I DA,'$D(@(DIC_DA_",0)")) S DA=""          ;For duplicates problem 

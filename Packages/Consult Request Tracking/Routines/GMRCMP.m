@@ -1,6 +1,6 @@
-GMRCMP ;SLC/DCM - List Manager routine: Medical Service and sub-specialty consults ;29-Nov-2005 11:54;MGH
- ;;3.0;CONSULT/REQUEST TRACKING;**1,1001**;DEC 27, 1997
- ;IHS/CIA/MGH Modified to use HRCN instead of SSN
+GMRCMP ;SLC/DCM - List Manager routine: Medical Service and sub-specialty consults ;15-Mar-2012 10:40;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,1001,1003**;DEC 27, 1997;Build 14
+ ;Modified - IHS/CIA/MGH -11/29/2005 - Line INIT+4 - Modified to use HRCN instead of SSN
 EN ; -- main entry point for GMRC TRK MEDICINE CONSULTS
  K GMRCQUT
  D EN^GMRCMCP I $D(GMRCQUT) D EXIT Q

@@ -1,11 +1,11 @@
 PSDDFP1 ;BIR/JPW-Disp from Pharm w/o Green Sheet (cont'd) ; 2 Aug 93
- ;;3.0; CONTROLLED SUBSTANCES ;**16**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**16,66**;13 Feb 97;Build 3
  ;
  ;References to ^PSD(58.8, supported by DBIA2711
  ;References to ^PSD(58.81 are supported by DBIA2808
 TRANS ;create a disp transaction
  W !!,"Creating a dispensing transaction..."
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDREC=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDREC)) S $P(^PSD(58.81,0),"^",3)=PSDREC G FIND
  K DA,DIC,DLAYGO S DIC(0)="L",(DIC,DLAYGO)=58.81,(X,DINUM)=PSDREC D ^DIC K DIC,DLAYGO
  L -^PSD(58.81,0)

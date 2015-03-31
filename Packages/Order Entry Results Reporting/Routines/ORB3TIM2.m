@@ -1,5 +1,6 @@
-ORB3TIM2 ; slc/CLA - Routine to trigger time-related notifications ;3/30/01  07:41
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**102**;Dec 17, 1997
+ORB3TIM2 ; slc/CLA - Routine to trigger time-related notifications ;3/30/01  07:41 [1/3/05 8:21am]
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**102,215,251,265**;Dec 17, 1997;Build 17
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
 EXPIR ;trigger expiring order notifs
  N EDT,EXDT,EXORN,ORBDNR,ORPT,ORBRSLT,RXORD,ORLASTDT,X,Y,%DT
@@ -8,7 +9,7 @@ EXPIR ;trigger expiring order notifs
  ;
  S ORNOW=$$NOW^XLFDT
  ;
- I '$D(^XTMP("ORB LAST EXPIRE")) D  ;holds last expire dt processed
+ I '$D(^XTMP("ORB LAST EXPIRE")) D  ;holds last dt EXPIR processed
  .S ^XTMP("ORB LAST EXPIRE",0)=$$FMADD^XLFDT(ORNOW,7,"","","")_U
  ;
  ;determine number of days to return orders using day of week & holidays
@@ -45,7 +46,7 @@ EXPIR ;trigger expiring order notifs
  ..S ORPT=$$PT^ORQOR2(EXORN)   ; get pt assoc w/order
  ..Q:+$G(ORPT)<1
  ..;
- ..Q:+$G(^DPT(ORPT,.35))>0  ; quit if pt deceased
+ ..Q:+$G(^DPT(ORPT,.35))>0  ; quit if pt deceased - DBIA #10035
  ..;
  ..S PTLOC=$G(^DPT(+$G(ORPT),.1)),PTLOC=$S($L(PTLOC):PTLOC,1:"OUTPT")
  ..;
@@ -61,6 +62,7 @@ EXPIR ;trigger expiring order notifs
  ..S EXOI=$$OI^ORQOR2(EXORN) I +$G(EXOI)>0 D
  ...I $L(PTLOC),PTLOC'="OUTPT" D
  ....D ENVAL^XPAR(.ORBLST,"ORB OI EXPIRING - INPT","`"_EXOI,.ORBERR)
+ ....I 'ORBERR,'$G(ORBLST) D ENVAL^XPAR(.ORBLST,"ORB OI EXPIRING - INPT PR","`"_EXOI,.ORBERR)
  ....I 'ORBERR,$G(ORBLST)>0 D
  .....S OITXT=$P(^ORD(101.43,EXOI,0),U)
  .....S ORSDT=$P(^OR(100,EXORN,0),U,8),ORSDT=$$FMTE^XLFDT(ORSDT,"2P")
@@ -77,11 +79,15 @@ EXPIR ;trigger expiring order notifs
  ..S RXORD=$$DGRX^ORQOR2(EXORN)
  ..I $L(RXORD) D  ;if expiring order is a med order
  ...;
- ...Q:RXORD="OUTPATIENT MEDICATIONS"  ;quit if outpt med
- ...;
  ...N DFN S DFN=ORPT
  ...D ADM^VADPT2
- ...Q:+$G(VADMVT)<1  ; quit if an outpt
+ ...;
+ ...I (RXORD="OUTPATIENT MEDICATIONS")!(+$G(VADMVT)<1&(RXORD'="CLINIC ORDERS")) D
+ ....D EN^ORB3(72,ORPT,EXORN,"","",EXORN_"@")  ;trigger outpt notif
+ ...;
+ ...Q:RXORD="OUTPATIENT MEDICATIONS"  ;quit if an outpt med
+ ...Q:+$G(VADMVT)<1&(RXORD'="CLINIC ORDERS")  ;quit if an outpt
+ ...;
  ...K VADMVT
  ...;
  ...;is schedule for the order a ONE TIME MED:
@@ -90,6 +96,20 @@ EXPIR ;trigger expiring order notifs
  ....S ORSCH=$P(ORBZ(ORBI),U,2)
  ....I ORSCH=$$VALUE^ORCSAVE2(EXORN,"SCHEDULE") S ONETIME=1 Q
  ...Q:+$G(ONETIME)=1  ;quit if one time med
+ ...;
+ ...;check if this is an IMO order and what it is,send an M.E.-OUTPT alert
+ ...I RXORD="CLINIC ORDERS" D  Q
+ ....N ORDLG,ORDG,ORDLGNM,FLAG,ORX
+ ....S FLAG=0
+ ....S ORDLG=$P($G(^OR(100,EXORN,0)),U,5) Q:$P(ORDLG,";",2)'="ORD(101.41,"
+ ....S ORDLGNM=$P($G(^ORD(101.41,+ORDLG,0)),U)
+ ....S ORDG=$P($G(^ORD(101.41,+ORDLG,0)),U,2)
+ ....I ORDLGNM="PSJ OR PAT OE"!(ORDLGNM="PSJI OR PAT FLUID OE") S FLAG=1
+ ....I 'FLAG F ORX="INPATIENT MEDICATIONS","IV MEDICATIONS","UNIT DOSE MEDICATIONS","CLINIC ORDERS" I $$UPPER^ORU(ORDG)=ORX D
+ .....S FLAG=1
+ .....I ORX="IV MEDICATIONS",(+$$IVRENEW(EXORN)=0) S FLAG=0
+ .....I ORX="UNIT DOSE MEDICATIONS",(+$$UDRENEW(EXORN,EXDT)=0) S FLAG=0
+ ....I FLAG D EN^ORB3(72,ORPT,EXORN,"","",EXORN_"@")  ;trigger outpt notif
  ...;
  ...;quit if inpt/unit dose med and med is not renewable:
  ...I RXORD="UNIT DOSE MEDICATIONS",(+$$UDRENEW(EXORN,EXDT)=0) Q
@@ -106,6 +126,7 @@ UDRENEW(EXORN,EXDT) ;extr function returns 1 if med is renewable, 0 if not
  S ORSLT=0
  S ORSTATUS=$P($$STATUS^ORQOR2(EXORN),U,2)
  I ORSTATUS="ACTIVE" Q 1  ;renewable if "active"
+ I ORSTATUS="HOLD" Q 1   ;renewable if "on hold"
  I ORSTATUS="EXPIRED" D
  .S ORNOW=$$NOW^XLFDT
  .;renewable if expired w/in past 4 days:
@@ -117,6 +138,7 @@ IVRENEW(EXORN) ;extr function returns 1 if med is renewable, 0 if not
  S ORSLT=0
  S ORSTATUS=$P($$STATUS^ORQOR2(EXORN),U,2)
  I ORSTATUS="ACTIVE" Q 1   ;renewable if "active"
+ I ORSTATUS="HOLD" Q 1   ;renewable if "on hold"
  I ORSTATUS="EXPIRED" Q 1  ;renewable if "expired"
  Q ORSLT
  ;

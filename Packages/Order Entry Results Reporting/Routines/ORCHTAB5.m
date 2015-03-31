@@ -1,9 +1,10 @@
 ORCHTAB5 ;SLC/dcm - Add item to tab listing ;4/17/97  11:08
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**25**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**25,263**;Dec 17, 1997;Build 9
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
 MED ; -- Medicine Summary of Patient Procedures
  K ^TMP("MCAR",$J)
- I '$D(^MCAR(690,"AC",+ORVP)) Q
+ ;I '$D(^MCAR(690,"AC",+ORVP)) Q
  D EN^MCARPS2(+ORVP)
  N MCARID,J
  S MCARID=0 F  S MCARID=$O(^TMP("OR",$J,"MCAR","OT",MCARID)) Q:MCARID<1  S X=^(MCARID) D

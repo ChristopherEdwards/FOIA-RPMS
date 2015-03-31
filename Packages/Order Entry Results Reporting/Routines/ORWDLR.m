@@ -1,5 +1,5 @@
 ORWDLR ; SLC/KCM - Lab Calls [ 08/04/96  8:47 PM ]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**243**;Dec 17, 1997;Build 242
  ;
 DEF(LST,ALOC) ; procedure
  ; get dialog definition specific to lab
@@ -77,9 +77,13 @@ URGMAP ; return list of lab urgencies mapped to OE/RR urgencies
  Q
 SCHED ; return list of schedules available for lab tests
  N X,IEN
- S X="" F  S X=$O(^PS(51.1,"APLR",X)) Q:X=""  S IEN=$O(^(X,0)) I IEN D
- . S LST($$NXT)="i"_IEN_U_X_U_$P($G(^PS(51.1,IEN,0)),U,5)
+ K ^TMP($J,"ORWDLR APLR")
+ D AP^PSS51P1("LR",,,,"ORWDLR APLR")
+ S X="" F  S X=$O(^TMP($J,"ORWDLR APLR","APLR",X)) Q:X=""  D
+ . S IEN=$O(^TMP($J,"ORWDLR APLR","APLR",X,"")) I IEN'>0 Q
+ . S LST($$NXT)="i"_IEN_U_X_U_$P($G(^TMP($J,"ORWDLR APLR",IEN,5)),U)
  . I X="ONE TIME" S LST($$NXT)="d"_X
+ K ^TMP($J,"ORWDLR APLR")
  Q
 COMMON ; return list of commonly ordered lab tests
  N TMPLST,IEN,I

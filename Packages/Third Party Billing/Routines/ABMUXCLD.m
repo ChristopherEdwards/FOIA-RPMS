@@ -1,5 +1,5 @@
 ABMUXCLD ; IHS/SD/SDR - 3PB/UFMS populate Exclusion Table   
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;
  ; new routine - v2.5 p12 SDD item 4.4
  ;
@@ -39,7 +39,8 @@ DISP ;display of existing entries in file
  .W:$P(ABMREC,U,3)'="" ?28,$P($G(^DIC(40.7,$P(ABMREC,U,3),0)),U,2),?31,$E($P($G(^DIC(40.7,$P(ABMREC,U,3),0)),U),1,20)
  .I $P(ABMREC,U,4)'="" D
  ..S ABMTYP=$P(ABMREC,U,4)
- ..W ?55,$P($T(@ABMTYP^ABMUCASH),";;",2)
+ ..;W ?55,$P($T(@ABMTYP^ABMUCASH),";;",2)  ;abm*2.6*11 insurer type
+ ..W ?55,$$INSTYP^ABMUCASH(ABMTYP)  ;abm*2.6*11 insurer type
  W !
  ;effective date
  K DIC,DIE,DA,X,Y

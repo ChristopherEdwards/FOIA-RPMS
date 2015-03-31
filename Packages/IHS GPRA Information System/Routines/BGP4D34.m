@@ -1,0 +1,269 @@
+BGP4D34 ; IHS/CMI/LAB - measure C ;
+ ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;
+CNTDTAP ;
+ S (X,Y)="",C=0 F  S X=$O(BGPDTAP(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPDTAP(X) Q
+ .S Y=X
+ ;count
+ S BGPDTAP=0,X=0 F  S X=$O(BGPDTAP(X)) Q:X'=+X  S BGPDTAP=BGPDTAP+1
+ Q
+RESET ;EP - RESET WORKING ARRAYS
+ K BGPDT M BGPDT=BGPADT
+ K BGPDIP M BGPDIP=BGPADIP
+ K BGPTET M BGPTET=BGPATET
+ K BGPPER M BGPPER=BGPAPER
+ K BGPTD M BGPTD=BGPATD
+ Q
+RESETD ;RESET DUP
+ S (X,Y)="",C=0 F  S X=$O(BGPDT(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPDT(X) Q
+ .S Y=X
+ S (X,Y)="",C=0 F  S X=$O(BGPDIP(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPDIP(X) Q
+ .S Y=X
+ S (X,Y)="",C=0 F  S X=$O(BGPTET(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPTET(X) Q
+ .S Y=X
+ S (X,Y)="",C=0 F  S X=$O(BGPTD(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPTD(X) Q
+ .S Y=X
+ S (X,Y)="",C=0 F  S X=$O(BGPPER(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPPER(X) Q
+ .S Y=X
+ S BGPDT=0,X=0 F  S X=$O(BGPDT(X)) Q:X'=+X  S BGPDT=BGPDT+1
+ S BGPTD=0,X=0 F  S X=$O(BGPTD(X)) Q:X'=+X  S BGPTD=BGPTD+1
+ S BGPDIP=0,X=0 F  S X=$O(BGPDIP(X)) Q:X'=+X  S BGPDIP=BGPDIP+1
+ S BGPTET=0,X=0 F  S X=$O(BGPTET(X)) Q:X'=+X  S BGPTET=BGPTET+1
+ S BGPPER=0,X=0 F  S X=$O(BGPPER(X)) Q:X'=+X  S BGPPER=BGPPER+1
+ Q
+DTAP(P,EDATE) ;EP
+ K ^TMP($J,"CPT")
+ K BGPC,BGPG,BGPX
+ ;first gather up all cpt codes that relate in any way to dtap
+ S ED=9999999-EDATE-1,BD=9999999-$$DOB^AUPNPAT(P),G=0
+ F  S ED=$O(^AUPNVSIT("AA",P,ED)) Q:ED=""!($P(ED,".")>BD)  D
+ .S V=0 F  S V=$O(^AUPNVSIT("AA",P,ED,V)) Q:V'=+V  D
+ ..Q:'$D(^AUPNVSIT(V,0))
+ ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVCPT(X,0))
+ ...S Y=$P(^AUPNVCPT(X,0),U)
+ ...Q:Y=""
+ ...S Y=$P($$CPT^ICPTCOD(Y),U,2)
+ ...I Y=90700!(Y=90721)!(Y=90723)!(Y=90701)!(Y=90711)!(Y=90720)!(Y=90702)!(Y=90718)!(Y=90719)!(Y=90703)!(Y=90698)!(Y=90715)!(Y=90714)!(Y=90696) S ^TMP($J,"CPT",9999999-$P(ED,"."),Y)=""
+ ..S X=0 F  S X=$O(^AUPNVTC("AD",V,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVTC(X,0))
+ ...S Y=$P(^AUPNVTC(X,0),U,7)
+ ...Q:Y=""
+ ...S Y=$P($$CPT^ICPTCOD(Y),U,2)
+ ...I Y=90700!(Y=90721)!(Y=90723)!(Y=90701)!(Y=90711)!(Y=90720)!(Y=90702)!(Y=90718)!(Y=90719)!(Y=90703)!(Y=90698)!(Y=90715)!(Y=90714)!(Y=90696) S ^TMP($J,"CPT",9999999-$P(ED,"."),Y)=""
+ ;now gather up all DTAP immunizations, cpts 
+ K BGPDTAP
+ S BGPEVTD=0,BGPEVDIP=0,BGPEVPER=0
+ ;get all imms
+ S C="20^50^106^107^110^1^22^102^115^120^130^132^146"
+ D GETIMMS^BGP4D32(P,EDATE,C,.BGPX)
+ ;go through and set into DTAP if 10 days apart
+ S X=0 F  S X=$O(BGPX(X)) Q:X'=+X  S BGPDTAP(X)=""
+ D CNTDTAP  ;if there are 4
+ I BGPDTAP>3 Q 1_U_"4 DTaP/DTP"  ;had 4 dtap by cvx so code is 1
+ ;now get cpts for dtap or dtp
+ S D=0 F  S D=$O(^TMP($J,"CPT",D)) Q:D'=+D  S Y="" F  S Y=$O(^TMP($J,"CPT",D,Y)) Q:Y=""  D
+ .I Y=90700!(Y=90721)!(Y=90723)!(Y=90701)!(Y=90711)!(Y=90720)!(Y=90698)!(Y=90715)!(Y=90696) S BGPDTAP(D)=""
+ D CNTDTAP  ;count to see if there are 4
+ I BGPDTAP>3 Q 1_U_"4 DTaP/DTP"  ;had 4 dtap cvx or cpts so code is 1
+DT ;add in dt's
+ K BGPDT,BGPADT
+ S C="28"
+ K BGPX D GETIMMS^BGP4D32(P,EDATE,C,.BGPX)
+ S X=0 F  S X=$O(BGPX(X)) Q:X'=+X  S BGPDT(X)="",BGPADT(X)=""
+ ;add in dt cpts
+ S D=0 F  S D=$O(^TMP($J,"CPT",D)) Q:D'=+D  S Y="" F  S Y=$O(^TMP($J,"CPT",D,Y)) Q:Y=""  D
+ .I Y=90702 S BGPDT(D)="",BGPADT(D)=""
+ ;are there 3 dt and 1 dtap by cvx and/or cpt?
+DT1 ;
+ ;kill off any that are on the same day as the dtaps
+ S (X,Y)="",C=0 F  S X=$O(BGPDT(X)) Q:X'=+X  I $D(BGPDTAP(X)) K BGPDT(X)
+ S (X,Y)="",C=0 F  S X=$O(BGPDT(X)) Q:X'=+X  S C=C+1 D
+ .I C=1 S Y=X Q
+ .I $$FMDIFF^XLFDT(X,Y)<11 K BGPDT(X) Q
+ .S Y=X
+ S BGPDT=0,X=0 F  S X=$O(BGPDT(X)) Q:X'=+X  S BGPDT=BGPDT+1
+ I BGPDT>2,$O(BGPDTAP(0)) Q 1_U_"Dtap and 3 DTs"
+TETCVX ;
+ K BGPTET,BGPATET
+ S C="35^112"
+ K BGPX D GETIMMS^BGP4D32(P,EDATE,C,.BGPX)
+ S X=0 F  S X=$O(BGPX(X)) Q:X'=+X  S BGPTET(X)="",BGPATET(X)=""
+ S D=0 F  S D=$O(^TMP($J,"CPT",D)) Q:D'=+D  S Y="" F  S Y=$O(^TMP($J,"CPT",D,Y)) Q:Y=""  D
+ .I Y=90703 S BGPTET(D)="",BGPATET(D)=""
+DIPCVX ;
+ K BGPDIP,BGPADIP
+ S D=0 F  S D=$O(^TMP($J,"CPT",D)) Q:D'=+D  S Y="" F  S Y=$O(^TMP($J,"CPT",D,Y)) Q:Y=""  D
+ .I Y=90719 S BGPDIP(D)="",BGPADIP(D)=""
+PERCVX ;
+ K BGPPER,BGPAPER
+ S C="11"
+ K BGPX D GETIMMS^BGP4D32(P,EDATE,C,.BGPX)
+ S X=0 F  S X=$O(BGPX(X)) Q:X'=+X  S BGPPER(X)="",BGPAPER(X)=""
+TDCVX ;
+ K BGPTD,BGPATD
+ S C="9^113^138^139"
+ K BGPX D GETIMMS^BGP4D32(P,EDATE,C,.BGPX)
+ S X=0 F  S X=$O(BGPX(X)) Q:X'=+X  S BGPTD(X)="",BGPATD(X)=""
+ S D=0 F  S D=$O(^TMP($J,"CPT",D)) Q:D'=+D  S Y="" F  S Y=$O(^TMP($J,"CPT",D,Y)) Q:Y=""  D
+ .I Y=90718!(Y=90714) S BGPTD(D)="",BGPATD(D)=""
+ S BGPCODE=1 D TEST^BGP4D341
+ I BGPVAL]"" Q BGPVAL
+ ;PV
+DTPPV ;
+ D RESET
+ K BGPG S %=P_"^ALL DX [BGP DTP IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPDTAP($P(BGPG(X),U))=""
+ K BGPG D SETPRC^BGP4UTL1(P,$$DOB^AUPNPAT(P),EDATE,"BGP DTP IZ PROCS",.BGPG)
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPDTAP($P(BGPG(1),U))=""
+ D CNTDTAP  ;count to see if there are 4
+ I BGPDTAP>3 Q 2_U_"4 DTaP/DTP"  ; had 4 dtap/cpt/pv/proc
+DTPV ;
+ K BGPG S %=P_"^ALL DX [BGP TD IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPDT($P(BGPG(X),U))="",BGPADT($P(BGPG(X),U))=""
+ S (X,Y)="",C=0 F  S X=$O(BGPDT(X)) Q:X'=+X  I $D(BGPDTAP(X)) K BGPDT(X)
+ D RESETD
+ I BGPDT>2,$O(BGPDTAP(0)) Q 2_U_"Dtap and 3 DTs"
+ D RESET
+TETPV ;
+ K BGPG S %=P_"^ALL DX [BGP TETANUS TOXOID IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPTET($P(BGPG(X),U))="",BGPATET($P(BGPG(X),U))=""
+ K BGPG D SETPRC^BGP4UTL1(P,$$DOB^AUPNPAT(P),EDATE,"BGP TETANUS TOXOID IZ PROCS",.BGPG)
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPTET($P(BGPG(X),U))="",BGPATET($P(BGPG(X),U))=""
+DIPPV ;
+ K BGPG S %=P_"^ALL DX [BGP DIPHTHERIA IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPDIP($P(BGPG(X),U))="",BGPADIP($P(BGPG(X),U))=""
+ K BGPG D SETPRC^BGP4UTL1(P,$$DOB^AUPNPAT(P),EDATE,"BGP DIPHTHERIA IZ PROCS",.BGPG)
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPDIP($P(BGPG(X),U))="",BGPADIP($P(BGPG(X),U))=""
+PERPV ;
+ K BGPG S %=P_"^ALL DX [BGP PERTUSSIS IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPPER($P(BGPG(X),U))="",BGPAPER($P(BGPG(X),U))=""
+ K BGPG D SETPRC^BGP4UTL1(P,$$DOB^AUPNPAT(P),EDATE,"BGP PERTUSSIS IZ PROCS",.BGPG)
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPPER($P(BGPG(X),U))="",BGPAPER($P(BGPG(X),U))=""
+TDPV ;
+ K BGPG S %=P_"^ALL DX [BGP TD IZ DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S BGPTD($P(BGPG(X),U))="",BGPATD($P(BGPG(X),U))=""
+ S BGPCODE=2 D TEST^BGP4D341
+EVIDTET ;
+ S BGPEVTD=""
+ D RESETD
+ I BGPEVTD,BGPPER>3,BGPDIP>3 Q 4_U_"Evid tet, 4 dip, 4 per"
+ D RESET
+EVIDPER ;
+ S BGPEVPER=""
+ D RESETD
+ I BGPEVPER,BGPDT>3 Q 4_U_"Evid per 4 dt"
+ I BGPEVPER,BGPTD>3 Q 4_U_"Evid per 4 td"
+ I BGPEVPER,BGPTET>3,BGPDIP>3 Q 4_U_"Evid per 4 tet 4 dip"
+EVIDDIP ;
+ D RESET
+ S BGPDIPEV=""
+ D RESETD
+ I BGPEVDIP,BGPTD>3,BGPPER>3 Q 4_U_"Evid Dip 4 Tetanus 4 Per"
+ I BGPEVDIP,BGPTET>3,BGPPER>3 Q 4_U_"Evid Dip 4 Tetanus 4 Per"
+ I BGPEVDIP,BGPDT>3,BGPPER>3 Q 4_U_"Evid dip 4 dt 4 per"
+REF ;
+ ;now go to Refusals
+ S B=$$DOB^AUPNPAT(P),E=EDATE,BGPNMI="",R=""
+ F BGPIMM=20,50,106,107,110,1,22,102,115,120,130,132,146  D
+ .S I=$O(^AUTTIMM("C",BGPIMM,0)) Q:'I
+ .S X=0 F  S X=$O(^AUPNPREF("AA",P,9999999.14,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,9999999.14,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) I $P(^AUPNPREF(Y,0),U,7)="N" S BGPNMI=1 S R=1
+ I R Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI",1:"Ref")_" DTaP/DTP"
+ ;now check Refusals in imm pkg
+ ;F BGPIMM=20,50,106,107,110,1,22,102,115,120,130,132,146 Q:R  S R=$$IMMREF^BGP4D32(P,BGPIMM,$$DOB^AUPNPAT(P),EDATE)+R
+ ;I R Q 3_U_" Ref Dtap or DT"
+ S BGPRBEG=$$FMADD^XLFDT(ED,-365)
+ S R=$$CPTREFT^BGP4UTL1(P,$$DOB^AUPNPAT(P),EDATE,$O(^ATXAX("B","BGP CPT DTAP/DTP/TDAP",0)))
+ I R,$P(R,U,3)="N" S BGPNMI=1 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI",1:"Ref")_" DTaP/DTP"
+ ;get dt and td Refusals and count with 4 Pertussis
+ S (R,BGPNMI)="" F BGPIMM=9,113,138,139  D
+ .S I=$O(^AUTTIMM("C",BGPIMM,0)) Q:'I
+ .S X=0 F  S X=$O(^AUPNPREF("AA",P,9999999.14,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,9999999.14,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) I $P(^AUPNPREF(Y,0),U,7)="N" S BGPNMI=1 S R=1
+ I R,BGPDTAP>2 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI",1:"Ref")_" td has 3 DTaP"
+ I R,BGPPER>3 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI",1:"Ref")_" td has per"
+ S (R,BGPNMI)="" F BGPIMM=90714  D
+ .S I=+$$CODEN^ICPTCOD(BGPIMM) Q:'I
+ .S X=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) I $P(^AUPNPREF(Y,0),U,7)="N" S BGPNMI=1 S R=1
+ I R,BGPDTAP>2 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI",1:"Ref")_" td has 3 DTaP"
+ I R,BGPPER>3 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI",1:"Ref")_" td has per"
+ ;now check Refusals in imm pkg
+ S R=""
+ ;F BGPIMM=9,113 S R=$$IMMREF^BGP4D32(P,BGPIMM,$$DOB^AUPNPAT(P),EDATE)+R
+ ;I R,BGPDTAP>2 Q 3_U_" Refused td has 3 DTaP"
+ ;I R>3,BGPPER>3 Q 3_U_" Refused td has per"
+ S (R,BGPNMI)="" F BGPIMM=28  D
+ .S I=$O(^AUTTIMM("C",BGPIMM,0)) Q:'I
+ .S X=0 F  S X=$O(^AUPNPREF("AA",P,9999999.14,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,9999999.14,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) I $P(^AUPNPREF(Y,0),U,7)="N" S BGPNMI=1 S R=1
+ I R,BGPDTAP>0 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI dtap",1:"Ref dtap")
+ I R,BGPPER>3 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI dtap",1:"Ref dtap")
+ S (R,BGPNMI)="" F BGPIMM=90702  D
+ .S I=+$$CODEN^ICPTCOD(BGPIMM) Q:'I
+ .S X=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) I $P(^AUPNPREF(Y,0),U,7)="N" S BGPNMI=1 S R=1
+ I R,BGPDTAP>0 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI dtap",1:"Ref dtap")
+ I R,BGPPER>3 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI dtap",1:"Ref dtap")
+ ;now check Refusals in imm pkg
+ S (R,BGPNMI)="" ;F BGPIMM=28 S R=$$IMMREF^BGP4D32(P,BGPIMM,$$DOB^AUPNPAT(P),EDATE)+R
+ ;I R,BGPDTAP>0 Q 3_U_"Ref dtap"
+ ;I R,BGPPER>3 Q 3_U_"Ref dtap"
+ ;PERTUSIS Refusals and count with 4 dt OR TD or Tet & Dip
+ S (R,BGPNMI)="" F BGPIMM=11  D
+ .S I=$O(^AUTTIMM("C",BGPIMM,0)) Q:'I
+ .S X=0 F  S X=$O(^AUPNPREF("AA",P,9999999.14,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,9999999.14,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) I $P(^AUPNPREF(Y,0),U,7)="N" S BGPNMI=1 S R=1
+ I R,(BGPDT>3!(BGPTD>3)) Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI dtap",1:"Ref dtap")
+ I R,BGPDIP>3,BGPTET>3 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI dtap",1:"Ref dtap")
+ ;now check Refusals in imm pkg
+ S (R,BGPNMI)="" ;F BGPIMM=11 S R=$$IMMREF^BGP4D32(P,BGPIMM,$$DOB^AUPNPAT(P),EDATE)+R
+ ;I R,(BGPDT>3!(BGPTD>3)) Q 3_U_"Ref dtap"
+ ;TETANUS Refusals and count with 4 PERTUSSIS AND DIP
+ S (R,BGPNMI)="" F BGPIMM=35,112  D
+ .S I=$O(^AUTTIMM("C",BGPIMM,0)) Q:'I
+ .S X=0 F  S X=$O(^AUPNPREF("AA",P,9999999.14,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,9999999.14,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) I $P(^AUPNPREF(Y,0),U,7)="N" S BGPNMI=1 S R=1
+ I R,BGPPER>3,BGPD>3 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI dtap",1:"Ref dtap")
+ S (R,BGPNMI)="" F BGPIMM=90703  D
+ .S I=+$$CODEN^ICPTCOD(BGPIMM) Q:'I
+ .S X=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) I $P(^AUPNPREF(Y,0),U,7)="N" S BGPNMI=1 S R=1
+ I R,BGPPER>3,BGPD>3 Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI dtap",1:"Ref dtap")
+ ;now check Refusals in imm pkg
+ S R="" ;F BGPIMM=35,112 S R=$$IMMREF^BGP4D32(P,BGPIMM,$$DOB^AUPNPAT(P),EDATE)+R
+ ;I BGPPER>3,BGPD>3,R Q 3_U_"Ref dtap"
+ ;now check for Contraindication
+ F BGPZ=20,50,106,107,110,120,130,132,146 S X=$$ANCONT^BGP4D31(P,BGPZ,EDATE) Q:X]""
+ I X]"" Q 4_U_"Contra DTaP"
+ F BGPZ=1,22 S X=$$ANCONT^BGP4D31(P,BGPZ,EDATE) Q:X]""
+ I X]"" Q 4_U_"Contra DTP"
+ F BGPZ=115 S X=$$ANCONT^BGP4D31(P,BGPZ,EDATE) Q:X]""
+ I X]"" Q 4_U_"Contra Tdap"
+ F BGPZ=28 S X=$$ANCONT^BGP4D31(P,BGPZ,EDATE) Q:X]""
+ I X]"" Q 4_U_"Contra DT"
+ F BGPZ=9,113,138,139 S X=$$ANCONT^BGP4D31(P,BGPZ,EDATE) Q:X]""
+ I X]"" Q 4_U_"Contra td"
+ F BGPZ=35,112 S X=$$ANCONT^BGP4D31(P,BGPZ,EDATE) Q:X]""
+ I X]"" Q 4_U_"Contra tetanus"
+ F BGPZ=11 S X=$$ANCONT^BGP4D31(P,BGPZ,EDATE) Q:X]""
+ I X]"" Q 4_U_"Contra pertussis"
+ Q ""
+TEST ;
+ D TEST^BGP4D341
+ Q
+90700 ;;
+90721 ;;
+90723 ;;
+90701 ;;
+90711 ;;
+90720 ;;
+90702 ;;
+90718 ;;
+90719 ;;
+90703 ;;

@@ -1,5 +1,5 @@
 PSJDCU ;BIR/JLC-DATE CALCULATION UTILITY ;09/07/00
- ;;5.0; INPATIENT MEDICATIONS ;**47,63,66,69,58,95**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**47,63,66,69,58,95,127,133**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191
  ; Reference to ^PS(59.7 is supported by DBIA# 2181
@@ -8,6 +8,7 @@ PSJDCU ;BIR/JLC-DATE CALCULATION UTILITY ;09/07/00
  ;
 DSTART(PSJDFN,PSJORD) ;calculate default start date
  I $G(PSJSPEED) Q ""
+ I $G(PSJORD)["U",$G(PSGORD)["P" I $P($G(^PS(53.1,+PSGORD,0)),"^",24,25)="R^"_PSJORD Q $P($G(^PS(55,+$G(PSJDFN),5,+PSJORD,2)),"",2)
  N LAST,LASTH,NOW,FREQ,X,Y,%H,%T,NEW,SCH,ADM,STOP
  S Y=$$EN^PSBAPIPM(PSJDFN,PSJORD)
  I Y=""!("GR"'[$P(Y,U,3)) Q ""
@@ -23,7 +24,7 @@ DSTART(PSJDFN,PSJORD) ;calculate default start date
  D YMD^%DTC
  S NEW=X_+$E(%,1,3)
  I NOW>NEW Q ""
- I $G(ORENEW)!($G(PSJREN)) I ADM]"",NEW>STOP S NEW=STOP
+ I $G(PSJREN) I ADM]"",NEW>STOP S NEW=STOP
  I ADM]"",NEW>STOP Q ""
  Q NEW
 ENOSD(PSJWP,PSJSD,DFN) ;calculate one-time stop date from ward/system parameters

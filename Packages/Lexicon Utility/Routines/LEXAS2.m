@@ -1,5 +1,5 @@
 LEXAS2 ; ISL Look-up Check Input (ONE)            ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
 ONE(LEXX) ; One letter missing/incorrect
  ;

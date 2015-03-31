@@ -1,6 +1,7 @@
-ORMRA ; SLC/MKB - Process Radiology ORM msgs ;2/21/02  15:44
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,53,92,110,136,153,174**;Dec 17, 1997
+ORMRA ; SLC/MKB/RV - Process Radiology ORM msgs ;15-Feb-2012 10:26;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**3,53,92,110,136,153,174,195,228,243,296,1010**;Dec 17, 1997;Build 47
  ;DBIA 2968 allows for reading ^DIC(34
+ ; Modified - IHS/MSC/PLS - 02/15/2012 - Lines OKQ+4, SNQ+7
 EN ; -- entry point for RA messages
  I '$L($T(@ORDCNTRL)) Q  ;S ORERR="Invalid order control code" Q
  I ORDCNTRL'="SN",ORDCNTRL'="ZP",'ORIFN!('$D(^OR(100,+ORIFN,0))) S ORERR="Invalid OE/RR order number" Q
@@ -12,7 +13,7 @@ EN ; -- entry point for RA messages
 ZP ; -- Purged
  Q:'ORIFN  Q:'$D(^OR(100,+ORIFN,0))  K ^OR(100,+ORIFN,4)
  ; - Set status=lapsed, if still active
- I "^3^5^6^8^"[(U_$P($G(^(3)),U,3)_U) D STATUS^ORCSAVE2(ORIFN,14)
+ I "^3^5^6^8^"[(U_$P($G(^OR(100,+ORIFN,3)),U,3)_U) D STATUS^ORCSAVE2(ORIFN,14)
  Q
  ;
 ZR ; -- Purged as requested [ack]
@@ -30,6 +31,10 @@ OK ; -- Order accepted, RA order # assigned [ack]
  S ORSTRT=$$FMDATE^ORM($P(@ORMSG@(OBR),"|",37))
  D:ORSTRT DATES^ORCSAVE2(+ORIFN,ORSTRT)
 OKQ D STATUS^ORCSAVE2(ORIFN,ORSTS)
+ ;Save the Radiology pre-certification Account Reference in the PV1
+ ;segment of the HL7 message from the Radiology package to the Order
+ ;File (#100). Support for Patch OR*3.0*228
+ ;I +$$SWSTAT^IBBAPI() D PRECERT^ORWPFSS2  ;IA #4663 ; IHS/MSC/PLS - 02/15/2012 commented out
  Q
  ;
 XX ; -- Change order
@@ -59,13 +64,19 @@ SN ; -- New backdoor order: return NA msg w/ORIFN, or DE msg
  D DLG Q:$D(ORERR)  Q:'$D(ORDIALOG)
 SNQ D EN^ORCSAVE K ^TMP("ORWORD",$J)
  I '$G(ORIFN) S ORERR="Cannot create new order" Q
+ ;Save DG1 and ZCL segments of HL7 message from backdoor orders
+ D BDOSTR^ORWDBA3
+ ;Save the Radiology pre-certification Account Reference in the PV1
+ ;segment of the HL7 message from the Radiology package to the Order
+ ;File (#100). Support for Patch OR*3.0*228
+ ;I +$$SWSTAT^IBBAPI() D PRECERT^ORWPFSS2  ;IA #4663  ;IHS/MSC/PLS - 02/15/2012 commented out
  D RELEASE^ORCSAVE2(ORIFN,1,ORLOG,ORDUZ,ORNATR),SIGSTS^ORCSAVE2(ORIFN,1)
  D STATUS^ORCSAVE2(ORIFN,5) S ^OR(100,ORIFN,4)=PKGIFN
  I $G(ORL) S ORP(1)=ORIFN_";1^1" D PRINTS^ORWD1(.ORP,+ORL) ; chart copy
  Q
  ;
 DLG ; -- Build ORDIALOG() from msg
- N OBR,OI,MODS,J,X,Y,ILOC,MODE,CH,CHI,OBX,NTE
+ N OBR,OI,MODS,J,X,Y,ILOC,MODE,CH,CHI,OBX,NTE,REASON
  S ORDIALOG=$O(^ORD(101.41,"AB","RA OERR EXAM",0))
  D GETDLG1^ORCD(ORDIALOG)
  S ORDIALOG($$PTR("CATEGORY"),1)=$G(ORCAT)
@@ -79,9 +90,10 @@ D1 S OBR=$O(@ORMSG@(+ORC)) I 'OBR!($E($G(@ORMSG@(OBR)),1,3)'="OBR") S ORERR="Mis
  S ORDG=$P($G(^ORD(101.43,+OI,"RA")),U,3) S:$L(ORDG) ORDG=+$O(^ORD(100.98,"B",ORDG,0)) I 'ORDG S ORDG=$P(^ORD(101.41,+ORDIALOG,0),U,5) ; Im Type
  S MODS=$P(@ORMSG@(OBR),"|",19) I $L(MODS) D
  . F J=1:1:$L(MODS,"~") S X=$P(MODS,"~",J) I $L(X) S Y=$O(^RAMIS(71.2,"B",X,0)) S:Y ORDIALOG($$PTR("MODIFIERS"),J)=Y
- S ILOC=+$P(@ORMSG@(OBR),"|",20),MODE=$P(@ORMSG@(OBR),"|",31)
+ S ILOC=+$P(@ORMSG@(OBR),"|",20),MODE=$P(@ORMSG@(OBR),"|",31),REASON=$P($P(@ORMSG@(OBR),"|",32),U,2)
  S:ILOC ORDIALOG($$PTR("IMAGING LOCATION"),1)=ILOC
  S ORDIALOG($$PTR("MODE OF TRANSPORT"),1)=$S(MODE="WALK":"A",MODE="CART":"S",1:$E(MODE))
+ S:$L(REASON) ORDIALOG($$PTR("STUDY REASON"),1)=REASON
  I ORDCNTRL="XX" S NTE=+$O(@ORMSG@(OBR)) I NTE,$E($G(@ORMSG@(NTE)),1,3)="NTE" S OREASON=$P(@ORMSG@(NTE),"|",4) ;Tech's Comments
 D2 ; might the procedure be scheduled at this point ??  Not in spec
  S CH=$$PTR("WORD PROCESSING 1"),CHI=0
@@ -159,9 +171,9 @@ UPDATE(ORSTS,ORACT) ; -- continue processing
  . I $G(ORL) S ORP(1)=+ORIFN_";"_ORDA_"^1" D PRINTS^ORWD1(.ORP,+ORL)
  . S $P(^OR(100,+ORIFN,3),U,7)=ORDA
  I 'ORX D  ;no new action created
- . I ORACT="DC" S:'$$ACTV^ORX1(ORNATR) $P(^OR(100,+ORIFN,3),U,7)=0 Q
+ . ;I ORACT="DC" S:'$$ACTV^ORX1(ORNATR) $P(^OR(100,+ORIFN,3),U,7)=0 Q
  . S:ORACT="HD"&$L(OREASON) ^OR(100,+ORIFN,8,1,1)=OREASON ;pend/sch only
- D:ORACT="DC" CANCEL^ORCSEND(+ORIFN)
+ I ORACT="DC" D CANCEL^ORCSEND(+ORIFN) S:'$$ACTV^ORX1(ORNATR) $P(^OR(100,+ORIFN,3),U,7)=0
  Q
  ;
 RL ;Release hold --entire section added with patch 110

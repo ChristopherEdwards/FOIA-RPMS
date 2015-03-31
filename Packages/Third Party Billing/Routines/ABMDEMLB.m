@@ -1,21 +1,16 @@
 ABMDEMLB ; IHS/ASDST/DMJ - DSD/JLG - Edit Utility - MULTIPLES - PART 3 ; 
- ;;2.6;IHS Third Party Billing;**1,2**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,2,13**;NOV 12, 2009;Build 213
  ;
  ;IHS/DSD/MRS - 5/6/1999 - NOIS DXX-0599-140006 Patch 1
- ;      Changed indirect (ABMZ("DICI")) to direct call to fee table 
- ;      for outside labs
+ ;      Changed indirect (ABMZ("DICI")) to direct call to fee table for outside labs
  ;
- ; IHS/SD/SDR - v2.5 p8 - task 6
- ;    Added code for A0425/A0888 to remove mileage from page 3A
- ;
- ; IHS/SD/SDR - v2.5 p9 - IM13945
- ;    Ability to delete range of codes
- ;
- ; IHS/SD/SDR - v2.5 p10 - IM20384
- ;   Fix for <UNDEF>CONT+5^ABMDEMLB
+ ; IHS/SD/SDR - v2.5 p8 - task 6 - Added code for A0425/A0888 to remove mileage from page 3A
+ ; IHS/SD/SDR - v2.5 p9 - IM13945 - Ability to delete range of codes
+ ; IHS/SD/SDR - v2.5 p10 - IM20384 - Fix for <UNDEF>CONT+5^ABMDEMLB
  ;
  ; IHS/SD/SDR - abm*2.6*1 - HEAT2653 - E-codes not deleting
  ; IHS/SD/SDR - abm*2.6*2 - 3PMS10003A - Modified to call ABMFEAPI
+ ;IHS/SD/SDR - 2.6*13 - exp mode 35 - changes for injury date, 01 occurrence code and dt first symptom, 11 occurrence code
  ;
 D1 ; EP - Delete Multiple
  I +$E(Y,2,3)>0&(+$E(Y,2,3)<(ABMZ("NUM")+1)) S Y=+$E(Y,2,3) G D2
@@ -38,6 +33,7 @@ D2 ;
  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
 D3 ;
  I Y=1 D
+ .I ABMZ("SUB")=51,"^01^11^"[("^"_$P(ABMZ(+ABMXANS),U)_"^") S ABMOIEN=$P(ABMZ(+ABMXANS),U,2),ABMDEL=1 D OCCURCD^ABMDEML K ABMDEL  ;abm*2.6*13 exp mode 35
  .F ABM("I")=1:1 S ABM=$P(ABMXANS,",",ABM("I")) Q:ABM=""  D
  ..I (ABMZ("SUB")=43)!(ABMZ("SUB")=47),"A0425^A0888"[$P(ABMZ(ABM),U) D
  ...I $P(ABMZ(ABM),U)="A0425",$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,8)=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),$P(ABMZ(ABM),U,2),0)),U,3) D

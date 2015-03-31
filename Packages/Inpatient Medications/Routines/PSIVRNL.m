@@ -1,5 +1,5 @@
 PSIVRNL ;BIR/RGY-PRINT RENEWAL AND ACTIVE ORDER LIST ; 15 May 98 / 9:27 AM
- ;;5.0; INPATIENT MEDICATIONS ;**3**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**3,137**;16 DEC 97
  ;
 ENRNL ;
  D ^PSIVXU I $D(XQUIT) K XQUIT Q
@@ -26,7 +26,7 @@ END K DIR S DIR(0)="F^1:30",DIR("A")="Stop at WARD",DIR("B")="END"
  I X]"" K DA,DIC S DIC="^DIC(42,",DIC(0)="QEM" D ^DIC K DA,DIC G:Y<1 END
  S WRDE=$P(Y,"^",2)
 WRD S WRDB=$E(WRDB,1,$L(WRDB)-1)_$C($A(WRDB,$L(WRDB))-1),WRDE=$E(WRDE,1,$L(WRDE)-1)_$C($A(WRDE,$L(WRDE))+1) K X S X(WRDE)=""
- I $O(X(WRDB))'=WRDE W ! K DIR S DIR(0)="E",DIR("A",1.)="The starting ward must be alphabetically before the ending ward.",DIR("A")="Press <RETURN> to continue" D ^DIR K X G QRNL
+ I $O(X(WRDB))'=WRDE W ! K DIR S DIR(0)="E",DIR("A",1)="The starting ward must be alphabetically before the ending ward.",DIR("A")="Press <RETURN> to continue" D ^DIR K X G BEG
  I PSIVPR'=ION D QUERNL G QRNL
 DEQRNL K ^UTILITY("PSIV",$J) S (WARD,^($J,WRDE))="" D NOW^%DTC S:$E(PSIVEND)=9 PSIVBEG=% S PSIVRUN=$E(%,1,12)
  F PSIVDT=PSIVBEG-.0001:0 S PSIVDT=$O(^PS(55,"AIV",PSIVDT)) Q:'PSIVDT!(PSIVDT>PSIVEND)  F DFN=0:0 S DFN=$O(^PS(55,"AIV",PSIVDT,DFN)) Q:'DFN  D DEQRNL1

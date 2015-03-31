@@ -1,5 +1,5 @@
 SROTRPT ;B'HAM ISC/MAM - TISSUE EXAM REPORT ; 16 JULY 1990  10:00
- ;;3.0; Surgery ;**31,111**;24 Jun 93
+ ;;3.0; Surgery ;**31,111,145**;24 Jun 93
  S SRSOUT=0
  I '$D(SRSITE) D ^SROVAR S SRSITE("KILL")=1
  I '$D(SRTN) K SRNEWOP D ^SROPS I '$D(SRTN) S SRSOUT=1 G END
@@ -53,13 +53,15 @@ WRAP ;Wrap multiple race entries so that wrapped line
  ;does not break in the middle of a word
  ;
  S SROLNGTH=$L(SROLINE),E=72,SROWRAP="",SROLN="",SROLN1="",SROL=""
- F I=1:72:SROLNGTH S SROLN(I)=SROWRAP_$E(SROLINE,I,E) D
+ F I=1:72:SROLNGTH+1 S SROLN(I)=SROWRAP_$E(SROLINE,I,E) D
  .F K=72:-1:1 I $E(SROLN(I),K)[" " D  Q    ;Break lines at space
  ..S SROLN1(I)=$E(SROLN(I),1,K-1)
  ..S SROWRAP=$E(SROLN(I),K+1,E)
  .S E=E+72
- I $L(SROLN1(I))+$L(SROWRAP)>71 S SROLN1(I+1)=SROWRAP   ;Last line
- I $L(SROLN1(I))+$L(SROWRAP)'>71 S SROLN1(I)=SROLN1(I)_" "_SROWRAP
+ ;I $L(SROLN1(I))+$L(SROWRAP)>71 S SROLN1(I+1)=SROWRAP   ;Last line
+ ;I $L(SROLN1(I))+$L(SROWRAP)'>71 S SROLN1(I)=SROLN1(I)_" "_SROWRAP
+ I $L(SROLN(I))+$L(SROWRAP)>71 S SROLN1(I+1)=SROWRAP   ;Last line
+ I $L(SROLN(I))+$L(SROWRAP)'>71 S SROLN1(I)=SROLN(I)
  ;
  ;Renumber the SROLN1 array to be in numeric order
  S SRNUM=0,SRNUM1=1

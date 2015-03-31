@@ -1,6 +1,8 @@
 BAREITDN ; IHS/SD/SDR - EDIT COLLECTION BATCH/ITEMS JAN 15,1997 ;04/10/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**4**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,23**;OCT 26, 2005
  ; New routine in bar*1.8*4 for DD item 4.1.5.4
+ ;
+ Q
  ;
 EN ;EP
  W !!,"NOTE: Do this option only when posting is not being done.  Regular"

@@ -1,5 +1,5 @@
-BGOREP ; IHS/BAO/TMD - Manage REPRODUCTIVE FACTORS ;15-Dec-2011 10:07;MGH
- ;;1.1;BGO COMPONENTS;**1,3,5,6,10**;Mar 20, 2007;Build 2
+BGOREP ; IHS/BAO/TMD - Manage REPRODUCTIVE FACTORS ;22-May-2013 17:50;DU
+ ;;1.1;BGO COMPONENTS;**1,3,5,6,10,11**;Mar 20, 2007;Build 2
  ; Returns reproductive history as a single string
  ; Patch 5 updates the expanded history logic to prevent error on an empty element.
  ; Patch 6 updates to use new field formats for repro history
@@ -111,7 +111,7 @@ SET(RET,INP,DATA) ;EP
 LMP(TXT) ;Store LMP data
  N LMP,LMPUP
  S LMP=$P(TXT,U,2)
- S LMPUP=$P(TXT,U,4)
+ S LMPUP=$P(TXT,U,3)
  I LMPUP="" S LMPUP=$$EXTERNAL^DILFD(TODAY)
  I LMP'="" D
  .S @FDA@(2)=LMP
@@ -119,10 +119,10 @@ LMP(TXT) ;Store LMP data
  Q
 LAC(TXT) ;Store lactation data
  N LAC,LACUP,LACPR
- S LAC=$P(TXT,U,2)
- S LACUP=$P(TXT,U,4)
+ S LAC=$$UP^XLFSTR($P(TXT,U,2))
+ S LACUP=$P(TXT,U,3)
  I LACUP="" S LACUP=$$EXTERNAL^DILFD(TODAY)
- S LACPR=$P(TXT,U,3)
+ S LACPR=$P(TXT,U,4)
  I LACPR="" S LACPR=PRV
  I $L(LAC) D
  .S @FDA@(2.01)=LAC

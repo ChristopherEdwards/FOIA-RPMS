@@ -1,5 +1,6 @@
 PSOTALK3 ;BIR/EJW - SCRIPTALK UTILITIES ;02 Oct 2003  7:31 AM
- ;;7.0;OUTPATIENT PHARMACY;**135**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**135,200,268**;DEC 1997;Build 9
+ ;External reference to ^PS(59.7 controlled subscription by DBIA 694
 TTRANS ;RE-INITIALIZE SCRIPTALK PRINTER
  D:'$D(PSOPAR) ^PSOLSET I '$D(PSOPAR) W $C(7),!!,"Pharmacy Division Must be Selected!",! Q
  S ZTIO="`"_$P($G(^PS(59,PSOSITE,"STALK")),U)
@@ -75,14 +76,36 @@ TLABEL ;
  S:$D(ZTQUEUED) ZTREQ="@"
  Q
  ;
-STDEV ;DEFINE SCRIPTALK PRINTER FOR A DIVISION
- N PSOSITE
+STDEV ;Define ScripTalk printer for a Division or map another print device to the ScripTalk Printer
+ N PSOSITE,PSOTYPE
+STDEV1 ;
+ W !!!
+ K DIC,DIR,DIE,DA,DR
+ S DIR(0)="SBO^D:Division;P:Printer",DIR("A")="Define ScripTalk Printer by (D)ivision or (P)rinter mapping?"
+ S DIR("?")=" "
+ S DIR("?",1)="Enter D to define ScripTalk printer by Division or enter P to tie a ScripTalk"
+ S DIR("?",2)="printer to regular Pharmacy label printer(s) to control where the ScripTalk"
+ S DIR("?",3)="labels print for multi-divisions."
+ S PSOSITE=""
+ D ^DIR G:$D(DIRUT)!(Y<0) STDEVQ S PSOTYPE=Y
+ D STDEVM:PSOTYPE="P"
+ D STDEVD:PSOTYPE="D"
+ G STDEV1
+STDEVQ ;
+ K DIC,DIR,DIE,DA,DR,DIRUT,Y
+ Q
+ ;
+STDEVD ;Define ScripTalk device by division
  W ! S DIC("A")="Division: ",DIC=59,DIC(0)="AEMQ"
  S:$G(PSOVEX)'=1 DIC("S")="I $S('$D(^PS(59,+Y,""I"")):1,'^(""I""):1,DT'>^(""I""):1,1:0)"
- D ^DIC K DIC G:$D(DUOUT)!($D(DTOUT)) STDEVE
- I +Y<0 G STDEVE
+ D ^DIC K DIC Q:$D(DIRUT)!(Y<0)
+ Q:+Y<0
  S PSOSITE=+Y
- S DIE="^PS(59,",DA=PSOSITE,DR="107;107.1" D ^DIE K DIE
-STDEVE ;
+ S DIE="^PS(59,",DA=PSOSITE,DR="107;107.1" D ^DIE
+ Q
+ ;
+STDEVM ;Map a printer to a ScripTalk printer
+ S DIE="^PS(59.7,",DA=1,DR="47" L +^PS(59.7,1,47):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) D  I $T D ^DIE L -^PS(59.7,1,47)
+ . I '$T W !?5,"Another user is editing this entry."
  Q
  ;

@@ -1,5 +1,5 @@
-PSOCPD ;BHAM ISC/BaB - MULTIPLE COPAY CHARGE REMOVAL ; 05/27/92
- ;;7.0;OUTPATIENT PHARMACY;**71,85**;DEC 1997
+PSOCPD ;BHAM ISC/BaB - MULTIPLE COPAY CHARGE REMOVAL ;05/27/92
+ ;;7.0;OUTPATIENT PHARMACY;**71,85,201**;DEC 1997
  ;
  ;REF/IA
  ;^IBARX/125
@@ -82,23 +82,31 @@ ENDMSG ;
  Q
  ;
 ASKCAN ; if any charges currently, give option to cancel some or all
- I '$D(^PSRX(PSODA,"IB")) Q
+ I '$D(^PSRX(PSODA,"IB")) Q  ;ok to quit based on IB node for PFSS because always have IB node when copay is billed.
  N J,PSOREF,PSOCAN,CANTYPE
  K X,XX
  S J=0
+ I $P($G(^PSRX(PSODA,"PFS")),"^",2) S X(PSODA)="",J=1,PSOCAN(J)=PSODA_"^"_X(PSODA),$P(PSOCAN(J),"^",10)="PFS" ;if PFS and it has charge id
  I $P(^PSRX(PSODA,"IB"),"^",2)>0 S X(PSORXN)=$P(^PSRX(PSODA,"IB"),"^",2),J=1,PSOCAN(J)=PSORXN_"^"_X(PSORXN) ; original fill
  I $P(^PSRX(PSODA,"IB"),"^",4)>0,'$D(X(PSORXN)) S XX(PSORXN)=$P(^PSRX(PSODA,"IB"),"^",4),J=1,PSOCAN(J)=PSORXN_"^"_XX(PSORXN)_"^CAP" ; original fill
- D REFILL^PSOCPB
+PFS D REFILL^PSOCPB
  I '$D(X),'$D(XX) Q  ; no "IB" numbers on original or refills
- S PSOREF="" F  S PSOREF=$O(X(PSOREF)) Q:PSOREF=""  Q:PSOREF>12  S J=J+1,PSOCAN(J)=PSOREF_"^"_X(PSOREF)
- S PSOREF="" F  S PSOREF=$O(XX(PSOREF)) Q:PSOREF=""  Q:PSOREF>12  S J=J+1,PSOCAN(J)=PSOREF_"^"_XX(PSOREF)_"^CAP"
+ S PSOREF="" F  S PSOREF=$O(X(PSOREF)) Q:PSOREF=""  Q:PSOREF>12  S J=J+1,PSOCAN(J)=PSOREF_"^"_X(PSOREF) S:$P($G(^PSRX(PSODA,1,PSOREF,"PFS")),"^",2) $P(PSOCAN(J),"^",10)="PFS"
+ S PSOREF="" F  S PSOREF=$O(XX(PSOREF)) Q:PSOREF=""  Q:PSOREF>12  S J=J+1,PSOCAN(J)=PSOREF_"^"_XX(PSOREF)_"^CAP" S:$P($G(^PSRX(PSODA,1,PSOREF,"PFS")),"^",2) $P(PSOCAN(J),"^",10)="PFS"
 ASKCAN2 W !!,"Do you want to cancel any charges (Y/N)? "
  R X:DTIME S:'$T X="^" Q:X=""  G:"Yy"[$E(X) ASKALL Q:"Nn^"[$E(X)  D HELP2:"?"[$E(X) G ASKCAN2
 HELP2 W !,"Answering YES will allow cancelling of all or selected charges"
  Q
 HELP3 W !,"Answering YES will proceed with cancelling selected charges"
  Q
-ASKALL W !!,"(A)ll or (S)elect Charges? (A/S): "
+ASKALL ;PFS - check copay activity log to see if any fills were previously cancelled; mark as cancelled for display
+ N PSOPFSD,PSOFIL D GETS^DIQ(52,PSODA,"107*","I","PSOPFSD") D:$D(PSOPFSD)
+ .F I=1:1 Q:'$D(PSOPFSD(52.0107,I_","_PSODA_","))  D:$G(PSOPFSD(52.0107,I_","_PSODA_",",1,"I"))="C"
+ ..S PSOFIL=$G(PSOPFSD(52.0107,I_","_PSODA_",",3,"I")),J=""
+ ..F  S J=$O(PSOCAN(J)) Q:J=""  S:$P(PSOCAN(J),"^")=PSOFIL&($P(PSOCAN(J),"^",10)="PFS") $P(PSOCAN(J),"^",5)="CANCEL" S:$P(PSOCAN(J),"^")=PSODA&(PSOFIL=0)&($P(PSOCAN(J),"^",10)="PFS") $P(PSOCAN(J),"^",5)="CANCEL"
+ K PSOFIL,PSOPFSD
+ ;
+ W !!,"(A)ll or (S)elect Charges? (A/S): "
  R X:DTIME S:'$T X="^" I X="" Q
  I X="^" Q
  I X'="A",X'="a",X'="S",X'="s" W !,"Enter 'A' to cancel all charges or 'S' to select from list of charges" G ASKALL
@@ -114,10 +122,12 @@ SELECT ; Choose from list of fills that have charges
  N J,I,PSORELDT,PSOBILL,FOOTNOTE
  K FOOTNOTE
  K X
- F J=1:1 Q:'$D(PSOCAN(J))  D  W !,J,". ",$S(+PSOCAN(J)>11:"Original fill",1:"Refill #"_+PSOCAN(J)),?20,"(",PSORELDT,")",?35,PSOBILL
- . S PSOBILL=""
- . I PSOCAN(J)["CAP" S PSOBILL="(Potential Charge *)",FOOTNOTE=1
- . I $T(STATUS^IBARX)'="" I PSOCAN(J)'["CAP" S PSOBILL=$$STATUS^IBARX($P(PSOCAN(J),"^",2)) S:PSOBILL=2 $P(PSOCAN(J),"^",5)="CANCEL" S PSOBILL=$S(PSOBILL=2:"(Charge Cancelled)",1:"")
+ F J=1:1 Q:'$D(PSOCAN(J))  D  W:PSORELDT'="//" !,J,". ",$S(+PSOCAN(J)>11:"Original fill",1:"Refill #"_+PSOCAN(J)),?20,"(",PSORELDT,")",?35,PSOBILL
+ .S PSOBILL=""
+ .I $P(PSOCAN(J),"^",10)'="PFS" D
+ ..I PSOCAN(J)["CAP" S PSOBILL="(Potential Charge *)",FOOTNOTE=1
+ ..I $P(PSOCAN(J),"^",10)'="PFS" I $T(STATUS^IBARX)'="" I PSOCAN(J)'["CAP" S PSOBILL=$$STATUS^IBARX($P(PSOCAN(J),"^",2)) S:PSOBILL=2 $P(PSOCAN(J),"^",5)="CANCEL" S PSOBILL=$S(PSOBILL=2:"(Charge Cancelled)",1:"")
+ .I $P(PSOCAN(J),"^",10)="PFS" S:$P(PSOCAN(J),"^",5)="CANCEL" PSOBILL="(Charge Cancelled)"
  .N RX2
  .S RX2=$S(+PSOCAN(J)>11:$G(^PSRX(PSODA,2)),1:$G(^PSRX(PSODA,1,+PSOCAN(J),0)))
  .I RX2="" S PSORELDT="" Q

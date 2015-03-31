@@ -1,5 +1,7 @@
-RAFLH2 ;HISC/GJC-Utility determines if flash cards print. ;4/3/97  07:57
- ;;5.0;Radiology/Nuclear Medicine;**47**;Mar 16, 1998;Build 21
+RAFLH2 ;HISC/GJC-Utility determines if flash cards print. ; 01 Jun 2012  10:58 AM
+ ;;5.0;Radiology/Nuclear Medicine;**47,1004**;Mar 16, 1998;Build 21
+ ;
+ ;This patch was modified by Stuart Frank in May 2012
  ;
  ;Integration Agreements
  ;----------------------
@@ -55,6 +57,7 @@ LONGCASE(X) ;Set the INTERNAL VARIABLE (78.7 field 5) to the TEST VALUE (78.7 fi
  ;"081194-234" is generic; it is not a direct reference to any specific patient exam.
  ;
  N RAI S RAI=$$USESSAN^RAHLRU1() ;if RAI use LONG CASE NUMBER w/site prefix
- S @$P(X,U,5)=$S(RAI:$E($P($$NS^XUAF4($$KSP^XUPARAM("INST")),U,2),1,3)_"-",1:"")_"081194-234"
+ S @$P(X,U,5)=$S(RAI:$P($$SITE^VASITE(),"^",3)_"-",1:"")_"081194-234"  ;SAF - get station number but don't truncate at 3 characters in IHS
+ ;S @$P(X,U,5)=$S(RAI:$E($P($$NS^XUAF4($$KSP^XUPARAM("INST")),U,2),1,3)_"-",1:"")_"081194-234"
  Q
  ;

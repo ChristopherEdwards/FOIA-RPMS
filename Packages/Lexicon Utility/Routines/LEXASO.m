@@ -1,7 +1,7 @@
-LEXASO ; ISL Look-up Display String (Sources)     ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+LEXASO ;ISL/KER - Look-up Display String (Sources) ;01/03/2011
+ ;;2.0;LEXICON UTILITY;**25,32,73**;Sep 23, 1996;Build 15
  ;
- ; Entry S X=$$SO^LEXASO(IEN,SAB,ALL)
+ ; Entry S X=$$SO^LEXASO(IEN,SAB,ALL,DATE)
  ;
  ;       IEN is an internal entry number in file 757.01
  ;           representing an expression
@@ -17,6 +17,8 @@ LEXASO ; ISL Look-up Display String (Sources)     ; 09-23-96
  ;
  ;           1 - display all codes associated for the major 
  ;               concept
+ ;
+ ;       DATE is used to screen out inactive codes
  ;
  ; LEXCC(   Array of classification codes
  ;
@@ -37,7 +39,7 @@ LEXASO ; ISL Look-up Display String (Sources)     ; 09-23-96
  ;
  ; LEXX     Return value
  ;
-SO(LEXX,LEXSA,LEXA) ; Return string of source codes for LEXX SAB
+SO(LEXX,LEXSA,LEXA,LEXVDT) ; Return string of source codes for LEXX SAB
  Q:+($G(LEXX))=0!('$L($G(LEXSA))) ""
  Q:'$L($G(^LEX(757.01,LEXX,0))) ""
  ;
@@ -52,29 +54,32 @@ SO(LEXX,LEXSA,LEXA) ; Return string of source codes for LEXX SAB
 EXIT ; Clean up and quit
  Q LEXX
 EXP ; Source string for an expression
- I LEXSA'["/" D CODES(LEXEX,LEXSA) S LEXX=$$ASSEM Q
+ I LEXSA'["/" D CODES(LEXEX,LEXSA,$G(LEXVDT)) S LEXX=$$ASSEM Q
  I LEXSA["/" D  S LEXX=$$ASSEM
- . N LEXC F LEXC=1:1:$L(LEXSA,"/") D CODES(LEXEX,$P(LEXSA,"/",LEXC))
+ . N LEXC F LEXC=1:1:$L(LEXSA,"/") D
+ . . D CODES(LEXEX,$P(LEXSA,"/",LEXC),$G(LEXVDT))
  Q
 MAJ ; Source string for a major concept
  S LEXMC=$P($G(^LEX(757.01,LEXEX,1)),"^",1),LEXEX=0
  S LEXEX=0 F  S LEXEX=$O(^LEX(757.02,"AMC",LEXMC,LEXEX)) Q:+LEXEX=0  D
  . N LEXME S LEXME=+($G(^LEX(757.02,LEXEX,0)))
- . I LEXSA'["/" D CODES(LEXME,LEXSA) Q
+ . I LEXSA'["/" D CODES(LEXME,LEXSA,$G(LEXVDT)) Q
  . I LEXSA["/" D  Q
  . . N LEXC F LEXC=1:1:$L(LEXSA,"/") D
- . . . D CODES(LEXME,$P(LEXSA,"/",LEXC))
+ . . . D CODES(LEXME,$P(LEXSA,"/",LEXC),$G(LEXVDT))
  S LEXX=$$ASSEM
  Q
-CODES(LEXEX,LEXSA) ; Get Source Codes
- Q:$L($G(LEXSA))'=3
- N LEXSO,LEXSR,LEXST S LEXST=""
- S LEXSO=0 F  S LEXSO=$O(^LEX(757.02,"B",LEXEX,LEXSO)) Q:+LEXSO=0  D
- . Q:+($P($G(^LEX(757.02,LEXSO,0)),"^",6))=1
- . I $E($G(^LEX(757.03,$P($G(^LEX(757.02,LEXSO,0)),"^",3),0)),1,3)=LEXSA D
- . . S LEXSR=$P($G(^LEX(757.03,$P($G(^LEX(757.02,LEXSO,0)),"^",3),0)),"^",2)
- . . Q:$P($G(^LEX(757.02,LEXSO,0)),"^",2)=""
- . . S LEXCC(LEXSR,(($P($G(^LEX(757.02,LEXSO,0)),"^",2))_" "))=""
+CODES(LEXEX,LEXSA,LEXVDT) ; Get Source Codes
+ Q:$L($G(LEXSA))'=3  N LEXCD,LEXCN,LEXCS,LEXHE,LEXHI,LEXHN,LEXHS,LEXSAI,LEXSO,LEXSR,LEXST,LEXSTA
+ S LEXST="",LEXSAI=+($O(^LEX(757.03,"ASAB",LEXSA,0))) Q:+LEXSAI'>0  S LEXSO=0 F  S LEXSO=$O(^LEX(757.02,"B",LEXEX,LEXSO)) Q:+LEXSO=0  D
+ . S LEXCN=$G(^LEX(757.02,LEXSO,0)),LEXCD=$P(LEXCN,"^",2) Q:'$L(LEXCD)  S LEXCS=$P(LEXCN,"^",3) Q:+LEXCS'=+LEXSAI
+ . S LEXHE=$S(+LEXVDT>0:(LEXVDT_".99999"),1:" "),LEXHE=$O(^LEX(757.02,+LEXSO,4,"B",LEXHE),-1) Q:+LEXHE'>0
+ . S LEXHI=$O(^LEX(757.02,+LEXSO,4,"B",+LEXHE," "),-1)
+ . S LEXHN=$G(^LEX(757.02,+LEXSO,4,+LEXHI,0)),LEXHS=$P(LEXHN,"^",2) Q:+($G(LEXHS))'>0
+ . S LEXSR=$P($G(^LEX(757.03,$P($G(^LEX(757.02,LEXSO,0)),"^",3),0)),"^",2)
+ . S LEXCC(LEXSR,(($P($G(^LEX(757.02,LEXSO,0)),"^",2))_" "))=""
+ . ; Primary Code Saved - p32
+ . S:$P($G(^LEX(757.02,LEXSO,0)),"^",7)=1 LEXCC(LEXSR,"P",(($P($G(^LEX(757.02,LEXSO,0)),"^",2))_" "))=""
  Q
 ASSEM(LEXX) ; Assemble display string  (SOURCE CODE/CODE/CODE)
  Q:'$D(LEXCC) ""
@@ -82,7 +87,12 @@ ASSEM(LEXX) ; Assemble display string  (SOURCE CODE/CODE/CODE)
  N LEXSR,LEXST S LEXSR=""
  F  S LEXSR=$O(LEXCC(LEXSR)) Q:LEXSR=""  D
  . N LEXSC S LEXSC="",LEXST="("_LEXSR_" "
- . F  S LEXSC=$O(LEXCC(LEXSR,LEXSC)) Q:LEXSC=""  D
+ . ; Primary Code listed first - p32
+ . I $D(LEXCC(LEXSR,"P")) D
+ . . N LEXSC S LEXSC=$O(LEXCC(LEXSR,"P",""))
+ . . S:$L(LEXSC) LEXST=LEXST_$$TRIM(LEXSC)_"/"
+ . . K LEXCC(LEXSR,"P") K:$L(LEXSC) LEXCC(LEXSR,LEXSC)
+ . S LEXSC="" F  S LEXSC=$O(LEXCC(LEXSR,LEXSC)) Q:LEXSC=""  D
  . . S LEXST=LEXST_$$TRIM(LEXSC)_"/"
  . . K LEXCC(LEXSR,LEXSC)
  . S LEXCC(LEXSR)=$E(LEXST,1,($L(LEXST)-1))_")"

@@ -1,5 +1,6 @@
-GMRCR ;SLC/DLT - Driver for reviewing patient consult/requests - Used by Medicine Package to link Consults to Medicine results ;28-Nov-2005 14:54;MGH
- ;;3.0;CONSULT/REQUEST TRACKING;**1,5,1001**;DEC 27, 1997
+GMRCR ;SLC/DLT - Driver for reviewing patient consult/requests - Used by Medicine Package to link Consults to Medicine results ;15-Mar-2012 10:41;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,5,1001,1003**;DEC 27, 1997;Build 14
+ ;Modified - IHS/CIA/MGH - 11/28/2005 - Line KILL+10
 EN ;Entry point for medicine results entry by procedure or consult type
  ;Required variables:
  ;  GMRCPRNM = name of procedure file with results.
@@ -50,6 +51,7 @@ KILL ; Kill variables, but don't kill GMRCO and ORIFN if from MC option
  K GMRCSTS,GMRCTYPE,GMRCVP,GMRCEND,GMRCTO,GMRCURG,GMRCL,GMRCDT,GMRCDIC
  K VA,VAIN,VAINDT,VADM,VAEL,VAPA,VAERR,VAROOT
  K O,OREND,ORINDX,ORNS,POP,SEX,W,XQORSPEW
+ K GMRCHRCN  ; IHS/CIA/MGH
  I $D(XQY0),$E(XQY0,1,2)="MC" S:'$D(GMRCO) (ORIFN,GMRCO)="" Q
  K ORIFN,GMRCO,GMRCSR
  Q

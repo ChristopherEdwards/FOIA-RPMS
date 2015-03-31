@@ -1,25 +1,51 @@
-PSXRPPL ;BIR/WPB,BAB-Gathers data for the CMOP Transmission ;13 Mar 2002  10:31 AM
- ;;2.0;CMOP;**3,23,33,28,40,42,41**;11 Apr 97
- ; Reference to ^PS(52.5,  supported by DBIA #1978
- ; Reference to ^PSRX(     supported by DBIA #1977
- ; Reference to ^PSOHLSN1  supported by DBIA #2385
- ; Reference to ^PSORXL    supported by DBIA #1969
- ; Reference to ^PSOLSET   supported by DBIA #1973
- ; Reference to %ZIS(1     supported by DBIA #290
- ; Reference to %ZIS(2     supported by DBIA #2247
- ; Reference to ^PSSLOCK   supported by DBIA #2789
- ; Reference to ^XTMP("ORLK-" supported by DBIA #4001
- ; Reference to File #59   supported by DBIA #1976
+PSXRPPL ;BIR/WPB,BAB-Gathers data for the CMOP Transmission ;29-Apr-2013 09:58;PLS
+ ;;2.0;CMOP;**3,23,33,28,40,42,41,48,62,58,66,65,1015**;11 Apr 97;Build 62
+ ;Reference to ^PS(52.5,  supported by DBIA #1978
+ ;Reference to ^PSRX(     supported by DBIA #1977
+ ;Reference to ^PSOHLSN1  supported by DBIA #2385
+ ;Reference to ^PSORXL    supported by DBIA #1969
+ ;Reference to ^PSOLSET   supported by DBIA #1973
+ ;Reference to %ZIS(1     supported by DBIA #290
+ ;Reference to %ZIS(2     supported by DBIA #2247
+ ;Reference to ^PSSLOCK   supported by DBIA #2789
+ ;Reference to ^XTMP("ORLK-" supported by DBIA #4001
+ ;Reference to ^PSOBPSUT supported by DBIA #4701
+ ;Reference to ^PSOREJUT supported by DBIA #4706
+ ;Reference to ^BPSUTIL supported by DBIA #4410
+ ;Reference to ^PSOREJU3 supported by DBIA #5186
+ ;
+ ;Modified - IHS/MSC/PLS - 05/28/2010 - Line SDT+4
  ;Called from PSXRSUS -Builds ^PSX(550.2,,15,"C" , and returns to PSXRSUS or PSXRTRAN
-SDT K ^TMP($J,"PSX"),^TMP($J,"PSXDFN"),ZCNT,PSXBAT D:$D(XRTL) T0^%ZOSV
+ ;
+SDT K ^TMP($J,"PSX"),^TMP($J,"PSXDFN"),^TMP("PSXEPHNB",$J),ZCNT,PSXBAT D:$D(XRTL) T0^%ZOSV
  S PSXTDIV=PSOSITE,PSXTYP=$S(+$G(PSXCS):"C",1:"N")
+ ;
+ ; - Submitting prescriptions to ECME (Electronic Claims Mgmt Engine) - 3rd pary
+ ;IHS/MSC/PLS - 05/28/2010 - The next four lines have been commented out
+ ;I $$ECMEON^BPSUTIL(PSXTDIV),$$CMOPON^BPSUTIL(PSXTDIV) D
+ ;. N BPSCNT S BPSCNT=$$SBTECME^PSXRPPL1(PSXTYP,PSXTDIV,PRTDT,PSXDTRG)
+ ;. ; - Wait 15 seconds per prescription sent to ECME (max of 2 hours)
+ ;. I BPSCNT>0 H 60+$S((BPSCNT*15)>7200:7200,1:(BPSCNT*15))
+ ;
+ ; - Transmitting prescription to CMOP (up to THROUGH DATE)
+ K ^TMP("PSXEPHIN",$J)
  S SDT=0 F  S SDT=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT)) S XDFN=0 Q:(SDT>PRTDT)!(SDT'>0)  D
  . F  S XDFN=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT,XDFN)) S REC=0 Q:(XDFN'>0)!(XDFN="")  D
- .. F  S REC=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT,XDFN,REC)) Q:(REC'>0)!(REC="")  D GETDATA D:$G(RXN) PSOUL^PSSLOCK(RXN),OERRLOCK(RXN)
- I $G(PSXBAT),'$G(PSXRTRAN) D CHKDFN ; PSXBAT created upon 1st transmittable RX being located
-EXIT K SDT,DFN,REC,RXNUM,PSXOK,FILNUM,REF,PNAME,CNAME,DIE,DR,NDFN,%,CNT,COM,DTTM,FILL,JJ,PRTDT,PSXDIV,XDFN,NFLAG,CIND,XDFN
+ . . F  S REC=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT,XDFN,REC)) Q:(REC'>0)!(REC="")  D
+ . . . D GETDATA D:$G(RXN) PSOUL^PSSLOCK(RXN),OERRLOCK(RXN)
+ ;
+ ; - Pulling prescriptions ahead (parameter in OUTPATIENT SITE file #59)
+ I $G(PSXBAT),'$G(PSXRTRAN) D CHKDFN^PSXRPPL2(PRTDT)
+ I $G(PSXBAT),'$G(PSXRTRAN) D CHKDFN
+ ;
+ ; - Sends a Mailman message if there were transmission problems with the 3rd Party Payer
+ I $D(^TMP("PSXEPHIN",$J)) D ^PSXBPSMS K ^TMP("PSXEPHIN",$J),^TMP("PSXEPHNB",$J)
+ ;
+EXIT ;
+ K SDT,DFN,REC,RXNUM,PSXOK,FILNUM,REF,PNAME,CNAME,DIE,DR,NDFN,%,CNT,COM,DTTM,FILL,JJ,PRTDT,PSXDIV,XDFN,NFLAG,CIND,XDFN
  K CHKDT,DAYS,DRUG,DRUGCHK,NM,OPDT,PHARCLK,PHY,PSTAT,PTRA,PTRB,QTY,REL,RXERR,RXF,SFN,PSXDGST,PSXMC,PSXMDT
  S:$D(XRT0) XRTN=$T(+0) D:$D(XRT0) T1^%ZOSV
+ K ^TMP("PSXEPHIN",$J),^TMP("PSXEPHNB",$J)
  Q
 GETDATA ;Screens rxs and builds data
  ;PSXOK=1:NOT CMOP DRUG OR DO NOT MAIL,2:TRADENAME,3:WINDOW,4:PRINTED,5:NOT SUSPENDED
@@ -32,6 +58,15 @@ GETDATA ;Screens rxs and builds data
  I $G(VADM(6))'="" D DELETE K VADM Q
  S PSXOK=0,NFLAG=0
  S RXN=$P($G(^PS(52.5,REC,0)),"^",1) I RXN="" S PSXOK=8 Q
+ S RFL=+$$GET1^DIQ(52.5,REC,9,"I")
+ I '$D(^TMP($J,"PSXBAI",DFN)) D
+ .S PSXGOOD=$$ADDROK^PSXMISC1(RXN)
+ .I 'PSXGOOD S PSXFIRST=1 D  I 'PSXFIRST S PSXOK=8
+ ..D CHKACT^PSXMISC1(RXN)
+ I PSXOK=8 K RXN Q
+ ;
+ N EPHQT S EPHQT=0
+ I $$PATCH^XPDUTL("PSO*7.0*148") D EPHARM^PSXRPPL2 I EPHQT Q
  D CHKDATA^PSXMISC1
 SET Q:(PSXOK=7)!(PSXOK=8)!(PSXOK=9)
  S PNAME=$G(VADM(1))
@@ -40,7 +75,8 @@ SET Q:(PSXOK=7)!(PSXOK=8)!(PSXOK=9)
  I (PSXOK=0)&(PSXFLAG=2) D RX550215 Q
  I (PSXOK>0)&(PSXOK<7)!(PSXOK=10) D DELETE Q
  Q
-DELETE ;deletes the CMOP STATUS field in PS(52.5, reindex 'AC' x-ref
+ ;
+DELETE ; deletes the CMOP STATUS field in PS(52.5, reindex 'AC' x-ref
  L +^PS(52.5,REC):600 Q:'$T
  N DR,DIE,DA S DIE="^PS(52.5,",DA=REC,DR="3///@" D ^DIE
  S ^PS(52.5,"AC",$P(^PS(52.5,REC,0),"^",3),$P(^PS(52.5,REC,0),"^",2),REC)=""
@@ -52,12 +88,13 @@ DELETE ;deletes the CMOP STATUS field in PS(52.5, reindex 'AC' x-ref
 CHKDFN ; use the patient 'C' index under RX multiple in file 550.2 to GET dfn to gather Patients' future RXs
  I '$D(^PSX(550.2,PSXBAT,15,"C")) Q
  S PSXPTNM="" F  S PSXPTNM=$O(^PSX(550.2,PSXBAT,15,"C",PSXPTNM)) Q:PSXPTNM=""  D
- .S XDFN=0 F  S XDFN=$O(^PSX(550.2,PSXBAT,"15","C",PSXPTNM,XDFN)) Q:(XDFN'>0)  D
- .. S SDT=PRTDT F  S SDT=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT)),NDFN=0 Q:(SDT>PSXDTRG)!(SDT="")  D
- ... F  S NDFN=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT,NDFN)),REC=0 Q:NDFN'>0  I NDFN=XDFN D
- .... F  S REC=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT,NDFN,REC)) Q:REC'>0  D GETDATA D:$G(RXN) PSOUL^PSSLOCK(RXN),OERRLOCK(RXN)
+ . S XDFN=0 F  S XDFN=$O(^PSX(550.2,PSXBAT,"15","C",PSXPTNM,XDFN)) Q:(XDFN'>0)  D
+ . . S SDT=PRTDT F  S SDT=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT)),NDFN=0 Q:(SDT>PSXDTRG)!(SDT="")  D
+ . . . F  S NDFN=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT,NDFN)),REC=0 Q:NDFN'>0  I NDFN=XDFN D
+ . . . . F  S REC=$O(^PS(52.5,"CMP","Q",PSXTYP,PSXTDIV,SDT,NDFN,REC)) Q:REC'>0  D
+ . . . . . D GETDATA D:$G(RXN) PSOUL^PSSLOCK(RXN),OERRLOCK(RXN)
  Q
-BEGIN ;  Select print device
+BEGIN ; Select print device
  I '$D(PSOPAR) D ^PSOLSET
  I $D(PSOLAP),($G(PSOLAP)'=ION) S PSLION=PSOLAP G PROFILE
  W ! S %ZIS("A")="PRINTER 'LABEL' DEVICE:  ",%ZIS("B")="",%ZIS="MQN" D ^%ZIS S PSLION=ION G:POP EXIT
@@ -93,7 +130,7 @@ BLD ;
  D EN^PSOHLSN1(RXN,"SC","ZU",COM)
  S DA=SUS D DQUE K DA
 ACTLOG F JJ=0:0 S JJ=$O(^PSRX(RXN,"A",JJ)) Q:'JJ  S CNT=JJ
- S RFCNT=0 F RF=0:0 S RF=$O(^PSRX(RXN,1,RF)) Q:'RF  S RFCNT=RF
+ S RFCNT=0 F RF=0:0 S RF=$O(^PSRX(RXN,1,RF)) Q:'RF  S RFCNT=$S(RF<6:RF,1:RF+1)
  S CNT=CNT+1,^PSRX(RXN,"A",0)="^52.3DA^"_CNT_"^"_CNT
 LOCK L +^PSRX(RXN):600 G:'$T LOCK
  S ^PSRX(RXN,"A",CNT,0)=DTTM_"^S^"_DUZ_"^"_RFCNT_"^"_COM L -^PSRX(RXN)
@@ -111,9 +148,10 @@ PPL1 ; print patient labels
  I $D(PPL1) S PSNP=0,PPL=PPL1 D QLBL^PSORXL
  K PPL,PPL1,PSOSU(ORD)
  Q
-DQUE ;sets the CMOP indicator field, and printed field in 52.5
+DQUE ; sets the CMOP indicator field, and printed field in 52.5
  L +^PS(52.5,REC):600 G:'$T DQUE
- I NFLAG=4 S DA=REC,DIE="^PS(52.5,",DR="3////L;4////"_DT D ^DIE K DIE,DA,DR L -^PS(52.5,REC) Q  ; the rest moved into PSXRTR
+ I NFLAG=4 D
+ . S DA=REC,DIE="^PS(52.5,",DR="3////L;4////"_DT D ^DIE K DIE,DA,DR L -^PS(52.5,REC)  ; the rest moved into PSXRTR
  S CIND=$S(NFLAG=1:"X",NFLAG=2:"P",NFLAG=3:"@",1:0)
  I $G(NFLAG)'=2 D
  .S DA=REC,DIE="^PS(52.5,",DR="3////"_CIND_";4////"_DT
@@ -136,32 +174,6 @@ RX550215 ; put RX into RX multiple TRANS 550.215 for PSXBAT
  S PSXRXTDA=+Y ;RX DA within PSXBAT 'T'ransmission
  K DD,DO,DIC,DA,DR,D0
  Q
-PRTERR ; auto error trap for prt cmop local
- S XXERR=$$EC^%ZOSV
- S PSXDIVNM=$$GET1^DIQ(59,PSOSITE,.01)
- ;save an image of the transient file 550.1 for 2 days
- D NOW^%DTC S DTTM=%
- S X=$$FMADD^XLFDT(DT,+2) S ^XTMP("PSXERR "_DTTM,0)=X_U_DT_U_"CMOP "_XXERR
- M ^XTMP("PSXERR "_DTTM,550.1)=^PSX(550.1)
- S XMSUB="CMOP Error "_PSXDIVNM_" "_$$GET1^DIQ(550.2,+$G(PSXBAT),.01)
- D GRP1^PSXNOTE
- ;S XMY(DUZ)=""
- S XMTEXT="TEXT("
- S TEXT(1,0)=$S($G(PSXCS):"",1:"NON-")_"CS CMOP Print Local encountered the following error. Please investigate"
- S TEXT(2,0)="Division:         "_PSXDIVNM
- S TEXT(3,0)="Type/Batch        "_$S($G(PSXCS):"CS",1:"NON-CS")_" / "_$$GET1^DIQ(550.2,$G(PSXBAT),.01)
- S TEXT(4,0)="Error:            "_XXERR
- S TEXT(5,0)="This batch has been set to closed."
- S TEXT(6,0)="Call NVS to investigate which prescriptions have been printed and which are yet to print."
- S TEXT(7,0)="A copy of file 550.1 can be found in ^XTMP(""PSXERR "_DTTM_""")"
- D ^%ZTER
- D ^XMD
- I $G(PSXBAT) D
- . N DA,DIE,DR S DIE="^PSX(550.2,",DA=PSXBAT,DR="1////4"
- . D ^DIE
- ;I $E(IOST)="C" F XX=1:1:5 W !,TEXT(XX,0)
- G UNWIND^%ZTER
- ;
 OERRLOCK(RXN) ; set XTMP for OERR/CPRS order locking
  I $G(PSXBAT),$G(RXN),$G(PSXRXTDA) I 1
  E  Q

@@ -1,7 +1,9 @@
 BIRPC4 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ADD AND DELETE CONTRAINDICATIONS, EDIT PATIENT CASE DATA.
+ ;;  PATCH 5: Switch to logical deletions of Contraindications.  DELCONT+14
+ ;;  PATCH 5: Add SNOMED Codes for Contraindication.  ADDCONT+54, SNOMED
  ;
  ;
  ;----------
@@ -56,10 +58,35 @@ ADDCONT(BIERR,BIDATA) ;PEP - Add a Contraindication.
  I $P($G(^BICONT(+BICRIEN,0)),U)="Immune Deficiency" D
  .S BIMDEF("C")=BICRIEN,BIMDEF("D")=BIDATE
  ;
- ;---> Add Contraindication.
- N BIERR,BIFLD
+ ;
+ ;---> ADD Contraindication.
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Add SNOMED Codes for this Contraindication.
+ ;N BIERR,BIFLD
+ N BIERR,BIFLD,BIIEN
  S BIFLD(.01)=BIDFN,BIFLD(.02)=BIVIEN,BIFLD(.03)=BICRIEN,BIFLD(.04)=BIDATE
- D UPDATE^BIFMAN(9002084.11,,.BIFLD,.BIERR)
+ ;D UPDATE^BIFMAN(9002084.11,,.BIFLD,.BIERR)
+ D UPDATE^BIFMAN(9002084.11,.BIIEN,.BIFLD,.BIERR)
+ ;
+ ;---> If add of Contra is successful, BIIEN(1)=IEN of new Patient Contra,
+ ;---> so add SNOMED Codes.
+ D:(+$G(BIIEN(1)))
+ .N I,X,Y
+ .;---> Get string of Vaccine Component IEN's.
+ .S X=$$VCOMPS^BIUTL2(BIVIEN)
+ .;---> If no components process the vaccine itself.
+ .S:('+X) X=BIVIEN
+ .;
+ .F I=1:1:6 S Y=$P(X,";",I) Q:'Y  D
+ ..;---> Get Vaccine Group IEN of this vaccine.
+ ..N BIVGRP S BIVGRP=$$IMMVG^BIUTL2(Y)
+ ..;---> Quit if Vaccine Group is Other, Skin Test, or Combo.
+ ..Q:((BIVGRP=12)!(BIVGRP=13)!(BIVGRP=14)!(BIVGRP<1))
+ ..;---> Call Lori's Magic Mapper to get SNOMED Code.
+ ..D SNOMED(BIVGRP,BICRIEN,BIIEN(1))
+ ;
+ ;**********
  ;
  ;---> If add contraindication fails, set Error Code and quit.
  I $G(BIERR)]"" D  Q
@@ -105,6 +132,34 @@ ADDCONT(BIERR,BIDATA) ;PEP - Add a Contraindication.
  Q
  ;
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Add SNOMED Codes for this Contraindication.
+ ;----------
+SNOMED(BIVGRP,BICRIEN,BIIEN) ;PP - Add SNOMED data.
+ ;---> File SNOMED data for this Contraindication.
+ ;---> Parameters:
+ ;     1 - BIVGRP  (req) Vaccine Group IEN.
+ ;     2 - BICRIEN (req) Contraindication Reason IEN.
+ ;     3 - BIIEN   (req) Patient Contraindication IEN.
+ ;
+ Q:'$G(BIVGRP)  Q:'$G(BICRIEN)  Q:'$G(BIIEN)
+ N BICODES,Z
+ ;---> Call Mapper to set up BICODES Array of SNOMED Code(s).
+ ;---> Quit if BCQM not installed.
+ Q:('$L($T(MM^BCQMAPI)))
+ ;---> First clear out old SNOMED Codes for this Contra if they exist.
+ K ^BIPC(BIIEN,1)
+ ;---> Get array of Codes for this entry.
+ S Z=$$MM^BCQMAPI(9002084.81,BICRIEN,"I",BIVGRP,,,,,,,"BICODES")
+ N BIFDA,J S J=0
+ F  S J=$O(BICODES(J)) Q:'J  D
+ .N BISNOMED S BISNOMED=BICODES(J,"SNOMED")
+ .S BIFDA(9002084.111,"+"_J_","_BIIEN_",",.01)=BISNOMED
+ ;---> Now file these.
+ D UPDATE^DIE("","BIFDA")
+ Q
+ ;**********
+ ;
  ;----------
 DELCONT(BIERR,BICIEN) ;PEP - Add a Contraindication.
  ;---> Delete a Contraindication.
@@ -120,9 +175,47 @@ DELCONT(BIERR,BICIEN) ;PEP - Add a Contraindication.
  I '$G(BICIEN) D  Q
  .D ERRCD^BIUTL2(414,.BIERR) S BIERR=BI31_BIERR
  ;
- ;---> Delete BI CONTRAINDICATION entry.
+ ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Switch to logical deletion of Contraindications.
+ ;---> First copy Contra nodes to Deleted file, then delete Contra.
+ ;
+ ;---> Quit if bad IEN for Contra.
+ I '$D(^BIPC(BICIEN,0)) D  Q
+ .D ERRCD^BIUTL2(448,.BIERR) S BIERR=BI31_BIERR
+ ;---> Quit if bad Patient DFN for Contra.
+ N BIDFN,BINODE
+ S BINODE=^BIPC(BICIEN,0),BIDFN=$P(BINODE,U)
+ I 'BIDFN D  Q
+ .D ERRCD^BIUTL2(417,.BIERR) S BIERR=BI31_BIERR
+ ;
+ ;---> Create an entry in BI PATIENT CONTRAINDICATION DELETED File.
+ N BIERR,BIIEN,BIFLD
+ S BIFLD(.01)=BIDFN
+ S BIFLD(.02)=$P(BINODE,U,2)
+ S BIFLD(.03)=$P(BINODE,U,3)
+ S BIFLD(.04)=$P(BINODE,U,4)
+ S BIFLD(2.01)=+$G(DUZ)
+ D NOW^%DTC S BIFLD(2.02)=%
+ D UPDATE^BIFMAN(9002084.115,.BIIEN,.BIFLD,.BIERR)
+ ;---> Quit if new entry failed.
+ I BIERR]"" S BIERR=BI31_BIERR Q
+ ;---> Quit if new entry IEN bad.
+ I '$D(^BIPCD(+BIIEN(1),0)) D  Q
+ .D ERRCD^BIUTL2(449,.BIERR) S BIERR=BI31_BIERR
+ ;**********
+ ;
+ ;---> Okay, now delete BI CONTRAINDICATION entry.
  N DA,DIK S DA=BICIEN,DIK="^BIPC("
  D ^DIK
+ ;
+ ;---> Don't need to copy SNOMED fields, but save for prototype code.
+ ;I $D(^BIPC(BICIEN,1,0)) S ^BIPCD(BIIEN,1,0)=^BIPC(BICIEN,1,0)
+ ;N N S N=0 F  S N=$O(^BIPC(BICIEN,1,N)) Q:'N  D
+ ;.N BISNO S BISNO=^BIPC(BICIEN,1,N,0),^BIPCD(BIIEN,1,N,0)=BISNO
+ ;.S ^BIPCD(BIIEN,1,"B",BISNO,N)=""
+ ;**********
+ ;
  Q
  ;
  ;

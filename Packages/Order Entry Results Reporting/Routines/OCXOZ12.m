@@ -1,5 +1,5 @@
-OCXOZ12 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ12 ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,25 +10,36 @@ OCXOZ12 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-R72R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #72 'ALLERGIES UNASSESSIBLE'  Relation #1 'ALLERGIES UNASSESSIBLE AND (RADIOLOGY ORDER OR PHA...'
- ;  Called from R72R1A+14^OCXOZ11.
+R68R1A ; Verify all Event/Elements of  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #1 'MED ORDER FOR PT > 64 AND AMITRIPTYLINE'
+ ;  Called from EL122+5^OCXOZ0I, and EL125+5^OCXOZ0I.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; NEWRULE( ---------> NEW RULE MESSAGE
+ ; MCE122( ---------->  Verify Event/Element: 'AMITRIPTYLINE ORDER'
+ ; MCE125( ---------->  Verify Event/Element: 'MED ORDER FOR PT > 64'
  ;
- Q:$D(OCXRULE("R72R1B"))
+ Q:$G(^OCXS(860.2,68,"INACT"))
+ ;
+ I $$MCE125 D 
+ .I $$MCE122 D R68R1B
+ Q
+ ;
+R68R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #1 'MED ORDER FOR PT > 64 AND AMITRIPTYLINE'
+ ;  Called from R68R1A+12.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R68R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^34^^Patient cannot be assessed for allergies" I 1
- E  S OCXCMSG="Patient cannot be assessed for allergies"
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^30^^Patient is "_$$GETDATA(DFN,"122^125",62)_". "_$$GETDATA(DFN,"122^125",141) I 1
+ E  S OCXCMSG="Patient is "_$$GETDATA(DFN,"122^125",62)_". "_$$GETDATA(DFN,"122^125",141)
  S OCXNMSG=""
  ;
- ;
- ; Run Execute Code
- ;
- Q:'$$NEWRULE(DFN,$J,39,1,999,"Patient cannot be assessed for allergies.")
  Q:$G(OCXOERR)
  ;
  ; Send Order Check Message
@@ -36,76 +47,160 @@ R72R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #72
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
-CKSUM(STR) ;  Compiler Function: GENERATE STRING CHECKSUM
+R68R2A ; Verify all Event/Elements of  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #2 'MED ORDER FOR PT > 64 AND CHLORPROPAMIDE'
+ ;  Called from EL125+6^OCXOZ0I, and EL123+5^OCXOZ0I.
  ;
- N CKSUM,PTR,ASC S CKSUM=0
- S STR=$TR(STR,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
- F PTR=$L(STR):-1:1 S ASC=$A(STR,PTR)-42 I (ASC>0),(ASC<51) S CKSUM=CKSUM*2+ASC
- Q +CKSUM
+ Q:$G(OCXOERR)
  ;
-NEWRULE(OCXDFN,OCXORD,OCXRUL,OCXREL,OCXNOTF,OCXMESS) ; Has this rule already been triggered for this order number
+ ;      Local Extrinsic Functions
+ ; MCE123( ---------->  Verify Event/Element: 'CHLORPROPAMIDE ORDER'
+ ; MCE125( ---------->  Verify Event/Element: 'MED ORDER FOR PT > 64'
  ;
+ Q:$G(^OCXS(860.2,68,"INACT"))
  ;
- Q:'$G(OCXDFN) 0 Q:'$G(OCXRUL) 0
- Q:'$G(OCXREL) 0  Q:'$G(OCXNOTF) 0  Q:'$L($G(OCXMESS)) 0
- S OCXORD=+$G(OCXORD),OCXDFN=+OCXDFN
- ;
- N OCXNDX,OCXDATA,OCXDFI,OCXELE,OCXGR,OCXTIME,OCXCKSUM
- ;
- S OCXTIME=(+$H)
- S OCXCKSUM=$$CKSUM(OCXMESS)
- ;
- Q:$D(^OCXD(860.7,"AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)) 0
- ;
- K OCXDATA
- S OCXDATA(OCXDFN,0)=OCXDFN
- S OCXDATA("B",OCXDFN,OCXDFN)=""
- S OCXDATA("AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)=""
- ;
- S OCXGR="^OCXD(860.7"
- D SETAP(OCXGR_")",0,.OCXDATA,OCXDFN)
- ;
- K OCXDATA
- S OCXDATA(OCXRUL,0)=OCXRUL_U_(OCXTIME)_U_(+OCXORD)
- S OCXDATA(OCXRUL,"M")=OCXMESS
- S OCXDATA("B",OCXRUL,OCXRUL)=""
- S OCXGR=OCXGR_","_OCXDFN_",1"
- D SETAP(OCXGR_")","860.71P",.OCXDATA,OCXRUL)
- ;
- K OCXDATA
- S OCXDATA(OCXREL,0)=OCXREL
- S OCXDATA("B",OCXREL,OCXREL)=""
- S OCXGR=OCXGR_","_OCXRUL_",1"
- D SETAP(OCXGR_")","860.712",.OCXDATA,OCXREL)
- ;
- S OCXELE=0 F  S OCXELE=$O(^OCXS(860.2,OCXRUL,"C","C",OCXELE)) Q:'OCXELE  D
- .;
- .N OCXGR1
- .S OCXGR1=OCXGR_","_OCXREL_",1"
- .K OCXDATA
- .S OCXDATA(OCXELE,0)=OCXELE
- .S OCXDATA(OCXELE,"TIME")=OCXTIME
- .S OCXDATA(OCXELE,"LOG")=$G(OCXOLOG)
- .S OCXDATA("B",OCXELE,OCXELE)=""
- .K ^OCXD(860.7,OCXDFN,1,OCXRUL,1,OCXREL,1,OCXELE)
- .D SETAP(OCXGR1_")","860.7122P",.OCXDATA,OCXELE)
- .;
- .S OCXDFI=0 F  S OCXDFI=$O(^TMP("OCXCHK",$J,OCXDFN,OCXELE,OCXDFI)) Q:'OCXDFI  D
- ..N OCXGR2
- ..S OCXGR2=OCXGR1_","_OCXELE_",1"
- ..K OCXDATA
- ..S OCXDATA(OCXDFI,0)=OCXDFI
- ..S OCXDATA(OCXDFI,"VAL")=^TMP("OCXCHK",$J,OCXDFN,OCXELE,OCXDFI)
- ..S OCXDATA("B",OCXDFI,OCXDFI)=""
- ..D SETAP(OCXGR2_")","860.71223P",.OCXDATA,OCXDFI)
- ;
- Q 1
- ;
-SETAP(ROOT,DD,DATA,DA) ;  Set Rule Event data
- M @ROOT=DATA
- I +$G(DD) S @ROOT@(0)="^"_($G(DD))_"^"_($P($G(@ROOT@(0)),U,3)+1)_"^"_$G(DA)
- I '$G(DD) S $P(@ROOT@(0),U,3,4)=($P($G(@ROOT@(0)),U,3)+1)_"^"_$G(DA)
- ;
+ I $$MCE125 D 
+ .I $$MCE123 D R68R2B
  Q
  ;
+R68R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #2 'MED ORDER FOR PT > 64 AND CHLORPROPAMIDE'
+ ;  Called from R68R2A+12.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R68R2B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^30^^Patient is "_$$GETDATA(DFN,"123^125",62)_". "_$$GETDATA(DFN,"123^125",142) I 1
+ E  S OCXCMSG="Patient is "_$$GETDATA(DFN,"123^125",62)_". "_$$GETDATA(DFN,"123^125",142)
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
+ ;
+R68R3A ; Verify all Event/Elements of  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #3 'MED ORDER FOR PT > 64 AND DIPYRIDAMOLE'
+ ;  Called from EL125+7^OCXOZ0I, and EL124+5^OCXOZ0I.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE124( ---------->  Verify Event/Element: 'DIPYRIDAMOLE ORDER'
+ ; MCE125( ---------->  Verify Event/Element: 'MED ORDER FOR PT > 64'
+ ;
+ Q:$G(^OCXS(860.2,68,"INACT"))
+ ;
+ I $$MCE125 D 
+ .I $$MCE124 D R68R3B
+ Q
+ ;
+R68R3B ; Send Order Check, Notication messages and/or Execute code for  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #3 'MED ORDER FOR PT > 64 AND DIPYRIDAMOLE'
+ ;  Called from R68R3A+12.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ;
+ Q:$D(OCXRULE("R68R3B"))
+ ;
+ N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^30^^Patient is "_$$GETDATA(DFN,"124^125",62)_".  "_$$GETDATA(DFN,"124^125",144) I 1
+ E  S OCXCMSG="Patient is "_$$GETDATA(DFN,"124^125",62)_".  "_$$GETDATA(DFN,"124^125",144)
+ S OCXNMSG=""
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ; Send Order Check Message
+ ;
+ S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ Q
+ ;
+R69R1A ; Verify all Event/Elements of  Rule #69 'LAB THRESHOLD'  Relation #1 'IF HL7 LAB RESULTS AND (GREATER THAN THRESHOLD VAL...'
+ ;  Called from EL5+7^OCXOZ0G, and EL131+5^OCXOZ0I, and EL132+5^OCXOZ0I.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;      Local Extrinsic Functions
+ ; MCE131( ---------->  Verify Event/Element: 'GREATER THAN LAB THRESHOLD'
+ ; MCE132( ---------->  Verify Event/Element: 'LESS THAN LAB THRESHOLD'
+ ; MCE5( ------------>  Verify Event/Element: 'HL7 FINAL LAB RESULT'
+ ;
+ Q:$G(^OCXS(860.2,69,"INACT"))
+ ;
+ I $$MCE5 D 
+ .I $$MCE131 D R69R1B^OCXOZ13
+ .I $$MCE132 D R69R1B^OCXOZ13
+ Q
+ ;
+GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime data
+ ;
+ N OCXE,VAL,PC S VAL=""
+ F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
+ Q VAL
+ ;
+MCE122() ; Verify Event/Element: AMITRIPTYLINE ORDER
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(122,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),122)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),122))
+ Q 0
+ ;
+MCE123() ; Verify Event/Element: CHLORPROPAMIDE ORDER
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(123,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),123)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),123))
+ Q 0
+ ;
+MCE124() ; Verify Event/Element: DIPYRIDAMOLE ORDER
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(124,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),124)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),124))
+ Q 0
+ ;
+MCE125() ; Verify Event/Element: MED ORDER FOR PT > 64
+ ;
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(125,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),125)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),125))
+ Q 0
+ ;
+MCE131() ; Verify Event/Element: GREATER THAN LAB THRESHOLD
+ ;
+ ;
+ N OCXRES
+ I $L(OCXDF(37)) S OCXRES(131,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),131)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),131))
+ Q 0
+ ;
+MCE132() ; Verify Event/Element: LESS THAN LAB THRESHOLD
+ ;
+ ;
+ N OCXRES
+ I $L(OCXDF(37)) S OCXRES(132,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),132)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),132))
+ Q 0
+ ;
+MCE5() ; Verify Event/Element: HL7 FINAL LAB RESULT
+ ;
+ ;
+ N OCXRES
+ I $L(OCXDF(37)) S OCXRES(5,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),5)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),5))
+ Q 0
  ;

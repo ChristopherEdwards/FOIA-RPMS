@@ -1,5 +1,5 @@
-BGOVTM ; IHS/BAO/TMD - Manage V ACTIVITY TIME ;20-Mar-2007 13:52;DKM
- ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+BGOVTM ; IHS/BAO/TMD - Manage V ACTIVITY TIME ;09-Apr-2012 14:19;DU
+ ;;1.1;BGO COMPONENTS;**1,3,11**;Mar 20, 2007;Build 3
  ; Get visit activity time
  ;  INP = Visit IEN ^ User IEN
  ; .RET = Activity Time IEN ^ Activity Time ^ Travel minutes
@@ -40,6 +40,13 @@ SET(RET,INP) ;EP
  S @FDA@(.04)=TRVTM
  S @FDA@(1201)="N"
  S @FDA@(1204)="`"_PRVIEN
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

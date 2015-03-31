@@ -1,5 +1,5 @@
 PSUTL1 ;BIR/CFL - Subroutines for PBMS Modules ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**5,16,19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;Reference to file #2 supported by DBIA #3301
 SECTN ;Service/Sections Array
  S PSECT("AMBULATORY CARE")="AMB"
@@ -36,11 +36,11 @@ XMY ;EP Setup Mail Groups
  ; PSUXMYS2() Mail Group for Summary 2 Messages
  ;S PSUPBMG=^XTMP("PSU_"_PSUJOB,"PSUPBMG")
  ;
- Q:$D(^XTMP("PSU_"_PSUJOB,"PSUFLAG3"))
+ Q:$D(^XTMP("PSU_"_$G(PSUJOB),"PSUFLAG3"))
  ;
  ; Hines Group
  I $G(PSUMASF) D
- .S PSUXMYH("G.PSU PBM@DOMAIN.NAME")=""
+ .S PSUXMYH("G.PSU PBM@CMOP-NAT.MED.VA.GOV")=""
  I $G(PSUPBMG) S PSUXMYH("G.PSU PBM")=""   ;local PBM mail group
  I $G(PSUDUZ) S PSUXMYH(PSUDUZ)=""         ;self
  ;

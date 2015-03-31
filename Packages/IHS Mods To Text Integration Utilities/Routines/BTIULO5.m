@@ -1,5 +1,5 @@
-BTIULO5 ; IHS/ITSC/LJF - STILL MORE OBJECTS FOR EHR ;05-Jan-2012 13:49;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1004,1005,1006,1009**;NOV 04, 2004;Build 22
+BTIULO5 ; IHS/ITSC/LJF - STILL MORE OBJECTS FOR EHR ;15-Jul-2013 09:49;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1004,1005,1006,1009,1011**;NOV 04, 2004;Build 9
  ;IHS/ITSC/LJF 12/10/2004 PATCH 1001 V Orders object was not displaying a modified order
  ;             04/08/2005 PATCH 1002 Indented display of medication sig
  ;                        PATCH 1004 Changed to EHR 1.1 visit selection
@@ -26,7 +26,7 @@ VORD(TARGET) ; returns orders for current vuecentric visit context
  ;
 GETORD(RETURN,VSIT) ;
  K RETURN
- NEW DAT,DFN,ORLIST,ORD,HDR,HLF,LOC,X,Y,C
+ NEW DAT,DFN,ORLIST,ORD,HDR,HLF,LOC,X,Y,C,NEWORD
  S C=0
  S X=$G(^AUPNVSIT(VSIT,0)),DAT=X\1 Q:'DAT
  S DFN=$P(X,U,5),LOC=$P(X,U,22)_";SC("
@@ -43,10 +43,14 @@ GETORD(RETURN,VSIT) ;
  . I $P(ORD,U,7)="canc" Q
  . F Y=0:0 S Y=$O(ORD("TX",Y)) Q:'Y  D
  .. I $E(ORD("TX",Y),1)="<" Q
- .. I $E(ORD("TX",Y),1,6)="Change" Q
+ .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999) ;Patch 1011
  .. ;I $E(ORD("TX",Y),1,3)="to " Q
- .. I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;IHS/ITSC/LJF 12/10/2004 PATCH 1001
- .. S RETURN(C)=$G(RETURN(C))_"  "_$P(ORD("TX",Y)," Quantity:")
+ .. ;I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;IHS/ITSC/LJF 12/10/2004 PATCH 1001
+ .. I $E(ORD("TX",Y),1,3)="to " D
+ ...K RETURN(C)
+ ...S NEWORD=$E(ORD("TX",Y),4,999)
+ ...S RETURN(C)="  "_NEWORD
+ .. E  S RETURN(C)=$G(RETURN(C))_"  "_$P(ORD("TX",Y)," Quantity:")
  I C=0 S RETURN(1)=""
  K ^TMP("ORR",$J)
  Q

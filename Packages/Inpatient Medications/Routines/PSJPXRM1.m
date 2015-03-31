@@ -1,5 +1,5 @@
 PSJPXRM1 ;BIR/MV-RETURN INPATIENT ACTIVE MEDS (EXPANDED) ;29 Jan 99 / 8:49 AM
- ;;5.0; INPATIENT MEDICATIONS ;**90**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**90,170**;16 DEC 97
  ;
  ; Reference to ^PS(51.2 is supported by DBIA 2178.
  ; Reference to ^PS(52.6 is supported by DBIA 1231.
@@ -79,6 +79,9 @@ IVTMP ;*** Set array for IV orders.
  . S NAME("INFUS")=$P($G(^PS(53.1,+ON,8)),U,5)
  . S ND2=$G(@(F_+ON_",2)")),NAME("START")=$P(ND2,U,2),NAME("STOP")=$P(ND2,U,4)
  . S NAME("ADM")=$P(ND2,U,5),NAME("SIO")=$P($G(@(F_+ON_",6)")),"^")
+ . S NAME("DN")=$G(@(F_+ON_",.2)")),NAME("DO")=$P(NAME("DN"),U,2)
+ . S:NAME("DO")="" NAME("DO")=$P($G(NAME("AD",1,0)),U,2)
+ . S NAME("DN")=$S(+$P(NAME("DN"),U):$$OIDF^PSJLMUT1($P(NAME("DN"),U)),1:"")
  I ON'["P"  D
  . S NAME("PROVIDER")=$P(ND0,U,6)
  . S NAME("SCH")=$P(ND0,U,9),NAME("INFUS")=$P(ND0,U,8),NAME("STAT")=$$CODES^PSIVUTL($P(ND0,U,17),55.01,100)
@@ -86,8 +89,8 @@ IVTMP ;*** Set array for IV orders.
  . S NAME("START")=$P(ND0,U,2),NAME("STOP")=$P(ND0,U,3)
  . S NAME("ADM")=$P(ND0,U,11),NAME("SIO")=$P($G(@(F_+ON_",3)")),"^")
  . S NAME("VERPHARM")=$P($G(^PS(55,DFN,"IV",+ON,4)),U,4)
- S NAME("DN")=$G(@(F_+ON_",.2)")),NAME("DO")=$P(DN,U,2)
- S NAME("DN")=$S(+$P(NAME("DN"),U):$$OIDF^PSJLMUT1($P(NAME("DN"),U)),1:"")
+ . S NAME("DN")=$G(@(F_+ON_",.2)")),NAME("DO")=$P(NAME("DN"),U,2)
+ . S NAME("DN")=$S(+$P(NAME("DN"),U):$$OIDF^PSJLMUT1($P(NAME("DN"),U)),1:"")
  S NAME("OERR")=$P(ND0,U,21)
  S NAME("PENDRENEWAL")=($P(ND0,U,9)="P"&($P(ND0,U,24)="R"))
  I NAME("PROVIDER") S NAME("PROVIDER")=NAME("PROVIDER")_"^"_$P($G(^VA(200,NAME("PROVIDER"),0)),"^")

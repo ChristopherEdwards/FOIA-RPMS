@@ -1,6 +1,5 @@
 BARFPST3 ; IHS/SD/LSL - A/R FLAT RATE POSTING #3 ; 01/09/2009
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,6,10,21**;OCT 26, 2005
- ;
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,6,10,21,23**;OCT 26, 2005
  Q
  ; *********************************************************************
 DISP ; EP
@@ -45,6 +44,7 @@ BILLS ;
  D BILEXIST Q:'+BARBILE        ; Check for bill in different FRP batch
  ;D NEGBILL Q:'+BARBILB         ; Check for neg balance on bill  ;MRS:BAR*1.8*10 H632
  I $$IHS^BARUFUT(DUZ(2)) D NEGBILL Q:'+BARBILB  ;MRS:BAR*1.8*10 H632
+ ;;;I $$IHSERA^BARUFUT(DUZ(2)) D NEGBILL Q:'+BARBILB  ;P.OTT
  ; Display amount posted (accumulated) and remaining balance
  S BARAPST=BARAPST+$G(BARPAY)  ; Amount To Post
  S BARBAL=BARPAMT-BARAPST      ; Remaining Balance 
@@ -52,6 +52,7 @@ BILLS ;
  ; If posting results in negative balance, stop and send to review
  ;I BARBAL<0 D  Q                       ;MRS:BAR*1.8*10 H632
  I $$IHS^BARUFUT(DUZ(2)),BARBAL<0 D  Q  ;MRS:BAR*1.8*10 H632
+ . ;;;I $$IHSERA^BARUFUT(DUZ(2)),BARBAL<0 D  Q  ;P.OTT
  . W !,"Posting this payment will result in a negative balance."
  . S BARAPST=BARAPST-$G(BARPAY)
  . S BARBAL=BARPAMT-BARAPST
@@ -210,14 +211,10 @@ PAYOR ;
  E  S BARBTO=$$VALI^XBDIQ1(90050.01,$P(BARFPASS,U,4),3)
  I BARBTO'=BARPDBY D  Q:'+Y  ; if billed to '= paid by payor
  . K DIR
- . ;BEGIN CODE CHANGE FOR IM14057 - LSL 07/07/04
- . ;S DIR("A",2)="The Payor ("_$$VAL^XBDIQ1(90050.02,BARBTO,.01)_") on the bill"
- . ;S DIR("A",3)="does not match the Payor ("_$$VAL^XBDIQ1(90050.02,BARPDBY,.01)_") on the item."
  . S DIR("A",2)="The payor ("
  . S DIR("A",2)=DIR("A",2)_$S(BARBTO="UNKNOWN":"UNKNOWN",1:$$GET1^DIQ(90050.02,BARBTO,.01))
  . S DIR("A",2)=DIR("A",2)_") on the bill"
  . S DIR("A",3)="does not match the Payor ("_$$GET1^DIQ(90050.02,BARPDBY,.01)_") on the item."
- . ;END CODING CHANGE IM14057
  . S DIR("A")="Continue"
  . S DIR("B")="No"
  . S DIR(0)="Y"
@@ -251,13 +248,6 @@ NEGBILL ;
  I BARBALH<0 D                      ;HEAVILY MODIFIED;MRS:BAR*1.8*6 DD 4.2.5
  .S BARBILB=0
  .D STOP^BARFPST5("BILL",BARBALH)
- .; K DIR
- .; S DIR("A",2)="Posting this bill will result in a negative balance on the bill."
- .; S DIR("A")="Continue"
- .; S DIR("B")="No"
- .; S DIR(0)="Y"
- .; D ^DIR
- .; S:'+Y BARBILB=0
  Q
  ; *********************************************************************
 SAVEBIL ;

@@ -1,5 +1,5 @@
-OCXOZ0C ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0C ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,48 +10,99 @@ OCXOZ0C ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-CHK354 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK350+13^OCXOZ0B.
+CHK347 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK58+20^OCXOZ05.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK354 Variables
+ ;    Local CHK347 Variables
+ ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
+ ; OCXDF(136) --> Data Field: CLOZAPINE ANC W/IN 7 FLAG (BOOLEAN)
+ ; OCXDF(137) --> Data Field: CLOZAPINE ANC W/IN 7 RESULT (NUMERIC)
+ ; OCXDF(139) --> Data Field: CLOZAPINE WBC W/IN 7 FLAG (BOOLEAN)
+ ; OCXDF(140) --> Data Field: CLOZAPINE WBC W/IN 7 RESULT (NUMERIC)
+ ;
+ ;      Local Extrinsic Functions
+ ;
+ S OCXDF(137)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",3),";",2) I $L(OCXDF(137)) D CHK349
+ S OCXDF(136)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",3),";",1) I $L(OCXDF(136)),'(OCXDF(136)) D CHK371
+ S OCXDF(139)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",2),";",1) I $L(OCXDF(139)),'(OCXDF(139)) D CHK375
+ S OCXDF(140)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",2),";",2) I $L(OCXDF(140)) D CHK378
+ Q
+ ;
+CHK349 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK347+15.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK349 Variables
+ ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
+ ; OCXDF(136) --> Data Field: CLOZAPINE ANC W/IN 7 FLAG (BOOLEAN)
+ ; OCXDF(137) --> Data Field: CLOZAPINE ANC W/IN 7 RESULT (NUMERIC)
+ ;
+ ;      Local Extrinsic Functions
+ ;
+ I (OCXDF(137)<1.5) S OCXDF(136)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",3),";",1) I $L(OCXDF(136)),(OCXDF(136)) D CHK353
+ I (OCXDF(137)>1.499) D CHK355
+ Q
+ ;
+CHK353 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK349+13.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK353 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(130) --> Data Field: CLOZAPINE LAB RESULTS (FREE TEXT)
  ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
- ; OCXDF(145) --> Data Field: CLOZAPINE WBC 3.0-3.5 TEXT (FREE TEXT)
  ;
  ;      Local Extrinsic Functions
  ; FILE(DFN,114, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE ANC < 1.5)
- ; MSGTEXT( ---------> MESSAGE TEXT
  ;
- S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXDF(145)=$$MSGTEXT("CLOZWBC30_35"),OCXOERR=$$FILE(DFN,114,"130,145") Q:OCXOERR 
+ S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXOERR=$$FILE(DFN,114,"130") Q:OCXOERR 
  Q
  ;
-CHK360 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK350+14^OCXOZ0B.
+CHK355 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK349+14.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK360 Variables
+ ;    Local CHK355 Variables
+ ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
+ ; OCXDF(136) --> Data Field: CLOZAPINE ANC W/IN 7 FLAG (BOOLEAN)
+ ; OCXDF(137) --> Data Field: CLOZAPINE ANC W/IN 7 RESULT (NUMERIC)
+ ;
+ ;      Local Extrinsic Functions
+ ;
+ S OCXDF(136)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",3),";",1) I $L(OCXDF(136)),(OCXDF(136)) D CHK358
+ I (OCXDF(137)<"2.0") S OCXDF(136)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",3),";",1) I $L(OCXDF(136)),(OCXDF(136)) D CHK508^OCXOZ0F
+ Q
+ ;
+CHK358 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK355+13.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK358 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(130) --> Data Field: CLOZAPINE LAB RESULTS (FREE TEXT)
  ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
- ; OCXDF(145) --> Data Field: CLOZAPINE WBC 3.0-3.5 TEXT (FREE TEXT)
  ;
  ;      Local Extrinsic Functions
  ; FILE(DFN,115, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE ANC >= 1.5)
- ; MSGTEXT( ---------> MESSAGE TEXT
  ;
- S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXDF(145)=$$MSGTEXT("CLOZWBC30_35"),OCXOERR=$$FILE(DFN,115,"130,145") Q:OCXOERR 
+ S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXOERR=$$FILE(DFN,115,"130") Q:OCXOERR 
  Q
  ;
-CHK363 ; Look through the current environment for valid Event/Elements for this patient.
+CHK360 ; Look through the current environment for valid Event/Elements for this patient.
  ;  Called from CHK198+9^OCXOZ09.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK363 Variables
+ ;    Local CHK360 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(43) ---> Data Field: OI NATIONAL ID (FREE TEXT)
  ; OCXDF(74) ---> Data Field: VA DRUG CLASS (FREE TEXT)
@@ -60,31 +111,45 @@ CHK363 ; Look through the current environment for valid Event/Elements for this 
  ;
  ;      Local Extrinsic Functions
  ;
- S OCXDF(131)=$P($P($G(OCXPSD),"|",3),"^",4) I $L(OCXDF(131)) S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXDF(132)=$P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",1) D CHK368
- S OCXDF(43)=$P($P($G(OCXPSD),"|",3),"^",1) I $L(OCXDF(43)) S OCXDF(74)=$P($$ENVAC^PSJORUT2(OCXDF(43)),"^",2) I $L(OCXDF(74)) D CHK506^OCXOZ0F
+ S OCXDF(131)=$P($P($G(OCXPSD),"|",3),"^",4) I $L(OCXDF(131)) S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXDF(132)=$P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",1) D CHK365
+ S OCXDF(43)=$P($P($G(OCXPSD),"|",3),"^",1) I $L(OCXDF(43)) S OCXDF(74)=$P($$ENVAC^PSJORUT2(OCXDF(43)),"^",2) I $L(OCXDF(74)) D CHK497^OCXOZ0F
  Q
  ;
-CHK368 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK363+14.
+CHK365 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK360+14.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK368 Variables
+ ;    Local CHK365 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(130) --> Data Field: CLOZAPINE LAB RESULTS (FREE TEXT)
  ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
  ; OCXDF(132) --> Data Field: CLOZAPINE MED (BOOLEAN)
- ; OCXDF(145) --> Data Field: CLOZAPINE WBC 3.0-3.5 TEXT (FREE TEXT)
  ;
  ;      Local Extrinsic Functions
  ; FILE(DFN,116, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE DRUG SELECTED)
- ; MSGTEXT( ---------> MESSAGE TEXT
  ;
- I $L(OCXDF(132)),(OCXDF(132)) S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXDF(145)=$$MSGTEXT("CLOZWBC30_35"),OCXOERR=$$FILE(DFN,116,"130,145") Q:OCXOERR 
+ I $L(OCXDF(132)),(OCXDF(132)) S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXOERR=$$FILE(DFN,116,"130") Q:OCXOERR 
+ Q
+ ;
+CHK371 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK347+16.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK371 Variables
+ ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(130) --> Data Field: CLOZAPINE LAB RESULTS (FREE TEXT)
+ ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
+ ;
+ ;      Local Extrinsic Functions
+ ; FILE(DFN,117, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE NO ANC W/IN 7 DAYS)
+ ;
+ S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXOERR=$$FILE(DFN,117,"130") Q:OCXOERR 
  Q
  ;
 CHK375 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK348+16^OCXOZ0B.
+ ;  Called from CHK347+17.
  ;
  Q:$G(OCXOERR)
  ;
@@ -92,39 +157,19 @@ CHK375 ; Look through the current environment for valid Event/Elements for this 
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(130) --> Data Field: CLOZAPINE LAB RESULTS (FREE TEXT)
  ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
- ; OCXDF(145) --> Data Field: CLOZAPINE WBC 3.0-3.5 TEXT (FREE TEXT)
- ;
- ;      Local Extrinsic Functions
- ; FILE(DFN,117, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE NO ANC W/IN 7 DAYS)
- ; MSGTEXT( ---------> MESSAGE TEXT
- ;
- S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXDF(145)=$$MSGTEXT("CLOZWBC30_35"),OCXOERR=$$FILE(DFN,117,"130,145") Q:OCXOERR 
- Q
- ;
-CHK380 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK348+17^OCXOZ0B.
- ;
- Q:$G(OCXOERR)
- ;
- ;    Local CHK380 Variables
- ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
- ; OCXDF(130) --> Data Field: CLOZAPINE LAB RESULTS (FREE TEXT)
- ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
- ; OCXDF(145) --> Data Field: CLOZAPINE WBC 3.0-3.5 TEXT (FREE TEXT)
  ;
  ;      Local Extrinsic Functions
  ; FILE(DFN,118, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE NO WBC W/IN 7 DAYS)
- ; MSGTEXT( ---------> MESSAGE TEXT
  ;
- S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXDF(145)=$$MSGTEXT("CLOZWBC30_35"),OCXOERR=$$FILE(DFN,118,"130,145") Q:OCXOERR 
+ S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXOERR=$$FILE(DFN,118,"130") Q:OCXOERR 
  Q
  ;
-CHK384 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK348+18^OCXOZ0B.
+CHK378 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK347+18.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK384 Variables
+ ;    Local CHK378 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
  ; OCXDF(139) --> Data Field: CLOZAPINE WBC W/IN 7 FLAG (BOOLEAN)
@@ -132,27 +177,9 @@ CHK384 ; Look through the current environment for valid Event/Elements for this 
  ;
  ;      Local Extrinsic Functions
  ;
- I (OCXDF(140)<"3.0") S OCXDF(139)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",2),";",1) I $L(OCXDF(139)),(OCXDF(139)) D CHK388
- I (OCXDF(140)>2.999),(OCXDF(140)<3.5) S OCXDF(139)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",2),";",1) I $L(OCXDF(139)),(OCXDF(139)) D CHK395^OCXOZ0D
- I (OCXDF(140)>3.499) S OCXDF(139)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",2),";",1) I $L(OCXDF(139)),(OCXDF(139)) D CHK401^OCXOZ0D
- Q
- ;
-CHK388 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK384+13.
- ;
- Q:$G(OCXOERR)
- ;
- ;    Local CHK388 Variables
- ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
- ; OCXDF(130) --> Data Field: CLOZAPINE LAB RESULTS (FREE TEXT)
- ; OCXDF(131) --> Data Field: PHARMACY LOCAL ID (FREE TEXT)
- ; OCXDF(145) --> Data Field: CLOZAPINE WBC 3.0-3.5 TEXT (FREE TEXT)
- ;
- ;      Local Extrinsic Functions
- ; FILE(DFN,119, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: CLOZAPINE WBC < 3.0)
- ; MSGTEXT( ---------> MESSAGE TEXT
- ;
- S OCXDF(130)=$P($$CLOZLABS^ORKLR(OCXDF(37),"",OCXDF(131)),"^",4),OCXDF(145)=$$MSGTEXT("CLOZWBC30_35"),OCXOERR=$$FILE(DFN,119,"130,145") Q:OCXOERR 
+ I (OCXDF(140)<"3.0") S OCXDF(139)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",2),";",1) I $L(OCXDF(139)),(OCXDF(139)) D CHK382^OCXOZ0D
+ I (OCXDF(140)>2.999),(OCXDF(140)<3.5) S OCXDF(139)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",2),";",1) I $L(OCXDF(139)),(OCXDF(139)) D CHK388^OCXOZ0D
+ I (OCXDF(140)>3.499) S OCXDF(139)=$P($P($$CLOZLABS^ORKLR(OCXDF(37),7,OCXDF(131)),"^",2),";",1) I $L(OCXDF(139)),(OCXDF(139)) D CHK393^OCXOZ0D
  Q
  ;
 FILE(DFN,OCXELE,OCXDFL) ;     This Local Extrinsic Function logs a validated event/element.
@@ -169,33 +196,4 @@ FILE(DFN,OCXELE,OCXDFL) ;     This Local Extrinsic Function logs a validated eve
  M ^TMP("OCXCHK",$J,DFN)=OCXDATA(DFN)
  ;
  Q 0
- ;
-MSGTEXT(ID)    ;  Compiler Function: MESSAGE TEXT
- ;
- N MSG
- S MSG=""
- ;
- I ID="AMITRIPTYLINE" D
- .S MSG="Amitriptyline can cause cognitive impairment and loss of"
- .S MSG=MSG_" balance in older patients. Consider other antidepressant"
- .S MSG=MSG_" medications on formulary."
- ;
- I ID="CHLORPROPAMIDE" D
- .S MSG="Older patients may experience hypoglycemia with"
- .S MSG=MSG_" Chlorpropamide due to its long duration and variable"
- .S MSG=MSG_" renal secretion. They may also be at increased risk for"
- .S MSG=MSG_" Chlorpropamide-induced SIADH."
- ;
- I ID="DIPYRIDAMOLE" D
- .S MSG="Older patients can experience adverse reactions at high doses"
- .S MSG=MSG_" of Dipyridamole (e.g., headache, dizziness, syncope, GI"
- .S MSG=MSG_" intolerance.) There is also questionable efficacy at"
- .S MSG=MSG_" lower doses."
- ;
- I ID="CLOZWBC30_35" D
- .S MSG="WBC between 3.0 and 3.5 with no ANC - pharmacy cannot fill"
- .S MSG=MSG_" clozapine order. Please order CBC/Diff with WBC and ANC"
- .S MSG=MSG_" immediately."
- ;
- Q MSG
  ;

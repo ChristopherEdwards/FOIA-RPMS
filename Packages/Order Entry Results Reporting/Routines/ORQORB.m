@@ -1,5 +1,5 @@
 ORQORB ; slc/CLA - Functions which return OE/RR Notification information ;12/15/97
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,173,190**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,173,190,215**;Dec 17, 1997
  Q
 LIST(Y) ;return list of notifications from Notification File [#100.9]
  ; RETURN IEN^NAME^URGENCY
@@ -37,4 +37,11 @@ REMLIST(ORY) ;return list of notification remove without processing values
  S ORN=0 F  S ORN=$O(^ORD(100.9,ORN)) Q:+$G(ORN)<1  D
  .S ORU=$$GET^XPAR("SYS","ORB REMOVE",ORN,"I")
  .S ORY(ORN)=ORU
+ Q
+REMNONOR(ORY) ;return list of non-or alerts that can be removed without processing
+ N ORD,ORA
+ D GETLST^XPAR(.ORD,"ALL","ORB REMOVE NON-OR","I")
+ Q:+$G(ORD)<1
+ S ORA="" F  S ORA=$O(ORD(ORA)) Q:ORA=""  D
+ .I ORD(ORA)=1 S ORY(ORA)=""
  Q

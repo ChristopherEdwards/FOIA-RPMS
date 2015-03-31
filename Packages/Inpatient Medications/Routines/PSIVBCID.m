@@ -1,5 +1,5 @@
 PSIVBCID ;BIR/JLC - BAR CODE ID SUBROUTINES ;16 FEB 01
- ;;5.0; INPATIENT MEDICATIONS ;**58,80**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**58,80,146**;16 DEC 97
  ;
  ; Reference to ^PS(55 supported by DBIA 2191.
  ;
@@ -40,6 +40,7 @@ UP1(DFN,ON,PSJBCID,PSIVCTD,PSIV1,PSIV2,PSIVNOL) ;update initial data for bar cod
  K DIC,DIE,DO S DIC(0)="L",DA(1)=DFN,X=PSJBCID,DIC="^PS(55,"_DA(1)_",""IVBCMA""," D FILE^DICN
  K DA,DR,DIE S DIE=DIC,DA=+Y,DA(1)=DFN,PSJBLN=DA D NOW^%DTC
  S DR=".02////"_+ON_";3////"_$S(PSIVCTD:0,1:1)_";4////"_$E(%,1,12)_";6////"_PSIV1_"["_$S(PSIV1:PSIVNOL,1:PSIV2)_"]" D ^DIE
+ K DIC,DIE,D0,DA,DR
  Q
 UP2(DFN,PSJBLN,PSIV,YY) ;update additive data for bar code ID
  ;
@@ -50,6 +51,7 @@ UP2(DFN,PSJBLN,PSIV,YY) ;update additive data for bar code ID
  ;
  K DA,DR,DIC,DO S DIC(0)="L",DA(1)=DFN,DA(2)=PSJBLN,X=PSIV,DIC="^PS(55,"_DA(1)_",""IVBCMA"","_DA(2)_",""AD""," D FILE^DICN
  K DA,DR,DIE S DIE=DIC,DA=+Y,DA(1)=PSJBLN,DA(2)=DFN S DR=".01////"_$P(YY,U)_";1////"_$P(YY,U,2)_";2////"_$P(YY,U,3) D ^DIE
+ K DA,DR,DIC,D0,DIE
  Q
  ;
 UP3(DFN,PSJBLN,PSIV,YY) ;update solution data for bar code ID
@@ -61,4 +63,5 @@ UP3(DFN,PSJBLN,PSIV,YY) ;update solution data for bar code ID
  ;
  K DA,DR,DIC,DO S DIC(0)="L",DA(1)=DFN,DA(2)=PSJBLN,X=$P(PSIV,U),DIC="^PS(55,"_DA(1)_",""IVBCMA"","_DA(2)_",""SOL""," D FILE^DICN
  K DA,DR,DIE S DIE=DIC,DA=+Y,DA(1)=PSJBLN,DA(2)=DFN S DR=".01////"_$P(YY,U)_";1////"_$P(YY,U,2) D ^DIE
+ K DA,DR,DIC,D0,DIE
  Q

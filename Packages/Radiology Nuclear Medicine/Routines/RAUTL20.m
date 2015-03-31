@@ -1,5 +1,5 @@
-RAUTL20 ;HISC/SWM-Utility Routine ;6/16/97  14:27
- ;;5.0;Radiology/Nuclear Medicine;**5,34,47**;Mar 16, 1998;Build 21
+RAUTL20 ;HISC/SWM-Utility Routine ;6/16/97  14:27 [ 12/05/2011  9:33 AM ]
+ ;;5.0;Radiology/Nuclear Medicine;**5,34,47*1004**;Mar 16, 1998;Build 21
  ;
 EN1 ; for displaying  +  and  .   during case lookup
  S RAPRTSET=0
@@ -63,7 +63,12 @@ EN3(RA4) ; for print set, AFTER record is created in rarpt()
  F  S RA1=$O(RA4(RA1)) Q:RA1=""  K RA4(RA1) ;clean up array
  S RA5=$S($G(RARPT):RARPT,$G(RAIEN):RAIEN,1:0) Q:RA5=0
  ;Careful; Here RA1 is the accession #. Format: 081809-12345 -or- 578-081809-12345
- F  S RA1=$O(^RARPT(RA5,1,"B",RA1)) Q:RA1=""  S RA2=$P(RA1,"-",$L(RA1,"-")),RA3=$O(^RADPT(RADFN,"DT",RADTI,"P","B",RA2,0)),RA4(RA3)=RA2
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Avoid SBSCR error with delete from RARTE2
+ ;F  S RA1=$O(^RARPT(RA5,1,"B",RA1)) Q:RA1=""  S RA2=$P(RA1,"-",$L(RA1,"-")),RA3=$O(^RADPT(RADFN,"DT",RADTI,"P","B",RA2,0)),RA4(RA3)=RA2
+ F  S RA1=$O(^RARPT(RA5,1,"B",RA1)) Q:RA1=""  S RA2=$P(RA1,"-",$L(RA1,"-")),RA3=$O(^RADPT(RADFN,"DT",RADTI,"P","B",RA2,0)) I RA3 S RA4(RA3)=RA2
+ ;End Patch
+ ;
  Q
 XPRI ;loop thru sub-file #74.05 to set/kill prim. xref for other prt members
  Q:'$D(RADFNZ)!('$D(RADTIZ))!('$D(RARAD))!('$D(RAXREF))!('$D(DA))

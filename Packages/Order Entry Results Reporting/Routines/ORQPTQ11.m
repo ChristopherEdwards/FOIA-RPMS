@@ -1,5 +1,5 @@
 ORQPTQ11 ; SLC/CLA - Functs which return patient lists and sources pt 1B ;12/15/97 [ 08/04/97  3:32 PM ] [6/6/03 2:36pm]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**82,85,109,132,173**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**82,85,109,132,173,253**;Dec 17, 1997
  ;
  ; SLC/PKS - Modified to deal with "Combination" lists - 3/2000.
  ; SLC/PKS - Additions for "Restricted Pt. Lists" - 11/2001.
@@ -168,6 +168,8 @@ RPLREAD(Y,ORJ,ORFROM,ORDIR) ; Read disk-based patient array from TMP.
  ;   Y       = Returned array.
  ;
  N ORCNT,ORI,ORIEN,ORROOT,ORZ
+ ;
+ I $P(ORFROM,U,2)'="" S ORFROM=$P(ORFROM,U,2)
  ;
  S ORROOT="^TMP("_"""ORRPL"""_","_ORJ      ; Initial setting.
  S ORROOT=ORROOT_","_"""B"""               ; Add final text.

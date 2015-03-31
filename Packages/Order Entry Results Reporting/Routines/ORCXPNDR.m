@@ -1,5 +1,5 @@
 ORCXPNDR ; SLC/MKB,dcm - Expanded display of Reports ;2/12/97  13:48
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**25,85**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**25,85,215**;Dec 17, 1997
 EN ; -- build body of report
  N TYPE S TYPE=$P($G(^TMP("OR",$J,ORTAB,"IDX",NUM)),U,4)
  I '$L(TYPE)!(+TYPE) D XRAYS^ORCXPND1 Q  ;TYPE=case# or null
@@ -65,7 +65,7 @@ GMRVC ; -- Vitals Cumulative Report
  Q
 FHP ; -- Dietetics profile
  N X,I S X=$$P^FHWOR71(+ORVP)
- D ITEM^ORCXPND("Dietetic Profile"),BLANK^ORCXPND
+ D ITEM^ORCXPND("Dietetics Profile"),BLANK^ORCXPND
  I +X'>0 S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)=$P(X,U,2) Q  ; no rpt
  S I=0 F  S I=$O(^TMP($J,"FHPROF",+ORVP,I)) Q:I'>0  S LCNT=LCNT+1,^TMP("ORXPND",$J,LCNT,0)=^TMP($J,"FHPROF",+ORVP,I)
  K ^TMP($J,"FHPROF",+ORVP)

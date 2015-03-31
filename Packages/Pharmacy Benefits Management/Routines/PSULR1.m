@@ -1,5 +1,5 @@
 PSULR1 ;BIR/PDW - PBM LAB EXTRACT ;12 AUG 1999
- ;;3.0;PHARMACY BENEFITS MANAGMENT;**8**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ; Extract & setup crosswalk for drug codes and "CH" nodes
  ; Reference to File # 60  supported by DBIA 2523
  ; Reference to ^LAM       supported by DBIA 2522
@@ -46,5 +46,5 @@ WALK ;EP Do the crosswalk to get the tests associated with workload
  . Q:'PSUFLAG
  . ;  store DrugCode, WrkCode, Lab IEN = Location
  . S PSULOC=$$VAL^PSUTL(60,PSULRDA,5),PSULOC=$P(PSULOC,";",2)
- . ;S ^XTMP(PSULRSUB,"CODES",X,+Y,PSULRDA)=PSULOC ; Trace Constrution
+ . ;S ^XTMP(PSULRSUB,"CODES",X,+Y,PSULRDA)=PSULOC ; Trace Construction
  . S ^XTMP(PSULRSUB,"CODES",X,PSULOC)=$$VAL^PSUTL(60,PSULRDA,.01)_U_PSUSPECM(DA,6)

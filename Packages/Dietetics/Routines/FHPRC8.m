@@ -1,5 +1,5 @@
 FHPRC8 ; HISC/REL - Print Daily Diet Menus ;1/23/98  16:10
- ;;5.0;Dietetics;**13**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  S FHP=$O(^FH(119.71,0)) I FHP'<1,$O(^FH(119.71,FHP))<1 G F1
 F0 R !!,"Select PRODUCTION FACILITY: ",X:DTIME G:'$T!("^"[X) KIL
  K DIC S DIC="^FH(119.71,",DIC(0)="EMQ" D ^DIC G:Y<1 F0 S FHP=+Y

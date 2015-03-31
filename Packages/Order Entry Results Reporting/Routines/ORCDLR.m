@@ -1,5 +1,5 @@
-ORCDLR ;SLC/MKB-Utility functions for LR dialogs ;6/11/97  11:47
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,29,49,61,71,79,175**;Dec 17, 1997
+ORCDLR ;SLC/MKB-Utility functions for LR dialogs ;11/22/06
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,29,49,61,71,79,175,243**;Dec 17, 1997;Build 242
 TEST ; -- Setup ORTEST() array of ordering parameters
  N OI,TST,WRD,I,DG
  S OI=+$G(ORDIALOG(PROMPT,INST)) Q:'OI
@@ -21,11 +21,16 @@ WAIT ; -- Wait for user
  Q
  ;
 SHOWMAX ; -- Setup max days allowed for cont orders
- I $S('$G(ORSCH):1,"CD"'[$P($G(^PS(51.1,+ORSCH,0)),U,5):1,1:0) K ORDIALOG(PROMPT,INST) Q  ;just in case
- N Y,OK S ORSMAX=$P($G(^PS(51.1,ORSCH,0)),U,7),ORSTMS=$P($G(^(0)),U,3)
+ K ^TMP($J,"ORCDLR SHOWMAX")
+ D ZERO^PSS51P1(+ORSCH,,,,"ORCDLR SHOWMAX")
+ I $S('$G(ORSCH):1,"CD"'[$P($G(^TMP($J,"ORCDLR SHOWMAX",+ORSCH,5)),U):1,1:0) K ORDIALOG(PROMPT,INST) Q  ;just in case
+ ;I $S('$G(ORSCH):1,"CD"'[$P($G(^PS(51.1,+ORSCH,0)),U,5):1,1:0) K ORDIALOG(PROMPT,INST) Q  ;just in case
+ N Y,OK S ORSMAX=$G(^TMP($J,"ORCDLR SHOWMAX",+ORSCH,2.5)),ORSTMS=$P($G(^(0)),U,3)
+ ;N Y,OK S ORSMAX=$P($G(^PS(51.1,ORSCH,0)),U,7),ORSTMS=$P($G(^(0)),U,3)
  S ORSMAX=$S('$G(ORSMAX):ORMAX,$G(ORTYPE)="Z":ORSMAX,ORMAX<ORSMAX:ORMAX,1:ORSMAX),ORSTMS=$S(ORSMAX&ORSTMS:ORSMAX*1440\ORSTMS,1:"") ;set max days, times
  I FIRST,$G(ORTYPE)="Q" S Y=$G(ORDIALOG(PROMPT,INST)) I $L(Y) S OK=$$CKMAX(Y) Q:OK  K ORDIALOG(PROMPT,INST) ;Q if valid, else fall thru and prompt
  W !!,"Maximum number of days for continuous orders is "_ORSMAX_"; enter a duration",!,"as either a number of days (3) or Xnumber of times (X3).",!
+ K ^TMP($J,"ORCDLR SHOWMAX")
  Q
  ;
 CKMAX(X) ; -- Ck duration X against max allowed
@@ -147,12 +152,17 @@ DATE(X) ; Free text input to FM time
  ;
 XSCH ; -- xecutable help for schedule prompt
  N X,IFN,CNT,Z,DONE
+ K ^TMP($J,"ORSCLR XSCH")
+ D AP^PSS51P1("LR",,,,"ORSCLR XSCH")
  W !!,"Choose from:" S CNT=1
- S X="" F  S X=$O(^PS(51.1,"APLR",X)) Q:X=""  S IFN=0 D  Q:$G(DONE)
- . F  S IFN=$O(^PS(51.1,"APLR",X,IFN)) Q:IFN'>0  D  Q:$G(DONE)
+ S X="" F  S X=$O(^TMP($J,"ORSCLR XSCH","APLR",X)) Q:X=""  S IFN=0 D  Q:$G(DONE)
+ .;S X="" F  S X=$O(^PS(51.1,"APLR",X)) Q:X=""  S IFN=0 D  Q:$G(DONE)
+ . F  S IFN=$O(^TMP($J,"ORSCLR XSCH","APLR",X,IFN)) Q:IFN'>0  D  Q:$G(DONE)
+ . .;F  S IFN=$O(^PS(51.1,"APLR",X,IFN)) Q:IFN'>0  D  Q:$G(DONE)
  .. W !,"   "_X S CNT=CNT+1 Q:CNT'>(IOSL-5)  S CNT=0
  .. W !,"   '^' TO STOP: " R Z:DTIME S:'$T!(Z["^") DONE=1
  W !
+ K ^TMP($J,"ORSCLR XSCH")
  Q
  ;
 MULT(ORIFN,CTYPE,CDATE) ;check multiple orders from VALID^ORCDLR1

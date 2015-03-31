@@ -1,6 +1,6 @@
 PSULR6 ;BIR/PDW - PBM Laboratory Printer Controller ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGMENT;;Oct 15, 1998
-EN ;EP for printing reports
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
+EN ;EP for printing reports      
  S PSUPG=0
  S PSULRJOB=PSUJOB
  S PSULRSUB="PSULR_"_PSULRJOB
@@ -16,6 +16,8 @@ REPORT ;EP Perform Prints COUNTS & PATIENTS for Division
  S L="" F  S L=$O(^XTMP(PSULRSUB,"REPORT1",PSUDIV,L)) Q:L=""  S X=^(L) U IO W !,X I L=2 W !,?60,"PAGE: 1"
  U IO W !!,@IOF
  ;
+ ;VMP OIFO BAY PINES;ELR;PSU*3.0*32
+ I (($E($G(IOST))="P")&($G(IOST)'["P-MESS")) Q
 REPORT2 ; Print Report 2
  S PSUPG("PG")=1
  D PGHDR

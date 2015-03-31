@@ -1,0 +1,19 @@
+ABMM2INQ ; IHS/SD/SDR - Inquire MU UTILITY ;  
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 187
+ ;
+DIC ;
+ W !!
+ S DA=1
+ W $$EN^ABMVDF("IOF") W !?23,"*** 3P MU PARAMETER FILE INQUIRY ***"
+ S ABM="",$P(ABM,"=",80)="" W !!,ABM K S
+ D ^XBFMK
+ S DIC="^ABMMUPRM("
+ S DA=1
+ D EN^DIQ
+ W ABM
+ ;
+XIT K ABM,DIR,DIC,DIE
+ Q
+ ;
+HD K DIC,DR
+ Q

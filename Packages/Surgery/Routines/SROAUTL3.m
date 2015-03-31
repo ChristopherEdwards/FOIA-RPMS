@@ -1,16 +1,20 @@
-SROAUTL3 ;BIR/ADM-Risk Assessment Utility ; [ 01/08/98   9:54 AM ]
- ;;3.0; Surgery ;**38,47,63,77**;24 Jun 93
+SROAUTL3 ;BIR/ADM - RISK ASSESSMENT UTILITY ;01/07/08
+ ;;3.0; Surgery ;**38,47,63,77,142,163,166**;24 Jun 93;Build 6
+ ;
+ ; Reference to ^DIC(45.3 supported by DBIA #218
+ ;
  Q
 RISK ; allow entry of risk assessment preop information with case request
  S Y=$P(^SRO(133,SRSITE,0),"^",14) I 'Y Q
  W ! K DIR S DIR("A")="Enter risk assessment preop information for this patient (Y/N)",DIR(0)="Y",DIR("B")="YES" D ^DIR K DIR I $D(DTOUT)!$D(DUOUT)!'Y Q
- S SREQST=1,SRCARD=0 I $$CARD^SROAUTLC S SRSP=$P(^DIC(45.3,$P(^SRO(137.45,$P(^SRF(SRTN,0),"^",4),0),"^",2),0),"^") I SRSP=500!(SRSP=58) D  I SRCARD Q
+ S SREQST=1,SRCARD=0 I $$CARD^SROAUTLC S SRSP=$P(^DIC(45.3,$P(^SRO(137.45,$P(^SRF(SRTN,0),"^",4),0),"^",2),0),"^") I SRSP=48!(SRSP=58) D  I SRCARD Q
  .S SRCARD=1 W ! K DIR S DIR("A")="Will this procedure require cardiopulmonary bypass (Y/N) ? ",DIR(0)="YA" D ^DIR K DIR I $D(DTOUT)!$D(DUOUT) Q
  .I 'Y S SRCARD=0 Q
  .D CARD S SRCARD=1
  I 'SRCARD D ^SROAPRE
  Q
 CARD ; allow input of cardiac risk assessment preop information
+ N SRSDATE,SRNM,SRSOUT
  W @IOF,!,"Enter Cardiac Preoperative information",!!,"  1. Clinical Information",!,"  2. Cardiac Catheterization & Angiographic Data",!,"  3. Operative Risk Summary Data",!
  K DIR S DIR(0)="NO^1:3:0",DIR("?")="Enter the number of the selection to be edited." D ^DIR K DIR I $D(DTOUT)!$D(DUOUT)!'Y Q
  I Y=1 D ^SROACLN G CARD
@@ -40,7 +44,7 @@ LAB ; print preoperative laboratory test information (managerial)
  Q
 TR S J=I,J=$TR(J,"1234567890.","ABCDEFGHIJP")
  Q
-NON S DR=".03;102;.035;27"
+NON S DR=".03;102;.035"
  Q
 CHK ; check for missing information for excluded cases
  K SRX,DA,DIC,DIQ,DR,SRY S DIC="^SRF(",DA=SRTN,DIQ="SRY",DIQ(0)="I" D NON D EN^DIQ1 D ^SROAUTL2

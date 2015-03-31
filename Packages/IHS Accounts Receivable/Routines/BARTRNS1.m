@@ -1,5 +1,7 @@
 BARTRNS1 ; IHS/SD/SDR - Transaction Summary/Detail Report ; 03/10/2009
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**10,19,20,22**;OCT 26, 2005;Build 38
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**10,19,20,22,23**;OCT 26, 2005;Build 38
+ ;JUNE 2012 P.OTTIS HEAT #74599 "No Billing Entity" & $T("No Billing Entity"
+ ; MAR 2013 P.OTTIS ADDED NEW VA billing
  Q
 COMPUTE ; EP
  S BAR("SUBR")="BAR-TRANS"
@@ -15,7 +17,6 @@ COMPUTE ; EP
 LOOP ;EP for Loop thru Bill File
  S BARP("DT")=BARY("DT",1)-1+.9  ;PKD 9/24/10 1.8*19 don't go back extra day
  ;PKD 1.8*19 BARY("DT",3) - corrected end date
- ;F  S BARP("DT")=$O(^BARBL(DUZ(2),"AG",BARP("DT"))) Q:'BARP("DT")!(BARP("DT")>BARY("DT",2))  D
  F  S BARP("DT")=$O(^BARBL(DUZ(2),"AG",BARP("DT"))) Q:'BARP("DT")!(BARP("DT")>BARY("DT",3))  D
  .S BARIEN=0
  .F  S BARIEN=$O(^BARBL(DUZ(2),"AG",BARP("DT"),BARIEN)) Q:'BARIEN  D
@@ -28,24 +29,19 @@ LOOP ;EP for Loop thru Bill File
  ..S BAR("APPDT")=$P(BAR(0),U,18)  ;3P Appr. date
  ..S BAR("BAMT")=$P(BAR(0),U,13)  ;total bill amt
  ..I BAR("INS")]"" D
- ...S D0=BAR("INS")
- ...S BAR("ITYP")=$$VALI^BARVPM(8)  ;Ins Typ
- ..;PKD 1.8*19 12/29/10 - shouldn't happen - no A/R acct for bill
- ..I BAR("INS")="" S BAR("INS")=0
- ..I $D(BARY("ITYP")),$G(BARY("ITYP"))'=BAR("ITYP") Q  ;look for specific ins typ
- ..I $D(BARY("LOC")),$G(BARY("LOC"))'=BAR("LOC") Q  ;look for specific loc and this isn't it
- ..I $D(BARY("ARACCT")),'$D(BARY("ARACCT",BAR("INS"))) Q  ;not the a/r acct we want
- ..;I $G(BAR("ITYP"))="" S BAR("BI")="No Billing Entity"  ;bar*1.8*20 pkd <undef> correction
- ..I $G(BAR("ITYP"))="" S BAR("ITYP")="No Billing Entity"  ;bar*1.8*20 pkd <undef> correction
- ..I BAR("ITYP")'="No Billing Entity" D
- ...S BAR("ALL")="O"  ;Other Allow Cat
- ...I BAR("ITYP")="G" S BAR("ALL")="O" Q
- ...I BAR("ITYP")="R"!(BAR("ITYP")="MD")!(BAR("ITYP")="MH") S BAR("ALL")="R" Q  ;Mcr Allow Cat
- ...I BAR("ITYP")="D" S BAR("ALL")="D" Q  ;Mcd Allow Cat
- ...I BAR("ITYP")="K" S BAR("ALL")="D" Q  ;CHIPS is lumped w/Mcd
- ...;PKD 1.8*19 "T"=3RD PARTY BILL -NO LONGER 'Private' per Adrian 12/29/10
- ...;I ",F,M,H,P,T,"[(","_BAR("ITYP")_",") S BAR("ALL")="P" Q  ;Pvt
- ...I ",F,M,H,P,"[(","_BAR("ITYP")_",") S BAR("ALL")="P" Q  ;Pvt
+ ... S D0=BAR("INS")
+ ... S BAR("ITYP")=$$VALI^BARVPM(8)  ;Ins Type CODE
+ .. I BAR("INS")="" S BAR("INS")=0
+ .. I $D(BARY("ITYP")),$G(BARY("ITYP"))'=BAR("ITYP") Q  ;look for specific ins typ
+ .. I $D(BARY("LOC")),$G(BARY("LOC"))'=BAR("LOC") Q  ;look for specific loc and this isn't it
+ .. I $D(BARY("ARACCT")),'$D(BARY("ARACCT",BAR("INS"))) Q  ;not the a/r acct we want
+ .. I $G(BAR("ITYP"))="" S BAR("ITYP")="No Billing Entity"  ;bar*1.8*20 pkd <undef> correction
+ .. I BAR("ITYP")'="No Billing Entity" D
+ ... S BAR("ALL")="O"  ;Other Allow Cat
+ ... I ",R,MD,MH,MC,MMC"[(","_BAR("ITYP")_",") S BAR("ALL")="R" Q  ;MCR
+ ... I ",D,K,FPL,"[(","_BAR("ITYP")_",") S BAR("ALL")="D" Q        ;MCD
+ ... I ",F,M,H,P,"[(","_BAR("ITYP")_",") S BAR("ALL")="P" Q        ;PVT
+ ... I ",V,"[(","_BAR("ITYP")_",") S BAR("ALL")="V" Q              ;P.OTT
  ..I $G(BAR("ALL"))=""  S BAR("ALL")="No Allowance Category"
  ..I $D(BARY("ALL")),(+BARY("ALL")=BARY("ALL")) S BARY("ALL")=$$CONVERT^BARRSL2(BARY("ALL"))
  ..I $D(BARY("ALL")),BARY("ALL")'=BAR("ALL") Q  ;Not chosen Allow Cat
@@ -78,7 +74,7 @@ ADJTY .I $D(BARY("ADJ TYP")) Q:'$D(BARY("ADJ TYP",BARTR("ADJ TYPIEN")))  ;PKD 1.
  .S BARTR("INS")=$P(BAR(0),U,3)  ;A/R Acct
  .I BARTR("INS")]"" D
  ..S D0=BARTR("INS")
- ..S BARTR("ITYP")=$$VALI^BARVPM(8)  ;Ins Type
+ ..S BARTR("ITYP")=$$VALI^BARVPM(8)  ;Ins Type CODE
  .I BARY("RTYP")=1 D SUMMARY
  .I BARY("RTYP")=2 D DETAIL
  Q
@@ -90,19 +86,12 @@ SUMMARY ;left of the "=" - LOC^INS TYPE^INSURER
  ; 1.8*19 Lines too long w/out change - Line body must not exceed 245 characters
  I BARTR("TTYP")=40 D
  .S $P(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS")),U,3)=+$P($G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"))),U,3)+$G(BARTR("TAMT"))
- ;I BARTR("TTYP")=43 D  ;bar*1.8*20
  I BARTR("TTYP")=43!(BARTR("TTYP")=993) D  ;bar*1.8*20
  .I +$P($G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"))),U,3)=0 S $P(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS")),U,3)=0
  .N NODE
- .;bar*1.8*22 SDR put back old code NOHEAT
  .S NODE=$G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BARTR("ADJ TYPIEN"),BARTR("ADJ TYPE")))  ;total adjs  bar*1.8*20
- .;S NODE=$G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BARTR("ADJ TYPIEN")_" "_BARTR("ADJ TYPE")))  ;total adjs  bar*1.8*20
  .S $P(NODE,U)=$P(NODE,U)+$G(BARTR("TAMT"))
- .;bar*1.8*22 SDR put back old code NOHEAT
  .S $P(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BARTR("ADJ TYPIEN"),BARTR("ADJ TYPE")),U)=NODE  ;bar*1.8*20
- .;S $P(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BARTR("ADJ TYPIEN")_" "_BARTR("ADJ TYPE")),U)=NODE  ;bar*1.8*20
- Q
- ;oldTag***  SUMMARY ;left of the "=" - LOC^INS TYPE^INSURER
  Q
  I BARTR("TTYP")=40 D
  .S $P(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS")),U,3)=+$P($G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"))),U,3)+$G(BARTR("TAMT"))
@@ -127,31 +116,18 @@ DETAIL ;left of the "=" - LOC^ALLOW CAT^INS TYPE^INSURER^BILL
  ;
  I BARTR("TTYP")=40 D
  .S $P(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL),U,4)=$P(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL),U,4)+BARTR("TAMT")
- ;I BARTR("TTYP")=43 D  ;bar*1.8*20
  I BARTR("TTYP")=43!(BARTR("TTYP")=993) D  ;bar*1.8*20
  .S BAR(BARBILL)=+$G(BAR(BARBILL))+1
  .;# of days between appr. date & adj date
  .S X1=+BARTR("DT")
  .S X2=BAR("APPDT")
  .D ^%DTC
- .;S $P(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL,"ADJS",+$G(BAR(BARBILL))),U,4)=X  ;bar*1.8*20
- .;PKD 1.8*19 Add  "ADJ TYPIEN" to sort
  .N NODE
  .S $P(NODE,U)=$$CDT^BARDUTL(BARTR("DT"))
- .;S $P(NODE,U,2)=BARTR("ADJ TYPE")_" "_$J(BARTR("ADJ TYPIEN"),4) move to right side
- .;start old code bar*1.*22 NOHEAT
- .;S $P(NODE,U,2)=$J(BARTR("ADJ TYPIEN"),4)_" "_BARTR("ADJ TYPE")
- .;S $P(NODE,U,3)=BARTR("TAMT")
- .;end old start new
  .S $P(NODE,U,2)=BARTR("ADJ TYPIEN")
  .S $P(NODE,U,3)=BARTR("ADJ TYPE")
  .S $P(NODE,U,4)=BARTR("TAMT")
- .;end new code
  .S ^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL,"ADJS",+$G(BAR(BARBILL)))=NODE
- .;S $P(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL,"ADJS",+$G(BAR(BARBILL))),U)=$$CDT^BARDUTL(BARTR("DT"))
- .;S $P(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL,"ADJS",+$G(BAR(BARBILL))),U,2)=BARTR("ADJ TYPE")
- .;S $P(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL,"ADJS",+$G(BAR(BARBILL))),U,3)=BARTR("TAMT")
- .; END 1.8*19
  Q
 PRINT ;
  D HDB
@@ -164,35 +140,21 @@ PRINT ;
  F  S BAR("LOC")=$O(^TMP($J,"BAR-TRANST",BAR("LOC"))) Q:'BAR("LOC")  D
  .S BAR("ITYP")=""
  .F  S BAR("ITYP")=$O(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"))) Q:BAR("ITYP")=""  D
- .. ;PKD 1.8*19 12/29/10 -A/R ACCT- Zero if missing
- ..;S BAR("INS")=0
- ..;F  S BAR("INS")=$O(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"))) Q:'BAR("INS")  D
+ .. I BAR("ITYP")="No Billing Entity" QUIT  ;P.OTTIS HEAT #74599 
  ..S BAR("INS")=""
  ..F  S BAR("INS")=$O(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"))) Q:BAR("INS")'?1N.N  D
  ...S BARO("LOC")=$P($G(^AUTTLOC(BAR("LOC"),0)),U,2)
  ...S BARO("ALLC")=$P($T(@BAR("ITYP")),";;",2)
  ...S BARO("ITYP")=$P($T(@BAR("ITYP")),";;",3)
- ...;PKD 1.8*19 fix undef if no A/R acct
- ...;S BARO("INS")=$$GET1^DIQ(90050.02,BAR("INS")_",",.01) 
  ...I BAR("INS")'=0 S BARO("INS")=$$GET1^DIQ(90050.02,BAR("INS")_",",.01) I 1
  ...E  S BARO("INS")="No A/R Account"
  ...S BARREC=BARO("LOC")_U_BARO("ALLC")_U_BARO("ITYP")_U_BARO("INS")_U
  ...W !,BARREC_$G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS")))
  ...I $D(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS")) D
- ....;PKD 1.8*19 - including AdjTypeIEN
- ....;S BAR("ADJ")=""
- ....;F  S BAR("ADJ")=$O(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BAR("ADJ"))) Q:BAR("ADJ")=""  D
  ....S (BAR("ADJ"),BAR("ADJIEN"))=""  ;only one AdjType per AdjTypeIEN
  ....S BARACNT=0
  ....F  S BAR("ADJIEN")=$O(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BAR("ADJIEN"))) Q:BAR("ADJIEN")=""  D
  .....S BAR("ADJ")=$O(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BAR("ADJIEN"),""))  ;bar*1.8*20
- .....;start old code bar*1.8*22 SDR NOHEAT
- .....;I BARACNT'=0 W !,BARREC_U_U
- .....;;W U_BAR("ADJ")_U_$G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BAR("ADJ"))) 1.8.19
- .....;;W U_BAR("ADJIEN")_U_BAR("ADJ")_U_$G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BAR("ADJIEN"),BAR("ADJ")))  ;bar*1.8*20
- .....;W U_BAR("ADJIEN")_U_BAR("ADJ")_U_$G(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BAR("ADJIEN")))  ;bar*1.8*20
- .....;S BARACNT=1
- .....;end old start new NOHEAT
  .....S BAR("ADJ TYP")=""
  .....F  S BAR("ADJ TYP")=$O(^TMP($J,"BAR-TRANST",BAR("LOC"),BAR("ITYP"),BAR("INS"),"ADJS",BAR("ADJIEN"),BAR("ADJ TYP"))) Q:BAR("ADJ TYP")=""  D
  ......I BARACNT'=0 W !,BARREC_U_U
@@ -208,9 +170,7 @@ PRINT ;
  F  S BAR("LOC")=$O(^TMP($J,"BAR-TRANS",BAR("LOC"))) Q:'BAR("LOC")  D
  .S BAR("ITYP")=""
  .F  S BAR("ITYP")=$O(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"))) Q:BAR("ITYP")=""  D
- ..;PKD 1.8*19 If A/R acct is missing
- ..;S BAR("INS")=0
- ..;F  S BAR("INS")=$O(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"))) Q:'BAR("INS")  D
+ .. I BAR("ITYP")="No Billing Entity" QUIT  ;P.OTTIS HEAT #74599 
  ..S BAR("INS")=""
  ..F  S BAR("INS")=$O(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"))) Q:BAR("INS")'?1N.N  D
  ...S BARBILL=""
@@ -218,25 +178,17 @@ PRINT ;
  ....S BARO("LOC")=$P($G(^AUTTLOC(BAR("LOC"),0)),U,2)
  ....S BARO("ALLC")=$P($T(@BAR("ITYP")),";;",2)
  ....S BARO("ITYP")=$P($T(@BAR("ITYP")),";;",3)
- ....;PKD 1.8*19 fix undef if no A/R acct
- ....;S BARO("INS")=$$GET1^DIQ(90050.02,BAR("INS")_",",.01)
  ....I BAR("INS")'=0 S BARO("INS")=$$GET1^DIQ(90050.02,BAR("INS")_",",.01) I 1
  ....E  S BARO("INS")="No A/R Account"
  ....S BARREC=BARO("LOC")_U_BARO("ALLC")_U_BARO("ITYP")_U_BARO("INS")_U_BARBILL_U
- ....;PKD 1.8.20 1/25/11 BARDET - print detail all adj lines
- ....;W !,BARREC_$G(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL))
  ....S BARDTAIL=$G(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL))
  ....W !,BARREC_BARDTAIL
- ....;end 1.8.20
  ....I $D(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL,"ADJS")) D
  .....S BARACNT=0
  .....F  S BARACNT=$O(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL,"ADJS",BARACNT)) Q:'BARACNT  D
- ......;PKD 1.8*20 1/25/11 BARDET - Print bill amt even if >1 adj / bill
- ......;I BARACNT>1 W !,BARREC_U_U_U_U
  ......I BARACNT>1 D
  .......I BARDET W !,BARREC_BARDTAIL
  .......E  W !,BARREC_U_U_U_U
- ......;END 1.8*20
  ......W U_$G(^TMP($J,"BAR-TRANS",BAR("LOC"),BAR("ITYP"),BAR("INS"),BARBILL,"ADJS",BARACNT))
  Q
 HDB ; EP
@@ -258,19 +210,28 @@ HDB ; EP
  K BAR("LINE")
  Q
  ;
-R ;;MEDICARE;;MEDICARE FI
-D ;;MEDICAID;;MEDICAID FI
-F ;;PRIVATE INSURANCE;;FRATERNAL ORGANIZATION
-P ;;PRIVATE INSURANCE;;PRIVATE INSURANCE
+ ; ********************************************************************
+ ;THIS TABLE REPLICATES ^AUTTINTY INSURER TYPE (21 ENTRIES) P.OTT 4/12/2013
+ ;AND MAPS INSURER TYPE CODE TO CATEGORY (IE: W --> OTHER)
 H ;;PRIVATE INSURANCE;;HMO
 M ;;PRIVATE INSURANCE;;MEDICARE SUPPL.
-N ;;OTHER;;NON-BENEFICIARY (NON-INDIAN)
-I ;;OTHER;;INDIAN PATIENT
+D ;;MEDICAID;;MEDICAID FI
+R ;;MEDICARE;;MEDICARE FI
+P ;;PRIVATE INSURANCE;;PRIVATE INSURANCE
 W ;;OTHER;;WORKMEN'S COMP
 C ;;OTHER;;CHAMPUS
+N ;;OTHER;;NON-BENEFICIARY (NON-INDIAN)
+I ;;OTHER;;INDIAN PATIENT
 K ;;MEDICAID;;CHIP (KIDSCARE)
-T ;;PRIVATE INSURANCE;;THIRD PARTY LIABILITY
+T ;;OTHER;;THIRD PARTY LIABILITY 
 G ;;OTHER;;GUARANTOR
 MD ;;MEDICARE;;MCR PART D
 MH ;;MEDICARE;;MEDICARE HMO
- ;
+MMC ;;MEDICARE;;MCR MANAGED CARE
+TSI ;;OTHER;;TRIBAL SELF INSURED
+SEP ;;OTHER;;STATE EXCHANGE PLAN
+FPL ;;MEDICAID;;FPL 133 PERCENT
+MC ;;MEDICARE;;MCR PART C
+F ;;PRIVATE INSURANCE;;FRATERNAL ORGANIZATION
+V ;;VETERAN;;VETERANS MEDICAL BENEFITS
+  ;;***END OF TABLE** 

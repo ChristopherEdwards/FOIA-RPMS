@@ -1,5 +1,5 @@
-SRSCHDC ;B'HAM ISC/MAM - SCHEDULE CONCURRENT CASES ; [ 01/08/98   9:54 AM ]
- ;;3.0; Surgery ;**67,77**;24 Jun 93
+SRSCHDC ;B'HAM ISC/MAM - SCHEDULE CONCURRENT CASES ; [ 02/25/02  7:47 AM ]
+ ;;3.0; Surgery ;**67,77,100,131**;24 Jun 93
  W @IOF,! S SRCC=1,SRSOUT=0 K DIC S DIC=2,DIC(0)="QEAMZ",DIC("A")="Schedule Concurrent Cases for which Patient ?  " D ^DIC K DIC I Y<0 S SRSOUT=1 G END
  S (DFN,SRSDPT)=+Y D DEM^VADPT S SRNM=VADM(1),SRSSN=VA("PID")
 DEAD I $D(^DPT(SRSDPT,.35)),$P(^(.35),"^")'="" S Y=$E($P(^(.35),"^"),1,7) D D^DIQ W !!,"The records show that "_SRNM_" died on "_Y_".",!! G END
@@ -7,7 +7,8 @@ DATE W ! K SRDUOUT,%DT,SRSDATE S %DT="AEFX",%DT("A")="Schedule Concurrent Proced
  I Y<DT W !!,"Cases cannot be scheduled for past dates.  Please enter a different date.",! G DATE
  S (SRSDATE,X)=+Y D H^%DTC S SRDAY=%Y+1 S SRDL=$P($G(^SRO(133,SRSITE,2)),"^",SRDAY) S:SRDL="" SRDL=1
  I 'SRDL W !!,"Scheduling not allowed for "_$S(SRDAY=1:"SUNDAY",SRDAY=2:"MONDAY",SRDAY=3:"TUESDAY",SRDAY=4:"WEDNESDAY",SRDAY=5:"THURSDAY",SRDAY=6:"FRIDAY",1:"SATURDAY")_" !!",!! G DATE
- I $D(^HOLIDAY(SRSDATE,0)),'$D(^SRO(133,SRSITE,3,SRSDATE,0)) W !!,"Scheduling not allowed for "_$P(^HOLIDAY(SRSDATE,0),"^",2)_" !!",!! G DATE
+ K SRY S DIC=40.5,DR=".01;2",DA=SRSDATE,DIQ="SRY",DIQ(0)="E" D EN^DIQ1 K DA,DIC,DIQ,DR
+ I $D(SRY(40.5,SRSDATE,.01,"E")),'$D(^SRO(133,SRSITE,3,SRSDATE,0)) W !!,"Scheduling not allowed for "_$G(SRY(40.5,SRSDATE,2,"E"))_" !!",!! G DATE
  S Y=SRSDATE D D^DIQ S (SREQDT,SRSDT)=Y,ST="SCHEDULING"
 OR D ^SRSCHOR I SRSOUT W !!,"No surgical case has been scheduled.",! S SRSOUT=0 G END
  K SRTN F SRSCON=1,2 D CON^SRSCHUN I SRSOUT,SRSCON=1 Q
@@ -15,11 +16,11 @@ OR D ^SRSCHOR I SRSOUT W !!,"No surgical case has been scheduled.",! S SRSOUT=0 
  I SRSOUT,SRSCON=2 K SRSCON(2) D DEL I SRSOUT G END
 DISP W @IOF,!,"The following cases have been entered."
  S CON=0 F I=0:0 S CON=$O(SRSCON(CON)) Q:'CON  D LIST
- I '$D(SRSCON(2)) S SRSCON=1,SRTN=SRSCON(1) D ^SRSCHUN1 G END
+ I '$D(SRSCON(2)) S SRSCON=1,SRTN=SRSCON(1) N SRLCK S SRLCK=$$LOCK^SROUTL(SRTN) D ^SRSCHUN1 D:$G(SRLOCK) UNLOCK^SROUTL(SRTN) G END
  W !!!!,"1. Enter Information for Case #"_SRSCON(1),!,"2. Enter Information for Case #"_SRSCON(2),!
 REQ K DIR S DIR("?")=" ",DIR("?",1)="Select the number corresponding to the case for which you want",DIR("?",2)="to enter information.  Enter '^' or RETURN to exit."
  S DIR(0)="NO^1:2",DIR("A")="Select Number" D ^DIR I Y=""!$D(DUOUT) S SRSOUT=1 G END
- S SRSCON=Y S (DA,SRTN)=SRSCON(SRSCON) D ^SRSCHUN1 G DISP
+ N SRLCK S SRSCON=Y S (DA,SRTN)=SRSCON(SRSCON),SRLCK=$$LOCK^SROUTL(SRTN) D ^SRSCHUN1 D:$G(SRLCK) UNLOCK^SROUTL(SRTN) G DISP
 END I 'SRSOUT W ! K DIR S DIR(0)="FOA",DIR("A")=" Press RETURN to continue. " D ^DIR
  K SRTN D ^SRSKILL W @IOF
  Q

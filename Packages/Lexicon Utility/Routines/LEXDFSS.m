@@ -1,5 +1,5 @@
 LEXDFSS ; ISL Default Filter - Semantics/Sources   ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
  ; Entry:  S X=$$EN^LEXDFSS
  ;

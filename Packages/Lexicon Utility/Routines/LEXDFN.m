@@ -1,5 +1,5 @@
 LEXDFN ; ISL Default Names                        ; 10-15-97
- ;;2.0;LEXICON UTILITY;**6**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**6**;Sep 23, 1996;Build 15
  ;
 APPN(X) ; Application Name
  N LEXT,LEXA S (LEXA,LEXT)="",X=$G(X)

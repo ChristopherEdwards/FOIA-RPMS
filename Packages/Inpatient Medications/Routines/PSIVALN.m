@@ -1,5 +1,5 @@
 PSIVALN ;BIR/PR,CML3-LABEL ALIGNMENT ;16 DEC 97 / 1:39 PM 
- ;;5.0; INPATIENT MEDICATIONS ;**58**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**58,178**;16 DEC 97;Build 9
  ;
  ; Reference to ^%ZIS(2 is supported by DBIA 3435.
  ;
@@ -30,6 +30,12 @@ P F I="ST","STF" I $G(PSJIO(I))]"" X PSJIO(I)
  F I="ETF","ET" I $G(PSJIO(I))]"" X PSJIO(I)
  I 'PSJIO W !
  Q
+ ;
+PMR F I="SM","SMF" I $G(PSJIO(I))]"" X PSJIO(I)
+ W X
+ F I="EMF","EM" I $G(PSJIO(I))]"" X PSJIO(I)
+ I 'PSJIO W !
+ Q
 LP ;
  I PSJIO,$G(PSJIO("SL"))]"" X PSJIO("SL")
  S LINE=1
@@ -42,7 +48,7 @@ LP ;
  . F I="SB","SBF" I $G(PSJIO(I))]"" X PSJIO(I)
  . W "nnnVnnn"
  . F I="EBF","EB" I $G(PSJIO(I))]"" X PSJIO(I)
- F LINE=LINE:1:PSIVSITE S X=L1 D P
+ F LINE=LINE:1:PSIVSITE S X=L1 D P D PMR
  I 'PSJIO D  Q
  . F ZZ=1:1 Q:ZZ>$P(PSIVSITE,"^",16)  W !
  I PSJIO,$G(PSJIO("EL"))]"" X PSJIO("EL")

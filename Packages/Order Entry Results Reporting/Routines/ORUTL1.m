@@ -1,5 +1,5 @@
-ORUTL1 ; slc/dcm - OE/RR Utilities ;6/7/91  08:47
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**11,66**;Dec 17, 1997
+ORUTL1 ; slc/dcm - OE/RR Utilities ;5/30/07  13:46
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**11,66,243**;Dec 17, 1997;Build 242
 LOC ;Hospital Location Look-up
  N DIC,ORIA,ORRA
  S DIC=44,DIC(0)="AEQM",DIC("S")="I '$P($G(^(""OOS"")),""^"")"
@@ -29,3 +29,22 @@ IOQ I $G(QUE)!$D(IO("Q")) D  Q
  D @ZTRTN
  D ^%ZISC
  Q
+ ;
+DPI(PATCH) ;Function returns date patch installed - added in patch 243
+ ;PATCH is set to patch designation, for example, "SR*3.0*157"
+ ;Output is the fileman date/time that patch was installed on this system
+ ;A return value of -1 is given if patch hasn't been installed
+ N ORVALUE,ORDAT,ORERR,VER,PKG,DATE,NUM
+ S DATE=-1
+ I '$$PATCH^XPDUTL(PATCH) Q DATE  ;If patch hasn't been installed yet quit
+ S ORVALUE=$P(PATCH,"*") ;Package
+ D FIND^DIC(9.4,,,"MO",.ORVALUE,,,,,"ORDAT","ORERR")
+ S PKG=$G(ORDAT("DILIST",2,1)) I 'PKG Q DATE
+ S ORVALUE=$P(PATCH,"*",2) ;Version
+ D FIND^DIC(9.49,(","_PKG_","),,"X",.ORVALUE,,,,,"ORDAT","ORERR")
+ S VER=$G(ORDAT("DILIST",2,1)) I 'VER Q DATE
+ S ORVALUE=$P(PATCH,"*",3) ;Patch number
+ D FIND^DIC(9.4901,(","_VER_","_PKG_","),,,.ORVALUE,,,,,"ORDAT","ORERR")
+ S NUM=$G(ORDAT("DILIST",2,1)) I 'NUM Q DATE
+ S DATE=$$GET1^DIQ(9.4901,(NUM_","_VER_","_PKG_","),.02,"I")
+ Q DATE

@@ -1,5 +1,5 @@
 PSDDWK2 ;BIR/JPW-Pharm Dispensing Worksheet (cont'd) ; 21 Jun 93
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**66**;13 Feb 97;Build 3
 PROC ;ver/proc req ord
  D CHK Q:PSDLES
  S TECH=$S($P($G(^PSD(58.85,PSDN,0)),"^",16):$P(^(0),"^",16),ACT="P":DUZ,1:"") I PSDT="" D NOW^%DTC S PSDT=+%
@@ -18,7 +18,7 @@ EDIT ;edit/add ord
  D UPDATE^PSDDWK3,MSG1
  Q
 ADD ;find entry number
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND S PSDREC=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDREC)) S $P(^PSD(58.81,0),"^",3)=PSDREC G FIND
  K DIC,DLAYGO S DIC(0)="L",(DIC,DLAYGO)=58.81,(X,DINUM)=PSDREC D ^DIC K DIC,DINUM,DLAYGO
  L -^PSD(58.81,0)
@@ -26,7 +26,7 @@ FIND S PSDREC=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDREC)) S $P(^PSD(58.81
 AUTO ;select next available disp #
  K MSG I '$P($G(^PSD(58.8,+ORDS,2)),"^",4) S MSG=1 D MSG Q
  I $P($G(^PSD(58.8,+ORDS,2)),"^",3)'>$P($G(^PSD(58.8,+ORDS,2)),"^",4) S MSG=0 D MSG Q
- F  L +^PSD(58.8,+ORDS,2):0 I  Q
+ F  L +^PSD(58.8,+ORDS,2):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 ADDN S PSDPN=$P($G(^PSD(58.8,+ORDS,2)),"^",4)
  I +$O(^PSD(58.81,"D",PSDPN,0)) S $P(^PSD(58.8,+ORDS,2),"^",4)=PSDPN+1 G ADDN
  S $P(^PSD(58.8,+ORDS,2),"^",4)=PSDPN+1
@@ -38,7 +38,7 @@ MSG1 W !!,"Press <RET> to continue" R X:DTIME
  I '$T!(X["^") S PSDOUT=1
  Q
 SUB ;sub qty from dsp site
- F  L +^PSD(58.8,ORDS,1,PSDR,0):0 I  Q
+ F  L +^PSD(58.8,ORDS,1,PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S PSDT=+%
  S BAL=$P(^PSD(58.8,ORDS,1,PSDR,0),"^",4),$P(^(0),"^",4)=$P(^(0),"^",4)-QTY
  L -^PSD(58.8,ORDS,1,PSDR,0)

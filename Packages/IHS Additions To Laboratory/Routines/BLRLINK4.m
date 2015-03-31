@@ -1,5 +1,5 @@
 BLRLINK4 ; IHS/MSC/MKK - CONT. OF BLR - IHS LABORATORY VISIT CREATION ;   [ 03/30/2012  7:30 AM ]
- ;;5.2;LR;**1031**;NOV 01, 1997
+ ;;5.2;LR;**1031,1032**;NOV 01, 1997
  ;;
  ;; Parts of original BLRLINK3 moved to here due to BLRLINK3 becoming too large.
  ;;
@@ -216,7 +216,8 @@ LOTZERO(ARRAY)  ; EP - Leading and/Or Trailing ZERO(s) for PCC
  S STR=$P($G(^DD(63.04,DN,0)),"^",5)
  Q:$L(STR)<1                        ; Skip if no numeric defintiion
  ;
- S DP=+$P($P(STR,",",3),$C(34))
+ ; S DP=+$P($P(STR,",",3),$C(34))
+ S DP=+$P($P(STR,"Q9=",2),",",3)    ; IHS/MSC/MKK - LR*5.2*1032 -- Need to take into account INPUT TRANSFORM code
  Q:DP<1                             ; Skip if no Decimal Defintion
  ;
  S RESULT=$G(ARRAY("APCDTRES"))

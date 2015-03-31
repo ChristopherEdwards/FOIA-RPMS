@@ -1,8 +1,9 @@
 BIREPD3 ;IHS/CMI/MWR - REPORT, ADOLESCENT RATES; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW ADOLESCENT IMMUNIZATION RATES REPORT.
  ;;  PATCH 3: Include new "1-Td 1-Men 3-HPV" lines. VCOMB+14
+ ;;  PATCH 5: Correct Male HPV percentage denominator.  VGRP+60
  ;
  ;
  ;----------
@@ -96,7 +97,18 @@ VGRP(BILINE,BIVGRP,BIAGRPS,BITMP,BISEX,BIERR) ;EP
  ..I 'Y S BIX=BIX_$J("",12)_" " Q
  ..;
  ..;---> If Vaccine Group is HPV-17, use female denominators.
- ..N Z S Z=$G(BITMP("STATS",$S(BIVGRP=17:"TOTLFPTS",1:"TOTLPTS"),BIAGRP))
+ ..;
+ ..;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ..;---> Correct Male HPV percentage denominator.
+ ..;N Z S Z=$G(BITMP("STATS",$S(BIVGRP=17:"TOTLFPTS",1:"TOTLPTS"),BIAGRP))
+ ..;
+ ..N BIDENOM D
+ ...I (BIVGRP=17)&($G(BISEX)="F") S BIDENOM="TOTLFPTS" Q
+ ...I (BIVGRP=17)&($G(BISEX)="M") S BIDENOM="TOTLMPTS" Q
+ ...S BIDENOM="TOTLPTS" Q
+ ..N Z S Z=$G(BITMP("STATS",BIDENOM,BIAGRP))
+ ..;**********
+ ..;
  ..;---> To avoid bomb if Z=0/null.
  ..S:'Z Y=0,Z=1 S Y=(Y*100)/Z
  ..S BIX=BIX_$J(Y,12,0)_"%"

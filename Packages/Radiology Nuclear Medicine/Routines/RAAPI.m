@@ -1,5 +1,5 @@
-RAAPI ;HISC/GJC,RTK - API & function utilities ;04/16/07  15:02
- ;;5.0;Radiology/Nuclear Medicine;**47**;Mar 16, 1998;Build 21
+RAAPI ;HISC/GJC,RTK - API & function utilities ; 01 Jun 2012  10:56 AM
+ ;;5.0;Radiology/Nuclear Medicine;**47,1004**;Mar 16, 1998;Build 21
  ;
  ;Integration Agreements
  ;----------------------
@@ -17,7 +17,8 @@ ACCNUM(RADFN,RADTI,RACNI) ; return the site specific accession number
  N RAC,RAD,RAE S RAE=$G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0)) ;exam node
  S RAC=9999999.9999-RADTI ;RAC=FM internal date/time
  S RAD=$E(RAC,4,7)_$E(RAC,2,3)_"-"_+RAE ;mmddyy-case#
- Q $E($P($$NS^XUAF4($$KSP^XUPARAM("INST")),U,2),1,3)_"-"_RAD
+ Q $P($$SITE^VASITE(),"^",3)_"-"_RAD   ;SAF - get full station number for IHS instead of truncating at 3 characters
+ ;Q $E($P($$NS^XUAF4($$KSP^XUPARAM("INST")),U,2),1,3)_"-"_RAD
  ;
 ACCFIND(Y,RAA) ;
  ;
@@ -77,6 +78,41 @@ ACCRPT(Y,RAA) ;return accession number(s) given file #74 pointer value - RTK
  ;
 SIUID() ; called from [RA REGISTER] template, creates the STUDY INSTANCE UID
  ; also called directly from RAMAG03C for exams created thru the importer
+ ;
+ ; IHS/CMI/DAY - Patch 1004 - Fix Study ID at non-Vista Imaging sites
+ ; This patch is needed at sites that do not run Vista Imaging
+ ; and do not have the MAGDRAHL routine installed.  The original 
+ ; calls to MAGDRAHL have been replaced with BRADRAHL.
+ ;
+ ;This patch was modified by Stuart Frank, May 2012
+ ;
+ ;Check to see if Vista Imaging and MAG patch 49 are installed
+ ;N MAGDRAHL   ;saf - not needed
+ ;S MAGDRAHL=0 ;saf - not needed
+ ;S X="MAGDRAHL" X ^%ZOSF("TEST") I $T S MADGRAHL=1  ;saf - not needed
+ N MAGCHECK
+ S MAGCHECK=0
+ ;I $G(^MAGD(2006.15,1,"UID ROOT"))]"",MAGDRAHL=1 S MAGCHECK=1  ;saf - replaced with line below
+ I $G(^MAGD(2006.15,1,"UID ROOT"))]"",$T(^MAGDRAHL)'="" S MAGCHECK=1
+ ;
+ ;If not installed, call BRADRAHL instead
+ N RASIUID
+ I MAGCHECK=0 D  Q RASIUID
+ .; RADFN, RADTI and RACNI are set in RA REGISTER template/RAMAG03C
+ .N RASSAN
+ .S RASIUID=""
+ .; if SSAN exists use it to build RASIUID
+ .S RASSAN=$$SSANVAL^RAHLRU1(RADFN,RADTI,RACNI)
+ .I RASSAN'="" S RASIUID=$$STUDYUID^BRADRAHL(RADTI,RACNI,RASSAN) Q
+ .; else if RASSAN="" do the lines below to use the legacy acc #
+ .N RAC,RAD,RAE
+ .S RAE=$G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0)) ;exam node
+ .S RAC=9999999.9999-RADTI ;RAC=FM internal date/time
+ .S RAD=$E(RAC,4,7)_$E(RAC,2,3)_"-"_+RAE ;mmddyy-case#
+ .S RASIUID=$$STUDYUID^BRADRAHL(RADTI,RACNI,RAD)
+ ;
+ ;End patch 1004
+ ;
  ; RADFN, RADTI and RACNI are set in RA REGISTER template/RAMAG03C
  N RASSAN,RASIUID S RASIUID=""
  ; if SSAN exists use it to build RASIUID

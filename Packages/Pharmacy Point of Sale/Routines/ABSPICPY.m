@@ -1,5 +1,5 @@
 ABSPICPY ; IHS/OIT/CASSevern/Pieran ran 9/19/2011 - Copy Insurance default Profiles
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42,46**;JUN 21, 2001
  ;
  ; This routine will be called when creating a new ABSP INSURER so that a "sane" set of defaults can be loaded for a good chance at working without modification.
  ; Basically we will prompt the user as to whether it's a Medicaid, Medicare or Commercial insurer...go to the appropriate table and add the defaults stored in that table.
@@ -102,7 +102,6 @@ DEFTAB ;;TYPE;NCPDP FIELD #;FIELD NAME;VALUE
  ;;FLD;391;SUPPRESS FIELD 391;
  ;;FLD;995;SUPPRESS FIELD 995;
  ;;FLD;996;SUPPRESS FIELD 996;
- ;;FLD;147;SUPPRESS FIELD 147;
  ;;FLD;420;SUPPRESS FIELD 420;
  ;;FLD;458;SUPPRESS FIELD 458;
  ;;FLD;459;SUPPRESS FIELD 459;
@@ -118,7 +117,6 @@ DEFTAB ;;TYPE;NCPDP FIELD #;FIELD NAME;VALUE
  ;;FLD;997;SUPPRESS FIELD 997;
  ;;FLD;115;SUPPRESS FIELD 115;
  ;;FLD;350;SUPPRESS FIELD 350;
- ;;FLD;384;SUPPRESS FIELD 384;
  ;;FLD;334;SUPPRESS FIELD 334;
  ;;FLD;498;SUPPRESS FIELD 498;
  ;;FLD;364;SUPPRESS FIELD 364;
@@ -147,6 +145,8 @@ DEFTAB ;;TYPE;NCPDP FIELD #;FIELD NAME;VALUE
  ;;***
  Q
 CAIDTAB ;;TYPE;NCPDP FIELD #;COMMENT;VALUE
+ ;;FLD;147;SUPPRESS FIELD 147;
+ ;;FLD;384;SUPPRESS FIELD 384;
  ;;SPEC;304;PUT SPECIAL CODE IN FIELD 304;S ABSP("X")=$G(ABSP("Patient","Medicaid DOB")) S:ABSP("X")="" ABSP("X")=$G(ABSP("Patient","DOB")) S ABSP("X")=$$DTF1|ABSPECFM(ABSP("X"))
  ;;TOP;100.18;Medicare Part D?;N
  ;;TOP;100.19;Maximum RXs per claim;4
@@ -161,6 +161,8 @@ CARETAB ;;TYPE;NCPDP FIELD #;COMMENT;VALUE
  ;;***
  Q
 PRIVTAB ;;TYPE;NCPDP FIELD #;COMMENT;VALUE
+ ;;FLD;147;SUPPRESS FIELD 147;
+ ;;FLD;384;SUPPRESS FIELD 384;
  ;;TOP;100.18;Medicare Part D?;N
  ;;TOP;100.19;Maximum RXs per claim;4
  ;;TOP;104.01;RX-Priority;20

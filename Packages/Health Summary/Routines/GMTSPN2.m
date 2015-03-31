@@ -1,5 +1,5 @@
-GMTSPN2 ; SLC/KER - Progress Note Signatures           ; 02/27/2002
- ;;2.7;Health Summary;**45,47,49**;Oct 20, 1995
+GMTSPN2 ; SLC/KER - Progress Note Signatures           ; 8/1/06 4:24pm
+ ;;2.7;Health Summary;**45,47,49,82**;Oct 20, 1995;Build 21
  Q
  ;                          
  ; External References
@@ -118,12 +118,9 @@ BY(GMTSH,GMTSE,GMTSN) ; Signed by
 SB(GMTSB,GMTSD) ; Signature Block
  K ^UTILITY($J,"W") N X,DIWT,DIWL,DIWR,DIWF,GMTSI
  S (X,GMTSB)=$G(GMTSB),GMTSD=$G(GMTSD) Q:'$L((GMTSB_GMTSD))
- S GMTSI=1,DIWL=0,DIWF="C35" D ^DIWP S GMTSB=$$TRIM($G(^UTILITY($J,"W",0,1,0))) K:'$L(GMTSB) ^UTILITY($J,"W")
+ S GMTSI=1,DIWL=0,DIWF="C51" D ^DIWP S GMTSB=$$TRIM($G(^UTILITY($J,"W",0,1,0))) K:'$L(GMTSB) ^UTILITY($J,"W")
  I $L(GMTSD),'$L(GMTSB) K ^UTILITY($J,"W") D CKP^GMTSUP Q:$D(GMTSQIT)  W !,?27,GMTSD Q
- Q:'$L(GMTSB)  D CKP^GMTSUP K:$D(GMTSQIT) ^UTILITY($J,"W") Q:$D(GMTSQIT)  W !,?27,GMTSB,"  ",GMTSD
- F  S GMTSI=$O(^UTILITY($J,"W",0,GMTSI)) Q:+GMTSI=0  D  Q:$D(GMTSQIT)
- . S GMTSB=$$TRIM($G(^UTILITY($J,"W",0,GMTSI,0))) Q:'$L(GMTSB)
- . D CKP^GMTSUP K:$D(GMTSQIT) ^UTILITY($J,"W") Q:$D(GMTSQIT)  W !,?27,GMTSB,"  "
+ Q:'$L(GMTSB)  D CKP^GMTSUP K:$D(GMTSQIT) ^UTILITY($J,"W") Q:$D(GMTSQIT)  W !,?27,GMTSB,!,?27,GMTSD
  K ^UTILITY($J,"W")
  Q
 PG(GMTSA,GMTSD) ; Pagers

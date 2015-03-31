@@ -1,5 +1,5 @@
-ABMDFUTL ; IHS/ASDST/DMJ - Export Forms Utility ;     
- ;;2.6;IHS Third Party Billing System;**2,6,8,9**;NOV 12, 2009
+ABMDFUTL ; IHS/SD/DMJ - Export Forms Utility ;     
+ ;;2.6;IHS Third Party Billing System;**2,6,8,9,10,13**;NOV 12, 2009;Build 213
  ;Original;TMD;
  ;
  ; IHS/ASDS/DMJ - 05/15/00 - V2.4 Patch 1 - NOIS HQW-0500-100032 - Modified to allow population of the PIN number for KIDSCARE
@@ -17,6 +17,7 @@ ABMDFUTL ; IHS/ASDST/DMJ - Export Forms Utility ;
  ; IHS/SD/SDR - v2.5 p13 - NO IM - Change to use LDFN instead of DUZ(2)
  ; IHS/SD/SDR - abm*2.6*2 - HEAT10900 - ck if Medicare and primary
  ; IHS/SD/SDR - 2.6*9 - HEAT46390 - fixed writeoff amount to include all bills
+ ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35; Also added lookup for provider
  ;
  ; *********************************************************************
  ;
@@ -79,6 +80,7 @@ PREV ;EP for obtaining previous payment info
  I $D(ABMPM) M ABMP=ABMPM K ABMPM Q
  S (ABMP("PD"),ABMP("WO"))=0
  S ABM("W")=0  ;abm*2.6*9 HEAT46390
+ I $G(ABMAFLG)=1,($G(ABMMFLG)=1),(ABMP("EXP")>30) Q  ;treat as primary if tribal self insured and Medicare  ;abm*2.6*10 COB billing
  S ABM("CLM")=$S($G(ABMP("BDFN")):+$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),0),U),1:ABMP("CDFN"))
  S ABM("BIL")=$S($G(ABMP("BDFN")):ABMP("BDFN"),1:0)
  S ABM("A")="" F  S ABM("A")=$O(^ABMDBILL(DUZ(2),"AS",ABM("CLM"),ABM("A"))) Q:ABM("A")=""  D
@@ -87,7 +89,8 @@ PREV ;EP for obtaining previous payment info
  ..Q:$P($G(^ABMDBILL(DUZ(2),ABM,0)),U,5)'=ABMP("PDFN")
  ..Q:$P($G(^ABMDBILL(DUZ(2),ABM,0)),"^",4)="X"
  ..;Q:($P($G(^AUTNINS(ABMP("INS"),2)),U)="R")  ;abm*2.6*2 HEAT10900
- ..Q:(($P($G(^AUTNINS(ABMP("INS"),2)),U)="R")&($G(ABMR("SBR",30))="P"))  ;abm*2.6*2 HEAT10900
+ ..;Q:(($P($G(^AUTNINS(ABMP("INS"),2)),U)="R")&($G(ABMR("SBR",30))="P"))  ;abm*2.6*2 HEAT10900  ;abm*2.6*10 HEAT73780
+ ..Q:(($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="R")&($G(ABMR("SBR",30))="P"))  ;abm*2.6*2 HEAT10900  ;abm*2.6*10 HEAT73780
  ..;S ABM("W")=0,ABM(ABM)=""  ;abm*2.6*9 HEAT46390
  ..S ABM(ABM)=""  ;abm*2.6*9 HEAT46390
  ..F ABM("J")=0:0 S ABM("J")=$O(^ABMDBILL(DUZ(2),ABM,3,ABM("J"))) Q:'ABM("J")  D
@@ -117,8 +120,13 @@ GETPRV() ;EP - get attending or rendering provider for line
  S ABMPRVT=$P(@ABMPRVT,"^")
  Q ABMPRVT
 K24() ;EP - box 24k hcfa form
- I $G(ABMP("EXP"))'=27,($P($G(^ABMNINS(DUZ(2),+ABMP("INS"),1,ABMP("VTYP"),0)),"^",15)="MD") Q 1
- I $G(ABMP("EXP"))=27 Q 1
+ ;start old code abm*2.6*13 export mode 35
+ ;I $G(ABMP("EXP"))'=27,($P($G(^ABMNINS(DUZ(2),+ABMP("INS"),1,ABMP("VTYP"),0)),"^",15)="MD") Q 1
+ ;I $G(ABMP("EXP"))=27 Q 1
+ ;end old code start new code export mode 35
+ I ($G(ABMP("EXP"))'=27&(ABMP("EXP")'=35)),($P($G(^ABMNINS(DUZ(2),+ABMP("INS"),1,ABMP("VTYP"),0)),"^",15)="MD") Q 1
+ I $G(ABMP("EXP"))=27!(ABMP("EXP")=35) Q 1
+ ;end new code export mode 35
  Q 0
 K24N(X) ;EP - get payer assigned number (x=provider file 200 ien)
  N Y
@@ -127,11 +135,13 @@ K24N(X) ;EP - get payer assigned number (x=provider file 200 ien)
  S Y=$P($G(^VA(200,+X,9999999.18,ABMP("INS"),0)),"^",2)
  I Y=""&($G(ABMP("VTYP"))=999)&($P($G(^AUTNINS(ABMP("INS"),0)),U)="OKLAHOMA MEDICAID") S Y=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),3,X,0)),U,2)
  I $P($G(^AUTNINS(ABMP("INS"),0)),U)["MEDICARE"!($P($G(^AUTNINS(ABMP("INS"),0)),U)["RAILROAD")!($P($G(^AUTNINS(ABMP("INS"),0)),U)["BLUE") D
- .I $G(ABMP("EXP"))=27 D
+ .;I $G(ABMP("EXP"))=27 D  ;abm*2.6*13 export mode 35
+ .I $G(ABMP("EXP"))=27!(ABMP("EXP")=35) D  ;abm*2.6*13 export mode 35
  ..S:+$G(ABMDUZ2)=0 ABMDUZ2=DUZ(2)
  ..S ABMPQ=$S(ABMP("ITYPE")="R":"1C"_" ",ABMP("ITYPE")="D":"1D"_" ",$P($G(^ABMNINS(ABMDUZ2,ABMP("INS"),1,ABMP("VTYP"),1)),U)'="":$P($G(^ABMREFID($P($G(^ABMNINS(ABMDUZ2,ABMP("INS"),1,ABMP("VTYP"),1)),U),0)),U),1:"0B"_" ")
  .S Y=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),3,X,0)),U,2)
- I $G(ABMP("EXP"))=27 D
+ ;I $G(ABMP("EXP"))=27 D  ;abm*2.6*13 export mode 35
+ I $G(ABMP("EXP"))=27!(ABMP("EXP")=35) D  ;abm*2.6*13 export mode 35
  .S:+$G(ABMDUZ2)=0 ABMDUZ2=DUZ(2)
  .S ABMPQ=$S(ABMP("ITYPE")="R":"1C"_" ",ABMP("ITYPE")="D":"1D"_" ",$P($G(^ABMNINS(ABMDUZ2,ABMP("INS"),1,ABMP("VTYP"),1)),U)'="":$P($G(^ABMREFID($P($G(^ABMNINS(ABMDUZ2,ABMP("INS"),1,ABMP("VTYP"),1)),U),0)),U),1:"0B"_" ")
  I $G(ABMP("ITYPE"))'="",($G(ABMP("ITYPE"))'="R"),($G(ABMP("ITYPE"))'="D"),($G(ABMP("ITYPE"))'="K") D
@@ -146,3 +156,35 @@ F54() ;EP - flag 54 HCFA BOX 33
  I $G(ABMP("VTYP"))=999 Q 1
  I $$RCID^ABMERUTL(ABMP("INS"))=99999 Q 1
  Q 0
+ ;start new code abm*2.6*13 export mode 35
+PRVLKUP(ABMX,ABMY) ;EP
+ ;user will be prompted for name; if found in New Person file, it will retrieve NPI.  If not found,
+ ;user will be prompted for NPI as well
+ N DIC,DIE,DIR,X,Y,DR,DA
+ S DIR(0)="FAO^2:30^D NAME^AUPNPED"
+ S DIR("A")="Enter Provider Name: "
+ I ABMX'="" S DIR("B")=ABMX
+ D ^DIR
+ Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT) ""
+ I Y="" Q ""
+ S ABM("PROVIDER")=Y
+ N DIC,DIE,DIR,X,Y,DR,DA
+ S DIC="^VA(200,"
+ S DIC(0)="EQM"
+ S DIC("S")="I $D(^(""PS""))"
+ S X=ABM("PROVIDER")
+ D ^DIC
+ I Y>0  D  Q ABM("PROVIDER")
+ .S $P(ABM("PROVIDER"),U)=$P(Y,U,2)
+ .S $P(ABM("PROVIDER"),U,2)=$S($P($$NPI^XUSNPI("Individual_ID",+Y),U)>0:$P($$NPI^XUSNPI("Individual_ID",+Y),U),1:"")
+ I Y<0 D
+ .W " Name not in New Person file"
+ .N DIC,DIE,DIR,X,Y,DR,DA
+ .S DIR(0)="FA^10:10"
+ .S DIR("A")="Enter Provider NPI: "
+ .I ABM("PROVIDER")=ABMX,ABMY'="" S DIR("B")=ABMY
+ .S DIR("S")="I $$CHKDPT^XUSNPI(X))"
+ .D ^DIR
+ .S $P(ABM("PROVIDER"),U,2)=Y
+ Q ABM("PROVIDER")
+ ;end new code export mode 35

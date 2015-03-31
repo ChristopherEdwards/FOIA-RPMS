@@ -1,5 +1,5 @@
-PSOHLINC ;BIR/RTR-Process incoming order messages from CHCS ;06/17/02
- ;;7.0;OUTPATIENT PHARMACY;**111**;DEC 1997
+PSOHLINC ;BIR/RTR - Process incoming order messages from CHCS ;06/17/02
+ ;;7.0;OUTPATIENT PHARMACY;**111,143**;DEC 1997
  ;
 EN ;Process incoming outpatient order messages
  N PSOXLONG,PSOHDFOR,PSOHLTAG,PSOHBDS,PSOHMSG,PSOHLMIS,PSOHLRS,PSOHEID,PSOHEIDS,PSOHFSP,PSOHLNOP,PSOXHI,PSOHLZ,PSOHLZC,PSOHLRXO,PSOXMH,PSOHY,PSOEXMS,PSOEXXQ,PSOHG,PSOBH,X,Y
@@ -47,6 +47,11 @@ PV1 ;Process PV1 segment
  S PSOHY("LOC")=+$P(PSOHB,HL("FS"),3)
  S PSOHLMIS("PV1")=""
  Q
+DG1 ;Process DG1 segment ; future use
+ D FORM
+ S $P(PSOHY("ICD"),U,$P(PSOHB,HL("FS"),1))=$P(PSOHB,HL("FS"),3)
+ZCL Q  ;future use
+ ;
 ORC ;Process ORC segment
  S PSOHLRXO=1 ;For future use in processing NTE's, if other segments get NTE(6) or (7)
  D FORM

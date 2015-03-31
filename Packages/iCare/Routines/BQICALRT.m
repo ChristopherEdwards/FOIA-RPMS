@@ -1,5 +1,5 @@
 BQICALRT ;GDIT/HS/ALA-Expanded Community Alerts ; 13 Oct 2011  3:42 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1,2**;Apr 18, 2012;Build 14
  ;
 FND ;EP - Find alerts
  NEW DA,DIK,UID
@@ -25,14 +25,17 @@ FND ;EP - Find alerts
  ;
  I $G(DT)="" D DT^DICRW
  ; Get primary clinic list
- S PREF=$NA(^TMP("BQIPRCR",UID))
- K @PREF
- S BGDA=$O(^BGPCTRL("B",BQIYR,"")) I BGDA="" Q
- S BGI=0
- F  S BGI=$O(^BGPCTRL(BGDA,12,BGI)) Q:'BGI  D
- . S BGPC=$P(^BGPCTRL(BGDA,12,BGI,0),U,1)
- . S BGPCI=$O(^DIC(40.7,"C",BGPC,"")) I BGPCI="" Q
- . S @PREF@(BGPCI)=BGPC
+ ;S PREF=$NA(^TMP("BQIPRCR",UID))
+ ;K @PREF
+ ;S BGDA=$O(^BGPCTRL("B",BQIYR,"")) I BGDA="" Q
+ ;S BGI=0
+ ;F  S BGI=$O(^BGPCTRL(BGDA,12,BGI)) Q:'BGI  D
+ ;. S BGPC=$P(^BGPCTRL(BGDA,12,BGI,0),U,1)
+ ;. S BGPCI=$O(^DIC(40.7,"C",BGPC,"")) I BGPCI="" Q
+ ;. S @PREF@(BGPCI)=BGPC
+ ; Add Emergency and Urgent Care to clinic list
+ ;S BGPCI=$O(^DIC(40.7,"C",30,"")) I BGPCI'="" S @PREF@(BGPCI)=30
+ ;S BGPCI=$O(^DIC(40.7,"C",80,"")) I BGPCI'="" S @PREF@(BGPCI)=80
  ;
  ; Set the alert temporary global
  NEW TDATA
@@ -56,12 +59,13 @@ FND ;EP - Find alerts
  .. F  S VISIT=$O(^AUPNVSIT("B",BGDT,VISIT)) Q:VISIT=""  D
  ... I $P(^AUPNVSIT(VISIT,0),U,11)=1 Q
  ... ; Check for primary clinic
- ... S VCLIN=$P(^AUPNVSIT(VISIT,0),U,8)
- ... I VCLIN'="",'$D(@PREF@(VCLIN)) Q
- ... S VCAT=$P(^AUPNVSIT(VISIT,0),U,7)  I "AH"']VCAT Q
+ ... ;S VCLIN=$P(^AUPNVSIT(VISIT,0),U,8)
+ ... ;I VCLIN'="",'$D(@PREF@(VCLIN)) Q
+ ... S VCAT=$P(^AUPNVSIT(VISIT,0),U,7)
+ ... I VCAT'="A",VCAT'="C",VCAT'="H",VCAT'="T" Q
  ... S DFN=$P(^AUPNVSIT(VISIT,0),U,5) I DFN="" Q
- ... S EXEC="S OK=$$ACTUPAP^"_BQIROU_"("_DFN_","_STDT_","_ENDT_","""")"
- ... X EXEC I 'OK Q
+ ... ;S EXEC="S OK=$$ACTUPAP^"_BQIROU_"("_DFN_","_STDT_","_ENDT_","""")"
+ ... ;X EXEC I 'OK Q
  ... S VDATE=$P($G(^AUPNVSIT(VISIT,0)),U,1)\1 I VDATE=0 Q
  ... S @TDATA@("PT",DFN,VISIT)=VDATE
  ;

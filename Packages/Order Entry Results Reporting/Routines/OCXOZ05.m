@@ -1,5 +1,5 @@
-OCXOZ05 ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ05 ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -49,7 +49,7 @@ CHK55 ; Look through the current environment for valid Event/Elements for this p
  Q
  ;
 CHK58 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from UPDATE+11^OCXOZ01.
+ ;  Called from UPDATE+12^OCXOZ01.
  ;
  Q:$G(OCXOERR)
  ;
@@ -66,11 +66,11 @@ CHK58 ; Look through the current environment for valid Event/Elements for this p
  ; DMED64( ----------> DANGEROUS MEDS FOR PATIENTS > 64
  ;
  S OCXDF(2)=$P($G(OCXPSD),"|",2) I $L(OCXDF(2)) D CHK60
- S OCXDF(40)=$G(OCXPSM) I $L(OCXDF(40)) D CHK163^OCXOZ07
- S OCXDF(47)=$P($P($G(OCXPSD),"|",3),"^",5) I $L(OCXDF(47)) D CHK188^OCXOZ08
- S OCXDF(131)=$P($P($G(OCXPSD),"|",3),"^",4) I $L(OCXDF(131)) S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK348^OCXOZ0B
- S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) S OCXDF(143)=$P($$DMED64(OCXDF(73)),"^",2) I $L(OCXDF(143)) D CHK407^OCXOZ0D
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK455^OCXOZ0E
+ S OCXDF(40)=$G(OCXPSM) I $L(OCXDF(40)) D CHK163^OCXOZ08
+ S OCXDF(47)=$P($P($G(OCXPSD),"|",3),"^",5) I $L(OCXDF(47)) D CHK188^OCXOZ09
+ S OCXDF(131)=$P($P($G(OCXPSD),"|",3),"^",4) I $L(OCXDF(131)) S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK347^OCXOZ0C
+ S OCXDF(73)=$P($G(OCXPSD),"|",1) I $L(OCXDF(73)) S OCXDF(143)=$P($$DMED64(OCXDF(73)),"^",2) I $L(OCXDF(143)) D CHK398^OCXOZ0D
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK446^OCXOZ0E
  Q
  ;
 CHK60 ; Look through the current environment for valid Event/Elements for this patient.

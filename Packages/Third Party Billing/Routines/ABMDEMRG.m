@@ -1,5 +1,5 @@
 ABMDEMRG ; IHS/ASDST/DMJ - MERGE CLAIMS ; 
- ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**9,11**;NOV 12, 2009;Build 133
  ;
  ;IHS/DSD/DMJ - 9/14/1999 - NOIS NDA-1198-180003 Patch 3 #14
  ;       By-passed $$NXNM and allowed duplicate claim numbers
@@ -307,11 +307,12 @@ DEL ;delete the claims merged from
  D ^DIR
  K DIR
  I Y=1 D
- .S DIK="^ABMDCLM(DUZ(2),"
+ .;S DIK="^ABMDCLM(DUZ(2),"  ;abm*2.6*11 NOHEAT5
  .S ABMCLMI=0
  .F  S ABMCLMI=$O(ABMDL("CLM",ABMCLMI)) Q:'ABMCLMI  D
  ..K DA,DIC,DIE,DR
  ..D ADDBENTR^ABMUCUTL("CCLM",ABMDL("CLM",ABMCLMI))  ;add claim to UFMS Cash. Session
+ ..S DIK="^ABMDCLM(DUZ(2),"  ;abm*2.6*11 NOHEAT5
  ..S DA=ABMDL("CLM",ABMCLMI)
  ..D ^DIK
  ..W !,"Claim # ",DA,$S($D(^ABMDCLM(DUZ(2),DA)):" NOT",1:"")," deleted."

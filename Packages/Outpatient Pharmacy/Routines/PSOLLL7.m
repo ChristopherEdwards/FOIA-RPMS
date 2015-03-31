@@ -1,8 +1,9 @@
-PSOLLL7 ;BHAM/JLC - LASER LABEL MULTI RX REFILL REQUEST FORM ;09-Mar-2004 09:29;PLS
- ;;7.0;OUTPATIENT PHARMACY;**120**;DEC 1997
+PSOLLL7 ;BHAM/JLC - LASER LABEL MULTI RX REFILL REQUEST FORM ;29-May-2012 14:53;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**120,161,200,326,1015**;DEC 1997;Build 62
  ;
  ;Reference to ^PS(59.7 supported by DBIA 694
  ;Reference to ^PS(55 supported by DBIA 2228
+ ;Read-only reference to %ZIS(2 supported by DBIA 3435
  ;
  ; Modified - IHS/CIA/PLS - 03/05/04
 EN D MAIL
@@ -22,8 +23,11 @@ DOCNEW I $G(PSOIO("RPI"))]"" X PSOIO("RPI")
  I $O(RX(0))="" G EXIT
  I PSOY=ORIGY G EXIT
  S PSOYI=PSOSYI,T=BLNKLIN D PRINT(T) S PSOYI=PSOTYI
+ S PS=$S($D(^PS(59,PSOSITE,0)):^(0),1:"")
  S T="Patient's Signature & Date        "_$P(PS,"^",6)_"     "_PSONOW D PRINT(T)
-EXIT K PSINF,AMC,PSA,PSDFN,PSDO,PSDT2,PSRFL,PSRX,PSLN,PSRXX,PSSS,PSST,PSOCR,DIWL,DIWR,DIWF,PSO9 Q
+EXIT K PSINF,AMC,PSA,PSDFN,PSDO,PSDT2,PSRFL,PSRX,PSLN,PSRXX,PSSS,PSST,PSOCR,DIWL,DIWR,DIWF,PSO9
+ I $D(ZTQUEUED) S ZTREQ="@"
+ Q
 SCRPTNEW S T="____"_$$ZZ^PSOSUTL(PSA) K ZDRUG D PRINT(T) S PSOYI=PSOTYI
  D DTCONNW
  S PSOYI=PSOTYI,OPSOX=PSOX,PSOX=PSOX+PSOXI,T="Refills "_$P(RX(PSA),"^",2)_"   Exp "_PSDT2_"    Rx# "_$P(^PSRX(PSA,0),"^") K TN D PRINT(T)
@@ -36,11 +40,11 @@ SCRPTNEW S T="____"_$$ZZ^PSOSUTL(PSA) K ZDRUG D PRINT(T) S PSOYI=PSOTYI
  I $G(PSOIO("EBT"))]"" X PSOIO("EBT")
  S PSOX=OPSOX
  I PSOY>PSOYM D  D:$O(RX(PSA)) HDR Q
- . S T=BLNKLIN,PSOYI=PSOSYI D PRINT(T) S PSOYI=PSOTYI
- . S T="Patient's Signature & Date         "_$P(PS,"^",6)_"     "_PSONOW D PRINT(T)
- . S PSOY=ORIGY,PSOYI=PSOTYI
- . I PSOX=PSORX S PSOX=PSOLX W @IOF Q
- . S PSOX=PSORX
+ .S T=BLNKLIN,PSOYI=PSOSYI D PRINT(T) S PSOYI=PSOTYI
+ .S T="Patient's Signature & Date         "_$P(PS,"^",6)_"     "_PSONOW D PRINT(T)
+ .S PSOY=ORIGY,PSOYI=PSOTYI
+ .I PSOX=PSORX S PSOX=PSOLX W @IOF Q
+ .S PSOX=PSORX
  Q
 DTCONNW S PSDT2=$P(RX(PSA),"^"),PSDT2=$E(PSDT2,4,5)_"/"_$E(PSDT2,6,7)_"/"_($E(PSDT2,1,3)+1700) Q
 RFILL2 F AMC=0:0 S AMC=$O(^PSRX(PSRXX,1,AMC)) Q:'AMC  S PSRFL=PSRFL-1
@@ -49,7 +53,7 @@ RFILL2 F AMC=0:0 S AMC=$O(^PSRX(PSRXX,1,AMC)) Q:'AMC  S PSRFL=PSRFL-1
 RZX S PSRXX=+^PS(55,DFN,"P",PSRX,0)
  I $D(^PSRX(PSRXX,0)) S PSRFL=$P(^(0),"^",9) D:$D(^(1))&PSRFL RFILL2 I PSRFL>0,$P($G(^PSRX(PSRXX,"STA")),"^")<10,134'[$E(+$P($G(^("STA")),"^")),$P(^(2),"^",6)>DT S RX(PSRXX)=$P(^(2),"^",6)_"^"_PSRFL
  Q
-HDR S T=PNM_"  "_SSNP D PRINT(T)
+HDR S T=PNM D PRINT(T)
  D ADD^VADPT
  I $G(VAPA(1))="" G HDR5
  F I=1:1:3 I $G(VAPA(I))]"" S T=VAPA(I) D PRINT(T)
@@ -57,8 +61,11 @@ HDR S T=PNM_"  "_SSNP D PRINT(T)
  S B=$G(VAPA(4))_", "_A_"  "_$S($G(VAPA(11)):$P(VAPA(11),"^",2),1:$G(VAPA(6)))
  S T=B D PRINT(T)
 HDR5 I $O(RX(0))="" D  S PSOY=PSOY+PSOYI Q
- . S PSOY=PSOY+PSOYI,T="You have no refillable prescriptions as of "_PSONOW_"." D PRINT(T)
- . S T="Please contact your provider if you need new prescriptions." D PRINT(T)
+ .S PSOY=PSOY+PSOYI,T="You have no refillable prescriptions as of "_PSONOW_"." D PRINT(T)
+ .S T="Please contact your provider if you need new prescriptions." D PRINT(T)
+ .I '$D(PSOINST) D SITE
+ .S PS=$S($D(^PS(59,PSOSITE,0)):^(0),1:"")
+ .S OPSOX=PSOX,OPSOY=PSOY,T=$P(PS,"^",6) S PSOX=2300,PSOY=3900 D PRINT(T) S PSOX=OPSOX,PSOY=OPSOY
 ADD S PSOY=PSOY+PSOYI,T="Please check prescriptions to be refilled, sign the form, then" D PRINT(T)
  S T="mail or return to your pharmacy." D PRINT(T) S PSOY=PSOY+PSOYI
  Q
@@ -81,4 +88,35 @@ PRINT(T) ;
  I $G(PSOIO("ST"))]"" X PSOIO("ST")
  W T,!
  I $G(PSOIO("ET"))]"" X PSOIO("ET")
+ Q
+QUEUE ; ENTRY POINT TO PRINT STAND-ALONE MULTI-RX FORM
+ S SAVDFN=$D(DFN) ; DFN SET IF COMING FROM HIDDEN ACTION
+ I '$D(PSOPAR) D ^PSOLSET I '$D(PSOPAR) Q
+ I '$G(PSOSYS) S PSOSYS=$G(^PS(59.7,1,40.1))
+ I '$D(PSOINST) D SITE
+ W !
+ I $D(DFN) G GETPT2
+GETPT S DIC("A")="Enter patient to reprint Multi-Rx refill form for: ",DIC(0)="QEAM" D EN^PSOPATLK S Y=PSOPTLK I Y<0!("^"[X) K PSOPTLK,DIC Q
+ S DFN=$P(Y,"^")
+GETPT2 D DEM^VADPT S PNM=VADM(1)
+ I $P(VADM(6),"^",2)]"" D  G GETPT
+ .W $C(7),!!,PNM_" Died "_$P(VADM(6),"^",2)_".",!
+Q1 W ! K POP,ZTSK S %ZIS("B")="",%ZIS="MNQ",%ZIS("A")="Select LABEL DEVICE: " D ^%ZIS S PSLION=ION K %ZIS("A")
+ I $G(POP) Q
+ I $G(IOST(0)),'$D(^%ZIS(2,IOST(0),55,"B","LL")) W !,"Must specify a laser labels printer for Multi-Rx form." G Q1
+ I '$G(IOST(0)) W !,"Nothing queued to print." H 1 Q
+ D 6^VADPT,PID^VADPT6 S SSNP=""
+ D NOW^%DTC S Y=$P(%,"."),PSOFNOW=% X ^DD("DD") S PSONOW=Y
+ F G="DFN","PNM","PSOPAR","PSOSITE","SSNP","PSONOW","PSOSYS","PSOINST" S:$D(@G) ZTSAVE(G)=""
+ S ZTRTN="DQ^PSOLLL7",ZTIO=PSLION,ZTDESC="Outpatient Pharmacy Multi-Rx print",ZTDTH=$H,PDUZ=DUZ
+ D ^%ZISC,^%ZTLOAD W:$D(ZTSK) !!,"Multi-Rx form queued to print",!! H 1 K G
+ I $G(SAVDFN)=0 K DFN,SAVDFN
+ Q
+DQ N PSOBIO S (I,PSOIO)=0 F  S I=$O(^%ZIS(2,IOST(0),55,I)) Q:'I  S X0=$G(^(I,0)) I X0]"" S PSOIO($P(X0,"^"))=^(1),PSOIO=1
+ I $G(PSOIO("LLI"))]"" X PSOIO("LLI")
+ G EN
+SITE ;
+ K ^UTILITY("DIQ1",$J) S DA=$P($$SITE^VASITE(),"^")
+ I $G(DA)>0 S DIC=4,DIQ(0)="I",DR="99" D EN^DIQ1 S PSOINST=$G(^UTILITY("DIQ1",$J,4,DA,99,"I")) K ^UTILITY("DIQ1",$J),DA,DR,DIC
+ I '$D(PSOINST) S PSOINST=""
  Q

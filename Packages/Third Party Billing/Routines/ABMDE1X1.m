@@ -1,5 +1,5 @@
 ABMDE1X1 ; IHS/ASDST/DMJ - PAGE 1 - DATA CHECK CONT. ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/ASDS/DMJ - 05/16/00 - V2.4 Patch 1 - NOIS HQW-0500-100040
  ;     Modified Location code to check for satellite first.  If no
@@ -78,8 +78,30 @@ SITE ;
  S ABM("SA")=$S(ABMX("LOC")=ABMP("LDFN"):1,1:0)
  I 'ABM("SA") D
  . S $P(ABMV("X1"),U,2)=$S($P($G(^ABMDPARM(DUZ(2),1,2)),U,6)]"":$P(^(2),U,6),1:"C/O "_$S($D(^DIC(4,ABMX("LOC"),0)):$E($P(^(0),U),1,26),1:$P(^AUTTLOC(ABMX("LOC"),0),U,2)))
- I $D(^AUTTLOC(ABMX("LOC"),0)) D
- .S ABMNOTOK=1
+ ;start old code abm*2.6*11 HEAT66367
+ ;I $D(^AUTTLOC(ABMX("LOC"),0)) D
+ ;.S ABMNOTOK=1
+ ;.Q:'($P(^AUTTLOC(ABMX("LOC"),0),U,12)]"")
+ ;.Q:'($P(^AUTTLOC(ABMX("LOC"),0),U,13)]"")
+ ;.Q:'($P(^AUTTLOC(ABMX("LOC"),0),U,14)]"")
+ ;.Q:'($P(^AUTTLOC(ABMX("LOC"),0),U,15)]"")
+ ;.K ABMNOTOK
+ ;.S $P(ABMV("X1"),U,3)=$P(^AUTTLOC(ABMX("LOC"),0),U,12)
+ ;.S $P(ABMV("X1"),U,4)=$P(^AUTTLOC(ABMX("LOC"),0),U,13)_", "
+ ;I $G(ABMNOTOK),$D(ABMX("AFFL")) D  G TAX
+ ;.S:ABM("SA") ABME(109)=""
+ ;.S:'ABM("SA") ABME(152)=""
+ ;.K ABMNOTOK
+ ;S ABMX("STATE")=$P(^AUTTLOC(ABMX("LOC"),0),"^",14)
+ ;S ABMX("STATE")=$P($G(^DIC(5,+ABMX("STATE"),0)),"^",2)
+ ;I ABMX("STATE")'="" D
+ ;.S $P(ABMV("X1"),U,4)=$P(ABMV("X1"),U,4)_ABMX("STATE")_"  "_$P(^AUTTLOC(ABMX("LOC"),0),U,15)
+ ;.S $P(ABMV("X1"),U,5)=$P(^AUTTLOC(ABMX("LOC"),0),U,11)
+ ;end old code start new code HEAT66367
+ S ABMNOTOK=1
+ I $G(ABMP("INS"))="" Q  ;abm*2.6*11 IHS/SD/AML 6/27/2013
+ I $P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,19)'="P" D
+ .Q:'$D(^AUTTLOC(ABMX("LOC")))
  .Q:'($P(^AUTTLOC(ABMX("LOC"),0),U,12)]"")
  .Q:'($P(^AUTTLOC(ABMX("LOC"),0),U,13)]"")
  .Q:'($P(^AUTTLOC(ABMX("LOC"),0),U,14)]"")
@@ -87,15 +109,30 @@ SITE ;
  .K ABMNOTOK
  .S $P(ABMV("X1"),U,3)=$P(^AUTTLOC(ABMX("LOC"),0),U,12)
  .S $P(ABMV("X1"),U,4)=$P(^AUTTLOC(ABMX("LOC"),0),U,13)_", "
+ .S ABMX("STATE")=$P(^AUTTLOC(ABMX("LOC"),0),"^",14)
+ .S ABMX("ZIP")=$P(^AUTTLOC(ABMX("LOC"),0),U,15)
+ ;
+ I $P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),1,ABMP("VTYP"),1)),U,19)="P" D
+ .Q:'$D(^DIC(4,ABMX("LOC")))
+ .Q:'($P($G(^DIC(4,ABMX("LOC"),1)),U)]"")
+ .Q:'($P($G(^DIC(4,ABMX("LOC"),0)),U,2)]"")
+ .Q:'($P($G(^DIC(4,ABMX("LOC"),1)),U,3)]"")
+ .Q:'($P($G(^DIC(4,ABMX("LOC"),1)),U,4)]"")
+ .K ABMNOTOK
+ .S $P(ABMV("X1"),U,3)=$P($G(^DIC(4,ABMX("LOC"),1)),U)
+ .S $P(ABMV("X1"),U,4)=$P($G(^DIC(4,ABMX("LOC"),1)),U,3)_", "
+ .S ABMX("STATE")=$P($G(^DIC(4,ABMX("LOC"),0)),"^",2)
+ .S ABMX("ZIP")=$P($G(^DIC(4,ABMX("LOC"),1)),U,4)
+ ;
  I $G(ABMNOTOK),$D(ABMX("AFFL")) D  G TAX
  .S:ABM("SA") ABME(109)=""
  .S:'ABM("SA") ABME(152)=""
  .K ABMNOTOK
- S ABMX("STATE")=$P(^AUTTLOC(ABMX("LOC"),0),"^",14)
  S ABMX("STATE")=$P($G(^DIC(5,+ABMX("STATE"),0)),"^",2)
  I ABMX("STATE")'="" D
- .S $P(ABMV("X1"),U,4)=$P(ABMV("X1"),U,4)_ABMX("STATE")_"  "_$P(^AUTTLOC(ABMX("LOC"),0),U,15)
+ .S $P(ABMV("X1"),U,4)=$P(ABMV("X1"),U,4)_ABMX("STATE")_"  "_ABMX("ZIP")
  .S $P(ABMV("X1"),U,5)=$P(^AUTTLOC(ABMX("LOC"),0),U,11)
+ ;end new code HEAT66367
  E  D
  .S:ABM("SA") ABME(109)=""
  .S:'ABM("SA") ABME(152)=""

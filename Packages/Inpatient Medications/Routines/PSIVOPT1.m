@@ -1,5 +1,5 @@
 PSIVOPT1 ;BIR/MLM-EDIT/DC ORDER (BACKDOOR) ;22 OCT 97 / 3:14 PM
- ;;5.0; INPATIENT MEDICATIONS ;**29,58,101**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**29,58,101,110,127**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA 2191
  ; Reference to ^PSSLOCK is supported by DBIA #2789
@@ -39,7 +39,7 @@ CKNEW ; Check if new order is to be created.
  .I $D(TDRG(DRGT,+$P(X,U),DRGI)),$P(X,U,2)=$P(TDRG(DRGT,+$P(X,U),DRGI),U) Q
  .S (PSIVCHG,DNE)=1
  Q:PSIVCHG
- I $G(DRG("AD",0))+$S(P("DTYP")=1:0,1:DRG("SOL",0))'=DRG("DRGC") S PSIVCHG=1 Q
+ I $G(DRG("AD",0))+$S(P("DTYP")=1:0,1:+$G(DRG("SOL",0)))'=DRG("DRGC") S PSIVCHG=1 Q
  S ND(0)=$G(^PS(55,DFN,"IV",+ON55,0)),ND("PD")=$G(^PS(55,DFN,"IV",+ON55,.2))
  N X S X=$S($P(ND(0),U,8)["@":$P($P(ND(0),U,8),"@"),1:$P(ND(0),U,8))
  S ND=$S($E(P("OT"))="I":$P(ND("PD"),U,1,2)_U,1:"")_$P(ND("PD"),U,3)_U_$S($E(P("OT"))'="I":X_U,1:"")_+$P(ND(0),U,6)_U_$P(ND(0),U,2)_U_$P(ND(0),U,3)_U_$P(ND(0),U,9)
@@ -63,14 +63,18 @@ NEWORD ; DC orig. order, get new order no.
  ;;S P("RES")="E",P("OLDON")=ON55,P(16)="" K ON55 D NEW55^PSIVORFB S (P("PON"),P("NEWON"),ON)=ON55,ON55=P("OLDON")
  S P("RES")="E",P("OLDON")=ON55,P(16)=""
  Q:$$NONVF()
- K ON55 D NEW55^PSIVORFB S (P("PON"),P("NEWON"),ON)=ON55,ON55=P("OLDON")
+ I '($G(PSIVCOPY)=2) K ON55 D NEW55^PSIVORFB
+ S (P("PON"),P("NEWON"),ON)=ON55,ON55=P("OLDON") S:($G(PSIVCOPY)=2) P("OLDON")=""
  I $P($G(^PS(55,DFN,"IV",+P("OLDON"),0)),U,17)="A" D D1^PSIVOPT2 D
  . I PSJIVORF,$P($G(^PS(55,DFN,"IV",+ON55,0)),U,21) D EN1^PSJHL2(DFN,"OD",+ON55_"V","ORDER DISCONTINUED")
  . ;;S P(21)="" W !!,"Original order discontinued...",!!
  . S P("21FLG")="" W !!,"Original order discontinued...",!!
  . D UNL^PSSLOCK(DFN,+ON55_"V")
  F ON55=P("NEWON"),P("OLDON") K DA,DIE,DR D
- .S DA(1)=DFN,DA=+ON55,DIE="^PS(55,"_DFN_",""IV"",",DR=$S(ON55=P("NEWON"):"113////"_P("OLDON")_";122////E",1:"114////"_P("NEWON")_";123////E") D ^DIE
+ .S DA(1)=DFN,DA=+ON55,DIE="^PS(55,"_DFN_",""IV"",",DR=$S((ON55=P("NEWON")&(+ON55'=+P("OLDON"))):"113////"_P("OLDON")_";122////E",1:"114////"_P("NEWON")_";123////E") D ^DIE
+ .I ON55=P("NEWON") N CLINAPPT S CLINAPPT=$G(^PS(55,DFN,"IV",+P("OLDON"),"DSS")) D
+ ..S:CLINAPPT DR=DR_";136////"_+CLINAPPT S:$P(CLINAPPT,"^",2) DR=DR_";139////"_$P(CLINAPPT,"^",2)
+ .D ^DIE
  .Q:ON55=P("OLDON")&($P($G(^PS(55,DFN,"IV",+P("OLDON"),0)),U,17)'="D")
  .D:ON55=P("NEWON") SET55^PSIVORFB
  .D:ON55=P("NEWON") VF1^PSJLIACT("","",0)
@@ -110,6 +114,8 @@ NONVF()   ;
  D EN1^PSJHL2(DFN,"SN",ON,"ORDER CREATED")
  S X=$$LS^PSSLOCK(DFN,ON)
  D GT531^PSIVORFA(DFN,ON)
+ I ON["P" N CLINAPPT S CLINAPPT=$G(^PS(55,DFN,"IV",+ON,"DSS")) I CLINAPPT D  K DIE,DA,DR
+ . S:CLINAPPT DR="136////"_+CLINAPPT_";" S:$P(CLINAPPT,"^",2) DR=DR_"139////"_$P(CLINAPPT,"^",2)_";" D ^DIE
  S VALMBCK="Q"
  S PSGACT="EL"
  I P(17)="N",(P("OLDON")=""),(P("CLRK")=DUZ) S PSGACT="ELD"

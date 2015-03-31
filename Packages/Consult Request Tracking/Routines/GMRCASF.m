@@ -1,10 +1,16 @@
-GMRCASF ;SLC/DLT - Significant Findings Action ;11/15/02 07:28
- ;;3.0;CONSULT/REQUEST TRACKING;**4,10,14,22,29**;DEC 27, 1997
+GMRCASF ;SLC/DLT - Significant Findings Action ;7/11/03 13:28
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,10,14,22,29,35**;DEC 27, 1997
 SF(GMRCO) ;Evaluate Significant Findings and update accordingly
  ;GMRCO is the selected consult
  N GMRCQIT,GMRCLCK
  I '$L($G(GMRCO)) D SELECT^GMRCA2(.GMRCO)  I $D(GMRCQUT) D END Q
  I '+($G(GMRCO)) D END Q
+ I $P($G(^GMR(123,GMRCO,12)),U,5)="P" D  Q
+ . N DIR
+ . W !,"The requesting facility may not take this action on an "
+ . W "inter-facility consult."
+ . S DIR(0)="E" D ^DIR
+ . D END
  I '$$LOCK^GMRCA1(GMRCO) D END Q
  S GMRCLCK=1
  ;

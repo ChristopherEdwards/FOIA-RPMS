@@ -1,5 +1,5 @@
 LEXILGO ; ISL Rename Options                       ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  Q
 RE ; Entry point to rename GMPT Options to LEX namespace
  N LEX,LEXR,LEXI,LEXT,LEXC,LEXON,LEXOD,LEXNN,LEXND,LEXNP,LEXNPE

@@ -1,5 +1,5 @@
-RADEM1 ;HISC/GJC-Display Patient Demographics ;4/19/96  08:17
- ;;5.0;Radiology/Nuclear Medicine;**45,47**;Mar 16, 1998;Build 21
+RADEM1 ;HISC/GJC-Display Patient Demographics ;4/19/96  08:17 [ 12/05/2011  10:38 AM ]
+ ;;5.0;Radiology/Nuclear Medicine;**45,47*1004**;Mar 16, 1998;Build 21
 EXAM D HDR S RAXIT=0
  S X1=DT,X2=-7 D C^%DTC S RACHKDT=X,X1=DT,X2=-3 D C^%DTC S RACHKDT1=X
  S (RADTE,RASEQ)=0 F RADTI=0:0 Q:(RASEQ>4)&(RADTE<RACHKDT)!RAXIT  S RADTI=$O(^RADPT(RADFN,"DT",RADTI)) Q:RADTI'>0!RAXIT  I $D(^(RADTI,0)) S Y=^(0),RALOC=+$P(Y,"^",4),(RADTE,Y)=+Y Q:(RASEQ>4)&(RADTE<RACHKDT)  D D^RAUTL S RADATE=Y D RACN
@@ -77,11 +77,23 @@ HDR ; Header
  ; The variable: RAOPT("ORDEREXAM") is defined in the entry action of
  ; the option RA ORDEREXAM.  It is subsequently kill in the exit action
  ; of the option.
- D HOME^%ZIS W:$D(RAOPT("ORDEREXAM"))#2 @IOF
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Don't re-set HOME device
+ ;Patch 1004 - Continue Chris Saddler Patch from 2004
+ ;D HOME^%ZIS W:$D(RAOPT("ORDEREXAM"))#2 @IOF
+ W:$D(RAOPT("ORDEREXAM"))#2 @IOF
+ ;End Patch
+ ;
  I $$USESSAN^RAHLRU1() W !!,"Case #",?18,"Last 5 Procedures/New Orders",?47,"Exam Dt",?56,"Exam Status",?68,"Imaging Loc."
  I $$USESSAN^RAHLRU1() W !,"----------------",?18,"----------------------------",?47,"--------",?56,"-----------",?68,"------------"
  I '$$USESSAN^RAHLRU1() W !!,"Case #",?10,"Last 5 Procedures/New Orders",?39,"Exam Date",?51,"Status of Exam",?67,"Imaging Loc."
  I '$$USESSAN^RAHLRU1() W !,"------",?10,"----------------------------",?39,"---------",?51,"--------------",?67,"------------"
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Kill variable so requests print on 1 page
+ ;Patch 1004 - Continue Chris Saddler Patch from 2004
+ K RAOPT("ORDEREXAM")
+ ;End Patch
+ ;
  Q
  ;
 CM(RADFN,RADTI,RACNI) ;Return the contrast media used while performing an

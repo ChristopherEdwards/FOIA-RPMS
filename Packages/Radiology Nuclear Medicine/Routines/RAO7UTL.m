@@ -1,5 +1,5 @@
-RAO7UTL ;HISC/GJC,SS-Utilities for HL7 messages. ;9/5/97  08:55
- ;;5.0;Radiology/Nuclear Medicine;**18,45,57,82**;Mar 16, 1998;Build 8
+RAO7UTL ;HISC/GJC,SS-Utilities for HL7 messages. ; 20 Apr 2011  7:31 PM
+ ;;5.0;Radiology/Nuclear Medicine;**18,45,57,82,1003**;Nov 01, 2010;Build 3
  ;modified by SS JUN 19,2000 for P18
 EN1 ; Entry point to define some basic HL7 variables
  N I S RAHLFS="|",RAECH="^~\&"
@@ -73,7 +73,9 @@ PV1(Y) ; Create 'pv1' segment
  . S RA("PV1",3)=+RAWARD(44)_U_$P(RARMBED,"^",2)
  . Q
  S RAPF="PV1"_$$STR(2)_RA("PV1",2)_RAHLFS_RA("PV1",3)_$$STR(16) ;_"Visit #" was truncated for P18   ? Req 4
- D PV1^RABWIBB
+ ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
+ ;D PV1^RABWIBB
+ ;End Patch
  ; pv1^RABWIBB will redefine RAPF if the PFSS switch is on and there's a valid PFSS Account Reference
  ; Otherwise, RAPF won't be changed
  K RACCOUNT ; this variable was set earlier in FB^RABWIBB

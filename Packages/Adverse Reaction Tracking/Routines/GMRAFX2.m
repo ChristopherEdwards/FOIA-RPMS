@@ -1,5 +1,5 @@
-GMRAFX2 ;SLC/DAN Select reactant for update ;05-May-2011 11:42;DU
- ;;4.0;Adverse Reaction Tracking;**17,19,21,23,1002**;Mar 29, 1996;Build 32
+GMRAFX2 ;SLC/DAN Select reactant for update ;01-May-2012 14:17;DU
+ ;;4.0;Adverse Reaction Tracking;**17,19,21,23,1002,1006**;Mar 29, 1996;Build 29
  ;DBIA SECTION
  ;10026 - DIR
  ;2056  - DIQ
@@ -12,7 +12,9 @@ GMRAFX2 ;SLC/DAN Select reactant for update ;05-May-2011 11:42;DU
 EN1 ; Select new reactant
  N DIR,Y,DIRUT,X,DTOUT,DUOUT,DIC,GMRALAR,D,ENTRY,OK,CNT,LST,ROOT,NAM,DIROUT
  S DIR(0)="FO^3:30",DIR("A")="Enter Causative Agent",DIR("?")="^D HELP^GMRAFX2" D ^DIR S:$D(DIROUT) STOP=1 Q:$D(DIRUT)  S GMRALAR=$$UP^XLFSTR(Y)
+ ;IHS/MSC/MGH mod returned patch 1006
 NPA S DIC("S")="I $P(^(0),U)'=""OTHER ALLERGY/ADVERSE REACTION""&('$$CHECK^GMRAPES0(Y))&($S($L($T(SCREEN^XTID)):'$$SCREEN^XTID(120.82,.01,Y_"",""),1:1))" ;21,23
+ ;S DIC("S")="I $P(^(0),U)'=""OTHER ALLERGY/ADVERSE REACTION""&($S($L($T(SCREEN^XTID)):'$$SCREEN^XTID(120.82,.01,Y_"",""),1:1))" ;21,23
  W !!,"Checking GMR ALLERGIES (#120.82) file for matches...",! K Y,DTOUT,DUOUT,ENTRY S X=GMRALAR,DIC="^GMRD(120.82,",DIC(0)="EZM",DIC("W")="" D ^DIC K DIC S:+Y>0 ENTRY=X D DIC ;21
  I +Y>0&($G(OK)) S GMRAAR=+Y_";GMRD(120.82,",GMRAAR(0)=$P(Y,"^",2),GMRAAR("O")=$P(Y(0),"^",2) Q
 NDF ;find partial matches and select from NDF

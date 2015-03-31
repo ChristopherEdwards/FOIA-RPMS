@@ -1,5 +1,5 @@
 BARUP1 ; IHS/SD/LSL - 3P UPLOAD CONTINUED DEC 5,1996 ; 
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,19,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,19,21,23**;OCT 26, 2005
  ;
  ; IHS/ASDS/LSL - 9/11/01 - Version 1.5 Patch 2 - Modified to
  ;     accomodate Pharmacy POS.  Passes RX through to Other Bill
@@ -39,7 +39,7 @@ BARUP1 ; IHS/SD/LSL - 3P UPLOAD CONTINUED DEC 5,1996 ;
  ;   will create an entry in the A/R BILL/IHS file.
  ;
  ; *********************************************************************
- ;
+ ;IHS/SD/SDR 10/10/13 HEAT135708
  Q
 UPLOAD ; EP
  ; Create a new in A/R Bill File based on 3P data
@@ -310,7 +310,8 @@ SETTX   ;** create transaction
 NEWTX  ;
  ; Create A/R transaction
  S BARTRIEN=$$NEW^BARTR()
- I BARTRIEN<1 D NOTX(BARBLDA,BARTT) Q
+ ;I BARTRIEN<1 D NOTX(BARBLDA,BARTT) Q  ;IHS/SD/SDR 10/10/13 HEAT135708
+ I BARTRIEN<1 D NOTX(BARBLDA,"") Q  ;IHS/SD/SDR 10/10/13 HEAT135708
  S DIE="^BARTR(DUZ(2),"
  S DA=BARTRIEN
  S DR=DR_";4////^S X=BARBLDA"
@@ -334,6 +335,7 @@ NEWTX  ;
 NOTX(X,BARTYP)  ;
  ; Couldn't create transaction.
  N XVAL
+ I BARTYP="" S BARTYP="<UNK MSG>" ; P.OTT
  S XVAL=$$GET1^DIQ(900501.01,X,.01)
  W *7,$$CJ^XLFSTR("Could not create a "_BARTYP_" transaction.",IOM)
  W $$CJ^XLFSTR("Please contact IT support.",IOM)

@@ -1,5 +1,9 @@
-GMRAUTL1 ;HIRMFO/WAA-ALLERGY UTILITIES ; 12/04/92
- ;;4.0;Adverse Reaction Tracking;;Mar 29, 1996
+GMRAUTL1 ;HIRMFO/WAA-ALLERGY UTILITIES ;12/04/92
+ ;;4.0;Adverse Reaction Tracking;**33**;Mar 29, 1996;Build 5
+ ;
+ ; Reference to $$PROD^XUPROD supported by DBIA 4440
+ ; Reference to $$TESTPAT^VADPT supported by DBIA 3744
+ ; 
  Q
 STPCK() ; This is to check to see if the user wanted to stop the print
  S ZTSTOP=0
@@ -42,6 +46,16 @@ LP1 ; Main loop
  .Q
  D CLOSE^GMRAUTL
  Q
+PRDTST(GMRADFN) ; GMRA*4*33 - Remove Test Patients from Live Reports
+ ; This function will return 0 if the patient should not print on the report, and 1 if the patient
+ ; should appear on the report.  This function will allow all patients to print on the report if the
+ ; report is run in a test environment.
+ ;
+ I GMRADFN="" Q 0  ;DFN not defined. Should never be the case.
+ I '$$PROD^XUPROD() Q 1  ;Not a production or legacy environment.  Print all patients on report.
+ I $$TESTPAT^VADPT(GMRADFN) Q 0  ;Production or legacy environment.  Test patient.  Do not print on report.
+ Q 1  ;Production or legacy environment.  Not a test patient.  Print on report.
+ ; 
 VAD(DFN,DAT,LOC,NAM,SEX,SSN,RB,PRO,PID) ; Call to VADPT
  ; This call is a generic call to 1^VADPT
  ; Input:

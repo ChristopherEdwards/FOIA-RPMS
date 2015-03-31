@@ -1,5 +1,6 @@
 PSXBLD ;BIR/BAB-Build HL7 Data for CMOP Rx Queue ;24 Jun 2002  5:19 PM
- ;;2.0;CMOP;**3,23,29,28,43,41,50**;11 Apr 97
+ ;;2.0;CMOP;**3,23,29,28,43,41,50,54**;11 Apr 97;Build 6
+ ;
  ;Reference to  ^PSRX(       supported by DBIA #1977
  ;Reference to  ^PSDRUG(     supported by DBIA #1983
  ;Reference to  ^PS(51,      supported by DBIA #1980
@@ -13,6 +14,7 @@ PSXBLD ;BIR/BAB-Build HL7 Data for CMOP Rx Queue ;24 Jun 2002  5:19 PM
  ;Reference to OTHL1^PSOLBL3 supported by DBIA #4071
  ;Reference to EN^PSOHLSN1   supported by DBIA #2385
  ;Reference to PROD2^PSNAPIS supported by DBIA #2531
+ ;Reference to DRUG^PSSWRNA supported by DBIA #4449
 EN ; build entries into 550.1 by alpha patient
  D SET^PSXSYS
  ;Clear 550.1
@@ -21,18 +23,20 @@ EN ; build entries into 550.1 by alpha patient
  ; walk down the PTNM,DFN,RX,FILL 'C' index of PSX(550.2,PSXBAT,15,'C' - RX multiple
  ; Alpha order by patient name
  S PSXNM="",ZCNT=0,PSXMSG=0 ;PSXMSG now starts at 1 every batch incremented in NEWMSG^PSXRXQU
+ S PSSWSITE=+$O(^PS(59.7,0))
  F  S PSXNM=$O(^PSX(550.2,PSXBAT,15,"C",PSXNM)) Q:PSXNM']""  D
  . S DFN="" F  S DFN=$O(^PSX(550.2,PSXBAT,15,"C",PSXNM,DFN)) Q:DFN'>0  D
  .. S MSG=0 K PSX,PSXORD
  .. D NEWMSG^PSXRXQU,ORD,MRX^PSXBLD1,LOADMSG^PSXRXQU
  D DIV^PSXBLD1 ;build NTE1
- K MSG,PSXNM,DFN,RX,RXF,REG,PSCAP,X,Y,PSXPTR
+ K MSG,PSXNM,DFN,RX,RXF,REG,PSCAP,X,Y,PSXPTR,PSSWSITE
  Q
 ORD ; PSXMSG was returned by call to NEWMSG^PSXRXQU
  ; Loop RXs, RXFs in Transmission PSXBAT
  S REG=$S($P($G(^PS(55,DFN,0)),"^",3)=1:1,1:""),PSCAP=+$P($G(^PS(55,DFN,0)),"^",2),RX=0 K RXY,RXY1
  S RX=0 F  S RX=$O(^PSX(550.2,PSXBAT,15,"C",PSXNM,DFN,RX)) Q:RX'>0  D
  . S REC=$O(^PS(52.5,"B",RX,0))
+ . I 'REC D DEL5502 Q  ;RX was removed from 52.5 during transmission
  . S RXY=^PSRX(RX,0),RXF=$O(^PSX(550.2,PSXBAT,15,"C",PSXNM,DFN,RX,0))
  . S PTR=RX S:RXF>0 RXY1=$G(^PSRX(RX,1,RXF,0)) D ORC ;builds RX HL7 segments into PSXORD(
  . I PSXFLAG=1 S ^PS(52.5,REC,"P")=1,^PS(52.5,"ADL",DT,REC)="" ;update print node
@@ -48,6 +52,9 @@ ORC ;builds RX HL7 segments into PSXORD(
  S X=+$G(^PSRX(RX,"IB")),COPAY=$S(X=1:1,X=2:1,1:"") K X S RXN=$P(RXY,"^"),VRPH=$P($G(^PSRX(RX,2)),"^",10)
  D COPAYCK ; DO ADDITIONAL CHECKS TO DETERMINE CURRENT COPAY STATUS
  S (DRUG,WARN,DEA)="" I $D(^PSDRUG(+$P(RXY,"^",6),0)) S DRUG=$P(^(0),"^"),WARN=$P(^(0),"^",8),DEA=$P(^(0),"^",3) S Y=DRUG D STRIP S DRUG=Y K Y
+ I '$D(PSSWSITE) S PSSWSITE=+$O(^PS(59.7,0))
+ I $P($G(^PS(59.7,PSSWSITE,10)),"^",10)="N" D
+ .S WARN=$$DRUG^PSSWRNA(+$P(RXY,"^",6),DFN)
  I $G(DRUG) S ZDU=$P($G(^PSDRUG(DRUG,660)),"^",8)
  S ISD=$P(RXY,"^",13),ISD=ISD+17000000
  G:RXF>0 REF
@@ -87,13 +94,14 @@ ZX1 ;
  S PSXCSB=$P(^PSRX(RX,0),"^",6),PSXCSC=$P($G(^PSDRUG(PSXCSB,0)),"^",3)
  F PSXCSD=3:1:5 I PSXCSC[PSXCSD S PSXCSRX=1
  S $P(X,"|",15)=$G(PSXCSRX) K PSXCSRX,PSXCSC,PSXCSB,PSXCSD
- S L=+$L(WARN,",") S W1="" F J=1:1:L S W=$P(WARN,",",J) I +W>0,(+W'>20) S:+W1>0 W1=W1_"~"_W S:+W1=0 W1=W1_W
- S:+W1>0 $P(X,"|",17)=W1 K WARN,J,W,L,W1
+ D WARN
  S PTST=$G(^PS(53,$P(RXY,"^",3),0)),RNEW=1,REF=+$P(^PSRX(RX,0),"^",9)-RXF S:REF<0 REF=0 I REF=0 S:('$P(PTST,"^",5))!(DEA["A"&(DEA'["B"))!(DEA["W") RNEW=0
  S $P(X,"|",12)=RNEW,PTST=$P(PTST,"^",2),PSCLN=+$P(RXY,"^",5),PSCLN=$S($D(^SC(PSCLN,0)):$P(^(0),"^",1),1:"UNKNOWN") S $P(X,"|",18)=$E((PTST),1,20),$P(X,"|",19)=$E(PSCLN,1,20)
  ;
  K RNEW,SIG,SGY,ISD,EXPDT
  S MSG=MSG+1,PSXORD(MSG)=X
+ S PSSWSITE=+$O(^PS(59.7,0))
+ I $P($G(^PS(59.7,PSSWSITE,10)),"^",10)="N" D NEWWARN^PSXBLD2
  Q
 A I $D(^PS(51,"A",X)) S %=^(X),X=$P(%,"^",1) I $P(%,"^",2)'="" S Y=$P(SIG," ",P-1),Y=$E(Y,$L(Y)) S:Y>1 X=$P(%,"^",2)
  I (+$G(FLG)=0)&(($L(SGY)+$L(X))'>70) S SGY=SGY_X_" " Q
@@ -116,18 +124,24 @@ STRIP ;strip out any HL7 delimiters
  ;S:Y["&" Y=$P(Y,"&",1)_"\T\"_$P(Y,"&",2,999)
  Q
 EXPAND ;expands the sig
+ N NTESEQ
  K ^UTILITY($J,"W") S DIWL=1,DIWR=80,DIWF="C80"
  S XX=0 F  S XX=$O(^PSRX(RX,"SIG1",XX)) Q:XX'>0  S X=^(XX,0) S Y=X D STRIP S X=Y D ^DIWP
  S YY=0 F  S YY=$O(^UTILITY($J,"W",1,YY)) Q:YY'>0  D
- .I YY=1 S PSXORD(MSG)=$TR($G(PSXORD(MSG))_$G(^(YY,0)),"\","/") Q
- .S MSG=$G(MSG)+1,PSXORD(MSG)=$TR("NTE|7||"_$G(^(YY,0)),"\","/")
+ .I YY=1 S NTESEQ=1,PSXORD(MSG)=$TR($G(PSXORD(MSG))_$G(^(YY,0)),"\","/") Q
+ .S MSG=$G(MSG)+1,PSXORD(MSG)=$TR("NTE|7||"_$G(^(YY,0)),"\","/") D
+ ..I $P($G(^PS(59.7,PSSWSITE,10)),"^",10)="N" S PSXORD(MSG)=$P(PSXORD(MSG),"|",1,2)_"|"_$P(RXY,"^")_"|ENG|"_NTESEQ_"|"_$P(PSXORD(MSG),"|",4,99),NTESEQ=NTESEQ+1
  .Q
  K XX,YY,DIWL,DIWR,DIWF,X,Y,^UTILITY($J,"W"),Z
- I $$PATCH^XPDUTL("PSO*7.0*117"),$P($G(^PS(55,DFN,"LAN")),"^",1) D OTHL1^PSOLBL3(RX) Q:'$O(SIG2(0))
+ I $$PATCH^XPDUTL("PSO*7.0*117"),$P($G(^PS(55,DFN,"LAN")),"^",1),$P($G(^PS(55,DFN,"LAN")),"^",2)=2 D OTHL1^PSOLBL3(RX) D  Q:'$O(SIG2(0))  ;ONLY SEND SPANISH SIG IF PMI PREF (ON PID SEGMENT) IS ALSO SPANISH
+ .S XX=0 F  S XX=$O(SIG2(XX)) Q:'XX  I $O(SIG2(XX))="",SIG2(XX)="" K SIG2(XX) Q  ; IF LAST ENTRY IS NULL, REMOVE IT
+ S NTESEQ=1
  S DIWL=1,DIWR=80,DIWF="C80",(XX,YY)=0
  F  S XX=$O(SIG2(XX)) Q:'XX  S X=SIG2(XX) S Y=X D STRIP S X=Y D ^DIWP
- F  S YY=$O(^UTILITY($J,"W",1,YY)) Q:YY'>0  S MSG=$G(MSG)+1,PSXORD(MSG)=$TR("NTE|7||"_$G(^(YY,0)),"\","/")
- K XX,YY,DIWL,DIWR,DIWF,X,Y,^UTILITY($J,"W"),SIG2
+ S PSSWSITE=+$O(^PS(59.7,0))
+ F  S YY=$O(^UTILITY($J,"W",1,YY)) Q:YY'>0  S MSG=$G(MSG)+1,PSXORD(MSG)=$TR("NTE|7||"_$G(^(YY,0)),"\","/") I $P($G(^PS(59.7,PSSWSITE,10)),"^",10)="N" D
+ .S PSXORD(MSG)=$P(PSXORD(MSG),"|",1,2)_"|"_$P(RXY,"^")_"|SPA|"_NTESEQ_"|"_$P(PSXORD(MSG),"|",4,99),NTESEQ=NTESEQ+1
+ K XX,YY,DIWL,DIWR,DIWF,X,Y,^UTILITY($J,"W"),SIG2,PSSWSITE
  Q
 DGST ; returns PSXDGST
  N RXNUM,RXEX,PTRA,PTRB,ZX,PSXPTR
@@ -145,11 +159,20 @@ COPAYCK ; RECHECK COPAY STATUS FOR EACH FILL
  I $P($G(^PSDRUG(+$G(PSOLBLDR),0)),"^",3)["I"!($P($G(^(0)),"^",3)["S") S COPAY="" Q
  S PSOQI=$G(^PSRX(RX,"IBQ"))
  I PSOQI["1" S COPAY="" Q
- I $G(PSOLBLCP)="" D IBCP^PSOLBL ; CHECK FOR EACH DFN WHETHER EXEMPT (SC OR INCOME EXEMPT - OR IF SERVICE-CONNECTED QUESTION NEEDS TO BE ASKED KEEP COPAY AS IT WAS)
+ I $G(PSOLBLCP)="" D IBCP^PSOLBL ; CHECK WHETHER EXEMPT (SC OR INCOME EXEMPT - OR IF SERVICE-CONNECTED QUESTION NEEDS TO BE ASKED KEEP COPAY AS IT WAS)
  I $G(PSOLBLCP)=0 S COPAY="" Q
- I $G(PSOLBLCP)=1 I $P(PSOQI,"^",2)!($P(PSOQI,"^",3))!($P(PSOQI,"^",4))!($P(PSOQI,"^",5))!($P(PSOQI,"^",6))!($P(PSOQI,"^",7)) S COPAY="" Q
- I $G(PSOLBLCP)=2 I PSOQI["1" S COPAY="" Q
  I $G(PSOLBLCP)=2,'$P($G(^PSRX(RX,"IB")),"^") S COPAY="" Q
  S COPAY=1
  Q
  ;
+DEL5502 ; RX was removed from 52.5 during transmission
+ N DA,DIK
+ S DA=$O(^PSX(550.2,PSXBAT,15,"B",RX,0))
+ S DA(1)=PSXBAT,DIK="^PSX(550.2,"_DA(1)_",15," D ^DIK
+ Q
+WARN ;
+ I '$D(PSSWSITE) S PSSWSITE=+$O(^PS(59.7,0))
+ I $P($G(^PS(59.7,PSSWSITE,10)),"^",10)="N" Q
+ S L=+$L(WARN,",") S W1="" F J=1:1:L S W=$P(WARN,",",J) I +W>0,(+W'>20) S:+W1>0 W1=W1_"~"_W S:+W1=0 W1=W1_W
+ S:+W1>0 $P(X,"|",17)=W1 K WARN,J,W,L,W1
+ Q

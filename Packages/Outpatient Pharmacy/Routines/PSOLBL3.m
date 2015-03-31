@@ -1,5 +1,5 @@
-PSOLBL3 ;BHAM ISC/RTR-Label utility routine ;29-Jul-2010 17:43;SM
- ;;7.0;OUTPATIENT PHARMACY;**117,1009**;DEC 1997
+PSOLBL3 ;BHAM ISC/RTR-Label utility routine ;29-May-2012 14:51;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**117,1009,1015**;DEC 1997;Build 62
  ;External reference ^PS(55 supported by DBIA 2228
  ;
  ;RX must be defined (Internal), Check already done for OERR SIG

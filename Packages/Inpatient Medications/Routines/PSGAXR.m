@@ -1,5 +1,6 @@
 PSGAXR ;BIR/CML3-EXECUTE VARIOUS XREFS ;24 JUN 96 / 12:06 PM
- ;;5.0; INPATIENT MEDICATIONS ;;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**111**;16 DEC 97
+ ;
 ENSS ; set x-refs under 53.1,28
  S ZZ=+$G(^PS(53.1,DA,.2)) S:$D(PSGP)[0 PSGP=$P($G(^PS(53.1,DA,0)),"^",15)_"^1" I 'PSGP,'ZZ K ZZ K:$P(PSGP,"^",2) PSGP Q
  I PSGP D 
@@ -10,8 +11,8 @@ ENSS ; set x-refs under 53.1,28
  K ZZ K:$P(PSGP,"^",2) PSGP Q
  ;
 ENSK ; kill x-refs under 53.1,28
- S:$D(PSGP)[0 PSGP=$P($G(^PS(53.1,DA,0)),"^",15)_"^1" S ZZ=+$G(^PS(53.1,DA,.1))
- I PSGP K ^PS(53.1,"AC",+PSGP,DA),^PS(53.1,"AS",X,+PSGP,DA),^PS(53.1,"AV",+PSGP,DA) K:ZZ ^PS(53.1,"AOD",+PSGP,ZZ,DA)
+ S:$D(PSGP)[0 PSGP=$P($G(^PS(53.1,DA,0)),"^",15)_"^1" S ZZ=+$G(^PS(53.1,DA,.1)),ZZZ=+$G(^PS(53.1,DA,"DSS"))
+ I PSGP K ^PS(53.1,"AC",+PSGP,DA),^PS(53.1,"AS",X,+PSGP,DA),^PS(53.1,"AV",+PSGP,DA) K:ZZ ^PS(53.1,"AOD",+PSGP,ZZ,DA) K:ZZZ ^PS(53.1,"AD",ZZZ,+PSGP,DA)
  K ZZ K:$P(PSGP,"^",2) PSGP Q
  ;
 ENNDS ; set x-refs under 53.1,.1

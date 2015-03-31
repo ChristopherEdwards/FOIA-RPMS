@@ -1,5 +1,5 @@
 PSUUD5 ;BIR/REG - UNIT DOSE PRINTER MODULE ;10 JUL 1999
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**1,7,19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;DBIA(s)
  ; Reference to file #40.8 supported by DBIA 2438
  ;
@@ -23,12 +23,8 @@ PRTSUMS ;
  ; Find first Division/Facility in the summary by division
  ; then DO the PRTALL routine
  S PSUUDSUB="PSUUD_"_PSUJOB
- I '$D(^XTMP(PSUUDSUB,"STATSUM")) D
- .S ^XTMP(PSUUDSUB,"STATSUM",PSUSNDR,1)="Unit Dose Statistical Data Summary for "_PSURP("START")_" through "_PSURP("END")
- .S ^XTMP(PSUUDSUB,"STATSUM",PSUSNDR,2)=" "
- .S ^XTMP(PSUUDSUB,"STATSUM",PSUSNDR,3)="No data to report"
- S PSUFACN=""
- F  S PSUFACN=$O(^XTMP(PSUUDSUB,"STATSUM",PSUFACN)) Q:PSUFACN=""  D PRTALL
+ ;
+ I '$D(^XTMP("PSU_"_PSUJOB,"CBAMIS")) D PRTAMIS  ;Print UD AMIS SUMMARY
  ;
  ; Find the first Division/Facility in the summary by drug by division
  ; then DO the PRTDRUG routine
@@ -40,6 +36,8 @@ PRTSUMS ;
  .S ^XTMP(PSUUDSUB,"DRUGSUM",PSUSNDR,2)=" "
  .S ^XTMP(PSUUDSUB,"DRUGSUM",PSUSNDR,3)="No data to report"
  F  S PSUFACN=$O(^XTMP(PSUUDSUB,"DRUGSUM",PSUFACN)) Q:PSUFACN=""  D PRTDRUG
+ ;
+ ;
  D PULL^PSUCP
  F I=1:1:$L(PSUOPTS,",") S PSUMOD($P(PSUOPTS,",",I))=""
  ;Print routine for Pt. demographics summary/No data when user selects
@@ -68,6 +66,18 @@ PRTALL ; Print the Drug summary of all drugs by Division/Facility
  .S X=^XTMP(PSUUDSUB,"STATSUM",PSUFACN,PSUL) W !,X
  .I PSUL=1 W " for ",PSUDIVNM,!,?72,"PAGE:  1" ; will only ever be one page
  Q
+ ;
+PRTAMIS ;Print UD AMIS summary
+ ;
+ S PSUPGS("PG")=0
+ D PGHDR1
+ S PSUL=3
+ F  S PSUL=$O(^XTMP("PSU_"_PSUJOB,"UDAMIS",PSUL)) Q:PSUL=""  D
+ .I LNCNT+4>IOSL D PGHDR1   ; leave a margin at the bottom
+ .W !,^XTMP("PSU_"_PSUJOB,"UDAMIS",PSUL)
+ .S LNCNT=LNCNT+1
+ ;
+ Q
  ; 
 PRTDRUG ; Print the Drug summary by Drug by Division/Facility
  ; Set page number to 0
@@ -89,7 +99,17 @@ PGHDR ;Increment page number and Write Page Heading
  W !,^XTMP(PSUUDSUB,"DRUGSUM",PSUFACN,1) ;Print 1st line
  W " for ",PSUDIVNM ; add division name
  S PSUPGS("PG")=PSUPGS("PG")+1
- W !,^XTMP(PSUUDSUB,"DRUGSUM",PSUFACN,2),?72,"PAGE: ",PSUPGS("PG")                       ;Print page number
+ W !,^XTMP(PSUUDSUB,"DRUGSUM",PSUFACN,2),?72,"PAGE: ",PSUPGS("PG")
  F PSUH=3:1:7 W !,$G(^XTMP(PSUUDSUB,"DRUGSUM",PSUFACN,PSUH))  ;Print next 5 lines  
  Q
  ;
+PGHDR1 ;Page headers for AMIS summary report
+ ;
+ U IO
+ W @IOF
+ W !,^XTMP("PSU_"_PSUJOB,"UDAMIS",1)
+ W !!,?68,"Page: ",PSUPGS("PG")
+ S PSUPGS("PG")=PSUPGS("PG")+1
+ W !,$G(^XTMP("PSU_"_PSUJOB,"UDAMIS",2))
+ S LNCNT=3
+ Q

@@ -1,5 +1,5 @@
-GMRAUTL2 ;SLC/DAN New style index utilities, update utility for 120.8 ;21-Jun-2012 08:34;DU
- ;;4.0;Adverse Reaction Tracking;**23,36,1005**;Mar 29, 1996;Build 30
+GMRAUTL2 ;SLC/DAN New style index utilities, update utility for 120.8 ;21-Jun-2012 08:36;DU
+ ;;4.0;Adverse Reaction Tracking;**23,36,1005,1006**;Mar 29, 1996;Build 29
  ;
  N GMRAI,GMRAC,ENTRY,UPDATED
  Q:$G(X1(1))=$G(X2(1))  ;Entry unchanged
@@ -125,6 +125,7 @@ TOP10 ;Check top 10 reactions after push of file 120.83
  S SUB=0 F  S SUB=$O(^GMRD(120.84,SUB)) Q:'+SUB  I $D(^GMRD(120.84,SUB,1)) D
  .S REAC=0 F  S REAC=$O(^GMRD(120.84,SUB,1,REAC)) Q:'+REAC  D
  ..S REACNO=$P(^GMRD(120.84,SUB,1,REAC,0),U) Q:'+REACNO
+ ..;IHS/MSC/MGH checks added
  ..I $$SCREEN^XTID(120.83,.01,REACNO_",")!($$CHECKS^GMRAPER0(REACNO)) D
  ...S SUBNM=$P(^GMRD(120.84,SUB,0),U),REACNM=$P(^GMRD(120.83,REACNO,0),U)
  ...S ARRAY(SUBNM,REACNM)=""

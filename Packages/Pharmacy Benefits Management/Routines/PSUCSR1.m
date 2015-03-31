@@ -1,11 +1,9 @@
 PSUCSR1 ;BIR/DJM - Drug breakdown ;25 AUG 1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**1,6,19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ; DBIA(s)
  ; Reference to file #40.8 supported by DBIA 2438
  ;
 EN ;EP -- DRUG BREAKDOWN REPORT
- ;S Y=PSUSDT\1 X ^DD("DD") S PSUDTS=Y ;    start date
- ;S Y=PSUEDT\1 X ^DD("DD") S PSUDTE=Y ;    end date
  ;
  S RC="^XTMP(PSUCSJB,""RECORDS"",PSUDIV,PSUTIEN,PSURC)"
  I $G(@RC@(0))'=2 Q
@@ -37,16 +35,44 @@ EN ;EP -- DRUG BREAKDOWN REPORT
  ;
  ;
 GENREP(PSUMSG) ;EP - Generate the report based on the collected information
- S PSUCSJB="PSUCS_"_PSUJOB
- S PWX=PSUCSJB
- S PSUMC=0
- F  S PSUMC=$O(^XTMP(PSUCSJB,"REPORT",PSUMC)) Q:PSUMC=""  D
- . I '$D(^XTMP(PSUCSJB,"MAIL",PSUMC)) Q
- . S PSUPG("PG")=1 D PGHDR
- . S PSULC=6 F  S PSULC=$O(^XTMP(PSUCSJB,"MAIL",PSUMC,PSULC)) Q:$G(PSUQUIT)  Q:PSULC=""  D
- .. W !,^XTMP(PSUCSJB,"MAIL",PSUMC,PSULC) D PG
- . W @IOF ; This should be a form feed
+ ;
+ S PSUPGS("PG")=1
+ D PGHDR1
+ S PSUL=3
+ F  S PSUL=$O(^XTMP("PSU_"_PSUJOB,"CSAMIS",PSUL)) Q:PSUL=""  D
+ .I LNCNT+4>IOSL D PGHDR1
+ .W !,^XTMP("PSU_"_PSUJOB,"CSAMIS",PSUL)
+ .S LNCNT=LNCNT+1
  Q
+COMBO(PSUMSG) ;EP - Generate the report based on the collected information
+ ;
+ S PSUPGS("PG")=1
+ D PGHDR2
+ S PSUL=3
+ F  S PSUL=$O(^XTMP("PSU_"_PSUJOB,"COMBOAMIS",PSUL)) Q:PSUL=""  D
+ .I LNCNT+4>IOSL D PGHDR2
+ .W !,^XTMP("PSU_"_PSUJOB,"COMBOAMIS",PSUL)
+ .S LNCNT=LNCNT+1
+ Q
+ ;
+PGHDR1 ;AMIS PAGE HEADER
+ U IO
+ W @IOF
+ W !,^XTMP("PSU_"_PSUJOB,"CSAMIS",1)
+ W !!,?68,"Page: ",PSUPGS("PG")
+ W !,$G(^XTMP("PSU_"_PSUJOB,"IVAMIS",2))
+ S LNCNT=3
+ Q
+ ;
+PGHDR2 ;COMBO AMIS PAGE HEADER
+ U IO
+ W @IOF
+ W !,^XTMP("PSU_"_PSUJOB,"COMBOAMIS",1)
+ W !!,?68,"Page: ",PSUPGS("PG")
+ W !,$G(^XTMP("PSU_"_PSUJOB,"COMBOAMIS",2))
+ S LNCNT=3
+ Q
+ ;
 PG ;EP  Page controller
  S PSUQUIT=0
  I $Y<(IOSL-4) Q
@@ -131,28 +157,8 @@ SUMMRY(PSUMSG,PSUMFL) ; Mail the drug summary report (by division)
  . S PSULC=PSULC+1
  . S @ML@(PSULC)=" # Not on National Formulary"
  ;
- ; Generate the Cost (Statistical) summary report
- S PSUMC=PSUMC+1
- S @ML@(1)=$$CTR("Controlled Substance Statistical Data Summary"," ",75)
- S @ML@(2)="                   "_PSUDTS_" through "_PSUDTE_" for "_PSUDIVNM
- S @ML@(3)=" "
+ Q
  ;
- I $G(PSUTCSO,0)=0 D  G EXIT1
- . S ^XTMP(PSUCSJB,"MAIL",PSUMC)=PSUDIV
- . S @ML@(4)="No data to report"
- . S @ML@(5)=" "
- . S ^XTMP(PSUCSJB,"REPORT",PSUMC)=""
- . S PSUTLC=PSUTLC+5
- . S ^XTMP(PSUCSJB,"SUMMARY 1",PSUMC)="" ; flag for XMY & MM sending
- ;
- S ^XTMP(PSUCSJB,"MAIL",PSUMC)=PSUDIV
- S @ML@(4)="Total Control Substance Orders: "_$G(PSUTCSO,0)
- S @ML@(5)="Total cost: $ "_$TR($J($G(PSUTCST,0),10,2)," ","")
- S @ML@(6)="Average Cost per Order: $ "_$TR($J(($G(PSUTCST,0)/$G(PSUTCSO,1)),10,2)," ","")
- S @ML@(7)=" "
- S PSUTLC=PSUTLC+7
- S ^XTMP(PSUCSJB,"REPORT",PSUMC)="" ; trigger print report
- S ^XTMP(PSUCSJB,"SUMMARY 1",PSUMC)="" ; flag for XMY & MM sending
 EXIT1 S PSUMLC=0
  Q
 PAD(S,P,L) ; Pad string S with P to length L

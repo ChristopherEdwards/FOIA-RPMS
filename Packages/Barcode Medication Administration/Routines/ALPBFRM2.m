@@ -1,5 +1,5 @@
-ALPBFRM2 ;OIFO-DALLAS MW,SED,KC-STANDARD SCREEN DISPLAY FORMATTING UTILITIES ;01/01/03
- ;;2.0;BAR CODE MED ADMIN;**17**;May 2002
+ALPBFRM2 ;OIFO-DALLAS MW,SED,KC-SCREEN DISPLAY FORMATTING UTIL ;01/01/03
+ ;;3.0;BAR CODE MED ADMIN;**8**;Mar 2004
  ;
 F80(DATA,MLDATE,RESULTS) ; format basic output for screen (80-column) display...
  ; DATA = array passed by reference containing the data record to be formatted

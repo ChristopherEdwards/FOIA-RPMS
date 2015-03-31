@@ -1,5 +1,5 @@
 ORWDLR33 ; SLC/KCM/REV/JDL - Lab Calls ; 7/1/2002 11AM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,141**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,85,141,243**;Dec 17, 1997;Build 242
  ;
 STOP(VAL,X2)       ; return a calculated stop date
  N X1,X
@@ -7,13 +7,15 @@ STOP(VAL,X2)       ; return a calculated stop date
  Q
 MAXDAYS(Y,LOC,SCHED) ; Return max number of days for a continuing order
  N TMP1,TMP2
+ K ^TMP($J,"ORWDLR33 MAXDAYS")
  S TMP1=$$GET^XPAR("ALL^LOC.`"_+LOC,"LR MAX DAYS CONTINUOUS",1,"Q")
  I +TMP1=0 S Y="-1" Q
- I +$G(SCHED)>0 S TMP2=$P($G(^PS(51.1,SCHED,0)),U,7)
+ I +$G(SCHED)>0 D ZERO^PSS51P1(SCHED,,,,"ORWDLR33 MAXDAYS") S TMP2=$G(^TMP($J,"ORWDLR33 MAXDAYS",SCHED,2.5)) K ^TMP($J,"ORWDLR33 MAXDAYS")
  E  S TMP2=0
  I +TMP1=0,+TMP2>0 S Y=TMP2 Q
  I +TMP2=0,+TMP1>0 S Y=TMP1 Q
  S Y=$S(+TMP1>+TMP2:+TMP2,+TMP2>+TMP1:+TMP1,+TMP1=+TMP2:+TMP1,1:0)
+ K ^TMP($J,"ORWDLR33 MAXDAYS")
  Q
 ALLSPEC(Y,FROM,DIR) ; Return a set of specimens from topography file
  N I,IEN,CNT S I=0,CNT=44
@@ -81,4 +83,11 @@ LASTTIME(ORY)   ; Get last collection time used from ^TMP("ORECALL",$J) array
  S ORTYPE=$O(^ORD(101.41,"B","OR GTX COLLECTION TYPE",0))
  S ORTIME=$O(^ORD(101.41,"B","OR GTX START DATE/TIME",0))
  S ORY=$$RECALL^ORCD(ORTYPE,1)_U_$$RECALL^ORCD(ORTIME,1)
+ Q
+LCTOWC(ORTXT,ORLOC)     ; return text instructing user when LC changed to WC on accept/release
+ N ORDIV,ORSVC
+ S ORDIV=DUZ(2)
+ S ORSVC=+$G(^VA(200,DUZ,5))
+ I ORSVC S ORTXT=$$GET^XPAR(+$G(ORLOC)_";SC("_"^"_+$G(ORSVC)_";DIC(49,^"_+$G(ORDIV)_";DIC(4,^SYS^PKG","ORWLR LC CHANGED TO WC",1,"I")
+ E  S ORTXT=$$GET^XPAR(+$G(ORLOC)_";SC("_"^SVC^"_+$G(ORDIV)_";DIC(4,^SYS^PKG","ORWLR LC CHANGED TO WC",1,"I")
  Q

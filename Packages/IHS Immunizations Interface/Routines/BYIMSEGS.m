@@ -1,15 +1,28 @@
 BYIMSEGS ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3**;JAN 15, 2013;Build 79
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3,4**;NOV 01, 2013;Build 189
  ;
- ;this routine will contain code to supplement fields in the
- ;HL7 segments
+ ;code to supplement fields in the HL7 segments
  ;
 PV1 ;EP;FOR PV1 SEGMENT CONTENT
+ D PV13
  D PV120
+ D PV144
+ Q
+ ;-----
+PV13 ;PV1-03 PAT LOC
+ S INA("PV13",1)=""
  Q
  ;-----
 PV120 ;PV1-20 VFC
  S INA("PV120",1)=$$VFC^BYIMIMM3(INDA)
+ Q
+ ;-----
+PV144 ;VISIT DATE
+ N X,Y,Z
+ S INA("PV144",1)=""
+ S X=$P($G(^AUPNVSIT(+$G(INDA),0)),".")
+ Q:$L(X)'=7
+ S INA("PV144",1)=X+17000000
 PV1END Q
  ;-----
  ;-----
@@ -23,11 +36,8 @@ PD1 ;EP;
  D PD118
  Q
  ;-----
-PD13 ;setup for PD13 variable - location
- S INA("PD13",1)=""
+PD13 ;PD1-3 variable - location
  S INA("PD13",1)=$G(BYIM("PD13.1"))_CS_$G(BYIM("PD13.2"))
- Q:$L(INA("PD13",1))>1
- S INA("PD13",1)=$P($G(^AUTTLOC(+$G(DUZ(2)),0)),U,10)_CS_$P($G(^DIC(4,+$G(DUZ(2)),0)),U)
  Q
  ;-----
 PD111 ;PD1-11 PUBLICITY
@@ -40,7 +50,8 @@ PD112 ;PD1-12
  ;-----
 PD113 ;PD1-13
  S INA("PD113",1)=$$PROTDT^BYIMIMM3(INDA)
- S:INA("PD113",1)="" INA("PD113",1)=DT+17000000
+ S:INA("PD112",1)="" INA("PD113",1)=""
+ I INA("PD112",1)]"",INA("PD113",1)="" S INA("PD113",1)=DT+17000000
  Q
  ;-----
 PD116 ;PD1-16
@@ -56,7 +67,7 @@ PD117 ;PD1-17
 PD118 ;PD1-18
  I INA("PD111",1)="" S INA("PD118",1)="" Q
  S INA("PD118",1)=$$PUBDT^BYIMIMM3(INDA)
- S:INA("PD118",1)="" INA("PD113",1)=DT+17000000
+ S:INA("PD118",1)="" INA("PD118",1)=DT+17000000
  Q
  ;-----
 PD1END Q
@@ -92,31 +103,35 @@ ORC5 ;
  Q
  ;-----
 ORC10 ;entered by
- S BYIMPRV=$P($G(^AUPNVIMM(+INDA,12)),U,14)
- D:'BYIMPRV
- .S BYIMVST=$P($G(^AUPNVIMM(+INDA,0)),U,3)
- .S BYIMPRV=$P($G(^AUPNVIMM(+INDA,12)),U,2)
- .S:'BYIMPRV BYIMPRV=$P($G(^AUPNVIMM(+INDA,12)),U,4)
- .I 'BYIMPRV D
- ..S BYIMPRV=$O(^AUPNVPRV("AD",+BYIMVST,0))
- ..S BYIMPRV=+$G(^AUPNVPRV(+BYIMPRV,0))
- Q:'BYIMPRV
- S NPI=$$NPI(BYIMPRV)
- S INA("ORC10",INDA)=NPI_CS_$$PN^INHUT($$VAL^XBDIQ1(200,BYIMPRV,.01))
- S:$P(INA("ORC10",INDA),CS)]"" INA("ORC10",INDA)=INA("ORC10",INDA)_CS_CS_"IHS"
+ N P,X,Y,Z
+ S INA("ORC10",INDA)=""
+ S P=+$P(X12,U,14)
+ S:'P P=+$P(V0,U,23)
+ S X=$P($G(^VA(200,P,0)),U)
+ Q:X=""
+ S NPI=$$NPI(P)
+ S Y=$P($P(X,",",2)," ")
+ S Z=$P($P(X,",",2)," ",2)
+ S X=NPI_CS_$P(X,",")_CS_Y_CS_Z_CS_CS_CS_CS_CS_$S(NPI]"":"IHS",1:"")_CS_"L"
+ S INA("ORC10",INDA)=X
  Q
  ;-----
 ORC12 ;ordering provider
- S BYIMVST=$P($G(^AUPNVIMM(+INDA,0)),U,3)
- S BYIMPRV=$P($G(^AUPNVIMM(+INDA,12)),U,2)
- S:'BYIMPRV BYIMPRV=$P($G(^AUPNVIMM(+INDA,12)),U,4)
- I 'BYIMPRV D
- .S BYIMPRV=$O(^AUPNVPRV("AD",+BYIMVST,0))
- .S BYIMPRV=+$G(^AUPNVPRV(+BYIMPRV,0))
- Q:'BYIMPRV
- S NPI=$$NPI(BYIMPRV)
- S INA("ORC12",INDA)=NPI_CS_$$PN^INHUT($$VAL^XBDIQ1(200,BYIMPRV,.01))
- S:$P(INA("ORC12",INDA),CS)]"" INA("ORC12",INDA)=INA("ORC12",INDA)_CS_CS_"IHS"
+ N P,X,Y,Z
+ S INA("ORC12",INDA)=""
+ S P=+$P(X12,U,2)
+ S:'P P=+$P(X12,U,4)
+ D:'P
+ .S Y=+$P($G(^AUPNVIMM(+INDA,0)),U,3)
+ .S P=+$O(^AUPNVPRV("AD",Y,0))
+ .S P=+$G(^AUPNVPRV(P,0))
+ S X=$P($G(^VA(200,P,0)),U)
+ Q:X=""
+ S NPI=$$NPI(P)
+ S Y=$P($P(X,",",2)," ")
+ S Z=$P($P(X,",",2)," ",2)
+ S X=NPI_CS_$P(X,",")_CS_Y_CS_Z_CS_CS_CS_CS_CS_$S(NPI]"":"IHS",1:"")_CS_"L"
+ S INA("ORC12",INDA)=X
  Q
  ;-----
 ORC17 ;setup for ORC17 variable - location
@@ -149,11 +164,11 @@ RXA2 ;admin subid
  Q
  ;-----
 RXA3 ;admin date/time
- S INA("RXA3",INDA)=$P($$TIMEIO^INHUT10($P(V0,U)),"-")
+ S INA("RXA3",INDA)=$E($P($$TIMEIO^INHUT10($P(V0,U)),"-"),1,8)
  Q
  ;-----
 RXA4 ;date/time entered
- S INA("RXA4",INDA)=$P($$TIMEIO^INHUT10($P(V0,U)),"-")
+ S INA("RXA4",INDA)=$E($P($$TIMEIO^INHUT10($P(V0,U)),"-"),1,8)
  Q
  ;-----
 RXA5 ;admin code
@@ -166,29 +181,36 @@ RXA5 ;admin code
 RXA6 ;dose
  N X
  S X=+$P(X0,U,11)
+ S:$E(X)="." X="0"_X
+ S:'X!($P(X0,U,7)="E") X="999"
  S INA("RXA6",INDA)=X
- S:'X INA("RXA6",INDA)="999"
  Q
  ;-----
 RXA7 ;quantity definition
  S INA("RXA7",INDA)=""
- S:INA("RXA6",INDA) INA("RXA7",INDA)="mL^milliters^UCUM"
+ S:INA("RXA6",INDA) INA("RXA7",INDA)="mL^MilliLiters^UCUM"
  Q
  ;-----
 RXA9 ;admin history
  S INA("RXA9",INDA)=$$HX1^BYIMIMM3(INDA)_CS_$$HX2^BYIMIMM3(INDA)_CS_"NIP001"
+ S:INA("RXA9",INDA) INA("RXA6",INDA)=999
  Q
  ;-----
-RXA10 ;ordering provider
+RXA10 ;encounter provider
+ N X,Y,Z
  S INA("RXA10",INDA)=""
- Q:'$P(X12,U,4)
- N N,P
- S P=$P(X12,U,4)
- Q:'$D(^VA(200,P,0))
+ S P=+$P(X12,U,4)
+ D:'P
+ .S Y=+$P($G(^AUPNVIMM(+INDA,0)),U,3)
+ .S P=+$O(^AUPNVPRV("AD",Y,0))
+ .S P=+$G(^AUPNVPRV(P,0))
+ S X=$P($G(^VA(200,P,0)),U)
+ Q:X=""
  S N=$$NPI(P)
- S P=$P(^VA(200,P,0),U)
- S INA("RXA10",INDA)=N_CS_$P(P,",")_CS_$P($P(P,",",2)," ")
- S:$P(INA("RXA10",INDA),CS)]"" INA("RXA10",INDA)=INA("RXA10",INDA)_CS_CS_CS_CS_CS_CS_"IHS"
+ S Y=$P($P(X,",",2)," ")
+ S Z=$E($P($P(X,",",2)," ",2))
+ S X=NPI_CS_$P(X,",")_CS_Y_CS_Z_CS_CS_CS_CS_CS_$S(NPI]"":"IHS",1:"")_CS_"L"
+ S INA("RXA10",INDA)=X
  Q
  ;-----
 RXA11 ;location of encounter
@@ -198,7 +220,7 @@ RXA11 ;location of encounter
  I $D(^BYIMPARA(DUZ(2),5,Z,0)) S X=$P(^(0),U,2)
  I '$D(^BYIMPARA(DUZ(2),5,Z,0)) S X=$P($G(^DIC(4,Z,0)),U)
  I $E(X,1,5)="OTHER"!(X=""),$P(V21,U)]"" S X=$P(V21,U)
- S INA("RXA11",INDA)=CS_CS_CS_X
+ S INA("RXA11",INDA)=CS_CS_CS_$P(X," ",1,2)
  Q
  ;-----
 RXA15 ;immunization lot number
@@ -235,12 +257,13 @@ RXA20 ;action code
  ;-----
 RXA21 ;action code
  S INA("RXA21",INDA)="A"
+ S:$D(^BYIMEXP("D",INDA)) INA("RXA21",INDA)="U"
  Q
  ;-----
 RXA22 ;action code
  S X=$P(X12,U)
  S:'X X=$P(V0,U)
- S INA("RXA22",INDA)=$P($$TIMEIO^INHUT10(X),"-")
+ S INA("RXA22",INDA)=$E($P($$TIMEIO^INHUT10(X),"-"),1,8)
 RXAEND Q
  ;-----
  ;-----
@@ -280,7 +303,7 @@ QRD7 ;
  S INA("QRD7")="25^RD"
  Q
  ;-----
-QRD8 ;get the necessary information to build a who string (QRD-8)
+QRD8 ;information to build a who string (QRD-8)
  ;support for multiples built in
  N X,Y,Z
  S X=$P($G(^DPT(BYIMDA,0)),U)
@@ -302,59 +325,6 @@ QRD12 ;
 QRDEND Q
  ;-----
  ;-----
-QRF ;EP; this is the main routine driver
- S INA("INQWHICH")="ANY"
- D QRF1
- D QRF2
- D QRF3
- D QRF5
- Q
- ;-----
-QRF1 ;
- S INA("QRF1")=$P($G(^DIC(4,+$G(DUZ(2)),0)),U)
- Q
-QRF2 ;
- S INA("QRF2")=""
- Q
- ;-----
-QRF3 ;
- ;S INA("INQEDTM")=$G(INA("QEDT"))
- S INA("QRF3")=""
- Q
- ;-----
-QRF5 ;build the other query subject filter
- N BYIMDA,BYIMSSN,BYIMDOB,BYIMBST,BYIMBCN,BYIMMCN,BYIMMNM,BYIMMMN,BYIMMSSN,BYIMFNM
- S BYIMDA=$O(INA("QNM",0))
- Q:'BYIMDA
- N X,Y,Z,X0,X24
- S X0=$G(^DPT(BYIMDA,0))
- Q:X0=""
- S BYIMSSN=$TR($P(X0,U,9),"-")
- S BYIMDOB=$P(X0,U,3)+17000000
- S BYIMBST=$P($G(^DIC(5,+$P(X0,U,12),0)),U,2)
- S BYIMBCN=$P($G(^AUPNPAT(BYIMDA,11)),U,5)
- S BYIMMCN=""
- S BYIMMNM=""
- S BYIMMMN=""
- S BYIMMSSN=""
- S BYIMFNM=""
- S X24=$G(^DPT(BYIMDA,.24))
- S X=$P(X24,U,2)
- S:X]"" BYIMMNM=$$QRFNAME(X)
- S X=$P(X24,U,3)
- S:X]"" BYIMMMN=$$QRFNAME(X)
- S X=$P(X24,U)
- S:X]"" BYIMFNM=$$QRFNAME(X)
- S BYIMFSSN=""
- S INA("QRF5")=BYIMSSN_RS_BYIMDOB_RS_BYIMBST_RS_BYIMBCN_RS_BYIMMCN_RS_BYIMMNM_RS_BYIMMMN_RS_BYIMMSSN_RS_BYIMFNM_RS_BYIMFSSN
- Q
- ;-----
-QRFNAME(NAME) ;FORMAT NAME
- Q:NAME="" ""
- S X=$P(NAME,",")_U_$P($P(NAME,",",2)," ")
- S:NAME[" " X=X_U_$P(NAME," ",2)
- Q X
-QRFEND Q
  ;-----
  ;-----
 FHS ;EP;
@@ -398,23 +368,24 @@ MSH ;EP;entry point
  Q
  ;-----
 MSH3 ;
- S X=BYIM("MSH31")
+ S X=BYIM("MSH3.1")
  S:X="" X="RPMS"
- S INA("MSH3")=X ;_CS_BYIM("MSH32")_CS_"ISO"
+ I BYIM("MSH3.2")]"" S X=X_CS_BYIM("MSH3.2")_CS_"ISO"
+ S INA("MSH3")=X
  Q
  ;-----
 MSH4 ;
  N X
- S X=BYIM("MSH41")
+ S X=BYIM("MSH4.1")
  S:X="" X=$P($G(^DIC(4,+$G(DUZ(2)),0)),U)
- I BYIM("MSH41")="",BYIM("MSH42")="" S INA("MSH4")=X Q
- I BYIM("MSH41")]"" S INA("MSH4")=X Q
- I BYIM("MSH41")="",BYIM("MSH42")]"" S INA("MSH4")=CS_BYIM("MSH42")_CS_BYIM("MSH43") Q
+ I BYIM("MSH4.2")]"" S X=X_CS_BYIM("MSH4.2")_CS_"ISO"
  S INA("MSH4")=X
  Q
  ;-----
 MSH5 ;
- S INA("MSH5")=""
+ S X=BYIM("MSH5.1")
+ I BYIM("MSH5.2")]"" S X=X_CS_BYIM("MSH5.2")_CS_"ISO"
+ S INA("MSH5")=X
  Q
  ;-----
 MSH6 ;
@@ -450,7 +421,7 @@ MSH12 ;
 MSHEND Q
  ;-----
  ;-----
-NK1 ;-- this will generate the IHS NK1 segment
+NK1 ;-- this will generate the NK1 segment
  D NK11
  D NK12
  D NK13
@@ -459,8 +430,8 @@ NK1 ;-- this will generate the IHS NK1 segment
  Q
  ;-----
 NK11 ;subid
- S INA("NK11",1)="1"
  S INA("NK11")="1"
+ S INA("NK11",1)="1"
  Q
  ;-----
 NK12 N X,FN,LN,MN
@@ -468,40 +439,58 @@ NK12 N X,FN,LN,MN
  S LN=$P(X,",")
  S FN=$P($P(X,",",2)," ")
  S MN=$P(X," ",2)
- S INA("NK12",1)=LN_CS_FN_CS_MN_CS_CS_CS_CS_"L"
  S INA("NK12")=LN_CS_FN_CS_MN_CS_CS_CS_CS_"L"
+ S INA("NK12",1)=INA("NK12")
  Q
  ;-----
 NK13 N X
  S X=$P($G(^DPT(INDA,.21)),U,2)
- S Y=$S(X="":"",X="MOTHER":"MTH",X="FATHER":"FTH",1:"GRD")
- S INA("NK13",1)=Y_CS_X_CS_"HL70063"
+ S Y=""
+ S:X="BROTHER" Y="BRO"
+ S:X="CARE GIVER" Y="CGV"
+ S:X="FOSTER CHILD" Y="FCH"
+ S:X="FATHER" Y="FTH"
+ S:X="GUARDIAN" Y="GUARDIAN"
+ S:X="GRANDPARENT" Y="GRP"
+ S:X="MOTHER" Y="MTH"
+ S:X="OTHER" Y="OTH"
+ S:X="PARENT" Y="PAR"
+ S:X="STEPCHILD" Y="SCH"
+ S:X="SELF" Y="SELF"
+ S:X="SIBLING" Y="SIB"
+ S:X="SISTER" Y="SIS"
+ S:X="SPOUSE" Y="SPO"
+ S:Y="" Y="GRD"
+ S:Y="GRD" X="GUARDIAN"
  S INA("NK13")=Y_CS_X_CS_"HL70063"
+ S INA("NK13",1)=INA("NK13")
  Q
  ;-----
 NK14 ;NOK ADDRESS
  S X=$P($G(^DPT(+INDA,.21)),U,3,8)
- S INA("NK14",1)=$P(X,U)_CS_CS_$P(X,U,4)_CS_$P($G(^DIC(5,+$P(X,U,5),0)),U,2)_CS_$P(X,U,6)_CS_"USA"_CS_"P"
- S INA("NK14")=$P(X,U)_CS_CS_$P(X,U,4)_CS_$P($G(^DIC(5,+$P(X,U,5),0)),U,2)_CS_$P(X,U,6)_CS_"USA"_CS_"P"
+ S X=$P(X,U)_CS_CS_$P(X,U,4)_CS_$P($G(^DIC(5,+$P(X,U,5),0)),U,2)_CS_$P(X,U,6)_CS_"USA"_CS_"L"
+ S INA("NK14")=X
+ S INA("NK14",1)=X
  Q
  ;-----
 NK15 ;PHONE NUMBER
- S INA("NK15",1)=""
+ S INA("NK15")=""
  S X=$P($G(^DPT(INDA,.21)),U,9)
  S X=$TR(X,"()\/- ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
  S:$E(X)=1 X=$E(X,2,99)
  I X'?10N S INA("NK15",1)="" Q
  D:BYIMVER["2.5"
- .S INA("NK15",1)=CS_"PRN"_CS_"PH"_CS_CS_CS_$E(X,1,3)_CS_$E(X,4,10)
  .S INA("NK15")=CS_"PRN"_CS_"PH"_CS_CS_CS_$E(X,1,3)_CS_$E(X,4,10)
+ .S INA("NK15",1)=INA("NK15")
  D:BYIMVER'["2.5"
- .S INA("NK15",1)="("_$E(X,1,3)_")"_$E(X,4,6)_"-"_$E(X,7,10)_CS_"PRN"_CS_"PH"
  .S INA("NK15")="("_$E(X,1,3)_")"_$E(X,4,6)_"-"_$E(X,7,10)_CS_"PRN"_CS_"PH"
+ .S INA("NK15",1)=INA("NK15")
 NK1END Q
  ;-----
  ;-----
 PID ;EP;
  D PID3
+ D PID5
  D PID7
  D PID10
  D PID11
@@ -511,7 +500,7 @@ PID ;EP;
  D PID24
  Q
  ;-----
-PID3 ;-- this will generate the IHS PID-3 field
+PID3 ;PID-3 HRN
  N X,Y,Z
  S X=$$HRN^BYIMIMM3(INDA)
  S Y=$TR($P($G(^DPT(INDA,0)),U,9),"-")
@@ -520,70 +509,88 @@ PID3 ;-- this will generate the IHS PID-3 field
  S Z=$O(^AUPNMCD("B",INDA,9999999999),-1)
  S:Z Y=$P($G(^AUPNMCD(Z,0)),U,3)
  S:Y]"" X=X_"~"_Y_CS_CS_CS_"MCD"_CS_"MA"
- S INA("PID3",1)=X
  S INA("PID3")=X
+ S INA("PID3",1)=X
+ Q
+ ;-----
+PID5 ;PID-5 NAME
+ N X,Y,Z
+ S X=$P($G(^DPT(INDA,0)),U)
+ S Y=$P($P(X,",",2)," ")
+ S Z=$P($P(X,",",2)," ",2)
+ S X=$P(X,",")
+ S INA("PID5")=X_CS_Y_CS_Z_CS_CS_CS_CS_"L"
+ S INA("PID5",1)=INA("PID5")
  Q
  ;-----
 PID7 ;PID-7 DOB
- S INA("PID7",1)=17000000+$P($G(^DPT(INDA,0)),U,3)
- S INA("PID7")=INA("PID7",1)
+ S INA("PID7")=17000000+$P($G(^DPT(INDA,0)),U,3)
+ S INA("PID7",1)=INA("PID7")
  Q
  ;-----
 PID10 ;PID-10 RACE
- S INA("PID10",1)=$$RACE^BYIMIMM3(INDA)
- S INA("PID10")=INA("PID10",1)
+ S INA("PID10")=$$RACE^BYIMIMM3(INDA)
+ S INA("PID10",1)=INA("PID10")
  Q
  ;-----
 PID11 ;PID-11 ADDRESS
  S X=$G(^DPT(+INDA,.11))
- S INA("PID11",1)=$P(X,U)_CS_CS_$P(X,U,4)_CS_$P($G(^DIC(5,+$P(X,U,5),0)),U,2)_CS_$P(X,U,6)_CS_"USA"_CS_"P"
- S INA("PID11")=$P(X,U)_CS_CS_$P(X,U,4)_CS_$P($G(^DIC(5,+$P(X,U,5),0)),U,2)_CS_$P(X,U,6)_CS_"USA"_CS_"P"
+ S INA("PID11")=$P(X,U)_CS_CS_$P(X,U,4)_CS_$P($G(^DIC(5,+$P(X,U,5),0)),U,2)_CS_$P(X,U,6)_CS_"USA"_CS_"L"
+ S INA("PID11",1)=INA("PID11")
  Q
  ;-----
 PID13 ;PID-13 PHONE HOME
+ S INA("PID13")=""
  S INA("PID13",1)=""
  S X=$P($G(^DPT(INDA,.13)),U)
  S X=$TR(X,"()\/- ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
  S:$E(X)=1 X=$E(X,2,99)
- I X'?10N S INA("PID13",1)="" Q
- D:BYIMVER["2.5"
- .S INA("PID13",1)=CS_"PRN"_CS_"PH"_CS_CS_CS_$E(X,1,3)_CS_$E(X,4,10)
- .S INA("PID13")=CS_"PRN"_CS_"PH"_CS_CS_CS_$E(X,1,3)_CS_$E(X,4,10)
- D:BYIMVER'["2.5"
- .S INA("PID13",1)="("_$E(X,1,3)_")"_$E(X,4,6)_"-"_$E(X,7,10)_CS_"PRN"_CS_"PH"
- .S INA("PID13")="("_$E(X,1,3)_")"_$E(X,4,6)_"-"_$E(X,7,10)_CS_"PRN"_CS_"PH"
+ I X'?10N S INA("PID13")=""
+ D:X?10N
+ .D:BYIMVER>2.4
+ ..S INA("PID13")=CS_"PRN"_CS_"PH"_CS_CS_CS_$E(X,1,3)_CS_$E(X,4,10)
+ ..S INA("PID13",1)=INA("PID13")
+ .D:BYIMVER<2.5
+ ..S INA("PID13")="("_$E(X,1,3)_")"_$E(X,4,6)_"-"_$E(X,7,10)_CS_"PRN"_CS_"PH"
+ ..S INA("PID13",1)=INA("PID13")
+ S X=$P($G(^AUPNPAT(INDA,18)),U,2)
+ Q:X=""
+ S X="~^NET^^"_X
+ S INA("PID13")=INA("PID13")_X
+ S INA("PID13",1)=INA("PID13")
  Q
  ;-----
 PID14 ;PID-14 PHONE BUSINESS
+ S INA("PID14")=""
  S INA("PID14",1)=""
  S X=$P($G(^DPT(INDA,.13)),U,2)
  S X=$TR(X,"()\/- ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
  S:$E(X)=1 X=$E(X,2,99)
  I X'?10N S INA("PID14",1)="" Q
  D:BYIMVER["2.5"
- .S INA("PID14",1)=CS_"PRN"_CS_"PH"_CS_CS_CS_$E(X,1,3)_CS_$E(X,4,10)
  .S INA("PID14")=CS_"PRN"_CS_"PH"_CS_CS_CS_$E(X,1,3)_CS_$E(X,4,10)
+ .S INA("PID14",1)=INA("PID14")
  D:BYIMVER'["2.5"
- .S INA("PID14",1)="("_$E(X,1,3)_")"_$E(X,4,6)_"-"_$E(X,7,10)_CS_"PRN"_CS_"PH"
  .S INA("PID14")="("_$E(X,1,3)_")"_$E(X,4,6)_"-"_$E(X,7,10)_CS_"PRN"_CS_"PH"
+ .S INA("PID14",1)=INA("PID14")
  Q
  ;-----
 PID22 ;PID-22 ETHNICITY
- S INA("PID22",1)=$$ETH^BYIMIMM3(INDA)
- S INA("PID22")=INA("PID22",1)
+ S INA("PID22")=$$ETH^BYIMIMM3(INDA)
+ S INA("PID22",1)=INA("PID22")
  Q
  ;-----
 PID24 ;PID-24 BIRTH ORDER
- S INA("PID24",1)="N"
  S INA("PID24")="N"
+ S INA("PID24",1)="N"
 PIDEND Q
  ;-----
  ;-----
-RCP ;-- setup the variables for the RCP segment
+RCP ;-- setup variables for RCP segment
 RCPEND Q
  ;-----
  ;-----
-QPD ;-- setup the variables for the QPD segment
+QPD ;-- setup variables for QPD segment
 QPDEND Q
  ;-----
  ;-----
@@ -614,6 +621,8 @@ RXR2 ;
  S X=$P(X0,U,9)
  Q:X=""
  S R=$E(X,1,2)
+ S:R="LD" R="LA"
+ S:R="RD" R="RA"
  S:R="LT" INA("RXR2",INDA)=R_CS_"Left Thigh"_CS_"HL70163"
  S:R="LA" INA("RXR2",INDA)=R_CS_"Left Arm"_CS_"HL70163"
  S:R="LD" INA("RXR2",INDA)=R_CS_"Left Deltoid"_CS_"HL70163"
@@ -640,7 +649,7 @@ VSET(INDA) ;SET VISIT VARIABLES
  ;-----
  ;-----
 NPI(PRV) ;
- S NPI=$P($G(^VA(200,PRV,"NPI")),U)
+ S NPI=$P($G(^VA(200,+PRV,"NPI")),U)
  Q NPI
  ;-----
  ;-----

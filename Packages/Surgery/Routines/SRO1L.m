@@ -1,14 +1,16 @@
-SRO1L ;BIR/ADM - Update 1-Liner Cases ; [ 06/10/99  9:36 AM ]
- ;;3.0; Surgery ;**86,88,107**;24 Jun 93
- I '$D(SRSITE) D ^SROVAR
+SRO1L ;BIR/ADM - Update 1-Liner Cases ; [ 07/7/03  9:05 AM ]
+ ;;3.0; Surgery ;**86,88,107,121,125**;24 Jun 93
+ST I '$D(SRSITE) D ^SROVAR
 EN2 S SRSOUT=0 K SRTN D SROPS G:'$D(SRTN) END
  D ^SRO1L1 S SROERR=SRTN D ^SROERR0
  W @IOF G EN2
 END D ^SRSKILL K SRTN W @IOF
  Q
 SROPS ; select patient and case
- W ! S SRSOUT=0 K DIC S DIC("A")="Select Patient: ",DIC=2,DIC(0)="QEAM" D ^DIC K DIC I Y<0 S SRSOUT=1 G END
- S DFN=+Y D DEM^VADPT D HDR
+ N SRSEL S (CNT,SRDT)=0 D ^SROPSEL G:SRSOUT END D HDR
+ I SRSEL=2 K SRCASE D LIST I '$D(SRCASE(1)) W !!,"Case #"_SROP_" is not a valid 1-liner case.",!!,"Press RETURN to continue  " R X:DTIME G ST
+ I SRSEL=2 S SRTN=+SRCASE(1) Q
+ ;
 ADT S (SRDT,CNT,SRBACK)=0 F  S SRDT=$O(^SRF("ADT",DFN,SRDT)) Q:'SRDT!SRSOUT!$D(SRTN)!SRBACK  S SROP=0 F  S SROP=$O(^SRF("ADT",DFN,SRDT,SROP)) Q:'SROP!$D(SRTN)!SRSOUT!SRBACK  D LIST
  G:SRBACK ADT Q:$D(SRTN)
  I '$D(SRCASE(1)) W !!,"There are no cases entered for "_VADM(1)_".",!!,"Press RETURN to continue  " R X:DTIME G END

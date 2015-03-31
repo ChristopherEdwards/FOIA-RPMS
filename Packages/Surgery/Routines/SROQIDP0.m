@@ -1,5 +1,5 @@
-SROQIDP0 ;BIR/ADM-List of Invasive Diagnostic Procedures ; [ 09/22/98  11:46 AM ]
- ;;3.0; Surgery ;**62,77,50**;24 Jun 93
+SROQIDP0 ;BIR/ADM - LIST OF INVASIVE DIAGNOSTIC PROCEDURES ;09/22/98  11:46 AM
+ ;;3.0; Surgery ;**62,77,50,142**;24 Jun 93
  ;
  ;** NOTICE: This routine is part of an implementation of a nationally
  ;**         controlled procedure.  Local modifications to this routine
@@ -17,12 +17,13 @@ SROQIDP0 ;BIR/ADM-List of Invasive Diagnostic Procedures ; [ 09/22/98  11:46 AM 
  .I SRIO'="A" W "TOTAL "_$S(SRIO="I":"INPATIENT",1:"OUTPATIENT")_" CASES: "_SRIOT(SRIO)
  Q
 PRINT ; print case information
- D:$Y+9>IOSL PAGE Q:SRSOUT  S SRL=78 D PROC^SROUTL
+ D:$Y+9>IOSL PAGE Q:SRSOUT  S SRL=78,SRSUPCPT=1 D PROC^SROUTL
  S DFN=$P(SRZ,"^"),SRSS=$P(^SRO(137.45,$P(SRZ,"^",2),0),"^"),Y=$P(SRZ,"^",3),SRIOSTAT=$S(Y="I":"INPATIENT",Y="O":"OUTPATIENT",1:"NOT ENTERED"),SRDOC=$P($G(^SRF(SRTN,.1)),"^",4) I SRDOC S SRDOC=$P(^VA(200,SRDOC,0),"^")
  D DEM^VADPT S SRSNM=VADM(1),SRSSN=VA("PID"),Y=SRSD X ^DD("DD") S SRSDATE=Y,X1=$E(SRSD,1,7),X2=$P(VADM(3),"^"),SRAGE=$E(X1,1,3)-$E(X2,1,3)-($E(X1,4,7)<$E(X2,4,7))
  D TECH^SROPRIN S SRANES=$S(SRTECH'="":SRTECH,1:"NOT ENTERED")
  W !,SRSDATE,?22,SRSNM,?54,$S(SRSPEC:$E(SRDOC,1,27),1:$E(SRSS,1,27)),?89,SRANES,?117,SRIOSTAT
  W !,SRTN,?22,SRSSN_"  ("_SRAGE_")",?54,SRPROC(1),! S I=1 F  S I=$O(SRPROC(I)) Q:'I  W ?54,SRPROC(I),!
+ D:$Y+9>IOSL PAGE Q:SRSOUT  S SRL=78 D PROC^SROUTLN W !,?54,SRPROC(1),! S I=1 F  S I=$O(SRPROC(I)) Q:'I  W ?54,SRPROC(I),!
  Q
 PRESS W !! K DIR S DIR(0)="E" D ^DIR K DIR I $D(DTOUT)!$D(DUOUT) S SRSOUT=1
  Q

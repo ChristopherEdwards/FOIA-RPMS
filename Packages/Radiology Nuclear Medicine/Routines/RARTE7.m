@@ -1,5 +1,5 @@
-RARTE7 ;HISC/SM continuation - Delete a Report, Outside Rpt misc;10/10/08 16:05
- ;;5.0;Radiology/Nuclear Medicine;**56,95,97**;Mar 16, 1998;Build 6
+RARTE7 ;HISC/SM continuation - Delete a Report, Outside Rpt misc;10/10/08 16:05 ; 17 Aug 2011  4:25 PM
+ ;;5.0;Radiology/Nuclear Medicine;**56,95,97,1003**;Nov 01, 2010;Build 3
  ;Supported IA #2053 NOW^XLFDT, FILE^DIE, UPDATE^DIE
  ;Supported IA #2052 GET1^DID
  ;Supported IA #2055 ROOT^DILFD
@@ -109,6 +109,12 @@ SET7401(X) ; use this for DX, Staff, Resident secondaries
  S RAF2=$S(X=5:70.14,X=7:70.11,X=9:70.09,1:"") Q:RAF2=""
  S RAIENS=1_","_RACNI_","_RADTI_","_RADFN_","
  S RAROOT=$$ROOT^DILFD(RAF2,RAIENS,1) ; closed root, file 70's secondaries
+ ;
+ ;IHS/BJI/DAY - Patch 1003 - Fix SYNTAX error when deleting a report
+ ;RAROOT is null when RAF2=70.09
+ I RAROOT="" Q
+ ;End Patch
+ ;
  M RAA=@RAROOT
  Q:$O(RAA(0))'>0  ; no secondaries
  ;

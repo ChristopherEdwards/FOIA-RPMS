@@ -1,5 +1,5 @@
 PSNAPIS ;BIR/DMA-APIs for NDF ; 07/02/03 14:07
- ;;4.0; NATIONAL DRUG FILE;**2,3,47,70**; 30 Oct 98
+ ;;4.0; NATIONAL DRUG FILE;**2,3,47,70,169**; 30 Oct 98;Build 8
  ;
  ;Reference to ^PSDRUG supported by DBIA #2192
  ;Reference to ^PS(50.606 supported by DBIA #2174
@@ -183,3 +183,6 @@ DDIEX(DA,K) ;RETURN X=1 FOR EXCLUDE DDI CHECK, 0 FOR CONTINUE DDI CHECK
  I '$G(^PSNDF(50.68,+K,8)) Q 0
  I $G(^PSNDF(50.68,+K,8)) Q 1
  ;
+OVRIDE(PSNPOV1,PSNPOV3) ;Return Override Dose Form Exclusion
+ I '$G(PSNPOV3) Q ""
+ Q $P($G(^PSNDF(50.68,+PSNPOV3,9)),"^")

@@ -1,5 +1,5 @@
-PSJMPEND ;BIR/CML3-MD MARS - GATHER ACK ORDERS INFO (MDWS) ;20 DEC 96 / 3:15 PM
- ;;5.0; INPATIENT MEDICATIONS ;;16 DEC 97
+PSJMPEND ;BIR/CML3-MD MARS - GATHER ACK ORDERS INFO (MDWS) ; 6/18/07 12:11pm
+ ;;5.0; INPATIENT MEDICATIONS ;**191**;16 DEC 97;Build 9
  ;
 PEND ;*** Only select orders that were acknowledged by nurses and are
  ;*** still having pending status.
@@ -7,6 +7,7 @@ PEND ;*** Only select orders that were acknowledged by nurses and are
  NEW ND,ON,TYPE,QST
  F ON=0:0 S ON=$O(^PS(53.1,"AV",PSGP,ON)) Q:'ON  D
  . S ND=$G(^PS(53.1,ON,0)),TYPE=$P(ND,U,4)
+ . S ND2=$G(^PS(53.1,ON,2)),PSGLSD=$P(ND2,U,2),PSGLFD=$P(ND2,U,4)
  . I $P(ND,U,7)="P"!($P($G(^PS(53.1,ON,2)),U)["PRN") S QST="PZ"_$S($P(ND,U,4)="F":"V",1:"A")
  . E  S QST="CZ"_$S($P(ND,U,4)="F":"V",1:"A")
  . I PSGMTYPE[1 D:TYPE'="F" SETTMP D:TYPE="F" IV
@@ -23,7 +24,7 @@ SETTMP ;*** Setup ^tmp for pending U/D and Inpatient med IVs.
  NEW MARX
  D DRGDISP^PSJLMUT1(PSGP,+ON_"P",20,0,.MARX,1) S DRG=MARX(1)_U_ON
  ;*** Set up ^TMP for sort by patients
- S PSJDOS=$P(^PS(53.1,ON,.2),U,2),PSJMR=$E($S($P(ND,U,3)]"":$P(ND,U,3),1:$P(ND,U)),1,5),PSJSCH=$P($G(^PS(53.1,ON,2)),U)
+ S PSJDOS=$P(^PS(53.1,ON,.2),U,2),PSJMR=$E($S($P(ND,U,3)]"":$P(ND,U,3),1:$P(ND,U)),1,5),PSJSCHE=$P($G(^PS(53.1,ON,2)),U)
  S PSJHOLD=$S($P(ND,U,9)["H":1,1:0),PSGLOD=$P(ND,U,14),PSJATME=9999,PSJADT=$S(QST["C":"8999999",1:"9999999")
  D SI
  I PSGSS="P" D  Q

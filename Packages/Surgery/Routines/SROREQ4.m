@@ -1,5 +1,5 @@
 SROREQ4 ;BIR/MAM - OPERATION REQUESTS (SHORT) ; [ 12/09/99  11:54 AM ]
- ;;3.0; Surgery ;**26,48,92**;24 Jun 93
+ ;;3.0; Surgery ;**26,48,92,161**;24 Jun 93;Build 5
 BEG ; entry when queued
  K ^TMP("SR",$J) U IO S (CNT,DFN,SRSOUT)=0
  S Y=SRSDATE,SRDT=$E(Y,4,5)_"/"_$E(Y,6,7)_"/"_$E(Y,2,3) D D^DIQ S SRSDT=$E(Y,1,12)
@@ -19,7 +19,8 @@ SET ; set ^TMP(
  Q
 PRINT ; print from ^TMP("SR",$J)
  I $Y+7>IOSL D PAGE I SRSOUT Q
- S S(0)=^SRF(SRTN,0),DFN=$P(S(0),"^"),CNT=CNT+1
+ S S(0)=$G(^SRF(SRTN,0)) Q:'S(0)  ; << RJS *161
+ S DFN=$P(S(0),"^"),CNT=CNT+1
  D DEM^VADPT S SRNAME=VADM(1),SROPER=$P(^SRF(SRTN,"OP"),"^"),SRSUR=$P($G(^SRF(SRTN,.1)),"^",4),SRSUR=$S(SRSUR:$P(^VA(200,SRSUR,0),"^"),1:"NOT ENTERED")
  S SRHRS=$P($G(^SRF(SRTN,.4)),"^"),SRD=$E(SRSDATE,4,5)_"/"_$E(SRSDATE,6,7)_"/"_$E(SRSDATE,2,3)
  S:SRHRS="" SRHRS="NOT ENTERED" S C=$P(^DD(130,.035,0),"^",2),Y=$P(S(0),"^",10) D:Y'="" Y^DIQ S SRTYPE=Y,SRANES=$P($G(^SRF(SRTN,"1.0")),"^"),Y=SRANES,C=$P(^DD(130,1.01,0),"^",2) D:Y'="" Y^DIQ S SRANES=Y

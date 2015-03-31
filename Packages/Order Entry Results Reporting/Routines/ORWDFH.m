@@ -1,5 +1,5 @@
 ORWDFH ; SLC/KCM/JLI - Diet Order calls for Windows Dialogs ;12/12/00  14:44
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,92,141,187**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,92,141,187,215,243**;Dec 17, 1997;Build 242
 TXT(LST,DFN)    ; Return text of current & future diets for a patient
  S LST(1)="Current Diet:  "_$$DIET^ORCDFH(DFN)
  N FUTLST D FUT(.FUTLST,DFN) I $D(FUTLST)>1 D
@@ -22,11 +22,16 @@ PARAM(ORLST,ORVP,ORLOC)  ; Return dietetics parameters for a patient at a locati
  ; ORLST(1)=EB1^EB2^EB3^LB1^LB2^LB3^EN1^EN2^...LE2^LE3
  ; ORLST(2)=BAB^BAE^NAB^NAE^EAB^EAE^BegB^BegN^BegE^Bagged
  ; ORLST(3)=type of service^RegIEN^NPOIEN^EarlyIEN^LateIEN^TFIFN
+ ; ORLST(4)=max days in future for outpatient recurring meals
+ ; ORLST(5)=default outpatient diet
  Q:'+ORVP
+ N X,IEN,CURTM
  S ORVP=+ORVP_";DPT(",ORLOC=+ORLOC
- I $D(^SC(ORLOC,42)) S ORLOC=$G(^SC(ORLOC,42))
- E  S ORLOC=0
- D:ORLOC>0 EN1^FHWOR8(ORLOC,.ORLST)
+ S CURTM=$$NOW^XLFDT
+ I +$G(^SC(ORLOC,42)) S ORLOC=$G(^SC(ORLOC,42))_";DIC(42"
+ E  S ORLOC=ORLOC_";SC("
+ D EN1^FHWOR8(ORLOC,.ORLST)
+ ;
  I '$L($G(ORLST(3))) S ORLST(3)="T"
  S $P(ORLST(3),U,2)=$O(^ORD(101.43,"S.DIET","REGULAR",0))
  S $P(ORLST(3),U,3)=$O(^ORD(101.43,"S.DIET","NPO",0))
@@ -34,6 +39,14 @@ PARAM(ORLST,ORVP,ORLOC)  ; Return dietetics parameters for a patient at a locati
  S $P(ORLST(3),U,5)=$O(^ORD(101.43,"S.E/L T","LATE TRAY",0))
  N TF S TF=$$CURRENT^ORCDFH("TF") I $L(TF,";")=1 S TF=TF_";1"
  I TF,'$$FUTURE^ORCDFH("EFFECTIVE DATE/TIME") S $P(ORLST(3),U,6)=TF
+ I $$VERSION^XPDUTL("FH")>5 D
+ . S ORLST(4)=$$MAXDAYS^FHOMAPI(ORLOC)
+ . D DIETLST^FHOMAPI Q:'$G(FHDIET(1))
+ . S IEN=$O(^ORD(101.43,"ID",$P(FHDIET(1),U,1)_";99FHD",0)) Q:+IEN=0
+ . S X=^ORD(101.43,"S.DIET",$P(FHDIET(1),U,2),IEN)
+ . I +$P(X,U,3),$P(X,U,3)<CURTM Q
+ . I $P($G(^ORD(101.43,IEN,"FH")),U)'="D",($P($G(^(0)),U)'="NPO") Q
+ . S ORLST(5)=+$G(IEN)
  Q
 ATTR(REC,OI)    ; Return OI^Text^Type^Precedence^AskExpire for a diet
  I $G(^ORD(101.43,OI,.1)),^(.1)'>$$NOW^XLFDT S REC="0^"_$P($G(^ORD(101.43,OI,0)),U)_" has been inactivated and may not be ordered anymore." Q
@@ -51,6 +64,23 @@ DIETS(Y,FROM,DIR)       ; Return a subset of active diets, including NPO
  . . S I=I+1
  . . I 'X S Y(I)=IEN_U_$P(X,U,2)_U_$P(X,U,2)
  . . E  S Y(I)=IEN_U_$P(X,U,2)_$C(9)_"<"_$P(X,U,4)_">"_U_$P(X,U,4)
+ Q
+OPDIETS(ORY,FROM,DIR)   ;Return a list of up to 5 outpatient diets from file 119.9
+ N X,I,J,IEN,CURTM,SYNCNT,SYNTOT,FHDIET
+ D DIETLST^FHOMAPI
+ S CURTM=$$NOW^XLFDT,I=0,SYNTOT=1
+ F  S I=$O(FHDIET(I)) Q:'I  D
+ . S IEN=$O(^ORD(101.43,"ID",$P(FHDIET(I),U,1)_";99FHD",0)) Q:+IEN=0
+ . S X=^ORD(101.43,"S.DIET",$P(FHDIET(I),U,2),IEN)
+ . I +$P(X,U,3),$P(X,U,3)<CURTM Q
+ . I $P($G(^ORD(101.43,IEN,"FH")),U)'="D",($P($G(^(0)),U)'="NPO") Q
+ . S X=$P(^ORD(101.43,IEN,0),U,1)
+ . S SYNCNT=$P($G(^ORD(101.43,IEN,2,0)),U,4),J=0
+ . S ORY(X)=IEN_U_X_U_X
+ . I +SYNCNT  D  Q
+ . . S SYNTOT=SYNTOT+SYNCNT
+ . . F  S J=$O(^ORD(101.43,IEN,2,J)) Q:'J  D
+ . . . S ORY(^ORD(101.43,IEN,2,J,0))=IEN_U_^ORD(101.43,IEN,2,J,0)_$C(9)_"<"_X_">"_U_X
  Q
 TFPROD(Y)     ; Return a list of active tubefeeding products
  N I,IEN,NAM,X,CURTM
@@ -127,4 +157,18 @@ ADDLATE(REC,ORVP,ORNP,ORL,MEAL,TIME,BAG)      ; Add late tray order
  D EN^ORCSAVE
  S REC="" I ORIFN D GETBYIFN^ORWORR(.REC,ORIFN)
  Q
-  
+CURMEALS(ORY,ORDFN,ORMEAL)     ;Return current list of recurring meals for AO and TF orders
+ N I,Y,X S I=0
+ S ORMEAL=$G(ORMEAL,"")
+ D EN2^FHWOR8(ORDFN,ORMEAL,.ORY)
+ F  S I=$O(ORY(I)) Q:'I  D
+ . S X=$P(ORY(I),U,2)
+ . S Y=$P(ORY(I),U,1) D DD^%DT S $P(ORY(I),U,2)=Y
+ . S $P(ORY(I),U,3)=$S(X="B":"Breakfast",X="N":"Noon",X="E":"Evening",1:"")
+ Q
+NFSLOC(ORLOC) ;Get NUTRITION LOCATION name for HOSPITAL LOCATION
+ Q $$NFSLOC^FHOMAPI(ORLOC)
+OPLOCOK(ORY,ORLOC) ; OK to order OP Meals from this location
+ I 'ORLOC S ORY=0 Q
+ S ORY=$S($L($$NFSLOC^FHOMAPI(ORLOC))>0:1,1:0)
+ Q

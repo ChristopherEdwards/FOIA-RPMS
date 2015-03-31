@@ -1,5 +1,5 @@
 SROACCT ;B'HAM ISC/MAM - TOTAL CPT CODES ; [ 09/22/98  11:20 AM ]
- ;;3.0; Surgery ;**77,50**;24 Jun 93
+ ;;3.0; Surgery ;**77,50,124**;24 Jun 93
 BEG S (SRFLG,SRSOUT)=0
  W @IOF,!,"Cumulative Report of CPT Codes"
 START D DATE^SROUTL(.SDATE,.EDATE,.SRSOUT) G:SRSOUT END
@@ -14,7 +14,7 @@ ASK W @IOF,!,"Include which cases on the Cumulative Report of CPT Codes ?",!!,"1
 EN D EN^SROACCM
 END W:$E(IOST)="P" @IOF I $D(ZTQUEUED) K ^TMP("SR",$J) Q:$G(ZTSTOP)  S ZTREQ="@" Q
  I 'SRSOUT,$E(IOST)'="P" W !!,"Press RETURN to continue  " R X:DTIME
- D ^%ZISC D ^SRSKILL W @IOF
+ D ^%ZISC K SRTN D ^SRSKILL W @IOF
  Q
 HELP W !!,"Enter '1' or press <RET> to include only cases for O.R. surgical procedures,",!,"enter '2' to include only cases for non-O.R. procedures, or enter '3' to include"
  W !,"cases for both O.R. surgical procedures and non-O.R. procedures on the report."

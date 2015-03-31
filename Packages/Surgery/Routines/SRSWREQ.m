@@ -1,5 +1,5 @@
-SRSWREQ ;B'HAM ISC/MAM - REQUEST FROM WAITING LIST ; [ 10/17/01  7:35 AM ]
- ;;3.0; Surgery ;**58,77,105**;24 Jun 93
+SRSWREQ ;BIR/MAM - REQUEST FROM WAITING LIST ;08/11/05
+ ;;3.0; Surgery ;**58,77,105,146**;24 Jun 93
  S SRWL=1,SRSOUT=0 I $D(ORVP) S (DFN,SRSDPT)=+ORVP G DEAD
  W @IOF,! K DIC S DIC=2,DIC(0)="QEAMZ",DIC("A")="Make a request from the waiting list for which patient ?  " D ^DIC K DIC I Y<0 S SRSOUT=1 G END
  S (DFN,SRSDPT)=+Y
@@ -19,6 +19,7 @@ DATE W ! K %DT S %DT="AEFX",%DT("A")="Make a request for which Date ?  " D ^%DT 
  K SRLATE D LATE^SRSREQ I $D(SRLATE) G DATE
  S SRSS=$P(SRW(SRW),"^"),SRSOP=$P(SRW(SRW),"^",5) F SRI=6:1:12 S SRCL(SRI+10)=$P(SRW(SRW),"^",SRI)
  K DIR I $D(ORNP) S DIR("B")=$P(^VA(200,ORNP,0),"^")
+ S ST="REQUEST"
  D ^SRSRQST
 END I 'SRSOUT W ! K DIR S DIR(0)="FOA",DIR("A")="Press RETURN to continue: " D ^DIR
  K SRTN D ^SRSKILL W @IOF

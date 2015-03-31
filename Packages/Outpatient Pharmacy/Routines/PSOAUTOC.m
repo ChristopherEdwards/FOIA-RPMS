@@ -1,5 +1,5 @@
 PSOAUTOC ;BIR/SAB - autocancel rxs on admission ;08/15/94
- ;;7.0;OUTPATIENT PHARMACY;**3,24,30,36,88,146,132**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**3,24,30,36,88,146,132,223,148,249**;DEC 1997;Build 9
  ;External reference to File #59.7 supported by DBIA 694
  ;External reference to File #55 supported by DBIA 2228
  ;External reference ^DPT(PSODFN,.1) supported by DBIA 10035
@@ -22,7 +22,8 @@ CAN ;discontinue Rxs
  I $D(^PS(55,PSODFN,0)),$P($G(^PS(55,PSODFN,0)),U,6)'=2 D EN^PSOHLUP(PSODFN)
  F PSORXJ=0:0 S PSORXJ=$O(^PS(55,PSODFN,"P",PSORXJ)) Q:'PSORXJ  I $D(^(PSORXJ,0)) S PSORX=^(0) D
  .I $D(^PSRX(PSORX,0)) S PSO0=^(0),PSO2=$G(^(2)),STA=+^("STA") I STA<11,PSO2,$P(PSO2,"^",6)'<DT,$E(PSO2,1,7)'>PSOD2!(STA=16) D
- ..S $P(^PSRX(PSORX,3),"^",5)=$P(^(3),"^"),$P(^("STA"),"^")=12
+ ..S $P(^PSRX(PSORX,3),"^",5)=DT,$P(^("STA"),"^")=12
+ ..D REVERSE^PSOBPSU1(PSORX,,"DC",7)
  ..D CAN^PSOTPCAN(PSORX)
  ..D FIL^PSOCAN3
  ..;remove from hold

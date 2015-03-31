@@ -1,5 +1,5 @@
 PSDDWK3 ;BIR/JPW-Pharm Dispensing Worksheet (cont'd) ; 24 Aug 93
- ;;3.0; CONTROLLED SUBSTANCES ;**16**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**16,66**;13 Feb 97;Build 3
  ;
  ;References to ^PSD(58.8, supported by DBIA2711
  ;References to ^PSD(58.81 are supported by DBIA2808
@@ -9,8 +9,8 @@ UPDATE ;set zero node in 58.81 - ien^type^disp^disp date^drug^qty^^^^bal.fwd^sta
  S STAT=$S(ACT="V":3,1:2) I DUZ'=PSDBY,$D(^XUSEC("PSJ RPHARM",DUZ)),ACT="V" S TECH=PSDBY,PSDBY=DUZ
  ;
  ;DAVE B (PSD*3*16) Locking more nodes
- F  L +^PSD(58.81,PSDREC,0):0 I  Q
- F  L +^PSD(58.8,ORDS,1,PSDR):0 I  Q
+ F  L +^PSD(58.81,PSDREC,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
+ F  L +^PSD(58.8,ORDS,1,PSDR):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  S ^PSD(58.81,PSDREC,0)=PSDREC_"^2^"_ORDS_"^"_$S(ACT="V":PSDT,1:"")_"^"_PSDR_"^"_QTY_"^^^^"_BAL_"^"_STAT_"^^"_MFG_"^"_LOT_"^"_EXP_"^^"_PSDPN_"^"_NAOU_"^^"_REQ
  ;set the 1, 2 and CS nodes in 58.81 and update xrefs - (1) proc.by^disp.date^^^tech^req.date^ordered by, (1.5) ordered by pharm, (2) comments, (CS) cs.trans
  S ^PSD(58.81,PSDREC,1)=PSDBY_"^^^^"_TECH_"^"_REQDT_"^"_ORD

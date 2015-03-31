@@ -1,8 +1,9 @@
 BIVACED1 ;IHS/CMI/MWR - EDIT VACCINES.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT VACCINE FIELDS: CURRENT LOT, ACTIVE, VIS DATE DEFAULT.
- ;;  PATCH 1: Comment out unnecessary forecast check.  EDIT1+34
+ ;;  PATCH 1: Comment out unnecessary forecast check.  EDIT+34
+ ;;  PATCH 5: Display leading zero if default volume is less than 1.  INIT+53
  ;
  ;
  ;----------
@@ -58,7 +59,13 @@ INIT ;EP
  .;---> Volume Default.
  .D:$P(BI0,U,18)
  ..S X=$$PAD^BIUTL5(X,60,".")
- ..S X=X_"  "_$P(BI0,U,18)_" ml "
+ ..;
+ ..;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ..;---> Display leading zero if default volume is less than 1.
+ ..N Y S Y=$P(BI0,U,18) S:(Y<1) Y="0"_Y
+ ..S X=X_"  "_Y_" ml "
+ ..;S X=X_"  "_$P(BI0,U,18)_" ml "
+ ..;**********
  .;
  .;---> Forecast On/Off.
  .S X=$$PAD^BIUTL5(X,72,".")

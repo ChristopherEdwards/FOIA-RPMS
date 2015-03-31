@@ -1,15 +1,14 @@
-PSGPLF ;BIR/CML3-FILES AWAY PICK LIST DATA (BACKGROUND JOB) ;06-Apr-2005 14:37;SM
- ;;5.0; INPATIENT MEDICATIONS ;**84,1003**;16 DEC 97
+PSGPLF ;BIR/CML3-FILES AWAY PICK LIST DATA (BACKGROUND JOB) ;29 SEP 97 / 12:40 PM
+ ;;5.0; INPATIENT MEDICATIONS ;**84,130,168**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191.
  ; Reference to ^PSDRUG is supported by DBIA# 2192.
  ; Reference to ^ECXUD1 is supported by DBIA# 172.
- ; Modified - IHS/CIA/PLS - 04/06/05 - Lines FILE+2 and EN+8
+ ; Reference to ^DIC(42 is supported by DBIA# 1377.
+ ; Reference to ^DIC(42 is supported by DBIA# 10039.
  ;
 FILE ; add data to cost file and order
  S PSGX=$P(PLR,"^",2),PSGY=$P(PLR,"^",3) S:PSGX?7N1"DI" PSGX=0 S PSGX=+PSGX S:PSGY="" $P(PLR,"^",3)=PSGX,PSGY=PSGX
- ; IHS/CIA/PLS - 04/06/05 - Added check for dispense drug in next three lines
- ;S COST="",(D3,DO)=$P(PLR,"^") I D3=+D3 S D3=$P($G(^PS(55,PN,5,O,1,D3,0)),"^") I D3=+D3 S COST=$P($G(^PSDRUG(D3,660)),"^",6)
  S COST="",(D3,DO)=$P(PLR,"^") I $G(D3) Q:'$D(^PS(55,PN,5,O,1,D3,0))
  I D3=+D3 S D3=$P($G(^PS(55,PN,5,O,1,D3,0)),"^") I D3=+D3 S COST=$P($G(^PSDRUG(D3,660)),"^",6)
  E  S D3="999Z"
@@ -26,7 +25,7 @@ FILE ; add data to cost file and order
 OS ;
  I PSGX!PSGY F  L +^PS(55,PN,5,O,1,DO,0):1 I  S PSGZ=$G(^PS(55,PN,5,O,1,DO,0)),$P(PSGZ,"^",5)=$P(PSGZ,"^",5)+PSGX,$P(PSGZ,"^",PS>0+6)=$P(PSGZ,"^",PS>0+6)+PSGY,^(0)=PSGZ L -^PS(55,PN,5,O,1,DO,0) Q
  N PSGSTRT S PSGSTRT=$P($G(^PS(55,PN,5,O,2)),"^",2)
- I PSGY,D0=+D0,D1=+D1,D2=+D2,D3=+D3 S:PS PSGY=-PSGY,COST=-COST D ENPLF^PSGAMSA(PN,O,D3,PSGY,COST,1,D1,D2,D0) S X="ECXUD1" X ^%ZOSF("TEST") I  S ECUD=PN_"^"_D0_"^"_D3_"^"_PSGY_"^"_D1_"^"_D2_";200^"_COST_"^"_PSGSTRT D ^ECXUD1
+ I PSGY,D0=+D0,D1=+D1,D2=+D2,D3=+D3 S:PS PSGY=-PSGY,COST=-COST D ENPLF^PSGAMSA(PN,O,D3,PSGY,COST,1,D1,D2,D0) S X="ECXUD1" X ^%ZOSF("TEST") I  S ECUD=PN_"^"_D0_"^"_D3_"^"_PSGY_"^"_D1_"^"_D2_";200^"_COST_"^"_PSGSTRT_"^"_$G(O) D ^ECXUD1
  S $P(PLR,"^",4)=1,^PS(53.5,G,1,PN,1,$P(PD,"^",2),1,$P(DD,"^",2),0)=PLR
  Q
  ;
@@ -43,10 +42,8 @@ EN ; action starts here
  .S T="",PSGPLFF=1
  .F  S T=$O(^PS(53.5,"AC",G,T)) Q:T=""  S (WH,W)="" F  S (W,WD)=$O(^PS(53.5,"AC",G,T,W)) Q:W=""  S R="" D:'WSF GD1 F  S R=$O(^PS(53.5,"AC",G,T,W,R)) Q:R=""  S P="" F  S P=$O(^PS(53.5,"AC",G,T,W,R,P)) Q:P=""  D
  ..S PN=$P(P,"^",2),(DD,PD)="",S="A" S:WSF WD=$P(^PS(53.5,G,1,PN,0),"^",3) D:WD'=WH&WSF GD1
- ..; IHS/CIA/PLS - 04/06/05 - Added $G
- ..;F  S S=$O(^PS(53.5,"AC",G,T,W,R,P,S)) Q:("Z"[S)!(S="NO ORDERS")  F  S PD=$O(^PS(53.5,"AC",G,T,W,R,P,S,PD)) Q:PD=""  S O=$P(^PS(53.5,G,1,PN,1,$P(PD,"^",2),0),"^"),D2=$P($G(^PS(55,PN,5,O,0)),"^",2) S:'D2 D2="999Z" D
  ..F  S S=$O(^PS(53.5,"AC",G,T,W,R,P,S)) Q:("Z"[S)!(S="NO ORDERS")  F  S PD=$O(^PS(53.5,"AC",G,T,W,R,P,S,PD)) Q:PD=""  S O=+$P($G(^PS(53.5,G,1,PN,1,$P(PD,"^",2),0)),"^"),D2=$P($G(^PS(55,PN,5,O,0)),"^",2) S:'D2 D2="999Z" D
- ...F  S DD=$O(^PS(53.5,"AC",G,T,W,R,P,S,PD,DD)) Q:(DD="")!(DD="NO DISPENSE DRUG")  S PLR=$G(^PS(53.5,G,1,PN,1,$P(PD,"^",2),1,$P(DD,"^",2),0)) D:'$P(PLR,"^",4) FILE
+ ...F  S DD=$O(^PS(53.5,"AC",G,T,W,R,P,S,PD,DD)) Q:(DD="")!(DD="NO DISPENSE DRUG")  S PLR=$G(^PS(53.5,G,1,PN,1,$P(PD,"^",2),1,$P(DD,"^",2),0)) Q:PLR=""  D:'$P(PLR,"^",4) FILE
  .I PSGPLFF S $P(^PS(53.5,G,0),"^",5)=2,^PS(53.5,"AO",+$P(PSGPLTND,"^",2),$P(PSGPLTND,"^",3),G)="" K ^PS(53.5,"AF",G)
  ;
  I $D(^TMP("PSGNCF",$J,"B")) D ^PSGPLFM

@@ -1,5 +1,5 @@
-PSOCPTRI ;BHAM ISC/CPM,RTR - SUPPORT FOR CHAMPUS RX BILLING ; 14-AUG-96
- ;;7.0;OUTPATIENT PHARMACY;**10,55**;DEC 1997
+PSOCPTRI ;BHAM ISC/CPM,RTR - SUPPORT FOR CHAMPUS RX BILLING ;14-AUG-96
+ ;;7.0;OUTPATIENT PHARMACY;**10,55,184**;DEC 1997
  ;External reference to ^PSDRUG supported by DBIA 221
  ;
  ;
@@ -47,7 +47,7 @@ TRANS(ORIG,REF,PSOV) ; Extract Rx information for transmission to FI
  S PSOV("QTY")=$S($P($G(PSORX("REF")),"^",4)'="":$P(PSORX("REF"),"^",4),1:$P(PSORX(0),"^",7)) ;                  quantity
  S PSOV("SUP")=$S($P($G(PSORX("REF")),"^",10)'="":$P(PSORX("REF"),"^",10),1:$P(PSORX(0),"^",8)) ;                  days supply
  S PSOV("ISS")=$P(PSORX(0),"^",13) ;                 date rx written
- S PSOV("#REF")=$P(PSORX(0),"^",9) ;                 # refills auth
+ S PSOV("#REF")=$P(PSORX(0),"^",9) ;                 # refills authorized
  ;
  N PSOX S PSOX=+$P(PSORX(0),"^",6) S PSOV("COMP")=$P($G(^PSDRUG(PSOX,0)),"^",3) S PSOV("COMP")=$S(PSOV("COMP")[0:2,1:1) ; Compound drug
  ;
@@ -58,7 +58,7 @@ TRANSQ Q PSOE
  ;
  ;
 LABEL(RX,PSOLAP,PSOSITE,DUZ,PSOTRAMT) ; Print the label.
- ;  Input:        RX  --  Pointer to the preescription in file #52
+ ;  Input:        RX  --  Pointer to the prescription in file #52
  ;            PSOLAP  --  Label printer
  ;           PSOSITE  --  Pointer to the Pharmacy in file #59
  ;               DUZ  --  Pointer to the use in file #200
@@ -68,8 +68,7 @@ LABEL(RX,PSOLAP,PSOSITE,DUZ,PSOTRAMT) ; Print the label.
  Q:PSOLAP["LAT-TERM"
  Q:'$D(^PSRX(RX,0))
  Q:'$D(^PS(59,PSOSITE,0))
- N CT,II,III,NOW,RXFF,X,Y,PSOSYS,PSOPAR,PSOBARS,PDUZ,PSOBAR0,PSOBAR1,REPRINT,PSOCHAMP,PSHRX
- ;S $ZT="^%ZTER" ;  %=$D(^%ZOSF("OS")),%=$ZC(%SETPRN,"IPS "_ORIG)
+ N CT,II,III,NOW,RXFF,X,Y,PSOSYS,PSOPAR,PSOBARS,PDUZ,PSOBAR0,PSOBAR1,REPRINT,PSOCHAMP,PSHRX,DIQUIET
  S DIQUIET=1 D DT^DICRW
  I '$G(DT) S DT=$$DT^XLFDT
  S:$P($G(^PSRX(RX,"STA")),"^")'=3 REPRINT=""

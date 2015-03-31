@@ -1,27 +1,31 @@
-LEXALK ; ISL Look-up by Words                     ; 10-15-97
- ;;2.0;LEXICON UTILITY;**2,3,6**;Sep 23, 1996
+LEXALK ; ISL/KER Look-up by Words ; 05/14/2003
+ ;;2.0;LEXICON UTILITY;**2,3,6,25**;Sep 23, 1996;Build 15
  ;
+ ; External References
+ ;   DBIA 10103  $$DT^XLFDT
+ ;   DBIA  1571  ^LEX(
+ ;                    
  ; Special Lookup variables
- ;
+ ;                    
  ;   LEXSUB      Vocabulary
  ;   LEXSHCT     Shortcuts
  ;   LEXDICS     Screen - DIC("S") Format
  ;   LEXSHOW     Displayable codes
  ;   LEXLKFL     File Number
  ;   LEXLKGL     Global Root
- ;   LEXLKMD     Use Modifiers         ; PCH 6
+ ;   LEXLKMD     Use Modifiers
  ;   LEXLKIX     Index to use during lookup
  ;   LEXLKSH     User Input (Search String)
  ;   LEXTKN(     Tolkens in order of frequency of use
  ;   LEXTKNS(    Tolkens in order of entry
- ;
+ ;                    
 EN ; Look-up user input
- N LEXSUB,LEXSHCT,LEXDICS,LEXSHOW,LEXLKFL,LEXLKGL,LEXLKMD  ; PCH 6
- N LEXLKIX,LEXLKSH
+ N LEXSUB,LEXSHCT,LEXDICS,LEXSHOW,LEXLKFL,LEXLKGL,LEXLKMD
+ N LEXLKIX,LEXLKSH,LEXVDT S LEXVDT=$$DT^XLFDT
  S LEXLKSH=$G(^TMP("LEXSCH",$J,"SCH",0)) I $L(LEXLKSH)<2 D  Q
  . S LEX("ERR",0)=+($G(LEX("ERR",0)))+1,LEX("ERR",LEX("ERR",0))="User input missing or invalid"
  S LEXSUB=$G(^TMP("LEXSCH",$J,"VOC",0)) S:LEXSUB="" LEXSUB="WRD"
- S LEXLKMD=+($G(^TMP("LEXSCH",$J,"MOD",0)))  ; PCH 6
+ S LEXLKMD=+($G(^TMP("LEXSCH",$J,"MOD",0)))
  S LEXLKIX=$G(^TMP("LEXSCH",$J,"IDX",0)) S:LEXLKIX="" LEXLKIX="AWRD"
  S LEXLKFL=$G(^TMP("LEXSCH",$J,"FLN",0)) I LEXLKFL'["757." D  Q
  . S LEX("ERR",0)=+($G(LEX("ERR",0)))+1,LEX("ERR",LEX("ERR",0))="File number missing or invalid"
@@ -34,7 +38,6 @@ EN ; Look-up user input
  S LEXSS="" I $D(LEXTKNS(0)) D
  . N LEXI F LEXI=1:1:LEXTKNS(0) S LEXSS=LEXSS_" "_LEXTKNS(LEXI)
  . S LEXSS=$E(LEXSS,2,$L(LEXSS))
- ; PCH 3 - "Searching for X" deleted
  S ^TMP("LEXSCH",$J,"SCH",0)=$G(LEXSS)
  S LEXT=$G(LEXTKN(1)),LEXO=$$SCH(LEXT)
  I $G(LEXSHCT)="",$G(LEXTKN(0))=1,$D(^LEX(LEXLKFL,LEXLKIX,LEXT)) D  G END
@@ -59,13 +62,13 @@ IEN ; Loop throuth Internal Entry Numbers
  F  S LEXI=$O(^LEX(LEXLKFL,LEXLKIX,LEXO,LEXI)) Q:+LEXI=0  D CHK
  Q
 CHK ; Check each tolken
- N LEXOK S LEXE=LEXI,LEXOK=1
- S:LEXLKGL'["757.01" LEXE=+($G(^LEX(LEXLKFL,LEXI,0))) Q:LEXE=0   ; PCH 2
+ N LEXOK,LEXO S LEXE=LEXI,LEXOK=1
+ S:LEXLKGL'["757.01" LEXE=+($G(^LEX(LEXLKFL,LEXI,0))) Q:LEXE=0
  ; Filter
  S LEXFILR=$$EN^LEXAFIL($G(LEXFIL),LEXE) Q:LEXFILR=0
  ; Deactivated
  Q:+($P($G(^LEX(757.01,LEXE,1)),"^",5))=1
- ; Expression has Modifiers        PCH 6 Modifier Flag
+ ; Expression has Modifiers
  N LEXEMOD S LEXEMOD=+($P($G(^LEX(757.01,LEXE,1)),"^",6))
  S LEXM=+($G(^LEX(757.01,LEXE,1)))
  S LEXME=+($G(^LEX(757,LEXM,0)))
@@ -75,13 +78,13 @@ CHK ; Check each tolken
  ; Check tolkens
  S LEXOK=1 D CHKTKNS(LEXE)
  ; If the expression failed the search, and the expression has 
- ; modifiers then check the modifiers  PCH 6
+ ; modifiers then check the modifiers
  D:+LEXOK=0&(+($G(LEXEMOD))>0)&(+($G(LEXTKN(0)))>1) CHKMOD^LEXAMD2
  Q:'LEXOK
  ; Description (*)
  S LEXDES=$$DES^LEXASC(LEXE)
  ; Display of codes
- S LEXDSP=$$SO^LEXASO(LEXE,$G(LEXSHOW),1)
+ S LEXDSP=$$SO^LEXASO(LEXE,$G(LEXSHOW),1,$G(LEXVDT))
  D ADDL^LEXAL(LEXE,LEXDES,LEXDSP)
  Q
 CHKTKNS(LEXE) ; Check tolkens
@@ -95,11 +98,9 @@ CHKTKNS(LEXE) ; Check tolkens
  . I LEXC[("("_LEXT) S LEXOK=1 Q
  . I LEXC[("/"_LEXT) S LEXOK=1 Q
  . I $E(LEXC,1,$L(LEXT))=LEXT S LEXOK=1 Q
- . ; PCH 6 - Fully implemented Keywords (next 2 lines) 
  . I $L(LEXT),$D(^LEX(757.01,LEXOE,5,"B",LEXT)) S LEXOK=1 Q
  . I $L(LEXT),$E($O(^LEX(757.01,LEXOE,5,"B",($E(LEXT,1,($L(LEXT)-1))_$C($A($E(LEXT,$L(LEXT)))-1)_"~"))),1,$L(LEXT))=LEXT S LEXOK=1 Q
  . F  S LEXE=$O(^LEX(757.01,"AMC",LEXM,LEXE)) Q:+LEXE=0!(LEXOK)  D  Q:LEXOK
- . . ; Only check concepts, synonyms and lexical variants  ; PCH 6
  . . Q:+($P($G(^LEX(757.01,LEXE,1)),"^",2))>3
  . . S LEXC=$$UP(^LEX(757.01,LEXE,0))
  . . I LEXC[(" "_LEXT) S LEXOK=1 Q
@@ -117,4 +118,5 @@ DES(LEXX) ; Get description flag
 SCH(LEXX) ; Search for LEXX a $Orderable variable
  S LEXX=$E(LEXX,1,($L(LEXX)-1))_$C($A($E(LEXX,$L(LEXX)))-1)_"~" Q LEXX
  Q
-UP(X) Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+UP(X) ; Uppercase
+ Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")

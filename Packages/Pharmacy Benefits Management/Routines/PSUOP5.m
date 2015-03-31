@@ -1,5 +1,5 @@
 PSUOP5 ;BIR/CFL,TJH;PSU PBM Outpatient Pharmacy summary statistical data; 08/25/1998
- ;;3.0;PHARMACY BENEFITS MANAGEMENT;**19**;Oct 15, 1998
+ ;;4.0;PHARMACY BENEFITS MANAGEMENT;;MARCH, 2005
  ;
 RECLOOP ; loop through 'by-drug' totals to get grand totals
  ;
@@ -46,7 +46,7 @@ RECSUM ;Set up statistical summary data to be printed
  S X=$E("Avg. Cost/Fill = $"_$J(J(8),0,2)_PSUFILL,1,47)_"Avg. Cost/Fill = $"_$J(J(9),0,2)
  S PSULINE(10)=X
  S XMCHAN=1
- S XMSUB="V. 3.0P1 PBMOP "_$G(PSUMON)_" "_PSUDIV_" "_PSUDIVNM
+ S XMSUB="V. 4.0 PBMOP "_$G(PSUMON)_" "_PSUDIV_" "_PSUDIVNM
  S XMTEXT="PSULINE("
  M XMY=PSUXMYS1
  D ^XMD
@@ -54,7 +54,8 @@ RECSUM ;Set up statistical summary data to be printed
  Q
  ;
 DRUGSUM ; create the Drug Summary
- K ^XTMP(PSUOPSUB,"DRUGSUM")
+ ;VMP OIFO BAY PINES;ELR;PSU*3.0*32
+ K ^XTMP(PSUOPSUB,"DRUGSUM",PSUDIV)
  S PSUHDR0="Outpatient Statistical Data for "_PSUDTS_" through "_PSUDTE
  S PSUHDR1=$J("Total     Total Qty",96)
  S PSUHDR2="Drug Name"_$J("Partials    Fills  Refills     Cost     Dispensed",87)
@@ -119,7 +120,7 @@ DRUGSUM ; create the Drug Summary
  S ^XTMP(PSUOPSUB,"DRUGSUM",PSUDIV,PSULN)="* Non-Formulary"
  S PSULN=PSULN+1
  S ^XTMP(PSUOPSUB,"DRUGSUM",PSUDIV,PSULN)="# Not on National Formulary"
- S XMSUB="V. 3.0P1 PBMOP "_PSUMON_" "_PSUDIV_" "_PSUDIVNM
+ S XMSUB="V. 4.0 PBMOP "_PSUMON_" "_PSUDIV_" "_PSUDIVNM
  S XMTEXT="^XTMP(PSUOPSUB,""DRUGSUM"",PSUDIV,"
  S XMCHAN=1
  M XMY=PSUXMYS2

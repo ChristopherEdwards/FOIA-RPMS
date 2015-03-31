@@ -1,5 +1,5 @@
 GMTSRAS ; SLC/JER,KER HIN/GJC - Radiology Profile       ; 04/19/2002
- ;;2.7;Health Summary;**14,25,28,37,47,51**;Oct 20, 1995
+ ;;2.7;Health Summary;**14,25,28,37,47,51,84**;Oct 20, 1995;Build 6
  ;              
  ; External References
  ;   DBIA  3125  ^RADPT( file 70
@@ -129,16 +129,16 @@ PMD ;   Procedure Modifiers
  Q
  ;            
 RPT ; Report Text
- N GMTSL F GMTSL="H","A","R","I","D" D TXT(GMTSL)
+ N GMTSL F GMTSL="S","H","A","R","I","D" D TXT(GMTSL)
  Q
 TXT(X) ;   Report Text Lines
- N GMTST S GMTST=$E($G(X),1) Q:(GMTST="")!("^H^A^R^I^D^"'[GMTST)!(GMTST="^")
+ N GMTST S GMTST=$E($G(X),1) Q:(GMTST="")!("^S^H^A^R^I^D^"'[GMTST)!(GMTST="^")
  Q:GMTST="A"&(+($$PROK^GMTSU("RAUTL9",27))=0)
  Q:+($G(GMTSIDT))=0  Q:+($G(GMTSPN))=0  Q:'$D(^TMP("RAE",$J,GMTSIDT,GMTSPN,GMTST))
  K ^UTILITY($J,"W") N GMTSI,GMTSII,GMTSIND,DIWF,DIWL,DIWR S GMTSIND=12,DIWF="C"_(78-(GMTSIND+2)),DIWL=0,DIWR=0,GMTSI=0
  D:$O(^TMP("RAE",$J,GMTSIDT,GMTSPN,GMTST,0))>0 BL
  D CKP^GMTSUP Q:$D(GMTSQIT)
- W ?GMTSIND,$S(GMTST="H":"History: ",GMTST="A":"Additional History: ",GMTST="R":"Report: ",GMTST="I":"Impression: ",GMTST="D":"DX Codes: ",1:"Text:"),!
+ W ?GMTSIND,$S(GMTST="S":"Reason for Study: ",GMTST="H":"History: ",GMTST="A":"Additional History: ",GMTST="R":"Report: ",GMTST="I":"Impression: ",GMTST="D":"DX Codes: ",1:"Text:"),!
  I GMTST'="D" D
  . S GMTSI=0 F  S GMTSI=$O(^TMP("RAE",$J,GMTSIDT,GMTSPN,GMTST,GMTSI)) Q:GMTSI'>0  D  Q:$D(GMTSQIT)
  . . S X=$G(^TMP("RAE",$J,GMTSIDT,GMTSPN,GMTST,GMTSI)) D ^DIWP

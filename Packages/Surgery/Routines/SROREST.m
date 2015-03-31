@@ -1,16 +1,17 @@
-SROREST ;B'HAM ISC/MAM - STUFF RESTRAINTS; [ 04/05/00  1:13 PM ]
- ;;3.0; Surgery ;**94**;24 Jun 93
- S SRSOUT=0 I '$D(SRTN) W !!,"A surgical case has not been entered.  " G END
+SROREST ;B'HAM ISC/MAM - STUFF RESTRAINTS; [ 01/30/01  1:13 AM ]
+ ;;3.0; Surgery ;**94,100**;24 Jun 93
+ N SRLCK S SRSOUT=0 I '$D(SRTN) W !!,"A surgical case has not been entered.  " G END
  D ^SROLOCK I SROLOCK S SRSOUT=1 G END
 ASK W @IOF,!,"Enter/Edit Irrigations or Restraints and Positioning Aids:",!!,"1. Irrigations",!,"2. Restraints and Positioning Aids",!!,"Select Number: " R X:DTIME I '$T!("^^"[X) S SRSOUT=1 G END
  I X'=1&(X'=2) S X="?"
  I X["?" W !!,"Type '1' to enter irrigation solutions, or '2' to enter restraints",!,"or positioning aids.",!!,"Press RETURN to continue  " R X:DTIME G ASK
+ S SRLCK=$$LOCK^SROUTL(SRTN) I '$G(SRLCK) G ASK
  I X=1 G ^SROIRR
 LIST ;
  K SREST S (CNT,SREST)=0 F  S SREST=$O(^SRO(132.05,SREST)) Q:'SREST  S INACT=$P(^SRO(132.05,SREST,0),"^",2) I 'INACT S CNT=CNT+1,SREST(CNT)=SREST_"^"_$P(^SRO(132.05,SREST,0),"^")
  N SRD,SRI,SRFIRST,SRJ,SRLAST,SRP,SRP1,SRQ,SRTOT S SRD=36,SRTOT=CNT,SRP1=CNT/SRD,SRP=$P(SRP1,".") I SRP1>SRP S SRP=SRP+1
  S (CNT,SRLAST)=0 F SRPAGE=1:1:SRP S SRNUM=$S(SRTOT>SRD:"Page "_SRPAGE_" of "_SRP,1:""),SRFIRST=SRLAST+1,SRLAST=$S(SRLAST+SRD<SRTOT:SRLAST+SRD,1:SRTOT) D PAGE Q:SRSOUT
-END D ^SRSKILL W @IOF
+END D ^SRSKILL D:$G(SRLCK) UNLOCK^SROUTL(SRTN) W @IOF
  Q
 PAGE Q:SRSOUT  W @IOF,!,?20,"Restraints and Positioning Aids",?(79-$L(SRNUM)),SRNUM,! F I=1:1:80 W "="
  F CNT=SRFIRST:1:SRLAST S S=SREST(CNT) W:CNT#2 !,$J(CNT,2)_". "_$P(SREST(CNT),"^",2) W:'(CNT#2) ?40,$J(CNT,2)_". "_$P(SREST(CNT),"^",2)

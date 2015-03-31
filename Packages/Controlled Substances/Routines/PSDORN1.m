@@ -1,5 +1,5 @@
 PSDORN1 ;BIR/JPW,LTL-Nurse CS Order Entry (cont'd) ;12/14/99  16:09
- ;;3.0; CONTROLLED SUBSTANCES ;**20**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**20,66**;13 Feb 97;Build 3
  ;
  ; Reference to DPT( supported by DBIA # 10035
  ; Reference to PSD(58.8 supported by DBIA # 2711
@@ -46,7 +46,7 @@ DEL ;deletes order request
  Q
 PHARM ;create worksheet entry in file 58.85
  I $D(XRTL) D T0^%ZOSV
- W ?5,!!,"Processing your request now..." F  L +^PSD(58.85,0):0 I  Q
+ W ?5,!!,"Processing your request now..." F  L +^PSD(58.85,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 ADD S PSDREC=$P(^PSD(58.85,0),"^",3)+1 I $D(^PSD(58.85,PSDREC)) S $P(^PSD(58.85,0),"^",3)=PSDREC G ADD
  K DA,DIC,DIE,DLAYGO,DR S (DIC,DIE,DLAYGO)=58.85,DIC(0)="L",X=PSDREC D ^DIC K DIC,DLAYGO
  L -^PSD(58.85,0)

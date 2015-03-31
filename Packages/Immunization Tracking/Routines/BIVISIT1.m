@@ -1,13 +1,17 @@
 BIVISIT1 ;IHS/CMI/MWR - CREATE/EDIT VISITS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  CODE TO CREATE OR EDIT VISITS FOR IMMUNIZATIONS AND SKIN TESTS.
  ;;  PATCH 1: Allow for negative values of Y (time difference).  CREATE+91
  ;;           Correct "Other" Location not getting set during edits.  VISIT+14
+ ;;  PATCH 5: Added BINOM parameter to ADDEDIT P.E.P. for Visit Selection Menu.
+ ;;                                                    VISIT+0
  ;
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BINOM parameter to ADDEDIT P.E.P., to control Visit Menu display.
  ;----------
-VISIT(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,BIVSIT,BIERR) ;EP
+VISIT(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,BIVSIT,BIERR,BINOM) ;EP
  ;---> Create or edit a Visit for this patient's Immunization or
  ;---> Skin Test.  Called by BIVISIT.
  ;---> Parameters:
@@ -19,7 +23,12 @@ VISIT(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,BIVSIT,BIERR) ;EP
  ;     6 - BISITE  (req) DUZ(2) for Site Parameters.
  ;     7 - BIVSIT  (ret) IEN of Visit (may exist already or be new).
  ;     8 - BIERR   (ret) Text of Error Code if any, otherwise null.
+ ;     9 - BINOM   (opt) 0=Allow display of Visit Selection Menu if site
+ ;                       parameter is set. 1=No display (for export).
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BINOM parameter to ADDEDIT P.E.P., to control Visit Menu display.
+ S:($G(BINOM)="") BINOM=0
  ;
  ;---> First, determine Location.
  ;---> If BILOC<1 or if Outside Location is not null set BILOC equal
@@ -32,16 +41,16 @@ VISIT(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,BIVSIT,BIERR) ;EP
  ;---> Create Visit if necessary.
  ;
  ;---> If no Parent Visit EIN, create a new Visit.
- I '$G(BIVSIT) D CREATE(.BIVSIT,.BIERR) Q
+ I '$G(BIVSIT) D CREATE(.BIVSIT,.BIERR,BINOM) Q
  ;
  ;---> If Parent Visit doesn't really exist, create a new Visit.
- I '$G(^AUPNVSIT(+BIVSIT,0)) D CREATE(.BIVSIT,.BIERR) Q
+ I '$G(^AUPNVSIT(+BIVSIT,0)) D CREATE(.BIVSIT,.BIERR,BINOM) Q
  ;
  ;---> If edit of old VISIT changed Date.Time, create a new Visit.
- I $P(^AUPNVSIT(+BIVSIT,0),U)'=BIDATE D CREATE(.BIVSIT,.BIERR) Q
+ I $P(^AUPNVSIT(+BIVSIT,0),U)'=BIDATE D CREATE(.BIVSIT,.BIERR,BINOM) Q
  ;
  ;---> If edit of old VISIT changed Category, create a new Visit.
- I $P(^AUPNVSIT(+BIVSIT,0),U,7)'=BICAT D CREATE(.BIVSIT,.BIERR) Q
+ I $P(^AUPNVSIT(+BIVSIT,0),U,7)'=BICAT D CREATE(.BIVSIT,.BIERR,BINOM) Q
  ;
  ;
  ;---> If Outside Location was deleted, set it ="@".
@@ -63,12 +72,16 @@ VISIT(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,BIVSIT,BIERR) ;EP
  Q
  ;
  ;
+ ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;---> Added BINOM parameter to ADDEDIT P.E.P., to control Visit Menu display.
  ;----------
-CREATE(BIVSIT,BIERR) ;EP
+CREATE(BIVSIT,BIERR,BINOM) ;EP
  ;---> Create a new Visit OR match on an existing Visit in VISIT File.
  ;---> Parameters:
  ;     1 - BIVSIT (ret) IEN of newly created Parent Visit.
  ;     2 - BIERR  (ret) 1^Text of Error Code if any, otherwise null.
+ ;     3 - BINOM  (opt) 0=Allow display of Visit Selection Menu if site
+ ;                      parameter is set. 1=No display (for export).
  ;
  ;---> Set permission override for this file.
  S DLAYGO=9000010
@@ -89,6 +102,10 @@ CREATE(BIVSIT,BIERR) ;EP
  ;---> If site param says do NOT display Visit Selection Menu, then
  ;---> link or create automatically.
  D
+ .;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ .;---> Added BINOM parameter to ADDEDIT P.E.P., to control Visit Menu display.
+ .I $G(BINOM) S APCDALVR("APCDAUTO")="" Q
+ .;**********
  .I '$$VISMNU^BIUTL2(BISITE) S APCDALVR("APCDAUTO")="" Q
  .K APCDALVR("APCDAUTO")
  ;
@@ -189,7 +206,7 @@ NEWCALL ;EP
  .D GETVISIT^APCDAPI4(.APCDIN,.APCDOUT)
  .N BIPAT S BIPAT("PAT")=BIDFN
  .D FULL^VALM1 W:$D(IOF) @IOF
- .D SELECT^BSDAPI5(.BIPAT,.APCDOUT) ;THIS IS NOT A PEP (CANNOT CALL IT).
+ .D SELECT^BSDAPI5(.BIPAT,.APCDOUT) ;THIS IS NOT A P.E.P. (CANNOT CALL IT).
  .;
  ;
  ;X ^O

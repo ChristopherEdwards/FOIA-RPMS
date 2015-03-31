@@ -1,5 +1,5 @@
-SRSAVG ;B'HAM ISC/MAM - CALCULATE AVG OPERATION TIME ; 18 JAN 1990  8:00 AM
- ;;3.0; Surgery ;**12,13**;24 Jun 93
+SRSAVG ;BIR/MAM - CALCULATE AVG OPERATION TIME ;18 JAN 1990  8:00 AM
+ ;;3.0; Surgery ;**12,13,142**;24 Jun 93
  I 'SRSPEC S SRAVG="" Q
  I 'SRSCPT S SRAVG="" Q
  I '$D(^SRO(131.25,SRSPEC,1,SRSCPT,0)) S SRAVG="" Q
@@ -12,7 +12,7 @@ TASK ; nightly task to update average times
  K SRTN D ^SRSKILL
  Q
 UPDATE ; update operation times
- S SRSPEC=$P(^SRF(SRTN,0),"^",4),SRSCPT=$P(^SRF(SRTN,"OP"),"^",2)
+ S SRSPEC=$P(^SRF(SRTN,0),"^",4),SRSCPT=$P($G(^SRO(136,SRTN,0)),"^",2)
  S SR(.2)=$S($D(^SRF(SRTN,.2)):^(.2),1:""),SRIN=$P(SR(.2),"^",2),SROUT=$P(SR(.2),"^",3)
  I SRSPEC=""!(SRSCPT="")!(SRIN="")!(SROUT="") Q
  S X=SRIN,X1=SROUT,Y=$E(X1_"000",9,10)-$E(X_"000",9,10)*60+$E(X1_"00000",11,12)-$E(X_"00000",11,12),X2=X,X=$P(X,".",1)'=$P(X1,".",1) D ^%DTC:X S SRTIME=X*1440+Y

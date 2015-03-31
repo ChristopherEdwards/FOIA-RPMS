@@ -1,8 +1,11 @@
 GMVGETQ ;HOIFO/YH,FT-UTILITIES TO OBTAIN DATE/TIME, HOSPITAL, DUZ, VITAL CATEGORY AND EDIT V/M ;9/6/02  09:35
- ;;5.0;GEN. MED. REC. - VITALS;;Oct 31, 2002
+ ;;5.0;GEN. MED. REC. - VITALS;**3**;Oct 31, 2002
  ;
  ; This routine uses the following IAs:
  ; #10103 - ^XLFDT calls           (supported)
+ ;
+ ; This routine supports the following IAs:
+ ; #4353 - GMV CONVERT DATE RPC is called at GETDT  (private)
  ;
 GETDT(RESULT,GMRDATE) ;GMV CONVERT DATE [RPC entry point]
  ;INPUT VARIABLE:

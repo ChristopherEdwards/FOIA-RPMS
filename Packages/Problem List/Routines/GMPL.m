@@ -1,5 +1,5 @@
-GMPL ; SLC/MKB -- Problem List Driver ;;9-5-95 11:47am
- ;;2.0;Problem List;**3,11**;Aug 25, 1994
+GMPL ; SLC/MKB/AJB -- Problem List Driver ;;9-5-95 11:47am
+ ;;2.0;Problem List;**3,11,28**;Aug 25, 1994
 EN ; -- main entry point for GMPL PROBLEM LIST
  S GMPLUSER=1
  D EN^VALM("GMPL PROBLEM LIST")
@@ -50,6 +50,8 @@ NOTES ; -- annotate a problem
  S GMPLNUM=$$SEL1^GMPLX("add comment(s) to") G:GMPLNUM="^" NTQ
  S GMPIFN=$P($G(^TMP("GMPLIDX",$J,+GMPLNUM)),U,2) G:GMPIFN'>0 NTQ
  I $P($G(^AUPNPROB(GMPIFN,1)),U,2)="H" W !!,$$PROBTEXT^GMPLX(GMPIFN),!,"has been removed from this patient's problem list!",! H 2 G NTQ
+ ; Code Set Versioning (CSV)
+ I '$$CODESTS^GMPLX(GMPIFN,DT) W !!,$$PROBTEXT^GMPLX(GMPIFN),!,"has an inactive ICD9 code. Edit the problem before adding comments.",! H 3 G NTQ
  L +^AUPNPROB(GMPIFN,0):1 I '$T W $C(7),!!,$$LOCKED^GMPLX,! H 2 G NTQ
  D NEWNOTE^GMPL1 I $D(GMPSAVED) D
  . S VALMBCK="R",GMPRINT=1
@@ -62,6 +64,8 @@ EDIT ; -- edit allowable fields of a problem
  S VALMBCK="" G:+$G(GMPCOUNT)'>0 EDQ
  S GMPLNUM=$$SEL1^GMPLX("edit") G:GMPLNUM="^" EDQ
  S GMPIFN=$P($G(^TMP("GMPLIDX",$J,+GMPLNUM)),U,2) G:GMPIFN'>0 EDQ
+ ; Code Set Versioning (CSV)
+ ; I '$$CODESTS^GMPLX(GMPIFN,DT) W !!,$$PROBTEXT^GMPLX(GMPIFN),!,"has an inactive ICD code.",! H 3 G EDQ
  I $P($G(^AUPNPROB(GMPIFN,1)),U,2)="H" W !!,$$PROBTEXT^GMPLX(GMPIFN),!,"has been removed from this patient's problem list!",! H 2 G EDQ
  L +^AUPNPROB(GMPIFN,0):1 I '$T W $C(7),!!,$$LOCKED^GMPLX,! H 2 G EDQ
  D EN^VALM("GMPL EDIT PROBLEM")

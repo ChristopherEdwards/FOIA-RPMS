@@ -1,5 +1,5 @@
-RASTEXT ;HISC/CAH,FPT,GJC AISC/TMP,TAC,RMO-Called by Status Tracking display,edit. Allow selection/edit of case if called from edit option ;7/16/04  07:50
- ;;5.0;Radiology/Nuclear Medicine;**48,47**;Mar 16, 1998;Build 21
+RASTEXT ;HISC/CAH,FPT,GJC AISC/TMP,TAC,RMO-Called by Status Tracking display,edit. Allow selection/edit of case if called from edit option ;7/16/04  07:50 [ 12/05/2011  10:09 AM ]
+ ;;5.0;Radiology/Nuclear Medicine;**48,47*1004**;Mar 16, 1998;Build 21
  S RAED=1 ;If called from beginning of routine, allow case edit
  ;If called at EN1, display exams by status but don't allow editing
 EN1 D SET^RAPSET1 I $D(XQUIT) K RAED,XQUIT Q
@@ -69,10 +69,25 @@ WRT I $P(RADTI,".")=DT S X=RADTI D TIME^RAUTL1 S RATI=X
  S RADFNXX=+^TMP($J,"RASTEXT",RADTI,I1),RADTIXX=9999999.9999-RADTI
  S RACNIXX=I1,RASSAN=$$SSANVAL^RAHLRU1(RADFNXX,RADTIXX,RACNIXX)
  S RACNDSP=$S((RASSAN'=""):RASSAN,1:$P(^TMP($J,"RASTEXT",RADTI,I1),"^",2))
+ ;
+ ;IHS/CMI/DAY - Patch 1004 - Add IHS HRNO to Display
+ ;VA Patch 47 adds use of Site Specific Accession Numbers, which
+ ;squeezes the display even more.  Previous IHS patches added a
+ ;column for the IHS HRNO, but we need to squeeze it into the name
+ ;I $$USESSAN^RAHLRU1() D
+ ;.W !,?1,RACNDSP,?18,$J(RATI,8),?27,$E($S($D(^DPT(+^TMP($J,"RASTEXT",RADTI,I1),0)):$P(^(0),"^"),1:"Unknown"),1,18),?46,$S($D(^RAMIS(71,+$P(^TMP($J,"RASTEXT",RADTI,I1),"^",3),0)):$E($P(^(0),"^"),1,25),1:"Unknown")
+ ;I '$$USESSAN^RAHLRU1() D
+ ;.W !,?1,$P(^TMP($J,"RASTEXT",RADTI,I1),"^",2),?10,$J(RATI,8),?20,$E($S($D(^DPT(+^TMP($J,"RASTEXT",RADTI,I1),0)):$P(^(0),"^"),1:"Unknown"),1,20),?42,$S($D(^RAMIS(71,+$P(^TMP($J,"RASTEXT",RADTI,I1),"^",3),0)):$E($P(^(0),"^"),1,25),1:"Unknown")
+ ;--> Set HRNO and Name
+ N RAZZHRNM
+ S RAZZHRNM=$$HRCN^BDGF2($P(^TMP($J,"RASTEXT",RADTI,I1),U),+$G(DUZ(2)))
+ S RAZZHRNM=RAZZHRNM_"-"_$S($D(^DPT(+^TMP($J,"RASTEXT",RADTI,I1),0)):$P(^(0),"^"),1:"Unknown")
  I $$USESSAN^RAHLRU1() D
- .W !,?1,RACNDSP,?18,$J(RATI,8),?27,$E($S($D(^DPT(+^TMP($J,"RASTEXT",RADTI,I1),0)):$P(^(0),"^"),1:"Unknown"),1,18),?46,$S($D(^RAMIS(71,+$P(^TMP($J,"RASTEXT",RADTI,I1),"^",3),0)):$E($P(^(0),"^"),1,25),1:"Unknown")
+ .W !,?1,RACNDSP,?18,$J(RATI,8),?27,$E(RAZZHRNM,1,18),?46,$S($D(^RAMIS(71,+$P(^TMP($J,"RASTEXT",RADTI,I1),"^",3),0)):$E($P(^(0),"^"),1,25),1:"Unknown")
  I '$$USESSAN^RAHLRU1() D
- .W !,?1,$P(^TMP($J,"RASTEXT",RADTI,I1),"^",2),?10,$J(RATI,8),?20,$E($S($D(^DPT(+^TMP($J,"RASTEXT",RADTI,I1),0)):$P(^(0),"^"),1:"Unknown"),1,20),?42,$S($D(^RAMIS(71,+$P(^TMP($J,"RASTEXT",RADTI,I1),"^",3),0)):$E($P(^(0),"^"),1,25),1:"Unknown")
+ .W !,?1,$P(^TMP($J,"RASTEXT",RADTI,I1),"^",2),?10,$J(RATI,8),?20,$E(RAZZHRNM,1,20),?42,$S($D(^RAMIS(71,+$P(^TMP($J,"RASTEXT",RADTI,I1),"^",3),0)):$E($P(^(0),"^"),1,25),1:"Unknown")
+ ;End Patch
+ ;
  W:$D(^RA(78.6,+$P(^TMP($J,"RASTEXT",RADTI,I1),"^",4),0)) ?72,$E($P(^(0),"^"),1,8)
  Q
  ;

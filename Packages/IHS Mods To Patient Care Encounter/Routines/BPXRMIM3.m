@@ -1,5 +1,5 @@
-BPXRMIM3 ; IHS/CIA/MGH - Handle computed findigs for immunizations. ;16-Apr-2012 16:35;DU
- ;;1.5;CLINICAL REMINDERS;**1005,1006,1007,1008**;Jun 19, 2000;Build 25
+BPXRMIM3 ; IHS/CIA/MGH - Handle computed findigs for immunizations. ;18-Sep-2012 09:38;DU
+ ;;1.5;CLINICAL REMINDERS;**1005,1006,1007,1008,1009**;Jun 19, 2000;Build 24
  ;=================================================================
  ;This routine is designed to evaluate the immunication forcast
  ;data to determine if an immunization is due for a child requiring a
@@ -7,6 +7,7 @@ BPXRMIM3 ; IHS/CIA/MGH - Handle computed findigs for immunizations. ;16-Apr-2012
  ;Patch 5 added rotavirus and HPV immunizations
  ;Patch 7 added H1N1
  ;Patch 8 added zoster
+ ;Patch 9 fixed zoster name
  ;=====================================================================
 ROTA(DFN,TEST,DATE,VALUE,TEXT) ; EP
  ;This computed finding will check the imunization forecast file to find
@@ -48,7 +49,7 @@ ZOSTER(DFN,TEST,DATE,VALUE,TEXT) ;EP
  ;This computed finding will check the imunization forecast file to find
  ;zoster immunizations that are setup in the reminder term for HPV
  N BPXNAME,BPXTRM,BPXIN,BPXCNT,BPXHI,BPXREM,BPXRTM,BPXTEST,EARLY,LATE,TA
- S BPXNAME="IHS-ZOSTER IMMUNIZATION 2012",LINE=1,TEST=0,DATE="",VALUE="",TEXT=""
+ S BPXNAME="IHS-ZOSTER IMMUN 2012",LINE=1,TEST=0,DATE="",VALUE="",TEXT=""
  K ^TMP("PXRMCF",$J,DFN)
  S BPXREM="" S BPXREM=$O(^PXD(811.9,"B",BPXNAME,BPXREM))
  Q:BPXREM=""

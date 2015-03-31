@@ -1,5 +1,20 @@
-PSXRPPL1 ;BIR/WPB-Resets Suspense to Print/Transmit ;[ 10/02/97  3:13 PM ]
- ;;2.0;CMOP;**3**;11 Apr 97
+PSXRPPL1 ;BIR/WPB-Resets Suspense to Print/Transmit ;29-May-2012 15:19;PLS
+ ;;2.0;CMOP;**3,48,62,66,65,1015**;11 Apr 97;Build 62
+ ;Reference to ^PSRX( supported by DBIA #1977
+ ;Reference to File #59  supported by DBIA #1976
+ ;Reference to PSOSURST  supported by DBIA #1970
+ ;Reference to ^PS(52.5, supported by DBIA #1978
+ ;Reference to ^BPSUTIL  supported by DBIA #4410
+ ;Reference to ^PSSLOCK  supported by DBIA #2789
+ ;Reference to ^PSOBPSUT supported by DBIA #4701
+ ;Reference to ^PSOBPSU1 supported by DBIA #4702
+ ;Reference to ^PSOREJUT supported by DBIA #4706
+ ;Reference to ^PSOREJU3 supported by DBIA #5186
+ ;Reference to ^PSOBPSU2 supported by DBIA #4970
+ ;Reference to ^PSOSULB1 supported by DBIA #2478
+ ;
+ ;Modified - IHS/MSC/PLS - 05/28/2010 - Line SBTECME+8
+ ;
  ;This routine will reset the Queued flags and the printed flags in
  ;PS(52.5 to 'Queued' and 'Printed' respectively and either retransmits
  ;the data to the CMOP or prints the labels.
@@ -13,9 +28,9 @@ QRY ;initial message and option menu
  S DIR(0)="NAO^1:3:0",DIR("A")="Select (1, 2, 3):  ",DIR("A",1)="  1 - Reset CMOP Batches for Transmission"
  S DIR("A",2)="  2 - Reprint CMOP Batches",DIR("A",4)="  3 - Standard Reprint Batches from Suspense"
  S DIR("?")="Enter a number between 1 and 3.",DIR("??")=$S($G(PSXVER):"^D HELP^PSXSRP",1:"^D MSG2^PSXRHLP") D ^DIR K DIR G:(Y<0)!($D(DIRUT)) EXIT S REPLY=Y K Y,X
- I REPLY="1" S (PSXTRANS,PSXFLAG,SWITCH)=1 G:$G(PSXVER) ^PSXSRST G:'$G(PSXVER) BEGIN
- I REPLY="2" S (PSXTRANS,PSXFLAG,SWITCH)=2 G:$G(PSXVER) ^PSXSRST G:'$G(PSXVER) BEGIN
- I REPLY="3" S PSXFLG=1 G START^PSOSURST
+ I REPLY=1 S (PSXTRANS,PSXFLAG,SWITCH)=1 G:$G(PSXVER) ^PSXSRST G:'$G(PSXVER) BEGIN
+ I REPLY=2 S (PSXTRANS,PSXFLAG,SWITCH)=2 G:$G(PSXVER) ^PSXSRST G:'$G(PSXVER) BEGIN
+ I REPLY=3 S PSXFLG=1 G START^PSOSURST
  K REPLY
  Q
 BEGIN ;confirms CMOP processing, if Yes, checks for active site and status
@@ -72,6 +87,79 @@ RESET ;resets the Queued/Printed flags to Queued and not Printed
  S DIE="^PS(52.5,",DA=REC,DR="2////2;3////Q" D ^DIE L -^PS(52.5,REC) K DIE,DR,DA
  S:$G(PSXVER) $P(^PSRX(PSXPTR,"STA"),U,1)=5 S:'$G(PSXVER) $P(^PSRX(PSXPTR,0),U,15)=5 K ^PS(52.5,"AC",DFN,SDT,REC)
  Q
+PRTERR ; auto error trap for prt cmop local
+ S XXERR=$$EC^%ZOSV
+ S PSXDIVNM=$$GET1^DIQ(59,PSOSITE,.01)
+ ;save an image of the transient file 550.1 for 2 days
+ D NOW^%DTC S DTTM=%
+ S X=$$FMADD^XLFDT(DT,+2) S ^XTMP("PSXERR "_DTTM,0)=X_U_DT_U_"CMOP "_XXERR
+ M ^XTMP("PSXERR "_DTTM,550.1)=^PSX(550.1)
+ S XMSUB="CMOP Error "_PSXDIVNM_" "_$$GET1^DIQ(550.2,+$G(PSXBAT),.01)
+ D GRP1^PSXNOTE
+ ;S XMY(DUZ)=""
+ S XMTEXT="TEXT("
+ S TEXT(1,0)=$S($G(PSXCS):"",1:"NON-")_"CS CMOP Print Local encountered the following error. Please investigate"
+ S TEXT(2,0)="Division:         "_PSXDIVNM
+ S TEXT(3,0)="Type/Batch        "_$S($G(PSXCS):"CS",1:"NON-CS")_" / "_$$GET1^DIQ(550.2,$G(PSXBAT),.01)
+ S TEXT(4,0)="Error:            "_XXERR
+ S TEXT(5,0)="This batch has been set to closed."
+ S TEXT(6,0)="Call NVS to investigate which prescriptions have been printed and which are yet to print."
+ S TEXT(7,0)="A copy of file 550.1 can be found in ^XTMP(""PSXERR "_DTTM_""")"
+ D ^%ZTER
+ D ^XMD
+ I $G(PSXBAT) D
+ . N DA,DIE,DR S DIE="^PSX(550.2,",DA=PSXBAT,DR="1////4"
+ . D ^DIE
+ G UNWIND^%ZTER
+ ;
+SBTECME(PSXTP,PSXDV,THRDT,PULLDT) ; - Sumitting prescriptions to EMCE (3rd Party Billing)
+ ;Input: PSXTP  - Type of prescriptions "C" - Controlled Subs / "N" Non-Controlled Subs
+ ;       PSXDV  - Pointer to DIVSION file (#59)
+ ;       THRDT  - T+N when scheduling the THROUGH DATE to run CMOP Transmission
+ ;       PULLDT - T+N+PULL DAYS parameter in the DIVISION file (#59)
+ ;Output:SBTECME- Number of prescriptions submitted to ECME
+ Q  ;IHS/MSC/PLS - 05/28/2010
+ N RX,RFL,SBTECME,PSOLRX,RESP,SDT,XDFN,REC,PSOLRX,DOS
+ I '$$ECMEON^BPSUTIL(PSXDV)!'$$CMOPON^BPSUTIL(PSXDV) Q
+ S (SDT,SBTECME)=0 K ^TMP("PSXEPHDFN",$J)
+ F  S SDT=$O(^PS(52.5,"CMP","Q",PSXTP,PSXDV,SDT)) S XDFN=0 Q:(SDT>PULLDT)!(SDT'>0)  D
+ . F  S XDFN=$O(^PS(52.5,"CMP","Q",PSXTP,PSXDV,SDT,XDFN)) S REC=0 Q:(XDFN'>0)!(XDFN="")  D
+ . . F  S REC=$O(^PS(52.5,"CMP","Q",PSXTP,PSXDV,SDT,XDFN,REC)) Q:(REC'>0)!(REC="")  D
+ . . . S (PSOLRX,RX)=+$$GET1^DIQ(52.5,REC,.01,"I") I 'RX Q
+ . . . S RFL=$$GET1^DIQ(52.5,REC,9,"I") I RFL="" S RFL=$$LSTRFL^PSOBPSU1(RX)
+ . . . I $$XMIT^PSXBPSUT(REC) D
+ . . . . I SDT>THRDT,'$D(^TMP("PSXEPHDFN",$J,XDFN)) Q
+ . . . . I $$PATCH^XPDUTL("PSO*7.0*148") D
+ . . . . . I $$RETRX^PSOBPSUT(RX,RFL),SDT>DT Q
+ . . . . . I $$DOUBLE(RX,RFL) Q
+ . . . . . I $$FIND^PSOREJUT(RX,RFL,,"79,88") Q
+ . . . . . I '$$RETRX^PSOBPSUT(RX,RFL),'$$ECMESTAT^PSXRPPL2(RX,RFL) Q
+ . . . . . I $$PATCH^XPDUTL("PSO*7.0*289") Q:'$$DUR^PSXRPPL2(RX,RFL)  ;ePharm Host error hold
+ . . . . . I $$PATCH^XPDUTL("PSO*7.0*289"),$$STATUS^PSOBPSUT(RX,RFL-1)'="" Q:'$$DSH^PSXRPPL2(REC)  ;ePharm 3/4 days supply
+ . . . . . S DOS=$$RXFLDT^PSOBPSUT(RX,RFL) I DOS>DT S DOS=DT
+ . . . . . D ECMESND^PSOBPSU1(RX,RFL,DOS,"PC",,1,,,,.RESP)
+ . . . . . I $$PATCH^XPDUTL("PSO*7.0*287"),$$TRISTA^PSOREJU3(RXN,RFL,.RESP,"PC") S ^TMP("PSXEPHNB",$J,RX,RFL)=$G(RESP)
+ . . . . . I $D(RESP),'RESP S SBTECME=SBTECME+1
+ . . . . . S ^TMP("PSXEPHDFN",$J,XDFN)=""
+ . . . D PSOUL^PSSLOCK(PSOLRX)
+ K ^TMP("PSXEPHDFN",$J)
+ Q SBTECME
+ ;
+DOUBLE(RX,RFL) ; Checks if previous fill is still being worked on by CMOP
+ ;Input: (r) RX  - Prescription IEN
+ ;       (r) RFL - Fill number
+ ;Output:    0 - Previous fill not with CMOP / 1 - CMOP working on previous fill
+ N CMP,DOUBLE,STS
+ ;
+ I 'RFL!'$D(^PSRX(RX,4)) Q 0
+ I $$STATUS^PSOBPSUT(RX,RFL-1)="" Q 0
+ S DOUBLE=0,CMP=999
+ F  S CMP=$O(^PSRX(RX,4,CMP),-1) Q:'CMP  D  I DOUBLE Q
+ . I $$GET1^DIQ(52.01,CMP_","_RX,2,"I")'=(RFL-1) Q
+ . S STS=$$GET1^DIQ(52.01,CMP_","_RX,3,"I")
+ . I STS=0!(STS=2) S DOUBLE=1
+ Q DOUBLE
+ ;
 EXIT ;
  K DFN,PSXDAYS,PSXDTRG,SWITCH,STAT,PRINT,PSXTRANS,REC,REPLY,SDT,X,X1,X2,Y,ANSWER,STATUS,PSXFLAG,PSXPTR,PSXSTAT
  K DIR,DIRUT,DTOUT,DUOUT,DIROUT

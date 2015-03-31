@@ -1,5 +1,5 @@
-ABMDF27C ; IHS/ASDST/DMJ - Set HCFA1500 (08/05) Print Array ;  
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ABMDF27C ; IHS/SD/SDR - Set HCFA1500 (08/05) Print Array ;  
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,11**;NOV 12, 2009;Build 133
  ;
  ; *********************************************************************
  ;
@@ -30,7 +30,8 @@ INS Q:'$D(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,ABM("XIEN"),0))  S ABM("INSCO")=$P(^(
  .S ABMP("EXP")=27
 PAYOR S Y=ABM("INSCO") D SEL^ABMDE2X
  S ABM("I0")=+ABMV("X1")
- I ABM("INSCO")'=$P(ABMP("B0"),U,8),ABM("CNT")=0,"IN"'[$P($G(^AUTNINS(ABM("I0"),2)),U) D
+ ;I ABM("INSCO")'=$P(ABMP("B0"),U,8),ABM("CNT")=0,"IN"'[$P($G(^AUTNINS(ABM("I0"),2)),U) D  ;abm*2.6*10 HEAT73780
+ I ABM("INSCO")'=$P(ABMP("B0"),U,8),ABM("CNT")=0,"IN"'[$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM("I0"),".211","I"),1,"I") D  ;abm*2.6*10 HEAT73780
  .Q:$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),13,ABM("XIEN"),0)),U,11)=$P(ABMP("B0"),U,8)
  .S $P(ABMF(19),U,3)="X",$P(ABMF(19),U,4)=""
  .S $P(ABMF(19),U)=$P(^AUTNINS(ABM("I0"),0),U)
@@ -58,6 +59,12 @@ PRIM I ((ABM("INSCO")=$P(ABMP("B0"),U,8))!($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),1
  .S $P(ABMF(3),U,5)=$P($P(ABMV("X2"),U),";",2)
  .I $P(ABMV("X3"),U,1)]"",$P(ABMV("X3"),U,6)]"" S ABMF(1)="",$P(ABMF(1),U,5)="X"
  .S $P(ABMF(1),U,8)=$S($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),4)),U,8)'="":$P(^(4),U,8),$P($G(ABMV("X1")),U,12)'="":$P(ABMV("X1"),U,12),1:$P(ABMV("X1"),U,4))
+ .;start new code abm*2.6*11 HEAT86014
+ .I ("^T^W^"[(ABMP("ITYPE"))) D
+ ..I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,13)'="" S $P(ABMF(1),U,8)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,13) Q
+ ..I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,26)'="" S $P(ABMF(1),U,8)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),7)),U,26) Q
+ ..I $P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),4)),U,8)'="" S $P(ABMF(1),U,8)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),4)),U,8)
+ .;end new code HEAT86014
  .I $P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),1)),U,7)="N" S $P(ABMF(1),U,8)=$TR($P(ABMF(1),U,8),"-","")
  .S $P(ABMF(15),U,7)=$P(ABMV("X3"),U,1)
  .S $P(ABMF(17),U,4)=$P($P(ABMV("X1"),U),";",2)

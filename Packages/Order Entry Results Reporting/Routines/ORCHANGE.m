@@ -1,5 +1,5 @@
 ORCHANGE ;SLC/MKB-Change View utilities ; 08 May 2002  2:12 PM
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**27,72,141**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**27,72,141,243**;Dec 17, 1997;Build 242
 EN ; -- Change view of current list
  N XQORM,Y,ORI
  S XQORM=$G(^TMP("OR",$J,"CURRENT","CHANGE")),VALMBCK=""
@@ -13,12 +13,14 @@ EN ; -- Change view of current list
  Q
  ;
 RANGE ; -- Get new date range for list
- N HDR,OLD,NEW,REQ
+ N HDR,OLD,NEW,REQ,BEG,END
  S HDR=$P($G(^TMP("OR",$J,ORTAB,0)),U,3)
  S REQ=$S(ORTAB="XRAYS":1,ORTAB="REPORTS":1,1:0)
- I $P(HDR,";",3)=2 D  Q
- . N DIR,DIROUT,DIRUT,DTOUT,DUOUT,X,Y
- . W !,"Date range can not be selected when viewing only active orders"
+ I ($P(HDR,";",3)=2)!($P(HDR,";",3)=5) D  Q
+ . N DIR,DIROUT,DIRUT,DTOUT,DUOUT,X,Y,THISTS
+ . S THISTS=" only active "
+ . I $P(HDR,";",3)=5 S THISTS=" expiring "
+ . W !,"Date range can not be selected when viewing"_THISTS_"orders."
  . S DIR(0)="E" D ^DIR
  S OLD=$P(HDR,";"),NEW=$$START(OLD,REQ) Q:NEW="^"  S BEG=NEW
  I BEG="" S END="" G RQ

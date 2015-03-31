@@ -1,8 +1,7 @@
-SROQL ;BIR/ADM-List of Operations for Quarterly Report ; [ 09/22/98  11:46 AM ]
- ;;3.0; Surgery ;**62,77,50**;24 Jun 9
- ;
+SROQL ;BIR/ADM - LIST OF OPERATIONS FOR QUARTERLY REPORT ;06/15/04  11:46 AM
+ ;;3.0; Surgery ;**62,77,50,129,142**;24 Jun 93
  ;** NOTICE: This routine is part of an implementation of a nationally
- ;**         controlled procedure.  Local modifications to this routine
+ ;**         controlled procedure. Local modifications to this routine
  ;**         are prohibited.
  ;
  S SRSOUT=0,SRSPEC="" W @IOF,!,?17,"List of Operations Included on Quarterly Report",!!
@@ -32,10 +31,15 @@ CASE ; examine case
  S SRSS=$S(SRSS:$P(^SRO(137.45,SRSS,0),"^"),1:"???"),Y=SRSD X ^DD("DD") S SRSDATE=Y,SRDOC=$P($G(^SRF(SRTN,.1)),"^",4) I SRDOC S SRDOC=$P(^VA(200,SRDOC,0),"^")
  S X=$P(SR(0),"^",12),SRIO=$S(X="I":"INPATIENT",X="O":"OUTPATIENT",1:"???"),X=$P(SR(0),"^",3),SRMM=$S(X="J":"MAJOR",X="N":"MINOR",1:"???")
  S Y=$P(SR(0),"^",10),C=$P(^DD(130,.035,0),"^",2) D Y^DIQ S SRTYPE=$S(Y="":"???",1:Y),Y=$P($G(^SRF(SRTN,1.1)),"^",3),C=$P(^DD(130,1.13,0),"^",2) D Y^DIQ S SRASA=$S(Y="":"???",1:Y)
- S Y=$P($G(^SRF(SRTN,"1.0")),"^",8),C=$P(^DD(130,1.09,0),"^",2) D Y^DIQ S SRWC=$S(Y="":"???",1:Y),SRATT=$P($G(^SRF(SRTN,.1)),"^",16) I SRATT="" D RS^SROQ0A S SRATT=$S(SRATT=4:"???",1:SRATT)
- S SRTOT=SRTOT+1,SRL=78 D PROC^SROUTL,OCC D:$Y+9>IOSL PAGE Q:SRSOUT
+ S Y=$P($G(^SRF(SRTN,"1.0")),"^",8),C=$P(^DD(130,1.09,0),"^",2) D Y^DIQ S SRWC=$S(Y="":"???",1:Y)
+ S SRATT=$P($G(^SRF(SRTN,.1)),"^",10) I SRATT="" D RS^SROQ0A
+ S I=SRATT D
+ .S SRATT=$S(I=9:"A",I=10:"B",I=11:"C",I=12:"D",I=13:"E",I=14:"F",I=1:"0 (Old)",I=2:"1 (Old)",I=3:"2 (Old)",I=4:"3 (Old)",I=5:"0",I=6:"1",I=7:"2",I=8:"3",1:"???")
+ S SRTOT=SRTOT+1,SRL=78,SRSUPCPT=1 D PROC^SROUTL,OCC D:$Y+9>IOSL PAGE Q:SRSOUT
  W !,SRSDATE,?22,SRSNM,?54,SRSSN_"  ("_SRAGE_")",?81,$E(SRASA,1,25),?108,"LEVEL "_SRATT,!,SRTN_"  ("_SRMM_")",?22,$S(SRSPEC:SRDOC,1:$E(SRSS,1,30)),?54,$E(SRTYPE,1,25),?81,SRWC,?108,SRIO,!
  F I=1:1 Q:'$D(SRPERI(I))&('$D(SRPROC(I)))  W:$D(SRPERI(I)) SRPERI(I) W:$D(SRPROC(I)) ?54,SRPROC(I) W !
+AAA S SRL=78 D PROC^SROUTLN D:$Y+9>IOSL PAGE Q:SRSOUT  F I=1:1 Q:'$D(SRPROC(I))  D
+ .W !,?54,SRPROC(I) W !
  F I=1:1:IOM W "-"
  Q
 PRESS W !! K DIR S DIR(0)="E" D ^DIR K DIR I $D(DTOUT)!$D(DUOUT) S SRSOUT=1

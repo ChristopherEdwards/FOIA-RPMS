@@ -1,5 +1,5 @@
 ABMDF27E ; IHS/ASDST/DMJ - Set HCFA1500 Print Array - Part 5 ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**3,4,8,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,4,8,9,11**;NOV 12, 2009;Build 133
  ;
  ; IHS/SD/SDR - v2.5 p12 - IM25331 - Put taxonomy code if NPI ONLY
  ; IHS/SD/SDR - v2.5 p12 - IM25352 - Included fix supplied by Walt Reich (PIMC)
@@ -70,6 +70,9 @@ PROC ;EP for setting the procedure portion of the ABMF array
  .S $P(ABMR(ABMS,ABMLN),U,5)=" "_$P(ABMR(ABMS,ABMLN),U,5)_$S($E($P(ABMS(ABMS),U,8))="#":" "_$P($P(ABMS(ABMS),U,8)," "),1:"")
  .S:$G(ABM("EPSDT")) $P(ABMR(ABMS,ABMLN),U,9)="X"  ; Form locator 24H
  .S:$G(ABM("EMG")) $P(ABMR(ABMS,ABMLN),U,4)="X"   ; Form locator 24C
+ E  D  ;abm*2.6*11 HEAT30524
+ .I $P($G(^AUTNINS(ABMP("INS"),0)),U)["PHC MEDICAID" S $P(ABMS(ABMS),U,8)=$TR($P(ABMS(ABMS),U,8),"-")  ;abm*2.6*11 HEAT30524
+ S:$P(ABMR(ABMS,ABMLN),U,5)["NO CODE SELECTED" $P(ABMR(ABMS,ABMLN),U,5)=""  ;abm*2.6*11 HEAT91425
  ;E  D  ;abm*2.6*7 HEAT30524
  ;start old code abm*2.6*8
  ;I $P($G(^ABMNINS(DUZ(2),ABMP("INS"),1,ABMP("VTYP"),0)),U,16)]"" D  ;abm*2.6*7 HEAT30524

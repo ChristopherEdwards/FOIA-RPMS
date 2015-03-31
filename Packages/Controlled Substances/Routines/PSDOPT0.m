@@ -1,5 +1,5 @@
 PSDOPT0 ;BIR/JPW,LTL,BJW - Outpatient Rx Entry (cont'd) ; 22 Jun 98
- ;;3.0; CONTROLLED SUBSTANCES ;**10,30,37,39,45,48**;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**10,30,37,39,45,48,66**;13 Feb 97;Build 3
  ;Reference to PS(52.5 supported by DBIA #786
  ;Reference to PS(59.7 supported by DBIA #1930
  ;References to ^PSD(58.8 are covered by DBIA #2711
@@ -125,10 +125,10 @@ LOCATION S DIC(0)="QEA",DIC="^PSD(58.8,",DIC("A")="Return Drug to which vault: "
  S PSDS=+Y I '$D(^PSD(58.8,+PSDS,1,PSDR,0)) W !,"Sorry, the drug is not stocked in this vault." K PSDS G LOCATION
  S PSDBAL=$P($G(^PSD(58.8,+PSDS,1,PSDR,0)),"^",4) W !,"Previous Balance: ",$G(PSDBAL)_"    New Balance: "_($G(PSDBAL)+PSDQTY)
  W !,"Updating balances"
- F  L +^PSD(58.8,+PSDS,1,PSDR,0):0 I  Q
+ F  L +^PSD(58.8,+PSDS,1,PSDR,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  D NOW^%DTC S PSDT=+%,BAL=+$P(^PSD(58.8,+PSDS,1,PSDR,0),"^",4),$P(^PSD(58.8,+PSDS,1,PSDR,0),"^",4)=$P(^PSD(58.8,+PSDS,1,PSDR,0),"^",4)+PSDQTY
  L -^PSD(58.8,+PSDS,1,PSDR,0) W "."
- F  L +^PSD(58.81,0):0 I  Q
+ F  L +^PSD(58.81,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
 FIND1 S PSDA=$P(^PSD(58.81,0),"^",3)+1 I $D(^PSD(58.81,PSDA)) S $P(^PSD(58.81,0),"^",3)=PSDA G FIND1
  K DA,DIC,DLAYGO S (DIC,DLAYGO)=58.81,DIC(0)="L",(X,DINUM)=PSDA D ^DIC K DIC,DLAYGO
  L -^PSD(58.81,0)
@@ -159,9 +159,5 @@ RTSCHK ;Check to see if already returned to stock.
 ERRMSG S Y=$P(^PSD(58.81,PSD1,3),"^") X ^DD("DD") S PSDRTS(1)=Y,PSDUSER=$P(^PSD(58.81,PSD1,0),"^",7),PSDUSER=$P(^VA(200,PSDUSER,0),"^")
  W !!?8,"According to the Controlled Substances package, this fill/refill",!?8,"was returned to stock on "_PSDRTS(1)_" by "_$G(PSDUSER)_".",!?16,"Nothing updated in the Controlled Substances package."
  S PSDERR=1 Q
-RTSMUL ; Setup local array of refills in reverse order
- S PSD1=0 F  S PSD1=$O(^PSD(58.81,"AOP",PSDRX,PSD1)) Q:PSD1'>0  S DATA6=$G(^PSD(58.81,PSD1,6)) D
- .S PSDXXX=PSD1
- .S PSD1MUL=PSD1*-1
- .S PSDMUL(PSD1MUL)=$P(DATA6,"^",2)
+RTSMUL D RTSMUL^PSDOPT1
  Q

@@ -1,5 +1,5 @@
-OCXOZ0A ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0A ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,27 +10,27 @@ OCXOZ0A ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-CHK230 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK163+14^OCXOZ07.
+CHK227 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK163+14^OCXOZ08.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK230 Variables
+ ;    Local CHK227 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(43) ---> Data Field: OI NATIONAL ID (FREE TEXT)
  ; OCXDF(74) ---> Data Field: VA DRUG CLASS (FREE TEXT)
  ;
  ;      Local Extrinsic Functions
  ;
- S OCXDF(74)=$P($$ENVAC^PSJORUT2(OCXDF(43)),"^",2) I $L(OCXDF(74)),(OCXDF(74)="AMINOGLYCOSIDES") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK235
+ S OCXDF(74)=$P($$ENVAC^PSJORUT2(OCXDF(43)),"^",2) I $L(OCXDF(74)),(OCXDF(74)="AMINOGLYCOSIDES") S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) D CHK232
  Q
  ;
-CHK235 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK230+12.
+CHK232 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK227+12.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK235 Variables
+ ;    Local CHK232 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(64) ---> Data Field: FORMATTED RENAL LAB RESULTS (FREE TEXT)
  ; OCXDF(76) ---> Data Field: CREATININE CLEARANCE (ESTIM) VALUE (NUMERIC)
@@ -43,12 +43,32 @@ CHK235 ; Look through the current environment for valid Event/Elements for this 
  S OCXDF(64)=$$FLAB(OCXDF(37),"SERUM CREATININE^SERUM UREA NITROGEN","SERUM SPECIMEN"),OCXDF(76)=$P($$CRCL(OCXDF(37)),"^",2),OCXOERR=$$FILE(DFN,71,"64,76") Q:OCXOERR 
  Q
  ;
-CHK242 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK201+19^OCXOZ09.
+CHK236 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK199+10^OCXOZ09.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK242 Variables
+ ;    Local CHK236 Variables
+ ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
+ ; OCXDF(67) ---> Data Field: CONTRAST MEDIA CODE (FREE TEXT)
+ ; OCXDF(73) ---> Data Field: ORDERABLE ITEM IEN (NUMERIC)
+ ; OCXDF(78) ---> Data Field: PATIENT TOO BIG FOR SCANNER FLAG (BOOLEAN)
+ ;
+ ;      Local Extrinsic Functions
+ ; CLIST( -----------> STRING CONTAINS ONE OF A LIST OF VALUES
+ ; CTMRI( -----------> CT MRI PHYSICAL LIMITS
+ ; FILE(DFN,106, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: RADIOLOGY PROCEDURE CONTAINS NON-BARIUM CONTRAST MEDIA)
+ ;
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXDF(78)=$P($$CTMRI(OCXDF(37),OCXDF(73)),"^",1) I $L(OCXDF(78)),(OCXDF(78)) D CHK241
+ S OCXDF(67)=$$CM^ORQQRA(OCXDF(73)) I $L(OCXDF(67)),$$CLIST(OCXDF(67),"M,I,N") S OCXOERR=$$FILE(DFN,106,"") Q:OCXOERR 
+ Q
+ ;
+CHK241 ; Look through the current environment for valid Event/Elements for this patient.
+ ;  Called from CHK236+16.
+ ;
+ Q:$G(OCXOERR)
+ ;
+ ;    Local CHK241 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(73) ---> Data Field: ORDERABLE ITEM IEN (NUMERIC)
  ; OCXDF(79) ---> Data Field: PATIENT TOO BIG FOR SCANNER TEXT (FREE TEXT)
@@ -61,12 +81,12 @@ CHK242 ; Look through the current environment for valid Event/Elements for this 
  S OCXDF(79)=$P($$CTMRI(OCXDF(37),OCXDF(73)),"^",2),OCXDF(80)=$P($$CTMRI(OCXDF(37),OCXDF(73)),"^",3),OCXOERR=$$FILE(DFN,72,"79,80") Q:OCXOERR 
  Q
  ;
-CHK248 ; Look through the current environment for valid Event/Elements for this patient.
+CHK247 ; Look through the current environment for valid Event/Elements for this patient.
  ;  Called from CHK182+19^OCXOZ08.
  ;
  Q:$G(OCXOERR)
  ;
- ;    Local CHK248 Variables
+ ;    Local CHK247 Variables
  ; OCXDF(37) ---> Data Field: PATIENT IEN (NUMERIC)
  ; OCXDF(64) ---> Data Field: FORMATTED RENAL LAB RESULTS (FREE TEXT)
  ;
@@ -77,58 +97,50 @@ CHK248 ; Look through the current environment for valid Event/Elements for this 
  S OCXDF(64)=$$FLAB(OCXDF(37),"SERUM CREATININE^SERUM UREA NITROGEN","SERUM SPECIMEN"),OCXOERR=$$FILE(DFN,73,"64,76") Q:OCXOERR 
  Q
  ;
-CHK254 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK157+18^OCXOZ07.
+CLIST(DATA,LIST) ;   DOES THE DATA FIELD CONTAIN AN ELEMENT IN THE LIST
  ;
- Q:$G(OCXOERR)
- ;
- ;    Local CHK254 Variables
- ; OCXDF(2) ----> Data Field: FILLER (FREE TEXT)
- ; OCXDF(34) ---> Data Field: ORDER NUMBER (NUMERIC)
- ; OCXDF(96) ---> Data Field: ORDERABLE ITEM NAME (FREE TEXT)
- ;
- ;      Local Extrinsic Functions
- ; FILE(DFN,110, ----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: STAT CONSULT RESULT)
- ; FILE(DFN,75, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: STAT IMAGING RESULT)
- ; ORDITEM( ---------> GET ORDERABLE ITEM FROM ORDER NUMBER
- ;
- I (OCXDF(2)="RA"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,75,"24,96") Q:OCXOERR 
- I (OCXDF(2)="GMRC"),$L(OCXDF(34)) S OCXDF(96)=$$ORDITEM(OCXDF(34)),OCXOERR=$$FILE(DFN,110,"24,96") Q:OCXOERR 
- Q
- ;
-CHK265 ; Look through the current environment for valid Event/Elements for this patient.
- ;  Called from CHK151+18^OCXOZ07.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; FILE(DFN,76, -----> FILE DATA IN PATIENT ACTIVE DATA FILE  (Event/Element: STAT LAB RESULT)
- ;
- S OCXOERR=$$FILE(DFN,76,"24,96") Q:OCXOERR 
- Q
+ N PC F PC=1:1:$L(LIST,","),0 I PC,$L($P(LIST,",",PC)),(DATA[$P(LIST,",",PC)) Q
+ Q ''PC
  ;
 CRCL(DFN) ;  Compiler Function: CREATININE CLEARANCE (ESTIMATED/CALCULATED)
  ;
- N WT,AGE,SEX,SCR,SCRD,CRCL,UNAV,OCXTL,OCXTLS,OCXT,OCXTS,PSCR
- S UNAV="0^<Unavailable>"
+ N HT,AGE,SEX,SCR,SCRD,CRCL,LRWKLD,RSLT,ORW,ORH,PSCR
+ N HTGT60,ABW,IBW,BWRATIO,BWDIFF,LOWBW,ADJBW
+ S RSLT="0^<Unavailable>"
  S PSCR="^^^^^^0"
- S WT=$P($$WT^ORQPTQ4(DFN),U,2)*.454 Q:'WT UNAV
- S AGE=$$AGE^ORQPTQ4(DFN) Q:'AGE UNAV
- S SEX=$P($$SEX^ORQPTQ4(DFN),U,1) Q:'$L(SEX) UNAV
- S OCXTL="" Q:'$$TERMLKUP("SERUM CREATININE",.OCXTL) UNAV
- S OCXTLS="" Q:'$$TERMLKUP("SERUM SPECIMEN",.OCXTLS) UNAV
+ D VITAL^ORQQVI("WEIGHT","WT",DFN,.ORW,0,"",$$NOW^XLFDT)
+ Q:'$D(ORW) RSLT
+ S ABW=$P(ORW(1),U,3) Q:+$G(ABW)<1 RSLT
+ S ABW=ABW/2.2  ;ABW (actual body weight) in kg
+ D VITAL^ORQQVI("HEIGHT","HT",DFN,.ORH,0,"",$$NOW^XLFDT)
+ Q:'$D(ORH) RSLT
+ S HT=$P(ORH(1),U,3) Q:+$G(HT)<1 RSLT
+ S AGE=$$AGE^ORQPTQ4(DFN) Q:'AGE RSLT
+ S SEX=$P($$SEX^ORQPTQ4(DFN),U,1) Q:'$L(SEX) RSLT
+ S OCXTL="" Q:'$$TERMLKUP^ORB31(.OCXTL,"SERUM CREATININE") RSLT
+ S OCXTLS="" Q:'$$TERMLKUP^ORB31(.OCXTLS,"SERUM SPECIMEN") RSLT
  S SCR="",OCXT=0 F  S OCXT=$O(OCXTL(OCXT)) Q:'OCXT  D
  .S OCXTS=0 F  S OCXTS=$O(OCXTLS(OCXTS)) Q:'OCXTS  D
- ..S SCR=$$LOCL^ORQQLR1(DFN,OCXT,OCXTS)
+ ..S SCR=$$LOCL^ORQQLR1(DFN,$P(OCXTL(OCXT),U),$P(OCXTLS(OCXTS),U))
  ..I $P(SCR,U,7)>$P(PSCR,U,7) S PSCR=SCR
- S SCR=PSCR,SCRV=$P(SCR,U,3) Q:+$G(SCRV)<.01 UNAV
- S SCRD=$P(SCR,U,7) Q:'$L(SCRD) UNAV
+ S SCR=PSCR,SCRV=$P(SCR,U,3) Q:+$G(SCRV)<.01 RSLT
+ S SCRD=$P(SCR,U,7) Q:'$L(SCRD) RSLT
  ;
- S CRCL=(((140-AGE)*WT)/(SCRV*72))
+ S HTGT60=$S(HT>60:(HT-60)*2.3,1:0)  ;if ht > 60 inches
+ I HTGT60>0 D
+ .S IBW=$S(SEX="M":50+HTGT60,1:45.5+HTGT60)  ;Ideal Body Weight
+ .S BWRATIO=(ABW/IBW)  ;body weight ratio
+ .S BWDIFF=$S(ABW>IBW:ABW-IBW,1:0)
+ .S LOWBW=$S(IBW<ABW:IBW,1:ABW)
+ .I BWRATIO>1.3,(BWDIFF>0) S ADJBW=((0.3*BWDIFF)+IBW)
+ .E  S ADJBW=LOWBW
+ I +$G(ADJBW)<1 D
+ .S ADJBW=ABW
+ S CRCL=(((140-AGE)*ADJBW)/(SCRV*72))
  ;
- I (SEX="M") Q SCRD_U_$J(CRCL,1,2)
- I (SEX="F") Q SCRD_U_$J((CRCL*.85),1,2)
- Q UNAV
+ S:SEX="M" RSLT=SCRD_U_$J(CRCL,1,1)
+ S:SEX="F" RSLT=SCRD_U_$J((CRCL*.85),1,1)
+ Q RSLT
  ;
 CTMRI(DFN,OCXOI) ;  Compiler Function: CT MRI PHYSICAL LIMITS
  ;
@@ -182,13 +194,6 @@ FLAB(DFN,OCXLIST,OCXSPEC) ;  Compiler Function: FORMATTED LAB RESULTS
  ..I $L($P(OCXX,U,7)) S OCXY=OCXY_" "_$$FMTE^XLFDT($P(OCXX,U,7),"2P")
  .S:$L(OCXOUT) OCXOUT=OCXOUT_"   " S OCXOUT=OCXOUT_$G(OCXY)
  Q:'$L(OCXOUT) "<Results Not Found>" Q OCXOUT
- ;
-ORDITEM(OIEN) ;  Compiler Function: GET ORDERABLE ITEM FROM ORDER NUMBER
- Q:'$G(OIEN) ""
- ;
- N OITXT,X S OITXT=$$OI^ORQOR2(OIEN) Q:'OITXT "No orderable item found."
- S X=$G(^ORD(101.43,+OITXT,0)) Q:'$L(X) "No orderable item found."
- Q $P(X,U,1)
  ;
 TERMLKUP(OCXTERM,OCXLIST) ;
  Q $$TERM^OCXOZ01(OCXTERM,.OCXLIST)

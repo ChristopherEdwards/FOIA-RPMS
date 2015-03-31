@@ -1,5 +1,5 @@
 BARRSL2 ; IHS/SD/LSL - Selective Report Parameters-PART 3 ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,19**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,19,23**;OCT 26, 2005
  ;
  ; IHS/SD/PKD - 5/10/10 - V1.8 patch 19
  ; 		ADDED TAG CANC PTYP for CANCELLATION REPORT
@@ -7,6 +7,7 @@ BARRSL2 ; IHS/SD/LSL - Selective Report Parameters-PART 3 ;
  ;
  ; IHS/SD/LSL - 02/20/02 - V1.7 Patch 1
  ;     Add DSCHSVC line tag to sort reports by Discharge Service
+ ; MAR 2013 P.OTTIS ADDED NEW VA billing
  Q
  ; *********************************************************************
  ;
@@ -55,8 +56,8 @@ CONVERT(BARA) ;EP
  S:BARA=1 BARTMP="R"
  S:BARA=2 BARTMP="D"
  S:BARA=3 BARTMP="P"
- ;S:BARA=4 BARTMP="K"
- S:BARA=4 BARTMP="O"  ;BAR*1.8*6 DD 4.1.1 IM21585
+ S:BARA=4 BARTMP="V"  ;P.OTT
+ S:BARA=5 BARTMP="O"  ;
  S BARA=BARTMP
  K BARTMP
  Q BARA

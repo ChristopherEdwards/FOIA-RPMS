@@ -1,5 +1,5 @@
-BEHOENPC ;MSC/IND/DKM - PCC Data Management ;07-Sep-2011 10:14;PLS
- ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007,005008**;Sep 18, 2007
+BEHOENPC ;MSC/IND/DKM - PCC Data Management ;18-Jul-2013 17:33;PLS
+ ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007,005008,005009,005010**;Sep 18, 2007
  ;=================================================================
  ; RPC: Update PCC data
  ; DATA = Returned as 0 if successful
@@ -71,10 +71,15 @@ STORE(FN,CF,CRT,NEW) ;
  .S:CF&$D(COM) FLD(CF)=$P(COM,U,3,999)
  .I '$D(FLD(1204)),VCAT'="E" S FLD(1204)=DUZ
  .S:'$D(FLD(1201))&$G(DAT) FLD(1201)=DAT
+ .I NEW=1 S FLD(1216)=$$NOW^XLFDT,FLD(1217)=DUZ
+ .S FLD(1218)=$$NOW^XLFDT,FLD(1219)=DUZ
+ ;Modified 7/6/2012 for ehr 11
  I TYP="PRV"&($G(FLD(.04))="P") D
  .S BPRV="" F  S BPRV=$O(^AUPNVPRV("AD",VIEN,BPRV)) Q:BPRV=""  D
  ..Q:FLD(.01)=$P($G(^AUPNVPRV(BPRV,0)),U,1)
- ..I $P($G(^AUPNVPRV(BPRV,0)),U,4)="P" S FLD(.04)="S"
+ ..I $P($G(^AUPNVPRV(BPRV,0)),U,4)="P" D
+ ...N FLD S FLD(.04)="S"
+ ...M BEHFLD(FN,BPRV_",")=FLD
  M BEHFLD(FN,IEN_",")=FLD
  K FLD
  D UPDATE^DIE("","BEHFLD","BEHIEN","BEHERR")
@@ -171,9 +176,9 @@ SK ;; Skin tests
  ;MSC/MGH added offset for Vista/RPMS field conflicts
  S OFF=$S($G(DUZ("AG"))="I":0,1:9999999)
  S TODAY=$$DT^XLFDT()
- S DTR=$P(VAL,U,9)
+ S DTR=$P($P(VAL,U,9),".")
  S GTR=$P(VAL,U,10)
- I GTR>TODAY!(DTR>TODAY) S DATA="-1^You cannot enter dates in the future" Q
+ I (GTR>$$NOW^XLFDT)!(DTR>TODAY) S DATA="-1^You cannot enter dates in the future" Q
  I +DTR,GTR>DTR S DATA="-1^The skin test read date must be after the applied date" Q
  S REF=$P(VAL,U,12),GVN=$P(VAL,U,10)
  S:'$L(GVN) (GVN,$P(VAL,U,10))=$G(VDAT)
@@ -219,17 +224,18 @@ TRT ;; Treatments
 MSR ;; Vital measurements (new format)
  ; MSR[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^Value[7]^Units[8]^
  ;VMSR IEN[9]^GMRV IEN[10]^When entered[11]^Taken date[12]^Entered by[13]^Qualfier[14]
- N GMRV,IEN,WHEN,XM,YM,Z,BEHDATA,TAKEN,ENTER,ENTERIEN,I,QUALNAME,QUALS,RESULT,NEW
+ N GMRV,IEN,WHEN,XM,YM,Z,BEHDATA,TAKEN,ENTER,ENTERIEN,I,QUALNAME,QUALS,RESULT,NEW,QUALCT
  S ENTERIEN=""
  S:'$D(VMSR) VMSR=$$GET^XPAR("ALL","BEHOVM USE VMSR")
  S XM=$P(VAL,U,7),YM=$P(VAL,U,8)
+ I XM="" S DATA=0 Q
  ;OIT/MSC/MGH Delete is now marked as entered in error
  I DEL S BEHDATA=$P(VAL,U,9)_U_DUZ_U_4 D EIE^BEHOVM2(.RESULT,BEHDATA) I RESULT="OK" S DATA=0 Q
  ;OIT/MSC/MGH Edits are now a delete and make a new entry
  I 'ADD D
  .S BEHDATA=$P(VAL,U,9)_U_DUZ_U_4 D EIE^BEHOVM2(.RESULT,BEHDATA)
  .I RESULT="OK" S DATA=0
- .E  S DATA=RESULT Q DATA
+ .E  S DATA=1  ;RESULT
  .S ADD=1,$P(VAL,U,9)=0
  I 'DEL,$L(YM) D
  .S DATA=$$NORM^BEHOVM(CODE,.XM,.YM,VMSR)
@@ -266,7 +272,12 @@ MSR ;; Vital measurements (new format)
  I IEN&($P(VAL,U,14)'="") D
  .K QUAL
  .S QUALS=$P(VAL,U,14)
- .F I=1:1 S QUALNAME=$P(QUALS,"~",I) Q:QUALNAME=""  S QUAL(QUALNAME)=""
+ .;IHS/MSC/MGH Update for qualifiers EHR 11
+ .I $P($G(^AUTTMSR(CODE,0)),U,1)="O2" D PO2^BEHOVM2(.RESULT,IEN,QUALS) Q
+ .S QUALCT=$L(QUALS,"~")
+ .F I=1:1:QUALCT S QUALNAME=$P(QUALS,"~",I) D
+ ..Q:QUALNAME=""
+ ..S QUAL(QUALNAME)=""
  .D QUAL^BEHOVM2(.RESULT,IEN,.QUAL)
  Q
 VIT ;; Vital measurements (old format)

@@ -1,7 +1,7 @@
-GMRCCP ;SLC/JFR - utilities for clinical procedures; 11/26/01 10:45
- ;;3.0;CONSULT/REQUEST TRACKING;**17,25**;DEC 27, 1997
+GMRCCP ;SLC/JFR - utilities for clinical procedures; 10/07/04 15:24
+ ;;3.0;CONSULT/REQUEST TRACKING;**17,25,37,55**;DEC 27, 1997;Build 4
  ; 
- ; This routine invokes IA #3378
+ ; This routine invokes IAs #3378,#3468
  ;
  Q
 CPLIST(GMRCPT,GMRCPR,GMRCRET) ;return list of patient CP requests
@@ -95,7 +95,9 @@ CPDOC(GMRCDA,TIUDA,ACTION) ;update file 123 entry with CLIN PROC DOC
  . S QVAL="0^Not a current API implementation"
  . Q
  I ACTION=2 D  Q QVAL
+ . N GMRCCPA
  . I $D(^GMR(123,+GMRCDA,50,"B",TIUDA_";TIU(8925")) Q
+ . S GMRCCPA=1 ; tell audit trail it's coming from CP ; slc/jfr 1/15/03
  . D GET^GMRCTIU(+GMRCDA,TIUDA,"INCOMPLETE") ;update to pr
  . D EN^GMRCT(+$P(^GMR(123,+GMRCDA,0),U,5)) ;get svc notif recips
  . I $D(GMRCADUZ) D
@@ -149,7 +151,7 @@ CPINTERP(GMRCTIU,GMRCUSER) ;is user an interpreter for TIU doc GMRCTIU
  S GMRCSRV=$P(^GMR(123,+GMRCDA,0),U,5)
  I 'GMRCSRV Q 0 ;no service, can't tell if interpreter
  S GMRCINT=+$$VALID^GMRCAU(GMRCSRV,,GMRCUSER) ;get upd authority
- Q $S(GMRCINT=2:1,GMRCINT=4:1,1:0) ;2=upd user, 4=adm & upd user
+ Q $S(GMRCINT=1:1,GMRCINT=2:1,GMRCINT=4:1,1:0) ;1=unrstrctd (upd) user, 2=upd user, 4=adm & upd user
  ;
 CPPAT(GMRCDA,GMRCDFN) ;is patient object of given request?
  ; Input:
@@ -161,3 +163,41 @@ CPPAT(GMRCDA,GMRCDFN) ;is patient object of given request?
  ;  0 = patient is NOT object of request in GMRCDA
  I $P($G(^GMR(123,GMRCDA,0)),U,2)'=GMRCDFN Q 0
  Q 1
+ ;
+MCCNVT(GMRCMOD,GMRCMC,GMRCTIU) ;convert MC pointer to TIU pointer in file 123
+ ;Input:
+ ;  GMRCMOD = boolean 1 (convert if found) or 0 (test conversion)
+ ;  GMRCMC  = var;ptr to a Medicine package result
+ ;  GMRCTIU = ptr to file 8925
+ ;
+ ;Output:
+ ;  -1^Description of error
+ ;   0^No Action needed 
+ ;   1^Success message^Consult IEN
+ ;
+ I '$D(GMRCMOD) Q "-1^Mode unknown"
+ I '$G(GMRCMC) Q "-1^No MC results sent"
+ N GMRCIEN,GMRCRIEN,GMRCACT,GMRCERR,FDA
+ S GMRCIEN=$O(^GMR(123,"R",GMRCMC,0))
+ I 'GMRCIEN Q "0^No action needed"
+ I GMRCMOD=0 Q "1^Not converted^"_GMRCIEN
+ I '$G(GMRCTIU) Q "-1^No TIU ref sent"
+ S GMRCRIEN=$O(^GMR(123,"R",GMRCMC,GMRCIEN,0))
+ S FDA(1,123.03,GMRCRIEN_","_GMRCIEN_",",.01)=GMRCTIU_";TIU(8925,"
+ D FILE^DIE("K","FDA(1)","GMRCERR")
+ I $D(GMRCERR) Q "-1^Unable to convert"
+ ; rest of field conversions
+ I $P(^GMR(123,GMRCIEN,0),U,15)=GMRCMC D
+ . S FDA(1,123,GMRCIEN_",",11)="@"
+ . D FILE^DIE("K","FDA(1)","GMRCERR")
+ ;
+ S GMRCACT=0
+ F  S GMRCACT=$O(^GMR(123,GMRCIEN,40,GMRCACT)) Q:'GMRCACT  D
+ . I $P(^GMR(123,GMRCIEN,40,GMRCACT,0),U,9)'=GMRCMC Q  ;no need to chg
+ . K FDA,GMRCERR
+ . S FDA(1,123.02,GMRCACT_","_GMRCIEN_",",9)=GMRCTIU_";TIU(8925,"
+ . D FILE^DIE("K","FDA(1)","GMRCERR")
+ ; NO IFC implications at this time
+ Q "1^Successfully converted^"_GMRCIEN
+ ;
+ Q

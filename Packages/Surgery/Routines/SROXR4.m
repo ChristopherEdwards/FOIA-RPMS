@@ -1,21 +1,10 @@
-SROXR4 ;B'HAM ISC/MAM - CROSS REFERENCES ; [ 08/03/98  11:49 AM ]
- ;;3.0; Surgery ;**62,83**;24 Jun 93
-IN ; set 'AIN' x-ref
- S SRINVDT=9999999.999999-X S ^SRF("AIN",$P(^SRF(DA,0),"^"),SRINVDT,DA)=X K SRINVDT
- Q
-KIN ; kill 'AIN' x-ref
- S SRINVDT=9999999.999999-X K ^SRF("AIN",$P(^SRF(DA,0),"^"),SRINVDT,DA),SRINVDT
+SROXR4 ;BIR/MAM - CROSS REFERENCES ;11/05/07
+ ;;3.0; Surgery ;**62,83,100,153,166**;24 Jun 93;Build 6
  Q
 PRO ; stuff default prosthesis info
  I '$D(SRTN) Q
  S ^SRF(SRTN,1,DA,0)=^SRF(SRTN,1,DA,0)_"^"_$P(^SRO(131.9,X,0),"^",2,99)
  I $D(^SRO(131.9,X,1)) S ^SRF(SRTN,1,DA,1)=^(1)
- Q
- Q
-AUD ; set 'AUD' x-ref
- I $P($G(^SRF(DA,31)),"^",6)'="" Q
- I $P($G(^SRF(DA,30)),"^")'="" Q
- S ^SRF("AUD",DA)=""
  Q
 CAN ; 'SET' logic of the 'ACAN' x-ref on the 'CANCEL REASON'
  ; field in the SURGERY file (130)
@@ -49,19 +38,36 @@ RISK ; clean up risk data for canceled cases
  S DIE=130,DR="102///@;235///@;284///@;323///@" D ^DIE K DR,DA S ZTREQ="@"
  Q
 AQ ; set logic for AQ x-ref
- N SRTD D AQDT I SRTD'<2970214 S $P(^SRF(DA,.4),"^",2)="R",^SRF("AQ",SRTD,DA)=""
+ N SRTD,SRLO D AQDT I SRTD'<SRLO S $P(^SRF(DA,.4),"^",2)="R",^SRF("AQ",SRTD,DA)=""
  Q
 KAQ ; kill logic for AQ x-ref
- N SRTD D AQDT S $P(^SRF(DA,.4),"^",2)="" K ^SRF("AQ",SRTD,DA)
+ N SRTD,SRLO D AQDT S $P(^SRF(DA,.4),"^",2)="" K ^SRF("AQ",SRTD,DA)
  Q
 AQDT ; get quarterly transmission date
- N SRDAY,SRSDATE,SRQTR,SRYR S SRSDATE=$E($P(^SRF(DA,0),"^",9),1,7)
+ N SRDAY,SRSDATE,SRQTR,SRX,SRYR S SRSDATE=$E($P(^SRF(DA,0),"^",9),1,7)
  S SRYR=$E(SRSDATE,1,3),SRDAY=$E(SRSDATE,4,7),SRQTR=$S(SRDAY<401:2,SRDAY<701:3,SRDAY<1001:4,1:1) I SRQTR=1 S SRYR=SRYR+1
  S SRTD=SRYR_$S(SRQTR=1:"0214",SRQTR=2:"0515",SRQTR=3:"0814",1:"1114")
+ S SRX=$E(DT,1,3),SRLO=SRX-1_"0214"
  Q
 AQ1 ; set logic for AQ1 x-ref
- I X="R" N SRTD D AQDT I SRTD'<2970214 S ^SRF("AQ",SRTD,DA)=""
+ I X="R" N SRTD,SRLO D AQDT I SRTD'<SRLO S ^SRF("AQ",SRTD,DA)=""
  Q
 KAQ1 ; kill logic for AQ1 x-ref
- N SRTD D AQDT K ^SRF("AQ",SRTD,DA)
+ N SRTD,SRLO D AQDT K ^SRF("AQ",SRTD,DA)
+ Q
+AT ; set logic for AT x-ref on DATE OF LAST TRANSMISSION
+ N SRX S ^SRF("AT",X,DA)=""
+ S SRX=$P($G(^SRF(DA,"RA")),"^",4) I SRX,SRX'=X K ^SRF("AT",SRX,DA)
+ Q
+KAT ; kill logic for AT x-ref on DATE OF LAST TRANSMISSION
+ N SRX K ^SRF("AT",X,DA)
+ S SRX=$P($G(^SRF(DA,"RA")),"^",4) I SRX,SRX'=X K ^SRF("AT",SRX,DA)
+ Q
+AT1 ; set logic for AT x-ref on DATE TRANSMITTED
+ N SRX S SRX=$P($G(^SRF(DA,"RA")),"^",8) I SRX Q
+ S ^SRF("AT",X,DA)=""
+ Q
+KAT1 ; kill logic for AT x-ref on DATE TRANSMITTED
+ N SRX S SRX=$P($G(^SRF(DA,"RA")),"^",8)
+ I SRX'=X K ^SRF("AT",X,DA)
  Q

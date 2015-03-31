@@ -1,5 +1,5 @@
-PSDESTO ;BIR/BJW-Add CS Non-Inv Drug to Holding file ;28-Jan-2004 12:02;PLS
- ;;3.0; CONTROLLED SUBSTANCES ;**8,32**;13 Feb 97
+PSDESTO ;BIR/BJW-Add CS Non-Inv Drug to Holding file ;29-May-2012 14:25;PLS
+ ;;3.0; CONTROLLED SUBSTANCES ;**8,32,66,1015**;13 Feb 97;Build 62
  ;**Y2K compliance**;display 4 digit year on va forms
  ; Modified - IHS/CIA/PLS - 01/28/04 - Removed references to VA FORM
  I '$D(PSDSITE) D ^PSDSET Q:'$D(PSDSITE)
@@ -39,7 +39,7 @@ ASKY ;ask ok to continue
  D ^DIR K DIR I $D(DIRUT) D MSG G END
  I 'Y W !!,"Select a new CS drug to place on hold for destruction",!! G DRUG
  W !!,"Creating an entry in the Destructions file..."
- F  L +^PSD(58.86,0):0 I  Q
+ F  L +^PSD(58.86,0):$S($G(DILOCKTM)>0:DILOCKTM,1:3) I  Q
  ;Field 14 added for E3R# 3771,Fld 18 added 7/27/95
 FIND S PSDHLD=$P(^PSD(58.86,0),"^",3)+1 I $D(^PSD(58.86,PSDHLD)) S $P(^PSD(58.86,0),"^",3)=PSDHLD G FIND
  K DA,DIC,DLAYGO S (DIC,DLAYGO)=58.86,DIC(0)="L",(X,DINUM)=PSDHLD D ^DIC K DIC,DLAYGO

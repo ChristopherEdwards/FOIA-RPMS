@@ -1,11 +1,11 @@
 PSGOERI ;BIR/CML3-REINSTATE A DC'D ORDER ;06 Aug 98 / 2:17 PM
- ;;5.0; INPATIENT MEDICATIONS ;**17,27,31,88**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**17,27,31,88,110,137**;16 DEC 97
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191
  ;
 ENRI ;
  S PSGALR=80,PSGFD=$P($G(^PS(55,PSGP,5,+PSGORD,2)),"^",3) I 'PSGFD W:'$D(PSJUNDC) $C(7),$C(7),!?3,"I CANNOT REINSTATE THIS ORDER!  THE OLD STOP DATE IS MISSING!" Q
- I PSGFD'>PSGDT Q:$D(PSJUNDC)  W !!,"This order has technically expired as of ",$$ENDTC^PSGMI,"." F  S %=1 W !!,"Do you want to RENEW this order" D YN^DICN Q:%  D  ;
+ I PSGFD'>PSGDT Q:$D(PSJUNDC)  W !!,"This order has technically expired as of ",$$ENDTC^PSGMI,"." F  S %=1 W !!,"Do you want to RENEW this order" D YN^DICN Q:%  D
  .W !!?2,"This order has expired, and cannot be renewed.  But the order can be",!,"reinstated.  Answer 'YES' to reinstate the order now.  Answer 'NO' (or '^') if",!,"you do not want to reinstate this order now."
  I PSGFD'>PSGDT G:%'=1 DONE S PSGRRF=0 D NEW^PSGOER,DONE^PSGOER G DONE
  W:'$D(PSJUNDC) !!,"...reinstating this order..."
@@ -14,6 +14,7 @@ ENRI ;
  .I $P(^PS(55,PSGP,5,+PSGORD,4),U,1)'="" S PSJSENTO($J,$P(^PS(55,PSGP,5,+PSGORD,4),U,1))="" ; Record verifying Nurse
  .I $P(^PS(55,PSGP,5,+PSGORD,4),U,3)'="" S PSJSENTO($J,$P(^PS(55,PSGP,5,+PSGORD,4),U,3))="" ; Record verifying Pharmacist
  .I $P(^PS(55,PSGP,5,+PSGORD,4),U,5)'="" S PSJSENTO($J,$P(^PS(55,PSGP,5,+PSGORD,4),U,5))="" ; Record Physician
+ .I $P(^PS(55,PSGP,5,+PSGORD,0),U,2)'="" S PSJSENTO($J,$P(^PS(55,PSGP,5,+PSGORD,0),U,2))="" ; Record Provider
  ;If a duplicate order exists do not reinstate the older one.  Record in ^TMP for later advice in auto e-mail (PSJADT2)
  D NOW^%DTC
  I $D(PSJUNDC) I $$CHECKDUP^PSGOERI(PSGP,+PSGORD) S ^TMP("PSJNOTUNDC",$J,PSGP,PSGORD_"U")="" G DONE
@@ -38,12 +39,13 @@ DONE ;
  K DA,DIE,DR,PSGAL,PSGALR,PSGFD,PSGID,PSGOD,RF,Z
  Q
 CHECKDUP(PSGP,PSGORD) ;
- N Z,ZZ
+ N Z,ZZ,PSJCOM
  S FOUND=0
- S PSGX=+$G(^PS(55,PSGP,5,+PSGORD,.2))
+ S PSGX=+$G(^PS(55,PSGP,5,+PSGORD,.2)),PSJCOM=+$P($G(^(.2)),"^",8)
  I PSGX'="" D
  .F Z=%:0 S Z=$O(^PS(55,+PSGP,5,"AUS",Z)) Q:'Z!FOUND  D
  ..F ZZ=0:0 S ZZ=$O(^PS(55,+PSGP,5,"AUS",Z,ZZ)) Q:'ZZ!FOUND  D
+ ...I PSJCOM>0 Q:+$P($G(^PS(55,+PSGP,5,ZZ,.2)),"^",8)=PSJCOM
  ...I +$G(^PS(55,+PSGP,5,ZZ,.2))=PSGX D
  ....S FOUND=1
  Q FOUND

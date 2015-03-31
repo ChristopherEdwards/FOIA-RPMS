@@ -1,5 +1,5 @@
 BARCLU ; IHS/SD/LSL - USER ENTRY INTO COLLECTION BATCHES ;; 07/09/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,16,18,19**;OCT 26,2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,16,18,19,23**;OCT 26,2005
  ;;
  ; IHS/ASDS/LSL - 06/15/01 - V1.5 Patch 1 - HQW-0201-100027
  ;     fm 22 issue.  Modified to include E in DIC(0)
@@ -19,12 +19,12 @@ BARCLU ; IHS/SD/LSL - USER ENTRY INTO COLLECTION BATCHES ;; 07/09/2010
  ;      819_4. Display prepayments matching payment type selected (^BARCLU,^BARCLU4)
  ;      819_5. Allow user to assign prepayment to batch (^BARCLU,^BARCLU4,^BARCLU01,^BARPUTL,^BARPST1,^BARBLLK)
  ;      819_6. Print Prepayment Receipt (^BARPPY02) (new routine)
+ ;
  ; ********************************************************************* ;
  ;
 ENTRY ;
  ; lookup collection id I '$D(BARUSR) D INIT^BARUTL
  ;---select collection batch
- ;D KILL^XUSCLEAN  ;UFMS BAR*1.8*3
  S X1=$$GET1^DIQ(200,DUZ,20.4,"I")
  I X1']"" D  Q
  . W *7,!!,"NO ELECTRONIC SIGNATURE CODE ON FILE"
@@ -40,12 +40,12 @@ G ;
  S DIC="^BAR(90051.02,DUZ(2),"
  S DIC(0)="AEZQM"
  S DIC("S")="I $D(^BAR(90051.02,DUZ(2),""AB"",DUZ,+Y))" ;screen for user
- D ^DIC                        ;Select A/R COLLECTION POINT/IHS NAME:
+ D ^DIC  ;Select A/R COLLECTION POINT/IHS NAME:
  Q:Y'>0
  S BARDA=+Y
  K BARCLID
  D BARCLID ;setup BARCLID collection id array
- D DISPPAY^BARCLU4       ;Display unassigned Prepayments  ;M819*ADD*TMM*20100709 (M819_1)
+ D DISPPAY^BARCLU4       ;Display unassigned Prepayments
  G:BARCLID(6)="" NEW
  I BARCLID(6.5)="POSTABLE" G NEW
  I BARCLID(6.5)'="OPEN",BARCLID(6.3)'=BARUSR(.01) G NEW
@@ -84,20 +84,13 @@ ENTER ; EP
  ;D NEWITEM  ;IHS/SD/SDR bar*1.8*4
  W $$EN^BARVDF("IOF")
  W !!,"ENTERING ",BARCL(.01)
- ;W ?30,"TYPE: ",BARCLID(2)  ;IHS/SD/SDR bar*1.8*4 DD item 4.1.5.1
  W ?35,"TYPE: ",BARCLID(2)  ;IHS/SD/SDR bar*1.8*4 DD item 4.1.5.1
- ;W ?50,"BATCH TOTAL: ",$$GET1^DIQ(90051.01,BARCLDA,15),!!  ;IHS/SD/SDR bar*1.8*4 DD item 4.1.5.1
  W ?55,"BATCH TOTAL: ",$$GET1^DIQ(90051.01,BARCLDA,15)  ;IHS/SD/SDR bar*1.8*4  DD item 4.1.5.1
- ;start new code IHS/SD/SDR bar*1.8*4  DD item 4.1.5.1
  I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)'="",(+$G(BARCLID(22,"I"))) D
  .W !,"TDN/IPAC: ",$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)
  .W ?35,"TDN/IPAC AMOUNT: ",$FN($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29),",",2),!!
- ;
- ;start old code IHS/SD/SDR bar*1.8*6 IM29168
 TDN ;I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""!($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)="")&(+$G(BARCLID(22,"I"))) D  Q:$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""&($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)="")&($G(BARFLG)'=1)
- ;end old code start new code IM29168
  I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""!(+$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)=0)&(+$G(BARCLID(22,"I"))) D  Q:($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)="")&(+$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)=0)&($G(BARFLG)'=1)
- .;end new code IM29168
  .W !,"You will now be prompted for the Treasury Deposit/IPAC and an amount."
  .W !,"The Treasury Deposit/IPAC will be used for all items in this batch."
  .W !,"The total of all the items entered must equal the amount entered here or"
@@ -108,6 +101,7 @@ TDN ;I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""!($P($G(^BARCOL(DUZ(2),BARCLDA,0
  .S DA=BARCLDA
  .;IHS/SD/AR 03/31/2010 low priorities, TDN dupl
  .I '$$IHS^BARUFUT(DUZ(2)) D
+ .;;;I '$$IHSERA^BARUFUT(DUZ(2)) D
  ..K DIE("NO^")   ;BAR*1.8*16
  ..S DR="28Enter TDN/IPAC//"  ;BAR*1.8*16
  .E  D
@@ -125,7 +119,8 @@ TDN ;I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""!($P($G(^BARCOL(DUZ(2),BARCLDA,0
  .E  D
  ..W "  No duplicates found."
  .K LIST,DOCARE
-  .I '$$IHS^BARUFUT(DUZ(2)) D
+ .I '$$IHS^BARUFUT(DUZ(2)) D
+ .;;;I '$$IHSERA^BARUFUT(DUZ(2)) D
  ..K DIE("NO^")   ;BAR*1.8*16
  ..S DR="30Enter TDN/IPAC/Deposit Date;29Enter TDN/IPAC Dollar Amount for this Batch//"  ;BAR*1.8*16
  .E  D
@@ -164,6 +159,7 @@ TDN ;I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""!($P($G(^BARCOL(DUZ(2),BARCLDA,0
  ;I ($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)="")!(($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)'="NONPAYMENT")&(+$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)=0)),(+$G(BARCLID(22,"I")))  G TDN  ;go back up & prompt for TDN again ;IHS/SD/SDR bar*1.8*6 IM29168
  ;PER TONI JOHNSON TRIBALS DO NOT HAVE TO POPULATE THESE FIELDS BAR*1.8*16  
  I ($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)="")!(($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)'="NONPAYMENT")&(+$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)=0)),(+$G(BARCLID(22,"I"))),($$IHS^BARUFUT(DUZ(2)))  G TDN
+ ;;;I ($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)="")!(($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)'="NONPAYMENT")&(+$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)=0)),(+$G(BARCLID(22,"I"))),($$IHSERA^BARUFUT(DUZ(2)))  G TDN
  D NEWITEM^BARCLU4
  W !
  S DA(1)=BARCLDA
@@ -352,14 +348,12 @@ DISPLAY ;EP
  ; display item elements
  D DISPLAY^BARCLU1
  Q
- ;start new code IHS/SD/SDR bar*1.8*4 DD item 4.1.5.1
 ITEMTOT(BARCLDA) ;EP - get total of items
  S BARITDA=0,BARITTOT=0
  F  S BARITDA=$O(^BARCOL(DUZ(2),BARCLDA,1,BARITDA)) Q:+BARITDA=0  D
  .Q:$P($G(^BARCOL(DUZ(2),BARCLDA,1,BARITDA,0)),U,17)="C"!($P($G(^BARCOL(DUZ(2),BARCLDA,1,BARITDA,0)),U,17)="R")  ;no cancelled or rolled up items
  .S BARITTOT=+$G(BARITTOT)+$P($G(^BARCOL(DUZ(2),BARCLDA,1,BARITDA,1)),U)
  Q BARITTOT
- ;end new code IHS/SD/SDR bar*1.8*4 DD item 4.1.5.1
 CHECKDUP(NEWTDN,LIST) ;EP - CHECK FOR DUPLICATE TDN IN A/R COLLECTION BATCH
  W !!,"Checking for duplicate TDN/IPAC..."
  Q:NEWTDN=""
@@ -394,14 +388,10 @@ SHOLIST(LIST) ;EP - SHOW LIST OF DUPES
  .W ?35,"  ST: ",$P(LIST(CNT),U,2)
  .W ?63," T/I: ",$P(LIST(CNT),U,3)
  W !!
- ;K DIR
- ;S DIR(0)="E"
- ;D ^DIR
  Q
  ;
 BFLAG(BARDA) ; (tag called by Fileman trigger for field: BATCH FLAG)
  ; Update BATCH FLAG field (triggered when BATCH field is updated)
- ;--->New Tag BFLAG  ;M819*ADD*TMM*20100710 (819_4)
  S BARTMP=+$$GET1^DIQ(90050.06,BARDA_",",.14,"I")
  S BARTMPX=$S(BARTMP=0:"N",1:"A")
  Q BARTMPX

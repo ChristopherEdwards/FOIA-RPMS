@@ -1,5 +1,5 @@
 ABSPOSIF ; IHS/FCS/DRS - handle FIND command ;   [ 09/12/2002  10:11 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,46**;JUN 21, 2001
  ; "FIND" - when typed at Prescription field, here's what happens
  Q
 TEST N RETVAL S RETVAL=$$RXFIND()
@@ -105,6 +105,8 @@ WHICHRX(SEL)          ; given ^TMP($J,"LIST" and  SEL from visit selection,
  S X=$$LIST^ABSPOSU4(TYPE,LISTROOT,ANSROOT,TITLE,.PROMPT,OPT)
  I "^^"[X Q ""
  I X<0 Q ""
+ ;IHS/OIT/RCS 7/8/2013 Patch 46 - Only allow one number from list to be selected
+ I X'?1N.N Q ""
  Q X
 FMTQTY(QTY)        ; decimal, 3 places, but no excess trailing zeroes
  I QTY#1=0 Q QTY_"    "
@@ -137,6 +139,8 @@ VISIFIND(PAT,RXTYPE,VISITIEN)      ; given patient IEN, present a list of visits
  E  S X=$$LIST^ABSPOSU4(TYPE,LISTROOT,ANSROOT,TITLE,PROMPT,OPT)
  I "^^"[X Q ""
  I X<0 Q ""
+ ;IHS/OIT/RCS 7/8/2013 Patch 46 - Only allow one number from list to be selected
+ I X'?1N.N Q ""
  Q X
 VISLIST(VISITIEN) ; set up LISTROOT ; given PAT ; if $$, it returns the count
  ; variations?  haven't thought it through - for now, must have PAT

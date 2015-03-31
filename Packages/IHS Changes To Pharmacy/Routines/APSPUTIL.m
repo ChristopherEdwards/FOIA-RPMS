@@ -1,5 +1,5 @@
-APSPUTIL ;IHS/BAO/DMH - Utilites to Support OP v7.0 -;28-Mar-2011 18:30;DU
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1006,1007,1009,1011**;Sep 23, 2004;Build 17
+APSPUTIL ;IHS/BAO/DMH - Utilites to Support OP v7.0 -;01-Oct-2012 12:40;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1006,1007,1009,1011,1015**;Sep 23, 2004;Build 62
  ;
 PMS ; EP  ; called from PSORXL before go in to print the label  3/1/2002
  S DIR("A")="Do you want to print a Patient Med Sheet"
@@ -123,3 +123,24 @@ GETIEN1(APSPFILE,APSPPMPT,APSPDFLD,D,APSPSCRN,APSPDFLT) ; EP
  D MIX^DIC1
  S:Y'>0 APSPPOP=1,$P(APSPPOP,U,2)=X="@"
  Q +Y
+ ; Display required header for menus
+TITLE(PKG,VER) ;EP
+ Q:$E($G(IOST),1,2)'="C-"
+ N X,%ZIS,IORVON,IORVOFF,MNU
+ S MNU=$P(XQY0,U,2),VER="Version "_$G(VER,1.1),PKG=$G(PKG,"RPMS-EHR Management")
+ S X="IORVON;IORVOFF"
+ D ENDR^%ZISS
+ U IO
+ W @IOF,IORVON,$$GET1^DIQ(4,DUZ(2),.01),?(IOM-$L(PKG)\2),PKG,?(IOM-$L(VER)),VER,!,IORVOFF,?(IOM-$L(MNU)\2-$X),MNU
+ Q
+ ; Edit a parameter from a menu option
+EDITPAR(PARAM) ;EP
+ S PARAM=$G(PARAM,$P(XQY0,U))
+ D TITLE(),EDITPAR^XPAREDIT(PARAM):$$CHECK(8989.51,PARAM,"Parameter")
+ Q
+ ; Check to make sure entry exists
+CHECK(FIL,VAL,ENT) ;
+ Q:$$FIND1^DIC(FIL,,"X",VAL) 1
+ W !,ENT," ",VAL," was not found.",!
+ D DIRZ
+ Q 0

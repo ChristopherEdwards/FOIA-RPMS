@@ -1,5 +1,5 @@
 ABSPOS26 ; IHS/FCS/DRS - put insurance in order ;   
- ;;1.0;PHARMACY POINT OF SALE;;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;*46*;JUN 21, 2001
  ; these are most of the rules implementations
  ; called from ABSPOS25
  Q
@@ -56,6 +56,8 @@ RULESET(N,RULE)         N X S X=$P(ARRAY(N),U,5) S:X]"" X=X_";"
 AUTTBEN(PATDFN) ;EP - return beneficiary code, from ^AUPNPAT
  N AUPNPAT S AUPNPAT=$O(^AUPNPAT("B",PATDFN,0)) I 'AUPNPAT Q 0 ; imposs?
  N X S X=$P($G(^AUPNPAT(AUPNPAT,11)),U,11) ; pointer to ^AUTTBEN
+ ;IHS/OIT/RCS 7/5/2013 Patch 46 - Set beneficairy code to Other if value returns Null
+ I X="" S X=8
  Q X
 WORKREL()          ; is ABSBVISI a worker's comp visit?
  ; If so, return value is true = pointer to ^AUPNVPOV which has

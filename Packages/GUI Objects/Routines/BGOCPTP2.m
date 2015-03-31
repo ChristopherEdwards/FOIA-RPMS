@@ -1,5 +1,5 @@
-BGOCPTP2 ; IHS/BAO/TMD - CPT PREFERENCES MANAGER-2 ;05-Feb-2008 11:28;DKM
- ;;1.1;BGO COMPONENTS;**1,3,4,5**;Mar 20, 2007
+BGOCPTP2 ; IHS/BAO/TMD - CPT PREFERENCES MANAGER-2 ;27-Feb-2013 15:34;DU
+ ;;1.1;BGO COMPONENTS;**1,3,4,5,11,12**;Mar 20, 2007;Build 5
  ;
  ; Returns list of assocs for specified category and item
  ;  INP = Category IEN ^ Item IEN
@@ -27,12 +27,20 @@ GETASSOC(RET,INP) ;EP
  .Q:'ITEMIEN
  .S TYP=$P(X,";",2)
  .Q:TYP=""
- .S GBL=U_TYP_ITEMIEN_",0)"
+ .I TYP="DIC(81.3" S TYP2="DIC(81.3"_","
+ .E  S TYP2=TYP
+ .S GBL=U_TYP2_ITEMIEN_",0)"
  .S X=$G(@GBL)
  .Q:'$L(X)
  .I ITEMIEN=CPT,TYP="ICPT(",$L(NAR) S $P(X,U,2)=NAR,CPT=0
  .S P=$$TYPECVT(TYP,1,3)
- .S ITEMNAME=$P(X,U,P)
+ .I TYP="DIC(81.3," S P=$$TYPECVT(TYP,1,3)
+ .;Changes made for AICD version 4.0 and Patch 12
+ .I TYP="ICD9(" D
+ ..I $$AICD^BGOUTL2 S ITEMNAME=$$SD^ICDEX(80,ITEMIEN,DT)
+ ..E  S ITEMNAME=$P(X,U,P)
+ .E  S ITEMNAME=$P(X,U,P)
+ .;End chagnes
  .S P=$$TYPECVT(TYP,1,4)
  .S CODE=$P(X,U,P)
  .S AUTO=$P(N0,U,2)
@@ -58,7 +66,7 @@ DELASSOC(RET,INP) ;EP
  ;  INP = CPT Preference IEN [1] ^ CPT Subfile IEN [2] ^ Type [3] ^ Value [4] ^ Association [5] ^ Auto Add [6] ^
  ;        Default to Add [7] ^ No Dups [8] ^ Amount [9] ^ Quantity [10]
 SETASSOC(RET,INP) ;EP
- N TYP,VAL,ASSOC,AUTO,DFLT,NODUP,AMT,QTY,FDA,IENS,DA,IEN
+ N TYP,TYP2,VAL,ASSOC,AUTO,DFLT,NODUP,AMT,QTY,FDA,IENS,DA,IEN,Z
  S RET=""
  S DA(2)=+INP
  S DA(1)=+$P(INP,U,2)
@@ -253,6 +261,9 @@ ADDPX Q:'CPT
 TYPECVT(X,F,T) ;
  N I,Y,R
  S X=$$UP^XLFSTR(X)
+ I X="CPT MODIFIER" D
+ .S Z=$$MODGBL^BGOVCPT
+ .I Z="^DIC(81.3)" S X="CSV CPT MODIFIER"
  F I=0:1 S Y=$P($T(TYPES+I),";;",2) Q:'$L(Y)  D  Q:$D(R)
  .S:$$UP^XLFSTR($P(Y,";",F))=X R=$P(Y,";",T)
  Q $G(R)
@@ -268,4 +279,5 @@ TYPES ;;ICD9(;ICD Diagnosis;3;1;0;9000010.07
  ;;AUTTIMM(;Immunization;1;3;7;9000010.11
  ;;AUTTEDT(;Education Topic;1;1;8;9000010.16
  ;;BCMTCF(;Transaction;7;1;9;9000010.33
+ ;;DIC(81.3;CSV CPT Modifier;2;2;5;
  ;;

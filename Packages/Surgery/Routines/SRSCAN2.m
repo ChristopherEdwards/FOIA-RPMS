@@ -1,5 +1,5 @@
 SRSCAN2 ;BIR/MAM - MAKE NEW REQUEST WHEN CANCELLED ; [ 06/14/01  9:57 AM ]
- ;;3.0; Surgery ;**3,16,34,67,77,88,92,103**;24 Jun 93
+ ;;3.0; Surgery ;**3,16,34,67,77,88,92,103,144**;24 Jun 93
 START W !!,"Do you want to create a new request for this cancelled case ??  YES// " R SRYN:DTIME I '$T!(SRYN["^") Q
  S SRYN=$E(SRYN) S:SRYN="" SRYN="Y"
  I "YyNn"'[SRYN W !!,"Enter 'YES' to automatically move the information contained in this scheduled",!,"case to a new request, or 'NO' to not create a new request." G START
@@ -8,7 +8,7 @@ START W !!,"Do you want to create a new request for this cancelled case ??  YES/
 DATE W ! K %DT S %DT="AEFX",%DT("A")="Make the new request for which Date ?  ",%DT("B")=SRY D ^%DT I Y<0 S OK=1 D HELP Q:'OK  G DATE
  S SRX=+Y D CHK G:$D(SRLATE) DATE S SRNEWDT=SRX W !!,"Creating the new request..."
  K DA,DIC,DD,DO,DINUM S X=SRSDPT,DIC="^SRF(",DIC(0)="L",DLAYGO=130 D FILE^DICN K DD,DO,DIC,DLAYGO S SRTNEW=+Y
- S %X="^SRF("_SRTOLD_",",%Y="^SRF("_SRTNEW_"," D %XY^%RCR
+ S %X="^SRF("_SRTOLD_",",%Y="^SRF("_SRTNEW_"," D %XY^%RCR K ^SRF(SRTNEW,"PFSS")
  S SRSOP=$P(^SRF(SRTNEW,"OP"),"^"),SRSCPT=$P(^SRF(SRTNEW,"OP"),"^",2),SRSDOC=$S($D(^SRF(SRTNEW,.1)):$P(^(.1),"^",4),1:"")
  K ^SRF(SRTNEW,31),^SRF(SRTNEW,30) S $P(^SRF(SRTNEW,0),"^",2)=""
  N SREQ D NOW^%DTC S SREQ(130,SRTNEW_",",1.098)=+$E(%,1,12),SREQ(130,SRTNEW_",",1.099)=DUZ D FILE^DIE("","SREQ","^TMP(""SR"",$J)")

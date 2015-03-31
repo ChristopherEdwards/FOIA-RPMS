@@ -1,5 +1,5 @@
 PSGDCTP ;BIR/DAV,MLM-SORT AND PRINT DRUG PROFILE DATA ;1 NOV 95 / 8:55 AM
- ;;5.0; INPATIENT MEDICATIONS ;;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**132**;16 DEC 97
  ;
  ; Resort data by if by amt or cost.
  K ^TMP($J,"S2") S PSGP2=$S(PSGDCT=1:0,1:$D(PSGDISP)),PSGWO=$S('$D(PSGDCLW):0,1:'PSGP2),S1=""
@@ -27,6 +27,7 @@ SETRST(X,ND) ; Set RSTx subscripts
  Q $S("CA"'[X:"ZZ",X="C":-(+$P(ND,U,2)),1:-(+ND))
  ;
 START ;
+ N DIRUT
  D NOW^%DTC S PSGDT=%,CML=IO'=IO(0)!(IOST'["C-"),(NP,LN1)="",$P(LN1,"-",81)=""
  U IO D HDR I '$D(^TMP($J,"S2")) W !!?25,"*** NO DRUG COST DATA FOUND ***" D DONE Q
  ;

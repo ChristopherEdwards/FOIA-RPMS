@@ -1,14 +1,16 @@
-PSORXRP2 ;BIR/SAB-main menu entry reprint of a Rx label ;12-Oct-2011 15:00;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,27,120,138,135,1013**;DEC 1997;Build 33
+PSORXRP2 ;BIR/SAB-main menu entry reprint of a Rx label ;25-Feb-2013 15:01;DU
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,120,138,135,1013,156,185,280,1015**;DEC 1997;Build 62
  ;External references PSOL and PSOUL^PSSLOCK supported by DBIA 2789
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to ^PSDRUG supported by DBIA 221
  ; Modified - IHS/CIA/PLS - 12/22/03 - Line GOOD+12, GOOD+31, and ACT+1
  ; Modified - IHS/CIA/DKM - 02/01/04 - Line ACT+3
  ;          - IHS/MSC/PLS - 09/16/2011 - Line PSORXRP2+9,LRP+1,LRP+7
+ ; Modified - IHS/MSC/MGH - 02/25/2013 - Line ACT1 + 5
  I '$D(PSOPAR) D ^PSOLSET I '$D(PSOPAR) G KILL
  Q:'$$ESIG^APSPFUNC  ;IHS/MSC/PLS - patch 1013
-LRP ;K REPRINT W !! S DIC("S")="I $P($G(^(0)),""^"",2),$D(^(""STA"")),$P($G(^(""STA"")),""^"")<10",DIC="^PSRX(",DIC("A")="Reprint Prescription Label: ",DIC(0)="QEAZ" D ^DIC K P,DIC("A") I Y<0!("^"[X) K PCOM,PCOMX G KILL
+LRP N PSODISP
+ ;K REPRINT W !! S DIC("S")="I $P($G(^(0)),""^"",2),$D(^(""STA"")),$P($G(^(""STA"")),""^"")<10",DIC="^PSRX(",DIC("A")="Reprint Prescription Label: ",DIC(0)="QEAZ" D ^DIC K P,DIC("A") I Y<0!("^"[X) K PCOM,PCOMX G KILL
  K REPRINT W !! S DIC("S")="I $P($G(^(0)),""^"",2),$D(^(""STA"")),$P($G(^(""STA"")),""^"")<12",DIC="^PSRX(",DIC("A")="Reprint Prescription Label: ",DIC(0)="QEAZ" D ^DIC K P,DIC("A") I Y<0!("^"[X) K PCOM,PCOMX G KILL  ;Changed to include expired
  S (PPL,DA,RX,PSORPRX)=+Y,PDA=Y(0),RXF=0,ZD(DA)=DT,REPRINT=1,STA=+$G(^PSRX(+Y,"STA"))
  D PSOL^PSSLOCK(PSORPRX) I '$G(PSOMSG) W !!,$S($P($G(PSOMSG),"^",2)'="":$P($G(PSOMSG),"^",2),1:"Another person is editing this order."),! K PSOMSG G LRP
@@ -37,17 +39,22 @@ GOOD K X
  I STA=4 W !?3,"Prescription is Pending Due to Drug Interactions" D ULR,KILL G LRP
  I STA=12 W !?3,"Prescription is Discontinued" D ULR,KILL G LRP
  I $G(^PS(55,"ASTALK",DFN)) W !,"Patient is a ScripTalk patient. Use ScripTalk label for prescription bottle.",!
+ D ICN^PSODPT(DFN)
  S COPIES=$S($P(PDA,"^",18)]"":$P(PDA,"^",18),1:1)
  K DIR S DIR("A")="Number of Copies? ",DIR("B")=COPIES,DIR(0)="N^1:99:0",DIR("?")="Enter the number of copies you want (1 TO 99)"
- D ^DIR K DIR I $D(DIRUT)!($D(DIROUT)) D ULR,KILL G LRP
- S COPIES=X
+ D ^DIR K DIR I $D(DIRUT) D ULR,KILL G LRP
+ S COPIES=Y
  ; IHS/CIA/PLS - 12/22/03 - Suppress VA Label prompts
- ;K DIR S DIR("A")="Print adhesive portion of label only? ",DIR(0)="SA^Y:YES;N:NO",DIR("B")="N",DIR("?",1)="If entire label, including trailers are to print press RETURN for default."
+ ;K DIR S DIR("A")="Print adhesive portion of label only? ",DIR(0)="Y",DIR("B")="No",DIR("?",1)="If entire label, including trailers are to print press RETURN for default."
  ;S DIR("?")="Else if only bottle and mailing labels are to print enter Y or YES." D ^DIR K DIR I $D(DUOUT) D ULR,KILL G LRP
- ;I $D(DTOUT)!($D(DIRUT))!($D(DIROUT)) D ULR G KILL
- ;S SIDE=$TR(X,"yesno","YESNO"),SIDE=$S(SIDE="Y"!(SIDE="YE")!(SIDE="YES"):1,1:0) D ACT I $D(DIRUT) D ULR,KILL G LRP
- S SIDE=0 D ACT I $D(DIRUT) D ULR,KILL G LRP
+ ;I $D(DIRUT) D ULR G KILL
+ S SIDE=0  ;Y  - IHS/MSC/PLS - 5/14/10
  ; IHS/CIA/PLS - 12/22/03 - End Modifications
+ I $P(PSOPAR,"^",30),$$GET1^DIQ(59,PSOSITE_",",105,"I")=2.4 D
+ .I $S($P(PSOPAR,"^",30)=3:1,$P(PSOPAR,"^",30)=4:1,1:0),'$$GET1^DIQ(50,$P(PDA,"^",6),28,"I") Q
+ .K DIR,DIRUT S DIR("A")="Do you want to resend to Dispensing System Device",DIR(0)="Y",DIR("B")="No" D ^DIR K DIR Q:$D(DIRUT)  S PSODISP=$S(Y:0,1:1)
+ I $D(DIRUT) D ULR,KILL G LRP
+ D ACT I $D(DIRUT) D ULR,KILL G LRP
  I $D(PCOM) D ULR,KILL G LRP
  F I=1,2,4,6,7,9,13,16 S P(I)=$P(PDA,"^",I)
  S P(6)=+P(6) I $D(^PSRX(DA,"TN")),^("TN")]"" S P(6)=^("TN")
@@ -56,10 +63,13 @@ GOOD K X
  .D FSIG^PSOUTLA("R",DA,75) F  S D=$O(FSIG(D)) W !,FSIG(D) Q:'$O(FSIG(D))
  E  D EN3^PSOUTLA1(DA,75) S D=0 F  S D=$O(BSIG(D)) W !,BSIG(D) Q:'$O(BSIG(D))
  K D,BSIG
- W !!,$S((P(6)=+P(6))&$D(^PSDRUG(P(6),0)):$P(^(0),"^"),1:P(6)),! S PHYS=$S($D(^VA(200,+P(4),0)):$P(^(0),"^"),1:"Unknown") W PHYS K PHYS
+ ;PSO*7*280 If Trade name, don't lookup in ^PSDRUG
+ W !!,$S($G(^PSRX(DA,"TN"))]"":P(6),(P(6)=+P(6))&$D(^PSDRUG(P(6),0)):$P(^(0),"^"),1:P(6)),! S PHYS=$S($D(^VA(200,+P(4),0)):$P(^(0),"^"),1:"Unknown") W PHYS K PHYS
  W ?25,$S($D(^VA(200,+P(16),0)):$P(^(0),"^"),1:"Unknown"),!,"# of Refills: "_$G(P(9))
- I $G(RX) S RXRP(RX)=1_"^"_$G(COPIES)_"^"_$S($G(SIDE):1,1:0)
- I $G(RX) S RXFL(RX)=0 F ZZZ=0:0 S ZZZ=$O(^PSRX(RX,1,ZZZ)) Q:'ZZZ  S RXFL(RX)=ZZZ
+ I $G(RX) D
+ .S RXRP(RX)=1_"^"_COPIES_"^"_SIDE
+ .I $G(PSODISP)=1 S RXRP(RX,"RP")=1
+ .S RXFL(RX)=0 F ZZZ=0:0 S ZZZ=$O(^PSRX(RX,1,ZZZ)) Q:'ZZZ  S RXFL(RX)=ZZZ
  ; IHS/CIA/PLS - 12/22/03 - Call IHS Label generator
  ;D @$S($P($G(PSOPAR),"^",26):"^PSORXL",1:"Q^PSORXL") K PSPOP,PPL,COPIES,SIDE,REPRINT,PCOM,IOP,PSL,PSNP,ZZZ,RXFL(+$G(RX)) D ULR,KILL G LRP
  D P^PSORXL K PSPOP,PPL,COPIES,SIDE,REPRINT,PCOM,IOP,PSL,PSNP,ZZZ,RXFL(+$G(RX)) D ULR,KILL G LRP
@@ -74,7 +84,8 @@ ACT ; IHS/CIA/PLS - 12/22/03 - Added 'O' to DIR(0)
 ACT1 S RXF=0 F J=0:0 S J=$O(^PSRX(DA,1,J)) Q:'J  S RXF=J S:J>5 RXF=J+1
  S IR=0 F J=0:0 S J=$O(^PSRX(DA,"A",J)) Q:'J  S IR=J
  S IR=IR+1,^PSRX(DA,"A",0)="^52.3DA^"_IR_"^"_IR
- D NOW^%DTC S ^PSRX(DA,"A",IR,0)=%_"^"_$S($G(ST)'="C":"W",1:"C")_"^"_DUZ_"^"_RXF_"^"_PCOM_$S($G(ST)'="C":" ("_COPIES_" COPIES)",1:""),PCOMX=PCOM K PC,IR,PS,PCOM,XX,%,%H,%I,RXF
+ ;IHS/MSC/MGH variable APSPREIS added for reissue
+ D NOW^%DTC S ^PSRX(DA,"A",IR,0)=%_"^"_$S($G(APSPREIS)=1:"Z",$G(ST)'="C":"W",1:"C")_"^"_DUZ_"^"_RXF_"^"_PCOM_$S($G(ST)'="C":" ("_COPIES_" COPIES)",1:""),PCOMX=PCOM K PC,IR,PS,PCOM,XX,%,%H,%I,RXF
  S:$P(^PSRX(DA,2),"^",15)&($G(ST)'="C") $P(^PSRX(DA,2),"^",14)=1
  Q
  ;

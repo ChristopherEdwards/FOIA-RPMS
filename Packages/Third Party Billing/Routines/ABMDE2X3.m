@@ -1,17 +1,14 @@
-ABMDE2X3 ; IHS/ASDST/DMJ - PAGE 2 - INSURER DATA CK PART 3 ;    
- ;;2.6;IHS Third Party Billing System;**3,8**;NOV 12, 2009
+ABMDE2X3 ; IHS/SD/SDR - PAGE 2 - INSURER DATA CK PART 3 ;    
+ ;;2.6;IHS Third Party Billing System;**3,8,10,11,13**;NOV 12, 2009;Build 213
  ;
- ; IHS/ASDS/DMJ - 10/04/00 - V2.4 P3 - NOIS HQW-1000-100062
- ;     Modified code to be CACHE compliant
+ ; IHS/ASDS/DMJ - 10/04/00 - V2.4 P3 - NOIS HQW-1000-100062 - Modified code to be CACHE compliant
  ;
- ; IHS/SD/SDR - 10/30/02 - V2.5 P2 - QXX-0402-130120
- ;     Updated error codes 11 and 105 so they would be a little more
- ;     specific and come on if none of the data was there instead of
- ;     just checking the pieces
+ ; IHS/SD/SDR - 10/30/02 - V2.5 P2 - QXX-0402-130120 - Updated error codes 11 and 105 so they would
+ ;  be a little more specific and come on if none of the data was there instead of just checking the pieces
+ ; IHS/SD/SDR - v2.5 p11 - IM22822 - Fixed <UNDEF>REMPL+16^ABMDE2X3
  ;
- ; IHS/SD/SDR - v2.5 p11 - IM22822
- ;    Fixed <UNDEF>REMPL+16^ABMDE2X3
- ; IHS/SD/SDR - abm*2.6*3 - HEAT8996 - made group number/name print for Medicaid
+ ;IHS/SD/SDR - abm*2.6*3 - HEAT8996 - made group number/name print for Medicaid
+ ;IHS/SD/SDR - 2.6*13 - new export mode 35 - added code for worker's compensation group name
  ;
  ; *********************************************************************
  ;
@@ -27,7 +24,8 @@ ABMDE2X3 ; IHS/ASDST/DMJ - PAGE 2 - INSURER DATA CK PART 3 ;
  ;start new code abm*2.6*3 HEAT8996
 GRP ;
  ;I $P($G(^AUTNINS(ABMP("INS"),2)),U)="D" D  ;abm*2.6*8 HEAT37612
- I +$G(ABMP("INS"))'=0,$P($G(^AUTNINS(ABMP("INS"),2)),U)="D" D  ;abm*2.6*8 HEAT37612
+ ;I +$G(ABMP("INS"))'=0,$P($G(^AUTNINS(ABMP("INS"),2)),U)="D" D  ;abm*2.6*8 HEAT37612  ;abm*2.6*10 HEAT73780
+ I +$G(ABMP("INS"))'=0,$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="D" D  ;abm*2.6*8 HEAT37612  ;abm*2.6*10 HEAT73780
  .S:(+$G(ABMX("2"))'=0) ABMX("GRP")=$P($G(^AUPNMCD(+ABMX("2"),0)),U,17)
  .I $G(ABMX("GRP"))]"" D
  ..I $D(^AUTNEGRP(ABMX("GRP"),0)) D
@@ -39,7 +37,8 @@ REG ;
  S ABMX("HDFN")=ABMP("PDFN")
  S ABMV("X2")=ABMP("PDFN")_";"_$S($P(ABMV("X1"),U,5)]"":$P(ABMV("X1"),U,5),1:$P(^DPT(ABMP("PDFN"),0),U))
  I $P(^DPT(ABMP("PDFN"),0),U,2)]"" S $P(ABMV("X2"),U,6)=$P(^(0),U,2)
- E  S ABME(13)=""
+ ;E  S ABME(13)=""  ;abm*2.6*11 MU2 gender
+ I $P(^DPT(ABMP("PDFN"),0),U,2)=""!($P(^DPT(ABMP("PDFN"),0),U,2)="U") S ABME(13)=""  ;abm*2.6*11 MU2 gender
  S $P(ABMV("X2"),U,7)=$P(^DPT(ABMP("PDFN"),0),U,3)
  S $P(ABMV("X2"),U,2)=$O(^AUTTRLSH("B","SELF",""))_";SELF"
  I '+$D(^DPT(ABMX("HDFN"),.11)) S ABME(11)="" Q
@@ -80,6 +79,17 @@ REMPL ; X3=EMPLOYER;ADDR 1^ADDR 2^PHONE^STATUS
  S ABMX("Y0")=$P(ABMX("Y0"),ABMX("Y")_":",2)
  S ABMX("Y0")=$P(ABMX("Y0"),";",1)
  S $P(ABMV("X3"),U,5)=ABMX("Y")_";"_ABMX("Y0")
+ ;start new abm*2.6*13 exp mode 35
+ I ABMITYP="W" D
+ .I $G(^AUPNWC(ABMP("PDFN"),0))'="" D  ;entry in 9000042-Workman's Comp
+ ..S ABMWCIEN=0
+ ..F  S ABMWCIEN=$O(^AUPNWC(ABMP("PDFN"),11,ABMWCIEN)) Q:+ABMWCIEN=0  D  Q:$D(ABMLW)
+ ...S ABMWEFDT=$P($G(^AUPNWC(ABMP("PDFN"),11,ABMWCIEN,0)),U,12)
+ ...S ABMWEXDT=$P($G(^AUPNWC(ABMP("PDFN"),11,ABMWCIEN,0)),U,13)
+ ...I ABMWEFDT>$P($S($G(ABMDISDT):ABMDISDT,1:ABMP("VDT")),".",1) Q
+ ...I ABMWEXDT'="",ABMWEXDT<$P(ABMP("VDT"),".",1) Q
+ ...S $P(ABMV("X3"),U,6)=$$GET1^DIQ(9999999.77,$P($G(^AUPNWC(ABMP("PDFN"),11,ABMWCIEN,0)),U,11),".01","E")
+ ;end new exp mode 35
  ;
 XIT ;
  Q

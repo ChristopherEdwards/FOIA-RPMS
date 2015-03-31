@@ -1,9 +1,10 @@
-PSOPTPST ;IHS/DSD/JCM-POST PATIENT SELECTION ACTION ;13-Feb-2007 10:51;SM
- ;;7.0;OUTPATIENT PHARMACY;**7,71,88,146,157,1005**;DEC 1997
+PSOPTPST ;BIR/DSD - Post Patient Selection Action ;29-May-2012 15:05;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**7,71,88,146,157,1005,143,225,1015**;DEC 1997;Build 62
  ;External reference to SDCO22 supported by DBIA 1579
  ;External reference to IBE(350.1,"ANEW" supported by DBIA 592
  ;External reference to PS(55 supported by DBIA 2228
  ;External reference to IBARX supported by DBIA 125
+ ;External reference to $$GETSHAD^DGUTL3 supported by DBIA 4462
  ; Modified - IHS/CIA/PLS - 01/06/04 - Added output logic for CAP and Insurance Info
  ;                          04/05/04 - Prevent PSODFN Undefined error
  ;            IHS/MSC/PLS - 08/30/06 - INSURER API - Added Plan Name to output
@@ -17,7 +18,7 @@ START S PSOQFLG=0
  D INSUR   ; IHS/CIA/PLS - 01/06/04 - Display insurer
  D CAP     ; IHS/CIA/PLS - 01/06/04 - Display Safety cap status
  D CNH G:PSOQFLG END ; Checks to see if nursing home patient
- D ELIG ; Checks elegibility
+ D ELIG ; Checks eligibility
  D:$G(DUZ("AG"))="V" COPAY ; Deals with copay
  D ADDRESS ; Display address information
  D:$G(^PS(55,PSODFN,1))]"" REMARKS ; Displays narrative about patient
@@ -67,7 +68,8 @@ COPAY K PSOBILL,PSOCPAY S DFN=PSODFN,(X,PSOPTIB)=$P($G(^PS(59,+PSOSITE,"IB")),"^
 COPAY1 S ACTYP=$O(Y(ACTYP)) G:'ACTYP COPAYX F III=0:0 S BL=$O(Y(ACTYP,BL)) Q:BL=""  I BL>0 S PSOBILL=BL,PSOCPAY=BL_"^"_Y(ACTYP,BL)
  G COPAY1
 COPAYX K X,Y,ACTYP,BL,III,PSOPTIB
- I $G(PSOBILL) D QST
+ ;I $G(PSOBILL)
+ D QST
  Q
  ;
 ADDRESS N DFN S (DA,DFN)=PSODFN D ADD^VADPT K DFN,PSOI,DA,DR
@@ -110,11 +112,13 @@ QST ;Ask new questions for Copay
  I '$$DT^PSOMLLDT Q
  K PSOIBQS
  I $G(PSOBILL) S PSOIBQS(PSODFN,"SC")=""
+ S PSOIBQS(PSODFN,"SC>50")=""
  ;IHS/MSC/PLS - 2/13/07 - Next line commented out because of NOROUTINE error
  ;I +$P($$CVEDT^DGCV(PSODFN),"^",3) S PSOIBQS(PSODFN,"CV")=""
  I $$AO^SDCO22(PSODFN) S PSOIBQS(PSODFN,"VEH")=""
  I $$IR^SDCO22(PSODFN) S PSOIBQS(PSODFN,"RAD")=""
  I $$EC^SDCO22(PSODFN) S PSOIBQS(PSODFN,"PGW")=""
+ I $L($T(GETSHAD^DGUTL3)) S:$$GETSHAD^DGUTL3(PSODFN)=1 PSOIBQS(PSODFN,"SHAD")=""
  I $P($$GETSTAT^DGMSTAPI(PSODFN),"^",2)="Y" S PSOIBQS(PSODFN,"MST")=""
  I $T(GETCUR^DGNTAPI)]"" N PSONCP,PSONCPX S PSONCPX=$$GETCUR^DGNTAPI(PSODFN,"PSONCP") I $P($G(PSONCP("IND")),"^")="Y" S PSOIBQS(PSODFN,"HNC")=""
  Q

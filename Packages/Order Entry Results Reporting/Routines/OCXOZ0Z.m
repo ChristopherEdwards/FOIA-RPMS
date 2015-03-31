@@ -1,5 +1,5 @@
-OCXOZ0Z ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0Z ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,34 +10,36 @@ OCXOZ0Z ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-R67R1A ; Verify all Event/Elements of  Rule #67 'GLUCOPHAGE - LAB RESULTS'  Relation #1 'GLUCOPHAGE ORDER AND GLUCOPHAGE CREATININE > 1.5'
- ;  Called from EL86+5^OCXOZ0H, and EL111+5^OCXOZ0H.
+R61R1A ; Verify all Event/Elements of  Rule #61 'CREATININE CLEARANCE ESTIMATION'  Relation #1 'IF CREAT CLEAR AND ( CREATININE CLEARANCE DATE OR ...'
+ ;  Called from EL73+5^OCXOZ0H, and EL96+5^OCXOZ0H, and EL97+5^OCXOZ0H.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE111( ---------->  Verify Event/Element: 'GLUCOPHAGE CREATININE > 1.5'
- ; MCE86( ----------->  Verify Event/Element: 'GLUCOPHAGE ORDER'
+ ; MCE73( ----------->  Verify Event/Element: 'CREATININE CLEARANCE ESTIMATE'
+ ; MCE96( ----------->  Verify Event/Element: 'CREATININE CLEARANCE DATE/TIME'
+ ; MCE97( ----------->  Verify Event/Element: 'RENAL RESULTS'
  ;
- Q:$G(^OCXS(860.2,67,"INACT"))
+ Q:$G(^OCXS(860.2,61,"INACT"))
  ;
- I $$MCE86 D 
- .I $$MCE111 D R67R1B
+ I $$MCE73 D 
+ .I $$MCE96 D R61R1B
+ .I $$MCE97 D R61R1B
  Q
  ;
-R67R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #67 'GLUCOPHAGE - LAB RESULTS'  Relation #1 'GLUCOPHAGE ORDER AND GLUCOPHAGE CREATININE > 1.5'
- ;  Called from R67R1A+12.
+R61R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #61 'CREATININE CLEARANCE ESTIMATION'  Relation #1 'IF CREAT CLEAR AND ( CREATININE CLEARANCE DATE OR ...'
+ ;  Called from R61R1A+13.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
  ;
- Q:$D(OCXRULE("R67R1B"))
+ Q:$D(OCXRULE("R61R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^28^^Glucophage - Creatinine results: "_$$GETDATA(DFN,"86^111",125) I 1
- E  S OCXCMSG="Glucophage - Creatinine results: "_$$GETDATA(DFN,"86^111",125)
+ I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^1^^Est. CrCl: "_$$GETDATA(DFN,"73^96^97",76)_" ("_$$GETDATA(DFN,"73^96^97",64)_")  [Est. CrCl based on modified Cockcroft-Gault equation using Adjusted Body Weight (if ht > 60 in.)]" I 1
+ E  S OCXCMSG="Est. CrCl: "_$$GETDATA(DFN,"73^96^97",76)_" ("_$$GETDATA(DFN,"73^96^97",64)_")  [Est. CrCl based on modified Cockcroft-Gault equation using Adjusted Body Weight (if ht > 60 in.)]"
  S OCXNMSG=""
  ;
  Q:$G(OCXOERR)
@@ -47,131 +49,107 @@ R67R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #67
  S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
  Q
  ;
-R67R2A ; Verify all Event/Elements of  Rule #67 'GLUCOPHAGE - LAB RESULTS'  Relation #2 'GLUCOPHAGE ORDER AND NO GLUCOPHAGE CREATININE'
- ;  Called from EL86+6^OCXOZ0H, and EL112+5^OCXOZ0H.
+CRCL(DFN) ;  Compiler Function: CREATININE CLEARANCE (ESTIMATED/CALCULATED)
  ;
- Q:$G(OCXOERR)
+ N HT,AGE,SEX,SCR,SCRD,CRCL,LRWKLD,RSLT,ORW,ORH,PSCR
+ N HTGT60,ABW,IBW,BWRATIO,BWDIFF,LOWBW,ADJBW
+ S RSLT="0^<Unavailable>"
+ S PSCR="^^^^^^0"
+ D VITAL^ORQQVI("WEIGHT","WT",DFN,.ORW,0,"",$$NOW^XLFDT)
+ Q:'$D(ORW) RSLT
+ S ABW=$P(ORW(1),U,3) Q:+$G(ABW)<1 RSLT
+ S ABW=ABW/2.2  ;ABW (actual body weight) in kg
+ D VITAL^ORQQVI("HEIGHT","HT",DFN,.ORH,0,"",$$NOW^XLFDT)
+ Q:'$D(ORH) RSLT
+ S HT=$P(ORH(1),U,3) Q:+$G(HT)<1 RSLT
+ S AGE=$$AGE^ORQPTQ4(DFN) Q:'AGE RSLT
+ S SEX=$P($$SEX^ORQPTQ4(DFN),U,1) Q:'$L(SEX) RSLT
+ S OCXTL="" Q:'$$TERMLKUP^ORB31(.OCXTL,"SERUM CREATININE") RSLT
+ S OCXTLS="" Q:'$$TERMLKUP^ORB31(.OCXTLS,"SERUM SPECIMEN") RSLT
+ S SCR="",OCXT=0 F  S OCXT=$O(OCXTL(OCXT)) Q:'OCXT  D
+ .S OCXTS=0 F  S OCXTS=$O(OCXTLS(OCXTS)) Q:'OCXTS  D
+ ..S SCR=$$LOCL^ORQQLR1(DFN,$P(OCXTL(OCXT),U),$P(OCXTLS(OCXTS),U))
+ ..I $P(SCR,U,7)>$P(PSCR,U,7) S PSCR=SCR
+ S SCR=PSCR,SCRV=$P(SCR,U,3) Q:+$G(SCRV)<.01 RSLT
+ S SCRD=$P(SCR,U,7) Q:'$L(SCRD) RSLT
  ;
- ;      Local Extrinsic Functions
- ; MCE112( ---------->  Verify Event/Element: 'NO GLUCOPHAGE CREATININE'
- ; MCE86( ----------->  Verify Event/Element: 'GLUCOPHAGE ORDER'
+ S HTGT60=$S(HT>60:(HT-60)*2.3,1:0)  ;if ht > 60 inches
+ I HTGT60>0 D
+ .S IBW=$S(SEX="M":50+HTGT60,1:45.5+HTGT60)  ;Ideal Body Weight
+ .S BWRATIO=(ABW/IBW)  ;body weight ratio
+ .S BWDIFF=$S(ABW>IBW:ABW-IBW,1:0)
+ .S LOWBW=$S(IBW<ABW:IBW,1:ABW)
+ .I BWRATIO>1.3,(BWDIFF>0) S ADJBW=((0.3*BWDIFF)+IBW)
+ .E  S ADJBW=LOWBW
+ I +$G(ADJBW)<1 D
+ .S ADJBW=ABW
+ S CRCL=(((140-AGE)*ADJBW)/(SCRV*72))
  ;
- Q:$G(^OCXS(860.2,67,"INACT"))
+ S:SEX="M" RSLT=SCRD_U_$J(CRCL,1,1)
+ S:SEX="F" RSLT=SCRD_U_$J((CRCL*.85),1,1)
+ Q RSLT
  ;
- I $$MCE86 D 
- .I $$MCE112 D R67R2B
- Q
+DT2INT(OCXDT) ;      This Local Extrinsic Function converts a date into an integer
+ ; By taking the Years, Months, Days, Hours and Minutes converting
+ ; Them into Seconds and then adding them all together into one big integer
  ;
-R67R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #67 'GLUCOPHAGE - LAB RESULTS'  Relation #2 'GLUCOPHAGE ORDER AND NO GLUCOPHAGE CREATININE'
- ;  Called from R67R2A+12.
+ Q:'$L($G(OCXDT)) ""
+ N OCXDIFF,OCXVAL S (OCXDIFF,OCXVAL)=0
  ;
- Q:$G(OCXOERR)
+ I $L(OCXDT),'OCXDT,(OCXDT[" at ") D  ; EXTERNAL EXPERT SYSTEM FORMAT 1 TO EXTERNAL FORMAT
+ .N OCXHR,OCXMIN,OCXTIME
+ .S OCXTIME=$P($P(OCXDT," at ",2),".",1),OCXHR=$P(OCXTIME,":",1),OCXMIN=$P(OCXTIME,":",2)
+ .S:(OCXDT["Midnight") OCXHR=00
+ .S:(OCXDT["PM") OCXHR=OCXHR+12
+ .S OCXDT=$P(OCXDT," at ")_"@"_$E(OCXHR+100,2,3)_$E(OCXMIN+100,2,3)
  ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ I $L(OCXDT),(OCXDT?1.2N1"/"1.2N.1" ".2N.1":".2N) D  ; EXTERNAL EXPERT SYSTEM FORMAT 2 TO EXTERNAL FORMAT
+ .N OCXMON
+ .S OCXMON=$P("January^February^March^April^May^June^July^August^September^October^November^December",U,$P(OCXDT,"/",1))
+ .I $L($P(OCXDT," ",2)) S OCXDT=OCXMON_" "_$P($P(OCXDT," ",1),"/",2)_"@"_$TR($P(OCXDT," ",2),":","")
+ .E  S OCXDT=OCXMON_" "_$P($P(OCXDT," ",1),"/",2)
  ;
- Q:$D(OCXRULE("R67R2B"))
+ I $L(OCXDT),(OCXDT?1.2N1"/"1.2N1"/"1.2N.1" ".2N.1":".2N) D  ; EXTERNAL EXPERT SYSTEM FORMAT 3 TO EXTERNAL FORMAT
+ .N OCXMON
+ .S OCXMON=$P("January^February^March^April^May^June^July^August^September^October^November^December",U,$P(OCXDT,"/",1))
+ .I $L($P(OCXDT," ",2)) S OCXDT=OCXMON_" "_$P($P(OCXDT," ",1),"/",2)_","_$P($P(OCXDT," ",1),"/",3)_"@"_$TR($P(OCXDT," ",2),":","")
+ .E  S OCXDT=OCXMON_" "_$P($P(OCXDT," ",1),"/",2)_", "_$P($P(OCXDT," ",1),"/",3)
  ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^28^^Glucophage - no serum creatinine within past "_$$GETDATA(DFN,"86^112",127)_" days." I 1
- E  S OCXCMSG="Glucophage - no serum creatinine within past "_$$GETDATA(DFN,"86^112",127)_" days."
- S OCXNMSG=""
+ I $L(OCXDT),'OCXDT D  ; EXTERNAL FORMAT TO INTERNAL FILEMAN FORMAT
+ .I (OCXDT["@0000") S OCXDT=$P(OCXDT,"@",1),OCXDIFF=1
+ .N %DT,X,Y S X=OCXDT,%DT="" S:(OCXDT["@")!(OCXDT="N") %DT="T" D ^%DT S OCXDT=+Y
  ;
- Q:$G(OCXOERR)
+ I ($L(OCXDT\1)>7) S OCXDT=$$HL7TFM^XLFDT(OCXDT)  ; HL7 FORMAT TO INTERNAL FILEMAN FORMAT
  ;
- ; Send Order Check Message
+ I ($L(OCXDT\1)=7) S OCXDT=$$FMTH^XLFDT(+OCXDT)   ; INTERNAL FILEMAN FORMAT TO $H FORMAT
  ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
+ I (OCXDT?5N1","1.5N) S OCXVAL=(OCXDT*86400)+$P(OCXDT,",",2)     ;  $H FORMAT TO EXPERT SYSTEM INTERNAL FORMAT
  ;
-R68R1A ; Verify all Event/Elements of  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #1 'MED ORDER FOR PT > 64 AND AMITRIPTYLINE'
- ;  Called from EL122+5^OCXOZ0H, and EL125+5^OCXOZ0H.
+ Q OCXVAL
  ;
- Q:$G(OCXOERR)
+FLAB(DFN,OCXLIST,OCXSPEC) ;  Compiler Function: FORMATTED LAB RESULTS
  ;
- ;      Local Extrinsic Functions
- ; MCE122( ---------->  Verify Event/Element: 'AMITRIPTYLINE ORDER'
- ; MCE125( ---------->  Verify Event/Element: 'MED ORDER FOR PT > 64'
- ;
- Q:$G(^OCXS(860.2,68,"INACT"))
- ;
- I $$MCE125 D 
- .I $$MCE122 D R68R1B
- Q
- ;
-R68R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #1 'MED ORDER FOR PT > 64 AND AMITRIPTYLINE'
- ;  Called from R68R1A+12.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ;
- Q:$D(OCXRULE("R68R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^30^^Patient is "_$$GETDATA(DFN,"122^125",62)_". "_$$GETDATA(DFN,"122^125",141) I 1
- E  S OCXCMSG="Patient is "_$$GETDATA(DFN,"122^125",62)_". "_$$GETDATA(DFN,"122^125",141)
- S OCXNMSG=""
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Order Check Message
- ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
- ;
-R68R2A ; Verify all Event/Elements of  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #2 'MED ORDER FOR PT > 64 AND CHLORPROPAMIDE'
- ;  Called from EL125+6^OCXOZ0H, and EL123+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE123( ---------->  Verify Event/Element: 'CHLORPROPAMIDE ORDER'
- ; MCE125( ---------->  Verify Event/Element: 'MED ORDER FOR PT > 64'
- ;
- Q:$G(^OCXS(860.2,68,"INACT"))
- ;
- I $$MCE125 D 
- .I $$MCE123 D R68R2B
- Q
- ;
-R68R2B ; Send Order Check, Notication messages and/or Execute code for  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #2 'MED ORDER FOR PT > 64 AND CHLORPROPAMIDE'
- ;  Called from R68R2A+12.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ;
- Q:$D(OCXRULE("R68R2B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^30^^Patient is "_$$GETDATA(DFN,"123^125",62)_". "_$$GETDATA(DFN,"123^125",142) I 1
- E  S OCXCMSG="Patient is "_$$GETDATA(DFN,"123^125",62)_". "_$$GETDATA(DFN,"123^125",142)
- S OCXNMSG=""
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Order Check Message
- ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
- ;
-R68R3A ; Verify all Event/Elements of  Rule #68 'DANGEROUS MEDS OVER AGE 64'  Relation #3 'MED ORDER FOR PT > 64 AND DIPYRIDAMOLE'
- ;  Called from EL125+7^OCXOZ0H, and EL124+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE124( ---------->  Verify Event/Element: 'DIPYRIDAMOLE ORDER'
- ; MCE125( ---------->  Verify Event/Element: 'MED ORDER FOR PT > 64'
- ;
- Q:$G(^OCXS(860.2,68,"INACT"))
- ;
- I $$MCE125 D 
- .I $$MCE124 D R68R3B^OCXOZ10
- Q
+ Q:'$G(DFN) "<Patient Not Specified>"
+ Q:'$L($G(OCXLIST)) "<Lab Tests Not Specified>"
+ N OCXLAB,OCXOUT,OCXPC,OCXSL,SPEC S OCXOUT="",SPEC=""
+ I $L($G(OCXSPEC)) S OCXSL=$$TERMLKUP(OCXSPEC,.OCXSL)
+ F OCXPC=1:1:$L(OCXLIST,U) S OCXLAB=$P(OCXLIST,U,OCXPC) I $L(OCXLAB) D
+ .N OCXX,OCXY,X,Y,DIC,TEST,SPEC,OCXTL,OCXA,OCXR
+ .S OCXTL="" Q:'$$TERMLKUP(OCXLAB,.OCXTL)
+ .S OCXX="",TEST=0 F  S TEST=$O(OCXTL(TEST)) Q:'TEST  D
+ ..I $L($G(OCXSL)) D
+ ...S SPEC=0 F  S SPEC=$O(OCXSL(SPEC)) Q:'SPEC  D
+ ....S OCXX=$$LOCL^ORQQLR1(DFN,TEST,SPEC) I $L(OCXX) D
+ .....S OCXA($P(OCXX,U,7))=OCXX
+ ..I '$L($G(OCXSL)) S OCXX=$$LOCL^ORQQLR1(DFN,TEST,"")
+ ..Q:'$L(OCXX)
+ .I $D(OCXA) S OCXR="",OCXR=$O(OCXA(OCXR),-1),OCXX=OCXA(OCXR)
+ .I $L(OCXX) D
+ ..S OCXY=$P(OCXX,U,2)_": "_$P(OCXX,U,3)_" "_$P(OCXX,U,4)
+ ..S OCXY=OCXY_" "_$S($L($P(OCXX,U,5)):"["_$P(OCXX,U,5)_"]",1:"")
+ ..I $L($P(OCXX,U,7)) S OCXY=OCXY_" "_$$FMTE^XLFDT($P(OCXX,U,7),"2P")
+ .S:$L(OCXOUT) OCXOUT=OCXOUT_"   " S OCXOUT=OCXOUT_$G(OCXY)
+ Q:'$L(OCXOUT) "<Results Not Found>" Q OCXOUT
  ;
 GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime data
  ;
@@ -179,78 +157,44 @@ GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime dat
  F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
  Q VAL
  ;
-MCE111() ; Verify Event/Element: GLUCOPHAGE CREATININE > 1.5
+MCE73() ; Verify Event/Element: CREATININE CLEARANCE ESTIMATE
  ;
- ;  OCXDF(127) -> RECENT GLUCOPHAGE CREATININE DAYS data field
- ;  OCXDF(125) -> RECENT GLUCOPHAGE CREATININE TEXT data field
- ;  OCXDF(126) -> RECENT GLUCOPHAGE CREATININE RESULT data field
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(111,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),111)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),111))
- S OCXRES(111)=0,OCXDF(126)=$P($$GLCREAT^ORKPS(OCXDF(37)),"^",3) I $L(OCXDF(126)) S OCXRES(111,126)=OCXDF(126) I (OCXDF(126)>1.5)
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(73,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),73)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),73))
+ Q 0
+ ;
+MCE96() ; Verify Event/Element: CREATININE CLEARANCE DATE/TIME
+ ;
+ ;  OCXDF(76) -> CREATININE CLEARANCE (ESTIM) VALUE data field
+ ;  OCXDF(64) -> FORMATTED RENAL LAB RESULTS data field
+ ;  OCXDF(77) -> CREATININE CLEARANCE (ESTIM) DATE data field
+ ;  OCXDF(37) -> PATIENT IEN data field
+ ;
+ N OCXRES
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(96,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),96)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),96))
+ S OCXRES(96)=0,OCXDF(77)=$$DT2INT($P($$CRCL(OCXDF(37)),"^",1)) I $L(OCXDF(77)) S OCXRES(96,77)=OCXDF(77) I (OCXDF(77)>$$DT2INT(0))
  E  Q 0
- S OCXDF(125)=$P($$GLCREAT^ORKPS(OCXDF(37)),"^",2),OCXDF(127)=$P($$GCDAYS^ORKPS(OCXDF(37)),"^",1),OCXRES(111)=11 M ^TMP("OCXCHK",$J,OCXDF(37),111)=OCXRES(111)
- Q +OCXRES(111)
+ S OCXDF(64)=$$FLAB(OCXDF(37),"SERUM CREATININE^SERUM UREA NITROGEN","SERUM SPECIMEN"),OCXDF(76)=$P($$CRCL(OCXDF(37)),"^",2),OCXRES(96)=11 M ^TMP("OCXCHK",$J,OCXDF(37),96)=OCXRES(96)
+ Q +OCXRES(96)
  ;
-MCE112() ; Verify Event/Element: NO GLUCOPHAGE CREATININE
+MCE97() ; Verify Event/Element: RENAL RESULTS
  ;
- ;  OCXDF(127) -> RECENT GLUCOPHAGE CREATININE DAYS data field
- ;  OCXDF(125) -> RECENT GLUCOPHAGE CREATININE TEXT data field
- ;  OCXDF(124) -> RECENT GLUCOPHAGE CREATININE FLAG data field
+ ;  OCXDF(76) -> CREATININE CLEARANCE (ESTIM) VALUE data field
+ ;  OCXDF(64) -> FORMATTED RENAL LAB RESULTS data field
  ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(112,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),112)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),112))
- S OCXRES(112)=0,OCXDF(124)=$P($$GLCREAT^ORKPS(OCXDF(37)),"^",1) I $L(OCXDF(124)) S OCXRES(112,124)=OCXDF(124) I '(OCXDF(124))
+ S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(97,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),97)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),97))
+ S OCXRES(97)=0,OCXDF(64)=$$FLAB(OCXDF(37),"SERUM CREATININE^SERUM UREA NITROGEN","SERUM SPECIMEN") I '(OCXDF(64)="<Results Not Found>")
  E  Q 0
- S OCXDF(125)=$P($$GLCREAT^ORKPS(OCXDF(37)),"^",2),OCXDF(127)=$P($$GCDAYS^ORKPS(OCXDF(37)),"^",1),OCXRES(112)=11 M ^TMP("OCXCHK",$J,OCXDF(37),112)=OCXRES(112)
- Q +OCXRES(112)
+ S OCXDF(76)=$P($$CRCL(OCXDF(37)),"^",2),OCXRES(97)=11 M ^TMP("OCXCHK",$J,OCXDF(37),97)=OCXRES(97)
+ Q +OCXRES(97)
  ;
-MCE122() ; Verify Event/Element: AMITRIPTYLINE ORDER
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(122,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),122)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),122))
- Q 0
- ;
-MCE123() ; Verify Event/Element: CHLORPROPAMIDE ORDER
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(123,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),123)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),123))
- Q 0
- ;
-MCE124() ; Verify Event/Element: DIPYRIDAMOLE ORDER
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(124,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),124)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),124))
- Q 0
- ;
-MCE125() ; Verify Event/Element: MED ORDER FOR PT > 64
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(125,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),125)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),125))
- Q 0
- ;
-MCE86() ; Verify Event/Element: GLUCOPHAGE ORDER
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(86,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),86)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),86))
- Q 0
+TERMLKUP(OCXTERM,OCXLIST) ;
+ Q $$TERM^OCXOZ01(OCXTERM,.OCXLIST)
  ;

@@ -1,9 +1,11 @@
-PSOHELP ;BHAM ISC/SAB-outpatient utility routine ; 2/17/93 18:00:36
- ;;7.0;OUTPATIENT PHARMACY;**3,23,29,42,48,46,117,131**;DEC 1997
+PSOHELP ;BHAM ISC/SAB-outpatient utility routine ;06-Dec-2012 20:35;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**3,23,29,48,46,117,131,222,268,206,1015**;DEC 1997;Build 62
  ;External reference ^PS(51 supported by DBIA 2224
  ;External reference ^PSDRUG( supported by DBIA 221
  ;External reference ^PS(56 supported by DBIA 2229
  ;External reference ^PSNPPIP supported by DBIA 2261
+ ;
+ ; Modified - IHS/MSC/PLS - 12/06/2012 - Line MAX+10
  ;
 XREF D XREF^PSOHELP3
  Q
@@ -49,27 +51,29 @@ HLP S Z0=+$G(PSODRUG("IEN"))  I $D(^PSDRUG("AQ",Z0)) D EN^DDIOL("This is a CMOP 
  Q
 ADD ;add/edited local drug/drug interactions
  W ! S DIC("A")="Select Drug Interaction: ",DIC(0)="AEMQL",DLAYGO=56
- S (DIC,DIE)="^PS(56,",DIC("S")="I '$P(^(0),""^"",5)" D ^DIC G:"^"[X QU G:Y<0 ADD S DA=+Y,DR="[PSO INTERACT]" L +^PS(56,DA):0 I '$T W !,"Entry is being edited by another user. Try Later!",! G ADD
+ S (DIC,DIE)="^PS(56,",DIC("S")="I '$P(^(0),""^"",5)" D ^DIC G:"^"[X QU G:Y<0 ADD S DA=+Y,DR="[PSO INTERACT]" L +^PS(56,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) I '$T W !,"Entry is being edited by another user. Try Later!",! G ADD
  D ^DIE L:$G(DA) -^PS(56,DA) K DA G ADD
 QU L -^PS(56,DA) K X,DIC,DIE,DA
  Q
 CRI ;change drug interaction severity to critical from significant
  W ! S DIC("A")="Select Drug Interaction: ",DIC(0)="AEQM",(DIC,DIE)="^PS(56,",DIC("S")="I $P(^(0),""^"",4)=2" D ^DIC G:"^"[X QU G:Y<0 CRI S DA=+Y,DR=3
- L +^PS(56,DA):0 I '$T W !,"Entry is being edited by another user. Try Later!",! G CRI
+ L +^PS(56,DA):$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) I '$T W !,"Entry is being edited by another user. Try Later!",! G CRI
  D ^DIE L -^PS(56,DA) K DA G CRI
  G QU
  Q
 MAX S:$G(EXH) P(7)=$P(^PSRX(DA,0),"^",8),P(5)=$P(^(0),"^",6),P(2)=+$P(^(0),"^",3) S:P(2) PTST=$G(^PS(53,P(2),0)),PTDY=$P($G(^(0)),"^",3),PTRF=$P($G(^(0)),"^",4)
  S PSODEA=$P(^PSDRUG(P(5),0),"^",3),CS=0
- I $D(CLOZPAT) S MAX=$S(CLOZPAT=1&($P(^PSRX(DA,0),"^",8)=7):1,1:0),MIN=0 Q
- I PSODEA["A"&(PSODEA'["B")!(PSODEA["F") D EN^DDIOL("No refills allowed on "_$S(PSODEA["F":"this drug.",1:"Narcotics .."),"","!") D EN^DDIOL(" ","","!") S $P(^PSRX(DA,0),"^",9)=0 K X,Y,PSODEA,CS,PTST Q
+ I $D(CLOZPAT) S MAX=$S(CLOZPAT=2&($P(^PSRX(DA,0),"^",8)=14):1,CLOZPAT=2&($P(^PSRX(DA,0),"^",8)=7):3,CLOZPAT=1&($P(^PSRX(DA,0),"^",8)=7):1,1:0),MIN=0 Q
+ I PSODEA["A"&(PSODEA'["B")!(PSODEA["F")!(PSODEA[1)!(PSODEA[2) D EN^DDIOL("No refills allowed on "_$S(PSODEA["A":"this narcotic drug.",1:"this drug."),"","!") D EN^DDIOL(" ","","!") S $P(^PSRX(DA,0),"^",9)=0 K X,Y,PSODEA,CS,PTST Q
  F DEA=1:1 Q:$E(PSODEA,DEA)=""  I $E(+PSODEA,DEA)>1,$E(+PSODEA,DEA)<6 S CS=1
  S PSOELSE=CS I PSOELSE D
  .S PSOX1=$S(PTRF>5:5,1:PTRF),PSOT=$S(PSOX1=5:5,1:PSOX1)
  .S PSOT=$S('PSOT:0,P(7)=90:1,1:PSOT),PSDY1=$S(P(7)<60:5,P(7)'<60&(P(7)'>89):2,P(7)=90:1,1:0) S MAX=$S(PSOT'>PSDY1:PSOT,1:PSDY1)
  I 'PSOELSE D
  .S PSOX1=PTRF,PSOT=$S(PSOX1=11:11,1:PSOX1),PSOT=$S('PSOT:0,P(7)=90:3,1:PSOT)
- .S PSDY1=$S(P(7)<60:11,P(7)'<60&(P(7)'>89):5,P(7)=90:3,1:0) S MAX=$S(PSOT'>PSDY1:PSOT,1:PSDY1)
+ .;IHS/MSC/PLS - 12/06/2012
+ .;S PSDY1=$S(P(7)<60:11,P(7)'<60&(P(7)'>89):5,P(7)=90:3,1:0) S MAX=$S(PSOT'>PSDY1:PSOT,1:PSDY1)
+ .S PSDY1=$S(P(7)<60:15,P(7)<90:5,P(7)=90:3,P(7)<168:2,P(7)<365:1,1:0) S MAX=$S(PSOT'>PSDY1:PSOT,1:PSDY1)
  K PSODEA,PSOELSE,PSOT,PSOX1,PSDY,PSDY1,DEA,CS
  I $D(X) S MIN=0 I $D(DA) F REF=0:0 S REF=$O(^PSRX(DA,1,REF)) Q:'REF  I $D(^(REF,0)) S MIN=MIN+1
  I $G(EXH) D EN^DDIOL("Enter a number Between "_MIN_" AND "_MAX_".","","!?10") K P(2),P(5),P(7),MAX,MAX1,MIN,REF

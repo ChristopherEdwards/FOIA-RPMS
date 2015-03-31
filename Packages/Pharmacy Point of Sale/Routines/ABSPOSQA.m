@@ -1,5 +1,5 @@
 ABSPOSQA ; IHS/FCS/DRS - POS background, Part 1 ;   
- ;;1.0;PHARMACY POINT OF SALE;**10,42,43**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**10,42,43,46**;JUN 21, 2001
  ;------------------------------------------------
  ;IHS/SD/lwj 03/10/04 patch 10
  ; Routine adjusted to call ABSPFUNC to retrieve
@@ -59,6 +59,8 @@ ERRJOIN I ERROR D
  . I ERROR=12 S ERRTEXT="PCC Link problem during visit lookup"
  . E  I ERROR=101 S ERRTEXT="Missing ^PSRX("_ABSBRXI_",0)"
  . E  I ERROR=102 S ERRTEXT="Missing ^PSRX("_ABSBRXI_",1,"_ABSBRXR_",0)"
+ . E  I ERROR=105 S ERRTEXT="Missing ABSP PHARMACY link for Division" ; OIT/CAS/RCS 081213 Patch 46
+ . E  I ERROR=106 S ERRTEXT="Missing Prescriber NPI Number" ; OIT/CAS/RCS 081913 Patch 46
  . E  S ERRTEXT="ERROR - see LOG"
  . D SETRESU2(ERROR,ERRTEXT)
  . D INCSTAT^ABSPOSUD("R",1) ; count how many Unbillable

@@ -1,5 +1,5 @@
-PSOHLSNC ;BIR/RTR-Send CHCS message to CPRS ;07/03/02
- ;;7.0;OUTPATIENT PHARMACY;**111,157**;DEC 1997
+PSOHLSNC ;BIR/RTR - Send CHCS message to CPRS ;07/03/02
+ ;;7.0;OUTPATIENT PHARMACY;**111,157,143,225**;DEC 1997;Build 29
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference to ^PS(51.2 supported by DBIA 2226
  ;External reference to ^PSDRUG( supported by DBIA 221
@@ -18,7 +18,7 @@ EN(PSOPND,PSOPNDST,PSOPNDPT) ;
  S PSONFLD="F PSONJJ=0:1:PSOLIMIT S PSOXFLD(PSONJJ)="""""
  S PSOHCT=1
  D INIT^PSOHLSN
- D PID,PV1,ORC,RXO,RXE,RXR,ZRX,ZSC
+ D PID,PV1,ORC,RXO,RXE,RXR,ZRX,DG1,ZCL
  D MSG^XQOR("PS EVSEND OR",.MSG)
  Q
 PID ;Build PID segment
@@ -34,6 +34,20 @@ PV1 ;Build PV1 segment
  S PSOXFLD(2)="O"
  I $P($G(^PS(52.41,PSOPND,0)),"^",13) S PSOXFLD(3)=$P(^(0),"^",13)
  D SEG
+ Q
+DG1 ;Build DG1 segment
+ ;future use; chcs does not send ICD-9 codes.
+ Q:'$D(^PS(52.41,PSOPND,"ICD"))
+ S PSOLIMIT=4 X PSONFLD
+ S PSOXFLD(0)="DG1"
+ N LP,VDG,FLAG,DXDESC,DG
+ S FLAG="",PSOXFLD(4)="",PSOXFLD(2)=""
+ F LP=1:1:8 Q:'$D(^PS(52.41,PSOPND,"ICD",LP,0))  D
+ . S VDG="",VDG=^PS(52.41,PSOPND,"ICD",LP,0) Q:$P(VDG,U,1)=""
+ . S (DG,DXDESC)=""
+ . S DXDESC=$$GET1^DIQ(80,$P(VDG,U,1)_",",10),PSOXFLD(1)=LP
+ . S PSOXFLD(3)=$P(VDG,U,1)_U_DXDESC_U_"80"_U_$$GET1^DIQ(80,$P(VDG,U,1)_",",.01)_U_DXDESC_U_"ICD9"
+ . D SEG
  Q
 ORC ;Build ORC segment
  S PSOLIMIT=15 X PSONFLD
@@ -112,6 +126,26 @@ ZRX ;Build ZRX segment
  S PSOXFLD(3)="N"
  S PSOXFLD(4)=$P($G(^PS(52.41,PSOPND,0)),"^",17)
  D SEG
+ Q
+ZCL ;Build ZCL segment
+ N I,JJJ,INODE,EI
+ S PSOXFLD(0)="ZCL",PSOLIMIT=3 X PSONFLD
+ I $D(^PS(52.41,PSOPND,"ICD")) D
+ .F I=1:1:8 D
+ ..Q:'$D(^PS(52.41,PSOPND,"ICD",I,0))
+ ..S INODE="",INODE=^PS(52.41,PSOPND,"ICD",I,0)
+ ..F JJJ=2:1:9 S EI=$P(INODE,U,JJJ) D
+ ...S PSOXFLD(1)=I,PSOXFLD(2)=JJJ-1,PSOXFLD(3)=EI
+ ...;I JJJ=4 S EI=$S(EI=1:"SC",EI=0:"NSC",1:"") S PSOXFLD(3)=EI
+ ...D SEG
+ E  D  ;if no ICD node, send one ZCL segment
+ .S PSOXFLD(0)="ZCL",PSOXFLD(1)=1,PSOXFLD(2)=3
+ .S PSOXFLD(3)=$S($P(^PS(52.41,PSOPND,0),"^",16)="SC":1,$P(^(0),"^",16)="NSC":0,1:"")
+ .D SEG
+ .Q:'$D(^PS(52.41,PSOPND,"IBQ"))
+ .S EI=^PS(52.41,PSOPND,"IBQ")
+ .F I=2,3,4,1,5,6,7 S PSOXFLD(3)=$P(EI,U,I) D
+ .. S PSOXFLD(2)=$S(I=2:1,I=3:2,I=4:4,I=1:5,I=5:6,I=6:7,I=7:8,1:"") D SEG
  Q
 ZSC ;Build ZSC segment
  S PSOLIMIT=6 X PSONFLD

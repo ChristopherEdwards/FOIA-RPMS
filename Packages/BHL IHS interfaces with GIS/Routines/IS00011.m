@@ -1,6 +1,6 @@
-IS00011(INTT,INDA,INA,INDEST,INQUE,INORDUZ,INORDIV) ;Compiled from script 'Generated: HL IHS IZV04 OUT-O' on FEB 28, 2013
+IS00011(INTT,INDA,INA,INDEST,INQUE,INORDUZ,INORDIV) ;Compiled from script 'Generated: HL IHS IZV04 OUT-O' on FEB 05, 2014
  ;Part 1
- ;Copyright 2013 SAIC
+ ;Copyright 2014 SAIC
 EN S X="ERROR^IS00011",@^%ZOSF("TRAP")
  G START
 ERROR ;
@@ -106,8 +106,8 @@ START ;Initialize variables
  .S D0=INDA S X=$G(INA("PID3",INI(1)))
  .S X1="^INTHL7FT(1,3)" X:$L($G(@X1)) $G(@X1) S X=$E(X,1,250)
  .S @INV@("PID3")=X K DXS,D0
- .;SET PID5 = INSGX\^INTHL7FT(7,3)\\250\#.01
- .S D0=INDA S Y(1)=$S($D(^DPT(D0,0)):^(0),1:"") S X=$P(Y(1),U,1)
+ .;SET PID5 = INSGX\^INTHL7FT(7,3)\\250\@PID5
+ .S D0=INDA S X=$G(INA("PID5",INI(1)))
  .S X1="^INTHL7FT(7,3)" X:$L($G(@X1)) $G(@X1) S X=$E(X,1,250)
  .S @INV@("PID5")=X K DXS,D0
  .;SET PID6 = INSGX\^INTHL7FT(7,3)\\250\#.2403
@@ -121,9 +121,9 @@ START ;Initialize variables
  .;SET PID8 = $E(INTERNAL(SEX),1,1)
  .S D0=INDA S Y(1)=$S($D(^DPT(D0,0)):^(0),1:"") S X=$P(Y(1),U,2),X=X S X=X,Y(2)=$G(X) S X=1,Y(3)=$G(X) S X=1,X=$E(Y(2),Y(3),X)
  .S @INV@("PID8")=X K DXS,D0
- .;SET PID10 = INSGX\^INTHL7FT(1,3)\\50\@PID10
+ .;SET PID10 = INSGX\^INTHL7FT(1,3)\\99\@PID10
  .S D0=INDA S X=$G(INA("PID10",INI(1)))
- .S X1="^INTHL7FT(1,3)" X:$L($G(@X1)) $G(@X1) S X=$E(X,1,50)
+ .S X1="^INTHL7FT(1,3)" X:$L($G(@X1)) $G(@X1) S X=$E(X,1,99)
  .S @INV@("PID10")=X K DXS,D0
  .;SET PID11 = INSGX\^INTHL7FT(1,3)\\250\@PID11
  .S D0=INDA S X=$G(INA("PID11",INI(1)))
@@ -141,5 +141,6 @@ START ;Initialize variables
  .S X1="^INTHL7FT(1,3)" X:$L($G(@X1)) $G(@X1) S X=$E(X,1,250)
  .S @INV@("PID14")=X K DXS,D0
  .;SET PID17 = INSGX\^INTHL7FT(17,3)\\250\#.08
+ .S D0=INDA S Y(1)=$S($D(^DPT(D0,0)):^(0),1:"") S X=$P($G(^DIC(13,+$P(Y(1),U,8),0)),U)
 9 .D EN^IS00011A
  G A1^IS00011A

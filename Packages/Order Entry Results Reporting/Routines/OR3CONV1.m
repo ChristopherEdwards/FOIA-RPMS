@@ -1,5 +1,5 @@
 OR3CONV1 ;SLC/MLI-Conversion utilities and cleanup ;8/2/97 [5/25/99 9:33am]
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**14,40**;Dec 17, 1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**14,40,296**;Dec 17, 1997;Build 19
  ;
  ; Continuation calls from OR3CONV - used by OE/RR version 3 conversion
  ;
@@ -151,7 +151,7 @@ SEND(SUBJECT) ; define rest of XM variables and fire message off
  N DIFROM,XMDUZ,XMSUB,XMTEXT,XMY
  S XMSUB=SUBJECT,XMTEXT="ORTEXT("
  S XMDUZ="OE/RR CONVERSION"
- F I="G.CPRS INSTALLATION@DOMAIN.NAME",DUZ S XMY(I)=""
+ F I="G.CPRS INSTALLATION@ISC-SLC.VA.GOV",DUZ S XMY(I)=""
  D ^XMD
  Q
  ;

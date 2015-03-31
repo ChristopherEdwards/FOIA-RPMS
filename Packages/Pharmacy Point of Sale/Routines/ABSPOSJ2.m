@@ -1,5 +1,5 @@
 ABSPOSJ2 ;IHS/OIT/SCR - pre and post init for V1.0 patch 28 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**29,39,43,44**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**29,39,43,44,45,46**;Jun 21,2001
  ;
  ; Pre and Post init routine use in absp0100.29k
  ;------------------------------------------------------------------
@@ -161,4 +161,73 @@ DIAL ;IHS/OIT/RCS 8/31/2012 patch 44 fix for DIALOUT field - HEAT # 82109
  . S X=$G(^ABSPEI(INSIEN,100)) I X="" Q  ;PARTIAL SETUP
  . S DIAL=$P(X,U,7) I DIAL'="" Q  ;ALREADY DATA IS FIELD
  . S $P(X,U,7)=9,^ABSPEI(INSIEN,100)=X ;SET DIALOUT VALUE TO '9'-ENVOY DIRECT VIA T1 LINE
+ Q
+ ;
+DEF ;IHS/OIT/RCS 11/28/2012 patch 45 Add ICD10 General POS Default date
+ N DEF
+ S DEF=$G(^ABSP(9002313.99,1,"ICD10")) I DEF'="" Q  ;ALREADY DATA IS FIELD
+ S ^ABSP(9002313.99,1,"ICD10")=3141001 ;SET ICD10 DEFAULT DATE TO '10/1/2014'
+ Q
+ ;
+DOL ;IHS/OIT/RCS 11/28/2012 patch 46 Add default Maximum Dollar limit
+ N DOL
+ S DOL=$G(^ABSP(9002313.99,1,"DOLLMT")) I DOL'="" Q  ;ALREADY DATA IS FIELD
+ S ^ABSP(9002313.99,1,"DOLLMT")=15000 ;SET Maximum Dollar Limit to $15,000
+ Q
+ ;
+MCAR ;IHS/OIT/RCS 11/28/2012 patch 46 Check Medicare Part-D Insurers for fields 147 and 384
+ I $G(^ABSP(9002313.99,1,"ABSPMCAR")) Q  ;Run once
+ N INS,X,AR,F147
+ S F147=""
+ ;Find IEN of fields to be Unsuppressed and set into AR
+ S X=$O(^ABSPF(9002313.91,"B",147,"")) I X]"" S AR(X)="",F147=X
+ S X=$O(^ABSPF(9002313.91,"B",384,"")) I X]"" S AR(X)=""
+ ;
+ S INS=0,U="^" F  S INS=$O(^ABSPEI(INS)) Q:INS=""  D
+ .S X=$G(^ABSPEI(INS,100)) I '$P(X,U,18) Q  ;Not Part D so skip it
+ .I '$P(X,U,16) Q  ;No BIN # so skip it
+ .D UNS ;Check for Suppressed Fields
+ S ^ABSP(9002313.99,1,"ABSPMCAR")=1
+ Q
+ ;
+UNS ;Unsuppress function
+ N IEN,I,FL,Y,LST,CT
+ S IEN="",FL=0 F  S IEN=$O(AR(IEN)) Q:IEN=""  D
+ .I '$D(^ABSPEI(INS,220,"B",IEN)) Q  ;Not Suppressed
+ .S I=0 F  S I=$O(^ABSPEI(INS,220,I)) Q:I=""  I ^ABSPEI(INS,220,I,0)=IEN K ^ABSPEI(INS,220,I) Q
+ ;
+ ;Check 220 counters/Index
+ S LST="",CT=0 S I=0 F  S I=$O(^ABSPEI(INS,220,I)) Q:I=""!(I'?1N.N)  S LST=I,CT=CT+1
+ S Y=^ABSPEI(INS,220,0),$P(Y,U,3)=LST,$P(Y,U,4)=CT,^ABSPEI(INS,220,0)=Y
+ K ^ABSPEI(INS,220,"B")
+ S I=0 F  S I=$O(^ABSPEI(INS,220,I)) Q:I=""  S VAL=$G(^ABSPEI(INS,220,I,0)) I VAL]"" D
+ .S ^ABSPEI(INS,220,"B",VAL,I)=""
+ ;
+ ;Check 210 counters/Index
+ S LST="",CT=0 S I=0 F  S I=$O(^ABSPEI(INS,210,I)) Q:I=""!(I'?1N.N)  S LST=I,CT=CT+1
+ S Y=^ABSPEI(INS,210,0),$P(Y,U,3)=LST,$P(Y,U,4)=CT,^ABSPEI(INS,210,0)=Y
+ K ^ABSPEI(INS,210,"B")
+ S I=0 F  S I=$O(^ABSPEI(INS,210,I)) Q:I=""  S VAL=$G(^ABSPEI(INS,210,I,0)) I VAL]"" D
+ .S ^ABSPEI(INS,210,"B",VAL,I)=""
+ Q
+ ;
+RESTORE ;EP - Post init routine for absp0100.03k.
+ ; This subroutine will take the values stored in the save global
+ ; created in the above "SAVE" subroutine and restore the values
+ ; in their new locations in the ^ABSPC file.
+ N CLMIEN,MEDIEN,RTN,REC,LAST,I
+ S (LAST,MEDIEN,CLMIEN)=""
+ S RTN="ABSPOSJ1"
+ ; if we have to restart - this is where we need to start
+ S LAST=$G(^ABSPOSXX(RTN,"LAST PROCESSED"))
+ I LAST'="" D
+ . S CLMIEN=$P(LAST,U)
+ . S MEDIEN=$P(LAST,U,2)
+ F  S CLMIEN=$O(^ABSPOSXX(RTN,CLMIEN)) Q:CLMIEN=""  D
+ . D RST320
+ . F  S MEDIEN=$O(^ABSPOSXX(RTN,CLMIEN,400,MEDIEN)) Q:MEDIEN=""  D
+ .. S REC=$G(^ABSPOSXX(RTN,CLMIEN,400,MEDIEN,400))
+ .. Q:REC=""
+ .. F I=31:1:43  D MOVFLD(I+400,$P(REC,U,I))
+ .. S ^ABSPOSXX(RTN,"LAST PROCESSED")=CLMIEN_"^"_MEDIEN
  Q

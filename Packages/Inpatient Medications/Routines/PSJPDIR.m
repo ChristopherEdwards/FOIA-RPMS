@@ -1,5 +1,5 @@
 PSJPDIR ;BIR/MLM-PATIENT PROFILE CALLS ;10 MAY 96 / 9:56 AM
- ;;5.0; INPATIENT MEDICATIONS ;**53**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**53,111**;16 DEC 97
  ;
  ; Reference to ^DIC is supported by DBIA 10006
  ; Reference to ^DIR is supported by DBIA 10026
@@ -11,7 +11,7 @@ GWP ; Ask for seletion by WARD GROUP,WARD or PATIENT.
  S DIR("?",1)="To select the entire WARD GROUP, enter a 'G'."
  S DIR("?",2)="To select a single WARD, enter a 'W'."
  W !! D ^DIR K DIR S PSJSTOP=$S(Y="":1,Y<0:1,$$STOP:1,1:0)
- I 'PSJSTOP S PSJSEL("SELECT")=Y D @Y G:PSJSTOP GWP D:PSJSEL("SELECT")'="P" RBPPN G:PSJSTOP GWP
+ I 'PSJSTOP S PSJSEL("SELECT")=Y D @Y Q:($G(PSJSEL("WG"))="^OTHER")  G:PSJSTOP GWP D:PSJSEL("SELECT")'="P" RBPPN G:PSJSTOP GWP
  Q
  ;
 P ;*** Select by Patient
@@ -28,7 +28,9 @@ W ;*** Select by WARD
  ;
 G ;***Select by WARD GROUP
  K DIC S DIC="^PS(57.5,",DIC(0)="QEAMI",DIC("A")="Select a Ward Group: " W !! D ^DIC
- S PSJSTOP=$S(Y="":1,Y<0:1,$$STOP:1,1:0)
+ S PSJSTOP=$S(X="^OTHER":2,Y="":1,Y<0:1,$$STOP:1,1:0)
+ ;I PSJSTOP=2 S PSJSTOP=0,PSJSEL("WG")="^OTHER" Q
+ I PSJSTOP=2 S PSJSEL("WG")="^OTHER" Q
  I 'PSJSTOP S PSJSEL("WG")=Y
  Q
  ;

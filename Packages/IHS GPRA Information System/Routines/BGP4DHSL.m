@@ -1,8 +1,8 @@
-BGP4DHSL ; IHS/CMI/LAB - FY 04 DISPLAY IND LISTS ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP4DHSL ; IHS/CMI/LAB - FY 11 DISPLAY IND LISTS ;
+ ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
  ;; ;
 RT ;EP
- ;for each indicator list, choose report type
+ ;for each measure list, choose report type
  W !!,"Select List Type.",!,"NOTE:  If you select All Patients, your list may be",!,"hundreds of pages and take hours to print.",!
  S DIR(0)="S^R:Random Patient List;P:Patient List by Provider;A:All Patients",DIR("A")="Choose report type for the Lists",DIR("B")="R" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) S BGPQUIT="" K BGPLIST Q
@@ -23,7 +23,7 @@ EOJ1 ;EP
  Q
  ;; ;
 EN ;EP -- main entry point for GPRA LIST DISPLAY
- D EN^VALM("BGP 04 HEDIS LIST SELECTION")
+ D EN^VALM("BGP 14 HEDIS LIST SELECTION")
  D CLEAR^VALM1
  D FULL^VALM1
  W:$D(IOF) @IOF
@@ -31,17 +31,17 @@ EN ;EP -- main entry point for GPRA LIST DISPLAY
  Q
  ;
 HDR ; -- header code
- S VALMHDR(1)="IHS FY 04 HEDIS Performance Indicator Lists of Patients"
+ S VALMHDR(1)="IHS FY 11 HEDIS Performance Measure Lists of Patients"
  S VALMHDR(2)="* indicates the list has been selected"
  Q
  ;
 INIT ; -- init variables and list array
  K BGPGLIST,BGPNOLI S BGPHIGH=""
  S (X,C,I)=0 F  S X=$O(BGPIND(X)) Q:X'=+X  D
- .I $P(^BGPHEIF(X,0),U,5)]"" S C=C+1 D  Q
- ..S BGPGLIST(C,0)=C_")",$E(BGPGLIST(C,0),5)=$P(^BGPHEIF(X,0),U,5),BGPGLIST("IDX",C,C)=X I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
- .I $P(^BGPHEIF(X,0),U,5)="" S C=C+1 D
- ..S BGPGLIST(C,0)="NO patient list available for indicator:  "_$P(^BGPHEIF(X,0),U,4),BGPGLIST("IDX",C,C)=X,BGPNOLI(X)="" I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
+ .I $P(^BGPHEIB(X,0),U,5)]"" S C=C+1 D  Q
+ ..S BGPGLIST(C,0)=C_")",$E(BGPGLIST(C,0),5)=$P(^BGPHEIB(X,0),U,5),BGPGLIST("IDX",C,C)=X I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
+ .I $P(^BGPHEIB(X,0),U,5)="" S C=C+1 D
+ ..S BGPGLIST(C,0)="NO patient list available for measure:  "_$P(^BGPHEIB(X,0),U,4),BGPGLIST("IDX",C,C)=X,BGPNOLI(X)="" I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
  S (VALMCNT,BGPHIGH)=C
  Q
  ;

@@ -1,5 +1,5 @@
 PSDCOSN ;BIR/LTL-Cost Report by NAOUs, PSDCOST (cont'd) ; 2 Aug 94
- ;;3.0; CONTROLLED SUBSTANCES ;;13 Feb 97
+ ;;3.0; CONTROLLED SUBSTANCES ;**63**;13 Feb 97;Build 1
  N PSDN,LN,PG,X2 S PSDSD(1)=PSDSD S:$D(ZTQUEUED) ZTREQ="@"
  F  S PSDSD=$O(^PSD(58.81,"ACT",PSDSD)) W:$E(IOST)="C" "." Q:'PSDSD!(PSDSD>PSDED)  S PSDN=$O(^PSD(58.81,"ACT",PSDSD,0)) D:$P($G(^PSD(58.8,+PSDN,0)),U,3)=+PSDSITE
  .S PSDN(1)=$O(^PSD(58.81,"ACT",PSDSD,PSDN,0))
@@ -13,6 +13,8 @@ PSDCOSN ;BIR/LTL-Cost Report by NAOUs, PSDCOST (cont'd) ; 2 Aug 94
  .S PSDN(9)=$S(PSDN(2)=9:PSDN,1:$P(PSDN(8),U,18))
  .;qty rec'd by NAOU w/green sheet
  .S PSDN(5)=$P($G(^PSD(58.81,+PSDN(4),1)),U,8)
+ .S PSDN(11)=$P($G(^PSDRUG(PSDN(1),660)),U,6)
+ .I $D(PSDN) I 'PSDN(11) D GETDTA
  .;qty dispensed by Master Vault w/o green sheet
  .S:$P(PSDN(8),U,17)']"" PSDN(5)=$P(PSDN(8),U,6)
  .;Returned to Stock
@@ -39,6 +41,7 @@ PSDCOSN ;BIR/LTL-Cost Report by NAOUs, PSDCOST (cont'd) ; 2 Aug 94
  .;total adjusted by NAOU
  .S:PSDN(2)=9 $P(^TMP("PSD",$J,PSDN(9),PSDN(3)),U,6)=PSDN(5)+$P(PSDN(7),U,6)
  .K PSDN
+ ;
 PRTQUE ;queues print after data is compiled
  I $D(ZTQUEUED) K ZTSAVE,ZTSK S ZTIO=PSDIO,ZTDESC="CS Cost Report by NAOU",ZTRTN="START^PSDCOSN",ZTSAVE("PSD*")="",ZTSAVE("^TMP(""PSD"",$J,")="",ZTSAVE("SUM")="",ZTDTH=$H D ^%ZTLOAD,HOME^%ZIS G QUIT
 START S (PG,PSDN)=0 D HEADER
@@ -56,11 +59,12 @@ START S (PG,PSDN)=0 D HEADER
  ..W:'$G(SUM)&($P(PSDN(2),U,4)) "Doses Destroyed: ",$P(PSDN(2),U,4),PSDN(10),!!
  ..W:'$G(SUM)&($P(PSDN(2),U,5)) "Doses Transferred: ",$P(PSDN(2),U,5),PSDN(10),!!
  ..W:'$G(SUM)&($P(PSDN(2),U,6)) "Doses Adjusted by NAOU: ",$P(PSDN(2),U,6)," (Not affecting total)",!!
- ..S:'PSDN(11) ^TMP("PSDM",$J,PSDN(1))=""
+ ..;S:'PSDN(11) ^TMP("PSDM",$J,PSDN(1))=""
  .Q:$G(PSDOUT)  W LN,!?28,"Total:  ",$J($G(PSDN(3)),10),?62
  .S X=$G(PSDN(5)) D COMMA^%DTC W X,!! S PSDN(6)=$G(PSDN(6))+PSDN(3)
  .S PSDN(7)=$G(PSDN(7))+PSDN(5) K PSDN(3),PSDN(5),PSDN(9)
  I $G(PSDN(8))>1 W LN,!?14,"Total for all NAOUs:  ",$J($G(PSDN(6)),10) S X=$G(PSDN(7)) D COMMA^%DTC W ?62,X,!!
+ ;I DUZ=33238 I $D(^TMP("PSDM")) D ^PSDCOSM
  I $D(^TMP("PSDM",$J)) S ZTRTN="^PSDCOSM",ZTIO="",ZTDTH=$H,ZTDESC="Mailman notification of 0 DRUG file cost",ZTSAVE("PSD*")="",ZTSAVE("^TMP(""PSDM"",$J,")="" D ^%ZTLOAD
  W:'$O(^TMP("PSD",$J,0)) !!,"Sorry, nothing to report for selected NAOU(s).",!!
 END W:$E(IOST)'="C" @IOF
@@ -74,3 +78,11 @@ HEADER ;prints header info
  W $P(PSDATE,U)," To ",$P(PSDATE,U,2),?72,"Page ",PG,!!
  W ?45,"Report Date:  ",PSDT(1),!!?40,"Quantity",!,"Drug",?40,"Dispensed"
  W ?70,"Cost",!,LN,!!
+ Q
+GETDTA ;
+ N DTE
+ Q:'$D(PSDN)
+ S DTE=$P(PSDN(8),U,4)
+ S ^TMP("PSDM",$J,PSDN(1),DTE)=PSDN(4)_"^"_PSDN(11)_"^"_PSDN(5)
+ Q
+ ;

@@ -1,5 +1,5 @@
-SROAMIS ;B'HAM ISC/MAM - ANESTHESIA AMIS REPORT ; [ 12/16/98  2:06 PM ]
- ;;3.0; Surgery ;**22,34,38,77,50,86**;24 Jun 93
+SROAMIS ;BIR/MAM - ANESTHESIA AMIS REPORT ;11/26/07
+ ;;3.0; Surgery ;**22,34,38,77,50,86,166**;24 Jun 93;Build 6
 UTL ; set up ^TMP("SROAMIS",$J
  S PRIN=$P($G(^SRF(SRDFN,.3)),"^",8) I PRIN="" S PRIN="O"
  S PROC=$S($D(^SRF(SRDFN,31)):$P(^(31),"^",9),1:""),DEATH=""
@@ -32,7 +32,9 @@ DEAD ; check for death within 24 hrs.
  I DEATH S ^TMP("SRTN",$J,DFN)=""
  Q
 EN ; entry for SROAMIS option
- W @IOF,!,"Anesthesia AMIS",!
+ W @IOF,!,"Anesthesia AMIS",!!,"This report is no longer available.",!
+ K DIR S DIR(0)="E" D ^DIR K DIR D END
+ Q
 DATE D DATE^SROUTL(.SDATE,.EDATE,.SRSOUT) G:SRSOUT END S SRD=SDATE-.0001
  N SRINSTP S SRINST=$$INST^SROUTL0() G:SRINST="^" END S SRINSTP=$P(SRINST,U),SRINST=$S(SRINST["ALL DIVISIONS":SRINST,1:$P(SRINST,U,2))
  W !!!,"This report is designed to use a 132 column format, and must be run",!,"on a printer.",!!

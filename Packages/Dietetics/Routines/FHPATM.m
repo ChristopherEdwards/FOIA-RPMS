@@ -1,5 +1,5 @@
 FHPATM ; HISC/REL/JH - Patient Movements ;4/2/98  14:53
- ;;5.0;Dietetics;**4,9,10,14,18,20**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  S DAT=0 D HDR
 P1 S %DT="AEXT",%DT("A")="START with DATE@TIME: " W ! D ^%DT G:Y<1 KIL S DAT=Y
  I DAT>NOW W "  [ Date cannot be in Future ]" G P1

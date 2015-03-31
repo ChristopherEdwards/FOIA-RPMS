@@ -1,5 +1,7 @@
 BARRADJ2 ; IHS/SD/TPF - TRANSACTION/ADJUSTMENT REPORT ;08/20/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,7,19,20,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,7,19,20,21,23**;OCT 26, 2005
+ ;20-MAR-2012 P.OTTIS HEAT # 60464 FIXING INITIAL VALUE OF DSRCTOT
+ ;19-MAR-2013 P.OTTIS HEAT # 107110 FIXING TOTALS 
  Q
  ;
 DETAIL ; EP
@@ -18,17 +20,15 @@ DETAIL ; EP
  .S BAR("COL")="W !,"""",?15,"""",?32,""Bill"",?45,""Amount"",?56,""Transaction"",?69,"""""
  .S BAR("COL",0)="W !,"""",?5,""Insurer"",?32,""Count"",?45,""Billed"",?59,""Amount"",?73,"""""
  .S BAR("HD",0)="SUMMARY Transaction"_$P(BAR("HD",0),"Transaction",2,99)
- ;IHS/SD/AR RQMNT bar*1.8*18
- ;D HDB  ;Page and column header
  D:'BARTEXT HDB  ;Page and column header
  I $D(DTOUT)!$D(DUOUT)!$D(DIROUT) S BAR("F1")=1  ;bar*1.8*19*ADD*TMM
  Q:$G(BAR("F1"))  ;bar*1.8*19*ADD*TMM
  ;INITIALIZE TOTALS
- K VLOCBTOT,TRANBTOT,ADJTBTOT,SORTBTOT,ARBTOT
  K VLOCTTOT,TRANTTOT,ADJTTTOT,SORTTTOT,ARTTOT
  S TOTBILLS=0  ;BILL COUNT
  S GRANBILL=0  ;BILL AMT GRAND TOT
  S GRANTRAN=0  ;TRANS AMT GRAND TOT
+ S DSRCTOT=0  ;HEAT#60464 FIXING INITIAL VALUE OF DSRCTOT
  ;
  K I,Y,X
  S BARDASH="                                          ----------     ----------"
@@ -43,8 +43,7 @@ DETAIL ; EP
  S BAR("ADJCAT")=""
  S BAR("OINS")=""  ;OLD INSURER
  S BAR("O11")=""  ;OLD INS IEN
- S BARTR("DATA SRC")=""  ;bar*1.8*20 REQ10
- ;IHS/SD/AR RQMNT bar*1.8*18
+ S BARTR("DATA SRC")=""
  S BARPREV="BEGIN"
  S BAR("Z")="TMP("_$J_",""BAR-TSR"""
  S BAR="^"_BAR("Z")_")"
@@ -52,7 +51,6 @@ DETAIL ; EP
  . W $$CJ^XLFSTR("*** NO DATA TO PRINT FOR "_$P($G(^DIC(4,DUZ(2),0)),U)_" ***",IOM)
  . D EOP^BARUTL(0)
  . I $D(DTOUT)!$D(DUOUT)!$D(DIROUT) S BAR("F1")=1 Q  ;IHS/SD/AR 1.8*19
- ; traverse the temp global
  S BARBILLO=""  ;BAR*1.8*6
  F  S BAR=$Q(@BAR) Q:BAR[("BAR-TSRS")  D  Q:$G(BAR("F1"))
  .I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
@@ -62,9 +60,7 @@ DETAIL ; EP
  .;THIS NEXT LINE TAKES DUZ(2) AND STICKS IT AT THE END OF THE STRING?
  .S BAR("TXT")=$P(BAR("TXTO"),U)_U_$P(BAR("TXTO"),U,3,99)_U_$P(BAR("TXTO"),U,2)
  .S BAR("NODE")=@BAR  ;Data
- .;
- .;S BARBILL=$P(BAR("TXT"),U,6)  ;BAR*1.8*6  ;bar*1.8*20 REQ10
- .S BARBILL=$P(BAR("TXT"),U,7)  ;BAR*1.8*6  ;bar*1.8*20 REQ10
+ .S BARBILL=$P(BAR("TXT"),U,7)  ;BAR*1.8*6
  .S BAR(1)=$P(BAR("NODE"),U)  ;Bill number
  .S BAR(2)=$P(BAR("NODE"),U,2)  ;PAY-AMT
  .S BAR(3)=$P(BAR("NODE"),U,3)  ;PRV-CRD
@@ -79,28 +75,22 @@ DETAIL ; EP
  .S BAR(12)=$P(BAR("NODE"),U,12)  ;Adjustment category
  .S BAR(13)=$P(BAR("NODE"),U,13)  ;Adjustment Type
  .;
- .;IHS/SD/AR PATCH 18 RQMNT
  .I BARTEXT D
  ..Q:$L(BAR("NODE"),U)<10
  ..N BARDLMTD
  ..S BARDLMTD("CLINICVISIT")="NONE"
  ..S BARDLMTD("VISIT")=$P(BAR("TXT"),U,2)
  ..I BARY("SORT")="C" D
- ...;I $P(BAR("TXT"),U,5)=99999 S BARDLMTD("CLINICVISIT")="NO CLINIC"  ;bar*1.8*21 SDR
  ...I $P(BAR("TXT"),U,6)=99999 S BARDLMTD("CLINICVISIT")="NO CLINIC"  ;bar*1.8*21 SDR
- ...;S BARDLMTD("CLINICVISIT")=$P(^DIC(40.7,$P(BAR("TXT"),U,5),0),U)  ;bar*1.8*21 SDR
  ...S BARDLMTD("CLINICVISIT")=$P(^DIC(40.7,$P(BAR("TXT"),U,6),0),U)  ;bar*1.8*21 SDR
  ..I BARY("SORT")="V" D
- ...;I $P(BAR("TXT"),U,5)=99999 S BARDLMTD("CLINICVISIT")="NO VISIT TYPE"  ;bar*1.8*21 SDR
  ...I $P(BAR("TXT"),U,6)=99999 S BARDLMTD("CLINICVISIT")="NO VISIT TYPE"  ;bar*1.8*21 SDR
- ...;S BARDLMTD("CLINICVISIT")=$P($G(^ABMDVTYP($P(BAR("TXT"),U,5),0)),U)  ;bar*1.8*21 SDR
  ...S BARDLMTD("CLINICVISIT")=$P($G(^ABMDVTYP($P(BAR("TXT"),U,6),0)),U)  ;bar*1.8*21 SDR
  ..S BARDLMTD("BILLNUM")=BAR(1)
  ..S BARDLMTD("TRANSDATE")=BAR(10)
  ..S BARDLMTD("INSURER")=BAR(9)
  ..S BARDLMTD("BILLAMT")=$FN(BAR(6),",",2)
  ..S BARDLMTD("TRXNAMT")=$FN(BAR(3)+BAR(4)+BAR(5)+BAR(7),",",2)
- ..;I $D(BARY("TRANS TYPE",43)) D  ;M819*DEL*TMM
  ..I $D(BARY("TRANS TYPE",43))!$D(BARY("TRANS TYPE",993)) D  ;M819*ADD*TMM
  ...I '$P(BAR("TXT"),U,3) S BARDLMTD("ADJCAT")=$P(BAR("TXT"),U,3)
  ...E  S BARDLMTD("ADJCAT")=$$GET1^DIQ(90052.01,$P(BAR("TXT"),U,3)_",",.01,"E")
@@ -114,11 +104,9 @@ DETAIL ; EP
  .I BARPREV="BEGIN" D
  ..S BARPREV=BAR(12)
  .E  D
- ..;I BARPREV'=BAR(12),$D(BARY("TRANS TYPE",43)) D  ;M819*DEL*TMM
  ..I BARPREV'=BAR(12),$D(BARY("TRANS TYPE",43))!$D(BARY("TRANS TYPE",993)) D  ;M819*ADD*TMM
  ...S BARPREV=BAR(12)
  ...D SUBTYPE
- .;IHS/SD/AR PATCH 18 RQMNT
  .I $D(BARY("AR")),BAR("AR")'=$P(BAR("TXT"),U) D
  ..S BAR("L")=""
  ..D SUBHD
@@ -145,26 +133,18 @@ DETAIL ; EP
  ...W !
  ..I $D(BARY("TRANS TYPE",43)) W !?5,"Adjustment Category.......: "
  ..I $D(BARY("TRANS TYPE",993)) W !?5,"Adjustment Category.......: "   ;M819*ADD*TMM
- ..;E  W !?5,"Transaction Type.......: " IHS/SD/PKD 1/18/11 commented out bar*1.8*19
  ..I '$P(BAR("TXT"),U,3) W $P(BAR("TXT"),U,3)
  ..E  D
- ...;I $D(BARY("TRANS TYPE",43)) W $$GET1^DIQ(90052.01,$P(BAR("TXT"),U,3)_",",.01,"E")   ;M819*DEL*TMM
  ...I $D(BARY("TRANS TYPE",43))!$D(BARY("TRANS TYPE",993)) W $$GET1^DIQ(90052.01,$P(BAR("TXT"),U,3)_",",.01,"E")   ;M819*ADD*TMM
  ...E  W $$GET1^DIQ(90052.02,$P(BAR("TXT"),U,3)_",",.01,"E")
- ..;S (BAR("SORT"))=""  ;WASN'T TOTALING VISIT/CLINIC CORRECTLY- WHY RESET AT SAME TIME AS ADJUSTMENT RESET?
- ..;S (SORTBTOT,SORTTTOT)=0
  .S BAR("TRANS")=$P(BAR("TXT"),U,3)
- .;
- .;I BAR("SORT")'=$P(BAR("TXT"),U,5) D  ;bar*1.8*20 REQ10
- .I BAR("SORT")'=$P(BAR("TXT"),U,6) D  ;bar*1.8*20 REQ10
+ .I BAR("SORT")'=$P(BAR("TXT"),U,6) D
  ..I BAR("SORT")]"" D
- ...;I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
  ...Q:$G(BAR("F1"))
  ...I SUMMARY D GETCOUNT
  ...W !,BARDASH
  ...D SUBSORT
  ...W !
- ..;start new code bar*1.8*20 REQ10
  ..I BARTR("DATA SRC")'=$P(BAR("TXT"),U,5) D
  ...I BARTR("DATA SRC")]"" D
  ....I SUMMARY D GETCOUNT
@@ -174,25 +154,15 @@ DETAIL ; EP
  ....W !
  ...W !?10,"Data Source..........: ",$S($P(BAR("TXT"),U,5)="e":"ELECTRONIC",1:"MANUAL")
  ..S BARTR("DATA SRC")=$P(BAR("TXT"),U,5)
- ..;end new code REQ10
  ..I BARY("SORT")="C" D
- ...;I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
  ...W !?10,"Clinic Type..........: "
- ...;I $P(BAR("TXT"),U,5)=99999 W "NO CLINIC" Q  ;bar*1.8*20 REQ10
- ...I $P(BAR("TXT"),U,6)=99999 W "NO CLINIC" Q  ;bar*1.8*20 REQ10
- ...;W $P(^DIC(40.7,$P(BAR("TXT"),U,5),0),U),!  ;bar*1.8*20 REQ10
- ...W $P(^DIC(40.7,$P(BAR("TXT"),U,6),0),U),!  ;bar*1.8*20 REQ10
- ..;E  D   IHS/SD/AR BAR*1.8*19 06.14.2010
+ ...I $P(BAR("TXT"),U,6)=99999 W "NO CLINIC" Q
+ ...W $P(^DIC(40.7,$P(BAR("TXT"),U,6),0),U),!
  ..I BARY("SORT")="V" D
- ...;I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
  ...W !?10,"Visit Type...........: "
- ...;I $P(BAR("TXT"),U,5)=99999 W "NO VISIT TYPE" Q  ;bar*1.8*20 REQ10
- ...I $P(BAR("TXT"),U,6)=99999 W "NO VISIT TYPE" Q  ;bar*1.8*20 REQ10
- ...;W $P($G(^ABMDVTYP($P(BAR("TXT"),U,5),0)),U),!  ;bar*1.8*20 REQ10
- ...W $P($G(^ABMDVTYP($P(BAR("TXT"),U,6),0)),U),!  ;bar*1.8*20 REQ10
- ..;
- .;S BAR("SORT")=$P(BAR("TXT"),U,5)  ;bar*1.8*20 REQ10
- .S BAR("SORT")=$P(BAR("TXT"),U,6)  ;bar*1.8*20 REQ10
+ ...I $P(BAR("TXT"),U,6)=99999 W "NO VISIT TYPE" Q
+ ...W $P($G(^ABMDVTYP($P(BAR("TXT"),U,6),0)),U),!
+ .S BAR("SORT")=$P(BAR("TXT"),U,6)
  .I 'SUMMARY W !,$E(BAR(1),1,15)  ; A/R Bill ;BAR*1.8*1 item 1 page 12
  .I 'SUMMARY W ?15,BAR(10)   ;TRANS DATE
  .I SUMMARY S OFFSET=10
@@ -206,32 +176,32 @@ DETAIL ; EP
  ..Q:BARBILL=BARBILLO
  ..W ?41,$J($FN(BAR(6),",",2),10)       ; Bill Amt
  .I 'SUMMARY W ?55,$J($FN(BAR(3)+BAR(4)+BAR(5)+BAR(7),",",2),10)  ;GET ALL ADJS
- .I 'SUMMARY W $P(BAR("TXT"),U,5)  ;bar*1.8*20 REQ10
+ .I 'SUMMARY W $P(BAR("TXT"),U,5)
  .I 'SUMMARY,'$D(BARY("TRANS TYPE",40)) W ?67,$E($$GET1^DIQ(90052.02,BAR(12)_",",.01),1,12)   ;ADJ TYPE
  .;ADD THE SUBTOTALS ONLY IFA NEW BILL. AND DON'T ADD IF THE BILL AMT FOR A BILL HAS ALREADY BEEN COUNTED
  .I BARBILL'=BARBILLO D
- ..S VLOCBTOT=$G(VLOCBTOT)+BAR(6)
- ..S TRANBTOT=$G(TRANBTOT)+BAR(6)
- ..S ADJTBTOT=$G(ADJTBTOT)+BAR(6)
- ..S SORTBTOT=$G(SORTBTOT)+BAR(6)
- ..S ARBTOT=$G(ARBTOT)+BAR(6)
- ..S DSRCBTOT=$G(DSRCBTOT)+BAR(6)  ;bar*1.8*20 REQ10
- ..S BARBILLO=BARBILL
- .S VLOCTTOT=$G(VLOCTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)  ;WAS ADDING BAR(2)
- .S TRANTTOT=$G(TRANTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
- .S ADJTTTOT=$G(ADJTTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
- .S SORTTTOT=$G(SORTTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
- .S ARTTOT=$G(ARTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
- .S DSRCTTOT=$G(DSRCTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)  ;bar*1.8*20 REQ10
- .S GRANBILL=GRANBILL+BAR(6)
- .S GRANTRAN=GRANTRAN+BAR(3)+BAR(4)+BAR(5)+BAR(7)
- ;IHS/SD/AR 1.8*19 05/04/2010
- ;Q:$G(BAR("F1"))
+ .. S VLOCBTOT=$G(VLOCBTOT)+BAR(6)
+ .. S TRANBTOT=$G(TRANBTOT)+BAR(6)
+ .. S ADJTBTOT=$G(ADJTBTOT)+BAR(6)
+ .. S SORTBTOT=$G(SORTBTOT)+BAR(6)
+ .. S ARBTOT=$G(ARBTOT)+BAR(6)
+ .. S DSRCBTOT=$G(DSRCBTOT)+BAR(6)
+ .. S BARBILLO=BARBILL
+ .. S GRANBILL=GRANBILL+BAR(6) ;p.ott
+ .. S GRANTRAN=GRANTRAN+BAR(3)+BAR(4)+BAR(5)+BAR(7) ;p.ott
+ . S VLOCTTOT=$G(VLOCTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)  ;WAS ADDING BAR(2)
+ . S TRANTTOT=$G(TRANTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
+ . S ADJTTTOT=$G(ADJTTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
+ . S SORTTTOT=$G(SORTTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
+ . S ARTTOT=$G(ARTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
+ . S DSRCTTOT=$G(DSRCTTOT)+BAR(3)+BAR(4)+BAR(5)+BAR(7)
+ .;S GRANBILL=GRANBILL+BAR(6) ;p.ott taken from here UP
+ .;S GRANTRAN=GRANTRAN+BAR(3)+BAR(4)+BAR(5)+BAR(7)
  Q:$G(BAR("F1"))!BARTEXT
  I SUMMARY D GETCOUNT
  W !,BARDASH
- D SUBDSRC  ;bar*1.8*20 REQ10
- D SUBSORT
+ D SUBSORT ;2 LINES SWAPPED
+ D SUBDSRC ;
  W ! D SUBTRAN
  W ! D SUBLOC
  D TOT
@@ -256,7 +226,6 @@ SUBHD ;
  W !!,"A/R Entry Clerk: ",$P(^VA(200,$P(BAR("TXT"),U),0),U)
  Q
 SUBTRAN ;EP - TOTALS BY TRANSACTION TYPE
- ;I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
  I $D(BARY("TRANS TYPE",40)) W !?10,"Totals by Transaction type:"
  E  W !?10,"Totals by Adjustment Category:"
  W ?42,$J($FN(TRANBTOT,",",2),10)
@@ -265,14 +234,12 @@ SUBTRAN ;EP - TOTALS BY TRANSACTION TYPE
  Q
 SUBLOC ;
  ; Totals by Visit location.
- ;I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
  W !,"Location Tot:"
  W ?42,$J($FN(VLOCBTOT,",",2),10)
  W ?55,$J($FN(VLOCTTOT,",",2),10)
  S (VLOCBTOT,VLOCTTOT)=0
  Q
 SUBADJ ;
- ;I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
  ; Totals by adjustment category
  W !,"Adjustment Category Tot:"
  W ?41,$J($FN(ADJTBTOT,",",2),10)
@@ -284,10 +251,6 @@ SUB2 ;
  Q
  Q:'BAR("BTOT2")
  W !,"   Batch Tot:"
- ;W ?15,$J($FN(BAR("PATOT2"),",",2),10)
- ;W ?26,$J($FN(BAR("PCTOT2"),",",2),10)
- ;W ?37,$J($FN(BAR("RTOT2"),",",2),10)
- ;W ?48,$J($FN(BAR("PTOT2"),",",2),10)
  W ?41,$J($FN(BAR("BTOT2"),",",2),10)
  W ?55,$J($FN(BAR("ATOT2"),",",2),10)
  S (BAR("PATOT2"),BAR("PCTOT2"),BAR("RTOT2"),BAR("PTOT2"),BAR("BTOT2"),BAR("ATOT2"))=0
@@ -297,31 +260,26 @@ SUB3 ;
  ; Totals by Collection Batch Item
  Q:'BAR("BTOT3")
  W !,"    Item Tot:"
- ;W ?15,$J($FN(BAR("PATOT3"),",",2),10)
- ;W ?26,$J($FN(BAR("PCTOT3"),",",2),10)
- ;W ?37,$J($FN(BAR("RTOT3"),",",2),10)
- ;W ?48,$J($FN(BAR("PTOT3"),",",2),10)
  W ?41,$J($FN(BAR("BTOT3"),",",2),10)
  W ?55,$J($FN(BAR("ATOT3"),",",2),10)
  S (BAR("PATOT3"),BAR("PCTOT3"),BAR("RTOT3"),BAR("PTOT3"),BAR("BTOT3"),BAR("ATOT3"))=0
  Q
- ;start new code bar*1.8*20 REQ10
+ ;
 SUBDSRC ;
  ; Totals by Data Source
  W !?25,"Data Source Tot:"
- ;I SUMMARY W !?5,"Subtotal:",?33,$J(DSRCTOT,5,0)
  I SUMMARY W !?5,"Subtotal:",?33,$J(DSRCTTOT,5,0)  ;IHS/SD/TPF 7/27/2011 BAR*1.8*21 BUG FOUND BY ADRIAN TYPO
  W ?42,$J($FN(DSRCBTOT,",",2),10)
  W ?55,$J($FN(DSRCTTOT,",",2),10)
  S (DSRCBTOT,DSRCTTOT)=0
  Q
- ;end new code REQ10
+ ;
 SUBSORT ;
  ; Totals by Sort type
- ;I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
+ ;
  I BARY("SORT")="C",'SUMMARY W !?25,"Clinic Tot:"
  I BARY("SORT")="V",'SUMMARY  W !?25,"Visit Type Tot:"
- ;IHS/SD/AR BAR*1.8*19
+ ;
  I BARY("SORT")'="N" D
  .I SUMMARY W !?5,"Subtotal:",?33,$J(SUBTOT,5,0)
  .W ?42,$J($FN(SORTBTOT,",",2),10)
@@ -339,23 +297,19 @@ SUB5 ;
  Q
 TOT ;
  ; Report (a/r clerk) totals
- ;I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))  D SUBHD
  W !!,BAREQUAL
  I 'SUMMARY W !,"REPORT TOTAL"
  E  W !,"Total:"
  I SUMMARY W ?33,$J($G(TOTBILLS),5,0)
  W ?42,$J($FN(GRANBILL,",",2),10)
  W ?55,$J($FN(GRANTRAN,",",2),10)
- ;IHS/SD/AR 1.8*19
  S BAR("ST")=1
  Q
 GETCOUNT ;
  N BILL,INSURER
  S SUBTOT=0
- ;S SUBS=$P(BAR("TXTO"),U,1,6)  ;bar*1.8*20 REQ10
- S SUBS=$P(BAR("TXTO"),U,1,7)  ;bar*1.8*20 REQ10
- ;S $P(SUBS,U,6)=BAR("SORT")  ;bar*1.8*20 REQ10
- S $P(SUBS,U,7)=BAR("SORT")  ;bar*1.8*20 REQ10
+ S SUBS=$P(BAR("TXTO"),U,1,7)
+ S $P(SUBS,U,7)=BAR("SORT")
  S INSURER=""
  F  S INSURER=$O(^TMP($J,"BAR-TSRS-INS",SUBS,INSURER)) Q:INSURER=""  D
  .W !?5,$E($$GET1^DIQ(90050.02,INSURER_",",.01,"E"),1,25)
@@ -365,7 +319,6 @@ GETCOUNT ;
  .S TOTBILLS=TOTBILLS+CNT
  .S SUBTOT=SUBTOT+CNT
  Q
- ;IHS/SD/AR RQMNT PATCH 18
 SUBTYPE ;
  W !,BARDASH
  W !,?20,"Adjustment Type Tot:"

@@ -1,9 +1,10 @@
 PSOHLNE1 ;BIR/RTR-Parsing out segments from OERR ;01/20/95
- ;;7.0;OUTPATIENT PHARMACY;**1,9,46,71,98,111,117,131,157**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**1,9,46,71,98,111,117,131,157,181,143,235,239,225**;DEC 1997;Build 29
  ;External reference to EN^ORERR supported by DBIA 2187
  ;External reference to PS(50.607 supported by DBIA 2221
  ;External reference to OR(100 supported by DBIA 2219
  ;External reference to PSDRUG( supported by DBIA 221
+ ;External reference VADPT supported by DBIA 10061
  ;
 EN ;ORC segment
  N Q1,Q2,Q3,Q4,Q5,Q6,Q7,PSOPOSSD
@@ -31,7 +32,7 @@ EN ;ORC segment
  ..I PSOPOSSD S $P(QTARRAY(JJJ),"^",5)=$P(Q1I(JJJ),"&",4)
  ..I PSOPOSSD S PSOUNN=$P(Q1I(JJJ),"&",2) I PSOUNN'="" S PSOUNN=$O(^PS(50.607,"B",PSOUNN,0)) S $P(QTARRAY(JJJ),"^",9)=$G(PSOUNN)
  ..K PSOUNN
- ;For multiplte ORC subscripts
+ ;For multiple ORC subscripts
  S (POVAR,POVAR1)="",(NNCK,NNN,NNNN)=0,PSOIII=1,MSG(ZZ,0)=$E(MSG(ZZ),5,$L(MSG(ZZ)))
  S AAA="" F  S AAA=$O(MSG(ZZ,AAA)) Q:AAA=""  S NNN=0 F OOO=1:1:$L(MSG(ZZ,AAA)) S NNN=NNN+1 D  D:$G(POVAR1)="~"&(NNNN=6) PARSE D:$G(POVAR1)="|" PARSE
  .I $E(MSG(ZZ,AAA),OOO)="|" S NNNN=NNNN+1
@@ -76,8 +77,9 @@ SET S (POVAR,POLIM)="" Q
  ;
 EXP ;
  ;Q:'$G(OR("PLACE"))
- Q:'$G(PSOFILMN)
+ Q:'$G(PSOFILNM)
  S PSOMSORR=1
+ N PSOSSMES S PSOSSMES="CPRSUP"
  I $G(PSOFILNM),$G(PSOFILNM)["S" S LL=+$G(PSOFILNM) I $D(^PS(52.41,LL,0)),$P($G(^(0)),"^",3)'="RF" G EXPEN
  S LL=$G(PSOFILNM) I 'LL!('$D(^PSRX(+$G(LL),0))) S COMM="Order was not located by Pharmacy" D EN^ORERR(COMM,.MSG) D  G EXPQ
  .F EER=0:0 S EER=$O(MSG(EER)) Q:'EER  S:$P(MSG(EER),"|")="PV1" PSERRPV1=MSG(EER) S:$P(MSG(EER),"|")="PID" PSERRPID=MSG(EER) S:$P(MSG(EER),"|")="ORC"&($G(PSERRORC)="") PSERRORC=MSG(EER)
@@ -85,11 +87,13 @@ EXP ;
  .D SEND^PSOHLSN
  Q:'$D(^PSRX(LL,0))
  I +$P($G(^PSRX(LL,2)),"^",6)<DT D
- .I +$P($G(^PSRX(LL,"STA")),"^")<12!($P($G(^("STA")),"^")=16) S $P(^PSRX(LL,"STA"),"^")=11 D ECAN^PSOUTL(LL)
+ .;Reset PSOSSMES if status changes, so HDR gets updated in PSOHLSN1
+ .I +$P($G(^PSRX(LL,"STA")),"^")<12!($P($G(^("STA")),"^")=16) S $P(^PSRX(LL,"STA"),"^")=11 D ECAN^PSOUTL(LL) S PSOSSMES="CPRSVDEF"
  S GG=+$P($G(^PSRX(LL,"STA")),"^")
  ;S AA=$S(GG=3:"OH",GG=12:"OD",GG=13:"OC",GG=14:"OD",GG=15:"OD",GG=16:"OH",1:"SC"),AAA=$S(GG=0:"CM",GG=1:"IP",GG=4:"IP",GG=5:"ZS",GG=11:"ZE",1:"")
  S AA="SC",AAA=$S(GG=0:"CM",GG=2:"CM",GG=1:"IP",GG=4:"IP",GG=5:"ZS",GG=3:"HD",GG=16:"HD",GG=11:"ZE",1:"DC")
  D EN^PSOHLSN1(LL,AA,AAA,"")
+ K PSOSSMES
 EXPQ K LL,GG,AA,AAA,PSOMSORR Q
 EXPEN ;SS on Pending orders
  S AA=$P($G(^PS(52.41,LL,0)),"^",3)
@@ -97,7 +101,7 @@ EXPEN ;SS on Pending orders
  D EN^PSOHLSN(OR("PLACE"),"SC",AAA)
  G EXPQ
  ;
-OID ;Chech for 1 to 1 match from Dispense Drug to Orderable Item
+OID ;Check for 1 to 1 match from Dispense Drug to Orderable Item
  N PSOCDD,PSOCDDI,PSOCDDIZ
  Q:'$G(PSORDITE)
  K PSOCDDIZ
@@ -106,9 +110,27 @@ OID ;Chech for 1 to 1 match from Dispense Drug to Orderable Item
  I PSOCDDI'=1 Q
  S PSOQWX=$G(PSOCDDIZ)
  Q
-CP ;ZSC segment
+CP ;ZSC segment (replaced by ZCL segment)
  S SERV=$S($P(PSOSEG,"|")=1:"SC",$P(PSOSEG,"|")=0:"NSC",1:$P(PSOSEG,"|"))
- S PSOIBY=$P(PSOSEG,"|",2)_"^"_$P(PSOSEG,"|",3)_"^"_$P(PSOSEG,"|",4)_"^"_$P(PSOSEG,"|",5)_"^"_$P(PSOSEG,"|",6)_"^"_$P(PSOSEG,"|",7)
+ S PSOIBY=$P(PSOSEG,"|",2)_"^"_$P(PSOSEG,"|",3)_"^"_$P(PSOSEG,"|",4)_"^"_$P(PSOSEG,"|",5)_"^"_$P(PSOSEG,"|",6)_"^"_$P(PSOSEG,"|",7)_"^"_$P(PSOSEG,"|",8)
+ Q
+ ;
+ZCL ;ZCL segment - SC/EI related to ICDs
+ N SEQ,SEQ2,SEQ3 S SEQ3=$P(PSOSEG,"|",2),SEQ2=$P(PSOSEG,"|",1)
+ S:'$D(PSOICD(SEQ2)) PSOICD(SEQ2)=""
+ S $P(PSOICD(SEQ2),"^",(SEQ3+1))=$P(PSOSEG,"|",3)  ;set sc/ei for ICD node
+ D SCP^PSORN52D K PSOSCA
+ S:'$D(PSOIBY) PSOIBY=""
+ I PSOSCP<50 D  ;set IBQ node variables if <50% SC
+ . Q:$P(PSOIBY,U,$S(SEQ3=1:2,SEQ3=2:3,SEQ3=4:4,SEQ3=5:1,SEQ3=6:5,SEQ3=7:6,SEQ3=8:7,1:""))>0
+ . S:SEQ3=1 $P(PSOIBY,U,2)=$P(PSOSEG,"|",3) ;AO
+ . S:SEQ3=2 $P(PSOIBY,U,3)=$P(PSOSEG,"|",3) ;IR
+ . S:SEQ3=3 SERV=$S($P(PSOSEG,"|",3)=1:"SC",$P(PSOSEG,"|",3)=0:"NSC",1:$P(PSOSEG,"|",3))           ;SC
+ . S:SEQ3=4 $P(PSOIBY,U,4)=$P(PSOSEG,"|",3) ;EC
+ . S:SEQ3=5 $P(PSOIBY,U,1)=$P(PSOSEG,"|",3) ;MST
+ . S:SEQ3=6 $P(PSOIBY,U,5)=$P(PSOSEG,"|",3) ;HNC
+ . S:SEQ3=7 $P(PSOIBY,U,6)=$P(PSOSEG,"|",3) ;CV
+ . S:SEQ3=8 $P(PSOIBY,U,7)=$P(PSOSEG,"|",3) ;SHAD
  Q
 MISX ;Mismatch patient on CPRS New Order
  S RCOMM="Patient mismatch on New Order from CPRS." D EN^ORERR(RCOMM,.MSG) S NWFLAG=1 D RERROR^PSOHLSN D KL^PSOHLSIH

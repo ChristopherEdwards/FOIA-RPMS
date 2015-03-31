@@ -1,5 +1,5 @@
 LEXDFL ; ISL Default Filter                       ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
  ;
  ; Entry:  D EN^LEXDFL             LEXAP is unknown
  ;

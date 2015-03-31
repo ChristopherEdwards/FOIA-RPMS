@@ -1,5 +1,5 @@
 ABMDVCK ; IHS/ASDST/DMJ - PCC Visit Edits ;  
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
  ;Original;TMD;08/19/96 4:49 PM
  ;Note special input variable ABMDFN
  ;It is optional
@@ -74,9 +74,10 @@ START ;START HERE
  ..S P0=$G(^AUPNVSIT(P,0))
  ..Q:"HOS"'[$P(P0,U,7)
  ..S ^AUPNVSIT("ABILL",+P0,P)=""
- I $D(ABMDFN) D SITE Q                ;For real time billing
+ I $D(ABMDFN) D SITE Q    ;For real time billing
  ;
 LOOP ;LOOP THROUGH SITES
+ ;start old code abm*2.6*11 HEAT86425
  ;Only loop through sites that are in the parameters file
  S DUZ(2)=0
  F  S DUZ(2)=$O(^ABMDPARM(DUZ(2))) Q:+DUZ(2)=0  D  Q:$G(ZTSTOP)
@@ -87,6 +88,38 @@ LOOP ;LOOP THROUGH SITES
  .S DA=1
  .S DR=".21////"_DT
  .D ^ABMDDIE
+ ;end old code start new code HEAT86425
+ ;K ABMPSLST
+ ;S DUZ(2)=0
+ ;F  S DUZ(2)=$O(^BAR(90052.05,DUZ(2))) Q:'DUZ(2)  D
+ ;.S ABMLDFN=0
+ ;.F  S ABMLDFN=$O(^BAR(90052.05,DUZ(2),ABMLDFN)) Q:'ABMLDFN  D
+ ;..S ABMPSLST(DUZ(2),ABMLDFN)=$S(DUZ(2)=ABMLDFN:$P($G(^ABMDPARM(DUZ(2),1,4)),U,9),1:"")
+ ;..I ABMLDFN=DUZ(2) S ABMPS(DUZ(2))=""
+ ;;
+ ;S ABMDUZ2=0
+ ;F  S ABMDUZ2=$O(ABMPS(ABMDUZ2)) Q:'ABMDUZ2  D
+ ;.S ABMARPS=$G(ABMPSLST(ABMDUZ2,ABMDUZ2))
+ ;.I ABMARPS D  Q
+ ;..S DUZ(2)=ABMDUZ2
+ ;..Q:$D(^ABMDPARM(DUZ(2),1))'=10  ;not setup in 3P Parameters
+ ;..D SITE
+ ;..D ^ABMDACK
+ ;..S DIE="^ABMDPARM(DUZ(2),"
+ ;..S DA=1
+ ;..S DR=".21////"_DT
+ ;..D ^ABMDDIE
+ ;.I 'ABMARPS D  Q
+ ;..S DUZ(2)=0
+ ;..F  S DUZ(2)=$O(ABMPSLST(ABMDUZ2,DUZ(2))) Q:'DUZ(2)  D
+ ;...Q:$D(^ABMDPARM(DUZ(2),1))'=10  ;not setup in 3P Parameters
+ ;...D SITE
+ ;...D ^ABMDACK
+ ;...S DIE="^ABMDPARM(DUZ(2),"
+ ;...S DA=1
+ ;...S DR=".21////"_DT
+ ;...D ^ABMDDIE
+ ;end new code HEAT86425
  K ^ABMDTMP("VCK")
  K ABMP,ABMACTVI,ABMCOVD,ABMD,ABMPCAT,ABMPINS,ABMSRC,ABMV,DIE,DA,DR
  K SERVCAT,X,X1,X2,Y0
@@ -104,7 +137,7 @@ AP ;AUTO PURGE CLAIMS
  S ABM("DIF")=X
  ;X-ref AC on date last edited
  I '$D(ABMDFN) D
- .F ABM("C")=0:0 S ABM("C")=$O(^ABMDCLM(DUZ(2),"AC",ABM("C"))) Q:'ABM("C")  Q:ABM("C")>ABM("DIF")  D
+ .;F ABM("C")=0:0 S ABM("C")=$O(^ABMDCLM(DUZ(2),"AC",ABM("C"))) Q:'ABM("C")  Q:ABM("C")>ABM("DIF")  D
  ..S ABMP("CDFN")=0
  ..F  S ABMP("CDFN")=$O(^ABMDCLM(DUZ(2),"AC",ABM("C"),ABMP("CDFN"))) Q:'ABMP("CDFN")  D
  ...Q:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),"^",4)="U"
@@ -203,6 +236,7 @@ V2 ;CHECK VISIT (NEEDS ABMVDFN DEFINED)
  I "ID"[SERVCAT,ABMPARNT="" D VCHX^ABMDVCK0(ABMVDFN) Q
  I "ID"[SERVCAT S ABMP("FLAG1")=1 Q
  I "H"=SERVCAT D  Q
+ .I $G(ABMHIEN)="" D PCFL(61) Q  ;abm*2.6*11 HEAT89149
  .I $G(ABMHIEN)'="",($P($G(^AUPNVINP(ABMHIEN,0)),U,15)'="") D PCFL(61) Q  ;inpt coding complete?
  .N ABMF,ABMACTVI
  .I $D(^TMP($J,"PROC",ABMVDFN)) D  Q:ABMF

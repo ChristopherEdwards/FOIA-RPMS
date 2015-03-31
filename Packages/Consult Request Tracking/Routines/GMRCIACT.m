@@ -1,5 +1,6 @@
 GMRCIACT ;SLC/JFR - PROCESS ACTIONS ON IFC ;02/10/02 22:13
- ;;3.0;CONSULT/REQUEST TRACKING;**22**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**22,47,58**;DEC 27, 1997;Build 4
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  Q  ;don't start here!
 NW(ARRAY) ;process and file new order
  ;Input:
@@ -24,7 +25,8 @@ NW(ARRAY) ;process and file new order
  . S GMRCFDA(.02)=+PAT
  I '$G(GMRCFDA(.02)) D  Q  ;reject message, patient is unknown
  . N STA S STA=$P($P(^TMP("GMRCIN",$J,"ORC"),"|",2),U,2)
- . D PTERRMSG^GMRCIERR(^TMP("GMRCIN",$J,"PID"),STA)
+ . N OBR S OBR=^TMP("GMRCIN",$J,"OBR")
+ . D PTERRMSG^GMRCIERR(^TMP("GMRCIN",$J,"PID"),STA,,OBR)
  . D APPACK^GMRCIAC2(0,"AR",201) ; send app. ack w/error
  . K ^TMP("GMRCIN",$J) Q 
  D  ;get ordered item and service
@@ -177,7 +179,7 @@ OTHER(GMRCAR) ;process most IFC actions
  .... S GMRCTX="Comment Added to remote"
  ... N ACT S ACT=1
  ... F  S ACT=$O(^GMR(123,GMRCDA,40,ACT)) Q:'ACT!($D(GMRCTX))  D
- .... I $P(^GMR(123,GMRCDA,40,ACT,0),U,2)=25,$O(^(40,ACT)) D
+ .... I $P(^GMR(123,GMRCDA,40,ACT,0),U,2)=25,$O(^GMR(123,GMRCDA,40,ACT)) D
  ..... S GMRCTX="Comment Added to remote"
  .. I '$D(GMRCTX),GMRCROL="F" Q  ;sch & rec on filler part of FWD 2 IFC
  .. I GMRCLAT=8 S GMRCTX="Scheduled remote"

@@ -1,5 +1,6 @@
-FHORT5 ; HISC/REL/NCA - Tubefeeding Reports ;3/16/95  14:27
- ;;5.0;Dietetics;**39**;Oct 11, 1995
+FHORT5 ; HISC/REL/NCA/RVD - Tubefeeding Reports ;3/1/04  13:31
+ ;;5.5;DIETETICS;;Jan 28, 2005
+ ;
 ALL ; Print All Reports
  S FHOPT=1 G A0
 PREP ; Print Preparation Report Only
@@ -10,10 +11,10 @@ LAB ; Print Tubefeed Labels
  S FHOPT=4 G A0
 PULL ; Product Pick List
  S FHOPT=5 G A0
-A0 R !!,"Select C=COMMUNICATION OFFICE or W=WARD: ",FHXX:DTIME G:'$T!("^"[FHXX) KIL I "cw"[FHXX S X=FHXX D TR^FH S FHXX=X
- I FHXX'?1U!("CW"'[FHXX) W *7,"Enter C or W" G A0
+A0 R !!,"Select C=COMMUNICATION OFFICE or L=LOCATION: ",FHXX:DTIME G:'$T!("^"[FHXX) KIL I "cl"[FHXX S X=FHXX D TR^FH S FHXX=X
+ I FHXX'?1U!("CL"'[FHXX) W *7,"Enter C or L" G A0
  I FHXX="C" G A2
-A1 R !!,"Select WARD (or ALL): ",X:DTIME G:'$T!("^"[X) KIL D:X="all" TR^FH I X="ALL" S FHP=0,FHXX="W",WRD=0
+A1 R !!,"Select LOCATION (or ALL): ",X:DTIME G:'$T!("^"[X) KIL D:X="all" TR^FH I X="ALL" S FHP=0,FHXX="L",WRD=0
  E  K DIC S DIC="^FH(119.6,",DIC(0)="EQM" D ^DIC G:Y<1 A1 S FHP=+Y,WRD=$P(Y,"^",2)
  G A3
 A2 S FHP=$O(^FH(119.73,0)) I FHP'<1,$O(^FH(119.73,FHP))<1 G A3

@@ -1,5 +1,5 @@
-SROFILE ;B'HAM ISC/MAM - EDIT SITE CONFIGURABLE FILES ; [ 11/02/99  6:56 AM ]
- ;;3.0; Surgery ;**48,41,88**;24 Jun 93
+SROFILE ;B'HAM ISC/MAM - EDIT SITE CONFIGURABLE FILES ; [ 10/29/03  9:56 AM ]
+ ;;3.0; Surgery ;**48,41,88,100**;24 Jun 93
 START S SRO(1)="Surgery Transportation Devices^131.01",SRO(2)="Prosthesis^131.9",SRO(3)="Surgery Position^132",SRO(4)="Restraints and Positioning Aids^132.05",SRO(5)="Surgical Delay^132.4"
  S SRO(6)="Monitors^133.4",SRO(7)="Irrigations^133.6",SRO(8)="Surgery Replacement Fluids^133.7",SRO(9)="Surgery Cancellation Reason^135",SRO(10)="Skin Prep Agents^135.1"
  S SRO(11)="Skin Integrity^135.2",SRO(12)="Patient Mood^135.3",SRO(13)="Patient Consciousness^135.4",SRO(14)="Local Surgical Specialty^137.45",SRO(15)="Electroground Positions^138",SRO(16)="Surgery Disposition^131.6"
@@ -7,7 +7,7 @@ START S SRO(1)="Surgery Transportation Devices^131.01",SRO(2)="Prosthesis^131.9"
 DISPLAY W @IOF,!,SRLINE,!,?20,"Update Site Configurable Surgery Files",!,SRLINE
  W !,"1.  Surgery Transportation Devices",!,"2.  Prosthesis",!,"3.  Surgery Positions",!,"4.  Restraints and Positional Aids"
  W !,"5.  Surgical Delay",!,"6.  Monitors",!,"7.  Irrigations",!,"8.  Surgery Replacement Fluids",!,"9.  Surgery Cancellation Reasons",!,"10. Skin Prep Agents",!,"11. Skin Integrity",!,"12. Patient Mood"
- W !,"13. Patient Consciousness",!,"14. Local Surgical Specialty",!,"15. Electroground Positions",!,"16. Surgery Dispostions",!,SRLINE
+ W !,"13. Patient Consciousness",!,"14. Local Surgical Specialty",!,"15. Electroground Positions",!,"16. Surgery Dispositions",!,SRLINE
 ASK W !!,"Update Information for which File ?  " R SRFILE:DTIME I '$T!("^"[SRFILE) S SRSOUT=1 G END
  I SRFILE["?" D HELP G DISPLAY
  I '$D(SRO(SRFILE)) W !!,"Enter the number corresponding to the file you want to edit.",!!,"Press RETURN to continue  " R X:DTIME G DISPLAY

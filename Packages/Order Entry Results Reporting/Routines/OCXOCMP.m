@@ -1,5 +1,5 @@
 OCXOCMP ;SLC/RJS,CLA - ORDER CHECK CODE COMPILER (Main Entry point - All Rules) ;3/21/01  08:50
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,105**;Dec 17,1997
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,105,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
 EN ;
@@ -139,7 +139,6 @@ RUN ;
  ;
  S OCX1=0 F OCX2=0:1 S OCX1=$O(^TMP("OCXCMP",$J,"D CODE",OCX1)) Q:'OCX1
  D MESG("  "_$J(OCX2,5)_" OCXOZ* Routine"_$S(OCX2=1:"",1:"s"))
- D MESG("  "_OCXLCNT_" Lines of code generated.")
  ;
  D:($G(OCXAUTO)<2) STATUS^OCXOPOST(20,20)
  ;

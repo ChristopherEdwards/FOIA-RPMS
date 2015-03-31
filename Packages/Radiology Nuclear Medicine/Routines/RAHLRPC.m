@@ -1,5 +1,5 @@
-RAHLRPC ;HIRMFO/BNT-Rad/NM HL7 Protocol calls ;05/21/99   14:50
- ;;5.0;Radiology/Nuclear Medicine;**12,25,54,71,82,81,84**;Mar 16, 1998;Build 13
+RAHLRPC ;HIRMFO/BNT-Rad/NM HL7 Protocol calls ; 20 Apr 2011  4:41 PM
+ ;;5.0;Radiology/Nuclear Medicine;**12,25,54,71,82,81,84,1003**;Nov 01, 2010;Build 3
  ; 03/16/2006 *71 Rem Call 124379 allow exam updates to create HL7 msg
  ;
  ;Integration Agreements
@@ -9,6 +9,9 @@ RAHLRPC ;HIRMFO/BNT-Rad/NM HL7 Protocol calls ;05/21/99   14:50
  ;read w/FileMan HL7 APPLICATION PARAMETER(10136)
  ; 
 REG ; register exam
+ ;IHS/BJI/DAY - Patch 1003 - Add call to vendor's HL7 routine
+ K RAHLRPCZ S X="RAHLRPCZ" X ^%ZOSF("TEST") I $T D REG^RAHLRPCZ I $G(RAHLRPCZ)=1 K RAHLRPCZ Q
+ ;End Patch
  N X,RA101Z,RAEID
  S RA101Z="RA REF" ; get all protocols beginning RA REG
  F  S RA101Z=$O(^ORD(101,"B",RA101Z)) Q:RA101Z'["RA REG"  D
@@ -16,6 +19,9 @@ REG ; register exam
  .I RAEID,'$L($P(^ORD(101,RAEID,0),"^",3)) D EN^RAHLR
  Q
 CANCEL ; cancel exam
+ ;IHS/BJI/DAY - Patch 1003 - Add call to vendor's HL7 routine
+ K RAHLRPCZ S X="RAHLRPCZ" X ^%ZOSF("TEST") I $T D CANCEL^RAHLRPCZ I $G(RAHLRPCZ)=1 K RAHLRPCZ Q
+ ;End Patch
  N X,RA101Z,RAEID
  S RA101Z="RA CANCEK" ; get all protocols beginning RA CANCEL
  F  S RA101Z=$O(^ORD(101,"B",RA101Z)) Q:RA101Z'["RA CANCEL"  D
@@ -24,6 +30,9 @@ CANCEL ; cancel exam
  Q
  ;
 RPT ; report verified or released/not verified
+ ;IHS/BJI/DAY - Patch 1003 - Add call to vendor's HL7 routine
+ K RAHLRPCZ S X="RAHLRPCZ" X ^%ZOSF("TEST") I $T D RPT^RAHLRPCZ I $G(RAHLRPCZ)=1 K RAHLRPCZ Q
+ ;End Patch
  N X,RA101Z,RAEID,RASSS ; RASSS subcriber array to be passed to HLL for GENERATE^HLMA
  ;S X="^%ET",@^%ZOSF("TRAP")
  S RA101Z="RA RPS" ; get all protocols beginning RA RPT
@@ -35,6 +44,9 @@ RPT ; report verified or released/not verified
  Q
  ;
 EXM ;Examined case; called from RAUTL1 and RASTED after a case has been edited.
+ ;IHS/BJI/DAY - Patch 1003 - Add call to vendor's HL7 routine
+ K RAHLRPCZ S X="RAHLRPCZ" X ^%ZOSF("TEST") I $T D EXM^RAHLRPCZ I $G(RAHLRPCZ)=1 K RAHLRPCZ Q
+ ;End Patch
  ;
  ;Called from RAUTL1 and RASTED after a case's status is upgraded
  ; and case's 30th piece is null

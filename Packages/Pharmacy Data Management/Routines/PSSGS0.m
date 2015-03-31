@@ -1,5 +1,5 @@
 PSSGS0 ;BIR/CML3-SCHEDULE PROCESSOR ;06/01/98
- ;;1.0;PHARMACY DATA MANAGEMENT;**12,27,38,44,56,69**;9/30/97
+ ;;1.0;PHARMACY DATA MANAGEMENT;**12,27,38,44,56,69,59**;9/30/97
  ;Reference to $$TRIM^XLFSTR supported by DBIA #10104
  ;Reference to ^PS(53.1 supported by DBIA #2140
  ;
@@ -18,27 +18,22 @@ EN5 ;
 EN(X,PSSLSTPK) ; validate
  ;I X[""""!($A(X)=45)!(X?.E1C.E)!($L(X," ")>2)!($L(X)>70)!($L(X)<1)!(X["P RN")!(X["PR N")!($E(X,1)=" ") K X Q
  I $G(PSSLSTPK)="O"!(PSSLSTPK="X") Q:$G(X)=""  G ENOP
- I X[""""!($A(X)=45)!(X?.E1C.E)!($L(X," ")>3)!($L(X)>70)!($L(X)<1)!(X["P RN")!(X["PR N")!($E(X,1)=" ") K X Q
+ I X[""""!($A(X)=45)!(X?.E1C.E)!($L(X," ")>3)!($L(X)>70)!($L(X)<1) K X Q
  S X=$$TRIM^XLFSTR(X,"R"," ")
  I X?.E1L.E S X=$$ENLU^PSSGMI(X)
- I X["Q0" K X Q
  ;
 ENOS ; order set entry
- S (PSGS0XT,PSGS0Y,XT,Y)="" I X["PRN"!(X="ON CALL")!(X="ONCALL")!(X="ON-CALL") G Q
+ S (PSGS0XT,PSGS0Y,XT,Y)=""
+ I X="OTHER" G Q
+ I X["PRN",$$PRNOK(X) G Q
  S X0=X I X,X'["X",(X?2.4N1"-".E!(X?2.4N)) D ENCHK S:$D(X) Y=X G Q
  I $S($D(^PS(51.1,"AC","PSJ",X)):1,1:$E($O(^(X)),1,$L(X))=X) D DIC I XT]"" G Q
  I X["@" D DW S:$D(X) Y=$P(X,"@",2) G Q
- I Y'>0,$S(X="NOW":1,X="ONCE":1,X="STAT":1,X="ONE TIME":1,X="ONETIME":1,X="1 TIME":1,X="1TIME":1,X="1-TIME":1,1:X="ONE-TIME") W:'$D(PSGOES) "  (ONCE ONLY)" S Y="",XT="O" G Q
  I $G(PSGSCH)=X S PSGS0Y=$G(PSGAT) Q
+ K X Q
  ;
 NS I (X="^")!(X="") K X Q
  I Y'>0 S X=X0,Y=""
- I $E(X,1,2)="AD" K X G Q
- I $E(X,1,3)="BID"!($E(X,1,3)="TID")!($E(X,1,3)="QID") S XT=1440/$F("BTQ",$E(X)) G Q
- S:$E(X)="Q" X=$E(X,2,99) S:'X X="1"_X S X1=+X,X=$P(X,+X,2),X2=0 S:X1<0 X1=-X1 S:$E(X)="X" X2=1,X=$E(X,2,99)
- S XT=$S(X["'":1,(X["D"&(X'["AD"))!(X["AM")!(X["PM")!(X["HS"&(X'["THS")):1440,X["H"&(X'["TH"):60,X["AC"!(X["PC"):480,X["W":10080,X["M":40320,1:-1) I XT<0,Y'>0 K X G Q
- S X=X0 I XT S:X2 XT=XT\X1 I 'X2 S:$E(X,1,2)="QO" XT=XT*2 S XT=XT*X1
- ;
 Q ;
  S PSGS0XT=$S(XT]"":XT,1:""),PSGS0Y=$S(Y:Y,1:"") K QX,SDW,SWD,X0,XT,Z Q
  ;
@@ -75,3 +70,11 @@ UPPER(PSSUPPER) ;
  Q $TR(PSSUPPER,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 DICW ; 
  S Z=^PS(51.1,+Y,0) W $P(Z,"^",8) Q
+PRNOK(PSCH) ;
+ Q:PSCH'["PRN" 0
+ I $TR(PSCH," ")="PRN" Q 1
+ N BASE,I,OK S OK=0 S I=$P(PSCH," PRN") I I]"",$D(^PS(51.1,"AC","PSJ",I)) S OK=1
+ I 'OK D
+ .I PSCH["@" I $D(^PS(51.1,"AC","PSJ",$P(PSCH,"@")))!$$DOW^PSIVUTL($P(PSCH,"@")) S OK=1 Q
+ .I $$DOW^PSIVUTL($TR(PSCH," PRN")) S OK=1
+ Q OK

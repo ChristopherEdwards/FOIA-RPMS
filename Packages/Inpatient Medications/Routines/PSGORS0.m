@@ -1,5 +1,5 @@
 PSGORS0 ;BIR/CML3-SCHEDULE PROCESSOR FOR FINISH ;29 Jan 99 / 8:07 AM
- ;;5.0; INPATIENT MEDICATIONS ;**25,50,83,116**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**25,50,83,116,111**;16 DEC 97
  ;
  ; Reference to ^PS(51.1 is supported by DBIA 2177
  ; Reference to ^PS(55   is supported by DBIA 2191
@@ -22,6 +22,8 @@ EN ; validate
  I X["Q0" K X Q
  ;
 ENOS ; order set entry
+ D ENOS^PSGS0 Q
+ ;
  S (PSGS0XT,PSGS0Y,XT,Y)="" I X["PRN"!(X="ON CALL")!(X="ONCALL")!(X="ON-CALL") G Q
  S X0=X I X,X'["X",(X?2.4N1"-".E!(X?2.4N)) D ENCHK S:$D(X) Y=X G Q
  I X["@" D DW S:$D(X) Y=$P(X,"@",2) G Q
@@ -33,11 +35,11 @@ ENOS ; order set entry
  S PSGS0Y=$G(PSGAT)
  ;
 NS ;I Y'>0 W:'$D(PSGOES) "  (Nonstandard schedule)" S X=X0,Y=""
- I Y'>0 S X=X0,Y="",PSJNSS=1
- I $E(X,1,2)="AD" K X G Q
- I $E(X,1,3)="BID"!($E(X,1,3)="TID")!($E(X,1,3)="QID") S XT=1440/$F("BTQ",$E(X)) G Q
+ ;I Y'>0 S X=X0,Y="",PSJNSS=1
+ ;I $E(X,1,2)="AD" K X G Q
+ ;I $E(X,1,3)="BID"!($E(X,1,3)="TID")!($E(X,1,3)="QID") S XT=1440/$F("BTQ",$E(X)) G Q
  S:$E(X)="Q" X=$E(X,2,99) S:'X X="1"_X S X1=+X,X=$P(X,+X,2),X2=0 S:X1<0 X1=-X1 S:$E(X)="X" X2=1,X=$E(X,2,99)
- S XT=$S(X["'":1,(X["D"&(X'["AD"))!(X["AM")!(X["PM")!(X["HS"&(X'["THS")):1440,X["H"&(X'["TH"):60,X["AC"!(X["PC"):480,X["W":10080,X["M":40320,1:-1) I XT<0,Y'>0 K X G Q
+ ;S XT=$S(X["'":1,(X["D"&(X'["AD"))!(X["AM")!(X["PM")!(X["HS"&(X'["THS")):1440,X["H"&(X'["TH"):60,X["AC"!(X["PC"):480,X["W":10080,X["M":40320,1:-1) I XT<0,Y'>0 K X G Q
  S X=X0 I XT S:X2 XT=XT\X1 I 'X2 S:X["QO" XT=XT*2 S XT=XT*X1
  ;
 Q ;

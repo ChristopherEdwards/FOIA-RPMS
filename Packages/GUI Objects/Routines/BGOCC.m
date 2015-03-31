@@ -1,5 +1,5 @@
-BGOCC ; IHS/BAO/TMD - Manage Chief Complaints ;18-Sep-2007 14:42;DKM
- ;;1.1;BGO COMPONENTS;**1,3,4**;Mar 20, 2007
+BGOCC ; IHS/BAO/TMD - Manage Chief Complaints ;09-Apr-2012 14:19;DU
+ ;;1.1;BGO COMPONENTS;**1,3,4,11**;Mar 20, 2007;Build 3
  ; Returns chief complaint for current vuecentric visit context for
  ; use by TIU object.  Assumes DFN is defined.
 TIUML(TARGET) ;
@@ -76,6 +76,13 @@ SET(RET,INP) ;EP
  S @FDA@(1100)=CC
  S @FDA@(1201)="N"
  S @FDA@(1204)="`"_DUZ
+ ;Patch 11 Set date entered
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ ;Patch 11 Set last modified
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E@")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

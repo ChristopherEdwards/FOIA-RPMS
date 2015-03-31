@@ -1,10 +1,10 @@
-OCXOCMPV ;SLC/RJS,CLA - ORDER CHECK CODE COMPILER (Main Entry point - All Rules  cont...) ;3/20/01  15:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,105**;Dec 17,1997
+OCXOCMPV ;SLC/RJS,CLA - ORDER CHECK CODE COMPILER (Main Entry point - All Rules  cont...) ;1/05/04  14:09
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,105,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
 MAN ;
  I '$D(DUZ) W !!,"DUZ not defined." Q
- N OCXD0,OCXD1,OCXWARN,OCXNAM,OCXTRACE,OCXOETIM,OCXLCNT,OCXAUTO,OCXERRM
+ N OCXD0,OCXD1,OCXWARN,OCXNAM,OCXTRACE,OCXOETIM,OCXAUTO,OCXERRM,OCXTSPI
  S OCXWARN=0,OCXOETIM=$H
  K ^TMP("OCXCMP",$J)
  S ^TMP("OCXCMP",$J)=($P($H,",",2)+($H*86400)+(2*60*60))_" <- ^TMP ENTRY EXPIRATION DATE FOR ^OCXOPURG"
@@ -13,6 +13,7 @@ MAN ;
  ;
  S OCXCLL=200      ; compiled code line length
  S OCXCRS=4000     ; compiled routine size
+ S OCXTSPI=300     ; Duplicate triggered Rule message "ignore period" in seconds
  ;
  S OCXTRACE=0,OCXTLOG=0,OCXDLOG=0,OCXAUTO=0,OCXERRM=""
  ;
@@ -112,7 +113,7 @@ CNT(X) ;
  Q CNT
  ;
 AUTO ;
- N OCXD0,OCXD1,OCXWARN,OCXNAM,OCXTRACE,OCXAUTO,OCXOETIM,OCXLCNT
+ N OCXD0,OCXD1,OCXWARN,OCXNAM,OCXTRACE,OCXAUTO,OCXOETIM,OCXTSPI
  S OCXWARN=0,OCXOETIM=$H
  K ^TMP("OCXCMP",$J)
  S ^TMP("OCXCMP",$J)=($P($H,",",2)+($H*86400)+(2*60*60))_" <- ^TMP ENTRY EXPIRATION DATE FOR ^OCXOPURG"
@@ -121,6 +122,7 @@ AUTO ;
  ;
  S OCXCLL=200      ; compiled code line length
  S OCXCRS=8000     ; compiled routine size
+ S OCXTSPI=300     ; Duplicate triggered Rule message "ignore period" in seconds
  ;
  S OCXTRACE=0      ; Program Execution Trace Mode (OFF)
  S OCXTLOG=0       ; Elapsed time logging (OFF)
@@ -152,10 +154,10 @@ BULL(OCXDUZ) ;
  .S XMB(6)=$S($G(OCXTRACE):" ON",1:"OFF")
  .S XMB(7)=" " ; $S($G(OCXTLOG):" ON",1:"OFF")
  .S XMB(8)=$S($G(OCXDLOG):(" ON  Keep data for "_OCXDLOG_" day"_$S(OCXDLOG=1:"",1:"s")_" then purge."),1:"OFF")
- .S XMB(9)=$S($G(OCXLCNT):OCXLCNT,1:"Zero")
+ .S XMB(9)="No longer tracked" ; $S($G(OCXLCNT):OCXLCNT,1:"Zero")
  .S XMB(10)=$G(OCXERRM)
  .S XMB(11)=$S($L($G(OCXERRM)):"ABORTED",1:"has completed normally")
- .S XMY("G.OCX DEVELOPERS@DOMAIN.NAME")=""
+ .S XMY("G.OCX DEVELOPERS@ISC-SLC.VA.GOV")=""
  .S XMY("G.OCX DEVELOPERS")=""
  .S XMY(OCXDUZ)=""
  .S XMDUZ=.5
@@ -198,7 +200,7 @@ QUE(OCXADD) ;
  ;
 TASK ;
  ;
- N OCXD0,OCXD1,OCXWARN,OCXNAM,OCXTRACE,OCXAUTO,OCXOETIM,OCXLCNT
+ N OCXD0,OCXD1,OCXWARN,OCXNAM,OCXTRACE,OCXAUTO,OCXOETIM,OCXTSPI
  S OCXWARN=0,OCXOETIM=$H
  K ^TMP("OCXCMP",$J)
  S ^TMP("OCXCMP",$J)=($P($H,",",2)+($H*86400)+(2*60*60))_" <- ^TMP ENTRY EXPIRATION DATE FOR ^OCXOPURG"
@@ -207,6 +209,7 @@ TASK ;
  ;
  S OCXCLL=200      ; compiled code line length
  S OCXCRS=8000     ; compiled routine size
+ S OCXTSPI=300     ; Duplicate triggered Rule message "ignore period" in seconds
  ;
  S OCXDATA="0^0^0"
  I $L($T(CDATA^OCXOZ01)) S OCXDATA=$$CDATA^OCXOZ01

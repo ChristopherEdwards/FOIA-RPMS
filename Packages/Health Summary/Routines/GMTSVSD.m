@@ -1,8 +1,8 @@
 GMTSVSD ; SLC/KER - Vital Signs (Detailed)           ; 01/06/2003
- ;;2.7;Health Summary;**35,49,58**;Oct 20, 1995
+ ;;2.7;Health Summary;**35,49,58,78**;Oct 20, 1995
  ;                          
  ; External References
- ;   DBIA  1446  EN1^GMRVUT0
+ ;   DBIA  4791  EN1^GMVHS
  ;   DBIA 10141  $$VERSION^XPDUTL
  ;   DBIA 10103  $$NOW^XLFDT
  ;                    
@@ -34,7 +34,8 @@ GET ; Get Data
  S GMTSMAX=$S(+($G(GMTSVCT))>0:+($G(GMTSVCT)),1:1) S GMTSMAX=GMTSMAX*100
  S GMRVSTR="T"_";"_"P"_";"_"R"_";"_"BP"_";"_"HT"_";"_"WT"_";"_"CVP"_";"_"PO2"_";"_"CG"_";"_"PN"
  S GMRVSTR(0)=$G(GMTSBEG)_"^"_$G(GMTSEND)_"^"_$G(GMTSMAX)_"^"_1
- D EN1^GMRVUT0 S GMTSMAX=+($G(GMTSVCT))
+ ;D EN1^GMRVUT0 S GMTSMAX=+($G(GMTSVCT))
+ D EN1^GMVHS S GMTSMAX=+($G(GMTSVCT))
  Q
 NOD ;   No Data Found
  D CKP^GMTSUP Q:$D(GMTSQIT)  D:GMTSNPG=1 HDR
@@ -109,19 +110,19 @@ VO(X) ;   Vital Array Order
  S X=$G(X) Q:X="T" 1 Q:X="P" 2 Q:X="R" 3 Q:X="BP" 4 Q:X="HT" 5 Q:X="WT" 6 Q:X="CG" 7 Q:X="PN" 8 Q:X="CVP" 9 Q:X="PO2" 10 Q ""
 VT(X) ;   Vital Type
  S X=$G(X) Q:X="BP" "BP" Q:X="T" "Temp F (C)" Q:X="R" "Respir" Q:X="P" "Pulse" Q:X="HT" "Ht in (cm)"
- Q:X="WT" "Wt lbs (kg)[BMI]" Q:X="CVP" "CVP cm H2O(mm HG)" Q:X="PO2" "PO2 (L/Min)(%)" Q:X="CG" "C/G in (cm)" Q:X="PN" "Pain" Q ""
+ Q:X="WT" "Wt lbs (kg)[BMI]" Q:X="CVP" "CVP cm H2O(mm HG)" Q:X="PO2" "POx (L/Min)(%)" Q:X="CG" "C/G in (cm)" Q:X="PN" "Pain" Q ""
 VM(X,Y) ;   Vital Type Measurement
  N GMTSMEAS,GMTSID S GMTSMEAS="",(GMTSID,X)=$G(X) Q:"^BP^T^R^P^HT^WT^CVP^PO2^CG^PN^"'[("^"_X_"^") ""
  S Y=$G(Y) Q:'$L(Y) ""
  ;     If data for T, Ht or Wt piece 8 and 13 else  piece 8
- I X="T"!(X="HT")!(X="WT") S GMTSMEAS=$P(Y,"^",8)_" ("_$P(Y,"^",13)_")"
+ I X="T"!(X="HT")!(X="WT") S GMTSMEAS=$S($P(Y,"^",8)?1A.E:$P(Y,"^",8),1:$P(Y,"^",8)_" ("_$P(Y,"^",13)_")")
  E  S GMTSMEAS=$P(Y,"^",8)
  ;     WT - Weight and BMI (piece 14)
  I X="WT",$L($P(Y,"^",14)) S GMTSMEAS=GMTSMEAS_"["_$P(Y,"^",14)_"]"
  ;     CVP - Central Venous Pressure/CG - Circum/Girth
  I X="CVP"!(X="CG") S GMTSMEAS=$P(Y,"^",8) S:$L($P(Y,"^",13)) GMTSMEAS=GMTSMEAS_" ("_$P(Y,"^",13)_")"
- ;     PO2 - Pulse Oximetry
- I X="PO2" S GMTSMEAS=$P(Y,"^",8) S:$L($P(Y,"^",15)) GMTSMEAS=GMTSMEAS_" ("_$P(Y,"^",15)_")"
+ ;     POx - Pulse Oximetry
+ I X="PO2" S GMTSMEAS=$P(Y,"^",8) S:$L($P(Y,"^",15))!($L($P(Y,"^",16))) GMTSMEAS=GMTSMEAS_" ("_$P(Y,"^",15)_")("_$P(Y,"^",16)_")"
  ;     PN - Pain
  S:X="PN" GMTSMEAS=$P(Y,"^",8) S:X="PN"&(GMTSMEAS=99) GMTSMEAS="No Response"
  S X=GMTSMEAS Q X

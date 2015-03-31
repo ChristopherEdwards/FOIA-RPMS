@@ -1,6 +1,8 @@
 BARRPAY ; IHS/SD/PKD - TOP PAYERS REPORT ; 07/2/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**19**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,23**;OCT 26, 2005
  ; New Reports - Top Payers - PKD 
+ ; MAR 2013 P.OTTIS ADDED NEW VA billing
+ ; JUL 2013 P.OTTIS ADDED SUPPORT FOR ICD-10
  Q
  ; *******************************
  ;
@@ -16,12 +18,13 @@ EN ; EP
 HD S BAR("HD",0)=BARMENU
  D ^BARRHD  ; Report header
  ; Add additional Selection Criteria to the Headers
- I $D(BARY("DX")) D DX^BARRHD
+ I $D(BARY("DX"))!$D(BARY("DX9"))!$D(BARY("DX10")) D DX^BARRHD ;P.OTT
+ ;
  I $D(BARY("CLIN")) D HDCLIN
  I $D(BARY("APPR")) D HDAPPR
  I $D(BARY("ADJTYP")) D HDRADJ
  D HDRSORT
-  N SORT,SORTNM,SUBNM,T,TMP,TRIEN,VISITLOC,COUNT,ADJTYP
+ N SORT,SORTNM,SUBNM,T,TMP,TRIEN,VISITLOC,COUNT,ADJTYP
  S BARQ("RC")="COMPUTE^BARRPAY"  ; Compute routine
  S BARQ("RP")="PRINT^BARRPAY2"  ; Print routine
  S BARQ("NS")="BAR"  ; Namespace for variables
@@ -36,10 +39,24 @@ COMPUTE ;
  S BAR("SUBR")="BAR-PAY"
  K ^TMP($J,"BAR-PAY"),^TMP($J,"BAR-PAYS"),^TMP($J,"BAR-PAYS1")
  S COUNT=0  ; Total transactions counted
- I "VAX"[BARY("DT") D LOOP^BARRUTL Q  ;visit / approved / transmit date sort
- I BARY("DT")="T" D TRANS^BARRUTL  ; transaction date sort
- I BARY("DT")="B" D BATCHDT  ; batch date sort 
+ I "VAX"[BARY("DT") D LOOP^BARRUTL,SHOWERR Q  ;visit / approved / transmit date sort
+ I BARY("DT")="T" D TRANS^BARRUTL,SHOWERR Q  ; transaction date sort
+ I BARY("DT")="B" D BATCHDT,SHOWERR Q  ; batch date sort 
+ Q
+SHOWERR Q
+ ;I DUZ'=838 Q
+ N BARTMP
+ I $D(^TMP($J,"BAR-PAY","ERR")) D
+ . W !,"List of rejected entries from PAY report #1"
+ . S BARTMP=$NA(^TMP($J,"BAR-PAY","ERR"))
+ . F  S BARTMP=$Q(@BARTMP) Q:BARTMP=""  Q:$QS(BARTMP,2)'="BAR-PAY"  Q:$QS(BARTMP,3)'="ERR"  D
+ . . W !,BARTMP," = ",$G(@BARTMP)
  ; 
+ I $D(^TMP($J,"BAR-BAR-PAY")) D
+ . W !,"List of rejected entries from PAY report #2"
+ . S BARTMP=$NA(^TMP($J,"BAR-BAR-PAY","ERR"))
+ . F  S BARTMP=$Q(@BARTMP) Q:BARTMP=""  Q:$QS(BARTMP,2)'="BAR-BAR-PAY"  D
+ . . W !,BARTMP," = ",$G(@BARTMP)
  Q
 BATCHDT  ; Sort by Collection Batch Date, get transactions
  S BARP("DT")=BARY("DT",1)-.5
@@ -68,31 +85,29 @@ DATA ; EP
  D BILL^BARRCHK  ; BARP("HIT")=1 if all selected parameters pass
 4 Q:'BARP("HIT")
 3 S BAR("3P LOC")=$$FIND3PB^BARUTL(DUZ(2),BAR)
- Q:BAR("3P LOC")=""  ; Bill not found 3PB
+ I BAR("3P LOC")=""  D  Q  ; Bill not found 3PB
+ . ;I DUZ=838 W "  BILL NOT FND IN 3PB"
  S (BAR3PDUZ,VISITLOC)=$P(BAR("3P LOC"),",")  ; Save VisitLoc for Sort
  S BAR3PIEN=$P(BAR("3P LOC"),",",2)
  ; 
  S BARB3PB0=$G(^ABMDBILL(BAR3PDUZ,BAR3PIEN,0))
  S BARBSTAT=$P(BARB3PB0,U,4)  ; Bill Status - X=Cancelled
-2 I BARY("CXL")=0&(BARBSTAT="X") Q  ; No cancellations
+2 I BARY("CXL")=0&(BARBSTAT="X") D  Q  ; No cancellations
+ . ;I DUZ=838 W "  THIS IS A CANECLLATION"
  S SORT(1)="NO ADDED SORT",SORT=BARY("BARSORTX")  ; primary sort after LOC
  ;1:PROVIDER;2:CLINIC;3:APPROVING OFFICIAL;4:PRIMARY DIAGNOSIS;5:ADJUSTMENT TYPE;6:ALLOWANCE CATEGORY"
  I SORT=1 S SORT(1)=$P(BAR(1),U,13)  ;PRV
  I SORT=2 S SORT(1)=$P(BAR(1),U,8)  ;Clinic
  I SORT=3 S SORT(1)=$P($G(^BARBL(DUZ(2),BAR,2)),U,15) D  ;APPRV OFCL
  . I SORT(1)="" S SORT(1)=0
- ;S BARP("HIT")=0
- ;I SORT=4 S SORT(1)=$P(BAR(1),U,17) D  Q:'BARP("HIT")  ;Prime DX
- ;. I SORT(1)
- ; 0)CR - DB = Pay pc 2-3  A/R Acct - pc 6
- ; 1) pc3 - AdjType
  S BARP("HIT")=0
 TRIEN N TT,BARTEST,HIT,BARTRANC,PMTCRD,PAIDAMT
  I BARY("DT")'="T"&(BARY("DT")'="B") S TRIEN="" D  Q
  . F  S TRIEN=$O(^BARTR(DUZ(2),"AC",BAR,TRIEN)) Q:'TRIEN  D TRCHK
  ; 
 TRCHK S (PAIDAMT,PMTCRD)=0
- Q:'$D(^BARTR(DUZ(2),TRIEN))  ; quit if no transaction
+ I '$D(^BARTR(DUZ(2),TRIEN))  D  Q  ; quit if no transaction
+ . ;I DUZ=838 W "  NO TRANSACTION"
  ;
  S BARTRANC=$P($G(^BARTR(DUZ(2),TRIEN,1)),U)
  Q:BARTRANC=""  ;No amounts
@@ -104,18 +119,25 @@ TRCHK S (PAIDAMT,PMTCRD)=0
  S ADJTYP=$P($G(^BARTR(DUZ(2),TRIEN,1)),U,3)  ; ADJ TYPE
  I $G(BARY("ADJTYP"))]"" Q:ADJTYP'=BARY("ADJTYP")  ; comment out unless they really want it. ****
  S HIT=0
- S BARPAYER=$P(^BARTR(DUZ(2),TRIEN,0),U,6)  I BARPAYER="" D  Q  ; A/R ACCT aka PAYER
+ S BARPAYER=$P(^BARTR(DUZ(2),TRIEN,0),U,6)
+ I ;DUZ=838 I BARPAYER'=BAR("I") D  
+ . W !,"*** PROBLEM: ACCNT# in ^BARTR(",DUZ(2),",",TRIEN," ->(",BARPAYER
+ . W ") is different from ACCNT# in ^BARBL(",DUZ(2),",",BAR," ->(",BAR("I"),") WILL USE ",BAR("I")
+ S BARPAYER=BAR("I")
+ I BARPAYER="" D  Q  ; A/R ACCT aka PAYER
  . S ^TMP($J,"BAR-PAY","ERR","-NO PAYER",TRIEN)=""
- ; GET A/R ACCT; ACCT# ; PayerName and Payer Allowance Category
- ; Allowance code from BARTR=>
  I $G(^BARAC(DUZ(2),BARPAYER,0))="" D  Q
  . S ^TMP($J,"BAR-PAY","ERR","-NO BARAC ENTRY",TRIEN,BARAC)=""
  S BARAC=+$P(^BARAC(DUZ(2),BARPAYER,0),U)  ;
  I $P(^BARAC(DUZ(2),BARPAYER,0),";",2)'["AUTNINS"  Q  ; Quit if Payer is not Insurance Co
- S BARPYALL=$P(^AUTNINS(BARAC,2),U)  ; ALLOWANCE CODE
-  I $D(BARY("ALL")) Q:BARY("ALL","CODES")'[BARY("ALL")_" "  ; ALLOWANCE CAT
- S BARPYNM=$P(^AUTNINS(BARAC,0),U)
-  S T=$G(^BARTR(DUZ(2),TRIEN,0))
+ ;S BARPYALL=$P(^AUTNINS(BARAC,2),U)  ; ALLOWANCE OLD PTR
+ S D0=BARPAYER ;S D0=BARAC
+ S BARPYALL=$$VALI^BARVPM(8) ;GETS FLD # .211 P.OTT 
+ ;;;I DUZ=838 W !,$ZN," TXD: ",TRIEN," BILL#: ",BAR," ACCNT ",BARPAYER," AUTNINS IEN: ",D0," INS TYPE: ",BARPYALL R ASD
+ S BAR("ALL")=BARPYALL ;
+ I $D(BARY("ALL")) Q:BARY("ALL","CODES")'[BAR("ALL")_" "  ; ALLOWANCE CAT
+ S BARPYNM=$P(^AUTNINS(BARAC,0),U) ;NAME
+ S T=$G(^BARTR(DUZ(2),TRIEN,0))
  I BARTRANC=40 S PAIDAMT=$P(T,U,2)
  I BARTRANC=43 S PMTCRD=$P(T,"^",2)-$P(T,"^",3)  ; aka ALLOWANCE AMOUNT
  ; Add credits / deduct debits for adjustments
@@ -156,18 +178,18 @@ CLIN  ;  Visit Location Name
 CSHR  ;
  S SUBNM="APPROVING OFFICIAL: "
  ; not finding it in ^BARBL(DUZ(2),BILLIEN,2) so
- ;  looking ^ABMDBILL(DUZ(2),3PBIEN,1)
+ ; looking ^ABMDBILL(DUZ(2),3PBIEN,1)
  ; S SORT=$P($G(BAR(2)),U,15)
-  S SORT=$P($G(^ABMDBILL(BAR3PDUZ,BAR3PIEN,1)),U,4)
-  I SORT="" S SORT(1)="No Approving Official" Q
+ S SORT=$P($G(^ABMDBILL(BAR3PDUZ,BAR3PIEN,1)),U,4)
+ I SORT="" S SORT(1)="No Approving Official" Q
  S SORT(1)=$P(^VA(200,SORT,0),U,1)
  Q
 DX  ; ^ICD9(547,0)=202.04^LC^NODULAR LYMPHOMA AXILLA^^17^^^^
  S SUBNM="Primary DX: "
- S SORT=BAR("DX")  ; set in ^BARRCHK
- I BAR("DX")="No DX" S SORT(1)="No DX entered" Q
+ S SORT=BAR("DX",1)_" "  ; set in ^BARRCHK
+ I BAR("DX",1)="No DX" S SORT(1)="No DX entered" Q
  S SORT=$O(^ICD9("AB",SORT,""))  ; get IEN
- S SORT(1)=BAR("DX")_" "_$P(^ICD9(SORT,0),U,3)
+ S SORT(1)=BAR("DX",1)_" "_$P(^ICD9(SORT,0),U,3)
  Q
 ADJTY  ;
  S SUBNM=("ADJUSTMENT TYPE: ")
@@ -186,11 +208,12 @@ NOSORT  ;
  ; *************************************
 MOREQ  ; Additional Questions
  ; Set-up Allowance Code Grid
- K BARALL
- F X="R","MD","MH" S BARALL(X)="MEDICARE (INS TYPES R MD MH)"
- F X="D","K" S BARALL(X)="MEDICAID (INS TYPES D K)"
+ K BARALL ;P.OTT
+ F X="R","MH","MD","MC","MMC" S BARALL(X)="MEDICARE (INS TYPES R MH MD MC MMC)"
+ F X="D","K","FPL" S BARALL(X)="MEDICAID (INS TYPES D K FPL)"
  F X="P","H","F","M" S BARALL(X)="PRIVATE INSURANCE (INS TYPES P H F M)"
- F X= "W","C","N","I","G","T" S BARALL(X)="OTHER (INS TYPES W C N I G T)"
+ F X="W","C","N","I","G","T","SEP","TSI" S BARALL(X)="OTHER (INS TYPES W C N I G T SEP TSI)"
+ F X="V" S BARALL(X)="VETERANS (INS TYPES V)"
  ; Select Sort from all available parameters
  I $D(BARY("ALL")) D  ; Get the ALLOWANCE CATEGORIES to include
  . N ALL

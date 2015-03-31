@@ -1,5 +1,5 @@
 PSXERR ;BIR/BAB,WPB,HTW,PWC-Error Processing Utility ;MAR 1,2002@13:13:34
- ;;2.0;CMOP;**1,3,28,30,42,41,52**;11 Apr 97
+ ;;2.0;CMOP;**1,3,28,30,42,41,52,54,58**;11 Apr 97;Build 2
  ; Reference to ^PS(59,  supported by DBIA #1976
  ; Reference to file #52 supported by DBIA #1977
  ; This routine will be used to send mail messages when errors
@@ -78,6 +78,7 @@ ER7 ;Set up prescription data for message.
  S PSXCT=PSXCT+1,ERRTXT(PSXCT)=""
  K PSXRXERR,RXNM,RXF,DAYS,CNT,ERR,DRUG,FDATE,PHAR,PHY,PSTAT,QTY,REF,RXERR,SIG,XX,BLANK
  S PSXERFLG=1,ACTION="Rx's not sent to CMOP but still suspended for transmission.",RECM="Correct invalid data.",TYPE="Invalid or missing data"
+ I '$G(PSXGOOD) S ACTION="Rx's not sent to CMOP. If Bad Address Indicator or foreign address, will remain on suspense for CMOP, but will only show on reject log once." K PSXGOOD
  Q
 MAIL ;Transmit.
  S XMDUZ=.5,XMTEXT="ERRTXT("
@@ -85,6 +86,7 @@ MAIL ;Transmit.
  D GRP^PSXNOTE
  D ^XMD
  Q
+ ;
 DATAERR ;list of errrors that can occur while checking the rx prior to transmit
  ;;Quantity
  ;;Prescribing Physician
@@ -104,7 +106,8 @@ DATAERR ;list of errrors that can occur while checking the rx prior to transmit
  ;;Patient in the Merging Process
  ;;RX OERR/CPRS Locked
  ;;Test Patient
-DERR ;list of errors for tranmission
+ ;;Bad Address Indicator no active temporary address
+DERR ;list of errors for transmission
  ;;State
  ;;Site
  ;;Name

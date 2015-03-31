@@ -1,5 +1,5 @@
-GMRAPEO0 ;HIRMFO/WAA,RM-EDIT OBSERVED A/AR ;09-Feb-2011 17:14;DU
- ;;4.0;Adverse Reaction Tracking;**8,17,21,1002**;Mar 29, 1996;Build 32
+GMRAPEO0 ;HIRMFO/WAA,RM-EDIT OBSERVED A/AR ;01-May-2012 14:24;DU
+ ;;4.0;Adverse Reaction Tracking;**8,17,21,1002,1006**;Mar 29, 1996;Build 29
 EN1 ; Entry to edit Observed A/AR Data
  ;This code allows the user to select a concomitant reaction by date.
  ;If that reactant doesn't have a date, then a new date is added
@@ -22,12 +22,12 @@ OBS ;
  ..Q
  .Q
  G:GMRAOUT EXIT
- ;Mechanism has been removed and is now calculated
+ ;IHS/MSC/MGH Mechanism has been removed and is now calculated Patch 1006
  ;I $D(^XUSEC("GMRA-ALLERGY VERIFY",DUZ)) D MECH^GMRAPED0
+ G EXIT:GMRAOUT
  G EXIT:GMRAOUT
  ;add the SNOMED EVENT
  D EVENT^GMRAPED0
- G EXIT:GMRAOUT
  D COMM G EXIT:GMRAOUT
  D ORR G EXIT:GMRAOUT
 EXIT ; Exit line

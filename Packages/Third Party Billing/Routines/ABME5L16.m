@@ -1,5 +1,5 @@
 ABME5L16 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing System;**6,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,9,10,11**;NOV 12, 2009;Build 133
  ;Header Segments
  ;
 START ;START HERE
@@ -25,6 +25,12 @@ START ;START HERE
  .I ($G(ABMP("PAYED",+ABMLINE))!($P($G(^ABMNINS(ABMP("LDFN"),+ABMLINE,0)),U,11)="Y")) D
  ..D EP^ABME5AMT("D")
  ..D WR^ABMUTL8("AMT")
+ .;start new code abm*2.6*10 COB billing
+ .;I ABMPSQ'=1,$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,+ABMP("INS"),".211","I"),1,"I")="R" D
+ ..S ABMAMT=0
+ ..D EP^ABME5AMT("B6")
+ ..D WR^ABMUTL8("AMT")
+ ..;end new code abm*2.6*10 COB billing
  .D ^ABME5OI
  .D WR^ABMUTL8("OI")
  .;
@@ -47,7 +53,8 @@ START ;START HERE
  .D EP^ABME5N4(9999999.18,+ABMLINE)
  .D WR^ABMUTL8("N4")
  .I $G(ABMP("PAYED",+ABMLINE))'="" D
- ..S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:"")
+ ..;S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:"")  ;abm*2.6*10 COB billing
+ ..S ABMPDT=$S($P($G(ABMP("PAYED",+ABMLINE)),U,2)'="":$P(ABMP("PAYED",+ABMLINE),U,2),$G(ABMP("PDT",+ABMLINE))'="":ABMP("PDT",+ABMLINE),1:DT)  ;abm*2.6*10 COB billing
  ..D EP^ABME5DTP(573,"D8",ABMPDT)
  ..D WR^ABMUTL8("DTP")
  ..K ABMPDT

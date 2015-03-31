@@ -1,26 +1,24 @@
-PSJHL10  ;BIR/LDT-VALIDATE INCOMING HL7 DATA/CREATE NEW ORDER ;08 Jul 99 / 10:50 AM
- ;;5.0; INPATIENT MEDICATIONS ;**58,78,91,109**;16 DEC 97
+PSJHL10  ;BIR/LDT,BSJ-VALIDATE INCOMING HL7 DATA/CREATE NEW ORDER ;30 MAY 07
+ ;;5.0; INPATIENT MEDICATIONS ;**58,78,91,109,110,195**;16 DEC 97;Build 3
  ;
  ; Reference to ^PSDRUG is supported by DBIA# 2192.
- ; Reference to ^PS(50.7 is supported by DBIA# 2180.
  ; Reference to ^PS(51.2 is supported by DBIA# 2178.
  ; Reference to ^PS(55 is supported by DBIA# 2191.
- ; Reference to ^%ZOSF is supported by DBIA# 10096.
- ; Reference to ^ORERR is supported by DBIA# 2187.
  ; Reference to ^PS(52.6 is supported by DBIA# 1231.
  ; Reference to ^PS(52.7 is supported by DBIA# 2173.
  ; Reference to ^PSBAPIPM is supported by DBIA# 3564.
+ ; Reference to ^ORERR is supported by DBIA# 2187.
  ;
 VALID ;
- ;Call to BCMA for the rest of the data.
+ ;Call BCMA for rest of data
  D MOB^PSBAPIPM(PSJHLDFN,+PSJORDER)
- N DATA0,CHK S DATA0=$G(^TMP("PSB",$J,0)) I DATA0=-1 S PSREASON="Missing data, unable to file" D ERROR Q
+ N DATA0,CHK S DATA0=$G(^TMP("PSB",$J,0)) I DATA0=-1 S PSREASON="""YOUR ORDER WAS NOT SAVED. EXIT BCMA, SIGN BACK IN, THEN TRY AGAIN.""" D ERROR Q
  I $P(DATA0,"^")'=PSJHLDFN S PSREASON="Patient does not match" D ERROR Q
  I $P(DATA0,"^",2)'=+PSJORDER S PSREASON="Order number does not match" D ERROR Q
  N VAIP S DFN=PSJHLDFN,VAIP("D")=$G(LOGIN) D IN5^VADPT
- ;If UD do UD set and validate.
+ ;If UD do UD set/validate.
  I $P(DATA0,"^",3)="" D UDSET
- ;If IV do IVset and validate.
+ ;If IV do IV set/validate.
  I $P(DATA0,"^",3)]"" D IVSET
  D:'CHK EN1^PSJHL2(PSJHLDFN,"OK",PSGORD),EN1^PSJHL2(PSJHLDFN,"SC",PSGORD),EN1^PSJHL2(PSJHLDFN,"ZV",PSGORD),MOBR^PSBAPIPM(PSJHLDFN,+PSJORDER,PSGORD)
  Q
@@ -56,12 +54,14 @@ UDSET ;Set up UD variables
  .I $P(ND4,U,9) K ^PS(55,"APV",PSGP,DA)
  .I $P(ND4,U,10) K ^PS(55,"NPV",PSGP,DA)
  S F="^PS(55,"_PSGP_",5,"_DA_",",@(F_"0)")=ND0
+ ;naked reference on the four (4) lines below refer to the full ref to ^PS(55,PSGP,5,DA created by indirection using variable F
  I $G(INSTR)]"" S @(F_".3)")=INSTR
  S @(F_".2)")=PSGPDRG_U_PSGDO S $P(^(.2),U,3,6)=$G(ORDCON)_"^"_$E(PRIORITY,2)_"^"_$G(DOSE)_"^"_$G(UNIT)
  S @(F_"2)")=ND2,^(4)=ND4
  S (C,X)=0 F  S X=$O(^TMP("PSB",$J,700,X)) Q:'X  S D=$G(^(X,0)) I D S C=C+1,@(F_"1,"_C_",0)")=$P(D,U,1,2),@(F_"1,""B"","_+D_","_C_")")=""
  S:C @(F_"1,0)")=U_"55.07P^"_C_U_C
  I $D(PROCOM) D
+ .;naked refs on the three lines below refer to the full ref to ^PS(55,PSGP,5,DA created by indrection using variable F
  .I '$D(@(F_"12,0)")) S ^(0)=U_55.0612_U_0_U_0
  .S JJ=0 F  S JJ=$O(PROCOM(JJ)) Q:'JJ  S $P(@(F_"12,0)"),"^",3,4)=JJ_"^"_JJ,@(F_"12,"_JJ_",0)")=PROCOM(JJ)
  S @(F_"6)")=$$ENPC^PSJHL11("U",180)
@@ -75,16 +75,7 @@ CHK(X,Y,Z)      ;Check for required fields
  ; Input: X="^^"_MED ROUTE_"^^^^"_SCH TYPE
  ;        Y=ORDERABLE ITEM_"^"_DOSAGE ORDERED
  ;        Z=SCHEDULE_"^"_START DATE/TIME_"^^"_STOP DATE/TIME
- S:'$D(^PS(50.7,+Y,0)) CHK=1
- I ND="" S CHK=CHK_23
- E  S CHK=CHK_$S($P(X,"^",3):"",1:2)_$S($P(X,"^",7)]"":"",1:3)
- K PSGDFLG,PSGPFLG S PSGDI=0
- S:'$$DDOK("^TMP(""PSB"","_$J_",700,",+Y) CHK=CHK_7
- ;
-CHKM ;
- Q:'CHK
- S MSG="THE FOLLOWING "_$S($L(CHK)>1:"ARE",1:"IS")_" EITHER INVALID OR MISSING FROM THIS ORDER:" F X=1:1:7 S:CHK[X MSG2=$P("ORDERABLE ITEM^MED ROUTE^SCHEDULE TYPE^SCHEDULE^START DATE/TIME^STOP DATE/TIME^DISPENSE DRUG","^",X)
- S PSREASON=MSG_MSG2
+ D CHK^PSJHL7(X,Y,Z)
  Q
  ;
 DDOK(PSJF,OI) ;Check to be sure all dispense drugs that are active in the
@@ -97,6 +88,7 @@ DDOK(PSJF,OI) ;Check to be sure all dispense drugs that are active in the
  N DDCNT,ND,PSJ,PSJ1 S (PSJ1,DDCNT)=0
  I '$D(PSGDT) D NOW^%DTC S PSGDT=+$E(%,1,12)
  I '$O(@(PSJF_"0)")) Q 1
+ ; Naked reference below refers to ^PS(53.45, created using indirection in variable PSJF
  F PSJ=0:0 S PSJ=$O(@(PSJF_PSJ_")")) Q:'PSJ  S ND=$G(@(PSJF_PSJ_",0)"))  D
  .S DDCNT=DDCNT+1
  .S PSJ1=$S('$D(^PSDRUG(+ND,0)):1,$P($G(^(2)),U,3)'["U":1,+$G(^(2))'=+OI:1,$G(^("I"))="":0,1:^("I")'>PSGDT)
@@ -110,6 +102,7 @@ IVSET ;
  I P(4)="S",P(5)=1 S P(9)=$P(DATA0,"^",6)
  S P("MR")=$S(P(4)="P":$O(^PS(51.2,"B","IV PIGGYBACK",0)),1:$O(^PS(51.2,"B","INTRAVENOUS",0)))
  S (P("CLRK"),P("NINIT"))=CLERK,P("PD")=PSITEM,(P("IVRM"),P("SYRS"),P("CLIN"),P("FRES"),P("OPI"))="",P("RES")=ROC,P("PRY")=$E(PRIORITY,2),P("REM")=""
+ I $$SCHREQ^PSJLIVFD(.P),P(15)'>0 N P15 S P15=$$INTERVAL^PSIVUTL(.P)
  D CHKIV I CHK D ERROR Q
  D SETN
  D NEW55^PSIVORFB
@@ -119,7 +112,7 @@ IVSET ;
  S $P(ND(0),U,17)="E",ND(1)=P("REM"),ND(3)=P("OPI"),ND(.2)=$P($G(P("PD")),U)_U_$G(P("DO"))_U_+P("MR")_U_$G(P("PRY"))_U_$G(ORDCON) F X=0,1,3,.2,.3 S ^PS(55,DFN,"IV",+ON55,X)=ND(X)
  S $P(^PS(55,DFN,"IV",+ON55,2),U,1,4)=P("LOG")_U_P("IVRM")_U_U_P("SYRS"),$P(^(2),U,8,10)=P("RES")_U_$G(P("FRES"))_U_$S($G(VAIN(4)):+VAIN(4),1:"")
  S $P(^PS(55,DFN,"IV",+ON55,2),U,11)=+P("CLRK")
- S:+$G(P("CLIN")) ^PS(55,DFN,"IV",+ON55,"DSS")=P("CLIN")
+ S:+$G(P("CLIN")) $P(^PS(55,DFN,"IV",+ON55,"DSS"),"^")=P("CLIN")
  S:+$G(P("NINIT")) ^PS(55,DFN,"IV",+ON55,4)=P("NINIT")_U_P("NINITDT")_"^^^^^^^^"_"1"
  S ^PS(55,"APIV",DFN,+ON55)=""
  I $D(PROCOM) D
@@ -140,7 +133,7 @@ PUTD55 ; Move drug data from local array into 55
  Q
  ;
 SETN ;Set up patient 0 node if needed.
- I '$D(^PS(55,DFN,0)) K DO,DA,DD,DIC,PSIVFN S:$D(^(5.1)) PSIVFN=^(5.1) K:$D(PSIVFN) ^(5.1) S (DINUM,X)=DFN,DIC(0)="L",DIC="^PS(55,",DLAYGO=55 D FILE^DICN S:$D(PSIVFN) ^PS(55,DFN,5.1)=PSIVFN D  K DIC,PSIVFN,DO,DA,DD
+ I '$D(^PS(55,DFN,0)) K DO,DA,DD,DIC,PSIVFN S:$D(^(5.1)) PSIVFN=^(5.1) K:$D(PSIVFN) ^(5.1) S (DINUM,X)=DFN,DIC(0)="L",DIC="^PS(55," D FILE^DICN S:$D(PSIVFN) ^PS(55,DFN,5.1)=PSIVFN D  K DIC,PSIVFN,DO,DA,DD
  .; Mark PSJ and PSO as converted
  .S $P(^PS(55,DFN,5.1),"^",11)=2
  Q

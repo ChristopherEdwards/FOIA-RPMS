@@ -1,8 +1,8 @@
 PSOARCCO ;BHAM ISC/LGH - find rxs that to be archived ; 07/07/92
- ;;7.0;OUTPATIENT PHARMACY;;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**268**;DEC 1997;Build 9
  S X1=DT,X2=-121 D C^%DTC S %DT(0)=-X
 AC S PSOAPG=1,PG=1,X2=-360,X1=DT D C^%DTC S Y=X X ^DD("DD") S %DT("B")=Y
- L +^PSOARC:0 I '$T W !!,"Archive global locked by another user!",! K PSOALAST,PSOAC,Y,PSOAPG Q 
+ L +^PSOARC:$S(+$G(^DD("DILOCKTM"))>0:+^DD("DILOCKTM"),1:3) I '$T W !!,"Archive global locked by another user!",! K PSOALAST,PSOAC,Y,PSOAPG Q 
  W !! S %DT("A")="Archive all scripts which expired on or before: "
 DT S %DT="AEXP" D ^%DT G:Y=-1 EXIT S PSOAC=Y
 ST G:$D(PSOACRS) RST^PSOARCSV

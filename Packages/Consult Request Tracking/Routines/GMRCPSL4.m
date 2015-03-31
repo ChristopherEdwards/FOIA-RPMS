@@ -1,8 +1,8 @@
-GMRCPSL4 ;SLC/MA - Special Consult Reports;19-Dec-2005 10:09;MGH
- ;;3.0;CONSULT/REQUEST TRACKING;**23,22,1001**;DEC 27, 1997
+GMRCPSL4 ;SLC/MA - Special Consult Reports;15-Mar-2012 10:40;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**23,22,1001,1003**;DEC 27, 1997;Build 14
  ; This routine is called by GMRCPSL2 to generate reports or
  ; date output.
- ;IHS/CIA/MGH Code changed to use HRCN instead of SSN
+ ;Modified - IHS/CIA/MGH - 12/19/2005 - Line DATAONLY+6, DATAMOVE+26 - Code changed to use HRCN instead of SSN
  ; DBIA 10035 call DIQ=2     ;PATIENT FILE
  ; DBIA 10040 call DIQ=44    ;LOCATION FILE
  ; DBIA 10060 call DIQ=200   ;NEW PERSON FILE

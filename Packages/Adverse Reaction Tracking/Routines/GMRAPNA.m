@@ -1,11 +1,11 @@
 GMRAPNA ;HIRMFO/WAA-PATIENT NOT ASKED ABOUT ALLERGIES ;12/1/95  14:15
- ;;4.0;Adverse Reaction Tracking;**30**;Mar 29, 1996
+ ;;4.0;Adverse Reaction Tracking;**30,33**;Mar 29, 1996;Build 5
 EN1 ; Entry for LIST BY LOCATION OF UNDOCUMENTED ALLERGIES option
  D EN1^GMRACMR G:GMRAOUT EXIT
  D DEV
  D EXIT
  Q
-DEV ; *** Select output device, force queueing
+DEV ; *** Select output device, force queuing
  ;***** NOTE: CHECKS TO SEE IF VALID DEVICE IS SELECTED THEN ALL I HAVE TO DO IS RUN TASK MAN.
  S GMRAZIS="" S:GMRASEL'="1," GMRAZIS="Q"
  W !! D DEV^GMRAUTL I POP G EXIT
@@ -36,6 +36,7 @@ PRINT ;PRINT THE DATE
  ..E  I +$P(^GMR(120.86,GMRADFN,0),U,4)<$G(GMRAED,9999999) Q
  ..Q:'$D(^DPT(GMRADFN,0))
  ..Q:$$DECEASED^GMRAFX(GMRADFN)  ;GMRA*4*30 Prevent deceased patients from appearing on this report.
+ ..Q:'$$PRDTST^GMRAUTL1(GMRADFN)  ;GMRA*4*33 Exclude test patient from report if production or legacy environment.
  ..S GMRACNT=GMRACNT+1
  ..W !,$P(^DPT(GMRADFN,0),U) S DFN=GMRADFN,VAINDT=$S(GMRADATE="CURRENT":DT,1:GMRADATE) D 1^VADPT W ?30,VA("PID") W:GMRA'="C" ?45,$P(VAIN(2),U,2)
  ..I VAIN(5)'="" W !,?5,"Room/Bed: ",VAIN(5)

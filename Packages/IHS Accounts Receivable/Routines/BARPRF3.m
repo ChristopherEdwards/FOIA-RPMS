@@ -1,5 +1,5 @@
 BARPRF3 ; IHS/SD/LSL - REFUND COMMAND PROCESSOR MAY 30,1996 ; 05/07/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,21,23***;OCT 26, 2005
  ;
  ; IHS/SD/SDR - 10/18/02 - V1.6 Patch 4 - OEA-1002-190010
  ;       Resolve <UNDEF>PARSE+6^XBDIQ1
@@ -10,7 +10,7 @@ BARPRF3 ; IHS/SD/LSL - REFUND COMMAND PROCESSOR MAY 30,1996 ; 05/07/2008
  ; *********************************************************************
  ;
  ;** 'Select Command' processor
- ;
+ ;APR 2013 CONDITIONAL DISPLAY OF TXD AND MESSSAGES 
 EN ;EP - refund poster
  K DIR,^TEMP($J,"BARPOST"),BARTR
  S (BARADJ,BARREF)=0
@@ -86,9 +86,9 @@ ASKCOM1 ;
  I J=1,BARCOM(J)="T" D  G ASKCOM
  .S Y=$$DSPLY^BARPNP4(BARLIN)
  .D EOP^BARUTL(1)
- I J=1,BARCOM(J)="H" D  G ASKCOM
- .S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
- .D EN^BARPST5(BARBLDA)
+ I J=1,BARCOM(J)="H" D HISTORY^BARBAD3 G ASKCOM ;P.OTT
+ ;. S BARBLDA=$O(^BARTMP($J,"B",BARLIN,""))
+ ;. D EN^BARPST5(BARBLDA)
  ; -------------------------------
  ;
 GOQ ;
@@ -201,3 +201,4 @@ CANCEL ;
  K ^BARTMP($J)
  K BARREF,BARADJ,BARTR
  Q
+ ;***************************

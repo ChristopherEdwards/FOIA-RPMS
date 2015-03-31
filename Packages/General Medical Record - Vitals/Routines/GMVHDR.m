@@ -1,5 +1,6 @@
 GMVHDR ;HIOFO/FT-HEALTH DATA REPOSITORY API ;10/21/04  13:03
- ;;5.0;GEN. MED. REC. - VITALS;**2**;Oct 31, 2002
+ ;;5.0;GEN. MED. REC. - VITALS;**2,17**;Oct 31, 2002
+ ;11/30/2005 KAM/BAY Remedy Call 121661 changes for HL7 message
  ;
  ; This routine uses the following IAs:
  ; <None>
@@ -34,15 +35,21 @@ EN(GMVIEN) ; This function returns a string containing the values
  I '$G(GMVIEN) Q ""
  N GMVA,GMVLIST,GMVLOOP,GMVNODE,GMVNODE2,GMVQUALE,GMVQUALI,GMVUNIT,GMVVTE,GMVVTI,GMVX
  S GMVNODE=$G(^GMR(120.5,+GMVIEN,0)) ; zero node of patient record
+ ; check if record is complete
+ F GMVLOOP=1,2,3,4,5,6,8 I $P(GMVNODE,U,GMVLOOP)="" D
+ .H 1
+ .S GMVNODE=$G(^GMR(120.5,+GMVIEN,0)) ;get zero node again
+ .Q
  I GMVNODE="" Q ""
  I $P(GMVNODE,U,1)'>0 Q ""  ;date/time vitals taken
  I $P(GMVNODE,U,2)'>0 Q ""  ;dfn
  S GMVVTI=+$P(GMVNODE,U,3) ;vital type ien
  S GMVVTE=$P($G(^GMRD(120.51,GMVVTI,0)),U,1) ;vital type name
  I GMVVTE="" Q ""
+ I $$ACTIVE^GMVUID(120.51,"",GMVVTI_",","") Q ""  ; not active vuid
  S GMVA=$P($G(^GMRD(120.51,GMVVTI,0)),U,2) ;vital abbreviation
  S $P(GMVNODE,U,3)=GMVVTE,$P(GMVNODE,U,7)=GMVVTI
- S GMVUNIT=$S(GMVA="BP":"mmHg",GMVA="T":"F",GMVA="R":"/min",GMVA="P":"/min",GMVA="HT":"in",GMVA="WT":"lb",GMVA="CVP":"cmH2O",GMVA="CG":"in",GMVA="PO2":"%SpO2",GMVA="PN":"Verbal Numeric Analog Scale",1:"")
+ S GMVUNIT=$S(GMVA="BP":"mmHg",GMVA="T":"F",GMVA="R":"/min",GMVA="P":"/min",GMVA="HT":"in",GMVA="WT":"lb",GMVA="CVP":"cmH2O",GMVA="CG":"in",GMVA="PO2":"%SpO2",1:"")
  S $P(GMVNODE,U,9)=GMVUNIT
  S:+$P(GMVNODE,U,5)'>0 $P(GMVNODE,U,5)="" ;hospital location
  S:+$P(GMVNODE,U,6)'>0 $P(GMVNODE,U,6)="" ;entered by

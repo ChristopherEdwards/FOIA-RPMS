@@ -1,5 +1,5 @@
 GMRCASV1 ;SLC/JFR - HIERARCHY MGMT cont'd ; 01/10/02 21:34
- ;;3.0;CONSULT/REQUEST TRACKING;**18,15,23,22**;DEC 27, 1997
+ ;;3.0;CONSULT/REQUEST TRACKING;**18,15,23,22,42**;DEC 27, 1997
  ;
  ; This routine invokes IA #3252
  ;
@@ -7,7 +7,7 @@ GMRCASV1 ;SLC/JFR - HIERARCHY MGMT cont'd ; 01/10/02 21:34
 GUI(GMRCARR,GMRCSTRT,GMRCWHY,GMRCSYN,GMRCO) ;;return CSLT services for GUI
  ;Input:
  ; GMRCARR - passed in as the array to return results in
- ; GMRCSTRT- service to begin building from
+ ; GMRCSTRT- service name or ien to begin building from
  ; GMRCWHY - 0 for display, 1 for forwarding or ordering
  ; GMRCSYN - Boolean: 1=return synonyms, 0=do not
  ; GMRCO   - consult ien from file 123
@@ -15,9 +15,11 @@ GUI(GMRCARR,GMRCSTRT,GMRCWHY,GMRCSYN,GMRCO) ;;return CSLT services for GUI
  ;      svc ien^svc name or syn^parent^has children^svc usage
  ;
  N GMRCDG,GMRCGRP,GMRCTO
- S GMRCDG=GMRCSTRT,GMRCTO=GMRCWHY
+ ;Following line modified to accept the Name as well as the IEN for a Service, TDP - 2/9/2005
+ S GMRCDG=$$FIND1^DIC(123.5,,"AX",GMRCSTRT,"B") I 'GMRCDG Q
+ S GMRCTO=GMRCWHY
  D SERV1^GMRCASV I '$D(^TMP("GMRCSLIST",$J)) Q
- I '$G(GMRCSYN) M @GMRCARR=^TMP("GMRCSLIST",$J) Q  ;no synonyms needed
+ I '$G(GMRCSYN) G GUIQ ;M @GMRCARR=^TMP("GMRCSLIST",$J) Q  ;no synonyms needed
  N GMRC,GMRCSVC,GMRCS,NEXT,PIEC
  S GMRC=0,NEXT=$O(^TMP("GMRCSLIST",$J," "),-1)+1
  F  S GMRC=$O(^TMP("GMRCSLIST",$J,GMRC)) Q:'GMRC  Q:$P(^TMP("GMRCSLIST",$J,GMRC),U,5)="S"  D
@@ -32,8 +34,8 @@ GUI(GMRCARR,GMRCSTRT,GMRCWHY,GMRCSYN,GMRCO) ;;return CSLT services for GUI
  .. S NEXT=NEXT+1
  .. Q
  . Q
- M @GMRCARR=^TMP("GMRCSLIST",$J)
- K ^TMP("GMRCSLIST",$J)
+GUIQ M @GMRCARR=^TMP("GMRCSLIST",$J)
+ K ^TMP("GMRCS",$J),^TMP("GMRCSLIST",$J)
  Q
  ;
 PAGE(PG) ;print header and increment page

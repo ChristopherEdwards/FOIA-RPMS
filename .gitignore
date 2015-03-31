@@ -1,0 +1,29 @@
+# Do not add ExternalData store or staging files
+.ExternalData*
+
+# Python compiled sources
+*.pyc
+
+# Delphi local state and build outputs
+__history
+*.~*
+*.cbk
+*.cfg
+*.drc
+*.dsk
+*.dsm
+*.identcache
+*.local
+*.map
+/BDK/D*/
+/CPRS/D*/
+/CPRS/Bin/
+
+# GT.M JOB command output files
+*.mjo
+*.mje
+*.py~
+#IDE files
+*.project
+*.pydevproject
+

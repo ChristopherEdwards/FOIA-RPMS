@@ -1,7 +1,8 @@
-APSPES9 ;IHS/MSC/PLS - Master File SPI Request;24-May-2012 23:34;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1010,1013,1014**;Sep 23, 2004;Build 5
+APSPES9 ;IHS/MSC/PLS - Master File SPI Request;27-Aug-2013 23:15;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1010,1013,1014,1016**;Sep 23, 2004;Build 74
  ; Modified - IHS/MSC/PLS - 03/24/2011 - EN+20 (removed checks for DEA)
  ;                          09/14/2011 - Added support for service level
+ ;                          01/29/2013 - Uncomment lines related to service level
  Q
 ADDPRV(PVD,MFNTYP) ;
  Q:'$G(PVD)
@@ -77,6 +78,7 @@ STF(PKV) ;EP
  D SET(.ARY,"FX",10,3,,2)
  D SET(.ARY,$$GET1^DIQ(200,+PKV,.151),10,4)  ; email address
  D SET(.ARY,$$GET1^DIQ(4,DUZ(2),1.01),11,1)  ; Institution Address 1
+ D SET(.ARY,$$GET1^DIQ(4,DUZ(2),1.02),11,2)  ; Institution Address 2
  D SET(.ARY,$$GET1^DIQ(4,DUZ(2),1.03),11,3)  ; Institution City
  D SET(.ARY,$$GET1^DIQ(5,$$GET1^DIQ(4,DUZ(2),.02,"I"),1),11,4)  ; Institution State Abbreviation
  D SET(.ARY,$E($$GET1^DIQ(4,DUZ(2),1.04,"I"),1,5),11,5)  ; Institution 5 digit Zip Code
@@ -91,7 +93,8 @@ ORG ;EP
  Q
 PRA(PKV) ;EP
  N PRA,NM,LP,VAL,DEA,NPI
- S DEA=$$GET1^DIQ(200,+PKV,53.2)  ; New Person DEA#
+ S DEA=$$PRVDEA(PKV)
+ ;S DEA=$$GET1^DIQ(200,+PKV,53.2)  ; New Person DEA#
  S NPI=$$GET1^DIQ(200,+PKV,41.99) ; New Person NPI
  I '$L(DEA) D
  .S DEA=$$GET1^DIQ(4,DUZ(2),52)  ; Institution DEA
@@ -148,7 +151,7 @@ NOTIF(MSG) ; EP -
 EN ; EP -
  N USR,APSPPOP,NEWRX,REFRX
  W @IOF
- W !,"SureScripts Provider ID Request Utility",!
+ W !,"Surescripts Provider ID Request Utility",!
  S USR=$$GETIEN1^APSPUTIL(200,"Select Provider: ",-1,,"I $S('$D(^VA(200,Y,0)):0,Y<1:1,$L($P(^(0),U,3)):1,1:0),$P($G(^VA(200,Y,""PS"")),U)")
  Q:USR<1
  S (NEWRX,REFRX)=0
@@ -187,12 +190,11 @@ EN ; EP -
  .W !,"This will need to be corrected before you can continue with the request."
  .D DIRZ
  ;IHS/MSC/PLS - 05/24/2012
- ;I $$DIRYN^APSPUTIL("Will provider be writing New prescriptions electronically","YES",,.APSPPOP) D
- ;.S NEWRX=1
- S NEWRX=1
- ;I $$DIRYN^APSPUTIL("Will provider be taking Refill Requests electronically","YES",,.APSPPOP) D
- ;.S REFRX=1
- S REFRX=1
+ I $$DIRYN^APSPUTIL("Will provider be writing New prescriptions electronically","YES",,.APSPPOP) D
+ .S NEWRX=1
+ ;I $$DIRYN^APSPUTIL("Will provider be taking Refill Requests electronically","NO",,.APSPPOP) D
+ I $$DIR^APSPUTIL("SA^0:NO","Will provider be taking Refill Requests electronically? ","No")
+ .S REFRX=1
  I $$DIRYN^APSPUTIL("Request SPI","YES",,.APSPPOP) D
  .D ADDPRV(USR,"MAD")
  .W !!,"An SPI number has been requested. A Kernel Alert will be sent to"
@@ -220,3 +222,11 @@ ADDPTL(PVD) ;EP - Entry point for APSP ERX MFN UPDATE protocol
  ;Additional business rules to be added here
  D ADDPRV(PVD)
  Q
+PRVDEA(PKV) ;EP-
+ N DEA,NPI
+ S DEA=$$GET1^DIQ(200,+PKV,53.2)  ; New Person DEA#
+ S NPI=$$GET1^DIQ(200,+PKV,41.99) ; New Person NPI
+ I '$L(DEA) D
+ .S DEA=$$GET1^DIQ(4,DUZ(2),52)  ; Institution DEA
+ .S DEA=DEA_"-"_NPI
+ Q DEA

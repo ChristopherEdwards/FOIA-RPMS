@@ -1,5 +1,5 @@
-ORWDXM ; SLC/KCM/JLI - Order Dialogs, Menus;26-Jan-2011 00:16;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,132,1007**;Dec 17, 1997
+ORWDXM ; SLC/KCM/JLI - Order Dialogs, Menus;31-Dec-2012 10:33;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,132,1007**;Dec 17, 1997;Build 47
  ;Modified - IHS/MSC/PLS - 01/25/2011 - Line MENU+15
 MENU(LST,DLG) ; Return menu contents for an order dialog
  ; LST(0)=name^# cols^path switch^^^ Key Variables (pieces 6-20)
@@ -16,7 +16,7 @@ MENU(LST,DLG) ; Return menu contents for an order dialog
  . I COL>NUMCOL S NUMCOL=COL
  . S IEN=+$P(X,U,2),MNE=$P(X,U,3),DON=$P(X,U,5),X=$P(X,U,4)
  . S X0=$G(^ORD(101.41,IEN,0)),X5=$G(^(5))
- . I $E(X0,1,2)="PS",$T(QUICK^APSPMULT)]"" Q:'$$QUICK^APSPMULT(IEN)   ;IHS/MSC/JDS - 01/25/2011 - screen drugs
+ . I $E(X0,1,2)="PS",$T(QUICK^APSPMULT)]"",$P($G(^ORD(100.98,+$P(X0,U,5),0)),U,3)'["NV RX"  Q:'$$QUICK^APSPMULT(IEN)   ;IHS/MSC/JDS - 01/25/2011 - screen drugs
  . S TYP=$P(X0,U,4),FID=+$P(X5,U,5),AUT=$P(X5,U,8)
  . I '$L(X) S X=$P($G(^ORD(101.41,IEN,0)),U,2)
  . S ILST=ILST+1,LST(ILST)=COL_U_ROW_U_TYP_U_IEN_U_FID_U_AUT_U_X_U_MNE_U_DON

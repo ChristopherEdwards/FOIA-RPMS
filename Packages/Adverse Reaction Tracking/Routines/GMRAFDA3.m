@@ -1,5 +1,5 @@
-GMRAFDA3 ;HIRMFO/WAA-DISPLAY FDA REPORT OVER DT RANGE ;12/1/95  11:34 [ 05/02/2002  1:37 PM ]
- ;;4.0;Adverse Reaction Tracking;;Mar 29, 1996
+GMRAFDA3 ;HIRMFO/WAA-DISPLAY FDA REPORT OVER DT RANGE ;12/1/95  11:34
+ ;;4.0;Adverse Reaction Tracking;**33**;Mar 29, 1996;Build 5
 EN1 ; Entry for PRINT ALL FDA EVENTS WITHIN D/T RANGE option
  S GMRAOUT=0 K DIR
  S DIR(0)="DO^:NOW:EXT",DIR("A")="Select Start Date/Time"
@@ -40,9 +40,9 @@ PRINT ;Central Print
  .S GMRAPA1(0)=$G(^GMR(120.85,GMRAPA1,0)) Q:GMRAPA1(0)=""
  .S GMRAPA(0)=$G(^GMR(120.8,$P(GMRAPA1(0),U,15),0)) Q:GMRAPA(0)=""
  .S DFN=$P(GMRAPA(0),U) D PID^VADPT6
+ .Q:'$$PRDTST^GMRAUTL1(DFN)  ;GMRA*4*33  Exclude test patient from report if production or legacy environment.
  .S GMRACNT=GMRACNT+1
- .W !,$E($P(^DPT(DFN,0),U),1,23)," (",HRCN,")" K VA,DFN,HRCN ;IHS/ITSC/ENM 05/02/02 HRN ADDED
- .;W !,$E($P(^DPT(DFN,0),U),1,23)," (",VA("PID"),")" K VA,DFN
+ .W !,$E($P(^DPT(DFN,0),U),1,23)," (",VA("PID"),")" K VA,DFN
  .W ?32,$E($P(GMRAPA(0),U,2),1,28)
  .W ?62 S Y=$P(GMRAPA1(0),U),Y=$$DATE^GMRAUTL1(Y) W $P(Y,":",1,2) K Y
  .I $P($G(^GMR(120.85,GMRAPA1,"PTC1")),U,5) D
@@ -63,6 +63,6 @@ HDR1 S GMRAPG=GMRAPG+1
  W !,$$REPEAT^XLFSTR("-",79),!
  Q
 EXIT ;EXIT
- K ^TMP($J,"GMRAEF"),HRCN ;IHS/ITSC/ENM 05/02/02
+ K ^TMP($J,"GMRAEF")
  D KILL^XUSCLEAN
  Q

@@ -1,5 +1,5 @@
 PSJLMUT1 ;BIR/MLM-DRUG NAME DISPLAY ;05 Feb 98 / 1:39 PM
- ;;5.0; INPATIENT MEDICATIONS ;**4,27,29,49,58,107**;16 DEC 97
+ ;;5.0; INPATIENT MEDICATIONS ;**4,27,29,49,58,107,110,146,175,201**;16 DEC 97;Build 2
  ;
  ; Reference to ^PS(55 is supported by DBIA# 2191.
  ; Reference to ^PS(50.7 is supported by DBIA# 2180.
@@ -105,6 +105,7 @@ ORDCHK(DFN,TYPE,PIECE)   ;
  . S PSJPACK=$P(^TMP($J,TYPE,PSIVX,0),U,PIECE)
  . I $G(PSGORD) S PSJORD=PSGORD ; Set PSJORD if PSGORD exists and is not Null
  . I $G(PSJORD)]"" I $S($D(PSJORD):$G(PSJORD),1:$G(PSGORD))'["V",$P(PSJPACK,";")=$S($D(PSJORD):$G(PSJORD),1:$G(PSGORD)) Q  ; don't flag order that is being renewed as duplicate, only checks Unit Dose orders
+ . I $G(PSJCOM),($G(PSJORD)["P") Q:$D(^PS(53.1,"ACX",PSJCOM,+PSJPACK))
  . ; Don't flag if pending renewal from CPRS
  . I $G(PSJORD)]"",(PSJORD["P"),($P($G(^PS(53.1,+PSJORD,0)),"^",24)="R"),($P(PSJPACK,";")["U"),($P($G(^PS(55,DFN,5,+$P(PSJPACK,";"),0)),"^",27)="R"),($P($G(^PS(55,DFN,5,+$P(PSJPACK,";"),0)),"^",26)=PSJORD) Q
  . I $G(PSIVRNFG),$G(ON55)["V",$P(PSJPACK,";")=$G(ON55) Q  ;PSIVRNFG set and kill in R+2^PSIVOPT2. Needed to do dupl. check on new order but not renew.
@@ -115,8 +116,8 @@ ORDCHK(DFN,TYPE,PIECE)   ;
  . ;I $P(PSJPACK,";",2)["O" D  Q
  . N X S X=$P(PSJPACK,";",2) I X["O" D  Q
  ..  D:PSJFST=1 PAUSE
- ..  ;W !!,"The patient has this outpatient order:",!
  ..  W !!,"The patient has this "_$S($P(PSJPACK,";")["N":"Non-VA Meds",$P(PSJPACK,";",2)["O":"Outpatient",1:"")_" order:",!
+ ..  I $D(^TMP($J,TYPE,PSIVX,1)) D SHOR^PSJLMUT2(TYPE,PSIVX),PAUSE S PSJFST=$S(PSJFST=0:PSJFST+2,1:PSJFST+1) Q
  ..  D EN^PSODRDU2(DFN,PSJPACK),PAUSE S PSJPDRG=1,PSJFST=$S(PSJFST=0:PSJFST+2,1:PSJFST+1)
  . S ON=$P(PSJPACK,";") Q:$D(PSJOC(ON))
  . I ON=$G(PSIVOCON),+PSJORIEN Q

@@ -1,5 +1,6 @@
-AUTTVND1(X) ; IHS/DIRM/JDM/DFM - BETTER SOUNDEX ; [ 11/25/97  12:34 PM ]
- ;;98.1;IHS DICTIONARIES (POINTERS);;NOV 25, 1997
+AUTTVND1(X) ; IHS/DIRM/JDM/DFM - BETTER SOUNDEX ; [ 03/09/10   3:10 PM ]
+ ;;98.1;IHS DICTIONARIES (POINTERS);*23*;MAR 04, 1998;Build 6
+ ;IHS/OIT/FBD AUT*98.1*23 - ADDED ENTRY POINT ASX(X) - 3/9/2010
  ;
  ;Extrinsic function, Call with string, Returns converted string.
 1 ;
@@ -43,6 +44,9 @@ E ;Change 'Ends with' sound to another
  S Z=$L(E)-($L(F))+1,Z=$S(Z>1:Z,1:2)
  I $E(E,Z,$L(E))=F S E=$E(E,1,Z-1)_T,D=1
  Q
+ ;
+ASX(X) ;EP - X is the string you want converted.  Returns converted string.  ;IHS/OIT/FBD AUT*98.1*23 3/1/2010
+ G 1
  ;
 SH ;;TEOU;TIOU;TOU;TIOU;TU;TYOU;SHU;SHI;CHU;CHO;XIOU;XOU;AUT;XIU;CIOU;COU;CU;CO;SIOU;CEOU;CE;XEOU;XE;SEOU;SHOU;CHOU;CHE;CHI;SU;TIO
  ;

@@ -1,8 +1,13 @@
-PSOUTL ;BHAM ISC/SAB - pso utility routine ;29-Mar-2011 09:37;DU
- ;;7.0;OUTPATIENT PHARMACY;**1,21,126,1006,1011**;DEC 1997;Build 17
+PSOUTL ;BHAM ISC/SAB - pso utility routine ;29-May-2012 15:16;PLS
+ ;;7.0;OUTPATIENT PHARMACY;**1,21,126,1006,1011,174,218,259,1015**;DEC 1997;Build 62
  ;External reference SERV^IBARX1 supported by DBIA 2245
  ;External reference ^PS(55,     supported by DBIA 2228
+ ;
+ ;*218 prevent refill from being deleted if pending processing via
+ ; external dispense machines
+ ;*259 reverse *218 restrictions & Add del only last refill logic.
  ; Modified - IHS/MSC/PLS - 02/21/08 - Line ECAN+7 commented out
+ ;                          04/30/08 - Line CAN+7 commented out
  ;                          03/28/11 - Line CID+1,CIDH, CIDADJ (new EP)
 SUSPCAN ;dcl rx from suspense used in new, renew AND verification of Rxs
  S PSLAST=0 F PSI=0:0 S PSI=$O(^PSRX(PSRX,1,PSI)) Q:'PSI  S PSLAST=PSI
@@ -27,7 +32,9 @@ CHK1 I '$P(PSOSYS,"^",2) W !?10,$C(7),"RX# ",$P(^PSRX(PSRX,0),"^")," is not a va
  I $P(PSOSYS,"^",3) W !?10,$C(7),"RX# ",$P(^PSRX(PSRX,0),"^")," is from another division. Continue? (Y/N) " R ANS:DTIME I ANS="^"!(ANS="") S PSPOP=1 Q
  I (ANS']"")!("YNyn"'[$E(ANS)) W !?10,$C(7),"Answer 'YES' or 'NO'." G CHK1
  S:$E(ANS)["Nn" PSPOP=1 Q
-K52 S SFN=+$O(^PS(52.5,"B",DA(1),0))
+ ;PSO*7*259; SET VAR PSOSFN TO CHECK FOR SUSPENDED REFILL
+K52 K PSOSFN S SFN=+$O(^PS(52.5,"B",DA(1),0)),PSOSFN=SFN Q:SFN=0
+ I $P($G(^PS(52.5,SFN,0)),"^",5)=$P($G(^PSRX(+^PS(52.5,SFN,0),"P",0)),"^",3),$P($G(^PSRX($P(^PS(52.5,SFN,0),"^"),"P",0)),"^",4)=0 N PSOXX S PSOXX=1 G KILL
  G:X'=""&($G(Y)=1) KILL I $G(Y)'=1,SFN I $D(^PS(52.5,SFN,0)),'$P(^(0),"^",5),'$P($G(^("P")),"^") D
  .S SDT=+$P(^PS(52.5,SFN,0),"^",2) K ^PS(52.5,"C",SDT,SFN)
  .I $P($G(^PS(52.5,SFN,0)),"^",7)="Q" K ^PS(52.5,"AQ",SDT,+$P(^PS(52.5,SFN,0),"^",3),SFN) D KCMPX^PSOCMOP(SFN,"Q")
@@ -41,9 +48,10 @@ S52 S (RIFN,PSOSX)=0 F  S RIFN=$O(^PSRX(DA(1),1,RIFN)) Q:'RIFN  S RFID=$P(^PSRX(
  .I $P($G(^PS(52.5,SFN,0)),"^",7)="Q" S ^PS(52.5,"AQ",RFID,+$P(^PS(52.5,SFN,0),"^",3),SFN)="" D SCMPX^PSOCMOP(SFN,"Q")
  .I $P($G(^PS(52.5,SFN,0)),"^",7)="" S ^PS(52.5,"AC",+$P(^PS(52.5,SFN,0),"^",3),RFID,SFN)=""
  K SFN,RFIN,RFID,PSOSX,PSOSXDT Q
-KILL I SFN D
+KILL N DFN
+ I SFN D
  .S $P(^PSRX(DA(1),"STA"),"^")=0 Q:'$D(^PS(52.5,SFN,0))  S DFN=+$P(^PS(52.5,SFN,0),"^",3),PAT=$P(^DPT(DFN,0),"^")
- .I $P(^PS(52.5,SFN,0),"^",5) Q
+ .;I $P(^PS(52.5,SFN,0),"^",5) Q
  .K ^PS(52.5,"B",+$P(^PS(52.5,SFN,0),"^"),SFN),^PS(52.5,"C",+$P(^PS(52.5,SFN,0),"^",2),SFN),^PS(52.5,"D",PAT,SFN),^PS(52.5,"AF",DFN,SFN)
  .I $P($G(^PS(52.5,SFN,0)),"^",7)="" D
  ..I $G(^PS(52.5,SFN,"P")) K ^PS(52.5,"AS",+$P(^(0),"^",8),+$P(^(0),"^",9),+$P(^(0),"^",6),+$P(^(0),"^",11),SFN),^PS(52.5,"ADL",$E(+$P(^PS(52.5,SFN,0),"^",8),1,7),SFN) Q
@@ -57,7 +65,10 @@ KILL I SFN D
  .K ^PS(52.5,SFN,0),^PS(52.5,SFN,"P"),DFN,SFN,PAT
  S CNT=0 F SUB=0:0 S SUB=$O(^PSRX(DA(1),"A",SUB)) Q:'SUB  S CNT=SUB
  S:DA>5 DA=DA+1 D NOW^%DTC S CNT=CNT+1
- S ^PSRX(DA(1),"A",0)="^52.3DA^"_CNT_"^"_CNT,^PSRX(DA(1),"A",CNT,0)=%_"^D^"_DUZ_"^"_DA_"^"_"Refill "_$S($G(RESK):"returned to stock.",$G(PSOPSDAL):"deleted during Controlled Subs release.",1:"deleted during Rx edit.") K CNT,SUB
+ S ^PSRX(DA(1),"A",0)="^52.3DA^"_CNT_"^"_CNT,^PSRX(DA(1),"A",CNT,0)=%_"^D^"_DUZ_"^"_DA_"^"
+ I '$D(PSOXX) S ^PSRX(DA(1),"A",CNT,0)=^PSRX(DA(1),"A",CNT,0)_"Refill "
+ ;if PSOXX not exist, = refill. otherwise, it is a partial.
+ S ^PSRX(DA(1),"A",CNT,0)=^PSRX(DA(1),"A",CNT,0)_$S($G(RESK):"returned to stock.",$G(PSOPSDAL):"deleted during Controlled Subs release.",$G(PSOXX)=1:"Partial deleted from suspense file.",1:"deleted during Rx edit.") K CNT,SUB
  Q
 CID ;calculates six months limit on issue dates
  ;IHS/MSC/PLS - 03/28/11 - Next four lines
@@ -111,26 +122,47 @@ IBSSR S PSOIBFL=0 F PSOIBLP=0:0 S PSOIBLP=$O(^DIC(49,PSOIBLP)) Q:'PSOIBLP!(PSOIB
 WARN ;
  I $G(PSOUNHLD) D  Q
  .D EN^DDIOL("You cannot delete a refill while removing from Hold! Use the Edit Action.","","$C(7),!!"),EN^DDIOL(" ","","!!")
- I $G(CMOP(DA))]""&(+$G(CMOP(DA))<3) D   K CMOP Q
+ I $G(CMOP(DA))]""&(+$G(CMOP(DA))<3) D  K CMOP Q
  .D EN^DDIOL("You cannot delete a refill that"_$S(+$G(CMOP(DA))=1:" has been released by",1:" is being transmitted to")_" the CMOP","","!!")
  .D EN^DDIOL(" ","","!!")
  K CMOP
+ ;
+ N PSOL,PSR
  S PSR=0 F  S PSR=$O(^PSRX(DA(1),1,PSR)) Q:'PSR  S PSOL=PSR
- I DA=PSOL,$P(^PSRX(DA(1),1,DA,0),"^",18) D
- .D EN^DDIOL("Refill Released! Use the 'Return to Stock' option before attempting to delete!","","$C(7),!!"),EN^DDIOL(" ","","!")
- K PSR,PSOL Q
-WARN1 S PSR=0 F  S PSR=$O(^PSRX(DA(1),"P",PSR)) Q:'PSR  S PSOL=PSR
- I DA=PSOL,$P(^PSRX(DA(1),"P",DA,0),"^",19) D
- .D EN^DDIOL("Partial Released! Use the 'Return to Stock' option before attempting to delete!","","$C(7),!!"),EN^DDIOL(" ","","!")
- K PSR,PSOL Q
+ I DA=PSOL,$P(^PSRX(DA(1),1,DA,0),"^",18) D  Q
+ .D EN^DDIOL("Refill Released! Use the 'Return to Stock' option!","","$C(7),!!"),EN^DDIOL(" ","","!")
+ ;
+ ;Only allow deletion if last refill      *259
+ I $O(^PSRX(DA(1),1,DA)) D  Q
+ .D EN^DDIOL("Only the last refill can be deleted.  Later refills must be deleted first.","","$C(7),!!")
+ .D EN^DDIOL("","","!!")
+ ;
+ ;Warn of In Process, Only delete if answered Yes         ;*259
+ I $$REFIP^PSOUTLA1(DA(1),DA,"R") D  I 'Y Q               ;reset $T
+ . D EN^DDIOL("** Refill has previously been sent to the External Dispense Machine","","!!,?2")
+ . D EN^DDIOL("** for filling and is still Pending Processing","","$C(7),!,?2")
+ . D EN^DDIOL("","","!")
+ . K DIR
+ . S DIR("A")="Do you want to continue? "
+ . S DIR("B")="Y"
+ . S DIR(0)="YA^^"
+ . S DIR("?")="Enter Y for Yes or N for No."
+ . D ^DIR
+ . K DIR
  Q
+ ;
+WARN1 ;move to PSOUTLA1
+ D WARN1^PSOUTLA1
+ Q
+ ;
 CAN(PSOXRX) ;Clean up Rx when discontinued
  N SUSD,IFN,RF,NODE,DA
  Q:'$D(^PSRX(PSOXRX,0))
  S DA=$O(^PS(52.5,"B",PSOXRX,0)) I DA S DIK="^PS(52.5,",SUSD=$P($G(^PS(52.5,DA,0)),"^",2) D ^DIK K DIK I $O(^PSRX(PSOXRX,1,0)) S DA=PSOXRX D REF^PSOCAN2
  I $D(^PS(52.4,PSOXRX,0)) S DIK="^PS(52.4,",DA=PSOXRX D ^DIK K DIK
  I $G(^PSRX(PSOXRX,"H"))]"" K:$P(^PSRX(PSOXRX,"H"),"^") ^PSRX("AH",$P(^PSRX(PSOXRX,"H"),"^"),PSOXRX) S ^PSRX(PSOXRX,"H")=""
- I '$P($G(^PSRX(PSOXRX,2)),"^",2) K DIE S DIE="^PSRX(",DA=PSOXRX,DR="22///"_DT D ^DIE
+ ; IHS/MSC/PLS - 04/30/08 - Suppress the setting of the Fill Date for prescriptions on HOLD
+ ;I '$P($G(^PSRX(PSOXRX,2)),"^",2) K DIE S DIE="^PSRX(",DA=PSOXRX,DR="22///"_DT D ^DIE
  Q
 ECAN(PSOXRX) ;Clean up Rx when expired
  N DA

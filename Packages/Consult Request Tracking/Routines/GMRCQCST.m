@@ -1,6 +1,6 @@
-GMRCQCST ;SLC/DCM - Gather all consults for QC that do not have status of discontinued,complete, or expired ;19-Dec-2005 10:05;MGH
- ;;3.0;CONSULT/REQUEST TRACKING;**1,22,1001**;DEC 27, 1997
- ;IHS/CIA/MGH Code changed to use HRCN instead of SSN
+GMRCQCST ;SLC/DCM - Gather all consults for QC that do not have status of discontinued,complete, or expired ;15-Mar-2012 10:41;PLS
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,22,1001,1003**;DEC 27, 1997;Build 14
+ ;Modified - IHS/CIA/MGH  - 12/15/2005 - Line PROC+6 - Code changed to use HRCN instead of SSN
 STS(SRV) ;;Set partial statistics into the ^TMP global for printing
  ;;SRV=Service being worked on
  ;;STS=OERR status of order (3=hold, 4=flagged, 5=pending, etc.)

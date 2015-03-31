@@ -1,11 +1,12 @@
 PSOORRL1 ;BHAM ISC/SAB,TJH - sub-module for PSOORRL ;01/14/99
- ;;7.0;OUTPATIENT PHARMACY;**20,46,132**;DEC 1997
+ ;;7.0;OUTPATIENT PHARMACY;**20,46,132,159**;DEC 1997
  ;External reference to ^PS(51.2 supported by DBIA 2226
  ;External reference to ^PS(50.607 supported by DBIA 2221
  ;External reference to ^PS(50.606 supported by DBIA 2174
  ;External reference to ^PS(51 supported by DBIA 2224
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference to ^PSDRUG supported by DBIA 221
+ ;External reference to ^PS(55 supported by DBIA 2228
  ;
 MDR ;
  S ^TMP("PS",$J,"MDR",0)=0,(MDR,MR)=0 F  S MR=$O(^PSRX(IFN,"MEDR",MR)) Q:'MR  D
@@ -15,7 +16,10 @@ MDR ;
  .S ^TMP("PS",$J,"MDR",0)=^TMP("PS",$J,"MDR",0)+1
  Q
  ;
-PEN Q:'$D(^PS(52.41,IFN,0))!($P($G(^PS(52.41,IFN,0)),"^",3)="RF")  S PSOR=^PS(52.41,IFN,0)
+PEN ;
+ ;BHW;PSO*7*159;New SD Variable
+ N SD
+ Q:'$D(^PS(52.41,IFN,0))!($P($G(^PS(52.41,IFN,0)),"^",3)="RF")  S PSOR=^PS(52.41,IFN,0)
  S ^TMP("PS",$J,0)=$S($P(PSOR,"^",9):$P($G(^PSDRUG($P(PSOR,"^",9),0)),"^"),1:$P(^PS(50.7,$P(PSOR,"^",8),0),"^")_" "_$P(^PS(50.606,$P(^PS(50.7,$P(PSOR,"^",8),0),"^",2),0),"^"))
  I $P(PSOR,"^",9) D
  .S ^TMP("PS",$J,"DD",0)=1

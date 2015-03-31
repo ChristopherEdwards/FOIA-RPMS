@@ -1,5 +1,5 @@
 ABSPOS25 ; IHS/FCS/DRS - insurance auto-selection ;  [ 08/28/2002  2:43 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,11,13,21,37**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,11,13,21,37,46**;JUN 21, 2001
  ; Changed: POS always used ^ABSPCOMB, regardless of ILC presence
  Q
  ; Called from:
@@ -98,6 +98,8 @@ F ;
  . . I IEN="" Q
  . . N X S X=^ABSP(9002313.99,1,"INS RULES",IEN,0)
  . . S RULE=$P(X,U,2),PTSPLUS=$P(X,U,3),PTSMINUS=$P(X,U,4)
+ . . ;IHS/OIT/RCS 7/8/2013 Patch 46 - If Rule is Null then Quit, nothing to run
+ . . I RULE="" Q
  . . S ROUTINE=$TR($P(^ABSPF(9002313.94,RULE,0),U,2),"~","^")
  . . ; these rules are all in ABSPOS26, at least to start with
  . . X "DO "_ROUTINE_"(.ARRAY,ABSBPATI,ABSBVISI,PTSPLUS,PTSMINUS)"

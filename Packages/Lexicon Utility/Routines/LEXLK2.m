@@ -1,5 +1,5 @@
 LEXLK2 ;ISL/FJF-Look Up - Expression Attributes ;09-10-01
- ;;2.0;LEXICON UTILITY;**6,19**;Sep 23, 1996
+ ;;2.0;LEXICON UTILITY;**6,19**;Sep 23, 1996;Build 15
  ;
 GET(Y) ; Build list in array LEX
  N LEXSPC,LEXSPCR,LEXSTR,LEXDIS,LEXMC,LEXMCE,LEXEXP

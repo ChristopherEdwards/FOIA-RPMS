@@ -1,11 +1,11 @@
-PSOLSET ;BHAM ISC/SAB - site parameter set up ;07-Jul-2010 14:21;SM
-VERS ;;7.0;OUTPATIENT PHARMACY;**10,22,32,40,120,1009**;DEC 1997
- ;
+PSOLSET ;BHAM ISC/SAB - site parameter set up ;14-Nov-2012 13:55;PB
+VERS ;;7.0;OUTPATIENT PHARMACY;**10,22,32,40,120,1009,247,1015**;DEC 1997;Build 62
  ;Reference to ^PS(59.7 supported by DBIA 694
  ;Reference to ^PSX(550 supported by DBIA 2230
- ;Reference to ^%ZIS supported by DBIA 3435
- ; Modified IHS/CIA/PLS - 12/30/03 - Line DIV3+11
- ;          IHS/MSC/PLS - 06/29/10 - Line LBL - Added check for APSPLAP
+ ;Reference to ^%ZIS(2 supported by DBIA 3435
+ ; Modified - IHS/CIA/PLS - 12/30/03 - Line DIV3+11
+ ;            IHS/MSC/PLS - 06/29/10 - Line LBL - Added check for APSPLAP
+ ;            IHS/MSC/PB  - 11/14/12 - Line DIV3+4 to allow multi-divisional processing for CMOP
  ;
  I '$D(DUZ) W !,$C(7),"DUZ Number must be defined !!",! G LEAVE
  W !,"Outpatient Pharmacy software - Version "_$P($T(VERS),";",3)
@@ -24,6 +24,8 @@ DIV2 I PSOCNT>1 W ! S DIC("A")="Division: ",DIC=59,DIC(0)="AEMQ"
 DIV3 K DIR S PSOSITE=+Y W:PSOCNT>1 !!?10,"You are logged on under the ",$P(^PS(59,PSOSITE,0),"^")," division.",! S PSOPAR=$G(^PS(59,PSOSITE,1)),PSOPAR7=$G(^PS(59,PSOSITE,"IB")),PSOSYS=$G(^PS(59.7,1,40.1)) D CUTDATE^PSOFUNC
  S PSOPINST=$P($G(^PS(59,PSOSITE,"INI")),"^")
  S (SITE,DA)=$P(^XMB(1,1,"XUS"),"^",17),DIC="4",DIQ(0)="IE",DR=".01;99",DIQ="PSXUTIL" D EN^DIQ1 S S3=$G(PSXUTIL(4,SITE,99,"I")),S2=$G(PSXUTIL(4,SITE,.01,"E")) K DA,DIC,DIQ(0),DR
+ ;next line added to allow for multi-divisional processing
+ I $G(PSOSITE)'="" S S3=$P($G(^PS(59,PSOSITE,0)),"^",6)
  S PSXSYS=+$O(^PSX(550,"C",""))_"^"_$G(S3)_"^"_$G(S2),PSOINST=S3
  K S3,S2,S1,PSXUTIL
  I $G(PSXSYS) D
@@ -37,18 +39,18 @@ DIV3 K DIR S PSOSITE=+Y W:PSOCNT>1 !!?10,"You are logged on under the ",$P(^PS(5
 PLBL I $P(PSOPAR,"^",8) D
  .S %ZIS="MNQ",%ZIS("A")="Select PROFILE PRINTER: " S:$G(PSOCLBL)&($D(PSOPROP)) %ZIS("B")=PSOPROP
  .D ^%ZIS K %ZIS,IO("Q"),IOP Q:POP  S PSOPROP=ION D ^%ZISC
-LBL S %ZIS="MNQ",%ZIS("A")="Select LABEL PRINTER: " S:$G(PSOCLBL)&($D(PSOLAP))!($G(SUSPT))!($D(APSPLAP)) %ZIS("B")=$S($G(SUSPT):PSLION,$L($G(APSPLAP)):APSPLAP,1:$S($G(PSOLAP):PSOLAP,1:"HOME"))
- D ^%ZIS K %ZIS,IO("Q"),IOP G:POP EXIT S @$S($G(SUSPT):"PSLION",1:"PSOLAP")=ION,PSOPIOST=$G(IOST(0))
+LBL S %ZIS="MNQ",%ZIS("A")="Select LABEL PRINTER: " S:$G(PSOCLBL)&($D(PSOLAP))!($G(SUSPT))!($D(APSPLAP)) %ZIS("B")=$S($G(SUSPT):PSLION,$L($G(APSPLAP)):APSPLAP,1:$S($G(PSOLAP):PSOLAP,1:""))
+ D ^%ZIS K %ZIS,IO("Q"),IOP S:POP PSOQUIT=1 G:POP EXIT S @$S($G(SUSPT):"PSLION",1:"PSOLAP")=ION,PSOPIOST=$G(IOST(0))
  N PSOIOS S PSOIOS=IOS D DEVBAR^PSOBMST
  S PSOBARS=PSOBAR1]""&(PSOBAR0]"")&$P(PSOPAR,"^",19),PSOIOS=IOS D ^%ZISC
 LASK I $G(PSOPIOST),$D(^%ZIS(2,PSOPIOST,55,"B","LL")) G EXIT
- K DIR S DIR("A")="OK to assume label alignment is correct",DIR("B")="YES",DIR(0)="Y",DIR("?")="Enter Y if labels are aligned, N if they need to be aligned." D ^DIR G:Y!($D(DIRUT)) EXIT
+ K DIR S DIR("A")="OK to assume label alignment is correct",DIR("B")="YES",DIR(0)="Y",DIR("?")="Enter Y if labels are aligned, N if they need to be aligned." D ^DIR S:$D(DIRUT) PSOQUIT=1 G:Y!($D(DIRUT)) EXIT
 P2 S IOP=$G(PSOLAP) D ^%ZIS K IOP I POP W $C(7),!?5,"Printer is busy.",! G LASK
  U IO(0) W !,"Align labels so that a perforation is at the top of the",!,"print head and the left side is at column zero."
  ; IHS/CIA/PLS - 12/30/03 - Call IHS test label routine
  ;W ! K DIR,DIRUT,DUOUT,DTOUT S DIR(0)="E" D ^DIR K DIR,DTOUT,DUOUT Q:$D(DIRUT)  D ^PSOLBLT D ^%ZISC
  W ! K DIR,DIRUT,DUOUT,DTOUT S DIR(0)="E" D ^DIR K DIR,DTOUT,DUOUT Q:$D(DIRUT)  D ^APSPLBLT D ^%ZISC
- K DIRUT,DIR S DIR("A")="Is this correct",DIR("B")="YES",DIR(0)="Y",DIR("?")="Enter Y if labels are aligned correctly, N if they need to be aligned." D ^DIR G:Y!($D(DIRUT)) EXIT
+ K DIRUT,DIR S DIR("A")="Is this correct",DIR("B")="YES",DIR(0)="Y",DIR("?")="Enter Y if labels are aligned correctly, N if they need to be aligned." D ^DIR S:$D(DIRUT) PSOQUIT=1 G:Y!($D(DIRUT)) EXIT
  G P2
 LEAVE S XQUIT="" G FINAL
 Q W !?10,$C(7),"Default printer for labels must be entered." G LBL

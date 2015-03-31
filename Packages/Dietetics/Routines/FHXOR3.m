@@ -1,5 +1,5 @@
 FHXOR3 ; HISC/NCA - Order Entry Post-Init ;6/17/96  15:36
- ;;5.0;Dietetics;**12,6**;Oct 11, 1995
+ ;;5.5;DIETETICS;;Jan 28, 2005
  Q:'$D(^ORD(101,0))
  ; Add OE/RR protocols
  S FHX=$O(^ORD(101,"B","FH EVSEND OR",0)) I 'FHX S NAM="FH EVSEND OR",TXT="Dietetics Send Event Message To OR",TXT1="This protocol is used to send HL7 message to Order Entry 3 or higher from Dietetics." D PKG,AD

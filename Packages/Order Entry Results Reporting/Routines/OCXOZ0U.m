@@ -1,5 +1,5 @@
-OCXOZ0U ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32**;Dec 17,1997
+OCXOZ0U ;SLC/RJS,CLA - Order Check Scan ;JAN 28,2014 at 03:37
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**32,221,243**;Dec 17,1997;Build 242
  ;;  ;;ORDER CHECK EXPERT version 1.01 released OCT 29,1998
  ;
  ; ***************************************************************
@@ -10,197 +10,83 @@ OCXOZ0U ;SLC/RJS,CLA - Order Check Scan ;JUN 15,2011 at 12:58
  ;
  Q
  ;
-R51R1A ; Verify all Event/Elements of  Rule #51 'RECENT CHOLECYSTOGRAM ORDER'  Relation #1 'RECENT CHOLECGRM'
- ;  Called from EL63+5^OCXOZ0H.
+R49R1A ; Verify all Event/Elements of  Rule #49 'SITE FLAGGED RESULT'  Relation #1 'INPATIENT AND (SITE FLAGGED LAB RESULT OR SITE FLA...'
+ ;  Called from EL127+6^OCXOZ0H, and EL59+5^OCXOZ0H, and EL102+5^OCXOZ0H, and EL109+5^OCXOZ0H.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE63( ----------->  Verify Event/Element: 'PATIENT HAS RECENT CHOLECYSTOGRAM'
+ ; MCE102( ---------->  Verify Event/Element: 'SITE FLAGGED FINAL IMAGING RESULT'
+ ; MCE109( ---------->  Verify Event/Element: 'SITE FLAGGED FINAL CONSULT RESULT'
+ ; MCE127( ---------->  Verify Event/Element: 'INPATIENT'
+ ; MCE59( ----------->  Verify Event/Element: 'SITE FLAGGED FINAL LAB RESULT'
  ;
- Q:$G(^OCXS(860.2,51,"INACT"))
+ Q:$G(^OCXS(860.2,49,"INACT"))
  ;
- I $$MCE63 D R51R1B
+ I $$MCE127 D 
+ .I $$MCE59 D R49R1B
+ .I $$MCE102 D R49R1B
+ .I $$MCE109 D R49R1B
  Q
  ;
-R51R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #51 'RECENT CHOLECYSTOGRAM ORDER'  Relation #1 'RECENT CHOLECGRM'
- ;  Called from R51R1A+10.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ;
- Q:$D(OCXRULE("R51R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^15^^Recent Cholecystogram: "_$$GETDATA(DFN,"63^",61)_" ["_$$GETDATA(DFN,"63^",122)_"]" I 1
- E  S OCXCMSG="Recent Cholecystogram: "_$$GETDATA(DFN,"63^",61)_" ["_$$GETDATA(DFN,"63^",122)_"]"
- S OCXNMSG=""
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Order Check Message
- ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
- ;
-R53R1A ; Verify all Event/Elements of  Rule #53 'RENAL FUNCTIONS OVER AGE 65 CHECK'  Relation #1 'PHARM PAT OVER 65'
- ;  Called from EL64+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE64( ----------->  Verify Event/Element: 'PHARMACY PATIENT OVER 65'
- ;
- Q:$G(^OCXS(860.2,53,"INACT"))
- ;
- I $$MCE64 D R53R1B
- Q
- ;
-R53R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #53 'RENAL FUNCTIONS OVER AGE 65 CHECK'  Relation #1 'PHARM PAT OVER 65'
- ;  Called from R53R1A+10.
+R49R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #49 'SITE FLAGGED RESULT'  Relation #1 'INPATIENT AND (SITE FLAGGED LAB RESULT OR SITE FLA...'
+ ;  Called from R49R1A+14.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
  ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
+ ; INT2DT( ----------> CONVERT DATE FROM OCX FORMAT TO READABLE FORMAT
+ ; NEWRULE( ---------> NEW RULE MESSAGE
  ;
- Q:$D(OCXRULE("R53R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^21^^Patient >65. Renal Results: "_$$GETDATA(DFN,"64^",64) I 1
- E  S OCXCMSG="Patient >65. Renal Results: "_$$GETDATA(DFN,"64^",64)
- S OCXNMSG=""
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Order Check Message
- ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
- ;
-R54R1A ; Verify all Event/Elements of  Rule #54 'CONCURRENT LAB ORDERS FOR ANGIOGRAM, CAT...'  Relation #1 'ANGIOGRAM'
- ;  Called from EL65+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE65( ----------->  Verify Event/Element: 'SESSION ORDER FOR ANGIOGRAM'
- ;
- Q:$G(^OCXS(860.2,54,"INACT"))
- ;
- I $$MCE65 D R54R1B
- Q
- ;
-R54R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #54 'CONCURRENT LAB ORDERS FOR ANGIOGRAM, CAT...'  Relation #1 'ANGIOGRAM'
- ;  Called from R54R1A+10.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ;
- Q:$D(OCXRULE("R54R1B"))
+ Q:$D(OCXRULE("R49R1B"))
  ;
  N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^22^^Missing Labs for Angiogram: "_$$GETDATA(DFN,"65^",68) I 1
- E  S OCXCMSG="Missing Labs for Angiogram: "_$$GETDATA(DFN,"65^",68)
- S OCXNMSG=""
+ S OCXCMSG=""
+ S OCXNMSG="["_$$GETDATA(DFN,"59^102^109^127",147)_"] Result available: "_$$GETDATA(DFN,"59^102^109^127",96)_" "_$$INT2DT($$GETDATA(DFN,"59^102^109^127",9),0)_" "
  ;
  Q:$G(OCXOERR)
  ;
- ; Send Order Check Message
+ ; Send Notification
  ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
+ S (OCXDUZ,OCXDATA)="",OCXNUM=0
+ I ($G(OCXOSRC)="GENERIC HL7 MESSAGE ARRAY") D
+ .S OCXDATA=$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",2))_"|"_$G(^TMP("OCXSWAP",$J,"OCXODATA","ORC",3))
+ .S OCXDATA=$TR(OCXDATA,"^","@"),OCXNUM=+OCXDATA
+ I ($G(OCXOSRC)="CPRS ORDER PROTOCOL") D
+ .I $P($G(OCXORD),U,3) S OCXDUZ(+$P(OCXORD,U,3))=""
+ .S OCXNUM=+$P(OCXORD,U,2)
+ S:($G(OCXOSRC)="CPRS ORDER PRESCAN") OCXNUM=+$P(OCXPSD,"|",5)
+ S OCXRULE("R49R1B")=""
+ I $$NEWRULE(DFN,OCXNUM,49,1,32,OCXNMSG) D  I 1
+ .D:($G(OCXTRACE)<5) EN^ORB3(32,DFN,OCXNUM,.OCXDUZ,OCXNMSG,.OCXDATA)
  Q
  ;
-R55R1A ; Verify all Event/Elements of  Rule #55 'ALLERGY - CONTRAST MEDIA REACTION'  Relation #1 'ALLERGY'
- ;  Called from EL66+5^OCXOZ0H.
+R49R2A ; Verify all Event/Elements of  Rule #49 'SITE FLAGGED RESULT'  Relation #2 'OUTPATIENT AND (SITE FLAGGED LAB RESULT OR SITE FL...'
+ ;  Called from EL128+6^OCXOZ0H, and EL59+6^OCXOZ0H, and EL102+6^OCXOZ0H, and EL109+6^OCXOZ0H.
  ;
  Q:$G(OCXOERR)
  ;
  ;      Local Extrinsic Functions
- ; MCE66( ----------->  Verify Event/Element: 'CONTRAST MEDIA ALLERGY'
+ ; MCE102( ---------->  Verify Event/Element: 'SITE FLAGGED FINAL IMAGING RESULT'
+ ; MCE109( ---------->  Verify Event/Element: 'SITE FLAGGED FINAL CONSULT RESULT'
+ ; MCE128( ---------->  Verify Event/Element: 'OUTPATIENT'
+ ; MCE59( ----------->  Verify Event/Element: 'SITE FLAGGED FINAL LAB RESULT'
  ;
- Q:$G(^OCXS(860.2,55,"INACT"))
+ Q:$G(^OCXS(860.2,49,"INACT"))
  ;
- I $$MCE66 D R55R1B
+ I $$MCE128 D 
+ .I $$MCE59 D R49R2B^OCXOZ0V
+ .I $$MCE102 D R49R2B^OCXOZ0V
+ .I $$MCE109 D R49R2B^OCXOZ0V
  Q
  ;
-R55R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #55 'ALLERGY - CONTRAST MEDIA REACTION'  Relation #1 'ALLERGY'
- ;  Called from R55R1A+10.
+CKSUM(STR) ;  Compiler Function: GENERATE STRING CHECKSUM
  ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ;
- Q:$D(OCXRULE("R55R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^4^^Patient allergic to contrast medias: "_$$GETDATA(DFN,"66^",66) I 1
- E  S OCXCMSG="Patient allergic to contrast medias: "_$$GETDATA(DFN,"66^",66)
- S OCXNMSG=""
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Order Check Message
- ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
- ;
-R56R1A ; Verify all Event/Elements of  Rule #56 'RECENT BARIUM STUDY'  Relation #1 'BARIUM'
- ;  Called from EL67+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE67( ----------->  Verify Event/Element: 'RECENT BARIUM STUDY ORDERED'
- ;
- Q:$G(^OCXS(860.2,56,"INACT"))
- ;
- I $$MCE67 D R56R1B
- Q
- ;
-R56R1B ; Send Order Check, Notication messages and/or Execute code for  Rule #56 'RECENT BARIUM STUDY'  Relation #1 'BARIUM'
- ;  Called from R56R1A+10.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; GETDATA( ---------> GET DATA FROM THE ACTIVE DATA FILE
- ;
- Q:$D(OCXRULE("R56R1B"))
- ;
- N OCXNMSG,OCXCMSG,OCXPORD,OCXFORD,OCXDATA,OCXNUM,OCXDUZ,OCXQUIT,OCXLOGS,OCXLOGD
- I ($G(OCXOSRC)="CPRS ORDER PRESCAN") S OCXCMSG=(+OCXPSD)_"^14^^Recent Barium study: "_$$GETDATA(DFN,"67^",70)_" ["_$$GETDATA(DFN,"67^",121)_"]" I 1
- E  S OCXCMSG="Recent Barium study: "_$$GETDATA(DFN,"67^",70)_" ["_$$GETDATA(DFN,"67^",121)_"]"
- S OCXNMSG=""
- ;
- Q:$G(OCXOERR)
- ;
- ; Send Order Check Message
- ;
- S OCXOCMSG($O(OCXOCMSG(999999),-1)+1)=OCXCMSG
- Q
- ;
-R57R1A ; Verify all Event/Elements of  Rule #57 'CLOZAPINE'  Relation #1 'CLOZAPINE AND (WBC < 3.0 OR ANC < 1.5)'
- ;  Called from EL114+5^OCXOZ0H, and EL116+5^OCXOZ0H, and EL119+5^OCXOZ0H.
- ;
- Q:$G(OCXOERR)
- ;
- ;      Local Extrinsic Functions
- ; MCE114( ---------->  Verify Event/Element: 'CLOZAPINE ANC < 1.5'
- ; MCE116( ---------->  Verify Event/Element: 'CLOZAPINE DRUG SELECTED'
- ; MCE119( ---------->  Verify Event/Element: 'CLOZAPINE WBC < 3.0'
- ;
- Q:$G(^OCXS(860.2,57,"INACT"))
- ;
- I $$MCE116 D 
- .I $$MCE119 D R57R1B^OCXOZ0V
- .I $$MCE114 D R57R1B^OCXOZ0V
- Q
+ N CKSUM,PTR,ASC S CKSUM=0
+ S STR=$TR(STR,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ F PTR=$L(STR):-1:1 S ASC=$A(STR,PTR)-42 I (ASC>0),(ASC<51) S CKSUM=CKSUM*2+ASC
+ Q +CKSUM
  ;
 GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime data
  ;
@@ -208,75 +94,136 @@ GETDATA(DFN,OCXL,OCXDFI) ;     This Local Extrinsic Function returns runtime dat
  F PC=1:1:$L(OCXL,U) S OCXE=$P(OCXL,U,PC) I OCXE S VAL=$G(^TMP("OCXCHK",$J,DFN,OCXE,OCXDFI)) Q:$L(VAL)
  Q VAL
  ;
-MCE114() ; Verify Event/Element: CLOZAPINE ANC < 1.5
+INT2DT(OCXDT,OCXF) ;      This Local Extrinsic Function converts an OCX internal format
+ ; date into an Externl Format (Human Readable) date.   'OCXF=SHORT FORMAT OCXF=LONG FORMAT
  ;
- ;  OCXDF(37) -> PATIENT IEN data field
+ Q:'$L($G(OCXDT)) "" S OCXF=+$G(OCXF)
+ N OCXYR,OCXLPYR,OCXMON,OCXDAY,OCXHR,OCXMIN,OCXSEC,OCXCYR
+ S (OCXYR,OCXLPYR,OCXMON,OCXDAY,OCXHR,OCXMIN,OCXSEC,OCXAP)=""
+ S OCXSEC=$E(OCXDT#60+100,2,3),OCXDT=OCXDT\60
+ S OCXMIN=$E(OCXDT#60+100,2,3),OCXDT=OCXDT\60
+ S OCXHR=$E(OCXDT#24+100,2,3),OCXDT=OCXDT\24
+ S OCXCYR=($H\1461)*4+1841+(($H#1461)\365)
+ S OCXYR=(OCXDT\1461)*4+1841,OCXDT=OCXDT#1461
+ S OCXLPYR=(OCXDT\365),OCXDT=OCXDT-(OCXLPYR*365),OCXYR=OCXYR+OCXLPYR
+ S OCXCNT="031^059^090^120^151^181^212^243^273^304^334^365"
+ S:(OCXLPYR=3) OCXCNT="031^060^091^121^152^182^213^244^274^305^335^366"
+ F OCXMON=1:1:12 Q:(OCXDT<$P(OCXCNT,U,OCXMON))
+ S OCXDAY=OCXDT-$P(OCXCNT,U,OCXMON-1)+1
+ I OCXF S OCXMON=$P("January^February^March^April^May^June^July^August^September^October^November^December",U,OCXMON)
+ E  S OCXMON=$E(OCXMON+100,2,3)
+ S OCXAP=$S('OCXHR:"Midnight",(OCXHR=12):"Noon",(OCXHR<12):"AM",1:"PM")
+ I OCXF S OCXHR=OCXHR#12 S:'OCXHR OCXHR=12
+ Q:'OCXF $E(OCXMON+100,2,3)_"/"_$E(OCXDAY+100,2,3)_$S((OCXCYR=OCXYR):" "_OCXHR_":"_OCXMIN,1:"/"_$E(OCXYR,3,4))
+ Q:(OCXHR+OCXMIN+OCXSEC) OCXMON_" "_OCXDAY_","_OCXYR_" at "_OCXHR_":"_OCXMIN_"."_OCXSEC_" "_OCXAP
+ Q OCXMON_" "_OCXDAY_","_OCXYR
  ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(114,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),114)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),114))
- Q 0
+MCE102() ; Verify Event/Element: SITE FLAGGED FINAL IMAGING RESULT
  ;
-MCE116() ; Verify Event/Element: CLOZAPINE DRUG SELECTED
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(116,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),116)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),116))
- Q 0
- ;
-MCE119() ; Verify Event/Element: CLOZAPINE WBC < 3.0
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
- ;
- N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(119,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),119)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),119))
- Q 0
- ;
-MCE63() ; Verify Event/Element: PATIENT HAS RECENT CHOLECYSTOGRAM
- ;
- ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(63,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),63)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),63))
+ I $L(OCXDF(37)) S OCXRES(102,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),102)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),102))
  Q 0
  ;
-MCE64() ; Verify Event/Element: PHARMACY PATIENT OVER 65
+MCE109() ; Verify Event/Element: SITE FLAGGED FINAL CONSULT RESULT
  ;
- ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(64,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),64)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),64))
+ I $L(OCXDF(37)) S OCXRES(109,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),109)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),109))
  Q 0
  ;
-MCE65() ; Verify Event/Element: SESSION ORDER FOR ANGIOGRAM
+MCE127() ; Verify Event/Element: INPATIENT
  ;
- ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(65,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),65)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),65))
+ I $L(OCXDF(37)) S OCXRES(127,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),127)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),127))
  Q 0
  ;
-MCE66() ; Verify Event/Element: CONTRAST MEDIA ALLERGY
+MCE128() ; Verify Event/Element: OUTPATIENT
  ;
- ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(66,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),66)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),66))
+ I $L(OCXDF(37)) S OCXRES(128,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),128)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),128))
  Q 0
  ;
-MCE67() ; Verify Event/Element: RECENT BARIUM STUDY ORDERED
+MCE59() ; Verify Event/Element: SITE FLAGGED FINAL LAB RESULT
  ;
- ;  OCXDF(37) -> PATIENT IEN data field
  ;
  N OCXRES
- S OCXDF(37)=$G(DFN) I $L(OCXDF(37)) S OCXRES(67,37)=OCXDF(37)
- Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),67)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),67))
+ I $L(OCXDF(37)) S OCXRES(59,37)=OCXDF(37)
+ Q:'(OCXDF(37)) 0 I $D(^TMP("OCXCHK",$J,OCXDF(37),59)) Q $G(^TMP("OCXCHK",$J,OCXDF(37),59))
  Q 0
+ ;
+NEWRULE(OCXDFN,OCXORD,OCXRUL,OCXREL,OCXNOTF,OCXMESS) ; Has this rule already been triggered for this order number
+ ;
+ ;
+ Q:'$G(OCXDFN) 0 Q:'$G(OCXRUL) 0
+ Q:'$G(OCXREL) 0  Q:'$G(OCXNOTF) 0  Q:'$L($G(OCXMESS)) 0
+ S OCXORD=+$G(OCXORD),OCXDFN=+OCXDFN
+ ;
+ N OCXNDX,OCXDATA,OCXDFI,OCXELE,OCXGR,OCXTIME,OCXCKSUM,OCXTSP,OCXTSPL
+ ;
+ S OCXTIME=(+$H)
+ S OCXCKSUM=$$CKSUM(OCXMESS)
+ ;
+ S OCXTSP=($H*86400)+$P($H,",",2)
+ S OCXTSPL=($G(^OCXD(860.7,"AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM))+$G(OCXTSPI,300))
+ ;
+ Q:(OCXTSPL>OCXTSP) 0
+ ;
+ K OCXDATA
+ S OCXDATA(OCXDFN,0)=OCXDFN
+ S OCXDATA("B",OCXDFN,OCXDFN)=""
+ S OCXDATA("AT",OCXTIME,OCXDFN,OCXRUL,+OCXORD,OCXCKSUM)=OCXTSP
+ ;
+ S OCXGR="^OCXD(860.7"
+ D SETAP(OCXGR_")",0,.OCXDATA,OCXDFN)
+ ;
+ K OCXDATA
+ S OCXDATA(OCXRUL,0)=OCXRUL_U_(OCXTIME)_U_(+OCXORD)
+ S OCXDATA(OCXRUL,"M")=OCXMESS
+ S OCXDATA("B",OCXRUL,OCXRUL)=""
+ S OCXGR=OCXGR_","_OCXDFN_",1"
+ D SETAP(OCXGR_")","860.71P",.OCXDATA,OCXRUL)
+ ;
+ K OCXDATA
+ S OCXDATA(OCXREL,0)=OCXREL
+ S OCXDATA("B",OCXREL,OCXREL)=""
+ S OCXGR=OCXGR_","_OCXRUL_",1"
+ D SETAP(OCXGR_")","860.712",.OCXDATA,OCXREL)
+ ;
+ S OCXELE=0 F  S OCXELE=$O(^OCXS(860.2,OCXRUL,"C","C",OCXELE)) Q:'OCXELE  D
+ .;
+ .N OCXGR1
+ .S OCXGR1=OCXGR_","_OCXREL_",1"
+ .K OCXDATA
+ .S OCXDATA(OCXELE,0)=OCXELE
+ .S OCXDATA(OCXELE,"TIME")=OCXTIME
+ .S OCXDATA(OCXELE,"LOG")=$G(OCXOLOG)
+ .S OCXDATA("B",OCXELE,OCXELE)=""
+ .K ^OCXD(860.7,OCXDFN,1,OCXRUL,1,OCXREL,1,OCXELE)
+ .D SETAP(OCXGR1_")","860.7122P",.OCXDATA,OCXELE)
+ .;
+ .S OCXDFI=0 F  S OCXDFI=$O(^TMP("OCXCHK",$J,OCXDFN,OCXELE,OCXDFI)) Q:'OCXDFI  D
+ ..N OCXGR2
+ ..S OCXGR2=OCXGR1_","_OCXELE_",1"
+ ..K OCXDATA
+ ..S OCXDATA(OCXDFI,0)=OCXDFI
+ ..S OCXDATA(OCXDFI,"VAL")=^TMP("OCXCHK",$J,OCXDFN,OCXELE,OCXDFI)
+ ..S OCXDATA("B",OCXDFI,OCXDFI)=""
+ ..D SETAP(OCXGR2_")","860.71223P",.OCXDATA,OCXDFI)
+ ;
+ Q 1
+ ;
+SETAP(ROOT,DD,DATA,DA) ;  Set Rule Event data
+ M @ROOT=DATA
+ I +$G(DD) S @ROOT@(0)="^"_($G(DD))_"^"_($P($G(@ROOT@(0)),U,3)+1)_"^"_$G(DA)
+ I '$G(DD) S $P(@ROOT@(0),U,3,4)=($P($G(@ROOT@(0)),U,3)+1)_"^"_$G(DA)
+ ;
+ Q
+ ;
  ;
