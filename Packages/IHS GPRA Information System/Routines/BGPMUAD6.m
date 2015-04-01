@@ -1,10 +1,10 @@
 BGPMUAD6 ; IHS/MSC/MGH - Print MI measure NQF0062 and NQF0064 ;07-Jul-2011 14:19;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimeted output
  ;Diabetes Nephropathy screening
 NEPH(CNT) ;EP
  D P1
- K ^TMP("BGPMU0062")
+ K ^TMP("BGPMU0062",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -127,7 +127,7 @@ DATA2(NODE) ;GET DATA
  ;Get printout for diabetes lipid control
 LIPID ;EP
  D LDL
- K ^TMP("BGPMU0064")
+ K ^TMP("BGPMU0064",$J)
  Q
 LDL ;Write individual measure
  N X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRN1,PRD2,PRD3,PRN3,PRN3

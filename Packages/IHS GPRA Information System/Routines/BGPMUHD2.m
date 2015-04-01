@@ -1,5 +1,5 @@
 BGPMUHD2 ; IHS/MSC/SAT - Delimited MU measure STK-4 ;07-Apr-2011 13:15;DU
- ;;11.0;IHS CLINICAL REPORTING;**4**;JAN 06, 2011;Build 84
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimited output
  ; STK2^BGPMUHD1   = delimited routine for 0435 STK-2 Antithrombolytic Therapy at discharge
  ; STK3^BGPMUHD1   = delimited routine for 0436 STK-3 Anticoagulation Therapy at discharge
@@ -18,7 +18,7 @@ BGPMUHD2 ; IHS/MSC/SAT - Delimited MU measure STK-4 ;07-Apr-2011 13:15;DU
  ;Delimited output for Stroke Measure 0437
 STK4 ;EP
  D P1B
- K ^TMP("BGPMU0437")
+ K ^TMP("BGPMU0437",$J)
  Q
 P1B ;Write individual measure
  N BGPPTYPE,X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRD6,PRN1
@@ -121,7 +121,7 @@ DEXC437(NODE) ;GET DATA
  ;Delimited output for Stroke Measure 0438
 STK5 ;EP
  D P1
- K ^TMP("BGPMU0438")
+ K ^TMP("BGPMU0438",$J)
  Q
 P1 ;Write individual measure
  N BGPPTYPE,X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRD6,PRN1

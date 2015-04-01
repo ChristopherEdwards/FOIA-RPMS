@@ -1,5 +1,5 @@
 BDMPB18 ; IHS/CMI/LAB - 2003 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in WT
  ;
@@ -20,7 +20,7 @@ WT(P,BDATE,EDATE) ;EP
  .I '$D(^AUPNVPOV("AD",BDMZ)) S BDMW=$P(BDM(BDMN),U,2) Q
  . S BDMD=0 F  S BDMD=$O(^AUPNVPOV("AD",BDMZ,BDMD)) Q:'BDMD!(BDMW]"")  D
  .. ;S ICD=$P(^ICD9($P(^AUPNVPOV(BDMD,0),U),0),U) D  ;cmi/anch/maw 9/12/2007 orig line
- .. S ICD=$P($$ICDDX^ICDCODE($P(^AUPNVPOV(BDMD,0),U)),U,2) D  ;cmi/anch/maw 9/12/2007 csv
+ .. S ICD=$P($$ICDDX^BDMUTL($P(^AUPNVPOV(BDMD,0),U)),U,2) D  ;cmi/anch/maw 9/12/2007 csv
  ...I $E(ICD,1,3)="V22" Q
  ...I $E(ICD,1,3)="V23" Q
  ...I $E(ICD,1,3)="V27" Q

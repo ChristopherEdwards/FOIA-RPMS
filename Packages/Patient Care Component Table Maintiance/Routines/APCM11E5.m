@@ -1,5 +1,5 @@
 APCM11E5 ;IHS/CMI/LAB - IHS MU; 
- ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2**;MAR 26, 2012;Build 11
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2,4,5**;MAR 26, 2012;Build 5
  ;;;;;;Build 3
 PATEDUC ;EP - CALCULATE PAT ED
  ;for each provider or for the facility find out if this
@@ -109,8 +109,8 @@ MR ;EP - med reconciliation
  Q
 HASMMR(P,BD,ED,R,VSTS) ;does patient have a m-mr on visits
  ;
- NEW A,B,C,D,E,X,Y,V,PWH,T,W,Z,Q,PED,EDUC
- S T=$O(^APCMMUCN("B","INTERIM STAGE 1 2011",0))
+ NEW A,B,C,D,E,X,Y,V,PWH,T,W,Z,Q,PED,EDUC,J
+ S J=$O(^APCMMUCN("B","INTERIM STAGE 1 2011",0))
  ;LOOP THROUGH ALL VISITS AND COUNT VISIT AND PWH'S
  S PWH="0^0"
  S X=0 F  S X=$O(VSTS(X)) Q:X'=+X  D
@@ -126,7 +126,7 @@ HASMMR(P,BD,ED,R,VSTS) ;does patient have a m-mr on visits
  .Q:'G  ;not a visit to this provider
  .S C=$$CLINIC^APCLV(V,"C")
  .Q:C=30
- .I C]"",T,$D(^APCMMUCN(T,14,"B",C)) Q  ;don't count these clinics
+ .I C]"",J,$D(^APCMMUCN(J,14,"B",C)) Q  ;don't count these clinics
  .S $P(PWH,U,1)=$P(PWH,U,1)+1
  .;was there a PAT ED M-MR on the date of the visit
  .S B=""

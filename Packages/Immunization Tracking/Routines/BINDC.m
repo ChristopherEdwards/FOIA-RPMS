@@ -1,19 +1,21 @@
-BINDC ;IHS/CMI/MWR - NDC CODES.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+BINDC ;IHS/CMI/MWR - EDIT NDC CODES.; MAY 10, 2010
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
- ;;  NDC CODE FIELDS: NDC CODE, VACCINE, MANUFACTURER, PRODUCT NAME, CVX CODE, STATUS
- ;;  PATCH 3: This entire routine to for NDC Codes is new.
+ ;;  EDIT NDC NUMBER FIELDS.
+ ;   PATCH 2: Redisplay Message area (with # of NDCs) in List Template. HELP+5
  ;
- ; *******  NOTE!!!  NOTE!!!   NOTE!!!  ********
  ;
- ; THIS ENTIRE ROUTINE TAKEN FROM RTN BIELIG.  USE AS PROTOTYPE FOR NDC MENU SYSTEM.
- ;
- ; ******* NOTE NOTE NOTE ********
  ;
  ;----------
 START ;EP
- ;---> Lookup Eligibility Codes and edit their fields.
- D SETVARS^BIUTL5 K ^TMP("BIELIG",$J) N BIELIG,BITMP
+ ;---> Lookup NDC CODES and edit their fields.  vvv83
+ D SETVARS^BIUTL5 K ^TMP("BINDC",$J) N BICOLL,BISUBT,BITMP,BIINACT
+ S BISUBT="1:NDC Code;2:Vaccine Name, then by NDC Code"
+ ;S BISUBT=BISUBT_";5:Vaccine Name, then by Exp Date"
+ ;
+ ;---> If Vaccine Table is not standard, display Error Text and quit.
+ I $D(^BISITE(-1)) D ERRCD^BIUTL2(503,,1) Q
+ ;
  D EN
  D EXIT
  Q
@@ -21,21 +23,21 @@ START ;EP
  ;
  ;----------
 EN ;EP
- D EN^VALM("BI ELIGIBILITY TABLE EDIT")
+ D EN^VALM("BI NDC TABLE EDIT")
  Q
  ;
  ;
  ;----------
 PRINT ;EP
- ;---> Print Eligibility Table.
- ;---> Called by Protocol BI VACCINE TABLE PRINT, which is the
- ;---> Print List Protocol for the List: BI VACCINE TABLE EDIT.
+ ;---> Print NDC Number Table.
+ ;---> Called by Protocol BI NDC NUMBER TABLE PRINT, which is the
+ ;---> Print List Protocol for the List: BI NDC NUMBER TABLE EDIT.
  ;
  D DEVICE(.BIPOP)
  I $G(BIPOP) D RESET Q
  ;
- D HDR(1),INIT^BIELIG1
- D PRTLST^BIUTL8("BIELIG")
+ D HDR(1),INIT^BINDC1
+ D PRTLST^BIUTL8("BINDC")
  D RESET
  Q
  ;
@@ -56,14 +58,20 @@ HDR(BIPRT) ;EP
  S X=$$SP^BIUTL5(BIDASH,"-") D CENTERT^BIUTL5(.X)
  D WH^BIW(.BILINE,X)
  ;
- S X="ELIGIBILITY CODE TABLE" S:'$G(BIPRT) X="EDIT "_X D CENTERT^BIUTL5(.X)
+ S X="NDC NUMBER TABLE" S:'$G(BIPRT) X="EDIT "_X
+ D CENTERT^BIUTL5(.X)
  S:BICRT X=IOINHI_X_IOINORM
  D WH^BIW(.BILINE,X)
+ ;
+ ;---> Subtitle: indicate order of listing.
+ D:($G(BICOLL)&$D(BISUBT))
+ .N Y S Y=$P($P(BISUBT,BICOLL_":",2),";") S X=" (Listed by "_Y_")"
+ .D CENTERT^BIUTL5(.X) S:BICRT X=IOINHI_X_IOINORM D WH^BIW(.BILINE,X)
  ;
  D:$G(BIPRT)
  .S X=$$SP^BIUTL5(51)_"Printed: "_$$NOW^BIUTL5()
  .D WH^BIW(.BILINE,X,1)
- .S X="    #  Eligibility Code      Label of Cdoe    Status     Local Text     Report Text"
+ .S X="  #  NDC Code         Vaccine     CVX  Manufacturer  Product         Status"
  .D WH^BIW(.BILINE,X)
  Q
  ;
@@ -71,7 +79,7 @@ HDR(BIPRT) ;EP
  ;----------
 INIT ;EP
  ;---> Initialize variables and list array.
- D INIT^BIELIG1
+ D INIT^BINDC1
  Q
  ;
  ;
@@ -90,7 +98,7 @@ DEVICE(BIPOP) ;EP
  ;     1 - BIPOP (ret) If error or Queue, BIPOP=1
  ;
  K %ZIS,IOP S BIPOP=0
- S ZTRTN="DEQUEUE^BIELIG"
+ S ZTRTN="DEQUEUE^BINDC"
  D ZSAVES^BIUTL3
  D ZIS^BIUTL2(.BIPOP,1)
  Q
@@ -99,8 +107,8 @@ DEVICE(BIPOP) ;EP
  ;----------
 DEQUEUE ;EP
  ;---> Print Patient Data screen.
- D HDR(1),INIT^BIELIG1
- D PRTLST^BIUTL8("BIELIG"),EXIT
+ D HDR(1),INIT^BINDC1
+ D PRTLST^BIUTL8("BINDC"),EXIT
  Q
  ;
  ;
@@ -109,10 +117,11 @@ HELP ;EP
  ;---> Help code.
  N BIX S BIX=X
  D FULL^VALM1
- W !!?5,"Enter ""E"" to edit a Eligibility Code, enter ""C"" to change the order of"
- W !?5,"the list, ""H"" to view the full help text for the Eligibility list and"
- W !?5,"its parameters, ""F"" to turn on/off the forecasting of vaccines"
- W !?5,"and enter ""P"" to print the list."
+ W !!?5,"Enter ""A"" to add or edit an NDC Code, enter ""E"" to select and Edit an"
+ W !?5,"NDC Code from the left column, enter ""C"" to change the order of the list,"
+ W !?5,"""S"" to Search for a particular NDC Code, ""D"" to include NDC Codes"
+ W !?5,"in the display (will appear after all Active Lot Numbers),and enter ""H"""
+ W !?5,"to view the full help text for the NDC list and its parameters."
  D DIRZ^BIUTL3("","     Press ENTER/RETURN to continue")
  D:BIX'="??" RE^VALM4
  Q
@@ -122,36 +131,33 @@ HELP ;EP
 HELP1 ;EP
  ;----> Explanation of this report.
  N BITEXT D TEXT1(.BITEXT)
- D START^BIHELP("EDIT VACCINE TABLE - HELP",.BITEXT)
+ D START^BIHELP("EDIT NDC CODES - HELP",.BITEXT)
+ ;
+ ;---> Redisplay Message area (with number of NDCs) in List Template.
+ D RESET^BINDC1
  Q
  ;
- ;
+ ;   vvv83
  ;----------
 TEXT1(BITEXT) ;EP
  ;;
- ;;This screen allows you to edit 3 fields for each Eligibility Code.
- ;;To Edit a particular Code, type "E", then select the left
- ;;column number that corresponds to the Code you wish to edit.
+ ;;This screen allows you to view and edit the fields of NDC CODES.
  ;;
- ;;* Active/Inactive - If a Code is set to "Inactive", users will
- ;;     not be able to select this Elligibility Code when entering or
- ;;     editing immunizations. However, previous immunizations with
- ;;     Code will continue to display it.
+ ;;NOTE: To show INACTIVE NDC CODES, select "D Display Inactives."
  ;;
- ;;* Local Text - This is an optional, locally meaningful text that
- ;;     may be entered to help staff recognize Codes.  It may be the
- ;;     proper name of a local or State program, a regional or clinic
- ;;     name, or whatever is helpful.  It may be up to 20 characters
- ;;     in length. It is not exported, nor does it appear anywhere
- ;;     except during the Eligibility Code selection (along side the
- ;;     true Code) when immunizations are entered or edited.
+ ;;To Add a new NDC Number, type "A".  If the NDC Number already exists in
+ ;;the Table, a message will display, directng you select that NDC Number
+ ;;for editing.
  ;;
- ;;* Report Abbreviation - This is an optional, locally meaningful text
- ;;     that can be entered to help make information in the Eligibility
- ;;     Report more recognizable.  Text entered here will show up in
- ;;     the fourth column of the Vaccine Eligibility Report. (If no Report
- ;;     Abbreviation has been entered, then the standard Eligibility Code
- ;;     will appear in column four of the report.)
+ ;;To edit an existing NDC Number type "E" and then select the left column
+ ;;number that corresponds to the NDC Number you wish to edit.
+ ;;
+ ;;You may also SEARCH the entire list for any number, name, or combination
+ ;;of characters by usinng the "S Search List" action.
+ ;;
+ ;;You may list the NDCs by either NDC Code or Vaccine (alphabetically) using
+ ;;the Change List Order action.
+ ;;
  ;;
  D LOADTX("TEXT1",,.BITEXT)
  Q
@@ -166,10 +172,50 @@ LOADTX(BILINL,BITAB,BITEXT) ;EP
  ;
  ;
  ;----------
+TEXT3 ;EP
+ ;;
+ ;;This option will automatically INACTIVATE ALL NDC CODES that
+ ;;have EXPIRED (an Expiration Date prior to today).
+ ;;
+ ;;It will also automatically INACTIVATE ALL NDC CODES that have
+ ;;NO Expiration Date (as viewed in the NDC Number Table).
+ ;;
+ ;;   Note: You can REACTIVATE any NDC Number individually at any time
+ ;;   by editing the NDC Number individually from the Edit NDC CODES
+ ;;   Screen (and resetting the Active Field for that NDC Number).
+ ;;
+ ;;Do you wish to INACTIVATE ALL NDC CODES that either have EXPIRED
+ ;;or have NO Expiration Date?
+ ;;
+ D PRINTX("TEXT3")
+ Q
+ ;
+ ;
+ ;----------
+TEXT33 ;EP
+ ;;
+ ;;Okay.
+ ;;Please confirm that you wish Inactivate all NDC CODES that
+ ;;either have EXPIRED or have NO Expiration Eate, by typing "YES"
+ ;;a second time.  (Enter NO to discontinue this process.)
+ ;;
+ D PRINTX("TEXT33")
+ Q
+ ;
+ ;
+ ;----------
+PRINTX(BILINL,BITAB) ;EP
+ Q:$G(BILINL)=""
+ N I,T,X S T="" S:'$D(BITAB) BITAB=5 F I=1:1:BITAB S T=T_" "
+ F I=1:1 S X=$T(@BILINL+I) Q:X'[";;"  W !,T,$P(X,";;",2)
+ Q
+ ;
+ ;
+ ;----------
 EXIT ;EP
  ;---> End of job cleanup.
  D KILLALL^BIUTL8()
- K ^TMP("BIELIG",$J)
+ K ^TMP("BINDC",$J)
  D CLEAR^VALM1
  D FULL^VALM1
  Q
@@ -181,8 +227,8 @@ NDC(IEN,FORM) ;EP
  ;---> Parameters:
  ;     1 - IEN  (req) IEN of NDC Code.
  ;     2 - FORM (opt) FORM of Code to return:
- ;                        1=Actual Code (also default)
- ;                        2=Vaccine Pointer (use for CVX?)
+ ;                        1=Actual NDC Code (also default)
+ ;                        2=Vaccine Pointer (use for Vaccine Name or CVX)
  ;                        3=Manufacturer Pointer
  ;                        4=Product Name
  ;                        5=Status

@@ -1,10 +1,12 @@
 BIUTL2 ;IHS/CMI/MWR - UTIL: ZIS, PATH, ERRCODE; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: ZIS, ERROR CODE, VACCINE NAME & GROUP,
  ;;           MAX SERIES#, LOT DFLT, CASE MGR DFLT, VIS DATE DFLT.
  ;;  PATCH 1: Do not provide default Lot Number if Lot Number is restricted
  ;;           to a site and user's DUZ(2) does not match the site.  LOTDEF+19
+ ;;  PATCH 7: Changes to accommodate new TCH Forecaster   HL7TX+16
+ ;;  PATCH 8: Changes to accommodate new TCH Forecaster   HL7TX+16, MINAGE+6
  ;
  ;
  ;----------
@@ -98,7 +100,7 @@ CODE(IEN,TYPE) ;EP
  ;----------
 IMMVG(BIIEN,Z) ;EP
  ;---> For a particular Vaccine, return its Vaccine Group Information.
- ;---> (Note: Vaccine Group is also called "Series Ty
+ ;---> (Note: Vaccine Group is also called "Series Type."
  ;---> .
  ;---> Parameters:
  ;     1 - BIIEN  (req) IEN in of Vaccine in IMMUNIZATION File #9999999.14.
@@ -171,23 +173,19 @@ HL7TX(BICVX,BIGRP) ;EP
  ;---> Return Vaccine IEN for this CVX.
  Q:'$G(BIGRP) BIVIEN
  ;---> Return Vaccine Group for this CVX.
- Q $P(^AUTTIMM(BIVIEN,0),"^",9)
  ;
- ;
- ;----------
-VMAX(IEN) ;EP  ;MWRZZZ REMOVE?
- ;---> Return the Maximum Dose# for a Vaccine.
- ;---> Parameters:
- ;     1 - IEN  (req) IEN of Vaccine.
- ;
- Q:'$G(IEN) ""
- Q:'$D(^AUTTIMM(IEN,0)) ""
- Q $P(^AUTTIMM(IEN,0),"^",5)
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> If the Vaccine Group is null, return IEN for Group "OTHER".
+ ;Q $P(^AUTTIMM(BIVIEN,0),"^",9)
+ N X S X=$P(^AUTTIMM(BIVIEN,0),"^",9)
+ S:'X X=12
+ Q X
+ ;**********
  ;
  ;
  ;----------
 VCOMPS(IEN) ;EP v8.0
- ;---> Return string of components for a Vaccine.
+ ;---> Return string of components IEN's for a Vaccine.
  ;---> Parameters:
  ;     1 - IEN  (req) IEN of Vaccine.
  ;
@@ -196,6 +194,17 @@ VCOMPS(IEN) ;EP v8.0
  N X S X=$P(^AUTTIMM(IEN,0),"^",21,26)
  S X=$TR(X,"^",";")
  Q X
+ ;
+ ;
+ ;----------
+VMAX(IEN) ;EP
+ ;---> Return the Maximum Dose# for a Vaccine.
+ ;---> Parameters:
+ ;     1 - IEN  (req) IEN of Vaccine.
+ ;
+ Q:'$G(IEN) ""
+ Q:'$D(^AUTTIMM(IEN,0)) ""
+ Q $P(^AUTTIMM(IEN,0),"^",5)
  ;
  ;
  ;----------
@@ -293,7 +302,7 @@ IMPCPT(BIDUZ2) ;EP
  ;----------
 VISMNU(BIDUZ2) ;EP
  ;---> Visit Selection Menu Parameter: Return 1 to display a menu of matching
- ;---> Visits, if any; return 0 to automatically creat or link Visits.
+ ;---> Visits, if any; return 0 to automatically create or link Visits.
  ;---> Parameters:
  ;     1 - BIDUZ2 (req) User's DUZ(2)
  ;
@@ -364,10 +373,12 @@ MINAGE(DUZ2) ;EP
  ;---> Parameters:
  ;     1 - DUZ2 (req) User's DUZ(2)
  ;
- Q:'$G(DUZ2) "R"
- N Y S Y=$P($G(^BISITE(DUZ2,0)),U,7)
- Q:Y="" "R"
- Q Y
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Change returned value to 1 or 0 to accommodate new forecaster.
+ Q:'$G(DUZ2) 0
+ Q:($P($G(^BISITE(DUZ2,0)),U,7)="A") 1
+ Q 0
+ ;**********
  ;
  ;
  ;----------

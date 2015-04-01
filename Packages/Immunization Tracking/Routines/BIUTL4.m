@@ -1,5 +1,5 @@
 BIUTL4 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: SCREENMAN CODE: VAC SELECT ACTIONS, SERIES VALID,
  ;;           LOC BRANCHING LOGIC, VISIT LOC DEF, SKIN TEST READ MM.
@@ -7,6 +7,7 @@ BIUTL4 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; OCT 15, 2010
  ;            patients >19yrs.  OLDDATE+15
  ;;  PATCH 5: Add NDC to reset fields when vaccine is changed.  VACCHG+14
  ;;  PATCH 5: Add leading zero to default volume if less than 1.  VISVOL+21
+ ;;  PATCH 9: Make VIS Presented Date default to Visit Date (when changed).  OLDATE+9
  ;
  ;----------
 VACSCR ;EP
@@ -278,24 +279,16 @@ OLDDATE(X) ;EP
  ;---> Parameters:
  ;     1 - X (opt) X=Internal Value of Date of Visit entered.
  ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Make VIS Presented Date default to Visit Date (when changed).
+ N BIDATEE S BIDATEE=X
+ ;
  I '$G(BI("K"))&($P(X,".")'=DT) D
  .D PUT^DDSVALF(11,,,"E","I") S BI("I")="E"
  .I ($G(DT)-X)>5 D NOPROV^BIUTL7("E")
  ;
- ;---> If the patient is/was 19 yrs or older on the Imm date, DISABLE
- ;---> Field 10.5 VFC Eligibility and set VFC="".
- ;
- ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
- ;---> Comment out code that would disable VFC Elig field for patients >19yrs.
- Q
- ;
- N BIDATE S BIDATE=X
- N BIDOB S BIDOB=$$DOB^BIUTL1($G(BIDFN))
- Q:'BIDATE  Q:'BIDOB
- I ((BIDOB+190000)'>BIDATE) D  Q
- .D UNED^DDSUTL(10.5,,,1) S BI("P")="" D PUT^DDSVALF(10.5) Q
- D UNED^DDSUTL(10.5,,,0)
- Q
+ D PUT^DDSVALF(10.2,,,BIDATEE,"E") S BI("QQ")=BIDATEE
  ;**********
  ;
  ;

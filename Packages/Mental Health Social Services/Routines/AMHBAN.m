@@ -1,10 +1,10 @@
 AMHBAN ; IHS/CMI/LAB - Banner for BH ; 22 May 2012  12:13 PM
- ;;4.0;IHS BEHAVIORAL HEALTH;**1,2,3**;JUN 18, 2010;Build 10
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2,3,4**;JUN 18, 2010;Build 28
  ;
 EP ;
 V ; GET VERSION
  ;S AMH("VERSION")="",AMH("VERSION")=$O(^DIC(9.4,"C","AMH",AMH("VERSION"))),AMH("VERSION")=^DIC(9.4,AMH("VERSION"),"VERSION")
- S AMH("VERSION")="4.0 (patch 3)"
+ S AMH("VERSION")="4.0 (patch 4)"
  I $G(AMHTEXT)="" S AMHTEXT="TEXT",AMHLINE=3 G PRINT
  S AMHTEXT="TEXT"_AMHTEXT
  F AMHJ=1:1 S AMHX=$T(@AMHTEXT+AMHJ),AMHX=$P(AMHX,";;",2) Q:AMHX="QUIT"!(AMHX="")  S AMHLINE=AMHJ
@@ -128,3 +128,16 @@ TEXTL ;data entry menu
  ;;**              Suicide Reports             **
  ;;**********************************************
  ;;QUIT
+COPYINFO ;EP called from option
+ W !!,"*Reprinted with permission from the Diagnostic and Statistical Manual"
+ W !,"of Mental Disorders, Fifth Edition. (TM) Copyright 2013 American Psychiatric"
+ W !,"Association.  All Rights Reserved. "
+ W !!,"Unless authorized in writing by the APA, no part may be reproduced or "
+ W !,"used in a manner inconsistent with the APA's copyright. This prohibition"
+ W !,"applies to unauthorized uses or reproductions in any form. "
+ W !!,"The American Psychiatric Association is not affiliated with and is not "
+ W !,"endorsing this product.",!!
+ K DIR
+ S DIR(0)="E",DIR("A")="Press Enter to Continue" D ^DIR
+ K DIR
+ Q

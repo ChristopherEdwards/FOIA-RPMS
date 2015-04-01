@@ -1,10 +1,10 @@
 BGPMUDP2 ; IHS/MSC/SAT - MU EH  measure output routines;02-Mar-2011 16:30;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;
  ;This routine does the printed output of 0081 Heart Failure (BGPMUD03)
 HF ;EP  output routine for 0081 Heart Failure
  D P2
- K ^TMP("BGPMU0081")
+ K ^TMP("BGPMU0081",$J)
  Q
 P2 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -143,7 +143,7 @@ XML081 ;Populate the BGPXML array with data for each population/numerator
   ;This routine does the printed output of 0012 Prenatal HIV Screening (BGPMUD04)
 PENTRY ;EP  output routine for 0012 Prenatal HIV Screening
  D P12
- K ^TMP("BGPMU0012")
+ K ^TMP("BGPMU0012",$J)
  Q
 P12 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

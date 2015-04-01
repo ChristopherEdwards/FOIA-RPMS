@@ -1,9 +1,9 @@
-BGP5ULF ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP5ULF ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 27 May 2015 4:26 PM ; 09 Apr 2015  3:29 PM
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;
  ;
  W:$D(IOF) @IOF
- W !,"This option is used to upload a SU's 2005 CRS data.",!,"You must specify the directory in which the CRS 2005 data file resides",!,"and then enter the filename of the data.",!
+ W !,"This option is used to upload a SU's 2015 CRS data.",!,"You must specify the directory in which the CRS 2015 data file resides",!,"and then enter the filename of the data.",!
 FILE ;
  D HOME^%ZIS
 DIR ;
@@ -16,10 +16,10 @@ DIR ;
 FILENAME ;
  W !!
  S BGPFILE=""
- S DIR(0)="FO^2:30",DIR("A")="Enter filename w /ext (i.e. BG05101201.5)" K DA D ^DIR K DIR
+ S DIR(0)="FO^2:30",DIR("A")="Enter filename w /ext (i.e. BG150101201.5)" K DA D ^DIR K DIR
  G:$D(DIRUT) DIR
  I Y="" G DIR
- I $E($$UP^XLFSTR(Y),1,4)'="BG05" W !!,"Filename must begin with BG05" G FILENAME
+ I $E($$UP^XLFSTR(Y),1,5)'="BG150" W !!,"Filename must begin with BG150" G FILENAME
  S BGPFILE=Y
  W !,"Directory=",BGPDIR,"  ","File=",BGPFILE
  D READF
@@ -34,14 +34,16 @@ READF ;EP read file
  D ^%ZISC
  W !!,"All done reading file",!
 PROC ;
- I $P(BGPFILE,".",2)["HE" D PROCHE Q
  I $P(BGPFILE,".",2)["EL" D PROCEL Q
+ I $P(BGPFILE,".",2)["PED" D PROCPED Q
  W !,"Processing",!
  S BGP0=$P($G(^TMP("BGPUPL",$J,1,0)),"|",9)
  S BGPG=$P($G(^TMP("BGPUPL",$J,1,0)),"|")
  F X=1:1:14 S Y="BGP"_X,@Y=$P(BGP0,U,X)
  ;find existing entry and if exists, delete it
- S (X,BGPOIEN)=0 F  S X=$O(^BGPGPDCV(X)) Q:X'=+X  S Y=^BGPGPDCV(X,0)  D
+ S (X,BGPOIEN)=0 F  S X=$O(^BGPGPDCK(X)) Q:X'=+X  D
+ .I '$D(^BGPGPDCK(X,0)) K ^BGPGPDCK(X) Q
+ .S Y=^BGPGPDCK(X,0)
  .Q:$P(Y,U)'=BGP1
  .Q:$P(Y,U,2)'=BGP2
  .Q:$P(Y,U,3)'=BGP3
@@ -56,81 +58,81 @@ PROC ;
  .Q:$P(Y,U,14)'=BGP14
  .S BGPOIEN=X
  D ^XBFMK
- I BGPOIEN S DA=BGPOIEN,DIK="^BGPGPDCV(" D ^DIK S DA=BGPOIEN,DIK="^BGPGPDPV(" D ^DIK S DA=BGPOIEN,DIK="^BGPGPDBV(" D ^DIK
+ I BGPOIEN S DA=BGPOIEN,DIK="^BGPGPDCK(" D ^DIK S DA=BGPOIEN,DIK="^BGPGPDPK(" D ^DIK S DA=BGPOIEN,DIK="^BGPGPDBK(" D ^DIK
  ;add entry
- L +^BGPGPDCV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
- L +^BGPGPDPV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
- L +^BGPGPDBV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ L +^BGPGPDCK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ L +^BGPGPDPK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ L +^BGPGPDBK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
  D GETIEN^BGP5UTL
  I 'BGPIEN W !!,"error in file creation...call programmer." D EOJ Q
 CY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90371.03,DIC="^BGPGPDCV(",DIC(0)="L"
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90554.03,DIC="^BGPGPDCK(",DIC(0)="L"
  K DD,D0,DO
  D FILE^DICN
  I Y=-1 W !,"error uploading file......" H 4 G EOJ
  S BGPIEN=+Y
  D ^XBFMK
  S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPGPDCV"
+ .Q:$P(V,"|")'="BGPGPDCK"
  .S V=$P(V,"|",2,9999)
  .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPGPDCV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPGPDCV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPGPDCV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPGPDCV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPGPDCV(BGPIEN,N)=D
+ .I N5]"" S ^BGPGPDCK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPGPDCK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPGPDCK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPGPDCK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPGPDCK(BGPIEN,N)=D
  .Q
- S DA=BGPIEN,DIK="^BGPGPDCV(" D IX1^DIK
+ S DA=BGPIEN,DIK="^BGPGPDCK(" D IX1^DIK
 PY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90371.04,DIC="^BGPGPDPV(",DIC(0)="L"
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90554.04,DIC="^BGPGPDPK(",DIC(0)="L"
  K DD,D0,DO
  D FILE^DICN
  I Y=-1 W !,"error uploading file......" H 4 G EOJ
  S BGPIEN=+Y
  D ^XBFMK
  S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPGPDPV"
+ .Q:$P(V,"|")'="BGPGPDPK"
  .S V=$P(V,"|",2,9999)
  .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPGPDPV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPGPDPV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPGPDPV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPGPDPV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPGPDPV(BGPIEN,N)=D
+ .I N5]"" S ^BGPGPDPK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPGPDPK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPGPDPK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPGPDPK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPGPDPK(BGPIEN,N)=D
  .Q
- S DA=BGPIEN,DIK="^BGPGPDPV(" D IX1^DIK
+ S DA=BGPIEN,DIK="^BGPGPDPK(" D IX1^DIK
 BY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90371.05,DIC="^BGPGPDBV(",DIC(0)="L"
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90554.05,DIC="^BGPGPDBK(",DIC(0)="L"
  K DD,D0,DO
  D FILE^DICN
  I Y=-1 W !,"error uploading file......" H 4 G EOJ
  S BGPIEN=+Y
  D ^XBFMK
  S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPGPDBV"
+ .Q:$P(V,"|")'="BGPGPDBK"
  .S V=$P(V,"|",2,9999)
  .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPGPDBV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPGPDBV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPGPDBV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPGPDBV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPGPDBV(BGPIEN,N)=D
+ .I N5]"" S ^BGPGPDBK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPGPDBK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPGPDBK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPGPDBK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPGPDBK(BGPIEN,N)=D
  .Q
- S DA=BGPIEN,DIK="^BGPGPDBV(" D IX1^DIK
+ S DA=BGPIEN,DIK="^BGPGPDBK(" D IX1^DIK
  W !,"Data uploaded."
  D EOJ
  Q
-EOJ ;
- L -^BGPGPDCV
- L -^BGPGPDPV
- L -^BGPGPDBV
- L -^BGPHEDCV
- L -^BGPHEDPV
- L -^BGPHEDBV
- L -^BGPELDCV
- L -^BGPELDPV
- L -^BGPELDBV
- D EOP^BGPDH
+EOJ ;EP
+ L -^BGPGPDCK
+ L -^BGPGPDPK
+ L -^BGPGPDBK
+ L -^BGPELDCK
+ L -^BGPELDPK
+ L -^BGPELDBK
+ L -^BGPPEDCK
+ L -^BGPPEDPK
+ L -^BGPPEDBK
+ D EOP^BGP5DH
  K IOPAR
  D HOME^%ZIS
  K X,X1,X2,X3,X4,X5,X6
@@ -143,99 +145,15 @@ STRIP(Z) ;REMOVE CONTROLL CHARACTERS
  F I=1:1:$L(Z) I (32>$A($E(Z,I))) S Z=$E(Z,1,I-1)_""_$E(Z,I+1,999)
  Q Z
  ;
-PROCHE ;
- W !,"Processing",!
- S BGP0=$P($G(^TMP("BGPUPL",$J,1,0)),"|",9)
- S BGPG=$P($G(^TMP("BGPUPL",$J,1,0)),"|")
- F X=1:1:14 S Y="BGP"_X,@Y=$P(BGP0,U,X)
- ;find existing entry and if exists, delete it
- S (X,BGPOIEN)=0 F  S X=$O(^BGPHEDCV(X)) Q:X'=+X  S Y=^BGPHEDCV(X,0)  D
- .Q:$P(Y,U)'=BGP1
- .Q:$P(Y,U,2)'=BGP2
- .Q:$P(Y,U,3)'=BGP3
- .Q:$P(Y,U,4)'=BGP4
- .Q:$P(Y,U,5)'=BGP5
- .Q:$P(Y,U,6)'=BGP6
- .Q:$P(Y,U,8)'=BGP8
- .Q:$P(Y,U,9)'=BGP9
- .Q:$P(Y,U,10)'=BGP10
- .Q:$P(Y,U,11)'=BGP11
- .Q:$P(Y,U,12)'=BGP12
- .Q:$P(Y,U,14)'=BGP14
- .S BGPOIEN=X
- D ^XBFMK
- I BGPOIEN S DA=BGPOIEN,DIK="^BGPHEDCV(" D ^DIK S DA=BGPOIEN,DIK="^BGPHEDPV(" D ^DIK S DA=BGPOIEN,DIK="^BGPHEDBV(" D ^DIK
- ;add entry
- L +^BGPHEDCV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
- L +^BGPHEDPV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
- L +^BGPHEDBV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
- D GETIEN^BGP5HUTL
- I 'BGPIEN W !!,"error in file creation...call programmer." D EOJ Q
-HECY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90372.03,DIC="^BGPHEDCV(",DIC(0)="L"
- K DD,D0,DO
- D FILE^DICN
- I Y=-1 W !,"error uploading file......" H 4 G EOJ
- S BGPIEN=+Y
- D ^XBFMK
- S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPHEDCV"
- .S V=$P(V,"|",2,9999)
- .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPHEDCV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPHEDCV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPHEDCV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPHEDCV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPHEDCV(BGPIEN,N)=D
- .Q
- S DA=BGPIEN,DIK="^BGPHEDCV(" D IX1^DIK
-HEPY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90372.04,DIC="^BGPHEDPV(",DIC(0)="L"
- K DD,D0,DO
- D FILE^DICN
- I Y=-1 W !,"error uploading file......" H 4 G EOJ
- S BGPIEN=+Y
- D ^XBFMK
- S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPHEDPV"
- .S V=$P(V,"|",2,9999)
- .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPHEDPV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPHEDPV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPHEDPV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPHEDPV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPHEDPV(BGPIEN,N)=D
- .Q
- S DA=BGPIEN,DIK="^BGPHEDPV(" D IX1^DIK
-HEBY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90372.05,DIC="^BGPHEDBV(",DIC(0)="L"
- K DD,D0,DO
- D FILE^DICN
- I Y=-1 W !,"error uploading file......" H 4 G EOJ
- S BGPIEN=+Y
- D ^XBFMK
- S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPHEDBV"
- .S V=$P(V,"|",2,9999)
- .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPHEDBV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPHEDBV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPHEDBV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPHEDBV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPHEDBV(BGPIEN,N)=D
- .Q
- S DA=BGPIEN,DIK="^BGPHEDBV(" D IX1^DIK
- W !,"Data uploaded."
- D EOJ
- Q
- ;
 PROCEL ;
  W !,"Processing",!
  S BGP0=$P($G(^TMP("BGPUPL",$J,1,0)),"|",9)
  S BGPG=$P($G(^TMP("BGPUPL",$J,1,0)),"|")
  F X=1:1:14 S Y="BGP"_X,@Y=$P(BGP0,U,X)
  ;find existing entry and if exists, delete it
- S (X,BGPOIEN)=0 F  S X=$O(^BGPELDCV(X)) Q:X'=+X  S Y=^BGPELDCV(X,0)  D
+ S (X,BGPOIEN)=0 F  S X=$O(^BGPELDCK(X)) Q:X'=+X  D
+ .I '$D(^BGPELDCK(X,0)) K ^BGPELDCK(X) Q
+ .S Y=^BGPELDCK(X,0)
  .Q:$P(Y,U)'=BGP1
  .Q:$P(Y,U,2)'=BGP2
  .Q:$P(Y,U,3)'=BGP3
@@ -250,68 +168,155 @@ PROCEL ;
  .Q:$P(Y,U,14)'=BGP14
  .S BGPOIEN=X
  D ^XBFMK
- I BGPOIEN S DA=BGPOIEN,DIK="^BGPELDCV(" D ^DIK S DA=BGPOIEN,DIK="^BGPELDPV(" D ^DIK S DA=BGPOIEN,DIK="^BGPELDBV(" D ^DIK
+ I BGPOIEN S DA=BGPOIEN,DIK="^BGPELDCK(" D ^DIK S DA=BGPOIEN,DIK="^BGPELDPK(" D ^DIK S DA=BGPOIEN,DIK="^BGPELDBK(" D ^DIK
  ;add entry
- L +^BGPELDCV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
- L +^BGPELDPV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
- L +^BGPELDBV:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
- D GETIEN^BGP5HUTL
+ L +^BGPELDCK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ L +^BGPELDPK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ L +^BGPELDBK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ D GETIEN^BGP5EUTL
  I 'BGPIEN W !!,"error in file creation...call programmer." D EOJ Q
 ELCY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90372.03,DIC="^BGPELDCV(",DIC(0)="L"
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90555.03,DIC="^BGPELDCK(",DIC(0)="L"
  K DD,D0,DO
  D FILE^DICN
  I Y=-1 W !,"error uploading file......" H 4 G EOJ
  S BGPIEN=+Y
  D ^XBFMK
  S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPELDCV"
+ .Q:$P(V,"|")'="BGPELDCK"
  .S V=$P(V,"|",2,9999)
  .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPELDCV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPELDCV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPELDCV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPELDCV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPELDCV(BGPIEN,N)=D
+ .I N5]"" S ^BGPELDCK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPELDCK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPELDCK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPELDCK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPELDCK(BGPIEN,N)=D
  .Q
- S DA=BGPIEN,DIK="^BGPELDCV(" D IX1^DIK
+ S DA=BGPIEN,DIK="^BGPELDCK(" D IX1^DIK
 ELPY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90372.04,DIC="^BGPELDPV(",DIC(0)="L"
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90555.04,DIC="^BGPELDPK(",DIC(0)="L"
  K DD,D0,DO
  D FILE^DICN
  I Y=-1 W !,"error uploading file......" H 4 G EOJ
  S BGPIEN=+Y
  D ^XBFMK
  S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPELDPV"
+ .Q:$P(V,"|")'="BGPELDPK"
  .S V=$P(V,"|",2,9999)
  .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPELDPV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPELDPV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPELDPV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPELDPV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPELDPV(BGPIEN,N)=D
+ .I N5]"" S ^BGPELDPK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPELDPK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPELDPK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPELDPK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPELDPK(BGPIEN,N)=D
  .Q
- S DA=BGPIEN,DIK="^BGPELDPV(" D IX1^DIK
+ S DA=BGPIEN,DIK="^BGPELDPK(" D IX1^DIK
 ELBY ;
- S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90372.05,DIC="^BGPELDBV(",DIC(0)="L"
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90555.05,DIC="^BGPELDBK(",DIC(0)="L"
  K DD,D0,DO
  D FILE^DICN
  I Y=-1 W !,"error uploading file......" H 4 G EOJ
  S BGPIEN=+Y
  D ^XBFMK
  S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
- .Q:$P(V,"|")'="BGPELDBV"
+ .Q:$P(V,"|")'="BGPELDBK"
  .S V=$P(V,"|",2,9999)
  .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
- .I N5]"" S ^BGPELDBV(BGPIEN,N,N2,N3,N4,N5)=D Q
- .I N4]"" S ^BGPELDBV(BGPIEN,N,N2,N3,N4)=D Q
- .I N3]"" S ^BGPELDBV(BGPIEN,N,N2,N3)=D Q
- .I N2]"" S ^BGPELDBV(BGPIEN,N,N2)=D Q
- .I N]"" S ^BGPELDBV(BGPIEN,N)=D
+ .I N5]"" S ^BGPELDBK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPELDBK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPELDBK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPELDBK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPELDBK(BGPIEN,N)=D
  .Q
- S DA=BGPIEN,DIK="^BGPELDBV(" D IX1^DIK
+ S DA=BGPIEN,DIK="^BGPELDBK(" D IX1^DIK
  W !,"Data uploaded."
  D EOJ
  Q
  ;
+PROCPED ;
+ W !,"Processing",!
+ S BGP0=$P($G(^TMP("BGPUPL",$J,1,0)),"|",9)
+ S BGPG=$P($G(^TMP("BGPUPL",$J,1,0)),"|")
+ F X=1:1:14 S Y="BGP"_X,@Y=$P(BGP0,U,X)
+ ;find existing entry and if exists, delete it
+ S (X,BGPOIEN)=0 F  S X=$O(^BGPPEDCK(X)) Q:X'=+X  D
+ .I '$D(^BGPPEDCK(X,0)) K ^BGPPEDCK(X) Q
+ .S Y=^BGPPEDCK(X,0)
+ .Q:$P(Y,U)'=BGP1
+ .Q:$P(Y,U,2)'=BGP2
+ .Q:$P(Y,U,3)'=BGP3
+ .Q:$P(Y,U,4)'=BGP4
+ .Q:$P(Y,U,5)'=BGP5
+ .Q:$P(Y,U,6)'=BGP6
+ .Q:$P(Y,U,7)'=BGP7
+ .Q:$P(Y,U,8)'=BGP8
+ .Q:$P(Y,U,9)'=BGP9
+ .Q:$P(Y,U,10)'=BGP10
+ .Q:$P(Y,U,11)'=BGP11
+ .Q:$P(Y,U,12)'=BGP12
+ .S BGPOIEN=X
+ D ^XBFMK
+ I BGPOIEN S DA=BGPOIEN,DIK="^BGPPEDCK(" D ^DIK S DA=BGPOIEN,DIK="^BGPPEDPK(" D ^DIK S DA=BGPOIEN,DIK="^BGPPEDBK(" D ^DIK
+ ;add entry
+ L +^BGPPEDCK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ L +^BGPPEDPK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ L +^BGPPEDBK:10 I '$T W !!,"unable to lock global. TRY LATER" D EOJ Q
+ D GETIEN^BGP5PUTL
+ I 'BGPIEN W !!,"error in file creation...call programmer." D EOJ Q
+PEDCY ;
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90554.12,DIC="^BGPPEDCK(",DIC(0)="L"
+ K DD,D0,DO
+ D FILE^DICN
+ I Y=-1 W !,"error uploading file......" H 4 G EOJ
+ S BGPIEN=+Y
+ D ^XBFMK
+ S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
+ .Q:$P(V,"|")'="BGPPEDCK"
+ .S V=$P(V,"|",2,9999)
+ .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
+ .I N5]"" S ^BGPPEDCK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPPEDCK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPPEDCK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPPEDCK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPPEDCK(BGPIEN,N)=D
+ .Q
+ S DA=BGPIEN,DIK="^BGPPEDCK(" D IX1^DIK
+PEDPY ;
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90554.13,DIC="^BGPPEDPK(",DIC(0)="L"
+ K DD,D0,DO
+ D FILE^DICN
+ I Y=-1 W !,"error uploading file......" H 4 G EOJ
+ S BGPIEN=+Y
+ D ^XBFMK
+ S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
+ .Q:$P(V,"|")'="BGPPEDPK"
+ .S V=$P(V,"|",2,9999)
+ .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
+ .I N5]"" S ^BGPPEDPK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPPEDPK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPPEDPK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPPEDPK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPPEDPK(BGPIEN,N)=D
+ .Q
+ S DA=BGPIEN,DIK="^BGPPEDPK(" D IX1^DIK
+PEDBY ;
+ S DINUM=BGPIEN,X=$P(BGP0,U),DLAYGO=90554.14,DIC="^BGPPEDBK(",DIC(0)="L"
+ K DD,D0,DO
+ D FILE^DICN
+ I Y=-1 W !,"error uploading file......" H 4 G EOJ
+ S BGPIEN=+Y
+ D ^XBFMK
+ S X=0 F  S X=$O(^TMP("BGPUPL",$J,X)) Q:X'=+X  S V=^TMP("BGPUPL",$J,X,0) D
+ .Q:$P(V,"|")'="BGPPEDBK"
+ .S V=$P(V,"|",2,9999)
+ .S N=$P(V,"|"),N2=$P(V,"|",2),N3=$P(V,"|",3),N4=$P(V,"|",4),N5=$P(V,"|",5),D=$P(V,"|",8)
+ .I N5]"" S ^BGPPEDBK(BGPIEN,N,N2,N3,N4,N5)=D Q
+ .I N4]"" S ^BGPPEDBK(BGPIEN,N,N2,N3,N4)=D Q
+ .I N3]"" S ^BGPPEDBK(BGPIEN,N,N2,N3)=D Q
+ .I N2]"" S ^BGPPEDBK(BGPIEN,N,N2)=D Q
+ .I N]"" S ^BGPPEDBK(BGPIEN,N)=D
+ .Q
+ S DA=BGPIEN,DIK="^BGPPEDBK(" D IX1^DIK
+ W !,"Data uploaded."
+ D EOJ
+ Q

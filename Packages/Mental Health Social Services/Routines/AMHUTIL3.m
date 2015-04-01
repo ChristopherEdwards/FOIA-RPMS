@@ -1,5 +1,5 @@
 AMHUTIL3 ; IHS/CMI/LAB - provider functions ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**2,3**;JUN 18, 2010;Build 10
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2,3,4**;JUN 18, 2010;Build 28
  ;IHS/CMI/LAB - added stage as output parameter
  ;
  ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array

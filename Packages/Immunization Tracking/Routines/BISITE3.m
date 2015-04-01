@@ -1,8 +1,10 @@
 BISITE3 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT SITE PARAMETERS.
  ;   PATCH 2: Fix SET of default Low Supply Alert.  LOTREQ+21
+ ;;  PATCH 8: Change to limit Pneumo prompt to 65 yrs.  PNUFLU+10
+ ;;  PATCH 9: Add ability to edit IP address for TCH Forecaster.  IPTCH
  ;
  ;
  ;----------
@@ -121,10 +123,14 @@ PNUFLU ;EP
  Q:$$BISITE^BISITE2
  D FULL^VALM1,TITLE^BIUTL5("EDIT AGE APPROPRIATE FOR PNEUMO"),TEXT4
  N BIDFLT,BIPOP,DIR,DIRUT,Y
- S DIR(0)="NOA^1:9999:0"
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Only allow age range up to 65.
+ ;S DIR(0)="NOA^1:9999:0"
+ S DIR(0)="NOA^1:65:0"
  S DIR("A")="     Adult Age for Pneumo: "
  S DIR("B")=$P($$PNMAGE^BIPATUP2(BISITE),U)
- S DIR("?")="       Enter a number between 1 and 99 years of age."
+ ;S DIR("?")="       Enter a number between 1 and 99 years of age."
+ S DIR("?")="       Enter a number between 1 and 65 years of age."
  D ^DIR
  I $D(DIRUT) D RESET^BISITE Q
  ;
@@ -133,28 +139,29 @@ PNUFLU ;EP
  I BIERR]"" W !!?3,BIERR D DIRZ^BIUTL3(),RESET^BISITE Q
  ;
  ;---> Flu Forecast for ALL question.
- D TITLE^BIUTL5("SELECT FLU FORECASTING AGES"),TEXT11
- N BIDFLT,BIHELP,BIHELP1,BIPRMPT,X,Y
- S BIPRMPT="     Forecast Flu vaccination for ALL patients"
- S BIHELP1="        Enter Yes to forecast Flu for ALL patients."
- S BIHELP="        Enter No to limit Flu forecasting (6m-18y, 50y+)."
- S BIDFLT=$S($$FLUALL^BIPATUP2(BISITE):"YES",1:"NO")
- W !
- D DIR^BIFMAN("YO",.Y,,BIPRMPT,BIDFLT,BIHELP,BIHELP1)
- I $G(Y)="^" D RESET^BISITE Q
- D DIE^BIFMAN(9002084.02,".27///"_Y,BISITE)
+ ;D TITLE^BIUTL5("SELECT FLU FORECASTING AGES"),TEXT11
+ ;N BIDFLT,BIHELP,BIHELP1,BIPRMPT,X,Y
+ ;S BIPRMPT="     Forecast Flu vaccination for ALL patients"
+ ;S BIHELP1="        Enter Yes to forecast Flu for ALL patients."
+ ;S BIHELP="        Enter No to limit Flu forecasting (6m-18y, 50y+)."
+ ;S BIDFLT=$S($$FLUALL^BIPATUP2(BISITE):"YES",1:"NO")
+ ;W !
+ ;D DIR^BIFMAN("YO",.Y,,BIPRMPT,BIDFLT,BIHELP,BIHELP1)
+ ;I $G(Y)="^" D RESET^BISITE Q
+ ;D DIE^BIFMAN(9002084.02,".27///"_Y,BISITE)
  ;
  ;---> Zoster Vaccine Forecast question.
- D TITLE^BIUTL5("SELECT FORECASTING FOR ZOSTER VACCINE"),TEXT12
- N BIDFLT,BIHELP,BIHELP1,BIPRMPT,X,Y
- S BIPRMPT="     Forecast Zoster vaccine for ALL patients over age 60"
- S BIHELP1="        Enter Yes to forecast Zoster vaccine for ALL patients over age 60."
- S BIHELP="        Enter No to disable Zoster vaccine forecasting."
- S BIDFLT=$S($$ZOSTER^BIPATUP2(BISITE):"YES",1:"NO")
- W !
- D DIR^BIFMAN("YO",.Y,,BIPRMPT,BIDFLT,BIHELP,BIHELP1)
- I $G(Y)="^" D RESET^BISITE Q
- D DIE^BIFMAN(9002084.02,".29///"_Y,BISITE)
+ ;D TITLE^BIUTL5("SELECT FORECASTING FOR ZOSTER VACCINE"),TEXT12
+ ;N BIDFLT,BIHELP,BIHELP1,BIPRMPT,X,Y
+ ;S BIPRMPT="     Forecast Zoster vaccine for ALL patients over age 60"
+ ;S BIHELP1="        Enter Yes to forecast Zoster vaccine for ALL patients over age 60."
+ ;S BIHELP="        Enter No to disable Zoster vaccine forecasting."
+ ;S BIDFLT=$S($$ZOSTER^BIPATUP2(BISITE):"YES",1:"NO")
+ ;W !
+ ;D DIR^BIFMAN("YO",.Y,,BIPRMPT,BIDFLT,BIHELP,BIHELP1)
+ ;I $G(Y)="^" D RESET^BISITE Q
+ ;D DIE^BIFMAN(9002084.02,".29///"_Y,BISITE)
+ ;**********
  ;
  D RESET^BISITE
  Q
@@ -250,6 +257,16 @@ IMMSVDIR ;EP
  ;---> Edit the parameter indicating the Immserve Directory.
  ;
  K BIDFLT,DIR,DIRUT,X,Y
+ ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> The Immserve Directory is no longer relevant.
+ D TITLE^BIUTL5("INDICATE IMMSERVE DIRECTORY")
+ W !!?20,"This parameter is no longer in use.",!!
+ D DIRZ^BIUTL3()
+ D RESET^BISITE
+ Q
+ ;**********
+ ;
  D TITLE^BIUTL5("INDICATE IMMSERVE DIRECTORY"),TEXT7
  S DIR(0)="FOA^3:70"
  S DIR("A")="     "
@@ -270,6 +287,45 @@ IMMSVDIR ;EP
  D RESET^BISITE
  Q
  ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add ability to edit IP address for TCH Forecaster.
+IPTCH ;EP
+ D TITLE^BIUTL5("INDICATE IP ADDRESS FOR TCH FORECASTER"),TEXT13
+ N DIR,DIRUT,X
+ S DIR(0)="FOA^7:25",DIR("A")="     "
+ D
+ .N Y S Y=$$IPTCH^BIUTL8(BISITE)
+ .I Y]"" S DIR("B")=Y Q
+ .S DIR("B")="127.0.0.1"
+ S DIR("?")="       Enter the IP address of the machine hosting the TCH Forecaster."
+ D ^DIR
+ ;W  R ZZZ
+ I X="^" D RESET^BISITE Q
+ S:X="@" Y="127.0.0.1" K DIRUT
+ D:'$D(DIRUT)
+ .N BIFLD,BIERR S BIFLD(.30)=Y
+ .D FDIE^BIFMAN(9002084.02,BISITE,.BIFLD,.BIERR)
+ .I BIERR]"" W !!?3,BIERR D DIRZ^BIUTL3()
+ D RESET^BISITE
+ Q
+ ;
+ ;----------
+TEXT13 ;EP
+ ;;Enter the IP Address of the server hosting the TCH Forecaster.
+ ;;A typical installation has the forecaster running on the same
+ ;;machine as Ensemble, EHR and RPMS.  In that case the address
+ ;;would be 127.0.0.1 (which is the default).
+ ;;
+ ;;However, if your network is configured correctly, RPMS can access the
+ ;;TCH Forecaster hosted on another machine at a different IP address.
+ ;;
+ ;;Enter a different IP address for the TCH Forecaster below, if you wish
+ ;;to change it:
+ ;;
+ D PRINTX("TEXT13")
+ Q
+ ;**********
  ;
  ;----------
 TEXT7 ;EP

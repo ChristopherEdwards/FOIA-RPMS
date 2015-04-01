@@ -1,9 +1,12 @@
 BISITE1 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  INIT FOR EDIT SITE PARAMETERS.
  ;   PATCH 2: Fix display of default Low Supply Alert.  INIT+72
  ;            Provide call to retrieve Site's Low Alert default.  LOTSDEF
+ ;;  PATCH 8: Changes to accommodate new TCH Forecaster   INIT+55,+66,+92,+132
+ ;;  PATCH 9: Return the IP Address used for the TCH Forecaster.  INIT+139
+ ;;           Update display of selected High Risk parameters.  INIT+165
  ;
  ;
  ;----------
@@ -62,7 +65,10 @@ INIT ;EP
  ;
  ;---> Forecast Minimum Age vs Recommended Age.
  S X=$$MINAGE^BIUTL2(BISITE)
- S X=$S(X="A":"Minimum Acceptable Age",1:"Recommended Age")
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Change parameter prompt to just Min vs Rec.
+ S X=$S(X=1:"Minimum Acceptable Age",1:"Recommended Age")
+ ;**********
  S X="   8) Minimum vs Recommended Age...: "_X
  D WRITE(.BILINE,X)
  K X
@@ -70,10 +76,15 @@ INIT ;EP
  ;---> ImmServe Forecasting Option.
  D
  .N G,H,Y,Z S Z=$G(^BISITE(BISITE,0))
- .S Y=$P(Z,U,8),G=$P(Z,U,21),H=$P(Z,U,24)
- .S X="#"_Y_", "_$S(G:"WITH",1:"NO")_" 4-Day Grace"
- .S X=X_", HPV through "_$S(H=2:26,1:18)
- S X="   9) ImmServe Forecasting Option..: "_X
+ .;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ .;---> Change parameter prompt to just Grace Period.
+ .;S Y=$P(Z,U,8),G=$P(Z,U,21),H=$P(Z,U,24)
+ .;S X="#"_Y_", "_$S(G:"WITH",1:"NO")_" 4-Day Grace"
+ .;S X=X_", HPV through "_$S(H=2:26,1:18)
+ .S Y=$P($G(^BISITE(BISITE,0)),U,21)
+ .S X="4-Day Grace Period "_$S(Y=1:"",1:"NOT ")_"Used"
+ S X="   9) 4-Day Grace Period option....: "_X
+ ;**********
  D WRITE(.BILINE,X)
  K X
  ;
@@ -91,18 +102,22 @@ INIT ;EP
  K X
  ;
  ;---> Pneumo, Flu, Zostervax Site Parameters. v8.5
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Change parameter prompt to just Pneumo.
  D
  .N Y,Z
  .S Y=$$PNMAGE^BIPATUP2(BISITE)
  .;S Y=$P(X,U),Z=$P(X,U,2)
  .;S X=Y_" years old, "_$S(Z:"every 6 years.",1:"one time only.")
- .S X="Pneumo: "_Y_"y  Flu: "
- .S Y=$$FLUALL^BIPATUP2(BISITE)
- .S X=X_$S(Y:"All ages",1:"6m-18y,50y+")
- .S X=X_"  Zoster: "
- .S Y=$$ZOSTER^BIPATUP2(BISITE)
- .S X=X_$S(Y:"Yes",1:"No")
- S X="  11) Pneumo, Flu, Zoster Options..: "_X
+ .S X="Begin Pneumo at "_Y_" years"
+ .;S Y=$$FLUALL^BIPATUP2(BISITE)
+ .;S X=X_$S(Y:"All ages",1:"6m-18y,50y+")
+ .;S X=X_"  Zoster: "
+ .;S Y=$$ZOSTER^BIPATUP2(BISITE)
+ .;S X=X_$S(Y:"Yes",1:"No")
+ ;S X="  11) Pneumo, Flu, Zoster Options..: "_X
+ S X="  11) Pneumo routine age to begin..: "_X
+ ;**********
  D WRITE(.BILINE,X)
  K X
  ;
@@ -127,9 +142,18 @@ INIT ;EP
  K X
  ;
  ;---> ImmServe Directory.
- S X=$$IMMSVDIR^BIUTL8(BISITE)
- S:($L(X)>39) X=$E(X,1,39)_"..."
- S X="  15) ImmServe Directory...........: "_X
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Leave parameter place keeper on menu, but disable.
+ ;S X=$$IMMSVDIR^BIUTL8(BISITE)
+ ;S:($L(X)>39) X=$E(X,1,39)_"..."
+ ;S X="  15) ImmServe Directory...........: "_X
+ ;**********
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> IP Address for TCH Forecaster.
+ S X=$$IPTCH^BIUTL8(BISITE)
+ S X="  15) IP Address for TCH Forecaster: "_X
+ ;**********
  D WRITE(.BILINE,X)
  K X
  ;
@@ -149,13 +173,20 @@ INIT ;EP
  D WRITE(.BILINE,X)
  K X
  ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Update display of selected High Risk parameters.
  ;---> Risk Check enabled.
  N Z S Z=$$RISKP^BIUTL2(BISITE)
  D
  .I 'Z S X="Disabled" Q
- .I Z=1 S X="Enabled (Smoking not included in Pneumo)" Q
- .I Z=3 S X="Enabled (Smoking included in Pneumo)" Q
- .S X="Unknown"
+ .I Z=1 S X="Enabled: Hep B Only" Q
+ .I Z=2 S X="Enabled: Pneumo Only" Q
+ .I Z=12 S X="Enabled: Hep B and Pneumo" Q
+ .I Z=23 S X="Enabled: Pneumo Only (+Smoking)" Q
+ .I Z=123 S X="Enabled: Hep B and Pneumo (+Smoking)" Q
+ .S X="ERROR: Unable to determine."
+ ;**********
  ;
  S X="  18) High Risk Factor Check.......: "_X
  D WRITE(.BILINE,X)

@@ -1,5 +1,5 @@
 BDMLPM ; IHS/CMI/LAB - CALCULATE LAST PAP MAM ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**1,2**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**1,2,8**;JUN 14, 2007;Build 53
  ;
  ;
 LASTPAP(P) ;EP - return last pap date
@@ -21,7 +21,7 @@ LASTPAP(P) ;EP - return last pap date
  .S E=$$START1^APCLDF(%,"APCHY(")
  .S:$G(APCHY(1))>LPAP LPAP=+APCHY(1)
  K APCHY
- S %=P_"^LAST PROCEDURE 91.46"
+ S %=P_"^LAST PROCEDURE [BGP HYSTERECTOMY PROCEDURES"
  S E=$$START1^APCLDF(%,"APCHY(")
  S:$G(APCHY(1))>LPAP LPAP=+APCHY(1)
  K APCHY
@@ -38,15 +38,16 @@ HYSTER(P) ;EP has patient had hysterectomy?
  I '$G(P) Q ""
  I '$D(^AUPNVPRC("AC",P)) Q ""
  ;NEW F,S,C S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P(^ICD0(+^AUPNVPRC(F,0),0),U) D  ;cmi/anch/maw 8/27/2007 orig line patch 1
- NEW F,S,C S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P($$ICDOP^ICDCODE(+^AUPNVPRC(F,0),0),U,2) D  ;cmi/anch/maw 8/27/2007 code set versioning patch 1
- .S:C=68.3!(C=68.4)!(C=68.5)!(C=68.6)!(C=68.7)!(C=68.9) S=1
+ NEW F,S,C S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=+^AUPNVPRC(F,0) D  ;cmi/anch/maw 8/27/2007 code set versioning patch 1
+ .;S:C=68.3!(C=68.4)!(C=68.5)!(C=68.6)!(C=68.7)!(C=68.9) S=1
+ .I $$ICD^BDMUTL(C,"BGP HYSTERECTOMY PROCEDURES",0)
  I S=1 Q 1
  S T="HYSTERECTOMY",T=$O(^BWPN("B",T,0))
  I T D  I X Q 1
  .S X=$$WH(P,$$DOB^AUPNPAT(P),DT,T,1)
  S T=$O(^ATXAX("B","BGP HYSTERECTOMY CPTS",0))
  I T D  I X Q 1
- .S X=$$CPT(P,$P(^DPT(P,0),U,3),DT,T,1)
+ .S X=$$CPT(P,$P(^DPT(P,0),U,3),DT,"BGP HYSTERECTOMY CPTS",1)
  Q ""
 WH(P,BDATE,EDATE,T,F) ;EP
  I '$G(P) Q ""
@@ -116,7 +117,7 @@ LASTMAM(P) ;EP
  .Q:'APCHY(1)
  .S APCHY(1)=9999999-APCHY(1)
  .S:$G(APCHY(1))>LMAM LMAM=+APCHY(1)
- F %=76090:1:76092 S G=$$REFDF^APCHS9B3(P,71,$O(^RAMIS(71,"D",%,0)),$G(LMAM)) Q:G]""
+ F %=76090:1:76092 S G=$$REFDF^BDMS9B3(P,71,$O(^RAMIS(71,"D",%,0)),$G(LMAM)) Q:G]""
  I $G(G)]"" Q $G(LMAM)_"^"_G
  Q $G(LMAM)
 MAS(P,EDATE) ;EPmastectomy before end of time frame
@@ -184,21 +185,21 @@ DIETEDUC(P,BDATE,EDATE)  ;EP
  S (RD,NRD)=""
  S X=BDATE,%DT="P" D ^%DT S BD=Y
  S X=EDATE,%DT="P" D ^%DT S ED=Y
- S D=9999999-ED,(RD,NRD)="",G="" ;is this right???
- F  S D=$O(^AUPNVSIT("AA",P,D)) Q:D=""!(D>(9999999-BD))!(G]"")  D
+ S D=0,(RD,NRD)="",G="" ;is this right???
+ F  S D=$O(^AUPNVSIT("AA",P,D)) Q:D=""!($P(D,".")>(9999999-BD))!(G]"")  D
  .S V=0 F  S V=$O(^AUPNVSIT("AA",P,D,V)) Q:V'=+V  D
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:$P(^AUPNVSIT(V,0),U,11)
  ..Q:'$P(^AUPNVSIT(V,0),U,9)
- ..Q:'$D(^AUPNVPOV("AD",V))
- ..Q:'$D(^AUPNVPRV("AD",V))
+ ..;Q:'$D(^AUPNVPOV("AD",V))
+ ..;Q:'$D(^AUPNVPRV("AD",V))
  ..Q:$$DNKA^BDMD917(V)
  ..Q:$P(^AUPNVSIT(V,0),U,3)="C"
  ..Q:$$CLINIC^APCLV(V,"C")=52
  ..I $$PRIMPROV^APCLV(V,"D")=29 S G=D Q
  ..I $$PRIMPROV^APCLV(V,"D")="07" S G=D Q
  ..I $$PRIMPROV^APCLV(V,"D")="34" S G=D Q
- ..S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  I $$VAL^XBDIQ1(9000010.07,X,.01)="V65.3" S G=D
+ ..S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  I $$ICD^BDMUTL($$VALI^XBDIQ1(9000010.07,X,.01),"BGP DIETARY SURVEILLANCE DXS",9) S G=D
  ..I G Q
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  S Z=$$VAL^XBDIQ1(9000010.07,X,.01) I Z=97802!(Z=97803)!(Z=97804) S G=D
  ..S T=$O(^ATXAX("B","DM AUDIT DIET EDUC TOPICS",0))
@@ -226,17 +227,17 @@ EXEDUC(P,BDATE,EDATE) ;EP
  S (RD,NRD)=""
  S X=BDATE,%DT="P" D ^%DT S BD=Y
  S X=EDATE,%DT="P" D ^%DT S ED=Y
- S D=9999999-ED,(RD,NRD)="",G="" ;is this right???
- F  S D=$O(^AUPNVSIT("AA",P,D)) Q:D=""!(D>(9999999-BD))!(G]"")  D
+ S D=0,(RD,NRD)="",G="" ;is this right???
+ F  S D=$O(^AUPNVSIT("AA",P,D)) Q:D=""!($P(D,".")>(9999999-BD))!(G]"")  D
  .S V=0 F  S V=$O(^AUPNVSIT("AA",P,D,V)) Q:V'=+V  D
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:$P(^AUPNVSIT(V,0),U,11)
  ..Q:'$P(^AUPNVSIT(V,0),U,9)
- ..Q:'$D(^AUPNVPOV("AD",V))
- ..Q:'$D(^AUPNVPRV("AD",V))
+ ..;Q:'$D(^AUPNVPOV("AD",V))
+ ..;Q:'$D(^AUPNVPRV("AD",V))
  ..Q:$$DNKA^BDMD917(V)
  ..Q:$P(^AUPNVSIT(V,0),U,3)="C"
- ..S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  I $$VAL^XBDIQ1(9000010.07,X,.01)="V65.41" S G=D
+ ..S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  I $$ICD^BDMUTL($$VALI^XBDIQ1(9000010.07,X,.01),"BGP EXERCISE COUNSELING DXS",9)  S G=D
  ..I G Q
  ..S T=$O(^ATXAX("B","DM AUDIT EXERCISE EDUC TOPICS",0))
  ..S X=0 F  S X=$O(^AUPNVPED("AD",V,X)) Q:X'=+X  D
@@ -251,14 +252,14 @@ OTHEDUC(P,BDATE,EDATE) ;EP
  S (RD,NRD)=""
  S X=BDATE,%DT="P" D ^%DT S BD=Y
  S X=EDATE,%DT="P" D ^%DT S ED=Y
- S D=9999999-ED,(RD,NRD)="",G="" ;is this right???
- F  S D=$O(^AUPNVSIT("AA",P,D)) Q:D=""!(D>(9999999-BD))!(G]"")  D
+ S D="",(RD,NRD)="",G="" ;is this right???
+ F  S D=$O(^AUPNVSIT("AA",P,D)) Q:D=""!($P(D,".")>(9999999-BD))!(G]"")  D
  .S V=0 F  S V=$O(^AUPNVSIT("AA",P,D,V)) Q:V'=+V  D
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:$P(^AUPNVSIT(V,0),U,11)
  ..Q:'$P(^AUPNVSIT(V,0),U,9)
- ..Q:'$D(^AUPNVPOV("AD",V))
- ..Q:'$D(^AUPNVPRV("AD",V))
+ ..;Q:'$D(^AUPNVPOV("AD",V))
+ ..;Q:'$D(^AUPNVPRV("AD",V))
  ..Q:$$DNKA^BDMD917(V)
  ..Q:$P(^AUPNVSIT(V,0),U,3)="C"
  ..S T=$O(^ATXAX("B","DM AUDIT OTHER EDUC TOPICS",0))

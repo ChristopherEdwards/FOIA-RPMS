@@ -1,10 +1,10 @@
 BGPMUDP4 ; IHS/MSC/SAT - MU EH  measure output routines;12-JUL-2011 16:30;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;
  ;This routine does the printed output of 0014 Prenatal Anti-D Immune Globulin (BGPMUD05)
 P27ENT ;EP  output routine for 0027 Prenatal Anti-D Immune Globulin
  D P27
- K ^TMP("BGPMU0027")
+ K ^TMP("BGPMU0027",$J)
  Q
 P27 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

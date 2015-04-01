@@ -1,102 +1,74 @@
 BDMS9B3 ; IHS/CMI/LAB - women's health supplement ; 27 Jan 2011  6:56 AM
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,8**;JUN 14, 2007;Build 53
  ;
 BI() ;EP- check to see if using new imm package or not 1/5/1999 IHS/CMI/LAB
  Q $S($O(^AUTTIMM(0))<100:0,1:1)
-TD(P,BDMSED) ;EP
+TD(P,BDMBD,BDMSED,F) ;EP
  NEW BDMY,X,E,B,%DT,Y,TDD
- S TDD=$$LASTTD(P)
- S X=$$FMADD^XLFDT(DT,-(10*365))
+ I '$G(BDMBD) S BDMBD=$$DOB^AUPNPAT(P)
+ I '$G(BDMSED) S BDMSED=DT
+ I $G(F)="" S F=""
+ S TDD=$$LASTTD(P,BDMBD,BDMSED)
+ I F="D" Q TDD
+ S X=$$FMADD^XLFDT(BDMSED,-(10*365))
  I TDD>X Q "Yes  "_$$DATE^BDMS9B1(TDD)
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",9,0)),TDD,"TD VACCINE (CVX 9)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",1,0)),TDD,"TD VACCINE (CVX 1)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",20,0)),TDD,"TD VACCINE (CVX 20)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",22,0)),TDD,"TD VACCINE (CVX 22)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",28,0)),TDD,"TD VACCINE (CVX 28)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",35,0)),TDD,"TD VACCINE (CVX 35)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",50,0)),TDD,"TD VACCINE (CVX 50)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",106,0)),TDD,"TD VACCINE (CVX 106)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",107,0)),TDD,"TD VACCINE (CVX 107)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",110,0)),TDD,"TD VACCINE (CVX 110)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",113,0)),TDD,"TD VACCINE (CVX 113)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",115,0)),TDD,"TD VACCINE (CVX 115)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",120,0)),TDD,"TD VACCINE (CVX 120)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",130,0)),TDD,"TD VACCINE (CVX 130)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",132,0)),TDD,"TD VACCINE (CVX 132)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",138,0)),TDD,"TD VACCINE (CVX 138)")
- I G]"" Q G
- S G=$$REFDF(P,9999999.14,$O(^AUTTIMM("C",139,0)),TDD,"TD VACCINE (CVX 139)")
- I G]"" Q G
- S G="" F Z=1,9,20,22,28,35,50,106,107,110,113,115,120,130,132,138,139 Q:G  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ S R="",G="" F R=1,9,20,22,28,35,50,106,107,110,112,113,115,120,130,132,138,139,142 Q:R=""!(G)  D
+ .S G=$$REFUSAL^BDMDC17(P,9999999.14,$O(^AUTTIMM("C",R,0)),$$FMADD^XLFDT(BDMSED,-365),DT,"R")
+ I G Q "Refused "_$P(G,U,3)
+ ;; BI REFUSALS
+ S G="" F Z=1,9,20,22,28,35,50,106,107,110,112,113,115,120,130,132,138,139,142 Q:G  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
  .S R=$P(^BIPC(X,0),U,3)
  .Q:R=""
  .Q:'$D(^BICONT(R,0))
  .Q:$P(^BICONT(R,0),U,1)'["Refusal"
  .S D=$P(^BIPC(X,0),U,4)
  .Q:D=""
- .Q:$P(^BIPC(X,0),U,4)<TDD
+ .Q:D<$$FMADD^XLFDT(BDMSED,-365)
  .S G=1_U_D
- I G Q "Refused "_$$DATE^BDMS9B1($P(D,U,2))_"CVX "_Z_" Immunization package"
- Q "No   "_$$DATE^BDMS9B1(TDD)
+ I G Q "Refused "_$$DATE^BDMS9B1($P(G,U,2))
+ Q "No  "_$$DATE^BDMS9B1(TDD)
 FLU(P) ;EP
- NEW BDMY,%,LFLU,E,T,X
- S LFLU=$$LASTFLU^BDMD413(P,"D")
+ NEW BDMY,%,LFLU,E,T,X,D,R,S,G,Z,Y
+ NEW D S D=$S($E(DT,4,5)>7:$E(DT,1,3)_"0801",1:$E(DT,1,3)-1_"0801")
+ S LFLU=$$LASTFLU^BDMDC13(P,D,DT)
  I LFLU="" G FLUR
-FLU1 NEW D S D=$S($E(DT,4,5)>7:$E(DT,1,3)_"0801",1:$E(DT,1,3)-1_"0801")
- I LFLU'<D Q "Yes  "_$$DATE^BDMS9B1($P(LFLU,U))
+FLU1 ;
+ Q "Yes  "_$$DATE^BDMS9B1($P(LFLU,U))
 FLUR ;
- S G=$$REFDF(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:15,1:12),0)),LFLU,"FLU VACCINE CVX 15")
+ S T=$O(^ATXAX("B","BGP FLU IZ CVX CODES",0))
+ I T S X=0 F  S X=$O(^ATXAX(T,21,"B",X)) Q:X=""  S S(X)=""
+ ;S T=$O(^ATXAX("B","SURVEILLANCE FLU CVX CODES",0))
+ ;I T S X=0 F  S X=$O(^ATXAX(T,21,"B",X)) Q:X=""  S S(X)=""
+ ;S Y=0 F  S Y=$O(^AUTTIMM(Y)) Q:Y'=+Y  I $$VAL^XBDIQ1(9999999.14,+Y,.09)="FLU" S R=$$GET1^DIQ(9999999.14,Y,.03) I R]"" S S(R)=""
+ S R="",G="" F  S R=$O(S(R)) Q:R=""!(G)  D
+ .S G=$$REFUSAL^BDMDC17(P,9999999.14,$O(^AUTTIMM("C",R,0)),D,DT,"R")
+ I G Q "Refused "_$P(G,U,3)
+ S G="",Z="" F  S Z=$O(S(Z)) Q:Z=""!(G)  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ .S S=$P(^BIPC(X,0),U,3)
+ .Q:S=""
+ .Q:'$D(^BICONT(S,0))
+ .Q:$P(^BICONT(S,0),U,1)'["Refusal"
+ .S T=$P(^BIPC(X,0),U,4)
+ .Q:T=""
+ .Q:$P(^BIPC(X,0),U,4)<D
+ .S G=1_U_T
+ I G Q "Refused "_$$DATE^BDMS9B1($P(G,U,2))
+ S G="",Z="" F  S Z=$O(S(Z)) Q:Z=""!(G]"")  S G=$$FLCONT(P,Z,$$DOB^AUPNPAT(P),DT)
  I G]"" Q G
- S G=$$REFDF(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:16,1:12),0)),LFLU,"FLU VACCINE CVX 16")
- I G]"" Q G
- S G=$$REFDF(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:88,1:12),0)),LFLU,"FLU VACCINE CVX 88")
- I G]"" Q G
- S G=$$REFDF(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:111,1:12),0)),LFLU,"FLU VACCINE CVX 111")
- I G]"" Q G
- S G=$$REFDF(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:135,1:12),0)),LFLU,"FLU VACCINE CVX 135")
- I G]"" Q G
- S G=$$REFDF(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:140,1:12),0)),LFLU,"FLU VACCINE CVX 140")
- I G]"" Q G
- S G=$$REFDF(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:141,1:12),0)),LFLU,"FLU VACCINE CVX 141")
- I G]"" Q G
- S G="" F Z=15,16,88,111,135,140,141 Q:G  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
+ Q "No"
+FLCONT(P,C,BD,ED) ;EP
+ NEW X,G,Y,R,D
+ S X=0,G="",Y=$O(^AUTTIMM("C",C,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
  .S R=$P(^BIPC(X,0),U,3)
  .Q:R=""
  .Q:'$D(^BICONT(R,0))
- .Q:$P(^BICONT(R,0),U,1)'["Refusal"
  .S D=$P(^BIPC(X,0),U,4)
- .Q:D=""
- .Q:$P(^BIPC(X,0),U,4)<LFLU
- .S G=1_U_D
- I G Q "Refused "_$$DATE^BDMS9B1($P(D,U,2))_"CVX "_Z_" Immunization package"
- Q "No"
-REFDF(P,F,I,D,TEXT) ;EP - dm item refused?
- I '$G(P) Q ""
- I '$G(F) Q ""
- I '$G(I) Q ""
- S TEXT=$G(TEXT)
- I $G(D)="" S D=""
- NEW X S X=$O(^AUPNPREF("AA",P,F,I,0))
- I 'X Q ""  ;none of this item was refused
- NEW Y S Y=9999999-X
- I D]"",Y>D Q "Refused "_$S(TEXT]"":TEXT,1:$E($$VAL^XBDIQ1(F,I,.01),1,30))_" on "_$$DATE^BDMS9B1(Y)
- I D]"",Y<D Q ""
- Q "Refused "_$S(TEXT]"":TEXT,1:$E($$VAL^XBDIQ1(F,I,.01),1,30))_" on "_$$DATE^BDMS9B1(Y)
+ .;Q:D=""
+ .;Q:$P(^BIPC(X,0),U,4)<BD
+ .Q:$P(^BIPC(X,0),U,4)>ED
+ .I $P(^BICONT(R,0),U,1)="Egg Allergy" S G="Contraindication: Egg Allergy "_$$DATE^BDMS9B1(D)
+ .I $P(^BICONT(R,0),U,1)="Anaphylaxis" S G="Contraindication: Anaphylaxis "_$$DATE^BDMS9B1(D)
+ Q G
 DIETV(P) ;EP
  I '$G(P) Q ""
  ;get all dietician visits
@@ -123,27 +95,10 @@ DIETP(V) ;are any providers an 07 or 29
  NEW X,Y,Z,H
  S H="",Z=0 F  S Z=$O(^AUPNVPRV("AD",V,Z)) Q:Z'=+Z!(H)  D
  .S Y=$P(^AUPNVPRV(Z,0),U) ;provider ien
- .I $P(^DD(9000010.06,.01,0),U,2)[200 S Y=$$PROVCLSC^XBFUNC1(Y) I Y=29!(Y="07") S H=1 Q
- .I $P(^DD(9000010.06,.01,0),U,2)[6 S Y=$P($G(^DIC(6,Y,0)),U,4) I Y S Y=$P($G(^DIC(7,Y,9999999)),U,1) I Y="07"!(Y=29) S H=1
+ .S Y=$$PROVCLSC^XBFUNC1(Y) I Y=29!(Y="07") S H=1 Q
  .Q
  Q H
 LASTTD(BDMPDFN,BDMBD,BDMED,BDMFORM) ;PEP - date of last TD
- ;  Return the last recorded TD:
- ;   - V Immunization: 1, 9, 20, 22, 28, 35, 50, 106, 107, 110, 112, 113, 115
- ;   - V CPT [APCH TD CPTS]
- ;
- ;  Input:
- ;   BDMPDFN - Patient DFN
- ;   BDMBD - beginning date to begin search for value - if blank, default is DOB
- ;   BDMED - ending date of search - if blank, default is DT
- ;   BDMFORM -  BDMFORM returned:  D - return date only - example 3070801
- ;                                 A - return value:
- ;                       date^text of item found^value if appropriate^visit ien^File found in^ien of file found in
- ;             Default if blank is D
- ;  Output:
- ;   If BDMFORM is blank or BDMFORM is D returns internal fileman date if one found otherwise returns null
- ;   If BDMFORM is A returns the string:
- ;     date^text of item found^value if appropriate^visit ien^File found in^ien of file found in
  ; 
  I $G(BDMPDFN)="" Q ""
  I $G(BDMBD)="" S BDMBD=$$DOB^AUPNPAT(BDMPDFN)
@@ -235,15 +190,15 @@ TOBACCO1 ;check problem file for tobacco use
  .Q:$P(^AUPNPROB(X,0),U,3)=BDMTOBD
  .S Z=$P(^AUPNPROB(X,0),U,1)
  .Q:'$$ICD^ATXCHK(Z,T,9)
- .I $P($$ICDDX^ICDCODE(Z,,,1),U,2)=305.13 S BDMTOBS="PAST USE OF TOBACCO"_" - "_$E($P(^AUTNPOV(+$P(^AUPNPROB(X,0),U,5),0),U),1,30)_U_$P(^AUPNPROB(X,0),U,3) Q  ;cmi/anch/maw 8/27/2007 code set versioning
- .S BDMTOBS="YES, USES TOBACCO - "_$E($P(^AUTNPOV(+$P(^AUPNPROB(X,0),U,5),0),U),1,30)_"  Problem List: "_$$VAL^XBDIQ1(9000011,X,.01)_U_$P(^AUPNPROB(X,0),U,3)
+ .I $P($$ICDDX^BDMUTL(Z,,,"I"),U,2)=305.13 S BDMTOBS="PAST USE OF TOBACCO"_" - "_$E($$VAL^XBDIQ1(9000011,X,.05),1,30)_U_$P(^AUPNPROB(X,0),U,3) Q  ;cmi/anch/maw 8/27/2007 code set versioning
+ .S BDMTOBS="YES, USES TOBACCO - "_$E($$VAL^XBDIQ1(9000011,X,.05),1,30)_"  Problem List: "_$$VAL^XBDIQ1(9000011,X,.01)_U_$P(^AUPNPROB(X,0),U,3)
  Q
 TOBACCO2 ;check pov file for TOBACCO USE DOC
  K BDM S BDMX=BDMSDFN_"^LAST DX [DM AUDIT SMOKING RELATED DXS" S E=$$START1^APCLDF(BDMX,"BDM(") Q:E  I $D(BDM(1)) D
  . Q:$P(BDM(1),U,1)<BDMTOBD
  . Q:$P(BDM(1),U,1)=BDMTOBD
- . I $P(BDM(1),U,2)=305.13 S BDMTOBS="PAST USE OF TOBACCO"_" - "_$E($P(^AUTNPOV(+$P(^AUPNVPOV(+$P(BDM(1),U,4),0),U,4),0),U),1,30)_U_$P(BDM(1),U) Q
- . S BDMTOBS="YES, USES TOBACCO"_" - "_$E($P(^AUTNPOV(+$P(^AUPNVPOV(+$P(BDM(1),U,4),0),U,4),0),U),1,30)_"  POV: "_$$VAL^XBDIQ1(9000010.07,+$P(BDM(1),U,4),.01)_"  "_$$DATE^BDMS9B1($P(BDM(1),U))_U_$P(BDM(1),U)
+ . I $P(BDM(1),U,2)=305.13 S BDMTOBS="PAST USE OF TOBACCO"_" - "_$E($$VAL^XBDIQ1(9000010.07,+$P(BDM(1),U,4),.04),1,30)_U_$P(BDM(1),U) Q
+ . S BDMTOBS="YES, USES TOBACCO"_" - "_$E($P(^AUTNPOV(+$P(^AUPNVPOV(+$P(BDM(1),U,4),0),U,4),0),U),1,30)_"  POV: "_$E($$VAL^XBDIQ1(9000010.07,+$P(BDM(1),U,4),.04),1,30)_"  "_$$DATE^BDMS9B1($P(BDM(1),U))_U_$P(BDM(1),U)
  .Q
  Q
  ;
@@ -253,7 +208,9 @@ CHEST(P) ;EP - get date of last chest xray from V RAD or V CPT
  NEW X,Y,Z,G,LCHEST,T,D
  S LCHEST=""
  S (X,Y,V)=0 F  S X=$O(^AUPNVRAD("AC",P,X)) Q:X'=+X  D
- .S V=$P(^AUPNVRAD(X,0),U,3),V=$P($P($G(^AUPNVSIT(V,0)),U),".")
+ .S V=$P(^AUPNVRAD(X,0),U,3)
+ .Q:'V
+ .S V=$P($P($G(^AUPNVSIT(V,0)),U),".")
  .S Y=$P(^AUPNVRAD(X,0),U),Y=$P($G(^RAMIS(71,Y,0)),U,9)
  .I Y>71009&(Y<71036),V>LCHEST S LCHEST=V Q
  S T=71009 F  S T=$O(^ICPT("B",T)) Q:T>71035  S X=0 F  S X=$O(^ICPT("B",T,X)) Q:X'=+X  D
@@ -353,3 +310,15 @@ RAD(P,BDATE,EDATE,T,F) ;return if a v rad entry in date range
  I F=3 S V=$P(^AUPNVRAD(G,0),U,3) I V Q $P($P($G(^AUPNVSIT(V,0)),U),".")
  I F=4 S V=$P(^AUPNVRAD(G,0),U,3) I V Q $$DATE^BDMS9B1($P($P($G(^AUPNVSIT(V,0)),U),"."))
  Q ""
+REFDF(P,F,I,D,TEXT) ;EP - dm item refused?
+ I '$G(P) Q ""
+ I '$G(F) Q ""
+ I '$G(I) Q ""
+ S TEXT=$G(TEXT)
+ I $G(D)="" S D=""
+ NEW X S X=$O(^AUPNPREF("AA",P,F,I,0))
+ I 'X Q ""  ;none of this item was refused
+ NEW Y S Y=9999999-X
+ I D]"",Y>D Q "Refused "_$S(TEXT]"":TEXT,1:$E($$VAL^XBDIQ1(F,I,.01),1,30))_" on "_$$DATE^BDMS9B1(Y)
+ I D]"",Y<D Q ""
+ Q "Refused "_$S(TEXT]"":TEXT,1:$E($$VAL^XBDIQ1(F,I,.01),1,30))_" on "_$$DATE^BDMS9B1(Y)

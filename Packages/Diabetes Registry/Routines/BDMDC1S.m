@@ -1,0 +1,148 @@
+BDMDC1S ; IHS/CMI/LAB -IHS -CUMULATIVE REPORT 03 Feb 2014 5:38 PM ; 
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**8**;JUN 14, 2007;Build 53
+ ;
+ ;
+SDPI ;EP
+ K BDMCUML
+ S BDMCUML(10)="Adult Weight and Cardiometabolic Risk Management and Diabetes Guidelines"
+ S BDMCUML(10,1)="Documented assessment for"
+ S BDMCUML(10,2)="overweight or obesity (height"
+ S BDMCUML(10,3)="and weight reported)"
+ S BDMCUML(10,4)="Documented nutrition and physical"
+ S BDMCUML(10,5)="activity education"
+ S BDMCUML(20)="Cardiovascular Health and Diabetes"
+ S BDMCUML(20,1)="Documented smoking status"
+ S BDMCUML(20,2)="In current tobacco users, counseled"
+ S BDMCUML(20,3)="Mean blood pressure (BP) <140/<90"
+ S BDMCUML(30)="Depression Care"
+ S BDMCUML(30,1)="In patients without active depression,"
+ S BDMCUML(30,2)="screened for depression**"
+ S BDMCUML(40)="Eye Care"
+ S BDMCUML(40,1)="Eye exam - dilated or retinal camera"
+ S BDMCUML(50)="Foot Care"
+ S BDMCUML(50,1)="Foot exam - Complete"
+ S BDMCUML(60)="Nutrition for Diabetes Prevention and Care"
+ S BDMCUML(60,1)="Documented nutrition education"
+ S BDMCUML(60,2)="Documented nutrition education by an RD"
+ S BDMCUML(70)="Oral Health Care"
+ S BDMCUML(70,1)="Dental exam"
+ S BDMCUML(80)="Screening for Chronic Kidney Disease"
+ S BDMCUML(80,1)="In patients age 18 and above,"
+ S BDMCUML(80,2)="eGFR and UACR"
+ S BDMCUML(80,3)="Mean blood pressure (BP) <140/<90"
+ S BDMCUML(80,4)="In patients with known hypertension, ACE"
+ S BDMCUML(80,5)="inhibitor or ARB prescribed"
+ S BDMCUML(90)="Systems of Care"
+ S BDMCUML(90,1)="A1C <8.0"
+ S BDMCUML(90,2)="A1C >=9.0"
+ S BDMCUML(90,3)="Mean blood pressure (BP) <140/<90"
+ S BDMCUML(90,4)="LDL <100"
+ S BDMCUML(90,5)="Combined Audit Outcomes Measure: A1C<8.0,"
+ S BDMCUML(90,6)="LDL <100, and mean BP <140/<90"
+ ;
+PROCESS ;
+ S BDMNOGO=0
+ S BDMPD=0 F  S BDMPD=$O(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD)) Q:BDMPD'=+BDMPD  D CUML1
+ Q
+ ;
+CUML1 ;
+BMI ;
+ S H=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,30))
+ S W=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,32))
+ S $P(BDMCUML(10,3),U,3)=$P($G(BDMCUML(10,3)),U,3)+1  ;DENOM
+ I H]"",W]"" S $P(BDMCUML(10,3),U,2)=$P(BDMCUML(10,3),U,2)+1  ;NUMER
+PA ;
+ S N=$E($G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,44)))
+ S P=$E($G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,46)))
+ S $P(BDMCUML(10,5),U,3)=$P($G(BDMCUML(10,5)),U,3)+1  ;DENOM
+ I P=1,(N=1!(N=2)!(N=3)) S $P(BDMCUML(10,5),U,2)=$P(BDMCUML(10,5),U,2)+1  ;NUME
+CHD ;
+ S $P(BDMCUML(20,1),U,3)=$P(BDMCUML(20,1),U,3)+1  ;DENOM
+ S V=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,27))
+ I $E(V)=1!($E(V)=2) S $P(BDMCUML(20,1),U,2)=$P(BDMCUML(20,1),U,2)+1
+ S C=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,28))
+ I $E(V)=1 S $P(BDMCUML(20,2),U,3)=$P(BDMCUML(20,2),U,3)+1 I $E(C)=1 S $P(BDMCUML(20,2),U,2)=$P(BDMCUML(20,2),U,2)+1
+BPC ;blood pressure control
+ ;take last 3 bp's and get mean systolic and mean diastolic
+ S $P(BDMCUML(20,3),U,3)=$P(BDMCUML(20,3),U,3)+1
+ S S=$$SYSMEAN^BDMDC15(BDMPD,BDMRBD,BDMRED)
+ S D=$$DIAMEAN^BDMDC15(BDMPD,BDMRBD,BDMRED)
+ D
+ .I S=""!(D="") Q
+ .I S<140&(D<90) S $P(BDMCUML(20,3),U,2)=$P(BDMCUML(20,3),U,2)+1 Q
+DEP ;
+ S V=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,200))
+ I $E(V)'="1" S $P(BDMCUML(30,2),U,3)=$P(BDMCUML(30,2),U,3)+1 D
+ .S V=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,210))
+ .I $E(V)="1" S $P(BDMCUML(30,2),U,2)=$P(BDMCUML(30,2),U,2)+1
+EYE ;
+ S $P(BDMCUML(40,1),U,3)=$P(BDMCUML(40,1),U,3)+1
+ S V=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,40))
+ I $E(V)="1" S $P(BDMCUML(40,1),U,2)=$P(BDMCUML(40,1),U,2)+1
+FOOT ;
+ S $P(BDMCUML(50,1),U,3)=$P(BDMCUML(50,1),U,3)+1
+ S V=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,38))
+ I $E(V)="1" S $P(BDMCUML(50,1),U,2)=$P(BDMCUML(50,1),U,2)+1
+NUTR ;
+ S $P(BDMCUML(60,1),U,3)=$P(BDMCUML(60,1),U,3)+1
+ S $P(BDMCUML(60,2),U,3)=$P(BDMCUML(60,2),U,3)+1
+ S N=$E($G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,44)))
+ I N=1!(N=2)!(N=3) S $P(BDMCUML(60,1),U,2)=$P(BDMCUML(60,1),U,2)+1  ;NUME
+ I N=1!(N=3) S $P(BDMCUML(60,2),U,2)=$P(BDMCUML(60,2),U,2)+1
+DENT ;
+ S $P(BDMCUML(70,1),U,3)=$P(BDMCUML(70,1),U,3)+1
+ S V=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,42))
+ I $E(V)="1" S $P(BDMCUML(70,1),U,2)=$P(BDMCUML(70,1),U,2)+1
+EGFR ;
+ I $$AGE^AUPNPAT(BDMPD,BDMADAT)>17 D
+ .S $P(BDMCUML(80,2),U,3)=$P(BDMCUML(80,2),U,3)+1
+ .S V=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,79))
+ .S Q=$G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,92))
+ .I $E(V)=1,$E(Q)=1 S $P(BDMCUML(80,2),U,2)=$P(BDMCUML(80,2),U,2)+1
+BPS ;
+ S $P(BDMCUML(80,3),U,3)=$P(BDMCUML(80,3),U,3)+1
+ S S=$$SYSMEAN^BDMDC15(BDMPD,BDMRBD,BDMRED)
+ S D=$$DIAMEAN^BDMDC15(BDMPD,BDMRBD,BDMRED)
+ D
+ .I S=""!(D="") Q
+ .I S<140&(D<90) S $P(BDMCUML(80,3),U,2)=$P(BDMCUML(80,3),U,2)+1 Q
+ACE ;
+ S H=$E($G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,34)))
+ I H=1 D
+ .S $P(BDMCUML(80,5),U,3)=$P(BDMCUML(80,5),U,3)+1
+ .S A=$E($G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,60)))
+ .I A=1 S $P(BDMCUML(80,5),U,2)=$P(BDMCUML(80,5),U,2)+1
+SC ;
+ S $P(BDMCUML(90,1),U,3)=$P(BDMCUML(90,1),U,3)+1
+ S $P(BDMCUML(90,2),U,3)=$P(BDMCUML(90,2),U,3)+1
+ S V=$P($G(^XTMP("BDMDM15",BDMJOB,BDMBTH,"AUDIT",BDMPD,78)),U,2)
+ S P="",BDMA18=0
+ I V=""!(V="?") G N
+ I V["<" S P=1
+ I V[">" S P=2
+ S V=$$STV^BDMDC18(V,5)
+ I V="" G N
+ S V=+V
+ I 'P S P=$S(V="":0,V<8.0:1,V>8.9:2,1:"")
+ I P=1 S $P(BDMCUML(90,1),U,2)=$P(BDMCUML(90,1),U,2)+1,BDMA18=1
+ I P=2 S $P(BDMCUML(90,2),U,2)=$P(BDMCUML(90,2),U,2)+1
+N ;
+ S $P(BDMCUML(90,3),U,3)=$P(BDMCUML(90,3),U,3)+1
+ S S=$$SYSMEAN^BDMDC15(BDMPD,BDMRBD,BDMRED)
+ S D=$$DIAMEAN^BDMDC15(BDMPD,BDMRBD,BDMRED)
+ D
+ .S BDMMBP=0
+ .I S=""!(D="") Q
+ .I S<140&(D<90) S BDMMBP=1 S $P(BDMCUML(90,3),U,2)=$P(BDMCUML(90,3),U,2)+1 Q
+LDL ;
+ S BDMLDL=0
+ S $P(BDMCUML(90,4),U,3)=$P(BDMCUML(90,4),U,3)+1
+ S V=$$LDL^BDMDC18(BDMPD,BDMBDAT,BDMADAT,"I")
+ I V="" G N1
+ S V=$P(V,U)
+ S V=$$STV^BDMDC18(V,5,1) I $E(V)'=+$E(V)!(+V=0) G N1
+ I V<100 S $P(BDMCUML(90,4),U,2)=$P(BDMCUML(90,4),U,2)+1 S BDMLDL=1
+N1 ;
+ S $P(BDMCUML(90,6),U,3)=$P(BDMCUML(90,6),U,3)+1
+ I BDMA18,BDMLDL,BDMMBP S $P(BDMCUML(90,6),U,2)=$P(BDMCUML(90,6),U,2)+1
+ Q

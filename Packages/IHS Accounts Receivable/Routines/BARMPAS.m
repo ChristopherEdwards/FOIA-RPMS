@@ -1,5 +1,5 @@
 BARMPAS ; IHS/SD/LSL - Patient Account Statement ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**2,4,5,19,20,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**2,4,5,19,20,23,24**;OCT 26, 2005;Build 69
  ;
  ; IHS/SD/LSL - 04/22/03 - V1.7 Patch 2
  ; IHS/SD/LSL - 12/04/04 - V17 Patch 4 - IM11692
@@ -7,16 +7,13 @@ BARMPAS ; IHS/SD/LSL - Patient Account Statement ;
  ; IHS/SD/LSL - 02/11/04 - V1.7 Patch 5 - IM12222
  ;      Modify MARKACC to allow marking of patient's registered
  ;      at the parents satellite. 
- ;HEAT#80718 21-AUG-2012 P.OTTIS  ADDED SORTING OPTION BY PATNAME
- ;HEAT #95153
- ;HEAT #63286 16-MAR-2012 P.OTTIS added call to populate array BARPSAT
- ;HEAT #91646 added OPTION 'PUR'GE
- ;     DEC 2012 P.OTT added OPTION 'REB'
- ;P.OTT MAR 2013 FIXED UNDEF IN MAN EP: SIMPLIFIED GETSRTBY,INIXTMP
- ;      CHANGED 0->1 INDEX FOR "OB" ENTRY IN ^XTMP
- ;      JULY 2013 HEAT [106730]
- ;      SEP 2013 CLEANUP PRO
- ;      FIXED CLEANUP AFTER DOUBLE QUEUEING  10/10/2013
+ ; IHS/SD/POTT HEAT80718 ADDED SORTING OPTION BY PATNAME ;BAR1.8*23
+ ; IHS/SD/POTT HEAT95153 BAR1.8*23
+ ; IHS/SD/POTT HEAT63286 added call to populate array BARPSAT ;BAR1.8*23
+ ; IHS/SD/POTT HEAT91646 added OPTION 'PUR' & 'REB' ;BAR1.8*23
+ ; IHS/SD/POTT HEAT106730 BAR1.8*23
+ ; IHS/SD/POTT HEAT152220 2/11/2014 FIX PRO PRINT AND CLEANUP ;BAR1.8*24
+ ; IHS/SD/POTT HEAT100207 FIXED AGE 2/18/2014 ;BAR1.8*24
  ; ********************************************************************
  Q
 TASK ; EP
@@ -28,8 +25,8 @@ TASK ; EP
  S BARXXX=$$GETX() ;
  I BARXXX<0 QUIT
  S BARSRTBY=$$GETSRTBY() ;GET SORT-BY
- D INITXTMP(BARXXX,BARDTB,BARDTE,BARSRTBY,BARRUNDT) ;P.OTT
- D BARPSAT^BARUTL0 ;HEAT #63286 16-MAR-2012 P.OTTIS added call to populate array BARPSAT
+ D INITXTMP(BARXXX,BARDTB,BARDTE,BARSRTBY,BARRUNDT) ;;BAR1.8*23
+ D BARPSAT^BARUTL0 ;;BAR1.8*23 HEAT #63286  added call to populate array BARPSAT
  S BARHOLD=DUZ(2)
  S DUZ(2)=0 F  S DUZ(2)=$O(^BARAC(DUZ(2))) Q:'+DUZ(2)  D
  . S BARACDA=0 F  S BARACDA=$O(^BARAC(DUZ(2),"PAS","Y",BARACDA)) Q:'BARACDA  D ACCOUNT(BARACDA)
@@ -63,10 +60,10 @@ ACCOUNT(BARACDA) ;
  ; Patient Account Statement
  ;D INIT^BARUTL  ; this keeps it from printing to a slave printer
  S (BARBL,BARTOT,BARVISL,BARDOSV)=0
- D BARPSAT^BARUTL0 ;HEAT #63286 16-MAR-2012 P.OTTIS added call to populate array BARPSAT
- S BARPATNM=$$PATNAME(BARACDA)   ;P.OTT
- I BARSRTBY=0 S BARPATNM="X" ;NOT SORTED BY NAMES - CREATE DUMMY NAME
- ;;;F  S BARBL=$O(^BARBL(DUZ(2),"ABAL",BARACDA,BARBL)) Q:'+BARBL  D  ;HEAT [106730] 
+ D BARPSAT^BARUTL0 ;;BAR1.8*23 HEAT63286 16-MAR-2012 added call to populate array BARPSAT
+ S BARPATNM=$$PATNAME(BARACDA)   ;BAR1.8*23
+ I BARSRTBY=0 S BARPATNM="X" ;NOT SORTED BY NAMES - CREATE DUMMY NAME BAR1.8*23
+ F  S BARBL=$O(^BARBL(DUZ(2),"ABAL",BARACDA,BARBL)) Q:'+BARBL  D
  . S BARBAL=$$GET1^DIQ(90050.01,BARBL,15)  ;CURRENT BILL AMOUNT
  . Q:BARBAL'>0
  . S BARVISL=$$GET1^DIQ(90050.01,BARBL,108)  ; VisitLoc
@@ -79,10 +76,10 @@ ACCOUNT(BARACDA) ;
  . S ^XTMP("BARPAS"_BARRUNDT,DUZ(2),1,BARPATNM,BARACDA,BARVISL,BARDOSV,"OB",BARBL)="" ;NODE 1 FOR 'OB'
  . S ^XTMP("BARPAS"_BARRUNDT,DUZ(2),0,BARPATNM,BARACDA,BARVISL,BARDOSV,BARBL,"A")=""
  ; 
- ;;;S ^XTMP("BARPAS"_BARRUNDT,DUZ(2),1,BARPATNM,BARACDA,"OB")=BARTOT
+ S ^XTMP("BARPAS"_BARRUNDT,DUZ(2),1,BARPATNM,BARACDA,"OB")=BARTOT
  ;
  ;   It currently kills all previous entries if the Balance = 0
- ;;;I BARTOT=0 K ^XTMP("BARPAS"_BARRUNDT,DUZ(2),0,BARPATNM,BARACDA)
+ I BARTOT=0 K ^XTMP("BARPAS"_BARRUNDT,DUZ(2),0,BARPATNM,BARACDA)
  ; -------------------------------------------------------------------------
  ; Find bills by patient balance
  ; -------------------------------------------------------------------------
@@ -144,21 +141,21 @@ MAIL ; EP - MAIL MESSAGE TEXT
 MANUAL ; EP
  ; Called from Print Adhoc Patient Account Statement AR Menu Option
  ; Ask user to select AR Account marked for Patient Account Statement
- D ASKACCT                                     ; Ask AR Account
+ D ASKACCT                     ; Ask AR Account
  Q:Y'>0
- Q:'$D(BARACDA)                                ; No acct selected
- D DATE(1)                                     ; Ask date range AND init ^XTMP
- I +BARDTB<1 Q                                 ; Dates answered wrong
- D GETHDR^BARMPAS3                             ; MOVED INTO LOOP
+ Q:'$D(BARACDA)                ; No acct selected
+ D DATE(1)                     ; Ask date range AND init ^XTMP
+ I +BARDTB<1 Q                 ; Dates answered wrong
+ D GETHDR^BARMPAS3             ; MOVED INTO LOOP
  Q:'$D(BARHDRDA)
- S BARQ("RC")="LOOP^BARMPAS"         ; Build tmp global with data
- S BARQ("RP")="PRINT^BARMPAS3"
- S BARQ("NS")="BAR"                  ; Namespace for variables
- S BARQ("RX")="POUT^BARRUTL,CLEANUP^BARMPAS"   ; Clean-up routine 10/10/2013
+ S BARQ("RC")="LOOP^BARMPAS"   ; Build tmp global with data
+ S BARQ("RP")="PRINT^BARMPAS3,CLEANUP^BARMPAS" ;HEAT#152220 BAR1.8*24
+ S BARQ("NS")="BAR"            ; Namespace for variables
+ S BARQ("RX")="POUT^BARRUTL"   ; HEAT#152220 BAR1.8*24
  D GETMSG
- D ^BARDBQUE                         ; Double queuing
- D CLEANUP^BARMPAS                   ; Clean-up routine 11/05/2013
- D PAZ^BARRUTL                       ; Press return to continue
+ D ^BARDBQUE                   ; Double queuing
+ ;D CLEANUP^BARMPAS            ; Clean-up routine 11/05/2013 LINE COMMENTED OUT: HEAT#152220 BAR1.8*24
+ D PAZ^BARRUTL                 ; Press return to continue
  Q
 CLEANUP K ^XTMP("BARPAS"_BARRUNDT)   ; cleanup scratch global for option PRO 10/10/2013
  Q
@@ -375,13 +372,14 @@ ABAL(BARBL) ;P.OTT COLLECT BILLS WITH NONZERO BALANCE
  N BARBAL
  S BARBAL=$$GET1^DIQ(90050.01,BARBL,15)  ;CURRENT BILL AMOUNT
  Q:BARBAL'>0
+ I '$D(^BARBL(DUZ(2),"ABAL",BARACDA,BARBL)) Q  ;HEAT#100207
  S ^XTMP("BARPAS"_BARRUNDT,DUZ(2),1,BARACDA,"OB",BARBL)=""
  Q
+LISTALL S BARCNT=0,(BARTMP,BARTMP0)="BARPAS" F  S BARTMP=$O(^XTMP(BARTMP)) Q:BARTMP=""  Q:BARTMP'[BARTMP0  D
+ . S BARCNT=BARCNT+1
+ . W !,BARCNT,".",?10,BARTMP," ",$G(^XTMP(BARTMP,0))
+  . F X="DT","SCOPE","SORTBY","REINDEXED" W !?10,X,": ",$G(^XTMP(BARTMP,0,X))
+ . Q
+ Q
 CLNUP ;
- ;^XTMP("BARPAS3130904.070754",0,"DT")="2991227^3130904"
- ;                            "SCOPE")="PRO"
- ;S BARTMP="BARPAS" F  S BARTMP=$O(^XTMP(BARTMP)) Q:BARTMP=""  Q:BARTMP'["BARPAS"  D
- ;. ;W !,BARTMP
- ;. I $G(^XTMP(BARTMP,0,"SCOPE"))="PRO" W !,$ZR K ^XTMP(BARTMP) W " PURGED."
- ;. Q
- Q  ;--EOR--
+ Q  ;--EOR-

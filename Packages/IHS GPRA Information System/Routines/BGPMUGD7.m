@@ -1,10 +1,10 @@
 BGPMUGD7 ; IHS/MSC/MMT - Print MI measure NQF0389 ;31-Aug-2011 15:53;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimeted output
  ;Prostate cancer
 PROSTATE(CNT) ;EP
  D P1
- K ^TMP("BGPMU0389")
+ K ^TMP("BGPMU0389",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

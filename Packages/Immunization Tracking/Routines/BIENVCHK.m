@@ -1,8 +1,9 @@
 BIENVCHK ;IHS/CMI/MWR - ENVIRONMENTAL CHECK FOR KIDS; DEC 15, 2010
- ;;8.5;IMMUNIZATION;**7**;JAN 15,2014
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ENVIRONMENTAL CHECK ROUTINE FOR KIDS INSTALLATION.
- ;;  PATCH 7, v8.5: Check environment for Imm v8.5 Patch 6.  START+53
+ ;;  PATCH 9, v8.5: Check environment for IHS PCC REPORTS v3.0 patch 29.  START+56
+ ;;                 Check environment for Imm v8.5 Patch 8.  START+63
  ;
  ;
  ;----------
@@ -37,13 +38,17 @@ START ;EP
  ;I $P(X,U,1)'=14&($P(X,U,1)'>14) D  S XPDQUIT=2
  ;.W !,$$CJ^XLFSTR("AUT v98.1 Patch 14 NOT INSTALLED",IOM)
  ;
- ;
  ;---> XB/ZIB v3.0 patch 11.
  ;I '$$VCHK("XB","3.0",2) S XPDQUIT=2
  ;S X=$$LAST("IHS/VA UTILITIES","3.0")
  ;I $P(X,U)'=11&($P(X,U)'>11) D  S XPDQUIT=2
  ;.W !,$$CJ^XLFSTR("XB/ZIB v3.0 patch 11 NOT INSTALLED",IOM)
  ;
+ ;---> IHS PCC REPORTS v3.0 patch 29.
+ ;I '$$VCHK("APCL","3.0",2) S XPDQUIT=2
+ ;S X=$$LAST("IHS PCC REPORTS","3.0")
+ ;I $P(X,U)'=29&($P(X,U)'>29) D  S XPDQUIT=2
+ ;.W !,$$CJ^XLFSTR("IHS PCC REPORTS v3.0 patch 29 NOT INSTALLED",IOM)
  ;
  ;---> PCC Suite v2.0 patch 2.
  ;I '$$VCHK("BJPC","2.0",2) S XPDQUIT=2
@@ -58,33 +63,28 @@ START ;EP
  ;I $P(X,U)'=1&($P(X,U)'>1) D  S XPDQUIT=2
  ;.W !,$$CJ^XLFSTR("BGP v9.0 Patch 1 NOT INSTALLED",IOM)
  ;
+ ;---> IHS PCC REPORTS v3.0 patch 29.
+ I '$$VCHK("APCL","3.0",2) S XPDQUIT=2
+ S X=$$LAST("IHS PCC REPORTS","3.0")
+ I $P(X,U)'=29&($P(X,U)'>29) D  S XPDQUIT=2
+ .W !,$$CJ^XLFSTR("IHS PCC REPORTS v3.0 patch 29 NOT INSTALLED",IOM)
  ;
- ;********** PATCH 7, v8.5, DEC 15,2013, IHS/CMI/MWR
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
  ;---> Check environment for previous load of Imm v8.5.
- D
- .;---> Either never before installed or at least v8.5, Patch 0.
- .;Q:($$VERSION^XPDUTL("BI")="")
  I '$$VCHK("BI","8.5",2) S XPDQUIT=2
  ;
  ;---> Check Patch Level of Imm.
- ;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
  ;---> Check for Imm v8.5, required patch.
  D
  .S X=$$LAST("IMMUNIZATION","8.5")
- .;---> Patch 1.
- .;I $P(X,U)'=1&($P(X,U)'>1) D  S XPDQUIT=2
- .;.W !,$$CJ^XLFSTR("BI v8.5 Patch 1 NOT INSTALLED",IOM)
- .;---> Patch 2.
- .;I $P(X,U)'=2&($P(X,U)'>2) D  S XPDQUIT=2
- .;.W !,$$CJ^XLFSTR("BI v8.5 Patch 2 NOT INSTALLED",IOM)
- .;---> Patch 5.
- .I $P(X,U)'=6&($P(X,U)'>6) D  S XPDQUIT=2
- ..W !,$$CJ^XLFSTR("BI v8.5 Patch 6 NOT INSTALLED",IOM)
+ .;---> Patch 8.
+ .I $P(X,U)'=8&($P(X,U)'>8) D  S XPDQUIT=2
+ ..W !,$$CJ^XLFSTR("BI v8.5 Patch 8 NOT INSTALLED",IOM)
  .;
  .I XPDQUIT'=2 D
- ..;W !,$$CJ^XLFSTR("Checking for Patch 1 of BI v8.5.....Patch 1 Present",IOM)
- ..;W !,$$CJ^XLFSTR("Checking for Patch 2 of BI v8.5.....Patch 2 Present",IOM)
- ..W !,$$CJ^XLFSTR("Checking for Patch 6 of BI v8.5...Patch 6 Present",IOM)
+ ..W !,$$CJ^XLFSTR("Checking for Patch 8 of BI v8.5...Patch 8 Present",IOM)
  ;**********
  ;
  ;---> Check for multiple BI entries in the Package File.

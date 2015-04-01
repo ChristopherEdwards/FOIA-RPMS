@@ -1,9 +1,9 @@
 BGPMUGD4 ; IHS/MSC/MMT - MU EP measures NQF0047 ;20-Aug-2011 11:26;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimited output reports for this measure
 ASTPHARM ;EP
  D P1
- K ^TMP("BGPMU0047")
+ K ^TMP("BGPMU0047",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

@@ -1,8 +1,9 @@
 BARRSEL1  ;IHS/SD/PKD - Selective Report Parameters CON'T ; 12/30/10
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,19,20,21,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,19,20,21,23,24**;OCT 26, 2005;Build 69
  ;routine BARRSEL grew too big for SAC requirements
  ;Code moved here and called from original tags (ie, called from BARRSEL)
- ;JUNE 2013 P.OTTIS - MOD FOR ICD9/10 DX
+ ;IHS/SD/POT JUN 2013 - MOD FOR ICD9/10 DX - BAR*1.8*.24
+ ;IHS/SD/POT JAN 2014 - MOD FOR ICD9/10 DX - BAR*1.8*.24
 DISP ;
  W !!?3,"INCLUSION PARAMETERS in Effect for ",BARMENU,":"
  W !?3,"====================================================================="
@@ -106,7 +107,7 @@ VTYP ; EP
  . W "ALL"
  K DIC,DIE,DR,DA  ;
  Q
-DX ;LIST SELECTED DX
+DX ;LIST SELECTED DX - BAR*1.8*.24
  N BARICD,BARICDX,BARDX
  F BARICD=9,10 D DX01(BARICD)
  I $D(BARY("DXTYPE")) D  ;
@@ -115,6 +116,11 @@ DX ;LIST SELECTED DX
  . I $G(BARY("DXTYPE"))="O" S BARTMP1=2
  . I $G(BARY("DXTYPE"))="A" S BARTMP1=3
  . W !?3,"- Search "_$P("Primary;Primary Only;Other Only;ALL (Primary + Other);",";",BARTMP1+1)_" Diagnosis"
+ ;LINES ADDED IN P24 TO SELECT ALL DXs
+ I $G(BARY("DX9"))="ALL" I $G(BARY("DX9_ALL"))="ALL" I $G(BARY("DX10"))="ALL" I $G(BARY("DX10_ALL"))="ALL" D  Q
+ . W !?3,"- ALL Primary Diagnosis (ICD-9 and ICD-10)"  ;;- BAR*1.8*.24 3/13/2014
+ I $G(BARY("DX9"))="ALL" I $G(BARY("DX9_ALL"))="ALL" W !?3,"- ALL Primary ICD-9 Diagnosis"
+ I $G(BARY("DX10"))="ALL" I $G(BARY("DX10_ALL"))="ALL" W !?3,"- ALL Primary ICD-10 Diagnosis"
  Q
 DX01(BARICD) ;
  S BARICDX="DX"_BARICD

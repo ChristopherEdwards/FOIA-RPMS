@@ -1,5 +1,5 @@
 BGP4PDL ; IHS/CMI/LAB - IHS gpra print 01 Jul 2010 8:02 PM ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
 DEL ;
@@ -171,7 +171,7 @@ HEADER ;EP
  S BGPI=$O(^BGPCTRL("B",2014,0))
  S BGPX=0 F  S BGPX=$O(^BGPCTRL(BGPI,14,BGPX)) Q:BGPX'=+BGPX  D
  .S X=^BGPCTRL(BGPI,14,BGPX,0) D S(X,1,1)
- I $G(BGPEXPT) S X="A file will be created called BG140"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT_"." D S(X,1,1)
+ I $G(BGPEXPT) S X="A file will be created called BG141"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT_"." D S(X,1,1)
  S X="It will reside in the public/export directory.  This file should be sent to your Area Office." D S(X,1,1)
  S X=" " D S(X,1,1)
  I $G(BGPALLPT) S X="All Communities Included." D S(X,1,1)

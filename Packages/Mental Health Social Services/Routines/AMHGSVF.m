@@ -1,5 +1,5 @@
 AMHGSVF ; IHS/CMI/MAW - AMHG Save Visit Form Data (frmVisitDataEntry) 2/12/2009 3:01:26 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1,3**;JUN 18, 2010;Build 10
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,3,4**;JUN 18, 2010;Build 28
  ;
  ;
  ;
@@ -73,7 +73,7 @@ POV(RETVAL,AMHSTR) ;-- save POV called from method SavePOV in clsVisitDataEntry
  S @RETVAL@(AMHI+1)=$C(31)
  Q
  ;
-AXIS2(D,RC,P,A2) ;-- add/modify pov
+AXIS2(D,RC,P,A2) ;EP -- add/modify pov
  N AMHDA,R,AMHN
  S R="~"
  D CLNPOV(RC)  ;ihs/cmi/maw patch 3 remove all povs before readding or editing since primary and secondary not segregated
@@ -164,25 +164,31 @@ ACT(RETVAL,AMHSTR) ;-- save activity tab, called from method SaveActivity in cls
  Q
  ;
 CPT(D,RC,P,CPT) ;-- file cpt codes from activity tab
- N ACPT
+ N ACPT,QTY,MOD1,MOD2,R
+ S R="~"
  D ARRAY^AMHGU(.ACPT,.CPT)
  N AMHDA
  S AMHDA=0 F  S AMHDA=$O(ACPT(AMHDA)) Q:'AMHDA  D
  . N CPT
- . S CPT=+$G(ACPT(AMHDA))
- . D MODCPT^AMHGEVF(CPT,P,RC)
+ . S CPT=+$P(ACPT(AMHDA),R)
+ . S QTY=+$P(ACPT(AMHDA),R,4)
+ . S MOD1=$P(ACPT(AMHDA),R,5)
+ . S MOD2=$P(ACPT(AMHDA),R,6)
+ . D MODCPT^AMHGEVF(CPT,QTY,MOD1,MOD2,P,RC)
  I D="E" D DELCPT^AMHGEVF(RC,.ACPT)
  Q
  ;
 SP(D,RC,P,SP) ;EP -- file secondary providers from activity tab
  N ASP
  D ARRAY^AMHGU(.ASP,.SP)
+ I D="E" D DELPRV^AMHGEVF(RC,.ASP,"S")
  N AMHDA
  S AMHDA=0 F  S AMHDA=$O(ASP(AMHDA)) Q:'AMHDA  D
  . N PRV
  . S PRV=+$G(ASP(AMHDA))
  . D MODPRV^AMHGEVF(PRV,D,RC,P,"S")
- I D="E" D DELPRV^AMHGEVF(RC,.ASP,"S")
+ ;ihs/cmi/maw 01.16.2013 v4.0p3 moved call to above to cleanup secondary providers
+ ;I D="E" D DELPRV^AMHGEVF(RC,.ASP,"S")
  Q
  ;
 PN(RETVAL,AMHSTR) ;-- file progress notes tab called from SaveProgressNotes method of clsVisitDataEntry

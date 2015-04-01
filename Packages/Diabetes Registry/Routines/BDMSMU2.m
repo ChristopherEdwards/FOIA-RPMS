@@ -1,5 +1,5 @@
 BDMSMU2 ; IHS/CMI/LAB - utilities for hmr ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8**;JUN 14, 2007;Build 53
  ;
  ;
  ;cmi/anch/maw 8/28/2007 code set versioning in CPT
@@ -73,7 +73,7 @@ LASTDX(P,T,BDATE,EDATE) ;EP
  ..Q:BDMDX3=""  ;bad xref
  ..Q:'$D(^ICD9(BDMDX3))
  ..Q:'$$ICD^ATXCHK(BDMDX3,BDMTX5,9)
- ..S BDMDX4=1_"^"_$P($$ICDDX^ICDCODE(BDMDX3,,,1),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
+ ..S BDMDX4=1_"^"_$P($$ICDDX^BDMUTL(BDMDX3,,,"I"),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
  ..Q
  .Q
  Q BDMDX4
@@ -84,7 +84,8 @@ LASTDXI(P,T,BDATE,EDATE) ;EP
  S (BDMDX1,BDMDX2,BDMDX3,BDMDX4,BDMTX5)=""
  I $G(BDATE)="" S BDATE=$P(^DPT(P,0),U,3)  ;if no date then set to DOB
  I $G(EDATE)="" S EDATE=DT  ;if no end date then set to today
- S BDMTX5=+$$CODEN^ICDCODE(T,80)
+ S BDMTX5=+$$CODEN^BDMUTL(T,80)  ;cmi/maw 5/13/2014 patch 8 ICD-10
+ ;S BDMTX5=+$$CODEN^ICDCODE(T,80)
  I BDMTX5=""!(BDMTX5=-1) Q ""  ;not a CODE
  S BDMDX4=""  ;return value
  S BDMDXBD=9999999-BDATE,BDMDXED=9999999-EDATE  ;get inverse date and begin at edate-1 and end when greater than begin date
@@ -93,7 +94,7 @@ LASTDXI(P,T,BDATE,EDATE) ;EP
  ..S BDMDX3=$P($G(^AUPNVPOV(BDMDX2,0)),U)
  ..Q:BDMDX3=""  ;bad xref
  ..Q:BDMDX3'=BDMTX5
- ..S BDMDX4=1_"^"_$P($$ICDDX^ICDCODE(BDMDX3,,,1),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
+ ..S BDMDX4=1_"^"_$P($$ICDDX^BDMUTL(BDMDX3,,,"I"),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
  ..Q
  .Q
  Q BDMDX4
@@ -113,7 +114,7 @@ LASTPRC(P,T,BDATE,EDATE) ;EP
  ..S BDMDX3=$P($G(^AUPNVPRC(BDMDX2,0)),U)
  ..Q:BDMDX3=""  ;bad xref
  ..Q:'$$ICD^ATXCHK(BDMDX3,BDMTX5,0)
- ..S BDMDX4=1_"^"_$P($$ICDOP^ICDCODE(BDMDX3),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
+ ..S BDMDX4=1_"^"_$P($$ICDOP^BDMUTL(BDMDX3,,,"I"),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
  ..Q
  .Q
  Q BDMDX4
@@ -125,7 +126,8 @@ LASTPRCI(P,T,BDATE,EDATE) ;EP
  S (BDMDX1,BDMDX2,BDMDX3,BDMDX4,BDMTX5)=""
  I $G(BDATE)="" S BDATE=$P(^DPT(P,0),U,3)  ;if no date then set to DOB
  I $G(EDATE)="" S EDATE=DT  ;if no end date then set to today
- S BDMTX5=+$$CODEN^ICDCODE(T,80.1)
+ S BDMTX5=+$$CODEN^BDMUTL(T,80.1)  ;cmi/maw 5/13/2014 patch 8 ICD-10
+ ;S BDMTX5=+$$CODEN^ICDCODE(T,80.1)
  I BDMTX5=""!(BDMTX5=-1) Q ""  ;not a valid PROC
  S BDMDX4=""  ;return value
  S BDMDXBD=9999999-BDATE,BDMDXED=9999999-EDATE  ;get inverse date and begin at edate-1 and end when greater than begin date
@@ -134,7 +136,7 @@ LASTPRCI(P,T,BDATE,EDATE) ;EP
  ..S BDMDX3=$P($G(^AUPNVPRC(BDMDX2,0)),U)
  ..Q:BDMDX3=""  ;bad xref
  ..Q:BDMTX5'=BDMDX3
- ..S BDMDX4=1_"^"_$P($$ICDOP^ICDCODE(BDMDX3),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
+ ..S BDMDX4=1_"^"_$P($$ICDOP^BDMUTL(BDMDX3,,,"I"),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
  ..Q
  .Q
  Q BDMDX4

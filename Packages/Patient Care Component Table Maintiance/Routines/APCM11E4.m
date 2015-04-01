@@ -1,5 +1,5 @@
 APCM11E4 ;IHS/CMI/LAB - IHS MU; 
- ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2**;MAR 26, 2012;Build 11
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1,2,3**;MAR 26, 2012;Build 1
  ;;;;;;Build 3
 AL ;EP - CALCULATE ALLERY LIST
  ;for each provider or for the facility find out if this
@@ -122,6 +122,7 @@ TOTRX ;EP - did patient have a RX in file 52 with an issue date
  ..S B=0 I $E($P(^PSRX(X,0),U,1))="X" D
  ...S A=0 F  S A=$O(^PSRX(X,"A",A)) Q:A'=+A!(B)  D
  ....I $P(^PSRX(X,"A",A,0),U,5)["E-Prescribe" S B=1
+ ....I $P(^PSRX(X,"A",A,0),U,5)["eRx" S B=1
  ...S $P(APCMRXS(R),U,2)=$P(APCMRXS(R),U,2)+B,$P(^TMP($J,"PATSRX",R,PAT),U,2)=$P($G(^TMP($J,"PATSRX",R,PAT)),U,2)+B I B S ^TMP($J,"PATSRX",R,PAT,"ELEC",$P(^PSRX(X,0),U,1))=""
  Q
 VS ;EP - CALCULATE VITAL SIGNS

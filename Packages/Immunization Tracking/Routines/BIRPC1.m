@@ -1,9 +1,10 @@
 BIRPC1 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETURNS PATIENT DATA, DATA FOR AN IMMUNIZATION OR SKIN TEST VISIT.
  ;;  PATCH 3: Add Eligibility Code to default Hx string.  GET+35
  ;;  PATCH 5: Add Admin Note to default Hx string. GET+38
+ ;;  PATCH 9: Add Date VIS Presented and Admin Date to data string. GET+40
  ;
  ;
  ;----------
@@ -87,9 +88,11 @@ GET(BIDATA,BIDA,BIVTYPE,BIDE) ;PEP - Return data for one Immunization or Skin Te
  ;---> Add Eligibility Code Text and NDC Code Text to default Hx string.
  ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
  ;---> Add Admin Note to default Hx string.
- ;I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80  S BIDE(I)=""
- ;I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80,82,84  S BIDE(I)=""
- I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80,82,84,87  S BIDE(I)=""
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add Date VIS Presented to Patient (YYYYMMDD) and Date of Event ONLY.
+ ;I '$D(BIDE),BIVTYPE="I" F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80,82,84,87  S BIDE(I)=""
+ I '$D(BIDE),BIVTYPE="I" D
+ .F I=4,6,24,27,29:1:37,43,49,51,61,65,67,68,76,77,78,80,82,84,85,87,90,91  S BIDE(I)=""
  ;**********
  ;
  ;---> IEN PC  DATA
@@ -119,9 +122,13 @@ GET(BIDATA,BIDA,BIVTYPE,BIDE) ;PEP - Return data for one Immunization or Skin Te
  ;---> 77 23 = Eligibility Code IEN.
  ;---> 78 24 - Imported from Outside Registry (1=imported, 2=imported & edited).
  ;---> 80 25 = NDC Code pointer IEN.
- ;---> 82 22 = Eligibility Code Text.
- ;---> 84 23 = NDC Code Text.
- ;---> 87 24 = Administrative Note.
+ ;---> 82 26 = Eligibility Code Text.
+ ;---> 84 27 = NDC Code Text.
+ ;---> 85 28 = Date of Event OR Visit; Admin Shot Date (1201 of V File) in MM/DD/YY
+ ;--->         If 1201 is not populated, this element returns the Visit Date!
+ ;---> 87 29 = Administrative Note.
+ ;---> 90 30 = Date VIS Presented to Patient.
+ ;---> 91 31 = Date of Event (1201) ONLY; if 1201 is null, return null.
  ;
  ;
  ;---> SKIN TEST:

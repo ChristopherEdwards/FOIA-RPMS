@@ -1,5 +1,5 @@
 BGP4DNG9 ; IHS/CMI/LAB - NATL COMP EXPORT 13 Nov 2006 12:31 PM 31 Jul 2014 11:21 AM 13 Aug 2014 5:44 PM ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
  W:$D(IOF) @IOF
@@ -133,7 +133,7 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPEXPT D
- .W !!,"A file will be created called BG140",$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG141",$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, these files may need to be manually",!,"sent to your Area Office.",!
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS

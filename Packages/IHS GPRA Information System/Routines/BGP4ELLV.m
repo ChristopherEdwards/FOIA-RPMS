@@ -1,5 +1,5 @@
 BGP4ELLV ; IHS/CMI/LAB - print ind ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
 BL ;EP
  S X=" " D S(X,1,1) S X="BASELINE REPORT PERIOD" D S(X,1,1)
@@ -18,13 +18,13 @@ BL ;EP
  F X=1:1:4 S V=$P(BGPDAB(X),U,6) S Y=V D S(Y,,X+1)
  S X="% w/LDL done in past 5 yrs" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,7) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="A. # w/ LDL =<100 w/ % of Total LDL Screen" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="A. # w/ LDL <100 w/ % of Total LDL Screen" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,8) S Y=V D S(Y,,X+1)
- S X="A. % # w/ LDL =<100 w/ % of Total LDL Screen" D S(X,1,1)
+ S X="A. % # w/ LDL <100 w/ % of Total LDL Screen" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,9) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="B. # w/ LDL 101-130 w/ % of Total LDL Screen" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="B. # w/ LDL 100-130 w/ % of Total LDL Screen" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,10) S Y=V D S(Y,,X+1)
- S X="B. % # w/ LDL 101-130 w/ % of Total LDL Screen" D S(X,1,1)
+ S X="B. % # w/ LDL 100-130 w/ % of Total LDL Screen" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,11) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
  S X=" " D S(X,1,1) S X="C. # w/ LDL 131-160 w/ % of Total LDL Screen" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,12) S Y=V D S(Y,,X+1)
@@ -41,9 +41,9 @@ BL ;EP
  F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAB(X),U,5) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
  S X="w/LDL done in past 5 yrs" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,7),O=$P(BGPDAB(X),U,7) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
- S X="A. # w/ LDL =<100 w/ % of Total LDL Screen" D S(X,1,1)
+ S X="A. # w/ LDL <100 w/ % of Total LDL Screen" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,9),O=$P(BGPDAB(X),U,9) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
- S X="B. # w/ LDL 101-130 w/ % of Total LDL Screen" D S(X,1,1)
+ S X="B. # w/ LDL 100-130 w/ % of Total LDL Screen" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,11),O=$P(BGPDAB(X),U,11) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
  S X="C. # w/ LDL 131-160 w/ % of Total LDL Screen" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,13),O=$P(BGPDAB(X),U,13) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)

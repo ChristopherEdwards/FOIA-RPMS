@@ -1,8 +1,10 @@
 BIPATVW3 ;IHS/CMI/MWR - ADD OTHER ITEMS, DISPLAY HELP; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  BUILD LISTMANAGER ARRAY FOR DISPLAY AND EDIT OF
- ;;  PATIENT'S IMMUNIZATION DATA, DISPLAY HELP..
+ ;;  PATIENT'S IMMUNIZATION DATA, DISPLAY HELP.
+ ;;  PATCH 8: Changes to discontinue High Risk forecast for Flu  HADINFO+51,+56
+ ;;  PATCH 9: Accommodate new parameter options for HepB (Diabetes).  ADDINFO+51
  ;
  ;
  ;----------
@@ -146,11 +148,33 @@ ADDINFO(BIDFN,BILINE,BIENT,BIDUZ2,BIFDT) ;EP
  I X]"" S X="   Moved to/Tx Elsewhere: "_X D WRITE^BIPATVW1(.BILINE,X,,Z)
  S X="" D
  .Q:'$G(DT)  N BIRISKI,BIRISKP
- .D RISK^BIDX(BIDFN,BIFDT,0,.BIRISKI,.BIRISKP)
- .I BIRISKI S X="Influenza" I BIRISKP S X=X_" and "
+ .;
+ .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ .;---> Accommodate new parameter options for HepB (Diabetes).
+ .;---> Set risk parameter equal to 12 = Hep B & Pneumo (this is NOT forecasting,
+ .;---> merely displaying Additional Patient Info).
+ .N BIRSK,BIRISKH S BIRSK=12
+ .;
+ .;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ .;---> Collect only Pneumo High Risk.
+ .;D RISK^BIDX(BIDFN,BIFDT,0,.BIRISKI,.BIRISKP)
+ .;
+ .;---> New parameter to return Hep B risk. (No longer include Flu.)
+ .;D RISK^BIDX(BIDFN,BIFDT,2,.BIRISKI,.BIRISKP)
+ .D RISK^BIDX(BIDFN,BIFDT,BIRSK,,.BIRISKP,.BIRISKH)
+ .;**********
+ .;
+ .;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ .;---> No longer report on Flu forecast.
+ .;I BIRISKI S X="Influenza" I BIRISKP S X=X_" and "
+ .I BIRISKH S X="HepB(DM)" I BIRISKP S X=X_" and "
  .I BIRISKP S X=X_"Pneumo"
  I X="" S X="None on record"
- S X="   High Risk Flu/Pneumo.: "_X
+ ;S X="   High Risk Flu/Pneumo.: "_X
+ ;S X="   High Risk for Pneumo.: "_X
+ S X="   High Risk HepB/Pneumo: "_X
+ ;**********
+ ;
  S X=X_" (as of "_$$SLDT2^BIUTL5(BIFDT,1)_")"
  D WRITE^BIPATVW1(.BILINE,X,,Z)
  S X="   Forecast Flu/Pneumo..: "_$$INFL^BIUTL11(BIDFN,1)

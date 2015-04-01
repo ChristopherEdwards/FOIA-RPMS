@@ -1,5 +1,5 @@
 APCM13ER ;IHS/CMI/LAB - IHS MU REPORT; 
- ;;1.0;IHS MU PERFORMANCE REPORTS;**2**;MAR 26, 2012;Build 11
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**2,4,5**;MAR 26, 2012;Build 5
  ;
  ;
 CALC(N,O) ;ENTRY POINT
@@ -81,19 +81,20 @@ SUM1 ;
  .S APCMINDO(C,O,X)=""
  S APCMCM="" I APCMPTYP="P" D SUMH
  I APCMPTYP="D" D
- .S X="STAGE 1 "_$S(APCMRPTT=1:"EP ",1:"HOSPITAL ")_"MEANINGFUL USE PERFORMANCE REPORT SUMMARY" D W^APCM13EH(X,0,2,APCMPTYP)
+ .D W^APCM13EH("Indian Health Service RPMS Suite (BCER) v1.0",0,2,APCMPTYP)
+ .S X="STAGE 1 "_$S(APCMRPTT=1:"EP ",1:"HOSPITAL ")_"MEANINGFUL USE PERFORMANCE REPORT SUMMARY" D W^APCM13EH(X,0,1,APCMPTYP)
  .S X="Summary Report for "_APCMPNAM D W^APCM13EH(X,0,2,APCMPTYP)
  .S X="^Excl^#^#^Current^Prev^Stage 1^Attest" D W^APCM13EH(X,0,2,APCMPTYP)
  .S X="Performance Measure^?^Den^Num^Period^Period^Target^?" D W^APCM13EH(X,0,1,APCMPTYP)
- .I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public health",1:"CORE SET MEASURES (EPs must meet all 13 simultaneously)") D W^APCM13EH(X,0,2,APCMPTYP)
+ .I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public health",1:"CORE SET MEASURES (EPs must meet all 13)") D W^APCM13EH(X,0,2,APCMPTYP)
  .I APCMRPTT=1 S X=$S(APCMCM="M":"measure (*))",1:"") D W^APCM13EH(X,0,1,APCMPTYP)
- .I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public health",1:"CORE SET MEASURES (EHs/CAHs must meet all 12 simultaneously)") D W^APCM13EH(X,0,2,APCMPTYP)
+ .I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public health",1:"CORE SET MEASURES (EHs/CAHs must meet all 12)") D W^APCM13EH(X,0,2,APCMPTYP)
  .I APCMRPTT=2 S X=$S(APCMCM="M":"measure (*))",1:"") D W^APCM13EH(X,0,1,APCMPTYP)
  S APCMCM="" F  S APCMCM=$O(APCMINDO(APCMCM)) Q:APCMCM=""!(APCMQUIT)  D
  .I APCMCM="M" D  ; W^APCM13EH("MENU SET MEASURES",0,2,APCMPTYP)
- ..I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EPs must meet all 13 simultaneously)") D W^APCM13EH(X,0,2,APCMPTYP)
+ ..I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EPs must meet all 13)") D W^APCM13EH(X,0,2,APCMPTYP)
  ..I APCMRPTT=1 S X=$S(APCMCM="M":"health measure (*))",1:"") D W^APCM13EH(X,0,1,APCMPTYP)
- ..I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EHs/CAHs must meet all 12 simultaneously)") D W^APCM13EH(X,0,2,APCMPTYP)
+ ..I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EHs/CAHs must meet all 12)") D W^APCM13EH(X,0,2,APCMPTYP)
  ..I APCMRPTT=2 S X=$S(APCMCM="M":"health measure (*))",1:"") D W^APCM13EH(X,0,1,APCMPTYP)
  .S APCMMO=0 F  S APCMMO=$O(APCMINDO(APCMCM,APCMMO)) Q:APCMMO=""!(APCMQUIT)  D
  ..S APCMIC=0 F  S APCMIC=$O(APCMINDO(APCMCM,APCMMO,APCMIC)) Q:APCMIC=""!(APCMQUIT)  D SUM2
@@ -154,8 +155,9 @@ SUMH ;
 SUMH1 ;
  I APCMPTYP="P" W:$D(IOF) @IOF S APCMGPG=APCMGPG+1
  I APCMPTYP="P" S X=$P(^VA(200,DUZ,0),U,2),$E(X,35)=$$FMTE^XLFDT(DT),$E(X,70)="Page "_APCMGPG D W^APCM13EH(X,0,1,APCMPTYP)
- I APCMRPTT=1 D W^APCM13EH("*** IHS 2013 Stage 1 Meaningful Use Performance Measure Report for EPs ***",1,2,APCMPTYP)
- I APCMRPTT=2 D W^APCM13EH("** IHS 2013 Stage 1 MU Performance Report for Eligible Hospitals/CAHs **",1,2,APCMPTYP)
+ D W^APCM13EH("Indian Health Service RPMS Suite (BCER) v1.0",1,2,APCMPTYP)
+ I APCMRPTT=1 D W^APCM13EH("** IHS 2013 Stage 1 Meaningful Use Performance Measure Report for EPs **",1,1,APCMPTYP)
+ I APCMRPTT=2 D W^APCM13EH("** IHS 2013 Stage 1 MU Performance Report for Eligible Hospitals/CAHs **",1,1,APCMPTYP)
  I $G(APCMPROV),APCMRPTT=1 S X="Provider Name: "_$$SN^APCM13EH($P(^VA(200,APCMPROV,0),U,1)) D W^APCM13EH(X,1,1,APCMPTYP)
  I $G(APCMPROV),APCMRPTT=2 S X="Facility: "_$P(^DIC(4,APCMPROV,0),U,1) D W^APCM13EH(X,1,1,APCMPTYP)
  S X="Report Period:  "_$$FMTE^XLFDT(APCMBD)_" to "_$$FMTE^XLFDT(APCMED) D W^APCM13EH(X,1,1,APCMPTYP)
@@ -175,8 +177,8 @@ SUMH1 ;
  S X="",$E(X,28)="Excl",$E(X,37)="#",$E(X,46)="#",$E(X,51)="Current",$E(X,61)="Prev",$E(X,67)="Stage 1",$E(X,75)="Attest" D W^APCM13EH(X,0,1,APCMPTYP)
  S X="",X="Performance Measures",$E(X,30)="?",$E(X,36)="Den",$E(X,45)="Num",$E(X,51)="Period",$E(X,60)="Period",$E(X,67)="Target",$E(X,77)="?" D W^APCM13EH(X,0,1,APCMPTYP)
  D W^APCM13EH($$REPEAT^XLFSTR("-",80),0,1,APCMPTYP)
- I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EPs must meet all 13 simultaneously)") D W^APCM13EH(X,0,1,APCMPTYP)
+ I APCMRPTT=1 S X=$S(APCMCM="M":"MENU SET MEASURES (EPs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EPs must meet all 13)") D W^APCM13EH(X,0,1,APCMPTYP)
  I APCMRPTT=1 S X=$S(APCMCM="M":"health measure (*))",1:"") D W^APCM13EH(X,0,1,APCMPTYP)
- I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EHs/CAHs must meet all 12 simultaneously)") D W^APCM13EH(X,0,1,APCMPTYP)
+ I APCMRPTT=2 S X=$S(APCMCM="M":"MENU SET MEASURES (EHs/CAHs must meet 5 out of 10 including at least one public",1:"CORE SET MEASURES (EHs/CAHs must meet all 12)") D W^APCM13EH(X,0,1,APCMPTYP)
  I APCMRPTT=2 S X=$S(APCMCM="M":"health measure (*))",1:"") D W^APCM13EH(X,0,1,APCMPTYP)
  Q

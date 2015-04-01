@@ -1,10 +1,10 @@
 BGPMUDP3 ; IHS/MSC/SAT - MU EH  measure output routines;14-JUN-2011 16:30;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;
  ;This routine does the printed output of 0014 Prenatal Anti-D Immune Globulin (BGPMUD05)
 P14ENT ;EP  output routine for 0014 Prenatal Anti-D Immune Globulin
  D P14
- K ^TMP("BGPMU0014")
+ K ^TMP("BGPMU0014",$J)
  Q
 P14 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -124,7 +124,7 @@ XML014 ;Populate the BGPXML array with data for each population/numerator
  ;This routine does the printed output of 0018 Control High Blood Pressure (BGPMUD06)
 P18ENT ;EP  output routine for 0018 Prenatal Anti-D Immune Globulin
  D P18
- K ^TMP("BGPMU0018")
+ K ^TMP("BGPMU0018",$J)
  Q
 P18 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

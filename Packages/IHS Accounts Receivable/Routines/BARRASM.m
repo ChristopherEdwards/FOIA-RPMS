@@ -1,5 +1,5 @@
 BARRASM ; IHS/SD/LSL - Age Summary Report ; 09/15/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,6,7,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,6,7,23,24**;OCT 26, 2005;Build 69
  ; MODIFIED XTMP FILE NAME TO TMP TO MEET SAC REQUIREMENTS;MRS:BAR*1.8*7 IM29892
  ; IHS/ASDS/LSL - 02/27/02 - Routine created to replace BARRSAGE
  ;
@@ -9,8 +9,10 @@ BARRASM ; IHS/SD/LSL - Age Summary Report ; 09/15/2008
  ;
  ; IHS/SD/LSL - 11/24/03 - V1.7 Patch 4
  ;     Add Visit Location Sort level to accomodate EISS
- ; MAR 2013 P.OTTIS ADDED NEW VA billing
- ; OCT 2013 HEAT#132196 PROBLEM WITH NO BILLING ENTITY - IHS\OCAO\CPC -20131007
+ ;
+ ;IHS/SD/POT 03/15/13 ADDED NEW VA billing ;BAR*1.8*23
+ ;
+ ;IHS\OCAO\CPC -20131007 OCT 2013 HEAT#132196 PROBLEM WITH NO BILLING ENTITY - BAR*1.8*24
  Q
  ; *********************************************************************
 EN ; EP
@@ -139,11 +141,16 @@ DATA ;
  . ;
  . I BAR("ALL")="V" S BAR("SUB2")="VETERANS"
   . ;
+ ;I BARY("STCR")=6 D  ;OLD CODE
+ ;. ;I $L(BAR("BI")) S BAR("SUB2")=$P($T(@BAR("BI")),";;",2)  ;BAR*1.8*1 IM21585
+ ;. I $L(BAR("BI"))<4 S BAR("SUB2")=$P($T(@BAR("BI")),";;",2) ;BAR*1.8*1 IM21585
+ ;. S:BAR("SUB2")="" BAR("SUB2")=BAR("BI")
+ ;. E  S BAR("SUB2")=BAR("BI") 
+ ;PROBLEM WITH NO BILLING ENTITY - IHS\OCAO\CPC -20131007 NEW CODE
  I BARY("STCR")=6 D
- . ;I $L(BAR("BI")) S BAR("SUB2")=$P($T(@BAR("BI")),";;",2)  ;BAR*1.8*1 IM21585
- . I $L(BAR("BI"))<4 S BAR("SUB2")=$P($T(@BAR("BI")),";;",2) ;BAR*1.8*1 IM21585 ;PROBLEM WITH NO BILLING ENTITY - IHS\OCAO\CPC -20131007 
- . S:BAR("SUB2")="" BAR("SUB2")=BAR("BI")
- . E  S BAR("SUB2")=BAR("BI")
+ . S BAR("SUB2")=BAR("BI") ;No Billing Entity
+ . I $L(BAR("BI"))<4 I $P($T(@BAR("BI")),";;",2)]"" D  
+ . . S BAR("SUB2")=$P($T(@BAR("BI")),";;",2)
  I BARY("STCR")=7 D
  . I $L(BAR("BI")) S BAR("SUB2")=$P($T(@BAR("BI")),";;",3)  ;BAR*1.8*1 IM21585
  . S:BAR("SUB2")="" BAR("SUB2")="No Insurer Type"

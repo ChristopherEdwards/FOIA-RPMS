@@ -1,5 +1,5 @@
 BGP4ELL5 ; IHS/CMI/LAB - print ind ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
 I1AGE ;EP
@@ -81,13 +81,13 @@ I1AGEP ;
  F X=1:1:4 S V=$P(BGPDAC(X),U,6) S Y=V D S(Y,,X+1)
  S X="% w/LDL <130" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U,7) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="A. # w/LDL =<100" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="A. # w/LDL <100" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U,8) S Y=V D S(Y,,X+1)
- S X="% w/LDL =<100" D S(X,1,1)
+ S X="% w/LDL <100" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U,9) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="B. # w/LDL 101-129" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="B. # w/LDL 100-129" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U,10) S Y=V D S(Y,,X+1)
- S X="% w/LDL 101-129" D S(X,1,1)
+ S X="% w/LDL 100-129" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U,11) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
 PR ; 
  S X=" " D S(X,1,1) S X="PREVIOUS YEAR PERIOD" D S(X,1,1)
@@ -101,13 +101,13 @@ PR ;
  F X=1:1:4 S V=$P(BGPDAP(X),U,6) S Y=V D S(Y,,X+1)
  S X="% w/LDL <130" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U,7) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="A. # w/LDL =<100" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="A. # w/LDL <100" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U,8) S Y=V D S(Y,,X+1)
- S X="% w/LDL =<100" D S(X,1,1)
+ S X="% w/LDL <100" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U,9) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="B. # w/LDL 101-129" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="B. # w/LDL 100-129" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U,10) S Y=V D S(Y,,X+1)
- S X="% w/LDL 101-129" D S(X,1,1)
+ S X="% w/LDL 100-129" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U,11) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
  ;percentage changes
  S X=" " D S(X,1,1) S X="CHANGE FROM PREV YR %" D S(X,1,1)
@@ -115,9 +115,9 @@ PR ;
  F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAP(X),U,5) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
  S X="w/LDL <130" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,7),O=$P(BGPDAP(X),U,7) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
- S X="A. # w/LDL =<100" D S(X,1,1)
+ S X="A. # w/LDL <100" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,9),O=$P(BGPDAP(X),U,9) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
- S X="B. # w/LDL 101-129" D S(X,1,1)
+ S X="B. # w/LDL 100-129" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,11),O=$P(BGPDAP(X),U,11) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
 BL ;
  S X=" " D S(X,1,1) S X="BASELINE REPORT PERIOD" D S(X,1,1)
@@ -131,13 +131,13 @@ BL ;
  F X=1:1:4 S V=$P(BGPDAB(X),U,6) S Y=V D S(Y,,X+1)
  S X="% w/LDL <130" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,7) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="A. # w/LDL =<100" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="A. # w/LDL <100" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,8) S Y=V D S(Y,,X+1)
- S X="% w/LDL =<100" D S(X,1,1)
+ S X="% w/LDL <100" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,9) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
- S X=" " D S(X,1,1) S X="B. # w/LDL 101-129" D S(X,1,1)
+ S X=" " D S(X,1,1) S X="B. # w/LDL 100-129" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,10) S Y=V D S(Y,,X+1)
- S X="% w/LDL 101-129" D S(X,1,1)
+ S X="% w/LDL 100-129" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,11) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
  ;percentage changes
  S X=" " D S(X,1,1) S X="CHANGE FROM BASE YR %" D S(X,1,1)
@@ -145,9 +145,9 @@ BL ;
  F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAB(X),U,5) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
  S X="w/LDL <130" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,7),O=$P(BGPDAB(X),U,7) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
- S X="A. # w/LDL =<100" D S(X,1,1)
+ S X="A. # w/LDL <100" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,9),O=$P(BGPDAB(X),U,9) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
- S X="B. # w/LDL 101-129" D S(X,1,1)
+ S X="B. # w/LDL 100-129" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,11),O=$P(BGPDAB(X),U,11) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
  Q
 SETN ;set numerator fields

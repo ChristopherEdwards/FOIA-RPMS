@@ -1,5 +1,5 @@
 BARPNP3 ; IHS/SD/LSL - POSTING SELECT COMMAND PROCESSOR ; 05/07/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,21,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,21,24**;OCT 26, 2005;Build 69
  ;** 'Select Command' processor
  ;
  ; IHS/SD/LSL - 09/23/02 - V1.6 Patch 3 - HIPAA
@@ -12,7 +12,7 @@ BARPNP3 ; IHS/SD/LSL - POSTING SELECT COMMAND PROCESSOR ; 05/07/2008
  ; IHS/SD/LS - 10/17/03 - V1.7 Patch 4
  ;      Allow rollover even if previously rolled.
  ;
- ;P.OTTIS APR 2013 CONDITIONAL DISPLAY OF TXD AND MESSSAGES 
+ ; IHS/SD/POT - NOHEAT 03/31/14 - BAR*1.8*24 LIMIT INPUT LENGTH
  ; ********************************************************************
  ;
 EN ;EP - posting command handler
@@ -57,6 +57,7 @@ ASKCOM1 ;
  W !,"Select Command (Line # "_BARLIN_") : "
  ;IHS/SD/TPF BAR*1.8*21 8/3/2011 HEAT20490
  R BARCOM:DTIME
+ S BARCOM=$E(BARCOM,1,10) ;BAR*1.8*24
  S BARCOM=$$UPC^BARUTL(BARCOM)
  ;start new code IHS/SD/SDR bar*1.8*4 DD item 4.1.7.1
  I ("P1A2"[BARCOM) D  I $D(DIROUT)!$D(DIRUT)!$D(DTOUT)!$D(DUOUT)!($G(Y)=0) G ASKCOM

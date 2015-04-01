@@ -1,5 +1,5 @@
 AUMSCBU  ;IHS/OIT/NKD - SCB UPDATE - UTILITY 12/07/2012 ;
- ;;14.0;TABLE MAINTENANCE;**2**;AUG 20,2013;Build 1
+ ;;14.0;TABLE MAINTENANCE;**4**;AUG 20,2013;Build 2
  ; 12/12/12 - Added State Pre-routine
  ; 03/08/13 - Added Health Factor, Language, and Patient Status Code Pre-routine
  ;          - Added Display for County and Service Unit Inactivation
@@ -11,6 +11,8 @@ AUMSCBU  ;IHS/OIT/NKD - SCB UPDATE - UTILITY 12/07/2012 ;
  ;          - Removed Education Topic custom inactivation
  ;          - Added Clinic Stop pre-routine
  ; 03/12/14 - Modified Inactivate processing for Education tables
+ ; 05/28/14 - Added Tribe pre-routine for Inactivate processing
+ ;          - Corrected condition to trigger Patient Current Community change
  ;
  Q
  ; CUSTOM PRE-ROUTINES
@@ -140,6 +142,11 @@ AREAPRE ; EP - AREA - INPUT TRANSFORMS
 CLINPRE ; EP - CLINIC STOP - INPUT TRANSFORMS
  S P4A=$S(P4="Y":ONE,P4="N":AT,1:"")
  Q
+ ; IHS/OIT/NKD AUM*14.0*3 - ADDED TRIBE PRE
+TRIPRE ; EP - TRIBE - INPUT TRANSFORMS
+ S P7=$S(P7]"":"Y",1:"")
+ S:P7]"" AUMA="INA",INA=1
+ Q
  ; CUSTOM INACTIVATE-ROUTINES
  ; IHS/OIT/NKD AUM*14.0*1 - REMOVED EDT INA TAG - START OLD CODE
  ;EDTINA ; EP - EDUCATION TOPIC - INACTIVATE AND POST
@@ -180,9 +187,11 @@ LOCNEW ; EP - LOCATION - CREATE INSTITUTION AND LOCATION ENTRIES
 COMPOST ; EP - COMMUNITY - UPDATE PATIENT FILE CURRENT COMMUNITY IF NAME CHANGE
  N CNT,CNT2,CNT3,AUMR
  I $D(AUMD("DSP")) D DISP^AUMSCBD
- F CNT=1:1:$L(AUML,U) S AUMR=$P(AUML,U,CNT) Q:'AUMR  D
+ ;F CNT=1:1:$L(AUML,U) S AUMR=$P(AUML,U,CNT) Q:'AUMR  D  ; IHS/OIT/NKD AUM*14.0*3 - CORRECTED CONDITION
+ F CNT=1:1:$L(AUML,U) S AUMR=$P(AUML,U,CNT) Q:AUMR']""  D
  . ;Q:$P(AUMR,"|",1)'=.01  ; IHS/OIT/NKD AUM*14.0*1 - CHANGED TO EXTERNAL FIELD
  . Q:$P(AUMR,"|",1)'="NAME"
+ . Q:$P(AUMR,"|",2)']""  ; IHS/OIT/NKD AUM*14.0*3 - CORRECTED CONDITION
  . S (CNT2,CNT3)=0
  . F  S CNT2=$O(^AUPNPAT("AC",$P(AUMR,"|",2),CNT2)) Q:'CNT2  D
  . . Q:$$COMMRES^AUPNPAT(CNT2)'=L1

@@ -1,5 +1,5 @@
 BDMCODE ; IHS/CMI/LAB - INTERFACE TO SELECT ICD CODES ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**8**;JUN 14, 2007;Build 53
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in DISPLAY
  ;
@@ -48,9 +48,9 @@ X2 Q
 DISPLAY ;EP - SHOW CODES IN RANGE SELECTED
  W:$D(IOF) @IOF
  ;W !!,"ICD codes in this range =>",!! W $P(BDM("LOW")," ") S BDMDFN=$O(^ICD9("BA",BDM("LOW"),"")) W ?9,$P(^ICD9(BDMDFN,0),U,3)  ;cmi/anch/maw 9/10/2007 orig line
- W !!,"ICD codes in this range =>",!! W $P(BDM("LOW")," ") S BDMDFN=$O(^ICD9("BA",BDM("LOW"),"")) W ?9,$P($$ICDDX^ICDCODE(BDMDFN),U,4)  ;cmi/anch/maw 9/10/2007 csv
+ W !!,"ICD codes in this range =>",!! W $P(BDM("LOW")," ") S BDMDFN=$O(^ICD9("BA",BDM("LOW"),"")) W ?9,$P($$ICDDX^BDMUTL(BDMDFN),U,4)  ;cmi/anch/maw 9/10/2007 csv
  ;S BDM=BDM("LOW"),BDMCNT=IOSL-2 F  S BDM=$O(^ICD9("BA",BDM)) Q:BDM]BDM("HI")  S BDMDFN=$O(^(BDM,"")) W !,$P(BDM," "),?9,$P(^ICD9(BDMDFN,0),U,3) S BDMCNT=BDMCNT-1 I BDMCNT=0 S BDMCNT=IOSL-2 D  I BDMR=U Q  ;cmi/anch/maw orig line
- S BDM=BDM("LOW"),BDMCNT=IOSL-2 F  S BDM=$O(^ICD9("BA",BDM)) Q:BDM]BDM("HI")  S BDMDFN=$O(^(BDM,"")) W !,$P(BDM," "),?9,$P($$ICDDX^ICDCODE(BDMDFN),U,4) S BDMCNT=BDMCNT-1 I BDMCNT=0 S BDMCNT=IOSL-2 D  I BDMR=U Q  ;cmi/maw csv
+ S BDM=BDM("LOW"),BDMCNT=IOSL-2 F  S BDM=$O(^ICD9("BA",BDM)) Q:BDM]BDM("HI")  S BDMDFN=$O(^(BDM,"")) W !,$P(BDM," "),?9,$P($$ICDDX^BDMUTL(BDMDFN),U,4) S BDMCNT=BDMCNT-1 I BDMCNT=0 S BDMCNT=IOSL-2 D  I BDMR=U Q  ;cmi/maw csv
 A1 . R !,"<>",BDMR:DTIME W:BDMR["?" " Enter ""^"" to stop display, return to continue" G:BDMR["?" A1
  I $S('$D(BDMR):1,BDMR'=U:1,1:0) R !!,"Press return to continue",BDMR:DTIME
  W !

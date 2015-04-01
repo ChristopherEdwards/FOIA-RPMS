@@ -1,37 +1,37 @@
 BGP5GCOM ; IHS/CMI/LAB - GUI COM REPORT ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;
  ;
 TESTNTL ;
  S ERR=""
- S LORIND(4)="",LORIND(3)=""
- S LORILIST(3)=""
- D EP(.ERR,1,2522,"BGP 05 SELECTED IND REPORT",338,"S",.LORIND,1,3040000,3000000,1,"A",.LORILIST,"","","B",$$NOW^XLFDT)
+ S BGPND(4)="",BGPND(3)=""
+ S BGPLIST(3)=""
+ D EP(.ERR,1,2522,"BGP 15 SELECTED IND REPORT",338,"S",.BGPND,1,3040000,3000000,1,"A",.BGPLIST,"","","B",$$NOW^XLFDT)
  W !,ERR
  Q
-EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPINDT,BGPIND,BGPQTR,BGPPER,BGPVDT,BGPBEN,BGPLSTT,BGPLIST,BGPLPRV,BGPLPROV,BGPROT,BGPRTIME) ;EP - called from GUI to produce COM REPORT CI05-RPT-LOC-COM
+EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPINDK,BGPIND,BGPQTR,BGPPER,BGPVDT,BGPBEN,BGPLSTT,BGPLIST,BGPLPRV,BGPLPROV,BGPROT,BGPRTIME,BGPMFITI,BGPFILE,BGPDNT) ;EP - called from GUI to produce COM REPORT CI05-RPT-LOC-COM
  ; SEE ROUTINE BGP5DL if you have questions about any of these variables
  ;  BGPUSER - DUZ
  ;  BGPDUZ2 - DUZ(2)
  ;  BGPOPTN - OPTION NAME
  ;  BGPTAXI - IEN OF COMMUNITY TAXONOMY NAME
- ;  BGPINDT - $E (1st character) of the answer to the following DIR call:
+ ;  BGPINDK - $E (1st character) of the answer to the following DIR call:
  ;            value will be a D, C, W, E or S
  ;               Select one of the following:
  ;
- ;               DM        Diabetes-Related Indicators
+ ;               DM        Diabetes-Related Measures
  ;               CVD       Cardiovascular Disease Prevention for At-Risk Patients
- ;               WH        Women's Health-Related Indicators
- ;               ELD       Elder Care-Related Indicators
- ;               SEL       Selected Indicators (User Defined)
+ ;               WH        Women's Health-Related Measures
+ ;               ELD       Elder Care-Related Measures
+ ;               SEL       Selected Measures (User Defined)
  ;
- ;               Which set of Indicators should be included in this report:
+ ;               Which set of Measures should be included in this report:
  ;
- ;  BGPIND - note:  THIS ARRAY IS ONLY REQUIRED IF BGPINDT="S"
- ;           array containing iens of the indicators selected by the user
+ ;  BGPIND - note:  THIS ARRAY IS ONLY REQUIRED IF BGPINDK="S"
+ ;           array containing iens of the measures selected by the user
  ;           for example, BGPIND(3)=""
- ;                        BGPIND(6)="" if the user selected indicators
- ;                        1 and 6 from the BGP 05 INDICATORS file.  When
+ ;                        BGPIND(6)="" if the user selected measures
+ ;                        1 and 6 from the BGP 15 INDICATORS file.  When
  ;                        you present them to the user for selection use all of them
  ;                        in the file, do not screen out any of them.
  ;
@@ -47,7 +47,7 @@ EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPINDT,BGPIND,BGPQTR,BGPPER,BGPVDT,BG
  ;       Enter the date range for your report:
  ;
  ;  BGPPER - this is the year they select if they answered the above question
- ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2005)
+ ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2010)
  ;
  ;  BGPVDT - baseline year entered by user in internal fileman format, year only
  ;           e.g.  3010000
@@ -62,8 +62,8 @@ EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPINDT,BGPIND,BGPQTR,BGPPER,BGPVDT,BG
  ;         A         All Patients
  ;
  ;        Choose report type for the Lists: R//
- ;  BGPLIST (array) contains the iens of the indicators they want a list for.
- ;        when you present the choices for lists only present the indicators they pick
+ ;  BGPLIST (array) contains the iens of the measures they want a list for.
+ ;        when you present the choices for lists only present the measures they pick
  ;        that are in array BGPIND (run report to see this)
  ;        e.g.  BGPLIST="A"
  ;              BGPLIST(3)=""
@@ -94,10 +94,10 @@ EP1 ;
  I $G(BGPOPTN)="" S BGPRET=0_"^OPTION NAME NOT PASSED" Q
  I $G(BGPTAXI)="" S BGPRET=0_"^IEN OF COMMUNITY TAXONOMY NOT PASSED" Q
  I '$D(^ATXAX(BGPTAXI)) S BGPRET=0_"^INVALID COMMUNITY TAXONOMY IEN PASSED" Q
- I $G(BGPINDT)="" S BGPRET=0_"^INDICATOR TYPE NOT PASSED" Q
- I "DCWES"'[BGPINDT S BGPRET=0_"^INDICATOR TYPE INVALID" Q
- I BGPINDT="S",'$D(BGPIND) S BGPRET=0_"^INDICATOR ARRAY NOT PASSED" Q
- I BGPINDT="S",'$O(BGPIND(0)) S BGPRET=0_"^INDICATOR ARRAY NOT PASSED" Q
+ I $G(BGPINDK)="" S BGPRET=0_"^INDICATOR TYPE NOT PASSED" Q
+ I "DCWESIPA"'[BGPINDK S BGPRET=0_"^INDICATOR TYPE INVALID" Q
+ I BGPINDK="S",'$D(BGPIND) S BGPRET=0_"^INDICATOR ARRAY NOT PASSED" Q
+ I BGPINDK="S",'$O(BGPIND(0)) S BGPRET=0_"^INDICATOR ARRAY NOT PASSED" Q
  I $G(BGPPER)="" S BGPRET=0_"^YEAR VARIABLE NOT PASSED" Q
  I $G(BGPQTR)="" S BGPRET=0_"^QUARTER/DATE TYPE NOT PASSED" Q
  I $G(BGPVDT)="" S BGPRET=0_"^BASELINE YEAR NOT PASSED" Q
@@ -107,22 +107,25 @@ EP1 ;
  S BGPRTIME=$G(BGPRTIME)
  S BGPLIST=$G(BGPLSTT)
  I $G(BGPLIST)="P",$G(BGPLPRV)="" S BGPRET=0_"^PROVIDER NOT PASSED FOR LIST TYPE P" Q
- S DUZ=BGPUSER
+ ;S DUZ=BGPUSER
  S DUZ(2)=BGPDUZ2
  S:'$D(DT) DT=$$DT^XLFDT
  D ^XBKVAR
  S BGPGUI=1
  S IOM=80,BGPIOSL=55
- S BGPRTYPE=4,BGP5RPTH="C"
- I BGPINDT="D" K BGPIND D DI
- I BGPINDT="C" K BGPIND D CI
- I BGPINDT="W" K BGPIND D WI
- I BGPINDT="E" K BGPIND D EI
+ S BGPRTYPE=4,BGPYRPTH="C"
+ I BGPINDK="D" K BGPIND D DI
+ I BGPINDK="C" K BGPIND D CI
+ I BGPINDK="W" K BGPIND D WI
+ I BGPINDK="E" K BGPIND D EI
+ I BGPINDK="I" K BGPIND D II^BGP5DL
+ I BGPINDK="P" K BGPIND D PI^BGP5DL
+ I BGPINDK="A" K BGPIND D AI^BGP5DL
  I BGPQTR=1 S BGPBD=$E(BGPPER,1,3)_"0101",BGPED=$E(BGPPER,1,3)_"1231"
  I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
  I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
  I BGPQTR=4 S BGPBD=($E(BGPPER,1,3)-1)_"1001",BGPED=$E(BGPPER,1,3)_"0930"
- ;I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-365),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-364),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
 BY ;get baseline year
  S X=$E(BGPPER,1,3)-$E(BGPVDT,1,3)
  S X=X_"0000"
@@ -141,8 +144,10 @@ BY ;get baseline year
  S BGPDELT=""
  ;create entry in GUI file
  D ^XBFMK
- S X=BGPUSER_$$NOW^XLFDT
- S DIC="^BGPGUI(",DIC(0)="L",DIADD=1,DLAYGO=90372.08,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R;.07///"_$G(BGPROT)
+ S X=BGPFILE
+ ;S X=BGPUSER_$$NOW^XLFDT
+ S BGPGFNM=X   ;S X=BGPUSER_$$NOW^XLFDTS X=BGPUSER_$$NOW^XLFDT
+ S DIC="^BGPGUIK(",DIC(0)="L",DIADD=1,DLAYGO=90554.19,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R;.07///"_$G(BGPROT)
  K DD,D0,DO D FILE^DICN K DLAYGO,DIADD,DD,D0,DO
  I Y=-1 S BGPRET=0_"^UNABLE TO CREATE ENTRY IN GUI OUTPUT FILE" Q
  S BGPGIEN=+Y
@@ -154,21 +159,22 @@ BY ;get baseline year
 TSKMN ;
  S ZTIO=""
  K ZTSAVE S ZTSAVE("*")=""
- S ZTCPU=$G(IOCPU),ZTRTN="LOCCOM^BGP5GCOM",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI NATIONAL GPRA REPORT COM 05" D ^%ZTLOAD Q
+ S ZTCPU=$G(IOCPU),ZTRTN="LOCCOM^BGP5GCOM",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI NATIONAL GPRA REPORT COM 05" D ^%ZTLOAD
+ D UPLOG^BGPGUA(BGPGIEN,ZTSK)
  Q
 LOCCOM ;
  D ^BGP5D1
  K ^TMP($J,"BGPGUI")
  S IOM=80,BGPIOSL=55
- D GUIR^XBLM("^BGP5DP","^TMP($J,""BGPGUI"",")
- ;cmi/anch/maw added 5/12/2005 for word output
+ D GUIR^BGPXBLM("^BGP5DP","^TMP($J,""BGPGUI"",")
+ ;cmi/anch/maw added 5/12/2009 for word output
  S X=0,C=0 F  S X=$O(^TMP($J,"BGPGUI",X)) Q:X'=+X  D
  . S C=C+1
  . N BGPDATA
  . S BGPDATA=$G(^TMP($J,"BGPGUI",X))
  . I BGPDATA="ZZZZZZZ" S BGPDATA=$C(12)
- . S ^BGPGUI(BGPGIEN,11,C,0)=BGPDATA
- S ^BGPGUI(BGPGIEN,11,0)="^90372.0811^"_C_"^"_C_"^"_DT
+ . S ^BGPGUIK(BGPGIEN,11,C,0)=BGPDATA
+ S ^BGPGUIK(BGPGIEN,11,0)="^90554.1911^"_C_"^"_C_"^"_DT
  K ^TMP($J,"BGPGUI")
  ;cmi/anch/maw end of mods
  D ENDLOG
@@ -190,20 +196,20 @@ XIT ;
  L -^BGPDATA
  Q
 DI ;
- S X=0 F  S X=$O(^BGPINDVC("ADM",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDVC(X,0),U,1))=""
+ S X=0 F  S X=$O(^BGPINDKC("ADM",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDKC(X,0),U,1))=""
  Q
 CI ;
- S X=0 F  S X=$O(^BGPINDVC("ACARD",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDVC(X,0),U,1))=""
+ S X=0 F  S X=$O(^BGPINDKC("ACARD",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDKC(X,0),U,1))=""
  Q
 WI ;
- S X=0 F  S X=$O(^BGPINDVC("AWH",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDVC(X,0),U,1))=""
+ S X=0 F  S X=$O(^BGPINDKC("AWH",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDKC(X,0),U,1))=""
  Q
 EI ;
- S X=0 F  S X=$O(^BGPINDVC("AEL",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDVC(X,0),U,1))=""
+ S X=0 F  S X=$O(^BGPINDKC("AEL",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDKC(X,0),U,1))=""
  Q
  ;
 ENDLOG ;-- UPDATE LOG AT END
- S DIE="^BGPGUI(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
+ S DIE="^BGPGUIK(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
  D ^DIE
  K DIE,DR,DA
  Q

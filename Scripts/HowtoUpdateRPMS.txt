@@ -56,8 +56,11 @@ RPMS has now been extracted to the host disk as
 
  $ ls /tmp/RPMS/Routines.ro /tmp/RPMS/Globals/*.zwr
 
-TODO: Extract Caché classes separately.
+To extract Classes, run this:
+ 
+ RPMS>Do $system.OBJ.ExportAllClassesIndividual("/tmp/classes","diffexport")
 
+At this moment, there are no classes to version.
 
 Unpack Routines and Globals
 ---------------------------
@@ -80,6 +83,11 @@ Remove Caché-specific routines
 Copy (or move) the global .zwr files:
 
  $ cp /tmp/RPMS/Globals/*.zwr Packages/
+
+To prevent a crash in the next step, add a +0 to the file DD.zwr, since DD
+is file zero.
+
+ $ mv Packages/DD{,\+0}.zwr
 
 Split large global .zwr files into pieces no larger than 64 MiB:
 

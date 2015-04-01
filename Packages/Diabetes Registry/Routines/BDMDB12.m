@@ -1,5 +1,5 @@
 BDMDB12 ; IHS/CMI/LAB - 2014 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;cmi/anch/maw 9/12/2014 code set versioning in DEPDX
  ;
@@ -34,7 +34,8 @@ CPT(P,BDATE,EDATE,T,F) ;EP return ien of CPT entry if patient had this CPT
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVCPT("AD",V))
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...I $$ICD^BDMUTL($P(^AUPNVCPT(X,0),U),$P(^ATXAX(T,0),U),1) S G=X  ;cmi/maw 05/15/2014 p8
+ ...;I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -61,7 +62,8 @@ RAD(P,BDATE,EDATE,T,F) ;EP return if a v rad entry in date range
  ...Q:'$D(^AUPNVRAD(X,0))
  ...S Y=$P(^AUPNVRAD(X,0),U) Q:'Y  Q:'$D(^RAMIS(71,Y,0))
  ...S Y=$P($G(^RAMIS(71,Y,0)),U,9) Q:'Y
- ...Q:'$$ICD^ATXCHK(Y,T,1)
+ ...Q:'$$ICD^BDMUTL(Y,$P(^ATXAX(T,0),U),1)  ;cmi/maw 05/15/2014 p8
+ ...;Q:'$$ICD^ATXCHK(Y,T,1)
  ...S G=X
  ...Q
  ..Q
@@ -155,8 +157,9 @@ DEPDX(P,BDATE,EDATE) ;EP
  .S I=$P($G(^AUPNPROB(X,0)),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .Q:$P(^AUPNPROB(X,0),U,12)="I"
- .Q:'$$ICD^ATXCHK(I,T,9)
- .S G="1  Yes - Problem List "_$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .Q:'$$ICD^BDMUTL(I,$P(^ATXAX(T,0),U),9)  ;cmi/maw 05/15/2014 p8
+ .;Q:'$$ICD^ATXCHK(I,T,9)
+ .S G="1  Yes - Problem List "_$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
  .Q
  I G]"" Q G
  S (G,X,I)=""
@@ -168,12 +171,14 @@ DEPDX(P,BDATE,EDATE) ;EP
  .I J=14!(J=15) S G="1  Yes - BH Problem List "_J Q
  .S I=$P($G(^AMHPROB(I,0)),U,5)
  .Q:I=""
- .S I=+$$CODEN^ICDCODE(I,80)
+ .;S I=+$$CODEN^ICDCODE(I,80)
+ .S I=+$$CODEN^BDMUTL(I,80)  ;cmi/maw 05/14/2013 patch 8 icd-10
  .Q:I=""
- .Q:'$$ICD^ATXCHK(I,T,9)
+ .Q:'$$ICD^BDMUTL(I,$P(^ATXAX(T,0),U),9)  ;cmi/maw 05/15/2014 p8
+ .;Q:'$$ICD^ATXCHK(I,T,9)
  .Q:$P(^AMHPPROB(X,0),U,12)="D"
  .Q:$P(^AMHPPROB(X,0),U,12)="I"
- .S G="1  Yes - BH Problem List "_$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .S G="1  Yes - BH Problem List "_$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
  .Q
  I G]"" Q G
  ;now check for 2 dxs in past year
@@ -195,8 +200,9 @@ DEPDX(P,BDATE,EDATE) ;EP
  ..;I BDMP4=18 S BDM=BDM+1 Q
  ..;I BDMP4=24 S BDM=BDM+1 Q
  ..S J=$P(^AMHPROB(BDMP,0),U,5)
- ..S J=$P($$ICDDX^ICDCODE(J),U,1)
- ..I $$ICD^ATXCHK(J,$O(^ATXAX("B","DM AUDIT DEPRESSIVE DISORDERS",0)),9) S BDM=BDM+1 Q
+ ..S J=$P($$ICDDX^BDMUTL(J),U,1)
+ ..I $$ICD^BDMUTL(J,"DM AUDIT DEPRESSIVE DISORDERS",9) S BDM=BDM+1 Q  ;cmi/maw 05/15/2014 p8
+ ..;I $$ICD^ATXCHK(J,$O(^ATXAX("B","DM AUDIT DEPRESSIVE DISORDERS",0)),9) S BDM=BDM+1 Q
  ..Q
  I BDM>1 Q "1  Yes 2 dx PCC/BH"
  Q "2  No"
@@ -220,16 +226,20 @@ LOINC(A,B) ;
 PLCODE(P,A) ;EP
  I $G(P)="" Q ""
  I $G(A)="" Q ""
- N T S T=+$$CODEN^ICDCODE(A,80)
+ N T
+ ;S T=+$$CODEN^ICDCODE(A,80)
+ S T=+$$CODEN^BDMUTL(A,80)  ;cmi/maw 05/14/2014 patch 8 ICD-10
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^BDMUTL(Y,$P(^ATXAX(T,0),U),9) S I=1  ;cmi/maw 05/15/2014 p8
+ ;N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
  Q I
 PLTAX(P,A) ;EP - is DX on problem list 1 or 0
  I $G(P)="" Q ""
  I $G(A)="" Q ""
  N T S T=$O(^ATXAX("B",A,0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^BDMUTL(Y,$P(^ATXAX(T,0),U),9) S I=1  ;cmi/maw 05/15/2014 p8
+ ;N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
  Q I
  ;
 E ;
@@ -310,10 +320,17 @@ CVD(P,EDATE) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(G]"")  D
  .S I=$P($G(^AUPNPROB(X,0)),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .Q:'$$ICD^ATXCHK(I,T,9)
+ .Q:'$$ICD^BDMUTL(I,$P(^ATXAX(T,0),U),9)  ;cmi/maw 05/14/2014 p8
+ .;Q:'$$ICD^ATXCHK(I,T,9)
  .S G="1  Yes - Problem List "_$$VAL^XBDIQ1(9000011,X,.01)
  .Q
  I G Q G
+ K BDM
+ S X=P_"^LAST DX [BGP CABG DXS;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ I $D(BDM(1)) S Y=$$FMTE^XLFDT($P(BDM(1),U,1)) Q "1  Yes - DX "_Y
+ K BDM
+ S X=P_"^LAST DX [BGP PCI DXS;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ I $D(BDM(1)) S Y=$$FMTE^XLFDT($P(BDM(1),U,1)) Q "1  Yes - DX "_Y
  K BDM
  S X=P_"^LAST 2 DX [DM AUDIT CVD DIAGNOSES;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
  I $D(BDM(2)) S Y=$$FMTE^XLFDT($P(BDM(1),U,1)),Z=$$FMTE^XLFDT($P(BDM(2),U,1)) Q "1  Yes - DX "_Y_" "_Z

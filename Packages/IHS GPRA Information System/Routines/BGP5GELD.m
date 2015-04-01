@@ -1,32 +1,32 @@
 BGP5GELD ; IHS/CMI/LAB - GUI COM REPORT ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;
  ;
 TESTELD ;
  S ERR=""
- S LORIND(4)="",LORIND(3)=""
- S LORILIST(3)=""
- D EP(.ERR,1,2522,"BGP 05 ELDER REPORT",338,"S",.LORIND,1,3040000,3000000,1,"A",.LORILIST,"","",1,"B",$$NOW^XLFDT)
+ S BGPND(4)="",BGPND(3)=""
+ S BGPLIST(3)=""
+ D EP(.ERR,1,2522,"BGP 15 ELDER REPORT",338,"S",.BGPND,1,3040000,3000000,1,"A",.BGPLIST,"","",1,"B",$$NOW^XLFDT)
  W !,ERR
  Q
-EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPZZ,BGPIND,BGPQTR,BGPPER,BGPVDT,BGPBEN,BGPLSTT,BGPLIST,BGPLPRV,BGPLPROV,BGPEXPT,BGPROT,BGPRTIME) ;EP - called from GUI to produce COM REPORT CI05-RPT-LOC-COM
+EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPZZ,BGPIND,BGPQTR,BGPPER,BGPVDT,BGPBEN,BGPLSTT,BGPLIST,BGPLPRV,BGPLPROV,BGPEXPT,BGPROT,BGPRTIME,BGPMFITI,BGPFILE,BGPDNT) ;EP - called from GUI to produce COM REPORT CI05-RPT-LOC-COM
  ; SEE ROUTINE BGP5DEL if you have questions about any of these variables
- ; TAXONOMY CHECK IS IN ^BGP5TXEL
+ ; TAXONOMY CHECK IS IN ^BGP5XTEL
  ;  BGPUSER - DUZ
  ;  BGPDUZ2 - DUZ(2)
  ;  BGPOPTN - OPTION NAME
  ;  BGPTAXI - IEN OF COMMUNITY TAXONOMY NAME
  ;  BGPZZ - $E (1st character) of the answer to the following DIR call:
- ;            A = All Indicators
- ;            S = Selected Indicators
+ ;            A = All Measures
+ ;            S = Selected Measures
  ;
- ;               Which set of Indicators should be included in this report:
+ ;               Which set of Measures should be included in this report:
  ;
- ;  BGPIND - note:  THIS ARRAY IS ONLY REQUIRED IF BGPINDT="S"
- ;           array containing iens of the indicators selected by the user
+ ;  BGPIND - note:  THIS ARRAY IS ONLY REQUIRED IF BGPINDK="S"
+ ;           array containing iens of the measures selected by the user
  ;           for example, BGPIND(3)=""
- ;                        BGPIND(6)="" if the user selected indicators
- ;                        1 and 6 from the BGP 05 ELDER INDICATORS file (^BGPELIV GLOBAL).  When
+ ;                        BGPIND(6)="" if the user selected measures
+ ;                        1 and 6 from the BGP 15 ELDER INDICATORS file (^BGPELIK GLOBAL).  When
  ;                        you present them to the user for selection use all of them
  ;                        in the file, do not screen out any of them.
  ;
@@ -42,7 +42,7 @@ EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPZZ,BGPIND,BGPQTR,BGPPER,BGPVDT,BGPB
  ;       Enter the date range for your report:
  ;
  ;  BGPPER - this is the year they select if they answered the above question
- ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2005)
+ ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2010)
  ;           if they choose 5 then this is the fileman date for the end date the user enters
  ;           
  ;  BGPVDT - baseline year entered by user in internal fileman format, year only
@@ -58,8 +58,8 @@ EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPZZ,BGPIND,BGPQTR,BGPPER,BGPVDT,BGPB
  ;         A         All Patients
  ;
  ;        Choose report type for the Lists: R//
- ;  BGPLIST (array) contains the iens of the indicators they want a list for.
- ;        when you present the choices for lists only present the indicators they pick
+ ;  BGPLIST (array) contains the iens of the measures they want a list for.
+ ;        when you present the choices for lists only present the measures they pick
  ;        that are in array BGPIND (run report to see this)
  ;        e.g.  BGPLIST="A"
  ;              BGPLIST(3)=""
@@ -73,7 +73,7 @@ EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPZZ,BGPIND,BGPQTR,BGPPER,BGPVDT,BGPB
  ;             must be date and time
  ;             
  ;  BGPEXPT - if they choose to export to area this will by set to 1
- ;           note********* only ask if they want to export if they selected All for indicator type
+ ;           note********* only ask if they want to export if they selected All for measure type
  ;           e.g. BGPZZ="A"
  ;
  ;  BGPRET - return value is ien^error message^export file name. a zero (0) is
@@ -98,7 +98,7 @@ EP1 ;
  I "AS"'[BGPZZ S BGPRET=0_"^INDICATOR TYPE INVALID" Q
  I BGPZZ="S",'$D(BGPIND) S BGPRET=0_"^INDICATOR ARRAY NOT PASSED" Q
  I BGPZZ="S",'$O(BGPIND(0)) S BGPRET=0_"^INDICATOR ARRAY NOT PASSED" Q
- I BGPZZ="A" S X=0 F  S X=$O(^BGPELIV(X)) Q:X'=+X  S BGPIND(X)=""
+ I BGPZZ="A" S X=0 F  S X=$O(^BGPELIK(X)) Q:X'=+X  S BGPIND(X)=""
  I BGPZZ='"A" S BGPEXPT=""
  I $G(BGPPER)="" S BGPRET=0_"^YEAR VARIABLE NOT PASSED" Q
  I $G(BGPQTR)="" S BGPRET=0_"^QUARTER/DATE TYPE NOT PASSED" Q
@@ -109,18 +109,18 @@ EP1 ;
  S BGPRTIME=$G(BGPRTIME)
  S BGPLIST=$G(BGPLSTT)
  I $G(BGPLIST)="P",$G(BGPLPRV)="" S BGPRET=0_"^PROVIDER NOT PASSED FOR LIST TYPE P" Q
- S DUZ=BGPUSER
+ ;S DUZ=BGPUSER
  S DUZ(2)=BGPDUZ2
  S:'$D(DT) DT=$$DT^XLFDT
  D ^XBKVAR
  S BGPGUI=1
  S IOM=80,BGPIOSL=55
- S BGPRTYPE=5,BGP5RPTH="C"
+ S BGPRTYPE=5,BGPYRPTH="C"
  I BGPQTR=1 S BGPBD=$E(BGPPER,1,3)_"0101",BGPED=$E(BGPPER,1,3)_"1231"
  I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
  I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
  I BGPQTR=4 S BGPBD=($E(BGPPER,1,3)-1)_"1001",BGPED=$E(BGPPER,1,3)_"0930"
- I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-365),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-364),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
 BY ;get baseline year
  S X=$E(BGPPER,1,3)-$E(BGPVDT,1,3)
  S X=X_"0000"
@@ -137,43 +137,46 @@ BY ;get baseline year
  I $G(BGPQUIT) S BGPRET=0_"^COULD NOT CREATE REPORT ENTRY" Q
  I BGPRPT="" S BGPRET=0_"^COULD NOT CREATE REPORT ENTRY" Q
  S BGPDELT=""
- S BGPUF=""
- I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
- I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic"
+ S BGPUF=$$GETDIR^BGP5UTL2()
+ ;I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
+ ;I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic/"
  S BGPFILEN=""
- I BGPEXPT S BGPFILEN="BG05"_$P(^AUTTLOC(DUZ(2),0),U,10)_".EL"_BGPRPT_" in directory "_BGPUF
+ I BGPEXPT S BGPFILEN="BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_".EL"_BGPRPT_" in directory "_BGPUF
  ;create entry in GUI file
  D ^XBFMK
- S X=BGPUSER_$$NOW^XLFDT
- S DIC="^BGPGUI(",DIC(0)="L",DIADD=1,DLAYGO=90372.08,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R;.07///"_$G(BGPROT)
+ S X=BGPFILE
+ ;S X=BGPUSER_$$NOW^XLFDT
+ S BGPGFNM=X
+ S DIC="^BGPGUIK(",DIC(0)="L",DIADD=1,DLAYGO=90554.19,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R;.07///"_$G(BGPROT)_";1///"_BGPFILEN
  K DD,D0,DO D FILE^DICN K DLAYGO,DIADD,DD,D0,DO
  I Y=-1 S BGPRET=0_"^UNABLE TO CREATE ENTRY IN GUI OUTPUT FILE" Q
  S BGPGIEN=+Y
  ;SEND THE REPORT PROCESS OFF TO THE BACKGROUND USING TASKMAN CALL
  D TSKMN
  S BGPRET=BGPGIEN
- I BGPEXPT S $P(BGPRET,U,3)=BGPFILEN
+ I BGPEXPT S $P(BGPRET,"~",3)=BGPFILEN
  Q
  ;
 TSKMN ;
  S ZTIO=""
  K ZTSAVE S ZTSAVE("*")=""
- S ZTCPU=$G(IOCPU),ZTRTN="OTHELD^BGP5GELD",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI ELDER 05 REPORT" D ^%ZTLOAD Q
+ S ZTCPU=$G(IOCPU),ZTRTN="OTHELD^BGP5GELD",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI ELDER 05 REPORT" D ^%ZTLOAD
+ D UPLOG^BGPGUA(BGPGIEN,ZTSK)
  Q
 OTHELD ;
  D ^BGP5D1
  K ^TMP($J,"BGPGUI")
- S IOM=80,BGPIOSL=55
- D GUIR^XBLM("^BGP5DELP","^TMP($J,""BGPGUI"",")
- ;cmi/anch/maw added 5/12/2005 for word output
+ ;S IOM=80,BGPIOSL=55
+ D GUIR^BGPXBLM("^BGP5DELP","^TMP($J,""BGPGUI"",")
+ ;cmi/anch/maw added 5/12/2009 for word output
  S X=0,C=0 F  S X=$O(^TMP($J,"BGPGUI",X)) Q:X'=+X  D
  . S C=C+1
  . N BGPDATA
  . S BGPDATA=$G(^TMP($J,"BGPGUI",X))
  . I BGPDATA="ZZZZZZZ" S BGPDATA=$C(12)
- . S ^BGPGUI(BGPGIEN,11,C,0)=BGPDATA
- S ^BGPGUI(BGPGIEN,11,0)="^90372.0811^"_C_"^"_C_"^"_DT
- K ^TMP($J,"BGPGUI")
+ . S ^BGPGUIK(BGPGIEN,11,C,0)=BGPDATA
+ S ^BGPGUIK(BGPGIEN,11,0)="^90554.1911^"_C_"^"_C_"^"_DT
+ ;K ^TMP($J,"BGPGUI")
  ;cmi/anch/maw end of mods
  I BGPEXPT D GS^BGP5EUTL
  D ENDLOG
@@ -195,7 +198,7 @@ XIT ;
  L -^BGPDATA
  Q
 ENDLOG ;-- UPDATE LOG AT END
- S DIE="^BGPGUI(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
+ S DIE="^BGPGUIK(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
  D ^DIE
  K DIE,DR,DA
  Q

@@ -1,5 +1,5 @@
 ACHSDNL3 ; IHS/ITSC/PMF - DENIAL LTR/FS (LTR2) (4/6) ;7/23/10  15:32
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,5,6,12,18,21**;JUNE 11, 2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,5,6,12,18,21**;JUNE 11, 2001;Build 13
  ;ACHS*3.1*3 prt alt ins, chg chart no display,fx opt prt, allow for a third sig
  ;ACHS*3.1*4 include effective dates on alt ins and fx left margin
  ;ACHS*3.1*5 12/06/2002 display of Medicare dt

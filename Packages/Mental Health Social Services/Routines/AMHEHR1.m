@@ -1,15 +1,15 @@
-AMHEHR1 ; IHS/CMI/LAB - ADD NEW MHSS ACTIVITY RECORDS 13 Aug 2007 4:21 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+AMHEHR1 ; IHS/CMI/LAB - ADD NEW MHSS ACTIVITY RECORDS 13 Aug 2007 4:21 PM ; 14 Nov 2013  2:57 PM
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
  ;
 EEPC ;EP - called from option
- W !!,"This option is used to loop through all MHSS PROBLEM/DSM IV table "
+ W !!,"This option is used to loop through all MHSS PROBLEM/DX table "
  W !,"entries created by EHR users to change the grouping from the "
  W !,"generic 99.9 OTHER EHR CLINICAL grouping to a more specific"
  W !,"MHSS PROBLEM CODE grouping.",!!
  S AMHEPC=$O(^AMHPROBC("B","99.9",0))
  S AMHQ=0
  I 'AMHEPC W !!,"Problem code 99.9 is not in the file.",! D EXIT Q
- I '$O(^AMHPROB("AC",AMHEPC,0)) W !!,"There are no newly created entries in the MHSS Problem/DSM IV table.",!,"No action is needed at this time.",!! D PAUSE^AMHLEA,EXIT Q
+ I '$O(^AMHPROB("AC",AMHEPC,0)) W !!,"There are no newly created entries in the MHSS Problem/DX table.",!,"No action is needed at this time.",!! D PAUSE^AMHLEA,EXIT Q
  S AMHX=0 F  S AMHX=$O(^AMHPROB("AC",AMHEPC,AMHX)) Q:AMHX'=+AMHX!(AMHQ)  D
  .W !!,"CODE: ",$$VAL^XBDIQ1(9002012.2,AMHX,.01)
  .W !,"ICD Narrative: ",$$VAL^XBDIQ1(9002012.2,AMHX,.02)
@@ -121,4 +121,22 @@ S(Y,F,C,T) ;EP - set up array
 S1 ;
  S AMHC=AMHC+1
  S AMHTIUD(AMHC,0)=X
+ Q
+GETDSM ;EP
+ NEW X,Y,C,G,D
+ S D=$P($P(^AMHREC(AMHR,0),U),".")
+ ;SET UP ARRAY OF ALL ACTIVE WITH CODING SYSTEM
+ S X=0,C=0 F  S X=$O(^AMHPROB("B",AMHCODE,X)) Q:X'=+X  D
+ .I $P(^AMHPROB(X,0),U,14)]"",$P(^AMHPROB(X,0),U,14)'>D Q  ;DON'T PICK INACTIVE ONES
+ .I $P(^AMHPROB(X,0),U,10)=4!($P(^AMHPROB(X,0),U,10)=5) Q:$P(^AMHPROB(X,0),U,10)'=AMH45  ;ONLY 4 OR 5
+ .S C=C+1
+ .S Y(X)=""
+ .Q
+ I C=1 S AMHDSM=$O(Y(0)) Q  ;FOUND ONLY 1 SO USE IT
+ I C=0 Q  ;NONE FOUND SO GO ADD ONE
+ ;FIND ONE THAT IS EHR DEFAULT, IF NONE, TAKE 1ST ONE
+ S X=0,G="" F  S X=$O(Y(X)) Q:X'=+X!(G)  D
+ .I $P(^AMHPROB(X,0),U,15) S G=X Q
+ I G S AMHDSM=G Q  ;FOUND AN EHR DEFAULT
+ S AMHDSM=$O(Y(0))
  Q

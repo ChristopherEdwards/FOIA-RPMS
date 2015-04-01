@@ -1,54 +1,43 @@
 BDMS9B2 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,6,7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,6,7,8**;JUN 14, 2007;Build 53
  ;
  ;
 MORE ;EP
  S X="Immunizations:" D S(X,1)
- S X="Flu vaccine since August 1st: ",$E(X,36)=$$FLU^BDMS9B3(BDMSDFN) D S(X)
- S X="Pneumovax ever:",$E(X,36)=$$PNEU^BDMS9B4(BDMSDFN) D S(X)
- S X="Hepatitis B series complete (ever): ",$E(X,36)=$P($$HEP^BDMDA13(BDMSDFN,DT),"  ",2,99) D S(X)
- S X="Td in past 10 yrs:",$E(X,36)=$$TD^BDMS9B3(BDMSDFN,(DT-100000)) D S(X)
- S Y=$$PPDS^BDMS9B4(BDMSDFN) I Y]"" S X="PPD Status:  "_Y D S(X)
- I Y="" S X="Last Documented TB Test:",$E(X,27)=$$PPD^BDMS9B4(BDMSDFN) D S(X)
- S X="Last TB Status Health Factor: "_$$TB(BDMSDFN) S $E(X,50)="Last CHEST X-RAY: "_$$CHEST^BDMS9B3(BDMSDFN) D S(X)
- ;S BDMEKG=$$EKG^BDMS9B3(BDMSDFN),X="EKG:",$E(X,32)=$P(BDMEKG,U,1) S:$P(BDMEKG,U,2)]"" $E(X,54)=$P(BDMEKG,U,2) D S(X)
+ S X="   Flu vaccine (since August 1st): ",$E(X,41)=$$FLU^BDMS9B3(BDMSDFN) D S(X)
+ S X="   Pneumovax (ever):",$E(X,41)=$$PNEU^BDMS9B4(BDMSDFN) D S(X)
+ S X="   Hepatitis B series complete (ever): ",$E(X,41)=$P($$HEP^BDMDC13(BDMSDFN,DT),"  ",2,99) D S(X)
+ S X="   Td/Tdap (in past 10 yrs):",$E(X,41)=$$TD^BDMS9B3(BDMSDFN,(DT-100000),DT) D S(X)
+ S Y=$$PPDS^BDMS9B4(BDMSDFN) S J=1 I Y]"" S X="TB - Status:",$E(X,30)=Y D S(X,1) S J=0
+ S Y=$$PPD^BDMS9B4(BDMSDFN) S X="TB - Last Documented Test:",$E(X,30)=$P(Y,"  ",4)_"  "_$P(Y,"  ",1) D S(X,J)
+ S X="",$E(X,6)="TB Test Result:",$E(X,30)=$P(Y,"  ",2)_"  "_$P(Y,"  ",3) D S(X)
+ S X="     TB Treatment Completed: ",$E(X,30)=$$TB(BDMSDFN) D S(X)
 L ;
  S X="Laboratory Results (most recent):",$E(X,55)="RPMS LAB TEST NAME" D S(X,1)
- S X=" HbA1c:" S Y=$$HBA1C(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
+ S X=" A1C:" S Y=$$HBA1C(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  I $P(Y,"|||",4)]"" S X="   Note: "_$P(Y,"|||",4) D S(X)
- S X=" Next most recent HbA1c:" S Y=$$NLHGB(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
- ;S X="Nephropathy Assessment" D S(X)
- S X=" Creatinine:" S Y=$$CREAT(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
+ S X=" Next most recent A1C:" S Y=$$NLHGB(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
+ S X=" Creatinine:" S Y=$$CREAT(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X,1)
  I $P(Y,"|||",4)]"" S X="   Note: "_$P(Y,"|||",4) D S(X)
  S X=" Estimated GFR:" S Y=$$GFR(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
+ S Y=$$ACRATIO(BDMSDFN)
+ S X=" UACR (Quant A/C Ratio):",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X=" Total Cholesterol:" S Y=$$TCHOL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X,1)
  S X="  Non-HDL Cholesterol:" S Y=$$NONHDL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  LDL Cholesterol:" S Y=$$CHOL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  HDL Cholesterol:" S Y=$$HDL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  Triglycerides:" S Y=$$TRIG(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
- S X="Urine Protein Assessment:" D S(X)
  S Z=0
- S Y=$$ACRATIO(BDMSDFN)
- S X=" UACR (Quant A/C Ratio):",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) I $P(Y,"|||",2)>$$FMADD^XLFDT(DT,-365) D
- .;S X="     Note:  UACR test was done over 1 year ago." D S(X)
- ;if no a/c ratio in the past year display next best in past year
- ;S X=" Alternate Urine Protein Test in past year:" D S(X)
- ;S Y=$$PCR(BDMSDFN) I Y]"" S X=" UPCR (P/C Ratio:",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- ;S Y=$$HR24(BDMSDFN) I Y]"" S X=" Urine Protein/24 Hr",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- ;S Y=$$SEMI(BDMSDFN) I Y]"" S X=" UACR (Semi-Quant A/C)",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- ;S Y=$$MICRO(BDMSDFN) I Y]"" S X=" Microalbumin only",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- ;S Y=$$URIN(BDMSDFN) I Y]"" S X=" Dipstick Protein",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X) S Z=1 G EDUCD
- ;I 'Z D S("       No Urine Protein Assessment Lab Values on File in the past year")
 EDUCD D S(" ")
  S BDMSBEG=$$FMADD^XLFDT(DT,-365)
  S X="DM Education Provided (in past yr): " D S(X)
- S X="  Last Dietitian Visit:     "_$$DIETV^BDMS9B3(BDMSDFN) D S(X)
+ S X="  Last Dietitian Visit:      "_$$DIETV^BDMS9B3(BDMSDFN) D S(X)
  S X="" K BDMX D EDUC I $D(BDMX) D
  .S C=0
  .S %=0 F  S %=$O(BDMX(%)) Q:%'=+%  D
  ..S C=C+1
  ..I (C#2) S X="" S X="  "_BDMX(%) Q
- ..S $E(X,42)=BDMX(%) D S(X) S X=""
+ ..S $E(X,41)=BDMX(%) D S(X) S X=""
  I X]"" D S(X)
  K BDMX,BDMY,%
  D EDUCREF I $D(BDMX) S X="In the past year, the patient has refused the following Diabetes education:" D S(X) D
@@ -98,8 +87,14 @@ EDT(E) ;
  S T=$P(^AUTTEDT(E,0),U,2)
  I $P(T,"-")="DM" Q 1
  I $P(T,"-")="DMC" Q 1
- I $P(T,"-")["250" Q 1
- Q ""
+ NEW CODE
+ S G=""
+ S CODE=$P($$CODEN^BDMUTL($P(T,"-",1),80),"~")
+ I CODE>0 D
+ .N TAX
+ .S TAX=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
+ .I $$ICD^BDMUTL(CODE,$P(^ATXAX(TAX,0),U),9) S G=1
+ Q G
 TB(P) ;
  I '$G(P) Q ""
  NEW BDMS,E,X
@@ -151,13 +146,14 @@ TCHOL(P) ;EP
 NONHDL(P) ;
  NEW V,D,TC,HDL,TCD,HDLD,NT
  I '$G(P) Q ""
- NEW T S T=$O(^ATXLAB("B","DM AUDIT NON-HDL TESTS",0)),LT=$O(^ATXAX("B","BGP NON-HDL LOINC CODES",0)) I 'T Q "<Taxonomy Missing>"
- S V=$$LAB(P,T,LT) ;,V=$P(V,"|||"),D=$P(V,"|||",2),NT=$P(V,"|||",3),V=$P(V,"|||")
+ S V=""
+ ;NEW T S T=$O(^ATXLAB("B","DM AUDIT NON-HDL TESTS",0)),LT=$O(^ATXAX("B","BGP NON-HDL LOINC CODES",0)) I 'T Q "<Taxonomy Missing>"
+ ;S V=$$LAB(P,T,LT) ;,V=$P(V,"|||"),D=$P(V,"|||",2),NT=$P(V,"|||",3),V=$P(V,"|||")
  NEW T S T=$O(^ATXLAB("B","DM AUDIT CHOLESTEROL TAX",0)),LT=$O(^ATXAX("B","BGP TOTAL CHOLESTEROL LOINC",0)) I 'T Q "<Taxonomy Missing>"
  S TC=$$LAB(P,T,LT),TCD=$P(TC,"|||",2),TC=$$STRIP^XLFSTR($P(TC,"|||")," ")
  I TC="" Q V
  I TCD<$P(V,"|||",2) Q V
- NEW T S T=$O(^ATXLAB("B","DM AUDIT HDL TAX",0)),LT=$O(^ATXAX("B","BGP HDL LOINC CODES",0)) I 'T Q "<Taxonomy Missing>"
+ S T=$O(^ATXLAB("B","DM AUDIT HDL TAX",0)),LT=$O(^ATXAX("B","BGP HDL LOINC CODES",0)) I 'T Q "<Taxonomy Missing>"
  S HDL=$$LAB(P,T,LT),HDLD=$P(HDL,"|||",2),HDL=$$STRIP^XLFSTR($P(HDL,"|||")," ")
  I HDL="" Q V
  I HDLD<$P(V,"|||",2) Q V
@@ -195,7 +191,7 @@ LAB(P,T,LT,YEAR) ;EP
  ...Q
  ..Q
  .Q
- I 'G S R=$$REF(P,T) Q $S(R:"||||||"_R,1:"")
+ I 'G Q ""  ;S R=$$REF(P,T) Q $S(R:"||||||"_R,1:"") ;NO REFUSALS AS THERE ARE NO REFUSALS ON THE AUDIT
  S R=$$LBLK($P(^AUPNVLAB(G,0),U,4),6)_" "_$P($G(^AUPNVLAB(G,11)),U)_"|||"
  S R=R_$P($P($G(^AUPNVSIT($P(^AUPNVLAB(G,0),U,3),0)),U),".")_"|||"_$E($$VAL^XBDIQ1(9000010.09,G,.01),1,25)_"|||"_$$REF(P,T,$P($P($G(^AUPNVSIT($P(^AUPNVLAB(G,0),U,3),0)),U),"."))_"|||"_G
  Q R
@@ -206,28 +202,6 @@ LOINC(A,B) ;EP
  S %=$P($G(^LAB(95.3,A,0)),U)_"-"_$P($G(^LAB(95.3,A,0)),U,15)
  I $D(^ATXAX(B,21,"B",%)) Q 1
  Q ""
-LDLLAB ;EP
- K BDMX
- NEW LT S LT=$O(^ATXAX("B","BGP LDL LOINC CODES",0))
- NEW D,V,X,G S (D,G)=0 F  S D=$O(^AUPNVLAB("AE",BDMSPAT,D)) Q:D'=+D!(G>2)  D
- .S X=0 F  S X=$O(^AUPNVLAB("AE",BDMSPAT,D,X)) Q:X'=+X!(G>2)  D
- ..S Y=0 F  S Y=$O(^AUPNVLAB("AE",BDMSPAT,D,X,Y)) Q:Y'=+Y!(G>2)  D
- ...Q:'$D(^AUPNVLAB(Y,0))
- ...I $P(^AUPNVLAB(Y,0),U,4)="" Q
- ...I Y=BDMIEN Q
- ...I $D(^ATXLAB(T,21,"B",X)) D   Q
- ....S R=$P(^AUPNVLAB(Y,0),U,4) Q:R'=+R
- ....S BDMX(Y)=R_"^"_(9999999-D),G=G+1
- ...;Q  ;IHS/CMI/LAB - don't check loinc codes for now
- ...Q:'LT
- ...S J=$P($G(^AUPNVLAB(Y,11)),U,13) Q:J=""
- ...Q:'$$LOINC(J,LT)
- ...S R=$P(^AUPNVLAB(Y,0),U,4) Q:R'=+R
- ...S BDMX(Y)=R_"^"_(9999999-D),G=G+1
- ...Q
- ..Q
- .Q
- Q
 DATE(D) ;EP - convert to slashed date
  I $G(D)="" Q ""
  Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_$E(D,2,3)
@@ -306,3 +280,25 @@ LBLK(V,L) ;EP LEFT blank fill
  NEW %,I
  S %=$L(V),Z=L-% F I=1:1:Z S V=" "_V
  Q V
+LDLLAB ;EP
+ K BDMX
+ NEW LT S LT=$O(^ATXAX("B","BGP LDL LOINC CODES",0))
+ NEW D,V,X,G S (D,G)=0 F  S D=$O(^AUPNVLAB("AE",BDMSPAT,D)) Q:D'=+D!(G>2)  D
+ .S X=0 F  S X=$O(^AUPNVLAB("AE",BDMSPAT,D,X)) Q:X'=+X!(G>2)  D
+ ..S Y=0 F  S Y=$O(^AUPNVLAB("AE",BDMSPAT,D,X,Y)) Q:Y'=+Y!(G>2)  D
+ ...Q:'$D(^AUPNVLAB(Y,0))
+ ...I $P(^AUPNVLAB(Y,0),U,4)="" Q
+ ...I Y=BDMIEN Q
+ ...I $D(^ATXLAB(T,21,"B",X)) D   Q
+ ....S R=$P(^AUPNVLAB(Y,0),U,4) Q:R'=+R
+ ....S BDMX(Y)=R_"^"_(9999999-D),G=G+1
+ ...;Q  ;IHS/CMI/LAB - don't check loinc codes for now
+ ...Q:'LT
+ ...S J=$P($G(^AUPNVLAB(Y,11)),U,13) Q:J=""
+ ...Q:'$$LOINC(J,LT)
+ ...S R=$P(^AUPNVLAB(Y,0),U,4) Q:R'=+R
+ ...S BDMX(Y)=R_"^"_(9999999-D),G=G+1
+ ...Q
+ ..Q
+ .Q
+ Q

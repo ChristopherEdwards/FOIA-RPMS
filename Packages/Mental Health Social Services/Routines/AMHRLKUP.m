@@ -1,5 +1,5 @@
 AMHRLKUP ; IHS/CMI/LAB - lookup up record ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
  ;
 EN ;EP
  D EOJ
@@ -25,7 +25,7 @@ HEAD1 ;
  W !,AMHDASH
  W !?13,"Behavioral Health visits for " S Y=AMHDATE D DD^%DT W Y I AMHLOC]"" W !,"Location:  ",$P(^DIC(4,AMHLOC,0),U)
  W !,AMHDASH
- W !," #",?7,"PROVIDER",?18,"LOC",?23,"COMMUNITY",?33,"ACT",?37,"CONT",?42,"PATIENT",?55,"PROB",?63,"NARRATIVE",!,AMHDASH
+ W !," #",?7,"PROVIDER",?18,"LOC",?23,"COMMUNITY",?33,"ACT",?37,"CONT",?42,"PATIENT",?55,"PROB",?64,"NARRATIVE",!,AMHDASH
  Q
 SELECT ;
  W ! S DIR(0)="NO^1:"_AMHRCNT_":0",DIR("A")="Which record do you want to display" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
@@ -59,6 +59,6 @@ DISPRECS ;display visits for selection by user
  ..I $D(^AUPNPAT($P(AMHR0,U,8),41,DUZ(2))) W ?42,$P(^AUTTLOC(DUZ(2),0),U,7)," ",$P(^AUPNPAT($P(AMHR0,U,8),41,DUZ(2),0),U,2)
  .E  W ?42,"-----"
  .S AMHP=$O(^AMHRPRO("AD",AMHRIEN,0)) I AMHP="" W ?55,"No Problems recorded." Q
- .W ?55,$P(^AMHPROB($P(^AMHRPRO(AMHP,0),U),0),U) W:$P(^AMHRPRO(AMHP,0),U,4) ?63,$E($P(^AUTNPOV($P(^AMHRPRO(AMHP,0),U,4),0),U),1,15)
+ .W ?55,$P(^AMHPROB($P(^AMHRPRO(AMHP,0),U),0),U) W:$P(^AMHRPRO(AMHP,0),U,4) ?64,$E($P(^AUTNPOV($P(^AMHRPRO(AMHP,0),U,4),0),U),1,15)
  .Q
  Q

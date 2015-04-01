@@ -1,5 +1,5 @@
 BDMPB11 ; IHS/CMI/LAB -IHS -CUMULATIVE REPORT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;
 EKG ;need date of last ekg
@@ -14,7 +14,7 @@ EKG ;need date of last ekg
 TCHOL ;
  S:'$D(BDMCUML(180)) BDMCUML(180)="Total Cholesterol obtained in past 12 months"
  S $P(BDMCUML(180),U,2)=$P(BDMCUML(180),U,2)+1
- S V=$$CHOL^BDMD718(BDMPD,BDMBDAT,BDMADAT,"I")
+ S V=$$CHOL^BDMDB18(BDMPD,BDMBDAT,BDMADAT,"I")
  I V="" S $P(BDMCUML(180),U,6)=$P(BDMCUML(180),U,6)+1 G LDL
  S V=$P(V,U)
  I $E(V)'=+$E(V) S $P(BDMCUML(180),U,7)=$P(BDMCUML(180),U,7)+1 G LDL ;unable to determine result, not a number or is blank
@@ -24,7 +24,7 @@ TCHOL ;
 LDL ;
  S:'$D(BDMCUML(190)) BDMCUML(190)="LDL Cholesterol obtained in the past 12 months"
  S $P(BDMCUML(190),U,2)=$P(BDMCUML(190),U,2)+1
- S V=$$LDL^BDMD718(BDMPD,BDMBDAT,BDMADAT,"I")
+ S V=$$LDL^BDMDB18(BDMPD,BDMBDAT,BDMADAT,"I")
  I V="" S $P(BDMCUML(190),U,7)=$P(BDMCUML(190),U,7)+1 G HDL
  S V=$P(V,U)
  I $E(V)'=+$E(V) S $P(BDMCUML(190),U,8)=$P(BDMCUML(190),U,8)+1 G HDL ;unable to determine result, not a number or blank
@@ -35,7 +35,7 @@ LDL ;
 HDL ;
  S:'$D(BDMCUML(195)) BDMCUML(195)="HDL Cholesterol obtained in the past 12 months"
  S $P(BDMCUML(195),U,2)=$P(BDMCUML(195),U,2)+1
- S V=$$HDL^BDMD718(BDMPD,BDMBDAT,BDMADAT,"I")
+ S V=$$HDL^BDMDB18(BDMPD,BDMBDAT,BDMADAT,"I")
  I V="" S $P(BDMCUML(195),U,7)=$P(BDMCUML(195),U,7)+1 G TRIG
  S V=$P(V,U)
  I $E(V)'=+$E(V) S $P(BDMCUML(195),U,8)=$P(BDMCUML(195),U,8)+1 G TRIG ;unable to determine result, not a number
@@ -47,7 +47,7 @@ HDL ;
 TRIG ;
  S:'$D(BDMCUML(200)) BDMCUML(200)="Triglycerides obtained in past 12 months"
  S $P(BDMCUML(200),U,2)=$P(BDMCUML(200),U,2)+1
- S V=$$TRIG^BDMD718(BDMPD,BDMBDAT,BDMADAT,"I")
+ S V=$$TRIG^BDMDB18(BDMPD,BDMBDAT,BDMADAT,"I")
  I V="" S $P(BDMCUML(200),U,7)=$P(BDMCUML(200),U,7)+1 G FAST
  S V=$P(V,U)
  I $E(V)'=+$E(V) S $P(BDMCUML(200),U,8)=$P(BDMCUML(200),U,8)+1 G FAST ;unable to determine result, not a number
@@ -58,7 +58,7 @@ TRIG ;
 FAST ;
  S:'$D(BDMCUML(600)) BDMCUML(600)="Fasting Glucose obtained ever"
  S $P(BDMCUML(600),U,2)=$P(BDMCUML(600),U,2)+1
- S V=$$FGLUCOSE^BDMD718(BDMPD,$P(^DPT(BDMPD,0),U,3),BDMADAT,"I")
+ S V=$$FGLUCOSE^BDMDB18(BDMPD,$P(^DPT(BDMPD,0),U,3),BDMADAT,"I")
  I V="" S $P(BDMCUML(600),U,7)=$P(BDMCUML(600),U,7)+1 G G75
  S V=$P(V,U)
  I $E(V)'=+$E(V) S $P(BDMCUML(600),U,8)=$P(BDMCUML(600),U,8)+1 G G75 ;unable to determine result, not a number
@@ -66,7 +66,7 @@ FAST ;
 G75 ;
  S:'$D(BDMCUML(610)) BDMCUML(610)="75gm 2 hour glucose obtained ever"
  S $P(BDMCUML(610),U,2)=$P(BDMCUML(610),U,2)+1
- S V=$$G75^BDMD718(BDMPD,$P(^DPT(BDMPD,0),U,3),BDMADAT,"I")
+ S V=$$G75^BDMDB18(BDMPD,$P(^DPT(BDMPD,0),U,3),BDMADAT,"I")
  I V="" S $P(BDMCUML(610),U,7)=$P(BDMCUML(610),U,7)+1 G END
  S V=$P(V,U)
  I $E(V)'=+$E(V) S $P(BDMCUML(610),U,8)=$P(BDMCUML(610),U,8)+1 G END ;unable to determine result, not a number

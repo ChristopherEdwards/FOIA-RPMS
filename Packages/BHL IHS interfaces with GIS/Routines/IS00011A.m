@@ -1,4 +1,4 @@
-IS00011A ;Compiled from script 'Generated: HL IHS IZV04 OUT-O' on FEB 05, 2014
+IS00011A ;Compiled from script 'Generated: HL IHS IZV04 OUT-O' on DEC 05, 2014
  ;Part 2
  ;Copyright 2014 SAIC
 EN S X1="^INTHL7FT(17,3)" X:$L($G(@X1)) $G(@X1) S X=$E(X,1,250)

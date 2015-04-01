@@ -1,5 +1,5 @@
 BDMDMAS ; IHS/CMI/LAB - print hs for dm patients with appts ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**2**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,8**;JUN 14, 2007;Build 53
  ;
  ;
  ;this routine will go through the Diabetes Register
@@ -29,11 +29,22 @@ HSTYPE ;get hs type
  S DIC("B")=X
  D ^DIC I Y>0 S BDMTYPE=+Y
 ZIS ;
+ S BDMTEMP=""
+ S DIR(0)="S^P:PRINT the Output;B:BROWSE the Output on the Screen",DIR("A")="Output Type",DIR("B")="P" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EOJ Q
+ S BDMTEMP=Y
+ ;call to XBDBQUE
 DEMO ;
  D DEMOCHK^BDMUTL(.BDMDEMO)
  I BDMDEMO=-1 G HSTYPE
+ I BDMTEMP="B" D BROWSE,EOJ Q
  S XBRP="PRINT^BDMDMAS",XBRC="",XBRX="EOJ^BDMDMAS",XBNS="APCH;BDM"
  D ^XBDBQUE
+ D EOJ
+ Q
+BROWSE ;
+ S XBRP="VIEWR^XBLM(""PRINT^BDMDMAS"")"
+ S XBRC="",XBRX="EOJ^BDMDMAS",XBIOP=0 D ^XBDBQUE
  Q
 EOJ ;
  D ^XBFMK
@@ -78,7 +89,7 @@ BDMG(BDMREG,BDMDATE,BDMTYPE,BDMGIEN) ;EP - GUI DMS Entry Point
  S BDMNOW=$G(%)
  K DD,D0,DIC
  S BDMJOB=$J,BDMBTH=$P($H,",")
- S X=BDMJOB_"."_BDMBTH
+ S X=DUZ_"."_BDMBTH
  S DIC("DR")=".02////"_DUZ_";.03////"_BDMNOW_";.05////"_$G(BDMPREP)_";.06///"_$G(BDMOPT)_";.07///R"
  S DIC="^BDMGUI(",DIC(0)="L",DIADD=1,DLAYGO=9003201.4
  D FILE^DICN

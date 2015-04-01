@@ -1,5 +1,5 @@
 BGP4EL12 ; IHS/CMI/LAB - print ind ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
 I1AGE ;EP
  S BGPHD1="ACTIVE DIABETIC PATIENTS =>55",BGPHD2="Active Diabetic Pts"
@@ -94,7 +94,7 @@ I1AGE8 ;
  S $P(BGPDAB(J),U,16)=$$V(3,BGPRPT,N,P),$P(BGPDAB(J),U,17)=$S($P(BGPDAB(J),U,1):($P(BGPDAB(J),U,16)/$P(BGPDAB(J),U)*100),1:"")
  Q
 I1AGE9 ;
- S J=J+1
+ S K=K+1
  S BGPF="ELD."_$P(BGPX,".")_"."_($P(BGPX,".",2)+28) S BGPPC=$O(^BGPELIIJ("C",BGPF,0))
  ;
  S BGPNF=$P(^BGPELIIJ(BGPPC,0),U,9)
@@ -203,7 +203,7 @@ PR ;
  W !,"w/A1c <7"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,17),O=$P(BGPDAP(X),U,17) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
  W !,"w/A1c w/o result"
- S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,18),O=$P(BGPDAP(X),U,19) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
+ S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,19),O=$P(BGPDAP(X),U,19) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
 BL ;
  D HEADER^BGP4DPH Q:BGPQUIT  W !,^BGPELIJ(BGPIC,53,1,0) D H3
  W !!,"BASELINE REPORT PERIOD"
@@ -264,7 +264,7 @@ BL ;
  W !,"w/A1c <7"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,17),O=$P(BGPDAB(X),U,17) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
  W !,"w/A1c w/o result"
- S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,18),O=$P(BGPDAB(X),U,19) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
+ S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,19),O=$P(BGPDAB(X),U,19) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
  Q
 CTR(X,Y) ;EP
  Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X

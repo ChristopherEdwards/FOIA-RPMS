@@ -1,5 +1,5 @@
 BGP4DSL ; IHS/CMI/LAB - FY 11 DISPLAY IND LISTS ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;; ;
 RT ;EP
  ;for each measure list, choose report type
@@ -110,9 +110,11 @@ PT ;EP
  I $D(DIRUT) G PT
  S BGPDELT=Y
  Q:BGPDELT="S"
-PT1 S DIR(0)="F^1:40",DIR("A")="Enter a filename for the delimited output (no more than 40 characters)" KILL DA D ^DIR KILL DIR
+PT1 I '$O(BGPDESGP(0)) S DIR(0)="F^1:40",DIR("A")="Enter a filename for the delimited output (no more than 40 characters)" KILL DA D ^DIR KILL DIR
+ I $O(BGPDESGP(0)) W !,"The provider's name will be appended to the filename." S DIR(0)="F^1:25",DIR("A")="Enter a filename for the delimited output (no more than 25 characters)" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G PT
  I Y["/" W !!!,"Your filename cannot contain a '/'." H 2 G PT1
  S BGPDELF=Y
- W !!,"When the report is finished your delimited output will be found in the",!,$$GETDEDIR^BGP4UTL2()," directory.  The filename will be ",BGPDELF,".txt",!
+ W !!,"When the report is finished your delimited output will be found in the",!,$$GETDEDIR^BGP4UTL2()," directory."
+ I '$O(BGPDESGP(0)) W !,"The filename will be ",BGPDELF,".txt",!
  Q

@@ -1,5 +1,5 @@
 AMHGT ; IHS/CMI/MAW - AMH Behavioral Health GUI Tables 9/30/2008 10:31:41 AM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2,4**;JUN 18, 2010;Build 28
  ;
  ;
  ;
@@ -104,6 +104,7 @@ SEARCH(RETVAL,AMHSTR) ;-- return search results to frmSearchSingle and frmSearch
  I AMHS="" D
  . D LIST^DIC(AMHFL,"",AMHFLDS,"","","",AMHS,AMHIDX,AMHSCR,"",AMHTGT,"AMHERRR(1)")
  I AMHS]"" D
+ . S X=AMHS X ^%ZOSF("UPPERCASE") S AMHS=Y  ;cmi/maw 03/05/2014 p4 change all to uppercase
  . D FIND^DIC(AMHFL,"",AMHFLDS,"",AMHS,"",AMHIDX,AMHSCR,"",AMHTGT,"AMHERRR(1)")
  S @RETVAL@(0)="T00010BMXIEN^T00050Value1^T00080Value2"_$C(30)
  S AMHDA=0  F  S AMHDA=$O(@AMHTGT@("DILIST","ID",AMHDA)) Q:'AMHDA  D

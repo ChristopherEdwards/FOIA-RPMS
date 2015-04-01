@@ -1,5 +1,5 @@
 APCM13E8 ;IHS/CMI/LAB - IHS MU; 
- ;;1.0;IHS MU PERFORMANCE REPORTS;**2**;MAR 26, 2012;Build 11
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**2,4,5**;MAR 26, 2012;Build 5
  ;;;;;;Build 3
 TOTLAB ;EP - ep LAB
  ;SET ARRAY APCMLABS to APCMLABS(prov ien)=denom^numer
@@ -15,7 +15,7 @@ TOTLAB ;EP - ep LAB
 TOTLAB1 ;
  NEW APCMLAB,APCMLAB1
  S APCMLAB="APCMLAB"
- D ALLLAB^APCLAPIU(PAT,APCMBDAT,APCMEDAT,,,,.APCMLAB)
+ D ALLLAB(PAT,APCMBDAT,APCMEDAT,,,,.APCMLAB)
  ;reorder by IEN of v lab
  K APCMLAB1
  S APCMX=0 F  S APCMX=$O(APCMLAB(APCMX)) Q:APCMX'=+APCMX  D
@@ -76,3 +76,45 @@ HASCOM(L) ;ARE THERE ANY COMMENTS
  S G=0
  S B=0 F  S B=$O(^AUPNVLAB(L,21,B)) Q:B'=+B  I ^AUPNVLAB(L,21,B,0)]"" S G=1  ;has comment
  Q G
+ALLLAB(P,BD,ED,T,LT,LN,A) ;EP
+ ;P - patient
+ ;BD - beginning date
+ ;ED - ending date
+ ;T - lab taxonomy
+ ;LT - loinc taxonomy
+ ;LN - lab test name
+ ;return all lab tests that match in array A
+ ;FORMAT:  DATE^TEST NAME^RESULT^V LAB IEN^VISIT IEN
+ I '$G(LT) S LT=""
+ S LN=$G(LN)
+ S T=$G(T)
+ NEW D,V,G,X,J,B,E,C
+ S B=9999999-BD,C=0,E=9999999-ED  ;get inverse date and begin at edate-1 and end when greater than begin date
+ S D=E-1,D=D_".9999" S G=0 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!($P(D,".")>B)  D
+ .S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,X)) Q:X'=+X  D
+ ..S Y=0 F  S Y=$O(^AUPNVLAB("AE",P,D,X,Y)) Q:Y'=+Y  D
+ ...I 'T,'LT,LN="" D SETLAB Q
+ ...I T,$D(^ATXLAB(T,21,"B",X)) D SETLAB Q
+ ...I LN]"",$$VAL^XBDIQ1(9000010.09,Y,.01)=LN D SETLAB Q
+ ...Q:'LT
+ ...S J=$P($G(^AUPNVLAB(Y,11)),U,13) Q:J=""
+ ...Q:'$$LOINC(J,LT)
+ ...D SETLAB Q
+ ...Q
+ ..Q
+ .Q
+ Q
+SETLAB ;
+ S C=C+1
+ S @A@(C)=(9999999-$P(D,"."))_"^"_$$VAL^XBDIQ1(9000010.09,Y,.01)_"^"_$$VAL^XBDIQ1(9000010.09,Y,.04)_"^"_Y_"^"_$P(^AUPNVLAB(Y,0),U,3)
+ Q
+LOINC(A,LT,LI) ;
+ I '$G(LT),'$G(LI) Q ""  ;no ien or taxonomy
+ S LI=$G(LI)
+ I A,LI,A=LI Q 1
+ NEW %
+ S %=$P($G(^LAB(95.3,A,9999999)),U,2)
+ I %]"",LT,$D(^ATXAX(LT,21,"B",%)) Q 1
+ S %=$P($G(^LAB(95.3,A,0)),U)_"-"_$P($G(^LAB(95.3,A,0)),U,15)
+ I $D(^ATXAX(LT,21,"B",%)) Q 1
+ Q ""

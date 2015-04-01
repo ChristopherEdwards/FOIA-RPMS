@@ -1,7 +1,9 @@
 BIEXP ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: MAIN DRIVER.
+ ;;  PATCH 9: Changes to include Default Volume and Component fields in
+ ;;           Vaccine Table export.  EXPVT+14
  ;
  ;
  ;----------
@@ -104,7 +106,15 @@ EXPVT ;EP
  ;
  ;---> Write Header row.
  W Q_"CVX Code"_D_"Name"_D_"Short Name"_D_"Vaccine Group"_D_"VIS Date"_D_"Active"
- W D_"Related Contra CVX's"_D_"1st Brand Name"_D_"2nd Brand Name"_D_"Long Name"_Q
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Include Default Volume and Component fields.
+ W D_"Default Volume"
+ W D_"Related Contra CVX's"_D_"1st Brand Name"_D_"2nd Brand Name"
+ W D_"Component 1"_D_"Comp1 CVX"_D_"Component 2"_D_"Comp2 CVX"
+ W D_"Component 3"_D_"Comp3 CVX"_D_"Component 4"_D_"Comp4 CVX"
+ W D_"Component 5"_D_"Comp5 CVX"_D_"Component 6"_D_"Comp6 CVX"
+ W D_"Long Name"_Q
  ;
  ;---> Write data records.
  N N S N=0
@@ -112,7 +122,16 @@ EXPVT ;EP
  .N Y,Z S Y=^BITN(N,0),Z=$G(^BITN(N,1))
  .W !,Q_$P(Y,U,3)_D_$P(Y,U,1)_D_$P(Y,U,2)_D_$$VGROUP^BIUTL2($P(Y,U,9))
  .W D_$$SLDT1^BIUTL5($P(Y,U,13))_D_$S($P(Y,U,7)=1:"Inactive",1:"Active")
- .W D_$P(Y,U,12)_D_$P(Z,U,1)_D_$P(Z,U,3)_D_$P(Z,U,14)_Q
+ .;
+ .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ .;---> Include Default Volume and Component Fields.
+ .W D_$P(Y,U,18)
+ .W D_$P(Y,U,12)_D_$P(Z,U,1)_D_$P(Z,U,3)
+ .N I F I=21:1:26 D
+ ..I '$P(Y,U,I) W D_D Q
+ ..W D_$$VNAME^BIUTL2($P(Y,U,I))_D_$$CODE^BIUTL2($P(Y,U,I))
+ .;**********
+ .W D_$P(Z,U,14)_Q
  ;
  ;---> Close the host file and report its location.
  D ^%ZISC

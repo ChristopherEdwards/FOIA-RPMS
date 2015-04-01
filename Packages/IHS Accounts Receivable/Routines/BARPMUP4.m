@@ -1,9 +1,9 @@
 BARPMUP4 ; IHS/SD/LSL - OVERFLOW FROM BARPMUP2 ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;*24*;OCT 26, 2005;Build 69
  ;
  ; IHS/SD/LSL - 12/16/02 - V1.7 - NHA-0601-180049
  ;      Modified to carry through changes made to BARPMUP2
- ;
+ ;JULY 2013 IHS/SD/SDR belcourt HEAT118656
  ; *********************************************************************
  ;;
 STAT ;EP - Status review of previous run
@@ -23,14 +23,17 @@ STAT ;EP - Status review of previous run
  W !,"LAST BILL IEN",?30,BARDA
  W !,"STATUS OF LAST RUN",?30,BARUSTAT
  W !,"LAST TRANSACTION TIME",?30,BARDTS
- W !,"UPLOAD COUNT",?30,+BARCNT,!!
+ ;W !,"UPLOAD COUNT",?30,+BARCNT,!!  ;IHS/SD/SDR belcourt HEAT118656
+ W !,"BILLS REVIEWED COUNT",?30,+BARCNT,!!  ;IHS/SD/SDR belcourt HEAT118656
  I $D(^BARTMP("BARUP","ERRORS")) D
  . W "PAST BAD BILLS ARE:",!
+ . W !,"# OF ERRORS: ",$O(^BARTMP("BARUP","ERRORS",""),-1)  ;belcourt HEAT118656
  . S BARDTS=""
  . F  S BARDTS=$O(^BARTMP("BARUP","ERRORS",BARDTS)) Q:'$L(BARDTS)  W !,?10,^(BARDTS)
  . W !!,"You must note the above as the >BAD< Bill(s) above"
  . W !,"did not cross over to A/R and will have to be manually"
- . W !,"uploaded after being reseached as to why they broke."
+ . ;W !,"uploaded after being reseached as to why they broke."  ;IHS/SD/SDR belcourt HEAT118656
+ . W !,"uploaded after being researched as to why they broke."  ;IHS/SD/SDR belcourt HEAT118656
  . W !!
 STATE Q
  ;;overflow from BARPMUP2

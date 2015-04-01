@@ -1,5 +1,6 @@
 ADEGRL34 ; IHS/ANMC/HMW - PROCESS 'IH' CODES ;
- ;;6.0;ADE;**10,11**;APRIL 1999
+ ;;6.0;ADE;**10,11,26**;APRIL 1999;Build 13
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
  ;
 IH(ADEPAT,ADEVDATE) ;EP
  ;IHS/ANMC/HMW 10-31-2001 Patch 10
@@ -44,8 +45,12 @@ IH(ADEPAT,ADEVDATE) ;EP
  ;
  S ADEAGE=$G(AGE)
  S DIR(0)="SX^"
- S DIR(0)=DIR(0)_"BA:9130 - Broken Appointment;"
- S DIR(0)=DIR(0)_"CA:9140 - Cancelled Appointment;"
+ ;/IHS/OIT/GAB 11.2014 Patch #26 Removed below 2 lines to replace 9130 & 9140 with 2015 codes 9986 & 9987
+ ;S DIR(0)=DIR(0)_"BA:9130 - Broken Appointment;"
+ ;S DIR(0)=DIR(0)_"CA:9140 - Cancelled Appointment;"
+ ;/IHS/OIT/GAB 11.2014 Patch #26 Added below 2 lines to change to 9986 & 9987 for 2015 code updates
+ S DIR(0)=DIR(0)_"BA:9986 - Broken Appointment;"
+ S DIR(0)=DIR(0)_"CA:9987 - Cancelled Appointment;"
  S DIR(0)=DIR(0)_"0:IH70 - PATIENT ASSESSED FOR OBJECTIVES;"
  I ADEAGE>0&(ADEAGE<20) S DIR(0)=DIR(0)_"1:IH71 - CARIES FREE PATIENT;"
  I ADEAGE>0&(ADEAGE<20) S DIR(0)=DIR(0)_"2:IH72 - UNTREATED TOOTH DECAY;"
@@ -58,14 +63,20 @@ IH(ADEPAT,ADEVDATE) ;EP
  S DIR("A")="Select Oral Health Code"
  D ^DIR
  I $D(DTOUT)!($D(DUOUT))!($D(DIRUT))!($D(DIROUT)) Q 0
+ ;/IHS/OIT/GAB 11.2014 Patch #26 modified below If statement to replace 9130 with 2015 code 9986
  I Y="BA" D  Q 1
  .  K ADEV,ADEDES
- .  S ADEV("9130")="1^"
- .  S ADEDES("9130")="BROKEN APPT"
+ .  ;S ADEV("9130")="1^"
+ .  ;S ADEDES("9130")="BROKEN APPT"
+ .  S ADEV("9986")="1^"
+ .  S ADEDES("9986")="BROKEN APPT"
+ ;/IHS/OIT/GAB 11.2014 Patch #26 modified below If statement to replace 9140 with 2015 code 9987
  I Y="CA" D  Q 1
  .  K ADEV,ADEDES
- .  S ADEV("9140")="1^"
- .  S ADEDES("9140")="CANCELLED APPT"
+ .  ;S ADEV("9140")="1^"
+ .  ;S ADEDES("9140")="CANCELLED APPT"
+ .  S ADEV("9987")="1^"
+ .  S ADEDES("9987")="CANCELLED APPT"
  I Y?1N,Y>-1,Y<8 S Y="IH7"_Y
  I Y'["IH" Q 0
  S ADEV(Y)="1^"

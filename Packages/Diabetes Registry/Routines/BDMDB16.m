@@ -1,5 +1,5 @@
 BDMDB16 ; IHS/CMI/LAB - 2014 DIABETES AUDIT ; 02 Feb 2014  2:41 PM
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;
 TBCODE(P,EDATE,R) ;EP
@@ -322,10 +322,11 @@ TYPE(P,R,EDATE) ;EP return type 1 or 2 for epi file
  I TYPE["2" Q 2
  I TYPE["1" Q 1
  S TYPE="" NEW X,I,C S X=$$PLDMDXS^BDMDB13(P)
- F I=1:1 S C=$P(X,";",I) Q:C=""!(TYPE]"")  I $E(C,6)=0!($E(C,6)=2) S TYPE=2
+ F I=1:1 S C=$P(X,";",I) Q:C=""!(TYPE]"")  S J=$P($$CODEN^BDMUTL(C,80),"~") I J>0,$$ICD^BDMUTL(J,"DM AUDIT TYPE II DXS",9) S TYPE=2
+ ;F I=1:1 S C=$P(X,";",I) Q:C=""!(TYPE]"")  I $E(C,6)=0!($E(C,6)=2) S TYPE=2
  I TYPE]"" Q TYPE
- F I=1:1 S C=$P(X,";",I) Q:C=""!(TYPE]"")  I $E(C,6)=1!($E(C,6)=3) S TYPE=1
- I TYPE]"" Q TYPE
+ ;F I=1:1 S C=$P(X,";",I) Q:C=""!(TYPE]"")  I $E(C,6)=1!($E(C,6)=3) S TYPE=1
+ F I=1:1 S C=$P(X,";",I) Q:C=""!(TYPE]"")  S J=$P($$CODEN^BDMUTL(C,80),"~") I J>0,$$ICD^BDMUTL(J,"DM AUDIT TYPE I DXS",9) S TYPE=1
  S X=$$LASTDMDX^BDMDB13(P,EDATE)
  I X[2 Q 2
  I X[1 Q 1

@@ -1,5 +1,5 @@
 APCLSIL3 ; IHS/CMI/LAB - ili surveillance ;
- ;;3.0;IHS PCC REPORTS;**24,26,27,28**;FEB 05, 1997
+ ;;3.0;IHS PCC REPORTS;**24,26,27,28,29**;FEB 05, 1997;Build 35
  ;
  ;
 INFORM ;
@@ -88,7 +88,7 @@ P ..S DFN=$P(^AUPNVSIT(APCLV,0),U,5)
  ..Q:$$DEMO^APCLUTL(DFN,"E")  ;exclude demo patients
  ..S APCLASUF=$P($G(^AUTTLOC(APCLLOC,0)),U,10)
  ..I APCLASUF="" Q  ;no ASUFAC????
- ..S APCLLOCT(APCLASUF,$$JDATE^APCLSILI(APCLDATE))=$G(APCLLOCT(APCLASUF,$$JDATE^APCLSILI(APCLDATE)))+1   ;total number of visits on this date/location
+ ..S ^TMP($J,"APCLLOCT",APCLASUF,$$JDATE^APCLSILI(APCLDATE))=$G(^TMP($J,"APCLLOCT",APCLASUF,$$JDATE^APCLSILI(APCLDATE)))+1   ;total number of visits on this date/location
  ..S G=0
  ..S X=0 F  S X=$O(^AUPNVPOV("AD",APCLV,X)) Q:X'=+X  D
  ...S T=$P(^AUPNVPOV(X,0),U)

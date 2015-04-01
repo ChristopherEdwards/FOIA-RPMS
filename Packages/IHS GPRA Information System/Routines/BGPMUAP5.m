@@ -1,10 +1,10 @@
 BGPMUAP5 ; IHS/MSC/MGH - MU EP  measures NQF0059 and NQF0575 ;25-Jul-2011 10:32;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;This rouine does the printed output of these 2 EP measures
  ;Printout for Diabetes:poor hgba1c control
 HIHGBA1C ;EP
  D P1
- K ^TMP("BGPMU0059")
+ K ^TMP("BGPMU0059",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -149,7 +149,7 @@ DATA2(NODE) ;GET DATA
  ;Get printout for Diabetic foot measure
 LOHGBA1C ;EP
  D A1C
- K ^TMP("BGPMU0575")
+ K ^TMP("BGPMU0575",$J)
  Q
 A1C ;Write individual measure
  N X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRD2,PRN,PRN1,PRN2,PRD1,PRD3,PRN3

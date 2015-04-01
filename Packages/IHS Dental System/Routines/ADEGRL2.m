@@ -1,5 +1,6 @@
 ADEGRL2 ; IHS/HQT/MJL - DENTAL ENTRY PART 3 ;  [ 03/24/1999   9:04 AM ]
- ;;6.0;ADE;;APRIL 1999
+ ;;6.0;ADE;**26**;APRIL 1999;Build 13
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
  ;
  ;        RETURNS ADENEWVS=1 AND ADEVDATE (IF A NEW VISIT),
  ;                ADENEWVS=0 AND ADEDFN (IF OLD VISIT)
@@ -68,4 +69,7 @@ VSHELP1 Q:'$D(^ADEPCD(ADEDFN,0))
  I $P(^ADEPCD(ADEDFN,0),U,4)]"",$D(^DIC(16,$P(^ADEPCD(ADEDFN,0),U,4),0)) W ?30,"  ",$P(^(0),U) ;IHS/HMW 1-4-90
  I $D(^AUTTADA("B","9140")),$O(^AUTTADA("B","9140",0)),$D(^ADEPCD(ADEDFN,"ADA","B",$O(^AUTTADA("B","9140",0)))) W ?60,"<CANCELLATION>"
  I $D(^AUTTADA("B","9130")),$O(^AUTTADA("B","9130",0)),$D(^ADEPCD(ADEDFN,"ADA","B",$O(^AUTTADA("B","9130",0)))) W ?60,"<BROKEN APPT.>"
+ ;/IHS/OIT/GAB Patch #26 Added below two lines for 2015 codes, will be replacing 9130 & 9140 (don't remove old codes yet)
+ I $D(^AUTTADA("B","9987")),$O(^AUTTADA("B","9987",0)),$D(^ADEPCD(ADEDFN,"ADA","B",$O(^AUTTADA("B","9987",0)))) W ?60,"<CANCELLATION>"
+ I $D(^AUTTADA("B","9986")),$O(^AUTTADA("B","9986",0)),$D(^ADEPCD(ADEDFN,"ADA","B",$O(^AUTTADA("B","9986",0)))) W ?60,"<MISSED APPT.>"
  Q

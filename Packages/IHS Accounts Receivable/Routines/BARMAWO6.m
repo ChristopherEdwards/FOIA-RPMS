@@ -1,5 +1,5 @@
 BARMAWO6 ; IHS/SD/LSL - Automatic Write Off for Manilac ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**22**;OCT 26, 2005;Build 38
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**22,24**;OCT 26, 2005;Build 69
  ;
  ; IHS/ASDS/LSL - 12/11/00 - Routine created
  ;     This routine is intended to be used to clean up accounts
@@ -39,6 +39,7 @@ BARMAWO6 ; IHS/SD/LSL - Automatic Write Off for Manilac ;
  ; Subsequently, we will be ready to run the AWO the first of the year
  ; Need new WriteOff code ...
  ;
+ ; IHS/SD/POTT HEAT147266 01/2/2014 fixed start / end dates BAR*1.8*24
  ; *********************************************************************
  ;
  Q
@@ -130,6 +131,11 @@ DATE ;  don't force dates 3 years into past
  ; Select date range
  S BARDOS=$$DATE^BARDUTL(1)
  I BARDOS<1 Q
+ ;P.OTT 1/2/2014 start new code BAR*1.8*24
+ S BARDOS1=BARDOS S Y=BARDOS
+ D DD^%DT
+ S BARDOS1("E")=Y  ;External start Date
+ ;end new code BAR*1.8*24
  S BARDOS2=$$DATE^BARDUTL(2)
  I BARDOS2<1 W ! G DATE
  I BARDOS2<BARDOS D  G DATE
@@ -140,6 +146,7 @@ DATE ;  don't force dates 3 years into past
  ;I Y>3100100 W *7," Date later than 12/31/2009 is not acceptable at this time" G DATE  ;bar*1.8*22 HEAT53513
  D DD^%DT
  S BARDOS("E")=Y  ;External End Date
+ S BARDOS2("E")=Y  ;External End Date ;P.OTT 1/2/2014
  Q
  ; *********************************************************************
  ;
@@ -178,7 +185,7 @@ CONTINUE ;
  ; capture.
  I $G(BARDOS("E"))="" W !,"Quitting - no date entered" Q
  W "You have chosen to write off bills meeting the above criteria"
- W !,"for dates of service up to and including ",BARDOS("E")
+ W !,"for dates of service from ",BARDOS1("E")," to ",BARDOS2("E") ;;P.OTT 1/2/2014
  W !!,"for the following Locations: "
  I '$D(BAR("LOC")) W ?40,"ALL"
  I $D(BAR("LOC")) D

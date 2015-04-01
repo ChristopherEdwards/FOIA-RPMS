@@ -1,5 +1,5 @@
 ACHSVAR ; IHS/ITSC/TPF/PMF - VARIABLES, OPTIONS ;     [ 06/15/2001  8:10 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**18**;JUN 11, 2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**18,22**;JUN 11, 2001;Build 13
  ;ACHS*3.1*18 7/16/2010;IHS/OIT/ABK;Change every occurrance of Deferred to Unmet Need
  ;
  ;this routine sets up certain basic vars for use in chs
@@ -29,14 +29,16 @@ ACHSVAR ; IHS/ITSC/TPF/PMF - VARIABLES, OPTIONS ;     [ 06/15/2001  8:10 AM ]
  .. Q
  . Q
  ;
- ;ACHS*3.1*16 IHS.OIT.FCJ MODIFIED NXT LINE BECAUSE OF LENGHT
+ ;ACHS*3.1*16 IHS.OIT.FCJ MODIFIED NXT LINE BECAUSE OF LENGTH
+ ;ACHS*3.1*22 IHS.OIT.FCJ ADDED TEST FOR AREA VAR
  ;{ABK,7/16/10}I '$D(^ACHSF(DUZ(2),2)) D NOTSET("Node 2 of the 'CHS FACILITY' file is missing for this facility '$D(^ACHSF("_DUZ(2)_",2)). Editing this file via Fileman or use the 'Parameters' option in the CHS Denial/Deferred Services menu.")
- I '$D(^ACHSF(DUZ(2),2)) D NOTSET("Node 2 of the 'CHS FACILITY' file is missing for this facility '$D(^ACHSF("_DUZ(2)_",2)). Editing this file via Fileman or use the 'Parameters' option in the CHS Denial/Unmet Need menu.")
+ I '$G(ACHSISAO),'$D(^ACHSF(DUZ(2),2)) D NOTSET("Node 2 of the 'CHS FACILITY' file is missing for this facility '$D(^ACHSF("_DUZ(2)_",2)). Editing this file via Fileman or use the 'Parameters' option in the CHS Denial/Unmet Need menu.")
  ;
  ;5/29/01   pmf  add check for ISAO
  I $G(ACHSISAO) I $P($G(^ACHSAOP(DUZ(2),2)),U)="" D NOTSET("The 'EOBR IMPORT/SPLITOUT EXPORT' field of the 'CHS AREA OFFICE PARAMETERS' file must contain a directory pathname $P(^ACHSAOP("_DUZ(2)_",2),U)=NULL")
  ;
- D OPTS
+ ;ACHS*3.1*22 IHS.OIT.FCJ ADDED TEST FOR AREA VAR
+ D:'$G(ACHSISAO) OPTS
  I '$D(ACHSY) G END
  K ACHSY,ACHSCHSS
  D ^ACHSUF

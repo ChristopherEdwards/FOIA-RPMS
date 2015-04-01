@@ -1,8 +1,9 @@
 BIUTL7 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**6**;OCT 15,2013
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  SCREENMAN RELATED CODE TO LOAD & SAVE: VISIT, CASE DATA, CONTRAS.
- ;;  PATCH 6: Correct error handling of VIS Date.  LOADVIS+48
+ ;;  PATCH 9: Added Preload of Admin Date and VIS Presented Date. LOADVIS+70
+ ;;           Added save of Admin Date and VIS Presented Date. SAVISIT+41
  ;
  ;
  ;----------
@@ -53,18 +54,10 @@ LOADVIS(BIVTYPE) ;EP
  ..I $G(BI("T"))]"" D PUT^DDSVALF(4,,,BI("T"),"I")
  ..;
  ..;---> Release/Rev Date of VIS (DD-Mmm-YYYY).
- ..;********** PATCH 6, v8.5, OCT 15,2013, IHS/CMI/MWR
- ..;---> Correct error handling of VIS Date.
- ..;I $G(BI("Q")) D PUT^DDSVALF(10,,,BI("Q"),"E")
  ..I $G(BI("Q"))>1 D PUT^DDSVALF(10,,,BI("Q"),"E")
- ..;**********
  ..;
- ..;---> Load the Volume.
- ..;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
- ..;---> Add leading zero to Volume if necessary.
- ..;I $G(BI("W"))]"" D PUT^DDSVALF(5,,,BI("W"),"I")
+ ..;---> Load the Volume, add leading zero to Volume if necessary.
  ..I $G(BI("W")) D PUT^DDSVALF(5,,,$$LEADZ^BIUTL5(BI("W")),"E")
- ..;**********
  ..;
  ..;---> Load Imported from Outside Source, if=1 (display "edited" if=2).
  ..I $G(BI("Y")) D PUT^DDSVALF(15,,,"*Imported"_$S(BI("Y")=2:" (edited)*",1:"*"))
@@ -75,7 +68,12 @@ LOADVIS(BIVTYPE) ;EP
  ..;---> Load NDC Code.
  ..I $G(BI("H"))]"" D PUT^DDSVALF(3.8,,,BI("H"),"I")
  ..;
- .;
+ ..;
+ ..;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ..;---> Preload Admin Date and Date VIS Presented.
+ ..I $G(BI("EE"))>1 D PUT^DDSVALF(1.5,,,BI("EE"),"E")
+ ..I $G(BI("QQ"))>1 D PUT^DDSVALF(10.2,,,BI("QQ"),"E")
+ ..;**********
  .;
  .;---> SKIN TESTS *
  .D:BIVTYPE="S"
@@ -166,38 +164,36 @@ NOPROV(X) ;EP
  I X="E" I '$G(BI("K")) D PUT^DDSVALF(9,,,"") S BI("R")=""
  Q
  ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Next 4 calls moved to BIUTL9 for space (<15000k).
  ;
  ;----------
 REASCHK ;EP
- ;---> Called by Post Action field of Field 5 on BI FORM-CASE DATA EDIT.
- ;---> If Date Inactive in Field 4, then a Reason is req'd in Field 5.
- ;
- I (BI("E")]"")&(BI("F")="") D
- .D HLP^DDSUTL("*** NOTE! An Inactive Date REQUIRES an Inactive Reason! ***")
- .S DDSBR=4
+ ;---> See BIUTL9.
+ D REASCHK^BIUTL9
  Q
  ;
  ;
  ;----------
 READCHK ;EP
- ;---> Called by Post Action field of Field 4 on BI FORM-SKIN VISIT ADD/EDIT.
- ;---> If user entered a Result in Field 3, then a Reading is req'd in Field 4.
- I $G(BI("L"))]"",$G(BI("M"))="",$G(BI("I"))'="E" D
- .;
- .D HLP^DDSUTL("*** NOTE! If you enter a Result you MUST enter a Reading! ***")
- .S DDSBR=3
+ ;---> See BIUTL9.
+ D READCHK^BIUTL9
  Q
  ;
  ;
  ;----------
 READCH6 ;EP
- ;---> Called by Post Action field of Field 4 on BI FORM-SKIN VISIT ADD/EDIT.
- ;
- D READCHK
- I $G(DDSBR)=3 D  Q
- .S X=$G(DDSOLD) D PUT^DDSVALF(6,,,X)
- D LOCBR^BIUTL4
+ ;---> See BIUTL9.
+ D READCH6^BIUTL9
  Q
+ ;
+ ;
+ ;----------
+CREASCHK ;EP
+ ;---> See BIUTL9.
+ D CREASCHK^BIUTL9
+ Q
+ ;**********
  ;
  ;
  ;----------
@@ -270,7 +266,7 @@ SAVISIT(BIVTYPE,BI) ;EP
  ;---> not="S" (Skin Test Visit), then set Error Code and quit.
  I ($G(BIVTYPE)'="I")&($G(BIVTYPE)'="S") D ERRCD^BIUTL2(410,,1) Q
  ;
- N A,B,BIDATA,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,V,W,X,Y,Z S V="|"
+ N A,B,BIDATA,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,V,W,X,Y,Z,EE,QQ S V="|"
  ;
  S A=$G(BI("A"))      ;Patient DFN.
  S B=$G(BI("B"))      ;Vaccine or Skin Test IEN.
@@ -279,7 +275,7 @@ SAVISIT(BIVTYPE,BI) ;EP
  S E=$G(BI("E"))      ;Date of Visit.
  S F=$G(BI("F"))      ;Location of Encounter IEN.
  S G=$G(BI("G"))      ;Other Location of Encounter Text.
- S H=$G(BI("H"))      ;NDC Code.
+ S H=$G(BI("H"))      ;NDC Code Pointer.
  S I=$G(BI("I"))      ;Catgegory of Visit (A,E,I).
  S J=$G(BI("J"))      ;Visit IEN
  S K=$G(BI("K"))      ;Old Visit IEN (for edits).
@@ -298,14 +294,23 @@ SAVISIT(BIVTYPE,BI) ;EP
  S Y=$G(BI("Y"))      ;If Y=1, this was a previously imported Imm;
  ;                     now it needs to =2 ("Imported (edited)").
  ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add Admin Date and VIS Presented Date to data being saved.
+ S EE=$G(BI("EE"))     ;Admin Date (Date shot admin'd to patient.
+ S QQ=$G(BI("QQ"))     ;Date VIS Presented to Patient.
+ ;
+ ;
  ;---> Check Site IEN for parameters.
  S:'$G(Z) Z=$G(DUZ(2))
  I '$G(Z) D ERRCD^BIUTL2(105,,1) Q
  ;---> Piece:       2   3   4   5   6   7   8   9   10  11
  S BIDATA=BIVTYPE_V_A_V_B_V_C_V_D_V_E_V_F_V_G_V_I_V_J_V_K
  ;---> NOTE: Y will be pc 25 (not 24) because BIRPC6 feeds CPT Import to pc 24.
- ;---> Piece:     12  13  14  15  16  17  18  19  20  21  22  23  24 25
- S BIDATA=BIDATA_V_L_V_M_V_N_V_O_V_P_V_Q_V_R_V_S_V_T_V_W_V_X_V_Z_V_V_Y_V_H
+ ;---> Add pieces 27-29.
+ ;---> Piece:     12  13  14  15  16  17  18  19  20  21  22  23 24 25  26 27  28   29
+ S BIDATA=BIDATA_V_L_V_M_V_N_V_O_V_P_V_Q_V_R_V_S_V_T_V_W_V_X_V_Z_V_V_Y_V_H_V_V_EE_V_QQ
+ ;
+ ;**********
  ;
  ;---> Call RPC to save visit to PCC Files.
  D ADDEDIT^BIRPC3(.BIERR,BIDATA)
@@ -316,17 +321,6 @@ SAVISIT(BIVTYPE,BI) ;EP
  .W !!," * ",BIERR,!?3,"NO Changes made! (Visit NOT added/edited.)"
  .D DIRZ^BIUTL3()
  ;
- Q
- ;
- ;
- ;----------
-CREASCHK ;EP
- ;---> Called by Post Action of Field 4 on BI FORM-CONTRAIND ADD/EDIT.
- ;---> If user entered a Contra in Field 1, then a Reason is req'd in Field 4.
- ;
- I (BI("B")]"")&(BI("C")="") D
- .D HLP^DDSUTL("*** NOTE! A Reason for the contraindication is required! ***")
- .S DDSBR=1
  Q
  ;
  ;

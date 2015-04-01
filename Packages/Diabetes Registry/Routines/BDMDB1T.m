@@ -1,5 +1,5 @@
 BDMDB1T ; IHS/CMI/LAB - 2014 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;
 TOBACCO(P,BDATE,EDATE) ;EP
@@ -27,6 +27,7 @@ DX(P,BDATE,EDATE) ;EP
  .S I=$P(BDMG,U,4)
  .S F=$P(BDMG,U,5)
  .S Z=$$VAL^XBDIQ1(F,I,.01)
+ .; check for non smoker dxs here as well
  .I Z=305.13!(Z="V15.82") S G="2^2  Not a Current User "_$P(BDMG,U,2)_" "_$P(BDMG,U,3)_" "_$$FMTE^XLFDT($P(BDMG,U,1))_U_$P(BDMG,U,1) Q
  .S G="1^1  Current User "_$P(BDMG,U,2)_" "_$P(BDMG,U,3)_" "_$$FMTE^XLFDT($P(BDMG,U,1))_U_$P(BDMG,U,1) Q
  S T=$O(^ATXAX("B","BGP GPRA SMOKING DXS",0))
@@ -35,10 +36,12 @@ DX(P,BDATE,EDATE) ;EP
  .Q:$P(^AUPNPROB(X,0),U,3)>EDATE
  .Q:$P(^AUPNPROB(X,0),U,3)<BDATE
  .S Y=$P(^AUPNPROB(X,0),U)
- .Q:'$$ICD^ATXCHK(Y,T,9)
+ .;Q:'$$ICD^ATXCHK(Y,T,9)
+ .Q:'$$ICD^BDMUTL(Y,$P(^ATXAX(T,0),U),9)  ;cmi/maw 05/15/2014 p8
  .S Z=$P(^ICD9(Y,0),U,1)
- .I Z="305.13"!(Z="V15.82") S G="2^2  Not a Current User "_$P($$ICDDX^ICDCODE(Y),U,2)_" PROBLEM LIST "_" "_$$FMTE^XLFDT($P(^AUPNPROB(X,0),U,3))_U_$P(^AUPNPROB(X,0),U,3)
- .S G="1^1  Current User "_$P($$ICDDX^ICDCODE(Y),U,2)_" PROBLEM LIST "_" "_$$FMTE^XLFDT($P(^AUPNPROB(X,0),U,3))_U_$P(^AUPNPROB(X,0),U,3)
+ .;see what the non smoker dxs are here in the BGP SMOKING DXS taxonomy and if many create a new taxonomy to point to
+ .I Z="305.13"!(Z="V15.82") S G="2^2  Not a Current User "_$P($$ICDDX^BDMUTL(Y),U,2)_" PROBLEM LIST "_" "_$$FMTE^XLFDT($P(^AUPNPROB(X,0),U,3))_U_$P(^AUPNPROB(X,0),U,3)
+ .S G="1^1  Current User "_$P($$ICDDX^BDMUTL(Y),U,2)_" PROBLEM LIST "_" "_$$FMTE^XLFDT($P(^AUPNPROB(X,0),U,3))_U_$P(^AUPNPROB(X,0),U,3)
  .Q
  Q G
 TOBACCOS ;EP

@@ -1,5 +1,6 @@
 ADEKRP51 ; IHS/HQT/MJL - PRINT COMPILED REPORTS ;  [ 03/24/1999   9:04 AM ]
- ;;6.0;ADE;**15**;JAN 01, 2004
+ ;;6.0;ADE;**15,26**;JAN 01, 2004;Build 13
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
  ;
  ;Extension of report begun in ADEKRP5 (due to routine size)
  ;
@@ -48,9 +49,15 @@ EXT ;EP
  S $P(@ADEPER@("4.5-EMER"),U,3)=$P(@ADEPER@("4.5-EMER"),U,1)+$P(@ADEPER@("4.5-EMER"),U,2)
  ;
  ;Get BA count
+ ;IHS/OIT/GAB 11.2014 Modified below line and added the next for 2015 Code updates - Patch #26
+ ;S $P(@ADEPER@("5-BA"),U,4)="BROKEN APTS (9130)"
  S $P(@ADEPER@("5-BA"),U,4)="BROKEN APTS (9130)"
  S ADEM=$$GETCNT^ADEKRP(ADEYQ,ADE("BA"),"0:125")
  S $P(@ADEPER@("5-BA"),U,3)=$P(ADEM,U,ADEPC)
+ ;/IHS/OIT/GAB 1.2015 Added below line for 2015 Code Updates - Patch #26 added Broken appt code 9986
+ S $P(@ADEPER@("5.1-BA"),U,4)="BROKEN APTS(9986)"
+ S ADEM=$$GETCNT^ADEKRP(ADEYQ,ADE("BA2"),"0:125") ;
+ S $P(@ADEPER@("5.1-BA"),U,3)=$P(ADEM,U,ADEPC)   ;  ihs/gab check this.
  ;
  ;Get EXAM Count
  S $P(@ADEPER@("5.2-EXAM"),U,4)="PATIENTS TREATMENT PLANNED"

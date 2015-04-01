@@ -1,9 +1,10 @@
 BIOUTPT3 ;IHS/CMI/MWR - PROMPTS FOR REPORTS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  PROMPTS FOR REPORT PARAMETERS.
  ;;  PATCH 1: Clarify Date Range on Imms Received with added prompt.  IMMRCV+20
  ;;  PATCH 2: Add two more questions, U19 and DELIM.
+ ;;  PATCH 9: Corrected spelling and setting of parameter BIMMRF.  IMMRCV+0
  ;
  ;
  ;----------
@@ -131,15 +132,17 @@ HELP1 ;EP
  Q
  ;
  ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Corrected spelling and setting of parameter BIMMRF below.
  ;----------
-IMMRCV(BIMMR,BIRDT,BIIMMRF,BIRTN) ;EP
+IMMRCV(BIMMR,BIRDT,BIMMRF,BIRTN) ;EP
  ;---> Select Immunizations Received.
  ;---> Called by Protocol BI OUTPUT IMMUNIZATION RECEIVED.
  ;---> Parameters:
- ;     1 - BIMMR (ret) Local array of Vaccine IENs.
- ;     2 - BIRDT (ret) Date Range for Imms received: BeginDate_":"_EndDate
- ;     3 - BIMMR (ret) Local array of Vaccine IENs.
- ;     4 - BIRTN (req) Calling routine for reset.
+ ;     1 - BIMMR  (ret) Local array of Vaccine IENs.
+ ;     2 - BIRDT  (ret) Date Range for Imms received: BeginDate_":"_EndDate
+ ;     3 - BIMMRF (ret) Local array of Vaccine IENs to be filtered.
+ ;     4 - BIRTN  (req) Calling routine for reset.
  ;
  I $G(BIRTN)="" D ERRCD^BIUTL2(621,,1) Q
  ;
@@ -172,11 +175,12 @@ IMMRCV(BIMMR,BIRDT,BIIMMRF,BIRTN) ;EP
  .D TEXT6
  .S B=$S($D(BI):"Yes",1:"No")
  .D DIR^BIFMAN("YAO",.Y,,"     Limit histories to selected vaccines? (Yes/No): ",B)
- .I 'Y K BIMMRF Q
+ .I 'Y K BIMMRF S BIMMRF("ALL")="" Q
+ .K BIMMRF("ALL")
  .N N S N=0
  .F  S N=$O(BIMMR(N)) Q:'N  D
- ..N M S M=$$CODE^BIUTL2(N)
- ..S:M BIMMRF(M)=""
+ ..S BIMMRF(N)=""
+ ;**********
  ;
  D @("RESET^"_BIRTN)
  Q
@@ -217,10 +221,21 @@ TEXT5 ;EP
  ;----------
 TEXT6 ;EP
  ;;You have limited your list to patients who have received one or more
- ;;specific vaccines.
+ ;;of the specific vaccines you selected.
  ;;
- ;;If you print their immunization histories in a list, would you like
- ;;to display only the history of the vaccines you selected?
+ ;;If you print/export their immunization histories in a list, would you
+ ;;like to include the history of ONLY the vaccines you selected?
+ ;;
+ ;;Or would you like to include the ENTIRE patient histories?
+ ;;
+ ;;NOTE: If you have limited your export to patients who have received
+ ;;one or more vaccines WITHIN A DATE RANGE, but you also elect to include
+ ;;their entire immunization histories, then some immunizations outside the
+ ;;date range will most likely be included in the export.
+ ;;
+ ;;THIS IS NOT AN ERROR.  It is merely a consequence of including the entire
+ ;;histories of patients who have already been filtered for the specific
+ ;;vaccine within the date range.
  ;;
  D PRINTX("TEXT6")
  Q

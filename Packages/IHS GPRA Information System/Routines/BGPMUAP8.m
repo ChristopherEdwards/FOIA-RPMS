@@ -1,10 +1,10 @@
 BGPMUAP8 ; IHS/MSC/MGH - MU EP  measures NQF0074 ;13-Jul-2011 16:35;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;This rouine does the printed output of these 2 EP measures
  ;Printout for CAD on antiplatelet therapy
 CAD3 ;EP
  D P1
- K ^TMP("BGPMU0074")
+ K ^TMP("BGPMU0074",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

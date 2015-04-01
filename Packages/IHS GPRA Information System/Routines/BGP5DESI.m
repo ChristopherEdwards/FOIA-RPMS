@@ -1,5 +1,5 @@
 BGP5DESI ; IHS/CMI/LAB - DISPLAY IND LISTS ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;; ;
 EP ;EP - CALLED FROM OPTION
  D EN
@@ -9,7 +9,7 @@ EOJ ;EP
  Q
  ;; ;
 EN ;EP -- main entry point for APCH HMR DISPLAY
- D EN^VALM("BGP 05 ELDER INDICATOR SEL")
+ D EN^VALM("BGP 15 ELDER INDICATOR SEL")
  D CLEAR^VALM1
  D FULL^VALM1
  W:$D(IOF) @IOF
@@ -17,14 +17,14 @@ EN ;EP -- main entry point for APCH HMR DISPLAY
  Q
  ;
 HDR ; -- header code
- S VALMHDR(1)="IHS Elder Clinical Performance Indicators"
- S VALMHDR(2)="* indicates the indicator has been selected"
+ S VALMHDR(1)="IHS Elder Clinical Performance Measures"
+ S VALMHDR(2)="* indicates the performance measure has been selected"
  Q
  ;
 INIT ; -- init variables and list array
  K BGPTIND S BGPHIGH=""
- S (X,Y,Z,C)=0 F  S X=$O(^BGPELIV("AO",X)) Q:X'=+X  S Y=$O(^BGPELIV("AO",X,Y)) Q:Y'=+Y  D
- .S C=C+1,BGPTIND(C,0)=C_")",$E(BGPTIND(C,0),5)=$P(^BGPELIV(Y,0),U,4),BGPTIND(C,C)=Y I $D(BGPIND(Y)) S BGPTIND(C,0)="*"_BGPTIND(C,0)
+ S (X,Y,Z,C)=0 F  S X=$O(^BGPELIK("AO",X)) Q:X'=+X  S Y=$O(^BGPELIK("AO",X,Y)) Q:Y'=+Y  D
+ .S C=C+1,BGPTIND(C,0)=C_")",$E(BGPTIND(C,0),5)=$P(^BGPELIK(Y,0),U,4),BGPTIND(C,C)=Y I $D(BGPIND(Y)) S BGPTIND(C,0)="*"_BGPTIND(C,0)
  .Q
  S (VALMCNT,BGPHIGH)=C
  Q
@@ -51,7 +51,7 @@ BACK ;go back to listman
 ADD ;EP - add an item to the selected list - called from a protocol
  W !
  I $G(BGPRTYPE)'=1 S DIR(0)="LO^1:"_BGPHIGH,DIR("A")="Which item(s)"
- I $G(BGPRTYPE)=1 S DIR(0)="LO^1:"_BGPHIGH,DIR("A")="Which Indicator Topic"
+ I $G(BGPRTYPE)=1 S DIR(0)="LO^1:"_BGPHIGH,DIR("A")="Which Measure Topic"
  D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  I Y="" W !,"No items selected." G ADDX
  I $D(DIRUT) W !,"No items selected." G ADDX

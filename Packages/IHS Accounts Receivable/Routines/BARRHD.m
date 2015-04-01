@@ -1,13 +1,15 @@
 BARRHD ; IHS/SD/LSL - Report Header Generator ; 07/28/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,6,10,19,23*;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,6,10,19,23,24*;OCT 26, 2005;Build 69
  ;
  ; TMM 07/25/2010 V1.8*19
  ;     - Modify A/R Statitical Report to allow user to
  ;     filter specific (Employer) Group Plans when
  ;     BILLING ENTITY/6)SELECT A SPECIFIC A/R ACCOUNT
  ;      - Allow user to select report to print in printer OR delimited file format
- ;JUL 2013 P.OTTIS ADDED SUPPORT FOR ICD-10
- ;         FIXED DUPLICATE DX IN BAR("HD")
+ ;
+ ; IHS/SD/POTT 07/13 ADDED SUPPORT FOR ICD-10 - BAR*1.8*23
+ ; IHS/SD/POTT HEAT148395 01/10/14 FIXING WRONG BILLING SOURCE  - BAR*1.8*24
+ ; IHS/SD/POTT HEAT150941 02/09/14 Allow ALL DX9/10 -  - BAR*1.8*24
  ; *********************************************************************
  ;
 HD ;EP for setting Report Header
@@ -40,8 +42,15 @@ BIL ; EP
  S BAR("TXT")="ALL"
  I $D(BARY("PAT")) S BAR("TXT")=$P(^DPT(BARY("PAT"),0),U) Q
  I $D(BARY("TYP")) D
- . I BARY("TYP")=(U_"R"_U_"MD"_U_"MH"_U) S BAR("TXT")="MEDICARE" Q
- . I BARY("TYP")=(U_"D"_U) S BAR("TXT")="MEDICAID" Q
+ . ; OLD CODE  - BAR*1.8*24
+ . ;I BARY("TYP")=(U_"R"_U_"MD"_U_"MH"_U) S BAR("TXT")="MEDICARE" Q
+ . ;I BARY("TYP")=(U_"D"_U) S BAR("TXT")="MEDICAID" Q
+ . ;I BARY("TYP")=(U_"W"_U) S BAR("TXT")="WORKMEN'S COMP" Q
+ . ;I BARY("TYP")[(U_"W"_U)&(BARY("TYP")[(U_"P"_U)) S BAR("TXT")="PRIVATE+WORKMEN'S COMP" Q
+ . ;I BARY("TYP")[(U_"P"_U)&(BARY("TYP")'[(U_"W"_U)) S BAR("TXT")="PRIVATE INSURANCE" Q
+ . ;-NEW CODE  - BAR*1.8*24
+ . I BARY("TYP")[(U_"R"_U) S BAR("TXT")="MEDICARE" Q
+ . I BARY("TYP")[(U_"D"_U) S BAR("TXT")="MEDICAID" Q
  . I BARY("TYP")=(U_"W"_U) S BAR("TXT")="WORKMEN'S COMP" Q
  . I BARY("TYP")[(U_"W"_U)&(BARY("TYP")[(U_"P"_U)) S BAR("TXT")="PRIVATE+WORKMEN'S COMP" Q
  . I BARY("TYP")[(U_"P"_U)&(BARY("TYP")'[(U_"W"_U)) S BAR("TXT")="PRIVATE INSURANCE" Q
@@ -49,7 +58,7 @@ BIL ; EP
  . I BARY("TYP")=(U_"I"_U) S BAR("TXT")="BENEFICIARY PATIENTS" Q
  . I BARY("TYP")=(U_"K"_U) S BAR("TXT")="CHIP" Q
  . I BARY("TYP")=(U_"V"_U) S BAR("TXT")="VETERANS" Q
- . I BARY("TYP")=(U_"G"_U) S BAR("TXT")="OTHER" Q
+ . I BARY("TYP")[(U_"G"_U) S BAR("TXT")="OTHER" Q
  . S BAR("TXT")="UNSPECIFIED"
  S BAR("TXT")=BAR("TXT")_" BILLING SOURCE(S)"
  Q
@@ -162,12 +171,15 @@ DX ;
  NEW BARICDVR,BARTMP1
  S BARTMP1=0
  I $G(BARY("DXTYPE"))="P" S BARTMP1=1
- I $G(BARY("DXTYPE"))="O" S BARTMP1=2
- I $G(BARY("DXTYPE"))="A" S BARTMP1=3
- S BAR("CONJ")="for "
+ ;I $G(BARY("DXTYPE"))="O" S BARTMP1=2
+ ;I $G(BARY("DXTYPE"))="A" S BARTMP1=3
+ I $G(BARY("DX9"))="ALL" I $G(BARY("DX10"))="ALL" D  Q  ;P.OTT ;3/12/2014
+ . S BAR("CONJ")=" "
+ . S BAR("TXT")="ALL Primary Diagnosis (ICD-9 and ICD-10)"
+ . D CHK
  F BARICDVR="DX9","DX10" D DX01
  Q
-DX01 I $D(BARY(BARICDVR,1)) D  ;P.OTT
+DX01 I $D(BARY(BARICDVR,1)) D  ;P.OTT  3/10/2014
  . S BAR("CONJ")="for "
  . S BAR("TXT")=$P("Primary;Primary Only;Other Only;ALL (Primary and Other);",";",BARTMP1+1)_" Diagnosis ICD-"_$TR(BARICDVR,"DX") ;P.OTT
  . D CHK
@@ -176,7 +188,7 @@ DX01 I $D(BARY(BARICDVR,1)) D  ;P.OTT
  . D CHK
  . S BAR("CONJ")="to "
  . S BAR("TXT")=BARY(BARICDVR,2)
- D CHK
+ . D CHK
  I $D(BARY(BARICDVR,3)) D
  . S BAR("CONJ")="for "
  . I $D(BARY(BARICDVR,1)) S BAR("CONJ")="and for "
@@ -187,6 +199,12 @@ DX01 I $D(BARY(BARICDVR,1)) D  ;P.OTT
  . . S BAR("TXT")=BARDX
  . . S BAR("CONJ")=""
  . . D CHK
+ ;-------------------------3/10/2014
+ I $G(BARY(BARICDVR))="ALL" D  ;P.OTT
+ . S BAR("CONJ")=" "
+ . S BAR("TXT")="ALL Primary Diagnosis ICD-"_$TR(BARICDVR,"DX") ;P.OTT
+ . D CHK
+ ;----------------------------------------
  S BAR("TXT")=""  ;
  S BAR("CONJ")=""
  Q
@@ -201,3 +219,16 @@ ITYP ; EP
  S BAR("TXT")=""  ;
  S BAR("CONJ")=""
  Q
+ ;------------------------------------------------------
+ I BARY("TYP")="^R^MH^MD^MC^MMC^" S BAR("TXT")="MEDICARE" Q
+ I BARY("TYP")="^D^K^FPL^" S BAR("TXT")="MEDICAID" Q
+ I BARY("TYP")="^H^M^P^F^" S BAR("TXT")="PRIVATE INSURANCE" Q
+ I BARY("TYP")="^N^" S BAR("TXT")="NON-BENEFICIARY PATIENTS" Q
+ I BARY("TYP")="^I^" S BAR("TXT")="BENEFICIARY PATIENTS" Q
+ I BARY("TYP")="^W^" S BAR("TXT")="WORKMEN'S COMP" Q
+ I BARY("TYP")="^H^M^P^F^W^" S BAR("TXT")="PRIVATE+WORKMEN'S COMP" Q
+ I BARY("TYP")="^K^" S BAR("TXT")="CHIP" Q
+ I BARY("TYP")="^V^" S BAR("TXT")="VETERANS" Q
+ I BARY("TYP")="^W^C^N^I^T^G^SEP^TSI^" S BAR("TXT")="OTHER" Q
+ S BAR("TXT")="UNSPECIFIED"
+ ;eor

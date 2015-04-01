@@ -1,5 +1,5 @@
-BYIMIMM4 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3,4**;NOV 01, 2013;Build 189
+BYIMIMM4 ;IHS/CIM/THL - IMMUNIZATION DATA EXCHANGE;
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6**;NOV 01, 2013;Build 229
  ;
  ;-----
 MULT ;EP;PROCESS MULTIPLE INBOUND MESSAGES
@@ -7,7 +7,7 @@ MULT ;EP;PROCESS MULTIPLE INBOUND MESSAGES
  N AUTOIMP,AUTOADD,DIR,FILE
  S AUTOIMP=1
  S AUTOADD=0
- D PATH^BYIMIMM
+ D PATH^BYIMIMM6
  Q:IPATH=""
  S DIR=$$LIST^%ZISH(IPATH,"*",.DIR)
  S FILE=""
@@ -219,29 +219,28 @@ IMMDUP ;EP;TO DEDUP IMMUNIZATIONS
  Q
  ;-----
 HFSA(DEST,BYIMHDIR,BYIMHFNM) ;EP - export from this destination
- N BYIMBP,BYIMY
- F BYIMBP="FORMAT CONTROLLER","OUTPUT CONTROLLER" D
- .S SH=0,BYIMY=$$CHK^BHLBCK(BYIMBP,SH)
  I '$G(DEST) D  Q
  .S ^BYIMTMP("EXP FAIL",$H,"NO DEST")=BYIMHDIR_U_BYIMHFNM_U_DUZ
  .S BYIMFAIL=$G(BYIMFAIL)+1
  I '$D(^INLHDEST(DEST)) D  Q
  .S ^BYIMTMP("EXP FAIL",$H,DEST,"NO MESSAGE")=BYIMHDIR_U_BYIMHFNM_U_DUZ
  .S BYIMFAIL=$G(BYIMFAIL)+1
- S Y=$$OPEN^%ZISH(BYIMHDIR,BYIMHFNM,"W")
+ S Y=$$OPENI^%ZISH(BYIMHDIR,BYIMHFNM,"W")
  I Y D  Q
  .D EXPBULL(BYIMHFNM,DEST,BYIMHDIR)
- .S ^BYIMTMP("EXP FAIL",$H,+$G(DEST),"NO OPEN")=BYIMHDIR_U_BYIMHFNM_U_DUZ
+ .S ^BYIMTMP("EXP FAIL",$H,DEST,"NO OPEN")=BYIMHDIR_U_BYIMHFNM_U_DUZ
  .S BYIMFAIL=$G(BYIMFAIL)+1
  N BYIMH,BYIMU
+ K ^BYIMTMP("BYIMIMM4")
  S BYIMH=0
  F  S BYIMH=$O(^INLHDEST(DEST,0,BYIMH)) Q:'BYIMH  D
  .S BYIMU=0
  .F  S BYIMU=$O(^INLHDEST(DEST,0,BYIMH,BYIMU)) Q:'BYIMU  D
- ..S DFN=$$DFN(BYIMU),^TMP("BYIMIMM4",BYIMU)=DFN
- ..D:DFN REFUSAL^BYIMSEG1(BYIMU,DFN)
+ ..S DFN=$$DFN(BYIMU),^BYIMTMP("BYIMIMM4",BYIMU)=DFN
+ ..D REFUSAL^BYIMSEG1(DFN,BYIMU)
  ..D LPINTHU(BYIMU)
  ..K ^INLHDEST(DEST,0,BYIMH,BYIMU)
+ K ^BYIMTMP("BYIMIMM4")
  D ^%ZISC
  D LOGDFN
  Q
@@ -264,6 +263,7 @@ LPINTHU(BYIMUIEN)       ;EP - loop through UIF and set to file
  .I XX["BHS|" S $P(XX,"|",11)=$E($TR($H,","),1,7)
  .I 'BYIMIN1,$E(XX,1,4)["IN1|"!($E(XX,1,4)["IN2|") Q
  .S:"|MSH|FHS|BHS|BTS|FTS|"'[("|"_$E(XX,1,3)_"|") XX=$TR(XX,"\&")
+ .Q:$E(XX,1,4)'?2U1UN1"|"
  .U IO W $P(XX,"|CR|"),!
  Q
  ;-----
@@ -406,146 +406,6 @@ QPATH(BYIMDA) ;EP;SET QUERY DIRECTORIES
  S $P(^BYIMPARA(BYIMDA,1),U,2)=Z
  Q
  ;-----
-RXA(BYIMDA) ;EP;TO SET THE IIS CODE FOR RXA-11.4
- Q:'$G(BYIMDA)
- N BYIMRXA,DISP,BYIMQUIT
- I $O(^BYIMPARA(BYIMDA,5,0)) D RXA1 Q
- W !!,"Some state Immunization Information Systems (IIS) require facilities to send"
- W !,"a code to identify the facility at which the immunization was administered or"
- W !,"identify the vaccine inventory location instead of the facility name."
- W !!,"If you need to add state IIS assigned code(s) please enter 'Y' below."
- W !,"You will be prompted to select the name of your facility and then"
- W !,"enter the state assigned code."
- K DIR
- S DIR(0)="YO"
- S DIR("A")="Add State IIS Assigned Facility Codes"
- S DIR("B")="NO"
- W !!
- D ^DIR
- K DIR
- Q:'Y
-RXA1 N BYIMX
- S BYIMQUIT=0
- F  D RXAACT Q:BYIMQUIT
- Q
- ;-----
-RXAACT ;ADDITIONAL SITE ACTION
- I '$O(^BYIMPARA(BYIMDA,5,0)) D RXAADD
- I '$O(^BYIMPARA(BYIMDA,5,0)) S BYIMQUIT=1 Q
- D RXADISP
- K DIR
- S DIR(0)="SO^1:Edit Codes;2:Add codes;3:Delete codes"
- W !!
- D ^DIR
- K DIR
- I 'Y S BYIMQUIT=1 Q
- I Y=1 D RXAEDIT Q
- I Y=2 D RXAADD Q
- I Y=3 D RXADEL
- Q
- ;-----
-RXAADD ;SELECT FACILITIES FOR STATE RXA CODE
- N BYIMX,BYIMY
- S DIC="^DIC(4,"
- S DIC(0)="AEMQZ"
- ;S DIC("S")="I $D(^AUTTSITE(""B"",Y))!$D(^AUTTSITE(1,19251,""B"",Y))"
- S DIC("A")="Select Facility for the IIS assigned Code: "
- W !
- D ^DIC
- I Y<1 S BYIMQUIT=1 Q
- S BYIMX=+Y
- S BYIMY=$P(^DIC(4,+Y,0),U)
- K DIR
- S DIR(0)="FO^1:50"
- S DIR("A")="Enter State IIS Code assigned for **"_BYIMY_"**"
- W !
- D ^DIR
- K DIR
- I X="" S BYIMQUIT=1 Q
- S BYIMY=X
- S X=BYIMX
- S DA(1)=DUZ(2)
- S DIC="^BYIMPARA("_DUZ(2)_",5,"
- S DIC(0)="L"
- S DIC("DR")=".02////"_BYIMY
- S DINUM=X
- D FILE^DICN
- I Y<1 S BYIMQUIT=1 Q
- Q
- ;------
-RXADISP ;DISPLAY EXISTING IIS RXA CODES
- N DISP,J,X,Y,Z
- S J=0
- S X=0
- F  S X=$O(^BYIMPARA(DUZ(2),5,X)) Q:'X  S Y=$G(^(X,0)) D:Y
- .S Z=$P($G(^DIC(4,X,0)),U)
- .Q:Z=""
- .S J=J+1
- .S X(Z)=Y
- S J=0
- S X=""
- F  S X=$O(X(X)) Q:X=""  D
- .S J=J+1
- .S $E(DISP(J),11)=J
- .S $E(DISP(J),16)=X
- .S $E(DISP(J),48)=$P(X(X),U,2)
- .S BYIMRXA(J)=+X(X)
- S BYIMJ=J
- W @IOF
- W !?5,"State IIS Assigned Administered-at or Vaccine Inventory Location Code"
- W !!?10,"NO."
- W ?15,"Facility"
- W ?47,"IIS Code"
- W !?10,"---",?15,"------------------------------",?47,"--------------------"
- S J=0
- F  S J=$O(DISP(J)) Q:'J  D
- .W !,DISP(J)
- Q
- ;------
-RXAEDIT ;EDIT SITE
- D RXASEL
- Q:'$G(DA)
-RXAE1 S DA(1)=BYIMDA
- S DR=".02T"
- S DIE="^BYIMPARA("_BYIMDA_",5,"
- W !!
- D ^DIE
- K DA,DR,DIE
- Q
- ;-----
-RXADEL ;DELETE SITE
- D RXASEL
- Q:'$G(DA)
- S X=+^BYIMPARA(BYIMDA,5,DA,0)
- S X=$P($G(^DIC(4,X,0)),U)
- W !?10,X
- K DIR
- S DIR(0)="YO"
- S DIR("A")="Delete export/import site: "_X
- S DIR("B")="NO"
- W !
- D ^DIR
- K DIR
- Q:Y'=1
- S DA(1)=BYIMDA
- S DIK="^BYIMPARA("_BYIMDA_",5,"
- D ^DIK
- K DA,DIK
- Q
- ;-----
-RXASEL ;SELECT ADDITION SITE
- I BYIMJ=1 S Y=1 D RXASEL1 Q
- K DIR
- S DIR(0)="NO^1:"_BYIMJ
- S DIR("A")="Select Facility number"
- W !!
- D ^DIR
- K DIR
-RXASEL1 Q:'Y
- Q:'$G(BYIMRXA(Y))
- S DA=BYIMRXA(Y)
- Q
- ;-----
 LOGDFN ;EP;LOG ALL PATIENTS INCLUDED IN EXPORT
  N DFN,TYPE
  S TYPE="E"
@@ -558,9 +418,9 @@ LOGDFN ;EP;LOG ALL PATIENTS INCLUDED IN EXPORT
 LOGD(DFN,TYPE) ;EP;LOG EACH IMMUNIZATION EXPORTED OR IMPORTED
  N IMM,X,Y,Z
  S:$G(TYPE)="" TYPE="E"
- S DFNCNT=$G(DFNCNT)+1
+ ;S DFNCNT=$G(DFNCNT)+1
  S IMM=0
- F  S IMM=$O(^AUPNVIMM("AC",DFN,IMM)) Q:'IMM  D
+ F  S IMM=$O(^BYIMTMP("LOG",DFN,IMM)) Q:'IMM  D
  .I $G(BYIMALL)'=2,$D(^BYIMEXP("D",IMM)) Q
  .Q:$G(BYIMMU2)
  .K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
@@ -570,7 +430,7 @@ LOGD(DFN,TYPE) ;EP;LOG EACH IMMUNIZATION EXPORTED OR IMPORTED
  .S X=DFN
  .D FILE^DICN
  .K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
- .S IMMCNT=$G(IMMCNT)+1
+ .;S IMMCNT=$G(IMMCNT)+1
  Q
  ;-----
 DFN(UIF) ;FIND PATIENT DFN
@@ -583,6 +443,6 @@ DFN(UIF) ;FIND PATIENT DFN
  Q:'LOC ""
  S DFN=""
  S X=0
- F  S X=$O(^AUPNPAT("D",HRN,X)) Q:'HRN!DFN  S Y=0 F  S Y=$O(^AUPNPAT("D",HRN,X,Y)) Q:'Y!DFN  S:Y=LOC DFN=X
+ F  S X=$O(^AUPNPAT("D",HRN,X)) Q:'X!DFN  S Y=0 F  S Y=$O(^AUPNPAT("D",HRN,X,Y)) Q:'Y!DFN  S:Y=LOC DFN=X
  Q DFN
  ;

@@ -1,15 +1,16 @@
 BARDMR1 ;IHS/OIT/FCJ - DEBT MANAGEMENT-LETTERS READY TO PRINT REPORT
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**22**;OCT 26, 2005;Build 38
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**22,24**;OCT 26, 2005;Build 69
  ;New routine 5-12-2011 for Debt Letter Management
  ;
  ;This report will provide letters ready to be printed by cycle
  ;
- ;
+ ;IHS/SD/POT HEAT152452 2/10/2014 BAR*1.8*.24
 ST ;
  ;
  W !!,"Report for Insurer Letter's to be printed"
  S BARRPT="C"
  D PAR^BARDMU
+ Q:$G(BARQ)  ;P.OTT HEAT152452 2/10/2014 - BAR*1.8*.24
  D RRDT^BARDMU
  D ZIS
  Q

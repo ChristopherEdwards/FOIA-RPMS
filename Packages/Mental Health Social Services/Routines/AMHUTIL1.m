@@ -1,5 +1,5 @@
 AMHUTIL1 ; IHS/CMI/LAB - provider functions 06 Aug 2009 11:15 AM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1,2**;JUN 18, 2010;Build 23
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2,4**;JUN 18, 2010;Build 28
  ;IHS/CMI/LAB - added stage as output parameter
  ;
  ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
@@ -36,15 +36,23 @@ CHKD(Y,D) ;EP check dsm with Date
  S D=$G(D)
  I 'Y Q 0
  I '$D(^AMHPROB(Y,0)) Q 0
+ ;FIRST LETS FIGURE OUT IF WE WANT IV OR V AND THEN MOVE ON
+ S DSC=$$DSMCS(DUZ(2),D)
+ S CS=$P(^AMHPROB(Y,0),U,10) I CS=4!(CS=5),CS'=DSC Q 0  ;NOT CORRECT CODING SYSTEM
  NEW M,Z,J
- S M=$P(^AMHPROB(Y,0),U,13) I M D  Q Z
+ S M=$P(^AMHPROB(Y,0),U,13) I M D  I 'Z Q Z
  .S Z=1
  .S J=$P(^AMHPROB(Y,0),U,14)
  .I J="" S Z=0 Q
  .I D]"",J]"",J<D S Z=0
  .I D="" S Z=0
+ NEW IMP S IMP=$$IMP^AMHUTIL2($S(D:D,1:DT))
  NEW I S I=$P(^AMHPROB(Y,0),U,5)
  ;I I="" Q $P(^AMHPROB(Y,0),U,13)  ;cmi/maw orig
+ I IMP=1,$P(^AMHPROB(Y,0),U,5)="",$P(^AMHPROB(Y,0),U,17)]"" Q 0
+ I IMP=30,$P(^AMHPROB(Y,0),U,17)="",$P(^AMHPROB(Y,0),U,5)]"" Q 0
+ I IMP=1 S I=$P(^AMHPROB(Y,0),U,5)  ;GET ICD9 code that this is mapped to
+ I IMP=30 S I=$P(^AMHPROB(Y,0),U,17)
  I I="" Q $S($P(^AMHPROB(Y,0),U,13):0,1:1)  ;cmi/maw modified
  Q $$POVICD9D(I,D)
  ;
@@ -56,6 +64,27 @@ CHKICD(Y,D,R,A,E) ;EP
  I $$POVICD9(Y,D,R,A,E)
  Q:$D(^AMHPROB(Y))
  Q
+DSMCS(S,D) ;EP - called to get coding system
+ ;s is site DUZ(2)
+ ;d is date
+ ;if can't determine default to DSM IV
+ I '$G(S) S S=DUZ(2)
+ I '$G(D) S D=DT
+ I '$D(^AMHSITE(S,0)) Q 4  ;NO SITE PARAMETER FILE SO DEFAULT TO 4
+ NEW C,I
+ S C=$P($G(^AMHSITE(S,18)),U,11)  ;DATE, IF NO DATE USE 4
+ I C="" Q 4
+ I D<C Q 4
+ Q 5
+DSMVDT(S) ;
+ ;s is site DUZ(2)
+ ;if can't determine default to DSM IV
+ I '$G(S) S S=DUZ(2)
+ I '$D(^AMHSITE(S,0)) Q 4  ;NO SITE PARAMETER FILE SO DEFAULT TO 4
+ NEW C,I
+ S C=$P($G(^AMHSITE(S,18)),U,11)  ;DATE, IF NO DATE USE 4
+ Q C
+ ;
 POVICD9(Y,D,R,A,E) ;EP
  ;Y=ien of entry in MHSS PROBLEM/DSM CODE file
  ;E - indicates we are in EHR so it is accepted since PCC accepted it
@@ -69,23 +98,36 @@ POVICD9(Y,D,R,A,E) ;EP
  S A=$G(A)
  S Y=$G(Y)
  I 'Y Q 0  ;pass an IEN!
- NEW I,V,M,Z,J,K
+ NEW I,V,M,Z,J,K,IMP,DCS,CS
+ ;FIRST LETS FIGURE OUT IF WE WANT IV OR V AND THEN MOVE ON
+ ;S DSC=$$DSMCS(DUZ(2),D)
+ I '$G(E),$P(^AMHPROB(Y,0),U,18) Q 0  ;NOT SELECTABLE IN BH ENTRY
+ S IMP=$$IMP^AMHUTIL2($S(R:$P($P($G(^AMHREC(R,0)),U),"."),1:DT))
+ ;If IMP is 1 allow any with an icd9 pointer or if both icd9 and icd10 are blank
+ ;If IMP is 30 allow any with an icd10 pointer or if both icd9 and icd10 are blank
  I '$D(^AMHPROB(Y,0)) Q 0  ;pass a VALID IEN!
- S M=$P(^AMHPROB(Y,0),U,13) I M D  Q Z
+ ;FIRST LETS FIGURE OUT IF WE WANT IV OR V AND THEN MOVE ON
+ S DSC=$$DSMCS(DUZ(2),D)
+ S CS=$P(^AMHPROB(Y,0),U,10) I CS=4!(CS=5),CS'=DSC Q 0  ;NOT CORRECT CODING SYSTEM
+ S M=$P(^AMHPROB(Y,0),U,13) I M D  I 'Z Q Z
  .S Z=1
  .S J=$P(^AMHPROB(Y,0),U,14)
  .I J="" S Z=0 Q
  .I D="",R S D=$P($P($G(^AMHREC(R,0)),U),".")
- .I D]"",J]"",J<D S Z=0
+ .I D="" S D=DT
+ .I D]"",J]"",J'>D S Z=0
  .I D="" S Z=0
  S J=$P(^AMHPROB(Y,0),U,16)
- I J D  Q Z
+ I J D  I 'Z Q Z
  .S Z=1
  .I D="",R S D=$P($P($G(^AMHREC(R,0)),U),".")
  .I D]"",J]"",J>D S Z=0
  .I J>DT S Z=0
- S I=$P(^AMHPROB(Y,0),U,5)  ;GET ICD9 code that this is mapped to
- I I="" Q $S('$P(^AMHPROB(Y,0),U,13):1,1:0)   ;if there is no icd9 code to look at then just check status field and quit
+ I IMP=1,$P(^AMHPROB(Y,0),U,5)="",$P(^AMHPROB(Y,0),U,17)]"" Q 0
+ I IMP=30,$P(^AMHPROB(Y,0),U,17)="",$P(^AMHPROB(Y,0),U,5)]"" Q 0
+ I IMP=1 S I=$P(^AMHPROB(Y,0),U,5)  ;GET ICD9 code that this is mapped to
+ I IMP=30 S I=$P(^AMHPROB(Y,0),U,17)
+ I I="" Q $S('$P(^AMHPROB(Y,0),U,13):1,1:0)   ;if there is no icd code to look at then just check status field and quit
  ;now figure out if valid based on what data is passed.
  ;if passed in D, use it and quit
  I D Q $$POVICD9D(I,D)
@@ -96,11 +138,13 @@ POVICD9(Y,D,R,A,E) ;EP
 POVICD9D(Y,D) ;
  NEW A,I
  S D=$G(D)
- I $$VERSION^XPDUTL("BCSV")]"" Q $P($$ICDDX^ICDCODE(Y,D),U,10)  ;CSV
+ I $$VERSION^XPDUTL("BCSV")]"",$T(ICDDX^ICDEX)="" Q $P($$ICDDX^ICDCODE(Y,D),U,10)  ;CSV
+ I $$VERSION^XPDUTL("BCSV")]"",$T(ICDDX^ICDEX)]"" Q $P($$ICDDX^ICDEX(Y,D),U,10)  ;CSV
  ;10TH PIECE OF THAT CALL DOESN'T WORK IF CSV NOT INSTALLED
- S Y=$P($$ICDDX^ICDCODE(Y,D),U,1)
+ I $T(ICDDX^ICDEX)="" S Y=$P($$ICDDX^ICDCODE(Y,D),U,1)
+ I $T(ICDDX^ICDEX)]"" S Y=$P($$ICDDX^ICDEX(Y,D),U,1)
  I $G(Y)<0 Q 0  ;cmi/maw added for return of -1
- S A=$P($G(^ICD9(Y,9999999)),U,4),I=$P(^ICD9(Y,0),U,11)  ;CSV
+ S A=$P($G(^ICD9(Y,9999999)),U,4),I=$P(^ICD9(Y,0),U,11)
  I D]"",I]"",D>I Q 0
  I D]"",A]"",D<A Q 0
  Q 1
@@ -153,6 +197,8 @@ ADMDX ;EP
  S %="" D @F
  Q %
  ;
+B ;
+ S %=$P(^AMHPROB(P,0),U,10) Q
 I ;
  S %=P Q
 E ;

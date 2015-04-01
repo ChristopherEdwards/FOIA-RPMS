@@ -1,10 +1,10 @@
 BGPMUAP7 ; IHS/MSC/MGH - MU EP  measures NQF0067 and NQF0070 ;21-Jul-2011 15:08;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;This rouine does the printed output of these 2 EP measures
  ;Printout for CAD on antiplatelet therapy
 CAD1 ;EP
  D P1
- K ^TMP("BGPMU0067")
+ K ^TMP("BGPMU0067",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -155,7 +155,7 @@ DATA2(NODE) ;GET DATA
  ;Get printout CAD with prior MI and beta blocker therapy
 CADBB ;EP
  D BETA
- K ^TMP("BGPMU0070")
+ K ^TMP("BGPMU0070",$J)
  Q
 BETA ;Write individual measure
  N X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRD2,PRN,PRN1,PRN2,PRD1,PRD3,PRN3,PRN4,PRN5,PRD4,PRD5

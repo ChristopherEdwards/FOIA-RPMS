@@ -1,5 +1,5 @@
 BDMDR3 ; IHS/CMI/LAB - patients dm list - chinle ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,4,8**;JUN 14, 2007;Build 53
  ;
  ;
 START ;
@@ -15,7 +15,7 @@ INFORM ;
  W !,$$CTR($$USR)
  W !!,"This report will list patients who are on the diabetes register",!,"that you select.",!,"The following data items will be printed for each patient:  Name, HRN, DOB",!,"Community of Residence.",!
  W !,"For each of the following tests the last value in the 4 months prior to the",!,"as of date you enter and the next most recent prior to that one will be",!,"displayed:"
- W !?5,"Hbg A1C, BP, Total Cholesterol, HDL, LDL",!!
+ W !?5,"Hgb A1C, BP, Total Cholesterol, HDL, LDL, Triglyceride, Last visit date",!!
  Q
  ;
 GETINFO ;
@@ -50,13 +50,23 @@ EDATE ;get visit date range for functional assessment
  S BDMSD=$$FMADD^XLFDT(BDMBD,-1)
  ;
  Q
-ZIS ;call to XBDBQUE
+ZIS ;
+ S BDMTEMP=""
+ S DIR(0)="S^P:PRINT the List;B:BROWSE the List on the Screen",DIR("A")="Output Type",DIR("B")="P" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EXIT Q
+ S BDMTEMP=Y
+ ;call to XBDBQUE
 DEMO ;
  D DEMOCHK^BDMUTL(.BDMDEMO)
- I BDMDEMO=-1 G EDATE
+ I BDMDEMO=-1 D EXIT Q
+ I BDMTEMP="B" D BROWSE,EXIT Q
  S XBRP="PRINT^BDMDR31",XBRC="PROC^BDMDR3",XBRX="EXIT^BDMDR3",XBNS="BDM"
  D ^XBDBQUE
  D EXIT
+ Q
+BROWSE ;
+ S XBRP="VIEWR^XBLM(""PRINT^BDMDR31"")"
+ S XBRC="PROC^BDMDR3",XBRX="EXIT^BDMDR3",XBIOP=0 D ^XBDBQUE
  Q
 EXIT ;clean up and exit
  K A,B,C,P,X,Y

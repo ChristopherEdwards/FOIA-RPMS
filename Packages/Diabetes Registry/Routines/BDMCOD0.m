@@ -1,5 +1,5 @@
 BDMCOD0 ; IHS/CMI/LAB - EXTENSION OF ROUTINE BDMCODE ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**2**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,8**;JUN 14, 2007;Build 53
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in LOOK
  ;
@@ -7,10 +7,10 @@ LOOK ; ENTRY POINT - LOOKUP USER RESPONSE; SET UTILITY NODES
  S DIC="^ICD9(",DIC(0)="EMF" D ^DIC K DIC,DR
  I Y<0 S BDMA=1 W $C(7),"  ??" S BDM("NO DISPLAY")=1 G X3
  ;S:BDMTYP="LOW" BDM("LOW")=$P(^ICD9(+Y,0),U)_" "
- S:BDMTYP="LOW" BDM("LOW")=$P($$ICDDX^ICDCODE(+Y),U,2)_" "
+ S:BDMTYP="LOW" BDM("LOW")=$P($$ICDDX^BDMUTL(+Y),U,2)_" "
  I BDMTYP="LOW",BDMONE S BDM("HI")=BDM("LOW") D ^BDMCOD1
  ;I BDMTYP="HI" S BDM("HI")=$P(^ICD9(+Y,0),U)_" " D  I 'BDM("NO DISPLAY") D DISPLAY^BDMCODE,^BDMCOD1
- I BDMTYP="HI" S BDM("HI")=$P($$ICDDX^ICDCODE(+Y),U,2)_" " D  I 'BDM("NO DISPLAY") D DISPLAY^BDMCODE,^BDMCOD1
+ I BDMTYP="HI" S BDM("HI")=$P($$ICDDX^BDMUTL(+Y),U,2)_" " D  I 'BDM("NO DISPLAY") D DISPLAY^BDMCODE,^BDMCOD1
  . I $E(BDM("HI"))?1N&($E(BDM("LOW"))?1N)!($E(BDM("LOW"))'?1N&($E(BDM("HI"))'?1N))
  . E  W !,$C(7),"Low and high codes of range must both start either with a letter or a number.",! S BDM("NO DISPLAY")=1
  . I 'BDM("NO DISPLAY") I BDM("LOW")]BDM("HI") W !,$C(7),"Low code is higher than high code.",! S BDM("NO DISPLAY")=1

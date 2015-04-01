@@ -1,6 +1,7 @@
-ADEGRL1 ; IHS/HQT/MJL - DENTAL ENTRY PART 2 ;12:36 PM  [ 03/24/1999   9:04 AM ]
- ;;6.0;ADE;;APRIL 1999
+ADEGRL1 ; IHS/HQT/MJL - DENTAL ENTRY PART 2 ;12:36 PM  [ 03/26/2003  11:22 AM ]
+ ;;6.0;ADE;**26**;APRIL 1999;Build 13
  ;IHS/MFD FAC SUBRTN REDONE FOR MULTI-FACILITY LOOKUP PER DG/OHPRD
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
 FAC ;EP
  W !,"Select Location of Encounter: ",$S($D(ADEFAC):ADEFAC_"// ",1:"") R X:DTIME
  K DIC,Y S DIC="^ADEPARAM(DUZ(2),1,",DIC(0)="EZMQ" D ^DIC K DIC Q:"^"[X
@@ -33,7 +34,8 @@ RESET ;EP
  I ADEDIR,ADEREPD]"" S Y=ADEREPD D SCRN1 S:'$T (ADEREPD,ADEREP)=""
  S:ADEREPD]"" ADEREP=$P(^DIC(16,ADEREPD,0),U)
 RESET3 N DIR
- S ADEFACD=$O(^ADEPARAM(0))
+ ;S ADEFACD=$O(^ADEPARAM(0))  ;IHS/NPO/FBD-3/26/2003-ORIGINAL LINE - COMMENTED OUT
+ S ADEFACD=DUZ(2)  ;IHS/NPO/FBD-3/26/2003-PICKING THE RIGHT FACILITY
  S DIR(0)="PO^ADEPARAM(ADEFACD,1,:QEMZ"
  S DIR("A")="Select Location of Encounter"
  ;     ENTER A LOCATION
@@ -47,6 +49,13 @@ RESET3 N DIR
  S DIR("A",7)="ENTRIES TABLE.  Provider names can be edited to apply only to the"
  S DIR("A",8)="current visit data or to subsequent visits entered during this session."
  S DIR("A",9)=""
+ ;/IHS/OIT/GAB 12.2014 Changed below for 2015 Code Updates patch #26
+ S DIR("A",10)="*************Notice**************"
+ S DIR("A",11)="Cancelled and Broken appointment codes have been changed to the following:  "
+ S DIR("A",12)="  Missed Appointment (9986) has replaced code (9130)"
+ S DIR("A",13)="  Cancelled Appointment (9987) has replaced code (9140)"
+ S DIR("A",14)=""
+ S DIR("A",15)=""
 RESET4 D ^DIR
  I $$HAT()!(X="")!(X[U) K DIR Q  ;S Y=-1 Q
  I Y<1 G RESET4

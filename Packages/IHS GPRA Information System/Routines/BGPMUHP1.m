@@ -1,5 +1,5 @@
 BGPMUHP1 ; IHS/MSC/JSM - MU EH  measure output routines;13-May-2011 16:13;MGH
- ;;11.0;IHS CLINICAL REPORTING;**4**;JAN 06, 2011;Build 84
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ; ED1^BGPMUHP1 = output routine for 0495 ED-1
  ; ED2^BGPMUHP1 = output routine for 0497 ED-2
  ;
@@ -20,7 +20,7 @@ BGPMUHP1 ; IHS/MSC/JSM - MU EH  measure output routines;13-May-2011 16:13;MGH
  ;
 ED1 ;EH  output routine for 0495 ED-1 (BGPMUH01)
  D P1
- K ^TMP("BGPMU0495")
+ K ^TMP("BGPMU0495",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -119,7 +119,7 @@ P1D ;Do the Details
  ;
 ED2 ;EH  output routine for 0497 ED-2 (BGPMUH01)
  D P2
- K ^TMP("BGPMU0497")
+ K ^TMP("BGPMU0497",$J)
  Q
 P2 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

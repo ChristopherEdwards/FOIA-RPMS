@@ -1,5 +1,5 @@
-APCM11E6 ;IHS/CMI/LAB - IHS MU; 
- ;;1.0;IHS MU PERFORMANCE REPORTS;**1**;MAR 26, 2012
+APCM11E6 ;IHS/CMI/LAB - IHS MU;  ; 10 Feb 2011  2:09 PM
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**1,4,5**;MAR 26, 2012;Build 5
  ;;;;;;Build 3
 ADV ;EP - CALCULATE adv directives
  NEW APCMP,APCMZ
@@ -46,7 +46,7 @@ HASADV(P,ED) ;does patient have an ADVANCE DIRECTIVE before end of report period
  .Q:'$D(^AUPNADVD(P,11,X,0))  ;no zero node?
  .S D=$P(^AUPNADVD(P,11,X,0),U,1)
  .I D>ED Q  ;after report period
- .S B=$P(^AUPNADVD(P,11,X,0),U,2)=""
+ .S B=$P(^AUPNADVD(P,11,X,0),U,2)
  .Q:B=""
  .S E=1_U_"Advance Directives: "_$S(B="Y":"YES",1:"NO")_" entered on "_$$DATE^APCM1UTL(D) Q
  I E]"" Q E

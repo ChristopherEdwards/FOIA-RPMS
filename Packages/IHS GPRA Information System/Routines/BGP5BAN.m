@@ -1,20 +1,22 @@
-BGP5BAN ; IHS/CMI/LAB - BANNER FOR CRS 05 06 Jan 2005 9:02 AM ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP5BAN ; IHS/CMI/LAB - BANNER FOR CRS 14 13 Aug 2010 11:31 AM ; 18 Mar 2014  6:41 AM
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;
  ;
 BANNER ;EP
 V ; GET VERSION
  NEW BGPV,BGPL,BGPJ,BGPX
- S BGPV="5.1"
+ S BGPV="15.0"
  I $G(BGPTEXT)="" S BGPTEXT="TEXT",BGPL=3 G PRINT
  S BGPTEXT="TEXT"_BGPTEXT
  F BGPJ=1:1 S BGPX=$T(@BGPTEXT+BGPJ),BGPX=$P(BGPX,";;",2) Q:BGPX="QUIT"!(BGPX="")  S BGPL=BGPJ
 PRINT W:$D(IOF) @IOF
  F BGPJ=1:1:BGPL S BGPX=$T(@BGPTEXT+BGPJ),BGPX=$P(BGPX,";;",2) W !,$$CTR(BGPX,80)
- W !,$$CTR("Version "_BGPV)
-SITE W !!,$$CTR($$LOC)
+ W !,$$CTR("Version "_BGPV,80)
+SITE W !!,$$CTR($$LOC,80)
  K BGPTEXT
  Q
+RPTVER() ;EP
+ Q "CRS 2015, Version 15.0"
 TEXT ;
  ;;****************************************************
  ;;**    IHS/RPMS CLINICAL REPORTING SYSTEM (CRS)    **
@@ -23,73 +25,106 @@ TEXT ;
  ;
 TEXTN ;
  ;;*********************************
- ;;**      IHS/RPMS CRS 2005      **
+ ;;**      IHS/RPMS CRS 2015      **
  ;;**    National GPRA Reports    **
  ;;*********************************
  ;;QUIT
  ;
 TEXTL ;
  ;;******************************************************
- ;;**                IHS/RPMS CRS 2005                 **
- ;;**  Reports for Local Use: IHS Clinical Indicators  **
+ ;;**                IHS/RPMS CRS 2015                 **
+ ;;**   Reports for Local Use: IHS Clinical Measures   **
  ;;******************************************************
  ;;QUIT
  ;
 TEXTO ;
  ;;*********************************
- ;;**      IHS/RPMS CRS 2005      **
+ ;;**      IHS/RPMS CRS 2015      **
  ;;**    Other National Reports   **
  ;;*********************************
  ;;QUIT
  ;
-TEXTC ;
+TEXT6 ;
  ;;*********************************
- ;;**      IHS/RPMS CRS 2005      **
- ;;**    CMS Performance Report   **
- ;;*********************************
- ;;QUIT
- ;
-TEXT5 ;
- ;;*********************************
- ;;**      IHS/RPMS CRS 2005      **
+ ;;**      IHS/RPMS CRS 2015      **
  ;;**  Clinical Reporting System  **
  ;;*********************************
  ;;QUIT
  ;
+TEXTA ;;
+ ;;***************************
+ ;;**   IHS/RPMS CRS 2015   **
+ ;;**   Report Automation   **
+ ;;***************************
+ ;;QUIT
+ ;
 TEXTR ;
  ;;**************************
- ;;**   IHS/RPMS CRS 2005  **
+ ;;**   IHS/RPMS CRS 2015  **
  ;;**     Reports Menu     **
  ;;**************************
  ;;QUIT
 TEXTX ;;
  ;;***************************
- ;;**   IHS/RPMS CRS 2005   **
+ ;;**   IHS/RPMS CRS 2015   **
  ;;**  Area Office Options  **
  ;;***************************
  ;;QUIT
  ;
 TEXTS ;;
  ;;**************************
- ;;**   IHS/RPMS CRS 2005  **
+ ;;**   IHS/RPMS CRS 2015  **
  ;;**       Setup Menu     **
  ;;**************************
  ;;QUIT
  ;
 TEXTT ;;
  ;;***************************
- ;;**   IHS/RPMS CRS 2005   **
+ ;;**   IHS/RPMS CRS 2015   **
  ;;**  Taxonomy Setup Menu  **
  ;;***************************
  ;;QUIT
  ;
 TEXTZ ;;
  ;;***************************
- ;;**   IHS/RPMS CRS 2005   **
+ ;;**   IHS/RPMS CRS 2015   **
  ;;**  Taxonomy Check Menu  **
  ;;***************************
  ;;QUIT
  ;
+TEXTU ;;
+ ;;*****************************
+ ;;**    IHS/RPMS CRS 2015    **
+ ;;**  Taxonomy Reports Menu  **
+ ;;*****************************
+ ;;QUIT
+ ;;
+TEXTG ;;
+ ;;*********************************
+ ;;**      IHS/RPMS CRS 2015      **
+ ;;**  Lab Taxonomy Reports Menu  **
+ ;;*********************************
+ ;;QUIT
+ ;;
+TEXTP ;;
+ ;;**************************************
+ ;;**        IHS/RPMS CRS 2015         **
+ ;;**  Patient Education Reports Menu  **
+ ;;**************************************
+ ;;QUIT
+TEXTM ;;
+ ;;****************************************
+ ;;**          IHS/RPMS CRS 2015         **
+ ;;**  Medication Taxonomy Reports Menu  **
+ ;;****************************************
+ ;;QUIT
+TEXTMU ;
+ ;;***********************************
+ ;;**       IHS/RPMS CRS 2015       **
+ ;;**  Meaningful Use Reports Menu  **
+ ;;***********************************
+ ;;QUIT
+ ;;
 CTR(X,Y) ;EP - Center X in a field Y wide.
  Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
  ;----------

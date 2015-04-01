@@ -1,5 +1,5 @@
 AUMSCB ;IHS/OIT/NKD - SCB UPDATE ENVIRONMENT CHECK/PRE/POST INSTALL 3/08/2013 ;
- ;;14.0;TABLE MAINTENANCE;**2**;AUG 20,2013;Build 1
+ ;;14.0;TABLE MAINTENANCE;**4**;AUG 20,2013;Build 2
  ; 03/08/13 - ICD and Language file cleanup
  ; 08/13/13 - Enhanced version/patch checking utility
  ; 12/10/13 - Added table entry count
@@ -15,7 +15,7 @@ AUMSCB ;IHS/OIT/NKD - SCB UPDATE ENVIRONMENT CHECK/PRE/POST INSTALL 3/08/2013 ;
  ;
  S:'$$VCHK("XU","8.0") XPDQUIT=2
  S:'$$VCHK("DI","22.0") XPDQUIT=2
- S:'$$VCHK("AUM","14.0","1") XPDQUIT=2
+ S:'$$VCHK("AUM","14.0","3") XPDQUIT=2
  S:'$$VCHK("AUT","98.1","26") XPDQUIT=2
  ;
  NEW DA,DIC

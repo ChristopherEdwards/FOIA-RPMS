@@ -1,5 +1,5 @@
 APCM13EP ; IHS/CMI/LAB - IHS MU ;
- ;;1.0;IHS MU PERFORMANCE REPORTS;**2**;MAR 26, 2012;Build 11
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**2,4,5**;MAR 26, 2012;Build 5
  ;
  ;
 PRINT ;EP
@@ -194,8 +194,9 @@ HEADER ;EP
 HEADER1 ;
  I APCMPTYP="P" W:$D(IOF) @IOF S APCMGPG=APCMGPG+1
  I APCMPTYP="P" S X=$P(^VA(200,DUZ,0),U,2),$E(X,35)=$$FMTE^XLFDT(DT),$E(X,70)="Page "_APCMGPG D W^APCM13EH(X,0,1,APCMPTYP)
- I APCMRPTT=1 D W^APCM13EH("** IHS 2013 Stage 1 Meaningful Use Performance Measure Report for EPs **",1,2,APCMPTYP)
- I APCMRPTT=2 D W^APCM13EH("** IHS 2013 Stage 1 MU Performance Report for Eligible Hospitals/CAHs **",1,2,APCMPTYP)
+ D W^APCM13EH("Indian Health Service RPMS Suite (BCER) v1.0",1,2,APCMPTYP)
+ I APCMRPTT=1 D W^APCM13EH("** IHS 2013 Stage 1 Meaningful Use Performance Measure Report for EPs **",1,1,APCMPTYP)
+ I APCMRPTT=2 D W^APCM13EH("** IHS 2013 Stage 1 MU Performance Report for Eligible Hospitals/CAHs **",1,1,APCMPTYP)
  I $G(APCMPROV),APCMRPTT=1 S X="Provider Name: "_$$SN^APCM13EH($P(^VA(200,APCMPROV,0),U,1)) D W^APCM13EH(X,1,1,APCMPTYP)
  I $G(APCMPROV),APCMRPTT=2 S X="Facility Name: "_$P(^DIC(4,APCMPROV,0),U,1) D W^APCM13EH(X,1,1,APCMPTYP)
  I $G(APCMTOT) S X="Aggregate Report for all Selected Providers" D W^APCM13EH(X,1,1,APCMPTYP)

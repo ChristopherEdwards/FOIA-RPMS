@@ -1,8 +1,10 @@
 BIPATVW2 ;IHS/CMI/MWR - ADD/EDIT/DELETE VISITS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ADD, EDIT, DELETE VISITS VIA LIST MANAGER.
  ;;  PATCH 1: Do not stuff default VFC if patient < 19 yrs.  ADDIMM+33
+ ;;  PATCH 9: Add Admin Date and VIS Presented Date to array. EDITIMM+87
+ ;;           If patient is adult, set Eligibility default="V01".  ADDIMM+40
  ;
  ;
  ;----------
@@ -40,9 +42,17 @@ ADDIMM ;EP
  ;---> If Patient Ben Type is 01 (Am Indian/AK Native), set VFC default=4.
  ;
  ;********** PATCH 1, v8.3.1, Dec 30,2008, IHS/CMI/MWR
- ;---> Do NOT stuff VFC default is patient is not < 19 years old.
+ ;---> Do NOT stuff VFC default if patient is not < 19 years old.
  ;I $$BENTYP^BIUTL11(BIDFN,2)="01" S BI("P")=4
- I $$AGE^BIUTL1(BIDFN,1)<19,$$BENTYP^BIUTL11(BIDFN,2)="01" S BI("P")=4
+ ;--> If patient was less than 19yrs set default=V01 and quit.
+ ;Q:($$AGE^BIUTL1(BIDFN,1,BIDATE)>18)
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> If patient is adult, set Eligibility default="V01".
+ D
+ .I $$AGE^BIUTL1(BIDFN,1)<19,$$BENTYP^BIUTL11(BIDFN,2)="01" S BI("P")=4 Q
+ .;---> Otherwise patient is adult, set default="V01" and quit.
+ .S BI("P")=1
  ;**********
  ;
  ;---> Set default date.
@@ -188,6 +198,13 @@ EDITIMM ;EP
  .S BI("W")=$P(Y,V,21)      ;Volume.
  .S BI("Y")=$P(Y,V,24)      ;Imported From Outside Source (=1).
  .S BI("H")=$P(Y,V,25)      ;NDC Code pointer IEN.
+ .;
+ .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ .;---> Add VIS Presented Dateand Admin Date to array for Screenman.
+ .S BI("QQ")=$P(Y,V,30)     ;Date VIS Presented to Patient.
+ .S BI("EE")=$P(Y,V,31)     ;Admin/shot Date ONLY (not Visit); can be null.
+ .;**********
+ .;X ^O
  .;
  .S DR="[BI FORM-IMM VISIT ADD/EDIT]"
  ;

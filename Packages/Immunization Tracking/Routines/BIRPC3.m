@@ -1,5 +1,5 @@
 BIRPC3 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ADD/EDIT A VISIT (IMMUNIZATION OR SKIN TEST), DELETE A VISIT.
  ;;  Check validity of data in several fields.
@@ -8,6 +8,7 @@ BIRPC3 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
  ;;  PATCH 5: Added BINOM parameter to ADDEDIT P.E.P. for Visit Selection Menu.
  ;;                                                    ADDEDIT+0
  ;;  PATCH 5: Ignore 1st piece of zero node; just check for node. ADDEDIT+63
+ ;;  PATCH 9: Added save of Admin Date and VIS Presented Date.  ADDEDIT+39
  ;
  ;
  ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
@@ -48,10 +49,15 @@ ADDEDIT(BIERR,BIDATA,BINOM) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
  ;    21 - (opt) Volume.
  ;    22 - (opt) IEN of Reader (Provider) of Skin Test.
  ;    23 - (req) DUZ(2) for Site Parameters.
- ;    23 - (opt) If this was an imported CPT Coded Imm from PCC (=IEN of V CPT).
+ ;    24 - (opt) If this was an imported CPT Coded Imm from PCC (=IEN of V CPT).
  ;    25 - (opt) If this =1, then imported (IF =2, then was edited after import).
  ;    26 - (opt) NDC pointer IEN (to file #9002084.95).
  ;    27 - (opt) Administrative Note (<161 chars).
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add Admin Date and VIS Presented Date to data being saved.
+ ;    28 - (opt) Admin Date (Date shot admin'd to patient.
+ ;    29 - (opt) Date VIS Presented to Patient.
  ;
  ;---> Define delimiter to pass error and error variable.
  N BI31,BIDUZ2,BIOIEN

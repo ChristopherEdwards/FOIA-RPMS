@@ -1,12 +1,13 @@
 BIVISIT ;IHS/CMI/MWR - ADD/EDIT IMM/SKIN VISITS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**6**;OCT 15,2013
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  CODE TO ADD V IMMUNIZATION AND V SKIN TEST VISITS.  CALLED BY BIRPC3.
  ;;  PATCH 3: Set DATE/TIME LAST MODIFIED  VFILE+155, +192
  ;;  PATCH 5: Added BINOM parameter to ADDEDIT P.E.P. for Visit Selection Menu. ADDV+0
  ;;           Added Admin Note, piece 27.  PARSE+36,+66, ADDV+16, VFILE+13,+184
  ;;           Moved TRIGADD to rtn BIVISIT2 for RSIZE.  TRIGADD+0
- ;;  PATCH 6: Fix so that VIS Date error codes will not be stored as a date.  VFILE+173
+ ;;  PATCH 9: Added save of Admin Date and VIS Presented Date.  VFILE+200
+ ;;           If >19yrs on date of immunization and Elig="", set Elig-V01.  VFILE+188
  ;
  ;
  ;----------
@@ -48,6 +49,11 @@ PARSE(Y,Z) ;EP
  ;    26 - BINDC   (opt) NDC Code IEN pointer to file #9002084.95.
  ;    27 - BIANOT  (opt) Administrative Note (<161 chars).
  ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add Admin Date and VIS Presented Date to data being saved.
+ ;    28 - BIADMIN (opt) Admin Date (Date shot admin'd to patient.
+ ;    29 - BIVPRES (opt) Date VIS Presented to Patient.
+ ;
  N V S V="|"
  ;
  S BIVTYPE=$P(Y,V,1)
@@ -77,6 +83,9 @@ PARSE(Y,Z) ;EP
  S BIMPRT=$P(Y,V,25)
  S BINDC=$P(Y,V,26)
  S BIANOT=$P(Y,V,27)
+ S BIADMIN=$P(Y,V,28)
+ S BIVPRES=$P(Y,V,29)
+ ;**********
  Q
  ;
  ;
@@ -270,12 +279,6 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  .;---> Template to add encounter to V SKIN TEST File.
  .S APCDALVR("APCDATMP")="[APCDALVR 9000010.12 (ADD)]"
  ;
- ;---> Set Category in case needed for Screen on .01 of V Immunization.
- ;---> If Category="E" (Historical Event) then allow save, even if vaccine
- ;---> is Inactive.
- ;---> *** NO LONGER NEEDED IN v8.1 (screen removed from .01 of V Imm).
- ;S APCDALVR("APCDCAT")=$G(BICAT)
- ;
  ;
  ;---> * * *  CALL TO APCDALVR.  * * *
  D EN^APCDALVR
@@ -301,10 +304,8 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  .N BIFLD
  .S BIFLD(.08)=BIREDR,BIFLD(.09)=BIINJS,BIFLD(.11)=BIVOL
  .;
- .;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
  .;---> Set DATE/TIME LAST MODIFIED, per Lori Butcher, 5/26/12
  .S:$G(BIOIEN) BIFLD(1218)=$$NOW^XLFDT
- .;**********
  .;
  .D FDIE^BIFMAN(9000010.12,BIADFN,.BIFLD,.BIERR)
  .I BIERR=1 D ERRCD^BIUTL2(421,.BIERR) S BIERR="1^"_BIERR
@@ -325,11 +326,7 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  ;---> Add VIS, Dose Override, Injection Site and Volume data.
  ;---> Build DR string.
  ;
- ;********** PATCH 6, v8.5, OCT 15,2013, IHS/CMI/MWR
- ;---> Fix so that VIS Date error codes will not be stored as a date.
- ;S:BIVISD="" BIVISD="@" S:BIOVRD="" BIOVRD="@"
  S:(BIVISD<1) BIVISD="@" S:BIOVRD="" BIOVRD="@"
- ;**********
  ;
  S:BIINJS="" BIINJS="@" S:BIVOL="" BIVOL="@"
  S:BILOT="" BIILOT="@" S:BINDC="" BINDC="@"
@@ -339,6 +336,16 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  S BIFLD(.05)=BILOT
  S BIFLD(.08)=BIOVRD,BIFLD(.09)=BIINJS
  S BIFLD(.11)=BIVOL,BIFLD(.12)=BIVISD,BIFLD(.13)=BICCPT
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> If patient is 19yrs or older at the time of the immunization,
+ ;---> and Eligibility is null, set Eligibility=V01.
+ D
+ .Q:(BIVFC]"")
+ .N BIAGDT S BIAGDT=$S($G(BIADMIN):BIADMIN,1:BIDATE)
+ .I $$AGE^BIUTL1(BIDFN,1,BIAGDT)>18 S BIVFC=$O(^BIELIG("B","V01",0))
+ ;**********
+ ;
  S BIFLD(.14)=BIVFC
  S BIFLD(.15)=$S(BIMPRT>0:2,1:"")
  S BIFLD(.16)=BINDC
@@ -350,6 +357,15 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
  ;---> Set DATE/TIME LAST MODIFIED, per Lori Butcher, 5/26/12
  S:$G(BIOIEN) BIFLD(1218)=$$NOW^XLFDT
+ ;**********
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add Admin Date and VIS Presented Date to data being saved.
+ ;    28 - BIADMIN  Admin Date (Date shot admin'd to patient.
+ ;    29 - BIVPRES  Date VIS Presented to Patient.
+ ;
+ S BIFLD(1201)=BIADMIN
+ S BIFLD(.17)=BIVPRES
  ;**********
  ;
  D FDIE^BIFMAN(9000010.11,BIADFN,.BIFLD,.BIERR)

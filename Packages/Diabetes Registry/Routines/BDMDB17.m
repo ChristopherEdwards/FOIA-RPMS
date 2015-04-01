@@ -1,5 +1,5 @@
 BDMDB17 ; IHS/CMI/LAB - 2014 DIABETES AUDIT ; 13 Mar 2014  1:52 PM
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
 DIETEDUC(P,BDATE,EDATE)  ;EP
  NEW D,BD,ED,X,Y,%DT,D,G,BDMVRD,V,BDM,RD,NRD,BDMV
  S (RD,NRD,BDMV)=""
@@ -18,7 +18,12 @@ DIETEDUC(P,BDATE,EDATE)  ;EP
  ..I $$PRIMPROV^APCLV(V,"D")="07" S BDMVRD(V)="",BDMV=BDMV_" RD: "_$P(^DIC(7,$O(^DIC(7,"D","07",0)),0),U)_" Visit: "_$$VD^APCLV(V,"E")_" " Q
  ..I $$PRIMPROV^APCLV(V,"D")="34" S BDMVRD(V)="",BDMV=BDMV_" RD: "_$P(^DIC(7,$O(^DIC(7,"D",34,0)),0),U)_" Visit: "_$$VD^APCLV(V,"E")_" " Q
  ..;now check povs for V65.3 and label as non-rd
- ..S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  I $$VAL^XBDIQ1(9000010.07,X,.01)="V65.3" S NRD=1,BDMV=BDMV_"NRD: V65.3 Dx: "_$$VD^APCLV(V,"E")_" "
+ ..;change this to check to see if in BGP DIETARY SURVEILLANCE DXS TAXONOMY calls are $$ICD^ATXCH(code)
+ ..;S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  I $$VAL^XBDIQ1(9000010.07,X,.01)="V65.3" S NRD=1,BDMV=BDMV_"NRD: V65.3 Dx: "_$$VD^APCLV(V,"E")_" "
+ ..N TAX
+ ..S TAX=$O(^ATXAX("B","BGP DIETARY SURVEILLANCE DXS",0))
+ ..;S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  I $$ICD^ATXCHK($$VALI^XBDIQ1(9000010.07,X,.01),TAX,9) S NRD=1,BDMV=BDMV_"NRD: "_$$VAL^XBDIQ1(9000010.07,X,.01)_" Dx: "_$$VD^APCLV(V,"E")_" "  ;p8 ICD-10
+ ..S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  I $$ICD^BDMUTL($$VALI^XBDIQ1(9000010.07,X,.01),$P(^ATXAX(TAX,0),U),9) S NRD=1,BDMV=BDMV_"NRD: "_$$VAL^XBDIQ1(9000010.07,X,.01)_" Dx: "_$$VD^APCLV(V,"E")_" "  ;p8 ICD-10
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  S Z=$$VAL^XBDIQ1(9000010.18,X,.01) I Z=97802!(Z=97803)!(Z=97804) S RD=1,BDMV=BDMV_"RD: CPT "_Z_" "_$$VD^APCLV(V,"E")_" "
  ..;now check for education topics
  ..S T=$O(^ATXAX("B","DM AUDIT DIET EDUC TOPICS",0))
@@ -54,7 +59,9 @@ EXEDUC(P,BDATE,EDATE) ;EP
  S X=0,G=0 F  S X=$O(BDM(X)) Q:X'=+X!(G)  S I=+$P(BDM(X),U,4),E=$P($G(^AUPNVPED(I,0)),U),T=$P($G(^AUTTEDT(E,0)),U,2) I $P(T,"-",2)="EX" S G=1
  I G Q "1  Yes "_T_"  "_$$VD^APCLV($P(^AUPNVPED(I,0),U,3),"E")
  K BDM
- S X=P_"^LAST DX V65.41;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ ;try changing this to be BGP EXERCISE COUNSELING in place of V65.41 [BGP...
+ ;S X=P_"^LAST DX V65.41;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ S X=P_"^LAST DX [BGP EXERCISE COUNSELING DXS;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")  ;p8 ICD-10
  I $D(BDM(1)) Q "1  Yes  POV: "_$P(BDM(1),U,3)_"  "_$$DATE^BDMS9B1($P(BDM(1),U))
  Q "2  No" ;_$S(G:" - Not Medically Indicated",1:"")
 OTHEDUC(P,BDATE,EDATE) ;EP
@@ -71,8 +78,18 @@ OTHEDUC(P,BDATE,EDATE) ;EP
  .I $P(T,"-",2)="N" Q
  .I $P(T,"-",2)="MNT" Q
  .I $P(T,"-",2)="DT" Q
- .I TX,$D(^ATXAX(TX,21,"AA",I)) S G="1  Yes "_T_"  "_$$VD^APCLV($P(^AUPNVPED(I,0),U,3),"E")
- .I $E($P(T,"-",1),1,3)="250"!($P(T,"-",1)="DM")!($P(T,"-",1)="DMC") S G="1  Yes "_T_"  "_$$VD^APCLV($P(^AUPNVPED(I,0),U,3),"E")
+ .I TX,$D(^ATXAX(TX,21,"AA",J)) S G="1  Yes "_T_"  "_$$VD^APCLV($P(^AUPNVPED(I,0),U,3),"E")
+ .;change this to look at the SURVEILLANCE DIABETES TAXONOMY
+ .;I $E($P(T,"-",1),1,3)="250"!($P(T,"-",1)="DM")!($P(T,"-",1)="DMC") S G="1  Yes "_T_"  "_$$VD^APCLV($P(^AUPNVPED(I,0),U,3),"E")
+ .;p8 ICD-10 follows
+ .I $P(T,"-",1)="DM"!($P(T,"-",1)="DMC") S G="1  Yes "_T_"  "_$$VD^APCLV($P(^AUPNVPED(I,0),U,3),"E") Q
+ .N CODE
+ .S CODE=$P($$CODEN^BDMUTL($P(T,"-",1),80),"~")
+ .I CODE>0 D
+ ..N TAX
+ ..S TAX=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
+ ..;I $$ICD^ATXCHK($P(T,"-",1),TAX,9)!($P(T,"-",1)="DM")!($P(T,"-",1)="DMC") S G="1  Yes "_T_"  "_$$VD^APCLV($P(^AUPNVPED(I,0),U,3),"E")
+ ..I $$ICD^BDMUTL(CODE,$P(^ATXAX(TAX,0),U),9) S G="1  Yes "_T_"  "_$$VD^APCLV($P(^AUPNVPED(I,0),U,3),"E")  ;cmi/maw 05/15/2014 p8
  I G Q G
  Q "2  No"  ;_$S(G:" - Not Medically Indicated",1:"")
  ;
@@ -137,8 +154,13 @@ DNKA(V) ;EP - is this a DNKA visit?
  Q 0
 REFR(V) ;
  I '$G(V) Q ""
- NEW D,N S D=$$PRIMPOV^APCLV(V,"C")
- I D="367.89"!(D="367.9")!($E(D,1,5)=372.0)!($E(D,1,5)=372.1) Q 1
+ NEW D,N S D=$$PRIMPOV^APCLV(V,"I")
+ ;change this to look at the DM AUDIT REFRACTION taxonomy
+ N TAX
+ S TAX=$O(^ATXAX("B","DM AUDIT REFRACTION DXS",0))
+ ;I $$ICD^ATXCHK(D,TAX,9) Q 1
+ I $$ICD^BDMUTL(D,$P(^ATXAX(TAX,0),U),9) Q 1  ;cmi/maw 05/15/2014 p8
+ ;I D="367.89"!(D="367.9")!($E(D,1,5)=372.0)!($E(D,1,5)=372.1) Q 1
  Q 0
  ;
 REFUSAL(P,F,I,B,E) ;EP
@@ -167,13 +189,11 @@ EYE(P,BDATE,EDATE,F,R) ;EP
  K BDMV,BDMY
  I LASTI]"" Q $P(LASTI,U,2)
  ;
- S X=$$LASTPRCI^BDMSMU2(P,"95.02",BDATE,EDATE)
- I X S LASTI="1  Yes - "_$P(X,U,2)_" - "_$$DATE^BDMS9B1($P(X,U,3))
- I F="D" Q $P(X,U,3)_U_LASTI
- I LASTI Q LASTI
- S X=$$LASTPRCI^BDMSMU2(P,"95.03",BDATE,EDATE)
- I X S LASTI="1  Yes - "_$P(X,U,2)_" - "_$$DATE^BDMS9B1($P(X,U,3))
- I F="D" Q $P(X,U,3)_U_LASTI
+ ;see if there is a LASTPRC call and make it to pass in all
+ ;S X=$$LASTPRCI^BDMSMU2(P,"95.02",BDATE,EDATE)
+ S X=$$LASTPRCT^BDMAPIU(P,BDATE,EDATE,"DM AUDIT EYE EXAM PROCS","A")
+ I X S LASTI="1  Yes - "_$P(X,U,2)_" - "_$$DATE^BDMS9B1($P(X,U,1))
+ I F="D" Q $P(X,U,1)_U_LASTI
  I LASTI Q LASTI
  S T="T"
  D ALLV^BDMAPIU(P,BDATE,EDATE,.T)

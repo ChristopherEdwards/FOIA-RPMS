@@ -1,11 +1,13 @@
 BGP5PHEL ; IHS/CMI/LAB - IHS gpra print ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;
  ;
 PRINT ;EP
  S BGPGPG=0
  S BGPIOSL=$S($G(BGPGUI):55,1:IOSL)
  S BGPQUIT=""
+ S ^TMP($J,"BGPDEL",0)=0
+ S BGPPTYPE="P"
  I BGPROT="D" G DEL
  D AREACP^BGP5ELH
  S BGPQUIT="",BGPGPG=0,BGPRPT=0
@@ -16,6 +18,7 @@ DEL ;create delimited output file
  S BGPQUIT="",BGPGPG=0,BGPRPT=0
  D ^%ZISC ;close printer device
  K ^TMP($J)
+ S BGPPTYPE="D"
  D ^BGP5ELL ;create ^tmp of delimited report
  Q
  ;

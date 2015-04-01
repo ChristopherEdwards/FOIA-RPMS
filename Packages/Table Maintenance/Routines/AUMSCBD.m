@@ -1,5 +1,5 @@
 AUMSCBD ;IHS/OIT/NKD - SCB UPDATE - DRIVER 12/07/2012 ;
- ;;14.0;TABLE MAINTENANCE;**2**;AUG 20,2013;Build 1
+ ;;14.0;TABLE MAINTENANCE;**4**;AUG 20,2013;Build 2
  ; 03/08/13 - Minor change to Display
  ; 05/20/13 - Included WP comparison to determine if an entry was updated
  ; 08/13/13 - Added $G to WP comparison (in case array indicies differ)

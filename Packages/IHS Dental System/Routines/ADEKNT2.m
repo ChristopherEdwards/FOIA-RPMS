@@ -1,5 +1,6 @@
 ADEKNT2 ; IHS/HQT/MJL - COMPILE DENTAL REPORTS ;   [ 04/03/2001  6:56 PM ]
- ;;6.0;ADE;**4,7,15**;JAN 01, 2004
+ ;;6.0;ADE;**4,7,15,26**;JAN 01, 2004;Build 13
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
 OBJECT ;EP
  ;Called for each patient to execute patient level counts
  ;Get dental history in ^TMP("ADEHXF",$J,CODE,DATE)=FACILITY
@@ -184,7 +185,9 @@ SVC(ADELIM,ADEMIN)           ;
  . S ADECOD=0
  . ;B  ;New facility
  . F  S ADECOD=$O(ADEF(ADECOD)) Q:ADECOD=""  D
- . . Q:"0000;0190;9130;9140;9990"[ADECOD
+ . . ;IHS/OIT/GAB 10.2014 Modified below line and added the next for 2015 Code updates - PATCH #26
+ . . ;Q:"0000;0190;9130;9140;9990"[ADECOD
+ . . Q:"0000;0190;9130;9140;9986;9987;9990"[ADECOD
  . . Q:ADECOD?1"IH"2N
  . . N ADENOD,ADELVL
  . . S ADENOD=$O(^AUTTADA("B",ADECOD,0)) Q:'ADENOD

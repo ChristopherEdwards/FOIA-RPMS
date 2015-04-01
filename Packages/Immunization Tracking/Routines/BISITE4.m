@@ -1,7 +1,9 @@
 BISITE4 ;IHS/CMI/MWR - SELECT GPRA COMMUNITIES.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  SELECT COMMUNITIES TO BE INCLUDED IN GPRA GROUPS AND REPORTS.
+ ;;  PATCH 8: Update Help Text to exclude influenza.  TEXT2+3
+ ;;  PATCH 9: Update options to include Hep B. TEXT1+24
  ;
  ;
  ;----------
@@ -102,6 +104,9 @@ TEXT1 ;EP
  Q
  ;
  ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Update options to include Hep B.
  ;----------
 RISKP ;EP
  ;---> Edit the parameter that determines whether the Risk Status
@@ -110,50 +115,70 @@ RISKP ;EP
  ;---> Called by Protocol BI SITE INPATIENT CHECK ENABLE.
  ;
  Q:$$BISITE^BISITE2
- D FULL^VALM1,TITLE^BIUTL5("ENABLE/DISABLE RISK FACTOR CHECK"),TEXT2
- N BIERR,BIDFLT,DIR,DIRUT,Y
+ D FULL^VALM1,TITLE^BIUTL5("ENABLE/DISABLE RISK FACTOR CHECKS"),TEXT2
+ N BIERR,BIDFLT,BIDFLT1,BISEL,DIR,DIRUT,Y
  S BIDFLT=$$RISKP^BIUTL2(BISITE)
- S DIR(0)="SOA^E:Enable;D:Disable"
- S DIR("A")="     Please select either Enable or Disable: "
- S DIR("B")=$S(BIDFLT:"Enable",1:"Disable")
+ S DIR(0)="SO^0:None;1:Hep B only;2:Pneumo only;3:Both"
+ S DIR("A")="     High Risk option"
+ D
+ .I BIDFLT=1 S BIDFLT1="Hep B only" Q
+ .I (BIDFLT=2)!(BIDFLT=23) S BIDFLT1="Pneumo only" Q
+ .I (BIDFLT=12)!(BIDFLT=123) S BIDFLT1="Both" Q
+ .S BIDFLT1="None"
+ S DIR("B")=BIDFLT1
  D ^DIR
  I $D(DIRUT) D RESET^BISITE Q
+ ;---> Save user selection.
+ S BISEL=Y S:Y=3 BISEL=12
  ;
- N BIFLD,BIERR S BIFLD(.19)=$G(Y)
- D FDIE^BIFMAN(9002084.02,BISITE,.BIFLD,.BIERR,1)
- I BIERR]"" W !!?3,BIERR D DIRZ^BIUTL3() D RESET^BISITE Q
- ;
- D:(BIFLD(.19)="E")
+ N BISMOK S BISMOK=0
+ D:(BISEL[2)
  .D FULL^VALM1,TITLE^BIUTL5("INCLUDE SMOKING AS A PNEUMO RISK FACTOR"),TEXT21
  .W !!,"     Do you wish to include a history of SMOKING in the criteria for"
  .W !,"     the High Risk Pneumo group?",!
  .S DIR("?",1)="     Enter YES to include SMOKING as a Pneumo High Risk Factor, "
  .S DIR("?")="     enter NO to disregard it as a High Risk Factor."
  .S DIR(0)="Y",DIR("A")="     Enter Yes or No"
- .S DIR("B")=$S(BIDFLT=3:"YES",1:"NO")
- .D ^DIR W !
- .Q:$D(DIRUT)  Q:'Y
- .N BIFLD,BIERR S BIFLD(.19)="I"
- .D FDIE^BIFMAN(9002084.02,BISITE,.BIFLD,.BIERR,1)
- .I BIERR]"" W !!?3,BIERR D DIRZ^BIUTL3()
+ .S DIR("B")=$S(BIDFLT[3:"YES",1:"NO")
+ .D ^DIR
+ .I Y S BISMOK=1
+ ;
+ Q:$D(DIRUT)
+ D
+ .I BISEL<2 Q
+ .I (BISEL=2)&(BISMOK=0) Q
+ .I (BISEL=2)&(BISMOK=1) S BISEL=23 Q
+ .I (BISEL=12)&(BISMOK=0) Q
+ .I (BISEL=12)&(BISMOK=1) S BISEL=123 Q
+ ;
+ N BIFLD,BIERR S BIFLD(.19)=BISEL
+ D FDIE^BIFMAN(9002084.02,BISITE,.BIFLD,.BIERR,1)
+ I BIERR]"" W !!?3,BIERR D DIRZ^BIUTL3()
  ;
  D RESET^BISITE
  Q
+ ;**********
  ;
  ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Update Help TEXT2 to no longer include influenza.
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Update Help TEXT2 to include Hep B.
  ;----------
 TEXT2 ;EP
  ;;When forecasting immunizations for a patient, this program is able
  ;;to look at the patient's medical history of visits and attempt to
- ;;determine if the patient has an increased risk for influenza or
- ;;pneumococcal disease.  If the patient fits the High Risk criteria,
- ;;the program will forecast the patient as due for one or both of
- ;;those immunizations.
+ ;;determine if the patient has an increased risk for pneumococcal disease
+ ;;and/or Hepatitis B due to Diabetes.  If the patient fits the High Risk
+ ;;criteria, the program will forecast the patient as due for those
+ ;;immunizations.
  ;;
- ;;This parameter either Enables or Disables that feature.
- ;;
+ ;;This parameter allows you to select which, if any, High Risk forecasting
+ ;;should be enabled on your system.
  D PRINTX("TEXT2")
  Q
+ ;**********
  ;
  ;
  ;----------

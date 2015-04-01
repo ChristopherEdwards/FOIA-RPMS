@@ -1,0 +1,28 @@
+AMHGSVFA ; IHS/CMI/MAW - AMHG Save Visit Form Data (frmVisitDataEntry) 2/12/2009 3:01:26 PM ;
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,3,4**;JUN 18, 2010;Build 28
+ ;
+DEBUG(RETVAL,AMHSTR) ;-- debug entry point
+ D DEBUG^%Serenji("PN^AMHGSVF(.RETVAL,.AMHSTR)")
+ Q
+ ;
+DSM5(RETVAL,AMHSTR) ;-- save POV called from method SaveDSM5 in clsVisitDataEntry
+ S X="MERR^AMHGU",@^%ZOSF("TRAP") ; m error trap
+ N AMHI,P,R,AMHDM,AMHREC,AMHA2,AMHP,AMHER
+ S P="|",R="~"
+ S RETVAL="^AMHTMP("_$J_")"
+ S AMHI=0
+ K ^AMHTMP($J)
+ I $G(AMHSTR)="" D CATSTR^AMHGU(.AMHSTR,.AMHSTR)
+ S AMHDM=$P(AMHSTR,P)
+ S AMHREC=$P(AMHSTR,P,2)
+ S AMHA2=$P(AMHSTR,P,3)
+ S AMHP=$P(AMHSTR,P,4)
+ N AMH2
+ D ARRAY^AMHGU(.AMH2,AMHA2)
+ D AXIS2^AMHGSVF(AMHDM,AMHREC,AMHP,.AMH2)  ;v4.0p4 this code should work the same for DSM V
+ S @RETVAL@(AMHI)="T00030Result"_$C(30)
+ S AMHI=AMHI+1
+ S @RETVAL@(AMHI)=$S($G(AMHER)]"":AMHER,1:AMHREC)_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;

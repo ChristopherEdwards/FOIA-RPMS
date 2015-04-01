@@ -1,10 +1,10 @@
 BGPMUAD4 ; IHS/MSC/MGH - Print MI measure NQF0061 ;07-Jul-2011 14:06;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimeted output
  ;Diabetes BP control
 LASTBP(CNT) ;EP
  D P1
- K ^TMP("BGPMU0061")
+ K ^TMP("BGPMU0061",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

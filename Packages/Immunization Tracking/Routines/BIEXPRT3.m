@@ -1,10 +1,11 @@
 BIEXPRT3 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: GATHER IMM HISTORIES FOR PATIENTS
  ;;  STORED IN ^BITMP(.
  ;;  PATCH 5: Added BI01 for Admin Note at 1-node.  HISTORY+20,HISTORY1+13,+29
  ;;  PATCH 5: Increase nodes to accommodate Admin Notes.  GLBSET+30
+ ;;  PATCH 8: Changes to accommodate new TCH Forecaster   HISTORY+99
  ;
  ;
  ;----------
@@ -106,7 +107,12 @@ HISTORY(BIFMT,BIDE,BIMM,BIFDT,BISKIN,BIDUZ2,BINF) ;EP
  ;
  ;---> If format=IMM/SERVE, call ^BIEXPRT5 to populate ^BITMP($J,2
  ;---> with Patient Imm History in ImmServe format.
- I BIFMT=3 D IMMSERV^BIEXPRT5(BIFDT,$G(BIDUZ2),.BINF)
+ ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Call to new TCH Forecaster.
+ ;I BIFMT=3 D IMMSERV^BIEXPRT5(BIFDT,$G(BIDUZ2),.BINF)
+ I BIFMT=3 D TCHHIST^BIEXPRT6(BIFDT,$G(BIDUZ2),.BINF)
+ ;**********
  ;
  Q
  ;

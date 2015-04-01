@@ -1,5 +1,5 @@
 BGPMUEP ; IHS/MSC/MMT - IHS MU PERFORMANCE MEASURE REPORT FRONT-END ;02-Mar-2011 13:57;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;
  ;
  W:$D(IOF) @IOF
@@ -21,10 +21,13 @@ SETIND ;
 TP ;get time period
  S BGPRTYPE=4,BGP0RPTH="A"
  S (BGPBD,BGPED,BGPTP)=""
- S DIR(0)="S^1:90-Days;2:One Year",DIR("A")="Enter the reporting period length for your report" KILL DA D ^DIR KILL DIR
+ S DIR(0)="S^1:90-Days;2:One Year;3:User Defined Date Range",DIR("A")="Enter the reporting period length for your report" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D XIT Q
- S BGPLEN=$S(Y=1:89,1:364)
+ S BGPANS=Y
+ S BGPLEN=$S(Y=1:89,Y=2:364,1:"")
  S (BGPPER,BGPVDT)=""
+ I BGPANS=3 D GETBE I BGPBD=""!(BGPED)="" D XIT Q
+ I BGPANS=3 G BY
  W !!,"Enter the reporting period start date."
  S DIR(0)="D^::EP"
  S DIR("A")="Enter Date"
@@ -56,6 +59,7 @@ BY ;get previous  year
  S X1=BGPED,X2=-365
  D C^%DTC
  S BGPPED=X
+ I BGPANS=3 S BGPPBD=($E(BGPBD,1,3)-1)_$E(BGPBD,4,7),BGPPED=($E(BGPED,1,3)-1)_$E(BGPED,4,7)
  ;get baseline year
  S BGPVDT=""
  W !!,"Enter the Baseline Year to compare data to.",!,"Use a 4 digit year, e.g. 1999, 2000"
@@ -237,15 +241,33 @@ LOC() ;EP - Return location name from file 4 based on DUZ(2).
  Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
  ;----------
  ;
+GETBE ;EP
+ D F
+ I BGPBD="" Q
+ D E
+ Q
 F ;report start date
- S (BGPPER,BGPVDT)=""
+ S (BGPPER,BGPVDT,BGPBD)=""
  W !!,"Enter the reporting period start date."
  S DIR(0)="D^::EP"
- S DIR("A")="Enter Date"
+ S DIR("A")="Enter Start Date"
  S DIR("?")="This report is compiled for a period.  Enter a valid date."
  D ^DIR KILL DIR
  I $D(DIRUT) Q
  I $D(DUOUT) S DIRUT=1 Q
  S BGPVDT=Y
+ S BGPBD=Y
  S BGPPER=BGPVDT
+ Q
+E ;report start date
+ S (BGPVDT,BGPED)=""
+ W !!,"Enter the reporting period end date."
+ S DIR(0)="D^::EP"
+ S DIR("A")="Enter End Date"
+ S DIR("?")="This report is compiled for a period.  Enter a valid date."
+ D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ I $D(DUOUT) S DIRUT=1 Q
+ ;S BGPVDT=Y
+ S BGPED=Y
  Q

@@ -1,5 +1,5 @@
 BDMSMU ; IHS/CMI/LAB - utilities for hmr ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8**;JUN 14, 2007;Build 53
  ;
 D1(D) ;EP - DATE WITH 4 YR
  I $G(D)="" Q ""
@@ -80,26 +80,33 @@ LASTITEM(P,V,T,F) ;EP - return last item V
  NEW BDMY,%,E,Y K BDMY S %=P_"^LAST "_T_" "_V,E=$$START1^APCLDF(%,"BDMY(")
  Q $S(F="D":$P($G(BDMY(1)),"^"),F="B":$P($G(BDMY(1)),"^")_"^"_$P($G(BDMY(1)),"^",2),1:$P($G(BDMY(1)),"^",2))
  ;
-PLTAX(P,A,S) ;EP - is DM on problem list 1 or 0
+PLTAX(P,A,S,F) ;EP - is DM on problem list 1 or 0
  I $G(P)="" Q ""
  I $G(A)="" Q ""
  S S=$G(S)
+ S F=$G(F)
+ I F="" S F=1
  N T S T=$O(^ATXAX("B",A,0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) D
+ N X,Y,I,Z S (X,Y,I)=0,Z="" F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) D
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .S Y=$P(^AUPNPROB(X,0),U)
  .Q:'$$ICD^ATXCHK(Y,T,9)
- .I S]"",$P(^AUPNPROB(X,0),U,12) Q
+ .I S]"",$P(^AUPNPROB(X,0),U,12)'=S Q
  .S I=1
- Q I
+ .S Z=X
+ I F=1 Q I
+ I F=2 Q Z
+ Q ""
 PLCODE(P,A,F) ;EP
  I $G(P)="" Q ""
  I $G(A)="" Q ""
  I $G(F)="" S F=1
  N T
- S T=+$$CODEN^ICDCODE(A,80)
+ ;S T=+$$CODEN^ICDCODE(A,80)
+ S T=+$$CODEN^BDMUTL(A,80)  ;cmi/maw 05/13/2014 patch 8 ICD-10
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I Y=T S I=X
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I Y=T S I=X
  I F=1 Q I
  I F=2 Q X
  Q ""

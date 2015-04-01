@@ -1,5 +1,5 @@
 BGP4D73 ; IHS/CMI/LAB - measure 31 ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
 ID ;EP
@@ -20,8 +20,8 @@ CHEL ;EP - called from elder care
  .I V["CPT" S:V["3048F" BGPN4=1 Q
  .S V=+V
  .I 'V Q
- .I V]"",+V'>100 S BGPN4=1
- .I +V>100,+V<131 S BGPN5=1
+ .I V]"",+V'>99 S BGPN4=1
+ .I +V>99,+V<131 S BGPN5=1
  .I +V>130,+V<161 S BGPN6=1
  .I +V>160 S BGPN7=1
  S V=$S(BGPD1:"UP",1:"")_$S(BGPD2:",AC",1:"")_$S(BGPD3:",CHD",1:"")_"|||"

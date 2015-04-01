@@ -1,7 +1,8 @@
 BILETVW2 ;IHS/CMI/MWR - VIEW/EDIT FORM LETTERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT SECTIONS OF FORM LETTERS.
+ ;;  PATCH 9: New feature to allow copying of existing Form Letter. ADDNEW+11
  ;
  ;
  ;----------
@@ -216,21 +217,30 @@ LETCHECK(BIIEN) ;EP
 ADDNEW(BIIEN) ;EP
  ;---> Copy the Generic Sample Letter to this new Form Letter.
  ;---> Parameters:
- ;     1 - BIIEN (req) IEN of Form Letter.
+ ;     1 - BIIEN (req) IEN of new Form Letter.
  ;               (ret) BIIEN="" if Sample Form Letter not chosen.
  ;
  I '$G(BIIEN) D ERRCD^BIUTL2(609,,1) Q
  ;
  D TITLE^BIUTL5("ADD A NEW FORM LETTER"),TEXT1
  N BIACT,BISIEN,DIR
- S DIR("A")="     Enter 1, 2, or 3: ",DIR("B")=1
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> New feature to allow copying of existing Form Letter.
+ ;S DIR("A")="     Enter 1, 2, or 3: ",DIR("B")=1
+ S DIR("A")="     Enter 1, 2, 3, or C: "
  S DIR(0)="SAM^1:Standard Due Letter;2:Official Immunization Record"
  S DIR(0)=DIR(0)_";3:Standard Due Letter, Forecast First"
+ S DIR(0)=DIR(0)_";C:Copy Existing Form Letter"
  D ^DIR K DIR
  ;---> If user backed out, delete new letter and quit.
  I ($D(DIRUT)!(Y=-1)) D  Q
  .N DA,DIK S DA=BIIEN,DIK="^BILET(" D ^DIK S BIIEN=""
  .W !!?5,"New Form Letter not added."  D DIRZ^BIUTL3()
+ ;
+ ;---> If copy existing, do so and quit.
+ I Y="C" D COPYEX(.BIIEN,.Y) Q
+ ;**********
  ;
  S BISIEN=+Y
  N I
@@ -245,23 +255,54 @@ ADDNEW(BIIEN) ;EP
  Q
  ;
  ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> New feature to allow copying of existing Form Letter.
+ ;----------
+COPYEX(BIIEN,Y) ;EP
+ ;---> Copy existing Form Letter.
+ ;---> Parameters:
+ ;     1 - BIIEN (req) IEN of new Form Letter.
+ ;
+ D TITLE^BIUTL5("ADD A NEW FORM LETTER")
+ W !!?5,"You have chosen to copy an existing Form Letter to your new Form Letter."
+ W !?5,"Please select the existing Form Letter you wish to copy.",!
+ D DIC^BIFMAN(9002084.4,"QEMA",.Y,"     Select Form Letter: ")
+ I ($D(DIRUT)!(Y=-1)) D  Q
+ .N DA,DIK S DA=BIIEN,DIK="^BILET(" D ^DIK S BIIEN=""
+ .W !!?5,"New Form Letter not added."  D DIRZ^BIUTL3()
+ S BISIEN=+Y
+ N I
+ F I=1:1:4 D
+ .Q:'$D(^BILET(BISIEN,I,0))
+ .S ^BILET(BIIEN,I,0)=^BILET(BISIEN,I,0)
+ .N N S N=0
+ .F  S N=$O(^BILET(BISIEN,I,N)) Q:'N  D
+ ..S ^BILET(BIIEN,I,N,0)=^BILET(BISIEN,I,N,0)
+ ;
+ F I=2,3,4,6 S $P(^BILET(BIIEN,0),U,I)=$P(^BILET(BISIEN,0),U,I)
+ Q
+ ;**********
+ ;
+ ;
  ;----------
 TEXT1 ;EP
  ;;You have chosen to add a new Form Letter.
+ ;;In order to save you time, this program will load a Sample Form Letter,
+ ;;which you may then edit to suit the purpose of your new Form Letter.
  ;;
- ;;In order to save you time, this program will load a Sample Form
- ;;Letter, which you may then edit to suit the purpose of your new
- ;;Form Letter.
- ;;
- ;;There are two Sample Form Letters to choose from:
+ ;;There are three Sample Form Letters to choose from:
  ;;
  ;;   1) Standard Due Letter
  ;;   2) Official Immunization Record
  ;;   3) Standard Due Letter--Forecast First
  ;;
- ;;Please enter 1 to select the Standard Due Letter, 2 to select
- ;;the Official Immunization Record, or 3 to select the Standard Due
- ;;Letter with the Forecast listed first and the History following.
+ ;;Or you may choose to copy an existing customized Form Letter and
+ ;;then make changes to it under the new Form Letter you are creating.
+ ;;
+ ;;Please enter "1" to select the Standard Due Letter, "2" to select
+ ;;the Official Immunization Record, "3" to select the Standard Due
+ ;;Letter (with the Forecast listed first and the History following),
+ ;;or enter "C" to copy an existing Form Letter.
  ;;
  ;
  D PRINTX("TEXT1")

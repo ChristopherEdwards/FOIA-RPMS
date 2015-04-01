@@ -1,5 +1,5 @@
 ACHSDN2 ; IHS/ITSC/PMF - DENIAL SET UP & DISPLAY ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,10,12,18,19,21**;JUN 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,10,12,18,19,21**;JUN 11,2001;Build 13
  ;ACHS*3.1*3  improve denial/patient lookup
  ;            also, handle 'alt resource availabe' as special
  ;ACHS*3.1*4  close device before passing DUMP to taskman

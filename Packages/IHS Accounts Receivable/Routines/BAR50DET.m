@@ -1,7 +1,8 @@
-BAR50DET ;IHS/SD/LSL - DISPLAY MATCH REASONS AND CLAIMS REPORT;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**,23**;OCT 26, 2005
+BAR50DET ;IHS/SD/POT - DISPLAY MATCH REASONS AND CLAIMS REPORT;
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**,23,24**;OCT 26, 2005;Build 69
  ;CALLED FROM BARED* AND BAR50*
- ;P.OTT NEW ROUTINE JAN 2013
+ ;IHS/SD/POT NEW ROUTINE JAN 2013 - BAR*1.8*23
+ ;IHS/SD/POT HEAT148835 CHANGED DEFAULT OF "Do you wish to print report of the matching process"  - BAR*1.8*24
  Q
 INS(BARTXT,BARMODE) ;
  NEW BARPTR,%
@@ -25,16 +26,8 @@ NOMATCH ;
  S ^XTMP("BAR-LIST_DETAIL",$J,DUZ(2),"NOMATCH")=1
  Q
 PRT ;EP
- ;I '$D(^XTMP("BAR-LIST_DETAIL",$J)) Q
- I '$D(^XTMP("BAR-LIST_DETAIL",$J,DUZ(2),"NOMATCH")) D  Q
- ;. W !!!,"*** NO UNMATCHED DATA TO PRINT ***"
- ;. D EOP^BARUTL(0)
- I $G(^XTMP("BAR-LIST_DETAIL",$J,DUZ(2),"NOMATCH")) D
- . W !
- . W !,"***THE MATCHING PROCESS FOUND SEVERAL UNMATCHED CLAIMS ***"
- . W !,"      YOU CAN PRINT NOW A REPORT WITH MORE DETAILS"
- . W !
- S Y=$$DIR^XBDIR("Y","Do you wish to print report of the matching process","Y") ;DEFAULT = Y
+ W !
+ S Y=$$DIR^XBDIR("Y","Do you wish to print report of the matching process","Y") ;DEFAULT = Y  - BAR*1.8*24
  ;S Y=$$DIR^XBDIR("Y","Do you wish to print report of the matching process","N") ;DEFAULT = N
  Q:+Y<1
  D ^%ZIS

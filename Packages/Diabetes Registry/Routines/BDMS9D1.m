@@ -1,5 +1,5 @@
 BDMS9D1 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ; 01 Feb 2011  8:49 AM
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8**;JUN 14, 2007;Build 53
  ;
  ;
 EP ;EP - called from component
@@ -120,35 +120,35 @@ CMSMAN(P,F) ;EP - return date/dx of dm in register
  ;
 MS(P) ;
  NEW X,Y,I,BDMY,%
- S X=$$PLCODE^BDMSMU(P,"277.7",2) I X D  Q Y
+ S X=$$PLTAX^BDMSMU(P,"DM AUDIT METABOLIC SYNDROME",,2) I X D  Q Y
  .S D=$P(^AUPNPROB(X,0),U,13) I D]"" S Y=1_U_D_U_"Date of Onset from Problem List" Q
  .S D=$P(^AUPNPROB(X,0),U,8) I D]"" S Y=1_U_D_U_"Date Added to Problem List" Q
  .S Y=1_U_D_U_"Problem List" Q
- K BDMY S %=P_"^FIRST DX 277.7",E=$$START1^APCLDF(%,"BDMY(")
+ K BDMY S %=P_"^FIRST DX [DM AUDIT METABOLIC SYNDROME",E=$$START1^APCLDF(%,"BDMY(")
  I $D(BDMY(1)) Q 1_U_$P(BDMY(1),U)_U_"Date of first DX in PCC"
  Q ""
 IGT(P) ;
  NEW X,Y,I,BDMY,%
- S X=$$PLCODE^BDMSMU(P,"790.22",2) I X D  Q Y
+ S X=$$PLTAX^BDMSMU(P,"DM AUDIT IGT DXS",,2) I X D  Q Y
  .S D=$P(^AUPNPROB(X,0),U,13) I D]"" S Y=1_U_D_U_"Date of Onset from Problem List" Q
  .S D=$P(^AUPNPROB(X,0),U,8) I D]"" S Y=1_U_D_U_"Date Added to Problem List" Q
  .S Y=1_U_D_U_"Problem List" Q
- K BDMY S %=P_"^FIRST DX 790.22",E=$$START1^APCLDF(%,"BDMY(")
+ K BDMY S %=P_"^FIRST DX [DM AUDIT IGT DXS",E=$$START1^APCLDF(%,"BDMY(")
  I $D(BDMY(1)) Q 1_U_$P(BDMY(1),U)_U_"Date of first DX in PCC"
  Q ""
 IFG(P) ;
  NEW X,Y,I,BDMY,%
- S X=$$PLCODE^BDMSMU(P,"790.21",2) I X D  Q Y
+ S X=$$PLTAX^BDMSMU(P,"BGP IMPAIRED FASTING GLUCOSE",,2) I X D  Q Y
  .S D=$P(^AUPNPROB(X,0),U,13) I D]"" S Y=1_U_D_U_"Date of Onset from Problem List" Q
  .S D=$P(^AUPNPROB(X,0),U,8) I D]"" S Y=1_U_D_U_"Date Added to Problem List" Q
  .S Y=1_U_D_U_"Problem List" Q
- K BDMY S %=P_"^FIRST DX 790.21",E=$$START1^APCLDF(%,"BDMY(")
+ K BDMY S %=P_"^FIRST DX [BGP IMPAIRED FASTING GLUCOSE",E=$$START1^APCLDF(%,"BDMY(")
  I $D(BDMY(1)) Q 1_U_$P(BDMY(1),U)_U_"Date of first DX in PCC"
  Q ""
 HTN(P) ;
  N T S T=$O(^ATXAX("B","SURVEILLANCE HYPERTENSION",0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
  I I Q "Yes"
  NEW BDMX
  S BDMX=""

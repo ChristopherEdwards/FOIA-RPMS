@@ -1,5 +1,5 @@
 ADECD49 ;  IHS/SET/HMW - ADA CODE TABLE UPDATE (CDT4) ;
- ;;6.0;ADE;**12**;MAR 25, 1999
+ ;;6.0;ADE;**12**;MAR 25, 1999;Build 13
  ;
 CDT4REM ;EP - Reminder that ADA Codes for dental extractions were changed by CDT-4
  ;
@@ -13,6 +13,10 @@ CDT4REM ;EP - Reminder that ADA Codes for dental extractions were changed by CDT
  W !,"If you are searching for extractions (CDT-4 Code 7140),"
  W !,"you must also search for codes 7110, 7120 and 7130"
  W !,"if the beginning date of your search is prior to ",ADEPDAT,".",!
+ W !!,"2015 CDT codes were installed on this system"
+ W !,"If you are searching for cancelled (9987) and missed (9986)"
+ W !,"appointments you must also search for codes (9140) and (9130)" 
+ W !,"if the beginning date of your search is prior to January 1, 2015",!
  ;
  Q
  ;

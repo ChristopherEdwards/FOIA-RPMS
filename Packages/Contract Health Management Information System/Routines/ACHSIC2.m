@@ -1,0 +1,50 @@
+ACHSIC2 ;IHS/ITSC/FCJ-SET UP ICD ERROR GLOBAL for FI Sites only
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**22**;JUN 11, 2001;Build 13
+ ;NEW ROUTINE FOR INSTALL TO SET THE ICD GLOBALS
+ ;
+ Q
+SET ;SET ICD TMP FILE
+ ;TEST FOR ICD CODES WITH LENGTH OF 3
+ ;ICD=CODE IT SHOULD BE
+ ;$$ICDDX^ICDCODE(ICD2)=WHAT IT IS GETTING SET TO
+ ;ICD2 IS THE IEN OF THE INCORRECT ICD AND WHAT IS SET IN ACHS
+ ;
+ D ICD
+ D DOCS
+ Q
+ICD ;CHECK ICD CODES
+ I $D(^ACHSICD9(0)) W !,"ICD9 Data already set, routine will not be ran." Q
+ W !,"Setting ICD Temporary global"
+ S X=0,CT=0,CT1=0
+ F  S X=$O(^ICD9(X)) Q:X'?1N.N  D
+ .S CT=CT+1,ICD=$P(^ICD9(X,0),U)
+ .I (ICD="41.3")!(ICD="41.86")!(ICD="8.65")!(ICD=488)!(ICD=449)!(ICD=538) D ADD
+ .I $L($P(^ICD9(X,0),U))=4 D
+ ..Q:$E(ICD,1,3)'?3N
+ ..I ($E(ICD,4)?1".")&($E(ICD,1)'=0) D ADD
+ Q
+ADD ;ADD ICD CODE TO FILE
+ S ICD2=$E(ICD,1,3),^ACHSICD9(X)=ICD_"^"_$$ICDDX^ICDCODE(ICD2),CT1=CT1+1
+ S ^ACHSICD9("B",ICD2,X)=""
+ S ^ACHSICD9(0)=CT1
+ W "."
+ ;W !,CT1,". ",ICD_"^"_$$ICDDX^ICDCODE(ICD2)
+ Q
+DOCS ;SET CHS RECORD in the temporary file WITH POSSIBLE ERRORS, START W/PAY DOCS FR 9-1-2010
+ W !,"Setting the PO document global"
+ S L=0 F  S L=$O(^ACHSF("B",L)) Q:L'?1N.N  D
+ .;I $P(^ACHSF(L,2),U,11)'="Y" W !,"Facility is not an FI site, routine will not be ran for ",$P(^DIC(4,DUZ(2),0),U) Q
+ .S ACHSPAY=3100900,CT=0
+ .F  S ACHSPAY=$O(^ACHSF(L,"TB",ACHSPAY)) Q:ACHSPAY'?1N.N  F TYP="P","IP" D
+ ..S L1=0 F  S L1=$O(^ACHSF(L,"TB",ACHSPAY,TYP,L1)) Q:L1'?1N.N  D
+ ...Q:'$D(^ACHSF(L,"D",L1,9,0))
+ ...Q:$D(^ACHSICD(L,"D",L1,0))
+ ...S L2=0 F  S L2=$O(^ACHSF(L,"D",L1,9,L2)) Q:L2'?1N.N  D
+ ....S ICD2=$P(^ACHSF(L,"D",L1,9,L2,0),U)
+ ....I $D(^ACHSICD9("B",ICD2)) D	
+ .....S CT=CT+1 W "."
+ .....S ^ACHSICD(L,"D",L1,0)=^ACHSF(L,"D",L1,0)
+ .....S ^ACHSICD(L,"D",L1,9,L2,0)=^ACHSF(L,"D",L1,9,L2,0)
+ .....S ^ACHSICD("E",ICD2,L1)=""
+ ....S ^ACHSICD(L,"D",0)=CT
+ Q

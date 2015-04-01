@@ -1,5 +1,5 @@
-BGP4ELLI ; IHS/CMI/LAB - print ind ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+BGP4ELLI ; IHS/CMI/LAB - print ind ; 25 Mar 2014  6:57 PM
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
 I1AGE ;EP
@@ -95,9 +95,9 @@ I1AGEP ;
  S X="CURRENT REPORT PERIOD" D S(X,1,1) S X=" " D S(X,1,1)
  S X=BGPHD2 D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U) S Y=V D S(Y,,X+1)
- S X="# w/BP's documented w/in 2 yrs" D S(X,1,1)
+ S X="# w/BP's documented" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U,2) S Y=V D S(Y,,X+1)
- S X="% w/BP's documented w/in 2 yrs" D S(X,1,1)
+ S X="% w/BP's documented" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U,3) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
  S X=" " D S(X,1,1) S X="A. # w/Normal BP w/ % of Total Screened" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAC(X),U,4) S Y=V D S(Y,,X+1)
@@ -123,9 +123,9 @@ PR ;
  S X=" " D S(X,1,1) S X="PREVIOUS YEAR PERIOD" D S(X,1,1)
  S X=" " D S(X,1,1) S X=BGPHD2 D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U) S Y=V D S(Y,,X+1)
- S X="# w/BP's documented w/in 2 yrs" D S(X,1,1)
+ S X="# w/BP's documented" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U,2) S Y=V D S(Y,,X+1)
- S X="% w/BP's documented w/in 2 yrs" D S(X,1,1)
+ S X="% w/BP's documented" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U,3) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
  S X=" " D S(X,1,1) S X="A. # w/Normal BP w/ % of Total Screened" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAP(X),U,4) S Y=V D S(Y,,X+1)
@@ -150,7 +150,7 @@ PR ;
  F X=1:1:4 S V=$P(BGPDAP(X),U,13) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
  ;percentage changes
  S X=" " D S(X,1,1) S X="CHANGE FROM PREV YR %" D S(X,1,1)
- S X="w/BP's documented w/in 2 yrs" D S(X,1,1)
+ S X="w/BP's documented" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,3),O=$P(BGPDAP(X),U,3) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
  S X="A. w/Normal BP w/ % of Total Screened" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAP(X),U,5) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
@@ -166,9 +166,9 @@ BL ;
  S X=" " D S(X,1,1) S X="BASELINE REPORT PERIOD" D S(X,1,1)
  S X=" " D S(X,1,1) S X=BGPHD2 D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U) S Y=V D S(Y,,X+1)
- S X="# w/BP's documented w/in 2 yrs" D S(X,1,1)
+ S X="# w/BP's documented" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,2) S Y=V D S(Y,,X+1)
- S X="% w/BP's documented w/in 2 yrs" D S(X,1,1)
+ S X="% w/BP's documented" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,3) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
  S X=" " D S(X,1,1) S X="A. # w/Normal BP w/ % of Total Screened" D S(X,1,1)
  F X=1:1:4 S V=$P(BGPDAB(X),U,4) S Y=V D S(Y,,X+1)
@@ -193,7 +193,7 @@ BL ;
  F X=1:1:4 S V=$P(BGPDAB(X),U,13) S Y=$$SB^BGP4ELL2($J(V,6,1)) D S(Y,,X+1)
  ;percentage changes
  S X=" " D S(X,1,1) S X="CHANGE FROM BASE YR %" D S(X,1,1)
- S X="w/BP's documented w/in 2 yrs" D S(X,1,1)
+ S X="w/BP's documented" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,3),O=$P(BGPDAB(X),U,3) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)
  S X="A. w/Normal BP w/% of Total Screened" D S(X,1,1)
  F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAB(X),U,5) S Y=$$SB^BGP4ELL2($J((N-O),6,1)) D S(Y,,X+1)

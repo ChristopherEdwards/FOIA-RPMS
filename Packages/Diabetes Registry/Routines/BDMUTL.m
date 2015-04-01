@@ -1,5 +1,5 @@
 BDMUTL ; IHS/CMI/LAB - Area Database Utility Routine ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**5**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**5,8**;JUN 14, 2007;Build 53
  ;
 GETIMMS(P,EDATE,C,BDMX) ;EP
  K BDMX
@@ -86,3 +86,54 @@ DEMOCHK(R) ;EP - check demo pat
  I $D(DIRUT) S R=-1 Q
  S R=Y
  Q
+ ;
+ICD(VAL,TAXNM,TYP) ;EP -- check to see if value is in taxonomy in ^TMP("BDMTMP",$J,Taxonomy Name
+ ;add 3rd param with pass type
+ I $G(BDMJOB)=""!($G(BDMBTH)="") Q $$ICD^ATXCHK(VAL,$O(^ATXAX("B",TAXNM,0)),TYP)
+ I '$D(^XTMP("BDMTAX",BDMJOB,BDMBTH,TAXNM)) Q $$ICD^ATXCHK(VAL,$O(^ATXAX("B",TAXNM,0)),TYP)
+ I $D(^XTMP("BDMTAX",BDMJOB,BDMBTH,TAXNM,VAL)) Q 1
+ Q 0
+ ;
+UNFOLDTX(YEAR) ;EP -- unfold all taxes for dm audit into ^TMP("BDMTMP",$J,Taxonomy Name
+ ;lets go through all the taxonomies needed here and put them in above location
+ ;need to check DMS Taxonomies Used option to determine
+ K ^XTMP("BDMTAX",BDMJOB,BDMBTH)
+ I '$D(^ICDS(0)) Q  ;only in icd10 environment
+ N BDMYR,BDMDA,BDMTAX,BDMFL,BDMTAXI,BDMVAL,BDMTYP,BDMTGT
+ S BDMYR=$O(^BDMTAXS("B",YEAR,0))
+ Q:'BDMYR
+ S BDMDA=0 F  S BDMDA=$O(^BDMTAXS(BDMYR,11,BDMDA)) Q:'BDMDA  D
+ . S BDMTAX=$P($G(^BDMTAXS(BDMYR,11,BDMDA,0)),U)
+ . S BDMFL=$P($G(^BDMTAXS(BDMYR,11,BDMDA,0)),U,2)
+ . S BDMTYP=$S(BDMFL=60:"L",1:"")
+ . S BDMTAXI=$O(^ATXAX("B",BDMTAX,0))
+ . I BDMTYP="L" D
+ .. S BDMTAXI=$O(^ATXLAB("B",BDMTAX,0))
+ . S BDMTGT="^XTMP("_"""BDMTAX"""_","_BDMJOB_","_""""_BDMBTH_""""_","_""""_BDMTAX_""""_")"
+ . ;D BLDTAX^ATXAPI(BDMTAX,BDMTGT,BDMTAXI,BDMTYP)
+ . D BLDTAX^BDMTAPI(BDMTAX,BDMTGT,BDMTAXI,BDMTYP)
+ Q
+ ;
+ ;
+ICDDX(C,D,S,I) ;PEP - CHECK FOR ICD10
+ I $T(ICDDX^ICDEX)]"" Q $$ICDDX^ICDEX(C,$G(D),,$G(I))
+ Q $$ICDDX^ICDCODE(C,$G(D),$G(I))
+ ;
+ICDOP(C,D,S,I) ;PEP - CHECK FOR ICD10
+ I $T(ICDOP^ICDEX)]"" Q $$ICDOP^ICDEX(C,$G(D),,$G(I))
+ Q $$ICDOP^ICDCODE(C,$G(D),$G(I))
+ ;
+VSTD(C,D) ;EP - CHECK FOR ICD10
+ I $T(VSTD^ICDEX)]"" Q $$VSTD^ICDEX(C,$G(D))
+ Q $$VSTD^ICDCODE(C,$G(D))
+ ;
+VSTP(C,D) ;EP - CHECK FOR ICD10
+ I $T(VSTP^ICDEX)]"" Q $$VSTP^ICDEX(C,$G(D))
+ Q $$VSTP^ICDCODE(C,$G(D))
+ ;
+ICDD(C,A,D) ;EP - CHECK FOR ICD10
+ I $T(ICDD^ICDEX)]"" Q $$ICDD^ICDEX(C,A,$G(D))
+ Q $$ICDD^ICDCODE(C,A,$G(D))
+CODEN(C,F) ;EP CHECK/GET CODE
+ I $T(CODEN^ICDEX)]"" Q $$CODEN^ICDEX(C,F)
+ Q $$CODEN^ICDCODE(C,F)

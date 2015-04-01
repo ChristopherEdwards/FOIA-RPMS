@@ -1,5 +1,5 @@
 BGP4DAR ; IHS/CMI/LAB - ihs area GPRA 02 Sep 2004 1:11 PM 09 Apr 2014 10:03 AM ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;
  ;
  W:$D(IOF) @IOF
@@ -48,7 +48,7 @@ ASU ;
  ;I C=1 S BGPRPTT="F",BGPSUCNT=1,Y=$O(BGPSUL(0)),X=$P(^BGPGPDCJ(Y,0),U,9),X=$O(^AUTTLOC("C",X,0)) I X S BGPSUNM=$P(^DIC(4,X,0),U)
 ZIS ;call to XBDBQUE
 EISSEX ;
- S BGPEXCEL=$S($G(BGPSUMON):0,1:1)
+ S BGPEXCEL=$S($G(BGPSUMON):0,BGPRPTT="F":0,C<1:0,1:1)
  S BGPUF=$$GETDIR^BGP4UTL2()
  ;I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
  ;I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic/"
@@ -61,6 +61,7 @@ EISSEX ;
  .S BGPFDEV1="CRSGPRADEVNT1"_$P(^AUTTLOC(DUZ(2),0),U,10)_2014063000000000_$$D^BGP4UTL(BGPNOW)_"_"_$$LZERO^BGP4UTL(BGPC,6)_".TXT"
  .S BGPFDEV2="CRSGPRADEVNT2"_$P(^AUTTLOC(DUZ(2),0),U,10)_2014063000000000_$$D^BGP4UTL(BGPNOW)_"_"_$$LZERO^BGP4UTL(BGPC,6)_".TXT"
  .S BGPFDEV3="CRSGPRADEVNT3"_$P(^AUTTLOC(DUZ(2),0),U,10)_2014063000000000_$$D^BGP4UTL(BGPNOW)_"_"_$$LZERO^BGP4UTL(BGPC,6)_".TXT"
+ .S BGPFDEV4="CRSGPRADEVNT4"_$P(^AUTTLOC(DUZ(2),0),U,10)_2014063000000000_$$D^BGP4UTL(BGPNOW)_"_"_$$LZERO^BGP4UTL(BGPC,6)_".TXT"
  .S BGPFGNT3="CRSGPRANT3"_$P(^AUTTLOC(DUZ(2),0),U,10)_2014063000000000_$$D^BGP4UTL(BGPNOW)_"_"_$$LZERO^BGP4UTL(BGPC,6)_".TXT"
  .;S BGPFGNT4="CRSGPRANT4"_$P(^AUTTLOC(DUZ(2),0),U,10)_2014063000000000_$$D^BGP4UTL(BGPNOW)_"_"_$$LZERO^BGP4UTL(BGPC,6)_".TXT"
  .Q
@@ -72,7 +73,8 @@ EISSEX ;
  .W !!,"A file will be created called ",BGPFDEV1,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
  .W !!,"A file will be created called ",BGPFDEV2,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
  .W !!,"A file will be created called ",BGPFDEV3,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
- . S BGPASUF=$P(^AUTTLOC(DUZ(2),0),U,10)
+ .W !!,"A file will be created called ",BGPFDEV4,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
+ .S BGPASUF=$P(^AUTTLOC(DUZ(2),0),U,10)
  D ^XBFMK
  K DIC,DIADD,DLAYGO,DR,DA,DD,X,Y,DINUM
 GI ;gather all gpra measures

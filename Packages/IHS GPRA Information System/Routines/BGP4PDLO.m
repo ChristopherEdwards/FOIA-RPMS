@@ -1,5 +1,5 @@
 BGP4PDLO ; IHS/CMI/LAB - IHS gpra print ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
 S(Y,F,P) ;EP set up array
  I '$G(F) S F=0

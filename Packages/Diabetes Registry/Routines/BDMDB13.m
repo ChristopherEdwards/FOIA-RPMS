@@ -1,5 +1,5 @@
 BDMDB13 ; IHS/CMI/LAB - 2014 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
 LASTFLU(BDMPDFN,BDMBD,BDMED,BDMFORM) ;PEP - date of last FLU
  ;  Return the last recorded FLU:
@@ -175,12 +175,10 @@ HTNDX(P,EDATE) ;EP - is HTN on problem list
  .S Y=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="I"
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .Q:'$$ICD^ATXCHK(Y,T,9)
+ .Q:'$$ICD^BDMUTL(Y,$P(^ATXAX(T,0),U),9)  ;cmi/maw 05/15/2014 p8
  .S G=1
  .Q
  I G Q "1  Yes"
- ;S %=P_"^PROBLEM [DM AUDIT PROBLEM HTN DIAGNOSES" S E=$$START1^APCLDF(%,"BDM(")
- ;I $D(BDM(1)) Q "1  Yes"
  K BDM
  S X=P_"^LAST 3 DX [SURVEILLANCE HYPERTENSION;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
  I $D(BDM(3)) S Y=$$FMTE^XLFDT($P(BDM(3),U,1))_"  "_$$FMTE^XLFDT($P(BDM(2),U))_"  "_$$FMTE^XLFDT($P(BDM(1),U)) Q "1  Yes - DX on "_Y
@@ -214,15 +212,22 @@ LASTWT(P,BDATE,EDATE,F) ;PEP - return last wt
  . Q:$P($G(^AUPNVMSR(BDMVF,2)),U,1)  ;entered in error
  . S BDMZ=$P(BDM(BDMN),U,5)
  . I '$D(^AUPNVPOV("AD",BDMZ)) S BDMW=$P(BDM(BDMN),U,2)_" lbs "_$$FMTE^XLFDT($P(BDM(BDMN),U)) Q
- . S BDMD=0 F  S BDMD=$O(^AUPNVPOV("AD",BDMZ,BDMD)) Q:'BDMD!(BDMW]"")  D
- .. S ICD=$P($$ICDDX^ICDCODE($P(^AUPNVPOV(BDMD,0),U)),U,2) D  ;cmi/anch/maw 9/12/2007 csv
- ...I $E(ICD,1,3)="V22" Q
- ...I $E(ICD,1,3)="V23" Q
- ...I $E(ICD,1,3)="V27" Q
- ...I $E(ICD,1,3)="V28" Q
- ...I ICD>629.9999&(ICD<676.95) Q
- ...S BDMW=$P(BDM(BDMN),U,2)_" lbs "_$$FMTE^XLFDT($P(BDM(BDMN),U))
- ..Q
+ . S BDMD=0,G=0 F  S BDMD=$O(^AUPNVPOV("AD",BDMZ,BDMD)) Q:'BDMD!(BDMW]"")  D
+ .. N ICDI
+ .. S ICDI=$P($$ICDDX^BDMUTL($P(^AUPNVPOV(BDMD,0),U)),U)  ;p8
+ .. S ICD=$P($$ICDDX^BDMUTL($P(^AUPNVPOV(BDMD,0),U)),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .. ;make the call here to BGP PREGNANCY DIAGNOSIS 2
+ ..N TAX
+ ..S TAX=$O(^ATXAX("B","BGP PREGNANCY DIAGNOSES 2",0))
+ .. I $$ICD^BDMUTL(ICDI,$P(^ATXAX(TAX,0),U),9) S G=1  ;cmi/maw 05/15/2014 p8
+ ..;I $$ICD^ATXCHK(ICDI,TAX,9) Q
+ ..;I $E(ICD,1,3)="V22" Q
+ ..;I $E(ICD,1,3)="V23" Q
+ ..;I $E(ICD,1,3)="V27" Q
+ ..;I $E(ICD,1,3)="V28" Q
+ ..;I ICD>629.9999&(ICD<676.95) Q
+ .I 'G S BDMW=$P(BDM(BDMN),U,2)_" lbs "_$$FMTE^XLFDT($P(BDM(BDMN),U))
+ .Q
  Q $S(F="E":BDMW,1:+BDMW)
 CMSFDX(P,R,T) ;EP - return date/dx of dm in register
  I '$G(P) Q ""
@@ -246,7 +251,8 @@ PLDMDOO(P,F) ;EP
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .Q:$P(^AUPNPROB(X,0),U,12)="D"  ;deleted problem
  .S I=$P(^AUPNPROB(X,0),U)
- .I $$ICD^ATXCHK(I,T,9) D
+ .;I $$ICD^ATXCHK(I,T,9) D
+ .I $$ICD^BDMUTL(I,$P(^ATXAX(T,0),U),9) D  ;cmi/maw 05/15/2014 p8
  ..I $P(^AUPNPROB(X,0),U,13)]"" S D($P(^AUPNPROB(X,0),U,13))=""
  ..Q
  .Q
@@ -258,7 +264,8 @@ PLDMDXS(P) ;EP - get all DM dxs from problem list
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .Q:$P(^AUPNPROB(X,0),U,12)="D"  ;deleted problem
  .S I=$P(^AUPNPROB(X,0),U)
- .I $$ICD^ATXCHK(I,T,9) S:D]"" D=D_";" S D=D_$P($$ICDDX^ICDCODE(I),U,2)
+ .;I $$ICD^ATXCHK(I,T,9) S:D]"" D=D_";" S D=D_$P($$ICDDX^BDMUTL(I),U,2)
+ .I $$ICD^BDMUTL(I,$P(^ATXAX(T,0),U),9) S:D]"" D=D_";" S D=D_$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/maw 05/15/2014 p8
  .Q
  Q D
  ;
@@ -307,9 +314,11 @@ HEP(P,EDATE,S,F) ;EP
  .S V=0 F  S V=$O(^AUPNVSIT("AA",P,ED,V)) Q:V'=+V  D
  ..Q:'$D(^AUPNVSIT(V,0))
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  D
- ...S Y=$P(^AUPNVCPT(X,0),U) S Z=$P($$CPT^ICPTCOD(Y),U,2) S:Z=90743 BDM10743=1 I $$ICD^ATXCHK(Y,T,1) S BDMHEP(9999999-$P(ED,"."))=""
+ ...S Y=$P(^AUPNVCPT(X,0),U) S Z=$P($$CPT^ICPTCOD(Y),U,2) S:Z=90743 BDM10743=1 I $$ICD^BDMUTL(Y,$P(^ATXAX(T,0),U),1) S BDMHEP(9999999-$P(ED,"."))=""  ;cmi/maw 05/15/2014 p8
+ ...;S Y=$P(^AUPNVCPT(X,0),U) S Z=$P($$CPT^ICPTCOD(Y),U,2) S:Z=90743 BDM10743=1 I $$ICD^ATXCHK(Y,T,1) S BDMHEP(9999999-$P(ED,"."))=""
  ..S X=0 F  S X=$O(^AUPNVTC("AD",V,X)) Q:X'=+X  D
- ...S Y=$P(^AUPNVTC(X,0),U,7) Q:'Y  S Z=$P($$CPT^ICPTCOD(Y),U,2) S:Z=90743 BDM10743=1 I $$ICD^ATXCHK(Y,T,1) S BDMHEP(9999999-$P(ED,"."))=""
+ ...S Y=$P(^AUPNVTC(X,0),U,7) Q:'Y  S Z=$P($$CPT^ICPTCOD(Y),U,2) S:Z=90743 BDM10743=1 I $$ICD^BDMUTL(Y,$P(^ATXAX(T,0),U),1) S BDMHEP(9999999-$P(ED,"."))=""  ;cmi/maw 05/15/2014 p8
+ ...;S Y=$P(^AUPNVTC(X,0),U,7) Q:'Y  S Z=$P($$CPT^ICPTCOD(Y),U,2) S:Z=90743 BDM10743=1 I $$ICD^ATXCHK(Y,T,1) S BDMHEP(9999999-$P(ED,"."))=""
  ;now check to see if they are all spaced 20 days apart, if not, kill off the odd ones
  S X="",Y="",C=0 F  S X=$O(BDMHEP(X)) Q:X'=+X  S C=C+1 D
  .I C=1 S Y=X Q
@@ -323,7 +332,7 @@ I I BDMHEP=2,BDM10743 Q "1  Yes"  ;2 Hep B + 90743"
  .S %=""
  .S X=0 F  S X=$O(BDMHEP(X)) Q:X'=+X  S %=X
  ;check for Evidence of desease and Contraindications and if yes, then quit
- K BDMG S %=P_"^LAST DX [BGP HEP EVIDENCE;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BGPG(")
+ K BDMG S %=P_"^LAST DX [BGP HEP EVIDENCE;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE,E=$$START1^APCLDF(%,"BDMG(")
  I $D(BDMG(1)) Q "2  No - Evidence of Hep B"  ;_U_"Evid Hep B"
  I $$PLTAX^BDMDB12(P,"BGP HEP EVIDENCE") Q "2  No - Evidence of Hep B"
  ;now go to Refusals

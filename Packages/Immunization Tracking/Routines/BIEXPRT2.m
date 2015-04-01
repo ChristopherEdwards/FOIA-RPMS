@@ -1,20 +1,25 @@
 BIEXPRT2 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: GATHER PATIENTS ACCORDING TO
  ;;  CRITERIA AND STORE IN ^BITMP(1,.
  ;
  ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Changes to limit export of imms to specific vaccines within
+ ;---> a date range. Parameters BIMMR and BIRDT added below.
  ;----------
-PATIENT(BIPG,BIAG,BISVDT,BIHCF,BICC) ;EP
+PATIENT(BIPG,BIAG,BISVDT,BIHCF,BICC,BIMMR,BIRDT) ;EP
  ;---> Gather patients according to selection criteria and
  ;---> store in ^BITMP(.
  ;---> Parameters:
- ;     1 - BIPG  (req) Patient Group
- ;     2 - BIAG  (req) Age Range (=0 if not limited by age)
- ;     3 - BISVDT  (req) Survey Date
- ;     4 - BIHCF   (req) Facility array
- ;     5 - BICC    (req) Current Community array
+ ;     1 - BIPG   (req) Patient Group
+ ;     2 - BIAG   (req) Age Range (=0 if not limited by age)
+ ;     3 - BISVDT (req) Survey Date
+ ;     4 - BIHCF  (req) Facility array
+ ;     5 - BICC   (req) Current Community array
+ ;     6 - BIMMR  (opt) Immunizations Received, IEN's (array)
+ ;     7 - BIRDT  (opt) Date Range for Imms received (YYYMMDD:YYYMMDD)
  ;
  S BIPOP=0 K ^BITMP($J)
  ;
@@ -29,18 +34,18 @@ PATIENT(BIPG,BIAG,BISVDT,BIHCF,BICC) ;EP
  .F  S N=$O(^DPT("ADOB",N)) Q:(N>BIENDDT!('N))  D
  ..S BIDFN=0
  ..F  S BIDFN=$O(^DPT("ADOB",N,BIDFN)) Q:'BIDFN  D
- ...D STORE(BIDFN,BISVDT,BIPG,.BIHCF,.BICC,1)
+ ...D STORE(BIDFN,BISVDT,BIPG,.BIHCF,.BICC,1,.BIMMR,$G(BIRDT))
  ;
  ;---> If there is NO Age Range *and* the Group is limited to the
  ;---> Immunization Register, then scan ^BIP(.
  S BIDFN=0
  F  S BIDFN=$O(^BIP(BIDFN)) Q:'BIDFN  D
- .D STORE(BIDFN,BISVDT,BIPG,.BIHCF,.BICC,0)
+ .D STORE(BIDFN,BISVDT,BIPG,.BIHCF,.BICC,0,.BIMMR,$G(BIRDT))
  Q
  ;
  ;
  ;----------
-STORE(BIDFN,BISVDT,BIPG,BIHCF,BICC,BIDPT) ;EP
+STORE(BIDFN,BISVDT,BIPG,BIHCF,BICC,BIDPT,BIMMR,BIRDT) ;EP
  ;---> Store patients in ^BITMP if they pass all criteria.
  ;---> Parameters:
  ;     1 - BIDFN   (req) Patient Group
@@ -49,6 +54,8 @@ STORE(BIDFN,BISVDT,BIPG,BIHCF,BICC,BIDPT) ;EP
  ;     4 - BIHCF   (req) Facility array
  ;     5 - BICC    (req) Current Community array
  ;     6 - BIDPT   (opt) =1 if searching ^DPT, =0 if searching ^BIP.
+ ;     7 - BIMMR   (opt) Immunizations Received, IEN's (array)
+ ;     8 - BIRDT   (opt) Date Range for Imms received (YYYMMDD:YYYMMDD)
  ;
  ;---> If Group is ACTIVE and patient was not ACTIVE<BISVDT, Quit.
  I BIPG=1 Q:$$ACTIVE(BIDFN,BISVDT)
@@ -64,6 +71,15 @@ STORE(BIDFN,BISVDT,BIPG,BIHCF,BICC,BIDPT) ;EP
  ;---> If patient does not have one of the selected Current
  ;---> Communities, Quit.
  Q:$$CURCOM(BIDFN,.BICC)
+ ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> If limited to specific vaccines within a date range, check and
+ ;---> store patient if it's a match.
+ I $O(BIMMR(0)) D  Q
+ .N N,Z S N=0,Z=0 F  S N=$O(BIMMR(N)) Q:'N  Q:Z  D
+ ..I $$GOTDOSE^BIUTL11(BIDFN,N,$G(BIRDT)) S ^BITMP($J,1,BIDFN)="",Z=1
+ ;**********
  ;
  ;---> Store this patient for data retrieval.
  S ^BITMP($J,1,BIDFN)=""

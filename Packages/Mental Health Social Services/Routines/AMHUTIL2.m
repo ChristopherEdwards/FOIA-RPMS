@@ -1,7 +1,29 @@
 AMHUTIL2 ; IHS/CMI/LAB - provider functions ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,4**;JUN 18, 2010;Build 28
  ;
  ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
+CS(I) ;EP - called to determine coding system of ien I
+ ;are the icd10 routines in place?, if so, use them
+ I $T(ICDDX^ICDEX)]"" Q $P($$ICDDX^ICDEX(I),U,20)  ;return 1 or 30
+ Q 1  ;if no icdex then assume site is only on icd9
+IMP(D) ;EP - which coding system should be used:
+ ;RETURN IEN of entry in ^ICDS
+ ;1 = ICD9
+ ;30 = ICD10
+ ;will need to add subroutines for ICD11 when we have that.
+ I $G(D)="" S D=DT
+ NEW X,Y,Z
+ S Y=""
+ I '$O(^ICDS(0)) Q 1  ;icd 10 not installed yet
+ S X=0 F  S X=$O(^ICDS("F",80,X)) Q:X'=+X  D
+ .I $P(^ICDS(X,0),U,4)="" Q   ;NO IMPLEMENTATION DATE?? SKIP IT
+ .S Z($P(^ICDS(X,0),U,4))=X
+ ;now go through and get the last one before it imp date is greater than the visit date
+ S X=0 F  S X=$O(Z(X)) Q:X=""  D
+ .I D<X Q
+ .I D>X S Y=Z(X) Q
+ I Y="" S Y=$O(Z(0)) Q Z(Y)
+ Q Y
 PRIMCPT(V,F) ;EP - primaryCPT in many different formats
  I 'V Q ""
  I '$D(^AMHREC(V)) Q ""
@@ -110,3 +132,33 @@ ANY25(AMHX) ;EP
  .I $G(^TMP("DDS",$J,+DDS,"F9002013.01101",X,.02,"D"))=5 S G=1
  .Q
  Q G
+ICD9 ;EP - CALLED FROM INPUT TX ON SITE PARAMETERS FIELD .13
+ I $$CHK(Y)
+ Q:$D(^ICD9(Y))
+ Q
+ ;
+CHK(Y) ;EP - SCREEN OUT E CODES AND INACTIVE CODES
+ NEW A,I,D,%
+ I $T(ICDDX^ICDEX)]"" S %=$$ICDDX^ICDEX(Y) I $P(%,U,20)'=1 Q 0
+ I $T(ICDDX^ICDEX)="" S %=$$ICDDX^ICDCODE(Y)
+ ;I $P(%,U,20)'=1 Q 0   ;not correct coding system
+ I $E($P(%,U,2),1)="E" Q 0  ;no E codes
+ I '$P(%,U,10) Q 0  ;STATUS IS INACTIVE
+ Q 1
+ICD10 ;EP CALLED FROM INPUT TX ON SITE PARAMETERS FIELD 1204
+ ;
+ I $$CHK1(Y)
+ Q:$D(^ICD9(Y))
+ Q
+ ;
+CHK1(Y) ;EP - SCREEN OUT E CODES AND INACTIVE CODES
+ NEW A,I,D,%
+ I $T(ICDDX^ICDEX)]"" S %=$$ICDDX^ICDEX(Y) I $P(%,U,20)'=30 Q 0
+ I $T(ICDDX^ICDEX)="" S %=$$ICDDX^ICDCODE(Y)
+ ;I $P(%,U,20)'=30 Q 0   ;not correct coding system
+ I $E($P(%,U,2),1)="V" Q 0  ;no codes V00-Y99 per Leslie Racine.
+ I $E($P(%,U,2),1)="W" Q 0
+ I $E($P(%,U,2),1)="X" Q 0
+ I $E($P(%,U,2),1)="Y" Q 0
+ I '$P(%,U,10) Q 0  ;STATUS IS INACTIVE
+ Q 1

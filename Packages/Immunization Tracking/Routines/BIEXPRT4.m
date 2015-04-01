@@ -1,10 +1,11 @@
 BIEXPRT4 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: WRITE IMM HISTORIES OF PATIENTS
  ;;  STORED IN ^BITMP( TO SCREEN, HOST FILE, OR RETURN AS A STRING.
  ;;  PATCH 1: If string of patient data is too long, set error and quit. WRITE+72
  ;;  PATCH 5: Increase nodes to accommodate Admin Notes.  WRITE+63
+ ;;  PATCH 8: Changes to accommodate new TCH Forecaster   WRITE+83
  ;
  ;
  ;----------
@@ -12,7 +13,7 @@ WRITE(BIOUT,BIFMT,BIFLNM,BIPATH,BISTRING,BICSV) ;EP
  ;---> Write (export) data from ^BITMP( to Screen or to Host File.
  ;---> Parameters:
  ;     1 - BIOUT    (req) Export: 0=screen, 1=host file, 2=string
- ;     2 - BIFMT    (req) Format: 1=ASCII, 2=HL7, 3=IMM/SERVE
+ ;     2 - BIFMT    (req) Format: 1=ASCII, 2=HL7, 3=TCH
  ;     3 - BIFLNM   (opt) File name
  ;     4 - BIPATH   (opt) BI Path name for host files
  ;     5 - BISTRING (ret) Immunization History in "|"-delimited string
@@ -56,7 +57,7 @@ WRITE(BIOUT,BIFMT,BIFLNM,BIPATH,BISTRING,BICSV) ;EP
  ..S P=0
  ..F  S P=$O(^BITMP($J,2,N,M,P)) Q:'P  D
  ...S Q=0
- ...;---> Continue to this level subscript for ASCII and ImmS formats.
+ ...;---> Continue to this level subscript for ASCII and TCH formats.
  ...F  S Q=$O(^BITMP($J,2,N,M,P,Q)) Q:'Q  D
  ....;
  ....N X
@@ -90,6 +91,11 @@ WRITE(BIOUT,BIFMT,BIFLNM,BIPATH,BISTRING,BICSV) ;EP
  ....I BIOUT=2 D  Q
  .....I ($L(BISTRING)+$L(X))>32760 D  Q
  ......S BISTRING="PATIENT HISTORY EXCEEDS MAXIMUM LENGTH"
+ .....;
+ .....;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ .....;---> Do not terminate BISTRING with "^" if Format=TCH.
+ .....I BIFMT=3 S BISTRING=BISTRING_X Q
+ .....;---> Format is ASCII, so terminate Imms with "^".
  .....S BISTRING=BISTRING_X_U
  .....;**********
  ....;

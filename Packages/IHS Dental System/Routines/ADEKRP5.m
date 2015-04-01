@@ -1,5 +1,6 @@
 ADEKRP5 ; IHS/HQT/MJL - PRINT COMPILED REPORTS ;  [ 03/24/1999   9:04 AM ]
- ;;6.0;ADE;**15**;JAN 01, 2004
+ ;;6.0;ADE;**15,26**;JAN 01, 2004;Build 13
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
  ;
 CF(ADEPER,ADEYQ) ;EP
  ;BASIC MEASURES REPORTS
@@ -26,7 +27,8 @@ CF(ADEPER,ADEYQ) ;EP
  ; ...,"5.5-PTC")
  ; ...,"3-SVC")
  ; ...,"4-MIN")
- ; ...,"5-BA")="Total # of 9130 codes"
+ ;IHS/OIT/GAB 11.2014 added the 9986 code to the below line for comment information for 2015 Code Updates PATCH #26
+ ; ...,"5-BA")="Total # of 9130 & 9986 codes"
  ; ...,"6-DDAY")="Total Dentist Days"
  ;----- BEGIN IHS
  ; ...,"7-RVU")=Relative Value Unit"
@@ -113,5 +115,7 @@ CONST ;EP
  ;----- BEGIN IHS MODIFICATIONS ADE*6.0*15
  S ADE("RVU IND")=".33."
  S ADE("RVU NON-IND")=".34."
+ ;----- IHS/OIT/GAB ADDED BELOW FOR 2015 CDT CODE UPDATES
+ S ADE("BA2")=".35."
  ;----- END IHS MODIFICATIONS
  Q

@@ -1,12 +1,15 @@
 BAREDP0Z ; IHS/SD/LSL - MATCH REASONS AND CLAIMS ; 01/30/2009
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**10,20,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**10,20,23,24**;OCT 26, 2005;Build 69
  ; NEW ROUTINE TO LOCKOUT REVERSALS AND PLB SEGMENTS; MRS:BAR*1.8*10 D159
  ; MODIFIED TO LIMIT LOCK OUT TO INDIVIDUAL CHECKS
- ;
+ ;IHS/SD/POT HEAT148388 ACCEPT REVERSALS FOR TYPE= 1 IF NEG PAYMENT FIX: 1/24/2014- BAR*1.8*.24
+ ;IHS/SD/POT HEAT147572 ALLOW TRIBAL SITES ERA POSTING OF NEG BAL & CANCELLED BILLS- BAR*1.8*.24
+ ;IHS/SD/POT check for IHSNEGB moved from top to $$NEGP - BAR*1.8*.24 
+ Q
 EN(IMPDA)     ; EP ; Scan SEGMENTS for PLB, REVERSALS AND NEGATIVE AMOUNTS
  N BARFLG
- Q:'$$IHS^BARUFUT(DUZ(2)) 0             ;Ignore if NON-IHS facility
- ;;;Q:'$$IHSERA^BARUFUT(DUZ(2)) 0             ;Ignore if NON-IHS facility
+ ;old code Q:'$$IHS^BARUFUT(DUZ(2)) 0             ;Ignore if NON-IHS facility
+ ;I '$$IHSNEGB^BARUFUT(DUZ(2)) Q 0  ;HEAT147572 line moved to $$NEGP 4/22/2014
  W !!,"Now will look for PLBs, Payment Reversals, and Negative Payments..."  ;bar*1.8*20 REQ4
  S BARFLG=0
  S BARFLG=$$PLB(IMPDA)            ;PLB
@@ -48,8 +51,9 @@ REV(IMPDA) ;EP ;D159-1
  S BARCNT=0
  K ^XTMP("BAR=REV",$J)
  F CNT=1:1 S BARCDA=$O(^BAREDI("I",DUZ(2),IMPDA,30,BARCDA)) Q:'BARCDA  D
- .;W:'(CNT#1000) "."  ;bar*1.8*20 REQ4
- .Q:(+$P($G(^BAREDI("I",DUZ(2),IMPDA,30,BARCDA,0)),U,11)'=22)  ;only looking for REVERSALS
+ . ;W:'(CNT#1000) "."  ;bar*1.8*20 REQ4
+ . ; old code Q:(+$P($G(^BAREDI("I",DUZ(2),IMPDA,30,BARCDA,0)),U,11)'=22)  ;only looking for REVERSALS
+ . I '$$ISREV(IMPDA,BARCDA) Q  ;new code P.OTT 1/10/2014 HEAT148388 1/24/2024 PARAMETER PASSING- BAR*1.8*.24
  .Q:($P($G(^BAREDI("I",DUZ(2),IMPDA,30,BARCDA,2)),U)'=$P($G(^BAREDI("I",DUZ(2),IMPDA,5,BARCKIEN,0)),U))  ;not check number I want
  .I BARFLG=0  D
  ..W "PAYMENT REVERSAL FOUND",!?3,"Bills will be marked Not To Post to accommodate "
@@ -70,6 +74,7 @@ REV(IMPDA) ;EP ;D159-1
  ;
 NEGP(IMPDA) ;EP ;D159-1
  ;W !,"Looking for Negative Payments "  ;bar*1.8*20 REQ4
+ I '$$IHSNEGB^BARUFUT(DUZ(2)) Q 0  ;HEAT147572 line moved to $$NEGP 4/22/2014 bar*1.8*24
  W !!,"Looking for Negative Payments... "  ;bar*1.8*20 REQ4
  N BARCDA,BAR300,BARAMT,CNT,BARSTA,BAR302,BARVCK,BARSCK
  S BARCDA=0
@@ -86,7 +91,7 @@ NEGP(IMPDA) ;EP ;D159-1
  .Q:($P($G(^BAREDI("I",DUZ(2),IMPDA,30,BARCDA,2)),U)'=$P($G(^BAREDI("I",DUZ(2),IMPDA,5,BARCKIEN,0)),U))  ;not check number I want
  .S BARAMT=$P(BAR300,U,4)
  .I BARAMT<0 D
- ..Q:BARVCK=BARSCK                ;Only process once for each check
+ ..;Q:BARVCK=BARSCK                ;Only process once for each check  P.OTTIS HEAT148388 - BAR*1.8*.24
  ..I BARFLG=0 W "NEGATIVE PAYMENT AMOUNT FOUND",!?2,"Bills will be marked Not To Post to accommodate"  ;bar*1.8*20 REQ4
  ..I BARFLG=0 W !,?6,"E-Bill#",?27,"E-Pymt",?39,"E-Claim Status Code"  ;bar*1.8*20 REQ4
  ..S BARFLG=1
@@ -226,3 +231,7 @@ RCHK(CHKREASN) ;
  ..S CHKREASN=$P($G(^BARERR($P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4,BARNTPR,0)),U),0)),U)
  Q CHKREASN
  ;end new code REQ4
+ISREV(IMPDA,CLMDA) ;P.OTT 1/10/2014 HEAT148388- BAR*1.8*.24
+ I +$$GET1^DIQ(90056.0205,CLMDA_","_IMPDA_",",.11)=22 Q 1
+ Q 0
+ ;---------------- 

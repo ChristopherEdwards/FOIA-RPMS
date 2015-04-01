@@ -1,9 +1,9 @@
 BGPMUBP1 ; IHS/MSC/MGH - MU EP  measures NQF0002 ;26-Aug-2011 15:20;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;This rouine does the print out for the pharyngitis measure
 PHAR ;EP
  D P1
- K ^TMP("BGPMU0002")
+ K ^TMP("BGPMU0002",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
