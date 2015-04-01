@@ -1,9 +1,9 @@
 BGPMUDD2 ; IHS/MSC/SAT - Delimited MU measure NQF0081 ;27-Apr-2011 13:15;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimited output for Heart Failure 0081 (BGPMUD03)
 HF ;EP
  D P1B
- K ^TMP("BGPMU0081")
+ K ^TMP("BGPMU0081",$J)
  Q
 P1B ;Write individual measure
  N BGPPTYPE,X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRN1
@@ -145,7 +145,7 @@ XML0081 ;XML output for Measure 0081
  ;Delimited output for Prenatal HIV Screening 0012 (BGPMUD04)
 DENTRY ;EP
  D P12B
- K ^TMP("BGPMU0012")
+ K ^TMP("BGPMU0012",$J)
  Q
 P12B ;Write individual measure
  N BGPPTYPE,X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRN1

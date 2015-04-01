@@ -1,5 +1,5 @@
 BARMAWO7 ; IHS/SD/LSL - Automatic Write-off (con't) ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,2,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,2,21,24**;OCT 26, 2005;Build 69
  ;
  ; IHS/ASDS/LSL - 06/15/2001 - V1.5 Patch 1 - NOIS HQW-0601-100051
  ;     Modifying BARMAWO to extend the expiration date resulted in 
@@ -24,6 +24,7 @@ BARMAWO7 ; IHS/SD/LSL - Automatic Write-off (con't) ;
  ; 	  of Parameter file
  ; 	  Called from BARMAWO6 after asking paramters
  ;
+ ; IHS/SD/POTT HEAT147266 01/2/2014 fixed start / end dates BAR*1.8*24
  Q
  ; *********************************************************************
 LOOPDUZ ; EP
@@ -34,7 +35,7 @@ LOOPDUZ ; EP
  ; *********************************************************************
 LOOPDT ;
  ; Loop A/R Bill File by date of service
- S BARVISIT=0
+ S BARVISIT=BARDOS1-0.00001 ;BAR*1.8*24
  F  S BARVISIT=$O(^BARBL(BARDUZ,"E",BARVISIT)) Q:'+BARVISIT!(BARVISIT>BARDOS2)  D LOOPBIL
  Q
  ; *********************************************************************
@@ -51,7 +52,9 @@ WRITEOFF         ;
  S BAR(1)=$G(^BARBL(BARDUZ,BARBL2,1))   ; A/R Bill 0 node
  S BARBAL=$P(BAR(0),U,15)               ; Bill Balance
  S BARAMT=$P(BAR(0),U,13)               ; Billed Amount
- S BARVSTL=$P(BAR(1),U,8)                ; Visit location
+ S BARVSTL=$P(BAR(1),U,8)               ; Visit location
+ S BARDOSE=$P(BAR(1),U,3)               ; 1;3 DOS END
+ I BARDOSE>BARDOS2 Q                    ; 1/2/2004 BAR*1.8*24
  ; Q if A/R account is not on bill
  I $P(BAR(0),U,3)="" S ^BARTMP("BARAWO",BARDUZ,DT,DUZ,"NO A/R ACCT",BARBL2)="" Q
  ; Q if visit location not in list

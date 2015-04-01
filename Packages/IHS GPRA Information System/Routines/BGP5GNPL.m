@@ -1,37 +1,37 @@
-BGP5GNPL ; IHS/CMI/LAB - IHS Diabetes Audit 2003 ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP5GNPL ; IHS/CMI/LAB - IHS Diabetes Audit 2003 26 Mar 2010 5:09 PM ;
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;
  ;
 TESTNTL ;
  S ERR=""
- S LORIND(4)="",LORIND(3)=""
- F X=2:1:5 S LORIINDL(3,X)=""
- F X=6:1:9 S LORIINDL(4,X)=""
- D EP(.ERR,1,2522,"BGP 05 NATIONAL PAT LISTS",338,.LORIND,.LORIINDL,1,3040000,"A","","","B",$$NOW^XLFDT)
+ S BGPND(4)="",BGPND(3)=""
+ F X=2:1:5 S BGPINDL(3,X)=""
+ F X=6:1:9 S BGPINDL(4,X)=""
+ D EP(.ERR,1,2522,"BGP 15 NATIONAL PAT LISTS",338,.BGPND,.BGPINDL,1,3040000,"A","","","B",$$NOW^XLFDT)
  W !,ERR
  Q
-EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPIND,BGPINDL,BGPQTR,BGPPER,BGPLIST,BGPLPRV,BGPLPROV,BGPROT,BGPRTIME) ;EP - called from GUI to produce national gpra report (NTL-GP)
+EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPIND,BGPINDL,BGPQTR,BGPPER,BGPLIST,BGPLPRV,BGPLPROV,BGPROT,BGPRTIME,BGPMFITI,BGPVDT,BGPBEN,BGPFILE,BGPDNT) ;EP - called from GUI to produce national gpra report (NTL-GP)
  ; SEE ROUTINE BGP5NPL if you have questions about any of these variables
  ;  BGPUSER - DUZ
  ;  BGPDUZ2 - DUZ(2)
  ;  BGPOPTN - OPTION NAME
  ;  BGPTAXI - IEN OF COMMUNITY TAXONOMY NAME
- ;  BGPIND - array containing iens of the indicators selected by the user
+ ;  BGPIND - array containing iens of the measures selected by the user
  ;           for example, BGPIND(3)=""
- ;                        BGPIND(6)="" if the user selected indicators
- ;                        1 and 6 from the BGP 05 INDICATORS file.  When
+ ;                        BGPIND(6)="" if the user selected measures
+ ;                        1 and 6 from the BGP 15 INDICATORS file.  When
  ;                        you present them to the user for selection use the
- ;                        ^BGPINDV("AGPRA",1,ien) xref as the ones with a second
- ;                        subscript of 1 are the GPRA indicators.   Or you can set
+ ;                        ^BGPINDK("AGPRA",1,ien) xref as the ones with a second
+ ;                        subscript of 1 are the GPRA measures.   Or you can set
  ;                        DIC("S")="I $P(^(0),U,7)=1" , if the 7th piece is one
- ;                        then show that indicator to the user.
- ;  BGPINDL - array containing the lists wanted for each indicator selected
- ;            and put in array BGPIND, you will loop through the indicators they
+ ;                        then show that measure to the user.
+ ;  BGPINDL - array containing the lists wanted for each measure selected
+ ;            and put in array BGPIND, you will loop through the measures they
  ;            selected and you put in BGPIND and then display to the user the
- ;            entries from BGP 05 NATIONAL PATIENT LISTS that point to that
- ;            indicator by using the "B" index on ^BGPVNPL(.  ^BGPVNPL("B",indicator ien,ien)
- ;            For example, indicator 3 Nephropathy assessment has 4 lists available:
- ;            Documented HbA1c, No Documented HbA1c, Poor Glycemic Control, Ideal Glycemic Control
+ ;            entries from BGP 15 NATIONAL PATIENT LISTS that point to that
+ ;            measure by using the "B" index on ^BGPNPLK(.  ^BGPNPLK("B",measure ien,ien)
+ ;            For example, measure 3 Nephropathy assessment has 4 lists available:
+ ;            Documented A1c, No Documented A1c, Poor Glycemic Control, Ideal Glycemic Control
  ;            If the user wants lists 1 and 2 the array would look like:
  ;            BGPINDL(3,2)=""
  ;            BGPINDL(3,3)=""
@@ -48,7 +48,7 @@ EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPTAXI,BGPIND,BGPINDL,BGPQTR,BGPPER,BGPLIST,B
  ;       Enter the date range for your report:
  ;
  ;  BGPPER - this is the year they select if they answered the above question
- ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2005)
+ ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2010)
  ;           If they chose 5 then this would be the end date they entered, e.g.
  ;           3050301
  ;
@@ -94,44 +94,53 @@ EP1 ;
  I $G(BGPQTR)="" S BGPRET=0_"^QUARTER/DATE TYPE NOT PASSED" Q
  I "PDB"'[$G(BGPROT) S BGPRET=0_"^REPORT OUTPUT TYPE NOT PASSED" Q
  I $G(BGPLIST)="" S BGPRET=0_"^LIST TYPE NOT PASSED" Q
+ I $G(BGPVDT)="" S BGPRET=0_"^BASELINE YEAR NOT PASSED" Q
+ I $G(BGPBEN)="" S BGPRET=0_"^BENEFICIARY TYPE NOT PASSED" Q
  I $G(BGPLIST)="P",$G(BGPLPRV)="" S BGPRET=0_"^PROVIDER NOT PASSED FOR LIST TYPE P" Q
  S BGPRTIME=$G(BGPRTIME)
- S DUZ=BGPUSER
+ S BGPRTC="U"
+ ;S DUZ=BGPUSER
  S DUZ(2)=BGPDUZ2
  S:'$D(DT) DT=$$DT^XLFDT
  D ^XBKVAR
  S BGPGUI=1
+ I BGPLPRV,$G(BGPLPROV)="" S BGPLPROV=$P($G(^VA(200,BGPLPRV,0)),U)
  S IOM=80,BGPIOSL=55
- S BGPRTYPE=1,BGP5RPTH="",BGPNPL=1,BGPINDT="G",BGP5GPU=1
+ S BGPRTYPE=1,BGPYRPTH="",BGPNPL=1,BGPINDK="G",BGPYGPU=1  ;maw orig 3/11/2010
+ ;I BGPOPTN="CRS 14 OTHER NATIONAL MEASURES PAT LISTS" D  ;maw orig 3/11/2010
+ ;. S BGPRTYPE=7,BGPYRPTH="",BGPNPL=1,BGPINDK="G",BGPYGPU=1,BGPONMR=1  ;maw new 3/11/2010
+ I BGPOPTN="CRS 15 OTHER NATIONAL MEASURES PAT LISTS" D  ;maw orig 3/11/2010
+ . S BGPRTYPE=7,BGPYRPTH="",BGPNPL=1,BGPINDK="G",BGPYGPU=1,BGPONMR=1,BGPRTC="U"  ;maw new 6/9/2014
  K BGPTAX S X=0
  F  S X=$O(^ATXAX(BGPTAXI,21,X)) Q:'X  D
  .S BGPTAX($P(^ATXAX(BGPTAXI,21,X,0),U))=""
  .Q
- S BGPVDT=BGPPER
  I BGPQTR=1 S BGPBD=$E(BGPPER,1,3)_"0101",BGPED=$E(BGPPER,1,3)_"1231"
  I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
  I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
  I BGPQTR=4 S BGPBD=($E(BGPPER,1,3)-1)_"1001",BGPED=$E(BGPPER,1,3)_"0930"
- I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-365),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-364),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
 BY ;get baseline year
- S BGPVDT=3000000
+ ;S BGPVDT=3000000
  S X=$E(BGPPER,1,3)-$E(BGPVDT,1,3)
  S X=X_"0000"
  S BGPBBD=BGPBD-X,BGPBBD=$E(BGPBBD,1,3)_$E(BGPBD,4,7)
  S BGPBED=BGPED-X,BGPBED=$E(BGPBED,1,3)_$E(BGPED,4,7)
  S BGPPBD=($E(BGPBD,1,3)-1)_$E(BGPBD,4,7)
  S BGPPED=($E(BGPED,1,3)-1)_$E(BGPED,4,7)
- S BGPBEN=1
+ ;S BGPBEN=1
  S BGPHOME=$P($G(^BGPSITE(DUZ(2),0)),U,2)
- S BGPINDT="G"
+ S BGPINDK="G"
  D REPORT^BGP5UTL
  I $G(BGPQUIT) S BGPRET=0_"^COULD NOT CREATE REPORT ENTRY" Q
  I BGPRPT="" S BGPRET=0_"^COULD NOT CREATE REPORT ENTRY" Q
  S BGPDELT=""
  ;create entry in GUI file
  D ^XBFMK
- S X=BGPUSER_$$NOW^XLFDT
- S DIC="^BGPGUI(",DIC(0)="L",DIADD=1,DLAYGO=90372.08,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R;.07///"_$G(BGPROT)
+ S X=BGPFILE
+ ;S X=BGPUSER_$$NOW^XLFDT
+ S BGPGFNM=X
+ S DIC="^BGPGUIK(",DIC(0)="L",DIADD=1,DLAYGO=90554.19,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R;.07///"_$G(BGPROT)
  K DD,D0,DO D FILE^DICN K DLAYGO,DIADD,DD,D0,DO
  I Y=-1 S BGPRET=0_"^UNABLE TO CREATE ENTRY IN GUI OUTPUT FILE" Q
  S BGPGIEN=+Y
@@ -143,21 +152,22 @@ BY ;get baseline year
 TSKMN ;
  S ZTIO=""
  K ZTSAVE S ZTSAVE("*")=""
- S ZTCPU=$G(IOCPU),ZTRTN="NTLGP^BGP5GNPL",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI NATIONAL GPRA REPORT LISTS 05" D ^%ZTLOAD Q
+ S ZTCPU=$G(IOCPU),ZTRTN="NTLGP^BGP5GNPL",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI NATIONAL GPRA REPORT LISTS 09" D ^%ZTLOAD
+ D UPLOG^BGPGUA(BGPGIEN,ZTSK)
  Q
 NTLGP ;
  D ^BGP5D1
  K ^TMP($J,"BGPGUI")
  S IOM=80,BGPIOSL=55
- D GUIR^XBLM("^BGP5DP","^TMP($J,""BGPGUI"",")
- ;cmi/anch/maw added 5/12/2005 for word output
+ D GUIR^BGPXBLM("^BGP5DP","^TMP($J,""BGPGUI"",")
+ ;cmi/anch/maw added 5/12/2009 for word output
  S X=0,C=0 F  S X=$O(^TMP($J,"BGPGUI",X)) Q:X'=+X  D
  . S C=C+1
  . N BGPDATA
  . S BGPDATA=$G(^TMP($J,"BGPGUI",X))
  . I BGPDATA="ZZZZZZZ" S BGPDATA=$C(12)
- . S ^BGPGUI(BGPGIEN,11,C,0)=BGPDATA
- S ^BGPGUI(BGPGIEN,11,0)="^90372.0811^"_C_"^"_C_"^"_DT
+ . S ^BGPGUIK(BGPGIEN,11,C,0)=BGPDATA
+ S ^BGPGUIK(BGPGIEN,11,0)="^90554.1911^"_C_"^"_C_"^"_DT
  K ^TMP($J,"BGPGUI")
  ;cmi/anch/maw end of mods
  D ENDLOG
@@ -180,7 +190,7 @@ XIT ;
  Q
  ;
 ENDLOG ;-- UPDATE LOG AT END
- S DIE="^BGPGUI(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
+ S DIE="^BGPGUIK(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
  D ^DIE
  K DIE,DR,DA
  Q

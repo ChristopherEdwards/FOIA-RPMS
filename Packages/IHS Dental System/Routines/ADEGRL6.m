@@ -1,5 +1,6 @@
 ADEGRL6 ; IHS/HQT/MJL - FILE DENTAL VISIT DATA ;10:12 PM  [ 03/24/1999   9:04 AM ]
- ;;6.0;ADE;**12**;APRIL 1999
+ ;;6.0;ADE;**12,26**;APRIL 1999;Build 13
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
  K DIC
  ;S J="" F  S J=$O(ADEV(J)) Q:'J  W !,"ADEV(",J,")=",ADEV(J)
  ;R X ;IHS/HMW 5-12-90 REMOVE AFTER TESTING
@@ -22,7 +23,9 @@ ZTM ;------->IF NEW VISIT CREATE ENTRY IN ADEPCD (ENTRY POINT FOR ^ADEDQUE)
  ;------->NEW SERVICE DATA INTO ADEPCD
  K DIE,DA,DR D STUFB
  ;------->FAILED APPT & FOLLOWUP PROCESSING
- I ADENEWVS,($D(ADEV("9130"))!$D(ADEV("9140"))) D FAIL,FOL G END
+ ;/IHS/OIT/GAB 11.2014 Patch #26 modified below line to add 2015 codes 9986 & 9987 (do not remove old codes yet)
+ ;I ADENEWVS,($D(ADEV("9130"))!$D(ADEV("9140"))) D FAIL,FOL G END
+ I ADENEWVS,($D(ADEV("9130"))!$D(ADEV("9140"))!$D(ADEV("9986"))!$D(ADEV("9987"))) D FAIL,FOL G END
  ;------->UPDATE PCC FILES
  D ^ADEAPC
 END K ^ADEUTL("ADELOCK",ADEPAT)
@@ -57,7 +60,9 @@ FAIL ;
  S DIE="^ADEPAT(DA(1),""FA"","
  I $D(^ADEPAT(ADEPAT,"FA",0)) S DA=$P(^ADEPAT(ADEPAT,"FA",0),U,3)+1
  E  S ^ADEPAT(ADEPAT,"FA",0)="^9002010.22DA^^",DA=1
- S DR=".01///"_ADEVDATE_";1///"_$S($D(ADEV("9130")):"b",1:"c")
+ ;/IHS/OIT/GAB 11.2014 Patch #26 Removed below and added the next line to include new code 9986 (do not remove old codes yet)
+ ;S DR=".01///"_ADEVDATE_";1///"_$S($D(ADEV("9130")):"b",1:"c")
+ S DR=".01///"_ADEVDATE_";1///"_$S($D(ADEV("9130")):"b",$D(ADEV("9986")):"b",1:"c")
  D ^DIE
  S $P(^ADEPAT(ADEPAT,"FA",0),U,3)=DA,$P(^ADEPAT(ADEPAT,"FA",0),U,4)=$P(^ADEPAT(ADEPAT,"FA",0),U,4)+1
  Q

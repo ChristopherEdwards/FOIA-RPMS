@@ -1,5 +1,5 @@
 BGP5ETL ; IHS/CMI/LAB - DISPLAY IND LISTS ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;; ;
 EP(BGPTAXI) ;EP - CALLED FROM OPTION
  D EN
@@ -9,7 +9,7 @@ EOJ ;EP
  Q
  ;; ;
 EN ;EP -- main entry point for 
- D EN^VALM("BGP 05 ELDER TAXONOMY EDIT")
+ D EN^VALM("BGP 15 ELDER TAXONOMY EDIT")
  D CLEAR^VALM1
  D FULL^VALM1
  W:$D(IOF) @IOF
@@ -17,11 +17,11 @@ EN ;EP -- main entry point for
  Q
  ;
 HDR ; -- header code
- S VALMHDR(1)="Updating the "_BGPTAXN_" taxonomy"
+ S VALMHDR(1)="Updating the "_BGPTAXK_" taxonomy"
  Q
  ;
 INIT ; -- init variables and list array
- I BGPTAXT="L" D LAB Q
+ I BGPTAXK="L" D LAB Q
  K BGPLAB S BGPHIGH="",C=0
  S BGPX=0 F  S BGPX=$O(^ATXAX(BGPTAXI,21,BGPX)) Q:BGPX'=+BGPX  D
  .S C=C+1
@@ -69,13 +69,13 @@ REM ;
  I $D(DIRUT) W !,"No item selected." G REMX
  S BGPLABI=BGPLAB("IDX",Y,Y)
  ;sure
- I BGPTAXT="L" K DIR S DIR(0)="Y",DIR("A")="Are you sure you want to remove the "_$P(^LAB(60,BGPLABI,0),U)_" lab test",DIR("B")="N" KILL DA D ^DIR KILL DIR
- I BGPTAXT="T" K DIR S DIR(0)="Y",DIR("A")="Are you sure you want to remove the "_$$VAL^XBDIQ1($P(^ATXAX(BGPTAXI,0),U,15),BGPLABI,.01)_" "_$$VAL^XBDIQ1(9002226,BGPTAXI,.15),DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I BGPTAXK="L" K DIR S DIR(0)="Y",DIR("A")="Are you sure you want to remove the "_$P(^LAB(60,BGPLABI,0),U)_" lab test",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I BGPTAXK="T" K DIR S DIR(0)="Y",DIR("A")="Are you sure you want to remove the "_$$VAL^XBDIQ1($P(^ATXAX(BGPTAXI,0),U,15),BGPLABI,.01)_" "_$$VAL^XBDIQ1(9002226,BGPTAXI,.15),DIR("B")="N" KILL DA D ^DIR KILL DIR
  I 'Y G REM
  I $D(DIRUT) G REMX
  D ^XBFMK
- I BGPTAXT="L" S DA(1)=BGPTAXI,DA=$O(^ATXLAB(BGPTAXI,21,"B",BGPLABI,0)),DIE="^ATXLAB("_BGPTAXI_",21,",DR=".01///@" D ^DIE
- I BGPTAXT="T" S DA(1)=BGPTAXI,DA=$O(^ATXAX(BGPTAXI,21,"B",BGPLABI,0)),DIE="^ATXAX("_BGPTAXI_",21,",DR=".01///@" D ^DIE
+ I BGPTAXK="L" S DA(1)=BGPTAXI,DA=$O(^ATXLAB(BGPTAXI,21,"B",BGPLABI,0)),DIE="^ATXLAB("_BGPTAXI_",21,",DR=".01///@" D ^DIE
+ I BGPTAXK="T" S DA(1)=BGPTAXI,DA=$O(^ATXAX(BGPTAXI,21,"B",BGPLABI,0)),DIE="^ATXAX("_BGPTAXI_",21,",DR=".01///@" D ^DIE
 REMX ;
  D ^XBFMK
  D BACK
@@ -83,7 +83,7 @@ REMX ;
 ADD ;EP - add an item to the selected list - called from a protocol
  D FULL^VALM1
  W !
- I BGPTAXT="L" D LABADD G ADDX
+ I BGPTAXK="L" D LABADD G ADDX
  K DIC
  S DIC(0)="AEMQ",DIC=$P(^ATXAX(BGPTAXI,0),U,15) D ^DIC
  I Y=-1 G ADDX

@@ -1,10 +1,10 @@
 BGPMUBD2 ; IHS/MSC/MGH - Print MI measure NQF0387 ;31-Aug-2011 15:53;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimeted output
  ;Breast cancer on tamoxifen therapy
 BREAST(CNT) ;EP
  D P1
- K ^TMP("BGPMU0387")
+ K ^TMP("BGPMU0387",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

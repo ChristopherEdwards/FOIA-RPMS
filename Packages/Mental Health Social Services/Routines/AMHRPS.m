@@ -1,5 +1,5 @@
 AMHRPS ; IHS/CMI/LAB - SUICIDE REPORT ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
  ;
 START ;
  I '$D(IOF) D HOME^%ZIS
@@ -92,7 +92,7 @@ INFORM ;inform user what this report is all about
  .W !,"neglect.  It will present, by age and sex, the number of individual"
  .W !,"patients who were seen for the following Purpose of Visits (POV): "
  E  W !,"This report will present, by age and sex, the number of individual patients",!,"who were seen for the following Purpose of Visits (POV):",!
- S AMHX=0 F  S AMHX=$O(AMHPROB(AMHX)) Q:AMHX=""  S AMHY=$O(^AMHPROB("B",AMHX,"")) D
+ S AMHX="" F  S AMHX=$O(AMHPROB(AMHX)) Q:AMHX=""  S AMHY=0 F  S AMHY=$O(^AMHPROB("B",AMHX,AMHY)) Q:AMHY'=+AMHY  D
  .I $Y>(IOSL-4) D PAUSE^AMHLEA  W:$D(IOF) @IOF
  .I AMHY]"" W !?10,$P(^AMHPROB(AMHY,0),U)," - ",$P(^AMHPROB(AMHY,0),U,2)
  D DBHUSR^AMHUTIL

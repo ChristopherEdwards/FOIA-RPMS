@@ -1,5 +1,5 @@
 AMHGP ; IHS/CMI/MAW - AMHG Patient Lookup 4/28/2009 12:43:21 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,4**;JUN 18, 2010;Build 28
  ;
  ;
  ;
@@ -23,7 +23,7 @@ GETPAT(RETVAL,AMHSTR) ;EP -- return patient in ADO table
  S AMHMT=(AMHMT-1)
  I AMHPAT?9N D
  . S AMHPIEN=$$PATSSN(AMHPAT)
- I AMHPAT?1.6N D
+ I AMHPAT?1.7N D  ;ihs/cmi/maw 09/12/2012 AMH 4.0p4 allow for 7 digit chart numbers
  . S AMHPIEN=$$PATCHT(.AMHPIEN,AMHPAT)
  I AMHPAT?1.2N1"/"1.2N1"/"4N D
  . S X=AMHPAT D ^%DT S AMHPAT=Y

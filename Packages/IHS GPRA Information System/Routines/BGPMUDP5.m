@@ -1,9 +1,9 @@
 BGPMUDP5 ; IHS/MSC/SAT - MU EP measures NQF0033 ;29-AUG-2011 11:26;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Printed output reports for this measure
 PCHL ;EP
  D P1
- K ^TMP("BGPMU0033")
+ K ^TMP("BGPMU0033",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

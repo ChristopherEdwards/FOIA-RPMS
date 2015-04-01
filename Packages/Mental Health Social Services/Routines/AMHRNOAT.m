@@ -1,5 +1,5 @@
 AMHRNOAT ; IHS/CMI/LAB - report of a patient's no show visits ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
  ;
  ;
 START ;EP - called from option
@@ -90,7 +90,7 @@ PRINT1 ;
  ..S DFN=$P(^AMHREC(AMHR,0),U,8)
  ..W !,$E($P(^DPT(DFN,0),U),1,18),?20,$$HRN^AUPNPAT(DFN,DUZ(2)),?27,$$FMTE^XLFDT($P(^AMHREC(AMHR,0),U)),?46,$E($$PPNAME^AMHUTIL(AMHR),1,12)
  ..W ?59,$$PRIMPOV^AMHUTIL1(AMHR,"C")_"-"
- ..S X=$$PRIMPOV^AMHUTIL1(AMHR,"I") I X W $E($P(^AMHPROB(X,0),U,2),1,14)
+ ..S X=$$PRIMPOV^AMHUTIL1(AMHR,"I") I X W $E($P(^AMHPROB(X,0),U,2),1,12)
  .Q
  Q:$D(AMHQ)
  I $Y>(IOSL-4) D HEADER Q:$D(AMHQ)

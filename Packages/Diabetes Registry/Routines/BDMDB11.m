@@ -1,6 +1,5 @@
 BDMDB11 ; IHS/CMI/LAB -IHS -CUMULATIVE REPORT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
- ;
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
 IMM ;
  S:'$D(BDMCUML(140)) BDMCUML(140)="IMMUNIZATIONS"
@@ -188,7 +187,16 @@ CESSOTH(P,BDATE,EDATE) ;EP
  ..I $P(T,"-")="TO",$P(BDMLPED,U)<$P(BDMALLED(X),U) S %=$P(BDMALLED(X),U)_U_T Q
  ..I $P(T,"-",2)="TO",$P(BDMLPED,U)<$P(BDMALLED(X),U) S %=$P(BDMALLED(X),U)_U_T Q
  ..I $P(T,"-",2)="SHS",$P(BDMLPED,U)<$P(BDMALLED(X),U) S %=$P(BDMALLED(X),U)_U_T Q
- ..I $P(T,"-",1)["305.1"!($P(T,"-")="649.00")!($P(T,"-")="649.01")!($P(T,"-")="649.02")!($P(T,"-")="649.03")!($P(T,"-")="649.04")!($P(T,"-")="V15.82"),$P(BDMLPED,U)<$P(BDMALLED(X),U) S %=$P(BDMALLED(X),U)_U_T Q
+ ..;make the call here to the BGP SMOKING DXS taxonomy
+ ..;p8 ICD-10
+ ..N CODE
+ ..S CODE=$P($$CODEN^BDMUTL($P(T,"-",1),80),"~")
+ ..I CODE>0 D
+ ...N TAX
+ ...S TAX=$O(^ATXAX("B","BGP SMOKER ONLY DXS",0))
+ ...I $$ICD^BDMUTL(CODE,"BGP SMOKER ONLY DXS",9),$P(BDMLPED,U)<$P(BDMALLED(X),U) S %=$P(BDMALLED(X),U)_U_T Q
+ ...;I $$ICD^ATXCHK($P(T,"-",1),TAX,9),$P(BDMLPED,U)<$P(BDMALLED(X),U) S %=$P(BDMALLED(X),U)_U_T Q
+ ...;I $P(T,"-",1)["305.1"!($P(T,"-")="649.00")!($P(T,"-")="649.01")!($P(T,"-")="649.02")!($P(T,"-")="649.03")!($P(T,"-")="649.04")!($P(T,"-")="V15.82"),$P(BDMLPED,U)<$P(BDMALLED(X),U) S %=$P(BDMALLED(X),U)_U_T Q
  ..I $P(T,"-",1)="D1320"!($P(T,"-")="99406")!($P(T,"-")="99407")!($P(T,"-")="G0375")!($P(T,"-")="G0376")!($P(T,"-")="4000F")!($P(T,"-")="G8402")!($P(T,"-")="G8453"),$P(BDMLPED,U)<$P(BDMALLED(X),U) S %=$P(BDMALLED(X),U)_U_T Q
  I %]"" Q "1  Yes "_$$FMTE^XLFDT($P(%,U,1))_" Pt Ed "_$P(%,U,2)
  K ^TMP($J,"A")

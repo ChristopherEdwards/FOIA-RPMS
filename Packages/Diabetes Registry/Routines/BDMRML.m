@@ -1,5 +1,5 @@
 BDMRML ; IHS/CMI/LAB - patients w/o dm on problem list ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;
 START ;
@@ -63,11 +63,11 @@ CM ;
  I $D(DIRUT) G SEX
  I Y=0 K BDMCM G WF
 CM1 ;which status
- K DIC S DIC=200,DIC("A")="Select "_$S($D(BDMCM):"another ",1:"")_"Case Manager" D ^DIC K DIC
- I Y="",'$D(BDMCM) G CM
- I $D(DIRUT),'$D(BDMSTAT) G CM
+ K DIC S DIC(0)="AEMQ",DIC=200,DIC("A")="Select "_$S($D(BDMCM):"another ",1:"")_"Case Manager: " D ^DIC K DIC
+ I Y=-1,'$D(BDMCM) G CM
+ I $D(DIRUT),'$D(BDMCM) G CM
  I $D(DIRUT) G WF
- I Y="" G WF
+ I Y=-1 G WF
  S BDMCM(+Y)=""
  G CM1
 WF ;
@@ -76,12 +76,13 @@ WF ;
  I $D(DIRUT) G CM
  I Y=0 K BDMWF G SORT
 WF1 ;which status
- K DIC S DIC=200,DIC("A")="Select "_$S($D(BDMCM):"another ",1:"")_"WHERE FOLLOWED facility" D ^DIC K DIC
- I Y="",'$D(BDMCM) G WF
- I $D(DIRUT),'$D(BDMSTAT) G WF
+ ;ihs/cmi/maw 03/12/2014 2.0 patch 8 added DIC(0) call
+ K DIC S DIC=9999999.06,DIC(0)="AEMQZ",DIC("A")="Select "_$S($D(BDMWF):"another ",1:"")_"WHERE FOLLOWED facility: " D ^DIC K DIC
+ I Y=-1,'$D(BDMWF) G WF
+ I $D(DIRUT),'$D(BDMWF) G WF
  I $D(DIRUT) G SORT
- I Y="" G SORT
- S BDMCM(+Y)=""
+ I Y=-1 G SORT
+ S BDMWF(+Y)=""
  G WF1
 SORT ;
  S BDMSORT1="",BDMSORT2=""
@@ -111,13 +112,14 @@ TEMP ;
  I $D(DIRUT) G SORT
  S BDMTEMP=Y
  I BDMTEMP="P" G ZIS
- I BDMTEMP="B" D BROWSE,EXIT Q
+ I BDMTEMP="B" G ZIS
  D EN2
  I BDMSTMP="" G TEMP
 ZIS ;call to XBDBQUE
 DEMO ;
  D DEMOCHK^BDMUTL(.BDMDEMO)
  I BDMDEMO=-1 G R
+ I BDMTEMP="B" D BROWSE,EXIT Q
  S XBRP="PRINT^BDMRML",XBRC="PROC^BDMRML",XBRX="EXIT^BDMRML",XBNS="BDM"
  D ^XBDBQUE
  D EXIT
@@ -159,10 +161,10 @@ PROC ;EP - called from XBDBQUE
  .I $D(BDMSTAT) S X=$P($G(^ACM(41,BDMX,"DT")),U,1) Q:X=""  Q:'$D(BDMSTAT(X))
  .I $D(BDMAGET) Q:$$AGE^AUPNPAT(DFN)>$P(BDMAGET,"-",2)
  .I $D(BDMAGET) Q:$$AGE^AUPNPAT(DFN)<$P(BDMAGET,"-",1)
- .I $D(BDMCOMM) S X=$P($G(^AUPNPAT(DFN,11)),U,18) I X]"",'$D(APCLCOMM(X)) Q
+ .I $D(BDMCOMM) S X=$P($G(^AUPNPAT(DFN,11)),U,18) Q:X=""  I X]"",'$D(BDMCOMM(X)) Q
  .I BDMSEX'="A" S X=$$GET1^DIQ(2,DFN,.02,"I") I BDMSEX'=X Q
- .I $D(BDMCM) S X=$P($G(^ACM(41,BDMX,0)),U,6) I X Q:'$D(BDMCM(X))
- .I $D(BDMWF) S X=$P($G(^ACM(41,BDMX,0)),U,10) I X Q:'$D(BDMWF(X))
+ .I $D(BDMCM) S X=$$VALI^XBDIQ1(9002241,BDMX,6) Q:'X  I X Q:'$D(BDMCM(X))
+ .I $D(BDMWF) S X=$$VALI^XBDIQ1(9002241,BDMX,10) Q:'X  I X Q:'$D(BDMWF(X))
  .D @BDMSORT1
  .S BDMS1=X
  .D @BDMSORT2
@@ -263,12 +265,17 @@ W ;
 TEST ;
  D BDMG("R",1,"A")
  Q
-BDMG(BDMTR,BDMREG,BDMSTAT,BDMND,BDMLDAT) ;EP - GUI DMS Entry Point
+BDMG(BDMIEN,BDMREG,BDMAGET,BDMSTAT,BDMCOMT,BDMCOMM,BDMSEX,BDMCM,BDMWF,BDMSORT1,BDMSORT2,BDMTEMP,BDMDEMO,BDMSTMP) ;EP - GUI DMS Entry Point
  S BDMND=$G(BDMND)
  S BDMGUI=1
  S BDMLDAT=$G(BDMLDAT)
+ I BDMAGET="" K BDMAGET
+ I BDMSTMP]"" S BDMSNAM=$P(^DIBT(BDMSTMP,0),U)
+ S BDMSOR1T=$S(BDMSORT1="P":"Patient Name","S":"Register Status","A":"Age","C":"Community","G":"Gender","M":"Case Manager","W":"Where Followed",1:"")
+ S BDMSOR2T=$S(BDMSORT2="P":"Patient Name","S":"Register Status","A":"Age","C":"Community","G":"Gender","M":"Case Manager","W":"Where Followed",1:"Patient Name")
+ I BDMSORT2="" S BDMSORT2="P"
  NEW BDMNOW,BDMOPT,BDMIEN
- S BDMOPT="Patients w/no Diagnosis of DM on Problem Lis"
+ S BDMOPT="Master List"
  D NOW^%DTC
  S BDMNOW=$G(%)
  K DD,DO,DIC
@@ -282,8 +289,8 @@ BDMG(BDMTR,BDMREG,BDMSTAT,BDMND,BDMLDAT) ;EP - GUI DMS Entry Point
  S BDMGIEN=BDMIEN  ;cmi/maw added
  D ^XBFMK
  K ZTSAVE S ZTSAVE("*")=""
- ;D GUIEP for interactive testing
- S ZTIO="",ZTDTH=$$NOW^XLFDT,ZTRTN="GUIEP^BDMRML",ZTDESC="GUI DM PTS NO DX PL" D ^%ZTLOAD
+ ;D GUIEP ;for interactive testing
+ S ZTIO="",ZTDTH=$$NOW^XLFDT,ZTRTN="GUIEP^BDMRML",ZTDESC="GUI MASTER LIST" D ^%ZTLOAD
  D EXIT
  Q
 GUIEP ;EP
@@ -315,6 +322,7 @@ EN2 S BDMSTMP="",BDMSNAM=""
  W !
  D ^DIC
  I +Y<1 W !!,"No Search Template selected." H 2 Q
+ S BDMDIC=DIC  ;ihs/cmi/maw 03/11/2014 patch 8
  S BDMSTMP=+Y,BDMSNAM=$P(^DIBT(BDMSTMP,0),U)
 DUP I '$P(Y,U,3) D  I Q K BDMSTMP,Y G EN2
  .S Q=""

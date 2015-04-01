@@ -1,5 +1,5 @@
 AMHAPRB ; IHS/CMI/LAB - PROMPT FOR PROBLEM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2,4**;JUN 18, 2010;Build 28
  ;
 PLUDE(AMHPRBI,AMHP,AMHV,AMHD,AMHTPRD) ;EP - called from data entry input templates
  ;
@@ -19,7 +19,7 @@ PLUDE1P ;GET PROVIDER
  S DIR("A",1)="Enter the individual that updated the Problem List. If you are"
  S DIR("A",2)="transcribing an update from a BHS provider, then enter the name"
  S DIR("A",3)="of the provider.  If you are a data entry/coder correcting the"
- S DIR("A",4)="Problem List (for instance, correcting the DSM code) then enter your"
+ S DIR("A",4)="Problem List (for instance, correcting the diagnosis code) then enter your"
  S DIR("A",5)="own name."
  S DIR("B")=$S($G(AMHV):$$PRIMPROV^AMHUTIL(AMHV,"N"),1:"") KILL DA D ^DIR KILL DIR
  I $D(DIRUT) W !!,"This is required."  G PLUDE1P

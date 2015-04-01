@@ -1,5 +1,5 @@
 BGPMUHP5 ; IHS/MSC/SAT - MU EH  measure output routines;02-Mar-2011 16:28;DU
- ;;11.0;IHS CLINICAL REPORTING;**4**;JAN 06, 2011;Build 84
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ; ED1^BGPMUHP1 = output routine for 0495 ED-1;;;;;Build 33
  ; ED2^BGPMUHP1 = output routine for 0497 ED-2
  ;
@@ -21,7 +21,7 @@ BGPMUHP5 ; IHS/MSC/SAT - MU EH  measure output routines;02-Mar-2011 16:28;DU
  ;This routine does the printed output of 0441 STK-5 (BGPMUH09)
 STK10 ;EP  output routine for 0441 STK-10
  D P10
- K ^TMP("BGPMU0441")
+ K ^TMP("BGPMU0441",$J)
  Q
 P10 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

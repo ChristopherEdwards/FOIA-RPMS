@@ -1,5 +1,5 @@
 ACHS31E1 ;IHS/OIT/FCJ - ACHS 3.1 PATCH ENV CHECK ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**21**;JUN 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**22**;JUN 11,2001;Build 13
  ;3.1*14 1/11/2008;IHS/OIT/FCJ
  ; CHANGE INTROE SECTION WITH EACH PATCH
  ;
@@ -88,34 +88,27 @@ INSTALLD(ACHS) ;EP; Determine if patch ACHS was installed, where ACHS is
 INTROE ; Intro text during KIDS Environment check.
  ;;In this distribution:
  ;;(1)Modifications: 
- ;;   1. Displaying a PO, added space after blood quantum
- ;;   2. SSC are not required for tribal sites, added test for parameter
- ;;   3. Duplicate document removal, added test for dangling indexes to
- ;;      be removed.
- ;;   4. In Denial Add option the Insurance Display will now only
- ;;      display based on the DOS.
- ;;   5. Denial Reason if Alt Resource entered twice caused an error
- ;;   6. Denial Reason edit - multiple changes on editing reasons
- ;;   7. Print Denial Letters - pulling the wrong pointer, now using
- ;;      plan name instead of insurer and printing suffix for Medicare
- ;;      number.
- ;;   8. Data Dictionary change for output transform on Other Denial
- ;;      Reasons in the CHS Denial Data File.
- ;;   9. Removed checks for re-exporting a file that has already been
- ;;      sent to the Area Office.
- ;;  10. Area Processing changes
- ;;      a. Area CHS options-combined consolidation and splitout for
- ;;         EOBR and Facility file processing.
- ;;      b. Added testing for splitout completion during consolidating
- ;;         files
- ;;      c. Added new fields for directories: UFMS, Facilty files and
- ;;         EOBR Files
- ;;      d. New field for sending files to separate servers
- ;;      e. Modifed Area parameter option for new fields
- ;;      f. Removed references to tape backup
- ;;      g. Changed messages from HFS error to No EOBR files available
- ;;      h. Added new prompt to all re-processing a file if already
- ;;         processsed
+ ;;   1. Changed write security codes to "C" on the CHS EOBR MESSAGE
+ ;;      File. 
+ ;;   2. Status line will now display correct OS
+ ;;   3. Removed Area test variable
+ ;;   4. Defaulted Facility print EOBR to N
+ ;;   5. Fix for CSV lookup from the FI EOBR
+ ;;   6. Test for Area or Facility on Summary report
+ ;;   7. EOBR Report by Patient, added test for data
+ ;;   8. Added check adm date>discharge dt on tribal export report
+ ;;   9. Added additional tests for Area options, some options are
+ ;;      not required
+ ;;  10. Area Windows sites changes for directory lookup
+ ;;  11. Export records
+ ;;        a. 3C EPO record fixed century
+ ;;        b. B record fixed reading in of SCC
+ ;;        c. Updated H record description
+ ;;        d. Only send FI pay type records to the FI
+ ;;   12. PO Print for Cheerokee
+ ;;   13. ICD9 fix for invalid 3 digit codes
+ ;;   14. Fixed Report Dump option for Denial Data
+ ;;  
  ;;
  ;;###
  ;

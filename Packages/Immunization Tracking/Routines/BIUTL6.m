@@ -1,9 +1,10 @@
 BIUTL6 ;IHS/CMI/MWR - UTIL: TEXT FOR POINTERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: TEXT FOR PROVIDER, HOSP LOC, INSTIT, OTHER LOC,
  ;;           TRANSLATIONS, REACTION, CONTRA, SITE HDR, CUR COM TXT.
  ;;  PATCH 3: Add call to return Imm Date if 1201 Event Date is populated  IMMDT
+ ;;  PATCH 9: Allow return of 1201 Event or NULL, by not passing BIVPTR.  IMMDT+12
  ;
  ;
  ;----------
@@ -329,7 +330,14 @@ IMMDTT(BIVPTR,BI012,BIFORM) ;EP
  ;
  N BIY D
  .I $P($G(BI012),U) S BIY=$P(BI012,U) Q
+ .;--->
+ .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ .;---> Allow return of 1201 Event or NULL, by not passing BIVPTR.
+ .I '$G(BIVPTR) S BIY="" Q
+ .;
  .S BIY=$P($P($G(^AUPNVSIT($G(BIVPTR),0)),U),".")
+ Q:'BIY ""
+ ;**********
  Q:($G(BIFORM)=2) BIY
  Q:($G(BIFORM)=1) $$TXDT1^BIUTL5(BIY,1)
  Q $$SLDT2^BIUTL5(BIY,1)

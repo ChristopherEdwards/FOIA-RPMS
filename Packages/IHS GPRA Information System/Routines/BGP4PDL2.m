@@ -1,5 +1,5 @@
 BGP4PDL2 ; IHS/CMI/LAB - print ind 1 ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;this routine for Measure I14 ONLY
 I10 ;EP

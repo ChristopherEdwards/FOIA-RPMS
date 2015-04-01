@@ -1,5 +1,5 @@
 AUMSCBM  ;IHS/OIT/NKD - SCB UPDATE - MAP 12/12/2012 ;
- ;;14.0;TABLE MAINTENANCE;**2**;AUG 20,2013;Build 1
+ ;;14.0;TABLE MAINTENANCE;**4**;AUG 20,2013;Build 2
  ; 12/12/12 - Added "internal" update flag to CLINIC STOP
  ; 03/08/13 - Added Languages and Patient Status Code processing
  ;          - Modified processing for Health Factors
@@ -17,6 +17,7 @@ AUMSCBM  ;IHS/OIT/NKD - SCB UPDATE - MAP 12/12/2012 ;
  ;          - Re-organized listing of tables
  ;          - Modified Clinic Stop processing
  ; 03/12/14 - Modified Inactivate processing for Education tables
+ ; 05/28/14 - Added Tribe Inactivate and Pre processing
  ;
  Q
  ;
@@ -191,9 +192,11 @@ RES ;; RPMS RESERVATION FILE
  ;;DSP;;AUMM|6;P2|10;P1|4;P4|2;P3|2
  ;;END
 TRIBE ;; TRIBE FILE
+ ;;PRE;;TRIPRE^AUMSCBU
  ;;SEA;;9999999.03^P1|C
  ;;NEW;;9999999.03^.01|P2;.02|P1^I
  ;;UPD;;9999999.03^.01|P2;.02|P1;.03|P3^I
+ ;;INA;;9999999.03^.04|P7^I
  ;;HDR;;AUMT;TRIBE FILE ENTRIES^CODE|7;NAME|12
  ;;DSP;;AUMM|6;P1|4;P2|42
  ;;END

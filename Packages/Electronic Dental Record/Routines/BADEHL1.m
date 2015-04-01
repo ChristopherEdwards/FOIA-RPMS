@@ -46,7 +46,6 @@ NEWMSG(DFN,EVNTTYPE) ;EP
  .; 06/06/2013 - DMB - TFS8008 - Remove extraneous locks on the HLO globals.
  .I '$$SENDONE^HLOAPI1(.HLST,.APPARMS,.WHO,.ERR) D
  ..D NOTIF(DFN,"Unable to send HL7 message. "_$G(ERR)) ;IHS/MSC/AMF 11/23/10 More descriptive alert
- . L -(^HLB,^HLA,^HLC)
  Q
  ;
 AACK ; EP - Application ACK callback - called when AA, AE or AR is received.

@@ -1,5 +1,5 @@
 BDMPA12 ; IHS/CMI/LAB - 2003 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**6**;JUN 14, 2007;Build 6
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**6,8**;JUN 14, 2007;Build 53
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in HYSTER,MAMMOG
  ;
@@ -296,7 +296,7 @@ TXNAMES(Y) ;
 HYSTER(P,EDATE) ;EP 
  I '$G(P) Q ""
  ;S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P(^ICD0(+^AUPNVPRC(F,0),0),U) D  ;cmi/anch/maw 9/12/2007 orig line
- S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P($$ICDOP^ICDCODE(+^AUPNVPRC(F,0)),U,2) D  ;cmi/anch/maw 9/12/2007 csv
+ S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P($$ICDOP^BDMUTL(+^AUPNVPRC(F,0),,,"I"),U,2) D  ;cmi/anch/maw 9/12/2007 csv
  .S G=0 S:(C=68.4)!(C=68.5)!(C=68.6)!(C=68.7)!(C=68.9) G=1
  .Q:G=0
  .S D=$P(^AUPNVPRC(F,0),U,6) I D="" S D=$P($P(^AUPNVSIT($P(^AUPNVPRC(F,0),U,3),0),U),".")

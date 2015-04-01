@@ -1,5 +1,5 @@
 APCLSILU ; IHS/CMI/LAB - utilities for ili/h1n1 ;
- ;;3.0;IHS PCC REPORTS;**24,26,27**;FEB 05, 1997
+ ;;3.0;IHS PCC REPORTS;**24,26,27,29**;FEB 05, 1997;Build 35
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETRIEVE PATIENTS FOR DUE LISTS & LETTERS.
  ;;  PATCH 1: Correct test for Active Chart at site DUZ2.  INACTREG+11
@@ -27,7 +27,7 @@ AGE(DFN,APCLZ,APCLDT) ;EP
  ;                               2 will be assumed if not passed.
  ;     3 - APCLDT (opt) Date on which Age should be calculated.
  ;
- N APCLDOB,X,X1,X2  S:$G(APCLZ)="" APCLZ=2
+ N APCLDOB,X,X1,X2,D,E  S:$G(APCLZ)="" APCLZ=2
  Q:'$G(DFN) ""
  S APCLDOB=$$DOB(DFN)
  Q:'APCLDOB ""

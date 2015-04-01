@@ -1,11 +1,12 @@
 BISITE2 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT SITE PARAMETERS.
  ;;  PATCH 1: Update text to relect DTap change in Option 1,
  ;;           and allow for Option 11.  RULES+9 and TEXT-4.
  ;;  PATCH 2: Update prompts and help text for HPV.  RULES+41, TEXT9+15
  ;;  PATCH 5: Update help text for HPV.  TEXT8+8
+ ;;  PATCH 8: Changes to accommodate new TCH Forecaster   MINAGE+12, RULES+6
  ;
  ;
  ;----------
@@ -249,7 +250,11 @@ MINAGE ;EP
  N BIDFLT,DIR,DIRUT,Y
  S DIR(0)="SOA^M:Minimum;R:Recommended"
  S DIR("A")="     Please select either MINIMUM or RECOMMENDED: "
- S DIR("B")=$S($$MINAGE^BIUTL2(BISITE)="A":"Minimum",1:"Recommended")
+ ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Change parameter prompt to default recommended.
+ S DIR("B")=$S($$MINAGE^BIUTL2(BISITE)=1:"Minimum",1:"Recommended")
+ ;**********
  D ^DIR
  S:Y="M" Y="A"
  D:'$D(DIRUT) DIE^BIFMAN(9002084.02,".07///"_Y,BISITE)
@@ -261,8 +266,8 @@ MINAGE ;EP
 TEXT7 ;EP
  ;;
  ;;The Minimum vs Recommended Age parameter allows you to direct the
- ;;ImmServe Forecasting program to forecast Immunizations due at
- ;;either the Minimum Acceptable Patient Age or at the Recommended Age.
+ ;;Forecasting program to forecast Immunizations due at either the
+ ;;Minimum Acceptable Patient Age or at the Recommended Age.
  ;;
  D PRINTX("TEXT7")
  Q
@@ -275,26 +280,29 @@ RULES ;EP
  ;---> Called by Protocol BI SITE FORC RULES
  ;
  Q:$$BISITE
- D FULL^VALM1,TITLE^BIUTL5("SELECT FORECASTING OPTIONS",1),TEXT8
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Change parameter prompt to just Grace Period.
+ ;D FULL^VALM1,TITLE^BIUTL5("SELECT FORECASTING OPTIONS",1),TEXT8
  N BIDFLT,BIPOP,DIR,DIRUT,X,Y
  ;
  ;---> For a new set of Immserve Rules, change here below and $$VALIDRUL^BIUTL2.
- S DIR(0)="NOA^1,2,3,4,5,6,7,11"
- S DIR("?")="     Enter a number from the left column to choose one of the Options."
- S DIR("A")="     Select Forecasting Option: "
- S Y=$P($G(^BISITE(BISITE,0)),U,8)
- S:'Y Y=1 S DIR("B")=+Y
- D ^DIR
+ ;S DIR(0)="NOA^1,2,3,4,5,6,7,11"
+ ;S DIR("?")="     Enter a number from the left column to choose one of the Options."
+ ;S DIR("A")="     Select Forecasting Option: "
+ ;S Y=$P($G(^BISITE(BISITE,0)),U,8)
+ ;S:'Y Y=1 S DIR("B")=+Y
+ ;D ^DIR
  ;---> For a new set of Immserve Rules, change here below and $$VALIDRUL^BIUTL2.
- I (Y>7)&(Y<11) D  G RULES
- .W !!?8,Y," is not a valid Option.  Please choose again."
- .D DIRZ^BIUTL3(.BIPOP)
+ ;I (Y>7)&(Y<11) D  G RULES
+ ;.W !!?8,Y," is not a valid Option.  Please choose again."
+ ;.D DIRZ^BIUTL3(.BIPOP)
  ;
- D:'$D(DIRUT) DIE^BIFMAN(9002084.02,".08///"_+Y,BISITE,.BIPOP)
- I $G(DIRUT) D RESET^BISITE Q
+ ;D:'$D(DIRUT) DIE^BIFMAN(9002084.02,".08///"_+Y,BISITE,.BIPOP)
+ ;I $G(DIRUT) D RESET^BISITE Q
  ;
  ;---> Grace Period question.
- D TITLE^BIUTL5("SELECT FORECASTING RULES"),TEXT9
+ ;D TITLE^BIUTL5("SELECT FORECASTING RULES"),TEXT9
+ D FULL^VALM1,TITLE^BIUTL5("4-DAY GRACE PERIOD OPTION",1),TEXT9
  N BIDFLT,BIHELP,BIHELP1,BIPRMPT,X,Y
  S BIPRMPT="     Do you wish to implement a 4-Day Grace Period"
  S BIHELP1="        Enter Yes to allow a 4-day grace period."
@@ -307,20 +315,21 @@ RULES ;EP
  D DIE^BIFMAN(9002084.02,".21///"_Y,BISITE)
  ;
  ;---> HPV Age question.
- D TITLE^BIUTL5("SELECT FORECASTING RULES"),TEXT10
- N BIDFLT,BIHELP,BIPRMPT,X,Y
+ ;D TITLE^BIUTL5("SELECT FORECASTING RULES"),TEXT10
+ ;N BIDFLT,BIHELP,BIPRMPT,X,Y
  ;
  ;********** PATCH 2, v8.5, MAY 15,2012, IHS/CMI/MWR
  ;---> Update prompts and help text for HPV.
- S BIPRMPT="     Select 1 (18 yrs) or 2 for (26f/21m yrs): "
- S BIHELP="        Enter 1 to stop HPV at 18 yrs old; or 2 to stop"
- S BIHELP=BIHELP_" at 26f/21m yrs."
+ ;S BIPRMPT="     Select 1 (18 yrs) or 2 for (26f/21m yrs): "
+ ;S BIHELP="        Enter 1 to stop HPV at 18 yrs old; or 2 to stop"
+ ;S BIHELP=BIHELP_" at 26f/21m yrs."
  ;**********
  ;
- S BIDFLT=+$P($G(^BISITE(BISITE,0)),U,24)  S:'BIDFLT BIDFLT=1
- D DIR^BIFMAN("SAB^1:18;2:26",.Y,,BIPRMPT,BIDFLT,BIHELP)
- I $G(Y)="^" D RESET^BISITE Q
- D DIE^BIFMAN(9002084.02,".24///"_Y,BISITE)
+ ;S BIDFLT=+$P($G(^BISITE(BISITE,0)),U,24)  S:'BIDFLT BIDFLT=1
+ ;D DIR^BIFMAN("SAB^1:18;2:26",.Y,,BIPRMPT,BIDFLT,BIHELP)
+ ;I $G(Y)="^" D RESET^BISITE Q
+ ;D DIE^BIFMAN(9002084.02,".24///"_Y,BISITE)
+ ;**********
  ;
  D RESET^BISITE
  Q

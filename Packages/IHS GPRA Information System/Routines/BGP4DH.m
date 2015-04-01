@@ -1,5 +1,5 @@
 BGP4DH ; IHS/CMI/LAB - cover page for gpra 28 Apr 2010 11:30 AM 02 Jul 2010 9:25 AM ; 19 Feb 2014  11:07 AM
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  S BGPQHDR=0,BGPHPG=0
  D HDR
@@ -21,20 +21,20 @@ BGP4DH ; IHS/CMI/LAB - cover page for gpra 28 Apr 2010 11:30 AM 02 Jul 2010 9:25
 N1 I BGPPTYPE="P" Q:BGPQHDR
  I BGPPTYPE="P",$Y>(BGPIOSL-3) D HDR Q:BGPQHDR
  I $G(BGPEXPT),BGPRTYPE=1 D   ;,'$G(BGPNGR09) D
- .D W^BGP4DP("A file will be created called BG140"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT,0,2,BGPPTYPE)
+ .D W^BGP4DP("A file will be created called BG141"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT,0,2,BGPPTYPE)
  .D W^BGP4DP("It will reside in the "_BGPUF_" directory.",0,1,BGPPTYPE)
  .D W^BGP4DP("This file should be sent to your Area Office.",0,1,BGPPTYPE)
  .D W^BGP4DP("",0,1,BGPPTYPE)
  I BGPPTYPE="P",$Y>(BGPIOSL-3) D HDR Q:BGPQHDR
  I $G(BGPEXPT),BGPRTYPE=7 D
- .D W^BGP4DP("A file will be created called BG140"_$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT,0,2,BGPPTYPE)
+ .D W^BGP4DP("A file will be created called BG141"_$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT,0,2,BGPPTYPE)
  .D W^BGP4DP("It will reside in the "_BGPUF_" directory.",0,1,BGPPTYPE)
  .D W^BGP4DP("This file should be sent to your Area Office.",0,1,BGPPTYPE)
  .D W^BGP4DP("",0,1,BGPPTYPE)
  I BGPPTYPE="P",$Y>(BGPIOSL-3) D HDR Q:BGPQHDR
  I BGPRTYPE=6,$G(BGPPEEXP) D  Q:BGPQHDR
  .I BGPPTYPE="P",$Y>(BGPIOSL-3) D HDR Q:BGPQHDR
- .D W^BGP4DP("A file will be created called BG140"_$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT_" and will reside",0,1,BGPPTYPE)
+ .D W^BGP4DP("A file will be created called BG141"_$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT_" and will reside",0,1,BGPPTYPE)
  .D W^BGP4DP("in the "_BGPUF_" directory.  This file should be sent to your Area Office.",0,1,BGPPTYPE)
  .D W^BGP4DP("",0,1,BGPPTYPE)
  I BGPROT'="P",'$D(BGPGUI) D  I BGPPTYPE="P" Q:BGPQHDR

@@ -1,5 +1,5 @@
 BARRSEL ; IHS/SD/LSL - Selective Report Parameters ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,16,19,20,23**;OCT 26,2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,16,19,20,23,24**;OCT 26,2005;Build 69
  ;
  ; IHS/ASDS/LSL - 08/26/00 - Routine created
  ; IHS/ASDS/LSL - 01/16/01 - Add Allowance Category Parameter for Period
@@ -14,14 +14,22 @@ BARRSEL ; IHS/SD/LSL - Selective Report Parameters ;
  ; IHS/SD/PKD - 05/07/10 1.8*19 CXL;TDN;PAY reports- Added inclusion parameters  
  ; IHS/SD/TMM 07/20/2010 1.8*19 Add Group Plan.
  ; IHS/SD/PKD 1/26/11 1.8*20 Move code from tags: DISP; CLIN; VTYP to BARRSEL1
- ; JUN 2013 P.OTTIS - MOD FOR ICD9/10 DX (DROPPED 'PRIMARY')
- ; SEP 2013 P.OTTIS made selection of DXs BAR(DX) mandatory for IPDR report
- ;                  ASKAGAIN replaced by ASKAGAI1 (to keep the current selection
- ;                  in BARY()
+ ;
+ ; IHS/SD/POTT JUN 2013 MOD FOR ICD9/10 DX (DROPPED 'PRIMARY') - BAR1.8*23
+ ; IHS/SD/POTT SEP 2013 made selection of DXs BAR(DX) mandatory for IPDR report - BAR1.8*23
+ ;                  ASKAGAIN replaced by ASKAGAI1 (keep the current selection)  - BAR1.8*24
+ ; IHS/SD/POTT HEAT150941 02/09/14 Allow ALL DX9/10 - BAR1.8*24
+ ;                        if no DX selected: show ALL DX of ALL available coding systems - BAR1.8*24
+ ; IHS/SD/POTT BETA 5/12/2014 REMOVED "!" DEBUG HINTS - BAR1.8*24
  ; *********************************************************************
  ;
 ASKAGAIN ;EP - 
  K BARY
+ ;DEFAULT DX VALUES   ; BAR1.8*24
+ I BARP("RTN")="BARRIDR"!(BARP("RTN")="BARRPAY") D
+ . I $T(+1^ICDEX)="" S BARY("DX-ICDVER")="9",BARY("DX9")="ALL"
+ . I $T(+1^ICDEX)]"" S BARY("DX-ICDVER")="B",BARY("DX9")="ALL",BARY("DX10")="ALL"
+ ;
 ASKAGAI1 ;KEEP CURRENT BARY SELECTION
  K DIC,DIR
  S BARY("X")="W $$SDT^BARDUTL(X)"
@@ -59,15 +67,11 @@ ASKAGAI1 ;KEEP CURRENT BARY SELECTION
  . S BARY("RTYP")=1
  . S BARY("RTYP","NM")="Detail"
  D MSG
- F  D  Q:+BARDONE2!(+BARDONE)
- . D DISP                     ; Display current parameters
- . D PARM                     ; Select additional parameters
+ F  D  Q:+BARDONE2!(+BARDONE)  Q:$G(DIRUT)  ;3/25/14
+ . D DISP                    ; Display current parameters
+ . D PARM                    ; Select additional parameters
+ I $G(DUOUT) D ^BARVKL0 Q  ;3/25/14
  I +BARDONE D ^BARVKL0 Q
- ;----------------------------------------------------------------
- I BAR("OPT")="IPDR" I '$D(BARY("DX9")) I '$D(BARY("DX10")) D  G ASKAGAI1  ;p.ott
- . W !!,"The 'Inpatient Primary Diagnosis Report' requires you enter"
- . W !,"a diagnosis.",!!
- . Q
  ;---------------------------------------------
  ;
  Q:BAR("OPT")="IPDR"!(BAR("OPT")="PRP")
@@ -140,6 +144,7 @@ PARM ;
  S:BAR("OPT")="AGE" DIR(0)="SO^1:LOCATION;2:BILLING ENTITY;3:PROVIDER;4:REPORT TYPE"
  S:BAR("OPT")="TAR" DIR(0)="SO^1:LOCATION;2:TRANSACTION DATE RANGE;3:COLLECTION BATCH;4:COLLECTION BATCH ITEM;5:A/R ENTRY CLERK;6:PROVIDER;7:REPORT TYPE"
  S:BAR("OPT")="STA" DIR(0)="SO^1:LOCATION;2:BILLING ENTITY;3:DATE RANGE;4:PROVIDER"
+ ;;;S:BAR("OPT")="IPDR" DIR(0)="SO^1:LOCATION;2:BILLING ENTITY;3:ALLOWANCE CATEGORY;4:DATE RANGE;5:PROVIDER;6:PRIMARY DIAGNOSIS;7:DISCHARGE SERVICE"
  S:BAR("OPT")="IPDR" DIR(0)="SO^1:LOCATION;2:BILLING ENTITY;3:ALLOWANCE CATEGORY;4:DATE RANGE;5:PROVIDER;6:DIAGNOSIS;7:DISCHARGE SERVICE"
  S:BAR("OPT")="LBL" DIR(0)="SO^1:LOCATION;2:BILLING ENTITY;3:ALLOWANCE CATEGORY;4:LARGE BALANCE"
  S:BAR("OPT")="SBL" DIR(0)="SO^1:LOCATION;2:BILLING ENTITY;3:ALLOWANCE CATEGORY;4:SMALL BALANCE"
@@ -151,12 +156,14 @@ PARM ;
  I BAR("OPT")="CXL" D
  . S DIR(0)="SO^1:LOCATION;2:BILLING ENTITY;3:DATE RANGE;4:CANCELLING OFFICIAL;5:PROVIDER;6:ELIGIBILITY STATUS;7:REPORT TYPE"
  S:BAR("OPT")="TDN" DIR(0)="SO^1:LOCATION;2:One or more TDN's;3:DATE RANGE"
+ ;;;S:BAR("OPT")="PAY" DIR(0)="SO^1:LOCATION;2:DATE RANGE;3:PROVIDER;4:CLINIC;5:APPROVING OFFICIAL;6:PRIMARY DIAGNOSIS;7:ADJUSTMENT;8:ALLOWANCE CATEGORY"
  S:BAR("OPT")="PAY" DIR(0)="SO^1:LOCATION;2:DATE RANGE;3:PROVIDER;4:CLINIC;5:APPROVING OFFICIAL;6:DIAGNOSIS;7:ADJUSTMENT;8:ALLOWANCE CATEGORY"
  S DIR("A")="Select ONE or MORE of the above INCLUSION PARAMETERS"
  S DIR("?")="The report can be restricted to one or more of the listed parameters. A parameter can be removed by reselecting it and making a null entry."
  D ^DIR
  K DIR
- I $E(X)="^" S BARDONE=1 Q
+ I $D(DIRUT) Q
+ I $E(Y)="^" S BARDONE=1 Q
  I $D(DTOUT)!($D(DUOUT))!($D(DIRUT)) S BARDONE2=1 Q
  S BARSEL=Y
  K BARTAG

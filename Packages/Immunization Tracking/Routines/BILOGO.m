@@ -1,5 +1,5 @@
 BILOGO ;IHS/CMI/MWR - DISPLAY LOGO WHRN ENTERING PKG; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**7**;JAN 15,2014
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  DISPLAYS LOGO.  GETS VERSION FROM LINE 2 OF THIS ROUTINE.
  ;
@@ -58,13 +58,16 @@ CHECK ;EP
  ;
  ;---> Check for valid Immserve Forecasting Rules choice.
  ;---> If not a current, valid choice "IHS_1m18" will be used at RULES+6^BIUTL2.
- D:'$$VALIDRUL^BIUTL2(DUZ(2))
- .D WARN
- .W !?5,"The ImmServe Forecasting site parameter is not currently set to"
- .W !?5,"a valid choice for the site you are logged on to: "
- .W !?5,$P(^DIC(4,DUZ(2),0),U),!
- .I $$MAYMANAG^BIUTL11() D TEXT4,DIRZ^BIUTL3() Q
- .D TEXT5,DIRZ^BIUTL3()
+ ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Immserve Rule Set no longer relevant.
+ ;D:'$$VALIDRUL^BIUTL2(DUZ(2))
+ ;.D WARN
+ ;.W !?5,"The ImmServe Forecasting site parameter is not currently set to"
+ ;.W !?5,"a valid choice for the site you are logged on to: "
+ ;.W !?5,$P(^DIC(4,DUZ(2),0),U),!
+ ;.I $$MAYMANAG^BIUTL11() D TEXT4,DIRZ^BIUTL3() Q
+ ;.D TEXT5,DIRZ^BIUTL3()
  ;
  ;
  ;---> Vaccine Table (^AUTTIMM global) not standard.

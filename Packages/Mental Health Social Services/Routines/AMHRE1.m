@@ -1,5 +1,5 @@
 AMHRE1 ; IHS/CMI/LAB - ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
  ;
 START ;
  D XIT
@@ -10,7 +10,7 @@ START ;
  D INFORM
 TYPE ; type of problem code
  S AMHPTYPE=""
- S DIR(0)="S^P:Problem Code and all DSM codes grouped under it;D:Individual Problem or DSM codes",DIR("A")="Which Type",DIR("B")="P" KILL DA D ^DIR KILL DIR
+ S DIR(0)="S^P:Problem Code and all diagnosis codes grouped under it;D:Individual Problem or diagnosis codes",DIR("A")="Which Type",DIR("B")="P" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D XIT Q
  S AMHPTYPE=Y
  I AMHPTYPE="P" G PROBCODE
@@ -30,7 +30,7 @@ PROB2 ;
  I Y=-1,'$D(AMHPROB) W !!,"No problems selected.  Exiting." D XIT Q
  I Y=-1,$O(AMHPROB(0)) G GETDATES
  I X="",$O(AMHPROB(0)) G GETDATES
- W !!,"The following Problem/DSM codes will be included: "
+ W !!,"The following Problem/Diagnosis codes will be included: "
  S X=0 F  S X=$O(^AMHPROB("AC",+Y,X)) Q:X'=+X  S AMHPROB(X)="" W "  ",$P(^AMHPROB(X,0),U) S AMHC=AMHC+1
  G PROB2
 GETDATES ;
@@ -123,9 +123,9 @@ PRINT ;EP - called from xbdbque
  ..W !,$E(AMHNAME,1,25),?27,$$HRN^AUPNPAT(DFN,DUZ(2)),?34,$$D($$DOB^AUPNPAT(DFN)),?44,$P(^DPT(DFN,0),U,2) D
  ...S AMHP=0,AMHC=0 F  S AMHP=$O(^XTMP("AMHRE1",AMHJ,AMHH,AMHNAME,DFN,AMHP)) Q:AMHP'=+AMHP!($D(AMHQ))  D
  ....S AMHR=^XTMP("AMHRE1",AMHJ,AMHH,AMHNAME,DFN,AMHP)
- ....S AMHC=AMHC+1 I AMHC=1 W ?47,$$PPINI^AMHUTIL(AMHR),?55,$P(^AMHPROB(AMHP,0),U),?62,$$D($P(^AMHREC(AMHR,0),U)),?72,$$D($$LVD^AMHDPEE(DFN,"ID")) Q
+ ....S AMHC=AMHC+1 I AMHC=1 W ?47,$$PPINI^AMHUTIL(AMHR),?52,$P(^AMHPROB(AMHP,0),U),?62,$$D($P(^AMHREC(AMHR,0),U)),?72,$$D($$LVD^AMHDPEE(DFN,"ID")) Q
  ....I $Y>(IOSL-4) D HEADER Q:$D(AMHQ)
- ....W !?55,$P(^AMHPROB(AMHP,0),U),?62,$$D($P(^AMHREC(AMHR,0),U))
+ ....W !?52,$P(^AMHPROB(AMHP,0),U),?62,$$D($P(^AMHREC(AMHR,0),U))
  ....Q
  ...Q
  ..I $Y>(IOSL-4) D HEADER Q:$D(AMHQ)
@@ -149,6 +149,6 @@ HEADER1 ;
  W !?3,$P(^VA(200,DUZ,0),U,2),?35,$$FMTE^XLFDT(DT),?70,"Page ",AMHPG,!
  W !,$$CTR("PATIENTS SEEN WITH SELECTED DIAGNOSES/PROBLEMS",80),!
  S X="Visit Dates: "_$$FMTE^XLFDT(AMHBD)_" to "_$$FMTE^XLFDT(AMHED) W $$CTR(X,80),!
- W !,"PATIENT NAME",?27,"HRN",?34,"DOB",?43,"SEX",?47,"PROV DX",?55,"DX",?62,"DATE SEEN",?72,"LAST VIS"
+ W !,"PATIENT NAME",?27,"HRN",?34,"DOB",?43,"SEX",?47,"PROV",?52,"DX",?62,"DATE SEEN",?72,"LAST VIS"
  W !,$TR($J("",80)," ","-")
  Q

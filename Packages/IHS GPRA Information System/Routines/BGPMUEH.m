@@ -1,5 +1,5 @@
 BGPMUEH ; IHS/MSC/JSM/SAT - IHS MU HOSPITAL PERFORMANCE MEASURE REPORT FRONT-END ;02-Mar-2011 16:48;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;
 ENTRY ;
  W:$D(IOF) @IOF
@@ -22,10 +22,13 @@ SETIND ;
 TP ;get time period
  S BGPRTYPE=4,BGP0RPTH="A"
  S (BGPBD,BGPED,BGPTP)=""
- S DIR(0)="S^1:90-Days;2:One Year",DIR("A")="Enter the reporting period length for your report" KILL DA D ^DIR KILL DIR
+ S DIR(0)="S^1:90-Days;2:One Year;3:User Defined Date Range",DIR("A")="Enter the reporting period length for your report" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D XIT Q
- S BGPLEN=$S(Y=1:89,1:364)
+ S BGPANS=Y
+ S BGPLEN=$S(Y=1:89,Y=2:364,1:"")
  S (BGPPER,BGPVDT)=""
+ I BGPANS=3 D GETBE^BGPMUEP I BGPBD=""!(BGPED)="" D XIT Q
+ I BGPANS=3 G BY
  W !!,"Enter the reporting period start date."
  S DIR(0)="D^::EP"
  S DIR("A")="Enter Date"

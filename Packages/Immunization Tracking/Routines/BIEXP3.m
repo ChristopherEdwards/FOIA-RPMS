@@ -1,7 +1,9 @@
 BIEXP3 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: EXPORT ROUTINE
+ ;;  PATCH 9: Changes to limit export of imms to specific vaccines within
+ ;;           a date range.  START+75
  ;
  ;
  ;----------
@@ -19,12 +21,15 @@ START(BIRTN) ;EP
  ;     4 - BIAG   (req) Age Range (=0 if not limited by age)
  ;     5 - BIHCF  (req) Facility (array)
  ;     6 - BICC   (req) Current Community (array)
- ;     7 - BIMMR  (req) Immunization (array)
+ ;     7 - BIMMR  (req) Immunizations Received, IEN's (array)
  ;     8 - BIDE   (req) Data Elements to be passed (array)
  ;     9 - BIFMT  (req) Format: 1=ASCII,2=HL7,3=ImmServe
  ;    10 - BIOUT  (req) Export: 0=screen, 1=host file
  ;    11 - BIFLNM (opt) File name
  ;    12 - BIPATH (opt) Path name for File
+ ;
+ ;    13 - BIMMRF (opt) Immunizations filtered for output, CVX's (array)
+ ;    14 - BIRDT  (opt) Date Range for Imms Received.
  ;
  ;
  ;---> Check for required variables.
@@ -76,13 +81,20 @@ START(BIRTN) ;EP
  ..N DFN S DFN=0 F  S DFN=$O(BIPAT(DFN)) Q:'DFN  S ^BITMP($J,1,DFN)=""
  .;
  .;---> Gather patients by group and store in ^BITMP.
- .D PATIENT^BIEXPRT2(BIPG,BIAG,BISVDT,.BIHCF,.BICC)
+ .;
+ .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ .;---> Changes to limit export of imms to specific vaccines within
+ .;---> a date range. Parameters BIMMR and BIRDT added below.
+ .;D PATIENT^BIEXPRT2(BIPG,BIAG,BISVDT,.BIHCF,.BICC)
+ .D PATIENT^BIEXPRT2(BIPG,BIAG,BISVDT,.BIHCF,.BICC,.BIMMR,$G(BIRDT))
  ;
  ;---> Gather Immunization History for each patient stored.
  ;---> (If not all vaccines, gather only ones selected--BIMMR.)
  ;---> If ImmServe export, get vaccines that should not be forecast.
  I BIFMT=3 D NOFORC^BIPATUP(.BINF)
- D HISTORY^BIEXPRT3(BIFMT,.BIDE,.BIMMR,,,,.BINF)
+ ;
+ D HISTORY^BIEXPRT3(BIFMT,.BIDE,.BIMMRF,,,,.BINF)
+ ;**********
  ;
  ;---> Export data.
  D WRITE^BIEXPRT4(BIOUT,BIFMT,$G(BIFLNM),$G(BIPATH),,1)

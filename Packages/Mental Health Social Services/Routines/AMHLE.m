@@ -1,5 +1,5 @@
 AMHLE ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
  ;; ;
  ;CMI/TUCSON/LAB - 10/06/97 - PATCH 1 reformat header
 START ; Write Header
@@ -51,7 +51,7 @@ HDR ;EP -- header code
  S VALMHDR(2)="Date of Encounter:  "_$$DOW^XLFDT(AMHDATE)_"  "_$$FTIME^VALM1(AMHDATE)_$S($$ESIGREQ^AMHESIG(,AMHDATE):"      * unsigned note",1:"")
  S VALMHDR(3)=AMHDASH
  I $E($G(^TMP("AMHVRECS",$J,1,0)))="N" S AMHRCNT=0,VALMHDR(4)=^TMP("AMHVRECS",$J,1,0) K ^TMP("AMHVRECS",$J)
- E  S VALMHDR(4)=" #  PRV PATIENT NAME         HRN      LOC  ACT PROB    NARRATIVE"
+ E  S VALMHDR(4)=" #  PRV PATIENT NAME         HRN      LOC  ACT PROB     NARRATIVE"
  Q
  ;
 INIT ;EP -- init variables and list array

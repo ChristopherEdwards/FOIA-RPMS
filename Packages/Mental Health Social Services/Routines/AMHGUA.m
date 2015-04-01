@@ -1,5 +1,5 @@
 AMHGUA ; IHS/CMI/MAW - AMH Behavioral Health GUI Utilities continued 9/8/2008 2:00:25 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,4**;JUN 18, 2010;Build 28
  ;
  ;
 DEBUG(RETVAL,AMHSTR)  ;replace tag below to allow Serenji debug of GUI
@@ -134,6 +134,8 @@ POV(RET,AMHPAT,AMHD) ;EP -- filter POV if allowed to see
  ...Q:'$P(^AMHRPRO(AMHB,0),U,3)
  ...N AMHPIEN
  ...S AMHPIEN=$P($G(^AMHRPRO(AMHB,0)),U)
+ ...;Q:'$$CURCOD(AMHPIEN)  ;v4.0p4 screen out codes not in the current code set
+ ...Q:'$$CHKD^AMHUTIL1(AMHPIEN,AMHD)
  ...S AMHCC=AMHCC+1 I (AMHCC-1)=AMHC S AMHV=AMHT Q
  ...S AMHCNT=AMHCNT+1
  ...;S ^TMP("AMHTMP",$J,AMHB)=AMHCNT_U_AMHPIEN
@@ -152,6 +154,13 @@ POV(RET,AMHPAT,AMHD) ;EP -- filter POV if allowed to see
  .;S AMHC1=AMHC1+1
  S @RET@(AMHCN+1)=$C(31)
  Q
+ ;
+CURCOD(PIEN) ;-- check the code to see if it is the current version of code set
+ N CV
+ S CV=$$DSMVDT^AMHUTIL1(DUZ(2))
+ I '$G(CV) S CV=4
+ I $$GET1^DIQ(9002012.2,PIEN,.1)=CV Q 1
+ Q 0
  ;
 LABG(RETVAL,AMHSTR) ;-- graph labs
  N P,AMHI,AMHB,AMHE,AMHBD,AMHED,AMHP,AMHL,AMHD,AMHR,AMHA,AMHRL,AMHRH
@@ -201,6 +210,22 @@ VEXIST(RETVAL,AMHSTR) ;-- check to see if there is a visit on the record (used f
  S AMHI=AMHI+1
  S AMHX=$S($$GET1^DIQ(9002011,AMHREC,.16,"I"):1,1:0)
  S @RETVAL@(AMHI)=AMHX_$C(30)
+ S @RETVAL@(AMHI+1)=$C(31)
+ Q
+ ;
+CHKDSM(RETVAL,AMHSTR) ;-- check which version of DSM
+ N P,AMHS,AMHD
+ S P="|"
+ S AMHS=$P(AMHSTR,P)
+ K ^AMHTMP($J)
+ S RETVAL="^AMHTMP("_$J_")"
+ S AMHI=0
+ S @RETVAL@(AMHI)="T00001DSM"_$C(30)
+ S AMHI=AMHI+1
+ S AMHD=$$GET1^DIQ(9002013,AMHS,1811,"I")
+ I AMHD="" S AMHD=9999999
+ ;S AMHD=$S($G(AMHD)]"":5,1:4)  ;default to DSM-IV if blank
+ S @RETVAL@(AMHI)=AMHD_$C(30)
  S @RETVAL@(AMHI+1)=$C(31)
  Q
  ;

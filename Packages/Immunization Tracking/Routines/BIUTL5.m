@@ -1,10 +1,12 @@
 BIUTL5 ;IHS/CMI/MWR - UTIL: MENU TITLS, DATE FORMAT; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: SETVARS, MENUT, TITLE, CENTERT, COPYLET,
  ;;           UPPERCASE XREFS, DATE FORMATS, PADS/SPACES.
  ;;  PATCH 4: Call to add a leading zero left of the decimal point. LEADZ+0
  ;;  PATCH 5: Ensure that only one leading zero is displayed. LEADZ+8
+ ;;  PATCH 7: Changes to accommodate new TCH Forecaster. TCHFMDT+0, FMTCHDT+0
+ ;;  PATCH 8: New date format linelabels for TCH Forecaster.  IMMSDT+9
  ;
  ;
  ;----------
@@ -160,6 +162,24 @@ IMMSDT(DATE) ;EP
  ;---> Any changes here should also be made to the call in ^BIPATUP1.
  Q:'$G(DATE) "NO DATE"
  Q ($E(DATE,5,9)-1700)_$E(DATE,1,2)_$E(DATE,3,4)
+ ;
+ ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Next two linelabels are new to accommodate TCH Forecaster.
+ ;
+ ;----------
+TCHFMDT(DATE) ;EP
+ ;---> Convert TCH Date (format YYYYMMDD) TO FILEMAN Internal format.
+ Q:'$G(DATE) "NO DATE"
+ Q ($E(DATE,1,4)-1700)_$E(DATE,5,6)_$E(DATE,7,8)
+ ;
+ ;
+ ;----------
+FMTCHDT(DATE) ;EP
+ ;---> Convert FILEMAN Date to TCH (format YYYYMMDD).
+ Q:'$G(DATE) "NO DATE"
+ Q ($E(DATE,1,3)+1700)_$E(DATE,4,5)_$E(DATE,6,7)
+ ;**********
  ;
  ;
  ;----------

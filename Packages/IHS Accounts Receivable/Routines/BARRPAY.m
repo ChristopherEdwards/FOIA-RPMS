@@ -1,8 +1,9 @@
 BARRPAY ; IHS/SD/PKD - TOP PAYERS REPORT ; 07/2/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,23,24**;OCT 26, 2005;Build 69
  ; New Reports - Top Payers - PKD 
- ; MAR 2013 P.OTTIS ADDED NEW VA billing
- ; JUL 2013 P.OTTIS ADDED SUPPORT FOR ICD-10
+ ; IHS/SD/POTT 03/13ADDED NEW VA billing -BAR*1.8*23
+ ; IHS/SD/POTT 07/13 ADDED SUPPORT FOR ICD-10 -BAR*1.8*23
+ ; IHS/SD/POTT HEAT143222 01/14 FIX USER EXIT AFTER D MOREQ  - BAR*1.8*24
  Q
  ; *******************************
  ;
@@ -14,11 +15,12 @@ EN ; EP
  D ^BARRSEL  ; Select exclusion parameters
  I $D(DTOUT)!$D(DUOUT)!$D(DIROUT) Q
  D MOREQ  ; Additional Questions: Sort by; include CXL's; how many to top payers
+ I $D(DTOUT)!$D(DUOUT)!$D(DIROUT) Q  ;HEAT143222 BAR*1.8*24
  ;
 HD S BAR("HD",0)=BARMENU
  D ^BARRHD  ; Report header
  ; Add additional Selection Criteria to the Headers
- I $D(BARY("DX"))!$D(BARY("DX9"))!$D(BARY("DX10")) D DX^BARRHD ;P.OTT
+ I $D(BARY("DX"))!$D(BARY("DX9"))!$D(BARY("DX10")) D DX^BARRHD ;P.OTT -BAR*1.8*23
  ;
  I $D(BARY("CLIN")) D HDCLIN
  I $D(BARY("APPR")) D HDAPPR
@@ -44,7 +46,7 @@ COMPUTE ;
  I BARY("DT")="B" D BATCHDT,SHOWERR Q  ; batch date sort 
  Q
 SHOWERR Q
- ;I DUZ'=838 Q
+ Q
  N BARTMP
  I $D(^TMP($J,"BAR-PAY","ERR")) D
  . W !,"List of rejected entries from PAY report #1"
@@ -120,7 +122,7 @@ TRCHK S (PAIDAMT,PMTCRD)=0
  I $G(BARY("ADJTYP"))]"" Q:ADJTYP'=BARY("ADJTYP")  ; comment out unless they really want it. ****
  S HIT=0
  S BARPAYER=$P(^BARTR(DUZ(2),TRIEN,0),U,6)
- I ;DUZ=838 I BARPAYER'=BAR("I") D  
+ ;I DUZ=838 I BARPAYER'=BAR("I") D  
  . W !,"*** PROBLEM: ACCNT# in ^BARTR(",DUZ(2),",",TRIEN," ->(",BARPAYER
  . W ") is different from ACCNT# in ^BARBL(",DUZ(2),",",BAR," ->(",BAR("I"),") WILL USE ",BAR("I")
  S BARPAYER=BAR("I")
@@ -133,7 +135,6 @@ TRCHK S (PAIDAMT,PMTCRD)=0
  ;S BARPYALL=$P(^AUTNINS(BARAC,2),U)  ; ALLOWANCE OLD PTR
  S D0=BARPAYER ;S D0=BARAC
  S BARPYALL=$$VALI^BARVPM(8) ;GETS FLD # .211 P.OTT 
- ;;;I DUZ=838 W !,$ZN," TXD: ",TRIEN," BILL#: ",BAR," ACCNT ",BARPAYER," AUTNINS IEN: ",D0," INS TYPE: ",BARPYALL R ASD
  S BAR("ALL")=BARPYALL ;
  I $D(BARY("ALL")) Q:BARY("ALL","CODES")'[BAR("ALL")_" "  ; ALLOWANCE CAT
  S BARPYNM=$P(^AUTNINS(BARAC,0),U) ;NAME
@@ -188,6 +189,7 @@ DX  ; ^ICD9(547,0)=202.04^LC^NODULAR LYMPHOMA AXILLA^^17^^^^
  S SUBNM="Primary DX: "
  S SORT=BAR("DX",1)_" "  ; set in ^BARRCHK
  I BAR("DX",1)="No DX" S SORT(1)="No DX entered" Q
+ I BAR("DX",1)=" " S SORT(1)="No DX entered" Q  ;3/12/2014
  S SORT=$O(^ICD9("AB",SORT,""))  ; get IEN
  S SORT(1)=BAR("DX",1)_" "_$P(^ICD9(SORT,0),U,3)
  Q

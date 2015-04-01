@@ -1,6 +1,7 @@
 APCM13E9 ;IHS/CMI/LAB - IHS MU; 
- ;;1.0;IHS MU PERFORMANCE REPORTS;**2**;MAR 26, 2012;Build 11
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**2,4,5**;MAR 26, 2012;Build 5
  ;;;;;;Build 3
+ ;IHS/CMI/LAB - PATCH 4 REMOVED CPOE KEY LOGIC
 CPOE ;EP - CALCULATE EPRESCRIBING
  ;for each provider or for the facility count all prescriptions that meet criteria and if it is not written it meets numerator
  K ^TMP($J,"PATSRX")
@@ -90,7 +91,7 @@ TOTRX ;EP - did patient have a RX in file 52 with an issue date
  ..;now check to see if it has a nature of order IS equal to 1-written if so, quit and don't set numerator
  ..I ORORD=1 Q  ;this is a written order so do not put in numerator 
  ..S ORDEB=$P(^OR(100,ORIEN,8,1,0),"^",13)  ;this is the person who entered the order (ENTERED BY)
- ..Q:'$$ORES(ORDEB,$P(ID,".",1))  ;quit if this person does not have ORES or ORESLE on date of order so don't count in numerator
+ ..;Q:'$$ORES(ORDEB,$P(ID,".",1))  ;quit if this person does not have ORES or ORESLE on date of order so don't count in numerator
  ..; DUZ=2793 W "  NUMER"
  ..I APCMRPTT=1 S $P(APCMRXS(ORPVID),U,2)=$P(APCMRXS(ORPVID),U,2)+1,$P(^TMP($J,"PATSRX",ORPVID,PAT),U,2)=$P($G(^TMP($J,"PATSRX",ORPVID,PAT)),U,2)+1
  ..I APCMRPTT=2 S $P(APCMRXS(APCMFAC),U,2)=$P($G(APCMRXS(APCMFAC)),U,2)+1,$P(^TMP($J,"PATSRX",APCMFAC,PAT),U,2)=$P($G(^TMP($J,"PATSRX",APCMFAC,PAT)),U,2)+1

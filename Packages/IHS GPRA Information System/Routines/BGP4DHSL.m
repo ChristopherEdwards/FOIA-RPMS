@@ -1,5 +1,5 @@
 BGP4DHSL ; IHS/CMI/LAB - FY 11 DISPLAY IND LISTS ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;; ;
 RT ;EP
  ;for each measure list, choose report type

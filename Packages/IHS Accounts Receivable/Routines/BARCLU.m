@@ -1,5 +1,5 @@
 BARCLU ; IHS/SD/LSL - USER ENTRY INTO COLLECTION BATCHES ;; 07/09/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,16,18,19,23**;OCT 26,2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**3,4,6,16,18,19,23,24**;OCT 26,2005;Build 69
  ;;
  ; IHS/ASDS/LSL - 06/15/01 - V1.5 Patch 1 - HQW-0201-100027
  ;     fm 22 issue.  Modified to include E in DIC(0)
@@ -20,6 +20,7 @@ BARCLU ; IHS/SD/LSL - USER ENTRY INTO COLLECTION BATCHES ;; 07/09/2010
  ;      819_5. Allow user to assign prepayment to batch (^BARCLU,^BARCLU4,^BARCLU01,^BARPUTL,^BARPST1,^BARBLLK)
  ;      819_6. Print Prepayment Receipt (^BARPPY02) (new routine)
  ;
+ ; IHS/SD/POTT HEAT148839 01/14/2014 FIXED UNDEF - BAR*1.8*24
  ; ********************************************************************* ;
  ;
 ENTRY ;
@@ -100,8 +101,8 @@ TDN ;I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""!($P($G(^BARCOL(DUZ(2),BARCLDA,0
  .S DIE="^BARCOL(DUZ(2),"
  .S DA=BARCLDA
  .;IHS/SD/AR 03/31/2010 low priorities, TDN dupl
- .I '$$IHS^BARUFUT(DUZ(2)) D
- .;;;I '$$IHSERA^BARUFUT(DUZ(2)) D
+ .;;;old code: I '$$IHSERA^BARUFUT(DUZ(2)) D  ;BAR*1.8*23
+ .I '$$IHS^BARUFUT(DUZ(2)) D  ;1/14/2014 HEAT148839 BAR*1.8*24
  ..K DIE("NO^")   ;BAR*1.8*16
  ..S DR="28Enter TDN/IPAC//"  ;BAR*1.8*16
  .E  D
@@ -119,8 +120,8 @@ TDN ;I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""!($P($G(^BARCOL(DUZ(2),BARCLDA,0
  .E  D
  ..W "  No duplicates found."
  .K LIST,DOCARE
- .I '$$IHS^BARUFUT(DUZ(2)) D
- .;;;I '$$IHSERA^BARUFUT(DUZ(2)) D
+ .;;; old code I '$$IHSERA^BARUFUT(DUZ(2)) D  ;BAR*1.8*23
+ .I '$$IHS^BARUFUT(DUZ(2)) D  ;1/14/2014 HEAT148839 BAR*1.8*24
  ..K DIE("NO^")   ;BAR*1.8*16
  ..S DR="30Enter TDN/IPAC/Deposit Date;29Enter TDN/IPAC Dollar Amount for this Batch//"  ;BAR*1.8*16
  .E  D
@@ -159,7 +160,6 @@ TDN ;I $P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)=""!($P($G(^BARCOL(DUZ(2),BARCLDA,0
  ;I ($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)="")!(($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)'="NONPAYMENT")&(+$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)=0)),(+$G(BARCLID(22,"I")))  G TDN  ;go back up & prompt for TDN again ;IHS/SD/SDR bar*1.8*6 IM29168
  ;PER TONI JOHNSON TRIBALS DO NOT HAVE TO POPULATE THESE FIELDS BAR*1.8*16  
  I ($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)="")!(($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)'="NONPAYMENT")&(+$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)=0)),(+$G(BARCLID(22,"I"))),($$IHS^BARUFUT(DUZ(2)))  G TDN
- ;;;I ($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)="")!(($P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,28)'="NONPAYMENT")&(+$P($G(^BARCOL(DUZ(2),BARCLDA,0)),U,29)=0)),(+$G(BARCLID(22,"I"))),($$IHSERA^BARUFUT(DUZ(2)))  G TDN
  D NEWITEM^BARCLU4
  W !
  S DA(1)=BARCLDA

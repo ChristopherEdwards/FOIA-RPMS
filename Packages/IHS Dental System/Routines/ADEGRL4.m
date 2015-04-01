@@ -1,5 +1,6 @@
 ADEGRL4 ; IHS/HQT/MJL - DENTAL ENTRY PART 6 ;09:35 PM  [ 03/24/1999   9:04 AM ]
- ;;6.0;ADE;;APRIL 1999
+ ;;6.0;ADE;;APRIL 1999;Build 13
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
 VSTAT ;EP
  N ADEJ
  S ADEJ=$$FYVIS(ADEPAT,ADEVDATE)
@@ -7,17 +8,25 @@ VSTAT ;EP
  ;
 VSTAT1 D LIST^ADEGRL3
  W !,"Visit Status Codes:",!,?8,"1  First Visit of the Fiscal Year",?52,"(0000)",!,?8,"2  Revisit (for any reason)",?52,"(0190)"
- W:ADEDIR !,?8,"3  Broken Appointment",?52,"(9130)",!,?8,"4  Cancelled Appointment",?52,"(9140)"
+ ;IHS/OIT/GAB 10.2014 Modified below line and added the next for 2015 Code updates
+ ;W:ADEDIR !,?8,"3  Broken Appointment",?52,"(9130)",!,?8,"4  Cancelled Appointment",?52,"(9140)"
+ W:ADEDIR !,?8,"3  Missed Appointment",?52,"(9986)",!,?8,"4  Cancelled Appointment",?52,"(9987)"
  W !!,"Select Visit Status: "
  R X:DTIME I $T<1 S Y=-1 Q
- I X?4N S X=$S(X="0000":1,X="0190":2,(X=9130)&ADEDIR:3,(X=9140)&ADEDIR:4,1:"^")
+ ;IHS/OIT/GAB 10.2014 Modified below line and added the next for 2015 Code updates
+ ;I X?4N S X=$S(X="0000":1,X="0190":2,(X=9130)&ADEDIR:3,(X=9140)&ADEDIR:4,1:"^")
+ I X?4N S X=$S(X="0000":1,X="0190":2,((X="9986")!(X="9130"))&ADEDIR:3,((X="9987")!(X="9140"))&ADEDIR:4,1:"^")
  S X=$E(X_"^")
  I X="^" S Y=-1 Q
  I X["?" S XQH="ADE-DVIS-VCODE" D EN^XQH K XQH D ^ADECLS,^ADEHELP,LIST^ADEGRL3 G VSTAT1
  I ADEDIR,("1234FRCBfrbc"'[X) W *7,"??" G VSTAT1
  I ADECON,("12FRfr"'[X) W *7,"??" G VSTAT1
- S ADEV($S((X="F")!(X="f")!(X=1):"0000",(X=2)!(X="R")!(X="r"):"0190",(X=3)!(X="B")!(X="b"):"9130",(X=4)!(X="C")!(X="c"):"9140"))="1^"
-VSTAT2 S ADEDES("0000")="FIRST VISIT",ADEDES("0190")="REVISIT",ADEDES("9130")="BROKEN APPT",ADEDES("9140")="CANCELLED APPT",Y=1
+ ;IHS/OIT/GAB 10.2014 Modified below line and added the next for 2015 Code updates
+ ;S ADEV($S((X="F")!(X="f")!(X=1):"0000",(X=2)!(X="R")!(X="r"):"0190",(X=3)!(X="B")!(X="b"):"9130",(X=4)!(X="C")!(X="c"):"9140"))="1^"
+ S ADEV($S((X="F")!(X="f")!(X=1):"0000",(X=2)!(X="R")!(X="r"):"0190",(X=3)!(X="B")!(X="b"):"9986",(X=4)!(X="C")!(X="c"):"9987"))="1^"
+ ;IHS/OIT/GAB 10.2014 Modified below line and added the next for 2015 Code updates
+ ;VSTAT2 S ADEDES("0000")="FIRST VISIT",ADEDES("0190")="REVISIT",ADEDES("9130")="BROKEN APPT",ADEDES("9140")="CANCELLED APPT",Y=1
+VSTAT2 S ADEDES("0000")="FIRST VISIT",ADEDES("0190")="REVISIT",ADEDES("9130")="BROKEN APPT",ADEDES("9140")="CANCELLED APPT",ADEDES("9986")="MISSED APPT",ADEDES("9987")="CANCELLED APPT",Y=1
  Q
  ;
 FAC K DIC,Y S DIC="^ADEPARAM(DUZ(2),1,",DA(1)=DUZ(2),DIC(0)="AEZMQ",DIC("A")="Select Location of Encounter: " S:$D(ADELOE) DIC("B")=ADELOE D ^DIC Q:Y=-1

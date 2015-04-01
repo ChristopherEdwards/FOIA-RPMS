@@ -1,11 +1,13 @@
 BIUTL11 ;IHS/CMI/MWR - UTIL: PATIENT INFO; AUG 10,2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: PATIENT FUNCTIONS: CONTRAS, INPATIENT, HIDOSE.
  ;;  PATCH 1: Correct typo "Q", so that unmatched CVX returns 0 (zero),
  ;;           not "Q".  LASTIMM+17
  ;;  PATCH 3: Append date to Hx of Chickenpox Reason.  CONTRA+45
  ;;  PATCH 5: Unused call, was never a P.E.P..  CONTR+0
+ ;;  PATCH 8: For Hx of Chicken Pox, do NOT contraindicate Zoster (CVX=121). CONTRA+62
+ ;;  PATCH 9: Add GOTDOSE call: check if patient received a dose.  GOTDOSE+0
  ;
  ;
  ;----------
@@ -55,7 +57,6 @@ CONTRA(BIDFN,A,BIREF,BIDATE) ;EP
  ...;
  ...;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
  ...;---> Append date to Hx of Chickenpox Reason.
- ...;N Z S Z=$P(BIPC,U,2) I Z S Z=$G(^AUTTIMM(Z,0)),Z=$P(Z,U,3) S:Z A(Z)=X
  ...N Z S Z=$P(BIPC,U,2) I Z S Z=$G(^AUTTIMM(Z,0)),Z=$P(Z,U,3)
  ...I Z S A(Z)=X S:$G(BIDATE) A(Z)=A(Z)_U_Y
  ...;**********
@@ -71,6 +72,13 @@ CONTRA(BIDFN,A,BIREF,BIDATE) ;EP
  .;---> For this Vaccine IEN contraindication, get Related Contraindcated CVX Codes.
  .;---> (Call below also sets A(CVX) of THIS Vaccine IEN in the A(CVX) array.)
  .D CONTRHL7($P(BIPC,U,2),.A)
+ .;
+ .;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ .;---> If the vaccine is Varicella (CVX=21) and Reason is Hx of Chicken Pox,
+ .;---> do NOT contraindicate Zoster (CVX=121).
+ .I $P(BIPC,U,2)=132,$P(BIPC,U,3)=12 K A(121)
+ .;**********
+ ;
  Q
  ;
  ;
@@ -399,38 +407,40 @@ MOTHMAID(DFN) ;EP
  Q $P($G(^DPT(DFN,.24)),U,3)
  ;
  ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Call to limit export of imms to specific vaccines within a date range.
  ;----------
-HIDOSE(BIDFN,BIVIEN,BIHX) ;EP
- ;---> NO LONGER USED (v8.0 and on).
- ;---> Return Patient's highest previous Dose# for a given Vaccine.
+GOTDOSE(BIDFN,BIVIEN,BIRDT) ;EP
+ ;---> Return 1 if patient received one or more doses of the input vaccine
+ ;--->  within the givin date range; otherwise return 0.
  ;---> Parameters:
  ;     1 - BIDFN  (req) Patient's IEN in VA PATIENT File #2.
  ;     2 - BIVIEN (req) IEN of Vaccine.
- ;     3 - BIHX   (req) Patient's Imm History String.
- ;                      Assumes default pieces listed in IMMHX^BIRPC:
- ;                      Pc1="I"/"S", Pc3=Dose#-VacName, Pc6=Vaccine Grp.
+ ;     3 - BIRDT  (opt) Date range in Fileman format YYYMMDD:YYYMMDD
  ;
  Q:'$G(BIDFN) 0
  Q:'$G(BIVIEN) 0  Q:'$D(^AUTTIMM(BIVIEN,0)) 0
- Q:$G(BIHX)="" 0
  ;
- ;---> Set previous Dose#=0 and Vaccine Group for this Vaccine.
- N BIPREV,BIVGRP,I,V,X,Y
- S BIPREV=0,BIVGRP=$$IMMVG^BIUTL2(BIVIEN,1),V="|"
+ N BISDT,BIEDT
+ S BISDT=+$P($G(BIRDT),":")
+ S BIEDT=+$P($G(BIRDT),":",2) I BIEDT=0 S BIEDT=9999999
  ;
- ;---> Loop through "^"-pieces of Imm History, looking for the
- ;---> highest previous Dose# in this Vaccine Group.
- F I=1:1 S Y=$P(BIHX,U,I) Q:Y=""  D
+ N N,Z S N=0,Z=0
+ F  S N=$O(^AUPNVIMM("AC",BIDFN,N)) Q:'N  Q:Z  D
+ .N X,Y S X=$G(^AUPNVIMM(N,0))
+ .;---> Quit if this visit doesn't match the desired vaccine.
+ .Q:(+X'=BIVIEN)
  .;
- .;---> Quit if this is not an Immunization.
- .Q:$P(Y,V)'="I"
- .;
- .;---> Quit if this is not the same Vaccine Group as the
- .;---> selected Vaccine.
- .Q:$P(Y,V,6)'=BIVGRP
- .;
- .;---> If this Dose# is higher than any previous,
- .;---> set BIPREV equatl to it.
- .S X=$P($P(Y,V,3),"-") S:X>BIPREV BIPREV=X
+ .;---> Get pointer to Visit (to get date of visit).
+ .S Y=$P(X,U,3)
+ .Q:'Y
+ .S Y=$P(+$G(^AUPNVSIT(Y,0)),".")
+ .Q:'Y
+ .;---> Quit if this Visit was before the Start Date.
+ .Q:(Y<BISDT)
+ .;---> Quit if this Visit was after the End Date.
+ .Q:(Y>BIEDT)
+ .;---> Got a dose.
+ .S Z=1
  ;
- Q BIPREV
+ Q Z

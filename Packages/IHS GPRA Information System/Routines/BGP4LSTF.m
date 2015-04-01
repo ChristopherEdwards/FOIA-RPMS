@@ -1,9 +1,9 @@
 BGP4LSTF ; IHS/CMI/LAB - List 'BG08' files in pub ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
  W:$D(IOF) @IOF
- W !,"This option is used to list all CRS 2014 files that are in a directory.",!,"These files begin with BG140.",!,"You must specify the directory in which the CRS 2014 data files reside.",!
+ W !,"This option is used to list all CRS 2014 files that are in a directory.",!,"These files begin with BG141.",!,"You must specify the directory in which the CRS 2014 data files reside.",!
 FILE ;
  D HOME^%ZIS
 DIR ;
@@ -13,7 +13,7 @@ DIR ;
  I $D(DIRUT) W !!,"Directory not entered!!  Bye." K BGPDIR Q
  S BGPDIR=Y
  ;
- K BGPLIST S BGPLIST="",X=$$LIST^%ZISH(BGPDIR,"BG140*",.BGPLIST)
+ K BGPLIST S BGPLIST="",X=$$LIST^%ZISH(BGPDIR,"BG141*",.BGPLIST)
  I $O(BGPLIST(""))="" W !!,"There are no files in that directory." D EOP^BGP4DH D EN^XBVK("BGP") Q
  W !!,"The following CRS 2014 files reside in the ",BGPDIR," directory."
  S X="" F  S X=$O(BGPLIST(X)) Q:X'=+X  W !?5,BGPLIST(X)

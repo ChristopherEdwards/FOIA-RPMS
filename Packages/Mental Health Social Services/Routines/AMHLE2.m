@@ -1,5 +1,5 @@
 AMHLE2 ; IHS/CMI/LAB - DE CONT. ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,4**;JUN 18, 2010;Build 28
  ;
  ;
 RECCHECK ;EP - check record for completeness
@@ -98,7 +98,9 @@ VISIT ;
  .I $P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U)=8.2 S AMHDNKA=1 Q  ;do not pass dnka
  .I $P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U)=8.21 S AMHDNKA=1 Q  ;do not pass dnka
  .I $P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U)=8.3 S AMHDNKA=1 Q  ;do not pass dnka
- .I $P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U,5)]"" S AMHGOT=1
+ .S AMHIMP=$$IMP^AMHUTIL2($P($P(^AMHREC(AMHR,0),U,1),".",1))
+ .I AMHIMP=1,$P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U,5)]"" S AMHGOT=1
+ .I AMHIMP=30,$P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U,17)]"" S AMHGOT=1
  .Q
  Q:AMHDNKA
  Q:$P(^AMHREC(AMHR,0),U,6)=""

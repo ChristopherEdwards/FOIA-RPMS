@@ -1,5 +1,5 @@
 APCM13E5 ;IHS/CMI/LAB - IHS MU; 
- ;;1.0;IHS MU PERFORMANCE REPORTS;**2**;MAR 26, 2012;Build 11
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**2,4,5**;MAR 26, 2012;Build 5
  ;;;;;;Build 3
 PATEDUC ;EP - CALCULATE PAT ED
  ;for each provider or for the facility find out if this
@@ -109,8 +109,8 @@ MR ;EP - med reconciliation
  Q
 HASMMR(P,BD,ED,R,VSTS) ;does patient have a m-mr on visits
  ;
- NEW A,B,C,D,E,X,Y,V,PWH,T,W,Z,Q,PED,EDUC
- S T=$O(^APCMMUCN("B","INTERIM STAGE 1 2013",0))
+ NEW A,B,C,D,E,X,Y,V,PWH,T,W,Z,Q,PED,EDUC,J
+ S J=$O(^APCMMUCN("B","INTERIM STAGE 1 2013",0))
  ;LOOP THROUGH ALL VISITS AND COUNT VISIT AND PWH'S
  S PWH="0^0"
  S X=0 F  S X=$O(VSTS(X)) Q:X'=+X  D
@@ -126,7 +126,7 @@ HASMMR(P,BD,ED,R,VSTS) ;does patient have a m-mr on visits
  .Q:'G  ;not a visit to this provider
  .S C=$$CLINIC^APCLV(V,"C")
  .Q:C=30
- .I C]"",T,$D(^APCMMUCN(T,14,"B",C)) Q  ;don't count these clinics
+ .I C]"",J,$D(^APCMMUCN(J,14,"B",C)) Q  ;don't count these clinics
  .S $P(PWH,U,1)=$P(PWH,U,1)+1
  .;was there a PAT ED M-MR on the date of the visit
  .S B=""
@@ -193,15 +193,21 @@ PR ;EP - patient reminders
  ..D S^APCM13E1(APCMRPT,APCMIC,"Facility is excluded from this measure as they did not see any patients <=5 or >=65 years old.",APCMP,APCMRPTT,APCMTIME,F,1) Q
  .;set denominator value into field
  .S G=0
- .Q:$$DOB^AUPNPAT(DFN)>APCMBDAT  ;born after time period begin date
  .I APCMAGEB<5 G PR1
  .I APCMAGEB<65 Q
+ .Q:$$DOB^AUPNPAT(DFN)>APCMBDAT  ;born after time period begin date
 PR1 .;IS CHART ACTIVE OR DECEASED
  .S X=$$DOD^AUPNPAT(DFN)
  .I X,X'>APCMEDAT Q
  .Q:'$O(^AUPNPAT(DFN,41,0))  ;no charts
  .S X=$P($G(^AUPNPAT(DFN,41,DUZ(2),0)),U,3)
  .I X,X'>APCMEDAT Q
+ .;did they have a visit ever to the EP?
+ .;I DUZ=2793 W !,DFN," ",$$NOW^XLFDT
+ .;K APCMPRVT
+ .;D ALLV^APCLAPIU(DFN,$$DOB^AUPNPAT(DFN),APCMEDAT,"APCMPRVT")
+ .I '$$HADV(DFN,APCMP,$$DOB^AUPNPAT(DFN),APCMEDAT) Q
+ .;I DUZ=2793 W !,DFN W " YES"
  .S F=$P(^APCM13OB(APCMIC,0),U,8)  ;denom field for this measure
  .D S^APCM13E1(APCMRPT,APCMIC,1,APCMP,APCMRPTT,APCMTIME,F)
  .S APCMVALU=""
@@ -212,26 +218,35 @@ PR1 .;IS CHART ACTIVE OR DECEASED
  .D S^APCM13E1(APCMRPT,APCMIC,$P(APCMEP,U,1),APCMP,APCMRPTT,APCMTIME,F)
  .D SETLIST^APCM13E1
  Q
+HADV(P,PROV,BD,ED) ;EP
+ NEW X,Y,G,V
+ S X=0,G="" F  S X=$O(^AUPNVPRV("B",PROV,X)) Q:X'=+X!(G)  D
+ .Q:'$D(^AUPNVPRV(X,0))
+ .Q:$P(^AUPNVPRV(X,0),U,2)'=P
+ .Q:$P(^AUPNVPRV(X,0),U,4)'="P"
+ .S V=$P(^AUPNVPRV(X,0),U,3)
+ .Q:'$D(^AUPNVSIT(V,0))
+ .I "AOSM"'[$P(^AUPNVSIT(V,0),U,7) Q  ;not correct service category
+ .S C=$$CLINIC^APCLV(V,"C")
+ .I C=30 Q  ;no ER per Carmen patch 1
+ .I C=77 Q  ;no case management clinic 77 per Chris
+ .I C=76 Q  ;no lab
+ .I C=63 Q  ;no radiology
+ .I C=39 Q  ;no pharmacy
+ .S G=1
+ .Q
+ Q G
 HASPWHR(P,BD,ED,R,VSTS) ;
  ;
  NEW A,B,C,D,E,X,Y,V,PWH,T,W,Z,Q
  S PWH=""
  S D=$$FMADD^XLFDT(BD,-1)
  S A=D,B=0 F  S A=$O(^APCHPWHL("AA",P,A)) Q:A'=+A!($P(A,".")>ED)!(PWH)  D
- .;MUST HAVE PL, MEDS, ALLERGIES AND LABS AS A COMPONENT
  .S Z=0,C=0 F  S Z=$O(^APCHPWHL("AA",P,A,Z)) Q:Z'=+Z!(PWH)  D
  ..S W=$P(^APCHPWHL(Z,0),U,2)
  ..Q:'W
- ..S Q=0 F  S Q=$O(^APCHPWHT(W,1,Q)) Q:Q'=+Q  D
- ...S R=$P($G(^APCHPWHT(W,1,Q,0)),U,2)
- ...Q:'R
- ...S R=$P($G(^APCHPWHC(R,0)),U,1)
- ...I R["MEDICATIONS" S C=C+1
- ...I R["PROBLEM LIST" S C=C+1
- ...I R["RECENT LAB" S C=C+1
- ...I R["ALLERGIES" S C=C+1
- ...Q:C'=4
- ...S PWH=1_U_$$DATE^APCM1UTL(A)_" "_$P(^APCHPWHT(W,0),U)
+ ..;REMOVED CHECK ON TYPE OF PWH
+ ..S PWH=1_U_$$DATE^APCM1UTL(A)_" "_$P(^APCHPWHT(W,0),U)
  Q PWH
 SC ;EP - REFERRAL, SUMMARY OF CARE
  NEW APCMP

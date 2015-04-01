@@ -1,5 +1,5 @@
-BYIMIMM2 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3,4**;NOV 01, 2013;Build 189
+BYIMIMM2 ;IHS/CIM/THL - IMMUNIZATION DATA EXCHANGE;
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6**;NOV 01, 2013;Build 229
  ;;CONTINUATION OF BYIMIMM
  ;
  ;-----
@@ -21,13 +21,14 @@ MATCH ;EP;COUNT NUMBER OF MATCHES
  U 0
  W !!,"Import information:"
  W !,"-------------------"
- W !,"Number of immunizations to be added to RPMS: ",BYIMNCNT," (prior to this import)"
+ W !,"Number of immunizations already listed in IZAD prior to this import"
+ W !,"that need to be reviewed to be added to RPMS: ",BYIMNCNT
  W !,"Number of patients in this import file.....: ",MSGCNT
  W !,"Number of immunizations in this import file: ",RXACNT
  W !,"Number of immunizations in this import that can be added to RPMS..: ",K
  W !,"Number of immunizations in this import that can't be added to RPMS: ",RXACNT-K
  W !,"(No Patient match or immunization already in RPMS)",!
- D PAUSE^BYIMIMM
+ D PAUSE^BYIMIMM6
  Q:'$O(^BYIMPARA(DUZ(2),4,0))
  ;-----
 NN ;EP;TO SELECT DEVICE FOR THE NO MATCH REPORT
@@ -127,7 +128,7 @@ N1 S NAME=$P(Y,U)
  S XPAT=$O(^DPT("B",X,0))
  I 'XPAT!(MM]"") W " (",$S(MM]"":MM,1:"NAME")," MISMATCH)"
  S ^BYIMXTMP("BYIM","NO MATCH NAME",J)=DUZ(2)_U_YY
- I '$D(ZTQUEUED),IO=$P(IO("HOME"),U,2),J#20=0 W ! D PAUSE^BYIMIMM S:X["^" BYIMQUIT="",XXX=U
+ I '$D(ZTQUEUED),IO=$P(IO("HOME"),U,2),J#20=0 W ! D PAUSE^BYIMIMM6 S:X["^" BYIMQUIT="",XXX=U
  Q
  ;-----
 NN1 ;NO NAME HEADER
@@ -152,7 +153,7 @@ AUTOIMP ;EP;TO AUTOMATICALLY IMPORT IMMUNIZATIONS
  N AUTOIMP,AUTOADD,DIR,FILE
  S AUTOIMP=$P($G(^BYIMPARA(DUZ(2),0)),U,4)
  S AUTOADD=$P($G(^BYIMPARA(DUZ(2),0)),U,5)
- D PATH^BYIMIMM
+ D PATH^BYIMIMM6
  Q:IPATH=""
  S DIR=$$LIST^%ZISH(IPATH,"*",.DIR)
  S FILE=""
@@ -252,17 +253,22 @@ SDISP ;EP;SHOW DISPLAY OF PATIENT'S IMMUNIZATIONS EXPORTED
  .I $G(TYPE)]"" Q:$P(X,U,4)'=TYPE
  .S DAT=$P(X,U,2)+17000000
  .S IMM=$P(X,U,3)
+ .Q:'IMM
+ .Q:'$D(^AUPNVIMM(IMM,0))
+ .Q:'$P(^AUPNVIMM(IMM,0),U,3)
  .S DAT=$E(DAT,5,6)_"/"_$E(DAT,7,8)_"/"_$E(DAT,1,4)
- .S VIS=$P($G(^AUPNVSIT(+$P($G(^AUPNVIMM(+IMM,0)),U,3),0)),".")+17000000
+ .S VIS=$P($G(^AUPNVSIT(+$P($G(^AUPNVIMM(+IMM,0)),U,3),0)),".")
+ .Q:'VIS
+ .S VIS=VIS+17000000
  .S IMM=$P($G(^AUTTIMM(+$G(^AUPNVIMM(+IMM,0)),0)),U)
- .S VIS=$E(VIS,5,6)_"/"_$E(VIS,7,8)_"/"_$E(VIS,1,4)
+ .S:VIS VIS=$E(VIS,5,6)_"/"_$E(VIS,7,8)_"/"_$E(VIS,1,4)
  .W !?5,DAT,?18,$E(IMM,1,20),?40,VIS
  .S J=J+1
  .I IOST["C-",J#15=0 D READ,SHEAD
  K BYIMQUIT
  ;-----
 READ N XXX
- I '$D(ZTQUEUED) D PAUSE^BYIMIMM S:X["^" BYIMQUIT="" Q
+ I '$D(ZTQUEUED) D PAUSE^BYIMIMM6 S:X["^" BYIMQUIT="" Q
  Q
  ;-----
 SHEAD ;EP;HEADER FOR EXPORT LIST DISPLAY
@@ -474,7 +480,36 @@ NCNT ;COUNT NEW IMMS PRIOR TO NEW IMPORT
  .....S BYIMNCNT=BYIMNCNT+1
  Q
  ;-----
-P4 ;EP;VOR VERSION 2.0 PATCH 4
+P4 ;EP;FOR VERSION 2.0 PATCH 4
+ Q
+ ;-----
+P5 ;EP;FOR VERSION 2.0 PATCH 5
+ ;IMPROVED IZFS DISPLAY
+ ;CORRECT HFSA^BYIMIMM6 CALL
+ ;CORRECT SCRN^BYIMIMMT BYIMALL VARIABLE
+ ;RE-COMPILE 'HL IHS IZV04 OUT'
+ ;SET ALL 'LAST EXPORT' PIECE 2 $H
+ S MESS=$O(^INTHL7M("B","HL IHS IZV04 OUT",0))
+ Q:'MESS
+ S SEG=""
+ S X=0
+ F  S X=$O(^INTHL7M(MESS,1,X)) Q:'X  I $G(^(X,4))["$$SCRN" S ^(4)="I $$SCRN^BYIMIMM6(.INDA)",SEG=X
+ Q:'SEG
+ S SCR=$O(^INRHS("B","Generated: HL IHS IZV04 OUT-O",0))
+ Q:SCR'=$P($G(^INTHL7M(MESS,"S")),U,2)
+ S Y=MESS
+ S INGALL=1
+ S INSS=SCR
+ D EN^INHSGZ
+ N X
+ S X=0
+ F  S X=$O(^BYIMPARA(DUZ(2),"LAST EXPORT",X)) Q:'X  I X'=DT,$G(^(X)),'$P(^(X),U,2) S $P(^BYIMPARA(DUZ(2),"LAST EXPORT",X),U,2)=$P(^BYIMPARA(DUZ(2),"LAST EXPORT",X),U)
+ Q
+ ;-----
+P6 ;EP;FOR VERSION 2.0 PATCH 6
+ N X,Y,Z
+ S X=+$O(^INTHL7F("B","HL IHS IZV04 MSH-05 RECEIVING APP",0))
+ K ^INTHL7F(X,5)
  Q
  ;-----
 P3 ;EP;FOR VERSION 2.0 PATCH 3

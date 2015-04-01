@@ -1,5 +1,5 @@
-BYIMIMM3 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3,4**;NOV 01, 2013;Build 189
+BYIMIMM3 ;IHS/CIM/THL - IMMUNIZATION DATA EXCHANGE;
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6**;NOV 01, 2013;Build 229
  ;;CONTINUATION OF BYIMIMM
  ;
  ;-----
@@ -73,31 +73,33 @@ DR ;SELECT DATE RANGE FOR DISPLAY
  ;-----
 DISP ;EP;TO DISPLAY FILE STATS REPORT
  K BYIMQUIT
- N JJ,XX,YY,ZZ,XXX
+ N X,Y,Z,JJ,XX,YY,ZZ,XXX,BYIMPREF
  S JJ=0
  D HDR
+ S BYIMPREF=""
+ S XX=BYIMBEG
+ S:'XX XX=$E(XX,1,$L(XX)-1)
+ S:XX XX=XX-1
+ F  S XX=$O(^BYIMPARA(XREF,XX)) Q:XX=""!($S(BYIMBEG:XX>BYIMEND,1:XX'[BYIMBEG))!(BYIMPREF]"")  D
+ .S YY=0
+ .F  S YY=$O(^BYIMPARA(XREF,XX,DUZ(2),YY)) Q:'YY!(BYIMPREF]"")  D
+ ..S X=$G(^BYIMPARA(DUZ(2),2,YY,0))
+ ..S Y=$P(X,U),(BYIMPREF,BYIMPREF(1))="File Name Prefix: "_$S($L(Y,"_")<3:"izdata",1:$P(Y,"_",1,2)_"_")
  S XX=BYIMBEG
  S:'XX XX=$E(XX,1,$L(XX)-1)
  S:XX XX=XX-1
  F  S XX=$O(^BYIMPARA(XREF,XX)) Q:XX=""!($S(BYIMBEG:XX>BYIMEND,1:XX'[BYIMBEG))!$D(BYIMQUIT)  D
  .S YY=0
  .F  S YY=$O(^BYIMPARA(XREF,XX,DUZ(2),YY)) Q:'YY!$D(BYIMQUIT)  D D1
- I '$D(ZTQUEUED) W !! D PAUSE^BYIMIMM
- Q
- ;-----
-HDR ;DISPLAY HEADER
- S JJ=JJ+6
- W @IOF
- W !!,"File Status Report",?40,"Report Date: "
- W $E(DT,4,5),"/",$E(DT,6,7),"/",$E(DT,1,3)+1700
- W !!,?20,"IMP/EXP",?40,"Pat-",?48,"Imuni-",?56,"NO Pat",?64,"New",?72,"Imms"
- W !,"File",?20,"Date",?32,"Type",?40,"ients",?48,"zations",?56,"Match",?64,"Imms",?72,"Added"
- W !,"------------------",?20,"----------",?32,"------",?40,"------",?48,"------",?56,"------",?64,"------",?72,"------"
+ I '$D(ZTQUEUED) W !! D PAUSE^BYIMIMM6
  Q
  ;-----
 D1 ;GET FILE INFO
- S X=^BYIMPARA(DUZ(2),2,YY,0)
+ I JJ=6 W !,BYIMPREF
+ S X=$G(^BYIMPARA(DUZ(2),2,YY,0))
  S Y=$P(X,U)
+ S BYIMPREF="File Name Prefix: "_$S($L(Y,"_")<3:"izdata",1:$P(Y,"_",1,2)_"_")
+ S Y=$S($L(Y,"_")<3:$P(Y,"izdata",2),1:$P($P(Y,U),"_",3,99))
  S DATE=$P(X,U,2)
  S DATE=$E(DATE,4,5)_"/"_$E(DATE,6,7)_"/"_($E(DATE,1,3)+1700)
  S $E(Y,21)=DATE
@@ -109,11 +111,12 @@ D1 ;GET FILE INFO
  S $E(Y,57)=$J($P(X,U,6),5)
  S $E(Y,65)=$J($P(X,U,7),5)
  S $E(Y,73)=$J($P(X,U,8),5)
+ I BYIMPREF'=BYIMPREF(1) W !!,BYIMPREF S BYIMPREF(1)=BYIMPREF
  W !,Y
  S JJ=JJ+1
  I '$D(ZTQUEUED),JJ#IOSL=0 D
  .W !!
- .D PAUSE^BYIMIMM
+ .D PAUSE^BYIMIMM6
  .I X[U S BYIMQUIT="" Q
  .D HDR
  Q
@@ -127,23 +130,26 @@ OL(INDA) ;EP;TO SET OUTSIDE LOCATION
  Q OL
  ;-----
 HX1(X) ;EP;TO RETURN HX CODE
- N VIS,V0,TYPE,CB,MFI
- D VINFO
+ N VIS,I0,V0,TYPE,CB,MFI
+ D VINFO(X)
  Q:CB=.5!$L(MFI) "02"
- Q:"CTNOEX"[TYPE "01"
+ Q:"CTNOEDXM"[TYPE "01"
  Q "00"
  ;-----
 HX2(X) ;EP;TO RETURN HX CODE
- N VIS,V0,TYPE,CB,MFI
- D VINFO
+ N VIS,I0,V0,TYPE,CB,MFI
+ D VINFO(X)
  Q:CB=.5!$G(MFI) "HISTORICAL INFORMATION - OTHER PROVIDER"
  Q:TYPE="E"!'VIS "HISTORICAL INFORMATION - SOURCE UNSPECIFIED"
  Q "NEW IMMUNIZATION RECORD"
  ;-----
-VINFO ;GET VISIT INFOR
- S VIS=+$P($G(^AUPNVIMM(+$G(X),0)),U,3)
+VINFO(X) ;GET VISIT INFOR
+ N X1,X2
+ S I0=$G(^AUPNVIMM(+$G(X),0))
+ S VIS=+$P(I0,U,3)
  S V0=$G(^AUPNVSIT(VIS,0))
  S TYPE=$P(V0,U,7)
+ I $G(BYIMHIST),BYIMHIST>+V0!'$P(I0,U,5) S TYPE="E"
  S CB=$P(V0,U,23)
  S MFI=$P($G(^AUPNVSIT(VIS,11)),U,13)
  Q
@@ -242,8 +248,10 @@ HRN(INDA) ;EP;TO RETURN THE HRN CODE
 RACE(INDA) ;EP;TO RETURN RACE
  N X,Y,Z
  I '$G(INDA) Q "2131-1^OTHER RACE^HL70005"
- S X=$P($G(^DPT(INDA,0)),U,6)
+ S X=$O(^DPT(INDA,.02,0))
+ S:'X X=$P($G(^DPT(INDA,0)),U,6)
  S:X X=$P($G(^DIC(10,X,0)),U,3)_U_$P($G(^DIC(10,X,0)),U)
+ S:X["9999-4" X=U_$P(X,U,2)
  I $P(X,U)="" D
  .S Y=$P(X,U,2)
  .S:Y["AMERICAN INDIAN" X="1002-5"_X
@@ -270,19 +278,24 @@ ETH(DFN)  ;EP;TO RETURN ETHNICITY
  Q Z
  ;-----
 TEST ;EP;CREATE & SEND TEST MESSAGES
+ N Y
+ S Y=$P($G(^BYIMPARA(DUZ(2),0)),U,6)
+ S YEARS=$S('Y:19,Y=1:65,1:99)
+ S CHILD=$S('Y:"Children",1:"Patients")
  W @IOF
  W !!?10,"TEST export option"
- W !!?10,"An export file will be created for patients"
- W !?10,"18 years of age or under."
+ W !!?10,"An export file will be created for"
+ W !?10,CHILD," ",$S(YEARS=19:"18 years of age or under.",1:"of all ages.")
  W !!
  K DIR
- S DIR(0)="NO^10:999"
+ S DIR(0)="NO^10:1000"
  S DIR("A",1)="Enter the number of patients"
  S DIR("A")="to include in the test export"
  S DIR("B")="10"
  D ^DIR
  K DIR
  Q:'Y
+ N BYIMTEST
  S BYIMTEST=Y
  N BYIMALL
  S BYIMALL=2
@@ -307,9 +320,9 @@ TEST ;EP;CREATE & SEND TEST MESSAGES
  .S ^BYIMTMP($J,"BYIM EXP",DFN,VIS)=""
  .S J=J+1
  S MSGCNT=BYIMTEST+1
- S CHILD="Children"
- S YEARS=19
  S XX=$P($H,",",2)
+ N DDATE
+ S (DDATE,DDDATE)=$O(^BYIMPARA(DUZ(2),"LAST EXPORT",9999999999),-1)
  D DEX^BYIMIMM
  Q
  ;-----
@@ -399,4 +412,47 @@ PUBDT(INDA) ;EP;TO DETERMINE PUBLICITY DATE
  S:X'?7N X=DT
  S X=X+17000000
  Q X
+ ;-----
+IVFS(INDA) ;EP;TO RETURN IMMUNIZATION SPECIFIC VFC CODE
+ N X,Y,Z,ZD,VFC
+ S X=+$P($G(^AUPNVIMM(+INDA,0)),U,5)
+ S Y=$P($G(^AUTTIML(X,0)),U,13)
+ S Z=$S(Y="v":"VXC1",Y="o":"VXC2",Y="i":"VXC3",1:"UNK")
+ S ZD=$S(Y="v":"Federal funds",Y="o":"State funds",Y="i":"Tribal funds",1:"Unspecified")
+ S X=Z_CS_ZD_CS_"CDCPHINVS"
+ Q X
+ ;-----
+HDR ;DISPLAY HEADER
+ S JJ=JJ+6
+ W @IOF
+ W !!,"File Status Report",?40,"Report Date: "
+ W $E(DT,4,5),"/",$E(DT,6,7),"/",$E(DT,1,3)+1700
+ W !!,?20,"IMP/EXP",?40,"Pat-",?48,"Imuni-",?56,"NO Pat",?64,"New",?72,"Imms"
+ W !,"File",?20,"Date",?32,"Type",?40,"ients",?48,"zations",?56,"Match",?64,"Imms",?72,"Added"
+ W !,"------------------",?20,"----------",?32,"------",?40,"------",?48,"------",?56,"------",?64,"------",?72,"------"
+ Q
+ ;-----
+DIRECT ;EP;DIRECT FIND OF PATIENT
+ K Y,MM
+ N X,Z,DFN,NAMEX
+ S NAME=$P(NAME,",")_","_$P($P(NAME,",",2)," ")
+ S NAME=$TR(NAME,".","")
+ S (X,NAMEX)=$E(NAME,1,$L(NAME)-1)
+ F  S X=$O(^DPT("B",X)) Q:X=""!(X'[NAMEX)  D
+ .S Y=0
+ .F  S Y=$O(^DPT("B",X,Y)) Q:'Y  D
+ ..S Z=$G(^DPT(Y,0))
+ ..I $P(Z,U,3)=DOB,$P(Z,U,2)=SEX S DFN=Y Q
+ ..I $P(Z,U,3)=DOB,$P(Z,U,2)'=SEX S MM="SEX"
+ ..I $P(Z,U,3)'=DOB,$P(Z,U,2)=SEX S MM="DOB"
+ I $G(DFN) S Y=DFN Q
+ S Y=0
+ I HRN F  S Y=$O(^AUPNPAT("D",HRN,Y)) Q:'Y  D
+ .S Z=$G(^DPT(Y,0))
+ .I $P(Z,U,3)=DOB,$P(Z,U,2)=SEX S DFN=Y
+ .I $P(Z,U,3)=DOB,$P(Z,U,2)'=SEX S MM="SEX"
+ .I $P(Z,U,3)'=DOB,$P(Z,U,2)=SEX S MM="DOB"
+ S:$G(DFN) Y=DFN
+ S:$G(MM)="" MM="NAME"
+ Q
  ;-----

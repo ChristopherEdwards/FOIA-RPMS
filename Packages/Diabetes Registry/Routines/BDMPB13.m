@@ -1,5 +1,5 @@
 BDMPB13 ; IHS/CMI/LAB - 2003 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;LORI - ADD V04,81
  ;
  ;cmi/anch/maw 9/12/2007 code set versioning in PLDMDXS,IFG,IGT,MS,ABNG
@@ -58,13 +58,17 @@ LASTWT(P,EDATE,F) ;PEP - return last wt
  I $G(F)="" S F="E"
  S BDATE=$$FMADD^XLFDT(EDATE,-365)
  NEW %,BDMARRY,E,BDMW,X,BDMN,BDM,BDMD,BDMZ,BDMX,W,H,BDMC
- NEW BDMV221 S BDMV221=$O(^ICD9("BA","V22.1 ",""))
+ ;NEW BDMV221 S BDMV221=$O(^ICD9("BA","V22.1 ",""))
  K BDM S BDMW="" S BDMX=P_"^LAST 30 MEAS WT;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(BDMX,"BDM(")
  S BDMC=0,BDMN=0 F  S BDMN=$O(BDM(BDMN)) Q:BDMN'=+BDMN!(BDMC>2)  D
  . S BDMZ=$P(BDM(BDMN),U,5)
  . I '$D(^AUPNVPOV("AD",BDMZ)) S BDMC=BDMC+1,BDMW=BDMW_"|"_$P(BDM(BDMN),U,2)_" lbs "_$$FMTE^XLFDT($P(BDM(BDMN),U)) Q
- . S BDMD=0 F  S BDMD=$O(^AUPNVPOV("AD",BDMZ,BDMD)) Q:'BDMD!(BDMW]"")  D
- .. I $P(^AUPNVPOV(BDMD,0),U)'=BDMV221 S BDMC=BDMC+1,BDMW=BDMW_"|"_$P(BDM(BDMN),U,2)_" lbs "_$$FMTE^XLFDT($P(BDM(BDMN),U))
+ . S BDMD=0 F  S BDMD=$O(^AUPNVPOV("AD",BDMZ,BDMD)) Q:'BDMD  D
+ .. ;lets change this code here to look at the taxonomy p8 06/04/2014
+ .. N TAX,CODE
+ .. S TAX=$O(^ATXAX("B","BGP PREGNANCY DIAGNOSES 2",0))
+ .. S CODE=$P($G(^AUPNVPOV(BDMD,0)),U)
+ .. I '$$ICD^BDMUTL(CODE,"BGP PREGNANCY DIAGNOSES 2",9) S BDMC=BDMC+1,BDMW=BDMW_"|"_$P(BDM(BDMN),U,2)_" lbs "_$$FMTE^XLFDT($P(BDM(BDMN),U))
  ..Q
  Q $S(F="E":BDMW,1:+BDMW)
 CMSFDX(P,R,T) ;EP - return date/dx of dm in register
@@ -82,8 +86,9 @@ PLDMDOO(P,F) ;EP
  NEW T S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
  I 'T Q ""
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .S I=$P(^AUPNPROB(X,0),U)
- .I $$ICD^ATXCHK(I,T,9) D
+ .I $$ICD^BDMUTL(I,"SURVEILLANCE DIABETES",9) D
  ..I $P(^AUPNPROB(X,0),U,13)]"" S D($P(^AUPNPROB(X,0),U,13))=""
  ..Q
  .Q
@@ -94,8 +99,9 @@ PLDMDXS(P) ;EP - get all DM dxs from problem list
  I 'T Q "<diabetes taxonomy missing>"
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
- .;I $$ICD^ATXCHK(I,T,9) S:D]"" D=D_";" S D=D_$P(^ICD9(I,0),U)  ;cmi/anch/maw 9/12/2007 orig line
- .I $$ICD^ATXCHK(I,T,9) S:D]"" D=D_";" S D=D_$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .;I $$ICD^BDMUTL(I,T,9) S:D]"" D=D_";" S D=D_$P(^ICD9(I,0),U)  ;cmi/anch/maw 9/12/2007 orig line
+ .I $$ICD^BDMUTL(I,"SURVEILLANCE DIABETES",9) S:D]"" D=D_";" S D=D_$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
  .Q
  Q D
  ;
@@ -127,15 +133,17 @@ IFG(P,BDMRET) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .S I=$P($$ICDDX^ICDCODE(I),U,2)
- .Q:I'="790.21"
- .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_I_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
+ .;ihs/cmi/maw 06/04/2014 p8
+ .;S I=$P($$ICDDX^BDMUTL(I),U,2)
+ .;Q:I'="790.21"
+ .Q:'$$ICD^BDMUTL(I,"BGP IMPAIRED FASTING GLUCOSE",9)
+ .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_$P($$ICDDX^BDMUTL(I),U,2)_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
  .Q
  ;now look at first and last pov
  S Y="BDM("
- S X=P_"^LAST DX 790.21;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
+ S X=P_"^LAST DX [BGP IMPAIRED FASTING GLUCOSE;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
  I $D(BDM(1)) S BDMC=BDMC+1,BDMRET(BDMC)="Last POV in PCC: "_$P(BDM(1),U,2)_"  Date: "_$$FMTE^XLFDT($P(BDM(1),U))
- K BDM S X=P_"^FIRST DX 790.21;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
+ K BDM S X=P_"^FIRST DX [BGP IMPAIRED FASTING GLUCOSE;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
  I $D(BDM(1)) S BDMC=BDMC+1,BDMRET(BDMC)="First POV in PCC: "_$P(BDM(1),U,2)_"  Date: "_$$FMTE^XLFDT($P(BDM(1),U))
  Q
 IGT(P,BDMRET) ;EP
@@ -149,15 +157,17 @@ IGT(P,BDMRET) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .S I=$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
- .Q:I'="790.22"
- .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_I_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
+ .;ihs/cmi/maw 06/04/2014 p8
+ .;S I=$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .;Q:I'="790.22"
+ .Q:'$$ICD^BDMUTL(I,"DM AUDIT IGT DXS",9)
+ .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_$P($$ICDDX^BDMUTL(I),U,2)_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
  .Q
  ;now look at first and last pov
  S Y="BDM("
- S X=P_"^LAST DX 790.22;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
+ S X=P_"^LAST DX [DM AUDIT IGT DXS;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
  I $D(BDM(1)) S BDMC=BDMC+1,BDMRET(BDMC)="Last POV in PCC: "_$P(BDM(1),U,2)_"  Date: "_$$FMTE^XLFDT($P(BDM(1),U))
- K BDM S X=P_"^FIRST DX 790.22;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
+ K BDM S X=P_"^FIRST DX [DM AUDIT IGT DXS;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
  I $D(BDM(1)) S BDMC=BDMC+1,BDMRET(BDMC)="First POV in PCC: "_$P(BDM(1),U,2)_"  Date: "_$$FMTE^XLFDT($P(BDM(1),U))
  Q
 MS(P,BDMRET) ;EP
@@ -171,15 +181,17 @@ MS(P,BDMRET) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .S I=$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
- .Q:I'="277.7"
- .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_I_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
+ .;ihs/cmi/maw 06/04/2014 p8
+ .;S I=$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .;Q:I'="277.7"
+ .Q:'$$ICD^BDMUTL(I,"DM AUDIT METABOLIC SYNDROME",9)
+ .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_$P($$ICDDX^BDMUTL(I),U,2)_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
  .Q
  ;now look at first and last pov
  S Y="BDM("
- S X=P_"^LAST DX 277.7;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
+ S X=P_"^LAST DX [DM AUDIT METABOLIC SYNDROME;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
  I $D(BDM(1)) S BDMC=BDMC+1,BDMRET(BDMC)="Last POV in PCC: "_$P(BDM(1),U,2)_"  Date: "_$$FMTE^XLFDT($P(BDM(1),U))
- K BDM S X=P_"^FIRST DX 277.7;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
+ K BDM S X=P_"^FIRST DX [DM AUDIT METABOLIC SYNDROME;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
  I $D(BDM(1)) S BDMC=BDMC+1,BDMRET(BDMC)="First POV in PCC: "_$P(BDM(1),U,2)_"  Date: "_$$FMTE^XLFDT($P(BDM(1),U))
  Q
 ABNG(P,BDMRET) ;EP
@@ -192,14 +204,16 @@ ABNG(P,BDMRET) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .S I=$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
- .Q:I'="790.29"
- .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_I_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
+ .;ihs/cmi/maw 06/04/2014 p8
+ .;S I=$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .;Q:I'="790.29"
+ .Q:'$$ICD^BDMUTL(I,"DM AUDIT ABNORMAL GLUCOSE",9)
+ .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_$P($$ICDDX^BDMUTL(I),U,2)_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
  .Q
  ;now look at first and last pov
  S Y="BDM("
- S X=P_"^LAST DX 790.29;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
+ S X=P_"^LAST DX [DM AUDIT ABNORMAL GLUCOSE;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
  I $D(BDM(1)) S BDMC=BDMC+1,BDMRET(BDMC)="Last POV in PCC: "_$P(BDM(1),U,2)_"  Date: "_$$FMTE^XLFDT($P(BDM(1),U))
- K BDM S X=P_"^FIRST DX 790.29;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
+ K BDM S X=P_"^FIRST DX [DM AUDIT ABNORMAL GLUCOSE;DURING "_$$DOB^AUPNPAT(P,"E")_"-"_DT S E=$$START1^APCLDF(X,Y)
  I $D(BDM(1)) S BDMC=BDMC+1,BDMRET(BDMC)="First POV in PCC: "_$P(BDM(1),U,2)_"  Date: "_$$FMTE^XLFDT($P(BDM(1),U))
  Q

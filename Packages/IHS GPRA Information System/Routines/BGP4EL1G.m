@@ -1,5 +1,5 @@
-BGP4EL1G ; IHS/CMI/LAB - print ind 1 ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+BGP4EL1G ; IHS/CMI/LAB - print ind 1 ; 25 Mar 2014  6:57 PM
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
 I1AGE ;EP  special age tallies
@@ -93,9 +93,9 @@ I1AGEP ;
  W !,"CURRENT REPORT PERIOD"
  W !,BGPHD2
  S T=28 F X=1:1:4 S V=$P(BGPDAC(X),U) W ?T,$$C(V,0,6) S T=T+12
- W !,"# w/BP's documented",!?2,"w/in 2 yrs"
+ W !,"# w/BP's documented"
  S T=28 F X=1:1:4 S V=$P(BGPDAC(X),U,2) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/BP's documented",!?2,"w/in 2 yrs"
+ W !,"% w/BP's documented"
  S T=27 F X=1:1:4 S V=$P(BGPDAC(X),U,3) W ?T,$J(V,6,1) S T=T+12
  W !!,"# A. w/Normal BP w/ %",!," of Total Screened"
  S T=28 F X=1:1:4 S V=$P(BGPDAC(X),U,4) W ?T,$$C(V,0,6) S T=T+12
@@ -126,9 +126,9 @@ PR ;
  W !!,"PREVIOUS YEAR PERIOD"
  W !,BGPHD2
  S T=28 F X=1:1:4 S V=$P(BGPDAP(X),U) W ?T,$$C(V,0,6) S T=T+12
- W !,"# w/BP's documented",!?2,"w/in 2 yrs"
+ W !,"# w/BP's documented"
  S T=28 F X=1:1:4 S V=$P(BGPDAP(X),U,2) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/BP's documented",!?2,"w/in 2 yrs"
+ W !,"% w/BP's documented"
  S T=27 F X=1:1:4 S V=$P(BGPDAP(X),U,3) W ?T,$J(V,6,1) S T=T+12
  W !!,"# A. w/Normal BP w/ %",!," of Total Screened"
  S T=28 F X=1:1:4 S V=$P(BGPDAP(X),U,4) W ?T,$$C(V,0,6) S T=T+12
@@ -152,7 +152,7 @@ PR ;
  S T=27 F X=1:1:4 S V=$P(BGPDAP(X),U,13) W ?T,$J(V,6,1) S T=T+12
  ;percentage changes
  W !!,"CHANGE FROM PREV YR %"
- W !,"# w/BP's documented",!?2,"w/in 2 yrs"
+ W !,"# w/BP's documented"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,3),O=$P(BGPDAP(X),U,3) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
  W !,"# A. w/Normal BP w/ %",!," of Total Screened"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAP(X),U,5) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
@@ -169,9 +169,9 @@ BL ;
  W !!,"BASELINE REPORT PERIOD"
  W !,BGPHD2
  S T=28 F X=1:1:4 S V=$P(BGPDAB(X),U) W ?T,$$C(V,0,6) S T=T+12
- W !,"# w/BP's documented",!?2,"w/in 2 yrs"
+ W !,"# w/BP's documented"
  S T=28 F X=1:1:4 S V=$P(BGPDAB(X),U,2) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/BP's documented",!?2,"w/in 2 yrs"
+ W !,"% w/BP's documented"
  S T=27 F X=1:1:4 S V=$P(BGPDAB(X),U,3) W ?T,$J(V,6,1) S T=T+12
  W !!,"# A. w/Normal BP w/ %",!," of Total Screened"
  S T=28 F X=1:1:4 S V=$P(BGPDAB(X),U,4) W ?T,$$C(V,0,6) S T=T+12
@@ -195,7 +195,7 @@ BL ;
  S T=27 F X=1:1:4 S V=$P(BGPDAB(X),U,13) W ?T,$J(V,6,1) S T=T+12
  ;percentage changes
  W !!,"CHANGE FROM BASE YR %"
- W !,"# w/BP's documented",!?2,"w/in 2 yrs"
+ W !,"# w/BP's documented"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,3),O=$P(BGPDAB(X),U,3) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
  W !,"# A. w/Normal BP w/ %",!," of Total Screened"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAB(X),U,5) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12

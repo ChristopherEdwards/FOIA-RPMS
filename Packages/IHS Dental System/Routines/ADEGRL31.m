@@ -1,5 +1,6 @@
 ADEGRL31 ; IHS/HQT/MJL - DENTAL ENTRY PART 5 ;  [ 03/24/1999   9:04 AM ]
- ;;6.0;ADE;;APRIL 1999
+ ;;6.0;ADE;**26**;APRIL 1999;Build 13
+ ;;IHS/OIT/GAB 10.2014 Modified for 2015 Code Updates - PATCH 26
 DEL ;EP
  Q:'$D(ADEV)  D LIST^ADEGRL3
 D1 W !!,"DELETE WHICH CODE? "
@@ -13,7 +14,10 @@ EXIT ;EP
  I (X="^Q")!(X="^") S ADENOUPD=1,Y=1 W !!,?20,"***DATA ENTRY ABORTED***",*7 H 1 Q
  I ADELOED']"" W !,*7,"YOU MUST ENTER A LOCATION OF ENCOUNTER. ENTER ^L AT THE 'Select ADA CODE",!,"(or Action)' PROMPT TO EDIT LOCATION OF ENCOUNTER." D CON S Y=0 Q
  I ADERDNMD']"" W !,*7,"YOU MUST ENTER AN ATTENDING DENTIST. ENTER ^D AT THE 'Select ADA CODE,",!,"(or Action)' PROMPT TO EDIT ATTENDING DENTIST." D CON S Y=0 Q
- I '$D(ADEV("0000")),'$D(ADEV("0190")),'$D(ADEV("9130")),'$D(ADEV("9140")) W !,*7,"You must enter a VISIT STATUS Code, either 0000, 0190, 9130, or 9140." D CON S Y=0 Q
+ ;/IHS/OIT/GAB 11.2014 Patch #26 Removed below line to add 2015 codes 9986 & 9987 (cancelled or missed appt.) 
+ ;I '$D(ADEV("0000")),'$D(ADEV("0190")),'$D(ADEV("9130")),'$D(ADEV("9140")) W !,*7,"You must enter a VISIT STATUS Code, either 0000, 0190, 9130, or 9140." D CON S Y=0 Q
+ ;/IHS/OIT/GAB 11.2014 Patch #26 Added below line to change to 9986 & 9987 for 2015 code updates
+ I '$D(ADEV("0000")),'$D(ADEV("0190")),'$D(ADEV("9130")),'$D(ADEV("9140")),'$D(ADEV("9986")),'$D(ADEV("9987")) W !,*7,"You must enter a VISIT STATUS Code, either 0000, 0190, 9986, or 9987." D CON S Y=0 Q
  ;PROMPT FOR FINISH CONFIRMATION HERE
  D HYGCHK
  D CHK Q:'Y

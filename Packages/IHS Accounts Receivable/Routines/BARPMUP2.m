@@ -1,5 +1,5 @@
 BARPMUP2 ; IHS/SD/LSL - MANUAL UPLOAD PROCESS ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;*24*;OCT 26, 2005;Build 69
  ;
  ; IHS/SD/LSL - 12/12/02 - V1.7 - NHA-0601-180049
  ;      Modified to find the correct bill in 3P.  Modified routine
@@ -15,24 +15,31 @@ BARPMUP2 ; IHS/SD/LSL - MANUAL UPLOAD PROCESS ;
  ; *********************************************************************
  ;
  ;** Manual upload process by approval dates
- ; JULY 2013 FIXED END DATE IN ^ABMDBILL(DUZ(2),"AP" DATE LOOP
+ ;
+ ;IHS/SD/SDR JULY 2013 belcourt HEAT118656 - BAR*1.8*.24
+ ;IHS/SD/POT LOCK (MAKE UPL PROCESS EXCLUSIVE)  - BAR*1.8*.24
  Q
  ; *********************************************************************
  ;
 EN ;EP - entry
+ ;START NEW CODE START BAR*1.8*.24
+ L +@($T(+0)):0
+ E  W !!!,"THE UPLOAD OPTION IS BEING ACCESSED BY ANOTHER USER. TRY AGAIN LATER.",! D EOP^BARUTL(1) Q  ;ALLOW ONLY ONE INSTANCE RUNNING
+ ;END OF NEW CODE BAR*1.8*.24
  D ^BARVKL0
  S BARESIG=""
  D SIG^XUSESIG                             ; Get electronic sig
  Q:X1=""
  I '$D(BARUSR) D INIT^BARUTL               ; Initialize A/R environment
- S BAROPT="Upload by date"               ; LSL - V1.7 Patch 1
+ S BAROPT="Upload by date"                 ; LSL - V1.7 Patch 1
  S (BAR("CONT"),BARERR)=0
  W !
- I ($D(^BARTMP("BARUP"))&($D(^BARTMP("BARUP","DUZ(2)")))) D  Q               ; Previous run detected
+ I ($D(^BARTMP("BARUP"))&($D(^BARTMP("BARUP","DUZ(2)")))) D  Q  ;Previous run detected
  . W $$EN^BARVDF("IOF"),!,"A PREVIOUS RUN HAS BEEN DETECTED",!
  . D STAT^BARPMUP4                         ; Display status of last run
  . I $E(BARUSTAT)="C" D ASKNEW Q           ; Previous run completed
  . D CONT                                  ; Continue last run?
+ . Q
  D NEW                                     ; Begin new run
  D EXIT
  Q
@@ -89,7 +96,8 @@ DX ;
  S ^BARTMP("BARUP","STATUS")="COMPLETE"
  W $$EN^BARVDF("IOF"),!,"This run is complete.  Here's the status",!
  D STAT^BARPMUP4
- W !!,+BARCNT_" 3P Bills updated to A/R"
+ ;W !!,+BARCNT_" 3P Bills updated to A/R"  ;IHS/SD/SDR belcourt HEAT118656
+ W !!,(+BARCNT-($O(^BARTMP("BARUP","ERRORS",""),-1)))_" 3P Bills updated to A/R"  ;IHS/SD/SDR belcourt HEAT118656
  D EOP^BARUTL(1)
  Q
  ; *********************************************************************
@@ -135,6 +143,8 @@ SCAN ;
  W !!,"Starting scan process... "
  N BARDA,DIC,BARBAL,BARBLNM
  S BARCNT=0,BARDA=0,BARBLNM=""
+ S BARSTART=BARSTART-.1  ;IHS/SD/SDR belcourt HEAT118656
+ S BAREND=BAREND+.999999  ;IHS/SD/SDR belcourt HEAT118656
  S ^BARTMP("BARUP","PREVIOUS START DATE")=BARSTART
  S ^BARTMP("BARUP","PREVIOUS END DATE")=BAREND
  S BARQ("RC")="RESUME^BARPMUP2"
@@ -151,6 +161,8 @@ RESUME ;
  S X="ERROR^BARPMUP2",@^%ZOSF("TRAP")
  S ^BARTMP("BARUP","STATUS")="IN PROCESS"
  S BARHOLD=DUZ(2)
+ S ^BARTMP("BARUP","STARTDUZ(2)")=DUZ(2)  ;IHS/SD/SDR belcourt HEAT118656
+ S BARERR=0  ;IHS/SD/SDR belcourt HEAT118656
  ; loop 3P Bill file DUZ(2)
  S DUZ(2)=0
  S:+BAR("CONT") DUZ(2)=$O(^ABMDBILL(^BARTMP("BARUP","DUZ(2)")),-1)
@@ -164,7 +176,7 @@ LOOPDT ;
  S ^BARTMP("BARUP","DUZ(2)")=DUZ(2)
  S BARAPDT=$O(^ABMDBILL(DUZ(2),"AP",BARSTART),-1)
  S:+BAR("CONT") BARAPDT=$O(^ABMDBILL(DUZ(2),"AP",^BARTMP("BARUP","LAST AP DATE",DUZ(2))),-1)
- F  S BARAPDT=$O(^ABMDBILL(DUZ(2),"AP",BARAPDT)) Q:'+BARAPDT!(BARAPDT\1>BAREND)  D LOOPBILL  ;P.OTT
+ F  S BARAPDT=$O(^ABMDBILL(DUZ(2),"AP",BARAPDT)) Q:'+BARAPDT!(BARAPDT>BAREND)  D LOOPBILL
  Q
  ; *********************************************************************
  ;
@@ -172,7 +184,8 @@ LOOPBILL ;
  ;
  S ^BARTMP("BARUP","LAST AP DATE",DUZ(2))=BARAPDT
  S BARDA=0
- S:+BAR("CONT") BARDA=^BARTMP("BARUP","LAST BILL IEN",DUZ(2))
+ ;S:+BAR("CONT") BARDA=^BARTMP("BARUP","LAST BILL IEN",DUZ(2))  ;IHS/SD/SDR belcourt HEAT118656
+ S BARDA=+$G(^BARTMP("BARUP","LAST BILL IEN",DUZ(2)))  ;IHS/SD/SDR belcourt HEAT118656
  F  S BARDA=$O(^ABMDBILL(DUZ(2),"AP",BARAPDT,BARDA)) Q:'+BARDA  D DATA
  Q
  ; *********************************************************************
@@ -188,16 +201,22 @@ DATA ;
  S (BARBAL,BARBLNM)=""
  S BARSTAT=$$GET1^DIQ(9002274.4,BARDA,.04,"I")
  ; Only want approved, billed, partial payment, or transfered bills
- Q:$S(BARSTAT="A":0,BARSTAT="B":0,BARSTAT="P":0,BARSTAT="T":0,1:1)
+ ;Q:$S(BARSTAT="A":0,BARSTAT="B":0,BARSTAT="P":0,BARSTAT="T":0,1:1)  ;IHS/SD/SDR belcourt HEAT118656- BAR*1.8*.24
+ ;all bill statuses EXCEPT REVIEWED
+ Q:$S(BARSTAT="A":0,BARSTAT="B":0,BARSTAT="P":0,BARSTAT="T":0,BARSTAT="C":0,BARSTAT="X":0,1:1)  ;IHS/SD/SDR belcourt HEAT118656- BAR*1.8*.24
  S BARBLNM=$$GET1^DIQ(9002274.4,BARDA,.01)
+ ;--------------------------------------
+ I BARBLNM]"" I $D(^BARTMP("BARUP","BAR_ERRORS",BARBLNM)) D  Q
+ . W !,"BILL # ",BARBLNM," NOT UPLOADED DUE TO: ",$G(^BARTMP("BARUP","ERROR",BARBLNM))
+ . Q
  S ^BARTMP("BARUP","LAST BILL NAME",DUZ(2))=BARBLNM
  S BAREXIST=$$FINDAR(BARBLNM)              ; Bill already in A/R?
  I +BAREXIST D ERROR2 Q                    ; It is, add  error list, q
+ S DA=BARDA                                ; IEN to 3P bill
+ D EXT^ABMAPASS                            ; Upload to A/R
  S BARCNT=BARCNT+1
  S ^BARTMP("BARUP","COUNT")=BARCNT
  I BARCNT#25=0,$E(IOST)="C",'$D(ZTQUEUED) W "."
- S DA=BARDA                                ; IEN to 3P bill
- D EXT^ABMAPASS                            ; Upload to A/R
  Q
  ; *********************************************************************
  ;
@@ -209,6 +228,7 @@ FINDAR(BARBLNM) ;
  N BARDTMP,BARSNM,BARBTMP
  S BARBTMP=-1
  S BARSNM=$P(BARBLNM,"-")
+ I $L(BARBLNM)=$L(BARSNM) S BARSNM=BARSNM_" "  ;IHS/SD/SDR belcourt HEAT118656
  S BARDTMP=0
  F  S BARDTMP=$O(^BARBL(BARDTMP)) Q:('+BARDTMP!(BARBTMP>0))  D FINDAR2
  I BARBTMP>0 Q 1
@@ -230,7 +250,12 @@ FINDAR3 ;
  ;
 ERROR ;PROCESS AN ERROR
  S BARERR=BARERR+1
+ ;N BARTMP  ;IHS/SD/SDR 10/28/13 belcourt HEAT118656
+ S BARTMP=""  ;IHS/SD/SDR 10/28/13 belcourt HEAT118656 
  S ^BARTMP("BARUP","ERRORS",BARERR)=BARBLNM_U_BARDA_U_$$GET1^DIQ(4,DUZ(2),.01)
+ ;S BARTMP=BARBLNM_U_BARDA_U_DUZ(2)_U_$ZE ;NEW CODE ADDED $ZE
+ S BARTMP=BARBLNM_U_BARDA_U_DUZ(2) ;_U_$ZE ;- BAR*1.8*.24
+ S ^BARTMP("BARUP","ERRORS",BARERR)=BARTMP
  S X="ERROR^BARPMUP2",@^%ZOSF("TRAP")
  G RESUME
  ; *********************************************************************
@@ -246,4 +271,5 @@ ERROR2 ;
 EXIT ;
  S X=^%ZOSF("ERRTN"),@^%ZOSF("TRAP")
  D ^BARVKL0
- Q
+ L -@($T(+0)) ;LINE ADDED BAR*1.8*.24
+ Q  ;EOR

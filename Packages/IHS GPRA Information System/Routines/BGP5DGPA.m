@@ -1,15 +1,15 @@
 BGP5DGPA ; IHS/CMI/LAB - ihs area GPRA 02 Sep 2004 1:11 PM ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;
  ;
  W:$D(IOF) @IOF
  S BGPA=$E($P(^AUTTLOC(DUZ(2),0),U,10),1,2),BGPA=$O(^AUTTAREA("C",BGPA,0)) S BGPA=$S(BGPA:$P(^AUTTAREA(BGPA,0),U),1:"UNKNOWN AREA")
- W !!,$$CTR(BGPA_" Area Aggregate GPRA Performance Report with user defined date range",80)
+ W !!,$$CTR(BGPA_" Area Aggregate GPRA/GPRAMA Performance Report "),$$CTR("with user defined date range",80)
 INTRO ;
  D EXIT
 TP ;
  S BGPAREAA=1
- S BGPRTYPE=1,BGP5RPTH="",BGP5GPU=1
+ S BGPRTYPE=1,BGPYRPTH="",BGPYGPU=1
  ;
  S (BGPBD,BGPED,BGPTP)=""
  S DIR(0)="S^1:January 1 - December 31;2:April 1 - March 31;3:July 1 - June 30;4:October 1 - September 30;5:User-Defined Report Period",DIR("A")="Enter the date range for your report" KILL DA D ^DIR KILL DIR
@@ -22,19 +22,19 @@ TP ;
  I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
  I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
  I BGPQTR=4 S BGPBD=($E(BGPPER,1,3)-1)_"1001",BGPED=$E(BGPPER,1,3)_"0930"
- I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-365),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-364),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
  I BGPED>DT D  G:BGPDO=1 TP
  .W !!,"You have selected Current Report period ",$$FMTE^XLFDT(BGPBD)," through ",$$FMTE^XLFDT(BGPED),"."
  .W !,"The end date of this report is in the future; your data will not be",!,"complete.",!
- .K DIR S BGPDO=0 S DIR(0)="Y",DIR("A")="Do you want to change your Current Report Dates?",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ .K DIR S BGPDO=0 S DIR(0)="Y",DIR("A")="Do you want to change your Current Report Dates",DIR("B")="N" KILL DA D ^DIR KILL DIR
  .I $D(DIRUT) S BGPDO=1 Q
  .I Y S BGPDO=1 Q
  .Q
 BY ;get baseline year
  S BGPVDT=""
- W !!,"Enter the Baseline Year to compare data to.",!,"Use a 4 digit year, e.g. 1999, 2000"
+ W !!,"Enter the Baseline Year to compare data to.",!,"Use a 4 digit year, e.g. 2010"
  S DIR(0)="D^::EP"
- S DIR("A")="Enter Year (e.g. 2000)"
+ S DIR("A")="Enter Year (e.g. 2010)"
  D ^DIR KILL DIR
  I $D(DIRUT) G TP
  I $D(DUOUT) S DIRUT=1 G TP
@@ -58,9 +58,9 @@ BEN ;
  I $D(DIRUT) G BY
  S BGPBEN=Y,BGPBENF=Y(0)
 HOME ;
-AI ;gather all gpra indicators
- S X=0 F  S X=$O(^BGPINDV("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
- S BGPINDT="G"
+AI ;gather all gpra measures
+ S X=0 F  S X=$O(^BGPINDK("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
+ S BGPINDK="G"
 ASU ;
  S BGPSUCNT=0
  S BGPRPTT=""
@@ -71,19 +71,22 @@ ASU ;
  I '$D(BGPSUL) W !!,"No sites selected" D EXIT Q
  S X=0,C=0 F  S X=$O(BGPSUL(X)) Q:X'=+X  S C=C+1
  W !!,"A total of ",C," facilities have been selected.",!!
- I C=1 S BGPRPTT="F",BGPSUCNT=1,Y=$O(BGPSUL(0)),X=$P(^BGPGPDCV(Y,0),U,9),X=$O(^AUTTLOC("C",X,0)) I X S BGPSUNM=$P(^DIC(4,X,0),U)
+ I C=1 S BGPRPTT="F",BGPSUCNT=1,Y=$O(BGPSUL(0)),X=$P(^BGPGPDCK(Y,0),U,9),X=$O(^AUTTLOC("C",X,0)) I X S BGPSUNM=$P(^DIC(4,X,0),U)
  I C>1 S BGPRPTT="A"
 ZIS ;call to XBDBQUE
 EISSEX ;
  S BGPEXCEL=""
  D ^XBFMK
  K DIC,DIADD,DLAYGO,DR,DA,DD,X,Y,DINUM
-GI ;gather all gpra indicators
- S X=0 F  S X=$O(^BGPINDV("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
- S BGPINDT="G"
+GI ;gather all gpra measures
+ S X=0 F  S X=$O(^BGPINDK("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
+ S BGPINDK="G"
+ D TEXT^BGP5DSL
+ I $D(DIRUT) G ASU
  D PT^BGP5DSL
  I BGPROT="" G ASU
  ;
+ K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,EXIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS
  I $D(IO("Q")) G TSKMN
 DRIVER ;
@@ -101,6 +104,27 @@ TSKMN ;EP ENTRY POINT FROM TASKMAN
  S ZTCPU=$G(IOCPU),ZTRTN="DRIVER^BGP5DGPA",ZTDTH="",ZTDESC="GPRA REPORT" D ^%ZTLOAD D EXIT Q
  Q
  ;
+ K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,EXIT Q
+ K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS
+ I POP D EXIT Q
+ I $D(IO("Q")) G TSKMN
+ ;
+EXIT ;
+ D ^%ZISC
+ D EN^XBVK("BGP") I $D(ZTQUEUED) S ZTREQ="@"
+ D KILL^AUPNPAT
+ D ^XBFMK
+ Q
+NODEV ;
+ S XBRP="",XBRC="NODEV1^BGP5DGPA",XBRX="EXIT^BGP5DGPA",XBNS="BGP"
+ D ^XBDBQUE
+ Q
+ ;
+NODEV1 ;
+ D PRINT^BGP5PARP
+ D ^%ZISC
+ D EXIT
+ Q
 FAC(S) ;
  NEW N S N=$O(^AUTTLOC("C",S,0))
  I N="" Q N
@@ -109,11 +133,6 @@ SU(S) ;
  NEW N S N=$O(^AUTTSU("C",S,0))
  I N="" Q N
  Q $P(^AUTTSU(N,0),U)
-EXIT ;
- D EN^XBVK("BGP")
- D KILL^AUPNPAT
- D ^XBFMK
- Q
  ;
 CHKY ;
  W !!,"The baseline year and the previous year time periods are the same.",!!
@@ -122,7 +141,7 @@ CHKY ;
  Q
 F ;calendar year
  S (BGPPER,BGPVDT)=""
- W !!,"Enter the Calendar Year for the report END date.  Use a 4 digit",!,"year, e.g. 2004"
+ W !!,"Enter the Calendar Year for the report END date.  Use a 4 digit",!,"year, e.g. 2015"
  S DIR(0)="D^::EP"
  S DIR("A")="Enter Year"
  S DIR("?")="This report is compiled for a period.  Enter a valid date."
@@ -152,18 +171,14 @@ LOC() ;EP - Return location name from file 4 based on DUZ(2).
  ;----------
  ;
 ENDDATE ;
- W !!,"When entering dates, if you do not enter a full 4 digit year (e.g. 2005)"
+ W !!,"When entering dates, if you do not enter a full 4 digit year (e.g. 2015)"
  W !,"will assume a year in the past, if you want to put in a future date,"
  W !,"remember to enter the full 4 digit year.  For example, if today is"
- W !,"January 4, 2005 and you type in 6/30/05 the system will assume the year"
- W !,"as 1905 since that is a date in the past.  You must type 6/30/2005 if you"
+ W !,"January 4, 2010 and you type in 6/30/05 the system will assume the year"
+ W !,"as 1905 since that is a date in the past.  You must type 6/30/2010 if you"
  W !,"want a date in the future."
  S (BGPPER,BGPVDT)=""
- W ! K DIR,X,Y S DIR(0)="D^::EP",DIR("A")="Enter End Date for the Report: (e.g. 11/30/2004)" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ W ! K DIR,X,Y S DIR(0)="D^::EP",DIR("A")="Enter End Date for the Report: (e.g. 11/30/2005)" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  I $D(DIRUT) Q
  S (BGPPER,BGPVDT)=Y
- Q
-DISP ;
- W:BGPC=1 !,"#",?4,"BEG DATE",?13,"END DATE",?22,"BASE BEG",?32,"BASE END",?42,"SU",?59,"FACILITY",!,"-",?4,"--------",?13,"--------",?22,"---------",?32,"-------",?42,"--",?59,"--------"
- W !,BGPC,?4,$$DATE^BGP5UTL($P(BGP0,U,1)),?13,$$DATE^BGP5UTL($P(BGP0,U,2)),?22,$$DATE^BGP5UTL($P(BGP0,U,5)),?32,$$DATE^BGP5UTL($P(BGP0,U,6)),?42,$E($$SU($P(BGP0,U,11)),1,15),?59,$E($$FAC($P(BGP0,U,9)),1,20)
  Q

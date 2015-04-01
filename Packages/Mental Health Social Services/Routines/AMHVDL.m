@@ -1,5 +1,5 @@
 AMHVDL ; IHS/CMI/LAB - LIST PT'S VISIT DATES ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
  ;
  ;
 START ;
@@ -115,13 +115,13 @@ GATHER ;
  S X="Patient Name: "_$P(^DPT(DFN,0),U),$E(X,45)="DOB: "_$$FMTE^XLFDT($P(^DPT(DFN,0),U,3)) D S(X)
  S X="HRN: "_$$HRN^AUPNPAT(DFN,DUZ(2)) D S(X)
  S X=$TR($J("",80)," ","*") D S(X)
- S X="Date",$E(X,25)="Provider",$E(X,52)="DX",$E(X,60)="NARRATIVE" D S(X)
+ S X="Date",$E(X,25)="Provider",$E(X,50)="DX",$E(X,60)="NARRATIVE" D S(X)
  S AMHV=0,AMHD=0
  F  S AMHD=$O(AMHV(AMHD)) Q:AMHD'=+AMHD  S AMHV=0 F  S AMHV=$O(AMHV(AMHD,AMHV)) Q:AMHV'=+AMHV  D
  .S AMHR0=^AMHREC(AMHV,0)
- .S X=$$FMTE^XLFDT($P(AMHR0,U)),$E(X,25)=$E($$PPNAME^AMHUTIL(AMHV),1,25)
+ .S X=$$FMTE^XLFDT($P(AMHR0,U)),$E(X,25)=$E($$PPNAME^AMHUTIL(AMHV),1,23)
  .K Y,D,N S Y=$O(^AMHRPRO("AD",AMHV,0)) I Y S D=$$VAL^XBDIQ1(9002011.01,Y,.01),N=$E($$VAL^XBDIQ1(9002011.01,Y,.04),1,20)
- .S $E(X,52)=$G(D),$E(X,60)=$G(N)
+ .S $E(X,50)=$G(D),$E(X,60)=$G(N)
  .D S(X)
  Q
 CTR(X,Y) ;EP - Center X in a field Y wide.

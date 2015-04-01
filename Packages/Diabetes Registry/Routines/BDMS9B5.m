@@ -1,5 +1,5 @@
 BDMS9B5 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,8**;JUN 14, 2007;Build 53
  ;
  ;
 MAM ;EP
@@ -38,7 +38,8 @@ PAP ;EP
  S BDMSBWR=0 S:$D(X) BDMSAVX=X S X="BWUTL1" X ^%ZOSF("TEST") S:$D(BDMSAVX) X=BDMSAVX K BDMSAVX I $T S BDMSBWR=1
  I BDMSBWR,$D(^BWP(BDMSPAT,0)) S BDMSTXN=BDMSTXN+1,BDMSTEX(BDMSTXN)=$$CNEED^BWUTL1(BDMSPAT) I BDMSTEX(1)="UNKNOWN" K BDMSTEX(1) S BDMSTXN=0
 PAPA ;
- S BDMSTP=$$HYSTER^BDMS9B4(BDMSPAT,DT)
+ ;S BDMSTP=$$HYSTER^BDMS9B4(BDMSPAT,DT)
+ S BDMSTP=$$HYSTER^BDMPB12(BDMSPAT,DT)
  I BDMSTP]"" S BDMSTXN=BDMSTXN+1,BDMSTEX(BDMSTXN)="Pt had hysterectomy.  Pap may be necessary",BDMSTXN=BDMSTXN+1,BDMSTEX(BDMSTXN)="based on individual followup."
  I $O(BDMSTEX("")) S BDMSDAT="" Q
  Q
@@ -79,71 +80,3 @@ ASPREF(P) ;EP - CHECK FOR ASPIRIN NMI OR REFUSAL
  .S G=1,DATE=9999999-X,DRUG=D,IEN=N
  I 'G Q ""
  Q $$VAL^XBDIQ1(50,DRUG,.01)_" "_$$TYPEREF^BDMSMU(IEN)_" on "_$$FMTE^XLFDT(DATE)
-PNEU(P) ;EP
- NEW BDMY,PNEU,X,G,Z,R,Y,%
- S %=P_"^LAST 2 IMMUNIZATION "_$S($$BI:33,1:19),E=$$START1^APCLDF(%,"BDMY(") ;IHS/CMI/LAB patch 3 - changed line to support new imm package
- I $D(BDMY(1)) S PNEU(9999999-$P(BDMY(1),U))=""
- I $D(BDMY(2)) S PNEU(9999999-$P(BDMY(2),U))=""
- K BDMY S %=P_"^LAST 2 IMMUNIZATION 100",E=$$START1^APCLDF(%,"BDMY(")
- I $D(BDMY(1)) S PNEU(9999999-$P(BDMY(1),U))=""
- I $D(BDMY(2)) S PNEU(9999999-$P(BDMY(2),U))=""
- K BDMY S %=P_"^LAST 2 IMMUNIZATION 109",E=$$START1^APCLDF(%,"BDMY(")
- I $D(BDMY(1)) S PNEU(9999999-$P(BDMY(1),U))=""
- I $D(BDMY(2)) S PNEU(9999999-$P(BDMY(2),U))=""
- K BDMY S X=0,C=0 F  S X=$O(PNEU(X)) Q:X'=+X!(C>2)  S C=C+1,BDMY(C)=9999999-X
- I $D(BDMY(1)) Q "Yes  "_$$FMTE^XLFDT($P(BDMY(1),U))_"   "_$$FMTE^XLFDT($P($G(BDMY(2)),U))
- S G=$$REFDF^BDMS9B3(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:33,1:19),0)),$P($G(BDMY(1)),U))
- I G]"" Q G
- S G=$$REFDF^BDMS9B3(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:109,1:19),0)),$P($G(BDMY(1)),U))
- I G]"" Q G
- S G=$$REFDF^BDMS9B3(BDMSPAT,9999999.14,$O(^AUTTIMM("C",$S($$BI:100,1:19),0)),$P($G(BDMY(1)),U))
- I G]"" Q G
- ;LORI BI REFUSALS
- S G="" F Z=33,100,109 Q:G  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
- .S R=$P(^BIPC(X,0),U,3)
- .Q:R=""
- .Q:'$D(^BICONT(R,0))
- .Q:$P(^BICONT(R,0),U,1)'["Refusal"
- .S D=$P(^BIPC(X,0),U,4)
- .Q:D=""
- .;Q:$P(^BIPC(X,0),U,4)>EDATE
- .S G=1_U_D
- I G Q "Refused "_$$FMTE^XLFDT($P(D,U,2))_" Immunization package"
- Q "No"
-PPD(P) ;EP
- NEW BDMY,Y,X,%,E,BDMV
- S BDMV=""
- S %=P_"^LAST SKIN PPD",E=$$START1^APCLDF(%,"BDMY(")
- S E="" I $D(BDMY(1)) S BDMV=$P(BDMY(1),U)_U_$P(^AUPNVSK(+$P(BDMY(1),U,4),0),U,5)_U_$$VAL^XBDIQ1(9000010.12,+$P(BDMY(1),U,4),.04)_U_" PPD"      ;$P(^AUPNVSK(+$P(BDMY(1),U,4),0),U,5)_"     "_$$FMTE^XLFDT($P(BDMY(1),U))
- K BDMY
- S X=P_"^LAST LAB [DM AUDIT TB LAB TESTS" S E=$$START1^APCLDF(X,"BDMY(")
- I $D(BDMY(1)),$P(BDMY(1),U,1)>$P(BDMV,U,1) S BDMV=$P(BDMY(1),U)_U_U_$P(^AUPNVLAB(+$P(BDMY(1),U,4),0),U,4)_U_$$VAL^XBDIQ1(9000010.09,+$P(BDMY(1),U,4),.01)
- K BDMY S X=P_"^LAST DX V74.1" S E=$$START1^APCLDF(X,"BDMY(")
- I $D(BDMY(1)),$P(BDMY(1),U,1)>$P(BDMV,U,1) S BDMV=$P(BDMY(1),U,1)_U_U_U_" (by Diagnosis) V74.1"  ; Q $$FMTE^XLFDT($P(BDMY(1),U))_"  (by Diagnosis)"
- I BDMV]"" Q $P(BDMV,U,4)_"  "_$P(BDMV,U,2)_"  "_$P(BDMV,U,3)_"  "_$$FMTE^XLFDT($P(BDMV,U,1))
- S G=$$REFDF^BDMS9B3(BDMSPAT,9999999.28,$O(^AUTTSK("B","PPD",0)))
- I G]"" Q G
- Q ""
-PPDS(P) ;EP
- ;check for tb health factor, problem list, povs if and
- ;indication of pos ppd then return "Known Positive PPD"
- NEW BDMS,E,X
- K BDMS
- S X=P_"^LAST HEALTH [DM AUDIT TB HEALTH FACTORS" S E=$$START1^APCLDF(X,"BDMS(")
- I $D(BDMS) Q "Known Positive PPD or Hx of TB (Health Factor recorded)"
- N T S T=$O(^ATXAX("B","DM AUDIT TB HEALTH FACTORS",0))
- I 'T G PPDSPL
- N G S G=0,X=0 F  S X=$O(^AUPNHF("AA",P,X)) Q:X'=+X!(G)  I $D(^ATXAX(T,21,"B",X)) S G=1
- I G Q "Known Positive PPD or Hx of TB (Health Factor recorded)"
-PPDSPL ;CHECK PL
- N T S T=$O(^ATXAX("B","SURVEILLANCE TUBERCULOSIS",0))
- I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
- I I Q "Known Positive PPD or Hx of TB (Problem List DX)"
- ;check povs
- K BDMS S X=P_"^FIRST DX [SURVEILLANCE TUBERCULOSIS" S E=$$START1^APCLDF(X,"BDMS(")
- I $D(BDMS(1)) Q "Known Positive PPD or Hx of TB (POV/DX "_$$FMTE^XLFDT($P(BDMS(1),U))_")"
- Q ""
-BI() ;EP- check to see if using new imm package or not 1/5/1999 IHS/CMI/LAB
- Q $S($O(^AUTTIMM(0))<100:0,1:1)
- ;end new subrotuine CMI/TUCSON/LAB

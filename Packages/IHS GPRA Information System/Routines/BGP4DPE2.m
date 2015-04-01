@@ -1,5 +1,5 @@
 BGP4DPE2 ; IHS/CMI/LAB - calc measures 29 Apr 2010 7:38 PM 14 Nov 2006 5:02 PM 09 Jun 2014 5:18 PM ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
 5 ;EP
  Q:'$D(^AUPNVPED("AC",DFN))  ;no education so don't bother

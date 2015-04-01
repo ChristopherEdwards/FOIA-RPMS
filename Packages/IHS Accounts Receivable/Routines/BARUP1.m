@@ -1,5 +1,5 @@
 BARUP1 ; IHS/SD/LSL - 3P UPLOAD CONTINUED DEC 5,1996 ; 
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,19,21,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,19,21,24**;OCT 26, 2005;Build 69
  ;
  ; IHS/ASDS/LSL - 9/11/01 - Version 1.5 Patch 2 - Modified to
  ;     accomodate Pharmacy POS.  Passes RX through to Other Bill
@@ -25,7 +25,7 @@ BARUP1 ; IHS/SD/LSL - 3P UPLOAD CONTINUED DEC 5,1996 ;
  ; IHS/SD/RTL - 04/28/05 - V1.8 Patch 1 - IM17271
  ;      Dupilcate bills
  ;
- ; ********************************************************************
+ ; ************************
  ;
  ; Global changes for indirection global - ABMA to @BAR3PUP@
  ;
@@ -38,8 +38,10 @@ BARUP1 ; IHS/SD/LSL - 3P UPLOAD CONTINUED DEC 5,1996 ;
  ;** Calling this routine at the entry point TPB^BARUP(ABMA ARRAY)
  ;   will create an entry in the A/R BILL/IHS file.
  ;
- ; *********************************************************************
- ;IHS/SD/SDR 10/10/13 HEAT135708
+ ; *************************
+ ; IHS/SD/SDR HEAT118656 belcourt JUNE 2013 - BAR*1.8*.24
+ ; IHS/SD/SDR 10/10/13 HEAT135708 - BAR*1.8*.24
+ ; *************************
  Q
 UPLOAD ; EP
  ; Create a new in A/R Bill File based on 3P data
@@ -54,12 +56,12 @@ UPLOAD ; EP
  I +BARBLDA<1 D ADD  ; Bill not found, try adding it
  I +BARBLDA<1 D NOT   ; Could not find/add bill in A/R
  Q
- ; *********************************************************************
+ ; *************************
  ;
 S3PUP ;set BAR3PUP variable
  S BAR3PUP="^TMP($J,""ABMPASS"")"
  Q
- ; *********************************************************************
+ ; *************************
  ;
 LK2 ;
  ; Try to find the 3PB bill under this parent in A/R
@@ -76,7 +78,7 @@ LK2 ;
  . . Q:$P($G(^BARBL(DUZ(2),BARTMP,1)),U)'=@BAR3PUP@("PTNM")     ;PATIENT DFN
  . . S BARBLDA=BARTMP
  Q
- ; *********************************************************************
+ ; *************************
 ADD ;
  ; Create entry in A/R Bill file
  S DIC="^BARBL(DUZ(2),"
@@ -93,7 +95,7 @@ ADD ;
  D BILLOAD                  ;Add items from 3P to AR
  D SETTX                    ; Create BILL NEW transaction
  Q
- ; *********************************************************************
+ ; *************************
  ;
 NOT ;
  ; Write message
@@ -102,7 +104,7 @@ NOT ;
  W !,@BAR3PUP@("BLNM"),?10,"BILL NOT FOUND NOR ADDED ???"
  U IO
  Q
- ; *********************************************************************
+ ; *************************
  ;
 UPDATE ;EP
  ; Update .01 field of A/R Bill
@@ -114,7 +116,7 @@ UPDATE ;EP
  .D ^DIE
  S BARXX=$$GET1^DIQ(90050.01,BARBLDA,13) ;check if previously loaded
  Q
- ; *********************************************************************
+ ; *************************
  ;
 BILLOAD ;EP - called by barupchk
  ; add/reload item from 3P to A/R everytime
@@ -129,7 +131,7 @@ BILLOAD ;EP - called by barupchk
  D SETITM
  D SETCOLL  ;IHS/SD/AR 1.8*19 07182010
  Q
- ; *********************************************************************
+ ; *************************
  ;
 ITMRLOAD  ;
  ; Bill previously loaded into A/R, delete old items and create new ones
@@ -157,12 +159,13 @@ ITMRLOAD  ;
  W " Previously loaded .. deleting existing A/R Bill items",!
  W !,@BAR3PUP@("BLNM")," Now adding 3P Bill items to A/R Bill",!
  Q
- ; *********************************************************************
+ ; *************************
  ;
 BILLOAD2  ;
  ; Populate top level A/R Bill data
  S @BAR3PUP@("BLAMT")=@BAR3PUP@("BLAMT")*100+.5\1/100
- S @BAR3PUP@("CURTOT")=@BAR3PUP@("BLAMT")-$G(@BAR3PUP@("CREDIT"))
+ ;S @BAR3PUP@("CURTOT")=@BAR3PUP@("BLAMT")-$G(@BAR3PUP@("CREDIT"))  ;IHS/SD/SDR HEAT118656 belcourt
+ S @BAR3PUP@("CURTOT")=@BAR3PUP@("BLAMT")  ;IHS/SD/SDR HEAT118656 belcourt
  Q:'$D(BARPAR)
  S DIE="^BARBL(DUZ(2),"
  S DA=BARBLDA
@@ -226,7 +229,7 @@ DR278  ;
  D ^DIE
  K DIDEL
  Q
- ; ********************************************************************
+ ; ************************
  ;
 SETITM  ;EP
  ; Create ITEM multiple for A/R Bill
@@ -260,11 +263,11 @@ SETITM  ;EP
  .S:Y="LABORATORY" BARBLSRV=91
  .S:Y="ANESTHESIA" BARBLSRV=88
  .K DD,DO
- .D FILE^DICN
+ .D FILE^DICN ;;;I DUZ=838 W !,"--> SETITM FILE^DICN"
  .K BARBLSRV
  K DLAYGO
  Q
- ; ********************************************************************
+ ; ************************
 SETCOLL  ;EP
  ; Create COLLECTION STATUS multiple for A/R Bill
  N DR,DA,DIC,J,I
@@ -278,7 +281,7 @@ SETCOLL  ;EP
  D FILE^DICN
  K DLAYGO
  Q
- ; ********************************************************************
+ ; ************************
 DELITM  ;EP - For the reload of an A/R Bill from the 3P Bill,
  ;deleting all existing items 
  N DIK,DA
@@ -286,9 +289,9 @@ DELITM  ;EP - For the reload of an A/R Bill from the 3P Bill,
  S DA=0
  S DIK=$$DIC^XBDIQ1(90050.01)
  S DIK=DIK_DA(1)_",3,"
- F  S DA=$O(^BARBL(DUZ(2),DA(1),"3",DA)) Q:'+DA  D ^DIK
+ F  S DA=$O(^BARBL(DUZ(2),DA(1),"3",DA)) Q:'+DA  D ^DIK ;;;I DUZ=838 W !,"--> ^DIK"
  Q
- ; ********************************************************************
+ ; ************************
  ;
 SETTX   ;** create transaction
  K DR
@@ -298,18 +301,53 @@ SETTX   ;** create transaction
  I +BARTT D
  . S DR="3////^S X=@BAR3PUP@(""BLAMT"")"
  . D NEWTX
- I @BAR3PUP@("CREDIT") D
- . S BARTT=$O(^BARTBL("B","3P CREDIT",""))
- . I '+BARTT D NOTX(BARBLDA,"3P CREDIT")
- . I +BARTT D
- . . S DR="2////^S X=$G(@BAR3PUP@(""CREDIT""))"
- . . D NEWTX
+ ;start old code IHS/SD/SDR HEAT118656 belcourt
+ ;I @BAR3PUP@("CREDIT") D
+ ;. S BARTT=$O(^BARTBL("B","3P CREDIT",""))
+ ;. I '+BARTT D NOTX(BARBLDA,"3P CREDIT")
+ ;. I +BARTT D
+ ;. . S DR="2////^S X=$G(@BAR3PUP@(""CREDIT""))"
+ ;. . D NEWTX
+ ;end old code start new code HEAT118656
+ I @BAR3PUP@("CREDIT")&'$D(@BAR3PUP@("TRNS")) D
+ .S BARTT=$O(^BARTBL("B","3P CREDIT",""))
+ .I '+BARTT D NOTX(BARBLDA,"3P CREDIT")
+ .I +BARTT D
+ ..S DR="2////^S X=$G(@BAR3PUP@(""CREDIT""))"
+ ..D NEWTX
+ ;
+ I $P($G(BAROPT)," ")="Upload" D
+ .K BARTT
+ .S DR="7////^S X=1"
+ .S DR=DR_";1001///^S X=BAROPT_"" ""_DT"
+ .D NEWTX
+ I $D(@BAR3PUP@("TRNS")) D
+ .K BARTT
+ .S BARTTYP=""
+ .F  S BARTTYP=$O(@BAR3PUP@("TRNS",BARTTYP)) Q:$G(BARTTYP)=""  D
+ ..S BARTCNT=0
+ ..F  S BARTCNT=$O(@BAR3PUP@("TRNS",BARTTYP,BARTCNT)) Q:'BARTCNT  D
+ ...S BARTAC=$O(^BAR(90052.01,"B",BARTTYP,0))
+ ...I '+BARTAC D NOTX(BARBLDA,BARTTYP)
+ ...I +BARTAC D
+ ....;I BARTTYP'="PAYMENT CREDIT"&(BARTTYP'="GROUPER ALLOWANCE") S BARTT=$O(^BARTBL("B",BARTTYP,0))
+ ....S BARAMT=+$G(@BAR3PUP@("TRNS",BARTTYP,BARTCNT))
+ ....S (BARTRTYP,BARTT)=43
+ ....S DR="2////^S X=+$G(@BAR3PUP@(""TRNS"",BARTTYP,BARTCNT))"
+ ....S DR=DR_";101////^S X=BARTRTYP"
+ ....S DR=DR_";102////^S X=BARTAC"
+ ....I $P($G(@BAR3PUP@("TRNS",BARTTYP,BARTCNT)),U,5)'="" S DR=DR_";109////^S X=$P(@BAR3PUP@(""TRNS"",BARTTYP,BARTCNT),U,5)"
+ ....I $P($G(@BAR3PUP@("TRNS",BARTTYP,BARTCNT)),U,4)'="" S DR=DR_";103////^S X=$P(@BAR3PUP@(""TRNS"",BARTTYP,BARTCNT),U,4)"
+ ....D NEWTX
+ ....;D 43^BARTDO
+ ;end new code HEAT118656 belcourt
  Q
- ; *********************************************************************
+ ; *************************
  ;
 NEWTX  ;
  ; Create A/R transaction
  S BARTRIEN=$$NEW^BARTR()
+ S BARTT=$G(BARTT)  ;
  ;I BARTRIEN<1 D NOTX(BARBLDA,BARTT) Q  ;IHS/SD/SDR 10/10/13 HEAT135708
  I BARTRIEN<1 D NOTX(BARBLDA,"") Q  ;IHS/SD/SDR 10/10/13 HEAT135708
  S DIE="^BARTR(DUZ(2),"
@@ -322,15 +360,17 @@ NEWTX  ;
  S DR=DR_";11////^S X=BARSAT"
  S DR=DR_";12////^S X=$P(BARTRIEN,""."")"
  S DR=DR_";101////^S X=BARTT"
- I $P($G(BAROPT)," ")="Upload" D
- . S DR=DR_";7////^S X=1"
- . S DR=DR_";1001///^S X=BAROPT_"" ""_DT"
+ ;start old code IHS/SD/SDR belcourt HEAT118656
+ ;I $P($G(BAROPT)," ")="Upload" D
+ ;. S DR=DR_";7////^S X=1"
+ ;. S DR=DR_";1001///^S X=BAROPT_"" ""_DT"
+ ;new old code HEAT118656
  S DIDEL=90050
  D ^DIE
  K DIDEL
- D TR^BARTDO(BARTRIEN)                    ; Update other files
+ D TR^BARTDO(BARTRIEN)  ;Update other files
  Q
- ; *********************************************************************
+ ; *************************
  ;
 NOTX(X,BARTYP)  ;
  ; Couldn't create transaction.
@@ -340,7 +380,7 @@ NOTX(X,BARTYP)  ;
  W *7,$$CJ^XLFSTR("Could not create a "_BARTYP_" transaction.",IOM)
  W $$CJ^XLFSTR("Please contact IT support.",IOM)
  Q
- ; ********************************************************************
+ ; ************************
  ;
  ; This is a new section to build the DIC("DR") string
  ;BAR/SD/TPF BAR*1.8*21 ADDED LICN FOR 5010 SPEC PAGE 16
@@ -392,7 +432,7 @@ MSGTX  ;
  K ^TMP($J,"WP")
  D TR^BARTDO(BARTRIEN)                    ; Update other files
  Q
- ; *********************************************************************
+ ; *************************
  ;
 STATCODE  ;
  ; TRANSLATE STATUS CODE TO VALUE
@@ -416,4 +456,4 @@ CKEXIST  ;
  . S BARWP=$$GET1^DIQ(90050.03,BARTRIEN,1001,,"BARWP")
  . S:$D(BARWP(1))&($G(BARWP(1))["GCN") BARWP2=$P(BARWP(1)," ",5)
  . S:$D(BARWP2)&(BARWP2?1.N)&(BARWP2=BARGCN) BARCKEX=1
- Q
+ Q  ;-EOR-

@@ -1,10 +1,10 @@
 BIPATUP1 ;IHS/CMI/MWR - UPDATE PATIENT DATA; DEC 15, 2011
- ;;8.5;IMMUNIZATION;**4**;DEC 01,2012
+ ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UPDATE PATIENT DATA, IMM FORECAST IN ^BIPDUE(.
- ;:  PATCH 1: Include FLU-DERMAL CVX=144.  IHSPREL+55
- ;;  PATCH 4, v8.5: Use newer Related Contraindications call to determine
- ;;                 contraindicaton.  IHSPNEU+16
+ ;;  NOTE!: An earlier version of this routine is saved in BIZPATUP1.
+ ;;  PATCH 8: Extensive changes to accommodate new TCH Forecaster   LDFORC+0
+ ;;  PATCH 9: Numerous changes to accomodate new Heb B High Risk  IHSPOST+0
  ;
  ;----------
 LDFORC(BIDFN,BIFORC,BIHX,BIFDT,BIDUZ2,BINF,BIPDSS) ;EP
@@ -14,9 +14,9 @@ LDFORC(BIDFN,BIFORC,BIHX,BIFDT,BIDUZ2,BINF,BIPDSS) ;EP
  ;     2 - BIFORC (req) String containing Patient's Imms Due.
  ;     3 - BIHX   (req) String containing Patient's Imm History.
  ;     4 - BIFDT  (opt) Forecast Date (date used for forecast).
- ;     5 - BIDUZ2 (opt) User's DUZ(2) indicating Immserve Forc Rules.
+ ;     5 - BIDUZ2 (opt) User's DUZ(2) indicating site parameters.
  ;     6 - BINF   (opt) Array of Vaccine Grp IEN'S that should not be forecast.
- ;     7 - BIPDSS (ret) Returned string of Visit IEN's that are
+ ;     7 - BIPDSS (ret) Returned string of V IMM IEN's that are
  ;                      Problem Doses, according to ImmServe.
  ;
  Q:'$G(BIDFN)  Q:$G(BIFORC)=""  Q:$G(BIHX)=""
@@ -33,144 +33,134 @@ LDFORC(BIDFN,BIFORC,BIHX,BIFDT,BIDUZ2,BINF,BIPDSS) ;EP
  ;---> If no BIDUZ2, try DUZ(2); otherwise, defaults will be used.
  S:'$G(BIDUZ2) BIDUZ2=$G(DUZ(2))
  ;
- N BIID
- ;---> Check for any input doses that Immserve identified as problems.
- D DPROBS^BIPATUP2(BIFORC,.BIPDSS,.BIID)
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Check for any input doses that TCH identified as problems.
+ ;---> Build and return a string of "V IMM IEN_%_CVX" problem doses,
+ ;---> as identified in the TCH Input Doses segment.
+ ;D DPROBS^BIPATUP2(BIFORC,.BIPDSS,.BIID)
+ D DPROBS^BIPATUP2(BIFORC,.BIPDSS)
+ ;**********
  ;
- ;---> Parse Doses Due from Immserve string (BIFORC), perform any
+ ;---> * * * * * NEXT PATCH REMOVE ALL FLU CODE. * * * * *
+ ;---> Parse Doses Due from Forecaster string (BIFORC), perform any
  ;---> necessary translations, and set as due in patient global ^BIPDUE(.
- ;---> If Immserve set Flu due, set BIIMMFL=1.  Same for H1N1.
- N BIIMMFL,BIIMMH1 S BIIMMFL=0,BIIMMH1=0
- D DDUE(BIFORC,BIAGE,BIHX,.BINF,BIID,.BIIMMFL,.BIIMMH1)
+ ;---> If Immserve set Flu due, set BIIMMFL=1.
+ N BIIMMFL S BIIMMFL=0
  ;
- ;---> Collect any Error Codes for any individual Vaccine Groups in
- ;---> the Immserve Forecast and set them in ^BIPERR(
- D IMMSERR^BIPATUP2(BIFORC)
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Check if TCH has already forecast Pneumo, pass in BITCHPN.
+ ;---> If TCH set Pneumo due, set BITCHPN=1.
+ N BITCHPN S BITCHPN=0
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Check if TCH has already forecast Hep B, pass in BITCHHB.
+ N BITCHHB S BITCHHB=0
  ;
- N BIFLU,BIFFLU,BILIVE,BIRISKI,BIRISKP
- S BIFLU="",(BIFFLU,BILIVE,BIRISKI,BIRISKP)=0
+ ;D DDUE(BIFORC,BIAGE,BIHX,.BINF,.BIIMMFL,.BIIMMH1,BIDUZ2,.BITCHPN,BIFDT)
+ D DDUE(BIFORC,BIAGE,BIHX,.BINF,.BIIMMFL,BIDUZ2,.BITCHPN,BIFDT,.BITCHHB)
  ;
- ;---> Pre-IHS Forecast Preload.
- D IHSPREL(BIDFN,BIHX,BIFDT,.BIFLU,.BIFFLU,.BIRISKI,.BIRISKP,.BILIVE,BIDUZ2)
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> New parameter BIRISKH to pass High Risk Hep B.
+ N BIFLU,BIFFLU,BILIVE,BIRISKI,BIRISKP,BIRISKH
+ S BIFLU="",(BIFFLU,BILIVE,BIRISKI,BIRISKP,BIRISKH)=0
  ;
+ ;---> After loading (SETDUE) TCH forecast, perform any follow-up forecasting
+ ;---> needed for High Risk, "Post-forecast".
+ D IHSPOST(BIDFN,BIHX,BIFDT,.BIFLU,.BIFFLU,.BIRISKI,.BIRISKP,.BILIVE,BIDUZ2,.BIRISKH)
+ ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> No longer called, since TCH forecasts Flu for all ages.
  ;---> Forecast Influenza.
- D IHSFLU^BIPATUP2(BIDFN,.BIFLU,BIFFLU,BIRISKI,.BINF,BIFDT,BIAGE,BIIMMFL,BIDUZ2)
+ ;D IHSFLU^BIPATUP2(BIDFN,.BIFLU,BIFFLU,BIRISKI,.BINF,BIFDT,BIAGE,BIIMMFL,BIDUZ2)
  ;
  ;---> Forecast Pneumo.
- D IHSPNEU(BIDFN,.BIFLU,BIFFLU,BIRISKP,.BINF,BIFDT,BIAGE,BIDUZ2)
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Only check to forecast Pneumo if TCH has not already done so.
+ ;D IHSPNEU(BIDFN,.BIFLU,BIFFLU,BIRISKP,.BINF,BIFDT,BIAGE,BIDUZ2)
+ I '$G(BITCHPN) D IHSPNEU(BIDFN,.BIFLU,BIFFLU,BIRISKP,.BINF,BIFDT,BIAGE,BIDUZ2)
  ;
- ;---> Forecast Zostervax.
- D IHSZOS^BIPATUP3(BIDFN,.BIFLU,BIFFLU,BIRISKP,.BINF,BIFDT,BIAGE,BIDUZ2)
- ;
- ;---> Forecast H1N1. v8.33
- ;---> Disable for v8.4.
- ;D IHSH1N1^BIPATUP2(BIDFN,.BIFLU,BIFFLU,BIRISKI,.BINF,BIFDT,BIAGE,BIIMMH1,BILIVE)
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Only check to forecast HepB if TCH has not already done so.
+ ;---> Forecast HepB.
+ I '$G(BITCHHB) D IHSHEPB(BIDFN,.BIFLU,.BINF,BIFDT,BIAGE,BIDUZ2,BIRISKH)
  ;
  Q
  ;
  ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Add BITCHPN parameter to pass TCH already forecast Pneumo.
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add BITCHHB parameter to pass TCH already forecast Hep B.
  ;----------
-DDUE(BIFORC,BIAGE,BIHX,BINF,BIID,BIIMMFL,BIIMMH1) ;EP
+DDUE(BIFORC,BIAGE,BIHX,BINF,BIIMMFL,BIDUZ2,BITCHPN,BIFDT,BITCHHB) ;EP
  ;---> Parse Doses Due from Immserve string (BIFORC), perform any
  ;---> necessary translations, and set as due in patient global ^BIPDUE.
  ;---> Parameters:
- ;     1 - BIFORC  (req) Forecast string coming back from ImmServe.
+ ;     1 - BIFORC  (req) Forecast string coming back from TCH.
  ;     2 - BIAGE   (req) Patient Age in months for this Forecast Date.
  ;     3 - BIHX    (req) String containing Patient's Imm History.
  ;     4 - BINF    (opt) Array of Vaccine Grp IEN'S that should not be forecast.
- ;     5 - BIID    (req) Immserve "Number of Input Doses" (Field 109 in 2010).
- ;     6 - BIIMMFL (opt) BIIMMFL=1 means Immserve already forecast Flu.
- ;     7 - BIIMMH1 (opt) BIIMMH1=1 means Immserve already forecast H1N1.
+ ;     5 - BIIMMFL (opt) BIIMMFL=1 means Immserve already forecast Flu.
+ ;     6 - BIDUZ2  (opt) User's DUZ(2) indicating site parameters.
+ ;     7 - BITCHPN (opt) BITCHPN=1 means TCH already forecast Pneumo.
+ ;     8 - BIFDT   (opt) Forecast Date (date used for forecast).
+ ;     9 - BITCHHB (opt) BITCHHB=1 means TCH already forecast Hep B.
  ;
- ;---> Set BIPC=Piece number that contains "Number of Doses Due."
- ;---> BIID=Number of Input Doses that have to be "skipped over"
- ;---> to get to Doses Due data (and each Input Dose has 27 fields).
- N BIPC,BIDD
- ;S BIPC=102+(BIID*27)  ;ImmString2005.1(v8.1)
- ;S BIPC=107+(BIID*27)  ;ImmString2007.1(v8.2)
- S BIPC=111+(BIID*27)  ;ImmString2010.1(v8.4)
  ;
- ;---> Set BIDD="Number of Doses Due" (stored in piece BIPC).
- ;---> BIPC becomes a Piece Place Marker in the ImmServe Forecast string.
- S BIDD=$P(BIFORC,U,BIPC),BIPC=BIPC+1
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Changes to accommodate new TCH Forecaster parsing.
+ N BIFORC1,BIDOSE,N
+ S BIFORC1=$P(BIFORC,"~~~",3)
  ;
- F I=1:1:BIDD D DDUE2(BIFORC,BIAGE,BIHX,.BINF,.BIPC,.BIIMMFL,.BIIMMH1)
+ F N=1:1 S BIDOSE=$P(BIFORC1,"|||",N) Q:(BIDOSE="")  D
+ .D DDUE2(BIDOSE,BIAGE,BIHX,.BINF,.BIPC,.BIIMMFL,BIDUZ2,.BITCHPN,BIFDT,.BITCHHB)
  Q
  ;
  ;
  ;----------
-DDUE2(BIFORC,BIAGE,BIHX,BINF,BIPC,BIIMMFL,BIIMMH1) ;EP
+DDUE2(BIDOSE,BIAGE,BIHX,BINF,BIPC,BIIMMFL,BIDUZ2,BITCHPN,BIFDT,BITCHHB) ;EP
  ;---> Parse Doses Due (see linelabel DDUE above).
  ;---> Parameters: See DDUE immediately above!
  ;
- N BIDR,A,C,D,X
- S X=$P(BIFORC,U,BIPC,BIPC+11)
- ;---> A=CVX Code, C=Past Due, D=Date For this "Dose Due."
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Many changes below to accommodate new TCH Forecaster.
  ;
  ;---> Uncomment next line to see raw ImmServe Doses Due:
- ;W !!!,X R ZZZ
+ ;W !!!,BIDOSE R ZZZ
  ;
- S A=$P(X,U,2),C=$P(X,U,5),D=$P(X,U,11)
- ;---> Set Piece Place Marker to next dose.
- S BIPC=BIPC+12  ;ImmString2007.1(v8.2); no change for ImmString2010.1(v8.4).
- ;---> Get date.
- S D=$$IMMSDT^BIPATUP2(D)
- Q:'D
- ;---> If this dose is past due (C=1), D(2) will stuff DATE PAST DUE;
+ N A,BI,D,X S X=BIDOSE
+ ;---> A=CVX Code
+ S A=$P(X,U,1)
+ ;
+ ;---> "PAST"=Past Due Indicator
+ S BI("PAST")=$P(X,U,3)
+ ;
+ ;---> Get Fileman formats of due dates.
+ ;---> "MIN"=Minimum Date Due
+ S BI("MIN")=$$TCHFMDT^BIUTL5($P(X,U,4)) S:('BI("MIN")) BI("MIN")=""
+ ;
+ ;---> "REC"=Recommended Date Due
+ S BI("REC")=$$TCHFMDT^BIUTL5($P(X,U,5)) S:('BI("REC")) BI("REC")=""
+ ;
+ ;---> "EXC"=Exceeds Date Due
+ S BI("EXC")=$$TCHFMDT^BIUTL5($P(X,U,6)) S:('BI("EXC")) BI("EXC")=""
+ ;
+ ;---> Determine whether to set Recommended Age or Minimum Accepted Age
+ ;---> based on Site Parameter.
+ S BI("DUE")=BI("REC")
+ I $$MINAGE^BIUTL2($G(BIDUZ2))="A" S BI("DUE")=BI("MIN")
+ ;
+ ;---> If this dose is past due (B=1), D(2) will stuff DATE PAST DUE;
  ;---> Otherwise, D(1) will stuff RECOMMENDED DATE DUE.
+ ;S (D(1),D(2))="" D
+ ;.I B S D(2)=D Q
+ ;.S D(1)=D
  S (D(1),D(2))="" D
- .I C S D(2)=D Q
- .S D(1)=D
+ .I BI("PAST") S D(2)=BI("EXC") Q
+ .S D(1)=BI("DUE")
  ;
  ;---> *** TRANSLATIONS OF INCOMING IMMSERVE VACCINES:
  ;--->     -------------------------------------------
  ;
- ;---> * * * PNEUMO * * *
- ;---> If incoming Dose is Pneumo (HL7 33 or 109) and the patient is
- ;---> 5 yrs or older, then ignore it; we forecast pneumo below.
- ;---> 100 is for kids; do not intercept.
- I BIAGE>59 Q:A=33  Q:A=109
- ;
- ;---> * * * TETANUS * * *
- ;---> If A(HL7)=-10 this is a Td Adult booster, so translate.
- S:A=-10 A=9
- ;---> If A(HL7)=-13 this is a Tdap booster, so translate.
- S:A=-13 A=115
- ;
- ;---> * * * HEP A * * *
- ;---> If Pt age > 18 yrs, translate any PED Hep A to HEP A, ADULT (52).
- I BIAGE'<216 S:((A=31)!(A=83)!(A=84)!(A=85)) A=52
- ;---> If Immserve sent CVX 31, tranlate to 83.
- S:A=31 A=83
- ;
- ;********** PATCH 2, v8.4, OCT 15,2010, IHS/CMI/MWR
- ;---> Translate forecasted CVX 15 to CVX 141 from now on.
- I A=15 S A=141
- ;**********
- ;
- ;---> * * * HEP B * * *
- ;---> If A(HL7)=8 (HEP B PEDS), and the Pt age is >19, and if the Pt has
- ;---> already had a form of ADULT HEP B, then translate to 43 (HEP B ADLT).
- I A=8 D
- .Q:(BIAGE<240)
- .;---> Loop through History string BIHX.
- .N B,I,X,Y S B=""
- .;---> NOTE!! X and Y may change if ImmServe Field Definitions change!
- .;---> Set Y=Number of Input Doses, X=Dose Note of first Input dose.
- .;S Y=$P(BIHX,U,48),X=49  ;ImmString2005.1(v8.1)
- .;S Y=$P(BIHX,U,51),X=52  ;ImmString2007.1(v8.2)
- .S Y=$P(BIHX,U,53),X=54  ;ImmString2010.1(v8.4)
- .F I=1:1:Y D  Q:(B=43)
- ..;---> For this Immunization, set A=HL7 Code, D=Date.
- ..N A,D S A=$P(BIHX,U,X+1),D=$P(BIHX,U,X+5)
- ..;---> Quit if Dose Override (ImmServe Input Field 51)=Invalid Dose=2.
- ..Q:$P(BIHX,U,X+6)
- ..;---> If this is a Hep B (8,42,43,44,45,51,104) Set A=43.
- ..S:((A=8)!(A=42)!(A=43)!(A=44)!(A=45)!(A=51)!(A=104)) B=43
- ..S X=X+7
- .I B=43 S A=43 Q
- .;---> If this adult patient has never had a Hep B, don't forecast it.
- .S A=""
  Q:A=""
  ;
  ;---> Check to see if Site specified do not forecast this Vaccine Group.
@@ -179,81 +169,75 @@ DDUE2(BIFORC,BIAGE,BIHX,BINF,BIPC,BIIMMFL,BIIMMH1) ;EP
  ;---> Add this Immunization Due.
  D SETDUE^BIPATUP2(BIDFN_U_$$HL7TX^BIUTL2(A)_U_U_D(1)_U_D(2))
  ;
- ;---> If Immserve set Flu due, set BIIMMFL=1.
- ;********** PATCH 2, v8.4, OCT 15,2010, IHS/CMI/MWR
- ;---> Include CVX 140 & 141 when checking for Immserve.
- ;S:((A=15)!(A=16)!(A=88)!(A=111)!(A=123)) BIIMMFL=1
- S:((A=15)!(A=16)!(A=88)!(A=111)!(A=123)!(A=140)!(A=141)) BIIMMFL=1
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> If TCH set Pneumo due, set BITCHPN=1.
+ S:(A=33) BITCHPN=1
+ ;**********
  ;
- ;---> If Immserve set H1N1 due, set BIIMMH1=1.
- S:((A=125)!(A=126)!(A=127)!(A=128)) BIIMMH1=1
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> If TCH set Hep B due, set BITCHHB=1.
+ S:(A=45) BITCHHB=1
+ ;**********
  ;
  Q
  ;
  ;
  ;----------
-IHSPREL(BIDFN,BIHX,BIFDT,BIFLU,BIFFLU,BIRISKI,BIRISKP,BILIVE,BIDUZ2) ;EP
- ;---> IHS Forecast Preload.
+IHSPOST(BIDFN,BIHX,BIFDT,BIFLU,BIFFLU,BIRISKI,BIRISKP,BILIVE,BIDUZ2,BIRISKH) ;EP
+ ;---> Post forecast; after loading  TCH forecast, perform any follow-up forecasting
+ ;---> needed for High Risk.
  ;---> Parameters:
  ;     1 - BIDFN   (req) Patient IEN.
  ;     2 - BIHX    (req) String containing Patient's Imm History.
  ;     3 - BIFDT   (req) Forecast Date (date used for forecast).
- ;     4 - BIFLU   (ret) Influ, Pneumo, & H1N1 History array: BIFLU(CVX,INVDATE).
+ ;     4 - BIFLU   (ret) Pneumo & Hep B history array: BIFLU(CVX,INVDATE).
  ;     5 - BIFFLU  (ret) Value (0-4) for force Flu/Pneumo regardless of age.
  ;     6 - BIRISKI (ret) 1=Patient has Risk of Influenza; otherwise 0.
  ;     7 - BIRISKP (ret) 1=Patient has Risk of Pneumo; otherwise 0.
  ;     8 - BILIVE  (ret) 1-Patient received a LIVE vaccine <28 days before
  ;                       the forecast date.
  ;     9 - BIDUZ2  (req) User's DUZ(2) indicating Immserve Forc Rules.
+ ;    10 - BIRISKH (ret) 1=Patient has Risk of Hep B; otherwise 0.
  ;
  ;---> Loop through History string, gathering previous Influenzas and Pneumos.
  ;
- N I,X,Y
- ;---> Set Y="Number of Input Doses" (stored in piece X).
- ;---> Set X=Piece number that contains "Dose Note" of the first Imm of the Hx.
- ;---> NOTE!! X and Y may change if ImmServe Field Definitions change!
- ;---> Next line may need to be incremented for new versions of ImmServe.
- ;S Y=$P(BIHX,U,48),X=49  ;ImmString2005.1(v8.1)
- ;S Y=$P(BIHX,U,51),X=52  ;ImmString2007.1(v8.2)
- S Y=$P(BIHX,U,53),X=54  ;ImmString2010.1(v8.4)
+ N BIDOSE,BIHX1,I,X,Y
+ S BIHX1=$P(BIHX,"~~~",2)
  ;
- ;---> Loop through History, collecting for prior Influ and Pneumo.
+ ;---> Loop through RPMS Input String History, collecting for prior Pneumo.
  ;---> Store in BIFLU by HL7 Code, inverse date.
- F I=1:1:Y D
- .;---> For this Immunization, set A=HL7 Code, D=Date.
- .N A,D S A=$P(BIHX,U,X+1),D=$P(BIHX,U,X+5)
+ ;F I=1:1:Y D
+ F I=1:1  S BIDOSE=$P(BIHX1,"|||",I) Q:BIDOSE=""  D
+ .;
+ .;---> For this Immunization, set A=CVX Code, D=Date.
+ .N A,D S A=$P(BIDOSE,U,2),D=$P(BIDOSE,U,3)
  .;---> Quit if Dose Override (ImmServe Input Field 51)=Invalid Dose=2.
- .I $P(BIHX,U,X+6),$P(BIHX,U,X+6)<9 S X=X+7 Q
+ .;I $P(BIDOSE,U,5),$P(BIDOSE,U,5)<9 Q
  .;
- .;---> If patient received Flu-nasal CVX 111 on the Forecast Date,
- .;---> then set BILIVE=1 (cannot receive 111 and 125 on the same day).
- .I ((A=111)&(BIFDT=$$IMMSDT^BIPATUP2(D))) S BILIVE=1
  .;
- .;---> If this was a live vaccine given less than 28 days prior to the
- .;---> forecast data, then set BILIVE=1.
- .I ((A=3)!(A=4)!(A=7)!(A=21)!(A=94)!(A=111)!(A=121)!(A=125)) D
- ..;---> Calculate #days between Forecast date and date of this live vaccine.
- ..N X,X1,X2 S X1=BIFDT,X2=$$IMMSDT^BIPATUP2(D)
- ..D ^%DTC
- ..;
- ..;---> Set BILIVE=1 if patient received this LIVE vaccine <28 days prior
- ..;---> to the Forecast date.
- ..S:((X>0)&(X<28)) BILIVE=1
+ .;---> If this is a Pneumo (33,100,109) or Hep B (8,42,43,44,45,etc.))
+ .;---> translate and store it in local array BIFLU(CVX,Inverse Fm date).
  .;
- .;---> If this is a Pneumo (33,100,109) or Influ (15,16,88,111; but not 123)
- .;---> store it in local array BIFLU(CVX,Inverse Fileman date).
- .S:((A=100)!(A=109)) A=33
+ .;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ .;---> Update Pneumo CVX's.
+ .;S:((A=100)!(A=109)) A=33
+ .S:((A=100)!(A=109)!(A=133)!(A=152)) A=33
  .;
- .;********** PATCH 3, v8.5, SEP 15,2012, IHS/CMI/MWR
- .;---> Include FLU-TIV's CVX=140 & 141.
- .;S:((A=15)!(A=16)!(A=111)!(A=135)!(A=144)) A=88
- .S:((A=15)!(A=16)!(A=111)!(A=135)!(A=140)!(A=141)!(A=144)) A=88
+ .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ .;---> Collect Hep B CVX's.
+ .S:((A=8)!(A=42)!(A=44)!(A=43)!(A=43)!(A=51)!(A=102)) A=45
+ .S:((A=104)!(A=110)!(A=132)!(A=146)) A=45
+ .;
+ .;
+ .;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ .;---> Only concerned with Pneumos.
+ .;
+ .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ .;---> Now concerned with Hep B's too.
+ .;S:(A=33) BIFLU(A,9999999-$$TCHFMDT^BIUTL5(D))=""
+ .S:(A=33)!(A=45) BIFLU(A,9999999-$$TCHFMDT^BIUTL5(D))=""
  .;**********
- .S:((A=126)!(A=127)!(A=128)) A=125
- .;---> Add Zoster.  Imm v8.5
- .;S:(A=33!(A=88)!(A=125)) BIFLU(A,9999999-$$IMMSDT^BIPATUP2(D))=""
- .S:(A=33!(A=88)!(A=125)!(A=121)) BIFLU(A,9999999-$$IMMSDT^BIPATUP2(D))=""
- .S X=X+7
+ .;S X=X+7 OLD IMMSERVE COUNTER.
  ;
  ;
  ;---> Get value for forced Influenza regardless of age.
@@ -262,13 +246,27 @@ IHSPREL(BIDFN,BIHX,BIFDT,BIFLU,BIFFLU,BIRISKI,BIRISKP,BILIVE,BIDUZ2) ;EP
  ;---> Quit (don't check Risk Factors) if BIFFLU=4, Disregard Risk Factors.
  Q:BIFFLU=4
  ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Accommodate new parameter options.
  ;---> Quit if Site Param says NOT to include Risk Factors.
- Q:'$$RISKP^BIUTL2(BIDUZ2)
+ N BIRSK S BIRSK=$$RISKP^BIUTL2(BIDUZ2)
+ Q:'BIRSK
+ ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Only Pneumo will be checked (Flu now forecast for everyone), by
+ ;---> passing 2 in the third parameter.
  ;
  ;---> Check for Influenza and Pneumo Risk Factors.
  ;---> If BIRISKI, BIRISKP =0, then either site param is turned off
  ;---> or patient is NOT High Risk.  Both cases exclude it from forecast.
- D RISK^BIDX(BIDFN,BIFDT,0,.BIRISKI,.BIRISKP)
+ ;D RISK^BIDX(BIDFN,BIFDT,0,.BIRISKI,.BIRISKP)
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> New parameter to return Hep B risk. (No longer include Flu.)
+ ;D RISK^BIDX(BIDFN,BIFDT,2,.BIRISKI,.BIRISKP)
+ D RISK^BIDX(BIDFN,BIFDT,BIRSK,,.BIRISKP,.BIRISKH)
+ ;**********
  Q
  ;
  ;
@@ -277,7 +275,7 @@ IHSPNEU(BIDFN,BIFLU,BIFFLU,BIRISKP,BINF,BIFDT,BIAGE,BIDUZ2) ;EP
  ;---> IHS Pneumo Forecast.
  ;---> Parameters:
  ;     1 - BIDFN   (req) Patient IEN.
- ;     2 - BIFLU   (req) Influ and Pneumo History array: BIBLU(CVX,INVDATE).
+ ;     2 - BIFLU   (req) Influ and Pneumo History array: BIFLU(CVX,INVDATE).
  ;     3 - BIFFLU  (req) Value (0-4) for force Flu/Pneumo regardless of age.
  ;     4 - BIRISKP (req) 1=Patient has Risk of Pneumo; otherwise 0.
  ;     5 - BINF    (opt) Array of Vaccine Grp IEN'S that should not be forecast.
@@ -322,19 +320,41 @@ IHSPNEU(BIDFN,BIFLU,BIFFLU,BIRISKP,BINF,BIFDT,BIAGE,BIDUZ2) ;EP
  I ((BIAGE'<BIPNAGE)!BIALLAGE),'BIMRECNT D  Q
  .D SETDUE^BIPATUP2(BIDFN_U_$$HL7TX^BIUTL2(33)_U_U_BIFDT)
  ;
- ;---> Quit if patient is <65yrs. (Only patients >65 can get 2nd pneumo.)
- Q:(BIAGE<780)
- ;
- ;---> If patient received most recent Pneumo <65yrs age, and if he received
- ;---> it 5 years before the forecast date, then forecast Pneumo.
- N BIDOB S BIDOB=$$DOB^BIUTL1(BIDFN)
- I BIMRECNT<(BIDOB+650000),((BIMRECNT+50000)'>BIFDT) D  Q
- .D SETDUE^BIPATUP2(BIDFN_U_$$HL7TX^BIUTL2(33)_U_U_BIFDT)
- ;
- ;---> Patient is >65 yrs but had a Pneumo <5 yrs before forecast date,
- ;---> so do not forecast Pneumo yet.
- ;---> OR, patient had most recent Pneumo after age 65 and therefore no
- ;---> longer needs one.  Whew!
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> TCH will forecast routine Pneumo after age 65.
  Q
- ;---> If they request to bring back q6y pneumo forecasting, see Q6Y^BIPATUP2.
+ ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add parameter for Hep B (BIRISKH). Change BIFFLU to BIRSK.
+ ;----------
+IHSHEPB(BIDFN,BIFLU,BINF,BIFDT,BIAGE,BIDUZ2,BIRISKH) ;EP
+ ;---> IHS Hep B Forecast.
+ ;---> Parameters:
+ ;     1 - BIDFN   (req) Patient IEN.
+ ;     2 - BIFLU   (req) Influ and Pneumo History array: BIFLU(CVX,INVDATE).
+ ;     3 - BINF    (opt) Array of Vaccine Grp IEN'S that should not be forecast.
+ ;     4 - BIFDT   (req) Forecast Date (date used for forecast).
+ ;     5 - BIAGE   (req) Patient Age in months for this Forecast Date.
+ ;     6 - BIDUZ2  (req) User's DUZ(2) indicating Immserve Forc Rules.
+ ;     7 - BIRISKH (req) 1=Patient has Risk of HEP B; otherwise 0.
+ ;
+ ;---> Quit if Forecasting turned off for Hep B.
+ Q:$D(BINF(4))
+ ;
+ ;---> Quit if this patient has a contraindication to Hep B.
+ N BICT D CONTRA^BIUTL11(BIDFN,.BICT)
+ Q:$D(BICT(45))
+ ;**********
+ ;
+ ;---> Quit if this Pt Age < 19 yrs or older than 60 yrs, regardless of risk.
+ Q:(BIAGE<228)  Q:(BIAGE>719)
+ ;
+ ;---> Quit if this patient ever received a Hep B.
+ Q:$D(BIFLU(45))
+ ;
+ ;---> Quit iF patient is NOT High Risk for Hep B.
+ Q:('BIRISKH)
+ ;
+ D SETDUE^BIPATUP2(BIDFN_U_$$HL7TX^BIUTL2(45)_U_U_BIFDT)
  Q

@@ -1,5 +1,5 @@
 BGPMUHP7 ; IHS/MSC/JSM - MU EH  measure output routines;02-Mar-2011 16:06;MGH
- ;;11.0;IHS CLINICAL REPORTING;**4**;JAN 06, 2011;Build 84
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ; ED1^BGPMUHP1 = output routine for 0495 ED-1;;;;;Build 33
  ; ED2^BGPMUHP1 = output routine for 0497 ED-2
  ;
@@ -20,7 +20,7 @@ BGPMUHP7 ; IHS/MSC/JSM - MU EH  measure output routines;02-Mar-2011 16:06;MGH
  ;
 VTE3 ;EH  output routine for 0373 VTE-3 (BGPMUH12)
  D P3
- K ^TMP("BGPMU0373")
+ K ^TMP("BGPMU0373",$J)
  Q
 P3 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -153,7 +153,7 @@ DEXC373(NODE) ;GET DATA
  ;
 VTE4 ;EH  output routine for 0374 VTE-4 (BGPMUH13)
  D P4
- K ^TMP("BGPMU0374")
+ K ^TMP("BGPMU0374",$J)
  Q
 P4 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3

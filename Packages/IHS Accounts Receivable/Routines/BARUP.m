@@ -1,5 +1,5 @@
 BARUP ; IHS/SD/LSL - UPLOAD BILL FROM 3P ;
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**19,23,24**;OCT 26, 2005;Build 69
  ;
  ; IHS/SD/LSL - 11/27/02 - V1.7 - QAA-1200-130051
  ;    Inserted documentation.
@@ -26,7 +26,8 @@ BARUP ; IHS/SD/LSL - UPLOAD BILL FROM 3P ;
  ;** ACTION from 3P ABMAPASS will now be numeric. 
  ;    99 - indicates a cancelled bill in 3P
  ;    1,2,3 - indicates that the active insurer is primary,secondary,etc
- ;** JUNE 2012 P.OTTIS HEAT # 73895: - DISPLAY EXCLUSION REASON
+ ;IHS/SD/POT HEAT73895 - DISPLAY REASON OF NOT UPLOADING 08/21/2012 BAR*1.8*23
+ ;IHS/SD/SDR HEAT118656 BARERR BAR*1.8*24
  Q
  ; *********************************************************************
  ;
@@ -67,20 +68,33 @@ GETSERV ;** hospital service section
 GETPAR ;** visit location comes from #.03 of 3p bill file
  ;**  GET duz(2)
  ;   get parent from parent/satellite file
- S BARSAT=$G(@BAR3PUP@("VSLC"))           ; Satellite = 3P Visit loc           
+ S BARSAT=$G(@BAR3PUP@("VSLC"))           ; Satellite = 3P Visit loc
  S BARPAR=0                               ; Parent
- ; check site active at DOS to ensure bill added to correct site
- S DA=0,BARERR=0 ;P.OTTIS HEAT # 73895 - SET BARERR # AND 
+ S DA=0,BARERR=0 ;HEAT73895 - SET BARERR BAR*1.8*23
  F  S DA=$O(^BAR(90052.06,DA)) Q:DA'>0  D  Q:BARPAR
+ . ;;;;I DUZ=838 W !,$ZN,"  ",DA
  . I '$D(^BAR(90052.06,DA,DA)) S BARERR=1_";"_DA QUIT ; Pos Parent UNDEF Site Parameter
  . I '$D(^BAR(90052.05,DA,BARSAT)) S BARERR=2_";"_DA_";"_BARSAT QUIT ; Satellite UNDEF Parent/Satellit
  . I +$P($G(^BAR(90052.05,DA,BARSAT,0)),U,5) S BARERR=3_";"_DA_";"_BARSAT QUIT ; Par/Sat not usable
  . ; Q if sat NOT active at DOS
- . I @BAR3PUP@("DOSB")<$P($G(^BAR(90052.05,DA,BARSAT,0)),U,6) S BARERR=4_";"_DA_";"_BARSAT_";dos="_@BAR3PUP@("DOSB")_";activated:"_$P($G(^BAR(90052.05,DA,BARSAT,0)),U,6) QUIT
+ . I @BAR3PUP@("DOSB")<$P($G(^BAR(90052.05,DA,BARSAT,0)),U,6) S BARERR=4_";"_DA_";"_BARSAT_";DOS="_@BAR3PUP@("DOSB")_";Activated:"_$P($G(^BAR(90052.05,DA,BARSAT,0)),U,6) QUIT
  . ; Q if sat became NOT active before DOS
  . I $P($G(^BAR(90052.05,DA,BARSAT,0)),U,7),(@BAR3PUP@("DOSB")>$P($G(^BAR(90052.05,DA,BARSAT,0)),U,7)) S BARERR=5_";"_DA_";"_BARSAT QUIT
  . S BARPAR=$S(BARSAT:$P($G(^BAR(90052.05,DA,BARSAT,0)),U,3),1:"") I BARPAR="" S BARERR=6_";"_DA_";"_BARSAT
- I 'BARPAR D ERRMSG(BARERR) Q                     ; No parent defined for satellite
+ I 'BARPAR D ERRMSG(BARERR) Q     ; No parent defined for satellite
+ ;------------------------------------------------------
+ ;start new code IHS/SD/SDR belcourt HEAT118656 BARERR BAR*1.8*24
+ ;this is for the UPAP option; parent found is not the one we are running upload for - skip it
+ ;
+ I +$G(^BARTMP("BARUP","STARTDUZ(2)"))'=0,(BARPAR'=+$G(^BARTMP("BARUP","STARTDUZ(2)"))) D  Q
+ .W !!,"Claim is for a different parent location and won't be uploaded."
+ .W !,"Claim number: "_@BAR3PUP@("BLNM"),!
+ .S BARERR=+$O(^BARTMP("BARUP","ERRORS",999999999),-1)
+ .S BARERR=BARERR+1
+ .S ^BARTMP("BARUP","ERRORS",BARERR)=(@BAR3PUP@("BLNM"))_U_"Different Parent Location"
+ .W !,BARERR
+ ;end new code belcourt HEAT118656 
+ ;------------------------------------------------------ 
  S DUZ(2)=BARPAR
  ;
  ; -------------------------------
@@ -157,14 +171,13 @@ SETACC(BARACC) ;EP - establish record in A/R FACILITY ACCOUNT file
  K DLAYGO,DIC
  S BARACODA=$S(+Y<0:"",1:+Y)
  Q BARACODA
- ;
-ERRMSG(BARERR) ;P.OTTIS HEAT # 73895 - DISPLAY BARERR TYPE
+ERRMSG(BARERR) ;P.OTTIS HEAT # 73895 - DISPLAY BARERR TYPE BAR*1.8*23
  W !,"A bill could not be created in A/R. Reason:"
- if +BARERR=1 W !,"Parent site not defined in: Site Parameter File"
- if +BARERR=2 W !,"Satellite site not defined in: Parent/Satellit File"
- if +BARERR=3 W !,"Parent/Satellite marked as 'not usable'"
- if +BARERR=4 W !,"'Date of Service' is before the 'visit location activated date'"
- if +BARERR=5 W !,"'Date of Service' is AFTER the 'visit location closed date'"
- if +BARERR=6 w !,"Parent not defined for satellite in: Parent/Satellite file"
- W !,"[internal BARERR code: ",BARERR,"]"
+ I +BARERR=1 W !,"Parent site not defined in: Site Parameter File"
+ I +BARERR=2 W !,"Satellite site not defined in: Parent/Satellit File"
+ I +BARERR=3 W !,"Parent/Satellite marked as 'not usable'"
+ I +BARERR=4 W !,"'Date of Service' is before the 'visit location activated date'"
+ I +BARERR=5 W !,"'Date of Service' is AFTER the 'visit location closed date'"
+ I +BARERR=6 w !,"Parent not defined for satellite in: Parent/Satellite file"
+ ;W !,"[internal BARERR code: ",BARERR,"]"
  QUIT

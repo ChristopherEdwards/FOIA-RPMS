@@ -1,5 +1,5 @@
 BDMDBDU ; IHS/CMI/LAB - gpra utility calls ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;
 WH(P,BDATE,EDATE,T,F) ;EP
@@ -31,7 +31,8 @@ PLCODE(P,A) ;EP
  I $G(A)="" Q ""
  N T
  ;S T=$O(^ICD9("AB",A,0))
- S T=+$$CODEN^ICDCODE(A,80)
+ ;S T=+$$CODEN^ICDCODE(A,80)
+ S T=+$$CODEN^BDMUTL(A,80)  ;cmi/maw 05/14/2014 patch 8 ICD-10
  I T'>0 Q ""
  N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I Y=T S I=1
  Q I
@@ -40,7 +41,8 @@ PLTAX(P,A) ;EP - is DX on problem list 1 or 0
  I $G(A)="" Q ""
  N T S T=$O(^ATXAX("B",A,0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ ;N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,$P(^ATXAX(T,0),U),9) S I=1  ;cmi/maw 05/15/2014 p8
  Q I
 CPT(P,BDATE,EDATE,T,F,SCEX) ;EP - return ien of CPT entry if patient had this CPT
  I '$G(P) Q ""
@@ -58,7 +60,8 @@ CPT(P,BDATE,EDATE,T,F,SCEX) ;EP - return ien of CPT entry if patient had this CP
  ..Q:'$D(^AUPNVCPT("AD",V))
  ..I SCEX]"",SCEX[$P(^AUPNVSIT(V,0),U,7) Q
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...;I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...I $$ICD^BDMUTL($P(^AUPNVCPT(X,0),U),$P(^ATXAX(T,0),U),1) S G=X  ;cmi/maw 05/15/2014 p8
  ...Q
  ..Q
  .Q
@@ -85,7 +88,8 @@ RAD(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT
  ..Q:'$D(^AUPNVRAD("AD",V))
  ..S X=0 F  S X=$O(^AUPNVRAD("AD",V,X)) Q:X'=+X!(G)  D
  ...S C=$P(^AUPNVRAD(X,0),U) Q:C=""  S C=$P($G(^RAMIS(71,C,0)),U,9) Q:C=""
- ...I $$ICD^ATXCHK(C,T,1) S G=X
+ ...;I $$ICD^ATXCHK(C,T,1) S G=X
+ ...I $$ICD^ATXCHK(C,$P(^ATXAX(T,0),U),1) S G=X  ;cmi/maw 05/15/2014 p8
  ...Q
  ..Q
  .Q
@@ -156,7 +160,8 @@ TRAN(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT IN
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVTC("AD",V))
  ..S X=0 F  S X=$O(^AUPNVTC("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVTC(X,0),U,7),T,1) S G=X
+ ...;I $$ICD^ATXCHK($P(^AUPNVTC(X,0),U,7),T,1) S G=X
+ ...I $$ICD^BDMUTL($P(^AUPNVTC(X,0),U,7),$P(^ATXAX(T,0),U),1) S G=X  ;cmi/maw 05/15/2014 p8
  ...Q
  ..Q
  .Q
@@ -229,7 +234,8 @@ CPTREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  S G=""
  S I=0 F  S I=$O(^AUPNPREF("AA",P,81,I)) Q:I=""!($P(G,U))  D
  .S (X,G)=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X!($P(G,U))  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
- ..Q:'$$ICD^ATXCHK(I,T,1)
+ ..;Q:'$$ICD^ATXCHK(I,T,1)
+ ..Q:'$$ICD^BDMUTL(I,$P(^ATXAX(T,0),U),1)  ;cmi/maw 05/15/2014 p8
  ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)_"^"_$P(^ICPT(I,0),U)
  .Q
  Q G

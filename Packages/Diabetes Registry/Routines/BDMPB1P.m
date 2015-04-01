@@ -1,5 +1,5 @@
 BDMPB1P ; IHS/CMI/LAB - 2003 DIABETES AUDIT PRINT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;
  S BDMQUIT=0,BDMIOSL=$S($G(BDMGUI):55,1:IOSL)
@@ -27,7 +27,7 @@ BDMPB1P ; IHS/CMI/LAB - 2003 DIABETES AUDIT PRINT ;
  .W !?1,"3 METABOLIC SYNDROME - ",$$I(220)
  .S X=220 F  S X=$O(^XTMP("BDMPB1",BDMJOB,BDMBTH,"AUDIT",BDMPD,X)) Q:X>220.99!(X="")  D
  ..W !?3,^XTMP("BDMPB1",BDMJOB,BDMBTH,"AUDIT",BDMPD,X)
- .W !?1,"OTHER ABNORMAL GLUCOSE (790.29) - ",$$I(230)
+ .W !?1,"OTHER ABNORMAL GLUCOSE - ",$$I(230)
  .S X=230 F  S X=$O(^XTMP("BDMPB1",BDMJOB,BDMBTH,"AUDIT",BDMPD,X)) Q:X>230.99!(X="")  D
  ..W !?3,^XTMP("BDMPB1",BDMJOB,BDMBTH,"AUDIT",BDMPD,X)
  .W !?1,"CMS Register DX: ",$$I(22)_" "_$$I(24)
@@ -77,13 +77,13 @@ BDMPB1P ; IHS/CMI/LAB - 2003 DIABETES AUDIT PRINT ;
  .I $Y>(BDMIOSL-1) D PAGE Q:BDMQUIT
  .W !?1,$$I(53),?4,"5 Other: Sulfonylurea, ",?41," 12 MONTHS"
  .I $Y>(BDMIOSL-2) D PAGE Q:BDMQUIT
- .W !?1,?4,"    Glyburide, glipizide, etc)",?41,"Total Cholesterol: ",$$I(86)
+ .W !?1,?4,"    Glyburide, glipizide, etc)",?41,"Total Cholesterol: ",$P($$I(86),U,1),"  ",$P($$I(86),U,2)," ",$P($$I(86),U,3)
  .I $Y>(BDMIOSL-1) D PAGE Q:BDMQUIT
- .W !?41,"HDL Cholesterol: ",$$I(89)
+ .W !?41,"HDL Cholesterol: ",$P($$I(89),U,1),"  ",$P($$I(89),U,2)," ",$P($$I(89),U,3)
  .I $Y>(BDMIOSL-1) D PAGE Q:BDMQUIT
- .W !?41,"LDL Cholesterol: ",$$I(88)
+ .W !?41,"LDL Cholesterol: ",$P($$I(88),U,1),"  ",$P($$I(88),U,2)," ",$P($$I(88),U,3)
  .I $Y>(BDMIOSL-1) D PAGE Q:BDMQUIT
- .W !?41,"Triglycerides: ",$$I(190)
+ .W !?41,"Triglycerides: ",$P($$I(190),U,1),"  ",$P($$I(190),U,2)," ",$P($$I(190),U,3)
  .W !,"Local Option question:"
 CUML ;
  I BDMPREP=2!(BDMPREP=3) D CUML^BDMPB14

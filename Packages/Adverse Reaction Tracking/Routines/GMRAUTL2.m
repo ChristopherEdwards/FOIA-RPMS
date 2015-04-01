@@ -35,7 +35,7 @@ UPDATE(ENTRY,ING,CLASS) ;Update existing entries in 120.8 with new information.
  ...I ACTION="A" D ADD("C",SUB,SUBC,.GMRAS) I $G(GMRAS) S CLASS(ACTION,SUBC)=1,UPDATED(DFN)="",GMRACOM=1
  ...I ACTION="D" D DEL("C",SUB,SUBC,.GMRAS) I $G(GMRAS) S GMRACOM=1,CLASS(ACTION,SUBC)=1
  .I $G(GMRACOM) D ADDCOM
- I $D(UPDATED) D CHKORD     ;New order checks now?
+ I $D(UPDATED) D CHKORD ;New order checks now?
  Q
  ;
 ADD(TYPE,ALENT,SUBENT,GMRAS) ;Adds entry to appropriate multiple
@@ -89,7 +89,7 @@ ADDCOM ;Add comment to updated allergy indicating changes
  .S COM="The following "_$S(TYPE=1!(TYPE=2):"ingredients",1:"drug classes")_" were "_$S(TYPE=2!(TYPE=4):"deleted",1:"added")_": "
  .S ROOT=$S(TYPE=1:"ING(""A"")",TYPE=2:"ING(""D"")",TYPE=3:"CLASS(""A"")",1:"CLASS(""D"")")
  .S SUB2=0 F  S SUB2=$O(@ROOT@(SUB2)) Q:'+SUB2  I @ROOT@(SUB2) S COM=COM_$S($P(COM,": ",2)'="":", ",1:"")_$S(TYPE=1!(TYPE=2):$$GET1^DIQ(50.416,SUB2_",",.01),1:$$GET1^DIQ(50.605,SUB2_",",.01))
- .I $P(COM,": ",2)'=""  L +^GMR(120.8,SUB) D ADCOM^GMRAFX(SUB,"O",COM) L -^GMR(120.8,SUB)
+ .I $P(COM,": ",2)'="" L +^GMR(120.8,SUB) D ADCOM^GMRAFX(SUB,"O",COM) L -^GMR(120.8,SUB)
  Q
  ;
 MAIL ;Send message containing potential order checks to user.

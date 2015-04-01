@@ -1,5 +1,5 @@
 BDMPB15 ; IHS/CMI/LAB -IHS -CUMULATIVE REPORT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;
 CUML ;EP
@@ -9,7 +9,7 @@ CUML ;EP
  S BDMCUML(25)="IFG"
  S BDMCUML(30)="IGT"
  S BDMCUML(31)="Metabolic Syndrome"
- S BDMCUML(32)="Other Abnormal Glucose (720.29)"
+ S BDMCUML(32)="Other Abnormal Glucose"
  S BDMCUML(40)="Weight Control (BMI) - does not add up to 100%"
  S BDMCUML(60)="Blood Pressure Control - based on mean of last 3 bp's"
  S BDMCUML(80)="Tobacco use"
@@ -109,8 +109,8 @@ ACE ;110 title^total pts^total pts with protein^# of those on ace^# with htn^# o
  I $E(H)="Y" S $P(BDMCUML(110),U,5)=$P(BDMCUML(110),U,5)+1 I $E(A)="Y" S $P(BDMCUML(110),U,6)=$P(BDMCUML(110),U,6)+1
 LIPID ;115
  S V=$G(^XTMP("BDMPB1",BDMJOB,BDMBTH,"AUDIT",BDMPD,61))
- S L=$$LDL^BDMD718(BDMPD,BDMBDAT,BDMADAT,"I"),L=$P(L,U)
- S T=$$CHOL^BDMD718(BDMPD,BDMBDAT,BDMADAT,"I"),T=$P(T,U)
+ S L=$$LDL^BDMDB18(BDMPD,BDMBDAT,BDMADAT,"I"),L=$P(L,U)
+ S T=$$CHOL^BDMDB18(BDMPD,BDMBDAT,BDMADAT,"I"),T=$P(T,U)
  I T]"",T'<240 S $P(BDMCUML(115),U,3)=$P(BDMCUML(115),U,3)+1 I "SOB"[$E(V) S $P(BDMCUML(115),U,4)=$P(BDMCUML(115),U,4)+1
  I L]"",L>100 S $P(BDMCUML(115),U,5)=$P(BDMCUML(115),U,5)+1 I "SOB"[$E(V) S $P(BDMCUML(115),U,6)=$P(BDMCUML(115),U,6)+1
  ;lipid agents

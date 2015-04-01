@@ -1,5 +1,5 @@
 BGPMUHD7 ; IHS/MSC/SAT - Delimited MU measure VTE5 and VTE6;07-Apr-2011 13:15;DU
- ;;11.0;IHS CLINICAL REPORTING;**4**;JAN 06, 2011;Build 84
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimited output
  ; STK2^BGPMUHD1   = delimited routine for 0435 STK-2 Antithrombolytic Therapy at discharge
  ; STK3^BGPMUHD1   = delimited routine for 0436 STK-3 Anticoagulation Therapy at discharge
@@ -19,7 +19,7 @@ BGPMUHD7 ; IHS/MSC/SAT - Delimited MU measure VTE5 and VTE6;07-Apr-2011 13:15;DU
  ;Delimited output for VTE Measure 0373
 VTE5 ;EP
  D P1B
- K ^TMP("BGPMU0375")
+ K ^TMP("BGPMU0375",$J)
  Q
 P1B ;Write individual measure
  N BGPPTYPE,X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRD6,PRN1
@@ -134,7 +134,7 @@ DEXC375(NODE) ;GET DATA
  ;Delimited output for VTE Measure 0374
 VTE6 ;EP
  D P1
- K ^TMP("BGPMU0376")
+ K ^TMP("BGPMU0376",$J)
  Q
 P1 ;Write individual measure
  N BGPPTYPE,X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRD6,PRN1

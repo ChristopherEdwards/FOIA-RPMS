@@ -1,7 +1,5 @@
-BGPGUA ; IHS/CMI/LAB - BGP Gui Utilities 03/11/2010 3:28:39 PM ;
- ;;13.0;IHS CLINICAL REPORTING;;NOV 20, 2012;Build 81
- ;
- ;
+BGPGUA ; IHS/CMI/LAB - BGP Gui Utilities 03/11/2010 3:28:39 PM ; 16 Oct 2014  12:11 PM
+ ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
  ;
 DEBUG(RETVAL,BGPSTR) ;run the debugger
  D DEBUG^%Serenji("SEARCH^BGPGUA(.RETVAL,.BGPSTR)")
@@ -203,5 +201,20 @@ CLNREC(IR) ;-- clean out recipients
  S DIK="^BGPGP1PM("_DA(1)_",99.2,"
  S DA=0 F  S DA=$O(^BGPGP1PM(IR,99.2,DA)) Q:'DA  D
  . D ^DIK
+ Q
+ ;
+CHKFQT(X) ;EP - check for queued task (BGP AUTO GPRA EXTRACT and BGPSITE variable within the task
+ NEW Y
+ S Y=$P($G(^BGPGUIK(X,0)),U,9)
+ I '$G(Y) Q 0
+ I '$D(^%ZTSK(Y,0)) Q 0
+ I $P($G(^%ZTSK(Y,.1)),U)="C" Q 1
+ I $P($G(^%ZTSK(Y,.1)),U)="E" Q 1
+ Q 0
+ ;
+UPLOG(GIEN,TSK) ;EP
+ S DIE="^BGPGUIK(",DR=".09///"_TSK
+ S DA=GIEN
+ D ^DIE
  Q
  ;

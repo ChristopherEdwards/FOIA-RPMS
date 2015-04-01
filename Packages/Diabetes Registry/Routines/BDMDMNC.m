@@ -1,5 +1,5 @@
 BDMDMNC ; IHS/CMI/LAB - is this the first of this diabetes diagnosis? ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**2**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**2,8**;JUN 14, 2007;Build 53
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in DMCOMPL
  ;
@@ -30,7 +30,7 @@ DMCOMPL ;PEP -- called from taxonomy system
  K BDM
  S BDMY="BDM("
  ;S BDMX=BDMDFN_"^FIRST DX "_$P(^ICD9(ATXICD,0),U) S BDMER=$$START1^APCLDF(BDMX,BDMY)  ;cmi/anch/maw 9/10/2007 orig line
- S BDMX=BDMDFN_"^FIRST DX "_$P($$ICDDX^ICDCODE(ATXICD),U,2) S BDMER=$$START1^APCLDF(BDMX,BDMY)  ;cmi/anch/maw 9/10/2007 csv
+ S BDMX=BDMDFN_"^FIRST DX "_$P($$ICDDX^BDMUTL(ATXICD),U,2) S BDMER=$$START1^APCLDF(BDMX,BDMY)  ;cmi/anch/maw 9/10/2007 csv
  I BDMER G X2
  S V=+$P($G(BDM(1)),U,4) I V=ATXPOVDA G X2
 X3 S ATXSTOP=1

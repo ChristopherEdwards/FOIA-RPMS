@@ -1,10 +1,10 @@
 BGPMUDD1 ; IHS/MSC/SAT - Print MI measure NQF0028 ;21-Mar-2011 13:15;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimited output
  ;Get printout for Tobacco Assessment measure 0028A
 TOB2 ;EP
  D P1A
- K ^TMP("BGPMU0028A")
+ K ^TMP("BGPMU0028A",$J)
  Q
 P1A ;Write individual measure
  N BGPPTYPE,X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRN1
@@ -85,7 +85,7 @@ DATA3(NODE) ;GET DATA
  ;Get printout for Tobacco Cessation measure 0028B
 TOB ;EP
  D P1B
- K ^TMP("BGPMU0028B")
+ K ^TMP("BGPMU0028B",$J)
  Q
 P1B ;Write individual measure
  N BGPPTYPE,X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRN1

@@ -1,6 +1,7 @@
 ACHSTX3D ;IHS/SET/GTH - RECORD 3(PATIENT FOR AO/FI) FORMAT ; [ 12/06/2002  10:36 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5**;JUN 11, 2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,22**;JUN 11, 2001;Build 13
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - New Routine.
+ ;ACHS*3.1*22 IHS/OIT/FCJ MODIFICATION TO 3C to include century data
  ;;
  ;;Record 3A - PATIENT RECORD.
  ;;Routine :  ACHSTX3
@@ -45,4 +46,5 @@ ACHSTX3D ;IHS/SET/GTH - RECORD 3(PATIENT FOR AO/FI) FORMAT ; [ 12/06/2002  10:36
  ;;   52-57       6            ELIG BEGIN DATE (YYMMDD)
  ;;   58-63       6            ELIG END DATE   (YYMMDD)
  ;;   64-80      17            COVERAGE TYPE                L 
- ;
+ ;;   77-78       2            Century Elig Begin
+ ;;   79-80       2            Century Elig End

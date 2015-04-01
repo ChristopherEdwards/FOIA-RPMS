@@ -1,5 +1,5 @@
 BGP4DARO ; IHS/CMI/LAB - ihs area GPRA 02 Sep 2004 1:11 PM 01 Jul 2010 11:43 AM ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
  W:$D(IOF) @IOF
@@ -120,11 +120,11 @@ ASU ;
  W !!,"A total of ",C," facilities have been selected.",!!
 ZIS ;call to XBDBQUE
 EISSEX ;
- S BGPEXCEL=1
+ S BGPEXCEL=$S($G(BGPSUMON):0,BGPRPTT="F":0,1:1)
  S BGPUF=$$GETDIR^BGP4UTL2()
  ;I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
  ;I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic/"
- S BGPEXCEL=1 D
+ I BGPEXCEL=1 D
  .S BGPNOW=$$NOW^XLFDT() S BGPNOW=$P(BGPNOW,".")_"."_$$RZERO^BGP4UTL($P(BGPNOW,".",2),6)
  .S BGPC=0,X=0 F  S X=$O(BGPSUL(X)) Q:X'=+X  S BGPC=BGPC+1
  .I BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." Q
@@ -159,7 +159,7 @@ GI ;gather all gpra measures
 DRIVER ;
  U IO
  D PRINT^BGP4PARQ
- I BGPRPTT="A" D ONN1^BGP4UTL
+ I BGPEXCEL D ONN1^BGP4UTL
  D ^%ZISC
  D EXIT
  Q

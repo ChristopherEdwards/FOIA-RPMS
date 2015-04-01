@@ -1,5 +1,5 @@
 BARRAMR ; IHS/SD/LSL - Aging management report ;08/20/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**7**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**7,24**;OCT 26, 2005;Build 69
  ;
  ; IHS/ASDS/LSL - 08/29/00 - Routine created
  ;     Really Age Detail and Bills Listing Reports
@@ -8,6 +8,7 @@ BARRAMR ; IHS/SD/LSL - Aging management report ;08/20/2008
  ;     Modified to accomodate new "Location to sort report by" parameter
  ; MODIFIED XTMP FILE NAME TO TMP TO MEET SAC REQUIREMENTS;MRS:BAR*1.8*7 IM29892
  ;
+ ;IHS/SD/POT HEAT118656 11/14/2013 fixed <undefined> error if VISIT LOC NIL / NOT DEF BAR*1.8*24
  Q
  ; *********************************************************************
  ;
@@ -57,7 +58,9 @@ DATA ; EP
  S BAR("SORT")=$S(BARY("SORT")="C":BAR("C"),1:BAR("V"))
  I BAR("I")]"" S BAR("ACCT")=$$VAL^XBDIQ1(90050.02,BAR("I"),.01)
  E  S BAR("ACCT")="No A/R Account"
- S BAR("L")=$$VAL^XBDIQ1(9999999.06,BAR("L"),.01)
+ ;OLD CODE S BAR("L")=$$VAL^XBDIQ1(9999999.06,BAR("L"),.01)
+ I BAR("L")]"" S BAR("L")=$$VAL^XBDIQ1(9999999.06,BAR("L"),.01)
+ I BAR("L")="" S BAR("L")="UNK LOC" ;BAR*1.8*24
  ; For detail
  S ^TMP($J,"BAR-AMR",BAR("L")_U_BAR("SORT")_U_BAR("ACCT")_U_BAR("PAT")_U_BAR)=""
  ; For summary

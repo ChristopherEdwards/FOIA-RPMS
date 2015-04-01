@@ -1,5 +1,5 @@
 BDMFUTIL ; IHS/CMI/LAB - DMS UTILITY PROGRAM ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;3;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,8**;JUN 14, 2007;Build 53
  ;UTILITY PROGRAM
  ;LOCATION FOR VARIOUS UTILITY FUNCTIONS
 TAX ;EP;TAXONOMY MANAGEMENT
@@ -94,7 +94,7 @@ SWITCH ;EP;TO SWITCH REGISTERS
  D REG
  I $D(BDMONE) D
  .W !!,"If there are other DIABETES registers you need access to,"
- .W !,"contact you DIABETES system manager for assistance.",!!
+ .W !,"contact your DIABETES system manager for assistance.",!!
  .H 5
  .K BDMONE
  Q

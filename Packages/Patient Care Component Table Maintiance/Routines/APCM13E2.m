@@ -1,5 +1,5 @@
 APCM13E2 ; IHS/CMI/LAB - IHS MU ;
- ;;1.0;IHS MU PERFORMANCE REPORTS;**2**;MAR 26, 2012;Build 11
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**2,4,5**;MAR 26, 2012;Build 5
  ;;;;;;Build 3
 TEST ;
  S APCMRPTT=1
@@ -161,8 +161,10 @@ HASDEMO(P,BD,ED,T,DODV) ;
  .Q:B>ED
  .S C=C+1,PL="Preferred Language"
  S G=$P(^DPT(P,0),U,2) I G]"" S C=C+1,G="Gender"
- S R=$$VAL^XBDIQ1(2,P,.06)
- I R]"" S C=C+1,R="Race"
+ S R=""
+ I $T(RACE^AGUTL)]"" S R=$$RACE^AGUTL(P)
+ I R S C=C+1,R="Race" I 1
+ E  S R=$$VAL^XBDIQ1(2,P,.06) I R]"" S C=C+1,R="Race"
  S Z=0 F  S Z=$O(^DPT(P,.06,Z)) Q:Z'=+Z!(E]"")  D
  .S E=$P($G(^DPT(P,.06,Z,0)),U,1)
  .Q:E=""

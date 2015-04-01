@@ -1,5 +1,5 @@
 BDMPB12 ; IHS/CMI/LAB - 2003 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in HYSTER,MAMMOG
  ;
@@ -65,7 +65,7 @@ PAP(P,BDATE,EDATE) ; EP
  Q $S(G:"Refused",1:"No")
 CPT(P,BDATE,EDATE,T,F) ;EP return ien of CPT entry if patient had this CPT
  I '$G(P) Q ""
- I '$G(T) Q ""
+ I $G(T)="" Q ""
  I '$G(F) S F=1
  I $G(EDATE)="" Q ""
  I $G(BDATE)="" S BDATE=$$FMADD^XLFDT(EDATE,-365)
@@ -77,7 +77,7 @@ CPT(P,BDATE,EDATE,T,F) ;EP return ien of CPT entry if patient had this CPT
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVCPT("AD",V))
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...I $$ICD^BDMUTL($P(^AUPNVCPT(X,0),U),T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -89,7 +89,7 @@ CPT(P,BDATE,EDATE,T,F) ;EP return ien of CPT entry if patient had this CPT
  Q ""
 RAD(P,BDATE,EDATE,T,F) ;EP return if a v rad entry in date range
  I '$G(P) Q ""
- I '$G(T) Q ""
+ I $G(T)="" Q ""
  I '$G(F) S F=1
  I $G(EDATE)="" Q ""
  I $G(BDATE)="" S BDATE=$$FMADD^XLFDT(EDATE,-365)
@@ -104,7 +104,7 @@ RAD(P,BDATE,EDATE,T,F) ;EP return if a v rad entry in date range
  ...Q:'$D(^AUPNVRAD(X,0))
  ...S Y=$P(^AUPNVRAD(X,0),U) Q:'Y  Q:'$D(^RAMIS(71,Y,0))
  ...S Y=$P($G(^RAMIS(71,Y,0)),U,9) Q:'Y
- ...Q:'$$ICD^ATXCHK(Y,T,1)
+ ...Q:'$$ICD^BDMUTL(Y,T,1)
  ...S G=X
  ...Q
  ..Q
@@ -142,11 +142,11 @@ EKG(P,EDATE,F) ;EP
  .S LEKG=$P(BDM(1),U)
  ;check CPT codes in year prior to date range
  S T=$O(^ATXAX("B","DM AUDIT EKG CPTS",0))
- K BDM I T S BDM(1)=$$CPT^BDMPB12(P,,ED,T,3) D
+ K BDM I T S BDM(1)=$$CPT^BDMPB12(P,,ED,"DM AUDIT EKG CPTS",3) D
  .I BDM(1)="" K BDM Q
  .Q:LEKG>$P(BDM(1),U)
  .S LEKG=$P(BDM(1),U)
- K BDM I T S BDM(1)=$$RAD^BDMPB12(P,,ED,T,3) D
+ K BDM I T S BDM(1)=$$RAD^BDMPB12(P,,ED,"DM AUDIT EKG CPTS",3) D
  .I BDM(1)="" K BDM Q
  .Q:LEKG>$P(BDM(1),U)
  .S LEKG=$P(BDM(1),U)
@@ -296,7 +296,7 @@ TXNAMES(Y) ;
 HYSTER(P,EDATE) ;EP 
  I '$G(P) Q ""
  ;S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P(^ICD0(+^AUPNVPRC(F,0),0),U) D  ;cmi/anch/maw 9/12/2007 orig line
- S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P($$ICDOP^ICDCODE(+^AUPNVPRC(F,0)),U,2) D  ;cmi/anch/maw 9/12/2007 csv
+ S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P($$ICDOP^BDMUTL(+^AUPNVPRC(F,0),,,"I"),U,2) D  ;cmi/anch/maw 9/12/2007 csv
  .S G=0 S:(C=68.4)!(C=68.5)!(C=68.6)!(C=68.7)!(C=68.9) G=1
  .Q:G=0
  .S D=$P(^AUPNVPRC(F,0),U,6) I D="" S D=$P($P(^AUPNVSIT($P(^AUPNVPRC(F,0),U,3),0),U),".")

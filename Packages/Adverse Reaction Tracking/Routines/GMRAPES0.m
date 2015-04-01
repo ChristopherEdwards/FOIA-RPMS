@@ -164,7 +164,7 @@ GETINPUT(GMRAET) ;Allow user to add comment to message
  K ^TMP($J,"TEXT")
  Q
 CHECK(ORIEN) ;Check to see if allergy is active)
- N VALUE,STAT,STATUS,TERMDT
+ N VALUE,STAT,STATUS
  S VALUE=0
  ;IHS/MSC/MGH Updated patch 1005 to loop by date
  S TERMDT=$O(^GMRD(120.82,ORIEN,"TERMSTATUS","B",$C(0)),-1) I TERMDT'=""  D

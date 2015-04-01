@@ -1,9 +1,9 @@
 BGPMUDP1 ; IHS/MSC/SAT - Print MU EP  measure NQF0028b ;02-Mar-2011 10:55;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;This routine does the printed output of these 2 EP measures
 TOB ;EP
  D P1
- K ^TMP("BGPMU0028B")
+ K ^TMP("BGPMU0028B",$J)
  Q
 P1 ;Write individual measure
  N J,X,Y,Z,LIST1,LIST2,LIST3
@@ -97,7 +97,7 @@ DATA(NODE) ;GET DATA
  ;
 TOB2 ;Tobacco print
  D P1A
- K ^TMP("BGPMU0028A")
+ K ^TMP("BGPMU0028A",$J)
  Q
 P1A ;Write individual measure
  N BGPPTYPE,X,Y,Z,LIST1,LIST2,LIST3

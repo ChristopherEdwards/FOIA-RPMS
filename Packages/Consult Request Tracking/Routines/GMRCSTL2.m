@@ -2,7 +2,6 @@ GMRCSTL2 ;SLC/DCM,dee;06-Jul-2012 13:02;DU;PLS
  ;;3.0;CONSULT/REQUEST TRACKING;**7,21,22,1001,1002,63,1003**;DEC 27, 1997;Build 14
  ; Patch #21 changed array GMRCTOT to ^TMP("GMRCTOT",$J)
  ; Patch #21 also added a plus sign to the $P when setting
- ; Modified - IHS/MSC/MGH - 09/20/2011 - Line ONE+21
  ; GMRCDLA to check for a NULL value.
  ; This routine invokes IA #10035,#44, #10040
  ;Modified - IHS/CIA/MGH - 11/29/2005 - Line ONE+21 - Code change to use HRCN instead of SSN

@@ -1,5 +1,5 @@
 BGP4ULF ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 27 May 2014 4:26 PM ; 09 Apr 2014  3:29 PM
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
  W:$D(IOF) @IOF
@@ -16,10 +16,10 @@ DIR ;
 FILENAME ;
  W !!
  S BGPFILE=""
- S DIR(0)="FO^2:30",DIR("A")="Enter filename w /ext (i.e. BG140101201.5)" K DA D ^DIR K DIR
+ S DIR(0)="FO^2:30",DIR("A")="Enter filename w /ext (i.e. BG141101201.5)" K DA D ^DIR K DIR
  G:$D(DIRUT) DIR
  I Y="" G DIR
- I $E($$UP^XLFSTR(Y),1,5)'="BG140" W !!,"Filename must begin with BG140" G FILENAME
+ I $E($$UP^XLFSTR(Y),1,5)'="BG141" W !!,"Filename must begin with BG141" G FILENAME
  S BGPFILE=Y
  W !,"Directory=",BGPDIR,"  ","File=",BGPFILE
  D READF

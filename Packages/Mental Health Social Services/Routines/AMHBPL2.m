@@ -1,5 +1,5 @@
 AMHBPL2 ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED ; 08 Sep 2011  12:17 PM
- ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2,4**;JUN 18, 2010;Build 28
  ;
 NO1 ;EP
  NEW AMHNOTES,AMHTNDF,AMHTQ,AMHNNUM,X,Y,AMHTN,AMHTDOI,AMHTTPT,AMHAUTH,AMHUPV
@@ -72,7 +72,7 @@ MNO1X ;
  Q
 BHP ;EP - called from protocol
  D FULL^VALM1
- I '$D(^XUSEC("AMHZ PCC PROBLEM LIST",DUZ)) W !!,"You do not have security access to the PCC Problem List.  Please see your",!,"supervisor or program manager.  The security Key is AMHZ PCC PROBLEM LIST.",! D PAUSE^AMHBPL1,EXIT^AMHBPL1 Q
+ ;I '$D(^XUSEC("AMHZ PCC PROBLEM LIST",DUZ)) W !!,"You do not have security access to the PCC Problem List.  Please see your",!,"supervisor or program manager.  The security Key is AMHZ PCC PROBLEM LIST.",! D PAUSE^AMHBPL1,EXIT^AMHBPL1 Q
  W !!,"Please select the problem entry to add to the PCC Problem List."
  NEW AMHPIEN,AMHTEMP,AMHDSME,AMHDSMI,AMHDSM9,AMHN,AMHPLI
  D GETPROB^AMHBPL1
@@ -80,7 +80,8 @@ BHP ;EP - called from protocol
  S AMHDSMI=$P(^AMHPPROB(AMHPIEN,0),U,1)
  S AMHDSME=$P(^AMHPROB(AMHDSMI,0),U,1)
  S AMHDSM9=$P(^AMHPROB(AMHDSMI,0),U,5)  ;icd9 code
- I AMHDSM9="" W !!,"This code is administrative in nature and cannot be added to the PCC ",!,"Problem List.",! D PAUSE^AMHBPL1 G BHPX
+ S AMHDSM0=$P(^AMHPROB(AMHDSMI,0),U,17)
+ I AMHDSM9="",AMHDSM0="" W !!,"This code is administrative in nature and cannot be added to the PCC ",!,"Problem List.",! D PAUSE^AMHBPL1 G BHPX
  D ^AMHPROB
  S AMHDSMI=$P(^AMHPPROB(AMHPIEN,0),U,1)
  S AMHDSME=$P(^AMHPROB(AMHDSMI,0),U,1)
@@ -220,13 +221,14 @@ DELPROB(P,REASON,OTHER) ;PEP called to delete a problem from the PCC Problem lis
  Q ""
 PCC ;EP
  D FULL^VALM1
- I '$D(^XUSEC("AMHZ PCC PROBLEM LIST",DUZ)) W !!,"You do not have the security access to the PCC Problem List.  Please see your",!,"supervisor or program manager.  The security Key is AMHZ PCC PROBLEM LIST.",! D PAUSE^AMHBPL1,EXIT^AMHBPL1 Q
+ ;I '$D(^XUSEC("AMHZ PCC PROBLEM LIST",DUZ)) W !!,"You do not have the security access to the PCC Problem List.  Please see your",!,"supervisor or program manager.  The security Key is AMHZ PCC PROBLEM LIST.",! D PAUSE^AMHBPL1,EXIT^AMHBPL1 Q
  W !!,"You are now leaving the Behavioral Health Problem List and will be taken"
- W !,"into the PCC Problem List for updating.",!!
+ W !,"into the PCC Problem List for viewing.",!!
  S DIR(0)="Y",DIR("A")="Do you wish to continue",DIR("B")="Y" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D EXIT^AMHBPL1 Q
  I 'Y D EXIT^AMHBPL1 Q
+ ;
  S DFN=AMHPAT
- D EN1^APCDPL
+ D EN^AMHPL
  D EXIT^AMHBPL1
  Q

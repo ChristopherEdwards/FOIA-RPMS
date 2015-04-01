@@ -1,5 +1,5 @@
 AMHBPL1 ; IHS/CMI/LAB - problem list update from list manager ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**2**;JUN 18, 2010;Build 23
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2,4**;JUN 18, 2010;Build 28
  ;
  ;
 DIE ;

@@ -1,5 +1,5 @@
 ACHSDNL2 ; IHS/ITSC/PMF - DENIAL LTR/FS (LTR1) (3/6) ;    [ 01/05/2005  8:25 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,6,7,12,18**;JUNE 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,6,7,12,18,22**;JUNE 11,2001;Build 13
  ;ACHS*3.1*3  new method of displaying chart number
  ;ACHS*3.1*4  allow multiple office copies
  ;ACHS*3.1*6  3.27.03 IHS/SET/FCJ print vendor amount and other resource
@@ -96,11 +96,11 @@ PROV ;
  ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ ADD EST/ACT CHRGS MOD BELOW MOVED INTO DO
  ;I $$DN^ACHS(100,2),$D(^AUTTVNDR($$DN^ACHS(100,2),0)) W $P($G(^AUTTVNDR($$DN^ACHS(100,2),0)),U),! G OTHER
  I $$DN^ACHS(100,2),$D(^AUTTVNDR($$DN^ACHS(100,2),0)) D  G OTHER
- .W $P($G(^AUTTVNDR($$DN^ACHS(100,2),0)),U)
+ .W $P($G(^AUTTVNDR($$DN^ACHS(100,2),0)),U),!  ;ACHS*3.1*22 Add LF
  .Q:$P($G(^ACHSDENR(DUZ(2),0)),U,6)="N"
  .S Y=$G(^ACHSDEN(DUZ(2),"D",ACHSA,100)) I Y="" W ! Q
- .S X=$P(Y,U,9) I X]"" S X2="2$" D COMMA^%DTC W !,?10,"Amount Denied: ",X,"(ACT.)",! Q
- .S X=$P(Y,U,8) I X]"" S X2="2$" D COMMA^%DTC W !,?10,"Amount Denied: ",X,"(EST.)",!
+ .S X=$P(Y,U,9) I X]"" S X2="2$" D COMMA^%DTC W ?10,"Amount Denied: ",X,"(ACT.)",! Q  ;ACHS*3.1*22 REMV LF
+ .S X=$P(Y,U,8) I X]"" S X2="2$" D COMMA^%DTC W ?10,"Amount Denied: ",X,"(EST.)",!    ;ACHS*3.1*22 REMV LF
  ;ACHS*3.1*6 3.27.03 IHS/SET/FCJ END OF CHANGES
  ;ACHS*3.1*7 11/4/03 ITSC/SET/JVK FIX PRINT EST AND ACT AMTS.
  ;COMMENT LINE BELOW ADD DO LOOP

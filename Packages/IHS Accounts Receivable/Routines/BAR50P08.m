@@ -1,7 +1,9 @@
 BAR50P08 ; IHS/SD/LSL - POST HIPAA CLAIMS ; 12/01/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,10,19,20,21,23**;OCT 26,2005
- ;; NOHEAT 11/06/2013 REFINING ERROR MESSAGE >> -> >>>
-  Q
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,10,19,20,21,23,24**;OCT 26,2005;Build 69
+ ;;
+ ;IHS/SD/POT HEAT147572 ALLOW TRIBAL SITES ERA POSTING OF NEG BAL & CANCELLED BILLS 2/11/2014 - BAR*1.8*.24
+ ;;
+ Q
 POST(BARCKDA) ; EP  bar*1.8*20 REQ6 changed BARCKIEN to BARCKDA
  ;Post this ERA Check (called from POST^BAR50P00)
  N BPR02  ;TPF BAR*1.8*6 SCR119
@@ -105,12 +107,12 @@ POSTEM ; LOOP Claims with this chk
  ..S BARCKIEN=$O(^BAREDI("I",DUZ(2),IMPDA,5,"B",BARCHECK,0))  ;bar*1.8*20 REQ6
  ..S BARBL=$P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U)  ;bar*1.8*20 REQ6
  ..D CLMFLG^BAR50P04(CLMDA,.ERRORS)  ;bar*1.8*20 REQ6
- ..I $$IHS^BARUFUT(DUZ(2)) S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;bar*1.8*20
- ..;;;I $$IHSERA^BARUFUT(DUZ(2)) S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;bar*1.8*20
- ..D:$$IHS^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA)  ;bar*1.8*20
- ..;;;D:$$IHSERA^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA)  ;bar*1.8*20
- ..Q:$P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,2)'="M"
- ..Q:(($P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,2)="M")&(+$O(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4,0))'=0))  ;matched but reason not to post bar*1.8*20 REQ5
+ ..;;;old code I $$IHS^BARUFUT(DUZ(2)) S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;bar*1.8*20
+ ..S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;new code HEAT147572 2/5/2014 - BAR*1.8*.24
+ ..;;;old code D:$$IHS^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA)  ;bar*1.8*20
+ ..D:$$IHSNEGB^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA) ;new code HEAT147572 - BAR*1.8*.24
+ ..I $P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,2)'="M" Q   ;NOT matched
+ ..I (($P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,2)="M")&(+$O(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4,0))'=0))  Q  ;matched but reason not to post bar*1.8*20 REQ5
  ..S CLMCNT=+$G(CLMCNT)+1  ;bar*1.8*20 REQ6
  ..D BASIC
  .. S PSTQFLG=0 ;INIT VALUE
@@ -124,12 +126,14 @@ POSTEM ; LOOP Claims with this chk
  ..S BARCR=$$GET1^DIQ(90056.0205,IENS,".04")
  ..;------------------------------------------------------------------------
  ..I (ITEMAMT-BARCR)<0 D
+ ... I '$$IHSNEGB^BARUFUT(DUZ(2)) QUIT    ;2/11/2014- BAR*1.8*.24
  ...W !!?7,$$EN^BARVDF("HIN"),"<<PYMT EXCEEDS COLLECTION ITEM BALANCE. MARKED AS 'ITEM BALANCE EXCEEDED'",$$EN^BARVDF("HIF")
  ...S PSTQFLG=1
  ..;------------------------------------------------------------------------
  ..I PSTQFLG=1 D UP^BAR50P0Z(IMPDA,CLMDA,"EBAL") Q  ;leave bill as matched but with NTP reason item balance exceeded
  ..D NEGBAL
  ..Q:'BARANS
+ .. ;CLMDA WILL BE POSTED OK
  ..D ADJMULT
  ..D PAY
  ..D RMKCD  ;Post remark codes
@@ -162,6 +166,7 @@ NEGBAL ;
  S BARTOT=BARTOT+BARADJ
  I (BARBAL-BARTOT)=0 Q
  I (BARBAL-BARTOT)>0 Q
+ I '$$IHSNEGB^BARUFUT(DUZ(2)) QUIT  ;2/11/2014
  I BARBAL>0 W !!,"<<Posting this bill will result in a negative balance on the bill>>" ;11/22/2013
  I BARBAL=0 W !!,"<<<Posting this bill will result in a negative balance on the bill >>>" ;11/22/2013
  ;Mark bill not to post

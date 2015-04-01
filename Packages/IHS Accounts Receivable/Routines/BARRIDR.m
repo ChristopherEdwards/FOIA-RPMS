@@ -1,9 +1,11 @@
 BARRIDR ; IHS/SD/LSL - Inpatient Primary Diagnosis Report ;08/20/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,7,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,7,23,24**;OCT 26, 2005;Build 69
  ; MODIFIED XTMP FILE NAME TO TMP TO MEET SAC REQUIREMENTS;MRS:BAR*1.8*7 IM29892
  ; ITSC/SD/LSL - 03/17/03 - Routine created
- ; MAR 2013 P.OTTIS ADDED NEW VA billing
- ; JUL 2013 P.OTTIS ADDED SUPPORT FOR ICD-10
+ ;IHS/SD/POT MAR 2013 ADDED NEW VA billing- BAR*1.8*.23
+ ;IHS/SD/POT JUL 2013 P.OTTIS ADDED SUPPORT FOR ICD-10- BAR*1.8*.23
+ ;IHS/SD/POT HEAT150941 Allow ALL DX9/10
+ ;                     if no DX selected: show ALL DX of ALL available coding systems 3/10/2014 - BAR*1.8*.24
  Q
  ; *********************************************************************
  ;
@@ -88,7 +90,7 @@ DATA ; EP
  S BARADJ2=BARADJ-BARCODED
  ;
  ; Detail data (by diagnosis)
- I $G(BAR("DX"))="" S BAR("DX")=" " ;P.OTT9/4/2013
+ I $G(BAR("DX"))="" S BAR("DX")=" " ; - BAR*1.8*.24
  S BARHOLD=$G(^TMP($J,"BAR-IDR",BAR1,BAR2,BAR3,BAR("DX")))
  S $P(^TMP($J,"BAR-IDR",BAR1,BAR2,BAR3,BAR("DX")),U)=$P(BARHOLD,U)+1
  S $P(^TMP($J,"BAR-IDR",BAR1,BAR2,BAR3,BAR("DX")),U,2)=$P(BARHOLD,U,2)+BARCDAY
@@ -194,6 +196,7 @@ DSCH ;
  ;
 DX ;
  ; For each Diagnosis do...
+ I BARDX=" " Q  ;NO DX
  I $Y>(IOSL-5) D HD Q:$G(BAR("F1"))
  S BARHOLD=$G(^TMP($J,"BAR-IDR",BARL,BAR2,BARDS,BARDX))
  W !?1,$E(BARDX,1,6)                       ; Diagnosis
@@ -267,7 +270,7 @@ HDB ; EP
  W !,BAR("DASH"),!
  Q
  ; ********************************************************************
- ;
+ ;- BAR*1.8*.23
  ;THIS TABLE REPLICATES ^AUTTINTY INSURER TYPE (21 ENTRIES) P.OTT 4/12/2013
  ;AND MAPS INSURER TYPE CODE TO CATEGORY (IE: W --> OTHER)
 H ;;PRIVATE INSURANCE;;HMO

@@ -1,9 +1,9 @@
 BGPMUAD1 ; IHS/MSC/MGH - Print MI measure NQF0421 and NQF0013 ;22-Mar-2011 09:53;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;Delimeted outptu
 BMI(CNT) ;EP
  D P1
- K ^TMP("BGPMU0421")
+ K ^TMP("BGPMU0421",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -166,7 +166,7 @@ DATA2(NODE) ;GET DATA
  ;Get printout for BP measure
 BLOODP ;EP
  D BP1
- K ^TMP("BGPMU0013")
+ K ^TMP("BGPMU0013",$J)
  Q
 BP1 ;Write individual measure
  N X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRN,PRD1,PRN1

@@ -1,12 +1,14 @@
 BARRAMR2 ; IHS/SD/LSL - Aging management report ;08/20/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**7,23**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**7,23,24**;OCT 26, 2005;Build 69
  ; MODIFIED XTMP FILE NAME TO TMP TO MEET SAC REQUIREMENTS;MRS:BAR*1.8*7 IM29892
  ; IHS/ASDS/LSL - 09/26/00 - Routine created
  ;     Detail print of Aging management report
  ;
  ; IHS/SD/LSL - 07/08/02 - V1.6 Patch 2
  ;     Modified to print missing clinics and visit types
- ;HEAT #102270 P.OTTIS: IGNORE LINE ITEMS WITH BALANCES=0
+ ;
+ ; IHS/SD/POTT HEAT102270 IGNORE LINE ITEMS WITH BALANCES=0 - BAR1.8*23
+ ; IHS/SD/POTT HEAT151319 APPLY HEAT 102270 CHANGE ONLY TO AGING REPORT [2/10/2014]  - BAR1.8*24
  Q
  ; *********************************************************************
  ;
@@ -39,7 +41,8 @@ DETAIL ; EP
  . S BAR("DOS")=$P(BAR("B1"),U,2)       ; DOS begin
  . S Y=BAR("DOS") D DD^%DT              ; External format
  . S BAR("DOS")=Y
- . I +BAR("BAL")=0 QUIT  ;P.OTT
+ . ;;;I +BAR("BAL")=0 QUIT  ; - BAR1.8*23
+ . I $G(BAR("HD",0))["Aging" I +BAR("BAL")=0 QUIT  ;P.OTT HEAT151319  - BAR1.8*24
  . I BAR("L")'=$P(BAR("TXT"),U) D
  . . Q:$G(BAR("F1"))
  . . I BAR("L")]"" D

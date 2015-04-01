@@ -1,14 +1,15 @@
 BILOT ;IHS/CMI/MWR - EDIT LOT NUMBERS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**2**;MAY 15,2012
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EDIT LOT NUMBER FIELDS.
- ;   PATCH 2: Redisplay Message area (with # of Lots) in List Template. HELP+5
+ ;   PATCH 2: Redisplay Message area (with # of Lots) in List Template. HELP1+5
+ ;   PATCH 9: Removed until perhaps Patch 10.  Update help text.  HELP+5
  ;
  ;
  ;
  ;----------
 START ;EP
- ;---> Lookup Vaccines and edit their fields.  vvv83
+ ;---> Lookup Lot Numbers and edit their fields.  vvv83
  D SETVARS^BIUTL5 K ^TMP("BILOT",$J) N BICOLL,BISUBT,BITMP,BIINACT
  S BISUBT="1:Unused Doses;2:Expiration Date;3:Lot Number"
  S BISUBT=BISUBT_";4:Vaccine Name, then by Unused Doses"
@@ -31,7 +32,7 @@ EN ;EP
  ;
  ;----------
 PRINT ;EP
- ;---> Print Vaccine Table.
+ ;---> Print Lot Number Table.
  ;---> Called by Protocol BI LOT NUMBER TABLE PRINT, which is the
  ;---> Print List Protocol for the List: BI LOT NUMBER TABLE EDIT.
  ;
@@ -121,11 +122,34 @@ HELP ;EP
  D FULL^VALM1
  W !!?5,"Enter ""A"" to add or edit a Lot Number, enter ""S"" to Select a Lot"
  W !?5,"Number from the left column, enter ""C"" to change the order of the list,"
+ W !?5,"""S"" to Search for a particular Lot Number, ""D"" to include Inactive Lot"
  W !?5,"enter ""I"" to Inactivate expired Lot Numbers, and enter ""H"" to view"
  W !?5,"the full help text for the lot number list and its parameters."
  D DIRZ^BIUTL3("","     Press ENTER/RETURN to continue")
  D:BIX'="??" RE^VALM4
  Q
+ ;
+ ;
+ ;----------
+HELPNEXT ;EP
+ ;
+ ;********** PATCH 10?, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Requested removed from Patch 9 by Michelle Ruslavage. Possibly include
+ ;---> in next patch.
+ ;---> Update help text below to include new actions from patch.
+ ;---> Help code.
+ N BIX S BIX=X
+ D FULL^VALM1
+ W !!?5,"Enter ""A"" to add or edit a Lot Number, enter ""E"" to select and Edit a Lot"
+ W !?5,"Number from the left column, enter ""C"" to change the order of the list,"
+ W !?5,"""S"" to Search for a particular Lot Number, ""D"" to include Inactive Lot"
+ W !?5,"Numbers in the display (will appear after all Active Lot Numbers),"
+ W !?5,"enter ""I"" to Inactivate expired Lot Numbers, and enter ""H"" to view"
+ W !?5,"the full help text for the lot number list and its parameters."
+ D DIRZ^BIUTL3("","     Press ENTER/RETURN to continue")
+ D:BIX'="??" RE^VALM4
+ Q
+ ;**********
  ;
  ;
  ;----------
@@ -146,11 +170,10 @@ TEXT1(BITEXT) ;EP
  ;;
  ;;This screen allows you to add and edit the eight fields of Lot Numbers.
  ;;
- ;;NOTE: To show INACTIVE Lot Numbers, select "C Change List Order" and
- ;;answer "YES" to the follow-up Question: "Include INACTIVE in display?"
+ ;;NOTE: To show INACTIVE Lot Numbers, select "D  Display Inactives."
  ;;
  ;;To Add a new Lot Number, type "A".  If the Lot Number already exists in
- ;;the Table, a message will display, directng you select that Lot Number
+ ;;the Table, a message will display, directIng you select that Lot Number
  ;;for editing.
  ;;
  ;;To edit an existing Lot Number type "E" and then select the left column
@@ -160,8 +183,7 @@ TEXT1(BITEXT) ;EP
  ;;of characters by usinng the "S Search List" action.
  ;;
  ;;You may list the Lots in a variety of manners by using the "C Change List"
- ;;action.  Changing the list will also give you the opportunity include
- ;;INACTIVE Lot Numbers in the listing (as mentioned above).
+ ;;action.
  ;;
  ;;Lastly, you may automatically inactivate ALL Lot Numbers that either
  ;;have expired or have no expiration date, by typing "I".

@@ -1,5 +1,5 @@
 BGP4DPA2 ; IHS/CMI/LAB - COMP NATIONAL GPRA FOR PTS W/APPT 03 Jun 2014 8:04 AM ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
 I017 ;EP - colorectal cancer
  ;
@@ -15,8 +15,6 @@ I017 ;EP - colorectal cancer
  I D]"",$$FMDIFF^XLFDT(DT,D)<365 S BGPIN=1
  I D>BGPLAST S BGPLAST=D
  S BGPSIG=$$SIG^BGP4D62(DFN,BGPEDATE,$$DOB^AUPNPAT(DFN))  ;last SIG test
- ;S D=$P(BGPSIG,U,3),BGPNSIG=$S($P(BGPSIG,U,3):$$FMADD^XLFDT(D,(5*365)),1:BGPBDATE) I BGPNSIG'>BGPED S BGPIN1=1
- ;I D>BGPLAST S BGPLAST=D_U_BGPNSIG
  S D=$P(BGPSIG,U,3)
  I D]"",$$FMDIFF^XLFDT(DT,D)<365 S BGPIN1=1
  I D>BGPLAST S BGPLAST=D
@@ -26,12 +24,6 @@ I017 ;EP - colorectal cancer
  S D=$P(BGPCOLO,U,3)
  I D]"",$$FMDIFF^XLFDT(DT,D)<365 S BGPIN2=1
  I D>BGPLAST S BGPLAST=D
- ;S BGPBE=$$BE^BGP4D61(DFN,BGPEDATE,$$DOB^AUPNPAT(DFN))  ;last BE test
- ;S D=$P(BGPBE,U,3),BGPNBE=$S($P(BGPBE,U,3):$$FMADD^XLFDT(D,(5*365)),1:DT) I BGPNBE'>BGPED S BGPIN3=1
- ;I D>BGPLAST S BGPLAST=D_U_BGPNBE
- ;S D=$P(BGPBE,U,3)
- ;I D]"",$$FMDIFF^XLFDT(DT,D)<365 S BGPIN3=1
- ;I D>BGPLAST S BGPLAST=D
  I BGPLAST]"",(BGPIN!(BGPIN1)!(BGPIN2)!(BGPIN3)) S BGPSKIP=1 Q  ;met at least one of above
  S BGPN1=0
  S BGPISSV=$$TITLE(BGPGPRAI)
@@ -90,7 +82,7 @@ IAA ;EP
  I BGPAGEB<18 S BGPSKIP=1 Q
  S (BGPD,BGPN,BGPN1,BGPREF,BGPNS)=""
  S BGPN1=$$DEP^BGP4D25(DFN,$$DOB^AUPNPAT(DFN),BGPEDATE)
- I BGPN1 NEW X S X=$P(BGPN1,U,4),%DT="" D ^%DT S BGPD=Y,BGPV="2 Mood Disorder DXs "
+ I BGPN1 NEW X S X=$P(BGPN1,U,4) S BGPD=X,BGPV="2 Mood Disorder DXs "
  S BGPN1=$$DEPSCR^BGP4D25(DFN,$$DOB^AUPNPAT(DFN),BGPEDATE)
  I BGPN1,BGPD<$P(BGPN1,U,4) S BGPD=$P(BGPN1,U,4),BGPV=$P(BGPN1,U,2)
  S BGPN1=$$DEPEDU^BGP4D25(DFN,$$DOB^AUPNPAT(DFN),BGPEDATE)
@@ -106,12 +98,14 @@ IAAX ;
 I014 ;EP
  I BGPAGEB<5 S BGPSKIP=1 Q
  I BGPAGEB>17 S BGPSKIP=1 Q
- S BGPLDS=$$SEAL(DFN,$$DOB^AUPNPAT(DFN),DT) I 'BGPLDS S BGPSKIP=1 Q  ;never had a sealant
- S D=$P($$DENTSRV(DFN,$$DOB^AUPNPAT(DFN),DT),U,1)
+ S BGPLDS=$$SEAL(DFN,$$DOB^AUPNPAT(DFN),BGPEDATE) ;I 'BGPLDS S BGPSKIP=1 Q  ;never had a sealant
+ S D=$P($$DENTSRV^BGP4D21(DFN,$$DOB^AUPNPAT(DFN),BGPED,1),U,2)
+ ;S D=$P($$DENTSRV(DFN,$$DOB^AUPNPAT(DFN),BGPEDATE),U,1)
  S BGPS=""
- I D]"",$$FMDIFF^XLFDT(DT,D)<180 S BGPSKIP=1 Q  ;dental exam less than 6 months ago
- I D]"",$$FMDIFF^XLFDT(DT,D)>180 S BGPS="May be overdue:  Patient is overdue for dental|exam and assessment for additional sealants.|Refer to Dental Program."
- I BGPLDS="" S BGPISSV=$$TITLE(BGPGPRAI)_U_"Last Dental Sealant: Never" Q
+ I D]"",$$FMDIFF^XLFDT(BGPEDATE,D)<180 S BGPSKIP=1 Q  ;dental exam less than 6 months ago
+ I D]"",$$FMDIFF^XLFDT(BGPEDATE,D)>180 S BGPS="May be overdue:  Patient is overdue for dental|exam and assessment for additional sealants.|Refer to Dental Program."
+ I D="" S BGPS="May be overdue:  Patient is overdue for dental|exam and assessment for additional sealants.|Refer to Dental Program."
+ I 'BGPLDS S BGPISSV=$$TITLE(BGPGPRAI)_U_"Last Dental Sealant: Never"_"|"_BGPS Q
  S BGPISSV=$$TITLE(BGPGPRAI)_U_"Last Dental Sealant: "_$$DATE^BGP4UTL(BGPLDS)_"|"_BGPS
  Q
 SEAL(P,BDATE,EDATE) ;
@@ -162,11 +156,11 @@ DENTSRV(P,BDATE,EDATE) ;EP
 I016 ;EP
  I BGPAGEB<3 S BGPSKIP=1 Q
  I BGPAGEB>18 S BGPSKIP=1 Q
- S BGPLDS=$$TF(DFN,$$DOB^AUPNPAT(DFN),DT) I 'BGPLDS S BGPSKIP=1 Q  ;never had a TF
+ S BGPLDS=$$TF(DFN,$$DOB^AUPNPAT(DFN),BGPEDATE) ;I 'BGPLDS S BGPSKIP=1 Q  ;never had a TF
  S BGPS=""
  I BGPLDS]"",BGPLDS'<BGPBDATE S BGPSKIP=1 Q  ;fluoride during report period
  I BGPLDS]"",BGPLDS<BGPBDATE S BGPS="May be overdue:  Apply topical fluoride or refer|to Dental Program for assessment."
- I BGPLDS="" S BGPISSV=$$TITLE(BGPGPRAI)_U_"Last Topical Fluoride: Never" Q
+ I BGPLDS="" S BGPISSV=$$TITLE(BGPGPRAI)_U_"Last Topical Fluoride: Never|May be overdue:  Apply topical fluoride or refer|to Dental Program for assessment." Q
  S BGPISSV=$$TITLE(BGPGPRAI)_U_"Last Topical Fluoride: "_$$DATE^BGP4UTL(BGPLDS)_"|"_BGPS
  Q
 TF(P,BDATE,EDATE) ;
@@ -229,8 +223,6 @@ I0302A ;EP
  K BGPSTOP
  I BGPAGEB<22 S BGPSKIP=1 Q
  K ^TMP($J)
- ;I '$$FIRSTIHD^BGP4D721(DFN,BGPEDATE) S BGPSKIP=1 Q  ;first dx not prior to report period
- ;I '$$V2IHD^BGP4D721(DFN,$$DOB^AUPNPAT(DFN),BGPEDATE) S BGPSKIP=1 Q  ;at least 2 IHD dxs ever
  S BGPCHD=$$CHD^BGP4D729(DFN,BGPBDATE,BGPEDATE)
  I 'BGPCHD S BGPSKIP=1 K BGPCHD Q
  D I0302ASC^BGP4D41
@@ -301,4 +293,26 @@ GETIFC(P,BDATE,EDATE,BGPRET) ;EP
  .S V=$P($P(^AUPNVSIT(V,0),U),".")
  .S BGPRET($$FMDIFF^XLFDT(V,$P(^DPT(P,0),U,3)))=C_U_V
  .Q
+ Q
+MH ;EP
+ K BGPSTOP
+ NEW BGPBP,BGPN1
+ S BGPN1=0
+ I BGPAGEE<18 S BGPSKIP=1 Q
+ I BGPAGEE>85 S BGPSKIP=1 Q
+ I $$ESRD^BGP4D211(DFN,$P(^DPT(DFN,0),U,3),BGPEDATE) S BGPSKIP=1 Q  ;esrd anytime before end date
+ S X=$$PREG^BGP4D7(DFN,BGPBDATE,BGPEDATE,1,1) I X S BGPSKIP=1 Q
+ I '$$MHHTN^BGP4D9(DFN,BGPBDATE,BGPEDATE) S BGPSKIP=1 Q  ;no htn per definition
+ S BGPBP=$$LASTBP^BGP4D9(DFN,BGPBDATE,BGPEDATE)
+ I BGPBP]"" D
+ .S X=BGPBP
+ .I $P(X,"/",1)<140,$P(X,"/",2)<90 S BGPN1=1
+ NEW BGPV,BGPD,BGPND
+ S (BGPISSV,BGPIN)=""
+ K BGPISSV
+ ;
+ I BGPBP="" S BGPISSV=$$TITLE(BGPGPRAI)_U_"Last Mean BPs: 2 BPs not documented "_$$DATE^BGP4UTL(BGPBD)_"-"_$$DATE^BGP4UTL(BGPED)_"|Overdue as of: "_$$DATE^BGP4UTL(BGPBD) Q
+ I BGPN1 S BGPSKIP=1 Q  ;in control BP in report period, do not display
+ S BGPISSV=$$TITLE(BGPGPRAI)_U_"Last Mean BPs: "_$P(BGPBP,U)
+ I 'BGPN1 S BGPISSV=BGPISSV_" - Not Controlled BP"
  Q

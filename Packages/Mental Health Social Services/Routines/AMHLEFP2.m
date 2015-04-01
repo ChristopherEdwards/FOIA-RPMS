@@ -1,9 +1,5 @@
 AMHLEFP2 ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 22 Aug 2007 6:11 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
- ;
- ;CMI/TUCSON/LAB - added setting of % variable 9/22/97
- ;
- ;add in sensitive patient tracking call
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,4**;JUN 18, 2010;Build 28
 DGSECE ;
  NEW X S X=$P(^AMHREC(AMHR,0),U,8)
  I X,$G(AMHDOLOG) D  ;this should only be done if in GUI group, R&S group form print and Print forms for a set of patients
@@ -43,7 +39,6 @@ PRINT1(AMHR) ;EP - CALLED FROM LAST VISIT DISPLAY
  D EP2(AMHR) ;set array up
  S AMHSTOP=0,AMHQUIT=0
 W ;write out array
- ;W:$D(IOF) @IOF
  NEW AMHX
  W !!
  S AMHX=0 F  S AMHX=$O(^TMP("AMHS",$J,"DCS",AMHX)) Q:AMHX'=+AMHX!(AMHSTOP)!(AMHQUIT)  D
@@ -92,7 +87,6 @@ COMM ;
  I AMHEFT="S" S X="",$E(X,3)="Chief Complaint/Presenting Problem Suppressed for Confidentiality" D S(X)
 TIUN ;
  I '$O(^AMHREC(AMHR,54,0)) G SUB
- ;S X="TIU Note:" D S(X,1)
  I AMHEFT="S" D S(" ") S X="  TIU Notes Suppressed for Confidentiality" D S(X) G SUB
  K AMHAR,AMHERR,AMHTIU
  S X="" D S(X) D S("  TIU DOCUMENTS") D S("  -------------")
@@ -114,9 +108,7 @@ SUB ;
  .S X="",$E(X,3)="      PROVIDER: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.08) D S(X)
  .S X="",$E(X,3)="  LAST UPDATED: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.02) D S(X)
  .S X="",$E(X,3)="      PROVIDER: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.03) D S(X)
- .;S X="",$E(X,3)="PROVIDER WHO LAST UPDATED: "_$$VAL^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),.03) D S(X)
  .F AMHX=1000,4100 I $D(^DD(9002011.07,AMHX,0)) D
- ..;S X="",$E(X,3)=$P(^DD(9002011.07,AMHX,0),U)_":" D S(X,1)
  ..K AMHAR D ENP^XBDIQ1(9002011.07,$P(^AMHREC(AMHR,0),U,8),AMHX,"AMHAR(","E")
  ..I $O(AMHAR(AMHX,0)) S X="",$E(X,3)=$P(^DD(9002011.07,AMHX,0),U)_":" D S(X,1)
  ..S F=0 F  S F=$O(AMHAR(AMHX,F)) Q:F'=+F  S X="",$E(X,5)=AMHAR(AMHX,F) D S(X)
@@ -137,6 +129,7 @@ SUB1 ;
 AIII ;axis iii patch 1
  I AMHEFT'="S" D
  .Q:'$O(^AMHREC(AMHR,53,0))
+ .I $$DSMCS^AMHUTIL1(DUZ(2),$P($P(AMHR0,U),"."))'=4  ;DSM IV ONLY
  .S X="",$E(X,3)="AXIS III:" D S(X)
  .S AMHX=0 F  S AMHX=$O(^AMHREC(AMHR,53,AMHX)) Q:AMHX'=+AMHX  D
  ..S X="",$E(X,3)=^AMHREC(AMHR,53,AMHX,0) D S(X)
@@ -157,7 +150,7 @@ FU ;
  ..S X="",C=C+1 S $E(X,3)=$S(C=1:"NOTE FORWARDED TO: ",1:""),$E(X,23)=$P(^VA(200,$P(^AMHREC(AMHR,52,Y,0),U),0),U) D S(X)
  S X=$TR($J("",79)," ","_") D S(X)
 POV ;
- S X="",$E(X,3)="BH POV CODE      PURPOSE OF VISIT (POV)" D S(X) S X="",$E(X,3)="OR DSM DIAGNOSIS    [PRIMARY ON FIRST LINE]" D S(X)
+ S X="",$E(X,3)="BH POV CODE      PURPOSE OF VISIT (POV)" D S(X) S X="",$E(X,3)="OR DIAGNOSIS    [PRIMARY ON FIRST LINE]" D S(X)
  S X=$TR($J("",79)," ","_") D S(X)
  S (AMHX,C)=0 F  S AMHX=$O(^AMHRPRO("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
  .I AMHEFT="F" S AMHTNRQ="",$E(AMHTNRQ,1)=$P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U),$E(AMHTNRQ,16)=$S(AMHEFT="F":$P(^AMHPROB($P(^AMHRPRO(AMHX,0),U),0),U,2),1:""),AMHTICL=8,AMHTTXT="" D PRTTXT
@@ -177,6 +170,7 @@ TMP ;treated med problems
  ..Q
  .S X=$TR($J("",79)," ","_") D S(X)
 A4 ;AXIS IV/V
+ G:$$DSMCS^AMHUTIL1(DUZ(2),$P($P(AMHR0,U),"."))'=4 IPV
  I $O(^AMHREC(AMHR,61,0))!($P(AMHR0,U,14)]"") D
  .S X="",$E(X,3)="AXIS IV:  " S Y=0 F  S Y=$O(^AMHREC(AMHR,61,Y)) Q:Y'=+Y  S I=$P(^AMHREC(AMHR,61,Y,0),U) S $E(X,14)=$P(^AMHTAXIV(I,0),U)_" - "_$P(^AMHTAXIV(I,0),U,2) D S(X) S X=""
  .S X="",$E(X,3)="AXIS V:  "_$P(AMHR0,U,14) S:$P($G(^AMHREC(AMHR,11)),U,15)]"" X=X_"  GAF Scale Type: "_$$VAL^XBDIQ1(9002011,AMHR,1115) D S(X)
@@ -184,7 +178,7 @@ A4 ;AXIS IV/V
  .Q
 IPV ;EXAM
  K AMHZZZ
- I AMHEFT="S" G MEAS  ;not on suppressed form
+ I AMHEFT="S" G MEAS
  I $P($G(^AMHREC(AMHR,14)),U)="",$P($G(^AMHREC(AMHR,14)),U,2)="",$P($G(^AMHREC(AMHR,15)),U)="" G ALCSCR  ;no ipv exam
  S X="",$E(X,3)="IPV/DV Screening: "_$$VAL^XBDIQ1(9002011,AMHR,1401)_"  Provider: "_$$VAL^XBDIQ1(9002011,AMHR,1402) D S(X)
  S X="",$E(X,3)="IPV/DV Screen Comment: "_$$VAL^XBDIQ1(9002011,AMHR,1501) D S(X)
@@ -245,6 +239,10 @@ PROC ;
  S X="",$E(X,3)="PROCEDURES (CPT):" D S(X)
  S (AMHX,C)=0 F  S AMHX=$O(^AMHRPROC("AD",AMHR,AMHX)) Q:AMHX'=+AMHX  D
  .S X="",$E(X,3)=$P($$CPT^ICPTCOD($P(^AMHRPROC(AMHX,0),U),$P($P(^AMHREC(AMHR,0),U),".")),U,2)_"  "_$P($$CPT^ICPTCOD($P(^AMHRPROC(AMHX,0),U),$P($P(^AMHREC(AMHR,0),U),".")),U,3) D S(X)
+ .S AMH0=^AMHRPROC(AMHX,0)
+ .S X="",$E(X,6)="Quantity: "_$S($P(AMH0,U,16):$P(AMH0,U,16),1:1)
+ .I $P(AMH0,U,8)]"" S X=X_"  Modifier: "_$$VAL^XBDIQ1(9002011.04,AMHX,.08)_"-"_$P($G(^DIC(81.3,$P(AMH0,U,8),0)),U,2) D S(X)
+ .I $P(AMH0,U,9)]"" S X="",$E(X,19)="2nd Modifier: "_$$VAL^XBDIQ1(9002011.04,AMHX,.09)_"-"_$P($G(^DIC(81.3,$P(AMH0,U,9),0)),U,2) D S(X)
  .Q
  S X=$TR($J("",79)," ","_") D S(X)
 DEMO ;EP demographics

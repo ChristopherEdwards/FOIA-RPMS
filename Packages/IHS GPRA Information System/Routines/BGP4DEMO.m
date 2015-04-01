@@ -1,5 +1,5 @@
 BGP4DEMO ; IHS/CMI/LAB - demo patient search template ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
  ;

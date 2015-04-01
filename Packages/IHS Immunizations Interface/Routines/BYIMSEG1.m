@@ -1,5 +1,5 @@
-BYIMSEG1 ;IHS/CIM/THL - IMMUNIZATION DATA INTERCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE INTERFACE;**3,4**;NOV 01, 2013;Build 189
+BYIMSEG1 ;IHS/CIM/THL - IMMUNIZATION DATA EXCHANGE;
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6**;NOV 01, 2013;Build 229
  ;
  ;this routine will contain code to supplement fields in the
  ;HL7 segments
@@ -77,7 +77,7 @@ OBXPR ;EP;VIS PRESENTED
  Q
  ;-----
 OBXPR1 ;subid
- S INA("OBXPR1",INDA)="4"
+ S INA("OBXPR1",INDA)="5"
  Q
  ;-----
 OBXPR2 ;vt
@@ -112,7 +112,7 @@ OBXPB ;EP;VIS PUBLISHED
  Q
  ;-----
 OBXPB1 ;subid
- S INA("OBXPB1",INDA)="3"
+ S INA("OBXPB1",INDA)="4"
  Q
  ;-----
 OBXPB2 ;vt
@@ -139,10 +139,10 @@ OBXPBEND Q
 REFUSAL(DFN,UIF) ;EP;TO CREATE REFUSAL RELATED SEGMENTS
  ;DFN   = PATIENT DFN
  ;UIF   = IEN FOR ^INTHU
- Q:'$G(DFN)!'$G(UIF)
- D R1(DFN,UIF)
- D V1(DFN,UIF)
- D COMP(DFN,UIF)
+ Q:'$G(UIF)
+ D:$G(DFN) R1(DFN,UIF)
+ D:$G(DFN) V1(DFN,UIF)
+ D COMP(UIF)
  Q
  ;-----
 R1(DFN,UIF) ;EP;FIND PATIENT RELATED REFUSALS
@@ -153,6 +153,8 @@ R1(DFN,UIF) ;EP;FIND PATIENT RELATED REFUSALS
  S X=0
  F  S X=$O(^AUPNPREF("AC",DFN,X)) Q:'X  S X0=$G(^AUPNPREF(X,0)) D:+X0=3
  .Q:$D(^BYIMEXP("REF",X))
+ .Q:'$P(X0,U,6)
+ .Q:'$D(^AUTTIMM($P(X0,U,6),0))
  .S INDA=INDA+1
  .S Y="ORC|RE||9999^CDC|CR|"
  .S LCT=+$O(^INTHU(UIF,3,9999999999),-1)+1
@@ -161,7 +163,10 @@ R1(DFN,UIF) ;EP;FIND PATIENT RELATED REFUSALS
  .N CS
  .S CS=U
  .D RXA3^BYIMSEGS
- .S Z=$G(^AUTTIMM(+$P(X0,U,6),0))
+ .N IZDA
+ .S IZDA=+$P(X0,U,6)
+ .I '$D(^AUTTIMM(IZDA,0)) S IZDA=$P(X0,U,4) S:IZDA]"" IZDA=+$O(^AUTTIMM("B",IZDA,0))
+ .S Z=$G(^AUTTIMM(IZDA,0))
  .D RXA5^BYIMSEGS
  .S Z=$S($P($G(^DPT(DFN,0)),U,3)<(DT-180000):"03^Patient decision",1:"00^Parental decision")_CS_"NIP002"
  .S LCT=+$O(^INTHU(UIF,3,9999999999),-1)+1
@@ -176,25 +181,29 @@ V1(DFN,UIF) ;EP;DETERMINE VARICELLA EXPOSURE
  N VDAT,BIX,LCT,ORC,RXA,OBX
  S VDAT=""
  S BIX=0
- F  S BIX=$O(^BIPC("B",DFN,BIX)) Q:'BIX  D:$P($G(^BIPC(BIX,0)),U,3)=12
- .S:'$G(^BYIMEXP("HXV",BIX)) VDAT=$P(^BIPC(BIX,0),U,4)
+ F  S BIX=$O(^BIPC("B",DFN,BIX)) Q:'BIX  D:$P($G(^BIPC(BIX,0)),U,2)
+ .I $G(^BYIMEXP("HXV",BIX)),$G(BYIMALL)'=2 Q
+ .S IMM=$P($G(^BIPC(BIX,0)),U,2)
+ .S VDAT=$P(^BIPC(BIX,0),U,4)
+ .Q:$L(VDAT)'=7
  .S:'$G(BYIMMU2) ^BYIMEXP("HXV",BIX)=VDAT
- Q:$L(VDAT)'=7
- S LCT=+$O(^INTHU(UIF,3,9999999999),-1)+1
- S VDAT=VDAT+17000000
- S ORC="ORC|RE||9999^CDC|CR|"
- S RXA="RXA|0|1|"_VDAT_"|"_VDAT_"|998^No vaccine administered^CVX|999|"
- S $P(RXA,"|",21)="NA|CR|"
- S OBX="OBX|1|CE|59784-9^Disease with presumed immunity ^LN|1|38907003^Varicella infection^SCT||||||F|CR|"
- S ^INTHU(UIF,3,LCT,0)=ORC
- S LCT=+$O(^INTHU(UIF,3,9999999999),-1)+1
- S ^INTHU(UIF,3,LCT,0)=RXA
- S LCT=+$O(^INTHU(UIF,3,9999999999),-1)+1
- S ^INTHU(UIF,3,LCT,0)=OBX
+ .S LCT=+$O(^INTHU(UIF,3,9999999999),-1)+1
+ .S VDAT=VDAT+17000000
+ .S ORC="ORC|RE||9999^CDC|CR|"
+ .S RXA="RXA|0|1|"_VDAT_"|"_VDAT_"|998^No vaccine administered^CVX|999|"
+ .S $P(RXA,"|",21)="NA|CR|"
+ .N X
+ .S X=$G(^BYIMCON(IMM,0))
+ .I X="" S OBX="OBX|1|CE|30945-0^Vaccination contraindication/precaution^LN|1|00000000^Reason not recorded^SCT||||||F|CR|"
+ .I X]"" S OBX="OBX|1|CE|30945-0^Vaccination contraindication/precaution^LN|1|"_$P(X,U,2)_U_$P(X,U,3)_"^SCT||||||F|CR|"
+ .S ^INTHU(UIF,3,LCT,0)=ORC
+ .S LCT=+$O(^INTHU(UIF,3,9999999999),-1)+1
+ .S ^INTHU(UIF,3,LCT,0)=RXA
+ .S LCT=+$O(^INTHU(UIF,3,9999999999),-1)+1
+ .S ^INTHU(UIF,3,LCT,0)=OBX
  Q
  ;-----
-COMP(DFN,UIF) ;EP;REFORMAT MESSAGE PRIOR TO TRANSMISSION
- ;DFN   = PATIENT DFN
+COMP(UIF) ;EP;REFORMAT MESSAGE PRIOR TO TRANSMISSION
  ;UIF   = IEN FOR ^INTHU
  N X,Y,Z,CNT
  K ^BYIMTMP("UIF",UIF)
@@ -223,28 +232,34 @@ NORC(UIF) ;FIND NEXT ORC
  ;-----
 EVAL(UIF) ;EVAL FOR MULTIPLE VACCINE RXA'S
  N X,Y,Z,HIST,CNT,RXA,CVX,CVXDA,NAM,OBXPR,OBXPU
+ S RXA=""
  S OBXPR=""
  S OBXPU=""
  S HIST=0
  F J=J:1:XX D
- .S X=$G(^INTHU(UIF,3,J,0))
+ .S X2="",X=$G(^INTHU(UIF,3,J,0))
+ .I X'["|CR|",$G(^INTHU(UIF,3,J+1,0))["|CR|" S X2=^(0),J=J+1
  .S CNT=$O(^BYIMTMP("UIF",UIF,3,9999999999),-1)+1
- .I 'HIST,X'["vaccine info" S ^BYIMTMP("UIF",UIF,3,CNT,0)=X
- .I HIST,"|MSH|PID|ORC|RXA|"[("|"_$E(X,1,3)_"|") D
- ..S:X'["|CR|" X=X_"|CR|"
- ..S ^BYIMTMP("UIF",UIF,3,CNT,0)=X
  .D:$E(X,1,4)="RXA|"
  ..S RXA=X
  ..S HIST=+$P(RXA,"|",10)
+ .I 'HIST,X'["vaccine info" D
+ ..S ^BYIMTMP("UIF",UIF,3,CNT,0)=X
+ ..S:X2]"" CNT=CNT+1,^BYIMTMP("UIF",UIF,3,CNT,0)=X2,X2=""
+ .I HIST,"|MSH|PID|ORC|RXA|"[("|"_$E(X,1,3)_"|") D
+ ..S ^BYIMTMP("UIF",UIF,3,CNT,0)=X
+ ..S:X2]"" CNT=CNT+1,^BYIMTMP("UIF",UIF,3,CNT,0)=X2,X2=""
  .S:X["present" OBXPR=$G(^INTHU(UIF,3,J,0))
  .S:X["publish" OBXPU=$G(^INTHU(UIF,3,J,0))
- Q:$G(RXA)=""
+ Q:RXA=""
+ Q:HIST
+ Q:$P(RXA,"|",19)]""
  S CVX=+$P(RXA,"|",6)
  S CVXDA=+$O(^AUTTIMM("C",CVX,0))
  S X=$G(^AUTTIMM(CVXDA,0))
  S CMP=$P($G(^AUTTIMM(CVXDA,0)),U,21,26)
  I $L(CMP)>5 D E1(RXA,CMP) Q
- Q:$P(RXA,"|",19)]""!HIST
+ ;Q:$P(RXA,"|",19)]""!HIST
  S:$P($G(^BYIMNOS(CVXDA,0)),U,2) X=$G(^AUTTIMM(+$P(^(0),U,2),0))
  S NAM=$P(X,U)
  S CVX=+$P(X,U,3)
@@ -267,7 +282,7 @@ E1(RXA,CMP) ;
  S CNT=$O(^BYIMTMP("UIF",UIF,3,9999999999),-1)
  S X=$G(^BYIMTMP("UIF",UIF,3,CNT,0))
  I $E(X,1,9)="OBX|2|CE|" K ^BYIMTMP("UIF",UIF,3,CNT)
- S K=1
+ S K=3
  S L=1
  F J=1:1:6 S X=$P(CMP,U,J) D:X
  .S:$P($G(^BYIMNOS(X,0)),U,2) X=$P(^(0),U,2),NOSPUB=$P(^(0),U,3)
@@ -313,7 +328,7 @@ OBXTY ;EP;
  Q
  ;-----
 OBXTY1 ;subid
- S INA("OBXTY1",INDA)="2"
+ S INA("OBXTY1",INDA)="3"
  Q
  ;-----
 OBXTY2 ;vt
@@ -415,3 +430,100 @@ PUB(X0) ;FIND PUB DATE
  I 'PUB S PUB=$P($G(^AUTTIMM(NOSDA,0)),U,13)
  I 'PUB,NOSPUB S PUB=NOSPUB
  Q
+OBXFS ;EP;
+ ;PATCH 6 TO INCLUDE FUNDING SOURCE OBX SEGMENT
+ D VSET^BYIMSEGS(INDA)
+ D OBXFS1
+ D OBXFS2
+ D OBXFS3
+ D OBXFS4
+ D OBXFS5
+ D OBXFS11
+ D OBXFS14
+ Q
+ ;-----
+OBXFS1 ;subid
+ S INA("OBXFS1",INDA)="2"
+ Q
+ ;-----
+OBXFS2 ;vt
+ S INA("OBXFS2",INDA)="CE"
+ Q
+ ;-----
+OBXFS3 ;od
+ S INA("OBXFS3",INDA)="30963-3"_CS_"funding source for immunization"_CS_"LN"
+ Q
+ ;-----
+OBXFS4 ;osid
+ S INA("OBXFS4",INDA)="1"
+ Q
+ ;-----
+OBXFS5 ;ov
+ S INA("OBXFS5",INDA)=$$IVFS^BYIMIMM3(INDA)
+ Q
+ ;-----
+OBXFS11 ;abn
+ S INA("OBXFS11",INDA)="F"
+ Q
+ ;-----
+OBXFS14 ;edt
+ S INA("OBXFS14",INDA)=""
+ N X
+ S X=$P(X12,U)
+ S:'X X=$P(V0,U)
+ Q:'X
+ S INA("OBXFS14",INDA)=$E($$TIMEIO^INHUT10(X),1,8)
+ Q
+ ;-----
+OBXFSEND Q
+ ;-----
+ ;-----
+RXR ;EP;
+ D RXR1
+ D RXR2
+ Q
+ ;-----
+RXR1 ;
+ S INA("RXR1",INDA)=""
+ N X,R
+ D VSET^BYIMSEGS(INDA)
+ S X=$P(X0,U,9)
+ Q:X=""
+ S R=$E(X,$L(X))
+ S:X="O" R="O"
+ S:X="IN" R="I"
+ Q:"IDNOS"'[R
+ S:R="I" INA("RXR1",INDA)="IM"_CS_"INTRAMUSCULAR"_CS_"HL70162"
+ S:R="D" INA("RXR1",INDA)="ID"_CS_"INTRADERMAL"_CS_"HL70162"
+ S:R="N" INA("RXR1",INDA)="NS"_CS_"NASAL"_CS_"HL70162"
+ S:R="O" INA("RXR1",INDA)="PO"_CS_"ORAL"_CS_"HL70162"
+ S:R="S" INA("RXR1",INDA)="SC"_CS_"SUBCUTANEOUS"_CS_"HL70162"
+ Q
+ ;-----
+RXR2 ;
+ S INA("RXR2",INDA)=""
+ N X,R
+ D VSET^BYIMSEGS(INDA)
+ S X=$P(X0,U,9)
+ Q:X=""
+ S R=$E(X,1,2)
+ S:R="LD" R="LA"
+ S:R="RD" R="RA"
+ S:R="LT" INA("RXR2",INDA)=R_CS_"Left Thigh"_CS_"HL70163"
+ S:R="LA" INA("RXR2",INDA)=R_CS_"Left Arm"_CS_"HL70163"
+ S:R="LD" INA("RXR2",INDA)=R_CS_"Left Deltoid"_CS_"HL70163"
+ S:R="LG" INA("RXR2",INDA)=R_CS_"Left Gluteus Medius"_CS_"HL70163"
+ S:R="LL" INA("RXR2",INDA)="LVL"_CS_"Left Vastus Lateralis"_CS_"HL70163"
+ S:R="LV" INA("RXR2",INDA)="LVL"_CS_"Left Vastus Lateralis"_CS_"HL70163"
+ S:R="LI" INA("RXR2",INDA)="LLFA"_CS_"Left Lower Forearm"_CS_"HL70163"
+ S:R="LL" INA("RXR2",INDA)="LLFA"_CS_"Left Lower Forearm"_CS_"HL70163"
+ S:R="RA" INA("RXR2",INDA)=R_CS_"Right Arm"_CS_"HL70163"
+ S:R="RT" INA("RXR2",INDA)=R_CS_"Right Thigh"_CS_"HL70163"
+ S:R="RV" INA("RXR2",INDA)="RVL"_CS_"Right Vastus Lateralis"_CS_"HL70163"
+ S:R="RG" INA("RXR2",INDA)=R_CS_"Right Gluteous Medius"_CS_"HL70163"
+ S:R="RD" INA("RXR2",INDA)=R_CS_"Right Deltoid"_CS_"HL70163"
+ S:R="RI" INA("RXR2",INDA)="RLFA"_CS_"Right Lower Forearm"_CS_"HL70163"
+ S:R="RL" INA("RXR2",INDA)="RLFA"_CS_"Right Lower Forearm"_CS_"HL70163"
+RXREND Q
+ ;-----
+ ;-----

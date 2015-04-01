@@ -1,5 +1,5 @@
 BIPOST ;IHS/CMI/MWR - POST-INIT ROUTINE; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**7**;JAN 15,2014
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  PATCH 3: Set MenCY-Hib (148) and Flu-nasal4 (149) and all Skin Tests
  ;;           in the Vaccine Table to Inactive.   START+30
@@ -10,6 +10,10 @@ BIPOST ;IHS/CMI/MWR - POST-INIT ROUTINE; OCT 15, 2010
  ;;  PATCH 5, v8.5: Add SNOMED Codes to all Contraindications.
  ;;  PATCH 5, v8.5: Restandardize Vaccine Table, with updates from BITN.
  ;;  PATCH 6, v8.5: Restandardize Vaccine Table, with updates from BITN.
+ ;;  PATCH 8: Changes to Set Mening C CVX 103 vaccine to Inactive.  START+55
+ ;;  PATCH 9:   Restandardize Vaccine Table, with updates from BITN. START+49
+ ;;             Changes to force specified vaccines active.  START+52
+ ;;             Update Taxonomies.  START+142
  ;
  ;
  ;----------
@@ -44,12 +48,10 @@ START ;EP
  ;.D SNOMED^BIUTLFIX
  ;
  ;
- ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
  ;---> Update Manufacturer Table.
- ;S ^BIMAN(163,0)="Protein Sciences^PSC^1^Protein Sciences"
- ;S ^BIMAN(155,0)="CSL Behring, Inc.^CSL^1^CSL Behring, Inc."
- ;S ^BIMAN(164,0)="Grifols^GRF^1^Grifols"
- ;S ^BIMAN(165,0)="ID Biomedical^IDB^1^ID Biomedical"
+ ;S ^BIMAN(167,0)="CRUCELL^CRU^1^Crucell"
+ ;S ^BIMAN(168,0)="KEDRIAN BIOPHARMA^KED^1^Kedrian Biopharma"
  ;
  ;**********
  ;
@@ -62,34 +64,45 @@ START ;EP
  ;---> Reindex any Listman Hidden Menus.
  ;D LISTMENU^BIUTLFIX
  ;
- ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
- ;---> Change Vaccine Group of CVX 148 to Mening.
- ;---> Standardize the Vaccine Table.
- ;D RESTAND^BIRESTD()
  ;
- ;********** PATCH 2, v8.4, OCT 15,2010, IHS/CMI/MWR
- ;---> Comment out unnecessary post-install routines.
+ ;---> Re-Standardize the Vaccine Table.
+ D RESTAND^BIRESTD()
  ;
- ;---> Set NOS (and a couple other) vaccines to Inactive.
- ;N N F N=105,108,110,113,122,124,130,131,139,142,149,155,157,195 D
- ;---> Set older Flu's to Inactive.
- ;N N F N=108,148,149,229 D
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Force vaccines Active or Inactive by CVX Code.
+ ;---> Insert CVX Codes into For loop below.
+ ;
+ ;---> Make these CVX's ACTIVE:
+ N BICVX F BICVX=36,86,161 D
+ .N N S N=$$HL7TX^BIUTL2(BICVX)
+ .;---> Quit if CVX is Unknown.
+ .Q:(N=137)
+ .;---> 0=ACTIVE.
+ .S $P(^AUTTIMM(N,0),U,7)=0
+ .S $P(^BITN(N,0),U,7)=0
+ .;
+ ;---> Make these CVX's INACTIVE:
+ N BICVX F BICVX=41,53,79,101,117 D
+ .N N S N=$$HL7TX^BIUTL2(BICVX)
+ .;---> Quit if CVX is Unknown.
+ .Q:(N=137)
+ .;---> 1=INACTIVE.
+ .S $P(^AUTTIMM(N,0),U,7)=1
+ .S $P(^BITN(N,0),U,7)=1
+ ;
+ ;
+ ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ;---> Set Mening C CVX 103 vaccine to Inactive.
+ ;F N=143 D
  ;.S $P(^AUTTIMM(N,0),U,7)=1
  ;.S $P(^BITN(N,0),U,7)=1
  ;
- ;F N=200,205,212,213,214,218,228,234,238,239 D
- ;.S $P(^AUTTIMM(N,0),U,7)=1
- ;.S $P(^BITN(N,0),U,7)=1
+ ;---> Set newer Mening vaccines to Active.
+ ;F N=220,237,251 D
+ ;.S $P(^AUTTIMM(N,0),U,7)=0
+ ;.S $P(^BITN(N,0),U,7)=0
  ;
- ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
- ;---> Set older Flu-Nasal and other new vaccines to Inactive.
- ;F N=148,217,229,254,255,256,257,258,259,260 D
- ;.S $P(^AUTTIMM(N,0),U,7)=1
- ;.S $P(^BITN(N,0),U,7)=1
- ;
- ;---> Set older Flu-Nasal4 to Active.
- ;S $P(^AUTTIMM(253,0),U,7)=0
- ;S $P(^BITN(253,0),U,7)=0
  ;
  ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
  ;---> Set all Skin Tests in Vaccine Table to Inactive (so that they will be
@@ -145,8 +158,9 @@ START ;EP
  ;D NULLACT^BILOT1
  ;---> Reindex killed globals.
  ;D REINDEX
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
  ;---> Update Taxonomies.
- ;D ^BITX
+ D ^BITX
  ;---> Reindex BI Letter Sample and BI Table Manufactures Files.
  ;D REINDLS
  ;
@@ -156,6 +170,9 @@ START ;EP
  ;---> Scan for any V Imms with a .14 Eligibility=0, change to 8, which is
  ;---> the IEN of "Unknown" in the new BI TABLE ELIG File.
  ;D ^BIELIG3
+ ;
+ ;---> Update BI TABLE DATA ELEMENTS File.
+ D ^BIDE
  ;
  ;---> Update "Last Version Fully Installed" Field in BI SITE PARAMETER File.
  N N S N=0 F  S N=$O(^BISITE(N)) Q:'N  S $P(^BISITE(N,0),"^",15)=$$VER^BILOGO
@@ -186,7 +203,7 @@ TEXT1 ;EP
  ;;
  ;;                       * CONGRATULATIONS! *
  ;;
- ;;          You have successfully installed Immunization v8.57.
+ ;;          You have successfully installed Immunization v8.59.
  ;;
  ;;
  ;;
@@ -207,17 +224,17 @@ TEXT2 ;EP
  ;;
  ;;
  ;;
- ;;                             * NOTE! *
+ ;;                            * NOTE!!! *
  ;;
- ;; NOTE: The BCQM IHS CODE MAPPING Version 1.0 has not been loaded on
- ;;       this machine; therefore back-populating of Contraindications
- ;;       with SNOMED Codes has not been performed.
- ;;       This is not critical; however, the process may be completed by
- ;;       reinstalling this patch--Immunization v8.55--at a later date,
- ;;       after the IHS CODE MAPPING software has been installed.
- ;;       (Imm v8.55 may be reinstalled at any time with no adverse affects.)
+ ;; NOTE: Be sure that you have installed the new TCH FORECASTER,
+ ;;       as outlined in the TCH Forecaster Installation Instructions
+ ;;       (separate document in this distribution).
  ;;
- ;;                             * NOTE! *
+ ;;       Immunization forecasting will not work if you have not
+ ;;       performed this crucial step in addition to the KIDS file
+ ;;       installation.
+ ;;
+ ;;                            * NOTE!!! *
  ;;
  ;;
  ;;

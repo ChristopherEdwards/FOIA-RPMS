@@ -1,9 +1,11 @@
 BARRATS ; IHS/SD/LSL - File Synchronization ;09/15/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**7,19,20**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**7,19,20,24**;OCT 26, 2005;Build 69
  ;
  ; IHS/SD/LSL - 06/04/02 - V1.6 Patch 2
  ;     Routine created
  ; MODIFIED XTMP FILE NAME TO TMP TO MEET SAC REQUIREMENTS;MRS:BAR*1.8*7 IM29892
+ ;
+ ; IHS/SD/POT HEAT141692 CHANGE DEFAULT VALUE (detail or summary) BAR*1.8*24
  ; *********************************************************************
  ;
  ;     This routine will compare the Current Bill Amount of the A/R Bill
@@ -53,7 +55,7 @@ RTYP ;
  K DIR,BARY("RTYP")
  S DIR(0)="SO^1:Detail;2:Summary"
  S DIR("A")="Select TYPE of REPORT desired"
- S DIR("B")=2
+ S DIR("B")=1 ;P.OTT HEAT141692 CHANGE DEFAULT VALUE
  S DIR("?")="Select detail or summary.  Detail contains transaction history"
  D ^DIR
  K DIR

@@ -1,5 +1,5 @@
 BGP4DNGP ; IHS/CMI/LAB - NATL COMP EXPORT 13 Nov 2006 12:31 PM ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
  W:$D(IOF) @IOF
@@ -17,12 +17,25 @@ INTRO ;
 TP ;get time period
  D XIT
  S BGPRTYPE=1,BGPYRPTH="",BGPDESGP=""
-DESG ;
- W !!
- S DIC("A")="Which Designated Provider: ",DIC="^VA(200,",DIC(0)="AEMQ" D ^DIC K DIC,DA
- I X="^" D XIT Q
- I Y=-1 W !!,"provider is required, use an '^' to exit." G DESG
- S BGPDESGP=+Y
+PNST ;
+ K BGPDESPG
+ W !!,"You can enter individual provider names or a TAXONOMY of providers."
+ K DIR
+ S DIR(0)="S^P:Provider's Names;T:Taxonomy of Providers",DIR("A")="Do you want to enter",DIR("B")="P" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) W !!,"No providers selected.  Exiting report..." D PAUSE^BGP4DU,XIT Q
+ S BGPXX=Y
+ I BGPXX="T" D  I '$O(BGPDESGP(0)) W !!,"No providers selected.  Exiting report..." D PAUSE^BGP4DU,XIT Q
+ .S DIC("S")="I $P(^(0),U,15)=200" S DIC="^ATXAX(",DIC("A")="Enter Provider TAXONOMY name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
+ .I Y=-1 Q
+ .W !!,"TAXONOMY contains:",!
+ .S X=0 F  S X=$O(^ATXAX(+Y,21,"B",X)) Q:X'=+X  S BGPDESGP(X)="" W ?5,$P(^VA(200,X,0),U),!
+ .Q
+ I BGPXX="P" D  I '$O(BGPDESGP(0)) W !!,"No providers selected.  Exiting report..." D PAUSE^BGP4DU,XIT Q
+P .K DIC S DIC="^VA(200,",DIC("A")="Enter "_$S($O(BGPDESGP(0)):"another ",1:"")_"Provider's name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
+ .I Y=-1 Q
+ .S BGPDESGP(+Y)="" ;W ?5,$P(^VA(200,X,0),U),!
+ .G P
+ ;
  S X=$O(^BGPCTRL("B",2014,0))
  S Y=^BGPCTRL(X,0)
  S BGPBD=$P(Y,U,8),BGPED=$P(Y,U,9)
@@ -116,16 +129,26 @@ SUM ;display summary of this report
  D TEXT^BGP4DSL
  I $D(DIRUT) G COMM
  D PT^BGP4DSL
+ I BGPROT="D"!(BGPROT="B"),BGPDELT="F" D
+ .W !!,"Please NOTE:  Your filenames will be:"
+ .S X=0,Y=BGPDELF F  S X=$O(BGPDESGP(X)) Q:X'=+X  D
+ ..S J=BGPDELF_"_"_$E($P($P(^VA(200,X,0),U),","),1,9)_X
+ ..W !?5,J
+ ..S $P(BGPDESGP(X),U,2)=J
  I BGPROT="" G COMM
 ZIS ;call to XBDBQUE
- D REPORT^BGP4UTL
+ S BGPXX=0 F  S BGPXX=$O(BGPDESGP(BGPXX)) Q:BGPXX'=+BGPXX  D
+ .D REPORT^BGP4UTL
+ .S $P(BGPDESGP(BGPXX),U,1)=BGPRPT
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDCJ(" D ^DIK K DIK D XIT Q
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDPJ(" D ^DIK K DIK D XIT Q
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDBJ(" D ^DIK K DIK D XIT Q
+ I POP D  D XIT Q
+ .S BGPXX=0 F  S BGPXX=$O(BGPDESGP(BGPXX)) Q:BGPXX'=+BGPXX  S BGPRPT=BGPDESGP(BGPXX) D
+ ..W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDCJ(" D ^DIK K DIK
+ ..W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDPJ(" D ^DIK K DIK
+ ..W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDBJ(" D ^DIK K DIK
  I $D(IO("Q")) G TSKMN
 DRIVER ;
  I $D(ZTQUEUED) S ZTREQ="@"

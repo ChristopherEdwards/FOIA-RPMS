@@ -1,5 +1,5 @@
 ACHSEOBR ;IHS/SET/GTH - EOBR RECORD FORMATS ; [ 12/06/2002  10:36 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5**;JUN 11, 2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,22**;JUN 11, 2001;Build 13
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - New routine.
  ;
  ;;EXPLANATION OF BENEFITS RECORDS LAYOUTS
@@ -84,6 +84,10 @@ ACHSEOBR ;IHS/SET/GTH - EOBR RECORD FORMATS ; [ 12/06/2002  10:36 AM ]
  ;;    10 AUTHORIZATION DATE X(08) FORMAT CCYYMMDD         60-67
  ;;    11 ACTUAL DAYS        9(02) INPATIENT DAYS          68-69
  ;;    12 DRG                9(03)                         70-72
+ ;;ACHS*3.1*22 FIXED SCC
+ ;;    14 SERVICE CLASS CODE X(04)                         73-76
+ ;;    15 FILLER             X(02)                         77-80
+ ;;***PRIOR TO PATCH ACHS*3.1*22
  ;;    13 DISCHARGE STATUS   X(02)                         73-74
  ;;    14 SERVICE CLASS CODE X(04)                         75-78
  ;;    15 FILLER             X(02)                         79-80
@@ -230,12 +234,13 @@ ACHSEOBR ;IHS/SET/GTH - EOBR RECORD FORMATS ; [ 12/06/2002  10:36 AM ]
  ;;    07 SEQUENCE NUMBER    9(03) 001 OR 002              20-22
  ;; For 001:
  ;;    08 FACILITY CODE      X(06)                         23-28
+ ;;       FILLER             X(12)                         29-40
  ;;    11 TYPE 43 CLAIMS     9(05)                         41-45
  ;;    12 TYPE 57 CLAIMS     9(05)                         46-50
  ;;    13 TYPE 64 CLAIMS     9(05)                         51-55
- ;;    14 TOTAL OF PAYMENTS  S9(07)V99                     56-65
+ ;;    14 TOTAL OF PAYMENTS  S9(10)V99                     56-65
  ;;    16 # OF OCC4319 PYMTS 9(05)                         66-70
- ;;    15 TOT INT/LATE PEN   S9(08)V99                     71-80
+ ;;    15 TOT INT/LATE PEN   S9(10)V99                     71-80
  ;; For 002:
  ;;    09 PERIOD FROM DATE   X(08) FORMAT CCYYMMDD         23-30
  ;;    10 PERIOD TO DATE     X(08) FORMAT CCYYMMDD         31-38

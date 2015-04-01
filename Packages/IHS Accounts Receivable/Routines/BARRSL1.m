@@ -1,5 +1,5 @@
 BARRSL1 ; IHS/SD/LSL - Selective Report Parameters-PART 2 ; 12/19/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,10,16,19,20,23**;OCT 26,2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**6,10,16,19,20,23,24**;OCT 26,2005;Build 69
  ; IHS/SD/TMM 7/20/10 1.8*19 Add Group Plan to A/R Statistical report.
  ;     When selecting A/R STATISTICAL REPORT by Billing Entity prompt
  ;             user for Group Plans to include in report data.
@@ -7,11 +7,17 @@ BARRSL1 ; IHS/SD/LSL - Selective Report Parameters-PART 2 ; 12/19/2008
  ;             parameter: "Sent To  Collections" 
  ;     Resolve UNDEFINED error <UNDEFINED>S4+12^DICL2 
  ;     Add STATUS CHANGE as Selection Type for TSR report
- ;P.OTT DEC 2012 ADDED SELECTION OF CODING DX VERSION ICD-9 / ICD-10
- ; MAR 2013  P.OTTIS ADDED NEW VA billing
- ; JUNE 2013 P.OTTIS - MOD FOR ICD9/10 DX
- ; JULY 2013 P.OTTIS - BLOCK DX SELECTION OF ICD10 WHEN INFRASTRUCTURE NOT PRESENT
- ; NOV  2013 P.OTTIS - FIXED DIR("S") CONDITION 11/27/2013
+ ;
+ ; IHS/SD/POTT 12/12 ADDED SELECTION OF CODING DX VERSION ICD-9 / ICD-10 - BAR1.8*23
+ ; IHS/SD/POTT 03/13 ADDED NEW VA billing - BAR1.8*23
+ ; IHS/SD/POTT 06/13 FIXED FLAWS IN SELECTING ICD9/10 DX - BAR1.8*23
+ ; IHS/SD/POTT 07/13 DO NOT ALLOW SELECT ICD10 WHEN INFRASTRUCTURE NOT PRESENT - BAR1.8*23
+ ; IHS/SD/POTT HEAT150941 02/09/14 Allow ALL DX9/10 - BAR1.8*24
+ ;                        if no DX selected: show ALL DX of ALL available coding systems
+ ;                        fixed escape from report after pressing ^ in DX prompts
+ ; ;;;IHS/SD/POTT ICD-10 SANDBOX TESTING: FIXED ERR MESSAGE Low Diagnosis is Greater than the High IF DXLO=DXHI - BAR1.8*??
+ ; IHS/SD/POTT BETA FIXED RETURN TO SELECT INCLUSION PARAMETERS: BAR1.8*24
+ ;
  Q
  ; ******
  ;
@@ -38,7 +44,7 @@ TYP ; EP
  ; Select BILLING ENTITY Inclusion Parameter
  ; May not specify both billing entity and a/r account
  K DIR,BARY("TYP"),BARY("ACCT"),BARY("PAT"),BARY("ALL"),BARY("ITYP")
- ;P.OTT UPDATED DISPATCH TABLE
+ ; - BAR1.8*23 UPDATED DISPATCH TABLE
  S DIR(0)="SO^1:MEDICARE"
  S DIR(0)=DIR(0)_";2:MEDICAID"
  S DIR(0)=DIR(0)_";3:PRIVATE INSURANCE"
@@ -60,7 +66,7 @@ TYP ; EP
  S BARY("TYP")=U_Y_U
  S BARY("TYP","NM")=Y(0)
  G ACCT:Y=6,PAT:Y=7
- ;P.OTT UPDATED DISPATCH TABLE
+ ;P.OTT UPDATED DISPATCH TABLE  BAR1.8*23
  S:Y=1 BARY("TYP")="^R^MH^MD^MC^MMC^"
  S:Y=2 BARY("TYP")="^D^K^FPL^"
  S:Y=3 BARY("TYP")="^H^M^P^F^"
@@ -116,7 +122,7 @@ PAT ;
  Q
  ; **********
 ALL ; EP
- ; Select ALLOWANCE CATEGORY Inclusion Parameter
+ ; Select ALLOWANCE CATEGORY Inclusion Parameter  BAR1.8*23
  K DIR,BARY("TYP"),BARY("ACCT"),BARY("PAT"),BARY("ALL"),BARY("ITYP")
  S DIR(0)="SO^1:MEDICARE              (INS TYPES R MD MH MC MMC)" ;JULY 2003 
  S DIR(0)=DIR(0)_";2:MEDICAID              (INS TYPES D K FPL)"
@@ -166,7 +172,7 @@ RTYP ; EP
 DSVC ; EP Select One Discharge Service
  D DSVC^BARRSL4
  Q
- ; ********************
+ ; ********************  BAR1.8*23
 ASKICD() ;         
  D ASKICD^BARRSL4()
  Q Y
@@ -174,36 +180,42 @@ CLNUPDX ;CLEAN UP DX
  D CLNUPDX^BARRSL4
  Q
 DX ; EP
- ;
- K BARY("DXTYPE")
- D DXTYPE^BARRSLDX
- I $D(DTOUT)!($D(DUOUT)) Q
- S BARY("DXTYPE")=Y
+ S BARQ=0 ;^
  K BARY("DX9")
  K BARY("DX10")
+ K BARY("DX-ICDVER")
 DXCODE ;
- S BARICDV=$$ASKICD() I BARICDV="^" D  QUIT
+ ;S BARICDV=$$ASKICD() I BARICDV="^" D  QUIT ;OLD CODE  BAR1.8*24
+ ;FIXED RETURN TO SELECT INCLUSION PARAMETERS
+ S BARICDV=$$ASKICD() I BARICDV="^"  S DUOUT=0,DIRUT=0 D  QUIT  ;NEW CODE  BAR1.8*24
  . D CLNUPDX
  I Y="B"!(Y=10) I $T(+1^ICDEX)="" D  G DXCODE
  . W !!!,"NOTE: SOME OF THE ICD-10 INFRASTRUCTURE UTILITIES ARE MISSING."
  . W !,"THIS REPORT CANNOT CURRENTLY PROVIDE ANY DATA BASED ON ICD-10 DX CODES"
  . Q
  S BARY("DX-ICDVER")=BARICDV
- I BARY("DX-ICDVER")=9 D DX9,DXADD(9) I $D(DIRUT) D  Q
- . D CLNUPDX
- I BARY("DX-ICDVER")=10 D DX10,DXADD(10) I $D(DIRUT) D  Q
- . D CLNUPDX
- I BARY("DX-ICDVER")="B" D DX9,DXADD(9) I $D(DIRUT) D  Q
- . D CLNUPDX
- I BARY("DX-ICDVER")="B" D DX10,DXADD(10) I $D(DIRUT) D  Q
- . D CLNUPDX
- I '$D(BARY("DX9")),'$D(BARY("DX10")) D  Q
- . D CLNUPDX  ;FORGET ABOUT DX
- . S Y=-1
- . W !!!," - no DX selected."
+ I BARY("DX-ICDVER")=9 D  I $G(BARQ) Q
+ . D DX9 I $G(BARQ) Q
+ . D DXADD(9) I $G(BARQ) Q
+ I BARY("DX-ICDVER")=10 D  I $G(BARQ) Q
+ . D DX10 I $G(BARQ) Q
+ . D DXADD(10) I $G(BARQ) Q
+ I BARY("DX-ICDVER")="B" D  I $G(BARQ) Q
+ . D DX9 I $G(BARQ) Q
+ . D DXADD(9) I $G(BARQ) Q
+ . D DX10 I $G(BARQ) Q
+ . D DXADD(10) I $G(BARQ) Q
+ I BARY("DX-ICDVER")=9!(BARY("DX-ICDVER")="B") I '$D(BARY("DX9")) D
+ . K BARY("DX9")
+ . S BARY("DX9")="ALL"  ;- BAR1.8*24
+ . S BARY("DX9_ALL")="ALL"
+ I BARY("DX-ICDVER")=10!(BARY("DX-ICDVER")="B") I '$D(BARY("DX10")) D
+ . K BARY("DX10")
+ . S BARY("DX10")="ALL"  ;- BAR1.8*24
+ . S BARY("DX10_ALL")="ALL"
  W !!
  D SHOWDX
- S DIR("A")="Are you OK with this selection?"
+ S DIR("A")="Are you OK with this selection"
  S DIR("B")="YES"
  S DIR(0)="Y"
  D ^DIR
@@ -213,70 +225,65 @@ DXCODE ;
  Q
  ;
 DX9 ;<------- 
- N DIRUT ;P.OTT
+ ;
 DXLOW9 ;
  K BARY("DX9")
  K DIR,DIC,DA
  W !!
  W "Entry of Diagnosis Range ICD-9",!
  W "=============================="
- S DIR(0)="PO^80:QEAM"
- I '$$HAVICD10() S DIR(0)="PO^80:IQEAM" ;IGNORE LOOKUP 11/27/2013
+ S DIR(0)="PO^80:ZAEMQ"
  S DIR("A")="Low ICD-9 Code (from) "
- I $$HAVICD10() S DIR("S")="I $P($G(^ICD9(+Y,1)),U)=1" ;P.OTT 11/27/2013
+ I $$HAVICD10() S DIR("S")="I $P($G(^ICD9(Y,1)),U)=1" ;
  D ^DIR
- Q:$D(DIRUT)
- G DXLOW9:+Y<1
- ;
+ I $G(DUOUT) S BARQ=1 Q  ;3/25
+ I +Y<1 Q  ;ENTER: GO FOR INDIVIDUAL DX
  S BARY("DX9",1)=$P(Y,U,2)
  ;
 DXHI9 ;
- S DIR(0)="PO^80:QEAM"
- I '$$HAVICD10() S DIR(0)="PO^80:IQEAM" ;IGNORE LOOKUP 11/27/2013
+ S DIR(0)="PO^80:ZAEMQ"
  S DIR("A")="High ICD-9 Code (to) "
- I $$HAVICD10() S DIR("S")="I $P($G(^ICD9(+Y,1)),U)=1" ;P.OTT 11/27/2013
+ I $$HAVICD10() S DIR("S")="I $P($G(^ICD9(Y,1)),U)=1"
  D ^DIR
- I Y<0 G DXLOW9
- I $D(DIRUT) G DXLOW9
- ;G DXHI9:+Y<1
+ I $G(DUOUT) S BARQ=1 Q
+ I $D(BARY("DX9",1)) I +Y<1 G DXLOW9 ;IF LO DEFINED, ENTER
+ I +Y<1 Q  ;ENTER
  S BARY("DX9",2)=$P(Y,U,2)
+ I BARY("DX9",1)=BARY("DX9",2) QUIT  ; - BAR1.8*24
  I BARY("DX9",1)>BARY("DX9",2)!('+BARY("DX9",1)&($E(BARY("DX9",1),2,9)>$E(BARY("DX9",2),2,9))) D  G DXLOW9
  .  W !!,*7,"INPUT ERROR: Low Diagnosis is Greater than the High, TRY AGAIN!",!!
  Q
  ; ********************** 
 DXADD(BARICD) ;
- NEW DIRUT,BARDXTYP
+ NEW BARDXTYP
  S BARDXTYP="DX"_BARICD
  K BARY(BARDXTYP,3)
- D DXADINFO(BARICD,3)
- F  D ADDDX(BARICD) Q:$D(DIRUT)  Q:Y<0
+ F  D ADDDX(BARICD) Q:$G(BARQ)  Q:Y<0
  K BARY(BARDXTYP,4)
- D DXADINFO(BARICD,4) ; 
  W !!
  Q
 ADDDX(BARICD) ;ADD ONE OR MORE SINGLE DG INTO BARY("DX9",3 or BARY("DX10",3
- K DIR,DIC,DA
+ K DIR,DIC,DA,BARDX
  N BARDXTYP
  S BARDXTYP="DX"_BARICD
  I $O(BARY(BARDXTYP,3,""))]"" D LIST(BARICD)
  W !!
  W "Entry of Diagnosis Code ICD-",BARICD,!
  W "=============================="
- S DIR(0)="PO^80:QEAM"
- I '$$HAVICD10() S DIR(0)="PO^80:IQEAM" ;IGNORE LOOKUP 11/27/2013
+ S DIR(0)="PO^80:ZAEMQ"
  S DIR("A")="Individual ICD-"_BARICD_" Code"
- I BARICD=9 I $$HAVICD10() S DIR("S")="I $P($G(^ICD9(+Y,1)),U)=1"  ;P.OTT 11/27/2013
- I BARICD=10 I $$HAVICD10() S DIR("S")="I $P($G(^ICD9(+Y,1)),U)=30"  ;P.OTT 11/27/2013
+ I BARICD=9 I $$HAVICD10() S DIR("S")="I $P($G(^ICD9(Y,1)),U)=1"
+ I BARICD=10 I $$HAVICD10() S DIR("S")="I $P($G(^ICD9(Y,1)),U)=30"
  D ^DIR
- I $D(DIRUT) Q  ;;;W !,"GOT DIRUT DEINED !?!? = ",DIRUT Q
- I +Y<1 Q  ;;;W !,"Y<0 WILL QUIT" Q
+ I $G(DUOUT) S BARQ=1 Q  ;3/25 
+ ;I $D(DIRUT) Q
+ I +Y<1 Q
  S BARDX=$P(Y,U,2)
- I BARDX="" Q  ;;;W !,"BARDX IS NIL ?!? "  Q
+ I BARDX="" S BARQ1=1 Q
  I $D(BARY(BARDXTYP,3,BARDX)) D  Q
  . W !,"      Removed from selection."
  . K BARY(BARDXTYP,3,BARDX)
  S BARY(BARDXTYP,3,BARDX)="" W !,"    Added to selection." Q
- Q
  Q
 CONTDX(BARICD) ;
  QUIT
@@ -302,47 +309,38 @@ CONTDX(BARICD) ;
  S BARY(BARDXTYP,4,BARDX1)="" W !,BARDX1," added to selection." Q
  Q
 DX10 ;
- N DIRUT ;P.OTT
+ ;
 DXLOW10 ;
  K BARY("DX10")
  K DIR,DIC,DA
  W !!
  W "Entry of Diagnosis Range ICD-10",!
  W "==============================="
- S DIR(0)="PO^80:QEAM"
- I '$$HAVICD10() S DIR(0)="PO^80:IQEAM" ;IGNORE LOOKUP 11/27/2013
+ S DIR(0)="PO^80:ZAEMQ"
  S DIR("A")="Low ICD-10 Code (from) "
- S DIR("S")="I $P($G(^ICD9(+Y,1)),U)=30"  ;P.OTT 11/27/2013
+ S DIR("S")="I $P($G(^ICD9(Y,1)),U)=30"
  D ^DIR
- Q:$D(DIRUT)
- G DXLOW10:+Y<1
+ I $G(DUOUT) S BARQ=1 Q  ;3/25
+ I +Y<1 Q  ;ENTER: GO FOR INDIVIDUAL DX
  S BARY("DX10",1)=$P(Y,U,2)
  ;
 DXHI10 ;
- S DIR(0)="PO^80:QEAM" ;
- I '$$HAVICD10() S DIR(0)="PO^80:IQEAM" ;IGNORE LOOKUP 11/27/2013
+ S DIR(0)="PO^80:ZAEMQ" ;
  S DIR("A")="High ICD-10 Code (to) "
- S DIR("S")="I $P($G(^ICD9(+Y,1)),U)=30"  ;P.OTT 11/27/2013
+ S DIR("S")="I $P($G(^ICD9(Y,1)),U)=30"
  D ^DIR
- I Y<0 G DXLOW10
- I $D(DIRUT) G DXLOW10
- ;G DXHI10:+Y<1
+ I $G(DUOUT) S BARQ=1 Q  ;
+ ;if DX10LOW defined, and DX10HI was enterer nil; retrurn to DX10LOW entry
+ I $G(BARY("DX10",1))]"" I +Y<1 G DXLOW10
+ I +Y<1 Q  ;ENTER 
  S BARY("DX10",2)=$P(Y,U,2)
+ ;;;I BARY("DX10",2)=BARY("DX10",1) Q  ; - BAR1.8*??
  I '(BARY("DX10",2)]]BARY("DX10",1)) D  G DXLOW10
  . W !!,*7,"INPUT ERROR: Low Diagnosis is Greater than the High, TRY AGAIN!",!!
  Q
  ; **********************
 DXADINFO(BARX,BARY) ; 
  QUIT  ;
- I BARY=3 D  Q
- . W !!!,"In this loop you can add / remove single ICD-",BARX," code"
- . W !," to / from your list of selected diagnoses."
- Q
- I BARY=4 D  Q
- . W !!!,"In this loop you can add / remove groups of ICD-",BARX," code"
- . W !,"selected as 'DX code begins'"
- . W !," to / from your list of selected diagnoses."
- Q
 LIST(BARICD) ;
  N BAR1,BAR2,BAR3,BAR4
  W !!?5,"Currently selected diagnoses: "
@@ -439,12 +437,13 @@ DATASRC ;EP
  S BARY("DATA SRC")=Y(0)
  Q
  ;end new code REQ10
-SHOWDX ;P.OTT LIST SELECTED DXs
+SHOWDX ; - BAR1.8*23 LIST SELECTED DXs
  NEW BAR1,BAR2,BAR3,BARTMP1
+ I $G(BARY("DX9"))="ALL" W !,"Display all ICD-9 Diagnosis"
+ I $G(BARY("DX10"))="ALL" W !,"Display all ICD-10 Diagnosis"
  F BAR1="DX9","DX10" D
  . F BAR2=1,2,3 I $D(BARY(BAR1,BAR2)) D
- . . W !,"ICD"_$E(BAR1,3,4) ;7/30 P.OTT
- . . ;W !,BAR1
+ . . W !,"ICD"_$E(BAR1,3,4) ;
  . . I BAR2<3 D  Q
  . . . I BAR2=1 W " FROM "
  . . . I BAR2=2 W " TO   "
@@ -456,12 +455,6 @@ SHOWDX ;P.OTT LIST SELECTED DXs
  . . W !,BAR1
  . . W " begins"
  . . S BARDX="" F  S BARDX=$O(BARY(BAR1,BAR2,BARDX)) Q:BARDX=""  W ?12," ",BARDX W !
- I $D(BARY("DXTYPE")) D  ;
- . S BARTMP1=0
- . I $G(BARY("DXTYPE"))="P" S BARTMP1=1
- . I $G(BARY("DXTYPE"))="O" S BARTMP1=2
- . I $G(BARY("DXTYPE"))="A" S BARTMP1=3
- . W !,"Search "_$P("Primary;Primary Only;Other Only;ALL (Primary + Other);",";",BARTMP1+1)_" Diagnosis"
  Q
 DXINFO(BARDX) ;
  NEW BAR2,BAR3,BAR4
@@ -492,3 +485,8 @@ ASKREM() ;
 HAVICD10() ;RETURNS 1 IF ICD10 INSTALLED
  Q $T(+1^ICDEX)]""
  ;---------------------------EOR-------------------
+ ;SHOW(X) ;
+ I 'X Q
+ W !,"Y=",Y,"  X=",X," DTOUT: ",$G(DTOUT)," DUOUT: ",$G(DUOUT)," DIRUT: ",$G(DIRUT)," DIROUT: ",$D(DIROUT),"  $g(barq)=",$G(BARQ)
+ ;S DUOUT=0,DIRUT=0
+ Q

@@ -1,24 +1,30 @@
 BIDX ;IHS/CMI/MWR - RISK FOR FLU & PNEUMO, CHECK FOR DIAGNOSES.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  CHECK FOR DIAGNOSES IN A TAXONOMY RANGE, WITHIN A GIVE DATE RANGE.
  ;;  FROM LORI BUTCHER, 9-18-05
  ;;  PATCH 5: New code to check for Smoking Health Factors.   HFSMKR+23
+ ;;  PATCH 9: Changes to include Hep B Risk.  RISK+9, RISK+41
  ;
  ;
  ;----------
-RISK(BIDFN,BIFDT,BIFOP,BIRISKI,BIRISKP) ;EP Return High Risk Influenza & Pneumo.
+RISK(BIDFN,BIFDT,BIRSK,BIRISKI,BIRISKP,BIRISKH) ;EP Return High Risk Influenza & Pneumo.
  ;---> Determine if this patient is in the Pneumo Risk Taxonomy.
  ;---> Parameters:
  ;     1 - BIDFN   (req) Patient IEN.
  ;     2 - BIFDT   (opt) Forecast Date (date used for forecast).
- ;     3 - BIFOP   (opt) 0=Retrieve both, 1=retrieve Flu only, 2=Pneumo only.
+ ;     3 - BIRSK   (opt) Risk Parameter: 0=none, 1=Hep B only, 2=Pneumo only,
+ ;                       12=Hep B & Pneumo, 23=Pneumo only + Smoking, 123=all.
  ;     4 - BIRISKI (ret) 1=Patient has Risk of Influenza; otherwise 0.
  ;     5 - BIRISKP (ret) 1=Patient has Risk of Pneumo; otherwise 0.
+ ;     6 - BIRISKH (ret) 1=Patient has Risk of HEP B; otherwise 0.
  ;
- S BIRISKI=0,BIRISKP=0
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Seed new BIRISKH variable for Hep B risk.
+ S BIRISKI=0,BIRISKP=0,BIRISKH=0
  S:'$G(BIDUZ2) BIDUZ2=$G(DUZ(2))
- S BIFOP=+$G(BIFOP)
+ S BIRSK=+$G(BIRSK)
  ;
  Q:'$G(BIDFN)
  S:'$G(BIFDT) BIFDT=$G(DT)
@@ -27,26 +33,39 @@ RISK(BIDFN,BIFDT,BIFOP,BIRISKI,BIRISKP) ;EP Return High Risk Influenza & Pneumo.
  ;
  ;---> No High Risk computation under 19 years.
  Q:(BIAGEY<19)
+ N Y
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Comment out Flu code since all ages are forecast for Flu.
+ ;
+ ;---> Check Influenza Risk (2 Flu Dx's over 3-year range).
+ ;---> Flu now forecast for all.
+ ;D:('BIRSK!(BIRSK=1))
+ ;.Q:(BIAGEY>50)
+ ;.S Y=+$$HASDX(BIDFN,"BI HIGH RISK FLU",2,BIBEGDT,BIFDT)
+ ;.S:(Y>0) BIRISKI=1
+ ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Check Hep B Risk (2 Diabetes Dx's from DOB to Forecast Date).
+ D:(BIRSK[1)
+ .Q:(BIAGEY>59)
+ .S Y=+$$V2DM(BIDFN,,BIFDT)
+ .S:Y BIRISKH=1
+ ;**********
  ;
  N BIBEGDT S BIBEGDT=$$FMADD^XLFDT(BIFDT,-(3*365))
  ;
- N Y
- ;---> Check Influenza Risk (2 Flu Dx's over 3-year range).
- D:('BIFOP!(BIFOP=1))
- .Q:(BIAGEY>50)
- .S Y=+$$HASDX(BIDFN,"BI HIGH RISK FLU",2,BIBEGDT,BIFDT)
- .S:(Y>0) BIRISKI=1
- ;
  ;---> Check Pneumo Risk (2 Pneumo Dx's over 3-year range).
- D:('BIFOP!(BIFOP=2))
+ D:(BIRSK[2)
  .Q:(BIAGEY>64)
  .S Y=+$$HASDX(BIDFN,"BI HIGH RISK PNEUMO",2,BIBEGDT,BIFDT)
- .I (Y>0) S BIRISKP=1 Q
+ .I Y S BIRISKP=1 Q
  .;
  .;---> Quit if site parameter says don't include Smoking.
- .Q:($$RISKP^BIUTL2(BIDUZ2)'=3)
+ .Q:(BIRSK'[3)
  .S Y=+$$HASDX(BIDFN,"BI HIGH RISK PNEUMO W/SMOKING",2,BIBEGDT,BIFDT)
- .I (Y>0) S BIRISKP=1 Q
+ .I Y S BIRISKP=1 Q
  .;
  .;---> Check for Smoking Health Factor in the last 2 years.
  .S BIRISKP=$$HFSMKR(BIDFN,BIFDT)
@@ -112,24 +131,7 @@ HFSMKR(BIDFN,BIFDT) ;EP
  ;     1 - BIDFN   (req) Patient's IEN (DFN).
  ;     2 - BIFDT   (req) Forecast Date (date used for forecast).
  ;
- ;---> Return 0 if routine APCHSMU is not in the namespace.
- ;Q:('$L($T(^APCHSMU))) 0
- ;
- ;---> Return 0 if patient does not have these Health Factors.
- ;N Y S Y=$$LASTHF^APCHSMU(BIDFN,"TOBACCO (SMOKING)","N")
- ;Q:((Y'["CURRENT SMOKER")&(Y'["CURRENT SMOKELESS")&(Y'["TOBACCO READINESS TO QUIT")) 0
- ;
- ;S Y=$$LASTHF^APCHSMU(BIDFN,"TOBACCO","D")
- ;Q:'Y 0  Q:'$G(DT) 0
- ;
- ;---> Return 0 if Smoker Health Factor is more than 2 years old.
- ;Q:($$FMDIFF^XLFDT(BIFDT,Y)>730) 0
- ;
- ;---> Patient has SMOKER Health Factor in last 2 years.
- ;Q 1
- ;
  ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
- ;---> All above old code is commented out by this patch.
  ;---> New code to check for Smoking Health Factors.
  ;
  ;---> Return 0 if routine APCLAPIU is not in the namespace.
@@ -155,6 +157,35 @@ HFSMKR(BIDFN,BIFDT) ;EP
  Q 0
  ;**********
  ;
+ ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> New code from Lori Butcher to check for Diabetes (rtn: CIMZDMCK).
+V2DM(P,BDATE,EDATE) ;EP - are there 2 visits with DM?
+ ;P is Patient DFN
+ ;BDATE  - beginning date to look default is DOB
+ ;EDATE - end date to look default is DT
+ I '$G(P) Q ""
+ I '$D(^AUPNVSIT("AC",P)) Q ""  ;patient has no visits
+ I '$G(BDATE) S BDATE=$$DOB^AUPNPAT(P)
+ I '$G(EDATE) S EDATE=DT
+ NEW A,T,X,G,D,V
+ K ^TMP($J,"A")
+ S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(B,A)
+ I '$D(^TMP($J,"A",1)) Q ""  ;no visits returned
+ S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
+ I 'T Q ""
+ S (X,G)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G>2)  S V=$P(^TMP($J,"A",X),U,5) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$P(^AUPNVSIT(V,0),U,9)  ;0 DEPENDENT ENTRIES
+ .Q:$P(^AUPNVSIT(V,0),U,11)  ;DELETED VISIT
+ .Q:"SAHOR"'[$P(^AUPNVSIT(V,0),U,7)  ;ELIMINATE TELEPHONE CALLS, CHART REVIEWS, ETC
+ .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U) I $$ICD^ATXCHK(%,T,9) S D=1
+ .Q:'D
+ .S G=G+1
+ .Q
+ ;Q 1  ;for testing a positive hit on Diabetes.
+ Q $S(G<2:"",1:1)
+ ;**********
  ;
  ;----------
 TEST ;

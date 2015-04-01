@@ -1,8 +1,9 @@
 BIPATVW1 ;IHS/CMI/MWR - BUILD LIST ARRAY OF IMM DATA; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  BUILD LISTMANAGER ARRAY FOR DISPLAY AND EDIT OF
  ;;  PATIENT'S IMMUNIZATION DATA.
+ ;;  PATCH 8: Changes for Invalid Doese from TCH Forecaster  HISTORY+55,+81
  ;
  ;
  ;----------
@@ -91,6 +92,7 @@ HISTORY(BIDFN,BIPDSS,BILMAX,BIENT) ;EP
  ;       Immunizations for this patient (sub BIDFN for insurance).
  ;
  S BIHX(BIDFN)=$P(BIRETVAL,BI31,1)
+ ;X ^O
  ;
  ;---> Build Listmanager array from BIHX(BIDFN) string.
  K ^TMP("BILMVW",$J)
@@ -117,6 +119,10 @@ HISTORY(BIDFN,BIPDSS,BILMAX,BIENT) ;EP
  ..N A,BIPDSSA S A="  ",BIPDSSA=0
  ..D
  ...I $P(Y,V,16) S A=" *" Q
+ ...;
+ ...;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ...;---> For now just flag invalid by V Imm IEN (not by component CVX).
+ ...;W !!,Y,!!,$P(Y,V,18),!,BIPDSS,! R ZZZ
  ...I $$PDSS^BIUTL8($P(Y,V,4),$P(Y,V,18),BIPDSS) S A=" *",BIPDSSA=1
  ..S X=X_A_$P(Y,V,2)
  ..;
@@ -139,7 +145,12 @@ HISTORY(BIDFN,BIPDSS,BILMAX,BIENT) ;EP
  ..;
  ..;---> If this is a Problem Dose by ImmServe, set another line to display it.
  ..D:$G(BIPDSSA)
- ...S X="               -INVALID--SEE IMMSERVE-"
+ ...;
+ ...;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
+ ...;---> Change text.
+ ...;S X="               -INVALID--SEE IMMSERVE-"
+ ...S X="               -INVALID--SEE REPORT-"
+ ...;**********
  ...;---> Pad Result with trailing spaces to justify columns.
  ...D WRITE(.BILINE,$$PAD^BIUTL5(X,43)_"|",,BIENT)
  ..;
@@ -227,6 +238,9 @@ FORECAST(BIFORCST,BIRMAX) ;EP
  ;---> If there is NO fatal error, then process forecast string.
  ;---> Set BIFORC=to an Immunization Forecast for this patient.
  N BIFORC,BIPC S BIFORC=$P(BIFORCST,BI31,1)
+ ;
+ ;---> Sample code to insert forecaster version in to Patient View screen.
+ ;S BIFORC=BIFORC_"|       TCH v3.7.1^"
  ;
  ;---> Build Listmanager array from BIFORC string.
  ;---> For each piece of the Forecast, format and set in Listman.

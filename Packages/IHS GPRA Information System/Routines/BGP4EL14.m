@@ -1,5 +1,5 @@
 BGP4EL14 ; IHS/CMI/LAB - print ind 1 ;
- ;;14.0;IHS CLINICAL REPORTING;;NOV 14, 2013;Build 101
+ ;;14.1;IHS CLINICAL REPORTING;;MAY 29, 2014;Build 114
  ;
  ;
 I1AGE ;EP  special age tallies
@@ -81,13 +81,13 @@ I1AGEP ;
  S T=28 F X=1:1:4 S V=$P(BGPDAC(X),U,6) W ?T,$$C(V,0,6) S T=T+12
  W !,"% w/LDL <130"
  S T=27 F X=1:1:4 S V=$P(BGPDAC(X),U,7) W ?T,$J(V,6,1) S T=T+12
- W !!,"A. # w/LDL =<100"
+ W !!,"A. # w/LDL <100"
  S T=28 F X=1:1:4 S V=$P(BGPDAC(X),U,8) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/LDL =<100"
+ W !,"% w/LDL <100"
  S T=27 F X=1:1:4 S V=$P(BGPDAC(X),U,9) W ?T,$J(V,6,1) S T=T+12
- W !!,"B. # w/LDL 101-129"
+ W !!,"B. # w/LDL 100-129"
  S T=28 F X=1:1:4 S V=$P(BGPDAC(X),U,10) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/LDL 101-129"
+ W !,"% w/LDL 100-129"
  S T=27 F X=1:1:4 S V=$P(BGPDAC(X),U,11) W ?T,$J(V,6,1) S T=T+12
 PR ; 
  D HEADER^BGP4DPH Q:BGPQUIT  W !,^BGPELIJ(BGPIC,53,1,0) D H3
@@ -102,13 +102,13 @@ PR ;
  S T=28 F X=1:1:4 S V=$P(BGPDAP(X),U,6) W ?T,$$C(V,0,6) S T=T+12
  W !,"% w/LDL <130"
  S T=27 F X=1:1:4 S V=$P(BGPDAP(X),U,7) W ?T,$J(V,6,1) S T=T+12
- W !!,"A. # w/LDL =<100"
+ W !!,"A. # w/LDL <100"
  S T=28 F X=1:1:4 S V=$P(BGPDAP(X),U,8) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/LDL =<100"
+ W !,"% w/LDL <100"
  S T=27 F X=1:1:4 S V=$P(BGPDAP(X),U,9) W ?T,$J(V,6,1) S T=T+12
- W !!,"B. # w/LDL 101-129"
+ W !!,"B. # w/LDL 100-129"
  S T=28 F X=1:1:4 S V=$P(BGPDAP(X),U,10) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/LDL 101-129"
+ W !,"% w/LDL 100-129"
  S T=27 F X=1:1:4 S V=$P(BGPDAP(X),U,11) W ?T,$J(V,6,1) S T=T+12
  ;percentage changes
  W !!,"CHANGE FROM PREV YR %"
@@ -116,9 +116,9 @@ PR ;
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAP(X),U,5) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
  W !,"w/LDL <130"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,7),O=$P(BGPDAP(X),U,7) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
- W !,"A. # w/LDL =<100"
+ W !,"A. # w/LDL <100"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,9),O=$P(BGPDAP(X),U,9) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
- W !,"B. # w/LDL 101-129"
+ W !,"B. # w/LDL 100-129"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,11),O=$P(BGPDAP(X),U,11) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
 BL ;
  D HEADER^BGP4DPH Q:BGPQUIT  W !,^BGPELIJ(BGPIC,53,1,0) D H3
@@ -133,13 +133,13 @@ BL ;
  S T=28 F X=1:1:4 S V=$P(BGPDAB(X),U,6) W ?T,$$C(V,0,6) S T=T+12
  W !,"% w/LDL <130"
  S T=27 F X=1:1:4 S V=$P(BGPDAB(X),U,7) W ?T,$J(V,6,1) S T=T+12
- W !!,"A. # w/LDL =<100"
+ W !!,"A. # w/LDL <100"
  S T=28 F X=1:1:4 S V=$P(BGPDAB(X),U,8) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/LDL =<100"
+ W !,"% w/LDL <100"
  S T=27 F X=1:1:4 S V=$P(BGPDAB(X),U,9) W ?T,$J(V,6,1) S T=T+12
- W !!,"B. # w/LDL 101-129"
+ W !!,"B. # w/LDL 100-129"
  S T=28 F X=1:1:4 S V=$P(BGPDAB(X),U,10) W ?T,$$C(V,0,6) S T=T+12
- W !,"% w/LDL 101-129"
+ W !,"% w/LDL 100-129"
  S T=27 F X=1:1:4 S V=$P(BGPDAB(X),U,11) W ?T,$J(V,6,1) S T=T+12
  ;percentage changes
  W !!,"CHANGE FROM BASE YR %"
@@ -147,9 +147,9 @@ BL ;
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAB(X),U,5) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
  W !,"w/LDL <130"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,7),O=$P(BGPDAB(X),U,7) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
- W !,"A. # w/LDL =<100"
+ W !,"A. # w/LDL <100"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,9),O=$P(BGPDAB(X),U,9) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
- W !,"B. # w/LDL 101-129"
+ W !,"B. # w/LDL 100-129"
  S T=27 F X=1:1:4 S N=$P(BGPDAC(X),U,11),O=$P(BGPDAB(X),U,11) W ?T,$J($FN((N-O),"+,",1),6) S T=T+12
  Q
 CTR(X,Y) ;EP - Center X in a field Y wide.

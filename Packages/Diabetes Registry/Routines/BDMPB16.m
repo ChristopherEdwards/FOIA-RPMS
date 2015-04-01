@@ -1,5 +1,5 @@
 BDMPB16 ; IHS/CMI/LAB - 2003 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**7**;JUN 14, 2007;Build 24
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**7,8**;JUN 14, 2007;Build 53
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in TOBACCO1
  ;
@@ -151,8 +151,8 @@ TOBACCO3 ;lookup in health status
 TOBACCO1 ;check problem file for tobacco use
  K BDM S X=P_"^PROBLEMS [DM AUDIT PROBLEM SMOKING DXS" S E=$$START1^APCLDF(X,"BDM(") Q:E  I $D(BDM(1)) D
  . ;I $P(^ICD9($P(BDM(1),U,2),0),U,1)=305.13 S BDMTOB="2  Not a Current User"_" - "_$E($P(^AUTNPOV($P(^AUPNPROB(+$P(BDM(1),U,4),0),U,5),0),U),1,30) Q  ;cmi/anch/maw 9/10/2007 orig line
- . I $P($$ICDDX^ICDCODE($P(BDM(1),U,2)),U,2)=305.13 S BDMTOB="2  Not a Current User"_" - "_$E($P(^AUTNPOV($P(^AUPNPROB(+$P(BDM(1),U,4),0),U,5),0),U),1,30) Q  ;cmi/anch/maw 9/12/2007 csv
- . S BDMTOB="1  Current user - "_$E($P(^AUTNPOV($P(^AUPNPROB(+$P(BDM(1),U,4),0),U,5),0),U),1,30)
+ . I $P($$ICDDX^BDMUTL($P(BDM(1),U,2)),U,2)=305.13 S BDMTOB="2  Not a Current User"_" - "_$E($$VAL^XBDIQ1(9000011,+$P(BDM(1),U,4),.05),1,30) Q  ;cmi/anch/maw 9/12/2007 csv
+ . S BDMTOB="1  Current user - "_$E($$VAL^XBDIQ1(9000011,+$P(BDM(1),U,4),.05),1,30)
  .Q
  Q
 TOBACCO2 ;check pov file for TOBACCO USE DOC
@@ -160,8 +160,8 @@ TOBACCO2 ;check pov file for TOBACCO USE DOC
  S %DT="P",X=EDATE D ^%DT S D=Y
  NEW BDATE S BDATE=$$FMADD^XLFDT(D,-365),BDATE=$$FMTE^XLFDT(BDATE)
  K BDM S X=P_"^LAST DX [DM AUDIT SMOKING RELATED DXS;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(") Q:E  I $D(BDM(1)) D
- . I $P(BDM(1),U,2)=305.13 S BDMTOB="2  Not a Current User"_" - "_$E($P(^AUTNPOV($P(^AUPNVPOV(+$P(BDM(1),U,4),0),U,4),0),U),1,30) Q
- . S BDMTOB="1  Current user"_" - "_$E($P(^AUTNPOV($P(^AUPNVPOV(+$P(BDM(1),U,4),0),U,4),0),U),1,30)
+ . I $P(BDM(1),U,2)=305.13 S BDMTOB="2  Not a Current User"_" - "_$E($$VAL^XBDIQ1(9000010.07,+$P(BDM(1),U,4),.04),1,30) Q
+ . S BDMTOB="1  Current user"_" - "_$E($$VAL^XBDIQ1(9000010.07,+$P(BDM(1),U,4),.04),1,30)
  .Q
  Q
  ;

@@ -1,10 +1,10 @@
 BGPMUAP3 ; IHS/MSC/MGH - MU EP  measures NQF0055 and NQF0056 ;05-Jul-2011 11:28;DU
- ;;11.1;IHS CLINICAL REPORTING SYSTEM;**1**;JUN 27, 2011;Build 106
+ ;;14.1;IHS CLINICAL REPORTING;**1**;MAY 29, 2014;Build 2
  ;This rouine does the printed output of these 2 EP measures
  ;Get printout for diabetic eye exam
 EYE ;EP
  D P1
- K ^TMP("BGPMU0055")
+ K ^TMP("BGPMU0055",$J)
  Q
 P1 ;Write individual measure
  N X,Y,Z,LIST1,LIST2,LIST3
@@ -150,7 +150,7 @@ DATA2(NODE) ;GET DATA
  ;Get printout for Diabetic foot measure
 FOOT ;EP
  D FT1
- K ^TMP("BGPMU0056")
+ K ^TMP("BGPMU0056",$J)
  Q
 FT1 ;Write individual measure
  N X,Y,Z,DEN,NUM,PC,STRING1,STRING2,PRD,PRD2,PRN,PRN1,PRN2,PRD1,PRD3,PRN3

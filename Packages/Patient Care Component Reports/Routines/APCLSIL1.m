@@ -1,8 +1,24 @@
 APCLSIL1 ;IHS/CMI/LAB - ILI SURVEILLANCE; 
- ;;3.0;IHS PCC REPORTS;**24,25,26,27,28**;FEB 05, 1997
+ ;;3.0;IHS PCC REPORTS;**24,25,26,27,28,29**;FEB 05, 1997;Build 35
  ;
+WT(V) ;EP - get last wt
+ NEW X,Y,Z
+ S Y=""
+ S X=0 F  S X=$O(^AUPNVMSR("AD",V,X)) Q:X'=+X  D
+ .Q:$P($G(^AUPNVMSR(X,2)),U,1)  ;ENTERED IN ERROR
+ .Q:$$VAL^XBDIQ1(9000010.01,X,.01)'="WT"
+ .S Y=$P(^AUPNVMSR(X,0),U,4)
+ Q Y
+HT(V) ;EP - get last wt
+ NEW X,Y,Z
+ S Y=""
+ S X=0 F  S X=$O(^AUPNVMSR("AD",V,X)) Q:X'=+X  D
+ .Q:$P($G(^AUPNVMSR(X,2)),U,1)  ;ENTERED IN ERROR
+ .Q:$$VAL^XBDIQ1(9000010.01,X,.01)'="HT"
+ .S Y=$P(^AUPNVMSR(X,0),U,4)
+ Q Y
 HASADVN6(APCLV) ;EP - PATCH 27 - if return 1 then count visit and put pieces 2 through n in columns 66 through 75
- NEW X,P,Y,Z,APCLCLIN,T,G,C,D,CLNTAX
+ NEW X,P,Y,Z,APCLCLIN,T,G,C,D,CLNTAX,E
  S CLNTAX=$O(^ATXAX("B","SURVEILLANCE ILI CLINICS",0))
  I "AORSH"'[$P(^AUPNVSIT(APCLV,0),U,7) Q ""
  S APCLCLIN=$$CLINIC^APCLV(APCLV,"I")  ;get clinic code
@@ -37,8 +53,7 @@ HASADN61 ;
 SET6 ;
  S C=C+1,P1=P1+1,P2=P2+1
  S $P(D,",",P1)=$$VAL^XBDIQ1(9000010.07,X,.01)
- ;S $P(D,",",P2)=$$JDATE^APCLSIL2($$VD^APCLV(APCLV))
- S $P(E,",",P1)=$$JDATE^APCLSIL2($$VD^APCLV(APCLV))
+ S $P(E,",",P1)=$$VD^APCLV(APCLV)
  Q
 OTHVAC(P,VD) ;EP - get all vaccine history up to this visit date
  NEW C,X,Y,V,G,Z,R,P1,P2
@@ -55,7 +70,7 @@ OTHVAC(P,VD) ;EP - get all vaccine history up to this visit date
  .S Z=$P(^AUTTIMM(Y,0),U,3)
  .S C=C+1,P1=P1+2,P2=P2+2
  .S $P(R,",",P1)=Z
- .S $P(R,",",P2)=$$JDATE^APCLSIL2(V)
+ .S $P(R,",",P2)=V
  .Q
  Q R
 PN(P,V) ;EP
@@ -167,11 +182,17 @@ MONUP ;EP
  .F P=2:1:4 S ^APCLDATA($J,C)=^APCLDATA($J,C)_","_+$P(APCLUP(X),U,P)
  .F P=2:1:4 S ^APCLDATA($J,C)=^APCLDATA($J,C)_","_+$P(APCLAC(X),U,P)
  ;
+ S ^APCLDATA($J,0)=$P($G(^AUTTLOC(DUZ(2),1)),U,3)_","_(C+1)  ;COUNTS HEADER RECORD
  N XBGL,XBQ,XBQTO,XBNAR,XBMED,XBFLT,XBUF,XBFN
  S XBGL="APCLDATA",XBMED="F",XBQ="N",XBFLT=1,XBF=$J,XBE=$J
  S XBNAR="ILI SURVEILLANCE EXPORT-POPULATION"
  S APCLASU=$P($G(^AUTTLOC($P(^AUTTSITE(1,0),U),0)),U,10)  ;asufac for file name
- S XBFN="FLUPOP_"_APCLASU_"_"_$$DATE^APCLSILI(DT)_".txt"
+ ;S XBFN="FLUPOP_"_APCLASU_"_"_$$DATE^APCLSILI(DT)_".txt"
+ NEW TST
+ S TST=0
+ ;I '$$PROD^XUPROD() S TST=1
+ I $P($G(^APCLILIC(1,0)),U,5)="T" S TST=1
+ S (XBFN,APCLDFN)=$S(TST:"FLZPOP",$G(APCLFLF):"FLFPOP",1:"FLUPOP")_"_"_APCLASU_"_"_$$DATE^APCLSILI(DT)_"_P29.txt"
  S XBS1="SURVEILLANCE ILI SEND"
  ;
  D ^XBGSAVE

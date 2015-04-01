@@ -1,5 +1,5 @@
 AMHUTIL ; IHS/CMI/LAB - UTILITIES ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
  ;
 GUIPL(P,R,Z) ;EP - called from GUI for patient lookup
  I '$G(P) Q 0
@@ -11,7 +11,7 @@ GUIPL(P,R,Z) ;EP - called from GUI for patient lookup
  ;they should log in to the site they want the patient from
  I '$D(^AUPNPAT(P,41,Z,0)) Q 0
  I $P($G(^AUPNPAT(P,41,Z,0)),U,2)="" Q 0
- I $P(^AUPNPAT(P,41,Z,0),U,3) Q 0  ;inactive chart
+ I $P(^AUPNPAT(P,41,Z,0),U,3) Q 0
  ;now do the UU junk
  Q $$ALLOWP(R,P)
  ;
@@ -55,7 +55,6 @@ ALLOWSDE(P,R) ;EP - is user allowed to see this visit based on "SDE" logic
  Q 0
  ;
 ALLOWPCC(P,V) ;EP - is user P allowed to see VISIT V
- ;P - DUZ, user internal entry number
  I '$G(P) Q 0
  I '$G(V) Q 0
  I '$D(^AMHBHUSR(P,0)) Q $$PCCSDE(P,V)     ;user is not in BH User file so allow
@@ -129,7 +128,7 @@ DBHUSRP ;EP - note to user
  S X=0 F  S X=$O(^AMHBHUSR(DUZ,11,X)) Q:X'=+X  D EN^DDIOL($P(^DIC(4,X,0),U),,"!?15")
  D EN^DDIOL("",,"!")
  Q
-ACTPROV(Y) ;EP called from data dictionary fields
+ACTPROV(Y) ;EP called from data dictionary
  NEW D S D=""
  I '$D(^VA(200,"AK.PROVIDER",$P(^VA(200,Y,0),U),Y)) Q 0  ;not a provider - no provider key
  S D=$S($G(AMHDATE)]"":$P(AMHDATE,"."),1:"")
@@ -223,9 +222,11 @@ ICDN(CIM) ;EP
  NEW X,Y,Z
  S Z=$P(^AMHPROB(CIM,0),U,5)
  I Z="" Q ""
- S X=+$$CODEN^ICDCODE(Z,80)
+ I $T(ICDDX^ICDEX)="" S X=+$$CODEN^ICDCODE(Z,80)
+ I $T(ICDDX^ICDEX)]"" S X=+$$CODEN^ICDEX(Z,80)
  I 'X!(X=-1) Q ""
- S Y=$E($P($$ICDDX^ICDCODE(X),U,4),1,25)
+ I $T(ICDDX^ICDEX)="" S Y=$E($P($$ICDDX^ICDCODE(X),U,4),1,25)
+ I $T(ICDDX^ICDEX)]"" S Y=$E($P($$ICDDX^ICDEX(X),U,4),1,25)
  Q Y
 DATE(D) ;EP - return YYYYMMDD from internal fm format
  I $G(D)="" Q ""
@@ -283,7 +284,7 @@ SECPROV(V,N,F) ;EP
  I '$D(^AUPNVSIT(V)) Q ""
  I '$G(N) Q ""
  NEW %,Y,P,Z
- S P="",(C,Y)=0 F  S Y=$O(^AMHRPROV("AD",V,Y)) Q:Y'=+Y  I $P(^AMHRPROV(Y,0),U,4)'="P" S C=C+1 I C=N S P=$P(^AMHRPROV(Y,0),U),Z=Y  ;IHS/TUCSON/LAB - patch 1
+ S P="",(C,Y)=0 F  S Y=$O(^AMHRPROV("AD",V,Y)) Q:Y'=+Y  I $P(^AMHRPROV(Y,0),U,4)'="P" S C=C+1 I C=N S P=$P(^AMHRPROV(Y,0),U),Z=Y
  I 'P Q P
  I '$D(^VA(200,P)) Q ""
  I $G(F)="" S F="N"
@@ -325,7 +326,6 @@ SUB(SFIEN) ;EP
  Q Y
 CONTRIB(SFIEN) ;EP
  I '$G(SFIEN) Q ""
- ;return cont^cont
  NEW X,Y,Z,C
  S C=0,X=0,Y="" F  S X=$O(^AMHPSUIC(SFIEN,13,X)) Q:X'=+X  D
  .S C=C+1,Z=$P(^AMHPSUIC(SFIEN,13,X,0),U) I Z S Z=$P(^AMHTSCF(Z,0),U) S $P(Y,U,C)=Z

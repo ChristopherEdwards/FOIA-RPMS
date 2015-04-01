@@ -1,5 +1,5 @@
 ACHSACO ; IHS/ITSC/PMF - AREA CONSOLIDATION (1/3) ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,11,13,18,19,21**;JUN 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,11,13,18,19,21**;JUN 11,2001;Build 13
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - Clarified error message.
  ;IHS/SET/JVK ACHS*3.1*11 Add check for area to test ACHS version
  ; added a call to %ZISC in tag S15 - 10/5/00 - pmf

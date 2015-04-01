@@ -1,5 +1,5 @@
 ACHS ;IHS/ITSC/PMF - CHS SUB-ROUTINES ; [ 01/18/2005  1:14 PM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**2,4,5,7,12,17,18**;JUNE 11,2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**2,4,5,7,12,17,18,22**;JUNE 11,2001;Build 13
  ;
 AD(P) ;EP - Pth piece of AREA DIR info
  Q $P($G(^ACHSDENR(DUZ(2),200)),U,P)
@@ -14,15 +14,15 @@ ASF(F) ;EP - Ret ASUFAC given DUZ(2)
  Q:'F -1
  S F=$P($G(^AUTTLOC(F,0)),U,10)
  Q:'($L(F)=6) -1
- ;ACHS*3.1*4 3/27/02 pmf allow alpha in ASUFAC
+ ;ACHS*3.1*4 3/27/02 pmf alpha in ASUFAC
  ;Q:'(F?6N) -1  ;ACHS*3.1*4
  I F'?6NA Q -1  ;ACHS*3.1*4
  Q F
-BM ;EP - Set bot mar to ACHSBM
+BM ;EP -Set bot mar to ACHSBM
  S ACHSBM=IOSL-10
  I '$D(IO("S")),'$D(ZTQUEUED),IO=IO(0) S ACHSBM=IOSL-4
  Q
-BRPT ;EP - Stand beg of rpt
+BRPT ;EP -Std beg of rpt
  I $D(ACHSQIO) F  S IOP=ACHSQIO D ^%ZIS Q:'POP  H 30
  D BM,NOW
  S ACHSTIME=$$C^XBFUNC($G(ACHSTIME),80)
@@ -36,7 +36,7 @@ CLEAN(FROM) ;EP fr ACHSAVAR-clean err glb > 90 days
  F  S FROM=$O(^ACHSERR(FROM),-1) Q:FROM=""  D
  .K ^ACHSERR(FROM)
  Q
- ;IF USER-Manager-WARN THEM OF ERR MESS IN ^ACHSERR-CALLED AT THE ENTRY ACT FOR OPT
+ ;IF USER-MGR-WARN ERR MESS IN ^ACHSERR-CALLED AT ENT ACT FOR OPT
 ISMGR(TMPDUZ) ;EP fr opt ACHSMENU
  Q:'$D(^ACHSERR)
  D VIDEO
@@ -48,7 +48,7 @@ ISMGR(TMPDUZ) ;EP fr opt ACHSMENU
  W !!,"Please take a look at global ^ACHSERR"
  W !!!,"Press return to continue..."
  D READ^ACHSFU
- D ISMGRHD      ;HEADER FOR THE ERR MESS FILE
+ D ISMGRHD      ;ERR MESS HEADER
  S %H=""
  F  S %H=$O(^ACHSERR(%H)) Q:%H=""  D
  .D YX^%DTC S NOW=Y
@@ -58,13 +58,13 @@ ISMGR(TMPDUZ) ;EP fr opt ACHSMENU
  D READ^ACHSFU
  K LINE,%H,NOW,KEYNUM
  Q
- ;HDER FOR ABOVE SUB
+ ;HDR FOR ABOVE SUB
 ISMGRHD ;EP
  W @IOF
  W !,"DATE",?15,"TIME",?25,"MESSAGE"
  W !,LINE
  Q
-CLOSEALL ;EP - Close all HFS dev
+CLOSEALL ;EP -Close all HFS dev
  S ACHS=""
  F  S ACHS=$O(IO(1,ACHS)) Q:'ACHS  S IO=ACHS D ^%ZISC
  Q
@@ -194,7 +194,8 @@ STATUSLN ;
  ;S DX=0,DY=IOSL-1
  S JOB=$J
  X ^%ZOSF("UCI")   ;GET CURRENT UCI,VOL
- S MYLINE="Device: "_$G(IO)_" Job no.: "_JOB_"  Unix Device: "_$G(IO("ZIO"))_"  [UCI,VOL]: "_Y
+ ;S MYLINE="Device: "_$G(IO)_" Job no.: "_JOB_"  Unix Device: "_$G(IO("ZIO"))_"  [UCI,VOL]: "_Y ;ACHS*3.1*22
+ S MYLINE="Device: "_$G(IO)_" Job no.: "_JOB_"  "_$S($$OS^ACHS=2:"Windows",1:"Unix")_" Device: "_$G(IO("ZIO"))_"  [UCI,VOL]: "_Y  ;ACHS*3.1*22
  D PREP^XGF
  D SAY^XGF(1,1,MYLINE,"R1")
  D CLEAN^XGF

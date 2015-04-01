@@ -1,5 +1,5 @@
 BDMPA13 ; IHS/CMI/LAB - 2003 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**6**;JUN 14, 2007;Build 6
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**6,8**;JUN 14, 2007;Build 53
  ;LORI - ADD V04,81
  ;
  ;cmi/anch/maw 9/12/2007 code set versioning in PLDMDXS,IFG,IGT,MS,ABNG
@@ -86,7 +86,7 @@ PLDMDXS(P) ;EP - get all DM dxs from problem list
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .;I $$ICD^ATXCHK(I,T,9) S:D]"" D=D_";" S D=D_$P(^ICD9(I,0),U)  ;cmi/anch/maw 9/12/2007 orig line
- .I $$ICD^ATXCHK(I,T,9) S:D]"" D=D_";" S D=D_$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .I $$ICD^ATXCHK(I,T,9) S:D]"" D=D_";" S D=D_$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
  .Q
  Q D
  ;
@@ -118,7 +118,7 @@ IFG(P,BDMRET) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .S I=$P($$ICDDX^ICDCODE(I),U,2)
+ .S I=$P($$ICDDX^BDMUTL(I),U,2)
  .Q:I'="790.21"
  .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_I_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
  .Q
@@ -140,7 +140,7 @@ IGT(P,BDMRET) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .S I=$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .S I=$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
  .Q:I'="790.22"
  .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_I_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
  .Q
@@ -162,7 +162,7 @@ MS(P,BDMRET) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .S I=$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .S I=$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
  .Q:I'="277.7"
  .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_I_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
  .Q
@@ -183,7 +183,7 @@ ABNG(P,BDMRET) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
- .S I=$P($$ICDDX^ICDCODE(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ .S I=$P($$ICDDX^BDMUTL(I),U,2)  ;cmi/anch/maw 9/12/2007 csv
  .Q:I'="790.29"
  .S BDMC=BDMC+1,BDMRET(BDMC)="Problem List: "_I_"  Date of Onset: "_$$VAL^XBDIQ1(9000011,X,.13)
  .Q

@@ -1,10 +1,11 @@
 BIRPC ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETURNS IMMUNIZATION HISTORY, FORECAST, IMM/SERV PROFILE.
  ;;  PATCH 1: Add API: FORCALL, to allow queued update of all BI Patients.
  ;;  PATCH 3: Add NDC and Elig Codes, plus Date of Event to default Hx string. IMMHX+60
  ;;  PATCH 5: Add Admin Note to default Hx string. IMMHX+60
+ ;;  PATCH 9: Add Date VIS Presented to Patient as piece 26.  IMMHX+65
  ;
  ;
  ;----------
@@ -44,7 +45,7 @@ IMMHX(BIHX,BIDFN,BIDE,BISKIN,BIFMT) ;PEP - Return Immunization History.
  ;---> --- --  ----
  ;--->     1 = Visit Type: "I"=Immunization, "S"=Skin Test.
  ;--->  4  2 = Vaccine Name, Short.
- ;--->  8  3 = Vaccine Components.  ;v8.0
+ ;--->  8  3 = Vaccine Component IEN'S.  ;v8.0
  ;---> 24  4 = IEN, V File Visit.
  ;---> 26  5 = Location (or Outside Location) where Imm was given.
  ;---> 27  6 = Vaccine Group (Series Type) for grouping of vaccines.
@@ -63,20 +64,23 @@ IMMHX(BIHX,BIDFN,BIDE,BISKIN,BIFMT) ;PEP - Return Immunization History.
  ;---> 74 19 = CPT-Coded Visit.
  ;---> 78 20 = Imported from Outside Registry (if = 1).
  ;---> 80 21 = NDC Code pointer IEN.
- ;---> 82 22 = Elilgibility Code Text.
- ;---> 84 23 = NDC Code text.
  ;********** PATCH 3, v8.5, SEP 10,2012, IHS/CMI/MWR
  ;---> Add NDC and Eligibility Codes, plus Date of Event to default Hx string.
- ;---> 85 24 = Date of Event (1201 field of V File) in MM/DD/YY
+ ;---> 82 22 = Elilgibility Code Text.
+ ;---> 84 23 = NDC Code text.
+ ;---> 85 24 = Date of Event/Administer shot (1201 field of V File) in MM/DD/YY
  ;
  ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
  ;---> Add Admin Note to default Hx string.
  ;---> 87 25 = Administrative Note.
  ;
+ ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ ;---> Add Date VIS Presented to Patient (MM/DD/YY).
+ ;---> 90 26 = Date VIS Presented to Patient.
+ ;
  D:'$D(BIDE)
- .;N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78 S BIDE(I)=""
- .;N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78,80,82,84,85 S BIDE(I)=""
- .N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78,80,82,84,85,87 S BIDE(I)=""
+ .;N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78,80,82,84,85,87 S BIDE(I)=""
+ .N I F I=4,8,24,26,27,29,38,39,40,41,42,44,51,61,65,66,69,74,78,80,82,84,85,87,90 S BIDE(I)=""
  ;**********
  N BIMM S BIMM("ALL")=""
  ;
@@ -120,8 +124,8 @@ IMMFORC(BIFORC,BIDFN,BIFDT,BIUPD,BIDUZ2,BIPDSS) ;PEP - Return Immunization Forec
  ;                      Default $G(BIUPD)="", forecast gets updated.
  ;     5 - BIDUZ2 (opt) User's DUZ(2) to indicate Immserve Forecasting
  ;                      Rules in Patient History data string.
- ;     6 - BIPDSS (ret) Returned string of Visit IEN's that are
- ;                      Problem Doses, according to ImmServe.
+ ;     6 - BIPDSS (ret) Returned string of V IMM IEN's that are
+ ;                      Problem Doses, according to TCH.
  ;
  ;---> Define delimiter to pass error and error variable.
  N BI31,BIERR S BI31=$C(31)_$C(31),BIERR=""
