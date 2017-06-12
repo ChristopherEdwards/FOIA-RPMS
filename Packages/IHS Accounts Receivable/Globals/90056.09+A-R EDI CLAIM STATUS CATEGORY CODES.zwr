@@ -1,5 +1,5 @@
 OSEHRA ZGO Export: A/R EDI CLAIM STATUS CATEGORY CODES
-12-JUN-2017 09:47:21 ZWR
+12-JUN-2017 17:08:03 ZWR
 ^BARECSCC(0)="A/R EDI CLAIM STATUS CATEGORY CODES^90056.09^27^27"
 ^BARECSCC(1,0)="A0^Acknowledgement/Forwarded"
 ^BARECSCC(1,1)="The claim/encounter has been forwarded to another entity."

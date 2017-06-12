@@ -1,5 +1,5 @@
 OSEHRA ZGO Export: A/R EDI REMARK CODES
-12-JUN-2017 09:47:21 ZWR
+12-JUN-2017 17:08:03 ZWR
 ^BARMKCD(0)="A/R EDI REMARK CODES^90056.23I^490^490"
 ^BARMKCD(1,0)="M1^X-ray not taken within the past 12 months or near enough to start of treatment  "
 ^BARMKCD(1,1,0)="^^2^2^3040219"
